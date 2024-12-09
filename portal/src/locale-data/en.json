@@ -1552,6 +1552,7 @@
   "FeatureConfig.collaborator.contact-us": "Your plan only include {maximum, plural, one{1 member seat} other{# member seats}}, {ExternalLink, react, href{{contactUsHref}} children{contact us to upgrade} target{_blank}}",
   "FeatureConfig.web3-nft.maximum": "You can index {maximum, plural, one{1 collection} other{# collections}} max. {ReactRouterLink, react, to{{planPagePath}} children{Upgrade your project plan} target{_blank}} to add more",
   "FeatureConfig.edit-template.disabled": "{ReactRouterLink, react, to{{planPagePath}} children{Upgrade your project plan} target{_blank}} to change the templates.",
+  "FeatureConfig.custom-smtp.disabled": "Custom email provider is not available for your project plan. {ReactRouterLink, react, to{{planPagePath}} children{Upgrade your project plan} target{_blank}}.",
   "SubscriptionCurrentPlanSummary.title.known-plan": "Current Plan: {name} {expiredAt, select, false{(${amount}/mo)} other{(Expire at: {expiredAt})}}",
   "SubscriptionCurrentPlanSummary.title.custom-plan": "Custom Plan: {name}",
   "SubscriptionCurrentPlanSummary.label.free": "Free",

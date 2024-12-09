@@ -56,7 +56,7 @@ export default function BlueMessageBar(
   );
 
   return (
-    <ThemeProvider theme={newTheme}>
+    <ThemeProvider as={React.Fragment} theme={newTheme}>
       <MessageBar styles={styles} {...rest} />
     </ThemeProvider>
   );
