@@ -100,6 +100,10 @@ messaging:
     enabled: false
   whatsapp_usage:
     enabled: false
+  sms_usage_count_disabled: false
+  whatsapp_usage_count_disabled: false
+  template_customization_disabled: false
+  custom_smtp_disabled: false
 collaborator: {}
 web3:
   nft:
