@@ -16,6 +16,7 @@ type AbstractObjectStoreConfig struct {
 	AWSS3            AWSS3ObjectStoreConfig            `envconfig:"AWS_S3"`
 	GCPGCS           GCPGCSObjectStoreConfig           `envconfig:"GCP_GCS"`
 	AzureBlobStorage AzureBlobStorageObjectStoreConfig `envconfig:"AZURE_BLOB_STORAGE"`
+	MinIO            MinIOObjectStoreConfig            `envconfig:"MINIO"`
 }
 
 func (c *AbstractObjectStoreConfig) Initialize(ctx *validation.Context) {
@@ -28,6 +29,8 @@ func (c *AbstractObjectStoreConfig) Initialize(ctx *validation.Context) {
 		c.GCPGCS.Initialize(ctx.Child("GCP_GCS"))
 	case ObjectStoreTypeAzureBlobStorage:
 		c.AzureBlobStorage.Initialize(ctx.Child("AZURE_BLOB_STORAGE"))
+	case ObjectStoreTypeMinIO:
+		c.MinIO.Initialize(ctx.Child("MINIO"))
 	default:
 		ctx.Child("TYPE").EmitErrorMessage(fmt.Sprintf("invalid object store type: %v", c.Type))
 	}
@@ -43,6 +46,8 @@ func (c *AbstractObjectStoreConfig) Validate(ctx *validation.Context) {
 		c.GCPGCS.Validate(ctx.Child("GCP_GCS"))
 	case ObjectStoreTypeAzureBlobStorage:
 		c.AzureBlobStorage.Validate(ctx.Child("AZURE_BLOB_STORAGE"))
+	case ObjectStoreTypeMinIO:
+		c.MinIO.Validate(ctx.Child("MINIO"))
 	default:
 		ctx.Child("TYPE").EmitErrorMessage(fmt.Sprintf("invalid object store type: %v", c.Type))
 	}
@@ -54,6 +59,7 @@ const (
 	ObjectStoreTypeAWSS3            ObjectStoreType = "AWS_S3"
 	ObjectStoreTypeGCPGCS           ObjectStoreType = "GCP_GCS"
 	ObjectStoreTypeAzureBlobStorage ObjectStoreType = "AZURE_BLOB_STORAGE"
+	ObjectStoreTypeMinIO            ObjectStoreType = "MINIO"
 )
 
 type AWSS3ObjectStoreConfig struct {
@@ -148,5 +154,30 @@ func (c *AzureBlobStorageObjectStoreConfig) Validate(ctx *validation.Context) {
 	}
 	if c.AccessKey == "" {
 		ctx.Child("ACCESS_KEY").EmitErrorMessage("access key must be set")
+	}
+}
+
+type MinIOObjectStoreConfig struct {
+	Endpoint        string `envconfig:"ENDPOINT"`
+	BucketName      string `envconfig:"BUCKET_NAME"`
+	AccessKeyID     string `envconfig:"ACCESS_KEY_ID"`
+	SecretAccessKey string `envconfig:"SECRET_ACCESS_KEY"`
+}
+
+func (c *MinIOObjectStoreConfig) Initialize(ctx *validation.Context) {
+}
+
+func (c *MinIOObjectStoreConfig) Validate(ctx *validation.Context) {
+	if c.Endpoint == "" {
+		ctx.Child("ENDPOINT").EmitErrorMessage("endpoint must be set")
+	}
+	if c.BucketName == "" {
+		ctx.Child("BUCKET_NAME").EmitErrorMessage("bucket name must be set")
+	}
+	if c.AccessKeyID == "" {
+		ctx.Child("ACCESS_KEY_ID").EmitErrorMessage("access key id must be set")
+	}
+	if c.SecretAccessKey == "" {
+		ctx.Child("SECRET_ACCESS_KEY").EmitErrorMessage("secret key id must be set")
 	}
 }

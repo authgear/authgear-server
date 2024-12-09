@@ -44,6 +44,17 @@ func NewCloudStorage(objectStoreConfig *imagesconfig.ObjectStoreConfig, c clock.
 			objectStoreConfig.AzureBlobStorage.Container,
 			c,
 		)
+	case config.ObjectStoreTypeMinIO:
+		s, err := cloudstorage.NewMinIOStorage(
+			objectStoreConfig.MinIO.Endpoint,
+			objectStoreConfig.MinIO.BucketName,
+			objectStoreConfig.MinIO.AccessKeyID,
+			objectStoreConfig.MinIO.SecretAccessKey,
+		)
+		if err != nil {
+			panic(err)
+		}
+		return s
 	default:
 		return nil
 	}
