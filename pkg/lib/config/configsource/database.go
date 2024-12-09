@@ -357,6 +357,16 @@ func MakeAppFSFromDatabaseSource(s *DatabaseSource) (resource.Fs, error) {
 	}, nil
 }
 
+func MakePlanFSFromDatabaseSource(s *DatabaseSource) (resource.Fs, error) {
+	planFs := afero.NewBasePathFs(afero.NewMemMapFs(), "/")
+	// TODO
+
+	return &resource.LeveledAferoFs{
+		Fs:      planFs,
+		FsLevel: resource.FsLevelPlan,
+	}, nil
+}
+
 type dbApp struct {
 	appID      string
 	appCtx     *config.AppContext
@@ -387,11 +397,17 @@ func (a *dbApp) doLoad(ctx context.Context, d *Database) (*config.AppContext, er
 			return err
 		}
 
+		planFs, err := MakePlanFSFromDatabaseSource(data)
+		if err != nil {
+			return err
+		}
+
 		appFs, err := MakeAppFSFromDatabaseSource(data)
 		if err != nil {
 			return err
 		}
-		resources := d.BaseResources.Overlay(appFs)
+		resources := d.BaseResources.Overlay(planFs)
+		resources = resources.Overlay(appFs)
 
 		appConfig, err := LoadConfig(resources)
 		if err != nil {

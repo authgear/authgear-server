@@ -49,6 +49,11 @@ type FeatureConfig struct {
 	TestMode         *TestModeFeatureConfig         `json:"test_mode,omitempty"`
 }
 
+func (c *FeatureConfig) Overlay(layers ...*FeatureConfig) *FeatureConfig {
+	// TODO
+	return nil
+}
+
 func ParseFeatureConfig(inputYAML []byte) (*FeatureConfig, error) {
 	jsonData, err := yaml.YAMLToJSON(inputYAML)
 	if err != nil {

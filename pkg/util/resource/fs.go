@@ -27,6 +27,7 @@ type FsLevel int
 const (
 	FsLevelBuiltin FsLevel = iota + 1
 	FsLevelCustom
+	FsLevelPlan
 	FsLevelApp
 )
 
