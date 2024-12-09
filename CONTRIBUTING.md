@@ -2,6 +2,7 @@
   * [Install dependencies](#install-dependencies)
   * [Set up environment](#set-up-environment)
   * [Set up the database](#set-up-the-database)
+  * [Set up MinIO](#setup-minio)
   * [Run](#run)
   * [Create an account for yourselves and grant you access to the portal](#create-an-account-for-yourselves-and-grant-you-access-to-the-portal)
   * [Known issues](#known-issues)
@@ -178,6 +179,20 @@ This project uses asdf, and there is a .tool-versions file at the project root.
    # Run search database migration if you want to use postgresql search implementation
    go run ./cmd/authgear search database migrate up
    ```
+
+## Set up MinIO
+
+```sh
+docker compose up -d minio
+docker compose exec -it bash
+
+# Inside the container
+mc alias set local http://localhost:9000 "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD"
+# Create a bucket named "images"
+mc mb local/images
+# Create a bucket named "userexport"
+mc mb local/userexport
+```
 
 ## Run
 
