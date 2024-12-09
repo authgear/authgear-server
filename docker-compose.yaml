@@ -91,6 +91,30 @@ services:
     ports:
     - "4318:4318"
 
+  minio:
+    image: quay.io/minio/minio:RELEASE.2024-11-07T00-52-20Z
+    command:
+    - "minio"
+    - "server"
+    - "/data"
+    - "--console-address"
+    - ":9001"
+    volumes:
+    - minio_data:/data
+    ports:
+    - "9000:9000"
+    - "9001:9001"
+    environment:
+      # This can be used as access key ID.
+      # But do not do this in production.
+      # See https://min.io/docs/minio/linux/administration/identity-access-management/minio-user-management.html#minio-root-user
+      MINIO_ROOT_USER: "minio"
+      # This must be at least 8 characters
+      # this can be used as secret access key.
+      # But do not do this in production.
+      # See https://min.io/docs/minio/linux/administration/identity-access-management/minio-user-management.html#minio-root-user
+      MINIO_ROOT_PASSWORD: "secretpassword"
+
   ldap:
     profiles: ["ldap"]
     image: bitnami/openldap:2.6
@@ -123,4 +147,6 @@ volumes:
   elasticsearch_data:
     driver: local
   openldap_data:
+    driver: local
+  minio_data:
     driver: local
