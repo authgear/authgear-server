@@ -21,6 +21,21 @@ type Store struct {
 	SQLExecutor *globaldb.SQLExecutor
 }
 
+type StoreFactory func(handle *globaldb.Handle) *Store
+
+func NewStoreFactory(
+	sqlbuilder *globaldb.SQLBuilder,
+) StoreFactory {
+	factory := func(handle *globaldb.Handle) *Store {
+		sqlExecutor := globaldb.NewSQLExecutor(handle)
+		return &Store{
+			SQLBuilder:  sqlbuilder,
+			SQLExecutor: sqlExecutor,
+		}
+	}
+	return factory
+}
+
 func (s *Store) GetPlan(ctx context.Context, name string) (*model.Plan, error) {
 	q := s.selectQuery().Where("name = ?", name)
 	row, err := s.SQLExecutor.QueryRowWith(ctx, q)

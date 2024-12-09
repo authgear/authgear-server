@@ -7,7 +7,8 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(LocalFS), "*"),
 	NewDatabaseLogger,
 	NewDatabaseHandleFactory,
-	NewStoreFactory,
+	NewConfigSourceStoreStoreFactory,
+	NewPlanStoreStoreFactory,
 	wire.Struct(new(Database), "*"),
 	wire.Struct(new(Store), "*"),
 )

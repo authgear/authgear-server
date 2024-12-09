@@ -5,6 +5,7 @@ import (
 )
 
 var DependencySet = wire.NewSet(
+	NewStoreFactory,
 	wire.Struct(new(Store), "*"),
 	wire.Struct(new(Service), "*"),
 )
