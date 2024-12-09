@@ -82,7 +82,7 @@ require (
 	github.com/go-webauthn/webauthn v0.8.6 // indirect
 	github.com/go-webauthn/x v0.1.4 // indirect
 	github.com/goccy/go-json v0.10.3 // indirect
-	github.com/golang-jwt/jwt/v4 v4.5.0 // indirect
+	github.com/golang-jwt/jwt/v4 v4.5.1 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/google/go-tpm v0.9.0 // indirect
 	github.com/google/s2a-go v0.1.8 // indirect
