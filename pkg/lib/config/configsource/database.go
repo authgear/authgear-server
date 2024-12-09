@@ -31,6 +31,7 @@ import (
 
 const PGChannelConfigSourceChange = "config_source_change"
 const PGChannelDomainChange = "domain_change"
+const PGChannelPlanChange = "plan_change"
 
 type DatabaseSource struct {
 	ID        string
@@ -137,6 +138,7 @@ func (d *Database) Open(ctx context.Context) error {
 	go d.listener.Listen([]string{
 		PGChannelConfigSourceChange,
 		PGChannelDomainChange,
+		PGChannelPlanChange,
 	}, done, func(channel string, extra string) {
 		switch channel {
 		case PGChannelConfigSourceChange:
@@ -144,6 +146,8 @@ func (d *Database) Open(ctx context.Context) error {
 		case PGChannelDomainChange:
 			d.invalidateHost(extra)
 			d.invalidateAppByDomain(ctx, extra)
+		case PGChannelPlanChange:
+			d.invalidateAllApp()
 		default:
 			// unknown notification channel, just skip it
 			d.Logger.WithField("channel", channel).Info("unknown notification channel")
@@ -304,6 +308,14 @@ func (d *Database) invalidateHost(domain string) {
 func (d *Database) invalidateApp(appID string) {
 	d.appMap.Delete(appID)
 	d.Logger.WithField("app_id", appID).Info("invalidated cached config")
+}
+
+func (d *Database) invalidateAllApp() {
+	d.appMap.Range(func(key, value any) bool {
+		d.appMap.Delete(key)
+		return true
+	})
+	d.Logger.Info("invalidated all cached config")
 }
 
 func (d *Database) invalidateAppByDomain(ctx context.Context, domain string) {
