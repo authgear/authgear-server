@@ -11,7 +11,9 @@ import (
 	"time"
 
 	"github.com/spf13/afero"
-	"gopkg.in/yaml.v3"
+	// We need "sigs.k8s.io/yaml" package instead of other yaml serializer,
+	// because "gopkg.in/yaml.v3" add `null`s for null pointers which break some validations.
+	"sigs.k8s.io/yaml"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"

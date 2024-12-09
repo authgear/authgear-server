@@ -20,6 +20,15 @@ type AdminAPIFeatureConfig struct {
 	UserExportUsage *UsageLimitConfig `json:"user_export_usage,omitempty"`
 }
 
+var _ MergeableFeatureConfig = &AdminAPIFeatureConfig{}
+
+func (c *AdminAPIFeatureConfig) Merge(layer *FeatureConfig) MergeableFeatureConfig {
+	if layer.AdminAPI == nil {
+		return c
+	}
+	return layer.AdminAPI
+}
+
 func (c *AdminAPIFeatureConfig) SetDefaults() {
 	if c.CreateSessionEnabled == nil {
 		c.CreateSessionEnabled = newBool(false)

@@ -16,6 +16,15 @@ type HookFeatureConfig struct {
 	NonBlockingHandler *NonBlockingHandlerFeatureConfig `json:"non_blocking_handler,omitempty"`
 }
 
+var _ MergeableFeatureConfig = &HookFeatureConfig{}
+
+func (c *HookFeatureConfig) Merge(layer *FeatureConfig) MergeableFeatureConfig {
+	if layer.Hook == nil {
+		return c
+	}
+	return layer.Hook
+}
+
 var _ = FeatureConfigSchema.Add("BlockingHandlerFeatureConfig", `
 {
 	"type": "object",

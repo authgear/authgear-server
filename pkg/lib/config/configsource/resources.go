@@ -677,14 +677,17 @@ func (d AuthgearFeatureYAMLDescriptor) ViewResources(resources []resource.Resour
 func (d AuthgearFeatureYAMLDescriptor) viewEffectiveResource(resources []resource.ResourceFile) (interface{}, error) {
 	var cfgs []*config.FeatureConfig
 	for _, layer := range resources {
-		var cfg config.FeatureConfig
-		if err := yaml.Unmarshal(layer.Data, &cfg); err != nil {
+		cfg, err := config.ParseFeatureConfigWithoutDefaults(layer.Data)
+		if err != nil {
 			return nil, fmt.Errorf("malformed feature config: %w", err)
 		}
-		cfgs = append(cfgs, &cfg)
+		cfgs = append(cfgs, cfg)
 	}
 
-	mergedConfig := (&config.FeatureConfig{}).Overlay(cfgs...)
+	mergedConfig := &config.FeatureConfig{}
+	for _, cfg := range cfgs {
+		mergedConfig = mergedConfig.Merge(cfg)
+	}
 	mergedYAML, err := yaml.Marshal(mergedConfig)
 	if err != nil {
 		return nil, err

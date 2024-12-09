@@ -32,6 +32,15 @@ type MessagingFeatureConfig struct {
 	CustomSMTPDisabled bool `json:"custom_smtp_disabled,omitempty"`
 }
 
+var _ MergeableFeatureConfig = &MessagingFeatureConfig{}
+
+func (c *MessagingFeatureConfig) Merge(layer *FeatureConfig) MergeableFeatureConfig {
+	if layer.Messaging == nil {
+		return c
+	}
+	return layer.Messaging
+}
+
 func (c *MessagingFeatureConfig) SetDefaults() {
 	if c.SMSUsage.Enabled == nil {
 		c.SMSUsage = &UsageLimitConfig{

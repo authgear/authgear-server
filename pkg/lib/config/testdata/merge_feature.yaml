@@ -1,0 +1,27 @@
+configs:
+  - {}
+  - ui:
+      white_labeling:
+        disabled: true
+  - custom_domain:
+      disabled: true
+  - oauth:
+      client:
+        maximum: 2
+        soft_maximum: 20
+  - collaborator:
+      maximum: 3
+      soft_maximum: 30
+result:
+  ui:
+    white_labeling:
+      disabled: true
+  custom_domain:
+    disabled: true
+  oauth:
+    client:
+      maximum: 2
+      soft_maximum: 20
+  collaborator:
+    maximum: 3
+    soft_maximum: 30

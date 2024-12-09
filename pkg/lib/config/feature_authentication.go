@@ -14,6 +14,15 @@ type AuthenticationFeatureConfig struct {
 	SecondaryAuthenticators *AuthenticatorsFeatureConfig `json:"secondary_authenticators,omitempty"`
 }
 
+var _ MergeableFeatureConfig = &AuthenticationFeatureConfig{}
+
+func (c *AuthenticationFeatureConfig) Merge(layer *FeatureConfig) MergeableFeatureConfig {
+	if layer.Authentication == nil {
+		return c
+	}
+	return layer.Authentication
+}
+
 var _ = FeatureConfigSchema.Add("AuthenticatorsFeatureConfig", `
 {
 	"type": "object",

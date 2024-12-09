@@ -14,6 +14,15 @@ type OAuthFeatureConfig struct {
 	Client *OAuthClientFeatureConfig `json:"client,omitempty"`
 }
 
+var _ MergeableFeatureConfig = &OAuthFeatureConfig{}
+
+func (c *OAuthFeatureConfig) Merge(layer *FeatureConfig) MergeableFeatureConfig {
+	if layer.OAuth == nil {
+		return c
+	}
+	return layer.OAuth
+}
+
 var _ = FeatureConfigSchema.Add("OAuthClientFeatureConfig", `
 {
 	"type": "object",

@@ -3,6 +3,7 @@ package config
 import (
 	"bytes"
 	"encoding/json"
+	"reflect"
 
 	"sigs.k8s.io/yaml"
 )
@@ -49,12 +50,26 @@ type FeatureConfig struct {
 	TestMode         *TestModeFeatureConfig         `json:"test_mode,omitempty"`
 }
 
-func (c *FeatureConfig) Overlay(layers ...*FeatureConfig) *FeatureConfig {
-	// TODO
-	return nil
+func (c *FeatureConfig) Merge(layer *FeatureConfig) *FeatureConfig {
+	t := reflect.TypeOf(*c)
+	v := reflect.ValueOf(c).Elem()
+	numField := t.NumField()
+	for j := 0; j < numField; j++ {
+		field := v.Field(j)
+		if mergeable, ok := field.Interface().(MergeableFeatureConfig); ok {
+			newValue := mergeable.Merge(layer)
+			newV := reflect.ValueOf(newValue).Elem()
+			if newV.CanAddr() {
+				field.Set(newV.Addr())
+			}
+		}
+	}
+
+	newFeatureConfig := v.Interface().(FeatureConfig)
+	return &newFeatureConfig
 }
 
-func ParseFeatureConfig(inputYAML []byte) (*FeatureConfig, error) {
+func ParseFeatureConfigWithoutDefaults(inputYAML []byte) (*FeatureConfig, error) {
 	jsonData, err := yaml.YAMLToJSON(inputYAML)
 	if err != nil {
 		return nil, err
@@ -75,9 +90,18 @@ func ParseFeatureConfig(inputYAML []byte) (*FeatureConfig, error) {
 		return nil, err
 	}
 
-	SetFieldDefaults(&config)
-
 	return &config, nil
+}
+
+func ParseFeatureConfig(inputYAML []byte) (*FeatureConfig, error) {
+	config, err := ParseFeatureConfigWithoutDefaults(inputYAML)
+	if err != nil {
+		return nil, err
+	}
+
+	SetFieldDefaults(config)
+
+	return config, nil
 }
 
 func NewEffectiveDefaultFeatureConfig() *FeatureConfig {
@@ -88,4 +112,8 @@ func NewEffectiveDefaultFeatureConfig() *FeatureConfig {
 
 func PopulateFeatureConfigDefaultValues(config *FeatureConfig) {
 	SetFieldDefaults(config)
+}
+
+type MergeableFeatureConfig interface {
+	Merge(layer *FeatureConfig) MergeableFeatureConfig
 }
