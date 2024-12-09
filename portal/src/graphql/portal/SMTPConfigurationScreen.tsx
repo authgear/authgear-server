@@ -48,6 +48,8 @@ import DefaultButton from "../../DefaultButton";
 import { AppSecretKey } from "./globalTypes.generated";
 import { useLocationEffect } from "../../hook/useLocationEffect";
 import { useAppSecretVisitToken } from "./mutations/generateAppSecretVisitTokenMutation";
+import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
+import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
 
 interface LocationState {
   isEdit: boolean;
@@ -245,13 +247,14 @@ function ProviderDescription(props: ProviderDescriptionProps) {
 }
 
 interface SMTPConfigurationScreenContentProps {
+  isCustomSMTPDisabled: boolean;
   sendTestEmailHandle: UseSendTestEmailMutationReturnType;
   form: AppSecretConfigFormModel<FormState>;
 }
 
 const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentProps> =
   function SMTPConfigurationScreenContent(props) {
-    const { form, sendTestEmailHandle } = props;
+    const { form, sendTestEmailHandle, isCustomSMTPDisabled } = props;
     const { state, setState } = form;
     const { sendTestEmail, loading } = sendTestEmailHandle;
 
@@ -503,6 +506,12 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
         <ScreenDescription className={styles.widget}>
           <FormattedMessage id="SMTPConfigurationScreen.description" />
         </ScreenDescription>
+        {isCustomSMTPDisabled ? (
+          <FeatureDisabledMessageBar
+            className={styles.widget}
+            messageID="FeatureConfig.custom-smtp.disabled"
+          />
+        ) : null}
 
         <Widget className={styles.widget} contentLayout="grid">
           <Toggle
@@ -511,7 +520,7 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
             onChange={onChangeEnabled}
             label={renderToString("SMTPConfigurationScreen.enable.label")}
             inlineLabel={true}
-            disabled={state.isPasswordMasked}
+            disabled={state.isPasswordMasked || isCustomSMTPDisabled}
           />
           {state.enabled ? (
             <>
@@ -622,6 +631,7 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
               {state.isPasswordMasked ? (
                 <PrimaryButton
                   className={styles.columnSmall}
+                  disabled={isCustomSMTPDisabled}
                   onClick={onClickEdit}
                   text={<FormattedMessage id="edit" />}
                 />
@@ -678,20 +688,33 @@ const SMTPConfigurationScreen1: React.VFC<{
     constructConfig,
     constructSecretUpdateInstruction,
   });
+  const featureConfig = useAppFeatureConfigQuery(appID);
 
   const sendTestEmailHandle = useSendTestEmailMutation(appID);
 
-  if (form.isLoading) {
+  if (form.isLoading || featureConfig.loading) {
     return <ShowLoading />;
   }
 
-  if (form.loadError) {
-    return <ShowError error={form.loadError} onRetry={form.reload} />;
+  if (form.loadError ?? featureConfig.error) {
+    return (
+      <ShowError
+        error={form.loadError ?? featureConfig.error}
+        onRetry={() => {
+          form.reload();
+          featureConfig.refetch().finally(() => {});
+        }}
+      />
+    );
   }
 
   return (
     <FormContainer form={form} localError={sendTestEmailHandle.error}>
       <SMTPConfigurationScreenContent
+        isCustomSMTPDisabled={
+          featureConfig.effectiveFeatureConfig?.messaging
+            ?.custom_smtp_disabled ?? false
+        }
         sendTestEmailHandle={sendTestEmailHandle}
         form={form}
       />

@@ -20,6 +20,8 @@ import {
   PartialTheme,
   Spinner,
   SpinnerSize,
+  Pivot,
+  PivotItem,
 } from "@fluentui/react";
 import { useConst } from "@fluentui/react-hooks";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
@@ -28,35 +30,14 @@ import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 import {
   Subscription,
-  SubscriptionItemPriceSmsRegion,
-  SubscriptionItemPriceType,
-  SubscriptionItemPriceUsageType,
-  SubscriptionItemPriceWhatsappRegion,
   SubscriptionPlan,
   SubscriptionUsage,
+  Usage,
 } from "./globalTypes.generated";
 import { PortalAPIAppConfig } from "../../types";
 import { AppFragmentFragment } from "./query/subscriptionScreenQuery.generated";
 import { useSubscriptionScreenQueryQuery } from "./query/subscriptionScreenQuery";
-import { useGenerateStripeCustomerPortalSessionMutationMutation } from "./mutations/generateStripeCustomerPortalSessionMutation";
-import { useUpdateSubscriptionMutation } from "./mutations/updateSubscriptionMutation";
 import styles from "./SubscriptionScreen.module.css";
-import SubscriptionCurrentPlanSummary, {
-  CostItem,
-  CostItemSeparator,
-} from "./SubscriptionCurrentPlanSummary";
-import SubscriptionPlanCard, {
-  CardTag,
-  CardTitle,
-  CardTagline,
-  BasePriceTag,
-  MAURestriction,
-  UsagePriceTag,
-  CTA,
-  PlanDetailsTitle,
-  PlanDetailsLine,
-} from "./SubscriptionPlanCard";
-import { useCreateCheckoutSessionMutation } from "./mutations/createCheckoutSessionMutation";
 import { useLoading, useIsLoading } from "./../../hook/loading";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import { useSetSubscriptionCancelledStatusMutation } from "./mutations/setSubscriptionCancelledStatusMutation";
@@ -67,20 +48,26 @@ import PrimaryButton from "../../PrimaryButton";
 import DefaultButton from "../../DefaultButton";
 import { useCancelFailedSubscriptionMutation } from "./mutations/cancelFailedSubscriptionMutation";
 import ExternalLink from "../../ExternalLink";
-import { SubscriptionEnterprisePlan } from "./SubscriptionEnterprisePlan";
-import { SubscriptionScreenFooter } from "./SubscriptionScreenFooter";
+import { isStripePlan, Plan, CTAVariant } from "../../util/plan";
 import {
-  isCustomPlan,
-  isStripePlan,
-  isFreePlan,
-  isLimitedFreePlan,
-  getPreviousPlan,
-  getCTAVariant,
-  getMAULimit,
-  shouldShowRecommendedTag,
-  SUBSCRIPTABLE_PLANS,
-  ENTERPRISE_PLAN,
-} from "../../util/plan";
+  PlanCardBusiness,
+  PlanCardDevelopers,
+  PlanCardEnterprise,
+  PlanCardFree,
+} from "../../components/billing/PlanCard";
+import { useCreateCheckoutSessionMutation } from "./mutations/createCheckoutSessionMutation";
+import { useUpdateSubscriptionMutation } from "./mutations/updateSubscriptionMutation";
+import { usePreviewUpdateSubscriptionMutation } from "./mutations/previewUpdateSubscriptionMutation";
+import { formatDateOnly } from "../../util/formatDateOnly";
+import { FeatureBanner } from "../../components/billing/FeatureBanner";
+import ScreenDescription from "../../ScreenDescription";
+import { CurrentPlanCard } from "../../components/billing/CurrentPlanCard";
+import { usePivotNavigation } from "../../hook/usePivot";
+import LinkButton from "../../LinkButton";
+import { useGenerateStripeCustomerPortalSessionMutationMutation } from "./mutations/generateStripeCustomerPortalSessionMutation";
+import { CancelSubscriptionReminder } from "../../components/billing/CancelSubscriptionReminder";
+import { extractRawID } from "../../util/graphql";
+import { CancelSubscriptionSurveyDialog } from "../../components/billing/CancelSubscriptionSurveyDialog";
 
 const CHECK_IS_PROCESSING_SUBSCRIPTION_INTERVAL = 5000;
 
@@ -94,78 +81,29 @@ const CONTACT_US_BUTTON_THEME: PartialTheme = {
   },
 };
 
-function shouldShowFreePlanWarning(
-  planName: string,
-  effectiveAppConfig: PortalAPIAppConfig | undefined
-): boolean {
-  if (effectiveAppConfig == null) {
-    return false;
-  }
-
-  if (!isLimitedFreePlan(planName)) {
-    return false;
-  }
-
-  const loginIDEnabled =
-    effectiveAppConfig.authentication?.identities?.includes("login_id") ??
-    false;
-  const phoneEnabled =
-    effectiveAppConfig.identity?.login_id?.keys?.find(
-      (a) => a.type === "phone"
-    ) != null;
-  const oobOTPSMSEnabled =
-    effectiveAppConfig.authentication?.primary_authenticators?.includes(
-      "oob_otp_sms"
-    ) ?? false;
-
-  return loginIDEnabled && phoneEnabled && oobOTPSMSEnabled;
-}
-
-interface PlanDetailsLinesProps {
-  planName: string;
-}
-
-function PlanDetailsLines(props: PlanDetailsLinesProps) {
-  const { planName } = props;
-  let length: number;
-  switch (planName) {
-    case "startups":
-      length = 4;
-      break;
-    case "business":
-      length = 6;
-      break;
-    default:
-      length = 0;
-      break;
-  }
-  const children = [];
-  for (let i = 0; i < length; i++) {
-    children.push(
-      <PlanDetailsLine key={i}>
-        <FormattedMessage
-          id={`SubscriptionPlanCard.plan.features.line.${i}.${planName}`}
-        />
-      </PlanDetailsLine>
-    );
-  }
-  return <>{children}</>;
-}
-
-interface SubscriptionPlanCardRenderProps {
+function PlansSection({
+  currentPlanName,
+  subscriptionCancelled,
+  nextBillingDate,
+  subscriptionPlans,
+  onClickContactUs,
+  onClickCancelSubscription,
+}: {
   currentPlanName: string;
   subscriptionCancelled: boolean;
-  subscriptionPlan: SubscriptionPlan;
-  nextBillingDate?: Date;
-}
-
-function SubscriptionPlanCardRenderer(props: SubscriptionPlanCardRenderProps) {
+  nextBillingDate: Date | undefined;
+  subscriptionPlans: SubscriptionPlan[];
+  onClickContactUs: () => void;
+  onClickCancelSubscription: () => void;
+}) {
   const {
-    currentPlanName,
-    subscriptionCancelled,
-    subscriptionPlan,
-    nextBillingDate,
-  } = props;
+    themes: { destructive },
+  } = useSystemConfig();
+  const { locale } = useContext(Context);
+  const [upgradeToPlan, setUpgradeToPlan] = useState<string | null>(null);
+  const [downgradeToPlan, setDowngradeToPlan] = useState<string | null>(null);
+  const [isReactiveDialogHidden, setIsReactiveDialogHidden] =
+    useState<boolean>(true);
   const { appID } = useParams() as { appID: string };
   const { createCheckoutSession, loading: createCheckoutSessionLoading } =
     useCreateCheckoutSessionMutation();
@@ -180,17 +118,9 @@ function SubscriptionPlanCardRenderer(props: SubscriptionPlanCardRenderProps) {
   } = useSetSubscriptionCancelledStatusMutation(appID);
   useLoading(reactivateSubscriptionLoading);
 
-  const isLoading = useIsLoading();
-
-  const ctaVariant = useMemo(
-    () =>
-      getCTAVariant({
-        cardPlanName: subscriptionPlan.name,
-        currentPlanName,
-        subscriptionCancelled,
-      }),
-    [currentPlanName, subscriptionPlan.name, subscriptionCancelled]
-  );
+  const [previewUpdateSubscription, { data, loading }] =
+    usePreviewUpdateSubscriptionMutation();
+  useLoading(loading);
 
   const onClickSubscribe = useCallback(
     (planName: string) => {
@@ -205,192 +135,308 @@ function SubscriptionPlanCardRenderer(props: SubscriptionPlanCardRenderProps) {
     [appID, createCheckoutSession]
   );
 
+  const onConfirmUpgrade = useCallback(() => {
+    if (!upgradeToPlan) {
+      console.error("upgradeToPlan should not be null");
+      return;
+    }
+    updateSubscription({
+      variables: {
+        appID,
+        planName: upgradeToPlan,
+      },
+    }).finally(() => {
+      setUpgradeToPlan(null);
+    });
+  }, [appID, updateSubscription, upgradeToPlan]);
+
+  const onConfirmDowngrade = useCallback(() => {
+    if (!downgradeToPlan) {
+      console.error("downgradeToPlan should not be null");
+      return;
+    }
+    updateSubscription({
+      variables: {
+        appID,
+        planName: downgradeToPlan,
+      },
+    }).finally(() => {
+      setDowngradeToPlan(null);
+    });
+  }, [appID, downgradeToPlan, updateSubscription]);
+
   const onClickUpgrade = useCallback(
     (planName: string) => {
-      updateSubscription({
+      previewUpdateSubscription({
         variables: {
           appID,
           planName,
         },
       }).finally(() => {});
+      setUpgradeToPlan(planName);
     },
-    [appID, updateSubscription]
+    [appID, previewUpdateSubscription]
   );
 
   const onClickDowngrade = useCallback(
     (planName: string) => {
-      updateSubscription({
+      previewUpdateSubscription({
         variables: {
           appID,
           planName,
         },
       }).finally(() => {});
+      setDowngradeToPlan(planName);
     },
-    [appID, updateSubscription]
+    [appID, previewUpdateSubscription]
   );
 
-  const onClickReactivate = useCallback(async () => {
-    await setSubscriptionCancelledStatus(false);
+  const onClickReactivate = useCallback(() => {
+    setIsReactiveDialogHidden(false);
+  }, []);
+
+  const onClickConfirmReactivate = useCallback(async () => {
+    try {
+      await setSubscriptionCancelledStatus(false);
+    } finally {
+      setIsReactiveDialogHidden(true);
+    }
   }, [setSubscriptionCancelledStatus]);
 
-  const { name } = subscriptionPlan;
+  const onPlanAction = useMemo(() => {
+    const plans: Plan[] = ["enterprise"];
+    if (
+      subscriptionPlans.findIndex((p) => p.name === "developers2025") !== -1
+    ) {
+      plans.push("developers2025");
+    }
+    if (subscriptionPlans.findIndex((p) => p.name === "business2025") !== -1) {
+      plans.push("business2025");
+    }
+    plans.push("enterprise");
 
-  const basePrice = subscriptionPlan.prices.find(
-    (price) => price.type === SubscriptionItemPriceType.Fixed
-  );
-  const northAmericaSMSPrice = subscriptionPlan.prices.find(
-    (price) =>
-      price.type === SubscriptionItemPriceType.Usage &&
-      price.usageType === SubscriptionItemPriceUsageType.Sms &&
-      price.smsRegion === SubscriptionItemPriceSmsRegion.NorthAmerica
-  );
-  const otherRegionsSMSPrice = subscriptionPlan.prices.find(
-    (price) =>
-      price.type === SubscriptionItemPriceType.Usage &&
-      price.usageType === SubscriptionItemPriceUsageType.Sms &&
-      price.smsRegion === SubscriptionItemPriceSmsRegion.OtherRegions
-  );
-  const northAmericaWhatsappPrice = subscriptionPlan.prices.find(
-    (price) =>
-      price.type === SubscriptionItemPriceType.Usage &&
-      price.usageType === SubscriptionItemPriceUsageType.Whatsapp &&
-      price.whatsappRegion === SubscriptionItemPriceWhatsappRegion.NorthAmerica
-  );
-  const otherRegionsWhatsappPrice = subscriptionPlan.prices.find(
-    (price) =>
-      price.type === SubscriptionItemPriceType.Usage &&
-      price.usageType === SubscriptionItemPriceUsageType.Whatsapp &&
-      price.whatsappRegion === SubscriptionItemPriceWhatsappRegion.OtherRegions
-  );
-  const mauPrice = subscriptionPlan.prices.find(
-    (price) =>
-      price.type === SubscriptionItemPriceType.Usage &&
-      price.usageType === SubscriptionItemPriceUsageType.Mau
+    return plans.reduce<Partial<Record<Plan, (action: CTAVariant) => void>>>(
+      (callbacks, plan) => {
+        const fn = (action: CTAVariant) => {
+          switch (action) {
+            case "subscribe":
+              onClickSubscribe(plan);
+              break;
+            case "upgrade":
+              onClickUpgrade(plan);
+              break;
+            case "downgrade":
+              onClickDowngrade(plan);
+              break;
+            case "reactivate":
+              onClickReactivate();
+              break;
+            case "contact-us":
+              onClickContactUs();
+              break;
+            case "current":
+            case "non-applicable":
+            default:
+              console.error(
+                `action button clicked but action:${action} should not be clickable. plan: ${plan}`
+              );
+              break;
+          }
+        };
+        callbacks[plan] = fn;
+        return callbacks;
+      },
+      {}
+    );
+  }, [
+    onClickContactUs,
+    onClickDowngrade,
+    onClickReactivate,
+    onClickSubscribe,
+    onClickUpgrade,
+    subscriptionPlans,
+  ]);
+
+  const onFreePlanAction = useCallback(
+    (action: CTAVariant) => {
+      switch (action) {
+        case "downgrade":
+          // Downgrade to free plan means cancel subcription
+          onClickCancelSubscription();
+          break;
+        // All other cases should not happen
+        default:
+          console.error(
+            `action button clicked but action:${action} should not be clickable. plan: free`
+          );
+          break;
+      }
+    },
+    [onClickCancelSubscription]
   );
 
-  const previousPlanName = getPreviousPlan(name);
-  const cardTag = shouldShowRecommendedTag(name, currentPlanName) ? (
-    <CardTag>
-      <FormattedMessage id="SubscriptionScreen.recommended" />
-    </CardTag>
-  ) : null;
+  const amountDue =
+    data?.previewUpdateSubscription.amountDue != null
+      ? data.previewUpdateSubscription.amountDue / 100
+      : null;
+  const formattedDate = formatDateOnly(locale, nextBillingDate ?? null);
+
+  // @ts-expect-error
+  const upgradeDialogContentProps: IDialogContentProps = useMemo(() => {
+    return {
+      type: DialogType.normal,
+      title: <FormattedMessage id="SubscriptionScreen.upgrade.title" />,
+      subText:
+        amountDue == null ? (
+          <FormattedMessage id="loading" />
+        ) : (
+          <FormattedMessage
+            id="SubscriptionScreen.upgrade.description"
+            values={{
+              amount: amountDue,
+              date: formattedDate ?? "",
+            }}
+          />
+        ),
+    };
+  }, [amountDue, formattedDate]);
+
+  // @ts-expect-error
+  const downgradeDialogContentProps: IDialogContentProps = useMemo(() => {
+    return {
+      type: DialogType.normal,
+      title: <FormattedMessage id="SubscriptionScreen.downgrade.title" />,
+      subText:
+        amountDue == null ? (
+          <FormattedMessage id="loading" />
+        ) : (
+          <FormattedMessage
+            id="SubscriptionScreen.downgrade.description"
+            values={{
+              amount: amountDue,
+              date: formattedDate ?? "",
+            }}
+          />
+        ),
+    };
+  }, [amountDue, formattedDate]);
+
+  // @ts-expect-error
+  const reactivateDialogContentProps: IDialogContentProps = useMemo(() => {
+    return {
+      type: DialogType.normal,
+      title: <FormattedMessage id="SubscriptionScreen.reactivate.title" />,
+      subText: (
+        <FormattedMessage id="SubscriptionScreen.reactivate.confirmation" />
+      ),
+    };
+  }, []);
+
+  const isLoading = useIsLoading();
+
+  const onDismissUpgradeDialog = useCallback(() => {
+    setUpgradeToPlan(null);
+  }, []);
+
+  const onDismissDowngradeDialog = useCallback(() => {
+    setDowngradeToPlan(null);
+  }, []);
+
+  const onDismissReactiveDialog = useCallback(() => {
+    setIsReactiveDialogHidden(true);
+  }, []);
 
   return (
-    <SubscriptionPlanCard
-      isCurrentPlan={false}
-      cardTag={cardTag}
-      cardTitle={
-        <CardTitle>
-          <FormattedMessage id={"SubscriptionScreen.plan-name." + name} />
-        </CardTitle>
-      }
-      cardTagline={
-        <CardTagline>
-          <FormattedMessage id={"SubscriptionPlanCard.plan.tagline." + name} />
-        </CardTagline>
-      }
-      basePriceTag={
-        <BasePriceTag>
-          {basePrice != null
-            ? `$${basePrice.unitAmount / 100}${mauPrice == null ? "" : "+"}/mo`
-            : "-"}
-        </BasePriceTag>
-      }
-      mauRestriction={
-        <MAURestriction>
-          <FormattedMessage
-            id={"SubscriptionPlanCard.plan.mau-restriction." + name}
+    <>
+      <div className="overflow-x-auto w-full">
+        <div className="grid grid-flow-col grid-rows-1 auto-cols-[1fr] gap-4">
+          <PlanCardFree
+            currentPlan={currentPlanName}
+            subscriptionCancelled={subscriptionCancelled}
+            nextBillingDate={nextBillingDate}
+            onAction={onFreePlanAction}
           />
-        </MAURestriction>
-      }
-      usagePriceTags={
-        <>
-          {mauPrice != null ? (
-            <UsagePriceTag>
-              <FormattedMessage
-                id="SubscriptionPlanCard.mau"
-                values={{
-                  unitAmount: mauPrice.unitAmount / 100,
-                  divisor: mauPrice.transformQuantityDivideBy ?? 1,
-                }}
-              />
-            </UsagePriceTag>
-          ) : null}
-          {northAmericaSMSPrice != null ? (
-            <UsagePriceTag>
-              <FormattedMessage
-                id="SubscriptionPlanCard.sms.north-america"
-                values={{
-                  unitAmount: northAmericaSMSPrice.unitAmount / 100,
-                }}
-              />
-            </UsagePriceTag>
-          ) : null}
-          {northAmericaWhatsappPrice != null ? (
-            <UsagePriceTag>
-              <FormattedMessage
-                id="SubscriptionPlanCard.whatsapp.north-america"
-                values={{
-                  unitAmount: northAmericaWhatsappPrice.unitAmount / 100,
-                }}
-              />
-            </UsagePriceTag>
-          ) : null}
-          {otherRegionsSMSPrice != null ? (
-            <UsagePriceTag>
-              <FormattedMessage
-                id="SubscriptionPlanCard.sms.other-regions"
-                values={{
-                  unitAmount: otherRegionsSMSPrice.unitAmount / 100,
-                }}
-              />
-            </UsagePriceTag>
-          ) : null}
-          {otherRegionsWhatsappPrice != null ? (
-            <UsagePriceTag>
-              <FormattedMessage
-                id="SubscriptionPlanCard.whatsapp.other-regions"
-                values={{
-                  unitAmount: otherRegionsWhatsappPrice.unitAmount / 100,
-                }}
-              />
-            </UsagePriceTag>
-          ) : null}
-        </>
-      }
-      cta={
-        <CTA
-          appID={appID}
-          planName={subscriptionPlan.name}
-          variant={ctaVariant}
-          disabled={isLoading}
-          onClickSubscribe={onClickSubscribe}
-          onClickUpgrade={onClickUpgrade}
-          onClickDowngrade={onClickDowngrade}
-          onClickReactivate={onClickReactivate}
-          reactivateError={reactivateSubscriptionError}
-          reactivateLoading={reactivateSubscriptionLoading}
-          nextBillingDate={nextBillingDate}
-        />
-      }
-      planDetailsTitle={
-        previousPlanName ? (
-          <PlanDetailsTitle>
-            <FormattedMessage
-              id="SubscriptionPlanCard.plan.features.title"
-              values={{
-                previousPlan: (
-                  <FormattedMessage
-                    id={`SubscriptionScreen.plan-name.${previousPlanName}`}
-                  />
-                ),
-              }}
+          {onPlanAction.developers2025 != null ? (
+            <PlanCardDevelopers
+              currentPlan={currentPlanName}
+              subscriptionCancelled={subscriptionCancelled}
+              onAction={onPlanAction.developers2025}
             />
-          </PlanDetailsTitle>
-        ) : null
-      }
-      planDetailsLines={<PlanDetailsLines planName={name} />}
-    />
+          ) : null}
+          {onPlanAction.business2025 != null ? (
+            <PlanCardBusiness
+              currentPlan={currentPlanName}
+              subscriptionCancelled={subscriptionCancelled}
+              onAction={onPlanAction.business2025}
+            />
+          ) : null}
+          <PlanCardEnterprise
+            currentPlan={currentPlanName}
+            subscriptionCancelled={subscriptionCancelled}
+            onAction={onPlanAction.enterprise!}
+          />
+        </div>
+      </div>
+      <ErrorDialog
+        error={reactivateSubscriptionError}
+        rules={[]}
+        fallbackErrorMessageID="SubscriptionScreen.reactivate.error"
+      />
+      <Dialog
+        hidden={upgradeToPlan == null}
+        onDismiss={onDismissUpgradeDialog}
+        dialogContentProps={upgradeDialogContentProps}
+      >
+        <DialogFooter>
+          <PrimaryButton
+            onClick={onConfirmUpgrade}
+            disabled={isLoading}
+            text={<FormattedMessage id="SubscriptionScreen.label.upgrade" />}
+          />
+          <DefaultButton
+            onClick={onDismissUpgradeDialog}
+            text={<FormattedMessage id="cancel" />}
+          />
+        </DialogFooter>
+      </Dialog>
+      <Dialog
+        hidden={downgradeToPlan == null}
+        onDismiss={onDismissDowngradeDialog}
+        dialogContentProps={downgradeDialogContentProps}
+      >
+        <DialogFooter>
+          <PrimaryButton
+            onClick={onConfirmDowngrade}
+            theme={destructive}
+            disabled={isLoading}
+            text={<FormattedMessage id="SubscriptionScreen.label.downgrade" />}
+          />
+          <DefaultButton
+            onClick={onDismissDowngradeDialog}
+            text={<FormattedMessage id="cancel" />}
+          />
+        </DialogFooter>
+      </Dialog>
+      <Dialog
+        hidden={isReactiveDialogHidden}
+        onDismiss={onDismissReactiveDialog}
+        dialogContentProps={reactivateDialogContentProps}
+      >
+        <DialogFooter>
+          <ButtonWithLoading
+            loading={reactivateSubscriptionLoading}
+            onClick={onClickConfirmReactivate}
+            disabled={isReactiveDialogHidden}
+            labelId="confirm"
+          />
+          <DefaultButton
+            onClick={onDismissReactiveDialog}
+            disabled={isReactiveDialogHidden || reactivateSubscriptionLoading}
+            text={<FormattedMessage id="cancel" />}
+          />
+        </DialogFooter>
+      </Dialog>
+    </>
   );
 }
 
@@ -399,143 +445,15 @@ interface SubscriptionScreenContentProps {
   planName: string;
   subscription?: Subscription;
   subscriptionPlans: SubscriptionPlan[];
-  thisMonthUsage?: SubscriptionUsage;
-  previousMonthUsage?: SubscriptionUsage;
+  thisMonthUsage?: Usage;
+  thisMonthSubscriptionUsage?: SubscriptionUsage;
+  previousMonthSubscriptionUsage?: SubscriptionUsage;
   effectiveAppConfig?: PortalAPIAppConfig;
 }
 
-function getTotalCost(
-  planName: string,
-  subscriptionUsage: SubscriptionUsage,
-  skipFixedPriceType: boolean
-): number | undefined {
-  if (!isStripePlan(planName)) {
-    return undefined;
-  }
-
-  let totalCost = 0;
-  for (const item of subscriptionUsage.items) {
-    if (skipFixedPriceType && item.type === "FIXED") {
-      continue;
-    }
-    totalCost += item.totalAmount ?? 0;
-  }
-  return totalCost;
-}
-
-interface SMSCost {
-  totalCost: number;
-  northAmericaCount: number;
-  otherRegionsCount: number;
-}
-
-function getSMSCost(
-  planName: string,
-  subscriptionUsage: SubscriptionUsage
-): SMSCost | undefined {
-  if (!isStripePlan(planName)) {
-    return undefined;
-  }
-
-  const cost = {
-    totalCost: 0,
-    northAmericaCount: 0,
-    otherRegionsCount: 0,
-  };
-
-  for (const item of subscriptionUsage.items) {
-    if (
-      item.type === SubscriptionItemPriceType.Usage &&
-      item.usageType === SubscriptionItemPriceUsageType.Sms
-    ) {
-      cost.totalCost += item.totalAmount ?? 0;
-      if (item.smsRegion === SubscriptionItemPriceSmsRegion.NorthAmerica) {
-        cost.northAmericaCount = item.quantity;
-      }
-      if (item.smsRegion === SubscriptionItemPriceSmsRegion.OtherRegions) {
-        cost.otherRegionsCount = item.quantity;
-      }
-    }
-  }
-
-  return cost;
-}
-
-interface SMSCost {
-  totalCost: number;
-  northAmericaCount: number;
-  otherRegionsCount: number;
-}
-
-function getWhatsappCost(
-  planName: string,
-  subscriptionUsage: SubscriptionUsage
-): SMSCost | undefined {
-  if (!isStripePlan(planName)) {
-    return undefined;
-  }
-
-  const cost = {
-    totalCost: 0,
-    northAmericaCount: 0,
-    otherRegionsCount: 0,
-  };
-
-  for (const item of subscriptionUsage.items) {
-    if (
-      item.type === SubscriptionItemPriceType.Usage &&
-      item.usageType === SubscriptionItemPriceUsageType.Whatsapp
-    ) {
-      cost.totalCost += item.totalAmount ?? 0;
-      if (
-        item.whatsappRegion === SubscriptionItemPriceWhatsappRegion.NorthAmerica
-      ) {
-        cost.northAmericaCount = item.quantity;
-      }
-      if (
-        item.whatsappRegion === SubscriptionItemPriceWhatsappRegion.OtherRegions
-      ) {
-        cost.otherRegionsCount = item.quantity;
-      }
-    }
-  }
-
-  return cost;
-}
-
-interface MAUCost {
-  totalCost: number;
-  additionalMAU: number;
-}
-
-function getMAUCost(
-  planName: string,
-  subscriptionUsage: SubscriptionUsage
-): MAUCost | undefined {
-  if (!isStripePlan(planName)) {
-    return undefined;
-  }
-
-  for (const item of subscriptionUsage.items) {
-    if (
-      item.type === SubscriptionItemPriceType.Usage &&
-      item.usageType === SubscriptionItemPriceUsageType.Mau
-    ) {
-      const additionalMAU = Math.max(
-        0,
-        item.quantity - (item.freeQuantity ?? 0)
-      );
-      const totalCost = item.totalAmount;
-      if (totalCost != null) {
-        return {
-          totalCost,
-          additionalMAU,
-        };
-      }
-    }
-  }
-
-  return undefined;
+enum Tab {
+  Subscription = "Subscription",
+  PlanDetail = "PlanDetail",
 }
 
 function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
@@ -545,102 +463,37 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
     subscription,
     subscriptionPlans,
     thisMonthUsage,
-    previousMonthUsage,
-    effectiveAppConfig,
+    thisMonthSubscriptionUsage,
+    previousMonthSubscriptionUsage,
   } = props;
   const { themes } = useSystemConfig();
-
-  const showFreePlanWarning = useMemo(
-    () => shouldShowFreePlanWarning(planName, effectiveAppConfig),
-    [planName, effectiveAppConfig]
-  );
-
-  const subscriptionEndedAt = useMemo(() => {
-    if (subscription?.endedAt != null) {
-      return new Date(subscription.endedAt);
-    }
-    return undefined;
-  }, [subscription?.endedAt]);
+  const { renderToString } = useContext(Context);
 
   const subscriptionCancelled = useMemo(() => {
     return !!subscription?.endedAt;
   }, [subscription?.endedAt]);
-
-  const totalCost = useMemo(() => {
-    if (thisMonthUsage == null) {
-      return undefined;
-    }
-    const skipFixedPriceType = subscriptionCancelled;
-    return getTotalCost(planName, thisMonthUsage, skipFixedPriceType);
-  }, [planName, thisMonthUsage, subscriptionCancelled]);
-
-  const smsCost = useMemo(() => {
-    if (thisMonthUsage == null) {
-      return undefined;
-    }
-    return getSMSCost(planName, thisMonthUsage);
-  }, [planName, thisMonthUsage]);
-
-  const whatsappCost = useMemo(() => {
-    if (thisMonthUsage == null) {
-      return undefined;
-    }
-    return getWhatsappCost(planName, thisMonthUsage);
-  }, [planName, thisMonthUsage]);
-
-  const mauCost = useMemo(() => {
-    if (thisMonthUsage == null) {
-      return undefined;
-    }
-    return getMAUCost(planName, thisMonthUsage);
-  }, [planName, thisMonthUsage]);
-
-  const baseAmount = useMemo(() => {
-    if (!isStripePlan(planName)) {
-      return undefined;
-    }
-
-    return (
-      thisMonthUsage?.items.find(
-        (a) => a.type === SubscriptionItemPriceType.Fixed
-      )?.unitAmount ?? undefined
-    );
-  }, [planName, thisMonthUsage]);
-
-  const mauCurrent = useMemo(() => {
-    return thisMonthUsage?.items.find(
-      (a) =>
-        a.type === SubscriptionItemPriceType.Usage &&
-        a.usageType === SubscriptionItemPriceUsageType.Mau
-    )?.quantity;
-  }, [thisMonthUsage]);
-
-  const mauLimit = useMemo(() => {
-    return getMAULimit(planName);
-  }, [planName]);
-
-  const mauPrevious = useMemo(() => {
-    return previousMonthUsage?.items.find(
-      (a) =>
-        a.type === SubscriptionItemPriceType.Usage &&
-        a.usageType === SubscriptionItemPriceUsageType.Mau
-    )?.quantity;
-  }, [previousMonthUsage]);
 
   const nextBillingDate = useMemo(() => {
     if (!isStripePlan(planName)) {
       return undefined;
     }
 
-    const nextBillingDate = thisMonthUsage?.nextBillingDate;
+    const nextBillingDate = thisMonthSubscriptionUsage?.nextBillingDate;
     if (nextBillingDate != null) {
       return new Date(nextBillingDate);
     }
     return undefined;
-  }, [planName, thisMonthUsage]);
+  }, [planName, thisMonthSubscriptionUsage]);
 
   const [enterpriseDialogHidden, setEnterpriseDialogHidden] = useState(true);
   const [cancelDialogHidden, setCancelDialogHidden] = useState(true);
+  const [cancelSurveyDialogHidden, setCancelSurveyDialogHidden] =
+    useState(true);
+
+  const { selectedKey: selectedTab, onLinkClick } = usePivotNavigation<Tab>([
+    Tab.Subscription,
+    Tab.PlanDetail,
+  ]);
 
   const enterpriseDialogContentProps: IDialogContentProps = useMemo(() => {
     return {
@@ -657,36 +510,30 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
     if (!subscription) {
       return {
         type: DialogType.normal,
-        title: <FormattedMessage id="SubscriptionPlanCard.cancel.title" />,
+        title: <FormattedMessage id="SubscriptionScreen.cancel.title" />,
         // @ts-expect-error
         subText: (
-          <FormattedMessage id="SubscriptionPlanCard.cancel.confirmation.customPlan" />
+          <FormattedMessage id="SubscriptionScreen.cancel.confirmation.customPlan" />
         ) as IDialogContentProps["subText"],
       };
     }
     return {
       type: DialogType.normal,
-      title: <FormattedMessage id="SubscriptionPlanCard.cancel.title" />,
+      title: <FormattedMessage id="SubscriptionScreen.cancel.title" />,
       // @ts-expect-error
       subText: (
-        <FormattedMessage id="SubscriptionPlanCard.cancel.confirmation" />
+        <FormattedMessage id="SubscriptionScreen.cancel.confirmation" />
       ) as IDialogContentProps["subText"],
     };
   }, [subscription]);
 
-  const onClickEnterprisePlan = useCallback((e) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const onClickContactUs = useCallback(() => {
     setEnterpriseDialogHidden(false);
   }, []);
 
-  const onClickEnterprisePlanContactUs = useCallback(() => {
-    setEnterpriseDialogHidden(false);
-  }, []);
-
-  const onClickCancel = useCallback((e) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const onClickCancel = useCallback((e?: React.MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
     setCancelDialogHidden(false);
   }, []);
 
@@ -694,6 +541,175 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
     setEnterpriseDialogHidden(true);
     setCancelDialogHidden(true);
   }, []);
+
+  const {
+    setSubscriptionCancelledStatus,
+    loading: cancelSubscriptionLoading,
+    error: cancelSubscriptionError,
+  } = useSetSubscriptionCancelledStatusMutation(appID);
+  useLoading(cancelSubscriptionLoading);
+
+  const onClickCancelSubscriptionConfirm = useCallback(
+    async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      await setSubscriptionCancelledStatus(true);
+      setCancelDialogHidden(true);
+      setCancelSurveyDialogHidden(false);
+    },
+    [setSubscriptionCancelledStatus]
+  );
+
+  const onConfirmCancelSurveyDialog = useCallback(() => {
+    const projectID = extractRawID(appID);
+    const cancelSurveyURL = `https://oursky.typeform.com/authgear-cancel#project_id=${projectID}`;
+    const anchor = document.createElement("A") as HTMLAnchorElement;
+    anchor.href = cancelSurveyURL;
+    anchor.target = "_blank";
+    anchor.click();
+    anchor.remove();
+    setCancelSurveyDialogHidden(true);
+  }, [appID]);
+
+  return (
+    <>
+      <Dialog
+        hidden={cancelDialogHidden}
+        onDismiss={onDismiss}
+        dialogContentProps={cancelDialogContentProps}
+      >
+        <DialogFooter>
+          {!!subscription ? (
+            <ButtonWithLoading
+              theme={themes.destructive}
+              loading={cancelSubscriptionLoading}
+              onClick={onClickCancelSubscriptionConfirm}
+              disabled={cancelDialogHidden}
+              labelId="confirm"
+            />
+          ) : (
+            <PrimaryButton
+              href="mailto:hello@authgear.com"
+              onClick={onDismiss}
+              disabled={cancelDialogHidden}
+              text={
+                <FormattedMessage id="SubscriptionScreen.cancel.confirmation.customPlan.button" />
+              }
+            />
+          )}
+          <DefaultButton
+            onClick={onDismiss}
+            disabled={cancelSubscriptionLoading || cancelDialogHidden}
+            text={<FormattedMessage id="cancel" />}
+          />
+        </DialogFooter>
+      </Dialog>
+      <CancelSubscriptionSurveyDialog
+        isHidden={cancelSurveyDialogHidden}
+        onDismiss={useCallback(() => {
+          setCancelSurveyDialogHidden(true);
+        }, [])}
+        onConfirm={onConfirmCancelSurveyDialog}
+        onCancel={useCallback(() => {
+          setCancelSurveyDialogHidden(true);
+        }, [])}
+      />
+      <ErrorDialog
+        error={cancelSubscriptionError}
+        rules={[]}
+        fallbackErrorMessageID="SubscriptionScreen.cancel.error"
+      />
+      <Dialog
+        hidden={enterpriseDialogHidden}
+        onDismiss={onDismiss}
+        dialogContentProps={enterpriseDialogContentProps}
+      >
+        <DialogFooter>
+          <PrimaryButton
+            href="mailto:hello@authgear.com"
+            onClick={onDismiss}
+            text={<FormattedMessage id="SubscriptionScreen.enterprise.cta" />}
+          />
+        </DialogFooter>
+      </Dialog>
+
+      <div className={styles.root}>
+        <div className={cn(styles.section, "grid gap-4 grid-flow-row")}>
+          <ScreenTitle>
+            <FormattedMessage id="SubscriptionScreen.title" />
+          </ScreenTitle>
+          <ScreenDescription>
+            <FormattedMessage id="SubscriptionScreen.description" />
+          </ScreenDescription>
+        </div>
+        <Pivot onLinkClick={onLinkClick} selectedKey={selectedTab}>
+          <PivotItem
+            itemKey={Tab.Subscription}
+            headerText={renderToString("SubscriptionScreen.tabs.subscription")}
+          />
+          <PivotItem
+            itemKey={Tab.PlanDetail}
+            headerText={renderToString("SubscriptionScreen.tabs.planDetails")}
+          />
+        </Pivot>
+        {selectedTab === Tab.Subscription ? (
+          <div className="py-6 grid grid-flow-row gap-4">
+            <FeatureBanner />
+            <PlansSection
+              currentPlanName={planName}
+              subscriptionCancelled={subscriptionCancelled}
+              nextBillingDate={nextBillingDate}
+              subscriptionPlans={subscriptionPlans}
+              onClickContactUs={onClickContactUs}
+              onClickCancelSubscription={onClickCancel}
+            />
+            <footer className={styles.section}>
+              <Text block={true}>
+                <FormattedMessage id="SubscriptionScreen.footer.tax" />
+              </Text>
+            </footer>
+          </div>
+        ) : (
+          <PlanDetailsTab
+            appID={appID}
+            planName={planName}
+            subscriptionCancelled={subscriptionCancelled}
+            nextBillingDate={nextBillingDate}
+            thisMonthUsage={thisMonthUsage}
+            thisMonthSubscriptionUsage={thisMonthSubscriptionUsage}
+            previousMonthSubscriptionUsage={previousMonthSubscriptionUsage}
+          />
+        )}
+      </div>
+    </>
+  );
+}
+
+interface PlanDetailsTabProps {
+  appID: string;
+  planName: string;
+  subscriptionCancelled: boolean;
+  nextBillingDate: Date | undefined;
+  thisMonthUsage: Usage | undefined;
+  thisMonthSubscriptionUsage: SubscriptionUsage | undefined;
+  previousMonthSubscriptionUsage: SubscriptionUsage | undefined;
+}
+
+function PlanDetailsTab({
+  appID,
+  planName,
+  subscriptionCancelled,
+  nextBillingDate,
+  thisMonthUsage,
+  thisMonthSubscriptionUsage,
+  previousMonthSubscriptionUsage,
+}: PlanDetailsTabProps) {
+  const { locale } = useContext(Context);
+  const formattedBillingDate = useMemo(
+    () => formatDateOnly(locale, nextBillingDate ?? null),
+    [locale, nextBillingDate]
+  );
+  const isLoading = useIsLoading();
 
   const [generateCustomPortalSession, { loading: manageSubscriptionLoading }] =
     useGenerateStripeCustomerPortalSessionMutationMutation({
@@ -720,214 +736,50 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
     [generateCustomPortalSession]
   );
 
-  const {
-    setSubscriptionCancelledStatus,
-    loading: cancelSubscriptionLoading,
-    error: cancelSubscriptionError,
-  } = useSetSubscriptionCancelledStatusMutation(appID);
-  useLoading(cancelSubscriptionLoading);
-
-  const onClickCancelSubscriptionConfirm = useCallback(
-    (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      setSubscriptionCancelledStatus(true)
-        .catch(() => {})
-        .finally(() => {
-          onDismiss();
-        });
-      setCancelDialogHidden(false);
-    },
-    [setSubscriptionCancelledStatus, onDismiss, setCancelDialogHidden]
-  );
-
-  const isLoading = useIsLoading();
   return (
-    <>
-      <Dialog
-        hidden={cancelDialogHidden}
-        onDismiss={onDismiss}
-        dialogContentProps={cancelDialogContentProps}
-      >
-        <DialogFooter>
-          {!!subscription ? (
-            <ButtonWithLoading
-              theme={themes.destructive}
-              loading={cancelSubscriptionLoading}
-              onClick={onClickCancelSubscriptionConfirm}
-              disabled={cancelDialogHidden}
-              labelId="confirm"
+    <div className="py-6 grid grid-flow-row gap-4 max-w-[720px]">
+      <div className="space-y-2">
+        <Text variant="xLarge" block={true}>
+          <FormattedMessage id="SubscriptionScreen.planDetails.title" />
+        </Text>
+        {subscriptionCancelled && formattedBillingDate != null ? (
+          <CancelSubscriptionReminder
+            formattedBillingDate={formattedBillingDate}
+          />
+        ) : null}
+        {formattedBillingDate ? (
+          <Text variant="medium" className="text-text-secondary" block={true}>
+            <FormattedMessage
+              id="SubscriptionScreen.planDetails.nextBillingDate"
+              values={{ date: formattedBillingDate }}
             />
-          ) : (
-            <PrimaryButton
-              href="mailto:hello@authgear.com"
-              onClick={onDismiss}
-              disabled={cancelDialogHidden}
-              text={
-                <FormattedMessage id="SubscriptionPlanCard.cancel.confirmation.customPlan.button" />
-              }
-            />
-          )}
-          <DefaultButton
-            onClick={onDismiss}
-            disabled={cancelSubscriptionLoading || cancelDialogHidden}
-            text={<FormattedMessage id="cancel" />}
-          />
-        </DialogFooter>
-      </Dialog>
-      <ErrorDialog
-        error={cancelSubscriptionError}
-        rules={[]}
-        fallbackErrorMessageID="SubscriptionPlanCard.cancel.error"
-      />
-      <Dialog
-        hidden={enterpriseDialogHidden}
-        onDismiss={onDismiss}
-        dialogContentProps={enterpriseDialogContentProps}
-      >
-        <DialogFooter>
-          <PrimaryButton
-            href="mailto:hello@authgear.com"
-            onClick={onDismiss}
-            text={<FormattedMessage id="SubscriptionScreen.enterprise.cta" />}
-          />
-        </DialogFooter>
-      </Dialog>
-
-      <div className={styles.root}>
-        <ScreenTitle className={styles.section}>
-          <FormattedMessage id="SubscriptionScreen.title" />
-        </ScreenTitle>
-        <SubscriptionCurrentPlanSummary
-          className={styles.section}
-          planName={planName}
-          isCustomPlan={isCustomPlan(planName)}
-          baseAmount={baseAmount}
-          mauCurrent={mauCurrent}
-          mauLimit={mauLimit}
-          mauPrevious={mauPrevious}
-          subscriptionEndedAt={subscriptionEndedAt}
-          nextBillingDate={nextBillingDate}
-          onClickManageSubscription={onClickManageSubscription}
-          manageSubscriptionLoading={manageSubscriptionLoading}
-          manageSubscriptionDisabled={isLoading}
-          showFreePlanWarning={showFreePlanWarning}
-        >
-          <CostItem
-            title={
-              <FormattedMessage id="SubscriptionCurrentPlanSummary.total-cost.title" />
-            }
-            kind={
-              isFreePlan(planName)
-                ? "free"
-                : totalCost == null
-                ? "non-applicable"
-                : "billed"
-            }
-            amount={totalCost}
-            tooltip={
-              <FormattedMessage id="SubscriptionCurrentPlanSummary.total-cost.tooltip" />
-            }
-          />
-          <CostItemSeparator />
-          <CostItem
-            title={
-              <FormattedMessage id="SubscriptionCurrentPlanSummary.whatsapp.title" />
-            }
-            kind={whatsappCost == null ? "non-applicable" : "billed"}
-            amount={whatsappCost == null ? undefined : whatsappCost.totalCost}
-            tooltip={
-              whatsappCost == null ? undefined : (
-                <FormattedMessage
-                  id="SubscriptionCurrentPlanSummary.whatsapp.tooltip"
-                  values={{
-                    count1: whatsappCost.northAmericaCount,
-                    count2: whatsappCost.otherRegionsCount,
-                  }}
-                />
-              )
-            }
-          />
-          <CostItem
-            title={
-              <FormattedMessage id="SubscriptionCurrentPlanSummary.sms.title" />
-            }
-            kind={smsCost == null ? "non-applicable" : "billed"}
-            amount={smsCost == null ? undefined : smsCost.totalCost}
-            tooltip={
-              smsCost == null ? undefined : (
-                <FormattedMessage
-                  id="SubscriptionCurrentPlanSummary.sms.tooltip"
-                  values={{
-                    count1: smsCost.northAmericaCount,
-                    count2: smsCost.otherRegionsCount,
-                  }}
-                />
-              )
-            }
-          />
-          {mauCost != null ? (
-            <CostItem
-              title={
-                <FormattedMessage id="SubscriptionCurrentPlanSummary.additional-mau.title" />
-              }
-              kind="billed"
-              amount={mauCost.totalCost}
-              tooltip={
-                <FormattedMessage
-                  id="SubscriptionCurrentPlanSummary.additional-mau.tooltip"
-                  values={{
-                    count: mauCost.additionalMAU,
-                  }}
-                />
-              }
-            />
-          ) : null}
-        </SubscriptionCurrentPlanSummary>
-        <div
-          className={cn(styles.section, styles.cardsContainer)}
-          style={{
-            boxShadow: DefaultEffects.elevation4,
-          }}
-        >
-          <Text block={true} variant="xLarge">
-            <FormattedMessage id="SubscriptionScreen.cards.title" />
           </Text>
-          <div className={styles.cards}>
-            {SUBSCRIPTABLE_PLANS.map((subscriptablePlanName) => {
-              const plan = subscriptionPlans.find(
-                (plan) => plan.name === subscriptablePlanName
-              );
-              if (plan != null) {
-                return (
-                  <SubscriptionPlanCardRenderer
-                    key={plan.name}
-                    subscriptionCancelled={subscriptionCancelled}
-                    subscriptionPlan={plan}
-                    currentPlanName={planName}
-                    nextBillingDate={nextBillingDate}
-                  />
-                );
-              }
-              return null;
-            })}
-            <SubscriptionEnterprisePlan
-              key={ENTERPRISE_PLAN}
-              previousPlanName={getPreviousPlan(ENTERPRISE_PLAN)}
-              onClickContactUs={onClickEnterprisePlanContactUs}
-            />
-          </div>
-        </div>
-        <SubscriptionScreenFooter
-          className={styles.section}
-          onClickEnterprisePlan={onClickEnterprisePlan}
-          onClickCancel={onClickCancel}
-          subscriptionCancelled={subscriptionCancelled}
-          isStripePlan={isStripePlan(planName)}
-          subscriptionEndedAt={subscription?.endedAt ?? undefined}
-        />
+        ) : null}
+        <Text variant="medium" className="text-text-secondary" block={true}>
+          <FormattedMessage id="SubscriptionScreen.planDetails.reminder" />
+        </Text>
       </div>
-    </>
+      <CurrentPlanCard
+        planName={planName}
+        thisMonthUsage={thisMonthUsage}
+        thisMonthSubscriptionUsage={thisMonthSubscriptionUsage}
+        previousMonthSubscriptionUsage={previousMonthSubscriptionUsage}
+      />
+      <LinkButton
+        className="text-sm relative justify-self-start"
+        onClick={onClickManageSubscription}
+        disabled={isLoading}
+      >
+        <span className={cn(manageSubscriptionLoading ? "invisible" : null)}>
+          <FormattedMessage id="SubscriptionScreen.footer.manageSubscription" />
+        </span>
+        {manageSubscriptionLoading === true ? (
+          <div className="absolute top-0 left-0 right-0 bottom-0 flex items-center justify-center">
+            <Spinner size={SpinnerSize.xSmall} />
+          </div>
+        ) : null}
+      </LinkButton>
+    </div>
   );
 }
 
@@ -1118,12 +970,15 @@ const SubscriptionScreen: React.VFC = function SubscriptionScreen() {
   ).subscription;
   const subscriptionPlans =
     subscriptionScreenQuery.data?.subscriptionPlans ?? [];
+  const thisMonthSubscriptionUsage = (
+    subscriptionScreenQuery.data?.node as AppFragmentFragment
+  ).thisMonthSubscriptionUsage;
+  const previousMonthSubscriptionUsage = (
+    subscriptionScreenQuery.data?.node as AppFragmentFragment
+  ).previousMonthSubscriptionUsage;
   const thisMonthUsage = (
     subscriptionScreenQuery.data?.node as AppFragmentFragment
-  ).thisMonth;
-  const previousMonthUsage = (
-    subscriptionScreenQuery.data?.node as AppFragmentFragment
-  ).previousMonth;
+  ).thisMonthUsage;
 
   const effectiveAppConfig = (
     subscriptionScreenQuery.data?.node as AppFragmentFragment
@@ -1137,7 +992,10 @@ const SubscriptionScreen: React.VFC = function SubscriptionScreen() {
         subscription={subscription ?? undefined}
         subscriptionPlans={subscriptionPlans}
         thisMonthUsage={thisMonthUsage ?? undefined}
-        previousMonthUsage={previousMonthUsage ?? undefined}
+        thisMonthSubscriptionUsage={thisMonthSubscriptionUsage ?? undefined}
+        previousMonthSubscriptionUsage={
+          previousMonthSubscriptionUsage ?? undefined
+        }
         effectiveAppConfig={effectiveAppConfig ?? undefined}
       />
     </ScreenLayoutScrollView>

@@ -50,6 +50,7 @@ import ActionButton from "../../ActionButton";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import DefaultButton from "../../DefaultButton";
 import { useOAuthClientForm } from "../../hook/useOAuthClientForm";
+import { getNextPlan } from "../../util/plan";
 
 const COPY_ICON_STLYES: IButtonStyles = {
   root: { margin: "0 4px" },
@@ -232,7 +233,9 @@ const ClientCardList: React.VFC<ClientCardListProps> = (props) => {
 
 interface OAuthClientConfigurationContentProps {
   form: AppConfigFormModel<FormState>;
-  oauthClientsMaximum: number;
+  planName: string | null;
+  oauthClientsSoftMaximum: number | undefined;
+  oauthClientsHardMaximum: number | undefined;
   showNotification: (msg: string) => void;
 }
 
@@ -240,7 +243,9 @@ const OAuthClientConfigurationContent: React.VFC<OAuthClientConfigurationContent
   function OAuthClientConfigurationContent(props) {
     const {
       form: { state, reload },
-      oauthClientsMaximum,
+      planName,
+      oauthClientsHardMaximum,
+      oauthClientsSoftMaximum,
     } = props;
     const navigate = useNavigate();
     const { themes } = useSystemConfig();
@@ -262,9 +267,16 @@ const OAuthClientConfigurationContent: React.VFC<OAuthClientConfigurationContent
       };
     }, [renderToString]);
 
-    const limitReached = useMemo(() => {
-      return state.clients.length >= oauthClientsMaximum;
-    }, [oauthClientsMaximum, state.clients.length]);
+    const hardLimitReached = useMemo(() => {
+      if (oauthClientsHardMaximum == null) {
+        return false;
+      }
+      return state.clients.length >= oauthClientsHardMaximum;
+    }, [oauthClientsHardMaximum, state.clients.length]);
+
+    const displayedClientMaximum = useMemo<number | undefined>(() => {
+      return oauthClientsSoftMaximum ?? oauthClientsHardMaximum;
+    }, [oauthClientsHardMaximum, oauthClientsSoftMaximum]);
 
     const oauthClientListColumns = useMemo(() => {
       return makeOAuthClientListColumns(renderToString);
@@ -386,6 +398,17 @@ const OAuthClientConfigurationContent: React.VFC<OAuthClientConfigurationContent
       [renderToString, showDialogAndSetRemoveClientByID, themes.destructive]
     );
 
+    const canUpgradePlan = useMemo(() => {
+      return getNextPlan(planName ?? "") != null;
+    }, [planName]);
+
+    const displayMaximumWarning = useMemo(() => {
+      if (displayedClientMaximum == null) {
+        return false;
+      }
+      return state.clients.length >= displayedClientMaximum;
+    }, [state, displayedClientMaximum]);
+
     return (
       <ScreenContent layout="list">
         <div className={styles.screenTitle}>
@@ -398,17 +421,21 @@ const OAuthClientConfigurationContent: React.VFC<OAuthClientConfigurationContent
             )}
             iconProps={{ iconName: "Add" }}
             onClick={onAddClientButtonClick}
-            disabled={limitReached}
+            disabled={hardLimitReached}
           />
         </div>
         <ScreenDescription className={styles.widget}>
           <FormattedMessage id="ApplicationsConfigurationScreen.description" />
         </ScreenDescription>
         <div className={styles.widget}>
-          {oauthClientsMaximum < 99 ? (
+          {displayMaximumWarning ? (
             <FeatureDisabledMessageBar
-              messageID="FeatureConfig.oauth-clients.maximum"
-              messageValues={{ maximum: oauthClientsMaximum }}
+              messageID={
+                canUpgradePlan
+                  ? "FeatureConfig.oauth-clients.maximum.upgrade"
+                  : "FeatureConfig.oauth-clients.maximum.contact-us"
+              }
+              messageValues={{ maximum: displayedClientMaximum! }}
             />
           ) : null}
           <div className={styles.desktopView}>
@@ -474,9 +501,13 @@ const ApplicationsConfigurationScreen: React.VFC =
       );
     }, []);
 
-    const oauthClientsMaximum = useMemo(() => {
-      return featureConfig.effectiveFeatureConfig?.oauth?.client?.maximum ?? 99;
-    }, [featureConfig.effectiveFeatureConfig?.oauth?.client?.maximum]);
+    const oauthClientsHardMaximum = useMemo<number | undefined>(() => {
+      return featureConfig.effectiveFeatureConfig?.oauth?.client?.maximum;
+    }, [featureConfig]);
+
+    const oauthClientsSoftMaximum = useMemo(() => {
+      return featureConfig.effectiveFeatureConfig?.oauth?.client?.soft_maximum;
+    }, [featureConfig]);
 
     const isLoading = useMemo(
       () => form.isLoading || featureConfig.loading,
@@ -520,7 +551,9 @@ const ApplicationsConfigurationScreen: React.VFC =
       >
         <OAuthClientConfigurationContent
           form={form}
-          oauthClientsMaximum={oauthClientsMaximum}
+          planName={featureConfig.planName}
+          oauthClientsHardMaximum={oauthClientsHardMaximum}
+          oauthClientsSoftMaximum={oauthClientsSoftMaximum}
           showNotification={showNotification}
         />
       </FormContainer>

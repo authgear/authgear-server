@@ -152,6 +152,13 @@ type SubscriptionService interface {
 	MarkCheckoutExpired(ctx context.Context, appID string, customerID string) error
 }
 
+type UsageService interface {
+	GetUsage(ctx context.Context,
+		appID string,
+		date time.Time,
+	) (*model.Usage, error)
+}
+
 type NFTService interface {
 	ProbeNFTCollection(ctx context.Context, contractID web3.ContractID) (*apimodel.ProbeCollectionResult, error)
 	GetContractMetadata(ctx context.Context, contracts []web3.ContractID) ([]apimodel.NFTCollection, error)
@@ -192,6 +199,7 @@ type Context struct {
 	TutorialService      TutorialService
 	StripeService        StripeService
 	SubscriptionService  SubscriptionService
+	UsageService         UsageService
 	NFTService           NFTService
 	DenoService          DenoService
 	AuditService         AuditService

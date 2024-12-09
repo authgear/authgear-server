@@ -77,6 +77,7 @@ export type App = Node & {
   subscription?: Maybe<Subscription>;
   subscriptionUsage?: Maybe<SubscriptionUsage>;
   tutorialStatus: TutorialStatus;
+  usage?: Maybe<Usage>;
   viewer: Collaborator;
 };
 
@@ -95,6 +96,12 @@ export type AppSecretConfigArgs = {
 
 /** Authgear app */
 export type AppSubscriptionUsageArgs = {
+  date: Scalars['DateTime']['input'];
+};
+
+
+/** Authgear app */
+export type AppUsageArgs = {
   date: Scalars['DateTime']['input'];
 };
 
@@ -800,37 +807,18 @@ export type SubscriptionItemPrice = {
   __typename?: 'SubscriptionItemPrice';
   currency: Scalars['String']['output'];
   freeQuantity?: Maybe<Scalars['Int']['output']>;
-  smsRegion: SubscriptionItemPriceSmsRegion;
+  smsRegion: UsageSmsRegion;
   transformQuantityDivideBy?: Maybe<Scalars['Int']['output']>;
   transformQuantityRound: TransformQuantityRound;
   type: SubscriptionItemPriceType;
   unitAmount: Scalars['Int']['output'];
-  usageType: SubscriptionItemPriceUsageType;
-  whatsappRegion: SubscriptionItemPriceWhatsappRegion;
+  usageType: UsageType;
+  whatsappRegion: UsageWhatsappRegion;
 };
-
-export enum SubscriptionItemPriceSmsRegion {
-  None = 'NONE',
-  NorthAmerica = 'NORTH_AMERICA',
-  OtherRegions = 'OTHER_REGIONS'
-}
 
 export enum SubscriptionItemPriceType {
   Fixed = 'FIXED',
   Usage = 'USAGE'
-}
-
-export enum SubscriptionItemPriceUsageType {
-  Mau = 'MAU',
-  None = 'NONE',
-  Sms = 'SMS',
-  Whatsapp = 'WHATSAPP'
-}
-
-export enum SubscriptionItemPriceWhatsappRegion {
-  None = 'NONE',
-  NorthAmerica = 'NORTH_AMERICA',
-  OtherRegions = 'OTHER_REGIONS'
 }
 
 export type SubscriptionPlan = {
@@ -850,14 +838,14 @@ export type SubscriptionUsageItem = {
   currency?: Maybe<Scalars['String']['output']>;
   freeQuantity?: Maybe<Scalars['Int']['output']>;
   quantity: Scalars['Int']['output'];
-  smsRegion: SubscriptionItemPriceSmsRegion;
+  smsRegion: UsageSmsRegion;
   totalAmount?: Maybe<Scalars['Int']['output']>;
   transformQuantityDivideBy?: Maybe<Scalars['Int']['output']>;
   transformQuantityRound: TransformQuantityRound;
   type: SubscriptionItemPriceType;
   unitAmount?: Maybe<Scalars['Int']['output']>;
-  usageType: SubscriptionItemPriceUsageType;
-  whatsappRegion: SubscriptionItemPriceWhatsappRegion;
+  usageType: UsageType;
+  whatsappRegion: UsageWhatsappRegion;
 };
 
 export enum TransformQuantityRound {
@@ -904,6 +892,38 @@ export type UpdateSubscriptionPayload = {
   __typename?: 'UpdateSubscriptionPayload';
   app: App;
 };
+
+export type Usage = {
+  __typename?: 'Usage';
+  items: Array<UsageItem>;
+};
+
+export type UsageItem = {
+  __typename?: 'UsageItem';
+  quantity: Scalars['Int']['output'];
+  smsRegion: UsageSmsRegion;
+  usageType: UsageType;
+  whatsappRegion: UsageWhatsappRegion;
+};
+
+export enum UsageSmsRegion {
+  None = 'NONE',
+  NorthAmerica = 'NORTH_AMERICA',
+  OtherRegions = 'OTHER_REGIONS'
+}
+
+export enum UsageType {
+  Mau = 'MAU',
+  None = 'NONE',
+  Sms = 'SMS',
+  Whatsapp = 'WHATSAPP'
+}
+
+export enum UsageWhatsappRegion {
+  None = 'NONE',
+  NorthAmerica = 'NORTH_AMERICA',
+  OtherRegions = 'OTHER_REGIONS'
+}
 
 /** Portal User */
 export type User = Node & {

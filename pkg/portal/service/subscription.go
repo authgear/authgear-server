@@ -36,7 +36,7 @@ type SubscriptionPlanStore interface {
 	GetPlan(ctx context.Context, name string) (*model.Plan, error)
 }
 
-type UsageStore interface {
+type SubscriptionUsageStore interface {
 	FetchUploadedUsageRecords(
 		ctx context.Context,
 		appID string,
@@ -60,7 +60,7 @@ type SubscriptionService struct {
 	GlobalDatabase    *globaldb.Handle
 	ConfigSourceStore SubscriptionConfigSourceStore
 	PlanStore         SubscriptionPlanStore
-	UsageStore        UsageStore
+	UsageStore        SubscriptionUsageStore
 	Clock             clock.Clock
 	AppConfig         *portalconfig.AppConfig
 }
@@ -671,14 +671,6 @@ func (s *SubscriptionService) getSubscriptionUsage(
 
 	fillCost(incompleteSubscriptionUsage, targetPlan)
 	return incompleteSubscriptionUsage, nil
-}
-
-func sumUsageRecord(records []*usage.UsageRecord) int {
-	sum := 0
-	for _, record := range records {
-		sum += record.Count
-	}
-	return sum
 }
 
 func findPlan(planName string, subscriptionPlans []*model.SubscriptionPlan) (*model.SubscriptionPlan, bool) {

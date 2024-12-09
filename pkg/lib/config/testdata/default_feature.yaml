@@ -57,6 +57,7 @@ custom_domain:
 oauth:
   client:
     maximum: 99
+    soft_maximum: 99
 hook:
   blocking_handler:
     maximum: 99

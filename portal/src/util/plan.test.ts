@@ -1,32 +1,17 @@
 import { describe, it, expect } from "@jest/globals";
-import {
-  getPreviousPlan,
-  shouldShowRecommendedTag,
-  getCTAVariant,
-} from "./plan";
+import { getNextPlan, getCTAVariant } from "./plan";
 
-describe("getPreviousPlan", () => {
+describe("getNextPlan", () => {
   it("should work", () => {
-    expect(getPreviousPlan("free")).toEqual(null);
-    expect(getPreviousPlan("free-approved")).toEqual(null);
-    expect(getPreviousPlan("developers")).toEqual(null);
+    expect(getNextPlan("free")).toEqual("developers2025");
+    expect(getNextPlan("free-approved")).toEqual("developers2025");
+    expect(getNextPlan("developers2025")).toEqual("business2025");
 
-    expect(getPreviousPlan("startups")).toEqual("free");
-    expect(getPreviousPlan("business")).toEqual("startups");
-    expect(getPreviousPlan("enterprise")).toEqual("business");
+    expect(getNextPlan("startups")).toEqual(null);
+    expect(getNextPlan("business")).toEqual(null);
+    expect(getNextPlan("enterprise")).toEqual(null);
 
-    expect(getPreviousPlan("foobar")).toEqual(null);
-  });
-});
-
-describe("shouldShowRecommendedTag", () => {
-  it("should work", () => {
-    expect(shouldShowRecommendedTag("startups", "free")).toEqual(true);
-    expect(shouldShowRecommendedTag("startups", "free-approved")).toEqual(true);
-
-    expect(shouldShowRecommendedTag("startups", "business")).toEqual(false);
-    expect(shouldShowRecommendedTag("startups", "enterprise")).toEqual(false);
-    expect(shouldShowRecommendedTag("startups", "foobar")).toEqual(false);
+    expect(getNextPlan("foobar")).toEqual(null);
   });
 });
 
@@ -59,10 +44,12 @@ describe("getCTAVariant", () => {
     expect(f("enterprise", "enterprise", false)).toEqual("current");
   });
 
-  it("returns reactivate or non-applicable if the plan is cancelled", () => {
-    expect(f("free", "free-approved", true)).toEqual("reactivate");
-    expect(f("free", "developers", true)).toEqual("non-applicable");
-    expect(f("developers", "startups", true)).toEqual("non-applicable");
+  it("returns reactivate, downgrading, reactivate-to-upgrade or reactivate-to-downgrade if the plan is cancelled", () => {
+    expect(f("developers", "free-approved", true)).toEqual("downgrading");
+    expect(f("free", "developers", true)).toEqual("reactivate-to-upgrade");
+    expect(f("business", "developers", true)).toEqual(
+      "reactivate-to-downgrade"
+    );
     expect(f("developers", "developers", true)).toEqual("reactivate");
   });
 

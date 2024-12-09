@@ -220,6 +220,10 @@ func (d AuthgearYAMLDescriptor) validateFeatureConfig(validationCtx *validation.
 		if incomingFCError == nil || !ok {
 			return incomingFCError
 		}
+		// https://github.com/authgear/authgear-server/commit/888e57b4b6fa9de7cd5786111cdc5cc244a85ac0
+		// If the original config has some feature config error, we allow the user
+		// to save the config without correcting them. This is for the case that
+		// the app is downgraded from a higher plan.
 		originalFCError := d.validateBasedOnFeatureConfig(original, fc)
 		originalAggregatedError, ok := originalFCError.(*validation.AggregatedError)
 		if originalFCError == nil || !ok {
@@ -519,6 +523,11 @@ func (d AuthgearSecretYAMLDescriptor) UpdateResource(ctx context.Context, _ []re
 		return nil, fmt.Errorf("cannot delete '%v'", AuthgearSecretYAML)
 	}
 
+	fc, ok := ctx.Value(ContextKeyFeatureConfig).(*config.FeatureConfig)
+	if !ok || fc == nil {
+		return nil, fmt.Errorf("missing feature config in context")
+	}
+
 	var original *config.SecretConfig
 	original, err := config.ParseSecret(resrc.Data)
 	if err != nil {
@@ -548,12 +557,17 @@ func (d AuthgearSecretYAMLDescriptor) UpdateResource(ctx context.Context, _ []re
 			return config.GenerateSAMLIdpSigningCertificate(commonName)
 		},
 	}
-	updatedConfig, err := updateInstruction.ApplyTo(updateInstructionContext, original)
+	incoming, err := updateInstruction.ApplyTo(updateInstructionContext, original)
 	if err != nil {
 		return nil, err
 	}
 
-	updatedYAML, err := yaml.Marshal(updatedConfig)
+	err = d.validate(ctx, original, incoming, fc)
+	if err != nil {
+		return nil, err
+	}
+
+	updatedYAML, err := yaml.Marshal(incoming)
 	if err != nil {
 		return nil, err
 	}
@@ -561,6 +575,46 @@ func (d AuthgearSecretYAMLDescriptor) UpdateResource(ctx context.Context, _ []re
 	newResrc := *resrc
 	newResrc.Data = updatedYAML
 	return &newResrc, nil
+}
+
+func (d AuthgearSecretYAMLDescriptor) validate(ctx context.Context, original *config.SecretConfig, incoming *config.SecretConfig, fc *config.FeatureConfig) error {
+	validationCtx := &validation.Context{}
+
+	featureConfigErr := func() error {
+		incomingFCError := d.validateBasedOnFeatureConfig(incoming, fc)
+		incomingAggregatedError, ok := incomingFCError.(*validation.AggregatedError)
+		if incomingFCError == nil || !ok {
+			return incomingFCError
+		}
+		// https://github.com/authgear/authgear-server/commit/888e57b4b6fa9de7cd5786111cdc5cc244a85ac0
+		// If the original config has some feature config error, we allow the user
+		// to save the config without correcting them. This is for the case that
+		// the app is downgraded from a higher plan.
+		originalFCError := d.validateBasedOnFeatureConfig(original, fc)
+		originalAggregatedError, ok := originalFCError.(*validation.AggregatedError)
+		if originalFCError == nil || !ok {
+			return incomingFCError
+		}
+
+		aggregatedError := incomingAggregatedError.Subtract(originalAggregatedError)
+		return aggregatedError
+	}()
+
+	validationCtx.AddError(featureConfigErr)
+
+	return validationCtx.Error(fmt.Sprintf("invalid %v", AuthgearSecretYAML))
+}
+
+func (d AuthgearSecretYAMLDescriptor) validateBasedOnFeatureConfig(secretConfig *config.SecretConfig, fc *config.FeatureConfig) error {
+	validationCtx := &validation.Context{}
+
+	if fc.Messaging.CustomSMTPDisabled {
+		if _, _, ok := secretConfig.Lookup(config.SMTPServerCredentialsKey); ok {
+			validationCtx.EmitErrorMessage("custom smtp is not allowed")
+		}
+	}
+
+	return validationCtx.Error("features are limited by feature config")
 }
 
 var SecretConfig = resource.RegisterResource(AuthgearSecretYAMLDescriptor{})

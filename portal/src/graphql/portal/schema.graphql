@@ -100,6 +100,9 @@ type App implements Node {
   tutorialStatus: TutorialStatus!
 
   """"""
+  usage(date: DateTime!): Usage
+
+  """"""
   viewer: Collaborator!
 }
 
@@ -986,7 +989,7 @@ type SubscriptionItemPrice {
   freeQuantity: Int
 
   """"""
-  smsRegion: SubscriptionItemPriceSMSRegion!
+  smsRegion: UsageSMSRegion!
 
   """"""
   transformQuantityDivideBy: Int
@@ -1001,22 +1004,10 @@ type SubscriptionItemPrice {
   unitAmount: Int!
 
   """"""
-  usageType: SubscriptionItemPriceUsageType!
+  usageType: UsageType!
 
   """"""
-  whatsappRegion: SubscriptionItemPriceWhatsappRegion!
-}
-
-""""""
-enum SubscriptionItemPriceSMSRegion {
-  """"""
-  NONE
-
-  """"""
-  NORTH_AMERICA
-
-  """"""
-  OTHER_REGIONS
+  whatsappRegion: UsageWhatsappRegion!
 }
 
 """"""
@@ -1026,33 +1017,6 @@ enum SubscriptionItemPriceType {
 
   """"""
   USAGE
-}
-
-""""""
-enum SubscriptionItemPriceUsageType {
-  """"""
-  MAU
-
-  """"""
-  NONE
-
-  """"""
-  SMS
-
-  """"""
-  WHATSAPP
-}
-
-""""""
-enum SubscriptionItemPriceWhatsappRegion {
-  """"""
-  NONE
-
-  """"""
-  NORTH_AMERICA
-
-  """"""
-  OTHER_REGIONS
 }
 
 """"""
@@ -1085,7 +1049,7 @@ type SubscriptionUsageItem {
   quantity: Int!
 
   """"""
-  smsRegion: SubscriptionItemPriceSMSRegion!
+  smsRegion: UsageSMSRegion!
 
   """"""
   totalAmount: Int
@@ -1103,10 +1067,10 @@ type SubscriptionUsageItem {
   unitAmount: Int
 
   """"""
-  usageType: SubscriptionItemPriceUsageType!
+  usageType: UsageType!
 
   """"""
-  whatsappRegion: SubscriptionItemPriceWhatsappRegion!
+  whatsappRegion: UsageWhatsappRegion!
 }
 
 """"""
@@ -1177,6 +1141,66 @@ input UpdateSubscriptionInput {
 type UpdateSubscriptionPayload {
   """"""
   app: App!
+}
+
+""""""
+type Usage {
+  """"""
+  items: [UsageItem!]!
+}
+
+""""""
+type UsageItem {
+  """"""
+  quantity: Int!
+
+  """"""
+  smsRegion: UsageSMSRegion!
+
+  """"""
+  usageType: UsageType!
+
+  """"""
+  whatsappRegion: UsageWhatsappRegion!
+}
+
+""""""
+enum UsageSMSRegion {
+  """"""
+  NONE
+
+  """"""
+  NORTH_AMERICA
+
+  """"""
+  OTHER_REGIONS
+}
+
+""""""
+enum UsageType {
+  """"""
+  MAU
+
+  """"""
+  NONE
+
+  """"""
+  SMS
+
+  """"""
+  WHATSAPP
+}
+
+""""""
+enum UsageWhatsappRegion {
+  """"""
+  NONE
+
+  """"""
+  NORTH_AMERICA
+
+  """"""
+  OTHER_REGIONS
 }
 
 """Portal User"""
