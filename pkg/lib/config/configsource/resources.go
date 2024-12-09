@@ -608,7 +608,7 @@ func (d AuthgearSecretYAMLDescriptor) validate(ctx context.Context, original *co
 func (d AuthgearSecretYAMLDescriptor) validateBasedOnFeatureConfig(secretConfig *config.SecretConfig, fc *config.FeatureConfig) error {
 	validationCtx := &validation.Context{}
 
-	if fc.Messaging.CustomSMTPDisabled {
+	if *fc.Messaging.CustomSMTPDisabled {
 		if _, _, ok := secretConfig.Lookup(config.SMTPServerCredentialsKey); ok {
 			validationCtx.EmitErrorMessage("custom smtp is not allowed")
 		}

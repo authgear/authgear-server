@@ -24,12 +24,12 @@ type MessagingFeatureConfig struct {
 	EmailUsage    *UsageLimitConfig `json:"email_usage,omitempty"`
 	WhatsappUsage *UsageLimitConfig `json:"whatsapp_usage,omitempty"`
 
-	SMSUsageCountDisabled      bool `json:"sms_usage_count_disabled,omitempty"`
-	WhatsappUsageCountDisabled bool `json:"whatsapp_usage_count_disabled,omitempty"`
+	SMSUsageCountDisabled      *bool `json:"sms_usage_count_disabled,omitempty"`
+	WhatsappUsageCountDisabled *bool `json:"whatsapp_usage_count_disabled,omitempty"`
 
-	TemplateCustomizationDisabled bool `json:"template_customization_disabled,omitempty"`
+	TemplateCustomizationDisabled *bool `json:"template_customization_disabled,omitempty"`
 
-	CustomSMTPDisabled bool `json:"custom_smtp_disabled,omitempty"`
+	CustomSMTPDisabled *bool `json:"custom_smtp_disabled,omitempty"`
 }
 
 var _ MergeableFeatureConfig = &MessagingFeatureConfig{}
@@ -38,7 +38,36 @@ func (c *MessagingFeatureConfig) Merge(layer *FeatureConfig) MergeableFeatureCon
 	if layer.Messaging == nil {
 		return c
 	}
-	return layer.Messaging
+	var merged *MessagingFeatureConfig = c
+	if merged == nil {
+		merged = &MessagingFeatureConfig{}
+	}
+	if layer.Messaging.RateLimits != nil {
+		merged.RateLimits = layer.Messaging.RateLimits
+	}
+	if layer.Messaging.SMSUsage != nil {
+		merged.SMSUsage = layer.Messaging.SMSUsage
+	}
+	if layer.Messaging.EmailUsage != nil {
+		merged.EmailUsage = layer.Messaging.EmailUsage
+	}
+	if layer.Messaging.WhatsappUsage != nil {
+		merged.WhatsappUsage = layer.Messaging.WhatsappUsage
+	}
+	if layer.Messaging.SMSUsageCountDisabled != nil {
+		merged.SMSUsageCountDisabled = layer.Messaging.SMSUsageCountDisabled
+	}
+	if layer.Messaging.WhatsappUsageCountDisabled != nil {
+		merged.WhatsappUsageCountDisabled = layer.Messaging.WhatsappUsageCountDisabled
+	}
+	if layer.Messaging.TemplateCustomizationDisabled != nil {
+		merged.TemplateCustomizationDisabled = layer.Messaging.TemplateCustomizationDisabled
+	}
+	if layer.Messaging.CustomSMTPDisabled != nil {
+		merged.CustomSMTPDisabled = layer.Messaging.CustomSMTPDisabled
+	}
+
+	return merged
 }
 
 func (c *MessagingFeatureConfig) SetDefaults() {
@@ -56,6 +85,19 @@ func (c *MessagingFeatureConfig) SetDefaults() {
 		c.WhatsappUsage = &UsageLimitConfig{
 			Enabled: newBool(false),
 		}
+	}
+
+	if c.SMSUsageCountDisabled == nil {
+		c.SMSUsageCountDisabled = newBool(false)
+	}
+	if c.WhatsappUsageCountDisabled == nil {
+		c.WhatsappUsageCountDisabled = newBool(false)
+	}
+	if c.TemplateCustomizationDisabled == nil {
+		c.TemplateCustomizationDisabled = newBool(false)
+	}
+	if c.CustomSMTPDisabled == nil {
+		c.CustomSMTPDisabled = newBool(false)
 	}
 }
 

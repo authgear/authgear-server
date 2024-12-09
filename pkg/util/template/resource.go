@@ -26,7 +26,7 @@ func isTemplateUpdateAllowed(ctx context.Context) (bool, error) {
 	if !ok || fc == nil {
 		return false, ErrMissingFeatureFlagInCtx
 	}
-	if fc.Messaging.TemplateCustomizationDisabled {
+	if *fc.Messaging.TemplateCustomizationDisabled {
 		return false, ErrUpdateDisallowed
 	}
 	return true, nil
