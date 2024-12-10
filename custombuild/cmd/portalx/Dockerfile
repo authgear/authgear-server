@@ -59,6 +59,8 @@ ARG GIT_HASH
 # If the working directory is /src, Parcel will have some problem with it.
 WORKDIR /usr/src/app
 COPY ./portal/package.json ./portal/package-lock.json ./
+# Copy the scripts
+COPY ./portal/scripts/. ./scripts/.
 # Copy the vite plugin
 COPY ./portal/packages/. ./packages/.
 RUN npm ci

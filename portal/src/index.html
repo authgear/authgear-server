@@ -16,6 +16,14 @@
         display: none;
       }
     </style>
+    <script>
+      window.FabricConfig = {
+        // The lack of trailing slash is important.
+        fontBaseUrl: window.location.origin + "/shared-assets",
+        // The trailing slash is important.
+        iconBaseUrl: window.location.origin + "/shared-assets/",
+      };
+    </script>
     <link rel="shortcut icon" href="./favicon.png" />
     <link rel="stylesheet" href="./index.css" />
     <link rel="stylesheet" href="./icons/authgear-portal-icons.css" />
