@@ -596,7 +596,7 @@ func (d AuthgearSecretYAMLDescriptor) validate(ctx context.Context, original *co
 func (d AuthgearSecretYAMLDescriptor) validateBasedOnFeatureConfig(secretConfig *config.SecretConfig, fc *config.FeatureConfig) error {
 	validationCtx := &validation.Context{}
 
-	if fc.Messaging.CustomSMTPDisabled {
+	if *fc.Messaging.CustomSMTPDisabled {
 		if _, _, ok := secretConfig.Lookup(config.SMTPServerCredentialsKey); ok {
 			validationCtx.EmitErrorMessage("custom smtp is not allowed")
 		}
@@ -648,31 +648,44 @@ func (d AuthgearFeatureYAMLDescriptor) ViewResources(resources []resource.Resour
 		return target.Data, nil
 	}
 
-	effective := func() (interface{}, error) {
-		bytes, err := app()
-		if err != nil {
-			return nil, err
-		}
-
-		featureConfig, err := config.ParseFeatureConfig(bytes.([]byte))
-		if err != nil {
-			return nil, fmt.Errorf("cannot parse feature config: %w", err)
-		}
-		return featureConfig, nil
-	}
-
 	switch rawView.(type) {
 	case resource.AppFileView:
 		return app()
 	case resource.EffectiveFileView:
 		return app()
 	case resource.EffectiveResourceView:
-		return effective()
+		return d.viewEffectiveResource(resources)
 	case resource.ValidateResourceView:
-		return effective()
+		return d.viewEffectiveResource(resources)
 	default:
 		return nil, fmt.Errorf("unsupported view: %T", rawView)
 	}
+}
+
+func (d AuthgearFeatureYAMLDescriptor) viewEffectiveResource(resources []resource.ResourceFile) (interface{}, error) {
+	var cfgs []*config.FeatureConfig
+	for _, layer := range resources {
+		cfg, err := config.ParseFeatureConfigWithoutDefaults(layer.Data)
+		if err != nil {
+			return nil, fmt.Errorf("malformed feature config: %w", err)
+		}
+		cfgs = append(cfgs, cfg)
+	}
+
+	mergedConfig := &config.FeatureConfig{}
+	for _, cfg := range cfgs {
+		mergedConfig = mergedConfig.Merge(cfg)
+	}
+	mergedYAML, err := yaml.Marshal(mergedConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	featureConfig, err := config.ParseFeatureConfig(mergedYAML)
+	if err != nil {
+		return nil, fmt.Errorf("cannot parse merged feature config: %w", err)
+	}
+	return featureConfig, nil
 }
 
 func (d AuthgearFeatureYAMLDescriptor) UpdateResource(_ context.Context, _ []resource.ResourceFile, resrc *resource.ResourceFile, data []byte) (*resource.ResourceFile, error) {

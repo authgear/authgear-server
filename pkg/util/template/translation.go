@@ -155,7 +155,7 @@ func (t *translationJSON) processAppTranslationData(ctx context.Context, data []
 	if !ok || fc == nil {
 		return nil, ErrMissingFeatureFlagInCtx
 	}
-	isCustomizationDisallowed := fc.Messaging.TemplateCustomizationDisabled
+	isCustomizationDisallowed := *fc.Messaging.TemplateCustomizationDisabled
 
 	appTranslationRaw := make(map[string]interface{})
 	err := json.Unmarshal(data, &appTranslationRaw)

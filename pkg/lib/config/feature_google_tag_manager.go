@@ -13,3 +13,12 @@ var _ = FeatureConfigSchema.Add("GoogleTagManagerFeatureConfig", `
 type GoogleTagManagerFeatureConfig struct {
 	Disabled bool `json:"disabled,omitempty"`
 }
+
+var _ MergeableFeatureConfig = &GoogleTagManagerFeatureConfig{}
+
+func (c *GoogleTagManagerFeatureConfig) Merge(layer *FeatureConfig) MergeableFeatureConfig {
+	if layer.GoogleTagManager == nil {
+		return c
+	}
+	return layer.GoogleTagManager
+}

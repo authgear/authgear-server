@@ -6,12 +6,11 @@ import (
 	"errors"
 	"time"
 
-	"sigs.k8s.io/yaml"
-
 	"github.com/Masterminds/squirrel"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
+	"github.com/authgear/authgear-server/pkg/lib/config/plan"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/lib/usage"
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
@@ -33,7 +32,7 @@ type SubscriptionConfigSourceStore interface {
 }
 
 type SubscriptionPlanStore interface {
-	GetPlan(ctx context.Context, name string) (*model.Plan, error)
+	GetPlan(ctx context.Context, name string) (*plan.Plan, error)
 }
 
 type SubscriptionUsageStore interface {
@@ -272,14 +271,7 @@ func (s *SubscriptionService) UpdateAppPlan0(ctx context.Context, appID string, 
 		return err
 	}
 
-	featureConfigYAML, err := yaml.Marshal(p.RawFeatureConfig)
-	if err != nil {
-		return err
-	}
-
 	consrc.PlanName = p.Name
-	// json.Marshal handled base64 encoded of the YAML file
-	consrc.Data[configsource.AuthgearFeatureYAML] = featureConfigYAML
 	consrc.UpdatedAt = s.Clock.NowUTC()
 	err = s.ConfigSourceStore.UpdateDatabaseSource(ctx, consrc)
 	if err != nil {

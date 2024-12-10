@@ -15,6 +15,7 @@ import (
 	"github.com/stripe/stripe-go/v72/client"
 	"github.com/stripe/stripe-go/v72/webhook"
 
+	"github.com/authgear/authgear-server/pkg/lib/config/plan"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/globalredis"
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
@@ -44,7 +45,7 @@ func NewClientAPI(stripeConfig *portalconfig.StripeConfig, logger Logger) *clien
 }
 
 type PlanService interface {
-	ListPlans(ctx context.Context) ([]*model.Plan, error)
+	ListPlans(ctx context.Context) ([]*plan.Plan, error)
 }
 
 type Cache interface {
@@ -329,7 +330,7 @@ func (s *Service) fetchProducts(ctx context.Context) ([]*stripe.Product, error) 
 	return products, nil
 }
 
-func (s *Service) intersectPlanNames(plans []*model.Plan, products []*stripe.Product) []planWithVersion {
+func (s *Service) intersectPlanNames(plans []*plan.Plan, products []*stripe.Product) []planWithVersion {
 	// plans can contain free plan that is not a paid plan.
 	// products do not contain non-paid plan.
 	// Therefore, we perform an intersection between the two.

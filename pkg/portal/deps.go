@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/analytic"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
+	"github.com/authgear/authgear-server/pkg/lib/config/plan"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
@@ -19,7 +20,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/portal/deps"
 	"github.com/authgear/authgear-server/pkg/portal/endpoint"
 	"github.com/authgear/authgear-server/pkg/portal/graphql"
-	"github.com/authgear/authgear-server/pkg/portal/lib/plan"
+	portallibplan "github.com/authgear/authgear-server/pkg/portal/lib/plan"
 	"github.com/authgear/authgear-server/pkg/portal/libstripe"
 	"github.com/authgear/authgear-server/pkg/portal/loader"
 	"github.com/authgear/authgear-server/pkg/portal/service"
@@ -80,7 +81,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(service.CollaboratorServiceSMTPService), new(*smtp.Service)),
 	wire.Bind(new(service.CollaboratorServiceAdminAPIService), new(*service.AdminAPIService)),
 	wire.Bind(new(service.ResourceManager), new(*resource.Manager)),
-	wire.Bind(new(service.AppPlanService), new(*plan.Service)),
+	wire.Bind(new(service.AppPlanService), new(*portallibplan.Service)),
 	wire.Bind(new(service.AppResourceManagerFactory), new(*appresource.ManagerFactory)),
 	wire.Bind(new(service.SubscriptionConfigSourceStore), new(*configsource.Store)),
 	wire.Bind(new(service.SubscriptionPlanStore), new(*plan.Store)),
@@ -126,8 +127,8 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(transport.StripeService), new(*libstripe.Service)),
 	wire.Bind(new(transport.SubscriptionService), new(*service.SubscriptionService)),
 
-	plan.DependencySet,
-	wire.Bind(new(libstripe.PlanService), new(*plan.Service)),
+	portallibplan.DependencySet,
+	wire.Bind(new(libstripe.PlanService), new(*portallibplan.Service)),
 	wire.Bind(new(libstripe.EndpointsProvider), new(*endpoint.EndpointsProvider)),
 
 	appresource.DependencySet,

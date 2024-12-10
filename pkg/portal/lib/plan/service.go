@@ -3,25 +3,25 @@ package plan
 import (
 	"context"
 
+	configplan "github.com/authgear/authgear-server/pkg/lib/config/plan"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
-	"github.com/authgear/authgear-server/pkg/portal/model"
 )
 
 type Service struct {
 	GlobalDatabase *globaldb.Handle
-	PlanStore      *Store
+	PlanStore      *configplan.Store
 	AppConfig      *portalconfig.AppConfig
 }
 
-func (s *Service) GetDefaultPlan(ctx context.Context) (*model.Plan, error) {
+func (s *Service) GetDefaultPlan(ctx context.Context) (*configplan.Plan, error) {
 	defaultPlanName := s.AppConfig.DefaultPlan
 	if defaultPlanName == "" {
 		// no default plan is configured
 		return nil, nil
 	}
 
-	var plan *model.Plan
+	var plan *configplan.Plan
 	var err error
 	err = s.GlobalDatabase.WithTx(ctx, func(ctx context.Context) error {
 		plan, err = s.PlanStore.GetPlan(ctx, defaultPlanName)
@@ -37,8 +37,8 @@ func (s *Service) GetDefaultPlan(ctx context.Context) (*model.Plan, error) {
 	return plan, nil
 }
 
-func (s *Service) ListPlans(ctx context.Context) ([]*model.Plan, error) {
-	var plans []*model.Plan
+func (s *Service) ListPlans(ctx context.Context) ([]*configplan.Plan, error) {
+	var plans []*configplan.Plan
 	var err error
 	err = s.GlobalDatabase.WithTx(ctx, func(ctx context.Context) error {
 		plans, err = s.PlanStore.List(ctx)

@@ -224,7 +224,7 @@ func (s *Sender) SendSMSInNewGoroutine(ctx context.Context, msgType translation.
 				Sender:              opts.Sender,
 				Recipient:           opts.To,
 				Type:                string(msgType),
-				IsNotCountedInUsage: s.MessagingFeatureConfig.SMSUsageCountDisabled,
+				IsNotCountedInUsage: *s.MessagingFeatureConfig.SMSUsageCountDisabled,
 			})
 		})
 		if err != nil {
@@ -327,7 +327,7 @@ func (s *Sender) SendWhatsappImmediately(ctx context.Context, msgType translatio
 	err = s.Events.DispatchEventImmediately(ctx, &nonblocking.WhatsappSentEventPayload{
 		Recipient:           opts.To,
 		Type:                string(msgType),
-		IsNotCountedInUsage: s.MessagingFeatureConfig.WhatsappUsageCountDisabled,
+		IsNotCountedInUsage: *s.MessagingFeatureConfig.WhatsappUsageCountDisabled,
 	})
 	if err != nil {
 		s.Logger.WithError(err).Errorf("failed to emit %v event", nonblocking.WhatsappSent)

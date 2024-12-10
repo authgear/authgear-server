@@ -11,8 +11,12 @@ import (
 	"time"
 
 	"github.com/spf13/afero"
+	// We need "sigs.k8s.io/yaml" package instead of other yaml serializer,
+	// because "gopkg.in/yaml.v3" add `null`s for null pointers which break some validations.
+	"sigs.k8s.io/yaml"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/config/plan"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -26,6 +30,7 @@ import (
 
 const PGChannelConfigSourceChange = "config_source_change"
 const PGChannelDomainChange = "domain_change"
+const PGChannelPlanChange = "plan_change"
 
 type DatabaseSource struct {
 	ID        string
@@ -58,7 +63,8 @@ const (
 )
 
 type DatabaseHandleFactory func() *globaldb.Handle
-type StoreFactory func(handle *globaldb.Handle) *Store
+type ConfigSourceStoreFactory func(handle *globaldb.Handle) *Store
+type PlanStoreFactory plan.StoreFactory
 
 func NewDatabaseHandleFactory(
 	pool *db.Pool,
@@ -77,9 +83,9 @@ func NewDatabaseHandleFactory(
 	return factory
 }
 
-func NewStoreFactory(
+func NewConfigSourceStoreStoreFactory(
 	sqlbuilder *globaldb.SQLBuilder,
-) StoreFactory {
+) ConfigSourceStoreFactory {
 	factory := func(handle *globaldb.Handle) *Store {
 		sqlExecutor := globaldb.NewSQLExecutor(handle)
 		return &Store{
@@ -90,16 +96,24 @@ func NewStoreFactory(
 	return factory
 }
 
+func NewPlanStoreStoreFactory(
+	sqlbuilder *globaldb.SQLBuilder,
+) PlanStoreFactory {
+	factory := PlanStoreFactory(plan.NewStoreFactory(sqlbuilder))
+	return factory
+}
+
 type Database struct {
-	Logger                DatabaseLogger
-	BaseResources         *resource.Manager
-	TrustProxy            config.TrustProxy
-	Config                *Config
-	Clock                 clock.Clock
-	StoreFactory          StoreFactory
-	DatabaseHandleFactory DatabaseHandleFactory
-	DatabaseCredentials   *config.GlobalDatabaseCredentialsEnvironmentConfig
-	DatabaseConfig        *config.DatabaseEnvironmentConfig
+	Logger                   DatabaseLogger
+	BaseResources            *resource.Manager
+	TrustProxy               config.TrustProxy
+	Config                   *Config
+	Clock                    clock.Clock
+	ConfigSourceStoreFactory ConfigSourceStoreFactory
+	PlanStoreFactory         PlanStoreFactory
+	DatabaseHandleFactory    DatabaseHandleFactory
+	DatabaseCredentials      *config.GlobalDatabaseCredentialsEnvironmentConfig
+	DatabaseConfig           *config.DatabaseEnvironmentConfig
 
 	ResolveAppIDType ResolveAppIDType
 
@@ -123,6 +137,7 @@ func (d *Database) Open(ctx context.Context) error {
 	go d.listener.Listen([]string{
 		PGChannelConfigSourceChange,
 		PGChannelDomainChange,
+		PGChannelPlanChange,
 	}, done, func(channel string, extra string) {
 		switch channel {
 		case PGChannelConfigSourceChange:
@@ -130,6 +145,8 @@ func (d *Database) Open(ctx context.Context) error {
 		case PGChannelDomainChange:
 			d.invalidateHost(extra)
 			d.invalidateAppByDomain(ctx, extra)
+		case PGChannelPlanChange:
+			d.invalidateAllApp()
 		default:
 			// unknown notification channel, just skip it
 			d.Logger.WithField("channel", channel).Info("unknown notification channel")
@@ -186,7 +203,7 @@ func (d *Database) resolveAppIDByDomain(ctx context.Context, r *http.Request) (s
 
 	var appID string
 	dbHandle := d.DatabaseHandleFactory()
-	store := d.StoreFactory(dbHandle)
+	store := d.ConfigSourceStoreFactory(dbHandle)
 	err := dbHandle.WithTx(ctx, func(ctx context.Context) error {
 		d.Logger.WithField("host", host).Debug("resolve appid from db")
 		aid, err := store.GetAppIDByDomain(ctx, host)
@@ -219,7 +236,7 @@ func (d *Database) ReloadApp(appID string) {
 
 func (d *Database) CreateDatabaseSource(ctx context.Context, appID string, resources map[string][]byte, planName string) error {
 	dbHandle := d.DatabaseHandleFactory()
-	store := d.StoreFactory(dbHandle)
+	store := d.ConfigSourceStoreFactory(dbHandle)
 	return dbHandle.WithTx(ctx, func(ctx context.Context) error {
 		_, err := store.GetDatabaseSourceByAppID(ctx, appID)
 		if err != nil && !errors.Is(err, ErrAppNotFound) {
@@ -247,7 +264,7 @@ func (d *Database) CreateDatabaseSource(ctx context.Context, appID string, resou
 
 func (d *Database) UpdateDatabaseSource(ctx context.Context, appID string, updates []*resource.ResourceFile) error {
 	dbHandle := d.DatabaseHandleFactory()
-	store := d.StoreFactory(dbHandle)
+	store := d.ConfigSourceStoreFactory(dbHandle)
 	return dbHandle.WithTx(ctx, func(ctx context.Context) error {
 		dbs, err := store.GetDatabaseSourceByAppID(ctx, appID)
 		if err != nil {
@@ -292,9 +309,17 @@ func (d *Database) invalidateApp(appID string) {
 	d.Logger.WithField("app_id", appID).Info("invalidated cached config")
 }
 
+func (d *Database) invalidateAllApp() {
+	d.appMap.Range(func(key, value any) bool {
+		d.appMap.Delete(key)
+		return true
+	})
+	d.Logger.Info("invalidated all cached config")
+}
+
 func (d *Database) invalidateAppByDomain(ctx context.Context, domain string) {
 	dbHandle := d.DatabaseHandleFactory()
-	store := d.StoreFactory(dbHandle)
+	store := d.ConfigSourceStoreFactory(dbHandle)
 	err := dbHandle.WithTx(ctx, func(ctx context.Context) error {
 		aid, err := store.GetAppIDByDomain(ctx, domain)
 		if err != nil {
@@ -334,10 +359,14 @@ func (d *Database) cleanupCache(done <-chan struct{}) {
 	}
 }
 
-func MakeAppFSFromDatabaseSource(s *DatabaseSource) (resource.Fs, error) {
+func newMemMapFs() afero.Fs {
 	// Construct a FS that treats `a` and `/a` the same.
 	// The template is loaded by a file URI which is always an absoluted path.
-	appFs := afero.NewBasePathFs(afero.NewMemMapFs(), "/")
+	return afero.NewBasePathFs(afero.NewMemMapFs(), "/")
+}
+
+func MakeAppFSFromDatabaseSource(s *DatabaseSource) (resource.Fs, error) {
+	appFs := newMemMapFs()
 	create := func(name string, data []byte) {
 		file, _ := appFs.Create(name)
 		_, _ = file.Write(data)
@@ -354,6 +383,22 @@ func MakeAppFSFromDatabaseSource(s *DatabaseSource) (resource.Fs, error) {
 	return &resource.LeveledAferoFs{
 		Fs:      appFs,
 		FsLevel: resource.FsLevelApp,
+	}, nil
+}
+
+func MakePlanFSFromPlan(p *plan.Plan) (resource.Fs, error) {
+	planFs := newMemMapFs()
+	if p != nil {
+		file, _ := planFs.Create(AuthgearFeatureYAML)
+		data, err := yaml.Marshal(p.RawFeatureConfig)
+		if err != nil {
+			return nil, err
+		}
+		_, _ = file.Write(data)
+	}
+	return &resource.LeveledAferoFs{
+		Fs:      planFs,
+		FsLevel: resource.FsLevelPlan,
 	}, nil
 }
 
@@ -379,10 +424,21 @@ func (a *dbApp) Load(ctx context.Context, d *Database) (*config.AppContext, erro
 func (a *dbApp) doLoad(ctx context.Context, d *Database) (*config.AppContext, error) {
 	var appCtx *config.AppContext
 	dbHandle := d.DatabaseHandleFactory()
-	store := d.StoreFactory(dbHandle)
+	store := d.ConfigSourceStoreFactory(dbHandle)
+	planStore := d.PlanStoreFactory(dbHandle)
 	err := dbHandle.WithTx(ctx, func(ctx context.Context) error {
 		d.Logger.WithField("app_id", a.appID).Info("load app config from db")
 		data, err := store.GetDatabaseSourceByAppID(ctx, a.appID)
+		if err != nil {
+			return err
+		}
+
+		p, err := planStore.GetPlan(ctx, data.PlanName)
+		if err != nil && !errors.Is(err, plan.ErrPlanNotFound) {
+			return err
+		}
+
+		planFs, err := MakePlanFSFromPlan(p)
 		if err != nil {
 			return err
 		}
@@ -391,7 +447,8 @@ func (a *dbApp) doLoad(ctx context.Context, d *Database) (*config.AppContext, er
 		if err != nil {
 			return err
 		}
-		resources := d.BaseResources.Overlay(appFs)
+		resources := d.BaseResources.Overlay(planFs)
+		resources = resources.Overlay(appFs)
 
 		appConfig, err := LoadConfig(resources)
 		if err != nil {

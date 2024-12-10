@@ -792,7 +792,8 @@ func TestTranslationResource(t *testing.T) {
 
 		Convey("it should skip write value for email template if disallowed by feature flag", func() {
 			featureConfig := config.NewEffectiveDefaultFeatureConfig()
-			featureConfig.Messaging.TemplateCustomizationDisabled = true
+			trueVal := true
+			featureConfig.Messaging.TemplateCustomizationDisabled = &trueVal
 			ctx := context.Background()
 			ctx = context.WithValue(ctx, configsource.ContextKeyFeatureConfig, featureConfig)
 			updated, err := template.TranslationJSON.UpdateResource(

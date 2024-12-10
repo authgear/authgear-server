@@ -94,22 +94,24 @@ func newConfigSourceController(p *deps.BackgroundProvider) *configsource.Control
 	clock := _wireSystemClockValue
 	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
 	sqlBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	storeFactory := configsource.NewStoreFactory(sqlBuilder)
+	configSourceStoreFactory := configsource.NewConfigSourceStoreStoreFactory(sqlBuilder)
+	planStoreFactory := configsource.NewPlanStoreStoreFactory(sqlBuilder)
 	pool := p.DatabasePool
 	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
 	databaseHandleFactory := configsource.NewDatabaseHandleFactory(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
 	resolveAppIDType := configsource.NewResolveAppIDTypeDomain()
 	database := &configsource.Database{
-		Logger:                databaseLogger,
-		BaseResources:         manager,
-		TrustProxy:            trustProxy,
-		Config:                config,
-		Clock:                 clock,
-		StoreFactory:          storeFactory,
-		DatabaseHandleFactory: databaseHandleFactory,
-		DatabaseCredentials:   globalDatabaseCredentialsEnvironmentConfig,
-		DatabaseConfig:        databaseEnvironmentConfig,
-		ResolveAppIDType:      resolveAppIDType,
+		Logger:                   databaseLogger,
+		BaseResources:            manager,
+		TrustProxy:               trustProxy,
+		Config:                   config,
+		Clock:                    clock,
+		ConfigSourceStoreFactory: configSourceStoreFactory,
+		PlanStoreFactory:         planStoreFactory,
+		DatabaseHandleFactory:    databaseHandleFactory,
+		DatabaseCredentials:      globalDatabaseCredentialsEnvironmentConfig,
+		DatabaseConfig:           databaseEnvironmentConfig,
+		ResolveAppIDType:         resolveAppIDType,
 	}
 	controller := configsource.NewController(config, localFS, database)
 	return controller

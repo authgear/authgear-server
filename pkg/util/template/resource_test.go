@@ -384,7 +384,8 @@ func TestTemplateResource(t *testing.T) {
 		}
 		Convey("Should not allow update if disallowed", func() {
 			featureConfig := config.NewEffectiveDefaultFeatureConfig()
-			featureConfig.Messaging.TemplateCustomizationDisabled = true
+			trueVal := true
+			featureConfig.Messaging.TemplateCustomizationDisabled = &trueVal
 			ctx := context.Background()
 			ctx = context.WithValue(ctx, configsource.ContextKeyFeatureConfig, featureConfig)
 			res, err := messageHtml.UpdateResource(ctx, nil, &resourceFile, []byte("asdf"))
@@ -417,7 +418,8 @@ func TestTemplateResource(t *testing.T) {
 		}
 		Convey("Should not allow update if disallowed", func() {
 			featureConfig := config.NewEffectiveDefaultFeatureConfig()
-			featureConfig.Messaging.TemplateCustomizationDisabled = true
+			trueVal := true
+			featureConfig.Messaging.TemplateCustomizationDisabled = &trueVal
 			ctx := context.Background()
 			ctx = context.WithValue(ctx, configsource.ContextKeyFeatureConfig, featureConfig)
 			res, err := messageTxt.UpdateResource(ctx, nil, &resourceFile, []byte("asdf"))

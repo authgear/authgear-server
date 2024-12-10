@@ -19,6 +19,7 @@ import (
 	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
+	"github.com/authgear/authgear-server/pkg/lib/config/plan"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/lib/saml"
 	"github.com/authgear/authgear-server/pkg/lib/tester"
@@ -67,7 +68,7 @@ type AppDefaultDomainService interface {
 }
 
 type AppPlanService interface {
-	GetDefaultPlan(ctx context.Context) (*model.Plan, error)
+	GetDefaultPlan(ctx context.Context) (*plan.Plan, error)
 }
 
 type AppServiceLogger struct{ *log.Logger }
@@ -486,7 +487,7 @@ func (s *AppService) generateResources(appHost string, appID string, featureConf
 	return appResources, nil
 }
 
-func (s *AppService) generateConfig(ctx context.Context, appHost string, appID string, appPlan *model.Plan) (opts *CreateAppOptions, err error) {
+func (s *AppService) generateConfig(ctx context.Context, appHost string, appID string, appPlan *plan.Plan) (opts *CreateAppOptions, err error) {
 	appIDRegex, err := regexp.Compile(s.AppConfig.IDPattern)
 	if err != nil {
 		err = fmt.Errorf("invalid app ID validation pattern: %w", err)

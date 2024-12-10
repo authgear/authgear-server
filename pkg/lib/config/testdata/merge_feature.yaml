@@ -1,0 +1,40 @@
+configs:
+  - {}
+  - messaging:
+      whatsapp_usage_count_disabled: true
+  - ui:
+      white_labeling:
+        disabled: true
+  - custom_domain:
+      disabled: true
+  - oauth:
+      client:
+        maximum: 2
+        soft_maximum: 20
+  - collaborator:
+      maximum: 3
+      soft_maximum: 30
+  - messaging:
+      sms_usage:
+        enabled: true
+        period: month
+        quota: 5
+result:
+  ui:
+    white_labeling:
+      disabled: true
+  custom_domain:
+    disabled: true
+  oauth:
+    client:
+      maximum: 2
+      soft_maximum: 20
+  collaborator:
+    maximum: 3
+    soft_maximum: 30
+  messaging:
+    whatsapp_usage_count_disabled: true
+    sms_usage:
+      enabled: true
+      period: month
+      quota: 5

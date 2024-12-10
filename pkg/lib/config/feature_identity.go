@@ -24,6 +24,15 @@ type IdentityFeatureConfig struct {
 	Biometric *BiometricFeatureConfig `json:"biometric,omitempty"`
 }
 
+var _ MergeableFeatureConfig = &IdentityFeatureConfig{}
+
+func (c *IdentityFeatureConfig) Merge(layer *FeatureConfig) MergeableFeatureConfig {
+	if layer.Identity == nil {
+		return c
+	}
+	return layer.Identity
+}
+
 var _ = FeatureConfigSchema.Add("LoginIDFeatureConfig", `
 {
 	"type": "object",

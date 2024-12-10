@@ -10,6 +10,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/admin/authz"
 	"github.com/authgear/authgear-server/pkg/lib/analytic"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
+	"github.com/authgear/authgear-server/pkg/lib/config/plan"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
@@ -23,7 +24,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/portal/deps"
 	"github.com/authgear/authgear-server/pkg/portal/endpoint"
 	"github.com/authgear/authgear-server/pkg/portal/graphql"
-	"github.com/authgear/authgear-server/pkg/portal/lib/plan"
+	plan2 "github.com/authgear/authgear-server/pkg/portal/lib/plan"
 	"github.com/authgear/authgear-server/pkg/portal/libstripe"
 	"github.com/authgear/authgear-server/pkg/portal/loader"
 	"github.com/authgear/authgear-server/pkg/portal/service"
@@ -221,7 +222,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	planService := &plan.Service{
+	planService := &plan2.Service{
 		GlobalDatabase: handle,
 		PlanStore:      store,
 		AppConfig:      appConfig,
@@ -551,7 +552,7 @@ func newStripeWebhookHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	appConfig := rootProvider.AppConfig
-	planService := &plan.Service{
+	planService := &plan2.Service{
 		GlobalDatabase: handle,
 		PlanStore:      store,
 		AppConfig:      appConfig,

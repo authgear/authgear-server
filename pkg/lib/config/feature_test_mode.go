@@ -75,6 +75,15 @@ type TestModeFeatureConfig struct {
 	Email                *TestModeEmailFeatureConfig                `json:"email,omitempty"`
 }
 
+var _ MergeableFeatureConfig = &TestModeFeatureConfig{}
+
+func (c *TestModeFeatureConfig) Merge(layer *FeatureConfig) MergeableFeatureConfig {
+	if layer.TestMode == nil {
+		return c
+	}
+	return layer.TestMode
+}
+
 type TestModeFixedOOBOTPFeatureConfig struct {
 	Enabled bool   `json:"enabled"`
 	Code    string `json:"code"`
