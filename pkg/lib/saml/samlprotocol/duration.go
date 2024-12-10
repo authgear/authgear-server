@@ -59,6 +59,8 @@ var (
 )
 
 // UnmarshalText implements the encoding.TextUnmarshaler interface.
+//
+//nolint:gocognit
 func (d *Duration) UnmarshalText(text []byte) error {
 	if text == nil {
 		*d = 0
