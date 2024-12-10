@@ -1,12 +1,6 @@
-import React, {
-  useCallback,
-  ReactNode,
-  ReactElement,
-  ComponentType,
-} from "react";
+import React, { useCallback, ReactElement, ComponentType } from "react";
 import {
   CompoundButton,
-  IButtonStyles,
   IButtonProps,
   useTheme,
   IRenderFunction,
@@ -18,12 +12,12 @@ export interface IconComponentProps {
 }
 
 export interface ChoiceButtonProps {
-  className?: string;
-  styles?: IButtonStyles;
+  className?: IButtonProps["className"];
+  styles?: IButtonProps["styles"];
   checked?: IButtonProps["checked"];
   disabled?: IButtonProps["disabled"];
-  text?: ReactNode;
-  secondaryText?: ReactNode;
+  text?: IButtonProps["text"];
+  secondaryText?: IButtonProps["secondaryText"];
   onClick?: IButtonProps["onClick"];
   IconComponent?: ComponentType<IconComponentProps>;
 }
@@ -87,7 +81,6 @@ export default function ChoiceButton(props: ChoiceButtonProps): ReactElement {
     <CompoundButton
       {...rest}
       toggle={true}
-      // @ts-expect-error
       styles={styles}
       onRenderIcon={IconComponent == null ? undefined : onRenderIcon}
     />
