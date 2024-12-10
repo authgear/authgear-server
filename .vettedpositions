@@ -267,13 +267,15 @@
 /pkg/images/deps/middleware_request.go:39:39: requestcontext
 /pkg/images/deps/middleware_request.go:40:34: requestcontext
 /pkg/images/deps/middleware_request.go:45:40: requestcontext
-/pkg/images/handler/get.go:95:43: requestcontext
 /pkg/images/handler/post.go:162:83: requestcontext
 /pkg/images/handler/post.go:193:10: requestcontext
 /pkg/lib/accountmanagement/rate_limit_middleware.go:41:10: requestcontext
 /pkg/lib/admin/authz/middleware.go:85:18: requestcontext
 /pkg/lib/authenticationflow/intl_middleware.go:16:41: requestcontext
 /pkg/lib/authenticationflow/rate_limit_middleware.go:31:49: requestcontext
+/pkg/lib/cloudstorage/azure.go:128:32: requestcontext
+/pkg/lib/cloudstorage/gcs.go:139:38: requestcontext
+/pkg/lib/cloudstorage/minio.go:100:41: requestcontext
 /pkg/lib/config/contextbackground.go:11:52: contextbackground
 /pkg/lib/deps/context.go:23:10: requestcontext
 /pkg/lib/deps/contextbackground.go:10:28: contextbackground

@@ -126,7 +126,7 @@ func (s *S3Storage) PresignGetObject(ctx context.Context, name string, expire ti
 	return u, nil
 }
 
-func (s *S3Storage) MakeDirector(ctx context.Context, extractKey func(r *http.Request) string, expire time.Duration) func(r *http.Request) {
+func (s *S3Storage) MakeDirector(extractKey func(r *http.Request) string, expire time.Duration) func(r *http.Request) {
 	return func(r *http.Request) {
 		key := extractKey(r)
 		input := &s3.GetObjectInput{

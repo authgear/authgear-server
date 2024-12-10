@@ -6,6 +6,7 @@ import (
 	"github.com/kelseyhightower/envconfig"
 
 	imagesconfig "github.com/authgear/authgear-server/pkg/images/config"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
@@ -43,12 +44,14 @@ func LoadConfigFromEnv() (*Config, error) {
 
 func (c *Config) Initialize() error {
 	ctx := &validation.Context{}
-	c.ObjectStore.Initialize(ctx.Child("IMAGES_OBJECT_STORE"))
+	objectStoreConfig := config.AbstractObjectStoreConfig(*c.ObjectStore)
+	objectStoreConfig.Initialize(ctx.Child("IMAGES_OBJECT_STORE"))
 	return ctx.Error("failed to initialize server configuration")
 }
 
 func (c *Config) Validate() error {
 	ctx := &validation.Context{}
-	c.ObjectStore.Validate(ctx.Child("IMAGES_OBJECT_STORE"))
+	objectStoreConfig := config.AbstractObjectStoreConfig(*c.ObjectStore)
+	objectStoreConfig.Validate(ctx.Child("IMAGES_OBJECT_STORE"))
 	return ctx.Error("invalid server configuration")
 }

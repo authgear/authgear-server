@@ -5,7 +5,6 @@
 package handler
 
 import (
-	context "context"
 	http "net/http"
 	reflect "reflect"
 
@@ -75,15 +74,15 @@ func (m *MockDirectorMaker) EXPECT() *MockDirectorMakerMockRecorder {
 }
 
 // MakeDirector mocks base method.
-func (m *MockDirectorMaker) MakeDirector(ctx context.Context, extractKey func(*http.Request) string) func(*http.Request) {
+func (m *MockDirectorMaker) MakeDirector(extractKey func(*http.Request) string) func(*http.Request) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "MakeDirector", ctx, extractKey)
+	ret := m.ctrl.Call(m, "MakeDirector", extractKey)
 	ret0, _ := ret[0].(func(*http.Request))
 	return ret0
 }
 
 // MakeDirector indicates an expected call of MakeDirector.
-func (mr *MockDirectorMakerMockRecorder) MakeDirector(ctx, extractKey interface{}) *gomock.Call {
+func (mr *MockDirectorMakerMockRecorder) MakeDirector(extractKey interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MakeDirector", reflect.TypeOf((*MockDirectorMaker)(nil).MakeDirector), ctx, extractKey)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MakeDirector", reflect.TypeOf((*MockDirectorMaker)(nil).MakeDirector), extractKey)
 }
