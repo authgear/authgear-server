@@ -60,5 +60,4 @@ var (
 	SAMLAttrTypeString = fmt.Sprintf("%s:string", xmlSchemaNamespace)
 )
 
-const timeFormat = "2006-01-02T15:04:05.999Z07:00"
 const canonicalizerPrefixList = ""
