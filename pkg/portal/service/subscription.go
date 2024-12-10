@@ -6,8 +6,6 @@ import (
 	"errors"
 	"time"
 
-	"sigs.k8s.io/yaml"
-
 	"github.com/Masterminds/squirrel"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
@@ -273,14 +271,7 @@ func (s *SubscriptionService) UpdateAppPlan0(ctx context.Context, appID string, 
 		return err
 	}
 
-	featureConfigYAML, err := yaml.Marshal(p.RawFeatureConfig)
-	if err != nil {
-		return err
-	}
-
 	consrc.PlanName = p.Name
-	// json.Marshal handled base64 encoded of the YAML file
-	consrc.Data[configsource.AuthgearFeatureYAML] = featureConfigYAML
 	consrc.UpdatedAt = s.Clock.NowUTC()
 	err = s.ConfigSourceStore.UpdateDatabaseSource(ctx, consrc)
 	if err != nil {
