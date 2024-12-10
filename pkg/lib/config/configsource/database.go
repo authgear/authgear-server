@@ -16,10 +16,9 @@ import (
 	"sigs.k8s.io/yaml"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/config/plan"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
-	"github.com/authgear/authgear-server/pkg/portal/lib/plan"
-	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/filepathutil"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -387,7 +386,7 @@ func MakeAppFSFromDatabaseSource(s *DatabaseSource) (resource.Fs, error) {
 	}, nil
 }
 
-func MakePlanFSFromPlan(p *model.Plan) (resource.Fs, error) {
+func MakePlanFSFromPlan(p *plan.Plan) (resource.Fs, error) {
 	planFs := newMemMapFs()
 	if p != nil {
 		file, _ := planFs.Create(AuthgearFeatureYAML)

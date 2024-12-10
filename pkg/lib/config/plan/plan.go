@@ -1,4 +1,4 @@
-package model
+package plan
 
 import (
 	"github.com/authgear/authgear-server/pkg/lib/config"

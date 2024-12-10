@@ -12,6 +12,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
+	"github.com/authgear/authgear-server/pkg/lib/config/plan"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/lib/usage"
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
@@ -33,7 +34,7 @@ type SubscriptionConfigSourceStore interface {
 }
 
 type SubscriptionPlanStore interface {
-	GetPlan(ctx context.Context, name string) (*model.Plan, error)
+	GetPlan(ctx context.Context, name string) (*plan.Plan, error)
 }
 
 type SubscriptionUsageStore interface {

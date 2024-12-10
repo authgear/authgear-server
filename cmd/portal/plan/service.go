@@ -9,9 +9,8 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
+	"github.com/authgear/authgear-server/pkg/lib/config/plan"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
-	"github.com/authgear/authgear-server/pkg/portal/lib/plan"
-	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
@@ -24,12 +23,12 @@ type Service struct {
 
 func (s *Service) CreatePlan(ctx context.Context, name string) error {
 	return s.Handle.WithTx(ctx, func(ctx context.Context) (err error) {
-		p := model.NewPlan(name)
+		p := plan.NewPlan(name)
 		return s.Store.Create(ctx, p)
 	})
 }
 
-func (s *Service) GetPlan(ctx context.Context, name string) (p *model.Plan, err error) {
+func (s *Service) GetPlan(ctx context.Context, name string) (p *plan.Plan, err error) {
 	err = s.Handle.WithTx(ctx, func(ctx context.Context) (e error) {
 		p, e = s.Store.GetPlan(ctx, name)
 		return
