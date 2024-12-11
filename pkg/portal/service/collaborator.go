@@ -748,22 +748,19 @@ func (s *CollaboratorService) CheckInviteeEmail(ctx context.Context, i *model.Co
 	id := relay.ToGlobalID("User", actorID)
 
 	params := graphqlutil.DoParams{
-		OperationName: "getUserNodes",
+		OperationName: "getUserNode",
 		Query: `
-		query getUserNodes($ids: [ID!]!) {
-			nodes(ids: $ids) {
+		query getUserNode($id: ID!) {
+			node(id: $id) {
 				... on User {
 					id
-					verifiedClaims {
-						name
-						value
-					}
+					standardAttributes
 				}
 			}
 		}
 		`,
 		Variables: map[string]interface{}{
-			"ids": []interface{}{id},
+			"id": id,
 		},
 	}
 
@@ -788,41 +785,17 @@ func (s *CollaboratorService) CheckInviteeEmail(ctx context.Context, i *model.Co
 		return fmt.Errorf("unexpected graphql errors: %v", result.Errors)
 	}
 
-	var userModels []*model.User
+	var email string
 	data := result.Data.(map[string]interface{})
-	nodes := data["nodes"].([]interface{})
-	for _, iface := range nodes {
-		// It could be null.
-		userNode, ok := iface.(map[string]interface{})
-		if !ok {
-			userModels = append(userModels, nil)
-		} else {
-			userModel := &model.User{}
-			globalID := userNode["id"].(string)
-			userModel.ID = globalID
-
-			// Use the last email claim.
-			verifiedClaims := userNode["verifiedClaims"].([]interface{})
-			for _, iface := range verifiedClaims {
-				claim := iface.(map[string]interface{})
-				name := claim["name"].(string)
-				value := claim["value"].(string)
-				if name == "email" {
-					userModel.Email = value
-				}
+	if userNode, ok := data["node"].(map[string]interface{}); ok {
+		if standardAttributes, ok := userNode["standardAttributes"].(map[string]interface{}); ok {
+			if e, ok := standardAttributes["email"].(string); ok {
+				email = e
 			}
-
-			userModels = append(userModels, userModel)
 		}
 	}
 
-	if len(userModels) != 1 {
-		return fmt.Errorf("expected exact one user")
-	}
-
-	user := userModels[0]
-
-	if user.Email != i.InviteeEmail {
+	if email != i.InviteeEmail {
 		return ErrCollaboratorInvitationInvalidEmail
 	}
 
