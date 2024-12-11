@@ -1600,6 +1600,8 @@ function AuthenticationButton(props: AuthenticationButtonProps) {
   const checked = targetValue === currentValue;
   const iconName = AUTHENTICATION_BUTTON_ICON[targetValue];
 
+  const { renderToString } = useContext(Context);
+
   const IconComponent = useCallback(
     (props) => {
       return (
@@ -1641,16 +1643,12 @@ function AuthenticationButton(props: AuthenticationButtonProps) {
       styles={buttonStyles}
       disabled={disabled}
       checked={checked}
-      text={
-        <FormattedMessage
-          id={`LoginMethodConfigurationScreen.second-level.${targetValue}.title`}
-        />
-      }
-      secondaryText={
-        <FormattedMessage
-          id={`LoginMethodConfigurationScreen.second-level.${targetValue}.description`}
-        />
-      }
+      text={renderToString(
+        `LoginMethodConfigurationScreen.second-level.${targetValue}.title`
+      )}
+      secondaryText={renderToString(
+        `LoginMethodConfigurationScreen.second-level.${targetValue}.description`
+      )}
       IconComponent={IconComponent}
       onClick={onClick}
     />

@@ -8,6 +8,23 @@ import "@fortawesome/fontawesome-free/css/all.min.css";
 import React from "react";
 import { render } from "react-dom";
 import { initializeIcons, registerIcons } from "@fluentui/react";
+
+// See below for details.
+// Monaco editor initialization imports - Start
+import { loader } from "@monaco-editor/react";
+import * as monaco from "monaco-editor";
+// @ts-expect-error
+import editorWorker from "monaco-editor/esm/vs/editor/editor.worker?worker";
+// @ts-expect-error
+import jsonWorker from "monaco-editor/esm/vs/language/json/json.worker?worker";
+// @ts-expect-error
+import cssWorker from "monaco-editor/esm/vs/language/css/css.worker?worker";
+// @ts-expect-error
+import htmlWorker from "monaco-editor/esm/vs/language/html/html.worker?worker";
+// @ts-expect-error
+import tsWorker from "monaco-editor/esm/vs/language/typescript/ts.worker?worker";
+// Monaco editor initialization imports - End
+
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -62,4 +79,41 @@ ChartJS.register(
 // and AnalyticsSignupMethodsWidget
 ChartJS.register(ArcElement, Tooltip);
 
-render(<ReactApp />, document.getElementById("react-app-root"));
+// See https://github.com/microsoft/monaco-editor/blob/main/docs/integrate-esm.md#using-vite
+// See https://github.com/suren-atoyan/monaco-react?tab=readme-ov-file#use-monaco-editor-as-an-npm-package
+//
+// By using this approach, it is now our own responsibility to keep monaco-editor and @monaco-editor/react compatible.
+// @monaco-editor/react uses @monaco-editor/loader, and @monaco-editor/loader uses a specific version of monaco-editor.
+// So when you need to update them, you do
+// 1. Pick a version of @monaco-editor/react.
+// 2. Inspect @monaco-editor/loader in package-lock.json to see the actual version of @monaco-editor/loader
+// 3. Inspect https://github.com/suren-atoyan/monaco-loader/blob/master/src/config/index.js to see what version of monaco-editor it is using.
+// 4. Install the same version of monaco-editor.
+//
+// Note that monaco-editor has some breaking changes in 0.45.0
+// See https://github.com/microsoft/monaco-editor/blob/main/CHANGELOG.md#0450
+// So the highest version we can use is 0.44.0, until @monaco-editor/react supports >= 0.45.0
+window.MonacoEnvironment = {
+  getWorker(_, label) {
+    switch (label) {
+      case "json":
+        return new jsonWorker();
+      case "css":
+      case "scss":
+      case "less":
+        return new cssWorker();
+      case "html":
+      case "handlebars":
+      case "razor":
+        return new htmlWorker();
+      case "javascript":
+      case "typescript":
+        return new tsWorker();
+    }
+    return new editorWorker();
+  },
+};
+loader.config({ monaco });
+loader.init().then(() => {
+  render(<ReactApp />, document.getElementById("react-app-root"));
+});
