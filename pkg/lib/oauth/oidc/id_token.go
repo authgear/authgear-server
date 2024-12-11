@@ -272,6 +272,7 @@ func (ti *IDTokenIssuer) GetUserInfo(ctx context.Context, userID string, clientL
 		}
 
 		out["custom_attributes"] = user.CustomAttributes
+		out["x_web3"] = user.Web3
 	} else {
 		// When the client is third party, we include the standard claims according to scopes.
 		for k, v := range user.StandardAttributes {
