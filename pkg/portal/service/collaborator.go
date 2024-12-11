@@ -481,9 +481,16 @@ func (s *CollaboratorService) SendInvitation(
 		}
 	}
 
-	_, err = s.checkInviteeExistenceByEmail(ctx, invitedBy, inviteeEmail)
+	inviteeExists, err := s.checkInviteeExistenceByEmail(ctx, invitedBy, inviteeEmail)
 	if err != nil {
 		return nil, err
+	}
+
+	if !inviteeExists {
+		err = s.createAccountForInvitee(ctx, invitedBy, inviteeEmail)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	code := generateCollaboratorInvitationCode()
