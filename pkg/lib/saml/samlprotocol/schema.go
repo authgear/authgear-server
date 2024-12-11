@@ -9,14 +9,11 @@ import (
 	"time"
 
 	"github.com/beevik/etree"
-	crewjamsaml "github.com/crewjam/saml"
 	"github.com/russellhaering/goxmldsig/etreeutils"
 )
 
 // Note(tung): This file was copied from https://github.com/crewjam/saml/blob/193e551d9a8420216fae88c2b8f4b46696b7bb63/schema.go
 // We've made some changes to some schemas so that they can be used properly in our code
-
-type RelaxedTime = crewjamsaml.RelaxedTime
 
 // RequestedAuthnContext represents the SAML object of the same name, an indication of the
 // requirements on the authentication process.

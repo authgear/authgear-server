@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/beevik/etree"
-	crewjamsaml "github.com/crewjam/saml"
 
 	dsig "github.com/russellhaering/goxmldsig"
 
@@ -89,14 +88,14 @@ func (s *Service) IdpMetadata(serviceProviderId string) (*samlprotocol.Metadata,
 		return nil, samlprotocol.ErrServiceProviderNotFound
 	}
 
-	keyDescriptors := []crewjamsaml.KeyDescriptor{}
+	keyDescriptors := []samlprotocol.KeyDescriptor{}
 	if cert, ok := s.SAMLIdpSigningMaterials.FindSigningCert(s.SAMLConfig.Signing.KeyID); ok {
 		keyDescriptors = append(keyDescriptors,
-			crewjamsaml.KeyDescriptor{
+			samlprotocol.KeyDescriptor{
 				Use: "signing",
-				KeyInfo: crewjamsaml.KeyInfo{
-					X509Data: crewjamsaml.X509Data{
-						X509Certificates: []crewjamsaml.X509Certificate{
+				KeyInfo: samlprotocol.KeyInfo{
+					X509Data: samlprotocol.X509Data{
+						X509Certificates: []samlprotocol.X509Certificate{
 							{Data: cert.Certificate.Base64Data()},
 						},
 					},
@@ -104,20 +103,20 @@ func (s *Service) IdpMetadata(serviceProviderId string) (*samlprotocol.Metadata,
 			})
 	}
 
-	ssoServices := []crewjamsaml.Endpoint{}
+	ssoServices := []samlprotocol.Endpoint{}
 
 	for _, binding := range samlprotocol.SSOSupportedBindings {
-		ssoServices = append(ssoServices, crewjamsaml.Endpoint{
+		ssoServices = append(ssoServices, samlprotocol.Endpoint{
 			Binding:  string(binding),
 			Location: s.Endpoints.SAMLLoginURL(sp.GetID()).String(),
 		})
 	}
 
-	sloServices := []crewjamsaml.Endpoint{}
+	sloServices := []samlprotocol.Endpoint{}
 
 	if sp.SLOEnabled {
 		for _, binding := range samlprotocol.SLOSupportedBindings {
-			sloServices = append(sloServices, crewjamsaml.Endpoint{
+			sloServices = append(sloServices, samlprotocol.Endpoint{
 				Binding:  string(binding),
 				Location: s.Endpoints.SAMLLogoutURL(sp.GetID()).String(),
 			})
@@ -126,15 +125,15 @@ func (s *Service) IdpMetadata(serviceProviderId string) (*samlprotocol.Metadata,
 
 	descriptor := samlprotocol.EntityDescriptor{
 		EntityID: s.IdpEntityID(),
-		IDPSSODescriptors: []crewjamsaml.IDPSSODescriptor{
+		IDPSSODescriptors: []samlprotocol.IDPSSODescriptor{
 			{
-				SSODescriptor: crewjamsaml.SSODescriptor{
-					RoleDescriptor: crewjamsaml.RoleDescriptor{
+				SSODescriptor: samlprotocol.SSODescriptor{
+					RoleDescriptor: samlprotocol.RoleDescriptor{
 						ProtocolSupportEnumeration: "urn:oasis:names:tc:SAML:2.0:protocol",
 						KeyDescriptors:             keyDescriptors,
 					},
-					NameIDFormats: []crewjamsaml.NameIDFormat{
-						crewjamsaml.NameIDFormat(sp.NameIDFormat),
+					NameIDFormats: []samlprotocol.SAMLNameIDFormat{
+						sp.NameIDFormat,
 					},
 					SingleLogoutServices: sloServices,
 				},
