@@ -465,11 +465,10 @@ func (s *CollaboratorService) SendInvitation(
 		return nil, err
 	}
 
-	// TODO(collaborator): Ideally we should prevent sending invitation to existing collaborator.
+	// Ideally we should prevent sending invitation to existing collaborator.
 	// However, this is not harmful to not have it.
 	// The collaborator will receive the invitation and they cannot accept it because
 	// we have database constraint to enforce this invariant.
-	// If Admin API have getUserByClaim, then we can detect this condition here.
 
 	// Check if the invitee has a pending invitation already.
 	invitations, err := s.ListInvitations(ctx, appID)
@@ -480,6 +479,11 @@ func (s *CollaboratorService) SendInvitation(
 		if i.InviteeEmail == inviteeEmail {
 			return nil, ErrCollaboratorInvitationDuplicate
 		}
+	}
+
+	_, err = s.checkInviteeExistenceByEmail(ctx, invitedBy, inviteeEmail)
+	if err != nil {
+		return nil, err
 	}
 
 	code := generateCollaboratorInvitationCode()
@@ -800,6 +804,55 @@ func (s *CollaboratorService) CheckInviteeEmail(ctx context.Context, i *model.Co
 	}
 
 	return nil
+}
+
+// checkInviteeExistenceByEmail calls HTTP request.
+func (s *CollaboratorService) checkInviteeExistenceByEmail(ctx context.Context, actorUserID string, inviteeEmail string) (inviteeExists bool, err error) {
+	params := graphqlutil.DoParams{
+		OperationName: "getUsersByStandardAttribute",
+		Query: `
+		query getUsersByStandardAttribute($name: String!, $value: String!) {
+			users: getUsersByStandardAttribute(attributeName: $name, attributeValue: $value) {
+				id
+			}
+		}
+		`,
+		Variables: map[string]interface{}{
+			"name":  "email",
+			"value": inviteeEmail,
+		},
+	}
+
+	r, err := http.NewRequestWithContext(ctx, "POST", "/graphql", nil)
+	if err != nil {
+		return
+	}
+
+	director, err := s.AdminAPI.SelfDirector(ctx, actorUserID, UsageInternal)
+	if err != nil {
+		return
+	}
+
+	director(r)
+
+	result, err := graphqlutil.HTTPDo(s.HTTPClient.Client, r, params)
+	if err != nil {
+		return
+	}
+
+	if result.HasErrors() {
+		err = fmt.Errorf("unexpected graphql errors: %v", result.Errors)
+		return
+	}
+
+	data := result.Data.(map[string]interface{})
+	users := data["users"].([]interface{})
+	if len(users) > 0 {
+		inviteeExists = true
+		return
+	}
+
+	return
 }
 
 func (s *CollaboratorService) checkQuotaInSend(ctx context.Context, appID string) error {
