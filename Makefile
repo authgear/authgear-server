@@ -1,16 +1,56 @@
+# The use of variables
+#
+# We use simply expanded variables in this Makefile.
+#
+# This means
+# 1. You use ::= instead of = because = defines a recursively expanded variable.
+#    See https://www.gnu.org/software/make/manual/html_node/Simple-Assignment.html
+# 2. You use ::= instead of := because ::= is a POSIX standard.
+#    See https://www.gnu.org/software/make/manual/html_node/Simple-Assignment.html
+# 3. You do not use ?= because it is shorthand to define a recursively expanded variable.
+#    See https://www.gnu.org/software/make/manual/html_node/Conditional-Assignment.html
+#    You should use the long form documented in the above link instead.
+# 4. When you override a variable in the command line, as documented in https://www.gnu.org/software/make/manual/html_node/Overriding.html
+#    you specify the variable with ::= instead of = or :=
+#    If you fail to do so, the variable becomes recursively expanded variable accidentally.
+#
 # GIT_NAME could be empty.
-GIT_NAME ?= $(shell git describe --exact-match 2>/dev/null)
-GIT_HASH ?= git-$(shell git rev-parse --short=12 HEAD)
+ifeq ($(origin GIT_NAME), undefined)
+	GIT_NAME ::= $(shell git describe --exact-match 2>/dev/null)
+endif
+ifeq ($(origin GIT_HASH), undefined)
+	GIT_HASH ::= git-$(shell git rev-parse --short=12 HEAD)
+endif
+ifeq ($(origin LDFLAGS), undefined)
+	LDFLAGS ::= "-X github.com/authgear/authgear-server/pkg/version.Version=${GIT_HASH}"
+endif
 
-LDFLAGS ?= "-X github.com/authgear/authgear-server/pkg/version.Version=${GIT_HASH}"
+# osusergo: https://godoc.org/github.com/golang/go/src/os/user
+# netgo: https://golang.org/doc/go1.5#net
+# static_build: https://github.com/golang/go/issues/26492#issuecomment-635563222
+#   The binary is static on Linux only. It is not static on macOS.
+# timetzdata: https://golang.org/doc/go1.15#time/tzdata
+GO_BUILD_TAGS ::= osusergo netgo static_build timetzdata
+GO_RUN_TAGS ::=
+
 
 .PHONY: start
 start:
-	go run -ldflags ${LDFLAGS} ./cmd/authgear start
+	go run -tags "$(GO_RUN_TAGS)" -ldflags ${LDFLAGS} ./cmd/authgear start
 
 .PHONY: start-portal
 start-portal:
-	go run -ldflags ${LDFLAGS} ./cmd/portal start
+	go run -tags "$(GO_RUN_TAGS)" -ldflags ${LDFLAGS} ./cmd/portal start
+
+.PHONY: authgearonce-start
+authgearonce-start: GO_RUN_TAGS += authgearonce
+authgearonce-start:
+	$(MAKE) start GO_RUN_TAGS::="$(GO_RUN_TAGS)"
+
+.PHONY: authgearonce-start-portal
+authgearonce-start-portal: GO_RUN_TAGS += authgearonce
+authgearonce-start-portal:
+	$(MAKE) start-portal GO_RUN_TAGS::="$(GO_RUN_TAGS)"
 
 .PHONY: vendor
 vendor:
@@ -88,21 +128,17 @@ fmt:
 govulncheck:
 	govulncheck -show traces,version,verbose ./...
 
-# osusergo: https://godoc.org/github.com/golang/go/src/os/user
-# netgo: https://golang.org/doc/go1.5#net
-# static_build: https://github.com/golang/go/issues/26492#issuecomment-635563222
-#   The binary is static on Linux only. It is not static on macOS.
-# timetzdata: https://golang.org/doc/go1.15#time/tzdata
 .PHONY: build
 build:
-	go build -o $(BIN_NAME) -tags "osusergo netgo static_build timetzdata $(GO_BUILD_TAGS)" -ldflags ${LDFLAGS} ./cmd/$(TARGET)
+	go build -o $(BIN_NAME) -tags "$(GO_BUILD_TAGS)" -ldflags ${LDFLAGS} ./cmd/$(TARGET)
 
 .PHONY: binary
+binary: GO_BUILD_TAGS += authgearlite
 binary:
 	rm -rf ./dist
 	mkdir ./dist
-	$(MAKE) build GO_BUILD_TAGS=authgearlite TARGET=authgear BIN_NAME=./dist/authgear-lite-"$(shell go env GOOS)"-"$(shell go env GOARCH)"-${GIT_HASH}
-	$(MAKE) build GO_BUILD_TAGS=authgearlite TARGET=portal BIN_NAME=./dist/authgear-portal-lite-"$(shell go env GOOS)"-"$(shell go env GOARCH)"-${GIT_HASH}
+	$(MAKE) build GO_BUILD_TAGS::="$(GO_BUILD_TAGS)" TARGET::=authgear BIN_NAME::=./dist/authgear-lite-"$(shell go env GOOS)"-"$(shell go env GOARCH)"-${GIT_HASH}
+	$(MAKE) build GO_BUILD_TAGS::="$(GO_BUILD_TAGS)" TARGET::=portal BIN_NAME::=./dist/authgear-portal-lite-"$(shell go env GOOS)"-"$(shell go env GOARCH)"-${GIT_HASH}
 
 .PHONY: check-tidy
 check-tidy:
@@ -130,14 +166,14 @@ build-image:
 	docker build --pull --file ./cmd/$(TARGET)/Dockerfile --tag $(IMAGE_NAME) --build-arg GIT_HASH=$(GIT_HASH) .
 
 .PHONY: tag-image
-tag-image: DOCKER_IMAGE = quay.io/theauthgear/$(IMAGE_NAME)
+tag-image: DOCKER_IMAGE ::= quay.io/theauthgear/$(IMAGE_NAME)
 tag-image:
 	docker tag $(IMAGE_NAME) $(DOCKER_IMAGE):latest
 	docker tag $(IMAGE_NAME) $(DOCKER_IMAGE):$(GIT_HASH)
 	if [ ! -z $(GIT_NAME) ]; then docker tag $(IMAGE_NAME) $(DOCKER_IMAGE):$(GIT_NAME); fi
 
 .PHONY: push-image
-push-image: DOCKER_IMAGE = quay.io/theauthgear/$(IMAGE_NAME)
+push-image: DOCKER_IMAGE ::= quay.io/theauthgear/$(IMAGE_NAME)
 push-image:
 	docker manifest inspect $(DOCKER_IMAGE):$(GIT_HASH) > /dev/null; if [ $$? -eq 0 ]; then \
 		echo "$(DOCKER_IMAGE):$(GIT_HASH) exists. Skip push"; \
