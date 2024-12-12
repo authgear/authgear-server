@@ -403,14 +403,21 @@ func (s *AppService) Create(ctx context.Context, userID string, id string) (*mod
 
 // UpdateResources acquires connection.
 func (s *AppService) UpdateResources(ctx context.Context, app *model.App, updates []appresource.Update) error {
-	appResMgr := s.AppResMgrFactory.NewManagerWithAppContext(app.Context)
-	var err error
-	err = s.GlobalDatabase.WithTx(ctx, func(ctx context.Context) error {
+
+	// applyUpdatesToTheOriginalApp DOES NOT reference to the original arguments.
+	// So it can be used to apply updates to other apps.
+	applyUpdatesToGivenApp := func(ctx context.Context, app *model.App, updates []appresource.Update) error {
+		appResMgr := s.AppResMgrFactory.NewManagerWithAppContext(app.Context)
 		files, err := appResMgr.ApplyUpdates0(ctx, app.ID, updates)
 		if err != nil {
 			return err
 		}
 		return s.AppConfigs.UpdateResources(ctx, app.ID, files)
+	}
+
+	var err error
+	err = s.GlobalDatabase.WithTx(ctx, func(ctx context.Context) error {
+		return applyUpdatesToGivenApp(ctx, app, updates)
 	})
 	if err != nil {
 		return err
