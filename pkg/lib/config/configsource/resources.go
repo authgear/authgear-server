@@ -522,10 +522,9 @@ func (d AuthgearSecretYAMLDescriptor) UpdateResource(ctx context.Context, _ []re
 		return nil, fmt.Errorf("failed to parse original secret config: %w", err)
 	}
 
-	var updateInstruction config.SecretConfigUpdateInstruction
-	err = json.Unmarshal(data, &updateInstruction)
+	updateInstruction, err := ParseAuthgearSecretsYAMLUpdateInstructions(data)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse secret config update instruction: %w", err)
+		return nil, err
 	}
 
 	c, ok := ctx.Value(ContextKeyClock).(clock.Clock)
@@ -693,3 +692,13 @@ func (d AuthgearFeatureYAMLDescriptor) UpdateResource(_ context.Context, _ []res
 }
 
 var FeatureConfig = resource.RegisterResource(AuthgearFeatureYAMLDescriptor{})
+
+func ParseAuthgearSecretsYAMLUpdateInstructions(data []byte) (*config.SecretConfigUpdateInstruction, error) {
+	var out config.SecretConfigUpdateInstruction
+	err := json.Unmarshal(data, &out)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse secret config update instruction: %w", err)
+	}
+
+	return &out, nil
+}
