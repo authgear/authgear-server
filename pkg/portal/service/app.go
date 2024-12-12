@@ -408,35 +408,60 @@ func (s *AppService) Create(ctx context.Context, userID string, id string) (*mod
 
 // UpdateResources acquires connection.
 func (s *AppService) UpdateResources(ctx context.Context, app *model.App, updates []appresource.Update) error {
+	type arity1ReturningError func(ctx context.Context) error
+
+	// applyUpdatesToTheOriginalApp DOES NOT reference to the original arguments.
+	// So it can be used to apply updates to other apps.
+	applyUpdatesToGivenApp := func(app *model.App, updates []appresource.Update) arity1ReturningError {
+		return func(ctx context.Context) error {
+			appResMgr := s.AppResMgrFactory.NewManagerWithAppContext(app.Context)
+			files, err := appResMgr.ApplyUpdates0(ctx, app.ID, updates)
+			if err != nil {
+				return err
+			}
+			return s.AppConfigs.UpdateResources(ctx, app.ID, files)
+		}
+	}
+
+	funcs := []arity1ReturningError{
+		applyUpdatesToGivenApp(app, updates),
+	}
+
 	if AUTHGEARONCE {
-		updatesContainSMTPSecret, err := s.checkIfUpdatesContainSMTPSecret(updates)
+		smtpUpdate, err := s.makeSMTPUpdate(updates)
 		if err != nil {
 			return err
 		}
-		if updatesContainSMTPSecret {
+		if smtpUpdate != nil {
+			s.Logger.WithField("source_app_id", app.ID).Info("detected SMTP secret update")
 			appIDsToPropagate, err := s.getAllAppIDsExcept(ctx, app.ID)
 			if err != nil {
 				return err
 			}
-			// TODO: propagate the updates to ALL apps.
-			_ = appIDsToPropagate
-		}
-	}
 
-	// applyUpdatesToTheOriginalApp DOES NOT reference to the original arguments.
-	// So it can be used to apply updates to other apps.
-	applyUpdatesToGivenApp := func(ctx context.Context, app *model.App, updates []appresource.Update) error {
-		appResMgr := s.AppResMgrFactory.NewManagerWithAppContext(app.Context)
-		files, err := appResMgr.ApplyUpdates0(ctx, app.ID, updates)
-		if err != nil {
-			return err
+			theUpdates := []appresource.Update{*smtpUpdate}
+			for _, appID := range appIDsToPropagate {
+				theApp, err := s.Get(ctx, appID)
+				if err != nil {
+					return err
+				}
+
+				s.Logger.WithField("source_app_id", app.ID).WithField("target_app_id", theApp.ID).Info("propagate STMP secret update")
+				funcs = append(funcs, applyUpdatesToGivenApp(theApp, theUpdates))
+			}
 		}
-		return s.AppConfigs.UpdateResources(ctx, app.ID, files)
 	}
 
 	var err error
 	err = s.GlobalDatabase.WithTx(ctx, func(ctx context.Context) error {
-		return applyUpdatesToGivenApp(ctx, app, updates)
+		for _, f := range funcs {
+			err := f(ctx)
+			if err != nil {
+				return err
+			}
+		}
+
+		return nil
 	})
 	if err != nil {
 		return err
@@ -461,7 +486,7 @@ func (s *AppService) UpdateResources0(ctx context.Context, app *model.App, updat
 	return nil
 }
 
-func (s *AppService) checkIfUpdatesContainSMTPSecret(updates []appresource.Update) (ok bool, err error) {
+func (s *AppService) makeSMTPUpdate(updates []appresource.Update) (out *appresource.Update, err error) {
 	for _, update := range updates {
 		if update.Path == configsource.AuthgearSecretYAML {
 			var instructions *config.SecretConfigUpdateInstruction
@@ -472,8 +497,20 @@ func (s *AppService) checkIfUpdatesContainSMTPSecret(updates []appresource.Updat
 			}
 
 			if instructions.SMTPServerCredentialsUpdateInstruction != nil {
-				ok = true
-				return
+				syntheticInstructions := &config.SecretConfigUpdateInstruction{
+					SMTPServerCredentialsUpdateInstruction: instructions.SMTPServerCredentialsUpdateInstruction,
+				}
+
+				var data []byte
+				data, err = json.Marshal(syntheticInstructions)
+				if err != nil {
+					return
+				}
+
+				return &appresource.Update{
+					Path: update.Path,
+					Data: data,
+				}, nil
 			}
 		}
 	}
