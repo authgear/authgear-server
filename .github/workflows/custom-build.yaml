@@ -53,7 +53,6 @@ jobs:
         printf "$AUTHGEAR_PRIVATE_DEPLOY_KEY" | base64 --decode | ssh-add -
         echo "SSH_AUTH_SOCK=$SSH_AUTH_SOCK" >> "$GITHUB_ENV"
         echo "SSH_AGENT_PID=$SSH_AGENT_PID" >> "$GITHUB_ENV"
-    - run: make -C custombuild build-image TARGET=authgearx IMAGE_NAME=authgear-server-custom
     - name: Clean up SSH key
       if: ${{ always() }}
       run: |
@@ -74,10 +73,10 @@ jobs:
         gcloud auth configure-docker "$REPO"
     - name: Push to HK
       env:
+        REPO: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_REPO_HK }}
         REPO_PREFIX: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_REPO_PREFIX_HK }}
       run: |
-        make -C custombuild tag-image IMAGE_NAME=authgear-server-custom REMOTE_IMAGE_NAME="$REPO_PREFIX/authgear-server"
-        make -C custombuild push-image REMOTE_IMAGE_NAME="$REPO_PREFIX/authgear-server" || docker logout "$REPO"
+        make -C custombuild build-image TARGET=authgearx TAG_IMAGE=true PUSH_IMAGE=true IMAGE_NAME="$REPO_PREFIX/authgear-server" || docker logout "$REPO"
 
     - uses: oursky/google-github-actions-auth@v2
       with:
@@ -91,10 +90,10 @@ jobs:
         gcloud auth configure-docker "$REPO"
     - name: Push to US
       env:
+        REPO: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_REPO_US }}
         REPO_PREFIX: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_REPO_PREFIX_US }}
       run: |
-        make -C custombuild tag-image IMAGE_NAME=authgear-server-custom REMOTE_IMAGE_NAME="$REPO_PREFIX/authgear-server"
-        make -C custombuild push-image REMOTE_IMAGE_NAME="$REPO_PREFIX/authgear-server" || docker logout "$REPO"
+        make -C custombuild build-image TARGET=authgearx TAG_IMAGE=true PUSH_IMAGE=true IMAGE_NAME="$REPO_PREFIX/authgear-server" || docker logout "$REPO"
 
   portal-image-custom:
     runs-on: ubuntu-24.04
@@ -134,9 +133,9 @@ jobs:
     - name: Push to HK
       env:
         REPO_PREFIX: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_REPO_PREFIX_HK }}
+        REPO: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_REPO_HK }}
       run: |
-        make -C custombuild tag-image IMAGE_NAME=authgear-portal-custom REMOTE_IMAGE_NAME="$REPO_PREFIX/authgear-portal"
-        make -C custombuild push-image REMOTE_IMAGE_NAME="$REPO_PREFIX/authgear-portal" || docker logout "$REPO"
+        make -C custombuild build-image TARGET=portalx TAG_IMAGE=true PUSH_IMAGE=true IMAGE_NAME="$REPO_PREFIX/authgear-portal" || docker logout "$REPO"
 
     - uses: oursky/google-github-actions-auth@v2
       with:
@@ -151,6 +150,6 @@ jobs:
     - name: Push to US
       env:
         REPO_PREFIX: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_REPO_PREFIX_US }}
+        REPO: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_REPO_US }}
       run: |
-        make -C custombuild tag-image IMAGE_NAME=authgear-portal-custom REMOTE_IMAGE_NAME="$REPO_PREFIX/authgear-portal"
-        make -C custombuild push-image REMOTE_IMAGE_NAME="$REPO_PREFIX/authgear-portal" || docker logout "$REPO"
+        make -C custombuild build-image TARGET=portalx TAG_IMAGE=true PUSH_IMAGE=true IMAGE_NAME="$REPO_PREFIX/authgear-portal" || docker logout "$REPO"
