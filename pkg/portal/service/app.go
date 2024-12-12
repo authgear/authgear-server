@@ -403,6 +403,15 @@ func (s *AppService) Create(ctx context.Context, userID string, id string) (*mod
 
 // UpdateResources acquires connection.
 func (s *AppService) UpdateResources(ctx context.Context, app *model.App, updates []appresource.Update) error {
+	if AUTHGEARONCE {
+		updatesContainSMTPSecret, err := s.checkIfUpdatesContainSMTPSecret(updates)
+		if err != nil {
+			return err
+		}
+		if updatesContainSMTPSecret {
+			// TODO: propagate the updates to ALL apps.
+		}
+	}
 
 	// applyUpdatesToTheOriginalApp DOES NOT reference to the original arguments.
 	// So it can be used to apply updates to other apps.
@@ -440,6 +449,25 @@ func (s *AppService) UpdateResources0(ctx context.Context, app *model.App, updat
 	}
 
 	return nil
+}
+
+func (s *AppService) checkIfUpdatesContainSMTPSecret(updates []appresource.Update) (ok bool, err error) {
+	for _, update := range updates {
+		if update.Path == configsource.AuthgearSecretYAML {
+			var instructions *config.SecretConfigUpdateInstruction
+			instructions, err = configsource.ParseAuthgearSecretsYAMLUpdateInstructions(update.Data)
+			if err != nil {
+				return
+
+			}
+
+			if instructions.SMTPServerCredentialsUpdateInstruction != nil {
+				ok = true
+				return
+			}
+		}
+	}
+	return
 }
 
 func (s *AppService) generateResources(appHost string, appID string, featureConfig *config.FeatureConfig) (map[string][]byte, error) {
