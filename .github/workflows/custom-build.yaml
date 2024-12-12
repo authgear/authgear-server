@@ -42,6 +42,8 @@ jobs:
     if: ${{ github.repository == 'authgear/authgear-server' }}
     steps:
     - uses: actions/checkout@v4
+    - name: Install qemu for multi arch build
+      run: docker run --privileged --rm tonistiigi/binfmt --install all
     # https://aran.dev/posts/github-actions-go-private-modules/
     - name: Set up SSH key
       env:
@@ -76,7 +78,7 @@ jobs:
         REPO: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_REPO_HK }}
         REPO_PREFIX: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_REPO_PREFIX_HK }}
       run: |
-        make -C custombuild build-image TARGET=authgearx TAG_IMAGE=true PUSH_IMAGE=true IMAGE_NAME="$REPO_PREFIX/authgear-server" || docker logout "$REPO"
+        make -C custombuild build-image TARGET=authgearx BUILD_MULTI_PLATFORMS=true TAG_IMAGE=true PUSH_IMAGE=true IMAGE_NAME="$REPO_PREFIX/authgear-server" || docker logout "$REPO"
 
     - uses: oursky/google-github-actions-auth@v2
       with:
@@ -93,13 +95,15 @@ jobs:
         REPO: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_REPO_US }}
         REPO_PREFIX: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_REPO_PREFIX_US }}
       run: |
-        make -C custombuild build-image TARGET=authgearx TAG_IMAGE=true PUSH_IMAGE=true IMAGE_NAME="$REPO_PREFIX/authgear-server" || docker logout "$REPO"
+        make -C custombuild build-image TARGET=authgearx BUILD_MULTI_PLATFORMS=true TAG_IMAGE=true PUSH_IMAGE=true IMAGE_NAME="$REPO_PREFIX/authgear-server" || docker logout "$REPO"
 
   portal-image-custom:
     runs-on: ubuntu-24.04
     if: ${{ github.repository == 'authgear/authgear-server' }}
     steps:
     - uses: actions/checkout@v4
+    - name: Install qemu for multi arch build
+      run: docker run --privileged --rm tonistiigi/binfmt --install all
     # https://aran.dev/posts/github-actions-go-private-modules/
     - name: Set up SSH key
       env:
@@ -135,7 +139,7 @@ jobs:
         REPO_PREFIX: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_REPO_PREFIX_HK }}
         REPO: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_REPO_HK }}
       run: |
-        make -C custombuild build-image TARGET=portalx TAG_IMAGE=true PUSH_IMAGE=true IMAGE_NAME="$REPO_PREFIX/authgear-portal" || docker logout "$REPO"
+        make -C custombuild build-image TARGET=portalx BUILD_MULTI_PLATFORMS=true TAG_IMAGE=true PUSH_IMAGE=true IMAGE_NAME="$REPO_PREFIX/authgear-portal" || docker logout "$REPO"
 
     - uses: oursky/google-github-actions-auth@v2
       with:
@@ -152,4 +156,4 @@ jobs:
         REPO_PREFIX: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_REPO_PREFIX_US }}
         REPO: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_REPO_US }}
       run: |
-        make -C custombuild build-image TARGET=portalx TAG_IMAGE=true PUSH_IMAGE=true IMAGE_NAME="$REPO_PREFIX/authgear-portal" || docker logout "$REPO"
+        make -C custombuild build-image TARGET=portalx BUILD_MULTI_PLATFORMS=true TAG_IMAGE=true PUSH_IMAGE=true IMAGE_NAME="$REPO_PREFIX/authgear-portal" || docker logout "$REPO"
