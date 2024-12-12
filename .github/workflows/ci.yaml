@@ -125,6 +125,8 @@ jobs:
       PUSH_IMAGE: "${{ (github.repository == 'authgear/authgear-server' && github.event_name == 'push') && 'true' || 'false' }}"
     steps:
     - uses: actions/checkout@v4
+    - name: Install qemu for multi arch build
+      run: docker run --privileged --rm tonistiigi/binfmt --install all
     - name: docker login
       if: ${{ github.repository == 'authgear/authgear-server' && github.event_name == 'push' }}
       env:
@@ -132,7 +134,7 @@ jobs:
         DOCKER_PASSWORD: ${{ secrets.QUAY_ROBOT_TOKEN }}
       run: |
         printf "$DOCKER_PASSWORD" | docker login --password-stdin --username "$DOCKER_USERNAME" quay.io
-    - run: make build-image PUSH_IMAGE=$PUSH_IMAGE TAG_IMAGE=true TARGET=$TARGET IMAGE_NAME=$IMAGE_NAME
+    - run: make build-image BUILD_MULTI_PLATFORMS=true PUSH_IMAGE=$PUSH_IMAGE TAG_IMAGE=true TARGET=$TARGET IMAGE_NAME=$IMAGE_NAME
     - name: docker logout
       if: ${{ always() }}
       run: |
@@ -224,6 +226,8 @@ jobs:
       PUSH_IMAGE: "${{ (github.repository == 'authgear/authgear-server' && github.event_name == 'push') && 'true' || 'false' }}"
     steps:
     - uses: actions/checkout@v4
+    - name: Install qemu for multi arch build
+      run: docker run --privileged --rm tonistiigi/binfmt --install all
     - name: docker login
       if: ${{ github.repository == 'authgear/authgear-server' && github.event_name == 'push' }}
       env:
@@ -231,7 +235,7 @@ jobs:
         DOCKER_PASSWORD: ${{ secrets.QUAY_ROBOT_TOKEN }}
       run: |
         printf "$DOCKER_PASSWORD" | docker login --password-stdin --username "$DOCKER_USERNAME" quay.io
-    - run: make build-image PUSH_IMAGE=$PUSH_IMAGE TAG_IMAGE=true TARGET=$TARGET IMAGE_NAME=$IMAGE_NAME
+    - run: make build-image BUILD_MULTI_PLATFORMS=true PUSH_IMAGE=$PUSH_IMAGE TAG_IMAGE=true TARGET=$TARGET IMAGE_NAME=$IMAGE_NAME
     - name: docker logout
       if: ${{ always() }}
       run: |
