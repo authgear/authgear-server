@@ -481,15 +481,17 @@ func (s *CollaboratorService) SendInvitation(
 		}
 	}
 
-	inviteeExists, err := s.checkInviteeExistenceByEmail(ctx, invitedBy, inviteeEmail)
-	if err != nil {
-		return nil, err
-	}
-
-	if !inviteeExists {
-		err = s.createAccountForInvitee(ctx, invitedBy, inviteeEmail)
+	if AUTHGEARONCE {
+		inviteeExists, err := s.checkInviteeExistenceByEmail(ctx, invitedBy, inviteeEmail)
 		if err != nil {
 			return nil, err
+		}
+
+		if !inviteeExists {
+			err = s.createAccountForInvitee(ctx, invitedBy, inviteeEmail)
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 
@@ -857,6 +859,57 @@ func (s *CollaboratorService) checkInviteeExistenceByEmail(ctx context.Context, 
 	if len(users) > 0 {
 		inviteeExists = true
 		return
+	}
+
+	return
+}
+
+// createAccountForInvitee calls HTTP request.
+func (s *CollaboratorService) createAccountForInvitee(ctx context.Context, actorUserID string, inviteeEmail string) (err error) {
+	params := graphqlutil.DoParams{
+		OperationName: "createAccount",
+		Query: `
+		mutation createAccount($email: String!) {
+			createUser(input: {
+				definition: {
+					loginID: {
+						key: "email"
+						value: $email
+					}
+				}
+				sendPassword: true
+				setPasswordExpired: true
+			}) {
+				user {
+					id
+				}
+			}
+		}
+		`,
+		Variables: map[string]interface{}{
+			"email": inviteeEmail,
+		},
+	}
+
+	r, err := http.NewRequestWithContext(ctx, "POST", "/graphql", nil)
+	if err != nil {
+		return err
+	}
+
+	director, err := s.AdminAPI.SelfDirector(ctx, actorUserID, UsageInternal)
+	if err != nil {
+		return err
+	}
+
+	director(r)
+
+	result, err := graphqlutil.HTTPDo(s.HTTPClient.Client, r, params)
+	if err != nil {
+		return err
+	}
+
+	if result.HasErrors() {
+		return fmt.Errorf("unexpected graphql errors: %v", result.Errors)
 	}
 
 	return
