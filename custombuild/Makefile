@@ -47,14 +47,22 @@ build:
 
 .PHONY: build-image
 build-image:
-	# Add --pull so that we are using the latest base image.
-	# The build context is the parent directory
-	docker build --pull --ssh=default --file ./cmd/$(TARGET)/Dockerfile --tag $(IMAGE_NAME) --build-arg GIT_HASH=$(GIT_HASH) ../
-
-.PHONY: tag-image
-tag-image:
-	docker tag $(IMAGE_NAME) $(REMOTE_IMAGE_NAME):$(GIT_HASH)
-
-.PHONY: push-image
-push-image:
-	docker push $(REMOTE_IMAGE_NAME):$(GIT_HASH)
+	$(eval BUILD_OPTS ::= --tag $(IMAGE_NAME))
+ifeq (${TAG_IMAGE},true) # if TAG_IMAGE
+	$(eval BUILD_OPTS += --tag $(IMAGE_NAME):latest)
+ifneq (${GIT_HASH},)
+	$(eval BUILD_OPTS += --tag $(IMAGE_NAME):$(GIT_HASH))
+endif
+ifneq (${GIT_NAME},)
+	$(eval BUILD_OPTS += --tag $(IMAGE_NAME):$(GIT_NAME))
+endif
+endif # endif TAG_IMAGE
+ifeq ($(PUSH_IMAGE),true)
+	$(eval BUILD_OPTS += --push)
+endif
+	@# Add --pull so that we are using the latest base image.
+	@# The build context is the parent directory
+	docker build --pull --ssh=default \
+		--file ./cmd/$(TARGET)/Dockerfile \
+		$(BUILD_OPTS) \
+		--build-arg GIT_HASH=$(GIT_HASH) ../
