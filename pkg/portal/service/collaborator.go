@@ -465,11 +465,10 @@ func (s *CollaboratorService) SendInvitation(
 		return nil, err
 	}
 
-	// TODO(collaborator): Ideally we should prevent sending invitation to existing collaborator.
+	// Ideally we should prevent sending invitation to existing collaborator.
 	// However, this is not harmful to not have it.
 	// The collaborator will receive the invitation and they cannot accept it because
 	// we have database constraint to enforce this invariant.
-	// If Admin API have getUserByClaim, then we can detect this condition here.
 
 	// Check if the invitee has a pending invitation already.
 	invitations, err := s.ListInvitations(ctx, appID)
@@ -479,6 +478,20 @@ func (s *CollaboratorService) SendInvitation(
 	for _, i := range invitations {
 		if i.InviteeEmail == inviteeEmail {
 			return nil, ErrCollaboratorInvitationDuplicate
+		}
+	}
+
+	if AUTHGEARONCE {
+		inviteeExists, err := s.checkInviteeExistenceByEmail(ctx, invitedBy, inviteeEmail)
+		if err != nil {
+			return nil, err
+		}
+
+		if !inviteeExists {
+			err = s.createAccountForInvitee(ctx, invitedBy, inviteeEmail)
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 
@@ -748,22 +761,19 @@ func (s *CollaboratorService) CheckInviteeEmail(ctx context.Context, i *model.Co
 	id := relay.ToGlobalID("User", actorID)
 
 	params := graphqlutil.DoParams{
-		OperationName: "getUserNodes",
+		OperationName: "getUserNode",
 		Query: `
-		query getUserNodes($ids: [ID!]!) {
-			nodes(ids: $ids) {
+		query getUserNode($id: ID!) {
+			node(id: $id) {
 				... on User {
 					id
-					verifiedClaims {
-						name
-						value
-					}
+					standardAttributes
 				}
 			}
 		}
 		`,
 		Variables: map[string]interface{}{
-			"ids": []interface{}{id},
+			"id": id,
 		},
 	}
 
@@ -788,45 +798,121 @@ func (s *CollaboratorService) CheckInviteeEmail(ctx context.Context, i *model.Co
 		return fmt.Errorf("unexpected graphql errors: %v", result.Errors)
 	}
 
-	var userModels []*model.User
+	var email string
 	data := result.Data.(map[string]interface{})
-	nodes := data["nodes"].([]interface{})
-	for _, iface := range nodes {
-		// It could be null.
-		userNode, ok := iface.(map[string]interface{})
-		if !ok {
-			userModels = append(userModels, nil)
-		} else {
-			userModel := &model.User{}
-			globalID := userNode["id"].(string)
-			userModel.ID = globalID
-
-			// Use the last email claim.
-			verifiedClaims := userNode["verifiedClaims"].([]interface{})
-			for _, iface := range verifiedClaims {
-				claim := iface.(map[string]interface{})
-				name := claim["name"].(string)
-				value := claim["value"].(string)
-				if name == "email" {
-					userModel.Email = value
-				}
+	if userNode, ok := data["node"].(map[string]interface{}); ok {
+		if standardAttributes, ok := userNode["standardAttributes"].(map[string]interface{}); ok {
+			if e, ok := standardAttributes["email"].(string); ok {
+				email = e
 			}
-
-			userModels = append(userModels, userModel)
 		}
 	}
 
-	if len(userModels) != 1 {
-		return fmt.Errorf("expected exact one user")
-	}
-
-	user := userModels[0]
-
-	if user.Email != i.InviteeEmail {
+	if email != i.InviteeEmail {
 		return ErrCollaboratorInvitationInvalidEmail
 	}
 
 	return nil
+}
+
+// checkInviteeExistenceByEmail calls HTTP request.
+func (s *CollaboratorService) checkInviteeExistenceByEmail(ctx context.Context, actorUserID string, inviteeEmail string) (inviteeExists bool, err error) {
+	params := graphqlutil.DoParams{
+		OperationName: "getUsersByStandardAttribute",
+		Query: `
+		query getUsersByStandardAttribute($name: String!, $value: String!) {
+			users: getUsersByStandardAttribute(attributeName: $name, attributeValue: $value) {
+				id
+			}
+		}
+		`,
+		Variables: map[string]interface{}{
+			"name":  "email",
+			"value": inviteeEmail,
+		},
+	}
+
+	r, err := http.NewRequestWithContext(ctx, "POST", "/graphql", nil)
+	if err != nil {
+		return
+	}
+
+	director, err := s.AdminAPI.SelfDirector(ctx, actorUserID, UsageInternal)
+	if err != nil {
+		return
+	}
+
+	director(r)
+
+	result, err := graphqlutil.HTTPDo(s.HTTPClient.Client, r, params)
+	if err != nil {
+		return
+	}
+
+	if result.HasErrors() {
+		err = fmt.Errorf("unexpected graphql errors: %v", result.Errors)
+		return
+	}
+
+	data := result.Data.(map[string]interface{})
+	users := data["users"].([]interface{})
+	if len(users) > 0 {
+		inviteeExists = true
+		return
+	}
+
+	return
+}
+
+// createAccountForInvitee calls HTTP request.
+func (s *CollaboratorService) createAccountForInvitee(ctx context.Context, actorUserID string, inviteeEmail string) (err error) {
+	params := graphqlutil.DoParams{
+		OperationName: "createAccount",
+		Query: `
+		mutation createAccount($email: String!) {
+			createUser(input: {
+				definition: {
+					loginID: {
+						key: "email"
+						value: $email
+					}
+				}
+				sendPassword: true
+				setPasswordExpired: true
+			}) {
+				user {
+					id
+				}
+			}
+		}
+		`,
+		Variables: map[string]interface{}{
+			"email": inviteeEmail,
+		},
+	}
+
+	r, err := http.NewRequestWithContext(ctx, "POST", "/graphql", nil)
+	if err != nil {
+		return err
+	}
+
+	director, err := s.AdminAPI.SelfDirector(ctx, actorUserID, UsageInternal)
+	if err != nil {
+		return err
+	}
+
+	director(r)
+
+	result, err := graphqlutil.HTTPDo(s.HTTPClient.Client, r, params)
+	if err != nil {
+		return err
+	}
+
+	if result.HasErrors() {
+		return fmt.Errorf("unexpected graphql errors: %v", result.Errors)
+	}
+
+	return
 }
 
 func (s *CollaboratorService) checkQuotaInSend(ctx context.Context, appID string) error {
