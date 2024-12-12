@@ -184,6 +184,12 @@ func (s *UserExportService) convertDBUserToRecord(user *user.UserForExport) (rec
 }
 
 func (s *UserExportService) ExportRecords(ctx context.Context, request *Request, task *redisqueue.Task) (outputFilename string, err error) {
+	defer func() {
+		if err != nil {
+			s.Logger.WithError(err).Error("export failed")
+		}
+	}()
+
 	resultFile, err := os.CreateTemp("", fmt.Sprintf("export-%s.tmp", task.ID))
 	if err != nil {
 		return
