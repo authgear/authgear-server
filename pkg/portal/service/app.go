@@ -104,6 +104,10 @@ type AppTesterTokenStore interface {
 	) (*tester.TesterToken, error)
 }
 
+type AppConfigSourceStore interface {
+	ListAll(ctx context.Context) ([]*configsource.DatabaseSource, error)
+}
+
 type AppService struct {
 	Logger      AppServiceLogger
 	SQLBuilder  *globaldb.SQLBuilder
@@ -122,6 +126,7 @@ type AppService struct {
 	AppSecretVisitTokenStore AppSecretVisitTokenStore
 	AppTesterTokenStore      AppTesterTokenStore
 	SAMLEnvironmentConfig    config.SAMLEnvironmentConfig
+	ConfigSourceStore        AppConfigSourceStore
 }
 
 // Get calls other services that acquires connection themselves.
@@ -409,7 +414,12 @@ func (s *AppService) UpdateResources(ctx context.Context, app *model.App, update
 			return err
 		}
 		if updatesContainSMTPSecret {
+			appIDsToPropagate, err := s.getAllAppIDsExcept(ctx, app.ID)
+			if err != nil {
+				return err
+			}
 			// TODO: propagate the updates to ALL apps.
+			_ = appIDsToPropagate
 		}
 	}
 
@@ -468,6 +478,28 @@ func (s *AppService) checkIfUpdatesContainSMTPSecret(updates []appresource.Updat
 		}
 	}
 	return
+}
+
+// getAllAppIDsExcept acquires connection.
+func (s *AppService) getAllAppIDsExcept(ctx context.Context, exceptAppID string) ([]string, error) {
+	var allAppIDs []string
+	err := s.GlobalDatabase.WithTx(ctx, func(ctx context.Context) error {
+		srcs, err := s.ConfigSourceStore.ListAll(ctx)
+		if err != nil {
+			return err
+		}
+		for _, src := range srcs {
+			if src.AppID != exceptAppID {
+				allAppIDs = append(allAppIDs, src.AppID)
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return allAppIDs, nil
 }
 
 func (s *AppService) generateResources(appHost string, appID string, featureConfig *config.FeatureConfig) (map[string][]byte, error) {
