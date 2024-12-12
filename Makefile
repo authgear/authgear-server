@@ -162,26 +162,25 @@ check-tidy:
 
 .PHONY: build-image
 build-image:
-	# Add --pull so that we are using the latest base image.
-	docker build --pull --file ./cmd/$(TARGET)/Dockerfile --tag $(IMAGE_NAME) --build-arg GIT_HASH=$(GIT_HASH) .
-
-.PHONY: tag-image
-tag-image: DOCKER_IMAGE ::= quay.io/theauthgear/$(IMAGE_NAME)
-tag-image:
-	docker tag $(IMAGE_NAME) $(DOCKER_IMAGE):latest
-	docker tag $(IMAGE_NAME) $(DOCKER_IMAGE):$(GIT_HASH)
-	if [ ! -z $(GIT_NAME) ]; then docker tag $(IMAGE_NAME) $(DOCKER_IMAGE):$(GIT_NAME); fi
-
-.PHONY: push-image
-push-image: DOCKER_IMAGE ::= quay.io/theauthgear/$(IMAGE_NAME)
-push-image:
-	docker manifest inspect $(DOCKER_IMAGE):$(GIT_HASH) > /dev/null; if [ $$? -eq 0 ]; then \
-		echo "$(DOCKER_IMAGE):$(GIT_HASH) exists. Skip push"; \
-	else \
-		docker push $(DOCKER_IMAGE):latest ;\
-		docker push $(DOCKER_IMAGE):$(GIT_HASH) ;\
-		if [ ! -z $(GIT_NAME) ]; then docker push $(DOCKER_IMAGE):$(GIT_NAME); fi ;\
-	fi
+	$(eval DOCKER_IMAGE ::= quay.io/theauthgear/$(IMAGE_NAME))
+	$(eval BUILD_OPTS ::= --tag $(DOCKER_IMAGE))
+ifeq (${TAG_IMAGE},true) # if TAG_IMAGE
+	$(eval BUILD_OPTS += --tag $(DOCKER_IMAGE):latest)
+ifneq (${GIT_HASH},)
+	$(eval BUILD_OPTS += --tag $(DOCKER_IMAGE):$(GIT_HASH))
+endif
+ifneq (${GIT_NAME},)
+	$(eval BUILD_OPTS += --tag $(DOCKER_IMAGE):$(GIT_NAME))
+endif
+endif # endif TAG_IMAGE
+ifeq ($(PUSH_IMAGE),true)
+	$(eval BUILD_OPTS += --push)
+endif
+	@# Add --pull so that we are using the latest base image.
+	docker buildx build --pull \
+		--file ./cmd/$(TARGET)/Dockerfile \
+		$(BUILD_OPTS) \
+		--build-arg GIT_HASH=$(GIT_HASH) .
 
 .PHONY: html-email
 html-email:

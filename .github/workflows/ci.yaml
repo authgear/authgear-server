@@ -122,10 +122,9 @@ jobs:
     env:
       TARGET: portal
       IMAGE_NAME: authgear-portal
+      PUSH_IMAGE: "${{ (github.repository == 'authgear/authgear-server' && github.event_name == 'push') && 'true' || 'false' }}"
     steps:
     - uses: actions/checkout@v4
-    - run: make build-image TARGET=$TARGET IMAGE_NAME=$IMAGE_NAME
-    - run: make tag-image IMAGE_NAME=$IMAGE_NAME
     - name: docker login
       if: ${{ github.repository == 'authgear/authgear-server' && github.event_name == 'push' }}
       env:
@@ -133,8 +132,7 @@ jobs:
         DOCKER_PASSWORD: ${{ secrets.QUAY_ROBOT_TOKEN }}
       run: |
         printf "$DOCKER_PASSWORD" | docker login --password-stdin --username "$DOCKER_USERNAME" quay.io
-    - run: make push-image IMAGE_NAME=$IMAGE_NAME
-      if: ${{ github.repository == 'authgear/authgear-server' && github.event_name == 'push' }}
+    - run: make build-image PUSH_IMAGE=$PUSH_IMAGE TAG_IMAGE=true TARGET=$TARGET IMAGE_NAME=$IMAGE_NAME
     - name: docker logout
       if: ${{ always() }}
       run: |
@@ -223,10 +221,9 @@ jobs:
     env:
       TARGET: authgear
       IMAGE_NAME: authgear-server
+      PUSH_IMAGE: "${{ (github.repository == 'authgear/authgear-server' && github.event_name == 'push') && 'true' || 'false' }}"
     steps:
     - uses: actions/checkout@v4
-    - run: make build-image TARGET=$TARGET IMAGE_NAME=$IMAGE_NAME
-    - run: make tag-image IMAGE_NAME=$IMAGE_NAME
     - name: docker login
       if: ${{ github.repository == 'authgear/authgear-server' && github.event_name == 'push' }}
       env:
@@ -234,8 +231,7 @@ jobs:
         DOCKER_PASSWORD: ${{ secrets.QUAY_ROBOT_TOKEN }}
       run: |
         printf "$DOCKER_PASSWORD" | docker login --password-stdin --username "$DOCKER_USERNAME" quay.io
-    - run: make push-image IMAGE_NAME=$IMAGE_NAME
-      if: ${{ github.repository == 'authgear/authgear-server' && github.event_name == 'push' }}
+    - run: make build-image PUSH_IMAGE=$PUSH_IMAGE TAG_IMAGE=true TARGET=$TARGET IMAGE_NAME=$IMAGE_NAME
     - name: docker logout
       if: ${{ always() }}
       run: |
