@@ -765,20 +765,22 @@ function PlanDetailsTab({
         thisMonthSubscriptionUsage={thisMonthSubscriptionUsage}
         previousMonthSubscriptionUsage={previousMonthSubscriptionUsage}
       />
-      <LinkButton
-        className="text-sm relative justify-self-start"
-        onClick={onClickManageSubscription}
-        disabled={isLoading}
-      >
-        <span className={cn(manageSubscriptionLoading ? "invisible" : null)}>
-          <FormattedMessage id="SubscriptionScreen.footer.manageSubscription" />
-        </span>
-        {manageSubscriptionLoading === true ? (
-          <div className="absolute top-0 left-0 right-0 bottom-0 flex items-center justify-center">
-            <Spinner size={SpinnerSize.xSmall} />
-          </div>
-        ) : null}
-      </LinkButton>
+      {formattedBillingDate != null ? (
+        <LinkButton
+          className="text-sm relative justify-self-start"
+          onClick={onClickManageSubscription}
+          disabled={isLoading}
+        >
+          <span className={cn(manageSubscriptionLoading ? "invisible" : null)}>
+            <FormattedMessage id="SubscriptionScreen.footer.manageSubscription" />
+          </span>
+          {manageSubscriptionLoading === true ? (
+            <div className="absolute top-0 left-0 right-0 bottom-0 flex items-center justify-center">
+              <Spinner size={SpinnerSize.xSmall} />
+            </div>
+          ) : null}
+        </LinkButton>
+      ) : null}
     </div>
   );
 }
