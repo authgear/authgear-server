@@ -44,6 +44,13 @@ jobs:
     - uses: actions/checkout@v4
     - name: Install qemu for multi arch build
       run: docker run --privileged --rm tonistiigi/binfmt --install all
+    - name: Setup container builder
+      run: |
+        docker buildx create \
+          --name container-builder \
+          --driver docker-container \
+          --bootstrap --use
+
     # https://aran.dev/posts/github-actions-go-private-modules/
     - name: Set up SSH key
       env:
@@ -104,6 +111,13 @@ jobs:
     - uses: actions/checkout@v4
     - name: Install qemu for multi arch build
       run: docker run --privileged --rm tonistiigi/binfmt --install all
+    - name: Setup container builder
+      run: |
+        docker buildx create \
+          --name container-builder \
+          --driver docker-container \
+          --bootstrap --use
+
     # https://aran.dev/posts/github-actions-go-private-modules/
     - name: Set up SSH key
       env:
