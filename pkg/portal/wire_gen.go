@@ -235,6 +235,10 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Redis: globalredisHandle,
 	}
 	samlEnvironmentConfig := environmentConfig.SAML
+	configsourceStore := &configsource.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
 	appService := &service.AppService{
 		Logger:                   appServiceLogger,
 		SQLBuilder:               sqlBuilder,
@@ -251,6 +255,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		AppSecretVisitTokenStore: appSecretVisitTokenStoreImpl,
 		AppTesterTokenStore:      testerStore,
 		SAMLEnvironmentConfig:    samlEnvironmentConfig,
+		ConfigSourceStore:        configsourceStore,
 	}
 	loaderHTTPClient := loader.NewHTTPClient()
 	userLoader := loader.NewUserLoader(adminAPIService, appService, collaboratorService, loaderHTTPClient)
@@ -286,10 +291,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clock,
 		StripeConfig:      stripeConfig,
 		Endpoints:         endpointsProvider,
-	}
-	configsourceStore := &configsource.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
 	}
 	globalDBStore := &usage.GlobalDBStore{
 		SQLBuilder:  sqlBuilder,

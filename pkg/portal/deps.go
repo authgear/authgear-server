@@ -84,6 +84,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(service.AppPlanService), new(*portallibplan.Service)),
 	wire.Bind(new(service.AppResourceManagerFactory), new(*appresource.ManagerFactory)),
 	wire.Bind(new(service.SubscriptionConfigSourceStore), new(*configsource.Store)),
+	wire.Bind(new(service.AppConfigSourceStore), new(*configsource.Store)),
 	wire.Bind(new(service.SubscriptionPlanStore), new(*plan.Store)),
 	wire.Bind(new(service.SubscriptionUsageStore), new(*usage.GlobalDBStore)),
 	wire.Bind(new(service.UsageUsageStore), new(*usage.GlobalDBStore)),

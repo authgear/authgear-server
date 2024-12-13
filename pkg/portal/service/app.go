@@ -104,6 +104,10 @@ type AppTesterTokenStore interface {
 	) (*tester.TesterToken, error)
 }
 
+type AppConfigSourceStore interface {
+	ListAll(ctx context.Context) ([]*configsource.DatabaseSource, error)
+}
+
 type AppService struct {
 	Logger      AppServiceLogger
 	SQLBuilder  *globaldb.SQLBuilder
@@ -122,6 +126,7 @@ type AppService struct {
 	AppSecretVisitTokenStore AppSecretVisitTokenStore
 	AppTesterTokenStore      AppTesterTokenStore
 	SAMLEnvironmentConfig    config.SAMLEnvironmentConfig
+	ConfigSourceStore        AppConfigSourceStore
 }
 
 // Get calls other services that acquires connection themselves.
@@ -403,14 +408,60 @@ func (s *AppService) Create(ctx context.Context, userID string, id string) (*mod
 
 // UpdateResources acquires connection.
 func (s *AppService) UpdateResources(ctx context.Context, app *model.App, updates []appresource.Update) error {
-	appResMgr := s.AppResMgrFactory.NewManagerWithAppContext(app.Context)
-	var err error
-	err = s.GlobalDatabase.WithTx(ctx, func(ctx context.Context) error {
-		files, err := appResMgr.ApplyUpdates0(ctx, app.ID, updates)
+	type arity1ReturningError func(ctx context.Context) error
+
+	// applyUpdatesToTheOriginalApp DOES NOT reference to the original arguments.
+	// So it can be used to apply updates to other apps.
+	applyUpdatesToGivenApp := func(app *model.App, updates []appresource.Update) arity1ReturningError {
+		return func(ctx context.Context) error {
+			appResMgr := s.AppResMgrFactory.NewManagerWithAppContext(app.Context)
+			files, err := appResMgr.ApplyUpdates0(ctx, app.ID, updates)
+			if err != nil {
+				return err
+			}
+			return s.AppConfigs.UpdateResources(ctx, app.ID, files)
+		}
+	}
+
+	funcs := []arity1ReturningError{
+		applyUpdatesToGivenApp(app, updates),
+	}
+
+	if AUTHGEARONCE {
+		smtpUpdate, err := s.makeSMTPUpdate(updates)
 		if err != nil {
 			return err
 		}
-		return s.AppConfigs.UpdateResources(ctx, app.ID, files)
+		if smtpUpdate != nil {
+			s.Logger.WithField("source_app_id", app.ID).Info("detected SMTP secret update")
+			appIDsToPropagate, err := s.getAllAppIDsExcept(ctx, app.ID)
+			if err != nil {
+				return err
+			}
+
+			theUpdates := []appresource.Update{*smtpUpdate}
+			for _, appID := range appIDsToPropagate {
+				theApp, err := s.Get(ctx, appID)
+				if err != nil {
+					return err
+				}
+
+				s.Logger.WithField("source_app_id", app.ID).WithField("target_app_id", theApp.ID).Info("propagate STMP secret update")
+				funcs = append(funcs, applyUpdatesToGivenApp(theApp, theUpdates))
+			}
+		}
+	}
+
+	var err error
+	err = s.GlobalDatabase.WithTx(ctx, func(ctx context.Context) error {
+		for _, f := range funcs {
+			err := f(ctx)
+			if err != nil {
+				return err
+			}
+		}
+
+		return nil
 	})
 	if err != nil {
 		return err
@@ -433,6 +484,59 @@ func (s *AppService) UpdateResources0(ctx context.Context, app *model.App, updat
 	}
 
 	return nil
+}
+
+func (s *AppService) makeSMTPUpdate(updates []appresource.Update) (out *appresource.Update, err error) {
+	for _, update := range updates {
+		if update.Path == configsource.AuthgearSecretYAML {
+			var instructions *config.SecretConfigUpdateInstruction
+			instructions, err = configsource.ParseAuthgearSecretsYAMLUpdateInstructions(update.Data)
+			if err != nil {
+				return
+
+			}
+
+			if instructions.SMTPServerCredentialsUpdateInstruction != nil {
+				syntheticInstructions := &config.SecretConfigUpdateInstruction{
+					SMTPServerCredentialsUpdateInstruction: instructions.SMTPServerCredentialsUpdateInstruction,
+				}
+
+				var data []byte
+				data, err = json.Marshal(syntheticInstructions)
+				if err != nil {
+					return
+				}
+
+				return &appresource.Update{
+					Path: update.Path,
+					Data: data,
+				}, nil
+			}
+		}
+	}
+	return
+}
+
+// getAllAppIDsExcept acquires connection.
+func (s *AppService) getAllAppIDsExcept(ctx context.Context, exceptAppID string) ([]string, error) {
+	var allAppIDs []string
+	err := s.GlobalDatabase.WithTx(ctx, func(ctx context.Context) error {
+		srcs, err := s.ConfigSourceStore.ListAll(ctx)
+		if err != nil {
+			return err
+		}
+		for _, src := range srcs {
+			if src.AppID != exceptAppID {
+				allAppIDs = append(allAppIDs, src.AppID)
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return allAppIDs, nil
 }
 
 func (s *AppService) generateResources(appHost string, appID string, featureConfig *config.FeatureConfig) (map[string][]byte, error) {
