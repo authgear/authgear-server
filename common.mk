@@ -47,27 +47,48 @@ start-portal:
 build:
 	go build -o $(BIN_NAME) -tags "$(GO_BUILD_TAGS)" -ldflags ${LDFLAGS} ./cmd/$(TARGET)
 
+
+
 .PHONY: build-image
 build-image:
-	$(eval BUILD_OPTS ::= --tag $(IMAGE_NAME))
-ifeq (${TAG_IMAGE},true) # if TAG_IMAGE
-	$(eval BUILD_OPTS += --tag $(IMAGE_NAME):latest)
-ifneq (${GIT_HASH},)
-	$(eval BUILD_OPTS += --tag $(IMAGE_NAME):$(GIT_HASH))
+	$(eval IMAGE_TAG_BASE ::= $(IMAGE_NAME):$(GIT_HASH))
+	$(eval BUILD_OPTS ::= )
+ifeq ($(BUILD_ARCH),amd64)
+	$(eval BUILD_OPTS += --platform linux/$(BUILD_ARCH) )
+	$(eval BUILD_OPTS += --tag $(IMAGE_TAG_BASE)-amd64 )
+else ifeq ($(BUILD_ARCH),arm64)
+	$(eval BUILD_OPTS += --platform linux/$(BUILD_ARCH) )
+	$(eval BUILD_OPTS += --tag $(IMAGE_TAG_BASE)-arm64 )
+else
+	$(eval BUILD_OPTS += --tag $(IMAGE_TAG_BASE)-$(BUILD_ARCH)-unknown )
 endif
-ifneq (${GIT_NAME},)
-	$(eval BUILD_OPTS += --tag $(IMAGE_NAME):$(GIT_NAME))
-endif
-endif # endif TAG_IMAGE
 ifeq ($(PUSH_IMAGE),true)
 	$(eval BUILD_OPTS += --push)
 endif
-ifneq ($(BUILD_PLATFORMS),)
-	$(eval BUILD_OPTS += --platform $(BUILD_PLATFORMS))
+ifeq ($(EXTRA_BUILD_OPTS),true)
+	$(eval BUILD_OPTS += $(EXTRA_BUILD_OPTS))
 endif
 	@# Add --pull so that we are using the latest base image.
 	@# The build context is the parent directory
-	docker build --pull --ssh=default \
+	docker build --pull \
 		--file ./cmd/$(TARGET)/Dockerfile \
 		$(BUILD_OPTS) \
 		--build-arg GIT_HASH=$(GIT_HASH) ${BUILD_CTX}
+
+.PHONY: tag-image
+tag-image:
+	$(eval IMAGE_SOURCES ::= )
+	$(eval TAGS ::= --tag $(IMAGE_NAME):latest )
+	$(eval TAGS += --tag $(IMAGE_NAME):$(GIT_HASH))
+ifneq (${GIT_NAME},)
+	$(eval TAGS += --tag $(IMAGE_NAME):$(GIT_NAME))
+endif
+ifneq ($(findstring amd64,$(SOURCE_ARCHS)),)
+	$(eval IMAGE_SOURCES += $(IMAGE_NAME):$(GIT_HASH)-amd64 )
+endif
+ifneq ($(findstring arm64,$(SOURCE_ARCHS)),)
+	$(eval IMAGE_SOURCES += $(IMAGE_NAME):$(GIT_HASH)-arm64 )
+endif
+	docker buildx imagetools create \
+		$(TAGS) \
+		$(IMAGE_SOURCES)
