@@ -78,7 +78,8 @@ jobs:
         REPO: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_REPO_HK }}
         REPO_PREFIX: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_REPO_PREFIX_HK }}
       run: |
-        make -C custombuild build-image TARGET=authgearx BUILD_PLATFORMS=linux/amd64,linux/arm64 TAG_IMAGE=true PUSH_IMAGE=true IMAGE_NAME="$REPO_PREFIX/authgear-server" || docker logout "$REPO"
+        make -C custombuild build-image TARGET=authgearx BUILD_ARCH=amd64 PUSH_IMAGE=true IMAGE_NAME="$REPO_PREFIX/authgear-server"
+        make -C custombuild tag-image SOURCE_ARCHS=amd64 IMAGE_NAME=$IMAGE_NAME IMAGE_NAME="$REPO_PREFIX/authgear-server" || docker logout "$REPO"
 
     - uses: oursky/google-github-actions-auth@v2
       with:
@@ -95,7 +96,8 @@ jobs:
         REPO: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_REPO_US }}
         REPO_PREFIX: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_REPO_PREFIX_US }}
       run: |
-        make -C custombuild build-image TARGET=authgearx BUILD_PLATFORMS=linux/amd64,linux/arm64 TAG_IMAGE=true PUSH_IMAGE=true IMAGE_NAME="$REPO_PREFIX/authgear-server" || docker logout "$REPO"
+        make -C custombuild build-image TARGET=authgearx BUILD_ARCH=amd64 PUSH_IMAGE=true IMAGE_NAME="$REPO_PREFIX/authgear-server"
+        make -C custombuild tag-image SOURCE_ARCHS=amd64 IMAGE_NAME=$IMAGE_NAME IMAGE_NAME="$REPO_PREFIX/authgear-server" || docker logout "$REPO"
 
     - name: Clean up SSH key
       if: ${{ always() }}
@@ -146,7 +148,8 @@ jobs:
         REPO_PREFIX: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_REPO_PREFIX_HK }}
         REPO: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_REPO_HK }}
       run: |
-        make -C custombuild build-image TARGET=portalx BUILD_PLATFORMS=linux/amd64,linux/arm64 TAG_IMAGE=true PUSH_IMAGE=true IMAGE_NAME="$REPO_PREFIX/authgear-portal" || docker logout "$REPO"
+        make -C custombuild build-image TARGET=portalx BUILD_ARCH=amd64 PUSH_IMAGE=true IMAGE_NAME="$REPO_PREFIX/authgear-portal"
+        make -C custombuild tag-image SOURCE_ARCHS=amd64 IMAGE_NAME=$IMAGE_NAME IMAGE_NAME="$REPO_PREFIX/authgear-portal" || docker logout "$REPO"
 
     - uses: oursky/google-github-actions-auth@v2
       with:
@@ -163,7 +166,8 @@ jobs:
         REPO_PREFIX: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_REPO_PREFIX_US }}
         REPO: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_REPO_US }}
       run: |
-        make -C custombuild build-image TARGET=portalx BUILD_PLATFORMS=linux/amd64,linux/arm64 TAG_IMAGE=true PUSH_IMAGE=true IMAGE_NAME="$REPO_PREFIX/authgear-portal" || docker logout "$REPO"
+        make -C custombuild build-image TARGET=portalx BUILD_ARCH=amd64 PUSH_IMAGE=true IMAGE_NAME="$REPO_PREFIX/authgear-portal"
+        make -C custombuild tag-image SOURCE_ARCHS=amd64 IMAGE_NAME=$IMAGE_NAME IMAGE_NAME="$REPO_PREFIX/authgear-portal" || docker logout "$REPO"
 
     - name: Clean up SSH key
       if: ${{ always() }}
