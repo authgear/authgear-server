@@ -1,4 +1,5 @@
 include ../scripts/make/go-mod-outdated.mk
+include ../scripts/make/govulncheck.mk
 
 .PHONY: ci
 ci:

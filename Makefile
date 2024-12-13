@@ -4,6 +4,7 @@ BUILD_CTX ::= .
 
 include ./common.mk
 include ./scripts/make/go-mod-outdated.mk
+include ./scripts/make/govulncheck.mk
 
 .PHONY: authgearonce-start
 authgearonce-start: GO_RUN_TAGS += authgearonce
