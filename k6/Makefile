@@ -1,3 +1,5 @@
+include ../scripts/make/go-mod-outdated.mk
+
 #export K6_HTTP_DEBUG=true
 # We cannot use K6_DURATION and K6_VUS because
 # using them will make k6 to ignore scenarios.
