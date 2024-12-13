@@ -62,13 +62,6 @@ jobs:
         printf "$AUTHGEAR_PRIVATE_DEPLOY_KEY" | base64 --decode | ssh-add -
         echo "SSH_AUTH_SOCK=$SSH_AUTH_SOCK" >> "$GITHUB_ENV"
         echo "SSH_AGENT_PID=$SSH_AGENT_PID" >> "$GITHUB_ENV"
-    - name: Clean up SSH key
-      if: ${{ always() }}
-      run: |
-        ssh-add -D
-        ssh-agent -k
-        echo "SSH_AUTH_SOCK=" >> "$GITHUB_ENV"
-        echo "SSH_AGENT_PID=" >> "$GITHUB_ENV"
 
     - uses: oursky/google-github-actions-auth@v2
       with:
@@ -103,6 +96,14 @@ jobs:
         REPO_PREFIX: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_REPO_PREFIX_US }}
       run: |
         make -C custombuild build-image TARGET=authgearx BUILD_PLATFORMS=linux/amd64,linux/arm64 TAG_IMAGE=true PUSH_IMAGE=true IMAGE_NAME="$REPO_PREFIX/authgear-server" || docker logout "$REPO"
+
+    - name: Clean up SSH key
+      if: ${{ always() }}
+      run: |
+        ssh-add -D
+        ssh-agent -k
+        echo "SSH_AUTH_SOCK=" >> "$GITHUB_ENV"
+        echo "SSH_AGENT_PID=" >> "$GITHUB_ENV"
 
   portal-image-custom:
     runs-on: ubuntu-24.04
@@ -129,13 +130,6 @@ jobs:
         printf "$AUTHGEAR_PRIVATE_DEPLOY_KEY" | base64 --decode | ssh-add -
         echo "SSH_AUTH_SOCK=$SSH_AUTH_SOCK" >> "$GITHUB_ENV"
         echo "SSH_AGENT_PID=$SSH_AGENT_PID" >> "$GITHUB_ENV"
-    - name: Clean up SSH key
-      if: ${{ always() }}
-      run: |
-        ssh-add -D
-        ssh-agent -k
-        echo "SSH_AUTH_SOCK=" >> "$GITHUB_ENV"
-        echo "SSH_AGENT_PID=" >> "$GITHUB_ENV"
 
     - uses: oursky/google-github-actions-auth@v2
       with:
@@ -170,3 +164,11 @@ jobs:
         REPO: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_REPO_US }}
       run: |
         make -C custombuild build-image TARGET=portalx BUILD_PLATFORMS=linux/amd64,linux/arm64 TAG_IMAGE=true PUSH_IMAGE=true IMAGE_NAME="$REPO_PREFIX/authgear-portal" || docker logout "$REPO"
+
+    - name: Clean up SSH key
+      if: ${{ always() }}
+      run: |
+        ssh-add -D
+        ssh-agent -k
+        echo "SSH_AUTH_SOCK=" >> "$GITHUB_ENV"
+        echo "SSH_AGENT_PID=" >> "$GITHUB_ENV"
