@@ -60,8 +60,8 @@ endif # endif TAG_IMAGE
 ifeq ($(PUSH_IMAGE),true)
 	$(eval BUILD_OPTS += --push)
 endif
-ifeq ($(BUILD_MULTI_PLATFORMS),true)
-	$(eval BUILD_OPTS += --platform linux/amd64,linux/arm64)
+ifneq ($(BUILD_PLATFORMS),)
+	$(eval BUILD_OPTS += --platform $(BUILD_PLATFORMS))
 endif
 	@# Add --pull so that we are using the latest base image.
 	@# The build context is the parent directory
