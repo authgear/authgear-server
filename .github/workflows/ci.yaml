@@ -121,7 +121,7 @@ jobs:
     needs: portal-test
     env:
       TARGET: portal
-      IMAGE_NAME: authgear-portal
+      IMAGE_NAME: quay.io/theauthgear/authgear-portal
       PUSH_IMAGE: "${{ (github.repository == 'authgear/authgear-server' && github.event_name == 'push') && 'true' || 'false' }}"
       BUILD_PLATFORMS: "${{ (github.repository == 'authgear/authgear-server' && github.event_name == 'push') && 'linux/amd64,linux/arm64' || 'linux/amd64' }}"
     steps:
@@ -229,7 +229,7 @@ jobs:
     needs: ["authgear-test", "authui-test"]
     env:
       TARGET: authgear
-      IMAGE_NAME: authgear-server
+      IMAGE_NAME: quay.io/theauthgear/authgear-server
       PUSH_IMAGE: "${{ (github.repository == 'authgear/authgear-server' && github.event_name == 'push') && 'true' || 'false' }}"
       BUILD_PLATFORMS: "${{ (github.repository == 'authgear/authgear-server' && github.event_name == 'push') && 'linux/amd64,linux/arm64' || 'linux/amd64' }}"
     steps:
