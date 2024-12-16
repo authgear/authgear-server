@@ -1,0 +1,185 @@
+name: Run checks
+
+on:
+  workflow_call:
+
+jobs:
+  authui-test:
+    if: ${{ github.repository != 'oursky/authgear-server' }}
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version-file: "./.tool-versions"
+    - run: npm ci
+      working-directory: ./authui
+    - name: Run npm audit
+      env:
+        AUDIT_LEVEL: ${{ vars.NPM_AUDIT_LEVEL }}
+      run: |
+        if [ -z "${AUDIT_LEVEL}" ]; then
+          npm audit
+        else
+          npm audit --audit-level="${AUDIT_LEVEL}"
+        fi
+      working-directory: ./authui
+      if: ${{ !cancelled() }}
+    - run: npm run typecheck
+      working-directory: ./authui
+      if: ${{ !cancelled() }}
+    - run: npm run eslint
+      working-directory: ./authui
+      if: ${{ !cancelled() }}
+    - run: npm run stylelint
+      working-directory: ./authui
+      if: ${{ !cancelled() }}
+    - run: npm run prettier
+      working-directory: ./authui
+      if: ${{ !cancelled() }}
+    - run: npm run test
+      working-directory: ./authui
+      if: ${{ !cancelled() }}
+    - run: make check-tidy
+      working-directory: ./authui
+      if: ${{ !cancelled() }}
+    - run: npm run build
+      working-directory: ./authui
+      if: ${{ !cancelled() }}
+    - run: npm run ensure-reproducible-build
+      working-directory: ./authui
+      if: ${{ !cancelled() }}
+    - run: npm run browserslist-coverage-lint
+      working-directory: ./authui
+      if: ${{ !cancelled() }}
+
+  portal-test:
+    if: ${{ github.repository != 'oursky/authgear-server' }}
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v4
+    - uses: ./.github/actions/install-native-deps
+    - uses: actions/setup-node@v4
+      with:
+        node-version-file: "./.tool-versions"
+    - run: npm ci
+      working-directory: ./portal
+    - name: Run npm audit
+      env:
+        AUDIT_LEVEL: ${{ vars.NPM_AUDIT_LEVEL }}
+      run: |
+        if [ -z "${AUDIT_LEVEL}" ]; then
+          npm audit
+        else
+          npm audit --audit-level="${AUDIT_LEVEL}"
+        fi
+      working-directory: ./portal
+      if: ${{ !cancelled() }}
+    - run: npm run typecheck
+      working-directory: ./portal
+      if: ${{ !cancelled() }}
+    - run: npm run eslint
+      working-directory: ./portal
+      if: ${{ !cancelled() }}
+    - run: npm run stylelint
+      working-directory: ./portal
+      if: ${{ !cancelled() }}
+    - run: npm run prettier
+      working-directory: ./portal
+      if: ${{ !cancelled() }}
+    - run: npm run test
+      working-directory: ./portal
+      if: ${{ !cancelled() }}
+    - run: npm run gentype
+      working-directory: ./portal
+      if: ${{ !cancelled() }}
+    - run: make check-tidy
+      working-directory: ./portal
+      if: ${{ !cancelled() }}
+    - run: npm run build
+      working-directory: ./portal
+      if: ${{ !cancelled() }}
+    - run: npm run ensure-reproducible-build
+      working-directory: ./portal
+      if: ${{ !cancelled() }}
+    - run: npm run browserslist-coverage-lint
+      working-directory: ./portal
+      if: ${{ !cancelled() }}
+
+
+  authgear-test:
+    if: ${{ github.repository != 'oursky/authgear-server' }}
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v4
+    - uses: ./.github/actions/install-native-deps
+    - uses: actions/setup-go@v4
+      with:
+        go-version-file: "./go.mod"
+    - uses: actions/setup-node@v4
+      with:
+        node-version-file: "./.tool-versions"
+    - run: make vendor
+    - run: make check-dockerignore
+      if: ${{ !cancelled() }}
+    - run: make govulncheck
+      if: ${{ !cancelled() }}
+    # We cannot enable this until we move to mjml@5
+    # https://github.com/mjmlio/mjml/issues/2589
+    #- run: npm audit
+    #  working-directory: ./scripts/npm
+    #  if: ${{ !cancelled() }}
+    - run: make ensure-important-modules-up-to-date
+      if: ${{ !cancelled() }}
+    - run: make lint
+      if: ${{ !cancelled() }}
+    - run: make test
+      if: ${{ !cancelled() }}
+    - run: make fmt
+      if: ${{ !cancelled() }}
+    - run: make check-tidy
+      if: ${{ !cancelled() }}
+    - run: make -C packagetracker check-if-new-version-available
+      if: ${{ !cancelled() }}
+
+  authgear-e2e:
+    if: ${{ github.repository != 'oursky/authgear-server' }}
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v4
+    - uses: ./.github/actions/install-native-deps
+
+    - uses: actions/setup-go@v4
+      with:
+        go-version-file: "./go.mod"
+    - run: make vendor
+
+    # Cache docker images
+    - run: mkdir -p ~/.cache/images
+    - id: cache-docker-images
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/images
+        key: ${{ runner.os }}-e2e-docker-images
+      continue-on-error: true
+      env:
+        SEGMENT_DOWNLOAD_TIMEOUT_MINS: 5
+    - name: Load docker image cache
+      if: ${{ steps.cache-docker-images.outputs.cache-hit == 'true' }}
+      run: |
+        set -x
+        for image in $(grep 'image: ' ./e2e/docker-compose.yaml | awk '{ print  $2 }'); do
+          safe_image_name=$(echo -n "$image" | tr '/:' '_')
+          docker load -i ~/.cache/images/"$safe_image_name".tar || true
+        done
+    - run: make -C e2e ci
+      if: ${{ !cancelled() }}
+      env:
+        COMPOSE_INTERACTIVE_NO_CLI: 1
+    - name: Save docker image cache
+      run: |
+        set -x
+        for image in $(grep 'image: ' ./e2e/docker-compose.yaml | awk '{ print  $2 }'); do
+          safe_image_name=$(echo -n "$image" | tr '/:' '_')
+          docker save "$image" -o ~/.cache/images/"$safe_image_name".tar
+        done
