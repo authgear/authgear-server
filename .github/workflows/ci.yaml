@@ -148,7 +148,7 @@ jobs:
         docker logout quay.io
 
   portal-image-arm64:
-    if: ${{ github.repository != 'oursky/authgear-server' }}
+    if: ${{ (github.repository == 'authgear/authgear-server' && github.event_name == 'push') }}
     runs-on: ubuntu-24.04
     needs: portal-test
     env:
@@ -180,7 +180,7 @@ jobs:
         docker logout quay.io
 
   portal-image:
-    if: ${{ github.repository != 'oursky/authgear-server' }}
+    if: ${{ (github.repository == 'authgear/authgear-server' && github.event_name == 'push') }}
     runs-on: ubuntu-24.04
     needs: ["portal-image-amd64", "portal-image-arm64"]
     env:
@@ -313,7 +313,7 @@ jobs:
       run: |
         docker logout quay.io
   authgear-image-arm64:
-    if: ${{ github.repository != 'oursky/authgear-server' }}
+    if: ${{ (github.repository == 'authgear/authgear-server' && github.event_name == 'push') }}
     runs-on: ubuntu-24.04
     needs: ["authgear-test", "authui-test"]
     env:
@@ -345,7 +345,7 @@ jobs:
         docker logout quay.io
 
   authgear-image:
-    if: ${{ github.repository != 'oursky/authgear-server' }}
+    if: ${{ (github.repository == 'authgear/authgear-server' && github.event_name == 'push') }}
     runs-on: ubuntu-24.04
     needs: ["authgear-image-amd64", "authgear-image-arm64"]
     env:
