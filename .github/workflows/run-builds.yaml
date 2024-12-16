@@ -2,6 +2,11 @@ name: Do builds
 
 on:
   workflow_call:
+    inputs:
+      amd64-build-only:
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   authgear-image-amd64:
@@ -21,7 +26,7 @@ jobs:
         docker_username: "${{ env.PUSH_IMAGE == 'true' && secrets.QUAY_USERNAME || '' }}"
         docker_password: "${{ env.PUSH_IMAGE == 'true' && secrets.QUAY_ROBOT_TOKEN || '' }}"
   authgear-image-arm64:
-    if: ${{ (github.repository == 'authgear/authgear-server' && github.event_name == 'push') }}
+    if: ${{ (github.repository == 'authgear/authgear-server' && github.event_name == 'push' && !inputs.amd64-build-only) }}
     runs-on: ubuntu-24.04
     env:
       PUSH_IMAGE: "${{ (github.repository == 'authgear/authgear-server' && github.event_name == 'push') && 'true' || 'false' }}"
@@ -38,7 +43,7 @@ jobs:
         docker_password: "${{ env.PUSH_IMAGE == 'true' && secrets.QUAY_ROBOT_TOKEN || '' }}"
 
   authgear-image:
-    if: ${{ (github.repository == 'authgear/authgear-server' && github.event_name == 'push') }}
+    if: ${{ (github.repository == 'authgear/authgear-server' && github.event_name == 'push' && !inputs.amd64-build-only) }}
     runs-on: ubuntu-24.04
     needs: ["authgear-image-amd64", "authgear-image-arm64"]
     env:
@@ -80,7 +85,7 @@ jobs:
         docker_password: "${{ env.PUSH_IMAGE == 'true' && secrets.QUAY_ROBOT_TOKEN || '' }}"
 
   portal-image-arm64:
-    if: ${{ (github.repository == 'authgear/authgear-server' && github.event_name == 'push') }}
+    if: ${{ (github.repository == 'authgear/authgear-server' && github.event_name == 'push' && !inputs.amd64-build-only) }}
     runs-on: ubuntu-24.04
     env:
       PUSH_IMAGE: "${{ (github.repository == 'authgear/authgear-server' && github.event_name == 'push') && 'true' || 'false' }}"
@@ -97,7 +102,7 @@ jobs:
         docker_password: "${{ env.PUSH_IMAGE == 'true' && secrets.QUAY_ROBOT_TOKEN || '' }}"
 
   portal-image:
-    if: ${{ (github.repository == 'authgear/authgear-server' && github.event_name == 'push') }}
+    if: ${{ (github.repository == 'authgear/authgear-server' && github.event_name == 'push' && !inputs.amd64-build-only) }}
     runs-on: ubuntu-24.04
     needs: ["portal-image-amd64", "portal-image-arm64"]
     env:
