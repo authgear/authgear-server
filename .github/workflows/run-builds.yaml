@@ -1,4 +1,4 @@
-name: Do builds
+name: Run builds
 
 on:
   workflow_call:
