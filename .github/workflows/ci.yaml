@@ -120,64 +120,36 @@ jobs:
     runs-on: ubuntu-24.04
     needs: portal-test
     env:
-      TARGET: portal
-      IMAGE_NAME: quay.io/theauthgear/authgear-portal
       PUSH_IMAGE: "${{ (github.repository == 'authgear/authgear-server' && github.event_name == 'push') && 'true' || 'false' }}"
-      BUILD_ARCH: amd64
     steps:
     - uses: actions/checkout@v4
-    - name: Install qemu for multi arch build
-      run: docker run --privileged --rm tonistiigi/binfmt --install all
-    - name: Setup container builder
-      run: |
-        docker buildx create \
-          --name container-builder \
-          --driver docker-container \
-          --bootstrap --use
-    - name: docker login
-      if: ${{ github.repository == 'authgear/authgear-server' && github.event_name == 'push' }}
-      env:
-        DOCKER_USERNAME: ${{ secrets.QUAY_USERNAME }}
-        DOCKER_PASSWORD: ${{ secrets.QUAY_ROBOT_TOKEN }}
-      run: |
-        printf "$DOCKER_PASSWORD" | docker login --password-stdin --username "$DOCKER_USERNAME" quay.io
-    - run: make build-image BUILD_ARCH=$BUILD_ARCH PUSH_IMAGE=$PUSH_IMAGE TARGET=$TARGET IMAGE_NAME=$IMAGE_NAME
-    - name: docker logout
-      if: ${{ always() }}
-      run: |
-        docker logout quay.io
+    - uses: ./.github/actions/build-image
+      with:
+        target: portal
+        image_name: quay.io/theauthgear/authgear-portal
+        push_image: "${{ env.PUSH_IMAGE }}"
+        build_arch: amd64
+        docker_registry: quay.io
+        docker_username: "${{ env.PUSH_IMAGE == 'true' && secrets.QUAY_USERNAME || '' }}"
+        docker_password: "${{ env.PUSH_IMAGE == 'true' && secrets.QUAY_ROBOT_TOKEN || '' }}"
 
   portal-image-arm64:
     if: ${{ (github.repository == 'authgear/authgear-server' && github.event_name == 'push') }}
     runs-on: ubuntu-24.04
     needs: portal-test
     env:
-      TARGET: portal
-      IMAGE_NAME: quay.io/theauthgear/authgear-portal
       PUSH_IMAGE: "${{ (github.repository == 'authgear/authgear-server' && github.event_name == 'push') && 'true' || 'false' }}"
-      BUILD_ARCH: arm64
     steps:
     - uses: actions/checkout@v4
-    - name: Install qemu for multi arch build
-      run: docker run --privileged --rm tonistiigi/binfmt --install all
-    - name: Setup container builder
-      run: |
-        docker buildx create \
-          --name container-builder \
-          --driver docker-container \
-          --bootstrap --use
-    - name: docker login
-      if: ${{ github.repository == 'authgear/authgear-server' && github.event_name == 'push' }}
-      env:
-        DOCKER_USERNAME: ${{ secrets.QUAY_USERNAME }}
-        DOCKER_PASSWORD: ${{ secrets.QUAY_ROBOT_TOKEN }}
-      run: |
-        printf "$DOCKER_PASSWORD" | docker login --password-stdin --username "$DOCKER_USERNAME" quay.io
-    - run: make build-image BUILD_ARCH=$BUILD_ARCH PUSH_IMAGE=$PUSH_IMAGE TARGET=$TARGET IMAGE_NAME=$IMAGE_NAME
-    - name: docker logout
-      if: ${{ always() }}
-      run: |
-        docker logout quay.io
+    - uses: ./.github/actions/build-image
+      with:
+        target: portal
+        image_name: quay.io/theauthgear/authgear-portal
+        push_image: "${{ env.PUSH_IMAGE }}"
+        build_arch: arm64
+        docker_registry: quay.io
+        docker_username: "${{ env.PUSH_IMAGE == 'true' && secrets.QUAY_USERNAME || '' }}"
+        docker_password: "${{ env.PUSH_IMAGE == 'true' && secrets.QUAY_ROBOT_TOKEN || '' }}"
 
   portal-image:
     if: ${{ (github.repository == 'authgear/authgear-server' && github.event_name == 'push') }}
@@ -286,63 +258,35 @@ jobs:
     runs-on: ubuntu-24.04
     needs: ["authgear-test", "authui-test"]
     env:
-      TARGET: authgear
-      IMAGE_NAME: quay.io/theauthgear/authgear-server
       PUSH_IMAGE: "${{ (github.repository == 'authgear/authgear-server' && github.event_name == 'push') && 'true' || 'false' }}"
-      BUILD_ARCH: amd64
     steps:
     - uses: actions/checkout@v4
-    - name: Install qemu for multi arch build
-      run: docker run --privileged --rm tonistiigi/binfmt --install all
-    - name: Setup container builder
-      run: |
-        docker buildx create \
-          --name container-builder \
-          --driver docker-container \
-          --bootstrap --use
-    - name: docker login
-      if: ${{ github.repository == 'authgear/authgear-server' && github.event_name == 'push' }}
-      env:
-        DOCKER_USERNAME: ${{ secrets.QUAY_USERNAME }}
-        DOCKER_PASSWORD: ${{ secrets.QUAY_ROBOT_TOKEN }}
-      run: |
-        printf "$DOCKER_PASSWORD" | docker login --password-stdin --username "$DOCKER_USERNAME" quay.io
-    - run: make build-image BUILD_ARCH=$BUILD_ARCH PUSH_IMAGE=$PUSH_IMAGE TARGET=$TARGET IMAGE_NAME=$IMAGE_NAME
-    - name: docker logout
-      if: ${{ always() }}
-      run: |
-        docker logout quay.io
+    - uses: ./.github/actions/build-image
+      with:
+        target: authgear
+        image_name: quay.io/theauthgear/authgear-server
+        push_image: "${{ env.PUSH_IMAGE }}"
+        build_arch: amd64
+        docker_registry: quay.io
+        docker_username: "${{ env.PUSH_IMAGE == 'true' && secrets.QUAY_USERNAME || '' }}"
+        docker_password: "${{ env.PUSH_IMAGE == 'true' && secrets.QUAY_ROBOT_TOKEN || '' }}"
   authgear-image-arm64:
     if: ${{ (github.repository == 'authgear/authgear-server' && github.event_name == 'push') }}
     runs-on: ubuntu-24.04
     needs: ["authgear-test", "authui-test"]
     env:
-      TARGET: authgear
-      IMAGE_NAME: quay.io/theauthgear/authgear-server
       PUSH_IMAGE: "${{ (github.repository == 'authgear/authgear-server' && github.event_name == 'push') && 'true' || 'false' }}"
-      BUILD_ARCH: arm64
     steps:
     - uses: actions/checkout@v4
-    - name: Install qemu for multi arch build
-      run: docker run --privileged --rm tonistiigi/binfmt --install all
-    - name: Setup container builder
-      run: |
-        docker buildx create \
-          --name container-builder \
-          --driver docker-container \
-          --bootstrap --use
-    - name: docker login
-      if: ${{ github.repository == 'authgear/authgear-server' && github.event_name == 'push' }}
-      env:
-        DOCKER_USERNAME: ${{ secrets.QUAY_USERNAME }}
-        DOCKER_PASSWORD: ${{ secrets.QUAY_ROBOT_TOKEN }}
-      run: |
-        printf "$DOCKER_PASSWORD" | docker login --password-stdin --username "$DOCKER_USERNAME" quay.io
-    - run: make build-image BUILD_ARCH=$BUILD_ARCH PUSH_IMAGE=$PUSH_IMAGE TARGET=$TARGET IMAGE_NAME=$IMAGE_NAME
-    - name: docker logout
-      if: ${{ always() }}
-      run: |
-        docker logout quay.io
+    - uses: ./.github/actions/build-image
+      with:
+        target: authgear
+        image_name: quay.io/theauthgear/authgear-server
+        push_image: "${{ env.PUSH_IMAGE }}"
+        build_arch: arm64
+        docker_registry: quay.io
+        docker_username: "${{ env.PUSH_IMAGE == 'true' && secrets.QUAY_USERNAME || '' }}"
+        docker_password: "${{ env.PUSH_IMAGE == 'true' && secrets.QUAY_ROBOT_TOKEN || '' }}"
 
   authgear-image:
     if: ${{ (github.repository == 'authgear/authgear-server' && github.event_name == 'push') }}
