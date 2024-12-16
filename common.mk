@@ -65,7 +65,7 @@ endif
 ifeq ($(PUSH_IMAGE),true)
 	$(eval BUILD_OPTS += --push)
 endif
-ifeq ($(EXTRA_BUILD_OPTS),true)
+ifneq ($(EXTRA_BUILD_OPTS),)
 	$(eval BUILD_OPTS += $(EXTRA_BUILD_OPTS))
 endif
 	@# Add --pull so that we are using the latest base image.
