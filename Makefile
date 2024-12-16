@@ -81,10 +81,6 @@ fmt:
 	find ./devtools ./pkg ./cmd ./e2e -name '*.go' -not -name 'wire_gen.go' -not -name '*_mock_test.go' | sort | xargs goimports -w -format-only -local github.com/authgear/authgear-server
 	$(MAKE) sort-translations
 
-.PHONY: govulncheck
-govulncheck:
-	govulncheck -show traces,version,verbose ./...
-
 .PHONY: binary
 binary: GO_BUILD_TAGS += authgearlite
 binary:
