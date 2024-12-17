@@ -43,7 +43,7 @@ runs:
     run: |
       make build-image \
         BUILD_ARCH=$BUILD_ARCH \
-        OUTPUT=type=image,name=$IMAGE_NAME,push-by-digest=true,name-canonical=true,push=true \
+        OUTPUT=$OUTPUT \
         TARGET=$TARGET \
         IMAGE_NAME=$IMAGE_NAME \
         METADATA_FILE=metadata.json \
@@ -54,7 +54,7 @@ runs:
     env:
       TARGET: ${{ inputs.target }}
       IMAGE_NAME: ${{ inputs.image_name }}
-      PUSH_IMAGE: ${{ inputs.push_image }}
+      OUTPUT: ${{ (inputs.push_image == 'true') && 'type=image,name=$$IMAGE_NAME,push-by-digest=true,name-canonical=true,push=true' || ''}}
       BUILD_ARCH: ${{ inputs.build_arch }}
   - name: docker logout
     if: ${{ always() }}
