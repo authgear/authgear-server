@@ -86,6 +86,9 @@
 
   "show-error.retry": "Retry",
 
+  "FlavoredErrorBoundSuspense.message": "Something went wrong",
+  "FlavoredErrorBoundSuspense.reload": "Reload",
+
   "errors.validation.unknown": "Invalid input at {location}: {kind}",
   "errors.validation.required": "Please fill in this field",
   "errors.validation.general": "Invalid value",
