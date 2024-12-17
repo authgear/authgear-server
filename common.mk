@@ -51,23 +51,24 @@ build:
 
 .PHONY: build-image
 build-image:
-	$(eval IMAGE_TAG_BASE ::= $(IMAGE_NAME):$(GIT_HASH))
-	$(eval BUILD_OPTS ::= )
+IMAGE_TAG_BASE ::= $(IMAGE_NAME):$(GIT_HASH)
+BUILD_OPTS ::=
 ifeq ($(BUILD_ARCH),amd64)
-	$(eval BUILD_OPTS += --platform linux/$(BUILD_ARCH) )
-	$(eval BUILD_OPTS += --tag $(IMAGE_TAG_BASE)-amd64 )
+BUILD_OPTS += --platform linux/$(BUILD_ARCH)
+BUILD_OPTS += --tag $(IMAGE_TAG_BASE)-amd64
 else ifeq ($(BUILD_ARCH),arm64)
-	$(eval BUILD_OPTS += --platform linux/$(BUILD_ARCH) )
-	$(eval BUILD_OPTS += --tag $(IMAGE_TAG_BASE)-arm64 )
+BUILD_OPTS += --platform linux/$(BUILD_ARCH)
+BUILD_OPTS += --tag $(IMAGE_TAG_BASE)-arm64
 else
-	$(eval BUILD_OPTS += --tag $(IMAGE_TAG_BASE)-$(BUILD_ARCH)-unknown )
+BUILD_OPTS += --tag $(IMAGE_TAG_BASE)-$(BUILD_ARCH)-unknown
 endif
 ifeq ($(PUSH_IMAGE),true)
-	$(eval BUILD_OPTS += --push)
+BUILD_OPTS += --push
 endif
 ifneq ($(EXTRA_BUILD_OPTS),)
-	$(eval BUILD_OPTS += $(EXTRA_BUILD_OPTS))
+BUILD_OPTS += $(EXTRA_BUILD_OPTS)
 endif
+build-image:
 	@# Add --pull so that we are using the latest base image.
 	@# The build context is the parent directory
 	docker build --pull \
@@ -77,18 +78,19 @@ endif
 
 .PHONY: tag-image
 tag-image:
-	$(eval IMAGE_SOURCES ::= )
-	$(eval TAGS ::= --tag $(IMAGE_NAME):latest )
-	$(eval TAGS += --tag $(IMAGE_NAME):$(GIT_HASH))
+IMAGE_SOURCES ::=
+TAGS ::= --tag $(IMAGE_NAME):latest
+TAGS += --tag $(IMAGE_NAME):$(GIT_HASH)
 ifneq (${GIT_NAME},)
-	$(eval TAGS += --tag $(IMAGE_NAME):$(GIT_NAME))
+TAGS += --tag $(IMAGE_NAME):$(GIT_NAME)
 endif
 ifneq ($(findstring amd64,$(SOURCE_ARCHS)),)
-	$(eval IMAGE_SOURCES += $(IMAGE_NAME):$(GIT_HASH)-amd64 )
+IMAGE_SOURCES += $(IMAGE_NAME):$(GIT_HASH)-amd64
 endif
 ifneq ($(findstring arm64,$(SOURCE_ARCHS)),)
-	$(eval IMAGE_SOURCES += $(IMAGE_NAME):$(GIT_HASH)-arm64 )
+IMAGE_SOURCES += $(IMAGE_NAME):$(GIT_HASH)-arm64
 endif
+tag-image:
 	docker buildx imagetools create \
 		$(TAGS) \
 		$(IMAGE_SOURCES)
