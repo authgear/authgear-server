@@ -132,7 +132,7 @@
   "errors.groups.key.duplicated": "This key is already used, please use a different key",
   "errors.authenticator.not-found": "Authenticator not found",
 
-  "warnings.free-plan": "To avoid spam content, free plans are limited to send 5 SMS and Whatsapp messsage by default. To be eligible for 100 free SMS/Whatsapp per mo, please complete{ExternalLink, react, href{https://go.authgear.com/portal-support} children{the application form}}.",
+  "warnings.free-plan": "To avoid spam content, free plans are limited to send 5 SMS and Whatsapp messsage by default. To be eligible for 100 free SMS/Whatsapp per mo, please complete {ExternalLink, react, href{https://go.authgear.com/portal-support} children{the application form}}.",
 
   "TodoButtonWrapper.dialog-title": "Feature Not Ready",
   "TodoButtonWrapper.dialog-message": "This feature is not yet implemented",
@@ -182,7 +182,7 @@
 
   "AppsScreen.title": "Select Project",
   "AppsScreen.create-app": "Create Project",
-  "AppsScreen.project-quota-reached": "You have reached the maximum number of projects in your account, please apply for an increase by completing{ExternalLink, react, href{https://go.authgear.com/portal-support} children{this form}}.",
+  "AppsScreen.project-quota-reached": "You have reached the maximum number of projects in your account, please apply for an increase by completing {ExternalLink, react, href{https://go.authgear.com/portal-support} children{this form}}.",
 
   "UserGroupsList.column.name": "Name",
   "UserGroupsList.column.key": "Group Key",
