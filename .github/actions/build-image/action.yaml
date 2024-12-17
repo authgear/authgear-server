@@ -14,6 +14,9 @@ inputs:
     required: false
   docker_password:
     required: false
+outputs:
+  image_digest:
+    value: ${{ steps.build_image.outputs.image_digest }}
 runs:
   using: "composite"
   steps:
@@ -36,7 +39,16 @@ runs:
     shell: bash
     run: |
       printf "$DOCKER_PASSWORD" | docker login --password-stdin --username "$DOCKER_USERNAME" $DOCKER_REGISTRY
-  - run: make build-image BUILD_ARCH=$BUILD_ARCH PUSH_IMAGE=$PUSH_IMAGE TARGET=$TARGET IMAGE_NAME=$IMAGE_NAME
+  - id: build_image
+    run: |
+      make build-image \
+        BUILD_ARCH=$BUILD_ARCH \
+        OUTPUT=type=image,name=$IMAGE_NAME,push-by-digest=true,name-canonical=true,push=true \
+        TARGET=$TARGET \
+        IMAGE_NAME=$IMAGE_NAME \
+        METADATA_FILE=metadata.json
+      DIGEST="$(cat metadata.json | jq '.["containerimage.digest"]' -r)"
+      echo "image_digest=$DIGEST" >> "$GITHUB_OUTPUT"
     shell: bash
     env:
       TARGET: ${{ inputs.target }}

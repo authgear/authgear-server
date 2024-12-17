@@ -55,18 +55,17 @@ IMAGE_TAG_BASE ::= $(IMAGE_NAME):$(GIT_HASH)
 BUILD_OPTS ::=
 ifeq ($(BUILD_ARCH),amd64)
 BUILD_OPTS += --platform linux/$(BUILD_ARCH)
-BUILD_OPTS += --tag $(IMAGE_TAG_BASE)-amd64
 else ifeq ($(BUILD_ARCH),arm64)
 BUILD_OPTS += --platform linux/$(BUILD_ARCH)
-BUILD_OPTS += --tag $(IMAGE_TAG_BASE)-arm64
-else
-BUILD_OPTS += --tag $(IMAGE_TAG_BASE)-$(BUILD_ARCH)-unknown
 endif
-ifeq ($(PUSH_IMAGE),true)
-BUILD_OPTS += --push
+ifneq ($(OUTPUT),)
+BUILD_OPTS += --output=$(OUTPUT)
 endif
 ifneq ($(EXTRA_BUILD_OPTS),)
 BUILD_OPTS += $(EXTRA_BUILD_OPTS)
+endif
+ifneq ($(METADATA_FILE),)
+BUILD_OPTS += --metadata-file $(METADATA_FILE)
 endif
 build-image:
 	@# Add --pull so that we are using the latest base image.
@@ -84,13 +83,8 @@ TAGS += --tag $(IMAGE_NAME):$(GIT_HASH)
 ifneq (${GIT_NAME},)
 TAGS += --tag $(IMAGE_NAME):$(GIT_NAME)
 endif
-ifneq ($(findstring amd64,$(SOURCE_ARCHS)),)
-IMAGE_SOURCES += $(IMAGE_NAME):$(GIT_HASH)-amd64
-endif
-ifneq ($(findstring arm64,$(SOURCE_ARCHS)),)
-IMAGE_SOURCES += $(IMAGE_NAME):$(GIT_HASH)-arm64
-endif
+IMAGE_SOURCES := $(foreach digest,$(SOURCE_DIGESTS),${IMAGE_NAME}@${digest} )
 tag-image:
 	docker buildx imagetools create \
 		$(TAGS) \
-		$(IMAGE_SOURCES)
+		${IMAGE_SOURCES}
