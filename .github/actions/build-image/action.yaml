@@ -46,7 +46,8 @@ runs:
         OUTPUT=type=image,name=$IMAGE_NAME,push-by-digest=true,name-canonical=true,push=true \
         TARGET=$TARGET \
         IMAGE_NAME=$IMAGE_NAME \
-        METADATA_FILE=metadata.json
+        METADATA_FILE=metadata.json \
+        EXTRA_BUILD_OPTS="--builder=container-builder"
       DIGEST="$(cat metadata.json | jq '.["containerimage.digest"]' -r)"
       echo "image_digest=$DIGEST" >> "$GITHUB_OUTPUT"
     shell: bash
