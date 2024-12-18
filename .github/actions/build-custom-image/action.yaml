@@ -42,8 +42,8 @@ runs:
         IMAGE_NAME=$IMAGE_NAME \
         METADATA_FILE=$MANIFEST_NAME \
         EXTRA_BUILD_OPTS="--ssh=default --builder=container-builder"
-      cat $MANIFEST_NAME
-      DIGEST="$(cat $MANIFEST_NAME | jq '.["containerimage.digest"]' -r)"
+      cat custombuild/$MANIFEST_NAME
+      DIGEST="$(cat custombuild/$MANIFEST_NAME | jq '.["containerimage.digest"]' -r)"
       make -C custombuild tag-image SOURCE_DIGESTS="$DIGEST" IMAGE_NAME=$IMAGE_NAME
   - name: docker logout
     if: ${{ always() }}

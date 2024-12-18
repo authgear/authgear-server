@@ -35,15 +35,17 @@ jobs:
       env:
         REPO_PREFIX: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_REPO_PREFIX }}
       run: |
+        MANIFEST_NAME="./$(uuidgen).json"
         IMAGE_NAME="$REPO_PREFIX/authgear-server"
         make -C custombuild build-image \
           TARGET=authgearx \
           BUILD_ARCH=amd64 \
           OUTPUT="type=image,name=$IMAGE_NAME,push-by-digest=true,name-canonical=true,push=true" \
           IMAGE_NAME=$IMAGE_NAME \
-          METADATA_FILE=metadata.json \
+          METADATA_FILE=$MANIFEST_NAME \
           EXTRA_BUILD_OPTS="--ssh=default --builder=container-builder"
-        DIGEST="$(cat metadata.json | jq '.["containerimage.digest"]' -r)"
+        cat custombuild/$MANIFEST_NAME
+        DIGEST="$(cat custombuild/$MANIFEST_NAME | jq '.["containerimage.digest"]' -r)"
         make -C custombuild tag-image SOURCE_DIGESTS="$DIGEST" IMAGE_NAME=$IMAGE_NAME
     - name: Clean up SSH key
       if: ${{ always() }}
@@ -79,15 +81,17 @@ jobs:
       env:
         REPO_PREFIX: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_REPO_PREFIX }}
       run: |
+        MANIFEST_NAME="./$(uuidgen).json"
         IMAGE_NAME="$REPO_PREFIX/authgear-portal"
         make -C custombuild build-image \
           TARGET=portalx \
           BUILD_ARCH=amd64 \
           OUTPUT="type=image,name=$IMAGE_NAME,push-by-digest=true,name-canonical=true,push=true" \
           IMAGE_NAME=$IMAGE_NAME \
-          METADATA_FILE=metadata.json \
+          METADATA_FILE=$MANIFEST_NAME \
           EXTRA_BUILD_OPTS="--ssh=default --builder=container-builder"
-        DIGEST="$(cat metadata.json | jq '.["containerimage.digest"]' -r)"
+        cat custombuild/$MANIFEST_NAME
+        DIGEST="$(cat custombuild/$MANIFEST_NAME | jq '.["containerimage.digest"]' -r)"
         make -C custombuild tag-image SOURCE_DIGESTS="$DIGEST" IMAGE_NAME=$IMAGE_NAME
     - name: Clean up SSH key
       if: ${{ always() }}
