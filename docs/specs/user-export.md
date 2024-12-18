@@ -452,6 +452,7 @@ Here is an example of the record
   "groups": ["group_a"],
 
   "disabled": false,
+  "delete_at": "1985-04-12T23:20:50.52Z",
 
   "identities": [
     {
@@ -549,6 +550,7 @@ Here is an example of the record
 - `roles`: The role keys of all roles directly assigned to the user. This DOES NOT include roles implied by the groups.
 - `groups`: The group keys of all groups assigned to the user.
 - `disabled`: Whether the user is disabled.
+- `delete_at`: The timestamp in rfc3339 when the user will be deleted. `null` if deletion is not scheduled.
 - `identities`: The array of identities that may contain the following types. It is an empty array if the user no identities of the following types.
   - `login_id`
   - `oauth`
