@@ -160,18 +160,14 @@ func (m *CSRFMiddleware) unauthorizedHandler(w http.ResponseWriter, r *http.Requ
 	viewmodels.Embed(data, baseViewModel)
 
 	switch uiImpl {
-	case config.UIImplementationAuthflowV2:
-		m.Renderer.RenderHTML(w, r, TemplateCSRFErrorHTML, data)
-	case config.UIImplementationAuthflow:
-		fallthrough
-	case config.UIImplementationDefault:
-		fallthrough
 	case config.UIImplementationInteraction:
-		fallthrough
-	default:
 		http.Error(w, fmt.Sprintf("%v - %v handler/auth/webapp",
 			http.StatusText(http.StatusForbidden), csrfFailureReason),
 			http.StatusForbidden)
+	case config.UIImplementationAuthflowV2:
+		fallthrough
+	default:
+		m.Renderer.RenderHTML(w, r, TemplateCSRFErrorHTML, data)
 	}
 }
 

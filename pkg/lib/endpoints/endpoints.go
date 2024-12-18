@@ -64,8 +64,6 @@ func (e *Endpoints) ResetPasswordEndpointURL() *url.URL {
 	switch uiImpl {
 	case config.UIImplementationAuthflowV2:
 		return e.urlOf("authflow/v2/reset_password")
-	case config.UIImplementationAuthflow:
-		return e.urlOf("authflow/reset_password")
 	case config.UIImplementationInteraction:
 		return e.urlOf("flows/reset_password")
 	default:
@@ -78,8 +76,6 @@ func (e *Endpoints) ErrorEndpointURL() *url.URL {
 	case config.UIImplementationAuthflowV2:
 		return e.urlOf("/v2/errors/error")
 	case config.UIImplementationInteraction:
-		fallthrough
-	case config.UIImplementationAuthflow:
 		return e.urlOf("/errors/error")
 	default:
 		panic(fmt.Errorf("unexpected ui implementation %s", uiImpl))
@@ -91,8 +87,6 @@ func (e *Endpoints) SelectAccountEndpointURL() *url.URL {
 	case config.UIImplementationAuthflowV2:
 		return e.urlOf("/authflow/v2/select_account")
 	case config.UIImplementationInteraction:
-		fallthrough
-	case config.UIImplementationAuthflow:
 		return e.urlOf("/flows/select_account")
 	default:
 		panic(fmt.Errorf("unexpected ui implementation %s", uiImpl))
@@ -120,8 +114,6 @@ func (e *Endpoints) LoginLinkVerificationEndpointURL() *url.URL {
 	case config.UIImplementationAuthflowV2:
 		return e.urlOf("/authflow/v2/verify_login_link")
 	case config.UIImplementationInteraction:
-		fallthrough
-	case config.UIImplementationAuthflow:
 		return e.urlOf("flows/verify_login_link")
 	default:
 		panic(fmt.Errorf("unexpected ui implementation %s", uiImpl))

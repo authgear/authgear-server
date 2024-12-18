@@ -317,27 +317,22 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) ht
 	router.Add(webapphandler.ConfigureOAuthEntrypointRoute(webappAuthEntrypointRoute), p.Handler(newWebAppOAuthEntrypointHandler))
 	router.Add(webapphandler.ConfigureAuthflowLoginRoute(webappRequireAuthEnabledAuthEntrypointRoute), &webapphandler.ImplementationSwitcherHandler{
 		Interaction: p.Handler(newWebAppLoginHandler),
-		Authflow:    p.Handler(newWebAppAuthflowLoginHandler),
 		AuthflowV2:  p.Handler(newWebAppAuthflowV2LoginHandler),
 	})
 	router.Add(webapphandler.ConfigureAuthflowSignupRoute(webappRequireAuthEnabledAuthEntrypointRoute), &webapphandler.ImplementationSwitcherHandler{
 		Interaction: p.Handler(newWebAppSignupHandler),
-		Authflow:    p.Handler(newWebAppAuthflowSignupHandler),
 		AuthflowV2:  p.Handler(newWebAppAuthflowV2SignupHandler),
 	})
 	router.Add(webapphandler.ConfigureAuthflowPromoteRoute(webappPromoteRoute), &webapphandler.ImplementationSwitcherHandler{
 		Interaction: p.Handler(newWebAppPromoteHandler),
-		Authflow:    p.Handler(newWebAppAuthflowPromoteHandler),
 		AuthflowV2:  p.Handler(newWebAppAuthflowV2PromoteHandler),
 	})
 	router.Add(webapphandler.ConfigureAuthflowReauthRoute(webappReauthRoute), &webapphandler.ImplementationSwitcherHandler{
 		Interaction: p.Handler(newWebAppReauthHandler),
-		Authflow:    p.Handler(newWebAppAuthflowReauthHandler),
 		AuthflowV2:  p.Handler(newWebAppAuthflowV2ReauthHandler),
 	})
 	router.Add(webapphandler.ConfigureSSOCallbackRoute(webappSSOCallbackRoute), &webapphandler.ImplementationSwitcherHandler{
 		Interaction: p.Handler(newWebAppSSOCallbackHandler),
-		Authflow:    p.Handler(newWebAppAuthflowSSOCallbackHandler),
 		AuthflowV2:  p.Handler(newWebAppAuthflowV2SSOCallbackHandler),
 	})
 	router.Add(webapphandler.ConfigureWechatCallbackRoute(webappSSOCallbackRoute), p.Handler(newWechatCallbackHandler))
@@ -582,7 +577,6 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) ht
 
 	router.NotFound(webappNotFoundRoute, &webapphandler.ImplementationSwitcherHandler{
 		Interaction: p.Handler(newWebAppNotFoundHandler),
-		Authflow:    p.Handler(newWebAppNotFoundHandler),
 		AuthflowV2:  p.Handler(newWebAppAuthflowV2NotFoundHandler),
 	})
 

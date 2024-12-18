@@ -90,18 +90,16 @@ func (c *PhoneInputConfig) SetDefaults() {
 type UIImplementation string
 
 const (
-	UIImplementationDefault     UIImplementation = ""
-	UIImplementationInteraction UIImplementation = "interaction"
-	UIImplementationAuthflow    UIImplementation = "authflow"
-	UIImplementationAuthflowV2  UIImplementation = "authflowv2"
+	UIImplementationInteraction         UIImplementation = "interaction"
+	Deprecated_UIImplementationAuthflow UIImplementation = "authflow"
+	UIImplementationAuthflowV2          UIImplementation = "authflowv2"
 )
 
 type SettingsUIImplementation string
 
 const (
-	SettingsUIImplementationDefault SettingsUIImplementation = ""
-	SettingsUIImplementationV1      SettingsUIImplementation = "v1"
-	SettingsUIImplementationV2      SettingsUIImplementation = "v2"
+	SettingsUIImplementationV1 SettingsUIImplementation = "v1"
+	SettingsUIImplementationV2 SettingsUIImplementation = "v2"
 )
 
 var _ = Schema.Add("UIForgotPasswordConfig", `

@@ -67,8 +67,6 @@ func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	switch state.UIImplementation {
-	case config.UIImplementationAuthflow:
-		fallthrough
 	case config.UIImplementationAuthflowV2:
 		// authflow
 		h.AuthflowController.HandleOAuthCallback(r.Context(), w, r, AuthflowOAuthCallbackResponse{

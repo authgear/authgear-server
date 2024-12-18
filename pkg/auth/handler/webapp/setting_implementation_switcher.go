@@ -39,7 +39,7 @@ func WithSettingsUIImplementation(ctx context.Context, impl config.SettingsUIImp
 func GetSettingsUIImplementation(ctx context.Context) config.SettingsUIImplementation {
 	v, ok := ctx.Value(settingsImplementationSwitcherContextKey).(*settingsImplementationSwitcherContext)
 	if !ok {
-		return config.SettingsUIImplementationDefault
+		return config.SettingsUIImplementationV2
 	}
 	return v.SettingsUIImplementation
 }

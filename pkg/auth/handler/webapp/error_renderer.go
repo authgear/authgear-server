@@ -20,9 +20,6 @@ type ErrorRendererUIImplementationService interface {
 	GetUIImplementation() config.UIImplementation
 }
 
-type ErrorRendererAuthflowV1Navigator interface {
-	NavigateNonRecoverableError(r *http.Request, u *url.URL, e error)
-}
 type ErrorRendererAuthflowV2Navigator interface {
 	NavigateNonRecoverableError(r *http.Request, u *url.URL, e error)
 }
@@ -31,7 +28,6 @@ type ErrorRenderer struct {
 	ErrorService            *webapp.ErrorService
 	UIImplementationService ErrorRendererUIImplementationService
 
-	AuthflowV1Navigator ErrorRendererAuthflowV1Navigator
 	AuthflowV2Navigator ErrorRendererAuthflowV2Navigator
 }
 
@@ -40,8 +36,6 @@ func (s *ErrorRenderer) RenderError(ctx context.Context, w http.ResponseWriter, 
 	switch uiImpl {
 	case config.UIImplementationInteraction:
 		s.renderInteractionError(ctx, w, r, err)
-	case config.UIImplementationAuthflow:
-		fallthrough
 	case config.UIImplementationAuthflowV2:
 		s.renderAuthflowError(ctx, w, r, err)
 	default:
@@ -120,8 +114,6 @@ func (s *ErrorRenderer) MakeAuthflowErrorResult(ctx context.Context, w http.Resp
 	case r.Method == http.MethodGet && u.Path == r.URL.Path:
 		// Infinite loop might occur if it is a GET request with the same route
 		switch s.UIImplementationService.GetUIImplementation() {
-		case config.UIImplementationAuthflow:
-			s.AuthflowV1Navigator.NavigateNonRecoverableError(r, &u, err)
 		case config.UIImplementationAuthflowV2:
 			s.AuthflowV2Navigator.NavigateNonRecoverableError(r, &u, err)
 		}

@@ -73,8 +73,6 @@ func (h *WechatCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		}
 
 		switch state.UIImplementation {
-		case config.UIImplementationAuthflow:
-			fallthrough
 		case config.UIImplementationAuthflowV2:
 			session, err := ctrl.GetSession(ctx, state.WebSessionID)
 			if err != nil {
