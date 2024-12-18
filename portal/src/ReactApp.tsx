@@ -2,8 +2,6 @@ import React, {
   useContext,
   useEffect,
   useState,
-  Suspense,
-  lazy,
   useCallback,
   useMemo,
 } from "react";
@@ -45,6 +43,7 @@ import { useViewerQuery } from "./graphql/portal/query/viewerQuery";
 import { extractRawID } from "./util/graphql";
 import { useIdentify } from "./gtm_v2";
 import AppContextProvider from "./AppContextProvider";
+import FlavoredErrorBoundSuspense from "./FlavoredErrorBoundSuspense";
 import {
   PortalClientProvider,
   createCache,
@@ -56,24 +55,6 @@ import {
   UnauthenticatedDialogContext,
   UnauthenticatedDialogContextValue,
 } from "./components/auth/UnauthenticatedDialogContext";
-
-const AppsScreen = lazy(async () => import("./graphql/portal/AppsScreen"));
-const CreateProjectScreen = lazy(
-  async () => import("./graphql/portal/CreateProjectScreen")
-);
-const OnboardingSurveyScreen = lazy(
-  async () => import("./OnboardingSurveyScreen")
-);
-const ProjectWizardScreen = lazy(
-  async () => import("./graphql/portal/ProjectWizardScreen")
-);
-const OnboardingRedirect = lazy(async () => import("./OnboardingRedirect"));
-const OAuthRedirect = lazy(async () => import("./OAuthRedirect"));
-const AcceptAdminInvitationScreen = lazy(
-  async () => import("./graphql/portal/AcceptAdminInvitationScreen")
-);
-
-const StoryBookScreen = lazy(async () => import("./StoryBookScreen"));
 
 async function loadSystemConfig(): Promise<SystemConfig> {
   const resp = await fetch("/api/system-config.json");
@@ -132,9 +113,11 @@ const ReactAppRoutes: React.VFC = function ReactAppRoutes() {
             index={true}
             element={
               <Authenticated>
-                <Suspense fallback={<ShowLoading />}>
-                  <AppsScreen />
-                </Suspense>
+                <FlavoredErrorBoundSuspense
+                  factory={async () => import("./graphql/portal/AppsScreen")}
+                >
+                  {(AppsScreen) => <AppsScreen />}
+                </FlavoredErrorBoundSuspense>
               </Authenticated>
             }
           />
@@ -142,9 +125,13 @@ const ReactAppRoutes: React.VFC = function ReactAppRoutes() {
             path="create"
             element={
               <Authenticated>
-                <Suspense fallback={<ShowLoading />}>
-                  <CreateProjectScreen />
-                </Suspense>
+                <FlavoredErrorBoundSuspense
+                  factory={async () =>
+                    import("./graphql/portal/CreateProjectScreen")
+                  }
+                >
+                  {(CreateProjectScreen) => <CreateProjectScreen />}
+                </FlavoredErrorBoundSuspense>
               </Authenticated>
             }
           />
@@ -156,9 +143,11 @@ const ReactAppRoutes: React.VFC = function ReactAppRoutes() {
             path="*"
             element={
               <Authenticated>
-                <Suspense fallback={<ShowLoading />}>
-                  <OnboardingSurveyScreen />
-                </Suspense>
+                <FlavoredErrorBoundSuspense
+                  factory={async () => import("./OnboardingSurveyScreen")}
+                >
+                  {(OnboardingSurveyScreen) => <OnboardingSurveyScreen />}
+                </FlavoredErrorBoundSuspense>
               </Authenticated>
             }
           />
@@ -184,11 +173,15 @@ const ReactAppRoutes: React.VFC = function ReactAppRoutes() {
                 path="*"
                 element={
                   <Authenticated>
-                    <Suspense fallback={<ShowLoading />}>
-                      <AppContextProvider>
-                        <ProjectWizardScreen />
-                      </AppContextProvider>
-                    </Suspense>
+                    <AppContextProvider>
+                      <FlavoredErrorBoundSuspense
+                        factory={async () =>
+                          import("./graphql/portal/ProjectWizardScreen")
+                        }
+                      >
+                        {(ProjectWizardScreen) => <ProjectWizardScreen />}
+                      </FlavoredErrorBoundSuspense>
+                    </AppContextProvider>
                   </Authenticated>
                 }
               />
@@ -199,9 +192,11 @@ const ReactAppRoutes: React.VFC = function ReactAppRoutes() {
         <Route
           path="/oauth-redirect"
           element={
-            <Suspense fallback={<ShowLoading />}>
-              <OAuthRedirect />
-            </Suspense>
+            <FlavoredErrorBoundSuspense
+              factory={async () => import("./OAuthRedirect")}
+            >
+              {(OAuthRedirect) => <OAuthRedirect />}
+            </FlavoredErrorBoundSuspense>
           }
         />
 
@@ -210,27 +205,35 @@ const ReactAppRoutes: React.VFC = function ReactAppRoutes() {
         <Route
           path="/onboarding-redirect"
           element={
-            <Suspense fallback={<ShowLoading />}>
-              <OnboardingRedirect />
-            </Suspense>
+            <FlavoredErrorBoundSuspense
+              factory={async () => import("./OnboardingRedirect")}
+            >
+              {(OnboardingRedirect) => <OnboardingRedirect />}
+            </FlavoredErrorBoundSuspense>
           }
         />
 
         <Route
           path="/collaborators/invitation"
           element={
-            <Suspense fallback={<ShowLoading />}>
-              <AcceptAdminInvitationScreen />
-            </Suspense>
+            <FlavoredErrorBoundSuspense
+              factory={async () =>
+                import("./graphql/portal/AcceptAdminInvitationScreen")
+              }
+            >
+              {(AcceptAdminInvitationScreen) => <AcceptAdminInvitationScreen />}
+            </FlavoredErrorBoundSuspense>
           }
         />
 
         <Route
           path="/storybook"
           element={
-            <Suspense fallback={<ShowLoading />}>
-              <StoryBookScreen />
-            </Suspense>
+            <FlavoredErrorBoundSuspense
+              factory={async () => import("./StoryBookScreen")}
+            >
+              {(StoryBookScreen) => <StoryBookScreen />}
+            </FlavoredErrorBoundSuspense>
           }
         ></Route>
       </Routes>
