@@ -166,7 +166,7 @@
 /pkg/auth/handler/webapp/forgot_password.go:76:27: requestcontext
 /pkg/auth/handler/webapp/forgot_password_success.go:57:27: requestcontext
 /pkg/auth/handler/webapp/implementation_switcher.go:50:42: requestcontext
-/pkg/auth/handler/webapp/implementation_switcher.go:62:30: requestcontext
+/pkg/auth/handler/webapp/implementation_switcher.go:61:30: requestcontext
 /pkg/auth/handler/webapp/login.go:103:27: requestcontext
 /pkg/auth/handler/webapp/login.go:115:28: requestcontext
 /pkg/auth/handler/webapp/login_link_otp.go:121:27: requestcontext
@@ -226,8 +226,8 @@
 /pkg/auth/handler/webapp/sso_callback.go:48:26: requestcontext
 /pkg/auth/handler/webapp/sso_callback.go:56:58: requestcontext
 /pkg/auth/handler/webapp/sso_callback.go:61:44: requestcontext
-/pkg/auth/handler/webapp/sso_callback.go:74:44: requestcontext
-/pkg/auth/handler/webapp/sso_callback.go:85:28: requestcontext
+/pkg/auth/handler/webapp/sso_callback.go:72:44: requestcontext
+/pkg/auth/handler/webapp/sso_callback.go:83:28: requestcontext
 /pkg/auth/handler/webapp/tester.go:278:27: requestcontext
 /pkg/auth/handler/webapp/use_passkey.go:53:27: requestcontext
 /pkg/auth/handler/webapp/verify_identity.go:161:27: requestcontext
