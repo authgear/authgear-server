@@ -164,7 +164,8 @@ type Record struct {
 	Roles  []string `json:"roles,omitempty"`
 	Groups []string `json:"groups,omitempty"`
 
-	Disabled bool `json:"disabled"`
+	Disabled bool       `json:"disabled"`
+	DeleteAt *time.Time `json:"delete_at"`
 
 	Identities []*Identity `json:"identities,omitempty"`
 
