@@ -71,6 +71,7 @@ build-image:
 	@# Add --pull so that we are using the latest base image.
 	@# The build context is the parent directory
 	docker build --pull \
+		--provenance=false \
 		--file ./cmd/$(TARGET)/Dockerfile \
 		$(BUILD_OPTS) \
 		--build-arg GIT_HASH=$(GIT_HASH) ${BUILD_CTX}
