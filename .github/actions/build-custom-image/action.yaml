@@ -41,6 +41,7 @@ runs:
         IMAGE_NAME=$IMAGE_NAME \
         METADATA_FILE=metadata.json \
         EXTRA_BUILD_OPTS="--ssh=default --builder=container-builder"
+      cat metadata.json
       DIGEST="$(cat metadata.json | jq '.["containerimage.digest"]' -r)"
       make -C custombuild tag-image SOURCE_DIGESTS="$DIGEST" IMAGE_NAME=$IMAGE_NAME
   - name: docker logout
