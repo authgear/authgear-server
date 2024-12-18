@@ -98,9 +98,8 @@ const (
 type SettingsUIImplementation string
 
 const (
-	SettingsUIImplementationDefault SettingsUIImplementation = ""
-	SettingsUIImplementationV1      SettingsUIImplementation = "v1"
-	SettingsUIImplementationV2      SettingsUIImplementation = "v2"
+	SettingsUIImplementationV1 SettingsUIImplementation = "v1"
+	SettingsUIImplementationV2 SettingsUIImplementation = "v2"
 )
 
 var _ = Schema.Add("UIForgotPasswordConfig", `
