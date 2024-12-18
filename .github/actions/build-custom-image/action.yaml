@@ -10,6 +10,8 @@ inputs:
     required: true
   docker_repo:
     required: false
+  builder:
+    required: true
 runs:
   using: "composite"
   steps:
@@ -29,10 +31,18 @@ runs:
       TARGET: ${{ inputs.target }}
       IMAGE_NAME: ${{ inputs.image_name }}
       REPO: ${{ inputs.docker_repo }}
+      BUILDER: ${{ inputs.builder }}
     shell: bash
     run: |
-      make -C custombuild build-image TARGET=$TARGET BUILD_ARCH=amd64 PUSH_IMAGE=true IMAGE_NAME=$IMAGE_NAME EXTRA_BUILD_OPTS="--ssh=default"
-      make -C custombuild tag-image SOURCE_ARCHS=amd64 IMAGE_NAME=$IMAGE_NAME
+      make -C custombuild build-image \
+        TARGET=$TARGET \
+        BUILD_ARCH=amd64 \
+        OUTPUT="type=image,name=$IMAGE_NAME,push-by-digest=true,name-canonical=true,push=true" \
+        IMAGE_NAME=$IMAGE_NAME \
+        METADATA_FILE=metadata.json \
+        EXTRA_BUILD_OPTS="--ssh=default --builder=container-builder"
+      DIGEST="$(cat metadata.json | jq '.["containerimage.digest"]' -r)"
+      make -C custombuild tag-image SOURCE_DIGESTS="$DIGEST" IMAGE_NAME=$IMAGE_NAME
   - name: docker logout
     if: ${{ always() }}
     env:
