@@ -77,7 +77,7 @@ function sentryBeforeSend(event: SentryErrorEvent, hint: EventHint) {
   if (isPosthogResetGroupsEvent(event)) {
     return null;
   }
-  if (isNetworkError(hint)) {
+  if (isNetworkError(hint.originalException)) {
     return null;
   }
   return event;
