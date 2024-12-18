@@ -39,7 +39,7 @@ func WithUIImplementation(ctx context.Context, impl config.UIImplementation) con
 func GetUIImplementation(ctx context.Context) config.UIImplementation {
 	v, ok := ctx.Value(implementationSwitcherContextKey).(*implementationSwitcherContext)
 	if !ok {
-		return config.UIImplementationDefault
+		return config.UIImplementationAuthflowV2
 	}
 	return v.UIImplementation
 }
