@@ -54,6 +54,7 @@ import {
   FormatDateController,
   FormatInputDateController,
 } from "./authflowv2/date";
+import { isNetworkError } from "./errors";
 
 axios.defaults.withCredentials = true;
 
@@ -66,6 +67,12 @@ if (sentryDSN != null && sentryDSN !== "") {
     integrations: [browserTracingIntegration()],
     // Do not enable performance monitoring.
     tracesSampleRate: 0,
+    beforeSend: (ev, hint) => {
+      if (isNetworkError(hint.originalException)) {
+        return null;
+      }
+      return ev;
+    },
   });
 }
 start();
