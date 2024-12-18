@@ -15,7 +15,7 @@ func (s *UIImplementationService) GetUIImplementation() config.UIImplementation 
 	case config.UIImplementationAuthflowV2:
 		// authflowv2 is authflowv2
 		return config.UIImplementationAuthflowV2
-	case config.UIImplementationAuthflow:
+	case config.Deprecated_UIImplementationAuthflow:
 		// Treat authflow as authflowv2
 		return config.UIImplementationAuthflowV2
 	case config.UIImplementationInteraction:
@@ -29,7 +29,7 @@ func (s *UIImplementationService) GetUIImplementation() config.UIImplementation 
 		case config.GlobalUIImplementation(config.UIImplementationAuthflowV2):
 			// authflowv2 is authflowv2
 			return config.UIImplementationAuthflowV2
-		case config.GlobalUIImplementation(config.UIImplementationAuthflow):
+		case config.GlobalUIImplementation(config.Deprecated_UIImplementationAuthflow):
 			// Treat authflow as authflowv2
 			return config.UIImplementationAuthflowV2
 		case config.GlobalUIImplementation(config.UIImplementationInteraction):

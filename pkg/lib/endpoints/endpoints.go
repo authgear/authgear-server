@@ -62,8 +62,6 @@ func (e *Endpoints) SettingsEndpointURL() *url.URL    { return e.urlOf("./settin
 func (e *Endpoints) ResetPasswordEndpointURL() *url.URL {
 	uiImpl := e.UIImplementationService.GetUIImplementation()
 	switch uiImpl {
-	case config.UIImplementationAuthflow:
-		fallthrough
 	case config.UIImplementationAuthflowV2:
 		return e.urlOf("authflow/v2/reset_password")
 	case config.UIImplementationInteraction:
@@ -75,8 +73,6 @@ func (e *Endpoints) ResetPasswordEndpointURL() *url.URL {
 func (e *Endpoints) ErrorEndpointURL() *url.URL {
 	uiImpl := e.UIImplementationService.GetUIImplementation()
 	switch uiImpl {
-	case config.UIImplementationAuthflow:
-		fallthrough
 	case config.UIImplementationAuthflowV2:
 		return e.urlOf("/v2/errors/error")
 	case config.UIImplementationInteraction:
@@ -88,8 +84,6 @@ func (e *Endpoints) ErrorEndpointURL() *url.URL {
 func (e *Endpoints) SelectAccountEndpointURL() *url.URL {
 	uiImpl := e.UIImplementationService.GetUIImplementation()
 	switch uiImpl {
-	case config.UIImplementationAuthflow:
-		fallthrough
 	case config.UIImplementationAuthflowV2:
 		return e.urlOf("/authflow/v2/select_account")
 	case config.UIImplementationInteraction:
@@ -117,8 +111,6 @@ func (e *Endpoints) WeChatCallbackEndpointURL() *url.URL {
 func (e *Endpoints) LoginLinkVerificationEndpointURL() *url.URL {
 	uiImpl := e.UIImplementationService.GetUIImplementation()
 	switch uiImpl {
-	case config.UIImplementationAuthflow:
-		fallthrough
 	case config.UIImplementationAuthflowV2:
 		return e.urlOf("/authflow/v2/verify_login_link")
 	case config.UIImplementationInteraction:

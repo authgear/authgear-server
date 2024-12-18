@@ -128,7 +128,6 @@ var DependencySet = wire.NewSet(
 
 	webapp.DependencySet,
 	wire.Bind(new(handlerwebapp.AnonymousUserPromotionService), new(*webapp.AnonymousUserPromotionService)),
-	wire.Bind(new(handlerwebapp.ErrorRendererAuthflowV1Navigator), new(*webapp.AuthflowNavigator)),
 
 	wire.Bind(new(webapp.AnonymousIdentityProvider), new(*identityanonymous.Provider)),
 

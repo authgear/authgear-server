@@ -60,8 +60,6 @@ type ImplementationSwitcherHandler struct {
 func (h *ImplementationSwitcherHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	impl := GetUIImplementation(r.Context())
 	switch impl {
-	case config.UIImplementationAuthflow:
-		fallthrough
 	case config.UIImplementationAuthflowV2:
 		h.AuthflowV2.ServeHTTP(w, r)
 	case config.UIImplementationInteraction:

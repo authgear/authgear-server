@@ -86,8 +86,6 @@ func (m *PanicMiddleware) Handle(next http.Handler) http.Handler {
 						viewmodels.Embed(data, baseViewModel)
 						var errorHTML *template.HTML
 						switch uiImpl {
-						case config.UIImplementationAuthflow:
-							fallthrough
 						case config.UIImplementationAuthflowV2:
 							errorHTML = TemplateV2WebFatalErrorHTML
 						case config.UIImplementationInteraction:

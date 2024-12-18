@@ -90,9 +90,9 @@ func (c *PhoneInputConfig) SetDefaults() {
 type UIImplementation string
 
 const (
-	UIImplementationInteraction UIImplementation = "interaction"
-	UIImplementationAuthflow    UIImplementation = "authflow"
-	UIImplementationAuthflowV2  UIImplementation = "authflowv2"
+	UIImplementationInteraction         UIImplementation = "interaction"
+	Deprecated_UIImplementationAuthflow UIImplementation = "authflow"
+	UIImplementationAuthflowV2          UIImplementation = "authflowv2"
 )
 
 type SettingsUIImplementation string

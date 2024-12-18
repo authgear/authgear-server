@@ -164,8 +164,6 @@ func (m *CSRFMiddleware) unauthorizedHandler(w http.ResponseWriter, r *http.Requ
 		http.Error(w, fmt.Sprintf("%v - %v handler/auth/webapp",
 			http.StatusText(http.StatusForbidden), csrfFailureReason),
 			http.StatusForbidden)
-	case config.UIImplementationAuthflow:
-		fallthrough
 	case config.UIImplementationAuthflowV2:
 		fallthrough
 	default:
