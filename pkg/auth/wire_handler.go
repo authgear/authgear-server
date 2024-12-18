@@ -197,13 +197,6 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	))
 }
 
-func newWebAppAuthflowSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
-	panic(wire.Build(
-		AuthflowUIHandlerDependencySet,
-		wire.Bind(new(http.Handler), new(*handlerwebapp.SSOCallbackHandler)),
-	))
-}
-
 func newWebAppAuthflowV2SSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		AuthflowV2UIHandlerDependencySet,
@@ -841,13 +834,6 @@ func newAPIAccountManagementV1IdentificationOAuthHandler(p *deps.RequestProvider
 	))
 }
 
-func newWebAppAuthflowLoginHandler(p *deps.RequestProvider) http.Handler {
-	panic(wire.Build(
-		AuthflowUIHandlerDependencySet,
-		wire.Bind(new(http.Handler), new(*handlerwebapp.AuthflowLoginHandler)),
-	))
-}
-
 func newWebAppAuthflowV2LoginHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		AuthflowV2UIHandlerDependencySet,
@@ -855,24 +841,10 @@ func newWebAppAuthflowV2LoginHandler(p *deps.RequestProvider) http.Handler {
 	))
 }
 
-func newWebAppAuthflowSignupHandler(p *deps.RequestProvider) http.Handler {
-	panic(wire.Build(
-		AuthflowUIHandlerDependencySet,
-		wire.Bind(new(http.Handler), new(*handlerwebapp.AuthflowSignupHandler)),
-	))
-}
-
 func newWebAppAuthflowV2SignupHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		AuthflowV2UIHandlerDependencySet,
 		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2SignupHandler)),
-	))
-}
-
-func newWebAppAuthflowPromoteHandler(p *deps.RequestProvider) http.Handler {
-	panic(wire.Build(
-		AuthflowUIHandlerDependencySet,
-		wire.Bind(new(http.Handler), new(*handlerwebapp.AuthflowPromoteHandler)),
 	))
 }
 
@@ -1132,13 +1104,6 @@ func newWebAppReauthHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
 		wire.Bind(new(http.Handler), new(*handlerwebapp.ReauthHandler)),
-	))
-}
-
-func newWebAppAuthflowReauthHandler(p *deps.RequestProvider) http.Handler {
-	panic(wire.Build(
-		AuthflowUIHandlerDependencySet,
-		wire.Bind(new(http.Handler), new(*handlerwebapp.AuthflowReauthHandler)),
 	))
 }
 

@@ -54,7 +54,6 @@ func (m *ImplementationSwitcherMiddleware) Handle(next http.Handler) http.Handle
 
 type ImplementationSwitcherHandler struct {
 	Interaction http.Handler
-	Authflow    http.Handler
 	AuthflowV2  http.Handler
 }
 
