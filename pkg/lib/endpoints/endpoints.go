@@ -62,10 +62,10 @@ func (e *Endpoints) SettingsEndpointURL() *url.URL    { return e.urlOf("./settin
 func (e *Endpoints) ResetPasswordEndpointURL() *url.URL {
 	uiImpl := e.UIImplementationService.GetUIImplementation()
 	switch uiImpl {
+	case config.UIImplementationAuthflow:
+		fallthrough
 	case config.UIImplementationAuthflowV2:
 		return e.urlOf("authflow/v2/reset_password")
-	case config.UIImplementationAuthflow:
-		return e.urlOf("authflow/reset_password")
 	case config.UIImplementationInteraction:
 		return e.urlOf("flows/reset_password")
 	default:
@@ -75,11 +75,11 @@ func (e *Endpoints) ResetPasswordEndpointURL() *url.URL {
 func (e *Endpoints) ErrorEndpointURL() *url.URL {
 	uiImpl := e.UIImplementationService.GetUIImplementation()
 	switch uiImpl {
+	case config.UIImplementationAuthflow:
+		fallthrough
 	case config.UIImplementationAuthflowV2:
 		return e.urlOf("/v2/errors/error")
 	case config.UIImplementationInteraction:
-		fallthrough
-	case config.UIImplementationAuthflow:
 		return e.urlOf("/errors/error")
 	default:
 		panic(fmt.Errorf("unexpected ui implementation %s", uiImpl))
@@ -88,11 +88,11 @@ func (e *Endpoints) ErrorEndpointURL() *url.URL {
 func (e *Endpoints) SelectAccountEndpointURL() *url.URL {
 	uiImpl := e.UIImplementationService.GetUIImplementation()
 	switch uiImpl {
+	case config.UIImplementationAuthflow:
+		fallthrough
 	case config.UIImplementationAuthflowV2:
 		return e.urlOf("/authflow/v2/select_account")
 	case config.UIImplementationInteraction:
-		fallthrough
-	case config.UIImplementationAuthflow:
 		return e.urlOf("/flows/select_account")
 	default:
 		panic(fmt.Errorf("unexpected ui implementation %s", uiImpl))
@@ -117,11 +117,11 @@ func (e *Endpoints) WeChatCallbackEndpointURL() *url.URL {
 func (e *Endpoints) LoginLinkVerificationEndpointURL() *url.URL {
 	uiImpl := e.UIImplementationService.GetUIImplementation()
 	switch uiImpl {
+	case config.UIImplementationAuthflow:
+		fallthrough
 	case config.UIImplementationAuthflowV2:
 		return e.urlOf("/authflow/v2/verify_login_link")
 	case config.UIImplementationInteraction:
-		fallthrough
-	case config.UIImplementationAuthflow:
 		return e.urlOf("flows/verify_login_link")
 	default:
 		panic(fmt.Errorf("unexpected ui implementation %s", uiImpl))

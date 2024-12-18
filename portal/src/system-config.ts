@@ -267,7 +267,7 @@ export function instantiateSystemConfig(
     analyticEnabled: config.analyticEnabled ?? false,
     analyticEpoch: config.analyticEpoch ?? "",
     gtmContainerID: config.gtmContainerID ?? "",
-    uiImplementation: config.uiImplementation ?? "interaction",
-    uiSettingsImplemenation: config.uiSettingsImplemenation ?? "v1",
+    uiImplementation: config.uiImplementation ?? "authflowv2",
+    uiSettingsImplemenation: config.uiSettingsImplemenation ?? "v2",
   };
 }

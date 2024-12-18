@@ -62,7 +62,7 @@ func (h *ImplementationSwitcherHandler) ServeHTTP(w http.ResponseWriter, r *http
 	impl := GetUIImplementation(r.Context())
 	switch impl {
 	case config.UIImplementationAuthflow:
-		h.Authflow.ServeHTTP(w, r)
+		fallthrough
 	case config.UIImplementationAuthflowV2:
 		h.AuthflowV2.ServeHTTP(w, r)
 	case config.UIImplementationInteraction:

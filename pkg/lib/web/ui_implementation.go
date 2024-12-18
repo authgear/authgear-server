@@ -37,10 +37,9 @@ func (s *UIImplementationService) GetUIImplementation() config.UIImplementation 
 			// In case a project wants to use the legacy implementation.
 			return config.UIImplementationInteraction
 		default:
-			// The ultimate default is still interaction.
-			// It is expected that the deployment set it to authflowv2 during the transition period.
+			// The ultimate default is now authflowv2
 			// When you change this, you also need to change portal/src/system-config.ts
-			return config.UIImplementationInteraction
+			return config.UIImplementationAuthflowV2
 		}
 	}
 }
@@ -60,10 +59,9 @@ func (s *UIImplementationService) GetSettingsUIImplementation() config.SettingsU
 		case config.GlobalUISettingsImplementation(config.SettingsUIImplementationV2):
 			return config.SettingsUIImplementationV2
 		default:
-			// The ultimate default is still v1
-			// It is expected that the deployment set it to v1 during the transition period.
+			// The ultimate default is now v2.
 			// When you change this, you also need to change portal/src/system-config.ts
-			return config.SettingsUIImplementationV1
+			return config.SettingsUIImplementationV2
 		}
 	}
 }
