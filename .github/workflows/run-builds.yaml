@@ -83,7 +83,8 @@ jobs:
       PUSH_IMAGE: "${{ (github.repository == 'authgear/authgear-server' && github.event_name == 'push') && 'true' || 'false' }}"
     steps:
     - uses: actions/checkout@v4
-    - uses: ./.github/actions/build-image
+    - id: build_image
+      uses: ./.github/actions/build-image
       with:
         target: portal
         image_name: quay.io/theauthgear/authgear-portal
@@ -102,7 +103,8 @@ jobs:
       PUSH_IMAGE: "${{ (github.repository == 'authgear/authgear-server' && github.event_name == 'push') && 'true' || 'false' }}"
     steps:
     - uses: actions/checkout@v4
-    - uses: ./.github/actions/build-image
+    - id: build_image
+      uses: ./.github/actions/build-image
       with:
         target: portal
         image_name: quay.io/theauthgear/authgear-portal
