@@ -8,6 +8,7 @@ import React, {
 import {
   Exception as SentryException,
   ErrorEvent as SentryErrorEvent,
+  EventHint,
   init as sentryInit,
 } from "@sentry/react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
@@ -55,6 +56,7 @@ import {
   UnauthenticatedDialogContext,
   UnauthenticatedDialogContextValue,
 } from "./components/auth/UnauthenticatedDialogContext";
+import { isNetworkError } from "./util/error";
 
 async function loadSystemConfig(): Promise<SystemConfig> {
   const resp = await fetch("/api/system-config.json");
@@ -71,8 +73,11 @@ function isPosthogResetGroupsEvent(event: SentryErrorEvent) {
 }
 
 // DEV-1767: Unknown cause on posthog error, silence for now
-function sentryBeforeSend(event: SentryErrorEvent) {
+function sentryBeforeSend(event: SentryErrorEvent, hint: EventHint) {
   if (isPosthogResetGroupsEvent(event)) {
+    return null;
+  }
+  if (isNetworkError(hint)) {
     return null;
   }
   return event;
