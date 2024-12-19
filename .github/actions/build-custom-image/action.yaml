@@ -10,8 +10,6 @@ inputs:
     required: true
   docker_repo:
     required: false
-  builder:
-    required: true
 runs:
   using: "composite"
   steps:
@@ -31,7 +29,6 @@ runs:
       TARGET: ${{ inputs.target }}
       IMAGE_NAME: ${{ inputs.image_name }}
       REPO: ${{ inputs.docker_repo }}
-      BUILDER: ${{ inputs.builder }}
     shell: bash
     run: |
       MANIFEST_NAME="./$(uuidgen).json"
