@@ -66,6 +66,7 @@
                 "Ctx" $ctx
                 "CSRFField" $.CSRFField
                 "ProviderAlias" .provider_alias
+                "ProviderType" .provider_type
                 "IdentityID" .identity_id
                 "DeleteDisabled" .delete_disabled
                 "Verified" $verification_verified
@@ -110,7 +111,7 @@
     {{ translate "v2.page.settings-identity-oauth.default.remove-oauth-button-label" nil }}
   </button>
 
-  {{ $provider_name := (translate (printf "v2.page.settings-identity-oauth.default.provider.%s" .ProviderAlias) nil) }}
+  {{ $provider_name := (translate (printf "v2.page.settings-identity-oauth.default.provider.%s" .ProviderType) nil) }}
 
   {{ template "authflowv2/__settings_dialog.html"
     (dict
