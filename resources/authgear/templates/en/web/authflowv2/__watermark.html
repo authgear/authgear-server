@@ -1,13 +1,15 @@
 {{ define "authflowv2/__watermark.html" }}
 <div class="watermark__container">
+  <!-- This element is for implementing the top margin of the watermark -->
+  <div></div>
   {{ if $.IsNativePlatform }}
   <div>
     <span class="watermark"></span>
   </div>
   {{ else }}
-  <a href="https://www.authgear.com/?utm_campaign=uibrand" target="_blank">
+  <a class="contents" href="https://www.authgear.com/?utm_campaign=uibrand" target="_blank">
     <span class="watermark"></span>
   </a>
   {{ end }}
-  </div>
+</div>
 {{ end }}

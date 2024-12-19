@@ -1,10 +1,10 @@
 @layer components {
   :root {
-    --watermark-display: inline-block;
+    --watermark-display: block;
   }
 
   html[data-watermark-enabled="false"] {
-    --watermark-display: hidden;
+    --watermark-display: none;
   }
 
   .watermark {
@@ -15,12 +15,14 @@
   }
 
   .watermark__container {
-    @apply mt-8 flex justify-center;
+    /* Use gap to implement the top padding, so that when watermark is not displayed,
+    the margin is also hidden */
+    @apply gap-y-8 flex flex-col items-center;
   }
 
   @media (min-width: theme("screens.tablet")) {
     .watermark__container {
-      @apply mt-16;
+      @apply gap-y-16;
     }
   }
 }
