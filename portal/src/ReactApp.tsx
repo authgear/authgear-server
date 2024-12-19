@@ -78,6 +78,8 @@ function sentryBeforeSend(event: SentryErrorEvent, hint: EventHint) {
     return null;
   }
   if (isNetworkError(hint.originalException)) {
+    console.warn("skip sending network error to Sentry");
+    console.warn(hint.originalException);
     return null;
   }
   return event;
@@ -113,6 +115,7 @@ const ReactAppRoutes: React.VFC = function ReactAppRoutes() {
             </Authenticated>
           }
         />
+
         <Route path="/projects">
           <Route
             index={true}
@@ -141,6 +144,7 @@ const ReactAppRoutes: React.VFC = function ReactAppRoutes() {
             }
           />
         </Route>
+
         <Route path="onboarding-survey">
           <Route
             index={true}
@@ -157,7 +161,9 @@ const ReactAppRoutes: React.VFC = function ReactAppRoutes() {
             }
           />
         </Route>
+
         <Route path="/project">
+          <Route index={true} element={<Navigate to="/" />} />
           <Route path=":appID">
             <Route
               index={true}
@@ -240,7 +246,7 @@ const ReactAppRoutes: React.VFC = function ReactAppRoutes() {
               {(StoryBookScreen) => <StoryBookScreen />}
             </FlavoredErrorBoundSuspense>
           }
-        ></Route>
+        />
       </Routes>
     </BrowserRouter>
   );

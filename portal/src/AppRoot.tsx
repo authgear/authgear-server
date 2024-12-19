@@ -89,6 +89,7 @@ const AppRoot: React.VFC = function AppRoot() {
               }
             />
           </Route>
+
           <Route
             path="users/*"
             element={
@@ -98,9 +99,14 @@ const AppRoot: React.VFC = function AppRoot() {
                 {(UsersRedirectScreen) => <UsersRedirectScreen />}
               </FlavoredErrorBoundSuspense>
             }
-          ></Route>
+          />
 
           <Route path="user-management">
+            <Route
+              index={true}
+              element={<Navigate to="users" replace={true} />}
+            />
+
             <Route path="roles">
               <Route
                 index={true}
@@ -475,6 +481,7 @@ const AppRoot: React.VFC = function AppRoot() {
               index={true}
               element={<Navigate to="authentication" replace={true} />}
             />
+
             <Route path="authentication">
               <Route
                 index={true}
@@ -601,6 +608,7 @@ const AppRoot: React.VFC = function AppRoot() {
                 }
               />
             </Route>
+
             <Route path="apps">
               <Route
                 index={true}
@@ -647,6 +655,7 @@ const AppRoot: React.VFC = function AppRoot() {
                 />
               </Route>
             </Route>
+
             <Route
               path="languages"
               element={
@@ -661,6 +670,7 @@ const AppRoot: React.VFC = function AppRoot() {
                 </FlavoredErrorBoundSuspense>
               }
             />
+
             <Route path="user-profile">
               <Route
                 index={true}
@@ -736,6 +746,7 @@ const AppRoot: React.VFC = function AppRoot() {
               </Route>
             </Route>
           </Route>
+
           <Route path="bot-protection">
             <Route
               index={true}

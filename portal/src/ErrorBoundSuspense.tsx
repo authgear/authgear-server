@@ -7,16 +7,16 @@ import React, {
   useState,
   useEffect,
 } from "react";
-import { ErrorBoundary, type ErrorBoundaryProps } from "react-error-boundary";
+import { ErrorBoundary, FallbackRender } from "@sentry/react";
 
 export interface ErrorBoundSuspenseProps {
-  errorBoundaryFallbackComponent: NonNullable<
-    ErrorBoundaryProps["FallbackComponent"]
-  >;
+  errorBoundaryFallback: FallbackRender;
   suspenseFallback: SuspenseProps["fallback"];
   factory: () => Promise<{ default: React.ComponentType<any> }>;
   children: (Component: React.ComponentType<any>) => React.ReactNode;
 }
+
+export type ErrorBoundaryFallbackProps = Parameters<FallbackRender>[0];
 
 const extractImportArgRegex = /import\(["']([-_./a-zA-Z0-9]+)["']\)/;
 
@@ -110,12 +110,7 @@ function makeFactory(urlToModule: URL) {
 function ErrorBoundSuspense(
   props: ErrorBoundSuspenseProps
 ): React.ReactElement<any, any> | null {
-  const {
-    errorBoundaryFallbackComponent,
-    suspenseFallback,
-    factory,
-    children,
-  } = props;
+  const { errorBoundaryFallback, suspenseFallback, factory, children } = props;
 
   const [LazyComponent, setLazyComponent] = useState(() => lazy(factory));
 
@@ -147,10 +142,7 @@ function ErrorBoundSuspense(
   }, [urlToModule, setLazyComponent]);
 
   return (
-    <ErrorBoundary
-      FallbackComponent={errorBoundaryFallbackComponent}
-      onReset={onReset}
-    >
+    <ErrorBoundary fallback={errorBoundaryFallback} onReset={onReset}>
       <Suspense fallback={suspenseFallback}>{children(LazyComponent)}</Suspense>
     </ErrorBoundary>
   );
