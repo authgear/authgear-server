@@ -78,6 +78,8 @@ function sentryBeforeSend(event: SentryErrorEvent, hint: EventHint) {
     return null;
   }
   if (isNetworkError(hint.originalException)) {
+    console.warn("skip sending network error to Sentry");
+    console.warn(hint.originalException);
     return null;
   }
   return event;
