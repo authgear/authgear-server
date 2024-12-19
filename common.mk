@@ -70,6 +70,8 @@ endif
 build-image:
 	@# Add --pull so that we are using the latest base image.
 	@# The build context is the parent directory
+	@# --provenance=false because we have no idea to figure out how to deal with the unknown manifest yet.
+	@# See https://github.com/authgear/authgear-server/pull/4943#discussion_r1891263998
 	docker build --pull \
 		--provenance=false \
 		--file ./cmd/$(TARGET)/Dockerfile \
