@@ -1,0 +1,61 @@
+name: Build image
+inputs:
+  target:
+    required: true
+  image_name:
+    required: true
+  push_image:
+    required: true
+  build_arch:
+    required: true
+  docker_registry:
+    required: false
+  docker_username:
+    required: false
+  docker_password:
+    required: false
+outputs:
+  image_digest:
+    value: ${{ steps.build_image.outputs.image_digest }}
+runs:
+  using: "composite"
+  steps:
+  - name: Install qemu for multi arch build
+    shell: bash
+    run: docker run --privileged --rm tonistiigi/binfmt --install all
+  - uses: ./.github/actions/docker-buildx-create
+  - name: docker login
+    if: ${{ inputs.push_image == 'true' }}
+    env:
+      DOCKER_USERNAME: ${{ inputs.docker_username }}
+      DOCKER_PASSWORD: ${{ inputs.docker_password }}
+      DOCKER_REGISTRY: ${{ inputs.docker_registry }}
+    shell: bash
+    run: |
+      printf "$DOCKER_PASSWORD" | docker login --password-stdin --username "$DOCKER_USERNAME" $DOCKER_REGISTRY
+  - id: build_image
+    run: |
+      METADATA_FILE="$(mktemp).json"
+      echo "METADATA_FILE=$METADATA_FILE"
+      make build-image \
+        BUILD_ARCH=$BUILD_ARCH \
+        OUTPUT=$OUTPUT \
+        TARGET=$TARGET \
+        IMAGE_NAME=$IMAGE_NAME \
+        METADATA_FILE="$METADATA_FILE"
+      (set -x && cat "$METADATA_FILE")
+      DIGEST="$(jq < "$METADATA_FILE" '.["containerimage.digest"]' -r)"
+      echo "image_digest=$DIGEST" >> "$GITHUB_OUTPUT"
+    shell: bash
+    env:
+      TARGET: ${{ inputs.target }}
+      IMAGE_NAME: ${{ inputs.image_name }}
+      OUTPUT: ${{ (inputs.push_image == 'true') && 'type=image,name=$$IMAGE_NAME,push-by-digest=true,name-canonical=true,push=true' || ''}}
+      BUILD_ARCH: ${{ inputs.build_arch }}
+  - name: docker logout
+    if: ${{ always() }}
+    env:
+      DOCKER_REGISTRY: ${{ inputs.docker_registry }}
+    shell: bash
+    run: |
+      docker logout $DOCKER_REGISTRY

@@ -1,0 +1,52 @@
+name: Build custom image
+inputs:
+  target:
+    required: true
+  image_name:
+    required: true
+  gcp_project_id:
+    required: true
+  gcp_workload_identity_provider:
+    required: true
+  docker_repo:
+    required: false
+runs:
+  using: "composite"
+  steps:
+  - uses: oursky/google-github-actions-auth@v2
+    with:
+      project_id: ${{ inputs.gcp_project_id }}
+      workload_identity_provider: ${{ inputs.gcp_workload_identity_provider }}
+  - uses: oursky/google-github-actions-setup-gcloud@v2
+  - name: Configure docker
+    env:
+      REPO: ${{ inputs.docker_repo }}
+    shell: bash
+    run: |
+      gcloud auth configure-docker "$REPO"
+  - name: Build and Push
+    env:
+      TARGET: ${{ inputs.target }}
+      IMAGE_NAME: ${{ inputs.image_name }}
+      REPO: ${{ inputs.docker_repo }}
+    shell: bash
+    run: |
+      METADATA_FILE="$(mktemp).json"
+      echo "METADATA_FILE=$METADATA_FILE"
+      make -C custombuild build-image \
+        TARGET=$TARGET \
+        BUILD_ARCH=amd64 \
+        OUTPUT="type=image,name=$IMAGE_NAME,push-by-digest=true,name-canonical=true,push=true" \
+        IMAGE_NAME=$IMAGE_NAME \
+        METADATA_FILE="$METADATA_FILE" \
+        EXTRA_BUILD_OPTS="--ssh=default"
+      (set -x && cat "$METADATA_FILE")
+      DIGEST="$(jq < "$METADATA_FILE" '.["containerimage.digest"]' -r)"
+      make -C custombuild tag-image SOURCE_DIGESTS="$DIGEST" IMAGE_NAME=$IMAGE_NAME
+  - name: docker logout
+    if: ${{ always() }}
+    env:
+      REPO: ${{ inputs.docker_repo }}
+    shell: bash
+    run: |
+      docker logout "$REPO"

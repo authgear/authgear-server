@@ -25,7 +25,24 @@ jobs:
         printf "$AUTHGEAR_PRIVATE_DEPLOY_KEY" | base64 --decode | ssh-add -
         echo "SSH_AUTH_SOCK=$SSH_AUTH_SOCK" >> "$GITHUB_ENV"
         echo "SSH_AGENT_PID=$SSH_AGENT_PID" >> "$GITHUB_ENV"
-    - run: make -C custombuild build-image TARGET=authgearx IMAGE_NAME=authgear-server-custom
+    - uses: ./.github/actions/docker-buildx-create
+    - name: Build and Push
+      env:
+        REPO_PREFIX: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_REPO_PREFIX }}
+      run: |
+        METADATA_FILE="$(mktemp).json"
+        echo "METADATA_FILE=$METADATA_FILE"
+        IMAGE_NAME="$REPO_PREFIX/authgear-server"
+        make -C custombuild build-image \
+          TARGET=authgearx \
+          BUILD_ARCH=amd64 \
+          OUTPUT="type=image,name=$IMAGE_NAME,push-by-digest=true,name-canonical=true,push=true" \
+          IMAGE_NAME=$IMAGE_NAME \
+          METADATA_FILE="$METADATA_FILE" \
+          EXTRA_BUILD_OPTS="--ssh=default"
+        (set -x && cat "$METADATA_FILE")
+        DIGEST="$(jq < "$METADATA_FILE" '.["containerimage.digest"]' -r)"
+        make -C custombuild tag-image SOURCE_DIGESTS="$DIGEST" IMAGE_NAME=$IMAGE_NAME
     - name: Clean up SSH key
       if: ${{ always() }}
       run: |
@@ -33,12 +50,6 @@ jobs:
         ssh-agent -k
         echo "SSH_AUTH_SOCK=" >> "$GITHUB_ENV"
         echo "SSH_AGENT_PID=" >> "$GITHUB_ENV"
-    - name: Push
-      env:
-        REPO_PREFIX: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_REPO_PREFIX }}
-      run: |
-        make -C custombuild tag-image IMAGE_NAME=authgear-server-custom REMOTE_IMAGE_NAME="$REPO_PREFIX/authgear-server"
-        make -C custombuild push-image REMOTE_IMAGE_NAME="$REPO_PREFIX/authgear-server"
 
   portal-image-custom:
     if: ${{ github.repository == 'oursky/authgear-server' }}
@@ -56,7 +67,24 @@ jobs:
         printf "$AUTHGEAR_PRIVATE_DEPLOY_KEY" | base64 --decode | ssh-add -
         echo "SSH_AUTH_SOCK=$SSH_AUTH_SOCK" >> "$GITHUB_ENV"
         echo "SSH_AGENT_PID=$SSH_AGENT_PID" >> "$GITHUB_ENV"
-    - run: make -C custombuild build-image TARGET=portalx IMAGE_NAME=authgear-portal-custom
+    - uses: ./.github/actions/docker-buildx-create
+    - name: Build and Push
+      env:
+        REPO_PREFIX: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_REPO_PREFIX }}
+      run: |
+        METADATA_FILE="$(mktemp).json"
+        echo "METADATA_FILE=$METADATA_FILE"
+        IMAGE_NAME="$REPO_PREFIX/authgear-portal"
+        make -C custombuild build-image \
+          TARGET=portalx \
+          BUILD_ARCH=amd64 \
+          OUTPUT="type=image,name=$IMAGE_NAME,push-by-digest=true,name-canonical=true,push=true" \
+          IMAGE_NAME=$IMAGE_NAME \
+          METADATA_FILE="$METADATA_FILE" \
+          EXTRA_BUILD_OPTS="--ssh=default"
+        (set -x && cat "$METADATA_FILE")
+        DIGEST="$(jq < "$METADATA_FILE" '.["containerimage.digest"]' -r)"
+        make -C custombuild tag-image SOURCE_DIGESTS="$DIGEST" IMAGE_NAME=$IMAGE_NAME
     - name: Clean up SSH key
       if: ${{ always() }}
       run: |
@@ -64,9 +92,3 @@ jobs:
         ssh-agent -k
         echo "SSH_AUTH_SOCK=" >> "$GITHUB_ENV"
         echo "SSH_AGENT_PID=" >> "$GITHUB_ENV"
-    - name: Push
-      env:
-        REPO_PREFIX: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_REPO_PREFIX }}
-      run: |
-        make -C custombuild tag-image IMAGE_NAME=authgear-portal-custom REMOTE_IMAGE_NAME="$REPO_PREFIX/authgear-portal"
-        make -C custombuild push-image REMOTE_IMAGE_NAME="$REPO_PREFIX/authgear-portal"

@@ -1,16 +1,7 @@
-name: CI
+name: Run checks
 
 on:
-  push:
-    branches:
-    - '*'
-    - '!gh-pages'
-    tags:
-    - '*'
-  pull_request:
-    branches:
-    - '*'
-    - '!gh-pages'
+  workflow_call:
 
 jobs:
   authui-test:
@@ -115,30 +106,6 @@ jobs:
       working-directory: ./portal
       if: ${{ !cancelled() }}
 
-  portal-image:
-    if: ${{ github.repository != 'oursky/authgear-server' }}
-    runs-on: ubuntu-24.04
-    needs: portal-test
-    env:
-      TARGET: portal
-      IMAGE_NAME: authgear-portal
-    steps:
-    - uses: actions/checkout@v4
-    - run: make build-image TARGET=$TARGET IMAGE_NAME=$IMAGE_NAME
-    - run: make tag-image IMAGE_NAME=$IMAGE_NAME
-    - name: docker login
-      if: ${{ github.repository == 'authgear/authgear-server' && github.event_name == 'push' }}
-      env:
-        DOCKER_USERNAME: ${{ secrets.QUAY_USERNAME }}
-        DOCKER_PASSWORD: ${{ secrets.QUAY_ROBOT_TOKEN }}
-      run: |
-        printf "$DOCKER_PASSWORD" | docker login --password-stdin --username "$DOCKER_USERNAME" quay.io
-    - run: make push-image IMAGE_NAME=$IMAGE_NAME
-      if: ${{ github.repository == 'authgear/authgear-server' && github.event_name == 'push' }}
-    - name: docker logout
-      if: ${{ always() }}
-      run: |
-        docker logout quay.io
 
   authgear-test:
     if: ${{ github.repository != 'oursky/authgear-server' }}
@@ -216,49 +183,3 @@ jobs:
           safe_image_name=$(echo -n "$image" | tr '/:' '_')
           docker save "$image" -o ~/.cache/images/"$safe_image_name".tar
         done
-  authgear-image:
-    if: ${{ github.repository != 'oursky/authgear-server' }}
-    runs-on: ubuntu-24.04
-    needs: ["authgear-test", "authui-test"]
-    env:
-      TARGET: authgear
-      IMAGE_NAME: authgear-server
-    steps:
-    - uses: actions/checkout@v4
-    - run: make build-image TARGET=$TARGET IMAGE_NAME=$IMAGE_NAME
-    - run: make tag-image IMAGE_NAME=$IMAGE_NAME
-    - name: docker login
-      if: ${{ github.repository == 'authgear/authgear-server' && github.event_name == 'push' }}
-      env:
-        DOCKER_USERNAME: ${{ secrets.QUAY_USERNAME }}
-        DOCKER_PASSWORD: ${{ secrets.QUAY_ROBOT_TOKEN }}
-      run: |
-        printf "$DOCKER_PASSWORD" | docker login --password-stdin --username "$DOCKER_USERNAME" quay.io
-    - run: make push-image IMAGE_NAME=$IMAGE_NAME
-      if: ${{ github.repository == 'authgear/authgear-server' && github.event_name == 'push' }}
-    - name: docker logout
-      if: ${{ always() }}
-      run: |
-        docker logout quay.io
-
-  release:
-    if: ${{ github.repository != 'oursky/authgear-server' }}
-    runs-on: ubuntu-24.04
-    needs: ["portal-test", "authgear-test"]
-    steps:
-    - uses: actions/checkout@v4
-    - uses: ./.github/actions/install-native-deps
-    - uses: actions/setup-go@v4
-      with:
-        go-version-file: "./go.mod"
-    - uses: actions/setup-node@v4
-      with:
-        node-version-file: "./.tool-versions"
-    - run: make vendor
-    - run: make binary
-    - uses: oursky/action-gh-release@v2
-      if: ${{ github.repository == 'authgear/authgear-server' && startsWith(github.ref, 'refs/tags/') && !startsWith(github.ref, 'refs/tags/staging-') }}
-      with:
-        draft: true
-        files: |
-          ./dist/*

@@ -1,46 +1,10 @@
-# The use of variables
-#
-# We use simply expanded variables in this Makefile.
-#
-# This means
-# 1. You use ::= instead of = because = defines a recursively expanded variable.
-#    See https://www.gnu.org/software/make/manual/html_node/Simple-Assignment.html
-# 2. You use ::= instead of := because ::= is a POSIX standard.
-#    See https://www.gnu.org/software/make/manual/html_node/Simple-Assignment.html
-# 3. You do not use ?= because it is shorthand to define a recursively expanded variable.
-#    See https://www.gnu.org/software/make/manual/html_node/Conditional-Assignment.html
-#    You should use the long form documented in the above link instead.
-# 4. When you override a variable in the command line, as documented in https://www.gnu.org/software/make/manual/html_node/Overriding.html
-#    you specify the variable with ::= instead of = or :=
-#    If you fail to do so, the variable becomes recursively expanded variable accidentally.
-#
-# GIT_NAME could be empty.
-ifeq ($(origin GIT_NAME), undefined)
-	GIT_NAME ::= $(shell git describe --exact-match 2>/dev/null)
-endif
-ifeq ($(origin GIT_HASH), undefined)
-	GIT_HASH ::= git-$(shell git rev-parse --short=12 HEAD)
-endif
-ifeq ($(origin LDFLAGS), undefined)
-	LDFLAGS ::= "-X github.com/authgear/authgear-server/pkg/version.Version=${GIT_HASH}"
-endif
+CMD_AUTHGEAR ::= authgear
+CMD_PORTAL ::= portal
+BUILD_CTX ::= .
 
-# osusergo: https://godoc.org/github.com/golang/go/src/os/user
-# netgo: https://golang.org/doc/go1.5#net
-# static_build: https://github.com/golang/go/issues/26492#issuecomment-635563222
-#   The binary is static on Linux only. It is not static on macOS.
-# timetzdata: https://golang.org/doc/go1.15#time/tzdata
-GO_BUILD_TAGS ::= osusergo netgo static_build timetzdata
-GO_RUN_TAGS ::=
-
-
-.PHONY: start
-start:
-	go run -tags "$(GO_RUN_TAGS)" -ldflags ${LDFLAGS} ./cmd/authgear start
-
-.PHONY: start-portal
-start-portal:
-	go run -tags "$(GO_RUN_TAGS)" -ldflags ${LDFLAGS} ./cmd/portal start
+include ./common.mk
+include ./scripts/make/go-mod-outdated.mk
+include ./scripts/make/govulncheck.mk
 
 .PHONY: authgearonce-start
 authgearonce-start: GO_RUN_TAGS += authgearonce
@@ -66,13 +30,6 @@ vendor:
 	npm --prefix ./portal ci
 	$(MAKE) authui
 	$(MAKE) portal
-
-.PHONY: go-mod-outdated
-go-mod-outdated:
-	# https://stackoverflow.com/questions/55866604/whats-the-go-mod-equivalent-of-npm-outdated
-	# Since go 1.21, this command will exit 2 when one of the dependencies require a go version newer than us.
-	# This implies we have to use the latest verion of Go whenever possible.
-	go list -u -m -f '{{if .Update}}{{if not .Indirect}}{{.}}{{end}}{{end}}' all
 
 .PHONY: ensure-important-modules-up-to-date
 ensure-important-modules-up-to-date:
@@ -124,14 +81,6 @@ fmt:
 	find ./devtools ./pkg ./cmd ./e2e -name '*.go' -not -name 'wire_gen.go' -not -name '*_mock_test.go' | sort | xargs goimports -w -format-only -local github.com/authgear/authgear-server
 	$(MAKE) sort-translations
 
-.PHONY: govulncheck
-govulncheck:
-	govulncheck -show traces,version,verbose ./...
-
-.PHONY: build
-build:
-	go build -o $(BIN_NAME) -tags "$(GO_BUILD_TAGS)" -ldflags ${LDFLAGS} ./cmd/$(TARGET)
-
 .PHONY: binary
 binary: GO_BUILD_TAGS += authgearlite
 binary:
@@ -159,29 +108,6 @@ check-tidy:
 
 	make -C authui check-tidy
 	make -C portal check-tidy
-
-.PHONY: build-image
-build-image:
-	# Add --pull so that we are using the latest base image.
-	docker build --pull --file ./cmd/$(TARGET)/Dockerfile --tag $(IMAGE_NAME) --build-arg GIT_HASH=$(GIT_HASH) .
-
-.PHONY: tag-image
-tag-image: DOCKER_IMAGE ::= quay.io/theauthgear/$(IMAGE_NAME)
-tag-image:
-	docker tag $(IMAGE_NAME) $(DOCKER_IMAGE):latest
-	docker tag $(IMAGE_NAME) $(DOCKER_IMAGE):$(GIT_HASH)
-	if [ ! -z $(GIT_NAME) ]; then docker tag $(IMAGE_NAME) $(DOCKER_IMAGE):$(GIT_NAME); fi
-
-.PHONY: push-image
-push-image: DOCKER_IMAGE ::= quay.io/theauthgear/$(IMAGE_NAME)
-push-image:
-	docker manifest inspect $(DOCKER_IMAGE):$(GIT_HASH) > /dev/null; if [ $$? -eq 0 ]; then \
-		echo "$(DOCKER_IMAGE):$(GIT_HASH) exists. Skip push"; \
-	else \
-		docker push $(DOCKER_IMAGE):latest ;\
-		docker push $(DOCKER_IMAGE):$(GIT_HASH) ;\
-		if [ ! -z $(GIT_NAME) ]; then docker push $(DOCKER_IMAGE):$(GIT_NAME); fi ;\
-	fi
 
 .PHONY: html-email
 html-email:

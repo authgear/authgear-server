@@ -1,0 +1,3 @@
+.PHONY: govulncheck
+govulncheck:
+	govulncheck -show traces,version,verbose ./...

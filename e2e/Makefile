@@ -1,3 +1,6 @@
+include ../scripts/make/go-mod-outdated.mk
+include ../scripts/make/govulncheck.mk
+
 .PHONY: ci
 ci:
 	@# Check if any `focus: true` is present in the test files

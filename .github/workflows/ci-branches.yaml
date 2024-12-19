@@ -1,0 +1,21 @@
+name: CI - Branches
+
+on:
+  push:
+    branches:
+    - '*'
+    - '!gh-pages'
+    tags:
+    - '*'
+
+jobs:
+  checks:
+    uses: ./.github/workflows/run-checks.yaml
+  builds:
+    needs: checks
+    uses: ./.github/workflows/run-builds.yaml
+    secrets: inherit
+  release:
+    needs: builds
+    uses: ./.github/workflows/run-release.yaml
+    secrets: inherit

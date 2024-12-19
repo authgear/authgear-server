@@ -1,0 +1,20 @@
+name: CI - Pull Requests
+
+on:
+  pull_request:
+    branches:
+    - '*'
+    - '!gh-pages'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    uses: ./.github/workflows/run-checks.yaml
+  builds:
+    needs: checks
+    uses: ./.github/workflows/run-builds.yaml
+    with:
+      amd64-build-only: true

@@ -1,0 +1,26 @@
+name: Run releases
+
+on:
+  workflow_call:
+
+jobs:
+  release:
+    if: ${{ github.repository != 'oursky/authgear-server' }}
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v4
+    - uses: ./.github/actions/install-native-deps
+    - uses: actions/setup-go@v4
+      with:
+        go-version-file: "./go.mod"
+    - uses: actions/setup-node@v4
+      with:
+        node-version-file: "./.tool-versions"
+    - run: make vendor
+    - run: make binary
+    - uses: oursky/action-gh-release@v2
+      if: ${{ github.repository == 'authgear/authgear-server' && startsWith(github.ref, 'refs/tags/') && !startsWith(github.ref, 'refs/tags/staging-') }}
+      with:
+        draft: true
+        files: |
+          ./dist/*
