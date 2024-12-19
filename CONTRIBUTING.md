@@ -93,7 +93,7 @@ This project uses asdf, and there is a .tool-versions file at the project root.
 2. Generate config files
 
    ```sh
-   $ go run ./cmd/authgear init -o ./testing
+   $ go run ./cmd/authgear init -o ./var
    App ID (default 'my-app'): accounts
    HTTP origin of authgear (default 'http://localhost:3000'): http://localhost:3100
    HTTP origin of portal (default 'http://portal.localhost:8000'):
@@ -106,8 +106,8 @@ This project uses asdf, and there is a .tool-versions file at the project root.
    Elasticsearch URL (default 'http://localhost:9200'):
    Redis URL (default 'redis://localhost'):
    Redis URL for analytic (default 'redis://localhost/1'):
-   config written to testing/authgear.yaml
-   config written to testing/authgear.secrets.yaml
+   config written to var/authgear.yaml
+   config written to var/authgear.secrets.yaml
    ```
 
    You need to make changes according to the example shown above.
