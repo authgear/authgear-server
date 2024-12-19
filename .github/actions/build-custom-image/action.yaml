@@ -41,7 +41,7 @@ runs:
         OUTPUT="type=image,name=$IMAGE_NAME,push-by-digest=true,name-canonical=true,push=true" \
         IMAGE_NAME=$IMAGE_NAME \
         METADATA_FILE=$MANIFEST_NAME \
-        EXTRA_BUILD_OPTS="--ssh=default --builder=container-builder"
+        EXTRA_BUILD_OPTS="--ssh=default"
       cat custombuild/$MANIFEST_NAME
       DIGEST="$(cat custombuild/$MANIFEST_NAME | jq '.["containerimage.digest"]' -r)"
       make -C custombuild tag-image SOURCE_DIGESTS="$DIGEST" IMAGE_NAME=$IMAGE_NAME

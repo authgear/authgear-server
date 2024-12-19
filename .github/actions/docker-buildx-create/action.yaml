@@ -1,0 +1,15 @@
+name: "Create a builder and set BUILDX_BUILDER"
+description: "Create a builder and set BUILDX_BUILDER"
+runs:
+  using: "composite"
+  steps:
+  - name: "docker buildx create"
+    shell: bash
+    env:
+      BUILDER_NAME: container-builder
+    run: |
+      docker buildx create \
+        --name "$BUILDER_NAME" \
+        --driver docker-container \
+        --bootstrap --use
+      echo "BUILDX_BUILDER=$BUILDER_NAME" >> "$GITHUB_ENV"

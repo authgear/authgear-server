@@ -23,13 +23,7 @@ runs:
   - name: Install qemu for multi arch build
     shell: bash
     run: docker run --privileged --rm tonistiigi/binfmt --install all
-  - name: Setup container builder
-    shell: bash
-    run: |
-      docker buildx create \
-        --name container-builder \
-        --driver docker-container \
-        --bootstrap --use
+  - uses: ./.github/actions/docker-buildx-create
   - name: docker login
     if: ${{ inputs.push_image == 'true' }}
     env:
@@ -46,8 +40,7 @@ runs:
         OUTPUT=$OUTPUT \
         TARGET=$TARGET \
         IMAGE_NAME=$IMAGE_NAME \
-        METADATA_FILE=metadata.json \
-        EXTRA_BUILD_OPTS="--builder=container-builder"
+        METADATA_FILE=metadata.json
       DIGEST="$(cat metadata.json | jq '.["containerimage.digest"]' -r)"
       echo "image_digest=$DIGEST" >> "$GITHUB_OUTPUT"
     shell: bash
