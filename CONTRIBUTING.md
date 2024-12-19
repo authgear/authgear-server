@@ -166,7 +166,8 @@ This project uses asdf, and there is a .tool-versions file at the project root.
 1. Start the database
 
    ```sh
-   docker compose up -d db
+   docker compose build db
+   docker compose up -d db pgbouncer
    ```
 
 2. Apply migrations
