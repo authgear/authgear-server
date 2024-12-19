@@ -1,8 +1,8 @@
 import React, { useCallback } from "react";
-import type { FallbackProps } from "react-error-boundary";
 import { Text } from "@fluentui/react";
 import ErrorBoundSuspense, {
   type ErrorBoundSuspenseProps,
+  type ErrorBoundaryFallbackProps,
 } from "./ErrorBoundSuspense";
 import ShowLoading from "./ShowLoading";
 import PrimaryButton from "./PrimaryButton";
@@ -14,15 +14,17 @@ export interface FlavoredErrorBoundSuspenseProps {
   children: ErrorBoundSuspenseProps["children"];
 }
 
-function FallbackComponent(props: FallbackProps): React.ReactElement<any, any> {
-  const { resetErrorBoundary } = props;
+function FallbackComponent(
+  props: ErrorBoundaryFallbackProps
+): React.ReactElement<any, any> {
+  const { resetError } = props;
   const onClick = useCallback(
     (e: React.MouseEvent<unknown>) => {
       e.preventDefault();
       e.stopPropagation();
-      resetErrorBoundary();
+      resetError();
     },
-    [resetErrorBoundary]
+    [resetError]
   );
   return (
     <div className={styles.fallbackContainer}>
@@ -44,7 +46,7 @@ function FlavoredErrorBoundSuspense(
     <ErrorBoundSuspense
       {...props}
       suspenseFallback={<ShowLoading />}
-      errorBoundaryFallbackComponent={FallbackComponent}
+      errorBoundaryFallback={FallbackComponent}
     />
   );
 }
