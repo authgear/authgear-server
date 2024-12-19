@@ -550,7 +550,7 @@ Here is an example of the record
 - `roles`: The role keys of all roles directly assigned to the user. This DOES NOT include roles implied by the groups.
 - `groups`: The group keys of all groups assigned to the user.
 - `disabled`: Whether the user is disabled.
-- `delete_at`: The timestamp in rfc3339 when the user will be deleted. `null` if deletion is not scheduled.
+- `delete_at`: The timestamp in RFC3339 format indicating when the scheduled deletion of the user will happen. If it is absent, the user is not scheduled for deletion.
 - `identities`: The array of identities that may contain the following types. It is an empty array if the user no identities of the following types.
   - `login_id`
   - `oauth`
