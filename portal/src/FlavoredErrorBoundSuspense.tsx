@@ -17,6 +17,14 @@ export interface FlavoredErrorBoundSuspenseProps {
 function FallbackComponent(
   props: ErrorBoundaryFallbackProps
 ): React.ReactElement<any, any> {
+  // The definition of resetError is
+  //   resetError(): void;
+  // instead of
+  //   resetError: () => void;
+  // This makes TypeScript think it is method that could access this.
+  // But I think that is just a mistake in the type definition.
+  // So it should be safe to ignore.
+  // eslint-disable-next-line @typescript-eslint/unbound-method
   const { resetError } = props;
   const onClick = useCallback(
     (e: React.MouseEvent<unknown>) => {

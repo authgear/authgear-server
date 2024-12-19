@@ -7,21 +7,16 @@ import React, {
   useState,
   useEffect,
 } from "react";
-import { ErrorBoundary, ErrorBoundaryProps } from "@sentry/react";
+import { ErrorBoundary, FallbackRender } from "@sentry/react";
 
 export interface ErrorBoundSuspenseProps {
-  errorBoundaryFallback: NonNullable<ErrorBoundaryProps["fallback"]>;
+  errorBoundaryFallback: FallbackRender;
   suspenseFallback: SuspenseProps["fallback"];
   factory: () => Promise<{ default: React.ComponentType<any> }>;
   children: (Component: React.ComponentType<any>) => React.ReactNode;
 }
 
-export interface ErrorBoundaryFallbackProps {
-  error: unknown;
-  componentStack: string;
-  eventId: string;
-  resetError(): void;
-}
+export type ErrorBoundaryFallbackProps = Parameters<FallbackRender>[0];
 
 const extractImportArgRegex = /import\(["']([-_./a-zA-Z0-9]+)["']\)/;
 
