@@ -99,6 +99,7 @@ This project uses asdf, and there is a .tool-versions file at the project root.
    HTTP origin of portal (default 'http://portal.localhost:8000'):
    Phone OTP Mode (sms, whatsapp, whatsapp_sms) (default 'sms'): sms
    Would you like to turn off email verification? (In case you don't have SMTP credentials in your initial setup) [Y/N] (default 'false'):
+   Select a service for searching (elasticsearch, postgresql, none) (default 'elasticsearch'):
    Database URL (default 'postgres://postgres:postgres@127.0.0.1:5432/postgres?sslmode=disable'): postgres://postgres:postgres@127.0.0.1:5432/app?sslmode=disable
    Database schema (default 'public'):
    Audit Database URL (default 'postgres://postgres:postgres@127.0.0.1:5432/postgres?sslmode=disable'): postgres://postgres:postgres@127.0.0.1:5432/audit?sslmode=disable
