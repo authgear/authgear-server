@@ -47,6 +47,7 @@ var defaultCSVExportFields = []*FieldPointer{
 	&FieldPointer{Pointer: "/roles"},
 	&FieldPointer{Pointer: "/groups"},
 	&FieldPointer{Pointer: "/disabled"},
+	&FieldPointer{Pointer: "/delete_at"},
 	&FieldPointer{Pointer: "/identities"},
 	&FieldPointer{Pointer: "/mfa/emails"},
 	&FieldPointer{Pointer: "/mfa/phone_numbers"},
