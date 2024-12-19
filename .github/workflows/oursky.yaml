@@ -30,17 +30,18 @@ jobs:
       env:
         REPO_PREFIX: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_REPO_PREFIX }}
       run: |
-        MANIFEST_NAME="./$(uuidgen).json"
+        METADATA_FILE="$(mktemp).json"
+        echo "METADATA_FILE=$METADATA_FILE"
         IMAGE_NAME="$REPO_PREFIX/authgear-server"
         make -C custombuild build-image \
           TARGET=authgearx \
           BUILD_ARCH=amd64 \
           OUTPUT="type=image,name=$IMAGE_NAME,push-by-digest=true,name-canonical=true,push=true" \
           IMAGE_NAME=$IMAGE_NAME \
-          METADATA_FILE=$MANIFEST_NAME \
+          METADATA_FILE="$METADATA_FILE" \
           EXTRA_BUILD_OPTS="--ssh=default"
-        cat custombuild/$MANIFEST_NAME
-        DIGEST="$(cat custombuild/$MANIFEST_NAME | jq '.["containerimage.digest"]' -r)"
+        (set -x && cat "$METADATA_FILE")
+        DIGEST="$(jq < "$METADATA_FILE" '.["containerimage.digest"]' -r)"
         make -C custombuild tag-image SOURCE_DIGESTS="$DIGEST" IMAGE_NAME=$IMAGE_NAME
     - name: Clean up SSH key
       if: ${{ always() }}
@@ -71,17 +72,18 @@ jobs:
       env:
         REPO_PREFIX: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_REPO_PREFIX }}
       run: |
-        MANIFEST_NAME="./$(uuidgen).json"
+        METADATA_FILE="$(mktemp).json"
+        echo "METADATA_FILE=$METADATA_FILE"
         IMAGE_NAME="$REPO_PREFIX/authgear-portal"
         make -C custombuild build-image \
           TARGET=portalx \
           BUILD_ARCH=amd64 \
           OUTPUT="type=image,name=$IMAGE_NAME,push-by-digest=true,name-canonical=true,push=true" \
           IMAGE_NAME=$IMAGE_NAME \
-          METADATA_FILE=$MANIFEST_NAME \
+          METADATA_FILE="$METADATA_FILE" \
           EXTRA_BUILD_OPTS="--ssh=default"
-        cat custombuild/$MANIFEST_NAME
-        DIGEST="$(cat custombuild/$MANIFEST_NAME | jq '.["containerimage.digest"]' -r)"
+        (set -x && cat "$METADATA_FILE")
+        DIGEST="$(jq < "$METADATA_FILE" '.["containerimage.digest"]' -r)"
         make -C custombuild tag-image SOURCE_DIGESTS="$DIGEST" IMAGE_NAME=$IMAGE_NAME
     - name: Clean up SSH key
       if: ${{ always() }}

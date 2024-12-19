@@ -35,13 +35,16 @@ runs:
       printf "$DOCKER_PASSWORD" | docker login --password-stdin --username "$DOCKER_USERNAME" $DOCKER_REGISTRY
   - id: build_image
     run: |
+      METADATA_FILE="$(mktemp).json"
+      echo "METADATA_FILE=$METADATA_FILE"
       make build-image \
         BUILD_ARCH=$BUILD_ARCH \
         OUTPUT=$OUTPUT \
         TARGET=$TARGET \
         IMAGE_NAME=$IMAGE_NAME \
-        METADATA_FILE=metadata.json
-      DIGEST="$(cat metadata.json | jq '.["containerimage.digest"]' -r)"
+        METADATA_FILE="$METADATA_FILE"
+      (set -x && cat "$METADATA_FILE")
+      DIGEST="$(jq < "$METADATA_FILE" '.["containerimage.digest"]' -r)"
       echo "image_digest=$DIGEST" >> "$GITHUB_OUTPUT"
     shell: bash
     env:
