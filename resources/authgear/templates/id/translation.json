@@ -1319,7 +1319,6 @@
   "v2.page.settings-sessions.default.all-sessions-dialog-description": "Ini akan menghapus akses ke akun Anda dari semua perangkat lain",
   "v2.page.settings-sessions.default.all-sessions-dialog-title": "Mengakhiri semua sesi lainnya",
   "v2.page.settings-sessions.default.country-ip-item-description": "{countryName} ({countryCode}) - {ip}",
-  "v2.page.settings-sessions.default.device-item-description": "{isCurrent, select, true {{desc} · <span class=\"settings-description--primary-color\">Aktif Sekarang</span>} other {{desc} · <span data-date=\"{rfc3339}\">{time, datetime, short} UTC</span>}}",
   "v2.page.settings-sessions.default.revoke-all-label": "Mengakhiri semua sesi lainnya",
   "v2.page.settings-sessions.default.terminate-session-dialog-description": "Ini akan menghapus akses ke akun Anda di perangkat ini",
   "v2.page.settings-sessions.default.terminate-session-dialog-title": "Mengakhiri sesi",

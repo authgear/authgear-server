@@ -1319,7 +1319,6 @@
   "v2.page.settings-sessions.default.all-sessions-dialog-description": "Cela supprimera l''accès à votre compte depuis tous les autres appareils",
   "v2.page.settings-sessions.default.all-sessions-dialog-title": "Terminer toutes les autres sessions",
   "v2.page.settings-sessions.default.country-ip-item-description": "{countryName} ({countryCode}) - {ip}",
-  "v2.page.settings-sessions.default.device-item-description": "{isCurrent, select, true {{desc} · <span class=\"settings-description--primary-color\">Active maintenant</span>} other {{desc} · <span data-date=\"{rfc3339}\">{time, datetime, short} UTC</span>}}",
   "v2.page.settings-sessions.default.revoke-all-label": "Terminer toutes les autres sessions",
   "v2.page.settings-sessions.default.terminate-session-dialog-description": "Cela supprimera l''accès à votre compte sur cet appareil",
   "v2.page.settings-sessions.default.terminate-session-dialog-title": "Terminer la session",

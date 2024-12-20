@@ -1319,7 +1319,6 @@
   "v2.page.settings-sessions.default.all-sessions-dialog-description": "Ito ay aalisin ang access sa iyong account mula sa lahat ng iba pang device",
   "v2.page.settings-sessions.default.all-sessions-dialog-title": "Tapusin ang lahat ng iba pang sesyon",
   "v2.page.settings-sessions.default.country-ip-item-description": "{countryName} ({countryCode}) - {ip}",
-  "v2.page.settings-sessions.default.device-item-description": "{isCurrent, select, true {{desc} · <span class=\"settings-description--primary-color\">Aktibo Ngayon</span>} other {{desc} · <span data-date=\"{rfc3339}\">{time, datetime, short} UTC</span>}}",
   "v2.page.settings-sessions.default.revoke-all-label": "Tapusin ang lahat ng iba pang sesyon",
   "v2.page.settings-sessions.default.terminate-session-dialog-description": "Ito ay aalisin ang access sa iyong account sa device na ito",
   "v2.page.settings-sessions.default.terminate-session-dialog-title": "Tapusin ang sesyon",
