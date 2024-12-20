@@ -26,14 +26,6 @@
           {{ include "v2.page.settings-mfa-enter-oob-otp.auth-email-or-sms.subtitle" . }}
         {{ end }}
       </h2>
-
-      {{ template "authflowv2/__alert_message.html"
-        (dict
-          "Type" "error"
-          "Classname" "mt-4"
-          "Message" (ternary (include "authflowv2/__error.html" .) nil (not $.display_otp_input_error))
-        )
-      }}
     </div>
     <div>
       {{ $otp_error_message := "" }}

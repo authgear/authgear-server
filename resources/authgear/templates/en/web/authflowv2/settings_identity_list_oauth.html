@@ -23,13 +23,6 @@
 {{ end }}
 
 <div class="flex flex-col gap-y-6">
-  {{ template "authflowv2/__alert_message.html"
-    (dict
-    "Type" "error"
-    "Classname" "mb-4"
-    "Message" $unknown_error_message
-    )
-  }}
 
   <ol>
     {{ $ctx := .}}
