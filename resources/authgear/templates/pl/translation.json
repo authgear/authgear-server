@@ -1319,6 +1319,8 @@
   "v2.page.settings-sessions.default.all-sessions-dialog-description": "Spowoduje to usunięcie dostępu do Twojego konta ze wszystkich innych urządzeń",
   "v2.page.settings-sessions.default.all-sessions-dialog-title": "Zakończ wszystkie inne sesje",
   "v2.page.settings-sessions.default.country-ip-item-description": "{countryName} ({countryCode}) - {ip}",
+  "v2.page.settings-sessions.default.device-item-activity--last": "<span data-date=\"{rfc3339}\">{time, datetime, short} UTC</span>",
+  "v2.page.settings-sessions.default.device-item-activity--current": "Aktywny teraz",
   "v2.page.settings-sessions.default.revoke-all-label": "Zakończ wszystkie inne sesje",
   "v2.page.settings-sessions.default.terminate-session-dialog-description": "Spowoduje to usunięcie dostępu do Twojego konta na tym urządzeniu",
   "v2.page.settings-sessions.default.terminate-session-dialog-title": "Zakończ sesję",

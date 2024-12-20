@@ -1319,6 +1319,8 @@
   "v2.page.settings-sessions.default.all-sessions-dialog-description": "你確認要登出所有其他裝置嗎？",
   "v2.page.settings-sessions.default.all-sessions-dialog-title": "登出所有其他裝置",
   "v2.page.settings-sessions.default.country-ip-item-description": "{countryName} ({countryCode}) - {ip}",
+  "v2.page.settings-sessions.default.device-item-activity--last": "<span data-date=\"{rfc3339}\">於{time, datetime, short} UTC</span>",
+  "v2.page.settings-sessions.default.device-item-activity--current": "目前使用中",
   "v2.page.settings-sessions.default.revoke-all-label": "登出所有其他裝置",
   "v2.page.settings-sessions.default.terminate-session-dialog-description": "你確認要登出此裝置嗎？",
   "v2.page.settings-sessions.default.terminate-session-dialog-title": "登出裝置",
