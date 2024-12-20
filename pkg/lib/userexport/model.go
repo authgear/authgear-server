@@ -47,6 +47,7 @@ var defaultCSVExportFields = []*FieldPointer{
 	&FieldPointer{Pointer: "/roles"},
 	&FieldPointer{Pointer: "/groups"},
 	&FieldPointer{Pointer: "/disabled"},
+	&FieldPointer{Pointer: "/delete_at"},
 	&FieldPointer{Pointer: "/identities"},
 	&FieldPointer{Pointer: "/mfa/emails"},
 	&FieldPointer{Pointer: "/mfa/phone_numbers"},
@@ -164,7 +165,8 @@ type Record struct {
 	Roles  []string `json:"roles,omitempty"`
 	Groups []string `json:"groups,omitempty"`
 
-	Disabled bool `json:"disabled"`
+	Disabled bool       `json:"disabled"`
+	DeleteAt *time.Time `json:"delete_at,omitempty"`
 
 	Identities []*Identity `json:"identities,omitempty"`
 
