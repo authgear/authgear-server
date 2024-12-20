@@ -40,12 +40,6 @@
   {{ if $has_unknown_err }}
     {{ $unknown_error_message = (include "authflowv2/__error.html" (merge (dict "Error" $unknown_err) $)) }}
   {{ end }}
-  {{ template "authflowv2/__alert_message.html"
-    (dict
-    "Type" "error"
-    "Message" $unknown_error_message
-    )
-  }}
 
   <label class="flex flex-col gap-y-2">
     {{/* The control */}}
