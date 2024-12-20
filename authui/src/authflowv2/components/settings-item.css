@@ -61,6 +61,7 @@
       --typography-title-medium__font-weight
     );
     --settings-item-content__text-color: var(--color-neutral-400);
+    --settings-item-content__text-color--highligh: var(--color-link);
   }
 
   :root.dark {
@@ -154,6 +155,9 @@
     letter-spacing: var(--settings-item-content__letter-spacing);
     font-weight: var(--settings-item-content__font-weight);
     color: var(--settings-item-content__text-color);
+  }
+  .settings-item__content--highlight {
+    color: var(--settings-item-content__text-color--highligh);
   }
   .settings-item__forward_arrow {
     grid-area: arrow;
