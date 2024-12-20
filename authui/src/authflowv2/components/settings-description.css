@@ -28,6 +28,8 @@
     letter-spacing: var(--settings-description__letter-spacing);
     font-weight: var(--settings-description__font-weight);
     color: var(--settings-description__text-color);
+    padding-left: var(--widget-content__px);
+    padding-right: var(--widget-content__px);
   }
 
   .settings-description--primary-color {

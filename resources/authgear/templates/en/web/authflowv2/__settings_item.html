@@ -48,7 +48,7 @@
   {{/* If there is content */}}
   {{ if $.Children }}
     {{ $length := len $.Children }}
-    <p class="settings-item__content settings-description block tablet:hidden">
+    <p class="settings-item__content block tablet:hidden">
       {{ $item := index $.Children  0}}
       {{ if gt $length 1 }}
         <span> {{ include "v2.page.settings.default.and-more-button-label" (dict "item" $item ) }} </span>
@@ -56,7 +56,7 @@
         {{ $item }}
       {{ end }}
     </p>
-    <ul class="settings-item__content settings-description hidden tablet:block break-all">
+    <ul class="settings-item__content hidden tablet:block break-all">
       {{ range $i, $child := $.Children }}
       <li>
         {{ $child }}
