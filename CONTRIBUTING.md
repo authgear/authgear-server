@@ -1,5 +1,7 @@
 - [Contributing guide](#contributing-guide)
   * [Install dependencies](#install-dependencies)
+    + [Install dependencies with asdf and homebrew](#install-dependencies-with-asdf-and-homebrew)
+    + [Install dependencies with Nix Flakes](#install-dependencies-with-nix-flakes)
   * [Set up environment](#set-up-environment)
   * [Set up the database](#set-up-the-database)
   * [Set up MinIO](#setup-minio)
@@ -22,7 +24,9 @@ It also covers some common development tasks.
 
 ## Install dependencies
 
-This project uses asdf, and there is a .tool-versions file at the project root.
+### Install dependencies with asdf and homebrew
+
+This project supports asdf, and there is a .tool-versions file at the project root.
 
 1. Install asdf
 2. Run the following to install all dependencies in .tool-versions
@@ -81,6 +85,32 @@ This project uses asdf, and there is a .tool-versions file at the project root.
    ```
 
 7. Run `make vendor`.
+
+### Install dependencies with Nix Flakes
+
+This project supports Nix Flakes.
+If you are not a Nix user, please see the above section instead.
+
+1. Make a shell with dependencies installed.
+
+You can either run
+
+```sh
+nix develop
+```
+
+Or if you are also a direnv and nix-direnv user, you can place a `.envrc` at the project
+with the following content
+
+```
+# shellcheck shell=bash
+if ! has nix_direnv_version || ! nix_direnv_version 3.0.6; then
+  source_url "https://raw.githubusercontent.com/nix-community/nix-direnv/3.0.6/direnvrc" "sha256-RYcUJaRMf8oF5LznDrlCXbkOQrywm0HDv1VjYGaJGdM="
+fi
+use flake
+```
+
+2. Run `make build-frontend`.
 
 ## Set up environment
 

@@ -25,6 +25,10 @@ vendor:
 	go install golang.org/x/vuln/cmd/govulncheck@latest
 	go install golang.org/x/tools/cmd/goimports@latest
 	go install go.k6.io/xk6/cmd/xk6@latest
+	$(MAKE) build-frondend
+
+.PHONY: build-frondend
+build-frondend:
 	npm --prefix ./scripts/npm ci
 	npm --prefix ./authui ci
 	npm --prefix ./portal ci
