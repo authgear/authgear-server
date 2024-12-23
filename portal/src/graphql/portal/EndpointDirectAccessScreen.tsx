@@ -1,10 +1,18 @@
-import React, { useCallback, useContext, useMemo, useState } from "react";
+import React, { useCallback, useContext, useMemo } from "react";
 import cn from "classnames";
+import {
+  Text,
+  ChoiceGroup,
+  IChoiceGroupOption,
+  IChoiceGroupOptionProps,
+  IChoiceGroupStyles,
+  ITextFieldStyles,
+  useTheme,
+} from "@fluentui/react";
 import {
   AppConfigFormModel,
   useAppConfigForm,
 } from "../../hook/useAppConfigForm";
-import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import {
   FormContainerBase,
@@ -18,42 +26,88 @@ import { PortalAPIAppConfig } from "../../types";
 import styles from "./EndpointDirectAccessScreen.module.css";
 import { useParams } from "react-router-dom";
 import { useDomainsQuery } from "./query/domainsQuery";
-import { nullishCoalesce, or_ } from "../../util/operators";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
-import Toggle from "../../Toggle";
 import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
 import ScreenContent from "../../ScreenContent";
 import { Domain } from "./globalTypes.generated";
 import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
-import ScreenDescription from "../../ScreenDescription";
+import HorizontalDivider from "../../HorizontalDivider";
 import { getHostFromOrigin } from "../../util/domain";
-import {
-  ChoiceGroup,
-  IChoiceGroupOption,
-  IChoiceGroupStyles,
-  ITextFieldStyles,
-  MessageBar,
-  useTheme,
-} from "@fluentui/react";
+
+type ChoiceOption =
+  | "ShowError"
+  | "ShowBrandPage"
+  | "ShowLoginAndRedirectToSettings"
+  | "ShowLoginAndRedirectToCustomURL";
 
 interface RedirectURLFormState {
-  directAccessDisabled: boolean | undefined;
-  brandPageURL: string;
-  postLoginURL: string | undefined;
-  postLogoutURL: string;
+  public_origin: string;
+  isCustomDomain: boolean;
+
+  currentChoiceOption: ChoiceOption;
+
+  ShowLoginAndRedirectToSettingsDisabled: boolean;
+  ShowLoginAndRedirectToCustomURLDisabled: boolean;
+
+  brand_page_uri: string;
+  default_redirect_uri: string;
+  default_post_logout_redirect_uri: string;
 }
 
-function constructRedirectURLFormState(
-  config: PortalAPIAppConfig
-): RedirectURLFormState {
-  return {
-    directAccessDisabled: config.ui?.direct_access_disabled,
-    brandPageURL: config.ui?.brand_page_uri ?? "",
-    postLoginURL: config.ui?.default_redirect_uri,
-    postLogoutURL: config.ui?.default_post_logout_redirect_uri ?? "",
+function checkIsCustomDomain(
+  domains: Domain[],
+  public_origin: string
+): boolean {
+  if (domains.length === 0) {
+    return false;
+  }
+  const index = domains.findIndex((d) =>
+    getHostFromOrigin(public_origin).includes(d.domain)
+  );
+  if (index < 0) {
+    return false;
+  }
+  return domains[index].isCustom;
+}
+
+function makeConstructRedirectURLFormState(domains: Domain[]) {
+  return (config: PortalAPIAppConfig) => {
+    const public_origin = config.http?.public_origin ?? "";
+
+    const isCustomDomain = checkIsCustomDomain(domains, public_origin);
+
+    const direct_access_disabled = config.ui?.direct_access_disabled ?? false;
+    const brand_page_uri = config.ui?.brand_page_uri ?? "";
+    const default_redirect_uri = config.ui?.default_redirect_uri ?? "";
+    const default_post_logout_redirect_uri =
+      config.ui?.default_post_logout_redirect_uri ?? "";
+
+    const currentChoiceOption: ChoiceOption =
+      !isCustomDomain || direct_access_disabled
+        ? brand_page_uri === ""
+          ? "ShowError"
+          : "ShowBrandPage"
+        : default_redirect_uri === ""
+        ? "ShowLoginAndRedirectToSettings"
+        : "ShowLoginAndRedirectToCustomURL";
+
+    return {
+      public_origin,
+      isCustomDomain,
+
+      currentChoiceOption,
+
+      ShowLoginAndRedirectToSettingsDisabled: !isCustomDomain,
+      ShowLoginAndRedirectToCustomURLDisabled: !isCustomDomain,
+
+      brand_page_uri,
+      default_redirect_uri,
+      default_post_logout_redirect_uri,
+    };
   };
 }
+
 function constructConfigFromRedirectURLFormState(
   config: PortalAPIAppConfig,
   _initialState: RedirectURLFormState,
@@ -61,21 +115,47 @@ function constructConfigFromRedirectURLFormState(
 ): PortalAPIAppConfig {
   return produce(config, (draft) => {
     draft.ui ??= {};
-    draft.ui.direct_access_disabled = currentState.directAccessDisabled;
-    draft.ui.brand_page_uri = currentState.brandPageURL || undefined;
-    draft.ui.default_redirect_uri = currentState.postLoginURL;
-    draft.ui.default_post_logout_redirect_uri =
-      currentState.postLogoutURL || undefined;
+
+    switch (currentState.currentChoiceOption) {
+      case "ShowError":
+        draft.ui.direct_access_disabled = true;
+        draft.ui.brand_page_uri = undefined;
+        draft.ui.default_redirect_uri = undefined;
+        break;
+      case "ShowBrandPage":
+        draft.ui.direct_access_disabled = true;
+        draft.ui.brand_page_uri = currentState.brand_page_uri;
+        draft.ui.default_redirect_uri = undefined;
+        break;
+      case "ShowLoginAndRedirectToSettings":
+        draft.ui.direct_access_disabled = undefined;
+        draft.ui.brand_page_uri = undefined;
+        draft.ui.default_redirect_uri = undefined;
+        break;
+      case "ShowLoginAndRedirectToCustomURL":
+        draft.ui.direct_access_disabled = undefined;
+        draft.ui.brand_page_uri = undefined;
+        draft.ui.default_redirect_uri = currentState.default_redirect_uri;
+        break;
+    }
+
+    if (currentState.default_post_logout_redirect_uri === "") {
+      draft.ui.default_post_logout_redirect_uri = undefined;
+    } else {
+      draft.ui.default_post_logout_redirect_uri =
+        currentState.default_post_logout_redirect_uri;
+    }
   });
 }
 
 interface RedirectURLTextFieldProps {
-  className?: string;
   fieldName: string;
-  label: string;
-  description: string;
   value: string;
   onChangeValue: (value: string) => void;
+
+  className?: string;
+  label?: React.ReactNode;
+  description?: React.ReactNode;
   disabled?: boolean;
   required?: boolean;
 }
@@ -107,38 +187,39 @@ const RedirectURLTextField: React.VFC<RedirectURLTextFieldProps> =
     };
 
     return (
-      <div className={className}>
-        <FormTextField
-          id={id}
-          fieldName={fieldName}
-          parentJSONPointer="/ui"
-          className={cn("mt-2.5")}
-          label={label}
-          description={description}
-          value={value}
-          onChange={onChange}
-          disabled={disabled}
-          required={required}
-          styles={textFieldStyles}
-          placeholder="https://"
-        />
-      </div>
+      <FormTextField
+        id={id}
+        fieldName={fieldName}
+        parentJSONPointer="/ui"
+        className={className}
+        /* @ts-expect-error label can be React.ReactNode */
+        label={label}
+        /* @ts-expect-error description can be React.ReactNode */
+        description={description}
+        value={value}
+        onChange={onChange}
+        disabled={disabled}
+        required={required}
+        styles={textFieldStyles}
+        placeholder="https://"
+      />
     );
   };
 
-enum DirectAccessOptions {
-  BrandPage = "BrandPage",
-  RedirectURL = "RedirectURL",
-}
+// Workaround for hidden input of ChoiceGroupOption
+// ref: https://github.com/microsoft/fluentui/issues/21252#issuecomment-1168690443
+const WORKAROUND_HIDDEN_INPUT_OF_ChoiceGroupOption = {
+  input: {
+    zIndex: -1,
+  },
+};
 
 interface EndpointDirectAccessConfigOptionSelectorProps {
   className?: string;
-  redirectURLForm: AppConfigFormModel<RedirectURLFormState>;
-  disabled: boolean;
-  selectedDirectAccessOption: DirectAccessOptions | undefined;
-  onChangeDirectAccessOption: (key: DirectAccessOptions) => void;
+  form: AppConfigFormModel<RedirectURLFormState>;
+  onChangeDirectAccessOption: (key: ChoiceOption) => void;
   onChangeBrandPageURL: (url: string) => void;
-  onChangePostLoginURL: (url: string | undefined) => void;
+  onChangePostLoginURL: (url: string) => void;
   onChangePostLogoutURL: (url: string) => void;
 }
 
@@ -146,16 +227,18 @@ const EndpointDirectAccessConfigOptionSelector: React.VFC<EndpointDirectAccessCo
   function EndpointDirectAccessConfigOptionSelector(props) {
     const {
       className,
-      redirectURLForm,
-      disabled,
-      selectedDirectAccessOption,
+      form,
       onChangeDirectAccessOption,
       onChangeBrandPageURL,
       onChangePostLoginURL,
-      onChangePostLogoutURL,
     } = props;
     const { renderToString } = useContext(Context);
     const { appID } = useParams() as { appID: string };
+
+    const {
+      ShowLoginAndRedirectToSettingsDisabled,
+      ShowLoginAndRedirectToCustomURLDisabled,
+    } = form.state;
 
     const onOptionsChange = useCallback(
       (
@@ -163,18 +246,10 @@ const EndpointDirectAccessConfigOptionSelector: React.VFC<EndpointDirectAccessCo
         option?: IChoiceGroupOption
       ) => {
         if (!option?.key) return;
-        onChangeDirectAccessOption(option.key as DirectAccessOptions);
+        onChangeDirectAccessOption(option.key as ChoiceOption);
       },
       [onChangeDirectAccessOption]
     );
-
-    const onPostRedirectToSettingToggleClick = useCallback(() => {
-      if (redirectURLForm.state.postLoginURL != null) {
-        onChangePostLoginURL(undefined);
-      } else {
-        onChangePostLoginURL("");
-      }
-    }, [onChangePostLoginURL, redirectURLForm.state.postLoginURL]);
 
     const ChoiceGroupStyles: Partial<IChoiceGroupStyles> = {
       flexContainer: {
@@ -186,276 +261,242 @@ const EndpointDirectAccessConfigOptionSelector: React.VFC<EndpointDirectAccessCo
       },
     };
 
+    const onRenderFieldShowBrandPage = useCallback(
+      (
+        props?: IChoiceGroupOption & IChoiceGroupOptionProps,
+        render?: (
+          props?: IChoiceGroupOption & IChoiceGroupOptionProps
+        ) => JSX.Element | null
+      ) => {
+        const checked = props?.checked ?? false;
+        return (
+          <>
+            {render?.(props)}
+            {checked ? (
+              <RedirectURLTextField
+                className={cn(styles.textFieldInOption)}
+                fieldName="brand_page_uri"
+                label={
+                  <FormattedMessage id="EndpointDirectAccessScreen.section1.option.ShowBrandPage.input.label" />
+                }
+                value={form.state.brand_page_uri}
+                onChangeValue={onChangeBrandPageURL}
+              />
+            ) : null}
+          </>
+        );
+      },
+      [form.state.brand_page_uri, onChangeBrandPageURL]
+    );
+
+    const onRenderFieldShowLoginAndRedirectToCustomURL = useCallback(
+      (
+        props?: IChoiceGroupOption & IChoiceGroupOptionProps,
+        render?: (
+          props?: IChoiceGroupOption & IChoiceGroupOptionProps
+        ) => JSX.Element | null
+      ) => {
+        const checked = props?.checked ?? false;
+        return (
+          <>
+            {render?.(props)}
+            {checked ? (
+              <RedirectURLTextField
+                className={cn(styles.textFieldInOption)}
+                fieldName="default_redirect_uri"
+                label={
+                  <FormattedMessage id="EndpointDirectAccessScreen.section1.option.ShowLoginAndRedirectToCustomURL.input.label" />
+                }
+                description={
+                  <FormattedMessage id="EndpointDirectAccessScreen.section1.option.ShowLoginAndRedirectToCustomURL.input.description" />
+                }
+                value={form.state.default_redirect_uri}
+                onChangeValue={onChangePostLoginURL}
+              />
+            ) : null}
+          </>
+        );
+      },
+      [form.state.default_redirect_uri, onChangePostLoginURL]
+    );
+
     const options: IChoiceGroupOption[] = [
       {
-        key: DirectAccessOptions.BrandPage,
+        key: "ShowError",
         text: renderToString(
-          "EndpointDirectAccessScreen.configuration.options.brand-page.label"
-        ),
-        // Workaround for hidden input of ChoiceGroupOption
-        // ref: https://github.com/microsoft/fluentui/issues/21252#issuecomment-1168690443
-        styles: {
-          input: {
-            zIndex: -1,
-          },
-        },
-        onRenderField: useCallback(
-          (props, render) => {
-            return (
-              <div>
-                {render(props)}
-                <div className={cn(styles.optionsChild)}>
-                  <FormattedMessage id="EndpointDirectAccessScreen.configuration.options.brand-page.description" />
-                </div>
-                <RedirectURLTextField
-                  className={cn(styles.optionsChild, styles["options--last"])}
-                  fieldName="brand_page_uri"
-                  label=""
-                  description=""
-                  value={redirectURLForm.state.brandPageURL}
-                  onChangeValue={onChangeBrandPageURL}
-                  disabled={!props?.checked}
-                />
-                {disabled ? (
-                  // https://github.com/microsoft/fluentui/issues/17688
-                  <MessageBar className={cn("my-3", "z-10")}>
-                    <FormattedMessage
-                      id="EndpointDirectAccessScreen.redirect-custom-domain.message"
-                      values={{
-                        href: `/project/${appID}/branding/custom-domains`,
-                      }}
-                    />
-                  </MessageBar>
-                ) : null}
-              </div>
-            );
-          },
-          [
-            redirectURLForm.state.brandPageURL,
-            onChangeBrandPageURL,
-            disabled,
-            appID,
-          ]
+          "EndpointDirectAccessScreen.section1.option.ShowError.label"
         ),
       },
       {
-        key: DirectAccessOptions.RedirectURL,
+        key: "ShowBrandPage",
         text: renderToString(
-          "EndpointDirectAccessScreen.configuration.options.redirect-url.label"
+          "EndpointDirectAccessScreen.section1.option.ShowBrandPage.label"
         ),
-        styles: {
-          input: {
-            zIndex: -1,
-          },
-        },
-        onRenderField: useCallback(
-          (props, render) => {
-            return (
-              <div>
-                {render(props)}
-                <div
-                  className={cn(
-                    styles.optionsChild,
-                    styles["options--last"],
-                    disabled && styles.disabledText
-                  )}
-                >
-                  <FormattedMessage id="EndpointDirectAccessScreen.configuration.options.redirect-url.description" />
-                  <div className={cn("my-4")}>
-                    <p className={cn("font-semibold", "my-1.5")}>
-                      <FormattedMessage id="EndpointDirectAccessScreen.configuration.options.redirect-to-setting-page.label" />
-                    </p>
-                    <Toggle
-                      inlineLabel={true}
-                      disabled={!props?.checked || disabled}
-                      checked={redirectURLForm.state.postLoginURL == null}
-                      onChange={onPostRedirectToSettingToggleClick}
-                      label={renderToString(
-                        redirectURLForm.state.postLoginURL == null
-                          ? "EndpointDirectAccessScreen.configuration.options.redirect-to-setting-page.on"
-                          : "EndpointDirectAccessScreen.configuration.options.redirect-to-setting-page.off"
-                      )}
-                    />
-                  </div>
-                  <RedirectURLTextField
-                    fieldName="default_redirect_uri"
-                    label={renderToString(
-                      "EndpointDirectAccessScreen.redirect-url-section.input.post-login-url.label"
-                    )}
-                    description={renderToString(
-                      "EndpointDirectAccessScreen.redirect-url-section.input.post-login-url.description"
-                    )}
-                    value={redirectURLForm.state.postLoginURL ?? ""}
-                    onChangeValue={onChangePostLoginURL}
-                    required={
-                      !(
-                        !props?.checked ||
-                        disabled ||
-                        redirectURLForm.state.postLoginURL == null
-                      )
-                    }
-                    disabled={
-                      !props?.checked ||
-                      disabled ||
-                      redirectURLForm.state.postLoginURL == null
-                    }
-                  />
-                  <RedirectURLTextField
-                    fieldName="default_post_logout_redirect_uri"
-                    label={renderToString(
-                      "EndpointDirectAccessScreen.redirect-url-section.input.post-logout-url.label"
-                    )}
-                    description={renderToString(
-                      "EndpointDirectAccessScreen.redirect-url-section.input.post-logout-url.description"
-                    )}
-                    required={true}
-                    value={redirectURLForm.state.postLogoutURL}
-                    onChangeValue={onChangePostLogoutURL}
-                    disabled={!props?.checked || disabled}
-                  />
-                </div>
-              </div>
-            );
-          },
-          [
-            disabled,
-            redirectURLForm.state.postLoginURL,
-            redirectURLForm.state.postLogoutURL,
-            onChangePostLoginURL,
-            onChangePostLogoutURL,
-            onPostRedirectToSettingToggleClick,
-            renderToString,
-          ]
+        styles: WORKAROUND_HIDDEN_INPUT_OF_ChoiceGroupOption,
+        onRenderField: onRenderFieldShowBrandPage,
+      },
+      {
+        key: "ShowLoginAndRedirectToSettings",
+        disabled: ShowLoginAndRedirectToSettingsDisabled,
+        // @ts-expect-error text can be React.Element.
+        text: ShowLoginAndRedirectToSettingsDisabled ? (
+          <FormattedMessage
+            id="EndpointDirectAccessScreen.section1.option.ShowLoginAndRedirectToSettings.label--disabled"
+            values={{
+              href: `/project/${appID}/branding/custom-domains`,
+            }}
+          />
+        ) : (
+          <FormattedMessage id="EndpointDirectAccessScreen.section1.option.ShowLoginAndRedirectToSettings.label" />
         ),
-        disabled,
+      },
+      {
+        key: "ShowLoginAndRedirectToCustomURL",
+        disabled: ShowLoginAndRedirectToCustomURLDisabled,
+        // @ts-expect-error text can be React.Element.
+        text: ShowLoginAndRedirectToSettingsDisabled ? (
+          <FormattedMessage
+            id="EndpointDirectAccessScreen.section1.option.ShowLoginAndRedirectToCustomURL.label--disabled"
+            values={{
+              href: `/project/${appID}/branding/custom-domains`,
+            }}
+          />
+        ) : (
+          <FormattedMessage id="EndpointDirectAccessScreen.section1.option.ShowLoginAndRedirectToCustomURL.label" />
+        ),
+        onRenderField: onRenderFieldShowLoginAndRedirectToCustomURL,
       },
     ];
 
     return (
-      <div className={className}>
-        <ChoiceGroup
-          options={options}
-          styles={ChoiceGroupStyles}
-          selectedKey={selectedDirectAccessOption}
-          onChange={onOptionsChange}
-        />
-      </div>
+      <ChoiceGroup
+        className={className}
+        options={options}
+        styles={ChoiceGroupStyles}
+        selectedKey={form.state.currentChoiceOption}
+        onChange={onOptionsChange}
+      />
     );
   };
 
 interface RedirectURLFormProps {
-  className?: string;
-  redirectURLForm: AppConfigFormModel<RedirectURLFormState>;
-  disabled: boolean;
+  form: AppConfigFormModel<RedirectURLFormState>;
 }
 const RedirectURLForm: React.VFC<RedirectURLFormProps> =
   function RedirectURLForm(props) {
-    const { className, redirectURLForm, disabled } = props;
+    const { form } = props;
+    const { public_origin: publicOrigin } = form.state;
 
     const { canSave, onSubmit } = useFormContainerBaseContext();
 
-    const initSelectedDirectAccessOption = useMemo(() => {
-      if (redirectURLForm.initialState.directAccessDisabled) {
-        return DirectAccessOptions.BrandPage;
-      }
-      return DirectAccessOptions.RedirectURL;
-    }, [redirectURLForm.initialState.directAccessDisabled]);
-
-    const [selectedDirectAccessOption, setSelectedDirectAccessOption] =
-      useState<DirectAccessOptions>(initSelectedDirectAccessOption);
-
     const onChangeBrandPageURL = useCallback(
       (url: string) => {
-        redirectURLForm.setState((prev) =>
+        form.setState((prev) =>
           produce(prev, (draft) => {
-            draft.directAccessDisabled = true;
-            draft.brandPageURL = url;
+            draft.brand_page_uri = url;
           })
         );
       },
-      [redirectURLForm]
+      [form]
     );
 
     const onChangePostLoginURL = useCallback(
-      (url: string | undefined) => {
-        redirectURLForm.setState((prev) =>
+      (url: string) => {
+        form.setState((prev) =>
           produce(prev, (draft) => {
-            if (url != null) {
-              draft.postLoginURL = url;
-            } else {
-              draft.postLoginURL = undefined;
-            }
+            draft.default_redirect_uri = url;
           })
         );
       },
-      [redirectURLForm]
+      [form]
     );
 
     const onChangePostLogoutURL = useCallback(
       (url: string) => {
-        redirectURLForm.setState((prev) =>
+        form.setState((prev) =>
           produce(prev, (draft) => {
-            draft.postLogoutURL = url;
+            draft.default_post_logout_redirect_uri = url;
           })
         );
       },
-      [redirectURLForm]
+      [form]
     );
 
     const onChangeDirectAccessOption = useCallback(
-      (directAccessOption: DirectAccessOptions) => {
-        setSelectedDirectAccessOption(directAccessOption);
-        if (directAccessOption === DirectAccessOptions.BrandPage) {
-          redirectURLForm.setState((prev) =>
-            produce(prev, (draft) => {
-              draft.directAccessDisabled = true;
-              draft.postLoginURL = redirectURLForm.initialState.postLoginURL;
-              draft.postLogoutURL = redirectURLForm.initialState.postLogoutURL;
-            })
-          );
-        } else {
-          redirectURLForm.setState((prev) =>
-            produce(prev, (draft) => {
-              draft.directAccessDisabled = undefined;
-              draft.brandPageURL = redirectURLForm.initialState.brandPageURL;
-            })
-          );
-        }
+      (directAccessOption: ChoiceOption) => {
+        form.setState((prev) =>
+          produce(prev, (draft) => {
+            draft.currentChoiceOption = directAccessOption;
+          })
+        );
       },
-      [redirectURLForm]
+      [form]
     );
 
     return (
-      <form className={className} onSubmit={onSubmit}>
-        <EndpointDirectAccessConfigOptionSelector
-          className={cn(styles.widget, styles.selector)}
-          redirectURLForm={redirectURLForm}
-          disabled={disabled}
-          selectedDirectAccessOption={selectedDirectAccessOption}
-          onChangeDirectAccessOption={onChangeDirectAccessOption}
-          onChangeBrandPageURL={onChangeBrandPageURL}
-          onChangePostLoginURL={onChangePostLoginURL}
-          onChangePostLogoutURL={onChangePostLogoutURL}
-        />
+      <form
+        className={cn(styles.widget, "flex flex-col gap-12")}
+        onSubmit={onSubmit}
+      >
+        <div /* this div exists for gap to work, do not remove */>
+          <div className="flex flex-col gap-6">
+            <Text as="h2">
+              <FormattedMessage
+                id="EndpointDirectAccessScreen.section1.description"
+                values={{
+                  endpoint: publicOrigin,
+                }}
+              />
+            </Text>
+            <EndpointDirectAccessConfigOptionSelector
+              form={form}
+              onChangeDirectAccessOption={onChangeDirectAccessOption}
+              onChangeBrandPageURL={onChangeBrandPageURL}
+              onChangePostLoginURL={onChangePostLoginURL}
+              onChangePostLogoutURL={onChangePostLogoutURL}
+            />
+          </div>
+
+          <HorizontalDivider className="my-12" />
+
+          <div className="flex flex-col gap-4">
+            <Text as="h2" className="block">
+              <FormattedMessage
+                id="EndpointDirectAccessScreen.section2.description"
+                values={{
+                  endpoint: publicOrigin,
+                }}
+              />
+            </Text>
+
+            <RedirectURLTextField
+              fieldName="default_post_logout_redirect_uri"
+              value={form.state.default_post_logout_redirect_uri}
+              label={
+                <FormattedMessage id="EndpointDirectAccessScreen.section2.input.label" />
+              }
+              onChangeValue={onChangePostLogoutURL}
+            />
+          </div>
+        </div>
+
         <PrimaryButton
-          className={cn("mt-12")}
+          className="self-start"
           type="submit"
           disabled={!canSave}
           text={<FormattedMessage id="save" />}
-        ></PrimaryButton>
+        />
       </form>
     );
   };
 
 interface EndpointDirectAccessContentProps {
-  domains: Domain[];
-  redirectURLForm: AppConfigFormModel<RedirectURLFormState>;
-  publicOrigin: string;
+  form: AppConfigFormModel<RedirectURLFormState>;
 }
 
 const EndpointDirectAccessContent: React.VFC<EndpointDirectAccessContentProps> =
   function EndpointDirectAccessContent(props) {
-    const { domains, redirectURLForm, publicOrigin } = props;
+    const { form } = props;
 
     const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
       return [
@@ -466,76 +507,67 @@ const EndpointDirectAccessContent: React.VFC<EndpointDirectAccessContentProps> =
       ];
     }, []);
 
-    const isCustomDomain = useMemo(() => {
-      if (domains.length === 0) {
-        return false;
-      }
-      const index = domains.findIndex((d) =>
-        getHostFromOrigin(publicOrigin).includes(d.domain)
-      );
-      if (index < 0) {
-        return false;
-      }
-      return domains[index].isCustom;
-    }, [domains, publicOrigin]);
-
     return (
       <ScreenLayoutScrollView>
         <ScreenContent>
           <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
-          <ScreenDescription className={styles.widget}>
-            <FormattedMessage id="EndpointDirectAccessScreen.desc" />
-          </ScreenDescription>
-          <RedirectURLForm
-            className={cn(styles.widget)}
-            redirectURLForm={redirectURLForm}
-            disabled={!isCustomDomain}
-          />
+          <RedirectURLForm form={form} />
         </ScreenContent>
       </ScreenLayoutScrollView>
     );
   };
 
+interface EndpointDirectAccessScreen1Props {
+  appID: string;
+  domains: Domain[];
+}
+
+function EndpointDirectAccessScreen1(props: EndpointDirectAccessScreen1Props) {
+  const { appID, domains } = props;
+  const constructFormState = useMemo(
+    () => makeConstructRedirectURLFormState(domains),
+    [domains]
+  );
+
+  const redirectURLForm = useAppConfigForm({
+    appID,
+    constructFormState,
+    constructConfig: constructConfigFromRedirectURLFormState,
+  });
+
+  if (redirectURLForm.isLoading) {
+    return <ShowLoading />;
+  }
+  if (redirectURLForm.loadError) {
+    return (
+      <ShowError
+        error={redirectURLForm.loadError}
+        onRetry={redirectURLForm.reload}
+      />
+    );
+  }
+
+  return (
+    <FormContainerBase form={redirectURLForm}>
+      <EndpointDirectAccessContent form={redirectURLForm} />
+    </FormContainerBase>
+  );
+}
+
 const EndpointDirectAccessScreen: React.VFC =
   function EndpointDirectAccessScreen() {
     const { appID } = useParams() as { appID: string };
-    const {
-      domains,
-      loading: fetchingDomains,
-      error: fetchDomainsError,
-      refetch: refetchDomains,
-    } = useDomainsQuery(appID);
-    const redirectURLForm = useAppConfigForm({
-      appID,
-      constructFormState: constructRedirectURLFormState,
-      constructConfig: constructConfigFromRedirectURLFormState,
-    });
-    const appConfig = useAppAndSecretConfigQuery(appID);
+    const { domains, loading, error, refetch } = useDomainsQuery(appID);
 
-    const isloading = or_(fetchingDomains, redirectURLForm.isLoading);
-    const error = nullishCoalesce(fetchDomainsError, redirectURLForm.loadError);
-    const retry = useCallback(() => {
-      refetchDomains().catch((e) => console.error(e));
-      redirectURLForm.reload();
-    }, [refetchDomains, redirectURLForm]);
-
-    const canSave =
-      redirectURLForm.state.directAccessDisabled != null ||
-      (redirectURLForm.state.postLogoutURL.length > 0 &&
-        (redirectURLForm.state.postLoginURL == null ||
-          redirectURLForm.state.postLoginURL.length > 0));
-
-    if (isloading) return <ShowLoading />;
-    if (error) return <ShowError error={error} onRetry={retry} />;
+    if (loading) {
+      return <ShowLoading />;
+    }
+    if (error) {
+      return <ShowError error={error} onRetry={refetch} />;
+    }
 
     return (
-      <FormContainerBase form={redirectURLForm} canSave={canSave}>
-        <EndpointDirectAccessContent
-          domains={domains ?? []}
-          redirectURLForm={redirectURLForm}
-          publicOrigin={appConfig.rawAppConfig?.http?.public_origin ?? ""}
-        />
-      </FormContainerBase>
+      <EndpointDirectAccessScreen1 appID={appID} domains={domains ?? []} />
     );
   };
 
