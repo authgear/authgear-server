@@ -64,12 +64,21 @@ const BorderRadius: React.VFC<BorderRadiusProps> = function BorderRadius(
     [radiusValue, onChange]
   );
 
-  const onBorderRadiusChange = useCallback((_: any, value?: string) => {
-    if (value == null) {
-      return;
-    }
-    setRadiusValue(value);
-  }, []);
+  const onBorderRadiusChange = useCallback(
+    (_: any, value?: string) => {
+      if (value == null) {
+        return;
+      }
+      setRadiusValue(value);
+      if (value !== "") {
+        onChange({
+          type: "rounded",
+          radius: value,
+        });
+      }
+    },
+    [onChange]
+  );
 
   const onBorderRadiusBlur = useCallback(
     (ev: React.FocusEvent<HTMLInputElement>) => {

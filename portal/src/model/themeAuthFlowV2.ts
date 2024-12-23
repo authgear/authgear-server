@@ -124,8 +124,8 @@ export interface LogoStyle {
   height: string;
 }
 
-export const WatermarkEnabledDisplay = "inline-block";
-export const WatermarkDisabledDisplay = "hidden";
+export const WatermarkEnabledDisplay = "block";
+export const WatermarkDisabledDisplay = "none";
 
 export interface CustomisableTheme {
   page: PageStyle;
