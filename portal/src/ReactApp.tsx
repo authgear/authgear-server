@@ -11,6 +11,7 @@ import {
   Exception as SentryException,
   ErrorEvent as SentryErrorEvent,
   EventHint,
+  ErrorBoundary,
   init as sentryInit,
 } from "@sentry/react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
@@ -42,6 +43,7 @@ import { LoadingContextProvider } from "./hook/loading";
 import { ErrorContextProvider } from "./hook/error";
 import ShowLoading from "./ShowLoading";
 import GTMProvider from "./GTMProvider";
+import { FallbackComponent } from "./FlavoredErrorBoundSuspense";
 import { useViewerQuery } from "./graphql/portal/query/viewerQuery";
 import { extractRawID } from "./util/graphql";
 import { useIdentify } from "./gtm_v2";
@@ -364,37 +366,39 @@ const ReactApp: React.VFC = function ReactApp() {
   }
 
   return (
-    <GTMProvider containerID={systemConfig.gtmContainerID}>
-      <ErrorContextProvider>
-        <LoadingContextProvider>
-          <LocaleProvider
-            locale="en"
-            messageByID={systemConfig.translations.en}
-            defaultComponents={defaultComponents}
-          >
-            <HelmetProvider>
-              <PortalClientProvider value={apolloClient}>
-                <ApolloProvider client={apolloClient}>
-                  <SystemConfigContext.Provider value={systemConfig}>
-                    <LoadCurrentUser>
-                      <UnauthenticatedDialogContext.Provider
-                        value={unauthenticatedDialogContextValue}
-                      >
-                        <PortalRoot />
-                      </UnauthenticatedDialogContext.Provider>
-                      <UnauthenticatedDialog
-                        isHidden={!displayUnauthenticatedDialog}
-                        onConfirm={onUnauthenticatedDialogConfirm}
-                      />
-                    </LoadCurrentUser>
-                  </SystemConfigContext.Provider>
-                </ApolloProvider>
-              </PortalClientProvider>
-            </HelmetProvider>
-          </LocaleProvider>
-        </LoadingContextProvider>
-      </ErrorContextProvider>
-    </GTMProvider>
+    <ErrorBoundary fallback={FallbackComponent}>
+      <GTMProvider containerID={systemConfig.gtmContainerID}>
+        <ErrorContextProvider>
+          <LoadingContextProvider>
+            <LocaleProvider
+              locale="en"
+              messageByID={systemConfig.translations.en}
+              defaultComponents={defaultComponents}
+            >
+              <HelmetProvider>
+                <PortalClientProvider value={apolloClient}>
+                  <ApolloProvider client={apolloClient}>
+                    <SystemConfigContext.Provider value={systemConfig}>
+                      <LoadCurrentUser>
+                        <UnauthenticatedDialogContext.Provider
+                          value={unauthenticatedDialogContextValue}
+                        >
+                          <PortalRoot />
+                        </UnauthenticatedDialogContext.Provider>
+                        <UnauthenticatedDialog
+                          isHidden={!displayUnauthenticatedDialog}
+                          onConfirm={onUnauthenticatedDialogConfirm}
+                        />
+                      </LoadCurrentUser>
+                    </SystemConfigContext.Provider>
+                  </ApolloProvider>
+                </PortalClientProvider>
+              </HelmetProvider>
+            </LocaleProvider>
+          </LoadingContextProvider>
+        </ErrorContextProvider>
+      </GTMProvider>
+    </ErrorBoundary>
   );
 };
 
