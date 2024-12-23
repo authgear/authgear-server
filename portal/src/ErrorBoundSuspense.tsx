@@ -75,6 +75,10 @@ function makeFactory(urlToModule: URL) {
   return async () => import(/* @vite-ignore */ patchedURL.toString());
 }
 
+// ErrorBoundSuspense is known to have this bug.
+// https://linear.app/authgear/issue/DEV-2387/wrong-path-when-no-application-in-portal
+// Do not use it.
+
 // ErrorBoundSuspense borrows the idea from https://github.com/cj0x39e/retrying-dynamic-import/blob/main/packages/retrying-dynamic-import/src/index.ts
 // There is one difference though.
 // ErrorBoundSuspense currently can only reload failed JavaScript module.
