@@ -142,7 +142,7 @@ authui-dev:
 .PHONY: portal
 portal:
 	npm run --silent --prefix ./portal build
-	cp -R ./portal/dist/ ./resources/portal/static/
+	cp -R ./portal/dist/. ./resources/portal/static/
 	# Vite by default will remove the output directory before the build.
 	# So we need to touch .gitkeep after the build to avoid git changes.
 	touch ./portal/dist/.gitkeep
