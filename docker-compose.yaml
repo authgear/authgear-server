@@ -1,5 +1,6 @@
 services:
   db:
+    # When you change this, please also change ./e2e/docker-compose.yaml
     image: postgres12-pg-partman-pgaudit:latest
     build:
       context: ./postgres/postgres12
