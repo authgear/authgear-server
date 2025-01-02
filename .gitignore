@@ -11,6 +11,10 @@
 /tls-key.pem
 .parcel-cache/
 
+# direnv
+.envrc
+.direnv/
+
 # docker
 docker-compose.override.yaml
 

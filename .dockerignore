@@ -10,6 +10,10 @@
 **/venv
 **/var
 
+# direnv
+**/.envrc
+**/.direnv
+
 resources/**/generated
 resources/portal/static/*
 !resources/portal/static/img/*

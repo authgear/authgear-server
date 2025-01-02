@@ -25,6 +25,10 @@ vendor:
 	go install golang.org/x/vuln/cmd/govulncheck@latest
 	go install golang.org/x/tools/cmd/goimports@latest
 	go install go.k6.io/xk6/cmd/xk6@latest
+	$(MAKE) build-frondend
+
+.PHONY: build-frondend
+build-frondend:
 	npm --prefix ./scripts/npm ci
 	npm --prefix ./authui ci
 	npm --prefix ./portal ci
@@ -138,7 +142,7 @@ authui-dev:
 .PHONY: portal
 portal:
 	npm run --silent --prefix ./portal build
-	cp -R ./portal/dist/ ./resources/portal/static/
+	cp -R ./portal/dist/. ./resources/portal/static/
 	# Vite by default will remove the output directory before the build.
 	# So we need to touch .gitkeep after the build to avoid git changes.
 	touch ./portal/dist/.gitkeep

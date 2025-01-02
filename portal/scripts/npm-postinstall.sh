@@ -22,7 +22,7 @@ mkdir -p ./src/public/shared-assets/
 find ./src/public/shared-assets -name 'fabric-icons-*.woff' -print -exec rm '{}' \;
 # When window.FabricConfig.iconBaseUrl is set, it loads the font directly in the directory.
 # So we just copy the fonts to outDir.
-cp -r ./node_modules/@fluentui/font-icons-mdl2/fonts/. ./src/public/shared-assets/.
+cp -R ./node_modules/@fluentui/font-icons-mdl2/fonts/. ./src/public/shared-assets/.
 
 # When window.FabricConfig.fontBaseUrl is set, it loads the font with a certain structure.
 # The original URL is https://static2.sharepointonline.com/files/fabric/assets/fonts/segoeui-westeuropean/segoeui-bold.woff2
