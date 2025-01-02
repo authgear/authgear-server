@@ -2,6 +2,8 @@ import React, {
   useContext,
   useEffect,
   useState,
+  Suspense,
+  lazy,
   useCallback,
   useMemo,
 } from "react";
@@ -9,6 +11,7 @@ import {
   Exception as SentryException,
   ErrorEvent as SentryErrorEvent,
   EventHint,
+  ErrorBoundary,
   init as sentryInit,
 } from "@sentry/react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
@@ -40,11 +43,11 @@ import { LoadingContextProvider } from "./hook/loading";
 import { ErrorContextProvider } from "./hook/error";
 import ShowLoading from "./ShowLoading";
 import GTMProvider from "./GTMProvider";
+import { FallbackComponent } from "./FlavoredErrorBoundSuspense";
 import { useViewerQuery } from "./graphql/portal/query/viewerQuery";
 import { extractRawID } from "./util/graphql";
 import { useIdentify } from "./gtm_v2";
 import AppContextProvider from "./AppContextProvider";
-import FlavoredErrorBoundSuspense from "./FlavoredErrorBoundSuspense";
 import {
   PortalClientProvider,
   createCache,
@@ -57,6 +60,24 @@ import {
   UnauthenticatedDialogContextValue,
 } from "./components/auth/UnauthenticatedDialogContext";
 import { isNetworkError } from "./util/error";
+
+const AppsScreen = lazy(async () => import("./graphql/portal/AppsScreen"));
+const CreateProjectScreen = lazy(
+  async () => import("./graphql/portal/CreateProjectScreen")
+);
+const OnboardingSurveyScreen = lazy(
+  async () => import("./OnboardingSurveyScreen")
+);
+const ProjectWizardScreen = lazy(
+  async () => import("./graphql/portal/ProjectWizardScreen")
+);
+const OnboardingRedirect = lazy(async () => import("./OnboardingRedirect"));
+const OAuthRedirect = lazy(async () => import("./OAuthRedirect"));
+const AcceptAdminInvitationScreen = lazy(
+  async () => import("./graphql/portal/AcceptAdminInvitationScreen")
+);
+
+const StoryBookScreen = lazy(async () => import("./StoryBookScreen"));
 
 async function loadSystemConfig(): Promise<SystemConfig> {
   const resp = await fetch("/api/system-config.json");
@@ -121,11 +142,9 @@ const ReactAppRoutes: React.VFC = function ReactAppRoutes() {
             index={true}
             element={
               <Authenticated>
-                <FlavoredErrorBoundSuspense
-                  factory={async () => import("./graphql/portal/AppsScreen")}
-                >
-                  {(AppsScreen) => <AppsScreen />}
-                </FlavoredErrorBoundSuspense>
+                <Suspense fallback={<ShowLoading />}>
+                  <AppsScreen />
+                </Suspense>
               </Authenticated>
             }
           />
@@ -133,18 +152,13 @@ const ReactAppRoutes: React.VFC = function ReactAppRoutes() {
             path="create"
             element={
               <Authenticated>
-                <FlavoredErrorBoundSuspense
-                  factory={async () =>
-                    import("./graphql/portal/CreateProjectScreen")
-                  }
-                >
-                  {(CreateProjectScreen) => <CreateProjectScreen />}
-                </FlavoredErrorBoundSuspense>
+                <Suspense fallback={<ShowLoading />}>
+                  <CreateProjectScreen />
+                </Suspense>
               </Authenticated>
             }
           />
         </Route>
-
         <Route path="onboarding-survey">
           <Route
             index={true}
@@ -152,16 +166,13 @@ const ReactAppRoutes: React.VFC = function ReactAppRoutes() {
             path="*"
             element={
               <Authenticated>
-                <FlavoredErrorBoundSuspense
-                  factory={async () => import("./OnboardingSurveyScreen")}
-                >
-                  {(OnboardingSurveyScreen) => <OnboardingSurveyScreen />}
-                </FlavoredErrorBoundSuspense>
+                <Suspense fallback={<ShowLoading />}>
+                  <OnboardingSurveyScreen />
+                </Suspense>
               </Authenticated>
             }
           />
         </Route>
-
         <Route path="/project">
           <Route index={true} element={<Navigate to="/" />} />
           <Route path=":appID">
@@ -184,15 +195,11 @@ const ReactAppRoutes: React.VFC = function ReactAppRoutes() {
                 path="*"
                 element={
                   <Authenticated>
-                    <AppContextProvider>
-                      <FlavoredErrorBoundSuspense
-                        factory={async () =>
-                          import("./graphql/portal/ProjectWizardScreen")
-                        }
-                      >
-                        {(ProjectWizardScreen) => <ProjectWizardScreen />}
-                      </FlavoredErrorBoundSuspense>
-                    </AppContextProvider>
+                    <Suspense fallback={<ShowLoading />}>
+                      <AppContextProvider>
+                        <ProjectWizardScreen />
+                      </AppContextProvider>
+                    </Suspense>
                   </Authenticated>
                 }
               />
@@ -203,11 +210,9 @@ const ReactAppRoutes: React.VFC = function ReactAppRoutes() {
         <Route
           path="/oauth-redirect"
           element={
-            <FlavoredErrorBoundSuspense
-              factory={async () => import("./OAuthRedirect")}
-            >
-              {(OAuthRedirect) => <OAuthRedirect />}
-            </FlavoredErrorBoundSuspense>
+            <Suspense fallback={<ShowLoading />}>
+              <OAuthRedirect />
+            </Suspense>
           }
         />
 
@@ -216,35 +221,27 @@ const ReactAppRoutes: React.VFC = function ReactAppRoutes() {
         <Route
           path="/onboarding-redirect"
           element={
-            <FlavoredErrorBoundSuspense
-              factory={async () => import("./OnboardingRedirect")}
-            >
-              {(OnboardingRedirect) => <OnboardingRedirect />}
-            </FlavoredErrorBoundSuspense>
+            <Suspense fallback={<ShowLoading />}>
+              <OnboardingRedirect />
+            </Suspense>
           }
         />
 
         <Route
           path="/collaborators/invitation"
           element={
-            <FlavoredErrorBoundSuspense
-              factory={async () =>
-                import("./graphql/portal/AcceptAdminInvitationScreen")
-              }
-            >
-              {(AcceptAdminInvitationScreen) => <AcceptAdminInvitationScreen />}
-            </FlavoredErrorBoundSuspense>
+            <Suspense fallback={<ShowLoading />}>
+              <AcceptAdminInvitationScreen />
+            </Suspense>
           }
         />
 
         <Route
           path="/storybook"
           element={
-            <FlavoredErrorBoundSuspense
-              factory={async () => import("./StoryBookScreen")}
-            >
-              {(StoryBookScreen) => <StoryBookScreen />}
-            </FlavoredErrorBoundSuspense>
+            <Suspense fallback={<ShowLoading />}>
+              <StoryBookScreen />
+            </Suspense>
           }
         />
       </Routes>
@@ -369,37 +366,39 @@ const ReactApp: React.VFC = function ReactApp() {
   }
 
   return (
-    <GTMProvider containerID={systemConfig.gtmContainerID}>
-      <ErrorContextProvider>
-        <LoadingContextProvider>
-          <LocaleProvider
-            locale="en"
-            messageByID={systemConfig.translations.en}
-            defaultComponents={defaultComponents}
-          >
-            <HelmetProvider>
-              <PortalClientProvider value={apolloClient}>
-                <ApolloProvider client={apolloClient}>
-                  <SystemConfigContext.Provider value={systemConfig}>
-                    <LoadCurrentUser>
-                      <UnauthenticatedDialogContext.Provider
-                        value={unauthenticatedDialogContextValue}
-                      >
-                        <PortalRoot />
-                      </UnauthenticatedDialogContext.Provider>
-                      <UnauthenticatedDialog
-                        isHidden={!displayUnauthenticatedDialog}
-                        onConfirm={onUnauthenticatedDialogConfirm}
-                      />
-                    </LoadCurrentUser>
-                  </SystemConfigContext.Provider>
-                </ApolloProvider>
-              </PortalClientProvider>
-            </HelmetProvider>
-          </LocaleProvider>
-        </LoadingContextProvider>
-      </ErrorContextProvider>
-    </GTMProvider>
+    <ErrorBoundary fallback={FallbackComponent}>
+      <GTMProvider containerID={systemConfig.gtmContainerID}>
+        <ErrorContextProvider>
+          <LoadingContextProvider>
+            <LocaleProvider
+              locale="en"
+              messageByID={systemConfig.translations.en}
+              defaultComponents={defaultComponents}
+            >
+              <HelmetProvider>
+                <PortalClientProvider value={apolloClient}>
+                  <ApolloProvider client={apolloClient}>
+                    <SystemConfigContext.Provider value={systemConfig}>
+                      <LoadCurrentUser>
+                        <UnauthenticatedDialogContext.Provider
+                          value={unauthenticatedDialogContextValue}
+                        >
+                          <PortalRoot />
+                        </UnauthenticatedDialogContext.Provider>
+                        <UnauthenticatedDialog
+                          isHidden={!displayUnauthenticatedDialog}
+                          onConfirm={onUnauthenticatedDialogConfirm}
+                        />
+                      </LoadCurrentUser>
+                    </SystemConfigContext.Provider>
+                  </ApolloProvider>
+                </PortalClientProvider>
+              </HelmetProvider>
+            </LocaleProvider>
+          </LoadingContextProvider>
+        </ErrorContextProvider>
+      </GTMProvider>
+    </ErrorBoundary>
   );
 };
 

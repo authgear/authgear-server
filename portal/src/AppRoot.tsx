@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, lazy, Suspense } from "react";
 import { Routes, Route, useParams, Navigate } from "react-router-dom";
 import { ApolloProvider } from "@apollo/client";
 
@@ -8,7 +8,176 @@ import ScreenLayout from "./ScreenLayout";
 import ShowLoading from "./ShowLoading";
 import { useUnauthenticatedDialogContext } from "./components/auth/UnauthenticatedDialogContext";
 import { useUIImplementation } from "./hook/useUIImplementation";
-import FlavoredErrorBoundSuspense from "./FlavoredErrorBoundSuspense";
+
+const RolesScreen = lazy(async () => import("./graphql/adminapi/RolesScreen"));
+const AddRoleScreen = lazy(
+  async () => import("./graphql/adminapi/AddRoleScreen")
+);
+const RoleDetailsScreen = lazy(
+  async () => import("./graphql/adminapi/RoleDetailsScreen")
+);
+const GroupsScreen = lazy(
+  async () => import("./graphql/adminapi/GroupsScreen")
+);
+const AddGroupScreen = lazy(
+  async () => import("./graphql/adminapi/AddGroupScreen")
+);
+const GroupDetailsScreen = lazy(
+  async () => import("./graphql/adminapi/GroupDetailsScreen")
+);
+const UsersRedirectScreen = lazy(async () => import("./UsersRedirectScreen"));
+const UsersScreen = lazy(async () => import("./graphql/adminapi/UsersScreen"));
+const AddUserScreen = lazy(
+  async () => import("./graphql/adminapi/AddUserScreen")
+);
+const UserDetailsScreen = lazy(
+  async () => import("./graphql/adminapi/UserDetailsScreen")
+);
+const EmailScreen = lazy(async () => import("./graphql/adminapi/EmailScreen"));
+const PhoneScreen = lazy(async () => import("./graphql/adminapi/PhoneScreen"));
+const UsernameScreen = lazy(
+  async () => import("./graphql/adminapi/UsernameScreen")
+);
+const ChangePasswordScreen = lazy(
+  async () => import("./graphql/adminapi/ChangePasswordScreen")
+);
+const EditPictureScreen = lazy(
+  async () => import("./graphql/adminapi/EditPictureScreen")
+);
+const Add2FAScreen = lazy(
+  async () => import("./graphql/adminapi/Add2FAScreen")
+);
+
+const AuditLogScreen = lazy(
+  async () => import("./graphql/adminapi/AuditLogScreen")
+);
+const AuditLogEntryScreen = lazy(
+  async () => import("./graphql/adminapi/AuditLogEntryScreen")
+);
+
+const ProjectRootScreen = lazy(
+  async () => import("./graphql/portal/ProjectRootScreen")
+);
+const GetStartedScreen = lazy(
+  async () => import("./graphql/portal/GetStartedScreen")
+);
+const AnonymousUsersConfigurationScreen = lazy(
+  async () => import("./graphql/portal/AnonymousUsersConfigurationScreen")
+);
+const App2AppConfigurationScreen = lazy(
+  async () => import("./graphql/portal/App2AppConfigurationScreen")
+);
+const SingleSignOnConfigurationScreen = lazy(
+  async () => import("./graphql/portal/SingleSignOnConfigurationScreen")
+);
+const AddSingleSignOnConfigurationScreen = lazy(
+  async () => import("./graphql/portal/AddSingleSignOnConfigurationScreen")
+);
+const EditSingleSignOnConfigurationScreen = lazy(
+  async () => import("./graphql/portal/EditSingleSignOnConfigurationScreen")
+);
+const ApplicationsConfigurationScreen = lazy(
+  async () => import("./graphql/portal/ApplicationsConfigurationScreen")
+);
+const CreateOAuthClientScreen = lazy(
+  async () => import("./graphql/portal/CreateOAuthClientScreen")
+);
+const EditOAuthClientScreen = lazy(
+  async () => import("./graphql/portal/EditOAuthClientScreen")
+);
+const CustomDomainListScreen = lazy(
+  async () => import("./graphql/portal/CustomDomainListScreen")
+);
+const VerifyDomainScreen = lazy(
+  async () => import("./graphql/portal/VerifyDomainScreen")
+);
+const UISettingsScreen = lazy(
+  async () => import("./graphql/portal/UISettingsScreen")
+);
+const DesignScreen = lazy(
+  async () => import("./graphql/portal/DesignScreen/DesignScreen")
+);
+const LocalizationConfigurationScreen = lazy(
+  async () => import("./graphql/portal/LocalizationConfigurationScreen")
+);
+const CustomTextConfigurationScreen = lazy(
+  async () => import("./graphql/portal/CustomTextConfigurationScreen")
+);
+const LanguagesConfigurationScreen = lazy(
+  async () => import("./graphql/portal/LanguagesConfigurationScreen")
+);
+const InviteAdminScreen = lazy(
+  async () => import("./graphql/portal/InviteAdminScreen")
+);
+const PortalAdminsSettings = lazy(
+  async () => import("./graphql/portal/PortalAdminsSettings")
+);
+const HookConfigurationScreen = lazy(
+  async () => import("./graphql/portal/HookConfigurationScreen")
+);
+const AdminAPIConfigurationScreen = lazy(
+  async () => import("./graphql/portal/AdminAPIConfigurationScreen")
+);
+const LoginMethodConfigurationScreen = lazy(
+  async () => import("./graphql/portal/LoginMethodConfigurationScreen")
+);
+const BiometricConfigurationScreen = lazy(
+  async () => import("./graphql/portal/BiometricConfigurationScreen")
+);
+const MFAConfigurationScreen = lazy(
+  async () => import("./graphql/portal/MFAConfigurationScreen")
+);
+const SubscriptionScreen = lazy(
+  async () => import("./graphql/portal/SubscriptionScreen")
+);
+const SMTPConfigurationScreen = lazy(
+  async () => import("./graphql/portal/SMTPConfigurationScreen")
+);
+const StandardAttributesConfigurationScreen = lazy(
+  async () => import("./graphql/portal/StandardAttributesConfigurationScreen")
+);
+const CustomAttributesConfigurationScreen = lazy(
+  async () => import("./graphql/portal/CustomAttributesConfigurationScreen")
+);
+const EditCustomAttributeScreen = lazy(
+  async () => import("./graphql/portal/EditCustomAttributeScreen")
+);
+const CreateCustomAttributeScreen = lazy(
+  async () => import("./graphql/portal/CreateCustomAttributeScreen")
+);
+const AccountDeletionConfigurationScreen = lazy(
+  async () => import("./graphql/portal/AccountDeletionConfigurationScreen")
+);
+const AccountAnonymizationConfigurationScreen = lazy(
+  async () => import("./graphql/portal/AccountAnonymizationConfigurationScreen")
+);
+const AnalyticsScreen = lazy(
+  async () => import("./graphql/portal/AnalyticsScreen")
+);
+const IntegrationsConfigurationScreen = lazy(
+  async () => import("./graphql/portal/IntegrationsConfigurationScreen")
+);
+const GoogleTagManagerConfigurationScreen = lazy(
+  async () => import("./graphql/portal/GoogleTagManagerConfigurationScreen")
+);
+const BotProtectionConfigurationScreen = lazy(
+  async () => import("./graphql/portal/BotProtectionConfigurationScreen")
+);
+const SubscriptionRedirect = lazy(
+  async () => import("./graphql/portal/SubscriptionRedirect")
+);
+const EndpointDirectAccessScreen = lazy(
+  async () => import("./graphql/portal/EndpointDirectAccessScreen")
+);
+const SAMLCertificateScreen = lazy(
+  async () => import("./graphql/portal/SAMLCertificateScreen")
+);
+const CookieLifetimeConfigurationScreen = lazy(
+  async () => import("./graphql/portal/CookieLifetimeConfigurationScreen")
+);
+const EditConfigurationScreen = lazy(
+  async () => import("./graphql/portal/EditConfigurationScreen")
+);
 
 const AppRoot: React.VFC = function AppRoot() {
   const { appID } = useParams() as { appID: string };
@@ -50,13 +219,9 @@ const AppRoot: React.VFC = function AppRoot() {
           <Route
             index={true}
             element={
-              <FlavoredErrorBoundSuspense
-                factory={async () =>
-                  import("./graphql/portal/ProjectRootScreen")
-                }
-              >
-                {(ProjectRootScreen) => <ProjectRootScreen />}
-              </FlavoredErrorBoundSuspense>
+              <Suspense fallback={<ShowLoading />}>
+                <ProjectRootScreen />
+              </Suspense>
             }
           />
 
@@ -64,13 +229,9 @@ const AppRoot: React.VFC = function AppRoot() {
             <Route
               index={true}
               element={
-                <FlavoredErrorBoundSuspense
-                  factory={async () =>
-                    import("./graphql/portal/GetStartedScreen")
-                  }
-                >
-                  {(GetStartedScreen) => <GetStartedScreen />}
-                </FlavoredErrorBoundSuspense>
+                <Suspense fallback={<ShowLoading />}>
+                  <GetStartedScreen />
+                </Suspense>
               }
             />
           </Route>
@@ -79,27 +240,20 @@ const AppRoot: React.VFC = function AppRoot() {
             <Route
               index={true}
               element={
-                <FlavoredErrorBoundSuspense
-                  factory={async () =>
-                    import("./graphql/portal/AnalyticsScreen")
-                  }
-                >
-                  {(AnalyticsScreen) => <AnalyticsScreen />}
-                </FlavoredErrorBoundSuspense>
+                <Suspense fallback={<ShowLoading />}>
+                  <AnalyticsScreen />
+                </Suspense>
               }
             />
           </Route>
-
           <Route
             path="users/*"
             element={
-              <FlavoredErrorBoundSuspense
-                factory={async () => import("./UsersRedirectScreen")}
-              >
-                {(UsersRedirectScreen) => <UsersRedirectScreen />}
-              </FlavoredErrorBoundSuspense>
+              <Suspense fallback={<ShowLoading />}>
+                <UsersRedirectScreen />
+              </Suspense>
             }
-          />
+          ></Route>
 
           <Route path="user-management">
             <Route
@@ -111,25 +265,17 @@ const AppRoot: React.VFC = function AppRoot() {
               <Route
                 index={true}
                 element={
-                  <FlavoredErrorBoundSuspense
-                    factory={async () =>
-                      import("./graphql/adminapi/RolesScreen")
-                    }
-                  >
-                    {(RolesScreen) => <RolesScreen />}
-                  </FlavoredErrorBoundSuspense>
+                  <Suspense fallback={<ShowLoading />}>
+                    <RolesScreen />
+                  </Suspense>
                 }
               />
               <Route
                 path="add-role"
                 element={
-                  <FlavoredErrorBoundSuspense
-                    factory={async () =>
-                      import("./graphql/adminapi/AddRoleScreen")
-                    }
-                  >
-                    {(AddRoleScreen) => <AddRoleScreen />}
-                  </FlavoredErrorBoundSuspense>
+                  <Suspense fallback={<ShowLoading />}>
+                    <AddRoleScreen />
+                  </Suspense>
                 }
               />
               <Route path=":roleID">
@@ -141,13 +287,9 @@ const AppRoot: React.VFC = function AppRoot() {
                   <Route
                     index={true}
                     element={
-                      <FlavoredErrorBoundSuspense
-                        factory={async () =>
-                          import("./graphql/adminapi/RoleDetailsScreen")
-                        }
-                      >
-                        {(RoleDetailsScreen) => <RoleDetailsScreen />}
-                      </FlavoredErrorBoundSuspense>
+                      <Suspense fallback={<ShowLoading />}>
+                        <RoleDetailsScreen />
+                      </Suspense>
                     }
                   />
                 </Route>
@@ -158,25 +300,17 @@ const AppRoot: React.VFC = function AppRoot() {
               <Route
                 index={true}
                 element={
-                  <FlavoredErrorBoundSuspense
-                    factory={async () =>
-                      import("./graphql/adminapi/GroupsScreen")
-                    }
-                  >
-                    {(GroupsScreen) => <GroupsScreen />}
-                  </FlavoredErrorBoundSuspense>
+                  <Suspense fallback={<ShowLoading />}>
+                    <GroupsScreen />
+                  </Suspense>
                 }
               />
               <Route
                 path="add-group"
                 element={
-                  <FlavoredErrorBoundSuspense
-                    factory={async () =>
-                      import("./graphql/adminapi/AddGroupScreen")
-                    }
-                  >
-                    {(AddGroupScreen) => <AddGroupScreen />}
-                  </FlavoredErrorBoundSuspense>
+                  <Suspense fallback={<ShowLoading />}>
+                    <AddGroupScreen />
+                  </Suspense>
                 }
               />
               <Route path=":groupID">
@@ -188,13 +322,9 @@ const AppRoot: React.VFC = function AppRoot() {
                   <Route
                     index={true}
                     element={
-                      <FlavoredErrorBoundSuspense
-                        factory={async () =>
-                          import("./graphql/adminapi/GroupDetailsScreen")
-                        }
-                      >
-                        {(GroupDetailsScreen) => <GroupDetailsScreen />}
-                      </FlavoredErrorBoundSuspense>
+                      <Suspense fallback={<ShowLoading />}>
+                        <GroupDetailsScreen />
+                      </Suspense>
                     }
                   />
                 </Route>
@@ -205,25 +335,17 @@ const AppRoot: React.VFC = function AppRoot() {
               <Route
                 index={true}
                 element={
-                  <FlavoredErrorBoundSuspense
-                    factory={async () =>
-                      import("./graphql/adminapi/UsersScreen")
-                    }
-                  >
-                    {(UsersScreen) => <UsersScreen />}
-                  </FlavoredErrorBoundSuspense>
+                  <Suspense fallback={<ShowLoading />}>
+                    <UsersScreen />
+                  </Suspense>
                 }
               />
               <Route
                 path="add-user"
                 element={
-                  <FlavoredErrorBoundSuspense
-                    factory={async () =>
-                      import("./graphql/adminapi/AddUserScreen")
-                    }
-                  >
-                    {(AddUserScreen) => <AddUserScreen />}
-                  </FlavoredErrorBoundSuspense>
+                  <Suspense fallback={<ShowLoading />}>
+                    <AddUserScreen />
+                  </Suspense>
                 }
               />
               <Route path=":userID">
@@ -235,151 +357,97 @@ const AppRoot: React.VFC = function AppRoot() {
                   <Route
                     index={true}
                     element={
-                      <FlavoredErrorBoundSuspense
-                        factory={async () =>
-                          import("./graphql/adminapi/UserDetailsScreen")
-                        }
-                      >
-                        {(UserDetailsScreen) => <UserDetailsScreen />}
-                      </FlavoredErrorBoundSuspense>
+                      <Suspense fallback={<ShowLoading />}>
+                        <UserDetailsScreen />
+                      </Suspense>
                     }
                   />
                   <Route
                     path="add-email"
                     element={
-                      <FlavoredErrorBoundSuspense
-                        factory={async () =>
-                          import("./graphql/adminapi/EmailScreen")
-                        }
-                      >
-                        {(EmailScreen) => <EmailScreen />}
-                      </FlavoredErrorBoundSuspense>
+                      <Suspense fallback={<ShowLoading />}>
+                        <EmailScreen />
+                      </Suspense>
                     }
                   />
                   <Route
                     path="edit-email/:identityID"
                     element={
-                      <FlavoredErrorBoundSuspense
-                        factory={async () =>
-                          import("./graphql/adminapi/EmailScreen")
-                        }
-                      >
-                        {(EmailScreen) => <EmailScreen />}
-                      </FlavoredErrorBoundSuspense>
+                      <Suspense fallback={<ShowLoading />}>
+                        <EmailScreen />
+                      </Suspense>
                     }
                   />
                   <Route
                     path="add-phone"
                     element={
-                      <FlavoredErrorBoundSuspense
-                        factory={async () =>
-                          import("./graphql/adminapi/PhoneScreen")
-                        }
-                      >
-                        {(PhoneScreen) => <PhoneScreen />}
-                      </FlavoredErrorBoundSuspense>
+                      <Suspense fallback={<ShowLoading />}>
+                        <PhoneScreen />
+                      </Suspense>
                     }
                   />
                   <Route
                     path="edit-phone/:identityID"
                     element={
-                      <FlavoredErrorBoundSuspense
-                        factory={async () =>
-                          import("./graphql/adminapi/PhoneScreen")
-                        }
-                      >
-                        {(PhoneScreen) => <PhoneScreen />}
-                      </FlavoredErrorBoundSuspense>
+                      <Suspense fallback={<ShowLoading />}>
+                        <PhoneScreen />
+                      </Suspense>
                     }
                   />
                   <Route
                     path="add-username"
                     element={
-                      <FlavoredErrorBoundSuspense
-                        factory={async () =>
-                          import("./graphql/adminapi/UsernameScreen")
-                        }
-                      >
-                        {(UsernameScreen) => <UsernameScreen />}
-                      </FlavoredErrorBoundSuspense>
+                      <Suspense fallback={<ShowLoading />}>
+                        <UsernameScreen />
+                      </Suspense>
                     }
                   />
                   <Route
                     path="edit-username/:identityID"
                     element={
-                      <FlavoredErrorBoundSuspense
-                        factory={async () =>
-                          import("./graphql/adminapi/UsernameScreen")
-                        }
-                      >
-                        {(UsernameScreen) => <UsernameScreen />}
-                      </FlavoredErrorBoundSuspense>
+                      <Suspense fallback={<ShowLoading />}>
+                        <UsernameScreen />
+                      </Suspense>
                     }
                   />
                   <Route
                     path="change-password"
                     element={
-                      <FlavoredErrorBoundSuspense
-                        factory={async () =>
-                          import("./graphql/adminapi/ChangePasswordScreen")
-                        }
-                      >
-                        {(ChangePasswordScreen) => <ChangePasswordScreen />}
-                      </FlavoredErrorBoundSuspense>
+                      <Suspense fallback={<ShowLoading />}>
+                        <ChangePasswordScreen />
+                      </Suspense>
                     }
                   />
                   <Route
                     path="edit-picture"
                     element={
-                      <FlavoredErrorBoundSuspense
-                        factory={async () =>
-                          import("./graphql/adminapi/EditPictureScreen")
-                        }
-                      >
-                        {(EditPictureScreen) => <EditPictureScreen />}
-                      </FlavoredErrorBoundSuspense>
+                      <Suspense fallback={<ShowLoading />}>
+                        <EditPictureScreen />
+                      </Suspense>
                     }
                   />
                   <Route
                     path="add-2fa-phone"
                     element={
-                      <FlavoredErrorBoundSuspense
-                        factory={async () =>
-                          import("./graphql/adminapi/Add2FAScreen")
-                        }
-                      >
-                        {(Add2FAScreen) => (
-                          <Add2FAScreen authenticatorType="oob_otp_sms" />
-                        )}
-                      </FlavoredErrorBoundSuspense>
+                      <Suspense fallback={<ShowLoading />}>
+                        <Add2FAScreen authenticatorType="oob_otp_sms" />
+                      </Suspense>
                     }
                   />
                   <Route
                     path="add-2fa-email"
                     element={
-                      <FlavoredErrorBoundSuspense
-                        factory={async () =>
-                          import("./graphql/adminapi/Add2FAScreen")
-                        }
-                      >
-                        {(Add2FAScreen) => (
-                          <Add2FAScreen authenticatorType="oob_otp_email" />
-                        )}
-                      </FlavoredErrorBoundSuspense>
+                      <Suspense fallback={<ShowLoading />}>
+                        <Add2FAScreen authenticatorType="oob_otp_email" />
+                      </Suspense>
                     }
                   />
                   <Route
                     path="add-2fa-password"
                     element={
-                      <FlavoredErrorBoundSuspense
-                        factory={async () =>
-                          import("./graphql/adminapi/Add2FAScreen")
-                        }
-                      >
-                        {(Add2FAScreen) => (
-                          <Add2FAScreen authenticatorType="password" />
-                        )}
-                      </FlavoredErrorBoundSuspense>
+                      <Suspense fallback={<ShowLoading />}>
+                        <Add2FAScreen authenticatorType="password" />
+                      </Suspense>
                     }
                   />
                 </Route>
@@ -395,50 +463,26 @@ const AppRoot: React.VFC = function AppRoot() {
             <Route
               path="design"
               element={
-                <FlavoredErrorBoundSuspense
-                  factory={async () =>
-                    import("./graphql/portal/UISettingsScreen")
-                  }
-                >
-                  {(UISettingsScreen) => (
-                    <FlavoredErrorBoundSuspense
-                      factory={async () =>
-                        import("./graphql/portal/DesignScreen/DesignScreen")
-                      }
-                    >
-                      {(DesignScreen) =>
-                        useAuthUIV2 ? <DesignScreen /> : <UISettingsScreen />
-                      }
-                    </FlavoredErrorBoundSuspense>
-                  )}
-                </FlavoredErrorBoundSuspense>
+                <Suspense fallback={<ShowLoading />}>
+                  {useAuthUIV2 ? <DesignScreen /> : <UISettingsScreen />}
+                </Suspense>
               }
             />
             <Route
               path="localization"
               element={
-                <FlavoredErrorBoundSuspense
-                  factory={async () =>
-                    import("./graphql/portal/LocalizationConfigurationScreen")
-                  }
-                >
-                  {(LocalizationConfigurationScreen) => (
-                    <LocalizationConfigurationScreen />
-                  )}
-                </FlavoredErrorBoundSuspense>
+                <Suspense fallback={<ShowLoading />}>
+                  <LocalizationConfigurationScreen />
+                </Suspense>
               }
             />
             <Route path="custom-domains">
               <Route
                 index={true}
                 element={
-                  <FlavoredErrorBoundSuspense
-                    factory={async () =>
-                      import("./graphql/portal/CustomDomainListScreen")
-                    }
-                  >
-                    {(CustomDomainListScreen) => <CustomDomainListScreen />}
-                  </FlavoredErrorBoundSuspense>
+                  <Suspense fallback={<ShowLoading />}>
+                    <CustomDomainListScreen />
+                  </Suspense>
                 }
               />
               <Route path=":domainID">
@@ -449,13 +493,9 @@ const AppRoot: React.VFC = function AppRoot() {
                 <Route
                   path="verify"
                   element={
-                    <FlavoredErrorBoundSuspense
-                      factory={async () =>
-                        import("./graphql/portal/VerifyDomainScreen")
-                      }
-                    >
-                      {(VerifyDomainScreen) => <VerifyDomainScreen />}
-                    </FlavoredErrorBoundSuspense>
+                    <Suspense fallback={<ShowLoading />}>
+                      <VerifyDomainScreen />
+                    </Suspense>
                   }
                 />
               </Route>
@@ -463,15 +503,9 @@ const AppRoot: React.VFC = function AppRoot() {
             <Route
               path="custom-text"
               element={
-                <FlavoredErrorBoundSuspense
-                  factory={async () =>
-                    import("./graphql/portal/CustomTextConfigurationScreen")
-                  }
-                >
-                  {(CustomTextConfigurationScreen) => (
-                    <CustomTextConfigurationScreen />
-                  )}
-                </FlavoredErrorBoundSuspense>
+                <Suspense fallback={<ShowLoading />}>
+                  <CustomTextConfigurationScreen />
+                </Suspense>
               }
             />
           </Route>
@@ -481,7 +515,6 @@ const AppRoot: React.VFC = function AppRoot() {
               index={true}
               element={<Navigate to="authentication" replace={true} />}
             />
-
             <Route path="authentication">
               <Route
                 index={true}
@@ -490,150 +523,85 @@ const AppRoot: React.VFC = function AppRoot() {
               <Route
                 path="login-methods"
                 element={
-                  <FlavoredErrorBoundSuspense
-                    factory={async () =>
-                      import("./graphql/portal/LoginMethodConfigurationScreen")
-                    }
-                  >
-                    {(LoginMethodConfigurationScreen) => (
-                      <LoginMethodConfigurationScreen />
-                    )}
-                  </FlavoredErrorBoundSuspense>
+                  <Suspense fallback={<ShowLoading />}>
+                    <LoginMethodConfigurationScreen />
+                  </Suspense>
                 }
               />
               <Route path="external-oauth">
                 <Route
                   index={true}
                   element={
-                    <FlavoredErrorBoundSuspense
-                      factory={async () =>
-                        import(
-                          "./graphql/portal/SingleSignOnConfigurationScreen"
-                        )
-                      }
-                    >
-                      {(SingleSignOnConfigurationScreen) => (
-                        <SingleSignOnConfigurationScreen />
-                      )}
-                    </FlavoredErrorBoundSuspense>
+                    <Suspense fallback={<ShowLoading />}>
+                      <SingleSignOnConfigurationScreen />
+                    </Suspense>
                   }
                 />
                 <Route
                   path="add"
                   element={
-                    <FlavoredErrorBoundSuspense
-                      factory={async () =>
-                        import(
-                          "./graphql/portal/AddSingleSignOnConfigurationScreen"
-                        )
-                      }
-                    >
-                      {(AddSingleSignOnConfigurationScreen) => (
-                        <AddSingleSignOnConfigurationScreen />
-                      )}
-                    </FlavoredErrorBoundSuspense>
+                    <Suspense fallback={<ShowLoading />}>
+                      <AddSingleSignOnConfigurationScreen />
+                    </Suspense>
                   }
                 />
                 <Route
                   path="edit/:provider"
                   element={
-                    <FlavoredErrorBoundSuspense
-                      factory={async () =>
-                        import(
-                          "./graphql/portal/EditSingleSignOnConfigurationScreen"
-                        )
-                      }
-                    >
-                      {(EditSingleSignOnConfigurationScreen) => (
-                        <EditSingleSignOnConfigurationScreen />
-                      )}
-                    </FlavoredErrorBoundSuspense>
+                    <Suspense fallback={<ShowLoading />}>
+                      <EditSingleSignOnConfigurationScreen />
+                    </Suspense>
                   }
                 />
               </Route>
               <Route
                 path="biometric"
                 element={
-                  <FlavoredErrorBoundSuspense
-                    factory={async () =>
-                      import("./graphql/portal/BiometricConfigurationScreen")
-                    }
-                  >
-                    {(BiometricConfigurationScreen) => (
-                      <BiometricConfigurationScreen />
-                    )}
-                  </FlavoredErrorBoundSuspense>
+                  <Suspense fallback={<ShowLoading />}>
+                    <BiometricConfigurationScreen />
+                  </Suspense>
                 }
               />
               <Route
                 path="2fa"
                 element={
-                  <FlavoredErrorBoundSuspense
-                    factory={async () =>
-                      import("./graphql/portal/MFAConfigurationScreen")
-                    }
-                  >
-                    {(MFAConfigurationScreen) => <MFAConfigurationScreen />}
-                  </FlavoredErrorBoundSuspense>
+                  <Suspense fallback={<ShowLoading />}>
+                    <MFAConfigurationScreen />
+                  </Suspense>
                 }
               />
               <Route
                 path="anonymous-users"
                 element={
-                  <FlavoredErrorBoundSuspense
-                    factory={async () =>
-                      import(
-                        "./graphql/portal/AnonymousUsersConfigurationScreen"
-                      )
-                    }
-                  >
-                    {(AnonymousUsersConfigurationScreen) => (
-                      <AnonymousUsersConfigurationScreen />
-                    )}
-                  </FlavoredErrorBoundSuspense>
+                  <Suspense fallback={<ShowLoading />}>
+                    <AnonymousUsersConfigurationScreen />
+                  </Suspense>
                 }
               />
               <Route
                 path="app2app"
                 element={
-                  <FlavoredErrorBoundSuspense
-                    factory={async () =>
-                      import("./graphql/portal/App2AppConfigurationScreen")
-                    }
-                  >
-                    {(App2AppConfigurationScreen) => (
-                      <App2AppConfigurationScreen />
-                    )}
-                  </FlavoredErrorBoundSuspense>
+                  <Suspense fallback={<ShowLoading />}>
+                    <App2AppConfigurationScreen />
+                  </Suspense>
                 }
               />
             </Route>
-
             <Route path="apps">
               <Route
                 index={true}
                 element={
-                  <FlavoredErrorBoundSuspense
-                    factory={async () =>
-                      import("./graphql/portal/ApplicationsConfigurationScreen")
-                    }
-                  >
-                    {(ApplicationsConfigurationScreen) => (
-                      <ApplicationsConfigurationScreen />
-                    )}
-                  </FlavoredErrorBoundSuspense>
+                  <Suspense fallback={<ShowLoading />}>
+                    <ApplicationsConfigurationScreen />
+                  </Suspense>
                 }
               />
               <Route
                 path="add"
                 element={
-                  <FlavoredErrorBoundSuspense
-                    factory={async () =>
-                      import("./graphql/portal/CreateOAuthClientScreen")
-                    }
-                  >
-                    {(CreateOAuthClientScreen) => <CreateOAuthClientScreen />}
-                  </FlavoredErrorBoundSuspense>
+                  <Suspense fallback={<ShowLoading />}>
+                    <CreateOAuthClientScreen />
+                  </Suspense>
                 }
               />
               <Route path=":clientID">
@@ -644,33 +612,21 @@ const AppRoot: React.VFC = function AppRoot() {
                 <Route
                   path="edit"
                   element={
-                    <FlavoredErrorBoundSuspense
-                      factory={async () =>
-                        import("./graphql/portal/EditOAuthClientScreen")
-                      }
-                    >
-                      {(EditOAuthClientScreen) => <EditOAuthClientScreen />}
-                    </FlavoredErrorBoundSuspense>
+                    <Suspense fallback={<ShowLoading />}>
+                      <EditOAuthClientScreen />
+                    </Suspense>
                   }
                 />
               </Route>
             </Route>
-
             <Route
               path="languages"
               element={
-                <FlavoredErrorBoundSuspense
-                  factory={async () =>
-                    import("./graphql/portal/LanguagesConfigurationScreen")
-                  }
-                >
-                  {(LanguagesConfigurationScreen) => (
-                    <LanguagesConfigurationScreen />
-                  )}
-                </FlavoredErrorBoundSuspense>
+                <Suspense fallback={<ShowLoading />}>
+                  <LanguagesConfigurationScreen />
+                </Suspense>
               }
             />
-
             <Route path="user-profile">
               <Route
                 index={true}
@@ -679,48 +635,26 @@ const AppRoot: React.VFC = function AppRoot() {
               <Route
                 path="standard-attributes"
                 element={
-                  <FlavoredErrorBoundSuspense
-                    factory={async () =>
-                      import(
-                        "./graphql/portal/StandardAttributesConfigurationScreen"
-                      )
-                    }
-                  >
-                    {(StandardAttributesConfigurationScreen) => (
-                      <StandardAttributesConfigurationScreen />
-                    )}
-                  </FlavoredErrorBoundSuspense>
+                  <Suspense fallback={<ShowLoading />}>
+                    <StandardAttributesConfigurationScreen />
+                  </Suspense>
                 }
               />
               <Route path="custom-attributes">
                 <Route
                   index={true}
                   element={
-                    <FlavoredErrorBoundSuspense
-                      factory={async () =>
-                        import(
-                          "./graphql/portal/CustomAttributesConfigurationScreen"
-                        )
-                      }
-                    >
-                      {(CustomAttributesConfigurationScreen) => (
-                        <CustomAttributesConfigurationScreen />
-                      )}
-                    </FlavoredErrorBoundSuspense>
+                    <Suspense fallback={<ShowLoading />}>
+                      <CustomAttributesConfigurationScreen />
+                    </Suspense>
                   }
                 />
                 <Route
                   path="add"
                   element={
-                    <FlavoredErrorBoundSuspense
-                      factory={async () =>
-                        import("./graphql/portal/CreateCustomAttributeScreen")
-                      }
-                    >
-                      {(CreateCustomAttributeScreen) => (
-                        <CreateCustomAttributeScreen />
-                      )}
-                    </FlavoredErrorBoundSuspense>
+                    <Suspense fallback={<ShowLoading />}>
+                      <CreateCustomAttributeScreen />
+                    </Suspense>
                   }
                 />
                 <Route path=":index">
@@ -731,35 +665,22 @@ const AppRoot: React.VFC = function AppRoot() {
                   <Route
                     path="edit"
                     element={
-                      <FlavoredErrorBoundSuspense
-                        factory={async () =>
-                          import("./graphql/portal/EditCustomAttributeScreen")
-                        }
-                      >
-                        {(EditCustomAttributeScreen) => (
-                          <EditCustomAttributeScreen />
-                        )}
-                      </FlavoredErrorBoundSuspense>
+                      <Suspense fallback={<ShowLoading />}>
+                        <EditCustomAttributeScreen />
+                      </Suspense>
                     }
                   />
                 </Route>
               </Route>
             </Route>
           </Route>
-
           <Route path="bot-protection">
             <Route
               index={true}
               element={
-                <FlavoredErrorBoundSuspense
-                  factory={async () =>
-                    import("./graphql/portal/BotProtectionConfigurationScreen")
-                  }
-                >
-                  {(BotProtectionConfigurationScreen) => (
-                    <BotProtectionConfigurationScreen />
-                  )}
-                </FlavoredErrorBoundSuspense>
+                <Suspense fallback={<ShowLoading />}>
+                  <BotProtectionConfigurationScreen />
+                </Suspense>
               }
             />
           </Route>
@@ -768,31 +689,17 @@ const AppRoot: React.VFC = function AppRoot() {
             <Route
               index={true}
               element={
-                <FlavoredErrorBoundSuspense
-                  factory={async () =>
-                    import("./graphql/portal/IntegrationsConfigurationScreen")
-                  }
-                >
-                  {(IntegrationsConfigurationScreen) => (
-                    <IntegrationsConfigurationScreen />
-                  )}
-                </FlavoredErrorBoundSuspense>
+                <Suspense fallback={<ShowLoading />}>
+                  <IntegrationsConfigurationScreen />
+                </Suspense>
               }
             />
             <Route
               path="google-tag-manager"
               element={
-                <FlavoredErrorBoundSuspense
-                  factory={async () =>
-                    import(
-                      "./graphql/portal/GoogleTagManagerConfigurationScreen"
-                    )
-                  }
-                >
-                  {(GoogleTagManagerConfigurationScreen) => (
-                    <GoogleTagManagerConfigurationScreen />
-                  )}
-                </FlavoredErrorBoundSuspense>
+                <Suspense fallback={<ShowLoading />}>
+                  <GoogleTagManagerConfigurationScreen />
+                </Suspense>
               }
             />
           </Route>
@@ -801,13 +708,9 @@ const AppRoot: React.VFC = function AppRoot() {
             <Route
               index={true}
               element={
-                <FlavoredErrorBoundSuspense
-                  factory={async () =>
-                    import("./graphql/portal/SubscriptionScreen")
-                  }
-                >
-                  {(SubscriptionScreen) => <SubscriptionScreen />}
-                </FlavoredErrorBoundSuspense>
+                <Suspense fallback={<ShowLoading />}>
+                  <SubscriptionScreen />
+                </Suspense>
               }
             />
           </Route>
@@ -816,13 +719,9 @@ const AppRoot: React.VFC = function AppRoot() {
             <Route
               index={true}
               element={
-                <FlavoredErrorBoundSuspense
-                  factory={async () =>
-                    import("./graphql/portal/SubscriptionRedirect")
-                  }
-                >
-                  {(SubscriptionRedirect) => <SubscriptionRedirect />}
-                </FlavoredErrorBoundSuspense>
+                <Suspense fallback={<ShowLoading />}>
+                  <SubscriptionRedirect />
+                </Suspense>
               }
             />
           </Route>
@@ -835,111 +734,65 @@ const AppRoot: React.VFC = function AppRoot() {
             <Route
               path="hooks"
               element={
-                <FlavoredErrorBoundSuspense
-                  factory={async () =>
-                    import("./graphql/portal/HookConfigurationScreen")
-                  }
-                >
-                  {(HookConfigurationScreen) => <HookConfigurationScreen />}
-                </FlavoredErrorBoundSuspense>
+                <Suspense fallback={<ShowLoading />}>
+                  <HookConfigurationScreen />
+                </Suspense>
               }
             />
             <Route
               path="admin-api"
               element={
-                <FlavoredErrorBoundSuspense
-                  factory={async () =>
-                    import("./graphql/portal/AdminAPIConfigurationScreen")
-                  }
-                >
-                  {(AdminAPIConfigurationScreen) => (
-                    <AdminAPIConfigurationScreen />
-                  )}
-                </FlavoredErrorBoundSuspense>
+                <Suspense fallback={<ShowLoading />}>
+                  <AdminAPIConfigurationScreen />
+                </Suspense>
               }
             />
             <Route
               path="account-deletion"
               element={
-                <FlavoredErrorBoundSuspense
-                  factory={async () =>
-                    import(
-                      "./graphql/portal/AccountDeletionConfigurationScreen"
-                    )
-                  }
-                >
-                  {(AccountDeletionConfigurationScreen) => (
-                    <AccountDeletionConfigurationScreen />
-                  )}
-                </FlavoredErrorBoundSuspense>
+                <Suspense fallback={<ShowLoading />}>
+                  <AccountDeletionConfigurationScreen />
+                </Suspense>
               }
             />
             <Route
               path="account-anonymization"
               element={
-                <FlavoredErrorBoundSuspense
-                  factory={async () =>
-                    import(
-                      "./graphql/portal/AccountAnonymizationConfigurationScreen"
-                    )
-                  }
-                >
-                  {(AccountAnonymizationConfigurationScreen) => (
-                    <AccountAnonymizationConfigurationScreen />
-                  )}
-                </FlavoredErrorBoundSuspense>
+                <Suspense fallback={<ShowLoading />}>
+                  <AccountAnonymizationConfigurationScreen />
+                </Suspense>
               }
             />
             <Route
               path="session"
               element={
-                <FlavoredErrorBoundSuspense
-                  factory={async () =>
-                    import("./graphql/portal/CookieLifetimeConfigurationScreen")
-                  }
-                >
-                  {(CookieLifetimeConfigurationScreen) => (
-                    <CookieLifetimeConfigurationScreen />
-                  )}
-                </FlavoredErrorBoundSuspense>
+                <Suspense fallback={<ShowLoading />}>
+                  <CookieLifetimeConfigurationScreen />
+                </Suspense>
               }
             />
             <Route
               path="smtp"
               element={
-                <FlavoredErrorBoundSuspense
-                  factory={async () =>
-                    import("./graphql/portal/SMTPConfigurationScreen")
-                  }
-                >
-                  {(SMTPConfigurationScreen) => <SMTPConfigurationScreen />}
-                </FlavoredErrorBoundSuspense>
+                <Suspense fallback={<ShowLoading />}>
+                  <SMTPConfigurationScreen />
+                </Suspense>
               }
             />
             <Route
               path="endpoint-direct-access"
               element={
-                <FlavoredErrorBoundSuspense
-                  factory={async () =>
-                    import("./graphql/portal/EndpointDirectAccessScreen")
-                  }
-                >
-                  {(EndpointDirectAccessScreen) => (
-                    <EndpointDirectAccessScreen />
-                  )}
-                </FlavoredErrorBoundSuspense>
+                <Suspense fallback={<ShowLoading />}>
+                  <EndpointDirectAccessScreen />
+                </Suspense>
               }
             />
             <Route
               path="saml-certificate"
               element={
-                <FlavoredErrorBoundSuspense
-                  factory={async () =>
-                    import("./graphql/portal/SAMLCertificateScreen")
-                  }
-                >
-                  {(SAMLCertificateScreen) => <SAMLCertificateScreen />}
-                </FlavoredErrorBoundSuspense>
+                <Suspense fallback={<ShowLoading />}>
+                  <SAMLCertificateScreen />
+                </Suspense>
               }
             />
           </Route>
@@ -948,13 +801,9 @@ const AppRoot: React.VFC = function AppRoot() {
             <Route
               index={true}
               element={
-                <FlavoredErrorBoundSuspense
-                  factory={async () =>
-                    import("./graphql/adminapi/AuditLogScreen")
-                  }
-                >
-                  {(AuditLogScreen) => <AuditLogScreen />}
-                </FlavoredErrorBoundSuspense>
+                <Suspense fallback={<ShowLoading />}>
+                  <AuditLogScreen />
+                </Suspense>
               }
             />
             <Route path=":logID">
@@ -965,13 +814,9 @@ const AppRoot: React.VFC = function AppRoot() {
               <Route
                 path="details"
                 element={
-                  <FlavoredErrorBoundSuspense
-                    factory={async () =>
-                      import("./graphql/adminapi/AuditLogEntryScreen")
-                    }
-                  >
-                    {(AuditLogEntryScreen) => <AuditLogEntryScreen />}
-                  </FlavoredErrorBoundSuspense>
+                  <Suspense fallback={<ShowLoading />}>
+                    <AuditLogEntryScreen />
+                  </Suspense>
                 }
               />
             </Route>
@@ -981,25 +826,17 @@ const AppRoot: React.VFC = function AppRoot() {
             <Route
               index={true}
               element={
-                <FlavoredErrorBoundSuspense
-                  factory={async () =>
-                    import("./graphql/portal/PortalAdminsSettings")
-                  }
-                >
-                  {(PortalAdminsSettings) => <PortalAdminsSettings />}
-                </FlavoredErrorBoundSuspense>
+                <Suspense fallback={<ShowLoading />}>
+                  <PortalAdminsSettings />
+                </Suspense>
               }
             />
             <Route
               path="invite"
               element={
-                <FlavoredErrorBoundSuspense
-                  factory={async () =>
-                    import("./graphql/portal/InviteAdminScreen")
-                  }
-                >
-                  {(InviteAdminScreen) => <InviteAdminScreen />}
-                </FlavoredErrorBoundSuspense>
+                <Suspense fallback={<ShowLoading />}>
+                  <InviteAdminScreen />
+                </Suspense>
               }
             />
           </Route>
@@ -1009,13 +846,9 @@ const AppRoot: React.VFC = function AppRoot() {
             <Route
               index={true}
               element={
-                <FlavoredErrorBoundSuspense
-                  factory={async () =>
-                    import("./graphql/portal/EditConfigurationScreen")
-                  }
-                >
-                  {(EditConfigurationScreen) => <EditConfigurationScreen />}
-                </FlavoredErrorBoundSuspense>
+                <Suspense fallback={<ShowLoading />}>
+                  <EditConfigurationScreen />
+                </Suspense>
               }
             />
           </Route>
