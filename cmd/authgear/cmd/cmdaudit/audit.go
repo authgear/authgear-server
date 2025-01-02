@@ -1,9 +1,7 @@
 package cmdaudit
 
 import (
-	"fmt"
 	"os"
-	"strconv"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -102,8 +100,9 @@ var cmdAuditDatabaseMigrateNew = &cobra.Command{
 }
 
 var cmdAuditDatabaseMigrateUp = &cobra.Command{
-	Use:   "up",
-	Short: "Migrate database schema to latest version",
+	Use:   sqlmigrate.CobraMigrateUpUse,
+	Short: sqlmigrate.CobraMigrateUpShort,
+	Args:  sqlmigrate.CobraMigrateUpArgs,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		binder := authgearcmd.GetBinder()
 		dbURL, err := binder.GetRequiredString(cmd, authgearcmd.ArgDatabaseURL)
@@ -115,10 +114,15 @@ var cmdAuditDatabaseMigrateUp = &cobra.Command{
 			return
 		}
 
+		n, err := sqlmigrate.CobraParseMigrateUpArgs(args)
+		if err != nil {
+			return
+		}
+
 		_, err = AuditMigrationSet.Up(sqlmigrate.ConnectionOptions{
 			DatabaseURL:    dbURL,
 			DatabaseSchema: dbSchema,
-		}, 0)
+		}, n)
 		if err != nil {
 			return
 		}
@@ -128,8 +132,10 @@ var cmdAuditDatabaseMigrateUp = &cobra.Command{
 }
 
 var cmdAuditDatabaseMigrateDown = &cobra.Command{
-	Use:    "down",
 	Hidden: true,
+	Use:    sqlmigrate.CobraMigrateDownUse,
+	Short:  sqlmigrate.CobraMigrateDownShort,
+	Args:   sqlmigrate.CobraMigrateDownArgs,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		binder := authgearcmd.GetBinder()
 		dbURL, err := binder.GetRequiredString(cmd, authgearcmd.ArgDatabaseURL)
@@ -141,23 +147,9 @@ var cmdAuditDatabaseMigrateDown = &cobra.Command{
 			return
 		}
 
-		if len(args) == 0 {
-			err = fmt.Errorf("number of migrations to revert not specified; specify 'all' to revert all migrations")
+		numMigrations, err := sqlmigrate.CobraParseMigrateDownArgs(args)
+		if err != nil {
 			return
-		}
-
-		var numMigrations int
-		if args[0] == "all" {
-			numMigrations = 0
-		} else {
-			numMigrations, err = strconv.Atoi(args[0])
-			if err != nil {
-				err = fmt.Errorf("invalid number of migrations specified: %s", err)
-				return
-			} else if numMigrations <= 0 {
-				err = fmt.Errorf("no migrations specified to revert")
-				return
-			}
 		}
 
 		_, err = AuditMigrationSet.Down(sqlmigrate.ConnectionOptions{
@@ -173,8 +165,9 @@ var cmdAuditDatabaseMigrateDown = &cobra.Command{
 }
 
 var cmdAuditDatabaseMigrateStatus = &cobra.Command{
-	Use:   "status",
-	Short: "Get database schema migration status",
+	Use:   sqlmigrate.CobraMigrateStatusUse,
+	Short: sqlmigrate.CobraMigrateStatusShort,
+	Args:  sqlmigrate.CobraMigrateStatusArgs,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		binder := authgearcmd.GetBinder()
 		dbURL, err := binder.GetRequiredString(cmd, authgearcmd.ArgDatabaseURL)
