@@ -1,8 +1,8 @@
 services:
   db:
-    image: postgres-pg-partman:latest
+    image: postgres12-pg-partman-pgaudit:latest
     build:
-      context: ./postgres
+      context: ./postgres/postgres12
     volumes:
       - db_data:/var/lib/postgresql/data
       - ./postgresql.conf:/etc/postgresql/postgresql.conf
