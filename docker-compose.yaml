@@ -16,6 +16,23 @@ services:
     # Otherwise, psql or other GUI client will consume the connection count.
     - "6432:5432"
 
+  db16:
+    # This database is not actually used now.
+    # Guard this with a profile first.
+    profiles: ["postgres16"]
+    image: postgres16-pg-partman-pgaudit:latest
+    build:
+      context: ./postgres/postgres16
+    volumes:
+      - db16_data:/var/lib/postgresql/data
+      - ./postgresql.conf:/etc/postgresql/postgresql.conf
+    command: ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+    ports:
+    - "6432:5432"
+
   pgbouncer:
     image: bitnami/pgbouncer:1.23.1
     ports:
@@ -143,6 +160,8 @@ volumes:
   redis_data:
     driver: local
   db_data:
+    driver: local
+  db16_data:
     driver: local
   elasticsearch_data:
     driver: local
