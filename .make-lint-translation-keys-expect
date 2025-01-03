@@ -30,7 +30,7 @@ resources/authgear/templates/en/web/authflowv2/layout.html:5:14: template transl
 resources/authgear/templates/en/web/authflowv2/login.html:253:37: translation key not defined: "%s-icon"
 resources/authgear/templates/en/web/authflowv2/settings_identity_list_email.html:55:40: translation key not defined: "v2.page.settings-identity-list-email.default.provider.%s"
 resources/authgear/templates/en/web/authflowv2/settings_identity_list_oauth.html:56:34: translation key not defined: "v2.page.settings-identity-oauth.default.provider.%s"
-resources/authgear/templates/en/web/authflowv2/settings_identity_list_oauth.html:106:35: translation key not defined: "v2.page.settings-identity-oauth.default.provider.%s"
+resources/authgear/templates/en/web/authflowv2/settings_identity_list_oauth.html:107:35: translation key not defined: "v2.page.settings-identity-oauth.default.provider.%s"
 resources/authgear/templates/en/web/authflowv2/settings_identity_list_phone.html:55:40: translation key not defined: "v2.page.settings-identity-list-phone.default.provider.%s"
 resources/authgear/templates/en/web/authflowv2/settings_layout.html:3:14: template translation is forbidden: `widget`
 resources/authgear/templates/en/web/authflowv2/settings_mfa.html:69:44: translation key not defined: "/settings/mfa/create_oob_otp_%s"
