@@ -69,8 +69,8 @@ github.com/alicebob/miniredis/v2 v2.33.0 h1:uvTF0EDeu9RLnUEG27Db5I68ESoIxTiXbNUi
 github.com/alicebob/miniredis/v2 v2.33.0/go.mod h1:MhP4a3EU7aENRi9aO+tHfTBZicLqQevyi/DJpoj6mi0=
 github.com/authgear/graphql-go-relay v0.0.0-20240429082917-f56c3cce72ba h1:3KVNeYLx5vbpphhkEMu+ew281AEjZDCqHFxINrgVXsY=
 github.com/authgear/graphql-go-relay v0.0.0-20240429082917-f56c3cce72ba/go.mod h1:Nmot+3hWButYXa8FfWIfTaoaVOmCNUUa/eyrLnMSzYc=
-github.com/authgear/iamsmart v0.0.0-20241101122333-a35f5efd0acd h1:qI3bDdcslb5ywUNLlS5Evc+ku3DxuTCzyIvbMSmhbik=
-github.com/authgear/iamsmart v0.0.0-20241101122333-a35f5efd0acd/go.mod h1:3lLi+xVYSLCO+bcNEQlVtzYfIGtFBQ9makuME5rdEW8=
+github.com/authgear/iamsmart v0.0.0-20250103072050-45db5c837ec2 h1:DPmi2KsiLrVLreHz+WDpi793dFDsvCg9KVULfGTXxyM=
+github.com/authgear/iamsmart v0.0.0-20250103072050-45db5c837ec2/go.mod h1:3lLi+xVYSLCO+bcNEQlVtzYfIGtFBQ9makuME5rdEW8=
 github.com/authgear/oauthrelyingparty v1.5.0 h1:Gysu4Y+XfOy/WKPieIOZ4d1iIHsC4Hek2o1kSAtDW2k=
 github.com/authgear/oauthrelyingparty v1.5.0/go.mod h1:0UcO0p5eS9BPLulX6K7TvkXkuPeTn3QhAJ/UQg4fmiQ=
 github.com/aws/aws-sdk-go v1.55.5 h1:KKUZBfBoyqy5d3swXyiC7Q76ic40rYcbqH7qjh59kzU=
