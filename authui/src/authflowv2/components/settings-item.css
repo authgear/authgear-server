@@ -61,7 +61,7 @@
       --typography-title-medium__font-weight
     );
     --settings-item-content__text-color: var(--color-neutral-400);
-    --settings-item-content__text-color--highligh: var(--color-link);
+    --settings-item-content__text-color--highlighted: var(--color-link);
   }
 
   :root.dark {
@@ -155,7 +155,7 @@
     color: var(--settings-item-content__text-color);
   }
   .settings-item__content--highlight {
-    color: var(--settings-item-content__text-color--highligh);
+    color: var(--settings-item-content__text-color--highlighted);
   }
   .settings-item__forward_arrow {
     grid-area: arrow;
