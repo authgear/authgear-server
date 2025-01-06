@@ -44,7 +44,7 @@ func (s MigrationSet) Create(name string) (fileName string, err error) {
 		return
 	}
 
-	err = ioutil.WriteFile(path.Join(s.Dir, fileName), []byte(migrationTemplate), os.ModePerm)
+	err = ioutil.WriteFile(path.Join(s.Dir, fileName), []byte(migrationTemplate), 0o600)
 	if err != nil {
 		return
 	}
