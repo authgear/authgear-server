@@ -42,7 +42,9 @@ func (q *Query) QueryPage(ctx context.Context, opts QueryPageOptions, pageArgs g
 
 	models := make([]model.PageItemRef, len(logs))
 	for i, l := range logs {
-		pageKey := db.PageKey{Offset: offset + uint64(i)}
+		//nolint:gosec // G115
+		i_uint64 := uint64(i)
+		pageKey := db.PageKey{Offset: offset + i_uint64}
 		cursor, err := pageKey.ToPageCursor()
 		if err != nil {
 			return nil, err

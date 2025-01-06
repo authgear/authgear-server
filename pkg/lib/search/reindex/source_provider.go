@@ -45,7 +45,9 @@ func (s *SourceProvider) QueryPage(ctx context.Context, after model.PageCursor, 
 	}
 	models := make([]ReindexItem, len(users))
 	for i, u := range users {
-		pageKey := db.PageKey{Offset: offset + uint64(i)}
+		//nolint:gosec // G115
+		i_uint64 := uint64(i)
+		pageKey := db.PageKey{Offset: offset + i_uint64}
 		cursor, err := pageKey.ToPageCursor()
 		if err != nil {
 			return nil, err

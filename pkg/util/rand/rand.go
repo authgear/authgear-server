@@ -21,6 +21,7 @@ func (s cryptoRandSource) Seed(seed int64) {}
 
 func (s cryptoRandSource) Int63() int64 {
 	// Reset the most significant bit to 0
+	//nolint:gosec // G115
 	return int64(s.Uint64() & ^uint64(1<<63))
 }
 

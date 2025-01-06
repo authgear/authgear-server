@@ -98,7 +98,9 @@ func (q *Queries) ListRoles(ctx context.Context, options *ListRolesOptions, page
 
 	models := make([]model.PageItemRef, len(roles))
 	for i, r := range roles {
-		pageKey := db.PageKey{Offset: offset + uint64(i)}
+		//nolint:gosec // G115
+		i_uint64 := uint64(i)
+		pageKey := db.PageKey{Offset: offset + i_uint64}
 		cursor, err := pageKey.ToPageCursor()
 		if err != nil {
 			return nil, err
@@ -122,7 +124,9 @@ func (q *Queries) ListGroups(ctx context.Context, options *ListGroupsOptions, pa
 
 	models := make([]model.PageItemRef, len(groups))
 	for i, r := range groups {
-		pageKey := db.PageKey{Offset: offset + uint64(i)}
+		//nolint:gosec // G115
+		i_uint64 := uint64(i)
+		pageKey := db.PageKey{Offset: offset + i_uint64}
 		cursor, err := pageKey.ToPageCursor()
 		if err != nil {
 			return nil, err
@@ -201,7 +205,9 @@ func (q *Queries) ListUserIDsByRoleID(ctx context.Context, roleID string, pageAr
 
 	models := make([]model.PageItemRef, len(userIDs))
 	for i, r := range userIDs {
-		pageKey := db.PageKey{Offset: offset + uint64(i)}
+		//nolint:gosec // G115
+		i_uint64 := uint64(i)
+		pageKey := db.PageKey{Offset: offset + i_uint64}
 		cursor, err := pageKey.ToPageCursor()
 		if err != nil {
 			return nil, err
@@ -237,7 +243,9 @@ func (q *Queries) ListUserIDsByGroupID(ctx context.Context, groupID string, page
 
 	models := make([]model.PageItemRef, len(userIDs))
 	for i, r := range userIDs {
-		pageKey := db.PageKey{Offset: offset + uint64(i)}
+		//nolint:gosec // G115
+		i_uint64 := uint64(i)
+		pageKey := db.PageKey{Offset: offset + i_uint64}
 		cursor, err := pageKey.ToPageCursor()
 		if err != nil {
 			return nil, err
