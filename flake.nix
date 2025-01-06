@@ -7,7 +7,7 @@
       url = "github:numtide/flake-utils";
       inputs.systems.follows = "systems";
     };
-    go_1_22_7.url = "github:NixOS/nixpkgs/5ed627539ac84809c78b2dd6d26a5cebeb5ae269";
+    go_1_23_4.url = "github:NixOS/nixpkgs/de1864217bfa9b5845f465e771e0ecb48b30e02d";
     nodejs_20_9_0.url = "github:NixOS/nixpkgs/a71323f68d4377d12c04a5410e214495ec598d4c";
   };
 
@@ -15,7 +15,7 @@
     {
       nixpkgs,
       flake-utils,
-      go_1_22_7,
+      go_1_23_4,
       nodejs_20_9_0,
       ...
     }:
@@ -23,8 +23,8 @@
       system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
-        go_pkgs = go_1_22_7.legacyPackages.${system};
-        go = go_pkgs.go_1_22;
+        go_pkgs = go_1_23_4.legacyPackages.${system};
+        go = go_pkgs.go;
         nodejs = nodejs_20_9_0.legacyPackages.${system}.nodejs_20;
       in
       {
