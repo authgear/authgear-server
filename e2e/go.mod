@@ -49,7 +49,6 @@ require (
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/Masterminds/squirrel v1.5.4 // indirect
-	github.com/NYTimes/gziphandler v1.1.1 // indirect
 	github.com/XSAM/otelsql v0.35.0 // indirect
 	github.com/abadojack/whatlanggo v1.0.1 // indirect
 	github.com/asaskevich/EventBus v0.0.0-20200907212545-49d423059eef // indirect

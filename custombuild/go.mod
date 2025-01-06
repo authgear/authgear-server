@@ -31,7 +31,6 @@ require (
 	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/Masterminds/sprig v2.22.0+incompatible // indirect
 	github.com/Masterminds/squirrel v1.5.4 // indirect
-	github.com/NYTimes/gziphandler v1.1.1 // indirect
 	github.com/XSAM/otelsql v0.35.0 // indirect
 	github.com/abadojack/whatlanggo v1.0.1 // indirect
 	github.com/authgear/graphql-go-relay v0.0.0-20240429082917-f56c3cce72ba // indirect

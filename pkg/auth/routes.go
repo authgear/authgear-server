@@ -64,14 +64,12 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) ht
 		httproute.MiddlewareFunc(httputil.XContentTypeOptionsNosniff),
 		httproute.MiddlewareFunc(httputil.PermissionsPolicyHeader),
 		httproute.MiddlewareFunc(middleware.CORSStar),
-		httputil.GzipMiddleware{},
 	)
 
 	appStaticChain := httproute.Chain(
 		rootChain,
 		p.Middleware(newCORSMiddleware),
 		p.Middleware(newPublicOriginMiddleware),
-		httputil.GzipMiddleware{},
 	)
 
 	samlStaticChain := httproute.Chain(
