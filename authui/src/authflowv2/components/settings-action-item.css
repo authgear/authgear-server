@@ -56,6 +56,10 @@
     @apply flex gap-x-2 items-center;
   }
 
+  .settings-action-item__description-container--without-icon {
+    --icon-placeholder-display: none;
+  }
+
   .settings-action-item__description-container {
     @apply text-start;
     @apply flex gap-x-2 items-center justify-start;
