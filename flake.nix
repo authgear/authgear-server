@@ -37,10 +37,10 @@
 
             pkgs.pkg-config
 
-            (pkgs.golangci-lint.overrideAttrs (
+            (go_pkgs.golangci-lint.overrideAttrs (
               prev:
               let
-                version = "1.55.2";
+                version = "1.63.4";
               in
               {
                 inherit version;
@@ -48,9 +48,9 @@
                   owner = "golangci";
                   repo = "golangci-lint";
                   rev = "v${version}";
-                  hash = "sha256-DO71wfDmCuziEcsme1g1uNIl3MswA+EkQcYzOYHbG+I=";
+                  hash = "sha256-7nIo6Nuz8KLuQlT7btjnTRFpOl+KVd30v973HRKzh08=";
                 };
-                vendorHash = "sha256-0+jImfMdVocOczGWeO03YXUg5yKYTu3WeJaokSlcYFM=";
+                vendorHash = "sha256-atr4HMxoPEfGeaNlHqwTEAcvgbSyzgCe262VUg3J86c=";
                 # We do not actually override anything here,
                 # but if we do not repeat this, ldflags refers to the original version.
                 ldflags = [
