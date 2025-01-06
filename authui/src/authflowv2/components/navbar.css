@@ -1,12 +1,12 @@
 @layer components {
   :root {
-    --navbar__title-font-family: var(--typography-title-large__font-family);
-    --navbar__title-font-size: var(--typography-title-large__font-size);
-    --navbar__title-font-weight: var(--typography-title-large__font-weight);
+    --navbar__title-font-family: var(--typography-page-title__font-family);
+    --navbar__title-font-size: var(--typography-page-title__font-size);
+    --navbar__title-font-weight: var(--typography-page-title__font-weight);
     --navbar__title-letter-spacing: var(
-      --typography-title-large__letter-spacing
+      --typography-page-title__letter-spacing
     );
-    --navbar__title-line-height: var(--typography-title-large__line-height);
+    --navbar__title-line-height: var(--typography-page-title__line-height);
     --navbar__title-text-color: var(--color-neutral-700);
 
     --navbar__title--mobile-font-family: var(--navbar__title-font-family);
