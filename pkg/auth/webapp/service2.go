@@ -185,7 +185,7 @@ func (s *Service2) PostWithInput(
 	})
 }
 
-// nolint: gocognit
+//nolint:gocognit
 func (s *Service2) doPost(
 	ctx context.Context,
 	session *Session,
@@ -429,6 +429,7 @@ func (s *Service2) runGraph(
 	return graph, edges, interactionErr
 }
 
+//nolint:gocognit
 func (s *Service2) afterPost(
 	ctx context.Context,
 	result *Result,
