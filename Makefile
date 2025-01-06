@@ -35,6 +35,11 @@ build-frondend:
 	$(MAKE) authui
 	$(MAKE) portal
 
+# This makefile target automates running `go mod tidy` in every directory that has a go.mod file.
+.PHONY: go-mod-tidy
+go-mod-tidy:
+	find . -name 'go.mod' -exec sh -c 'cd $$(dirname {}); go mod tidy' \;
+
 .PHONY: ensure-important-modules-up-to-date
 ensure-important-modules-up-to-date:
 	# If grep matches something, it exits 0, otherwise it exits 1.
