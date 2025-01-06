@@ -9,7 +9,9 @@
 
     @media (min-width: theme("screens.tablet")) {
       margin: 0 auto;
-      width: var(--settings-content__width);
+      width: calc(
+        var(--settings-content__width) + var(--widget-content__px, 0px)
+      );
     }
   }
 }
