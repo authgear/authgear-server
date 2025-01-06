@@ -12,7 +12,7 @@
 
 {{ define "page-content" }}
 <form
-  class="settings-content flex flex-col gap-y-4 pb-5 tablet:pb-0"
+  class="settings-content settings-content-form pb-5 tablet:pb-0"
   method="post"
   novalidate
   data-controller="turbo-form"
@@ -21,13 +21,15 @@
 
   {{ $.CSRFField }}
 
-  <input
-    class="input"
-    name="x_login_id"
-    autocomplete="username webauthn"
-    autocapitalize="none"
-    value="{{ $.Identity.OriginalLoginID }}"
-  />
+  <div class="settings-content-form-fields">
+    <input
+      class="input"
+      name="x_login_id"
+      autocomplete="username webauthn"
+      autocapitalize="none"
+      value="{{ $.Identity.OriginalLoginID }}"
+    />
+  </div>
 
   <input
     name="x_identity_id"

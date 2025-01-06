@@ -29,7 +29,7 @@
 {{ end }}
 
 <form
-  class="settings-content flex flex-col gap-y-4 pb-5 tablet:pb-0"
+  class="settings-content settings-content-form pb-5 tablet:pb-0"
   method="post"
   novalidate
   data-controller="turbo-form"
@@ -38,30 +38,31 @@
   {{ $.CSRFField }}
 
   <input type="hidden" name="x_channel" value="{{ $.Channel }}">
+  <div class="settings-content-form-fields">
+    <span class="screen-description">
+      {{ include "v2.page.settings-identity-edit-phone.default.description"
+        (dict "target" (include "__settings_identity_edit_phone_inline_bold.html" .Target.OriginalLoginID))
+      }}
+    </span>
 
-  <span class="screen-description">
-    {{ include "v2.page.settings-identity-edit-phone.default.description"
-      (dict "target" (include "__settings_identity_edit_phone_inline_bold.html" .Target.OriginalLoginID))
+    {{ template "authflowv2/__phone_input.html"
+      (dict
+        "Placeholder" (include "v2.page.settings-identity-edit-phone.default.phone-input-placeholder" nil)
+        "IsError" $has_otp_err
+        "AutoFocus" $.ShouldFocusInput
+        "PhoneInputAttrs" `
+          data-text-field-target="input"
+        `
+        "InputName" "x_login_id"
+      )
     }}
-  </span>
 
-  {{ template "authflowv2/__phone_input.html"
-    (dict
-      "Placeholder" (include "v2.page.settings-identity-edit-phone.default.phone-input-placeholder" nil)
-      "IsError" $has_otp_err
-      "AutoFocus" $.ShouldFocusInput
-      "PhoneInputAttrs" `
-        data-text-field-target="input"
-      `
-      "InputName" "x_login_id"
-    )
-  }}
-
-  {{ if $has_otp_err }}
-  <p class="input__error-message mt-2">
-    {{ $otp_error_message }}
-  </p>
-  {{ end }}
+    {{ if $has_otp_err }}
+    <p class="input__error-message mt-2">
+      {{ $otp_error_message }}
+    </p>
+    {{ end }}
+  </div>
 
   <input
     type="hidden"

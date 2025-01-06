@@ -29,7 +29,7 @@
 {{ end }}
 
 <form
-  class="settings-content flex flex-col gap-y-4 pb-5 tablet:pb-0"
+  class="settings-content settings-content-form pb-5 tablet:pb-0"
   method="post"
   novalidate
   data-controller="turbo-form"
@@ -37,30 +37,32 @@
 
   {{ $.CSRFField }}
 
-  <span class="screen-description">
-    {{ include "v2.page.settings-identity-edit-email.default.description"
-      (dict "target" (include "__settings_identity_edit_email_inline_breakable.html" .Target.OriginalLoginID))
-    }}
-  </span>
+  <div class="settings-content-form-fields">
+    <span class="screen-description">
+      {{ include "v2.page.settings-identity-edit-email.default.description"
+        (dict "target" (include "__settings_identity_edit_email_inline_breakable.html" .Target.OriginalLoginID))
+      }}
+    </span>
 
-  <input
-    class="input"
-    name="x_login_id"
-    placeholder="{{ include "v2.page.settings-identity-edit-email.default.email-input-placeholder" nil }}"
-    autocapitalize="none"
-  />
+    <input
+      class="input"
+      name="x_login_id"
+      placeholder="{{ include "v2.page.settings-identity-edit-email.default.email-input-placeholder" nil }}"
+      autocapitalize="none"
+    />
 
-  {{ if $has_email_err }}
-  <p class="input__error-message mt-2">
-    {{ $email_error_message }}
-  </p>
-  {{ end }}
+    {{ if $has_email_err }}
+    <p class="input__error-message mt-2">
+      {{ $email_error_message }}
+    </p>
+    {{ end }}
 
-  <input
-    type="hidden"
-    name="x_identity_id"
-    value="{{ .Target.ID }}"
-  />
+    <input
+      type="hidden"
+      name="x_identity_id"
+      value="{{ .Target.ID }}"
+    />
+  </div>
 
   <button
     class="primary-btn"

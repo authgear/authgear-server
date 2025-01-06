@@ -14,4 +14,12 @@
       );
     }
   }
+
+  .settings-content-form {
+    @apply flex flex-col gap-y-8;
+  }
+
+  .settings-content-form-fields {
+    @apply flex flex-col gap-y-4;
+  }
 }

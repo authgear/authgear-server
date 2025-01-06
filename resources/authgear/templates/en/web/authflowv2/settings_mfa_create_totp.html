@@ -13,36 +13,37 @@
 
 {{ define "page-content" }}
 <div
-  class="settings-content flex flex-col gap-y-4 pb-5 tablet:pb-0"
+  class="settings-content pb-5 tablet:pb-0"
 >
-  <div class="screen-title-description">
-    <h2 class="screen-description">
-      {{ include "v2.page.settings-mfa-create-totp.default.description" nil }}
-    </h2>
-  </div>
+  <div class="settings-content-form">
+    <div class="settings-content-form-fields">
+      <div class="screen-title-description">
+        <h2 class="screen-description">
+          {{ include "v2.page.settings-mfa-create-totp.default.description" nil }}
+        </h2>
+      </div>
 
-  <img class="w-48 place-self-center" src="{{ $.ImageURI }}">
+      <img class="w-48 place-self-center" src="{{ $.ImageURI }}">
+      <div class="code-block code-block--single gap-x-8">
+        <p
+          id="copy-button-source"
+          class="code-block__text"
+        >{{ include "v2.page.settings-mfa-create-totp.default.raw-secret" (dict "secret" $.Secret) }}</p>
 
-  <div>
-    <div class="code-block code-block--single gap-x-8">
-      <p
-        id="copy-button-source"
-        class="code-block__text"
-      >{{ include "v2.page.settings-mfa-create-totp.default.raw-secret" (dict "secret" $.Secret) }}</p>
-
-      <button
-        class="tertiary-btn"
-        type="button"
-        data-controller="copy-button"
-        data-copy-button-source-value="#copy-button-source"
-        data-action="copy-button#copy"
-      >
-        {{ include "v2.component.button.default.copy" nil }}
-      </button>
+        <button
+          class="tertiary-btn"
+          type="button"
+          data-controller="copy-button"
+          data-copy-button-source-value="#copy-button-source"
+          data-action="copy-button#copy"
+        >
+          {{ include "v2.component.button.default.copy" nil }}
+        </button>
+      </div>
     </div>
 
     <a
-      class="primary-btn w-full mt-10"
+      class="primary-btn w-full"
       href="{{ call $.MakeURL "enter_totp" "q_token" $.Token }}"
     >
       {{ include "v2.component.button.default.label-continue" nil }}

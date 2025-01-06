@@ -29,27 +29,28 @@
 {{ end }}
 
 <form
-  class="settings-content flex flex-col gap-y-4 py-5 tablet:py-0"
+  class="settings-content settings-content-form pb-5 tablet:pb-0"
   method="post"
   novalidate
   data-controller="turbo-form"
   data-action="submit->turbo-form#submitForm">
 
   {{ $.CSRFField }}
+  <div class="settings-content-form-fields">
+    <input
+      class="input"
+      name="x_login_id"
+      placeholder="{{ include "v2.page.settings-identity-add-email.default.email-input-placeholder" nil }}"
+      autocomplete="username webauthn"
+      autocapitalize="none"
+    />
 
-  <input
-    class="input"
-    name="x_login_id"
-    placeholder="{{ include "v2.page.settings-identity-add-email.default.email-input-placeholder" nil }}"
-    autocomplete="username webauthn"
-    autocapitalize="none"
-  />
-
-  {{ if $has_email_err }}
-  <p class="input__error-message mt-2">
-    {{ $email_error_message }}
-  </p>
-  {{ end }}
+    {{ if $has_email_err }}
+    <p class="input__error-message mt-2">
+      {{ $email_error_message }}
+    </p>
+    {{ end }}
+  </div>
 
   <button
     class="primary-btn"
