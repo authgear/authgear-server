@@ -10,24 +10,15 @@
 
 {{ define "page-content" }}
 
-<div class="settings-content flex flex-col gap-y-4 py-5 tablet:py-0">
+<div class="settings-content flex flex-col gap-y-4 pb-5 tablet:pb-0">
   <div class="screen-title-description">
     <h2 class="screen-description">
       {{ include "v2.page.settings-mfa-view-recovery-code.default.storage-description" nil }}
     </h2>
-
-    {{ template "authflowv2/__alert_message.html"
-      (dict
-        "Type" "error"
-        "Classname" "mt-4"
-        "Message" (include "authflowv2/__error.html" .)
-      )
-    }}
   </div>
 
   <div class="my-6 code-block">
-    <p class="code-block__text">{{ range $.RecoveryCodes }}{{ . }}
-{{ end }}</p>
+    <p class="code-block__text">{{ range $.RecoveryCodes }}{{ . }}{{ "\n" }}{{ end }}</p>
 
     <code id="copy-button-source" class="hidden">{{ template "__recovery_code.html" . }}</code>
     <div class="mt-5 w-full grid gap-4 {{ if not .IsNativePlatform }}grid-cols-2{{ else }}grid-cols-1{{ end }}">

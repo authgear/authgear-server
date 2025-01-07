@@ -44,6 +44,24 @@
     --settings-item__forward-arrow-color: var(--color-neutral-200);
 
     --settings-item__border-color: var(--color-neutral-100);
+
+    --settings-item-content__font-family: var(
+      --typography-title-medium__font-family
+    );
+    --settings-item-content__font-size: var(
+      --typography-body-medium__font-size
+    );
+    --settings-item-content__line-height: var(
+      --typography-label-medium__line-height
+    );
+    --settings-item-content__letter-spacing: var(
+      --typography-title-medium__letter-spacing
+    );
+    --settings-item-content__font-weight: var(
+      --typography-title-medium__font-weight
+    );
+    --settings-item-content__text-color: var(--color-neutral-400);
+    --settings-item-content__text-color--highlighted: var(--color-link);
   }
 
   :root.dark {
@@ -55,6 +73,8 @@
     --settings-item__forward-arrow-color: var(--color-neutral-200);
 
     --settings-item__border-color: var(--color-neutral-400);
+
+    --settings-item-content__text-color: var(--color-neutral-200);
   }
 
   .settings-item {
@@ -62,7 +82,8 @@
     @apply items-center text-start;
 
     background-color: var(--settings-item__bg-color);
-    padding: var(--settings-item__py) var(--settings-item__px);
+    padding: var(--settings-item__py)
+      calc(var(--settings-item__px) + var(--widget-content__px));
     color: var(--settings-item__text-color);
     border-color: var(--settings-item__border-color);
     border-bottom-width: 1px;
@@ -125,6 +146,16 @@
   }
   .settings-item__content {
     grid-area: content;
+
+    font-family: var(--settings-item-content__font-family);
+    font-size: var(--settings-item-content__font-size);
+    line-height: var(--settings-item-content__line-height);
+    letter-spacing: var(--settings-item-content__letter-spacing);
+    font-weight: var(--settings-item-content__font-weight);
+    color: var(--settings-item-content__text-color);
+  }
+  .settings-item__content--highlight {
+    color: var(--settings-item-content__text-color--highlighted);
   }
   .settings-item__forward_arrow {
     grid-area: arrow;

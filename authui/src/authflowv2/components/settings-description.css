@@ -14,8 +14,6 @@
       --typography-title-medium__font-weight
     );
     --settings-description__text-color: var(--color-neutral-400);
-
-    --settings-description__text-color--primary: var(--color-link);
   }
   :root.dark {
     --settings-description__text-color: var(--color-neutral-200);
@@ -28,10 +26,7 @@
     letter-spacing: var(--settings-description__letter-spacing);
     font-weight: var(--settings-description__font-weight);
     color: var(--settings-description__text-color);
-  }
-
-  .settings-description--primary-color {
-    @apply settings-description;
-    color: var(--settings-description__text-color--primary);
+    padding-left: var(--widget-content__px);
+    padding-right: var(--widget-content__px);
   }
 }

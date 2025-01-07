@@ -12,18 +12,12 @@
 
 {{ define "page-content" }}
 <form
-  class="settings-content flex flex-col gap-y-4 py-5 tablet:py-0"
+  class="settings-content flex flex-col gap-y-4 pb-5 tablet:pb-0"
   method="post"
   novalidate
   data-controller="turbo-form"
   data-action="submit->turbo-form#submitForm"
 >
-  {{ template "authflowv2/__alert_message.html"
-    (dict
-      "Type" "error"
-      "Message" (include "authflowv2/__error.html" .)
-    )
-  }}
 
   {{ $.CSRFField }}
 

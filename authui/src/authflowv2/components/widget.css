@@ -48,9 +48,10 @@
   }
 
   .widget-content.widget-content--settings {
-    @apply px-6 py-6;
+    @apply px-0 py-6;
     @apply gap-y-5 tablet:gap-y-8;
     max-width: var(--widget__max-width--settings);
+    --widget-content__px: 1.5rem;
   }
 
   /* In __html_head.html, there is a <noscript> element to revert this visibility. */
@@ -73,7 +74,18 @@
     }
 
     .widget-content.widget-content--settings {
-      @apply px-8 py-8;
+      @apply px-0 py-8;
+      --widget-content__px: 2rem;
     }
+  }
+
+  .widget-content__item--settings {
+    padding-left: var(--widget-content__px);
+    padding-right: var(--widget-content__px);
+  }
+
+  .widget-content__alert--settings {
+    margin-left: var(--widget-content__px);
+    margin-right: var(--widget-content__px);
   }
 }

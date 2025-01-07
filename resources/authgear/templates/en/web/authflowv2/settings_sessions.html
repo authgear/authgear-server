@@ -42,7 +42,7 @@
       template "authflowv2/__settings_action_item.html"
       (dict
         "Label" .DisplayName
-        "Description" (include "__settings_session_item_description.html" .)
+        "Description" (include "__settings_session_item_description" .)
         "ActionButton" $actionBtn
       )
     }}
@@ -101,7 +101,7 @@
 </button>
 {{ end }}
 
-{{ define "__settings_session_item_description.html" }}
+{{ define "__settings_session_item_description" }}
 <div>
   <p>
     {{ if and .LastAccessedByIPEnglishCountryName .LastAccessedByIPCountryCode }}
@@ -115,7 +115,14 @@
     {{ if .ApplicationName }}
       {{ $desc = .ApplicationName }}
     {{ end }}
-    {{ translate "v2.page.settings-sessions.default.device-item-description" (dict "time" .LastAccessedAt "rfc3339" (rfc3339 .LastAccessedAt) "desc" $desc "isCurrent" .IsCurrent) }}
+    {{ if .IsCurrent }}
+      {{$desc}} · 
+      <span class="settings-item__content--highlight">
+        {{ translate "v2.page.settings-sessions.default.device-item-activity--current" nil }}
+      </span>
+    {{ else }}
+      {{$desc}} · {{ translate "v2.page.settings-sessions.default.device-item-activity--last" (dict "time" .LastAccessedAt "rfc3339" (rfc3339 .LastAccessedAt)) }}
+    {{ end }}
   </p>
 </div>
 {{ end }}

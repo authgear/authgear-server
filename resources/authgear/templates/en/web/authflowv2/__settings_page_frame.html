@@ -14,12 +14,14 @@
 {{ define "widget" }}
   <div class="widget widget--settings">
     <div class="widget-content widget-content--settings">
-      {{ block "page-navbar" . }}
-      {{ end }}
+      <div class="widget-content__item--settings">
+        {{ block "page-navbar" . }}{{ end }}
+      </div>
       {{ template "authflowv2/__alert_message.html"
         (dict
           "Type" "error"
           "Message" (include "authflowv2/__error.html" .)
+          "Classname" "widget-content__alert--settings"
         )
       }}
       {{ template "page-content" . }}

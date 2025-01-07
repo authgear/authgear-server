@@ -24,5 +24,7 @@
     letter-spacing: var(--settings-title__letter-spacing);
     font-weight: var(--settings-title__font-weight);
     color: var(--settings-title__text-color);
+    padding-left: var(--widget-content__px);
+    padding-right: var(--widget-content__px);
   }
 }

@@ -4,6 +4,9 @@
   }
 
   .settings-content {
+    padding-left: var(--widget-content__px);
+    padding-right: var(--widget-content__px);
+
     @media (min-width: theme("screens.tablet")) {
       margin: 0 auto;
       width: var(--settings-content__width);

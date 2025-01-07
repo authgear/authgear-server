@@ -28,6 +28,8 @@
     border-color: var(--settings-item__border-color);
     border-bottom-width: 1px;
     border-style: solid;
+    padding-left: var(--widget-content__px);
+    padding-right: var(--widget-content__px);
 
     --icon-placeholder-display: none;
     --icon-size: 1.5rem;
