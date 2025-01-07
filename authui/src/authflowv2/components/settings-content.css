@@ -9,9 +9,7 @@
 
     @media (min-width: theme("screens.tablet")) {
       margin: 0 auto;
-      width: calc(
-        var(--settings-content__width) + var(--widget-content__px, 0px)
-      );
+      width: calc(var(--settings-content__width) + var(--widget-content__px));
     }
   }
 
