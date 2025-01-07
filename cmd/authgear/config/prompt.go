@@ -19,7 +19,7 @@ func (p prompt) Prompt() interface{} {
 		fmt.Fprintf(os.Stderr, "%s (default '%v'): ", p.Title, p.DefaultValue)
 
 		var value string
-		fmt.Scanln(&value)
+		_, _ = fmt.Scanln(&value)
 		if len(value) == 0 {
 			return p.DefaultValue
 		}

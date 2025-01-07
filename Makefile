@@ -18,7 +18,7 @@ authgearonce-start-portal:
 
 .PHONY: vendor
 vendor:
-	curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$(go env GOPATH)/bin v1.55.2
+	curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$(go env GOPATH)/bin v1.63.4
 	go mod download
 	go install github.com/golang/mock/mockgen
 	go install github.com/google/wire/cmd/wire
@@ -34,6 +34,11 @@ build-frondend:
 	npm --prefix ./portal ci
 	$(MAKE) authui
 	$(MAKE) portal
+
+# This makefile target automates running `go mod tidy` in every directory that has a go.mod file.
+.PHONY: go-mod-tidy
+go-mod-tidy:
+	find . -name 'go.mod' -exec sh -c 'cd $$(dirname {}); go mod tidy' \;
 
 .PHONY: ensure-important-modules-up-to-date
 ensure-important-modules-up-to-date:

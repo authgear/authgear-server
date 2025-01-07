@@ -7,7 +7,7 @@
       url = "github:numtide/flake-utils";
       inputs.systems.follows = "systems";
     };
-    go_1_22_7.url = "github:NixOS/nixpkgs/5ed627539ac84809c78b2dd6d26a5cebeb5ae269";
+    go_1_23_4.url = "github:NixOS/nixpkgs/de1864217bfa9b5845f465e771e0ecb48b30e02d";
     nodejs_20_9_0.url = "github:NixOS/nixpkgs/a71323f68d4377d12c04a5410e214495ec598d4c";
   };
 
@@ -15,7 +15,7 @@
     {
       nixpkgs,
       flake-utils,
-      go_1_22_7,
+      go_1_23_4,
       nodejs_20_9_0,
       ...
     }:
@@ -23,8 +23,8 @@
       system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
-        go_pkgs = go_1_22_7.legacyPackages.${system};
-        go = go_pkgs.go_1_22;
+        go_pkgs = go_1_23_4.legacyPackages.${system};
+        go = go_pkgs.go;
         nodejs = nodejs_20_9_0.legacyPackages.${system}.nodejs_20;
       in
       {
@@ -37,10 +37,10 @@
 
             pkgs.pkg-config
 
-            (pkgs.golangci-lint.overrideAttrs (
+            (go_pkgs.golangci-lint.overrideAttrs (
               prev:
               let
-                version = "1.55.2";
+                version = "1.63.4";
               in
               {
                 inherit version;
@@ -48,9 +48,9 @@
                   owner = "golangci";
                   repo = "golangci-lint";
                   rev = "v${version}";
-                  hash = "sha256-DO71wfDmCuziEcsme1g1uNIl3MswA+EkQcYzOYHbG+I=";
+                  hash = "sha256-7nIo6Nuz8KLuQlT7btjnTRFpOl+KVd30v973HRKzh08=";
                 };
-                vendorHash = "sha256-0+jImfMdVocOczGWeO03YXUg5yKYTu3WeJaokSlcYFM=";
+                vendorHash = "sha256-atr4HMxoPEfGeaNlHqwTEAcvgbSyzgCe262VUg3J86c=";
                 # We do not actually override anything here,
                 # but if we do not repeat this, ldflags refers to the original version.
                 ldflags = [

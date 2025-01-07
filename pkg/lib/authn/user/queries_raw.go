@@ -32,7 +32,9 @@ func (p *RawQueries) QueryPage(ctx context.Context, listOption ListOptions, page
 
 	var models = make([]model.PageItemRef, len(users))
 	for i, u := range users {
-		pageKey := db.PageKey{Offset: offset + uint64(i)}
+		//nolint:gosec // G115
+		i_uint64 := uint64(i)
+		pageKey := db.PageKey{Offset: offset + i_uint64}
 		cursor, err := pageKey.ToPageCursor()
 		if err != nil {
 			return nil, err

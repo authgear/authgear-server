@@ -87,6 +87,7 @@ func (s *Service) QueryUser(
 	body := bytes.NewReader(bodyJSONBytes)
 
 	// Prepare size
+	//nolint:gosec // G115
 	size := int(*pageArgs.First)
 	if size == 0 {
 		size = 20
