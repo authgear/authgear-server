@@ -28,8 +28,7 @@
     border-color: var(--settings-item__border-color);
     border-bottom-width: 1px;
     border-style: solid;
-    padding-left: var(--widget-content__px);
-    padding-right: var(--widget-content__px);
+    @apply widget-content-item__px--settings;
 
     --icon-placeholder-display: none;
     --icon-size: 1.5rem;

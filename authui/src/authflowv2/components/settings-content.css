@@ -4,12 +4,12 @@
   }
 
   .settings-content {
-    padding-left: var(--widget-content__px);
-    padding-right: var(--widget-content__px);
+    @apply widget-content-item__px--settings;
 
     @media (min-width: theme("screens.tablet")) {
       margin: 0 auto;
-      width: calc(var(--settings-content__width) + var(--widget-content__px));
+      width: var(--settings-content__width);
+      box-sizing: content-box;
     }
   }
 

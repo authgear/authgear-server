@@ -13,7 +13,6 @@
     --settings-item__ring-width: 1.5px;
     --settings-item__ring-color: var(--color-neutral-100);
     --settings-item__py: 1rem;
-    --settings-item__px: 0rem;
 
     --settings-item__bg-color--hover: var(--color-neutral-100);
     --settings-item__text-color--hover: var(--settings-item__text-color);
@@ -80,10 +79,12 @@
   .settings-item {
     @apply grid gap-x-2 gap-y-1;
     @apply items-center text-start;
+    @apply widget-content-item__px--settings;
 
     background-color: var(--settings-item__bg-color);
-    padding: var(--settings-item__py)
-      calc(var(--settings-item__px) + var(--widget-content__px));
+    padding-top: var(--settings-item__py);
+    padding-bottom: var(--settings-item__py);
+
     color: var(--settings-item__text-color);
     border-color: var(--settings-item__border-color);
     border-bottom-width: 1px;
