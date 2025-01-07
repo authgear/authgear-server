@@ -297,6 +297,10 @@ func (s *Sender) SendWhatsappImmediately(ctx context.Context, msgType translatio
 	// Send immediately.
 	err = s.sendWhatsapp(ctx, opts)
 	if err != nil {
+		if errors.Is(err, whatsapp.ErrInvalidUser) {
+			// Just return if it is invalid user error
+			return err
+		}
 		otelauthgear.IntCounterAddOne(
 			ctx,
 			otelauthgear.CounterWhatsappRequestCount,
@@ -305,7 +309,7 @@ func (s *Sender) SendWhatsappImmediately(ctx context.Context, msgType translatio
 
 		s.Logger.WithError(err).WithFields(logrus.Fields{
 			"phone": phone.Mask(opts.To),
-		}).Error("failed to send Whatsapp")
+		}).Warn("failed to send Whatsapp")
 
 		logErr := s.Events.DispatchEventImmediately(ctx, &nonblocking.WhatsappErrorEventPayload{
 			Description: s.errorToDescription(err),
