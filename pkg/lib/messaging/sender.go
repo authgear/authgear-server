@@ -201,7 +201,7 @@ func (s *Sender) SendSMSInNewGoroutine(ctx context.Context, msgType translation.
 
 			s.Logger.WithError(err).WithFields(logrus.Fields{
 				"phone": phone.Mask(opts.To),
-			}).Error("failed to send SMS")
+			}).Warn("failed to send SMS")
 			err = s.Database.WithTx(ctx, func(ctx context.Context) error {
 				return s.Events.DispatchEventImmediately(ctx, &nonblocking.SMSErrorEventPayload{
 					Description: s.errorToDescription(err),
