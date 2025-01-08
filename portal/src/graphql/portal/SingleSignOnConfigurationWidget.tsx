@@ -695,6 +695,17 @@ interface OAuthClientCardProps {
   onAddClick?: (k: OAuthSSOProviderItemKey) => void;
 }
 
+function canAddMultiple(provider: OAuthSSOProviderItemKey): boolean {
+  switch (provider) {
+    case "azureadb2c":
+    case "azureadv2":
+    case "adfs":
+      return true;
+    default:
+      return false;
+  }
+}
+
 export const OAuthClientCard: React.VFC<OAuthClientCardProps> =
   function OAuthClientCard(props) {
     const { className, providerItemKey, isAdded, onAddClick } = props;
@@ -727,7 +738,7 @@ export const OAuthClientCard: React.VFC<OAuthClientCardProps> =
               ) : null}
             </div>
           </div>
-          {isAdded ? (
+          {isAdded && !canAddMultiple(providerItemKey) ? (
             <div className={styles.cardAddedBadge}>
               <Text variant="small" styles={{ root: { color: "#898989" } }}>
                 <FormattedMessage id="AddSingleSignOnConfigurationScreen.card.button.added" />
