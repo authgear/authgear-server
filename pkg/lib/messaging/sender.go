@@ -297,7 +297,7 @@ func (s *Sender) SendWhatsappImmediately(ctx context.Context, msgType translatio
 	// Send immediately.
 	err = s.sendWhatsapp(ctx, opts)
 	if err != nil {
-		if errors.Is(err, whatsapp.ErrInvalidUser) {
+		if errors.Is(err, whatsapp.ErrInvalidWhatsappUser) {
 			// Just return if it is invalid user error
 			return err
 		}

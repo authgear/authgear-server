@@ -74,7 +74,7 @@ func (s *Service) ResolveSendAuthenticationOTPOptions(ctx context.Context, opts 
 	switch s.WhatsappConfig.APIType {
 	case config.WhatsappAPITypeOnPremises:
 		if s.OnPremisesClient == nil {
-			return nil, ErrNoAvailableClient
+			return nil, ErrNoAvailableWhatsappClient
 		}
 
 		otpTemplate := s.OnPremisesClient.GetOTPTemplate()
@@ -98,7 +98,7 @@ func (s *Service) SendAuthenticationOTP(ctx context.Context, opts *ResolvedSendA
 	switch s.WhatsappConfig.APIType {
 	case config.WhatsappAPITypeOnPremises:
 		if s.OnPremisesClient == nil {
-			return ErrNoAvailableClient
+			return ErrNoAvailableWhatsappClient
 		}
 
 		return s.OnPremisesClient.SendTemplate(
