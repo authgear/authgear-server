@@ -809,13 +809,15 @@ export const OAuthClientCard: React.VFC<OAuthClientCardProps> =
 interface OAuthClientRowProps {
   className?: string;
   providerConfig: OAuthSSOProviderConfig;
+  showAlias: boolean;
   onEditClick?: (provider: OAuthSSOProviderConfig) => void;
   onDeleteClick?: (provider: OAuthSSOProviderConfig) => void;
 }
 
 export const OAuthClientRow: React.VFC<OAuthClientRowProps> =
   function OAuthClientRow(props) {
-    const { className, providerConfig, onEditClick, onDeleteClick } = props;
+    const { className, providerConfig, showAlias, onEditClick, onDeleteClick } =
+      props;
     const { renderToString } = useContext(Context);
     const { themes } = useSystemConfig();
 
@@ -850,6 +852,7 @@ export const OAuthClientRow: React.VFC<OAuthClientRowProps> =
               {`${renderToString(titleId)}${
                 subtitleId != null ? ` (${renderToString(subtitleId)})` : ""
               }`}
+              {showAlias ? ` - ${providerConfig.alias}` : null}
             </Text>
           </div>
           <div className={styles.rowDescription}>
