@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 
 import { FormattedMessage } from "@oursky/react-messageformat";
 import cn from "classnames";
@@ -9,6 +9,9 @@ import {
   createOAuthSSOProviderItemKey,
   OAuthSSOProviderItemKey,
   oauthSSOProviderItemKeys,
+  OAuthSSOProviderType,
+  OAuthSSOWeChatAppType,
+  parseOAuthSSOProviderItemKey,
 } from "../../types";
 import ShowOnlyIfSIWEIsDisabled from "./ShowOnlyIfSIWEIsDisabled";
 import styles from "./AddSingleSignOnConfigurationScreen.module.css";
@@ -19,6 +22,7 @@ import SingleSignOnConfigurationWidget, {
 import ScreenContentHeader from "../../ScreenContentHeader";
 import {
   OAuthProviderFormModel,
+  SSOProviderFormState,
   useOAuthProviderForm,
 } from "../../hook/useOAuthProviderForm";
 import { useNavigate, useParams } from "react-router-dom";
@@ -60,6 +64,26 @@ const OAuthClientMenu: React.VFC<OAuthClientMenuProps> =
     );
   };
 
+function generateNewAlias(
+  existingProviders: SSOProviderFormState[],
+  providerType: OAuthSSOProviderType,
+  appType?: OAuthSSOWeChatAppType
+) {
+  const aliasPrefix = appType
+    ? [providerType, appType].join("_")
+    : providerType;
+  let alias = aliasPrefix;
+  let counter = 0;
+  const existingAliases = new Set(
+    existingProviders.map((provider) => provider.config.alias)
+  );
+  while (existingAliases.has(alias)) {
+    counter += 1;
+    alias = `${aliasPrefix}${counter}`;
+  }
+  return alias;
+}
+
 interface OAuthClientFormProps {
   alias: string;
   providerItemKey: OAuthSSOProviderItemKey;
@@ -87,8 +111,9 @@ const AddSingleSignOnConfigurationContent: React.VFC =
     const navigate = useNavigate();
     const { appID } = useParams() as { appID: string };
     const form = useOAuthProviderForm(appID, null);
-    const [selectedProvider, setSelectedProvider] =
+    const [selectedProviderKey, setSelectedProviderKey] =
       useState<OAuthSSOProviderItemKey>();
+    const [newAlias, setNewAlias] = useState<string | null>(null);
 
     const navBreadcrumbItems = useMemo(() => {
       return [
@@ -108,26 +133,31 @@ const AddSingleSignOnConfigurationContent: React.VFC =
     }, []);
 
     const onMenuSelect = useCallback((itemKey: OAuthSSOProviderItemKey) => {
-      setSelectedProvider(itemKey);
+      setSelectedProviderKey(itemKey);
     }, []);
 
     const onSaveSuccess = useCallback(() => {
       navigate("../");
     }, [navigate]);
 
-    const newAlias = useMemo(() => {
-      if (selectedProvider == null) {
-        return null;
+    useEffect(() => {
+      if (selectedProviderKey == null) {
+        setNewAlias(null);
+        return;
       }
-      // FIXME
-      return selectedProvider;
-    }, [selectedProvider]);
+      const [providerType, appType] =
+        parseOAuthSSOProviderItemKey(selectedProviderKey);
+      setNewAlias(
+        generateNewAlias(form.state.providers, providerType, appType)
+      );
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selectedProviderKey]);
 
     return (
       <FormContainer
         form={form}
         afterSave={onSaveSuccess}
-        hideFooterComponent={selectedProvider == null}
+        hideFooterComponent={selectedProviderKey == null}
       >
         <ScreenContent
           header={
@@ -142,11 +172,11 @@ const AddSingleSignOnConfigurationContent: React.VFC =
           }
         >
           <ShowOnlyIfSIWEIsDisabled>
-            {newAlias != null && selectedProvider != null ? (
+            {newAlias != null && selectedProviderKey != null ? (
               <OAuthClientForm
                 alias={newAlias}
                 form={form}
-                providerItemKey={selectedProvider}
+                providerItemKey={selectedProviderKey}
               />
             ) : (
               <OAuthClientMenu form={form} onSelect={onMenuSelect} />

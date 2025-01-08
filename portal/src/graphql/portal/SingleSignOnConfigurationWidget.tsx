@@ -249,13 +249,6 @@ const OAuthClientIcon: React.VFC<OAuthClientIconProps> =
     return <i className={cn("fab", iconClassName, styles.widgetLabelIcon)} />;
   };
 
-function defaultAlias(
-  providerType: OAuthSSOProviderType,
-  appType?: OAuthSSOWeChatAppType
-) {
-  return appType ? [providerType, appType].join("_") : providerType;
-}
-
 export function useSingleSignOnConfigurationWidget(
   alias: string,
   providerItemKey: OAuthSSOProviderItemKey,
@@ -281,12 +274,12 @@ export function useSingleSignOnConfigurationWidget(
     const newConfig = {
       config: {
         type: providerType,
-        alias: defaultAlias(providerType, appType),
+        alias: alias,
         ...(appType && { app_type: appType }),
       },
       secret: {
         originalAlias: null,
-        newAlias: defaultAlias(providerType, appType),
+        newAlias: alias,
         newClientSecret: "",
       },
     } satisfies SSOProviderFormState;
