@@ -38,12 +38,12 @@
       )}}
     {{ end }}
 
-    {{
-      template "authflowv2/__settings_action_item.html"
+    {{ template "authflowv2/__settings_item.html"
       (dict
         "Label" .DisplayName
-        "Description" (include "__settings_session_item_description" .)
+        "WithArrow" false
         "ActionButton" $actionBtn
+        "SupplementaryNote" (include "__settings_session_item_description" .)
       )
     }}
   {{ end }}
@@ -92,7 +92,7 @@
 
 {{ define "__settings_session_item_remove_btn.html" }}
 <button
-  class="settings-action-item__icon--pale"
+  class="settings-item__icon--pale"
   data-controller="dialog"
   data-action="click->dialog#open"
   id="{{ .DialogID }}"

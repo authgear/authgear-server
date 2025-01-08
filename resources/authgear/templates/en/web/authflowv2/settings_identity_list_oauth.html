@@ -50,21 +50,21 @@
 
       {{- if not $skip -}}
       <li>
-        {{ template "authflowv2/__settings_action_item.html"
-            (dict
-              "CustomIcon" (include "__settings_action_item_sso_icon.html" (dict "ProviderType" .provider_type))
-              "Label" (translate (printf "v2.page.settings-identity-oauth.default.provider.%s" .provider_type) nil)
-              "Description" .display_id
-              "ActionButton" (include "__settings_action_item_connect.html" (dict
-                "Ctx" $ctx
-                "CSRFField" $.CSRFField
-                "ProviderAlias" .provider_alias
-                "ProviderType" .provider_type
-                "IdentityID" .identity_id
-                "DeleteDisabled" .delete_disabled
-                "Verified" $verification_verified
-              ))
-            )
+        {{ template "authflowv2/__settings_item.html"
+          (dict
+            "CustomIcon" (include "__settings_action_item_sso_icon.html" (dict "ProviderType" .provider_type))
+            "Label" (translate (printf "v2.page.settings-identity-oauth.default.provider.%s" .provider_type) nil)
+            "SupplementaryNote" .display_id
+            "ActionButton" (include "__settings_action_item_connect.html" (dict
+              "Ctx" $ctx
+              "CSRFField" $.CSRFField
+              "ProviderAlias" .provider_alias
+              "ProviderType" .provider_type
+              "IdentityID" .identity_id
+              "DeleteDisabled" .delete_disabled
+              "Verified" $verification_verified
+            ))
+          )
         }}
       </li>
       {{ end }}
@@ -76,7 +76,7 @@
 {{ end }}
 
 {{ define "__settings_action_item_sso_icon.html" }}
-<i class="settings-action-item__icon settings-sso-icon {{ .ProviderType }}-icon"></i>
+<i class="settings-item-icon settings-sso-icon {{ .ProviderType }}-icon"></i>
 {{ end }}
 
 {{ define "__settings_action_item_connect.html" }}

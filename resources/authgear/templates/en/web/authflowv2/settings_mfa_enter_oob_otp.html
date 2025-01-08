@@ -41,7 +41,7 @@
     {{ $unknown_error_message = (include "authflowv2/__error.html" (merge (dict "Error" $unknown_err) $)) }}
   {{ end }}
 
-  <div class="settings-content flex flex-col gap-y-8">
+  <div class="settings-content settings-content-form">
     <div class="screen-title-description">
       <h2 class="screen-description">
         {{ if eq $.Channel "whatsapp" }}
@@ -84,7 +84,7 @@
     {{ template "authflowv2/__divider.html" . }}
     {{- end }}
 
-    <div class="flex flex-col gap-y-4">
+    <div class="settings-content-form-fields">
       {{ range $.Channels }}
         {{ if not (eq . $.Channel) }}
           <form

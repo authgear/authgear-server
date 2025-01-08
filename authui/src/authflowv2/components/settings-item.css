@@ -13,7 +13,6 @@
     --settings-item__ring-width: 1.5px;
     --settings-item__ring-color: var(--color-neutral-100);
     --settings-item__py: 1rem;
-    --settings-item__px: 0.5rem;
 
     --settings-item__bg-color--hover: var(--color-neutral-100);
     --settings-item__text-color--hover: var(--settings-item__text-color);
@@ -62,6 +61,8 @@
     );
     --settings-item-content__text-color: var(--color-neutral-400);
     --settings-item-content__text-color--highlighted: var(--color-link);
+
+    --settings-item__icon-color--pale: var(--color-neutral-200);
   }
 
   :root.dark {
@@ -80,10 +81,12 @@
   .settings-item {
     @apply grid gap-x-2 gap-y-1;
     @apply items-center text-start;
+    @apply widget-content-item__px--settings;
 
     background-color: var(--settings-item__bg-color);
-    padding: var(--settings-item__py)
-      calc(var(--settings-item__px) + var(--widget-content__px));
+    padding-top: var(--settings-item__py);
+    padding-bottom: var(--settings-item__py);
+
     color: var(--settings-item__text-color);
     border-color: var(--settings-item__border-color);
     border-bottom-width: 1px;
@@ -94,46 +97,58 @@
       --settings-item__grid-col-icon-width: 1.5rem;
     }
 
+    --settings-item__grid-col-action: minmax(0rem, min-content);
+
     &.with-content {
       /* When Mobile View */
       grid-template-areas:
-        "icon title arrow"
-        ". content arrow";
-      grid-template-columns: var(--settings-item__grid-col-icon-width) auto 1.125rem;
+        "icon title action"
+        ". content action";
+      grid-template-columns: var(--settings-item__grid-col-icon-width) auto var(
+          --settings-item__grid-col-action
+        );
 
       /* When Not Mobile View */
       @media (min-width: theme("screens.tablet")) {
-        grid-template-areas: "icon title content arrow";
-        grid-template-columns: var(--settings-item__grid-col-icon-width) 9rem auto 1.125rem;
+        grid-template-areas: "icon title content action";
+        grid-template-columns: var(--settings-item__grid-col-icon-width) 9rem auto var(
+            --settings-item__grid-col-action
+          );
       }
     }
 
     &.without-content {
-      grid-template-areas: "icon title arrow";
-      grid-template-columns: var(--settings-item__grid-col-icon-width) auto 1.125rem;
+      grid-template-areas: "icon title action";
+      grid-template-columns: var(--settings-item__grid-col-icon-width) auto var(
+          --settings-item__grid-col-action
+        );
     }
 
     &.with-note {
       grid-template-areas:
-        "icon title arrow"
-        ".    note  arrow";
-      grid-template-columns: var(--settings-item__grid-col-icon-width) auto 1.125rem;
+        "icon title action"
+        ".    note  action";
+      grid-template-columns: var(--settings-item__grid-col-icon-width) auto var(
+          --settings-item__grid-col-action
+        );
     }
 
-    &[href]:hover {
-      background-color: var(--settings-item__bg-color--hover);
-      color: var(--settings-item__text-color--hover);
-      @apply ring-inset
-        ring-[length:var(--settings-item\_\_ring-width--hover)]
-        ring-[color:var(--settings-item\_\_ring-color--hover)];
-    }
-
-    &:active {
+    a:active &,
+    button:active & {
       background-color: var(--secondary-item__bg-color--active);
       color: var(--secondary-item__text-color--active);
       @apply ring-inset
         ring-[length:var(--secondary-item\_\_ring-width--active)]
         ring-[color:var(--secondary-item\_\_ring-color--active)];
+    }
+
+    a:hover &,
+    button:hover & {
+      background-color: var(--settings-item__bg-color--hover);
+      color: var(--settings-item__text-color--hover);
+      @apply ring-inset
+        ring-[length:var(--settings-item\_\_ring-width--hover)]
+        ring-[color:var(--settings-item\_\_ring-color--hover)];
     }
   }
 
@@ -144,9 +159,7 @@
   .settings-item__label {
     grid-area: title;
   }
-  .settings-item__content {
-    grid-area: content;
-
+  .settings-item-content__typography {
     font-family: var(--settings-item-content__font-family);
     font-size: var(--settings-item-content__font-size);
     line-height: var(--settings-item-content__line-height);
@@ -154,38 +167,57 @@
     font-weight: var(--settings-item-content__font-weight);
     color: var(--settings-item-content__text-color);
   }
+  .settings-item__content {
+    grid-area: content;
+
+    @apply settings-item-content__typography;
+  }
   .settings-item__content--highlight {
     color: var(--settings-item-content__text-color--highlighted);
   }
   .settings-item__forward_arrow {
-    grid-area: arrow;
+    grid-area: action;
+  }
+  .settings-item__action {
+    grid-area: action;
+    align-self: stretch;
   }
   .settings-item__note {
+    /* note is same as content, but placed in the different position. */
     grid-area: note;
-    font-family: var(--settings-item__note-font-family);
-    font-size: var(--settings-item__note-font-size);
-    line-height: var(--settings-item__note-line-height);
-    letter-spacing: var(--settings-item__note-letter-spacing);
-    font-weight: var(--settings-item__note-font-weight);
+
+    @apply settings-item-content__typography;
   }
-}
 
-.settings-item__label {
-  font-family: var(--settings-item__font-family);
-  font-size: var(--settings-item__font-size);
-  line-height: var(--settings-item__line-height);
-  letter-spacing: var(--settings-item__letter-spacing);
-  font-weight: var(--settings-item__font-weight);
-}
+  .settings-item__label {
+    font-family: var(--settings-item__font-family);
+    font-size: var(--settings-item__font-size);
+    line-height: var(--settings-item__line-height);
+    letter-spacing: var(--settings-item__letter-spacing);
+    font-weight: var(--settings-item__font-weight);
+  }
 
-.settings-item__forward_arrow {
-  font-size: var(--settings-item__forward-arrow-font-size);
-  color: var(--settings-item__forward-arrow-color);
+  .settings-item__forward_arrow {
+    font-size: var(--settings-item__forward-arrow-font-size);
+    color: var(--settings-item__forward-arrow-color);
 
-  @apply flex items-center;
+    @apply flex items-center;
 
-  &::before {
-    @apply material-icons;
-    @apply ltr:content-['arrow\_forward\_ios'] rtl:content-['arrow\_back\_ios'];
+    &::before {
+      @apply material-icons;
+      @apply ltr:content-['arrow\_forward\_ios'] rtl:content-['arrow\_back\_ios'];
+    }
+  }
+
+  .settings-item__icon--pale {
+    @apply settings-item-icon;
+    line-height: normal;
+    color: var(--settings-item__icon-color--pale);
+  }
+
+  .settings-item__icon--pale {
+    @apply settings-item-icon;
+    line-height: normal;
+    color: var(--settings-item__icon-color--pale);
   }
 }

@@ -5,11 +5,7 @@
       true,
       {
         "ignorePartialSupport": true,
-        "ignore": [
-          "css-cascade-layers",
-          "css-nesting",
-          "css3-cursors"
-        ]
+        "ignore": ["css-cascade-layers", "css-nesting", "css3-cursors"]
       }
     ],
     "no-duplicate-selectors": null,
@@ -20,6 +16,7 @@
       {
         "ignoreAtRules": ["mixin", "include", "tailwind", "layer"]
       }
-    ]
+    ],
+    "length-zero-no-unit": null
   }
 }

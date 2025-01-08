@@ -20,7 +20,7 @@
 >
   {{ $.CSRFField }}
 
-  <div class="flex flex-col gap-y-4">
+  <div class="settings-content-form-fields">
     {{ if (call $.IsReadable "/name") }}
       {{ template "authflowv2/__settings_text_input.html"
           (dict
@@ -90,6 +90,7 @@
           )
       }}
     {{ end }}
+  </div>
 
   {{ if or (call $.IsEditable "/name") (call $.IsEditable "/given_name") (call $.IsEditable "/family_name") (call $.IsEditable "/middle_name") (call $.IsEditable "/nickname") }}
     <button

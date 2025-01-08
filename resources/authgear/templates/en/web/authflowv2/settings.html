@@ -29,7 +29,7 @@
   </div>
 
   {{/* Identity */}}
-  <div class="flex flex-col gap-2">
+  <div class="flex flex-col gap-4">
     <div class="flex flex-col gap-1">
       <h2 class="settings-title text-start">
         {{ include "v2.page.settings.default.title-my-account" . }}
@@ -86,31 +86,36 @@
       {{ end }}
 
       {{/* Render with given variable */}}
-      {{ template "authflowv2/__settings_item.html"
-        (dict
-          "Label" $label
-          "Href" $url
-          "MaterialIconName" $icon
-          "Children" $identityArr
-        )
-      }}
+      <a href="{{$url}}" class="contents">
+        {{ template "authflowv2/__settings_item.html"
+          (dict
+            "Label" $label
+            "WithArrow" true
+            "MaterialIconName" $icon
+            "Children" $identityArr
+          )
+        }}
+      </a>
 
     {{ end }}
     {{ end}}
 
     {{ $url := call $.MakeURL "/settings/identity/oauth" }}
-    {{ template "authflowv2/__settings_item.html"
-      (dict
-        "Label" ( include "v2.page.settings.default.social-accounts-button-label" nil )
-        "Href" $url
-        "MaterialIconName" "link"
-      )
-    }}
+
+    <a href="{{$url}}" class="contents">
+      {{ template "authflowv2/__settings_item.html"
+        (dict
+          "Label" ( include "v2.page.settings.default.social-accounts-button-label" nil )
+          "WithArrow" true
+          "MaterialIconName" "link"
+        )
+      }}
+    </a>
     </div>
   </div>
 
   {{/* Security */}}
-  <div class="flex flex-col gap-2">
+  <div class="flex flex-col gap-4">
     <div class="flex flex-col gap-1">
       <h2 class="settings-title text-start">
         {{ include "v2.page.settings.default.title-security" . }}
@@ -124,57 +129,67 @@
       {{ range $.Authenticators }}
         {{ if and (eq .Type "password") (eq .Kind "primary") }}
           {{ $url = call $.MakeURL "/settings/change_password" }}
-          {{ template "authflowv2/__settings_item.html"
-            (dict
-              "Label" ( include "v2.page.settings.default.password-button-label" nil )
-              "Href" $url
-              "MaterialIconName" "key"
-            )
-          }}
+          <a href="{{$url}}" class="contents">
+            {{ template "authflowv2/__settings_item.html"
+              (dict
+                "Label" ( include "v2.page.settings.default.password-button-label" nil )
+                "WithArrow" true
+                "MaterialIconName" "key"
+              )
+            }}
+          </a>
         {{ end }}
       {{ end }}
 
       {{ if $.ShowPrimaryPasskey }}
         {{ $url = call $.MakeURL "/settings/passkey" }}
-        {{ template "authflowv2/__settings_item.html"
-          (dict
-            "Label" ( include "v2.page.settings.default.passkey-button-label" nil )
-            "Href" $url
-            "MaterialIconName" "passkey"
-          )
-        }}
+        <a href="{{$url}}" class="contents">
+          {{ template "authflowv2/__settings_item.html"
+            (dict
+              "Label" ( include "v2.page.settings.default.passkey-button-label" nil )
+              "WithArrow" true
+              "MaterialIconName" "passkey"
+            )
+          }}
+        </a>
       {{ end }}
 
       {{ if $.ShowMFA }}
         {{ $url = call $.MakeURL "/settings/mfa" }}
-        {{ template "authflowv2/__settings_item.html"
-          (dict
-            "Label" ( include "v2.page.settings.default.mfa-button-label" nil )
-            "Href" $url
-            "MaterialIconName" "encrypted"
-          )
-        }}
+        <a href="{{$url}}" class="contents">
+          {{ template "authflowv2/__settings_item.html"
+            (dict
+              "Label" ( include "v2.page.settings.default.mfa-button-label" nil )
+              "WithArrow" true
+              "MaterialIconName" "encrypted"
+            )
+          }}
+        </a>
       {{ end }}
 
       {{ if $.ShowBiometric }}
         {{ $url = call $.MakeURL "/settings/biometric" }}
-        {{ template "authflowv2/__settings_item.html"
-          (dict
-            "Label" ( include "v2.page.settings.default.biometric-login-button-label" nil )
-            "Href" $url
-            "MaterialIconName" "fingerprint"
-          )
-        }}
+        <a href="{{$url}}" class="contents">
+          {{ template "authflowv2/__settings_item.html"
+            (dict
+              "Label" ( include "v2.page.settings.default.biometric-login-button-label" nil )
+              "WithArrow" true
+              "MaterialIconName" "fingerprint"
+            )
+          }}
+        </a>
       {{ end }}
 
       {{ $url = call $.MakeURL "/settings/sessions" }}
-      {{ template "authflowv2/__settings_item.html"
-        (dict
-          "Label" ( include "v2.page.settings.default.signed-in-devices-button-label" nil )
-          "Href" $url
-          "MaterialIconName" "verified_user"
-        )
-      }}
+      <a href="{{$url}}" class="contents">
+        {{ template "authflowv2/__settings_item.html"
+          (dict
+            "Label" ( include "v2.page.settings.default.signed-in-devices-button-label" nil )
+            "WithArrow" true
+            "MaterialIconName" "verified_user"
+          )
+        }}
+      </a>
 
 
       {{ $show_advanced_settings_button := false }}
@@ -184,13 +199,15 @@
 
       {{ if $show_advanced_settings_button }}
         {{ $url = call $.MakeURL "/settings/advanced_settings" }}
-        {{ template "authflowv2/__settings_item.html"
-          (dict
-            "Label" ( include "v2.page.settings.default.advanced-settings-button-label" nil )
-            "Href" $url
-            "MaterialIconName" "settings_alert"
-          )
-        }}
+        <a href="{{$url}}" class="contents">
+          {{ template "authflowv2/__settings_item.html"
+            (dict
+              "Label" ( include "v2.page.settings.default.advanced-settings-button-label" nil )
+              "WithArrow" true
+              "MaterialIconName" "settings_alert"
+            )
+          }}
+        </a>
       {{ end }}
     </div>
   </div>

@@ -19,11 +19,12 @@
   {{ end }}
 
 
-  {{ template "authflowv2/__settings_action_item.html"
-      (dict
-        "Label" $.Identity.OriginalLoginID
-        "ActionButton" $actionButton
-      )
+  {{ template "authflowv2/__settings_item.html"
+    (dict
+      "Label" $.Identity.OriginalLoginID
+      "WithArrow" false
+      "ActionButton" $actionButton
+    )
   }}
 
   {{ if not $.DeleteDisabled }}

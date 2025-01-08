@@ -17,6 +17,7 @@
 
   .settings-title {
     @apply text-center;
+    @apply widget-content-item__px--settings;
 
     font-family: var(--settings-title__font-family);
     font-size: var(--settings-title__font-size);
@@ -24,7 +25,5 @@
     letter-spacing: var(--settings-title__letter-spacing);
     font-weight: var(--settings-title__font-weight);
     color: var(--settings-title__text-color);
-    padding-left: var(--widget-content__px);
-    padding-right: var(--widget-content__px);
   }
 }

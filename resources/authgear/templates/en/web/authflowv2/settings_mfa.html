@@ -33,17 +33,17 @@
         name="x_action"
         value="create_totp"
       >
-        {{ template "authflowv2/__settings_action_item.html"
-            (dict
-              "IconName" "phone_iphone"
-              "Label" (translate "v2.page.settings-mfa.default.secondary-totp-label" nil)
-              "ActionButton" (include "__settings_mfa_item_action_button.html" nil)
-              "Description" (include "__settings_mfa_item_status.html"
-                (dict
-                  "IsActive" $.IsActive
-                )
+        {{ template "authflowv2/__settings_item.html"
+          (dict
+            "Label" (translate "v2.page.settings-mfa.default.secondary-totp-label" nil)
+            "WithArrow" true
+            "MaterialIconName" "phone_iphone"
+            "SupplementaryNote" (include "__settings_mfa_item_status.html"
+              (dict
+                "IsActive" $.IsActive
               )
             )
+          )
         }}
       </button>
     </form>
@@ -104,30 +104,29 @@
   {{ end }}
 
   {{ if and $.ListRecoveryCodesAllowed $.HasRecoveryCodes }}
-    {{ template "authflowv2/__settings_action_item.html"
+    <a class="contents" href="{{ call $.MakeURL "/settings/mfa/view_recovery_code" }}">
+      {{ template "authflowv2/__settings_item.html"
         (dict
-          "IconName" "security"
           "Label" (translate "v2.page.settings-mfa.default.recovery-code-label" nil)
-          "Description" (translate "v2.page.settings-mfa.default.recovery-code-description" nil)
-          "RedirectURL" (call $.MakeURL "/settings/mfa/view_recovery_code")
+          "WithArrow" true
+          "MaterialIconName" "security"
+          "SupplementaryNote" (translate "v2.page.settings-mfa.default.recovery-code-description" nil)
         )
-    }}
+      }}
+    </a>
   {{ end }}
 
   {{ if $.HasMFA}}
     {{ if gt $.NumberOfDeviceTokens 0 }}
-      <div
-        class="block w-full"
-      >
-        {{ template "authflowv2/__settings_action_item.html"
-            (dict
-              "IconName" "person_check"
-              "Label" (translate "v2.page.settings-mfa.default.trusted-devices-label" nil)
-              "Description" (translate "v2.page.settings-mfa.default.trusted-devices-has-device-tokens-message" (dict "NumberOfDeviceTokens" $.NumberOfDeviceTokens))
-              "ActionButton"  (include "__settings_trusted_device_remove_btn.html" nil)
-            )
-        }}
-      </div>
+      {{ template "authflowv2/__settings_item.html"
+        (dict
+          "Label" (translate "v2.page.settings-mfa.default.trusted-devices-label" nil)
+          "WithArrow" false
+          "MaterialIconName" "person_check"
+          "SupplementaryNote" (translate "v2.page.settings-mfa.default.trusted-devices-has-device-tokens-message" (dict "NumberOfDeviceTokens" $.NumberOfDeviceTokens))
+          "ActionButton"  (include "__settings_trusted_device_remove_btn.html" nil)
+        )
+      }}
 
       {{ template "authflowv2/__settings_dialog.html" (dict
         "Ctx" .
@@ -150,12 +149,13 @@
         )
       )}}
     {{ else }}
-      {{ template "authflowv2/__settings_action_item.html"
-          (dict
-            "IconName" "person_check"
-            "Label" (translate "v2.page.settings-mfa.default.trusted-devices-label" nil)
-            "Description" (translate "v2.page.settings-mfa.default.trusted-devices-no-device-tokens-message" nil)
-          )
+      {{ template "authflowv2/__settings_item.html"
+        (dict
+          "Label" (translate "v2.page.settings-mfa.default.trusted-devices-label" nil)
+          "WithArrow" false
+          "MaterialIconName" "person_check"
+          "SupplementaryNote" (translate "v2.page.settings-mfa.default.trusted-devices-no-device-tokens-message" nil)
+        )
       }}
     {{ end }}
   {{ end }}
@@ -165,18 +165,20 @@
 {{ end }}
 
 {{ define "__settings_mfa_item.html" }}
-  {{ template "authflowv2/__settings_action_item.html"
+  <a class="contents" href="{{$.Href}}">
+    {{ template "authflowv2/__settings_item.html"
       (dict
-        "IconName" $.MaterialIconName
         "Label" $.Label
-        "RedirectURL" $.Href
-        "Description" (include "__settings_mfa_item_status.html"
+        "WithArrow" true
+        "MaterialIconName" $.MaterialIconName
+        "SupplementaryNote" (include "__settings_mfa_item_status.html"
           (dict
             "IsActive" $.IsActive
           )
         )
       )
-  }}
+    }}
+  </a>
 {{ end }}
 
 {{ define "__settings_mfa_item_status.html" }}

@@ -4,12 +4,20 @@
   }
 
   .settings-content {
-    padding-left: var(--widget-content__px);
-    padding-right: var(--widget-content__px);
+    @apply widget-content-item__px--settings;
 
     @media (min-width: theme("screens.tablet")) {
       margin: 0 auto;
       width: var(--settings-content__width);
+      box-sizing: content-box;
     }
+  }
+
+  .settings-content-form {
+    @apply flex flex-col gap-y-8;
+  }
+
+  .settings-content-form-fields {
+    @apply flex flex-col gap-y-4;
   }
 }

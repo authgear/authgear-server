@@ -182,13 +182,15 @@
     {{ $content = (translate "v2.page.settings-profile.default.attribute-value-unspecified-label" nil) }}
   {{ end }}
 
-  {{ template "authflowv2/__settings_item.html"
-    (dict
-      "Label" $.Title
-      "Href" $url
-      "Children" (list $content)
-    )
-  }}
+  <a href="{{$url}}" class="contents">
+    {{ template "authflowv2/__settings_item.html"
+      (dict
+        "Label" $.Title
+        "WithArrow" true
+        "Children" (list $content)
+      )
+    }}
+  </a>
 {{ end }}
 
 {{ define "__settings_profile_date_item.html" }}

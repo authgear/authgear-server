@@ -72,7 +72,6 @@ var TemplateWebAuthflowV2TermsOfServiceAndPrivacyPolicyFooterHTML = template.Reg
 var TemplateWebAuthflowV2WatermarkHTML = template.RegisterHTML("web/authflowv2/__watermark.html")
 var TemplateWebAuthflowV2CSRFErrorPageLayoutHTML = template.RegisterHTML("web/authflowv2/__csrf_error_page_layout.html")
 var TemplateWebAuthflowV2SettingsItemHTML = template.RegisterHTML("web/authflowv2/__settings_item.html")
-var TemplateWebAuthflowV2SettingsActionItemHTML = template.RegisterHTML("web/authflowv2/__settings_action_item.html")
 var TemplateWebAuthflowV2SettingsRadioHTML = template.RegisterHTML("web/authflowv2/__settings_radio.html")
 var TemplateWebAuthflowV2SettingsDialog = template.RegisterHTML("web/authflowv2/__settings_dialog.html")
 
@@ -145,7 +144,6 @@ var BaseComponentsHTML = []*template.HTML{
 	TemplateWebAuthflowV2CSRFErrorPageLayoutHTML,
 	TemplateWebAuthflowV2BrandLogoHTML,
 	TemplateWebAuthflowV2SettingsItemHTML,
-	TemplateWebAuthflowV2SettingsActionItemHTML,
 	TemplateWebAuthflowV2NavBar,
 	TemplateWebAuthflowV2DateInputHTML,
 	TemplateWebAuthflowV2UserProfilePic,

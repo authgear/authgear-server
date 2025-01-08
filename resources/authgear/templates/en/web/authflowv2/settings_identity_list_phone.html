@@ -12,13 +12,13 @@
 
 {{ define "__settings_identity_phone_verification_label.html" }}
   {{ if $.Verified }}
-    <div class="body-text--md settings-text-color-success">
+    <span class="body-text--md settings-text-color-success">
       {{ translate "v2.page.settings-identity.default.verification-status-verified-label" . }}
-    </div>
+    </span>
   {{ else }}
-    <div class="body-text--md settings-text-color-failure">
+    <span class="body-text--md settings-text-color-failure">
       {{ translate "v2.page.settings-identity.default.verification-status-unverified-label" . }}
-    </div>
+    </span>
   {{ end }}
 {{ end }}
 
@@ -32,28 +32,30 @@
         {{ if not (empty $claims) }}
           {{ $claim := first $claims }}
           {{ $href := (call $.MakeURL "/settings/identity/view_phone" "q_login_id_key" $.LoginIDKey "q_identity_id" .ID )}}
-          {{ template "authflowv2/__settings_action_item.html"
+          <a class="contents" href="{{$href}}">
+            {{ template "authflowv2/__settings_item.html"
               (dict
-                "IconName" "phone_iphone"
+                "MaterialIconName" "phone_iphone"
                 "Label" .OriginalLoginID
-                "Description" (include "__settings_identity_phone_verification_label.html"
+                "SupplementaryNote" (include "__settings_identity_phone_verification_label.html"
                   (dict "Verified" $claim.Verified)
                 )
-                "RedirectURL" $href
+                "WithArrow" true
               )
-          }}
+            }}
+          </a>
         {{ end }}
       </li>
     {{ end }}
 
     {{ range $.OAuthPhoneIdentities }}
       <li>
-        {{ template "authflowv2/__settings_action_item.html"
-            (dict
-              "IconName" "phone_iphone"
-              "Label" .Phone
-              "Description" (translate (printf "v2.page.settings-identity-list-phone.default.provider.%s" .ProviderType) nil)
-            )
+        {{ template "authflowv2/__settings_item.html"
+          (dict
+            "MaterialIconName" "phone_iphone"
+            "Label" .Phone
+            "SupplementaryNote" (translate (printf "v2.page.settings-identity-list-phone.default.provider.%s" .ProviderType) nil)
+          )
         }}
       </li>
     {{ end }}
@@ -72,13 +74,13 @@
   {{ end }}
 
   {{ if and ($.PrimaryPhone) (gt (len $.AllPhones) (1)) }}
-    <span>
+    <div>
       <div class="settings-title text-start">
         {{ translate "v2.page.settings-identity-list-phone.default.primary-phone-label" . }}
       </div>
-      {{ template "authflowv2/__settings_action_item.html"
+      {{ template "authflowv2/__settings_item.html"
         (dict
-          "IconName" "phone_iphone"
+          "MaterialIconName" "phone_iphone"
           "Label" .PrimaryPhone
           "ActionButton" (include "__settings_identity_phone_change_button.html"
             (dict "Href" (call $.MakeURL "/settings/identity/change_primary_phone" "q_login_id_key" $.LoginIDKey))

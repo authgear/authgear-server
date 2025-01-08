@@ -51,7 +51,11 @@
     @apply px-0 py-6;
     @apply gap-y-5 tablet:gap-y-8;
     max-width: var(--widget__max-width--settings);
-    --widget-content__px: 1.5rem;
+  }
+
+  .widget-content-item__px--settings {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
   }
 
   /* In __html_head.html, there is a <noscript> element to revert this visibility. */
@@ -73,19 +77,21 @@
       @apply self-stretch;
     }
 
+    .widget-content-item__px--settings {
+      padding-left: 2rem;
+      padding-right: 2rem;
+    }
+
     .widget-content.widget-content--settings {
       @apply px-0 py-8;
-      --widget-content__px: 2rem;
     }
   }
 
   .widget-content__item--settings {
-    padding-left: var(--widget-content__px);
-    padding-right: var(--widget-content__px);
+    @apply widget-content-item__px--settings;
   }
 
   .widget-content__alert--settings {
-    margin-left: var(--widget-content__px);
-    margin-right: var(--widget-content__px);
+    @apply widget-content-item__px--settings;
   }
 }
