@@ -98,6 +98,7 @@ export interface OAuthSSOProviderConfig {
   wechat_redirect_uris?: string[];
   discovery_document_endpoint?: string;
   policy?: string;
+  domain_hint?: string;
   claims?: OAuthClaimsConfig;
 }
 export const oauthSSOProviderItemKeys = [
