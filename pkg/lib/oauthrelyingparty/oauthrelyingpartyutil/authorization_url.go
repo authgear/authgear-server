@@ -15,7 +15,7 @@ type AuthorizationURLParams struct {
 	Prompt       []string
 	Nonce        string
 
-	WechatAppID string
+	ExtraQuery url.Values
 }
 
 func (p AuthorizationURLParams) Query() url.Values {
@@ -45,8 +45,8 @@ func (p AuthorizationURLParams) Query() url.Values {
 		v.Set("nonce", p.Nonce)
 	}
 
-	if p.WechatAppID != "" {
-		v.Set("appid", p.WechatAppID)
+	for key := range p.ExtraQuery {
+		v[key] = p.ExtraQuery[key]
 	}
 
 	return v
