@@ -11,15 +11,18 @@
 {{ end }}
 
 {{ define "__settings_identity_phone_verification_label.html" }}
-  {{ if $.Verified }}
-    <div class="body-text--md settings-text-color-success">
-      {{ translate "v2.page.settings-identity.default.verification-status-verified-label" . }}
-    </div>
-  {{ else }}
-    <div class="body-text--md settings-text-color-failure">
-      {{ translate "v2.page.settings-identity.default.verification-status-unverified-label" . }}
-    </div>
-  {{ end }}
+  <div class="flex flex-col gap-y-2 items-start">
+    {{ if $.Verified }}
+      <p class="body-text--md settings-text-color-success">
+        {{ translate "v2.page.settings-identity.default.verification-status-verified-label" . }}
+      </p>
+    {{ else }}
+      <p class="body-text--md settings-text-color-failure">
+        {{ translate "v2.page.settings-identity.default.verification-status-unverified-label" . }}
+      </p>
+      {{ $.VerfifyButton }}
+    {{ end }}
+  </div>
 {{ end }}
 
 {{ define "__settings_identity_phone_edit_button.html" }}
@@ -49,9 +52,9 @@
 {{ define "page-content" }}
 
 <div class="flex flex-col gap-y-6">
-  {{ $extraContent := "" }}
+  {{ $verifyButton := "" }}
   {{ if not $.Verified }}
-    {{ $extraContent = (include "__settings_identity_phone_verification_button.html" (dict
+    {{ $verifyButton = (include "__settings_identity_phone_verification_button.html" (dict
         "CSRFField" $.CSRFField
         "Verified" false
         "Channel" $.Channel
@@ -61,18 +64,21 @@
     }}
   {{ end }}
 
-  {{ template "authflowv2/__settings_action_item.html"
-      (dict
-        "IconName" "phone_iphone"
-        "Label" $.PhoneIdentity.OriginalLoginID
-        "Description" (include "__settings_identity_phone_verification_label.html"
-          (dict "Verified" $.Verified)
+  {{ template "authflowv2/__settings_item.html"
+    (dict
+      "MaterialIconName" "phone_iphone"
+      "Label" $.PhoneIdentity.OriginalLoginID
+      "WithArrow" false
+      "SupplementaryNote" (include "__settings_identity_phone_verification_label.html"
+        (dict
+          "Verified" $.Verified
+          "VerfifyButton" $verifyButton
         )
-        "ActionButton" (include "__settings_identity_phone_edit_button.html"
-          (dict "Href" (call $.MakeURL "/settings/identity/change_phone" "q_identity_id" $.PhoneIdentity.ID "q_login_id_key" $.LoginIDKey))
-        )
-        "ExtraContent" $extraContent
       )
+      "ActionButton" (include "__settings_identity_phone_edit_button.html"
+        (dict "Href" (call $.MakeURL "/settings/identity/change_phone" "q_identity_id" $.PhoneIdentity.ID "q_login_id_key" $.LoginIDKey))
+      )
+    )
   }}
 
   {{ if not $.DeleteDisabled}}

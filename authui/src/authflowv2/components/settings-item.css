@@ -95,33 +95,44 @@
       --settings-item__grid-col-icon-width: 1.5rem;
     }
 
+    --settings-item__grid-col-action: minmax(0rem, min-content);
+
     &.with-content {
       /* When Mobile View */
       grid-template-areas:
-        "icon title arrow"
-        ". content arrow";
-      grid-template-columns: var(--settings-item__grid-col-icon-width) auto 1.125rem;
+        "icon title action"
+        ". content action";
+      grid-template-columns: var(--settings-item__grid-col-icon-width) auto var(
+          --settings-item__grid-col-action
+        );
 
       /* When Not Mobile View */
       @media (min-width: theme("screens.tablet")) {
-        grid-template-areas: "icon title content arrow";
-        grid-template-columns: var(--settings-item__grid-col-icon-width) 9rem auto 1.125rem;
+        grid-template-areas: "icon title content action";
+        grid-template-columns: var(--settings-item__grid-col-icon-width) 9rem auto var(
+            --settings-item__grid-col-action
+          );
       }
     }
 
     &.without-content {
-      grid-template-areas: "icon title arrow";
-      grid-template-columns: var(--settings-item__grid-col-icon-width) auto 1.125rem;
+      grid-template-areas: "icon title action";
+      grid-template-columns: var(--settings-item__grid-col-icon-width) auto var(
+          --settings-item__grid-col-action
+        );
     }
 
     &.with-note {
       grid-template-areas:
-        "icon title arrow"
-        ".    note  arrow";
-      grid-template-columns: var(--settings-item__grid-col-icon-width) auto 1.125rem;
+        "icon title action"
+        ".    note  action";
+      grid-template-columns: var(--settings-item__grid-col-icon-width) auto var(
+          --settings-item__grid-col-action
+        );
     }
 
-    a &:hover {
+    a &:hover,
+    button &:hover {
       background-color: var(--settings-item__bg-color--hover);
       color: var(--settings-item__text-color--hover);
       @apply ring-inset
@@ -145,9 +156,7 @@
   .settings-item__label {
     grid-area: title;
   }
-  .settings-item__content {
-    grid-area: content;
-
+  .settings-item-content__typography {
     font-family: var(--settings-item-content__font-family);
     font-size: var(--settings-item-content__font-size);
     line-height: var(--settings-item-content__line-height);
@@ -155,19 +164,26 @@
     font-weight: var(--settings-item-content__font-weight);
     color: var(--settings-item-content__text-color);
   }
+  .settings-item__content {
+    grid-area: content;
+
+    @apply settings-item-content__typography;
+  }
   .settings-item__content--highlight {
     color: var(--settings-item-content__text-color--highlighted);
   }
   .settings-item__forward_arrow {
-    grid-area: arrow;
+    grid-area: action;
+  }
+  .settings-item__action {
+    grid-area: action;
+    align-self: stretch;
   }
   .settings-item__note {
+    /* note is same as content, but placed in the different position. */
     grid-area: note;
-    font-family: var(--settings-item__note-font-family);
-    font-size: var(--settings-item__note-font-size);
-    line-height: var(--settings-item__note-line-height);
-    letter-spacing: var(--settings-item__note-letter-spacing);
-    font-weight: var(--settings-item__note-font-weight);
+
+    @apply settings-item-content__typography;
   }
 }
 

@@ -38,12 +38,12 @@
       )}}
     {{ end }}
 
-    {{
-      template "authflowv2/__settings_action_item.html"
+    {{ template "authflowv2/__settings_item.html"
       (dict
         "Label" .DisplayName
-        "Description" (include "__settings_session_item_description" .)
+        "WithArrow" false
         "ActionButton" $actionBtn
+        "SupplementaryNote" (include "__settings_session_item_description" .)
       )
     }}
   {{ end }}

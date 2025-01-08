@@ -4,15 +4,17 @@
     "Label" (include "some-key" nil)
     "WithArrow" true
     "MaterialIconName" `email`
+    "CustomIcon" (include "some_template" nil)
     "SupplementaryNote" "some content"
     "Children" $.Emails
+    "ActionButton" (include "some_template" nil)
   )
 }}
 */}}
 {{ define "authflowv2/__settings_item.html" }}
 <div
   class="settings-item
-    {{ if $.MaterialIconName }}
+    {{ if or $.MaterialIconName $.CustomIcon }}
       with-icon
     {{ end }}
     {{ if $.Children }}
@@ -33,6 +35,10 @@
       <i class="settings-item-icon material-icons">
         {{ $.MaterialIconName }}
       </i>
+    </div>
+  {{ else if $.CustomIcon }}
+    <div class="settings-item_icon-container">
+      {{ $.CustomIcon }}
     </div>
   {{ end }}
   <p class="settings-item__label">
@@ -67,6 +73,10 @@
 
   {{ if $.WithArrow }}
     <div class="settings-item__forward_arrow"></div>
+  {{ else if $.ActionButton }}
+    <div class="settings-item__action">
+      {{ $.ActionButton }}
+    </div>
   {{ end }}
 </div>
 {{ end}}

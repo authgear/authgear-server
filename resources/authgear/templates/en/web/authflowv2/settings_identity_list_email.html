@@ -12,13 +12,13 @@
 
 {{ define "__settings_identity_email_verification_label.html" }}
   {{ if $.Verified }}
-    <div class="body-text--md settings-text-color-success">
+    <span class="body-text--md settings-text-color-success">
       {{ translate "v2.page.settings-identity.default.verification-status-verified-label" . }}
-    </div>
+    </span>
   {{ else }}
-    <div class="body-text--md settings-text-color-failure">
+    <span class="body-text--md settings-text-color-failure">
       {{ translate "v2.page.settings-identity.default.verification-status-unverified-label" . }}
-    </div>
+    </span>
   {{ end }}
 {{ end }}
 
@@ -32,28 +32,30 @@
         {{ if not (empty $claims) }}
           {{ $claim := first $claims }}
           {{ $href := (call $.MakeURL "/settings/identity/view_email" "q_login_id_key" $.LoginIDKey "q_identity_id" .ID )}}
-          {{ template "authflowv2/__settings_action_item.html"
+          <a class="contents" href="{{$href}}">
+            {{ template "authflowv2/__settings_item.html"
               (dict
-                "IconName" "email"
+                "MaterialIconName" "email"
                 "Label" .OriginalLoginID
-                "Description" (include "__settings_identity_email_verification_label.html"
+                "SupplementaryNote" (include "__settings_identity_email_verification_label.html"
                   (dict "Verified" $claim.Verified)
                 )
-                "RedirectURL" $href
+                "WithArrow" true
               )
-          }}
+            }}
+          </a>
         {{ end }}
       </li>
     {{ end }}
 
     {{ range $.OAuthEmailIdentities }}
       <li>
-        {{ template "authflowv2/__settings_action_item.html"
-            (dict
-              "IconName" "email"
-              "Label" .Email
-              "Description" (translate (printf "v2.page.settings-identity-list-email.default.provider.%s" .ProviderType) nil)
-            )
+        {{ template "authflowv2/__settings_item.html"
+          (dict
+            "MaterialIconName" "email"
+            "Label" .Email
+            "SupplementaryNote" (translate (printf "v2.page.settings-identity-list-email.default.provider.%s" .ProviderType) nil)
+          )
         }}
       </li>
     {{ end }}
@@ -76,9 +78,9 @@
       <div class="settings-title text-start">
         {{ translate "v2.page.settings-identity-list-email.default.primary-email-label" . }}
       </div>
-      {{ template "authflowv2/__settings_action_item.html"
+      {{ template "authflowv2/__settings_item.html"
         (dict
-          "IconName" "email"
+          "MaterialIconName" "email"
           "Label" .PrimaryEmail
           "ActionButton" (include "__settings_identity_email_change_button.html"
             (dict "Href" (call $.MakeURL "/settings/identity/change_primary_email" "q_login_id_key" $.LoginIDKey))

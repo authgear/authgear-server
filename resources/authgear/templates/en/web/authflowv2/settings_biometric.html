@@ -24,12 +24,11 @@
     {{ if .DisplayName }}
       {{ $name = .DisplayName }}
     {{ end }}
-    {{
-      template "authflowv2/__settings_action_item.html"
+    {{ template "authflowv2/__settings_item.html"
       (dict
-        "IconName" "phone_iphone"
+        "MaterialIconName" "phone_iphone"
         "Label" $name
-        "Description" ( include "v2.page.settings-biometric.default.item-description" (dict "time" .CreatedAt "rfc3339" (rfc3339 .CreatedAt)) )
+        "SupplementaryNote" ( include "v2.page.settings-biometric.default.item-description" (dict "time" .CreatedAt "rfc3339" (rfc3339 .CreatedAt)) )
         "ActionButton" (include "__settings_biometric_item_remove_btn.html" (dict "DialogID" .ID))
       )
     }}

@@ -17,12 +17,13 @@
       {{ $ctx := .}}
       {{ range $.TOTPAuthenticators }}
         <li>
-          {{ template "authflowv2/__settings_action_item.html"
-              (dict
-                "Label" .DisplayName
-                "Description" (include "__settings_totp_item_added_at.html" .)
-                "ActionButton" (include "__settings_totp_item_delete_button.html" (dict "DialogID" .ID))
-              )
+          {{ template "authflowv2/__settings_item.html"
+            (dict
+              "Label" .DisplayName
+              "WithArrow" false
+              "ActionButton" (include "__settings_totp_item_delete_button.html" (dict "DialogID" .ID))
+              "SupplementaryNote" (include "__settings_totp_item_added_at.html" .)
+            )
           }}
 
           {{ template "authflowv2/__settings_dialog.html"

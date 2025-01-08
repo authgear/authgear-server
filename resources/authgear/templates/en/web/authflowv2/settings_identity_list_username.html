@@ -17,12 +17,14 @@
     {{ range $.UsernameIdentities }}
       <li>
         {{ $href := (call $.MakeURL "/settings/identity/view_username" "q_login_id" .ID )}}
-        {{ template "authflowv2/__settings_action_item.html"
+        <a class="contents" href="{{$href}}">
+          {{ template "authflowv2/__settings_item.html"
             (dict
               "Label" .OriginalLoginID
-              "RedirectURL" $href
+              "WithArrow" true
             )
-        }}
+          }}
+        </a>
       </li>
     {{ end }}
   </ul>
