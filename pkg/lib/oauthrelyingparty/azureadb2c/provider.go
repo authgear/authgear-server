@@ -30,6 +30,11 @@ func (c ProviderConfig) Policy() string {
 	return policy
 }
 
+func (c ProviderConfig) DomainHint() string {
+	domainHint, _ := c["domain_hint"].(string)
+	return domainHint
+}
+
 var _ oauthrelyingparty.Provider = AzureADB2C{}
 
 type AzureADB2C struct{}
@@ -50,7 +55,8 @@ func (AzureADB2C) GetJSONSchema() map[string]interface{} {
 			),
 		).
 		Property("tenant", validation.SchemaBuilder{}.Type(validation.TypeString)).
-		Property("policy", validation.SchemaBuilder{}.Type(validation.TypeString))
+		Property("policy", validation.SchemaBuilder{}.Type(validation.TypeString)).
+		Property("domain_hint", validation.SchemaBuilder{}.Type(validation.TypeString).MinLength(1))
 	builder.Required("type", "client_id", "tenant", "policy")
 	return builder
 }
