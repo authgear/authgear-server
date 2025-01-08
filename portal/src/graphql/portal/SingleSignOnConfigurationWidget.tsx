@@ -171,6 +171,7 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
       "client_secret",
       "tenant",
       "policy",
+      "domain_hint",
       "create_disabled",
       "delete_disabled",
       "email_required",
@@ -347,6 +348,17 @@ export function useSingleSignOnConfigurationWidget(
   };
 }
 
+// If we do not do this, then some optional config, like domain_hint, when being clear,
+// is domain_hint="".
+// The JSON schema rejects empty string.
+// So when it is an empty string, it should be set to undefined instead.
+function emptyStringToUndefined(value: string | undefined): string | undefined {
+  if (value == null || value === "") {
+    return undefined;
+  }
+  return value;
+}
+
 const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidgetProps> =
   function SingleSignOnConfigurationWidget(
     props: SingleSignOnConfigurationWidgetProps
@@ -384,35 +396,49 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
 
     const onClientIDChange = useCallback(
       (_, value?: string) =>
-        onChange({ ...config, client_id: value ?? "" }, secret),
+        onChange(
+          { ...config, client_id: emptyStringToUndefined(value) },
+          secret
+        ),
       [onChange, config, secret]
     );
     const onTenantChange = useCallback(
       (_, value?: string) =>
-        onChange({ ...config, tenant: value ?? "" }, secret),
+        onChange({ ...config, tenant: emptyStringToUndefined(value) }, secret),
       [onChange, config, secret]
     );
     const onPolicyChange = useCallback(
       (_, value?: string) =>
-        onChange({ ...config, policy: value ?? "" }, secret),
+        onChange({ ...config, policy: emptyStringToUndefined(value) }, secret),
+      [onChange, config, secret]
+    );
+    const onDomainHintChange = useCallback(
+      (_, value?: string) =>
+        onChange(
+          { ...config, domain_hint: emptyStringToUndefined(value) },
+          secret
+        ),
       [onChange, config, secret]
     );
     const onDiscoveryDocumentEndpointChange = useCallback(
       (_, value?: string) =>
         onChange(
-          { ...config, discovery_document_endpoint: value ?? "" },
+          {
+            ...config,
+            discovery_document_endpoint: emptyStringToUndefined(value),
+          },
           secret
         ),
       [onChange, config, secret]
     );
     const onKeyIDChange = useCallback(
       (_, value?: string) =>
-        onChange({ ...config, key_id: value ?? "" }, secret),
+        onChange({ ...config, key_id: emptyStringToUndefined(value) }, secret),
       [onChange, config, secret]
     );
     const onTeamIDChange = useCallback(
       (_, value?: string) =>
-        onChange({ ...config, team_id: value ?? "" }, secret),
+        onChange({ ...config, team_id: emptyStringToUndefined(value) }, secret),
       [onChange, config, secret]
     );
 
@@ -423,7 +449,10 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
     );
     const onAccountIDChange = useCallback(
       (_, value?: string) =>
-        onChange({ ...config, account_id: value ?? "" }, secret),
+        onChange(
+          { ...config, account_id: emptyStringToUndefined(value) },
+          secret
+        ),
       [onChange, config, secret]
     );
     const onIsSandBoxAccountChange = useCallback(
@@ -559,6 +588,27 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
               "SingleSignOnConfigurationScreen.widget.policy.placeholder"
             )}
             onChange={onPolicyChange}
+            disabled={noneditable}
+          />
+        ) : null}
+        {visibleFields.has("domain_hint") ? (
+          <FormTextField
+            parentJSONPointer={jsonPointer}
+            fieldName="domain_hint"
+            label={renderToString(
+              "SingleSignOnConfigurationScreen.widget.domain-hint"
+            )}
+            placeholder={renderToString(
+              "SingleSignOnConfigurationScreen.widget.domain-hint.placeholder"
+            )}
+            // @ts-expect-error
+            description={
+              <FormattedMessage id="SingleSignOnConfigurationScreen.widget.domain-hint.description" />
+            }
+            className={styles.textField}
+            styles={TEXT_FIELD_STYLE}
+            value={config.domain_hint ?? ""}
+            onChange={onDomainHintChange}
             disabled={noneditable}
           />
         ) : null}
