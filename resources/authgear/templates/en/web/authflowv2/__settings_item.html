@@ -2,7 +2,7 @@
 {{ template "authflowv2/__settings_item.html"
   (dict
     "Label" (include "some-key" nil)
-    "Href" "url"
+    "WithArrow" true
     "MaterialIconName" `email`
     "SupplementaryNote" "some content"
     "Children" $.Emails
@@ -10,7 +10,7 @@
 }}
 */}}
 {{ define "authflowv2/__settings_item.html" }}
-<a
+<div
   class="settings-item
     {{ if $.MaterialIconName }}
       with-icon
@@ -65,8 +65,8 @@
     </ul>
   {{ end }}
 
-  {{ if $.Href }}
+  {{ if $.WithArrow }}
     <div class="settings-item__forward_arrow"></div>
   {{ end }}
-</a>
+</div>
 {{ end}}
