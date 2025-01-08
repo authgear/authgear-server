@@ -279,7 +279,7 @@ var _ = Schema.Add("OAuthSSOConfig", `
 
 func OAuthSSOProviderConfigSchemaBuilder(builder validation.SchemaBuilder) validation.SchemaBuilder {
 	builder.Properties().
-		Property("alias", validation.SchemaBuilder{}.Type(validation.TypeString)).
+		Property("alias", validation.SchemaBuilder{}.Type(validation.TypeString).MinLength(1)).
 		Property("modify_disabled", validation.SchemaBuilder{}.Type(validation.TypeBoolean)).
 		Property("create_disabled", validation.SchemaBuilder{}.Type(validation.TypeBoolean)).
 		Property("delete_disabled", validation.SchemaBuilder{}.Type(validation.TypeBoolean))
