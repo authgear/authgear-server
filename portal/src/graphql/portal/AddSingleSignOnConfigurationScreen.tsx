@@ -61,14 +61,16 @@ const OAuthClientMenu: React.VFC<OAuthClientMenuProps> =
   };
 
 interface OAuthClientFormProps {
+  alias: string;
   providerItemKey: OAuthSSOProviderItemKey;
   form: OAuthProviderFormModel;
 }
 
 const OAuthClientForm: React.VFC<OAuthClientFormProps> =
   function OAuthClientForm(props) {
-    const { providerItemKey, form } = props;
+    const { alias, providerItemKey, form } = props;
     const widgetProps = useSingleSignOnConfigurationWidget(
+      alias,
       providerItemKey,
       form
     );
@@ -85,7 +87,7 @@ const AddSingleSignOnConfigurationContent: React.VFC =
     const navigate = useNavigate();
     const { appID } = useParams() as { appID: string };
     const form = useOAuthProviderForm(appID, null);
-    const [selectedClient, setSelectedClient] =
+    const [selectedProvider, setSelectedProvider] =
       useState<OAuthSSOProviderItemKey>();
 
     const navBreadcrumbItems = useMemo(() => {
@@ -106,18 +108,26 @@ const AddSingleSignOnConfigurationContent: React.VFC =
     }, []);
 
     const onMenuSelect = useCallback((itemKey: OAuthSSOProviderItemKey) => {
-      setSelectedClient(itemKey);
+      setSelectedProvider(itemKey);
     }, []);
 
     const onSaveSuccess = useCallback(() => {
       navigate("../");
     }, [navigate]);
 
+    const newAlias = useMemo(() => {
+      if (selectedProvider == null) {
+        return null;
+      }
+      // FIXME
+      return selectedProvider;
+    }, [selectedProvider]);
+
     return (
       <FormContainer
         form={form}
         afterSave={onSaveSuccess}
-        hideFooterComponent={selectedClient == null}
+        hideFooterComponent={selectedProvider == null}
       >
         <ScreenContent
           header={
@@ -132,8 +142,12 @@ const AddSingleSignOnConfigurationContent: React.VFC =
           }
         >
           <ShowOnlyIfSIWEIsDisabled>
-            {selectedClient != null ? (
-              <OAuthClientForm form={form} providerItemKey={selectedClient} />
+            {newAlias != null && selectedProvider != null ? (
+              <OAuthClientForm
+                alias={newAlias}
+                form={form}
+                providerItemKey={selectedProvider}
+              />
             ) : (
               <OAuthClientMenu form={form} onSelect={onMenuSelect} />
             )}
