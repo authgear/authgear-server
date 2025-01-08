@@ -258,6 +258,7 @@ function defaultAlias(
 }
 
 export function useSingleSignOnConfigurationWidget(
+  alias: string,
   providerItemKey: OAuthSSOProviderItemKey,
   form: OAuthProviderFormModel,
   oauthSSOFeatureConfig?: OAuthSSOFeatureConfig
@@ -277,27 +278,28 @@ export function useSingleSignOnConfigurationWidget(
     return providerConfig?.disabled ?? false;
   }, [oauthSSOFeatureConfig?.providers, providerType]);
 
-  const provider = useMemo<SSOProviderFormState>(
-    () =>
-      providers.find((p) =>
-        isOAuthSSOProvider(p.config, providerType, appType)
-      ) ?? {
-        config: {
-          type: providerType,
-          alias: defaultAlias(providerType, appType),
-          ...(appType && { app_type: appType }),
-        },
-        secret: {
-          originalAlias: null,
-          newAlias: defaultAlias(providerType, appType),
-          newClientSecret: "",
-        },
+  const provider = useMemo<SSOProviderFormState>(() => {
+    const newConfig = {
+      config: {
+        type: providerType,
+        alias: defaultAlias(providerType, appType),
+        ...(appType && { app_type: appType }),
       },
-    [providers, providerType, appType]
-  );
+      secret: {
+        originalAlias: null,
+        newAlias: defaultAlias(providerType, appType),
+        newClientSecret: "",
+      },
+    } satisfies SSOProviderFormState;
+    return (
+      providers.find((p) =>
+        isOAuthSSOProvider(p.config, providerType, alias, appType)
+      ) ?? newConfig
+    );
+  }, [providers, providerType, alias, appType]);
 
   const index = providers.findIndex((p) =>
-    isOAuthSSOProvider(p.config, providerType, appType)
+    isOAuthSSOProvider(p.config, providerType, alias, appType)
   );
   const jsonPointer = useMemo(() => {
     return index >= 0 ? `/identity/oauth/providers/${index}` : "";
@@ -312,7 +314,7 @@ export function useSingleSignOnConfigurationWidget(
       setState((state) =>
         produce(state, (state) => {
           const existingIdx = state.providers.findIndex((p) =>
-            isOAuthSSOProvider(p.config, providerType, appType)
+            isOAuthSSOProvider(p.config, providerType, alias, appType)
           );
           if (existingIdx === -1) {
             state.providers.push({
@@ -335,7 +337,7 @@ export function useSingleSignOnConfigurationWidget(
           }
         })
       ),
-    [setState, providerType, appType]
+    [setState, providerType, alias, appType]
   );
 
   return {
@@ -813,27 +815,36 @@ export const OAuthClientCard: React.VFC<OAuthClientCardProps> =
 
 interface OAuthClientRowProps {
   className?: string;
-  providerItemKey: OAuthSSOProviderItemKey;
-  onEditClick?: (k: OAuthSSOProviderItemKey) => void;
-  onDeleteClick?: (k: OAuthSSOProviderItemKey) => void;
+  providerConfig: OAuthSSOProviderConfig;
+  onEditClick?: (provider: OAuthSSOProviderConfig) => void;
+  onDeleteClick?: (provider: OAuthSSOProviderConfig) => void;
 }
 
 export const OAuthClientRow: React.VFC<OAuthClientRowProps> =
   function OAuthClientRow(props) {
-    const { className, providerItemKey, onEditClick, onDeleteClick } = props;
+    const { className, providerConfig, onEditClick, onDeleteClick } = props;
     const { renderToString } = useContext(Context);
     const { themes } = useSystemConfig();
+
+    const providerItemKey = useMemo(
+      () =>
+        createOAuthSSOProviderItemKey(
+          providerConfig.type,
+          providerConfig.app_type
+        ),
+      [providerConfig]
+    );
 
     const { titleId, subtitleId, descriptionId } =
       oauthProviders[providerItemKey];
 
     const handleEditClick = useCallback(() => {
-      onEditClick?.(providerItemKey);
-    }, [onEditClick, providerItemKey]);
+      onEditClick?.(providerConfig);
+    }, [onEditClick, providerConfig]);
 
     const handleDeleteClick = useCallback(() => {
-      onDeleteClick?.(providerItemKey);
-    }, [onDeleteClick, providerItemKey]);
+      onDeleteClick?.(providerConfig);
+    }, [onDeleteClick, providerConfig]);
 
     return (
       <div className={cn(styles.rowContainer, className)}>

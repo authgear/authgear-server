@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import React, { useCallback, useContext, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Dialog,
@@ -30,6 +24,7 @@ import FormContainer from "../../FormContainer";
 import {
   createOAuthSSOProviderItemKey,
   OAuthSSOFeatureConfig,
+  OAuthSSOProviderConfig,
   OAuthSSOProviderItemKey,
 } from "../../types";
 import styles from "./SingleSignOnConfigurationScreen.module.css";
@@ -62,7 +57,7 @@ function isLocationState(raw: unknown): raw is LocationState {
 interface SingleSignOnConfigurationContentProps {
   form: OAuthProviderFormModel;
   oauthClientsMaximum: number;
-  onDeleteProvider: (k: OAuthSSOProviderItemKey) => void;
+  onDeleteProvider: (k: OAuthSSOProviderItemKey, alias: string) => void;
   oauthSSOFeatureConfig?: OAuthSSOFeatureConfig;
 }
 
@@ -70,20 +65,8 @@ const SingleSignOnConfigurationContent: React.VFC<SingleSignOnConfigurationConte
   function SingleSignOnConfigurationContent(props) {
     const { oauthClientsMaximum, onDeleteProvider, form } = props;
     const { renderToString } = useContext(IntlContext);
-    const [providers, setProviders] = useState(form.state.initialProvidersKey);
 
-    const limitReached =
-      form.state.initialProvidersKey.length >= oauthClientsMaximum;
-
-    useEffect(() => {
-      if (!form.isDirty) {
-        setProviders(
-          form.state.providers.map((p) =>
-            createOAuthSSOProviderItemKey(p.config.type, p.config.app_type)
-          )
-        );
-      }
-    }, [form]);
+    const limitReached = form.state.providers.length >= oauthClientsMaximum;
 
     const navigate = useNavigate();
 
@@ -92,15 +75,23 @@ const SingleSignOnConfigurationContent: React.VFC<SingleSignOnConfigurationConte
     }, [navigate]);
 
     const onEditConnection = useCallback(
-      (providerItemKey: OAuthSSOProviderItemKey) => {
-        navigate(`./edit/${providerItemKey}`);
+      (provider: OAuthSSOProviderConfig) => {
+        navigate(
+          `./edit/${createOAuthSSOProviderItemKey(
+            provider.type,
+            provider.app_type
+          )}/${provider.alias}`
+        );
       },
       [navigate]
     );
 
     const onDeleteConnection = useCallback(
-      (providerItemKey: OAuthSSOProviderItemKey) => {
-        onDeleteProvider(providerItemKey);
+      (provider: OAuthSSOProviderConfig) => {
+        onDeleteProvider(
+          createOAuthSSOProviderItemKey(provider.type, provider.app_type),
+          provider.alias
+        );
       },
       [onDeleteProvider]
     );
@@ -145,12 +136,12 @@ const SingleSignOnConfigurationContent: React.VFC<SingleSignOnConfigurationConte
       >
         <ShowOnlyIfSIWEIsDisabled className={styles.widget}>
           <div className={styles.content}>
-            {providers.length > 0 ? (
-              providers.map((providerItemKey) => (
+            {form.state.providers.length > 0 ? (
+              form.state.providers.map((provider) => (
                 <OAuthClientRow
-                  key={providerItemKey}
+                  key={`${provider.config.type}/${provider.config.alias}`}
                   className={styles.contentItem}
-                  providerItemKey={providerItemKey}
+                  providerConfig={provider.config}
                   onEditClick={onEditConnection}
                   onDeleteClick={onDeleteConnection}
                 />
@@ -193,14 +184,19 @@ const SingleSignOnConfigurationScreen1: React.VFC<{
 
   const [isDeleteDialogVisible, setIsDeleteDialogVisible] = useState(false);
   const onDisplayDeleteDialog = useCallback(
-    (k: OAuthSSOProviderItemKey) => {
+    (k: OAuthSSOProviderItemKey, alias: string) => {
       form.setState((state) => ({
         ...state,
-        providers: state.providers.filter(
-          (p) =>
-            createOAuthSSOProviderItemKey(p.config.type, p.config.app_type) !==
-            k
-        ),
+        providers: state.providers.filter((p) => {
+          if (
+            createOAuthSSOProviderItemKey(p.config.type, p.config.app_type) ===
+              k &&
+            p.config.alias === alias
+          ) {
+            return false;
+          }
+          return true;
+        }),
       }));
       setIsDeleteDialogVisible(true);
     },

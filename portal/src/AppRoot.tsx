@@ -537,7 +537,7 @@ const AppRoot: React.VFC = function AppRoot() {
                   }
                 />
                 <Route
-                  path="edit/:provider"
+                  path="edit/:provider/:alias"
                   element={
                     <Suspense fallback={<ShowLoading />}>
                       <EditSingleSignOnConfigurationScreen />
