@@ -3,6 +3,7 @@ package azureadb2c
 import (
 	"context"
 	"fmt"
+	"net/url"
 
 	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
 
@@ -106,6 +107,13 @@ func (p AzureADB2C) GetAuthorizationURL(ctx context.Context, deps oauthrelyingpa
 	if err != nil {
 		return "", err
 	}
+
+	extraQuery := url.Values{}
+	domainHint := ProviderConfig(deps.ProviderConfig).DomainHint()
+	if domainHint != "" {
+		extraQuery.Set("domain_hint", domainHint)
+	}
+
 	return c.MakeOAuthURL(oauthrelyingpartyutil.AuthorizationURLParams{
 		ClientID:     deps.ProviderConfig.ClientID(),
 		RedirectURI:  param.RedirectURI,
@@ -115,6 +123,7 @@ func (p AzureADB2C) GetAuthorizationURL(ctx context.Context, deps oauthrelyingpa
 		State:        param.State,
 		Prompt:       p.getPrompt(param.Prompt),
 		Nonce:        param.Nonce,
+		ExtraQuery:   extraQuery,
 	}), nil
 }
 
