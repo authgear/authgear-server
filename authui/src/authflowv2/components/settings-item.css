@@ -133,21 +133,22 @@
         );
     }
 
-    a &:hover,
-    button &:hover {
-      background-color: var(--settings-item__bg-color--hover);
-      color: var(--settings-item__text-color--hover);
-      @apply ring-inset
-        ring-[length:var(--settings-item\_\_ring-width--hover)]
-        ring-[color:var(--settings-item\_\_ring-color--hover)];
-    }
-
-    &:active {
+    a:active &,
+    button:active & {
       background-color: var(--secondary-item__bg-color--active);
       color: var(--secondary-item__text-color--active);
       @apply ring-inset
         ring-[length:var(--secondary-item\_\_ring-width--active)]
         ring-[color:var(--secondary-item\_\_ring-color--active)];
+    }
+
+    a:hover &,
+    button:hover & {
+      background-color: var(--settings-item__bg-color--hover);
+      color: var(--settings-item__text-color--hover);
+      @apply ring-inset
+        ring-[length:var(--settings-item\_\_ring-width--hover)]
+        ring-[color:var(--settings-item\_\_ring-color--hover)];
     }
   }
 
