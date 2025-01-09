@@ -274,8 +274,6 @@ export function useSingleSignOnConfigurationWidget(
     return providers.length;
   });
 
-  console.log("providerIndex", providerIndex);
-
   const disabled = useMemo(() => {
     const providersConfig = oauthSSOFeatureConfig?.providers ?? {};
     const providerConfig = providersConfig[
