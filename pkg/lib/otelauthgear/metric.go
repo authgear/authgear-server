@@ -76,6 +76,9 @@ var AttributeStatusOK = AttributeKeyStatus.String("ok")
 // AttributeStatusError is "status=error".
 var AttributeStatusError = AttributeKeyStatus.String("error")
 
+// AttributeStatusInvalidWhatsappUser is "status=invalid_whatsapp_user".
+var AttributeStatusInvalidWhatsappUser = AttributeKeyStatus.String("invalid_whatsapp_user")
+
 var CounterOAuthSessionCreationCount = mustInt64Counter(
 	"authgear.oauth_session.creation.count",
 	metric.WithDescription("The number of creation of OAuth session"),
@@ -180,6 +183,10 @@ func WithStatusOk() MetricOption {
 
 func WithStatusError() MetricOption {
 	return metricOptionAttributeKeyValue{AttributeStatusError}
+}
+
+func WithStatusInvalidWhatsappUser() MetricOption {
+	return metricOptionAttributeKeyValue{AttributeStatusInvalidWhatsappUser}
 }
 
 // IntCounterAddOne prepares necessary attributes and calls Add with incr=1.

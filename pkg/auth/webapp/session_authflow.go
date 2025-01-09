@@ -11,8 +11,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
-	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/whatsapp"
 	"github.com/authgear/authgear-server/pkg/util/base32"
 	corerand "github.com/authgear/authgear-server/pkg/util/rand"
 )
@@ -775,7 +775,7 @@ func (s *AuthflowScreenWithFlowResponse) makeFallbackToSMSFromWhatsappRetryHandl
 		if disableFallbackToSMS {
 			return nil
 		}
-		if !errors.Is(err, otp.ErrInvalidWhatsappUser) {
+		if !errors.Is(err, whatsapp.ErrInvalidWhatsappUser) {
 			return nil
 		}
 		smsChannelIdx := -1

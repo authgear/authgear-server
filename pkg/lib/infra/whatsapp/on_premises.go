@@ -163,7 +163,7 @@ func (c *OnPremisesClient) parseBadRequestError(resp *http.Response) error {
 		if errResp.Errors != nil && len(*errResp.Errors) > 0 {
 			switch (*errResp.Errors)[0].Code {
 			case 1013:
-				return ErrInvalidUser
+				return ErrInvalidWhatsappUser
 			}
 		}
 	}

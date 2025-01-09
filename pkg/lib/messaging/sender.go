@@ -199,6 +199,7 @@ func (s *Sender) SendSMSInNewGoroutine(ctx context.Context, msgType translation.
 				otelauthgear.WithStatusError(),
 			)
 
+			// TODO: Handle expected errors https://linear.app/authgear/issue/DEV-1139
 			s.Logger.WithError(err).WithFields(logrus.Fields{
 				"phone": phone.Mask(opts.To),
 			}).Error("failed to send SMS")
@@ -297,15 +298,26 @@ func (s *Sender) SendWhatsappImmediately(ctx context.Context, msgType translatio
 	// Send immediately.
 	err = s.sendWhatsapp(ctx, opts)
 	if err != nil {
+		isInvalidWhatsappUserErr := errors.Is(err, whatsapp.ErrInvalidWhatsappUser)
+		status := otelauthgear.WithStatusError()
+		if isInvalidWhatsappUserErr {
+			status = otelauthgear.WithStatusInvalidWhatsappUser()
+		}
 		otelauthgear.IntCounterAddOne(
 			ctx,
 			otelauthgear.CounterWhatsappRequestCount,
-			otelauthgear.WithStatusError(),
+			status,
 		)
 
-		s.Logger.WithError(err).WithFields(logrus.Fields{
-			"phone": phone.Mask(opts.To),
-		}).Error("failed to send Whatsapp")
+		if !isInvalidWhatsappUserErr {
+			s.Logger.WithError(err).WithFields(logrus.Fields{
+				"phone": phone.Mask(opts.To),
+			}).Error("failed to send Whatsapp")
+		} else {
+			s.Logger.WithError(err).WithFields(logrus.Fields{
+				"phone": phone.Mask(opts.To),
+			}).Warn("failed to send Whatsapp")
+		}
 
 		logErr := s.Events.DispatchEventImmediately(ctx, &nonblocking.WhatsappErrorEventPayload{
 			Description: s.errorToDescription(err),

@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"reflect"
 	"strings"
 	"time"
 
@@ -1062,7 +1063,13 @@ func (h *TokenHandler) handleBiometricSetup(
 			JWT: r.JWT(),
 		})
 		if len(edges) != 0 {
-			return nil, errors.New("interaction no completed for biometric setup")
+			h.Logger.WithFields(map[string]interface{}{
+				"cliend_id": client.ClientID,
+				"edges": strings.Join(slice.Map(edges, func(edge interaction.Edge) string {
+					return reflect.TypeOf(edge).String()
+				}), ","),
+			}).Error("interaction not completed for biometric setup")
+			return nil, errors.New("interaction not completed for biometric setup")
 		} else if err != nil {
 			return nil, err
 		}
@@ -1119,7 +1126,13 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 			JWT: r.JWT(),
 		})
 		if len(edges) != 0 {
-			return nil, errors.New("interaction no completed for biometric authenticate")
+			h.Logger.WithFields(map[string]interface{}{
+				"cliend_id": client.ClientID,
+				"edges": strings.Join(slice.Map(edges, func(edge interaction.Edge) string {
+					return reflect.TypeOf(edge).String()
+				}), ","),
+			}).Error("interaction not completed for biometric authenticate")
+			return nil, errors.New("interaction not completed for biometric authenticate")
 		} else if err != nil {
 			return nil, err
 		}

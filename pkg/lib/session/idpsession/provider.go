@@ -188,7 +188,9 @@ func (p *Provider) accessWithID(ctx context.Context, id string, accessEvent acce
 
 	s.AccessInfo.LastAccess = accessEvent
 	defer func() {
-		err = p.accessSideEffects(ctx, s, accessEvent)
+		if err == nil && s != nil {
+			err = p.accessSideEffects(ctx, s, accessEvent)
+		}
 	}()
 
 	setSessionExpireAtForResolvedSession(s, p.Config)

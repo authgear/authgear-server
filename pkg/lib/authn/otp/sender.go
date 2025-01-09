@@ -2,7 +2,6 @@ package otp
 
 import (
 	"context"
-	"errors"
 	neturl "net/url"
 	"path/filepath"
 
@@ -220,15 +219,6 @@ func (s *MessageSender) sendSMS(ctx context.Context, opts SendOptions) error {
 }
 
 func (s *MessageSender) sendWhatsapp(ctx context.Context, opts SendOptions) (err error) {
-	defer func() {
-		if err != nil {
-			if errors.Is(err, whatsapp.ErrInvalidUser) {
-				err = ErrInvalidWhatsappUser
-			} else if errors.Is(err, whatsapp.ErrNoAvailableClient) {
-				err = ErrNoAvailableWhatsappClient
-			}
-		}
-	}()
 
 	spec := s.selectMessage(opts.Form, opts.Type)
 	msgType := spec.MessageType

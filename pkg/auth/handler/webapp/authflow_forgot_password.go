@@ -9,8 +9,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
-	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/whatsapp"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -194,7 +194,7 @@ func (h *AuthflowForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http
 		inputs := h.makeInputs(screen, identification, loginID, 0)
 
 		result, err := h.Controller.AdvanceWithInputs(ctx, r, s, screen, inputs, nil)
-		if errors.Is(err, otp.ErrInvalidWhatsappUser) {
+		if errors.Is(err, whatsapp.ErrInvalidWhatsappUser) {
 			// The code failed to send because it is not a valid whatsapp user
 			// Try again with sms if possible
 			var fallbackErr error
