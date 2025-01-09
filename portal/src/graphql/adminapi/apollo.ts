@@ -1,4 +1,5 @@
 import { ApolloClient, HttpLink, InMemoryCache } from "@apollo/client";
+import authgear from "@authgear/web";
 import { createLogoutLink } from "../portal/apollo";
 
 export function makeGraphQLEndpoint(graphqlOpaqueAppID: string): string {
@@ -11,6 +12,7 @@ export function makeClient(
 ): ApolloClient<unknown> {
   const httpLink = new HttpLink({
     uri: makeGraphQLEndpoint(graphqlOpaqueAppID),
+    fetch: authgear.fetch.bind(authgear),
   });
   const logoutLink = createLogoutLink(() => {
     onLogout();
