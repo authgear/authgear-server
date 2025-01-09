@@ -212,6 +212,12 @@ use flake
    go run ./cmd/authgear search database migrate up
    ```
 
+3. Add domain
+
+   ```
+   go run ./cmd/portal internal domain create-custom accounts --apex-domain="accounts.portal.localhost" --domain="accounts.portal.localhost"
+   ```
+
 ## Set up MinIO
 
 ```sh
