@@ -159,6 +159,11 @@ use flake
            client_id: portal
            # Note that the trailing slash is very important here
            # URIs are compared byte by byte.
+           refresh_token_lifetime_seconds: 86400
+           refresh_token_idle_timeout_enabled: true
+           refresh_token_idle_timeout_seconds: 1800
+           issue_jwt_access_token: true
+           access_token_lifetime_seconds: 900
            redirect_uris:
               # This redirect URI is used by the portal development server.
               - "http://portal.localhost:8000/oauth-redirect"
@@ -177,9 +182,6 @@ use flake
               - "http://portal.localhost:8000/"
               # This redirect URI is used by the portal production build.
               - "http://portal.localhost:8010/"
-           grant_types: []
-           response_types:
-              - none
    ```
 
 3. Set up `.localhost`
