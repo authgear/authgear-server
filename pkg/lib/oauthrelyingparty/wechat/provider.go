@@ -125,7 +125,9 @@ func (Wechat) scope() []string {
 func (p Wechat) GetAuthorizationURL(ctx context.Context, deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetAuthorizationURLOptions) (string, error) {
 	return oauthrelyingpartyutil.MakeAuthorizationURL(wechatAuthorizationURL, oauthrelyingpartyutil.AuthorizationURLParams{
 		// ClientID is not used by wechat.
-		WechatAppID:  deps.ProviderConfig.ClientID(),
+		ExtraQuery: url.Values{
+			"appid": []string{deps.ProviderConfig.ClientID()},
+		},
 		RedirectURI:  param.RedirectURI,
 		Scope:        p.scope(),
 		ResponseType: oauthrelyingparty.ResponseTypeCode,
