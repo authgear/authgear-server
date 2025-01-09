@@ -134,9 +134,14 @@ export const parseOAuthSSOProviderItemKey = (
 export const isOAuthSSOProvider = (
   config: OAuthSSOProviderConfig,
   type: OAuthSSOProviderType,
+  alias: string,
   appType?: OAuthSSOWeChatAppType
 ): boolean => {
-  return config.type === type && (!appType || config.app_type === appType);
+  return (
+    config.alias === alias &&
+    config.type === type &&
+    (!appType || config.app_type === appType)
+  );
 };
 
 export interface OAuthSSOConfig {

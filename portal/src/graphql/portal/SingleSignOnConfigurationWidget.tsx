@@ -2,7 +2,7 @@ import { Checkbox, DirectionalHint, Label, Text } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import cn from "classnames";
 import { produce } from "immer";
-import React, { useCallback, useContext, useMemo } from "react";
+import React, { useCallback, useContext, useMemo, useState } from "react";
 import FormTextField from "../../FormTextField";
 import {
   createOAuthSSOProviderItemKey,
@@ -250,14 +250,8 @@ const OAuthClientIcon: React.VFC<OAuthClientIconProps> =
     return <i className={cn("fab", iconClassName, styles.widgetLabelIcon)} />;
   };
 
-function defaultAlias(
-  providerType: OAuthSSOProviderType,
-  appType?: OAuthSSOWeChatAppType
-) {
-  return appType ? [providerType, appType].join("_") : providerType;
-}
-
 export function useSingleSignOnConfigurationWidget(
+  initialAlias: string,
   providerItemKey: OAuthSSOProviderItemKey,
   form: OAuthProviderFormModel,
   oauthSSOFeatureConfig?: OAuthSSOFeatureConfig
@@ -269,6 +263,17 @@ export function useSingleSignOnConfigurationWidget(
 
   const [providerType, appType] = parseOAuthSSOProviderItemKey(providerItemKey);
 
+  const [providerIndex] = useState<number>(() => {
+    const existingIndex = providers.findIndex((p) =>
+      isOAuthSSOProvider(p.config, providerType, initialAlias, appType)
+    );
+    if (existingIndex !== -1) {
+      return existingIndex;
+    }
+    // Insert at the end if it does not exist
+    return providers.length;
+  });
+
   const disabled = useMemo(() => {
     const providersConfig = oauthSSOFeatureConfig?.providers ?? {};
     const providerConfig = providersConfig[
@@ -277,44 +282,36 @@ export function useSingleSignOnConfigurationWidget(
     return providerConfig?.disabled ?? false;
   }, [oauthSSOFeatureConfig?.providers, providerType]);
 
-  const provider = useMemo<SSOProviderFormState>(
-    () =>
-      providers.find((p) =>
-        isOAuthSSOProvider(p.config, providerType, appType)
-      ) ?? {
-        config: {
-          type: providerType,
-          alias: defaultAlias(providerType, appType),
-          ...(appType && { app_type: appType }),
-        },
-        secret: {
-          originalAlias: null,
-          newAlias: defaultAlias(providerType, appType),
-          newClientSecret: "",
-        },
+  const provider = useMemo<SSOProviderFormState>(() => {
+    const newConfig = {
+      config: {
+        type: providerType,
+        alias: initialAlias,
+        ...(appType && { app_type: appType }),
       },
-    [providers, providerType, appType]
-  );
+      secret: {
+        originalAlias: null,
+        newAlias: initialAlias,
+        newClientSecret: "",
+      },
+    } satisfies SSOProviderFormState;
+    return providers.length > providerIndex
+      ? providers[providerIndex]
+      : newConfig;
+  }, [providerType, initialAlias, appType, providers, providerIndex]);
 
-  const index = providers.findIndex((p) =>
-    isOAuthSSOProvider(p.config, providerType, appType)
-  );
   const jsonPointer = useMemo(() => {
-    return index >= 0 ? `/identity/oauth/providers/${index}` : "";
-  }, [index]);
-  const clientSecretParentJsonPointer =
-    index >= 0
-      ? new RegExp(`/secrets/\\d+/data/items/${index}`)
-      : /placeholder/;
+    return `/identity/oauth/providers/${providerIndex}`;
+  }, [providerIndex]);
+  const clientSecretParentJsonPointer = new RegExp(
+    `/secrets/\\d+/data/items/${providerIndex}`
+  );
 
   const onChange = useCallback(
     (config: OAuthSSOProviderConfig, secret: SSOProviderFormSecretViewModel) =>
       setState((state) =>
         produce(state, (state) => {
-          const existingIdx = state.providers.findIndex((p) =>
-            isOAuthSSOProvider(p.config, providerType, appType)
-          );
-          if (existingIdx === -1) {
+          if (providerIndex === -1) {
             state.providers.push({
               config,
               secret: {
@@ -324,7 +321,7 @@ export function useSingleSignOnConfigurationWidget(
               },
             });
           } else {
-            state.providers[existingIdx] = {
+            state.providers[providerIndex] = {
               config,
               secret: {
                 originalAlias: secret.originalAlias,
@@ -335,7 +332,7 @@ export function useSingleSignOnConfigurationWidget(
           }
         })
       ),
-    [setState, providerType, appType]
+    [setState, providerIndex]
   );
 
   return {
@@ -745,6 +742,17 @@ interface OAuthClientCardProps {
   onAddClick?: (k: OAuthSSOProviderItemKey) => void;
 }
 
+function canAddMultiple(provider: OAuthSSOProviderItemKey): boolean {
+  switch (provider) {
+    case "azureadb2c":
+    case "azureadv2":
+    case "adfs":
+      return true;
+    default:
+      return false;
+  }
+}
+
 export const OAuthClientCard: React.VFC<OAuthClientCardProps> =
   function OAuthClientCard(props) {
     const { className, providerItemKey, isAdded, onAddClick } = props;
@@ -777,7 +785,7 @@ export const OAuthClientCard: React.VFC<OAuthClientCardProps> =
               ) : null}
             </div>
           </div>
-          {isAdded ? (
+          {isAdded && !canAddMultiple(providerItemKey) ? (
             <div className={styles.cardAddedBadge}>
               <Text variant="small" styles={{ root: { color: "#898989" } }}>
                 <FormattedMessage id="AddSingleSignOnConfigurationScreen.card.button.added" />
@@ -801,27 +809,38 @@ export const OAuthClientCard: React.VFC<OAuthClientCardProps> =
 
 interface OAuthClientRowProps {
   className?: string;
-  providerItemKey: OAuthSSOProviderItemKey;
-  onEditClick?: (k: OAuthSSOProviderItemKey) => void;
-  onDeleteClick?: (k: OAuthSSOProviderItemKey) => void;
+  providerConfig: OAuthSSOProviderConfig;
+  showAlias: boolean;
+  onEditClick?: (provider: OAuthSSOProviderConfig) => void;
+  onDeleteClick?: (provider: OAuthSSOProviderConfig) => void;
 }
 
 export const OAuthClientRow: React.VFC<OAuthClientRowProps> =
   function OAuthClientRow(props) {
-    const { className, providerItemKey, onEditClick, onDeleteClick } = props;
+    const { className, providerConfig, showAlias, onEditClick, onDeleteClick } =
+      props;
     const { renderToString } = useContext(Context);
     const { themes } = useSystemConfig();
+
+    const providerItemKey = useMemo(
+      () =>
+        createOAuthSSOProviderItemKey(
+          providerConfig.type,
+          providerConfig.app_type
+        ),
+      [providerConfig]
+    );
 
     const { titleId, subtitleId, descriptionId } =
       oauthProviders[providerItemKey];
 
     const handleEditClick = useCallback(() => {
-      onEditClick?.(providerItemKey);
-    }, [onEditClick, providerItemKey]);
+      onEditClick?.(providerConfig);
+    }, [onEditClick, providerConfig]);
 
     const handleDeleteClick = useCallback(() => {
-      onDeleteClick?.(providerItemKey);
-    }, [onDeleteClick, providerItemKey]);
+      onDeleteClick?.(providerConfig);
+    }, [onDeleteClick, providerConfig]);
 
     return (
       <div className={cn(styles.rowContainer, className)}>
@@ -834,6 +853,7 @@ export const OAuthClientRow: React.VFC<OAuthClientRowProps> =
               {`${renderToString(titleId)}${
                 subtitleId != null ? ` (${renderToString(subtitleId)})` : ""
               }`}
+              {showAlias ? ` - ${providerConfig.alias}` : null}
             </Text>
           </div>
           <div className={styles.rowDescription}>

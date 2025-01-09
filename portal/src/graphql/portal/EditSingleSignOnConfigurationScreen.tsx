@@ -41,6 +41,7 @@ function isLocationState(raw: unknown): raw is LocationState {
 }
 
 interface OAuthClientItemProps {
+  initialAlias: string;
   providerItemKey: OAuthSSOProviderItemKey;
   form: OAuthProviderFormModel;
   oauthSSOFeatureConfig?: OAuthSSOFeatureConfig;
@@ -48,8 +49,10 @@ interface OAuthClientItemProps {
 
 const OAuthClientItem: React.VFC<OAuthClientItemProps> =
   function OAuthClientItem(props) {
-    const { providerItemKey, form, oauthSSOFeatureConfig } = props;
+    const { initialAlias, providerItemKey, form, oauthSSOFeatureConfig } =
+      props;
     const widgetProps = useSingleSignOnConfigurationWidget(
+      initialAlias,
       providerItemKey,
       form,
       oauthSSOFeatureConfig
@@ -63,6 +66,7 @@ const OAuthClientItem: React.VFC<OAuthClientItemProps> =
   };
 
 interface EditSingleSignOnConfigurationContentProps {
+  alias: string;
   form: OAuthProviderFormModel;
   providerItemKey: OAuthSSOProviderItemKey;
   oauthSSOFeatureConfig?: OAuthSSOFeatureConfig;
@@ -70,7 +74,7 @@ interface EditSingleSignOnConfigurationContentProps {
 
 const EditSingleSignOnConfigurationContent: React.VFC<EditSingleSignOnConfigurationContentProps> =
   function EditSingleSignOnConfigurationContent(props) {
-    const { form, providerItemKey, oauthSSOFeatureConfig } = props;
+    const { alias, form, providerItemKey, oauthSSOFeatureConfig } = props;
 
     const navBreadcrumbItems = useMemo(() => {
       return [
@@ -104,6 +108,7 @@ const EditSingleSignOnConfigurationContent: React.VFC<EditSingleSignOnConfigurat
       >
         <ShowOnlyIfSIWEIsDisabled>
           <OAuthClientItem
+            initialAlias={alias}
             providerItemKey={providerItemKey}
             form={form}
             oauthSSOFeatureConfig={oauthSSOFeatureConfig}
@@ -115,10 +120,12 @@ const EditSingleSignOnConfigurationContent: React.VFC<EditSingleSignOnConfigurat
 
 const EditSingleSignOnConfigurationScreen1: React.VFC<{
   appID: string;
+  alias: string;
   providerItemKey: OAuthSSOProviderItemKey;
   secretVisitToken: string | null;
 }> = function EditSingleSignOnConfigurationScreen1({
   appID,
+  alias,
   providerItemKey,
   secretVisitToken,
 }) {
@@ -184,6 +191,7 @@ const EditSingleSignOnConfigurationScreen1: React.VFC<{
     <FormContainer form={form} afterSave={onSaveSuccess}>
       <EditSingleSignOnConfigurationContent
         form={form}
+        alias={alias}
         providerItemKey={providerItemKey}
         oauthSSOFeatureConfig={
           featureConfig.effectiveFeatureConfig?.identity?.oauth
@@ -197,9 +205,14 @@ const SECRETS = [AppSecretKey.OauthSsoProviderClientSecrets];
 
 const EditSingleSignOnConfigurationScreen: React.VFC = () => {
   const navigate = useNavigate();
-  const { appID, provider: rawProviderItemKey } = useParams() as {
+  const {
+    appID,
+    provider: rawProviderItemKey,
+    alias,
+  } = useParams() as {
     appID: string;
     provider: string;
+    alias: string;
   };
 
   const providerItemKey = useMemo(() => {
@@ -243,6 +256,7 @@ const EditSingleSignOnConfigurationScreen: React.VFC = () => {
   return (
     <EditSingleSignOnConfigurationScreen1
       appID={appID}
+      alias={alias}
       providerItemKey={providerItemKey}
       secretVisitToken={token}
     />
