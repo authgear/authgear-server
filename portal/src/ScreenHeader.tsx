@@ -1,7 +1,6 @@
 import React, { useCallback, useContext, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { Context } from "@oursky/react-messageformat";
-import authgear from "@authgear/web";
 import {
   Icon,
   Text,
@@ -21,7 +20,8 @@ import styles from "./ScreenHeader.module.css";
 import { useSystemConfig } from "./context/SystemConfigContext";
 import { useBoolean } from "@fluentui/react-hooks";
 import ExternalLink from "./ExternalLink";
-import { useCapture, useReset } from "./gtm_v2";
+import { useLogout } from "./graphql/portal/Authenticated";
+import { useCapture } from "./gtm_v2";
 
 interface LogoProps {
   isNavbarHeader?: boolean;
@@ -182,22 +182,14 @@ const ScreenHeader: React.VFC<ScreenNavProps> = function ScreenHeader(props) {
   const { viewer } = useViewerQuery();
   const [isNavbarOpen, { setTrue: openNavbar, setFalse: dismissNavbar }] =
     useBoolean(false);
-  const reset = useReset();
 
-  const redirectURI = window.location.origin + "/";
+  const logout = useLogout();
 
   const onClickLogout = useCallback(() => {
-    authgear
-      .logout({
-        redirectURI,
-      })
-      .then(() => {
-        reset();
-      })
-      .catch((err) => {
-        console.error(err);
-      });
-  }, [redirectURI, reset]);
+    logout().catch((err: unknown) => {
+      console.error(err);
+    });
+  }, [logout]);
 
   const onClickCookiePreference = useCallback(() => {
     if (window.Osano?.cm !== undefined) {

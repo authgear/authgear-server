@@ -1,10 +1,11 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useCallback } from "react";
 import authgear, { PromptOption } from "@authgear/web";
 import { useNavigate } from "react-router-dom";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 import { useViewerQuery } from "./query/viewerQuery";
 import { InternalRedirectState } from "../../InternalRedirect";
+import { useReset } from "../../gtm_v2";
 
 interface ShowQueryResultProps {
   isAuthenticated: boolean;
@@ -99,6 +100,18 @@ export async function startReauthentication<S>(
       state,
     }),
   });
+}
+
+export function useLogout(): () => Promise<void> {
+  const redirectURI = window.location.origin + "/";
+  const reset = useReset();
+  const logout = useCallback(async () => {
+    await authgear.logout({
+      redirectURI,
+    });
+    reset();
+  }, [redirectURI, reset]);
+  return logout;
 }
 
 export default Authenticated;
