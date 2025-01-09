@@ -63,7 +63,7 @@
     "@fortawesome/fontawesome-free": "5.15.4",
     "@monaco-editor/react": "4.6.0",
     "@oursky/react-messageformat": "2.0.2",
-    "@sentry/react": "7.80.0",
+    "@sentry/react": "^7.120.2",
     "@tabler/icons": "1.107.0",
     "axios": "1.7.4",
     "base64-js": "1.5.1",
