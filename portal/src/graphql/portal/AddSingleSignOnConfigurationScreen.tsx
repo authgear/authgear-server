@@ -85,16 +85,16 @@ function generateNewAlias(
 }
 
 interface OAuthClientFormProps {
-  alias: string;
+  initialAlias: string;
   providerItemKey: OAuthSSOProviderItemKey;
   form: OAuthProviderFormModel;
 }
 
 const OAuthClientForm: React.VFC<OAuthClientFormProps> =
   function OAuthClientForm(props) {
-    const { alias, providerItemKey, form } = props;
+    const { initialAlias, providerItemKey, form } = props;
     const widgetProps = useSingleSignOnConfigurationWidget(
-      alias,
+      initialAlias,
       providerItemKey,
       form
     );
@@ -174,7 +174,7 @@ const AddSingleSignOnConfigurationContent: React.VFC =
           <ShowOnlyIfSIWEIsDisabled>
             {newAlias != null && selectedProviderKey != null ? (
               <OAuthClientForm
-                alias={newAlias}
+                initialAlias={newAlias}
                 form={form}
                 providerItemKey={selectedProviderKey}
               />

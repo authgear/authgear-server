@@ -2,7 +2,7 @@ import { Checkbox, DirectionalHint, Label, Text } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import cn from "classnames";
 import { produce } from "immer";
-import React, { useCallback, useContext, useMemo } from "react";
+import React, { useCallback, useContext, useMemo, useState } from "react";
 import FormTextField from "../../FormTextField";
 import {
   createOAuthSSOProviderItemKey,
@@ -251,7 +251,7 @@ const OAuthClientIcon: React.VFC<OAuthClientIconProps> =
   };
 
 export function useSingleSignOnConfigurationWidget(
-  alias: string,
+  initialAlias: string,
   providerItemKey: OAuthSSOProviderItemKey,
   form: OAuthProviderFormModel,
   oauthSSOFeatureConfig?: OAuthSSOFeatureConfig
@@ -262,6 +262,19 @@ export function useSingleSignOnConfigurationWidget(
   } = form;
 
   const [providerType, appType] = parseOAuthSSOProviderItemKey(providerItemKey);
+
+  const [providerIndex] = useState<number>(() => {
+    const existingIndex = providers.findIndex((p) =>
+      isOAuthSSOProvider(p.config, providerType, initialAlias, appType)
+    );
+    if (existingIndex !== -1) {
+      return existingIndex;
+    }
+    // Insert at the end if it does not exist
+    return providers.length;
+  });
+
+  console.log("providerIndex", providerIndex);
 
   const disabled = useMemo(() => {
     const providersConfig = oauthSSOFeatureConfig?.providers ?? {};
@@ -275,41 +288,32 @@ export function useSingleSignOnConfigurationWidget(
     const newConfig = {
       config: {
         type: providerType,
-        alias: alias,
+        alias: initialAlias,
         ...(appType && { app_type: appType }),
       },
       secret: {
         originalAlias: null,
-        newAlias: alias,
+        newAlias: initialAlias,
         newClientSecret: "",
       },
     } satisfies SSOProviderFormState;
-    return (
-      providers.find((p) =>
-        isOAuthSSOProvider(p.config, providerType, alias, appType)
-      ) ?? newConfig
-    );
-  }, [providers, providerType, alias, appType]);
+    return providers.length > providerIndex
+      ? providers[providerIndex]
+      : newConfig;
+  }, [providerType, initialAlias, appType, providers, providerIndex]);
 
-  const index = providers.findIndex((p) =>
-    isOAuthSSOProvider(p.config, providerType, alias, appType)
-  );
   const jsonPointer = useMemo(() => {
-    return index >= 0 ? `/identity/oauth/providers/${index}` : "";
-  }, [index]);
-  const clientSecretParentJsonPointer =
-    index >= 0
-      ? new RegExp(`/secrets/\\d+/data/items/${index}`)
-      : /placeholder/;
+    return `/identity/oauth/providers/${providerIndex}`;
+  }, [providerIndex]);
+  const clientSecretParentJsonPointer = new RegExp(
+    `/secrets/\\d+/data/items/${providerIndex}`
+  );
 
   const onChange = useCallback(
     (config: OAuthSSOProviderConfig, secret: SSOProviderFormSecretViewModel) =>
       setState((state) =>
         produce(state, (state) => {
-          const existingIdx = state.providers.findIndex((p) =>
-            isOAuthSSOProvider(p.config, providerType, alias, appType)
-          );
-          if (existingIdx === -1) {
+          if (providerIndex === -1) {
             state.providers.push({
               config,
               secret: {
@@ -319,7 +323,7 @@ export function useSingleSignOnConfigurationWidget(
               },
             });
           } else {
-            state.providers[existingIdx] = {
+            state.providers[providerIndex] = {
               config,
               secret: {
                 originalAlias: secret.originalAlias,
@@ -330,7 +334,7 @@ export function useSingleSignOnConfigurationWidget(
           }
         })
       ),
-    [setState, providerType, alias, appType]
+    [setState, providerIndex]
   );
 
   return {

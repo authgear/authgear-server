@@ -41,7 +41,7 @@ function isLocationState(raw: unknown): raw is LocationState {
 }
 
 interface OAuthClientItemProps {
-  alias: string;
+  initialAlias: string;
   providerItemKey: OAuthSSOProviderItemKey;
   form: OAuthProviderFormModel;
   oauthSSOFeatureConfig?: OAuthSSOFeatureConfig;
@@ -49,9 +49,10 @@ interface OAuthClientItemProps {
 
 const OAuthClientItem: React.VFC<OAuthClientItemProps> =
   function OAuthClientItem(props) {
-    const { alias, providerItemKey, form, oauthSSOFeatureConfig } = props;
+    const { initialAlias, providerItemKey, form, oauthSSOFeatureConfig } =
+      props;
     const widgetProps = useSingleSignOnConfigurationWidget(
-      alias,
+      initialAlias,
       providerItemKey,
       form,
       oauthSSOFeatureConfig
@@ -107,7 +108,7 @@ const EditSingleSignOnConfigurationContent: React.VFC<EditSingleSignOnConfigurat
       >
         <ShowOnlyIfSIWEIsDisabled>
           <OAuthClientItem
-            alias={alias}
+            initialAlias={alias}
             providerItemKey={providerItemKey}
             form={form}
             oauthSSOFeatureConfig={oauthSSOFeatureConfig}
