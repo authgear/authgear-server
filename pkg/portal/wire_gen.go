@@ -72,9 +72,21 @@ func newSentryMiddleware(p *deps.RequestProvider) httproute.Middleware {
 }
 
 func newSessionInfoMiddleware(p *deps.RequestProvider) httproute.Middleware {
-	sessionInfoMiddleware := &session.SessionInfoMiddleware{}
+	rootProvider := p.RootProvider
+	authgearConfig := rootProvider.AuthgearConfig
+	httpClient := session.NewHTTPClient()
+	clock := _wireSystemClockValue
+	sessionInfoMiddleware := &session.SessionInfoMiddleware{
+		AuthgearConfig: authgearConfig,
+		HTTPClient:     httpClient,
+		Clock:          clock,
+	}
 	return sessionInfoMiddleware
 }
+
+var (
+	_wireSystemClockValue = clock.NewSystemClock()
+)
 
 func newSessionRequiredMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	sessionRequiredMiddleware := &session.SessionRequiredMiddleware{}
@@ -96,9 +108,9 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	adminAPIConfig := rootProvider.AdminAPIConfig
 	controller := rootProvider.ConfigSourceController
 	configSource := deps.ProvideConfigSource(controller)
-	clock := _wireSystemClockValue
+	clockClock := _wireSystemClockValue
 	adder := &authz.Adder{
-		Clock: clock,
+		Clock: clockClock,
 	}
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	appConfig := rootProvider.AppConfig
@@ -122,7 +134,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	sqlBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
 	sqlExecutor := globaldb.NewSQLExecutor(handle)
 	domainService := &service.DomainService{
-		Clock:          clock,
+		Clock:          clockClock,
 		DomainConfig:   configService,
 		SQLBuilder:     sqlBuilder,
 		SQLExecutor:    sqlExecutor,
@@ -179,7 +191,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Resolver: resolver,
 	}
 	collaboratorService := &service.CollaboratorService{
-		Clock:          clock,
+		Clock:          clockClock,
 		SQLBuilder:     sqlBuilder,
 		SQLExecutor:    sqlExecutor,
 		HTTPClient:     httpClient,
@@ -213,12 +225,12 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		AppBaseResources:  appBaseResources,
 		Tutorials:         tutorialService,
 		DenoClient:        denoClientImpl,
-		Clock:             clock,
+		Clock:             clockClock,
 		EnvironmentConfig: environmentConfig,
 		DomainService:     domainService,
 	}
 	store := &plan.Store{
-		Clock:       clock,
+		Clock:       clockClock,
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
@@ -251,7 +263,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Resources:                manager,
 		AppResMgrFactory:         managerFactory,
 		Plan:                     planService,
-		Clock:                    clock,
+		Clock:                    clockClock,
 		AppSecretVisitTokenStore: appSecretVisitTokenStoreImpl,
 		AppTesterTokenStore:      testerStore,
 		SAMLEnvironmentConfig:    samlEnvironmentConfig,
@@ -275,7 +287,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	chartService := &analytic.ChartService{
 		Database:       readHandle,
 		AuditStore:     auditDBReadStore,
-		Clock:          clock,
+		Clock:          clockClock,
 		AnalyticConfig: analyticConfig,
 	}
 	stripeConfig := rootProvider.StripeConfig
@@ -288,7 +300,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Plans:             planService,
 		GlobalRedisHandle: globalredisHandle,
 		Cache:             stripeCache,
-		Clock:             clock,
+		Clock:             clockClock,
 		StripeConfig:      stripeConfig,
 		Endpoints:         endpointsProvider,
 	}
@@ -303,7 +315,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		ConfigSourceStore: configsourceStore,
 		PlanStore:         store,
 		UsageStore:        globalDBStore,
-		Clock:             clock,
+		Clock:             clockClock,
 		AppConfig:         appConfig,
 	}
 	usageService := &service.UsageService{
@@ -324,7 +336,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		GlobalSQLExecutor: sqlExecutor,
 		GlobalDatabase:    handle,
 		AuditDatabase:     writeHandle,
-		Clock:             clock,
+		Clock:             clockClock,
 		LoggerFactory:     logFactory,
 	}
 	onboardService := &service.OnboardService{
@@ -364,7 +376,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 }
 
 var (
-	_wireSystemClockValue           = clock.NewSystemClock()
 	_wireDefaultLanguageTagValue    = template.DefaultLanguageTag(intl.BuiltinBaseLanguage)
 	_wireSupportedLanguageTagsValue = template.SupportedLanguageTags([]string{intl.BuiltinBaseLanguage})
 )

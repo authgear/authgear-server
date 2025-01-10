@@ -40,6 +40,7 @@ func newSentryMiddleware(p *deps.RequestProvider) httproute.Middleware {
 
 func newSessionInfoMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	panic(wire.Build(
+		DependencySet,
 		session.DependencySet,
 		wire.Bind(new(httproute.Middleware), new(*session.SessionInfoMiddleware)),
 	))
