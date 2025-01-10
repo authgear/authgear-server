@@ -4,10 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
+
+	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 // Suppose you have a task to add a new metric, what should you do?
