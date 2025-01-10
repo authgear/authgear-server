@@ -168,7 +168,7 @@ func (c *OnPremisesClient) sendTemplate(
 
 	if errResp.Errors != nil && len(*errResp.Errors) > 0 {
 		switch (*errResp.Errors)[0].Code {
-		case 1013:
+		case errorCodeInvalidUser:
 			finalErr = errors.Join(ErrInvalidWhatsappUser, finalErr)
 		}
 	}

@@ -6,6 +6,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
 var ErrInvalidWhatsappUser = apierrors.BadRequest.
@@ -26,6 +27,29 @@ type WhatsappAPIError struct {
 	ParsedResponse   *WhatsappAPIErrorResponse
 }
 
+var _ error = &WhatsappAPIError{}
+
 func (e *WhatsappAPIError) Error() string {
 	return fmt.Sprintf("whatsapp api error: %d", e.HTTPStatusCode)
+}
+
+var _ log.LoggingSkippable = &WhatsappAPIError{}
+
+func (e *WhatsappAPIError) SkipLogging() bool {
+	switch e.HTTPStatusCode {
+	case 401:
+		return true
+	default:
+		if e.ParsedResponse != nil &&
+			e.ParsedResponse.Errors != nil &&
+			len(*e.ParsedResponse.Errors) > 0 {
+			firstErrorCode := (*e.ParsedResponse.Errors)[0].Code
+			switch firstErrorCode {
+			case errorCodeInvalidUser:
+				return true
+			}
+		}
+
+	}
+	return false
 }

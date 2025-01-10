@@ -298,7 +298,6 @@ func (s *Sender) SendWhatsappImmediately(ctx context.Context, msgType translatio
 	// Send immediately.
 	err = s.sendWhatsapp(ctx, opts)
 	if err != nil {
-		isInvalidWhatsappUserErr := errors.Is(err, whatsapp.ErrInvalidWhatsappUser)
 
 		metricOptions := []otelauthgear.MetricOption{otelauthgear.WithStatusError()}
 		var apiErr *whatsapp.WhatsappAPIError
@@ -318,15 +317,9 @@ func (s *Sender) SendWhatsappImmediately(ctx context.Context, msgType translatio
 			metricOptions...,
 		)
 
-		if !isInvalidWhatsappUserErr {
-			s.Logger.WithError(err).WithFields(logrus.Fields{
-				"phone": phone.Mask(opts.To),
-			}).Error("failed to send Whatsapp")
-		} else {
-			s.Logger.WithError(err).WithFields(logrus.Fields{
-				"phone": phone.Mask(opts.To),
-			}).Warn("failed to send Whatsapp")
-		}
+		s.Logger.WithError(err).WithFields(logrus.Fields{
+			"phone": phone.Mask(opts.To),
+		}).Error("failed to send Whatsapp")
 
 		logErr := s.Events.DispatchEventImmediately(ctx, &nonblocking.WhatsappErrorEventPayload{
 			Description: s.errorToDescription(err),

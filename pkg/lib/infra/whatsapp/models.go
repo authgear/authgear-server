@@ -137,3 +137,7 @@ type WhatsappAPIErrorDetail struct {
 	Title   string `json:"title"`
 	Details string `json:"details"`
 }
+
+const (
+	errorCodeInvalidUser = 1013
+)
