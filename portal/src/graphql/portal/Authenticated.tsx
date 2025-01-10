@@ -114,4 +114,19 @@ export function useLogout(): () => Promise<void> {
   return logout;
 }
 
+export interface ConfigureAuthgearOptions {
+  clientID: string;
+  endpoint: string;
+}
+
+export async function configureAuthgear(
+  options: ConfigureAuthgearOptions
+): Promise<void> {
+  await authgear.configure({
+    sessionType: "cookie",
+    clientID: options.clientID,
+    endpoint: options.endpoint,
+  });
+}
+
 export default Authenticated;
