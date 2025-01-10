@@ -59,7 +59,7 @@
   },
   "dependencies": {
     "@apollo/client": "3.8.7",
-    "@authgear/web": "1.0.1",
+    "@authgear/web": "^2.11.0",
     "@elgorditosalsero/react-gtm-hook": "2.7.2",
     "@fluentui/font-icons-mdl2": "^8.5.55",
     "@fluentui/merge-styles": "^8.6.13",

@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import authgear from "@authgear/web";
+import authgear, { PromptOption } from "@authgear/web";
 import { useNavigate } from "react-router-dom";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
@@ -31,7 +31,7 @@ const ShowQueryResult: React.VFC<ShowQueryResultProps> =
         authgear
           .startAuthentication({
             redirectURI,
-            prompt: "login",
+            prompt: PromptOption.Login,
             state: encodeOAuthState({
               originalPath,
             }),
