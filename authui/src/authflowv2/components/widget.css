@@ -91,7 +91,7 @@
     @apply widget-content-item__px--settings;
   }
 
-  .widget-content__alert--settings {
+  .widget-content__alert-container--settings {
     @apply widget-content-item__px--settings;
   }
 }
