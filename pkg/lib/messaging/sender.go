@@ -299,14 +299,23 @@ func (s *Sender) SendWhatsappImmediately(ctx context.Context, msgType translatio
 	err = s.sendWhatsapp(ctx, opts)
 	if err != nil {
 		isInvalidWhatsappUserErr := errors.Is(err, whatsapp.ErrInvalidWhatsappUser)
-		status := otelauthgear.WithStatusError()
-		if isInvalidWhatsappUserErr {
-			status = otelauthgear.WithStatusInvalidWhatsappUser()
+
+		metricOptions := []otelauthgear.MetricOption{otelauthgear.WithStatusError()}
+		var apiErr *whatsapp.WhatsappAPIError
+		if ok := errors.As(err, &apiErr); ok {
+			metricOptions = append(metricOptions, otelauthgear.WithWhatsappAPIType(apiErr.APIType))
+			if apiErr.ParsedResponse != nil &&
+				apiErr.ParsedResponse.Errors != nil &&
+				len(*apiErr.ParsedResponse.Errors) > 0 {
+				firstErr := (*apiErr.ParsedResponse.Errors)[0]
+				metricOptions = append(metricOptions, otelauthgear.WithWhatsappAPIErrorCode(firstErr.Code))
+			}
 		}
+
 		otelauthgear.IntCounterAddOne(
 			ctx,
 			otelauthgear.CounterWhatsappRequestCount,
-			status,
+			metricOptions...,
 		)
 
 		if !isInvalidWhatsappUserErr {
