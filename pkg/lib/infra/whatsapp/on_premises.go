@@ -11,6 +11,8 @@ import (
 	"net/url"
 	"time"
 
+	nethttputil "net/http/httputil"
+
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
@@ -148,6 +150,11 @@ func (c *OnPremisesClient) sendTemplate(
 		return nil
 	}
 
+	dumpedResponse, err := nethttputil.DumpResponse(resp, true)
+	if err != nil {
+		return err
+	}
+
 	// Try to read and parse the body, but it is ok if it failed
 	respBody, _ := io.ReadAll(resp.Body)
 	var errResp *WhatsappAPIErrorResponse
@@ -156,10 +163,10 @@ func (c *OnPremisesClient) sendTemplate(
 	}
 
 	var finalErr error = &WhatsappAPIError{
-		APIType:          config.WhatsappAPITypeOnPremises,
-		HTTPStatusCode:   resp.StatusCode,
-		ResponseBodyText: string(respBody),
-		ParsedResponse:   errResp,
+		APIType:        config.WhatsappAPITypeOnPremises,
+		HTTPStatusCode: resp.StatusCode,
+		DumpedResponse: dumpedResponse,
+		ParsedResponse: errResp,
 	}
 
 	if resp.StatusCode == 401 {

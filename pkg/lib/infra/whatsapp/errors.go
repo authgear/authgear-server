@@ -1,6 +1,7 @@
 package whatsapp
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -21,16 +22,17 @@ var ErrBadRequest = errors.New("whatsapp: bad request")
 var ErrUnexpectedLoginResponse = errors.New("whatsapp: unexpected login response body")
 
 type WhatsappAPIError struct {
-	APIType          config.WhatsappAPIType
-	HTTPStatusCode   int
-	ResponseBodyText string
-	ParsedResponse   *WhatsappAPIErrorResponse
+	APIType        config.WhatsappAPIType    `json:"api_type,omitempty"`
+	HTTPStatusCode int                       `json:"http_status_code,omitempty"`
+	DumpedResponse []byte                    `json:"dumped_response,omitempty"`
+	ParsedResponse *WhatsappAPIErrorResponse `json:"-"`
 }
 
 var _ error = &WhatsappAPIError{}
 
 func (e *WhatsappAPIError) Error() string {
-	return fmt.Sprintf("whatsapp api error: %d", e.HTTPStatusCode)
+	jsonText, _ := json.Marshal(e)
+	return fmt.Sprintf("whatsapp api error: %s", string(jsonText))
 }
 
 var _ log.LoggingSkippable = &WhatsappAPIError{}
