@@ -156,11 +156,7 @@ func (c *OnPremisesClient) sendTemplate(
 	}
 
 	// Try to read and parse the body, but it is ok if it failed
-	respBody, _ := io.ReadAll(resp.Body)
-	var errResp *WhatsappAPIErrorResponse
-	if len(respBody) > 0 {
-		errResp, _ = c.tryParseErrorResponse(respBody)
-	}
+	errResp, _ := c.tryParseErrorResponse(resp)
 
 	var finalErr error = &WhatsappAPIError{
 		APIType:        config.WhatsappAPITypeOnPremises,
@@ -183,9 +179,9 @@ func (c *OnPremisesClient) sendTemplate(
 	return finalErr
 }
 
-func (c *OnPremisesClient) tryParseErrorResponse(body []byte) (*WhatsappAPIErrorResponse, error) {
+func (c *OnPremisesClient) tryParseErrorResponse(resp *http.Response) (*WhatsappAPIErrorResponse, error) {
 	var errResp WhatsappAPIErrorResponse
-	err := json.Unmarshal(body, &errResp)
+	err := json.NewDecoder(resp.Body).Decode(&errResp)
 	if err == nil {
 		return &errResp, nil
 	}
