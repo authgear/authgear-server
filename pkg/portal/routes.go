@@ -31,7 +31,6 @@ func NewRouter(p *deps.RootProvider) http.Handler {
 		p.Middleware(newPanicMiddleware),
 		p.Middleware(newBodyLimitMiddleware),
 		p.Middleware(newSentryMiddleware),
-		p.Middleware(newSessionInfoMiddleware),
 	)
 	systemConfigJSONChain := httproute.Chain(
 		rootChain,
@@ -40,6 +39,7 @@ func NewRouter(p *deps.RootProvider) http.Handler {
 	)
 	graphqlChain := httproute.Chain(
 		rootChain,
+		p.Middleware(newSessionInfoMiddleware),
 		securityMiddleware,
 		httproute.MiddlewareFunc(httputil.NoStore),
 		httputil.CheckContentType([]string{
@@ -49,6 +49,7 @@ func NewRouter(p *deps.RootProvider) http.Handler {
 	)
 	adminAPIChain := httproute.Chain(
 		rootChain,
+		p.Middleware(newSessionInfoMiddleware),
 		// Middlewares that write headers are intentionally left out for this chain.
 		// It is because the handler of this chain is a httputil.ReverseProxy.
 		// We assume the proxied response has correct headers.
