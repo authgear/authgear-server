@@ -172,10 +172,12 @@ func (c *OnPremisesClient) sendTemplate(
 		return errors.Join(ErrUnauthorized, whatsappAPIErr)
 	}
 
-	if errResp.Errors != nil && len(*errResp.Errors) > 0 {
-		switch (*errResp.Errors)[0].Code {
-		case errorCodeInvalidUser:
-			return errors.Join(ErrInvalidWhatsappUser, whatsappAPIErr)
+	if errResp != nil {
+		if firstErrorCode, ok := errResp.FirstErrorCode(); ok {
+			switch firstErrorCode {
+			case errorCodeInvalidUser:
+				return errors.Join(ErrInvalidWhatsappUser, whatsappAPIErr)
+			}
 		}
 	}
 

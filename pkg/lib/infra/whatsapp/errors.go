@@ -42,13 +42,12 @@ func (e *WhatsappAPIError) SkipLogging() bool {
 	case 401:
 		return true
 	default:
-		if e.ParsedResponse != nil &&
-			e.ParsedResponse.Errors != nil &&
-			len(*e.ParsedResponse.Errors) > 0 {
-			firstErrorCode := (*e.ParsedResponse.Errors)[0].Code
-			switch firstErrorCode {
-			case errorCodeInvalidUser:
-				return true
+		if e.ParsedResponse != nil {
+			if firstErrorCode, ok := e.ParsedResponse.FirstErrorCode(); ok {
+				switch firstErrorCode {
+				case errorCodeInvalidUser:
+					return true
+				}
 			}
 		}
 
