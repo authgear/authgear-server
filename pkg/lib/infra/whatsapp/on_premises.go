@@ -150,33 +150,36 @@ func (c *OnPremisesClient) sendTemplate(
 		return nil
 	}
 
-	dumpedResponse, err := nethttputil.DumpResponse(resp, true)
-	if err != nil {
-		return err
-	}
-
-	// Try to read and parse the body, but it is ok if it failed
-	errResp, _ := c.tryParseErrorResponse(resp)
-
-	var finalErr error = &WhatsappAPIError{
+	whatsappAPIErr := &WhatsappAPIError{
 		APIType:        config.WhatsappAPITypeOnPremises,
 		HTTPStatusCode: resp.StatusCode,
-		DumpedResponse: dumpedResponse,
-		ParsedResponse: errResp,
 	}
 
+	dumpedResponse, dumpResponseErr := nethttputil.DumpResponse(resp, true)
+	if dumpResponseErr == nil {
+		whatsappAPIErr.DumpedResponse = dumpedResponse
+	}
+	// The dump error is not part of the api error, ignore it
+
+	// Try to read and parse the body, but it is ok if it failed
+	errResp, parseErr := c.tryParseErrorResponse(resp)
+	if parseErr == nil {
+		whatsappAPIErr.ParsedResponse = errResp
+	}
+	// The parse error is not part of the api error, ignore it
+
 	if resp.StatusCode == 401 {
-		finalErr = errors.Join(ErrUnauthorized, finalErr)
+		return errors.Join(ErrUnauthorized, whatsappAPIErr)
 	}
 
 	if errResp.Errors != nil && len(*errResp.Errors) > 0 {
 		switch (*errResp.Errors)[0].Code {
 		case errorCodeInvalidUser:
-			finalErr = errors.Join(ErrInvalidWhatsappUser, finalErr)
+			return errors.Join(ErrInvalidWhatsappUser, whatsappAPIErr)
 		}
 	}
 
-	return finalErr
+	return whatsappAPIErr
 }
 
 func (c *OnPremisesClient) tryParseErrorResponse(resp *http.Response) (*WhatsappAPIErrorResponse, error) {
