@@ -340,6 +340,7 @@ const ReactApp: React.VFC = function ReactApp() {
           await configureAuthgear({
             clientID: cfg.authgearClientID,
             endpoint: cfg.authgearEndpoint,
+            sessionType: cfg.authgearWebSDKSessionType,
           });
           setSystemConfig(cfg);
         })

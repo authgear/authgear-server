@@ -21,8 +21,6 @@ import { useViewerQuery } from "./query/viewerQuery";
 import { InternalRedirectState } from "../../InternalRedirect";
 import { useReset } from "../../gtm_v2";
 
-const SESSION_TYPE: NonNullable<ConfigureOptions["sessionType"]> = "cookie";
-
 interface AuthenticatedContextValue {
   loading: boolean;
   error: unknown;
@@ -168,15 +166,16 @@ export function useFinishAuthentication(): () => Promise<AuthenticateResult> {
 export interface ConfigureAuthgearOptions {
   clientID: string;
   endpoint: string;
+  sessionType: NonNullable<ConfigureOptions["sessionType"]>;
 }
 
 export async function configureAuthgear(
   options: ConfigureAuthgearOptions
 ): Promise<void> {
   // eslint-disable-next-line no-console -- Output the session type to console for easier debugging.
-  console.log("authgear: sessionType =", SESSION_TYPE);
+  console.log("authgear: sessionType =", options.sessionType);
   await authgear.configure({
-    sessionType: SESSION_TYPE,
+    sessionType: options.sessionType,
     clientID: options.clientID,
     endpoint: options.endpoint,
   });
@@ -211,7 +210,7 @@ export function AuthenticatedContextProvider(
 
   const value = useMemo(() => {
     let authenticated = false;
-    switch (SESSION_TYPE) {
+    switch (authgear.sessionType) {
       case "cookie":
         // FIXME(authgear-sdk): Update to the version that includes https://github.com/authgear/authgear-sdk-js/pull/336
         // When switching from refresh_token to cookie, with the fix in https://github.com/authgear/authgear-sdk-js/pull/336,
