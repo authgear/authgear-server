@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
-import authgear from "@authgear/web";
 import { useNavigate } from "react-router-dom";
+import { useFinishAuthentication } from "./graphql/portal/Authenticated";
 
 function decodeOAuthState(oauthState: string): Record<string, unknown> {
   // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -13,10 +13,10 @@ function isString(value: unknown): value is string {
 
 const OAuthRedirect: React.VFC = function OAuthRedirect() {
   const navigate = useNavigate();
+  const finishAuthentication = useFinishAuthentication();
 
   useEffect(() => {
-    authgear
-      .finishAuthentication()
+    finishAuthentication()
       .then((result) => {
         const state = result.state ? decodeOAuthState(result.state) : null;
         let navigateToPath = "/";
@@ -37,7 +37,7 @@ const OAuthRedirect: React.VFC = function OAuthRedirect() {
       .catch((err) => {
         console.error(err);
       });
-  }, [navigate]);
+  }, [navigate, finishAuthentication]);
 
   return null;
 };

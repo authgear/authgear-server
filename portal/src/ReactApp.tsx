@@ -38,6 +38,7 @@ import ExternalLink from "./ExternalLink";
 import Link from "./Link";
 import Authenticated, {
   configureAuthgear,
+  AuthenticatedContextProvider,
 } from "./graphql/portal/Authenticated";
 import InternalRedirect from "./InternalRedirect";
 import { LoadingContextProvider } from "./hook/loading";
@@ -379,17 +380,19 @@ const ReactApp: React.VFC = function ReactApp() {
                 <PortalClientProvider value={apolloClient}>
                   <ApolloProvider client={apolloClient}>
                     <SystemConfigContext.Provider value={systemConfig}>
-                      <LoadCurrentUser>
-                        <UnauthenticatedDialogContext.Provider
-                          value={unauthenticatedDialogContextValue}
-                        >
-                          <PortalRoot />
-                        </UnauthenticatedDialogContext.Provider>
-                        <UnauthenticatedDialog
-                          isHidden={!displayUnauthenticatedDialog}
-                          onConfirm={onUnauthenticatedDialogConfirm}
-                        />
-                      </LoadCurrentUser>
+                      <AuthenticatedContextProvider>
+                        <LoadCurrentUser>
+                          <UnauthenticatedDialogContext.Provider
+                            value={unauthenticatedDialogContextValue}
+                          >
+                            <PortalRoot />
+                          </UnauthenticatedDialogContext.Provider>
+                          <UnauthenticatedDialog
+                            isHidden={!displayUnauthenticatedDialog}
+                            onConfirm={onUnauthenticatedDialogConfirm}
+                          />
+                        </LoadCurrentUser>
+                      </AuthenticatedContextProvider>
                     </SystemConfigContext.Provider>
                   </ApolloProvider>
                 </PortalClientProvider>
