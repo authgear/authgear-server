@@ -2,8 +2,10 @@ package whatsapp
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 var ErrInvalidWhatsappUser = apierrors.BadRequest.
@@ -16,3 +18,14 @@ var ErrNoAvailableWhatsappClient = apierrors.BadRequest.
 var ErrUnauthorized = errors.New("whatsapp: unauthorized")
 var ErrBadRequest = errors.New("whatsapp: bad request")
 var ErrUnexpectedLoginResponse = errors.New("whatsapp: unexpected login response body")
+
+type WhatsappAPIError struct {
+	APIType          config.WhatsappAPIType
+	HTTPStatusCode   int
+	ResponseBodyText string
+	ParsedResponse   *WhatsappAPIErrorResponse
+}
+
+func (e *WhatsappAPIError) Error() string {
+	return fmt.Sprintf("whatsapp api error: %d", e.HTTPStatusCode)
+}

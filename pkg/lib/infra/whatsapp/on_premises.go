@@ -142,32 +142,47 @@ func (c *OnPremisesClient) sendTemplate(
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
+		// 2xx means success
+		// https://developers.facebook.com/docs/whatsapp/on-premises/errors#http
+		return nil
+	}
+
+	// Try to read and parse the body, but it is ok if it failed
+	respBody, _ := io.ReadAll(resp.Body)
+	var errResp *WhatsappAPIErrorResponse
+	if len(respBody) > 0 {
+		errResp, _ = c.tryParseErrorResponse(respBody)
+	}
+
+	var finalErr error = &WhatsappAPIError{
+		APIType:          config.WhatsappAPITypeOnPremises,
+		HTTPStatusCode:   resp.StatusCode,
+		ResponseBodyText: string(respBody),
+		ParsedResponse:   errResp,
+	}
+
 	if resp.StatusCode == 401 {
-		return ErrUnauthorized
+		finalErr = errors.Join(ErrUnauthorized, finalErr)
 	}
 
-	if resp.StatusCode == 400 {
-		return c.parseBadRequestError(resp)
-	}
-
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return fmt.Errorf("whatsapp: unexpected response status %d", resp.StatusCode)
-	}
-
-	return nil
-}
-
-func (c *OnPremisesClient) parseBadRequestError(resp *http.Response) error {
-	var errResp SendTemplateErrorResponse
-	if err := json.NewDecoder(resp.Body).Decode(&errResp); err == nil {
-		if errResp.Errors != nil && len(*errResp.Errors) > 0 {
-			switch (*errResp.Errors)[0].Code {
-			case 1013:
-				return ErrInvalidWhatsappUser
-			}
+	if errResp.Errors != nil && len(*errResp.Errors) > 0 {
+		switch (*errResp.Errors)[0].Code {
+		case 1013:
+			finalErr = errors.Join(ErrInvalidWhatsappUser, finalErr)
 		}
 	}
-	return ErrBadRequest
+
+	return finalErr
+}
+
+func (c *OnPremisesClient) tryParseErrorResponse(body []byte) (*WhatsappAPIErrorResponse, error) {
+	var errResp WhatsappAPIErrorResponse
+	err := json.Unmarshal(body, &errResp)
+	if err == nil {
+		return &errResp, nil
+	}
+	return nil, err
 }
 
 func (c *OnPremisesClient) login(ctx context.Context) (*UserToken, error) {
