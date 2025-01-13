@@ -116,18 +116,18 @@ func (m *MockAccessTokenIssuer) EXPECT() *MockAccessTokenIssuerMockRecorder {
 }
 
 // EncodeAccessToken mocks base method.
-func (m *MockAccessTokenIssuer) EncodeAccessToken(ctx context.Context, client *config.OAuthClientConfig, clientLike *oauth.ClientLike, grant *oauth.AccessGrant, userID, token string) (string, error) {
+func (m *MockAccessTokenIssuer) EncodeAccessToken(ctx context.Context, options oauth.EncodeAccessTokenOptions) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "EncodeAccessToken", ctx, client, clientLike, grant, userID, token)
+	ret := m.ctrl.Call(m, "EncodeAccessToken", ctx, options)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // EncodeAccessToken indicates an expected call of EncodeAccessToken.
-func (mr *MockAccessTokenIssuerMockRecorder) EncodeAccessToken(ctx, client, clientLike, grant, userID, token interface{}) *gomock.Call {
+func (mr *MockAccessTokenIssuerMockRecorder) EncodeAccessToken(ctx, options interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EncodeAccessToken", reflect.TypeOf((*MockAccessTokenIssuer)(nil).EncodeAccessToken), ctx, client, clientLike, grant, userID, token)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EncodeAccessToken", reflect.TypeOf((*MockAccessTokenIssuer)(nil).EncodeAccessToken), ctx, options)
 }
 
 // MockEventService is a mock of EventService interface.
@@ -641,17 +641,17 @@ func (m *MockTokenHandlerTokenService) EXPECT() *MockTokenHandlerTokenServiceMoc
 }
 
 // IssueAccessGrant mocks base method.
-func (m *MockTokenHandlerTokenService) IssueAccessGrant(ctx context.Context, client *config.OAuthClientConfig, scopes []string, authzID, userID, sessionID string, sessionKind oauth.GrantSessionKind, refreshTokenHash string, resp protocol.TokenResponse) error {
+func (m *MockTokenHandlerTokenService) IssueAccessGrant(ctx context.Context, options oauth.IssueAccessGrantOptions, resp protocol.TokenResponse) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IssueAccessGrant", ctx, client, scopes, authzID, userID, sessionID, sessionKind, refreshTokenHash, resp)
+	ret := m.ctrl.Call(m, "IssueAccessGrant", ctx, options, resp)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // IssueAccessGrant indicates an expected call of IssueAccessGrant.
-func (mr *MockTokenHandlerTokenServiceMockRecorder) IssueAccessGrant(ctx, client, scopes, authzID, userID, sessionID, sessionKind, refreshTokenHash, resp interface{}) *gomock.Call {
+func (mr *MockTokenHandlerTokenServiceMockRecorder) IssueAccessGrant(ctx, options, resp interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IssueAccessGrant", reflect.TypeOf((*MockTokenHandlerTokenService)(nil).IssueAccessGrant), ctx, client, scopes, authzID, userID, sessionID, sessionKind, refreshTokenHash, resp)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IssueAccessGrant", reflect.TypeOf((*MockTokenHandlerTokenService)(nil).IssueAccessGrant), ctx, options, resp)
 }
 
 // IssueDeviceSecret mocks base method.

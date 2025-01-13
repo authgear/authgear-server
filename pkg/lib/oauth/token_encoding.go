@@ -16,6 +16,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/event/blocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -50,9 +51,17 @@ type AccessTokenEncoding struct {
 	Identities    AccessTokenEncodingIdentityService
 }
 
-func (e *AccessTokenEncoding) EncodeAccessToken(ctx context.Context, client *config.OAuthClientConfig, clientLike *ClientLike, grant *AccessGrant, userID string, token string) (string, error) {
-	if !client.IssueJWTAccessToken {
-		return token, nil
+type EncodeAccessTokenOptions struct {
+	OriginalToken      string
+	ClientConfig       *config.OAuthClientConfig
+	ClientLike         *ClientLike
+	AccessGrant        *AccessGrant
+	AuthenticationInfo authenticationinfo.T
+}
+
+func (e *AccessTokenEncoding) EncodeAccessToken(ctx context.Context, options EncodeAccessTokenOptions) (string, error) {
+	if !options.ClientConfig.IssueJWTAccessToken {
+		return options.OriginalToken, nil
 	}
 
 	claims := jwt.New()
@@ -62,18 +71,18 @@ func (e *AccessTokenEncoding) EncodeAccessToken(ctx context.Context, client *con
 	// aud
 	_ = claims.Set(jwt.AudienceKey, e.BaseURL.Origin().String())
 	// iat
-	_ = claims.Set(jwt.IssuedAtKey, grant.CreatedAt.Unix())
+	_ = claims.Set(jwt.IssuedAtKey, options.AccessGrant.CreatedAt.Unix())
 	// exp
-	_ = claims.Set(jwt.ExpirationKey, grant.ExpireAt.Unix())
+	_ = claims.Set(jwt.ExpirationKey, options.AccessGrant.ExpireAt.Unix())
 	// client_id
-	_ = claims.Set("client_id", client.ClientID)
+	_ = claims.Set("client_id", options.ClientConfig.ClientID)
 
 	// Do not put raw token in JWT access token; JWT payload is not specified
 	// to be confidential. Put token hash to allow looking up access grant from
 	// verified JWT.
-	_ = claims.Set(jwt.JwtIDKey, grant.TokenHash)
+	_ = claims.Set(jwt.JwtIDKey, options.AccessGrant.TokenHash)
 
-	err := e.IDTokenIssuer.PopulateUserClaimsInIDToken(ctx, claims, userID, clientLike)
+	err := e.IDTokenIssuer.PopulateUserClaimsInIDToken(ctx, claims, options.AuthenticationInfo.UserID, options.ClientLike)
 	if err != nil {
 		return "", err
 	}
@@ -83,7 +92,7 @@ func (e *AccessTokenEncoding) EncodeAccessToken(ctx context.Context, client *con
 		return "", err
 	}
 
-	identities, err := e.Identities.ListIdentitiesThatHaveStandardAttributes(ctx, userID)
+	identities, err := e.Identities.ListIdentitiesThatHaveStandardAttributes(ctx, options.AuthenticationInfo.UserID)
 	if err != nil {
 		return "", err
 	}
@@ -96,7 +105,7 @@ func (e *AccessTokenEncoding) EncodeAccessToken(ctx context.Context, client *con
 	eventPayload := &blocking.OIDCJWTPreCreateBlockingEventPayload{
 		UserRef: model.UserRef{
 			Meta: model.Meta{
-				ID: userID,
+				ID: options.AuthenticationInfo.UserID,
 			},
 		},
 		Identities: identityModels,

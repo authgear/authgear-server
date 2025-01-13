@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/duration"
 )
 
@@ -27,13 +26,7 @@ type PreAuthenticatedURLToken struct {
 type PreAuthenticatedURLTokenAccessGrantService interface {
 	IssueAccessGrant(
 		ctx context.Context,
-		client *config.OAuthClientConfig,
-		scopes []string,
-		authzID string,
-		userID string,
-		sessionID string,
-		sessionKind GrantSessionKind,
-		refreshTokenHash string,
+		options IssueAccessGrantOptions,
 	) (*IssueAccessGrantResult, error)
 }
 

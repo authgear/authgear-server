@@ -174,8 +174,15 @@ func (h *AnonymousUserHandler) signupAnonymousUserWithRefreshTokenSessionType(
 		}
 
 		resp := protocol.TokenResponse{}
-		err = h.TokenService.IssueAccessGrant(ctx, client, scopes, authz.ID, authz.UserID,
-			grant.ID, oauth.GrantSessionKindOffline, refreshTokenHash, resp)
+		issueAccessGrantOptions := oauth.IssueAccessGrantOptions{
+			ClientConfig:       client,
+			Scopes:             scopes,
+			AuthorizationID:    authz.ID,
+			AuthenticationInfo: grant.GetAuthenticationInfo(),
+			SessionLike:        grant,
+			RefreshTokenHash:   refreshTokenHash,
+		}
+		err = h.TokenService.IssueAccessGrant(ctx, issueAccessGrantOptions, resp)
 		if err != nil {
 			return nil, err
 		}
@@ -222,8 +229,15 @@ func (h *AnonymousUserHandler) signupAnonymousUserWithRefreshTokenSessionType(
 		return nil, err
 	}
 
-	err = h.TokenService.IssueAccessGrant(ctx, client, scopes, authz.ID, authz.UserID,
-		offlineGrant.ID, oauth.GrantSessionKindOffline, tokenHash, resp)
+	issueAccessGrantOptions := oauth.IssueAccessGrantOptions{
+		ClientConfig:       client,
+		Scopes:             scopes,
+		AuthorizationID:    authz.ID,
+		AuthenticationInfo: info,
+		SessionLike:        offlineGrant,
+		RefreshTokenHash:   tokenHash,
+	}
+	err = h.TokenService.IssueAccessGrant(ctx, issueAccessGrantOptions, resp)
 	if err != nil {
 		return nil, err
 	}

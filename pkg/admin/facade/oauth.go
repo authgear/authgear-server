@@ -31,13 +31,7 @@ type OAuthTokenService interface {
 	) (offlineGrant *oauth.OfflineGrant, tokenHash string, err error)
 	IssueAccessGrant(
 		ctx context.Context,
-		client *config.OAuthClientConfig,
-		scopes []string,
-		authzID string,
-		userID string,
-		sessionID string,
-		sessionKind oauth.GrantSessionKind,
-		refreshTokenHash string,
+		options oauth.IssueAccessGrantOptions,
 		resp protocol.TokenResponse,
 	) error
 }
@@ -108,13 +102,14 @@ func (f *OAuthFacade) CreateSession(ctx context.Context, clientID string, userID
 
 	err = f.Tokens.IssueAccessGrant(
 		ctx,
-		client,
-		scopes,
-		authz.ID,
-		authz.UserID,
-		offlineGrant.ID,
-		oauth.GrantSessionKindOffline,
-		tokenHash,
+		oauth.IssueAccessGrantOptions{
+			ClientConfig:       client,
+			Scopes:             scopes,
+			AuthorizationID:    authz.ID,
+			AuthenticationInfo: offlineGrant.GetAuthenticationInfo(),
+			SessionLike:        offlineGrant,
+			RefreshTokenHash:   tokenHash,
+		},
 		resp,
 	)
 	if err != nil {

@@ -10,6 +10,7 @@ import (
 	"github.com/lestrrat-go/jwx/v2/jwt"
 	. "github.com/smartystreets/goconvey/convey"
 
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/endpoints"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -98,7 +99,18 @@ func TestAccessToken(t *testing.T) {
 		mockIdentityService.EXPECT().ListIdentitiesThatHaveStandardAttributes(gomock.Any(), "user-id").Return(nil, nil)
 
 		ctx := context.Background()
-		accessToken, err := encoding.EncodeAccessToken(ctx, client, clientLike, accessGrant, "user-id", "token")
+		options := EncodeAccessTokenOptions{
+			OriginalToken: "token",
+			ClientConfig:  client,
+			ClientLike:    clientLike,
+			AccessGrant:   accessGrant,
+			AuthenticationInfo: authenticationinfo.T{
+				UserID: "user-id",
+				// AMR
+				// AuthenticatedAt
+			},
+		}
+		accessToken, err := encoding.EncodeAccessToken(ctx, options)
 		So(err, ShouldBeNil)
 
 		_, _, err = encoding.DecodeAccessToken(accessToken)
