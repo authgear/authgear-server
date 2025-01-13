@@ -49,47 +49,7 @@ eZDnqWNf7mYPdP5mO5iTtMw=
 -----END PRIVATE KEY-----
 `
 
-type FakeSession struct {
-	ID   string
-	Type session.Type
-}
-
-func (s *FakeSession) SessionID() string {
-	return s.ID
-}
-
-func (s *FakeSession) SessionType() session.Type {
-	return s.Type
-}
-
-func TestSID(t *testing.T) {
-	Convey("EncodeSID and DecodeSID", t, func() {
-		s := &FakeSession{
-			ID:   "a",
-			Type: session.TypeIdentityProvider,
-		}
-		typ, sessionID, ok := DecodeSID(EncodeSID(s))
-		So(typ, ShouldEqual, session.TypeIdentityProvider)
-		So(sessionID, ShouldEqual, "a")
-		So(ok, ShouldBeTrue)
-
-		s = &FakeSession{
-			ID:   "b",
-			Type: session.TypeOfflineGrant,
-		}
-		typ, sessionID, ok = DecodeSID(EncodeSID(s))
-		So(typ, ShouldEqual, session.TypeOfflineGrant)
-		So(sessionID, ShouldEqual, "b")
-		So(ok, ShouldBeTrue)
-
-		s = &FakeSession{
-			ID:   "c",
-			Type: "nonsense",
-		}
-		_, _, ok = DecodeSID(EncodeSID(s))
-		So(ok, ShouldBeFalse)
-	})
-
+func TestIDTokenIssuer(t *testing.T) {
 	Convey("IssueIDToken and VerifyIDToken", t, func() {
 		ctrl := gomock.NewController(t)
 
@@ -163,7 +123,7 @@ func TestSID(t *testing.T) {
 		ctx := context.Background()
 		idToken, err := issuer.IssueIDToken(ctx, IssueIDTokenOptions{
 			ClientID:           "client-id",
-			SID:                EncodeSID(offlineGrant),
+			SID:                oauth.EncodeSID(offlineGrant),
 			AuthenticationInfo: offlineGrant.GetAuthenticationInfo(),
 			ClientLike:         oauth.ClientClientLike(client, scopes),
 			Nonce:              "nonce-1",
@@ -194,7 +154,7 @@ func TestSID(t *testing.T) {
 
 		// Session claims
 		encodedSessionID, _ := token.Get(string(model.ClaimSID))
-		_, sessionID, _ := DecodeSID(encodedSessionID.(string))
+		_, sessionID, _ := oauth.DecodeSID(encodedSessionID.(string))
 		So(sessionID, ShouldEqual, offlineGrant.ID)
 
 		ds_hash, _ := token.Get(string(model.ClaimDeviceSecretHash))

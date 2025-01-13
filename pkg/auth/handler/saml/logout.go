@@ -9,7 +9,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
-	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
+	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/saml"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlbinding"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol"
@@ -405,7 +405,7 @@ func (h *LogoutHandler) invalidateSession(
 	affectedServiceProviderIDs setutil.Set[string],
 	err error,
 ) {
-	_, sessionID, ok := oidc.DecodeSID(sid)
+	_, sessionID, ok := oauth.DecodeSID(sid)
 	if ok {
 		s, err := h.SessionManager.Get(ctx, sessionID)
 		if err != nil {

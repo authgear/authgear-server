@@ -687,7 +687,7 @@ func (h *TokenHandler) resolveIDTokenSession(ctx context.Context, idToken jwt.To
 		return nil, false, nil
 	}
 
-	typ, sessionID, ok := oidc.DecodeSID(sid)
+	typ, sessionID, ok := oauth.DecodeSID(sid)
 	if !ok {
 		return nil, false, nil
 	}
@@ -835,7 +835,7 @@ func (h *TokenHandler) handlePreAuthenticatedURLToken(
 	// Issue new id_token which associated to the new device_secret
 	newIDToken, err := h.IDTokenIssuer.IssueIDToken(ctx, oidc.IssueIDTokenOptions{
 		ClientID:           client.ClientID,
-		SID:                oidc.EncodeSID(offlineGrant),
+		SID:                oauth.EncodeSID(offlineGrant),
 		AuthenticationInfo: offlineGrant.GetAuthenticationInfo(),
 		// scopes are used for specifying which fields should be included in the ID token
 		// those fields may include personal identifiable information
@@ -981,7 +981,7 @@ func (h *TokenHandler) handleAnonymousRequest(
 	if slice.ContainsString(scopes, "openid") {
 		idToken, err := h.IDTokenIssuer.IssueIDToken(ctx, oidc.IssueIDTokenOptions{
 			ClientID:           client.ClientID,
-			SID:                oidc.EncodeSID(offlineGrant),
+			SID:                oauth.EncodeSID(offlineGrant),
 			AuthenticationInfo: offlineGrant.GetAuthenticationInfo(),
 			ClientLike:         oauth.ClientClientLike(client, scopes),
 			DeviceSecretHash:   offlineGrant.DeviceSecretHash,
@@ -1238,7 +1238,7 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 	if slice.ContainsString(scopes, "openid") {
 		idToken, err := h.IDTokenIssuer.IssueIDToken(ctx, oidc.IssueIDTokenOptions{
 			ClientID:           client.ClientID,
-			SID:                oidc.EncodeSID(offlineGrant),
+			SID:                oauth.EncodeSID(offlineGrant),
 			AuthenticationInfo: offlineGrant.GetAuthenticationInfo(),
 			ClientLike:         oauth.ClientClientLike(client, scopes),
 			DeviceSecretHash:   offlineGrant.DeviceSecretHash,
@@ -1428,7 +1428,7 @@ func (h *TokenHandler) handleIDToken(
 	}
 	idToken, err := h.IDTokenIssuer.IssueIDToken(ctx, oidc.IssueIDTokenOptions{
 		ClientID:           client.ClientID,
-		SID:                oidc.EncodeSID(s),
+		SID:                oauth.EncodeSID(s),
 		AuthenticationInfo: s.GetAuthenticationInfo(),
 		// scopes are used for specifying which fields should be included in the ID token
 		// those fields may include personal identifiable information
@@ -1535,7 +1535,7 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 	// Reauth
 	// Update auth_time, app2app device key and device_secret of the offline grant if possible.
 	if sid := code.IDTokenHintSID; sid != "" {
-		if typ, sessionID, ok := oidc.DecodeSID(sid); ok && typ == session.TypeOfflineGrant {
+		if typ, sessionID, ok := oauth.DecodeSID(sid); ok && typ == session.TypeOfflineGrant {
 			offlineGrant, err := h.OfflineGrantService.GetOfflineGrant(ctx, sessionID)
 			if err == nil {
 				// Update auth_time
@@ -1627,7 +1627,7 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 			}
 		}
 
-		sid = oidc.EncodeSID(offlineGrant)
+		sid = oauth.EncodeSID(offlineGrant)
 		accessTokenSessionID = offlineGrant.ID
 		accessTokenSessionKind = oauth.GrantSessionKindOffline
 		refreshTokenHash = tokenHash
@@ -1651,7 +1651,7 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 		}
 	} else if code.IDTokenHintSID != "" {
 		sid = code.IDTokenHintSID
-		if typ, sessionID, ok := oidc.DecodeSID(sid); ok {
+		if typ, sessionID, ok := oauth.DecodeSID(sid); ok {
 			accessTokenSessionID = sessionID
 			switch typ {
 			case session.TypeOfflineGrant:
@@ -1681,7 +1681,7 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 		if err != nil {
 			return nil, err
 		}
-		sid = oidc.EncodeSID(offlineGrant)
+		sid = oauth.EncodeSID(offlineGrant)
 		accessTokenSessionID = offlineGrant.ID
 		accessTokenSessionKind = oauth.GrantSessionKindOffline
 	}
@@ -1754,7 +1754,7 @@ func (h *TokenHandler) issueTokensForRefreshToken(
 	if issueIDToken {
 		idToken, err := h.IDTokenIssuer.IssueIDToken(ctx, oidc.IssueIDTokenOptions{
 			ClientID:           client.ClientID,
-			SID:                oidc.EncodeSID(offlineGrantSession.OfflineGrant),
+			SID:                oauth.EncodeSID(offlineGrantSession.OfflineGrant),
 			AuthenticationInfo: offlineGrantSession.GetAuthenticationInfo(),
 			ClientLike:         oauth.ClientClientLike(client, authz.Scopes),
 			DeviceSecretHash:   offlineGrant.DeviceSecretHash,

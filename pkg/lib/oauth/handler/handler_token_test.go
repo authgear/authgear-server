@@ -16,7 +16,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/handler"
-	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
@@ -149,7 +148,7 @@ func TestTokenHandler(t *testing.T) {
 			offlineGrantService.EXPECT().GetOfflineGrant(gomock.Any(), testOfflineGrantID).
 				AnyTimes().
 				Return(testOfflineGrant, nil)
-			sid := oidc.EncodeSID(testOfflineGrant)
+			sid := oauth.EncodeSID(testOfflineGrant)
 			mockIdToken := jwt.New()
 			_ = mockIdToken.Set("iss", origin)
 			_ = mockIdToken.Set("sid", sid)
