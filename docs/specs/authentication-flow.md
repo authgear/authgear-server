@@ -128,7 +128,7 @@ signup_flows:
     one_of:
     - identification: phone
       steps:
-      - type: authenticate
+      - type: create_authenticator
         one_of:
         - authentication: primary_oob_otp_sms
           target_step: setup_identity
@@ -136,17 +136,17 @@ signup_flows:
         target_step: setup_identity
     - identification: email
       steps:
-      - type: authenticate
+      - type: create_authenticator
         one_of:
         - authentication: primary_oob_otp_email
           target_step: setup_identity
       - type: verify
         target_step: setup_identity
-  - type: authenticate
+  - type: create_authenticator
     one_of:
     - authentication: primary_password
   - name: setup_phone_2fa
-    type: authenticate
+    type: create_authenticator
     one_of:
     - authentication: secondary_oob_otp_sms
   - type: verify
@@ -375,7 +375,7 @@ signup_flows:
     type: identify
     one_of:
     - identification: phone
-  - type: authenticate
+  - type: create_authenticator
     one_of:
     - authentication: primary_oob_otp_sms
       target_step: setup_phone
@@ -385,11 +385,11 @@ signup_flows:
     type: identify
     one_of:
     - identification: email
-  - type: authenticate
+  - type: create_authenticator
     one_of:
     - authentication: primary_oob_otp_email
       target_step: setup_email
-  - type: authenticate
+  - type: create_authenticator
     one_of:
     - authentication: primary_password
 
@@ -419,7 +419,7 @@ signup_flows:
     one_of:
     - identification: phone
       steps:
-      - type: authenticate
+      - type: create_authenticator
         one_of:
         - authentication: primary_oob_otp_sms
           target_step: setup_first_identity
@@ -429,14 +429,14 @@ signup_flows:
         type: identify
         one_of:
         - identification: email
-      - type: authenticate
+      - type: create_authenticator
         one_of:
         - authentication: primary_oob_otp_email
           target_step: setup_second_identity
       - type: verify
         target_step: setup_second_identity
     - identification: email
-      - type: authenticate
+      - type: create_authenticator
         one_of:
         - authentication: primary_oob_otp_email
           target_step: setup_first_identity
@@ -446,13 +446,13 @@ signup_flows:
         type: identify
         one_of:
         - identification: phone
-      - type: authenticate
+      - type: create_authenticator
         one_of:
         - authentication: primary_oob_otp_sms
           target_step: setup_second_identity
       - type: verify
         target_step: setup_second_identity
-  - type: authenticate
+  - type: create_authenticator
     one_of:
     - authentication: primary_password
 
@@ -497,7 +497,7 @@ signup_flows:
   - type: identify
     one_of:
     - identification: email
-  - type: authenticate
+  - type: create_authenticator
     one_of:
     - authentication: primary_password
 
@@ -569,16 +569,16 @@ signup_flows:
     - identification: oauth
     - identification: email
       steps:
-      - type: authenticate
+      - type: create_authenticator
         one_of:
         - authentication: primary_oob_otp_email
           target_step: setup_identity
       - type: verify
         target_step: setup_identity
-      - type: authenticate
+      - type: create_authenticator
         one_of:
         - authentication: primary_password
-      - type: authenticate
+      - type: create_authenticator
         one_of:
         - authentication: secondary_totp
 
