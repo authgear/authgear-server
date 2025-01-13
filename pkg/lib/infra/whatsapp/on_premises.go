@@ -15,6 +15,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
+	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
 type HTTPClient struct {
@@ -27,7 +28,14 @@ func NewHTTPClient() HTTPClient {
 	}
 }
 
+type WhatsappOnPremisesClientLogger struct{ *log.Logger }
+
+func NewWhatsappOnPremisesClientLogger(lf *log.Factory) WhatsappOnPremisesClientLogger {
+	return WhatsappOnPremisesClientLogger{lf.New("whatsapp-on-premises-client")}
+}
+
 type OnPremisesClient struct {
+	Logger      WhatsappOnPremisesClientLogger
 	HTTPClient  HTTPClient
 	Endpoint    *url.URL
 	Credentials *config.WhatsappOnPremisesCredentials
@@ -156,17 +164,19 @@ func (c *OnPremisesClient) sendTemplate(
 	}
 
 	dumpedResponse, dumpResponseErr := nethttputil.DumpResponse(resp, true)
-	if dumpResponseErr == nil {
+	if dumpResponseErr != nil {
+		c.Logger.WithError(dumpResponseErr).Warn("failed to dump response")
+	} else {
 		whatsappAPIErr.DumpedResponse = dumpedResponse
 	}
 	// The dump error is not part of the api error, ignore it
 
-	// Try to read and parse the body, but it is ok if it failed
-	errResp, parseErr := c.tryParseErrorResponse(resp)
-	if parseErr == nil {
+	errResp, err := c.tryParseErrorResponse(resp)
+	if err != nil {
+		return errors.Join(err, whatsappAPIErr)
+	} else {
 		whatsappAPIErr.ParsedResponse = errResp
 	}
-	// The parse error is not part of the api error, ignore it
 
 	if resp.StatusCode == 401 {
 		return errors.Join(ErrUnauthorized, whatsappAPIErr)
@@ -185,12 +195,21 @@ func (c *OnPremisesClient) sendTemplate(
 }
 
 func (c *OnPremisesClient) tryParseErrorResponse(resp *http.Response) (*WhatsappAPIErrorResponse, error) {
-	var errResp WhatsappAPIErrorResponse
-	err := json.NewDecoder(resp.Body).Decode(&errResp)
-	if err == nil {
-		return &errResp, nil
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		// If we failed to read the response body, it is an error
+		return nil, err
 	}
-	return nil, err
+
+	var errResp WhatsappAPIErrorResponse
+	parseErr := json.Unmarshal(respBody, &errResp)
+	// The api could return other errors in format we don't understand, so non-nil parseErr is expected.
+	// Just return nil in this case.
+	if parseErr != nil {
+		c.Logger.WithError(parseErr).Warn("failed to parse error response")
+		return nil, nil
+	}
+	return &errResp, nil
 }
 
 func (c *OnPremisesClient) login(ctx context.Context) (*UserToken, error) {
