@@ -137,13 +137,13 @@ var smsProviderSecretsSetDataInput = graphql.NewInputObject(graphql.InputObjectC
 	Name: "SMSProviderSecretsSetDataInput",
 	Fields: graphql.InputObjectConfigFieldMap{
 		"twilioCredentials": &graphql.InputObjectFieldConfig{
-			Type: smsProviderTwilioCredentials,
+			Type: smsProviderTwilioCredentialsInput,
 		},
 	},
 })
 
-var smsProviderTwilioCredentials = graphql.NewInputObject(graphql.InputObjectConfig{
-	Name: "SMSProviderTwilioCredentials",
+var smsProviderTwilioCredentialsInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "SMSProviderTwilioCredentialsInput",
 	Fields: graphql.InputObjectConfigFieldMap{
 		"accountSid": &graphql.InputObjectFieldConfig{
 			Type: graphql.NewNonNull(graphql.String),
@@ -747,7 +747,7 @@ var _ = registerMutationField(
 				appSecretKey := s.(AppSecretKey)
 				appSecretKeys = append(appSecretKeys, string(appSecretKey))
 				configSecretKey := secretKeyToConfigKeyMap[appSecretKey]
-				secrets = append(secrets, configSecretKey)
+				secrets = append(secrets, configSecretKey...)
 			}
 
 			resolvedNodeID := relay.FromGlobalID(appNodeID)

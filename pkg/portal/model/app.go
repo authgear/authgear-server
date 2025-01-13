@@ -84,6 +84,16 @@ type SAMLSpSigningSecrets struct {
 	Certificates []SAMLSpSigningCertificate `json:"certificates,omitempty"`
 }
 
+type SMSProviderTwilioCredentials struct {
+	AccountSID        string `json:"accountSid,omitempty"`
+	AuthToken         string `json:"authToken,omitempty"`
+	MessageServiceSID string `json:"messageServiceSid,omitempty"`
+}
+
+type SMSProviderSecrets struct {
+	TwilioCredentials *SMSProviderTwilioCredentials `json:"twilioCredentials,omitempty"`
+}
+
 type SecretConfig struct {
 	OAuthSSOProviderClientSecrets []OAuthSSOProviderClientSecret `json:"oauthSSOProviderClientSecrets,omitempty"`
 	WebhookSecret                 *WebhookSecret                 `json:"webhookSecret,omitempty"`
@@ -93,6 +103,7 @@ type SecretConfig struct {
 	BotProtectionProviderSecret   *BotProtectionProviderSecret   `json:"botProtectionProviderSecret,omitempty"`
 	SAMLIdpSigningSecrets         *SAMLIdpSigningSecrets         `json:"samlIdpSigningSecrets,omitempty"`
 	SAMLSpSigningSecrets          []SAMLSpSigningSecrets         `json:"samlSpSigningSecrets,omitempty"`
+	SMSProviderSecrets            *SMSProviderSecrets            `json:"smsProviderSecrets,omitempty"`
 }
 
 //nolint:gocognit
@@ -247,6 +258,19 @@ func NewSecretConfig(secretConfig *config.SecretConfig, unmaskedSecrets []config
 	if samlSpSigningSecrets, ok := secretConfig.LookupData(config.SAMLSpSigningMaterialsKey).(*config.SAMLSpSigningMaterials); ok {
 		out.SAMLSpSigningSecrets = toPortalSAMLSpSigningSecrets(samlSpSigningSecrets)
 	}
+
+	smsProviderSecrets := &SMSProviderSecrets{}
+	if twilioCredentials, ok := secretConfig.LookupData(config.TwilioCredentialsKey).(*config.TwilioCredentials); ok {
+		smsProviderSecrets.TwilioCredentials = &SMSProviderTwilioCredentials{
+			AccountSID:        twilioCredentials.AccountSID,
+			MessageServiceSID: twilioCredentials.MessagingServiceSID,
+		}
+		if _, exist := unmaskedSecretsSet[config.TwilioCredentialsKey]; exist {
+			smsProviderSecrets.TwilioCredentials.AuthToken = twilioCredentials.AuthToken
+		}
+
+	}
+	out.SMSProviderSecrets = smsProviderSecrets
 
 	return out, nil
 }

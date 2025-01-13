@@ -171,6 +171,32 @@ var samlSpSigningSecret = graphql.NewObject(graphql.ObjectConfig{
 	},
 })
 
+var smsProviderTwilioCredentials = graphql.NewObject(graphql.ObjectConfig{
+	Name:        "SMSProviderSecrets",
+	Description: "SMS Provider secrets",
+	Fields: graphql.Fields{
+		"accountSid": &graphql.Field{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+		"authToken": &graphql.Field{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+		"messageServiceSid": &graphql.Field{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+	},
+})
+
+var smsProviderSecret = graphql.NewObject(graphql.ObjectConfig{
+	Name:        "SMSProviderSecrets",
+	Description: "SMS Provider secrets",
+	Fields: graphql.Fields{
+		"twilioCredentials": &graphql.Field{
+			Type: smsProviderTwilioCredentials,
+		},
+	},
+})
+
 type AppSecretKey string
 
 const (
@@ -182,6 +208,7 @@ const (
 	AppSecretKeyBotProtectionProviderSecret   AppSecretKey = "botProtectionProviderSecret"
 	AppSecretKeySAMLIdpSigningSecrets         AppSecretKey = "samlIdpSigningSecrets" // nolint:gosec
 	AppSecretKeySAMLSpSigningSecrets          AppSecretKey = "samlSpSigningSecrets"  // nolint:gosec
+	AppSecretKeySMSProviderSecrets            AppSecretKey = "smsProviderSecrets"    // nolint:gosec
 )
 
 var secretConfig = graphql.NewObject(graphql.ObjectConfig{
@@ -211,6 +238,9 @@ var secretConfig = graphql.NewObject(graphql.ObjectConfig{
 		},
 		string(AppSecretKeySAMLSpSigningSecrets): &graphql.Field{
 			Type: graphql.NewList(graphql.NewNonNull(samlSpSigningSecret)),
+		},
+		string(AppSecretKeySMSProviderSecrets): &graphql.Field{
+			Type: graphql.NewList(graphql.NewNonNull(smsProviderSecret)),
 		},
 	},
 })
@@ -245,13 +275,14 @@ var appSecretKey = graphql.NewEnum(graphql.EnumConfig{
 	},
 })
 
-var secretKeyToConfigKeyMap map[AppSecretKey]config.SecretKey = map[AppSecretKey]config.SecretKey{
-	AppSecretKeyOauthSSOProviderClientSecrets: config.OAuthSSOProviderCredentialsKey,
-	AppSecretKeyWebhookSecret:                 config.WebhookKeyMaterialsKey,
-	AppSecretKeyAdminAPISecrets:               config.AdminAPIAuthKeyKey,
-	AppSecretKeySmtpSecret:                    config.SMTPServerCredentialsKey,
-	AppSecretKeyOauthClientSecrets:            config.OAuthClientCredentialsKey,
-	AppSecretKeyBotProtectionProviderSecret:   config.BotProtectionProviderCredentialsKey,
+var secretKeyToConfigKeyMap map[AppSecretKey][]config.SecretKey = map[AppSecretKey][]config.SecretKey{
+	AppSecretKeyOauthSSOProviderClientSecrets: {config.OAuthSSOProviderCredentialsKey},
+	AppSecretKeyWebhookSecret:                 {config.WebhookKeyMaterialsKey},
+	AppSecretKeyAdminAPISecrets:               {config.AdminAPIAuthKeyKey},
+	AppSecretKeySmtpSecret:                    {config.SMTPServerCredentialsKey},
+	AppSecretKeyOauthClientSecrets:            {config.OAuthClientCredentialsKey},
+	AppSecretKeyBotProtectionProviderSecret:   {config.BotProtectionProviderCredentialsKey},
+	AppSecretKeySMSProviderSecrets:            {config.TwilioCredentialsKey, config.CustomSMSProviderConfigKey},
 }
 
 const typeApp = "App"
