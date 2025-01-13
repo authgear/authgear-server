@@ -105,7 +105,17 @@ func (m *SessionInfoMiddleware) jwtToSessionInfo(jwkSet jwk.Set, header http.Hea
 	}
 	sessionInfo.UserCanReauthenticate = canReauthenticate.(bool)
 
-	// FIXME(auth_time): Include auth_time in JWT access token.
+	// auth_time is newly added to at+jwt, so it may not be present.
+	if authTimeIface, ok := token.Get(string(model.ClaimAuthTime)); ok {
+		switch v := authTimeIface.(type) {
+		case float64:
+			sessionInfo.AuthenticatedAt = time.Unix(int64(v), 0).UTC()
+		case int64:
+			sessionInfo.AuthenticatedAt = time.Unix(v, 0).UTC()
+		default:
+			panic(fmt.Errorf("unexpected type: %v %T", model.ClaimAuthTime, authTimeIface))
+		}
+	}
 
 	// amr is newly added to at+jwt, so it may not be present.
 	if amrIface, ok := token.Get(string(model.ClaimAMR)); ok {
