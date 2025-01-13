@@ -90,8 +90,14 @@ type SMSProviderTwilioCredentials struct {
 	MessageServiceSID string  `json:"messageServiceSid,omitempty"`
 }
 
+type SMSProviderCustomSMSProviderConfigs struct {
+	URL     string `json:"url,omitempty"`
+	Timeout *int   `json:"timeout,omitempty"`
+}
+
 type SMSProviderSecrets struct {
-	TwilioCredentials *SMSProviderTwilioCredentials `json:"twilioCredentials,omitempty"`
+	TwilioCredentials *SMSProviderTwilioCredentials        `json:"twilioCredentials,omitempty"`
+	CustomSMSProvider *SMSProviderCustomSMSProviderConfigs `json:"customSmsProvider,omitempty"`
 }
 
 type SecretConfig struct {
@@ -269,6 +275,12 @@ func NewSecretConfig(secretConfig *config.SecretConfig, unmaskedSecrets []config
 			smsProviderSecrets.TwilioCredentials.AuthToken = &twilioCredentials.AuthToken
 		}
 
+	}
+	if customSMSProviderConfig, ok := secretConfig.LookupData(config.CustomSMSProviderConfigKey).(*config.CustomSMSProviderConfig); ok {
+		smsProviderSecrets.CustomSMSProvider = &SMSProviderCustomSMSProviderConfigs{
+			URL:     customSMSProviderConfig.URL,
+			Timeout: (*int)(customSMSProviderConfig.Timeout),
+		}
 	}
 	out.SMSProviderSecrets = smsProviderSecrets
 

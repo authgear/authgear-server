@@ -172,8 +172,8 @@ var samlSpSigningSecret = graphql.NewObject(graphql.ObjectConfig{
 })
 
 var smsProviderTwilioCredentials = graphql.NewObject(graphql.ObjectConfig{
-	Name:        "SMSProviderSecrets",
-	Description: "SMS Provider secrets",
+	Name:        "SMSProviderTwilioCredentials",
+	Description: "Twilio credentials",
 	Fields: graphql.Fields{
 		"accountSid": &graphql.Field{
 			Type: graphql.NewNonNull(graphql.String),
@@ -187,12 +187,28 @@ var smsProviderTwilioCredentials = graphql.NewObject(graphql.ObjectConfig{
 	},
 })
 
+var smsProviderCustomSmsProviderSecrets = graphql.NewObject(graphql.ObjectConfig{
+	Name:        "SMSProviderCustomSmsProviderSecrets",
+	Description: "Custom SMS Provider configs",
+	Fields: graphql.Fields{
+		"url": &graphql.Field{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+		"timeout": &graphql.Field{
+			Type: graphql.Int,
+		},
+	},
+})
+
 var smsProviderSecret = graphql.NewObject(graphql.ObjectConfig{
 	Name:        "SMSProviderSecrets",
 	Description: "SMS Provider secrets",
 	Fields: graphql.Fields{
 		"twilioCredentials": &graphql.Field{
 			Type: smsProviderTwilioCredentials,
+		},
+		"customSmsProvider": &graphql.Field{
+			Type: smsProviderCustomSmsProviderSecrets,
 		},
 	},
 })
