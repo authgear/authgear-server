@@ -106,12 +106,6 @@ func (ti *IDTokenIssuer) Iss() string {
 	return ti.BaseURL.Origin().String()
 }
 
-func (ti *IDTokenIssuer) updateTimeClaims(token jwt.Token) {
-	now := ti.Clock.NowUTC()
-	_ = token.Set(jwt.IssuedAtKey, now.Unix())
-	_ = token.Set(jwt.ExpirationKey, now.Add(IDTokenValidDuration).Unix())
-}
-
 func (ti *IDTokenIssuer) sign(token jwt.Token) (string, error) {
 	jwk, _ := ti.Secrets.Set.Key(0)
 	signed, err := jwtutil.Sign(token, jwa.RS256, jwk)
@@ -135,29 +129,33 @@ func (ti *IDTokenIssuer) IssueIDToken(ctx context.Context, opts IssueIDTokenOpti
 
 	info := opts.AuthenticationInfo
 
-	// Populate issuer.
+	// iss
 	_ = claims.Set(jwt.IssuerKey, ti.Iss())
+	// aud
+	_ = claims.Set(jwt.AudienceKey, opts.ClientID)
+	now := ti.Clock.NowUTC()
+	// iat
+	_ = claims.Set(jwt.IssuedAtKey, now.Unix())
+	// exp
+	_ = claims.Set(jwt.ExpirationKey, now.Add(IDTokenValidDuration).Unix())
 
 	err := ti.PopulateUserClaimsInIDToken(ctx, claims, info.UserID, opts.ClientLike)
 	if err != nil {
 		return "", err
 	}
 
-	// Populate client specific claims
-	_ = claims.Set(jwt.AudienceKey, opts.ClientID)
-
-	// Populate Time specific claims
-	ti.updateTimeClaims(claims)
-
-	// Populate session specific claims
+	// auth_time
+	_ = claims.Set(string(model.ClaimAuthTime), info.AuthenticatedAt.Unix())
 	if sid := opts.SID; sid != "" {
+		// sid
 		_ = claims.Set(string(model.ClaimSID), sid)
 	}
-	_ = claims.Set(string(model.ClaimAuthTime), info.AuthenticatedAt.Unix())
 	if amr := info.AMR; len(amr) > 0 {
+		// amr
 		_ = claims.Set(string(model.ClaimAMR), amr)
 	}
 	if dshash := opts.DeviceSecretHash; dshash != "" {
+		// ds_hash
 		_ = claims.Set(string(model.ClaimDeviceSecretHash), dshash)
 	}
 

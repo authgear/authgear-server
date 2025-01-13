@@ -57,20 +57,26 @@ func (e *AccessTokenEncoding) EncodeAccessToken(ctx context.Context, client *con
 
 	claims := jwt.New()
 
-	err := e.IDTokenIssuer.PopulateUserClaimsInIDToken(ctx, claims, userID, clientLike)
-	if err != nil {
-		return "", err
-	}
-
+	// iss
 	_ = claims.Set(jwt.IssuerKey, e.IDTokenIssuer.Iss())
+	// aud
 	_ = claims.Set(jwt.AudienceKey, e.BaseURL.Origin().String())
+	// iat
 	_ = claims.Set(jwt.IssuedAtKey, grant.CreatedAt.Unix())
+	// exp
 	_ = claims.Set(jwt.ExpirationKey, grant.ExpireAt.Unix())
+	// client_id
 	_ = claims.Set("client_id", client.ClientID)
+
 	// Do not put raw token in JWT access token; JWT payload is not specified
 	// to be confidential. Put token hash to allow looking up access grant from
 	// verified JWT.
 	_ = claims.Set(jwt.JwtIDKey, grant.TokenHash)
+
+	err := e.IDTokenIssuer.PopulateUserClaimsInIDToken(ctx, claims, userID, clientLike)
+	if err != nil {
+		return "", err
+	}
 
 	forMutation, forBackup, err := jwtutil.PrepareForMutations(claims)
 	if err != nil {
