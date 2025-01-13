@@ -7,6 +7,7 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/semconv/v1.27.0"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
@@ -197,6 +198,10 @@ func WithWhatsappAPIType(apiType config.WhatsappAPIType) MetricOption {
 
 func WithWhatsappAPIErrorCode(code int) MetricOption {
 	return metricOptionAttributeKeyValue{AttributeKeyWhatsappAPIErrorCode.String(fmt.Sprint(code))}
+}
+
+func WithHTTPStatusCode(code int) MetricOption {
+	return metricOptionAttributeKeyValue{semconv.HTTPResponseStatusCodeKey.Int(code)}
 }
 
 // IntCounterAddOne prepares necessary attributes and calls Add with incr=1.
