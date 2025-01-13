@@ -833,7 +833,10 @@ func (i *SMSProviderSecretsUpdateInstruction) set(currentConfig *SecretConfig) (
 			AuthToken:           i.SetData.TwilioCredentials.AuthToken,
 			MessagingServiceSID: i.SetData.TwilioCredentials.MessagingServiceSID,
 		}
-		upsert(TwilioCredentialsKey, twilioCredentials)
+		err := upsert(TwilioCredentialsKey, twilioCredentials)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if i.SetData.CustomSMSProvider != nil {
@@ -841,7 +844,10 @@ func (i *SMSProviderSecretsUpdateInstruction) set(currentConfig *SecretConfig) (
 			URL:     i.SetData.CustomSMSProvider.URL,
 			Timeout: i.SetData.CustomSMSProvider.Timeout,
 		}
-		upsert(CustomSMSProviderConfigKey, customSMSProviderConfig)
+		err := upsert(CustomSMSProviderConfigKey, customSMSProviderConfig)
+		if err != nil {
+			return nil, err
+		}
 	}
 	return out, nil
 }
