@@ -769,12 +769,18 @@ func (i *SAMLSpSigningSecretsUpdateInstruction) set(currentConfig *SecretConfig)
 
 type SMSProviderSecretsUpdateInstructionSetData struct {
 	TwilioCredentials *SMSProviderSecretsUpdateInstructionTwilioCredentials `json:"twilioCredentials,omitempty"`
+	CustomSMSProvider *SMSProviderSecretsUpdateInstructionCustomSMSProvider `json:"customSmsProvider,omitempty"`
 }
 
 type SMSProviderSecretsUpdateInstructionTwilioCredentials struct {
 	AccountSID          string `json:"accountSid,omitempty"`
 	AuthToken           string `json:"authToken,omitempty"`
 	MessagingServiceSID string `json:"messageServiceSid,omitempty"`
+}
+
+type SMSProviderSecretsUpdateInstructionCustomSMSProvider struct {
+	URL     string           `json:"url,omitempty"`
+	Timeout *DurationSeconds `json:"timeout,omitempty"`
 }
 
 type SMSProviderSecretsUpdateInstruction struct {
@@ -828,6 +834,14 @@ func (i *SMSProviderSecretsUpdateInstruction) set(currentConfig *SecretConfig) (
 			MessagingServiceSID: i.SetData.TwilioCredentials.MessagingServiceSID,
 		}
 		upsert(TwilioCredentialsKey, twilioCredentials)
+	}
+
+	if i.SetData.CustomSMSProvider != nil {
+		customSMSProviderConfig := CustomSMSProviderConfig{
+			URL:     i.SetData.CustomSMSProvider.URL,
+			Timeout: i.SetData.CustomSMSProvider.Timeout,
+		}
+		upsert(CustomSMSProviderConfigKey, customSMSProviderConfig)
 	}
 	return out, nil
 }
