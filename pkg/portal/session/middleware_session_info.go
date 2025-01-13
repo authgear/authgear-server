@@ -106,7 +106,15 @@ func (m *SessionInfoMiddleware) jwtToSessionInfo(jwkSet jwk.Set, header http.Hea
 	sessionInfo.UserCanReauthenticate = canReauthenticate.(bool)
 
 	// FIXME(auth_time): Include auth_time in JWT access token.
-	// FIXME(amr): Include amr in JWT access token.
+
+	// amr is newly added to at+jwt, so it may not be present.
+	if amrIface, ok := token.Get(string(model.ClaimAMR)); ok {
+		amrSlice := amrIface.([]interface{})
+		for _, amrValue := range amrSlice {
+			amrStr := amrValue.(string)
+			sessionInfo.SessionAMR = append(sessionInfo.SessionAMR, amrStr)
+		}
+	}
 
 	rolesIface, ok := token.Get(string(model.ClaimAuthgearRoles))
 	if !ok {
