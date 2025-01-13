@@ -77,6 +77,14 @@ func (e *AccessTokenEncoding) EncodeAccessToken(ctx context.Context, options Enc
 	// client_id
 	_ = claims.Set("client_id", options.ClientConfig.ClientID)
 
+	// auth_time
+	_ = claims.Set(string(model.ClaimAuthTime), options.AuthenticationInfo.AuthenticatedAt.Unix())
+
+	// amr
+	if amr := options.AuthenticationInfo.AMR; len(amr) > 0 {
+		_ = claims.Set(string(model.ClaimAMR), amr)
+	}
+
 	// Do not put raw token in JWT access token; JWT payload is not specified
 	// to be confidential. Put token hash to allow looking up access grant from
 	// verified JWT.
