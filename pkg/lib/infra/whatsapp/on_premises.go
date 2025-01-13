@@ -43,6 +43,7 @@ type OnPremisesClient struct {
 }
 
 func NewWhatsappOnPremisesClient(
+	lf *log.Factory,
 	cfg *config.WhatsappConfig,
 	credentials *config.WhatsappOnPremisesCredentials,
 	tokenStore *TokenStore,
@@ -56,6 +57,7 @@ func NewWhatsappOnPremisesClient(
 		panic(err)
 	}
 	return &OnPremisesClient{
+		Logger:      WhatsappOnPremisesClientLogger{lf.New("whatsapp-on-premises-client")},
 		HTTPClient:  httpClient,
 		Endpoint:    endpoint,
 		Credentials: credentials,
