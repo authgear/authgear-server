@@ -84,5 +84,12 @@ func IgnoreError(err error) (ignore bool) {
 		}
 	}
 
+	var skippable log.LoggingSkippable
+	if errors.As(err, &skippable) {
+		if skippable.SkipLogging() {
+			ignore = true
+		}
+	}
+
 	return
 }

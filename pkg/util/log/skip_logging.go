@@ -22,3 +22,5 @@ func IsLoggingSkipped(e *logrus.Entry) bool {
 	}
 	return false
 }
+
+type LoggingSkippable interface{ SkipLogging() bool }

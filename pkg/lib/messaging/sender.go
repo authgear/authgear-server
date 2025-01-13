@@ -298,26 +298,29 @@ func (s *Sender) SendWhatsappImmediately(ctx context.Context, msgType translatio
 	// Send immediately.
 	err = s.sendWhatsapp(ctx, opts)
 	if err != nil {
-		isInvalidWhatsappUserErr := errors.Is(err, whatsapp.ErrInvalidWhatsappUser)
-		status := otelauthgear.WithStatusError()
-		if isInvalidWhatsappUserErr {
-			status = otelauthgear.WithStatusInvalidWhatsappUser()
+
+		metricOptions := []otelauthgear.MetricOption{otelauthgear.WithStatusError()}
+		var apiErr *whatsapp.WhatsappAPIError
+		if ok := errors.As(err, &apiErr); ok {
+			metricOptions = append(metricOptions, otelauthgear.WithWhatsappAPIType(apiErr.APIType))
+			metricOptions = append(metricOptions, otelauthgear.WithHTTPStatusCode(apiErr.HTTPStatusCode))
+			if apiErr.ParsedResponse != nil {
+				firstErr, ok := apiErr.ParsedResponse.FirstErrorCode()
+				if ok {
+					metricOptions = append(metricOptions, otelauthgear.WithWhatsappAPIErrorCode(firstErr))
+				}
+			}
 		}
+
 		otelauthgear.IntCounterAddOne(
 			ctx,
 			otelauthgear.CounterWhatsappRequestCount,
-			status,
+			metricOptions...,
 		)
 
-		if !isInvalidWhatsappUserErr {
-			s.Logger.WithError(err).WithFields(logrus.Fields{
-				"phone": phone.Mask(opts.To),
-			}).Error("failed to send Whatsapp")
-		} else {
-			s.Logger.WithError(err).WithFields(logrus.Fields{
-				"phone": phone.Mask(opts.To),
-			}).Warn("failed to send Whatsapp")
-		}
+		s.Logger.WithError(err).WithFields(logrus.Fields{
+			"phone": phone.Mask(opts.To),
+		}).Error("failed to send Whatsapp")
 
 		logErr := s.Events.DispatchEventImmediately(ctx, &nonblocking.WhatsappErrorEventPayload{
 			Description: s.errorToDescription(err),

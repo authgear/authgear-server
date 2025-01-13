@@ -2,10 +2,14 @@ package otelauthgear
 
 import (
 	"context"
+	"fmt"
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/semconv/v1.27.0"
+
+	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 // Suppose you have a task to add a new metric, what should you do?
@@ -70,14 +74,17 @@ var AttributeKeyClientID = attribute.Key("authgear.client_id")
 // AttributeKeyStatus defines the attribute.
 var AttributeKeyStatus = attribute.Key("status")
 
+// AttributeKeyWhatsappAPIType defines the attribute.
+var AttributeKeyWhatsappAPIType = attribute.Key("whatsapp_api_type")
+
+// AttributeKeyWhatsappAPIErrorCode defines the attribute.
+var AttributeKeyWhatsappAPIErrorCode = attribute.Key("whatsapp_api_error_code")
+
 // AttributeStatusOK is "status=ok".
 var AttributeStatusOK = AttributeKeyStatus.String("ok")
 
 // AttributeStatusError is "status=error".
 var AttributeStatusError = AttributeKeyStatus.String("error")
-
-// AttributeStatusInvalidWhatsappUser is "status=invalid_whatsapp_user".
-var AttributeStatusInvalidWhatsappUser = AttributeKeyStatus.String("invalid_whatsapp_user")
 
 var CounterOAuthSessionCreationCount = mustInt64Counter(
 	"authgear.oauth_session.creation.count",
@@ -185,8 +192,16 @@ func WithStatusError() MetricOption {
 	return metricOptionAttributeKeyValue{AttributeStatusError}
 }
 
-func WithStatusInvalidWhatsappUser() MetricOption {
-	return metricOptionAttributeKeyValue{AttributeStatusInvalidWhatsappUser}
+func WithWhatsappAPIType(apiType config.WhatsappAPIType) MetricOption {
+	return metricOptionAttributeKeyValue{AttributeKeyWhatsappAPIType.String(string(apiType))}
+}
+
+func WithWhatsappAPIErrorCode(code int) MetricOption {
+	return metricOptionAttributeKeyValue{AttributeKeyWhatsappAPIErrorCode.String(fmt.Sprint(code))}
+}
+
+func WithHTTPStatusCode(code int) MetricOption {
+	return metricOptionAttributeKeyValue{semconv.HTTPResponseStatusCodeKey.Int(code)}
 }
 
 // IntCounterAddOne prepares necessary attributes and calls Add with incr=1.

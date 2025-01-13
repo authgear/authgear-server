@@ -128,12 +128,23 @@ func (j LoginResponseUserExpiresTime) MarshalText() ([]byte, error) {
 	return []byte(time.Time(j).Format(LoginResponseUserExpiresTimeLayout)), nil
 }
 
-type SendTemplateErrorResponse struct {
-	Errors *[]SendTemplateError `json:"errors,omitempty"`
+type WhatsappAPIErrorResponse struct {
+	Errors []WhatsappAPIErrorDetail `json:"errors,omitempty"`
 }
 
-type SendTemplateError struct {
+func (r *WhatsappAPIErrorResponse) FirstErrorCode() (int, bool) {
+	if r.Errors != nil && len(r.Errors) > 0 {
+		return (r.Errors)[0].Code, true
+	}
+	return -1, false
+}
+
+type WhatsappAPIErrorDetail struct {
 	Code    int    `json:"code"`
 	Title   string `json:"title"`
 	Details string `json:"details"`
 }
+
+const (
+	errorCodeInvalidUser = 1013
+)
