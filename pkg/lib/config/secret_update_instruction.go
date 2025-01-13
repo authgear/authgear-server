@@ -29,6 +29,7 @@ type SecretConfigUpdateInstruction struct {
 	BotProtectionProviderCredentialsUpdateInstruction *BotProtectionProviderCredentialsUpdateInstruction `json:"botProtectionProviderSecret,omitempty"`
 	SAMLIdpSigningSecretsUpdateInstruction            *SAMLIdpSigningSecretsUpdateInstruction            `json:"samlIdpSigningSecrets,omitempty"`
 	SAMLSpSigningSecretsUpdateInstruction             *SAMLSpSigningSecretsUpdateInstruction             `json:"samlSpSigningSecrets,omitempty"`
+	SMSProviderSecretsUpdateInstruction               *SMSProviderSecretsUpdateInstruction               `json:"smsProviderSecrets,omitempty"`
 }
 
 func (i *SecretConfigUpdateInstruction) ApplyTo(ctx *SecretConfigUpdateInstructionContext, currentConfig *SecretConfig) (*SecretConfig, error) {
@@ -766,6 +767,71 @@ func (i *SAMLSpSigningSecretsUpdateInstruction) set(currentConfig *SecretConfig)
 	return out, nil
 }
 
+type SMSProviderSecretsUpdateInstructionSetData struct {
+	TwilioCredentials *SMSProviderSecretsUpdateInstructionTwilioCredentials `json:"twilioCredentials,omitempty"`
+}
+
+type SMSProviderSecretsUpdateInstructionTwilioCredentials struct {
+	AccountSID          string `json:"accountSid,omitempty"`
+	AuthToken           string `json:"authToken,omitempty"`
+	MessagingServiceSID string `json:"messageServiceSid,omitempty"`
+}
+
+type SMSProviderSecretsUpdateInstruction struct {
+	Action  SecretUpdateInstructionAction               `json:"action,omitempty"`
+	SetData *SMSProviderSecretsUpdateInstructionSetData `json:"setData,omitempty"`
+}
+
+func (i *SMSProviderSecretsUpdateInstruction) ApplyTo(ctx *SecretConfigUpdateInstructionContext, currentConfig *SecretConfig) (*SecretConfig, error) {
+	switch i.Action {
+	case SecretUpdateInstructionActionSet:
+		return i.set(currentConfig)
+	default:
+		return nil, fmt.Errorf("config: unexpected action for SMSProviderSecretsUpdateInstruction: %s", i.Action)
+	}
+}
+
+func (i *SMSProviderSecretsUpdateInstruction) set(currentConfig *SecretConfig) (*SecretConfig, error) {
+	out := &SecretConfig{}
+	for _, item := range currentConfig.Secrets {
+		out.Secrets = append(out.Secrets, item)
+	}
+
+	if i.SetData == nil {
+		return nil, fmt.Errorf("config: missing SetData for SMSProviderSecretsUpdateInstruction")
+	}
+
+	upsert := func(credentialKey SecretKey, secrets any) error {
+		var data []byte
+		data, err := json.Marshal(secrets)
+		if err != nil {
+			return err
+		}
+		newSecretItem := SecretItem{
+			Key:     credentialKey,
+			RawData: json.RawMessage(data),
+		}
+
+		idx, _, found := out.LookupDataWithIndex(credentialKey)
+		if found {
+			out.Secrets[idx] = newSecretItem
+		} else {
+			out.Secrets = append(out.Secrets, newSecretItem)
+		}
+		return nil
+	}
+
+	if i.SetData.TwilioCredentials != nil {
+		twilioCredentials := TwilioCredentials{
+			AccountSID:          i.SetData.TwilioCredentials.AccountSID,
+			AuthToken:           i.SetData.TwilioCredentials.AuthToken,
+			MessagingServiceSID: i.SetData.TwilioCredentials.MessagingServiceSID,
+		}
+		upsert(TwilioCredentialsKey, twilioCredentials)
+	}
+	return out, nil
+}
+
 var _ SecretConfigUpdateInstructionInterface = &SecretConfigUpdateInstruction{}
 var _ SecretConfigUpdateInstructionInterface = &OAuthSSOProviderCredentialsUpdateInstruction{}
 var _ SecretConfigUpdateInstructionInterface = &SMTPServerCredentialsUpdateInstruction{}
@@ -774,3 +840,4 @@ var _ SecretConfigUpdateInstructionInterface = &AdminAPIAuthKeyUpdateInstruction
 var _ SecretConfigUpdateInstructionInterface = &BotProtectionProviderCredentialsUpdateInstruction{}
 var _ SecretConfigUpdateInstructionInterface = &SAMLIdpSigningSecretsUpdateInstruction{}
 var _ SecretConfigUpdateInstructionInterface = &SAMLSpSigningSecretsUpdateInstruction{}
+var _ SecretConfigUpdateInstructionInterface = &SMSProviderSecretsUpdateInstruction{}

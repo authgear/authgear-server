@@ -133,6 +133,30 @@ var samlSpSigningSecretsSetDataInput = graphql.NewInputObject(graphql.InputObjec
 	},
 })
 
+var smsProviderSecretsSetDataInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "SMSProviderSecretsSetDataInput",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"twilioCredentials": &graphql.InputObjectFieldConfig{
+			Type: smsProviderTwilioCredentials,
+		},
+	},
+})
+
+var smsProviderTwilioCredentials = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "SMSProviderTwilioCredentials",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"accountSid": &graphql.InputObjectFieldConfig{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+		"authToken": &graphql.InputObjectFieldConfig{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+		"messageServiceSid": &graphql.InputObjectFieldConfig{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+	},
+})
+
 var smtpSecretUpdateInstructionsInput = graphql.NewInputObject(graphql.InputObjectConfig{
 	Name: "SmtpSecretUpdateInstructionsInput",
 	Fields: graphql.InputObjectConfigFieldMap{
@@ -196,6 +220,18 @@ var samlSpSigningSecretsUpdateInstructionsInput = graphql.NewInputObject(graphql
 	},
 })
 
+var smsProviderSecretsUpdateInstructionsInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "SMSProviderSecretsUpdateInstructionsInput",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"action": &graphql.InputObjectFieldConfig{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+		"setData": &graphql.InputObjectFieldConfig{
+			Type: smsProviderSecretsSetDataInput,
+		},
+	},
+})
+
 var adminAPIAuthKeyUpdateInstructionInput = graphql.NewInputObject(graphql.InputObjectConfig{
 	Name: "AdminAPIAuthKeyUpdateInstructionInput",
 	Fields: graphql.InputObjectConfigFieldMap{
@@ -255,6 +291,9 @@ var secretConfigUpdateInstructionsInput = graphql.NewInputObject(graphql.InputOb
 		},
 		"samlSpSigningSecrets": &graphql.InputObjectFieldConfig{
 			Type: samlSpSigningSecretsUpdateInstructionsInput,
+		},
+		"smsProviderSecrets": &graphql.InputObjectFieldConfig{
+			Type: smsProviderSecretsUpdateInstructionsInput,
 		},
 	},
 })
