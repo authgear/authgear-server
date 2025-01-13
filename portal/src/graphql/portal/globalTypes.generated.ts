@@ -247,6 +247,11 @@ export type CreateDomainPayload = {
   domain: Domain;
 };
 
+export type CustomSmsProviderSecretsInput = {
+  timeout: Scalars['Int']['input'];
+  url: Scalars['String']['input'];
+};
+
 export type DataPoint = {
   __typename?: 'DataPoint';
   data: Scalars['Float']['output'];
@@ -667,6 +672,44 @@ export type SamlSpSigningSecretsUpdateInstructionsInput = {
   setData?: InputMaybe<SamlSpSigningSecretsSetDataInput>;
 };
 
+/** Custom SMS Provider configs */
+export type SmsProviderCustomSmsProviderSecrets = {
+  __typename?: 'SMSProviderCustomSmsProviderSecrets';
+  timeout?: Maybe<Scalars['Int']['output']>;
+  url: Scalars['String']['output'];
+};
+
+/** SMS Provider secrets */
+export type SmsProviderSecrets = {
+  __typename?: 'SMSProviderSecrets';
+  customSmsProvider?: Maybe<SmsProviderCustomSmsProviderSecrets>;
+  twilioCredentials?: Maybe<SmsProviderTwilioCredentials>;
+};
+
+export type SmsProviderSecretsSetDataInput = {
+  customSmsProvider?: InputMaybe<CustomSmsProviderSecretsInput>;
+  twilioCredentials?: InputMaybe<SmsProviderTwilioCredentialsInput>;
+};
+
+export type SmsProviderSecretsUpdateInstructionsInput = {
+  action: Scalars['String']['input'];
+  setData?: InputMaybe<SmsProviderSecretsSetDataInput>;
+};
+
+/** Twilio credentials */
+export type SmsProviderTwilioCredentials = {
+  __typename?: 'SMSProviderTwilioCredentials';
+  accountSid: Scalars['String']['output'];
+  authToken: Scalars['String']['output'];
+  messageServiceSid: Scalars['String']['output'];
+};
+
+export type SmsProviderTwilioCredentialsInput = {
+  accountSid: Scalars['String']['input'];
+  authToken?: InputMaybe<Scalars['String']['input']>;
+  messageServiceSid: Scalars['String']['input'];
+};
+
 /** SMTP secret */
 export type SmtpSecret = {
   __typename?: 'SMTPSecret';
@@ -697,6 +740,7 @@ export type SecretConfig = {
   oauthSSOProviderClientSecrets?: Maybe<Array<OAuthSsoProviderClientSecret>>;
   samlIdpSigningSecrets?: Maybe<SamlIdpSigningSecrets>;
   samlSpSigningSecrets?: Maybe<Array<SamlSpSigningSecrets>>;
+  smsProviderSecrets?: Maybe<Array<SmsProviderSecrets>>;
   smtpSecret?: Maybe<SmtpSecret>;
   webhookSecret?: Maybe<WebhookSecret>;
 };
@@ -708,6 +752,7 @@ export type SecretConfigUpdateInstructionsInput = {
   oauthSSOProviderClientSecrets?: InputMaybe<OAuthSsoProviderClientSecretsUpdateInstructionsInput>;
   samlIdpSigningSecrets?: InputMaybe<SamlIdpSigningSecretsUpdateInstructionsInput>;
   samlSpSigningSecrets?: InputMaybe<SamlSpSigningSecretsUpdateInstructionsInput>;
+  smsProviderSecrets?: InputMaybe<SmsProviderSecretsUpdateInstructionsInput>;
   smtpSecret?: InputMaybe<SmtpSecretUpdateInstructionsInput>;
 };
 

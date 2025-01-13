@@ -330,6 +330,15 @@ type CreateDomainPayload {
 }
 
 """"""
+input CustomSmsProviderSecretsInput {
+  """"""
+  timeout: Int!
+
+  """"""
+  url: String!
+}
+
+""""""
 type DataPoint {
   """"""
   data: Float!
@@ -764,6 +773,66 @@ input SAMLSpSigningSecretsUpdateInstructionsInput {
   setData: SAMLSpSigningSecretsSetDataInput
 }
 
+"""Custom SMS Provider configs"""
+type SMSProviderCustomSmsProviderSecrets {
+  """"""
+  timeout: Int
+
+  """"""
+  url: String!
+}
+
+"""SMS Provider secrets"""
+type SMSProviderSecrets {
+  """"""
+  customSmsProvider: SMSProviderCustomSmsProviderSecrets
+
+  """"""
+  twilioCredentials: SMSProviderTwilioCredentials
+}
+
+""""""
+input SMSProviderSecretsSetDataInput {
+  """"""
+  customSmsProvider: CustomSmsProviderSecretsInput
+
+  """"""
+  twilioCredentials: SMSProviderTwilioCredentialsInput
+}
+
+""""""
+input SMSProviderSecretsUpdateInstructionsInput {
+  """"""
+  action: String!
+
+  """"""
+  setData: SMSProviderSecretsSetDataInput
+}
+
+"""Twilio credentials"""
+type SMSProviderTwilioCredentials {
+  """"""
+  accountSid: String!
+
+  """"""
+  authToken: String!
+
+  """"""
+  messageServiceSid: String!
+}
+
+""""""
+input SMSProviderTwilioCredentialsInput {
+  """"""
+  accountSid: String!
+
+  """"""
+  authToken: String
+
+  """"""
+  messageServiceSid: String!
+}
+
 """SMTP secret"""
 type SMTPSecret {
   """"""
@@ -821,6 +890,9 @@ type SecretConfig {
   samlSpSigningSecrets: [SAMLSpSigningSecrets!]
 
   """"""
+  smsProviderSecrets: [SMSProviderSecrets!]
+
+  """"""
   smtpSecret: SMTPSecret
 
   """"""
@@ -846,6 +918,9 @@ input SecretConfigUpdateInstructionsInput {
 
   """"""
   samlSpSigningSecrets: SAMLSpSigningSecretsUpdateInstructionsInput
+
+  """"""
+  smsProviderSecrets: SMSProviderSecretsUpdateInstructionsInput
 
   """"""
   smtpSecret: SmtpSecretUpdateInstructionsInput
