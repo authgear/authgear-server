@@ -85,9 +85,9 @@ type SAMLSpSigningSecrets struct {
 }
 
 type SMSProviderTwilioCredentials struct {
-	AccountSID        string `json:"accountSid,omitempty"`
-	AuthToken         string `json:"authToken,omitempty"`
-	MessageServiceSID string `json:"messageServiceSid,omitempty"`
+	AccountSID        string  `json:"accountSid,omitempty"`
+	AuthToken         *string `json:"authToken,omitempty"`
+	MessageServiceSID string  `json:"messageServiceSid,omitempty"`
 }
 
 type SMSProviderSecrets struct {
@@ -266,7 +266,7 @@ func NewSecretConfig(secretConfig *config.SecretConfig, unmaskedSecrets []config
 			MessageServiceSID: twilioCredentials.MessagingServiceSID,
 		}
 		if _, exist := unmaskedSecretsSet[config.TwilioCredentialsKey]; exist {
-			smsProviderSecrets.TwilioCredentials.AuthToken = twilioCredentials.AuthToken
+			smsProviderSecrets.TwilioCredentials.AuthToken = &twilioCredentials.AuthToken
 		}
 
 	}
