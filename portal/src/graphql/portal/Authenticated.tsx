@@ -173,7 +173,7 @@ export async function configureAuthgear(
   options: ConfigureAuthgearOptions
 ): Promise<void> {
   // eslint-disable-next-line no-console -- Output the session type to console for easier debugging.
-  console.log("authgear: sessionType =", options.sessionType);
+  console.info("authgear: sessionType = %s", options.sessionType);
   await authgear.configure({
     sessionType: options.sessionType,
     clientID: options.clientID,
