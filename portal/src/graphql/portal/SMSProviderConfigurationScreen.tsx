@@ -23,12 +23,17 @@ import {
   FormattedMessage,
   Context as MessageContext,
 } from "@oursky/react-messageformat";
+import { Text } from "@fluentui/react";
 import ScreenContent from "../../ScreenContent";
 import ScreenTitle from "../../ScreenTitle";
 import styles from "./SMSProviderConfigurationScreen.module.css";
 import Widget from "../../Widget";
 import ScreenDescription from "../../ScreenDescription";
 import Toggle from "../../Toggle";
+import { ProviderCard } from "../../components/common/ProviderCard";
+import logoTwilio from "../../images/twilio_logo.svg";
+import logoWebhook from "../../images/webhook_logo.svg";
+import logoDeno from "../../images/deno_logo.svg";
 
 const SECRETS = [AppSecretKey.SmsProviderSecrets];
 
@@ -407,8 +412,67 @@ function SMSProviderConfigurationContent(props: {
           inlineLabel={true}
           disabled={form.state.isSecretMasked}
         />
-        {state.enabled ? <></> : null}
       </Widget>
+
+      {state.enabled ? (
+        <Widget className={styles.widget}>
+          <ProviderSection form={form} />
+        </Widget>
+      ) : null}
     </ScreenContent>
+  );
+}
+
+function ProviderSection({
+  form,
+}: {
+  form: AppSecretConfigFormModel<FormState>;
+}) {
+  const onSelectTwilio = useCallback(() => {
+    form.setState((state) => {
+      return { ...state, providerType: SMSProviderType.Twilio };
+    });
+  }, [form]);
+
+  const onSelectWebhook = useCallback(() => {
+    form.setState((state) => {
+      return { ...state, providerType: SMSProviderType.Webhook };
+    });
+  }, [form]);
+  const onSelectDeno = useCallback(() => {
+    form.setState((state) => {
+      return { ...state, providerType: SMSProviderType.Deno };
+    });
+  }, [form]);
+
+  return (
+    <div className="flex flex-col gap-y-3">
+      <Text variant="xLarge">
+        <FormattedMessage id="SMSProviderConfigurationScreen.provider.title" />
+      </Text>
+      <div className={styles.providerGrid}>
+        <ProviderCard
+          onClick={onSelectTwilio}
+          isSelected={form.state.providerType === SMSProviderType.Twilio}
+          logoSrc={logoTwilio}
+        >
+          <FormattedMessage id="SMSProviderConfigurationScreen.provider.twilio" />
+        </ProviderCard>
+        <ProviderCard
+          onClick={onSelectWebhook}
+          isSelected={form.state.providerType === SMSProviderType.Webhook}
+          logoSrc={logoWebhook}
+        >
+          <FormattedMessage id="SMSProviderConfigurationScreen.provider.webhook" />
+        </ProviderCard>
+        <ProviderCard
+          onClick={onSelectDeno}
+          isSelected={form.state.providerType === SMSProviderType.Deno}
+          logoSrc={logoDeno}
+        >
+          <FormattedMessage id="SMSProviderConfigurationScreen.provider.deno" />
+        </ProviderCard>
+      </div>
+    </div>
   );
 }

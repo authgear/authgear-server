@@ -1573,6 +1573,10 @@
   "SMSProviderConfigurationScreen.title": "Custom SMS Gateway",
   "SMSProviderConfigurationScreen.description": "Use your own SMS gateway for sending messages.",
   "SMSProviderConfigurationScreen.enable.label": "Enable Custom SMS Gateway",
+  "SMSProviderConfigurationScreen.provider.title": "SMS Gateway Provider",
+  "SMSProviderConfigurationScreen.provider.twilio": "Twilio",
+  "SMSProviderConfigurationScreen.provider.webhook": "Webhook",
+  "SMSProviderConfigurationScreen.provider.deno": "Custom JS/TS",
 
   "StandardAttributesConfigurationScreen.title": "Standard Attributes",
 

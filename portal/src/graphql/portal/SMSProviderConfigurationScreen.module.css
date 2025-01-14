@@ -10,19 +10,6 @@
   @apply tablet:col-span-full;
 }
 
-.columnLeft {
-  grid-column: 1 / span 4;
-  @apply tablet:col-span-full;
-}
-
-.columnRight {
-  grid-column: 5 / span 4;
-
-  @apply tablet:col-span-full;
-}
-
-.columnSmall {
-  grid-column: 1 / span 2;
-
-  @apply tablet:col-span-full;
+.providerGrid {
+  @apply grid gap-4 grid-cols-2;
 }

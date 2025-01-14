@@ -50,7 +50,7 @@ export function ProviderCard(props: ProviderCardProps): React.ReactElement {
     <div
       style={{
         boxShadow: disabled ? undefined : DefaultEffects.elevation4,
-        borderColor: isSelected ? themePrimary : "transparent",
+        borderColor: isSelected ? themePrimary : "#EBEBE9",
         backgroundColor: disabled ? backgroundColor : undefined,
         cursor: disabled ? "not-allowed" : undefined,
       }}
