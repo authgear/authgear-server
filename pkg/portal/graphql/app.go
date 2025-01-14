@@ -256,7 +256,7 @@ var secretConfig = graphql.NewObject(graphql.ObjectConfig{
 			Type: graphql.NewList(graphql.NewNonNull(samlSpSigningSecret)),
 		},
 		string(AppSecretKeySMSProviderSecrets): &graphql.Field{
-			Type: graphql.NewNonNull(smsProviderSecret),
+			Type: smsProviderSecret,
 		},
 	},
 })

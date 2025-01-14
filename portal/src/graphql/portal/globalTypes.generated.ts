@@ -701,7 +701,7 @@ export type SmsProviderSecretsUpdateInstructionsInput = {
 export type SmsProviderTwilioCredentials = {
   __typename?: 'SMSProviderTwilioCredentials';
   accountSid: Scalars['String']['output'];
-  authToken: Scalars['String']['output'];
+  authToken?: Maybe<Scalars['String']['output']>;
   messageServiceSid: Scalars['String']['output'];
 };
 
@@ -741,7 +741,7 @@ export type SecretConfig = {
   oauthSSOProviderClientSecrets?: Maybe<Array<OAuthSsoProviderClientSecret>>;
   samlIdpSigningSecrets?: Maybe<SamlIdpSigningSecrets>;
   samlSpSigningSecrets?: Maybe<Array<SamlSpSigningSecrets>>;
-  smsProviderSecrets?: Maybe<Array<SmsProviderSecrets>>;
+  smsProviderSecrets?: Maybe<SmsProviderSecrets>;
   smtpSecret?: Maybe<SmtpSecret>;
   webhookSecret?: Maybe<WebhookSecret>;
 };

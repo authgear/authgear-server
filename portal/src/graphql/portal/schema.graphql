@@ -818,7 +818,7 @@ type SMSProviderTwilioCredentials {
   accountSid: String!
 
   """"""
-  authToken: String!
+  authToken: String
 
   """"""
   messageServiceSid: String!
@@ -893,7 +893,7 @@ type SecretConfig {
   samlSpSigningSecrets: [SAMLSpSigningSecrets!]
 
   """"""
-  smsProviderSecrets: [SMSProviderSecrets!]
+  smsProviderSecrets: SMSProviderSecrets
 
   """"""
   smtpSecret: SMTPSecret
