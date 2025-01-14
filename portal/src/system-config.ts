@@ -5,6 +5,7 @@ import { DEFAULT_TEMPLATE_LOCALE } from "./resources";
 export interface SystemConfig {
   authgearClientID: string;
   authgearEndpoint: string;
+  authgearWebSDKSessionType: "cookie" | "refresh_token";
   sentryDSN: string;
   appHostSuffix: string;
   availableLanguages: string[];
@@ -246,6 +247,7 @@ export function instantiateSystemConfig(
   return {
     authgearClientID: config.authgearClientID ?? "",
     authgearEndpoint: config.authgearEndpoint ?? "",
+    authgearWebSDKSessionType: config.authgearWebSDKSessionType ?? "cookie",
     sentryDSN: config.sentryDSN ?? "",
     appHostSuffix: config.appHostSuffix ?? "",
     availableLanguages: config.availableLanguages ?? [DEFAULT_TEMPLATE_LOCALE],

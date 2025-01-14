@@ -16,7 +16,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/handler"
-	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
@@ -103,7 +102,7 @@ func TestTokenHandler(t *testing.T) {
 				}
 				tokenService.EXPECT().ParseRefreshToken(gomock.Any(), "asdf").Return(&oauth.Authorization{}, offlineGrant, refreshTokenHash, nil)
 				idTokenIssuer.EXPECT().IssueIDToken(gomock.Any(), gomock.Any()).Return("id-token", nil)
-				tokenService.EXPECT().IssueAccessGrant(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
+				tokenService.EXPECT().IssueAccessGrant(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 				event := access.NewEvent(clock.NowUTC(), "1.2.3.4", "UA")
 				offlineGrantService.EXPECT().AccessOfflineGrant(gomock.Any(), "offline-grant-id", &event, offlineGrant.ExpireAtForResolvedSession).Return(offlineGrant, nil)
 				offlineGrants.EXPECT().UpdateOfflineGrantDeviceInfo(gomock.Any(), "offline-grant-id", gomock.Any(), offlineGrant.ExpireAtForResolvedSession).Return(offlineGrant, nil)
@@ -149,7 +148,7 @@ func TestTokenHandler(t *testing.T) {
 			offlineGrantService.EXPECT().GetOfflineGrant(gomock.Any(), testOfflineGrantID).
 				AnyTimes().
 				Return(testOfflineGrant, nil)
-			sid := oidc.EncodeSID(testOfflineGrant)
+			sid := oauth.EncodeSID(testOfflineGrant)
 			mockIdToken := jwt.New()
 			_ = mockIdToken.Set("iss", origin)
 			_ = mockIdToken.Set("sid", sid)

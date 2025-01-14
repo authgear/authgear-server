@@ -21,7 +21,6 @@ import {
   Context,
 } from "@oursky/react-messageformat";
 import { ApolloProvider } from "@apollo/client";
-import authgear from "@authgear/web";
 import { Helmet, HelmetProvider } from "react-helmet-async";
 import AppRoot from "./AppRoot";
 import MESSAGES from "./locale-data/en.json";
@@ -37,7 +36,10 @@ import {
 import { loadTheme, ILinkProps } from "@fluentui/react";
 import ExternalLink from "./ExternalLink";
 import Link from "./Link";
-import Authenticated from "./graphql/portal/Authenticated";
+import Authenticated, {
+  configureAuthgear,
+  AuthenticatedContextProvider,
+} from "./graphql/portal/Authenticated";
 import InternalRedirect from "./InternalRedirect";
 import { LoadingContextProvider } from "./hook/loading";
 import { ErrorContextProvider } from "./hook/error";
@@ -116,11 +118,6 @@ async function initApp(systemConfig: SystemConfig) {
   }
 
   loadTheme(systemConfig.themes.main);
-  await authgear.configure({
-    sessionType: "cookie",
-    clientID: systemConfig.authgearClientID,
-    endpoint: systemConfig.authgearEndpoint,
-  });
 }
 
 // ReactAppRoutes defines the routes.
@@ -340,6 +337,11 @@ const ReactApp: React.VFC = function ReactApp() {
       loadSystemConfig()
         .then(async (cfg) => {
           await initApp(cfg);
+          await configureAuthgear({
+            clientID: cfg.authgearClientID,
+            endpoint: cfg.authgearEndpoint,
+            sessionType: cfg.authgearWebSDKSessionType,
+          });
           setSystemConfig(cfg);
         })
         .catch((err) => {
@@ -379,17 +381,19 @@ const ReactApp: React.VFC = function ReactApp() {
                 <PortalClientProvider value={apolloClient}>
                   <ApolloProvider client={apolloClient}>
                     <SystemConfigContext.Provider value={systemConfig}>
-                      <LoadCurrentUser>
-                        <UnauthenticatedDialogContext.Provider
-                          value={unauthenticatedDialogContextValue}
-                        >
-                          <PortalRoot />
-                        </UnauthenticatedDialogContext.Provider>
-                        <UnauthenticatedDialog
-                          isHidden={!displayUnauthenticatedDialog}
-                          onConfirm={onUnauthenticatedDialogConfirm}
-                        />
-                      </LoadCurrentUser>
+                      <AuthenticatedContextProvider>
+                        <LoadCurrentUser>
+                          <UnauthenticatedDialogContext.Provider
+                            value={unauthenticatedDialogContextValue}
+                          >
+                            <PortalRoot />
+                          </UnauthenticatedDialogContext.Provider>
+                          <UnauthenticatedDialog
+                            isHidden={!displayUnauthenticatedDialog}
+                            onConfirm={onUnauthenticatedDialogConfirm}
+                          />
+                        </LoadCurrentUser>
+                      </AuthenticatedContextProvider>
                     </SystemConfigContext.Provider>
                   </ApolloProvider>
                 </PortalClientProvider>

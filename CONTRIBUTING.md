@@ -1,21 +1,25 @@
-- [Contributing guide](#contributing-guide)
+* [Contributing guide](#contributing-guide)
   * [Install dependencies](#install-dependencies)
-    + [Install dependencies with asdf and homebrew](#install-dependencies-with-asdf-and-homebrew)
-    + [Install dependencies with Nix Flakes](#install-dependencies-with-nix-flakes)
+    * [Install dependencies with asdf and homebrew](#install-dependencies-with-asdf-and-homebrew)
+    * [Install dependencies with Nix Flakes](#install-dependencies-with-nix-flakes)
   * [Set up environment](#set-up-environment)
   * [Set up the database](#set-up-the-database)
-  * [Set up MinIO](#setup-minio)
+  * [Set up MinIO](#set-up-minio)
   * [Run](#run)
   * [Create an account for yourselves and grant you access to the portal](#create-an-account-for-yourselves-and-grant-you-access-to-the-portal)
   * [Known issues](#known-issues)
-    + [Known issues on portal](#known-issues-on-portal)
+    * [Known issues on portal](#known-issues-on-portal)
   * [Comment tags](#comment-tags)
   * [Common tasks](#common-tasks)
-    + [How to create a new database migration?](#how-to-create-a-new-database-migration)
-    + [Set up HTTPS to develop some specific features](#set-up-https-to-develop-some-specific-features)
-    + [Create release tag for a deployment](#create-release-tag-for-a-deployment)
-    + [Keep dependencies up-to-date](#keep-dependencies-up-to-date)
-    + [Generate Translation](#generate-translation)
+    * [How to create a new database migration?](#how-to-create-a-new-database-migration)
+    * [Set up HTTPS to develop some specific features](#set-up-https-to-develop-some-specific-features)
+    * [Create release tag for a deployment](#create-release-tag-for-a-deployment)
+    * [Keep dependencies up\-to\-date](#keep-dependencies-up-to-date)
+  * [Generate translation](#generate-translation)
+  * [Set up LDAP for local development](#set-up-ldap-for-local-development)
+    * [Create a LDAP user](#create-a-ldap-user)
+    * [Configure Authgear](#configure-authgear)
+    * [Start with the profile ldap](#start-with-the-profile-ldap)
 
 # Contributing guide
 
@@ -159,11 +163,17 @@ use flake
            client_id: portal
            # Note that the trailing slash is very important here
            # URIs are compared byte by byte.
+           refresh_token_lifetime_seconds: 86400
+           refresh_token_idle_timeout_enabled: true
+           refresh_token_idle_timeout_seconds: 1800
+           issue_jwt_access_token: true
+           access_token_lifetime_seconds: 900
            redirect_uris:
-              # This redirect URI is used by the portal development server.
+              # See nginx.conf for the difference between 8000, 8001, 8010, and 8011
               - "http://portal.localhost:8000/oauth-redirect"
-              # This redirect URI is used by the portal production build.
+              - "http://portal.localhost:8001/oauth-redirect"
               - "http://portal.localhost:8010/oauth-redirect"
+              - "http://portal.localhost:8011/oauth-redirect"
               # This redirect URI is used by the iOS and Android demo app.
               - "com.authgear.example://host/path"
               # This redirect URI is used by the React Native demo app.
@@ -177,9 +187,6 @@ use flake
               - "http://portal.localhost:8000/"
               # This redirect URI is used by the portal production build.
               - "http://portal.localhost:8010/"
-           grant_types: []
-           response_types:
-              - none
    ```
 
 3. Set up `.localhost`
@@ -210,6 +217,12 @@ use flake
 
    # Run search database migration if you want to use postgresql search implementation
    go run ./cmd/authgear search database migrate up
+   ```
+
+3. Add domain
+
+   ```
+   go run ./cmd/portal internal domain create-custom accounts --apex-domain="accounts.portal.localhost" --domain="accounts.portal.localhost"
    ```
 
 ## Set up MinIO
@@ -485,3 +498,17 @@ To start them, you need to add `--profile ldap` to `docker compose up -d`, like
 ```
 docker compose --profile ldap up -d
 ```
+
+## Switching between sessionType=refresh_token and sessionType=cookie
+
+The default configuration
+
+- Accessing the portal at port 8000 or 8010
+- AUTHGEAR_WEB_SDK_SESSION_TYPE in .env.example
+
+assumes sessionType=refresh_token.
+
+In case you need to switch to sessionType=cookie, you
+
+- Use `AUTHGEAR_WEB_SDK_SESSION_TYPE=cookie` in your .env
+- Access the portal at port 8001 or 8011

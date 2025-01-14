@@ -1,4 +1,5 @@
 import { createContext, useContext } from "react";
+import authgear from "@authgear/web";
 import {
   ApolloCache,
   ApolloClient,
@@ -77,7 +78,10 @@ export function createClient(options: {
   onLogout: () => void;
 }): ApolloClient<NormalizedCacheObject> {
   const { cache } = options;
-  const httpLink = new HttpLink({ uri: "/api/graphql" });
+  const httpLink = new HttpLink({
+    uri: "/api/graphql",
+    fetch: authgear.fetch.bind(authgear),
+  });
 
   return new ApolloClient({
     link: createLogoutLink(options.onLogout).concat(httpLink),

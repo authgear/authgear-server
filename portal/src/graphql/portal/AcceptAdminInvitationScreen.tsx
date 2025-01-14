@@ -1,5 +1,5 @@
 import React, { useCallback, useContext, useMemo } from "react";
-import authgear from "@authgear/web";
+import authgear, { PromptOption } from "@authgear/web";
 import { Text, DefaultEffects } from "@fluentui/react";
 import {
   Context,
@@ -175,7 +175,7 @@ const AcceptAdminInvitationScreen: React.VFC =
         authgear
           .startAuthentication({
             redirectURI,
-            prompt: "login",
+            prompt: PromptOption.Login,
             state: encodeOAuthState({
               originalPath,
             }),

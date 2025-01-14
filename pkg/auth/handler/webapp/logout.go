@@ -8,7 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
-	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
+	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlslosession"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/uiparam"
@@ -101,7 +101,7 @@ func (h *LogoutHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if len(pendingLogoutServiceProviderIDs.Keys()) > 0 {
 			sloSessionEntry := &samlslosession.SAMLSLOSessionEntry{
 				PendingLogoutServiceProviderIDs: pendingLogoutServiceProviderIDs.Keys(),
-				SID:                             oidc.EncodeSID(sess),
+				SID:                             oauth.EncodeSID(sess),
 				UserID:                          sess.GetAuthenticationInfo().UserID,
 				PostLogoutRedirectURI:           redirectURI,
 			}

@@ -95,7 +95,7 @@ type IDTokenIssuer interface {
 }
 
 type AccessTokenIssuer interface {
-	EncodeAccessToken(ctx context.Context, client *config.OAuthClientConfig, clientLike *oauth.ClientLike, grant *oauth.AccessGrant, userID string, token string) (string, error)
+	EncodeAccessToken(ctx context.Context, options oauth.EncodeAccessTokenOptions) (string, error)
 }
 
 type EventService interface {
@@ -161,13 +161,7 @@ type TokenHandlerTokenService interface {
 	ParseRefreshToken(ctx context.Context, token string) (authz *oauth.Authorization, offlineGrant *oauth.OfflineGrant, tokenHash string, err error)
 	IssueAccessGrant(
 		ctx context.Context,
-		client *config.OAuthClientConfig,
-		scopes []string,
-		authzID string,
-		userID string,
-		sessionID string,
-		sessionKind oauth.GrantSessionKind,
-		refreshTokenHash string,
+		options oauth.IssueAccessGrantOptions,
 		resp protocol.TokenResponse,
 	) error
 	IssueOfflineGrant(
@@ -203,6 +197,19 @@ type PreAuthenticatedURLTokenService interface {
 		sessionID string,
 		token string,
 	) (string, error)
+}
+
+type SimpleSessionLike struct {
+	ID               string
+	GrantSessionKind oauth.GrantSessionKind
+}
+
+func (s SimpleSessionLike) SessionID() string {
+	return s.ID
+}
+
+func (s SimpleSessionLike) SessionType() session.Type {
+	return s.GrantSessionKind.SessionType()
 }
 
 type TokenHandler struct {
@@ -687,7 +694,7 @@ func (h *TokenHandler) resolveIDTokenSession(ctx context.Context, idToken jwt.To
 		return nil, false, nil
 	}
 
-	typ, sessionID, ok := oidc.DecodeSID(sid)
+	typ, sessionID, ok := oauth.DecodeSID(sid)
 	if !ok {
 		return nil, false, nil
 	}
@@ -835,7 +842,7 @@ func (h *TokenHandler) handlePreAuthenticatedURLToken(
 	// Issue new id_token which associated to the new device_secret
 	newIDToken, err := h.IDTokenIssuer.IssueIDToken(ctx, oidc.IssueIDTokenOptions{
 		ClientID:           client.ClientID,
-		SID:                oidc.EncodeSID(offlineGrant),
+		SID:                oauth.EncodeSID(offlineGrant),
 		AuthenticationInfo: offlineGrant.GetAuthenticationInfo(),
 		// scopes are used for specifying which fields should be included in the ID token
 		// those fields may include personal identifiable information
@@ -971,8 +978,15 @@ func (h *TokenHandler) handleAnonymousRequest(
 		return nil, err
 	}
 
-	err = h.TokenService.IssueAccessGrant(ctx, client, scopes, authz.ID, authz.UserID,
-		offlineGrant.ID, oauth.GrantSessionKindOffline, tokenHash, resp)
+	issueAccessGrantOptions := oauth.IssueAccessGrantOptions{
+		ClientConfig:       client,
+		Scopes:             scopes,
+		AuthorizationID:    authz.ID,
+		AuthenticationInfo: offlineGrant.GetAuthenticationInfo(),
+		SessionLike:        offlineGrant,
+		RefreshTokenHash:   tokenHash,
+	}
+	err = h.TokenService.IssueAccessGrant(ctx, issueAccessGrantOptions, resp)
 	if err != nil {
 		err = h.translateAccessTokenError(err)
 		return nil, err
@@ -981,7 +995,7 @@ func (h *TokenHandler) handleAnonymousRequest(
 	if slice.ContainsString(scopes, "openid") {
 		idToken, err := h.IDTokenIssuer.IssueIDToken(ctx, oidc.IssueIDTokenOptions{
 			ClientID:           client.ClientID,
-			SID:                oidc.EncodeSID(offlineGrant),
+			SID:                oauth.EncodeSID(offlineGrant),
 			AuthenticationInfo: offlineGrant.GetAuthenticationInfo(),
 			ClientLike:         oauth.ClientClientLike(client, scopes),
 			DeviceSecretHash:   offlineGrant.DeviceSecretHash,
@@ -1228,8 +1242,15 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 		return nil, err
 	}
 
-	err = h.TokenService.IssueAccessGrant(ctx, client, scopes, authz.ID, authz.UserID,
-		offlineGrant.ID, oauth.GrantSessionKindOffline, tokenHash, resp)
+	issueAccessGrantOptions := oauth.IssueAccessGrantOptions{
+		ClientConfig:       client,
+		Scopes:             scopes,
+		AuthorizationID:    authz.ID,
+		AuthenticationInfo: offlineGrant.GetAuthenticationInfo(),
+		SessionLike:        offlineGrant,
+		RefreshTokenHash:   tokenHash,
+	}
+	err = h.TokenService.IssueAccessGrant(ctx, issueAccessGrantOptions, resp)
 	if err != nil {
 		err = h.translateAccessTokenError(err)
 		return nil, err
@@ -1238,7 +1259,7 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 	if slice.ContainsString(scopes, "openid") {
 		idToken, err := h.IDTokenIssuer.IssueIDToken(ctx, oidc.IssueIDTokenOptions{
 			ClientID:           client.ClientID,
-			SID:                oidc.EncodeSID(offlineGrant),
+			SID:                oauth.EncodeSID(offlineGrant),
 			AuthenticationInfo: offlineGrant.GetAuthenticationInfo(),
 			ClientLike:         oauth.ClientClientLike(client, scopes),
 			DeviceSecretHash:   offlineGrant.DeviceSecretHash,
@@ -1428,7 +1449,7 @@ func (h *TokenHandler) handleIDToken(
 	}
 	idToken, err := h.IDTokenIssuer.IssueIDToken(ctx, oidc.IssueIDTokenOptions{
 		ClientID:           client.ClientID,
-		SID:                oidc.EncodeSID(s),
+		SID:                oauth.EncodeSID(s),
 		AuthenticationInfo: s.GetAuthenticationInfo(),
 		// scopes are used for specifying which fields should be included in the ID token
 		// those fields may include personal identifiable information
@@ -1535,7 +1556,7 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 	// Reauth
 	// Update auth_time, app2app device key and device_secret of the offline grant if possible.
 	if sid := code.IDTokenHintSID; sid != "" {
-		if typ, sessionID, ok := oidc.DecodeSID(sid); ok && typ == session.TypeOfflineGrant {
+		if typ, sessionID, ok := oauth.DecodeSID(sid); ok && typ == session.TypeOfflineGrant {
 			offlineGrant, err := h.OfflineGrantService.GetOfflineGrant(ctx, sessionID)
 			if err == nil {
 				// Update auth_time
@@ -1627,7 +1648,7 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 			}
 		}
 
-		sid = oidc.EncodeSID(offlineGrant)
+		sid = oauth.EncodeSID(offlineGrant)
 		accessTokenSessionID = offlineGrant.ID
 		accessTokenSessionKind = oauth.GrantSessionKindOffline
 		refreshTokenHash = tokenHash
@@ -1651,7 +1672,7 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 		}
 	} else if code.IDTokenHintSID != "" {
 		sid = code.IDTokenHintSID
-		if typ, sessionID, ok := oidc.DecodeSID(sid); ok {
+		if typ, sessionID, ok := oauth.DecodeSID(sid); ok {
 			accessTokenSessionID = sessionID
 			switch typ {
 			case session.TypeOfflineGrant:
@@ -1681,7 +1702,7 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 		if err != nil {
 			return nil, err
 		}
-		sid = oidc.EncodeSID(offlineGrant)
+		sid = oauth.EncodeSID(offlineGrant)
 		accessTokenSessionID = offlineGrant.ID
 		accessTokenSessionKind = oauth.GrantSessionKindOffline
 	}
@@ -1690,15 +1711,20 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 		return nil, protocol.NewError("invalid_request", "cannot issue access token")
 	}
 
+	issueAccessGrantOptions := oauth.IssueAccessGrantOptions{
+		ClientConfig:       client,
+		Scopes:             code.AuthorizationRequest.Scope(),
+		AuthorizationID:    authz.ID,
+		AuthenticationInfo: info,
+		SessionLike: SimpleSessionLike{
+			ID:               accessTokenSessionID,
+			GrantSessionKind: accessTokenSessionKind,
+		},
+		RefreshTokenHash: refreshTokenHash,
+	}
 	err := h.TokenService.IssueAccessGrant(
 		ctx,
-		client,
-		code.AuthorizationRequest.Scope(),
-		authz.ID,
-		authz.UserID,
-		accessTokenSessionID,
-		accessTokenSessionKind,
-		refreshTokenHash,
+		issueAccessGrantOptions,
 		resp)
 	if err != nil {
 		err = h.translateAccessTokenError(err)
@@ -1754,7 +1780,7 @@ func (h *TokenHandler) issueTokensForRefreshToken(
 	if issueIDToken {
 		idToken, err := h.IDTokenIssuer.IssueIDToken(ctx, oidc.IssueIDTokenOptions{
 			ClientID:           client.ClientID,
-			SID:                oidc.EncodeSID(offlineGrantSession.OfflineGrant),
+			SID:                oauth.EncodeSID(offlineGrantSession.OfflineGrant),
 			AuthenticationInfo: offlineGrantSession.GetAuthenticationInfo(),
 			ClientLike:         oauth.ClientClientLike(client, authz.Scopes),
 			DeviceSecretHash:   offlineGrant.DeviceSecretHash,
@@ -1765,9 +1791,15 @@ func (h *TokenHandler) issueTokensForRefreshToken(
 		resp.IDToken(idToken)
 	}
 
-	err = h.TokenService.IssueAccessGrant(ctx, client, offlineGrantSession.Scopes,
-		authz.ID, authz.UserID, offlineGrantSession.SessionID(),
-		oauth.GrantSessionKindOffline, offlineGrantSession.TokenHash, resp)
+	issueAccessGrantOptions := oauth.IssueAccessGrantOptions{
+		ClientConfig:       client,
+		Scopes:             offlineGrantSession.Scopes,
+		AuthorizationID:    authz.ID,
+		AuthenticationInfo: offlineGrantSession.GetAuthenticationInfo(),
+		SessionLike:        offlineGrantSession,
+		RefreshTokenHash:   offlineGrantSession.TokenHash,
+	}
+	err = h.TokenService.IssueAccessGrant(ctx, issueAccessGrantOptions, resp)
 	if err != nil {
 		err = h.translateAccessTokenError(err)
 		return nil, err

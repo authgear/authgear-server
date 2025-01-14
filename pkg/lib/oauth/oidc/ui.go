@@ -180,7 +180,7 @@ func (r *UIInfoResolver) ResolveForAuthorizationEndpoint(
 
 	var idTokenHintSID string
 	if sidSession != nil {
-		idTokenHintSID = EncodeSID(sidSession)
+		idTokenHintSID = oauth.EncodeSID(sidSession)
 	}
 
 	var userIDHint string

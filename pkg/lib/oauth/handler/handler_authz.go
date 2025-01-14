@@ -536,7 +536,7 @@ func (h *AuthorizationHandler) doHandlePreAuthenticatedURL(
 	if sid, ok = sidInt.(string); !ok {
 		return nil, protocol.NewError("invalid_request", "sid is not a string in id_token_hint")
 	}
-	_, sessionID, ok := oidc.DecodeSID(sid)
+	_, sessionID, ok := oauth.DecodeSID(sid)
 	if !ok {
 		return nil, protocol.NewError("invalid_request", "invalid sid format id_token_hint")
 	}

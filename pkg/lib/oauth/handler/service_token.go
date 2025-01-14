@@ -170,17 +170,11 @@ func (s *TokenService) IssueRefreshTokenForOfflineGrant(
 
 func (s *TokenService) IssueAccessGrant(
 	ctx context.Context,
-	client *config.OAuthClientConfig,
-	scopes []string,
-	authzID string,
-	userID string,
-	sessionID string,
-	sessionKind oauth.GrantSessionKind,
-	refreshTokenHash string,
+	options oauth.IssueAccessGrantOptions,
 	resp protocol.TokenResponse,
 ) error {
 	result, err := s.AccessGrantService.IssueAccessGrant(
-		ctx, client, scopes, authzID, userID, sessionID, sessionKind, refreshTokenHash,
+		ctx, options,
 	)
 	if err != nil {
 		return err

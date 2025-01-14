@@ -10,7 +10,8 @@ import React, {
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import { Dialog, DialogFooter, Spinner, SpinnerSize } from "@fluentui/react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios, { AxiosProgressEvent } from "axios";
+import axios, { AxiosProgressEvent, RawAxiosRequestHeaders } from "axios";
+import authgear from "@authgear/web";
 import PrimaryButton from "../../PrimaryButton";
 import DefaultButton from "../../DefaultButton";
 import { FormProvider } from "../../form";
@@ -258,8 +259,16 @@ function EditPictureScreenContent(props: EditPictureScreenContentProps) {
         percentComplete: undefined,
       });
 
+      await authgear.refreshAccessTokenIfNeeded();
+
+      const headers: RawAxiosRequestHeaders = {};
+      if (authgear.accessToken != null) {
+        headers.Authorization = `Bearer ${authgear.accessToken}`;
+      }
+
       const resp = await axios(`/api/apps/${appID}/_api/admin/images/upload`, {
         method: "GET",
+        headers,
         onUploadProgress: onProgress,
         onDownloadProgress: onProgress,
       });
@@ -269,6 +278,7 @@ function EditPictureScreenContent(props: EditPictureScreenContentProps) {
       formData.append("file", blob);
       const uploadResp = await axios(upload_url, {
         method: "POST",
+        headers,
         data: formData,
         onUploadProgress: onProgress,
         onDownloadProgress: onProgress,

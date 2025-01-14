@@ -17,7 +17,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
-	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlslosession"
 	"github.com/authgear/authgear-server/pkg/lib/session"
@@ -293,7 +292,7 @@ func (s *Service) IssueLoginSuccessResponse(
 		return nil, samlprotocol.ErrServiceProviderNotFound
 	}
 	authenticatedUserId := authInfo.UserID
-	sid := oidc.EncodeSIDByRawValues(
+	sid := oauth.EncodeSIDByRawValues(
 		session.Type(authInfo.AuthenticatedBySessionType),
 		authInfo.AuthenticatedBySessionID,
 	)

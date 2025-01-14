@@ -486,7 +486,7 @@ func TestAuthorizationHandler(t *testing.T) {
 				testOfflineGrant := &oauth.OfflineGrant{
 					ID: testOfflineGrantID,
 				}
-				testSID := oidc.EncodeSID(testOfflineGrant)
+				testSID := oauth.EncodeSID(testOfflineGrant)
 
 				// nolint:gosec
 				testPreAuthenticatedURLToken := "TEST_PRE_AUTHENTICATED_URL_TOKEN"

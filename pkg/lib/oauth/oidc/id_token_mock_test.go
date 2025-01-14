@@ -11,7 +11,6 @@ import (
 
 	model "github.com/authgear/authgear-server/pkg/api/model"
 	oauth "github.com/authgear/authgear-server/pkg/lib/oauth"
-	session "github.com/authgear/authgear-server/pkg/lib/session"
 	idpsession "github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	accesscontrol "github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	gomock "github.com/golang/mock/gomock"
@@ -129,57 +128,6 @@ func (m *MockBaseURLProvider) Origin() *url.URL {
 func (mr *MockBaseURLProviderMockRecorder) Origin() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Origin", reflect.TypeOf((*MockBaseURLProvider)(nil).Origin))
-}
-
-// MockSessionLike is a mock of SessionLike interface.
-type MockSessionLike struct {
-	ctrl     *gomock.Controller
-	recorder *MockSessionLikeMockRecorder
-}
-
-// MockSessionLikeMockRecorder is the mock recorder for MockSessionLike.
-type MockSessionLikeMockRecorder struct {
-	mock *MockSessionLike
-}
-
-// NewMockSessionLike creates a new mock instance.
-func NewMockSessionLike(ctrl *gomock.Controller) *MockSessionLike {
-	mock := &MockSessionLike{ctrl: ctrl}
-	mock.recorder = &MockSessionLikeMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockSessionLike) EXPECT() *MockSessionLikeMockRecorder {
-	return m.recorder
-}
-
-// SessionID mocks base method.
-func (m *MockSessionLike) SessionID() string {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SessionID")
-	ret0, _ := ret[0].(string)
-	return ret0
-}
-
-// SessionID indicates an expected call of SessionID.
-func (mr *MockSessionLikeMockRecorder) SessionID() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SessionID", reflect.TypeOf((*MockSessionLike)(nil).SessionID))
-}
-
-// SessionType mocks base method.
-func (m *MockSessionLike) SessionType() session.Type {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SessionType")
-	ret0, _ := ret[0].(session.Type)
-	return ret0
-}
-
-// SessionType indicates an expected call of SessionType.
-func (mr *MockSessionLikeMockRecorder) SessionType() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SessionType", reflect.TypeOf((*MockSessionLike)(nil).SessionType))
 }
 
 // MockIDTokenHintResolverIssuer is a mock of IDTokenHintResolverIssuer interface.
