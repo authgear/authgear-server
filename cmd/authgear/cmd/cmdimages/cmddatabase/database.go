@@ -1,6 +1,7 @@
 package cmddatabase
 
 import (
+	"embed"
 	"os"
 	"strings"
 
@@ -32,7 +33,15 @@ func init() {
 	cmdimages.CmdImages.AddCommand(cmdImagesDatabase)
 }
 
-var ImagesMigrationSet = sqlmigrate.NewMigrateSet("_images_migrations", "migrations/images")
+//go:embed migrations/images
+var imagesMigrationFS embed.FS
+
+var ImagesMigrationSet = sqlmigrate.NewMigrateSet(sqlmigrate.NewMigrationSetOptions{
+	TableName:                            "_images_migrations",
+	EmbedFS:                              imagesMigrationFS,
+	EmbedFSRoot:                          "migrations/images",
+	OutputPathRelativeToWorkingDirectory: "./cmd/authgear/cmd/cmdimages/cmddatabase/migrations/images",
+})
 
 var cmdImagesDatabase = &cobra.Command{
 	Use:   "database migrate",

@@ -2,6 +2,7 @@ package sqlmigrate
 
 import (
 	"database/sql"
+	"embed"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -13,22 +14,43 @@ import (
 	"github.com/rubenv/sql-migrate"
 )
 
-type MigrationSet struct {
-	MigrationSet migrate.MigrationSet
-	Dir          string
-}
-
 type ConnectionOptions struct {
 	DatabaseURL    string
 	DatabaseSchema string
 }
 
-func NewMigrateSet(tableName string, dir string) MigrationSet {
+type MigrationSet struct {
+	MigrationSet                         migrate.MigrationSet
+	EmbedFS                              embed.FS
+	EmbedFSRoot                          string
+	OutputPathRelativeToWorkingDirectory string
+}
+
+type NewMigrationSetOptions struct {
+	// TableName is the name of the table that stores migration status.
+	TableName string
+
+	// EmbedFS is a embed.FS that stores migration files.
+	// You also pass in a correct EmbedFSRoot to tell where to find the migrations.
+	// Suppose you write //go:embed migrations/authgear
+	// then EmbedFSRoot MUST BE "migrations/authgear" (no leading slash nor trailing slash)
+	EmbedFS     embed.FS
+	EmbedFSRoot string
+
+	// OutputPathRelativeToWorkingDirectory is for the create command.
+	// The create command create new file in the actual filesystem, so
+	// it is relative to workdir.
+	OutputPathRelativeToWorkingDirectory string
+}
+
+func NewMigrateSet(options NewMigrationSetOptions) MigrationSet {
 	return MigrationSet{
 		MigrationSet: migrate.MigrationSet{
-			TableName: tableName,
+			TableName: options.TableName,
 		},
-		Dir: dir,
+		EmbedFS:                              options.EmbedFS,
+		EmbedFSRoot:                          options.EmbedFSRoot,
+		OutputPathRelativeToWorkingDirectory: options.OutputPathRelativeToWorkingDirectory,
 	}
 }
 
@@ -39,12 +61,12 @@ func (s MigrationSet) Create(name string) (fileName string, err error) {
 `
 	fileName = fmt.Sprintf("%s-%s.sql", time.Now().Format("20060102150405"), name)
 
-	err = os.MkdirAll(s.Dir, os.ModePerm)
+	err = os.MkdirAll(s.OutputPathRelativeToWorkingDirectory, os.ModePerm)
 	if err != nil {
 		return
 	}
 
-	err = ioutil.WriteFile(path.Join(s.Dir, fileName), []byte(migrationTemplate), 0o600)
+	err = ioutil.WriteFile(path.Join(s.OutputPathRelativeToWorkingDirectory, fileName), []byte(migrationTemplate), 0o600)
 	if err != nil {
 		return
 	}
@@ -131,8 +153,9 @@ func (s MigrationSet) openDB(opts ConnectionOptions) (db *sql.DB, err error) {
 
 func (s MigrationSet) makeSource(opts ConnectionOptions) *TemplateMigrationSource {
 	return &TemplateMigrationSource{
-		OriginSource: &migrate.FileMigrationSource{
-			Dir: s.Dir,
+		OriginSource: &migrate.EmbedFileSystemMigrationSource{
+			FileSystem: s.EmbedFS,
+			Root:       s.EmbedFSRoot,
 		},
 		Data: map[string]interface{}{
 			"SCHEMA": opts.DatabaseSchema,

@@ -1,6 +1,7 @@
 package cmdaudit
 
 import (
+	"embed"
 	"os"
 	"strings"
 
@@ -40,7 +41,15 @@ func init() {
 	authgearcmd.Root.AddCommand(cmdAudit)
 }
 
-var AuditMigrationSet = sqlmigrate.NewMigrateSet("_audit_migration", "migrations/audit")
+//go:embed migrations/audit
+var auditMigrationFS embed.FS
+
+var AuditMigrationSet = sqlmigrate.NewMigrateSet(sqlmigrate.NewMigrationSetOptions{
+	TableName:                            "_audit_migration",
+	EmbedFS:                              auditMigrationFS,
+	EmbedFSRoot:                          "migrations/audit",
+	OutputPathRelativeToWorkingDirectory: "./cmd/authgear/cmd/cmdaudit/migrations/audit",
+})
 
 var cmdAudit = &cobra.Command{
 	Use:   "audit database",

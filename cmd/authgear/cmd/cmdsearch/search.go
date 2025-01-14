@@ -1,6 +1,7 @@
 package cmdsearch
 
 import (
+	"embed"
 	"os"
 	"strings"
 
@@ -34,7 +35,15 @@ func init() {
 	authgearcmd.Root.AddCommand(cmdSearch)
 }
 
-var SearchMigrationSet = sqlmigrate.NewMigrateSet("_search_migration", "migrations/search")
+//go:embed migrations/search
+var searchMigrationFS embed.FS
+
+var SearchMigrationSet = sqlmigrate.NewMigrateSet(sqlmigrate.NewMigrationSetOptions{
+	TableName:                            "_search_migration",
+	EmbedFS:                              searchMigrationFS,
+	EmbedFSRoot:                          "migrations/search",
+	OutputPathRelativeToWorkingDirectory: "./cmd/authgear/cmd/cmdsearch/migrations/search",
+})
 
 var cmdSearch = &cobra.Command{
 	Use:   "search",

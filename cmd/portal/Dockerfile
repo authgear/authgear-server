@@ -71,7 +71,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     tzdata \
     && apt-get upgrade -y && rm -rf /var/lib/apt/lists/*
 RUN update-ca-certificates
-COPY ./migrations ./migrations
 COPY --from=stage1 /src/authgear-portal /usr/local/bin/
 COPY --from=stage1 /src/resources ./resources/
 COPY ./docker-entrypoint.sh /usr/local/bin/
