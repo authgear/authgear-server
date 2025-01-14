@@ -173,6 +173,7 @@
   "ScreenNav.audit-log": "Audit Log",
   "ScreenNav.admin-api": "Admin API",
   "ScreenNav.smtp": "Custom Email Provider",
+  "ScreenNav.sms-gateway": "Custom SMS Gateway",
   "ScreenNav.account-deletion": "Account Deletion",
   "ScreenNav.account-anonymization": "Account Anonymization",
   "ScreenNav.session": "Cookie Lifetime",

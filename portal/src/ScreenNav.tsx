@@ -346,6 +346,11 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
           },
           {
             type: "link" as const,
+            textKey: "ScreenNav.sms-gateway",
+            url: `/project/${appID}/advanced/sms-gateway`,
+          },
+          {
+            type: "link" as const,
             textKey: "ScreenNav.endpoint-direct-access",
             url: `/project/${appID}/advanced/endpoint-direct-access`,
           },

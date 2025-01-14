@@ -783,7 +783,7 @@ const AppRoot: React.VFC = function AppRoot() {
               }
             />
             <Route
-              path="sms-provider"
+              path="sms-gateway"
               element={
                 <Suspense fallback={<ShowLoading />}>
                   <SMSProviderConfigurationScreen />
