@@ -1,7 +1,22 @@
 # syntax=docker/dockerfile:1
 
+# Stage 0: Build the static files
+FROM node:20.9.0-bookworm AS stage0
+ARG GIT_HASH
+WORKDIR /usr/src/app
+COPY ./scripts/npm/package.json ./scripts/npm/package-lock.json ./scripts/npm/
+RUN cd ./scripts/npm && npm ci
+COPY ./authui/package.json ./authui/package-lock.json ./authui/
+# See /authui/README.md for the reason why we need to copy tarballs.
+COPY ./authui/tarballs/. ./authui/tarballs/.
+# Copy the vite plugin
+COPY ./authui/packages/. ./authui/packages/.
+RUN cd ./authui && npm ci
+COPY . .
+RUN make authui GIT_HASH=$GIT_HASH
+
 # Stage 1: Build the Go binary
-FROM quay.io/theauthgear/golang:1.23.4-noble as stage1
+FROM quay.io/theauthgear/golang:1.23.4-noble AS stage1
 
 # Install build time C dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -31,6 +46,8 @@ COPY ./custombuild/go.mod ./custombuild/go.sum ./
 RUN --mount=type=ssh go mod download
 WORKDIR /src
 COPY . .
+# Let //go:embed to embed the built static files
+COPY --from=stage0 /usr/src/app/resources/authgear/ ./resources/authgear/
 ARG GIT_HASH
 RUN make -C custombuild build BIN_NAME=authgear TARGET=authgearx GIT_HASH=$GIT_HASH
 
@@ -38,22 +55,7 @@ RUN make -C custombuild build BIN_NAME=authgear TARGET=authgearx GIT_HASH=$GIT_H
 # But we have a transitive dependency on icu4c so this is no longer the case.
 # RUN readelf -d ./authgear | grep 'There is no dynamic section in this file'
 
-# Stage 2: Build the static files
-FROM node:20.9.0-bookworm as stage2
-ARG GIT_HASH
-WORKDIR /usr/src/app
-COPY ./scripts/npm/package.json ./scripts/npm/package-lock.json ./scripts/npm/
-RUN cd ./scripts/npm && npm ci
-COPY ./authui/package.json ./authui/package-lock.json ./authui/
-# See /authui/README.md for the reason why we need to copy tarballs.
-COPY ./authui/tarballs/. ./authui/tarballs/.
-# Copy the vite plugin
-COPY ./authui/packages/. ./authui/packages/.
-RUN cd ./authui && npm ci
-COPY . .
-RUN make authui GIT_HASH=$GIT_HASH
-
-# Stage 3: Prepare the actual fs we use to run the program
+# Final Stage: Prepare the actual fs we use to run the program
 FROM ubuntu:noble
 ARG GIT_HASH
 WORKDIR /app
@@ -73,8 +75,7 @@ RUN update-ca-certificates
 COPY ./GeoLite2-Country.mmdb ./GeoLite2-Country.mmdb
 COPY ./migrations ./migrations
 COPY --from=stage1 /src/custombuild/authgear /usr/local/bin/
-COPY ./resources/ ./resources/
-COPY --from=stage2 /usr/src/app/resources/authgear/ ./resources/authgear/
+COPY --from=stage1 /src/resources ./resources/
 COPY ./docker-entrypoint.sh /usr/local/bin/
 ENTRYPOINT ["docker-entrypoint.sh"]
 # update-ca-certificates requires root to run.
