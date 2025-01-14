@@ -1,11 +1,14 @@
 import { useLocation, useParams } from "react-router-dom";
 import { AppSecretKey } from "./globalTypes.generated";
-import React, { useState } from "react";
+import React, { useCallback, useContext, useState } from "react";
 import { useLocationEffect } from "../../hook/useLocationEffect";
 import { useAppSecretVisitToken } from "./mutations/generateAppSecretVisitTokenMutation";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
-import { useAppSecretConfigForm } from "../../hook/useAppSecretConfigForm";
+import {
+  AppSecretConfigFormModel,
+  useAppSecretConfigForm,
+} from "../../hook/useAppSecretConfigForm";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import FormContainer from "../../FormContainer";
 import {
@@ -16,6 +19,16 @@ import {
   getHookKind,
 } from "../../types";
 import { produce } from "immer";
+import {
+  FormattedMessage,
+  Context as MessageContext,
+} from "@oursky/react-messageformat";
+import ScreenContent from "../../ScreenContent";
+import ScreenTitle from "../../ScreenTitle";
+import styles from "./SMSProviderConfigurationScreen.module.css";
+import Widget from "../../Widget";
+import ScreenDescription from "../../ScreenDescription";
+import Toggle from "../../Toggle";
 
 const SECRETS = [AppSecretKey.SmsProviderSecrets];
 
@@ -40,6 +53,7 @@ enum SMSProviderType {
 interface FormState {
   enabled: boolean;
   providerType: SMSProviderType;
+  isSecretMasked: boolean;
 
   // twilio
   twilioSID: string;
@@ -125,6 +139,9 @@ function constructFormState(
   return {
     enabled,
     providerType,
+    isSecretMasked:
+      secrets.smsProviderSecrets?.twilioCredentials != null &&
+      secrets.smsProviderSecrets.twilioCredentials.authToken == null,
 
     twilioSID,
     twilioAuthToken,
@@ -346,8 +363,52 @@ function SMSProviderConfigurationScreen1({
 
   return (
     <FormContainer form={form}>
-      {/* FIXME */}
-      {/* <SMSProviderConfigurationContent form={form} /> */}
+      <SMSProviderConfigurationContent form={form} />
     </FormContainer>
+  );
+}
+
+function SMSProviderConfigurationContent(props: {
+  form: AppSecretConfigFormModel<FormState>;
+}) {
+  const { form } = props;
+  const { state, setState } = form;
+  const { renderToString } = useContext(MessageContext);
+
+  const onChangeEnabled = useCallback(
+    (_event, checked?: boolean) => {
+      if (checked != null) {
+        setState((state) => {
+          return {
+            ...state,
+            enabled: checked,
+          };
+        });
+      }
+    },
+    [setState]
+  );
+
+  return (
+    <ScreenContent>
+      <ScreenTitle className={styles.widget}>
+        <FormattedMessage id="SMSProviderConfigurationScreen.title" />
+      </ScreenTitle>
+      <ScreenDescription className={styles.widget}>
+        <FormattedMessage id="SMSProviderConfigurationScreen.description" />
+      </ScreenDescription>
+
+      <Widget className={styles.widget} contentLayout="grid">
+        <Toggle
+          className={styles.columnFull}
+          checked={state.enabled}
+          onChange={onChangeEnabled}
+          label={renderToString("SMSProviderConfigurationScreen.enable.label")}
+          inlineLabel={true}
+          disabled={form.state.isSecretMasked}
+        />
+        {state.enabled ? <></> : null}
+      </Widget>
+    </ScreenContent>
   );
 }

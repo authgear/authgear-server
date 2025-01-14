@@ -1,0 +1,28 @@
+.widget {
+  grid-column: 1 / span 8;
+
+  @apply tablet:col-span-full;
+}
+
+.columnFull {
+  grid-column: 1 / span 8;
+
+  @apply tablet:col-span-full;
+}
+
+.columnLeft {
+  grid-column: 1 / span 4;
+  @apply tablet:col-span-full;
+}
+
+.columnRight {
+  grid-column: 5 / span 4;
+
+  @apply tablet:col-span-full;
+}
+
+.columnSmall {
+  grid-column: 1 / span 2;
+
+  @apply tablet:col-span-full;
+}
