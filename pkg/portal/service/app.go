@@ -539,7 +539,7 @@ func (s *AppService) getAllAppIDsExcept(ctx context.Context, exceptAppID string)
 	return allAppIDs, nil
 }
 
-func (s *AppService) generateResources(appHost string, appID string, featureConfig *config.FeatureConfig) (map[string][]byte, error) {
+func (s *AppService) generateResources(appHost string, appID string) (map[string][]byte, error) {
 	appResources := make(map[string][]byte)
 
 	// Generate app config
@@ -563,15 +563,6 @@ func (s *AppService) generateResources(appHost string, appID string, featureConf
 		return nil, err
 	}
 	appResources[configsource.AuthgearSecretYAML] = secretConfigYAML
-
-	// Assign feature config if any
-	if featureConfig != nil {
-		featureConfigYAML, err := yaml.Marshal(featureConfig)
-		if err != nil {
-			return nil, err
-		}
-		appResources[configsource.AuthgearFeatureYAML] = featureConfigYAML
-	}
 
 	// Generate translation json with default app name
 	defaultTranslationJSONPath := path.Join(
@@ -602,13 +593,11 @@ func (s *AppService) generateConfig(ctx context.Context, appHost string, appID s
 		return
 	}
 
-	var featureConfig *config.FeatureConfig
 	planName := ""
 	if appPlan != nil {
-		featureConfig = appPlan.RawFeatureConfig
 		planName = appPlan.Name
 	}
-	files, err := s.generateResources(appHost, appID, featureConfig)
+	files, err := s.generateResources(appHost, appID)
 	if err != nil {
 		return
 	}
