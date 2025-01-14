@@ -23,9 +23,11 @@ import Widget from "../../Widget";
 import {
   BlockingHookHandlerConfig,
   HookFeatureConfig,
+  HookKind,
   NonBlockingHookHandlerConfig,
   PortalAPIAppConfig,
   PortalAPISecretConfig,
+  getHookKind,
 } from "../../types";
 import {
   AppSecretConfigFormModel,
@@ -113,8 +115,6 @@ export default async function(e: ${typeName}): Promise<HookResponse> {
 `;
 }
 
-type HookKind = "webhook" | "denohook";
-
 type EventKind = "blocking" | "nonblocking";
 
 interface BlockingEventHandler {
@@ -139,19 +139,12 @@ interface ConfigFormState {
   secret: string | null;
 }
 
-function getKind(url: string): HookKind {
-  if (url.startsWith("authgeardeno:")) {
-    return "denohook";
-  }
-  return "webhook";
-}
-
 function checkDirty(diff: ResourcesDiffResult | null, url: string): boolean {
   if (diff == null) {
     return false;
   }
 
-  const kind = getKind(url);
+  const kind = getHookKind(url);
   if (kind !== "denohook") {
     return false;
   }
@@ -272,12 +265,12 @@ function makeSpecifier(url: string): ResourceSpecifier {
 function makeSpecifiersFromState(state: ConfigFormState): ResourceSpecifier[] {
   const specifiers = [];
   for (const h of state.blocking_handlers) {
-    if (getKind(h.url) === "denohook") {
+    if (getHookKind(h.url) === "denohook") {
       specifiers.push(makeSpecifier(h.url));
     }
   }
   for (const h of state.non_blocking_handlers) {
-    if (getKind(h.url) === "denohook") {
+    if (getHookKind(h.url) === "denohook") {
       specifiers.push(makeSpecifier(h.url));
     }
   }
@@ -287,7 +280,7 @@ function makeSpecifiersFromState(state: ConfigFormState): ResourceSpecifier[] {
 function addMissingResources(state: FormState) {
   for (let i = 0; i < state.blocking_handlers.length; ++i) {
     const h = state.blocking_handlers[i];
-    if (getKind(h.url) === "denohook") {
+    if (getHookKind(h.url) === "denohook") {
       const path = getPathFromURL(h.url);
       const specifier = makeSpecifier(h.url);
       const r = state.resources.find((r) => r.path === path);
@@ -302,7 +295,7 @@ function addMissingResources(state: FormState) {
   }
   for (let i = 0; i < state.non_blocking_handlers.length; ++i) {
     const h = state.non_blocking_handlers[i];
-    if (getKind(h.url) === "denohook") {
+    if (getHookKind(h.url) === "denohook") {
       const path = getPathFromURL(h.url);
       const specifier = makeSpecifier(h.url);
       const r = state.resources.find((r) => r.path === path);
@@ -1117,7 +1110,7 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
       for (const c of cfgs) {
         out.push({
           ...c,
-          kind: getKind(c.url),
+          kind: getHookKind(c.url),
           isDirty: checkDirty(diff, c.url),
         });
       }
@@ -1131,7 +1124,7 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
       for (const c of cfgs) {
         out.push({
           ...c,
-          kind: getKind(c.url),
+          kind: getHookKind(c.url),
           isDirty: checkDirty(diff, c.url),
         });
       }

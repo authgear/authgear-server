@@ -133,6 +133,9 @@ const SubscriptionScreen = lazy(
 const SMTPConfigurationScreen = lazy(
   async () => import("./graphql/portal/SMTPConfigurationScreen")
 );
+const SMSProviderConfigurationScreen = lazy(
+  async () => import("./graphql/portal/SMSProviderConfigurationScreen")
+);
 const StandardAttributesConfigurationScreen = lazy(
   async () => import("./graphql/portal/StandardAttributesConfigurationScreen")
 );
@@ -776,6 +779,14 @@ const AppRoot: React.VFC = function AppRoot() {
               element={
                 <Suspense fallback={<ShowLoading />}>
                   <SMTPConfigurationScreen />
+                </Suspense>
+              }
+            />
+            <Route
+              path="sms-provider"
+              element={
+                <Suspense fallback={<ShowLoading />}>
+                  <SMSProviderConfigurationScreen />
                 </Suspense>
               }
             />

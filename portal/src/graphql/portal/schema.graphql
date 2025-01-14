@@ -170,6 +170,9 @@ enum AppSecretKey {
   SAML_SP_SIGNING_SECRETS
 
   """"""
+  SMS_PROVIDER_SECRETS
+
+  """"""
   SMTP_SECRET
 
   """"""

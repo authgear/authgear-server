@@ -138,6 +138,7 @@ export enum AppSecretKey {
   OauthSsoProviderClientSecrets = 'OAUTH_SSO_PROVIDER_CLIENT_SECRETS',
   SamlIdpSigningSecrets = 'SAML_IDP_SIGNING_SECRETS',
   SamlSpSigningSecrets = 'SAML_SP_SIGNING_SECRETS',
+  SmsProviderSecrets = 'SMS_PROVIDER_SECRETS',
   SmtpSecret = 'SMTP_SECRET',
   WebhookSecret = 'WEBHOOK_SECRET'
 }

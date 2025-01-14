@@ -179,7 +179,7 @@ var smsProviderTwilioCredentials = graphql.NewObject(graphql.ObjectConfig{
 			Type: graphql.NewNonNull(graphql.String),
 		},
 		"authToken": &graphql.Field{
-			Type: graphql.NewNonNull(graphql.String),
+			Type: graphql.String,
 		},
 		"messageServiceSid": &graphql.Field{
 			Type: graphql.NewNonNull(graphql.String),
@@ -256,7 +256,7 @@ var secretConfig = graphql.NewObject(graphql.ObjectConfig{
 			Type: graphql.NewList(graphql.NewNonNull(samlSpSigningSecret)),
 		},
 		string(AppSecretKeySMSProviderSecrets): &graphql.Field{
-			Type: graphql.NewList(graphql.NewNonNull(smsProviderSecret)),
+			Type: graphql.NewNonNull(smsProviderSecret),
 		},
 	},
 })
@@ -287,6 +287,9 @@ var appSecretKey = graphql.NewEnum(graphql.EnumConfig{
 		},
 		"SAML_SP_SIGNING_SECRETS": &graphql.EnumValueConfig{
 			Value: AppSecretKeySAMLSpSigningSecrets,
+		},
+		"SMS_PROVIDER_SECRETS": &graphql.EnumValueConfig{
+			Value: AppSecretKeySMSProviderSecrets,
 		},
 	},
 })
