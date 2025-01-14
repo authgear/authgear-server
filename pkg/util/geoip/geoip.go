@@ -1,15 +1,20 @@
 package geoip
 
 import (
+	_ "embed"
 	"net"
 
 	"github.com/oschwald/geoip2-golang"
 )
 
-var DefaultDatabase *Database
+//go:embed GeoLite2-Country.mmdb
+var GeoLite2_Country_mmdb []byte
+
+// reader has a Close() method, but it is intentionally that it is never closed.
+var reader *geoip2.Reader
 
 func init() {
-	DefaultDatabase, _ = Open("GeoLite2-Country.mmdb")
+	reader = open()
 }
 
 type Info struct {
@@ -17,33 +22,20 @@ type Info struct {
 	EnglishCountryName string
 }
 
-type Database struct {
-	reader *geoip2.Reader
-}
-
-func Open(path string) (*Database, error) {
-	reader, err := geoip2.Open(path)
+func open() *geoip2.Reader {
+	reader, err := geoip2.FromBytes(GeoLite2_Country_mmdb)
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
-	return &Database{
-		reader: reader,
-	}, nil
+	return reader
 }
 
-func (d *Database) Close() error {
-	return d.reader.Close()
-}
-
-func (d *Database) IPString(ipString string) (info *Info, ok bool) {
-	if d == nil {
-		return
-	}
+func IPString(ipString string) (info *Info, ok bool) {
 	ip := net.ParseIP(ipString)
 	if ip == nil {
 		return
 	}
-	country, err := d.reader.Country(ip)
+	country, err := reader.Country(ip)
 	if err != nil {
 		return
 	}

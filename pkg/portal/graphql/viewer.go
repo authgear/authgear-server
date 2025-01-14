@@ -23,7 +23,7 @@ var viewerSubresolver = func(ctx context.Context, gqlCtx *Context, id string) (i
 	user := userIface.(*model.User)
 
 	requestIP := httputil.GetIP(gqlCtx.Request, bool(gqlCtx.TrustProxy))
-	geoipInfo, ok := geoip.DefaultDatabase.IPString(requestIP)
+	geoipInfo, ok := geoip.IPString(requestIP)
 	if ok {
 		user.GeoIPCountryCode = geoipInfo.CountryCode
 	}

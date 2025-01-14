@@ -74,7 +74,7 @@ func (s *IDPSession) ToAPIModel() *model.Session {
 		UserAgent:   ua.Raw,
 	}
 
-	ipInfo, ok := geoip.DefaultDatabase.IPString(s.AccessInfo.LastAccess.RemoteIP)
+	ipInfo, ok := geoip.IPString(s.AccessInfo.LastAccess.RemoteIP)
 	if ok {
 		apiModel.LastAccessedByIPCountryCode = ipInfo.CountryCode
 		apiModel.LastAccessedByIPEnglishCountryName = ipInfo.EnglishCountryName
