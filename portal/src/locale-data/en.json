@@ -1577,6 +1577,9 @@
   "SMSProviderConfigurationScreen.provider.twilio": "Twilio",
   "SMSProviderConfigurationScreen.provider.webhook": "Webhook",
   "SMSProviderConfigurationScreen.provider.deno": "Custom JS/TS",
+  "SMSProviderConfigurationScreen.form.twilio.twilioSID": "Application SID",
+  "SMSProviderConfigurationScreen.form.twilio.twilioAuthToken": "AuthToken",
+  "SMSProviderConfigurationScreen.form.twilio.twilioMessagingServiceSID": "Messaging Service SID",
 
   "StandardAttributesConfigurationScreen.title": "Standard Attributes",
 

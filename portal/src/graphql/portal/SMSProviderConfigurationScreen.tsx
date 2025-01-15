@@ -1,6 +1,7 @@
+import cn from "classnames";
 import { useLocation, useParams } from "react-router-dom";
 import { AppSecretKey } from "./globalTypes.generated";
-import React, { useCallback, useContext, useState } from "react";
+import React, { useCallback, useContext, useMemo, useState } from "react";
 import { useLocationEffect } from "../../hook/useLocationEffect";
 import { useAppSecretVisitToken } from "./mutations/generateAppSecretVisitTokenMutation";
 import ShowError from "../../ShowError";
@@ -34,6 +35,7 @@ import { ProviderCard } from "../../components/common/ProviderCard";
 import logoTwilio from "../../images/twilio_logo.svg";
 import logoWebhook from "../../images/webhook_logo.svg";
 import logoDeno from "../../images/deno_logo.svg";
+import FormTextField from "../../FormTextField";
 
 const SECRETS = [AppSecretKey.SmsProviderSecrets];
 
@@ -117,7 +119,9 @@ function constructFormState(
   const twilioSID =
     secrets.smsProviderSecrets?.twilioCredentials?.accountSid ?? "";
   const twilioAuthToken =
-    secrets.smsProviderSecrets?.twilioCredentials?.authToken ?? null;
+    secrets.smsProviderSecrets?.twilioCredentials != null
+      ? secrets.smsProviderSecrets.twilioCredentials.authToken ?? null
+      : "";
   const twilioMessagingServiceSID =
     secrets.smsProviderSecrets?.twilioCredentials?.messageServiceSid ?? "";
 
@@ -415,8 +419,9 @@ function SMSProviderConfigurationContent(props: {
       </Widget>
 
       {state.enabled ? (
-        <Widget className={styles.widget}>
+        <Widget className={cn(styles.widget, "flex flex-col gap-y-4")}>
           <ProviderSection form={form} />
+          <FormSection form={form} />
         </Widget>
       ) : null}
     </ScreenContent>
@@ -473,6 +478,82 @@ function ProviderSection({
           <FormattedMessage id="SMSProviderConfigurationScreen.provider.deno" />
         </ProviderCard>
       </div>
+    </div>
+  );
+}
+
+function FormSection({ form }: { form: AppSecretConfigFormModel<FormState> }) {
+  switch (form.state.providerType) {
+    case SMSProviderType.Twilio:
+      return <TwilioForm form={form} />;
+    case SMSProviderType.Webhook:
+      return <></>;
+    case SMSProviderType.Deno:
+      return <></>;
+  }
+}
+
+function TwilioForm({ form }: { form: AppSecretConfigFormModel<FormState> }) {
+  const { renderToString } = useContext(MessageContext);
+
+  const onChangeCallbacks = useMemo(() => {
+    const callbackFactory = (
+      key: "twilioSID" | "twilioAuthToken" | "twilioMessagingServiceSID"
+    ) => {
+      return (
+        event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>
+      ) => {
+        form.setState((prevState) => {
+          const value = event.currentTarget.value;
+          return {
+            ...prevState,
+            [key]: value,
+          };
+        });
+      };
+    };
+    return {
+      twilioSID: callbackFactory("twilioSID"),
+      twilioAuthToken: callbackFactory("twilioAuthToken"),
+      twilioMessagingServiceSID: callbackFactory("twilioMessagingServiceSID"),
+    };
+  }, [form]);
+
+  return (
+    <div className="flex flex-col gap-y-4">
+      <FormTextField
+        type="text"
+        label={renderToString(
+          "SMSProviderConfigurationScreen.form.twilio.twilioSID"
+        )}
+        value={form.state.twilioSID}
+        required={true}
+        onChange={onChangeCallbacks.twilioSID}
+        parentJSONPointer={/\/secrets\/\d+\/data/}
+        fieldName="account_sid"
+      />
+      <FormTextField
+        type="text"
+        label={renderToString(
+          "SMSProviderConfigurationScreen.form.twilio.twilioAuthToken"
+        )}
+        value={form.state.twilioAuthToken ?? ""}
+        disabled={form.state.twilioAuthToken == null}
+        required={true}
+        onChange={onChangeCallbacks.twilioAuthToken}
+        parentJSONPointer={/\/secrets\/\d+\/data/}
+        fieldName="auth_token"
+      />{" "}
+      <FormTextField
+        type="text"
+        label={renderToString(
+          "SMSProviderConfigurationScreen.form.twilio.twilioMessagingServiceSID"
+        )}
+        value={form.state.twilioMessagingServiceSID}
+        onChange={onChangeCallbacks.twilioMessagingServiceSID}
+        parentJSONPointer={/\/secrets\/\d+\/data/}
+        fieldName="message_service_sid"
+      />
     </div>
   );
 }
