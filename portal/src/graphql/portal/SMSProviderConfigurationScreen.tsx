@@ -66,7 +66,6 @@ enum SMSProviderType {
 interface FormState {
   enabled: boolean;
   providerType: SMSProviderType;
-  isSecretMasked: boolean;
   webhookSecretKey: string | null;
 
   // twilio
@@ -123,14 +122,19 @@ function constructFormState(
     providerType = SMSProviderType.Twilio;
   }
 
-  const twilioSID =
-    secrets.smsProviderSecrets?.twilioCredentials?.accountSid ?? "";
-  const twilioAuthToken =
-    secrets.smsProviderSecrets?.twilioCredentials != null
-      ? secrets.smsProviderSecrets.twilioCredentials.authToken ?? null
-      : "";
-  const twilioMessagingServiceSID =
-    secrets.smsProviderSecrets?.twilioCredentials?.messageServiceSid ?? "";
+  let twilioSID = "";
+  let twilioAuthToken: string | null = "";
+  let twilioMessagingServiceSID = "";
+
+  if (enabled && providerType === SMSProviderType.Twilio) {
+    twilioSID = secrets.smsProviderSecrets?.twilioCredentials?.accountSid ?? "";
+    twilioAuthToken =
+      secrets.smsProviderSecrets?.twilioCredentials != null
+        ? secrets.smsProviderSecrets.twilioCredentials.authToken ?? null
+        : "";
+    twilioMessagingServiceSID =
+      secrets.smsProviderSecrets?.twilioCredentials?.messageServiceSid ?? "";
+  }
 
   let webhookURL = "";
   let webhookTimeout = 30;
@@ -138,7 +142,12 @@ function constructFormState(
   let denoHookURL = "";
   let denoHookTimeout = 30;
 
-  if (secrets.smsProviderSecrets?.customSmsProvider != null) {
+  if (
+    enabled &&
+    (providerType === SMSProviderType.Webhook ||
+      providerType === SMSProviderType.Deno) &&
+    secrets.smsProviderSecrets?.customSmsProvider != null
+  ) {
     if (
       getHookKind(secrets.smsProviderSecrets.customSmsProvider.url) ===
       "denohook"
@@ -155,9 +164,6 @@ function constructFormState(
   return {
     enabled,
     providerType,
-    isSecretMasked:
-      secrets.smsProviderSecrets?.twilioCredentials != null &&
-      secrets.smsProviderSecrets.twilioCredentials.authToken == null,
     webhookSecretKey: secrets.webhookSecret?.secret ?? null,
 
     twilioSID,
@@ -435,7 +441,6 @@ function SMSProviderConfigurationContent(props: {
           onChange={onChangeEnabled}
           label={renderToString("SMSProviderConfigurationScreen.enable.label")}
           inlineLabel={true}
-          disabled={form.state.isSecretMasked}
         />
       </Widget>
 
@@ -564,6 +569,8 @@ function TwilioForm({
     };
   }, [form]);
 
+  const isTwilioSecretMasked = form.state.twilioAuthToken == null;
+
   return (
     <div className="flex flex-col gap-y-4">
       <FormTextField
@@ -574,7 +581,7 @@ function TwilioForm({
         value={form.state.twilioSID}
         required={true}
         onChange={onChangeCallbacks.twilioSID}
-        disabled={form.state.isSecretMasked}
+        disabled={isTwilioSecretMasked}
         parentJSONPointer={/\/secrets\/\d+\/data/}
         fieldName="account_sid"
       />
@@ -584,11 +591,9 @@ function TwilioForm({
           "SMSProviderConfigurationScreen.form.twilio.twilioAuthToken"
         )}
         value={
-          form.state.isSecretMasked
-            ? "********"
-            : form.state.twilioAuthToken ?? ""
+          isTwilioSecretMasked ? "********" : form.state.twilioAuthToken ?? ""
         }
-        disabled={form.state.isSecretMasked}
+        disabled={isTwilioSecretMasked}
         required={true}
         onChange={onChangeCallbacks.twilioAuthToken}
         parentJSONPointer={/\/secrets\/\d+\/data/}
@@ -601,11 +606,11 @@ function TwilioForm({
         )}
         value={form.state.twilioMessagingServiceSID}
         onChange={onChangeCallbacks.twilioMessagingServiceSID}
-        disabled={form.state.isSecretMasked}
+        disabled={isTwilioSecretMasked}
         parentJSONPointer={/\/secrets\/\d+\/data/}
         fieldName="message_service_sid"
       />
-      {form.state.isSecretMasked ? (
+      {isTwilioSecretMasked ? (
         <PrimaryButton
           className="w-min"
           onClick={onRevealSecrets}
