@@ -453,7 +453,7 @@ var CommonDependencySet = wire.NewSet(
 		oauthhandler.DependencySet,
 
 		oidc.DependencySet,
-		wire.Value(oauthhandler.ScopesValidator(oidc.ValidateScopes)),
+		wire.Value(oauthhandler.ScopesValidator(oauth.ValidateScopes)),
 		wire.Bind(new(oauthhandler.UIInfoResolver), new(*oidc.UIInfoResolver)),
 		wire.Bind(new(authenticationflow.IDTokenService), new(*oidc.IDTokenIssuer)),
 		wire.Bind(new(oauthhandler.IDTokenIssuer), new(*oidc.IDTokenIssuer)),

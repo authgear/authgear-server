@@ -1,17 +1,15 @@
-package oidc
+package oauth
 
 import (
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
-
-	"github.com/authgear/authgear-server/pkg/lib/oauth"
 )
 
 func TestScopeAllowsClaim(t *testing.T) {
 	Convey("ScopeAllowsClaim", t, func() {
 		Convey("full access scope allows everything", func() {
-			scope := oauth.FullAccessScope
+			scope := FullAccessScope
 
 			So(ScopeAllowsClaim(scope, ""), ShouldBeFalse)
 			So(ScopeAllowsClaim(scope, "foobar"), ShouldBeTrue)
@@ -37,7 +35,7 @@ func TestScopeAllowsClaim(t *testing.T) {
 		})
 
 		Convey("full user info scope allows everything", func() {
-			scope := oauth.FullUserInfoScope
+			scope := FullUserInfoScope
 
 			So(ScopeAllowsClaim(scope, ""), ShouldBeFalse)
 			So(ScopeAllowsClaim(scope, "foobar"), ShouldBeTrue)
