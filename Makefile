@@ -110,6 +110,7 @@ check-tidy:
 	$(MAKE) generate-rtl
 	$(MAKE) generate-twemoji-icons
 	$(MAKE) generate-material-icons
+	$(MAKE) graphiql
 	go mod tidy
 	# We wanted to run the following, but that requires SSH, which does not work for running CI for PRs.
 	# (cd custombuild && go mod tidy)
@@ -211,3 +212,9 @@ mkcert:
 .PHONY: check-dockerignore
 check-dockerignore:
 	./scripts/sh/check-dockerignore.sh
+
+.PHONY: graphiql
+graphiql:
+	npm --prefix portalgraphiql ci
+	npm --prefix portalgraphiql run build
+	cp ./portalgraphiql/dist/index.html pkg/util/graphqlutil/graphiql.html
