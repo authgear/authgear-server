@@ -88,11 +88,6 @@ var (
 	_wireSystemClockValue = clock.NewSystemClock()
 )
 
-func newSessionRequiredMiddleware(p *deps.RequestProvider) httproute.Middleware {
-	sessionRequiredMiddleware := &session.SessionRequiredMiddleware{}
-	return sessionRequiredMiddleware
-}
-
 func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	request := p.Request
 	rootProvider := p.RootProvider
