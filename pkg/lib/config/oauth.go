@@ -186,7 +186,7 @@ type OAuthClientConfig struct {
 	ApplicationType                        OAuthClientApplicationType   `json:"x_application_type,omitempty"`
 	MaxConcurrentSession                   int                          `json:"x_max_concurrent_session,omitempty"`
 	RedirectURIs                           []string                     `json:"redirect_uris,omitempty"`
-	GrantTypes                             []string                     `json:"grant_types,omitempty"`
+	GrantTypes_do_not_use_directly         []string                     `json:"grant_types,omitempty"`
 	ResponseTypes                          []string                     `json:"response_types,omitempty"`
 	PostLogoutRedirectURIs                 []string                     `json:"post_logout_redirect_uris,omitempty"`
 	AccessTokenLifetime                    DurationSeconds              `json:"access_token_lifetime_seconds,omitempty"`

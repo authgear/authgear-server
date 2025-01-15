@@ -2,6 +2,7 @@ package oidc
 
 import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
+	"github.com/authgear/authgear-server/pkg/lib/oauth"
 )
 
 var claimsSupported []string
@@ -49,7 +50,7 @@ type MetadataProvider struct {
 
 func (p *MetadataProvider) PopulateMetadata(meta map[string]interface{}) {
 	meta["issuer"] = p.Endpoints.Origin().String()
-	meta["scopes_supported"] = AllowedScopes
+	meta["scopes_supported"] = oauth.AllowedScopes
 	meta["subject_types_supported"] = []string{"public"}
 	meta["id_token_signing_alg_values_supported"] = []string{"RS256"}
 	meta["claims_supported"] = claimsSupported

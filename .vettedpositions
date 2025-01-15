@@ -289,7 +289,7 @@
 /pkg/lib/infra/middleware/sentry.go:21:47: requestcontext
 /pkg/lib/oauth/response_mode.go:105:40: requestcontext
 /pkg/lib/oauth/response_mode.go:117:40: requestcontext
-/pkg/lib/oauth/scope.go:44:34: requestcontext
+/pkg/lib/oauth/scope.go:116:34: requestcontext
 /pkg/lib/oauthrelyingparty/oauthrelyingpartyutil/contextbackground.go:11:52: contextbackground
 /pkg/lib/session/middleware.go:48:23: requestcontext
 /pkg/lib/session/middleware.go:57:41: requestcontext

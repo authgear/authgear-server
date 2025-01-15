@@ -177,7 +177,7 @@ func (ti *IDTokenIssuer) PopulateUserClaimsInIDToken(ctx context.Context, token 
 		for k, v := range user.StandardAttributes {
 			isAllowed := false
 			for _, scope := range clientLike.Scopes {
-				if ScopeAllowsClaim(scope, k) {
+				if oauth.ScopeAllowsClaim(scope, k) {
 					isAllowed = true
 					break
 				}
@@ -227,7 +227,7 @@ func (ti *IDTokenIssuer) GetUserInfo(ctx context.Context, userID string, clientL
 		for k, v := range user.StandardAttributes {
 			isAllowed := false
 			for _, scope := range clientLike.Scopes {
-				if ScopeAllowsClaim(scope, k) {
+				if oauth.ScopeAllowsClaim(scope, k) {
 					isAllowed = true
 					break
 				}
