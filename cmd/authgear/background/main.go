@@ -23,7 +23,6 @@ func (c *Controller) Start(ctx context.Context) {
 		ctx,
 		cfg.EnvironmentConfig,
 		cfg.ConfigSource,
-		cfg.BuiltinResourceDirectory,
 		cfg.CustomResourceDirectory,
 	)
 	if err != nil {

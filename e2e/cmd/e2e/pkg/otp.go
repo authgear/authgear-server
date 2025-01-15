@@ -24,7 +24,6 @@ func (c *End2End) GetLinkOTPCode(ctx context.Context, appID string, claimName st
 		ctx,
 		cfg.EnvironmentConfig,
 		cfg.ConfigSource,
-		cfg.BuiltinResourceDirectory,
 		cfg.CustomResourceDirectory,
 	)
 	if err != nil {

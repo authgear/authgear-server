@@ -5,6 +5,7 @@ import (
 
 	getsentry "github.com/getsentry/sentry-go"
 
+	runtimeresource "github.com/authgear/authgear-server"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
@@ -51,9 +52,7 @@ type RootProvider struct {
 
 func NewRootProvider(
 	cfg *config.EnvironmentConfig,
-	builtinResourceDirectory string,
 	customResourceDirectory string,
-	appBuiltinResourceDirectory string,
 	appCustomResourceDirectory string,
 	configSourceConfig *configsource.Config,
 	authgearConfig *portalconfig.AuthgearConfig,
@@ -121,14 +120,16 @@ func NewRootProvider(
 		RedisPool:                  redisPool,
 		GlobalRedisHandle:          globalRedisHandle,
 		Resources: resource.NewManagerWithDir(resource.NewManagerWithDirOptions{
-			Registry:           portalresource.PortalRegistry,
-			BuiltinResourceDir: builtinResourceDirectory,
-			CustomResourceDir:  customResourceDirectory,
+			Registry:              portalresource.PortalRegistry,
+			BuiltinResourceFS:     runtimeresource.EmbedFS_resources_portal,
+			BuiltinResourceFSRoot: runtimeresource.RelativePath_resources_portal,
+			CustomResourceDir:     customResourceDirectory,
 		}),
 		AppBaseResources: resource.NewManagerWithDir(resource.NewManagerWithDirOptions{
-			Registry:           resource.DefaultRegistry,
-			BuiltinResourceDir: appBuiltinResourceDirectory,
-			CustomResourceDir:  appCustomResourceDirectory,
+			Registry:              resource.DefaultRegistry,
+			BuiltinResourceFS:     runtimeresource.EmbedFS_resources_authgear,
+			BuiltinResourceFSRoot: runtimeresource.RelativePath_resources_authgear,
+			CustomResourceDir:     appCustomResourceDirectory,
 		}),
 		FilesystemCache: filesystemCache,
 	}, nil

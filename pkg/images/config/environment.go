@@ -18,8 +18,9 @@ type EnvironmentConfig struct {
 	SentryDSN config.SentryDSN `envconfig:"SENTRY_DSN"`
 	// ConfigSource configures the source of app configurations
 	ConfigSource *configsource.Config `envconfig:"CONFIG_SOURCE"`
-	// BuiltinResourceDirectory sets the directory for built-in resource files
-	BuiltinResourceDirectory string `envconfig:"BUILTIN_RESOURCE_DIRECTORY" default:"resources/authgear"`
+
+	// BUILTIN_RESOURCE_DIRECTORY is deprecated. It has no effect anymore.
+
 	// CustomResourceDirectory sets the directory for customized resource files
 	CustomResourceDirectory string `envconfig:"CUSTOM_RESOURCE_DIRECTORY"`
 	// GlobalDatabase configures the global database for configuresource

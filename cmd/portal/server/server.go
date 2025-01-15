@@ -25,9 +25,7 @@ func (c *Controller) Start(ctx context.Context) {
 
 	p, err := deps.NewRootProvider(
 		cfg.EnvironmentConfig,
-		cfg.BuiltinResourceDirectory,
 		cfg.CustomResourceDirectory,
-		cfg.App.BuiltinResourceDirectory,
 		cfg.App.CustomResourceDirectory,
 		cfg.ConfigSource,
 		&cfg.Authgear,
