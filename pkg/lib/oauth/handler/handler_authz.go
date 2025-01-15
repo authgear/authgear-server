@@ -128,7 +128,6 @@ type AuthorizationHandler struct {
 	UIInfoResolver                  UIInfoResolver
 	AuthenticationInfoResolver      AuthenticationInfoResolver
 	Authorizations                  AuthorizationService
-	ValidateScopes                  ScopesValidator
 	AppSessionTokenService          AppSessionTokenService
 	AuthenticationInfoService       AuthenticationInfoService
 	Clock                           clock.Clock
@@ -410,7 +409,7 @@ func (h *AuthorizationHandler) doHandle(
 		return h.doHandlePreAuthenticatedURL(ctx, redirectURI, client, r)
 	}
 
-	err := h.ValidateScopes(client, r.Scope())
+	err := oauth.ValidateScopes(client, r.Scope())
 	if err != nil {
 		return nil, err
 	}
@@ -659,7 +658,7 @@ func (h *AuthorizationHandler) doHandleConsentRequest(
 		return nil, err
 	}
 
-	err := h.ValidateScopes(client, r.Scope())
+	err := oauth.ValidateScopes(client, r.Scope())
 	if err != nil {
 		return nil, err
 	}

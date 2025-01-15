@@ -244,7 +244,6 @@ type TokenHandler struct {
 
 	RemoteIP        httputil.RemoteIP
 	UserAgentString httputil.UserAgentString
-	ValidateScopes  ScopesValidator
 }
 
 func (h *TokenHandler) Handle(ctx context.Context, rw http.ResponseWriter, req *http.Request, r protocol.TokenRequest) httputil.Result {
@@ -799,7 +798,7 @@ func (h *TokenHandler) handlePreAuthenticatedURLToken(
 		if !offlineGrant.HasAllScopes(offlineGrant.InitialClientID, requestedScopes) {
 			return nil, protocol.NewError("invalid_scope", "requesting extra scopes is not allowed")
 		}
-		err = h.ValidateScopes(client, requestedScopes)
+		err = oauth.ValidateScopes(client, requestedScopes)
 		if err != nil {
 			return nil, err
 		}
@@ -1180,7 +1179,7 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 	scopes := []string{"openid", oauth.OfflineAccess, oauth.FullAccessScope}
 	requestedScopes := r.Scope()
 	if len(requestedScopes) > 0 {
-		err := h.ValidateScopes(client, requestedScopes)
+		err := oauth.ValidateScopes(client, requestedScopes)
 		if err != nil {
 			return nil, err
 		}

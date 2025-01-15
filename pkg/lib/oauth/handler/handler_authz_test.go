@@ -78,7 +78,6 @@ func TestAuthorizationHandler(t *testing.T) {
 			UIURLBuilder:              uiURLBuilder,
 			UIInfoResolver:            uiInfoResolver,
 			Authorizations:            authzService,
-			ValidateScopes:            func(*config.OAuthClientConfig, []string) error { return nil },
 			Clock:                     clock,
 			AuthenticationInfoService: authenticationInfoService,
 			Cookies:                   cookieManager,
@@ -208,15 +207,6 @@ func TestAuthorizationHandler(t *testing.T) {
 				})
 			})
 			Convey("scope validation", func() {
-				validated := false
-				h.ValidateScopes = func(client *config.OAuthClientConfig, scopes []string) error {
-					validated = true
-					if strings.Join(scopes, " ") != "openid" {
-						return protocol.NewError("invalid_scope", "must request 'openid' scope")
-					}
-					return nil
-				}
-
 				ctx := context.Background()
 				resp := handle(ctx, protocol.AuthorizationRequest{
 					"client_id":             "client-id",
@@ -225,7 +215,6 @@ func TestAuthorizationHandler(t *testing.T) {
 					"code_challenge_method": "S256",
 					"code_challenge":        "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
 				})
-				So(validated, ShouldBeTrue)
 				So(resp.Result().StatusCode, ShouldEqual, 200)
 				So(resp.Body.String(), ShouldEqual, redirectHTML(
 					"https://example.com/?error=invalid_scope&error_description=must+request+%27openid%27+scope",
@@ -383,22 +372,12 @@ func TestAuthorizationHandler(t *testing.T) {
 			}
 			clientResolver.ClientConfig = mockedClient
 			Convey("scope validation", func() {
-				validated := false
-				h.ValidateScopes = func(client *config.OAuthClientConfig, scopes []string) error {
-					validated = true
-					if strings.Join(scopes, " ") != "openid" {
-						return protocol.NewError("invalid_scope", "must request 'openid' scope")
-					}
-					return nil
-				}
-
 				ctx := context.Background()
 				resp := handle(ctx, protocol.AuthorizationRequest{
 					"client_id":     "client-id",
 					"response_type": "none",
 					"scope":         "email",
 				})
-				So(validated, ShouldBeTrue)
 				So(resp.Result().StatusCode, ShouldEqual, 200)
 				So(resp.Body.String(), ShouldEqual, redirectHTML(
 					"https://example.com/?error=invalid_scope&error_description=must+request+%27openid%27+scope",
