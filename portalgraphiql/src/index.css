@@ -1,0 +1,10 @@
+body {
+  height: 100%;
+  margin: 0;
+  width: 100%;
+  overflow: hidden;
+}
+
+#react-app-root {
+  height: 100vh;
+}
