@@ -212,8 +212,8 @@ func ScopeAllowsClaim(scope string, claimName string) bool {
 
 func ValidateScopes(client *config.OAuthClientConfig, scopes []string) error {
 	allowOfflineAccess := false
-	for _, grantType := range client.GrantTypes {
-		if grantType == "refresh_token" {
+	for _, grantType := range GetAllowedGrantTypes(client) {
+		if grantType == RefreshTokenGrantType {
 			allowOfflineAccess = true
 			break
 		}

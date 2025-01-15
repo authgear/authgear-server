@@ -51,20 +51,6 @@ import (
 //go:generate mockgen -source=handler_token.go -destination=handler_token_mock_test.go -package handler_test
 
 const (
-	AuthorizationCodeGrantType = "authorization_code"
-	RefreshTokenGrantType      = "refresh_token"
-	// nolint:gosec
-	TokenExchangeGrantType = "urn:ietf:params:oauth:grant-type:token-exchange"
-
-	AnonymousRequestGrantType = "urn:authgear:params:oauth:grant-type:anonymous-request"
-	BiometricRequestGrantType = "urn:authgear:params:oauth:grant-type:biometric-request"
-	App2AppRequestGrantType   = "urn:authgear:params:oauth:grant-type:app2app-request"
-	// nolint:gosec
-	IDTokenGrantType        = "urn:authgear:params:oauth:grant-type:id-token"
-	SettingsActionGrantType = "urn:authgear:params:oauth:grant-type:settings-action"
-)
-
-const (
 	// nolint:gosec
 	PreAuthenticatedURLTokenTokenType = "urn:authgear:params:oauth:token-type:pre-authenticated-url-token"
 	// nolint:gosec
@@ -74,19 +60,6 @@ const (
 )
 
 const AppSessionTokenDuration = duration.Short
-
-// whitelistedGrantTypes is a list of grant types that would be always allowed
-// to all clients.
-var whitelistedGrantTypes = []string{
-	AuthorizationCodeGrantType,
-	RefreshTokenGrantType,
-	AnonymousRequestGrantType,
-	BiometricRequestGrantType,
-	App2AppRequestGrantType,
-	IDTokenGrantType,
-	SettingsActionGrantType,
-	TokenExchangeGrantType,
-}
 
 type IDTokenIssuer interface {
 	Iss() string
@@ -283,8 +256,7 @@ func (h *TokenHandler) doHandle(
 		return nil, err
 	}
 
-	allowedGrantTypes := client.GrantTypes
-	allowedGrantTypes = append(allowedGrantTypes, whitelistedGrantTypes...)
+	allowedGrantTypes := oauth.GetAllowedGrantTypes(client)
 
 	ok := false
 	for _, grantType := range allowedGrantTypes {
@@ -298,25 +270,25 @@ func (h *TokenHandler) doHandle(
 	}
 
 	switch r.GrantType() {
-	case AuthorizationCodeGrantType:
+	case oauth.AuthorizationCodeGrantType:
 		return h.handleAuthorizationCode(ctx, client, r)
-	case RefreshTokenGrantType:
+	case oauth.RefreshTokenGrantType:
 		resp, err := h.handleRefreshToken(ctx, client, r)
 		if err != nil {
 			return nil, err
 		}
 		return tokenResultOK{Response: resp}, nil
-	case TokenExchangeGrantType:
+	case oauth.TokenExchangeGrantType:
 		return h.handleTokenExchange(ctx, client, r)
-	case AnonymousRequestGrantType:
+	case oauth.AnonymousRequestGrantType:
 		return h.handleAnonymousRequest(ctx, client, r)
-	case BiometricRequestGrantType:
+	case oauth.BiometricRequestGrantType:
 		return h.handleBiometricRequest(ctx, rw, req, client, r)
-	case App2AppRequestGrantType:
+	case oauth.App2AppRequestGrantType:
 		return h.handleApp2AppRequest(ctx, rw, req, client, h.OAuthFeatureConfig, r)
-	case IDTokenGrantType:
+	case oauth.IDTokenGrantType:
 		return h.handleIDToken(ctx, rw, req, client, r)
-	case SettingsActionGrantType:
+	case oauth.SettingsActionGrantType:
 		return h.handleSettingsActionCode(ctx, client, r)
 	default:
 		panic("oauth: unexpected grant type")
@@ -326,9 +298,9 @@ func (h *TokenHandler) doHandle(
 // nolint:gocognit
 func (h *TokenHandler) validateRequest(r protocol.TokenRequest, client *config.OAuthClientConfig) error {
 	switch r.GrantType() {
-	case SettingsActionGrantType:
+	case oauth.SettingsActionGrantType:
 		fallthrough
-	case AuthorizationCodeGrantType:
+	case oauth.AuthorizationCodeGrantType:
 		if r.Code() == "" {
 			return protocol.NewError("invalid_request", "code is required")
 		}
@@ -342,19 +314,19 @@ func (h *TokenHandler) validateRequest(r protocol.TokenRequest, client *config.O
 				return protocol.NewError("invalid_request", "client secret is required")
 			}
 		}
-	case RefreshTokenGrantType:
+	case oauth.RefreshTokenGrantType:
 		if r.RefreshToken() == "" {
 			return protocol.NewError("invalid_request", "refresh token is required")
 		}
-	case AnonymousRequestGrantType:
+	case oauth.AnonymousRequestGrantType:
 		if r.JWT() == "" {
 			return protocol.NewError("invalid_request", "jwt is required")
 		}
-	case BiometricRequestGrantType:
+	case oauth.BiometricRequestGrantType:
 		if r.JWT() == "" {
 			return protocol.NewError("invalid_request", "jwt is required")
 		}
-	case App2AppRequestGrantType:
+	case oauth.App2AppRequestGrantType:
 		if r.JWT() == "" {
 			return protocol.NewError("invalid_request", "jwt is required")
 		}
@@ -370,9 +342,9 @@ func (h *TokenHandler) validateRequest(r protocol.TokenRequest, client *config.O
 		if r.CodeChallenge() != "" && r.CodeChallengeMethod() != pkce.CodeChallengeMethodS256 {
 			return protocol.NewError("invalid_request", "only 'S256' PKCE transform is supported")
 		}
-	case IDTokenGrantType:
+	case oauth.IDTokenGrantType:
 		break
-	case TokenExchangeGrantType:
+	case oauth.TokenExchangeGrantType:
 		// The validation logics can be different depends on requested_token_type
 		// Do the validation in methods for each requested_token_type
 		break
@@ -1526,8 +1498,9 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 	if issueRefreshToken {
 		// Only if client is allowed to use refresh tokens
 		allowRefreshToken := false
-		for _, grantType := range client.GrantTypes {
-			if grantType == RefreshTokenGrantType {
+
+		for _, grantType := range oauth.GetAllowedGrantTypes(client) {
+			if grantType == oauth.RefreshTokenGrantType {
 				allowRefreshToken = true
 				break
 			}
