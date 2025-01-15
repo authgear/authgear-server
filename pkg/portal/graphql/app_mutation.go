@@ -167,7 +167,7 @@ var customSmsProviderSecretsInput = graphql.NewInputObject(graphql.InputObjectCo
 			Type: graphql.NewNonNull(graphql.String),
 		},
 		"timeout": &graphql.InputObjectFieldConfig{
-			Type: graphql.NewNonNull(graphql.Int),
+			Type: graphql.Int,
 		},
 	},
 })

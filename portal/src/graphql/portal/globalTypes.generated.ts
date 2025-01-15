@@ -249,7 +249,7 @@ export type CreateDomainPayload = {
 };
 
 export type CustomSmsProviderSecretsInput = {
-  timeout: Scalars['Int']['input'];
+  timeout?: InputMaybe<Scalars['Int']['input']>;
   url: Scalars['String']['input'];
 };
 

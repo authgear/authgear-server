@@ -335,7 +335,7 @@ type CreateDomainPayload {
 """"""
 input CustomSmsProviderSecretsInput {
   """"""
-  timeout: Int!
+  timeout: Int
 
   """"""
   url: String!
