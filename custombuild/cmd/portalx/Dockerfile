@@ -88,7 +88,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   && apt-get upgrade -y && rm -rf /var/lib/apt/lists/*
 RUN update-ca-certificates
 COPY --from=stage1 /src/custombuild/authgear-portal /usr/local/bin/
-COPY --from=stage1 /src/resources ./resources/
 COPY ./docker-entrypoint.sh /usr/local/bin/
 ENTRYPOINT ["docker-entrypoint.sh"]
 # update-ca-certificates requires root to run.
