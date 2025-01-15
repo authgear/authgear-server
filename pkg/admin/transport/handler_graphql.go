@@ -32,7 +32,8 @@ type GraphQLHandler struct {
 func (h *GraphQLHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		graphiql := &graphqlutil.GraphiQL{
-			Title: "GraphiQL: Admin API - Authgear",
+			Title:    "GraphiQL: Admin API - Authgear",
+			IsPortal: r.Header.Get("X-Authgear-Portal-Is-Proxied") == "true",
 		}
 		graphiql.ServeHTTP(rw, r)
 		return

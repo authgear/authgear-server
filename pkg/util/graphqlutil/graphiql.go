@@ -17,7 +17,8 @@ var graphiqlHTMLString string
 var graphiqlTemplate = htmltemplate.Must(htmltemplate.New("graphiql").Parse(graphiqlHTMLString))
 
 type GraphiQL struct {
-	Title string
+	IsPortal bool
+	Title    string
 }
 
 func (g *GraphiQL) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -27,6 +28,7 @@ func (g *GraphiQL) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	data := map[string]interface{}{
 		"Title":    g.Title,
 		"CSPNonce": nonce,
+		"IsPortal": g.IsPortal,
 	}
 
 	err := graphiqlTemplate.Execute(w, data)
