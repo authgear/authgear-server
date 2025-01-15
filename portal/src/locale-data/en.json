@@ -1585,8 +1585,11 @@
   "SMSProviderConfigurationScreen.form.webhook.payload.description": "The JSON payload features two key fields: 'to' for the recipient and 'body' for the SMS content",
   "SMSProviderConfigurationScreen.form.webhook.signatureKey": "Webhook Signature Secret Key",
   "SMSProviderConfigurationScreen.form.webhook.signatureKey.description": "Each webhook event request includes a signature to confirm it comes from Authgear. This signature is a hex-encoded HMAC-SHA256 of the request body, provided in the HTTP header x-authgear-body-signature. For details on how to validate the signature, {ReactRouterLink, react, children{click here} to{{to}}}.",
-  "SMSProviderConfigurationScreen.form.webhook.timeout": "Timeout (Seconds) ",
+  "SMSProviderConfigurationScreen.form.webhook.timeout": "Timeout (Seconds)",
   "SMSProviderConfigurationScreen.form.webhook.timeout.description": "You can set it from 1 to 60 seconds. If the webhook doesn’t respond in time, the SMS is marked as undelivered.",
+  "SMSProviderConfigurationScreen.form.deno.script": "Custom script",
+  "SMSProviderConfigurationScreen.form.deno.timeout": "Timeout (Seconds)",
+  "SMSProviderConfigurationScreen.form.deno.timeout.description": "You can set it from 1 to 60 seconds. If the webhook doesn’t respond in time, the SMS is marked as undelivered.",
 
   "StandardAttributesConfigurationScreen.title": "Standard Attributes",
 

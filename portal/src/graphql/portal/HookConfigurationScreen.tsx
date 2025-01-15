@@ -35,10 +35,11 @@ import {
 } from "../../hook/useAppSecretConfigForm";
 import { useResourceForm } from "../../hook/useResourceForm";
 import {
-  resourcePath,
   ResourceSpecifier,
   Resource,
   ResourcesDiffResult,
+  getDenoScriptPathFromURL,
+  makeDenoScriptSpecifier,
 } from "../../util/resource";
 import { useCopyFeedback } from "../../hook/useCopyFeedback";
 import FieldList, { ListItemProps } from "../../FieldList";
@@ -66,6 +67,7 @@ import { useSystemConfig } from "../../context/SystemConfigContext";
 import { AppSecretKey } from "./globalTypes.generated";
 import { useAppSecretVisitToken } from "./mutations/generateAppSecretVisitTokenMutation";
 import HorizontalDivider from "../../HorizontalDivider";
+import { DENO_TYPES_URL } from "../../util/deno";
 
 const CODE_EDITOR_OPTIONS = {
   minimap: {
@@ -81,9 +83,7 @@ const BLOCKING_EVENT_NAME_TO_TYPE_NAME: Record<string, string | undefined> = {
   "oidc.jwt.pre_create": "EventOIDCJWTPreCreate",
 };
 
-const authgear_deno_hook_version = "v1.4.0";
-
-const DENOHOOK_NONBLOCKING_DEFAULT = `import { HookEvent } from "https://deno.land/x/authgear_deno_hook@${authgear_deno_hook_version}/mod.ts";
+const DENOHOOK_NONBLOCKING_DEFAULT = `import { HookEvent } from "${DENO_TYPES_URL}";
 
 export default async function(e: HookEvent): Promise<void> {
   // Write your hook with the help of the type definition.
@@ -106,7 +106,7 @@ export default async function(e: HookEvent): Promise<void> {
 
 function makeDefaultDenoHookBlockingScript(event: string): string {
   const typeName = BLOCKING_EVENT_NAME_TO_TYPE_NAME[event] ?? "HookEvent";
-  return `import { ${typeName}, HookResponse } from "https://deno.land/x/authgear_deno_hook@${authgear_deno_hook_version}/mod.ts";
+  return `import { ${typeName}, HookResponse } from "${DENO_TYPES_URL}";
 
 export default async function(e: ${typeName}): Promise<HookResponse> {
   // Write your hook with the help of the type definition.
@@ -239,39 +239,21 @@ function constructConfig(
   return [newConfig, secrets];
 }
 
-function getPathFromURL(url: string): string {
-  const path = url.slice("authgeardeno:///".length);
-  return path;
-}
-
 function makeNewURL(eventKind: EventKind): string {
   const rand = genRandomHexadecimalString();
   return `authgeardeno:///deno/${eventKind}.${rand}.ts`;
-}
-
-function makeSpecifier(url: string): ResourceSpecifier {
-  const path = getPathFromURL(url);
-  return {
-    def: {
-      resourcePath: resourcePath([path]),
-      type: "text" as const,
-      extensions: [],
-    },
-    locale: null,
-    extension: null,
-  };
 }
 
 function makeSpecifiersFromState(state: ConfigFormState): ResourceSpecifier[] {
   const specifiers = [];
   for (const h of state.blocking_handlers) {
     if (getHookKind(h.url) === "denohook") {
-      specifiers.push(makeSpecifier(h.url));
+      specifiers.push(makeDenoScriptSpecifier(h.url));
     }
   }
   for (const h of state.non_blocking_handlers) {
     if (getHookKind(h.url) === "denohook") {
-      specifiers.push(makeSpecifier(h.url));
+      specifiers.push(makeDenoScriptSpecifier(h.url));
     }
   }
   return specifiers;
@@ -281,8 +263,8 @@ function addMissingResources(state: FormState) {
   for (let i = 0; i < state.blocking_handlers.length; ++i) {
     const h = state.blocking_handlers[i];
     if (getHookKind(h.url) === "denohook") {
-      const path = getPathFromURL(h.url);
-      const specifier = makeSpecifier(h.url);
+      const path = getDenoScriptPathFromURL(h.url);
+      const specifier = makeDenoScriptSpecifier(h.url);
       const r = state.resources.find((r) => r.path === path);
       if (r == null) {
         state.resources.push({
@@ -296,8 +278,8 @@ function addMissingResources(state: FormState) {
   for (let i = 0; i < state.non_blocking_handlers.length; ++i) {
     const h = state.non_blocking_handlers[i];
     if (getHookKind(h.url) === "denohook") {
-      const path = getPathFromURL(h.url);
-      const specifier = makeSpecifier(h.url);
+      const path = getDenoScriptPathFromURL(h.url);
+      const specifier = makeDenoScriptSpecifier(h.url);
       const r = state.resources.find((r) => r.path === path);
       if (r == null) {
         state.resources.push({
@@ -779,7 +761,7 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
               switch (eventKind) {
                 case "blocking": {
                   const h = state.blocking_handlers[index];
-                  const path = getPathFromURL(h.url);
+                  const path = getDenoScriptPathFromURL(h.url);
                   for (const r of prev.resources) {
                     if (r.path === path) {
                       // value is nullable because onEditBlocking and onEditNonBlocking cannot have deps.
@@ -793,7 +775,7 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
                 }
                 case "nonblocking": {
                   const h = state.non_blocking_handlers[index];
-                  const path = getPathFromURL(h.url);
+                  const path = getDenoScriptPathFromURL(h.url);
                   for (const r of prev.resources) {
                     if (r.path === path) {
                       // value is nullable because onEditBlocking and onEditNonBlocking cannot have deps.
@@ -879,7 +861,7 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
       switch (eventKind) {
         case "blocking": {
           const h = state.blocking_handlers[index];
-          const path = getPathFromURL(h.url);
+          const path = getDenoScriptPathFromURL(h.url);
           for (const r of state.resources) {
             if (r.path === path && r.nullableValue != null) {
               return r.nullableValue;
@@ -889,7 +871,7 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
         }
         case "nonblocking": {
           const h = state.non_blocking_handlers[index];
-          const path = getPathFromURL(h.url);
+          const path = getDenoScriptPathFromURL(h.url);
           for (const r of state.resources) {
             if (r.path === path && r.nullableValue != null) {
               return r.nullableValue;
@@ -986,7 +968,7 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
             state.blocking_handlers = newValue;
             addMissingResources(state);
             for (const r of state.resources) {
-              if (r.path === getPathFromURL(item.url)) {
+              if (r.path === getDenoScriptPathFromURL(item.url)) {
                 r.nullableValue = makeDefaultDenoHookBlockingScript(item.event);
               }
             }
