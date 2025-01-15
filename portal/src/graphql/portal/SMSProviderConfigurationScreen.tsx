@@ -1,5 +1,5 @@
 import cn from "classnames";
-import { useLocation, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { AppSecretKey } from "./globalTypes.generated";
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import { useLocationEffect } from "../../hook/useLocationEffect";
@@ -36,6 +36,8 @@ import logoTwilio from "../../images/twilio_logo.svg";
 import logoWebhook from "../../images/webhook_logo.svg";
 import logoDeno from "../../images/deno_logo.svg";
 import FormTextField from "../../FormTextField";
+import PrimaryButton from "../../PrimaryButton";
+import { startReauthentication } from "./Authenticated";
 
 const SECRETS = [AppSecretKey.SmsProviderSecrets];
 
@@ -519,6 +521,19 @@ function TwilioForm({ form }: { form: AppSecretConfigFormModel<FormState> }) {
     };
   }, [form]);
 
+  const navigate = useNavigate();
+
+  const onClickEdit = useCallback(() => {
+    const state: LocationState = {
+      isRevealSecrets: true,
+    };
+
+    startReauthentication(navigate, state).catch((e) => {
+      // Normally there should not be any error.
+      console.error(e);
+    });
+  }, [navigate]);
+
   return (
     <div className="flex flex-col gap-y-4">
       <FormTextField
@@ -560,6 +575,13 @@ function TwilioForm({ form }: { form: AppSecretConfigFormModel<FormState> }) {
         parentJSONPointer={/\/secrets\/\d+\/data/}
         fieldName="message_service_sid"
       />
+      {form.state.isSecretMasked ? (
+        <PrimaryButton
+          className="w-min"
+          onClick={onClickEdit}
+          text={<FormattedMessage id="edit" />}
+        />
+      ) : null}
     </div>
   );
 }
