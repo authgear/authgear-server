@@ -53,7 +53,6 @@ func NewRouter(p *deps.RootProvider) http.Handler {
 		// Middlewares that write headers are intentionally left out for this chain.
 		// It is because the handler of this chain is a httputil.ReverseProxy.
 		// We assume the proxied response has correct headers.
-		p.Middleware(newSessionRequiredMiddleware),
 	)
 	incomingWebhookChain := httproute.Chain(
 		rootChain,
