@@ -529,6 +529,7 @@ function TwilioForm({ form }: { form: AppSecretConfigFormModel<FormState> }) {
         value={form.state.twilioSID}
         required={true}
         onChange={onChangeCallbacks.twilioSID}
+        disabled={form.state.isSecretMasked}
         parentJSONPointer={/\/secrets\/\d+\/data/}
         fieldName="account_sid"
       />
@@ -537,13 +538,17 @@ function TwilioForm({ form }: { form: AppSecretConfigFormModel<FormState> }) {
         label={renderToString(
           "SMSProviderConfigurationScreen.form.twilio.twilioAuthToken"
         )}
-        value={form.state.twilioAuthToken ?? ""}
-        disabled={form.state.twilioAuthToken == null}
+        value={
+          form.state.isSecretMasked
+            ? "********"
+            : form.state.twilioAuthToken ?? ""
+        }
+        disabled={form.state.isSecretMasked}
         required={true}
         onChange={onChangeCallbacks.twilioAuthToken}
         parentJSONPointer={/\/secrets\/\d+\/data/}
         fieldName="auth_token"
-      />{" "}
+      />
       <FormTextField
         type="text"
         label={renderToString(
@@ -551,6 +556,7 @@ function TwilioForm({ form }: { form: AppSecretConfigFormModel<FormState> }) {
         )}
         value={form.state.twilioMessagingServiceSID}
         onChange={onChangeCallbacks.twilioMessagingServiceSID}
+        disabled={form.state.isSecretMasked}
         parentJSONPointer={/\/secrets\/\d+\/data/}
         fieldName="message_service_sid"
       />
