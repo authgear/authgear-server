@@ -485,16 +485,15 @@ function SMSProviderConfigurationScreen1({
 
   return (
     <FormContainer form={form}>
-      <SMSProviderConfigurationContent appID={appID} form={form} />
+      <SMSProviderConfigurationContent form={form} />
     </FormContainer>
   );
 }
 
 function SMSProviderConfigurationContent(props: {
-  appID: string;
   form: AppSecretConfigFormModel<FormState>;
 }) {
-  const { appID, form } = props;
+  const { form } = props;
   const { state, setState } = form;
   const { renderToString } = useContext(MessageContext);
   const navigate = useNavigate();
@@ -546,11 +545,7 @@ function SMSProviderConfigurationContent(props: {
       {state.enabled ? (
         <Widget className={cn(styles.widget, "flex flex-col gap-y-4")}>
           <ProviderSection form={form} />
-          <FormSection
-            appID={appID}
-            form={form}
-            onRevealSecrets={onRevealSecrets}
-          />
+          <FormSection form={form} onRevealSecrets={onRevealSecrets} />
         </Widget>
       ) : null}
     </ScreenContent>
@@ -607,16 +602,38 @@ function ProviderSection({
           <FormattedMessage id="SMSProviderConfigurationScreen.provider.deno" />
         </ProviderCard>
       </div>
+      <Text block={true}>
+        {form.state.providerType === SMSProviderType.Twilio ? (
+          <FormattedMessage
+            id="SMSProviderConfigurationScreen.provider.twilio.description"
+            values={{
+              href: "https://docs.authgear.com/how-to-guide/integration/custom-sms-provider/twilio",
+            }}
+          />
+        ) : form.state.providerType === SMSProviderType.Webhook ? (
+          <FormattedMessage
+            id="SMSProviderConfigurationScreen.provider.webhook.description"
+            values={{
+              href: "https://docs.authgear.com/how-to-guide/integration/custom-sms-provider/webhook-custom-script",
+            }}
+          />
+        ) : (
+          <FormattedMessage
+            id="SMSProviderConfigurationScreen.provider.deno.description"
+            values={{
+              href: "https://docs.authgear.com/how-to-guide/integration/custom-sms-provider/webhook-custom-script",
+            }}
+          />
+        )}
+      </Text>
     </div>
   );
 }
 
 function FormSection({
-  appID,
   form,
   onRevealSecrets,
 }: {
-  appID: string;
   form: AppSecretConfigFormModel<FormState>;
   onRevealSecrets: () => void;
 }) {
@@ -624,13 +641,7 @@ function FormSection({
     case SMSProviderType.Twilio:
       return <TwilioForm form={form} onRevealSecrets={onRevealSecrets} />;
     case SMSProviderType.Webhook:
-      return (
-        <WebhookForm
-          appID={appID}
-          form={form}
-          onRevealSecrets={onRevealSecrets}
-        />
-      );
+      return <WebhookForm form={form} onRevealSecrets={onRevealSecrets} />;
     case SMSProviderType.Deno:
       return <DenoHookForm form={form} />;
   }
@@ -721,11 +732,9 @@ function TwilioForm({
 }
 
 function WebhookForm({
-  appID,
   form,
   onRevealSecrets,
 }: {
-  appID: string;
   form: AppSecretConfigFormModel<FormState>;
   onRevealSecrets: () => void;
 }) {
@@ -830,7 +839,9 @@ function WebhookForm({
         <Text block={true} variant="medium" className="mt-2">
           <FormattedMessage
             id="SMSProviderConfigurationScreen.form.webhook.signatureKey.description"
-            values={{ to: `/project/${appID}/advanced/hooks` }}
+            values={{
+              href: `https://docs.authgear.com/integrate/events-hooks/webhooks#verifying-signature`,
+            }}
           />
         </Text>
       </div>
