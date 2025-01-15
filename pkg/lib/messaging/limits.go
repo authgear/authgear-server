@@ -51,7 +51,10 @@ type Limits struct {
 }
 
 func (l *Limits) cancel(ctx context.Context, reservation *Reservation) {
-	l.UsageLimiter.Cancel(ctx, reservation.UsageReservation)
+	// Usage reservation can be nil if usage limit reached
+	if reservation.UsageReservation != nil {
+		l.UsageLimiter.Cancel(ctx, reservation.UsageReservation)
+	}
 	for _, r := range reservation.RateLimitReservations {
 		l.RateLimiter.Cancel(ctx, r)
 	}
