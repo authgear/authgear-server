@@ -62,11 +62,11 @@ func NewRootProvider(
 		SentryHub:         sentryHub,
 		DatabasePool:      dbPool,
 		VipsDaemon:        vipsDaemon,
-		BaseResources: resource.NewManagerWithDir(
-			resource.DefaultRegistry,
-			envConfig.BuiltinResourceDirectory,
-			envConfig.CustomResourceDirectory,
-		),
+		BaseResources: resource.NewManagerWithDir(resource.NewManagerWithDirOptions{
+			Registry:           resource.DefaultRegistry,
+			BuiltinResourceDir: envConfig.BuiltinResourceDirectory,
+			CustomResourceDir:  envConfig.CustomResourceDirectory,
+		}),
 	}, nil
 }
 

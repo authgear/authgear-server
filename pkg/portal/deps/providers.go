@@ -120,16 +120,16 @@ func NewRootProvider(
 		Database:                   db.NewPool(),
 		RedisPool:                  redisPool,
 		GlobalRedisHandle:          globalRedisHandle,
-		Resources: resource.NewManagerWithDir(
-			portalresource.PortalRegistry,
-			builtinResourceDirectory,
-			customResourceDirectory,
-		),
-		AppBaseResources: resource.NewManagerWithDir(
-			resource.DefaultRegistry,
-			appBuiltinResourceDirectory,
-			appCustomResourceDirectory,
-		),
+		Resources: resource.NewManagerWithDir(resource.NewManagerWithDirOptions{
+			Registry:           portalresource.PortalRegistry,
+			BuiltinResourceDir: builtinResourceDirectory,
+			CustomResourceDir:  customResourceDirectory,
+		}),
+		AppBaseResources: resource.NewManagerWithDir(resource.NewManagerWithDirOptions{
+			Registry:           resource.DefaultRegistry,
+			BuiltinResourceDir: appBuiltinResourceDirectory,
+			CustomResourceDir:  appCustomResourceDirectory,
+		}),
 		FilesystemCache: filesystemCache,
 	}, nil
 }

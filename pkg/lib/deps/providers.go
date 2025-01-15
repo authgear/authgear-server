@@ -79,11 +79,11 @@ func NewRootProvider(
 		DatabasePool:       dbPool,
 		RedisPool:          redisPool,
 		RedisHub:           redisHub,
-		BaseResources: resource.NewManagerWithDir(
-			resource.DefaultRegistry,
-			builtinResourceDirectory,
-			customResourceDirectory,
-		),
+		BaseResources: resource.NewManagerWithDir(resource.NewManagerWithDirOptions{
+			Registry:           resource.DefaultRegistry,
+			BuiltinResourceDir: builtinResourceDirectory,
+			CustomResourceDir:  customResourceDirectory,
+		}),
 		EmbeddedResources: embeddedResources,
 	}
 	return &p, nil
@@ -287,11 +287,11 @@ func NewBackgroundProvider(
 		DatabasePool:       dbPool,
 		RedisPool:          redisPool,
 		RedisHub:           redisHub,
-		BaseResources: resource.NewManagerWithDir(
-			resource.DefaultRegistry,
-			builtinResourceDirectory,
-			customResourceDirectory,
-		),
+		BaseResources: resource.NewManagerWithDir(resource.NewManagerWithDirOptions{
+			Registry:           resource.DefaultRegistry,
+			BuiltinResourceDir: builtinResourceDirectory,
+			CustomResourceDir:  customResourceDirectory,
+		}),
 		EmbeddedResources: embeddedResources,
 	}
 
