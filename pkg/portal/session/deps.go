@@ -22,5 +22,4 @@ func NewHTTPClient() HTTPClient {
 var DependencySet = wire.NewSet(
 	NewHTTPClient,
 	wire.Struct(new(SessionInfoMiddleware), "*"),
-	wire.Struct(new(SessionRequiredMiddleware), "*"),
 )

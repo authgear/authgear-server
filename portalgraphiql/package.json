@@ -1,0 +1,32 @@
+{
+  "name": "authgear-portal-graphiql",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "typecheck": "tsc",
+    "prettier:format": "prettier --list-different --write --cache './src/**/*.{js,ts,jsx,tsx,css,scss,html}'",
+    "prettier": "prettier --list-different --cache './src/**/*.{js,ts,jsx,tsx,css,scss,html}'"
+  },
+  "devDependencies": {
+    "@types/react": "^17.0.0",
+    "@types/react-dom": "^17.0.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "node-html-parser": "^7.0.1",
+    "prettier": "^2.8.8",
+    "typescript": "^5.7.3",
+    "vite": "^6.0.7",
+    "vite-plugin-singlefile": "^2.1.0"
+  },
+  "dependencies": {
+    "@authgear/web": "^2.12.0",
+    "@graphiql/plugin-explorer": "^3.2.5",
+    "@graphiql/toolkit": "^0.11.1",
+    "graphiql": "^3.8.3",
+    "react": "^17.0.0",
+    "react-dom": "^17.0.0"
+  }
+}

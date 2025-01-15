@@ -96,6 +96,7 @@ func (s *AdminAPIService) Director(ctx context.Context, appID string, p string, 
 		r.URL.RawQuery = rawQuery
 		r.Host = host
 		r.Header.Set("X-Forwarded-Host", r.Host)
+		r.Header.Set("X-Authgear-Portal-Is-Proxied", "true")
 
 		err = s.AuthzAdder.AddAuthz(
 			s.AdminAPIConfig.Auth,

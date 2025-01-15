@@ -51,6 +51,22 @@ func (h *AdminAPIHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	appID := resolved.ID
 
+	// Since we serve GraphiQL with GET, we do not impose access control checking, when the method is GET.
+	// The access control checking is done when some query is executed with method POST.
+	if r.Method == "GET" {
+		emptyActorUserID := ""
+		director, err := h.AdminAPI.Director(r.Context(), appID, p, emptyActorUserID, service.UsageProxy)
+		if err != nil {
+			h.Logger.WithError(err).Errorf("failed to proxy admin API request")
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		proxy := httputil.ReverseProxy{Director: director}
+		proxy.ServeHTTP(w, r)
+		return
+	}
+
 	sessionInfo := session.GetValidSessionInfo(r.Context())
 	if sessionInfo == nil {
 		h.Logger.Debugf("access to admin API requires authenticated user")

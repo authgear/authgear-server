@@ -23,7 +23,8 @@ type GraphQLHandler struct {
 func (h *GraphQLHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		graphiql := &graphqlutil.GraphiQL{
-			Title: "GraphiQL: Portal - Authgear",
+			Title:    "GraphiQL: Portal - Authgear",
+			IsPortal: true,
 		}
 		graphiql.ServeHTTP(w, r)
 		return
