@@ -85,6 +85,13 @@ func (i *SecretConfigUpdateInstruction) ApplyTo(ctx *SecretConfigUpdateInstructi
 		}
 	}
 
+	if i.SMSProviderSecretsUpdateInstruction != nil {
+		newConfig, err = i.SMSProviderSecretsUpdateInstruction.ApplyTo(ctx, newConfig)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return newConfig, nil
 }
 
