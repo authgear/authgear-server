@@ -38,8 +38,12 @@ import logoDeno from "../../images/deno_logo.svg";
 import FormTextField from "../../FormTextField";
 import PrimaryButton from "../../PrimaryButton";
 import { startReauthentication } from "./Authenticated";
+import { CodeField } from "../../components/common/CodeField";
+import TextField from "../../TextField";
+import DefaultButton from "../../DefaultButton";
+import { useCopyFeedback } from "../../hook/useCopyFeedback";
 
-const SECRETS = [AppSecretKey.SmsProviderSecrets];
+const SECRETS = [AppSecretKey.SmsProviderSecrets, AppSecretKey.WebhookSecret];
 
 interface LocationState {
   isRevealSecrets: boolean;
@@ -63,6 +67,7 @@ interface FormState {
   enabled: boolean;
   providerType: SMSProviderType;
   isSecretMasked: boolean;
+  webhookSecretKey: string | null;
 
   // twilio
   twilioSID: string;
@@ -153,6 +158,7 @@ function constructFormState(
     isSecretMasked:
       secrets.smsProviderSecrets?.twilioCredentials != null &&
       secrets.smsProviderSecrets.twilioCredentials.authToken == null,
+    webhookSecretKey: secrets.webhookSecret?.secret ?? null,
 
     twilioSID,
     twilioAuthToken,
@@ -374,17 +380,19 @@ function SMSProviderConfigurationScreen1({
 
   return (
     <FormContainer form={form}>
-      <SMSProviderConfigurationContent form={form} />
+      <SMSProviderConfigurationContent appID={appID} form={form} />
     </FormContainer>
   );
 }
 
 function SMSProviderConfigurationContent(props: {
+  appID: string;
   form: AppSecretConfigFormModel<FormState>;
 }) {
-  const { form } = props;
+  const { appID, form } = props;
   const { state, setState } = form;
   const { renderToString } = useContext(MessageContext);
+  const navigate = useNavigate();
 
   const onChangeEnabled = useCallback(
     (_event, checked?: boolean) => {
@@ -399,6 +407,17 @@ function SMSProviderConfigurationContent(props: {
     },
     [setState]
   );
+
+  const onRevealSecrets = useCallback(() => {
+    const state: LocationState = {
+      isRevealSecrets: true,
+    };
+
+    startReauthentication(navigate, state).catch((e) => {
+      // Normally there should not be any error.
+      console.error(e);
+    });
+  }, [navigate]);
 
   return (
     <ScreenContent>
@@ -423,7 +442,11 @@ function SMSProviderConfigurationContent(props: {
       {state.enabled ? (
         <Widget className={cn(styles.widget, "flex flex-col gap-y-4")}>
           <ProviderSection form={form} />
-          <FormSection form={form} />
+          <FormSection
+            appID={appID}
+            form={form}
+            onRevealSecrets={onRevealSecrets}
+          />
         </Widget>
       ) : null}
     </ScreenContent>
@@ -484,18 +507,38 @@ function ProviderSection({
   );
 }
 
-function FormSection({ form }: { form: AppSecretConfigFormModel<FormState> }) {
+function FormSection({
+  appID,
+  form,
+  onRevealSecrets,
+}: {
+  appID: string;
+  form: AppSecretConfigFormModel<FormState>;
+  onRevealSecrets: () => void;
+}) {
   switch (form.state.providerType) {
     case SMSProviderType.Twilio:
-      return <TwilioForm form={form} />;
+      return <TwilioForm form={form} onRevealSecrets={onRevealSecrets} />;
     case SMSProviderType.Webhook:
-      return <></>;
+      return (
+        <WebhookForm
+          appID={appID}
+          form={form}
+          onRevealSecrets={onRevealSecrets}
+        />
+      );
     case SMSProviderType.Deno:
       return <></>;
   }
 }
 
-function TwilioForm({ form }: { form: AppSecretConfigFormModel<FormState> }) {
+function TwilioForm({
+  form,
+  onRevealSecrets,
+}: {
+  form: AppSecretConfigFormModel<FormState>;
+  onRevealSecrets: () => void;
+}) {
   const { renderToString } = useContext(MessageContext);
 
   const onChangeCallbacks = useMemo(() => {
@@ -510,7 +553,7 @@ function TwilioForm({ form }: { form: AppSecretConfigFormModel<FormState> }) {
           return {
             ...prevState,
             [key]: value,
-          };
+          } satisfies FormState;
         });
       };
     };
@@ -520,19 +563,6 @@ function TwilioForm({ form }: { form: AppSecretConfigFormModel<FormState> }) {
       twilioMessagingServiceSID: callbackFactory("twilioMessagingServiceSID"),
     };
   }, [form]);
-
-  const navigate = useNavigate();
-
-  const onClickEdit = useCallback(() => {
-    const state: LocationState = {
-      isRevealSecrets: true,
-    };
-
-    startReauthentication(navigate, state).catch((e) => {
-      // Normally there should not be any error.
-      console.error(e);
-    });
-  }, [navigate]);
 
   return (
     <div className="flex flex-col gap-y-4">
@@ -578,10 +608,141 @@ function TwilioForm({ form }: { form: AppSecretConfigFormModel<FormState> }) {
       {form.state.isSecretMasked ? (
         <PrimaryButton
           className="w-min"
-          onClick={onClickEdit}
+          onClick={onRevealSecrets}
           text={<FormattedMessage id="edit" />}
         />
       ) : null}
+    </div>
+  );
+}
+
+function WebhookForm({
+  appID,
+  form,
+  onRevealSecrets,
+}: {
+  appID: string;
+  form: AppSecretConfigFormModel<FormState>;
+  onRevealSecrets: () => void;
+}) {
+  const { renderToString } = useContext(MessageContext);
+
+  const onURLChange = useCallback(
+    (event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      form.setState((prevState) => {
+        const value = event.currentTarget.value;
+        return {
+          ...prevState,
+          webhookURL: value,
+        } satisfies FormState;
+      });
+    },
+    [form]
+  );
+
+  const onTimeoutChange = useCallback(
+    (event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      const value = parseInt(event.currentTarget.value, 10);
+      if (isNaN(value)) {
+        return;
+      }
+      form.setState((prevState) => {
+        return {
+          ...prevState,
+          webhookTimeout: value,
+        } satisfies FormState;
+      });
+    },
+    [form]
+  );
+
+  // eslint-disable-next-line no-useless-assignment
+  const { copyButtonProps, Feedback: CopyFeedbackComponent } = useCopyFeedback({
+    textToCopy: form.state.webhookSecretKey ?? "",
+  });
+
+  const isWebhookSecretMasked = form.state.webhookSecretKey == null;
+
+  return (
+    <div className="flex flex-col gap-y-4">
+      <FormTextField
+        type="text"
+        label={renderToString(
+          "SMSProviderConfigurationScreen.form.webhook.url"
+        )}
+        value={form.state.webhookURL}
+        required={true}
+        onChange={onURLChange}
+        parentJSONPointer={/\/secrets\/\d+\/data/}
+        fieldName="url"
+      />
+      <CodeField
+        label={renderToString(
+          "SMSProviderConfigurationScreen.form.webhook.payload"
+        )}
+        description={renderToString(
+          "SMSProviderConfigurationScreen.form.webhook.payload.description"
+        )}
+      >
+        {`{
+  "to": "+85298765432",
+  "body": "You OTP is 123456"
+}`}
+      </CodeField>
+      <div>
+        <div className="flex items-end gap-x-2">
+          <TextField
+            className="flex-1"
+            type="text"
+            label={renderToString(
+              "SMSProviderConfigurationScreen.form.webhook.signatureKey"
+            )}
+            value={
+              isWebhookSecretMasked
+                ? "********"
+                : form.state.webhookSecretKey ?? ""
+            }
+            readOnly={true}
+          />
+          <DefaultButton
+            className={styles.secretButton}
+            id={copyButtonProps.id}
+            onClick={
+              !isWebhookSecretMasked ? copyButtonProps.onClick : onRevealSecrets
+            }
+            onMouseLeave={
+              !isWebhookSecretMasked ? copyButtonProps.onMouseLeave : undefined
+            }
+            text={
+              !isWebhookSecretMasked ? (
+                <FormattedMessage id="copy" />
+              ) : (
+                <FormattedMessage id="reveal" />
+              )
+            }
+          />
+          <CopyFeedbackComponent />
+        </div>
+        <Text block={true} variant="medium" className="mt-2">
+          <FormattedMessage
+            id="SMSProviderConfigurationScreen.form.webhook.signatureKey.description"
+            values={{ to: `/project/${appID}/advanced/hooks` }}
+          />
+        </Text>
+      </div>
+      <FormTextField
+        type="number"
+        label={renderToString(
+          "SMSProviderConfigurationScreen.form.webhook.timeout"
+        )}
+        value={String(form.state.webhookTimeout)}
+        onChange={onTimeoutChange}
+        parentJSONPointer={/\/secrets\/\d+\/data/}
+        fieldName="timeout"
+        description={renderToString(
+          "SMSProviderConfigurationScreen.form.webhook.timeout.description"
+        )}
+      />
     </div>
   );
 }
