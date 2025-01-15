@@ -33,7 +33,7 @@ func NewManagerWithDir(options NewManagerWithDirOptions) *Manager {
 	var fs []Fs
 	fs = append(fs,
 		LeveledAferoFs{
-			Fs:      afero.NewBasePathFs(afero.FromIOFS{FS: options.BuiltinResourceFS}, options.BuiltinResourceFSRoot),
+			Fs:      options.MakeBuiltinFSByBuildTag(),
 			FsLevel: FsLevelBuiltin,
 		},
 	)
