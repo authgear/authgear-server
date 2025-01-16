@@ -5,10 +5,14 @@ import (
 	"encoding/json"
 	"errors"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
 )
 
-var ErrNoAvailableClient = errors.New("no available SMS client")
+var NoAvailableClient = apierrors.InternalError.
+	WithReason("NoAvailableSMSClient")
+var ErrNoAvailableClient = NoAvailableClient.
+	New("no available SMS client")
 var ErrAmbiguousClient = errors.New("ambiguous SMS client")
 
 type TemplateVariables struct {

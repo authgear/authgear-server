@@ -14,6 +14,7 @@ import (
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/sms/smsapi"
 )
 
 type ErrorRendererUIImplementationService interface {
@@ -110,6 +111,8 @@ func (s *ErrorRenderer) MakeAuthflowErrorResult(ctx context.Context, w http.Resp
 	case errors.Is(err, api.ErrNoAuthenticator):
 		fallthrough
 	case apierrors.IsKind(err, webapp.WebUIInvalidSession):
+		fallthrough
+	case apierrors.IsKind(err, smsapi.NoAvailableClient):
 		fallthrough
 	case r.Method == http.MethodGet && u.Path == r.URL.Path:
 		// Infinite loop might occur if it is a GET request with the same route

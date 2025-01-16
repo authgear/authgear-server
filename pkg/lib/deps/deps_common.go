@@ -563,7 +563,7 @@ var CommonDependencySet = wire.NewSet(
 
 	wire.NewSet(
 		sms.DependencySet,
-		wire.Bind(new(messaging.SMSSender), new(*sms.Client)),
+		wire.Bind(new(messaging.SMSSender), new(*sms.Sender)),
 	),
 	wire.NewSet(
 		mail.DependencySet,

@@ -633,7 +633,7 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
 	}
-	smsClient := &sms.Client{
+	smsSender := &sms.Sender{
 		Logger:         smsLogger,
 		ClientResolver: clientResolver,
 	}
@@ -665,7 +665,7 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		Limits:                            limits,
 		Events:                            eventService,
 		MailSender:                        sender,
-		SMSSender:                         smsClient,
+		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
 		Database:                          handle,
 		DevMode:                           devMode,
