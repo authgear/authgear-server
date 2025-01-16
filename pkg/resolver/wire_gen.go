@@ -767,7 +767,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
 	}
-	smsClient := &sms.Sender{
+	smsSender := &sms.Sender{
 		Logger:         smsLogger,
 		ClientResolver: clientResolver,
 	}
@@ -799,7 +799,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Limits:                            limits,
 		Events:                            eventService,
 		MailSender:                        sender,
-		SMSSender:                         smsClient,
+		SMSSender:                         smsSender,
 		WhatsappSender:                    whatsappService,
 		Database:                          appdbHandle,
 		DevMode:                           devMode,
