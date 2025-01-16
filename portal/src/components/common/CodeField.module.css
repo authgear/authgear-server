@@ -1,0 +1,6 @@
+.code {
+  @apply block;
+  @apply px-2 py-2;
+  @apply bg-neutral-light;
+  @apply whitespace-pre;
+}

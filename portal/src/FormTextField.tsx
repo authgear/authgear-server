@@ -33,7 +33,7 @@ const FormTextField: React.VFC<FormTextFieldProps> = function FormTextField(
     <TextField
       {...rest}
       {...textFieldProps}
-      disabled={ownDisabled ?? ctxDisabled}
+      disabled={(ownDisabled ?? false) || ctxDisabled}
     />
   );
 };

@@ -133,6 +133,45 @@ var samlSpSigningSecretsSetDataInput = graphql.NewInputObject(graphql.InputObjec
 	},
 })
 
+var smsProviderSecretsSetDataInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "SMSProviderSecretsSetDataInput",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"twilioCredentials": &graphql.InputObjectFieldConfig{
+			Type: smsProviderTwilioCredentialsInput,
+		},
+		"customSMSProviderCredentials": &graphql.InputObjectFieldConfig{
+			Type: customSmsProviderSecretsInput,
+		},
+	},
+})
+
+var smsProviderTwilioCredentialsInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "SMSProviderTwilioCredentialsInput",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"accountSID": &graphql.InputObjectFieldConfig{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+		"authToken": &graphql.InputObjectFieldConfig{
+			Type: graphql.String,
+		},
+		"messagingServiceSID": &graphql.InputObjectFieldConfig{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+	},
+})
+
+var customSmsProviderSecretsInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "CustomSmsProviderSecretsInput",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"url": &graphql.InputObjectFieldConfig{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+		"timeout": &graphql.InputObjectFieldConfig{
+			Type: graphql.Int,
+		},
+	},
+})
+
 var smtpSecretUpdateInstructionsInput = graphql.NewInputObject(graphql.InputObjectConfig{
 	Name: "SmtpSecretUpdateInstructionsInput",
 	Fields: graphql.InputObjectConfigFieldMap{
@@ -196,6 +235,18 @@ var samlSpSigningSecretsUpdateInstructionsInput = graphql.NewInputObject(graphql
 	},
 })
 
+var smsProviderSecretsUpdateInstructionsInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "SMSProviderSecretsUpdateInstructionsInput",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"action": &graphql.InputObjectFieldConfig{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+		"setData": &graphql.InputObjectFieldConfig{
+			Type: smsProviderSecretsSetDataInput,
+		},
+	},
+})
+
 var adminAPIAuthKeyUpdateInstructionInput = graphql.NewInputObject(graphql.InputObjectConfig{
 	Name: "AdminAPIAuthKeyUpdateInstructionInput",
 	Fields: graphql.InputObjectConfigFieldMap{
@@ -255,6 +306,9 @@ var secretConfigUpdateInstructionsInput = graphql.NewInputObject(graphql.InputOb
 		},
 		"samlSpSigningSecrets": &graphql.InputObjectFieldConfig{
 			Type: samlSpSigningSecretsUpdateInstructionsInput,
+		},
+		"smsProviderSecrets": &graphql.InputObjectFieldConfig{
+			Type: smsProviderSecretsUpdateInstructionsInput,
 		},
 	},
 })
@@ -708,7 +762,7 @@ var _ = registerMutationField(
 				appSecretKey := s.(AppSecretKey)
 				appSecretKeys = append(appSecretKeys, string(appSecretKey))
 				configSecretKey := secretKeyToConfigKeyMap[appSecretKey]
-				secrets = append(secrets, configSecretKey)
+				secrets = append(secrets, configSecretKey...)
 			}
 
 			resolvedNodeID := relay.FromGlobalID(appNodeID)

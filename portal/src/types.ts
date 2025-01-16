@@ -410,8 +410,24 @@ export interface VerificationRateLimitsSMSConfig {
   trigger_per_user?: RateLimitConfig;
 }
 
+export type SMSProvider = "nexmo" | "twilio" | "custom";
+
+export type SMSGatewayConfigUseConfigFrom =
+  | "environment_variable"
+  | "authgear.secrets.yaml";
+
+export interface SMSGatewayConfig {
+  use_config_from: SMSGatewayConfigUseConfigFrom;
+  provider?: SMSProvider;
+}
+
 export interface MessagingConfig {
   rate_limits?: MessagingRateLimitsConfig;
+  sms_provider?: SMSProvider; // deprecated
+  sms_gateway?: SMSGatewayConfig;
+}
+
+export interface MessagingFeatureConfig {
   template_customization_disabled?: boolean;
 }
 
@@ -686,6 +702,22 @@ export interface SAMLIdpSigningSecrets {
   certificates: SAMLIdpSigningCertificate[];
 }
 
+export interface SMSProviderSecrets {
+  twilioCredentials?: SMSProviderTwilioCredentials | null;
+  customSMSProviderCredentials?: SMSProviderCustomSMSProviderSecrets | null;
+}
+
+export interface SMSProviderTwilioCredentials {
+  accountSID: string;
+  authToken?: string | null;
+  messagingServiceSID: string;
+}
+
+export interface SMSProviderCustomSMSProviderSecrets {
+  url: string;
+  timeout?: number | null; // In seconds
+}
+
 export interface PortalAPISecretConfig {
   oauthSSOProviderClientSecrets?: OAuthSSOProviderClientSecret[] | null;
   webhookSecret?: WebhookSecret | null;
@@ -695,6 +727,7 @@ export interface PortalAPISecretConfig {
   botProtectionProviderSecret?: BotProtectionProviderSecret | null;
   samlIdpSigningSecrets?: SAMLIdpSigningSecrets | null;
   samlSpSigningSecrets?: SAMLSpSigningSecrets[] | null;
+  smsProviderSecrets?: SMSProviderSecrets | null;
 }
 
 export interface OAuthSSOProviderClientSecretUpdateInstructionDataItem
@@ -778,6 +811,27 @@ export interface SAMLIdpSigningSecretsUpdateInstruction {
   deleteData?: SAMLIdpSigningSecretsDeleteDataInput | null;
 }
 
+export interface SMSProviderTwilioCredentialsInput {
+  accountSID: string;
+  authToken?: string | null;
+  messagingServiceSID: string;
+}
+
+export interface CustomSmsProviderSecretsInput {
+  url: string;
+  timeout?: number | null;
+}
+
+export interface SMSProviderSecretsSetDataInput {
+  twilioCredentials?: SMSProviderTwilioCredentialsInput;
+  customSMSProviderCredentials?: CustomSmsProviderSecretsInput;
+}
+
+export interface SMSProviderSecretsUpdateInstructions {
+  action: string;
+  setData?: SMSProviderSecretsSetDataInput;
+}
+
 export interface PortalAPISecretConfigUpdateInstruction {
   oauthSSOProviderClientSecrets?: OAuthSSOProviderClientSecretUpdateInstruction | null;
   smtpSecret?: SMTPSecretUpdateInstruction | null;
@@ -786,6 +840,7 @@ export interface PortalAPISecretConfigUpdateInstruction {
   botProtectionProviderSecret?: BotProtectionProviderSecretUpdateInstruction | null;
   samlIdpSigningSecrets?: SAMLIdpSigningSecretsUpdateInstruction | null;
   samlSpSigningSecrets?: SAMLSpSigningSecretsUpdateInstruction | null;
+  smsProviderSecrets?: SMSProviderSecretsUpdateInstructions | null;
 }
 
 export interface PortalAPIApp {
@@ -1089,4 +1144,12 @@ export enum SAMLBinding {
 
 export enum SAMLSigningSignatureMethod {
   RSASHA256 = "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256",
+}
+
+export type HookKind = "webhook" | "denohook";
+export function getHookKind(url: string): HookKind {
+  if (url.startsWith("authgeardeno:")) {
+    return "denohook";
+  }
+  return "webhook";
 }
