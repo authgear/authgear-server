@@ -29,6 +29,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/portal/loader"
 	"github.com/authgear/authgear-server/pkg/portal/service"
 	"github.com/authgear/authgear-server/pkg/portal/session"
+	"github.com/authgear/authgear-server/pkg/portal/sms"
 	"github.com/authgear/authgear-server/pkg/portal/smtp"
 	"github.com/authgear/authgear-server/pkg/portal/transport"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -270,6 +271,10 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	domainLoader := loader.NewDomainLoader(domainService, authzService)
 	collaboratorLoader := loader.NewCollaboratorLoader(collaboratorService, authzService)
 	collaboratorInvitationLoader := loader.NewCollaboratorInvitationLoader(collaboratorService, authzService)
+	smsLogger := sms.NewLogger(logFactory)
+	smsService := &sms.Service{
+		Logger: smsLogger,
+	}
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(environmentConfig)
 	readHandle := auditdb.NewReadHandle(pool, databaseEnvironmentConfig, auditDatabaseCredentials, logFactory)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials)
@@ -354,6 +359,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		DomainService:           domainService,
 		CollaboratorService:     collaboratorService,
 		SMTPService:             smtpService,
+		SMSService:              smsService,
 		AppResMgrFactory:        managerFactory,
 		AnalyticChartService:    chartService,
 		TutorialService:         tutorialService,

@@ -98,6 +98,14 @@ type SMTPService interface {
 	SendTestEmail(ctx context.Context, app *model.App, options smtp.SendTestEmailOptions) (err error)
 }
 
+type SMSService interface {
+	SendByTwilio(ctx context.Context,
+		app *model.App,
+		to string,
+		cfg model.SMSProviderConfigurationTwilioInput,
+	) error
+}
+
 type AppResourceManagerFactory interface {
 	NewManagerWithAppContext(appContext *config.AppContext) *appresource.Manager
 }
@@ -188,6 +196,7 @@ type Context struct {
 	DomainService        DomainService
 	CollaboratorService  CollaboratorService
 	SMTPService          SMTPService
+	SMSService           SMSService
 	AppResMgrFactory     AppResourceManagerFactory
 	AnalyticChartService AnalyticChartService
 	TutorialService      TutorialService

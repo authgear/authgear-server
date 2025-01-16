@@ -24,6 +24,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/portal/libstripe"
 	"github.com/authgear/authgear-server/pkg/portal/loader"
 	"github.com/authgear/authgear-server/pkg/portal/service"
+	"github.com/authgear/authgear-server/pkg/portal/sms"
 	"github.com/authgear/authgear-server/pkg/portal/smtp"
 	"github.com/authgear/authgear-server/pkg/portal/transport"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -68,6 +69,8 @@ var DependencySet = wire.NewSet(
 	smtp.DependencySet,
 	wire.Bind(new(smtp.MailSender), new(*mail.Sender)),
 
+	sms.DependencySet,
+
 	auditdb.NewReadHandle,
 	auditdb.NewWriteHandle,
 	auditdb.DependencySet,
@@ -110,6 +113,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(graphql.DomainService), new(*service.DomainService)),
 	wire.Bind(new(graphql.CollaboratorService), new(*service.CollaboratorService)),
 	wire.Bind(new(graphql.SMTPService), new(*smtp.Service)),
+	wire.Bind(new(graphql.SMSService), new(*sms.Service)),
 	wire.Bind(new(graphql.AppResourceManagerFactory), new(*appresource.ManagerFactory)),
 	wire.Bind(new(graphql.AnalyticChartService), new(*analytic.ChartService)),
 	wire.Bind(new(graphql.TutorialService), new(*tutorial.Service)),
