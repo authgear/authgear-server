@@ -34,6 +34,10 @@ var smsProviderConfigurationInput = graphql.NewInputObject(graphql.InputObjectCo
 			Type:        smsProviderConfigurationTwilioInput,
 			Description: "Configuration of Twilio",
 		},
+		"webhook": &graphql.InputObjectFieldConfig{
+			Type:        smsProviderConfigurationWebhookInput,
+			Description: "Configuration of Webhook",
+		},
 	},
 })
 
@@ -48,6 +52,18 @@ var smsProviderConfigurationTwilioInput = graphql.NewInputObject(graphql.InputOb
 		},
 		"messagingServiceSID": &graphql.InputObjectFieldConfig{
 			Type: graphql.NewNonNull(graphql.String),
+		},
+	},
+})
+
+var smsProviderConfigurationWebhookInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "SMSProviderConfigurationWebhookInput",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"url": &graphql.InputObjectFieldConfig{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+		"timeout": &graphql.InputObjectFieldConfig{
+			Type: graphql.Int,
 		},
 	},
 })
@@ -100,6 +116,11 @@ var _ = registerMutationField(
 
 			if providerConfig.Twilio != nil {
 				err = gqlCtx.SMSService.SendByTwilio(ctx, app, to, *providerConfig.Twilio)
+				if err != nil {
+					return nil, err
+				}
+			} else if providerConfig.Webhook != nil {
+				err = gqlCtx.SMSService.SendByWebhook(ctx, app, to, *providerConfig.Webhook)
 				if err != nil {
 					return nil, err
 				}

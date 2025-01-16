@@ -104,6 +104,12 @@ type SMSService interface {
 		to string,
 		cfg model.SMSProviderConfigurationTwilioInput,
 	) error
+	SendByWebhook(
+		ctx context.Context,
+		app *model.App,
+		to string,
+		cfg model.SMSProviderConfigurationWebhookInput,
+	) error
 }
 
 type AppResourceManagerFactory interface {
