@@ -65,6 +65,10 @@ func (s *Service) GetSenderForTestEmail(ctx context.Context) (sender string, err
 	return
 }
 
+func (s *Service) GetSenderForTestSMS(ctx context.Context) (sender string, err error) {
+	return s.smsMessageHeader(ctx, "default", &PreparedTemplateVariables{})
+}
+
 func (s *Service) emailMessageHeader(ctx context.Context, name SpecName, variables *PreparedTemplateVariables) (sender, replyTo, subject string, err error) {
 	t, err := s.translationMap(ctx)
 	if err != nil {

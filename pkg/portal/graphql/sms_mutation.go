@@ -31,7 +31,7 @@ var smsProviderConfigurationInput = graphql.NewInputObject(graphql.InputObjectCo
 	Name: "SMSProviderConfigurationInput",
 	Fields: graphql.InputObjectConfigFieldMap{
 		"twilio": &graphql.InputObjectFieldConfig{
-			Type:        graphql.NewNonNull(graphql.ID),
+			Type:        smsProviderConfigurationTwilioInput,
 			Description: "Configuration of Twilio",
 		},
 	},
@@ -44,7 +44,7 @@ var smsProviderConfigurationTwilioInput = graphql.NewInputObject(graphql.InputOb
 			Type: graphql.NewNonNull(graphql.String),
 		},
 		"authToken": &graphql.InputObjectFieldConfig{
-			Type: graphql.String,
+			Type: graphql.NewNonNull(graphql.String),
 		},
 		"messagingServiceSID": &graphql.InputObjectFieldConfig{
 			Type: graphql.NewNonNull(graphql.String),
@@ -96,6 +96,13 @@ var _ = registerMutationField(
 			err = json.Unmarshal(providerConfigJSON, &providerConfig)
 			if err != nil {
 				return nil, err
+			}
+
+			if providerConfig.Twilio != nil {
+				err = gqlCtx.SMSService.SendByTwilio(ctx, app, to, *providerConfig.Twilio)
+				if err != nil {
+					return nil, err
+				}
 			}
 
 			return nil, nil
