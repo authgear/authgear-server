@@ -3,6 +3,7 @@ package model
 type SMSProviderConfigurationInput struct {
 	Twilio  *SMSProviderConfigurationTwilioInput  `json:"twilio,omitempty"`
 	Webhook *SMSProviderConfigurationWebhookInput `json:"webhook,omitempty"`
+	Deno    *SMSProviderConfigurationDenoInput    `json:"deno,omitempty"`
 }
 
 type SMSProviderConfigurationTwilioInput struct {
@@ -13,5 +14,10 @@ type SMSProviderConfigurationTwilioInput struct {
 
 type SMSProviderConfigurationWebhookInput struct {
 	URL     string `json:"url,omitempty"`
+	Timeout *int   `json:"timeout,omitempty"`
+}
+
+type SMSProviderConfigurationDenoInput struct {
+	Script  string `json:"script,omitempty"`
 	Timeout *int   `json:"timeout,omitempty"`
 }

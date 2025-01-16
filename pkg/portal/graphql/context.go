@@ -110,6 +110,12 @@ type SMSService interface {
 		to string,
 		cfg model.SMSProviderConfigurationWebhookInput,
 	) error
+	SendByDeno(
+		ctx context.Context,
+		app *model.App,
+		to string,
+		cfg model.SMSProviderConfigurationDenoInput,
+	) error
 }
 
 type AppResourceManagerFactory interface {
