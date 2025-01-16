@@ -188,7 +188,7 @@ var smsProviderTwilioCredentials = graphql.NewObject(graphql.ObjectConfig{
 })
 
 var smsProviderCustomSmsProviderSecrets = graphql.NewObject(graphql.ObjectConfig{
-	Name:        "SMSProviderCustomSmsProviderSecrets",
+	Name:        "SMSProviderCustomSMSProviderSecrets",
 	Description: "Custom SMS Provider configs",
 	Fields: graphql.Fields{
 		"url": &graphql.Field{

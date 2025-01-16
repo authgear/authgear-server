@@ -675,7 +675,7 @@ export type SamlSpSigningSecretsUpdateInstructionsInput = {
 
 /** Custom SMS Provider configs */
 export type SmsProviderCustomSmsProviderSecrets = {
-  __typename?: 'SMSProviderCustomSmsProviderSecrets';
+  __typename?: 'SMSProviderCustomSMSProviderSecrets';
   timeout?: Maybe<Scalars['Int']['output']>;
   url: Scalars['String']['output'];
 };
