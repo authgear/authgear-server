@@ -284,7 +284,13 @@ function constructSecretUpdateInstruction(
   currentState: ConfigFormState
 ): PortalAPISecretConfigUpdateInstruction | undefined {
   if (!currentState.enabled || !secrets.smsProviderSecrets) {
-    return undefined;
+    // Remove all existing secrets
+    return {
+      smsProviderSecrets: {
+        action: "set",
+        setData: {},
+      },
+    };
   }
 
   switch (currentState.providerType) {

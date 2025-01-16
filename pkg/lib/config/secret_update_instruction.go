@@ -775,8 +775,8 @@ func (i *SAMLSpSigningSecretsUpdateInstruction) set(currentConfig *SecretConfig)
 }
 
 type SMSProviderSecretsUpdateInstructionSetData struct {
-	TwilioCredentials *SMSProviderSecretsUpdateInstructionTwilioCredentials `json:"twilioCredentials,omitempty"`
-	CustomSMSProvider *SMSProviderSecretsUpdateInstructionCustomSMSProvider `json:"customSMSProviderCredentials,omitempty"`
+	TwilioCredentials            *SMSProviderSecretsUpdateInstructionTwilioCredentials `json:"twilioCredentials,omitempty"`
+	CustomSMSProviderCredentials *SMSProviderSecretsUpdateInstructionCustomSMSProvider `json:"customSMSProviderCredentials,omitempty"`
 }
 
 type SMSProviderSecretsUpdateInstructionTwilioCredentials struct {
@@ -834,6 +834,19 @@ func (i *SMSProviderSecretsUpdateInstruction) set(currentConfig *SecretConfig) (
 		return nil
 	}
 
+	remove := func(credentialKey SecretKey) error {
+		newSecretItems := []SecretItem{}
+
+		for _, item := range out.Secrets {
+			if item.Key != credentialKey {
+				newSecretItems = append(newSecretItems, item)
+			}
+		}
+
+		out.Secrets = newSecretItems
+		return nil
+	}
+
 	if i.SetData.TwilioCredentials != nil {
 		twilioCredentials := TwilioCredentials{
 			AccountSID:          i.SetData.TwilioCredentials.AccountSID,
@@ -844,14 +857,24 @@ func (i *SMSProviderSecretsUpdateInstruction) set(currentConfig *SecretConfig) (
 		if err != nil {
 			return nil, err
 		}
+	} else {
+		err := remove(TwilioCredentialsKey)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	if i.SetData.CustomSMSProvider != nil {
+	if i.SetData.CustomSMSProviderCredentials != nil {
 		customSMSProviderConfig := CustomSMSProviderConfig{
-			URL:     i.SetData.CustomSMSProvider.URL,
-			Timeout: i.SetData.CustomSMSProvider.Timeout,
+			URL:     i.SetData.CustomSMSProviderCredentials.URL,
+			Timeout: i.SetData.CustomSMSProviderCredentials.Timeout,
 		}
 		err := upsert(CustomSMSProviderConfigKey, customSMSProviderConfig)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		err := remove(CustomSMSProviderConfigKey)
 		if err != nil {
 			return nil, err
 		}
