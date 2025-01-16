@@ -17,12 +17,6 @@ type Sender struct {
 }
 
 func (c *Sender) Send(ctx context.Context, client smsapi.Client, opts smsapi.SendOptions) error {
-	client, _, err := c.ClientResolver.ResolveClient()
-
-	if err != nil {
-		return err
-	}
-
 	return client.Send(ctx, opts)
 }
 
