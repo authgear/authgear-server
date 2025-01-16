@@ -97,7 +97,7 @@ type SMSProviderCustomSMSProviderConfigs struct {
 
 type SMSProviderSecrets struct {
 	TwilioCredentials *SMSProviderTwilioCredentials        `json:"twilioCredentials,omitempty"`
-	CustomSMSProvider *SMSProviderCustomSMSProviderConfigs `json:"customSmsProvider,omitempty"`
+	CustomSMSProvider *SMSProviderCustomSMSProviderConfigs `json:"customSMSProvider,omitempty"`
 }
 
 type SecretConfig struct {

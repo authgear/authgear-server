@@ -704,7 +704,7 @@ export interface SAMLIdpSigningSecrets {
 
 export interface SMSProviderSecrets {
   twilioCredentials?: SMSProviderTwilioCredentials | null;
-  customSmsProvider?: SMSProviderCustomSmsProviderSecrets | null;
+  customSMSProvider?: SMSProviderCustomSmsProviderSecrets | null;
 }
 
 export interface SMSProviderTwilioCredentials {
@@ -824,7 +824,7 @@ export interface CustomSmsProviderSecretsInput {
 
 export interface SMSProviderSecretsSetDataInput {
   twilioCredentials?: SMSProviderTwilioCredentialsInput;
-  customSmsProvider?: CustomSmsProviderSecretsInput;
+  customSMSProvider?: CustomSmsProviderSecretsInput;
 }
 
 export interface SMSProviderSecretsUpdateInstructions {

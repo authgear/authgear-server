@@ -139,7 +139,7 @@ var smsProviderSecretsSetDataInput = graphql.NewInputObject(graphql.InputObjectC
 		"twilioCredentials": &graphql.InputObjectFieldConfig{
 			Type: smsProviderTwilioCredentialsInput,
 		},
-		"customSmsProvider": &graphql.InputObjectFieldConfig{
+		"customSMSProvider": &graphql.InputObjectFieldConfig{
 			Type: customSmsProviderSecretsInput,
 		},
 	},

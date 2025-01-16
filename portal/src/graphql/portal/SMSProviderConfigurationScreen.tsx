@@ -122,7 +122,7 @@ function constructFormState(
     config.messaging?.sms_gateway != null &&
     config.messaging.sms_gateway.provider === "custom";
   const hasCustomProviderSecrets =
-    secrets.smsProviderSecrets?.customSmsProvider != null;
+    secrets.smsProviderSecrets?.customSMSProvider != null;
 
   if (isSMSGatewayIsTwilio && hasCustomTwilioCredentials) {
     enabled = true;
@@ -130,12 +130,12 @@ function constructFormState(
   } else if (isSMSGatewayIsCustom && hasCustomProviderSecrets) {
     enabled = true;
     if (
-      getHookKind(secrets.smsProviderSecrets!.customSmsProvider!.url) ===
+      getHookKind(secrets.smsProviderSecrets!.customSMSProvider!.url) ===
       "denohook"
     ) {
     }
     providerType =
-      getHookKind(secrets.smsProviderSecrets!.customSmsProvider!.url) ===
+      getHookKind(secrets.smsProviderSecrets!.customSMSProvider!.url) ===
       "denohook"
         ? SMSProviderType.Deno
         : SMSProviderType.Webhook;
@@ -168,19 +168,19 @@ function constructFormState(
     enabled &&
     (providerType === SMSProviderType.Webhook ||
       providerType === SMSProviderType.Deno) &&
-    secrets.smsProviderSecrets?.customSmsProvider != null
+    secrets.smsProviderSecrets?.customSMSProvider != null
   ) {
     if (
-      getHookKind(secrets.smsProviderSecrets.customSmsProvider.url) ===
+      getHookKind(secrets.smsProviderSecrets.customSMSProvider.url) ===
       "denohook"
     ) {
-      denoHookURL = secrets.smsProviderSecrets.customSmsProvider.url;
+      denoHookURL = secrets.smsProviderSecrets.customSMSProvider.url;
     } else {
-      webhookURL = secrets.smsProviderSecrets.customSmsProvider.url;
+      webhookURL = secrets.smsProviderSecrets.customSMSProvider.url;
     }
-    if (secrets.smsProviderSecrets.customSmsProvider.timeout != null) {
-      denoHookTimeout = secrets.smsProviderSecrets.customSmsProvider.timeout;
-      webhookTimeout = secrets.smsProviderSecrets.customSmsProvider.timeout;
+    if (secrets.smsProviderSecrets.customSMSProvider.timeout != null) {
+      denoHookTimeout = secrets.smsProviderSecrets.customSMSProvider.timeout;
+      webhookTimeout = secrets.smsProviderSecrets.customSMSProvider.timeout;
     }
   }
   return {
@@ -251,7 +251,7 @@ function constructConfig(
           break;
         case SMSProviderType.Webhook:
           secrets.smsProviderSecrets = {
-            customSmsProvider: {
+            customSMSProvider: {
               url: currentState.webhookURL,
               timeout: currentState.webhookTimeout,
             },
@@ -259,7 +259,7 @@ function constructConfig(
           break;
         case SMSProviderType.Deno:
           secrets.smsProviderSecrets = {
-            customSmsProvider: {
+            customSMSProvider: {
               url: currentState.denoHookURL,
               timeout: currentState.denoHookTimeout,
             },
@@ -306,33 +306,33 @@ function constructSecretUpdateInstruction(
         },
       };
     case SMSProviderType.Webhook:
-      if (secrets.smsProviderSecrets.customSmsProvider == null) {
-        console.error("unexpected null customSmsProvider");
+      if (secrets.smsProviderSecrets.customSMSProvider == null) {
+        console.error("unexpected null customSMSProvider");
         return undefined;
       }
       return {
         smsProviderSecrets: {
           action: "set",
           setData: {
-            customSmsProvider: {
-              url: secrets.smsProviderSecrets.customSmsProvider.url,
-              timeout: secrets.smsProviderSecrets.customSmsProvider.timeout,
+            customSMSProvider: {
+              url: secrets.smsProviderSecrets.customSMSProvider.url,
+              timeout: secrets.smsProviderSecrets.customSMSProvider.timeout,
             },
           },
         },
       };
     case SMSProviderType.Deno:
-      if (secrets.smsProviderSecrets.customSmsProvider == null) {
-        console.error("unexpected null customSmsProvider");
+      if (secrets.smsProviderSecrets.customSMSProvider == null) {
+        console.error("unexpected null customSMSProvider");
         return undefined;
       }
       return {
         smsProviderSecrets: {
           action: "set",
           setData: {
-            customSmsProvider: {
-              url: secrets.smsProviderSecrets.customSmsProvider.url,
-              timeout: secrets.smsProviderSecrets.customSmsProvider.timeout,
+            customSMSProvider: {
+              url: secrets.smsProviderSecrets.customSMSProvider.url,
+              timeout: secrets.smsProviderSecrets.customSMSProvider.timeout,
             },
           },
         },
