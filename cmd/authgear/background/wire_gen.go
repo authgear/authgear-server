@@ -734,7 +734,7 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
 	}
-	smsClient := &sms.Client{
+	smsClient := &sms.Sender{
 		Logger:         smsLogger,
 		ClientResolver: clientResolver,
 	}

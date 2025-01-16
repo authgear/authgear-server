@@ -772,7 +772,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
 	}
-	smsClient := &sms.Client{
+	smsClient := &sms.Sender{
 		Logger:         smsLogger,
 		ClientResolver: clientResolver,
 	}

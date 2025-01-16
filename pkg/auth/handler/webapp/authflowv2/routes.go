@@ -18,6 +18,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/sms/smsapi"
 	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/wechat"
 	"github.com/authgear/authgear-server/pkg/lib/webappoauth"
 )
@@ -146,6 +147,9 @@ func (n *AuthflowV2Navigator) NavigateNonRecoverableError(r *http.Request, u *ur
 		u.Path = n.Endpoints.ErrorEndpointURL().Path
 	case apierrors.IsKind(e, webapp.WebUIInvalidSession):
 		// Show WebUIInvalidSession error in different page.
+		u.Path = n.Endpoints.ErrorEndpointURL().Path
+	case apierrors.IsKind(e, smsapi.NoAvailableClient):
+		// Show NoAvailableClient error in different page.
 		u.Path = n.Endpoints.ErrorEndpointURL().Path
 	case r.Method == http.MethodGet:
 		// If the request method is Get, avoid redirect back to the same path

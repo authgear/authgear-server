@@ -12,7 +12,7 @@ var DependencySet = wire.NewSet(
 	custom.NewHookHTTPClient,
 	custom.NewHookDenoClient,
 	wire.Struct(new(ClientResolver), "*"),
-	wire.Struct(new(Client), "*"),
+	wire.Struct(new(Sender), "*"),
 	wire.Struct(new(custom.SMSWebHook), "*"),
 	wire.Struct(new(custom.SMSDenoHook), "*"),
 )

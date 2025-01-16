@@ -767,7 +767,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
 	}
-	smsClient := &sms.Client{
+	smsClient := &sms.Sender{
 		Logger:         smsLogger,
 		ClientResolver: clientResolver,
 	}

@@ -15,6 +15,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms"
+	"github.com/authgear/authgear-server/pkg/lib/infra/sms/smsapi"
 	"github.com/authgear/authgear-server/pkg/lib/infra/whatsapp"
 	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
@@ -37,7 +38,8 @@ type MailSender interface {
 }
 
 type SMSSender interface {
-	Send(ctx context.Context, opts sms.SendOptions) error
+	Send(ctx context.Context, client smsapi.Client, opts sms.SendOptions) error
+	ResolveClient() (smsapi.Client, error)
 }
 
 type WhatsappSender interface {
@@ -187,11 +189,16 @@ func (s *Sender) SendSMSInNewGoroutine(ctx context.Context, msgType translation.
 		return s.devModeSendSMS(ctx, msgType, opts)
 	}
 
+	client, err := s.SMSSender.ResolveClient()
+	if err != nil {
+		return err
+	}
+
 	go func() {
 		// Detach the deadline so that the context is not canceled along with the request.
 		ctx = context.WithoutCancel(ctx)
 
-		err := s.SMSSender.Send(ctx, *opts)
+		err := s.SMSSender.Send(ctx, client, *opts)
 		if err != nil {
 			otelauthgear.IntCounterAddOne(
 				ctx,
