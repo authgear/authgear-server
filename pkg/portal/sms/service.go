@@ -19,7 +19,9 @@ func NewLogger(lf *log.Factory) Logger {
 }
 
 type Service struct {
-	Logger Logger
+	LoggerFactory *log.Factory
+	DenoEndpoint  config.DenoEndpoint
+	Logger        Logger
 }
 
 const SMS_BODY = "[Test] Authgear sms"
@@ -68,6 +70,29 @@ func (s *Service) SendByWebhook(
 	}
 
 	_, err = webhook.Call(ctx, url, custom.SendOptions{
+		To:   to,
+		Body: SMS_BODY,
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *Service) SendByDeno(
+	ctx context.Context,
+	app *model.App,
+	to string,
+	cfg model.SMSProviderConfigurationDenoInput,
+) error {
+
+	deno := custom.NewSMSDenoHook(s.LoggerFactory, s.DenoEndpoint, &config.CustomSMSProviderConfig{
+		// URL is not important here, we execute the script with a string
+		URL:     "",
+		Timeout: (*config.DurationSeconds)(cfg.Timeout),
+	})
+
+	err := deno.Test(ctx, cfg.Script, custom.SendOptions{
 		To:   to,
 		Body: SMS_BODY,
 	})

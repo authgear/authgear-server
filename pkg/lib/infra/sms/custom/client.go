@@ -13,6 +13,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms/smsapi"
 	utilhttputil "github.com/authgear/authgear-server/pkg/util/httputil"
+	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
 type SMSHookTimeout struct {
@@ -89,6 +90,15 @@ func (w *SMSWebHook) Call(ctx context.Context, u *url.URL, payload SendOptions) 
 	}
 }
 
+func NewSMSDenoHook(lf *log.Factory, denoEndpoint config.DenoEndpoint, smsCfg *config.CustomSMSProviderConfig) *SMSDenoHook {
+	timeout := NewSMSHookTimeout(smsCfg)
+	logger := hook.NewLogger(lf)
+	client := NewHookDenoClient(denoEndpoint, logger, timeout)
+	return &SMSDenoHook{
+		Client: client,
+	}
+}
+
 type SMSDenoHook struct {
 	hook.DenoHook
 	Client HookDenoClient
@@ -106,6 +116,15 @@ func (d *SMSDenoHook) Call(ctx context.Context, u *url.URL, payload SendOptions)
 	}
 
 	return jsonText, nil
+}
+
+func (d *SMSDenoHook) Test(ctx context.Context, script string, payload SendOptions) error {
+	_, err := d.Client.Run(ctx, script, payload)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 type CustomClient struct {

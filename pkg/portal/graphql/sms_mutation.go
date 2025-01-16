@@ -38,6 +38,10 @@ var smsProviderConfigurationInput = graphql.NewInputObject(graphql.InputObjectCo
 			Type:        smsProviderConfigurationWebhookInput,
 			Description: "Configuration of Webhook",
 		},
+		"deno": &graphql.InputObjectFieldConfig{
+			Type:        smsProviderConfigurationDenoInput,
+			Description: "Configuration of Deno hook",
+		},
 	},
 })
 
@@ -60,6 +64,18 @@ var smsProviderConfigurationWebhookInput = graphql.NewInputObject(graphql.InputO
 	Name: "SMSProviderConfigurationWebhookInput",
 	Fields: graphql.InputObjectConfigFieldMap{
 		"url": &graphql.InputObjectFieldConfig{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+		"timeout": &graphql.InputObjectFieldConfig{
+			Type: graphql.Int,
+		},
+	},
+})
+
+var smsProviderConfigurationDenoInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "SMSProviderConfigurationDenoInput",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"script": &graphql.InputObjectFieldConfig{
 			Type: graphql.NewNonNull(graphql.String),
 		},
 		"timeout": &graphql.InputObjectFieldConfig{
@@ -124,6 +140,13 @@ var _ = registerMutationField(
 				if err != nil {
 					return nil, err
 				}
+			} else if providerConfig.Deno != nil {
+				err = gqlCtx.SMSService.SendByDeno(ctx, app, to, *providerConfig.Deno)
+				if err != nil {
+					return nil, err
+				}
+			} else {
+				return nil, apierrors.NewInvalid("no provider config given")
 			}
 
 			return nil, nil

@@ -273,7 +273,9 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	collaboratorInvitationLoader := loader.NewCollaboratorInvitationLoader(collaboratorService, authzService)
 	smsLogger := sms.NewLogger(logFactory)
 	smsService := &sms.Service{
-		Logger: smsLogger,
+		LoggerFactory: logFactory,
+		DenoEndpoint:  denoEndpoint,
+		Logger:        smsLogger,
 	}
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(environmentConfig)
 	readHandle := auditdb.NewReadHandle(pool, databaseEnvironmentConfig, auditDatabaseCredentials, logFactory)
