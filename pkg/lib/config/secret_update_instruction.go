@@ -780,7 +780,7 @@ type SMSProviderSecretsUpdateInstructionSetData struct {
 }
 
 type SMSProviderSecretsUpdateInstructionTwilioCredentials struct {
-	AccountSID          string `json:"accountSid,omitempty"`
+	AccountSID          string `json:"accountSID,omitempty"`
 	AuthToken           string `json:"authToken,omitempty"`
 	MessagingServiceSID string `json:"messagingServiceSID,omitempty"`
 }

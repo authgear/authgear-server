@@ -700,13 +700,13 @@ export type SmsProviderSecretsUpdateInstructionsInput = {
 /** Twilio credentials */
 export type SmsProviderTwilioCredentials = {
   __typename?: 'SMSProviderTwilioCredentials';
-  accountSid: Scalars['String']['output'];
+  accountSID: Scalars['String']['output'];
   authToken?: Maybe<Scalars['String']['output']>;
   messagingServiceSID: Scalars['String']['output'];
 };
 
 export type SmsProviderTwilioCredentialsInput = {
-  accountSid: Scalars['String']['input'];
+  accountSID: Scalars['String']['input'];
   authToken?: InputMaybe<Scalars['String']['input']>;
   messagingServiceSID: Scalars['String']['input'];
 };

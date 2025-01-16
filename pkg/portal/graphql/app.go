@@ -175,7 +175,7 @@ var smsProviderTwilioCredentials = graphql.NewObject(graphql.ObjectConfig{
 	Name:        "SMSProviderTwilioCredentials",
 	Description: "Twilio credentials",
 	Fields: graphql.Fields{
-		"accountSid": &graphql.Field{
+		"accountSID": &graphql.Field{
 			Type: graphql.NewNonNull(graphql.String),
 		},
 		"authToken": &graphql.Field{

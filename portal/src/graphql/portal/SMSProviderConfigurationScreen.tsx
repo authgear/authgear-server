@@ -149,7 +149,7 @@ function constructFormState(
   let twilioMessagingServiceSID = "";
 
   if (enabled && providerType === SMSProviderType.Twilio) {
-    twilioSID = secrets.smsProviderSecrets?.twilioCredentials?.accountSid ?? "";
+    twilioSID = secrets.smsProviderSecrets?.twilioCredentials?.accountSID ?? "";
     twilioAuthToken =
       secrets.smsProviderSecrets?.twilioCredentials != null
         ? secrets.smsProviderSecrets.twilioCredentials.authToken ?? null
@@ -243,7 +243,7 @@ function constructConfig(
         case SMSProviderType.Twilio:
           secrets.smsProviderSecrets = {
             twilioCredentials: {
-              accountSid: currentState.twilioSID,
+              accountSID: currentState.twilioSID,
               authToken: currentState.twilioAuthToken,
               messagingServiceSID: currentState.twilioMessagingServiceSID,
             },
@@ -295,8 +295,8 @@ function constructSecretUpdateInstruction(
           action: "set",
           setData: {
             twilioCredentials: {
-              accountSid:
-                secrets.smsProviderSecrets.twilioCredentials.accountSid,
+              accountSID:
+                secrets.smsProviderSecrets.twilioCredentials.accountSID,
               authToken: secrets.smsProviderSecrets.twilioCredentials.authToken,
               messagingServiceSID:
                 secrets.smsProviderSecrets.twilioCredentials

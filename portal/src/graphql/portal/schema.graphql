@@ -815,7 +815,7 @@ input SMSProviderSecretsUpdateInstructionsInput {
 """Twilio credentials"""
 type SMSProviderTwilioCredentials {
   """"""
-  accountSid: String!
+  accountSID: String!
 
   """"""
   authToken: String
@@ -827,7 +827,7 @@ type SMSProviderTwilioCredentials {
 """"""
 input SMSProviderTwilioCredentialsInput {
   """"""
-  accountSid: String!
+  accountSID: String!
 
   """"""
   authToken: String

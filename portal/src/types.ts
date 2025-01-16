@@ -708,7 +708,7 @@ export interface SMSProviderSecrets {
 }
 
 export interface SMSProviderTwilioCredentials {
-  accountSid: string;
+  accountSID: string;
   authToken?: string | null;
   messagingServiceSID: string;
 }
@@ -812,7 +812,7 @@ export interface SAMLIdpSigningSecretsUpdateInstruction {
 }
 
 export interface SMSProviderTwilioCredentialsInput {
-  accountSid: string;
+  accountSID: string;
   authToken?: string | null;
   messagingServiceSID: string;
 }
