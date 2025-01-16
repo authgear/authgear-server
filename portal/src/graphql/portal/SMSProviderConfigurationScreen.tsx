@@ -155,7 +155,7 @@ function constructFormState(
         ? secrets.smsProviderSecrets.twilioCredentials.authToken ?? null
         : "";
     twilioMessagingServiceSID =
-      secrets.smsProviderSecrets?.twilioCredentials?.messageServiceSid ?? "";
+      secrets.smsProviderSecrets?.twilioCredentials?.messagingServiceSID ?? "";
   }
 
   let webhookURL = "";
@@ -245,7 +245,7 @@ function constructConfig(
             twilioCredentials: {
               accountSid: currentState.twilioSID,
               authToken: currentState.twilioAuthToken,
-              messageServiceSid: currentState.twilioMessagingServiceSID,
+              messagingServiceSID: currentState.twilioMessagingServiceSID,
             },
           };
           break;
@@ -298,8 +298,9 @@ function constructSecretUpdateInstruction(
               accountSid:
                 secrets.smsProviderSecrets.twilioCredentials.accountSid,
               authToken: secrets.smsProviderSecrets.twilioCredentials.authToken,
-              messageServiceSid:
-                secrets.smsProviderSecrets.twilioCredentials.messageServiceSid,
+              messagingServiceSID:
+                secrets.smsProviderSecrets.twilioCredentials
+                  .messagingServiceSID,
             },
           },
         },

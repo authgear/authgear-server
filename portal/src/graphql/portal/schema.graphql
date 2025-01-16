@@ -821,7 +821,7 @@ type SMSProviderTwilioCredentials {
   authToken: String
 
   """"""
-  messageServiceSid: String!
+  messagingServiceSID: String!
 }
 
 """"""
@@ -833,7 +833,7 @@ input SMSProviderTwilioCredentialsInput {
   authToken: String
 
   """"""
-  messageServiceSid: String!
+  messagingServiceSID: String!
 }
 
 """SMTP secret"""
