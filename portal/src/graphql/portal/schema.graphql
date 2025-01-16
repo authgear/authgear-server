@@ -170,6 +170,9 @@ enum AppSecretKey {
   SAML_SP_SIGNING_SECRETS
 
   """"""
+  SMS_PROVIDER_SECRETS
+
+  """"""
   SMTP_SECRET
 
   """"""
@@ -327,6 +330,15 @@ type CreateDomainPayload {
 
   """"""
   domain: Domain!
+}
+
+""""""
+input CustomSmsProviderSecretsInput {
+  """"""
+  timeout: Int
+
+  """"""
+  url: String!
 }
 
 """"""
@@ -764,6 +776,66 @@ input SAMLSpSigningSecretsUpdateInstructionsInput {
   setData: SAMLSpSigningSecretsSetDataInput
 }
 
+"""Custom SMS Provider configs"""
+type SMSProviderCustomSMSProviderSecrets {
+  """"""
+  timeout: Int
+
+  """"""
+  url: String!
+}
+
+"""SMS Provider secrets"""
+type SMSProviderSecrets {
+  """"""
+  customSMSProviderCredentials: SMSProviderCustomSMSProviderSecrets
+
+  """"""
+  twilioCredentials: SMSProviderTwilioCredentials
+}
+
+""""""
+input SMSProviderSecretsSetDataInput {
+  """"""
+  customSMSProviderCredentials: CustomSmsProviderSecretsInput
+
+  """"""
+  twilioCredentials: SMSProviderTwilioCredentialsInput
+}
+
+""""""
+input SMSProviderSecretsUpdateInstructionsInput {
+  """"""
+  action: String!
+
+  """"""
+  setData: SMSProviderSecretsSetDataInput
+}
+
+"""Twilio credentials"""
+type SMSProviderTwilioCredentials {
+  """"""
+  accountSID: String!
+
+  """"""
+  authToken: String
+
+  """"""
+  messagingServiceSID: String!
+}
+
+""""""
+input SMSProviderTwilioCredentialsInput {
+  """"""
+  accountSID: String!
+
+  """"""
+  authToken: String
+
+  """"""
+  messagingServiceSID: String!
+}
+
 """SMTP secret"""
 type SMTPSecret {
   """"""
@@ -821,6 +893,9 @@ type SecretConfig {
   samlSpSigningSecrets: [SAMLSpSigningSecrets!]
 
   """"""
+  smsProviderSecrets: SMSProviderSecrets
+
+  """"""
   smtpSecret: SMTPSecret
 
   """"""
@@ -846,6 +921,9 @@ input SecretConfigUpdateInstructionsInput {
 
   """"""
   samlSpSigningSecrets: SAMLSpSigningSecretsUpdateInstructionsInput
+
+  """"""
+  smsProviderSecrets: SMSProviderSecretsUpdateInstructionsInput
 
   """"""
   smtpSecret: SmtpSecretUpdateInstructionsInput

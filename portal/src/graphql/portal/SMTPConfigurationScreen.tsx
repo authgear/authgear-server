@@ -1,18 +1,7 @@
 import React, { useCallback, useContext, useState, useMemo } from "react";
-import cn from "classnames";
 import { useLocation, useParams, useNavigate } from "react-router-dom";
 import { produce } from "immer";
-import {
-  Text,
-  FontIcon,
-  Image,
-  Label,
-  DefaultEffects,
-  Dialog,
-  DialogFooter,
-  IIconProps,
-  IButtonProps,
-} from "@fluentui/react";
+import { Dialog, DialogFooter } from "@fluentui/react";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import { useTextFieldTooltip } from "../../useTextFieldTooltip";
 import ShowError from "../../ShowError";
@@ -35,7 +24,6 @@ import {
   PortalAPISecretConfig,
   PortalAPISecretConfigUpdateInstruction,
 } from "../../types";
-import { useSystemConfig } from "../../context/SystemConfigContext";
 import { useViewerQuery } from "./query/viewerQuery";
 import {
   useSendTestEmailMutation,
@@ -50,6 +38,10 @@ import { useLocationEffect } from "../../hook/useLocationEffect";
 import { useAppSecretVisitToken } from "./mutations/generateAppSecretVisitTokenMutation";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
+import {
+  ProviderCard,
+  ProviderCardDescription,
+} from "../../components/common/ProviderCard";
 
 interface LocationState {
   isEdit: boolean;
@@ -160,91 +152,9 @@ function constructSecretUpdateInstruction(
   };
 }
 
-interface ProviderCardProps {
-  className?: string;
-  iconProps?: IIconProps;
-  logoSrc?: any;
-  children?: React.ReactNode;
-  onClick?: IButtonProps["onClick"];
-  isSelected?: boolean;
-  disabled?: boolean;
-}
-
-const PROVIDER_CARD_ICON_STYLE = {
-  width: "32px",
-  height: "32px",
-  fontSize: "32px",
-};
-
 const CUSTOM_PROVIDER_ICON_PROPS = {
   iconName: "Mail",
 };
-
-function ProviderCard(props: ProviderCardProps) {
-  const {
-    className,
-    disabled,
-    isSelected,
-    children,
-    onClick,
-    iconProps,
-    logoSrc,
-  } = props;
-  const {
-    themes: {
-      main: {
-        palette: { themePrimary },
-        semanticColors: { disabledBackground: backgroundColor },
-      },
-    },
-  } = useSystemConfig();
-  return (
-    <div
-      style={{
-        boxShadow: disabled ? undefined : DefaultEffects.elevation4,
-        borderColor: isSelected ? themePrimary : "transparent",
-        backgroundColor: disabled ? backgroundColor : undefined,
-        cursor: disabled ? "not-allowed" : undefined,
-      }}
-      className={cn(className, styles.providerCard)}
-      onClick={disabled ? undefined : onClick}
-    >
-      {iconProps != null ? (
-        <FontIcon {...iconProps} style={PROVIDER_CARD_ICON_STYLE} />
-      ) : null}
-      {logoSrc != null ? <Image src={logoSrc} width={32} height={32} /> : null}
-      <Label>{children}</Label>
-    </div>
-  );
-}
-
-interface ProviderDescriptionProps {
-  children?: React.ReactNode;
-}
-
-function ProviderDescription(props: ProviderDescriptionProps) {
-  const { children } = props;
-  const {
-    themes: {
-      main: {
-        semanticColors: { bodySubtext: color },
-      },
-    },
-  } = useSystemConfig();
-
-  return (
-    <Text
-      variant="small"
-      block={true}
-      style={{
-        color,
-      }}
-      className={styles.columnFull}
-    >
-      {children}
-    </Text>
-  );
-}
 
 interface SMTPConfigurationScreenContentProps {
   isCustomSMTPDisabled: boolean;
@@ -544,9 +454,9 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
               </ProviderCard>
               {providerType === "custom" ? (
                 <>
-                  <ProviderDescription>
+                  <ProviderCardDescription>
                     <FormattedMessage id="SMTPConfigurationScreen.custom.description" />
-                  </ProviderDescription>
+                  </ProviderCardDescription>
                   <FormTextField
                     className={styles.columnLeft}
                     type="text"
@@ -605,9 +515,9 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
               ) : null}
               {providerType === "sendgrid" ? (
                 <>
-                  <ProviderDescription>
+                  <ProviderCardDescription>
                     <FormattedMessage id="SMTPConfigurationScreen.sendgrid.description" />
-                  </ProviderDescription>
+                  </ProviderCardDescription>
                   <FormTextField
                     className={styles.columnLeft}
                     type="password"

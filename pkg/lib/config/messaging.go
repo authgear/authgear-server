@@ -16,12 +16,12 @@ var _ = Schema.Add("MessagingConfig", `
 `)
 
 type MessagingConfig struct {
-	SMSProvider      SMSProvider                `json:"sms_provider,omitempty"`
-	SMSGateway       *SMSGatewayConfig          `json:"sms_gateway,omitempty" nullable:"true"`
-	Deprecated_SMS   *SMSConfig                 `json:"sms,omitempty"`
-	Deprecated_Email *EmailConfig               `json:"email,omitempty"`
-	Whatsapp         *WhatsappConfig            `json:"whatsapp,omitempty"`
-	RateLimits       *MessagingRateLimitsConfig `json:"rate_limits,omitempty"`
+	Deprecated_SMSProvider SMSProvider                `json:"sms_provider,omitempty"`
+	SMSGateway             *SMSGatewayConfig          `json:"sms_gateway,omitempty" nullable:"true"`
+	Deprecated_SMS         *SMSConfig                 `json:"sms,omitempty"`
+	Deprecated_Email       *EmailConfig               `json:"email,omitempty"`
+	Whatsapp               *WhatsappConfig            `json:"whatsapp,omitempty"`
+	RateLimits             *MessagingRateLimitsConfig `json:"rate_limits,omitempty"`
 }
 
 func (c *MessagingConfig) SetDefaults() {
