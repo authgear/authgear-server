@@ -122,7 +122,7 @@ function constructFormState(
     config.messaging?.sms_gateway != null &&
     config.messaging.sms_gateway.provider === "custom";
   const hasCustomProviderSecrets =
-    secrets.smsProviderSecrets?.customSMSProvider != null;
+    secrets.smsProviderSecrets?.customSMSProviderCredentials != null;
 
   if (isSMSGatewayIsTwilio && hasCustomTwilioCredentials) {
     enabled = true;
@@ -130,13 +130,15 @@ function constructFormState(
   } else if (isSMSGatewayIsCustom && hasCustomProviderSecrets) {
     enabled = true;
     if (
-      getHookKind(secrets.smsProviderSecrets!.customSMSProvider!.url) ===
-      "denohook"
+      getHookKind(
+        secrets.smsProviderSecrets!.customSMSProviderCredentials!.url
+      ) === "denohook"
     ) {
     }
     providerType =
-      getHookKind(secrets.smsProviderSecrets!.customSMSProvider!.url) ===
-      "denohook"
+      getHookKind(
+        secrets.smsProviderSecrets!.customSMSProviderCredentials!.url
+      ) === "denohook"
         ? SMSProviderType.Deno
         : SMSProviderType.Webhook;
   } else {
@@ -168,19 +170,24 @@ function constructFormState(
     enabled &&
     (providerType === SMSProviderType.Webhook ||
       providerType === SMSProviderType.Deno) &&
-    secrets.smsProviderSecrets?.customSMSProvider != null
+    secrets.smsProviderSecrets?.customSMSProviderCredentials != null
   ) {
     if (
-      getHookKind(secrets.smsProviderSecrets.customSMSProvider.url) ===
-      "denohook"
+      getHookKind(
+        secrets.smsProviderSecrets.customSMSProviderCredentials.url
+      ) === "denohook"
     ) {
-      denoHookURL = secrets.smsProviderSecrets.customSMSProvider.url;
+      denoHookURL = secrets.smsProviderSecrets.customSMSProviderCredentials.url;
     } else {
-      webhookURL = secrets.smsProviderSecrets.customSMSProvider.url;
+      webhookURL = secrets.smsProviderSecrets.customSMSProviderCredentials.url;
     }
-    if (secrets.smsProviderSecrets.customSMSProvider.timeout != null) {
-      denoHookTimeout = secrets.smsProviderSecrets.customSMSProvider.timeout;
-      webhookTimeout = secrets.smsProviderSecrets.customSMSProvider.timeout;
+    if (
+      secrets.smsProviderSecrets.customSMSProviderCredentials.timeout != null
+    ) {
+      denoHookTimeout =
+        secrets.smsProviderSecrets.customSMSProviderCredentials.timeout;
+      webhookTimeout =
+        secrets.smsProviderSecrets.customSMSProviderCredentials.timeout;
     }
   }
   return {
@@ -251,7 +258,7 @@ function constructConfig(
           break;
         case SMSProviderType.Webhook:
           secrets.smsProviderSecrets = {
-            customSMSProvider: {
+            customSMSProviderCredentials: {
               url: currentState.webhookURL,
               timeout: currentState.webhookTimeout,
             },
@@ -259,7 +266,7 @@ function constructConfig(
           break;
         case SMSProviderType.Deno:
           secrets.smsProviderSecrets = {
-            customSMSProvider: {
+            customSMSProviderCredentials: {
               url: currentState.denoHookURL,
               timeout: currentState.denoHookTimeout,
             },
@@ -306,33 +313,35 @@ function constructSecretUpdateInstruction(
         },
       };
     case SMSProviderType.Webhook:
-      if (secrets.smsProviderSecrets.customSMSProvider == null) {
-        console.error("unexpected null customSMSProvider");
+      if (secrets.smsProviderSecrets.customSMSProviderCredentials == null) {
+        console.error("unexpected null customSMSProviderCredentials");
         return undefined;
       }
       return {
         smsProviderSecrets: {
           action: "set",
           setData: {
-            customSMSProvider: {
-              url: secrets.smsProviderSecrets.customSMSProvider.url,
-              timeout: secrets.smsProviderSecrets.customSMSProvider.timeout,
+            customSMSProviderCredentials: {
+              url: secrets.smsProviderSecrets.customSMSProviderCredentials.url,
+              timeout:
+                secrets.smsProviderSecrets.customSMSProviderCredentials.timeout,
             },
           },
         },
       };
     case SMSProviderType.Deno:
-      if (secrets.smsProviderSecrets.customSMSProvider == null) {
-        console.error("unexpected null customSMSProvider");
+      if (secrets.smsProviderSecrets.customSMSProviderCredentials == null) {
+        console.error("unexpected null customSMSProviderCredentials");
         return undefined;
       }
       return {
         smsProviderSecrets: {
           action: "set",
           setData: {
-            customSMSProvider: {
-              url: secrets.smsProviderSecrets.customSMSProvider.url,
-              timeout: secrets.smsProviderSecrets.customSMSProvider.timeout,
+            customSMSProviderCredentials: {
+              url: secrets.smsProviderSecrets.customSMSProviderCredentials.url,
+              timeout:
+                secrets.smsProviderSecrets.customSMSProviderCredentials.timeout,
             },
           },
         },

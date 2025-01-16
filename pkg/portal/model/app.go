@@ -96,8 +96,8 @@ type SMSProviderCustomSMSProviderConfigs struct {
 }
 
 type SMSProviderSecrets struct {
-	TwilioCredentials *SMSProviderTwilioCredentials        `json:"twilioCredentials,omitempty"`
-	CustomSMSProvider *SMSProviderCustomSMSProviderConfigs `json:"customSMSProvider,omitempty"`
+	TwilioCredentials            *SMSProviderTwilioCredentials        `json:"twilioCredentials,omitempty"`
+	CustomSMSProviderCredentials *SMSProviderCustomSMSProviderConfigs `json:"customSMSProviderCredentials,omitempty"`
 }
 
 type SecretConfig struct {
@@ -277,7 +277,7 @@ func NewSecretConfig(secretConfig *config.SecretConfig, unmaskedSecrets []config
 
 	}
 	if customSMSProviderConfig, ok := secretConfig.LookupData(config.CustomSMSProviderConfigKey).(*config.CustomSMSProviderConfig); ok {
-		smsProviderSecrets.CustomSMSProvider = &SMSProviderCustomSMSProviderConfigs{
+		smsProviderSecrets.CustomSMSProviderCredentials = &SMSProviderCustomSMSProviderConfigs{
 			URL:     customSMSProviderConfig.URL,
 			Timeout: (*int)(customSMSProviderConfig.Timeout),
 		}

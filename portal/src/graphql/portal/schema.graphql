@@ -788,7 +788,7 @@ type SMSProviderCustomSMSProviderSecrets {
 """SMS Provider secrets"""
 type SMSProviderSecrets {
   """"""
-  customSMSProvider: SMSProviderCustomSMSProviderSecrets
+  customSMSProviderCredentials: SMSProviderCustomSMSProviderSecrets
 
   """"""
   twilioCredentials: SMSProviderTwilioCredentials
@@ -797,7 +797,7 @@ type SMSProviderSecrets {
 """"""
 input SMSProviderSecretsSetDataInput {
   """"""
-  customSMSProvider: CustomSmsProviderSecretsInput
+  customSMSProviderCredentials: CustomSmsProviderSecretsInput
 
   """"""
   twilioCredentials: SMSProviderTwilioCredentialsInput

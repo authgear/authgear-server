@@ -776,7 +776,7 @@ func (i *SAMLSpSigningSecretsUpdateInstruction) set(currentConfig *SecretConfig)
 
 type SMSProviderSecretsUpdateInstructionSetData struct {
 	TwilioCredentials *SMSProviderSecretsUpdateInstructionTwilioCredentials `json:"twilioCredentials,omitempty"`
-	CustomSMSProvider *SMSProviderSecretsUpdateInstructionCustomSMSProvider `json:"customSMSProvider,omitempty"`
+	CustomSMSProvider *SMSProviderSecretsUpdateInstructionCustomSMSProvider `json:"customSMSProviderCredentials,omitempty"`
 }
 
 type SMSProviderSecretsUpdateInstructionTwilioCredentials struct {

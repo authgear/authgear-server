@@ -683,12 +683,12 @@ export type SmsProviderCustomSmsProviderSecrets = {
 /** SMS Provider secrets */
 export type SmsProviderSecrets = {
   __typename?: 'SMSProviderSecrets';
-  customSMSProvider?: Maybe<SmsProviderCustomSmsProviderSecrets>;
+  customSMSProviderCredentials?: Maybe<SmsProviderCustomSmsProviderSecrets>;
   twilioCredentials?: Maybe<SmsProviderTwilioCredentials>;
 };
 
 export type SmsProviderSecretsSetDataInput = {
-  customSMSProvider?: InputMaybe<CustomSmsProviderSecretsInput>;
+  customSMSProviderCredentials?: InputMaybe<CustomSmsProviderSecretsInput>;
   twilioCredentials?: InputMaybe<SmsProviderTwilioCredentialsInput>;
 };
 
