@@ -27,7 +27,6 @@ func (c *End2End) ImportUsers(ctx context.Context, appID string, jsonPath string
 		ctx,
 		cfg.EnvironmentConfig,
 		cfg.ConfigSource,
-		cfg.BuiltinResourceDirectory,
 		cfg.CustomResourceDirectory,
 	)
 	if err != nil {

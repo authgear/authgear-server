@@ -29,8 +29,8 @@ type Config struct {
 	// Mail configures email settings.
 	Mail portalconfig.MailConfig `envconfig:"MAIL"`
 
-	// BuiltinResourceDirectory sets the directory for built-in resource files
-	BuiltinResourceDirectory string `envconfig:"PORTAL_BUILTIN_RESOURCE_DIRECTORY" default:"resources/portal"`
+	// PORTAL_BUILTIN_RESOURCE_DIRECTORY is deprecated. It has no effect anymore.
+
 	// CustomResourceDirectory sets the directory for customized resource files
 	CustomResourceDirectory string `envconfig:"PORTAL_CUSTOM_RESOURCE_DIRECTORY"`
 

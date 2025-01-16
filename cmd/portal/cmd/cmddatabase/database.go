@@ -1,6 +1,7 @@
 package cmddatabase
 
 import (
+	"embed"
 	"os"
 	"strings"
 
@@ -38,7 +39,15 @@ func init() {
 	portalcmd.Root.AddCommand(cmdDatabase)
 }
 
-var PortalMigrationSet = sqlmigrate.NewMigrateSet("_portal_migration", "migrations/portal")
+//go:embed migrations/portal
+var portalMigrationFS embed.FS
+
+var PortalMigrationSet = sqlmigrate.NewMigrateSet(sqlmigrate.NewMigrationSetOptions{
+	TableName:                            "_portal_migration",
+	EmbedFS:                              portalMigrationFS,
+	EmbedFSRoot:                          "migrations/portal",
+	OutputPathRelativeToWorkingDirectory: "./cmd/portal/cmd/cmddatabase/migrations/portal",
+})
 
 var cmdDatabase = &cobra.Command{
 	Use:   "database migrate",

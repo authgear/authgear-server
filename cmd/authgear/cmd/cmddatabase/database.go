@@ -1,6 +1,7 @@
 package cmddatabase
 
 import (
+	"embed"
 	"fmt"
 	"os"
 	"strings"
@@ -39,7 +40,15 @@ func init() {
 	authgearcmd.Root.AddCommand(cmdDatabase)
 }
 
-var MainMigrationSet = sqlmigrate.NewMigrateSet("_auth_migration", "migrations/authgear")
+//go:embed migrations/authgear
+var mainMigrationFS embed.FS
+
+var MainMigrationSet = sqlmigrate.NewMigrateSet(sqlmigrate.NewMigrationSetOptions{
+	TableName:                            "_auth_migration",
+	EmbedFS:                              mainMigrationFS,
+	EmbedFSRoot:                          "migrations/authgear",
+	OutputPathRelativeToWorkingDirectory: "./cmd/authgear/cmd/cmddatabase/migrations/authgear",
+})
 
 var cmdDatabase = &cobra.Command{
 	Use:   "database migrate",

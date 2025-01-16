@@ -1,6 +1,8 @@
 package resource
 
 import (
+	"io/fs"
+
 	"github.com/spf13/afero"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
@@ -18,24 +20,33 @@ func NewManager(registry *Registry, fs []Fs) *Manager {
 	return &Manager{Registry: registry, Fs: fs}
 }
 
-func NewManagerWithDir(registry *Registry, builtinResourceDir string, customResourceDir string) *Manager {
+type NewManagerWithDirOptions struct {
+	Registry *Registry
+
+	BuiltinResourceFS     fs.FS
+	BuiltinResourceFSRoot string
+
+	CustomResourceDir string
+}
+
+func NewManagerWithDir(options NewManagerWithDirOptions) *Manager {
 	var fs []Fs
 	fs = append(fs,
 		LeveledAferoFs{
-			Fs:      afero.NewBasePathFs(afero.OsFs{}, builtinResourceDir),
+			Fs:      options.MakeBuiltinFSByBuildTag(),
 			FsLevel: FsLevelBuiltin,
 		},
 	)
-	if customResourceDir != "" {
+	if options.CustomResourceDir != "" {
 		fs = append(fs,
 			LeveledAferoFs{
-				Fs:      afero.NewBasePathFs(afero.OsFs{}, customResourceDir),
+				Fs:      afero.NewBasePathFs(afero.OsFs{}, options.CustomResourceDir),
 				FsLevel: FsLevelCustom,
 			},
 		)
 	}
 	return &Manager{
-		Registry: registry.Clone(),
+		Registry: options.Registry.Clone(),
 		Fs:       fs,
 	}
 }

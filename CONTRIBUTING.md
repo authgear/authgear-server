@@ -391,7 +391,7 @@ Various files in this project have versioned dependencies.
   - You can find out the server version by going into the container and run `apt list --installed`.
   - The version of Debian bookworm is [2024a](https://packages.debian.org/source/bookworm/tzdata), which correspond to [tzdata@v1.0.40](https://github.com/rogierschouten/tzdata-generate/releases/tag/v1.0.40).
 - [The cropperjs type definition in ./authui/src](./authui/src)
-- [GeoLite2-Country.mmdb](./GeoLite2-Country.mmdb)
+- [./pkg/util/geoip/GeoLite2-Country.mmdb](./pkg/util/geoip/GeoLite2-Country.mmdb)
 - [GraphiQL](./pkg/util/graphqlutil/graphiql.go)
 - [Material Icons](authui/src/authflowv2/icons/material-symbols-outlined.woff2)
   - Download the latest version from https://github.com/google/material-design-icons/tree/master/variablefont

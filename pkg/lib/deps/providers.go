@@ -6,6 +6,7 @@ import (
 
 	getsentry "github.com/getsentry/sentry-go"
 
+	"github.com/authgear/authgear-server"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
@@ -40,7 +41,6 @@ func NewRootProvider(
 	ctx context.Context,
 	cfg *config.EnvironmentConfig,
 	configSourceConfig *configsource.Config,
-	builtinResourceDirectory string,
 	customResourceDirectory string,
 ) (*RootProvider, error) {
 	var p RootProvider
@@ -79,11 +79,12 @@ func NewRootProvider(
 		DatabasePool:       dbPool,
 		RedisPool:          redisPool,
 		RedisHub:           redisHub,
-		BaseResources: resource.NewManagerWithDir(
-			resource.DefaultRegistry,
-			builtinResourceDirectory,
-			customResourceDirectory,
-		),
+		BaseResources: resource.NewManagerWithDir(resource.NewManagerWithDirOptions{
+			Registry:              resource.DefaultRegistry,
+			BuiltinResourceFS:     runtimeresource.EmbedFS_resources_authgear,
+			BuiltinResourceFSRoot: runtimeresource.RelativePath_resources_authgear,
+			CustomResourceDir:     customResourceDirectory,
+		}),
 		EmbeddedResources: embeddedResources,
 	}
 	return &p, nil
@@ -248,7 +249,6 @@ func NewBackgroundProvider(
 	ctx context.Context,
 	cfg *config.EnvironmentConfig,
 	configSourceConfig *configsource.Config,
-	builtinResourceDirectory string,
 	customResourceDirectory string,
 ) (*BackgroundProvider, error) {
 	var p BackgroundProvider
@@ -287,11 +287,12 @@ func NewBackgroundProvider(
 		DatabasePool:       dbPool,
 		RedisPool:          redisPool,
 		RedisHub:           redisHub,
-		BaseResources: resource.NewManagerWithDir(
-			resource.DefaultRegistry,
-			builtinResourceDirectory,
-			customResourceDirectory,
-		),
+		BaseResources: resource.NewManagerWithDir(resource.NewManagerWithDirOptions{
+			Registry:              resource.DefaultRegistry,
+			BuiltinResourceFS:     runtimeresource.EmbedFS_resources_authgear,
+			BuiltinResourceFSRoot: runtimeresource.RelativePath_resources_authgear,
+			CustomResourceDir:     customResourceDirectory,
+		}),
 		EmbeddedResources: embeddedResources,
 	}
 

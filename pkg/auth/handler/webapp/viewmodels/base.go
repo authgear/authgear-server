@@ -247,7 +247,7 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 	geoipCountryCode := ""
 	if !m.AuthUI.PhoneInput.PreselectByIPDisabled {
 		requestIP := httputil.GetIP(r, bool(m.TrustProxy))
-		geoipInfo, ok := geoip.DefaultDatabase.IPString(requestIP)
+		geoipInfo, ok := geoip.IPString(requestIP)
 		if ok {
 			geoipCountryCode = geoipInfo.CountryCode
 		}
