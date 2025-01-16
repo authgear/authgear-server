@@ -115,7 +115,7 @@ func (l *Limiter) ReserveN(ctx context.Context, name LimitName, n int, config *c
 }
 
 func (l *Limiter) Cancel(ctx context.Context, r *Reservation) {
-	if r.taken == 0 {
+	if r == nil || r.taken == 0 {
 		return
 	}
 
