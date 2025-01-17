@@ -10,10 +10,10 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestGlobalEmbeddedResourceManager(t *testing.T) {
-	Convey("GlobalEmbeddedResourceManager", t, func() {
+func TestGlobalEmbeddedResourceManagerWorkdir(t *testing.T) {
+	Convey("GlobalEmbeddedResourceManagerWorkdir", t, func() {
 		Convey("should throw error if resource directory does not exist", func() {
-			m, err := NewGlobalEmbeddedResourceManager(&globalEmbeddedResourceManagerManifest{
+			m, err := NewGlobalEmbeddedResourceManagerWorkdir(&globalEmbeddedResourceManagerManifest{
 				ResourceDir: "testdata/123/generated",
 				Name:        "test.json",
 			})
@@ -22,7 +22,7 @@ func TestGlobalEmbeddedResourceManager(t *testing.T) {
 		})
 
 		Convey("should load manifest content after manager created", func() {
-			m, err := NewGlobalEmbeddedResourceManager(&globalEmbeddedResourceManagerManifest{
+			m, err := NewGlobalEmbeddedResourceManagerWorkdir(&globalEmbeddedResourceManagerManifest{
 				ResourceDir: "testdata/resources/authgear/generated",
 				Name:        "manifest.json",
 			})
@@ -38,7 +38,7 @@ func TestGlobalEmbeddedResourceManager(t *testing.T) {
 		})
 
 		Convey("should reload manifest with any changes", func() {
-			m, err := NewGlobalEmbeddedResourceManager(&globalEmbeddedResourceManagerManifest{
+			m, err := NewGlobalEmbeddedResourceManagerWorkdir(&globalEmbeddedResourceManagerManifest{
 				ResourceDir: "testdata/resources/authgear/generated",
 				Name:        "manifest.json",
 			})
@@ -81,7 +81,7 @@ func TestGlobalEmbeddedResourceManager(t *testing.T) {
 		})
 
 		Convey("should return asset file name and prefix by key", func() {
-			m, err := NewGlobalEmbeddedResourceManager(&globalEmbeddedResourceManagerManifest{
+			m, err := NewGlobalEmbeddedResourceManagerWorkdir(&globalEmbeddedResourceManagerManifest{
 				ResourceDir: "testdata/resources/authgear/generated",
 				Name:        "manifest.json",
 			})
