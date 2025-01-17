@@ -94,10 +94,24 @@ func (Apple) scope() []string {
 }
 
 func (Apple) createClientSecret(deps oauthrelyingparty.Dependencies) (clientSecret string, err error) {
+	// See this documentation on how to create a client secret
+	// https://developer.apple.com/documentation/accountorganizationaldatasharing/creating-a-client-secret
+	//
+	// It was observed that Sign in with Apple has a weird behavior.
+	// When the client_id (Services ID) is Team A, and the account signed in is a managed account under Team A,
+	// client_secret IS NOT validated at all.
+	//
+	// For example, suppose the team is @mycompany.com.
+	// johndoe@mycompany.com (a managed Apple ID account under the team @mycompany.com) can sign in
+	// event client_secret is invalid.
+	//
+	// When client_secret is invalid, {"error": "invalid_client"} is returned.
+	// In that case, you need to refer to this documentation to resolve the problem.
+	// https://developer.apple.com/documentation/technotes/tn3107-resolving-sign-in-with-apple-response-errors#Possible-reasons-for-invalid-client-errors
+
 	teamID := ProviderConfig(deps.ProviderConfig).TeamID()
 	keyID := ProviderConfig(deps.ProviderConfig).KeyID()
 
-	// https://developer.apple.com/documentation/signinwithapplerestapi/generate_and_validate_tokens
 	key, err := crypto.ParseAppleP8PrivateKey([]byte(deps.ClientSecret))
 	if err != nil {
 		return
@@ -109,8 +123,12 @@ func (Apple) createClientSecret(deps oauthrelyingparty.Dependencies) (clientSecr
 	_ = payload.Set(jwt.IssuerKey, teamID)
 	_ = payload.Set(jwt.IssuedAtKey, now.Unix())
 	_ = payload.Set(jwt.ExpirationKey, now.Add(duration.Short).Unix())
+
+	// According to the documentation, aud is a string, not an array of string.
+	payload.Options().Enable(jwt.FlattenAudience)
 	_ = payload.Set(jwt.AudienceKey, "https://appleid.apple.com")
-	_ = payload.Set(jwt.SubjectKey, deps.ProviderConfig.ClientID)
+
+	_ = payload.Set(jwt.SubjectKey, deps.ProviderConfig.ClientID())
 
 	jwkKey, err := jwk.FromRaw(key)
 	if err != nil {
