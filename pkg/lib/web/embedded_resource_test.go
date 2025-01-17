@@ -1,4 +1,4 @@
-package web_test
+package web
 
 import (
 	"io"
@@ -8,14 +8,12 @@ import (
 	"time"
 
 	. "github.com/smartystreets/goconvey/convey"
-
-	"github.com/authgear/authgear-server/pkg/lib/web"
 )
 
 func TestGlobalEmbeddedResourceManager(t *testing.T) {
 	Convey("GlobalEmbeddedResourceManager", t, func() {
 		Convey("should throw error if resource directory does not exist", func() {
-			m, err := web.NewGlobalEmbeddedResourceManager(&web.Manifest{
+			m, err := NewGlobalEmbeddedResourceManager(&globalEmbeddedResourceManagerManifest{
 				ResourceDir: "testdata/123/generated",
 				Name:        "test.json",
 			})
@@ -24,28 +22,28 @@ func TestGlobalEmbeddedResourceManager(t *testing.T) {
 		})
 
 		Convey("should load manifest content after manager created", func() {
-			m, err := web.NewGlobalEmbeddedResourceManager(&web.Manifest{
+			m, err := NewGlobalEmbeddedResourceManager(&globalEmbeddedResourceManagerManifest{
 				ResourceDir: "testdata/resources/authgear/generated",
 				Name:        "manifest.json",
 			})
 			So(err, ShouldBeNil)
-			defer m.Close()
+			defer m.close()
 
-			manifestContext := m.GetManifestContext()
+			manifestContext := m.getManifestContext()
 
-			So(manifestContext, ShouldResemble, &web.ManifestContext{
+			So(manifestContext, ShouldResemble, &globalEmbeddedResourceManagerManifestContext{
 				Content: map[string]string{"test.js": "test.12345678.js"},
 			})
 			So(err, ShouldBeNil)
 		})
 
 		Convey("should reload manifest with any changes", func() {
-			m, err := web.NewGlobalEmbeddedResourceManager(&web.Manifest{
+			m, err := NewGlobalEmbeddedResourceManager(&globalEmbeddedResourceManagerManifest{
 				ResourceDir: "testdata/resources/authgear/generated",
 				Name:        "manifest.json",
 			})
 			So(err, ShouldBeNil)
-			defer m.Close()
+			defer m.close()
 
 			filePath := "testdata/resources/authgear/generated/manifest.json"
 
@@ -76,19 +74,19 @@ func TestGlobalEmbeddedResourceManager(t *testing.T) {
 			runtime.Gosched()
 			time.Sleep(500 * time.Millisecond)
 
-			manifestContext := m.GetManifestContext()
-			So(manifestContext, ShouldResemble, &web.ManifestContext{
+			manifestContext := m.getManifestContext()
+			So(manifestContext, ShouldResemble, &globalEmbeddedResourceManagerManifestContext{
 				Content: map[string]string{"anotherTest.js": "anotherTest.12345678.js"},
 			})
 		})
 
 		Convey("should return asset file name and prefix by key", func() {
-			m, err := web.NewGlobalEmbeddedResourceManager(&web.Manifest{
+			m, err := NewGlobalEmbeddedResourceManager(&globalEmbeddedResourceManagerManifest{
 				ResourceDir: "testdata/resources/authgear/generated",
 				Name:        "manifest.json",
 			})
 			So(err, ShouldBeNil)
-			defer m.Close()
+			defer m.close()
 
 			// if key exists
 			assetFileName, err := m.AssetName("test.js")
