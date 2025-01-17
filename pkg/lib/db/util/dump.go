@@ -16,7 +16,7 @@ import (
 )
 
 type Dumper struct {
-	DatabaseURL    string
+	ConnectionInfo db.ConnectionInfo
 	DatabaseSchema string
 	OutputDir      string
 	AppIDs         []string
@@ -29,7 +29,7 @@ type Dumper struct {
 }
 
 func NewDumper(
-	databaseURL string,
+	connectionInfo db.ConnectionInfo,
 	databaseSchema string,
 	outputDir string,
 	appIDs []string,
@@ -42,8 +42,8 @@ func NewDumper(
 	pool := db.NewPool()
 	handle := db.NewHookHandle(
 		pool,
+		connectionInfo,
 		db.ConnectionOptions{
-			DatabaseURL:           databaseURL,
 			MaxOpenConnection:     1,
 			MaxIdleConnection:     1,
 			MaxConnectionLifetime: 1800 * time.Second,
@@ -54,7 +54,7 @@ func NewDumper(
 	sqlExecutor := &db.SQLExecutor{}
 	sqlBuilder := db.NewSQLBuilder(databaseSchema)
 	return &Dumper{
-		DatabaseURL:    databaseURL,
+		ConnectionInfo: connectionInfo,
 		DatabaseSchema: databaseSchema,
 		OutputDir:      outputDir,
 		AppIDs:         appIDs,

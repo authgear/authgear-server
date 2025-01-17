@@ -48,14 +48,18 @@ func NewHandle(
 	cfg *config.DatabaseEnvironmentConfig,
 	lf *log.Factory,
 ) *Handle {
+	info := db.ConnectionInfo{
+		Purpose:     db.ConnectionPurposeGlobal,
+		DatabaseURL: credentials.DatabaseURL,
+	}
+
 	opts := db.ConnectionOptions{
-		DatabaseURL:           credentials.DatabaseURL,
 		MaxOpenConnection:     cfg.MaxOpenConn,
 		MaxIdleConnection:     cfg.MaxIdleConn,
 		MaxConnectionLifetime: time.Second * time.Duration(cfg.ConnMaxLifetimeSeconds),
 		IdleConnectionTimeout: time.Second * time.Duration(cfg.ConnMaxIdleTimeSeconds),
 	}
 	return &Handle{
-		db.NewHookHandle(pool, opts, lf),
+		db.NewHookHandle(pool, info, opts, lf),
 	}
 }

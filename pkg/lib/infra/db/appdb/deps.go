@@ -73,14 +73,17 @@ func NewHandle(
 	credentials *config.DatabaseCredentials,
 	lf *log.Factory,
 ) *Handle {
+	info := db.ConnectionInfo{
+		Purpose:     db.ConnectionPurposeApp,
+		DatabaseURL: credentials.DatabaseURL,
+	}
 	opts := db.ConnectionOptions{
-		DatabaseURL:           credentials.DatabaseURL,
 		MaxOpenConnection:     cfg.MaxOpenConn,
 		MaxIdleConnection:     cfg.MaxIdleConn,
 		MaxConnectionLifetime: cfg.ConnMaxLifetimeSeconds.Duration(),
 		IdleConnectionTimeout: cfg.ConnMaxIdleTimeSeconds.Duration(),
 	}
 	return &Handle{
-		db.NewHookHandle(pool, opts, lf),
+		db.NewHookHandle(pool, info, opts, lf),
 	}
 }

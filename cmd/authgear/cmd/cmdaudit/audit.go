@@ -9,6 +9,7 @@ import (
 
 	authgearcmd "github.com/authgear/authgear-server/cmd/authgear/cmd"
 	dbutil "github.com/authgear/authgear-server/pkg/lib/db/util"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/util/sqlmigrate"
 )
 
@@ -227,7 +228,10 @@ var cmdAuditDatabaseDump = &cobra.Command{
 		}
 
 		dumper := dbutil.NewDumper(
-			dbURL,
+			db.ConnectionInfo{
+				Purpose:     db.ConnectionPurposeAuditReadOnly,
+				DatabaseURL: dbURL,
+			},
 			dbSchema,
 			outputDir,
 			args,
@@ -257,7 +261,10 @@ var cmdAuditDatabaseRestore = &cobra.Command{
 		}
 
 		restorer := dbutil.NewRestorer(
-			dbURL,
+			db.ConnectionInfo{
+				Purpose:     db.ConnectionPurposeAuditReadWrite,
+				DatabaseURL: dbURL,
+			},
 			dbSchema,
 			inputDir,
 			args,
