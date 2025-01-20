@@ -66,6 +66,7 @@ import HorizontalDivider from "../../HorizontalDivider";
 import FormPhoneTextField from "../../FormPhoneTextField";
 import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";
 import { useSendTestSMSMutation } from "./mutations/sendTestSMS";
+import { useCheckDenoHookMutation } from "./mutations/checkDenoHook";
 
 const SECRETS = [AppSecretKey.SmsProviderSecrets, AppSecretKey.WebhookSecret];
 
@@ -536,6 +537,7 @@ function SMSProviderConfigurationScreen1({
     (resources) => resources
   );
   const sendTestSMSHandle = useSendTestSMSMutation(appID);
+  const checkDenoHookHandle = useCheckDenoHookMutation(appID);
 
   const state = useMemo<FormState>(() => {
     return {
@@ -595,12 +597,13 @@ function SMSProviderConfigurationScreen1({
     <FormContainer
       form={form}
       hideFooterComponent={true}
-      localError={sendTestSMSHandle.error}
+      localError={checkDenoHookHandle.error ?? sendTestSMSHandle.error}
     >
       <SMSProviderConfigurationContent
         form={form}
         effectiveAppConfig={effectiveAppConfig ?? undefined}
         sendTestSMSHandle={sendTestSMSHandle}
+        checkDenoHookHandle={checkDenoHookHandle}
       />
     </FormContainer>
   );
@@ -610,8 +613,10 @@ function SMSProviderConfigurationContent(props: {
   form: AppSecretConfigFormModel<FormState>;
   effectiveAppConfig: PortalAPIAppConfig | undefined;
   sendTestSMSHandle: ReturnType<typeof useSendTestSMSMutation>;
+  checkDenoHookHandle: ReturnType<typeof useCheckDenoHookMutation>;
 }) {
-  const { form, effectiveAppConfig, sendTestSMSHandle } = props;
+  const { form, effectiveAppConfig, sendTestSMSHandle, checkDenoHookHandle } =
+    props;
   const { state, setState } = form;
   const { renderToString } = useContext(MessageContext);
   const navigate = useNavigate();
@@ -681,6 +686,7 @@ function SMSProviderConfigurationContent(props: {
             form={form}
             effectiveAppConfig={effectiveAppConfig}
             sendTestSMSHandle={sendTestSMSHandle}
+            checkDenoHookHandle={checkDenoHookHandle}
           />
         </div>
       ) : null}
@@ -1104,12 +1110,15 @@ function TestSMSSection({
   form,
   effectiveAppConfig,
   sendTestSMSHandle,
+  checkDenoHookHandle,
 }: {
   form: AppSecretConfigFormModel<FormState>;
   effectiveAppConfig: PortalAPIAppConfig | undefined;
   sendTestSMSHandle: ReturnType<typeof useSendTestSMSMutation>;
+  checkDenoHookHandle: ReturnType<typeof useCheckDenoHookMutation>;
 }) {
-  const { sendTestSMS, loading } = sendTestSMSHandle;
+  const { sendTestSMS, loading: sendTestSMSLoading } = sendTestSMSHandle;
+  const { checkDenoHook, loading: checkDenoHookLoading } = checkDenoHookHandle;
   const [toInputValue, setToInputValue] = useState("");
   const [to, setTo] = useState("");
   const onChangeValues = useCallback(
@@ -1121,12 +1130,17 @@ function TestSMSSection({
     []
   );
 
+  const loading = sendTestSMSLoading || checkDenoHookLoading;
+
   const testConfig = useTestSMSConfig(form.state);
 
-  const onSendTestSMS = useCallback(() => {
+  const onSendTestSMS = useCallback(async () => {
     if (testConfig == null) {
       console.error("onSendTestSMS triggered but testConfig is null");
       return;
+    }
+    if (form.state.providerType === SMSProviderType.Deno) {
+      checkDenoHook(testConfig.deno?.script ?? "");
     }
     sendTestSMS({
       to: to,
@@ -1134,7 +1148,7 @@ function TestSMSSection({
     }).catch(() => {
       // Error is shown in outer form container
     });
-  }, [sendTestSMS, testConfig, to]);
+  }, [checkDenoHook, form.state.providerType, sendTestSMS, testConfig, to]);
 
   return (
     <div className="flex flex-col gap-y-3">
