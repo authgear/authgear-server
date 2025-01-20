@@ -3,10 +3,11 @@ package graphql
 import (
 	"encoding/json"
 
-	"github.com/authgear/authgear-server/pkg/api/apierrors"
-	"github.com/authgear/authgear-server/pkg/portal/model"
 	relay "github.com/authgear/graphql-go-relay"
 	"github.com/graphql-go/graphql"
+
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/portal/model"
 )
 
 var sendTestSMSInput = graphql.NewInputObject(graphql.InputObjectConfig{
