@@ -5,6 +5,7 @@ import (
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms/custom"
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms/smsapi"
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms/twilio"
@@ -54,12 +55,15 @@ func (s *Service) SendByTwilio(
 
 func (s *Service) SendByWebhook(
 	ctx context.Context,
-	app *model.App,
+	secret *config.WebhookKeyMaterials,
 	to string,
 	cfg model.SMSProviderConfigurationWebhookInput,
 ) error {
-
-	webhook := custom.NewSMSWebHook(&config.CustomSMSProviderConfig{
+	webHookImpl := &hook.WebHookImpl{
+		Logger: hook.NewWebHookLogger(s.LoggerFactory),
+		Secret: secret,
+	}
+	webhook := custom.NewSMSWebHook(webHookImpl, &config.CustomSMSProviderConfig{
 		URL:     cfg.URL,
 		Timeout: (*config.DurationSeconds)(cfg.Timeout),
 	})
