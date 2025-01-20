@@ -9,6 +9,7 @@ import (
 
 	portalcmd "github.com/authgear/authgear-server/cmd/portal/cmd"
 	dbutil "github.com/authgear/authgear-server/pkg/lib/db/util"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/util/sqlmigrate"
 )
 
@@ -192,7 +193,10 @@ var cmdDump = &cobra.Command{
 		}
 
 		dumper := dbutil.NewDumper(
-			dbURL,
+			db.ConnectionInfo{
+				Purpose:     db.ConnectionPurposeGlobal,
+				DatabaseURL: dbURL,
+			},
 			dbSchema,
 			outputDir,
 			args,
@@ -222,7 +226,10 @@ var cmdRestore = &cobra.Command{
 		}
 
 		restorer := dbutil.NewRestorer(
-			dbURL,
+			db.ConnectionInfo{
+				Purpose:     db.ConnectionPurposeGlobal,
+				DatabaseURL: dbURL,
+			},
 			dbSchema,
 			inputDir,
 			args,

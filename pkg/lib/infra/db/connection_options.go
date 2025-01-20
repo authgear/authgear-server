@@ -4,8 +4,22 @@ import (
 	"time"
 )
 
+type ConnectionPurpose string
+
+const (
+	ConnectionPurposeGlobal         = "global"
+	ConnectionPurposeApp            = "app"
+	ConnectionPurposeAuditReadOnly  = "audit_read_only"
+	ConnectionPurposeAuditReadWrite = "audit_read_write"
+	ConnectionPurposeSearch         = "search"
+)
+
+type ConnectionInfo struct {
+	Purpose     ConnectionPurpose
+	DatabaseURL string
+}
+
 type ConnectionOptions struct {
-	DatabaseURL           string
 	MaxOpenConnection     int
 	MaxIdleConnection     int
 	MaxConnectionLifetime time.Duration

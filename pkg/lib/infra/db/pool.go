@@ -8,21 +8,21 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/otelutil"
 )
 
+var actualPoolOpener = openPostgresDB
+
 type Pool struct {
 	closed     bool
 	closeMutex sync.RWMutex
 
-	cache      map[string]*sql.DB
+	cache      map[ConnectionInfo]*sql.DB
 	cacheMutex sync.RWMutex
 }
 
 func NewPool() *Pool {
-	return &Pool{cache: map[string]*sql.DB{}}
+	return &Pool{cache: map[ConnectionInfo]*sql.DB{}}
 }
 
-func (p *Pool) Open(opts ConnectionOptions) (db *sql.DB, err error) {
-	source := opts.DatabaseURL
-
+func (p *Pool) Open(info ConnectionInfo, opts ConnectionOptions) (db *sql.DB, err error) {
 	p.closeMutex.RLock()
 	defer func() { p.closeMutex.RUnlock() }()
 	if p.closed {
@@ -30,16 +30,16 @@ func (p *Pool) Open(opts ConnectionOptions) (db *sql.DB, err error) {
 	}
 
 	p.cacheMutex.RLock()
-	db, exists := p.cache[source]
+	db, exists := p.cache[info]
 	p.cacheMutex.RUnlock()
 
 	if !exists {
 		p.cacheMutex.Lock()
-		db, exists = p.cache[source]
+		db, exists = p.cache[info]
 		if !exists {
-			db, err = p.openPostgresDB(opts)
+			db, err = actualPoolOpener(info, opts)
 			if err == nil {
-				p.cache[source] = db
+				p.cache[info] = db
 			}
 		}
 		p.cacheMutex.Unlock()
@@ -65,8 +65,8 @@ func (p *Pool) Close() (err error) {
 	return
 }
 
-func (p *Pool) openPostgresDB(opts ConnectionOptions) (*sql.DB, error) {
-	pgdb, err := otelutil.OTelSQLOpenPostgres(opts.DatabaseURL)
+func openPostgresDB(info ConnectionInfo, opts ConnectionOptions) (*sql.DB, error) {
+	pgdb, err := otelutil.OTelSQLOpenPostgres(info.DatabaseURL)
 	if err != nil {
 		return nil, err
 	}

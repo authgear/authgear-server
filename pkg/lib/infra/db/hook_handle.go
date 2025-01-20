@@ -21,6 +21,7 @@ type hookHandleContextValue struct {
 
 type HookHandle struct {
 	Pool              *Pool
+	ConnectionInfo    ConnectionInfo
 	ConnectionOptions ConnectionOptions
 	Logger            *log.Logger
 }
@@ -51,9 +52,10 @@ func mustGetTxLike(ctx context.Context) txLike {
 
 var _ Handle = (*HookHandle)(nil)
 
-func NewHookHandle(pool *Pool, opts ConnectionOptions, lf *log.Factory) *HookHandle {
+func NewHookHandle(pool *Pool, info ConnectionInfo, opts ConnectionOptions, lf *log.Factory) *HookHandle {
 	return &HookHandle{
 		Pool:              pool,
+		ConnectionInfo:    info,
 		ConnectionOptions: opts,
 		Logger:            lf.New("db-handle"),
 	}
@@ -245,13 +247,14 @@ func rollbackTx(logger *log.Logger, tx *sql.Tx) error {
 
 func (h *HookHandle) openDB() (*sql.DB, error) {
 	h.Logger.WithFields(map[string]interface{}{
+		"purpose":                    h.ConnectionInfo.Purpose,
 		"max_open_conns":             h.ConnectionOptions.MaxOpenConnection,
 		"max_idle_conns":             h.ConnectionOptions.MaxIdleConnection,
 		"conn_max_lifetime_seconds":  h.ConnectionOptions.MaxConnectionLifetime.Seconds(),
 		"conn_max_idle_time_seconds": h.ConnectionOptions.IdleConnectionTimeout.Seconds(),
 	}).Debug("open database")
 
-	db, err := h.Pool.Open(h.ConnectionOptions)
+	db, err := h.Pool.Open(h.ConnectionInfo, h.ConnectionOptions)
 	if err != nil {
 		return nil, fmt.Errorf("hook-handle: failed to connect to database: %w", err)
 	}

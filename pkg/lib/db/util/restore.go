@@ -13,7 +13,7 @@ import (
 )
 
 type Restorer struct {
-	DatabaseURL    string
+	ConnectionInfo db.ConnectionInfo
 	DatabaseSchema string
 	InputDir       string
 	AppIDs         []string
@@ -26,7 +26,7 @@ type Restorer struct {
 }
 
 func NewRestorer(
-	databaseURL string,
+	connectionInfo db.ConnectionInfo,
 	databaseSchema string,
 	inputDir string,
 	appIDs []string,
@@ -39,8 +39,8 @@ func NewRestorer(
 	pool := db.NewPool()
 	handle := db.NewHookHandle(
 		pool,
+		connectionInfo,
 		db.ConnectionOptions{
-			DatabaseURL:           databaseURL,
 			MaxOpenConnection:     1,
 			MaxIdleConnection:     1,
 			MaxConnectionLifetime: 1800 * time.Second,
@@ -51,7 +51,7 @@ func NewRestorer(
 	sqlExecutor := &db.SQLExecutor{}
 	sqlBuilder := db.NewSQLBuilder(databaseSchema)
 	return &Restorer{
-		DatabaseURL:    databaseURL,
+		ConnectionInfo: connectionInfo,
 		DatabaseSchema: databaseSchema,
 		InputDir:       inputDir,
 		AppIDs:         appIDs,

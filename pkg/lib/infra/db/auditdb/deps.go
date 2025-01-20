@@ -102,15 +102,19 @@ func NewReadHandle(
 		return nil
 	}
 
+	info := db.ConnectionInfo{
+		Purpose:     db.ConnectionPurposeAuditReadOnly,
+		DatabaseURL: credentials.DatabaseURL,
+	}
+
 	opts := db.ConnectionOptions{
-		DatabaseURL:           credentials.DatabaseURL,
 		MaxOpenConnection:     cfg.MaxOpenConn,
 		MaxIdleConnection:     cfg.MaxIdleConn,
 		MaxConnectionLifetime: cfg.ConnMaxLifetimeSeconds.Duration(),
 		IdleConnectionTimeout: cfg.ConnMaxIdleTimeSeconds.Duration(),
 	}
 	return &ReadHandle{
-		db.NewHookHandle(pool, opts, lf),
+		db.NewHookHandle(pool, info, opts, lf),
 	}
 }
 
@@ -132,15 +136,19 @@ func NewWriteHandle(
 		return nil
 	}
 
+	info := db.ConnectionInfo{
+		Purpose:     db.ConnectionPurposeAuditReadWrite,
+		DatabaseURL: credentials.DatabaseURL,
+	}
+
 	opts := db.ConnectionOptions{
-		DatabaseURL:           credentials.DatabaseURL,
 		MaxOpenConnection:     cfg.MaxOpenConn,
 		MaxIdleConnection:     cfg.MaxIdleConn,
 		MaxConnectionLifetime: cfg.ConnMaxLifetimeSeconds.Duration(),
 		IdleConnectionTimeout: cfg.ConnMaxIdleTimeSeconds.Duration(),
 	}
 	return &WriteHandle{
-		db.NewHookHandle(pool, opts, lf),
+		db.NewHookHandle(pool, info, opts, lf),
 	}
 }
 
