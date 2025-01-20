@@ -1,7 +1,7 @@
 package graphqlutil
 
 import (
-	relay "github.com/authgear/graphql-go-relay"
+	relay "github.com/authgear/authgear-server/pkg/graphqlgo/relay"
 )
 
 const MaxPageSize uint64 = 100
