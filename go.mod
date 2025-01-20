@@ -8,7 +8,6 @@ require (
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/Masterminds/squirrel v1.5.4
 	github.com/abadojack/whatlanggo v1.0.1
-	github.com/authgear/graphql-go-relay v0.0.0-20240429082917-f56c3cce72ba
 	github.com/boombuler/barcode v1.0.2
 	// https://github.com/elastic/go-elasticsearch#compatibility
 	// The client should have equal or less minor version.
@@ -89,6 +88,7 @@ require (
 	github.com/coder/websocket v1.8.12
 	github.com/go-gsm/charset v1.0.0
 	github.com/go-ldap/ldap/v3 v3.4.8
+	github.com/kr/pretty v0.3.1
 	github.com/minio/minio-go/v7 v7.0.81
 	github.com/rivo/uniseg v0.4.7
 	github.com/russellhaering/goxmldsig v1.4.0
@@ -128,9 +128,11 @@ require (
 	github.com/jonboulle/clockwork v0.2.2 // indirect
 	github.com/klauspost/compress v1.17.11 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.8 // indirect
+	github.com/kr/text v0.2.0 // indirect
 	github.com/minio/md5-simd v1.1.2 // indirect
 	github.com/onsi/ginkgo v1.16.5 // indirect
 	github.com/planetscale/vtprotobuf v0.6.1-0.20240319094008-0393e58bdf10 // indirect
+	github.com/rogpeppe/go-internal v1.13.1 // indirect
 	github.com/rs/xid v1.6.0 // indirect
 	go.opentelemetry.io/contrib/detectors/gcp v1.29.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.54.0 // indirect

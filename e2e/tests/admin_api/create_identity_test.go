@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"testing"
 
-	relay "github.com/authgear/graphql-go-relay"
 	. "github.com/smartystreets/goconvey/convey"
+
+	relay "github.com/authgear/authgear-server/pkg/graphqlgo/relay"
 
 	"github.com/authgear/authgear-server/e2e/pkg/e2eclient"
 	"github.com/authgear/authgear-server/e2e/pkg/testrunner"

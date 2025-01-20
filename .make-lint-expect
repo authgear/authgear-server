@@ -12,11 +12,47 @@ pkg/lib/deps/deps_common.go cannot import github.com/authgear/authgear-server/pk
 pkg/lib/deps/middleware_request.go cannot import github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels
 
 exit status 1
+pkg/admin/graphql/audit_log.go cannot import github.com/authgear/authgear-server/pkg/graphqlgo/relay
+pkg/admin/graphql/authenticator_mutation.go cannot import github.com/authgear/authgear-server/pkg/graphqlgo/relay
+pkg/admin/graphql/authorization_mutation.go cannot import github.com/authgear/authgear-server/pkg/graphqlgo/relay
+pkg/admin/graphql/entity.go cannot import github.com/authgear/authgear-server/pkg/graphqlgo/relay
+pkg/admin/graphql/group.go cannot import github.com/authgear/authgear-server/pkg/graphqlgo/relay
+pkg/admin/graphql/group_mutation.go cannot import github.com/authgear/authgear-server/pkg/graphqlgo/relay
+pkg/admin/graphql/group_user_mutation.go cannot import github.com/authgear/authgear-server/pkg/graphqlgo/relay
+pkg/admin/graphql/identity_mutation.go cannot import github.com/authgear/authgear-server/pkg/graphqlgo/relay
+pkg/admin/graphql/nodes.go cannot import github.com/authgear/authgear-server/pkg/graphqlgo/relay
+pkg/admin/graphql/query.go cannot import github.com/authgear/authgear-server/pkg/graphqlgo/relay
+pkg/admin/graphql/role.go cannot import github.com/authgear/authgear-server/pkg/graphqlgo/relay
+pkg/admin/graphql/role_mutation.go cannot import github.com/authgear/authgear-server/pkg/graphqlgo/relay
+pkg/admin/graphql/role_user_mutation.go cannot import github.com/authgear/authgear-server/pkg/graphqlgo/relay
+pkg/admin/graphql/session_mutation.go cannot import github.com/authgear/authgear-server/pkg/graphqlgo/relay
+pkg/admin/graphql/user.go cannot import github.com/authgear/authgear-server/pkg/graphqlgo/relay
+pkg/admin/graphql/user_mutation.go cannot import github.com/authgear/authgear-server/pkg/graphqlgo/relay
+
+exit status 1
 pkg/portal/deps.go cannot import github.com/authgear/authgear-server/pkg/auth
+pkg/portal/graphql/app.go cannot import github.com/authgear/authgear-server/pkg/graphqlgo/relay
+pkg/portal/graphql/app_mutation.go cannot import github.com/authgear/authgear-server/pkg/graphqlgo/relay
+pkg/portal/graphql/billing_mutation.go cannot import github.com/authgear/authgear-server/pkg/graphqlgo/relay
+pkg/portal/graphql/chart.go cannot import github.com/authgear/authgear-server/pkg/graphqlgo/relay
+pkg/portal/graphql/collaborator_mutation.go cannot import github.com/authgear/authgear-server/pkg/graphqlgo/relay
+pkg/portal/graphql/domain_mutation.go cannot import github.com/authgear/authgear-server/pkg/graphqlgo/relay
+pkg/portal/graphql/hook_mutation.go cannot import github.com/authgear/authgear-server/pkg/graphqlgo/relay
+pkg/portal/graphql/nodes.go cannot import github.com/authgear/authgear-server/pkg/graphqlgo/relay
+pkg/portal/graphql/smtp_mutation.go cannot import github.com/authgear/authgear-server/pkg/graphqlgo/relay
+pkg/portal/graphql/user.go cannot import github.com/authgear/authgear-server/pkg/graphqlgo/relay
+pkg/portal/graphql/viewer.go cannot import github.com/authgear/authgear-server/pkg/graphqlgo/relay
+pkg/portal/libstripe/service.go cannot import github.com/authgear/authgear-server/pkg/graphqlgo/relay
+pkg/portal/loader/user.go cannot import github.com/authgear/authgear-server/pkg/graphqlgo/relay
+pkg/portal/service/collaborator.go cannot import github.com/authgear/authgear-server/pkg/graphqlgo/relay
+pkg/portal/service/onboard.go cannot import github.com/authgear/authgear-server/pkg/graphqlgo/relay
 pkg/portal/service/system_config.go cannot import github.com/authgear/authgear-server/pkg/version
+pkg/portal/transport/admin_api_handler.go cannot import github.com/authgear/authgear-server/pkg/graphqlgo/relay
 pkg/portal/wire_gen.go cannot import github.com/authgear/authgear-server/pkg/auth
 
 exit status 1
+pkg/util/graphqlutil/connection.go cannot import github.com/authgear/authgear-server/pkg/graphqlgo/relay
+pkg/util/graphqlutil/page.go cannot import github.com/authgear/authgear-server/pkg/graphqlgo/relay
 pkg/util/otelutil/setup.go cannot import github.com/authgear/authgear-server/pkg/version
 pkg/util/template/resource.go cannot import github.com/authgear/authgear-server/pkg/lib/config/configsource
 pkg/util/template/resource_test.go cannot import github.com/authgear/authgear-server/pkg/lib/config/configsource

@@ -3,8 +3,9 @@ package graphqlutil
 import (
 	"reflect"
 
-	"github.com/authgear/graphql-go-relay"
 	"github.com/graphql-go/graphql"
+
+	"github.com/authgear/authgear-server/pkg/graphqlgo/relay"
 )
 
 type LazyItem struct {

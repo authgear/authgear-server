@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/authgear/graphql-go-relay"
 	"github.com/graphql-go/graphql"
+
+	"github.com/authgear/authgear-server/pkg/graphqlgo/relay"
 )
 
 type Resolver func(ctx context.Context, gqlCtx *Context, id string) (interface{}, error)

@@ -10,8 +10,9 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
-	relay "github.com/authgear/graphql-go-relay"
 	"github.com/lib/pq"
+
+	relay "github.com/authgear/authgear-server/pkg/graphqlgo/relay"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config"
