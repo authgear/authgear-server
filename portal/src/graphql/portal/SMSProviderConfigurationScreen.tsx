@@ -17,7 +17,7 @@ import {
   useAppSecretConfigForm,
 } from "../../hook/useAppSecretConfigForm";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
-import FormContainer from "../../FormContainer";
+import FormContainer, { FormSaveButton } from "../../FormContainer";
 import {
   PortalAPIAppConfig,
   PortalAPISecretConfig,
@@ -59,6 +59,9 @@ import {
 } from "../../util/resource";
 import { DENO_TYPES_URL } from "../../util/deno";
 import { genRandomHexadecimalString } from "../../util/random";
+import HorizontalDivider from "../../HorizontalDivider";
+import FormPhoneTextField from "../../FormPhoneTextField";
+import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";
 
 const SECRETS = [AppSecretKey.SmsProviderSecrets, AppSecretKey.WebhookSecret];
 
@@ -428,6 +431,12 @@ function SMSProviderConfigurationScreen1({
   appID: string;
   secretToken: string | null;
 }) {
+  const {
+    effectiveAppConfig,
+    loading: loadingAppConfig,
+    error: appConfigError,
+    refetch: refetchAppConfig,
+  } = useAppAndSecretConfigQuery(appID);
   const configForm = useAppSecretConfigForm({
     appID,
     secretVisitToken: secretToken,
@@ -483,15 +492,16 @@ function SMSProviderConfigurationScreen1({
     },
   };
 
-  if (form.isLoading || featureConfig.loading) {
+  if (loadingAppConfig || form.isLoading || featureConfig.loading) {
     return <ShowLoading />;
   }
 
-  if (form.loadError ?? featureConfig.error) {
+  if (appConfigError ?? form.loadError ?? featureConfig.error) {
     return (
       <ShowError
         error={form.loadError ?? featureConfig.error}
         onRetry={() => {
+          refetchAppConfig().finally(() => {});
           form.reload();
           featureConfig.refetch().finally(() => {});
         }}
@@ -500,16 +510,20 @@ function SMSProviderConfigurationScreen1({
   }
 
   return (
-    <FormContainer form={form}>
-      <SMSProviderConfigurationContent form={form} />
+    <FormContainer form={form} hideFooterComponent={true}>
+      <SMSProviderConfigurationContent
+        form={form}
+        effectiveAppConfig={effectiveAppConfig ?? undefined}
+      />
     </FormContainer>
   );
 }
 
 function SMSProviderConfigurationContent(props: {
   form: AppSecretConfigFormModel<FormState>;
+  effectiveAppConfig: PortalAPIAppConfig | undefined;
 }) {
-  const { form } = props;
+  const { form, effectiveAppConfig } = props;
   const { state, setState } = form;
   const { renderToString } = useContext(MessageContext);
   const navigate = useNavigate();
@@ -563,6 +577,20 @@ function SMSProviderConfigurationContent(props: {
           <ProviderSection form={form} />
           <FormSection form={form} onRevealSecrets={onRevealSecrets} />
         </Widget>
+      ) : null}
+
+      <Widget className={cn(styles.widget, "w-min pt-1")}>
+        <FormSaveButton />
+      </Widget>
+
+      <Widget className={cn(styles.widget, "py-1")}>
+        <HorizontalDivider />
+      </Widget>
+
+      {form.state.enabled ? (
+        <div className={styles.widget}>
+          <TestSMSSection form={form} effectiveAppConfig={effectiveAppConfig} />
+        </div>
       ) : null}
     </ScreenContent>
   );
@@ -987,6 +1015,51 @@ function DenoHookForm({ form }: { form: AppSecretConfigFormModel<FormState> }) {
           "SMSProviderConfigurationScreen.form.deno.timeout.description"
         )}
       />
+    </div>
+  );
+}
+
+function TestSMSSection({
+  form,
+  effectiveAppConfig,
+}: {
+  form: AppSecretConfigFormModel<FormState>;
+  effectiveAppConfig: PortalAPIAppConfig | undefined;
+}) {
+  const [toInputValue, setToInputValue] = useState("");
+  const [to, setTo] = useState("");
+  const onChangeValues = useCallback(
+    (values: { e164?: string; rawInputValue: string }) => {
+      const { e164, rawInputValue } = values;
+      setTo(e164 ?? "");
+      setToInputValue(rawInputValue);
+    },
+    []
+  );
+
+  return (
+    <div className="flex flex-col gap-y-3">
+      <Text variant="xLarge">
+        <FormattedMessage id="SMSProviderConfigurationScreen.test.title" />
+      </Text>
+
+      <div className="flex flex-col gap-y-4">
+        <FormPhoneTextField
+          parentJSONPointer=""
+          fieldName="to"
+          allowlist={effectiveAppConfig?.ui?.phone_input?.allowlist}
+          pinnedList={effectiveAppConfig?.ui?.phone_input?.pinned_list}
+          inputValue={toInputValue}
+          onChange={onChangeValues}
+        />
+        <PrimaryButton
+          className="w-min"
+          disabled={to === ""}
+          text={
+            <FormattedMessage id="SMSProviderConfigurationScreen.test.send.label" />
+          }
+        />
+      </div>
     </div>
   );
 }

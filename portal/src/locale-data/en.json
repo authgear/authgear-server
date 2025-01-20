@@ -1593,6 +1593,8 @@
   "SMSProviderConfigurationScreen.form.deno.script": "Custom script",
   "SMSProviderConfigurationScreen.form.deno.timeout": "Timeout (Seconds)",
   "SMSProviderConfigurationScreen.form.deno.timeout.description": "You can set it from 1 to 60 seconds. If the webhook doesn’t respond in time, the SMS is marked as undelivered.",
+  "SMSProviderConfigurationScreen.test.title": "Test SMS",
+  "SMSProviderConfigurationScreen.test.send.label": "Send Test SMS",
 
   "StandardAttributesConfigurationScreen.title": "Standard Attributes",
 
