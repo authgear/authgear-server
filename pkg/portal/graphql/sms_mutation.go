@@ -85,13 +85,13 @@ var smsProviderConfigurationDenoInput = graphql.NewInputObject(graphql.InputObje
 })
 
 var _ = registerMutationField(
-	"sendTestSMTPConfigurationEmail",
+	"sendTestSMSConfiguration",
 	&graphql.Field{
-		Description: "Send test STMP configuration email",
+		Description: "Send test SMS configuration",
 		Type:        graphql.Boolean,
 		Args: graphql.FieldConfigArgument{
 			"input": &graphql.ArgumentConfig{
-				Type: graphql.NewNonNull(sendTestSMTPConfigurationEmailInput),
+				Type: graphql.NewNonNull(sendTestSMSInput),
 			},
 		},
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {

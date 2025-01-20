@@ -523,6 +523,9 @@ type Mutation {
   """Updates the current user's custom attribute with 'survey' key"""
   saveOnboardingSurvey(input: SaveOnboardingSurveyInput!): Boolean
 
+  """Send test SMS configuration"""
+  sendTestSMSConfiguration(input: SendTestSMSInput!): Boolean
+
   """Send test STMP configuration email"""
   sendTestSMTPConfigurationEmail(input: sendTestSMTPConfigurationEmailInput!): Boolean
 
@@ -776,6 +779,48 @@ input SAMLSpSigningSecretsUpdateInstructionsInput {
   setData: SAMLSpSigningSecretsSetDataInput
 }
 
+""""""
+input SMSProviderConfigurationDenoInput {
+  """"""
+  script: String!
+
+  """"""
+  timeout: Int
+}
+
+""""""
+input SMSProviderConfigurationInput {
+  """Configuration of Deno hook"""
+  deno: SMSProviderConfigurationDenoInput
+
+  """Configuration of Twilio"""
+  twilio: SMSProviderConfigurationTwilioInput
+
+  """Configuration of Webhook"""
+  webhook: SMSProviderConfigurationWebhookInput
+}
+
+""""""
+input SMSProviderConfigurationTwilioInput {
+  """"""
+  accountSID: String!
+
+  """"""
+  authToken: String!
+
+  """"""
+  messagingServiceSID: String!
+}
+
+""""""
+input SMSProviderConfigurationWebhookInput {
+  """"""
+  timeout: Int
+
+  """"""
+  url: String!
+}
+
 """Custom SMS Provider configs"""
 type SMSProviderCustomSMSProviderSecrets {
   """"""
@@ -927,6 +972,18 @@ input SecretConfigUpdateInstructionsInput {
 
   """"""
   smtpSecret: SmtpSecretUpdateInstructionsInput
+}
+
+""""""
+input SendTestSMSInput {
+  """App ID to test."""
+  appID: ID!
+
+  """The sms provider configuration."""
+  providerConfiguration: SMSProviderConfigurationInput!
+
+  """The recipient phone number."""
+  to: String!
 }
 
 """"""
