@@ -52,10 +52,11 @@ func NewHookDenoClient(endpoint config.DenoEndpoint, logger hook.Logger, timeout
 	}
 }
 
-func NewSMSWebHook(smsCfg *config.CustomSMSProviderConfig) *SMSWebHook {
+func NewSMSWebHook(hook hook.WebHook, smsCfg *config.CustomSMSProviderConfig) *SMSWebHook {
 	httpClient := NewHookHTTPClient(NewSMSHookTimeout(smsCfg))
 	return &SMSWebHook{
-		Client: httpClient,
+		WebHook: hook,
+		Client:  httpClient,
 	}
 }
 

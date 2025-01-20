@@ -63,6 +63,9 @@ type AppService interface {
 		app *model.App,
 		returnURI string,
 	) (*tester.TesterToken, error)
+	LoadAppWebhookSecretMaterials(
+		ctx context.Context,
+		app *model.App) (*config.WebhookKeyMaterials, error)
 }
 
 type DomainService interface {
@@ -106,7 +109,7 @@ type SMSService interface {
 	) error
 	SendByWebhook(
 		ctx context.Context,
-		app *model.App,
+		secret *config.WebhookKeyMaterials,
 		to string,
 		cfg model.SMSProviderConfigurationWebhookInput,
 	) error

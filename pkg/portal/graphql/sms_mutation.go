@@ -136,7 +136,11 @@ var _ = registerMutationField(
 					return nil, err
 				}
 			} else if providerConfig.Webhook != nil {
-				err = gqlCtx.SMSService.SendByWebhook(ctx, app, to, *providerConfig.Webhook)
+				webhookSecret, err := gqlCtx.AppService.LoadAppWebhookSecretMaterials(ctx, app)
+				if err != nil {
+					return nil, err
+				}
+				err = gqlCtx.SMSService.SendByWebhook(ctx, webhookSecret, to, *providerConfig.Webhook)
 				if err != nil {
 					return nil, err
 				}
