@@ -1,6 +1,9 @@
 import cn from "classnames";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { AppSecretKey } from "./globalTypes.generated";
+import {
+  AppSecretKey,
+  SmsProviderConfigurationInput,
+} from "./globalTypes.generated";
 import React, {
   useCallback,
   useContext,
@@ -62,6 +65,7 @@ import { genRandomHexadecimalString } from "../../util/random";
 import HorizontalDivider from "../../HorizontalDivider";
 import FormPhoneTextField from "../../FormPhoneTextField";
 import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";
+import { useSendTestSMSMutation } from "./mutations/sendTestSMS";
 
 const SECRETS = [AppSecretKey.SmsProviderSecrets, AppSecretKey.WebhookSecret];
 
@@ -389,6 +393,83 @@ const CODE_EDITOR_OPTIONS = {
   },
 };
 
+function useDenoScriptResourceIndex(state: FormState) {
+  const resourceIdx = useMemo(() => {
+    if (state.denoHookURL === "") {
+      return -1;
+    }
+    const path = getDenoScriptPathFromURL(state.denoHookURL);
+    for (const [idx, r] of state.resources.entries()) {
+      if (r.path === path && r.nullableValue != null) {
+        return idx;
+      }
+    }
+    return -1;
+  }, [state.denoHookURL, state.resources]);
+  return resourceIdx;
+}
+
+function useTestSMSConfig(
+  state: FormState
+): SmsProviderConfigurationInput | null {
+  const denoResourceIdx = useDenoScriptResourceIndex(state);
+
+  return useMemo(() => {
+    if (!state.enabled) {
+      return null;
+    }
+    switch (state.providerType) {
+      case SMSProviderType.Twilio:
+        if (!state.twilioSID || !state.twilioAuthToken) {
+          return null;
+        }
+        return {
+          twilio: {
+            accountSID: state.twilioSID,
+            authToken: state.twilioAuthToken,
+            messagingServiceSID: state.twilioMessagingServiceSID,
+          },
+        };
+      case SMSProviderType.Webhook:
+        if (!state.webhookURL) {
+          return null;
+        }
+        return {
+          webhook: {
+            url: state.webhookURL,
+            timeout: state.webhookTimeout,
+          },
+        };
+      case SMSProviderType.Deno: {
+        if (denoResourceIdx === -1) {
+          return null;
+        }
+        const script = state.resources[denoResourceIdx].nullableValue ?? "";
+        if (!script) {
+          return null;
+        }
+        return {
+          deno: {
+            script: script,
+            timeout: state.denoHookTimeout,
+          },
+        };
+      }
+    }
+  }, [
+    denoResourceIdx,
+    state.denoHookTimeout,
+    state.enabled,
+    state.providerType,
+    state.resources,
+    state.twilioAuthToken,
+    state.twilioMessagingServiceSID,
+    state.twilioSID,
+    state.webhookTimeout,
+    state.webhookURL,
+  ]);
+}
+
 const SMSProviderConfigurationScreen: React.VFC =
   function SMSProviderConfigurationScreen() {
     const { appID } = useParams() as { appID: string };
@@ -436,7 +517,7 @@ function SMSProviderConfigurationScreen1({
     loading: loadingAppConfig,
     error: appConfigError,
     refetch: refetchAppConfig,
-  } = useAppAndSecretConfigQuery(appID);
+  } = useAppAndSecretConfigQuery(appID, secretToken);
   const configForm = useAppSecretConfigForm({
     appID,
     secretVisitToken: secretToken,
@@ -454,6 +535,7 @@ function SMSProviderConfigurationScreen1({
     (resources) => resources,
     (resources) => resources
   );
+  const sendTestSMSHandle = useSendTestSMSMutation(appID);
 
   const state = useMemo<FormState>(() => {
     return {
@@ -510,10 +592,15 @@ function SMSProviderConfigurationScreen1({
   }
 
   return (
-    <FormContainer form={form} hideFooterComponent={true}>
+    <FormContainer
+      form={form}
+      hideFooterComponent={true}
+      localError={sendTestSMSHandle.error}
+    >
       <SMSProviderConfigurationContent
         form={form}
         effectiveAppConfig={effectiveAppConfig ?? undefined}
+        sendTestSMSHandle={sendTestSMSHandle}
       />
     </FormContainer>
   );
@@ -522,8 +609,9 @@ function SMSProviderConfigurationScreen1({
 function SMSProviderConfigurationContent(props: {
   form: AppSecretConfigFormModel<FormState>;
   effectiveAppConfig: PortalAPIAppConfig | undefined;
+  sendTestSMSHandle: ReturnType<typeof useSendTestSMSMutation>;
 }) {
-  const { form, effectiveAppConfig } = props;
+  const { form, effectiveAppConfig, sendTestSMSHandle } = props;
   const { state, setState } = form;
   const { renderToString } = useContext(MessageContext);
   const navigate = useNavigate();
@@ -589,7 +677,11 @@ function SMSProviderConfigurationContent(props: {
 
       {form.state.enabled ? (
         <div className={styles.widget}>
-          <TestSMSSection form={form} effectiveAppConfig={effectiveAppConfig} />
+          <TestSMSSection
+            form={form}
+            effectiveAppConfig={effectiveAppConfig}
+            sendTestSMSHandle={sendTestSMSHandle}
+          />
         </div>
       ) : null}
     </ScreenContent>
@@ -926,18 +1018,7 @@ function DenoHookForm({ form }: { form: AppSecretConfigFormModel<FormState> }) {
     [setState]
   );
 
-  const resourceIdx = useMemo(() => {
-    if (state.denoHookURL === "") {
-      return -1;
-    }
-    const path = getDenoScriptPathFromURL(state.denoHookURL);
-    for (const [idx, r] of state.resources.entries()) {
-      if (r.path === path && r.nullableValue != null) {
-        return idx;
-      }
-    }
-    return -1;
-  }, [state.denoHookURL, state.resources]);
+  const resourceIdx = useDenoScriptResourceIndex(form.state);
 
   // Generate a new script resource if one does not exist
   useEffect(() => {
@@ -1022,10 +1103,13 @@ function DenoHookForm({ form }: { form: AppSecretConfigFormModel<FormState> }) {
 function TestSMSSection({
   form,
   effectiveAppConfig,
+  sendTestSMSHandle,
 }: {
   form: AppSecretConfigFormModel<FormState>;
   effectiveAppConfig: PortalAPIAppConfig | undefined;
+  sendTestSMSHandle: ReturnType<typeof useSendTestSMSMutation>;
 }) {
+  const { sendTestSMS, loading } = sendTestSMSHandle;
   const [toInputValue, setToInputValue] = useState("");
   const [to, setTo] = useState("");
   const onChangeValues = useCallback(
@@ -1036,6 +1120,21 @@ function TestSMSSection({
     },
     []
   );
+
+  const testConfig = useTestSMSConfig(form.state);
+
+  const onSendTestSMS = useCallback(() => {
+    if (testConfig == null) {
+      console.error("onSendTestSMS triggered but testConfig is null");
+      return;
+    }
+    sendTestSMS({
+      to: to,
+      config: testConfig,
+    }).catch(() => {
+      // Error is shown in outer form container
+    });
+  }, [sendTestSMS, testConfig, to]);
 
   return (
     <div className="flex flex-col gap-y-3">
@@ -1054,7 +1153,8 @@ function TestSMSSection({
         />
         <PrimaryButton
           className="w-min"
-          disabled={to === ""}
+          disabled={to === "" || loading || testConfig == null}
+          onClick={onSendTestSMS}
           text={
             <FormattedMessage id="SMSProviderConfigurationScreen.test.send.label" />
           }
