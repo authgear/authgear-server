@@ -8,6 +8,7 @@ import ScreenLayout from "./ScreenLayout";
 import ShowLoading from "./ShowLoading";
 import { useUnauthenticatedDialogContext } from "./components/auth/UnauthenticatedDialogContext";
 import { useUIImplementation } from "./hook/useUIImplementation";
+import { useSystemConfig } from "./context/SystemConfigContext";
 
 const RolesScreen = lazy(async () => import("./graphql/adminapi/RolesScreen"));
 const AddRoleScreen = lazy(
@@ -185,6 +186,7 @@ const EditConfigurationScreen = lazy(
 const AppRoot: React.VFC = function AppRoot() {
   const { appID } = useParams() as { appID: string };
   const { setDisplayUnauthenticatedDialog } = useUnauthenticatedDialogContext();
+  const { showCustomSMSGateway } = useSystemConfig();
   const client = useMemo(() => {
     const onLogout = () => {
       setDisplayUnauthenticatedDialog(true);
@@ -782,14 +784,16 @@ const AppRoot: React.VFC = function AppRoot() {
                 </Suspense>
               }
             />
-            <Route
-              path="sms-gateway"
-              element={
-                <Suspense fallback={<ShowLoading />}>
-                  <SMSProviderConfigurationScreen />
-                </Suspense>
-              }
-            />
+            {showCustomSMSGateway ? (
+              <Route
+                path="sms-gateway"
+                element={
+                  <Suspense fallback={<ShowLoading />}>
+                    <SMSProviderConfigurationScreen />
+                  </Suspense>
+                }
+              />
+            ) : null}
             <Route
               path="endpoint-direct-access"
               element={
