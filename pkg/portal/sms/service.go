@@ -117,24 +117,17 @@ func (s *Service) SendTestSMS(
 	webhookSecretLoader func(ctx context.Context) (*config.WebhookKeyMaterials, error),
 	input model.SMSProviderConfigurationInput) error {
 	if input.Twilio != nil {
-		err := s.sendByTwilio(ctx, app, to, *input.Twilio)
-		if err != nil {
-			return err
-		}
+		return s.sendByTwilio(ctx, app, to, *input.Twilio)
+
 	} else if input.Webhook != nil {
 		webhookSecret, err := webhookSecretLoader(ctx)
 		if err != nil {
 			return err
 		}
-		err = s.sendByWebhook(ctx, webhookSecret, to, *input.Webhook)
-		if err != nil {
-			return err
-		}
+		return s.sendByWebhook(ctx, webhookSecret, to, *input.Webhook)
+
 	} else if input.Deno != nil {
-		err := s.sendByDeno(ctx, app, to, *input.Deno)
-		if err != nil {
-			return err
-		}
+		return s.sendByDeno(ctx, app, to, *input.Deno)
 	}
 	return apierrors.NewInvalid("no provider config given")
 }
