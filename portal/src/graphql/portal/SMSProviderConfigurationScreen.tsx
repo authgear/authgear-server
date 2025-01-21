@@ -676,19 +676,20 @@ function SMSProviderConfigurationContent(props: {
         <FormSaveButton />
       </Widget>
 
-      <Widget className={cn(styles.widget, "py-1")}>
-        <HorizontalDivider />
-      </Widget>
-
       {form.state.enabled ? (
-        <div className={styles.widget}>
-          <TestSMSSection
-            form={form}
-            effectiveAppConfig={effectiveAppConfig}
-            sendTestSMSHandle={sendTestSMSHandle}
-            checkDenoHookHandle={checkDenoHookHandle}
-          />
-        </div>
+        <>
+          <Widget className={cn(styles.widget, "py-1")}>
+            <HorizontalDivider />
+          </Widget>
+          <div className={styles.widget}>
+            <TestSMSSection
+              form={form}
+              effectiveAppConfig={effectiveAppConfig}
+              sendTestSMSHandle={sendTestSMSHandle}
+              checkDenoHookHandle={checkDenoHookHandle}
+            />
+          </div>
+        </>
       ) : null}
     </ScreenContent>
   );
