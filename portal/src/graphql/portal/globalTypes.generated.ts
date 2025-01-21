@@ -374,7 +374,7 @@ export type Mutation = {
   reconcileCheckoutSession: ReconcileCheckoutSessionPayload;
   /** Updates the current user's custom attribute with 'survey' key */
   saveOnboardingSurvey?: Maybe<Scalars['Boolean']['output']>;
-  /** Send test SMS configuration */
+  /** Send a SMS to test the configuration */
   sendTestSMSConfiguration?: Maybe<Scalars['Boolean']['output']>;
   /** Send test STMP configuration email */
   sendTestSMTPConfigurationEmail?: Maybe<Scalars['Boolean']['output']>;
@@ -686,18 +686,18 @@ export type SmsProviderConfigurationDenoInput = {
 };
 
 export type SmsProviderConfigurationInput = {
-  /** Configuration of Deno hook */
+  /** Deno hook configuration */
   deno?: InputMaybe<SmsProviderConfigurationDenoInput>;
-  /** Configuration of Twilio */
+  /** Twilio configuration */
   twilio?: InputMaybe<SmsProviderConfigurationTwilioInput>;
-  /** Configuration of Webhook */
+  /** Webhook Configuration */
   webhook?: InputMaybe<SmsProviderConfigurationWebhookInput>;
 };
 
 export type SmsProviderConfigurationTwilioInput = {
   accountSID: Scalars['String']['input'];
   authToken: Scalars['String']['input'];
-  messagingServiceSID: Scalars['String']['input'];
+  messagingServiceSID?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type SmsProviderConfigurationWebhookInput = {
@@ -792,7 +792,7 @@ export type SecretConfigUpdateInstructionsInput = {
 export type SendTestSmsInput = {
   /** App ID to test. */
   appID: Scalars['ID']['input'];
-  /** The sms provider configuration. */
+  /** The SMS provider configuration. */
   providerConfiguration: SmsProviderConfigurationInput;
   /** The recipient phone number. */
   to: Scalars['String']['input'];

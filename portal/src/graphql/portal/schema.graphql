@@ -523,7 +523,7 @@ type Mutation {
   """Updates the current user's custom attribute with 'survey' key"""
   saveOnboardingSurvey(input: SaveOnboardingSurveyInput!): Boolean
 
-  """Send test SMS configuration"""
+  """Send a SMS to test the configuration"""
   sendTestSMSConfiguration(input: SendTestSMSInput!): Boolean
 
   """Send test STMP configuration email"""
@@ -790,13 +790,13 @@ input SMSProviderConfigurationDenoInput {
 
 """"""
 input SMSProviderConfigurationInput {
-  """Configuration of Deno hook"""
+  """Deno hook configuration"""
   deno: SMSProviderConfigurationDenoInput
 
-  """Configuration of Twilio"""
+  """Twilio configuration"""
   twilio: SMSProviderConfigurationTwilioInput
 
-  """Configuration of Webhook"""
+  """Webhook Configuration"""
   webhook: SMSProviderConfigurationWebhookInput
 }
 
@@ -809,7 +809,7 @@ input SMSProviderConfigurationTwilioInput {
   authToken: String!
 
   """"""
-  messagingServiceSID: String!
+  messagingServiceSID: String
 }
 
 """"""
@@ -979,7 +979,7 @@ input SendTestSMSInput {
   """App ID to test."""
   appID: ID!
 
-  """The sms provider configuration."""
+  """The SMS provider configuration."""
   providerConfiguration: SMSProviderConfigurationInput!
 
   """The recipient phone number."""
