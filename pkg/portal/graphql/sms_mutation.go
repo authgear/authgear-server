@@ -23,7 +23,7 @@ var sendTestSMSInput = graphql.NewInputObject(graphql.InputObjectConfig{
 		},
 		"providerConfiguration": &graphql.InputObjectFieldConfig{
 			Type:        graphql.NewNonNull(smsProviderConfigurationInput),
-			Description: "The sms provider configuration.",
+			Description: "The SMS provider configuration.",
 		},
 	},
 })
@@ -33,15 +33,15 @@ var smsProviderConfigurationInput = graphql.NewInputObject(graphql.InputObjectCo
 	Fields: graphql.InputObjectConfigFieldMap{
 		"twilio": &graphql.InputObjectFieldConfig{
 			Type:        smsProviderConfigurationTwilioInput,
-			Description: "Configuration of Twilio",
+			Description: "Twilio configuration",
 		},
 		"webhook": &graphql.InputObjectFieldConfig{
 			Type:        smsProviderConfigurationWebhookInput,
-			Description: "Configuration of Webhook",
+			Description: "Webhook Configuration",
 		},
 		"deno": &graphql.InputObjectFieldConfig{
 			Type:        smsProviderConfigurationDenoInput,
-			Description: "Configuration of Deno hook",
+			Description: "Deno hook configuration",
 		},
 	},
 })
@@ -88,7 +88,7 @@ var smsProviderConfigurationDenoInput = graphql.NewInputObject(graphql.InputObje
 var _ = registerMutationField(
 	"sendTestSMSConfiguration",
 	&graphql.Field{
-		Description: "Send test SMS configuration",
+		Description: "Send a SMS to test the configuration",
 		Type:        graphql.Boolean,
 		Args: graphql.FieldConfigArgument{
 			"input": &graphql.ArgumentConfig{
