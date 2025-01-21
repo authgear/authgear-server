@@ -1,12 +1,14 @@
 package graphql
 
 import (
+	"context"
 	"encoding/json"
 
 	relay "github.com/authgear/graphql-go-relay"
 	"github.com/graphql-go/graphql"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 )
 
@@ -131,27 +133,19 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			if providerConfig.Twilio != nil {
-				err = gqlCtx.SMSService.SendByTwilio(ctx, app, to, *providerConfig.Twilio)
-				if err != nil {
-					return nil, err
-				}
-			} else if providerConfig.Webhook != nil {
-				webhookSecret, err := gqlCtx.AppService.LoadAppWebhookSecretMaterials(ctx, app)
-				if err != nil {
-					return nil, err
-				}
-				err = gqlCtx.SMSService.SendByWebhook(ctx, webhookSecret, to, *providerConfig.Webhook)
-				if err != nil {
-					return nil, err
-				}
-			} else if providerConfig.Deno != nil {
-				err = gqlCtx.SMSService.SendByDeno(ctx, app, to, *providerConfig.Deno)
-				if err != nil {
-					return nil, err
-				}
-			} else {
-				return nil, apierrors.NewInvalid("no provider config given")
+			webhookSecretLoader := func(ctx context.Context) (*config.WebhookKeyMaterials, error) {
+				return gqlCtx.AppService.LoadAppWebhookSecretMaterials(ctx, app)
+			}
+
+			err = gqlCtx.SMSService.SendTestSMS(
+				ctx,
+				app,
+				to,
+				webhookSecretLoader,
+				providerConfig,
+			)
+			if err != nil {
+				return nil, err
 			}
 
 			return nil, nil
