@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/url"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms/custom"
@@ -27,7 +28,7 @@ type Service struct {
 
 const SMS_BODY = "[Test] Authgear sms"
 
-func (s *Service) SendByTwilio(
+func (s *Service) sendByTwilio(
 	ctx context.Context,
 	app *model.App,
 	to string,
@@ -56,7 +57,7 @@ func (s *Service) SendByTwilio(
 	})
 }
 
-func (s *Service) SendByWebhook(
+func (s *Service) sendByWebhook(
 	ctx context.Context,
 	secret *config.WebhookKeyMaterials,
 	to string,
@@ -86,7 +87,7 @@ func (s *Service) SendByWebhook(
 	return nil
 }
 
-func (s *Service) SendByDeno(
+func (s *Service) sendByDeno(
 	ctx context.Context,
 	app *model.App,
 	to string,
@@ -107,4 +108,33 @@ func (s *Service) SendByDeno(
 		return err
 	}
 	return nil
+}
+
+func (s *Service) SendTestSMS(
+	ctx context.Context,
+	app *model.App,
+	to string,
+	webhookSecretLoader func(ctx context.Context) (*config.WebhookKeyMaterials, error),
+	input model.SMSProviderConfigurationInput) error {
+	if input.Twilio != nil {
+		err := s.sendByTwilio(ctx, app, to, *input.Twilio)
+		if err != nil {
+			return err
+		}
+	} else if input.Webhook != nil {
+		webhookSecret, err := webhookSecretLoader(ctx)
+		if err != nil {
+			return err
+		}
+		err = s.sendByWebhook(ctx, webhookSecret, to, *input.Webhook)
+		if err != nil {
+			return err
+		}
+	} else if input.Deno != nil {
+		err := s.sendByDeno(ctx, app, to, *input.Deno)
+		if err != nil {
+			return err
+		}
+	}
+	return apierrors.NewInvalid("no provider config given")
 }

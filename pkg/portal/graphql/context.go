@@ -102,23 +102,12 @@ type SMTPService interface {
 }
 
 type SMSService interface {
-	SendByTwilio(ctx context.Context,
-		app *model.App,
-		to string,
-		cfg model.SMSProviderConfigurationTwilioInput,
-	) error
-	SendByWebhook(
-		ctx context.Context,
-		secret *config.WebhookKeyMaterials,
-		to string,
-		cfg model.SMSProviderConfigurationWebhookInput,
-	) error
-	SendByDeno(
+	SendTestSMS(
 		ctx context.Context,
 		app *model.App,
 		to string,
-		cfg model.SMSProviderConfigurationDenoInput,
-	) error
+		webhookSecretLoader func(ctx context.Context) (*config.WebhookKeyMaterials, error),
+		input model.SMSProviderConfigurationInput) error
 }
 
 type AppResourceManagerFactory interface {
