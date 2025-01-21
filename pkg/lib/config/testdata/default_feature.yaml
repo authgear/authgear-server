@@ -102,6 +102,7 @@ messaging:
     enabled: false
   sms_usage_count_disabled: false
   whatsapp_usage_count_disabled: false
+  custom_sms_provider_disabled: false
   template_customization_disabled: false
   custom_smtp_disabled: false
 collaborator: {}
