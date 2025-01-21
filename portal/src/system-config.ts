@@ -20,6 +20,7 @@ export interface SystemConfig {
   gtmContainerID: string;
   uiImplementation: string;
   uiSettingsImplemenation: string;
+  showCustomSMSGateway: boolean;
 }
 
 export interface SystemConfigThemes {
@@ -271,5 +272,6 @@ export function instantiateSystemConfig(
     gtmContainerID: config.gtmContainerID ?? "",
     uiImplementation: config.uiImplementation ?? "authflowv2",
     uiSettingsImplemenation: config.uiSettingsImplemenation ?? "v2",
+    showCustomSMSGateway: config.showCustomSMSGateway ?? false,
   };
 }
