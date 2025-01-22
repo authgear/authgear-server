@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oauthsession"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
@@ -58,18 +59,24 @@ func (m *SessionMiddleware) Handle(next http.Handler) http.Handler {
 
 		// Create the session now.
 		if oauthSessionID, ok := m.OAuthUIInfoResolver.GetOAuthSessionID(r, ""); ok {
-			ctx, result, session := m.createSessionFromOAuthSession(ctx, oauthSessionID)
-
-			for _, c := range result.Cookies {
-				httputil.UpdateCookie(w, c)
-			}
+			_, result, _ := m.createSessionFromOAuthSession(ctx, oauthSessionID)
 
 			// Remove oauth session ID so that we do not create again.
 			m.OAuthUIInfoResolver.RemoveOAuthSessionID(w, r)
 
-			r = r.WithContext(WithSession(ctx, session))
+			// Redirect once to clear the oauth session id from query
+			u := url.URL{
+				Path:     r.URL.Path,
+				RawQuery: r.URL.Query().Encode(),
+			}
+			redirect := httputil.ResultRedirect{
+				URL:     u.String(),
+				Cookies: result.Cookies,
+			}
+			redirect.WriteResponse(w, r)
+			return
 		} else if samlSessionID, ok := m.SAMLUIInfoResolver.GetSAMLSessionID(r, ""); ok {
-			ctx, result, session := m.createSessionFromSAMLSession(ctx, samlSessionID)
+			_, result, _ := m.createSessionFromSAMLSession(ctx, samlSessionID)
 
 			for _, c := range result.Cookies {
 				httputil.UpdateCookie(w, c)
@@ -77,8 +84,17 @@ func (m *SessionMiddleware) Handle(next http.Handler) http.Handler {
 
 			// Remove saml session ID so that we do not create again.
 			m.SAMLUIInfoResolver.RemoveSAMLSessionID(w, r)
-
-			r = r.WithContext(WithSession(ctx, session))
+			// Redirect once to clear the saml session id from query
+			u := url.URL{
+				Path:     r.URL.Path,
+				RawQuery: r.URL.Query().Encode(),
+			}
+			redirect := httputil.ResultRedirect{
+				URL:     u.String(),
+				Cookies: result.Cookies,
+			}
+			redirect.WriteResponse(w, r)
+			return
 		} else {
 			// Or read from cookie
 			ctx, session, err := m.loadSession(ctx, r)
