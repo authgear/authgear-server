@@ -381,10 +381,14 @@ const DEFAULT_SMS_SCRIPT_TEMPLATE = `// This custom script will be executed when
 import { CustomSMSGatewayPayload } from "${DENO_TYPES_URL}";
 
 export default async function (e: CustomSMSGatewayPayload): Promise<void> {
-     const response = await fetch("https://some.sms.gateway");
-     if (!response.ok) {
-          throw new Error("Failed to send sms");
-     }
+  const body = JSON.stringify(e);
+  const response = await fetch("https://some.sms.gateway", {
+    method: "POST",
+    body: body,
+  });
+  if (!response.ok) {
+    throw new Error("Failed to send sms");
+  }
 }
 `;
 
