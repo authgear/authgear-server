@@ -78,8 +78,7 @@
     }
 
     .widget-content-item__px--settings {
-      padding-left: 2rem;
-      padding-right: 2rem;
+      @apply px-8;
     }
 
     .widget-content.widget-content--settings {
@@ -93,5 +92,9 @@
 
   .widget-content__alert-container--settings {
     @apply widget-content-item__px--settings;
+
+    &:not(&:has(.alert-message[data-error-message])) {
+      display: none;
+    }
   }
 }
