@@ -258,7 +258,6 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) ht
 	)
 	webappSettingsSubRoutesChain := httproute.Chain(
 		webappAuthenticatedChain,
-		p.Middleware(newWebAppSessionMiddleware),
 		p.Middleware(newRequireSettingsEnabledMiddleware),
 		// SettingsSubRoutesMiddleware should be added to all the settings sub routes only
 		// but no /settings itself
