@@ -197,7 +197,8 @@ RUN set -eux; \
 	sed -E -i 's,^(appendonly)\s+.*,\1 yes,' /etc/redis/redis.conf; \
 	sed -E -i 's,^(auto-aof-rewrite-percentage)\s+.*,\1 50,' /etc/redis/redis.conf
 
-COPY ./once/docker-entrypoint.sh /usr/local/bin
+COPY --chown=authgear:authgear ./once/docker-entrypoint.sh ./once/docker-wrapper.sh /usr/local/bin/
+
 ENTRYPOINT ["docker-entrypoint.sh"]
 
 USER authgear
@@ -211,4 +212,4 @@ VOLUME /var/lib/redis/data
 EXPOSE 5432
 EXPOSE 6379
 
-CMD ["postgres"]
+CMD ["docker-wrapper.sh"]
