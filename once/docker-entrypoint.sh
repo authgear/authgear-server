@@ -32,6 +32,13 @@ check_POSTGRES_PASSWORD_is_set() {
 	fi
 }
 
+check_REDIS_PASSWORD_is_set() {
+	if [ -z "$REDIS_PASSWORD" ]; then
+		printf 1>&2 "REDIS_PASSWORD must be set. This will be used to set the password for the default user.\n"
+		exit 1
+	fi
+}
+
 docker_postgresql_create_database_directories() {
 	sudo mkdir -p "$PGDATA"
 	sudo chmod 0700 "$PGDATA"
@@ -104,11 +111,27 @@ CREATE DATABASE :"db";
 	docker_postgresql_temp_server_stop
 }
 
+docker_redis_create_directories() {
+	sudo mkdir -p /var/lib/redis/data
+	sudo chmod 0700 /var/lib/redis/data
+	sudo mkdir -p /var/run/redis
+	sudo chmod 0700 /var/run/redis
+
+	user="$(id -u -n)"
+	sudo find /var/lib/redis/data \! -user "$user" -exec chown "$user:$user" '{}' +
+	sudo find /var/run/redis \! -user "$user" -exec chown "$user:$user" '{}' +
+}
+
+docker_redis_write_acl_file() {
+	printf "user default on +@all ~* >%s\n" "$REDIS_PASSWORD" > /var/run/redis/users.acl
+}
+
 main() {
 	check_user_is_correct
 	check_PGDATA_is_set
 	check_LANG_is_set
 	check_POSTGRES_PASSWORD_is_set
+	check_REDIS_PASSWORD_is_set
 
 	docker_postgresql_create_database_directories
 
@@ -125,6 +148,9 @@ main() {
 		# Thus we need to do that in a separate step.
 		docker_postgresql_create_database
 	fi
+
+	docker_redis_create_directories
+	docker_redis_write_acl_file
 
 	# Replace this process with the given arguments.
 	exec "$@"

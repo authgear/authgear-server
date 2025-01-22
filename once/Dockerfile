@@ -132,19 +132,83 @@ RUN set -eux; \
 ENV PATH=/usr/lib/postgresql/$PG_MAJOR/bin:$PATH
 
 ## Install Redis 7.0.x
+##
+##
+## The default configuration of Redis 7.0 can be found here.
+## https://raw.githubusercontent.com/redis/redis/7.0/redis.conf
+##
+## Note that /etc/redis/redis.conf IS NOT the default configuration
+## In particular, it has the following changes:
+##
+## daemonize yes
+## pidfile /run/redis/redis-server.pid
+## logfile /var/log/redis/redis-server.log
+## dir /var/lib/redis
+##
+## Use this command to what out which option are not commented.
+##
+##  curl https://raw.githubusercontent.com/redis/redis/7.0/redis.conf | grep -v '^#' | sed -E '/^\s*$/d' > redis.conf
+##
+## In particular, we need to change the following options.
+##
+## daemonize no
+##   We do not run redis-server as daemon.
+##
+## pidfile /var/run/redis/redis.pid
+##   Write the pid to a location we know.
+##
+## logfile ""
+##   Ask redis-server to write to stdout.
+##
+## dir /var/lib/redis/data
+##   Make sure when the config file is used, the data directory is predictable.
+##
+## bind * -::*
+##   So that the Docker host can access it.
+##
+## set-proc-title no
+##   Keep the original process title.
+##
+## aclfile
+##   Specify password for the default user.
+##
+## appendonly yes
+##   Enable AOF.
+##
+## auto-aof-rewrite-percentage 50
+##   The default is 100%, which means when redis starts with a very large AOF (near the memory limit)
+##   it will not be able to rewrite the AOF (since it has no memory to do so).
 RUN set -eux; \
 	apt-get update; \
 	apt-get install -y --no-install-recommends --no-install-suggests \
 		redis=5:7.0.\*; \
-	rm -rf /var/lib/apt/lists/*
+	rm -rf /var/lib/apt/lists/*; \
+	find / \
+		-user redis \
+		\! -path '/proc/*' \
+		-exec chown authgear:authgear '{}' \; ; \
+	sed -E -i 's,^(daemonize)\s+.*,\1 no,' /etc/redis/redis.conf; \
+	sed -E -i 's,^(pidfile)\s+.*,\1 /run/redis/redis-server.pid,' /etc/redis/redis.conf; \
+	sed -E -i 's,^(logfile)\s+.*,\1 "",' /etc/redis/redis.conf; \
+	sed -E -i 's,^(dir)\s+.*,\1 /var/lib/redis/data,' /etc/redis/redis.conf; \
+	sed -E -i 's,^(bind)\s+.*,\1 * -::*,' /etc/redis/redis.conf; \
+	sed -E -i 's,^(set-proc-title)\s+.*,\1 no,' /etc/redis/redis.conf; \
+	sed -E -i 's,^#?\s*(aclfile)\s+.*,\1 /var/run/redis/users.acl,' /etc/redis/redis.conf; \
+	sed -E -i 's,^(appendonly)\s+.*,\1 yes,' /etc/redis/redis.conf; \
+	sed -E -i 's,^(auto-aof-rewrite-percentage)\s+.*,\1 50,' /etc/redis/redis.conf
 
 COPY ./once/docker-entrypoint.sh /usr/local/bin
 ENTRYPOINT ["docker-entrypoint.sh"]
 
 USER authgear
 WORKDIR /home/authgear
+
 ENV PGDATA=/var/lib/postgresql/data
+
 VOLUME /var/lib/postgresql/data
+VOLUME /var/lib/redis/data
+
 EXPOSE 5432
+EXPOSE 6379
 
 CMD ["postgres"]
