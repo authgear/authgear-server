@@ -2,7 +2,7 @@
 # We use /bin/bash instead of /bin/sh because we need process substitution.
 # See https://www.shellcheck.net/wiki/SC3001
 
-set -ex
+set -e
 
 check_user_is_correct() {
 	if [ "$(id -u -n)" != "authgear" ]; then
