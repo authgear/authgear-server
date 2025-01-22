@@ -199,7 +199,7 @@ func (h *LoginLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 
 		result := webapp.Result{
 			RedirectURI:      url.String(),
-			NavigationAction: "replace",
+			NavigationAction: webapp.NavigationActionReplace,
 		}
 		result.WriteResponse(w, r)
 		return nil

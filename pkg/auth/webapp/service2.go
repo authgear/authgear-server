@@ -480,7 +480,7 @@ func (s *Service2) afterPost(
 		result.RedirectURI = s.deriveFinishRedirectURI(session, graph)
 		switch graph.Intent.(type) {
 		case *intents.IntentAuthenticate:
-			result.NavigationAction = "redirect"
+			result.NavigationAction = NavigationActionRedirect
 			// Marked signed up in cookie after authorization.
 			// When user visit auth ui root "/", redirect user to "/login" if
 			// cookie exists
@@ -508,7 +508,7 @@ func (s *Service2) afterPost(
 				RawQuery: s.Request.URL.RawQuery,
 			}
 			result.RedirectURI = u.String()
-			result.NavigationAction = "replace"
+			result.NavigationAction = NavigationActionReplace
 		}
 	}
 	s.Logger.Debugf("interaction: redirect to %s", result.RedirectURI)

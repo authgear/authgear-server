@@ -175,7 +175,7 @@ func (n *AuthflowV2Navigator) NavigateChangePasswordSuccessPage(s *webapp.Authfl
 		}
 		u.RawQuery = q.Encode()
 		result = &webapp.Result{}
-		result.NavigationAction = "advance"
+		result.NavigationAction = webapp.NavigationActionAdvance
 		result.RedirectURI = u.String()
 		return result
 	}
@@ -340,7 +340,7 @@ func (n *AuthflowV2Navigator) navigateStepIdentify(ctx context.Context, s *webap
 		q.Set(webapp.AuthflowQueryKey, s.Screen.StateToken.XStep)
 		u.RawQuery = q.Encode()
 
-		result.NavigationAction = "replace"
+		result.NavigationAction = webapp.NavigationActionReplace
 		result.RedirectURI = u.String()
 	case config.AuthenticationFlowIdentificationOAuth:
 		data := s.StateTokenFlowResponse.Action.Data.(declarative.OAuthData)
@@ -368,7 +368,7 @@ func (n *AuthflowV2Navigator) navigateStepIdentify(ctx context.Context, s *webap
 			q.Set("state", stateToken)
 			authorizationURL.RawQuery = q.Encode()
 
-			result.NavigationAction = "redirect"
+			result.NavigationAction = webapp.NavigationActionRedirect
 			result.RedirectURI = authorizationURL.String()
 		}
 	case config.AuthenticationFlowIdentificationLDAP:
@@ -555,7 +555,7 @@ func (n *AuthflowV2Navigator) navigateAccountRecovery(s *webapp.AuthflowScreenWi
 			}
 		}
 		u.RawQuery = q.Encode()
-		result.NavigationAction = "replace"
+		result.NavigationAction = webapp.NavigationActionReplace
 		result.RedirectURI = u.String()
 	}
 	switch config.AuthenticationFlowStepType(s.StateTokenFlowResponse.Action.Type) {

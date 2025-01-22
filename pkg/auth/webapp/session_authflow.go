@@ -732,7 +732,7 @@ func (s *AuthflowScreenWithFlowResponse) Navigate(ctx context.Context, navigator
 // Advance is for advancing to another page to drive the authflow.
 func (s *AuthflowScreenWithFlowResponse) Advance(route string, result *Result) {
 	s.advanceOrRedirect(route, result)
-	result.NavigationAction = "advance"
+	result.NavigationAction = NavigationActionAdvance
 }
 
 // RedirectToFinish is a fix for https://linear.app/authgear/issue/DEV-1793/investigate-sign-in-directly-with-httpsaccountsportalauthgearcom-crash
@@ -740,7 +740,7 @@ func (s *AuthflowScreenWithFlowResponse) Advance(route string, result *Result) {
 // so CSP and connect-src will not kick in.
 func (s *AuthflowScreenWithFlowResponse) RedirectToFinish(route string, result *Result) {
 	s.advanceOrRedirect(route, result)
-	result.NavigationAction = "redirect"
+	result.NavigationAction = NavigationActionRedirect
 }
 
 // advanceOrRedirect is for internal use. You use Advance or RedirectToFinish instead.
@@ -763,7 +763,7 @@ func (s *AuthflowScreenWithFlowResponse) AdvanceWithQuery(route string, result *
 	u, _ := url.Parse(route)
 	u.RawQuery = q.Encode()
 
-	result.NavigationAction = "advance"
+	result.NavigationAction = NavigationActionAdvance
 	result.RedirectURI = u.String()
 }
 

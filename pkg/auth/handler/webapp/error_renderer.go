@@ -64,7 +64,7 @@ func (s *ErrorRenderer) renderInteractionError(ctx context.Context, w http.Respo
 	}
 	result := webapp.Result{
 		RedirectURI:      u.String(),
-		NavigationAction: "replace",
+		NavigationAction: webapp.NavigationActionReplace,
 		Cookies:          []*http.Cookie{cookie},
 	}
 	result.WriteResponse(w, r)
@@ -81,7 +81,7 @@ func (s *ErrorRenderer) MakeAuthflowErrorResult(ctx context.Context, w http.Resp
 
 		result := &webapp.Result{
 			RedirectURI:      u.String(),
-			NavigationAction: "replace",
+			NavigationAction: webapp.NavigationActionReplace,
 			Cookies:          []*http.Cookie{cookie},
 		}
 
@@ -91,7 +91,7 @@ func (s *ErrorRenderer) MakeAuthflowErrorResult(ctx context.Context, w http.Resp
 	nonRecoverable := func() *webapp.Result {
 		result := &webapp.Result{
 			RedirectURI:      u.String(),
-			NavigationAction: "replace",
+			NavigationAction: webapp.NavigationActionReplace,
 		}
 		err := s.ErrorService.SetNonRecoverableError(result, apierror)
 		if err != nil {
