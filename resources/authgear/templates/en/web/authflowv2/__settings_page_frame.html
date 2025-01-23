@@ -17,15 +17,13 @@
       <div class="widget-content__item--settings">
         {{ block "page-navbar" . }}{{ end }}
       </div>
-      <div class="widget-content__alert-container--settings">
-        {{ template "authflowv2/__alert_message.html"
-          (dict
-            "Type" "error"
-            "Message" (include "authflowv2/__error.html" .)
-            "Classname" "widget-content__alert--settings"
-          )
-        }}
-      </div>
+      {{ template "authflowv2/__alert_message.html"
+        (dict
+          "Type" "error"
+          "Message" (include "authflowv2/__error.html" .)
+          "Classname" "widget-content__alert--settings"
+        )
+      }}
       {{ template "page-content" . }}
       {{ template "authflowv2/__lockout.html" . }}
     </div>
