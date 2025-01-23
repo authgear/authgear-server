@@ -21,4 +21,6 @@ postgres &
 
 redis-server /etc/redis/redis.conf &
 
+nginx &
+
 wait

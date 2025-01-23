@@ -197,6 +197,29 @@ RUN set -eux; \
 	sed -E -i 's,^(appendonly)\s+.*,\1 yes,' /etc/redis/redis.conf; \
 	sed -E -i 's,^(auto-aof-rewrite-percentage)\s+.*,\1 50,' /etc/redis/redis.conf
 
+## Install Ngnix
+RUN set -eux; \
+	apt-get update; \
+	apt-get install -y --no-install-recommends --no-install-suggests \
+		nginx; \
+	rm -rf /var/lib/apt/lists/*; \
+	ln -sf /dev/stdout /var/log/nginx/access.log; \
+	ln -sf /dev/stderr /var/log/nginx/error.log
+COPY --chown=authgear:authgear ./once/dhparam ./once/nginx.conf.sample /etc/nginx/
+
+## Install certbot.
+RUN set -eux; \
+	apt-get update; \
+	apt-get install -y --no-install-recommends --no-install-suggests \
+		certbot \
+		python3-certbot-nginx; \
+	rm -rf /var/lib/apt/lists/*; \
+	sed -E -i 's,^#?\s*(max-log-backups)\s+.*,\1 = 10,' /etc/letsencrypt/cli.ini; \
+	sed -E -i 's,^#?\s*(preconfigured-renewal)\s+.*,\1 = False,' /etc/letsencrypt/cli.ini; \
+	grep -E '^max-log-backups = 10' /etc/letsencrypt/cli.ini; \
+	grep -E '^preconfigured-renewal = False' /etc/letsencrypt/cli.ini
+
+
 COPY --chown=authgear:authgear ./once/docker-entrypoint.sh ./once/docker-wrapper.sh /usr/local/bin/
 
 ENTRYPOINT ["docker-entrypoint.sh"]
@@ -208,8 +231,14 @@ ENV PGDATA=/var/lib/postgresql/data
 
 VOLUME /var/lib/postgresql/data
 VOLUME /var/lib/redis/data
+VOLUME /etc/letsencrypt/archive
+VOLUME /etc/letsencrypt/renewal
+VOLUME /etc/letsencrypt/live
+VOLUME /etc/letsencrypt/accounts
 
 EXPOSE 5432
 EXPOSE 6379
+EXPOSE 80
+EXPOSE 443
 
 CMD ["docker-wrapper.sh"]
