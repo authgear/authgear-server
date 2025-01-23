@@ -22,4 +22,5 @@ type SystemConfig struct {
 	GTMContainerID            string         `json:"gtmContainerID,omitempty"`
 	UIImplementation          string         `json:"uiImplementation,omitempty"`
 	UISettingsImplementation  string         `json:"uiSettingsImplementation,omitempty"`
+	ShowCustomSMSGateway      bool           `json:"showCustomSMSGateway,omitempty"`
 }

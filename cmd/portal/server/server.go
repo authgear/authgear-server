@@ -42,6 +42,7 @@ func (c *Controller) Start(ctx context.Context) {
 		&cfg.Osano,
 		&cfg.GoogleTagManager,
 		&cfg.PortalFrontendSentry,
+		&cfg.PortalFeatures,
 	)
 
 	if err != nil {

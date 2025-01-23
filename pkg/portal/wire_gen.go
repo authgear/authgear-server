@@ -392,6 +392,7 @@ func newSystemConfigHandler(p *deps.RequestProvider) http.Handler {
 	analyticConfig := rootProvider.AnalyticConfig
 	googleTagManagerConfig := rootProvider.GoogleTagManagerConfig
 	portalFrontendSentryConfig := rootProvider.PortalFrontendSentryConfig
+	portalFeaturesConfig := rootProvider.PortalFeaturesConfig
 	environmentConfig := rootProvider.EnvironmentConfig
 	globalUIImplementation := environmentConfig.UIImplementation
 	globalUISettingsImplementation := environmentConfig.UISettingsImplementation
@@ -404,6 +405,7 @@ func newSystemConfigHandler(p *deps.RequestProvider) http.Handler {
 		AnalyticConfig:                 analyticConfig,
 		GTMConfig:                      googleTagManagerConfig,
 		FrontendSentryConfig:           portalFrontendSentryConfig,
+		PortalFeaturesConfig:           portalFeaturesConfig,
 		GlobalUIImplementation:         globalUIImplementation,
 		GlobalUISettingsImplementation: globalUISettingsImplementation,
 		Resources:                      manager,

@@ -59,6 +59,7 @@ type Config struct {
 	GoogleTagManager portalconfig.GoogleTagManagerConfig `envconfig:"GTM"`
 
 	PortalFrontendSentry portalconfig.PortalFrontendSentryConfig `envconfig:"PORTAL_FRONTEND_SENTRY"`
+	PortalFeatures       portalconfig.PortalFeaturesConfig       `envconfig:"PORTAL_FEATURES"`
 
 	*config.EnvironmentConfig
 }

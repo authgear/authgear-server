@@ -38,6 +38,7 @@ type RootProvider struct {
 	OsanoConfig                *portalconfig.OsanoConfig
 	GoogleTagManagerConfig     *portalconfig.GoogleTagManagerConfig
 	PortalFrontendSentryConfig *portalconfig.PortalFrontendSentryConfig
+	PortalFeaturesConfig       *portalconfig.PortalFeaturesConfig
 	LoggerFactory              *log.Factory
 	SentryHub                  *getsentry.Hub
 
@@ -69,6 +70,7 @@ func NewRootProvider(
 	osanoConfig *portalconfig.OsanoConfig,
 	googleTagManagerConfig *portalconfig.GoogleTagManagerConfig,
 	portalFrontendSentryConfig *portalconfig.PortalFrontendSentryConfig,
+	portalFeatures *portalconfig.PortalFeaturesConfig,
 ) (*RootProvider, error) {
 	logLevel, err := log.ParseLevel(cfg.LogLevel)
 	if err != nil {
@@ -114,6 +116,7 @@ func NewRootProvider(
 		OsanoConfig:                osanoConfig,
 		GoogleTagManagerConfig:     googleTagManagerConfig,
 		PortalFrontendSentryConfig: portalFrontendSentryConfig,
+		PortalFeaturesConfig:       portalFeatures,
 		LoggerFactory:              loggerFactory,
 		SentryHub:                  sentryHub,
 		Database:                   db.NewPool(),

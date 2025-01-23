@@ -12,7 +12,8 @@ var _ = FeatureConfigSchema.Add("MessagingFeatureConfig", `
 		"sms_usage_count_disabled": { "type": "boolean" },
 		"whatsapp_usage_count_disabled": { "type": "boolean" },
 		"template_customization_disabled": { "type": "boolean" },
-		"custom_smtp_disabled": { "type": "boolean" }
+		"custom_smtp_disabled": { "type": "boolean" },
+		"custom_sms_provider_disabled": { "type": "boolean" }
 	}
 }
 `)
@@ -29,7 +30,8 @@ type MessagingFeatureConfig struct {
 
 	TemplateCustomizationDisabled *bool `json:"template_customization_disabled,omitempty"`
 
-	CustomSMTPDisabled *bool `json:"custom_smtp_disabled,omitempty"`
+	CustomSMTPDisabled        *bool `json:"custom_smtp_disabled,omitempty"`
+	CustomSMSProviderDisabled *bool `json:"custom_sms_provider_disabled,omitempty"`
 }
 
 var _ MergeableFeatureConfig = &MessagingFeatureConfig{}
@@ -66,6 +68,9 @@ func (c *MessagingFeatureConfig) Merge(layer *FeatureConfig) MergeableFeatureCon
 	if layer.Messaging.CustomSMTPDisabled != nil {
 		merged.CustomSMTPDisabled = layer.Messaging.CustomSMTPDisabled
 	}
+	if layer.Messaging.CustomSMSProviderDisabled != nil {
+		merged.CustomSMSProviderDisabled = layer.Messaging.CustomSMSProviderDisabled
+	}
 
 	return merged
 }
@@ -98,6 +103,9 @@ func (c *MessagingFeatureConfig) SetDefaults() {
 	}
 	if c.CustomSMTPDisabled == nil {
 		c.CustomSMTPDisabled = newBool(false)
+	}
+	if c.CustomSMSProviderDisabled == nil {
+		c.CustomSMSProviderDisabled = newBool(false)
 	}
 }
 

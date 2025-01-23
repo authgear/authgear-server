@@ -67,6 +67,7 @@ import FormPhoneTextField from "../../FormPhoneTextField";
 import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";
 import { useSendTestSMSMutation } from "./mutations/sendTestSMS";
 import { useCheckDenoHookMutation } from "./mutations/checkDenoHook";
+import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
 
 const SECRETS = [AppSecretKey.SmsProviderSecrets, AppSecretKey.WebhookSecret];
 
@@ -608,6 +609,10 @@ function SMSProviderConfigurationScreen1({
         effectiveAppConfig={effectiveAppConfig ?? undefined}
         sendTestSMSHandle={sendTestSMSHandle}
         checkDenoHookHandle={checkDenoHookHandle}
+        isCustomSMSProviderDisabled={
+          featureConfig.effectiveFeatureConfig?.messaging
+            ?.custom_sms_provider_disabled ?? false
+        }
       />
     </FormContainer>
   );
@@ -618,9 +623,15 @@ function SMSProviderConfigurationContent(props: {
   effectiveAppConfig: PortalAPIAppConfig | undefined;
   sendTestSMSHandle: ReturnType<typeof useSendTestSMSMutation>;
   checkDenoHookHandle: ReturnType<typeof useCheckDenoHookMutation>;
+  isCustomSMSProviderDisabled: boolean;
 }) {
-  const { form, effectiveAppConfig, sendTestSMSHandle, checkDenoHookHandle } =
-    props;
+  const {
+    form,
+    effectiveAppConfig,
+    sendTestSMSHandle,
+    checkDenoHookHandle,
+    isCustomSMSProviderDisabled,
+  } = props;
   const { state, setState } = form;
   const { renderToString } = useContext(MessageContext);
   const navigate = useNavigate();
@@ -658,10 +669,17 @@ function SMSProviderConfigurationContent(props: {
       <ScreenDescription className={styles.widget}>
         <FormattedMessage id="SMSProviderConfigurationScreen.description" />
       </ScreenDescription>
+      {isCustomSMSProviderDisabled ? (
+        <FeatureDisabledMessageBar
+          className={styles.widget}
+          messageID="FeatureConfig.custom-sms-provider.disabled"
+        />
+      ) : null}
 
       <Widget className={styles.widget} contentLayout="grid">
         <Toggle
           className={styles.columnFull}
+          disabled={isCustomSMSProviderDisabled}
           checked={state.enabled}
           onChange={onChangeEnabled}
           label={renderToString("SMSProviderConfigurationScreen.enable.label")}
