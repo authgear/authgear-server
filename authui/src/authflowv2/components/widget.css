@@ -17,6 +17,9 @@
       --widget__box-shadow: none;
       --widget__border: none;
     }
+
+    /* Internal use */
+    --widget-content-item__x-spaceing--settings: 2rem;
   }
 
   :root.dark {
@@ -77,13 +80,18 @@
       @apply self-stretch;
     }
 
-    .widget-content-item__px--settings {
-      padding-left: 2rem;
-      padding-right: 2rem;
-    }
-
     .widget-content.widget-content--settings {
       @apply px-0 py-8;
+    }
+
+    .widget-content-item__px--settings {
+      padding-left: var(--widget-content-item__x-spaceing--settings);
+      padding-right: var(--widget-content-item__x-spaceing--settings);
+    }
+
+    .widget-content-item__mx--settings {
+      margin-left: var(--widget-content-item__x-spaceing--settings);
+      margin-right: var(--widget-content-item__x-spaceing--settings);
     }
   }
 
@@ -91,7 +99,7 @@
     @apply widget-content-item__px--settings;
   }
 
-  .widget-content__alert-container--settings {
-    @apply widget-content-item__px--settings;
+  .widget-content__alert--settings {
+    @apply widget-content-item__mx--settings;
   }
 }

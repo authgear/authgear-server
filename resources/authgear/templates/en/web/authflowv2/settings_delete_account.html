@@ -11,7 +11,7 @@
 {{ end }}
 
 {{ define "page-content" }}
-<div class="flex flex-col gap-y-8 w-full tablet:max-w-86 mx-auto">
+<div class="settings-content settings-content-form w-full tablet:max-w-86 mx-auto">
   <p class="settings-description text-center">
     {{ translate "v2.page.settings-delete-account.default.description" (dict "date" $.ExpectedAccountDeletionTime "rfc3339" (rfc3339 $.ExpectedAccountDeletionTime)) }}
   </p>
