@@ -138,6 +138,18 @@ func (e *Endpoints) SettingsDeleteAccountURL() *url.URL {
 	return e.urlOf("settings/delete_account")
 }
 
+func (e *Endpoints) SettingsAddLoginIDEmail() *url.URL {
+	return e.urlOf("settings/identity/add_email")
+}
+
+func (e *Endpoints) SettingsAddLoginIDPhone() *url.URL {
+	return e.urlOf("settings/identity/add_phone")
+}
+
+func (e *Endpoints) SettingsAddLoginIDUsername() *url.URL {
+	return e.urlOf("settings/identity/add_username")
+}
+
 func (e *Endpoints) SSOCallbackURL(alias string) *url.URL {
 	u := e.SSOCallbackEndpointURL()
 	u.Path = path.Join(u.Path, url.PathEscape(alias))

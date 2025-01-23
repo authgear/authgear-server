@@ -236,6 +236,9 @@ type UIURLBuilderAuthUIEndpointsProvider interface {
 	OAuthEntrypointURL() *url.URL
 	SettingsChangePasswordURL() *url.URL
 	SettingsDeleteAccountURL() *url.URL
+	SettingsAddLoginIDEmail() *url.URL
+	SettingsAddLoginIDPhone() *url.URL
+	SettingsAddLoginIDUsername() *url.URL
 }
 
 type UIURLBuilder struct {
@@ -270,12 +273,24 @@ func BuildCustomUIEndpoint(base string) (*url.URL, error) {
 func (b *UIURLBuilder) BuildSettingsActionURL(client *config.OAuthClientConfig, r protocol.AuthorizationRequest, e *oauthsession.Entry) (*url.URL, error) {
 	var endpoint *url.URL
 	switch r.SettingsAction() {
-	case "change_password":
+	case protocol.SettingActionChangePassword:
 		endpoint = b.Endpoints.SettingsChangePasswordURL()
 		b.addToEndpoint(endpoint, r, e)
 		return endpoint, nil
-	case "delete_account":
+	case protocol.SettingActionDeleteAccount:
 		endpoint = b.Endpoints.SettingsDeleteAccountURL()
+		b.addToEndpoint(endpoint, r, e)
+		return endpoint, nil
+	case protocol.SettingActionAddEmail:
+		endpoint = b.Endpoints.SettingsAddLoginIDEmail()
+		b.addToEndpoint(endpoint, r, e)
+		return endpoint, nil
+	case protocol.SettingActionAddPhone:
+		endpoint = b.Endpoints.SettingsAddLoginIDPhone()
+		b.addToEndpoint(endpoint, r, e)
+		return endpoint, nil
+	case protocol.SettingActionAddUsername:
+		endpoint = b.Endpoints.SettingsAddLoginIDUsername()
 		b.addToEndpoint(endpoint, r, e)
 		return endpoint, nil
 	default:
