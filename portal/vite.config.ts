@@ -1,6 +1,32 @@
-import { defineConfig } from "vite";
+import { defineConfig, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
-import { viteAuthgearPortal } from "vite-plugin-authgear-portal";
+import { parse } from "node-html-parser";
+
+const plugin: Plugin = {
+  name: "vite-plugin-authgear-portal:build",
+  apply: "build",
+  transformIndexHtml: {
+    order: "post",
+    handler: (htmlString) => {
+      const html = parse(htmlString);
+
+      const scripts = html.querySelectorAll("script");
+      const styles = html.querySelectorAll("style");
+      const stylesheetLinks = html.querySelectorAll("link[rel=stylesheet]");
+
+      const elements = [...scripts, ...styles, ...stylesheetLinks];
+      for (const e of elements) {
+        e.setAttribute("nonce", "{{ $.CSPNonce }}");
+      }
+
+      return html.toString();
+    },
+  },
+};
+
+function viteAuthgearPortal() {
+  return [plugin];
+}
 
 export default defineConfig(() => ({
   plugins: [react(), viteAuthgearPortal()],
