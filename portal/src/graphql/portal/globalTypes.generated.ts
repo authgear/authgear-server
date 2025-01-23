@@ -374,6 +374,8 @@ export type Mutation = {
   reconcileCheckoutSession: ReconcileCheckoutSessionPayload;
   /** Updates the current user's custom attribute with 'survey' key */
   saveOnboardingSurvey?: Maybe<Scalars['Boolean']['output']>;
+  /** Send a SMS to test the configuration */
+  sendTestSMSConfiguration?: Maybe<Scalars['Boolean']['output']>;
   /** Send test STMP configuration email */
   sendTestSMTPConfigurationEmail?: Maybe<Scalars['Boolean']['output']>;
   /** Set app subscription cancellation status */
@@ -468,6 +470,11 @@ export type MutationReconcileCheckoutSessionArgs = {
 
 export type MutationSaveOnboardingSurveyArgs = {
   input: SaveOnboardingSurveyInput;
+};
+
+
+export type MutationSendTestSmsConfigurationArgs = {
+  input: SendTestSmsInput;
 };
 
 
@@ -673,6 +680,31 @@ export type SamlSpSigningSecretsUpdateInstructionsInput = {
   setData?: InputMaybe<SamlSpSigningSecretsSetDataInput>;
 };
 
+export type SmsProviderConfigurationDenoInput = {
+  script: Scalars['String']['input'];
+  timeout?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type SmsProviderConfigurationInput = {
+  /** Deno hook configuration */
+  deno?: InputMaybe<SmsProviderConfigurationDenoInput>;
+  /** Twilio configuration */
+  twilio?: InputMaybe<SmsProviderConfigurationTwilioInput>;
+  /** Webhook Configuration */
+  webhook?: InputMaybe<SmsProviderConfigurationWebhookInput>;
+};
+
+export type SmsProviderConfigurationTwilioInput = {
+  accountSID: Scalars['String']['input'];
+  authToken: Scalars['String']['input'];
+  messagingServiceSID?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type SmsProviderConfigurationWebhookInput = {
+  timeout?: InputMaybe<Scalars['Int']['input']>;
+  url: Scalars['String']['input'];
+};
+
 /** Custom SMS Provider configs */
 export type SmsProviderCustomSmsProviderSecrets = {
   __typename?: 'SMSProviderCustomSMSProviderSecrets';
@@ -755,6 +787,15 @@ export type SecretConfigUpdateInstructionsInput = {
   samlSpSigningSecrets?: InputMaybe<SamlSpSigningSecretsUpdateInstructionsInput>;
   smsProviderSecrets?: InputMaybe<SmsProviderSecretsUpdateInstructionsInput>;
   smtpSecret?: InputMaybe<SmtpSecretUpdateInstructionsInput>;
+};
+
+export type SendTestSmsInput = {
+  /** App ID to test. */
+  appID: Scalars['ID']['input'];
+  /** The SMS provider configuration. */
+  providerConfiguration: SmsProviderConfigurationInput;
+  /** The recipient phone number. */
+  to: Scalars['String']['input'];
 };
 
 export type SetSubscriptionCancelledStatusInput = {
