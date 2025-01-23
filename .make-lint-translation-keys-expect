@@ -19,7 +19,7 @@ resources/authgear/templates/en/web/authflowv2/__password_input.html:31:31: temp
 resources/authgear/templates/en/web/authflowv2/__password_input.html:33:31: template translation is forbidden: `v2.component.password-input.default.placeholder-new-password`
 resources/authgear/templates/en/web/authflowv2/__password_input.html:35:31: template translation is forbidden: `v2.component.password-input.default.placeholder-confirm-password`
 resources/authgear/templates/en/web/authflowv2/__settings_page_frame.html:18:17: template translation is forbidden: `page-navbar`
-resources/authgear/templates/en/web/authflowv2/__settings_page_frame.html:29:18: template translation is forbidden: `page-content`
+resources/authgear/templates/en/web/authflowv2/__settings_page_frame.html:27:18: template translation is forbidden: `page-content`
 resources/authgear/templates/en/web/authflowv2/__settings_radio.html:16:16: translation key not defined: "radio-%s-%s"
 resources/authgear/templates/en/web/authflowv2/__timezone_input.html:8:21: translation key not defined: "%s %s"
 resources/authgear/templates/en/web/authflowv2/account_linking.html:90:33: translation key not defined: "%s-icon"
