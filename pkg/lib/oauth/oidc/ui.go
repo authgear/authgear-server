@@ -10,6 +10,7 @@ import (
 
 	"github.com/lestrrat-go/jwx/v2/jwt"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oauthsession"
@@ -236,13 +237,14 @@ type UIURLBuilderAuthUIEndpointsProvider interface {
 	OAuthEntrypointURL() *url.URL
 	SettingsChangePasswordURL() *url.URL
 	SettingsDeleteAccountURL() *url.URL
-	SettingsAddLoginIDEmail() *url.URL
-	SettingsAddLoginIDPhone() *url.URL
-	SettingsAddLoginIDUsername() *url.URL
+	SettingsAddLoginIDEmail(loginIDKey string) *url.URL
+	SettingsAddLoginIDPhone(loginIDKey string) *url.URL
+	SettingsAddLoginIDUsername(loginIDKey string) *url.URL
 }
 
 type UIURLBuilder struct {
-	Endpoints UIURLBuilderAuthUIEndpointsProvider
+	Endpoints      UIURLBuilderAuthUIEndpointsProvider
+	IdentityConfig *config.IdentityConfig
 }
 
 func (b *UIURLBuilder) BuildAuthenticationURL(client *config.OAuthClientConfig, r protocol.AuthorizationRequest, e *oauthsession.Entry) (*url.URL, error) {
@@ -282,15 +284,27 @@ func (b *UIURLBuilder) BuildSettingsActionURL(client *config.OAuthClientConfig, 
 		b.addToEndpoint(endpoint, r, e)
 		return endpoint, nil
 	case protocol.SettingActionAddEmail:
-		endpoint = b.Endpoints.SettingsAddLoginIDEmail()
+		loginIDCfg, ok := b.firstCreatableLoginIDConfig(model.LoginIDKeyTypeEmail)
+		if !ok {
+			return nil, ErrInvalidSettingsAction.New("email login id is not configured to be creatable")
+		}
+		endpoint = b.Endpoints.SettingsAddLoginIDEmail(loginIDCfg.Key)
 		b.addToEndpoint(endpoint, r, e)
 		return endpoint, nil
 	case protocol.SettingActionAddPhone:
-		endpoint = b.Endpoints.SettingsAddLoginIDPhone()
+		loginIDCfg, ok := b.firstCreatableLoginIDConfig(model.LoginIDKeyTypePhone)
+		if !ok {
+			return nil, ErrInvalidSettingsAction.New("phone login id is not configured to be creatable")
+		}
+		endpoint = b.Endpoints.SettingsAddLoginIDPhone(loginIDCfg.Key)
 		b.addToEndpoint(endpoint, r, e)
 		return endpoint, nil
 	case protocol.SettingActionAddUsername:
-		endpoint = b.Endpoints.SettingsAddLoginIDUsername()
+		loginIDCfg, ok := b.firstCreatableLoginIDConfig(model.LoginIDKeyTypeUsername)
+		if !ok {
+			return nil, ErrInvalidSettingsAction.New("username login id is not configured to be creatable")
+		}
+		endpoint = b.Endpoints.SettingsAddLoginIDUsername(loginIDCfg.Key)
 		b.addToEndpoint(endpoint, r, e)
 		return endpoint, nil
 	default:
@@ -316,4 +330,13 @@ func (b *UIURLBuilder) addToEndpoint(endpoint *url.URL, r protocol.Authorization
 		q.Set("x_state", r.XState())
 	}
 	endpoint.RawQuery = q.Encode()
+}
+
+func (b *UIURLBuilder) firstCreatableLoginIDConfig(loginIDKeyType model.LoginIDKeyType) (*config.LoginIDKeyConfig, bool) {
+	for _, id := range b.IdentityConfig.LoginID.Keys {
+		if id.Type == loginIDKeyType && !(*id.CreateDisabled) {
+			return &id, true
+		}
+	}
+	return nil, false
 }
