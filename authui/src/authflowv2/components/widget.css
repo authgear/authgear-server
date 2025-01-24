@@ -99,7 +99,12 @@
     @apply widget-content-item__px--settings;
   }
 
+  @media (min-width: theme("screens.tablet")) {
+    .widget-content__alert--settings {
+      @apply widget-content-item__mx--settings;
+    }
+  }
   .widget-content__alert--settings {
-    @apply widget-content-item__mx--settings;
+    @apply mx-6;
   }
 }
