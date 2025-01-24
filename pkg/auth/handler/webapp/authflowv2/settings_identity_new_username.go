@@ -2,6 +2,7 @@ package authflowv2
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"net/url"
@@ -94,12 +95,28 @@ func (h *AuthflowV2SettingsIdentityNewUsernameHandler) ServeHTTP(w http.Response
 		loginIDKey := r.Form.Get("x_login_id_key")
 		loginID := r.Form.Get("x_login_id")
 		resolvedSession := session.GetSession(ctx)
+		webappSession := webapp.GetSession(ctx)
 		_, err = h.AccountManagement.AddIdentityUsername(ctx, resolvedSession, &accountmanagement.AddIdentityUsernameInput{
 			LoginIDKey: loginIDKey,
 			LoginID:    loginID,
 		})
 		if err != nil {
 			return err
+		}
+		if ctrl.IsInSettingsAction(resolvedSession, webappSession) {
+			err = ctrl.FinishSettingsAction(ctx, resolvedSession, webappSession)
+			if err != nil {
+				return err
+			}
+			settingsActionResult, ok, err := ctrl.GetSettingsActionResult(ctx, webappSession)
+			if err != nil {
+				return err
+			}
+			if !ok {
+				panic(fmt.Errorf("unexpected: cannot get settigns action result"))
+			}
+			settingsActionResult.WriteResponse(w, r)
+			return nil
 		}
 
 		redirectURI, err := url.Parse(AuthflowV2RouteSettingsIdentityListUsername)
