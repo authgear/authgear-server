@@ -186,6 +186,17 @@ func (s *Service) Get(ctx context.Context, id string) (*identity.Info, error) {
 	panic("identity: unknown identity type " + ref.Type)
 }
 
+func (s *Service) GetWithUserID(ctx context.Context, userID string, identityID string) (*identity.Info, error) {
+	iden, err := s.Get(ctx, identityID)
+	if err != nil {
+		return nil, err
+	}
+	if iden.UserID != userID {
+		return nil, api.ErrIdentityNotFound
+	}
+	return iden, nil
+}
+
 func (s *Service) GetMany(ctx context.Context, ids []string) ([]*identity.Info, error) {
 	refs, err := s.Store.ListRefsByIDs(ctx, ids)
 	if err != nil {

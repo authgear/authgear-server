@@ -11,7 +11,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/accountmanagement"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
-	identityservice "github.com/authgear/authgear-server/pkg/lib/authn/identity/service"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -53,7 +52,7 @@ type AuthflowV2SettingsIdentityEditEmailHandler struct {
 	BaseViewModel     *viewmodels.BaseViewModeler
 	Renderer          handlerwebapp.Renderer
 	AccountManagement accountmanagement.Service
-	Identities        *identityservice.Service
+	Identities        SettingsIdentityService
 }
 
 func (h *AuthflowV2SettingsIdentityEditEmailHandler) GetData(ctx context.Context, r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
@@ -67,7 +66,7 @@ func (h *AuthflowV2SettingsIdentityEditEmailHandler) GetData(ctx context.Context
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	viewmodels.Embed(data, baseViewModel)
 
-	target, err := h.Identities.LoginID.Get(ctx, *userID, identityID)
+	target, err := h.Identities.GetWithUserID(ctx, *userID, identityID)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +74,7 @@ func (h *AuthflowV2SettingsIdentityEditEmailHandler) GetData(ctx context.Context
 	vm := AuthflowV2SettingsIdentityEditEmailViewModel{
 		LoginIDKey: loginIDKey,
 		IdentityID: identityID,
-		Target:     target,
+		Target:     target.LoginID,
 	}
 	viewmodels.Embed(data, vm)
 
