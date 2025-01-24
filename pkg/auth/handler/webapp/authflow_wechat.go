@@ -159,7 +159,7 @@ func (h *AuthflowWechatHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 			RawQuery: r.URL.Query().Encode(),
 		}
 		result := &webapp.Result{
-			NavigationAction: "replace",
+			NavigationAction: webapp.NavigationActionReplace,
 			RedirectURI:      redirectURI.String(),
 		}
 		result.WriteResponse(w, r)

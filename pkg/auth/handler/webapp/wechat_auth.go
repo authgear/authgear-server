@@ -184,7 +184,7 @@ func (h *WechatAuthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		// Otherwise redirect to the current page.
 		redirectURI := httputil.HostRelative(r.URL).String()
 		result := webapp.Result{
-			NavigationAction: "replace",
+			NavigationAction: webapp.NavigationActionReplace,
 			RedirectURI:      redirectURI,
 		}
 		result.WriteResponse(w, r)

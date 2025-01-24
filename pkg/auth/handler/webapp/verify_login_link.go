@@ -100,7 +100,7 @@ func (h *VerifyLoginLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 
 		result := webapp.Result{
 			RedirectURI:      url.String(),
-			NavigationAction: "replace",
+			NavigationAction: webapp.NavigationActionReplace,
 		}
 		result.WriteResponse(w, r)
 	}

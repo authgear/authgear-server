@@ -262,7 +262,7 @@ func (n *AuthflowNavigator) navigateStepIdentify(ctx context.Context, s *Authflo
 		q.Set(AuthflowQueryKey, s.Screen.StateToken.XStep)
 		u.RawQuery = q.Encode()
 
-		result.NavigationAction = "replace"
+		result.NavigationAction = NavigationActionReplace
 		result.RedirectURI = u.String()
 	case config.AuthenticationFlowIdentificationOAuth:
 		data := s.StateTokenFlowResponse.Action.Data.(declarative.OAuthData)
@@ -289,7 +289,7 @@ func (n *AuthflowNavigator) navigateStepIdentify(ctx context.Context, s *Authflo
 			q.Set("state", stateToken)
 			authorizationURL.RawQuery = q.Encode()
 
-			result.NavigationAction = "redirect"
+			result.NavigationAction = NavigationActionRedirect
 			result.RedirectURI = authorizationURL.String()
 		}
 
@@ -435,7 +435,7 @@ func (n *AuthflowNavigator) navigateAccountRecovery(s *AuthflowScreenWithFlowRes
 			}
 		}
 		u.RawQuery = q.Encode()
-		result.NavigationAction = "replace"
+		result.NavigationAction = NavigationActionReplace
 		result.RedirectURI = u.String()
 	}
 	switch config.AuthenticationFlowStepType(s.StateTokenFlowResponse.Action.Type) {

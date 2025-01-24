@@ -116,7 +116,10 @@ func (h *AuthflowV2SettingsChangePasswordHandler) ServeHTTP(w http.ResponseWrite
 			return err
 		}
 
-		result := webapp.Result{RedirectURI: changePasswordOutput.RedirectURI}
+		result := webapp.Result{
+			RedirectURI:      changePasswordOutput.RedirectURI,
+			NavigationAction: webapp.NavigationActionRedirect,
+		}
 		result.WriteResponse(w, r)
 		return nil
 	})

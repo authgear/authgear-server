@@ -101,7 +101,7 @@ func (m *PanicMiddleware) Handle(next http.Handler) http.Handler {
 							// Show the error in the original page.
 							// The panic may come from an I/O error, which could recover by retrying.
 							RedirectURI:      r.URL.String(),
-							NavigationAction: "replace",
+							NavigationAction: webapp.NavigationActionReplace,
 						}
 						result.WriteResponse(w, r)
 					}

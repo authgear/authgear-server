@@ -428,10 +428,13 @@ func (h *AuthorizationHandler) doHandle(
 	)
 
 	if r.ResponseType().Equal(SettingsActonResponseType) {
-		redirectURI, err = h.UIURLBuilder.BuildSettingsActionURL(client, r, oauthSessionEntry)
-		if err != nil {
-			return nil, err
-		}
+		return h.handleSettingsAction(
+			ctx,
+			redirectURI,
+			client,
+			oauthSessionEntry,
+			r,
+		)
 	}
 
 	loginHintString, loginHintOk := r.LoginHint()
@@ -500,7 +503,7 @@ func (h *AuthorizationHandler) doHandle(
 	sessionType := resolvedSession.SessionType()
 	sessionID := resolvedSession.SessionID()
 
-	result, err := h.finish(ctx, redirectURI, r, sessionType, sessionID, authenticationInfo, idTokenHintSID, nil, autoGrantAuthz)
+	result, err := h.finishAuthorization(ctx, redirectURI, r, sessionType, sessionID, authenticationInfo, idTokenHintSID, nil, autoGrantAuthz)
 	if err != nil {
 		if errors.Is(err, oauth.ErrAuthorizationNotFound) {
 			return nil, protocol.NewError("access_denied", "authorization required")
@@ -574,7 +577,73 @@ func (h *AuthorizationHandler) doHandlePreAuthenticatedURL(
 
 }
 
-func (h *AuthorizationHandler) finish(
+func (h *AuthorizationHandler) handleSettingsAction(
+	ctx context.Context,
+	redirectURI *url.URL,
+	client *config.OAuthClientConfig,
+	oauthSessionEntry *oauthsession.Entry,
+	r protocol.AuthorizationRequest,
+) (httputil.Result, error) {
+	redirectURI, err := h.UIURLBuilder.BuildSettingsActionURL(client, r, oauthSessionEntry)
+	if err != nil {
+		return nil, err
+	}
+	loginHintString, loginHintOk := r.LoginHint()
+	if !loginHintOk {
+		return nil, protocol.NewError("invalid_request", "login_hint must be provided when using settings action")
+	}
+	loginHint, err := oauth.ParseLoginHint(loginHintString)
+	if err != nil {
+		return nil, protocol.NewError("invalid_request", err.Error())
+	}
+
+	if loginHint.Type != oauth.LoginHintTypeAppSessionToken {
+		return nil, protocol.NewError("invalid_request", "login_hint must be app_session_token when using settings action")
+	}
+
+	result, err := h.AppSessionTokenService.Handle(ctx, oauth.AppSessionTokenInput{
+		AppSessionToken: loginHint.AppSessionToken,
+		RedirectURI:     redirectURI.String(),
+	})
+	if err != nil {
+		return nil, protocol.NewError("invalid_request", err.Error())
+	}
+	return result, nil
+
+}
+
+func (h *AuthorizationHandler) finishSettingsAction(
+	ctx context.Context,
+	redirectURI *url.URL,
+	r protocol.AuthorizationRequest,
+	cookies []*http.Cookie,
+) (httputil.Result, error) {
+	resp := protocol.AuthorizationResponse{}
+	responseType := r.ResponseType()
+	switch {
+	case responseType.Equal(SettingsActonResponseType):
+		err := h.generateSettingsActionResponse(ctx, redirectURI.String(), r, resp)
+		if err != nil {
+			return nil, err
+		}
+	default:
+		panic("oauth: unexpected response type. This method should only be used for settings action.")
+	}
+
+	state := r.State()
+	if state != "" {
+		resp.State(r.State())
+	}
+
+	return authorizationResultCode{
+		RedirectURI:  redirectURI,
+		ResponseMode: r.ResponseMode(),
+		Response:     resp,
+		Cookies:      cookies,
+	}, nil
+}
+
+func (h *AuthorizationHandler) finishAuthorization(
 	ctx context.Context,
 	redirectURI *url.URL,
 	r protocol.AuthorizationRequest,
@@ -609,16 +678,6 @@ func (h *AuthorizationHandler) finish(
 	resp := protocol.AuthorizationResponse{}
 	responseType := r.ResponseType()
 	switch {
-	case responseType.Equal(SettingsActonResponseType):
-		idpSessionID := ""
-		if sessionType == session.TypeIdentityProvider {
-			idpSessionID = sessionID
-		}
-		err = h.generateSettingsActionResponse(ctx, redirectURI.String(), idpSessionID, authenticationInfo, idTokenHintSID, r, authz, resp)
-		if err != nil {
-			return nil, err
-		}
-
 	case responseType.Equal(CodeResponseType):
 		err = h.generateCodeResponse(ctx, redirectURI.String(), sessionType, sessionID, authenticationInfo, idTokenHintSID, r, authz, resp)
 		if err != nil {
@@ -663,21 +722,27 @@ func (h *AuthorizationHandler) doHandleConsentRequest(
 		return nil, err
 	}
 
-	_, uiInfoByProduct, err := h.UIInfoResolver.ResolveForAuthorizationEndpoint(ctx, client, r)
-	if err != nil {
-		return nil, err
+	responseType := r.ResponseType()
+	switch {
+	case responseType.Equal(SettingsActonResponseType):
+		return h.finishSettingsAction(ctx, redirectURI, r, []*http.Cookie{})
+	default:
+		_, uiInfoByProduct, err := h.UIInfoResolver.ResolveForAuthorizationEndpoint(ctx, client, r)
+		if err != nil {
+			return nil, err
+		}
+		idTokenHintSID := uiInfoByProduct.IDTokenHintSID
+
+		sessionID := ""
+		var sessionType session.Type = ""
+
+		if authenticationInfo.AuthenticatedBySessionID != "" {
+			sessionID = authenticationInfo.AuthenticatedBySessionID
+			sessionType = session.Type(authenticationInfo.AuthenticatedBySessionType)
+		}
+
+		return h.finishAuthorization(ctx, redirectURI, r, sessionType, sessionID, authenticationInfo, idTokenHintSID, []*http.Cookie{}, grantAuthz)
 	}
-	idTokenHintSID := uiInfoByProduct.IDTokenHintSID
-
-	sessionID := ""
-	var sessionType session.Type = ""
-
-	if authenticationInfo.AuthenticatedBySessionID != "" {
-		sessionID = authenticationInfo.AuthenticatedBySessionID
-		sessionType = session.Type(authenticationInfo.AuthenticatedBySessionType)
-	}
-
-	return h.finish(ctx, redirectURI, r, sessionType, sessionID, authenticationInfo, idTokenHintSID, []*http.Cookie{}, grantAuthz)
 }
 
 func (h *AuthorizationHandler) validatePreAuthenticatedURLTokenRequest(
@@ -803,11 +868,7 @@ func (h *AuthorizationHandler) generateCodeResponse(
 func (h *AuthorizationHandler) generateSettingsActionResponse(
 	ctx context.Context,
 	redirectURI string,
-	idpSessionID string,
-	authenticationInfo authenticationinfo.T,
-	idTokenHintSID string,
 	r protocol.AuthorizationRequest,
-	authz *oauth.Authorization,
 	resp protocol.AuthorizationResponse,
 ) error {
 	code, _, err := h.SettingsActionGrantService.CreateSettingsActionGrant(ctx, &CreateSettingsActionGrantOptions{

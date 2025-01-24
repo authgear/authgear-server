@@ -1116,7 +1116,7 @@ func (c *AuthflowController) finishSession(
 	result.RemoveQueries = setutil.Set[string]{
 		"x_step": struct{}{},
 	}
-	result.NavigationAction = "redirect"
+	result.NavigationAction = webapp.NavigationActionRedirect
 	result.RedirectURI = c.deriveFinishRedirectURI(r, s, finishedUIScreenData.FlowType, finishedUIScreenData.FinishRedirectURI)
 
 	switch finishedUIScreenData.FlowType {

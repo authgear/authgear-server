@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oauthsession"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
@@ -58,27 +59,39 @@ func (m *SessionMiddleware) Handle(next http.Handler) http.Handler {
 
 		// Create the session now.
 		if oauthSessionID, ok := m.OAuthUIInfoResolver.GetOAuthSessionID(r, ""); ok {
-			ctx, result, session := m.createSessionFromOAuthSession(ctx, oauthSessionID)
-
-			for _, c := range result.Cookies {
-				httputil.UpdateCookie(w, c)
-			}
+			cookies := m.createSessionFromOAuthSession(ctx, oauthSessionID)
 
 			// Remove oauth session ID so that we do not create again.
 			m.OAuthUIInfoResolver.RemoveOAuthSessionID(w, r)
 
-			r = r.WithContext(WithSession(ctx, session))
-		} else if samlSessionID, ok := m.SAMLUIInfoResolver.GetSAMLSessionID(r, ""); ok {
-			ctx, result, session := m.createSessionFromSAMLSession(ctx, samlSessionID)
-
-			for _, c := range result.Cookies {
-				httputil.UpdateCookie(w, c)
+			// Redirect once to clear the oauth session id from query
+			u := url.URL{
+				Path:     r.URL.Path,
+				RawQuery: r.URL.Query().Encode(),
 			}
+			redirect := httputil.ResultRedirect{
+				URL:     u.String(),
+				Cookies: cookies,
+			}
+			redirect.WriteResponse(w, r)
+			return
+		} else if samlSessionID, ok := m.SAMLUIInfoResolver.GetSAMLSessionID(r, ""); ok {
+			cookies := m.createSessionFromSAMLSession(ctx, samlSessionID)
 
 			// Remove saml session ID so that we do not create again.
 			m.SAMLUIInfoResolver.RemoveSAMLSessionID(w, r)
 
-			r = r.WithContext(WithSession(ctx, session))
+			// Redirect once to clear the saml session id from query
+			u := url.URL{
+				Path:     r.URL.Path,
+				RawQuery: r.URL.Query().Encode(),
+			}
+			redirect := httputil.ResultRedirect{
+				URL:     u.String(),
+				Cookies: cookies,
+			}
+			redirect.WriteResponse(w, r)
+			return
 		} else {
 			// Or read from cookie
 			ctx, session, err := m.loadSession(ctx, r)
@@ -102,7 +115,7 @@ func (m *SessionMiddleware) Handle(next http.Handler) http.Handler {
 	})
 }
 
-func (m *SessionMiddleware) createSessionFromOAuthSession(ctx context.Context, oauthSessionID string) (context.Context, *Result, *Session) {
+func (m *SessionMiddleware) createSessionFromOAuthSession(ctx context.Context, oauthSessionID string) []*http.Cookie {
 	// When oauth session is not found, we fall back gracefully
 	// with a zero value of SessionOptions
 	sessionOptions := SessionOptions{}
@@ -146,10 +159,10 @@ func (m *SessionMiddleware) createSessionFromOAuthSession(ctx context.Context, o
 		panic(err)
 	}
 
-	return ctx, result, session
+	return result.Cookies
 }
 
-func (m *SessionMiddleware) createSessionFromSAMLSession(ctx context.Context, samlSessionID string) (context.Context, *Result, *Session) {
+func (m *SessionMiddleware) createSessionFromSAMLSession(ctx context.Context, samlSessionID string) []*http.Cookie {
 	// When saml session is not found, we fall back gracefully
 	// with a zero value of SessionOptions
 	sessionOptions := SessionOptions{}
@@ -184,7 +197,7 @@ func (m *SessionMiddleware) createSessionFromSAMLSession(ctx context.Context, sa
 		panic(err)
 	}
 
-	return ctx, result, session
+	return result.Cookies
 }
 
 func (m *SessionMiddleware) loadSession(ctx context.Context, r *http.Request) (context.Context, *Session, error) {
