@@ -138,6 +138,7 @@ export enum AppSecretKey {
   OauthSsoProviderClientSecrets = 'OAUTH_SSO_PROVIDER_CLIENT_SECRETS',
   SamlIdpSigningSecrets = 'SAML_IDP_SIGNING_SECRETS',
   SamlSpSigningSecrets = 'SAML_SP_SIGNING_SECRETS',
+  SmsProviderSecrets = 'SMS_PROVIDER_SECRETS',
   SmtpSecret = 'SMTP_SECRET',
   WebhookSecret = 'WEBHOOK_SECRET'
 }
@@ -245,6 +246,11 @@ export type CreateDomainPayload = {
   __typename?: 'CreateDomainPayload';
   app: App;
   domain: Domain;
+};
+
+export type CustomSmsProviderSecretsInput = {
+  timeout?: InputMaybe<Scalars['Int']['input']>;
+  url: Scalars['String']['input'];
 };
 
 export type DataPoint = {
@@ -368,6 +374,8 @@ export type Mutation = {
   reconcileCheckoutSession: ReconcileCheckoutSessionPayload;
   /** Updates the current user's custom attribute with 'survey' key */
   saveOnboardingSurvey?: Maybe<Scalars['Boolean']['output']>;
+  /** Send a SMS to test the configuration */
+  sendTestSMSConfiguration?: Maybe<Scalars['Boolean']['output']>;
   /** Send test STMP configuration email */
   sendTestSMTPConfigurationEmail?: Maybe<Scalars['Boolean']['output']>;
   /** Set app subscription cancellation status */
@@ -462,6 +470,11 @@ export type MutationReconcileCheckoutSessionArgs = {
 
 export type MutationSaveOnboardingSurveyArgs = {
   input: SaveOnboardingSurveyInput;
+};
+
+
+export type MutationSendTestSmsConfigurationArgs = {
+  input: SendTestSmsInput;
 };
 
 
@@ -667,6 +680,69 @@ export type SamlSpSigningSecretsUpdateInstructionsInput = {
   setData?: InputMaybe<SamlSpSigningSecretsSetDataInput>;
 };
 
+export type SmsProviderConfigurationDenoInput = {
+  script: Scalars['String']['input'];
+  timeout?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type SmsProviderConfigurationInput = {
+  /** Deno hook configuration */
+  deno?: InputMaybe<SmsProviderConfigurationDenoInput>;
+  /** Twilio configuration */
+  twilio?: InputMaybe<SmsProviderConfigurationTwilioInput>;
+  /** Webhook Configuration */
+  webhook?: InputMaybe<SmsProviderConfigurationWebhookInput>;
+};
+
+export type SmsProviderConfigurationTwilioInput = {
+  accountSID: Scalars['String']['input'];
+  authToken: Scalars['String']['input'];
+  messagingServiceSID?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type SmsProviderConfigurationWebhookInput = {
+  timeout?: InputMaybe<Scalars['Int']['input']>;
+  url: Scalars['String']['input'];
+};
+
+/** Custom SMS Provider configs */
+export type SmsProviderCustomSmsProviderSecrets = {
+  __typename?: 'SMSProviderCustomSMSProviderSecrets';
+  timeout?: Maybe<Scalars['Int']['output']>;
+  url: Scalars['String']['output'];
+};
+
+/** SMS Provider secrets */
+export type SmsProviderSecrets = {
+  __typename?: 'SMSProviderSecrets';
+  customSMSProviderCredentials?: Maybe<SmsProviderCustomSmsProviderSecrets>;
+  twilioCredentials?: Maybe<SmsProviderTwilioCredentials>;
+};
+
+export type SmsProviderSecretsSetDataInput = {
+  customSMSProviderCredentials?: InputMaybe<CustomSmsProviderSecretsInput>;
+  twilioCredentials?: InputMaybe<SmsProviderTwilioCredentialsInput>;
+};
+
+export type SmsProviderSecretsUpdateInstructionsInput = {
+  action: Scalars['String']['input'];
+  setData?: InputMaybe<SmsProviderSecretsSetDataInput>;
+};
+
+/** Twilio credentials */
+export type SmsProviderTwilioCredentials = {
+  __typename?: 'SMSProviderTwilioCredentials';
+  accountSID: Scalars['String']['output'];
+  authToken?: Maybe<Scalars['String']['output']>;
+  messagingServiceSID: Scalars['String']['output'];
+};
+
+export type SmsProviderTwilioCredentialsInput = {
+  accountSID: Scalars['String']['input'];
+  authToken?: InputMaybe<Scalars['String']['input']>;
+  messagingServiceSID: Scalars['String']['input'];
+};
+
 /** SMTP secret */
 export type SmtpSecret = {
   __typename?: 'SMTPSecret';
@@ -697,6 +773,7 @@ export type SecretConfig = {
   oauthSSOProviderClientSecrets?: Maybe<Array<OAuthSsoProviderClientSecret>>;
   samlIdpSigningSecrets?: Maybe<SamlIdpSigningSecrets>;
   samlSpSigningSecrets?: Maybe<Array<SamlSpSigningSecrets>>;
+  smsProviderSecrets?: Maybe<SmsProviderSecrets>;
   smtpSecret?: Maybe<SmtpSecret>;
   webhookSecret?: Maybe<WebhookSecret>;
 };
@@ -708,7 +785,17 @@ export type SecretConfigUpdateInstructionsInput = {
   oauthSSOProviderClientSecrets?: InputMaybe<OAuthSsoProviderClientSecretsUpdateInstructionsInput>;
   samlIdpSigningSecrets?: InputMaybe<SamlIdpSigningSecretsUpdateInstructionsInput>;
   samlSpSigningSecrets?: InputMaybe<SamlSpSigningSecretsUpdateInstructionsInput>;
+  smsProviderSecrets?: InputMaybe<SmsProviderSecretsUpdateInstructionsInput>;
   smtpSecret?: InputMaybe<SmtpSecretUpdateInstructionsInput>;
+};
+
+export type SendTestSmsInput = {
+  /** App ID to test. */
+  appID: Scalars['ID']['input'];
+  /** The SMS provider configuration. */
+  providerConfiguration: SmsProviderConfigurationInput;
+  /** The recipient phone number. */
+  to: Scalars['String']['input'];
 };
 
 export type SetSubscriptionCancelledStatusInput = {

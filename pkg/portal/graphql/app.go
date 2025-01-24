@@ -172,6 +172,48 @@ var samlSpSigningSecret = graphql.NewObject(graphql.ObjectConfig{
 	},
 })
 
+var smsProviderTwilioCredentials = graphql.NewObject(graphql.ObjectConfig{
+	Name:        "SMSProviderTwilioCredentials",
+	Description: "Twilio credentials",
+	Fields: graphql.Fields{
+		"accountSID": &graphql.Field{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+		"authToken": &graphql.Field{
+			Type: graphql.String,
+		},
+		"messagingServiceSID": &graphql.Field{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+	},
+})
+
+var smsProviderCustomSmsProviderSecrets = graphql.NewObject(graphql.ObjectConfig{
+	Name:        "SMSProviderCustomSMSProviderSecrets",
+	Description: "Custom SMS Provider configs",
+	Fields: graphql.Fields{
+		"url": &graphql.Field{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+		"timeout": &graphql.Field{
+			Type: graphql.Int,
+		},
+	},
+})
+
+var smsProviderSecret = graphql.NewObject(graphql.ObjectConfig{
+	Name:        "SMSProviderSecrets",
+	Description: "SMS Provider secrets",
+	Fields: graphql.Fields{
+		"twilioCredentials": &graphql.Field{
+			Type: smsProviderTwilioCredentials,
+		},
+		"customSMSProviderCredentials": &graphql.Field{
+			Type: smsProviderCustomSmsProviderSecrets,
+		},
+	},
+})
+
 type AppSecretKey string
 
 const (
@@ -183,6 +225,7 @@ const (
 	AppSecretKeyBotProtectionProviderSecret   AppSecretKey = "botProtectionProviderSecret"
 	AppSecretKeySAMLIdpSigningSecrets         AppSecretKey = "samlIdpSigningSecrets" // nolint:gosec
 	AppSecretKeySAMLSpSigningSecrets          AppSecretKey = "samlSpSigningSecrets"  // nolint:gosec
+	AppSecretKeySMSProviderSecrets            AppSecretKey = "smsProviderSecrets"    // nolint:gosec
 )
 
 var secretConfig = graphql.NewObject(graphql.ObjectConfig{
@@ -212,6 +255,9 @@ var secretConfig = graphql.NewObject(graphql.ObjectConfig{
 		},
 		string(AppSecretKeySAMLSpSigningSecrets): &graphql.Field{
 			Type: graphql.NewList(graphql.NewNonNull(samlSpSigningSecret)),
+		},
+		string(AppSecretKeySMSProviderSecrets): &graphql.Field{
+			Type: smsProviderSecret,
 		},
 	},
 })
@@ -243,16 +289,20 @@ var appSecretKey = graphql.NewEnum(graphql.EnumConfig{
 		"SAML_SP_SIGNING_SECRETS": &graphql.EnumValueConfig{
 			Value: AppSecretKeySAMLSpSigningSecrets,
 		},
+		"SMS_PROVIDER_SECRETS": &graphql.EnumValueConfig{
+			Value: AppSecretKeySMSProviderSecrets,
+		},
 	},
 })
 
-var secretKeyToConfigKeyMap map[AppSecretKey]config.SecretKey = map[AppSecretKey]config.SecretKey{
-	AppSecretKeyOauthSSOProviderClientSecrets: config.OAuthSSOProviderCredentialsKey,
-	AppSecretKeyWebhookSecret:                 config.WebhookKeyMaterialsKey,
-	AppSecretKeyAdminAPISecrets:               config.AdminAPIAuthKeyKey,
-	AppSecretKeySmtpSecret:                    config.SMTPServerCredentialsKey,
-	AppSecretKeyOauthClientSecrets:            config.OAuthClientCredentialsKey,
-	AppSecretKeyBotProtectionProviderSecret:   config.BotProtectionProviderCredentialsKey,
+var secretKeyToConfigKeyMap map[AppSecretKey][]config.SecretKey = map[AppSecretKey][]config.SecretKey{
+	AppSecretKeyOauthSSOProviderClientSecrets: {config.OAuthSSOProviderCredentialsKey},
+	AppSecretKeyWebhookSecret:                 {config.WebhookKeyMaterialsKey},
+	AppSecretKeyAdminAPISecrets:               {config.AdminAPIAuthKeyKey},
+	AppSecretKeySmtpSecret:                    {config.SMTPServerCredentialsKey},
+	AppSecretKeyOauthClientSecrets:            {config.OAuthClientCredentialsKey},
+	AppSecretKeyBotProtectionProviderSecret:   {config.BotProtectionProviderCredentialsKey},
+	AppSecretKeySMSProviderSecrets:            {config.TwilioCredentialsKey, config.CustomSMSProviderConfigKey},
 }
 
 const typeApp = "App"

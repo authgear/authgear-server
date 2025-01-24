@@ -136,7 +136,7 @@ func TestClientResolver(t *testing.T) {
 				var authgearYAMLSMSProvider config.SMSProvider
 				var authgearYAMLSMSGateway *config.SMSGatewayConfig
 				if messagingConfig != nil {
-					authgearYAMLSMSProvider = messagingConfig.SMSProvider
+					authgearYAMLSMSProvider = messagingConfig.Deprecated_SMSProvider
 					authgearYAMLSMSGateway = messagingConfig.SMSGateway
 				}
 

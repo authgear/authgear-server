@@ -227,3 +227,21 @@ export function diffResourceUpdates(
     result.deletedResources.length > 0;
   return result;
 }
+
+export function getDenoScriptPathFromURL(url: string): string {
+  const path = url.slice("authgeardeno:///".length);
+  return path;
+}
+
+export function makeDenoScriptSpecifier(url: string): ResourceSpecifier {
+  const path = getDenoScriptPathFromURL(url);
+  return {
+    def: {
+      resourcePath: resourcePath([path]),
+      type: "text" as const,
+      extensions: [],
+    },
+    locale: null,
+    extension: null,
+  };
+}

@@ -1,0 +1,15 @@
+.widget {
+  grid-column: 1 / span 8;
+
+  @apply tablet:col-span-full;
+}
+
+.columnFull {
+  grid-column: 1 / span 8;
+
+  @apply tablet:col-span-full;
+}
+
+.providerGrid {
+  @apply grid gap-4 grid-cols-2;
+}

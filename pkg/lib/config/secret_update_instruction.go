@@ -29,6 +29,7 @@ type SecretConfigUpdateInstruction struct {
 	BotProtectionProviderCredentialsUpdateInstruction *BotProtectionProviderCredentialsUpdateInstruction `json:"botProtectionProviderSecret,omitempty"`
 	SAMLIdpSigningSecretsUpdateInstruction            *SAMLIdpSigningSecretsUpdateInstruction            `json:"samlIdpSigningSecrets,omitempty"`
 	SAMLSpSigningSecretsUpdateInstruction             *SAMLSpSigningSecretsUpdateInstruction             `json:"samlSpSigningSecrets,omitempty"`
+	SMSProviderSecretsUpdateInstruction               *SMSProviderSecretsUpdateInstruction               `json:"smsProviderSecrets,omitempty"`
 }
 
 func (i *SecretConfigUpdateInstruction) ApplyTo(ctx *SecretConfigUpdateInstructionContext, currentConfig *SecretConfig) (*SecretConfig, error) {
@@ -79,6 +80,13 @@ func (i *SecretConfigUpdateInstruction) ApplyTo(ctx *SecretConfigUpdateInstructi
 
 	if i.SAMLSpSigningSecretsUpdateInstruction != nil {
 		newConfig, err = i.SAMLSpSigningSecretsUpdateInstruction.ApplyTo(ctx, newConfig)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if i.SMSProviderSecretsUpdateInstruction != nil {
+		newConfig, err = i.SMSProviderSecretsUpdateInstruction.ApplyTo(ctx, newConfig)
 		if err != nil {
 			return nil, err
 		}
@@ -766,6 +774,114 @@ func (i *SAMLSpSigningSecretsUpdateInstruction) set(currentConfig *SecretConfig)
 	return out, nil
 }
 
+type SMSProviderSecretsUpdateInstructionSetData struct {
+	TwilioCredentials            *SMSProviderSecretsUpdateInstructionTwilioCredentials `json:"twilioCredentials,omitempty"`
+	CustomSMSProviderCredentials *SMSProviderSecretsUpdateInstructionCustomSMSProvider `json:"customSMSProviderCredentials,omitempty"`
+}
+
+type SMSProviderSecretsUpdateInstructionTwilioCredentials struct {
+	AccountSID          string `json:"accountSID,omitempty"`
+	AuthToken           string `json:"authToken,omitempty"`
+	MessagingServiceSID string `json:"messagingServiceSID,omitempty"`
+}
+
+type SMSProviderSecretsUpdateInstructionCustomSMSProvider struct {
+	URL     string           `json:"url,omitempty"`
+	Timeout *DurationSeconds `json:"timeout,omitempty"`
+}
+
+type SMSProviderSecretsUpdateInstruction struct {
+	Action  SecretUpdateInstructionAction               `json:"action,omitempty"`
+	SetData *SMSProviderSecretsUpdateInstructionSetData `json:"setData,omitempty"`
+}
+
+func (i *SMSProviderSecretsUpdateInstruction) ApplyTo(ctx *SecretConfigUpdateInstructionContext, currentConfig *SecretConfig) (*SecretConfig, error) {
+	switch i.Action {
+	case SecretUpdateInstructionActionSet:
+		return i.set(currentConfig)
+	default:
+		return nil, fmt.Errorf("config: unexpected action for SMSProviderSecretsUpdateInstruction: %s", i.Action)
+	}
+}
+
+func (i *SMSProviderSecretsUpdateInstruction) set(currentConfig *SecretConfig) (*SecretConfig, error) {
+	out := &SecretConfig{}
+	for _, item := range currentConfig.Secrets {
+		out.Secrets = append(out.Secrets, item)
+	}
+
+	if i.SetData == nil {
+		return nil, fmt.Errorf("config: missing SetData for SMSProviderSecretsUpdateInstruction")
+	}
+
+	upsert := func(credentialKey SecretKey, secrets any) error {
+		var data []byte
+		data, err := json.Marshal(secrets)
+		if err != nil {
+			return err
+		}
+		newSecretItem := SecretItem{
+			Key:     credentialKey,
+			RawData: json.RawMessage(data),
+		}
+
+		idx, _, found := out.LookupDataWithIndex(credentialKey)
+		if found {
+			out.Secrets[idx] = newSecretItem
+		} else {
+			out.Secrets = append(out.Secrets, newSecretItem)
+		}
+		return nil
+	}
+
+	remove := func(credentialKey SecretKey) error {
+		newSecretItems := []SecretItem{}
+
+		for _, item := range out.Secrets {
+			if item.Key != credentialKey {
+				newSecretItems = append(newSecretItems, item)
+			}
+		}
+
+		out.Secrets = newSecretItems
+		return nil
+	}
+
+	if i.SetData.TwilioCredentials != nil {
+		twilioCredentials := TwilioCredentials{
+			AccountSID:          i.SetData.TwilioCredentials.AccountSID,
+			AuthToken:           i.SetData.TwilioCredentials.AuthToken,
+			MessagingServiceSID: i.SetData.TwilioCredentials.MessagingServiceSID,
+		}
+		err := upsert(TwilioCredentialsKey, twilioCredentials)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		err := remove(TwilioCredentialsKey)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if i.SetData.CustomSMSProviderCredentials != nil {
+		customSMSProviderConfig := CustomSMSProviderConfig{
+			URL:     i.SetData.CustomSMSProviderCredentials.URL,
+			Timeout: i.SetData.CustomSMSProviderCredentials.Timeout,
+		}
+		err := upsert(CustomSMSProviderConfigKey, customSMSProviderConfig)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		err := remove(CustomSMSProviderConfigKey)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return out, nil
+}
+
 var _ SecretConfigUpdateInstructionInterface = &SecretConfigUpdateInstruction{}
 var _ SecretConfigUpdateInstructionInterface = &OAuthSSOProviderCredentialsUpdateInstruction{}
 var _ SecretConfigUpdateInstructionInterface = &SMTPServerCredentialsUpdateInstruction{}
@@ -774,3 +890,4 @@ var _ SecretConfigUpdateInstructionInterface = &AdminAPIAuthKeyUpdateInstruction
 var _ SecretConfigUpdateInstructionInterface = &BotProtectionProviderCredentialsUpdateInstruction{}
 var _ SecretConfigUpdateInstructionInterface = &SAMLIdpSigningSecretsUpdateInstruction{}
 var _ SecretConfigUpdateInstructionInterface = &SAMLSpSigningSecretsUpdateInstruction{}
+var _ SecretConfigUpdateInstructionInterface = &SMSProviderSecretsUpdateInstruction{}

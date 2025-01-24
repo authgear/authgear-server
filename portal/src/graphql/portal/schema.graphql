@@ -170,6 +170,9 @@ enum AppSecretKey {
   SAML_SP_SIGNING_SECRETS
 
   """"""
+  SMS_PROVIDER_SECRETS
+
+  """"""
   SMTP_SECRET
 
   """"""
@@ -327,6 +330,15 @@ type CreateDomainPayload {
 
   """"""
   domain: Domain!
+}
+
+""""""
+input CustomSmsProviderSecretsInput {
+  """"""
+  timeout: Int
+
+  """"""
+  url: String!
 }
 
 """"""
@@ -510,6 +522,9 @@ type Mutation {
 
   """Updates the current user's custom attribute with 'survey' key"""
   saveOnboardingSurvey(input: SaveOnboardingSurveyInput!): Boolean
+
+  """Send a SMS to test the configuration"""
+  sendTestSMSConfiguration(input: SendTestSMSInput!): Boolean
 
   """Send test STMP configuration email"""
   sendTestSMTPConfigurationEmail(input: sendTestSMTPConfigurationEmailInput!): Boolean
@@ -764,6 +779,108 @@ input SAMLSpSigningSecretsUpdateInstructionsInput {
   setData: SAMLSpSigningSecretsSetDataInput
 }
 
+""""""
+input SMSProviderConfigurationDenoInput {
+  """"""
+  script: String!
+
+  """"""
+  timeout: Int
+}
+
+""""""
+input SMSProviderConfigurationInput {
+  """Deno hook configuration"""
+  deno: SMSProviderConfigurationDenoInput
+
+  """Twilio configuration"""
+  twilio: SMSProviderConfigurationTwilioInput
+
+  """Webhook Configuration"""
+  webhook: SMSProviderConfigurationWebhookInput
+}
+
+""""""
+input SMSProviderConfigurationTwilioInput {
+  """"""
+  accountSID: String!
+
+  """"""
+  authToken: String!
+
+  """"""
+  messagingServiceSID: String
+}
+
+""""""
+input SMSProviderConfigurationWebhookInput {
+  """"""
+  timeout: Int
+
+  """"""
+  url: String!
+}
+
+"""Custom SMS Provider configs"""
+type SMSProviderCustomSMSProviderSecrets {
+  """"""
+  timeout: Int
+
+  """"""
+  url: String!
+}
+
+"""SMS Provider secrets"""
+type SMSProviderSecrets {
+  """"""
+  customSMSProviderCredentials: SMSProviderCustomSMSProviderSecrets
+
+  """"""
+  twilioCredentials: SMSProviderTwilioCredentials
+}
+
+""""""
+input SMSProviderSecretsSetDataInput {
+  """"""
+  customSMSProviderCredentials: CustomSmsProviderSecretsInput
+
+  """"""
+  twilioCredentials: SMSProviderTwilioCredentialsInput
+}
+
+""""""
+input SMSProviderSecretsUpdateInstructionsInput {
+  """"""
+  action: String!
+
+  """"""
+  setData: SMSProviderSecretsSetDataInput
+}
+
+"""Twilio credentials"""
+type SMSProviderTwilioCredentials {
+  """"""
+  accountSID: String!
+
+  """"""
+  authToken: String
+
+  """"""
+  messagingServiceSID: String!
+}
+
+""""""
+input SMSProviderTwilioCredentialsInput {
+  """"""
+  accountSID: String!
+
+  """"""
+  authToken: String
+
+  """"""
+  messagingServiceSID: String!
+}
+
 """SMTP secret"""
 type SMTPSecret {
   """"""
@@ -821,6 +938,9 @@ type SecretConfig {
   samlSpSigningSecrets: [SAMLSpSigningSecrets!]
 
   """"""
+  smsProviderSecrets: SMSProviderSecrets
+
+  """"""
   smtpSecret: SMTPSecret
 
   """"""
@@ -848,7 +968,22 @@ input SecretConfigUpdateInstructionsInput {
   samlSpSigningSecrets: SAMLSpSigningSecretsUpdateInstructionsInput
 
   """"""
+  smsProviderSecrets: SMSProviderSecretsUpdateInstructionsInput
+
+  """"""
   smtpSecret: SmtpSecretUpdateInstructionsInput
+}
+
+""""""
+input SendTestSMSInput {
+  """App ID to test."""
+  appID: ID!
+
+  """The SMS provider configuration."""
+  providerConfiguration: SMSProviderConfigurationInput!
+
+  """The recipient phone number."""
+  to: String!
 }
 
 """"""

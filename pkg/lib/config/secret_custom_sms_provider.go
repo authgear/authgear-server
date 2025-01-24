@@ -5,8 +5,8 @@ var _ = SecretConfigSchema.Add("CustomSMSProviderConfig", `
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
-		"url": { "type": "string" },
-		"timeout": { "type": "integer" }
+		"url": { "type": "string", "format": "x_hook_uri" },
+		"timeout": { "type": "integer", "minimum": 1, "maximum": 60 }
 	},
 	"required": ["url"]
 }

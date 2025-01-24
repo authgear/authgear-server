@@ -646,3 +646,27 @@ func (s *AppService) validateAppID(appID string) error {
 func (s *AppService) RenderSAMLEntityID(appID string) string {
 	return saml.RenderSAMLEntityID(s.SAMLEnvironmentConfig, appID)
 }
+
+func (s *AppService) LoadAppWebhookSecretMaterials(
+	ctx context.Context,
+	app *model.App) (*config.WebhookKeyMaterials, error) {
+	resMgr := s.AppResMgrFactory.NewManagerWithAppContext(app.Context)
+	result, err := resMgr.ReadAppFile(configsource.SecretConfig, &resource.AppFile{
+		Path: configsource.AuthgearSecretYAML,
+	})
+	if err != nil {
+		return nil, nil
+	}
+
+	bytes := result.([]byte)
+
+	secretConfig, err := config.ParsePartialSecret(bytes)
+	if err != nil {
+		return nil, err
+	}
+	if webhook, ok := secretConfig.LookupData(config.WebhookKeyMaterialsKey).(*config.WebhookKeyMaterials); ok {
+		return webhook, nil
+	}
+
+	return nil, fmt.Errorf("unexpected: app %s is missing webhook secret", app.ID)
+}

@@ -592,7 +592,7 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		GomailDialer: dialer,
 	}
 	smsLogger := sms.NewLogger(factory)
-	smsProvider := messagingConfig.SMSProvider
+	smsProvider := messagingConfig.Deprecated_SMSProvider
 	smsGatewayConfig := messagingConfig.SMSGateway
 	nexmoCredentials := deps.ProvideNexmoCredentials(secretConfig)
 	twilioCredentials := deps.ProvideTwilioCredentials(secretConfig)

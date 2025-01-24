@@ -63,6 +63,9 @@ type AppService interface {
 		app *model.App,
 		returnURI string,
 	) (*tester.TesterToken, error)
+	LoadAppWebhookSecretMaterials(
+		ctx context.Context,
+		app *model.App) (*config.WebhookKeyMaterials, error)
 }
 
 type DomainService interface {
@@ -96,6 +99,15 @@ type AuthzService interface {
 
 type SMTPService interface {
 	SendTestEmail(ctx context.Context, app *model.App, options smtp.SendTestEmailOptions) (err error)
+}
+
+type SMSService interface {
+	SendTestSMS(
+		ctx context.Context,
+		app *model.App,
+		to string,
+		webhookSecretLoader func(ctx context.Context) (*config.WebhookKeyMaterials, error),
+		input model.SMSProviderConfigurationInput) error
 }
 
 type AppResourceManagerFactory interface {
@@ -188,6 +200,7 @@ type Context struct {
 	DomainService        DomainService
 	CollaboratorService  CollaboratorService
 	SMTPService          SMTPService
+	SMSService           SMSService
 	AppResMgrFactory     AppResourceManagerFactory
 	AnalyticChartService AnalyticChartService
 	TutorialService      TutorialService

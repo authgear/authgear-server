@@ -26,19 +26,3 @@
 
   @apply tablet:col-span-full;
 }
-
-.providerCard {
-  flex: 1;
-  padding: 8px 16px;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  border-width: 1px;
-  border-style: solid;
-  cursor: pointer;
-  column-gap: 16px;
-}
-
-.providerCard > * {
-  cursor: inherit;
-}

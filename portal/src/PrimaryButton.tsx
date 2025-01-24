@@ -22,6 +22,9 @@ const PrimaryButton: React.VFC<PrimaryButtonProps> = function PrimaryButton(
       rootDisabled: {
         color: theme.palette.neutralTertiary,
       },
+      label: {
+        whiteSpace: "nowrap",
+      },
     },
     stylesProp
   );

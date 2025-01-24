@@ -14,7 +14,7 @@ import ManageLanguageWidget from "./ManageLanguageWidget";
 import EditTemplatesWidget, {
   EditTemplatesWidgetSection,
 } from "./EditTemplatesWidget";
-import { AuthenticatorEmailOTPMode, MessagingConfig } from "../../types";
+import { AuthenticatorEmailOTPMode, MessagingFeatureConfig } from "../../types";
 import {
   ALL_LANGUAGES_TEMPLATES,
   DEFAULT_TEMPLATE_LOCALE,
@@ -90,7 +90,7 @@ interface ResourcesConfigurationContentProps {
   passwordlessViaSMSEnabled: boolean;
   passwordlessViaEmailOTPMode: AuthenticatorEmailOTPMode;
   verificationEnabled: boolean;
-  messagingFeatureConfig?: MessagingConfig;
+  messagingFeatureConfig?: MessagingFeatureConfig;
 }
 
 const PIVOT_KEY_FORGOT_PASSWORD_LINK = "forgot_password_link";
