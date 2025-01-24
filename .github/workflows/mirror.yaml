@@ -24,18 +24,23 @@ jobs:
     - name: Mirror
       run: |
         export GIT_SSH_COMMAND="ssh -v -i ~/.ssh/id_ed25519"
-        # The original command is
-        #    git push --tags --force --prune "git@github.com:oursky/authgear-server.git" "refs/remotes/origin/*:refs/heads/*"
+        # Print the git version for debugging purpose.
+        git --version
+        # Print the output of git show-ref for debugging purpose.
+        git show-ref
+        git remote add mirror git@github.com:oursky/authgear-server.git
+        # This expansion includes refs/remotes/origin/HEAD:refs/heads/HEAD
+        # That would create a branch named HEAD in the mirror repository.
+        # I tried to use the following command to exclude HEAD
         #
-        # It has been working so well, until 2025-01-23, git starts include refs/remotes/origin/HEAD in the expansion.
-        # That would include refs/remotes/origin/HEAD:refs/heads/HEAD.
-        # That means push a branch named HEAD in the mirror repository.
-        # HEAD has a special meaning in Git, and it is obviously not suitable for a branch name.
+        #   git show-ref | awk '{ print $2 }' | perl -n -e 'if (/(^refs\/remotes\/origin\/(.+)$)/ ) { if ($2 != "HEAD") {  print "$1:refs/heads/$2\n" } }' | xargs -x git push --tags --force --prune "git@github.com:oursky/authgear-server.git"
         #
-        # So we use `git show-ref` plus some filtering with awk and perl to filter out refs/remotes/origin/HEAD.
-        # And build the `git push ...` command with xargs.
-        git show-ref | awk '{ print $2 }' | perl -n -e 'if (/(^refs\/remotes\/origin\/(.+)$)/ ) { if ($2 != "HEAD") {  print "$1:refs/heads/$2\n" } }' | xargs -x git push --tags --force --prune "git@github.com:oursky/authgear-server.git"
+        # But that command will just result in "Everything up-to-date".
+        # So I change GitHub actions to exclude the branch "HEAD" instead.
+        # At least we will not receive a GitHub actions error saying HEAD is not a valid branch name.
+        git push --tags --force --prune mirror "refs/remotes/origin/*:refs/heads/*"
     - name: Clean up
       if: ${{ always() }}
       run: |
         rm -f ~/.ssh/id_ed25519
+        git remote remove mirror

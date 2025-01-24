@@ -4,6 +4,7 @@ on:
   push:
     branches:
     - '*'
+    - '!HEAD'
     - '!gh-pages'
     tags:
     - '*'
