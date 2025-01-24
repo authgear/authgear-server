@@ -2,7 +2,6 @@ package authflowv2
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
 	"net/url"
@@ -123,16 +122,9 @@ func (h *AuthflowV2SettingsIdentityAddPhoneHandler) ServeHTTP(w http.ResponseWri
 
 			redirectURI.RawQuery = q.Encode()
 		} else if ctrl.IsInSettingsAction(s, webappSession) {
-			err = ctrl.FinishSettingsAction(ctx, s, webappSession)
+			settingsActionResult, err := ctrl.FinishSettingsActionWithResult(ctx, s, webappSession)
 			if err != nil {
 				return err
-			}
-			settingsActionResult, ok, err := ctrl.GetSettingsActionResult(ctx, webappSession)
-			if err != nil {
-				return err
-			}
-			if !ok {
-				panic(fmt.Errorf("unexpected: cannot get settigns action result"))
 			}
 			settingsActionResult.WriteResponse(w, r)
 			return nil

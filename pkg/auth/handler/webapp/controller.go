@@ -430,3 +430,18 @@ func (c *Controller) GetSettingsActionResult(ctx context.Context, webSession *we
 	}
 	return nil, false, nil
 }
+
+func (c *Controller) FinishSettingsActionWithResult(ctx context.Context, userSession session.ResolvedSession, webSession *webapp.Session) (*webapp.Result, error) {
+	err := c.FinishSettingsAction(ctx, userSession, webSession)
+	if err != nil {
+		return nil, err
+	}
+	settingsActionResult, ok, err := c.GetSettingsActionResult(ctx, webSession)
+	if err != nil {
+		return nil, err
+	}
+	if !ok {
+		panic(fmt.Errorf("unexpected: cannot get settigns action result"))
+	}
+	return settingsActionResult, nil
+}
