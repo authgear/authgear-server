@@ -2,6 +2,7 @@ package authflowv2
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"net/url"
@@ -93,6 +94,7 @@ func (h *AuthflowV2SettingsIdentityAddEmailHandler) ServeHTTP(w http.ResponseWri
 		loginID := r.Form.Get("x_login_id")
 
 		s := session.GetSession(ctx)
+		webappSession := webapp.GetSession(ctx)
 		output, err := h.AccountManagement.StartAddIdentityEmail(ctx, s, &accountmanagement.StartAddIdentityEmailInput{
 			LoginID:    loginID,
 			LoginIDKey: loginIDKey,
@@ -102,6 +104,7 @@ func (h *AuthflowV2SettingsIdentityAddEmailHandler) ServeHTTP(w http.ResponseWri
 		}
 
 		var redirectURI *url.URL
+		navivagationAction := webapp.NavigationActionRedirect
 		if output.NeedVerification {
 			redirectURI, err = url.Parse(AuthflowV2RouteSettingsIdentityVerifyEmail)
 			if err != nil {
@@ -113,6 +116,21 @@ func (h *AuthflowV2SettingsIdentityAddEmailHandler) ServeHTTP(w http.ResponseWri
 			q.Set("q_token", output.Token)
 
 			redirectURI.RawQuery = q.Encode()
+			navivagationAction = webapp.NavigationActionAdvance
+		} else if ctrl.IsInSettingsAction(s, webappSession) {
+			err = ctrl.FinishSettingsAction(ctx, s, webappSession)
+			if err != nil {
+				return err
+			}
+			settingsActionResult, ok, err := ctrl.GetSettingsActionResult(ctx, webappSession)
+			if err != nil {
+				return err
+			}
+			if !ok {
+				panic(fmt.Errorf("unexpected: cannot get settigns action result"))
+			}
+			settingsActionResult.WriteResponse(w, r)
+			return nil
 		} else {
 			redirectURI, err = url.Parse(AuthflowV2RouteSettingsIdentityListEmail)
 			if err != nil {
@@ -125,7 +143,7 @@ func (h *AuthflowV2SettingsIdentityAddEmailHandler) ServeHTTP(w http.ResponseWri
 			redirectURI.RawQuery = q.Encode()
 		}
 
-		result := webapp.Result{RedirectURI: redirectURI.String()}
+		result := webapp.Result{RedirectURI: redirectURI.String(), NavigationAction: navivagationAction}
 		result.WriteResponse(w, r)
 		return nil
 	})

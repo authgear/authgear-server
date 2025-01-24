@@ -2,6 +2,7 @@ package authflowv2
 
 import (
 	"context"
+	"fmt"
 	"math"
 	"net/http"
 
@@ -153,12 +154,28 @@ func (h *AuthflowV2SettingsIdentityVerifyEmailHandler) ServeHTTP(w http.Response
 		code := r.Form.Get("x_code")
 
 		s := session.GetSession(ctx)
+		webappSession := webapp.GetSession(ctx)
 		_, err = h.AccountManagement.ResumeAddOrUpdateIdentityEmail(ctx, s, tokenString, &accountmanagement.ResumeAddOrUpdateIdentityEmailInput{
 			LoginIDKey: loginIDKey,
 			Code:       code,
 		})
 		if err != nil {
 			return err
+		}
+		if ctrl.IsInSettingsAction(s, webappSession) {
+			err = ctrl.FinishSettingsAction(ctx, s, webappSession)
+			if err != nil {
+				return err
+			}
+			settingsActionResult, ok, err := ctrl.GetSettingsActionResult(ctx, webappSession)
+			if err != nil {
+				return err
+			}
+			if !ok {
+				panic(fmt.Errorf("unexpected: cannot get settigns action result"))
+			}
+			settingsActionResult.WriteResponse(w, r)
+			return nil
 		}
 
 		redirectURI, err := url.Parse(AuthflowV2RouteSettingsIdentityListEmail)
