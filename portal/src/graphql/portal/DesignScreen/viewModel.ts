@@ -158,9 +158,10 @@ export function mapDesignFormStateToPreviewCustomisationMessage(
 
   const theme = state.selectedTheme;
 
-  cssVars[CSSVariable.WatermarkDisplay] = state.showAuthgearLogo
-    ? WatermarkEnabledDisplay
-    : WatermarkDisabledDisplay;
+  cssVars[CSSVariable.WatermarkDisplay] =
+    state.showAuthgearLogo || state.whiteLabelingDisabled
+      ? WatermarkEnabledDisplay
+      : WatermarkDisabledDisplay;
 
   const images: Record<string, string | null> = {};
 
