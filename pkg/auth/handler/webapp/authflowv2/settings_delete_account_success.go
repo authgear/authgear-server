@@ -66,17 +66,15 @@ func (h *AuthflowV2SettingsDeleteAccountSuccessHandler) ServeHTTP(w http.Respons
 
 	ctrl.PostAction("", func(ctx context.Context) error {
 		redirectURI := "/login"
-		if webSession != nil && webSession.RedirectURI != "" {
+		settingsActionResult, ok, err := ctrl.GetSettingsActionResult(ctx, webSession)
+		if err != nil {
+			return err
+		}
+		if ok {
 			// delete account triggered by sdk via settings action
 			// redirect to oauth callback
-			redirectURI = webSession.RedirectURI
-			if authInfoID, ok := webSession.Extra["authentication_info_id"].(string); ok {
-				authInfo, err := h.AuthenticationInfoService.Get(ctx, authInfoID)
-				if err != nil {
-					return err
-				}
-				redirectURI = h.UIInfoResolver.SetAuthenticationInfoInQuery(redirectURI, authInfo)
-			}
+			settingsActionResult.WriteResponse(w, r)
+			return nil
 		}
 
 		result := webapp.Result{

@@ -94,7 +94,9 @@ func (r AuthorizationRequest) SSOEnabled() bool {
 }
 func (r AuthorizationRequest) ColorScheme() string        { return r["x_color_scheme"] }
 func (r AuthorizationRequest) OAuthProviderAlias() string { return r["x_oauth_provider_alias"] }
-func (r AuthorizationRequest) SettingsAction() string     { return r["x_settings_action"] }
+func (r AuthorizationRequest) SettingsAction() SettingAction {
+	return SettingAction(r["x_settings_action"])
+}
 func (r AuthorizationRequest) PreAuthenticatedURLToken() string {
 	return r["x_pre_authenticated_url_token"]
 }
