@@ -8,6 +8,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	liboauthrelyingparty "github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
@@ -90,8 +91,15 @@ func (p *Provider) WithUpdate(
 	claims map[string]interface{},
 ) *identity.OAuth {
 	newIden := *iden
-	newIden.UserProfile = rawProfile
-	newIden.Claims = claims
+	// For non-Apple provider, we can just update.
+	// For Apple, we need to merge given_name and family_name because
+	// they only available at THE FIRST TIME authorization.
+	if newIden.ProviderID.Type == liboauthrelyingparty.TypeApple {
+		newIden.Apple_MergeRawProfileAndClaims(rawProfile, claims)
+	} else {
+		newIden.UserProfile = rawProfile
+		newIden.Claims = claims
+	}
 
 	return &newIden
 }
