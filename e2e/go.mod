@@ -1,6 +1,6 @@
 module github.com/authgear/authgear-server/e2e
 
-go 1.23.4
+go 1.23.5
 
 replace github.com/authgear/authgear-server v0.0.0 => ../
 
