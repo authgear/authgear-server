@@ -6,6 +6,7 @@ import (
 	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/util/phone"
 )
@@ -72,4 +73,39 @@ func (i *OAuth) GetDisplayName() string {
 		return phone.Mask(phoneNumber)
 	}
 	return ""
+}
+
+func (i *OAuth) Apple_MergeRawProfileAndClaims(rawProfile map[string]interface{}, claims map[string]interface{}) {
+	// Use this heuristic to determine whether it is THE FIRST TIME authorization.
+	_, isFirstTimeAuthorization := rawProfile[stdattrs.GivenName]
+	if isFirstTimeAuthorization {
+		i.UserProfile = rawProfile
+		i.Claims = claims
+	} else {
+		// Otherwise we use the existing given_name and family_name.
+		mergedRawProfile := make(map[string]interface{})
+		mergedClaims := make(map[string]interface{})
+
+		for k, v := range rawProfile {
+			mergedRawProfile[k] = v
+		}
+		for k, v := range claims {
+			mergedClaims[k] = v
+		}
+
+		merge := func(targetMap map[string]interface{}, sourceMap map[string]interface{}, key string) {
+			if v, ok := sourceMap[key]; ok {
+				targetMap[key] = v
+			}
+		}
+
+		merge(mergedRawProfile, i.UserProfile, stdattrs.GivenName)
+		merge(mergedRawProfile, i.UserProfile, stdattrs.FamilyName)
+
+		merge(mergedClaims, i.Claims, stdattrs.GivenName)
+		merge(mergedClaims, i.Claims, stdattrs.FamilyName)
+
+		i.UserProfile = mergedRawProfile
+		i.Claims = mergedClaims
+	}
 }
