@@ -359,6 +359,17 @@ func (s *Service) getBySpec(ctx context.Context, spec *identity.Spec) (*identity
 	panic("identity: unknown identity type " + spec.Type)
 }
 
+func (s *Service) GetBySpecWithUserID(ctx context.Context, userID string, spec *identity.Spec) (*identity.Info, error) {
+	iden, err := s.getBySpec(ctx, spec)
+	if err != nil {
+		return nil, err
+	}
+	if iden.UserID != userID {
+		return nil, api.ErrIdentityNotFound
+	}
+	return iden, nil
+}
+
 // SearchBySpec does not return api.ErrIdentityNotFound.
 func (s *Service) SearchBySpec(ctx context.Context, spec *identity.Spec) (exactMatch *identity.Info, otherMatches []*identity.Info, err error) {
 	exactMatch, err = s.getBySpec(ctx, spec)

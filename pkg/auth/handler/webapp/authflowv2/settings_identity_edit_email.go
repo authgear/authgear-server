@@ -6,6 +6,7 @@ import (
 
 	"net/url"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
@@ -14,6 +15,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
+	"github.com/authgear/authgear-server/pkg/util/stringutil"
 	"github.com/authgear/authgear-server/pkg/util/template"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
@@ -27,10 +29,11 @@ var AuthflowV2SettingsIdentityEditEmailSchema = validation.NewSimpleSchema(`
 	{
 		"type": "object",
 		"properties": {
+			"x_login_id_key": { "type": "string" },
 			"x_login_id": { "type": "string" },
 			"x_identity_id": { "type": "string" }
 		},
-		"required": ["x_login_id", "x_identity_id"]
+		"required": ["x_login_id_key", "x_login_id", "x_identity_id"]
 	}
 `)
 
@@ -60,15 +63,32 @@ func (h *AuthflowV2SettingsIdentityEditEmailHandler) GetData(ctx context.Context
 
 	loginIDKey := r.Form.Get("q_login_id_key")
 	identityID := r.Form.Get("q_identity_id")
+	loginIDValue := r.Form.Get("q_login_id")
 
 	userID := session.GetUserID(ctx)
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	viewmodels.Embed(data, baseViewModel)
+	var target *identity.Info
+	var err error
 
-	target, err := h.Identities.GetWithUserID(ctx, *userID, identityID)
-	if err != nil {
-		return nil, err
+	if identityID != "" {
+		target, err = h.Identities.GetWithUserID(ctx, *userID, identityID)
+		if err != nil {
+			return nil, err
+		}
+	} else if loginIDValue != "" {
+		target, err = h.Identities.GetBySpecWithUserID(ctx, *userID, &identity.Spec{
+			Type: model.IdentityTypeLoginID,
+			LoginID: &identity.LoginIDSpec{
+				Key:   loginIDKey,
+				Type:  model.LoginIDKeyTypeEmail,
+				Value: stringutil.NewUserInputString(loginIDValue),
+			},
+		})
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	vm := AuthflowV2SettingsIdentityEditEmailViewModel{
@@ -108,13 +128,12 @@ func (h *AuthflowV2SettingsIdentityEditEmailHandler) ServeHTTP(w http.ResponseWr
 
 	ctrl.PostAction("", func(ctx context.Context) error {
 
-		loginIDKey := r.Form.Get("q_login_id_key")
-
 		err := AuthflowV2SettingsIdentityEditEmailSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
 		if err != nil {
 			return err
 		}
 
+		loginIDKey := r.Form.Get("x_login_id_key")
 		loginID := r.Form.Get("x_login_id")
 		identityID := r.Form.Get("x_identity_id")
 
