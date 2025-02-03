@@ -7,37 +7,47 @@
       url = "github:numtide/flake-utils";
       inputs.systems.follows = "systems";
     };
-    go_1_23_4.url = "github:NixOS/nixpkgs/de1864217bfa9b5845f465e771e0ecb48b30e02d";
-    nodejs_20_9_0.url = "github:NixOS/nixpkgs/a71323f68d4377d12c04a5410e214495ec598d4c";
   };
 
   outputs =
     {
       nixpkgs,
       flake-utils,
-      go_1_23_4,
-      nodejs_20_9_0,
       ...
     }:
     flake-utils.lib.eachDefaultSystem (
       system:
       let
-        pkgs = nixpkgs.legacyPackages.${system};
-        go_pkgs = go_1_23_4.legacyPackages.${system};
-        go = go_pkgs.go;
-        nodejs = nodejs_20_9_0.legacyPackages.${system}.nodejs_20;
+        pkgs = import nixpkgs {
+          inherit system;
+          # As of 2025-02-03, 1.23.5 is still unavailable in nixpkgs-unstable, so we need to use overlay to build 1.23.5 ourselves.
+          overlays = [
+            (final: prev: {
+              go = (
+                prev.go.overrideAttrs {
+                  version = "1.23.5";
+                  src = prev.fetchurl {
+                    url = "https://go.dev/dl/go1.23.5.src.tar.gz";
+                    hash = "sha256-pvP0u9PmvdYm95tmjyEvu1ZJ2vdQhPt5tnigrk2XQjs=";
+                  };
+                }
+              );
+            })
+          ];
+        };
       in
       {
         devShells.default = pkgs.mkShell {
           packages = [
-            go
-            nodejs
+            pkgs.go
+            # Any nodejs 20 is fine.
+            pkgs.nodejs_20
             # The version of python3 does not matter that much.
             pkgs.python3
 
             pkgs.pkg-config
 
-            (go_pkgs.golangci-lint.overrideAttrs (
+            (pkgs.golangci-lint.overrideAttrs (
               prev:
               let
                 version = "1.63.4";
@@ -62,9 +72,9 @@
               }
             ))
 
-            (go_pkgs.buildGoModule {
+            (pkgs.buildGoModule {
               name = "mockgen";
-              src = go_pkgs.fetchFromGitHub {
+              src = pkgs.fetchFromGitHub {
                 owner = "golang";
                 repo = "mock";
                 rev = "v1.6.0";
@@ -74,9 +84,9 @@
               vendorHash = "sha256-5gkrn+OxbNN8J1lbgbxM8jACtKA7t07sbfJ7gVJWpJM=";
             })
 
-            (go_pkgs.buildGoModule {
+            (pkgs.buildGoModule {
               name = "wire";
-              src = go_pkgs.fetchFromGitHub {
+              src = pkgs.fetchFromGitHub {
                 owner = "google";
                 repo = "wire";
                 rev = "v0.5.0";
@@ -86,9 +96,9 @@
               subPackages = [ "cmd/wire" ];
             })
 
-            (go_pkgs.buildGoModule {
+            (pkgs.buildGoModule {
               name = "govulncheck";
-              src = go_pkgs.fetchgit {
+              src = pkgs.fetchgit {
                 url = "https://go.googlesource.com/vuln";
                 rev = "refs/tags/v1.1.3";
                 hash = "sha256-ydJ8AeoCnLls6dXxjI05+THEqPPdJqtAsKTriTIK9Uc=";
@@ -100,9 +110,9 @@
               doCheck = false;
             })
 
-            (go_pkgs.buildGoModule {
+            (pkgs.buildGoModule {
               name = "goimports";
-              src = go_pkgs.fetchgit {
+              src = pkgs.fetchgit {
                 url = "https://go.googlesource.com/tools";
                 rev = "refs/tags/v0.28.0";
                 hash = "sha256-BCxsVz4f2h75sj1LzDoKvQ9c8P8SYjcaQE9CdzFdt3w=";
@@ -111,9 +121,9 @@
               subPackages = [ "cmd/goimports" ];
             })
 
-            (go_pkgs.buildGoModule {
+            (pkgs.buildGoModule {
               name = "xk6";
-              src = go_pkgs.fetchFromGitHub {
+              src = pkgs.fetchFromGitHub {
                 owner = "grafana";
                 repo = "xk6";
                 rev = "v0.13.3";
