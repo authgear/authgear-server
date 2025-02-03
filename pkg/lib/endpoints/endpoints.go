@@ -162,6 +162,30 @@ func (e *Endpoints) SettingsAddLoginIDUsername(loginIDKey string) *url.URL {
 	return u
 }
 
+func (e *Endpoints) SettingsEditLoginIDEmail(loginIDKey string) *url.URL {
+	u := e.urlOf("/settings/identity/change_email")
+	q := u.Query()
+	q.Set("q_login_id_key", loginIDKey)
+	u.RawQuery = q.Encode()
+	return u
+}
+
+func (e *Endpoints) SettingsEditLoginIDPhone(loginIDKey string) *url.URL {
+	u := e.urlOf("settings/identity/change_phone")
+	q := u.Query()
+	q.Set("q_login_id_key", loginIDKey)
+	u.RawQuery = q.Encode()
+	return u
+}
+
+func (e *Endpoints) SettingsEditLoginIDUsername(loginIDKey string) *url.URL {
+	u := e.urlOf("settings/identity/change_username")
+	q := u.Query()
+	q.Set("q_login_id_key", loginIDKey)
+	u.RawQuery = q.Encode()
+	return u
+}
+
 func (e *Endpoints) SSOCallbackURL(alias string) *url.URL {
 	u := e.SSOCallbackEndpointURL()
 	u.Path = path.Join(u.Path, url.PathEscape(alias))

@@ -240,6 +240,9 @@ type UIURLBuilderAuthUIEndpointsProvider interface {
 	SettingsAddLoginIDEmail(loginIDKey string) *url.URL
 	SettingsAddLoginIDPhone(loginIDKey string) *url.URL
 	SettingsAddLoginIDUsername(loginIDKey string) *url.URL
+	SettingsEditLoginIDEmail(loginIDKey string) *url.URL
+	SettingsEditLoginIDPhone(loginIDKey string) *url.URL
+	SettingsEditLoginIDUsername(loginIDKey string) *url.URL
 }
 
 type UIURLBuilder struct {
@@ -307,6 +310,31 @@ func (b *UIURLBuilder) BuildSettingsActionURL(client *config.OAuthClientConfig, 
 		endpoint = b.Endpoints.SettingsAddLoginIDUsername(loginIDCfg.Key)
 		b.addToEndpoint(endpoint, r, e)
 		return endpoint, nil
+
+	case protocol.SettingActionChangeEmail:
+		loginIDCfg, ok := b.firstUpdatableLoginIDConfig(model.LoginIDKeyTypeEmail)
+		if !ok {
+			return nil, NewErrInvalidSettingsAction("email login id is not configured to be updatable")
+		}
+		endpoint = b.Endpoints.SettingsEditLoginIDEmail(loginIDCfg.Key)
+		b.addToEndpoint(endpoint, r, e)
+		return endpoint, nil
+	case protocol.SettingActionChangePhone:
+		loginIDCfg, ok := b.firstUpdatableLoginIDConfig(model.LoginIDKeyTypePhone)
+		if !ok {
+			return nil, NewErrInvalidSettingsAction("phone login id is not configured to be updatable")
+		}
+		endpoint = b.Endpoints.SettingsEditLoginIDPhone(loginIDCfg.Key)
+		b.addToEndpoint(endpoint, r, e)
+		return endpoint, nil
+	case protocol.SettingActionChangeUsername:
+		loginIDCfg, ok := b.firstUpdatableLoginIDConfig(model.LoginIDKeyTypeUsername)
+		if !ok {
+			return nil, NewErrInvalidSettingsAction("username login id is not configured to be updatable")
+		}
+		endpoint = b.Endpoints.SettingsEditLoginIDUsername(loginIDCfg.Key)
+		b.addToEndpoint(endpoint, r, e)
+		return endpoint, nil
 	default:
 		return nil, NewErrInvalidSettingsAction("invalid settings action")
 	}
@@ -343,6 +371,15 @@ func (b *UIURLBuilder) addToEndpoint(endpoint *url.URL, r protocol.Authorization
 func (b *UIURLBuilder) firstCreatableLoginIDConfig(loginIDKeyType model.LoginIDKeyType) (*config.LoginIDKeyConfig, bool) {
 	for _, id := range b.IdentityConfig.LoginID.Keys {
 		if id.Type == loginIDKeyType && !(*id.CreateDisabled) {
+			return &id, true
+		}
+	}
+	return nil, false
+}
+
+func (b *UIURLBuilder) firstUpdatableLoginIDConfig(loginIDKeyType model.LoginIDKeyType) (*config.LoginIDKeyConfig, bool) {
+	for _, id := range b.IdentityConfig.LoginID.Keys {
+		if id.Type == loginIDKeyType && !(*id.UpdateDisabled) {
 			return &id, true
 		}
 	}
