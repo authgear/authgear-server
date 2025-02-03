@@ -17,6 +17,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
+	"github.com/authgear/authgear-server/pkg/util/stringutil"
 	"github.com/authgear/authgear-server/pkg/util/template"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
@@ -30,11 +31,12 @@ var AuthflowV2SettingsIdentityEditPhoneSchema = validation.NewSimpleSchema(`
 	{
 		"type": "object",
 		"properties": {
+			"x_login_id_key": { "type": "string" },
 			"x_channel": { "type": "string" },
 			"x_login_id": { "type": "string" },
 			"x_identity_id": { "type": "string" }
 		},
-		"required": ["x_channel", "x_login_id", "x_identity_id"]
+		"required": ["x_login_id_key", "x_channel", "x_login_id", "x_identity_id"]
 	}
 `)
 
@@ -66,6 +68,7 @@ func (h *AuthflowV2SettingsIdentityEditPhoneHandler) GetData(ctx context.Context
 
 	loginIDKey := r.Form.Get("q_login_id_key")
 	identityID := r.Form.Get("q_identity_id")
+	loginIDValue := r.Form.Get("q_login_id")
 
 	userID := session.GetUserID(ctx)
 
@@ -74,16 +77,33 @@ func (h *AuthflowV2SettingsIdentityEditPhoneHandler) GetData(ctx context.Context
 
 	channel := h.AuthenticatorConfig.OOB.SMS.PhoneOTPMode.GetDefaultChannel()
 
-	target, err := h.Identities.LoginID.Get(ctx, *userID, identityID)
-	if err != nil {
-		return nil, err
+	var target *identity.Info
+	var err error
+
+	if identityID != "" {
+		target, err = h.Identities.GetWithUserID(ctx, *userID, identityID)
+		if err != nil {
+			return nil, err
+		}
+	} else if loginIDValue != "" {
+		target, err = h.Identities.GetBySpecWithUserID(ctx, *userID, &identity.Spec{
+			Type: model.IdentityTypeLoginID,
+			LoginID: &identity.LoginIDSpec{
+				Key:   loginIDKey,
+				Type:  model.LoginIDKeyTypePhone,
+				Value: stringutil.NewUserInputString(loginIDValue),
+			},
+		})
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	vm := AuthflowV2SettingsIdentityEditPhoneViewModel{
 		LoginIDKey: loginIDKey,
 		Channel:    channel,
 		IdentityID: identityID,
-		Target:     target,
+		Target:     target.LoginID,
 	}
 	viewmodels.Embed(data, vm)
 
@@ -117,14 +137,13 @@ func (h *AuthflowV2SettingsIdentityEditPhoneHandler) ServeHTTP(w http.ResponseWr
 
 	ctrl.PostAction("", func(ctx context.Context) error {
 
-		loginIDKey := r.Form.Get("q_login_id_key")
-
 		err := AuthflowV2SettingsIdentityEditPhoneSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
 		if err != nil {
 			return err
 		}
 
 		channel := model.AuthenticatorOOBChannel(r.Form.Get("x_channel"))
+		loginIDKey := r.Form.Get("x_login_id_key")
 		loginID := r.Form.Get("x_login_id")
 		identityID := r.Form.Get("x_identity_id")
 
