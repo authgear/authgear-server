@@ -329,6 +329,14 @@ func (b *UIURLBuilder) addToEndpoint(endpoint *url.URL, r protocol.Authorization
 	if r.XState() != "" {
 		q.Set("x_state", r.XState())
 	}
+	settingActionQuery, err := r.SettingsActionQuery()
+	if err == nil {
+		for k, vs := range settingActionQuery {
+			for _, v := range vs {
+				q.Add(k, v)
+			}
+		}
+	}
 	endpoint.RawQuery = q.Encode()
 }
 

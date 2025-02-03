@@ -1,6 +1,7 @@
 package protocol
 
 import (
+	"net/url"
 	"strconv"
 	"time"
 )
@@ -96,6 +97,10 @@ func (r AuthorizationRequest) ColorScheme() string        { return r["x_color_sc
 func (r AuthorizationRequest) OAuthProviderAlias() string { return r["x_oauth_provider_alias"] }
 func (r AuthorizationRequest) SettingsAction() SettingAction {
 	return SettingAction(r["x_settings_action"])
+}
+func (r AuthorizationRequest) SettingsActionQuery() (url.Values, error) {
+	q := r["x_settings_action_query"]
+	return url.ParseQuery(q)
 }
 func (r AuthorizationRequest) PreAuthenticatedURLToken() string {
 	return r["x_pre_authenticated_url_token"]
