@@ -586,9 +586,6 @@ func (h *AuthorizationHandler) handleSettingsAction(
 ) (httputil.Result, error) {
 	redirectURI, err := h.UIURLBuilder.BuildSettingsActionURL(client, r, oauthSessionEntry)
 	if err != nil {
-		if apierrors.IsKind(err, oidc.ErrInvalidSettingsAction) {
-			return nil, protocol.NewError("invalid_request", apierrors.AsAPIError(err).Message)
-		}
 		return nil, err
 	}
 	loginHintString, loginHintOk := r.LoginHint()

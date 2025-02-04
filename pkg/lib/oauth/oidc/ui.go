@@ -286,7 +286,7 @@ func (b *UIURLBuilder) BuildSettingsActionURL(client *config.OAuthClientConfig, 
 	case protocol.SettingActionAddEmail:
 		loginIDCfg, ok := b.firstCreatableLoginIDConfig(model.LoginIDKeyTypeEmail)
 		if !ok {
-			return nil, ErrInvalidSettingsAction.New("email login id is not configured to be creatable")
+			return nil, NewErrInvalidSettingsAction("email login id is not configured to be creatable")
 		}
 		endpoint = b.Endpoints.SettingsAddLoginIDEmail(loginIDCfg.Key)
 		b.addToEndpoint(endpoint, r, e)
@@ -294,7 +294,7 @@ func (b *UIURLBuilder) BuildSettingsActionURL(client *config.OAuthClientConfig, 
 	case protocol.SettingActionAddPhone:
 		loginIDCfg, ok := b.firstCreatableLoginIDConfig(model.LoginIDKeyTypePhone)
 		if !ok {
-			return nil, ErrInvalidSettingsAction.New("phone login id is not configured to be creatable")
+			return nil, NewErrInvalidSettingsAction("phone login id is not configured to be creatable")
 		}
 		endpoint = b.Endpoints.SettingsAddLoginIDPhone(loginIDCfg.Key)
 		b.addToEndpoint(endpoint, r, e)
@@ -302,13 +302,13 @@ func (b *UIURLBuilder) BuildSettingsActionURL(client *config.OAuthClientConfig, 
 	case protocol.SettingActionAddUsername:
 		loginIDCfg, ok := b.firstCreatableLoginIDConfig(model.LoginIDKeyTypeUsername)
 		if !ok {
-			return nil, ErrInvalidSettingsAction.New("username login id is not configured to be creatable")
+			return nil, NewErrInvalidSettingsAction("username login id is not configured to be creatable")
 		}
 		endpoint = b.Endpoints.SettingsAddLoginIDUsername(loginIDCfg.Key)
 		b.addToEndpoint(endpoint, r, e)
 		return endpoint, nil
 	default:
-		return nil, ErrInvalidSettingsAction.New("invalid settings action")
+		return nil, NewErrInvalidSettingsAction("invalid settings action")
 	}
 }
 
