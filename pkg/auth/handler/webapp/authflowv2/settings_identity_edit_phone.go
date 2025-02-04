@@ -2,11 +2,13 @@ package authflowv2
 
 import (
 	"context"
+	"errors"
 	"net/http"
 
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/api"
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
@@ -17,6 +19,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/stringutil"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -98,10 +101,17 @@ func (h *AuthflowV2SettingsIdentityEditPhoneHandler) GetData(ctx context.Context
 		if err != nil {
 			return nil, err
 		}
+	} else {
+		// No query parameter provided, treat as not found
+		err = api.ErrIdentityNotFound
 	}
 
-	if target == nil {
-		return nil, api.ErrIdentityNotFound
+	if err != nil && errors.Is(err, api.ErrIdentityNotFound) {
+		return nil, apierrors.AddDetails(err, errorutil.Details{
+			"LoginIDType": model.LoginIDKeyTypePhone,
+		})
+	} else if err != nil {
+		return nil, err
 	}
 
 	vm := AuthflowV2SettingsIdentityEditPhoneViewModel{

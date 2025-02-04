@@ -2,11 +2,13 @@ package authflowv2
 
 import (
 	"context"
+	"errors"
 	"net/http"
 
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/api"
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
@@ -15,6 +17,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/stringutil"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -75,9 +78,6 @@ func (h *AuthflowV2SettingsIdentityEditEmailHandler) GetData(ctx context.Context
 
 	if identityID != "" {
 		target, err = h.Identities.GetWithUserID(ctx, *userID, identityID)
-		if err != nil {
-			return nil, err
-		}
 	} else if loginIDValue != "" {
 		target, err = h.Identities.GetBySpecWithUserID(ctx, *userID, &identity.Spec{
 			Type: model.IdentityTypeLoginID,
@@ -87,13 +87,17 @@ func (h *AuthflowV2SettingsIdentityEditEmailHandler) GetData(ctx context.Context
 				Value: stringutil.NewUserInputString(loginIDValue),
 			},
 		})
-		if err != nil {
-			return nil, err
-		}
+	} else {
+		// No query parameter provided, treat as not found
+		err = api.ErrIdentityNotFound
 	}
 
-	if target == nil {
-		return nil, api.ErrIdentityNotFound
+	if err != nil && errors.Is(err, api.ErrIdentityNotFound) {
+		return nil, apierrors.AddDetails(err, errorutil.Details{
+			"LoginIDType": apierrors.APIErrorDetail.Value(model.LoginIDKeyTypeEmail),
+		})
+	} else if err != nil {
+		return nil, err
 	}
 
 	vm := AuthflowV2SettingsIdentityEditEmailViewModel{
