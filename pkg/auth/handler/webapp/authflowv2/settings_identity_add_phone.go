@@ -102,6 +102,7 @@ func (h *AuthflowV2SettingsIdentityAddPhoneHandler) ServeHTTP(w http.ResponseWri
 		loginID := r.Form.Get("x_login_id")
 
 		s := session.GetSession(ctx)
+		webappSession := webapp.GetSession(ctx)
 		output, err := h.AccountManagement.StartAddIdentityPhone(ctx, s, &accountmanagement.StartAddIdentityPhoneInput{
 			Channel:    channel,
 			LoginID:    loginID,
@@ -120,6 +121,13 @@ func (h *AuthflowV2SettingsIdentityAddPhoneHandler) ServeHTTP(w http.ResponseWri
 			q.Set("q_token", output.Token)
 
 			redirectURI.RawQuery = q.Encode()
+		} else if ctrl.IsInSettingsAction(s, webappSession) {
+			settingsActionResult, err := ctrl.FinishSettingsActionWithResult(ctx, s, webappSession)
+			if err != nil {
+				return err
+			}
+			settingsActionResult.WriteResponse(w, r)
+			return nil
 		} else {
 			redirectURI, err = url.Parse(AuthflowV2RouteSettingsIdentityListPhone)
 

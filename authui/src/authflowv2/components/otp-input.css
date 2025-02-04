@@ -76,7 +76,7 @@
   .otp-input__digits-container {
     @apply absolute;
     @apply inset-0;
-    @apply flex;
+    @apply flex justify-center;
     @apply items-stretch;
     @apply gap-x-[var(--otp-input\_\_spacing)];
     @apply pointer-events-none;

@@ -799,7 +799,7 @@ func (h *AuthorizationHandler) validateRequest(
 
 	switch {
 	case responseType.Equal(SettingsActonResponseType):
-		if r.SettingsAction() == "delete_account" {
+		if r.SettingsAction() == protocol.SettingActionDeleteAccount {
 			if !h.AccountDeletionConfig.ScheduledByEndUserEnabled {
 				return protocol.NewError("invalid_request", "account deletion by end user is disabled")
 			}

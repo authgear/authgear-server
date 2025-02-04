@@ -94,12 +94,21 @@ func (h *AuthflowV2SettingsIdentityNewUsernameHandler) ServeHTTP(w http.Response
 		loginIDKey := r.Form.Get("x_login_id_key")
 		loginID := r.Form.Get("x_login_id")
 		resolvedSession := session.GetSession(ctx)
+		webappSession := webapp.GetSession(ctx)
 		_, err = h.AccountManagement.AddIdentityUsername(ctx, resolvedSession, &accountmanagement.AddIdentityUsernameInput{
 			LoginIDKey: loginIDKey,
 			LoginID:    loginID,
 		})
 		if err != nil {
 			return err
+		}
+		if ctrl.IsInSettingsAction(resolvedSession, webappSession) {
+			settingsActionResult, err := ctrl.FinishSettingsActionWithResult(ctx, resolvedSession, webappSession)
+			if err != nil {
+				return err
+			}
+			settingsActionResult.WriteResponse(w, r)
+			return nil
 		}
 
 		redirectURI, err := url.Parse(AuthflowV2RouteSettingsIdentityListUsername)

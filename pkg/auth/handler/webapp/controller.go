@@ -2,15 +2,18 @@ package webapp
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
+	"github.com/authgear/authgear-server/pkg/lib/oauth/oauthsession"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/tester"
 	"github.com/authgear/authgear-server/pkg/lib/webappoauth"
@@ -38,17 +41,42 @@ type PageService interface {
 	) (result *webapp.Result, err error)
 }
 
+type ControllerUIInfoResolver interface {
+	SetAuthenticationInfoInQuery(redirectURI string, e *authenticationinfo.Entry) string
+}
+
+type ControllerAuthenticationInfoService interface {
+	Get(ctx context.Context, entryID string) (entry *authenticationinfo.Entry, err error)
+	Save(ctx context.Context, entry *authenticationinfo.Entry) (err error)
+}
+
+type ControllerOAuthSessionService interface {
+	Get(ctx context.Context, entryID string) (*oauthsession.Entry, error)
+	Save(ctx context.Context, entry *oauthsession.Entry) error
+}
+
+type ControllerSessionStore interface {
+	Get(ctx context.Context, id string) (*webapp.Session, error)
+	Create(ctx context.Context, session *webapp.Session) (err error)
+	Update(ctx context.Context, session *webapp.Session) (err error)
+	Delete(ctx context.Context, id string) (err error)
+}
+
 type ControllerDeps struct {
-	Database                *appdb.Handle
-	RedisHandle             *appredis.Handle
-	AppID                   config.AppID
-	Page                    PageService
-	BaseViewModel           *viewmodels.BaseViewModeler
-	Renderer                Renderer
-	Publisher               *Publisher
-	Clock                   clock.Clock
-	TesterEndpointsProvider tester.EndpointsProvider
-	ErrorRenderer           *ErrorRenderer
+	Database                  *appdb.Handle
+	RedisHandle               *appredis.Handle
+	AppID                     config.AppID
+	Page                      PageService
+	BaseViewModel             *viewmodels.BaseViewModeler
+	Renderer                  Renderer
+	Publisher                 *Publisher
+	Clock                     clock.Clock
+	TesterEndpointsProvider   tester.EndpointsProvider
+	ErrorRenderer             *ErrorRenderer
+	UIInfoResolver            ControllerUIInfoResolver
+	AuthenticationInfoService ControllerAuthenticationInfoService
+	Sessions                  ControllerSessionStore
+	OAuthSessions             ControllerOAuthSessionService
 
 	TrustProxy config.TrustProxy
 }
@@ -345,4 +373,75 @@ func (c *Controller) InteractionOAuthCallback(ctx context.Context, oauthInput In
 	}
 
 	return c.Page.PostWithInput(ctx, s, inputFn)
+}
+
+func (c *Controller) IsInSettingsAction(userSession session.ResolvedSession, webSession *webapp.Session) bool {
+	return webSession != nil && webSession.OAuthSessionID != "" && userSession != nil
+}
+
+func (c *Controller) FinishSettingsAction(ctx context.Context, userSession session.ResolvedSession, webSession *webapp.Session) error {
+	if webSession == nil {
+		panic(fmt.Errorf("unexpected: webSession cannot be nil. Call IsInSettingsAction before using this method."))
+	}
+	if userSession == nil {
+		panic(fmt.Errorf("unexpected: userSession cannot be nil. Call IsInSettingsAction before using this method."))
+	}
+
+	authInfoEntry := authenticationinfo.NewEntry(userSession.CreateNewAuthenticationInfoByThisSession(), webSession.OAuthSessionID, "")
+	err := c.AuthenticationInfoService.Save(ctx, authInfoEntry)
+	if err != nil {
+		return err
+	}
+	webSession.Extra["authentication_info_id"] = authInfoEntry.ID
+	err = c.Sessions.Update(ctx, webSession)
+	if err != nil {
+		return err
+	}
+
+	entry, err := c.OAuthSessions.Get(ctx, webSession.OAuthSessionID)
+	if err != nil {
+		return err
+	}
+
+	entry.T.SettingsActionResult = oauthsession.NewSettingsActionResult()
+	err = c.OAuthSessions.Save(ctx, entry)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c *Controller) GetSettingsActionResult(ctx context.Context, webSession *webapp.Session) (*webapp.Result, bool, error) {
+	if webSession == nil || webSession.RedirectURI == "" {
+		return nil, false, nil
+	}
+	redirectURI := webSession.RedirectURI
+	if authInfoID, ok := webSession.Extra["authentication_info_id"].(string); ok {
+		authInfo, err := c.AuthenticationInfoService.Get(ctx, authInfoID)
+		if err != nil {
+			return nil, false, err
+		}
+		redirectURI = c.UIInfoResolver.SetAuthenticationInfoInQuery(redirectURI, authInfo)
+		result := webapp.Result{
+			RedirectURI:      redirectURI,
+			NavigationAction: webapp.NavigationActionRedirect,
+		}
+		return &result, true, nil
+	}
+	return nil, false, nil
+}
+
+func (c *Controller) FinishSettingsActionWithResult(ctx context.Context, userSession session.ResolvedSession, webSession *webapp.Session) (*webapp.Result, error) {
+	err := c.FinishSettingsAction(ctx, userSession, webSession)
+	if err != nil {
+		return nil, err
+	}
+	settingsActionResult, ok, err := c.GetSettingsActionResult(ctx, webSession)
+	if err != nil {
+		return nil, err
+	}
+	if !ok {
+		panic(fmt.Errorf("unexpected: cannot get settings action result"))
+	}
+	return settingsActionResult, nil
 }

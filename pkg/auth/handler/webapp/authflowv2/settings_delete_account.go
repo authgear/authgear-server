@@ -10,10 +10,8 @@ import (
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
-	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
-	"github.com/authgear/authgear-server/pkg/lib/oauth/oauthsession"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/successpage"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -110,28 +108,10 @@ func (h *AuthflowV2SettingsDeleteAccountHandler) ServeHTTP(w http.ResponseWriter
 			return err
 		}
 
-		if webSession != nil && webSession.OAuthSessionID != "" {
+		if ctrl.IsInSettingsAction(currentSession, webSession) {
 			// delete account triggered by sdk via settings action
 			// handle settings action result here
-
-			authInfoEntry := authenticationinfo.NewEntry(currentSession.CreateNewAuthenticationInfoByThisSession(), webSession.OAuthSessionID, "")
-			err := h.AuthenticationInfoService.Save(ctx, authInfoEntry)
-			if err != nil {
-				return err
-			}
-			webSession.Extra["authentication_info_id"] = authInfoEntry.ID
-			err = h.Sessions.Update(ctx, webSession)
-			if err != nil {
-				return err
-			}
-
-			entry, err := h.OAuthSessions.Get(ctx, webSession.OAuthSessionID)
-			if err != nil {
-				return err
-			}
-
-			entry.T.SettingsActionResult = oauthsession.NewSettingsActionResult()
-			err = h.OAuthSessions.Save(ctx, entry)
+			err = ctrl.FinishSettingsAction(ctx, currentSession, webSession)
 			if err != nil {
 				return err
 			}
