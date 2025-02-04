@@ -6,6 +6,7 @@ import (
 
 	"net/url"
 
+	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
@@ -89,6 +90,10 @@ func (h *AuthflowV2SettingsIdentityEditUsernameHandler) GetData(ctx context.Cont
 		}
 	}
 
+	if target == nil {
+		return nil, api.ErrIdentityNotFound
+	}
+
 	vm := AuthflowV2SettingsIdentityEditUsernameViewModel{
 		Identity: target.LoginID,
 	}
@@ -119,6 +124,9 @@ func (h *AuthflowV2SettingsIdentityEditUsernameHandler) ServeHTTP(w http.Respons
 	})
 
 	ctrl.PostAction("", func(ctx context.Context) error {
+
+		s := session.GetSession(ctx)
+		webappSession := webapp.GetSession(ctx)
 		err := AuthflowV2SettingsIdentityEditUsernameSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
 		if err != nil {
 			return err
@@ -134,6 +142,15 @@ func (h *AuthflowV2SettingsIdentityEditUsernameHandler) ServeHTTP(w http.Respons
 		})
 		if err != nil {
 			return err
+		}
+
+		if ctrl.IsInSettingsAction(s, webappSession) {
+			settingsActionResult, err := ctrl.FinishSettingsActionWithResult(ctx, s, webappSession)
+			if err != nil {
+				return err
+			}
+			settingsActionResult.WriteResponse(w, r)
+			return nil
 		}
 
 		redirectURI, err := url.Parse(AuthflowV2RouteSettingsIdentityListUsername)

@@ -6,6 +6,7 @@ import (
 
 	"net/url"
 
+	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
@@ -91,6 +92,10 @@ func (h *AuthflowV2SettingsIdentityEditEmailHandler) GetData(ctx context.Context
 		}
 	}
 
+	if target == nil {
+		return nil, api.ErrIdentityNotFound
+	}
+
 	vm := AuthflowV2SettingsIdentityEditEmailViewModel{
 		LoginIDKey: loginIDKey,
 		IdentityID: identityID,
@@ -138,6 +143,7 @@ func (h *AuthflowV2SettingsIdentityEditEmailHandler) ServeHTTP(w http.ResponseWr
 		identityID := r.Form.Get("x_identity_id")
 
 		s := session.GetSession(ctx)
+		webappSession := webapp.GetSession(ctx)
 		output, err := h.AccountManagement.StartUpdateIdentityEmail(ctx, s, &accountmanagement.StartUpdateIdentityEmailInput{
 			LoginID:    loginID,
 			LoginIDKey: loginIDKey,
@@ -157,6 +163,15 @@ func (h *AuthflowV2SettingsIdentityEditEmailHandler) ServeHTTP(w http.ResponseWr
 
 			redirectURI.RawQuery = q.Encode()
 		} else {
+			if ctrl.IsInSettingsAction(s, webappSession) {
+				settingsActionResult, err := ctrl.FinishSettingsActionWithResult(ctx, s, webappSession)
+				if err != nil {
+					return err
+				}
+				settingsActionResult.WriteResponse(w, r)
+				return nil
+			}
+
 			redirectURI, err = url.Parse(AuthflowV2RouteSettingsIdentityListEmail)
 
 			q := redirectURI.Query()

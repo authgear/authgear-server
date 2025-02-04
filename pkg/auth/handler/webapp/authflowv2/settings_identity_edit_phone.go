@@ -6,6 +6,7 @@ import (
 
 	"net/url"
 
+	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
@@ -99,6 +100,10 @@ func (h *AuthflowV2SettingsIdentityEditPhoneHandler) GetData(ctx context.Context
 		}
 	}
 
+	if target == nil {
+		return nil, api.ErrIdentityNotFound
+	}
+
 	vm := AuthflowV2SettingsIdentityEditPhoneViewModel{
 		LoginIDKey: loginIDKey,
 		Channel:    channel,
@@ -148,6 +153,7 @@ func (h *AuthflowV2SettingsIdentityEditPhoneHandler) ServeHTTP(w http.ResponseWr
 		identityID := r.Form.Get("x_identity_id")
 
 		s := session.GetSession(ctx)
+		webappSession := webapp.GetSession(ctx)
 		output, err := h.AccountManagement.StartUpdateIdentityPhone(ctx, s, &accountmanagement.StartUpdateIdentityPhoneInput{
 			Channel:    channel,
 			LoginID:    loginID,
@@ -168,6 +174,15 @@ func (h *AuthflowV2SettingsIdentityEditPhoneHandler) ServeHTTP(w http.ResponseWr
 
 			redirectURI.RawQuery = q.Encode()
 		} else {
+			if ctrl.IsInSettingsAction(s, webappSession) {
+				settingsActionResult, err := ctrl.FinishSettingsActionWithResult(ctx, s, webappSession)
+				if err != nil {
+					return err
+				}
+				settingsActionResult.WriteResponse(w, r)
+				return nil
+			}
+
 			redirectURI, err = url.Parse(AuthflowV2RouteSettingsIdentityListPhone)
 
 			q := redirectURI.Query()
