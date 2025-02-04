@@ -439,7 +439,9 @@ export type CreateSessionInput = {
 export type CreateSessionPayload = {
   __typename?: 'CreateSessionPayload';
   accessToken: Scalars['String']['output'];
+  expiresIn: Scalars['Int']['output'];
   refreshToken: Scalars['String']['output'];
+  tokenType: Scalars['String']['output'];
 };
 
 export type CreateUserInput = {

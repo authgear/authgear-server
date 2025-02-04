@@ -170,6 +170,12 @@ var createSessionPayload = graphql.NewObject(graphql.ObjectConfig{
 		"accessToken": &graphql.Field{
 			Type: graphql.NewNonNull(graphql.String),
 		},
+		"tokenType": &graphql.Field{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+		"expiresIn": &graphql.Field{
+			Type: graphql.NewNonNull(graphql.Int),
+		},
 	},
 })
 
@@ -221,6 +227,8 @@ var _ = registerMutationField(
 			return map[string]interface{}{
 				"refreshToken": resp["refresh_token"],
 				"accessToken":  resp["access_token"],
+				"tokenType":    resp["token_type"],
+				"expiresIn":    resp["expires_in"],
 			}, nil
 		},
 	},

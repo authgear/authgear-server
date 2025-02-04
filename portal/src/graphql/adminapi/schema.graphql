@@ -734,7 +734,13 @@ type CreateSessionPayload {
   accessToken: String!
 
   """"""
+  expiresIn: Int!
+
+  """"""
   refreshToken: String!
+
+  """"""
+  tokenType: String!
 }
 
 """"""
