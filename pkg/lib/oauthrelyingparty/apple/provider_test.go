@@ -65,4 +65,33 @@ UyS+h/UyCBBNs4aRFSL76tZaeGAmGa62GINnZ4UH4etxoLa4PvNnc77t
 		// What we want to assert here is the header and the payload is of an expected shape.
 		So(clientSecret, ShouldStartWith, "eyJhbGciOiJFUzI1NiIsImtpZCI6InRoZV9rZXlfaWQiLCJ0eXAiOiJKV1QifQ.eyJhdWQiOiJodHRwczovL2FwcGxlaWQuYXBwbGUuY29tIiwiZXhwIjoxNzM3MDkyMjIwLCJpYXQiOjE3MzcwOTE5MjAsImlzcyI6InRoZV90ZWFtX2lkIiwic3ViIjoidGhlX2NsaWVudF9pZCJ9.")
 	})
+
+	Convey("AppleImpl.getFormFieldUser", t, func() {
+		g := Apple{}
+
+		Convey("extract user if it is present", func() {
+			// This is a real response from Apple, with name and email redacted.
+			query := "state=M5Z6YN61GFSHBPYBN5YBSQE6MX8YW8RG&code=cbd16a43afb7c4c8d8aa89a15f280a3eb.0.mvtu.PuLIHtp3WI6y_SLpjJHBbQ&user=%7B%22name%22%3A%7B%22firstName%22%3A%22John%22%2C%22lastName%22%3A%22Doe%22%7D%2C%22email%22%3A%22johndoe%40example.com%22%7D"
+
+			user, ok, err := g.getFormFieldUser(query)
+			So(err, ShouldBeNil)
+			So(ok, ShouldBeTrue)
+			So(user, ShouldResemble, &AuthorizationResponseFormField_user{
+				Name: &AuthorizationResponseFormField_user_name{
+					FirstName: "John",
+					LastName:  "Doe",
+				},
+				Email: "johndoe@example.com",
+			})
+		})
+
+		Convey("does not error if it is absent", func() {
+			query := "state=M5Z6YN61GFSHBPYBN5YBSQE6MX8YW8RG&code=cbd16a43afb7c4c8d8aa89a15f280a3eb.0.mvtu.PuLIHtp3WI6y_SLpjJHBbQ"
+
+			user, ok, err := g.getFormFieldUser(query)
+			So(err, ShouldBeNil)
+			So(ok, ShouldBeFalse)
+			So(user, ShouldBeNil)
+		})
+	})
 }

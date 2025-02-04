@@ -2,6 +2,9 @@ package apple
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
+	"net/url"
 	"strings"
 
 	"github.com/lestrrat-go/jwx/v2/jwa"
@@ -43,6 +46,19 @@ var appleOIDCConfig = oauthrelyingpartyutil.OIDCDiscoveryDocument{
 	JWKSUri:               "https://appleid.apple.com/auth/keys",
 	TokenEndpoint:         "https://appleid.apple.com/auth/token",
 	AuthorizationEndpoint: "https://appleid.apple.com/auth/authorize",
+}
+
+// AuthorizationResponseUser is a struct for deserializating
+// The "user" form field.
+// https://developer.apple.com/documentation/sign_in_with_apple/incorporating-sign-in-with-apple-into-other-platforms#Handle-the-response
+type AuthorizationResponseFormField_user struct {
+	Name  *AuthorizationResponseFormField_user_name `json:"name,omitempty"`
+	Email string                                    `json:"email,omitempty"`
+}
+
+type AuthorizationResponseFormField_user_name struct {
+	FirstName string `json:"firstName,omitempty"`
+	LastName  string `json:"lastName,omitempty"`
 }
 
 type Apple struct{}
@@ -199,6 +215,41 @@ func (p Apple) GetUserProfile(ctx context.Context, deps oauthrelyingparty.Depend
 		return
 	}
 
+	// According to the documentation, the ID token NEVER include the name of the end-user.
+	// https://developer.apple.com/documentation/sign_in_with_apple/authenticating-users-with-sign-in-with-apple#Retrieve-the-users-information-from-Apple-ID-servers
+	//
+	// Instead, the name of the end-user is only available in the response when the end-user authorizes THE FIRST TIME.
+	// https://developer.apple.com/documentation/sign_in_with_apple/incorporating-sign-in-with-apple-into-other-platforms#Handle-the-response
+	//
+	// In THE FIRST TIME authorization, the form post request includes a form field named "user".
+	// This form field is a JSON document, with the following shape.
+	//
+	// { "name": { "firstName": "string", "lastName": "string" }, "email": "string" }
+	//
+	// Since "user" only appears THE FIRST TIME, you MUST revoke the authorization if
+	// you want to receive "user" again.
+	// To do this, you need to
+	// 1. Go to https://account.apple.com/account/manage
+	// 2. Click the box labeled "Sign in with Apple"
+	// 3. Click the app
+	// 4. Click "Stop using Sign in with Apple"
+	//
+	// And then you trigger Sign in with Apple again.
+	// This time, Apple will ask you to edit the name, and choose whether to hide your email.
+	// This indicates it is THE FIRST TIME authorization.
+	user, userOK, err := p.getFormFieldUser(param.Query)
+	if err != nil {
+		return
+	}
+	if userOK && user != nil && user.Name != nil {
+		if user.Name.FirstName != "" {
+			claims[stdattrs.GivenName] = user.Name.FirstName
+		}
+		if user.Name.LastName != "" {
+			claims[stdattrs.FamilyName] = user.Name.LastName
+		}
+	}
+
 	// Verify the issuer
 	// https://developer.apple.com/documentation/signinwithapplerestapi/verifying_a_user
 	// The exact spec is
@@ -221,11 +272,6 @@ func (p Apple) GetUserProfile(ctx context.Context, deps oauthrelyingparty.Depend
 		return
 	}
 
-	// By observation, if the first time of authentication does NOT include the `name` scope,
-	// Even the Services ID is unauthorized on https://appleid.apple.com,
-	// and the `name` scope is included,
-	// The ID Token still does not include the `name` claim.
-
 	authInfo.ProviderRawProfile = claims
 	authInfo.ProviderUserID = sub
 
@@ -239,4 +285,25 @@ func (p Apple) GetUserProfile(ctx context.Context, deps oauthrelyingparty.Depend
 	authInfo.StandardAttributes = stdAttrs.WithNameCopiedToGivenName()
 
 	return
+}
+
+func (p Apple) getFormFieldUser(query string) (*AuthorizationResponseFormField_user, bool, error) {
+	query = strings.TrimPrefix(query, "?")
+	form, err := url.ParseQuery(query)
+	if err != nil {
+		return nil, false, oauthrelyingpartyutil.OAuthProtocolError.New("failed to parse query")
+	}
+
+	userJSON := form.Get("user")
+	if userJSON == "" {
+		return nil, false, nil
+	}
+
+	var user AuthorizationResponseFormField_user
+	err = json.Unmarshal([]byte(userJSON), &user)
+	if err != nil {
+		return nil, false, oauthrelyingpartyutil.OAuthProtocolError.New(fmt.Sprintf("failed to parse user as JSON: %v", userJSON))
+	}
+
+	return &user, true, nil
 }
