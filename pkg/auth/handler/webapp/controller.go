@@ -441,7 +441,7 @@ func (c *Controller) FinishSettingsActionWithResult(ctx context.Context, userSes
 		return nil, err
 	}
 	if !ok {
-		panic(fmt.Errorf("unexpected: cannot get settigns action result"))
+		panic(fmt.Errorf("unexpected: cannot get settings action result"))
 	}
 	return settingsActionResult, nil
 }
