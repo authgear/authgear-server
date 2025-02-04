@@ -4,8 +4,9 @@ import (
 	"context"
 	"encoding/json"
 
-	relay "github.com/authgear/authgear-server/pkg/graphqlgo/relay"
 	"github.com/graphql-go/graphql"
+
+	relay "github.com/authgear/authgear-server/pkg/graphqlgo/relay"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config"
