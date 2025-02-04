@@ -99,9 +99,9 @@
 /pkg/auth/handler/webapp/authflowv2/settings_advanced.go:46:30: requestcontext
 /pkg/auth/handler/webapp/authflowv2/settings_biometric.go:94:30: requestcontext
 /pkg/auth/handler/webapp/authflowv2/settings_change_password.go:70:30: requestcontext
-/pkg/auth/handler/webapp/authflowv2/settings_delete_account.go:78:30: requestcontext
-/pkg/auth/handler/webapp/authflowv2/settings_delete_account.go:80:39: requestcontext
-/pkg/auth/handler/webapp/authflowv2/settings_delete_account.go:82:34: requestcontext
+/pkg/auth/handler/webapp/authflowv2/settings_delete_account.go:76:30: requestcontext
+/pkg/auth/handler/webapp/authflowv2/settings_delete_account.go:78:39: requestcontext
+/pkg/auth/handler/webapp/authflowv2/settings_delete_account.go:80:34: requestcontext
 /pkg/auth/handler/webapp/authflowv2/settings_delete_account_success.go:54:30: requestcontext
 /pkg/auth/handler/webapp/authflowv2/settings_delete_account_success.go:56:34: requestcontext
 /pkg/auth/handler/webapp/authflowv2/settings_identity_add_email.go:73:30: requestcontext
