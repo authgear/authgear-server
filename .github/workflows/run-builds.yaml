@@ -30,7 +30,7 @@ jobs:
         docker_password: "${{ env.PUSH_IMAGE == 'true' && secrets.QUAY_ROBOT_TOKEN || '' }}"
   authgear-image-arm64:
     if: ${{ (github.repository == 'authgear/authgear-server' && github.event_name == 'push' && !inputs.amd64-build-only) }}
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-24.04-arm
     outputs:
       image_digest: ${{ steps.build_image.outputs.image_digest }}
     env:
@@ -98,7 +98,7 @@ jobs:
     if: ${{ (github.repository == 'authgear/authgear-server' && github.event_name == 'push' && !inputs.amd64-build-only) }}
     outputs:
       image_digest: ${{ steps.build_image.outputs.image_digest }}
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-24.04-arm
     env:
       PUSH_IMAGE: "${{ (github.repository == 'authgear/authgear-server' && github.event_name == 'push') && 'true' || 'false' }}"
     steps:
