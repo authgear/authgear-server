@@ -290,6 +290,28 @@ docker_certbot_create_directories() {
 	sudo find /etc/letsencrypt \! -user "$user" -exec chown "$user:$user" '{}' +
 }
 
+docker_certbot_create_cli_ini() {
+	# certbot stores its data (like certificates, accounts) in --config-dir
+	# It also reads its config (cli.ini) in --config-dir.
+	# If we naively volume mount /etc/letsencrypt, /etc/letsencrypt/cli.ini will be obscured by the mount.
+	# Therefore, when we build the image, we copy the original /etc/letsencrypt/cli.ini to /home/authgear/certbot.ini,
+	# and we always write a fresh /etc/letsencrypt/cli.ini.
+	cli_ini="/etc/letsencrypt/cli.ini"
+	cp /home/authgear/certbot.ini "$cli_ini"
+	sed -E -i 's,^#?\s*(max-log-backups)\s+.*,\1 = 10,' "$cli_ini"
+	sed -E -i 's,^#?\s*(preconfigured-renewal)\s+.*,\1 = False,' "$cli_ini"
+
+	if ! grep -E '^max-log-backups = 10' "$cli_ini" 1>/dev/null; then
+		printf 1>&2 "failed to set max-log-backups in %s\n" "$cli_ini"
+		exit 1
+	fi
+
+	if ! grep -E '^preconfigured-renewal = False' "$cli_ini" 1>/dev/null; then
+		printf 1>&2 "failed to set preconfigured-renewal in %s\n" "$cli_ini"
+		exit 1
+	fi
+}
+
 main() {
 	check_user_is_correct
 	check_PGDATA_is_set
@@ -303,6 +325,7 @@ main() {
 	docker_nginx_create_nginx_conf
 
 	docker_certbot_create_directories
+	docker_certbot_create_cli_ini
 
 	docker_postgresql_create_database_directories
 

@@ -214,13 +214,11 @@ RUN set -eux; \
 		certbot \
 		python3-certbot-nginx; \
 	rm -rf /var/lib/apt/lists/*; \
-	sed -E -i 's,^#?\s*(max-log-backups)\s+.*,\1 = 10,' /etc/letsencrypt/cli.ini; \
-	sed -E -i 's,^#?\s*(preconfigured-renewal)\s+.*,\1 = False,' /etc/letsencrypt/cli.ini; \
-	grep -E '^max-log-backups = 10' /etc/letsencrypt/cli.ini; \
-	grep -E '^preconfigured-renewal = False' /etc/letsencrypt/cli.ini
+	cp /etc/letsencrypt/cli.ini /home/authgear/certbot.ini; \
+	chown authgear:authgear /home/authgear/certbot.ini
 
 
-COPY --chown=authgear:authgear ./once/docker-entrypoint.sh ./once/docker-wrapper.sh /usr/local/bin/
+COPY --chown=authgear:authgear ./once/docker-entrypoint.sh ./once/docker-wrapper.sh ./once/docker-certbot.py /usr/local/bin/
 
 ENTRYPOINT ["docker-entrypoint.sh"]
 
@@ -231,10 +229,7 @@ ENV PGDATA=/var/lib/postgresql/data
 
 VOLUME /var/lib/postgresql/data
 VOLUME /var/lib/redis/data
-VOLUME /etc/letsencrypt/archive
-VOLUME /etc/letsencrypt/renewal
-VOLUME /etc/letsencrypt/live
-VOLUME /etc/letsencrypt/accounts
+VOLUME /etc/letsencrypt
 
 EXPOSE 5432
 EXPOSE 6379

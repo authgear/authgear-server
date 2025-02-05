@@ -23,4 +23,6 @@ redis-server /etc/redis/redis.conf &
 
 nginx &
 
+docker-certbot.py &
+
 wait
