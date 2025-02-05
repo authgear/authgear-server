@@ -2,10 +2,14 @@ package authflowv2
 
 import (
 	"context"
+	"errors"
 	"net/http"
 
 	"net/url"
 
+	"github.com/authgear/authgear-server/pkg/api"
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
@@ -14,7 +18,9 @@ import (
 	identityservice "github.com/authgear/authgear-server/pkg/lib/authn/identity/service"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
+	"github.com/authgear/authgear-server/pkg/util/stringutil"
 	"github.com/authgear/authgear-server/pkg/util/template"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
@@ -61,14 +67,45 @@ func (h *AuthflowV2SettingsIdentityEditUsernameHandler) GetData(ctx context.Cont
 	viewmodels.Embed(data, baseViewModel)
 
 	userID := session.GetUserID(ctx)
-	loginID := r.Form.Get("q_login_id")
-	usernameIdentity, err := h.Identities.LoginID.Get(ctx, *userID, loginID)
-	if err != nil {
+	loginIDKey := r.Form.Get("q_login_id_key")
+	identityID := r.Form.Get("q_identity_id")
+	loginIDValue := r.Form.Get("q_login_id")
+
+	var target *identity.Info
+	var err error
+
+	if identityID != "" {
+		target, err = h.Identities.GetWithUserID(ctx, *userID, identityID)
+		if err != nil {
+			return nil, err
+		}
+	} else if loginIDValue != "" {
+		target, err = h.Identities.GetBySpecWithUserID(ctx, *userID, &identity.Spec{
+			Type: model.IdentityTypeLoginID,
+			LoginID: &identity.LoginIDSpec{
+				Key:   loginIDKey,
+				Type:  model.LoginIDKeyTypeUsername,
+				Value: stringutil.NewUserInputString(loginIDValue),
+			},
+		})
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		// No query parameter provided, treat as not found
+		err = api.ErrIdentityNotFound
+	}
+
+	if err != nil && errors.Is(err, api.ErrIdentityNotFound) {
+		return nil, apierrors.AddDetails(err, errorutil.Details{
+			"LoginIDType": model.LoginIDKeyTypeUsername,
+		})
+	} else if err != nil {
 		return nil, err
 	}
 
 	vm := AuthflowV2SettingsIdentityEditUsernameViewModel{
-		Identity: usernameIdentity,
+		Identity: target.LoginID,
 	}
 	viewmodels.Embed(data, vm)
 
@@ -97,6 +134,9 @@ func (h *AuthflowV2SettingsIdentityEditUsernameHandler) ServeHTTP(w http.Respons
 	})
 
 	ctrl.PostAction("", func(ctx context.Context) error {
+
+		s := session.GetSession(ctx)
+		webappSession := webapp.GetSession(ctx)
 		err := AuthflowV2SettingsIdentityEditUsernameSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
 		if err != nil {
 			return err
@@ -112,6 +152,15 @@ func (h *AuthflowV2SettingsIdentityEditUsernameHandler) ServeHTTP(w http.Respons
 		})
 		if err != nil {
 			return err
+		}
+
+		if ctrl.IsInSettingsAction(s, webappSession) {
+			settingsActionResult, err := ctrl.FinishSettingsActionWithResult(ctx, s, webappSession)
+			if err != nil {
+				return err
+			}
+			settingsActionResult.WriteResponse(w, r)
+			return nil
 		}
 
 		redirectURI, err := url.Parse(AuthflowV2RouteSettingsIdentityListUsername)
