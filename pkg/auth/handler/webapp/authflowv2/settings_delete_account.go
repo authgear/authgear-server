@@ -77,9 +77,8 @@ func (h *AuthflowV2SettingsDeleteAccountHandler) ServeHTTP(w http.ResponseWriter
 
 	currentSession := session.GetSession(r.Context())
 	redirectURI := "/settings/delete_account/success"
-	webSession := webapp.GetSession(r.Context())
 
-	ctrl.Get(func(ctx context.Context) error {
+	ctrl.GetWithWebSession(func(ctx context.Context, _ *webapp.Session) error {
 		var data map[string]interface{}
 		err := h.Database.WithTx(ctx, func(ctx context.Context) error {
 			data, err = h.GetData(ctx, r, w)
@@ -104,6 +103,11 @@ func (h *AuthflowV2SettingsDeleteAccountHandler) ServeHTTP(w http.ResponseWriter
 		err := h.Database.WithTx(ctx, func(ctx context.Context) error {
 			return h.Users.ScheduleDeletionByEndUser(ctx, currentSession.GetAuthenticationInfo().UserID)
 		})
+		if err != nil {
+			return err
+		}
+
+		webSession, err := ctrl.GetWebappSession(ctx)
 		if err != nil {
 			return err
 		}

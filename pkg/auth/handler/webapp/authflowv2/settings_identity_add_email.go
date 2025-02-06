@@ -72,7 +72,7 @@ func (h *AuthflowV2SettingsIdentityAddEmailHandler) ServeHTTP(w http.ResponseWri
 	}
 	defer ctrl.ServeWithoutDBTx(r.Context())
 
-	ctrl.Get(func(ctx context.Context) error {
+	ctrl.GetWithWebSession(func(ctx context.Context, _ *webapp.Session) error {
 		data, err := h.GetData(r, w)
 		if err != nil {
 			return err
@@ -93,7 +93,10 @@ func (h *AuthflowV2SettingsIdentityAddEmailHandler) ServeHTTP(w http.ResponseWri
 		loginID := r.Form.Get("x_login_id")
 
 		s := session.GetSession(ctx)
-		webappSession := webapp.GetSession(ctx)
+		webappSession, err := ctrl.GetWebappSession(ctx)
+		if err != nil {
+			return err
+		}
 		output, err := h.AccountManagement.StartAddIdentityEmail(ctx, s, &accountmanagement.StartAddIdentityEmailInput{
 			LoginID:    loginID,
 			LoginIDKey: loginIDKey,

@@ -148,7 +148,7 @@ func (h *AuthflowV2SettingsIdentityVerifyPhoneHandler) ServeHTTP(w http.Response
 	}
 	defer ctrl.ServeWithoutDBTx(r.Context())
 
-	ctrl.Get(func(ctx context.Context) error {
+	ctrl.GetWithWebSession(func(ctx context.Context, _ *webapp.Session) error {
 		data, err := h.GetData(ctx, r, w)
 		if err != nil {
 			return err
@@ -169,7 +169,10 @@ func (h *AuthflowV2SettingsIdentityVerifyPhoneHandler) ServeHTTP(w http.Response
 		code := r.Form.Get("x_code")
 
 		s := session.GetSession(ctx)
-		webappSession := webapp.GetSession(ctx)
+		webappSession, err := ctrl.GetWebappSession(ctx)
+		if err != nil {
+			return err
+		}
 		_, err = h.AccountManagement.ResumeAddOrUpdateIdentityPhone(ctx, s, token, &accountmanagement.ResumeAddOrUpdateIdentityPhoneInput{
 			LoginIDKey: loginIDKey,
 			Code:       code,

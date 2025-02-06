@@ -146,6 +146,16 @@ func (c *Controller) Get(fn func(ctx context.Context) error) {
 	c.getHandler = fn
 }
 
+func (c *Controller) GetWithWebSession(fn func(context.Context, *webapp.Session) error) {
+	c.getHandler = func(ctx context.Context) error {
+		webappSession, err := c.GetWebappSession(ctx)
+		if err != nil {
+			return err
+		}
+		return fn(ctx, webappSession)
+	}
+}
+
 func (c *Controller) BeforeHandle(fn func(ctx context.Context) error) {
 	c.preHandler = fn
 }
@@ -313,16 +323,19 @@ func (c *Controller) rewindSessionHistory(session *webapp.Session) error {
 	return nil
 }
 
-func (c *Controller) InteractionSession(ctx context.Context) (*webapp.Session, error) {
+func (c *Controller) GetWebappSession(ctx context.Context) (*webapp.Session, error) {
 	s := webapp.GetSession(ctx)
 	if s == nil {
 		return nil, webapp.ErrSessionNotFound
+	}
+	if s.IsCompleted {
+		return nil, webapp.ErrSessionCompleted
 	}
 	return s, nil
 }
 
 func (c *Controller) InteractionGet(ctx context.Context) (*interaction.Graph, error) {
-	s, err := c.InteractionSession(ctx)
+	s, err := c.GetWebappSession(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -343,7 +356,7 @@ func (c *Controller) InteractionGetWithSession(ctx context.Context, s *webapp.Se
 }
 
 func (c *Controller) InteractionPost(ctx context.Context, inputFn func() (interface{}, error)) (*webapp.Result, error) {
-	s, err := c.InteractionSession(ctx)
+	s, err := c.GetWebappSession(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -422,6 +435,11 @@ func (c *Controller) GetSettingsActionResult(ctx context.Context, webSession *we
 			return nil, false, err
 		}
 		redirectURI = c.UIInfoResolver.SetAuthenticationInfoInQuery(redirectURI, authInfo)
+		webSession.IsCompleted = true
+		err = c.UpdateSession(ctx, webSession)
+		if err != nil {
+			return nil, false, err
+		}
 		result := webapp.Result{
 			RedirectURI:      redirectURI,
 			NavigationAction: webapp.NavigationActionRedirect,

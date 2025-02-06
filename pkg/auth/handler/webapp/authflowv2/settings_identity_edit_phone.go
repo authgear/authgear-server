@@ -133,7 +133,7 @@ func (h *AuthflowV2SettingsIdentityEditPhoneHandler) ServeHTTP(w http.ResponseWr
 	}
 	defer ctrl.ServeWithoutDBTx(r.Context())
 
-	ctrl.Get(func(ctx context.Context) error {
+	ctrl.GetWithWebSession(func(ctx context.Context, _ *webapp.Session) error {
 		var data map[string]interface{}
 		err = h.Database.WithTx(ctx, func(ctx context.Context) error {
 			data, err = h.GetData(ctx, r, w)
@@ -163,7 +163,10 @@ func (h *AuthflowV2SettingsIdentityEditPhoneHandler) ServeHTTP(w http.ResponseWr
 		identityID := r.Form.Get("x_identity_id")
 
 		s := session.GetSession(ctx)
-		webappSession := webapp.GetSession(ctx)
+		webappSession, err := ctrl.GetWebappSession(ctx)
+		if err != nil {
+			return err
+		}
 		output, err := h.AccountManagement.StartUpdateIdentityPhone(ctx, s, &accountmanagement.StartUpdateIdentityPhoneInput{
 			Channel:    channel,
 			LoginID:    loginID,

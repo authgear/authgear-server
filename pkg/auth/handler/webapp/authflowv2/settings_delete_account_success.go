@@ -53,9 +53,7 @@ func (h *AuthflowV2SettingsDeleteAccountSuccessHandler) ServeHTTP(w http.Respons
 	}
 	defer ctrl.ServeWithoutDBTx(r.Context())
 
-	webSession := webapp.GetSession(r.Context())
-
-	ctrl.Get(func(ctx context.Context) error {
+	ctrl.GetWithWebSession(func(ctx context.Context, _ *webapp.Session) error {
 		data, err := h.GetData(r, w)
 		if err != nil {
 			return nil
@@ -66,6 +64,10 @@ func (h *AuthflowV2SettingsDeleteAccountSuccessHandler) ServeHTTP(w http.Respons
 
 	ctrl.PostAction("", func(ctx context.Context) error {
 		redirectURI := "/login"
+		webSession, err := ctrl.GetWebappSession(ctx)
+		if err != nil {
+			return err
+		}
 		settingsActionResult, ok, err := ctrl.GetSettingsActionResult(ctx, webSession)
 		if err != nil {
 			return err
