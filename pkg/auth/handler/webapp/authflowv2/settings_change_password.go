@@ -69,7 +69,7 @@ func (h *AuthflowV2SettingsChangePasswordHandler) ServeHTTP(w http.ResponseWrite
 	}
 	defer ctrl.ServeWithoutDBTx(r.Context())
 
-	ctrl.GetWithWebSession(func(ctx context.Context, _ *webapp.Session) error {
+	ctrl.GetWithSettingsActionWebSession(r, func(ctx context.Context, _ *webapp.Session) error {
 		data, err := h.GetData(r, w)
 		if err != nil {
 			return err
@@ -80,7 +80,7 @@ func (h *AuthflowV2SettingsChangePasswordHandler) ServeHTTP(w http.ResponseWrite
 		return nil
 	})
 
-	ctrl.PostAction("", func(ctx context.Context) error {
+	ctrl.PostActionWithSettingsActionWebSession("", r, func(ctx context.Context, webappSession *webapp.Session) error {
 		err := AuthflowV2SettingsChangePasswordSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
 		if err != nil {
 			return err
@@ -96,10 +96,6 @@ func (h *AuthflowV2SettingsChangePasswordHandler) ServeHTTP(w http.ResponseWrite
 		}
 
 		s := session.GetSession(ctx)
-		webappSession, err := ctrl.GetWebappSession(ctx)
-		if err != nil {
-			return err
-		}
 		var oAuthSessionID string
 		redirectURI := SettingsV2RouteSettings
 		if webappSession != nil {

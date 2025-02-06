@@ -73,7 +73,7 @@ func (h *AuthflowV2SettingsIdentityNewUsernameHandler) ServeHTTP(w http.Response
 	}
 	defer ctrl.ServeWithoutDBTx(r.Context())
 
-	ctrl.GetWithWebSession(func(ctx context.Context, _ *webapp.Session) error {
+	ctrl.GetWithSettingsActionWebSession(r, func(ctx context.Context, _ *webapp.Session) error {
 		var data map[string]interface{}
 		err := h.Database.WithTx(ctx, func(ctx context.Context) error {
 			data, err = h.GetData(w, r)
@@ -86,7 +86,7 @@ func (h *AuthflowV2SettingsIdentityNewUsernameHandler) ServeHTTP(w http.Response
 		return nil
 	})
 
-	ctrl.PostAction("", func(ctx context.Context) error {
+	ctrl.PostActionWithSettingsActionWebSession("", r, func(ctx context.Context, webappSession *webapp.Session) error {
 		err := AuthflowV2SettingsIdentityNewUsernameSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
 		if err != nil {
 			return err
@@ -94,10 +94,6 @@ func (h *AuthflowV2SettingsIdentityNewUsernameHandler) ServeHTTP(w http.Response
 		loginIDKey := r.Form.Get("x_login_id_key")
 		loginID := r.Form.Get("x_login_id")
 		resolvedSession := session.GetSession(ctx)
-		webappSession, err := ctrl.GetWebappSession(ctx)
-		if err != nil {
-			return err
-		}
 		_, err = h.AccountManagement.AddIdentityUsername(ctx, resolvedSession, &accountmanagement.AddIdentityUsernameInput{
 			LoginIDKey: loginIDKey,
 			LoginID:    loginID,

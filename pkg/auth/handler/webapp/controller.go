@@ -2,6 +2,7 @@ package webapp
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -15,6 +16,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oauthsession"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/lib/settingsaction"
 	"github.com/authgear/authgear-server/pkg/lib/tester"
 	"github.com/authgear/authgear-server/pkg/lib/webappoauth"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -144,16 +146,6 @@ func (c *Controller) RedirectURI() string {
 
 func (c *Controller) Get(fn func(ctx context.Context) error) {
 	c.getHandler = fn
-}
-
-func (c *Controller) GetWithWebSession(fn func(context.Context, *webapp.Session) error) {
-	c.getHandler = func(ctx context.Context) error {
-		webappSession, err := c.GetWebappSession(ctx)
-		if err != nil {
-			return err
-		}
-		return fn(ctx, webappSession)
-	}
 }
 
 func (c *Controller) BeforeHandle(fn func(ctx context.Context) error) {
@@ -386,6 +378,50 @@ func (c *Controller) InteractionOAuthCallback(ctx context.Context, oauthInput In
 	}
 
 	return c.Page.PostWithInput(ctx, s, inputFn)
+}
+
+func (c *Controller) getSettingsActionWebSession(ctx context.Context, r *http.Request) (*webapp.Session, error) {
+	webappSession, err := c.GetWebappSession(ctx)
+	if err != nil {
+		// No session means it is not in settings action
+		if errors.Is(err, webapp.ErrSessionNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	if webappSession.SettingsActionID == "" {
+		// This session is not for a settings action, ignore it
+		return nil, nil
+	}
+	if settingsaction.GetSettingsActionID(r) == "" {
+		// We are not in a settings action
+		return nil, nil
+	}
+	if settingsaction.GetSettingsActionID(r) != webappSession.SettingsActionID {
+		// This session is not for the current settings action, ignore it
+		return nil, nil
+	}
+	return webappSession, nil
+}
+
+func (c *Controller) GetWithSettingsActionWebSession(r *http.Request, fn func(context.Context, *webapp.Session) error) {
+	c.getHandler = func(ctx context.Context) error {
+		webappSession, err := c.getSettingsActionWebSession(ctx, r)
+		if err != nil {
+			return err
+		}
+		return fn(ctx, webappSession)
+	}
+}
+
+func (c *Controller) PostActionWithSettingsActionWebSession(action string, r *http.Request, fn func(context.Context, *webapp.Session) error) {
+	c.postHandlers[action] = func(ctx context.Context) error {
+		webappSession, err := c.getSettingsActionWebSession(ctx, r)
+		if err != nil {
+			return err
+		}
+		return fn(ctx, webappSession)
+	}
 }
 
 func (c *Controller) IsInSettingsAction(userSession session.ResolvedSession, webSession *webapp.Session) bool {

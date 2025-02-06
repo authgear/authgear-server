@@ -78,7 +78,7 @@ func (h *AuthflowV2SettingsDeleteAccountHandler) ServeHTTP(w http.ResponseWriter
 	currentSession := session.GetSession(r.Context())
 	redirectURI := "/settings/delete_account/success"
 
-	ctrl.GetWithWebSession(func(ctx context.Context, _ *webapp.Session) error {
+	ctrl.GetWithSettingsActionWebSession(r, func(ctx context.Context, _ *webapp.Session) error {
 		var data map[string]interface{}
 		err := h.Database.WithTx(ctx, func(ctx context.Context) error {
 			data, err = h.GetData(ctx, r, w)
@@ -92,8 +92,7 @@ func (h *AuthflowV2SettingsDeleteAccountHandler) ServeHTTP(w http.ResponseWriter
 
 		return nil
 	})
-
-	ctrl.PostAction("delete", func(ctx context.Context) error {
+	ctrl.PostActionWithSettingsActionWebSession("delete", r, func(ctx context.Context, webappSession *webapp.Session) error {
 		confirmation := r.Form.Get("delete")
 		isConfirmed := confirmation == "DELETE"
 		if !isConfirmed {
@@ -107,15 +106,10 @@ func (h *AuthflowV2SettingsDeleteAccountHandler) ServeHTTP(w http.ResponseWriter
 			return err
 		}
 
-		webSession, err := ctrl.GetWebappSession(ctx)
-		if err != nil {
-			return err
-		}
-
-		if ctrl.IsInSettingsAction(currentSession, webSession) {
+		if ctrl.IsInSettingsAction(currentSession, webappSession) {
 			// delete account triggered by sdk via settings action
 			// handle settings action result here
-			err = ctrl.FinishSettingsAction(ctx, currentSession, webSession)
+			err = ctrl.FinishSettingsAction(ctx, currentSession, webappSession)
 			if err != nil {
 				return err
 			}

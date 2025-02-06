@@ -143,6 +143,7 @@ func (m *SessionMiddleware) createSessionFromOAuthSession(ctx context.Context, o
 			SuppressIDPSessionCookie:   uiInfo.SuppressIDPSessionCookie,
 			OAuthProviderAlias:         uiInfo.OAuthProviderAlias,
 			LoginHint:                  uiInfo.LoginHint,
+			SettingsActionID:           entry.T.SettingsActionID,
 		}
 
 		key := otelauthgear.AttributeKeyClientID

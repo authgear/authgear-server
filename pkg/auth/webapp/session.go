@@ -20,14 +20,15 @@ func WithSession(ctx context.Context, session *Session) context.Context {
 }
 
 type SessionOptions struct {
-	SAMLSessionID   string
-	OAuthSessionID  string
-	ClientID        string
-	RedirectURI     string
-	KeepAfterFinish bool
-	Prompt          []string
-	Extra           map[string]interface{}
-	Page            string
+	SAMLSessionID    string
+	OAuthSessionID   string
+	SettingsActionID string
+	ClientID         string
+	RedirectURI      string
+	KeepAfterFinish  bool
+	Prompt           []string
+	Extra            map[string]interface{}
+	Page             string
 	// TODO(authflow): UserIDHint is now handled natively by authflow.
 	UserIDHint                 string
 	UpdatedAt                  time.Time
@@ -108,6 +109,10 @@ type Session struct {
 	// LoginHint is the OIDC login_hint parameter.
 	LoginHint string `json:"login_hint,omitempty"`
 
+	// The settings action associated with this session
+	// Empty if it is not a settings action
+	SettingsActionID string `json:"settings_action_id,omitempty"`
+
 	// The current flow is completed or not
 	IsCompleted bool `json:"is_completed,omitempty"`
 }
@@ -137,6 +142,7 @@ func NewSession(options SessionOptions) *Session {
 		SuppressIDPSessionCookie:   options.SuppressIDPSessionCookie,
 		OAuthProviderAlias:         options.OAuthProviderAlias,
 		LoginHint:                  options.LoginHint,
+		SettingsActionID:           options.SettingsActionID,
 	}
 	for k, v := range options.Extra {
 		s.Extra[k] = v

@@ -16,6 +16,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oauthsession"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/lib/settingsaction"
 	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -365,6 +366,7 @@ func (b *UIURLBuilder) addToEndpoint(endpoint *url.URL, r protocol.Authorization
 			}
 		}
 	}
+	q.Set(settingsaction.QUERY_SETTINGS_ACTION_ID, e.T.SettingsActionID)
 	endpoint.RawQuery = q.Encode()
 }
 
