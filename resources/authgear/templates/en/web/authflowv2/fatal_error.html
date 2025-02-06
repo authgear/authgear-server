@@ -15,7 +15,11 @@
       {{ $title = include "v2.page.fatal-error.identify-not-found.title" (dict "LoginIDType" .Error.info.LoginIDType) }}
     {{ end }}
     {{ if eq .Error.reason "WebUISessionCompleted" }}
-      {{ $title = include "v2.page.fatal-error.redirecting.title" nil }}
+      {{ if eq .Platform "android" }}
+        {{ $title = include "v2.page.fatal-error.redirecting.title" nil }}
+      {{ else }}
+        {{ $title = include "v2.page.fatal-error.token-invalid.title" nil }}
+      {{ end }}
     {{ end }}
   {{ end }}
 
@@ -32,11 +36,24 @@
     {{ else if eq .Error.reason "IdentityNotFound" }}
       {{ $error_message = include "v2.error.identify-not-found" (dict "LoginIDType" .Error.info.LoginIDType) }}
     {{ else if eq .Error.reason "WebUISessionCompleted" }}
-      {{ $error_message = include "v2.error.web-ui-session-completed" nil }}
+      {{ if eq .Platform "android" }}
+        {{ $error_message = include "v2.error.web-ui-session-completed" nil }}
+      {{ else }}
+      {{ $error_message = include "v2.error.web-ui-invalid-session-return" nil }}
+      {{ end }}
+    {{ end }}
+  {{ end }}
+
+
+  {{ $icon := "error" }}
+  {{ if .Error }}
+    {{ if and (eq .Error.reason "WebUISessionCompleted") (eq .Platform "android") }}
+      {{ $icon = "hourglass" }}
     {{ end }}
   {{ end }}
   {{ template "authflowv2/__error_page_layout.html"
     (dict
+      "Icon" $icon
       "Title" $title
       "ErrorMessage" $error_message
     )

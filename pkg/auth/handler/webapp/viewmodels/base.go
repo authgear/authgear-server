@@ -90,6 +90,7 @@ type BaseViewModel struct {
 	ForgotPasswordEnabled bool
 	PublicSignupDisabled  bool
 	PageLoadedAt          int
+	Platform              string
 	IsNativePlatform      bool
 	FlashMessageType      string
 	ResolvedLanguageTag   string
@@ -395,6 +396,7 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 	}
 	model.IsNativePlatform = (platform == "ios" ||
 		platform == "android")
+	model.Platform = platform
 
 	ua := apimodel.ParseUserAgent(r.UserAgent())
 	model.IsSupportedMobilePlatform = ua.OS == "iOS" || ua.OS == "Android"
