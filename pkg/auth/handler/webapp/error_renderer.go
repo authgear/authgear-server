@@ -10,11 +10,14 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms/smsapi"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
+	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
 type ErrorRendererUIImplementationService interface {
@@ -28,6 +31,8 @@ type ErrorRendererAuthflowV2Navigator interface {
 type ErrorRenderer struct {
 	ErrorService            *webapp.ErrorService
 	UIImplementationService ErrorRendererUIImplementationService
+	Renderer                Renderer
+	BaseViewModel           *viewmodels.BaseViewModeler
 
 	AuthflowV2Navigator ErrorRendererAuthflowV2Navigator
 }
@@ -70,7 +75,49 @@ func (s *ErrorRenderer) renderInteractionError(ctx context.Context, w http.Respo
 	result.WriteResponse(w, r)
 }
 
-func (s *ErrorRenderer) MakeAuthflowErrorResult(ctx context.Context, w http.ResponseWriter, r *http.Request, u url.URL, err error) *webapp.Result {
+func (h *ErrorRenderer) GetErrorData(r *http.Request, w http.ResponseWriter, err error) (map[string]interface{}, error) {
+	data := make(map[string]interface{})
+	baseViewModel := h.BaseViewModel.ViewModel(r, w)
+	baseViewModel.SetError(err)
+	viewmodels.Embed(data, baseViewModel)
+	return data, nil
+}
+
+func (s *ErrorRenderer) makeSessionCompletedErrorResult(ctx context.Context, w http.ResponseWriter, r *http.Request, u url.URL, apierr *apierrors.APIError) httputil.Result {
+	if r.Method == http.MethodGet {
+		data, err := s.GetErrorData(r, w, apierr)
+		if err != nil {
+			return s.makeNonRecoverableResult(ctx, u, apierr)
+		}
+		return &HTMLResult{
+			Template: TemplateV2WebFatalErrorHTML,
+			Data:     data,
+			Renderer: s.Renderer,
+		}
+	} else {
+		// If it is not a POST request, redirect once to the same url with GET, and display error there.
+		result := &webapp.Result{
+			RedirectURI:      u.String(),
+			NavigationAction: webapp.NavigationActionReplace,
+		}
+		return result
+	}
+}
+
+func (s *ErrorRenderer) makeNonRecoverableResult(ctx context.Context, u url.URL, apierr *apierrors.APIError) httputil.Result {
+	result := &webapp.Result{
+		RedirectURI:      u.String(),
+		NavigationAction: webapp.NavigationActionReplace,
+	}
+	err := s.ErrorService.SetNonRecoverableError(result, apierr)
+	if err != nil {
+		panic(err)
+	}
+
+	return result
+}
+
+func (s *ErrorRenderer) MakeAuthflowErrorResult(ctx context.Context, w http.ResponseWriter, r *http.Request, u url.URL, err error) httputil.Result {
 	apierror := apierrors.AsAPIError(err)
 
 	recoverable := func() *webapp.Result {
@@ -88,20 +135,9 @@ func (s *ErrorRenderer) MakeAuthflowErrorResult(ctx context.Context, w http.Resp
 		return result
 	}
 
-	nonRecoverable := func() *webapp.Result {
-		result := &webapp.Result{
-			RedirectURI:      u.String(),
-			NavigationAction: webapp.NavigationActionReplace,
-		}
-		err := s.ErrorService.SetNonRecoverableError(result, apierror)
-		if err != nil {
-			panic(err)
-		}
-
-		return result
-	}
-
 	switch {
+	case apierrors.IsKind(err, webapp.WebUISessionCompleted):
+		return s.makeSessionCompletedErrorResult(ctx, w, r, u, apierror)
 	case apierror.Reason == "AuthenticationFlowNoPublicSignup":
 		fallthrough
 	case errors.Is(err, authflow.ErrFlowNotFound):
@@ -120,7 +156,7 @@ func (s *ErrorRenderer) MakeAuthflowErrorResult(ctx context.Context, w http.Resp
 		case config.UIImplementationAuthflowV2:
 			s.AuthflowV2Navigator.NavigateNonRecoverableError(r, &u, err)
 		}
-		return nonRecoverable()
+		return s.makeNonRecoverableResult(ctx, u, apierror)
 	default:
 		return recoverable()
 	}
@@ -128,4 +164,18 @@ func (s *ErrorRenderer) MakeAuthflowErrorResult(ctx context.Context, w http.Resp
 
 func (s *ErrorRenderer) renderAuthflowError(ctx context.Context, w http.ResponseWriter, r *http.Request, err error) {
 	s.MakeAuthflowErrorResult(ctx, w, r, *r.URL, err).WriteResponse(w, r)
+}
+
+type HTMLResult struct {
+	Renderer Renderer
+	Template *template.HTML
+	Data     interface{}
+}
+
+func (re *HTMLResult) WriteResponse(rw http.ResponseWriter, r *http.Request) {
+	re.Renderer.RenderHTML(rw, r, TemplateV2WebFatalErrorHTML, re.Data)
+}
+
+func (re *HTMLResult) IsInternalError() bool {
+	return false
 }

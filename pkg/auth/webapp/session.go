@@ -107,6 +107,9 @@ type Session struct {
 
 	// LoginHint is the OIDC login_hint parameter.
 	LoginHint string `json:"login_hint,omitempty"`
+
+	// The current flow is completed or not
+	IsCompleted bool `json:"is_completed,omitempty"`
 }
 
 func newSessionID() string {

@@ -14,6 +14,9 @@
     {{ if eq .Error.reason "IdentityNotFound" }}
       {{ $title = include "v2.page.fatal-error.identify-not-found.title" (dict "LoginIDType" .Error.info.LoginIDType) }}
     {{ end }}
+    {{ if eq .Error.reason "WebUISessionCompleted" }}
+      {{ $title = include "v2.page.fatal-error.redirecting.title" nil }}
+    {{ end }}
   {{ end }}
 
   {{ $error_message := include "v2.error.server" nil }}
@@ -28,6 +31,8 @@
       {{ $error_message = include "v2.error.no-available-sms-client" nil }}
     {{ else if eq .Error.reason "IdentityNotFound" }}
       {{ $error_message = include "v2.error.identify-not-found" (dict "LoginIDType" .Error.info.LoginIDType) }}
+    {{ else if eq .Error.reason "WebUISessionCompleted" }}
+      {{ $error_message = include "v2.error.web-ui-session-completed" nil }}
     {{ end }}
   {{ end }}
   {{ template "authflowv2/__error_page_layout.html"
