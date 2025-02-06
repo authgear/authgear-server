@@ -731,7 +731,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		GomailDialer: dialer,
 	}
 	smsLogger := sms.NewLogger(factory)
-	smsProvider := messagingConfig.SMSProvider
+	smsProvider := messagingConfig.Deprecated_SMSProvider
 	smsGatewayConfig := messagingConfig.SMSGateway
 	nexmoCredentials := deps.ProvideNexmoCredentials(secretConfig)
 	twilioCredentials := deps.ProvideTwilioCredentials(secretConfig)

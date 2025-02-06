@@ -27,6 +27,7 @@ type SystemConfigProvider struct {
 	AnalyticConfig                 *configlib.AnalyticConfig
 	GTMConfig                      *config.GoogleTagManagerConfig
 	FrontendSentryConfig           *config.PortalFrontendSentryConfig
+	PortalFeaturesConfig           *config.PortalFeaturesConfig
 	GlobalUIImplementation         configlib.GlobalUIImplementation
 	GlobalUISettingsImplementation configlib.GlobalUISettingsImplementation
 	Resources                      ResourceManager
@@ -66,6 +67,7 @@ func (p *SystemConfigProvider) SystemConfig() (*model.SystemConfig, error) {
 		GTMContainerID:            p.GTMConfig.ContainerID,
 		UIImplementation:          string(p.GlobalUIImplementation),
 		UISettingsImplementation:  string(p.GlobalUISettingsImplementation),
+		ShowCustomSMSGateway:      p.PortalFeaturesConfig.ShowCustomSMSGateway,
 	}, nil
 }
 

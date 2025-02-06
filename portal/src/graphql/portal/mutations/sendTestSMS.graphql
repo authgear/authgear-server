@@ -1,0 +1,9 @@
+mutation sendTestSMSMutation(
+  $appID: ID!
+  $to: String!
+  $config: SMSProviderConfigurationInput!
+) {
+  sendTestSMSConfiguration(
+    input: { appID: $appID, to: $to, providerConfiguration: $config }
+  )
+}

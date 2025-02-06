@@ -133,7 +133,8 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
     false;
   const skippedTutorial = app?.tutorialStatus.data.skipped === true;
 
-  const { auditLogEnabled, analyticEnabled } = useSystemConfig();
+  const { auditLogEnabled, analyticEnabled, showCustomSMSGateway } =
+    useSystemConfig();
 
   const app2appEnabled = useMemo(() => {
     if (effectiveFeatureConfig != null) {
@@ -344,6 +345,15 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
             textKey: "ScreenNav.smtp",
             url: `/project/${appID}/advanced/smtp`,
           },
+          ...(showCustomSMSGateway
+            ? [
+                {
+                  type: "link" as const,
+                  textKey: "ScreenNav.sms-gateway",
+                  url: `/project/${appID}/advanced/sms-gateway`,
+                },
+              ]
+            : []),
           {
             type: "link" as const,
             textKey: "ScreenNav.endpoint-direct-access",
@@ -374,6 +384,7 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
 
     return links;
   }, [
+    showCustomSMSGateway,
     mobileView,
     skippedTutorial,
     appID,

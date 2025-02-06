@@ -35,15 +35,14 @@ const FormContainer_: React.VFC<FormContainerProps> = function FormContainer_(
   props
 ) {
   const {
-    saveButtonProps = { labelId: "save" },
+    saveButtonProps,
     messageBar,
     hideFooterComponent,
     showDiscardButton = false,
     stickyFooterComponent = false,
   } = props;
 
-  const { canSave, isUpdating, canReset, onReset, onSave, onSubmit } =
-    useFormContainerBaseContext();
+  const { canReset, onReset, onSubmit } = useFormContainerBaseContext();
   const { themes } = useSystemConfig();
   const { renderToString } = useContext(Context);
 
@@ -75,21 +74,7 @@ const FormContainer_: React.VFC<FormContainerProps> = function FormContainer_(
         footer={
           hideFooterComponent ? null : (
             <>
-              <PrimaryButton
-                text={
-                  <div className={styles.saveButton}>
-                    {isUpdating ? (
-                      <Spinner size={SpinnerSize.xSmall} ariaLive="assertive" />
-                    ) : null}
-                    <span>
-                      <FormattedMessage id={saveButtonProps.labelId} />
-                    </span>
-                  </div>
-                }
-                iconProps={saveButtonProps.iconProps}
-                disabled={!canSave}
-                onClick={onSave}
-              />
+              <FormSaveButton saveButtonProps={saveButtonProps} />
               {showDiscardButton ? (
                 <ActionButton
                   text={renderToString("discard-changes")}
@@ -140,3 +125,31 @@ const FormContainer: React.VFC<FormContainerProps> = function FormContainer(
 };
 
 export default FormContainer;
+
+const DEFAULT_SAVE_BUTTON_PROPS = { labelId: "save" } satisfies SaveButtonProps;
+
+export function FormSaveButton({
+  saveButtonProps = DEFAULT_SAVE_BUTTON_PROPS,
+}: {
+  saveButtonProps?: SaveButtonProps;
+}): React.ReactElement {
+  const { canSave, isUpdating, onSave } = useFormContainerBaseContext();
+
+  return (
+    <PrimaryButton
+      text={
+        <div className={styles.saveButton}>
+          {isUpdating ? (
+            <Spinner size={SpinnerSize.xSmall} ariaLive="assertive" />
+          ) : null}
+          <span>
+            <FormattedMessage id={saveButtonProps.labelId} />
+          </span>
+        </div>
+      }
+      iconProps={saveButtonProps.iconProps}
+      disabled={!canSave}
+      onClick={onSave}
+    />
+  );
+}

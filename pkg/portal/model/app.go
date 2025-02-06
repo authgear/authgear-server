@@ -84,6 +84,22 @@ type SAMLSpSigningSecrets struct {
 	Certificates []SAMLSpSigningCertificate `json:"certificates,omitempty"`
 }
 
+type SMSProviderTwilioCredentials struct {
+	AccountSID          string  `json:"accountSID,omitempty"`
+	AuthToken           *string `json:"authToken,omitempty"`
+	MessagingServiceSID string  `json:"messagingServiceSID,omitempty"`
+}
+
+type SMSProviderCustomSMSProviderConfigs struct {
+	URL     string `json:"url,omitempty"`
+	Timeout *int   `json:"timeout,omitempty"`
+}
+
+type SMSProviderSecrets struct {
+	TwilioCredentials            *SMSProviderTwilioCredentials        `json:"twilioCredentials,omitempty"`
+	CustomSMSProviderCredentials *SMSProviderCustomSMSProviderConfigs `json:"customSMSProviderCredentials,omitempty"`
+}
+
 type SecretConfig struct {
 	OAuthSSOProviderClientSecrets []OAuthSSOProviderClientSecret `json:"oauthSSOProviderClientSecrets,omitempty"`
 	WebhookSecret                 *WebhookSecret                 `json:"webhookSecret,omitempty"`
@@ -93,6 +109,7 @@ type SecretConfig struct {
 	BotProtectionProviderSecret   *BotProtectionProviderSecret   `json:"botProtectionProviderSecret,omitempty"`
 	SAMLIdpSigningSecrets         *SAMLIdpSigningSecrets         `json:"samlIdpSigningSecrets,omitempty"`
 	SAMLSpSigningSecrets          []SAMLSpSigningSecrets         `json:"samlSpSigningSecrets,omitempty"`
+	SMSProviderSecrets            *SMSProviderSecrets            `json:"smsProviderSecrets,omitempty"`
 }
 
 //nolint:gocognit
@@ -247,6 +264,25 @@ func NewSecretConfig(secretConfig *config.SecretConfig, unmaskedSecrets []config
 	if samlSpSigningSecrets, ok := secretConfig.LookupData(config.SAMLSpSigningMaterialsKey).(*config.SAMLSpSigningMaterials); ok {
 		out.SAMLSpSigningSecrets = toPortalSAMLSpSigningSecrets(samlSpSigningSecrets)
 	}
+
+	smsProviderSecrets := &SMSProviderSecrets{}
+	if twilioCredentials, ok := secretConfig.LookupData(config.TwilioCredentialsKey).(*config.TwilioCredentials); ok {
+		smsProviderSecrets.TwilioCredentials = &SMSProviderTwilioCredentials{
+			AccountSID:          twilioCredentials.AccountSID,
+			MessagingServiceSID: twilioCredentials.MessagingServiceSID,
+		}
+		if _, exist := unmaskedSecretsSet[config.TwilioCredentialsKey]; exist {
+			smsProviderSecrets.TwilioCredentials.AuthToken = &twilioCredentials.AuthToken
+		}
+
+	}
+	if customSMSProviderConfig, ok := secretConfig.LookupData(config.CustomSMSProviderConfigKey).(*config.CustomSMSProviderConfig); ok {
+		smsProviderSecrets.CustomSMSProviderCredentials = &SMSProviderCustomSMSProviderConfigs{
+			URL:     customSMSProviderConfig.URL,
+			Timeout: (*int)(customSMSProviderConfig.Timeout),
+		}
+	}
+	out.SMSProviderSecrets = smsProviderSecrets
 
 	return out, nil
 }
