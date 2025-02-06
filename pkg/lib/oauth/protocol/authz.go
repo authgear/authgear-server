@@ -4,6 +4,8 @@ import (
 	"net/url"
 	"strconv"
 	"time"
+
+	"github.com/authgear/authgear-server/pkg/lib/settingsaction"
 )
 
 type AuthorizationRequest map[string]string
@@ -95,8 +97,8 @@ func (r AuthorizationRequest) SSOEnabled() bool {
 }
 func (r AuthorizationRequest) ColorScheme() string        { return r["x_color_scheme"] }
 func (r AuthorizationRequest) OAuthProviderAlias() string { return r["x_oauth_provider_alias"] }
-func (r AuthorizationRequest) SettingsAction() SettingAction {
-	return SettingAction(r["x_settings_action"])
+func (r AuthorizationRequest) SettingsAction() settingsaction.SettingsAction {
+	return settingsaction.SettingsAction(r["x_settings_action"])
 }
 func (r AuthorizationRequest) SettingsActionQuery() (url.Values, error) {
 	q := r["x_settings_action_query"]
