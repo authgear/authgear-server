@@ -15,6 +15,7 @@ import (
 	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/settingsaction"
 	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/geoip"
@@ -118,6 +119,8 @@ type BaseViewModel struct {
 	BotProtectionProviderType     string
 	BotProtectionProviderSiteKey  string
 	ResolvedBotProtectionLanguage string
+
+	IsSettingsAction bool
 }
 
 func (m *BaseViewModel) SetError(err error) {
@@ -372,6 +375,7 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 
 			return ""
 		},
+		IsSettingsAction: settingsaction.GetSettingsActionID(r) != "",
 	}
 
 	if errorState, ok := m.ErrorService.PopError(r.Context(), rw, r); ok {
