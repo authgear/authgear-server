@@ -43,6 +43,7 @@ func NewSessionOptionsFromSession(s *Session) SessionOptions {
 	return SessionOptions{
 		SAMLSessionID:              s.SAMLSessionID,
 		OAuthSessionID:             s.OAuthSessionID,
+		SettingsActionID:           s.SettingsActionID,
 		ClientID:                   s.ClientID,
 		RedirectURI:                s.RedirectURI,
 		KeepAfterFinish:            s.KeepAfterFinish,
