@@ -434,10 +434,6 @@ func (h *AuthorizationHandler) doHandle(
 		)
 	}
 
-	otelauthgear.IntCounterAddOne(
-		ctx,
-		otelauthgear.CounterOAuthSessionCreationCount,
-	)
 	// create oauth session and redirect to the web app
 	oauthSessionEntry := oauthsession.NewEntry(oauthsession.T{
 		AuthorizationRequest: r,
@@ -446,6 +442,11 @@ func (h *AuthorizationHandler) doHandle(
 	if err != nil {
 		return nil, err
 	}
+
+	otelauthgear.IntCounterAddOne(
+		ctx,
+		otelauthgear.CounterOAuthSessionCreationCount,
+	)
 
 	loginHintString, loginHintOk := r.LoginHint()
 	// Handle app session token here, and return here.
