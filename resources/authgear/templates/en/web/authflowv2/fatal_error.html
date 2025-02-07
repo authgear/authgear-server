@@ -1,5 +1,9 @@
 {{ template "authflowv2/__page_frame.html" . }}
 {{ define "page-content" }}
+  {{/* We only show redirecting screen for android */}}
+  {{/* See https://linear.app/authgear/issue/DEV-2484 */}}
+  {{ $showRedirecting := (eq .Platform "android") }}
+
   {{ $title := include "v2.page.fatal-error.default.title" nil }}
   {{ if .Error }}
     {{ if eq .Error.reason "WebUIInvalidSession" }}
@@ -15,7 +19,7 @@
       {{ $title = include "v2.page.fatal-error.identify-not-found.title" (dict "LoginIDType" .Error.info.LoginIDType) }}
     {{ end }}
     {{ if eq .Error.reason "WebUISessionCompleted" }}
-      {{ if eq .Platform "android" }}
+      {{ if $showRedirecting }}
         {{ $title = include "v2.page.fatal-error.redirecting.title" nil }}
       {{ else }}
         {{ $title = include "v2.page.fatal-error.token-invalid.title" nil }}
@@ -36,7 +40,7 @@
     {{ else if eq .Error.reason "IdentityNotFound" }}
       {{ $error_message = include "v2.error.identify-not-found" (dict "LoginIDType" .Error.info.LoginIDType) }}
     {{ else if eq .Error.reason "WebUISessionCompleted" }}
-      {{ if eq .Platform "android" }}
+      {{ if $showRedirecting }}
         {{ $error_message = include "v2.error.web-ui-session-completed" nil }}
       {{ else }}
       {{ $error_message = include "v2.error.web-ui-invalid-session-return" nil }}
@@ -47,7 +51,7 @@
 
   {{ $icon := "error" }}
   {{ if .Error }}
-    {{ if and (eq .Error.reason "WebUISessionCompleted") (eq .Platform "android") }}
+    {{ if and (eq .Error.reason "WebUISessionCompleted") $showRedirecting }}
       {{ $icon = "hourglass" }}
     {{ end }}
   {{ end }}
