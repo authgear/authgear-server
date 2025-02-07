@@ -5,7 +5,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/model"
-	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	authenticatorservice "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -15,20 +14,13 @@ import (
 )
 
 type ChangePrimaryPasswordInput struct {
-	OAuthSessionID string
-	RedirectURI    string
-	OldPassword    string
-	NewPassword    string
-}
-
-type ChangePrimaryPasswordOutput struct {
-	RedirectURI string
+	OldPassword string
+	NewPassword string
 }
 
 // If have OAuthSessionID, it means the user is changing password after login with SDK.
 // Then do special handling such as authenticationInfo
-func (s *Service) ChangePrimaryPassword(ctx context.Context, resolvedSession session.ResolvedSession, input *ChangePrimaryPasswordInput) (*ChangePrimaryPasswordOutput, error) {
-	redirectURI := input.RedirectURI
+func (s *Service) ChangePrimaryPassword(ctx context.Context, resolvedSession session.ResolvedSession, input *ChangePrimaryPasswordInput) error {
 
 	var err error
 	err = s.Database.WithTx(ctx, func(ctx context.Context) error {
@@ -44,24 +36,10 @@ func (s *Service) ChangePrimaryPassword(ctx context.Context, resolvedSession ses
 	})
 
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	// If is changing password with SDK.
-	if input.OAuthSessionID != "" {
-		authInfo := resolvedSession.GetAuthenticationInfo()
-		authenticationInfoEntry := authenticationinfo.NewEntry(authInfo, input.OAuthSessionID, "")
-
-		err = s.AuthenticationInfoService.Save(ctx, authenticationInfoEntry)
-		if err != nil {
-			return nil, err
-		}
-		redirectURI = s.UIInfoResolver.SetAuthenticationInfoInQuery(input.RedirectURI, authenticationInfoEntry)
-	}
-
-	return &ChangePrimaryPasswordOutput{
-		RedirectURI: redirectURI,
-	}, nil
+	return nil
 }
 
 type CreateSecondaryPasswordInput struct {
