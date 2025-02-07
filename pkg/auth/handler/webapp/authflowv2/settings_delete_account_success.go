@@ -64,7 +64,7 @@ func (h *AuthflowV2SettingsDeleteAccountSuccessHandler) ServeHTTP(w http.Respons
 
 	ctrl.PostActionWithSettingsActionWebSession("", r, func(ctx context.Context, webSession *webapp.Session) error {
 		redirectURI := "/login"
-		settingsActionResult, ok, err := ctrl.GetSettingsActionResult(ctx, webSession)
+		settingsActionResult, ok, err := ctrl.CreateSettingsActionResult(ctx, webSession)
 		if err != nil {
 			return err
 		}

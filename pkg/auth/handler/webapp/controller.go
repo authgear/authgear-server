@@ -460,7 +460,7 @@ func (c *Controller) FinishSettingsAction(ctx context.Context, userSession sessi
 	return nil
 }
 
-func (c *Controller) GetSettingsActionResult(ctx context.Context, webSession *webapp.Session) (*webapp.Result, bool, error) {
+func (c *Controller) CreateSettingsActionResult(ctx context.Context, webSession *webapp.Session) (*webapp.Result, bool, error) {
 	if webSession == nil || webSession.RedirectURI == "" {
 		return nil, false, nil
 	}
@@ -490,7 +490,7 @@ func (c *Controller) FinishSettingsActionWithResult(ctx context.Context, userSes
 	if err != nil {
 		return nil, err
 	}
-	settingsActionResult, ok, err := c.GetSettingsActionResult(ctx, webSession)
+	settingsActionResult, ok, err := c.CreateSettingsActionResult(ctx, webSession)
 	if err != nil {
 		return nil, err
 	}
