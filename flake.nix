@@ -20,15 +20,15 @@
       let
         pkgs = import nixpkgs {
           inherit system;
-          # As of 2025-02-03, 1.23.5 is still unavailable in nixpkgs-unstable, so we need to use overlay to build 1.23.5 ourselves.
+          # As of 2025-02-07, 1.23.6 is still unavailable in nixpkgs-unstable, so we need to use overlay to build 1.23.6 ourselves.
           overlays = [
             (final: prev: {
               go = (
                 prev.go.overrideAttrs {
-                  version = "1.23.5";
+                  version = "1.23.6";
                   src = prev.fetchurl {
-                    url = "https://go.dev/dl/go1.23.5.src.tar.gz";
-                    hash = "sha256-pvP0u9PmvdYm95tmjyEvu1ZJ2vdQhPt5tnigrk2XQjs=";
+                    url = "https://go.dev/dl/go1.23.6.src.tar.gz";
+                    hash = "sha256-A5xbBOZSedrO7opvcecL0Fz1uAF4K293xuGeLtBREiI=";
                   };
                 }
               );
@@ -100,10 +100,10 @@
               name = "govulncheck";
               src = pkgs.fetchgit {
                 url = "https://go.googlesource.com/vuln";
-                rev = "refs/tags/v1.1.3";
-                hash = "sha256-ydJ8AeoCnLls6dXxjI05+THEqPPdJqtAsKTriTIK9Uc=";
+                rev = "refs/tags/v1.1.4";
+                hash = "sha256-d1JWh/K+65p0TP5vAQbSyoatjN4L5nm3VEA+qBSrkAA=";
               };
-              vendorHash = "sha256-jESQV4Na4Hooxxd0RL96GHkA7Exddco5izjnhfH6xTg=";
+              vendorHash = "sha256-MSTKDeWVxD2Fa6fNoku4EwFwC90XZ5acnM67crcgXDg=";
               subPackages = [ "cmd/govulncheck" ];
               # checkPhase by default run tests. Running tests will result in build error.
               # So we skip it.
@@ -114,10 +114,10 @@
               name = "goimports";
               src = pkgs.fetchgit {
                 url = "https://go.googlesource.com/tools";
-                rev = "refs/tags/v0.28.0";
-                hash = "sha256-BCxsVz4f2h75sj1LzDoKvQ9c8P8SYjcaQE9CdzFdt3w=";
+                rev = "refs/tags/v0.29.0";
+                hash = "sha256-h3UjRY1w0AyONADNiLhxXt9/z7Tb/40FJI8rKGXpBeM=";
               };
-              vendorHash = "sha256-MSir25OEmQ7hg0OAOjZF9J5a5SjlJXdOc523uEBSOSs=";
+              vendorHash = "sha256-5JE4/2yn5emRuq4wGTeNnAJa+QZayDq2n+dL3gMML/M=";
               subPackages = [ "cmd/goimports" ];
             })
 
@@ -126,8 +126,8 @@
               src = pkgs.fetchFromGitHub {
                 owner = "grafana";
                 repo = "xk6";
-                rev = "v0.13.3";
-                sha256 = "sha256-lmtGljTLbcOkE+CYupocM9gmHsTVnpPT9sXOKVuFOww=";
+                rev = "v0.14.0";
+                sha256 = "sha256-s68kM8HPl+hSsiXbO1nO3D3R8MN9fABc9M+30jDCfek=";
               };
               vendorHash = null;
               doCheck = false;

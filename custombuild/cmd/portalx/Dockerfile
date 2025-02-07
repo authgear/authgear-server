@@ -26,7 +26,7 @@ COPY ./portal .
 RUN npm run build
 
 # Stage 1: Build the Go binary
-FROM quay.io/theauthgear/golang:1.23.5-noble AS stage1
+FROM quay.io/theauthgear/golang:1.23.6-noble AS stage1
 
 # Install build time C dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
