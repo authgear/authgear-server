@@ -100,10 +100,10 @@
               name = "govulncheck";
               src = pkgs.fetchgit {
                 url = "https://go.googlesource.com/vuln";
-                rev = "refs/tags/v1.1.3";
-                hash = "sha256-ydJ8AeoCnLls6dXxjI05+THEqPPdJqtAsKTriTIK9Uc=";
+                rev = "refs/tags/v1.1.4";
+                hash = "sha256-d1JWh/K+65p0TP5vAQbSyoatjN4L5nm3VEA+qBSrkAA=";
               };
-              vendorHash = "sha256-jESQV4Na4Hooxxd0RL96GHkA7Exddco5izjnhfH6xTg=";
+              vendorHash = "sha256-MSTKDeWVxD2Fa6fNoku4EwFwC90XZ5acnM67crcgXDg=";
               subPackages = [ "cmd/govulncheck" ];
               # checkPhase by default run tests. Running tests will result in build error.
               # So we skip it.
