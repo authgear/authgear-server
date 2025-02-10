@@ -39,6 +39,13 @@ check_REDIS_PASSWORD_is_set() {
 	fi
 }
 
+check_MINIO_ROOT_PASSWORD_is_set() {
+	if [ -z "$MINIO_ROOT_PASSWORD" ]; then
+		printf 1>&2 "MINIO_ROOT_PASSWORD must be set.\n"
+		exit 1
+	fi
+}
+
 check_http_origin_is_set() {
 	name="AUTHGEAR_HTTP_ORIGIN_$1"
 	value="${!name}"
@@ -312,12 +319,37 @@ docker_certbot_create_cli_ini() {
 	fi
 }
 
+docker_minio_create_directories() {
+	sudo mkdir -p /var/lib/minio/data
+	sudo chmod 0700 /var/lib/minio/data
+
+	user="$(id -u -n)"
+	sudo find /var/lib/minio/data \! -user "$user" -exec chown "$user:$user" '{}' +
+}
+
+docker_minio_create_buckets() {
+	set -eux
+
+	# We need to start the server temporarily.
+	minio server /var/lib/minio/data &
+	minio_pid=$!
+
+	# 1 second should be enough. It starts very fast.
+	sleep 1
+	mcli alias set local http://localhost:9000 "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD"
+	mcli mb --ignore-existing local/images
+	mcli mb --ignore-existing local/userexport
+
+	kill -SIGTERM "$minio_pid"
+}
+
 main() {
 	check_user_is_correct
 	check_PGDATA_is_set
 	check_LANG_is_set
 	check_POSTGRES_PASSWORD_is_set
 	check_REDIS_PASSWORD_is_set
+	check_MINIO_ROOT_PASSWORD_is_set
 	docker_nginx_check_environment_variables
 
 	docker_nginx_create_directories
@@ -345,6 +377,9 @@ main() {
 
 	docker_redis_create_directories
 	docker_redis_write_acl_file
+
+	docker_minio_create_directories
+	docker_minio_create_buckets
 
 	# Replace this process with the given arguments.
 	exec "$@"

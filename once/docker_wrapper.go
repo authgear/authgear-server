@@ -143,6 +143,11 @@ func main() {
 		decowriter.New(os.Stdout, []byte("docker-certbot | "), []byte("")),
 		decowriter.New(os.Stderr, []byte("docker-certbot | "), []byte("")),
 	)
+	minio := NewChild(
+		[]string{"minio", "server", "/var/lib/minio/data", "--console-address", ":9001"},
+		decowriter.New(os.Stdout, []byte("minio          | "), []byte("")),
+		decowriter.New(os.Stderr, []byte("minio          | "), []byte("")),
+	)
 	childResults := []ChildResult{}
 	startedChildren := []*Child{}
 
@@ -175,6 +180,7 @@ func main() {
 	start(redis)
 	start(nginx)
 	start(certbot)
+	start(minio)
 
 	// Some child failed to start, trigger reap now.
 	if len(childResults) > 0 {

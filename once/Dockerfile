@@ -16,6 +16,18 @@ FROM ubuntu:noble
 ### For example, python3 is a suggested package of postgresql-common.
 ### But we certainly do not need python3 installed in the image.
 
+# https://docs.docker.com/reference/dockerfile/#automatic-platform-args-in-the-global-scope
+ARG TARGETOS
+ARG TARGETARCH
+
+## Install curl.
+## We need it to download minio.
+RUN set -eux; \
+	apt-get update; \
+	apt-get install -y --no-install-recommends --no-install-suggests \
+		curl; \
+	rm -rf /var/lib/apt/lists/*
+
 ## Install less.
 ## It is useful to view files like postgresql.conf, pg_hba.conf, etc.
 RUN set -eux; \
@@ -225,6 +237,24 @@ RUN set -eux; \
 	cp /etc/letsencrypt/cli.ini /home/authgear/certbot.ini; \
 	chown authgear:authgear /home/authgear/certbot.ini
 
+ARG MINIO_RELEASE=20250207232109.0.0
+ARG MC_RELEASE=20250208191421.0.0
+
+## Install minio and mcli.
+RUN set -eux; \
+	cd /home/authgear; \
+	curl -q -s https://dl.min.io/server/minio/release/${TARGETOS}-${TARGETARCH}/archive/minio_${MINIO_RELEASE}_${TARGETARCH}.deb -o minio_${MINIO_RELEASE}_${TARGETARCH}.deb; \
+	curl -q -s https://dl.min.io/server/minio/release/${TARGETOS}-${TARGETARCH}/archive/minio_${MINIO_RELEASE}_${TARGETARCH}.deb.sha256sum -o minio_${MINIO_RELEASE}_${TARGETARCH}.deb.sha256sum; \
+	curl -q -s https://dl.min.io/client/mc/release/${TARGETOS}-${TARGETARCH}/archive/mcli_${MC_RELEASE}_${TARGETARCH}.deb -o mcli_${MC_RELEASE}_${TARGETARCH}.deb; \
+	curl -q -s https://dl.min.io/client/mc/release/${TARGETOS}-${TARGETARCH}/archive/mcli_${MC_RELEASE}_${TARGETARCH}.deb.sha256sum -o mcli_${MC_RELEASE}_${TARGETARCH}.deb.sha256sum; \
+	sha256sum --check minio_${MINIO_RELEASE}_${TARGETARCH}.deb.sha256sum mcli_${MC_RELEASE}_${TARGETARCH}.deb.sha256sum; \
+	dpkg --install minio_${MINIO_RELEASE}_${TARGETARCH}.deb; \
+	dpkg --install mcli_${MC_RELEASE}_${TARGETARCH}.deb; \
+	rm \
+		minio_${MINIO_RELEASE}_${TARGETARCH}.deb.sha256sum \
+		mcli_${MC_RELEASE}_${TARGETARCH}.deb.sha256sum \
+		minio_${MINIO_RELEASE}_${TARGETARCH}.deb \
+		mcli_${MC_RELEASE}_${TARGETARCH}.deb
 
 COPY --chown=authgear:authgear ./once/docker-entrypoint.sh ./once/docker-certbot.py /usr/local/bin/
 COPY --from=stage1 --chown=authgear:authgear /src/docker_wrapper /usr/local/bin/
@@ -235,14 +265,18 @@ USER authgear
 WORKDIR /home/authgear
 
 ENV PGDATA=/var/lib/postgresql/data
+ENV MINIO_ROOT_USER=authgear
 
 VOLUME /var/lib/postgresql/data
 VOLUME /var/lib/redis/data
+VOLUME /var/lib/minio/data
 VOLUME /etc/letsencrypt
 
 EXPOSE 5432
 EXPOSE 6379
 EXPOSE 80
 EXPOSE 443
+EXPOSE 9000
+EXPOSE 9001
 
 CMD ["docker_wrapper"]
