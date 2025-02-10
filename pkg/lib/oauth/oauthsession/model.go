@@ -8,6 +8,7 @@ import (
 
 type T struct {
 	AuthorizationRequest protocol.AuthorizationRequest `json:"authorization_request,omitempty"`
+	SettingsActionID     string                        `json:"settings_action_id,omitempty"`
 	SettingsActionResult *SettingsActionResult         `json:"settings_action_result,omitempty"`
 }
 

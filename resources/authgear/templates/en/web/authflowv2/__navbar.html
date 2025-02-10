@@ -2,13 +2,15 @@
 <nav class="navbar">
   <h1 class="navbar__title">{{ $.Title }}</h1>
 
-  <a
-    class="navbar__item inline-flex items-center justify-center gap-x-3"
-    title="{{ .BackTitle }}"
-    href="{{ .BackHref }}"
-    data-turbo-action="replace"
-  >
-    <span class="hidden tablet:inline-block">{{ .BackTitle }}</span>
-  </a>
+  {{ if not $.Context.IsSettingsAction }}
+    <a
+      class="navbar__item inline-flex items-center justify-center gap-x-3"
+      title="{{ .BackTitle }}"
+      href="{{ .BackHref }}"
+      data-turbo-action="replace"
+    >
+      <span class="hidden tablet:inline-block">{{ .BackTitle }}</span>
+    </a>
+  {{ end }}
 </nav>
 {{ end }}

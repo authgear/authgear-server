@@ -202,12 +202,16 @@ func (c *AuthflowController) HandleStartOfFlow(
 	handleWithScreen(screen)
 }
 
+func (c *AuthflowController) isExpectedWebSessionError(err error) bool {
+	return apierrors.IsKind(err, webapp.WebUIInvalidSession) || apierrors.IsKind(err, webapp.WebUISessionCompleted)
+}
+
 func (c *AuthflowController) HandleOAuthCallback(ctx context.Context, w http.ResponseWriter, r *http.Request, callbackResponse AuthflowOAuthCallbackResponse) {
 	state := callbackResponse.State
 
 	s, err := c.Sessions.Get(ctx, state.WebSessionID)
 	if err != nil {
-		if !apierrors.IsKind(err, webapp.WebUIInvalidSession) {
+		if !c.isExpectedWebSessionError(err) {
 			c.Logger.WithError(err).Errorf("failed to get web session")
 		}
 		c.renderError(ctx, w, r, err)
@@ -309,7 +313,7 @@ func (c *AuthflowController) HandleStep(ctx context.Context, w http.ResponseWrit
 
 	s, err := c.getWebSession(ctx)
 	if err != nil {
-		if !apierrors.IsKind(err, webapp.WebUIInvalidSession) {
+		if !c.isExpectedWebSessionError(err) {
 			c.Logger.WithError(err).Errorf("failed to get web session")
 		}
 		c.renderError(ctx, w, r, err)
@@ -341,7 +345,7 @@ func (c *AuthflowController) HandleWithoutFlow(ctx context.Context, w http.Respo
 	var session *webapp.Session
 	s, err := c.getWebSession(ctx)
 	if err != nil {
-		if !apierrors.IsKind(err, webapp.WebUIInvalidSession) {
+		if !c.isExpectedWebSessionError(err) {
 			c.Logger.WithError(err).Errorf("failed to get web session")
 		}
 	} else {
@@ -368,21 +372,27 @@ func (c *AuthflowController) getWebSession(ctx context.Context) (*webapp.Session
 	if s == nil {
 		return nil, webapp.ErrSessionNotFound
 	}
+	if s.IsCompleted {
+		return nil, webapp.ErrSessionCompleted
+	}
 	return s, nil
 }
 
 func (c *AuthflowController) getOrCreateWebSession(ctx context.Context, w http.ResponseWriter, r *http.Request, opts webapp.SessionOptions) (*webapp.Session, error) {
 	now := c.Clock.NowUTC()
-	s := webapp.GetSession(ctx)
-	if s != nil {
+	s, err := c.getWebSession(ctx)
+	if err == nil && s != nil {
 		return s, nil
+	}
+	if !errors.Is(err, webapp.ErrSessionNotFound) {
+		return nil, err
 	}
 
 	o := opts
 	o.UpdatedAt = now
 
 	s = webapp.NewSession(o)
-	err := c.Sessions.Create(ctx, s)
+	err = c.Sessions.Create(ctx, s)
 	if err != nil {
 		return nil, err
 	}
@@ -1129,8 +1139,10 @@ func (c *AuthflowController) finishSession(
 	case authflow.FlowTypeSignupLogin:
 		fallthrough
 	case authflow.FlowTypeReauth:
-		// Forget the session.
-		err := c.Sessions.Delete(ctx, s.ID)
+		// Mark the current session as completed,
+		// so that user will see a completed screen if trying to back to the previous steps
+		s.IsCompleted = true
+		err = c.Sessions.Update(ctx, s)
 		if err != nil {
 			return err
 		}
@@ -1138,7 +1150,6 @@ func (c *AuthflowController) finishSession(
 		// When user visit auth ui root "/", redirect user to "/login" if
 		// cookie exists
 		result.Cookies = append(result.Cookies, c.Cookies.ValueCookie(c.SignedUpCookie.Def, "true"))
-		result.Cookies = append(result.Cookies, c.Cookies.ClearCookie(c.SessionCookie.Def))
 		// Reset visitor ID.
 		result.Cookies = append(result.Cookies, c.Cookies.ClearCookie(webapp.VisitorIDCookieDef))
 	default:

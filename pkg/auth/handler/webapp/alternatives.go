@@ -28,7 +28,7 @@ type CreateAuthenticatorPhoneOTPNode interface {
 // nolint: gocognit
 func handleAlternativeSteps(ctrl *Controller) {
 	ctrl.PostAction("choose_step", func(ctx context.Context) (err error) {
-		session, err := ctrl.InteractionSession(ctx)
+		session, err := ctrl.GetWebappSession(ctx)
 		if err != nil {
 			return err
 		}

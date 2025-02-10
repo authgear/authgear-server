@@ -69,7 +69,7 @@ func (h *AuthflowV2SettingsChangePasswordHandler) ServeHTTP(w http.ResponseWrite
 	}
 	defer ctrl.ServeWithoutDBTx(r.Context())
 
-	ctrl.Get(func(ctx context.Context) error {
+	ctrl.GetWithSettingsActionWebSession(r, func(ctx context.Context, _ *webapp.Session) error {
 		data, err := h.GetData(r, w)
 		if err != nil {
 			return err
@@ -80,7 +80,7 @@ func (h *AuthflowV2SettingsChangePasswordHandler) ServeHTTP(w http.ResponseWrite
 		return nil
 	})
 
-	ctrl.PostAction("", func(ctx context.Context) error {
+	ctrl.PostActionWithSettingsActionWebSession("", r, func(ctx context.Context, webappSession *webapp.Session) error {
 		err := AuthflowV2SettingsChangePasswordSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
 		if err != nil {
 			return err
@@ -96,29 +96,29 @@ func (h *AuthflowV2SettingsChangePasswordHandler) ServeHTTP(w http.ResponseWrite
 		}
 
 		s := session.GetSession(ctx)
-		webappSession := webapp.GetSession(ctx)
-		var oAuthSessionID string
-		redirectURI := SettingsV2RouteSettings
-		if webappSession != nil {
-			oAuthSessionID = webappSession.OAuthSessionID
-			redirectURI = webappSession.RedirectURI
-		}
 
 		input := &accountmanagement.ChangePrimaryPasswordInput{
-			OAuthSessionID: oAuthSessionID,
-			RedirectURI:    redirectURI,
-			OldPassword:    oldPassword,
-			NewPassword:    newPassword,
+			OldPassword: oldPassword,
+			NewPassword: newPassword,
 		}
 
-		changePasswordOutput, err := h.AccountManagementService.ChangePrimaryPassword(ctx, s, input)
+		err = h.AccountManagementService.ChangePrimaryPassword(ctx, s, input)
 		if err != nil {
 			return err
 		}
 
+		if ctrl.IsInSettingsAction(s, webappSession) {
+			settingsActionResult, err := ctrl.FinishSettingsActionWithResult(ctx, s, webappSession)
+			if err != nil {
+				return err
+			}
+			settingsActionResult.WriteResponse(w, r)
+			return nil
+		}
+
 		result := webapp.Result{
-			RedirectURI:      changePasswordOutput.RedirectURI,
 			NavigationAction: webapp.NavigationActionRedirect,
+			RedirectURI:      SettingsV2RouteSettings,
 		}
 		result.WriteResponse(w, r)
 		return nil

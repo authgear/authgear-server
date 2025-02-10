@@ -123,7 +123,7 @@ func (h *AuthflowV2SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *htt
 	ctrl.BeforeHandle(func(ctx context.Context) error {
 
 		// Ensure webapp session exist
-		ws, err := ctrl.InteractionSession(ctx)
+		ws, err := ctrl.GetWebappSession(ctx)
 		if err != nil {
 			return err
 		}

@@ -16,6 +16,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oauthsession"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/lib/settingsaction"
 	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -278,15 +279,15 @@ func BuildCustomUIEndpoint(base string) (*url.URL, error) {
 func (b *UIURLBuilder) BuildSettingsActionURL(client *config.OAuthClientConfig, r protocol.AuthorizationRequest, e *oauthsession.Entry) (*url.URL, error) {
 	var endpoint *url.URL
 	switch r.SettingsAction() {
-	case protocol.SettingActionChangePassword:
+	case settingsaction.SettingsActionChangePassword:
 		endpoint = b.Endpoints.SettingsChangePasswordURL()
 		b.addToEndpoint(endpoint, r, e)
 		return endpoint, nil
-	case protocol.SettingActionDeleteAccount:
+	case settingsaction.SettingsActionDeleteAccount:
 		endpoint = b.Endpoints.SettingsDeleteAccountURL()
 		b.addToEndpoint(endpoint, r, e)
 		return endpoint, nil
-	case protocol.SettingActionAddEmail:
+	case settingsaction.SettingsActionAddEmail:
 		loginIDCfg, ok := b.firstCreatableLoginIDConfig(model.LoginIDKeyTypeEmail)
 		if !ok {
 			return nil, NewErrInvalidSettingsAction("email login id is not configured to be creatable")
@@ -294,7 +295,7 @@ func (b *UIURLBuilder) BuildSettingsActionURL(client *config.OAuthClientConfig, 
 		endpoint = b.Endpoints.SettingsAddLoginIDEmail(loginIDCfg.Key)
 		b.addToEndpoint(endpoint, r, e)
 		return endpoint, nil
-	case protocol.SettingActionAddPhone:
+	case settingsaction.SettingsActionAddPhone:
 		loginIDCfg, ok := b.firstCreatableLoginIDConfig(model.LoginIDKeyTypePhone)
 		if !ok {
 			return nil, NewErrInvalidSettingsAction("phone login id is not configured to be creatable")
@@ -302,7 +303,7 @@ func (b *UIURLBuilder) BuildSettingsActionURL(client *config.OAuthClientConfig, 
 		endpoint = b.Endpoints.SettingsAddLoginIDPhone(loginIDCfg.Key)
 		b.addToEndpoint(endpoint, r, e)
 		return endpoint, nil
-	case protocol.SettingActionAddUsername:
+	case settingsaction.SettingsActionAddUsername:
 		loginIDCfg, ok := b.firstCreatableLoginIDConfig(model.LoginIDKeyTypeUsername)
 		if !ok {
 			return nil, NewErrInvalidSettingsAction("username login id is not configured to be creatable")
@@ -311,7 +312,7 @@ func (b *UIURLBuilder) BuildSettingsActionURL(client *config.OAuthClientConfig, 
 		b.addToEndpoint(endpoint, r, e)
 		return endpoint, nil
 
-	case protocol.SettingActionChangeEmail:
+	case settingsaction.SettingsActionChangeEmail:
 		loginIDCfg, ok := b.firstUpdatableLoginIDConfig(model.LoginIDKeyTypeEmail)
 		if !ok {
 			return nil, NewErrInvalidSettingsAction("email login id is not configured to be updatable")
@@ -319,7 +320,7 @@ func (b *UIURLBuilder) BuildSettingsActionURL(client *config.OAuthClientConfig, 
 		endpoint = b.Endpoints.SettingsEditLoginIDEmail(loginIDCfg.Key)
 		b.addToEndpoint(endpoint, r, e)
 		return endpoint, nil
-	case protocol.SettingActionChangePhone:
+	case settingsaction.SettingsActionChangePhone:
 		loginIDCfg, ok := b.firstUpdatableLoginIDConfig(model.LoginIDKeyTypePhone)
 		if !ok {
 			return nil, NewErrInvalidSettingsAction("phone login id is not configured to be updatable")
@@ -327,7 +328,7 @@ func (b *UIURLBuilder) BuildSettingsActionURL(client *config.OAuthClientConfig, 
 		endpoint = b.Endpoints.SettingsEditLoginIDPhone(loginIDCfg.Key)
 		b.addToEndpoint(endpoint, r, e)
 		return endpoint, nil
-	case protocol.SettingActionChangeUsername:
+	case settingsaction.SettingsActionChangeUsername:
 		loginIDCfg, ok := b.firstUpdatableLoginIDConfig(model.LoginIDKeyTypeUsername)
 		if !ok {
 			return nil, NewErrInvalidSettingsAction("username login id is not configured to be updatable")
@@ -365,6 +366,7 @@ func (b *UIURLBuilder) addToEndpoint(endpoint *url.URL, r protocol.Authorization
 			}
 		}
 	}
+	q.Set(settingsaction.QUERY_SETTINGS_ACTION_ID, e.T.SettingsActionID)
 	endpoint.RawQuery = q.Encode()
 }
 

@@ -15,6 +15,7 @@ import (
 	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/settingsaction"
 	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/geoip"
@@ -90,6 +91,7 @@ type BaseViewModel struct {
 	ForgotPasswordEnabled bool
 	PublicSignupDisabled  bool
 	PageLoadedAt          int
+	Platform              string
 	IsNativePlatform      bool
 	FlashMessageType      string
 	ResolvedLanguageTag   string
@@ -117,6 +119,8 @@ type BaseViewModel struct {
 	BotProtectionProviderType     string
 	BotProtectionProviderSiteKey  string
 	ResolvedBotProtectionLanguage string
+
+	IsSettingsAction bool
 }
 
 func (m *BaseViewModel) SetError(err error) {
@@ -371,6 +375,7 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 
 			return ""
 		},
+		IsSettingsAction: settingsaction.GetSettingsActionID(r) != "",
 	}
 
 	if errorState, ok := m.ErrorService.PopError(r.Context(), rw, r); ok {
@@ -395,6 +400,7 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 	}
 	model.IsNativePlatform = (platform == "ios" ||
 		platform == "android")
+	model.Platform = platform
 
 	ua := apimodel.ParseUserAgent(r.UserAgent())
 	model.IsSupportedMobilePlatform = ua.OS == "iOS" || ua.OS == "Android"

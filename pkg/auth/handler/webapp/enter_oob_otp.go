@@ -161,7 +161,7 @@ func (h *EnterOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	defer ctrl.ServeWithDBTx(r.Context())
 
 	ctrl.Get(func(ctx context.Context) error {
-		session, err := ctrl.InteractionSession(ctx)
+		session, err := ctrl.GetWebappSession(ctx)
 		if err != nil {
 			return err
 		}

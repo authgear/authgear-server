@@ -2,6 +2,7 @@ package webapp
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -15,6 +16,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oauthsession"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/lib/settingsaction"
 	"github.com/authgear/authgear-server/pkg/lib/tester"
 	"github.com/authgear/authgear-server/pkg/lib/webappoauth"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -313,16 +315,19 @@ func (c *Controller) rewindSessionHistory(session *webapp.Session) error {
 	return nil
 }
 
-func (c *Controller) InteractionSession(ctx context.Context) (*webapp.Session, error) {
+func (c *Controller) GetWebappSession(ctx context.Context) (*webapp.Session, error) {
 	s := webapp.GetSession(ctx)
 	if s == nil {
 		return nil, webapp.ErrSessionNotFound
+	}
+	if s.IsCompleted {
+		return nil, webapp.ErrSessionCompleted
 	}
 	return s, nil
 }
 
 func (c *Controller) InteractionGet(ctx context.Context) (*interaction.Graph, error) {
-	s, err := c.InteractionSession(ctx)
+	s, err := c.GetWebappSession(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -343,7 +348,7 @@ func (c *Controller) InteractionGetWithSession(ctx context.Context, s *webapp.Se
 }
 
 func (c *Controller) InteractionPost(ctx context.Context, inputFn func() (interface{}, error)) (*webapp.Result, error) {
-	s, err := c.InteractionSession(ctx)
+	s, err := c.GetWebappSession(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -373,6 +378,50 @@ func (c *Controller) InteractionOAuthCallback(ctx context.Context, oauthInput In
 	}
 
 	return c.Page.PostWithInput(ctx, s, inputFn)
+}
+
+func (c *Controller) getSettingsActionWebSession(ctx context.Context, r *http.Request) (*webapp.Session, error) {
+	webappSession, err := c.GetWebappSession(ctx)
+	if err != nil {
+		// No session means it is not in settings action
+		if errors.Is(err, webapp.ErrSessionNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	if webappSession.SettingsActionID == "" {
+		// This session is not for a settings action, ignore it
+		return nil, nil
+	}
+	if settingsaction.GetSettingsActionID(r) == "" {
+		// We are not in a settings action
+		return nil, nil
+	}
+	if settingsaction.GetSettingsActionID(r) != webappSession.SettingsActionID {
+		// This session is not for the current settings action, ignore it
+		return nil, nil
+	}
+	return webappSession, nil
+}
+
+func (c *Controller) GetWithSettingsActionWebSession(r *http.Request, fn func(context.Context, *webapp.Session) error) {
+	c.getHandler = func(ctx context.Context) error {
+		webappSession, err := c.getSettingsActionWebSession(ctx, r)
+		if err != nil {
+			return err
+		}
+		return fn(ctx, webappSession)
+	}
+}
+
+func (c *Controller) PostActionWithSettingsActionWebSession(action string, r *http.Request, fn func(context.Context, *webapp.Session) error) {
+	c.postHandlers[action] = func(ctx context.Context) error {
+		webappSession, err := c.getSettingsActionWebSession(ctx, r)
+		if err != nil {
+			return err
+		}
+		return fn(ctx, webappSession)
+	}
 }
 
 func (c *Controller) IsInSettingsAction(userSession session.ResolvedSession, webSession *webapp.Session) bool {
@@ -411,7 +460,7 @@ func (c *Controller) FinishSettingsAction(ctx context.Context, userSession sessi
 	return nil
 }
 
-func (c *Controller) GetSettingsActionResult(ctx context.Context, webSession *webapp.Session) (*webapp.Result, bool, error) {
+func (c *Controller) CreateSettingsActionResult(ctx context.Context, webSession *webapp.Session) (*webapp.Result, bool, error) {
 	if webSession == nil || webSession.RedirectURI == "" {
 		return nil, false, nil
 	}
@@ -422,6 +471,11 @@ func (c *Controller) GetSettingsActionResult(ctx context.Context, webSession *we
 			return nil, false, err
 		}
 		redirectURI = c.UIInfoResolver.SetAuthenticationInfoInQuery(redirectURI, authInfo)
+		webSession.IsCompleted = true
+		err = c.UpdateSession(ctx, webSession)
+		if err != nil {
+			return nil, false, err
+		}
 		result := webapp.Result{
 			RedirectURI:      redirectURI,
 			NavigationAction: webapp.NavigationActionRedirect,
@@ -436,7 +490,7 @@ func (c *Controller) FinishSettingsActionWithResult(ctx context.Context, userSes
 	if err != nil {
 		return nil, err
 	}
-	settingsActionResult, ok, err := c.GetSettingsActionResult(ctx, webSession)
+	settingsActionResult, ok, err := c.CreateSettingsActionResult(ctx, webSession)
 	if err != nil {
 		return nil, err
 	}

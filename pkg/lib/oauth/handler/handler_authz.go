@@ -17,6 +17,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/lib/settingsaction"
 	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/duration"
@@ -414,20 +415,16 @@ func (h *AuthorizationHandler) doHandle(
 		return nil, err
 	}
 
-	// create oauth session and redirect to the web app
-	oauthSessionEntry := oauthsession.NewEntry(oauthsession.T{
-		AuthorizationRequest: r,
-	})
-	err = h.OAuthSessionService.Save(ctx, oauthSessionEntry)
-	if err != nil {
-		return nil, err
-	}
-	otelauthgear.IntCounterAddOne(
-		ctx,
-		otelauthgear.CounterOAuthSessionCreationCount,
-	)
-
 	if r.ResponseType().Equal(SettingsActonResponseType) {
+		// create oauth session for the setting action
+		oauthSessionEntry := oauthsession.NewEntry(oauthsession.T{
+			AuthorizationRequest: r,
+			SettingsActionID:     settingsaction.NewSettingsActionID(),
+		})
+		err = h.OAuthSessionService.Save(ctx, oauthSessionEntry)
+		if err != nil {
+			return nil, err
+		}
 		return h.handleSettingsAction(
 			ctx,
 			redirectURI,
@@ -436,6 +433,20 @@ func (h *AuthorizationHandler) doHandle(
 			r,
 		)
 	}
+
+	// create oauth session and redirect to the web app
+	oauthSessionEntry := oauthsession.NewEntry(oauthsession.T{
+		AuthorizationRequest: r,
+	})
+	err = h.OAuthSessionService.Save(ctx, oauthSessionEntry)
+	if err != nil {
+		return nil, err
+	}
+
+	otelauthgear.IntCounterAddOne(
+		ctx,
+		otelauthgear.CounterOAuthSessionCreationCount,
+	)
 
 	loginHintString, loginHintOk := r.LoginHint()
 	// Handle app session token here, and return here.
@@ -799,7 +810,7 @@ func (h *AuthorizationHandler) validateRequest(
 
 	switch {
 	case responseType.Equal(SettingsActonResponseType):
-		if r.SettingsAction() == protocol.SettingActionDeleteAccount {
+		if r.SettingsAction() == settingsaction.SettingsActionDeleteAccount {
 			if !h.AccountDeletionConfig.ScheduledByEndUserEnabled {
 				return protocol.NewError("invalid_request", "account deletion by end user is disabled")
 			}
