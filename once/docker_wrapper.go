@@ -10,6 +10,7 @@ import (
 	"reflect"
 	"syscall"
 
+	"github.com/goaux/decowriter"
 	"golang.org/x/sys/unix"
 )
 
@@ -92,6 +93,9 @@ func SignalName(sig os.Signal) string {
 }
 
 func main() {
+	parentStdout := decowriter.New(os.Stdout, []byte("docker_wrapper | "), []byte(""))
+	//parentStderr := decowriter.New(os.Stderr, []byte("docker_wrapper | "), []byte(""))
+
 	parentState := ParentStateRunning
 
 	// https://pkg.go.dev/os/signal@go1.23.6#hdr-Default_behavior_of_signals_in_Go_programs
@@ -119,10 +123,26 @@ func main() {
 		{Dir: reflect.SelectRecv, Chan: reflect.ValueOf(signalChan)},
 	}
 
-	postgres := NewChild([]string{"postgres"}, os.Stdout, os.Stderr)
-	redis := NewChild([]string{"redis-server", "/etc/redis/redis.conf"}, os.Stdout, os.Stderr)
-	nginx := NewChild([]string{"nginx"}, os.Stdout, os.Stderr)
-	certbot := NewChild([]string{"docker-certbot.py"}, os.Stdout, os.Stderr)
+	postgres := NewChild(
+		[]string{"postgres"},
+		decowriter.New(os.Stdout, []byte("postgres       | "), []byte("")),
+		decowriter.New(os.Stderr, []byte("postgres       | "), []byte("")),
+	)
+	redis := NewChild(
+		[]string{"redis-server", "/etc/redis/redis.conf"},
+		decowriter.New(os.Stdout, []byte("redis          | "), []byte("")),
+		decowriter.New(os.Stderr, []byte("redis          | "), []byte("")),
+	)
+	nginx := NewChild(
+		[]string{"nginx"},
+		decowriter.New(os.Stdout, []byte("nginx          | "), []byte("")),
+		decowriter.New(os.Stderr, []byte("nginx          | "), []byte("")),
+	)
+	certbot := NewChild(
+		[]string{"docker-certbot.py"},
+		decowriter.New(os.Stdout, []byte("docker-certbot | "), []byte("")),
+		decowriter.New(os.Stderr, []byte("docker-certbot | "), []byte("")),
+	)
 	childResults := []ChildResult{}
 	startedChildren := []*Child{}
 
@@ -146,7 +166,7 @@ func main() {
 		}
 		parentState = ParentStateReaping
 		for _, child := range startedChildren {
-			fmt.Printf("docker_wrapper: sending %v to %v\n", SignalName(sig), child)
+			fmt.Fprintf(parentStdout, "sending %v to %v\n", SignalName(sig), child)
 			child.Signal(sig)
 		}
 	}
@@ -168,10 +188,10 @@ func main() {
 		// case sig := <-signalChan:
 		case chosenIdx == 0:
 			sig := recv.Interface().(os.Signal)
-			fmt.Printf("docker_wrapper: received signal: %v\n", SignalName(sig))
+			fmt.Fprintf(parentStdout, "received signal: %v\n", SignalName(sig))
 			for _, signalForReaping := range signalsForReaping {
 				if signalForReaping == sig {
-					fmt.Printf("docker_wrapper: start reaping because signal is %v\n", SignalName(sig))
+					fmt.Fprintf(parentStdout, "start reaping because signal is %v\n", SignalName(sig))
 					startReap(sig)
 				}
 			}
@@ -193,15 +213,15 @@ func main() {
 	parentExitCode := 0
 	for _, childResult := range childResults {
 		if childResult.Err != nil {
-			fmt.Printf("docker_wrapper: %v resulted in err: %v\n", childResult.Child, childResult.Err)
+			fmt.Fprintf(parentStdout, "%v resulted in err: %v\n", childResult.Child, childResult.Err)
 		} else if childResult.ProcessState != nil {
 			childExitCode := childResult.ProcessState.ExitCode()
-			fmt.Printf("docker_wrapper: %v exited with %v\n", childResult.Child, childExitCode)
+			fmt.Fprintf(parentStdout, "%v exited with %v\n", childResult.Child, childExitCode)
 			if childExitCode != 0 {
 				parentExitCode = childExitCode
 			}
 		}
 	}
-	fmt.Printf("docker_wrapper: exiting with %v\n", parentExitCode)
+	fmt.Fprintf(parentStdout, "exiting with %v\n", parentExitCode)
 	os.Exit(parentExitCode)
 }

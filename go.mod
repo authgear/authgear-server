@@ -88,6 +88,7 @@ require (
 	github.com/coder/websocket v1.8.12
 	github.com/go-gsm/charset v1.0.0
 	github.com/go-ldap/ldap/v3 v3.4.8
+	github.com/goaux/decowriter v1.0.0
 	github.com/kr/pretty v0.3.1
 	github.com/minio/minio-go/v7 v7.0.81
 	github.com/rivo/uniseg v0.4.7
