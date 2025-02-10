@@ -1,3 +1,11 @@
+FROM quay.io/theauthgear/golang:1.23.6-noble AS stage1
+WORKDIR /src
+COPY go.mod go.sum ./
+RUN go mod download
+COPY ./once/ ./
+RUN go build -o docker_wrapper -tags 'osusergo netgo static_build timetzdata' .
+
+
 FROM ubuntu:noble
 
 ### A note on apt-get install -y --no-install-recommends --no-install-suggests
@@ -218,7 +226,8 @@ RUN set -eux; \
 	chown authgear:authgear /home/authgear/certbot.ini
 
 
-COPY --chown=authgear:authgear ./once/docker-entrypoint.sh ./once/docker-wrapper.sh ./once/docker-certbot.py /usr/local/bin/
+COPY --chown=authgear:authgear ./once/docker-entrypoint.sh ./once/docker-certbot.py /usr/local/bin/
+COPY --from=stage1 --chown=authgear:authgear /src/docker_wrapper /usr/local/bin/
 
 ENTRYPOINT ["docker-entrypoint.sh"]
 
@@ -236,4 +245,4 @@ EXPOSE 6379
 EXPOSE 80
 EXPOSE 443
 
-CMD ["docker-wrapper.sh"]
+CMD ["docker_wrapper"]
