@@ -10,6 +10,7 @@ import {
   PanelType,
   IRenderFunction,
   IPanelProps,
+  IContextualMenuProps,
 } from "@fluentui/react";
 import { useAppAndSecretConfigQuery } from "./graphql/portal/query/appAndSecretConfigQuery";
 import { useViewerQuery } from "./graphql/portal/query/viewerQuery";
@@ -22,6 +23,7 @@ import { useBoolean } from "@fluentui/react-hooks";
 import ExternalLink from "./ExternalLink";
 import { useLogout } from "./graphql/portal/Authenticated";
 import { useCapture } from "./gtm_v2";
+import { useSettingsAnchor } from "./hook/authgear";
 
 interface LogoProps {
   isNavbarHeader?: boolean;
@@ -177,7 +179,7 @@ const ScreenHeader: React.VFC<ScreenNavProps> = function ScreenHeader(props) {
   const { showHamburger = true } = props;
   const { renderToString } = useContext(Context);
   const capture = useCapture();
-  const { themes, authgearEndpoint } = useSystemConfig();
+  const { themes } = useSystemConfig();
   const { appID } = useParams() as { appID: string };
   const { viewer } = useViewerQuery();
   const [isNavbarOpen, { setTrue: openNavbar, setFalse: dismissNavbar }] =
@@ -225,6 +227,8 @@ const ScreenHeader: React.VFC<ScreenNavProps> = function ScreenHeader(props) {
     [themes.main]
   );
 
+  const { href: settingURL, onClick: onClickSettings } = useSettingsAnchor();
+
   const menuProps = useMemo(() => {
     const items = [
       {
@@ -233,7 +237,8 @@ const ScreenHeader: React.VFC<ScreenNavProps> = function ScreenHeader(props) {
         iconProps: {
           iconName: "PlayerSettings",
         },
-        href: authgearEndpoint + "/settings",
+        href: settingURL,
+        onClick: onClickSettings,
       },
       {
         key: "logout",
@@ -243,7 +248,7 @@ const ScreenHeader: React.VFC<ScreenNavProps> = function ScreenHeader(props) {
         },
         onClick: onClickLogout,
       },
-    ];
+    ] satisfies IContextualMenuProps["items"];
 
     if (window.Osano !== undefined) {
       items.splice(1, 0, {
@@ -256,12 +261,13 @@ const ScreenHeader: React.VFC<ScreenNavProps> = function ScreenHeader(props) {
       });
     }
 
-    return { items };
+    return { items } satisfies IContextualMenuProps;
   }, [
+    renderToString,
+    settingURL,
+    onClickSettings,
     onClickLogout,
     onClickCookiePreference,
-    renderToString,
-    authgearEndpoint,
   ]);
 
   return (
