@@ -320,9 +320,6 @@ func (c *Controller) GetWebappSession(ctx context.Context) (*webapp.Session, err
 	if s == nil {
 		return nil, webapp.ErrSessionNotFound
 	}
-	if s.IsCompleted {
-		return nil, webapp.ErrSessionCompleted
-	}
 	return s, nil
 }
 
@@ -400,6 +397,9 @@ func (c *Controller) getSettingsActionWebSession(ctx context.Context, r *http.Re
 	if settingsaction.GetSettingsActionID(r) != webappSession.SettingsActionID {
 		// This session is not for the current settings action, ignore it
 		return nil, nil
+	}
+	if webappSession.IsCompleted {
+		return nil, webapp.ErrSessionCompleted
 	}
 	return webappSession, nil
 }
