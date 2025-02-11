@@ -47,7 +47,7 @@ func (h *PromptCreatePasskeyHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 	defer ctrl.ServeWithDBTx(r.Context())
 
 	ctrl.Get(func(ctx context.Context) error {
-		session, err := ctrl.GetWebappSession(ctx)
+		session, err := ctrl.InteractionSession(ctx)
 		if err != nil {
 			return err
 		}

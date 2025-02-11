@@ -66,7 +66,7 @@ func (h *ConfirmTerminateOtherSessionsHandler) ServeHTTP(w http.ResponseWriter, 
 	defer ctrl.ServeWithDBTx(r.Context())
 
 	ctrl.Get(func(ctx context.Context) error {
-		session, err := ctrl.GetWebappSession(ctx)
+		session, err := ctrl.InteractionSession(ctx)
 		if err != nil {
 			return err
 		}
@@ -91,7 +91,7 @@ func (h *ConfirmTerminateOtherSessionsHandler) ServeHTTP(w http.ResponseWriter, 
 			return err
 		}
 
-		session, err := ctrl.GetWebappSession(ctx)
+		session, err := ctrl.InteractionSession(ctx)
 		if err != nil {
 			return err
 		}
