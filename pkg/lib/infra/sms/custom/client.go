@@ -3,12 +3,15 @@ package custom
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
 	"time"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms/smsapi"
@@ -65,29 +68,70 @@ type SMSWebHook struct {
 	Client HookHTTPClient
 }
 
-func (w *SMSWebHook) Call(ctx context.Context, u *url.URL, payload SendOptions) ([]byte, error) {
+func (w *SMSWebHook) Call(ctx context.Context, u *url.URL, payload SendOptions) error {
 	req, err := w.PrepareRequest(ctx, u, payload)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	resp, err := w.Client.Client.Do(req)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	defer resp.Body.Close()
 
 	dumpedResponse, err := httputil.DumpResponse(resp, true)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
-		return dumpedResponse, nil
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return errors.Join(err, &smsapi.SendError{
+			DumpedResponse: dumpedResponse,
+		})
 	}
 
-	return nil, &smsapi.SendError{
+	responseBody, err := ParseResponseBody(bodyBytes)
+	if err != nil {
+		return errors.Join(err, &smsapi.SendError{
+			DumpedResponse: dumpedResponse,
+		})
+	}
+
+	return w.handleResponse(responseBody, dumpedResponse)
+}
+
+func (w *SMSWebHook) handleResponse(responseBody *ResponseBody, dumpedResponse []byte) error {
+	err := &smsapi.SendError{
 		DumpedResponse: dumpedResponse,
+	}
+
+	errorDetail := func() apierrors.Details {
+		d := apierrors.Details{}
+		if responseBody.ErrorDetail != nil {
+			d["Detail"] = responseBody.ErrorDetail
+		}
+		return d
+	}
+
+	switch responseBody.Code {
+	case "ok":
+		return nil
+	case "invalid_phone_number":
+		return errors.Join(smsapi.ErrKindInvalidPhoneNumber.NewWithInfo(
+			"phone number rejected by sms gateway", errorDetail()), err)
+	case "rate_limited":
+		return errors.Join(smsapi.ErrKindRateLimited.NewWithInfo(
+			"sms gateway rate limited", errorDetail()), err)
+	case "authentication_failed":
+		return errors.Join(smsapi.ErrKindRateLimited.NewWithInfo(
+			"sms gateway authentication failed", errorDetail()), err)
+	case "authorization_failed":
+		return errors.Join(smsapi.ErrKindRateLimited.NewWithInfo(
+			"sms gateway authorization failed", errorDetail()), err)
+	default:
+		return err
 	}
 }
 
@@ -166,7 +210,7 @@ func (c *CustomClient) Send(ctx context.Context, opts smsapi.SendOptions) error 
 		_, err = c.SMSDenoHook.Call(ctx, u, payload)
 		return err
 	case c.SMSWebHook.SupportURL(u):
-		_, err = c.SMSWebHook.Call(ctx, u, payload)
+		err = c.SMSWebHook.Call(ctx, u, payload)
 		return err
 	default:
 		panic(fmt.Errorf("unsupported hook URL: %v", u))

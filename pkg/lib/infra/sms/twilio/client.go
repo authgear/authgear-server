@@ -134,7 +134,7 @@ func (t *TwilioClient) makeError(
 	switch errorCode {
 	case 21211:
 		err = errors.Join(smsapi.ErrKindInvalidPhoneNumber.NewWithInfo(
-			"phone number rejected by sms gateway", apierrors.Details{
+			"phone number rejected by twilio", apierrors.Details{
 				"Detail": errorCode,
 			}), err)
 	case 30022:
@@ -147,17 +147,17 @@ func (t *TwilioClient) makeError(
 		fallthrough
 	case 63018:
 		err = errors.Join(smsapi.ErrKindRateLimited.NewWithInfo(
-			"sms gateway rate limited", apierrors.Details{
+			"twilio rate limited", apierrors.Details{
 				"Detail": errorCode,
 			}), err)
 	case 20003:
 		err = errors.Join(smsapi.ErrKindAuthenticationFailed.NewWithInfo(
-			"sms gateway authentication failed", apierrors.Details{
+			"twilio authentication failed", apierrors.Details{
 				"Detail": errorCode,
 			}), err)
 	case 30002:
 		err = errors.Join(smsapi.ErrKindAuthenticationFailed.NewWithInfo(
-			"sms gateway authorization failed", apierrors.Details{
+			"twilio authorization failed", apierrors.Details{
 				"Detail": errorCode,
 			}), err)
 	}

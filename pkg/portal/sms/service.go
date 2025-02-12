@@ -77,7 +77,7 @@ func (s *Service) sendByWebhook(
 		return err
 	}
 
-	_, err = webhook.Call(ctx, url, custom.SendOptions{
+	err = webhook.Call(ctx, url, custom.SendOptions{
 		To:   to,
 		Body: SMS_BODY,
 	})
