@@ -41,7 +41,7 @@ type TranslationService interface {
 
 type Sender interface {
 	SendEmailInNewGoroutine(ctx context.Context, msgType translation.MessageType, opts *mail.SendOptions) error
-	SendSMSInNewGoroutine(ctx context.Context, msgType translation.MessageType, opts *sms.SendOptions) error
+	SendSMSImmediately(ctx context.Context, msgType translation.MessageType, opts *sms.SendOptions) error
 	SendWhatsappImmediately(ctx context.Context, msgType translation.MessageType, opts *whatsapp.SendAuthenticationOTPOptions) error
 }
 
@@ -210,7 +210,7 @@ func (s *MessageSender) sendSMS(ctx context.Context, opts SendOptions) error {
 		TemplateVariables: sms.NewTemplateVariablesFromPreparedTemplateVariables(data.PreparedTemplateVariables),
 	}
 
-	err = s.Sender.SendSMSInNewGoroutine(ctx, msgType, smsSendOptions)
+	err = s.Sender.SendSMSImmediately(ctx, msgType, smsSendOptions)
 	if err != nil {
 		return err
 	}

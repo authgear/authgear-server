@@ -169,7 +169,7 @@ func (s *Sender) devModeSendEmail(ctx context.Context, msgType translation.Messa
 	})
 }
 
-func (s *Sender) SendSMSInNewGoroutine(ctx context.Context, msgType translation.MessageType, opts *sms.SendOptions) error {
+func (s *Sender) SendSMSImmediately(ctx context.Context, msgType translation.MessageType, opts *sms.SendOptions) error {
 	err := s.Limits.checkSMS(ctx, opts.To)
 	if err != nil {
 		return err
@@ -194,51 +194,46 @@ func (s *Sender) SendSMSInNewGoroutine(ctx context.Context, msgType translation.
 		return err
 	}
 
-	go func() {
-		// Detach the deadline so that the context is not canceled along with the request.
-		ctx = context.WithoutCancel(ctx)
-
-		err := s.SMSSender.Send(ctx, client, *opts)
-		if err != nil {
-			otelauthgear.IntCounterAddOne(
-				ctx,
-				otelauthgear.CounterSMSRequestCount,
-				otelauthgear.WithStatusError(),
-			)
-
-			// TODO: Handle expected errors https://linear.app/authgear/issue/DEV-1139
-			s.Logger.WithError(err).WithFields(logrus.Fields{
-				"phone": phone.Mask(opts.To),
-			}).Error("failed to send SMS")
-			err = s.Database.WithTx(ctx, func(ctx context.Context) error {
-				return s.Events.DispatchEventImmediately(ctx, &nonblocking.SMSErrorEventPayload{
-					Description: s.errorToDescription(err),
-				})
-			})
-			if err != nil {
-				s.Logger.WithError(err).Errorf("failed to emit %v event", nonblocking.SMSError)
-			}
-			return
-		}
-
+	err = s.SMSSender.Send(ctx, client, *opts)
+	if err != nil {
 		otelauthgear.IntCounterAddOne(
 			ctx,
 			otelauthgear.CounterSMSRequestCount,
-			otelauthgear.WithStatusOk(),
+			otelauthgear.WithStatusError(),
 		)
 
+		// TODO: Handle expected errors https://linear.app/authgear/issue/DEV-1139
+		s.Logger.WithError(err).WithFields(logrus.Fields{
+			"phone": phone.Mask(opts.To),
+		}).Error("failed to send SMS")
 		err = s.Database.WithTx(ctx, func(ctx context.Context) error {
-			return s.Events.DispatchEventImmediately(ctx, &nonblocking.SMSSentEventPayload{
-				Sender:              opts.Sender,
-				Recipient:           opts.To,
-				Type:                string(msgType),
-				IsNotCountedInUsage: *s.MessagingFeatureConfig.SMSUsageCountDisabled,
+			return s.Events.DispatchEventImmediately(ctx, &nonblocking.SMSErrorEventPayload{
+				Description: s.errorToDescription(err),
 			})
 		})
 		if err != nil {
-			s.Logger.WithError(err).Errorf("failed to emit %v event", nonblocking.SMSSent)
+			s.Logger.WithError(err).Errorf("failed to emit %v event", nonblocking.SMSError)
 		}
-	}()
+		return err
+	}
+
+	otelauthgear.IntCounterAddOne(
+		ctx,
+		otelauthgear.CounterSMSRequestCount,
+		otelauthgear.WithStatusOk(),
+	)
+
+	err = s.Database.WithTx(ctx, func(ctx context.Context) error {
+		return s.Events.DispatchEventImmediately(ctx, &nonblocking.SMSSentEventPayload{
+			Sender:              opts.Sender,
+			Recipient:           opts.To,
+			Type:                string(msgType),
+			IsNotCountedInUsage: *s.MessagingFeatureConfig.SMSUsageCountDisabled,
+		})
+	})
+	if err != nil {
+		s.Logger.WithError(err).Errorf("failed to emit %v event", nonblocking.SMSSent)
+	}
 
 	return nil
 }
