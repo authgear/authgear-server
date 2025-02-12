@@ -1,10 +1,11 @@
-FROM quay.io/theauthgear/golang:1.23.6-noble AS stage1
+FROM quay.io/theauthgear/golang:1.23.6-noble AS wrapper
 WORKDIR /src
 COPY go.mod go.sum ./
 RUN go mod download
 COPY ./once/ ./
 RUN go build -o docker_wrapper -tags 'osusergo netgo static_build timetzdata' .
 
+FROM quay.io/theauthgear/authgear-deno:git-243631ad6332 AS authgeardeno
 
 FROM ubuntu:noble
 
@@ -257,7 +258,8 @@ RUN set -eux; \
 		mcli_${MC_RELEASE}_${TARGETARCH}.deb
 
 COPY --chown=authgear:authgear ./once/docker-entrypoint.sh ./once/docker-certbot.py /usr/local/bin/
-COPY --from=stage1 --chown=authgear:authgear /src/docker_wrapper /usr/local/bin/
+COPY --from=wrapper --chown=authgear:authgear /src/docker_wrapper /usr/local/bin/
+COPY --from=authgeardeno --chown=authgear:authgear /usr/local/bin/authgear-deno /usr/local/bin/deno /usr/local/bin/
 
 ENTRYPOINT ["docker-entrypoint.sh"]
 
@@ -276,7 +278,11 @@ EXPOSE 5432
 EXPOSE 6379
 EXPOSE 80
 EXPOSE 443
+# minio
 EXPOSE 9000
+# minio web console
 EXPOSE 9001
+# authgear-deno
+EXPOSE 8090
 
 CMD ["docker_wrapper"]

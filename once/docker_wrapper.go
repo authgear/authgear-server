@@ -148,6 +148,11 @@ func main() {
 		decowriter.New(os.Stdout, []byte("minio          | "), []byte("")),
 		decowriter.New(os.Stderr, []byte("minio          | "), []byte("")),
 	)
+	authgeardeno := NewChild(
+		[]string{"authgear-deno"},
+		decowriter.New(os.Stdout, []byte("authgear-deno  | "), []byte("")),
+		decowriter.New(os.Stderr, []byte("authgear-deno  | "), []byte("")),
+	)
 	childResults := []ChildResult{}
 	startedChildren := []*Child{}
 
@@ -181,6 +186,7 @@ func main() {
 	start(nginx)
 	start(certbot)
 	start(minio)
+	start(authgeardeno)
 
 	// Some child failed to start, trigger reap now.
 	if len(childResults) > 0 {
