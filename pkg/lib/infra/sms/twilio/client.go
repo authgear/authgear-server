@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms/smsapi"
 	utilhttputil "github.com/authgear/authgear-server/pkg/util/httputil"
@@ -98,15 +99,70 @@ func (t *TwilioClient) Send(ctx context.Context, options smsapi.SendOptions) err
 		})
 	}
 
-	// Success case.
-	if sendResponse.ErrorCode == nil {
-		return nil
+	if sendResponse.ErrorCode != nil {
+		return t.makeError(*sendResponse.ErrorCode, dumpedResponse)
 	}
 
-	// Failed case.
-	return &smsapi.SendError{
+	return nil
+}
+
+func (t *TwilioClient) parseAndHandleErrorResponse(
+	responseBody []byte,
+	dumpedResponse []byte,
+) error {
+	errResponse, err := ParseErrorResponse(responseBody)
+
+	if err != nil {
+		// Not something we can understand, return an error with the dumped response
+		return &smsapi.SendError{
+			DumpedResponse: dumpedResponse,
+		}
+	}
+
+	return t.makeError(errResponse.Code, dumpedResponse)
+}
+
+func (t *TwilioClient) makeError(
+	errorCode int,
+	dumpedResponse []byte,
+) error {
+	var err error = &smsapi.SendError{
 		DumpedResponse: dumpedResponse,
 	}
+
+	// See https://www.twilio.com/docs/api/errors
+	switch errorCode {
+	case 21211:
+		err = errors.Join(smsapi.ErrKindInvalidPhoneNumber.NewWithInfo(
+			"phone number rejected by sms gateway", apierrors.Details{
+				"Detail": errorCode,
+			}), err)
+	case 30022:
+		fallthrough
+	case 14107:
+		fallthrough
+	case 51002:
+		fallthrough
+	case 63017:
+		fallthrough
+	case 63018:
+		err = errors.Join(smsapi.ErrKindRateLimited.NewWithInfo(
+			"sms gateway rate limited", apierrors.Details{
+				"Detail": errorCode,
+			}), err)
+	case 20003:
+		err = errors.Join(smsapi.ErrKindAuthenticationFailed.NewWithInfo(
+			"sms gateway authentication failed", apierrors.Details{
+				"Detail": errorCode,
+			}), err)
+	case 30002:
+		err = errors.Join(smsapi.ErrKindAuthenticationFailed.NewWithInfo(
+			"sms gateway authorization failed", apierrors.Details{
+				"Detail": errorCode,
+			}), err)
+	}
+
+	return err
 }
 
 var _ smsapi.Client = &TwilioClient{}

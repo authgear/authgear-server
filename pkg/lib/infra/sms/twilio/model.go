@@ -36,3 +36,16 @@ func ParseSendResponse(jsonData []byte) (*SendResponse, error) {
 	}
 	return &response, nil
 }
+
+type ErrorResponse struct {
+	Code int `json:"code,omitempty"`
+}
+
+func ParseErrorResponse(jsonData []byte) (*ErrorResponse, error) {
+	var response ErrorResponse
+	err := json.Unmarshal(jsonData, &response)
+	if err != nil {
+		return nil, err
+	}
+	return &response, nil
+}
