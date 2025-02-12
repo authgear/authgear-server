@@ -139,7 +139,7 @@ func (h *SetupTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	defer ctrl.ServeWithDBTx(r.Context())
 
 	ctrl.Get(func(ctx context.Context) error {
-		session, err := ctrl.GetWebappSession(ctx)
+		session, err := ctrl.InteractionSession(ctx)
 		if err != nil {
 			return err
 		}

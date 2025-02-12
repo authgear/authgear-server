@@ -20,6 +20,7 @@ import { useAppFeatureConfigQuery } from "./graphql/portal/query/appFeatureConfi
 import { useViewerQuery } from "./graphql/portal/query/viewerQuery";
 import styles from "./ScreenNav.module.css";
 import ExternalLink from "./ExternalLink";
+import { useSettingsAnchor } from "./hook/authgear";
 
 function getStyles(props: INavStyleProps) {
   return {
@@ -115,7 +116,6 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
   const navigate = useNavigate();
   const { renderToString } = useContext(Context);
   const { pathname } = useLocation();
-  const { authgearEndpoint } = useSystemConfig();
   const { viewer } = useViewerQuery();
   const client = usePortalClient();
   const queryResult = useQuery<ScreenNavQueryQuery>(ScreenNavQueryDocument, {
@@ -467,7 +467,6 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
     []
   );
 
-  const settingURL = authgearEndpoint + "/settings";
   const redirectURI = window.location.origin + "/";
   const onClickLogout = useCallback(() => {
     authgear
@@ -478,6 +477,8 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
         console.error(err);
       });
   }, [redirectURI]);
+
+  const { href: settingURL, onClick: onClickSettings } = useSettingsAnchor();
 
   if (queryResult.loading) {
     return null;
@@ -502,6 +503,7 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
             href={settingURL}
             target="_self"
             className={styles.userActionItem}
+            onClick={onClickSettings}
           >
             <Text variant="small">
               {renderToString("ScreenHeader.settings")}

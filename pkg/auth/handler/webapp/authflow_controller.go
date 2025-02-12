@@ -202,7 +202,7 @@ func (c *AuthflowController) HandleStartOfFlow(
 	handleWithScreen(screen)
 }
 
-func (c *AuthflowController) isExpectedWebSessionError(err error) bool {
+func (c *AuthflowController) isWebSessionNotFoundOrCompletedError(err error) bool {
 	return apierrors.IsKind(err, webapp.WebUIInvalidSession) || apierrors.IsKind(err, webapp.WebUISessionCompleted)
 }
 
@@ -211,7 +211,7 @@ func (c *AuthflowController) HandleOAuthCallback(ctx context.Context, w http.Res
 
 	s, err := c.Sessions.Get(ctx, state.WebSessionID)
 	if err != nil {
-		if !c.isExpectedWebSessionError(err) {
+		if !c.isWebSessionNotFoundOrCompletedError(err) {
 			c.Logger.WithError(err).Errorf("failed to get web session")
 		}
 		c.renderError(ctx, w, r, err)
@@ -313,7 +313,7 @@ func (c *AuthflowController) HandleStep(ctx context.Context, w http.ResponseWrit
 
 	s, err := c.getWebSession(ctx)
 	if err != nil {
-		if !c.isExpectedWebSessionError(err) {
+		if !c.isWebSessionNotFoundOrCompletedError(err) {
 			c.Logger.WithError(err).Errorf("failed to get web session")
 		}
 		c.renderError(ctx, w, r, err)
@@ -345,7 +345,7 @@ func (c *AuthflowController) HandleWithoutFlow(ctx context.Context, w http.Respo
 	var session *webapp.Session
 	s, err := c.getWebSession(ctx)
 	if err != nil {
-		if !c.isExpectedWebSessionError(err) {
+		if !c.isWebSessionNotFoundOrCompletedError(err) {
 			c.Logger.WithError(err).Errorf("failed to get web session")
 		}
 	} else {
@@ -384,7 +384,8 @@ func (c *AuthflowController) getOrCreateWebSession(ctx context.Context, w http.R
 	if err == nil && s != nil {
 		return s, nil
 	}
-	if !errors.Is(err, webapp.ErrSessionNotFound) {
+
+	if !c.isWebSessionNotFoundOrCompletedError(err) {
 		return nil, err
 	}
 

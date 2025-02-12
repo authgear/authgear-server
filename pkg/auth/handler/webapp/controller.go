@@ -2,7 +2,6 @@ package webapp
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net/http"
 
@@ -315,19 +314,16 @@ func (c *Controller) rewindSessionHistory(session *webapp.Session) error {
 	return nil
 }
 
-func (c *Controller) GetWebappSession(ctx context.Context) (*webapp.Session, error) {
+func (c *Controller) InteractionSession(ctx context.Context) (*webapp.Session, error) {
 	s := webapp.GetSession(ctx)
-	if s == nil {
+	if s == nil || s.IsCompleted {
 		return nil, webapp.ErrSessionNotFound
-	}
-	if s.IsCompleted {
-		return nil, webapp.ErrSessionCompleted
 	}
 	return s, nil
 }
 
 func (c *Controller) InteractionGet(ctx context.Context) (*interaction.Graph, error) {
-	s, err := c.GetWebappSession(ctx)
+	s, err := c.InteractionSession(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -348,7 +344,7 @@ func (c *Controller) InteractionGetWithSession(ctx context.Context, s *webapp.Se
 }
 
 func (c *Controller) InteractionPost(ctx context.Context, inputFn func() (interface{}, error)) (*webapp.Result, error) {
-	s, err := c.GetWebappSession(ctx)
+	s, err := c.InteractionSession(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -381,13 +377,9 @@ func (c *Controller) InteractionOAuthCallback(ctx context.Context, oauthInput In
 }
 
 func (c *Controller) getSettingsActionWebSession(ctx context.Context, r *http.Request) (*webapp.Session, error) {
-	webappSession, err := c.GetWebappSession(ctx)
-	if err != nil {
-		// No session means it is not in settings action
-		if errors.Is(err, webapp.ErrSessionNotFound) {
-			return nil, nil
-		}
-		return nil, err
+	webappSession := webapp.GetSession(ctx)
+	if webappSession == nil {
+		return nil, nil
 	}
 	if webappSession.SettingsActionID == "" {
 		// This session is not for a settings action, ignore it
@@ -400,6 +392,9 @@ func (c *Controller) getSettingsActionWebSession(ctx context.Context, r *http.Re
 	if settingsaction.GetSettingsActionID(r) != webappSession.SettingsActionID {
 		// This session is not for the current settings action, ignore it
 		return nil, nil
+	}
+	if webappSession.IsCompleted {
+		return nil, webapp.ErrSessionCompleted
 	}
 	return webappSession, nil
 }

@@ -68,7 +68,7 @@ func (h *EnterRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 	defer ctrl.ServeWithDBTx(r.Context())
 
 	ctrl.Get(func(ctx context.Context) error {
-		session, err := ctrl.GetWebappSession(ctx)
+		session, err := ctrl.InteractionSession(ctx)
 		if err != nil {
 			return err
 		}

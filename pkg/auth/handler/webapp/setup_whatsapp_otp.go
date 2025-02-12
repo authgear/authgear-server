@@ -62,7 +62,7 @@ func (h *SetupWhatsappOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 	defer ctrl.ServeWithDBTx(r.Context())
 
 	ctrl.Get(func(ctx context.Context) error {
-		session, err := ctrl.GetWebappSession(ctx)
+		session, err := ctrl.InteractionSession(ctx)
 		if err != nil {
 			return err
 		}

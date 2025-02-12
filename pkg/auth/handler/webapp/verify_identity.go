@@ -176,7 +176,7 @@ func (h *VerifyIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 
 	ctrl.Get(func(ctx context.Context) error {
 		// This page should be opened by the original user agent.
-		session, err := ctrl.GetWebappSession(ctx)
+		session, err := ctrl.InteractionSession(ctx)
 		if err != nil {
 			return err
 		}
