@@ -53,7 +53,7 @@ ENV PARTMAN_VERSION 4.7.4
 # The audit logs only show literally what statements were executed.
 ENV PGAUDIT_VERSION 1.4.2
 
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends --no-install-suggests \
 	unzip \
 	build-essential \
 	wget \

@@ -55,7 +55,7 @@ ENV PARTMAN_VERSION=5.0.1
 # The audit logs only show literally what statements were executed.
 ENV PGAUDIT_VERSION=16.0
 
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends --no-install-suggests \
 	unzip \
 	build-essential \
 	wget \

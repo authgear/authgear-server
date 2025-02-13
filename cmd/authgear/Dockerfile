@@ -17,7 +17,7 @@ RUN make authui GIT_HASH=$GIT_HASH
 FROM quay.io/theauthgear/golang:1.23.6-noble AS authgear-stage-1
 
 # Install build time C dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get install -y --no-install-recommends --no-install-suggests \
     pkg-config \
     libicu-dev \
     libvips-dev \
@@ -42,7 +42,7 @@ FROM ubuntu:noble AS authgear-stage-runtime
 # /etc/mime.types (media-types)
 # /usr/share/ca-certificates/*/* (ca-certificates)
 # /usr/share/zoneinfo/ (tzdata)
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get install -y --no-install-recommends --no-install-suggests \
     libicu-dev \
     libvips-dev \
     libmagic-dev \
