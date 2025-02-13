@@ -53,10 +53,8 @@ RUN make -C custombuild build BIN_NAME=authgear TARGET=authgearx GIT_HASH=$GIT_H
 # But we have a transitive dependency on icu4c so this is no longer the case.
 # RUN readelf -d ./authgear | grep 'There is no dynamic section in this file'
 
-# Final Stage: Prepare the actual fs we use to run the program
-FROM ubuntu:noble AS authgear-stage-final
-ARG GIT_HASH
-WORKDIR /app
+# Runtime stage: Prepare the runtime dependencies
+FROM ubuntu:noble AS authgear-stage-runtime
 # /etc/mime.types (media-types)
 # /usr/share/ca-certificates/*/* (ca-certificates)
 # /usr/share/zoneinfo/ (tzdata)
@@ -69,8 +67,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     media-types \
     tzdata \
     && apt-get upgrade -y && rm -rf /var/lib/apt/lists/*
-RUN update-ca-certificates
 COPY --from=authgear-stage-1 /src/custombuild/authgear /usr/local/bin/
+# There is no need to run update-ca-certificates
+# because what it does is install extra certificates.
+# Those certificates typically are mounted at runtime.
+# So at build time (i.e. here and now), there are no extra certificates to be installed.
+# RUN update-ca-certificates
+
+# Final Stage: Define WORKDIR, ENTRYPOINT, and CMD
+FROM authgear-stage-runtime AS authgear-stage-final
+WORKDIR /app
 COPY ./docker-entrypoint.sh /usr/local/bin/
 ENTRYPOINT ["docker-entrypoint.sh"]
 # update-ca-certificates requires root to run.
