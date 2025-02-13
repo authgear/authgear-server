@@ -29,6 +29,10 @@ type NodeWithDelayedOneTimeFunction struct {
 	DelayedOneTimeFunction DelayedOneTimeFunction
 }
 
+var _ ReactToResult = &NodeWithDelayedOneTimeFunction{}
+
+func (n *NodeWithDelayedOneTimeFunction) reactToResult() {}
+
 type NodeSimple interface {
 	Kinder
 }
