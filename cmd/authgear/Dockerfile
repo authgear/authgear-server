@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # Stage 0: Build the static files
-FROM --platform=$BUILDPLATFORM node:20.9.0-bookworm AS stage0
+FROM --platform=$BUILDPLATFORM node:20.9.0-bookworm AS authgear-stage-0
 ARG GIT_HASH
 WORKDIR /usr/src/app
 COPY ./scripts/npm/package.json ./scripts/npm/package-lock.json ./scripts/npm/
@@ -14,7 +14,7 @@ COPY . .
 RUN make authui GIT_HASH=$GIT_HASH
 
 # Stage 1: Build the Go binary
-FROM quay.io/theauthgear/golang:1.23.6-noble AS stage1
+FROM quay.io/theauthgear/golang:1.23.6-noble AS authgear-stage-1
 
 # Install build time C dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -30,7 +30,7 @@ COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
 # Let //go:embed to embed the built static files
-COPY --from=stage0 /usr/src/app/resources/authgear/ ./resources/authgear/
+COPY --from=authgear-stage-0 /usr/src/app/resources/authgear/ ./resources/authgear/
 RUN make build BIN_NAME=authgear TARGET=authgear GIT_HASH=$GIT_HASH
 
 # We used to build static binary.
@@ -38,7 +38,7 @@ RUN make build BIN_NAME=authgear TARGET=authgear GIT_HASH=$GIT_HASH
 # RUN readelf -d ./authgear | grep 'There is no dynamic section in this file'
 
 # Final Stage: Prepare the actual fs we use to run the program
-FROM ubuntu:noble
+FROM ubuntu:noble AS authgear-stage-final
 ARG GIT_HASH
 WORKDIR /app
 # /etc/mime.types (media-types)
@@ -54,7 +54,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     tzdata \
     && apt-get upgrade -y && rm -rf /var/lib/apt/lists/*
 RUN update-ca-certificates
-COPY --from=stage1 /src/authgear /usr/local/bin/
+COPY --from=authgear-stage-1 /src/authgear /usr/local/bin/
 COPY ./docker-entrypoint.sh /usr/local/bin/
 ENTRYPOINT ["docker-entrypoint.sh"]
 # update-ca-certificates requires root to run.

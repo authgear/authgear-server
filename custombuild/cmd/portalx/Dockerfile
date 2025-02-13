@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
-# Stage 0a: Build the static files
-FROM node:20.9.0-bookworm AS stage0a
+# Stage 0: Build the static files
+FROM node:20.9.0-bookworm AS authgear-portal-stage-0
 ARG GIT_HASH
 WORKDIR /usr/src/app
 COPY ./scripts/npm/package.json ./scripts/npm/package-lock.json ./scripts/npm/
@@ -13,8 +13,8 @@ RUN cd ./authui && npm ci
 COPY . .
 RUN make authui GIT_HASH=$GIT_HASH
 
-# Stage 0b: Build the portal static files
-FROM node:20.9.0-bookworm AS stage0b
+# Stage 1: Build the portal static files
+FROM node:20.9.0-bookworm AS authgear-portal-stage-1
 ARG GIT_HASH
 # If the working directory is /src, Parcel will have some problem with it.
 WORKDIR /usr/src/app
@@ -25,8 +25,8 @@ RUN npm ci
 COPY ./portal .
 RUN npm run build
 
-# Stage 1: Build the Go binary
-FROM quay.io/theauthgear/golang:1.23.6-noble AS stage1
+# Stage 2: Build the Go binary
+FROM quay.io/theauthgear/golang:1.23.6-noble AS authgear-portal-stage-2
 
 # Install build time C dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -57,8 +57,8 @@ RUN --mount=type=ssh go mod download
 WORKDIR /src
 COPY . .
 # Let //go:embed to embed the built static files
-COPY --from=stage0a /usr/src/app/resources/authgear/ ./resources/authgear/
-COPY --from=stage0b /usr/src/app/dist/ ./resources/portal/static/
+COPY --from=authgear-portal-stage-0 /usr/src/app/resources/authgear/ ./resources/authgear/
+COPY --from=authgear-portal-stage-1 /usr/src/app/dist/ ./resources/portal/static/
 ARG GIT_HASH
 RUN make -C custombuild build BIN_NAME=authgear-portal TARGET=portalx GIT_HASH=$GIT_HASH
 
@@ -67,7 +67,7 @@ RUN make -C custombuild build BIN_NAME=authgear-portal TARGET=portalx GIT_HASH=$
 # RUN readelf -d ./authgear | grep 'There is no dynamic section in this file'
 
 # Final Stage: Prepare the actual fs we use to run the program
-FROM ubuntu:noble
+FROM ubuntu:noble AS authgear-portal-stage-final
 ARG GIT_HASH
 WORKDIR /app
 # /etc/mime.types (media-types)
@@ -83,7 +83,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   tzdata \
   && apt-get upgrade -y && rm -rf /var/lib/apt/lists/*
 RUN update-ca-certificates
-COPY --from=stage1 /src/custombuild/authgear-portal /usr/local/bin/
+COPY --from=authgear-portal-stage-2 /src/custombuild/authgear-portal /usr/local/bin/
 COPY ./docker-entrypoint.sh /usr/local/bin/
 ENTRYPOINT ["docker-entrypoint.sh"]
 # update-ca-certificates requires root to run.
