@@ -129,7 +129,7 @@ func (n *NodeVerifyPhoneSMS) sendCode(ctx context.Context, deps *workflow.Depend
 		return err
 	}
 
-	err = deps.OTPSender.Send(
+	err = deps.OTPSender.SendAsync(
 		ctx,
 		otp.SendOptions{
 			Channel: model.AuthenticatorOOBChannelSMS,

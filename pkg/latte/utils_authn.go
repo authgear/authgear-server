@@ -88,7 +88,7 @@ func (p *SendOOBCode) Do(ctx context.Context) error {
 		return err
 	}
 
-	err = p.Deps.OTPSender.Send(
+	err = p.Deps.OTPSender.SendAsync(
 		ctx,
 		otp.SendOptions{
 			Channel: channel,

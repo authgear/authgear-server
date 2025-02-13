@@ -122,7 +122,7 @@ func (n *NodeVerifyEmail) sendCode(ctx context.Context, deps *workflow.Dependenc
 		return err
 	}
 
-	err = deps.OTPSender.Send(
+	err = deps.OTPSender.SendAsync(
 		ctx,
 		otp.SendOptions{
 			Channel: model.AuthenticatorOOBChannelEmail,
