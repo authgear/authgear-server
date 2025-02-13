@@ -105,10 +105,10 @@ func (s *Sender) SendEmailInNewGoroutine(ctx context.Context, msgType translatio
 			s.Logger.WithError(err).WithFields(logrus.Fields{
 				"email": mail.MaskAddress(opts.Recipient),
 			}).Error("failed to send email")
-			err = s.DispatchEventImmediatelyWithTx(ctx, &nonblocking.EmailErrorEventPayload{
+			dispatchErr := s.DispatchEventImmediatelyWithTx(ctx, &nonblocking.EmailErrorEventPayload{
 				Description: s.errorToDescription(err),
 			})
-			if err != nil {
+			if dispatchErr != nil {
 				s.Logger.WithError(err).Errorf("failed to emit %v event", nonblocking.EmailError)
 			}
 			return
@@ -120,12 +120,12 @@ func (s *Sender) SendEmailInNewGoroutine(ctx context.Context, msgType translatio
 			otelauthgear.WithStatusOk(),
 		)
 
-		err = s.DispatchEventImmediatelyWithTx(ctx, &nonblocking.EmailSentEventPayload{
+		dispatchErr := s.DispatchEventImmediatelyWithTx(ctx, &nonblocking.EmailSentEventPayload{
 			Sender:    opts.Sender,
 			Recipient: opts.Recipient,
 			Type:      string(msgType),
 		})
-		if err != nil {
+		if dispatchErr != nil {
 			s.Logger.WithError(err).Errorf("failed to emit %v event", nonblocking.EmailSent)
 		}
 	}()
@@ -202,10 +202,10 @@ func (s *Sender) SendSMSImmediately(ctx context.Context, msgType translation.Mes
 		s.Logger.WithError(err).WithFields(logrus.Fields{
 			"phone": phone.Mask(opts.To),
 		}).Error("failed to send SMS")
-		err = s.DispatchEventImmediatelyWithTx(ctx, &nonblocking.SMSErrorEventPayload{
+		dispatchErr := s.DispatchEventImmediatelyWithTx(ctx, &nonblocking.SMSErrorEventPayload{
 			Description: s.errorToDescription(err),
 		})
-		if err != nil {
+		if dispatchErr != nil {
 			s.Logger.WithError(err).Errorf("failed to emit %v event", nonblocking.SMSError)
 		}
 		return err
@@ -217,13 +217,13 @@ func (s *Sender) SendSMSImmediately(ctx context.Context, msgType translation.Mes
 		otelauthgear.WithStatusOk(),
 	)
 
-	err = s.DispatchEventImmediatelyWithTx(ctx, &nonblocking.SMSSentEventPayload{
+	dispatchErr := s.DispatchEventImmediatelyWithTx(ctx, &nonblocking.SMSSentEventPayload{
 		Sender:              opts.Sender,
 		Recipient:           opts.To,
 		Type:                string(msgType),
 		IsNotCountedInUsage: *s.MessagingFeatureConfig.SMSUsageCountDisabled,
 	})
-	if err != nil {
+	if dispatchErr != nil {
 		s.Logger.WithError(err).Errorf("failed to emit %v event", nonblocking.SMSSent)
 	}
 
@@ -333,12 +333,12 @@ func (s *Sender) SendWhatsappImmediately(ctx context.Context, msgType translatio
 		otelauthgear.WithStatusOk(),
 	)
 
-	err = s.DispatchEventImmediatelyWithTx(ctx, &nonblocking.WhatsappSentEventPayload{
+	dispatchErr := s.DispatchEventImmediatelyWithTx(ctx, &nonblocking.WhatsappSentEventPayload{
 		Recipient:           opts.To,
 		Type:                string(msgType),
 		IsNotCountedInUsage: *s.MessagingFeatureConfig.WhatsappUsageCountDisabled,
 	})
-	if err != nil {
+	if dispatchErr != nil {
 		s.Logger.WithError(err).Errorf("failed to emit %v event", nonblocking.WhatsappSent)
 		return err
 	}
