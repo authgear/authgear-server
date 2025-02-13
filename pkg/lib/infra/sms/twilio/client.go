@@ -2,6 +2,7 @@ package twilio
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"io"
 	"net/http"
@@ -94,6 +95,10 @@ func (t *TwilioClient) Send(ctx context.Context, options smsapi.SendOptions) err
 
 	sendResponse, err := ParseSendResponse(bodyBytes)
 	if err != nil {
+		var jsonUnmarshalErr *json.UnmarshalTypeError
+		if errors.As(err, &jsonUnmarshalErr) {
+			return t.parseAndHandleErrorResponse(bodyBytes, dumpedResponse)
+		}
 		return errors.Join(err, &smsapi.SendError{
 			DumpedResponse: dumpedResponse,
 		})
@@ -113,9 +118,16 @@ func (t *TwilioClient) parseAndHandleErrorResponse(
 	errResponse, err := ParseErrorResponse(responseBody)
 
 	if err != nil {
-		// Not something we can understand, return an error with the dumped response
-		return &smsapi.SendError{
-			DumpedResponse: dumpedResponse,
+		var jsonUnmarshalErr *json.UnmarshalTypeError
+		if errors.As(err, &jsonUnmarshalErr) {
+			// Not something we can understand, return an error with the dumped response
+			return &smsapi.SendError{
+				DumpedResponse: dumpedResponse,
+			}
+		} else {
+			return errors.Join(err, &smsapi.SendError{
+				DumpedResponse: dumpedResponse,
+			})
 		}
 	}
 
@@ -156,7 +168,7 @@ func (t *TwilioClient) makeError(
 				"Detail": errorCode,
 			}), err)
 	case 30002:
-		err = errors.Join(smsapi.ErrKindAuthenticationFailed.NewWithInfo(
+		err = errors.Join(smsapi.ErrKindAuthorizationFailed.NewWithInfo(
 			"twilio authorization failed", apierrors.Details{
 				"Detail": errorCode,
 			}), err)
