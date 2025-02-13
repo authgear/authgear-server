@@ -388,8 +388,8 @@ Various files in this project have versioned dependencies.
 - [The dependencies in ./portal/package.json](./portal/package.json)
 - [The dependencies in ./scripts/npm/package.json](./scripts/npm/package.json)
   - Note that you cannot simply upgrade `tzdata` because the version must match that of the server.
-  - You can find out the server version by going into the container and run `apt list --installed`.
-  - The version of Debian bookworm is [2024a](https://packages.debian.org/source/bookworm/tzdata), which correspond to [tzdata@v1.0.40](https://github.com/rogierschouten/tzdata-generate/releases/tag/v1.0.40).
+  - The server version is documented and enforced in the Dockerfiles during the build process.
+  - Visit [https://github.com/rogierschouten/tzdata-generate/releases](https://github.com/rogierschouten/tzdata-generate/releases) to see which `tzdata` version correspond to which server version.
 - [The cropperjs type definition in ./authui/src](./authui/src)
 - [./pkg/util/geoip/GeoLite2-Country.mmdb](./pkg/util/geoip/GeoLite2-Country.mmdb)
 - [GraphiQL](./pkg/util/graphqlutil/graphiql.go)

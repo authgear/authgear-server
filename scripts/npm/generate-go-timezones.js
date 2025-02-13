@@ -1,13 +1,25 @@
 const data = require("tzdata");
 const { IANAZone } = require("luxon");
 
+const historicalAliasesWeHaveSupportedInThePast = [
+  // This timezone is not an alias in 2024a,
+  // But it becomes an alias in 2024b.
+  // For backward compatibility, we keep it.
+  "Asia/Choibalsan",
+];
+function shouldSkipAlias(key) {
+  return !historicalAliasesWeHaveSupportedInThePast.includes(key);
+}
+
 function getTimezoneNames() {
   const names = [];
 
   for (const [key, value] of Object.entries(data.zones)) {
     // This is an alias.
     if (typeof value === "string") {
-      continue;
+      if (shouldSkipAlias(key)) {
+        continue;
+      }
     }
     if (!key.includes("/")) {
       continue;

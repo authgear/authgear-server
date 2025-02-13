@@ -42,15 +42,18 @@ FROM ubuntu:noble AS authgear-stage-runtime
 # /etc/mime.types (media-types)
 # /usr/share/ca-certificates/*/* (ca-certificates)
 # /usr/share/zoneinfo/ (tzdata)
-RUN apt-get update && apt-get install -y --no-install-recommends --no-install-suggests \
-    libicu-dev \
-    libvips-dev \
-    libmagic-dev \
-    libmagic-mgc \
-    ca-certificates \
-    media-types \
-    tzdata \
-    && apt-get upgrade -y && rm -rf /var/lib/apt/lists/*
+RUN set -eux; \
+        apt-get update; \
+        apt-get install -y --no-install-recommends --no-install-suggests \
+            libicu-dev \
+            libvips-dev \
+            libmagic-dev \
+            libmagic-mgc \
+            ca-certificates \
+            media-types \
+            tzdata; \
+        dpkg --status tzdata | awk '$1 ~ /^Version:$/ { print $2 }' | grep '^2024b'; \
+        rm -rf /var/lib/apt/lists/*
 COPY --from=authgear-stage-1 /src/authgear /usr/local/bin/
 # There is no need to run update-ca-certificates
 # because what it does is install extra certificates.
