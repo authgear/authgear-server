@@ -1,13 +1,14 @@
-FROM quay.io/theauthgear/golang:1.23.6-noble AS wrapper
+FROM quay.io/theauthgear/golang:1.23.6-noble AS authgear-once-stage-wrapper
 WORKDIR /src
 COPY go.mod go.sum ./
 RUN go mod download
 COPY ./once/ ./
 RUN go build -o docker_wrapper -tags 'osusergo netgo static_build timetzdata' .
 
-FROM quay.io/theauthgear/authgear-deno:git-243631ad6332 AS authgeardeno
+FROM quay.io/theauthgear/authgear-deno:git-243631ad6332 AS authgear-once-stage-authgeardeno
 
-FROM ubuntu:noble
+FROM authgear-stage-runtime AS authgear-once-stage-final
+COPY --from=authgear-portal-stage-runtime /usr/local/bin/authgear-portal /usr/local/bin/
 
 ### A note on apt-get install -y --no-install-recommends --no-install-suggests
 ###
@@ -56,24 +57,6 @@ RUN set -eux; \
 	locale-gen; \
 	locale -a | grep 'en_US.utf8'
 ENV LANG=en_US.utf8
-
-## Install tzdata
-## tzdata is essential to running server that deals with time. (I guess every server deals with time.)
-## Note that the version of tzdata is pinned.
-RUN set -eux; \
-	apt-get update; \
-	apt-get install -y --no-install-recommends --no-install-suggests \
-		tzdata=2024a-\*; \
-	rm -rf /var/lib/apt/lists/*
-
-## Install ca-certificates
-## Install root CA certificates.
-## This is essential to running programs that connect to external HTTPS server.
-RUN set -eux; \
-	apt-get update; \
-	apt-get install -y --no-install-recommends --no-install-suggests \
-		ca-certificates; \
-	rm -rf /var/lib/apt/lists/*
 
 ## Create the user we use to run the container.
 ## PostgreSQL does not support running as "root".
@@ -258,8 +241,8 @@ RUN set -eux; \
 		mcli_${MC_RELEASE}_${TARGETARCH}.deb
 
 COPY --chown=authgear:authgear ./once/docker-entrypoint.sh ./once/docker-certbot.py /usr/local/bin/
-COPY --from=wrapper --chown=authgear:authgear /src/docker_wrapper /usr/local/bin/
-COPY --from=authgeardeno --chown=authgear:authgear /usr/local/bin/authgear-deno /usr/local/bin/deno /usr/local/bin/
+COPY --from=authgear-once-stage-wrapper --chown=authgear:authgear /src/docker_wrapper /usr/local/bin/
+COPY --from=authgear-once-stage-authgeardeno --chown=authgear:authgear /usr/local/bin/authgear-deno /usr/local/bin/deno /usr/local/bin/
 
 ENTRYPOINT ["docker-entrypoint.sh"]
 
