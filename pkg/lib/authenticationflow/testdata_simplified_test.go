@@ -57,7 +57,7 @@ func (i *intentAuthenticate) CanReactTo(ctx context.Context, deps *Dependencies,
 	return nil, ErrEOF
 }
 
-func (i *intentAuthenticate) ReactTo(ctx context.Context, deps *Dependencies, flows Flows, input Input) (*Node, error) {
+func (i *intentAuthenticate) ReactTo(ctx context.Context, deps *Dependencies, flows Flows, input Input) (ReactToResult, error) {
 	var inputLoginID InputLoginID
 
 	switch {
@@ -90,7 +90,7 @@ func (*intentLogin) CanReactTo(ctx context.Context, deps *Dependencies, flows Fl
 	return nil, ErrEOF
 }
 
-func (*intentLogin) ReactTo(ctx context.Context, deps *Dependencies, flows Flows, input Input) (*Node, error) {
+func (*intentLogin) ReactTo(ctx context.Context, deps *Dependencies, flows Flows, input Input) (ReactToResult, error) {
 	return nil, ErrIncompatibleInput
 }
 
@@ -112,7 +112,7 @@ func (i *intentSignup) CanReactTo(ctx context.Context, deps *Dependencies, flows
 	return &InputIntentSignup{}, nil
 }
 
-func (i *intentSignup) ReactTo(ctx context.Context, deps *Dependencies, flows Flows, input Input) (*Node, error) {
+func (i *intentSignup) ReactTo(ctx context.Context, deps *Dependencies, flows Flows, input Input) (ReactToResult, error) {
 	var inputLoginID InputLoginID
 	var passwordInput InputCreatePasswordFlow
 
@@ -147,7 +147,7 @@ func (i *intentAddLoginID) CanReactTo(ctx context.Context, deps *Dependencies, f
 	return nil, ErrEOF
 }
 
-func (i *intentAddLoginID) ReactTo(ctx context.Context, deps *Dependencies, flows Flows, input Input) (*Node, error) {
+func (i *intentAddLoginID) ReactTo(ctx context.Context, deps *Dependencies, flows Flows, input Input) (ReactToResult, error) {
 	var inputLoginID InputLoginID
 
 	switch {
@@ -176,7 +176,7 @@ func (n *nodeVerifyLoginID) CanReactTo(ctx context.Context, deps *Dependencies, 
 	return &InputNodeVerifyLoginID{}, nil
 }
 
-func (n *nodeVerifyLoginID) ReactTo(ctx context.Context, deps *Dependencies, flows Flows, input Input) (*Node, error) {
+func (n *nodeVerifyLoginID) ReactTo(ctx context.Context, deps *Dependencies, flows Flows, input Input) (ReactToResult, error) {
 	var otpInput InputOTP
 	var resendInput InputResendOTP
 
@@ -225,7 +225,7 @@ func (*intentCreatePassword) CanReactTo(ctx context.Context, deps *Dependencies,
 	return nil, ErrEOF
 }
 
-func (*intentCreatePassword) ReactTo(ctx context.Context, deps *Dependencies, flows Flows, input Input) (*Node, error) {
+func (*intentCreatePassword) ReactTo(ctx context.Context, deps *Dependencies, flows Flows, input Input) (ReactToResult, error) {
 	var inputNewPassword InputNewPassword
 	switch {
 	case AsInput(input, &inputNewPassword):

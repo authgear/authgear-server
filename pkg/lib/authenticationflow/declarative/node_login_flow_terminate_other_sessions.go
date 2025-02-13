@@ -34,7 +34,7 @@ func (n *NodeLoginFlowTerminateOtherSessions) CanReactTo(ctx context.Context, de
 	}, nil
 }
 
-func (n *NodeLoginFlowTerminateOtherSessions) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
+func (n *NodeLoginFlowTerminateOtherSessions) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (authflow.ReactToResult, error) {
 	var inputConfirmTerminateOtherSessions inputConfirmTerminateOtherSessions
 	if authflow.AsInput(input, &inputConfirmTerminateOtherSessions) {
 		return authflow.NewNodeSimple(&NodeDidConfirmTerminateOtherSessions{}), nil

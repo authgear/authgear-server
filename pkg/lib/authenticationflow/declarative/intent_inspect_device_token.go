@@ -44,7 +44,7 @@ func (*IntentInspectDeviceToken) CanReactTo(ctx context.Context, deps *authflow.
 	return nil, authflow.ErrEOF
 }
 
-func (i *IntentInspectDeviceToken) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, _ authflow.Input) (*authflow.Node, error) {
+func (i *IntentInspectDeviceToken) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (authflow.ReactToResult, error) {
 	if len(flows.Nearest.Nodes) == 0 {
 		deviceTokenCookie, err := deps.Cookies.GetCookie(deps.HTTPRequest, deps.MFADeviceTokenCookie.Def)
 		// End this flow if there is no cookie.

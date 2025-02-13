@@ -72,7 +72,7 @@ func (i *IntentVerifyClaim) CanReactTo(ctx context.Context, deps *authflow.Depen
 	return nil, authflow.ErrEOF
 }
 
-func (i *IntentVerifyClaim) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
+func (i *IntentVerifyClaim) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (authflow.ReactToResult, error) {
 	channels := i.getChannels(deps)
 	var inputTakeOOBOTPChannel inputTakeOOBOTPChannel
 	var channel model.AuthenticatorOOBChannel

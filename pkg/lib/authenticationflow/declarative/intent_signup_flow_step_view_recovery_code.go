@@ -77,7 +77,7 @@ func (i *IntentSignupFlowStepViewRecoveryCode) CanReactTo(ctx context.Context, d
 	return nil, authflow.ErrEOF
 }
 
-func (i *IntentSignupFlowStepViewRecoveryCode) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
+func (i *IntentSignupFlowStepViewRecoveryCode) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (authflow.ReactToResult, error) {
 	if !i.IsUpdatingExistingUser && len(flows.Nearest.Nodes) == 0 {
 		var inputConfirmRecoveryCode inputConfirmRecoveryCode
 		if authflow.AsInput(input, &inputConfirmRecoveryCode) {

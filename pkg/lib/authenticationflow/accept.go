@@ -75,8 +75,8 @@ func accept(ctx context.Context, deps *Dependencies, flows Flows, inputFn func(i
 			return
 		}
 
-		var nextNode *Node
-		nextNode, err = findInputReactorResult.InputReactor.ReactTo(ctx, deps, findInputReactorResult.Flows, input)
+		var reactToResult ReactToResult
+		reactToResult, err = findInputReactorResult.InputReactor.ReactTo(ctx, deps, findInputReactorResult.Flows, input)
 
 		// Handle err == ErrIncompatibleInput
 		if errors.Is(err, ErrIncompatibleInput) {
@@ -100,7 +100,13 @@ func accept(ctx context.Context, deps *Dependencies, flows Flows, inputFn func(i
 			// We still consider the flow has something changes.
 			changed = true
 
-			nodeToReplace := nextNode
+			var nodeToReplace *Node
+			switch reactToResult := reactToResult.(type) {
+			case *Node:
+				nodeToReplace = reactToResult
+			default:
+				panic(fmt.Errorf("uxepected type of ReactToResult %t", reactToResult))
+			}
 
 			// precondition: ErrUpdateNode requires at least one node.
 			if len(findInputReactorResult.Flows.Nearest.Nodes) == 0 {
@@ -161,7 +167,14 @@ func accept(ctx context.Context, deps *Dependencies, flows Flows, inputFn func(i
 		}
 
 		// We need to append the nextNode to the closest flow.
-		err = appendNode(ctx, deps, findInputReactorResult.Flows, *nextNode)
+		var nextNode Node
+		switch reactToResult := reactToResult.(type) {
+		case *Node:
+			nextNode = *reactToResult
+		default:
+			panic(fmt.Errorf("uxepected type of ReactToResult %t", reactToResult))
+		}
+		err = appendNode(ctx, deps, findInputReactorResult.Flows, nextNode)
 		if err != nil {
 			return
 		}

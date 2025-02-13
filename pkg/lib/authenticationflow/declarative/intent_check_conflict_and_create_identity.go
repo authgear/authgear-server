@@ -55,7 +55,7 @@ func (*IntentCheckConflictAndCreateIdenity) CanReactTo(ctx context.Context, deps
 	return nil, authflow.ErrEOF
 }
 
-func (i *IntentCheckConflictAndCreateIdenity) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
+func (i *IntentCheckConflictAndCreateIdenity) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (authflow.ReactToResult, error) {
 	switch len(flows.Nearest.Nodes) {
 	case 0: // next node is NodeDoCreateIdentity, or account linking intent
 		conflicts, err := i.checkConflictByAccountLinkings(ctx, deps, flows)

@@ -58,7 +58,7 @@ func (i *IntentPromoteFlow) CanReactTo(ctx context.Context, deps *authflow.Depen
 	return nil, nil
 }
 
-func (i *IntentPromoteFlow) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, _ authflow.Input) (*authflow.Node, error) {
+func (i *IntentPromoteFlow) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (authflow.ReactToResult, error) {
 	switch {
 	case len(flows.Nearest.Nodes) == 0:
 		node, err := NewNodeDoUseAnonymousUser(ctx, deps)

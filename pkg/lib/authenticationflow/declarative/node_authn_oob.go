@@ -61,7 +61,7 @@ func (n *NodeAuthenticationOOB) CanReactTo(ctx context.Context, deps *authflow.D
 	}, nil
 }
 
-func (n *NodeAuthenticationOOB) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
+func (n *NodeAuthenticationOOB) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (authflow.ReactToResult, error) {
 	var inputNodeAuthenticationOOB inputNodeAuthenticationOOB
 	if !authflow.AsInput(input, &inputNodeAuthenticationOOB) {
 		return nil, authflow.ErrIncompatibleInput

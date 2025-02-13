@@ -44,7 +44,7 @@ func (i *IntentSignupLoginFlowSteps) CanReactTo(ctx context.Context, deps *authf
 	return nil, authflow.ErrEOF
 }
 
-func (i *IntentSignupLoginFlowSteps) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, _ authflow.Input) (*authflow.Node, error) {
+func (i *IntentSignupLoginFlowSteps) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (authflow.ReactToResult, error) {
 	current, err := i.currentFlowObject(deps)
 	if err != nil {
 		return nil, err

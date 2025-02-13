@@ -82,7 +82,7 @@ func (i *IntentOAuth) CanReactTo(ctx context.Context, deps *authflow.Dependencie
 	return nil, authflow.ErrEOF
 }
 
-func (i *IntentOAuth) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
+func (i *IntentOAuth) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (authflow.ReactToResult, error) {
 	if len(flows.Nearest.Nodes) == 0 {
 		var inputOAuth inputTakeOAuthAuthorizationRequest
 		if authflow.AsInput(input, &inputOAuth) {

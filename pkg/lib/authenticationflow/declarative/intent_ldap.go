@@ -64,7 +64,7 @@ func (i *IntentLDAP) CanReactTo(ctx context.Context, deps *authflow.Dependencies
 	return nil, authflow.ErrEOF
 }
 
-func (i *IntentLDAP) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
+func (i *IntentLDAP) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (authflow.ReactToResult, error) {
 	var inputTakeLDAP inputTakeLDAP
 	if authflow.AsInput(input, &inputTakeLDAP) {
 		ldapServerConfig, ok := deps.Config.Identity.LDAP.GetServerConfig(inputTakeLDAP.GetServerName())

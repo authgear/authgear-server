@@ -48,7 +48,7 @@ func (i *IntentSignupLoginFlow) CanReactTo(ctx context.Context, deps *authflow.D
 	return nil, authflow.ErrEOF
 }
 
-func (i *IntentSignupLoginFlow) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
+func (i *IntentSignupLoginFlow) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (authflow.ReactToResult, error) {
 	switch {
 	case len(flows.Nearest.Nodes) == 0:
 		return authflow.NewSubFlow(&IntentSignupLoginFlowSteps{

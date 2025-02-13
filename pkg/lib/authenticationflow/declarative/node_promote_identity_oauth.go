@@ -45,7 +45,7 @@ func (n *NodePromoteIdentityOAuth) CanReactTo(ctx context.Context, deps *authflo
 	}, nil
 }
 
-func (n *NodePromoteIdentityOAuth) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
+func (n *NodePromoteIdentityOAuth) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (authflow.ReactToResult, error) {
 	var inputOAuth inputTakeOAuthAuthorizationResponse
 	if authflow.AsInput(input, &inputOAuth) {
 		spec, err := handleOAuthAuthorizationResponse(ctx, deps, HandleOAuthAuthorizationResponseOptions{

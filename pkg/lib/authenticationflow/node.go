@@ -13,6 +13,12 @@ type Node struct {
 	SubFlow *Flow      `json:"flow,omitempty"`
 }
 
+var _ ReactToResult = &Node{}
+
+func (n *Node) reactToResult() {
+	panic("unimplemented")
+}
+
 type NodeSimple interface {
 	Kinder
 }

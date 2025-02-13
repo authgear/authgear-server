@@ -49,7 +49,7 @@ func (n *NodeIdentifyWithIDToken) CanReactTo(ctx context.Context, deps *authflow
 	}
 }
 
-func (n *NodeIdentifyWithIDToken) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
+func (n *NodeIdentifyWithIDToken) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (authflow.ReactToResult, error) {
 	proceed := func(idToken string) (*authflow.Node, error) {
 		n, err := NewNodeDoUseIDToken(ctx, deps, flows, &NodeDoUseIDToken{
 			IDToken: idToken,

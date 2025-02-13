@@ -68,7 +68,7 @@ func (n *IntentUseAuthenticatorPassword) CanReactTo(ctx context.Context, deps *a
 	}, nil
 }
 
-func (i *IntentUseAuthenticatorPassword) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
+func (i *IntentUseAuthenticatorPassword) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (authflow.ReactToResult, error) {
 	var inputTakePassword inputTakePassword
 	if authflow.AsInput(input, &inputTakePassword) {
 		var bpSpecialErr error

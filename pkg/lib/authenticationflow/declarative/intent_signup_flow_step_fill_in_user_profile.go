@@ -61,7 +61,7 @@ func (i *IntentSignupFlowStepFillInUserProfile) CanReactTo(ctx context.Context, 
 	return nil, authflow.ErrEOF
 }
 
-func (i *IntentSignupFlowStepFillInUserProfile) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
+func (i *IntentSignupFlowStepFillInUserProfile) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (authflow.ReactToResult, error) {
 	var inputFillInUserProfile inputFillInUserProfile
 	if !i.IsUpdatingExistingUser && authflow.AsInput(input, &inputFillInUserProfile) {
 		rootObject, err := findFlowRootObjectInFlow(deps, flows)

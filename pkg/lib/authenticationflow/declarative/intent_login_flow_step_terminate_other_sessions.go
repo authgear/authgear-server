@@ -35,7 +35,7 @@ func (i *IntentLoginFlowStepTerminateOtherSessions) CanReactTo(ctx context.Conte
 	return nil, authflow.ErrEOF
 }
 
-func (i *IntentLoginFlowStepTerminateOtherSessions) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
+func (i *IntentLoginFlowStepTerminateOtherSessions) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (authflow.ReactToResult, error) {
 	uiParam := uiparam.GetUIParam(ctx)
 	clientID := uiParam.ClientID
 	client, ok := deps.Config.OAuth.GetClient(clientID)

@@ -51,7 +51,7 @@ func (i *IntentReauthFlow) CanReactTo(ctx context.Context, deps *authflow.Depend
 	return nil, nil
 }
 
-func (i *IntentReauthFlow) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, _ authflow.Input) (*authflow.Node, error) {
+func (i *IntentReauthFlow) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (authflow.ReactToResult, error) {
 	switch {
 	case len(flows.Nearest.Nodes) == 0:
 		return authflow.NewSubFlow(&IntentReauthFlowSteps{
