@@ -13,6 +13,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
+	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
 )
@@ -33,9 +34,23 @@ type NodeVerifyClaim struct {
 	WebsocketChannelName string                        `json:"websocket_channel_name,omitempty"`
 }
 
-func NewNodeVerifyClaim(n *NodeVerifyClaim) *NodeVerifyClaim {
+func NewNodeVerifyClaim(n *NodeVerifyClaim) *authflow.NodeWithDelayedOneTimeFunction {
 	n.WebsocketChannelName = authflow.NewWebsocketChannelName()
-	return n
+	simpleNode := authflow.NewNodeSimple(n)
+
+	return &authflow.NodeWithDelayedOneTimeFunction{
+		Node: simpleNode,
+		DelayedOneTimeFunction: func(ctx context.Context, deps *authflow.Dependencies) error {
+			kind := n.otpKind(deps)
+			err := n.SendCode(ctx, deps)
+			if ratelimit.IsRateLimitErrorWithBucketName(err, kind.RateLimitTriggerCooldown(n.ClaimValue).Name) {
+				// Ignore trigger cooldown rate limit error; continue the flow
+			} else if err != nil {
+				return err
+			}
+			return nil
+		},
+	}
 }
 
 var _ authflow.NodeSimple = &NodeVerifyClaim{}
@@ -118,11 +133,13 @@ func (n *NodeVerifyClaim) ReactTo(ctx context.Context, deps *authflow.Dependenci
 			Claim: verifiedClaim,
 		}), nil
 	case inputNodeVerifyClaim.IsResend():
-		err := n.SendCode(ctx, deps)
-		if err != nil {
-			return nil, err
-		}
-		return authflow.NewNodeSimple(n), authflow.ErrUpdateNode
+		newSimpleNode := authflow.NewNodeSimple(n)
+		return &authflow.NodeWithDelayedOneTimeFunction{
+			Node: newSimpleNode,
+			DelayedOneTimeFunction: func(ctx context.Context, deps *authflow.Dependencies) error {
+				return n.SendCode(ctx, deps)
+			},
+		}, authflow.ErrUpdateNode
 	default:
 		return nil, authflow.ErrIncompatibleInput
 	}
