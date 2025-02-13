@@ -343,6 +343,11 @@ docker_minio_create_buckets() {
 	kill -SIGTERM "$minio_pid"
 }
 
+docker_tls_update_ca_certificates() {
+  # Make the certificates in /usr/local/share/ca-certificates take effect.
+  sudo update-ca-certificates
+}
+
 main() {
 	check_user_is_correct
 	check_PGDATA_is_set
@@ -380,6 +385,8 @@ main() {
 
 	docker_minio_create_directories
 	docker_minio_create_buckets
+
+	docker_tls_update_ca_certificates
 
 	# Replace this process with the given arguments.
 	exec "$@"
