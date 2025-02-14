@@ -328,8 +328,6 @@ docker_minio_create_directories() {
 }
 
 docker_minio_create_buckets() {
-	set -eux
-
 	# We need to start the server temporarily.
 	minio server /var/lib/minio/data &
 	minio_pid=$!
