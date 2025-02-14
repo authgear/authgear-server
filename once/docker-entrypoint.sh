@@ -74,14 +74,11 @@ docker_postgresql_create_database_directories() {
 	sudo mkdir -p /var/run/postgresql
 	sudo chmod 0775 /var/run/postgresql
 
-	user="$(id -u -n)"
-	sudo find "$PGDATA" \! -user "$user" -exec chown "$user":"$user" '{}' +
-	sudo find /var/run/postgresql \! -user "$user" -exec chown "$user":"$user" '{}' +
+	sudo find "$PGDATA" \! -user "authgear" -exec chown "authgear":"authgear" '{}' +
+	sudo find /var/run/postgresql \! -user "authgear" -exec chown "authgear":"authgear" '{}' +
 }
 
 docker_postgresql_initdb() {
-	user="$(id -u -n)"
-
 	# This is the most secure method supported by PostgreSQL 16.
 	# See https://www.postgresql.org/docs/16/auth-password.html
 	auth_method="scram-sha-256"
@@ -91,7 +88,7 @@ docker_postgresql_initdb() {
 	# Since --locale-provider=libc is the default, we need not specify it.
 	# NOTE: --pwfile uses process substitution.
 	initdb \
-		--username="$user" \
+		--username="authgear" \
 		--pwfile=<(printf "%s\n" "$POSTGRES_PASSWORD") \
 		--encoding="UTF8" \
 		--auth-host="$auth_method" \
@@ -120,11 +117,10 @@ docker_postgresql_psql() {
 docker_postgresql_create_database() {
 	docker_postgresql_temp_server_start
 
-	user="$(id -u -n)"
 	# Connect to the database `postgres` that must exists.
 	db_exists="$(docker_postgresql_psql \
 		--dbname postgres \
-		--set db="$user" \
+		--set db="authgear" \
 		--tuples-only <<-'EOSQL'
 SELECT 1 FROM pg_database WHERE datname = :'db';
 	EOSQL
@@ -132,7 +128,7 @@ SELECT 1 FROM pg_database WHERE datname = :'db';
 	if [ -z "$db_exists" ]; then
 		docker_postgresql_psql \
 			--dbname postgres \
-			--set db="$user" <<-'EOSQL'
+			--set db="authgear" <<-'EOSQL'
 CREATE DATABASE :"db";
 	EOSQL
 	fi
@@ -146,9 +142,8 @@ docker_redis_create_directories() {
 	sudo mkdir -p /var/run/redis
 	sudo chmod 0700 /var/run/redis
 
-	user="$(id -u -n)"
-	sudo find /var/lib/redis/data \! -user "$user" -exec chown "$user:$user" '{}' +
-	sudo find /var/run/redis \! -user "$user" -exec chown "$user:$user" '{}' +
+	sudo find /var/lib/redis/data \! -user "authgear" -exec chown "authgear:authgear" '{}' +
+	sudo find /var/run/redis \! -user "authgear" -exec chown "authgear:authgear" '{}' +
 }
 
 docker_redis_write_acl_file() {
@@ -179,13 +174,12 @@ docker_nginx_create_directories() {
 	# I do not know why.
 	sudo rm -f /usr/share/nginx/modules
 
-	user="$(id -u -n)"
-	sudo find /usr/share/nginx \! -user "$user" -exec chown "$user:$user" '{}' +
-	sudo find /etc/nginx \! -user "$user" -exec chown "$user:$user" '{}' +
-	sudo find /var/lib/nginx \! -user "$user" -exec chown "$user:$user" '{}' +
-	sudo find /var/run/nginx \! -user "$user" -exec chown "$user:$user" '{}' +
-	sudo find /var/log/nginx \! -user "$user" -exec chown "$user:$user" '{}' +
-	sudo find /tmp/nginx \! -user "$user" -exec chown "$user:$user" '{}' +
+	sudo find /usr/share/nginx \! -user "authgear" -exec chown "authgear:authgear" '{}' +
+	sudo find /etc/nginx \! -user "authgear" -exec chown "authgear:authgear" '{}' +
+	sudo find /var/lib/nginx \! -user "authgear" -exec chown "authgear:authgear" '{}' +
+	sudo find /var/run/nginx \! -user "authgear" -exec chown "authgear:authgear" '{}' +
+	sudo find /var/log/nginx \! -user "authgear" -exec chown "authgear:authgear" '{}' +
+	sudo find /tmp/nginx \! -user "authgear" -exec chown "authgear:authgear" '{}' +
 }
 
 docker_nginx_render_server_block() {
@@ -291,10 +285,9 @@ docker_certbot_create_directories() {
 	sudo mkdir -p /var/log/letsencrypt
 	sudo mkdir -p /etc/letsencrypt
 
-	user="$(id -u -n)"
-	sudo find /var/lib/letsencrypt \! -user "$user" -exec chown "$user:$user" '{}' +
-	sudo find /var/log/letsencrypt \! -user "$user" -exec chown "$user:$user" '{}' +
-	sudo find /etc/letsencrypt \! -user "$user" -exec chown "$user:$user" '{}' +
+	sudo find /var/lib/letsencrypt \! -user "authgear" -exec chown "authgear:authgear" '{}' +
+	sudo find /var/log/letsencrypt \! -user "authgear" -exec chown "authgear:authgear" '{}' +
+	sudo find /etc/letsencrypt \! -user "authgear" -exec chown "authgear:authgear" '{}' +
 }
 
 docker_certbot_create_cli_ini() {
@@ -323,8 +316,7 @@ docker_minio_create_directories() {
 	sudo mkdir -p /var/lib/minio/data
 	sudo chmod 0700 /var/lib/minio/data
 
-	user="$(id -u -n)"
-	sudo find /var/lib/minio/data \! -user "$user" -exec chown "$user:$user" '{}' +
+	sudo find /var/lib/minio/data \! -user "authgear" -exec chown "authgear:authgear" '{}' +
 }
 
 docker_minio_create_buckets() {
