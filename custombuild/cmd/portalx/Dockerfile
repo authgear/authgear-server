@@ -29,12 +29,14 @@ RUN npm run build
 FROM quay.io/theauthgear/golang:1.23.6-noble AS authgear-portal-stage-2
 
 # Install build time C dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends --no-install-suggests \
-  pkg-config \
-  libicu-dev \
-  libvips-dev \
-  libmagic-dev \
-  && rm -rf /var/lib/apt/lists/*
+RUN set -eux; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends --no-install-suggests \
+        pkg-config \
+        libicu-dev \
+        libvips-dev \
+        libmagic-dev; \
+    rm -rf /var/lib/apt/lists/*
 
 # In order to build a Go program that uses private modules in Docker,
 # we need the following
