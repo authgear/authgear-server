@@ -198,7 +198,7 @@ func (s *Sender) sendSMS(ctx context.Context, msgType translation.MessageType, o
 		return err
 	}
 
-	send := func() error {
+	send := func(ctx context.Context) error {
 		err = s.SMSSender.Send(ctx, client, *opts)
 		if err != nil {
 			otelauthgear.IntCounterAddOne(
@@ -223,13 +223,13 @@ func (s *Sender) sendSMS(ctx context.Context, msgType translation.MessageType, o
 	}
 
 	if isAsync {
-		go func() {
-			// Detach the deadline so that the context is not canceled along with the request.
-			ctx = context.WithoutCancel(ctx)
-			_ = send()
-		}()
+		// Detach the deadline so that the context is not canceled along with the request.
+		ctxWithoutCancel := context.WithoutCancel(ctx)
+		go func(ctx context.Context) {
+			_ = send(ctx)
+		}(ctxWithoutCancel)
 	} else {
-		err = send()
+		err = send(ctx)
 		if err != nil {
 			return err
 		}
