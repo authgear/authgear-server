@@ -201,7 +201,7 @@ FROM quay.io/theauthgear/golang:1.23.6-noble AS authgear-once-stage-wrapper
 WORKDIR /src
 COPY go.mod go.sum ./
 RUN go mod download
-COPY ./once/ ./
+COPY ./once/docker_wrapper.go ./
 RUN go build -o docker_wrapper -tags 'osusergo netgo static_build timetzdata' .
 
 FROM quay.io/theauthgear/authgear-deno:git-243631ad6332 AS authgear-once-stage-authgeardeno
