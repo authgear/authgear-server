@@ -217,8 +217,8 @@ RUN set -eux; \
 		certbot \
 		python3-certbot-nginx; \
 	rm -rf /var/lib/apt/lists/*; \
-	cp /etc/letsencrypt/cli.ini /home/authgear/certbot.ini; \
-	chown authgear:authgear /home/authgear/certbot.ini
+	cp /etc/letsencrypt/cli.ini /home/authgear/certbot.ini.example; \
+	chown authgear:authgear /home/authgear/certbot.ini.example
 
 ARG MINIO_RELEASE=20250207232109.0.0
 ARG MC_RELEASE=20250208191421.0.0

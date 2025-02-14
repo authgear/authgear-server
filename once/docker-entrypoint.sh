@@ -295,7 +295,7 @@ docker_certbot_create_cli_ini() {
 	# Therefore, when we build the image, we copy the original /etc/letsencrypt/cli.ini to /home/authgear/certbot.ini,
 	# and we always write a fresh /etc/letsencrypt/cli.ini.
 	cli_ini="/etc/letsencrypt/cli.ini"
-	cp /home/authgear/certbot.ini "$cli_ini"
+	cp /home/authgear/certbot.ini.example "$cli_ini"
 	sed -E -i 's,^#?\s*(max-log-backups)\s+.*,\1 = 10,' "$cli_ini"
 	sed -E -i 's,^#?\s*(preconfigured-renewal)\s+.*,\1 = False,' "$cli_ini"
 
