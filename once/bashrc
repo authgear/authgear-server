@@ -34,7 +34,8 @@ export REDIS_URL="redis://default:$REDIS_PASSWORD@localhost:6379/0"
 export ANALYTIC_REDIS_URL="redis://default:$REDIS_PASSWORD@localhost:6379/1"
 
 export CONFIG_SOURCE_TYPE=database
-# FIXME: deployment-wise authgear.secrets.yaml
+export APP_CUSTOM_RESOURCE_DIRECTORY=/home/authgear/authgear_deployment_runtime
+export CUSTOM_RESOURCE_DIRECTORY=/home/authgear/authgear_deployment_runtime
 
 # Entries were added /etc/hosts to resolve these host.
 export ADMIN_API_HOST_TEMPLATE='{{ .AppID }}.projects.authgear'

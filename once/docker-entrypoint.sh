@@ -359,6 +359,32 @@ docker_authgear_run_database_migrations() {
 	docker_postgresql_temp_server_stop
 }
 
+docker_authgear_create_deployment_runtime_directory() {
+	mkdir -p /home/authgear/authgear_deployment_runtime
+
+	cat > /home/authgear/authgear_deployment_runtime/authgear.secrets.yaml <<EOF
+secrets:
+- key: db
+  data:
+    database_schema: "$DATABASE_SCHEMA"
+    database_url: "$DATABASE_URL"
+- key: audit.db
+  data:
+    database_schema: "$AUDIT_DATABASE_SCHEMA"
+    database_url: "$AUDIT_DATABASE_URL"
+- key: search.db
+  data:
+    database_schema: "$SEARCH_DATABASE_SCHEMA"
+    database_url: "$SEARCH_DATABASE_URL"
+- key: redis
+  data:
+    redis_url: "$REDIS_URL"
+- key: analytic.redis
+  data:
+    redis_url: "$ANALYTIC_REDIS_URL"
+EOF
+}
+
 main() {
 	check_user_is_correct
 	check_PGDATA_is_set
@@ -403,6 +429,7 @@ main() {
 
 	docker_authgear_source_env
 	docker_authgear_run_database_migrations
+	docker_authgear_create_deployment_runtime_directory
 
 	# Replace this process with the given arguments.
 	exec "$@"
