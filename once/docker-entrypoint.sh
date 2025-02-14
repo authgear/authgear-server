@@ -344,8 +344,8 @@ docker_minio_create_buckets() {
 }
 
 docker_tls_update_ca_certificates() {
-  # Make the certificates in /usr/local/share/ca-certificates take effect.
-  sudo update-ca-certificates
+	# Make the certificates in /usr/local/share/ca-certificates take effect.
+	sudo update-ca-certificates
 }
 
 main() {
