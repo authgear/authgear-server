@@ -69,16 +69,16 @@ RUN set -eux; \
     libkrb5-dev; \
   rm -rf /var/lib/apt/lists/*
 
-RUN \
+RUN set -eux; \
   wget https://github.com/pgpartman/pg_partman/archive/v${PARTMAN_VERSION}.zip \
-    -O pg_partman-${PARTMAN_VERSION}.zip && \
-  unzip pg_partman-${PARTMAN_VERSION}.zip && \
-  cd pg_partman-${PARTMAN_VERSION} && \
+    -O pg_partman-${PARTMAN_VERSION}.zip; \
+  unzip pg_partman-${PARTMAN_VERSION}.zip; \
+  cd pg_partman-${PARTMAN_VERSION}; \
   make NO_BGW=1 install
 
-RUN \
+RUN set -eux; \
   wget https://github.com/pgaudit/pgaudit/archive/${PGAUDIT_VERSION}.zip \
-    -O pgaudit-${PGAUDIT_VERSION}.zip && \
-  unzip pgaudit-${PGAUDIT_VERSION}.zip && \
-  cd pgaudit-${PGAUDIT_VERSION} && \
+    -O pgaudit-${PGAUDIT_VERSION}.zip; \
+  unzip pgaudit-${PGAUDIT_VERSION}.zip; \
+  cd pgaudit-${PGAUDIT_VERSION}; \
   make install USE_PGXS=1
