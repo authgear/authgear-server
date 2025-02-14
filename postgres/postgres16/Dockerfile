@@ -1,3 +1,5 @@
+# syntax=docker/dockerfile:1
+
 # When you change the version, you also need to change postgresql-server-dev-VERSION below.
 FROM postgres:16-bookworm
 

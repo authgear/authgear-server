@@ -162,6 +162,7 @@ ENTRYPOINT ["docker-entrypoint.sh"]
 EXPOSE 3003
 CMD ["authgear-portal", "start"]
 
+
 FROM quay.io/theauthgear/golang:1.23.6-noble AS authgear-once-stage-wrapper
 WORKDIR /src
 COPY go.mod go.sum ./
