@@ -168,7 +168,7 @@ func (t *TwilioClient) makeError(
 				"Detail": errorCode,
 			}), err)
 	case 30002:
-		err = errors.Join(smsapi.ErrKindAuthorizationFailed.NewWithInfo(
+		err = errors.Join(smsapi.ErrKindDeliveryRejected.NewWithInfo(
 			"twilio authorization failed", apierrors.Details{
 				"Detail": errorCode,
 			}), err)

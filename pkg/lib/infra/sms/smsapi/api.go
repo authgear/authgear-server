@@ -17,7 +17,7 @@ var ErrAmbiguousClient = errors.New("ambiguous SMS client")
 
 var ErrKindInvalidPhoneNumber = apierrors.BadRequest.WithReason("SMSGatewayInvalidPhoneNumber")
 var ErrKindAuthenticationFailed = apierrors.InternalError.WithReason("SMSGatewayAuthenticationFailed")
-var ErrKindAuthorizationFailed = apierrors.InternalError.WithReason("SMSGatewayAuthorizationFailed")
+var ErrKindDeliveryRejected = apierrors.InternalError.WithReason("SMSGatewayKindDeliveryRejected")
 var ErrKindRateLimited = apierrors.TooManyRequest.WithReason("SMSGatewayRateLimited")
 
 type TemplateVariables struct {
