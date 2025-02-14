@@ -13,54 +13,76 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 )
 
-type mockHook struct {
+type mockWebHook struct {
 }
 
-var _ hook.WebHook = &mockHook{}
+var _ hook.WebHook = &mockWebHook{}
 
 // PerformNoResponse implements hook.WebHook.
-func (m *mockHook) PerformNoResponse(client *http.Client, request *http.Request) error {
+func (m *mockWebHook) PerformNoResponse(client *http.Client, request *http.Request) error {
 	panic("not implemented")
 }
 
 // PerformWithResponse implements hook.WebHook.
-func (m *mockHook) PerformWithResponse(client *http.Client, request *http.Request) (resp *http.Response, err error) {
+func (m *mockWebHook) PerformWithResponse(client *http.Client, request *http.Request) (resp *http.Response, err error) {
 	panic("not implemented")
 }
 
 // PrepareRequest implements hook.WebHook.
-func (m *mockHook) PrepareRequest(ctx context.Context, u *url.URL, body interface{}) (*http.Request, error) {
+func (m *mockWebHook) PrepareRequest(ctx context.Context, u *url.URL, body interface{}) (*http.Request, error) {
 	return &http.Request{}, nil
 }
 
 // SupportURL implements hook.WebHook.
-func (m *mockHook) SupportURL(u *url.URL) bool {
+func (m *mockWebHook) SupportURL(u *url.URL) bool {
 	return true
 }
 
-type mockHookClient struct {
+type mockWebHookClient struct {
 	ResponseStatusCode int
 	ResponseBody       io.ReadCloser
 }
 
 // Do implements HookHTTPClient.
-func (m *mockHookClient) Do(req *http.Request) (*http.Response, error) {
+func (m *mockWebHookClient) Do(req *http.Request) (*http.Response, error) {
 	return &http.Response{StatusCode: m.ResponseStatusCode, Body: m.ResponseBody}, nil
 }
 
-var _ HookHTTPClient = &mockHookClient{}
+var _ HookHTTPClient = &mockWebHookClient{}
+
+type mockDenoHook struct{}
+
+// RunSync implements DenoHook.
+func (m *mockDenoHook) RunSync(ctx context.Context, client hook.DenoClient, u *url.URL, input interface{}) (out interface{}, err error) {
+	return nil, nil
+}
+
+// SupportURL implements DenoHook.
+func (m *mockDenoHook) SupportURL(u *url.URL) bool {
+	return true
+}
+
+var _ DenoHook = &mockDenoHook{}
+
+type mockDenoHookClient struct{}
+
+func (m *mockDenoHookClient) Run(ctx context.Context, script string, input interface{}) (out interface{}, err error) {
+	return nil, nil
+}
+
+var _ HookDenoClient = &mockDenoHookClient{}
 
 func TestCustomClient(t *testing.T) {
-	Convey("Is compatible with old clients", t, func() {
+	Convey("webhook is compatible with old clients", t, func() {
 		// Originally we only check the status code of the webhook response
 		// And do not care about the response body
 		// We don't want to break this behavior
 
-		var webhook hook.WebHook = &mockHook{}
+		var webhook hook.WebHook = &mockWebHook{}
 
 		smsWebHook := &SMSWebHook{
 			WebHook: webhook,
-			Client: &mockHookClient{
+			Client: &mockWebHookClient{
 				ResponseStatusCode: 200,
 				ResponseBody:       io.NopCloser(strings.NewReader("")),
 			},
@@ -68,6 +90,24 @@ func TestCustomClient(t *testing.T) {
 		ctx := context.Background()
 		url := &url.URL{}
 		err := smsWebHook.Call(ctx, url, SendOptions{})
+
+		So(err, ShouldBeNil)
+	})
+
+	Convey("denohook is compatible with old clients", t, func() {
+		// Originally we only check the status code of the webhook response
+		// And do not care about the response body
+		// We don't want to break this behavior
+
+		var denohook DenoHook = &mockDenoHook{}
+
+		smsDenoHook := &SMSDenoHook{
+			DenoHook: denohook,
+			Client:   &mockDenoHookClient{},
+		}
+		ctx := context.Background()
+		url := &url.URL{}
+		err := smsDenoHook.Call(ctx, url, SendOptions{})
 
 		So(err, ShouldBeNil)
 	})

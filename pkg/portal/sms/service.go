@@ -94,7 +94,7 @@ func (s *Service) sendByDeno(
 	cfg model.SMSProviderConfigurationDenoInput,
 ) error {
 
-	deno := custom.NewSMSDenoHook(s.LoggerFactory, s.DenoEndpoint, &config.CustomSMSProviderConfig{
+	deno := custom.NewSMSDenoHookForTest(s.LoggerFactory, s.DenoEndpoint, &config.CustomSMSProviderConfig{
 		// URL is not important here, we execute the script with a string
 		URL:     "",
 		Timeout: (*config.DurationSeconds)(cfg.Timeout),

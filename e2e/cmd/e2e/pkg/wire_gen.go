@@ -647,10 +647,14 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 	smsGatewayEnvironmentNexmoCredentials := smsGatewayEnvironmentConfig.Nexmo
 	smsGatewayEnvironmentTwilioCredentials := smsGatewayEnvironmentConfig.Twilio
 	smsGatewayEnvironmentCustomSMSProviderConfig := smsGatewayEnvironmentConfig.Custom
+	hookDenoHook := &hook.DenoHook{
+		ResourceManager: manager,
+		Logger:          denoHookLogger,
+	}
 	smsHookTimeout := custom.NewSMSHookTimeout(customSMSProviderConfig)
 	hookDenoClient := custom.NewHookDenoClient(denoEndpoint, hookLogger, smsHookTimeout)
 	smsDenoHook := custom.SMSDenoHook{
-		DenoHook: denoHook,
+		DenoHook: hookDenoHook,
 		Client:   hookDenoClient,
 	}
 	hookWebHookImpl := &hook.WebHookImpl{

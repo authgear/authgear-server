@@ -45,12 +45,16 @@ func NewHookHTTPClient(timeout SMSHookTimeout) HookHTTPClient {
 	}
 }
 
-type HookDenoClient struct {
+type HookDenoClient interface {
+	Run(ctx context.Context, script string, input interface{}) (out interface{}, err error)
+}
+
+type HookDenoClientImpl struct {
 	hook.DenoClient
 }
 
 func NewHookDenoClient(endpoint config.DenoEndpoint, logger hook.Logger, timeout SMSHookTimeout) HookDenoClient {
-	return HookDenoClient{
+	return HookDenoClientImpl{
 		&hook.DenoClientImpl{
 			Endpoint:   string(endpoint),
 			HTTPClient: utilhttputil.NewExternalClient(timeout.Timeout),
@@ -107,73 +111,53 @@ func (w *SMSWebHook) Call(ctx context.Context, u *url.URL, payload SendOptions) 
 		})
 	}
 
-	return w.handleResponse(responseBody, dumpedResponse)
+	return handleResponse(responseBody, dumpedResponse)
 }
 
-func (w *SMSWebHook) handleResponse(responseBody *ResponseBody, dumpedResponse []byte) error {
-	err := &smsapi.SendError{
-		DumpedResponse: dumpedResponse,
-	}
-
-	errorDetail := func() apierrors.Details {
-		d := apierrors.Details{}
-		if responseBody.ProviderName != "" {
-			d["ProviderName"] = responseBody.ProviderName
-		} else {
-			d["ProviderName"] = "webhook"
-		}
-		if responseBody.ProviderErrorCode != "" {
-			d["ProviderErrorCode"] = responseBody.ProviderErrorCode
-		}
-		return d
-	}
-
-	switch responseBody.Code {
-	case "ok":
-		return nil
-	case "invalid_phone_number":
-		return errors.Join(smsapi.ErrKindInvalidPhoneNumber.NewWithInfo(
-			"phone number rejected by sms gateway", errorDetail()), err)
-	case "rate_limited":
-		return errors.Join(smsapi.ErrKindRateLimited.NewWithInfo(
-			"sms gateway rate limited", errorDetail()), err)
-	case "authentication_failed":
-		return errors.Join(smsapi.ErrKindAuthenticationFailed.NewWithInfo(
-			"sms gateway authentication failed", errorDetail()), err)
-	case "delivery_rejected":
-		return errors.Join(smsapi.ErrKindDeliveryRejected.NewWithInfo(
-			"sms gateway delievery rejected", errorDetail()), err)
-	default:
-		return err
-	}
-}
-
-func NewSMSDenoHook(lf *log.Factory, denoEndpoint config.DenoEndpoint, smsCfg *config.CustomSMSProviderConfig) *SMSDenoHook {
+func NewSMSDenoHookForTest(lf *log.Factory, denoEndpoint config.DenoEndpoint, smsCfg *config.CustomSMSProviderConfig) *SMSDenoHook {
 	timeout := NewSMSHookTimeout(smsCfg)
 	logger := hook.NewLogger(lf)
 	client := NewHookDenoClient(denoEndpoint, logger, timeout)
+	// DenoHook is not needed because it can only be used for Test()
 	return &SMSDenoHook{
 		Client: client,
 	}
 }
 
+type DenoHook interface {
+	RunSync(ctx context.Context, client hook.DenoClient, u *url.URL, input interface{}) (out interface{}, err error)
+	SupportURL(u *url.URL) bool
+}
+
 type SMSDenoHook struct {
-	hook.DenoHook
+	DenoHook
 	Client HookDenoClient
 }
 
-func (d *SMSDenoHook) Call(ctx context.Context, u *url.URL, payload SendOptions) ([]byte, error) {
+func (d *SMSDenoHook) Call(ctx context.Context, u *url.URL, payload SendOptions) error {
 	anything, err := d.RunSync(ctx, d.Client, u, payload)
 	if err != nil {
-		return nil, err
+		return err
+	}
+
+	if anything == nil {
+		// This is a null, but we should still consider it is a success for backward compatibility.
+		return nil
 	}
 
 	jsonText, err := json.Marshal(anything)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return jsonText, nil
+	responseBody, err := ParseResponseBody(jsonText)
+	if err != nil {
+		return errors.Join(err, &smsapi.SendError{
+			DumpedResponse: jsonText,
+		})
+	}
+
+	return handleResponse(responseBody, jsonText)
 }
 
 func (d *SMSDenoHook) Test(ctx context.Context, script string, payload SendOptions) error {
@@ -220,12 +204,50 @@ func (c *CustomClient) Send(ctx context.Context, opts smsapi.SendOptions) error 
 	}
 	switch {
 	case c.SMSDenoHook.SupportURL(u):
-		_, err = c.SMSDenoHook.Call(ctx, u, payload)
+		err = c.SMSDenoHook.Call(ctx, u, payload)
 		return err
 	case c.SMSWebHook.SupportURL(u):
 		err = c.SMSWebHook.Call(ctx, u, payload)
 		return err
 	default:
 		panic(fmt.Errorf("unsupported hook URL: %v", u))
+	}
+}
+
+func handleResponse(responseBody *ResponseBody, dumpedResponse []byte) error {
+	err := &smsapi.SendError{
+		DumpedResponse: dumpedResponse,
+	}
+
+	errorDetail := func() apierrors.Details {
+		d := apierrors.Details{}
+		if responseBody.ProviderName != "" {
+			d["ProviderName"] = responseBody.ProviderName
+		} else {
+			d["ProviderName"] = "webhook"
+		}
+		if responseBody.ProviderErrorCode != "" {
+			d["ProviderErrorCode"] = responseBody.ProviderErrorCode
+		}
+		return d
+	}
+
+	switch responseBody.Code {
+	case "ok":
+		return nil
+	case "invalid_phone_number":
+		return errors.Join(smsapi.ErrKindInvalidPhoneNumber.NewWithInfo(
+			"phone number rejected by sms gateway", errorDetail()), err)
+	case "rate_limited":
+		return errors.Join(smsapi.ErrKindRateLimited.NewWithInfo(
+			"sms gateway rate limited", errorDetail()), err)
+	case "authentication_failed":
+		return errors.Join(smsapi.ErrKindAuthenticationFailed.NewWithInfo(
+			"sms gateway authentication failed", errorDetail()), err)
+	case "delivery_rejected":
+		return errors.Join(smsapi.ErrKindDeliveryRejected.NewWithInfo(
+			"sms gateway delievery rejected", errorDetail()), err)
+	default:
+		return err
 	}
 }
