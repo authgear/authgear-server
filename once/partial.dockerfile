@@ -239,14 +239,15 @@ RUN set -eux; \
 		minio_${MINIO_RELEASE}_${TARGETARCH}.deb \
 		mcli_${MC_RELEASE}_${TARGETARCH}.deb
 
+USER authgear
+WORKDIR /home/authgear
+
 COPY --chown=authgear:authgear ./once/docker-entrypoint.sh ./once/docker-certbot.py /usr/local/bin/
+COPY --chown=authgear:authgear ./once/bashrc /home/authgear/.bashrc
 COPY --from=authgear-once-stage-wrapper --chown=authgear:authgear /src/docker_wrapper /usr/local/bin/
 COPY --from=authgear-once-stage-authgeardeno --chown=authgear:authgear /usr/local/bin/authgear-deno /usr/local/bin/deno /usr/local/bin/
 
 ENTRYPOINT ["docker-entrypoint.sh"]
-
-USER authgear
-WORKDIR /home/authgear
 
 ENV PGDATA=/var/lib/postgresql/data
 ENV MINIO_ROOT_USER=authgear

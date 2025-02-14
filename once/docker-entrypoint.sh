@@ -346,6 +346,12 @@ docker_tls_update_ca_certificates() {
 	sudo update-ca-certificates
 }
 
+docker_authgear_source_env() {
+	# It is put at ~/.bashrc so that
+	# `docker compose exec THE_SERVICE bash` will also source this file.
+	source "/home/authgear/.bashrc"
+}
+
 main() {
 	check_user_is_correct
 	check_PGDATA_is_set
@@ -385,6 +391,8 @@ main() {
 	docker_minio_create_buckets
 
 	docker_tls_update_ca_certificates
+
+	docker_authgear_source_env
 
 	# Replace this process with the given arguments.
 	exec "$@"
