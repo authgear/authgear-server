@@ -8,8 +8,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/authgear/authgear-server/pkg/lib/hook"
 	. "github.com/smartystreets/goconvey/convey"
+
+	"github.com/authgear/authgear-server/pkg/lib/hook"
 )
 
 type mockHook struct {
