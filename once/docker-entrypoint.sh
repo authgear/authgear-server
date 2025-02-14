@@ -336,6 +336,11 @@ docker_tls_update_ca_certificates() {
 	sudo update-ca-certificates
 }
 
+docker_dns_update_etc_hosts() {
+	echo '127.0.0.1 accounts.projects.authgear' | sudo tee -a /etc/hosts >/dev/null
+	echo '127.0.0.1 project.projects.authgear' | sudo tee -a /etc/hosts >/dev/null
+}
+
 docker_authgear_source_env() {
 	# It is put at ~/.bashrc so that
 	# `docker compose exec THE_SERVICE bash` will also source this file.
@@ -393,6 +398,8 @@ main() {
 	docker_minio_create_buckets
 
 	docker_tls_update_ca_certificates
+
+	docker_dns_update_etc_hosts
 
 	docker_authgear_source_env
 	docker_authgear_run_database_migrations
