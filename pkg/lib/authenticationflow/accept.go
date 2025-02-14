@@ -147,15 +147,16 @@ func accept(ctx context.Context, deps *Dependencies, flows Flows, inputFn func(i
 				result.BotProtectionVerificationResult = &BotProtectionVerificationResult{
 					Outcome: BotProtectionVerificationOutcomeFailed,
 				}
-				return result, botprotection.ErrVerificationFailed
+				err = botprotection.ErrVerificationFailed
+				return
 			case ErrorBotProtectionVerificationStatusServiceUnavailable:
-				err = nil
 				// We still consider the flow has something changes.
 				changed = true
 				result.BotProtectionVerificationResult = &BotProtectionVerificationResult{
 					Outcome: BotProtectionVerificationOutcomeFailed,
 				}
-				return result, botprotection.ErrVerificationServiceUnavailable
+				err = botprotection.ErrVerificationServiceUnavailable
+				return
 			default:
 				// unrecognized status
 				panic("unrecognized bot protection special error status in accept loop")
@@ -184,7 +185,7 @@ func accept(ctx context.Context, deps *Dependencies, flows Flows, inputFn func(i
 		}
 		err = appendNode(ctx, deps, findInputReactorResult.Flows, nextNode)
 		if err != nil {
-			return result, err
+			return
 		}
 		changed = true
 	}
