@@ -90,9 +90,9 @@ func (s *Sender) SendEmailInNewGoroutine(ctx context.Context, msgType translatio
 		return s.devModeSendEmail(ctx, msgType, opts)
 	}
 
-	go func() {
+	ctxWithoutCancel := context.WithoutCancel(ctx)
+	go func(ctx context.Context) {
 		// Detach the deadline so that the context is not canceled along with the request.
-		ctx = context.WithoutCancel(ctx)
 
 		err := s.MailSender.Send(*opts)
 		if err != nil {
@@ -109,7 +109,7 @@ func (s *Sender) SendEmailInNewGoroutine(ctx context.Context, msgType translatio
 				Description: s.errorToDescription(err),
 			})
 			if dispatchErr != nil {
-				s.Logger.WithError(err).Errorf("failed to emit %v event", nonblocking.EmailError)
+				s.Logger.WithError(dispatchErr).Errorf("failed to emit %v event", nonblocking.EmailError)
 			}
 			return
 		}
@@ -126,9 +126,9 @@ func (s *Sender) SendEmailInNewGoroutine(ctx context.Context, msgType translatio
 			Type:      string(msgType),
 		})
 		if dispatchErr != nil {
-			s.Logger.WithError(err).Errorf("failed to emit %v event", nonblocking.EmailSent)
+			s.Logger.WithError(dispatchErr).Errorf("failed to emit %v event", nonblocking.EmailSent)
 		}
-	}()
+	}(ctxWithoutCancel)
 
 	return nil
 }
@@ -215,7 +215,7 @@ func (s *Sender) sendSMS(ctx context.Context, msgType translation.MessageType, o
 				Description: s.errorToDescription(err),
 			})
 			if dispatchErr != nil {
-				s.Logger.WithError(err).Errorf("failed to emit %v event", nonblocking.SMSError)
+				s.Logger.WithError(dispatchErr).Errorf("failed to emit %v event", nonblocking.SMSError)
 			}
 			return err
 		}
@@ -248,7 +248,7 @@ func (s *Sender) sendSMS(ctx context.Context, msgType translation.MessageType, o
 		IsNotCountedInUsage: *s.MessagingFeatureConfig.SMSUsageCountDisabled,
 	})
 	if dispatchErr != nil {
-		s.Logger.WithError(err).Errorf("failed to emit %v event", nonblocking.SMSSent)
+		s.Logger.WithError(dispatchErr).Errorf("failed to emit %v event", nonblocking.SMSSent)
 	}
 
 	return nil
@@ -340,12 +340,11 @@ func (s *Sender) SendWhatsappImmediately(ctx context.Context, msgType translatio
 			"phone": phone.Mask(opts.To),
 		}).Error("failed to send Whatsapp")
 
-		logErr := s.DispatchEventImmediatelyWithTx(ctx, &nonblocking.WhatsappErrorEventPayload{
+		dispatchErr := s.DispatchEventImmediatelyWithTx(ctx, &nonblocking.WhatsappErrorEventPayload{
 			Description: s.errorToDescription(err),
 		})
-		if logErr != nil {
-			s.Logger.WithError(logErr).Errorf("failed to emit %v event", nonblocking.WhatsappError)
-			err = errors.Join(err, logErr)
+		if dispatchErr != nil {
+			s.Logger.WithError(dispatchErr).Errorf("failed to emit %v event", nonblocking.WhatsappError)
 		}
 
 		return err
@@ -363,8 +362,7 @@ func (s *Sender) SendWhatsappImmediately(ctx context.Context, msgType translatio
 		IsNotCountedInUsage: *s.MessagingFeatureConfig.WhatsappUsageCountDisabled,
 	})
 	if dispatchErr != nil {
-		s.Logger.WithError(err).Errorf("failed to emit %v event", nonblocking.WhatsappSent)
-		return err
+		s.Logger.WithError(dispatchErr).Errorf("failed to emit %v event", nonblocking.WhatsappSent)
 	}
 
 	return nil
