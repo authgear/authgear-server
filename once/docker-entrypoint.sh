@@ -96,9 +96,7 @@ docker_postgresql_initdb() {
 }
 
 docker_postgresql_temp_server_start() {
-	pg_ctl start \
-		-o "-c listen_addresses='' -p 5432" \
-		--wait
+	pg_ctl start --wait
 }
 
 docker_postgresql_temp_server_stop() {
