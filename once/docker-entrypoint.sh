@@ -342,6 +342,18 @@ docker_authgear_source_env() {
 	source "/home/authgear/.bashrc"
 }
 
+docker_authgear_run_database_migrations() {
+	docker_postgresql_temp_server_start
+
+	authgear database migrate up
+	authgear audit database migrate up
+	authgear images database migrate up
+	authgear search database migrate up
+	authgear-portal database migrate up
+
+	docker_postgresql_temp_server_stop
+}
+
 main() {
 	check_user_is_correct
 	check_PGDATA_is_set
@@ -383,6 +395,7 @@ main() {
 	docker_tls_update_ca_certificates
 
 	docker_authgear_source_env
+	docker_authgear_run_database_migrations
 
 	# Replace this process with the given arguments.
 	exec "$@"
