@@ -256,9 +256,13 @@ VOLUME /var/lib/redis/data
 VOLUME /var/lib/minio/data
 VOLUME /etc/letsencrypt
 
+# postgres
 EXPOSE 5432
+# redis
 EXPOSE 6379
+# http
 EXPOSE 80
+# https
 EXPOSE 443
 # minio
 EXPOSE 9000
@@ -266,5 +270,21 @@ EXPOSE 9000
 EXPOSE 9001
 # authgear-deno
 EXPOSE 8090
+# main
+EXPOSE 3000
+# main internal
+EXPOSE 13000
+# resolver
+EXPOSE 3001
+# resolver internal
+EXPOSE 13001
+# admin
+EXPOSE 3002
+# admin internal
+EXPOSE 13002
+# portal
+EXPOSE 3003
+# portal internal
+EXPOSE 13003
 
 CMD ["docker_wrapper"]

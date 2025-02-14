@@ -86,5 +86,18 @@ COPY ./docker-entrypoint.sh /usr/local/bin/
 ENTRYPOINT ["docker-entrypoint.sh"]
 # update-ca-certificates requires root to run.
 #USER nobody
+
+# main
 EXPOSE 3000
+# main internal
+EXPOSE 13000
+# resolver
+EXPOSE 3001
+# resolver internal
+EXPOSE 13001
+# admin
+EXPOSE 3002
+# admin internal
+EXPOSE 13002
+
 CMD ["authgear", "start"]

@@ -99,5 +99,10 @@ COPY ./docker-entrypoint.sh /usr/local/bin/
 ENTRYPOINT ["docker-entrypoint.sh"]
 # update-ca-certificates requires root to run.
 #USER nobody
+
+# portal
 EXPOSE 3003
+# portal internal
+EXPOSE 13003
+
 CMD ["authgear-portal", "start"]
