@@ -4,13 +4,15 @@
 FROM --platform=$BUILDPLATFORM node:20.9.0-bookworm AS authgear-stage-0
 ARG GIT_HASH
 WORKDIR /usr/src/app
-COPY ./scripts/npm/package.json ./scripts/npm/package-lock.json ./scripts/npm/
-RUN cd ./scripts/npm && npm ci
 COPY ./authui/package.json ./authui/package-lock.json ./authui/
 # See /authui/README.md for the reason why we need to copy tarballs.
 COPY ./authui/tarballs/. ./authui/tarballs/.
 RUN cd ./authui && npm ci
-COPY . .
+# Only copy the necessary files to improving caching.
+COPY ./resources/ ./resources/
+COPY ./authui/ ./authui/
+COPY ./makefiles/ ./makefiles/
+COPY Makefile .
 RUN make authui GIT_HASH=$GIT_HASH
 
 # Stage 1: Build the Go binary

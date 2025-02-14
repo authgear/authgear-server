@@ -2,9 +2,9 @@ CMD_AUTHGEAR ::= authgear
 CMD_PORTAL ::= portal
 BUILD_CTX ::= .
 
-include ./common.mk
-include ./scripts/make/go-mod-outdated.mk
-include ./scripts/make/govulncheck.mk
+include ./makefiles/common.mk
+include ./makefiles/go-mod-outdated.mk
+include ./makefiles/govulncheck.mk
 
 .PHONY: authgearonce-start
 authgearonce-start: GO_RUN_TAGS += authgearonce
