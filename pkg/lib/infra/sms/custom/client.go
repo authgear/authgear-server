@@ -31,12 +31,16 @@ func NewSMSHookTimeout(smsCfg *config.CustomSMSProviderConfig) SMSHookTimeout {
 	}
 }
 
-type HookHTTPClient struct {
+type HookHTTPClient interface {
+	Do(req *http.Request) (*http.Response, error)
+}
+
+type HookHTTPClientImpl struct {
 	*http.Client
 }
 
 func NewHookHTTPClient(timeout SMSHookTimeout) HookHTTPClient {
-	return HookHTTPClient{
+	return HookHTTPClientImpl{
 		utilhttputil.NewExternalClient(timeout.Timeout),
 	}
 }
@@ -74,7 +78,7 @@ func (w *SMSWebHook) Call(ctx context.Context, u *url.URL, payload SendOptions) 
 		return err
 	}
 
-	resp, err := w.Client.Client.Do(req)
+	resp, err := w.Client.Do(req)
 	if err != nil {
 		return err
 	}
