@@ -120,6 +120,12 @@ http {
             proxy_pass http://localhost:3001;
             include /etc/nginx/snippets/authgear_location.conf;
         }
+
+        location /_images {
+            client_max_body_size 10M;
+            proxy_pass http://localhost:3004;
+            include /etc/nginx/snippets/authgear_location.conf;
+        }
     }
 
     server {
@@ -154,6 +160,12 @@ http {
 
         location /_resolver {
             proxy_pass http://localhost:3001;
+            include /etc/nginx/snippets/authgear_location.conf;
+        }
+
+        location /_images {
+            client_max_body_size 10M;
+            proxy_pass http://localhost:3004;
             include /etc/nginx/snippets/authgear_location.conf;
         }
     }
@@ -192,6 +204,12 @@ http {
             proxy_pass http://localhost:3001;
             include /etc/nginx/snippets/authgear_location.conf;
         }
+
+        location /_images {
+            client_max_body_size 10M;
+            proxy_pass http://localhost:3004;
+            include /etc/nginx/snippets/authgear_location.conf;
+        }
     }
 
     server {
@@ -212,6 +230,12 @@ http {
 
         location /_resolver {
             proxy_pass http://localhost:3001;
+            include /etc/nginx/snippets/authgear_location.conf;
+        }
+
+        location /_images {
+            client_max_body_size 10M;
+            proxy_pass http://localhost:3004;
             include /etc/nginx/snippets/authgear_location.conf;
         }
     }

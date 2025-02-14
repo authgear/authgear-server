@@ -163,6 +163,11 @@ func main() {
 		decowriter.New(os.Stdout, []byte("authgear-portal | "), []byte("")),
 		decowriter.New(os.Stderr, []byte("authgear-portal | "), []byte("")),
 	)
+	authgearimages := NewChild(
+		[]string{"authgear", "images", "start"},
+		decowriter.New(os.Stdout, []byte("authgear-images | "), []byte("")),
+		decowriter.New(os.Stderr, []byte("authgear-images | "), []byte("")),
+	)
 	childResults := []ChildResult{}
 	startedChildren := []*Child{}
 
@@ -199,6 +204,7 @@ func main() {
 	start(authgeardeno)
 	start(authgear)
 	start(authgearportal)
+	start(authgearimages)
 
 	// Some child failed to start, trigger reap now.
 	if len(childResults) > 0 {
