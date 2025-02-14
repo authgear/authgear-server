@@ -55,15 +55,19 @@ ENV PARTMAN_VERSION=5.0.1
 # The audit logs only show literally what statements were executed.
 ENV PGAUDIT_VERSION=16.0
 
-RUN apt-get update && apt-get install -y --no-install-recommends --no-install-suggests \
-	unzip \
-	build-essential \
-	wget \
-	# pgaudit requires <postgres.h> to build
-	postgresql-server-dev-16 \
-	# And <postgres.h> includes <gssapi/gssapi.h>
-	libkrb5-dev \
-	&& rm -rf /var/lib/apt/lists/*
+RUN set -eux; \
+  apt-get update; \
+  apt-get install -y --no-install-recommends --no-install-suggests \
+    # Install ca-certificates because we need to access https://github.com below
+    ca-certificates \
+    unzip \
+    build-essential \
+    wget \
+    # pgaudit requires <postgres.h> to build
+    postgresql-server-dev-16 \
+    # And <postgres.h> includes <gssapi/gssapi.h>
+    libkrb5-dev; \
+  rm -rf /var/lib/apt/lists/*
 
 RUN \
   wget https://github.com/pgpartman/pg_partman/archive/v${PARTMAN_VERSION}.zip \
