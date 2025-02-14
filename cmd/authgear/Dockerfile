@@ -32,7 +32,13 @@ ARG GIT_HASH
 WORKDIR /src
 COPY go.mod go.sum ./
 RUN go mod download
-COPY . .
+# Only copy the necessary files to improving caching.
+COPY ./Makefile ./embed.go ./
+COPY ./makefiles/ ./makefiles/
+COPY ./resources/ ./resources/
+COPY ./cmd/ ./cmd/
+COPY ./pkg/ ./pkg/
+COPY ./custombuild/ ./custombuild/
 # Let //go:embed to embed the built static files
 COPY --from=authgear-stage-0 /usr/src/app/resources/authgear/ ./resources/authgear/
 RUN make build BIN_NAME=authgear TARGET=authgear GIT_HASH=$GIT_HASH

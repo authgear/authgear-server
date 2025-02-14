@@ -59,7 +59,13 @@ WORKDIR /src/custombuild
 COPY ./custombuild/go.mod ./custombuild/go.sum ./
 RUN --mount=type=ssh go mod download
 WORKDIR /src
-COPY . .
+# Only copy the necessary files to improving caching.
+COPY ./Makefile ./embed.go ./
+COPY ./makefiles/ ./makefiles/
+COPY ./resources/ ./resources/
+COPY ./cmd/ ./cmd/
+COPY ./pkg/ ./pkg/
+COPY ./custombuild/ ./custombuild/
 # Let //go:embed to embed the built static files
 COPY --from=authgear-portal-stage-0 /usr/src/app/resources/authgear/ ./resources/authgear/
 COPY --from=authgear-portal-stage-1 /usr/src/app/dist/ ./resources/portal/static/
