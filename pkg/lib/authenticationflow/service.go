@@ -193,6 +193,11 @@ func (s *Service) createNewFlow(ctx context.Context, session *Session, publicFlo
 	var acceptResult *AcceptResult
 	err = s.Database.ReadOnly(ctx, func(ctx context.Context) error {
 		acceptResult, err = Accept(ctx, s.Deps, NewFlows(flow), rawMessage)
+		isEOF := errors.Is(err, ErrEOF)
+		if err != nil && !isEOF {
+			return err
+		}
+		flowAction, err = s.getFlowAction(ctx, session, flow)
 		return err
 	})
 	if acceptResult != nil {
@@ -214,10 +219,6 @@ func (s *Service) createNewFlow(ctx context.Context, session *Session, publicFlo
 	// err is nil or err is ErrEOF.
 	// We persist the flow state.
 	err = s.Store.CreateFlow(ctx, flow)
-	if err != nil {
-		return
-	}
-	flowAction, err = s.getFlowAction(ctx, session, flow)
 	if err != nil {
 		return
 	}
@@ -465,6 +466,11 @@ func (s *Service) feedInput(ctx context.Context, session *Session, stateToken st
 		}
 
 		acceptResult, err = Accept(ctx, s.Deps, NewFlows(flow), rawMessage)
+		isEOF := errors.Is(err, ErrEOF)
+		if err != nil && !isEOF {
+			return err
+		}
+		flowAction, err = s.getFlowAction(ctx, session, flow)
 		return err
 	})
 	if acceptResult != nil {
@@ -481,11 +487,6 @@ func (s *Service) feedInput(ctx context.Context, session *Session, stateToken st
 	// err is nil or err is ErrEOF.
 	// We persist the flow state.
 	err = s.Store.CreateFlow(ctx, flow)
-	if err != nil {
-		return
-	}
-
-	flowAction, err = s.getFlowAction(ctx, session, flow)
 	if err != nil {
 		return
 	}
@@ -511,6 +512,11 @@ func (s *Service) feedSyntheticInput(ctx context.Context, session *Session, stat
 		}
 
 		acceptResult, err = AcceptSyntheticInput(ctx, s.Deps, NewFlows(flow), syntheticInput)
+		isEOF := errors.Is(err, ErrEOF)
+		if err != nil && !isEOF {
+			return err
+		}
+		flowAction, err = s.getFlowAction(ctx, session, flow)
 		return err
 	})
 	if acceptResult != nil {
@@ -527,11 +533,6 @@ func (s *Service) feedSyntheticInput(ctx context.Context, session *Session, stat
 	// err is nil or err is ErrEOF.
 	// We persist the flow state.
 	err = s.Store.CreateFlow(ctx, flow)
-	if err != nil {
-		return
-	}
-
-	flowAction, err = s.getFlowAction(ctx, session, flow)
 	if err != nil {
 		return
 	}
