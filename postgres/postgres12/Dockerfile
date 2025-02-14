@@ -4,7 +4,7 @@ FROM postgres:12.20-bookworm
 # Google Cloud SQL PostgreSQL 12 supports up to 4.7.4.
 # https://cloud.google.com/sql/docs/postgres/extensions#:~:text=Cloud%20SQL%20for%20PostgreSQL%20versions%2014%20and%20later%20support%20version%205.0.1%20while%20Cloud%20SQL%20for%20PostgreSQL%20versions%20that%20are%20earlier%20than%2014%20support%20only%20up%20to%20version%204.7.4.
 # So we use that version here.
-ENV PARTMAN_VERSION 4.7.4
+ENV PARTMAN_VERSION=4.7.4
 
 # Google Cloud SQL PostgreSQL 12 uses 1.4.2
 # https://cloud.google.com/sql/docs/postgres/extensions#:~:text=PostgreSQL%2012%20uses%20pgAudit%2C%20version%201.4.2.
@@ -51,7 +51,7 @@ ENV PARTMAN_VERSION 4.7.4
 # In my local testing, the statement is logged immediately when it is executed, regardless of transaction.
 # So merely tracing the audit logs cannot reveal actual changes to the database.
 # The audit logs only show literally what statements were executed.
-ENV PGAUDIT_VERSION 1.4.2
+ENV PGAUDIT_VERSION=1.4.2
 
 RUN set -eux; \
   apt-get update; \
