@@ -90,10 +90,7 @@ func (s *Sender) SendEmailInNewGoroutine(ctx context.Context, msgType translatio
 		return s.devModeSendEmail(ctx, msgType, opts)
 	}
 
-	ctxWithoutCancel := context.WithoutCancel(ctx)
-	go func(ctx context.Context) {
-		// Detach the deadline so that the context is not canceled along with the request.
-
+	sendInTx := func(ctx context.Context) error {
 		err := s.MailSender.Send(*opts)
 		if err != nil {
 			otelauthgear.IntCounterAddOne(
@@ -101,17 +98,13 @@ func (s *Sender) SendEmailInNewGoroutine(ctx context.Context, msgType translatio
 				otelauthgear.CounterEmailRequestCount,
 				otelauthgear.WithStatusError(),
 			)
-
-			s.Logger.WithError(err).WithFields(logrus.Fields{
-				"email": mail.MaskAddress(opts.Recipient),
-			}).Error("failed to send email")
 			dispatchErr := s.DispatchEventImmediatelyWithTx(ctx, &nonblocking.EmailErrorEventPayload{
 				Description: s.errorToDescription(err),
 			})
 			if dispatchErr != nil {
 				s.Logger.WithError(dispatchErr).Errorf("failed to emit %v event", nonblocking.EmailError)
 			}
-			return
+			return err
 		}
 
 		otelauthgear.IntCounterAddOne(
@@ -127,6 +120,21 @@ func (s *Sender) SendEmailInNewGoroutine(ctx context.Context, msgType translatio
 		})
 		if dispatchErr != nil {
 			s.Logger.WithError(dispatchErr).Errorf("failed to emit %v event", nonblocking.EmailSent)
+		}
+		return nil
+	}
+
+	// Detach the deadline so that the context is not canceled along with the request.
+	ctxWithoutCancel := context.WithoutCancel(ctx)
+	go func(ctx context.Context) {
+		// Always use a new transaction to send in async routine
+		asyncErr := s.Database.ReadOnly(ctx, func(ctx context.Context) error {
+			return sendInTx(ctx)
+		})
+		if asyncErr != nil {
+			s.Logger.WithError(asyncErr).WithFields(logrus.Fields{
+				"email": mail.MaskAddress(opts.Recipient),
+			}).Error("failed to send email")
 		}
 	}(ctxWithoutCancel)
 
@@ -198,7 +206,7 @@ func (s *Sender) sendSMS(ctx context.Context, msgType translation.MessageType, o
 		return err
 	}
 
-	send := func(ctx context.Context) error {
+	sendInTx := func(ctx context.Context) error {
 		err = s.SMSSender.Send(ctx, client, *opts)
 		if err != nil {
 			otelauthgear.IntCounterAddOne(
@@ -206,11 +214,6 @@ func (s *Sender) sendSMS(ctx context.Context, msgType translation.MessageType, o
 				otelauthgear.CounterSMSRequestCount,
 				otelauthgear.WithStatusError(),
 			)
-
-			// TODO: Handle expected errors https://linear.app/authgear/issue/DEV-1139
-			s.Logger.WithError(err).WithFields(logrus.Fields{
-				"phone": phone.Mask(opts.To),
-			}).Error("failed to send SMS")
 			dispatchErr := s.DispatchEventImmediatelyWithTx(ctx, &nonblocking.SMSErrorEventPayload{
 				Description: s.errorToDescription(err),
 			})
@@ -226,10 +229,19 @@ func (s *Sender) sendSMS(ctx context.Context, msgType translation.MessageType, o
 		// Detach the deadline so that the context is not canceled along with the request.
 		ctxWithoutCancel := context.WithoutCancel(ctx)
 		go func(ctx context.Context) {
-			_ = send(ctx)
+			// Always use a new transaction to send in async routine
+			asyncErr := s.Database.ReadOnly(ctx, func(ctx context.Context) error {
+				return sendInTx(ctx)
+			})
+			if asyncErr != nil {
+				// TODO: Handle expected errors https://linear.app/authgear/issue/DEV-1139
+				s.Logger.WithError(asyncErr).WithFields(logrus.Fields{
+					"phone": phone.Mask(opts.To),
+				}).Error("failed to send SMS")
+			}
 		}(ctxWithoutCancel)
 	} else {
-		err = send(ctx)
+		err = sendInTx(ctx)
 		if err != nil {
 			return err
 		}
