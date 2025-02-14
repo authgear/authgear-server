@@ -198,7 +198,13 @@ func (s *Service) createNewFlow(ctx context.Context, session *Session, publicFlo
 			return err
 		}
 		flowAction, err = s.getFlowAction(ctx, session, flow)
-		return err
+		if err != nil {
+			return err
+		}
+		if isEOF {
+			return ErrEOF
+		}
+		return nil
 	})
 	acceptErr := s.processAcceptResult(ctx, session, acceptResult)
 	if acceptErr != nil {
@@ -470,7 +476,13 @@ func (s *Service) feedInput(ctx context.Context, session *Session, stateToken st
 			return err
 		}
 		flowAction, err = s.getFlowAction(ctx, session, flow)
-		return err
+		if err != nil {
+			return err
+		}
+		if isEOF {
+			return ErrEOF
+		}
+		return nil
 	})
 	acceptErr := s.processAcceptResult(ctx, session, acceptResult)
 	if acceptErr != nil {
@@ -515,7 +527,13 @@ func (s *Service) feedSyntheticInput(ctx context.Context, session *Session, stat
 			return err
 		}
 		flowAction, err = s.getFlowAction(ctx, session, flow)
-		return err
+		if err != nil {
+			return err
+		}
+		if isEOF {
+			return ErrEOF
+		}
+		return nil
 	})
 	acceptErr := s.processAcceptResult(ctx, session, acceptResult)
 	if acceptErr != nil {
