@@ -406,6 +406,7 @@ RUN set -eux; \
 	ln -sf /dev/stdout /var/log/nginx/access.log; \
 	ln -sf /dev/stderr /var/log/nginx/error.log
 COPY --chown=authgear:authgear ./once/nginx/dhparam ./once/nginx/nginx.conf.sample /etc/nginx/
+COPY --chown=authgear:authgear ./once/nginx/snippets /etc/nginx/snippets/
 
 ## Install certbot.
 RUN set -eux; \
