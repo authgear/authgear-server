@@ -113,8 +113,13 @@ func (w *SMSWebHook) handleResponse(responseBody *ResponseBody, dumpedResponse [
 
 	errorDetail := func() apierrors.Details {
 		d := apierrors.Details{}
-		if responseBody.ErrorDetail != nil {
-			d["Detail"] = responseBody.ErrorDetail
+		if responseBody.ProviderName != "" {
+			d["ProviderName"] = responseBody.ProviderName
+		} else {
+			d["ProviderName"] = "webhook"
+		}
+		if responseBody.ProviderErrorCode != "" {
+			d["ProviderErrorCode"] = responseBody.ProviderErrorCode
 		}
 		return d
 	}
@@ -129,11 +134,11 @@ func (w *SMSWebHook) handleResponse(responseBody *ResponseBody, dumpedResponse [
 		return errors.Join(smsapi.ErrKindRateLimited.NewWithInfo(
 			"sms gateway rate limited", errorDetail()), err)
 	case "authentication_failed":
-		return errors.Join(smsapi.ErrKindRateLimited.NewWithInfo(
+		return errors.Join(smsapi.ErrKindAuthenticationFailed.NewWithInfo(
 			"sms gateway authentication failed", errorDetail()), err)
-	case "authorization_failed":
-		return errors.Join(smsapi.ErrKindRateLimited.NewWithInfo(
-			"sms gateway authorization failed", errorDetail()), err)
+	case "delivery_rejected":
+		return errors.Join(smsapi.ErrKindDeliveryRejected.NewWithInfo(
+			"sms gateway delievery rejected", errorDetail()), err)
 	default:
 		return err
 	}

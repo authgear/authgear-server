@@ -142,13 +142,16 @@ func (t *TwilioClient) makeError(
 		DumpedResponse: dumpedResponse,
 	}
 
+	details := apierrors.Details{
+		"ProviderErrorCode": errorCode,
+		"ProviderName":      "twilio",
+	}
+
 	// See https://www.twilio.com/docs/api/errors
 	switch errorCode {
 	case 21211:
 		err = errors.Join(smsapi.ErrKindInvalidPhoneNumber.NewWithInfo(
-			"phone number rejected by twilio", apierrors.Details{
-				"Detail": errorCode,
-			}), err)
+			"phone number rejected by twilio", details), err)
 	case 30022:
 		fallthrough
 	case 14107:
@@ -159,19 +162,13 @@ func (t *TwilioClient) makeError(
 		fallthrough
 	case 63018:
 		err = errors.Join(smsapi.ErrKindRateLimited.NewWithInfo(
-			"twilio rate limited", apierrors.Details{
-				"Detail": errorCode,
-			}), err)
+			"twilio rate limited", details), err)
 	case 20003:
 		err = errors.Join(smsapi.ErrKindAuthenticationFailed.NewWithInfo(
-			"twilio authentication failed", apierrors.Details{
-				"Detail": errorCode,
-			}), err)
+			"twilio authentication failed", details), err)
 	case 30002:
 		err = errors.Join(smsapi.ErrKindDeliveryRejected.NewWithInfo(
-			"twilio authorization failed", apierrors.Details{
-				"Detail": errorCode,
-			}), err)
+			"twilio delievry rejected", details), err)
 	}
 
 	return err

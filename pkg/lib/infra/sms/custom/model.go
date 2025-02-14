@@ -17,9 +17,11 @@ type SendOptions struct {
 
 // See https://github.com/authgear/authgear-sms-gateway/blob/main/pkg/handler/api.go
 type ResponseBody struct {
-	Code           string  `json:"code"`
-	ErrorDetail    *string `json:"error_detail,omitempty"`
-	DumpedResponse []byte  `json:"dumped_response,omitempty"`
+	Code              string `json:"code"`
+	ProviderName      string `json:"provider_name,omitempty"`
+	ProviderErrorCode string `json:"provider_error_code,omitempty"`
+	GoError           string `json:"go_error,omitempty"`
+	DumpedResponse    []byte `json:"dumped_response,omitempty"`
 }
 
 func ParseResponseBody(jsonData []byte) (*ResponseBody, error) {
