@@ -43,7 +43,7 @@ COPY ./pkg/ ./pkg/
 COPY ./custombuild/ ./custombuild/
 # Let //go:embed to embed the built static files
 COPY --from=authgear-stage-0 /usr/src/app/resources/authgear/ ./resources/authgear/
-RUN make build BIN_NAME=authgear TARGET=authgear GIT_HASH=$GIT_HASH
+RUN make build AUTHGEARONCE=1 BIN_NAME=authgear TARGET=authgear GIT_HASH=$GIT_HASH
 
 # We used to build static binary.
 # But we have a transitive dependency on icu4c so this is no longer the case.
@@ -151,7 +151,7 @@ COPY ./custombuild/ ./custombuild/
 # Let //go:embed to embed the built static files
 COPY --from=authgear-portal-stage-0 /usr/src/app/resources/authgear/ ./resources/authgear/
 COPY --from=authgear-portal-stage-1 /usr/src/app/dist/ ./resources/portal/static/
-RUN make build BIN_NAME=authgear-portal TARGET=portal GIT_HASH=$GIT_HASH
+RUN make build AUTHGEARONCE=1 BIN_NAME=authgear-portal TARGET=portal GIT_HASH=$GIT_HASH
 
 # We used to build static binary.
 # But we have a transitive dependency on icu4c so this is no longer the case.

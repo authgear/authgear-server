@@ -226,8 +226,8 @@ once/Dockerfile:
 	echo "# syntax=docker/dockerfile:1" >> $@
 	printf "\n" >> $@
 	echo "# THIS FILE IS GENERATED. DO NOT EDIT!" >> $@
-	sed '/^# syntax=/d' ./cmd/authgear/Dockerfile >> $@
+	sed -e '/^# syntax=/d' -e 's,^RUN make build ,RUN make build AUTHGEARONCE=1 ,' ./cmd/authgear/Dockerfile >> $@
 	printf "\n" >> $@
-	sed '/^# syntax=/d' ./cmd/portal/Dockerfile >> $@
+	sed -e '/^# syntax=/d' -e 's,^RUN make build ,RUN make build AUTHGEARONCE=1 ,' ./cmd/portal/Dockerfile >> $@
 	printf "\n" >> $@
-	sed '/^# syntax=/d' ./once/partial.dockerfile >> $@
+	sed -e '/^# syntax=/d' ./once/partial.dockerfile >> $@
