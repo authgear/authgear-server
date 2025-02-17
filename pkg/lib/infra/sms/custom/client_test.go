@@ -78,20 +78,39 @@ func TestCustomClient(t *testing.T) {
 		// And do not care about the response body
 		// We don't want to break this behavior
 
-		var webhook hook.WebHook = &mockWebHook{}
+		Convey("empty response is ok", func() {
+			var webhook hook.WebHook = &mockWebHook{}
 
-		smsWebHook := &SMSWebHook{
-			WebHook: webhook,
-			Client: &mockWebHookClient{
-				ResponseStatusCode: 200,
-				ResponseBody:       io.NopCloser(strings.NewReader("")),
-			},
-		}
-		ctx := context.Background()
-		url := &url.URL{}
-		err := smsWebHook.Call(ctx, url, SendOptions{})
+			smsWebHook := &SMSWebHook{
+				WebHook: webhook,
+				Client: &mockWebHookClient{
+					ResponseStatusCode: 200,
+					ResponseBody:       io.NopCloser(strings.NewReader("")),
+				},
+			}
+			ctx := context.Background()
+			u := &url.URL{}
+			err := smsWebHook.Call(ctx, u, SendOptions{})
 
-		So(err, ShouldBeNil)
+			So(err, ShouldBeNil)
+		})
+
+		Convey("response not compatible with current response schema is ok", func() {
+			webhook := &mockWebHook{}
+
+			smsWebHook := &SMSWebHook{
+				WebHook: webhook,
+				Client: &mockWebHookClient{
+					ResponseStatusCode: 200,
+					ResponseBody:       io.NopCloser(strings.NewReader(`{"code": 1}`)),
+				},
+			}
+			ctx := context.Background()
+			u := &url.URL{}
+			err := smsWebHook.Call(ctx, u, SendOptions{})
+
+			So(err, ShouldBeNil)
+		})
 	})
 
 	Convey("denohook is compatible with old clients", t, func() {
