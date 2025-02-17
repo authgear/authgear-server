@@ -48,10 +48,11 @@ func GenerateOAuthConfigFromOptions(opts *GenerateOAuthClientConfigOptions) (*OA
 	corerand.SecureRand.Read(clientID)
 
 	cfg := &OAuthClientConfig{
-		ClientID:        hex.EncodeToString(clientID),
-		Name:            opts.Name,
-		ApplicationType: opts.ApplicationType,
-		RedirectURIs:    []string{opts.RedirectURI},
+		ClientID:            hex.EncodeToString(clientID),
+		Name:                opts.Name,
+		ApplicationType:     opts.ApplicationType,
+		RedirectURIs:        []string{opts.RedirectURI},
+		IssueJWTAccessToken: true,
 	}
 
 	if opts.PostLogoutRedirectURI != "" {
