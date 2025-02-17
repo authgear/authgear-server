@@ -432,6 +432,8 @@ export type CreateRolePayload = {
 export type CreateSessionInput = {
   /** Target client ID. */
   clientID: Scalars['String']['input'];
+  /** Base64-encoded Device information. */
+  deviceInfo?: InputMaybe<Scalars['String']['input']>;
   /** Target user ID. */
   userID: Scalars['ID']['input'];
 };

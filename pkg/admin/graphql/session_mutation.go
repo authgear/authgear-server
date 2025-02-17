@@ -1,6 +1,9 @@
 package graphql
 
 import (
+	"encoding/base64"
+	"encoding/json"
+
 	"github.com/graphql-go/graphql"
 
 	relay "github.com/authgear/authgear-server/pkg/graphqlgo/relay"
@@ -158,6 +161,10 @@ var createSessionInput = graphql.NewInputObject(graphql.InputObjectConfig{
 			Type:        graphql.NewNonNull(graphql.String),
 			Description: "Target client ID.",
 		},
+		"deviceInfo": &graphql.InputObjectFieldConfig{
+			Type:        graphql.String,
+			Description: "Base64-encoded Device information.",
+		},
 	},
 })
 
@@ -207,7 +214,20 @@ var _ = registerMutationField(
 
 			clientID := input["clientID"].(string)
 
-			s, resp, err := gqlCtx.OAuthFacade.CreateSession(ctx, clientID, userID)
+			var deviceInfo map[string]interface{}
+			if deviceInfoBase64, ok := input["deviceInfo"].(string); ok {
+				deviceInfoBytes, err := base64.RawURLEncoding.DecodeString(deviceInfoBase64)
+				if err != nil {
+					return nil, apierrors.NewInvalid("invalid device info")
+				}
+
+				err = json.Unmarshal(deviceInfoBytes, &deviceInfo)
+				if err != nil {
+					return nil, apierrors.NewInvalid("invalid device info")
+				}
+			}
+
+			s, resp, err := gqlCtx.OAuthFacade.CreateSession(ctx, clientID, userID, deviceInfo)
 			if err != nil {
 				return nil, err
 			}

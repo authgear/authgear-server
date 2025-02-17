@@ -169,7 +169,7 @@ type AuthorizationFacade interface {
 }
 
 type OAuthFacade interface {
-	CreateSession(ctx context.Context, clientID string, userID string) (session.ListableSession, protocol.TokenResponse, error)
+	CreateSession(ctx context.Context, clientID string, userID string, deviceInfo map[string]interface{}) (session.ListableSession, protocol.TokenResponse, error)
 }
 
 type SessionListingService interface {

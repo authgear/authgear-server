@@ -724,6 +724,9 @@ input CreateSessionInput {
   """Target client ID."""
   clientID: String!
 
+  """Base64-encoded Device information."""
+  deviceInfo: String
+
   """Target user ID."""
   userID: ID!
 }
