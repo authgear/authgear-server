@@ -140,12 +140,25 @@ func (d *SMSDenoHook) Call(ctx context.Context, u *url.URL, payload SendOptions)
 		return err
 	}
 
-	if anything == nil {
+	return d.handleOutput(anything)
+}
+
+func (d *SMSDenoHook) Test(ctx context.Context, script string, payload SendOptions) error {
+	anything, err := d.Client.Run(ctx, script, payload)
+	if err != nil {
+		return err
+	}
+
+	return d.handleOutput(anything)
+}
+
+func (d *SMSDenoHook) handleOutput(output interface{}) error {
+	if output == nil {
 		// This is a null, but we should still consider it is a success for backward compatibility.
 		return nil
 	}
 
-	jsonText, err := json.Marshal(anything)
+	jsonText, err := json.Marshal(output)
 	if err != nil {
 		return err
 	}
@@ -158,15 +171,6 @@ func (d *SMSDenoHook) Call(ctx context.Context, u *url.URL, payload SendOptions)
 	}
 
 	return handleResponse(responseBody, jsonText)
-}
-
-func (d *SMSDenoHook) Test(ctx context.Context, script string, payload SendOptions) error {
-	_, err := d.Client.Run(ctx, script, payload)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 type CustomClient struct {

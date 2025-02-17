@@ -301,12 +301,15 @@ export function makeLocalErrorParseRule(
 
 export function makeReasonErrorParseRule(
   reason: APIError["reason"],
-  errorMessageID: string
+  errorMessageID: string,
+  values?: (apiError: APIError) => Values
 ): ErrorParseRule {
   return (apiError: APIError): ErrorParseRuleResult => {
     if (apiError.reason === reason) {
       return {
-        parsedAPIErrors: [{ messageID: errorMessageID }],
+        parsedAPIErrors: [
+          { messageID: errorMessageID, arguments: values?.(apiError) },
+        ],
         fullyHandled: true,
       };
     }

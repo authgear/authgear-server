@@ -265,7 +265,7 @@
       <span>{{ include "v2.error.sms-gateway-invalid-phone-number" (dict "ProviderErrorCode" .Error.info.ProviderErrorCode) }}</span>
     {{ else if eq .Error.reason "SMSGatewayAuthenticationFailed" }}
       <span>{{ include "v2.error.sms-gateway-authentication-failed" (dict "ProviderErrorCode" .Error.info.ProviderErrorCode) }}</span>
-    {{ else if eq .Error.reason "SMSGatewayKindDeliveryRejected" }}
+    {{ else if eq .Error.reason "SMSGatewayDeliveryRejected" }}
       <span>{{ include "v2.error.sms-gateway-delivery-rejected" (dict "ProviderErrorCode" .Error.info.ProviderErrorCode) }}</span>
     {{ else if eq .Error.reason "SMSGatewayRateLimited" }}
       <span>{{ include "v2.error.sms-gateway-rate-limited" (dict "ProviderErrorCode" .Error.info.ProviderErrorCode) }}</span>
