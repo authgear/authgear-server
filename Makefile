@@ -91,12 +91,11 @@ fmt:
 	$(MAKE) sort-translations
 
 .PHONY: binary
-binary: GO_BUILD_TAGS += authgearlite
 binary:
 	rm -rf ./dist
 	mkdir ./dist
-	$(MAKE) build GO_BUILD_TAGS::="$(GO_BUILD_TAGS)" TARGET::=authgear BIN_NAME::=./dist/authgear-lite-"$(shell go env GOOS)"-"$(shell go env GOARCH)"-${GIT_HASH}
-	$(MAKE) build GO_BUILD_TAGS::="$(GO_BUILD_TAGS)" TARGET::=portal BIN_NAME::=./dist/authgear-portal-lite-"$(shell go env GOOS)"-"$(shell go env GOARCH)"-${GIT_HASH}
+	$(MAKE) build AUTHGEARLITE::=1 TARGET::=authgear BIN_NAME::=./dist/authgear-lite-"$(shell go env GOOS)"-"$(shell go env GOARCH)"-${GIT_HASH}
+	$(MAKE) build AUTHGEARLITE::=1 TARGET::=portal BIN_NAME::=./dist/authgear-portal-lite-"$(shell go env GOOS)"-"$(shell go env GOARCH)"-${GIT_HASH}
 
 .PHONY: check-tidy
 check-tidy:
