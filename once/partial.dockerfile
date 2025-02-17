@@ -192,16 +192,13 @@ RUN set -eux; \
 	find / \
 		-user redis \
 		\! -path '/proc/*' \
-		-exec chown authgear:authgear '{}' \; ; \
-	sed -E -i 's,^(daemonize)\s+.*,\1 no,' /etc/redis/redis.conf; \
-	sed -E -i 's,^(pidfile)\s+.*,\1 /run/redis/redis-server.pid,' /etc/redis/redis.conf; \
-	sed -E -i 's,^(logfile)\s+.*,\1 "",' /etc/redis/redis.conf; \
-	sed -E -i 's,^(dir)\s+.*,\1 /var/lib/redis/data,' /etc/redis/redis.conf; \
-	sed -E -i 's,^(bind)\s+.*,\1 * -::*,' /etc/redis/redis.conf; \
-	sed -E -i 's,^(set-proc-title)\s+.*,\1 no,' /etc/redis/redis.conf; \
-	sed -E -i 's,^#?\s*(aclfile)\s+.*,\1 /var/run/redis/users.acl,' /etc/redis/redis.conf; \
-	sed -E -i 's,^(appendonly)\s+.*,\1 yes,' /etc/redis/redis.conf; \
-	sed -E -i 's,^(auto-aof-rewrite-percentage)\s+.*,\1 50,' /etc/redis/redis.conf
+		-exec chown authgear:authgear '{}' \;
+COPY ./once/redis.conf.original /etc/redis/redis.conf.original
+RUN set -eux; \
+	expected=$(sha256sum /etc/redis/redis.conf.original | awk '{ print $1 }'); \
+	actual=$(sha256sum /etc/redis/redis.conf | awk '{ print $1 }'); \
+	if [ "$expected" != "$actual" ]; then echo 1>&2 echo '/etc/redis/redis.conf has changed. Please review the changes.'; exit 1; fi;
+COPY ./once/redis.conf /etc/redis/redis.conf
 
 ## Install Ngnix
 RUN set -eux; \
