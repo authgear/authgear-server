@@ -385,7 +385,65 @@ secrets:
 EOF
 }
 
+docker_authgear_create_project_accounts() {
+	docker_postgresql_temp_server_start
+
+	init_input="$(mktemp)"
+	{
+		echo 'accounts'
+		echo "$AUTHGEAR_HTTP_ORIGIN_ACCOUNTS"
+		echo "$AUTHGEAR_HTTP_ORIGIN_PORTAL"
+		echo 'sms'
+		echo 'y'
+		echo 'postgresql'
+	} >> "$init_input"
+	init_output="$(mktemp -d)"
+	authgear init --for-helm-chart <"$init_input" -o "$init_output"
+	# Override authgear.yaml
+	# FIXME: Enable public signup.
+	cat > "$init_output"/authgear.yaml <<EOF
+authenticator:
+  oob_otp:
+    sms:
+      phone_otp_mode: sms
+http:
+  public_origin: "$AUTHGEAR_HTTP_ORIGIN_ACCOUNTS"
+id: accounts
+oauth:
+  clients:
+  - client_id: portal
+    issue_jwt_access_token: true
+    name: Portal
+    post_logout_redirect_uris:
+    - "${AUTHGEAR_HTTP_ORIGIN_PORTAL}/"
+    redirect_uris:
+    - "${AUTHGEAR_HTTP_ORIGIN_PORTAL}/oauth-redirect"
+    x_application_type: traditional_webapp
+search:
+  implementation: postgresql
+ui:
+  signup_login_flow_enabled: true
+verification:
+  claims:
+    email:
+      enabled: false
+      required: false
+EOF
+	cat "$init_output"/authgear.yaml
+	authgear-portal internal configsource create "$init_output"
+
+	accounts_host="$(echo "$AUTHGEAR_HTTP_ORIGIN_ACCOUNTS" | awk -F '://' '{ print $2 }')"
+	authgear-portal internal domain create-custom accounts --domain "$accounts_host" --apex-domain "$accounts_host"
+	authgear-portal internal domain create-default --default-domain-suffix '.projects.authgear'
+	rm -r "$init_input"
+	rm -r "$init_output"
+
+	docker_postgresql_temp_server_stop
+}
+
 main() {
+	run_initialization=''
+
 	check_user_is_correct
 	check_PGDATA_is_set
 	check_LANG_is_set
@@ -408,6 +466,7 @@ main() {
 	if [ -s "$PGDATA/PG_VERSION" ]; then
 		printf 1>&2 "PostgreSQL database directory (%s) seems initialized. Skipping initialization.\n" "$PGDATA"
 	else
+		run_initialization=1
 		docker_postgresql_initdb
 
 		# initdb will create the given database user (--username), and
@@ -430,6 +489,9 @@ main() {
 	docker_authgear_source_env
 	docker_authgear_run_database_migrations
 	docker_authgear_create_deployment_runtime_directory
+	if [ -n "$run_initialization" ]; then
+		docker_authgear_create_project_accounts
+	fi
 
 	# Replace this process with the given arguments.
 	exec "$@"
