@@ -111,6 +111,7 @@ check-tidy:
 	$(MAKE) generate-twemoji-icons
 	$(MAKE) generate-material-icons
 	$(MAKE) graphiql
+	$(MAKE) once/Dockerfile
 	go mod tidy
 	# We wanted to run the following, but that requires SSH, which does not work for running CI for PRs.
 	# (cd custombuild && go mod tidy)
@@ -218,3 +219,16 @@ graphiql:
 	npm --prefix portalgraphiql ci
 	npm --prefix portalgraphiql run build
 	cp ./portalgraphiql/dist/index.html pkg/util/graphqlutil/graphiql.html
+
+.PHONY: once/Dockerfile
+once/Dockerfile:
+	rm -f $@
+	touch $@
+	echo "# syntax=docker/dockerfile:1" >> $@
+	printf "\n" >> $@
+	echo "# THIS FILE IS GENERATED. DO NOT EDIT!" >> $@
+	sed '/^# syntax=/d' ./cmd/authgear/Dockerfile >> $@
+	printf "\n" >> $@
+	sed '/^# syntax=/d' ./cmd/portal/Dockerfile >> $@
+	printf "\n" >> $@
+	sed '/^# syntax=/d' ./once/partial.dockerfile >> $@

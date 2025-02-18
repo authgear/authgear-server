@@ -1,10 +1,12 @@
+# syntax=docker/dockerfile:1
+
 # When you change the version, you also need to change postgresql-server-dev-VERSION below.
 FROM postgres:12.20-bookworm
 
 # Google Cloud SQL PostgreSQL 12 supports up to 4.7.4.
 # https://cloud.google.com/sql/docs/postgres/extensions#:~:text=Cloud%20SQL%20for%20PostgreSQL%20versions%2014%20and%20later%20support%20version%205.0.1%20while%20Cloud%20SQL%20for%20PostgreSQL%20versions%20that%20are%20earlier%20than%2014%20support%20only%20up%20to%20version%204.7.4.
 # So we use that version here.
-ENV PARTMAN_VERSION 4.7.4
+ENV PARTMAN_VERSION=4.7.4
 
 # Google Cloud SQL PostgreSQL 12 uses 1.4.2
 # https://cloud.google.com/sql/docs/postgres/extensions#:~:text=PostgreSQL%2012%20uses%20pgAudit%2C%20version%201.4.2.
@@ -51,28 +53,32 @@ ENV PARTMAN_VERSION 4.7.4
 # In my local testing, the statement is logged immediately when it is executed, regardless of transaction.
 # So merely tracing the audit logs cannot reveal actual changes to the database.
 # The audit logs only show literally what statements were executed.
-ENV PGAUDIT_VERSION 1.4.2
+ENV PGAUDIT_VERSION=1.4.2
 
-RUN apt-get update && apt-get install -y \
-	unzip \
-	build-essential \
-	wget \
-	# pgaudit requires <postgres.h> to build
-	postgresql-server-dev-12 \
-	# And <postgres.h> includes <gssapi/gssapi.h>
-	libkrb5-dev \
-	&& rm -rf /var/lib/apt/lists/*
+RUN set -eux; \
+  apt-get update; \
+  apt-get install -y --no-install-recommends --no-install-suggests \
+    # Install ca-certificates because we need to access https://github.com below
+    ca-certificates \
+    unzip \
+    build-essential \
+    wget \
+    # pgaudit requires <postgres.h> to build
+    postgresql-server-dev-12 \
+    # And <postgres.h> includes <gssapi/gssapi.h>
+    libkrb5-dev; \
+  rm -rf /var/lib/apt/lists/*
 
-RUN \
+RUN set -eux; \
   wget https://github.com/pgpartman/pg_partman/archive/v${PARTMAN_VERSION}.zip \
-    -O pg_partman-${PARTMAN_VERSION}.zip && \
-  unzip pg_partman-${PARTMAN_VERSION}.zip && \
-  cd pg_partman-${PARTMAN_VERSION} && \
+    -O pg_partman-${PARTMAN_VERSION}.zip; \
+  unzip pg_partman-${PARTMAN_VERSION}.zip; \
+  cd pg_partman-${PARTMAN_VERSION}; \
   make NO_BGW=1 install
 
-RUN \
+RUN set -eux; \
   wget https://github.com/pgaudit/pgaudit/archive/${PGAUDIT_VERSION}.zip \
-    -O pgaudit-${PGAUDIT_VERSION}.zip && \
-  unzip pgaudit-${PGAUDIT_VERSION}.zip && \
-  cd pgaudit-${PGAUDIT_VERSION} && \
+    -O pgaudit-${PGAUDIT_VERSION}.zip; \
+  unzip pgaudit-${PGAUDIT_VERSION}.zip; \
+  cd pgaudit-${PGAUDIT_VERSION}; \
   make install USE_PGXS=1
