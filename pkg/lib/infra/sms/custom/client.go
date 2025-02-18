@@ -165,6 +165,11 @@ func (d *SMSDenoHook) handleOutput(output interface{}) error {
 
 	responseBody, err := ParseResponseBody(jsonText)
 	if err != nil {
+		// This is not something we understand, but still consider it is a success for backward compatibility.
+		var jsonErr *json.UnmarshalTypeError
+		if errors.As(err, &jsonErr) {
+			return nil
+		}
 		return errors.Join(err, &smsapi.SendError{
 			DumpedResponse: jsonText,
 		})

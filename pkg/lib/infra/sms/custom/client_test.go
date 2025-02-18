@@ -50,11 +50,13 @@ func (m *mockWebHookClient) Do(req *http.Request) (*http.Response, error) {
 
 var _ HookHTTPClient = &mockWebHookClient{}
 
-type mockDenoHook struct{}
+type mockDenoHook struct {
+	Output interface{}
+}
 
 // RunSync implements DenoHook.
 func (m *mockDenoHook) RunSync(ctx context.Context, client hook.DenoClient, u *url.URL, input interface{}) (out interface{}, err error) {
-	return nil, nil
+	return m.Output, nil
 }
 
 // SupportURL implements DenoHook.
@@ -118,16 +120,36 @@ func TestCustomClient(t *testing.T) {
 		// And do not care about the response body
 		// We don't want to break this behavior
 
-		var denohook DenoHook = &mockDenoHook{}
+		Convey("null output is ok", func() {
+			var denohook DenoHook = &mockDenoHook{
+				Output: nil,
+			}
 
-		smsDenoHook := &SMSDenoHook{
-			DenoHook: denohook,
-			Client:   &mockDenoHookClient{},
-		}
-		ctx := context.Background()
-		url := &url.URL{}
-		err := smsDenoHook.Call(ctx, url, SendOptions{})
+			smsDenoHook := &SMSDenoHook{
+				DenoHook: denohook,
+				Client:   &mockDenoHookClient{},
+			}
+			ctx := context.Background()
+			url := &url.URL{}
+			err := smsDenoHook.Call(ctx, url, SendOptions{})
 
-		So(err, ShouldBeNil)
+			So(err, ShouldBeNil)
+		})
+
+		Convey("incompatible output is ok", func() {
+			var denohook DenoHook = &mockDenoHook{
+				Output: map[string]interface{}{"code": 1},
+			}
+
+			smsDenoHook := &SMSDenoHook{
+				DenoHook: denohook,
+				Client:   &mockDenoHookClient{},
+			}
+			ctx := context.Background()
+			url := &url.URL{}
+			err := smsDenoHook.Call(ctx, url, SendOptions{})
+
+			So(err, ShouldBeNil)
+		})
 	})
 }
