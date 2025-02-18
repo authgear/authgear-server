@@ -59,7 +59,7 @@ type TOTPAuthenticatorProvider interface {
 }
 
 type OOBOTPAuthenticatorProvider interface {
-	New(id string, userID string, oobAuthenticatorType model.AuthenticatorType, target string, isDefault bool, kind string) (*authenticator.OOBOTP, error)
+	New(ctx context.Context, id string, userID string, oobAuthenticatorType model.AuthenticatorType, target string, isDefault bool, kind string) (*authenticator.OOBOTP, error)
 	UpdateTarget(a *authenticator.OOBOTP, option oob.UpdateTargetOption) (*authenticator.OOBOTP, bool)
 
 	Get(ctx context.Context, userID, id string) (*authenticator.OOBOTP, error)
@@ -351,7 +351,7 @@ func (s *Service) NewWithAuthenticatorID(ctx context.Context, authenticatorID st
 
 	case model.AuthenticatorTypeOOBEmail:
 		email := spec.OOBOTP.Email
-		o, err := s.OOBOTP.New(authenticatorID, spec.UserID, model.AuthenticatorTypeOOBEmail, email, spec.IsDefault, string(spec.Kind))
+		o, err := s.OOBOTP.New(ctx, authenticatorID, spec.UserID, model.AuthenticatorTypeOOBEmail, email, spec.IsDefault, string(spec.Kind))
 		if err != nil {
 			return nil, err
 		}
@@ -359,7 +359,7 @@ func (s *Service) NewWithAuthenticatorID(ctx context.Context, authenticatorID st
 		return o.ToInfo(), nil
 	case model.AuthenticatorTypeOOBSMS:
 		phone := spec.OOBOTP.Phone
-		o, err := s.OOBOTP.New(authenticatorID, spec.UserID, model.AuthenticatorTypeOOBSMS, phone, spec.IsDefault, string(spec.Kind))
+		o, err := s.OOBOTP.New(ctx, authenticatorID, spec.UserID, model.AuthenticatorTypeOOBSMS, phone, spec.IsDefault, string(spec.Kind))
 		if err != nil {
 			return nil, err
 		}

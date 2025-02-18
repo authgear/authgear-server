@@ -102,7 +102,7 @@ func (s *ServiceNoEvent) generateSchemaString(pointers []string) (schemaStr stri
 	return
 }
 
-func (s *ServiceNoEvent) validate(pointers []string, input customattrs.T) error {
+func (s *ServiceNoEvent) validate(ctx context.Context, pointers []string, input customattrs.T) error {
 	schemaStr, err := s.generateSchemaString(pointers)
 	if err != nil {
 		return err
@@ -118,7 +118,7 @@ func (s *ServiceNoEvent) validate(pointers []string, input customattrs.T) error 
 		Schema: col,
 	}
 
-	err = validator.ValidateValue(map[string]interface{}(input))
+	err = validator.ValidateValue(ctx, map[string]interface{}(input))
 	if err != nil {
 		return err
 	}
@@ -209,7 +209,7 @@ func (s *ServiceNoEvent) UpdateCustomAttributesWithForm(ctx context.Context, rol
 func (s *ServiceNoEvent) updateCustomAttributes(ctx context.Context, role accesscontrol.Role, userID string, pointers []string, reprForm map[string]interface{}) error {
 	incoming := customattrs.T(reprForm)
 
-	err := s.validate(pointers, incoming)
+	err := s.validate(ctx, pointers, incoming)
 	if err != nil {
 		return err
 	}

@@ -1,6 +1,7 @@
 package secretcode
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/authgear/authgear-server/pkg/util/base32"
@@ -30,7 +31,7 @@ func (RecoveryCodeType) FormatForComparison(code string) (formatted string, err 
 	return
 }
 
-func (t RecoveryCodeType) CheckFormat(value interface{}) error {
+func (t RecoveryCodeType) CheckFormat(ctx context.Context, value interface{}) error {
 	str, ok := value.(string)
 	if !ok {
 		return nil

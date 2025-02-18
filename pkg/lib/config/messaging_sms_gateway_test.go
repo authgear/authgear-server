@@ -2,6 +2,7 @@ package config
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"io"
 	"os"
@@ -48,7 +49,8 @@ func TestMessagingSMSGateway(t *testing.T) {
 					panic(err)
 				}
 
-				err = schema.Validate(bytes.NewReader(jsonData))
+				ctx := context.Background()
+				err = schema.Validate(ctx, bytes.NewReader(jsonData))
 				if testCase.Error != nil {
 					So(err, ShouldBeError, *testCase.Error)
 				} else {

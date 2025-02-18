@@ -223,11 +223,11 @@ type IDTokenService interface {
 }
 
 type LoginIDService interface {
-	CheckAndNormalize(spec identity.LoginIDSpec) (normalized string, uniqueKey string, err error)
+	CheckAndNormalize(ctx context.Context, spec identity.LoginIDSpec) (normalized string, uniqueKey string, err error)
 }
 
 type LDAPService interface {
-	MakeSpecFromEntry(serverConfig *config.LDAPServerConfig, loginUsername string, entry *ldap.Entry) (*identity.Spec, error)
+	MakeSpecFromEntry(ctx context.Context, serverConfig *config.LDAPServerConfig, loginUsername string, entry *ldap.Entry) (*identity.Spec, error)
 }
 
 type LDAPClientFactory interface {

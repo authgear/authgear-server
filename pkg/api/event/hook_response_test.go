@@ -1,6 +1,7 @@
 package event
 
 import (
+	"context"
 	"strings"
 	"testing"
 
@@ -8,17 +9,18 @@ import (
 )
 
 func TestParseHookResponse(t *testing.T) {
+	ctx := context.Background()
 	Convey("ParseHookResponse", t, func() {
 		pass := func(raw string, expected *HookResponse) {
 			r := strings.NewReader(raw)
-			actual, err := ParseHookResponse(r)
+			actual, err := ParseHookResponse(ctx, r)
 			So(err, ShouldBeNil)
 			So(actual, ShouldResemble, expected)
 		}
 
 		fail := func(raw string) {
 			r := strings.NewReader(raw)
-			_, err := ParseHookResponse(r)
+			_, err := ParseHookResponse(ctx, r)
 			So(err, ShouldNotBeNil)
 		}
 

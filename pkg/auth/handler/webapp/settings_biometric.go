@@ -107,7 +107,7 @@ func (h *SettingsBiometricHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 		intent := intents.NewIntentRemoveIdentity(userID)
 
 		result, err := ctrl.EntryPointPost(ctx, opts, intent, func() (input interface{}, err error) {
-			err = RemoveLoginIDSchema.Validator().ValidateValue(FormToJSON(r.Form))
+			err = RemoveLoginIDSchema.Validator().ValidateValue(ctx, FormToJSON(r.Form))
 			if err != nil {
 				return nil, err
 			}

@@ -83,7 +83,7 @@ func (h *AuthflowV2SettingsMFACreatePasswordHandler) ServeHTTP(w http.ResponseWr
 	})
 
 	ctrl.PostAction("", func(ctx context.Context) error {
-		err := AuthflowV2SettingsMFACreatePasswordSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
+		err := AuthflowV2SettingsMFACreatePasswordSchema.Validator().ValidateValue(ctx, handlerwebapp.FormToJSON(r.Form))
 		if err != nil {
 			return err
 		}

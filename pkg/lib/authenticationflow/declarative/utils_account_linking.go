@@ -276,7 +276,7 @@ func linkByIncomingLoginIDSpec(
 		return nil, err
 	}
 
-	normalizedValue, _, err := deps.LoginIDs.CheckAndNormalize(*request.Spec.LoginID)
+	normalizedValue, _, err := deps.LoginIDs.CheckAndNormalize(ctx, *request.Spec.LoginID)
 	if err != nil {
 		return nil, err
 	}

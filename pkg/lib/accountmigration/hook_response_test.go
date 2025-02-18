@@ -1,6 +1,7 @@
 package accountmigration_test
 
 import (
+	"context"
 	"strings"
 	"testing"
 
@@ -14,16 +15,17 @@ import (
 
 func TestParseHookResponse(t *testing.T) {
 	Convey("ParseHookResponse", t, func() {
+		ctx := context.Background()
 		pass := func(raw string, expected *am.HookResponse) {
 			r := strings.NewReader(raw)
-			actual, err := am.ParseHookResponse(r)
+			actual, err := am.ParseHookResponse(ctx, r)
 			So(err, ShouldBeNil)
 			So(actual, ShouldResemble, expected)
 		}
 
 		fail := func(raw string, errString string) {
 			r := strings.NewReader(raw)
-			_, err := am.ParseHookResponse(r)
+			_, err := am.ParseHookResponse(ctx, r)
 			So(err, ShouldBeError, errString)
 		}
 

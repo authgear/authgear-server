@@ -1,6 +1,7 @@
 package rolesgroupsutil
 
 import (
+	"context"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -8,10 +9,11 @@ import (
 
 func TestFormatKey(t *testing.T) {
 	Convey("FormatKey", t, func() {
+		ctx := context.Background()
 		f := FormatKey{}.CheckFormat
-		So(f(nil), ShouldBeNil)
-		So(f(1), ShouldBeNil)
-		So(f(""), ShouldBeNil)
-		So(f("authgear:"), ShouldBeError, "key cannot start with the preserved prefix: `authgear:`")
+		So(f(ctx, nil), ShouldBeNil)
+		So(f(ctx, 1), ShouldBeNil)
+		So(f(ctx, ""), ShouldBeNil)
+		So(f(ctx, "authgear:"), ShouldBeError, "key cannot start with the preserved prefix: `authgear:`")
 	})
 }

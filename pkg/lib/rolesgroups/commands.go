@@ -11,7 +11,7 @@ type Commands struct {
 }
 
 func (c *Commands) CreateRole(ctx context.Context, options *NewRoleOptions) (*model.Role, error) {
-	err := ValidateKey(options.Key)
+	err := ValidateKey(ctx, options.Key)
 	if err != nil {
 		return nil, err
 	}
@@ -28,7 +28,7 @@ func (c *Commands) CreateRole(ctx context.Context, options *NewRoleOptions) (*mo
 func (c *Commands) UpdateRole(ctx context.Context, options *UpdateRoleOptions) (*model.Role, error) {
 	if options.RequireUpdate() {
 		if options.NewKey != nil {
-			err := ValidateKey(*options.NewKey)
+			err := ValidateKey(ctx, *options.NewKey)
 			if err != nil {
 				return nil, err
 			}
@@ -53,7 +53,7 @@ func (c *Commands) DeleteRole(ctx context.Context, id string) error {
 }
 
 func (c *Commands) CreateGroup(ctx context.Context, options *NewGroupOptions) (*model.Group, error) {
-	err := ValidateKey(options.Key)
+	err := ValidateKey(ctx, options.Key)
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +70,7 @@ func (c *Commands) CreateGroup(ctx context.Context, options *NewGroupOptions) (*
 func (c *Commands) UpdateGroup(ctx context.Context, options *UpdateGroupOptions) (*model.Group, error) {
 	if options.RequireUpdate() {
 		if options.NewKey != nil {
-			err := ValidateKey(*options.NewKey)
+			err := ValidateKey(ctx, *options.NewKey)
 			if err != nil {
 				return nil, err
 			}

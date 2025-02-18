@@ -1,6 +1,7 @@
 package loginid
 
 import (
+	"context"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -18,7 +19,8 @@ func TestLoginIDTypeCheckers(t *testing.T) {
 	}
 	f := func(c Case, check TypeChecker) {
 		ctx := &validation.Context{}
-		check.Validate(ctx, c.LoginID)
+
+		check.Validate(context.Background(), ctx, c.LoginID)
 		err := ctx.Error("invalid login ID")
 		if c.Err == "" {
 			So(err, ShouldBeNil)

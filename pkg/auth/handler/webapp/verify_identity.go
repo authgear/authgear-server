@@ -160,18 +160,20 @@ func (h *VerifyIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 	}
 	defer ctrl.ServeWithDBTx(r.Context())
 
-	inputFn := func() (input interface{}, err error) {
-		err = VerifyIdentitySchema.Validator().ValidateValue(FormToJSON(r.Form))
-		if err != nil {
+	makeInputFn := func(ctx context.Context) func() (interface{}, error) {
+		return func() (input interface{}, err error) {
+			err = VerifyIdentitySchema.Validator().ValidateValue(ctx, FormToJSON(r.Form))
+			if err != nil {
+				return
+			}
+
+			code := r.Form.Get("x_verification_code")
+
+			input = &InputVerificationCode{
+				Code: code,
+			}
 			return
 		}
-
-		code := r.Form.Get("x_verification_code")
-
-		input = &InputVerificationCode{
-			Code: code,
-		}
-		return
 	}
 
 	ctrl.Get(func(ctx context.Context) error {
@@ -212,7 +214,7 @@ func (h *VerifyIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 	})
 
 	ctrl.PostAction(VerifyIdentityActionSubmit, func(ctx context.Context) error {
-		result, err := ctrl.InteractionPost(ctx, inputFn)
+		result, err := ctrl.InteractionPost(ctx, makeInputFn(ctx))
 		if err != nil {
 			return err
 		}

@@ -2,6 +2,7 @@ package config
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"testing"
 
@@ -11,12 +12,13 @@ import (
 )
 
 func TestAuthenticationFlowSignupFlow(t *testing.T) {
+	ctx := context.Background()
 	Convey("AuthenticationFlowSignupFlow", t, func() {
 		test := func(inputYAML string) {
 			inputJSON, err := yaml.YAMLToJSON([]byte(inputYAML))
 			So(err, ShouldBeNil)
 
-			err = Schema.PartValidator("AuthenticationFlowConfig").Validate(bytes.NewReader(inputJSON))
+			err = Schema.PartValidator("AuthenticationFlowConfig").Validate(ctx, bytes.NewReader(inputJSON))
 			So(err, ShouldBeNil)
 
 			var cfg AuthenticationFlowConfig
@@ -33,7 +35,7 @@ func TestAuthenticationFlowSignupFlow(t *testing.T) {
 			encodedInput, err := json.Marshal(input)
 			So(err, ShouldBeNil)
 
-			err = Schema.PartValidator("AuthenticationFlowConfig").Validate(bytes.NewReader(encodedCfg))
+			err = Schema.PartValidator("AuthenticationFlowConfig").Validate(ctx, bytes.NewReader(encodedCfg))
 			So(err, ShouldBeNil)
 
 			So(string(encodedInput), ShouldEqualJSON, string(encodedCfg))
@@ -61,12 +63,13 @@ signup_flows:
 }
 
 func TestAuthenticationFlowLoginFlow(t *testing.T) {
+	ctx := context.Background()
 	Convey("AuthenticationFlowLoginFlow", t, func() {
 		test := func(inputYAML string) {
 			inputJSON, err := yaml.YAMLToJSON([]byte(inputYAML))
 			So(err, ShouldBeNil)
 
-			err = Schema.PartValidator("AuthenticationFlowConfig").Validate(bytes.NewReader(inputJSON))
+			err = Schema.PartValidator("AuthenticationFlowConfig").Validate(ctx, bytes.NewReader(inputJSON))
 			So(err, ShouldBeNil)
 
 			var cfg AuthenticationFlowConfig
@@ -83,7 +86,7 @@ func TestAuthenticationFlowLoginFlow(t *testing.T) {
 			encodedInput, err := json.Marshal(input)
 			So(err, ShouldBeNil)
 
-			err = Schema.PartValidator("AuthenticationFlowConfig").Validate(bytes.NewReader(encodedCfg))
+			err = Schema.PartValidator("AuthenticationFlowConfig").Validate(ctx, bytes.NewReader(encodedCfg))
 			So(err, ShouldBeNil)
 
 			So(string(encodedInput), ShouldEqualJSON, string(encodedCfg))
@@ -109,12 +112,13 @@ login_flows:
 }
 
 func TestAuthenticationFlowSignupLoginFlow(t *testing.T) {
+	ctx := context.Background()
 	Convey("AuthenticationFlowSignupLoginFlow", t, func() {
 		test := func(inputYAML string) {
 			inputJSON, err := yaml.YAMLToJSON([]byte(inputYAML))
 			So(err, ShouldBeNil)
 
-			err = Schema.PartValidator("AuthenticationFlowConfig").Validate(bytes.NewReader(inputJSON))
+			err = Schema.PartValidator("AuthenticationFlowConfig").Validate(ctx, bytes.NewReader(inputJSON))
 			So(err, ShouldBeNil)
 
 			var cfg AuthenticationFlowConfig
@@ -131,7 +135,7 @@ func TestAuthenticationFlowSignupLoginFlow(t *testing.T) {
 			encodedInput, err := json.Marshal(input)
 			So(err, ShouldBeNil)
 
-			err = Schema.PartValidator("AuthenticationFlowConfig").Validate(bytes.NewReader(encodedCfg))
+			err = Schema.PartValidator("AuthenticationFlowConfig").Validate(ctx, bytes.NewReader(encodedCfg))
 			So(err, ShouldBeNil)
 
 			So(string(encodedInput), ShouldEqualJSON, string(encodedCfg))
@@ -151,12 +155,13 @@ signup_login_flows:
 }
 
 func TestAuthenticationFlowReauthFlow(t *testing.T) {
+	ctx := context.Background()
 	Convey("AuthenticationFlowReauthFlow", t, func() {
 		test := func(inputYAML string) {
 			inputJSON, err := yaml.YAMLToJSON([]byte(inputYAML))
 			So(err, ShouldBeNil)
 
-			err = Schema.PartValidator("AuthenticationFlowConfig").Validate(bytes.NewReader(inputJSON))
+			err = Schema.PartValidator("AuthenticationFlowConfig").Validate(ctx, bytes.NewReader(inputJSON))
 			So(err, ShouldBeNil)
 
 			var cfg AuthenticationFlowConfig
@@ -173,7 +178,7 @@ func TestAuthenticationFlowReauthFlow(t *testing.T) {
 			encodedInput, err := json.Marshal(input)
 			So(err, ShouldBeNil)
 
-			err = Schema.PartValidator("AuthenticationFlowConfig").Validate(bytes.NewReader(encodedCfg))
+			err = Schema.PartValidator("AuthenticationFlowConfig").Validate(ctx, bytes.NewReader(encodedCfg))
 			So(err, ShouldBeNil)
 
 			So(string(encodedInput), ShouldEqualJSON, string(encodedCfg))
@@ -197,12 +202,13 @@ reauth_flows:
 }
 
 func TestAuthenticationFlowAccountRecoveryFlow(t *testing.T) {
+	ctx := context.Background()
 	Convey("AuthenticationFlowAccountRecoveryFlow", t, func() {
 		test := func(inputYAML string) {
 			inputJSON, err := yaml.YAMLToJSON([]byte(inputYAML))
 			So(err, ShouldBeNil)
 
-			err = Schema.PartValidator("AuthenticationFlowConfig").Validate(bytes.NewReader(inputJSON))
+			err = Schema.PartValidator("AuthenticationFlowConfig").Validate(ctx, bytes.NewReader(inputJSON))
 			So(err, ShouldBeNil)
 
 			var cfg AuthenticationFlowConfig
@@ -219,7 +225,7 @@ func TestAuthenticationFlowAccountRecoveryFlow(t *testing.T) {
 			encodedInput, err := json.Marshal(input)
 			So(err, ShouldBeNil)
 
-			err = Schema.PartValidator("AuthenticationFlowConfig").Validate(bytes.NewReader(encodedCfg))
+			err = Schema.PartValidator("AuthenticationFlowConfig").Validate(ctx, bytes.NewReader(encodedCfg))
 			So(err, ShouldBeNil)
 
 			So(string(encodedInput), ShouldEqualJSON, string(encodedCfg))

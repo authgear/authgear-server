@@ -65,7 +65,7 @@ func (h *AuthflowEnterRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *h
 		return nil
 	})
 	handlers.PostAction("", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
-		err := AuthflowEnterRecoveryCodeSchema.Validator().ValidateValue(FormToJSON(r.Form))
+		err := AuthflowEnterRecoveryCodeSchema.Validator().ValidateValue(ctx, FormToJSON(r.Form))
 		if err != nil {
 			return err
 		}

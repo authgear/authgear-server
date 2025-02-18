@@ -14,7 +14,7 @@ import (
 )
 
 type StandardAttributesNormalizer interface {
-	Normalize(stdattrs.T) error
+	Normalize(context.Context, stdattrs.T) error
 }
 
 type Provider struct {
@@ -111,7 +111,7 @@ func sortIdentities(is []*identity.LDAP) {
 	})
 }
 
-func (p *Provider) MakeSpecFromEntry(serverConfig *config.LDAPServerConfig, loginUserName string, entry *ldap.Entry) (*identity.Spec, error) {
+func (p *Provider) MakeSpecFromEntry(ctx context.Context, serverConfig *config.LDAPServerConfig, loginUserName string, entry *ldap.Entry) (*identity.Spec, error) {
 	userIDAttributeName := serverConfig.UserIDAttributeName
 	userIDAttributeValue := entry.GetRawAttributeValue(userIDAttributeName)
 
@@ -126,7 +126,7 @@ func (p *Provider) MakeSpecFromEntry(serverConfig *config.LDAPServerConfig, logi
 		claims[string(model.ClaimPreferredUsername)] = v
 	}
 
-	err := p.StandardAttributesNormalizer.Normalize(claims)
+	err := p.StandardAttributesNormalizer.Normalize(ctx, claims)
 	if err != nil {
 		return nil, err
 	}

@@ -95,7 +95,7 @@ func (h *AuthflowV2SettingsMFAEnterTOTPHandler) ServeHTTP(w http.ResponseWriter,
 	})
 
 	ctrl.PostAction("submit", func(ctx context.Context) error {
-		err := AuthflowV2SettingsMFAEnterTOTPSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
+		err := AuthflowV2SettingsMFAEnterTOTPSchema.Validator().ValidateValue(ctx, handlerwebapp.FormToJSON(r.Form))
 		if err != nil {
 			return err
 		}

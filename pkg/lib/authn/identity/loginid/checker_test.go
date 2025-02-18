@@ -1,6 +1,7 @@
 package loginid
 
 import (
+	"context"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -72,22 +73,23 @@ func TestLoginIDChecker(t *testing.T) {
 			var loginID identity.LoginIDSpec
 
 			loginID = identity.LoginIDSpec{Key: "username", Type: model.LoginIDKeyTypeUsername, Value: stringutil.NewUserInputString("johndoe")}
+			ctx := context.Background()
 
-			So(checker.ValidateOne(loginID, options), ShouldBeNil)
+			So(checker.ValidateOne(ctx, loginID, options), ShouldBeNil)
 			loginID = identity.LoginIDSpec{Key: "email", Type: model.LoginIDKeyTypeEmail, Value: stringutil.NewUserInputString("johndoe@example.com")}
-			So(checker.ValidateOne(loginID, options), ShouldBeNil)
+			So(checker.ValidateOne(ctx, loginID, options), ShouldBeNil)
 
 			loginID = identity.LoginIDSpec{Key: "nickname", Type: "", Value: stringutil.NewUserInputString("johndoe")}
-			So(checker.ValidateOne(loginID, options), ShouldBeError, "invalid login ID:\n/login_id: login ID key is not allowed")
+			So(checker.ValidateOne(ctx, loginID, options), ShouldBeError, "invalid login ID:\n/login_id: login ID key is not allowed")
 
 			loginID = identity.LoginIDSpec{Key: "username", Type: model.LoginIDKeyTypeUsername, Value: stringutil.NewUserInputString("foobarexample")}
-			So(checker.ValidateOne(loginID, options), ShouldBeError, "invalid login ID:\n/login_id: maxLength\n  map[actual:13 expected:10]")
+			So(checker.ValidateOne(ctx, loginID, options), ShouldBeError, "invalid login ID:\n/login_id: maxLength\n  map[actual:13 expected:10]")
 
 			loginID = identity.LoginIDSpec{Key: "email", Type: model.LoginIDKeyTypeEmail, Value: stringutil.NewUserInputString("")}
-			So(checker.ValidateOne(loginID, options), ShouldBeError, "invalid login ID:\n/login_id: required")
+			So(checker.ValidateOne(ctx, loginID, options), ShouldBeError, "invalid login ID:\n/login_id: required")
 
 			loginID = identity.LoginIDSpec{Key: "phone", Type: model.LoginIDKeyTypePhone, Value: stringutil.NewUserInputString("51234567")}
-			So(checker.ValidateOne(loginID, options), ShouldBeError, "invalid login ID:\n/login_id: format\n  map[format:phone]")
+			So(checker.ValidateOne(ctx, loginID, options), ShouldBeError, "invalid login ID:\n/login_id: format\n  map[format:phone]")
 		})
 	})
 }

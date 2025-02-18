@@ -323,7 +323,7 @@ func (*inputServiceContext) SchemaBuilder() validation.SchemaBuilder {
 	return validation.SchemaBuilder{}
 }
 
-func (*inputServiceContext) MakeInput(rawMessage json.RawMessage) (Input, error) {
+func (*inputServiceContext) MakeInput(ctx context.Context, rawMessage json.RawMessage) (Input, error) {
 	var input inputServiceContext
 	err := json.Unmarshal(rawMessage, &input)
 	if err != nil {

@@ -172,18 +172,18 @@ func (mr *MockLoginIDIdentityProviderMockRecorder) ListByClaim(ctx, name, value 
 }
 
 // New mocks base method.
-func (m *MockLoginIDIdentityProvider) New(userID string, loginID identity.LoginIDSpec, options loginid.CheckerOptions) (*identity.LoginID, error) {
+func (m *MockLoginIDIdentityProvider) New(ctx context.Context, userID string, loginID identity.LoginIDSpec, options loginid.CheckerOptions) (*identity.LoginID, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "New", userID, loginID, options)
+	ret := m.ctrl.Call(m, "New", ctx, userID, loginID, options)
 	ret0, _ := ret[0].(*identity.LoginID)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // New indicates an expected call of New.
-func (mr *MockLoginIDIdentityProviderMockRecorder) New(userID, loginID, options interface{}) *gomock.Call {
+func (mr *MockLoginIDIdentityProviderMockRecorder) New(ctx, userID, loginID, options interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "New", reflect.TypeOf((*MockLoginIDIdentityProvider)(nil).New), userID, loginID, options)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "New", reflect.TypeOf((*MockLoginIDIdentityProvider)(nil).New), ctx, userID, loginID, options)
 }
 
 // Normalize mocks base method.
@@ -217,18 +217,18 @@ func (mr *MockLoginIDIdentityProviderMockRecorder) Update(ctx, i interface{}) *g
 }
 
 // WithValue mocks base method.
-func (m *MockLoginIDIdentityProvider) WithValue(iden *identity.LoginID, value string, options loginid.CheckerOptions) (*identity.LoginID, error) {
+func (m *MockLoginIDIdentityProvider) WithValue(ctx context.Context, iden *identity.LoginID, value string, options loginid.CheckerOptions) (*identity.LoginID, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "WithValue", iden, value, options)
+	ret := m.ctrl.Call(m, "WithValue", ctx, iden, value, options)
 	ret0, _ := ret[0].(*identity.LoginID)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // WithValue indicates an expected call of WithValue.
-func (mr *MockLoginIDIdentityProviderMockRecorder) WithValue(iden, value, options interface{}) *gomock.Call {
+func (mr *MockLoginIDIdentityProviderMockRecorder) WithValue(ctx, iden, value, options interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithValue", reflect.TypeOf((*MockLoginIDIdentityProvider)(nil).WithValue), iden, value, options)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithValue", reflect.TypeOf((*MockLoginIDIdentityProvider)(nil).WithValue), ctx, iden, value, options)
 }
 
 // MockOAuthIdentityProvider is a mock of OAuthIdentityProvider interface.

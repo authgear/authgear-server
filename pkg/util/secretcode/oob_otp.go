@@ -1,6 +1,7 @@
 package secretcode
 
 import (
+	"context"
 	"crypto/subtle"
 	"fmt"
 	"strings"
@@ -33,7 +34,7 @@ func (OOBOTPSecretCodeType) Compare(a, b string) bool {
 	return subtle.ConstantTimeCompare([]byte(formattedCode), []byte(targetCode)) == 1
 }
 
-func (OOBOTPSecretCodeType) CheckFormat(value interface{}) error {
+func (OOBOTPSecretCodeType) CheckFormat(ctx context.Context, value interface{}) error {
 	str, ok := value.(string)
 	if !ok {
 		return nil

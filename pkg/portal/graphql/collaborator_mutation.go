@@ -234,7 +234,7 @@ var _ = registerMutationField(
 				return nil, Unauthenticated.New("only authenticated users can create collaborator invitation")
 			}
 
-			err := createCollaboratorInvitationInputSchema.Validator().ValidateValue(input)
+			err := createCollaboratorInvitationInputSchema.Validator().ValidateValue(ctx, input)
 			if err != nil {
 				return nil, err
 			}

@@ -106,7 +106,7 @@ func (h *AuthflowV2SettingsMFACreateOOBOTPHandler) ServeHTTP(w http.ResponseWrit
 	})
 
 	ctrl.PostAction("", func(ctx context.Context) error {
-		err := AuthflowV2SettingsMFACreateOOBOTPSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
+		err := AuthflowV2SettingsMFACreateOOBOTPSchema.Validator().ValidateValue(ctx, handlerwebapp.FormToJSON(r.Form))
 		if err != nil {
 			return err
 		}

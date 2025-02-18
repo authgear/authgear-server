@@ -45,14 +45,13 @@ func RegisterPublicInput(input Input) {
 	publicInputRegistry[inputKind] = factory
 }
 
-func InstantiateInputFromPublicRegistry(j InputJSON) (Input, error) {
+func InstantiateInputFromPublicRegistry(ctx context.Context, j InputJSON) (Input, error) {
 	factory, ok := publicInputRegistry[j.Kind]
 	if !ok {
 		return nil, ErrUnknownInput
 	}
 	input := factory()
-
-	err := input.JSONSchema().Validator().ParseJSONRawMessage(j.Data, input)
+	err := input.JSONSchema().Validator().ParseJSONRawMessage(ctx, j.Data, input)
 	if err != nil {
 		return nil, err
 	}

@@ -337,7 +337,7 @@ func (h *WorkflowV2Handler) handleActionGet(ctx context.Context, w http.Response
 }
 
 func (h *WorkflowV2Handler) create(ctx context.Context, w http.ResponseWriter, r *http.Request, request WorkflowV2Request) (*workflow.ServiceOutput, error) {
-	intent, err := workflow.InstantiateIntentFromPublicRegistry(*request.Intent)
+	intent, err := workflow.InstantiateIntentFromPublicRegistry(ctx, *request.Intent)
 	if err != nil {
 		return nil, err
 	}
@@ -422,7 +422,7 @@ func (h *WorkflowV2Handler) input(
 	userAgentID string,
 	request WorkflowV2Request,
 ) (*workflow.ServiceOutput, error) {
-	input, err := workflow.InstantiateInputFromPublicRegistry(*request.Input)
+	input, err := workflow.InstantiateInputFromPublicRegistry(ctx, *request.Input)
 	if err != nil {
 		return nil, err
 	}
@@ -451,7 +451,7 @@ func (h *WorkflowV2Handler) batchInput(
 	var cookies []*http.Cookie
 	var input workflow.Input
 	for _, inputJSON := range request.BatchInput {
-		input, err = workflow.InstantiateInputFromPublicRegistry(*inputJSON)
+		input, err = workflow.InstantiateInputFromPublicRegistry(ctx, *inputJSON)
 		if err != nil {
 			return nil, err
 		}

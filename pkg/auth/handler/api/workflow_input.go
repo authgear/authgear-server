@@ -104,7 +104,7 @@ func (h *WorkflowInputHandler) handle(
 	userAgentID string,
 	request WorkflowInputRequest,
 ) (*workflow.ServiceOutput, error) {
-	input, err := workflow.InstantiateInputFromPublicRegistry(request.Input)
+	input, err := workflow.InstantiateInputFromPublicRegistry(ctx, request.Input)
 	if err != nil {
 		return nil, err
 	}

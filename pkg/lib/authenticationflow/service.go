@@ -633,7 +633,7 @@ func (s *Service) getFlowAction(ctx context.Context, session *Session, flow *Flo
 }
 
 func (s *Service) resolveStateTokenFromInput(ctx context.Context, inputRawMessage json.RawMessage) (string, error) {
-	if input, ok := MakeInputTakeAccountRecoveryCode(inputRawMessage); ok {
+	if input, ok := MakeInputTakeAccountRecoveryCode(ctx, inputRawMessage); ok {
 		state, err := s.Deps.ResetPassword.VerifyCode(ctx, input.AccountRecoveryCode)
 		if err != nil {
 			return "", err

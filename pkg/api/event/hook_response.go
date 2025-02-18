@@ -1,6 +1,7 @@
 package event
 
 import (
+	"context"
 	"io"
 
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -78,9 +79,9 @@ type JWTMutations struct {
 	Payload map[string]interface{} `json:"payload,omitempty"`
 }
 
-func ParseHookResponse(r io.Reader) (*HookResponse, error) {
+func ParseHookResponse(ctx context.Context, r io.Reader) (*HookResponse, error) {
 	var resp HookResponse
-	if err := HookResponseSchema.Validator().Parse(r, &resp); err != nil {
+	if err := HookResponseSchema.Validator().Parse(ctx, r, &resp); err != nil {
 		return nil, err
 	}
 	return &resp, nil

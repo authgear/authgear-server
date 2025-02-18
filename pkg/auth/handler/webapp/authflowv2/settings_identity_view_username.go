@@ -124,7 +124,7 @@ func (h *AuthflowV2SettingsIdentityViewUsernameHandler) ServeHTTP(w http.Respons
 	})
 
 	ctrl.PostAction("remove", func(ctx context.Context) error {
-		err := AuthflowV2SettingsIdentityDeleteUsernameSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
+		err := AuthflowV2SettingsIdentityDeleteUsernameSchema.Validator().ValidateValue(ctx, handlerwebapp.FormToJSON(r.Form))
 		if err != nil {
 			return err
 		}

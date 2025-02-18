@@ -149,7 +149,7 @@ func (h *AuthflowV2SettingsIdentityViewEmailHandler) ServeHTTP(w http.ResponseWr
 	})
 
 	ctrl.PostAction("remove", func(ctx context.Context) error {
-		err := AuthflowV2SettingsRemoveIdentityEmailSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
+		err := AuthflowV2SettingsRemoveIdentityEmailSchema.Validator().ValidateValue(ctx, handlerwebapp.FormToJSON(r.Form))
 		if err != nil {
 			return err
 		}
@@ -180,7 +180,7 @@ func (h *AuthflowV2SettingsIdentityViewEmailHandler) ServeHTTP(w http.ResponseWr
 	ctrl.PostAction("verify", func(ctx context.Context) error {
 		loginIDKey := r.Form.Get("q_login_id_key")
 
-		err := AuthflowV2SettingsIdentityUpdateVerificationEmailSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
+		err := AuthflowV2SettingsIdentityUpdateVerificationEmailSchema.Validator().ValidateValue(ctx, handlerwebapp.FormToJSON(r.Form))
 		if err != nil {
 			return err
 		}

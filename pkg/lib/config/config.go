@@ -2,6 +2,7 @@ package config
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"strconv"
 
@@ -164,7 +165,7 @@ func (c *AppConfig) validateOAuthProvider(ctx *validation.Context) {
 		// Validate provider config
 		provider := providerConfig.AsProviderConfig().MustGetProvider()
 		schema := OAuthSSOProviderConfigSchemaBuilder(validation.SchemaBuilder(provider.GetJSONSchema())).ToSimpleSchema()
-		childCtx.AddError(schema.Validator().ValidateValue(providerConfig))
+		childCtx.AddError(schema.Validator().ValidateValue(context.Background(), providerConfig))
 	}
 }
 
@@ -495,7 +496,7 @@ func Parse(inputYAML []byte) (*AppConfig, error) {
 		return nil, err
 	}
 
-	err = Schema.Validator().ValidateWithMessage(bytes.NewReader(jsonData), validationErrorMessage)
+	err = Schema.Validator().ValidateWithMessage(context.Background(), bytes.NewReader(jsonData), validationErrorMessage)
 	if err != nil {
 		return nil, err
 	}

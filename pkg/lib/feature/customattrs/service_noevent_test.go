@@ -1,6 +1,7 @@
 package customattrs
 
 import (
+	"context"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -280,7 +281,7 @@ func TestServiceNoEvent(t *testing.T) {
 			}
 
 			test := func(pointers []string, value map[string]interface{}, errStr string) {
-				err := s.validate(pointers, customattrs.T(value))
+				err := s.validate(context.Background(), pointers, customattrs.T(value))
 				if errStr == "" {
 					So(err, ShouldBeNil)
 				} else {

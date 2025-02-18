@@ -79,7 +79,7 @@ func (h *SettingsChangeSecondaryPasswordHandler) ServeHTTP(w http.ResponseWriter
 		intent := intents.NewIntentChangeSecondaryPassword(userID)
 
 		result, err := ctrl.EntryPointPost(ctx, opts, intent, func() (input interface{}, err error) {
-			err = SettingsChangeSecondaryPasswordSchema.Validator().ValidateValue(FormToJSON(r.Form))
+			err = SettingsChangeSecondaryPasswordSchema.Validator().ValidateValue(ctx, FormToJSON(r.Form))
 			if err != nil {
 				return
 			}

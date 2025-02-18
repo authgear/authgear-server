@@ -1034,7 +1034,7 @@ func (c *AuthflowController) takeBranch(ctx context.Context, w http.ResponseWrit
 		Index:   index,
 		Channel: model.AuthenticatorOOBChannel(channel),
 	}
-	if hasBPInput := IsBotProtectionInputValid(r.Form); hasBPInput {
+	if hasBPInput := IsBotProtectionInputValid(ctx, r.Form); hasBPInput {
 		input.BotProtectionProviderType = r.Form.Get("x_bot_protection_provider_type")
 		input.BotProtectionProviderResponse = r.Form.Get("x_bot_protection_provider_response")
 	}

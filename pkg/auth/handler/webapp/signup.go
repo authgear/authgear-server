@@ -155,7 +155,7 @@ func (h *SignupHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	ctrl.PostAction("login_id", func(ctx context.Context) error {
 		result, err := ctrl.EntryPointPost(ctx, opts, intent, func() (input interface{}, err error) {
-			err = SignupWithLoginIDSchema.Validator().ValidateValue(FormToJSON(r.Form))
+			err = SignupWithLoginIDSchema.Validator().ValidateValue(ctx, FormToJSON(r.Form))
 			if err != nil {
 				return
 			}

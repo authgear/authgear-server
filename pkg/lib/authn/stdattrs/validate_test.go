@@ -1,6 +1,7 @@
 package stdattrs
 
 import (
+	"context"
 	"encoding/json"
 	"testing"
 
@@ -145,7 +146,7 @@ func TestSchema(t *testing.T) {
 func TestValidate(t *testing.T) {
 	Convey("Validate", t, func() {
 		test := func(input T, expected error) {
-			err := Validate(input)
+			err := Validate(context.Background(), input)
 			if expected == nil {
 				So(err, ShouldBeNil)
 			} else {

@@ -2,6 +2,7 @@ package config
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"reflect"
 
@@ -76,6 +77,7 @@ func ParseFeatureConfigWithoutDefaults(inputYAML []byte) (*FeatureConfig, error)
 	}
 
 	err = FeatureConfigSchema.Validator().ValidateWithMessage(
+		context.Background(),
 		bytes.NewReader(jsonData),
 		"invalid feature config",
 	)

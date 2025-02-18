@@ -14,7 +14,7 @@ import (
 )
 
 type StandardAttributesNormalizer interface {
-	Normalize(stdattrs.T) error
+	Normalize(context.Context, stdattrs.T) error
 }
 
 type OAuthProviderFactory struct {
@@ -84,7 +84,7 @@ func (p *OAuthProviderFactory) GetUserProfile(ctx context.Context, alias string,
 		return
 	}
 
-	err = p.StandardAttributesNormalizer.Normalize(userProfile.StandardAttributes)
+	err = p.StandardAttributesNormalizer.Normalize(ctx, userProfile.StandardAttributes)
 	if err != nil {
 		return
 	}

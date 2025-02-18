@@ -2,6 +2,7 @@ package config
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"sort"
@@ -67,6 +68,7 @@ func ParseSecret(inputYAML []byte) (*SecretConfig, error) {
 	}
 
 	err = SecretConfigSchema.Validator().ValidateWithMessage(
+		context.Background(),
 		bytes.NewReader(jsonData),
 		validationErrorMessage,
 	)

@@ -128,7 +128,7 @@ func (h *ConnectWeb3AccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 
 	ctrl.PostAction("submit", func(ctx context.Context) error {
 		result, err := ctrl.EntryPointPost(ctx, opts, intent, func() (input interface{}, err error) {
-			err = Web3AccountConfirmationSchema.Validator().ValidateValue(FormToJSON(r.Form))
+			err = Web3AccountConfirmationSchema.Validator().ValidateValue(ctx, FormToJSON(r.Form))
 			if err != nil {
 				return
 			}

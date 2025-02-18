@@ -80,7 +80,7 @@ func (h *SettingsChangePasswordHandler) ServeHTTP(w http.ResponseWriter, r *http
 		}
 		intent := intents.NewIntentChangePrimaryPassword(userID)
 		result, err := ctrl.EntryPointPost(ctx, opts, intent, func() (input interface{}, err error) {
-			err = SettingsChangePasswordSchema.Validator().ValidateValue(FormToJSON(r.Form))
+			err = SettingsChangePasswordSchema.Validator().ValidateValue(ctx, FormToJSON(r.Form))
 			if err != nil {
 				return
 			}

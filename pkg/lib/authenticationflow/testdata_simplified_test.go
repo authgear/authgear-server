@@ -292,9 +292,9 @@ func (*InputIntentAuthenticate) SchemaBuilder() validation.SchemaBuilder {
 	return b
 }
 
-func (i *InputIntentAuthenticate) MakeInput(rawMessage json.RawMessage) (Input, error) {
+func (i *InputIntentAuthenticate) MakeInput(ctx context.Context, rawMessage json.RawMessage) (Input, error) {
 	var input InputIntentAuthenticate
-	err := i.SchemaBuilder().ToSimpleSchema().Validator().ParseJSONRawMessage(rawMessage, &input)
+	err := i.SchemaBuilder().ToSimpleSchema().Validator().ParseJSONRawMessage(ctx, rawMessage, &input)
 	if err != nil {
 		return nil, err
 	}
@@ -342,9 +342,9 @@ func (*InputIntentSignup) SchemaBuilder() validation.SchemaBuilder {
 	return b
 }
 
-func (i *InputIntentSignup) MakeInput(rawMessage json.RawMessage) (Input, error) {
+func (i *InputIntentSignup) MakeInput(ctx context.Context, rawMessage json.RawMessage) (Input, error) {
 	var input InputIntentSignup
-	err := i.SchemaBuilder().ToSimpleSchema().Validator().ParseJSONRawMessage(rawMessage, &input)
+	err := i.SchemaBuilder().ToSimpleSchema().Validator().ParseJSONRawMessage(ctx, rawMessage, &input)
 	if err != nil {
 		return nil, err
 	}
@@ -385,9 +385,9 @@ func (*InputIntentAddLoginID) SchemaBuilder() validation.SchemaBuilder {
 	return b
 }
 
-func (i *InputIntentAddLoginID) MakeInput(rawMessage json.RawMessage) (Input, error) {
+func (i *InputIntentAddLoginID) MakeInput(ctx context.Context, rawMessage json.RawMessage) (Input, error) {
 	var input InputIntentAddLoginID
-	err := i.SchemaBuilder().ToSimpleSchema().Validator().ParseJSONRawMessage(rawMessage, &input)
+	err := i.SchemaBuilder().ToSimpleSchema().Validator().ParseJSONRawMessage(ctx, rawMessage, &input)
 	if err != nil {
 		return nil, err
 	}
@@ -435,9 +435,9 @@ func (*InputNodeVerifyLoginID) SchemaBuilder() validation.SchemaBuilder {
 	return b
 }
 
-func (i *InputNodeVerifyLoginID) MakeInput(rawMessage json.RawMessage) (Input, error) {
+func (i *InputNodeVerifyLoginID) MakeInput(ctx context.Context, rawMessage json.RawMessage) (Input, error) {
 	var input InputNodeVerifyLoginID
-	err := i.SchemaBuilder().ToSimpleSchema().Validator().ParseJSONRawMessage(rawMessage, &input)
+	err := i.SchemaBuilder().ToSimpleSchema().Validator().ParseJSONRawMessage(ctx, rawMessage, &input)
 	if err != nil {
 		return nil, err
 	}
@@ -478,9 +478,9 @@ func (*InputIntentCreatePassword) SchemaBuilder() validation.SchemaBuilder {
 	return b
 }
 
-func (i *InputIntentCreatePassword) MakeInput(rawMessage json.RawMessage) (Input, error) {
+func (i *InputIntentCreatePassword) MakeInput(ctx context.Context, rawMessage json.RawMessage) (Input, error) {
 	var input InputIntentCreatePassword
-	err := i.SchemaBuilder().ToSimpleSchema().Validator().ParseJSONRawMessage(rawMessage, &input)
+	err := i.SchemaBuilder().ToSimpleSchema().Validator().ParseJSONRawMessage(ctx, rawMessage, &input)
 	if err != nil {
 		return nil, err
 	}

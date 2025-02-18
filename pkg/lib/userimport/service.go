@@ -210,7 +210,7 @@ func (s *UserImportService) importRecordInConn(
 }
 
 func (s *UserImportService) importRecordInTxn(ctx context.Context, detail *Detail, options *Options, rawMessage json.RawMessage) (record Record, err error) {
-	err = options.RecordSchema().Validator().ParseJSONRawMessage(rawMessage, &record)
+	err = options.RecordSchema().Validator().ParseJSONRawMessage(ctx, rawMessage, &record)
 	if err != nil {
 		// If validation failed, still try to unmarshal the input as a record to provide context to the api caller
 		_ = json.Unmarshal(rawMessage, &record)

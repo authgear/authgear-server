@@ -86,7 +86,7 @@ func (h *ConfirmTerminateOtherSessionsHandler) ServeHTTP(w http.ResponseWriter, 
 	})
 
 	ctrl.PostAction("", func(ctx context.Context) error {
-		err = ConfirmTerminateOtherSessionsSchema.Validator().ValidateValue(FormToJSON(r.Form))
+		err = ConfirmTerminateOtherSessionsSchema.Validator().ValidateValue(ctx, FormToJSON(r.Form))
 		if err != nil {
 			return err
 		}

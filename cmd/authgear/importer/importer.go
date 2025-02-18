@@ -39,7 +39,7 @@ func (i *Importer) ImportRecord(ctx context.Context, record []string, opts Impor
 		Config: i.EmailConfig,
 	}
 	validationCtx := &validation.Context{}
-	emailChecker.Validate(validationCtx, rawEmail)
+	emailChecker.Validate(ctx, validationCtx, rawEmail)
 	err := validationCtx.Error(fmt.Sprintf("invalid email: %v", rawEmail))
 	if err != nil {
 		return err

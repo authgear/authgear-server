@@ -93,7 +93,7 @@ func (h *AuthflowV2EnterTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 		return nil
 	})
 	handlers.PostAction("submit", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
-		err := AuthflowEnterTOTPSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
+		err := AuthflowEnterTOTPSchema.Validator().ValidateValue(ctx, handlerwebapp.FormToJSON(r.Form))
 		if err != nil {
 			return err
 		}
@@ -107,7 +107,7 @@ func (h *AuthflowV2EnterTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 			"request_device_token": requestDeviceToken,
 		}
 
-		err = handlerwebapp.HandleAuthenticationBotProtection(config.AuthenticationFlowAuthenticationSecondaryTOTP, screen.StateTokenFlowResponse, r.Form, input)
+		err = handlerwebapp.HandleAuthenticationBotProtection(ctx, config.AuthenticationFlowAuthenticationSecondaryTOTP, screen.StateTokenFlowResponse, r.Form, input)
 		if err != nil {
 			return err
 		}

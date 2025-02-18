@@ -1,6 +1,8 @@
 package rolesgroups
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
@@ -14,6 +16,6 @@ var KeySchema = validation.NewSimpleSchema(`
 	}
 `)
 
-func ValidateKey(key string) error {
-	return KeySchema.Validator().ValidateValue(key)
+func ValidateKey(ctx context.Context, key string) error {
+	return KeySchema.Validator().ValidateValue(ctx, key)
 }

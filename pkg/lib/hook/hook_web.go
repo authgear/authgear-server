@@ -111,7 +111,7 @@ func (h *EventWebHookImpl) DeliverBlockingEvent(ctx context.Context, u *url.URL,
 	}
 
 	var hookResp *event.HookResponse
-	hookResp, err = event.ParseHookResponse(resp.Body)
+	hookResp, err = event.ParseHookResponse(ctx, resp.Body)
 	if err != nil {
 		apiError := apierrors.AsAPIError(err)
 		err = WebHookInvalidResponse.NewWithInfo("invalid response body", apiError.Info)

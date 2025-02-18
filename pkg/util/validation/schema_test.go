@@ -1,6 +1,7 @@
 package validation_test
 
 import (
+	"context"
 	"strings"
 	"testing"
 
@@ -10,6 +11,7 @@ import (
 )
 
 func TestSchemaValidate(t *testing.T) {
+	ctx := context.Background()
 	Convey("validate schema", t, func() {
 		schema := validation.NewMultipartSchema("schemaA")
 		schema.Add("schemaA", `
@@ -38,13 +40,13 @@ func TestSchemaValidate(t *testing.T) {
 `)
 		schema.Instantiate()
 
-		err := schema.Validator().Validate(strings.NewReader(`
+		err := schema.Validator().Validate(ctx, strings.NewReader(`
 		{
 		}
 `))
 		So(err, ShouldBeNil)
 
-		err = schema.Validator().Validate(strings.NewReader(`
+		err = schema.Validator().Validate(ctx, strings.NewReader(`
 		{
 			"b": "t",
 			"c": [
@@ -95,14 +97,14 @@ func TestSchemaValidate(t *testing.T) {
 
 		schema.Instantiate()
 
-		err := schema.Validator().Validate(strings.NewReader(`
+		err := schema.Validator().Validate(ctx, strings.NewReader(`
 		{
 			"b": "http://abc"
 		}
 `))
 		So(err, ShouldBeNil)
 
-		err = schema.Validator().Validate(strings.NewReader(`
+		err = schema.Validator().Validate(ctx, strings.NewReader(`
 		{
 			"b": "htt://abc"
 		}
@@ -121,7 +123,7 @@ func TestSchemaValidate(t *testing.T) {
 			},
 		})
 
-		err = schema.Validator().Validate(strings.NewReader(`
+		err = schema.Validator().Validate(ctx, strings.NewReader(`
 		{
 			"b": "http://"
 		}
@@ -140,7 +142,7 @@ func TestSchemaValidate(t *testing.T) {
 			},
 		})
 
-		err = schema.Validator().Validate(strings.NewReader(`
+		err = schema.Validator().Validate(ctx, strings.NewReader(`
 		{
 			"b": "http://abc?x=hello"
 		}

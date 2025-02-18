@@ -2,6 +2,7 @@ package config_test
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -93,8 +94,8 @@ func TestAppConfigSchema(t *testing.T) {
 				if err != nil {
 					panic(err)
 				}
-
-				err = config.Schema.PartValidator(testCase.Part).Validate(bytes.NewReader(data))
+				ctx := context.Background()
+				err = config.Schema.PartValidator(testCase.Part).Validate(ctx, bytes.NewReader(data))
 				if testCase.Error != nil {
 					So(err, ShouldBeError, *testCase.Error)
 				} else {

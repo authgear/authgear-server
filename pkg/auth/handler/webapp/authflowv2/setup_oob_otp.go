@@ -121,7 +121,7 @@ func (h *AuthflowV2SetupOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.
 		return nil
 	})
 	handlers.PostAction("", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
-		err := AuthflowSetupOOBOTPSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
+		err := AuthflowSetupOOBOTPSchema.Validator().ValidateValue(ctx, handlerwebapp.FormToJSON(r.Form))
 		if err != nil {
 			return err
 		}
@@ -145,7 +145,7 @@ func (h *AuthflowV2SetupOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.
 			"channel":        channel,
 		}
 
-		err = handlerwebapp.HandleCreateAuthenticatorBotProtection(option.Authentication, screen.StateTokenFlowResponse, r.Form, input)
+		err = handlerwebapp.HandleCreateAuthenticatorBotProtection(ctx, option.Authentication, screen.StateTokenFlowResponse, r.Form, input)
 		if err != nil {
 			return err
 		}

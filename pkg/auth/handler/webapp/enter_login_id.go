@@ -163,7 +163,7 @@ func (h *EnterLoginIDHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		intent := intents.NewIntentRemoveIdentity(userID)
 
 		result, err := ctrl.EntryPointPost(ctx, opts, intent, func() (input interface{}, err error) {
-			err = RemoveLoginIDSchema.Validator().ValidateValue(FormToJSON(r.Form))
+			err = RemoveLoginIDSchema.Validator().ValidateValue(ctx, FormToJSON(r.Form))
 			if err != nil {
 				return nil, err
 			}
@@ -197,7 +197,7 @@ func (h *EnterLoginIDHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		}
 
 		result, err := ctrl.EntryPointPost(ctx, opts, intent, func() (input interface{}, err error) {
-			err = AddOrUpdateLoginIDSchema.Validator().ValidateValue(FormToJSON(r.Form))
+			err = AddOrUpdateLoginIDSchema.Validator().ValidateValue(ctx, FormToJSON(r.Form))
 			if err != nil {
 				return nil, err
 			}

@@ -2,6 +2,7 @@ package images
 
 import (
 	"bytes"
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"time"
@@ -76,6 +77,7 @@ func DecodeFileMetadata(encoded string) (*FileMetadata, error) {
 	}
 
 	err = FileMetaSchema.Validator().ValidateWithMessage(
+		context.Background(),
 		bytes.NewReader(jsonBytes),
 		"invalid file metadata",
 	)

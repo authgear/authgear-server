@@ -2,6 +2,7 @@ package validation
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -27,17 +28,17 @@ type SchemaValidator struct {
 	Reference string
 }
 
-func (v *SchemaValidator) Parse(r io.Reader, value interface{}) error {
-	return v.ParseWithMessage(r, defaultErrorMessage, value)
+func (v *SchemaValidator) Parse(ctx context.Context, r io.Reader, value interface{}) error {
+	return v.ParseWithMessage(ctx, r, defaultErrorMessage, value)
 }
 
-func (v *SchemaValidator) ParseWithMessage(r io.Reader, msg string, value interface{}) error {
+func (v *SchemaValidator) ParseWithMessage(ctx context.Context, r io.Reader, msg string, value interface{}) error {
 	data, err := ioutil.ReadAll(r)
 	if err != nil {
 		return fmt.Errorf("%s: %w", msg, err)
 	}
 
-	err = v.ValidateWithMessage(bytes.NewReader(data), msg)
+	err = v.ValidateWithMessage(ctx, bytes.NewReader(data), msg)
 	if err != nil {
 		return err
 	}
@@ -50,28 +51,28 @@ func (v *SchemaValidator) ParseWithMessage(r io.Reader, msg string, value interf
 	return nil
 }
 
-func (v *SchemaValidator) ParseJSONRawMessage(msg json.RawMessage, value interface{}) error {
-	return v.ParseWithMessage(bytes.NewReader(msg), defaultErrorMessage, value)
+func (v *SchemaValidator) ParseJSONRawMessage(ctx context.Context, msg json.RawMessage, value interface{}) error {
+	return v.ParseWithMessage(ctx, bytes.NewReader(msg), defaultErrorMessage, value)
 }
 
-func (v *SchemaValidator) ValidateValue(value interface{}) error {
-	return v.ValidateValueWithMessage(value, defaultErrorMessage)
+func (v *SchemaValidator) ValidateValue(ctx context.Context, value interface{}) error {
+	return v.ValidateValueWithMessage(ctx, value, defaultErrorMessage)
 }
 
-func (v *SchemaValidator) ValidateValueWithMessage(value interface{}, msg string) error {
+func (v *SchemaValidator) ValidateValueWithMessage(ctx context.Context, value interface{}, msg string) error {
 	data, err := json.Marshal(value)
 	if err != nil {
 		return fmt.Errorf("%s: %w", msg, err)
 	}
-	return v.ValidateWithMessage(bytes.NewReader(data), msg)
+	return v.ValidateWithMessage(ctx, bytes.NewReader(data), msg)
 }
 
-func (v *SchemaValidator) Validate(r io.Reader) error {
-	return v.ValidateWithMessage(r, defaultErrorMessage)
+func (v *SchemaValidator) Validate(ctx context.Context, r io.Reader) error {
+	return v.ValidateWithMessage(ctx, r, defaultErrorMessage)
 }
 
-func (v *SchemaValidator) ValidateWithMessage(r io.Reader, msg string) error {
-	node, err := v.Schema.Apply(v.Reference, r)
+func (v *SchemaValidator) ValidateWithMessage(ctx context.Context, r io.Reader, msg string) error {
+	node, err := v.Schema.Apply(ctx, v.Reference, r)
 	if err != nil {
 		// It is observed that json.NewDecoder.Decode and json.Unmarshal
 		// returns different error with the input is empty.
