@@ -24,7 +24,6 @@
     "process": false
   },
   "overrides": {
-    "caniuse-lite": "1.0.30001653",
     "esbuild": "0.25.0"
   },
   "devDependencies": {
