@@ -295,8 +295,6 @@ As of 2025-02-18, `esbuild < 0.25.0` has a vulnerability. Since it is not v1 yet
 the vulnerability has to be worked around with `overrides`. When `vite >= 6.2.0` is released, we MUST remove that `override`.
 See https://github.com/vitejs/vite/issues/19412
 
-caniuse-lite is not up-to-latest, which makes `last x versions` in `.browserslistrc` outdated. However, updating to `caniuse-lite 1.0.30001655` will lead to breaking changes in `doiuse 6.0.2` and `stylelint-no-unsupported-browser-features 8.0.2`. Thus, we need to override `caniuse-lite 1.0.30001653` until doiuse patch [this fix](https://github.com/anandthakker/doiuse/pull/191).
-
 When intl-tel-input is >= 21, it switched to use CSS variables. https://github.com/jackocnr/intl-tel-input/releases/tag/v21.0.0
 The problem is that it uses `--custom-var: url("../some-path");`, which is rejected by Parcel https://github.com/parcel-bundler/parcel/blob/v2.10.2/packages/transformers/css/src/CSSTransformer.js#L135
 
