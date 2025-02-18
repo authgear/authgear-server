@@ -58,6 +58,8 @@ require (
 	sigs.k8s.io/yaml v1.4.0
 )
 
+replace github.com/iawaknahc/jsonschema => github.com/tung2744/jsonschema v0.0.0-788d5da0
+
 require (
 	cloud.google.com/go/storage v1.45.0
 	github.com/Azure/azure-storage-blob-go v0.15.0
