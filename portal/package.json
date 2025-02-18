@@ -23,7 +23,8 @@
     "browserslist-coverage-lint": "../scripts/sh/ensure-browserslist-coverage.sh"
   },
   "overrides": {
-    "word-wrap": "@aashutoshrathi/word-wrap"
+    "word-wrap": "@aashutoshrathi/word-wrap",
+    "esbuild": "0.25.0"
   },
   "devDependencies": {
     "@graphql-codegen/cli": "5.0.0",
@@ -56,7 +57,7 @@
     "tailwindcss": "3.3.5",
     "ts-jest": "29.1.1",
     "typescript": "5.2.2",
-    "vite": "^5.4.14"
+    "vite": "^6.0.0"
   },
   "dependencies": {
     "@apollo/client": "3.8.7",

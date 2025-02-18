@@ -291,6 +291,10 @@ As the first project `accounts` is created by the script instead of by user, we 
 
 cert-manager@v1.7.3 has transitive dependency problem.
 
+As of 2025-02-18, `esbuild < 0.25.0` has a vulnerability. Since it is not v1 yet, and vite v6 depends on `esbuild < 0.25.0`,
+the vulnerability has to be worked around with `overrides`. When `vite >= 6.2.0` is released, we MUST remove that `override`.
+See https://github.com/vitejs/vite/issues/19412
+
 caniuse-lite is not up-to-latest, which makes `last x versions` in `.browserslistrc` outdated. However, updating to `caniuse-lite 1.0.30001655` will lead to breaking changes in `doiuse 6.0.2` and `stylelint-no-unsupported-browser-features 8.0.2`. Thus, we need to override `caniuse-lite 1.0.30001653` until doiuse patch [this fix](https://github.com/anandthakker/doiuse/pull/191).
 
 When intl-tel-input is >= 21, it switched to use CSS variables. https://github.com/jackocnr/intl-tel-input/releases/tag/v21.0.0
