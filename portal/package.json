@@ -23,7 +23,8 @@
     "browserslist-coverage-lint": "../scripts/sh/ensure-browserslist-coverage.sh"
   },
   "overrides": {
-    "word-wrap": "@aashutoshrathi/word-wrap"
+    "word-wrap": "@aashutoshrathi/word-wrap",
+    "esbuild": "0.25.0"
   },
   "devDependencies": {
     "@graphql-codegen/cli": "5.0.0",
