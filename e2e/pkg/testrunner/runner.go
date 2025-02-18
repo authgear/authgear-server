@@ -2,6 +2,7 @@ package testrunner
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -85,9 +86,9 @@ func (tr *TestRunner) loadFromPath(path string) ([]TestCase, error) {
 				t.Errorf("failed to convert yaml to json at %s#%d%v", relativePath, i+1, err)
 				continue
 			}
-
+			ctx := context.Background()
 			var invalidSchemaMessage = fmt.Sprintf("invalid schema at %s#%d", relativePath, i+1)
-			err = TestCaseSchema.Validator().ValidateWithMessage(bytes.NewReader(jsonData), invalidSchemaMessage)
+			err = TestCaseSchema.Validator().ValidateWithMessage(ctx, bytes.NewReader(jsonData), invalidSchemaMessage)
 			if err != nil {
 				t.Errorf(err.Error())
 				continue

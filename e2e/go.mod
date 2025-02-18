@@ -30,6 +30,8 @@ require (
 	sigs.k8s.io/yaml v1.4.0
 )
 
+replace github.com/iawaknahc/jsonschema => github.com/tung2744/jsonschema v0.0.0-788d5da0
+
 require (
 	cel.dev/expr v0.16.1 // indirect
 	cloud.google.com/go v0.116.0 // indirect
