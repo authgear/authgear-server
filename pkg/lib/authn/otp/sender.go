@@ -41,6 +41,7 @@ type TranslationService interface {
 
 type Sender interface {
 	SendEmailInNewGoroutine(ctx context.Context, msgType translation.MessageType, opts *mail.SendOptions) error
+	SendSMSImmediately(ctx context.Context, msgType translation.MessageType, opts *sms.SendOptions) error
 	SendSMSInNewGoroutine(ctx context.Context, msgType translation.MessageType, opts *sms.SendOptions) error
 	SendWhatsappImmediately(ctx context.Context, msgType translation.MessageType, opts *whatsapp.SendAuthenticationOTPOptions) error
 }
@@ -186,7 +187,7 @@ func (s *MessageSender) sendEmail(ctx context.Context, opts SendOptions) error {
 	return nil
 }
 
-func (s *MessageSender) sendSMS(ctx context.Context, opts SendOptions) error {
+func (s *MessageSender) sendSMS(ctx context.Context, opts SendOptions, preferAsync bool) error {
 	spec := s.selectMessage(opts.Form, opts.Type)
 	msgType := spec.MessageType
 
@@ -209,8 +210,11 @@ func (s *MessageSender) sendSMS(ctx context.Context, opts SendOptions) error {
 		LanguageTag:       data.Body.LanguageTag,
 		TemplateVariables: sms.NewTemplateVariablesFromPreparedTemplateVariables(data.PreparedTemplateVariables),
 	}
-
-	err = s.Sender.SendSMSInNewGoroutine(ctx, msgType, smsSendOptions)
+	if preferAsync {
+		err = s.Sender.SendSMSInNewGoroutine(ctx, msgType, smsSendOptions)
+	} else {
+		err = s.Sender.SendSMSImmediately(ctx, msgType, smsSendOptions)
+	}
 	if err != nil {
 		return err
 	}
@@ -237,6 +241,14 @@ func (s *MessageSender) sendWhatsapp(ctx context.Context, opts SendOptions) (err
 }
 
 func (s *MessageSender) Send(ctx context.Context, opts SendOptions) error {
+	return s.send(ctx, opts, false)
+}
+
+func (s *MessageSender) SendAsync(ctx context.Context, opts SendOptions) error {
+	return s.send(ctx, opts, true)
+}
+
+func (s *MessageSender) send(ctx context.Context, opts SendOptions, preferAsync bool) error {
 	switch opts.Channel {
 	case model.AuthenticatorOOBChannelEmail:
 		err := s.sendEmail(ctx, opts)
@@ -246,7 +258,7 @@ func (s *MessageSender) Send(ctx context.Context, opts SendOptions) error {
 
 		return nil
 	case model.AuthenticatorOOBChannelSMS:
-		err := s.sendSMS(ctx, opts)
+		err := s.sendSMS(ctx, opts, preferAsync)
 		if err != nil {
 			return err
 		}

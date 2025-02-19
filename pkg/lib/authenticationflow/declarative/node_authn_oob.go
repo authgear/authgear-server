@@ -16,6 +16,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/facade"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
+	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
 )
@@ -35,9 +36,24 @@ type NodeAuthenticationOOB struct {
 	Authentication       config.AuthenticationFlowAuthentication `json:"authentication,omitempty"`
 }
 
-func NewNodeAuthenticationOOB(n *NodeAuthenticationOOB) *NodeAuthenticationOOB {
+func NewNodeAuthenticationOOB(n *NodeAuthenticationOOB) *authflow.NodeWithDelayedOneTimeFunction {
 	n.WebsocketChannelName = authflow.NewWebsocketChannelName()
-	return n
+	simpleNode := authflow.NewNodeSimple(n)
+
+	return &authflow.NodeWithDelayedOneTimeFunction{
+		Node: simpleNode,
+		DelayedOneTimeFunction: func(ctx context.Context, deps *authflow.Dependencies) error {
+			kind := n.otpKind(deps)
+			err := n.SendCode(ctx, deps)
+			_, claimValue := n.Info.OOBOTP.ToClaimPair()
+			if ratelimit.IsRateLimitErrorWithBucketName(err, kind.RateLimitTriggerCooldown(claimValue).Name) {
+				// Ignore trigger cooldown rate limit error; continue the flow
+			} else if err != nil {
+				return err
+			}
+			return nil
+		},
+	}
 }
 
 var _ authflow.NodeSimple = &NodeAuthenticationOOB{}
@@ -61,7 +77,7 @@ func (n *NodeAuthenticationOOB) CanReactTo(ctx context.Context, deps *authflow.D
 	}, nil
 }
 
-func (n *NodeAuthenticationOOB) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
+func (n *NodeAuthenticationOOB) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (authflow.ReactToResult, error) {
 	var inputNodeAuthenticationOOB inputNodeAuthenticationOOB
 	if !authflow.AsInput(input, &inputNodeAuthenticationOOB) {
 		return nil, authflow.ErrIncompatibleInput
@@ -140,11 +156,13 @@ func (n *NodeAuthenticationOOB) ReactTo(ctx context.Context, deps *authflow.Depe
 			Claim: verifiedClaim,
 		}), nil
 	case inputNodeAuthenticationOOB.IsResend():
-		err := n.SendCode(ctx, deps)
-		if err != nil {
-			return nil, err
-		}
-		return authflow.NewNodeSimple(n), authflow.ErrUpdateNode
+		newSimpleNode := authflow.NewNodeSimple(n)
+		return &authflow.NodeWithDelayedOneTimeFunction{
+			Node: newSimpleNode,
+			DelayedOneTimeFunction: func(ctx context.Context, deps *authflow.Dependencies) error {
+				return n.SendCode(ctx, deps)
+			},
+		}, authflow.ErrUpdateNode
 	default:
 		return nil, authflow.ErrIncompatibleInput
 	}

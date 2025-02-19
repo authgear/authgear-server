@@ -40,7 +40,7 @@ func (n *NodeOAuth) CanReactTo(ctx context.Context, deps *authflow.Dependencies,
 	}, nil
 }
 
-func (n *NodeOAuth) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
+func (n *NodeOAuth) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (authflow.ReactToResult, error) {
 	var syntheticInputOAuth syntheticInputOAuth
 	var inputOAuth inputTakeOAuthAuthorizationResponse
 	// The order of the cases is important.

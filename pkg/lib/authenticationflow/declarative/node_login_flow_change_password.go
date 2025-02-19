@@ -45,7 +45,7 @@ func (n *NodeLoginFlowChangePassword) CanReactTo(ctx context.Context, deps *auth
 	}, nil
 }
 
-func (n *NodeLoginFlowChangePassword) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
+func (n *NodeLoginFlowChangePassword) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (authflow.ReactToResult, error) {
 	var inputTakeNewPassword inputTakeNewPassword
 	if authflow.AsInput(input, &inputTakeNewPassword) {
 		newPassword := inputTakeNewPassword.GetNewPassword()

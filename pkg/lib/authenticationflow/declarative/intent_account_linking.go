@@ -71,7 +71,7 @@ func (i *IntentAccountLinking) CanReactTo(ctx context.Context, deps *authflow.De
 	return nil, authflow.ErrEOF
 }
 
-func (i *IntentAccountLinking) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
+func (i *IntentAccountLinking) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (authflow.ReactToResult, error) {
 	if len(flows.Nearest.Nodes) == 0 {
 		var inputTakeAccountLinkingIdentification inputTakeAccountLinkingIdentification
 		if authflow.AsInput(input, &inputTakeAccountLinkingIdentification) {

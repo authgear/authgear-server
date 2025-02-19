@@ -153,7 +153,7 @@ func (*intentNoValidateDuringUnmarshal) CanReactTo(ctx context.Context, deps *De
 	return nil, ErrEOF
 }
 
-func (intentNoValidateDuringUnmarshal) ReactTo(ctx context.Context, deps *Dependencies, flows Flows, input Input) (*Node, error) {
+func (intentNoValidateDuringUnmarshal) ReactTo(ctx context.Context, deps *Dependencies, flows Flows, input Input) (ReactToResult, error) {
 	return nil, ErrIncompatibleInput
 }
 

@@ -225,7 +225,7 @@ func (*intentNilInput) CanReactTo(ctx context.Context, deps *Dependencies, flows
 	return nil, ErrEOF
 }
 
-func (*intentNilInput) ReactTo(ctx context.Context, deps *Dependencies, flows Flows, input Input) (*Node, error) {
+func (*intentNilInput) ReactTo(ctx context.Context, deps *Dependencies, flows Flows, input Input) (ReactToResult, error) {
 	return NewNodeSimple(&nodeNilInput{}), nil
 }
 
@@ -275,7 +275,7 @@ func (*intentServiceContext) CanReactTo(ctx context.Context, deps *Dependencies,
 	return nil, ErrEOF
 }
 
-func (*intentServiceContext) ReactTo(ctx context.Context, deps *Dependencies, flows Flows, input Input) (*Node, error) {
+func (*intentServiceContext) ReactTo(ctx context.Context, deps *Dependencies, flows Flows, input Input) (ReactToResult, error) {
 	var inputServiceContext InputServiceContext
 
 	switch {

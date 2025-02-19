@@ -14,13 +14,20 @@ import (
 
 type AcceptResult struct {
 	BotProtectionVerificationResult *BotProtectionVerificationResult `json:"bot_protection,omitempty"`
+	DelayedOneTimeFunctions         []DelayedOneTimeFunction         `json:"-"`
+}
+
+func NewAcceptResult() *AcceptResult {
+	return &AcceptResult{
+		DelayedOneTimeFunctions: []DelayedOneTimeFunction{},
+	}
 }
 
 // Accept executes the flow to the deepest using input.
 // In addition to the errors caused by intents and nodes,
 // ErrEOF and ErrNoChange can be returned.
-func Accept(ctx context.Context, deps *Dependencies, flows Flows, rawMessage json.RawMessage) (*AcceptResult, error) {
-	return accept(ctx, deps, flows, func(inputSchema InputSchema) (Input, error) {
+func Accept(ctx context.Context, deps *Dependencies, flows Flows, result *AcceptResult, rawMessage json.RawMessage) error {
+	return accept(ctx, deps, flows, result, func(inputSchema InputSchema) (Input, error) {
 		if rawMessage != nil && inputSchema != nil {
 			input, err := inputSchema.MakeInput(rawMessage)
 			if err != nil {
@@ -32,15 +39,16 @@ func Accept(ctx context.Context, deps *Dependencies, flows Flows, rawMessage jso
 	})
 }
 
-func AcceptSyntheticInput(ctx context.Context, deps *Dependencies, flows Flows, syntheticInput Input) (result *AcceptResult, err error) {
-	return accept(ctx, deps, flows, func(inputSchema InputSchema) (Input, error) {
+func AcceptSyntheticInput(ctx context.Context, deps *Dependencies, flows Flows, result *AcceptResult, syntheticInput Input) error {
+	return accept(ctx, deps, flows, result, func(inputSchema InputSchema) (Input, error) {
 		return syntheticInput, nil
 	})
 }
 
 // nolint: gocognit
-func accept(ctx context.Context, deps *Dependencies, flows Flows, inputFn func(inputSchema InputSchema) (Input, error)) (result *AcceptResult, err error) {
+func accept(ctx context.Context, deps *Dependencies, flows Flows, result *AcceptResult, inputFn func(inputSchema InputSchema) (Input, error)) (err error) {
 	var changed bool
+
 	defer func() {
 		if changed {
 			flows.Nearest.StateToken = newStateToken()
@@ -75,8 +83,8 @@ func accept(ctx context.Context, deps *Dependencies, flows Flows, inputFn func(i
 			return
 		}
 
-		var nextNode *Node
-		nextNode, err = findInputReactorResult.InputReactor.ReactTo(ctx, deps, findInputReactorResult.Flows, input)
+		var reactToResult ReactToResult
+		reactToResult, err = findInputReactorResult.InputReactor.ReactTo(ctx, deps, findInputReactorResult.Flows, input)
 
 		// Handle err == ErrIncompatibleInput
 		if errors.Is(err, ErrIncompatibleInput) {
@@ -100,7 +108,16 @@ func accept(ctx context.Context, deps *Dependencies, flows Flows, inputFn func(i
 			// We still consider the flow has something changes.
 			changed = true
 
-			nodeToReplace := nextNode
+			var nodeToReplace *Node
+			switch reactToResult := reactToResult.(type) {
+			case *Node:
+				nodeToReplace = reactToResult
+			case *NodeWithDelayedOneTimeFunction:
+				nodeToReplace = reactToResult.Node
+				result.DelayedOneTimeFunctions = append(result.DelayedOneTimeFunctions, reactToResult.DelayedOneTimeFunction)
+			default:
+				panic(fmt.Errorf("failed to update node: uxepected type of ReactToResult %t", reactToResult))
+			}
 
 			// precondition: ErrUpdateNode requires at least one node.
 			if len(findInputReactorResult.Flows.Nearest.Nodes) == 0 {
@@ -125,26 +142,25 @@ func accept(ctx context.Context, deps *Dependencies, flows Flows, inputFn func(i
 
 			switch errBotProtectionVerification.Status {
 			case ErrorBotProtectionVerificationStatusSuccess:
-				result = &AcceptResult{
-					BotProtectionVerificationResult: &BotProtectionVerificationResult{
-						Outcome: BotProtectionVerificationOutcomeVerified,
-					}}
+				result.BotProtectionVerificationResult = &BotProtectionVerificationResult{
+					Outcome: BotProtectionVerificationOutcomeVerified,
+				}
 			case ErrorBotProtectionVerificationStatusFailed:
 				// We still consider the flow has something changes.
 				changed = true
-
-				return &AcceptResult{
-					BotProtectionVerificationResult: &BotProtectionVerificationResult{
-						Outcome: BotProtectionVerificationOutcomeFailed,
-					}}, botprotection.ErrVerificationFailed
+				result.BotProtectionVerificationResult = &BotProtectionVerificationResult{
+					Outcome: BotProtectionVerificationOutcomeFailed,
+				}
+				err = botprotection.ErrVerificationFailed
+				return
 			case ErrorBotProtectionVerificationStatusServiceUnavailable:
-				err = nil
 				// We still consider the flow has something changes.
 				changed = true
-				return &AcceptResult{
-					BotProtectionVerificationResult: &BotProtectionVerificationResult{
-						Outcome: BotProtectionVerificationOutcomeFailed,
-					}}, botprotection.ErrVerificationServiceUnavailable
+				result.BotProtectionVerificationResult = &BotProtectionVerificationResult{
+					Outcome: BotProtectionVerificationOutcomeFailed,
+				}
+				err = botprotection.ErrVerificationServiceUnavailable
+				return
 			default:
 				// unrecognized status
 				panic("unrecognized bot protection special error status in accept loop")
@@ -161,7 +177,17 @@ func accept(ctx context.Context, deps *Dependencies, flows Flows, inputFn func(i
 		}
 
 		// We need to append the nextNode to the closest flow.
-		err = appendNode(ctx, deps, findInputReactorResult.Flows, *nextNode)
+		var nextNode Node
+		switch reactToResult := reactToResult.(type) {
+		case *Node:
+			nextNode = *reactToResult
+		case *NodeWithDelayedOneTimeFunction:
+			nextNode = *reactToResult.Node
+			result.DelayedOneTimeFunctions = append(result.DelayedOneTimeFunctions, reactToResult.DelayedOneTimeFunction)
+		default:
+			panic(fmt.Errorf("failed to append node: uxepected type of ReactToResult %t", reactToResult))
+		}
+		err = appendNode(ctx, deps, findInputReactorResult.Flows, nextNode)
 		if err != nil {
 			return
 		}

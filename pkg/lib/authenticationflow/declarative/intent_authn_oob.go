@@ -10,7 +10,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 )
 
 func init() {
@@ -65,7 +64,7 @@ func (i *IntentAuthenticationOOB) CanReactTo(ctx context.Context, deps *authflow
 	return nil, authflow.ErrEOF
 }
 
-func (i *IntentAuthenticationOOB) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
+func (i *IntentAuthenticationOOB) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (authflow.ReactToResult, error) {
 	channels := i.getChannels(deps)
 	var inputTakeOOBOTPChannel inputTakeOOBOTPChannel
 	var channel model.AuthenticatorOOBChannel
@@ -88,16 +87,8 @@ func (i *IntentAuthenticationOOB) ReactTo(ctx context.Context, deps *authflow.De
 		Channel:        channel,
 		Authentication: i.Authentication,
 	})
-	kind := node.otpKind(deps)
-	err := node.SendCode(ctx, deps)
-	_, claimValue := node.Info.OOBOTP.ToClaimPair()
-	if ratelimit.IsRateLimitErrorWithBucketName(err, kind.RateLimitTriggerCooldown(claimValue).Name) {
-		// Ignore trigger cooldown rate limit error; continue the flow
-	} else if err != nil {
-		return nil, err
-	}
 
-	return authflow.NewNodeSimple(node), nil
+	return node, nil
 }
 
 func (i *IntentAuthenticationOOB) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {

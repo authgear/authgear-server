@@ -15,6 +15,11 @@ var ErrNoAvailableClient = NoAvailableClient.
 	New("no available SMS client")
 var ErrAmbiguousClient = errors.New("ambiguous SMS client")
 
+var ErrKindInvalidPhoneNumber = apierrors.BadRequest.WithReason("SMSGatewayInvalidPhoneNumber")
+var ErrKindAuthenticationFailed = apierrors.InternalError.WithReason("SMSGatewayAuthenticationFailed")
+var ErrKindDeliveryRejected = apierrors.InternalError.WithReason("SMSGatewayDeliveryRejected")
+var ErrKindRateLimited = apierrors.TooManyRequest.WithReason("SMSGatewayRateLimited")
+
 type TemplateVariables struct {
 	AppName     string `json:"app_name,omitempty"`
 	ClientID    string `json:"client_id,omitempty"`

@@ -12,13 +12,17 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
+type ReactToResult interface {
+	reactToResult()
+}
+
 // InputReactor, if can react to some input, must return an InputSchema.
 // It must react to the Input produced by its InputSchema.
 // As a special case, CanReactTo can return a nil InputSchema, which means
 // the InputReactor can react to a nil Input.
 type InputReactor interface {
 	CanReactTo(ctx context.Context, deps *Dependencies, flows Flows) (InputSchema, error)
-	ReactTo(ctx context.Context, deps *Dependencies, flows Flows, input Input) (*Node, error)
+	ReactTo(ctx context.Context, deps *Dependencies, flows Flows, input Input) (ReactToResult, error)
 }
 
 // InputSchema validates and parses the input.

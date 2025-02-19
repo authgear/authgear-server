@@ -64,7 +64,7 @@ type OTPCodeService interface {
 }
 
 type OTPSender interface {
-	Send(ctx context.Context, opts otp.SendOptions) error
+	SendAsync(ctx context.Context, opts otp.SendOptions) error
 }
 
 type VerificationService interface {

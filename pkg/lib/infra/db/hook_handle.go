@@ -204,6 +204,11 @@ func (h *HookHandle) WithPrepareStatementsHandle(ctx context.Context, do func(ct
 	return
 }
 
+func (*HookHandle) IsInTx(ctx context.Context) bool {
+	_, isInTx := hookHandleContextGetValue(ctx)
+	return isInTx
+}
+
 func beginTx(ctx context.Context, logger *log.Logger, beginTxer beginTxer) (*sql.Tx, error) {
 	// Pass a nil TxOptions to use default isolation level.
 	var txOptions *sql.TxOptions

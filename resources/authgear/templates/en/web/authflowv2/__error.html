@@ -261,6 +261,14 @@
       <span>{{ include "v2.error.bot-protection-verification-failed" nil }}</span>
     {{ else if eq .Error.reason "AccountManagementSecondaryAuthenticatorIsRequired" }}
       <span>{{ include "v2.error.remove-last-secondary-authenticator" nil }}</span>
+    {{ else if eq .Error.reason "SMSGatewayInvalidPhoneNumber" }}
+      <span>{{ include "v2.error.sms-gateway-invalid-phone-number" (dict "ProviderErrorCode" .Error.info.ProviderErrorCode) }}</span>
+    {{ else if eq .Error.reason "SMSGatewayAuthenticationFailed" }}
+      <span>{{ include "v2.error.sms-gateway-authentication-failed" (dict "ProviderErrorCode" .Error.info.ProviderErrorCode) }}</span>
+    {{ else if eq .Error.reason "SMSGatewayDeliveryRejected" }}
+      <span>{{ include "v2.error.sms-gateway-delivery-rejected" (dict "ProviderErrorCode" .Error.info.ProviderErrorCode) }}</span>
+    {{ else if eq .Error.reason "SMSGatewayRateLimited" }}
+      <span>{{ include "v2.error.sms-gateway-rate-limited" (dict "ProviderErrorCode" .Error.info.ProviderErrorCode) }}</span>
     {{ else }}
       <span>{{ include "v2.error.unknown" nil }}{{ call $.LogUnknownError .Error }}</span>
     {{ end }}

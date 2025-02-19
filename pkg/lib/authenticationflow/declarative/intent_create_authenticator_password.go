@@ -60,7 +60,7 @@ func (n *IntentCreateAuthenticatorPassword) CanReactTo(ctx context.Context, deps
 	}, nil
 }
 
-func (i *IntentCreateAuthenticatorPassword) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
+func (i *IntentCreateAuthenticatorPassword) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (authflow.ReactToResult, error) {
 	var inputTakeNewPassword inputTakeNewPassword
 	if authflow.AsInput(input, &inputTakeNewPassword) {
 		authenticatorKind := i.Authentication.AuthenticatorKind()

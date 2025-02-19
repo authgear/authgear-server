@@ -1596,6 +1596,10 @@
   "SMSProviderConfigurationScreen.form.deno.timeout.description": "You can set it from 1 to 60 seconds. If the webhook doesn’t respond in time, the SMS is marked as undelivered.",
   "SMSProviderConfigurationScreen.test.title": "Test SMS",
   "SMSProviderConfigurationScreen.test.send.label": "Send Test SMS",
+  "SMSProviderConfigurationScreen.errors.gateway-invalid-phone-number-error": "Please enter a correct phone number. (Gateway error code: {code})",
+  "SMSProviderConfigurationScreen.errors.gateway-authentication-failed-error": "Please check the gateway credentials. (Gateway error code: {code})",
+  "SMSProviderConfigurationScreen.errors.gateway-delivery-rejected-error": "Delivery rejected by gateway. (Gateway error code: {code})",
+  "SMSProviderConfigurationScreen.errors.gateway-rate-limited-error": "Request rate limited by gateway. (Gateway error code: {code})",
 
   "StandardAttributesConfigurationScreen.title": "Standard Attributes",
 

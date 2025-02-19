@@ -37,7 +37,7 @@ func (i *IntentLoginFlowStepPromptCreatePasskey) CanReactTo(ctx context.Context,
 	return nil, authflow.ErrEOF
 }
 
-func (i *IntentLoginFlowStepPromptCreatePasskey) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, _ authflow.Input) (*authflow.Node, error) {
+func (i *IntentLoginFlowStepPromptCreatePasskey) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (authflow.ReactToResult, error) {
 	// See if any used identification can use passkey.
 	passkeyCanBeUsed := false
 	milestones := authflow.FindAllMilestones[MilestoneIdentificationMethod](flows.Root)

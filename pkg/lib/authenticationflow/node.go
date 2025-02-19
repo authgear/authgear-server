@@ -1,5 +1,7 @@
 package authenticationflow
 
+import "context"
+
 type NodeType string
 
 const (
@@ -12,6 +14,24 @@ type Node struct {
 	Simple  NodeSimple `json:"simple,omitempty"`
 	SubFlow *Flow      `json:"flow,omitempty"`
 }
+
+var _ ReactToResult = &Node{}
+
+func (n *Node) reactToResult() {}
+
+// DelayedOneTimeFunction
+//   - executes outside the transaction.
+//   - executes just before the flow state is saved to store
+type DelayedOneTimeFunction func(ctx context.Context, deps *Dependencies) error
+
+type NodeWithDelayedOneTimeFunction struct {
+	Node                   *Node
+	DelayedOneTimeFunction DelayedOneTimeFunction
+}
+
+var _ ReactToResult = &NodeWithDelayedOneTimeFunction{}
+
+func (n *NodeWithDelayedOneTimeFunction) reactToResult() {}
 
 type NodeSimple interface {
 	Kinder

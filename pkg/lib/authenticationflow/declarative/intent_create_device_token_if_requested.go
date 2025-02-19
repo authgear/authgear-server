@@ -42,7 +42,7 @@ func (i *IntentCreateDeviceTokenIfRequested) CanReactTo(ctx context.Context, dep
 	return nil, authflow.ErrEOF
 }
 
-func (i *IntentCreateDeviceTokenIfRequested) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
+func (i *IntentCreateDeviceTokenIfRequested) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (authflow.ReactToResult, error) {
 	if len(flows.Nearest.Nodes) == 0 {
 		var inputDeviceTokenRequested inputDeviceTokenRequested
 		ok := authflow.AsInput(input, &inputDeviceTokenRequested)

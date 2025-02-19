@@ -94,6 +94,19 @@ export interface APIAuthenticatorNotFoundError {
   reason: "AuthenticatorNotFound";
 }
 
+export interface APISMSGatewayError {
+  errorName: string;
+  reason:
+    | "SMSGatewayInvalidPhoneNumber"
+    | "SMSGatewayAuthenticationFailed"
+    | "SMSGatewayDeliveryRejected"
+    | "SMSGatewayRateLimited";
+  info: {
+    ProviderErrorCode: string;
+    ProviderName: string;
+  };
+}
+
 export type APIError = { message?: string } & (
   | NetworkError
   | RequestEntityTooLargeError
@@ -133,6 +146,7 @@ export type APIError = { message?: string } & (
   | APIGroupDuplicateKeyError
   | APISendPasswordNoTargetError
   | APIAuthenticatorNotFoundError
+  | APISMSGatewayError
 );
 
 export function isAPIError(value: unknown): value is APIError {

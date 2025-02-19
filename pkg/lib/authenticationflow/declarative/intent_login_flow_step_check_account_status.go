@@ -34,7 +34,7 @@ func (i *IntentLoginFlowStepCheckAccountStatus) CanReactTo(ctx context.Context, 
 	return nil, authflow.ErrEOF
 }
 
-func (i *IntentLoginFlowStepCheckAccountStatus) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, _ authflow.Input) (*authflow.Node, error) {
+func (i *IntentLoginFlowStepCheckAccountStatus) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (authflow.ReactToResult, error) {
 	u, err := deps.Users.GetRaw(ctx, i.UserID)
 	if err != nil {
 		return nil, err

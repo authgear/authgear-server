@@ -61,6 +61,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redisqueue"
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms"
+	"github.com/authgear/authgear-server/pkg/lib/infra/sms/custom"
 	infrawhatsapp "github.com/authgear/authgear-server/pkg/lib/infra/whatsapp"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/lockout"
@@ -177,6 +178,7 @@ var CommonDependencySet = wire.NewSet(
 
 	wire.NewSet(
 		hook.DependencySet,
+		wire.Bind(new(custom.DenoHook), new(*hook.DenoHook)),
 	),
 
 	wire.NewSet(

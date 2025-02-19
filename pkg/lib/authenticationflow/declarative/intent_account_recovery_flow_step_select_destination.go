@@ -107,7 +107,7 @@ func (i *IntentAccountRecoveryFlowStepSelectDestination) CanReactTo(ctx context.
 	}
 }
 
-func (i *IntentAccountRecoveryFlowStepSelectDestination) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
+func (i *IntentAccountRecoveryFlowStepSelectDestination) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (authflow.ReactToResult, error) {
 	if len(flows.Nearest.Nodes) == 0 {
 		var inputTakeAccountRecoveryDestinationOptionIndex inputTakeAccountRecoveryDestinationOptionIndex
 		if authflow.AsInput(input, &inputTakeAccountRecoveryDestinationOptionIndex) {

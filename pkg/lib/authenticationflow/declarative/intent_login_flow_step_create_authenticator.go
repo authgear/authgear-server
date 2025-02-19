@@ -139,7 +139,7 @@ func (i *IntentLoginFlowStepCreateAuthenticator) CanReactTo(ctx context.Context,
 	}
 }
 
-func (i *IntentLoginFlowStepCreateAuthenticator) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
+func (i *IntentLoginFlowStepCreateAuthenticator) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (authflow.ReactToResult, error) {
 	if len(flows.Nearest.Nodes) == 0 && i.IsUpdatingExistingUser {
 		option, idx, authn, err := i.findSkippableOption(ctx, deps, flows)
 		if err != nil {

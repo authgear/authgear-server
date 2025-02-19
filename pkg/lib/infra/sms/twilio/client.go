@@ -2,6 +2,7 @@ package twilio
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"io"
 	"net/http"
@@ -10,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms/smsapi"
 	utilhttputil "github.com/authgear/authgear-server/pkg/util/httputil"
@@ -93,20 +95,83 @@ func (t *TwilioClient) Send(ctx context.Context, options smsapi.SendOptions) err
 
 	sendResponse, err := ParseSendResponse(bodyBytes)
 	if err != nil {
+		var jsonUnmarshalErr *json.UnmarshalTypeError
+		if errors.As(err, &jsonUnmarshalErr) {
+			return t.parseAndHandleErrorResponse(bodyBytes, dumpedResponse)
+		}
 		return errors.Join(err, &smsapi.SendError{
 			DumpedResponse: dumpedResponse,
 		})
 	}
 
-	// Success case.
-	if sendResponse.ErrorCode == nil {
-		return nil
+	if sendResponse.ErrorCode != nil {
+		return t.makeError(*sendResponse.ErrorCode, dumpedResponse)
 	}
 
-	// Failed case.
-	return &smsapi.SendError{
+	return nil
+}
+
+func (t *TwilioClient) parseAndHandleErrorResponse(
+	responseBody []byte,
+	dumpedResponse []byte,
+) error {
+	errResponse, err := ParseErrorResponse(responseBody)
+
+	if err != nil {
+		var jsonUnmarshalErr *json.UnmarshalTypeError
+		if errors.As(err, &jsonUnmarshalErr) {
+			// Not something we can understand, return an error with the dumped response
+			return &smsapi.SendError{
+				DumpedResponse: dumpedResponse,
+			}
+		} else {
+			return errors.Join(err, &smsapi.SendError{
+				DumpedResponse: dumpedResponse,
+			})
+		}
+	}
+
+	return t.makeError(errResponse.Code, dumpedResponse)
+}
+
+func (t *TwilioClient) makeError(
+	errorCode int,
+	dumpedResponse []byte,
+) error {
+	var err error = &smsapi.SendError{
 		DumpedResponse: dumpedResponse,
 	}
+
+	details := apierrors.Details{
+		"ProviderErrorCode": errorCode,
+		"ProviderName":      "twilio",
+	}
+
+	// See https://www.twilio.com/docs/api/errors
+	switch errorCode {
+	case 21211:
+		err = errors.Join(smsapi.ErrKindInvalidPhoneNumber.NewWithInfo(
+			"phone number rejected by twilio", details), err)
+	case 30022:
+		fallthrough
+	case 14107:
+		fallthrough
+	case 51002:
+		fallthrough
+	case 63017:
+		fallthrough
+	case 63018:
+		err = errors.Join(smsapi.ErrKindRateLimited.NewWithInfo(
+			"twilio rate limited", details), err)
+	case 20003:
+		err = errors.Join(smsapi.ErrKindAuthenticationFailed.NewWithInfo(
+			"twilio authentication failed", details), err)
+	case 30002:
+		err = errors.Join(smsapi.ErrKindDeliveryRejected.NewWithInfo(
+			"twilio delievry rejected", details), err)
+	}
+
+	return err
 }
 
 var _ smsapi.Client = &TwilioClient{}

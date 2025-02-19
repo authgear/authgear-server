@@ -78,7 +78,7 @@ func (n *NodePromptCreatePasskey) CanReactTo(ctx context.Context, deps *authflow
 	}, nil
 }
 
-func (n *NodePromptCreatePasskey) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
+func (n *NodePromptCreatePasskey) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (authflow.ReactToResult, error) {
 	if n.isAlreadyPrompted(flows) {
 		return authflow.NewNodeSimple(&NodeSentinel{}), nil
 	}

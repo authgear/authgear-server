@@ -36,3 +36,17 @@ func ParseSendResponse(jsonData []byte) (*SendResponse, error) {
 	}
 	return &response, nil
 }
+
+// See https://www.twilio.com/docs/usage/twilios-response#response-formats-exceptions-examples
+type ErrorResponse struct {
+	Code int `json:"code,omitempty"`
+}
+
+func ParseErrorResponse(jsonData []byte) (*ErrorResponse, error) {
+	var response ErrorResponse
+	err := json.Unmarshal(jsonData, &response)
+	if err != nil {
+		return nil, err
+	}
+	return &response, nil
+}

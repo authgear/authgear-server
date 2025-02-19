@@ -49,7 +49,7 @@ func (*testMarshalIntent0) CanReactTo(ctx context.Context, deps *Dependencies, f
 	return nil, ErrEOF
 }
 
-func (testMarshalIntent0) ReactTo(ctx context.Context, deps *Dependencies, flows Flows, input Input) (*Node, error) {
+func (testMarshalIntent0) ReactTo(ctx context.Context, deps *Dependencies, flows Flows, input Input) (ReactToResult, error) {
 	panic("unreachable")
 }
 
@@ -86,7 +86,7 @@ func (*testMarshalIntent1) CanReactTo(ctx context.Context, deps *Dependencies, f
 	return nil, ErrEOF
 }
 
-func (testMarshalIntent1) ReactTo(ctx context.Context, deps *Dependencies, flows Flows, input Input) (*Node, error) {
+func (testMarshalIntent1) ReactTo(ctx context.Context, deps *Dependencies, flows Flows, input Input) (ReactToResult, error) {
 	panic("unreachable")
 }
 
@@ -129,7 +129,7 @@ func (i *testMarshalNode0) CanReactTo(ctx context.Context, deps *Dependencies, f
 	return nil, ErrEOF
 }
 
-func (i *testMarshalNode0) ReactTo(ctx context.Context, deps *Dependencies, flows Flows, input Input) (*Node, error) {
+func (i *testMarshalNode0) ReactTo(ctx context.Context, deps *Dependencies, flows Flows, input Input) (ReactToResult, error) {
 	return nil, ErrIncompatibleInput
 }
 
@@ -172,7 +172,7 @@ func (i *testMarshalNode1) CanReactTo(ctx context.Context, deps *Dependencies, f
 	return nil, ErrEOF
 }
 
-func (i *testMarshalNode1) ReactTo(ctx context.Context, deps *Dependencies, flows Flows, input Input) (*Node, error) {
+func (i *testMarshalNode1) ReactTo(ctx context.Context, deps *Dependencies, flows Flows, input Input) (ReactToResult, error) {
 	return nil, ErrIncompatibleInput
 }
 
