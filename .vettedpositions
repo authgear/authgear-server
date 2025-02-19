@@ -261,12 +261,11 @@
 /pkg/auth/webapp/wechat_redirect_uri_middleware.go:59:31: requestcontext
 /pkg/auth/webapp/x_color_scheme.go:74:27: requestcontext
 /pkg/images/deps/context.go:23:10: requestcontext
-/pkg/images/deps/middleware_request.go:27:48: requestcontext
-/pkg/images/deps/middleware_request.go:38:39: requestcontext
-/pkg/images/deps/middleware_request.go:39:34: requestcontext
-/pkg/images/deps/middleware_request.go:41:29: requestcontext
-/pkg/images/handler/post.go:162:83: requestcontext
-/pkg/images/handler/post.go:193:10: requestcontext
+/pkg/images/deps/middleware_request.go:28:48: requestcontext
+/pkg/images/deps/middleware_request.go:39:39: requestcontext
+/pkg/images/deps/middleware_request.go:40:34: requestcontext
+/pkg/images/deps/middleware_request.go:45:40: requestcontext
+/pkg/images/handler/post.go:67:9: requestcontext
 /pkg/lib/accountmanagement/rate_limit_middleware.go:41:10: requestcontext
 /pkg/lib/admin/authz/middleware.go:85:18: requestcontext
 /pkg/lib/authenticationflow/intl_middleware.go:16:41: requestcontext
@@ -319,3 +318,8 @@
 /pkg/util/pubsub/http_handler.go:51:40: requestcontext
 /pkg/util/sentry/request.go:25:9: requestcontext
 /pkg/util/template/engine.go:307:57: requestcontext
+/cmd/portal/cmd/cmdinternal/migrate_resources_migrate_rate_limits.go:65:24: contextbackground
+/pkg/lib/config/configsource/resources.go:105:34: contextbackground
+/pkg/lib/config/configsource/resources.go:504:9: contextbackground
+/pkg/lib/config/configsource/resources.go:670:9: contextbackground
+/pkg/util/httputil/json.go:96:9: requestcontext
