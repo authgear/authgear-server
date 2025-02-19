@@ -66,7 +66,7 @@ func EncodeFileMetaData(metadata *FileMetadata) (string, error) {
 	return base64.RawURLEncoding.EncodeToString(jsonBytes), nil
 }
 
-func DecodeFileMetadata(encoded string) (*FileMetadata, error) {
+func DecodeFileMetadata(ctx context.Context, encoded string) (*FileMetadata, error) {
 	if encoded == "" {
 		return nil, apierrors.NewInvalid("missing metadata")
 	}
@@ -77,7 +77,7 @@ func DecodeFileMetadata(encoded string) (*FileMetadata, error) {
 	}
 
 	err = FileMetaSchema.Validator().ValidateWithMessage(
-		context.Background(),
+		ctx,
 		bytes.NewReader(jsonBytes),
 		"invalid file metadata",
 	)

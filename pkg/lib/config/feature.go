@@ -70,14 +70,14 @@ func (c *FeatureConfig) Merge(layer *FeatureConfig) *FeatureConfig {
 	return &newFeatureConfig
 }
 
-func ParseFeatureConfigWithoutDefaults(inputYAML []byte) (*FeatureConfig, error) {
+func ParseFeatureConfigWithoutDefaults(ctx context.Context, inputYAML []byte) (*FeatureConfig, error) {
 	jsonData, err := yaml.YAMLToJSON(inputYAML)
 	if err != nil {
 		return nil, err
 	}
 
 	err = FeatureConfigSchema.Validator().ValidateWithMessage(
-		context.Background(),
+		ctx,
 		bytes.NewReader(jsonData),
 		"invalid feature config",
 	)
@@ -95,8 +95,8 @@ func ParseFeatureConfigWithoutDefaults(inputYAML []byte) (*FeatureConfig, error)
 	return &config, nil
 }
 
-func ParseFeatureConfig(inputYAML []byte) (*FeatureConfig, error) {
-	config, err := ParseFeatureConfigWithoutDefaults(inputYAML)
+func ParseFeatureConfig(ctx context.Context, inputYAML []byte) (*FeatureConfig, error) {
+	config, err := ParseFeatureConfigWithoutDefaults(ctx, inputYAML)
 	if err != nil {
 		return nil, err
 	}

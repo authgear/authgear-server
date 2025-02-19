@@ -290,7 +290,7 @@ func (s *AppService) LoadAppSecretConfig(
 	bytes := result.([]byte)
 	checksum := checksum.CRC32IEEEInHex(bytes)
 
-	cfg, err := config.ParsePartialSecret(bytes)
+	cfg, err := config.ParsePartialSecret(ctx, bytes)
 	if err != nil {
 		return nil, "", err
 	}
@@ -660,7 +660,7 @@ func (s *AppService) LoadAppWebhookSecretMaterials(
 
 	bytes := result.([]byte)
 
-	secretConfig, err := config.ParsePartialSecret(bytes)
+	secretConfig, err := config.ParsePartialSecret(ctx, bytes)
 	if err != nil {
 		return nil, err
 	}

@@ -1,6 +1,7 @@
 package test
 
 import (
+	"context"
 	"fmt"
 	"math/rand"
 	"time"
@@ -53,7 +54,7 @@ func FixtureUpdateSecretConfigUpdateInstruction() *config.SecretConfigUpdateInst
 	}
 }
 
-func FixtureFeatureConfig(plan FixturePlanName) *config.FeatureConfig {
+func FixtureFeatureConfig(ctx context.Context, plan FixturePlanName) *config.FeatureConfig {
 	switch plan {
 	case FixtureLimitedPlanName:
 		fixture := `
@@ -80,7 +81,7 @@ authenticator:
       history:
         disabled: true
 `
-		cfg, _ := config.ParseFeatureConfig([]byte(fixture))
+		cfg, _ := config.ParseFeatureConfig(ctx, []byte(fixture))
 		return cfg
 	case FixtureUnlimitedPlanName:
 		fixture := `
@@ -88,7 +89,7 @@ oauth:
   client:
     custom_ui_enabled: true
 `
-		cfg, _ := config.ParseFeatureConfig([]byte(fixture))
+		cfg, _ := config.ParseFeatureConfig(ctx, []byte(fixture))
 		return cfg
 	}
 	return nil

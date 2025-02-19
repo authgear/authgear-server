@@ -1,8 +1,8 @@
 package secretcode
 
 import (
-	// nolint:gosec
 	"context"
+	// nolint:gosec
 	"crypto/md5"
 	"crypto/subtle"
 	"fmt"

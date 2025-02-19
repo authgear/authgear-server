@@ -1,6 +1,7 @@
 package config_test
 
 import (
+	"context"
 	"errors"
 	"io"
 	"io/ioutil"
@@ -16,7 +17,8 @@ import (
 
 func TestParseFeatureConfig(t *testing.T) {
 	Convey("default feature config", t, func() {
-		cfg, err := config.ParseFeatureConfig([]byte(`{}`))
+		ctx := context.Background()
+		cfg, err := config.ParseFeatureConfig(ctx, []byte(`{}`))
 		So(err, ShouldBeNil)
 
 		data, err := ioutil.ReadFile("testdata/default_feature.yaml")
@@ -30,7 +32,7 @@ func TestParseFeatureConfig(t *testing.T) {
 	})
 
 	Convey("merge feature config", t, func() {
-
+		ctx := context.Background()
 		type TestCase struct {
 			Configs []interface{} `yaml:"configs"`
 			Result  interface{}   `yaml:"result"`
@@ -53,7 +55,7 @@ func TestParseFeatureConfig(t *testing.T) {
 			panic(err)
 		}
 
-		expected, err := config.ParseFeatureConfig(resultData)
+		expected, err := config.ParseFeatureConfig(ctx, resultData)
 		So(err, ShouldBeNil)
 
 		mergedConfig := &config.FeatureConfig{}
@@ -63,7 +65,7 @@ func TestParseFeatureConfig(t *testing.T) {
 				panic(err)
 			}
 
-			cfg, err := config.ParseFeatureConfigWithoutDefaults(data)
+			cfg, err := config.ParseFeatureConfigWithoutDefaults(ctx, data)
 			So(err, ShouldBeNil)
 
 			mergedConfig = mergedConfig.Merge(cfg)
@@ -97,12 +99,13 @@ func TestParseFeatureConfig(t *testing.T) {
 			}
 
 			Convey(testCase.Name, func() {
+				ctx := context.Background()
 				data, err := goyaml.Marshal(testCase.Config)
 				if err != nil {
 					panic(err)
 				}
 
-				_, err = config.ParseFeatureConfig(data)
+				_, err = config.ParseFeatureConfig(ctx, data)
 				if testCase.Error != nil {
 					So(err, ShouldBeError, *testCase.Error)
 				} else {

@@ -1,6 +1,7 @@
 package cmdinternal
 
 import (
+	"context"
 	"encoding/base64"
 	"fmt"
 	"time"
@@ -61,7 +62,7 @@ func migrateRateLimits(appID string, configSourceData map[string]string, DryRun 
 		return fmt.Errorf("failed marshal yaml: %w", err)
 	}
 
-	_, err = config.Parse(migrated)
+	_, err = config.Parse(context.Background(), migrated)
 	if err != nil {
 		return fmt.Errorf("invalid config after migration: %w", err)
 	}

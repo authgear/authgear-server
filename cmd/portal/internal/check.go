@@ -29,7 +29,7 @@ func CheckConfigSources(ctx context.Context, opts *CheckConfigSourcesOptions) er
 	invalid := 0
 	for _, c := range configSources {
 		log.Printf("checking %q...", c.AppID)
-		if err := checkConfigSource(c); err != nil {
+		if err := checkConfigSource(ctx, c); err != nil {
 			err = fmt.Errorf("invalid config source for %q: %s", c.AppID, err)
 			log.Println(err.Error())
 			errs = append(errs, err)
@@ -41,13 +41,13 @@ func CheckConfigSources(ctx context.Context, opts *CheckConfigSourcesOptions) er
 	return errors.Join(errs...)
 }
 
-func checkConfigSource(cs *ConfigSource) error {
+func checkConfigSource(ctx context.Context, cs *ConfigSource) error {
 	mainYAML, err := base64.StdEncoding.DecodeString(cs.Data[configsource.AuthgearYAML])
 	if err != nil {
 		return fmt.Errorf("failed decode authgear.yaml: %w", err)
 	}
 
-	appConfig, err := config.Parse(mainYAML)
+	appConfig, err := config.Parse(ctx, mainYAML)
 	if err != nil {
 		return fmt.Errorf("invalid app config: %w", err)
 	}
@@ -57,7 +57,7 @@ func checkConfigSource(cs *ConfigSource) error {
 		return fmt.Errorf("failed decode authgear.secrets.yaml: %w", err)
 	}
 
-	secretsConfig, err := config.ParseSecret(secretsYAML)
+	secretsConfig, err := config.ParseSecret(ctx, secretsYAML)
 	if err != nil {
 		return fmt.Errorf("invalid secrets config: %w", err)
 	}
@@ -84,7 +84,7 @@ func checkConfigSource(cs *ConfigSource) error {
 			return fmt.Errorf("failed decode authgear.features.yaml: %w", err)
 		}
 
-		_, err = config.ParseFeatureConfig(featuresYAML)
+		_, err = config.ParseFeatureConfig(ctx, featuresYAML)
 		if err != nil {
 			return fmt.Errorf("invalid features config: %w", err)
 		}

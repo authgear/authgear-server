@@ -101,7 +101,8 @@ func (d AuthgearYAMLDescriptor) ViewResources(resources []resource.ResourceFile,
 			return nil, err
 		}
 
-		appConfig, err := config.Parse(bytes.([]byte))
+		// FIXME: the context should be passed from the caller
+		appConfig, err := config.Parse(context.Background(), bytes.([]byte))
 		if err != nil {
 			return nil, fmt.Errorf("cannot parse app config: %w", err)
 		}
@@ -142,12 +143,12 @@ func (d AuthgearYAMLDescriptor) UpdateResource(ctx context.Context, _ []resource
 		return nil, fmt.Errorf("missing domain service in context")
 	}
 
-	original, err := config.Parse(resrc.Data)
+	original, err := config.Parse(ctx, resrc.Data)
 	if err != nil {
 		return nil, fmt.Errorf("cannot parse original app config %w", err)
 	}
 
-	incoming, err := config.Parse(data)
+	incoming, err := config.Parse(ctx, data)
 	if err != nil {
 		return nil, fmt.Errorf("cannot parse incoming app config: %w", err)
 	}
@@ -499,7 +500,9 @@ func (d AuthgearSecretYAMLDescriptor) viewEffectiveResource(resources []resource
 		return nil, err
 	}
 
-	secretConfig, err := config.ParseSecret(mergedYAML)
+	// FIXME: the context should be passed in from caller
+	ctx := context.Background()
+	secretConfig, err := config.ParseSecret(ctx, mergedYAML)
 	if err != nil {
 		return nil, fmt.Errorf("cannot parse secret config: %w", err)
 	}
@@ -517,7 +520,7 @@ func (d AuthgearSecretYAMLDescriptor) UpdateResource(ctx context.Context, _ []re
 	}
 
 	var original *config.SecretConfig
-	original, err := config.ParseSecret(resrc.Data)
+	original, err := config.ParseSecret(ctx, resrc.Data)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse original secret config: %w", err)
 	}
@@ -663,8 +666,10 @@ func (d AuthgearFeatureYAMLDescriptor) ViewResources(resources []resource.Resour
 
 func (d AuthgearFeatureYAMLDescriptor) viewEffectiveResource(resources []resource.ResourceFile) (interface{}, error) {
 	var cfgs []*config.FeatureConfig
+	// FIXME: The context should be passed from caller
+	ctx := context.Background()
 	for _, layer := range resources {
-		cfg, err := config.ParseFeatureConfigWithoutDefaults(layer.Data)
+		cfg, err := config.ParseFeatureConfigWithoutDefaults(ctx, layer.Data)
 		if err != nil {
 			return nil, fmt.Errorf("malformed feature config: %w", err)
 		}
@@ -680,7 +685,7 @@ func (d AuthgearFeatureYAMLDescriptor) viewEffectiveResource(resources []resourc
 		return nil, err
 	}
 
-	featureConfig, err := config.ParseFeatureConfig(mergedYAML)
+	featureConfig, err := config.ParseFeatureConfig(ctx, mergedYAML)
 	if err != nil {
 		return nil, fmt.Errorf("cannot parse merged feature config: %w", err)
 	}

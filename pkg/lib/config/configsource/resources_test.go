@@ -16,6 +16,7 @@ import (
 )
 
 func TestAuthgearYAML(t *testing.T) {
+	ctx := context.Background()
 	Convey("AuthgearYAML custom attributes", t, func() {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
@@ -347,7 +348,7 @@ http:
 			domainService := NewMockDomainService(ctrl)
 			domainService.EXPECT().ListDomains(gomock.Any(), "test").Return([]*apimodel.Domain{}, nil).AnyTimes()
 
-			featureConfig := configtest.FixtureFeatureConfig(configtest.FixtureUnlimitedPlanName)
+			featureConfig := configtest.FixtureFeatureConfig(ctx, configtest.FixtureUnlimitedPlanName)
 			ctx := context.Background()
 			ctx = context.WithValue(ctx, ContextKeyFeatureConfig, featureConfig)
 			ctx = context.WithValue(ctx, ContextKeyAppHostSuffixes, &config.AppHostSuffixes{})
@@ -436,7 +437,7 @@ oauth:
 			domainService := NewMockDomainService(ctrl)
 			domainService.EXPECT().ListDomains(gomock.Any(), "test").Return([]*apimodel.Domain{}, nil).AnyTimes()
 
-			featureConfig := configtest.FixtureFeatureConfig(configtest.FixtureLimitedPlanName)
+			featureConfig := configtest.FixtureFeatureConfig(ctx, configtest.FixtureLimitedPlanName)
 			ctx := context.Background()
 			ctx = context.WithValue(ctx, ContextKeyFeatureConfig, featureConfig)
 			ctx = context.WithValue(ctx, ContextKeyAppHostSuffixes, &config.AppHostSuffixes{})
@@ -783,7 +784,7 @@ authentication:
 			domainService := NewMockDomainService(ctrl)
 			domainService.EXPECT().ListDomains(gomock.Any(), "test").Return([]*apimodel.Domain{}, nil).AnyTimes()
 
-			featureConfig := configtest.FixtureFeatureConfig(configtest.FixtureUnlimitedPlanName)
+			featureConfig := configtest.FixtureFeatureConfig(ctx, configtest.FixtureUnlimitedPlanName)
 			ctx := context.Background()
 			ctx = context.WithValue(ctx, ContextKeyFeatureConfig, featureConfig)
 			ctx = context.WithValue(ctx, ContextKeyAppHostSuffixes, &config.AppHostSuffixes{})

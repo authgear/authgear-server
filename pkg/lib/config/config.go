@@ -104,36 +104,36 @@ func (c *AppConfig) SetDefaults() {
 	c.Deprecated_OTP = nil
 }
 
-func (c *AppConfig) Validate(ctx *validation.Context) {
+func (c *AppConfig) Validate(ctx context.Context, validationCtx *validation.Context) {
 	// Validation 1: lifetime of refresh token >= lifetime of access token
-	c.validateTokenLifetime(ctx)
+	c.validateTokenLifetime(validationCtx)
 
 	// Validation 2: oauth provider
-	c.validateOAuthProvider(ctx)
+	c.validateOAuthProvider(ctx, validationCtx)
 
 	// Validation 3: identity must have usable primary authenticator.
-	c.validateIdentityPrimaryAuthenticator(ctx)
+	c.validateIdentityPrimaryAuthenticator(validationCtx)
 
 	// Validation 4: secondary authenticator must be available if MFA is not disabled.
-	c.validateSecondaryAuthenticator(ctx)
+	c.validateSecondaryAuthenticator(validationCtx)
 
 	// Validation 5: pinned phone number country must be in allowlist.
-	c.validatePhoneInputCountry(ctx)
+	c.validatePhoneInputCountry(validationCtx)
 
 	// Validation 6: fallback language must be in the list of supported language.
-	c.validateFallbackLanguage(ctx)
+	c.validateFallbackLanguage(validationCtx)
 
 	// Validation 7: validate custom attribute
-	c.validateCustomAttribute(ctx)
+	c.validateCustomAttribute(validationCtx)
 
 	// Validation 8: validate lockout configs
-	c.validateLockout(ctx)
+	c.validateLockout(validationCtx)
 
 	// Validation 9: validate authentication flow
-	c.validateAuthenticationFlow(ctx)
+	c.validateAuthenticationFlow(validationCtx)
 
 	// Validation 10: validate saml configs
-	c.validateSAML(ctx)
+	c.validateSAML(validationCtx)
 }
 
 func (c *AppConfig) validateTokenLifetime(ctx *validation.Context) {
@@ -146,7 +146,7 @@ func (c *AppConfig) validateTokenLifetime(ctx *validation.Context) {
 	}
 }
 
-func (c *AppConfig) validateOAuthProvider(ctx *validation.Context) {
+func (c *AppConfig) validateOAuthProvider(ctx context.Context, validationCtx *validation.Context) {
 	// We used to validate that ProviderID is unique.
 	// We now relax the validation, only alias is unique.
 	oauthProviderAliases := map[string]struct{}{}
@@ -154,7 +154,7 @@ func (c *AppConfig) validateOAuthProvider(ctx *validation.Context) {
 		// We used to ensure provider ID is not duplicated.
 		// We now expect alias to be unique.
 		alias := providerConfig.Alias()
-		childCtx := ctx.Child("identity", "oauth", "providers", strconv.Itoa(i))
+		childCtx := validationCtx.Child("identity", "oauth", "providers", strconv.Itoa(i))
 
 		if _, ok := oauthProviderAliases[alias]; ok {
 			childCtx.EmitErrorMessage("duplicated OAuth provider alias")
@@ -165,7 +165,7 @@ func (c *AppConfig) validateOAuthProvider(ctx *validation.Context) {
 		// Validate provider config
 		provider := providerConfig.AsProviderConfig().MustGetProvider()
 		schema := OAuthSSOProviderConfigSchemaBuilder(validation.SchemaBuilder(provider.GetJSONSchema())).ToSimpleSchema()
-		childCtx.AddError(schema.Validator().ValidateValue(context.Background(), providerConfig))
+		childCtx.AddError(schema.Validator().ValidateValue(ctx, providerConfig))
 	}
 }
 
@@ -488,7 +488,7 @@ func validateFlowAllowlist(ctx *validation.Context, allowlist []*AuthenticationF
 	}
 }
 
-func Parse(inputYAML []byte) (*AppConfig, error) {
+func Parse(ctx context.Context, inputYAML []byte) (*AppConfig, error) {
 	const validationErrorMessage = "invalid configuration"
 
 	jsonData, err := yaml.YAMLToJSON(inputYAML)
@@ -496,7 +496,7 @@ func Parse(inputYAML []byte) (*AppConfig, error) {
 		return nil, err
 	}
 
-	err = Schema.Validator().ValidateWithMessage(context.Background(), bytes.NewReader(jsonData), validationErrorMessage)
+	err = Schema.Validator().ValidateWithMessage(ctx, bytes.NewReader(jsonData), validationErrorMessage)
 	if err != nil {
 		return nil, err
 	}
@@ -510,7 +510,7 @@ func Parse(inputYAML []byte) (*AppConfig, error) {
 
 	PopulateDefaultValues(&config)
 
-	err = validation.ValidateValueWithMessage(&config, validationErrorMessage)
+	err = validation.ValidateValueWithMessage(ctx, &config, validationErrorMessage)
 	if err != nil {
 		return nil, err
 	}

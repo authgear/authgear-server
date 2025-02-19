@@ -1,6 +1,7 @@
 package config_test
 
 import (
+	"context"
 	"errors"
 	"io"
 	"os"
@@ -22,6 +23,7 @@ import (
 )
 
 func TestAppConfig(t *testing.T) {
+	ctx := context.Background()
 	Convey("AppConfig", t, func() {
 		fixture := `id: test
 http:
@@ -64,7 +66,7 @@ identity:
 `
 
 		Convey("populate default values", func() {
-			cfg, err := config.Parse([]byte(fixture))
+			cfg, err := config.Parse(ctx, []byte(fixture))
 			So(err, ShouldBeNil)
 
 			data, err := os.ReadFile("testdata/default_config.yaml")
@@ -72,7 +74,7 @@ identity:
 				panic(err)
 			}
 
-			_, err = config.Parse(data)
+			_, err = config.Parse(ctx, data)
 			So(err, ShouldBeNil)
 
 			var defaultCfg config.AppConfig
@@ -85,13 +87,13 @@ identity:
 		})
 
 		Convey("round-trip default configuration", func() {
-			cfg, err := config.Parse([]byte(fixture))
+			cfg, err := config.Parse(ctx, []byte(fixture))
 			So(err, ShouldBeNil)
 
 			data, err := yaml.Marshal(cfg)
 			So(err, ShouldBeNil)
 
-			cfg2, err := config.Parse(data)
+			cfg2, err := config.Parse(ctx, data)
 			So(err, ShouldBeNil)
 			So(cfg, ShouldResemble, cfg2)
 		})
@@ -125,7 +127,7 @@ identity:
 						panic(err)
 					}
 
-					_, err = config.Parse(data)
+					_, err = config.Parse(ctx, data)
 					if testCase.Error != nil {
 						So(err, ShouldBeError, *testCase.Error)
 					} else {

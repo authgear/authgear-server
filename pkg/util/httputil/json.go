@@ -103,7 +103,7 @@ func BindJSONBody(r *http.Request, w http.ResponseWriter, v *validation.SchemaVa
 		if value, ok := value.(BodyDefaulter); ok {
 			value.SetDefaults()
 		}
-		return validation.ValidateValueWithMessage(value, errorMessage)
+		return validation.ValidateValueWithMessage(ctx, value, errorMessage)
 	}, payload, options...)
 }
 
