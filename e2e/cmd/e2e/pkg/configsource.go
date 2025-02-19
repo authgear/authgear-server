@@ -2,6 +2,7 @@ package e2e
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/fs"
@@ -18,13 +19,13 @@ import (
 
 var BuiltInConfigSourceDir = "./var"
 
-func (c *End2End) CreateApp(appID string, baseConfigSourceDir string, override string) error {
+func (c *End2End) CreateApp(ctx context.Context, appID string, baseConfigSourceDir string, override string) error {
 	cfg, err := LoadConfigFromEnv()
 	if err != nil {
 		return err
 	}
 
-	configSourceDir, err := c.createTempConfigSource(appID, baseConfigSourceDir, override)
+	configSourceDir, err := c.createTempConfigSource(ctx, appID, baseConfigSourceDir, override)
 	if err != nil {
 		return err
 	}
@@ -50,7 +51,7 @@ func (c *End2End) CreateApp(appID string, baseConfigSourceDir string, override s
 	return nil
 }
 
-func (c *End2End) createTempConfigSource(appID string, baseConfigSource string, overrideYAML string) (string, error) {
+func (c *End2End) createTempConfigSource(ctx context.Context, appID string, baseConfigSource string, overrideYAML string) (string, error) {
 	tempAppDir, err := os.MkdirTemp("", "e2e-")
 	if err != nil {
 		return "", err
@@ -81,7 +82,7 @@ func (c *End2End) createTempConfigSource(appID string, baseConfigSource string, 
 		return "", err
 	}
 
-	cfg, err := config.Parse([]byte(authgearYAML))
+	cfg, err := config.Parse(ctx, []byte(authgearYAML))
 	if err != nil {
 		return "", err
 	}

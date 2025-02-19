@@ -1,6 +1,7 @@
 package e2e
 
 import (
+	"context"
 	"os"
 
 	"github.com/lestrrat-go/jwx/v2/jwa"
@@ -10,14 +11,14 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/jwtutil"
 )
 
-func (c *End2End) GenerateIDToken(appID string, userID string) (string, error) {
+func (c *End2End) GenerateIDToken(ctx context.Context, appID string, userID string) (string, error) {
 
 	secretYaml, err := os.ReadFile("var/authgear.secrets.yaml")
 	if err != nil {
 		return "", err
 	}
 
-	secretConfig, err := config.ParsePartialSecret(secretYaml)
+	secretConfig, err := config.ParsePartialSecret(ctx, secretYaml)
 	if err != nil {
 		return "", err
 	}

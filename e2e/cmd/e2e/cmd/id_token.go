@@ -26,7 +26,7 @@ var cmdInternalE2EGenerateIDToken = &cobra.Command{
 
 		instance := e2e.End2End{}
 
-		idToken, err := instance.GenerateIDToken(appID, userID)
+		idToken, err := instance.GenerateIDToken(cmd.Context(), appID, userID)
 		if err != nil {
 			return err
 		}
