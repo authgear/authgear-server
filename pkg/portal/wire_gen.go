@@ -16,6 +16,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
+	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
 	"github.com/authgear/authgear-server/pkg/lib/tester"
 	"github.com/authgear/authgear-server/pkg/lib/tutorial"
 	"github.com/authgear/authgear-server/pkg/lib/usage"
@@ -58,6 +59,16 @@ func newPanicMiddleware(p *deps.RequestProvider) httproute.Middleware {
 func newBodyLimitMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	bodyLimitMiddleware := &middleware.BodyLimitMiddleware{}
 	return bodyLimitMiddleware
+}
+
+func newOtelMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	rootProvider := p.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
+	httpInstrumentationMiddleware := &otelauthgear.HTTPInstrumentationMiddleware{
+		TrustProxy: trustProxy,
+	}
+	return httpInstrumentationMiddleware
 }
 
 func newSentryMiddleware(p *deps.RequestProvider) httproute.Middleware {

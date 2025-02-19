@@ -25,6 +25,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource, au
 	chain := httproute.Chain(
 		p.RootMiddleware(newPanicMiddleware),
 		p.RootMiddleware(newBodyLimitMiddleware),
+		p.RootMiddleware(newOtelMiddleware),
 		p.RootMiddleware(newSentryMiddleware),
 
 		httproute.MiddlewareFunc(httputil.NoStore),

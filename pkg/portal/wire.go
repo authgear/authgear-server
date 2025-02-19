@@ -9,6 +9,7 @@ import (
 	"github.com/google/wire"
 
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
+	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
 	"github.com/authgear/authgear-server/pkg/portal/deps"
 	"github.com/authgear/authgear-server/pkg/portal/session"
 	"github.com/authgear/authgear-server/pkg/portal/transport"
@@ -27,6 +28,14 @@ func newBodyLimitMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	panic(wire.Build(
 		middleware.DependencySet,
 		wire.Bind(new(httproute.Middleware), new(*middleware.BodyLimitMiddleware)),
+	))
+}
+
+func newOtelMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	panic(wire.Build(
+		deps.DependencySet,
+		otelauthgear.DependencySet,
+		wire.Bind(new(httproute.Middleware), new(*otelauthgear.HTTPInstrumentationMiddleware)),
 	))
 }
 

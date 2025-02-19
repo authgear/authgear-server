@@ -56,6 +56,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth/pq"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/redis"
 	"github.com/authgear/authgear-server/pkg/lib/oauthclient"
+	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
 	"github.com/authgear/authgear-server/pkg/lib/search/pgsearch"
@@ -101,6 +102,15 @@ func newPanicMiddleware(p *deps.RootProvider) httproute.Middleware {
 		Logger: panicMiddlewareLogger,
 	}
 	return panicMiddleware
+}
+
+func newOtelMiddleware(p *deps.RootProvider) httproute.Middleware {
+	environmentConfig := p.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
+	httpInstrumentationMiddleware := &otelauthgear.HTTPInstrumentationMiddleware{
+		TrustProxy: trustProxy,
+	}
+	return httpInstrumentationMiddleware
 }
 
 func newSentryMiddleware(p *deps.RootProvider) httproute.Middleware {

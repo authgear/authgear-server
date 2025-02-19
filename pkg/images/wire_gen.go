@@ -14,6 +14,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/images"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
+	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
 	"github.com/authgear/authgear-server/pkg/lib/presign"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -30,6 +31,15 @@ func newPanicMiddleware(p *deps.RootProvider) httproute.Middleware {
 		Logger: panicMiddlewareLogger,
 	}
 	return panicMiddleware
+}
+
+func newOtelMiddleware(p *deps.RootProvider) httproute.Middleware {
+	environmentConfig := &p.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
+	httpInstrumentationMiddleware := &otelauthgear.HTTPInstrumentationMiddleware{
+		TrustProxy: trustProxy,
+	}
+	return httpInstrumentationMiddleware
 }
 
 func newSentryMiddleware(p *deps.RootProvider) httproute.Middleware {

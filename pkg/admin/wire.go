@@ -15,6 +15,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/healthz"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
+	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
 
@@ -46,6 +47,14 @@ func newBodyLimitMiddleware(p *deps.RootProvider) httproute.Middleware {
 	panic(wire.Build(
 		middleware.DependencySet,
 		wire.Bind(new(httproute.Middleware), new(*middleware.BodyLimitMiddleware)),
+	))
+}
+
+func newOtelMiddleware(p *deps.RootProvider) httproute.Middleware {
+	panic(wire.Build(
+		deps.RootDependencySet,
+		otelauthgear.DependencySet,
+		wire.Bind(new(httproute.Middleware), new(*otelauthgear.HTTPInstrumentationMiddleware)),
 	))
 }
 

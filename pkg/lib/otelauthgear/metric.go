@@ -159,6 +159,32 @@ var CounterCSRFRequestCount = mustInt64Counter(
 	metric.WithUnit("{request}"),
 )
 
+// HTTPServerRequestDurationHistogram is https://opentelemetry.io/docs/specs/semconv/http/http-metrics/#metric-httpserverrequestduration
+var HTTPServerRequestDurationHistogram = mustFloat64Histogram(
+	semconv.HTTPServerRequestDurationName,
+	metric.WithDescription(semconv.HTTPServerRequestDurationDescription),
+	metric.WithUnit(semconv.HTTPServerRequestDurationUnit),
+	// The spec says we SHOULD define explicit boundaries.
+	// https://opentelemetry.io/docs/specs/semconv/http/http-metrics/#metric-httpserverrequestduration
+	// In fact, if we do not, the default boundary is not suitable for request duration scale.
+	metric.WithExplicitBucketBoundaries(
+		0.005,
+		0.01,
+		0.025,
+		0.05,
+		0.075,
+		0.1,
+		0.25,
+		0.5,
+		0.75,
+		1,
+		2.5,
+		5,
+		7.5,
+		10,
+	),
+)
+
 func mustInt64Counter(name string, options ...metric.Int64CounterOption) metric.Int64Counter {
 	counter, err := meter.Int64Counter(name, options...)
 	if err != nil {
@@ -167,20 +193,28 @@ func mustInt64Counter(name string, options ...metric.Int64CounterOption) metric.
 	return counter
 }
 
+func mustFloat64Histogram(name string, options ...metric.Float64HistogramOption) metric.Float64Histogram {
+	histogram, err := meter.Float64Histogram(name, options...)
+	if err != nil {
+		panic(err)
+	}
+	return histogram
+}
+
 // IntCounter is metric.Int64Counter or metric.Int64UpDownCounter
 type IntCounter interface {
 	Add(ctx context.Context, incr int64, options ...metric.AddOption)
 }
 
 type MetricOption interface {
-	toOtelMetricOption() metric.AddOption
+	toOtelMetricOption() metric.MeasurementOption
 }
 
 type metricOptionAttributeKeyValue struct {
 	attribute.KeyValue
 }
 
-func (o metricOptionAttributeKeyValue) toOtelMetricOption() metric.AddOption {
+func (o metricOptionAttributeKeyValue) toOtelMetricOption() metric.MeasurementOption {
 	return metric.WithAttributes(o.KeyValue)
 }
 
@@ -225,4 +259,22 @@ func IntCounterAddOne(ctx context.Context, counter IntCounter, inOptions ...Metr
 	}
 
 	counter.Add(ctx, 1, finalOptions...)
+}
+
+func Float64HistogramRecord(ctx context.Context, histogram metric.Float64Histogram, val float64, inOptions ...MetricOption) {
+	var finalOptions []metric.RecordOption
+
+	if kv, ok := ctx.Value(AttributeKeyProjectID).(attribute.KeyValue); ok {
+		finalOptions = append(finalOptions, metric.WithAttributes(kv))
+	}
+
+	if kv, ok := ctx.Value(AttributeKeyClientID).(attribute.KeyValue); ok {
+		finalOptions = append(finalOptions, metric.WithAttributes(kv))
+	}
+
+	for _, o := range inOptions {
+		finalOptions = append(finalOptions, o.toOtelMetricOption())
+	}
+
+	histogram.Record(ctx, val, finalOptions...)
 }
