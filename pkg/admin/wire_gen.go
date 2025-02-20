@@ -1176,6 +1176,8 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
 	userInfoService := &userinfo.UserInfoService{
+		Redis:                 appredisHandle,
+		AppID:                 appID,
 		UserQueries:           userQueries,
 		RolesAndGroupsQueries: queries,
 	}

@@ -564,6 +564,8 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		RolesAndGroups:     queries,
 	}
 	userInfoService := &userinfo.UserInfoService{
+		Redis:                 handle,
+		AppID:                 appID,
 		UserQueries:           userQueries,
 		RolesAndGroupsQueries: queries,
 	}
@@ -972,12 +974,13 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 	handle := appProvider.AppDatabase
 	factory := appProvider.LoggerFactory
 	resolveHandlerLogger := handler.NewResolveHandlerLogger(factory)
+	appredisHandle := appProvider.Redis
 	appContext := appProvider.AppContext
 	config := appContext.Config
-	secretConfig := config.SecretConfig
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	appConfig := config.AppConfig
 	appID := appConfig.ID
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	sqlExecutor := appdb.NewSQLExecutor(handle)
 	clockClock := _wireSystemClockValue
@@ -1054,7 +1057,6 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	appredisHandle := appProvider.Redis
 	store2 := &passkey2.Store{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -1322,6 +1324,8 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		RolesAndGroups:     queries,
 	}
 	userInfoService := &userinfo.UserInfoService{
+		Redis:                 appredisHandle,
+		AppID:                 appID,
 		UserQueries:           userQueries,
 		RolesAndGroupsQueries: queries,
 	}
