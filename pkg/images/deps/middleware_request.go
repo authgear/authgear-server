@@ -1,7 +1,6 @@
 package deps
 
 import (
-	"context"
 	"errors"
 	"net/http"
 
@@ -39,11 +38,7 @@ func (m *RequestMiddleware) Handle(next http.Handler) http.Handler {
 		ap := m.RootProvider.NewAppProvider(r.Context(), appCtx)
 		r = r.WithContext(withProvider(r.Context(), ap))
 
-		{
-			key := otelauthgear.AttributeKeyProjectID
-			val := key.String(string(appCtx.Config.AppConfig.ID))
-			r = r.WithContext(context.WithValue(r.Context(), key, val))
-		}
+		otelauthgear.SetProjectID(r.Context(), string(appCtx.Config.AppConfig.ID))
 
 		next.ServeHTTP(w, r)
 	})

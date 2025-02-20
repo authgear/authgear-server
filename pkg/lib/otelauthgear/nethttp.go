@@ -27,24 +27,18 @@ func (m *HTTPInstrumentationMiddleware) Handle(next http.Handler) http.Handler {
 		metrics := httpsnoop.CaptureMetrics(next, w, r)
 		statusCodeAttr := otelutil.HTTPResponseStatusCode(metrics)
 
-		labeler, _ := otelhttp.LabelerFromContext(ctx)
-		labelerAttrs := labeler.Get()
+		// FIXME: only record if http.route is defined.
+		// This essentially makes metric opt-in.
+		// For example, we WILL NOT record metric for /healthz.
+		_, _ = otelhttp.LabelerFromContext(ctx)
 
 		options := []MetricOption{
 			metricOptionAttributeKeyValue{methodAttr},
 			metricOptionAttributeKeyValue{schemeAttr},
 			metricOptionAttributeKeyValue{statusCodeAttr},
 		}
-		for _, attr := range labelerAttrs {
-			options = append(options, metricOptionAttributeKeyValue{attr})
-		}
 
 		seconds := metrics.Duration.Seconds()
-		// FIXME: project_id and client_id is not readable because they are populated
-		// in a later context.
-		// FIXME: only record if http.route is defined.
-		// This essentially makes metric opt-in.
-		// For example, we WILL NOT record metric for /healthz.
 		Float64HistogramRecord(ctx, HTTPServerRequestDurationHistogram, seconds, options...)
 	})
 }

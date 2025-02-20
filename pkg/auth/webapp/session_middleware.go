@@ -146,9 +146,7 @@ func (m *SessionMiddleware) createSessionFromOAuthSession(ctx context.Context, o
 			SettingsActionID:           entry.T.SettingsActionID,
 		}
 
-		key := otelauthgear.AttributeKeyClientID
-		val := key.String(uiInfo.ClientID)
-		ctx = context.WithValue(ctx, key, val)
+		otelauthgear.SetClientID(ctx, uiInfo.ClientID)
 	}
 
 	session := NewSession(sessionOptions)
@@ -184,9 +182,7 @@ func (m *SessionMiddleware) createSessionFromSAMLSession(ctx context.Context, sa
 			LoginHint:     uiInfo.LoginHint,
 		}
 
-		key := otelauthgear.AttributeKeyClientID
-		val := key.String(uiInfo.SAMLServiceProviderID)
-		ctx = context.WithValue(ctx, key, val)
+		otelauthgear.SetClientID(ctx, uiInfo.SAMLServiceProviderID)
 	}
 
 	session := NewSession(sessionOptions)
@@ -213,9 +209,7 @@ func (m *SessionMiddleware) loadSession(ctx context.Context, r *http.Request) (c
 	}
 
 	if s.ClientID != "" {
-		key := otelauthgear.AttributeKeyClientID
-		val := key.String(s.ClientID)
-		ctx = context.WithValue(ctx, key, val)
+		otelauthgear.SetClientID(ctx, s.ClientID)
 	}
 
 	return ctx, s, nil

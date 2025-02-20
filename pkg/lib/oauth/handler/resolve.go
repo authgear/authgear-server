@@ -24,9 +24,7 @@ type OAuthClientResolver interface {
 func resolveClient(ctx context.Context, resolver OAuthClientResolver, clientID string) (context.Context, *config.OAuthClientConfig) {
 	client := resolver.ResolveClient(clientID)
 	if client != nil {
-		key := otelauthgear.AttributeKeyClientID
-		val := key.String(clientID)
-		ctx = context.WithValue(ctx, key, val)
+		otelauthgear.SetClientID(ctx, clientID)
 	}
 	return ctx, client
 }

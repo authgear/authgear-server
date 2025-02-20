@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
@@ -65,11 +66,13 @@ import (
 // You use meter to define metrics in this package.
 var meter = otel.Meter("github.com/authgear/authgear-server/pkg/lib/otelauthgear")
 
-// AttributeKeyProjectID defines the attribute.
-var AttributeKeyProjectID = attribute.Key("authgear.project_id")
+// attributeKeyProjectID defines the attribute.
+// It is private because we expose another function to set it correctly.
+var attributeKeyProjectID = attribute.Key("authgear.project_id")
 
-// AttributeKeyClientID defines the attribute.
-var AttributeKeyClientID = attribute.Key("authgear.client_id")
+// attributeKeyClientID defines the attribute.
+// It is private because we expose another function to set it correctly.
+var attributeKeyClientID = attribute.Key("authgear.client_id")
 
 // AttributeKeyStatus defines the attribute.
 var AttributeKeyStatus = attribute.Key("status")
@@ -238,6 +241,16 @@ func WithHTTPStatusCode(code int) MetricOption {
 	return metricOptionAttributeKeyValue{semconv.HTTPResponseStatusCodeKey.Int(code)}
 }
 
+func SetProjectID(ctx context.Context, projectID string) {
+	labeler, _ := otelhttp.LabelerFromContext(ctx)
+	labeler.Add(attributeKeyProjectID.String(projectID))
+}
+
+func SetClientID(ctx context.Context, clientID string) {
+	labeler, _ := otelhttp.LabelerFromContext(ctx)
+	labeler.Add(attributeKeyClientID.String(clientID))
+}
+
 // IntCounterAddOne prepares necessary attributes and calls Add with incr=1.
 // It is intentionally that this does not accept metric.AddOption.
 // If this accepts metric.AddOption, then you can pass in arbitrary metric.WithAttributes.
@@ -246,12 +259,10 @@ func WithHTTPStatusCode(code int) MetricOption {
 func IntCounterAddOne(ctx context.Context, counter IntCounter, inOptions ...MetricOption) {
 	var finalOptions []metric.AddOption
 
-	if kv, ok := ctx.Value(AttributeKeyProjectID).(attribute.KeyValue); ok {
-		finalOptions = append(finalOptions, metric.WithAttributes(kv))
-	}
-
-	if kv, ok := ctx.Value(AttributeKeyClientID).(attribute.KeyValue); ok {
-		finalOptions = append(finalOptions, metric.WithAttributes(kv))
+	labeler, _ := otelhttp.LabelerFromContext(ctx)
+	labelerAttrs := labeler.Get()
+	for _, labelerAttr := range labelerAttrs {
+		finalOptions = append(finalOptions, metric.WithAttributes(labelerAttr))
 	}
 
 	for _, o := range inOptions {
@@ -264,12 +275,10 @@ func IntCounterAddOne(ctx context.Context, counter IntCounter, inOptions ...Metr
 func Float64HistogramRecord(ctx context.Context, histogram metric.Float64Histogram, val float64, inOptions ...MetricOption) {
 	var finalOptions []metric.RecordOption
 
-	if kv, ok := ctx.Value(AttributeKeyProjectID).(attribute.KeyValue); ok {
-		finalOptions = append(finalOptions, metric.WithAttributes(kv))
-	}
-
-	if kv, ok := ctx.Value(AttributeKeyClientID).(attribute.KeyValue); ok {
-		finalOptions = append(finalOptions, metric.WithAttributes(kv))
+	labeler, _ := otelhttp.LabelerFromContext(ctx)
+	labelerAttrs := labeler.Get()
+	for _, labelerAttr := range labelerAttrs {
+		finalOptions = append(finalOptions, metric.WithAttributes(labelerAttr))
 	}
 
 	for _, o := range inOptions {

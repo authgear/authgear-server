@@ -101,9 +101,7 @@ func (s *Session) Context(ctx context.Context) context.Context {
 	ctx = context.WithValue(ctx, contextKeyOAuthSessionID, s.OAuthSessionID)
 
 	if s.ClientID != "" {
-		key := otelauthgear.AttributeKeyClientID
-		val := key.String(s.ClientID)
-		ctx = context.WithValue(ctx, key, val)
+		otelauthgear.SetClientID(ctx, s.ClientID)
 	}
 
 	ctx = uiparam.WithUIParam(ctx, &uiparam.T{

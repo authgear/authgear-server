@@ -125,9 +125,7 @@ func (s *Session) MakeContext(ctx context.Context, deps *Dependencies) context.C
 	ctx = context.WithValue(ctx, contextKeySAMLSessionID, s.SAMLSessionID)
 
 	if s.ClientID != "" {
-		key := otelauthgear.AttributeKeyClientID
-		val := key.String(s.ClientID)
-		ctx = context.WithValue(ctx, key, val)
+		otelauthgear.SetClientID(ctx, s.ClientID)
 	}
 
 	ctx = uiparam.WithUIParam(ctx, &uiparam.T{
