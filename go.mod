@@ -22,7 +22,7 @@ require (
 	github.com/graphql-go/graphql v0.8.1
 	github.com/graphql-go/handler v0.2.4
 	github.com/iawaknahc/gomessageformat v0.0.0-20210428033148-c3f8592094b5
-	github.com/iawaknahc/jsonschema v0.0.0-20211026064614-d05c07b7760d
+	github.com/iawaknahc/jsonschema v0.0.0-20250219112344-8b65018f0c9f
 	github.com/iawaknahc/originmatcher v0.0.0-20240717084358-ac10088d8800
 	github.com/joho/godotenv v1.5.1
 	github.com/julienschmidt/httprouter v1.3.0
@@ -57,8 +57,6 @@ require (
 	k8s.io/client-go v0.30.6
 	sigs.k8s.io/yaml v1.4.0
 )
-
-replace github.com/iawaknahc/jsonschema => github.com/tung2744/jsonschema v0.0.0-788d5da0
 
 require (
 	cloud.google.com/go/storage v1.45.0

@@ -30,8 +30,6 @@ require (
 	sigs.k8s.io/yaml v1.4.0
 )
 
-replace github.com/iawaknahc/jsonschema => github.com/tung2744/jsonschema v0.0.0-788d5da0
-
 require (
 	cel.dev/expr v0.16.1 // indirect
 	cloud.google.com/go v0.116.0 // indirect
@@ -102,7 +100,7 @@ require (
 	github.com/hashicorp/hcl v1.0.1-vault-5 // indirect
 	github.com/huandu/xstrings v1.4.0 // indirect
 	github.com/iawaknahc/gomessageformat v0.0.0-20210428033148-c3f8592094b5 // indirect
-	github.com/iawaknahc/jsonschema v0.0.0-20211026064614-d05c07b7760d // indirect
+	github.com/iawaknahc/jsonschema v0.0.0-20250219112344-8b65018f0c9f // indirect
 	github.com/iawaknahc/originmatcher v0.0.0-20240717084358-ac10088d8800 // indirect
 	github.com/imdario/mergo v0.3.16 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
