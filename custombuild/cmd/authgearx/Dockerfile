@@ -2,16 +2,17 @@
 
 # Stage 0: Build the static files
 FROM node:20.9.0-bookworm AS authgear-stage-0
-ARG GIT_HASH
 WORKDIR /usr/src/app
-COPY ./scripts/npm/package.json ./scripts/npm/package-lock.json ./scripts/npm/
-RUN cd ./scripts/npm && npm ci
 COPY ./authui/package.json ./authui/package-lock.json ./authui/
 # See /authui/README.md for the reason why we need to copy tarballs.
 COPY ./authui/tarballs/. ./authui/tarballs/.
 RUN cd ./authui && npm ci
-COPY . .
-RUN make authui GIT_HASH=$GIT_HASH
+# Only copy the necessary files to improving caching.
+COPY ./resources/ ./resources/
+COPY ./authui/ ./authui/
+COPY ./makefiles/ ./makefiles/
+COPY Makefile .
+RUN make authui
 
 # Stage 1: Build the Go binary
 FROM quay.io/theauthgear/golang:1.23.6-noble AS authgear-stage-1
@@ -45,11 +46,19 @@ WORKDIR /src/custombuild
 COPY ./custombuild/go.mod ./custombuild/go.sum ./
 RUN --mount=type=ssh go mod download
 WORKDIR /src
-COPY . .
+# Only copy the necessary files to improving caching.
+COPY ./Makefile ./embed.go ./
+COPY ./makefiles/ ./makefiles/
+COPY ./resources/ ./resources/
+COPY ./cmd/ ./cmd/
+COPY ./pkg/ ./pkg/
+COPY ./custombuild/ ./custombuild/
 # Let //go:embed to embed the built static files
 COPY --from=authgear-stage-0 /usr/src/app/resources/authgear/ ./resources/authgear/
 ARG GIT_HASH
-RUN make -C custombuild build BIN_NAME=authgear TARGET=authgearx GIT_HASH=$GIT_HASH
+ARG AUTHGEARONCE
+ARG AUTHGEARLITE
+RUN make -C custombuild build BIN_NAME=authgear TARGET=authgearx
 
 # We used to build static binary.
 # But we have a transitive dependency on icu4c so this is no longer the case.
@@ -86,5 +95,18 @@ COPY ./docker-entrypoint.sh /usr/local/bin/
 ENTRYPOINT ["docker-entrypoint.sh"]
 # update-ca-certificates requires root to run.
 #USER nobody
+
+# main
 EXPOSE 3000
+# main internal
+EXPOSE 13000
+# resolver
+EXPOSE 3001
+# resolver internal
+EXPOSE 13001
+# admin
+EXPOSE 3002
+# admin internal
+EXPOSE 13002
+
 CMD ["authgear", "start"]

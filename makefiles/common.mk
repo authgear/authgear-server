@@ -32,6 +32,15 @@ endif
 #   The binary is static on Linux only. It is not static on macOS.
 # timetzdata: https://golang.org/doc/go1.15#time/tzdata
 GO_BUILD_TAGS ::= osusergo netgo static_build timetzdata
+# Since it is not possible to write `make GO_BUILD_TAGS+=authgearonce` in the command line,
+# we use a simpler mechanism to append to GO_BUILD_TAGS.
+# We define AUTHGEARLITE and AUTHGEARONCE, and if they are 1, then the corresponding build tag is appended.
+ifeq ($(AUTHGEARLITE), 1)
+	GO_BUILD_TAGS += authgearlite
+endif
+ifeq ($(AUTHGEARONCE), 1)
+	GO_BUILD_TAGS += authgearonce
+endif
 # authgeardev: This build tag represents the build is for local development purpose.
 #              Currently, it affects whether the builtin resource FS uses OS FS or embed.FS.
 #              See ./pkg/util/resource/manager.go for details.

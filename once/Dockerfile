@@ -2,18 +2,24 @@
 
 # THIS FILE IS GENERATED. DO NOT EDIT!
 
+# Use ARG instead of ENV to avoid persisting AUTHGEARONCE in the final image.
+# Note that the stage MUST write `ARG AUTHGEARONCE` in order to "see" this definition.
+ARG AUTHGEARONCE=1
+
+
 # Stage 0: Build the static files
 FROM --platform=$BUILDPLATFORM node:20.9.0-bookworm AS authgear-stage-0
-ARG GIT_HASH
 WORKDIR /usr/src/app
-COPY ./scripts/npm/package.json ./scripts/npm/package-lock.json ./scripts/npm/
-RUN cd ./scripts/npm && npm ci
 COPY ./authui/package.json ./authui/package-lock.json ./authui/
 # See /authui/README.md for the reason why we need to copy tarballs.
 COPY ./authui/tarballs/. ./authui/tarballs/.
 RUN cd ./authui && npm ci
-COPY . .
-RUN make authui GIT_HASH=$GIT_HASH
+# Only copy the necessary files to improving caching.
+COPY ./resources/ ./resources/
+COPY ./authui/ ./authui/
+COPY ./makefiles/ ./makefiles/
+COPY Makefile .
+RUN make authui
 
 # Stage 1: Build the Go binary
 FROM quay.io/theauthgear/golang:1.23.6-noble AS authgear-stage-1
@@ -28,14 +34,22 @@ RUN set -eux; \
         libmagic-dev; \
     rm -rf /var/lib/apt/lists/*
 
-ARG GIT_HASH
 WORKDIR /src
 COPY go.mod go.sum ./
 RUN go mod download
-COPY . .
+# Only copy the necessary files to improving caching.
+COPY ./Makefile ./embed.go ./
+COPY ./makefiles/ ./makefiles/
+COPY ./resources/ ./resources/
+COPY ./cmd/ ./cmd/
+COPY ./pkg/ ./pkg/
+COPY ./custombuild/ ./custombuild/
 # Let //go:embed to embed the built static files
 COPY --from=authgear-stage-0 /usr/src/app/resources/authgear/ ./resources/authgear/
-RUN make build BIN_NAME=authgear TARGET=authgear GIT_HASH=$GIT_HASH
+ARG GIT_HASH
+ARG AUTHGEARONCE
+ARG AUTHGEARLITE
+RUN make build BIN_NAME=authgear TARGET=authgear
 
 # We used to build static binary.
 # But we have a transitive dependency on icu4c so this is no longer the case.
@@ -72,26 +86,39 @@ COPY ./docker-entrypoint.sh /usr/local/bin/
 ENTRYPOINT ["docker-entrypoint.sh"]
 # update-ca-certificates requires root to run.
 #USER nobody
+
+# main
 EXPOSE 3000
+# main internal
+EXPOSE 13000
+# resolver
+EXPOSE 3001
+# resolver internal
+EXPOSE 13001
+# admin
+EXPOSE 3002
+# admin internal
+EXPOSE 13002
+
 CMD ["authgear", "start"]
 
 
 # Stage 0: Build the static files
 FROM --platform=$BUILDPLATFORM node:20.9.0-bookworm AS authgear-portal-stage-0
-ARG GIT_HASH
 WORKDIR /usr/src/app
-COPY ./scripts/npm/package.json ./scripts/npm/package-lock.json ./scripts/npm/
-RUN cd ./scripts/npm && npm ci
 COPY ./authui/package.json ./authui/package-lock.json ./authui/
 # See /authui/README.md for the reason why we need to copy tarballs.
 COPY ./authui/tarballs/. ./authui/tarballs/.
 RUN cd ./authui && npm ci
-COPY . .
-RUN make authui GIT_HASH=$GIT_HASH
+# Only copy the necessary files to improving caching.
+COPY ./resources/ ./resources/
+COPY ./authui/ ./authui/
+COPY ./makefiles/ ./makefiles/
+COPY Makefile .
+RUN make authui
 
 # Stage 1: Build the portal static files
 FROM --platform=$BUILDPLATFORM node:20.9.0-bookworm AS authgear-portal-stage-1
-ARG GIT_HASH
 # If the working directory is /src, Parcel will have some problem with it.
 WORKDIR /usr/src/app
 COPY ./portal/package.json ./portal/package-lock.json ./
@@ -114,15 +141,23 @@ RUN set -eux; \
         libmagic-dev; \
     rm -rf /var/lib/apt/lists/*
 
-ARG GIT_HASH
 WORKDIR /src
 COPY go.mod go.sum ./
 RUN go mod download
-COPY . .
+# Only copy the necessary files to improving caching.
+COPY ./Makefile ./embed.go ./
+COPY ./makefiles/ ./makefiles/
+COPY ./resources/ ./resources/
+COPY ./cmd/ ./cmd/
+COPY ./pkg/ ./pkg/
+COPY ./custombuild/ ./custombuild/
 # Let //go:embed to embed the built static files
 COPY --from=authgear-portal-stage-0 /usr/src/app/resources/authgear/ ./resources/authgear/
 COPY --from=authgear-portal-stage-1 /usr/src/app/dist/ ./resources/portal/static/
-RUN make build BIN_NAME=authgear-portal TARGET=portal GIT_HASH=$GIT_HASH
+ARG GIT_HASH
+ARG AUTHGEARONCE
+ARG AUTHGEARLITE
+RUN make build BIN_NAME=authgear-portal TARGET=portal
 
 # We used to build static binary.
 # But we have a transitive dependency on icu4c so this is no longer the case.
@@ -159,7 +194,12 @@ COPY ./docker-entrypoint.sh /usr/local/bin/
 ENTRYPOINT ["docker-entrypoint.sh"]
 # update-ca-certificates requires root to run.
 #USER nobody
+
+# portal
 EXPOSE 3003
+# portal internal
+EXPOSE 13003
+
 CMD ["authgear-portal", "start"]
 
 
@@ -167,7 +207,7 @@ FROM quay.io/theauthgear/golang:1.23.6-noble AS authgear-once-stage-wrapper
 WORKDIR /src
 COPY go.mod go.sum ./
 RUN go mod download
-COPY ./once/ ./
+COPY ./once/docker_wrapper.go ./
 RUN go build -o docker_wrapper -tags 'osusergo netgo static_build timetzdata' .
 
 FROM quay.io/theauthgear/authgear-deno:git-243631ad6332 AS authgear-once-stage-authgeardeno
@@ -237,7 +277,7 @@ RUN set -eux; \
 	usermod --append --groups sudo authgear; \
 	printf "authgear ALL=(ALL) NOPASSWD:ALL\n" > /etc/sudoers.d/900-authgear
 
-## Install PostgreSQL 16.6
+## Install PostgreSQL 16.6 with pg_partman
 ##
 ##
 ## We have to install the package postgresql-common first.
@@ -289,7 +329,7 @@ RUN set -eux; \
 		/etc/postgresql-common/createcluster.conf \
 	; \
 	apt-get install -y --no-install-recommends --no-install-suggests \
-		postgresql-16=16.6-\*; \
+		postgresql-16=16.6-\* postgresql-16-partman; \
 	rm -rf /var/lib/apt/lists/*; \
 	find / \
 		-user postgres \
@@ -371,7 +411,8 @@ RUN set -eux; \
 	rm -rf /var/lib/apt/lists/*; \
 	ln -sf /dev/stdout /var/log/nginx/access.log; \
 	ln -sf /dev/stderr /var/log/nginx/error.log
-COPY --chown=authgear:authgear ./once/dhparam ./once/nginx.conf.sample /etc/nginx/
+COPY --chown=authgear:authgear ./once/nginx/dhparam ./once/nginx/nginx.conf.sample /etc/nginx/
+COPY --chown=authgear:authgear ./once/nginx/snippets /etc/nginx/snippets/
 
 ## Install certbot.
 RUN set -eux; \
@@ -380,8 +421,8 @@ RUN set -eux; \
 		certbot \
 		python3-certbot-nginx; \
 	rm -rf /var/lib/apt/lists/*; \
-	cp /etc/letsencrypt/cli.ini /home/authgear/certbot.ini; \
-	chown authgear:authgear /home/authgear/certbot.ini
+	cp /etc/letsencrypt/cli.ini /home/authgear/certbot.ini.example; \
+	chown authgear:authgear /home/authgear/certbot.ini.example
 
 ARG MINIO_RELEASE=20250207232109.0.0
 ARG MC_RELEASE=20250208191421.0.0
@@ -402,14 +443,15 @@ RUN set -eux; \
 		minio_${MINIO_RELEASE}_${TARGETARCH}.deb \
 		mcli_${MC_RELEASE}_${TARGETARCH}.deb
 
+USER authgear
+WORKDIR /home/authgear
+
 COPY --chown=authgear:authgear ./once/docker-entrypoint.sh ./once/docker-certbot.py /usr/local/bin/
+COPY --chown=authgear:authgear ./once/bashrc /home/authgear/.bashrc
 COPY --from=authgear-once-stage-wrapper --chown=authgear:authgear /src/docker_wrapper /usr/local/bin/
 COPY --from=authgear-once-stage-authgeardeno --chown=authgear:authgear /usr/local/bin/authgear-deno /usr/local/bin/deno /usr/local/bin/
 
 ENTRYPOINT ["docker-entrypoint.sh"]
-
-USER authgear
-WORKDIR /home/authgear
 
 ENV PGDATA=/var/lib/postgresql/data
 ENV MINIO_ROOT_USER=authgear
@@ -419,9 +461,13 @@ VOLUME /var/lib/redis/data
 VOLUME /var/lib/minio/data
 VOLUME /etc/letsencrypt
 
+# postgres
 EXPOSE 5432
+# redis
 EXPOSE 6379
+# http
 EXPOSE 80
+# https
 EXPOSE 443
 # minio
 EXPOSE 9000
@@ -429,5 +475,21 @@ EXPOSE 9000
 EXPOSE 9001
 # authgear-deno
 EXPOSE 8090
+# main
+EXPOSE 3000
+# main internal
+EXPOSE 13000
+# resolver
+EXPOSE 3001
+# resolver internal
+EXPOSE 13001
+# admin
+EXPOSE 3002
+# admin internal
+EXPOSE 13002
+# portal
+EXPOSE 3003
+# portal internal
+EXPOSE 13003
 
 CMD ["docker_wrapper"]

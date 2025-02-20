@@ -4,7 +4,7 @@ FROM quay.io/theauthgear/golang:1.23.6-noble AS authgear-once-stage-wrapper
 WORKDIR /src
 COPY go.mod go.sum ./
 RUN go mod download
-COPY ./once/ ./
+COPY ./once/docker_wrapper.go ./
 RUN go build -o docker_wrapper -tags 'osusergo netgo static_build timetzdata' .
 
 FROM quay.io/theauthgear/authgear-deno:git-243631ad6332 AS authgear-once-stage-authgeardeno
@@ -74,7 +74,7 @@ RUN set -eux; \
 	usermod --append --groups sudo authgear; \
 	printf "authgear ALL=(ALL) NOPASSWD:ALL\n" > /etc/sudoers.d/900-authgear
 
-## Install PostgreSQL 16.6
+## Install PostgreSQL 16.6 with pg_partman
 ##
 ##
 ## We have to install the package postgresql-common first.
@@ -126,7 +126,7 @@ RUN set -eux; \
 		/etc/postgresql-common/createcluster.conf \
 	; \
 	apt-get install -y --no-install-recommends --no-install-suggests \
-		postgresql-16=16.6-\*; \
+		postgresql-16=16.6-\* postgresql-16-partman; \
 	rm -rf /var/lib/apt/lists/*; \
 	find / \
 		-user postgres \
@@ -208,7 +208,8 @@ RUN set -eux; \
 	rm -rf /var/lib/apt/lists/*; \
 	ln -sf /dev/stdout /var/log/nginx/access.log; \
 	ln -sf /dev/stderr /var/log/nginx/error.log
-COPY --chown=authgear:authgear ./once/dhparam ./once/nginx.conf.sample /etc/nginx/
+COPY --chown=authgear:authgear ./once/nginx/dhparam ./once/nginx/nginx.conf.sample /etc/nginx/
+COPY --chown=authgear:authgear ./once/nginx/snippets /etc/nginx/snippets/
 
 ## Install certbot.
 RUN set -eux; \
@@ -217,8 +218,8 @@ RUN set -eux; \
 		certbot \
 		python3-certbot-nginx; \
 	rm -rf /var/lib/apt/lists/*; \
-	cp /etc/letsencrypt/cli.ini /home/authgear/certbot.ini; \
-	chown authgear:authgear /home/authgear/certbot.ini
+	cp /etc/letsencrypt/cli.ini /home/authgear/certbot.ini.example; \
+	chown authgear:authgear /home/authgear/certbot.ini.example
 
 ARG MINIO_RELEASE=20250207232109.0.0
 ARG MC_RELEASE=20250208191421.0.0
@@ -239,14 +240,15 @@ RUN set -eux; \
 		minio_${MINIO_RELEASE}_${TARGETARCH}.deb \
 		mcli_${MC_RELEASE}_${TARGETARCH}.deb
 
+USER authgear
+WORKDIR /home/authgear
+
 COPY --chown=authgear:authgear ./once/docker-entrypoint.sh ./once/docker-certbot.py /usr/local/bin/
+COPY --chown=authgear:authgear ./once/bashrc /home/authgear/.bashrc
 COPY --from=authgear-once-stage-wrapper --chown=authgear:authgear /src/docker_wrapper /usr/local/bin/
 COPY --from=authgear-once-stage-authgeardeno --chown=authgear:authgear /usr/local/bin/authgear-deno /usr/local/bin/deno /usr/local/bin/
 
 ENTRYPOINT ["docker-entrypoint.sh"]
-
-USER authgear
-WORKDIR /home/authgear
 
 ENV PGDATA=/var/lib/postgresql/data
 ENV MINIO_ROOT_USER=authgear
@@ -256,9 +258,13 @@ VOLUME /var/lib/redis/data
 VOLUME /var/lib/minio/data
 VOLUME /etc/letsencrypt
 
+# postgres
 EXPOSE 5432
+# redis
 EXPOSE 6379
+# http
 EXPOSE 80
+# https
 EXPOSE 443
 # minio
 EXPOSE 9000
@@ -266,5 +272,21 @@ EXPOSE 9000
 EXPOSE 9001
 # authgear-deno
 EXPOSE 8090
+# main
+EXPOSE 3000
+# main internal
+EXPOSE 13000
+# resolver
+EXPOSE 3001
+# resolver internal
+EXPOSE 13001
+# admin
+EXPOSE 3002
+# admin internal
+EXPOSE 13002
+# portal
+EXPOSE 3003
+# portal internal
+EXPOSE 13003
 
 CMD ["docker_wrapper"]

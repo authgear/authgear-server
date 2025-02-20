@@ -2,9 +2,9 @@ CMD_AUTHGEAR ::= authgear
 CMD_PORTAL ::= portal
 BUILD_CTX ::= .
 
-include ./common.mk
-include ./scripts/make/go-mod-outdated.mk
-include ./scripts/make/govulncheck.mk
+include ./makefiles/common.mk
+include ./makefiles/go-mod-outdated.mk
+include ./makefiles/govulncheck.mk
 
 .PHONY: authgearonce-start
 authgearonce-start: GO_RUN_TAGS += authgearonce
@@ -91,12 +91,11 @@ fmt:
 	$(MAKE) sort-translations
 
 .PHONY: binary
-binary: GO_BUILD_TAGS += authgearlite
 binary:
 	rm -rf ./dist
 	mkdir ./dist
-	$(MAKE) build GO_BUILD_TAGS::="$(GO_BUILD_TAGS)" TARGET::=authgear BIN_NAME::=./dist/authgear-lite-"$(shell go env GOOS)"-"$(shell go env GOARCH)"-${GIT_HASH}
-	$(MAKE) build GO_BUILD_TAGS::="$(GO_BUILD_TAGS)" TARGET::=portal BIN_NAME::=./dist/authgear-portal-lite-"$(shell go env GOOS)"-"$(shell go env GOARCH)"-${GIT_HASH}
+	$(MAKE) build AUTHGEARLITE::=1 TARGET::=authgear BIN_NAME::=./dist/authgear-lite-"$(shell go env GOOS)"-"$(shell go env GOARCH)"-${GIT_HASH}
+	$(MAKE) build AUTHGEARLITE::=1 TARGET::=portal BIN_NAME::=./dist/authgear-portal-lite-"$(shell go env GOOS)"-"$(shell go env GOARCH)"-${GIT_HASH}
 
 .PHONY: check-tidy
 check-tidy:
@@ -224,11 +223,10 @@ graphiql:
 once/Dockerfile:
 	rm -f $@
 	touch $@
-	echo "# syntax=docker/dockerfile:1" >> $@
+	cat ./once/opening.dockerfile >> $@
 	printf "\n" >> $@
-	echo "# THIS FILE IS GENERATED. DO NOT EDIT!" >> $@
-	sed '/^# syntax=/d' ./cmd/authgear/Dockerfile >> $@
+	sed -e '/^# syntax=/d' ./cmd/authgear/Dockerfile >> $@
 	printf "\n" >> $@
-	sed '/^# syntax=/d' ./cmd/portal/Dockerfile >> $@
+	sed -e '/^# syntax=/d' ./cmd/portal/Dockerfile >> $@
 	printf "\n" >> $@
-	sed '/^# syntax=/d' ./once/partial.dockerfile >> $@
+	sed -e '/^# syntax=/d' ./once/partial.dockerfile >> $@

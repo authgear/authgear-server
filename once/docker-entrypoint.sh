@@ -74,14 +74,11 @@ docker_postgresql_create_database_directories() {
 	sudo mkdir -p /var/run/postgresql
 	sudo chmod 0775 /var/run/postgresql
 
-	user="$(id -u -n)"
-	sudo find "$PGDATA" \! -user "$user" -exec chown "$user":"$user" '{}' +
-	sudo find /var/run/postgresql \! -user "$user" -exec chown "$user":"$user" '{}' +
+	sudo find "$PGDATA" \! -user "authgear" -exec chown "authgear":"authgear" '{}' +
+	sudo find /var/run/postgresql \! -user "authgear" -exec chown "authgear":"authgear" '{}' +
 }
 
 docker_postgresql_initdb() {
-	user="$(id -u -n)"
-
 	# This is the most secure method supported by PostgreSQL 16.
 	# See https://www.postgresql.org/docs/16/auth-password.html
 	auth_method="scram-sha-256"
@@ -91,7 +88,7 @@ docker_postgresql_initdb() {
 	# Since --locale-provider=libc is the default, we need not specify it.
 	# NOTE: --pwfile uses process substitution.
 	initdb \
-		--username="$user" \
+		--username="authgear" \
 		--pwfile=<(printf "%s\n" "$POSTGRES_PASSWORD") \
 		--encoding="UTF8" \
 		--auth-host="$auth_method" \
@@ -99,9 +96,7 @@ docker_postgresql_initdb() {
 }
 
 docker_postgresql_temp_server_start() {
-	pg_ctl start \
-		-o "-c listen_addresses='' -p 5432" \
-		--wait
+	pg_ctl start --wait
 }
 
 docker_postgresql_temp_server_stop() {
@@ -120,11 +115,10 @@ docker_postgresql_psql() {
 docker_postgresql_create_database() {
 	docker_postgresql_temp_server_start
 
-	user="$(id -u -n)"
 	# Connect to the database `postgres` that must exists.
 	db_exists="$(docker_postgresql_psql \
 		--dbname postgres \
-		--set db="$user" \
+		--set db="authgear" \
 		--tuples-only <<-'EOSQL'
 SELECT 1 FROM pg_database WHERE datname = :'db';
 	EOSQL
@@ -132,7 +126,7 @@ SELECT 1 FROM pg_database WHERE datname = :'db';
 	if [ -z "$db_exists" ]; then
 		docker_postgresql_psql \
 			--dbname postgres \
-			--set db="$user" <<-'EOSQL'
+			--set db="authgear" <<-'EOSQL'
 CREATE DATABASE :"db";
 	EOSQL
 	fi
@@ -146,9 +140,8 @@ docker_redis_create_directories() {
 	sudo mkdir -p /var/run/redis
 	sudo chmod 0700 /var/run/redis
 
-	user="$(id -u -n)"
-	sudo find /var/lib/redis/data \! -user "$user" -exec chown "$user:$user" '{}' +
-	sudo find /var/run/redis \! -user "$user" -exec chown "$user:$user" '{}' +
+	sudo find /var/lib/redis/data \! -user "authgear" -exec chown "authgear:authgear" '{}' +
+	sudo find /var/run/redis \! -user "authgear" -exec chown "authgear:authgear" '{}' +
 }
 
 docker_redis_write_acl_file() {
@@ -179,13 +172,12 @@ docker_nginx_create_directories() {
 	# I do not know why.
 	sudo rm -f /usr/share/nginx/modules
 
-	user="$(id -u -n)"
-	sudo find /usr/share/nginx \! -user "$user" -exec chown "$user:$user" '{}' +
-	sudo find /etc/nginx \! -user "$user" -exec chown "$user:$user" '{}' +
-	sudo find /var/lib/nginx \! -user "$user" -exec chown "$user:$user" '{}' +
-	sudo find /var/run/nginx \! -user "$user" -exec chown "$user:$user" '{}' +
-	sudo find /var/log/nginx \! -user "$user" -exec chown "$user:$user" '{}' +
-	sudo find /tmp/nginx \! -user "$user" -exec chown "$user:$user" '{}' +
+	sudo find /usr/share/nginx \! -user "authgear" -exec chown "authgear:authgear" '{}' +
+	sudo find /etc/nginx \! -user "authgear" -exec chown "authgear:authgear" '{}' +
+	sudo find /var/lib/nginx \! -user "authgear" -exec chown "authgear:authgear" '{}' +
+	sudo find /var/run/nginx \! -user "authgear" -exec chown "authgear:authgear" '{}' +
+	sudo find /var/log/nginx \! -user "authgear" -exec chown "authgear:authgear" '{}' +
+	sudo find /tmp/nginx \! -user "authgear" -exec chown "authgear:authgear" '{}' +
 }
 
 docker_nginx_render_server_block() {
@@ -291,10 +283,9 @@ docker_certbot_create_directories() {
 	sudo mkdir -p /var/log/letsencrypt
 	sudo mkdir -p /etc/letsencrypt
 
-	user="$(id -u -n)"
-	sudo find /var/lib/letsencrypt \! -user "$user" -exec chown "$user:$user" '{}' +
-	sudo find /var/log/letsencrypt \! -user "$user" -exec chown "$user:$user" '{}' +
-	sudo find /etc/letsencrypt \! -user "$user" -exec chown "$user:$user" '{}' +
+	sudo find /var/lib/letsencrypt \! -user "authgear" -exec chown "authgear:authgear" '{}' +
+	sudo find /var/log/letsencrypt \! -user "authgear" -exec chown "authgear:authgear" '{}' +
+	sudo find /etc/letsencrypt \! -user "authgear" -exec chown "authgear:authgear" '{}' +
 }
 
 docker_certbot_create_cli_ini() {
@@ -304,7 +295,7 @@ docker_certbot_create_cli_ini() {
 	# Therefore, when we build the image, we copy the original /etc/letsencrypt/cli.ini to /home/authgear/certbot.ini,
 	# and we always write a fresh /etc/letsencrypt/cli.ini.
 	cli_ini="/etc/letsencrypt/cli.ini"
-	cp /home/authgear/certbot.ini "$cli_ini"
+	cp /home/authgear/certbot.ini.example "$cli_ini"
 	sed -E -i 's,^#?\s*(max-log-backups)\s+.*,\1 = 10,' "$cli_ini"
 	sed -E -i 's,^#?\s*(preconfigured-renewal)\s+.*,\1 = False,' "$cli_ini"
 
@@ -323,13 +314,10 @@ docker_minio_create_directories() {
 	sudo mkdir -p /var/lib/minio/data
 	sudo chmod 0700 /var/lib/minio/data
 
-	user="$(id -u -n)"
-	sudo find /var/lib/minio/data \! -user "$user" -exec chown "$user:$user" '{}' +
+	sudo find /var/lib/minio/data \! -user "authgear" -exec chown "authgear:authgear" '{}' +
 }
 
 docker_minio_create_buckets() {
-	set -eux
-
 	# We need to start the server temporarily.
 	minio server /var/lib/minio/data &
 	minio_pid=$!
@@ -344,11 +332,118 @@ docker_minio_create_buckets() {
 }
 
 docker_tls_update_ca_certificates() {
-  # Make the certificates in /usr/local/share/ca-certificates take effect.
-  sudo update-ca-certificates
+	# Make the certificates in /usr/local/share/ca-certificates take effect.
+	sudo update-ca-certificates
+}
+
+docker_dns_update_etc_hosts() {
+	echo '127.0.0.1 accounts.projects.authgear' | sudo tee -a /etc/hosts >/dev/null
+	echo '127.0.0.1 project.projects.authgear' | sudo tee -a /etc/hosts >/dev/null
+}
+
+docker_authgear_source_env() {
+	# It is put at ~/.bashrc so that
+	# `docker compose exec THE_SERVICE bash` will also source this file.
+	source "/home/authgear/.bashrc"
+}
+
+docker_authgear_run_database_migrations() {
+	docker_postgresql_temp_server_start
+
+	authgear database migrate up
+	authgear audit database migrate up
+	authgear images database migrate up
+	authgear search database migrate up
+	authgear-portal database migrate up
+
+	docker_postgresql_temp_server_stop
+}
+
+docker_authgear_create_deployment_runtime_directory() {
+	mkdir -p /home/authgear/authgear_deployment_runtime
+
+	cat > /home/authgear/authgear_deployment_runtime/authgear.secrets.yaml <<EOF
+secrets:
+- key: db
+  data:
+    database_schema: "$DATABASE_SCHEMA"
+    database_url: "$DATABASE_URL"
+- key: audit.db
+  data:
+    database_schema: "$AUDIT_DATABASE_SCHEMA"
+    database_url: "$AUDIT_DATABASE_URL"
+- key: search.db
+  data:
+    database_schema: "$SEARCH_DATABASE_SCHEMA"
+    database_url: "$SEARCH_DATABASE_URL"
+- key: redis
+  data:
+    redis_url: "$REDIS_URL"
+- key: analytic.redis
+  data:
+    redis_url: "$ANALYTIC_REDIS_URL"
+EOF
+}
+
+docker_authgear_create_project_accounts() {
+	docker_postgresql_temp_server_start
+
+	init_input="$(mktemp)"
+	{
+		echo 'accounts'
+		echo "$AUTHGEAR_HTTP_ORIGIN_ACCOUNTS"
+		echo "$AUTHGEAR_HTTP_ORIGIN_PORTAL"
+		echo 'sms'
+		echo 'y'
+		echo 'postgresql'
+	} >> "$init_input"
+	init_output="$(mktemp -d)"
+	authgear init --for-helm-chart <"$init_input" -o "$init_output"
+	# Override authgear.yaml
+	# FIXME: Enable public signup.
+	cat > "$init_output"/authgear.yaml <<EOF
+authenticator:
+  oob_otp:
+    sms:
+      phone_otp_mode: sms
+http:
+  public_origin: "$AUTHGEAR_HTTP_ORIGIN_ACCOUNTS"
+id: accounts
+oauth:
+  clients:
+  - client_id: portal
+    issue_jwt_access_token: true
+    name: Portal
+    post_logout_redirect_uris:
+    - "${AUTHGEAR_HTTP_ORIGIN_PORTAL}/"
+    redirect_uris:
+    - "${AUTHGEAR_HTTP_ORIGIN_PORTAL}/oauth-redirect"
+    x_application_type: traditional_webapp
+search:
+  implementation: postgresql
+ui:
+  signup_login_flow_enabled: true
+verification:
+  claims:
+    email:
+      enabled: false
+      required: false
+EOF
+	cat "$init_output"/authgear.yaml
+	authgear-portal internal configsource create "$init_output"
+
+	accounts_host="$(echo "$AUTHGEAR_HTTP_ORIGIN_ACCOUNTS" | awk -F '://' '{ print $2 }')"
+	authgear-portal internal domain create-custom accounts --domain "$accounts_host" --apex-domain "$accounts_host"
+	authgear-portal internal domain create-default --default-domain-suffix '.projects.authgear'
+	rm -r "$init_input"
+	rm -r "$init_output"
+
+	docker_postgresql_temp_server_stop
 }
 
 main() {
+	run_initialization=''
+
 	check_user_is_correct
 	check_PGDATA_is_set
 	check_LANG_is_set
@@ -371,6 +466,7 @@ main() {
 	if [ -s "$PGDATA/PG_VERSION" ]; then
 		printf 1>&2 "PostgreSQL database directory (%s) seems initialized. Skipping initialization.\n" "$PGDATA"
 	else
+		run_initialization=1
 		docker_postgresql_initdb
 
 		# initdb will create the given database user (--username), and
@@ -387,6 +483,15 @@ main() {
 	docker_minio_create_buckets
 
 	docker_tls_update_ca_certificates
+
+	docker_dns_update_etc_hosts
+
+	docker_authgear_source_env
+	docker_authgear_run_database_migrations
+	docker_authgear_create_deployment_runtime_directory
+	if [ -n "$run_initialization" ]; then
+		docker_authgear_create_project_accounts
+	fi
 
 	# Replace this process with the given arguments.
 	exec "$@"

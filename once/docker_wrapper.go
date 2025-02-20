@@ -125,33 +125,48 @@ func main() {
 
 	postgres := NewChild(
 		[]string{"postgres"},
-		decowriter.New(os.Stdout, []byte("postgres       | "), []byte("")),
-		decowriter.New(os.Stderr, []byte("postgres       | "), []byte("")),
+		decowriter.New(os.Stdout, []byte("postgres        | "), []byte("")),
+		decowriter.New(os.Stderr, []byte("postgres        | "), []byte("")),
 	)
 	redis := NewChild(
 		[]string{"redis-server", "/etc/redis/redis.conf"},
-		decowriter.New(os.Stdout, []byte("redis          | "), []byte("")),
-		decowriter.New(os.Stderr, []byte("redis          | "), []byte("")),
+		decowriter.New(os.Stdout, []byte("redis           | "), []byte("")),
+		decowriter.New(os.Stderr, []byte("redis           | "), []byte("")),
 	)
 	nginx := NewChild(
 		[]string{"nginx"},
-		decowriter.New(os.Stdout, []byte("nginx          | "), []byte("")),
-		decowriter.New(os.Stderr, []byte("nginx          | "), []byte("")),
+		decowriter.New(os.Stdout, []byte("nginx           | "), []byte("")),
+		decowriter.New(os.Stderr, []byte("nginx           | "), []byte("")),
 	)
 	certbot := NewChild(
 		[]string{"docker-certbot.py"},
-		decowriter.New(os.Stdout, []byte("docker-certbot | "), []byte("")),
-		decowriter.New(os.Stderr, []byte("docker-certbot | "), []byte("")),
+		decowriter.New(os.Stdout, []byte("docker-certbot  | "), []byte("")),
+		decowriter.New(os.Stderr, []byte("docker-certbot  | "), []byte("")),
 	)
 	minio := NewChild(
 		[]string{"minio", "server", "/var/lib/minio/data", "--console-address", ":9001"},
-		decowriter.New(os.Stdout, []byte("minio          | "), []byte("")),
-		decowriter.New(os.Stderr, []byte("minio          | "), []byte("")),
+		decowriter.New(os.Stdout, []byte("minio           | "), []byte("")),
+		decowriter.New(os.Stderr, []byte("minio           | "), []byte("")),
 	)
 	authgeardeno := NewChild(
 		[]string{"authgear-deno"},
-		decowriter.New(os.Stdout, []byte("authgear-deno  | "), []byte("")),
-		decowriter.New(os.Stderr, []byte("authgear-deno  | "), []byte("")),
+		decowriter.New(os.Stdout, []byte("authgear-deno   | "), []byte("")),
+		decowriter.New(os.Stderr, []byte("authgear-deno   | "), []byte("")),
+	)
+	authgear := NewChild(
+		[]string{"authgear", "start"},
+		decowriter.New(os.Stdout, []byte("authgear        | "), []byte("")),
+		decowriter.New(os.Stderr, []byte("authgear        | "), []byte("")),
+	)
+	authgearportal := NewChild(
+		[]string{"authgear-portal", "start"},
+		decowriter.New(os.Stdout, []byte("authgear-portal | "), []byte("")),
+		decowriter.New(os.Stderr, []byte("authgear-portal | "), []byte("")),
+	)
+	authgearimages := NewChild(
+		[]string{"authgear", "images", "start"},
+		decowriter.New(os.Stdout, []byte("authgear-images | "), []byte("")),
+		decowriter.New(os.Stderr, []byte("authgear-images | "), []byte("")),
 	)
 	childResults := []ChildResult{}
 	startedChildren := []*Child{}
@@ -187,6 +202,9 @@ func main() {
 	start(certbot)
 	start(minio)
 	start(authgeardeno)
+	start(authgear)
+	start(authgearportal)
+	start(authgearimages)
 
 	// Some child failed to start, trigger reap now.
 	if len(childResults) > 0 {
