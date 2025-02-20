@@ -132,6 +132,18 @@ func (s *UserInfoService) cacheUserInfo(ctx context.Context, userID string, role
 	})
 }
 
+func (s *UserInfoService) PurgeUserInfo(ctx context.Context, userID string) error {
+	keys := []string{
+		cacheKey(s.AppID, userID, accesscontrol.RoleGreatest),
+		cacheKey(s.AppID, userID, config.RoleBearer),
+	}
+
+	return s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
+		_, err := conn.Del(ctx, keys...).Result()
+		return err
+	})
+}
+
 func cacheKey(appID config.AppID, userID string, role accesscontrol.Role) string {
 	return fmt.Sprintf("app:%s:userinfo:%s:%s", appID, userID, role)
 }

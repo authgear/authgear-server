@@ -675,7 +675,16 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Reindexer: reindexer,
 		Database:  handle,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink)
+	userInfoService := &userinfo.UserInfoService{
+		Redis:                 appredisHandle,
+		AppID:                 appID,
+		UserQueries:           userQueries,
+		RolesAndGroupsQueries: queries,
+	}
+	userinfoSink := &userinfo.Sink{
+		UserInfoService: userInfoService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
 	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -1175,12 +1184,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Authorizations: authorizationService,
 	}
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
-	userInfoService := &userinfo.UserInfoService{
-		Redis:                 appredisHandle,
-		AppID:                 appID,
-		UserQueries:           userQueries,
-		RolesAndGroupsQueries: queries,
-	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:         oAuthKeyMaterials,
 		BaseURL:         endpointsEndpoints,

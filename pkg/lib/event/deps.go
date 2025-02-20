@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/search/reindex"
+	"github.com/authgear/authgear-server/pkg/lib/userinfo"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
@@ -33,6 +34,7 @@ func NewService(
 	hookSink *hook.Sink,
 	auditSink *audit.Sink,
 	searchSink *reindex.Sink,
+	userInfoSink *userinfo.Sink,
 ) *Service {
 	return &Service{
 		AppID:           appID,
@@ -48,6 +50,7 @@ func NewService(
 			hookSink,
 			auditSink,
 			searchSink,
+			userInfoSink,
 		},
 	}
 }
