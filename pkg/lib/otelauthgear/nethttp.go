@@ -5,6 +5,7 @@ import (
 
 	"github.com/felixge/httpsnoop"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.opentelemetry.io/otel/semconv/v1.27.0"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -24,21 +25,29 @@ func (m *HTTPInstrumentationMiddleware) Handle(next http.Handler) http.Handler {
 		methodAttr := otelutil.HTTPRequestMethod(r)
 		scheme := httputil.GetProto(r, bool(m.TrustProxy))
 		schemeAttr := otelutil.HTTPURLScheme(scheme)
+
+		// Invoke the handler.
 		metrics := httpsnoop.CaptureMetrics(next, w, r)
+
 		statusCodeAttr := otelutil.HTTPResponseStatusCode(metrics)
 
-		// FIXME: only record if http.route is defined.
-		// This essentially makes metric opt-in.
-		// For example, we WILL NOT record metric for /healthz.
-		_, _ = otelhttp.LabelerFromContext(ctx)
-
-		options := []MetricOption{
-			metricOptionAttributeKeyValue{methodAttr},
-			metricOptionAttributeKeyValue{schemeAttr},
-			metricOptionAttributeKeyValue{statusCodeAttr},
+		httpRouteOK := false
+		labeler, _ := otelhttp.LabelerFromContext(ctx)
+		labelerAttrs := labeler.Get()
+		for _, attr := range labelerAttrs {
+			if attr.Key == semconv.HTTPRouteKey {
+				httpRouteOK = true
+			}
 		}
+		if httpRouteOK {
+			options := []MetricOption{
+				metricOptionAttributeKeyValue{methodAttr},
+				metricOptionAttributeKeyValue{schemeAttr},
+				metricOptionAttributeKeyValue{statusCodeAttr},
+			}
 
-		seconds := metrics.Duration.Seconds()
-		Float64HistogramRecord(ctx, HTTPServerRequestDurationHistogram, seconds, options...)
+			seconds := metrics.Duration.Seconds()
+			Float64HistogramRecord(ctx, HTTPServerRequestDurationHistogram, seconds, options...)
+		}
 	})
 }

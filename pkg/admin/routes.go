@@ -16,10 +16,7 @@ import (
 func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource, auth config.AdminAPIAuth) http.Handler {
 	router := httproute.NewRouter()
 
-	router.Add(httproute.Route{
-		Methods:     []string{"GET"},
-		PathPattern: "/healthz",
-	}, p.RootHandler(newHealthzHandler))
+	router.Health(p.RootHandler(newHealthzHandler))
 
 	chain := httproute.Chain(
 		p.RootMiddleware(newPanicMiddleware),

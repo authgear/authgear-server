@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/felixge/httpsnoop"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/semconv/v1.27.0"
 )
@@ -62,4 +63,12 @@ func HTTPURLScheme(scheme string) attribute.KeyValue {
 func HTTPResponseStatusCode(metrics httpsnoop.Metrics) attribute.KeyValue {
 	statusCode := metrics.Code
 	return semconv.HTTPResponseStatusCode(statusCode)
+}
+
+func WithHTTPRoute(httpRoute string, h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		labeler, _ := otelhttp.LabelerFromContext(r.Context())
+		labeler.Add(semconv.HTTPRoute(httpRoute))
+		h.ServeHTTP(w, r)
+	})
 }
