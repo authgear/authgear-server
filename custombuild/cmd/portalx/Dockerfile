@@ -2,7 +2,6 @@
 
 # Stage 0: Build the static files
 FROM node:20.9.0-bookworm AS authgear-portal-stage-0
-ARG GIT_HASH
 WORKDIR /usr/src/app
 COPY ./authui/package.json ./authui/package-lock.json ./authui/
 # See /authui/README.md for the reason why we need to copy tarballs.
@@ -13,11 +12,10 @@ COPY ./resources/ ./resources/
 COPY ./authui/ ./authui/
 COPY ./makefiles/ ./makefiles/
 COPY Makefile .
-RUN make authui GIT_HASH=$GIT_HASH
+RUN make authui
 
 # Stage 1: Build the portal static files
 FROM node:20.9.0-bookworm AS authgear-portal-stage-1
-ARG GIT_HASH
 # If the working directory is /src, Parcel will have some problem with it.
 WORKDIR /usr/src/app
 COPY ./portal/package.json ./portal/package-lock.json ./
@@ -70,7 +68,9 @@ COPY ./custombuild/ ./custombuild/
 COPY --from=authgear-portal-stage-0 /usr/src/app/resources/authgear/ ./resources/authgear/
 COPY --from=authgear-portal-stage-1 /usr/src/app/dist/ ./resources/portal/static/
 ARG GIT_HASH
-RUN make -C custombuild build BIN_NAME=authgear-portal TARGET=portalx GIT_HASH=$GIT_HASH
+ARG AUTHGEARONCE
+ARG AUTHGEARLITE
+RUN make -C custombuild build BIN_NAME=authgear-portal TARGET=portalx
 
 # We used to build static binary.
 # But we have a transitive dependency on icu4c so this is no longer the case.
