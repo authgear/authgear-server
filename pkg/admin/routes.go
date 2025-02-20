@@ -49,10 +49,10 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource, au
 		// The following middlewares may terminate the request,
 		// so they are ordered just before the handler, to make sure
 		// the middlewares above always write their headers.
-		httputil.CheckContentType([]string{
+		httproute.MiddlewareFunc(httputil.CheckContentType([]string{
 			graphqlhandler.ContentTypeJSON,
 			graphqlhandler.ContentTypeGraphQL,
-		}),
+		})),
 	)
 
 	route := httproute.Route{Middleware: chain}

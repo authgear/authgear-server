@@ -19,7 +19,7 @@ func TestCheckContentType(t *testing.T) {
 
 		middleware := httputil.CheckContentType([]string{"application/json"})
 
-		handler := middleware.Handle(originalHandler)
+		handler := middleware(originalHandler)
 
 		r, _ := http.NewRequest("POST", "/", strings.NewReader(`{}`))
 		w := httptest.NewRecorder()
@@ -36,7 +36,7 @@ func TestCheckContentType(t *testing.T) {
 
 		middleware := httputil.CheckContentType([]string{"application/json"})
 
-		handler := middleware.Handle(originalHandler)
+		handler := middleware(originalHandler)
 
 		r, _ := http.NewRequest("POST", "/", strings.NewReader(`{}`))
 		r.Header.Set("Content-Type", "application/json")
@@ -55,7 +55,7 @@ func TestCheckContentType(t *testing.T) {
 
 		middleware := httputil.CheckContentType([]string{"application/json"})
 
-		handler := middleware.Handle(originalHandler)
+		handler := middleware(originalHandler)
 
 		r, _ := http.NewRequest("POST", "/", strings.NewReader(`{}`))
 		r.Header.Set("Content-Type", "application/json; charset=UTF-8")
@@ -74,7 +74,7 @@ func TestCheckContentType(t *testing.T) {
 
 		middleware := httputil.CheckContentType([]string{"application/json"})
 
-		handler := middleware.Handle(originalHandler)
+		handler := middleware(originalHandler)
 
 		r, _ := http.NewRequest("POST", "/", strings.NewReader(`{}`))
 		r.Header.Set("Content-Type", "application/json; charset=utf-8")
@@ -93,7 +93,7 @@ func TestCheckContentType(t *testing.T) {
 
 		middleware := httputil.CheckContentType([]string{"application/json"})
 
-		handler := middleware.Handle(originalHandler)
+		handler := middleware(originalHandler)
 
 		r, _ := http.NewRequest("POST", "/", nil)
 		w := httptest.NewRecorder()

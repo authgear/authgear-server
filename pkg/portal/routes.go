@@ -42,10 +42,10 @@ func NewRouter(p *deps.RootProvider) http.Handler {
 		p.Middleware(newSessionInfoMiddleware),
 		securityMiddleware,
 		httproute.MiddlewareFunc(httputil.NoStore),
-		httputil.CheckContentType([]string{
+		httproute.MiddlewareFunc(httputil.CheckContentType([]string{
 			graphqlhandler.ContentTypeJSON,
 			graphqlhandler.ContentTypeGraphQL,
-		}),
+		})),
 	)
 	adminAPIChain := httproute.Chain(
 		rootChain,
