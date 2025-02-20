@@ -1,0 +1,142 @@
+name: Signup with invalid but possible phone number
+authgear.yaml:
+  override: |
+    ui:
+      phone_input:
+        validation:
+          implementation: libphonenumber
+          libphonenumber:
+            validation_method: isPossibleNumber
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "identification": "phone",
+        "login_id": "+85211111111"
+      }
+    output:
+      # Validation passed without error
+      result: |
+        {
+          "action": {
+            "type": "verify"
+          }
+        }
+---
+name: Signup with impossible phone number should be blocked
+authgear.yaml:
+  override: |
+    ui:
+      phone_input:
+        validation:
+          implementation: libphonenumber
+          libphonenumber:
+            validation_method: isPossibleNumber
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "identification": "phone",
+        "login_id": "+852111111111111111"
+      }
+    output:
+      # Validation should fail
+      error: |
+        {
+          "name": "Invalid",
+          "reason": "ValidationFailed",
+          "message": "invalid login ID",
+          "code": 400,
+          "info": {
+            "FlowType": "signup",
+            "causes": [
+              {
+                "details": {
+                  "format": "phone"
+                },
+                "kind": "format",
+                "location": "/login_id"
+              }
+            ]
+          }
+        }
+---
+name: Signup with invalid phone number should be blocked
+authgear.yaml:
+  override: |
+    ui:
+      phone_input:
+        validation:
+          implementation: libphonenumber
+          libphonenumber:
+            validation_method: isValidNumber
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "identification": "phone",
+        "login_id": "+85211111111"
+      }
+    output:
+      # Validation should fail even it is a possible number
+      error: |
+        {
+          "name": "Invalid",
+          "reason": "ValidationFailed",
+          "message": "invalid login ID",
+          "code": 400,
+          "info": {
+            "FlowType": "signup",
+            "causes": [
+              {
+                "details": {
+                  "format": "phone"
+                },
+                "kind": "format",
+                "location": "/login_id"
+              }
+            ]
+          }
+        }
