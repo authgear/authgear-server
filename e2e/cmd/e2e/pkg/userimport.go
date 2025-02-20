@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/userimport"
@@ -40,31 +41,28 @@ func (c *End2End) ImportUsers(ctx context.Context, appID string, jsonPath string
 	}
 	defer configSrcController.Close()
 
-	ctx, appCtx, err := configSrcController.ResolveContext(ctx, appID)
-	if err != nil {
-		return err
-	}
+	return configSrcController.ResolveContext(ctx, appID, func(ctx context.Context, appCtx *config.AppContext) error {
 
-	appProvider := p.NewAppProvider(ctx, appCtx)
+		appProvider := p.NewAppProvider(ctx, appCtx)
 
-	userImport := newUserImport(appProvider)
+		userImport := newUserImport(appProvider)
 
-	jsoFile, err := os.Open(jsonPath)
-	if err != nil {
-		return err
-	}
-	defer jsoFile.Close()
+		jsoFile, err := os.Open(jsonPath)
+		if err != nil {
+			return err
+		}
+		defer jsoFile.Close()
 
-	var request userimport.Request
-	err = json.NewDecoder(jsoFile).Decode(&request)
-	if err != nil {
-		return err
-	}
+		var request userimport.Request
+		err = json.NewDecoder(jsoFile).Decode(&request)
+		if err != nil {
+			return err
+		}
 
-	res := userImport.ImportRecords(ctx, &request)
-	if res.Summary.Failed > 0 {
-		return fmt.Errorf("failed to import %d records due to %v", res.Summary.Failed, res.Details)
-	}
-
-	return nil
+		res := userImport.ImportRecords(ctx, &request)
+		if res.Summary.Failed > 0 {
+			return fmt.Errorf("failed to import %d records due to %v", res.Summary.Failed, res.Details)
+		}
+		return nil
+	})
 }
