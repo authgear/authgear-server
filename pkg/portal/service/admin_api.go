@@ -46,7 +46,7 @@ type PortalAdminAPIAuthContext struct {
 }
 
 func (s *AdminAPIService) ResolveConfig(ctx context.Context, appID string) (*config.Config, error) {
-	appCtx, err := s.ConfigSource.ContextResolver.ResolveContext(ctx, appID)
+	_, appCtx, err := s.ConfigSource.ContextResolver.ResolveContext(ctx, appID)
 	if err != nil {
 		return nil, err
 	}

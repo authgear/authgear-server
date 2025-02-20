@@ -40,7 +40,7 @@ func (c *End2End) ImportUsers(ctx context.Context, appID string, jsonPath string
 	}
 	defer configSrcController.Close()
 
-	appCtx, err := configSrcController.ResolveContext(ctx, appID)
+	ctx, appCtx, err := configSrcController.ResolveContext(ctx, appID)
 	if err != nil {
 		return err
 	}

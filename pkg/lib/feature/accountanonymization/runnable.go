@@ -8,7 +8,7 @@ import (
 )
 
 type AppContextResolver interface {
-	ResolveContext(ctx context.Context, appID string) (*config.AppContext, error)
+	ResolveContext(ctx context.Context, appID string) (context.Context, *config.AppContext, error)
 }
 
 type UserService interface {
@@ -38,7 +38,8 @@ func (r *Runnable) Run(ctx context.Context) error {
 		return err
 	}
 	for _, appUser := range appUsers {
-		appContext, err := r.AppContextResolver.ResolveContext(ctx, appUser.AppID)
+		var appContext *config.AppContext
+		ctx, appContext, err = r.AppContextResolver.ResolveContext(ctx, appUser.AppID)
 		if err != nil {
 			return err
 		}

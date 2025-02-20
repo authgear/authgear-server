@@ -56,7 +56,7 @@ type CollaboratorServiceAdminAPIService interface {
 }
 
 type CollaboratorAppConfigService interface {
-	ResolveContext(ctx context.Context, appID string) (*config.AppContext, error)
+	ResolveContext(ctx context.Context, appID string) (context.Context, *config.AppContext, error)
 }
 
 type CollaboratorService struct {
@@ -919,7 +919,7 @@ func (s *CollaboratorService) createAccountForInvitee(ctx context.Context, actor
 }
 
 func (s *CollaboratorService) checkQuotaInSend(ctx context.Context, appID string) error {
-	appCtx, err := s.AppConfigs.ResolveContext(ctx, appID)
+	ctx, appCtx, err := s.AppConfigs.ResolveContext(ctx, appID)
 	if err != nil {
 		return err
 	}
@@ -947,7 +947,7 @@ func (s *CollaboratorService) checkQuotaInSend(ctx context.Context, appID string
 }
 
 func (s *CollaboratorService) checkQuotaInAccept(ctx context.Context, appID string) error {
-	appCtx, err := s.AppConfigs.ResolveContext(ctx, appID)
+	ctx, appCtx, err := s.AppConfigs.ResolveContext(ctx, appID)
 	if err != nil {
 		return err
 	}

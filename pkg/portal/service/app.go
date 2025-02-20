@@ -52,7 +52,7 @@ var ErrReauthRequrired = apierrors.Forbidden.WithReason("ReauthRequrired").
 	New("reauthentication required")
 
 type AppConfigService interface {
-	ResolveContext(ctx context.Context, appID string) (*config.AppContext, error)
+	ResolveContext(ctx context.Context, appID string) (context.Context, *config.AppContext, error)
 	UpdateResources(ctx context.Context, appID string, updates []*resource.ResourceFile) error
 	Create(ctx context.Context, opts *CreateAppOptions) error
 }
@@ -131,7 +131,7 @@ type AppService struct {
 
 // Get calls other services that acquires connection themselves.
 func (s *AppService) Get(ctx context.Context, id string) (*model.App, error) {
-	appCtx, err := s.AppConfigs.ResolveContext(ctx, id)
+	_, appCtx, err := s.AppConfigs.ResolveContext(ctx, id)
 	if err != nil {
 		return nil, err
 	}

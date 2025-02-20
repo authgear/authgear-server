@@ -37,7 +37,7 @@ func (c *End2End) GetLinkOTPCode(ctx context.Context, appID string, claimName st
 	}
 	defer configSrcController.Close()
 
-	appCtx, err := configSrcController.ResolveContext(ctx, appID)
+	ctx, appCtx, err := configSrcController.ResolveContext(ctx, appID)
 	if err != nil {
 		return "", err
 	}

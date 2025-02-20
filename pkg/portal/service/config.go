@@ -53,7 +53,7 @@ type ConfigService struct {
 }
 
 // ResolveContext calls other services that acquires connection themselves.
-func (s *ConfigService) ResolveContext(ctx context.Context, appID string) (*config.AppContext, error) {
+func (s *ConfigService) ResolveContext(ctx context.Context, appID string) (context.Context, *config.AppContext, error) {
 	return s.ConfigSource.ContextResolver.ResolveContext(ctx, appID)
 }
 
