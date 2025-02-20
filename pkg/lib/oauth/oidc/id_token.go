@@ -17,6 +17,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
+	"github.com/authgear/authgear-server/pkg/lib/userinfo"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/duration"
@@ -25,12 +26,8 @@ import (
 
 //go:generate mockgen -source=id_token.go -destination=id_token_mock_test.go -package oidc
 
-type UserProvider interface {
-	Get(ctx context.Context, id string, role accesscontrol.Role) (*model.User, error)
-}
-
-type RolesAndGroupsProvider interface {
-	ListEffectiveRolesByUserID(ctx context.Context, userID string) ([]*model.Role, error)
+type UserInfoService interface {
+	GetUserInfo(ctx context.Context, userID string, role accesscontrol.Role) (*userinfo.UserInfo, error)
 }
 
 type BaseURLProvider interface {
@@ -38,11 +35,10 @@ type BaseURLProvider interface {
 }
 
 type IDTokenIssuer struct {
-	Secrets        *config.OAuthKeyMaterials
-	BaseURL        BaseURLProvider
-	Users          UserProvider
-	RolesAndGroups RolesAndGroupsProvider
-	Clock          clock.Clock
+	Secrets         *config.OAuthKeyMaterials
+	BaseURL         BaseURLProvider
+	UserInfoService UserInfoService
+	Clock           clock.Clock
 }
 
 // IDTokenValidDuration is the valid period of ID token.
@@ -153,28 +149,19 @@ func (ti *IDTokenIssuer) VerifyIDToken(idToken string) (token jwt.Token, err err
 }
 
 func (ti *IDTokenIssuer) PopulateUserClaimsInIDToken(ctx context.Context, token jwt.Token, userID string, clientLike *oauth.ClientLike) error {
-	user, err := ti.Users.Get(ctx, userID, config.RoleBearer)
+	userInfo, err := ti.UserInfoService.GetUserInfo(ctx, userID, config.RoleBearer)
 	if err != nil {
 		return err
-	}
-
-	roles, err := ti.RolesAndGroups.ListEffectiveRolesByUserID(ctx, userID)
-	if err != nil {
-		return err
-	}
-	roleKeys := make([]string, len(roles))
-	for i := range roles {
-		roleKeys[i] = roles[i].Key
 	}
 
 	_ = token.Set(jwt.SubjectKey, userID)
-	_ = token.Set(string(model.ClaimUserIsAnonymous), user.IsAnonymous)
-	_ = token.Set(string(model.ClaimUserIsVerified), user.IsVerified)
-	_ = token.Set(string(model.ClaimUserCanReauthenticate), user.CanReauthenticate)
-	_ = token.Set(string(model.ClaimAuthgearRoles), roleKeys)
+	_ = token.Set(string(model.ClaimUserIsAnonymous), userInfo.User.IsAnonymous)
+	_ = token.Set(string(model.ClaimUserIsVerified), userInfo.User.IsVerified)
+	_ = token.Set(string(model.ClaimUserCanReauthenticate), userInfo.User.CanReauthenticate)
+	_ = token.Set(string(model.ClaimAuthgearRoles), userInfo.EffectiveRoleKeys)
 
 	if clientLike.PIIAllowedInIDToken {
-		for k, v := range user.StandardAttributes {
+		for k, v := range userInfo.User.StandardAttributes {
 			isAllowed := false
 			for _, scope := range clientLike.Scopes {
 				if oauth.ScopeAllowsClaim(scope, k) {
@@ -193,38 +180,29 @@ func (ti *IDTokenIssuer) PopulateUserClaimsInIDToken(ctx context.Context, token 
 }
 
 func (ti *IDTokenIssuer) GetUserInfo(ctx context.Context, userID string, clientLike *oauth.ClientLike) (map[string]interface{}, error) {
-	user, err := ti.Users.Get(ctx, userID, config.RoleBearer)
+	userInfo, err := ti.UserInfoService.GetUserInfo(ctx, userID, config.RoleBearer)
 	if err != nil {
 		return nil, err
-	}
-
-	roles, err := ti.RolesAndGroups.ListEffectiveRolesByUserID(ctx, userID)
-	if err != nil {
-		return nil, err
-	}
-	roleKeys := make([]string, len(roles))
-	for i := range roles {
-		roleKeys[i] = roles[i].Key
 	}
 
 	out := make(map[string]interface{})
 	out[jwt.SubjectKey] = userID
-	out[string(model.ClaimUserIsAnonymous)] = user.IsAnonymous
-	out[string(model.ClaimUserIsVerified)] = user.IsVerified
-	out[string(model.ClaimUserCanReauthenticate)] = user.CanReauthenticate
-	out[string(model.ClaimAuthgearRoles)] = roleKeys
+	out[string(model.ClaimUserIsAnonymous)] = userInfo.User.IsAnonymous
+	out[string(model.ClaimUserIsVerified)] = userInfo.User.IsVerified
+	out[string(model.ClaimUserCanReauthenticate)] = userInfo.User.CanReauthenticate
+	out[string(model.ClaimAuthgearRoles)] = userInfo.EffectiveRoleKeys
 
 	if clientLike.IsFirstParty {
 		// When the client is first party, we always include all standard attributes, all custom attributes.
-		for k, v := range user.StandardAttributes {
+		for k, v := range userInfo.User.StandardAttributes {
 			out[k] = v
 		}
 
-		out["custom_attributes"] = user.CustomAttributes
-		out["x_web3"] = user.Web3
+		out["custom_attributes"] = userInfo.User.CustomAttributes
+		out["x_web3"] = userInfo.User.Web3
 	} else {
 		// When the client is third party, we include the standard claims according to scopes.
-		for k, v := range user.StandardAttributes {
+		for k, v := range userInfo.User.StandardAttributes {
 			isAllowed := false
 			for _, scope := range clientLike.Scopes {
 				if oauth.ScopeAllowsClaim(scope, k) {

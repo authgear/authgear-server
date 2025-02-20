@@ -85,6 +85,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/usage"
 	"github.com/authgear/authgear-server/pkg/lib/userexport"
 	"github.com/authgear/authgear-server/pkg/lib/userimport"
+	"github.com/authgear/authgear-server/pkg/lib/userinfo"
 	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/lib/webappoauth"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -1174,12 +1175,15 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Authorizations: authorizationService,
 	}
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
+	userInfoService := &userinfo.UserInfoService{
+		UserQueries:           userQueries,
+		RolesAndGroupsQueries: queries,
+	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets:        oAuthKeyMaterials,
-		BaseURL:        endpointsEndpoints,
-		Users:          userQueries,
-		RolesAndGroups: queries,
-		Clock:          clockClock,
+		Secrets:         oAuthKeyMaterials,
+		BaseURL:         endpointsEndpoints,
+		UserInfoService: userInfoService,
+		Clock:           clockClock,
 	}
 	accessTokenEncoding := &oauth2.AccessTokenEncoding{
 		Secrets:       oAuthKeyMaterials,

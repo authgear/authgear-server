@@ -12,6 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
+	"github.com/authgear/authgear-server/pkg/lib/userinfo"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 )
 
@@ -21,12 +22,10 @@ func TestResolveHandler(t *testing.T) {
 		defer ctrl.Finish()
 
 		database := &db.MockHandle{}
-		user := NewMockUserProvider(ctrl)
-		roleAndGroup := NewMockRolesAndGroupsProvider(ctrl)
+		userInfoService := NewMockUserInfoService(ctrl)
 		h := &ResolveHandler{
-			Database:       database,
-			Users:          user,
-			RolesAndGroups: roleAndGroup,
+			Database:        database,
+			UserInfoService: userInfoService,
 		}
 
 		Convey("should attach headers for valid sessions", func() {
@@ -40,14 +39,17 @@ func TestResolveHandler(t *testing.T) {
 			r = r.WithContext(session.WithSession(r.Context(), s))
 
 			Convey("for normal user", func() {
-				userInfo := model.User{
-					IsAnonymous:       false,
-					IsVerified:        true,
-					CanReauthenticate: true,
-				}
-				user.EXPECT().Get(r.Context(), "user-id", accesscontrol.RoleGreatest).Return(&userInfo, nil)
-				roles := []*model.Role{}
-				roleAndGroup.EXPECT().ListEffectiveRolesByUserID(r.Context(), "user-id").Return(roles, nil)
+				userInfoService.EXPECT().GetUserInfo(r.Context(), "user-id", accesscontrol.RoleGreatest).Return(
+					&userinfo.UserInfo{
+						User: &model.User{
+							IsAnonymous:       false,
+							IsVerified:        true,
+							CanReauthenticate: true,
+						},
+						EffectiveRoleKeys: []string{},
+					},
+					nil,
+				)
 				rw := httptest.NewRecorder()
 				h.ServeHTTP(rw, r)
 
@@ -64,14 +66,18 @@ func TestResolveHandler(t *testing.T) {
 			})
 
 			Convey("for anonymous user", func() {
-				userInfo := model.User{
-					IsAnonymous:       true,
-					IsVerified:        false,
-					CanReauthenticate: false,
-				}
-				user.EXPECT().Get(r.Context(), "user-id", accesscontrol.RoleGreatest).Return(&userInfo, nil)
-				roles := []*model.Role{}
-				roleAndGroup.EXPECT().ListEffectiveRolesByUserID(r.Context(), "user-id").Return(roles, nil)
+				userInfoService.EXPECT().GetUserInfo(r.Context(), "user-id", accesscontrol.RoleGreatest).Return(
+					&userinfo.UserInfo{
+						User: &model.User{
+							IsAnonymous:       true,
+							IsVerified:        false,
+							CanReauthenticate: false,
+						},
+						EffectiveRoleKeys: []string{},
+					},
+					nil,
+				)
+
 				rw := httptest.NewRecorder()
 				h.ServeHTTP(rw, r)
 

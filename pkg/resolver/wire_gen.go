@@ -66,6 +66,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/lib/usage"
+	"github.com/authgear/authgear-server/pkg/lib/userinfo"
 	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/resolver/handler"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -562,12 +563,15 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		CustomAttributes:   customattrsServiceNoEvent,
 		RolesAndGroups:     queries,
 	}
+	userInfoService := &userinfo.UserInfoService{
+		UserQueries:           userQueries,
+		RolesAndGroupsQueries: queries,
+	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets:        oAuthKeyMaterials,
-		BaseURL:        endpointsEndpoints,
-		Users:          userQueries,
-		RolesAndGroups: queries,
-		Clock:          clock,
+		Secrets:         oAuthKeyMaterials,
+		BaseURL:         endpointsEndpoints,
+		UserInfoService: userInfoService,
+		Clock:           clock,
 	}
 	eventLogger := event.NewLogger(factory)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
@@ -1317,11 +1321,14 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		CustomAttributes:   customattrsServiceNoEvent,
 		RolesAndGroups:     queries,
 	}
+	userInfoService := &userinfo.UserInfoService{
+		UserQueries:           userQueries,
+		RolesAndGroupsQueries: queries,
+	}
 	resolveHandler := &handler.ResolveHandler{
-		Database:       handle,
-		Logger:         resolveHandlerLogger,
-		Users:          userQueries,
-		RolesAndGroups: queries,
+		Database:        handle,
+		Logger:          resolveHandlerLogger,
+		UserInfoService: userInfoService,
 	}
 	return resolveHandler
 }

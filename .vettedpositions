@@ -310,7 +310,7 @@
 /pkg/portal/transport/stripe_webhook_handler.go:85:4: requestcontext
 /pkg/portal/transport/stripe_webhook_handler.go:91:4: requestcontext
 /pkg/portal/transport/stripe_webhook_handler.go:96:4: requestcontext
-/pkg/resolver/handler/resolve.go:50:9: requestcontext
+/pkg/resolver/handler/resolve.go:46:9: requestcontext
 /pkg/util/graphqlutil/graphiql.go:27:32: requestcontext
 /pkg/util/httproute/httproute.go:128:38: requestcontext
 /pkg/util/httputil/csp.go:158:42: requestcontext

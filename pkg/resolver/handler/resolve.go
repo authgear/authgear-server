@@ -6,6 +6,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/lib/userinfo"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -31,19 +32,14 @@ func NewResolveHandlerLogger(lf *log.Factory) ResolveHandlerLogger {
 	return ResolveHandlerLogger{lf.New("resolve-handler")}
 }
 
-type UserProvider interface {
-	Get(ctx context.Context, id string, role accesscontrol.Role) (*model.User, error)
-}
-
-type RolesAndGroupsProvider interface {
-	ListEffectiveRolesByUserID(ctx context.Context, userID string) ([]*model.Role, error)
+type UserInfoService interface {
+	GetUserInfo(ctx context.Context, userID string, role accesscontrol.Role) (*userinfo.UserInfo, error)
 }
 
 type ResolveHandler struct {
-	Database       Database
-	Logger         ResolveHandlerLogger
-	Users          UserProvider
-	RolesAndGroups RolesAndGroupsProvider
+	Database        Database
+	Logger          ResolveHandlerLogger
+	UserInfoService UserInfoService
 }
 
 func (h *ResolveHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
@@ -75,26 +71,17 @@ func (h *ResolveHandler) resolve(ctx context.Context, r *http.Request) (*model.S
 
 	var info *model.SessionInfo
 	if valid && userID != nil && s != nil {
-		user, err := h.Users.Get(ctx, *userID, accesscontrol.RoleGreatest)
-		if err != nil {
-			return nil, err
-		}
-
-		roles, err := h.RolesAndGroups.ListEffectiveRolesByUserID(ctx, *userID)
-		roleKeys := make([]string, len(roles))
-		for i := range roles {
-			roleKeys[i] = roles[i].Key
-		}
+		userInfo, err := h.UserInfoService.GetUserInfo(ctx, *userID, accesscontrol.RoleGreatest)
 		if err != nil {
 			return nil, err
 		}
 
 		info = session.NewInfo(
 			s,
-			user.IsAnonymous,
-			user.IsVerified,
-			user.CanReauthenticate,
-			roleKeys,
+			userInfo.User.IsAnonymous,
+			userInfo.User.IsVerified,
+			userInfo.User.CanReauthenticate,
+			userInfo.EffectiveRoleKeys,
 		)
 	} else if !valid {
 		info = &model.SessionInfo{IsValid: false}
