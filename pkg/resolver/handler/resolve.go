@@ -7,7 +7,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/userinfo"
-	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
@@ -33,7 +32,7 @@ func NewResolveHandlerLogger(lf *log.Factory) ResolveHandlerLogger {
 }
 
 type UserInfoService interface {
-	GetUserInfo(ctx context.Context, userID string, role accesscontrol.Role) (*userinfo.UserInfo, error)
+	GetUserInfoGreatest(ctx context.Context, userID string) (*userinfo.UserInfo, error)
 }
 
 type ResolveHandler struct {
@@ -71,7 +70,7 @@ func (h *ResolveHandler) resolve(ctx context.Context, r *http.Request) (*model.S
 
 	var info *model.SessionInfo
 	if valid && userID != nil && s != nil {
-		userInfo, err := h.UserInfoService.GetUserInfo(ctx, *userID, accesscontrol.RoleGreatest)
+		userInfo, err := h.UserInfoService.GetUserInfoGreatest(ctx, *userID)
 		if err != nil {
 			return nil, err
 		}

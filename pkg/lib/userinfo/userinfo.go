@@ -40,7 +40,15 @@ type UserInfoService struct {
 	RolesAndGroupsQueries RolesAndGroupsQueries
 }
 
-func (s *UserInfoService) GetUserInfo(ctx context.Context, userID string, role accesscontrol.Role) (*UserInfo, error) {
+func (s *UserInfoService) GetUserInfoGreatest(ctx context.Context, userID string) (*UserInfo, error) {
+	return s.getUserInfo(ctx, userID, accesscontrol.RoleGreatest)
+}
+
+func (s *UserInfoService) GetUserInfoBearer(ctx context.Context, userID string) (*UserInfo, error) {
+	return s.getUserInfo(ctx, userID, config.RoleBearer)
+}
+
+func (s *UserInfoService) getUserInfo(ctx context.Context, userID string, role accesscontrol.Role) (*UserInfo, error) {
 	cached, err := s.getUserInfoFromCache(ctx, userID, role)
 	if err != nil {
 		if !errors.Is(err, errCacheMiss) {

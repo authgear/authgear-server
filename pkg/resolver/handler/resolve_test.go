@@ -13,7 +13,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/lib/userinfo"
-	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 )
 
 func TestResolveHandler(t *testing.T) {
@@ -39,7 +38,7 @@ func TestResolveHandler(t *testing.T) {
 			r = r.WithContext(session.WithSession(r.Context(), s))
 
 			Convey("for normal user", func() {
-				userInfoService.EXPECT().GetUserInfo(r.Context(), "user-id", accesscontrol.RoleGreatest).Return(
+				userInfoService.EXPECT().GetUserInfoGreatest(r.Context(), "user-id").Return(
 					&userinfo.UserInfo{
 						User: &model.User{
 							IsAnonymous:       false,
@@ -66,7 +65,7 @@ func TestResolveHandler(t *testing.T) {
 			})
 
 			Convey("for anonymous user", func() {
-				userInfoService.EXPECT().GetUserInfo(r.Context(), "user-id", accesscontrol.RoleGreatest).Return(
+				userInfoService.EXPECT().GetUserInfoGreatest(r.Context(), "user-id").Return(
 					&userinfo.UserInfo{
 						User: &model.User{
 							IsAnonymous:       true,

@@ -9,7 +9,6 @@ import (
 	reflect "reflect"
 
 	userinfo "github.com/authgear/authgear-server/pkg/lib/userinfo"
-	accesscontrol "github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -73,17 +72,17 @@ func (m *MockUserInfoService) EXPECT() *MockUserInfoServiceMockRecorder {
 	return m.recorder
 }
 
-// GetUserInfo mocks base method.
-func (m *MockUserInfoService) GetUserInfo(ctx context.Context, userID string, role accesscontrol.Role) (*userinfo.UserInfo, error) {
+// GetUserInfoGreatest mocks base method.
+func (m *MockUserInfoService) GetUserInfoGreatest(ctx context.Context, userID string) (*userinfo.UserInfo, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetUserInfo", ctx, userID, role)
+	ret := m.ctrl.Call(m, "GetUserInfoGreatest", ctx, userID)
 	ret0, _ := ret[0].(*userinfo.UserInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetUserInfo indicates an expected call of GetUserInfo.
-func (mr *MockUserInfoServiceMockRecorder) GetUserInfo(ctx, userID, role interface{}) *gomock.Call {
+// GetUserInfoGreatest indicates an expected call of GetUserInfoGreatest.
+func (mr *MockUserInfoServiceMockRecorder) GetUserInfoGreatest(ctx, userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserInfo", reflect.TypeOf((*MockUserInfoService)(nil).GetUserInfo), ctx, userID, role)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserInfoGreatest", reflect.TypeOf((*MockUserInfoService)(nil).GetUserInfoGreatest), ctx, userID)
 }

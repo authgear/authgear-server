@@ -12,7 +12,6 @@ import (
 	oauth "github.com/authgear/authgear-server/pkg/lib/oauth"
 	idpsession "github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	userinfo "github.com/authgear/authgear-server/pkg/lib/userinfo"
-	accesscontrol "github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	gomock "github.com/golang/mock/gomock"
 	jwt "github.com/lestrrat-go/jwx/v2/jwt"
 )
@@ -40,19 +39,19 @@ func (m *MockUserInfoService) EXPECT() *MockUserInfoServiceMockRecorder {
 	return m.recorder
 }
 
-// GetUserInfo mocks base method.
-func (m *MockUserInfoService) GetUserInfo(ctx context.Context, userID string, role accesscontrol.Role) (*userinfo.UserInfo, error) {
+// GetUserInfoBearer mocks base method.
+func (m *MockUserInfoService) GetUserInfoBearer(ctx context.Context, userID string) (*userinfo.UserInfo, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetUserInfo", ctx, userID, role)
+	ret := m.ctrl.Call(m, "GetUserInfoBearer", ctx, userID)
 	ret0, _ := ret[0].(*userinfo.UserInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetUserInfo indicates an expected call of GetUserInfo.
-func (mr *MockUserInfoServiceMockRecorder) GetUserInfo(ctx, userID, role interface{}) *gomock.Call {
+// GetUserInfoBearer indicates an expected call of GetUserInfoBearer.
+func (mr *MockUserInfoServiceMockRecorder) GetUserInfoBearer(ctx, userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserInfo", reflect.TypeOf((*MockUserInfoService)(nil).GetUserInfo), ctx, userID, role)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserInfoBearer", reflect.TypeOf((*MockUserInfoService)(nil).GetUserInfoBearer), ctx, userID)
 }
 
 // MockBaseURLProvider is a mock of BaseURLProvider interface.

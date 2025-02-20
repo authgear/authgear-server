@@ -18,7 +18,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/lib/userinfo"
-	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/duration"
 	"github.com/authgear/authgear-server/pkg/util/jwtutil"
@@ -27,7 +26,7 @@ import (
 //go:generate mockgen -source=id_token.go -destination=id_token_mock_test.go -package oidc
 
 type UserInfoService interface {
-	GetUserInfo(ctx context.Context, userID string, role accesscontrol.Role) (*userinfo.UserInfo, error)
+	GetUserInfoBearer(ctx context.Context, userID string) (*userinfo.UserInfo, error)
 }
 
 type BaseURLProvider interface {
@@ -149,7 +148,7 @@ func (ti *IDTokenIssuer) VerifyIDToken(idToken string) (token jwt.Token, err err
 }
 
 func (ti *IDTokenIssuer) PopulateUserClaimsInIDToken(ctx context.Context, token jwt.Token, userID string, clientLike *oauth.ClientLike) error {
-	userInfo, err := ti.UserInfoService.GetUserInfo(ctx, userID, config.RoleBearer)
+	userInfo, err := ti.UserInfoService.GetUserInfoBearer(ctx, userID)
 	if err != nil {
 		return err
 	}
@@ -180,7 +179,7 @@ func (ti *IDTokenIssuer) PopulateUserClaimsInIDToken(ctx context.Context, token 
 }
 
 func (ti *IDTokenIssuer) GetUserInfo(ctx context.Context, userID string, clientLike *oauth.ClientLike) (map[string]interface{}, error) {
-	userInfo, err := ti.UserInfoService.GetUserInfo(ctx, userID, config.RoleBearer)
+	userInfo, err := ti.UserInfoService.GetUserInfoBearer(ctx, userID)
 	if err != nil {
 		return nil, err
 	}

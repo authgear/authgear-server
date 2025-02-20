@@ -67,7 +67,7 @@ func TestIDTokenIssuer(t *testing.T) {
 
 		mockUserInfoService := NewMockUserInfoService(ctrl)
 
-		mockUserInfoService.EXPECT().GetUserInfo(gomock.Any(), "user-id", gomock.Any()).Return(
+		mockUserInfoService.EXPECT().GetUserInfoBearer(gomock.Any(), "user-id").Return(
 			&userinfo.UserInfo{
 				User: &model.User{
 					IsAnonymous:       false,
