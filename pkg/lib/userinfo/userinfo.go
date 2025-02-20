@@ -22,7 +22,7 @@ var ttl = duration.PerMinute
 
 type UserInfo struct {
 	User              *model.User `json:"user,omitempty"`
-	EffectiveRoleKeys []string    `json:"effective_role_keys,omitempty"`
+	EffectiveRoleKeys []string    `json:"effective_role_keys"`
 }
 
 type RolesAndGroupsQueries interface {

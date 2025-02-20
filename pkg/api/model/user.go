@@ -16,13 +16,13 @@ type User struct {
 	IsAnonymized       bool                   `json:"is_anonymized"`
 	AnonymizeAt        *time.Time             `json:"anonymize_at,omitempty"`
 	CanReauthenticate  bool                   `json:"can_reauthenticate"`
-	StandardAttributes map[string]interface{} `json:"standard_attributes,omitempty"`
-	CustomAttributes   map[string]interface{} `json:"custom_attributes,omitempty"`
+	StandardAttributes map[string]interface{} `json:"standard_attributes"`
+	CustomAttributes   map[string]interface{} `json:"custom_attributes"`
 	// Web3 is kept for backwards compatibility purpose.
 	// It is always an empty map.
-	Web3                 map[string]interface{} `json:"x_web3,omitempty"`
-	Roles                []string               `json:"roles,omitempty"`
-	Groups               []string               `json:"groups,omitempty"`
+	Web3                 map[string]interface{} `json:"x_web3"`
+	Roles                []string               `json:"roles"`
+	Groups               []string               `json:"groups"`
 	MFAGracePeriodtEndAt *time.Time             `json:"mfa_grace_period_end_at,omitempty"`
 
 	EndUserAccountID string `json:"-"`
