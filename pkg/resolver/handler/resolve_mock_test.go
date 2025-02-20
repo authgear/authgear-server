@@ -9,86 +9,9 @@ import (
 	reflect "reflect"
 
 	model "github.com/authgear/authgear-server/pkg/api/model"
-	identity "github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	accesscontrol "github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	gomock "github.com/golang/mock/gomock"
 )
-
-// MockIdentityService is a mock of IdentityService interface.
-type MockIdentityService struct {
-	ctrl     *gomock.Controller
-	recorder *MockIdentityServiceMockRecorder
-}
-
-// MockIdentityServiceMockRecorder is the mock recorder for MockIdentityService.
-type MockIdentityServiceMockRecorder struct {
-	mock *MockIdentityService
-}
-
-// NewMockIdentityService creates a new mock instance.
-func NewMockIdentityService(ctrl *gomock.Controller) *MockIdentityService {
-	mock := &MockIdentityService{ctrl: ctrl}
-	mock.recorder = &MockIdentityServiceMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockIdentityService) EXPECT() *MockIdentityServiceMockRecorder {
-	return m.recorder
-}
-
-// ListByUser mocks base method.
-func (m *MockIdentityService) ListByUser(ctx context.Context, userID string) ([]*identity.Info, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListByUser", ctx, userID)
-	ret0, _ := ret[0].([]*identity.Info)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListByUser indicates an expected call of ListByUser.
-func (mr *MockIdentityServiceMockRecorder) ListByUser(ctx, userID interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByUser", reflect.TypeOf((*MockIdentityService)(nil).ListByUser), ctx, userID)
-}
-
-// MockVerificationService is a mock of VerificationService interface.
-type MockVerificationService struct {
-	ctrl     *gomock.Controller
-	recorder *MockVerificationServiceMockRecorder
-}
-
-// MockVerificationServiceMockRecorder is the mock recorder for MockVerificationService.
-type MockVerificationServiceMockRecorder struct {
-	mock *MockVerificationService
-}
-
-// NewMockVerificationService creates a new mock instance.
-func NewMockVerificationService(ctrl *gomock.Controller) *MockVerificationService {
-	mock := &MockVerificationService{ctrl: ctrl}
-	mock.recorder = &MockVerificationServiceMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockVerificationService) EXPECT() *MockVerificationServiceMockRecorder {
-	return m.recorder
-}
-
-// IsUserVerified mocks base method.
-func (m *MockVerificationService) IsUserVerified(ctx context.Context, identities []*identity.Info) (bool, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IsUserVerified", ctx, identities)
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// IsUserVerified indicates an expected call of IsUserVerified.
-func (mr *MockVerificationServiceMockRecorder) IsUserVerified(ctx, identities interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsUserVerified", reflect.TypeOf((*MockVerificationService)(nil).IsUserVerified), ctx, identities)
-}
 
 // MockDatabase is a mock of Database interface.
 type MockDatabase struct {

@@ -966,19 +966,31 @@ var (
 func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	handle := appProvider.AppDatabase
+	factory := appProvider.LoggerFactory
+	resolveHandlerLogger := handler.NewResolveHandlerLogger(factory)
 	appContext := appProvider.AppContext
 	config := appContext.Config
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	appConfig := config.AppConfig
+	appID := appConfig.ID
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	sqlExecutor := appdb.NewSQLExecutor(handle)
+	clockClock := _wireSystemClockValue
+	store := &user.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+		AppID:       appID,
+	}
+	rawQueries := &user.RawQueries{
+		Store: store,
+	}
 	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
 	featureConfig := config.FeatureConfig
 	identityFeatureConfig := featureConfig.Identity
-	secretConfig := config.SecretConfig
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	appID := appConfig.ID
-	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	sqlExecutor := appdb.NewSQLExecutor(handle)
-	store := &service.Store{
+	serviceStore := &service.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -1001,7 +1013,6 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 	normalizerFactory := &loginid.NormalizerFactory{
 		Config: loginIDConfig,
 	}
-	clockClock := _wireSystemClockValue
 	provider := &loginid.Provider{
 		Store:             loginidStore,
 		Config:            loginIDConfig,
@@ -1114,7 +1125,7 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
 		IdentityFeatureConfig: identityFeatureConfig,
-		Store:                 store,
+		Store:                 serviceStore,
 		LoginID:               provider,
 		OAuth:                 oauthProvider,
 		Anonymous:             anonymousProvider,
@@ -1123,30 +1134,7 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		SIWE:                  siweProvider,
 		LDAP:                  ldapProvider,
 	}
-	verificationConfig := appConfig.Verification
-	userProfileConfig := appConfig.UserProfile
-	storePQ := &verification.StorePQ{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-	}
-	verificationService := &verification.Service{
-		Config:            verificationConfig,
-		UserProfileConfig: userProfileConfig,
-		Clock:             clockClock,
-		ClaimStore:        storePQ,
-	}
-	factory := appProvider.LoggerFactory
-	resolveHandlerLogger := handler.NewResolveHandlerLogger(factory)
-	userStore := &user.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-		AppID:       appID,
-	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
-	serviceStore := &service2.Store{
+	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -1181,12 +1169,12 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		Expiry:          expiry,
 		Housekeeper:     housekeeper,
 	}
-	store3 := &passkey3.Store{
+	store4 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	provider2 := &passkey3.Provider{
-		Store:   store3,
+		Store:   store4,
 		Clock:   clockClock,
 		Passkey: passkeyService,
 	}
@@ -1270,7 +1258,7 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
-		Store:          serviceStore,
+		Store:          store3,
 		Config:         appConfig,
 		Password:       passwordProvider,
 		Passkey:        provider2,
@@ -1279,6 +1267,18 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService: otpService,
 		RateLimits:     rateLimits,
 		Lockout:        serviceLockout,
+	}
+	verificationConfig := appConfig.Verification
+	userProfileConfig := appConfig.UserProfile
+	storePQ := &verification.StorePQ{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	verificationService := &verification.Service{
+		Config:            verificationConfig,
+		UserProfileConfig: userProfileConfig,
+		Clock:             clockClock,
+		ClaimStore:        storePQ,
 	}
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs2.PictureTransformer{
@@ -1290,14 +1290,14 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         userStore,
+		UserStore:         store,
 		ClaimStore:        storePQ,
 		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
 		UserQueries: rawQueries,
-		UserStore:   userStore,
+		UserStore:   store,
 	}
 	rolesgroupsStore := &rolesgroups.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -1309,7 +1309,7 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 	}
 	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
-		Store:              userStore,
+		Store:              store,
 		Identities:         serviceService,
 		Authenticators:     service3,
 		Verification:       verificationService,
@@ -1319,8 +1319,6 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 	}
 	resolveHandler := &handler.ResolveHandler{
 		Database:       handle,
-		Identities:     serviceService,
-		Verification:   verificationService,
 		Logger:         resolveHandlerLogger,
 		Users:          userQueries,
 		RolesAndGroups: queries,

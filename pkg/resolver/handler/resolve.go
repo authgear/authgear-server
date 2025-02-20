@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
-	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -21,14 +20,6 @@ func ConfigureResolveRoute(route httproute.Route) []httproute.Route {
 }
 
 //go:generate mockgen -source=resolve.go -destination=resolve_mock_test.go -package handler
-
-type IdentityService interface {
-	ListByUser(ctx context.Context, userID string) ([]*identity.Info, error)
-}
-
-type VerificationService interface {
-	IsUserVerified(ctx context.Context, identities []*identity.Info) (bool, error)
-}
 
 type Database interface {
 	ReadOnly(ctx context.Context, do func(ctx context.Context) error) error
@@ -50,8 +41,6 @@ type RolesAndGroupsProvider interface {
 
 type ResolveHandler struct {
 	Database       Database
-	Identities     IdentityService
-	Verification   VerificationService
 	Logger         ResolveHandlerLogger
 	Users          UserProvider
 	RolesAndGroups RolesAndGroupsProvider
@@ -86,30 +75,10 @@ func (h *ResolveHandler) resolve(ctx context.Context, r *http.Request) (*model.S
 
 	var info *model.SessionInfo
 	if valid && userID != nil && s != nil {
-		identities, err := h.Identities.ListByUser(ctx, *userID)
-		if err != nil {
-			return nil, err
-		}
-
-		isAnonymous := false
-		for _, i := range identities {
-			if i.Type == model.IdentityTypeAnonymous {
-				isAnonymous = true
-				break
-			}
-		}
-
-		isVerified, err := h.Verification.IsUserVerified(ctx, identities)
-		if err != nil {
-			return nil, err
-		}
-
 		user, err := h.Users.Get(ctx, *userID, accesscontrol.RoleGreatest)
 		if err != nil {
 			return nil, err
 		}
-
-		userCanReauthenticate := user.CanReauthenticate
 
 		roles, err := h.RolesAndGroups.ListEffectiveRolesByUserID(ctx, *userID)
 		roleKeys := make([]string, len(roles))
@@ -120,7 +89,13 @@ func (h *ResolveHandler) resolve(ctx context.Context, r *http.Request) (*model.S
 			return nil, err
 		}
 
-		info = session.NewInfo(s, isAnonymous, isVerified, userCanReauthenticate, roleKeys)
+		info = session.NewInfo(
+			s,
+			user.IsAnonymous,
+			user.IsVerified,
+			user.CanReauthenticate,
+			roleKeys,
+		)
 	} else if !valid {
 		info = &model.SessionInfo{IsValid: false}
 	}

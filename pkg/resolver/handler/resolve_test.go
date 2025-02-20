@@ -9,7 +9,6 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
-	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
@@ -21,15 +20,11 @@ func TestResolveHandler(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		identities := NewMockIdentityService(ctrl)
-		verificationService := NewMockVerificationService(ctrl)
 		database := &db.MockHandle{}
 		user := NewMockUserProvider(ctrl)
 		roleAndGroup := NewMockRolesAndGroupsProvider(ctrl)
 		h := &ResolveHandler{
 			Database:       database,
-			Identities:     identities,
-			Verification:   verificationService,
 			Users:          user,
 			RolesAndGroups: roleAndGroup,
 		}
@@ -45,12 +40,9 @@ func TestResolveHandler(t *testing.T) {
 			r = r.WithContext(session.WithSession(r.Context(), s))
 
 			Convey("for normal user", func() {
-				userIdentities := []*identity.Info{
-					{Type: model.IdentityTypeLoginID},
-				}
-				identities.EXPECT().ListByUser(r.Context(), "user-id").Return(userIdentities, nil)
-				verificationService.EXPECT().IsUserVerified(r.Context(), userIdentities).Return(true, nil)
 				userInfo := model.User{
+					IsAnonymous:       false,
+					IsVerified:        true,
 					CanReauthenticate: true,
 				}
 				user.EXPECT().Get(r.Context(), "user-id", accesscontrol.RoleGreatest).Return(&userInfo, nil)
@@ -72,13 +64,9 @@ func TestResolveHandler(t *testing.T) {
 			})
 
 			Convey("for anonymous user", func() {
-				userIdentities := []*identity.Info{
-					{Type: model.IdentityTypeAnonymous},
-					{Type: model.IdentityTypeLoginID},
-				}
-				identities.EXPECT().ListByUser(r.Context(), "user-id").Return(userIdentities, nil)
-				verificationService.EXPECT().IsUserVerified(r.Context(), userIdentities).Return(false, nil)
 				userInfo := model.User{
+					IsAnonymous:       true,
+					IsVerified:        false,
 					CanReauthenticate: false,
 				}
 				user.EXPECT().Get(r.Context(), "user-id", accesscontrol.RoleGreatest).Return(&userInfo, nil)
