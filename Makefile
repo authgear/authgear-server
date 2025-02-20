@@ -223,11 +223,10 @@ graphiql:
 once/Dockerfile:
 	rm -f $@
 	touch $@
-	echo "# syntax=docker/dockerfile:1" >> $@
+	cat ./once/opening.dockerfile >> $@
 	printf "\n" >> $@
-	echo "# THIS FILE IS GENERATED. DO NOT EDIT!" >> $@
-	sed -e '/^# syntax=/d' -e 's,^RUN make build ,RUN make build AUTHGEARONCE=1 ,' ./cmd/authgear/Dockerfile >> $@
+	sed -e '/^# syntax=/d' ./cmd/authgear/Dockerfile >> $@
 	printf "\n" >> $@
-	sed -e '/^# syntax=/d' -e 's,^RUN make build ,RUN make build AUTHGEARONCE=1 ,' ./cmd/portal/Dockerfile >> $@
+	sed -e '/^# syntax=/d' ./cmd/portal/Dockerfile >> $@
 	printf "\n" >> $@
 	sed -e '/^# syntax=/d' ./once/partial.dockerfile >> $@

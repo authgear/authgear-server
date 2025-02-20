@@ -2,9 +2,13 @@
 
 # THIS FILE IS GENERATED. DO NOT EDIT!
 
+# Use ARG instead of ENV to avoid persisting AUTHGEARONCE in the final image.
+# Note that the stage MUST write `ARG AUTHGEARONCE` in order to "see" this definition.
+ARG AUTHGEARONCE=1
+
+
 # Stage 0: Build the static files
 FROM --platform=$BUILDPLATFORM node:20.9.0-bookworm AS authgear-stage-0
-ARG GIT_HASH
 WORKDIR /usr/src/app
 COPY ./authui/package.json ./authui/package-lock.json ./authui/
 # See /authui/README.md for the reason why we need to copy tarballs.
@@ -15,7 +19,7 @@ COPY ./resources/ ./resources/
 COPY ./authui/ ./authui/
 COPY ./makefiles/ ./makefiles/
 COPY Makefile .
-RUN make authui GIT_HASH=$GIT_HASH
+RUN make authui
 
 # Stage 1: Build the Go binary
 FROM quay.io/theauthgear/golang:1.23.6-noble AS authgear-stage-1
@@ -30,7 +34,6 @@ RUN set -eux; \
         libmagic-dev; \
     rm -rf /var/lib/apt/lists/*
 
-ARG GIT_HASH
 WORKDIR /src
 COPY go.mod go.sum ./
 RUN go mod download
@@ -43,7 +46,10 @@ COPY ./pkg/ ./pkg/
 COPY ./custombuild/ ./custombuild/
 # Let //go:embed to embed the built static files
 COPY --from=authgear-stage-0 /usr/src/app/resources/authgear/ ./resources/authgear/
-RUN make build AUTHGEARONCE=1 BIN_NAME=authgear TARGET=authgear GIT_HASH=$GIT_HASH
+ARG GIT_HASH
+ARG AUTHGEARONCE
+ARG AUTHGEARLITE
+RUN make build BIN_NAME=authgear TARGET=authgear
 
 # We used to build static binary.
 # But we have a transitive dependency on icu4c so this is no longer the case.
@@ -99,7 +105,6 @@ CMD ["authgear", "start"]
 
 # Stage 0: Build the static files
 FROM --platform=$BUILDPLATFORM node:20.9.0-bookworm AS authgear-portal-stage-0
-ARG GIT_HASH
 WORKDIR /usr/src/app
 COPY ./authui/package.json ./authui/package-lock.json ./authui/
 # See /authui/README.md for the reason why we need to copy tarballs.
@@ -110,11 +115,10 @@ COPY ./resources/ ./resources/
 COPY ./authui/ ./authui/
 COPY ./makefiles/ ./makefiles/
 COPY Makefile .
-RUN make authui GIT_HASH=$GIT_HASH
+RUN make authui
 
 # Stage 1: Build the portal static files
 FROM --platform=$BUILDPLATFORM node:20.9.0-bookworm AS authgear-portal-stage-1
-ARG GIT_HASH
 # If the working directory is /src, Parcel will have some problem with it.
 WORKDIR /usr/src/app
 COPY ./portal/package.json ./portal/package-lock.json ./
@@ -137,7 +141,6 @@ RUN set -eux; \
         libmagic-dev; \
     rm -rf /var/lib/apt/lists/*
 
-ARG GIT_HASH
 WORKDIR /src
 COPY go.mod go.sum ./
 RUN go mod download
@@ -151,7 +154,10 @@ COPY ./custombuild/ ./custombuild/
 # Let //go:embed to embed the built static files
 COPY --from=authgear-portal-stage-0 /usr/src/app/resources/authgear/ ./resources/authgear/
 COPY --from=authgear-portal-stage-1 /usr/src/app/dist/ ./resources/portal/static/
-RUN make build AUTHGEARONCE=1 BIN_NAME=authgear-portal TARGET=portal GIT_HASH=$GIT_HASH
+ARG GIT_HASH
+ARG AUTHGEARONCE
+ARG AUTHGEARLITE
+RUN make build BIN_NAME=authgear-portal TARGET=portal
 
 # We used to build static binary.
 # But we have a transitive dependency on icu4c so this is no longer the case.
