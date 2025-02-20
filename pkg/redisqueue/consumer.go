@@ -277,7 +277,7 @@ func (c *Consumer) work(ctx context.Context) {
 		}
 	}
 
-	ctx, task, appProvider, err := c.dequeue(ctx)
+	appCtx, task, appProvider, err := c.dequeue(ctx)
 	if errors.Is(err, errNoTask) {
 		// There is actually no task.
 		// Cancel the reservation
@@ -300,7 +300,7 @@ func (c *Consumer) work(ctx context.Context) {
 	// Reset backoff when we can dequeue.
 	c.dequeueBackoff.Reset()
 
-	output, err := c.process(ctx, task, appProvider)
+	output, err := c.process(appCtx, task, appProvider)
 
 	if err != nil {
 		c.logger.WithFields(map[string]interface{}{
