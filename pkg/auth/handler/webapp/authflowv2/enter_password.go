@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -64,7 +65,7 @@ func NewAuthflowEnterPasswordViewModel(ctx context.Context, s *webapp.Session, s
 	if loginID, ok := handlerwebapp.FindLoginIDInPreviousInput(s, screen.Screen.StateToken.XStep); ok {
 		passwordManagerUsername = loginID
 
-		phoneFormat := validation.FormatPhone{}
+		phoneFormat := config.FormatPhone{}
 		emailFormat := validation.FormatEmail{AllowName: false}
 
 		if err := phoneFormat.CheckFormat(ctx, loginID); err == nil {

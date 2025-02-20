@@ -305,7 +305,7 @@ func (c *PhoneChecker) Validate(ctx context.Context, validationCtx *validation.C
 		return
 	}
 
-	err = parsed.Require_IsPossibleNumber_IsValidNumber_UserInputInE164()
+	err = config.FormatPhone{}.CheckFormat(ctx, parsed.E164)
 	if err != nil {
 		validationCtx.EmitError("format", map[string]interface{}{"format": "phone"})
 		return
