@@ -8,7 +8,7 @@ import (
 )
 
 type AppContextResolver interface {
-	ResolveContext(ctx context.Context, appID string) (context.Context, *config.AppContext, error)
+	ResolveContext(ctx context.Context, appID string, fn func(context.Context, *config.AppContext) error) error
 }
 
 type UserService interface {
@@ -38,20 +38,21 @@ func (r *Runnable) Run(ctx context.Context) error {
 		return err
 	}
 	for _, appUser := range appUsers {
-		var appContext *config.AppContext
-		ctx, appContext, err = r.AppContextResolver.ResolveContext(ctx, appUser.AppID)
+		err = r.AppContextResolver.ResolveContext(ctx, appUser.AppID, func(ctx context.Context, appCtx *config.AppContext) error {
+			userService := r.UserServiceFactory.MakeUserService(appUser.AppID, appCtx)
+			err = userService.AnonymizeFromScheduledAnonymization(ctx, appUser.UserID)
+			if err != nil {
+				return err
+			}
+			r.Logger.WithFields(map[string]interface{}{
+				"app_id":  appUser.AppID,
+				"user_id": appUser.UserID,
+			}).Infof("executed scheduled account anonymization")
+			return nil
+		})
 		if err != nil {
 			return err
 		}
-		userService := r.UserServiceFactory.MakeUserService(appUser.AppID, appContext)
-		err = userService.AnonymizeFromScheduledAnonymization(ctx, appUser.UserID)
-		if err != nil {
-			return err
-		}
-		r.Logger.WithFields(map[string]interface{}{
-			"app_id":  appUser.AppID,
-			"user_id": appUser.UserID,
-		}).Infof("executed scheduled account anonymization")
 	}
 	return nil
 }

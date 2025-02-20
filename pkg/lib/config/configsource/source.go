@@ -12,7 +12,7 @@ type AppIDResolver interface {
 }
 
 type ContextResolver interface {
-	ResolveContext(ctx context.Context, appID string) (context.Context, *config.AppContext, error)
+	ResolveContext(ctx context.Context, appID string, fn func(context.Context, *config.AppContext) error) error
 }
 
 type Handle interface {
@@ -26,12 +26,12 @@ type ConfigSource struct {
 	ContextResolver ContextResolver
 }
 
-func (s *ConfigSource) ProvideContext(ctx context.Context, r *http.Request) (context.Context, *config.AppContext, error) {
+func (s *ConfigSource) ProvideContext(ctx context.Context, r *http.Request, fn func(context.Context, *config.AppContext) error) error {
 	appID, err := s.AppIDResolver.ResolveAppID(ctx, r)
 	if err != nil {
-		return nil, nil, err
+		return err
 	}
-	return s.ContextResolver.ResolveContext(ctx, appID)
+	return s.ContextResolver.ResolveContext(ctx, appID, fn)
 }
 
 type Controller struct {
@@ -84,6 +84,6 @@ func (c *Controller) GetConfigSource() *ConfigSource {
 
 // ResolveContext allows direct resolution from appID.
 // It is useful when you get appID somewhere else, rather than from a HTTP request.
-func (c *Controller) ResolveContext(ctx context.Context, appID string) (context.Context, *config.AppContext, error) {
-	return c.ContextResolver.ResolveContext(ctx, appID)
+func (c *Controller) ResolveContext(ctx context.Context, appID string, fn func(context.Context, *config.AppContext) error) error {
+	return c.ContextResolver.ResolveContext(ctx, appID, fn)
 }

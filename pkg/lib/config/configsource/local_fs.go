@@ -161,11 +161,11 @@ func (s *LocalFS) ResolveAppID(ctx context.Context, r *http.Request) (appID stri
 	return
 }
 
-func (s *LocalFS) ResolveContext(ctx context.Context, _appID string) (context.Context, *config.AppContext, error) {
+func (s *LocalFS) ResolveContext(ctx context.Context, _appID string, fn func(context.Context, *config.AppContext) error) error {
 	// In single mode, appID is ignored.
 	appCtx := s.config.Load().(*config.AppContext)
 	ctx = config.WithAppContext(ctx, appCtx)
-	return ctx, appCtx, nil
+	return fn(ctx, appCtx)
 }
 
 func (s *LocalFS) ReloadApp(ctx context.Context, appID string) {

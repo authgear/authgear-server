@@ -45,12 +45,15 @@ type PortalAdminAPIAuthContext struct {
 	HTTPReferer string `json:"http_referer,omitempty"`
 }
 
-func (s *AdminAPIService) ResolveConfig(ctx context.Context, appID string) (*config.Config, error) {
-	_, appCtx, err := s.ConfigSource.ContextResolver.ResolveContext(ctx, appID)
+func (s *AdminAPIService) ResolveConfig(ctx context.Context, appID string) (cfg *config.Config, err error) {
+	err = s.ConfigSource.ContextResolver.ResolveContext(ctx, appID, func(ctx context.Context, ac *config.AppContext) error {
+		cfg = ac.Config
+		return nil
+	})
 	if err != nil {
-		return nil, err
+		return
 	}
-	return appCtx.Config, nil
+	return
 }
 
 func (s *AdminAPIService) ResolveEndpoint(appID string) (*url.URL, error) {
