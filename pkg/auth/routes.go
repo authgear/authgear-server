@@ -14,7 +14,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
-	"github.com/authgear/authgear-server/pkg/util/httproute/httprouteotel"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
@@ -40,7 +39,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) ht
 		return p.Middleware(newAllSessionMiddleware)
 	}
 
-	router := httprouteotel.NewOTelRouter(httproute.NewRouter())
+	router := httproute.NewRouter()
 
 	router.Add(httproute.Route{
 		Methods:     []string{"GET"},

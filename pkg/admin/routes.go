@@ -10,12 +10,11 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
-	"github.com/authgear/authgear-server/pkg/util/httproute/httprouteotel"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource, auth config.AdminAPIAuth) http.Handler {
-	router := httprouteotel.NewOTelRouter(httproute.NewRouter())
+	router := httproute.NewRouter()
 
 	router.Add(httproute.Route{
 		Methods:     []string{"GET"},
