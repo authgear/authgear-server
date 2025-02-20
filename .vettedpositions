@@ -46,7 +46,7 @@
 /pkg/auth/handler/webapp/authflow_controller.go:1012:19: requestcontext
 /pkg/auth/handler/webapp/authflow_create_password.go:132:26: requestcontext
 /pkg/auth/handler/webapp/authflow_enter_oob_otp.go:156:26: requestcontext
-/pkg/auth/handler/webapp/authflow_enter_password.go:138:26: requestcontext
+/pkg/auth/handler/webapp/authflow_enter_password.go:139:26: requestcontext
 /pkg/auth/handler/webapp/authflow_enter_recovery_code.go:90:26: requestcontext
 /pkg/auth/handler/webapp/authflow_enter_totp.go:88:26: requestcontext
 /pkg/auth/handler/webapp/authflow_finish_flow.go:35:33: requestcontext
@@ -74,7 +74,7 @@
 /pkg/auth/handler/webapp/authflowv2/change_password_success.go:65:33: requestcontext
 /pkg/auth/handler/webapp/authflowv2/create_password.go:179:26: requestcontext
 /pkg/auth/handler/webapp/authflowv2/enter_oob_otp.go:222:26: requestcontext
-/pkg/auth/handler/webapp/authflowv2/enter_password.go:183:26: requestcontext
+/pkg/auth/handler/webapp/authflowv2/enter_password.go:184:26: requestcontext
 /pkg/auth/handler/webapp/authflowv2/enter_recovery_code.go:113:26: requestcontext
 /pkg/auth/handler/webapp/authflowv2/enter_totp.go:132:26: requestcontext
 /pkg/auth/handler/webapp/authflowv2/error.go:65:33: requestcontext
@@ -156,7 +156,7 @@
 /pkg/auth/handler/webapp/enter_login_id.go:144:27: requestcontext
 /pkg/auth/handler/webapp/enter_login_id.go:146:31: requestcontext
 /pkg/auth/handler/webapp/enter_oob_otp.go:161:27: requestcontext
-/pkg/auth/handler/webapp/enter_password.go:118:27: requestcontext
+/pkg/auth/handler/webapp/enter_password.go:119:27: requestcontext
 /pkg/auth/handler/webapp/enter_recovery_code.go:68:27: requestcontext
 /pkg/auth/handler/webapp/enter_totp.go:68:27: requestcontext
 /pkg/auth/handler/webapp/error.go:42:27: requestcontext
@@ -262,10 +262,6 @@
 /pkg/auth/webapp/wechat_redirect_uri_middleware.go:59:31: requestcontext
 /pkg/auth/webapp/x_color_scheme.go:74:27: requestcontext
 /pkg/images/deps/context.go:23:10: requestcontext
-/pkg/images/deps/middleware_request.go:27:48: requestcontext
-/pkg/images/deps/middleware_request.go:38:39: requestcontext
-/pkg/images/deps/middleware_request.go:39:34: requestcontext
-/pkg/images/deps/middleware_request.go:41:29: requestcontext
 /pkg/auth/handler/webapp/app_static_assets.go:39:33: requestcontext
 /pkg/portal/transport/system_config_handler.go:28:10: requestcontext
 /pkg/images/handler/post.go:67:9: requestcontext
@@ -279,10 +275,6 @@
 /pkg/lib/config/contextbackground.go:11:52: contextbackground
 /pkg/lib/deps/context.go:23:10: requestcontext
 /pkg/lib/deps/contextbackground.go:10:28: contextbackground
-/pkg/lib/deps/middleware_request.go:39:48: requestcontext
-/pkg/lib/deps/middleware_request.go:55:39: requestcontext
-/pkg/lib/deps/middleware_request.go:56:34: requestcontext
-/pkg/lib/deps/middleware_request.go:58:29: requestcontext
 /pkg/lib/deps/providers.go:179:25: requestcontext
 /pkg/lib/dpop/middleware.go:45:35: requestcontext
 /pkg/lib/healthz/healthz.go:27:23: requestcontext
@@ -322,3 +314,11 @@
 /pkg/util/sentry/request.go:25:9: requestcontext
 /pkg/util/template/engine.go:308:9: requestcontext
 /pkg/util/httputil/json.go:96:9: requestcontext
+/pkg/lib/deps/middleware_request.go:41:40: requestcontext
+/pkg/lib/deps/middleware_request.go:44:40: requestcontext
+/pkg/lib/deps/middleware_request.go:45:35: requestcontext
+/pkg/lib/deps/middleware_request.go:47:30: requestcontext
+/pkg/images/deps/middleware_request.go:29:40: requestcontext
+/pkg/images/deps/middleware_request.go:32:40: requestcontext
+/pkg/images/deps/middleware_request.go:33:35: requestcontext
+/pkg/images/deps/middleware_request.go:35:30: requestcontext
