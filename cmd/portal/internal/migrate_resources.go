@@ -15,7 +15,7 @@ type MigrateResourcesOptions struct {
 	DatabaseURL            string
 	DatabaseSchema         string
 	DryRun                 *bool
-	UpdateConfigSourceFunc func(appID string, configSourceData map[string]string, DryRun bool) error
+	UpdateConfigSourceFunc func(ctx context.Context, appID string, configSourceData map[string]string, DryRun bool) error
 }
 
 // nolint: gocognit
@@ -39,7 +39,7 @@ func MigrateResources(ctx context.Context, opt *MigrateResourcesOptions) {
 			original[k] = v
 		}
 
-		if err := opt.UpdateConfigSourceFunc(c.AppID, c.Data, dryRun); err != nil {
+		if err := opt.UpdateConfigSourceFunc(ctx, c.AppID, c.Data, dryRun); err != nil {
 			log.Fatalf("failed to convert resources: %s, %s", c.AppID, err)
 		}
 

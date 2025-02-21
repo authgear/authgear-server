@@ -1,6 +1,7 @@
 package cmdinternal
 
 import (
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -44,7 +45,7 @@ var cmdInternalMigrateOctetKey = &cobra.Command{
 }
 
 //nolint:gocognit
-func migrateOctetKey(appID string, configSourceData map[string]string, dryRun bool) error {
+func migrateOctetKey(ctx context.Context, appID string, configSourceData map[string]string, dryRun bool) error {
 	encodedData := configSourceData["authgear.secrets.yaml"]
 	decoded, err := base64.StdEncoding.DecodeString(encodedData)
 	if err != nil {

@@ -1,6 +1,7 @@
 package cmdinternal
 
 import (
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -24,7 +25,7 @@ func TestMigrateSetDefaultLogoHeight(t *testing.T) {
 			if err != nil {
 				panic(err)
 			}
-			err = migrateSetDefaultLogoHeight("dummy-app-id", src, false)
+			err = migrateSetDefaultLogoHeight(context.Background(), "dummy-app-id", src, false)
 			So(err, ShouldResemble, expectedErr)
 			So(src, ShouldResemble, expectedOutput) // src was modified in-place
 		}

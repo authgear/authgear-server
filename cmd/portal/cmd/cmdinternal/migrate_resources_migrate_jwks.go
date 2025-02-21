@@ -1,6 +1,7 @@
 package cmdinternal
 
 import (
+	"context"
 	"encoding/base64"
 	"fmt"
 	"log"
@@ -59,7 +60,7 @@ func ensureUseSig(data map[interface{}]interface{}) map[interface{}]interface{} 
 	return data
 }
 
-func migrateResourcesJWKs(appID string, configSourceData map[string]string, DryRun bool) error {
+func migrateResourcesJWKs(ctx context.Context, appID string, configSourceData map[string]string, DryRun bool) error {
 	encodedData := configSourceData["authgear.secrets.yaml"]
 	decoded, err := base64.StdEncoding.DecodeString(encodedData)
 	if err != nil {

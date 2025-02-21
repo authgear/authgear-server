@@ -1,6 +1,7 @@
 package cmdinternal
 
 import (
+	"context"
 	"encoding/base64"
 	"fmt"
 	"log"
@@ -39,7 +40,7 @@ var cmdInternalMigrateRemoveWeb3 = &cobra.Command{
 	},
 }
 
-func migrateRemoveWeb3(appID string, configSourceData map[string]string, dryRun bool) error {
+func migrateRemoveWeb3(ctx context.Context, appID string, configSourceData map[string]string, dryRun bool) error {
 	err := migrateRemoveWeb3_authgear_yaml(appID, configSourceData, dryRun)
 	if err != nil {
 		return err

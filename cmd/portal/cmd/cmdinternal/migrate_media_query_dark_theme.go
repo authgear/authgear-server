@@ -2,6 +2,7 @@ package cmdinternal
 
 import (
 	"bytes"
+	"context"
 	"encoding/base64"
 	"fmt"
 	"log"
@@ -37,7 +38,7 @@ var cmdInternalMigrateMediaQueryDarkTheme = &cobra.Command{
 	},
 }
 
-func migrateMediaQueryDarkTheme(appID string, configSourceData map[string]string, dryRun bool) error {
+func migrateMediaQueryDarkTheme(ctx context.Context, appID string, configSourceData map[string]string, dryRun bool) error {
 	originalPath := "static/authgear-dark-theme.css"
 	escapedPath := filepathutil.EscapePath(originalPath)
 	encodedData, ok := configSourceData[escapedPath]

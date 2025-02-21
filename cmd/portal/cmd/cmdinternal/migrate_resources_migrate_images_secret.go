@@ -1,6 +1,7 @@
 package cmdinternal
 
 import (
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -45,7 +46,7 @@ var cmdInternalMigrateImagesSecret = &cobra.Command{
 	},
 }
 
-func migrateImagesSecret(appID string, configSourceData map[string]string, dryRun bool) error {
+func migrateImagesSecret(ctx context.Context, appID string, configSourceData map[string]string, dryRun bool) error {
 	encodedData := configSourceData["authgear.secrets.yaml"]
 	decoded, err := base64.StdEncoding.DecodeString(encodedData)
 	if err != nil {
