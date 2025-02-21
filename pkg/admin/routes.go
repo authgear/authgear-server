@@ -19,9 +19,9 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource, au
 	router.Health(p.RootHandler(newHealthzHandler))
 
 	chain := httproute.Chain(
+		p.RootMiddleware(newOtelMiddleware),
 		p.RootMiddleware(newPanicMiddleware),
 		p.RootMiddleware(newBodyLimitMiddleware),
-		p.RootMiddleware(newOtelMiddleware),
 		p.RootMiddleware(newSentryMiddleware),
 
 		httproute.MiddlewareFunc(httputil.NoStore),

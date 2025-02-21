@@ -94,7 +94,9 @@ func (m *PanicMiddleware) Handle(next http.Handler) http.Handler {
 							panic(fmt.Errorf("unexpected ui implementation %s", uiImpl))
 						}
 
-						m.Renderer.RenderHTML(w, r, errorHTML, data)
+						// Previously the status code is 200.
+						// But that was wrong, we should use the status code of the API error.
+						m.Renderer.RenderHTMLStatus(w, r, apiError.Code, errorHTML, data)
 					default:
 						r.URL.Path = m.Endpoints.ErrorEndpointURL().Path
 						result := &webapp.Result{

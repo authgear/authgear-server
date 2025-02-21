@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/felixge/httpsnoop"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/semconv/v1.27.0"
@@ -60,8 +59,7 @@ func HTTPURLScheme(scheme string) attribute.KeyValue {
 }
 
 // HTTPResponseStatusCode implements https://opentelemetry.io/docs/specs/semconv/attributes-registry/http/#http-response-status-code
-func HTTPResponseStatusCode(metrics httpsnoop.Metrics) attribute.KeyValue {
-	statusCode := metrics.Code
+func HTTPResponseStatusCode(statusCode int) attribute.KeyValue {
 	return semconv.HTTPResponseStatusCode(statusCode)
 }
 

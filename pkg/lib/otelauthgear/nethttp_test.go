@@ -2,6 +2,7 @@ package otelauthgear
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -9,6 +10,10 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/metric/embedded"
+
+	"github.com/authgear/authgear-server/pkg/util/otelutil"
 )
 
 func TestLabeler(t *testing.T) {
@@ -35,5 +40,70 @@ func TestLabeler(t *testing.T) {
 
 		h := middleware(http.HandlerFunc(handler))
 		h.ServeHTTP(w, r)
+	})
+}
+
+type mockFloat64Histogram struct {
+	embedded.Float64Histogram
+	called  bool
+	options []metric.RecordOption
+}
+
+var _ metric.Float64Histogram = (*mockFloat64Histogram)(nil)
+
+func (h *mockFloat64Histogram) Record(ctx context.Context, incr float64, options ...metric.RecordOption) {
+	h.called = true
+	h.options = options
+}
+
+func TestHTTPInstrumentationMiddleware(t *testing.T) {
+	Convey("HTTPInstrumentationMiddleware", t, func() {
+		mock := &mockFloat64Histogram{}
+
+		original := HTTPServerRequestDurationHistogram
+		HTTPServerRequestDurationHistogram = mock
+		defer func() {
+			HTTPServerRequestDurationHistogram = original
+		}()
+
+		m := &HTTPInstrumentationMiddleware{}
+
+		test := func(h http.Handler, called bool) {
+			w := httptest.NewRecorder()
+			r := httptest.NewRequestWithContext(context.Background(), "GET", "/", nil)
+			h = m.Handle(h)
+			h.ServeHTTP(w, r)
+			So(mock.called, ShouldEqual, called)
+		}
+
+		Convey("does not record if http.route is undefined", func() {
+			test(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}), false)
+		})
+
+		Convey("record if http.route is defined", func() {
+			test(otelutil.WithHTTPRoute("/myroute", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			})), true)
+		})
+
+		Convey("record if the handler handles the panic", func() {
+			test(otelutil.WithHTTPRoute("/myroute", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				defer func() {
+					if r := recover(); r != nil {
+						// recover
+					}
+				}()
+				panic(errors.New("panic"))
+			})), true)
+		})
+
+		Convey("record even if the handler does not handle the panic", func() {
+			err := errors.New("panic")
+
+			So(func() {
+				test(otelutil.WithHTTPRoute("/myroute", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					panic(err)
+				})), true)
+			}, ShouldPanicWith, err)
+		})
 	})
 }
