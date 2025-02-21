@@ -101,8 +101,7 @@ func (d AuthgearYAMLDescriptor) ViewResources(ctx context.Context, resources []r
 			return nil, err
 		}
 
-		// FIXME: the context should be passed from the caller
-		appConfig, err := config.Parse(context.Background(), bytes.([]byte))
+		appConfig, err := config.Parse(ctx, bytes.([]byte))
 		if err != nil {
 			return nil, fmt.Errorf("cannot parse app config: %w", err)
 		}
@@ -450,9 +449,9 @@ func (d AuthgearSecretYAMLDescriptor) ViewResources(ctx context.Context, resourc
 	case resource.EffectiveFileView:
 		return nil, ErrEffectiveSecretConfig
 	case resource.EffectiveResourceView:
-		return d.viewEffectiveResource(resources)
+		return d.viewEffectiveResource(ctx, resources)
 	case resource.ValidateResourceView:
-		return d.viewEffectiveResource(resources)
+		return d.viewEffectiveResource(ctx, resources)
 	default:
 		return nil, fmt.Errorf("unsupported view: %T", rawView)
 	}
@@ -484,7 +483,7 @@ func (d AuthgearSecretYAMLDescriptor) viewAppFile(resources []resource.ResourceF
 	return bytes, nil
 }
 
-func (d AuthgearSecretYAMLDescriptor) viewEffectiveResource(resources []resource.ResourceFile) (interface{}, error) {
+func (d AuthgearSecretYAMLDescriptor) viewEffectiveResource(ctx context.Context, resources []resource.ResourceFile) (interface{}, error) {
 	var cfgs []*config.SecretConfig
 	for _, layer := range resources {
 		var cfg config.SecretConfig
@@ -500,8 +499,6 @@ func (d AuthgearSecretYAMLDescriptor) viewEffectiveResource(resources []resource
 		return nil, err
 	}
 
-	// FIXME: the context should be passed in from caller
-	ctx := context.Background()
 	secretConfig, err := config.ParseSecret(ctx, mergedYAML)
 	if err != nil {
 		return nil, fmt.Errorf("cannot parse secret config: %w", err)
@@ -656,18 +653,16 @@ func (d AuthgearFeatureYAMLDescriptor) ViewResources(ctx context.Context, resour
 	case resource.EffectiveFileView:
 		return app()
 	case resource.EffectiveResourceView:
-		return d.viewEffectiveResource(resources)
+		return d.viewEffectiveResource(ctx, resources)
 	case resource.ValidateResourceView:
-		return d.viewEffectiveResource(resources)
+		return d.viewEffectiveResource(ctx, resources)
 	default:
 		return nil, fmt.Errorf("unsupported view: %T", rawView)
 	}
 }
 
-func (d AuthgearFeatureYAMLDescriptor) viewEffectiveResource(resources []resource.ResourceFile) (interface{}, error) {
+func (d AuthgearFeatureYAMLDescriptor) viewEffectiveResource(ctx context.Context, resources []resource.ResourceFile) (interface{}, error) {
 	var cfgs []*config.FeatureConfig
-	// FIXME: The context should be passed from caller
-	ctx := context.Background()
 	for _, layer := range resources {
 		cfg, err := config.ParseFeatureConfigWithoutDefaults(ctx, layer.Data)
 		if err != nil {
