@@ -15,8 +15,8 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) ht
 	router.Health(http.HandlerFunc(httputil.HealthCheckHandler))
 
 	rootChain := httproute.Chain(
-		p.RootMiddleware(newPanicMiddleware),
 		p.RootMiddleware(newOtelMiddleware),
+		p.RootMiddleware(newPanicMiddleware),
 		p.RootMiddleware(newSentryMiddleware),
 		httproute.MiddlewareFunc(httputil.XContentTypeOptionsNosniff),
 		httproute.MiddlewareFunc(httputil.PermissionsPolicyHeader),

@@ -1,12 +1,9 @@
 package otelutil
 
 import (
-	"context"
 	"net/http"
-	"net/http/httptest"
 	"testing"
 
-	"github.com/felixge/httpsnoop"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -51,24 +48,15 @@ func TestHTTPURLScheme(t *testing.T) {
 
 func TestHTTPResponseStatusCode(t *testing.T) {
 	Convey("HTTPResponseStatusCode", t, func() {
-		test := func(h http.Handler, expected int) {
-			ctx := context.Background()
-			r := httptest.NewRequestWithContext(ctx, "GET", "/", nil)
-			w := httptest.NewRecorder()
+		test := func(statusCode int) {
+			actual := HTTPResponseStatusCode(statusCode)
 
-			metrics := httpsnoop.CaptureMetrics(h, w, r)
-			actual := HTTPResponseStatusCode(metrics)
-
-			So(actual.Value.AsInt64(), ShouldEqual, expected)
+			So(actual.Value.AsInt64(), ShouldEqual, statusCode)
 			So(string(actual.Key), ShouldEqual, "http.response.status_code")
 		}
 
-		test(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}), 200)
-		test(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.WriteHeader(201)
-		}), 201)
-		test(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			http.Redirect(w, r, "", http.StatusFound)
-		}), 302)
+		test(200)
+		test(201)
+		test(302)
 	})
 }

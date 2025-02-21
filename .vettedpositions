@@ -289,7 +289,7 @@
 /pkg/lib/oauth/response_mode.go:117:40: requestcontext
 /pkg/lib/oauth/scope.go:116:34: requestcontext
 /pkg/lib/oauthrelyingparty/oauthrelyingpartyutil/contextbackground.go:11:52: contextbackground
-/pkg/lib/otelauthgear/nethttp.go:21:10: requestcontext
+/pkg/lib/otelauthgear/nethttp.go:31:10: requestcontext
 /pkg/lib/session/middleware.go:48:23: requestcontext
 /pkg/lib/session/middleware.go:57:41: requestcontext
 /pkg/lib/session/middleware.go:61:34: requestcontext
@@ -315,7 +315,7 @@
 /pkg/util/httputil/csp.go:164:42: requestcontext
 /pkg/util/httputil/file_server.go:116:11: requestcontext
 /pkg/util/jwkutil/contextbackground.go:11:52: contextbackground
-/pkg/util/otelutil/nethttp.go:70:45: requestcontext
+/pkg/util/otelutil/nethttp.go:68:45: requestcontext
 /pkg/util/pubsub/http_handler.go:51:40: requestcontext
 /pkg/util/sentry/request.go:25:9: requestcontext
 /pkg/util/template/engine.go:307:57: requestcontext
