@@ -10,21 +10,18 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
-	"github.com/authgear/authgear-server/pkg/util/httproute/httprouteotel"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource, auth config.AdminAPIAuth) http.Handler {
-	router := httprouteotel.NewOTelRouter(httproute.NewRouter())
+	router := httproute.NewRouter()
 
-	router.Add(httproute.Route{
-		Methods:     []string{"GET"},
-		PathPattern: "/healthz",
-	}, p.RootHandler(newHealthzHandler))
+	router.Health(p.RootHandler(newHealthzHandler))
 
 	chain := httproute.Chain(
 		p.RootMiddleware(newPanicMiddleware),
 		p.RootMiddleware(newBodyLimitMiddleware),
+		p.RootMiddleware(newOtelMiddleware),
 		p.RootMiddleware(newSentryMiddleware),
 
 		httproute.MiddlewareFunc(httputil.NoStore),
@@ -49,10 +46,10 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource, au
 		// The following middlewares may terminate the request,
 		// so they are ordered just before the handler, to make sure
 		// the middlewares above always write their headers.
-		httputil.CheckContentType([]string{
+		httproute.MiddlewareFunc(httputil.CheckContentType([]string{
 			graphqlhandler.ContentTypeJSON,
 			graphqlhandler.ContentTypeGraphQL,
-		}),
+		})),
 	)
 
 	route := httproute.Route{Middleware: chain}

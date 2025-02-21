@@ -12,6 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/healthz"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
+	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/resolver/handler"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -30,6 +31,14 @@ func newPanicMiddleware(p *deps.RootProvider) httproute.Middleware {
 		deps.RootDependencySet,
 		middleware.DependencySet,
 		wire.Bind(new(httproute.Middleware), new(*middleware.PanicMiddleware)),
+	))
+}
+
+func newOtelMiddleware(p *deps.RootProvider) httproute.Middleware {
+	panic(wire.Build(
+		deps.RootDependencySet,
+		otelauthgear.DependencySet,
+		wire.Bind(new(httproute.Middleware), new(*otelauthgear.HTTPInstrumentationMiddleware)),
 	))
 }
 

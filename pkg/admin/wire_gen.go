@@ -70,6 +70,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth/pq"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/redis"
 	"github.com/authgear/authgear-server/pkg/lib/oauthclient"
+	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
 	"github.com/authgear/authgear-server/pkg/lib/presign"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
@@ -136,6 +137,15 @@ func newSentryMiddleware(p *deps.RootProvider) httproute.Middleware {
 func newBodyLimitMiddleware(p *deps.RootProvider) httproute.Middleware {
 	bodyLimitMiddleware := &middleware.BodyLimitMiddleware{}
 	return bodyLimitMiddleware
+}
+
+func newOtelMiddleware(p *deps.RootProvider) httproute.Middleware {
+	environmentConfig := p.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
+	httpInstrumentationMiddleware := &otelauthgear.HTTPInstrumentationMiddleware{
+		TrustProxy: trustProxy,
+	}
+	return httpInstrumentationMiddleware
 }
 
 func newAuthorizationMiddleware(p *deps.RequestProvider, auth config.AdminAPIAuth) httproute.Middleware {

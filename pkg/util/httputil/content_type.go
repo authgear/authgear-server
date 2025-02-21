@@ -5,16 +5,14 @@ import (
 	"mime"
 	"net/http"
 	"strings"
-
-	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
 
-func CheckContentType(raws []string) httproute.MiddlewareFunc {
+func CheckContentType(raws []string) func(next http.Handler) http.Handler {
 	allowedMediaTypes := getAllowedMediaType(raws)
 
-	return httproute.MiddlewareFunc(func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
 		return makeCheckContentTypeHandlerFunc(next, allowedMediaTypes)
-	})
+	}
 }
 
 func getAllowedMediaType(raws []string) []string {

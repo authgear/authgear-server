@@ -7,19 +7,16 @@ import (
 	"github.com/authgear/authgear-server/pkg/images/handler"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
-	"github.com/authgear/authgear-server/pkg/util/httproute/httprouteotel"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) http.Handler {
-	router := httprouteotel.NewOTelRouter(httproute.NewRouter())
-	router.Add(httproute.Route{
-		Methods:     []string{"GET"},
-		PathPattern: "/healthz",
-	}, http.HandlerFunc(httputil.HealthCheckHandler))
+	router := httproute.NewRouter()
+	router.Health(http.HandlerFunc(httputil.HealthCheckHandler))
 
 	rootChain := httproute.Chain(
 		p.RootMiddleware(newPanicMiddleware),
+		p.RootMiddleware(newOtelMiddleware),
 		p.RootMiddleware(newSentryMiddleware),
 		httproute.MiddlewareFunc(httputil.XContentTypeOptionsNosniff),
 		httproute.MiddlewareFunc(httputil.PermissionsPolicyHeader),

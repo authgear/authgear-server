@@ -8,16 +8,12 @@ import (
 	"github.com/authgear/authgear-server/pkg/portal/deps"
 	"github.com/authgear/authgear-server/pkg/portal/transport"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
-	"github.com/authgear/authgear-server/pkg/util/httproute/httprouteotel"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 func NewRouter(p *deps.RootProvider) http.Handler {
-	router := httprouteotel.NewOTelRouter(httproute.NewRouter())
-	router.Add(httproute.Route{
-		Methods:     []string{"GET"},
-		PathPattern: "/healthz",
-	}, http.HandlerFunc(httputil.HealthCheckHandler))
+	router := httproute.NewRouter()
+	router.Health(http.HandlerFunc(httputil.HealthCheckHandler))
 
 	securityMiddleware := httproute.Chain(
 		httproute.MiddlewareFunc(httputil.XContentTypeOptionsNosniff),
@@ -30,6 +26,7 @@ func NewRouter(p *deps.RootProvider) http.Handler {
 	rootChain := httproute.Chain(
 		p.Middleware(newPanicMiddleware),
 		p.Middleware(newBodyLimitMiddleware),
+		p.Middleware(newOtelMiddleware),
 		p.Middleware(newSentryMiddleware),
 	)
 	systemConfigJSONChain := httproute.Chain(
@@ -42,10 +39,10 @@ func NewRouter(p *deps.RootProvider) http.Handler {
 		p.Middleware(newSessionInfoMiddleware),
 		securityMiddleware,
 		httproute.MiddlewareFunc(httputil.NoStore),
-		httputil.CheckContentType([]string{
+		httproute.MiddlewareFunc(httputil.CheckContentType([]string{
 			graphqlhandler.ContentTypeJSON,
 			graphqlhandler.ContentTypeGraphQL,
-		}),
+		})),
 	)
 	adminAPIChain := httproute.Chain(
 		rootChain,

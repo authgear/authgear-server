@@ -13,6 +13,7 @@ import (
 	imagesservice "github.com/authgear/authgear-server/pkg/images/service"
 	"github.com/authgear/authgear-server/pkg/lib/images"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
+	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
 	"github.com/authgear/authgear-server/pkg/lib/presign"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -24,6 +25,14 @@ func newPanicMiddleware(p *deps.RootProvider) httproute.Middleware {
 		deps.RootDependencySet,
 		middleware.DependencySet,
 		wire.Bind(new(httproute.Middleware), new(*middleware.PanicMiddleware)),
+	))
+}
+
+func newOtelMiddleware(p *deps.RootProvider) httproute.Middleware {
+	panic(wire.Build(
+		deps.RootDependencySet,
+		otelauthgear.DependencySet,
+		wire.Bind(new(httproute.Middleware), new(*otelauthgear.HTTPInstrumentationMiddleware)),
 	))
 }
 

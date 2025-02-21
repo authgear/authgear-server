@@ -5,6 +5,8 @@ import (
 	"strings"
 
 	"github.com/julienschmidt/httprouter"
+
+	"github.com/authgear/authgear-server/pkg/util/otelutil"
 )
 
 type Middleware interface {
@@ -79,7 +81,19 @@ func NewRouter() *Router {
 	return &Router{r}
 }
 
+func (r *Router) Health(h http.Handler) {
+	route := Route{
+		Methods:     []string{"GET"},
+		PathPattern: "/healthz",
+	}
+	for _, method := range route.Methods {
+		r.router.Handler(method, route.PathPattern, h)
+	}
+}
+
 func (r *Router) Add(route Route, h http.Handler) {
+	h = otelutil.WithHTTPRoute(route.PathPattern, h)
+
 	if route.Middleware != nil {
 		h = route.Middleware.Handle(h)
 	}
@@ -95,6 +109,11 @@ func (r *Router) AddRoutes(h http.Handler, routes ...Route) {
 }
 
 func (r *Router) NotFound(route Route, h http.Handler) {
+	// In case we migrate to ServeMux pattern,
+	// "/" means matches every path.
+	// https://pkg.go.dev/net/http#hdr-Patterns-ServeMux
+	h = otelutil.WithHTTPRoute("/", h)
+
 	if route.Middleware != nil {
 		h = route.Middleware.Handle(h)
 	}
