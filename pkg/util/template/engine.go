@@ -1,6 +1,7 @@
 package template
 
 import (
+	"context"
 	"fmt"
 	htmltemplate "html/template"
 	"net/http"
@@ -21,19 +22,19 @@ type RenderResult struct {
 }
 
 type EngineTemplateResolver interface {
-	ResolveHTML(desc *HTML, preferredLanguages []string) (*HTMLTemplateEffectiveResource, error)
-	ResolveMessageHTML(desc *MessageHTML, preferredLanguages []string) (*HTMLTemplateEffectiveResource, error)
-	ResolvePlainText(desc *PlainText, preferredLanguages []string) (*TextTemplateEffectiveResource, error)
-	ResolveMessagePlainText(desc *MessagePlainText, preferredLanguages []string) (*TextTemplateEffectiveResource, error)
-	ResolveTranslations(preferredLanguages []string) (map[string]Translation, error)
+	ResolveHTML(ctx context.Context, desc *HTML, preferredLanguages []string) (*HTMLTemplateEffectiveResource, error)
+	ResolveMessageHTML(ctx context.Context, desc *MessageHTML, preferredLanguages []string) (*HTMLTemplateEffectiveResource, error)
+	ResolvePlainText(ctx context.Context, desc *PlainText, preferredLanguages []string) (*TextTemplateEffectiveResource, error)
+	ResolveMessagePlainText(ctx context.Context, desc *MessagePlainText, preferredLanguages []string) (*TextTemplateEffectiveResource, error)
+	ResolveTranslations(ctx context.Context, preferredLanguages []string) (map[string]Translation, error)
 }
 
 type Engine struct {
 	Resolver EngineTemplateResolver
 }
 
-func (e *Engine) Translation(preferredLanguages []string) (*TranslationMap, error) {
-	translations, err := e.Resolver.ResolveTranslations(preferredLanguages)
+func (e *Engine) Translation(ctx context.Context, preferredLanguages []string) (*TranslationMap, error) {
+	translations, err := e.Resolver.ResolveTranslations(ctx, preferredLanguages)
 	if err != nil {
 		return nil, err
 	}
@@ -54,22 +55,22 @@ func (e *Engine) Translation(preferredLanguages []string) (*TranslationMap, erro
 	return &TranslationMap{items: items}, nil
 }
 
-func (e *Engine) Render(resource Resource, preferredLanguages []string, data interface{}) (*RenderResult, error) {
+func (e *Engine) Render(ctx context.Context, resource Resource, preferredLanguages []string, data interface{}) (*RenderResult, error) {
 	switch desc := resource.(type) {
 	case *HTML:
-		return e.renderHTML(desc, preferredLanguages, data)
+		return e.renderHTML(ctx, desc, preferredLanguages, data)
 	case *MessageHTML:
-		return e.renderMessageHTML(desc, preferredLanguages, data)
+		return e.renderMessageHTML(ctx, desc, preferredLanguages, data)
 	case *PlainText:
-		return e.renderPlainText(desc, preferredLanguages, data)
+		return e.renderPlainText(ctx, desc, preferredLanguages, data)
 	case *MessagePlainText:
-		return e.renderMessagePlainText(desc, preferredLanguages, data)
+		return e.renderMessagePlainText(ctx, desc, preferredLanguages, data)
 	default:
 		panic("template: unexpected template resource type")
 	}
 }
 
-func (e *Engine) renderHTML(desc *HTML, preferredLanguages []string, data interface{}) (*RenderResult, error) {
+func (e *Engine) renderHTML(ctx context.Context, desc *HTML, preferredLanguages []string, data interface{}) (*RenderResult, error) {
 	t := htmltemplate.New("")
 	funcMap := MakeTemplateFuncMap(t)
 	t.Funcs(funcMap)
@@ -77,7 +78,7 @@ func (e *Engine) renderHTML(desc *HTML, preferredLanguages []string, data interf
 	var loadTemplate func(desc *HTML) (string, error)
 	loadTemplate = func(desc *HTML) (string, error) {
 		// Include main template.
-		h, err := e.Resolver.ResolveHTML(desc, preferredLanguages)
+		h, err := e.Resolver.ResolveHTML(ctx, desc, preferredLanguages)
 		tpl := h.Template
 		if err != nil {
 			return "", fmt.Errorf("failed to load template %s: %w", desc.Name, err)
@@ -104,7 +105,7 @@ func (e *Engine) renderHTML(desc *HTML, preferredLanguages []string, data interf
 	t = t.Lookup(desc.Name)
 
 	// Include translations.
-	translations, err := e.Resolver.ResolveTranslations(preferredLanguages)
+	translations, err := e.Resolver.ResolveTranslations(ctx, preferredLanguages)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load translation: %w", err)
 	}
@@ -130,7 +131,7 @@ func (e *Engine) renderHTML(desc *HTML, preferredLanguages []string, data interf
 	return &RenderResult{String: buf.String(), LanguageTag: string(languageTag)}, nil
 }
 
-func (e *Engine) renderMessageHTML(desc *MessageHTML, preferredLanguages []string, data interface{}) (*RenderResult, error) {
+func (e *Engine) renderMessageHTML(ctx context.Context, desc *MessageHTML, preferredLanguages []string, data interface{}) (*RenderResult, error) {
 	t := htmltemplate.New("")
 	funcMap := MakeTemplateFuncMap(t)
 	t.Funcs(funcMap)
@@ -138,7 +139,7 @@ func (e *Engine) renderMessageHTML(desc *MessageHTML, preferredLanguages []strin
 	var loadTemplate func(desc *MessageHTML) (string, error)
 	loadTemplate = func(desc *MessageHTML) (string, error) {
 		// Include main template.
-		h, err := e.Resolver.ResolveMessageHTML(desc, preferredLanguages)
+		h, err := e.Resolver.ResolveMessageHTML(ctx, desc, preferredLanguages)
 		tpl := h.Template
 		if err != nil {
 			return "", fmt.Errorf("failed to load template %s: %w", desc.Name, err)
@@ -160,7 +161,7 @@ func (e *Engine) renderMessageHTML(desc *MessageHTML, preferredLanguages []strin
 	t = t.Lookup(desc.Name)
 
 	// Include translations.
-	translations, err := e.Resolver.ResolveTranslations(preferredLanguages)
+	translations, err := e.Resolver.ResolveTranslations(ctx, preferredLanguages)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load translation: %w", err)
 	}
@@ -186,7 +187,7 @@ func (e *Engine) renderMessageHTML(desc *MessageHTML, preferredLanguages []strin
 	return &RenderResult{String: buf.String(), LanguageTag: string(languageTag)}, nil
 }
 
-func (e *Engine) renderPlainText(desc *PlainText, preferredLanguages []string, data interface{}) (*RenderResult, error) {
+func (e *Engine) renderPlainText(ctx context.Context, desc *PlainText, preferredLanguages []string, data interface{}) (*RenderResult, error) {
 	t := texttemplate.New("")
 	funcMap := MakeTemplateFuncMap(t)
 	t.Funcs(funcMap)
@@ -194,7 +195,7 @@ func (e *Engine) renderPlainText(desc *PlainText, preferredLanguages []string, d
 	var loadTemplate func(desc *PlainText) (string, error)
 	loadTemplate = func(desc *PlainText) (string, error) {
 		// Include main template.
-		h, err := e.Resolver.ResolvePlainText(desc, preferredLanguages)
+		h, err := e.Resolver.ResolvePlainText(ctx, desc, preferredLanguages)
 		tpl := h.Template
 		if err != nil {
 			return "", fmt.Errorf("failed to load template: %w", err)
@@ -221,7 +222,7 @@ func (e *Engine) renderPlainText(desc *PlainText, preferredLanguages []string, d
 	t = t.Lookup(desc.Name)
 
 	// Include translations.
-	translations, err := e.Resolver.ResolveTranslations(preferredLanguages)
+	translations, err := e.Resolver.ResolveTranslations(ctx, preferredLanguages)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load translation: %w", err)
 	}
@@ -247,7 +248,7 @@ func (e *Engine) renderPlainText(desc *PlainText, preferredLanguages []string, d
 	return &RenderResult{String: buf.String(), LanguageTag: string(languageTag)}, nil
 }
 
-func (e *Engine) renderMessagePlainText(desc *MessagePlainText, preferredLanguages []string, data interface{}) (*RenderResult, error) {
+func (e *Engine) renderMessagePlainText(ctx context.Context, desc *MessagePlainText, preferredLanguages []string, data interface{}) (*RenderResult, error) {
 	t := texttemplate.New("")
 	funcMap := MakeTemplateFuncMap(t)
 	t.Funcs(funcMap)
@@ -255,7 +256,7 @@ func (e *Engine) renderMessagePlainText(desc *MessagePlainText, preferredLanguag
 	var loadTemplate func(desc *MessagePlainText) (string, error)
 	loadTemplate = func(desc *MessagePlainText) (string, error) {
 		// Include main template.
-		h, err := e.Resolver.ResolveMessagePlainText(desc, preferredLanguages)
+		h, err := e.Resolver.ResolveMessagePlainText(ctx, desc, preferredLanguages)
 		tpl := h.Template
 		if err != nil {
 			return "", fmt.Errorf("failed to load template: %w", err)
@@ -277,7 +278,7 @@ func (e *Engine) renderMessagePlainText(desc *MessagePlainText, preferredLanguag
 	t = t.Lookup(desc.Name)
 
 	// Include translations.
-	translations, err := e.Resolver.ResolveTranslations(preferredLanguages)
+	translations, err := e.Resolver.ResolveTranslations(ctx, preferredLanguages)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load translation: %w", err)
 	}
@@ -304,8 +305,10 @@ func (e *Engine) renderMessagePlainText(desc *MessagePlainText, preferredLanguag
 }
 
 func (e *Engine) RenderStatus(w http.ResponseWriter, r *http.Request, status int, tpl Resource, data interface{}) {
-	preferredLanguageTags := intl.GetPreferredLanguageTags(r.Context())
+	ctx := r.Context()
+	preferredLanguageTags := intl.GetPreferredLanguageTags(ctx)
 	out, err := e.Render(
+		ctx,
 		tpl,
 		preferredLanguageTags,
 		data,

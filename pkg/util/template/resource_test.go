@@ -33,7 +33,7 @@ func TestTemplateResource(t *testing.T) {
 		}
 
 		read := func(view resource.View) (str string, err error) {
-			result, err := manager.Read(txt, view)
+			result, err := manager.Read(context.Background(), txt, view)
 			if err != nil {
 				return
 			}
@@ -164,7 +164,7 @@ func TestTemplateResource(t *testing.T) {
 			view := resource.EffectiveFile{
 				Path: "templates/" + lang + "/resource.txt",
 			}
-			result, err := manager.Read(txt, view)
+			result, err := manager.Read(context.Background(), txt, view)
 			if err != nil {
 				return
 			}
@@ -232,7 +232,7 @@ func TestTemplateResource(t *testing.T) {
 			view := resource.AppFile{
 				Path: "templates/" + lang + "/messages/resource.txt",
 			}
-			result, err := manager.Read(txt, view)
+			result, err := manager.Read(context.Background(), txt, view)
 			if err != nil {
 				return
 			}
@@ -461,14 +461,14 @@ func TestTemplateResource(t *testing.T) {
 		}
 
 		readTxtAndValidate := func(view resource.ValidateResourceView) (str string, err error) {
-			_, err = manager.Read(txt, view)
+			_, err = manager.Read(context.Background(), txt, view)
 			if err != nil {
 				return
 			}
 			return
 		}
 		readHTMLAndValidate := func(view resource.ValidateResourceView) (str string, err error) {
-			_, err = manager.Read(html, view)
+			_, err = manager.Read(context.Background(), html, view)
 			if err != nil {
 				return
 			}

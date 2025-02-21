@@ -1,13 +1,15 @@
 package loginid
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/util/blocklist"
 	"github.com/authgear/authgear-server/pkg/util/matchlist"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
 type ResourceManager interface {
-	Read(desc resource.Descriptor, view resource.View) (interface{}, error)
+	Read(ctx context.Context, desc resource.Descriptor, view resource.View) (interface{}, error)
 }
 
 var ReservedNameTXT = resource.RegisterResource(resource.NewlineJoinedDescriptor{

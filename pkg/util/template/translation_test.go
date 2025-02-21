@@ -40,7 +40,7 @@ func TestTranslationResource(t *testing.T) {
 		}
 
 		read := func(view resource.View) (str string, err error) {
-			result, err := manager.Read(template.TranslationJSON, view)
+			result, err := manager.Read(context.Background(), template.TranslationJSON, view)
 			if err != nil {
 				return
 			}
@@ -93,7 +93,7 @@ func TestTranslationResource(t *testing.T) {
 		}
 
 		read := func(view resource.View) (str string, err error) {
-			result, err := manager.Read(template.TranslationJSON, view)
+			result, err := manager.Read(context.Background(), template.TranslationJSON, view)
 			if err != nil {
 				return
 			}
@@ -541,7 +541,7 @@ func TestTranslationResource(t *testing.T) {
 			view := resource.EffectiveFile{
 				Path: "templates/" + lang + "/translation.json",
 			}
-			result, err := manager.Read(template.TranslationJSON, view)
+			result, err := manager.Read(context.Background(), template.TranslationJSON, view)
 			if err != nil {
 				return
 			}
@@ -651,7 +651,7 @@ func TestTranslationResource(t *testing.T) {
 			view := resource.AppFile{
 				Path: "templates/" + lang + "/translation.json",
 			}
-			result, err := manager.Read(template.TranslationJSON, view)
+			result, err := manager.Read(context.Background(), template.TranslationJSON, view)
 			if err != nil {
 				return
 			}

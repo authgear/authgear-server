@@ -32,12 +32,12 @@ type TypeCheckerFactory struct {
 	Resources     ResourceManager
 }
 
-func (f *TypeCheckerFactory) NewChecker(loginIDKeyType model.LoginIDKeyType, options CheckerOptions) TypeChecker {
+func (f *TypeCheckerFactory) NewChecker(ctx context.Context, loginIDKeyType model.LoginIDKeyType, options CheckerOptions) TypeChecker {
 	switch loginIDKeyType {
 	case model.LoginIDKeyTypeEmail:
-		return f.makeEmailChecker(options)
+		return f.makeEmailChecker(ctx, options)
 	case model.LoginIDKeyTypeUsername:
-		return f.makeUsernameChecker(options)
+		return f.makeUsernameChecker(ctx, options)
 	case model.LoginIDKeyTypePhone:
 		return f.makePhoneNumberChecker()
 	}
@@ -45,10 +45,10 @@ func (f *TypeCheckerFactory) NewChecker(loginIDKeyType model.LoginIDKeyType, opt
 	return &NullChecker{}
 }
 
-func (f *TypeCheckerFactory) loadMatchlist(desc resource.Descriptor) (*matchlist.MatchList, error) {
+func (f *TypeCheckerFactory) loadMatchlist(ctx context.Context, desc resource.Descriptor) (*matchlist.MatchList, error) {
 	// Load matchlist for validation, (e.g. doamin blocklist, allowlist, username exclude keywords...etc.)
 	var list *matchlist.MatchList
-	result, err := f.Resources.Read(desc, resource.EffectiveResource{})
+	result, err := f.Resources.Read(ctx, desc, resource.EffectiveResource{})
 	if errors.Is(err, resource.ErrResourceNotFound) {
 		// No domain list resources
 		list = &matchlist.MatchList{}
@@ -60,7 +60,7 @@ func (f *TypeCheckerFactory) loadMatchlist(desc resource.Descriptor) (*matchlist
 	return list, nil
 }
 
-func (f *TypeCheckerFactory) makeEmailChecker(options CheckerOptions) *EmailChecker {
+func (f *TypeCheckerFactory) makeEmailChecker(ctx context.Context, options CheckerOptions) *EmailChecker {
 	loginIDEmailConfig := f.LoginIDConfig.Types.Email
 
 	checker := &EmailChecker{
@@ -74,14 +74,14 @@ func (f *TypeCheckerFactory) makeEmailChecker(options CheckerOptions) *EmailChec
 	// blocklist and allowlist are mutually exclusive
 	// block free email providers domain require blocklist enabled
 	if *loginIDEmailConfig.DomainBlocklistEnabled {
-		domainsList, err := f.loadMatchlist(EmailDomainBlockListTXT)
+		domainsList, err := f.loadMatchlist(ctx, EmailDomainBlockListTXT)
 		if err != nil {
 			checker.Error = err
 			return checker
 		}
 		checker.DomainBlockList = domainsList
 		if *loginIDEmailConfig.BlockFreeEmailProviderDomains {
-			domainsList, err := f.loadMatchlist(FreeEmailProviderDomainsTXT)
+			domainsList, err := f.loadMatchlist(ctx, FreeEmailProviderDomainsTXT)
 			if err != nil {
 				checker.Error = err
 				return checker
@@ -89,7 +89,7 @@ func (f *TypeCheckerFactory) makeEmailChecker(options CheckerOptions) *EmailChec
 			checker.BlockFreeEmailProviderDomains = domainsList
 		}
 	} else if *loginIDEmailConfig.DomainAllowlistEnabled {
-		domainsList, err := f.loadMatchlist(EmailDomainAllowListTXT)
+		domainsList, err := f.loadMatchlist(ctx, EmailDomainAllowListTXT)
 		if err != nil {
 			checker.Error = err
 			return checker
@@ -99,7 +99,7 @@ func (f *TypeCheckerFactory) makeEmailChecker(options CheckerOptions) *EmailChec
 	return checker
 }
 
-func (f *TypeCheckerFactory) makeUsernameChecker(options CheckerOptions) *UsernameChecker {
+func (f *TypeCheckerFactory) makeUsernameChecker(ctx context.Context, options CheckerOptions) *UsernameChecker {
 	loginIDUsernameConfig := f.LoginIDConfig.Types.Username
 
 	checker := &UsernameChecker{
@@ -108,7 +108,7 @@ func (f *TypeCheckerFactory) makeUsernameChecker(options CheckerOptions) *Userna
 
 	if *loginIDUsernameConfig.BlockReservedUsernames {
 		var list *blocklist.Blocklist
-		result, err := f.Resources.Read(ReservedNameTXT, resource.EffectiveResource{})
+		result, err := f.Resources.Read(ctx, ReservedNameTXT, resource.EffectiveResource{})
 		if errors.Is(err, resource.ErrResourceNotFound) {
 			// No reserved usernames
 			list = &blocklist.Blocklist{}
@@ -123,7 +123,7 @@ func (f *TypeCheckerFactory) makeUsernameChecker(options CheckerOptions) *Userna
 	}
 
 	if *loginIDUsernameConfig.ExcludeKeywordsEnabled {
-		excludedKeywords, err := f.loadMatchlist(UsernameExcludedKeywordsTXT)
+		excludedKeywords, err := f.loadMatchlist(ctx, UsernameExcludedKeywordsTXT)
 		if err != nil {
 			checker.Error = err
 			return checker

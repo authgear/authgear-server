@@ -1,6 +1,7 @@
 package hook
 
 import (
+	"context"
 	"path"
 	"testing"
 
@@ -45,7 +46,7 @@ func TestDenoFileDescriptor(t *testing.T) {
 			writeFile(app, "deno/b.ts", "b.ts from app")
 			writeFile(app, "deno/c.ts", "c.ts from app")
 
-			out, err := manager.Read(DenoFile, resource.AppFile{
+			out, err := manager.Read(context.Background(), DenoFile, resource.AppFile{
 				Path: "deno/c.ts",
 			})
 			So(err, ShouldBeNil)

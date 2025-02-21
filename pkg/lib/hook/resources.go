@@ -18,7 +18,7 @@ type denoClientContextKeyType struct{}
 var ContextKeyDenoClient = denoClientContextKeyType{}
 
 type ResourceManager interface {
-	Read(desc resource.Descriptor, view resource.View) (interface{}, error)
+	Read(ctx context.Context, desc resource.Descriptor, view resource.View) (interface{}, error)
 }
 
 type DenoFileDescriptor struct{}
@@ -48,7 +48,7 @@ func (d DenoFileDescriptor) FindResources(fs resource.Fs) ([]resource.Location, 
 	return locations, nil
 }
 
-func (DenoFileDescriptor) ViewResources(resources []resource.ResourceFile, rawView resource.View) (interface{}, error) {
+func (DenoFileDescriptor) ViewResources(ctx context.Context, resources []resource.ResourceFile, rawView resource.View) (interface{}, error) {
 	output := bytes.Buffer{}
 
 	app := func(p string) error {

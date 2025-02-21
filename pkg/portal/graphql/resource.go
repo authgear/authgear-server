@@ -40,7 +40,7 @@ var appResource = graphql.NewObject(graphql.ObjectConfig{
 				gqlCtx := GQLContext(ctx)
 				r := p.Source.(*model.AppResource)
 				resMgr := gqlCtx.AppResMgrFactory.NewManagerWithAppContext(r.Context)
-				result, err := resMgr.ReadAppFile(r.DescriptedPath.Descriptor,
+				result, err := resMgr.ReadAppFile(ctx, r.DescriptedPath.Descriptor,
 					&resource.AppFile{
 						Path: r.DescriptedPath.Path,
 					})
@@ -57,7 +57,7 @@ var appResource = graphql.NewObject(graphql.ObjectConfig{
 			Type: graphql.String,
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 				r := p.Source.(*model.AppResource)
-				result, err := r.Context.Resources.Read(r.DescriptedPath.Descriptor, resource.EffectiveFile{
+				result, err := r.Context.Resources.Read(p.Context, r.DescriptedPath.Descriptor, resource.EffectiveFile{
 					Path: r.DescriptedPath.Path,
 				})
 				if errors.Is(err, resource.ErrResourceNotFound) {
@@ -75,7 +75,7 @@ var appResource = graphql.NewObject(graphql.ObjectConfig{
 				gqlCtx := GQLContext(ctx)
 				r := p.Source.(*model.AppResource)
 				resMgr := gqlCtx.AppResMgrFactory.NewManagerWithAppContext(r.Context)
-				result, err := resMgr.ReadAppFile(r.DescriptedPath.Descriptor,
+				result, err := resMgr.ReadAppFile(ctx, r.DescriptedPath.Descriptor,
 					&resource.AppFile{
 						Path: r.DescriptedPath.Path,
 					})

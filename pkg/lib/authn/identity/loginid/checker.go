@@ -51,5 +51,5 @@ func (c *Checker) validateOne(ctx context.Context, validationCtx *validation.Con
 		return
 	}
 
-	c.TypeCheckerFactory.NewChecker(loginID.Type, options).Validate(ctx, originCtx, loginID.Value.TrimSpace())
+	c.TypeCheckerFactory.NewChecker(ctx, loginID.Type, options).Validate(ctx, originCtx, loginID.Value.TrimSpace())
 }

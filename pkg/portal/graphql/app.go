@@ -366,7 +366,7 @@ var nodeApp = node(
 					ctx := p.Context
 					gqlCtx := GQLContext(ctx)
 					app := p.Source.(*model.App)
-					config, _, err := gqlCtx.AppService.LoadRawAppConfig(app)
+					config, _, err := gqlCtx.AppService.LoadRawAppConfig(ctx, app)
 					return config, err
 				},
 			},
@@ -376,7 +376,7 @@ var nodeApp = node(
 					ctx := p.Context
 					gqlCtx := GQLContext(ctx)
 					app := p.Source.(*model.App)
-					_, checksum, err := gqlCtx.AppService.LoadRawAppConfig(app)
+					_, checksum, err := gqlCtx.AppService.LoadRawAppConfig(ctx, app)
 					return checksum, err
 				},
 			},

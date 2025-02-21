@@ -84,7 +84,7 @@ func (a NonLocaleAwareImageDescriptor) FindResources(fs resource.Fs) ([]resource
 	return locations, nil
 }
 
-func (a NonLocaleAwareImageDescriptor) ViewResources(resources []resource.ResourceFile, rawView resource.View) (interface{}, error) {
+func (a NonLocaleAwareImageDescriptor) ViewResources(ctx context.Context, resources []resource.ResourceFile, rawView resource.View) (interface{}, error) {
 	switch view := rawView.(type) {
 	case resource.AppFileView:
 		return a.viewAppFile(resources, view)
@@ -305,7 +305,7 @@ func (a LocaleAwareImageDescriptor) FindResources(fs resource.Fs) ([]resource.Lo
 	return locations, nil
 }
 
-func (a LocaleAwareImageDescriptor) ViewResources(resources []resource.ResourceFile, rawView resource.View) (interface{}, error) {
+func (a LocaleAwareImageDescriptor) ViewResources(ctx context.Context, resources []resource.ResourceFile, rawView resource.View) (interface{}, error) {
 	switch view := rawView.(type) {
 	case resource.AppFileView:
 		return a.viewAppFile(resources, view)
@@ -568,7 +568,7 @@ func (a StaticImageDescriptor) FindResources(fs resource.Fs) ([]resource.Locatio
 	return locations, nil
 }
 
-func (a StaticImageDescriptor) ViewResources(resources []resource.ResourceFile, rawView resource.View) (interface{}, error) {
+func (a StaticImageDescriptor) ViewResources(ctx context.Context, resources []resource.ResourceFile, rawView resource.View) (interface{}, error) {
 	switch view := rawView.(type) {
 	case resource.AppFileView:
 		return nil, nil

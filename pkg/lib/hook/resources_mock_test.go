@@ -5,6 +5,7 @@
 package hook
 
 import (
+	context "context"
 	reflect "reflect"
 
 	resource "github.com/authgear/authgear-server/pkg/util/resource"
@@ -35,16 +36,16 @@ func (m *MockResourceManager) EXPECT() *MockResourceManagerMockRecorder {
 }
 
 // Read mocks base method.
-func (m *MockResourceManager) Read(desc resource.Descriptor, view resource.View) (interface{}, error) {
+func (m *MockResourceManager) Read(ctx context.Context, desc resource.Descriptor, view resource.View) (interface{}, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Read", desc, view)
+	ret := m.ctrl.Call(m, "Read", ctx, desc, view)
 	ret0, _ := ret[0].(interface{})
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Read indicates an expected call of Read.
-func (mr *MockResourceManagerMockRecorder) Read(desc, view interface{}) *gomock.Call {
+func (mr *MockResourceManagerMockRecorder) Read(ctx, desc, view interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Read", reflect.TypeOf((*MockResourceManager)(nil).Read), desc, view)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Read", reflect.TypeOf((*MockResourceManager)(nil).Read), ctx, desc, view)
 }

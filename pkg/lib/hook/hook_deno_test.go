@@ -53,7 +53,7 @@ func TestDenoHook(t *testing.T) {
 				IsAllowed: true,
 			}
 
-			resourceManager.EXPECT().Read(DenoFile, resource.AppFile{
+			resourceManager.EXPECT().Read(gomock.Any(), DenoFile, resource.AppFile{
 				Path: "deno/a.ts",
 			}).Times(1).Return([]byte("script"), nil)
 			syncDenoClient.EXPECT().Run(gomock.Any(), "script", e).Times(1).Return(map[string]interface{}{
@@ -70,7 +70,7 @@ func TestDenoHook(t *testing.T) {
 			e := &event.Event{}
 			u, _ := url.Parse("authgeardeno:///deno/a.ts")
 
-			resourceManager.EXPECT().Read(DenoFile, resource.AppFile{
+			resourceManager.EXPECT().Read(gomock.Any(), DenoFile, resource.AppFile{
 				Path: "deno/a.ts",
 			}).Times(1).Return([]byte("script"), nil)
 			asyncDenoClient.EXPECT().Run(withoutCancelMatcher{}, "script", e).Times(1).Return(nil, nil)

@@ -1,6 +1,7 @@
 package web_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -32,7 +33,7 @@ func TestCSSDescriptor(t *testing.T) {
 		}
 
 		read := func(view resource.View) (str string, err error) {
-			result, err := manager.Read(myCSS, view)
+			result, err := manager.Read(context.Background(), myCSS, view)
 			if err != nil {
 				return
 			}

@@ -1,6 +1,7 @@
 package pgsearch
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -84,7 +85,7 @@ func NewEnvConfig(dbCredentials *CmdDBCredential) *config.EnvironmentConfig {
 }
 
 type NilResourceManager interface {
-	Read(desc resource.Descriptor, view resource.View) (interface{}, error)
+	Read(ctx context.Context, desc resource.Descriptor, view resource.View) (interface{}, error)
 	AssetName(key string) (name string, err error)
 }
 

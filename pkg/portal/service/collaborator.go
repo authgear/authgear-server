@@ -539,6 +539,7 @@ func (s *CollaboratorService) SendInvitation(
 	}
 
 	textBody, err := s.TemplateEngine.Render(
+		ctx,
 		resource.TemplateCollaboratorInvitationEmailTXT,
 		nil,
 		data,
@@ -548,6 +549,7 @@ func (s *CollaboratorService) SendInvitation(
 	}
 
 	htmlBody, err := s.TemplateEngine.Render(
+		ctx,
 		resource.TemplateCollaboratorInvitationEmailHTML,
 		nil,
 		data,
