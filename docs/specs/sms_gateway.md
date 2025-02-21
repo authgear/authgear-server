@@ -72,10 +72,53 @@ Example:
 ```typescript
 import { CustomSMSGatewayPayload } from "https://deno.land/x/authgear-deno-hook@0.1.0/mod.ts";
 
-export default async function (e: CustomSMSGatewayPayload): Promise<void> {
+export default async function (
+  e: CustomSMSGatewayPayload
+): Promise<CustomSMSGatewayResponse> {
   const response = await fetch("https://some.sms.gateway");
   if (!response.ok) {
     throw new Error("Failed to send sms");
   }
+  return {
+    code: "ok",
+  };
 }
 ```
+
+### Response
+
+The deno hook and webhook shares the same response schema:
+
+```typescript
+interface CustomSMSGatewayResponse {
+  code:
+    | "ok" // Return this code if the sms is delivered successfully
+    | "invalid_phone_number" // Return this code if the phone number is invalid
+    | "rate_limited" // Return this code if some rate limit is reached and the user should retry the request
+    | "authentication_failed" // Return this code if some authentication is failed, and the developer should check the current configurations.
+    | "delivery_rejected"; // Return this code if the sms delivery service rejected the request for any reason the user cannot fix by retrying.
+
+  // A string identifying the sms provider.
+  // This field is only set by deployment-wise sms gateway.
+  provider_name?: string;
+
+  // Error code that could appear on portal to assist debugging.
+  // For example, you may put the error code returned by twilio here.
+  // The deployment-wise sms gateway always put the error code returned by the sms provider here.
+  provider_error_code?: string;
+
+  // This field is only set by deployment-wise sms gateway.
+  // The error message of any error occured in the gateway. This will not be exposed to user and is only for debug purpose.
+  go_error?: string;
+
+  // This field is only set by deployment-wise sms gateway.
+  // The dumped response of the sms provider. This will not be exposed to user and is only for debug purpose.
+  dumped_response?: string;
+}
+```
+
+#### Backward Compatibility
+
+If a deno hook produces an output conforming to the above interface, the delivery result will be determined by the `code`. Else, any function which does not throw error during execution will be treated as success for backward compatibility.
+
+If a webhook produces a json response conforming to the above interface, the delivery result will be determined by the `code`. Else, any webhook which returns a 200-299 status code will be treated as success for backward compatibility.
