@@ -5,6 +5,7 @@ include ../makefiles/govulncheck.mk
 # We cannot use K6_DURATION and K6_VUS because
 # using them will make k6 to ignore scenarios.
 export ENDPOINT=http://localhost:3000
+export RESOLVER_ENDPOINT=http://localhost:3001
 export CLIENT_ID=test
 export REDIRECT_URI=com.example://host
 export FIXTURE_FIXED_OTP=000000
@@ -44,6 +45,10 @@ refresh_access_token: k6 setup
 .PHONY: get_user_info
 get_user_info: k6 setup
 	./k6 run --config options.json ./get_user_info.js
+
+.PHONY: resolve
+resolve: k6 setup
+	./k6 run --config options.json ./resolve.js
 
 .PHONY: biometric_login
 biometric_login: k6 setup
