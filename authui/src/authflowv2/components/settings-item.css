@@ -97,7 +97,7 @@
       --settings-item__grid-col-icon-width: 1.5rem;
     }
 
-    --settings-item__grid-col-action: minmax(0rem, min-content);
+    --settings-item__grid-col-action: minmax(0rem, max-content);
 
     &.with-content {
       /* When Mobile View */
