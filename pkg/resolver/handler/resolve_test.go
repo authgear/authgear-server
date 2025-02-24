@@ -9,11 +9,10 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
-	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
-	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
+	"github.com/authgear/authgear-server/pkg/lib/userinfo"
 )
 
 func TestResolveHandler(t *testing.T) {
@@ -21,17 +20,11 @@ func TestResolveHandler(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		identities := NewMockIdentityService(ctrl)
-		verificationService := NewMockVerificationService(ctrl)
 		database := &db.MockHandle{}
-		user := NewMockUserProvider(ctrl)
-		roleAndGroup := NewMockRolesAndGroupsProvider(ctrl)
+		userInfoService := NewMockUserInfoService(ctrl)
 		h := &ResolveHandler{
-			Database:       database,
-			Identities:     identities,
-			Verification:   verificationService,
-			Users:          user,
-			RolesAndGroups: roleAndGroup,
+			Database:        database,
+			UserInfoService: userInfoService,
 		}
 
 		Convey("should attach headers for valid sessions", func() {
@@ -45,17 +38,17 @@ func TestResolveHandler(t *testing.T) {
 			r = r.WithContext(session.WithSession(r.Context(), s))
 
 			Convey("for normal user", func() {
-				userIdentities := []*identity.Info{
-					{Type: model.IdentityTypeLoginID},
-				}
-				identities.EXPECT().ListByUser(r.Context(), "user-id").Return(userIdentities, nil)
-				verificationService.EXPECT().IsUserVerified(r.Context(), userIdentities).Return(true, nil)
-				userInfo := model.User{
-					CanReauthenticate: true,
-				}
-				user.EXPECT().Get(r.Context(), "user-id", accesscontrol.RoleGreatest).Return(&userInfo, nil)
-				roles := []*model.Role{}
-				roleAndGroup.EXPECT().ListEffectiveRolesByUserID(r.Context(), "user-id").Return(roles, nil)
+				userInfoService.EXPECT().GetUserInfoGreatest(r.Context(), "user-id").Return(
+					&userinfo.UserInfo{
+						User: &model.User{
+							IsAnonymous:       false,
+							IsVerified:        true,
+							CanReauthenticate: true,
+						},
+						EffectiveRoleKeys: []string{},
+					},
+					nil,
+				)
 				rw := httptest.NewRecorder()
 				h.ServeHTTP(rw, r)
 
@@ -72,18 +65,18 @@ func TestResolveHandler(t *testing.T) {
 			})
 
 			Convey("for anonymous user", func() {
-				userIdentities := []*identity.Info{
-					{Type: model.IdentityTypeAnonymous},
-					{Type: model.IdentityTypeLoginID},
-				}
-				identities.EXPECT().ListByUser(r.Context(), "user-id").Return(userIdentities, nil)
-				verificationService.EXPECT().IsUserVerified(r.Context(), userIdentities).Return(false, nil)
-				userInfo := model.User{
-					CanReauthenticate: false,
-				}
-				user.EXPECT().Get(r.Context(), "user-id", accesscontrol.RoleGreatest).Return(&userInfo, nil)
-				roles := []*model.Role{}
-				roleAndGroup.EXPECT().ListEffectiveRolesByUserID(r.Context(), "user-id").Return(roles, nil)
+				userInfoService.EXPECT().GetUserInfoGreatest(r.Context(), "user-id").Return(
+					&userinfo.UserInfo{
+						User: &model.User{
+							IsAnonymous:       true,
+							IsVerified:        false,
+							CanReauthenticate: false,
+						},
+						EffectiveRoleKeys: []string{},
+					},
+					nil,
+				)
+
 				rw := httptest.NewRecorder()
 				h.ServeHTTP(rw, r)
 

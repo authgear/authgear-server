@@ -296,6 +296,19 @@ func newUserModel(
 	roles []string,
 	groups []string,
 ) *model.User {
+	if derivedStandardAttributes == nil {
+		derivedStandardAttributes = make(map[string]interface{})
+	}
+	if customAttributes == nil {
+		customAttributes = make(map[string]interface{})
+	}
+	if roles == nil {
+		roles = make([]string, 0)
+	}
+	if groups == nil {
+		groups = make([]string, 0)
+	}
+
 	isAnonymous := false
 	for _, i := range identities {
 		if i.Type == model.IdentityTypeAnonymous {

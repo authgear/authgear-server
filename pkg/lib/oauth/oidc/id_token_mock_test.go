@@ -9,88 +9,49 @@ import (
 	url "net/url"
 	reflect "reflect"
 
-	model "github.com/authgear/authgear-server/pkg/api/model"
 	oauth "github.com/authgear/authgear-server/pkg/lib/oauth"
 	idpsession "github.com/authgear/authgear-server/pkg/lib/session/idpsession"
-	accesscontrol "github.com/authgear/authgear-server/pkg/util/accesscontrol"
+	userinfo "github.com/authgear/authgear-server/pkg/lib/userinfo"
 	gomock "github.com/golang/mock/gomock"
 	jwt "github.com/lestrrat-go/jwx/v2/jwt"
 )
 
-// MockUserProvider is a mock of UserProvider interface.
-type MockUserProvider struct {
+// MockUserInfoService is a mock of UserInfoService interface.
+type MockUserInfoService struct {
 	ctrl     *gomock.Controller
-	recorder *MockUserProviderMockRecorder
+	recorder *MockUserInfoServiceMockRecorder
 }
 
-// MockUserProviderMockRecorder is the mock recorder for MockUserProvider.
-type MockUserProviderMockRecorder struct {
-	mock *MockUserProvider
+// MockUserInfoServiceMockRecorder is the mock recorder for MockUserInfoService.
+type MockUserInfoServiceMockRecorder struct {
+	mock *MockUserInfoService
 }
 
-// NewMockUserProvider creates a new mock instance.
-func NewMockUserProvider(ctrl *gomock.Controller) *MockUserProvider {
-	mock := &MockUserProvider{ctrl: ctrl}
-	mock.recorder = &MockUserProviderMockRecorder{mock}
+// NewMockUserInfoService creates a new mock instance.
+func NewMockUserInfoService(ctrl *gomock.Controller) *MockUserInfoService {
+	mock := &MockUserInfoService{ctrl: ctrl}
+	mock.recorder = &MockUserInfoServiceMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockUserProvider) EXPECT() *MockUserProviderMockRecorder {
+func (m *MockUserInfoService) EXPECT() *MockUserInfoServiceMockRecorder {
 	return m.recorder
 }
 
-// Get mocks base method.
-func (m *MockUserProvider) Get(ctx context.Context, id string, role accesscontrol.Role) (*model.User, error) {
+// GetUserInfoBearer mocks base method.
+func (m *MockUserInfoService) GetUserInfoBearer(ctx context.Context, userID string) (*userinfo.UserInfo, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", ctx, id, role)
-	ret0, _ := ret[0].(*model.User)
+	ret := m.ctrl.Call(m, "GetUserInfoBearer", ctx, userID)
+	ret0, _ := ret[0].(*userinfo.UserInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// Get indicates an expected call of Get.
-func (mr *MockUserProviderMockRecorder) Get(ctx, id, role interface{}) *gomock.Call {
+// GetUserInfoBearer indicates an expected call of GetUserInfoBearer.
+func (mr *MockUserInfoServiceMockRecorder) GetUserInfoBearer(ctx, userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockUserProvider)(nil).Get), ctx, id, role)
-}
-
-// MockRolesAndGroupsProvider is a mock of RolesAndGroupsProvider interface.
-type MockRolesAndGroupsProvider struct {
-	ctrl     *gomock.Controller
-	recorder *MockRolesAndGroupsProviderMockRecorder
-}
-
-// MockRolesAndGroupsProviderMockRecorder is the mock recorder for MockRolesAndGroupsProvider.
-type MockRolesAndGroupsProviderMockRecorder struct {
-	mock *MockRolesAndGroupsProvider
-}
-
-// NewMockRolesAndGroupsProvider creates a new mock instance.
-func NewMockRolesAndGroupsProvider(ctrl *gomock.Controller) *MockRolesAndGroupsProvider {
-	mock := &MockRolesAndGroupsProvider{ctrl: ctrl}
-	mock.recorder = &MockRolesAndGroupsProviderMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockRolesAndGroupsProvider) EXPECT() *MockRolesAndGroupsProviderMockRecorder {
-	return m.recorder
-}
-
-// ListEffectiveRolesByUserID mocks base method.
-func (m *MockRolesAndGroupsProvider) ListEffectiveRolesByUserID(ctx context.Context, userID string) ([]*model.Role, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListEffectiveRolesByUserID", ctx, userID)
-	ret0, _ := ret[0].([]*model.Role)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListEffectiveRolesByUserID indicates an expected call of ListEffectiveRolesByUserID.
-func (mr *MockRolesAndGroupsProviderMockRecorder) ListEffectiveRolesByUserID(ctx, userID interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListEffectiveRolesByUserID", reflect.TypeOf((*MockRolesAndGroupsProvider)(nil).ListEffectiveRolesByUserID), ctx, userID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserInfoBearer", reflect.TypeOf((*MockUserInfoService)(nil).GetUserInfoBearer), ctx, userID)
 }
 
 // MockBaseURLProvider is a mock of BaseURLProvider interface.

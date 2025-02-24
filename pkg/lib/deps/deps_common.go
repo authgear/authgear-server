@@ -53,6 +53,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/search/pgsearch"
 	searchreindex "github.com/authgear/authgear-server/pkg/lib/search/reindex"
 	"github.com/authgear/authgear-server/pkg/lib/userexport"
+	"github.com/authgear/authgear-server/pkg/lib/userinfo"
 
 	deprecated_infracaptcha "github.com/authgear/authgear-server/pkg/lib/infra/captcha"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
@@ -352,7 +353,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(workflow.UserService), new(*user.Provider)),
 		wire.Bind(new(accountmanagement.UserService), new(*user.Provider)),
 		wire.Bind(new(authenticationflow.UserService), new(*user.Provider)),
-		wire.Bind(new(oidc.UserProvider), new(*user.Queries)),
+		wire.Bind(new(userinfo.UserQueries), new(*user.Queries)),
 		wire.Bind(new(featurestdattrs.UserQueries), new(*user.RawQueries)),
 		wire.Bind(new(featurestdattrs.UserStore), new(*user.Store)),
 		wire.Bind(new(featurecustomattrs.UserStore), new(*user.Store)),
@@ -374,10 +375,15 @@ var CommonDependencySet = wire.NewSet(
 	wire.NewSet(
 		rolesgroups.DependencySet,
 		wire.Bind(new(facade.RolesGroupsCommands), new(*rolesgroups.Commands)),
-		wire.Bind(new(oidc.RolesAndGroupsProvider), new(*rolesgroups.Queries)),
+		wire.Bind(new(userinfo.RolesAndGroupsQueries), new(*rolesgroups.Queries)),
 		wire.Bind(new(hook.RolesAndGroupsServiceNoEvent), new(*rolesgroups.Commands)),
 		wire.Bind(new(user.RolesAndGroupsService), new(*rolesgroups.Queries)),
 		wire.Bind(new(userimport.RolesGroupsCommands), new(*rolesgroups.Commands)),
+	),
+
+	wire.NewSet(
+		userinfo.DependencySet,
+		wire.Bind(new(oidc.UserInfoService), new(*userinfo.UserInfoService)),
 	),
 
 	wire.NewSet(

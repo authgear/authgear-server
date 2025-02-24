@@ -1,12 +1,11 @@
 services:
+  # When you change this service, please also change the corresponding service in `find . -name docker-compose.yaml`
   db:
-    # When you change this, please also change ./e2e/docker-compose.yaml
-    image: postgres12-pg-partman-pgaudit:latest
     build:
       context: ./postgres/postgres12
     volumes:
-      - db_data:/var/lib/postgresql/data
-      - ./postgresql.conf:/etc/postgresql/postgresql.conf
+    - db_data:/var/lib/postgresql/data
+    - ./postgresql.conf:/etc/postgresql/postgresql.conf
     command: ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]
     environment:
       POSTGRES_USER: "postgres"
@@ -21,12 +20,11 @@ services:
     # This database is not actually used now.
     # Guard this with a profile first.
     profiles: ["postgres16"]
-    image: postgres16-pg-partman-pgaudit:latest
     build:
       context: ./postgres/postgres16
     volumes:
-      - db16_data:/var/lib/postgresql/data
-      - ./postgresql.conf:/etc/postgresql/postgresql.conf
+    - db16_data:/var/lib/postgresql/data
+    - ./postgresql.conf:/etc/postgresql/postgresql.conf
     command: ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]
     environment:
       POSTGRES_USER: "postgres"
@@ -54,13 +52,14 @@ services:
       PGBOUNCER_LOG_CONNECTIONS: "1"
       PGBOUNCER_LOG_DISCONNECTIONS: "1"
 
+  # When you change this service, please also change the corresponding service in `find . -name docker-compose.yaml`
   redis:
     # Azure cache for Redis supports 6.0 only
     image: redis:6.0.20
     volumes:
-      - redis_data:/data
+    - redis_data:/data
     ports:
-      - "6379:6379"
+    - "6379:6379"
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.16.2
@@ -70,7 +69,7 @@ services:
     - "9200:9200"
     - "9300:9300"
     volumes:
-      - elasticsearch_data:/usr/share/elasticsearch/data
+    - elasticsearch_data:/usr/share/elasticsearch/data
 
   proxy:
     # nginx has mainline (1.odd_minor_version) and stable (1.even_minor_version) release.

@@ -1,0 +1,25 @@
+services:
+  db:
+    build:
+      context: ../postgres/postgres12
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+
+  redis:
+    image: redis:6.0.20
+
+  authgear:
+    build:
+      context: ..
+      dockerfile: ./cmd/authgear/Dockerfile
+    ports:
+    - "3000:3000"
+    - "3001:3001"
+    env_file: dot_env
+
+  authgear-portal:
+    build:
+      context: ..
+      dockerfile: ./cmd/portal/Dockerfile
+    env_file: dot_env

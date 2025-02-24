@@ -1,0 +1,12 @@
+{
+  "target": {
+    "db": {
+      "cache-from": [
+        "type=local,src=docker-compose-build-cache/db"
+      ],
+      "cache-to": [
+        "type=local,dest=docker-compose-build-cache/db"
+      ]
+    }
+  }
+}

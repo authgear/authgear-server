@@ -146,40 +146,45 @@ jobs:
     if: ${{ github.repository != 'oursky/authgear-server' }}
     runs-on: ubuntu-24.04
     steps:
+    - uses: docker/setup-buildx-action@v3
     - uses: actions/checkout@v4
     - uses: ./.github/actions/install-native-deps
-
     - uses: actions/setup-go@v4
       with:
         go-version-file: "./go.mod"
     - run: make vendor
-
-    # Cache docker images
-    - run: mkdir -p ~/.cache/images
-    - id: cache-docker-images
-      uses: actions/cache@v3
+    - uses: actions/cache/restore@v4
+      id: cache
       with:
-        path: ~/.cache/images
-        key: ${{ runner.os }}-e2e-docker-images
-      continue-on-error: true
-      env:
-        SEGMENT_DOWNLOAD_TIMEOUT_MINS: 5
-    - name: Load docker image cache
-      if: ${{ steps.cache-docker-images.outputs.cache-hit == 'true' }}
-      run: |
-        set -x
-        for image in $(grep 'image: ' ./e2e/docker-compose.yaml | awk '{ print  $2 }'); do
-          safe_image_name=$(echo -n "$image" | tr '/:' '_')
-          docker load -i ~/.cache/images/"$safe_image_name".tar || true
-        done
+        path: ./e2e/docker-compose-build-cache
+        key: ${{ runner.environment }}-${{ runner.os }}-${{ runner.arch }}-e2e-docker-compose-build-cache
+    - run: make -C e2e docker-compose-build
+    - uses: actions/cache/save@v4
+      with:
+        path: ./e2e/docker-compose-build-cache
+        key: ${{ steps.cache.outputs.cache-primary-key }}
     - run: make -C e2e ci
       if: ${{ !cancelled() }}
       env:
         COMPOSE_INTERACTIVE_NO_CLI: 1
-    - name: Save docker image cache
-      run: |
-        set -x
-        for image in $(grep 'image: ' ./e2e/docker-compose.yaml | awk '{ print  $2 }'); do
-          safe_image_name=$(echo -n "$image" | tr '/:' '_')
-          docker save "$image" -o ~/.cache/images/"$safe_image_name".tar
-        done
+
+  k6:
+    if: ${{ github.repository != 'oursky/authgear-server' }}
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: docker/setup-buildx-action@v3
+    - uses: actions/checkout@v4
+    - uses: actions/setup-go@v4
+      with:
+        go-version-file: "./go.mod"
+    - run: make vendor
+    - uses: actions/cache/restore@v4
+      id: cache
+      with:
+        path: ./k6/docker-compose-build-cache
+        key: ${{ runner.environment }}-${{ runner.os }}-${{ runner.arch }}-e2e-docker-compose-build-cache
+    - run: make -C k6 all
+    - uses: actions/cache/save@v4
+      with:
+        path: ./k6/docker-compose-build-cache
+        key: ${{ steps.cache.outputs.cache-primary-key }}

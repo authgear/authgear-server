@@ -14,7 +14,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/endpoints"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/session"
-	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
+	"github.com/authgear/authgear-server/pkg/lib/userinfo"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
@@ -65,29 +65,19 @@ func TestIDTokenIssuer(t *testing.T) {
 			Set: jwkSet,
 		}
 
-		mockUserProvider := NewMockUserProvider(ctrl)
-		mockRolesAndGroupsProvider := NewMockRolesAndGroupsProvider(ctrl)
+		mockUserInfoService := NewMockUserInfoService(ctrl)
 
-		mockUserProvider.EXPECT().Get(gomock.Any(), "user-id", gomock.Any()).DoAndReturn(
-			func(ctx context.Context, id string, role accesscontrol.Role) (*model.User, error) {
-				return &model.User{
+		mockUserInfoService.EXPECT().GetUserInfoBearer(gomock.Any(), "user-id").Return(
+			&userinfo.UserInfo{
+				User: &model.User{
 					IsAnonymous:       false,
 					IsVerified:        true,
 					CanReauthenticate: true,
-				}, nil
-			})
-
-		mockRolesAndGroupsProvider.EXPECT().ListEffectiveRolesByUserID(gomock.Any(), "user-id").DoAndReturn(
-			func(ctx context.Context, userID string) ([]*model.Role, error) {
-				return []*model.Role{
-					{
-						Key: "role-1",
-					},
-					{
-						Key: "role-3",
-					},
-				}, nil
-			})
+				},
+				EffectiveRoleKeys: []string{"role-1", "role-3"},
+			},
+			nil,
+		)
 
 		issuer := &IDTokenIssuer{
 			Secrets: secrets,
@@ -95,9 +85,8 @@ func TestIDTokenIssuer(t *testing.T) {
 				HTTPHost:  "test.authgear.com",
 				HTTPProto: "http",
 			},
-			Users:          mockUserProvider,
-			RolesAndGroups: mockRolesAndGroupsProvider,
-			Clock:          clock.NewMockClockAtTime(now),
+			UserInfoService: mockUserInfoService,
+			Clock:           clock.NewMockClockAtTime(now),
 		}
 
 		client := &config.OAuthClientConfig{

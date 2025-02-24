@@ -116,8 +116,8 @@ check-tidy:
 	# (cd custombuild && go mod tidy)
 	git status --porcelain | grep '.*'; test $$? -eq 1
 
-	make -C authui check-tidy
-	make -C portal check-tidy
+	$(MAKE) -C authui check-tidy
+	$(MAKE) -C portal check-tidy
 
 .PHONY: html-email
 html-email:
@@ -168,6 +168,8 @@ clean:
 	git checkout -- ./e2e/logs
 	find . -name '.parcel-cache' -exec rm -rf '{}' \;
 	find . -name '.stylelintcache' -exec rm -rf '{}' \;
+	$(MAKE) -C ./e2e clean
+	$(MAKE) -C ./k6 clean
 
 .PHONY: export-schemas
 export-schemas:
@@ -194,11 +196,11 @@ generate-rtl:
 
 .PHONY: generate-material-icons
 generate-material-icons:
-	make -C ./scripts/python generate-material-icons
+	$(MAKE) -C ./scripts/python generate-material-icons
 
 .PHONY: generate-twemoji-icons
 generate-twemoji-icons:
-	make -C ./scripts/python generate-twemoji-icons
+	$(MAKE) -C ./scripts/python generate-twemoji-icons
 
 .PHONY: logs-summary
 logs-summary:

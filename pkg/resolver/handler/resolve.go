@@ -5,9 +5,8 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
-	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/session"
-	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
+	"github.com/authgear/authgear-server/pkg/lib/userinfo"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
@@ -22,14 +21,6 @@ func ConfigureResolveRoute(route httproute.Route) []httproute.Route {
 
 //go:generate mockgen -source=resolve.go -destination=resolve_mock_test.go -package handler
 
-type IdentityService interface {
-	ListByUser(ctx context.Context, userID string) ([]*identity.Info, error)
-}
-
-type VerificationService interface {
-	IsUserVerified(ctx context.Context, identities []*identity.Info) (bool, error)
-}
-
 type Database interface {
 	ReadOnly(ctx context.Context, do func(ctx context.Context) error) error
 }
@@ -40,21 +31,14 @@ func NewResolveHandlerLogger(lf *log.Factory) ResolveHandlerLogger {
 	return ResolveHandlerLogger{lf.New("resolve-handler")}
 }
 
-type UserProvider interface {
-	Get(ctx context.Context, id string, role accesscontrol.Role) (*model.User, error)
-}
-
-type RolesAndGroupsProvider interface {
-	ListEffectiveRolesByUserID(ctx context.Context, userID string) ([]*model.Role, error)
+type UserInfoService interface {
+	GetUserInfoGreatest(ctx context.Context, userID string) (*userinfo.UserInfo, error)
 }
 
 type ResolveHandler struct {
-	Database       Database
-	Identities     IdentityService
-	Verification   VerificationService
-	Logger         ResolveHandlerLogger
-	Users          UserProvider
-	RolesAndGroups RolesAndGroupsProvider
+	Database        Database
+	Logger          ResolveHandlerLogger
+	UserInfoService UserInfoService
 }
 
 func (h *ResolveHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
@@ -86,41 +70,18 @@ func (h *ResolveHandler) resolve(ctx context.Context, r *http.Request) (*model.S
 
 	var info *model.SessionInfo
 	if valid && userID != nil && s != nil {
-		identities, err := h.Identities.ListByUser(ctx, *userID)
+		userInfo, err := h.UserInfoService.GetUserInfoGreatest(ctx, *userID)
 		if err != nil {
 			return nil, err
 		}
 
-		isAnonymous := false
-		for _, i := range identities {
-			if i.Type == model.IdentityTypeAnonymous {
-				isAnonymous = true
-				break
-			}
-		}
-
-		isVerified, err := h.Verification.IsUserVerified(ctx, identities)
-		if err != nil {
-			return nil, err
-		}
-
-		user, err := h.Users.Get(ctx, *userID, accesscontrol.RoleGreatest)
-		if err != nil {
-			return nil, err
-		}
-
-		userCanReauthenticate := user.CanReauthenticate
-
-		roles, err := h.RolesAndGroups.ListEffectiveRolesByUserID(ctx, *userID)
-		roleKeys := make([]string, len(roles))
-		for i := range roles {
-			roleKeys[i] = roles[i].Key
-		}
-		if err != nil {
-			return nil, err
-		}
-
-		info = session.NewInfo(s, isAnonymous, isVerified, userCanReauthenticate, roleKeys)
+		info = session.NewInfo(
+			s,
+			userInfo.User.IsAnonymous,
+			userInfo.User.IsVerified,
+			userInfo.User.CanReauthenticate,
+			userInfo.EffectiveRoleKeys,
+		)
 	} else if !valid {
 		info = &model.SessionInfo{IsValid: false}
 	}
