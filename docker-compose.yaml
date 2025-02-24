@@ -1,7 +1,6 @@
 services:
   db:
     # When you change this, please also change ./e2e/docker-compose.yaml
-    image: postgres12-pg-partman-pgaudit:latest
     build:
       context: ./postgres/postgres12
     volumes:
@@ -21,7 +20,6 @@ services:
     # This database is not actually used now.
     # Guard this with a profile first.
     profiles: ["postgres16"]
-    image: postgres16-pg-partman-pgaudit:latest
     build:
       context: ./postgres/postgres16
     volumes:
