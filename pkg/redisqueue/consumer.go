@@ -34,6 +34,7 @@ var errNoTask = errors.New("no task in queue")
 const taskQueueBucket ratelimit.BucketName = "TaskQueue"
 
 type TaskProcessor func(ctx context.Context, appProvider *deps.AppProvider, task *redisqueue.Task) (output json.RawMessage, err error)
+type taskExecutor func() (output json.RawMessage, err error)
 
 type Consumer struct {
 	QueueName              string
@@ -127,9 +128,10 @@ func (c *Consumer) Stop(ctx context.Context, _ *log.Logger) error {
 	return nil
 }
 
-func (c *Consumer) dequeue(ctx context.Context) (*redisqueue.Task, *deps.AppProvider, error) {
+func (c *Consumer) dequeue(ctx context.Context) (taskExecutor, *redisqueue.Task, error) {
 	var task redisqueue.Task
 	var appProvider *deps.AppProvider
+	var appID string
 
 	err := c.redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
 		queueKey := redisqueue.RedisKeyForQueue(c.QueueName)
@@ -166,14 +168,7 @@ func (c *Consumer) dequeue(ctx context.Context) (*redisqueue.Task, *deps.AppProv
 		if err != nil {
 			return fmt.Errorf("unmarshal task: %w", err)
 		}
-
-		appCtx, err := c.configSourceController.ResolveContext(ctx, queueItem.AppID)
-		if err != nil {
-			return fmt.Errorf("resolve app context: %w", err)
-		}
-
-		appProvider = c.rootProvider.NewAppProvider(ctx, appCtx)
-		appProvider.LoggerFactory.DefaultFields["task_id"] = task.ID
+		appID = queueItem.AppID
 		return nil
 	})
 
@@ -181,7 +176,17 @@ func (c *Consumer) dequeue(ctx context.Context) (*redisqueue.Task, *deps.AppProv
 		return nil, nil, err
 	}
 
-	return &task, appProvider, err
+	var executor taskExecutor = func() (output json.RawMessage, err error) {
+		err = c.configSourceController.ResolveContext(ctx, appID, func(ctx context.Context, appCtx *config.AppContext) error {
+			appProvider = c.rootProvider.NewAppProvider(ctx, appCtx)
+			appProvider.LoggerFactory.DefaultFields["task_id"] = task.ID
+			output, err = c.process(ctx, &task, appProvider)
+			return err
+		})
+		return
+	}
+
+	return executor, &task, err
 }
 
 func (c *Consumer) process(
@@ -275,7 +280,7 @@ func (c *Consumer) work(ctx context.Context) {
 		}
 	}
 
-	task, appProvider, err := c.dequeue(ctx)
+	execute, task, err := c.dequeue(ctx)
 	if errors.Is(err, errNoTask) {
 		// There is actually no task.
 		// Cancel the reservation
@@ -298,7 +303,7 @@ func (c *Consumer) work(ctx context.Context) {
 	// Reset backoff when we can dequeue.
 	c.dequeueBackoff.Reset()
 
-	output, err := c.process(ctx, task, appProvider)
+	output, err := execute()
 
 	if err != nil {
 		c.logger.WithFields(map[string]interface{}{

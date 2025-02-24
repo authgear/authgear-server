@@ -23,7 +23,6 @@ import (
 	"golang.org/x/text/language"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
-	"github.com/authgear/authgear-server/pkg/util/phone"
 	"github.com/authgear/authgear-server/pkg/util/rolesgroupsutil"
 	"github.com/authgear/authgear-server/pkg/util/secretcode"
 	"github.com/authgear/authgear-server/pkg/util/territoryutil"
@@ -32,7 +31,6 @@ import (
 )
 
 func init() {
-	jsonschemaformat.DefaultChecker["phone"] = FormatPhone{}
 	jsonschemaformat.DefaultChecker["email-name-addr"] = FormatEmail{AllowName: true}
 	jsonschemaformat.DefaultChecker["uri"] = FormatURI{}
 	jsonschemaformat.DefaultChecker["http_origin"] = FormatHTTPOrigin{}
@@ -62,26 +60,6 @@ func init() {
 	jsonschemaformat.DefaultChecker["x_re2_regex"] = FormatRe2Regex{}
 	jsonschemaformat.DefaultChecker["x_role_group_key"] = rolesgroupsutil.FormatKey{}
 	jsonschemaformat.DefaultChecker["x_x509_certificate_pem"] = FormatX509CertPem{}
-}
-
-// FormatPhone checks if input is a phone number in E.164 format.
-// If the input is not a string, it is not an error.
-// To enforce string, use other JSON schema constructs.
-// This design allows this format to validate optional phone number.
-type FormatPhone struct{}
-
-func (f FormatPhone) CheckFormat(ctx context.Context, value interface{}) error {
-	str, ok := value.(string)
-	if !ok {
-		return nil
-	}
-
-	err := phone.Require_IsPossibleNumber_IsValidNumber_UserInputInE164(str)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 // FormatEmail checks if input is an email address.

@@ -8,6 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/internalinterface"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -78,7 +79,7 @@ func (p *Provider) New(ctx context.Context, id string, userID string, oobAuthent
 		a.Email = target
 	case model.AuthenticatorTypeOOBSMS:
 		validationCtx := &validation.Context{}
-		err := validation.FormatPhone{}.CheckFormat(ctx, target)
+		err := config.FormatPhone{}.CheckFormat(ctx, target)
 		if err != nil {
 			validationCtx.EmitError("format", map[string]interface{}{"format": "phone"})
 		}

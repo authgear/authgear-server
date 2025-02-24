@@ -35,6 +35,8 @@ type LocalFS struct {
 	done    chan<- struct{}   `wire:"-"`
 }
 
+var _ ContextResolver = &LocalFS{}
+
 func (s *LocalFS) Open(ctx context.Context) error {
 	dir, err := filepath.Abs(s.Config.Directory)
 	if err != nil {
@@ -159,10 +161,11 @@ func (s *LocalFS) ResolveAppID(ctx context.Context, r *http.Request) (appID stri
 	return
 }
 
-func (s *LocalFS) ResolveContext(ctx context.Context, _appID string) (*config.AppContext, error) {
+func (s *LocalFS) ResolveContext(ctx context.Context, _appID string, fn func(context.Context, *config.AppContext) error) error {
 	// In single mode, appID is ignored.
 	appCtx := s.config.Load().(*config.AppContext)
-	return appCtx, nil
+	ctx = config.WithAppContext(ctx, appCtx)
+	return fn(ctx, appCtx)
 }
 
 func (s *LocalFS) ReloadApp(ctx context.Context, appID string) {

@@ -1,6 +1,7 @@
 package webapp
 
 import (
+	"context"
 	"fmt"
 	"net/mail"
 	"regexp"
@@ -9,7 +10,6 @@ import (
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/util/phone"
 )
 
 var phoneRegexp = regexp.MustCompile(`^\+[0-9]*$`)
@@ -38,7 +38,7 @@ func GetAccountRecoveryIdentificationOptions(f *authflow.FlowResponse) []declara
 	return options
 }
 
-func GetMostAppropriateIdentification(f *authflow.FlowResponse, loginID string, loginIDInputType string) config.AuthenticationFlowIdentification {
+func GetMostAppropriateIdentification(ctx context.Context, f *authflow.FlowResponse, loginID string, loginIDInputType string) config.AuthenticationFlowIdentification {
 	// If loginIDInputType already tell us the login id type, return the corresponding type
 	switch loginIDInputType {
 	case "email":
@@ -50,7 +50,7 @@ func GetMostAppropriateIdentification(f *authflow.FlowResponse, loginID string, 
 	// Else, guess the type
 
 	lookLikeAPhoneNumber := func(loginID string) bool {
-		err := phone.Require_IsPossibleNumber_IsValidNumber_UserInputInE164(loginID)
+		err := config.FormatPhone{}.CheckFormat(ctx, loginID)
 		if err == nil {
 			return true
 		}

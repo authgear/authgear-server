@@ -124,6 +124,8 @@ type Database struct {
 	appMap  *sync.Map `wire:"-"`
 }
 
+var _ ContextResolver = &Database{}
+
 func (d *Database) Open(ctx context.Context) error {
 	d.hostMap = &sync.Map{}
 	d.appMap = &sync.Map{}
@@ -180,9 +182,8 @@ func (d *Database) resolveAppIDByPath(ctx context.Context, r *http.Request) (str
 	if appid == "" {
 		return "", ErrAppNotFound
 	}
-
 	// Try to resolve app to ensure the app exist
-	_, err := d.ResolveContext(ctx, appid)
+	err := d.ResolveContext(ctx, appid, func(ctx context.Context, ac *config.AppContext) error { return nil })
 	if err != nil {
 		return "", err
 	}
@@ -221,13 +222,19 @@ func (d *Database) resolveAppIDByDomain(ctx context.Context, r *http.Request) (s
 	return appID, nil
 }
 
-func (d *Database) ResolveContext(ctx context.Context, appID string) (*config.AppContext, error) {
+func (d *Database) ResolveContext(ctx context.Context, appID string, fn func(context.Context, *config.AppContext) error) error {
 	value, _ := d.appMap.LoadOrStore(appID, &dbApp{
 		appID: appID,
 		load:  &sync.Once{},
 	})
 	app := value.(*dbApp)
-	return app.Load(ctx, d)
+	appCtx, err := app.Load(ctx, d)
+	if err != nil {
+		return err
+	}
+	ctx = config.WithAppContext(ctx, appCtx)
+
+	return fn(ctx, appCtx)
 }
 
 func (d *Database) ReloadApp(ctx context.Context, appID string) {

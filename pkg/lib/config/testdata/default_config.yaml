@@ -250,6 +250,10 @@ ui:
       - "ZA"
       - "ZM"
       - "ZW"
+    validation:
+      implementation: libphonenumber
+      libphonenumber:
+        validation_method: isValidNumber
   forgot_password:
     phone:
       - channel: sms

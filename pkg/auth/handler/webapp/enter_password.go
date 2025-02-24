@@ -6,6 +6,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -73,7 +74,7 @@ func (h *EnterPasswordHandler) GetData(ctx context.Context, r *http.Request, rw 
 
 	if identityInfo, ok := graph.GetUserLastIdentity(); ok {
 		identityDisplayID = identityInfo.DisplayID()
-		phoneFormat := validation.FormatPhone{}
+		phoneFormat := config.FormatPhone{}
 		emailFormat := validation.FormatEmail{AllowName: false}
 
 		// Instead of using the login id type, we parse the login id value for the type

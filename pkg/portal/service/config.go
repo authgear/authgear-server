@@ -53,8 +53,8 @@ type ConfigService struct {
 }
 
 // ResolveContext calls other services that acquires connection themselves.
-func (s *ConfigService) ResolveContext(ctx context.Context, appID string) (*config.AppContext, error) {
-	return s.ConfigSource.ContextResolver.ResolveContext(ctx, appID)
+func (s *ConfigService) ResolveContext(ctx context.Context, appID string, fn func(context.Context, *config.AppContext) error) error {
+	return s.ConfigSource.ContextResolver.ResolveContext(ctx, appID, fn)
 }
 
 // GetStaticAppIDs does not need connection.

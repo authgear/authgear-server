@@ -68,7 +68,8 @@ var _ = Schema.Add("PhoneInputConfig", `
 	"properties": {
 		"allowlist": { "type": "array", "items": { "$ref": "#/$defs/ISO31661Alpha2" }, "minItems": 1 },
 		"pinned_list": { "type": "array", "items": { "$ref": "#/$defs/ISO31661Alpha2" } },
-		"preselect_by_ip_disabled": { "type": "boolean" }
+		"preselect_by_ip_disabled": { "type": "boolean" },
+		"validation": { "$ref": "#/$defs/PhoneInputValidationConfig" }
 	}
 }
 `)
@@ -76,14 +77,83 @@ var _ = Schema.Add("PhoneInputConfig", `
 var _ = Schema.Add("ISO31661Alpha2", phone.JSONSchemaString)
 
 type PhoneInputConfig struct {
-	AllowList             []string `json:"allowlist,omitempty"`
-	PinnedList            []string `json:"pinned_list,omitempty"`
-	PreselectByIPDisabled bool     `json:"preselect_by_ip_disabled,omitempty"`
+	AllowList             []string                    `json:"allowlist,omitempty"`
+	PinnedList            []string                    `json:"pinned_list,omitempty"`
+	PreselectByIPDisabled bool                        `json:"preselect_by_ip_disabled,omitempty"`
+	Validation            *PhoneInputValidationConfig `json:"validation,omitempty"`
 }
 
 func (c *PhoneInputConfig) SetDefaults() {
 	if c.AllowList == nil {
 		c.AllowList = phone.AllAlpha2
+	}
+}
+
+type PhoneInputValidationImplementation string
+
+const (
+	PhoneInputValidationImplementationLibphonenumber PhoneInputValidationImplementation = "libphonenumber"
+)
+
+var _ = Schema.Add("PhoneInputValidationConfig", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"implementation": {
+			"type": "string",
+			"enum": [
+				"libphonenumber"
+			]
+		},
+		"libphonenumber": {
+			"$ref": "#/$defs/PhoneInputValidationLibphonenumber"
+		}
+	}
+}
+`)
+
+type PhoneInputValidationConfig struct {
+	Implementation PhoneInputValidationImplementation  `json:"implementation,omitempty"`
+	Libphonenumber *PhoneInputValidationLibphonenumber `json:"libphonenumber,omitempty"`
+}
+
+func (c *PhoneInputValidationConfig) SetDefaults() {
+	if c.Implementation == "" {
+		c.Implementation = PhoneInputValidationImplementationLibphonenumber
+	}
+}
+
+type LibphonenumberValidationMethod string
+
+const (
+	LibphonenumberValidationMethodIsPossibleNumber LibphonenumberValidationMethod = "isPossibleNumber"
+	LibphonenumberValidationMethodIsValidNumber    LibphonenumberValidationMethod = "isValidNumber"
+)
+
+var _ = Schema.Add("PhoneInputValidationLibphonenumber", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"validation_method": {
+			"type": "string",
+			"enum": [
+				"isPossibleNumber",
+				"isValidNumber"
+			]
+		}
+	}
+}
+`)
+
+type PhoneInputValidationLibphonenumber struct {
+	ValidationMethod LibphonenumberValidationMethod `json:"validation_method,omitempty"`
+}
+
+func (c *PhoneInputValidationLibphonenumber) SetDefaults() {
+	if c.ValidationMethod == "" {
+		c.ValidationMethod = LibphonenumberValidationMethodIsValidNumber
 	}
 }
 

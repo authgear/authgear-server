@@ -445,6 +445,21 @@ export interface PhoneInputConfig {
   allowlist?: string[];
   pinned_list?: string[];
   preselect_by_ip_disabled?: boolean;
+  validation?: PhoneInputValidationConfig;
+}
+
+export interface PhoneInputValidationConfig {
+  implementation?: "libphonenumber";
+  libphonenumber?: PhoneInputValidationLibphonenumber;
+}
+
+export interface PhoneInputValidationLibphonenumber {
+  validation_method?: LibphonenumberValidationMethod;
+}
+
+export enum LibphonenumberValidationMethod {
+  isPossibleNumber = "isPossibleNumber",
+  isValidNumber = "isValidNumber",
 }
 
 export interface UIConfig {

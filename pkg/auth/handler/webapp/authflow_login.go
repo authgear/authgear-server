@@ -156,7 +156,7 @@ func (h *AuthflowLoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 
 		loginID := r.Form.Get("x_login_id")
 		loginIDInputType := r.Form.Get("x_login_id_input_type")
-		identification := webapp.GetMostAppropriateIdentification(screen.StateTokenFlowResponse, loginID, loginIDInputType)
+		identification := webapp.GetMostAppropriateIdentification(ctx, screen.StateTokenFlowResponse, loginID, loginIDInputType)
 		input := map[string]interface{}{
 			"identification": identification,
 			"login_id":       loginID,

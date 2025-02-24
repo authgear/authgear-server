@@ -18,6 +18,8 @@ import {
   // eslint-disable-next-line no-restricted-imports
   ActionButton,
   IToggleProps,
+  ChoiceGroup,
+  IChoiceGroupOption,
 } from "@fluentui/react";
 import { useParams } from "react-router-dom";
 import { produce } from "immer";
@@ -46,6 +48,7 @@ import {
   AuthenticatorOOBEmailConfig,
   RateLimitConfig,
   UIImplementation,
+  LibphonenumberValidationMethod,
 } from "../../types";
 import {
   DEFAULT_TEMPLATE_LOCALE,
@@ -999,6 +1002,7 @@ function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
       pinned_list: config.ui?.phone_input?.pinned_list ?? [],
       preselect_by_ip_disabled:
         config.ui?.phone_input?.preselect_by_ip_disabled ?? false,
+      validation: config.ui?.phone_input?.validation ?? {},
     },
     verificationClaims: {
       email: {
@@ -2397,6 +2401,53 @@ function PhoneSettings(props: PhoneSettingsProps) {
     "delete_disabled"
   );
 
+  const phoneValidationOptions = useMemo<IChoiceGroupOption[]>(() => {
+    return [
+      {
+        key: LibphonenumberValidationMethod.isPossibleNumber,
+        text: renderToString(
+          "LoginMethodConfigurationScreen.phone.validation.options.isPossibleNumber"
+        ),
+      },
+      {
+        key: LibphonenumberValidationMethod.isValidNumber,
+        // https://github.com/microsoft/fluentui/blob/%40fluentui/react_v8.121.13/packages/react/src/components/ChoiceGroup/ChoiceGroupOption/ChoiceGroupOption.base.tsx#L64
+        // renderToString is not working because the html elements will be escaped
+        text: (
+          <FormattedMessage
+            id="LoginMethodConfigurationScreen.phone.validation.options.isValidNumber"
+            values={{
+              href: "https://github.com/google/libphonenumber",
+            }}
+          />
+        ) as unknown as string,
+      },
+    ];
+  }, [renderToString]);
+
+  const onPhoneValidationMethodChange = useCallback(
+    (_: unknown, option?: IChoiceGroupOption) => {
+      if (option == null) {
+        return;
+      }
+      setState((prev) => {
+        return {
+          ...prev,
+          phoneInputConfig: {
+            ...prev.phoneInputConfig,
+            validation: {
+              implementation: "libphonenumber",
+              libphonenumber: {
+                validation_method: option.key as LibphonenumberValidationMethod,
+              },
+            },
+          },
+        };
+      });
+    },
+    [setState]
+  );
+
   return (
     <Widget>
       <WidgetTitle>
@@ -2410,6 +2461,16 @@ function PhoneSettings(props: PhoneSettingsProps) {
         allowedAlpha2={phoneInputConfig.allowlist}
         pinnedAlpha2={phoneInputConfig.pinned_list}
         onChange={onChangePhoneList}
+      />
+      <ChoiceGroup
+        label={renderToString(
+          "LoginMethodConfigurationScreen.phone.validation.title"
+        )}
+        options={phoneValidationOptions}
+        selectedKey={
+          phoneInputConfig.validation.libphonenumber?.validation_method
+        }
+        onChange={onPhoneValidationMethodChange}
       />
       <Checkbox
         label={renderToString(

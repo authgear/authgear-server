@@ -56,7 +56,7 @@ type CollaboratorServiceAdminAPIService interface {
 }
 
 type CollaboratorAppConfigService interface {
-	ResolveContext(ctx context.Context, appID string) (*config.AppContext, error)
+	ResolveContext(ctx context.Context, appID string, fn func(context.Context, *config.AppContext) error) error
 }
 
 type CollaboratorService struct {
@@ -919,53 +919,47 @@ func (s *CollaboratorService) createAccountForInvitee(ctx context.Context, actor
 }
 
 func (s *CollaboratorService) checkQuotaInSend(ctx context.Context, appID string) error {
-	appCtx, err := s.AppConfigs.ResolveContext(ctx, appID)
-	if err != nil {
-		return err
-	}
-
-	collaborators, err := s.ListCollaborators(ctx, appID)
-	if err != nil {
-		return err
-	}
-
-	invitations, err := s.ListInvitations(ctx, appID)
-	if err != nil {
-		return err
-	}
-
-	if appCtx.Config.FeatureConfig.Collaborator.Maximum != nil {
-		maximum := *appCtx.Config.FeatureConfig.Collaborator.Maximum
-		length1 := len(collaborators)
-		length2 := len(invitations)
-		if length1+length2 >= maximum {
-			return ErrCollaboratorQuotaExceeded
+	return s.AppConfigs.ResolveContext(ctx, appID, func(ctx context.Context, appCtx *config.AppContext) error {
+		collaborators, err := s.ListCollaborators(ctx, appID)
+		if err != nil {
+			return err
 		}
-	}
 
-	return nil
+		invitations, err := s.ListInvitations(ctx, appID)
+		if err != nil {
+			return err
+		}
+
+		if appCtx.Config.FeatureConfig.Collaborator.Maximum != nil {
+			maximum := *appCtx.Config.FeatureConfig.Collaborator.Maximum
+			length1 := len(collaborators)
+			length2 := len(invitations)
+			if length1+length2 >= maximum {
+				return ErrCollaboratorQuotaExceeded
+			}
+		}
+
+		return nil
+	})
 }
 
 func (s *CollaboratorService) checkQuotaInAccept(ctx context.Context, appID string) error {
-	appCtx, err := s.AppConfigs.ResolveContext(ctx, appID)
-	if err != nil {
-		return err
-	}
-
-	collaborators, err := s.ListCollaborators(ctx, appID)
-	if err != nil {
-		return err
-	}
-
-	if appCtx.Config.FeatureConfig.Collaborator.Maximum != nil {
-		maximum := *appCtx.Config.FeatureConfig.Collaborator.Maximum
-		length1 := len(collaborators)
-		if length1 >= maximum {
-			return ErrCollaboratorQuotaExceeded
+	return s.AppConfigs.ResolveContext(ctx, appID, func(ctx context.Context, appCtx *config.AppContext) error {
+		collaborators, err := s.ListCollaborators(ctx, appID)
+		if err != nil {
+			return err
 		}
-	}
 
-	return nil
+		if appCtx.Config.FeatureConfig.Collaborator.Maximum != nil {
+			maximum := *appCtx.Config.FeatureConfig.Collaborator.Maximum
+			length1 := len(collaborators)
+			if length1 >= maximum {
+				return ErrCollaboratorQuotaExceeded
+			}
+		}
+
+		return nil
+	})
 }
 
 func scanCollaborator(scan db.Scanner) (*model.Collaborator, error) {
