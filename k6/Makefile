@@ -15,6 +15,16 @@ export FIXTURE_PHONE_NUMBER_COUNTRY_CALLING_CODE=+852
 export FIXTURE_PHONE_NUMBER_LOW=52000000
 export FIXTURE_PHONE_NUMBER_HIGH=57999999
 
+.PHONY: all
+all:
+	$(MAKE) healthz
+	$(MAKE) signup
+	$(MAKE) login
+	$(MAKE) refresh_access_token
+	$(MAKE) get_user_info
+	$(MAKE) resolve
+	$(MAKE) biometric_login
+
 .PHONY: go-test
 go-test:
 	go test .
