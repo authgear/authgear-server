@@ -412,16 +412,23 @@ function makeNewDenoScriptURL(): string {
 
 const DEFAULT_SMS_SCRIPT_TEMPLATE = `// This custom script will be executed when a message is triggered
 // Sample script:
-import { CustomSMSGatewayPayload } from "${DENO_TYPES_URL}";
+import { CustomSMSGatewayPayload, CustomSMSGatewayResponse } from "${DENO_TYPES_URL}";
 
-export default async function (e: CustomSMSGatewayPayload): Promise<void> {
+export default async function (e: CustomSMSGatewayPayload): Promise<CustomSMSGatewayResponse> {
   const body = JSON.stringify(e);
   const response = await fetch("https://some.sms.gateway", {
     method: "POST",
     body: body,
   });
+
   if (!response.ok) {
-    throw new Error("Failed to send sms");
+    return {
+      code: "delivery_rejected",
+    }
+  }
+
+  return {
+    code: "ok",
   }
 }
 `;
