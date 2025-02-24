@@ -168,6 +168,7 @@ clean:
 	git checkout -- ./e2e/logs
 	find . -name '.parcel-cache' -exec rm -rf '{}' \;
 	find . -name '.stylelintcache' -exec rm -rf '{}' \;
+	$(MAKE) -C ./e2e clean
 
 .PHONY: export-schemas
 export-schemas:

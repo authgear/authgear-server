@@ -17,6 +17,7 @@
 
 # docker
 docker-compose.override.yaml
+docker-compose-build-cache/
 
 # vs code
 .vscode
