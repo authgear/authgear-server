@@ -112,6 +112,7 @@ var cmdPricingPlanUpdate = &cobra.Command{
 	Short: "Update plan's feature config",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
+		ctx := cmd.Context()
 		binder := portalcmd.GetBinder()
 		dbURL, err := binder.GetRequiredString(cmd, portalcmd.ArgDatabaseURL)
 		if err != nil {
@@ -162,7 +163,7 @@ var cmdPricingPlanUpdate = &cobra.Command{
 					return nil
 				}
 
-				_, err = config.ParseFeatureConfig(edited)
+				_, err = config.ParseFeatureConfig(ctx, edited)
 				if err != nil {
 					editError = err
 					continue
@@ -233,6 +234,7 @@ var cmdPricingAppUpdate = &cobra.Command{
 	Short: "Update app's feature config and plan name",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
+		ctx := cmd.Context()
 		binder := portalcmd.GetBinder()
 		dbURL, err := binder.GetRequiredString(cmd, portalcmd.ArgDatabaseURL)
 		if err != nil {
@@ -284,7 +286,7 @@ var cmdPricingAppUpdate = &cobra.Command{
 					return nil
 				}
 
-				_, err = config.ParseFeatureConfig(edited)
+				_, err = config.ParseFeatureConfig(ctx, edited)
 				if err != nil {
 					editError = err
 					continue

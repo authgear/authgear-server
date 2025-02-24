@@ -1,6 +1,7 @@
 package web_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -32,7 +33,7 @@ func TestJavaScriptDescriptor(t *testing.T) {
 		}
 
 		read := func(view resource.View) (str string, err error) {
-			result, err := manager.Read(myJS, view)
+			result, err := manager.Read(context.Background(), myJS, view)
 			if err != nil {
 				return
 			}

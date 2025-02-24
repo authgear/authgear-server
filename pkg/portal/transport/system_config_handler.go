@@ -1,6 +1,7 @@
 package transport
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 
@@ -14,7 +15,7 @@ func ConfigureSystemConfigRoute(route httproute.Route) httproute.Route {
 }
 
 type SystemConfigProvider interface {
-	SystemConfig() (*model.SystemConfig, error)
+	SystemConfig(ctx context.Context) (*model.SystemConfig, error)
 }
 
 type SystemConfigHandler struct {
@@ -24,7 +25,8 @@ type SystemConfigHandler struct {
 
 func (h *SystemConfigHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	make := func() ([]byte, error) {
-		cfg, err := h.SystemConfig.SystemConfig()
+		ctx := r.Context()
+		cfg, err := h.SystemConfig.SystemConfig(ctx)
 		if err != nil {
 			return nil, err
 		}

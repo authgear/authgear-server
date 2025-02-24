@@ -2,6 +2,7 @@ package config
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"sort"
@@ -32,7 +33,7 @@ type SecretConfig struct {
 
 // ParsePartialSecret unmarshals inputYAML into a full SecretConfig,
 // without performing validation.
-func ParsePartialSecret(inputYAML []byte) (*SecretConfig, error) {
+func ParsePartialSecret(ctx context.Context, inputYAML []byte) (*SecretConfig, error) {
 	const validationErrorMessage = "invalid secrets"
 
 	jsonData, err := yaml.YAMLToJSON(inputYAML)
@@ -47,18 +48,18 @@ func ParsePartialSecret(inputYAML []byte) (*SecretConfig, error) {
 		return nil, err
 	}
 
-	ctx := &validation.Context{}
+	vctx := &validation.Context{}
 	for i := range config.Secrets {
-		config.Secrets[i].parse(ctx.Child("secrets", strconv.Itoa(i)))
+		config.Secrets[i].parse(ctx, vctx.Child("secrets", strconv.Itoa(i)))
 	}
-	if err := ctx.Error(validationErrorMessage); err != nil {
+	if err := vctx.Error(validationErrorMessage); err != nil {
 		return nil, err
 	}
 
 	return &config, nil
 }
 
-func ParseSecret(inputYAML []byte) (*SecretConfig, error) {
+func ParseSecret(ctx context.Context, inputYAML []byte) (*SecretConfig, error) {
 	const validationErrorMessage = "invalid secrets"
 
 	jsonData, err := yaml.YAMLToJSON(inputYAML)
@@ -67,6 +68,7 @@ func ParseSecret(inputYAML []byte) (*SecretConfig, error) {
 	}
 
 	err = SecretConfigSchema.Validator().ValidateWithMessage(
+		ctx,
 		bytes.NewReader(jsonData),
 		validationErrorMessage,
 	)
@@ -81,11 +83,11 @@ func ParseSecret(inputYAML []byte) (*SecretConfig, error) {
 		return nil, err
 	}
 
-	ctx := &validation.Context{}
+	vctx := &validation.Context{}
 	for i := range config.Secrets {
-		config.Secrets[i].parse(ctx.Child("secrets", strconv.Itoa(i)))
+		config.Secrets[i].parse(ctx, vctx.Child("secrets", strconv.Itoa(i)))
 	}
-	if err := ctx.Error(validationErrorMessage); err != nil {
+	if err := vctx.Error(validationErrorMessage); err != nil {
 		return nil, err
 	}
 
@@ -453,10 +455,10 @@ type SecretItem struct {
 	Data    SecretItemData  `json:"-"`
 }
 
-func (i *SecretItem) parse(ctx *validation.Context) {
+func (i *SecretItem) parse(ctx context.Context, vctx *validation.Context) {
 	def, ok := secretItemKeys[i.Key]
 	if !ok {
-		ctx.Child("key").EmitErrorMessage("unknown secret key")
+		vctx.Child("key").EmitErrorMessage("unknown secret key")
 		return
 	}
 
@@ -464,15 +466,15 @@ func (i *SecretItem) parse(ctx *validation.Context) {
 	data := def.dataFactory()
 	err := decoder.Decode(data)
 	if err != nil {
-		ctx.Child("data").AddError(err)
+		vctx.Child("data").AddError(err)
 		return
 	}
 
 	SetFieldDefaults(data)
 
-	err = validation.ValidateValue(data)
+	err = validation.ValidateValue(ctx, data)
 	if err != nil {
-		ctx.Child("data").AddError(err)
+		vctx.Child("data").AddError(err)
 		return
 	}
 

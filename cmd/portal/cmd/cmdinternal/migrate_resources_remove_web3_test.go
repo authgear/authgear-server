@@ -1,6 +1,7 @@
 package cmdinternal
 
 import (
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"testing"
@@ -21,7 +22,7 @@ func TestMigrateRemoveWeb3(t *testing.T) {
 			if err != nil {
 				panic(err)
 			}
-			err = migrateRemoveWeb3("app", src, false)
+			err = migrateRemoveWeb3(context.Background(), "app", src, false)
 			So(err, ShouldResemble, expectedErr)
 			So(src, ShouldResemble, expectedOutput) // src was modified in-place
 		}

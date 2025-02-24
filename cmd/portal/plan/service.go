@@ -40,7 +40,7 @@ func (s *Service) GetPlan(ctx context.Context, name string) (p *plan.Plan, err e
 // have tha same plan name, returns the updated app IDs
 func (s Service) UpdatePlan(ctx context.Context, name string, featureConfigYAML []byte) (appIDs []string, err error) {
 	// validation
-	_, err = config.ParseFeatureConfig(featureConfigYAML)
+	_, err = config.ParseFeatureConfig(ctx, featureConfigYAML)
 	if err != nil {
 		return
 	}
@@ -135,7 +135,7 @@ func (s Service) GetDatabaseSourceByAppID(ctx context.Context, appID string) (co
 
 func (s Service) UpdateAppFeatureConfig(ctx context.Context, appID string, featureConfigYAML []byte, planName string) (err error) {
 	// validation
-	_, err = config.ParseFeatureConfig(featureConfigYAML)
+	_, err = config.ParseFeatureConfig(ctx, featureConfigYAML)
 	if err != nil {
 		return
 	}

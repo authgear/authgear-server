@@ -1,6 +1,7 @@
 package declarative
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
@@ -43,9 +44,9 @@ func (i *InputSchemaTakeOOBOTPTarget) SchemaBuilder() validation.SchemaBuilder {
 	return sb
 }
 
-func (i *InputSchemaTakeOOBOTPTarget) MakeInput(rawMessage json.RawMessage) (authflow.Input, error) {
+func (i *InputSchemaTakeOOBOTPTarget) MakeInput(ctx context.Context, rawMessage json.RawMessage) (authflow.Input, error) {
 	var input InputTakeOOBOTPTarget
-	err := i.SchemaBuilder().ToSimpleSchema().Validator().ParseJSONRawMessage(rawMessage, &input)
+	err := i.SchemaBuilder().ToSimpleSchema().Validator().ParseJSONRawMessage(ctx, rawMessage, &input)
 	if err != nil {
 		return nil, err
 	}

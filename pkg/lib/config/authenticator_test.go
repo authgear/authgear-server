@@ -1,6 +1,7 @@
 package config_test
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"testing"
@@ -17,6 +18,7 @@ func TestAuthenticatorCodeValidPeriodDeprecation(t *testing.T) {
 		if err != nil {
 			panic(err)
 		}
+		ctx := context.Background()
 
 		for _, entry := range filteredEntries {
 			withoutYAML := entry[:len(entry)-5]
@@ -27,7 +29,7 @@ func TestAuthenticatorCodeValidPeriodDeprecation(t *testing.T) {
 					panic(err)
 				}
 
-				cfg, err := config.Parse(input)
+				cfg, err := config.Parse(ctx, input)
 				So(err, ShouldBeNil)
 
 				outputFilePath := withoutInput + ".output.yaml"
@@ -36,7 +38,7 @@ func TestAuthenticatorCodeValidPeriodDeprecation(t *testing.T) {
 					panic(err)
 				}
 
-				expected, err := config.Parse(data)
+				expected, err := config.Parse(ctx, data)
 				So(err, ShouldBeNil)
 
 				So(cfg, ShouldResemble, expected)

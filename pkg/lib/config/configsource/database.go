@@ -230,7 +230,7 @@ func (d *Database) ResolveContext(ctx context.Context, appID string) (*config.Ap
 	return app.Load(ctx, d)
 }
 
-func (d *Database) ReloadApp(appID string) {
+func (d *Database) ReloadApp(ctx context.Context, appID string) {
 	d.invalidateApp(appID)
 }
 
@@ -450,7 +450,7 @@ func (a *dbApp) doLoad(ctx context.Context, d *Database) (*config.AppContext, er
 		resources := d.BaseResources.Overlay(planFs)
 		resources = resources.Overlay(appFs)
 
-		appConfig, err := LoadConfig(resources)
+		appConfig, err := LoadConfig(ctx, resources)
 		if err != nil {
 			return err
 		}

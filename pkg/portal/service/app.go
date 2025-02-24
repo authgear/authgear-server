@@ -253,9 +253,9 @@ func (s *AppService) GetManyProjectQuota(ctx context.Context, userIDs []string) 
 }
 
 // LoadRawAppConfig does not need connection.
-func (s *AppService) LoadRawAppConfig(app *model.App) (*config.AppConfig, string, error) {
+func (s *AppService) LoadRawAppConfig(ctx context.Context, app *model.App) (*config.AppConfig, string, error) {
 	resMgr := s.AppResMgrFactory.NewManagerWithAppContext(app.Context)
-	result, err := resMgr.ReadAppFile(configsource.AppConfig,
+	result, err := resMgr.ReadAppFile(ctx, configsource.AppConfig,
 		&resource.AppFile{
 			Path: configsource.AuthgearYAML,
 		})
@@ -280,7 +280,7 @@ func (s *AppService) LoadAppSecretConfig(
 	token string) (*model.SecretConfig, string, error) {
 	var unmaskedSecrets []config.SecretKey = []config.SecretKey{}
 	resMgr := s.AppResMgrFactory.NewManagerWithAppContext(app.Context)
-	result, err := resMgr.ReadAppFile(configsource.SecretConfig, &resource.AppFile{
+	result, err := resMgr.ReadAppFile(ctx, configsource.SecretConfig, &resource.AppFile{
 		Path: configsource.AuthgearSecretYAML,
 	})
 	if err != nil {
@@ -290,7 +290,7 @@ func (s *AppService) LoadAppSecretConfig(
 	bytes := result.([]byte)
 	checksum := checksum.CRC32IEEEInHex(bytes)
 
-	cfg, err := config.ParsePartialSecret(bytes)
+	cfg, err := config.ParsePartialSecret(ctx, bytes)
 	if err != nil {
 		return nil, "", err
 	}
@@ -351,7 +351,7 @@ func (s *AppService) GenerateTesterToken(
 
 // Create calls other services that acquires connection themselves, and acquires connection.
 func (s *AppService) Create(ctx context.Context, userID string, id string) (*model.App, error) {
-	if err := s.validateAppID(id); err != nil {
+	if err := s.validateAppID(ctx, id); err != nil {
 		return nil, err
 	}
 
@@ -624,9 +624,10 @@ func (s *AppService) generateConfig(ctx context.Context, appHost string, appID s
 	return
 }
 
-func (s *AppService) validateAppID(appID string) error {
+func (s *AppService) validateAppID(ctx context.Context, appID string) error {
 	var list *blocklist.Blocklist
-	result, err := s.Resources.Read(portalresource.ReservedAppIDTXT, resource.EffectiveResource{})
+
+	result, err := s.Resources.Read(ctx, portalresource.ReservedAppIDTXT, resource.EffectiveResource{})
 	if errors.Is(err, resource.ErrResourceNotFound) {
 		// No reserved usernames
 		list = &blocklist.Blocklist{}
@@ -651,7 +652,7 @@ func (s *AppService) LoadAppWebhookSecretMaterials(
 	ctx context.Context,
 	app *model.App) (*config.WebhookKeyMaterials, error) {
 	resMgr := s.AppResMgrFactory.NewManagerWithAppContext(app.Context)
-	result, err := resMgr.ReadAppFile(configsource.SecretConfig, &resource.AppFile{
+	result, err := resMgr.ReadAppFile(ctx, configsource.SecretConfig, &resource.AppFile{
 		Path: configsource.AuthgearSecretYAML,
 	})
 	if err != nil {
@@ -660,7 +661,7 @@ func (s *AppService) LoadAppWebhookSecretMaterials(
 
 	bytes := result.([]byte)
 
-	secretConfig, err := config.ParsePartialSecret(bytes)
+	secretConfig, err := config.ParsePartialSecret(ctx, bytes)
 	if err != nil {
 		return nil, err
 	}

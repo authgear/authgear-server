@@ -74,7 +74,7 @@ func (h *AuthflowChangePasswordHandler) ServeHTTP(w http.ResponseWriter, r *http
 		return nil
 	})
 	handlers.PostAction("", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
-		err := AuthflowChangePasswordSchema.Validator().ValidateValue(FormToJSON(r.Form))
+		err := AuthflowChangePasswordSchema.Validator().ValidateValue(ctx, FormToJSON(r.Form))
 		if err != nil {
 			return err
 		}

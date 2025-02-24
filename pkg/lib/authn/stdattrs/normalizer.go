@@ -1,6 +1,8 @@
 package stdattrs
 
 import (
+	"context"
+
 	"golang.org/x/text/language"
 
 	"github.com/authgear/authgear-server/pkg/api/internalinterface"
@@ -66,9 +68,9 @@ func (n *Normalizer) normalizePhoneNumber(t T) error {
 	return nil
 }
 
-func normalizeURL(t T, key string) {
+func normalizeURL(ctx context.Context, t T, key string) {
 	if value, ok := t[key].(string); ok && value != "" {
-		err := validation.FormatURI{}.CheckFormat(value)
+		err := validation.FormatURI{}.CheckFormat(ctx, value)
 		if err != nil {
 			delete(t, key)
 		}
@@ -91,9 +93,9 @@ func normalizeLocale(t T) {
 	}
 }
 
-func normalizeZoneinfo(t T) {
+func normalizeZoneinfo(ctx context.Context, t T) {
 	if value, ok := t[Zoneinfo].(string); ok {
-		err := validation.FormatTimezone{}.CheckFormat(value)
+		err := validation.FormatTimezone{}.CheckFormat(ctx, value)
 		if err != nil {
 			delete(t, Zoneinfo)
 		}
@@ -102,9 +104,9 @@ func normalizeZoneinfo(t T) {
 	}
 }
 
-func normalizeBirthdate(t T) {
+func normalizeBirthdate(ctx context.Context, t T) {
 	if value, ok := t[Birthdate].(string); ok {
-		err := validation.FormatBirthdate{}.CheckFormat(value)
+		err := validation.FormatBirthdate{}.CheckFormat(ctx, value)
 		if err != nil {
 			delete(t, Birthdate)
 		}
@@ -129,7 +131,7 @@ func normalizeAddress(t T) {
 	}
 }
 
-func (n *Normalizer) Normalize(t T) error {
+func (n *Normalizer) Normalize(ctx context.Context, t T) error {
 	err := n.normalizeEmail(t)
 	if err != nil {
 		return err
@@ -151,13 +153,13 @@ func (n *Normalizer) Normalize(t T) error {
 	normalizeBool(t, EmailVerified)
 	normalizeBool(t, PhoneNumberVerified)
 
-	normalizeURL(t, Picture)
-	normalizeURL(t, Profile)
-	normalizeURL(t, Website)
+	normalizeURL(ctx, t, Picture)
+	normalizeURL(ctx, t, Profile)
+	normalizeURL(ctx, t, Website)
 
-	normalizeBirthdate(t)
+	normalizeBirthdate(ctx, t)
 
-	normalizeZoneinfo(t)
+	normalizeZoneinfo(ctx, t)
 
 	normalizeLocale(t)
 

@@ -185,7 +185,7 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	ctrl.PostAction("login_id", func(ctx context.Context) error {
 		result, err := ctrl.EntryPointPost(ctx, opts, intent, func() (input interface{}, err error) {
-			err = LoginWithLoginIDSchema.Validator().ValidateValue(FormToJSON(r.Form))
+			err = LoginWithLoginIDSchema.Validator().ValidateValue(ctx, FormToJSON(r.Form))
 			if err != nil {
 				return
 			}
@@ -207,7 +207,7 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	ctrl.PostAction("passkey", func(ctx context.Context) error {
 		result, err := ctrl.EntryPointPost(ctx, opts, intent, func() (input interface{}, err error) {
-			err = PasskeyAutofillSchema.Validator().ValidateValue(FormToJSON(r.Form))
+			err = PasskeyAutofillSchema.Validator().ValidateValue(ctx, FormToJSON(r.Form))
 			if err != nil {
 				return
 			}

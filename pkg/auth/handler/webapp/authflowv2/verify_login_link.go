@@ -160,7 +160,7 @@ func (h *AuthflowV2VerifyLoginLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r
 	})
 
 	ctrl.PostAction("", func(ctx context.Context) error {
-		err := VerifyLoginLinkOTPSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
+		err := VerifyLoginLinkOTPSchema.Validator().ValidateValue(ctx, handlerwebapp.FormToJSON(r.Form))
 		if err != nil {
 			return err
 		}

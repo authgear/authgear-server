@@ -83,7 +83,7 @@ func (h *AuthflowV2EnterRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r 
 		return nil
 	})
 	handlers.PostAction("", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
-		err := AuthflowEnterRecoveryCodeSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
+		err := AuthflowEnterRecoveryCodeSchema.Validator().ValidateValue(ctx, handlerwebapp.FormToJSON(r.Form))
 		if err != nil {
 			return err
 		}
@@ -97,7 +97,7 @@ func (h *AuthflowV2EnterRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r 
 			"request_device_token": requestDeviceToken,
 		}
 
-		err = handlerwebapp.HandleAuthenticationBotProtection(config.AuthenticationFlowAuthenticationRecoveryCode, screen.StateTokenFlowResponse, r.Form, input)
+		err = handlerwebapp.HandleAuthenticationBotProtection(ctx, config.AuthenticationFlowAuthenticationRecoveryCode, screen.StateTokenFlowResponse, r.Form, input)
 		if err != nil {
 			return err
 		}

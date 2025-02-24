@@ -1,6 +1,7 @@
 package configsource
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
@@ -8,8 +9,9 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
-func LoadConfig(res *resource.Manager) (*config.Config, error) {
-	result, err := res.Read(AppConfig, resource.EffectiveResource{})
+func LoadConfig(ctx context.Context, res *resource.Manager) (*config.Config, error) {
+
+	result, err := res.Read(ctx, AppConfig, resource.EffectiveResource{})
 	if errors.Is(err, resource.ErrResourceNotFound) {
 		return nil, fmt.Errorf("missing '%s': %w", AuthgearYAML, err)
 	} else if err != nil {
@@ -17,7 +19,7 @@ func LoadConfig(res *resource.Manager) (*config.Config, error) {
 	}
 	appConfig := result.(*config.AppConfig)
 
-	result, err = res.Read(SecretConfig, resource.EffectiveResource{})
+	result, err = res.Read(ctx, SecretConfig, resource.EffectiveResource{})
 	if errors.Is(err, resource.ErrResourceNotFound) {
 		return nil, fmt.Errorf("missing '%s': %w", AuthgearSecretYAML, err)
 	} else if err != nil {
@@ -26,7 +28,7 @@ func LoadConfig(res *resource.Manager) (*config.Config, error) {
 	secretConfig := result.(*config.SecretConfig)
 
 	var featureConfig *config.FeatureConfig
-	result, err = res.Read(FeatureConfig, resource.EffectiveResource{})
+	result, err = res.Read(ctx, FeatureConfig, resource.EffectiveResource{})
 	if errors.Is(err, resource.ErrResourceNotFound) {
 		featureConfig = config.NewEffectiveDefaultFeatureConfig()
 	} else if err != nil {

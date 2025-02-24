@@ -77,7 +77,7 @@ func (s *Service) RecordProgresses(ctx context.Context, appID string, ps []Progr
 
 // OnUpdateResource0 assumes acquired connection.
 func (s *Service) OnUpdateResource0(ctx context.Context, appID string, resourcesInAllFss []resource.ResourceFile, resourceInTargetFs *resource.ResourceFile, data []byte) (err error) {
-	ps, err := s.detectProgresses(resourceInTargetFs, data)
+	ps, err := s.detectProgresses(ctx, resourceInTargetFs, data)
 	if err != nil {
 		return
 	}
@@ -101,8 +101,8 @@ func (s *Service) recordProgresses(ctx context.Context, appID string, ps []Progr
 	return
 }
 
-func (s *Service) detectProgresses(resourceInTargetFs *resource.ResourceFile, data []byte) (out []Progress, err error) {
-	ps, err := s.detectAuthgearYAML(resourceInTargetFs, data)
+func (s *Service) detectProgresses(ctx context.Context, resourceInTargetFs *resource.ResourceFile, data []byte) (out []Progress, err error) {
+	ps, err := s.detectAuthgearYAML(ctx, resourceInTargetFs, data)
 	if err != nil {
 		return
 	}
@@ -113,19 +113,19 @@ func (s *Service) detectProgresses(resourceInTargetFs *resource.ResourceFile, da
 
 	return
 }
-func (s *Service) detectAuthgearYAML(resourceInTargetFs *resource.ResourceFile, data []byte) (out []Progress, err error) {
+func (s *Service) detectAuthgearYAML(ctx context.Context, resourceInTargetFs *resource.ResourceFile, data []byte) (out []Progress, err error) {
 	d := configsource.AuthgearYAMLDescriptor{}
 	_, ok := d.MatchResource(resourceInTargetFs.Location.Path)
 	if !ok {
 		return
 	}
 
-	original, err := config.Parse(resourceInTargetFs.Data)
+	original, err := config.Parse(ctx, resourceInTargetFs.Data)
 	if err != nil {
 		return
 	}
 
-	incoming, err := config.Parse(data)
+	incoming, err := config.Parse(ctx, data)
 	if err != nil {
 		return
 	}

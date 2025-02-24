@@ -64,6 +64,7 @@ type PostHandler struct {
 // nolint:gocognit
 func (h *PostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var err error
+	ctx := r.Context()
 
 	defer func() {
 		if err != nil {
@@ -143,7 +144,7 @@ func (h *PostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	encodedMetaDate := r.URL.Query().Get(images.QueryMetadata)
-	metadata, err := images.DecodeFileMetadata(encodedMetaDate)
+	metadata, err := images.DecodeFileMetadata(ctx, encodedMetaDate)
 	if err != nil {
 		return
 	}
@@ -159,7 +160,7 @@ func (h *PostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
-	presignUploadResponse, err := h.PostHandlerCloudStorageService.PresignPutRequest(r.Context(), &presignUploadRequest)
+	presignUploadResponse, err := h.PostHandlerCloudStorageService.PresignPutRequest(ctx, &presignUploadRequest)
 	if err != nil {
 		return
 	}
@@ -190,7 +191,6 @@ func (h *PostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return nil
 		}
 
-		ctx := r.Context()
 		err := saveImagesFileRecord(ctx)
 		if err != nil {
 			h.Logger.WithError(err).Error("failed to save image file record")

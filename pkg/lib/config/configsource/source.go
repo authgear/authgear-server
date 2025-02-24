@@ -18,7 +18,7 @@ type ContextResolver interface {
 type Handle interface {
 	Open(ctx context.Context) error
 	Close() error
-	ReloadApp(appID string)
+	ReloadApp(ctx context.Context, appID string)
 }
 
 type ConfigSource struct {
@@ -71,8 +71,8 @@ func (c *Controller) Close() error {
 	return c.Handle.Close()
 }
 
-func (c *Controller) ReloadApp(appID string) {
-	c.Handle.ReloadApp(appID)
+func (c *Controller) ReloadApp(ctx context.Context, appID string) {
+	c.Handle.ReloadApp(ctx, appID)
 }
 
 func (c *Controller) GetConfigSource() *ConfigSource {

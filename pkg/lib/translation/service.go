@@ -27,7 +27,7 @@ type Service struct {
 func (s *Service) translationMap(ctx context.Context) (*template.TranslationMap, error) {
 	if s.translations == nil {
 		preferredLanguageTags := intl.GetPreferredLanguageTags(ctx)
-		t, err := s.TemplateEngine.Translation(preferredLanguageTags)
+		t, err := s.TemplateEngine.Translation(ctx, preferredLanguageTags)
 		if err != nil {
 			return nil, err
 		}
@@ -39,11 +39,11 @@ func (s *Service) translationMap(ctx context.Context) (*template.TranslationMap,
 func (s *Service) renderTemplate(ctx context.Context, tpl template.Resource, variables *PreparedTemplateVariables) (*template.RenderResult, error) {
 	preferredLanguageTags := intl.GetPreferredLanguageTags(ctx)
 
-	return s.renderTemplateInLanguage(preferredLanguageTags, tpl, variables)
+	return s.renderTemplateInLanguage(ctx, preferredLanguageTags, tpl, variables)
 }
 
-func (s *Service) renderTemplateInLanguage(preferredLanguages []string, tpl template.Resource, variables *PreparedTemplateVariables) (*template.RenderResult, error) {
-	out, err := s.TemplateEngine.Render(tpl, preferredLanguages, variables)
+func (s *Service) renderTemplateInLanguage(ctx context.Context, preferredLanguages []string, tpl template.Resource, variables *PreparedTemplateVariables) (*template.RenderResult, error) {
+	out, err := s.TemplateEngine.Render(ctx, tpl, preferredLanguages, variables)
 	if err != nil {
 		return nil, err
 	}
@@ -193,7 +193,7 @@ func (s *Service) WhatsappMessageData(ctx context.Context, language string, msg 
 		return nil, err
 	}
 
-	body, err := s.renderTemplateInLanguage([]string{language}, msg.WhatsappTemplate, data)
+	body, err := s.renderTemplateInLanguage(ctx, []string{language}, msg.WhatsappTemplate, data)
 	if err != nil {
 		return nil, err
 	}

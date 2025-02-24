@@ -1,13 +1,14 @@
 package validation
 
 import (
+	"context"
 	"errors"
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 )
 
 type Validator interface {
-	Validate(*Context)
+	Validate(context.Context, *Context)
 }
 
 type Context struct {
@@ -55,9 +56,9 @@ func (c *Context) AddError(err error) {
 	}
 }
 
-func (c *Context) Validate(value interface{}) {
+func (c *Context) Validate(ctx context.Context, value interface{}) {
 	if v, ok := value.(Validator); ok {
-		v.Validate(c)
+		v.Validate(ctx, c)
 	}
 }
 
@@ -68,12 +69,12 @@ func (c *Context) Error(msg string) error {
 	return &AggregatedError{Message: msg, Errors: *c.errors}
 }
 
-func ValidateValue(value interface{}) error {
-	return ValidateValueWithMessage(value, defaultErrorMessage)
+func ValidateValue(ctx context.Context, value interface{}) error {
+	return ValidateValueWithMessage(ctx, value, defaultErrorMessage)
 }
 
-func ValidateValueWithMessage(value interface{}, msg string) error {
-	ctx := &Context{}
-	ctx.Validate(value)
-	return ctx.Error(msg)
+func ValidateValueWithMessage(ctx context.Context, value interface{}, msg string) error {
+	valicationCtx := &Context{}
+	valicationCtx.Validate(ctx, value)
+	return valicationCtx.Error(msg)
 }

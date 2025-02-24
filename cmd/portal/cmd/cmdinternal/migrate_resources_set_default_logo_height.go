@@ -2,6 +2,7 @@ package cmdinternal
 
 import (
 	"bytes"
+	"context"
 	"encoding/base64"
 	"fmt"
 	"log"
@@ -58,7 +59,7 @@ var cmdInternalMigrateSetDefaultLogoHeight = &cobra.Command{
 	},
 }
 
-func migrateSetDefaultLogoHeight(appID string, configSourceData map[string]string, dryRun bool) error {
+func migrateSetDefaultLogoHeight(ctx context.Context, appID string, configSourceData map[string]string, dryRun bool) error {
 	cfg, err := parseLogoHeightConfigSource(configSourceData)
 	if err != nil {
 		return err

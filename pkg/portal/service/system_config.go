@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"strings"
@@ -16,7 +17,7 @@ import (
 )
 
 type ResourceManager interface {
-	Read(desc resource.Descriptor, view resource.View) (interface{}, error)
+	Read(ctx context.Context, desc resource.Descriptor, view resource.View) (interface{}, error)
 }
 
 type SystemConfigProvider struct {
@@ -33,13 +34,13 @@ type SystemConfigProvider struct {
 	Resources                      ResourceManager
 }
 
-func (p *SystemConfigProvider) SystemConfig() (*model.SystemConfig, error) {
-	themes, err := p.loadJSON(portalresource.ThemesJSON)
+func (p *SystemConfigProvider) SystemConfig(ctx context.Context) (*model.SystemConfig, error) {
+	themes, err := p.loadJSON(ctx, portalresource.ThemesJSON)
 	if err != nil {
 		return nil, err
 	}
 
-	translations, err := p.loadJSON(portalresource.TranslationsJSON)
+	translations, err := p.loadJSON(ctx, portalresource.TranslationsJSON)
 	if err != nil {
 		return nil, err
 	}
@@ -71,8 +72,9 @@ func (p *SystemConfigProvider) SystemConfig() (*model.SystemConfig, error) {
 	}, nil
 }
 
-func (p *SystemConfigProvider) loadJSON(desc resource.Descriptor) (interface{}, error) {
-	result, err := p.Resources.Read(desc, resource.EffectiveResource{})
+func (p *SystemConfigProvider) loadJSON(ctx context.Context, desc resource.Descriptor) (interface{}, error) {
+
+	result, err := p.Resources.Read(ctx, desc, resource.EffectiveResource{})
 	if errors.Is(err, resource.ErrResourceNotFound) {
 		// Omit the JSON if resource not configured.
 		return nil, nil

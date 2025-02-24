@@ -1,6 +1,7 @@
 package config_test
 
 import (
+	"context"
 	"errors"
 	"io"
 	"os"
@@ -14,6 +15,7 @@ import (
 )
 
 func TestParseSecret(t *testing.T) {
+	ctx := context.Background()
 	Convey("ParseSecret", t, func() {
 		f, err := os.Open("testdata/parse_secret_tests.yaml")
 		if err != nil {
@@ -43,7 +45,7 @@ func TestParseSecret(t *testing.T) {
 					panic(err)
 				}
 
-				_, err = config.ParseSecret(data)
+				_, err = config.ParseSecret(ctx, data)
 				if testCase.Error != nil {
 					So(err, ShouldBeError, *testCase.Error)
 				} else {
@@ -56,6 +58,7 @@ func TestParseSecret(t *testing.T) {
 
 func TestSecretConfigValidate(t *testing.T) {
 	Convey("SecretConfigValidate", t, func() {
+		ctx := context.Background()
 		f, err := os.Open("testdata/secret_config_validate_tests.yaml")
 		if err != nil {
 			panic(err)
@@ -90,12 +93,12 @@ func TestSecretConfigValidate(t *testing.T) {
 					panic(err)
 				}
 
-				appConfig, err := config.Parse(appConfigBytes)
+				appConfig, err := config.Parse(ctx, appConfigBytes)
 				if err != nil {
 					panic(err)
 				}
 
-				secretConfig, err := config.ParseSecret(secretConfigBytes)
+				secretConfig, err := config.ParseSecret(ctx, secretConfigBytes)
 				if err != nil {
 					panic(err)
 				}

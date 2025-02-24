@@ -100,7 +100,7 @@ func (h *AuthflowV2SetupTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 		return nil
 	})
 	handlers.PostAction("submit", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
-		err := AuthflowSetupTOTPSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
+		err := AuthflowSetupTOTPSchema.Validator().ValidateValue(ctx, handlerwebapp.FormToJSON(r.Form))
 		if err != nil {
 			return err
 		}

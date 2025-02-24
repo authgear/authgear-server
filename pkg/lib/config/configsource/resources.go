@@ -79,7 +79,7 @@ func (d AuthgearYAMLDescriptor) FindResources(fs resource.Fs) ([]resource.Locati
 	return []resource.Location{location}, nil
 }
 
-func (d AuthgearYAMLDescriptor) ViewResources(resources []resource.ResourceFile, rawView resource.View) (interface{}, error) {
+func (d AuthgearYAMLDescriptor) ViewResources(ctx context.Context, resources []resource.ResourceFile, rawView resource.View) (interface{}, error) {
 	app := func() (interface{}, error) {
 		var target *resource.ResourceFile
 		for _, resrc := range resources {
@@ -101,7 +101,7 @@ func (d AuthgearYAMLDescriptor) ViewResources(resources []resource.ResourceFile,
 			return nil, err
 		}
 
-		appConfig, err := config.Parse(bytes.([]byte))
+		appConfig, err := config.Parse(ctx, bytes.([]byte))
 		if err != nil {
 			return nil, fmt.Errorf("cannot parse app config: %w", err)
 		}
@@ -142,12 +142,12 @@ func (d AuthgearYAMLDescriptor) UpdateResource(ctx context.Context, _ []resource
 		return nil, fmt.Errorf("missing domain service in context")
 	}
 
-	original, err := config.Parse(resrc.Data)
+	original, err := config.Parse(ctx, resrc.Data)
 	if err != nil {
 		return nil, fmt.Errorf("cannot parse original app config %w", err)
 	}
 
-	incoming, err := config.Parse(data)
+	incoming, err := config.Parse(ctx, data)
 	if err != nil {
 		return nil, fmt.Errorf("cannot parse incoming app config: %w", err)
 	}
@@ -442,16 +442,16 @@ func (d AuthgearSecretYAMLDescriptor) FindResources(fs resource.Fs) ([]resource.
 	return []resource.Location{location}, nil
 }
 
-func (d AuthgearSecretYAMLDescriptor) ViewResources(resources []resource.ResourceFile, rawView resource.View) (interface{}, error) {
+func (d AuthgearSecretYAMLDescriptor) ViewResources(ctx context.Context, resources []resource.ResourceFile, rawView resource.View) (interface{}, error) {
 	switch view := rawView.(type) {
 	case resource.AppFileView:
 		return d.viewAppFile(resources, view)
 	case resource.EffectiveFileView:
 		return nil, ErrEffectiveSecretConfig
 	case resource.EffectiveResourceView:
-		return d.viewEffectiveResource(resources)
+		return d.viewEffectiveResource(ctx, resources)
 	case resource.ValidateResourceView:
-		return d.viewEffectiveResource(resources)
+		return d.viewEffectiveResource(ctx, resources)
 	default:
 		return nil, fmt.Errorf("unsupported view: %T", rawView)
 	}
@@ -483,7 +483,7 @@ func (d AuthgearSecretYAMLDescriptor) viewAppFile(resources []resource.ResourceF
 	return bytes, nil
 }
 
-func (d AuthgearSecretYAMLDescriptor) viewEffectiveResource(resources []resource.ResourceFile) (interface{}, error) {
+func (d AuthgearSecretYAMLDescriptor) viewEffectiveResource(ctx context.Context, resources []resource.ResourceFile) (interface{}, error) {
 	var cfgs []*config.SecretConfig
 	for _, layer := range resources {
 		var cfg config.SecretConfig
@@ -499,7 +499,7 @@ func (d AuthgearSecretYAMLDescriptor) viewEffectiveResource(resources []resource
 		return nil, err
 	}
 
-	secretConfig, err := config.ParseSecret(mergedYAML)
+	secretConfig, err := config.ParseSecret(ctx, mergedYAML)
 	if err != nil {
 		return nil, fmt.Errorf("cannot parse secret config: %w", err)
 	}
@@ -517,7 +517,7 @@ func (d AuthgearSecretYAMLDescriptor) UpdateResource(ctx context.Context, _ []re
 	}
 
 	var original *config.SecretConfig
-	original, err := config.ParseSecret(resrc.Data)
+	original, err := config.ParseSecret(ctx, resrc.Data)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse original secret config: %w", err)
 	}
@@ -631,7 +631,7 @@ func (d AuthgearFeatureYAMLDescriptor) FindResources(fs resource.Fs) ([]resource
 	return []resource.Location{location}, nil
 }
 
-func (d AuthgearFeatureYAMLDescriptor) ViewResources(resources []resource.ResourceFile, rawView resource.View) (interface{}, error) {
+func (d AuthgearFeatureYAMLDescriptor) ViewResources(ctx context.Context, resources []resource.ResourceFile, rawView resource.View) (interface{}, error) {
 	app := func() (interface{}, error) {
 		var target *resource.ResourceFile
 		for _, resrc := range resources {
@@ -653,18 +653,18 @@ func (d AuthgearFeatureYAMLDescriptor) ViewResources(resources []resource.Resour
 	case resource.EffectiveFileView:
 		return app()
 	case resource.EffectiveResourceView:
-		return d.viewEffectiveResource(resources)
+		return d.viewEffectiveResource(ctx, resources)
 	case resource.ValidateResourceView:
-		return d.viewEffectiveResource(resources)
+		return d.viewEffectiveResource(ctx, resources)
 	default:
 		return nil, fmt.Errorf("unsupported view: %T", rawView)
 	}
 }
 
-func (d AuthgearFeatureYAMLDescriptor) viewEffectiveResource(resources []resource.ResourceFile) (interface{}, error) {
+func (d AuthgearFeatureYAMLDescriptor) viewEffectiveResource(ctx context.Context, resources []resource.ResourceFile) (interface{}, error) {
 	var cfgs []*config.FeatureConfig
 	for _, layer := range resources {
-		cfg, err := config.ParseFeatureConfigWithoutDefaults(layer.Data)
+		cfg, err := config.ParseFeatureConfigWithoutDefaults(ctx, layer.Data)
 		if err != nil {
 			return nil, fmt.Errorf("malformed feature config: %w", err)
 		}
@@ -680,7 +680,7 @@ func (d AuthgearFeatureYAMLDescriptor) viewEffectiveResource(resources []resourc
 		return nil, err
 	}
 
-	featureConfig, err := config.ParseFeatureConfig(mergedYAML)
+	featureConfig, err := config.ParseFeatureConfig(ctx, mergedYAML)
 	if err != nil {
 		return nil, fmt.Errorf("cannot parse merged feature config: %w", err)
 	}

@@ -115,7 +115,7 @@ func (s *ServiceNoEvent) UpdateStandardAttributes(ctx context.Context, role acce
 		stdAttrs[key] = value
 	}
 
-	err := stdattrs.Validate(stdattrs.T(stdAttrs))
+	err := stdattrs.Validate(ctx, stdattrs.T(stdAttrs))
 	if err != nil {
 		return err
 	}

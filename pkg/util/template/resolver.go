@@ -1,6 +1,8 @@
 package template
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
@@ -8,7 +10,7 @@ type DefaultLanguageTag string
 type SupportedLanguageTags []string
 
 type ResourceManager interface {
-	Read(desc resource.Descriptor, view resource.View) (interface{}, error)
+	Read(ctx context.Context, desc resource.Descriptor, view resource.View) (interface{}, error)
 }
 
 type Resolver struct {
@@ -17,8 +19,8 @@ type Resolver struct {
 	SupportedLanguageTags SupportedLanguageTags
 }
 
-func (r *Resolver) ResolveHTML(desc *HTML, preferredLanguages []string) (*HTMLTemplateEffectiveResource, error) {
-	resrc, err := r.Resources.Read(desc, resource.EffectiveResource{
+func (r *Resolver) ResolveHTML(ctx context.Context, desc *HTML, preferredLanguages []string) (*HTMLTemplateEffectiveResource, error) {
+	resrc, err := r.Resources.Read(ctx, desc, resource.EffectiveResource{
 		SupportedTags: []string(r.SupportedLanguageTags),
 		DefaultTag:    string(r.DefaultLanguageTag),
 		PreferredTags: preferredLanguages,
@@ -30,8 +32,8 @@ func (r *Resolver) ResolveHTML(desc *HTML, preferredLanguages []string) (*HTMLTe
 	return resrc.(*HTMLTemplateEffectiveResource), nil
 }
 
-func (r *Resolver) ResolveMessageHTML(desc *MessageHTML, preferredLanguages []string) (*HTMLTemplateEffectiveResource, error) {
-	resrc, err := r.Resources.Read(desc, resource.EffectiveResource{
+func (r *Resolver) ResolveMessageHTML(ctx context.Context, desc *MessageHTML, preferredLanguages []string) (*HTMLTemplateEffectiveResource, error) {
+	resrc, err := r.Resources.Read(ctx, desc, resource.EffectiveResource{
 		SupportedTags: []string(r.SupportedLanguageTags),
 		DefaultTag:    string(r.DefaultLanguageTag),
 		PreferredTags: preferredLanguages,
@@ -43,8 +45,8 @@ func (r *Resolver) ResolveMessageHTML(desc *MessageHTML, preferredLanguages []st
 	return resrc.(*HTMLTemplateEffectiveResource), nil
 }
 
-func (r *Resolver) ResolvePlainText(desc *PlainText, preferredLanguages []string) (*TextTemplateEffectiveResource, error) {
-	resrc, err := r.Resources.Read(desc, resource.EffectiveResource{
+func (r *Resolver) ResolvePlainText(ctx context.Context, desc *PlainText, preferredLanguages []string) (*TextTemplateEffectiveResource, error) {
+	resrc, err := r.Resources.Read(ctx, desc, resource.EffectiveResource{
 		SupportedTags: []string(r.SupportedLanguageTags),
 		DefaultTag:    string(r.DefaultLanguageTag),
 		PreferredTags: preferredLanguages,
@@ -56,8 +58,8 @@ func (r *Resolver) ResolvePlainText(desc *PlainText, preferredLanguages []string
 	return resrc.(*TextTemplateEffectiveResource), nil
 }
 
-func (r *Resolver) ResolveMessagePlainText(desc *MessagePlainText, preferredLanguages []string) (*TextTemplateEffectiveResource, error) {
-	resrc, err := r.Resources.Read(desc, resource.EffectiveResource{
+func (r *Resolver) ResolveMessagePlainText(ctx context.Context, desc *MessagePlainText, preferredLanguages []string) (*TextTemplateEffectiveResource, error) {
+	resrc, err := r.Resources.Read(ctx, desc, resource.EffectiveResource{
 		SupportedTags: []string(r.SupportedLanguageTags),
 		DefaultTag:    string(r.DefaultLanguageTag),
 		PreferredTags: preferredLanguages,
@@ -69,8 +71,8 @@ func (r *Resolver) ResolveMessagePlainText(desc *MessagePlainText, preferredLang
 	return resrc.(*TextTemplateEffectiveResource), nil
 }
 
-func (r *Resolver) ResolveTranslations(preferredLanguages []string) (map[string]Translation, error) {
-	resrc, err := r.Resources.Read(TranslationJSON, resource.EffectiveResource{
+func (r *Resolver) ResolveTranslations(ctx context.Context, preferredLanguages []string) (map[string]Translation, error) {
+	resrc, err := r.Resources.Read(ctx, TranslationJSON, resource.EffectiveResource{
 		SupportedTags: []string(r.SupportedLanguageTags),
 		DefaultTag:    string(r.DefaultLanguageTag),
 		PreferredTags: preferredLanguages,

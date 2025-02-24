@@ -183,7 +183,7 @@ func (h *AuthflowForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http
 	})
 
 	handlers.PostAction("", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
-		err := AuthflowForgotPasswordSchema.Validator().ValidateValue(FormToJSON(r.Form))
+		err := AuthflowForgotPasswordSchema.Validator().ValidateValue(ctx, FormToJSON(r.Form))
 		if err != nil {
 			return err
 		}

@@ -160,7 +160,7 @@ func (m *BaseViewModel) SetTutorial(name httputil.TutorialCookieName) {
 }
 
 type StaticAssetResolver interface {
-	HasAppSpecificAsset(id string) bool
+	HasAppSpecificAsset(ctx context.Context, id string) bool
 	StaticAssetURL(ctx context.Context, id string) (url string, err error)
 	GeneratedStaticAssetURL(id string) (url string, err error)
 }
@@ -213,6 +213,7 @@ func (m *BaseViewModeler) ViewModelForInlinePreviewAuthFlow(r *http.Request, rw 
 
 // nolint: gocognit
 func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) BaseViewModel {
+	ctx := r.Context()
 	now := m.Clock.NowUTC().Unix()
 	uiParam := uiparam.GetUIParam(r.Context())
 	clientID := uiParam.ClientID
@@ -293,7 +294,7 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 			TranslationService: m.Translations,
 		},
 		HasAppSpecificAsset: func(id string) bool {
-			return m.StaticAssets.HasAppSpecificAsset(id)
+			return m.StaticAssets.HasAppSpecificAsset(ctx, id)
 		},
 		// This function has to return 1-value only.
 		// Otherwise it cannot be used in template variable declartion.

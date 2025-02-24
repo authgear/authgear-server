@@ -1,6 +1,7 @@
 package secretcode
 
 import (
+	"context"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -9,15 +10,16 @@ import (
 func TestOOBOTPSecretCode(t *testing.T) {
 	Convey("OOBOTPSecretCode", t, func() {
 		Convey("CheckFormat", func() {
+			ctx := context.Background()
 			f := OOBOTPSecretCode.CheckFormat
-			So(f(nil), ShouldBeNil)
-			So(f(0), ShouldBeNil)
-			So(f(false), ShouldBeNil)
-			So(f(""), ShouldBeError, "unexpected OOB OTP code length: 0")
-			So(f("1234a6"), ShouldBeError, `unexpected OOB OTP code character at index 4: "a"`)
-			So(f("123456"), ShouldBeNil)
-			So(f(" 123456 "), ShouldBeNil)
-			So(f(" 123 456 "), ShouldBeError, "unexpected OOB OTP code length: 7")
+			So(f(ctx, nil), ShouldBeNil)
+			So(f(ctx, 0), ShouldBeNil)
+			So(f(ctx, false), ShouldBeNil)
+			So(f(ctx, ""), ShouldBeError, "unexpected OOB OTP code length: 0")
+			So(f(ctx, "1234a6"), ShouldBeError, `unexpected OOB OTP code character at index 4: "a"`)
+			So(f(ctx, "123456"), ShouldBeNil)
+			So(f(ctx, " 123456 "), ShouldBeNil)
+			So(f(ctx, " 123 456 "), ShouldBeError, "unexpected OOB OTP code length: 7")
 		})
 	})
 }

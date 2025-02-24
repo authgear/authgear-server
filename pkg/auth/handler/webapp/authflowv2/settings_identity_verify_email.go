@@ -142,7 +142,7 @@ func (h *AuthflowV2SettingsIdentityVerifyEmailHandler) ServeHTTP(w http.Response
 	})
 
 	ctrl.PostActionWithSettingsActionWebSession("submit", r, func(ctx context.Context, webappSession *webapp.Session) error {
-		err := AuthflowV2SettingsIdentityVerifyEmailSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
+		err := AuthflowV2SettingsIdentityVerifyEmailSchema.Validator().ValidateValue(ctx, handlerwebapp.FormToJSON(r.Form))
 		if err != nil {
 			return err
 		}
@@ -183,7 +183,7 @@ func (h *AuthflowV2SettingsIdentityVerifyEmailHandler) ServeHTTP(w http.Response
 	})
 
 	ctrl.PostAction("resend", func(ctx context.Context) error {
-		err := AuthflowV2SettingsIdentityResendEmailSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
+		err := AuthflowV2SettingsIdentityResendEmailSchema.Validator().ValidateValue(ctx, handlerwebapp.FormToJSON(r.Form))
 		if err != nil {
 			return err
 		}

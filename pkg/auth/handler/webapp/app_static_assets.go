@@ -1,6 +1,7 @@
 package webapp
 
 import (
+	"context"
 	// nolint:gosec
 	"crypto/md5"
 	"errors"
@@ -25,7 +26,7 @@ func ConfigureAppStaticAssetsRoute(route httproute.Route) httproute.Route {
 }
 
 type ResourceManager interface {
-	Read(desc resource.Descriptor, view resource.View) (interface{}, error)
+	Read(ctx context.Context, desc resource.Descriptor, view resource.View) (interface{}, error)
 	Resolve(path string) (resource.Descriptor, bool)
 }
 
@@ -35,14 +36,28 @@ type AppStaticAssetsHandler struct {
 
 func (h *AppStaticAssetsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	fileServer := &httputil.FileServer{
-		FileSystem:          h,
+		FileSystem:          h.makeFs(r.Context()),
 		AssetsDir:           web.AppAssetsURLDirname,
 		FallbackToIndexHTML: false,
 	}
 	fileServer.ServeHTTP(w, r)
 }
 
-func (h *AppStaticAssetsHandler) Open(name string) (http.File, error) {
+func (h *AppStaticAssetsHandler) makeFs(ctx context.Context) http.FileSystem {
+	return &handlerFs{
+		ctx:     ctx,
+		handler: h,
+	}
+}
+
+type handlerFs struct {
+	ctx     context.Context
+	handler *AppStaticAssetsHandler
+}
+
+func (f *handlerFs) Open(name string) (http.File, error) {
+	ctx := f.ctx
+
 	// ResourceManager.Resolve does not expect a leading slash.
 	p := strings.TrimPrefix(name, "/")
 
@@ -52,14 +67,14 @@ func (h *AppStaticAssetsHandler) Open(name string) (http.File, error) {
 	}
 
 	// Fallback ResourceManager
-	desc, ok := h.Resources.Resolve(filePath)
+	desc, ok := f.handler.Resources.Resolve(filePath)
 	if !ok {
 		return nil, os.ErrNotExist
 	}
 
 	// We use EffectiveFile here because we want to return an exact match.
 	// The static asset URLs in the templates are computed by the resolver using EffectiveResource, which has handled localization.
-	result, err := h.Resources.Read(desc, resource.EffectiveFile{
+	result, err := f.handler.Resources.Read(ctx, desc, resource.EffectiveFile{
 		Path: filePath,
 	})
 	if errors.Is(err, resource.ErrResourceNotFound) {
@@ -84,3 +99,5 @@ func (h *AppStaticAssetsHandler) Open(name string) (http.File, error) {
 	_, _ = file.Write(bytes)
 	return aferomem.NewReadOnlyFileHandle(data), nil
 }
+
+var _ http.FileSystem = &handlerFs{}

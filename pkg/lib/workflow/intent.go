@@ -67,14 +67,13 @@ func RegisterPrivateIntent(intent Intent) {
 	privateIntentRegistry[intentKind] = factory
 }
 
-func InstantiateIntentFromPublicRegistry(j IntentJSON) (Intent, error) {
+func InstantiateIntentFromPublicRegistry(ctx context.Context, j IntentJSON) (Intent, error) {
 	factory, ok := publicIntentRegistry[j.Kind]
 	if !ok {
 		return nil, ErrUnknownIntent
 	}
 	intent := factory()
-
-	err := intent.JSONSchema().Validator().ParseJSONRawMessage(j.Data, intent)
+	err := intent.JSONSchema().Validator().ParseJSONRawMessage(ctx, j.Data, intent)
 	if err != nil {
 		return nil, err
 	}

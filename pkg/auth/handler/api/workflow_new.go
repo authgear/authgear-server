@@ -104,7 +104,7 @@ func (h *WorkflowNewHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *WorkflowNewHandler) handle(ctx context.Context, w http.ResponseWriter, r *http.Request, request WorkflowNewRequest) (*workflow.ServiceOutput, error) {
-	intent, err := workflow.InstantiateIntentFromPublicRegistry(request.Intent)
+	intent, err := workflow.InstantiateIntentFromPublicRegistry(ctx, request.Intent)
 	if err != nil {
 		return nil, err
 	}

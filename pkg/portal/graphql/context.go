@@ -44,7 +44,7 @@ type CollaboratorInvitationLoader interface {
 }
 
 type AppService interface {
-	LoadRawAppConfig(app *model.App) (*config.AppConfig, string, error)
+	LoadRawAppConfig(ctx context.Context, app *model.App) (*config.AppConfig, string, error)
 	RenderSAMLEntityID(appID string) string
 
 	Get(ctx context.Context, id string) (*model.App, error)

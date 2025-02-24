@@ -103,7 +103,7 @@ func (h *AuthflowV2AccountLinkingHandler) ServeHTTP(w http.ResponseWriter, r *ht
 		return nil
 	})
 	handlers.PostAction("", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
-		err := AuthflowV2AccountLinkingIdentifySchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
+		err := AuthflowV2AccountLinkingIdentifySchema.Validator().ValidateValue(ctx, handlerwebapp.FormToJSON(r.Form))
 		if err != nil {
 			return err
 		}

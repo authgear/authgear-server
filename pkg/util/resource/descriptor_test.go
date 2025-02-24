@@ -1,6 +1,7 @@
 package resource_test
 
 import (
+	"context"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -30,7 +31,7 @@ func TestSimpleDescriptor(t *testing.T) {
 		}
 
 		read := func(view resource.View) (str string, err error) {
-			result, err := manager.Read(simple, view)
+			result, err := manager.Read(context.Background(), simple, view)
 			if err != nil {
 				return
 			}
@@ -89,7 +90,7 @@ func TestNewlineJoinedDescriptor(t *testing.T) {
 		}
 
 		read := func(view resource.View) (str string, err error) {
-			result, err := manager.Read(lines, view)
+			result, err := manager.Read(context.Background(), lines, view)
 			if err != nil {
 				return
 			}

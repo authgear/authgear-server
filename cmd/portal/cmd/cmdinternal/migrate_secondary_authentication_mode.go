@@ -1,6 +1,7 @@
 package cmdinternal
 
 import (
+	"context"
 	"encoding/base64"
 	"fmt"
 	"log"
@@ -35,7 +36,7 @@ var cmdInternalMigrateSecondaryAuthenticationMode = &cobra.Command{
 	},
 }
 
-func migrateSecondaryAuthenticationMode(appID string, configSourceData map[string]string, dryRun bool) error {
+func migrateSecondaryAuthenticationMode(ctx context.Context, appID string, configSourceData map[string]string, dryRun bool) error {
 	encodedData := configSourceData["authgear.yaml"]
 	decoded, err := base64.StdEncoding.DecodeString(encodedData)
 	if err != nil {

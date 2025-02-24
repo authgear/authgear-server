@@ -93,8 +93,9 @@ type BodyDefaulter interface {
 
 func BindJSONBody(r *http.Request, w http.ResponseWriter, v *validation.SchemaValidator, payload interface{}, options ...JSONOption) error {
 	const errorMessage = "invalid request body"
+	ctx := r.Context()
 	return ParseJSONBody(r, w, func(reader io.Reader, value interface{}) error {
-		err := v.ParseWithMessage(reader, errorMessage, value)
+		err := v.ParseWithMessage(ctx, reader, errorMessage, value)
 		if err != nil {
 			return err
 		}
@@ -102,7 +103,7 @@ func BindJSONBody(r *http.Request, w http.ResponseWriter, v *validation.SchemaVa
 		if value, ok := value.(BodyDefaulter); ok {
 			value.SetDefaults()
 		}
-		return validation.ValidateValueWithMessage(value, errorMessage)
+		return validation.ValidateValueWithMessage(ctx, value, errorMessage)
 	}, payload, options...)
 }
 

@@ -1,6 +1,7 @@
 package cmdinternal
 
 import (
+	"context"
 	"encoding/base64"
 	"fmt"
 	"log"
@@ -36,7 +37,7 @@ var cmdInternalMigrateExample = &cobra.Command{
 	},
 }
 
-func migrateResourcesExample(appID string, configSourceData map[string]string, DryRun bool) error {
+func migrateResourcesExample(ctx context.Context, appID string, configSourceData map[string]string, DryRun bool) error {
 	// example update app accounts' dark_theme_disabled
 	if appID != "accounts" {
 		return nil

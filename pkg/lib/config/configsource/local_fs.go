@@ -45,7 +45,7 @@ func (s *LocalFS) Open(ctx context.Context) error {
 	appFs := &resource.LeveledAferoFs{Fs: s.Fs, FsLevel: resource.FsLevelApp}
 
 	resources := s.BaseResources.Overlay(appFs)
-	cfg, err := LoadConfig(resources)
+	cfg, err := LoadConfig(ctx, resources)
 	if err != nil {
 		return err
 	}
@@ -70,7 +70,7 @@ func (s *LocalFS) Open(ctx context.Context) error {
 
 		done := make(chan struct{})
 		s.done = done
-		go s.watch(done)
+		go s.watch(ctx, done)
 
 		if err = s.watcher.Add(appConfigPath); err != nil {
 			return err
@@ -97,7 +97,7 @@ func (s *LocalFS) Close() error {
 	return nil
 }
 
-func (s *LocalFS) watch(done <-chan struct{}) {
+func (s *LocalFS) watch(ctx context.Context, done <-chan struct{}) {
 	for {
 		select {
 		case event, ok := <-s.watcher.Events:
@@ -110,8 +110,7 @@ func (s *LocalFS) watch(done <-chan struct{}) {
 			s.Logger.
 				WithField("file", event.Name).
 				Info("change detected, reloading...")
-
-			if err := s.reload(); err != nil {
+			if err := s.reload(ctx); err != nil {
 				s.Logger.
 					WithError(err).
 					WithField("file", event.Name).
@@ -130,10 +129,10 @@ func (s *LocalFS) watch(done <-chan struct{}) {
 	}
 }
 
-func (s *LocalFS) reload() error {
+func (s *LocalFS) reload(ctx context.Context) error {
 	appCtx := s.config.Load().(*config.AppContext)
 
-	newConfig, err := LoadConfig(appCtx.Resources)
+	newConfig, err := LoadConfig(ctx, appCtx.Resources)
 	if err != nil {
 		return err
 	}
@@ -166,9 +165,9 @@ func (s *LocalFS) ResolveContext(ctx context.Context, _appID string) (*config.Ap
 	return appCtx, nil
 }
 
-func (s *LocalFS) ReloadApp(appID string) {
+func (s *LocalFS) ReloadApp(ctx context.Context, appID string) {
 	// In single mode, appID is ignored.
-	err := s.reload()
+	err := s.reload(ctx)
 	if err != nil {
 		s.Logger.
 			WithError(err).

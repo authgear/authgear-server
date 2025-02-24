@@ -1,6 +1,7 @@
 package declarative
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"testing"
@@ -13,7 +14,7 @@ import (
 func TestInputSchemaFillInUserProfile(t *testing.T) {
 	Convey("InputSchemaFillInUserProfile", t, func() {
 		test := func(s *InputSchemaFillInUserProfile, rawMessage json.RawMessage, expected error) {
-			_, err := s.MakeInput(rawMessage)
+			_, err := s.MakeInput(context.Background(), rawMessage)
 			if expected == nil {
 				So(err, ShouldBeNil)
 			} else {

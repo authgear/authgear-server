@@ -1,6 +1,7 @@
 package config_test
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"io"
@@ -21,7 +22,7 @@ import (
 )
 
 func TestSecretConfigUpdateInstruction(t *testing.T) {
-
+	ctx := context.Background()
 	mockClock := clock.NewMockClockAt("2006-01-02T15:04:05Z")
 	var GenerateFixedOctetKeyFunc = func(createdAt time.Time) jwk.Key {
 		key := []byte("secret1")
@@ -98,7 +99,7 @@ UgPkRnolBQXT
 			Convey(testCase.Name, func() {
 				var err error
 
-				currentSecretConfig, err := config.ParseSecret([]byte(testCase.CurrentSecretConfigYAML))
+				currentSecretConfig, err := config.ParseSecret(ctx, []byte(testCase.CurrentSecretConfigYAML))
 				So(err, ShouldBeNil)
 
 				var updateInstruction *config.SecretConfigUpdateInstruction

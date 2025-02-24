@@ -247,7 +247,7 @@ func (h *AuthflowV2ForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *ht
 	})
 
 	handlers.PostAction("", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
-		err := AuthflowV2ForgotPasswordSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
+		err := AuthflowV2ForgotPasswordSchema.Validator().ValidateValue(ctx, handlerwebapp.FormToJSON(r.Form))
 		if err != nil {
 			return err
 		}
@@ -258,7 +258,7 @@ func (h *AuthflowV2ForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *ht
 		inputs := h.makeInputs(screen, identification, loginID, 0)
 
 		for _, input := range inputs {
-			err = handlerwebapp.HandleAccountRecoveryIdentificationBotProtection(config.AuthenticationFlowAccountRecoveryIdentification(identification), screen.StateTokenFlowResponse, r.Form, input)
+			err = handlerwebapp.HandleAccountRecoveryIdentificationBotProtection(ctx, config.AuthenticationFlowAccountRecoveryIdentification(identification), screen.StateTokenFlowResponse, r.Form, input)
 			if err != nil {
 				return err
 			}

@@ -94,13 +94,13 @@ func (s *ConfigService) UpdateResources(ctx context.Context, appID string, files
 		if err != nil {
 			return err
 		}
-		s.Controller.ReloadApp(appID)
+		s.Controller.ReloadApp(ctx, appID)
 	case *configsource.LocalFS:
 		err := s.updateLocalFS(src, appID, files)
 		if err != nil {
 			return err
 		}
-		s.Controller.ReloadApp(appID)
+		s.Controller.ReloadApp(ctx, appID)
 
 	default:
 		return errors.New("unsupported configuration source")

@@ -2,6 +2,7 @@ package web_test
 
 import (
 	"bytes"
+	"context"
 	"image"
 	"image/color"
 	"image/png"
@@ -57,7 +58,7 @@ func TestTemplateResource(t *testing.T) {
 		}
 
 		read := func(view resource.View) (asset *web.StaticAsset, err error) {
-			result, err := manager.Read(img, view)
+			result, err := manager.Read(context.Background(), img, view)
 			if err != nil {
 				return
 			}
@@ -193,7 +194,7 @@ func TestTemplateResource(t *testing.T) {
 		}
 
 		read := func(view resource.View) (b []byte, err error) {
-			result, err := manager.Read(img, view)
+			result, err := manager.Read(context.Background(), img, view)
 			if err != nil {
 				return
 			}
@@ -294,7 +295,7 @@ func TestTemplateResource(t *testing.T) {
 		}
 
 		read := func(view resource.View) (b []byte, err error) {
-			result, err := manager.Read(img, view)
+			result, err := manager.Read(context.Background(), img, view)
 			if err != nil {
 				return
 			}
@@ -368,7 +369,7 @@ func TestNonLocaleAwareImageDescriptor(t *testing.T) {
 		}
 
 		read := func(view resource.View) (asset *web.StaticAsset, err error) {
-			result, err := manager.Read(img, view)
+			result, err := manager.Read(context.Background(), img, view)
 			if err != nil {
 				return
 			}
@@ -468,7 +469,7 @@ func TestNonLocaleAwareImageDescriptor(t *testing.T) {
 		}
 
 		read := func(view resource.View) (b []byte, err error) {
-			result, err := manager.Read(img, view)
+			result, err := manager.Read(context.Background(), img, view)
 			if err != nil {
 				return
 			}
@@ -564,7 +565,7 @@ func TestNonLocaleAwareImageDescriptor(t *testing.T) {
 		}
 
 		read := func(view resource.View) (b []byte, err error) {
-			result, err := manager.Read(img, view)
+			result, err := manager.Read(context.Background(), img, view)
 			if err != nil {
 				return
 			}
@@ -648,7 +649,7 @@ func TestStaticImageDescriptor(t *testing.T) {
 		}
 
 		read := func(view resource.View) (asset *web.StaticAsset, err error) {
-			result, err := manager.Read(img, view)
+			result, err := manager.Read(context.Background(), img, view)
 			if err != nil {
 				return
 			}
@@ -739,7 +740,7 @@ func TestStaticImageDescriptor(t *testing.T) {
 		}
 
 		read := func(view resource.View) (b []byte, err error) {
-			result, err := manager.Read(img, view)
+			result, err := manager.Read(context.Background(), img, view)
 			if err != nil {
 				return
 			}

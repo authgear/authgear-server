@@ -1,6 +1,7 @@
 package declarative
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/go-webauthn/webauthn/protocol"
@@ -66,9 +67,9 @@ func (*InputSchemaPromptCreatePasskey) SchemaBuilder() validation.SchemaBuilder 
 	return InputSchemaPromptCreatePasskeySchemaBuilder
 }
 
-func (i *InputSchemaPromptCreatePasskey) MakeInput(rawMessage json.RawMessage) (authflow.Input, error) {
+func (i *InputSchemaPromptCreatePasskey) MakeInput(ctx context.Context, rawMessage json.RawMessage) (authflow.Input, error) {
 	var input InputPromptCreatePasskey
-	err := i.SchemaBuilder().ToSimpleSchema().Validator().ParseJSONRawMessage(rawMessage, &input)
+	err := i.SchemaBuilder().ToSimpleSchema().Validator().ParseJSONRawMessage(ctx, rawMessage, &input)
 	if err != nil {
 		return nil, err
 	}

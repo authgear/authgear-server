@@ -1,6 +1,7 @@
 package cmdinternal
 
 import (
+	"context"
 	"encoding/base64"
 	"fmt"
 	"time"
@@ -38,7 +39,7 @@ var cmdInternalMigrateRateLimits = &cobra.Command{
 	},
 }
 
-func migrateRateLimits(appID string, configSourceData map[string]string, DryRun bool) error {
+func migrateRateLimits(ctx context.Context, appID string, configSourceData map[string]string, DryRun bool) error {
 	encodedData := configSourceData["authgear.yaml"]
 	decoded, err := base64.StdEncoding.DecodeString(encodedData)
 	if err != nil {
@@ -61,7 +62,7 @@ func migrateRateLimits(appID string, configSourceData map[string]string, DryRun 
 		return fmt.Errorf("failed marshal yaml: %w", err)
 	}
 
-	_, err = config.Parse(migrated)
+	_, err = config.Parse(ctx, migrated)
 	if err != nil {
 		return fmt.Errorf("invalid config after migration: %w", err)
 	}

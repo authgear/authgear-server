@@ -132,7 +132,7 @@ func (h *AuthflowEnterOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 		return nil
 	})
 	handlers.PostAction("submit", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
-		err := AuthflowEnterOOBOTPSchema.Validator().ValidateValue(FormToJSON(r.Form))
+		err := AuthflowEnterOOBOTPSchema.Validator().ValidateValue(ctx, FormToJSON(r.Form))
 		if err != nil {
 			return err
 		}

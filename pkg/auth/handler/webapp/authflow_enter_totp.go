@@ -63,7 +63,7 @@ func (h *AuthflowEnterTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 		return nil
 	})
 	handlers.PostAction("", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
-		err := AuthflowEnterTOTPSchema.Validator().ValidateValue(FormToJSON(r.Form))
+		err := AuthflowEnterTOTPSchema.Validator().ValidateValue(ctx, FormToJSON(r.Form))
 		if err != nil {
 			return err
 		}

@@ -29,7 +29,7 @@ func NewAcceptResult() *AcceptResult {
 func Accept(ctx context.Context, deps *Dependencies, flows Flows, result *AcceptResult, rawMessage json.RawMessage) error {
 	return accept(ctx, deps, flows, result, func(inputSchema InputSchema) (Input, error) {
 		if rawMessage != nil && inputSchema != nil {
-			input, err := inputSchema.MakeInput(rawMessage)
+			input, err := inputSchema.MakeInput(ctx, rawMessage)
 			if err != nil {
 				return nil, err
 			}

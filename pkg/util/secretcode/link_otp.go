@@ -1,6 +1,7 @@
 package secretcode
 
 import (
+	"context"
 	// nolint:gosec
 	"crypto/md5"
 	"crypto/subtle"
@@ -38,6 +39,6 @@ func (LinkOTPSecretCodeType) Compare(a, b string) bool {
 	return subtle.ConstantTimeCompare([]byte(formattedCode), []byte(targetCode)) == 1
 }
 
-func (LinkOTPSecretCodeType) CheckFormat(value interface{}) error {
+func (LinkOTPSecretCodeType) CheckFormat(ctx context.Context, value interface{}) error {
 	return nil
 }

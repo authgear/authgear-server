@@ -191,7 +191,7 @@ func (h *AuthflowForgotPasswordOTPHandler) ServeHTTP(w http.ResponseWriter, r *h
 		return nil
 	})
 	handlers.PostAction("submit", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
-		err := AuthflowForgotPasswordOTPSchema.Validator().ValidateValue(FormToJSON(r.Form))
+		err := AuthflowForgotPasswordOTPSchema.Validator().ValidateValue(ctx, FormToJSON(r.Form))
 		if err != nil {
 			return err
 		}

@@ -1,6 +1,7 @@
 package webapp
 
 import (
+	"context"
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
@@ -20,12 +21,12 @@ var AuthflowBotProtectionSchema = validation.NewSimpleSchema(`
 	}
 `)
 
-func ValidateBotProtectionInput(formData url.Values) error {
-	return AuthflowBotProtectionSchema.Validator().ValidateValue(FormToJSON(formData))
+func ValidateBotProtectionInput(ctx context.Context, formData url.Values) error {
+	return AuthflowBotProtectionSchema.Validator().ValidateValue(ctx, FormToJSON(formData))
 }
 
-func IsBotProtectionInputValid(formData url.Values) bool {
-	err := ValidateBotProtectionInput(formData)
+func IsBotProtectionInputValid(ctx context.Context, formData url.Values) bool {
+	err := ValidateBotProtectionInput(ctx, formData)
 	return err == nil
 }
 
@@ -39,13 +40,13 @@ func InsertBotProtection(formData url.Values, input map[string]interface{}) {
 	input["bot_protection"] = bot_protection
 }
 
-func HandleIdentificationBotProtection(identification config.AuthenticationFlowIdentification, flowResp *authflow.FlowResponse, formData url.Values, input map[string]interface{}) (err error) {
+func HandleIdentificationBotProtection(ctx context.Context, identification config.AuthenticationFlowIdentification, flowResp *authflow.FlowResponse, formData url.Values, input map[string]interface{}) (err error) {
 	bpRequired, err := webapp.IsIdentifyStepBotProtectionRequired(identification, flowResp)
 	if err != nil {
 		panic(err)
 	}
 	if bpRequired {
-		err = ValidateBotProtectionInput(formData)
+		err = ValidateBotProtectionInput(ctx, formData)
 		if err != nil {
 			return err
 		}
@@ -56,13 +57,13 @@ func HandleIdentificationBotProtection(identification config.AuthenticationFlowI
 
 // As IntentAccountRecoveryFlowStepIdentify has it's own IdentificationData type to narrow down Identification as {"email", "phone"},
 // we imitate the same logic in HandleIdentificationBotProtection here for account recovery
-func HandleAccountRecoveryIdentificationBotProtection(identification config.AuthenticationFlowAccountRecoveryIdentification, flowResp *authflow.FlowResponse, formData url.Values, input map[string]interface{}) (err error) {
+func HandleAccountRecoveryIdentificationBotProtection(ctx context.Context, identification config.AuthenticationFlowAccountRecoveryIdentification, flowResp *authflow.FlowResponse, formData url.Values, input map[string]interface{}) (err error) {
 	bpRequired, err := webapp.IsAccountRecoveryIdentifyStepBotProtectionRequired(identification, flowResp)
 	if err != nil {
 		panic(err)
 	}
 	if bpRequired {
-		err = ValidateBotProtectionInput(formData)
+		err = ValidateBotProtectionInput(ctx, formData)
 		if err != nil {
 			return err
 		}
@@ -71,13 +72,13 @@ func HandleAccountRecoveryIdentificationBotProtection(identification config.Auth
 	return
 }
 
-func HandleAuthenticationBotProtection(authentication config.AuthenticationFlowAuthentication, flowResp *authflow.FlowResponse, formData url.Values, input map[string]interface{}) (err error) {
+func HandleAuthenticationBotProtection(ctx context.Context, authentication config.AuthenticationFlowAuthentication, flowResp *authflow.FlowResponse, formData url.Values, input map[string]interface{}) (err error) {
 	bpRequired, err := webapp.IsAuthenticateStepBotProtectionRequired(authentication, flowResp)
 	if err != nil {
 		panic(err)
 	}
 	if bpRequired {
-		err = ValidateBotProtectionInput(formData)
+		err = ValidateBotProtectionInput(ctx, formData)
 		if err != nil {
 			return err
 		}
@@ -86,13 +87,13 @@ func HandleAuthenticationBotProtection(authentication config.AuthenticationFlowA
 	return
 }
 
-func HandleCreateAuthenticatorBotProtection(authentication config.AuthenticationFlowAuthentication, flowResp *authflow.FlowResponse, formData url.Values, input map[string]interface{}) (err error) {
+func HandleCreateAuthenticatorBotProtection(ctx context.Context, authentication config.AuthenticationFlowAuthentication, flowResp *authflow.FlowResponse, formData url.Values, input map[string]interface{}) (err error) {
 	bpRequired, err := webapp.IsCreateAuthenticatorStepBotProtectionRequired(authentication, flowResp)
 	if err != nil {
 		panic(err)
 	}
 	if bpRequired {
-		err = ValidateBotProtectionInput(formData)
+		err = ValidateBotProtectionInput(ctx, formData)
 		if err != nil {
 			return err
 		}

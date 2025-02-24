@@ -136,7 +136,7 @@ func (h *AuthflowV2SettingsIdentityEditUsernameHandler) ServeHTTP(w http.Respons
 	ctrl.PostActionWithSettingsActionWebSession("", r, func(ctx context.Context, webappSession *webapp.Session) error {
 
 		s := session.GetSession(ctx)
-		err = AuthflowV2SettingsIdentityEditUsernameSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
+		err = AuthflowV2SettingsIdentityEditUsernameSchema.Validator().ValidateValue(ctx, handlerwebapp.FormToJSON(r.Form))
 		if err != nil {
 			return err
 		}

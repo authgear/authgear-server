@@ -73,12 +73,12 @@ func (t *MessageHTML) FindResources(fs resource.Fs) ([]resource.Location, error)
 	return readTemplates(fs, t.Name)
 }
 
-func (t *HTML) ViewResources(resources []resource.ResourceFile, view resource.View) (interface{}, error) {
+func (t *HTML) ViewResources(ctx context.Context, resources []resource.ResourceFile, view resource.View) (interface{}, error) {
 	skipValidate := true
 	return viewHTMLTemplates(t.Name, resources, view, skipValidate)
 }
 
-func (t *MessageHTML) ViewResources(resources []resource.ResourceFile, view resource.View) (interface{}, error) {
+func (t *MessageHTML) ViewResources(ctx context.Context, resources []resource.ResourceFile, view resource.View) (interface{}, error) {
 	skipValidate := false
 	return viewHTMLTemplates(t.Name, resources, view, skipValidate)
 }
@@ -133,12 +133,12 @@ func (t *MessagePlainText) FindResources(fs resource.Fs) ([]resource.Location, e
 	return readTemplates(fs, t.Name)
 }
 
-func (t *PlainText) ViewResources(resources []resource.ResourceFile, view resource.View) (interface{}, error) {
+func (t *PlainText) ViewResources(ctx context.Context, resources []resource.ResourceFile, view resource.View) (interface{}, error) {
 	skipValidate := true
 	return viewTextTemplates(t.Name, resources, view, skipValidate)
 }
 
-func (t *MessagePlainText) ViewResources(resources []resource.ResourceFile, view resource.View) (interface{}, error) {
+func (t *MessagePlainText) ViewResources(ctx context.Context, resources []resource.ResourceFile, view resource.View) (interface{}, error) {
 	skipValidate := false
 	return viewTextTemplates(t.Name, resources, view, skipValidate)
 }

@@ -1,6 +1,7 @@
 package secretcode
 
 import (
+	"context"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -19,15 +20,16 @@ func TestRecoveryCode(t *testing.T) {
 
 		Convey("CheckFormat", func() {
 			f := RecoveryCode.CheckFormat
-			So(f(nil), ShouldBeNil)
-			So(f(0), ShouldBeNil)
-			So(f(false), ShouldBeNil)
-			So(f(""), ShouldBeError, "unexpected recovery code length: 0")
-			So(f("!@#$%^&*"), ShouldBeError, "invalid recovery code: invalid base32 character: !")
-			So(f("abcde-12345"), ShouldBeNil)
-			So(f(" abcde-12345 "), ShouldBeNil)
-			So(f(" abcde - 12345 "), ShouldBeNil)
-			So(f("abcde12345"), ShouldBeNil)
+			ctx := context.Background()
+			So(f(ctx, nil), ShouldBeNil)
+			So(f(ctx, 0), ShouldBeNil)
+			So(f(ctx, false), ShouldBeNil)
+			So(f(ctx, ""), ShouldBeError, "unexpected recovery code length: 0")
+			So(f(ctx, "!@#$%^&*"), ShouldBeError, "invalid recovery code: invalid base32 character: !")
+			So(f(ctx, "abcde-12345"), ShouldBeNil)
+			So(f(ctx, " abcde-12345 "), ShouldBeNil)
+			So(f(ctx, " abcde - 12345 "), ShouldBeNil)
+			So(f(ctx, "abcde12345"), ShouldBeNil)
 		})
 	})
 }

@@ -36,7 +36,7 @@ func (d CSSDescriptor) FindResources(fs resource.Fs) ([]resource.Location, error
 	return []resource.Location{location}, nil
 }
 
-func (d CSSDescriptor) ViewResources(resources []resource.ResourceFile, rawView resource.View) (interface{}, error) {
+func (d CSSDescriptor) ViewResources(ctx context.Context, resources []resource.ResourceFile, rawView resource.View) (interface{}, error) {
 	output := bytes.Buffer{}
 
 	app := func() error {

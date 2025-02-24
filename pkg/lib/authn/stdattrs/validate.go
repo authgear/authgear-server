@@ -1,6 +1,8 @@
 package stdattrs
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
@@ -131,9 +133,9 @@ var schemaBuilderAddressCountry = validation.SchemaBuilder{}.
 	Type(validation.TypeString).
 	MinLength(1)
 
-func Validate(t T) error {
+func Validate(ctx context.Context, t T) error {
 	a := t.ToClaims()
-	return schema.Validator().ValidateValue(a)
+	return schema.Validator().ValidateValue(ctx, a)
 }
 
 func SchemaBuilderForPointerString(ptrStr string) (validation.SchemaBuilder, bool) {

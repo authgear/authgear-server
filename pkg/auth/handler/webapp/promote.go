@@ -167,7 +167,7 @@ func (h *PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		result, err := ctrl.EntryPointPost(ctx, opts, intent, func() (input interface{}, err error) {
-			err = PromoteWithLoginIDSchema.Validator().ValidateValue(FormToJSON(r.Form))
+			err = PromoteWithLoginIDSchema.Validator().ValidateValue(ctx, FormToJSON(r.Form))
 			if err != nil {
 				return
 			}

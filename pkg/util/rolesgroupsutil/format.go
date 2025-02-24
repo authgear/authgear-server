@@ -1,6 +1,7 @@
 package rolesgroupsutil
 
 import (
+	"context"
 	"fmt"
 	"strings"
 )
@@ -9,7 +10,7 @@ var KeyReservedPrefix = "authgear:"
 
 type FormatKey struct{}
 
-func (_ FormatKey) CheckFormat(value interface{}) error {
+func (_ FormatKey) CheckFormat(ctx context.Context, value interface{}) error {
 	str, ok := value.(string)
 	if !ok {
 		return nil

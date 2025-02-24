@@ -45,7 +45,7 @@ func (p *Provider) List(ctx context.Context, userID string) ([]*authenticator.OO
 	return authenticators, nil
 }
 
-func (p *Provider) New(id string, userID string, oobAuthenticatorType model.AuthenticatorType, target string, isDefault bool, kind string) (*authenticator.OOBOTP, error) {
+func (p *Provider) New(ctx context.Context, id string, userID string, oobAuthenticatorType model.AuthenticatorType, target string, isDefault bool, kind string) (*authenticator.OOBOTP, error) {
 	if id == "" {
 		id = uuid.New()
 	}
@@ -61,7 +61,7 @@ func (p *Provider) New(id string, userID string, oobAuthenticatorType model.Auth
 	switch oobAuthenticatorType {
 	case model.AuthenticatorTypeOOBEmail:
 		validationCtx := &validation.Context{}
-		err := validation.FormatEmail{AllowName: false}.CheckFormat(target)
+		err := validation.FormatEmail{AllowName: false}.CheckFormat(ctx, target)
 		if err != nil {
 			validationCtx.EmitError("format", map[string]interface{}{"format": "email"})
 		}
@@ -78,7 +78,7 @@ func (p *Provider) New(id string, userID string, oobAuthenticatorType model.Auth
 		a.Email = target
 	case model.AuthenticatorTypeOOBSMS:
 		validationCtx := &validation.Context{}
-		err := validation.FormatPhone{}.CheckFormat(target)
+		err := validation.FormatPhone{}.CheckFormat(ctx, target)
 		if err != nil {
 			validationCtx.EmitError("format", map[string]interface{}{"format": "phone"})
 		}

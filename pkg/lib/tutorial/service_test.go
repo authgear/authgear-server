@@ -1,6 +1,7 @@
 package tutorial
 
 import (
+	"context"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -10,11 +11,12 @@ import (
 )
 
 func TestServiceDetectProgresses(t *testing.T) {
+	ctx := context.Background()
 	Convey("Service detectProgresses", t, func() {
 		s := &Service{}
 
 		test := func(r *resource.ResourceFile, data []byte, expected []Progress) {
-			actual, err := s.detectProgresses(r, data)
+			actual, err := s.detectProgresses(ctx, r, data)
 			So(err, ShouldBeNil)
 			So(actual, ShouldResemble, expected)
 		}

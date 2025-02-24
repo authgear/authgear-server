@@ -1,6 +1,7 @@
 package declarative
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
@@ -58,9 +59,9 @@ func (i *InputSchemaAccountLinkingIdentification) SchemaBuilder() validation.Sch
 	return b
 }
 
-func (i *InputSchemaAccountLinkingIdentification) MakeInput(rawMessage json.RawMessage) (authflow.Input, error) {
+func (i *InputSchemaAccountLinkingIdentification) MakeInput(ctx context.Context, rawMessage json.RawMessage) (authflow.Input, error) {
 	var input InputAccountLinkingIdentification
-	err := i.SchemaBuilder().ToSimpleSchema().Validator().ParseJSONRawMessage(rawMessage, &input)
+	err := i.SchemaBuilder().ToSimpleSchema().Validator().ParseJSONRawMessage(ctx, rawMessage, &input)
 	if err != nil {
 		return nil, err
 	}

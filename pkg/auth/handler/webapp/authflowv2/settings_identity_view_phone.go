@@ -154,7 +154,7 @@ func (h *AuthflowV2SettingsIdentityViewPhoneHandler) ServeHTTP(w http.ResponseWr
 	})
 
 	ctrl.PostAction("remove", func(ctx context.Context) error {
-		err := AuthflowV2SettingsRemoveIdentityPhoneSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
+		err := AuthflowV2SettingsRemoveIdentityPhoneSchema.Validator().ValidateValue(ctx, handlerwebapp.FormToJSON(r.Form))
 		if err != nil {
 			return err
 		}
@@ -186,7 +186,7 @@ func (h *AuthflowV2SettingsIdentityViewPhoneHandler) ServeHTTP(w http.ResponseWr
 	ctrl.PostAction("verify", func(ctx context.Context) error {
 		loginIDKey := r.Form.Get("q_login_id_key")
 
-		err := AuthflowV2SettingsUpdateIdentityVerificationPhoneSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
+		err := AuthflowV2SettingsUpdateIdentityVerificationPhoneSchema.Validator().ValidateValue(ctx, handlerwebapp.FormToJSON(r.Form))
 		if err != nil {
 			return err
 		}

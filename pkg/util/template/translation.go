@@ -66,7 +66,7 @@ func (t *translationJSON) FindResources(fs resource.Fs) ([]resource.Location, er
 	return readTemplates(fs, TranslationJSONName)
 }
 
-func (t *translationJSON) ViewResources(resources []resource.ResourceFile, rawView resource.View) (interface{}, error) {
+func (t *translationJSON) ViewResources(ctx context.Context, resources []resource.ResourceFile, rawView resource.View) (interface{}, error) {
 	switch view := rawView.(type) {
 	case resource.AppFileView:
 		return t.viewAppFile(resources, view)

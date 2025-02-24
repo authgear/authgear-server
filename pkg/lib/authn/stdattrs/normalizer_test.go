@@ -1,6 +1,7 @@
 package stdattrs
 
 import (
+	"context"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -30,7 +31,7 @@ func TestNormalizer(t *testing.T) {
 		factory.EXPECT().NormalizerWithLoginIDType(gomock.Any()).AnyTimes().Return(mockNormalizer{})
 
 		test := func(input T, output T) {
-			err := n.Normalize(input)
+			err := n.Normalize(context.Background(), input)
 			So(err, ShouldBeNil)
 			So(input, ShouldResemble, output)
 		}

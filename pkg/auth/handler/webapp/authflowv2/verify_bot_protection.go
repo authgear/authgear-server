@@ -49,7 +49,7 @@ func (h *AuthflowV2VerifyBotProtectionHandler) ServeHTTP(w http.ResponseWriter, 
 	})
 
 	handlers.PostAction("", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
-		err := handlerwebapp.ValidateBotProtectionInput(r.Form)
+		err := handlerwebapp.ValidateBotProtectionInput(ctx, r.Form)
 		if err != nil {
 			return err
 		}

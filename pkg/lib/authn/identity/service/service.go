@@ -17,8 +17,8 @@ import (
 //go:generate mockgen -source=service.go -destination=service_mock_test.go -package service
 
 type LoginIDIdentityProvider interface {
-	New(userID string, loginID identity.LoginIDSpec, options loginid.CheckerOptions) (*identity.LoginID, error)
-	WithValue(iden *identity.LoginID, value string, options loginid.CheckerOptions) (*identity.LoginID, error)
+	New(ctx context.Context, userID string, loginID identity.LoginIDSpec, options loginid.CheckerOptions) (*identity.LoginID, error)
+	WithValue(ctx context.Context, iden *identity.LoginID, value string, options loginid.CheckerOptions) (*identity.LoginID, error)
 	Normalize(typ model.LoginIDKeyType, value string) (normalized string, uniqueKey string, err error)
 
 	Get(ctx context.Context, userID, id string) (*identity.LoginID, error)
@@ -694,7 +694,7 @@ func (s *Service) ListByClaim(ctx context.Context, name string, value string) ([
 func (s *Service) New(ctx context.Context, userID string, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error) {
 	switch spec.Type {
 	case model.IdentityTypeLoginID:
-		l, err := s.LoginID.New(userID, *spec.LoginID, loginid.CheckerOptions{
+		l, err := s.LoginID.New(ctx, userID, *spec.LoginID, loginid.CheckerOptions{
 			EmailByPassBlocklistAllowlist: options.LoginIDEmailByPassBlocklistAllowlist,
 		})
 		if err != nil {
@@ -845,7 +845,7 @@ func (s *Service) Create(ctx context.Context, info *identity.Info) error {
 func (s *Service) UpdateWithSpec(ctx context.Context, info *identity.Info, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error) {
 	switch info.Type {
 	case model.IdentityTypeLoginID:
-		i, err := s.LoginID.WithValue(info.LoginID, spec.LoginID.Value.TrimSpace(), loginid.CheckerOptions{
+		i, err := s.LoginID.WithValue(ctx, info.LoginID, spec.LoginID.Value.TrimSpace(), loginid.CheckerOptions{
 			EmailByPassBlocklistAllowlist: options.LoginIDEmailByPassBlocklistAllowlist,
 		})
 		if err != nil {

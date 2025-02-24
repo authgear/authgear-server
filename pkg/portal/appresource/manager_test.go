@@ -20,6 +20,7 @@ import (
 )
 
 func TestManager(t *testing.T) {
+	ctx := context.Background()
 	Convey("ApplyUpdates0", t, func() {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
@@ -29,7 +30,7 @@ func TestManager(t *testing.T) {
 		cfg := &config.Config{
 			AppConfig:     configtest.FixtureAppConfig("app-id"),
 			SecretConfig:  configtest.FixtureSecretConfig(0),
-			FeatureConfig: configtest.FixtureFeatureConfig(configtest.FixtureLimitedPlanName),
+			FeatureConfig: configtest.FixtureFeatureConfig(ctx, configtest.FixtureLimitedPlanName),
 		}
 
 		baseFs := afero.NewMemMapFs()
@@ -123,7 +124,7 @@ func TestManager(t *testing.T) {
 
 		Convey("validate configuration YAML with plan", func() {
 			applyUpdatesWithPlan := func(planName configtest.FixturePlanName, updates []appresource.Update) error {
-				fc := configtest.FixtureFeatureConfig(planName)
+				fc := configtest.FixtureFeatureConfig(ctx, planName)
 				config.PopulateFeatureConfigDefaultValues(fc)
 				portalResMgr.AppFeatureConfig = fc
 				ctx := context.Background()

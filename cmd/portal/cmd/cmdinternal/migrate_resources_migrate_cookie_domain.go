@@ -1,6 +1,7 @@
 package cmdinternal
 
 import (
+	"context"
 	"encoding/base64"
 	"fmt"
 	"log"
@@ -49,7 +50,7 @@ var cmdInternalMigrateCookieDomain = &cobra.Command{
 	},
 }
 
-func migrateCookieDomain(appID string, configSourceData map[string]string, dryRun bool) error {
+func migrateCookieDomain(ctx context.Context, appID string, configSourceData map[string]string, dryRun bool) error {
 	encodedData := configSourceData["authgear.yaml"]
 	decoded, err := base64.StdEncoding.DecodeString(encodedData)
 	if err != nil {

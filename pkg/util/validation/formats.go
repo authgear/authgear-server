@@ -2,6 +2,7 @@ package validation
 
 import (
 	"bytes"
+	"context"
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/pem"
@@ -69,7 +70,7 @@ func init() {
 // This design allows this format to validate optional phone number.
 type FormatPhone struct{}
 
-func (f FormatPhone) CheckFormat(value interface{}) error {
+func (f FormatPhone) CheckFormat(ctx context.Context, value interface{}) error {
 	str, ok := value.(string)
 	if !ok {
 		return nil
@@ -91,7 +92,7 @@ type FormatEmail struct {
 	AllowName bool
 }
 
-func (f FormatEmail) CheckFormat(value interface{}) error {
+func (f FormatEmail) CheckFormat(ctx context.Context, value interface{}) error {
 	s, ok := value.(string)
 	if !ok {
 		return nil
@@ -113,7 +114,7 @@ func (f FormatEmail) CheckFormat(value interface{}) error {
 type FormatURI struct {
 }
 
-func (f FormatURI) CheckFormat(value interface{}) error {
+func (f FormatURI) CheckFormat(ctx context.Context, value interface{}) error {
 	str, ok := value.(string)
 	if !ok {
 		return nil
@@ -129,12 +130,12 @@ func (f FormatURI) CheckFormat(value interface{}) error {
 	}
 	p := u.EscapedPath()
 
-	return FormatAbsolutePath{}.CheckFormat(p)
+	return FormatAbsolutePath{}.CheckFormat(ctx, p)
 }
 
 type FormatPicture struct{}
 
-func (FormatPicture) CheckFormat(value interface{}) error {
+func (FormatPicture) CheckFormat(ctx context.Context, value interface{}) error {
 	str, ok := value.(string)
 	if !ok {
 		return nil
@@ -149,14 +150,14 @@ func (FormatPicture) CheckFormat(value interface{}) error {
 	case "http":
 		fallthrough
 	case "https":
-		return FormatURI{}.CheckFormat(value)
+		return FormatURI{}.CheckFormat(ctx, value)
 	case "authgearimages":
 		if u.Host != "" {
 			return errors.New("authgearimages URI does not have host")
 		}
 		p := u.EscapedPath()
 
-		return FormatAbsolutePath{}.CheckFormat(p)
+		return FormatAbsolutePath{}.CheckFormat(ctx, p)
 	default:
 		return fmt.Errorf("invalid scheme: %v", u.Scheme)
 	}
@@ -167,7 +168,7 @@ func (FormatPicture) CheckFormat(value interface{}) error {
 type FormatHTTPOrigin struct {
 }
 
-func (f FormatHTTPOrigin) CheckFormat(value interface{}) error {
+func (f FormatHTTPOrigin) CheckFormat(ctx context.Context, value interface{}) error {
 	str, ok := value.(string)
 	if !ok {
 		return nil
@@ -205,7 +206,7 @@ func (f FormatHTTPOrigin) CheckFormat(value interface{}) error {
 
 type FormatHTTPOriginSpec struct{}
 
-func (FormatHTTPOriginSpec) CheckFormat(value interface{}) error {
+func (FormatHTTPOriginSpec) CheckFormat(ctx context.Context, value interface{}) error {
 	str, ok := value.(string)
 	if !ok {
 		return nil
@@ -221,7 +222,7 @@ func (FormatHTTPOriginSpec) CheckFormat(value interface{}) error {
 
 type FormatLDAPURL struct{}
 
-func (FormatLDAPURL) CheckFormat(value interface{}) error {
+func (FormatLDAPURL) CheckFormat(ctx context.Context, value interface{}) error {
 	str, ok := value.(string)
 	if !ok {
 		return nil
@@ -260,7 +261,7 @@ func (FormatLDAPURL) CheckFormat(value interface{}) error {
 
 type FormatLDAPDN struct{}
 
-func (FormatLDAPDN) CheckFormat(value interface{}) error {
+func (FormatLDAPDN) CheckFormat(ctx context.Context, value interface{}) error {
 	str, ok := value.(string)
 	if !ok {
 		return nil
@@ -282,7 +283,7 @@ func (FormatLDAPDN) CheckFormat(value interface{}) error {
 
 type FormatLDAPSearchFilterTemplate struct{}
 
-func (FormatLDAPSearchFilterTemplate) CheckFormat(value interface{}) error {
+func (FormatLDAPSearchFilterTemplate) CheckFormat(ctx context.Context, value interface{}) error {
 	str, ok := value.(string)
 	if !ok {
 		return nil
@@ -314,7 +315,7 @@ func (FormatLDAPSearchFilterTemplate) CheckFormat(value interface{}) error {
 
 type FormatLDAPAttribute struct{}
 
-func (FormatLDAPAttribute) CheckFormat(value interface{}) error {
+func (FormatLDAPAttribute) CheckFormat(ctx context.Context, value interface{}) error {
 	str, ok := value.(string)
 	if !ok {
 		return nil
@@ -344,7 +345,7 @@ func (FormatLDAPAttribute) CheckFormat(value interface{}) error {
 type FormatWeChatAccountID struct {
 }
 
-func (f FormatWeChatAccountID) CheckFormat(value interface{}) error {
+func (f FormatWeChatAccountID) CheckFormat(ctx context.Context, value interface{}) error {
 	str, ok := value.(string)
 	if !ok {
 		return nil
@@ -359,7 +360,7 @@ func (f FormatWeChatAccountID) CheckFormat(value interface{}) error {
 
 type FormatBCP47 struct{}
 
-func (f FormatBCP47) CheckFormat(value interface{}) error {
+func (f FormatBCP47) CheckFormat(ctx context.Context, value interface{}) error {
 	str, ok := value.(string)
 	if !ok {
 		return nil
@@ -380,7 +381,7 @@ func (f FormatBCP47) CheckFormat(value interface{}) error {
 
 type FormatTimezone struct{}
 
-func (FormatTimezone) CheckFormat(value interface{}) error {
+func (FormatTimezone) CheckFormat(ctx context.Context, value interface{}) error {
 	str, ok := value.(string)
 	if !ok {
 		return nil
@@ -401,7 +402,7 @@ func (FormatTimezone) CheckFormat(value interface{}) error {
 
 type FormatDateTime struct{}
 
-func (FormatDateTime) CheckFormat(value interface{}) error {
+func (FormatDateTime) CheckFormat(ctx context.Context, value interface{}) error {
 	str, ok := value.(string)
 	if !ok {
 		return nil
@@ -417,7 +418,7 @@ func (FormatDateTime) CheckFormat(value interface{}) error {
 
 type FormatBirthdate struct{}
 
-func (FormatBirthdate) CheckFormat(value interface{}) error {
+func (FormatBirthdate) CheckFormat(ctx context.Context, value interface{}) error {
 	str, ok := value.(string)
 	if !ok {
 		return nil
@@ -444,7 +445,7 @@ func (FormatBirthdate) CheckFormat(value interface{}) error {
 
 type FormatAlpha2 struct{}
 
-func (FormatAlpha2) CheckFormat(value interface{}) error {
+func (FormatAlpha2) CheckFormat(ctx context.Context, value interface{}) error {
 	str, ok := value.(string)
 	if !ok {
 		return nil
@@ -461,7 +462,7 @@ func (FormatAlpha2) CheckFormat(value interface{}) error {
 
 type FormatCustomAttributePointer struct{}
 
-func (FormatCustomAttributePointer) CheckFormat(value interface{}) error {
+func (FormatCustomAttributePointer) CheckFormat(ctx context.Context, value interface{}) error {
 	str, ok := value.(string)
 	if !ok {
 		return nil
@@ -517,7 +518,7 @@ func (FormatCustomAttributePointer) CheckFormat(value interface{}) error {
 
 type FormatGoogleTagManagerContainerID struct{}
 
-func (FormatGoogleTagManagerContainerID) CheckFormat(value interface{}) error {
+func (FormatGoogleTagManagerContainerID) CheckFormat(ctx context.Context, value interface{}) error {
 	str, ok := value.(string)
 	if !ok {
 		return nil
@@ -531,7 +532,7 @@ func (FormatGoogleTagManagerContainerID) CheckFormat(value interface{}) error {
 
 type FormatContractID struct{}
 
-func (FormatContractID) CheckFormat(value interface{}) error {
+func (FormatContractID) CheckFormat(ctx context.Context, value interface{}) error {
 	str, ok := value.(string)
 	if !ok {
 		return nil
@@ -553,7 +554,7 @@ func (FormatContractID) CheckFormat(value interface{}) error {
 
 type FormatNetworkID struct{}
 
-func (FormatNetworkID) CheckFormat(value interface{}) error {
+func (FormatNetworkID) CheckFormat(ctx context.Context, value interface{}) error {
 	str, ok := value.(string)
 	if !ok {
 		return nil
@@ -573,7 +574,7 @@ func (FormatNetworkID) CheckFormat(value interface{}) error {
 
 type FormatAbsolutePath struct{}
 
-func (FormatAbsolutePath) CheckFormat(value interface{}) error {
+func (FormatAbsolutePath) CheckFormat(ctx context.Context, value interface{}) error {
 	str, ok := value.(string)
 	if !ok {
 		return nil
@@ -598,7 +599,7 @@ func (FormatAbsolutePath) CheckFormat(value interface{}) error {
 
 type FormatHookURI struct{}
 
-func (FormatHookURI) CheckFormat(value interface{}) error {
+func (FormatHookURI) CheckFormat(ctx context.Context, value interface{}) error {
 	str, ok := value.(string)
 	if !ok {
 		return nil
@@ -611,14 +612,14 @@ func (FormatHookURI) CheckFormat(value interface{}) error {
 
 	switch u.Scheme {
 	case "http", "https":
-		return FormatURI{}.CheckFormat(value)
+		return FormatURI{}.CheckFormat(ctx, value)
 	case "authgeardeno":
 		if u.Host != "" {
 			return fmt.Errorf("authgeardeno URI does not have host")
 		}
 		p := u.EscapedPath()
 
-		return FormatAbsolutePath{}.CheckFormat(p)
+		return FormatAbsolutePath{}.CheckFormat(ctx, p)
 	default:
 		return fmt.Errorf("invalid scheme: %v", u.Scheme)
 	}
@@ -626,7 +627,7 @@ func (FormatHookURI) CheckFormat(value interface{}) error {
 
 type FormatDurationString struct{}
 
-func (FormatDurationString) CheckFormat(value interface{}) error {
+func (FormatDurationString) CheckFormat(ctx context.Context, value interface{}) error {
 	str, ok := value.(string)
 	if !ok {
 		return nil
@@ -644,7 +645,7 @@ func (FormatDurationString) CheckFormat(value interface{}) error {
 
 type FormatBase64URL struct{}
 
-func (FormatBase64URL) CheckFormat(value interface{}) error {
+func (FormatBase64URL) CheckFormat(ctx context.Context, value interface{}) error {
 	str, ok := value.(string)
 	if !ok {
 		return nil
@@ -659,7 +660,7 @@ func (FormatBase64URL) CheckFormat(value interface{}) error {
 
 type FormatRe2Regex struct{}
 
-func (FormatRe2Regex) CheckFormat(value interface{}) error {
+func (FormatRe2Regex) CheckFormat(ctx context.Context, value interface{}) error {
 	str, ok := value.(string)
 	if !ok {
 		return nil
@@ -675,7 +676,7 @@ func (FormatRe2Regex) CheckFormat(value interface{}) error {
 
 type FormatX509CertPem struct{}
 
-func (FormatX509CertPem) CheckFormat(value interface{}) error {
+func (FormatX509CertPem) CheckFormat(ctx context.Context, value interface{}) error {
 	str, ok := value.(string)
 	if !ok {
 		return nil

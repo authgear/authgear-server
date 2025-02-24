@@ -57,7 +57,7 @@ type EnterPasswordHandler struct {
 	Renderer                  Renderer
 }
 
-func (h *EnterPasswordHandler) GetData(r *http.Request, rw http.ResponseWriter, session *webapp.Session, graph *interaction.Graph) (map[string]interface{}, error) {
+func (h *EnterPasswordHandler) GetData(ctx context.Context, r *http.Request, rw http.ResponseWriter, session *webapp.Session, graph *interaction.Graph) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
@@ -78,10 +78,10 @@ func (h *EnterPasswordHandler) GetData(r *http.Request, rw http.ResponseWriter, 
 
 		// Instead of using the login id type, we parse the login id value for the type
 		// So user cannot use this flow to check the identity type
-		if err := phoneFormat.CheckFormat(identityDisplayID); err == nil {
+		if err := phoneFormat.CheckFormat(ctx, identityDisplayID); err == nil {
 			forgotPasswordInputType = "phone"
 			forgotPasswordLoginID = identityDisplayID
-		} else if err := emailFormat.CheckFormat(identityDisplayID); err == nil {
+		} else if err := emailFormat.CheckFormat(ctx, identityDisplayID); err == nil {
 			forgotPasswordInputType = "email"
 			forgotPasswordLoginID = identityDisplayID
 		}
@@ -128,7 +128,7 @@ func (h *EnterPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 			return err
 		}
 
-		data, err := h.GetData(r, w, session, graph)
+		data, err := h.GetData(ctx, r, w, session, graph)
 		if err != nil {
 			return err
 		}
@@ -139,7 +139,7 @@ func (h *EnterPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 
 	ctrl.PostAction("", func(ctx context.Context) error {
 		result, err := ctrl.InteractionPost(ctx, func() (input interface{}, err error) {
-			err = EnterPasswordSchema.Validator().ValidateValue(FormToJSON(r.Form))
+			err = EnterPasswordSchema.Validator().ValidateValue(ctx, FormToJSON(r.Form))
 			if err != nil {
 				return
 			}

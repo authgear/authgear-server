@@ -38,7 +38,7 @@ var StaticAssetResources = map[string]resource.Descriptor{
 }
 
 type ResourceManager interface {
-	Read(desc resource.Descriptor, view resource.View) (interface{}, error)
+	Read(ctx context.Context, desc resource.Descriptor, view resource.View) (interface{}, error)
 }
 
 type EmbeddedResourceManager interface {
@@ -54,7 +54,7 @@ type StaticAssetResolver struct {
 	EmbeddedResources EmbeddedResourceManager
 }
 
-func (r *StaticAssetResolver) HasAppSpecificAsset(id string) bool {
+func (r *StaticAssetResolver) HasAppSpecificAsset(ctx context.Context, id string) bool {
 	desc, ok := StaticAssetResources[id]
 	if !ok {
 		return false
@@ -65,7 +65,7 @@ func (r *StaticAssetResolver) HasAppSpecificAsset(id string) bool {
 		return false
 	}
 
-	_, err := r.Resources.Read(desc, resource.AppFile{
+	_, err := r.Resources.Read(ctx, desc, resource.AppFile{
 		Path: css.Path,
 	})
 
@@ -79,7 +79,7 @@ func (r *StaticAssetResolver) StaticAssetURL(ctx context.Context, id string) (st
 	}
 
 	preferredLanguageTags := intl.GetPreferredLanguageTags(ctx)
-	result, err := r.Resources.Read(desc, resource.EffectiveResource{
+	result, err := r.Resources.Read(ctx, desc, resource.EffectiveResource{
 		SupportedTags: r.Localization.SupportedLanguages,
 		DefaultTag:    *r.Localization.FallbackLanguage,
 		PreferredTags: preferredLanguageTags,

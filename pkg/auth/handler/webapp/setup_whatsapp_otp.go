@@ -83,7 +83,7 @@ func (h *SetupWhatsappOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 
 	ctrl.PostAction("", func(ctx context.Context) error {
 		result, err := ctrl.InteractionPost(ctx, func() (input interface{}, err error) {
-			err = SetupWhatsappOTPSchema.Validator().ValidateValue(FormToJSON(r.Form))
+			err = SetupWhatsappOTPSchema.Validator().ValidateValue(ctx, FormToJSON(r.Form))
 			if err != nil {
 				return
 			}

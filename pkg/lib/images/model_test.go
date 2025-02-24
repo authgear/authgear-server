@@ -1,6 +1,7 @@
 package images_test
 
 import (
+	"context"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -9,6 +10,7 @@ import (
 )
 
 func TestFileMetadata(t *testing.T) {
+	ctx := context.Background()
 	Convey("EncodeFileMetaData and DecodeFileMetaData", t, func() {
 		Convey("upload by user", func() {
 			metadata := &images.FileMetadata{
@@ -19,7 +21,7 @@ func TestFileMetadata(t *testing.T) {
 			encoded, err := images.EncodeFileMetaData(metadata)
 			So(err, ShouldBeNil)
 
-			decoded, err := images.DecodeFileMetadata(encoded)
+			decoded, err := images.DecodeFileMetadata(ctx, encoded)
 			So(err, ShouldBeNil)
 			So(decoded, ShouldResemble, metadata)
 		})
@@ -32,7 +34,7 @@ func TestFileMetadata(t *testing.T) {
 			encoded, err := images.EncodeFileMetaData(metadata)
 			So(err, ShouldBeNil)
 
-			decoded, err := images.DecodeFileMetadata(encoded)
+			decoded, err := images.DecodeFileMetadata(ctx, encoded)
 			So(err, ShouldBeNil)
 			So(decoded, ShouldResemble, metadata)
 		})
@@ -43,7 +45,7 @@ func TestFileMetadata(t *testing.T) {
 			encoded, err := images.EncodeFileMetaData(metadata)
 			So(err, ShouldBeNil)
 
-			_, err = images.DecodeFileMetadata(encoded)
+			_, err = images.DecodeFileMetadata(ctx, encoded)
 			So(err, ShouldBeError, `invalid file metadata:
 <root>: required
   map[actual:<nil> expected:[uploaded_by] missing:[uploaded_by]]

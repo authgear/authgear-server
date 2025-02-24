@@ -32,7 +32,7 @@ type InputSchema interface {
 	GetFlowRootObject() config.AuthenticationFlowObject
 	SchemaBuilder() validation.SchemaBuilder
 	// MakeInput MUST return *validation.AggregateError if rawMessage does not validate against the JSON schema.
-	MakeInput(rawMessage json.RawMessage) (Input, error)
+	MakeInput(ctx context.Context, rawMessage json.RawMessage) (Input, error)
 }
 
 // Input is a marker to signify some struct is an Input.

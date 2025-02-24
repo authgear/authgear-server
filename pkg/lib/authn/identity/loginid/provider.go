@@ -55,7 +55,7 @@ func (p *Provider) GetByValue(ctx context.Context, value string) ([]*identity.Lo
 			Type:  config.Type,
 			Value: stringutil.NewUserInputString(value),
 		}
-		invalid := p.Checker.ValidateOne(spec, CheckerOptions{
+		invalid := p.Checker.ValidateOne(ctx, spec, CheckerOptions{
 			// Admin can create email login id which bypass domains blocklist allowlist
 			// it should not affect getting identity
 			// skip the checking when getting identity
@@ -122,8 +122,8 @@ func (p *Provider) GetMany(ctx context.Context, ids []string) ([]*identity.Login
 	return p.Store.GetMany(ctx, ids)
 }
 
-func (p *Provider) CheckAndNormalize(spec identity.LoginIDSpec) (normalized string, uniqueKey string, err error) {
-	err = p.Checker.ValidateOne(spec, CheckerOptions{
+func (p *Provider) CheckAndNormalize(ctx context.Context, spec identity.LoginIDSpec) (normalized string, uniqueKey string, err error) {
+	err = p.Checker.ValidateOne(ctx, spec, CheckerOptions{
 		// Bypass blocklist allowlist in checking and normalizing value.
 		EmailByPassBlocklistAllowlist: true,
 	})
@@ -160,12 +160,12 @@ func (p *Provider) Normalize(typ model.LoginIDKeyType, value string) (normalized
 	return
 }
 
-func (p *Provider) ValidateOne(loginID identity.LoginIDSpec, options CheckerOptions) error {
-	return p.Checker.ValidateOne(loginID, options)
+func (p *Provider) validateOne(ctx context.Context, loginID identity.LoginIDSpec, options CheckerOptions) error {
+	return p.Checker.ValidateOne(ctx, loginID, options)
 }
 
-func (p *Provider) New(userID string, spec identity.LoginIDSpec, options CheckerOptions) (*identity.LoginID, error) {
-	err := p.ValidateOne(spec, options)
+func (p *Provider) New(ctx context.Context, userID string, spec identity.LoginIDSpec, options CheckerOptions) (*identity.LoginID, error) {
+	err := p.validateOne(ctx, spec, options)
 	if err != nil {
 		return nil, err
 	}
@@ -194,14 +194,14 @@ func (p *Provider) New(userID string, spec identity.LoginIDSpec, options Checker
 	return iden, nil
 }
 
-func (p *Provider) WithValue(iden *identity.LoginID, value string, options CheckerOptions) (*identity.LoginID, error) {
+func (p *Provider) WithValue(ctx context.Context, iden *identity.LoginID, value string, options CheckerOptions) (*identity.LoginID, error) {
 	spec := identity.LoginIDSpec{
 		Key:   iden.LoginIDKey,
 		Type:  iden.LoginIDType,
 		Value: stringutil.NewUserInputString(value),
 	}
 
-	err := p.ValidateOne(spec, options)
+	err := p.validateOne(ctx, spec, options)
 	if err != nil {
 		return nil, err
 	}

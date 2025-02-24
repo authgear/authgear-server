@@ -50,7 +50,7 @@ type AuthflowV2EnterPasswordHandler struct {
 	InlinePreviewAuthflowBranchViewModeler *viewmodels.InlinePreviewAuthflowBranchViewModeler
 }
 
-func NewAuthflowEnterPasswordViewModel(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) AuthflowEnterPasswordViewModel {
+func NewAuthflowEnterPasswordViewModel(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) AuthflowEnterPasswordViewModel {
 	index := *screen.Screen.TakenBranchIndex
 	flowResponse := screen.BranchStateTokenFlowResponse
 	data := flowResponse.Action.Data.(declarative.StepAuthenticateData)
@@ -67,10 +67,10 @@ func NewAuthflowEnterPasswordViewModel(s *webapp.Session, screen *webapp.Authflo
 		phoneFormat := validation.FormatPhone{}
 		emailFormat := validation.FormatEmail{AllowName: false}
 
-		if err := phoneFormat.CheckFormat(loginID); err == nil {
+		if err := phoneFormat.CheckFormat(ctx, loginID); err == nil {
 			forgotPasswordInputType = "phone"
 			forgotPasswordLoginID = loginID
-		} else if err := emailFormat.CheckFormat(loginID); err == nil {
+		} else if err := emailFormat.CheckFormat(ctx, loginID); err == nil {
 			forgotPasswordInputType = "email"
 			forgotPasswordLoginID = loginID
 		}
@@ -97,13 +97,13 @@ func NewInlinePreviewAuthflowEnterPasswordViewModel() AuthflowEnterPasswordViewM
 	}
 }
 
-func (h *AuthflowV2EnterPasswordHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
+func (h *AuthflowV2EnterPasswordHandler) GetData(ctx context.Context, w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
 	viewmodels.Embed(data, baseViewModel)
 
-	screenViewModel := NewAuthflowEnterPasswordViewModel(s, screen)
+	screenViewModel := NewAuthflowEnterPasswordViewModel(ctx, s, screen)
 	viewmodels.Embed(data, screenViewModel)
 
 	branchViewModel := viewmodels.NewAuthflowBranchViewModel(screen)
@@ -130,7 +130,7 @@ func (h *AuthflowV2EnterPasswordHandler) GetInlinePreviewData(w http.ResponseWri
 func (h *AuthflowV2EnterPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var handlers handlerwebapp.AuthflowControllerHandlers
 	handlers.Get(func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
-		data, err := h.GetData(w, r, s, screen)
+		data, err := h.GetData(ctx, w, r, s, screen)
 		if err != nil {
 			return err
 		}
@@ -139,7 +139,7 @@ func (h *AuthflowV2EnterPasswordHandler) ServeHTTP(w http.ResponseWriter, r *htt
 		return nil
 	})
 	handlers.PostAction("", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
-		err := AuthflowEnterPasswordSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
+		err := AuthflowEnterPasswordSchema.Validator().ValidateValue(ctx, handlerwebapp.FormToJSON(r.Form))
 		if err != nil {
 			return err
 		}
@@ -158,7 +158,7 @@ func (h *AuthflowV2EnterPasswordHandler) ServeHTTP(w http.ResponseWriter, r *htt
 			"request_device_token": requestDeviceToken,
 		}
 
-		err = handlerwebapp.HandleAuthenticationBotProtection(option.Authentication, screen.StateTokenFlowResponse, r.Form, input)
+		err = handlerwebapp.HandleAuthenticationBotProtection(ctx, option.Authentication, screen.StateTokenFlowResponse, r.Form, input)
 		if err != nil {
 			return err
 		}

@@ -159,7 +159,7 @@ func (h *AuthflowV2SettingsIdentityVerifyPhoneHandler) ServeHTTP(w http.Response
 	})
 
 	ctrl.PostActionWithSettingsActionWebSession("submit", r, func(ctx context.Context, webappSession *webapp.Session) error {
-		err := AuthflowV2SettingsIdentityVerifyPhoneSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
+		err := AuthflowV2SettingsIdentityVerifyPhoneSchema.Validator().ValidateValue(ctx, handlerwebapp.FormToJSON(r.Form))
 		if err != nil {
 			return err
 		}
@@ -199,7 +199,7 @@ func (h *AuthflowV2SettingsIdentityVerifyPhoneHandler) ServeHTTP(w http.Response
 	})
 
 	ctrl.PostAction("resend", func(ctx context.Context) error {
-		err := AuthflowV2SettingsIdentityResendPhoneSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
+		err := AuthflowV2SettingsIdentityResendPhoneSchema.Validator().ValidateValue(ctx, handlerwebapp.FormToJSON(r.Form))
 		if err != nil {
 			return err
 		}

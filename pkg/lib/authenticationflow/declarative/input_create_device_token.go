@@ -1,6 +1,7 @@
 package declarative
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
@@ -41,9 +42,9 @@ func (*InputSchemaCreateDeviceToken) SchemaBuilder() validation.SchemaBuilder {
 	return InputCreateDeviceTokenSchemaBuilder
 }
 
-func (i *InputSchemaCreateDeviceToken) MakeInput(rawMessage json.RawMessage) (authflow.Input, error) {
+func (i *InputSchemaCreateDeviceToken) MakeInput(ctx context.Context, rawMessage json.RawMessage) (authflow.Input, error) {
 	var input InputCreateDeviceToken
-	err := i.SchemaBuilder().ToSimpleSchema().Validator().ParseJSONRawMessage(rawMessage, &input)
+	err := i.SchemaBuilder().ToSimpleSchema().Validator().ParseJSONRawMessage(ctx, rawMessage, &input)
 	if err != nil {
 		return nil, err
 	}

@@ -148,7 +148,7 @@ func (p ADFS) GetUserProfile(ctx context.Context, deps oauthrelyingparty.Depende
 	}
 	// Transform upn into email
 	if _, ok := extracted[stdattrs.Email]; !ok {
-		if emailErr := (validation.FormatEmail{}).CheckFormat(upn); emailErr == nil {
+		if emailErr := (validation.FormatEmail{}).CheckFormat(ctx, upn); emailErr == nil {
 			// upn looks like an email address.
 			extracted[stdattrs.Email] = upn
 		}

@@ -26,8 +26,8 @@ func (h *DenoHook) SupportURL(u *url.URL) bool {
 	return u.Scheme == "authgeardeno"
 }
 
-func (h *DenoHook) loadScript(u *url.URL) ([]byte, error) {
-	out, err := h.ResourceManager.Read(DenoFile, resource.AppFile{
+func (h *DenoHook) loadScript(ctx context.Context, u *url.URL) ([]byte, error) {
+	out, err := h.ResourceManager.Read(ctx, DenoFile, resource.AppFile{
 		Path: h.rel(u.Path),
 	})
 	if err != nil {
@@ -39,7 +39,7 @@ func (h *DenoHook) loadScript(u *url.URL) ([]byte, error) {
 
 func (h *DenoHook) RunSync(ctx context.Context, client DenoClient, u *url.URL, input interface{}) (out interface{}, err error) {
 	var script []byte
-	script, err = h.loadScript(u)
+	script, err = h.loadScript(ctx, u)
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +58,7 @@ func (h *DenoHook) RunAsync(ctx context.Context, client DenoClient, u *url.URL, 
 	ctx = context.WithoutCancel(ctx)
 
 	var script []byte
-	script, err = h.loadScript(u)
+	script, err = h.loadScript(ctx, u)
 	if err != nil {
 		return
 	}
@@ -99,7 +99,7 @@ func (h *EventDenoHookImpl) DeliverBlockingEvent(ctx context.Context, u *url.URL
 		return nil, err
 	}
 
-	hookResp, err := event.ParseHookResponse(bytes.NewReader(b))
+	hookResp, err := event.ParseHookResponse(ctx, bytes.NewReader(b))
 	if err != nil {
 		apiError := apierrors.AsAPIError(err)
 		err = WebHookInvalidResponse.NewWithInfo("invalid response body", apiError.Info)

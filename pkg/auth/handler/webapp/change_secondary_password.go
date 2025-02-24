@@ -90,7 +90,7 @@ func (h *ForceChangeSecondaryPasswordHandler) ServeHTTP(w http.ResponseWriter, r
 
 	ctrl.PostAction("", func(ctx context.Context) error {
 		result, err := ctrl.InteractionPost(ctx, func() (input interface{}, err error) {
-			err = ForceChangeSecondaryPasswordSchema.Validator().ValidateValue(FormToJSON(r.Form))
+			err = ForceChangeSecondaryPasswordSchema.Validator().ValidateValue(ctx, FormToJSON(r.Form))
 			if err != nil {
 				return
 			}

@@ -1,6 +1,7 @@
 package loginid
 
 import (
+	"context"
 	"errors"
 	"regexp"
 	"strings"
@@ -22,7 +23,7 @@ const usernameFormat = `^[a-zA-Z0-9_\-.]*$`
 var usernameRegex = regexp.MustCompile(usernameFormat)
 
 type TypeChecker interface {
-	Validate(ctx *validation.Context, loginID string)
+	Validate(ctx context.Context, validationCtx *validation.Context, loginID string)
 }
 
 type TypeCheckerFactory struct {
@@ -31,12 +32,12 @@ type TypeCheckerFactory struct {
 	Resources     ResourceManager
 }
 
-func (f *TypeCheckerFactory) NewChecker(loginIDKeyType model.LoginIDKeyType, options CheckerOptions) TypeChecker {
+func (f *TypeCheckerFactory) NewChecker(ctx context.Context, loginIDKeyType model.LoginIDKeyType, options CheckerOptions) TypeChecker {
 	switch loginIDKeyType {
 	case model.LoginIDKeyTypeEmail:
-		return f.makeEmailChecker(options)
+		return f.makeEmailChecker(ctx, options)
 	case model.LoginIDKeyTypeUsername:
-		return f.makeUsernameChecker(options)
+		return f.makeUsernameChecker(ctx, options)
 	case model.LoginIDKeyTypePhone:
 		return f.makePhoneNumberChecker()
 	}
@@ -44,10 +45,10 @@ func (f *TypeCheckerFactory) NewChecker(loginIDKeyType model.LoginIDKeyType, opt
 	return &NullChecker{}
 }
 
-func (f *TypeCheckerFactory) loadMatchlist(desc resource.Descriptor) (*matchlist.MatchList, error) {
+func (f *TypeCheckerFactory) loadMatchlist(ctx context.Context, desc resource.Descriptor) (*matchlist.MatchList, error) {
 	// Load matchlist for validation, (e.g. doamin blocklist, allowlist, username exclude keywords...etc.)
 	var list *matchlist.MatchList
-	result, err := f.Resources.Read(desc, resource.EffectiveResource{})
+	result, err := f.Resources.Read(ctx, desc, resource.EffectiveResource{})
 	if errors.Is(err, resource.ErrResourceNotFound) {
 		// No domain list resources
 		list = &matchlist.MatchList{}
@@ -59,7 +60,7 @@ func (f *TypeCheckerFactory) loadMatchlist(desc resource.Descriptor) (*matchlist
 	return list, nil
 }
 
-func (f *TypeCheckerFactory) makeEmailChecker(options CheckerOptions) *EmailChecker {
+func (f *TypeCheckerFactory) makeEmailChecker(ctx context.Context, options CheckerOptions) *EmailChecker {
 	loginIDEmailConfig := f.LoginIDConfig.Types.Email
 
 	checker := &EmailChecker{
@@ -73,14 +74,14 @@ func (f *TypeCheckerFactory) makeEmailChecker(options CheckerOptions) *EmailChec
 	// blocklist and allowlist are mutually exclusive
 	// block free email providers domain require blocklist enabled
 	if *loginIDEmailConfig.DomainBlocklistEnabled {
-		domainsList, err := f.loadMatchlist(EmailDomainBlockListTXT)
+		domainsList, err := f.loadMatchlist(ctx, EmailDomainBlockListTXT)
 		if err != nil {
 			checker.Error = err
 			return checker
 		}
 		checker.DomainBlockList = domainsList
 		if *loginIDEmailConfig.BlockFreeEmailProviderDomains {
-			domainsList, err := f.loadMatchlist(FreeEmailProviderDomainsTXT)
+			domainsList, err := f.loadMatchlist(ctx, FreeEmailProviderDomainsTXT)
 			if err != nil {
 				checker.Error = err
 				return checker
@@ -88,7 +89,7 @@ func (f *TypeCheckerFactory) makeEmailChecker(options CheckerOptions) *EmailChec
 			checker.BlockFreeEmailProviderDomains = domainsList
 		}
 	} else if *loginIDEmailConfig.DomainAllowlistEnabled {
-		domainsList, err := f.loadMatchlist(EmailDomainAllowListTXT)
+		domainsList, err := f.loadMatchlist(ctx, EmailDomainAllowListTXT)
 		if err != nil {
 			checker.Error = err
 			return checker
@@ -98,7 +99,7 @@ func (f *TypeCheckerFactory) makeEmailChecker(options CheckerOptions) *EmailChec
 	return checker
 }
 
-func (f *TypeCheckerFactory) makeUsernameChecker(options CheckerOptions) *UsernameChecker {
+func (f *TypeCheckerFactory) makeUsernameChecker(ctx context.Context, options CheckerOptions) *UsernameChecker {
 	loginIDUsernameConfig := f.LoginIDConfig.Types.Username
 
 	checker := &UsernameChecker{
@@ -107,7 +108,7 @@ func (f *TypeCheckerFactory) makeUsernameChecker(options CheckerOptions) *Userna
 
 	if *loginIDUsernameConfig.BlockReservedUsernames {
 		var list *blocklist.Blocklist
-		result, err := f.Resources.Read(ReservedNameTXT, resource.EffectiveResource{})
+		result, err := f.Resources.Read(ctx, ReservedNameTXT, resource.EffectiveResource{})
 		if errors.Is(err, resource.ErrResourceNotFound) {
 			// No reserved usernames
 			list = &blocklist.Blocklist{}
@@ -122,7 +123,7 @@ func (f *TypeCheckerFactory) makeUsernameChecker(options CheckerOptions) *Userna
 	}
 
 	if *loginIDUsernameConfig.ExcludeKeywordsEnabled {
-		excludedKeywords, err := f.loadMatchlist(UsernameExcludedKeywordsTXT)
+		excludedKeywords, err := f.loadMatchlist(ctx, UsernameExcludedKeywordsTXT)
 		if err != nil {
 			checker.Error = err
 			return checker
@@ -158,17 +159,17 @@ type EmailChecker struct {
 	Error                         error
 }
 
-func (c *EmailChecker) Validate(ctx *validation.Context, loginID string) {
+func (c *EmailChecker) Validate(ctx context.Context, validationCtx *validation.Context, loginID string) {
 	if c.Error != nil {
-		ctx.AddError(c.Error)
+		validationCtx.AddError(c.Error)
 		return
 	}
 
-	ctx = ctx.Child("login_id")
+	validationCtx = validationCtx.Child("login_id")
 
-	err := validation.FormatEmail{}.CheckFormat(loginID)
+	err := validation.FormatEmail{}.CheckFormat(ctx, loginID)
 	if err != nil {
-		ctx.EmitError("format", map[string]interface{}{"format": "email"})
+		validationCtx.EmitError("format", map[string]interface{}{"format": "email"})
 		return
 	}
 
@@ -183,7 +184,7 @@ func (c *EmailChecker) Validate(ctx *validation.Context, loginID string) {
 
 	if *c.Config.BlockPlusSign {
 		if strings.Contains(local, "+") {
-			ctx.EmitError("format", map[string]interface{}{"format": "email"})
+			validationCtx.EmitError("format", map[string]interface{}{"format": "email"})
 			return
 		}
 	}
@@ -192,11 +193,11 @@ func (c *EmailChecker) Validate(ctx *validation.Context, loginID string) {
 		matched, err := c.DomainBlockList.Matched(domain)
 		if err != nil {
 			// email that the domain cannot be fold case
-			ctx.EmitError("format", map[string]interface{}{"format": "email"})
+			validationCtx.EmitError("format", map[string]interface{}{"format": "email"})
 			return
 		}
 		if matched {
-			ctx.EmitError("blocked", map[string]interface{}{"reason": "EmailDomainBlocklist"})
+			validationCtx.EmitError("blocked", map[string]interface{}{"reason": "EmailDomainBlocklist"})
 			return
 		}
 	}
@@ -205,11 +206,11 @@ func (c *EmailChecker) Validate(ctx *validation.Context, loginID string) {
 		matched, err := c.BlockFreeEmailProviderDomains.Matched(domain)
 		if err != nil {
 			// email that the domain cannot be fold case
-			ctx.EmitError("format", map[string]interface{}{"format": "email"})
+			validationCtx.EmitError("format", map[string]interface{}{"format": "email"})
 			return
 		}
 		if matched {
-			ctx.EmitError("blocked", map[string]interface{}{"reason": "EmailDomainBlocklist"})
+			validationCtx.EmitError("blocked", map[string]interface{}{"reason": "EmailDomainBlocklist"})
 			return
 		}
 	}
@@ -218,11 +219,11 @@ func (c *EmailChecker) Validate(ctx *validation.Context, loginID string) {
 		matched, err := c.DomainAllowList.Matched(domain)
 		if err != nil {
 			// email that the domain cannot be fold case
-			ctx.EmitError("format", map[string]interface{}{"format": "email"})
+			validationCtx.EmitError("format", map[string]interface{}{"format": "email"})
 			return
 		}
 		if !matched {
-			ctx.EmitError("blocked", map[string]interface{}{"reason": "EmailDomainAllowlist"})
+			validationCtx.EmitError("blocked", map[string]interface{}{"reason": "EmailDomainAllowlist"})
 			return
 		}
 	}
@@ -240,13 +241,13 @@ type UsernameChecker struct {
 	Error            error
 }
 
-func (c *UsernameChecker) Validate(ctx *validation.Context, loginID string) {
+func (c *UsernameChecker) Validate(ctx context.Context, validationCtx *validation.Context, loginID string) {
 	if c.Error != nil {
-		ctx.AddError(c.Error)
+		validationCtx.AddError(c.Error)
 		return
 	}
 
-	ctx = ctx.Child("login_id")
+	validationCtx = validationCtx.Child("login_id")
 
 	// Ensure the login id is valid for Identifier profile
 	// and use the casefolded value for checking blacklist
@@ -254,13 +255,13 @@ func (c *UsernameChecker) Validate(ctx *validation.Context, loginID string) {
 	p := precis.NewIdentifier(precis.FoldCase())
 	cfLoginID, err := p.String(loginID)
 	if err != nil {
-		ctx.EmitError("format", map[string]interface{}{"format": "username"})
+		validationCtx.EmitError("format", map[string]interface{}{"format": "username"})
 		return
 	}
 
 	if c.ReservedNames != nil {
 		if c.ReservedNames.IsBlocked(cfLoginID) {
-			ctx.EmitError("blocked", map[string]interface{}{"reason": "UsernameReserved"})
+			validationCtx.EmitError("blocked", map[string]interface{}{"reason": "UsernameReserved"})
 			return
 		}
 	}
@@ -269,25 +270,25 @@ func (c *UsernameChecker) Validate(ctx *validation.Context, loginID string) {
 		matched, err := c.ExcludedKeywords.Matched(cfLoginID)
 		if err != nil {
 			// username cannot be fold case
-			ctx.EmitError("format", map[string]interface{}{"format": "username"})
+			validationCtx.EmitError("format", map[string]interface{}{"format": "username"})
 			return
 		}
 		if matched {
-			ctx.EmitError("blocked", map[string]interface{}{"reason": "UsernameExcludedKeywords"})
+			validationCtx.EmitError("blocked", map[string]interface{}{"reason": "UsernameExcludedKeywords"})
 			return
 		}
 	}
 
 	if *c.Config.ASCIIOnly {
 		if !usernameRegex.MatchString(loginID) {
-			ctx.EmitError("format", map[string]interface{}{"format": "username"})
+			validationCtx.EmitError("format", map[string]interface{}{"format": "username"})
 			return
 		}
 	}
 
 	confusables := confusable.IsConfusable(loginID, false, []string{"LATIN", "COMMON"})
 	if len(confusables) > 0 {
-		ctx.EmitErrorMessage("username contains confusable characters")
+		validationCtx.EmitErrorMessage("username contains confusable characters")
 	}
 }
 
@@ -295,18 +296,18 @@ type PhoneChecker struct {
 	Alpha2AllowList []string
 }
 
-func (c *PhoneChecker) Validate(ctx *validation.Context, loginID string) {
-	ctx = ctx.Child("login_id")
+func (c *PhoneChecker) Validate(ctx context.Context, validationCtx *validation.Context, loginID string) {
+	validationCtx = validationCtx.Child("login_id")
 
 	parsed, err := phone.ParsePhoneNumberWithUserInput(loginID)
 	if err != nil {
-		ctx.EmitError("format", map[string]interface{}{"format": "phone"})
+		validationCtx.EmitError("format", map[string]interface{}{"format": "phone"})
 		return
 	}
 
 	err = parsed.Require_IsPossibleNumber_IsValidNumber_UserInputInE164()
 	if err != nil {
-		ctx.EmitError("format", map[string]interface{}{"format": "phone"})
+		validationCtx.EmitError("format", map[string]interface{}{"format": "phone"})
 		return
 	}
 
@@ -319,7 +320,7 @@ func (c *PhoneChecker) Validate(ctx *validation.Context, loginID string) {
 			}
 		}
 		if !isAllowed {
-			ctx.EmitError("blocked", map[string]interface{}{"reason": "PhoneNumberCountryCodeAllowlist"})
+			validationCtx.EmitError("blocked", map[string]interface{}{"reason": "PhoneNumberCountryCodeAllowlist"})
 			return
 		}
 	}
@@ -327,5 +328,5 @@ func (c *PhoneChecker) Validate(ctx *validation.Context, loginID string) {
 
 type NullChecker struct{}
 
-func (c *NullChecker) Validate(ctx *validation.Context, loginID string) {
+func (c *NullChecker) Validate(ctx context.Context, valicationCtx *validation.Context, loginID string) {
 }

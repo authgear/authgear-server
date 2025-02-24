@@ -36,7 +36,7 @@ func (d JavaScriptDescriptor) FindResources(fs resource.Fs) ([]resource.Location
 	return []resource.Location{location}, nil
 }
 
-func (d JavaScriptDescriptor) ViewResources(resources []resource.ResourceFile, rawView resource.View) (interface{}, error) {
+func (d JavaScriptDescriptor) ViewResources(ctx context.Context, resources []resource.ResourceFile, rawView resource.View) (interface{}, error) {
 	output := bytes.Buffer{}
 
 	app := func() error {

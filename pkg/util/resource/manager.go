@@ -1,6 +1,7 @@
 package resource
 
 import (
+	"context"
 	"io/fs"
 
 	"github.com/spf13/afero"
@@ -58,7 +59,7 @@ func (m *Manager) Overlay(fs Fs) *Manager {
 	return NewManager(m.Registry, newFs)
 }
 
-func (m *Manager) Read(desc Descriptor, view View) (interface{}, error) {
+func (m *Manager) Read(ctx context.Context, desc Descriptor, view View) (interface{}, error) {
 	var locations []Location
 	for _, fs := range m.Fs {
 		ls, err := desc.FindResources(fs)
@@ -83,7 +84,7 @@ func (m *Manager) Read(desc Descriptor, view View) (interface{}, error) {
 		}
 	}
 
-	return desc.ViewResources(files, view)
+	return desc.ViewResources(ctx, files, view)
 }
 
 func (m *Manager) Resolve(path string) (Descriptor, bool) {

@@ -91,7 +91,7 @@ func (h *ForceChangePasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 
 	ctrl.PostAction("", func(ctx context.Context) error {
 		result, err := ctrl.InteractionPost(ctx, func() (input interface{}, err error) {
-			err = ForceChangePasswordSchema.Validator().ValidateValue(FormToJSON(r.Form))
+			err = ForceChangePasswordSchema.Validator().ValidateValue(ctx, FormToJSON(r.Form))
 			if err != nil {
 				return
 			}

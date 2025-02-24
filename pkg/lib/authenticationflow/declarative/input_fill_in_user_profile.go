@@ -1,6 +1,7 @@
 package declarative
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 
@@ -107,9 +108,9 @@ func (s *InputSchemaFillInUserProfile) SchemaBuilder() validation.SchemaBuilder 
 	return b
 }
 
-func (s *InputSchemaFillInUserProfile) MakeInput(rawMessage json.RawMessage) (authflow.Input, error) {
+func (s *InputSchemaFillInUserProfile) MakeInput(ctx context.Context, rawMessage json.RawMessage) (authflow.Input, error) {
 	var input InputFillInUserProfile
-	err := s.SchemaBuilder().ToSimpleSchema().Validator().ParseJSONRawMessage(rawMessage, &input)
+	err := s.SchemaBuilder().ToSimpleSchema().Validator().ParseJSONRawMessage(ctx, rawMessage, &input)
 	if err != nil {
 		return nil, err
 	}

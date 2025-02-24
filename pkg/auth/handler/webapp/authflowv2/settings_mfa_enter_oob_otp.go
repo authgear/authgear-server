@@ -175,7 +175,7 @@ func (h *AuthflowV2SettingsMFAEnterOOBOTPHandler) ServeHTTP(w http.ResponseWrite
 	})
 
 	ctrl.PostAction("resend", func(ctx context.Context) error {
-		err := AuthflowV2SettingsIdentityResendOOBOTPSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
+		err := AuthflowV2SettingsIdentityResendOOBOTPSchema.Validator().ValidateValue(ctx, handlerwebapp.FormToJSON(r.Form))
 		if err != nil {
 			return err
 		}
@@ -193,7 +193,7 @@ func (h *AuthflowV2SettingsMFAEnterOOBOTPHandler) ServeHTTP(w http.ResponseWrite
 	})
 
 	ctrl.PostAction("submit", func(ctx context.Context) error {
-		err := AuthflowV2SettingsMFAEnterOOBOTP.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
+		err := AuthflowV2SettingsMFAEnterOOBOTP.Validator().ValidateValue(ctx, handlerwebapp.FormToJSON(r.Form))
 		if err != nil {
 			return err
 		}

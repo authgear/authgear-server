@@ -117,8 +117,8 @@ func (m *Manager) AssociateDescriptor(paths ...string) ([]DescriptedPath, error)
 	return matches, nil
 }
 
-func (m *Manager) ReadAppFile(desc resource.Descriptor, view resource.AppFileView) (interface{}, error) {
-	return m.AppResourceManager.Read(desc, view)
+func (m *Manager) ReadAppFile(ctx context.Context, desc resource.Descriptor, view resource.AppFileView) (interface{}, error) {
+	return m.AppResourceManager.Read(ctx, desc, view)
 }
 
 // ApplyUpdates0 assume acquired connection.
@@ -131,7 +131,7 @@ func (m *Manager) ApplyUpdates0(ctx context.Context, appID string, updates []Upd
 
 	// Validate resource FS by viewing ValidateResource.
 	for _, desc := range newManager.Registry.Descriptors {
-		_, err := newManager.Read(desc, resource.ValidateResource{})
+		_, err := newManager.Read(ctx, desc, resource.ValidateResource{})
 		// Some resource may not have builtin value, e.g. app_logo_dark.
 		if errors.Is(err, resource.ErrResourceNotFound) {
 			continue
@@ -141,7 +141,7 @@ func (m *Manager) ApplyUpdates0(ctx context.Context, appID string, updates []Upd
 	}
 
 	// Validate configuration.
-	cfg, err := configsource.LoadConfig(newManager)
+	cfg, err := configsource.LoadConfig(ctx, newManager)
 	if err != nil {
 		return nil, err
 	}
