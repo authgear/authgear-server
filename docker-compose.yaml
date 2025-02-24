@@ -1,6 +1,6 @@
 services:
+  # When you change this service, please also change the corresponding service in `find . -name docker-compose.yaml`
   db:
-    # When you change this, please also change ./e2e/docker-compose.yaml
     build:
       context: ./postgres/postgres12
     volumes:
@@ -52,6 +52,7 @@ services:
       PGBOUNCER_LOG_CONNECTIONS: "1"
       PGBOUNCER_LOG_DISCONNECTIONS: "1"
 
+  # When you change this service, please also change the corresponding service in `find . -name docker-compose.yaml`
   redis:
     # Azure cache for Redis supports 6.0 only
     image: redis:6.0.20
