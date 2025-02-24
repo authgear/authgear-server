@@ -41,30 +41,41 @@ k6:
 setup:
 	./setup.sh
 
+.PHONY: teardown
+teardown:
+	docker compose down
+
 .PHONY: signup
 signup: k6 setup
 	./k6 run --config options.json ./signup.js
+	@$(MAKE) teardown
 
 .PHONY: login
 login: k6 setup
 	./k6 run --config options.json ./login.js
+	@$(MAKE) teardown
 
 .PHONY: refresh_access_token
 refresh_access_token: k6 setup
 	./k6 run --config options.json ./refresh_access_token.js
+	@$(MAKE) teardown
 
 .PHONY: get_user_info
 get_user_info: k6 setup
 	./k6 run --config options.json ./get_user_info.js
+	@$(MAKE) teardown
 
 .PHONY: resolve
 resolve: k6 setup
 	./k6 run --config options.json ./resolve.js
+	@$(MAKE) teardown
 
 .PHONY: biometric_login
 biometric_login: k6 setup
 	./k6 run --config options.json ./biometric_login.js
+	@$(MAKE) teardown
 
 .PHONY: healthz
 healthz: k6 setup
 	./k6 run --config options.json ./healthz.js
+	@$(MAKE) teardown
