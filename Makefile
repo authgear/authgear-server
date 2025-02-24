@@ -116,8 +116,8 @@ check-tidy:
 	# (cd custombuild && go mod tidy)
 	git status --porcelain | grep '.*'; test $$? -eq 1
 
-	make -C authui check-tidy
-	make -C portal check-tidy
+	$(MAKE) -C authui check-tidy
+	$(MAKE) -C portal check-tidy
 
 .PHONY: html-email
 html-email:
@@ -194,11 +194,11 @@ generate-rtl:
 
 .PHONY: generate-material-icons
 generate-material-icons:
-	make -C ./scripts/python generate-material-icons
+	$(MAKE) -C ./scripts/python generate-material-icons
 
 .PHONY: generate-twemoji-icons
 generate-twemoji-icons:
-	make -C ./scripts/python generate-twemoji-icons
+	$(MAKE) -C ./scripts/python generate-twemoji-icons
 
 .PHONY: logs-summary
 logs-summary:
