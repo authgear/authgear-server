@@ -9,7 +9,7 @@ authenticator:
     sms:
       phone_otp_mode: sms
 http:
-  public_origin: http://localhost:3100
+  public_origin: http://localhost:3000
 id: loadtest
 identity:
   login_id:
@@ -50,8 +50,6 @@ test_mode:
     rules:
     - regex: .+
       suppressed: true
-ui:
-  implementation: authflowv2
 verification:
   claims:
     email:
