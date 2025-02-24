@@ -1,6 +1,7 @@
 authentication:
   identities:
   - login_id
+  - biometric
   primary_authenticators:
   - password
   secondary_authentication_mode: disabled
