@@ -22,6 +22,7 @@ go-test:
 .PHONY: clean
 clean:
 	rm -rf ./k6
+	rm -rf ./docker-compose-build-cache/
 
 k6:
 	xk6 build --with github.com/authgear/authgear-server/k6=.

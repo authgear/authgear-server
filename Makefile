@@ -169,6 +169,7 @@ clean:
 	find . -name '.parcel-cache' -exec rm -rf '{}' \;
 	find . -name '.stylelintcache' -exec rm -rf '{}' \;
 	$(MAKE) -C ./e2e clean
+	$(MAKE) -C ./k6 clean
 
 .PHONY: export-schemas
 export-schemas:
