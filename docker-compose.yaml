@@ -4,8 +4,8 @@ services:
     build:
       context: ./postgres/postgres12
     volumes:
-      - db_data:/var/lib/postgresql/data
-      - ./postgresql.conf:/etc/postgresql/postgresql.conf
+    - db_data:/var/lib/postgresql/data
+    - ./postgresql.conf:/etc/postgresql/postgresql.conf
     command: ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]
     environment:
       POSTGRES_USER: "postgres"
@@ -23,8 +23,8 @@ services:
     build:
       context: ./postgres/postgres16
     volumes:
-      - db16_data:/var/lib/postgresql/data
-      - ./postgresql.conf:/etc/postgresql/postgresql.conf
+    - db16_data:/var/lib/postgresql/data
+    - ./postgresql.conf:/etc/postgresql/postgresql.conf
     command: ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]
     environment:
       POSTGRES_USER: "postgres"
@@ -56,9 +56,9 @@ services:
     # Azure cache for Redis supports 6.0 only
     image: redis:6.0.20
     volumes:
-      - redis_data:/data
+    - redis_data:/data
     ports:
-      - "6379:6379"
+    - "6379:6379"
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.16.2
@@ -68,7 +68,7 @@ services:
     - "9200:9200"
     - "9300:9300"
     volumes:
-      - elasticsearch_data:/usr/share/elasticsearch/data
+    - elasticsearch_data:/usr/share/elasticsearch/data
 
   proxy:
     # nginx has mainline (1.odd_minor_version) and stable (1.even_minor_version) release.
