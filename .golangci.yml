@@ -8,6 +8,11 @@ linters:
   - errcheck
   - unused
   - gocognit
+  # Detect potential fat context in loops.
+  # https://github.com/Crocmagnon/fatcontext
+  - fatcontext
+  # I tried turning on contextcheck but it has many false positives.
+  #- contextcheck
 
   # https://github.com/golangci/golangci-lint/pull/2438
   # Disable linter that does not work with go1.18
