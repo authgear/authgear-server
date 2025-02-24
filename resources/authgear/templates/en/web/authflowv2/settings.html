@@ -81,7 +81,7 @@
         {{ $identityArr = $.PreferredUsernames }}{{ $identity = $.PreferredUsername }}
         {{ $url = call $.MakeURL "/settings/identity/username" "q_login_id_key" .login_id_key }}
         {{ if and (eq (len $.PreferredUsernames) 1) (eq (len $.UsernameIdentityIDs) 1) }}
-          {{ $url = (call $.MakeURLWithBackURL "/settings/identity/change_username" "q_login_id_key" .login_id_key "q_login_id" (index $.UsernameIdentityIDs 0)) }}
+          {{ $url = (call $.MakeURLWithBackURL "/settings/identity/change_username" "q_login_id_key" .login_id_key "q_identity_id" (index $.UsernameIdentityIDs 0)) }}
         {{ end }}
       {{ end }}
 
