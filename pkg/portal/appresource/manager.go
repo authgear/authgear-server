@@ -280,6 +280,13 @@ func (m *Manager) getFromAllFss(desc resource.Descriptor) ([]resource.ResourceFi
 }
 
 func (m *Manager) applyUpdates(ctx context.Context, appID string, appFs resource.Fs, updates []Update) (*resource.Manager, []*resource.ResourceFile, error) {
+	ctx = context.WithValue(ctx, configsource.ContextKeyFeatureConfig, m.AppFeatureConfig)
+	ctx = context.WithValue(ctx, configsource.ContextKeyClock, m.Clock)
+	ctx = context.WithValue(ctx, configsource.ContextKeyAppHostSuffixes, m.AppHostSuffixes)
+	ctx = context.WithValue(ctx, configsource.ContextKeyDomainService, m.DomainService)
+	ctx = context.WithValue(ctx, configsource.ContextKeySAMLEntityID, m.renderSAMLEntityID(appID))
+	ctx = context.WithValue(ctx, hook.ContextKeyDenoClient, m.DenoClient)
+
 	manager := m.AppResourceManager
 
 	newFs, err := cloneFS(appFs)
@@ -329,13 +336,6 @@ func (m *Manager) applyUpdates(ctx context.Context, appID string, appFs resource
 		if err != nil {
 			return nil, nil, err
 		}
-
-		ctx = context.WithValue(ctx, configsource.ContextKeyFeatureConfig, m.AppFeatureConfig)
-		ctx = context.WithValue(ctx, configsource.ContextKeyClock, m.Clock)
-		ctx = context.WithValue(ctx, configsource.ContextKeyAppHostSuffixes, m.AppHostSuffixes)
-		ctx = context.WithValue(ctx, configsource.ContextKeyDomainService, m.DomainService)
-		ctx = context.WithValue(ctx, configsource.ContextKeySAMLEntityID, m.renderSAMLEntityID(appID))
-		ctx = context.WithValue(ctx, hook.ContextKeyDenoClient, m.DenoClient)
 
 		err = m.Tutorials.OnUpdateResource0(ctx, appID, all, resrc, u.Data)
 		if err != nil {
