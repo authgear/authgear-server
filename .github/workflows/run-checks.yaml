@@ -182,7 +182,7 @@ jobs:
       id: cache
       with:
         path: ./k6/docker-compose-build-cache
-        key: ${{ runner.environment }}-${{ runner.os }}-${{ runner.arch }}-e2e-docker-compose-build-cache
+        key: ${{ runner.environment }}-${{ runner.os }}-${{ runner.arch }}-k6-docker-compose-build-cache
     - run: make -C k6 all
     - uses: actions/cache/save@v4
       with:
