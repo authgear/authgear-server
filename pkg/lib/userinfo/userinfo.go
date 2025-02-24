@@ -18,7 +18,7 @@ import (
 
 var errCacheMiss = errors.New("cache miss")
 
-var ttl = duration.PerMinute
+var ttl = duration.Short
 
 type UserInfo struct {
 	User              *model.User `json:"user,omitempty"`
