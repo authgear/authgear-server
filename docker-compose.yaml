@@ -62,7 +62,10 @@ services:
     - "6379:6379"
 
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.16.2
+    # It seems 7.16.2 has some problem with cgroup.
+    # This problem occurs when I switched to containerd in Docker Desktop for macOS.
+    # Using the latest 7 (As of 2024-02-25, it is 7.17.27) solves this problem.
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.27
     environment:
       discovery.type: single-node
     ports:
