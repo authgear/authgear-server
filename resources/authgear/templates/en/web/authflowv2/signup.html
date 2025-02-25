@@ -15,6 +15,7 @@
   {{ $has_alternatives := false }}
   {{ $show_captcha_phone := false }}
   {{ $show_captcha_text := false }} {{/* both email & username */}}
+  {{ $show_input_form := false }}
 
   {{ $login_id_type := "" }}
               
@@ -30,18 +31,21 @@
       {{ if eq .login_id_key $.LoginIDKey }}
         {{if eq .login_id_type "phone" }}
           {{ $login_id_type = "phone" }}
+          {{ $show_input_form = true }}
           {{ if $.PhoneLoginIDBotProtectionRequired }}
             {{ $show_captcha_phone = true  }}    
           {{ end }}
         {{ end }}
         {{if eq .login_id_type "username" }}
           {{ $login_id_type = "username" }}
+          {{ $show_input_form = true }}
           {{ if $.UsernameLoginIDBotProtectionRequired }}
             {{ $show_captcha_text = true  }}
           {{ end }}
         {{ end }}
         {{if eq .login_id_type "email" }}
           {{ $login_id_type = "email" }}
+          {{ $show_input_form = true }}
           {{ if $.EmailLoginIDBotProtectionRequired }}
             {{ $show_captcha_text = true  }}
           {{ end }}
@@ -128,7 +132,7 @@
     {{ $formController = "" }}
   {{ end }}
   <form
-    class="block mt-8"
+    class="flex flex-col gap-4 mt-8"
     method="post"
     novalidate
     data-controller="{{ $formController }}"
@@ -203,7 +207,7 @@
 
     {{ if $has_login_id }}
       <button
-        class="primary-btn w-full mt-4"
+        class="primary-btn w-full"
         type="submit"
         name="x_action"
         value="login_id"
@@ -220,7 +224,11 @@
   {{ end }}
 
   {{ if and $has_alternatives (not $.AlternativesDisabled) }}
-    {{ template "authflowv2/__divider.html" (dict "Classname" "my-8")  }}
+    {{ if $show_input_form }}
+      {{ template "authflowv2/__divider.html" (dict "Classname" "my-8")  }}
+    {{ else }}
+      <div class="my-8"></div>
+    {{ end }}
     <section class="flex flex-col gap-4">
       {{ range .IdentityCandidates }}
         {{ if eq .type "login_id" }}{{ if not (eq .login_id_key $.LoginIDKey) }}
