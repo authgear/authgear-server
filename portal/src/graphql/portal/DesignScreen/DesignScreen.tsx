@@ -68,6 +68,7 @@ import PrimaryButton from "../../../PrimaryButton";
 import { useFormContainerBaseContext } from "../../../FormContainerBase";
 import AppLogoHeightSetter from "../../../components/design/AppLogoHeightSetter";
 import { useTester } from "../../../hook/tester";
+import Tooltip from "../../../Tooltip";
 
 interface OrganisationConfigurationProps {
   designForm: BranchDesignForm;
@@ -983,12 +984,17 @@ const DesignScreenContent: React.VFC<DesignScreenContentProps> =
               fallbackLanguage={form.state.fallbackLanguage}
               onChangeSelectedLanguage={form.setSelectedLanguage}
             />
-            <DefaultButton
-              text={renderToString("DesignScreen.action.try")}
-              iconProps={{ iconName: "Play" }}
-              onClick={onTry}
-              disabled={canSave || isTryLoading}
-            />
+            <Tooltip
+              isHidden={!canSave}
+              tooltipMessageId="DesignScreen.action.try.disabledHint"
+            >
+              <DefaultButton
+                text={renderToString("DesignScreen.action.try")}
+                iconProps={{ iconName: "Play" }}
+                onClick={onTry}
+                disabled={canSave || isTryLoading}
+              />
+            </Tooltip>
             <PrimaryButton
               text={renderToString("save")}
               disabled={!canSave}
