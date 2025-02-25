@@ -146,8 +146,8 @@ jobs:
     if: ${{ github.repository != 'oursky/authgear-server' }}
     runs-on: ubuntu-24.04
     steps:
-    - uses: docker/setup-buildx-action@v3
     - uses: actions/checkout@v4
+    - uses: ./.github/actions/docker-buildx-create
     - uses: ./.github/actions/install-native-deps
     - uses: actions/setup-go@v4
       with:
@@ -172,8 +172,8 @@ jobs:
     if: ${{ github.repository != 'oursky/authgear-server' }}
     runs-on: ubuntu-24.04
     steps:
-    - uses: docker/setup-buildx-action@v3
     - uses: actions/checkout@v4
+    - uses: ./.github/actions/docker-buildx-create
     - uses: actions/setup-go@v4
       with:
         go-version-file: "./go.mod"
@@ -182,7 +182,7 @@ jobs:
       id: cache
       with:
         path: ./k6/docker-compose-build-cache
-        key: ${{ runner.environment }}-${{ runner.os }}-${{ runner.arch }}-e2e-docker-compose-build-cache
+        key: ${{ runner.environment }}-${{ runner.os }}-${{ runner.arch }}-k6-docker-compose-build-cache
     - run: make -C k6 all
     - uses: actions/cache/save@v4
       with:
