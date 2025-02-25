@@ -2417,7 +2417,7 @@ function PhoneSettings(props: PhoneSettingsProps) {
           <FormattedMessage
             id="LoginMethodConfigurationScreen.phone.validation.options.isValidNumber"
             values={{
-              href: "https://github.com/google/libphonenumber",
+              href: "https://github.com/google/libphonenumber/blob/master/FAQ.md#what-does-it-mean-for-a-phone-number-to-be-valid",
             }}
           />
         ) as unknown as string,
