@@ -62,6 +62,8 @@
   {{ $appName := (translate "app.name" nil) }}
   {{ $clientName := or $.ClientName "null" }}
 
+  {{ $show_input_form := (or $show_phone_input $show_text_input) }}
+
   <div class="flex-1-0-auto">
     <div class="screen-logo-layout">
       {{ template "authflowv2/__header.html" . }}
@@ -112,7 +114,7 @@
       {{ $.CSRFField }}
       <input type="hidden" name="x_login_id_input_type" value="{{ $.LoginIDInputType }}"/>
 
-      {{ if (or $show_phone_input $show_text_input)}}
+      {{ if $show_input_form}}
         <div data-controller="text-field" class="flex flex-col gap-2">
           {{ if $show_phone_input }}
             {{ if $show_captcha_phone }}
@@ -198,7 +200,11 @@
     {{ end }}
 
     {{ if and $has_alternatives (not $.AlternativesDisabled) }}
-      {{ template "authflowv2/__divider.html" (dict "Classname" "my-8")  }}
+      {{ if $show_input_form }}
+        {{ template "authflowv2/__divider.html" (dict "Classname" "my-8")  }}
+      {{ else }}
+        <div class="my-8"></div>
+      {{ end }}
       <section class="flex flex-col gap-4">
         {{ if $show_use_text_login_id_option }}
           <a
