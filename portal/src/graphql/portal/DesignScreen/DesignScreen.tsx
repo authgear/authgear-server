@@ -67,6 +67,7 @@ import {
 import PrimaryButton from "../../../PrimaryButton";
 import { useFormContainerBaseContext } from "../../../FormContainerBase";
 import AppLogoHeightSetter from "../../../components/design/AppLogoHeightSetter";
+import { useTester } from "../../../hook/tester";
 
 interface OrganisationConfigurationProps {
   designForm: BranchDesignForm;
@@ -955,6 +956,11 @@ const DesignScreenContent: React.VFC<DesignScreenContentProps> =
     const { appID, effectiveAppConfig, form } = props;
     const { canSave, onSave } = useFormContainerBaseContext();
     const { renderToString } = useContext(MFContext);
+    const { triggerTester: onTry, isLoading: isTryLoading } = useTester(
+      appID,
+      effectiveAppConfig.http?.public_origin ?? ""
+    );
+
     return (
       <>
         <div
@@ -976,6 +982,12 @@ const DesignScreenContent: React.VFC<DesignScreenContentProps> =
               selectedLanguage={form.state.selectedLanguage}
               fallbackLanguage={form.state.fallbackLanguage}
               onChangeSelectedLanguage={form.setSelectedLanguage}
+            />
+            <DefaultButton
+              text={renderToString("DesignScreen.action.try")}
+              iconProps={{ iconName: "Play" }}
+              onClick={onTry}
+              disabled={canSave || isTryLoading}
             />
             <PrimaryButton
               text={renderToString("save")}

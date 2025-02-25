@@ -40,8 +40,8 @@ import styles from "./GetStartedScreen.module.css";
 import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
 import ActionButton from "../../ActionButton";
 import LinkButton from "../../LinkButton";
-import { useGenerateTesterTokenMutation } from "./mutations/generateTesterTokenMutation";
 import { useCapture } from "../../gtm_v2";
+import { useTester } from "../../hook/tester";
 
 type Progress = keyof TutorialStatusData["progress"];
 
@@ -72,15 +72,8 @@ function useCardSpecs(options: MakeCardSpecsOptions): CardSpec[] {
     userTotalCount,
   } = options;
 
-  const { generateTesterToken } = useGenerateTesterTokenMutation(appID);
   const capture = useCapture();
-  const onTryAuth = useCallback(async () => {
-    const token = await generateTesterToken(window.location.href);
-    const destination = new URL(publicOrigin);
-    destination.pathname = "/tester";
-    destination.search = new URLSearchParams({ token }).toString();
-    window.location.assign(destination);
-  }, [generateTesterToken, publicOrigin]);
+  const { triggerTester: onTryAuth } = useTester(appID, publicOrigin);
 
   const authui: CardSpec = useMemo(
     () => ({
