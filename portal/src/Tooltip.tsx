@@ -1,4 +1,4 @@
-import React, { useRef, useState, useCallback } from "react";
+import React, { useRef, useState, useCallback, useMemo } from "react";
 import cn from "classnames";
 import {
   TooltipHost,
@@ -13,6 +13,7 @@ import { FormattedMessage } from "@oursky/react-messageformat";
 interface TooltipProps {
   className?: string;
   tooltipMessageId: string;
+  isHidden?: boolean;
   children?: React.ReactNode;
 }
 
@@ -62,7 +63,7 @@ export function TooltipIcon(props: TooltipIconProps): React.ReactElement {
 }
 
 const Tooltip: React.VFC<TooltipProps> = function Tooltip(props: TooltipProps) {
-  const { className, tooltipMessageId, children } = props;
+  const { className, tooltipMessageId, isHidden, children } = props;
   const tooltipProps: ITooltipProps = React.useMemo(() => {
     return {
       // eslint-disable-next-line react/no-unstable-nested-components
@@ -81,6 +82,7 @@ const Tooltip: React.VFC<TooltipProps> = function Tooltip(props: TooltipProps) {
       <TooltipHost
         hostClassName={styles.host}
         tooltipProps={tooltipProps}
+        calloutProps={useMemo(() => ({ hidden: isHidden }), [isHidden])}
         directionalHint={DirectionalHint.bottomCenter}
       >
         {children ? children : <TooltipIcon />}
