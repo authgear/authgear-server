@@ -51,7 +51,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) ht
 		httproute.MiddlewareFunc(httputil.XContentTypeOptionsNosniff),
 		httproute.MiddlewareFunc(httputil.PermissionsPolicyHeader),
 		httproute.MiddlewareFunc(httputil.XRobotsTag),
-		RequestMiddleware(p, configSource, newRequestMiddleware),
+		MakeWebAppRequestMiddleware(p, configSource, newWebAppRequestMiddleware),
 		p.Middleware(newContextHolderMiddleware),
 	)
 

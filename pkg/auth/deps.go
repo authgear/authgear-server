@@ -352,7 +352,6 @@ var RequestMiddlewareDependencySet = wire.NewSet(
 
 	viewmodelswebapp.NewBaseLogger,
 	wire.Struct(new(viewmodelswebapp.BaseViewModeler), "*"),
-	wire.Struct(new(deps.RequestMiddleware), "*"),
 
 	wire.Bind(new(template.ResourceManager), new(*resource.Manager)),
 	wire.Bind(new(web.ResourceManager), new(*resource.Manager)),
@@ -376,9 +375,11 @@ var RequestMiddlewareDependencySet = wire.NewSet(
 
 	oauthclient.DependencySet,
 	wire.Bind(new(viewmodelswebapp.WebappOAuthClientResolver), new(*oauthclient.Resolver)),
+
+	wire.Struct(new(WebAppRequestMiddleware), "*"),
 )
 
-func RequestMiddleware(p *deps.RootProvider, configSource *configsource.ConfigSource, factory func(http.ResponseWriter, *http.Request, *deps.RootProvider, *configsource.ConfigSource) httproute.Middleware) httproute.Middleware {
+func MakeWebAppRequestMiddleware(p *deps.RootProvider, configSource *configsource.ConfigSource, factory func(http.ResponseWriter, *http.Request, *deps.RootProvider, *configsource.ConfigSource) httproute.Middleware) httproute.Middleware {
 	return httproute.MiddlewareFunc(func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			m := factory(w, r, p, configSource)

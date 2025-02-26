@@ -9,7 +9,6 @@ pkg/api/event/hook_response.go cannot import github.com/authgear/authgear-server
 
 exit status 1
 pkg/lib/deps/deps_common.go cannot import github.com/authgear/authgear-server/pkg/auth/handler/webapp/authflowv2
-pkg/lib/deps/middleware_request.go cannot import github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels
 
 exit status 1
 pkg/admin/graphql/audit_log.go cannot import github.com/authgear/authgear-server/pkg/graphqlgo/relay

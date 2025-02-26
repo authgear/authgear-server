@@ -261,6 +261,10 @@
 /pkg/auth/webapp/wechat_redirect_uri_middleware.go:115:39: requestcontext
 /pkg/auth/webapp/wechat_redirect_uri_middleware.go:59:31: requestcontext
 /pkg/auth/webapp/x_color_scheme.go:74:27: requestcontext
+/pkg/auth/webapp_request_middleware.go:44:40: requestcontext
+/pkg/auth/webapp_request_middleware.go:47:40: requestcontext
+/pkg/auth/webapp_request_middleware.go:48:43: requestcontext
+/pkg/auth/webapp_request_middleware.go:50:30: requestcontext
 /pkg/images/deps/context.go:23:10: requestcontext
 /pkg/auth/handler/webapp/app_static_assets.go:39:33: requestcontext
 /pkg/portal/transport/system_config_handler.go:28:10: requestcontext
@@ -314,10 +318,10 @@
 /pkg/util/sentry/request.go:25:9: requestcontext
 /pkg/util/template/engine.go:308:9: requestcontext
 /pkg/util/httputil/json.go:96:9: requestcontext
-/pkg/lib/deps/middleware_request.go:41:40: requestcontext
-/pkg/lib/deps/middleware_request.go:44:40: requestcontext
-/pkg/lib/deps/middleware_request.go:45:35: requestcontext
-/pkg/lib/deps/middleware_request.go:47:30: requestcontext
+/pkg/lib/deps/middleware_request.go:29:40: requestcontext
+/pkg/lib/deps/middleware_request.go:32:40: requestcontext
+/pkg/lib/deps/middleware_request.go:33:38: requestcontext
+/pkg/lib/deps/middleware_request.go:35:30: requestcontext
 /pkg/images/deps/middleware_request.go:29:40: requestcontext
 /pkg/images/deps/middleware_request.go:32:40: requestcontext
 /pkg/images/deps/middleware_request.go:33:35: requestcontext

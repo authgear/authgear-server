@@ -13,7 +13,7 @@ type providerContext struct {
 	p *AppProvider
 }
 
-func withProvider(ctx context.Context, p *AppProvider) context.Context {
+func WithAppProvider(ctx context.Context, p *AppProvider) context.Context {
 	return context.WithValue(ctx, providerContextKey, &providerContext{
 		p: p,
 	})
