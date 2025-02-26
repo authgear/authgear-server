@@ -23,10 +23,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
 
-func newRequestMiddleware(w http.ResponseWriter, r *http.Request, p *deps.RootProvider, configSource *configsource.ConfigSource) httproute.Middleware {
+func newWebAppRequestMiddleware(w http.ResponseWriter, r *http.Request, p *deps.RootProvider, configSource *configsource.ConfigSource) httproute.Middleware {
 	panic(wire.Build(
 		RequestMiddlewareDependencySet,
-		wire.Bind(new(httproute.Middleware), new(*deps.RequestMiddleware)),
+		wire.Bind(new(httproute.Middleware), new(*WebAppRequestMiddleware)),
 	))
 }
 
