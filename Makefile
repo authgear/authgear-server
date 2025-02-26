@@ -84,6 +84,10 @@ lint:
 sort-translations:
 	go run ./devtools/translationsorter
 
+.PHONY: sort-vettedpositions
+sort-vettedpositions:
+	./scripts/python/sort_vettedpositions.py ./.vettedpositions
+
 .PHONY: fmt
 fmt:
 	# Ignore generated files, such as wire_gen.go and *_mock_test.go
@@ -101,6 +105,7 @@ binary:
 check-tidy:
 	# For some unknown reason, `make generate` will somehow format the files again (but with a different rule).
 	# So `make fmt` has to be run after `make generate`.
+	$(MAKE) sort-vettedpositions
 	$(MAKE) generate
 	$(MAKE) fmt
 	$(MAKE) html-email
