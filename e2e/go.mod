@@ -9,7 +9,7 @@ require (
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/authgear/authgear-server v0.0.0
 	github.com/beevik/etree v1.4.1
-	github.com/go-jose/go-jose/v3 v3.0.3
+	github.com/go-jose/go-jose/v3 v3.0.4
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/google/martian v2.1.0+incompatible
 	github.com/google/wire v0.5.0
