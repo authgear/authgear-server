@@ -10,7 +10,7 @@ import (
 type ParsedPhoneNumber struct {
 	UserInput                         string
 	E164                              string
-	Alpha2                            string
+	Alpha2                            []string
 	IsPossibleNumber                  bool
 	IsValidNumber                     bool
 	CountryCallingCodeWithoutPlusSign string
@@ -31,17 +31,25 @@ func ParsePhoneNumberWithUserInput(userInput string) (*ParsedPhoneNumber, error)
 	e164 := phonenumbers.Format(num, phonenumbers.E164)
 	isPossibleNumber := phonenumbers.IsPossibleNumber(num)
 	isValidNumber := phonenumbers.IsValidNumber(num)
-	countryCallingCode := strconv.Itoa(int(num.GetCountryCode()))
+	countryCallingCode := int(num.GetCountryCode())
 	nationalNumber := phonenumbers.GetNationalSignificantNumber(num)
+	var alpha2 []string
 	regionCode := phonenumbers.GetRegionCodeForNumber(num)
+	if regionCode == "" {
+		// It is possible that `GetRegionCodeForNumber` returns empty string if the number is not a valid number
+		// In this case we determine the region from country code
+		alpha2 = phonenumbers.GetRegionCodesForCountryCode(countryCallingCode)
+	} else {
+		alpha2 = []string{regionCode}
+	}
 
 	return &ParsedPhoneNumber{
 		UserInput:                         userInput,
 		E164:                              e164,
-		Alpha2:                            regionCode,
+		Alpha2:                            alpha2,
 		IsPossibleNumber:                  isPossibleNumber,
 		IsValidNumber:                     isValidNumber,
-		CountryCallingCodeWithoutPlusSign: countryCallingCode,
+		CountryCallingCodeWithoutPlusSign: strconv.Itoa(countryCallingCode),
 		NationalNumberWithoutFormatting:   nationalNumber,
 	}, nil
 }
