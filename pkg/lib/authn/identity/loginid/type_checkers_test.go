@@ -12,6 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
+//nolint:gocognit
 func TestLoginIDTypeCheckers(t *testing.T) {
 	type Case struct {
 		LoginID string
