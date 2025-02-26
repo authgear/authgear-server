@@ -17,17 +17,22 @@ func TestLoginIDTypeCheckers(t *testing.T) {
 		LoginID string
 		Err     string
 	}
-	f := func(c Case, check TypeChecker) {
-		ctx := &validation.Context{}
+	fWithCtx := func(ctx context.Context, c Case, check TypeChecker) {
+		vctx := &validation.Context{}
 
-		check.Validate(context.Background(), ctx, c.LoginID)
-		err := ctx.Error("invalid login ID")
+		check.Validate(ctx, vctx, c.LoginID)
+		err := vctx.Error("invalid login ID")
 		if c.Err == "" {
 			So(err, ShouldBeNil)
 		} else {
 			So(err, ShouldBeError, c.Err)
 		}
 	}
+
+	f := func(c Case, check TypeChecker) {
+		fWithCtx(context.Background(), c, check)
+	}
+
 	newTrue := func() *bool {
 		b := true
 		return &b
@@ -90,9 +95,9 @@ func TestLoginIDTypeCheckers(t *testing.T) {
 			}
 
 			domainsList, _ := matchlist.New(`
-				example.com
-				TESTING.COM
-			`, true, false)
+        example.com
+        TESTING.COM
+      `, true, false)
 			checker := &EmailChecker{
 				Config: &config.LoginIDEmailConfig{
 					BlockPlusSign: newFalse(),
@@ -113,8 +118,8 @@ func TestLoginIDTypeCheckers(t *testing.T) {
 			}
 
 			domainsList, _ := matchlist.New(`
-				FREE-MAIL.COM
-			`, true, false)
+        FREE-MAIL.COM
+      `, true, false)
 			checker := &EmailChecker{
 				Config: &config.LoginIDEmailConfig{
 					BlockPlusSign: newFalse(),
@@ -136,11 +141,11 @@ func TestLoginIDTypeCheckers(t *testing.T) {
 			}
 
 			domainsList, _ := matchlist.New(`
-				example.com
-				testing.com
+        example.com
+        testing.com
 
-				FREE-MAIL.COM
-			`, true, false)
+        FREE-MAIL.COM
+      `, true, false)
 			checker := &EmailChecker{
 				Config: &config.LoginIDEmailConfig{
 					BlockPlusSign: newFalse(),
@@ -198,12 +203,12 @@ func TestLoginIDTypeCheckers(t *testing.T) {
 			}
 
 			reversedNames, _ := blocklist.New(`
-				admin
-				settings
-			`)
+        admin
+        settings
+      `)
 			excludedKeywords, _ := matchlist.New(`
-				authgear
-			`, true, true)
+        authgear
+      `, true, true)
 			n := &UsernameChecker{
 				Config: &config.LoginIDUsernameConfig{
 					ASCIIOnly: newTrue(),
@@ -232,6 +237,61 @@ func TestLoginIDTypeCheckers(t *testing.T) {
 			for _, c := range cases {
 				f(c, n)
 			}
+		})
+
+		Convey("country code allowlist with invalid but possible number", func() {
+			cfgYAML := `
+id: test
+http:
+  public_origin: http://test
+ui:
+  phone_input:
+    validation:
+      implementation: libphonenumber
+      libphonenumber:
+        validation_method: isPossibleNumber
+          `
+
+			makeAppContext := func(ctx context.Context, cfgYAML []byte) context.Context {
+				cfg, err := config.Parse(ctx, []byte(cfgYAML))
+				So(err, ShouldBeNil)
+
+				appCtx := &config.AppContext{
+					Config: &config.Config{AppConfig: cfg},
+				}
+				ctx = config.WithAppContext(ctx, appCtx)
+				return ctx
+			}
+
+			ctx := makeAppContext(context.Background(), []byte(cfgYAML))
+
+			Convey("is allowed if one of the possible region is allowed", func() {
+				cases := []Case{
+					{"+44123123123", ""},
+				}
+
+				n := &PhoneChecker{
+					Alpha2AllowList: []string{"GB"},
+				}
+
+				for _, c := range cases {
+					fWithCtx(ctx, c, n)
+				}
+			})
+
+			Convey("is blocked if none of the possible region is allowed", func() {
+				cases := []Case{
+					{"+44123123123", "invalid login ID:\n/login_id: blocked\n  map[reason:PhoneNumberCountryCodeAllowlist]"},
+				}
+
+				n := &PhoneChecker{
+					Alpha2AllowList: []string{"US"},
+				}
+
+				for _, c := range cases {
+					fWithCtx(ctx, c, n)
+				}
+			})
 		})
 	})
 }
