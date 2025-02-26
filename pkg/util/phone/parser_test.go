@@ -1,8 +1,11 @@
 package phone
 
 import (
+	"encoding/json"
+	"os"
 	"testing"
 
+	"github.com/nyaruka/phonenumbers"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -233,5 +236,29 @@ func TestParse_IsPossibleNumber_ReturnE164(t *testing.T) {
 		test("+85253580001", "")
 		// Return E164 even if the input is not originally in E164.
 		test(" +852 9876 5432 ", "")
+	})
+}
+
+func TestCountryCallingCodeToRegions(t *testing.T) {
+	Convey("Country calling codes to regions", t, func() {
+		c := phonenumbers.GetSupportedCallingCodes()
+		m := map[int][]string{}
+		for countryCallingCode := range c {
+			codes := phonenumbers.GetRegionCodesForCountryCode(countryCallingCode)
+			m[countryCallingCode] = codes
+		}
+		data, err := os.ReadFile("calling_codes_regions.json")
+		if err != nil {
+			panic(err)
+		}
+
+		var expectedMap map[int][]string
+
+		err = json.Unmarshal(data, &expectedMap)
+		if err != nil {
+			panic(err)
+		}
+
+		So(m, ShouldEqual, expectedMap)
 	})
 }
