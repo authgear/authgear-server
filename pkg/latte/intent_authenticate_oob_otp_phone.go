@@ -50,6 +50,13 @@ func (i *IntentAuthenticateOOBOTPPhone) ReactTo(ctx context.Context, deps *workf
 		return workflow.NewSubWorkflow(&IntentVerifyCaptcha{}), nil
 	}
 
+	if len(workflow.FindSubWorkflows[*IntentVerifyProofOfPhoneNumberVerification](workflows.Root)) != 0 {
+		authenticator := i.Authenticator
+		return workflow.NewNodeSimple(&NodeVerifiedAuthenticator{
+			Authenticator: authenticator,
+		}), nil
+	}
+
 	if _, found := workflow.FindSingleNode[*NodeAuthenticateOOBOTPPhone](workflows.Nearest); !found {
 		authenticator := i.Authenticator
 		err := (&SendOOBCode{

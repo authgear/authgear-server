@@ -46,6 +46,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/healthz"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/ldap"
+	"github.com/authgear/authgear-server/pkg/lib/proofofphonenumberverification"
 	"github.com/authgear/authgear-server/pkg/lib/saml"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlbinding"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlsession"
@@ -615,6 +616,11 @@ var CommonDependencySet = wire.NewSet(
 		accountmigration.DependencySet,
 		wire.Bind(new(workflow.AccountMigrationService), new(*accountmigration.Service)),
 		wire.Bind(new(authenticationflow.AccountMigrationService), new(*accountmigration.Service)),
+	),
+
+	wire.NewSet(
+		proofofphonenumberverification.DependencySet,
+		wire.Bind(new(workflow.ProofOfPhoneNumberVerificationService), new(*proofofphonenumberverification.Service)),
 	),
 
 	wire.NewSet(

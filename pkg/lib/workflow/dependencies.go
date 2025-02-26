@@ -21,6 +21,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
+	"github.com/authgear/authgear-server/pkg/lib/proofofphonenumberverification"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
@@ -143,6 +144,10 @@ type AccountMigrationService interface {
 	Run(ctx context.Context, migrationTokenString string) (*accountmigration.HookResponse, error)
 }
 
+type ProofOfPhoneNumberVerificationService interface {
+	Verify(ctx context.Context, proofOfPhoneNumberVerificationString string) (*proofofphonenumberverification.HookResponse, error)
+}
+
 type CaptchaService interface {
 	VerifyToken(ctx context.Context, token string) error
 }
@@ -171,19 +176,20 @@ type Dependencies struct {
 
 	HTTPRequest *http.Request
 
-	Users              UserService
-	Identities         IdentityService
-	Authenticators     AuthenticatorService
-	MFA                MFAService
-	StdAttrsService    StdAttrsService
-	CustomAttrsService CustomAttrsService
-	OTPCodes           OTPCodeService
-	OTPSender          OTPSender
-	Verification       VerificationService
-	ForgotPassword     ForgotPasswordService
-	ResetPassword      ResetPasswordService
-	AccountMigrations  AccountMigrationService
-	Captcha            CaptchaService
+	Users                          UserService
+	Identities                     IdentityService
+	Authenticators                 AuthenticatorService
+	MFA                            MFAService
+	StdAttrsService                StdAttrsService
+	CustomAttrsService             CustomAttrsService
+	OTPCodes                       OTPCodeService
+	OTPSender                      OTPSender
+	Verification                   VerificationService
+	ForgotPassword                 ForgotPasswordService
+	ResetPassword                  ResetPasswordService
+	AccountMigrations              AccountMigrationService
+	ProofOfPhoneNumberVerification ProofOfPhoneNumberVerificationService
+	Captcha                        CaptchaService
 
 	IDPSessions          IDPSessionService
 	Sessions             SessionService
