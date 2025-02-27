@@ -17,7 +17,8 @@ var IntentAuthenticateOOBOTPPhoneSchema = validation.NewSimpleSchema(`{}`)
 
 type IntentAuthenticateOOBOTPPhone struct {
 	CaptchaProtectedIntent
-	Authenticator *authenticator.Info `json:"authenticator,omitempty"`
+	Authenticator         *authenticator.Info `json:"authenticator,omitempty"`
+	AuthenticatorVerified bool                `json:"authenticator_verified"`
 }
 
 func (i *IntentAuthenticateOOBOTPPhone) Kind() string {
@@ -50,10 +51,9 @@ func (i *IntentAuthenticateOOBOTPPhone) ReactTo(ctx context.Context, deps *workf
 		return workflow.NewSubWorkflow(&IntentVerifyCaptcha{}), nil
 	}
 
-	if len(workflow.FindSubWorkflows[*IntentVerifyProofOfPhoneNumberVerification](workflows.Root)) != 0 {
-		authenticator := i.Authenticator
+	if i.AuthenticatorVerified {
 		return workflow.NewNodeSimple(&NodeVerifiedAuthenticator{
-			Authenticator: authenticator,
+			Authenticator: i.Authenticator,
 		}), nil
 	}
 
