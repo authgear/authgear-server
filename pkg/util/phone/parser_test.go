@@ -1,8 +1,11 @@
 package phone
 
 import (
+	"encoding/json"
+	"os"
 	"testing"
 
+	"github.com/nyaruka/phonenumbers"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -14,7 +17,7 @@ func TestParsePhoneNumberWithUserInput(t *testing.T) {
 			parsed, err := ParsePhoneNumberWithUserInput(good)
 			So(err, ShouldBeNil)
 			So(parsed.E164, ShouldEqual, "+85223456789")
-			So(parsed.Alpha2, ShouldEqual, "HK")
+			So(parsed.Alpha2, ShouldEqual, []string{"HK"})
 			So(parsed.IsPossibleNumber, ShouldBeTrue)
 			So(parsed.IsValidNumber, ShouldBeTrue)
 			So(parsed.CountryCallingCodeWithoutPlusSign, ShouldEqual, "852")
@@ -27,7 +30,7 @@ func TestParsePhoneNumberWithUserInput(t *testing.T) {
 			parsed, err := ParsePhoneNumberWithUserInput(good)
 			So(err, ShouldBeNil)
 			So(parsed.E164, ShouldEqual, "+61401123456")
-			So(parsed.Alpha2, ShouldEqual, "AU")
+			So(parsed.Alpha2, ShouldEqual, []string{"AU"})
 			So(parsed.IsPossibleNumber, ShouldBeTrue)
 			So(parsed.IsValidNumber, ShouldBeTrue)
 			So(parsed.CountryCallingCodeWithoutPlusSign, ShouldEqual, "61")
@@ -42,7 +45,7 @@ func TestParsePhoneNumberWithUserInput(t *testing.T) {
 			parsed, err := ParsePhoneNumberWithUserInput(good)
 			So(err, ShouldBeNil)
 			So(parsed.E164, ShouldEqual, "+13407121234")
-			So(parsed.Alpha2, ShouldEqual, "VI")
+			So(parsed.Alpha2, ShouldEqual, []string{"VI"})
 			So(parsed.IsPossibleNumber, ShouldBeTrue)
 			So(parsed.IsValidNumber, ShouldBeTrue)
 			So(parsed.CountryCallingCodeWithoutPlusSign, ShouldEqual, "1")
@@ -55,7 +58,7 @@ func TestParsePhoneNumberWithUserInput(t *testing.T) {
 			parsed, err := ParsePhoneNumberWithUserInput(good)
 			So(err, ShouldBeNil)
 			So(parsed.E164, ShouldEqual, "+12841234567")
-			So(parsed.Alpha2, ShouldEqual, "VG")
+			So(parsed.Alpha2, ShouldEqual, []string{"VG"})
 			So(parsed.IsPossibleNumber, ShouldBeTrue)
 			// I cannot find a valid pattern on the Internet.
 			So(parsed.IsValidNumber, ShouldBeFalse)
@@ -69,7 +72,7 @@ func TestParsePhoneNumberWithUserInput(t *testing.T) {
 			parsed, err := ParsePhoneNumberWithUserInput(good)
 			So(err, ShouldBeNil)
 			So(parsed.E164, ShouldEqual, "+447624123456")
-			So(parsed.Alpha2, ShouldEqual, "IM")
+			So(parsed.Alpha2, ShouldEqual, []string{"IM"})
 			So(parsed.IsPossibleNumber, ShouldBeTrue)
 			So(parsed.IsValidNumber, ShouldBeTrue)
 			So(parsed.CountryCallingCodeWithoutPlusSign, ShouldEqual, "44")
@@ -100,6 +103,7 @@ func TestParsePhoneNumberWithUserInput(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(parsed.IsPossibleNumber, ShouldBeTrue)
 			So(parsed.IsValidNumber, ShouldBeFalse)
+			So(parsed.Alpha2, ShouldEqual, []string{"HK"})
 		})
 
 		Convey("Emergency phone number", func() {
@@ -109,6 +113,7 @@ func TestParsePhoneNumberWithUserInput(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(parsed.IsPossibleNumber, ShouldBeFalse)
 			So(parsed.IsValidNumber, ShouldBeFalse)
+			So(parsed.Alpha2, ShouldEqual, []string{"HK"})
 		})
 
 		Convey("1823", func() {
@@ -118,6 +123,7 @@ func TestParsePhoneNumberWithUserInput(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(parsed.IsPossibleNumber, ShouldBeFalse)
 			So(parsed.IsValidNumber, ShouldBeFalse)
+			So(parsed.Alpha2, ShouldEqual, []string{"HK"})
 		})
 
 		Convey("phone number that are relatively new", func() {
@@ -127,6 +133,7 @@ func TestParsePhoneNumberWithUserInput(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(parsed.IsPossibleNumber, ShouldBeTrue)
 			So(parsed.IsValidNumber, ShouldBeFalse)
+			So(parsed.Alpha2, ShouldEqual, []string{"HK"})
 		})
 
 		Convey("too short", func() {
@@ -136,6 +143,7 @@ func TestParsePhoneNumberWithUserInput(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(parsed.IsPossibleNumber, ShouldBeFalse)
 			So(parsed.IsValidNumber, ShouldBeFalse)
+			So(parsed.Alpha2, ShouldEqual, []string{"HK"})
 		})
 
 		Convey("+", func() {
@@ -228,5 +236,29 @@ func TestParse_IsPossibleNumber_ReturnE164(t *testing.T) {
 		test("+85253580001", "")
 		// Return E164 even if the input is not originally in E164.
 		test(" +852 9876 5432 ", "")
+	})
+}
+
+func TestCountryCallingCodeToRegions(t *testing.T) {
+	Convey("Country calling codes to regions", t, func() {
+		c := phonenumbers.GetSupportedCallingCodes()
+		m := map[int][]string{}
+		for countryCallingCode := range c {
+			codes := phonenumbers.GetRegionCodesForCountryCode(countryCallingCode)
+			m[countryCallingCode] = codes
+		}
+		data, err := os.ReadFile("calling_codes_regions.json")
+		if err != nil {
+			panic(err)
+		}
+
+		var expectedMap map[int][]string
+
+		err = json.Unmarshal(data, &expectedMap)
+		if err != nil {
+			panic(err)
+		}
+
+		So(m, ShouldEqual, expectedMap)
 	})
 }

@@ -314,9 +314,12 @@ func (c *PhoneChecker) Validate(ctx context.Context, validationCtx *validation.C
 	if len(c.Alpha2AllowList) > 0 {
 		isAllowed := false
 		for _, allow := range c.Alpha2AllowList {
-			if allow == parsed.Alpha2 {
-				isAllowed = true
-				break
+			// Allow the phone number if any of the possible region code is in allow list
+			for _, alpha2 := range parsed.Alpha2 {
+				if allow == alpha2 {
+					isAllowed = true
+					break
+				}
 			}
 		}
 		if !isAllowed {
