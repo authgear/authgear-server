@@ -49,7 +49,6 @@ var _ = Schema.Add("AppConfig", `
 		"web3": { "$ref": "#/$defs/Web3Config" },
 		"google_tag_manager": { "$ref": "#/$defs/GoogleTagManagerConfig" },
 		"account_migration": { "$ref": "#/$defs/AccountMigrationConfig" },
-		"proof_of_phone_number_verification": { "$ref": "#/$defs/ProofOfPhoneNumberVerificationConfig" },
 		"captcha": { "$ref": "#/$defs/CaptchaConfig" },
 		"bot_protection": { "$ref": "#/$defs/BotProtectionConfig" },
 		"test_mode": { "$ref": "#/$defs/TestModeConfig" },
@@ -90,8 +89,7 @@ type AppConfig struct {
 
 	GoogleTagManager *GoogleTagManagerConfig `json:"google_tag_manager,omitempty"`
 
-	AccountMigration               *AccountMigrationConfig               `json:"account_migration,omitempty"`
-	ProofOfPhoneNumberVerification *ProofOfPhoneNumberVerificationConfig `json:"proof_of_phone_number_verification,omitempty"`
+	AccountMigration *AccountMigrationConfig `json:"account_migration,omitempty"`
 
 	Captcha       *CaptchaConfig       `json:"captcha,omitempty"`
 	BotProtection *BotProtectionConfig `json:"bot_protection,omitempty"`

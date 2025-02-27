@@ -652,9 +652,9 @@ google_tag_manager: {}
 account_migration:
   hook:
     timeout: 5
-proof_of_phone_number_verification:
-  hook:
-    timeout: 5
+  proof_of_phone_number_verification:
+    hook:
+      timeout: 5
 captcha: {}
 bot_protection: {}
 test_mode:
