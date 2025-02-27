@@ -174,10 +174,24 @@ func (i *IntentLogin) OutputData(ctx context.Context, deps *workflow.Dependencie
 		maskedEmails = append(maskedEmails, mail.MaskAddress(identity.LoginID.LoginID))
 	}
 
-	output := map[string]interface{}{}
-	output["masked_emails"] = maskedEmails
+	mfaTypes := []model.AuthenticatorType{}
+	mfas, err := deps.Authenticators.List(ctx, userID, authenticator.KeepType(model.AuthenticatorTypeOOBEmail, model.AuthenticatorTypePassword))
+	if err != nil {
+		return nil, err
+	}
+	for _, mfa := range mfas {
+		mfaTypes = append(mfaTypes, mfa.Type)
+	}
 
-	return output, nil
+	type IntentLoginOutput struct {
+		MaskedEmails       []string                  `json:"masked_emails"`
+		AuthenticatorTypes []model.AuthenticatorType `json:"authenticator_types"`
+	}
+
+	return &IntentLoginOutput{
+		MaskedEmails:       maskedEmails,
+		AuthenticatorTypes: mfaTypes,
+	}, nil
 }
 
 func (i *IntentLogin) getAuthenticator(ctx context.Context, deps *workflow.Dependencies, filters ...authenticator.Filter) (*authenticator.Info, error) {
