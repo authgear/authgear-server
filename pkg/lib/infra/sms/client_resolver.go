@@ -12,6 +12,7 @@ import (
 )
 
 type TwilioClientCredentials struct {
+	CredentialType      *config.TwilioCredentialType
 	AccountSID          string
 	AuthToken           string
 	MessagingServiceSID string
@@ -198,7 +199,9 @@ func (r *ClientResolver) clientsFromAuthgearSecretsYAML() (*nexmo.NexmoClient, *
 	}
 
 	if r.AuthgearSecretsYAMLTwilioCredentials != nil {
+		credtyp := r.AuthgearSecretsYAMLTwilioCredentials.GetCredentialType()
 		twilioClientCredentials = &TwilioClientCredentials{
+			CredentialType:      &credtyp,
 			AccountSID:          r.AuthgearSecretsYAMLTwilioCredentials.AccountSID,
 			AuthToken:           r.AuthgearSecretsYAMLTwilioCredentials.AuthToken,
 			MessagingServiceSID: r.AuthgearSecretsYAMLTwilioCredentials.MessagingServiceSID,
@@ -229,7 +232,9 @@ func (r *ClientResolver) clientsFromEnv() (*nexmo.NexmoClient, *NexmoClientCrede
 	}
 
 	if r.EnvironmentTwilioCredentials != (config.SMSGatewayEnvironmentTwilioCredentials{}) {
+		credtyp := config.TwilioCredentialTypeAuthToken
 		twilioClientCredentials = &TwilioClientCredentials{
+			CredentialType:      &credtyp,
 			AccountSID:          r.EnvironmentTwilioCredentials.AccountSID,
 			AuthToken:           r.EnvironmentTwilioCredentials.AuthToken,
 			MessagingServiceSID: r.EnvironmentTwilioCredentials.MessagingServiceSID,
