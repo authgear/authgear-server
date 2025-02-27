@@ -38,12 +38,14 @@ func (*NodeVerifyPhoneSMS) CanReactTo(ctx context.Context, deps *workflow.Depend
 	return []workflow.Input{
 		&InputTakeOOBOTPCode{},
 		&InputResendOOBOTPCode{},
+		&InputTakeProofOfPhoneNumberVerification{},
 	}, nil
 }
 
 func (n *NodeVerifyPhoneSMS) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
 	var inputTakeOOBOTPCode inputTakeOOBOTPCode
 	var inputResendOOBOTPCode inputResendOOBOTPCode
+	var inputTakeProofOfPhoneNumberVerification inputTakeProofOfPhoneNumberVerification
 
 	switch {
 	case workflow.AsInput(input, &inputTakeOOBOTPCode):
@@ -73,6 +75,13 @@ func (n *NodeVerifyPhoneSMS) ReactTo(ctx context.Context, deps *workflow.Depende
 			return nil, err
 		}
 		return workflow.NewNodeSimple(n), workflow.ErrUpdateNode
+
+	case workflow.AsInput(input, &inputTakeProofOfPhoneNumberVerification):
+		verifiedClaim := deps.Verification.NewVerifiedClaim(ctx, n.UserID, string(model.ClaimPhoneNumber), n.PhoneNumber)
+		return workflow.NewNodeSimple(&NodeVerifiedIdentity{
+			IdentityID:       n.IdentityID,
+			NewVerifiedClaim: verifiedClaim,
+		}), nil
 
 	default:
 		return nil, workflow.ErrIncompatibleInput

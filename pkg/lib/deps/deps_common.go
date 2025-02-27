@@ -6,6 +6,7 @@ import (
 	handlersaml "github.com/authgear/authgear-server/pkg/auth/handler/saml"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	handlerwebappauthflowv2 "github.com/authgear/authgear-server/pkg/auth/handler/webapp/authflowv2"
+	"github.com/authgear/authgear-server/pkg/latte/proofofphonenumberverification"
 	"github.com/authgear/authgear-server/pkg/lib/accountmanagement"
 	"github.com/authgear/authgear-server/pkg/lib/accountmigration"
 	"github.com/authgear/authgear-server/pkg/lib/app2app"
@@ -615,6 +616,11 @@ var CommonDependencySet = wire.NewSet(
 		accountmigration.DependencySet,
 		wire.Bind(new(workflow.AccountMigrationService), new(*accountmigration.Service)),
 		wire.Bind(new(authenticationflow.AccountMigrationService), new(*accountmigration.Service)),
+	),
+
+	wire.NewSet(
+		proofofphonenumberverification.DependencySet,
+		wire.Bind(new(workflow.ProofOfPhoneNumberVerificationService), new(*proofofphonenumberverification.Service)),
 	),
 
 	wire.NewSet(

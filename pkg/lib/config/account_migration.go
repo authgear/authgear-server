@@ -5,13 +5,15 @@ var _ = Schema.Add("AccountMigrationConfig", `
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
-		"hook": { "$ref": "#/$defs/AccountMigrationHookConfig" }
+		"hook": { "$ref": "#/$defs/AccountMigrationHookConfig" },
+		"proof_of_phone_number_verification": { "$ref": "#/$defs/ProofOfPhoneNumberVerificationConfig" }
 	}
 }
 `)
 
 type AccountMigrationConfig struct {
-	Hook *AccountMigrationHookConfig `json:"hook,omitempty"`
+	Hook                           *AccountMigrationHookConfig           `json:"hook,omitempty"`
+	ProofOfPhoneNumberVerification *ProofOfPhoneNumberVerificationConfig `json:"proof_of_phone_number_verification,omitempty"`
 }
 
 var _ = Schema.Add("AccountMigrationHookConfig", `

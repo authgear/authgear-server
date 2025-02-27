@@ -27,7 +27,8 @@ var IntentLoginSchema = validation.NewSimpleSchema(`{}`)
 
 type IntentLogin struct {
 	CaptchaProtectedIntent
-	Identity *identity.Info `json:"identity,omitempty"`
+	Identity         *identity.Info `json:"identity,omitempty"`
+	IdentityVerified bool           `json:"identity_verified"`
 }
 
 func (*IntentLogin) Kind() string {
@@ -66,7 +67,8 @@ func (i *IntentLogin) ReactTo(ctx context.Context, deps *workflow.Dependencies, 
 			return nil, err
 		}
 		intent := &IntentAuthenticateOOBOTPPhone{
-			Authenticator: phoneAuthenticator,
+			Authenticator:         phoneAuthenticator,
+			AuthenticatorVerified: i.IdentityVerified,
 		}
 		intent.IsCaptchaProtected = i.IsCaptchaProtected
 		return workflow.NewSubWorkflow(intent), nil

@@ -37,14 +37,15 @@ func (*IntentAuthenticate) CanReactTo(ctx context.Context, deps *workflow.Depend
 	if len(workflows.Nearest.Nodes) == 0 {
 		return []workflow.Input{
 			&InputTakeLoginID{},
+			&InputTakeProofOfPhoneNumberVerification{},
 		}, nil
 	}
-	// IntentAuthenticate has only one node, which could be IntentSignup or IntentLogin.
 	return nil, workflow.ErrEOF
 }
 
 func (i *IntentAuthenticate) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
 	var inputTakeLoginID inputTakeLoginID
+	var inputTakeProofOfPhoneNumberVerification inputTakeProofOfPhoneNumberVerification
 
 	switch {
 	case workflow.AsInput(input, &inputTakeLoginID):
@@ -72,6 +73,14 @@ func (i *IntentAuthenticate) ReactTo(ctx context.Context, deps *workflow.Depende
 		}
 		intent.IsCaptchaProtected = i.IsCaptchaProtected
 		return workflow.NewSubWorkflow(intent), nil
+
+	case workflow.AsInput(input, &inputTakeProofOfPhoneNumberVerification):
+		proofOfPhoneNumberVerification := inputTakeProofOfPhoneNumberVerification.GetProofOfPhoneNumberVerification()
+		intent := &IntentVerifyProofOfPhoneNumberVerification{
+			ProofOfPhoneNumberVerification: proofOfPhoneNumberVerification,
+		}
+		return workflow.NewSubWorkflow(intent), nil
+
 	default:
 		return nil, workflow.ErrIncompatibleInput
 	}

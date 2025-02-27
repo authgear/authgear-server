@@ -26,6 +26,7 @@ var IntentSignupSchema = validation.NewSimpleSchema(`
 
 type IntentSignup struct {
 	CaptchaProtectedIntent
+	PhoneNumberHint string `json:"phone_number_hint"`
 }
 
 func (*IntentSignup) Kind() string {
@@ -68,18 +69,20 @@ func (i *IntentSignup) ReactTo(ctx context.Context, deps *workflow.Dependencies,
 	case 1:
 		intent := &IntentCreateLoginID{
 			// LoginID key and LoginID type are fixed here.
-			UserID:      i.userID(workflows.Nearest),
-			LoginIDType: model.LoginIDKeyTypePhone,
-			LoginIDKey:  string(model.LoginIDKeyTypePhone),
+			UserID:          i.userID(workflows.Nearest),
+			LoginIDType:     model.LoginIDKeyTypePhone,
+			LoginIDKey:      string(model.LoginIDKeyTypePhone),
+			PhoneNumberHint: i.PhoneNumberHint,
 		}
 		intent.IsCaptchaProtected = i.IsCaptchaProtected
 		return workflow.NewSubWorkflow(intent), nil
 	case 2:
 		return workflow.NewSubWorkflow(&IntentCreateLoginID{
 			// LoginID key and LoginID type are fixed here.
-			UserID:      i.userID(workflows.Nearest),
-			LoginIDType: model.LoginIDKeyTypeEmail,
-			LoginIDKey:  string(model.LoginIDKeyTypeEmail),
+			UserID:          i.userID(workflows.Nearest),
+			LoginIDType:     model.LoginIDKeyTypeEmail,
+			LoginIDKey:      string(model.LoginIDKeyTypeEmail),
+			PhoneNumberHint: i.PhoneNumberHint,
 		}), nil
 	case 3:
 		// The type, kind is fixed here.

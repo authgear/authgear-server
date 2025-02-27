@@ -8,7 +8,8 @@ pkg/api/event/event.go cannot import github.com/authgear/authgear-server/pkg/uti
 pkg/api/event/hook_response.go cannot import github.com/authgear/authgear-server/pkg/util/validation
 
 exit status 1
-pkg/lib/deps/deps_common.go cannot import github.com/authgear/authgear-server/pkg/auth/handler/webapp/authflowv2
+pkg/lib/deps/deps_common.go cannot import github.com/authgear/authgear-server/pkg/latte/proofofphonenumberverification
+pkg/lib/workflow/dependencies.go cannot import github.com/authgear/authgear-server/pkg/latte/proofofphonenumberverification
 
 exit status 1
 pkg/admin/graphql/audit_log.go cannot import github.com/authgear/authgear-server/pkg/graphqlgo/relay
@@ -27,6 +28,9 @@ pkg/admin/graphql/role_user_mutation.go cannot import github.com/authgear/authge
 pkg/admin/graphql/session_mutation.go cannot import github.com/authgear/authgear-server/pkg/graphqlgo/relay
 pkg/admin/graphql/user.go cannot import github.com/authgear/authgear-server/pkg/graphqlgo/relay
 pkg/admin/graphql/user_mutation.go cannot import github.com/authgear/authgear-server/pkg/graphqlgo/relay
+
+exit status 1
+pkg/auth/wire_gen.go cannot import github.com/authgear/authgear-server/pkg/latte/proofofphonenumberverification
 
 exit status 1
 pkg/portal/deps.go cannot import github.com/authgear/authgear-server/pkg/auth
