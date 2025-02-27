@@ -3,15 +3,13 @@ package mockoidc
 import (
 	"encoding/json"
 
-	"github.com/golang-jwt/jwt/v5"
+	"github.com/lestrrat-go/jwx/v2/jwt"
 )
 
 type User interface {
 	ID() string
-
-	Userinfo([]string) ([]byte, error)
-
-	Claims([]string, *IDTokenClaims) (jwt.Claims, error)
+	Userinfo(scope []string) ([]byte, error)
+	AddClaims(scope []string, token jwt.Token) error
 }
 
 type MockUser struct {
@@ -31,38 +29,33 @@ func DefaultUser() *MockUser {
 	}
 }
 
-type mockUserinfo struct {
-	Email             string `json:"email,omitempty"`
-	PreferredUsername string `json:"preferred_username,omitempty"`
-	Phone             string `json:"phone_number,omitempty"`
-}
-
 func (u *MockUser) ID() string {
 	return u.Subject
 }
 
 func (u *MockUser) Userinfo(scope []string) ([]byte, error) {
-	info := &mockUserinfo{
-		Email:             u.Email,
-		PreferredUsername: u.PreferredUsername,
-		Phone:             u.Phone,
+	return json.Marshal(map[string]interface{}{
+		"email":              u.Email,
+		"preferred_username": u.PreferredUsername,
+		"phone_number":       u.Phone,
+	})
+}
+
+func (u *MockUser) AddClaims(scope []string, token jwt.Token) error {
+	err := token.Set("email", u.Email)
+	if err != nil {
+		return err
 	}
 
-	return json.Marshal(info)
-}
+	err = token.Set("preferred_username", u.PreferredUsername)
+	if err != nil {
+		return err
+	}
 
-type mockClaims struct {
-	*IDTokenClaims
-	Email             string `json:"email,omitempty"`
-	PreferredUsername string `json:"preferred_username,omitempty"`
-	Phone             string `json:"phone_number,omitempty"`
-}
+	err = token.Set("phone_number", u.Phone)
+	if err != nil {
+		return err
+	}
 
-func (u *MockUser) Claims(scope []string, claims *IDTokenClaims) (jwt.Claims, error) {
-	return &mockClaims{
-		IDTokenClaims:     claims,
-		Email:             u.Email,
-		PreferredUsername: u.PreferredUsername,
-		Phone:             u.Phone,
-	}, nil
+	return nil
 }

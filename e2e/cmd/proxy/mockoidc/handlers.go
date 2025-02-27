@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/golang-jwt/jwt/v5"
+	"github.com/lestrrat-go/jwx/v2/jwt"
 )
 
 const (
@@ -295,7 +295,7 @@ func (m *MockOIDC) JWKS(rw http.ResponseWriter, _ *http.Request) {
 	jsonResponse(rw, jwks)
 }
 
-func (m *MockOIDC) authorizeBearer(rw http.ResponseWriter, req *http.Request) (*jwt.Token, bool) {
+func (m *MockOIDC) authorizeBearer(rw http.ResponseWriter, req *http.Request) (jwt.Token, bool) {
 	header := req.Header.Get("Authorization")
 	parts := strings.SplitN(header, " ", 2)
 	if len(parts) < 2 || parts[0] != "Bearer" {
@@ -307,27 +307,13 @@ func (m *MockOIDC) authorizeBearer(rw http.ResponseWriter, req *http.Request) (*
 	return m.authorizeToken(parts[1], rw)
 }
 
-func (m *MockOIDC) authorizeToken(t string, rw http.ResponseWriter) (*jwt.Token, bool) {
+func (m *MockOIDC) authorizeToken(t string, rw http.ResponseWriter) (jwt.Token, bool) {
 	token, err := m.Keypair.VerifyJWT(t, m.Clock.NowUTC)
 	if err != nil {
 		errorResponse(rw, InvalidRequest, fmt.Sprintf("Invalid token: %v", err), http.StatusUnauthorized)
 		return nil, false
 	}
 
-	claims, ok := token.Claims.(jwt.MapClaims)
-	if !ok {
-		internalServerError(rw, "Unable to extract token claims")
-		return nil, false
-	}
-	exp, ok := claims["exp"].(float64)
-	if !ok {
-		internalServerError(rw, "Unable to extract token expiration")
-		return nil, false
-	}
-	if m.Clock.NowUTC().Unix() > int64(exp) {
-		errorResponse(rw, InvalidRequest, "The token is expired", http.StatusUnauthorized)
-		return nil, false
-	}
 	return token, true
 }
 
