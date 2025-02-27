@@ -9,8 +9,6 @@ require (
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/authgear/authgear-server v0.0.0
 	github.com/beevik/etree v1.4.1
-	github.com/go-jose/go-jose/v3 v3.0.3
-	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/google/martian v2.1.0+incompatible
 	github.com/google/wire v0.5.0
 	github.com/gorilla/mux v1.8.1
@@ -81,6 +79,7 @@ require (
 	github.com/go-webauthn/webauthn v0.8.6 // indirect
 	github.com/go-webauthn/x v0.1.4 // indirect
 	github.com/goccy/go-json v0.10.3 // indirect
+	github.com/golang-jwt/jwt/v5 v5.2.1 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/google/go-tpm v0.9.0 // indirect
 	github.com/google/s2a-go v0.1.8 // indirect

@@ -1,16 +1,16 @@
 package mockoidc
 
 import (
-	"crypto"
 	"crypto/rsa"
+	"crypto/sha256"
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"time"
 
-	"github.com/go-jose/go-jose/v3"
-	"github.com/golang-jwt/jwt/v5"
+	"github.com/lestrrat-go/jwx/v2/jwa"
+	"github.com/lestrrat-go/jwx/v2/jwk"
+	"github.com/lestrrat-go/jwx/v2/jwt"
 )
 
 const DefaultKey = `MIIEowIBAAKCAQEAtI1Jf2zmfwLzpAjVarORtjKtmCHQtgNxqWDdVNVa` +
@@ -75,7 +75,7 @@ func (k *Keypair) KeyID() (string, error) {
 		return "", err
 	}
 
-	hasher := crypto.SHA256.New()
+	hasher := sha256.New()
 	if _, err := hasher.Write(publicKeyDERBytes); err != nil {
 		return "", err
 	}
@@ -84,46 +84,88 @@ func (k *Keypair) KeyID() (string, error) {
 	return base64.RawURLEncoding.EncodeToString(publicKeyDERHash), nil
 }
 
-func (k *Keypair) JWKS() ([]byte, error) {
+func (k *Keypair) JWKPrivateKey() (jwk.Key, error) {
 	kid, err := k.KeyID()
 	if err != nil {
 		return nil, err
 	}
 
-	jwk := jose.JSONWebKey{
-		Use:       "sig",
-		Algorithm: string(jose.RS256),
-		Key:       k.PublicKey,
-		KeyID:     kid,
-	}
-	jwks := &jose.JSONWebKeySet{
-		Keys: []jose.JSONWebKey{jwk},
+	key, err := jwk.FromRaw(k.PrivateKey)
+	if err != nil {
+		return nil, err
 	}
 
-	return json.Marshal(jwks)
+	err = key.Set(jwk.KeyUsageKey, "sig")
+	if err != nil {
+		return nil, err
+	}
+	err = key.Set(jwk.AlgorithmKey, jwa.RS256)
+	if err != nil {
+		return nil, err
+	}
+	err = key.Set(jwk.KeyIDKey, kid)
+	if err != nil {
+		return nil, err
+	}
+
+	return key, nil
 }
 
-func (k *Keypair) SignJWT(claims jwt.Claims) (string, error) {
-	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
+func (k *Keypair) JWKPublicKey() (jwk.Key, error) {
+	privateKey, err := k.JWKPrivateKey()
+	if err != nil {
+		return nil, err
+	}
 
-	kid, err := k.KeyID()
+	return privateKey.PublicKey()
+}
+
+func (k *Keypair) JWKKeySet() (jwk.Set, error) {
+	key, err := k.JWKPublicKey()
+	if err != nil {
+		return nil, err
+	}
+
+	keySet := jwk.NewSet()
+	err = keySet.AddKey(key)
+	if err != nil {
+		return nil, err
+	}
+
+	return keySet, nil
+}
+
+func (k *Keypair) JWKS() ([]byte, error) {
+	keySet, err := k.JWKKeySet()
+	if err != nil {
+		return nil, err
+	}
+
+	return json.Marshal(keySet)
+}
+
+func (k *Keypair) SignJWT(token jwt.Token) (string, error) {
+	key, err := k.JWKPrivateKey()
 	if err != nil {
 		return "", err
 	}
-	token.Header["kid"] = kid
 
-	return token.SignedString(k.PrivateKey)
+	compact, err := jwt.Sign(token, jwt.WithKey(key.Algorithm(), key))
+	if err != nil {
+		return "", err
+	}
+
+	return string(compact), nil
 }
 
-func (k *Keypair) VerifyJWT(token string, nowFunc func() time.Time) (*jwt.Token, error) {
-	return jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
-		kid, err := k.KeyID()
-		if err != nil {
-			return nil, err
-		}
-		if tk, ok := token.Header["kid"]; ok && tk == kid {
-			return k.PublicKey, nil
-		}
-		return nil, errors.New("token kid does not match or is not present")
-	}, jwt.WithTimeFunc(nowFunc))
+func (k *Keypair) VerifyJWT(token string, nowFunc func() time.Time) (jwt.Token, error) {
+	keySet, err := k.JWKKeySet()
+	if err != nil {
+		return nil, err
+	}
+
+	return jwt.Parse([]byte(token),
+		jwt.WithKeySet(keySet),
+		jwt.WithClock(jwt.ClockFunc(nowFunc)),
+	)
 }

@@ -2,10 +2,11 @@ package mockoidc
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 	"time"
 
-	"github.com/golang-jwt/jwt/v5"
+	"github.com/lestrrat-go/jwx/v2/jwt"
 )
 
 type Session struct {
@@ -16,13 +17,6 @@ type Session struct {
 
 type SessionStore struct {
 	Store map[string]*Session
-}
-
-type IDTokenClaims struct {
-	// UPN is specific to the Azure AD OIDC implementation
-	// https://github.com/authgear/authgear-server/blob/2f147b2e1d314f26d5980e8e70c1f52501545c82/pkg/lib/authn/sso/adfs.go#L96
-	UPN string `json:"upn,omitempty"`
-	*jwt.RegisteredClaims
 }
 
 func NewSessionStore() *SessionStore {
@@ -53,47 +47,79 @@ func (ss *SessionStore) GetSessionByID(id string) (*Session, error) {
 	return session, nil
 }
 
-func (ss *SessionStore) GetSessionByToken(token *jwt.Token) (*Session, error) {
-	claims, ok := token.Claims.(jwt.MapClaims)
-	if !ok || !token.Valid {
-		return nil, errors.New("invalid token")
+func (ss *SessionStore) GetSessionByToken(token jwt.Token) (*Session, error) {
+	sessionIDIface, ok := token.Get(jwt.JwtIDKey)
+	if !ok {
+		return nil, errors.New("jti not found")
 	}
 
-	sessionID := claims["jti"].(string)
+	sessionID, ok := sessionIDIface.(string)
+	if !ok {
+		return nil, fmt.Errorf("jti is not a string: %T", sessionIDIface)
+	}
+
 	return ss.GetSessionByID(sessionID)
 }
 
 func (s *Session) AccessToken(config *Config, kp *Keypair, now time.Time) (string, error) {
-	claims := s.registeredClaims(config.Issuer, config.ClientID, config.AccessTTL, now)
-	return kp.SignJWT(claims)
+	return s.signAnyToken(config.AccessTTL, config, kp, now)
 }
 
 func (s *Session) RefreshToken(config *Config, kp *Keypair, now time.Time) (string, error) {
-	claims := s.registeredClaims(config.Issuer, config.ClientID, config.RefreshTTL, now)
-	return kp.SignJWT(claims)
+	return s.signAnyToken(config.RefreshTTL, config, kp, now)
 }
 
 func (s *Session) IDToken(config *Config, kp *Keypair, now time.Time) (string, error) {
-	base := &IDTokenClaims{
-		RegisteredClaims: s.registeredClaims(config.Issuer, config.ClientID, config.AccessTTL, now),
-		UPN:              s.User.ID(),
-	}
-	claims, err := s.User.Claims(s.Scopes, base)
+	return s.signAnyToken(config.AccessTTL, config, kp, now)
+}
+
+func (s *Session) signAnyToken(ttl time.Duration, config *Config, kp *Keypair, now time.Time) (string, error) {
+	token := jwt.New()
+
+	err := token.Set("upn", s.User.ID())
 	if err != nil {
 		return "", err
 	}
 
-	return kp.SignJWT(claims)
-}
-
-func (s *Session) registeredClaims(issuer string, clientID string, ttl time.Duration, now time.Time) *jwt.RegisteredClaims {
-	return &jwt.RegisteredClaims{
-		Audience:  jwt.ClaimStrings{clientID},
-		ExpiresAt: jwt.NewNumericDate(now.Add(ttl)),
-		ID:        s.SessionID,
-		IssuedAt:  jwt.NewNumericDate(now),
-		Issuer:    issuer,
-		NotBefore: jwt.NewNumericDate(now),
-		Subject:   s.User.ID(),
+	err = token.Set(jwt.AudienceKey, []string{config.ClientID})
+	if err != nil {
+		return "", err
 	}
+
+	err = token.Set(jwt.ExpirationKey, now.Add(ttl))
+	if err != nil {
+		return "", err
+	}
+
+	err = token.Set(jwt.JwtIDKey, s.SessionID)
+	if err != nil {
+		return "", err
+	}
+
+	err = token.Set(jwt.IssuedAtKey, now)
+	if err != nil {
+		return "", err
+	}
+
+	err = token.Set(jwt.IssuerKey, config.Issuer)
+	if err != nil {
+		return "", err
+	}
+
+	err = token.Set(jwt.NotBeforeKey, now)
+	if err != nil {
+		return "", err
+	}
+
+	err = token.Set(jwt.SubjectKey, s.User.ID())
+	if err != nil {
+		return "", err
+	}
+
+	err = s.User.AddClaims(s.Scopes, token)
+	if err != nil {
+		return "", err
+	}
+
+	return kp.SignJWT(token)
 }
