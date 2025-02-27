@@ -866,6 +866,9 @@ type SMSProviderTwilioCredentials {
   authToken: String
 
   """"""
+  credentialType: TwilioCredentialType!
+
+  """"""
   messagingServiceSID: String!
 }
 
@@ -876,6 +879,9 @@ input SMSProviderTwilioCredentialsInput {
 
   """"""
   authToken: String
+
+  """"""
+  credentialType: TwilioCredentialType!
 
   """"""
   messagingServiceSID: String!
@@ -1186,6 +1192,15 @@ type TutorialStatus {
 
 """The `TutorialStatusData` scalar type represents tutorial status data"""
 scalar TutorialStatusData
+
+""""""
+enum TwilioCredentialType {
+  """"""
+  api_key
+
+  """"""
+  auth_token
+}
 
 """"""
 input UpdateAppInput {
