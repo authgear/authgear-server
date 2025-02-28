@@ -201,13 +201,12 @@ function constructFormState(
   let twilioMessagingServiceSID = "";
 
   if (enabled && providerType === SMSProviderType.Twilio) {
+    twilioSID = secrets.smsProviderSecrets?.twilioCredentials?.accountSID ?? "";
     twilioCredentialType =
       secrets.smsProviderSecrets?.twilioCredentials?.credentialType ??
       TwilioCredentialType.AuthToken;
     switch (twilioCredentialType) {
       case TwilioCredentialType.AuthToken:
-        twilioSID =
-          secrets.smsProviderSecrets?.twilioCredentials?.accountSID ?? "";
         twilioAuthToken =
           secrets.smsProviderSecrets?.twilioCredentials != null
             ? secrets.smsProviderSecrets.twilioCredentials.authToken ?? null
@@ -215,10 +214,10 @@ function constructFormState(
         break;
       case TwilioCredentialType.ApiKey:
         twilioAPIKeySID =
-          secrets.smsProviderSecrets?.twilioCredentials?.accountSID ?? "";
+          secrets.smsProviderSecrets?.twilioCredentials?.apiKeySID ?? "";
         twilioAPIKeySecret =
           secrets.smsProviderSecrets?.twilioCredentials != null
-            ? secrets.smsProviderSecrets.twilioCredentials.authToken ?? null
+            ? secrets.smsProviderSecrets.twilioCredentials.apiKeySecret ?? null
             : "";
     }
 
@@ -322,6 +321,8 @@ function constructConfig(
               credentialType: currentState.twilioCredentialType,
               accountSID: currentState.twilioSID,
               authToken: currentState.twilioAuthToken,
+              apiKeySID: currentState.twilioAPIKeySID,
+              apiKeySecret: currentState.twilioAPIKeySecret,
               messagingServiceSID: currentState.twilioMessagingServiceSID,
             },
           };
@@ -383,6 +384,9 @@ function constructSecretUpdateInstruction(
               accountSID:
                 secrets.smsProviderSecrets.twilioCredentials.accountSID,
               authToken: secrets.smsProviderSecrets.twilioCredentials.authToken,
+              apiKeySID: secrets.smsProviderSecrets.twilioCredentials.apiKeySID,
+              apiKeySecret:
+                secrets.smsProviderSecrets.twilioCredentials.apiKeySecret,
               messagingServiceSID:
                 secrets.smsProviderSecrets.twilioCredentials
                   .messagingServiceSID,
@@ -490,7 +494,7 @@ function useTestSMSConfig(
 ): SmsProviderConfigurationInput | null {
   const denoResourceIdx = useDenoScriptResourceIndex(state);
 
-  return useMemo(() => {
+  return useMemo((): SmsProviderConfigurationInput | null => {
     if (!state.enabled) {
       return null;
     }
@@ -501,8 +505,11 @@ function useTestSMSConfig(
         }
         return {
           twilio: {
+            credentialType: state.twilioCredentialType,
             accountSID: state.twilioSID,
             authToken: state.twilioAuthToken,
+            apiKeySID: state.twilioAPIKeySID,
+            apiKeySecret: state.twilioAPIKeySecret,
             messagingServiceSID: state.twilioMessagingServiceSID,
           },
         };
@@ -538,7 +545,10 @@ function useTestSMSConfig(
     state.enabled,
     state.providerType,
     state.resources,
+    state.twilioAPIKeySID,
+    state.twilioAPIKeySecret,
     state.twilioAuthToken,
+    state.twilioCredentialType,
     state.twilioMessagingServiceSID,
     state.twilioSID,
     state.webhookTimeout,
@@ -962,6 +972,18 @@ function TwilioForm({
 
   return (
     <div className="flex flex-col gap-y-4">
+      <FormTextField
+        type="text"
+        label={renderToString(
+          "SMSProviderConfigurationScreen.form.twilio.twilioSID"
+        )}
+        value={form.state.twilioSID}
+        required={true}
+        onChange={onStringChangeCallbacks.twilioSID}
+        disabled={isTwilioSecretMasked}
+        parentJSONPointer={/\/secrets\/\d+\/data/}
+        fieldName="account_sid"
+      />
       <ChoiceGroup
         label={renderToString(
           "SMSProviderConfigurationScreen.form.twilio.credentialType"
@@ -972,18 +994,6 @@ function TwilioForm({
       />
       {form.state.twilioCredentialType === TwilioCredentialType.AuthToken ? (
         <>
-          <FormTextField
-            type="text"
-            label={renderToString(
-              "SMSProviderConfigurationScreen.form.twilio.twilioSID"
-            )}
-            value={form.state.twilioSID}
-            required={true}
-            onChange={onStringChangeCallbacks.twilioSID}
-            disabled={isTwilioSecretMasked}
-            parentJSONPointer={/\/secrets\/\d+\/data/}
-            fieldName="account_sid"
-          />
           <FormTextField
             type="text"
             label={renderToString(
@@ -1008,12 +1018,12 @@ function TwilioForm({
             label={renderToString(
               "SMSProviderConfigurationScreen.form.twilio.apiKeySID"
             )}
-            value={form.state.twilioSID}
+            value={form.state.twilioAPIKeySID}
             required={true}
             onChange={onStringChangeCallbacks.twilioAPIKeySID}
             disabled={isTwilioSecretMasked}
             parentJSONPointer={/\/secrets\/\d+\/data/}
-            fieldName="account_sid"
+            fieldName="api_key_sid"
           />
           <FormTextField
             type="text"
@@ -1029,24 +1039,10 @@ function TwilioForm({
             required={true}
             onChange={onStringChangeCallbacks.twilioAPIKeySecret}
             parentJSONPointer={/\/secrets\/\d+\/data/}
-            fieldName="auth_token"
+            fieldName="api_key_secret"
           />
         </>
       )}
-      <FormTextField
-        type="text"
-        label={renderToString(
-          form.state.twilioCredentialType === TwilioCredentialType.AuthToken
-            ? "SMSProviderConfigurationScreen.form.twilio.twilioSID"
-            : "SMSProviderConfigurationScreen.form.twilio.apiKeySID"
-        )}
-        value={form.state.twilioSID}
-        required={true}
-        onChange={onStringChangeCallbacks.twilioSID}
-        disabled={isTwilioSecretMasked}
-        parentJSONPointer={/\/secrets\/\d+\/data/}
-        fieldName="account_sid"
-      />
 
       {isTwilioSecretMasked ? (
         <PrimaryButton

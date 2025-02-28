@@ -729,6 +729,8 @@ export interface SMSProviderTwilioCredentials {
   credentialType: TwilioCredentialType;
   accountSID: string;
   authToken?: string | null;
+  apiKeySID: string;
+  apiKeySecret?: string | null;
   messagingServiceSID: string;
 }
 
@@ -834,6 +836,8 @@ export interface SMSProviderTwilioCredentialsInput {
   credentialType: TwilioCredentialType;
   accountSID: string;
   authToken?: string | null;
+  apiKeySID: string;
+  apiKeySecret?: string | null;
   messagingServiceSID: string;
 }
 
