@@ -8,16 +8,6 @@ import (
 	"golang.org/x/term"
 )
 
-var WriterHookLevels = []logrus.Level{
-	logrus.PanicLevel,
-	logrus.FatalLevel,
-	logrus.ErrorLevel,
-	logrus.WarnLevel,
-	logrus.InfoLevel,
-	logrus.DebugLevel,
-	logrus.TraceLevel,
-}
-
 func checkIfTerminal(w io.Writer) bool {
 	switch v := w.(type) {
 	case *os.File:
@@ -51,7 +41,7 @@ func NewWriterHook(w io.Writer) *WriterHook {
 }
 
 func (h *WriterHook) Levels() []logrus.Level {
-	return WriterHookLevels
+	return logrus.AllLevels
 }
 
 func (h *WriterHook) Fire(entry *logrus.Entry) error {
