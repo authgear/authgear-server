@@ -1,4 +1,7 @@
-import { OAuthSsoProviderClientSecretInput } from "./graphql/portal/globalTypes.generated";
+import {
+  OAuthSsoProviderClientSecretInput,
+  TwilioCredentialType,
+} from "./graphql/portal/globalTypes.generated";
 
 // type aliases in JSON schema
 export type DurationString = string;
@@ -723,6 +726,7 @@ export interface SMSProviderSecrets {
 }
 
 export interface SMSProviderTwilioCredentials {
+  credentialType: TwilioCredentialType;
   accountSID: string;
   authToken?: string | null;
   messagingServiceSID: string;
@@ -827,6 +831,7 @@ export interface SAMLIdpSigningSecretsUpdateInstruction {
 }
 
 export interface SMSProviderTwilioCredentialsInput {
+  credentialType: TwilioCredentialType;
   accountSID: string;
   authToken?: string | null;
   messagingServiceSID: string;
