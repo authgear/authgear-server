@@ -266,11 +266,13 @@
 /pkg/auth/webapp_request_middleware.go:47:40: requestcontext
 /pkg/auth/webapp_request_middleware.go:48:43: requestcontext
 /pkg/auth/webapp_request_middleware.go:50:30: requestcontext
+/pkg/auth/webapp_request_middleware.go:63:24: requestcontext
 /pkg/images/deps/context.go:23:10: requestcontext
 /pkg/images/deps/middleware_request.go:29:40: requestcontext
 /pkg/images/deps/middleware_request.go:32:40: requestcontext
 /pkg/images/deps/middleware_request.go:33:35: requestcontext
 /pkg/images/deps/middleware_request.go:35:30: requestcontext
+/pkg/images/deps/middleware_request.go:43:24: requestcontext
 /pkg/images/handler/post.go:67:9: requestcontext
 /pkg/lib/accountmanagement/rate_limit_middleware.go:41:10: requestcontext
 /pkg/lib/admin/authz/middleware.go:85:18: requestcontext
@@ -286,6 +288,7 @@
 /pkg/lib/deps/middleware_request.go:32:40: requestcontext
 /pkg/lib/deps/middleware_request.go:33:38: requestcontext
 /pkg/lib/deps/middleware_request.go:35:30: requestcontext
+/pkg/lib/deps/middleware_request.go:43:24: requestcontext
 /pkg/lib/deps/providers.go:179:25: requestcontext
 /pkg/lib/dpop/middleware.go:45:35: requestcontext
 /pkg/lib/healthz/healthz.go:27:23: requestcontext

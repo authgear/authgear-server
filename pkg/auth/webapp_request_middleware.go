@@ -60,7 +60,9 @@ func (m *WebAppRequestMiddleware) Handle(next http.Handler) http.Handler {
 				viewmodels.Embed(data, baseViewModel)
 				m.TemplateEngine.RenderStatus(w, r, http.StatusNotFound, TemplateWebAppNotFoundHTML, data)
 			} else {
-				logger.WithError(err).Error("failed to resolve config")
+				// Our logging mechanism is not context-aware.
+				// We explicitly attach context here because it was the position we observed the log.
+				logger.WithContext(r.Context()).WithError(err).Error("failed to resolve config")
 				http.Error(w, "internal server error", http.StatusInternalServerError)
 			}
 			return
