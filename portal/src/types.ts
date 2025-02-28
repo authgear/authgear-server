@@ -1,4 +1,8 @@
-import { OAuthSsoProviderClientSecretInput } from "./graphql/portal/globalTypes.generated";
+import {
+  OAuthSsoProviderClientSecretInput,
+  SmsProviderSecretsSetDataInput,
+  TwilioCredentialType,
+} from "./graphql/portal/globalTypes.generated";
 
 // type aliases in JSON schema
 export type DurationString = string;
@@ -723,8 +727,11 @@ export interface SMSProviderSecrets {
 }
 
 export interface SMSProviderTwilioCredentials {
+  credentialType: TwilioCredentialType;
   accountSID: string;
   authToken?: string | null;
+  apiKeySID: string;
+  apiKeySecret?: string | null;
   messagingServiceSID: string;
 }
 
@@ -826,25 +833,9 @@ export interface SAMLIdpSigningSecretsUpdateInstruction {
   deleteData?: SAMLIdpSigningSecretsDeleteDataInput | null;
 }
 
-export interface SMSProviderTwilioCredentialsInput {
-  accountSID: string;
-  authToken?: string | null;
-  messagingServiceSID: string;
-}
-
-export interface CustomSmsProviderSecretsInput {
-  url: string;
-  timeout?: number | null;
-}
-
-export interface SMSProviderSecretsSetDataInput {
-  twilioCredentials?: SMSProviderTwilioCredentialsInput;
-  customSMSProviderCredentials?: CustomSmsProviderSecretsInput;
-}
-
 export interface SMSProviderSecretsUpdateInstructions {
   action: string;
-  setData?: SMSProviderSecretsSetDataInput;
+  setData?: SmsProviderSecretsSetDataInput;
 }
 
 export interface PortalAPISecretConfigUpdateInstruction {

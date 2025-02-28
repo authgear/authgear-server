@@ -57,10 +57,14 @@ func (t *TwilioClient) send0(ctx context.Context, opts smsapi.SendOptions) ([]by
 	req, _ := http.NewRequestWithContext(ctx, "POST", u.String(), strings.NewReader(requestBody))
 
 	// https://www.twilio.com/docs/usage/api#authenticate-with-http
-	if t.TwilioCredentials.AuthToken != "" {
+	switch t.TwilioCredentials.GetCredentialType() {
+	case config.TwilioCredentialTypeAuthToken:
 		// When Auth Token is used, username is Account SID, and password is Auth Token.
 		req.SetBasicAuth(t.TwilioCredentials.AccountSID, t.TwilioCredentials.AuthToken)
-	} else {
+	case config.TwilioCredentialTypeAPIKey:
+		// When API Key is used, username is API Key SID, and password is API Key Secret.
+		req.SetBasicAuth(t.TwilioCredentials.APIKeySID, t.TwilioCredentials.APIKeySecret)
+	default:
 		// Normally we should not reach here.
 		// But in case we do, we do not provide the auth header.
 		// And Twilio should returns an error response to us in this case.

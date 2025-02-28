@@ -696,7 +696,10 @@ export type SmsProviderConfigurationInput = {
 
 export type SmsProviderConfigurationTwilioInput = {
   accountSID: Scalars['String']['input'];
+  apiKeySID: Scalars['String']['input'];
+  apiKeySecret: Scalars['String']['input'];
   authToken: Scalars['String']['input'];
+  credentialType: TwilioCredentialType;
   messagingServiceSID?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -733,13 +736,19 @@ export type SmsProviderSecretsUpdateInstructionsInput = {
 export type SmsProviderTwilioCredentials = {
   __typename?: 'SMSProviderTwilioCredentials';
   accountSID: Scalars['String']['output'];
+  apiKeySID: Scalars['String']['output'];
+  apiKeySecret?: Maybe<Scalars['String']['output']>;
   authToken?: Maybe<Scalars['String']['output']>;
+  credentialType: TwilioCredentialType;
   messagingServiceSID: Scalars['String']['output'];
 };
 
 export type SmsProviderTwilioCredentialsInput = {
   accountSID: Scalars['String']['input'];
+  apiKeySID: Scalars['String']['input'];
+  apiKeySecret?: InputMaybe<Scalars['String']['input']>;
   authToken?: InputMaybe<Scalars['String']['input']>;
+  credentialType: TwilioCredentialType;
   messagingServiceSID: Scalars['String']['input'];
 };
 
@@ -911,6 +920,11 @@ export type TutorialStatus = {
   appID: Scalars['String']['output'];
   data: Scalars['TutorialStatusData']['output'];
 };
+
+export enum TwilioCredentialType {
+  ApiKey = 'api_key',
+  AuthToken = 'auth_token'
+}
 
 export type UpdateAppInput = {
   /** authgear.yaml in JSON. */
