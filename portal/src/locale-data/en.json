@@ -1583,7 +1583,7 @@
   "SMSProviderConfigurationScreen.provider.webhook.description": "Learn more about {ExternalLink, react, href{{href}} children{Webhook integration}}.",
   "SMSProviderConfigurationScreen.provider.deno": "Custom JS/TS",
   "SMSProviderConfigurationScreen.provider.deno.description": "Learn more about {ExternalLink, react, href{{href}} children{Custom JS/TS integration}}.",
-  "SMSProviderConfigurationScreen.form.twilio.credentialType": "Credential Type",
+  "SMSProviderConfigurationScreen.form.twilio.credentialType": "Credentials",
   "SMSProviderConfigurationScreen.form.twilio.credentialType.options.authToken": "Auth Token",
   "SMSProviderConfigurationScreen.form.twilio.credentialType.options.apiKey": "API Key",
   "SMSProviderConfigurationScreen.form.twilio.twilioSID": "Twilio Account SID",

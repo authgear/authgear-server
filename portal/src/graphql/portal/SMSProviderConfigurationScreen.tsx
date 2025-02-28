@@ -34,7 +34,13 @@ import {
   FormattedMessage,
   Context as MessageContext,
 } from "@oursky/react-messageformat";
-import { ChoiceGroup, IChoiceGroupOption, Text } from "@fluentui/react";
+import {
+  ChoiceGroup,
+  IChoiceGroupOption,
+  IChoiceGroupOptionProps,
+  IChoiceGroupStyles,
+  Text,
+} from "@fluentui/react";
 import ScreenContent from "../../ScreenContent";
 import ScreenTitle from "../../ScreenTitle";
 import styles from "./SMSProviderConfigurationScreen.module.css";
@@ -933,6 +939,11 @@ function TwilioForm({
     };
   }, [form]);
 
+  const isTwilioSecretMasked =
+    form.state.twilioCredentialType === TwilioCredentialType.AuthToken
+      ? form.state.twilioAuthToken == null
+      : form.state.twilioAPIKeySecret == null;
+
   const credentialTypeOptions = useMemo<IChoiceGroupOption[]>(() => {
     return [
       {
@@ -940,15 +951,105 @@ function TwilioForm({
         text: renderToString(
           "SMSProviderConfigurationScreen.form.twilio.credentialType.options.authToken"
         ),
+        // eslint-disable-next-line react/no-unstable-nested-components
+        onRenderField: (
+          props?: IChoiceGroupOption & IChoiceGroupOptionProps,
+          render?: (
+            props?: IChoiceGroupOption & IChoiceGroupOptionProps
+          ) => JSX.Element | null
+        ) => {
+          const checked = props?.checked ?? false;
+          return (
+            <>
+              {render?.(props)}
+              {checked ? (
+                <FormTextField
+                  className={styles.textFieldInOption}
+                  type="text"
+                  label={renderToString(
+                    "SMSProviderConfigurationScreen.form.twilio.twilioAuthToken"
+                  )}
+                  value={
+                    isTwilioSecretMasked
+                      ? "********"
+                      : form.state.twilioAuthToken ?? ""
+                  }
+                  disabled={isTwilioSecretMasked}
+                  required={true}
+                  onChange={onStringChangeCallbacks.twilioAuthToken}
+                  parentJSONPointer={/\/secrets\/\d+\/data/}
+                  fieldName="auth_token"
+                />
+              ) : null}
+            </>
+          );
+        },
       },
       {
         key: TwilioCredentialType.ApiKey,
         text: renderToString(
           "SMSProviderConfigurationScreen.form.twilio.credentialType.options.apiKey"
         ),
+        // eslint-disable-next-line react/no-unstable-nested-components
+        onRenderField: (
+          props?: IChoiceGroupOption & IChoiceGroupOptionProps,
+          render?: (
+            props?: IChoiceGroupOption & IChoiceGroupOptionProps
+          ) => JSX.Element | null
+        ) => {
+          const checked = props?.checked ?? false;
+          return (
+            <>
+              {render?.(props)}
+              {checked ? (
+                <>
+                  <FormTextField
+                    className={styles.textFieldInOption}
+                    type="text"
+                    label={renderToString(
+                      "SMSProviderConfigurationScreen.form.twilio.apiKeySID"
+                    )}
+                    value={form.state.twilioAPIKeySID}
+                    required={true}
+                    onChange={onStringChangeCallbacks.twilioAPIKeySID}
+                    disabled={isTwilioSecretMasked}
+                    parentJSONPointer={/\/secrets\/\d+\/data/}
+                    fieldName="api_key_sid"
+                  />
+                  <FormTextField
+                    className={styles.textFieldInOption}
+                    type="text"
+                    label={renderToString(
+                      "SMSProviderConfigurationScreen.form.twilio.apiKeySecret"
+                    )}
+                    value={
+                      isTwilioSecretMasked
+                        ? "********"
+                        : form.state.twilioAPIKeySecret ?? ""
+                    }
+                    disabled={isTwilioSecretMasked}
+                    required={true}
+                    onChange={onStringChangeCallbacks.twilioAPIKeySecret}
+                    parentJSONPointer={/\/secrets\/\d+\/data/}
+                    fieldName="api_key_secret"
+                  />
+                </>
+              ) : null}
+            </>
+          );
+        },
       },
     ];
-  }, [renderToString]);
+  }, [
+    form.state.twilioAPIKeySID,
+    form.state.twilioAPIKeySecret,
+    form.state.twilioAuthToken,
+    isTwilioSecretMasked,
+    onStringChangeCallbacks.twilioAPIKeySID,
+    onStringChangeCallbacks.twilioAPIKeySecret,
+    onStringChangeCallbacks.twilioAuthToken,
+    renderToString,
+  ]);
 
   const onCredentialTypeChange = useCallback(
     (_: unknown, option?: IChoiceGroupOption) => {
@@ -965,10 +1066,18 @@ function TwilioForm({
     [form]
   );
 
-  const isTwilioSecretMasked =
-    form.state.twilioCredentialType === TwilioCredentialType.AuthToken
-      ? form.state.twilioAuthToken == null
-      : form.state.twilioAPIKeySecret == null;
+  const choiceGroupStyles: Partial<IChoiceGroupStyles> = useMemo(
+    () => ({
+      flexContainer: {
+        selectors: {
+          ".ms-ChoiceField": {
+            display: "block",
+          },
+        },
+      },
+    }),
+    []
+  );
 
   return (
     <div className="flex flex-col gap-y-4">
@@ -991,58 +1100,19 @@ function TwilioForm({
         options={credentialTypeOptions}
         selectedKey={form.state.twilioCredentialType}
         onChange={onCredentialTypeChange}
+        styles={choiceGroupStyles}
       />
-      {form.state.twilioCredentialType === TwilioCredentialType.AuthToken ? (
-        <>
-          <FormTextField
-            type="text"
-            label={renderToString(
-              "SMSProviderConfigurationScreen.form.twilio.twilioAuthToken"
-            )}
-            value={
-              isTwilioSecretMasked
-                ? "********"
-                : form.state.twilioAuthToken ?? ""
-            }
-            disabled={isTwilioSecretMasked}
-            required={true}
-            onChange={onStringChangeCallbacks.twilioAuthToken}
-            parentJSONPointer={/\/secrets\/\d+\/data/}
-            fieldName="auth_token"
-          />
-        </>
-      ) : (
-        <>
-          <FormTextField
-            type="text"
-            label={renderToString(
-              "SMSProviderConfigurationScreen.form.twilio.apiKeySID"
-            )}
-            value={form.state.twilioAPIKeySID}
-            required={true}
-            onChange={onStringChangeCallbacks.twilioAPIKeySID}
-            disabled={isTwilioSecretMasked}
-            parentJSONPointer={/\/secrets\/\d+\/data/}
-            fieldName="api_key_sid"
-          />
-          <FormTextField
-            type="text"
-            label={renderToString(
-              "SMSProviderConfigurationScreen.form.twilio.apiKeySecret"
-            )}
-            value={
-              isTwilioSecretMasked
-                ? "********"
-                : form.state.twilioAPIKeySecret ?? ""
-            }
-            disabled={isTwilioSecretMasked}
-            required={true}
-            onChange={onStringChangeCallbacks.twilioAPIKeySecret}
-            parentJSONPointer={/\/secrets\/\d+\/data/}
-            fieldName="api_key_secret"
-          />
-        </>
-      )}
+      <FormTextField
+        type="text"
+        label={renderToString(
+          "SMSProviderConfigurationScreen.form.twilio.twilioMessagingServiceSID"
+        )}
+        value={form.state.twilioMessagingServiceSID}
+        onChange={onStringChangeCallbacks.twilioMessagingServiceSID}
+        disabled={isTwilioSecretMasked}
+        parentJSONPointer={/\/secrets\/\d+\/data/}
+        fieldName="message_service_sid"
+      />
 
       {isTwilioSecretMasked ? (
         <PrimaryButton
