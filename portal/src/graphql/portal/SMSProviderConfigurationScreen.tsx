@@ -500,16 +500,16 @@ function useTestSMSConfig(
     }
     switch (state.providerType) {
       case SMSProviderType.Twilio:
-        if (!state.twilioSID || !state.twilioAuthToken) {
+        if (!state.twilioSID) {
           return null;
         }
         return {
           twilio: {
             credentialType: state.twilioCredentialType,
             accountSID: state.twilioSID,
-            authToken: state.twilioAuthToken,
+            authToken: state.twilioAuthToken ?? "",
             apiKeySID: state.twilioAPIKeySID,
-            apiKeySecret: state.twilioAPIKeySecret,
+            apiKeySecret: state.twilioAPIKeySecret ?? "",
             messagingServiceSID: state.twilioMessagingServiceSID,
           },
         };
