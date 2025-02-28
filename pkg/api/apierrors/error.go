@@ -6,6 +6,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/util/copyutil"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
+	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
@@ -46,6 +47,7 @@ type APIError struct {
 
 var _ error = (*APIError)(nil)
 var _ errorutil.Detailer = (*APIError)(nil)
+var _ log.LoggingSkippable = (*APIError)(nil)
 
 func (e *APIError) Error() string {
 	if e == nil {
@@ -72,6 +74,10 @@ func (e *APIError) HasCause(kind string) bool {
 	}
 
 	return false
+}
+
+func (e *APIError) SkipLogging() bool {
+	return e.Kind.IsSkipLoggingToExternalService
 }
 
 func (e *APIError) Clone() *APIError {
@@ -164,7 +170,7 @@ func AsAPIError(err error) *APIError {
 	}
 
 	return &APIError{
-		Kind:    Kind{InternalError, "UnexpectedError"},
+		Kind:    Kind{Name: InternalError, Reason: "UnexpectedError"},
 		Message: "unexpected error occurred",
 		Code:    InternalError.HTTPStatus(),
 		Info:    info,
@@ -210,7 +216,7 @@ func NewTooManyRequest(msg string) error {
 
 func newInvalidJSON(err *json.SyntaxError) *APIError {
 	return &APIError{
-		Kind:    Kind{BadRequest, "InvalidJSON"},
+		Kind:    Kind{Name: BadRequest, Reason: "InvalidJSON"},
 		Message: err.Error(),
 		Code:    BadRequest.HTTPStatus(),
 		Info: map[string]interface{}{

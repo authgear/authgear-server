@@ -13,12 +13,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
-var SkipLoggingForKinds map[Kind]bool
-
-func init() {
-	SkipLoggingForKinds = make(map[Kind]bool)
-}
-
 type SkipLoggingHook struct{}
 
 func (SkipLoggingHook) Levels() []logrus.Level { return logrus.AllLevels }
@@ -74,14 +68,6 @@ func IgnoreError(err error) (ignore bool) {
 		// https://pkg.go.dev/database/sql/driver#ConnBeginTx
 		// So when we call Rollback() again, this error will be returned.
 		ignore = true
-	}
-
-	// Skip logging for some kinds.
-	if apiError := AsAPIError(err); apiError != nil {
-		skipped := SkipLoggingForKinds[apiError.Kind]
-		if skipped {
-			ignore = true
-		}
 	}
 
 	var skippable log.LoggingSkippable

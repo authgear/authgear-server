@@ -94,9 +94,29 @@ func TestSkipLogging(t *testing.T) {
 			So(myhook.IsSkipped, ShouldBeTrue)
 		})
 
+		Convey("Ignore apierrors with some specific kind", func() {
+			err := InternalError.WithReason("Ignore").SkipLoggingToExternalService().New("ignore")
+			logger.WithError(err).Error("error")
+			So(myhook.IsSkipped, ShouldBeTrue)
+		})
+
+		Convey("Ignore wrapped apierrors", func() {
+			err := InternalError.WithReason("Ignore").SkipLoggingToExternalService().New("ignore")
+			err = fmt.Errorf("wrap: %w", err)
+			logger.WithError(err).Error("error")
+			So(myhook.IsSkipped, ShouldBeTrue)
+		})
+
+		Convey("Do not apierrors", func() {
+			err := InternalError.WithReason("DO_NOT_IGNORE").New("DO_NOT_IGNORE")
+			logger.WithError(err).Error("error")
+			So(myhook.IsSkipped, ShouldBeFalse)
+		})
+
 		Convey("Do not ignore any other entry", func() {
 			logger.Error("error")
 			So(myhook.IsSkipped, ShouldBeFalse)
 		})
+
 	})
 }

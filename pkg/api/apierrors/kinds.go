@@ -46,6 +46,14 @@ func (n Name) HTTPStatus() int {
 type Kind struct {
 	Name   Name   `json:"name"`
 	Reason string `json:"reason"`
+
+	IsSkipLoggingToExternalService bool `json:"-"`
+}
+
+func (k Kind) SkipLoggingToExternalService() Kind {
+	kk := k
+	kk.IsSkipLoggingToExternalService = true
+	return kk
 }
 
 func (n Name) WithReason(reason string) Kind {
