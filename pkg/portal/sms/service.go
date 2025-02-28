@@ -38,6 +38,7 @@ func (s *Service) sendByTwilio(
 	if cfg.MessagingServiceSID != nil {
 		messagingServiceSID = *cfg.MessagingServiceSID
 	}
+	// FIXME(tung)
 	twilioClient := twilio.NewTwilioClient(&config.TwilioCredentials{
 		AccountSID:          cfg.AccountSID,
 		AuthToken:           cfg.AuthToken,

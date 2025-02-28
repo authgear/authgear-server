@@ -15,6 +15,8 @@ type TwilioClientCredentials struct {
 	CredentialType      *config.TwilioCredentialType
 	AccountSID          string
 	AuthToken           string
+	APIKeySID           string
+	APIKeySecret        string
 	MessagingServiceSID string
 }
 
@@ -204,6 +206,8 @@ func (r *ClientResolver) clientsFromAuthgearSecretsYAML() (*nexmo.NexmoClient, *
 			CredentialType:      &credtyp,
 			AccountSID:          r.AuthgearSecretsYAMLTwilioCredentials.AccountSID,
 			AuthToken:           r.AuthgearSecretsYAMLTwilioCredentials.AuthToken,
+			APIKeySID:           r.AuthgearSecretsYAMLTwilioCredentials.APIKeySID,
+			APIKeySecret:        r.AuthgearSecretsYAMLTwilioCredentials.APIKeySecret,
 			MessagingServiceSID: r.AuthgearSecretsYAMLTwilioCredentials.MessagingServiceSID,
 		}
 	}
@@ -237,6 +241,8 @@ func (r *ClientResolver) clientsFromEnv() (*nexmo.NexmoClient, *NexmoClientCrede
 			CredentialType:      &credtyp,
 			AccountSID:          r.EnvironmentTwilioCredentials.AccountSID,
 			AuthToken:           r.EnvironmentTwilioCredentials.AuthToken,
+			APIKeySID:           "",
+			APIKeySecret:        "",
 			MessagingServiceSID: r.EnvironmentTwilioCredentials.MessagingServiceSID,
 		}
 	}

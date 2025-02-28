@@ -264,9 +264,18 @@ var _ = SecretConfigSchema.Add("TwilioCredentials", `
 		},
 		"account_sid": { "type": "string" },
 		"auth_token": { "type": "string" },
+		"api_key_sid": { "type": "string" },
+		"api_key_secret": { "type": "string" },
 		"message_service_sid": { "type": "string" }
 	},
-	"required": ["account_sid", "auth_token"]
+	"required": ["account_sid"],
+	"allOf": [
+		{
+			"if": { "properties": { "credential_type": { "const": "api_key" } }},
+			"then": { "required": ["api_key_sid", "api_key_secret"] },
+			"else": { "required": ["auth_token"] }
+		}
+	]
 }
 `)
 
@@ -282,6 +291,8 @@ type TwilioCredentials struct {
 	CredentialType      *TwilioCredentialType `json:"credential_type,omitempty"`
 	AccountSID          string                `json:"account_sid,omitempty"`
 	AuthToken           string                `json:"auth_token,omitempty"`
+	APIKeySID           string                `json:"api_key_sid,omitempty"`
+	APIKeySecret        string                `json:"api_key_secret,omitempty"`
 	MessagingServiceSID string                `json:"message_service_sid,omitempty"`
 }
 
@@ -289,6 +300,8 @@ func (c *TwilioCredentials) SensitiveStrings() []string {
 	return []string{
 		c.AccountSID,
 		c.AuthToken,
+		c.APIKeySID,
+		c.APIKeySecret,
 		c.MessagingServiceSID,
 	}
 }
