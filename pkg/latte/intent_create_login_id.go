@@ -154,13 +154,7 @@ func (*IntentCreateLoginID) GetEffects(ctx context.Context, deps *workflow.Depen
 }
 
 func (i *IntentCreateLoginID) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
-	type IntentCreateLoginIDOutput struct {
-		PhoneNumberHint string `json:"phone_number_hint"`
-	}
-
-	return &IntentCreateLoginIDOutput{
-		PhoneNumberHint: i.PhoneNumberHint,
-	}, nil
+	return map[string]interface{}{}, nil
 }
 
 func (*IntentCreateLoginID) GetNewIdentities(w *workflow.Workflow) ([]*identity.Info, bool) {
