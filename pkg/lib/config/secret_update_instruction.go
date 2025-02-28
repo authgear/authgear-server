@@ -783,6 +783,8 @@ type SMSProviderSecretsUpdateInstructionTwilioCredentials struct {
 	CredentialType      TwilioCredentialType `json:"credentialType,omitempty"`
 	AccountSID          string               `json:"accountSID,omitempty"`
 	AuthToken           string               `json:"authToken,omitempty"`
+	APIKeySID           string               `json:"apiKeySID,omitempty"`
+	APIKeySecret        string               `json:"apiKeySecret,omitempty"`
 	MessagingServiceSID string               `json:"messagingServiceSID,omitempty"`
 }
 
@@ -849,11 +851,12 @@ func (i *SMSProviderSecretsUpdateInstruction) set(currentConfig *SecretConfig) (
 	}
 
 	if i.SetData.TwilioCredentials != nil {
-		// FIXME(tung)
 		twilioCredentials := TwilioCredentials{
 			CredentialType:      &i.SetData.TwilioCredentials.CredentialType,
 			AccountSID:          i.SetData.TwilioCredentials.AccountSID,
 			AuthToken:           i.SetData.TwilioCredentials.AuthToken,
+			APIKeySID:           i.SetData.TwilioCredentials.APIKeySID,
+			APIKeySecret:        i.SetData.TwilioCredentials.APIKeySecret,
 			MessagingServiceSID: i.SetData.TwilioCredentials.MessagingServiceSID,
 		}
 		err := upsert(TwilioCredentialsKey, twilioCredentials)
