@@ -107,8 +107,8 @@ func (h *AuthflowV2SettingsIdentityEditPhoneHandler) GetData(ctx context.Context
 	}
 
 	if err != nil && errors.Is(err, api.ErrIdentityNotFound) {
-		return nil, apierrors.AddDetails(err, errorutil.Details{
-			"LoginIDType": model.LoginIDKeyTypePhone,
+		return nil, errorutil.WithDetails(err, errorutil.Details{
+			"LoginIDType": apierrors.APIErrorDetail.Value(model.LoginIDKeyTypePhone),
 		})
 	} else if err != nil {
 		return nil, err

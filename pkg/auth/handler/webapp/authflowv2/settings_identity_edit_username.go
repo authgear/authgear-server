@@ -97,8 +97,8 @@ func (h *AuthflowV2SettingsIdentityEditUsernameHandler) GetData(ctx context.Cont
 	}
 
 	if err != nil && errors.Is(err, api.ErrIdentityNotFound) {
-		return nil, apierrors.AddDetails(err, errorutil.Details{
-			"LoginIDType": model.LoginIDKeyTypeUsername,
+		return nil, errorutil.WithDetails(err, errorutil.Details{
+			"LoginIDType": apierrors.APIErrorDetail.Value(model.LoginIDKeyTypeUsername),
 		})
 	} else if err != nil {
 		return nil, err

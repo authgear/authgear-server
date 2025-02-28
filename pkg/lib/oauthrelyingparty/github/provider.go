@@ -115,7 +115,7 @@ func (p Github) GetUserProfile(ctx context.Context, deps oauthrelyingparty.Depen
 		EmailRequired: emailRequired,
 	})
 	if err != nil {
-		err = apierrors.AddDetails(err, errorutil.Details{
+		err = errorutil.WithDetails(err, errorutil.Details{
 			"ProviderType": apierrors.APIErrorDetail.Value(deps.ProviderConfig.Type()),
 		})
 		return

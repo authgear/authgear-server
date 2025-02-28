@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"fmt"
 
 	"github.com/graphql-go/graphql"
 	"sigs.k8s.io/yaml"
@@ -898,7 +899,7 @@ func checkAppQuota(ctx context.Context, gqlCtx *Context, userID string) error {
 	}
 
 	if numOwnedApps >= quota {
-		return QuotaExceeded.Errorf("you can only own a maximum of %d apps", quota)
+		return QuotaExceeded.New(fmt.Sprintf("you can only own a maximum of %d apps", quota))
 	}
 
 	return nil

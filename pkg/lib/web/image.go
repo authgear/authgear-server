@@ -171,7 +171,7 @@ func (a NonLocaleAwareImageDescriptor) UpdateResource(_ context.Context, _ []res
 		typ := libmagic.MimeFromBytes(data)
 		_, ok := preferredExtensions[typ]
 		if !ok {
-			return nil, UnsupportedImageFile.NewWithDetails("unsupported image file", apierrors.Details{
+			return nil, UnsupportedImageFile.NewWithInfo("unsupported image file", apierrors.Details{
 				"type": apierrors.APIErrorDetail.Value(typ),
 			})
 		}
@@ -325,7 +325,7 @@ func (a LocaleAwareImageDescriptor) UpdateResource(_ context.Context, _ []resour
 		typ := libmagic.MimeFromBytes(data)
 		_, ok := preferredExtensions[typ]
 		if !ok {
-			return nil, UnsupportedImageFile.NewWithDetails("unsupported image file", apierrors.Details{
+			return nil, UnsupportedImageFile.NewWithInfo("unsupported image file", apierrors.Details{
 				"type": apierrors.APIErrorDetail.Value(typ),
 			})
 		}

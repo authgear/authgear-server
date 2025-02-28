@@ -1,6 +1,8 @@
 package graphql
 
 import (
+	"fmt"
+
 	"github.com/graphql-go/graphql"
 
 	relay "github.com/authgear/authgear-server/pkg/graphqlgo/relay"
@@ -72,7 +74,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 			if selfCollab.Role.Level() > targetCollab.Role.Level() {
-				return nil, AccessDenied.Errorf("insufficient permission to delete %s collaborators", targetCollab.Role)
+				return nil, AccessDenied.New(fmt.Sprintf("insufficient permission to delete %s collaborators", targetCollab.Role))
 			}
 
 			err = gqlCtx.CollaboratorService.DeleteCollaborator(ctx, targetCollab)

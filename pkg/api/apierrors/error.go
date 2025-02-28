@@ -3,14 +3,13 @@ package apierrors
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 
 	"github.com/authgear/authgear-server/pkg/util/copyutil"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
-type Details errorutil.Details
+type Details = errorutil.Details
 
 type Cause interface{ Kind() string }
 
@@ -40,16 +39,25 @@ func (c MapCause) MarshalJSON() ([]byte, error) {
 
 type APIError struct {
 	Kind
-	Message string                 `json:"message"`
-	Code    int                    `json:"code"`
-	Info    map[string]interface{} `json:"info,omitempty"`
+	Message string  `json:"message"`
+	Code    int     `json:"code"`
+	Info    Details `json:"info,omitempty"`
 }
+
+var _ error = (*APIError)(nil)
+var _ errorutil.Detailer = (*APIError)(nil)
 
 func (e *APIError) Error() string {
 	if e == nil {
 		return ""
 	}
 	return e.Message
+}
+
+func (e *APIError) FillDetails(details Details) {
+	for key, val := range e.Info {
+		details[key] = val
+	}
 }
 
 func (e *APIError) HasCause(kind string) bool {
@@ -74,20 +82,23 @@ func (e *APIError) Clone() *APIError {
 	return ee.(*APIError)
 }
 
-func (k Kind) New(msg string) error {
-	return k.NewWithDetails(msg, make(Details))
-}
-
-func (k Kind) NewWithDetails(msg string, details Details) error {
-	return &skyerr{kind: k, msg: msg, details: details}
-}
-
+// NewWithInfo wraps all value in info with APIErrorDetail, making them appear in the response.
 func (k Kind) NewWithInfo(msg string, info Details) error {
 	d := Details{}
 	for k, v := range info {
 		d[k] = APIErrorDetail.Value(v)
 	}
-	return k.NewWithDetails(msg, d)
+	return &APIError{
+		Kind:    k,
+		Message: msg,
+		Code:    k.Name.HTTPStatus(),
+		Info:    d,
+	}
+}
+
+// New is a shorthand of NewWithInfo with an empty Details.
+func (k Kind) New(msg string) error {
+	return k.NewWithInfo(msg, make(Details))
 }
 
 func (k Kind) NewWithCause(msg string, c Cause) error {
@@ -98,46 +109,8 @@ func (k Kind) NewWithCauses(msg string, cs []Cause) error {
 	return k.NewWithInfo(msg, Details{"causes": cs})
 }
 
-func (k Kind) Wrap(err error, msg string) error {
-	return errors.Join(&skyerr{kind: k, msg: msg}, err)
-}
-
-func (k Kind) Errorf(format string, args ...interface{}) error {
-	err := fmt.Errorf(format, args...)
-	return k.Wrap(err, err.Error())
-}
-
-type skyerr struct {
-	msg     string
-	kind    Kind
-	details Details
-}
-
-func (e *skyerr) Error() string { return e.msg }
-func (e *skyerr) FillDetails(d errorutil.Details) {
-	for key, value := range e.details {
-		d[key] = value
-	}
-}
-
-func AddDetails(err error, d errorutil.Details) error {
-	var e *skyerr
-	if errors.As(err, &e) {
-		for key, value := range d {
-			e.details[key] = value
-		}
-	}
-
-	return err
-}
-
 func IsAPIError(err error) bool {
 	if _, ok := err.(*APIError); ok {
-		return true
-	}
-
-	var e *skyerr
-	if errors.As(err, &e) {
 		return true
 	}
 
@@ -172,16 +145,6 @@ func AsAPIError(err error) *APIError {
 	if errors.As(err, &apiError) {
 		apiError.Info = mergeInfo(apiError.Info, info)
 		return apiError
-	}
-
-	var e *skyerr
-	if errors.As(err, &e) {
-		return &APIError{
-			Kind:    e.kind,
-			Message: e.Error(),
-			Code:    e.kind.Name.HTTPStatus(),
-			Info:    info,
-		}
 	}
 
 	var v *validation.AggregatedError

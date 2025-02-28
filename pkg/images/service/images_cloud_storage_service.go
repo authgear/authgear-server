@@ -76,7 +76,7 @@ func (p *ImagesCloudStorageService) checkDuplicate(ctx context.Context, key stri
 	if resp.StatusCode == 404 {
 		return nil
 	}
-	return apierrors.AlreadyExists.WithReason("DuplicatedImage").Errorf("duplicated image")
+	return apierrors.AlreadyExists.WithReason("DuplicatedImage").New("duplicated image")
 }
 
 func (p *ImagesCloudStorageService) MakeDirector(extractKey func(r *http.Request) string) func(r *http.Request) {

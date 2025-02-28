@@ -264,7 +264,8 @@ func (s *DomainService) VerifyDomain(ctx context.Context, appID string, id strin
 
 	err = s.verifyDomain(ctx, d)
 	if err != nil {
-		return nil, DomainVerificationFailed.Errorf("domain verification failed: %w", err)
+		err = fmt.Errorf("domain verification failed: %w", err)
+		return nil, errors.Join(DomainVerificationFailed.New("domain verification failed"), err)
 	}
 
 	err = s.GlobalDatabase.WithTx(ctx, func(ctx context.Context) error {
@@ -446,7 +447,8 @@ func newDomain(appID string, domainName string, createdAt time.Time, isCustom bo
 
 	apexDomain, err := publicsuffix.EffectiveTLDPlusOne(domainName)
 	if err != nil {
-		return nil, InvalidDomain.Errorf("invalid domain: %w", err)
+		err = fmt.Errorf("invalid domain: %w", err)
+		return nil, errors.Join(InvalidDomain.New("invalid domain"), err)
 	}
 
 	return &domain{

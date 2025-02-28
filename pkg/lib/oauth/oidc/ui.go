@@ -257,7 +257,7 @@ func (b *UIURLBuilder) BuildAuthenticationURL(client *config.OAuthClientConfig, 
 		var err error
 		endpoint, err = BuildCustomUIEndpoint(client.CustomUIURI)
 		if err != nil {
-			return nil, ErrInvalidCustomURI.Errorf("invalid custom ui uri: %w", err)
+			return nil, ErrInvalidCustomURI.New(fmt.Sprintf("invalid custom ui uri: %v", err.Error()))
 		}
 	} else {
 		endpoint = b.Endpoints.OAuthEntrypointURL()
