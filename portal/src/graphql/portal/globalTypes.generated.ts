@@ -696,7 +696,10 @@ export type SmsProviderConfigurationInput = {
 
 export type SmsProviderConfigurationTwilioInput = {
   accountSID: Scalars['String']['input'];
+  apiKeySID: Scalars['String']['input'];
+  apiKeySecret?: InputMaybe<Scalars['String']['input']>;
   authToken: Scalars['String']['input'];
+  credentialType: TwilioCredentialType;
   messagingServiceSID?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -740,6 +743,8 @@ export type SmsProviderTwilioCredentials = {
 
 export type SmsProviderTwilioCredentialsInput = {
   accountSID: Scalars['String']['input'];
+  apiKeySID: Scalars['String']['input'];
+  apiKeySecret?: InputMaybe<Scalars['String']['input']>;
   authToken?: InputMaybe<Scalars['String']['input']>;
   credentialType: TwilioCredentialType;
   messagingServiceSID: Scalars['String']['input'];

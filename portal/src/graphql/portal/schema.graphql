@@ -806,7 +806,16 @@ input SMSProviderConfigurationTwilioInput {
   accountSID: String!
 
   """"""
+  apiKeySID: String!
+
+  """"""
+  apiKeySecret: String
+
+  """"""
   authToken: String!
+
+  """"""
+  credentialType: TwilioCredentialType!
 
   """"""
   messagingServiceSID: String
@@ -876,6 +885,12 @@ type SMSProviderTwilioCredentials {
 input SMSProviderTwilioCredentialsInput {
   """"""
   accountSID: String!
+
+  """"""
+  apiKeySID: String!
+
+  """"""
+  apiKeySecret: String
 
   """"""
   authToken: String
