@@ -271,7 +271,10 @@ var _ = SecretConfigSchema.Add("TwilioCredentials", `
 	"required": ["account_sid"],
 	"allOf": [
 		{
-			"if": { "properties": { "credential_type": { "const": "api_key" } }},
+			"if": {
+				"properties": { "credential_type": { "const": "api_key" } },
+				"required": ["credential_type"]
+			},
 			"then": { "required": ["api_key_sid", "api_key_secret"] },
 			"else": { "required": ["auth_token"] }
 		}
