@@ -77,6 +77,7 @@ import { useCheckDenoHookMutation } from "./mutations/checkDenoHook";
 import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
 import { ErrorParseRule, makeReasonErrorParseRule } from "../../error/parse";
 import { APISMSGatewayError } from "../../error/error";
+import { ReauthDialog } from "../../components/common/ReauthDialog";
 
 const SECRETS = [AppSecretKey.SmsProviderSecrets, AppSecretKey.WebhookSecret];
 
@@ -722,6 +723,8 @@ function SMSProviderConfigurationContent(props: {
   const { renderToString } = useContext(MessageContext);
   const navigate = useNavigate();
 
+  const [isReauthDialogHidden, setIsReauthDialogHidden] = useState(true);
+
   const onChangeEnabled = useCallback(
     (_event, checked?: boolean) => {
       if (checked != null) {
@@ -736,7 +739,7 @@ function SMSProviderConfigurationContent(props: {
     [setState]
   );
 
-  const onRevealSecrets = useCallback(() => {
+  const triggerReauth = useCallback(() => {
     const state: LocationState = {
       isRevealSecrets: true,
     };
@@ -747,59 +750,76 @@ function SMSProviderConfigurationContent(props: {
     });
   }, [navigate]);
 
+  const onRevealSecrets = useCallback(() => {
+    setIsReauthDialogHidden(false);
+  }, []);
+
   return (
-    <ScreenContent>
-      <ScreenTitle className={styles.widget}>
-        <FormattedMessage id="SMSProviderConfigurationScreen.title" />
-      </ScreenTitle>
-      <ScreenDescription className={styles.widget}>
-        <FormattedMessage id="SMSProviderConfigurationScreen.description" />
-      </ScreenDescription>
-      {isCustomSMSProviderDisabled ? (
-        <FeatureDisabledMessageBar
-          className={styles.widget}
-          messageID="FeatureConfig.custom-sms-provider.disabled"
-        />
-      ) : null}
+    <>
+      <ScreenContent>
+        <ScreenTitle className={styles.widget}>
+          <FormattedMessage id="SMSProviderConfigurationScreen.title" />
+        </ScreenTitle>
+        <ScreenDescription className={styles.widget}>
+          <FormattedMessage id="SMSProviderConfigurationScreen.description" />
+        </ScreenDescription>
+        {isCustomSMSProviderDisabled ? (
+          <FeatureDisabledMessageBar
+            className={styles.widget}
+            messageID="FeatureConfig.custom-sms-provider.disabled"
+          />
+        ) : null}
 
-      <Widget className={styles.widget} contentLayout="grid">
-        <Toggle
-          className={styles.columnFull}
-          disabled={isCustomSMSProviderDisabled}
-          checked={state.enabled}
-          onChange={onChangeEnabled}
-          label={renderToString("SMSProviderConfigurationScreen.enable.label")}
-          inlineLabel={true}
-        />
-      </Widget>
-
-      {state.enabled ? (
-        <Widget className={cn(styles.widget, "flex flex-col gap-y-4")}>
-          <ProviderSection form={form} />
-          <FormSection form={form} onRevealSecrets={onRevealSecrets} />
+        <Widget className={styles.widget} contentLayout="grid">
+          <Toggle
+            className={styles.columnFull}
+            disabled={isCustomSMSProviderDisabled}
+            checked={state.enabled}
+            onChange={onChangeEnabled}
+            label={renderToString(
+              "SMSProviderConfigurationScreen.enable.label"
+            )}
+            inlineLabel={true}
+          />
         </Widget>
-      ) : null}
 
-      <Widget className={cn(styles.widget, "w-min pt-1")}>
-        <FormSaveButton />
-      </Widget>
-
-      {form.state.enabled ? (
-        <>
-          <Widget className={cn(styles.widget, "py-1")}>
-            <HorizontalDivider />
+        {state.enabled ? (
+          <Widget className={cn(styles.widget, "flex flex-col gap-y-4")}>
+            <ProviderSection form={form} />
+            <FormSection form={form} onRevealSecrets={onRevealSecrets} />
           </Widget>
-          <div className={styles.widget}>
-            <TestSMSSection
-              form={form}
-              effectiveAppConfig={effectiveAppConfig}
-              sendTestSMSHandle={sendTestSMSHandle}
-              checkDenoHookHandle={checkDenoHookHandle}
-            />
-          </div>
-        </>
-      ) : null}
-    </ScreenContent>
+        ) : null}
+
+        <Widget className={cn(styles.widget, "w-min pt-1")}>
+          <FormSaveButton />
+        </Widget>
+
+        {form.state.enabled ? (
+          <>
+            <Widget className={cn(styles.widget, "py-1")}>
+              <HorizontalDivider />
+            </Widget>
+            <div className={styles.widget}>
+              <TestSMSSection
+                form={form}
+                effectiveAppConfig={effectiveAppConfig}
+                sendTestSMSHandle={sendTestSMSHandle}
+                checkDenoHookHandle={checkDenoHookHandle}
+              />
+            </div>
+          </>
+        ) : null}
+      </ScreenContent>
+      <ReauthDialog
+        isHidden={isReauthDialogHidden}
+        onConfirm={useCallback(() => {
+          triggerReauth();
+        }, [triggerReauth])}
+        onCancel={useCallback(() => {
+          setIsReauthDialogHidden(true);
+        }, [])}
+      />
+    </>
   );
 }
 

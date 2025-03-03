@@ -1608,6 +1608,9 @@
   "SMSProviderConfigurationScreen.errors.gateway-delivery-rejected-error": "Delivery rejected by gateway. (Gateway error code: {code})",
   "SMSProviderConfigurationScreen.errors.gateway-rate-limited-error": "Request rate limited by gateway. (Gateway error code: {code})",
 
+  "ReauthDialog.title": "Authentication Required",
+  "ReauthDialog.description": "For your security, please confirm your access to proceed.",
+
   "StandardAttributesConfigurationScreen.title": "Standard Attributes",
 
   "CustomAttributesConfigurationScreen.title": "Custom Attributes",
