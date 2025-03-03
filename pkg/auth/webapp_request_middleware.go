@@ -11,6 +11,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
 	"github.com/authgear/authgear-server/pkg/lib/web"
+	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
@@ -61,6 +62,8 @@ func (m *WebAppRequestMiddleware) Handle(next http.Handler) http.Handler {
 				viewmodels.Embed(data, baseViewModel)
 				m.TemplateEngine.RenderStatus(w, r, http.StatusNotFound, TemplateWebAppNotFoundHTML, data)
 			} else {
+				err = errorutil.ForceLogging(err)
+
 				otelauthgear.TrackContextCanceled(r.Context(), err, r, bool(m.TrustProxy))
 
 				// Our logging mechanism is not context-aware.
