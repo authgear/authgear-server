@@ -69,8 +69,6 @@ import {
 } from "../../util/resource";
 import { DENO_TYPES_URL } from "../../util/deno";
 import { genRandomHexadecimalString } from "../../util/random";
-import HorizontalDivider from "../../HorizontalDivider";
-import FormPhoneTextField from "../../FormPhoneTextField";
 import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";
 import { useSendTestSMSMutation } from "./mutations/sendTestSMS";
 import { useCheckDenoHookMutation } from "./mutations/checkDenoHook";
@@ -78,6 +76,7 @@ import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
 import { ErrorParseRule, makeReasonErrorParseRule } from "../../error/parse";
 import { APISMSGatewayError } from "../../error/error";
 import { ReauthDialog } from "../../components/common/ReauthDialog";
+import { TestSMSDialog } from "../../components/sms-provider/TestSMSDialog";
 
 const SECRETS = [AppSecretKey.SmsProviderSecrets, AppSecretKey.WebhookSecret];
 
@@ -736,15 +735,18 @@ function SMSProviderConfigurationContent(props: {
   const {
     form,
     effectiveAppConfig,
-    sendTestSMSHandle,
     checkDenoHookHandle,
     isCustomSMSProviderDisabled,
   } = props;
+  const { appID } = useParams() as { appID: string };
   const { state, setState } = form;
   const { renderToString } = useContext(MessageContext);
   const navigate = useNavigate();
 
   const [isReauthDialogHidden, setIsReauthDialogHidden] = useState(true);
+  const [isTestSMSDialogHidden, setIsTestSMSDialogHidden] = useState(true);
+
+  const { checkDenoHook, loading: checkDenoHookLoading } = checkDenoHookHandle;
 
   const isSecretMasked = useMemo(
     () => computeIsSecretMasked(form.state),
@@ -782,6 +784,28 @@ function SMSProviderConfigurationContent(props: {
 
   const onRevealSecrets = useCallback(() => {
     setIsReauthDialogHidden(false);
+  }, []);
+
+  const testConfig = useTestSMSConfig(form.state);
+
+  const onTestSMS = useCallback(async () => {
+    if (isSecretMasked) {
+      setIsReauthDialogHidden(false);
+      return;
+    }
+    if (form.state.providerType === SMSProviderType.Deno) {
+      await checkDenoHook(testConfig?.deno?.script ?? "");
+    }
+    setIsTestSMSDialogHidden(false);
+  }, [
+    checkDenoHook,
+    form.state.providerType,
+    isSecretMasked,
+    testConfig?.deno?.script,
+  ]);
+
+  const onCancelTestSMS = useCallback(() => {
+    setIsTestSMSDialogHidden(true);
   }, []);
 
   return (
@@ -824,30 +848,26 @@ function SMSProviderConfigurationContent(props: {
           </Widget>
         ) : null}
 
-        <Widget className={cn(styles.widget, "w-min pt-1")}>
-          {isSecretMasked ? (
-            <PrimaryButton
-              className="w-min"
-              onClick={onRevealSecrets}
-              text={<FormattedMessage id="edit" />}
-            />
-          ) : (
-            <FormSaveButton />
-          )}
-        </Widget>
-
         {form.state.enabled ? (
           <>
-            <Widget className={cn(styles.widget, "py-1")}>
-              <HorizontalDivider />
-            </Widget>
-            <div className={styles.widget}>
-              <TestSMSSection
-                form={form}
-                effectiveAppConfig={effectiveAppConfig}
-                sendTestSMSHandle={sendTestSMSHandle}
-                checkDenoHookHandle={checkDenoHookHandle}
+            <div className={cn(styles.widget, "flex w-max pt-1 gap-4")}>
+              <DefaultButton
+                className="w-max"
+                text={
+                  <FormattedMessage id="SMSProviderConfigurationScreen.testSMS" />
+                }
+                disabled={testConfig == null || checkDenoHookLoading}
+                onClick={onTestSMS}
               />
+              {isSecretMasked ? (
+                <PrimaryButton
+                  className="w-max"
+                  onClick={onRevealSecrets}
+                  text={<FormattedMessage id="edit" />}
+                />
+              ) : (
+                <FormSaveButton />
+              )}
             </div>
           </>
         ) : null}
@@ -861,6 +881,15 @@ function SMSProviderConfigurationContent(props: {
           setIsReauthDialogHidden(true);
         }, [])}
       />
+      {testConfig != null ? (
+        <TestSMSDialog
+          appID={appID}
+          isHidden={isTestSMSDialogHidden}
+          effectiveAppConfig={effectiveAppConfig}
+          input={testConfig}
+          onCancel={onCancelTestSMS}
+        />
+      ) : null}
     </>
   );
 }
@@ -1410,78 +1439,6 @@ function DenoHookForm({ form }: { form: AppSecretConfigFormModel<FormState> }) {
           "SMSProviderConfigurationScreen.form.deno.timeout.description"
         )}
       />
-    </div>
-  );
-}
-
-function TestSMSSection({
-  form,
-  effectiveAppConfig,
-  sendTestSMSHandle,
-  checkDenoHookHandle,
-}: {
-  form: AppSecretConfigFormModel<FormState>;
-  effectiveAppConfig: PortalAPIAppConfig | undefined;
-  sendTestSMSHandle: ReturnType<typeof useSendTestSMSMutation>;
-  checkDenoHookHandle: ReturnType<typeof useCheckDenoHookMutation>;
-}) {
-  const { sendTestSMS, loading: sendTestSMSLoading } = sendTestSMSHandle;
-  const { checkDenoHook, loading: checkDenoHookLoading } = checkDenoHookHandle;
-  const [toInputValue, setToInputValue] = useState("");
-  const [to, setTo] = useState("");
-  const onChangeValues = useCallback(
-    (values: { e164?: string; rawInputValue: string }) => {
-      const { e164, rawInputValue } = values;
-      setTo(e164 ?? "");
-      setToInputValue(rawInputValue);
-    },
-    []
-  );
-
-  const loading = sendTestSMSLoading || checkDenoHookLoading;
-
-  const testConfig = useTestSMSConfig(form.state);
-
-  const onSendTestSMS = useCallback(async () => {
-    if (testConfig == null) {
-      console.error("onSendTestSMS triggered but testConfig is null");
-      return;
-    }
-    if (form.state.providerType === SMSProviderType.Deno) {
-      checkDenoHook(testConfig.deno?.script ?? "");
-    }
-    sendTestSMS({
-      to: to,
-      config: testConfig,
-    }).catch(() => {
-      // Error is shown in outer form container
-    });
-  }, [checkDenoHook, form.state.providerType, sendTestSMS, testConfig, to]);
-
-  return (
-    <div className="flex flex-col gap-y-3">
-      <Text variant="xLarge">
-        <FormattedMessage id="SMSProviderConfigurationScreen.test.title" />
-      </Text>
-
-      <div className="flex flex-col gap-y-4">
-        <FormPhoneTextField
-          parentJSONPointer=""
-          fieldName="to"
-          allowlist={effectiveAppConfig?.ui?.phone_input?.allowlist}
-          pinnedList={effectiveAppConfig?.ui?.phone_input?.pinned_list}
-          inputValue={toInputValue}
-          onChange={onChangeValues}
-        />
-        <PrimaryButton
-          className="w-min"
-          disabled={to === "" || loading || testConfig == null}
-          onClick={onSendTestSMS}
-          text={
-            <FormattedMessage id="SMSProviderConfigurationScreen.test.send.label" />
-          }
-        />
-      </div>
     </div>
   );
 }
