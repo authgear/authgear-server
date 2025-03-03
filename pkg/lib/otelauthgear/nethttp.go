@@ -29,14 +29,15 @@ func (m *HTTPInstrumentationMiddleware) Handle(next http.Handler) http.Handler {
 
 		// Put Labeler into context.
 		ctx := r.Context()
-		ctx = otelhttp.ContextWithLabeler(ctx, &otelhttp.Labeler{})
+		labeler := &otelhttp.Labeler{}
+		ctx = otelhttp.ContextWithLabeler(ctx, labeler)
 		r = r.WithContext(ctx)
 
 		// Gather method and scheme before invoking the handler.
 		// Avoid the rare case of the handler modify r.Method or r.Header.
-		methodAttr := otelutil.HTTPRequestMethod(r)
+		labeler.Add(otelutil.HTTPRequestMethod(r))
 		scheme := httputil.GetProto(r, bool(m.TrustProxy))
-		schemeAttr := otelutil.HTTPURLScheme(scheme)
+		labeler.Add(otelutil.HTTPURLScheme(scheme))
 
 		// Wrap w to capture status code.
 		w = httpsnoop.Wrap(w, httpsnoop.Hooks{
@@ -84,8 +85,6 @@ func (m *HTTPInstrumentationMiddleware) Handle(next http.Handler) http.Handler {
 				// external input like X-Forwarded-Host, Host
 				// If we include server.address, then the attacker can trigger cardinality limits.
 				options := []MetricOption{
-					metricOptionAttributeKeyValue{methodAttr},
-					metricOptionAttributeKeyValue{schemeAttr},
 					metricOptionAttributeKeyValue{statusCodeAttr},
 				}
 
