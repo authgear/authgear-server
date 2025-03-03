@@ -8,8 +8,9 @@ import (
 	"net/http"
 
 	"github.com/lib/pq"
-
 	"github.com/sirupsen/logrus"
+
+	"github.com/authgear/authgear-server/pkg/util/errorutil"
 )
 
 // This file defines a mechanism to skip logging.
@@ -48,6 +49,12 @@ func (SkipLoggingHook) Fire(entry *logrus.Entry) error {
 }
 
 func IgnoreError(err error) (ignore bool) {
+	// ForceLogging overrides everything.
+	if errorutil.IsForceLogging(err) {
+		ignore = false
+		return
+	}
+
 	// In most case, when the HTTP request was canceled,
 	// the error would be context.Canceled.
 	// However, by observation, other errors may occur too.

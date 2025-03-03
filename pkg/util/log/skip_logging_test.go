@@ -12,6 +12,8 @@ import (
 	"github.com/lib/pq"
 	"github.com/sirupsen/logrus"
 	. "github.com/smartystreets/goconvey/convey"
+
+	"github.com/authgear/authgear-server/pkg/util/errorutil"
 )
 
 type myhook struct {
@@ -94,6 +96,11 @@ func TestSkipLogging(t *testing.T) {
 
 		Convey("Do not ignore any other entry", func() {
 			logger.Error("error")
+			So(myhook.IsSkipped, ShouldBeFalse)
+		})
+
+		Convey("Do not ignore context.Canceled if force logging", func() {
+			logger.WithError(errorutil.ForceLogging(context.Canceled)).Error("error")
 			So(myhook.IsSkipped, ShouldBeFalse)
 		})
 	})
