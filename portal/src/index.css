@@ -1,3 +1,5 @@
+@import "@radix-ui/themes/styles.css";
+
 /* Ensure the page is least as tall as the viewport */
 html,
 body,
