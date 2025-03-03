@@ -562,6 +562,27 @@ function useTestSMSConfig(
   ]);
 }
 
+function computeIsSecretMasked(state: FormState): boolean {
+  if (!state.enabled) {
+    return false;
+  }
+  switch (state.providerType) {
+    case SMSProviderType.Twilio:
+      switch (state.twilioCredentialType) {
+        case TwilioCredentialType.ApiKey:
+          return state.twilioAPIKeySecret == null;
+        case TwilioCredentialType.AuthToken:
+          return state.twilioAuthToken == null;
+      }
+      throw new Error("unreachable code");
+    case SMSProviderType.Webhook:
+      return state.webhookSecretKey == null;
+    case SMSProviderType.Deno:
+      return false;
+  }
+  throw new Error("unreachable code");
+}
+
 const SMSProviderConfigurationScreen: React.VFC =
   function SMSProviderConfigurationScreen() {
     const { appID } = useParams() as { appID: string };
@@ -725,9 +746,18 @@ function SMSProviderConfigurationContent(props: {
 
   const [isReauthDialogHidden, setIsReauthDialogHidden] = useState(true);
 
+  const isSecretMasked = useMemo(
+    () => computeIsSecretMasked(form.state),
+    [form.state]
+  );
+
   const onChangeEnabled = useCallback(
     (_event, checked?: boolean) => {
       if (checked != null) {
+        if (isSecretMasked) {
+          setIsReauthDialogHidden(false);
+          return;
+        }
         setState((state) => {
           return {
             ...state,
@@ -736,7 +766,7 @@ function SMSProviderConfigurationContent(props: {
         });
       }
     },
-    [setState]
+    [isSecretMasked, setState]
   );
 
   const triggerReauth = useCallback(() => {
@@ -785,13 +815,25 @@ function SMSProviderConfigurationContent(props: {
 
         {state.enabled ? (
           <Widget className={cn(styles.widget, "flex flex-col gap-y-4")}>
-            <ProviderSection form={form} />
+            <ProviderSection
+              form={form}
+              isSecretMasked={isSecretMasked}
+              onRevealSecrets={onRevealSecrets}
+            />
             <FormSection form={form} onRevealSecrets={onRevealSecrets} />
           </Widget>
         ) : null}
 
         <Widget className={cn(styles.widget, "w-min pt-1")}>
-          <FormSaveButton />
+          {isSecretMasked ? (
+            <PrimaryButton
+              className="w-min"
+              onClick={onRevealSecrets}
+              text={<FormattedMessage id="edit" />}
+            />
+          ) : (
+            <FormSaveButton />
+          )}
         </Widget>
 
         {form.state.enabled ? (
@@ -824,26 +866,33 @@ function SMSProviderConfigurationContent(props: {
 }
 
 function ProviderSection({
+  isSecretMasked,
   form,
+  onRevealSecrets,
 }: {
+  isSecretMasked: boolean;
   form: AppSecretConfigFormModel<FormState>;
+  onRevealSecrets: () => void;
 }) {
-  const onSelectTwilio = useCallback(() => {
-    form.setState((state) => {
-      return { ...state, providerType: SMSProviderType.Twilio };
-    });
-  }, [form]);
+  const onSelectProviderCallbacks = useMemo(() => {
+    const makeCallback = (provider: SMSProviderType) => {
+      return () => {
+        if (isSecretMasked) {
+          onRevealSecrets();
+          return;
+        }
+        form.setState((state) => {
+          return { ...state, providerType: provider };
+        });
+      };
+    };
 
-  const onSelectWebhook = useCallback(() => {
-    form.setState((state) => {
-      return { ...state, providerType: SMSProviderType.Webhook };
-    });
-  }, [form]);
-  const onSelectDeno = useCallback(() => {
-    form.setState((state) => {
-      return { ...state, providerType: SMSProviderType.Deno };
-    });
-  }, [form]);
+    return {
+      twilio: makeCallback(SMSProviderType.Twilio),
+      webhook: makeCallback(SMSProviderType.Webhook),
+      deno: makeCallback(SMSProviderType.Deno),
+    };
+  }, [form, isSecretMasked, onRevealSecrets]);
 
   return (
     <div className="flex flex-col gap-y-3">
@@ -852,21 +901,21 @@ function ProviderSection({
       </Text>
       <div className={styles.providerGrid}>
         <ProviderCard
-          onClick={onSelectTwilio}
+          onClick={onSelectProviderCallbacks.twilio}
           isSelected={form.state.providerType === SMSProviderType.Twilio}
           logoSrc={logoTwilio}
         >
           <FormattedMessage id="SMSProviderConfigurationScreen.provider.twilio" />
         </ProviderCard>
         <ProviderCard
-          onClick={onSelectWebhook}
+          onClick={onSelectProviderCallbacks.webhook}
           isSelected={form.state.providerType === SMSProviderType.Webhook}
           logoSrc={logoWebhook}
         >
           <FormattedMessage id="SMSProviderConfigurationScreen.provider.webhook" />
         </ProviderCard>
         <ProviderCard
-          onClick={onSelectDeno}
+          onClick={onSelectProviderCallbacks.deno}
           isSelected={form.state.providerType === SMSProviderType.Deno}
           logoSrc={logoDeno}
         >
@@ -910,7 +959,7 @@ function FormSection({
 }) {
   switch (form.state.providerType) {
     case SMSProviderType.Twilio:
-      return <TwilioForm form={form} onRevealSecrets={onRevealSecrets} />;
+      return <TwilioForm form={form} />;
     case SMSProviderType.Webhook:
       return <WebhookForm form={form} onRevealSecrets={onRevealSecrets} />;
     case SMSProviderType.Deno:
@@ -918,13 +967,7 @@ function FormSection({
   }
 }
 
-function TwilioForm({
-  form,
-  onRevealSecrets,
-}: {
-  form: AppSecretConfigFormModel<FormState>;
-  onRevealSecrets: () => void;
-}) {
+function TwilioForm({ form }: { form: AppSecretConfigFormModel<FormState> }) {
   const { renderToString } = useContext(MessageContext);
 
   const onStringChangeCallbacks = useMemo(() => {
@@ -1132,14 +1175,6 @@ function TwilioForm({
         parentJSONPointer={/\/secrets\/\d+\/data/}
         fieldName="message_service_sid"
       />
-
-      {isTwilioSecretMasked ? (
-        <PrimaryButton
-          className="w-min"
-          onClick={onRevealSecrets}
-          text={<FormattedMessage id="edit" />}
-        />
-      ) : null}
     </div>
   );
 }
@@ -1199,6 +1234,7 @@ function WebhookForm({
         value={form.state.webhookURL}
         required={true}
         onChange={onURLChange}
+        disabled={isWebhookSecretMasked}
         parentJSONPointer={/\/secrets\/\d+\/data/}
         fieldName="url"
       />
@@ -1265,6 +1301,7 @@ function WebhookForm({
         )}
         value={String(form.state.webhookTimeout)}
         onChange={onTimeoutChange}
+        disabled={isWebhookSecretMasked}
         parentJSONPointer={/\/secrets\/\d+\/data/}
         fieldName="timeout"
         description={renderToString(
