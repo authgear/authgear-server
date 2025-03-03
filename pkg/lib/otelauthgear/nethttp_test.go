@@ -70,7 +70,10 @@ func TestHTTPInstrumentationMiddleware(t *testing.T) {
 
 		test := func(h http.Handler, called bool) {
 			w := httptest.NewRecorder()
+
 			r := httptest.NewRequestWithContext(context.Background(), "GET", "/", nil)
+			r = r.WithContext(otelhttp.ContextWithLabeler(r.Context(), &otelhttp.Labeler{}))
+
 			h = m.Handle(h)
 			h.ServeHTTP(w, r)
 			So(mock.called, ShouldEqual, called)
@@ -81,28 +84,35 @@ func TestHTTPInstrumentationMiddleware(t *testing.T) {
 		})
 
 		Convey("record if http.route is defined", func() {
-			test(otelutil.WithHTTPRoute("/myroute", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			})), true)
+			m := otelutil.WithHTTPRoute("/myroute")
+			h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			})
+
+			test(m(h), true)
 		})
 
 		Convey("record if the handler handles the panic", func() {
-			test(otelutil.WithHTTPRoute("/myroute", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			m := otelutil.WithHTTPRoute("/myroute")
+			h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				defer func() {
 					if r := recover(); r != nil {
 						// recover
 					}
 				}()
 				panic(errors.New("panic"))
-			})), true)
+			})
+			test(m(h), true)
 		})
 
 		Convey("record even if the handler does not handle the panic", func() {
 			err := errors.New("panic")
+			m := otelutil.WithHTTPRoute("/myroute")
+			h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				panic(err)
+			})
 
 			So(func() {
-				test(otelutil.WithHTTPRoute("/myroute", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-					panic(err)
-				})), true)
+				test(m(h), true)
 			}, ShouldPanicWith, err)
 		})
 	})

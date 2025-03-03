@@ -7,6 +7,8 @@ import (
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.opentelemetry.io/otel/attribute"
 )
 
 func TestRoute(t *testing.T) {
@@ -245,6 +247,34 @@ func TestMiddleware(t *testing.T) {
 				"after m4",
 				"after m3",
 				"after m2",
+				"after m1",
+			})
+		})
+
+		Convey("Label is put into context", func() {
+			router := NewRouter()
+			router.Add(Route{
+				Methods:     []string{"GET"},
+				PathPattern: "/",
+				Middleware:  makeMiddleware("m1"),
+			}, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				labeler, ok := otelhttp.LabelerFromContext(r.Context())
+				So(ok, ShouldBeTrue)
+
+				attrs := labeler.Get()
+				So(attrs, ShouldHaveLength, 1)
+				So(attrs[0], ShouldEqual, attribute.Key("http.route").String("/"))
+
+				observedLabels = append(observedLabels, "handler")
+			}))
+
+			r, _ := http.NewRequest("GET", "/", nil)
+			w := httptest.NewRecorder()
+
+			router.HTTPHandler().ServeHTTP(w, r)
+			So(observedLabels, ShouldResemble, []string{
+				"before m1",
+				"handler",
 				"after m1",
 			})
 		})

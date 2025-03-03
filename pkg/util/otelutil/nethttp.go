@@ -114,10 +114,20 @@ func HTTPResponseStatusCode(statusCode int) attribute.KeyValue {
 	return semconv.HTTPResponseStatusCode(statusCode)
 }
 
-func WithHTTPRoute(httpRoute string, h http.Handler) http.Handler {
+func WithHTTPRoute(httpRoute string) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			labeler, _ := otelhttp.LabelerFromContext(r.Context())
+			labeler.Add(semconv.HTTPRoute(httpRoute))
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+
+func SetupLabeler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		labeler, _ := otelhttp.LabelerFromContext(r.Context())
-		labeler.Add(semconv.HTTPRoute(httpRoute))
-		h.ServeHTTP(w, r)
+		labeler := &otelhttp.Labeler{}
+		r = r.WithContext(otelhttp.ContextWithLabeler(r.Context(), labeler))
+		next.ServeHTTP(w, r)
 	})
 }

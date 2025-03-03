@@ -27,11 +27,9 @@ func (m *HTTPInstrumentationMiddleware) Handle(next http.Handler) http.Handler {
 		statusCode := 200
 		headerWritten := false
 
-		// Put Labeler into context.
 		ctx := r.Context()
-		labeler := &otelhttp.Labeler{}
-		ctx = otelhttp.ContextWithLabeler(ctx, labeler)
-		r = r.WithContext(ctx)
+		// Assume the labeler has been put into context.
+		labeler, _ := otelhttp.LabelerFromContext(ctx)
 
 		// Gather method and scheme before invoking the handler.
 		// Avoid the rare case of the handler modify r.Method or r.Header.
