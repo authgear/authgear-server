@@ -2,7 +2,9 @@ package otelauthgear
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"net/http"
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"
@@ -11,6 +13,8 @@ import (
 	"go.opentelemetry.io/otel/semconv/v1.27.0"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
+	"github.com/authgear/authgear-server/pkg/util/otelutil"
 )
 
 // Suppose you have a task to add a new metric, what should you do?
@@ -162,6 +166,15 @@ var CounterCSRFRequestCount = mustInt64Counter(
 	metric.WithUnit("{request}"),
 )
 
+// CounterContextCanceledCount is a temporary metric to debug context canceled issue.
+// It has the following labels:
+// - server.address
+var CounterContextCanceledCount = mustInt64Counter(
+	"authgear.context_canceled.count",
+	metric.WithDescription("The number of context canceled error encountered"),
+	metric.WithUnit("{error}"),
+)
+
 // HTTPServerRequestDurationHistogram is https://opentelemetry.io/docs/specs/semconv/http/http-metrics/#metric-httpserverrequestduration
 var HTTPServerRequestDurationHistogram = mustFloat64Histogram(
 	semconv.HTTPServerRequestDurationName,
@@ -286,4 +299,18 @@ func Float64HistogramRecord(ctx context.Context, histogram metric.Float64Histogr
 	}
 
 	histogram.Record(ctx, val, finalOptions...)
+}
+
+func TrackContextCanceled(ctx context.Context, err error, r *http.Request, trustProxy bool) {
+	if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+		hostAndPort := httputil.GetHost(r, trustProxy)
+		serverAddressAttr, ok := otelutil.HTTPServerAddress(hostAndPort)
+		if ok {
+			IntCounterAddOne(
+				ctx,
+				CounterContextCanceledCount,
+				metricOptionAttributeKeyValue{*serverAddressAttr},
+			)
+		}
+	}
 }
