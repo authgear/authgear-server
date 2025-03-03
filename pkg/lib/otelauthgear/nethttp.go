@@ -80,6 +80,9 @@ func (m *HTTPInstrumentationMiddleware) Handle(next http.Handler) http.Handler {
 				}
 			}
 			if httpRouteOK {
+				// By default, we do not include server.address because it depends on
+				// external input like X-Forwarded-Host, Host
+				// If we include server.address, then the attacker can trigger cardinality limits.
 				options := []MetricOption{
 					metricOptionAttributeKeyValue{methodAttr},
 					metricOptionAttributeKeyValue{schemeAttr},
