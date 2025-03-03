@@ -6,7 +6,6 @@ import (
 	getsentry "github.com/getsentry/sentry-go"
 
 	runtimeresource "github.com/authgear/authgear-server"
-	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
@@ -84,7 +83,6 @@ func NewRootProvider(
 
 	loggerFactory := log.NewFactory(
 		logLevel,
-		apierrors.SkipLoggingHook{},
 		log.NewDefaultMaskLogHook(),
 		sentry.NewLogHookFromHub(sentryHub),
 	)
