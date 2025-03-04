@@ -8,12 +8,12 @@ import React, {
 import { Toast } from "radix-ui";
 import styles from "./Toast.module.css";
 
-export interface ToastContext {
+export interface ToastProviderContext {
   registerToast: (el: React.ReactElement) => string;
   removeToast: (id: string) => void;
 }
 
-const Ctx = createContext<ToastContext | undefined>(undefined);
+const ProviderCtx = createContext<ToastProviderContext | undefined>(undefined);
 
 export interface ToastProviderProps {
   children?: React.ReactChild;
@@ -50,7 +50,7 @@ export function ToastProvider({
     });
   }, []);
 
-  const context = useMemo<ToastContext>(() => {
+  const context = useMemo<ToastProviderContext>(() => {
     return {
       registerToast,
       removeToast,
@@ -58,7 +58,7 @@ export function ToastProvider({
   }, [registerToast, removeToast]);
 
   return (
-    <Ctx.Provider value={context}>
+    <ProviderCtx.Provider value={context}>
       <Toast.Provider swipeDirection="right">
         {children}
         {Array.from(toasts.entries()).map(([id, el]) => (
@@ -68,12 +68,27 @@ export function ToastProvider({
         ))}
         <Toast.Viewport className={styles.ToastViewport} />
       </Toast.Provider>
-    </Ctx.Provider>
+    </ProviderCtx.Provider>
   );
 }
 
+export function useToastProviderContext(): ToastProviderContext {
+  const ctx = useContext(ProviderCtx);
+  if (ctx == null) {
+    throw new Error("ToastProviderContext not found");
+  }
+  return ctx;
+}
+
+export interface ToastContext {
+  open: boolean;
+  setOpen: (value: boolean) => void;
+}
+
+const ToastCtx = createContext<ToastContext | undefined>(undefined);
+
 export function useToastContext(): ToastContext {
-  const ctx = useContext(Ctx);
+  const ctx = useContext(ToastCtx);
   if (ctx == null) {
     throw new Error("ToastContext not found");
   }
@@ -87,25 +102,38 @@ function ToastRoot({
   id: string;
   children?: React.ReactChild | null;
 }): React.ReactElement {
-  const { removeToast } = useToastContext();
+  const { removeToast } = useToastProviderContext();
   const [open, setOpen] = useState(true);
   const onOpenChange = useCallback(
     (value: boolean) => {
       setOpen(value);
       if (!value) {
-        removeToast(id);
+        // remove it after 1 seconds, to allow it to finish the animation
+        setTimeout(() => {
+          removeToast(id);
+        }, 1000);
       }
     },
     [id, removeToast]
   );
 
+  const ctxValues = useMemo<ToastContext>(
+    () => ({
+      open,
+      setOpen: onOpenChange,
+    }),
+    [onOpenChange, open]
+  );
+
   return (
-    <Toast.Root
-      className={styles.ToastRoot}
-      open={open}
-      onOpenChange={onOpenChange}
-    >
-      {children}
-    </Toast.Root>
+    <ToastCtx.Provider value={ctxValues}>
+      <Toast.Root
+        className={styles.ToastRoot}
+        open={open}
+        onOpenChange={onOpenChange}
+      >
+        {children}
+      </Toast.Root>
+    </ToastCtx.Provider>
   );
 }

@@ -1,8 +1,8 @@
-import { InfoCircledIcon } from "@radix-ui/react-icons";
+import { InfoCircledIcon, Cross2Icon } from "@radix-ui/react-icons";
 import { Callout as RadixCallout } from "@radix-ui/themes";
 import React, { ComponentProps, useCallback } from "react";
 import styles from "./Callout.module.css";
-import { useToastContext } from "./Toast";
+import { useToastContext, useToastProviderContext } from "./Toast";
 
 export enum CalloutColor {
   error = "error",
@@ -12,6 +12,7 @@ export enum CalloutColor {
 export interface CalloutProps {
   color: CalloutColor;
   text?: React.ReactChild;
+  showCloseButton?: boolean;
 }
 
 function colorToRadixColor(
@@ -25,7 +26,17 @@ function colorToRadixColor(
   }
 }
 
-export function Callout({ color, text }: CalloutProps): React.ReactElement {
+export function Callout({
+  color,
+  text,
+  showCloseButton = true,
+}: CalloutProps): React.ReactElement {
+  const { setOpen } = useToastContext();
+
+  const onClose = useCallback(() => {
+    setOpen(false);
+  }, [setOpen]);
+
   return (
     <RadixCallout.Root
       className={styles.calloutRoot}
@@ -33,10 +44,21 @@ export function Callout({ color, text }: CalloutProps): React.ReactElement {
       size="2"
       variant="surface"
     >
-      <RadixCallout.Icon>
+      <RadixCallout.Icon className={styles.calloutIcon}>
         <InfoCircledIcon />
       </RadixCallout.Icon>
-      <RadixCallout.Text>{text}</RadixCallout.Text>
+      <RadixCallout.Text className={styles.calloutText}>
+        {text}
+      </RadixCallout.Text>
+      {showCloseButton ? (
+        <button
+          type="button"
+          onClick={onClose}
+          className={styles.calloutAction}
+        >
+          <Cross2Icon />
+        </button>
+      ) : null}
     </RadixCallout.Root>
   );
 }
@@ -44,7 +66,7 @@ export function Callout({ color, text }: CalloutProps): React.ReactElement {
 export function useCalloutToast(): {
   showToast: (props: CalloutProps) => void;
 } {
-  const { registerToast } = useToastContext();
+  const { registerToast } = useToastProviderContext();
 
   const showToast = useCallback(
     (props: CalloutProps) => {

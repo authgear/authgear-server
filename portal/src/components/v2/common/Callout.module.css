@@ -2,4 +2,21 @@
   /* Originally the background color is --accent-a2, which is transparent
   Use accent-2 to make it a solid color */
   background-color: var(--accent-2);
+
+  grid-template-areas: "icon text action";
+  grid-template-columns: auto 1fr auto;
+}
+
+.calloutIcon {
+  grid-area: icon;
+}
+
+.calloutText {
+  grid-area: text;
+}
+
+.calloutAction {
+  grid-area: action;
+  cursor: pointer;
+  color: var(--accent-12);
 }
