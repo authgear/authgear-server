@@ -1,8 +1,8 @@
 import { InfoCircledIcon } from "@radix-ui/react-icons";
 import { Callout as RadixCallout } from "@radix-ui/themes";
-import React, { ComponentProps, useCallback, useState } from "react";
+import React, { ComponentProps, useCallback } from "react";
 import styles from "./Callout.module.css";
-import { ToastRoot } from "./Toast";
+import { useToastContext } from "./Toast";
 
 export enum CalloutColor {
   error = "error",
@@ -42,30 +42,18 @@ export function Callout({ color, text }: CalloutProps): React.ReactElement {
 }
 
 export function useCalloutToast(): {
-  Component: React.FunctionComponent;
   showToast: (props: CalloutProps) => void;
 } {
-  const [open, setOpen] = useState(false);
-  const [props, setProps] = useState<CalloutProps | undefined>(undefined);
+  const { registerToast } = useToastContext();
 
-  const Component = useCallback(
-    (_: object) => {
-      return (
-        <ToastRoot open={open} onOpenChange={setOpen}>
-          {props ? <Callout {...props} /> : null}
-        </ToastRoot>
-      );
+  const showToast = useCallback(
+    (props: CalloutProps) => {
+      registerToast(<Callout {...props} />);
     },
-    [open, props]
+    [registerToast]
   );
 
-  const showToast = useCallback((props: CalloutProps) => {
-    setProps(props);
-    setOpen(true);
-  }, []);
-
   return {
-    Component,
     showToast,
   };
 }

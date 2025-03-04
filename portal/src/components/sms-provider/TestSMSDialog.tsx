@@ -69,8 +69,7 @@ export function TestSMSDialog({
     []
   );
 
-  // eslint-disable-next-line no-useless-assignment
-  const { Component: ToastComponent, showToast } = useCalloutToast();
+  const { showToast } = useCalloutToast();
 
   const {
     sendTestSMS,
@@ -132,7 +131,6 @@ export function TestSMSDialog({
             text={<FormattedMessage id="cancel" />}
           />
         </DialogFooter>
-        <ToastComponent />
         <ErrorToast />
       </Dialog>
     </FormProvider>
@@ -142,8 +140,7 @@ export function TestSMSDialog({
 function ErrorToast() {
   const errors = useFormTopErrors();
 
-  // eslint-disable-next-line no-useless-assignment
-  const { Component: ToastComponent, showToast } = useCalloutToast();
+  const { showToast } = useCalloutToast();
 
   useEffect(() => {
     for (const err of errors) {
@@ -156,9 +153,5 @@ function ErrorToast() {
     }
   }, [errors, showToast]);
 
-  return (
-    <>
-      <ToastComponent />
-    </>
-  );
+  return <></>;
 }
