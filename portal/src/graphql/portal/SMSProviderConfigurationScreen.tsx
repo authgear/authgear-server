@@ -887,7 +887,7 @@ function SMSProviderConfigurationContent(props: {
           isHidden={isTestSMSDialogHidden}
           effectiveAppConfig={effectiveAppConfig}
           input={testConfig}
-          onCancel={onCancelTestSMS}
+          onDismiss={onCancelTestSMS}
         />
       ) : null}
     </>

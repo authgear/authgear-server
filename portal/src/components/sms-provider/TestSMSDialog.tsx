@@ -12,14 +12,7 @@ import { FormProvider, useFormTopErrors } from "../../form";
 import { ErrorParseRule, makeReasonErrorParseRule } from "../../error/parse";
 import { APISMSGatewayError } from "../../error/error";
 
-const ERROR_RULES: ErrorParseRule[] = [
-  makeReasonErrorParseRule(
-    "SMSGatewayInvalidPhoneNumber",
-    "TestSMSDialog.errors.gateway-invalid-phone-number-error",
-    (err) => ({
-      code: (err as APISMSGatewayError).info.ProviderErrorCode,
-    })
-  ),
+const topErrorRules: ErrorParseRule[] = [
   makeReasonErrorParseRule(
     "SMSGatewayAuthenticationFailed",
     "TestSMSDialog.errors.gateway-authentication-failed-error",
@@ -43,12 +36,22 @@ const ERROR_RULES: ErrorParseRule[] = [
   ),
 ];
 
+const phoneFieldErrorRules: ErrorParseRule[] = [
+  makeReasonErrorParseRule(
+    "SMSGatewayInvalidPhoneNumber",
+    "TestSMSDialog.errors.gateway-invalid-phone-number-error",
+    (err) => ({
+      code: (err as APISMSGatewayError).info.ProviderErrorCode,
+    })
+  ),
+];
+
 export interface TestSMSDialogProps {
   appID: string;
   isHidden: boolean;
   input: SmsProviderConfigurationInput;
   effectiveAppConfig: PortalAPIAppConfig | undefined;
-  onCancel: () => void;
+  onDismiss: () => void;
 }
 
 export function TestSMSDialog({
@@ -56,7 +59,7 @@ export function TestSMSDialog({
   isHidden,
   input,
   effectiveAppConfig,
-  onCancel,
+  onDismiss,
 }: TestSMSDialogProps): React.ReactElement {
   const [toInputValue, setToInputValue] = useState("");
   const [to, setTo] = useState("");
@@ -87,16 +90,17 @@ export function TestSMSDialog({
           color: CalloutColor.success,
           text: <FormattedMessage id="TestSMSDialog.toast.success" />,
         });
+        onDismiss();
       })
       // The error is handled by toast
       .catch(console.warn);
-  }, [input, sendTestSMS, showToast, to]);
+  }, [input, onDismiss, sendTestSMS, showToast, to]);
 
   return (
     <FormProvider
       loading={sendTestSMSLoading}
       error={sendTestSMSError}
-      rules={ERROR_RULES}
+      rules={topErrorRules}
     >
       <Dialog
         hidden={isHidden}
@@ -105,7 +109,7 @@ export function TestSMSDialog({
             title: <FormattedMessage id="TestSMSDialog.title" />,
           };
         }, [])}
-        onDismiss={onCancel}
+        onDismiss={onDismiss}
       >
         <div>
           <Text className="mb-3" block={true}>
@@ -118,6 +122,7 @@ export function TestSMSDialog({
             pinnedList={effectiveAppConfig?.ui?.phone_input?.pinned_list}
             inputValue={toInputValue}
             onChange={onChangeValues}
+            errorRules={phoneFieldErrorRules}
           />
         </div>
         <DialogFooter>
@@ -127,17 +132,17 @@ export function TestSMSDialog({
             text={<FormattedMessage id="TestSMSDialog.send" />}
           />
           <DefaultButton
-            onClick={onCancel}
+            onClick={onDismiss}
             text={<FormattedMessage id="cancel" />}
           />
         </DialogFooter>
-        <ErrorToast />
       </Dialog>
+      <ErrorToast onDismiss={onDismiss} />
     </FormProvider>
   );
 }
 
-function ErrorToast() {
+function ErrorToast({ onDismiss }: { onDismiss: () => void }) {
   const errors = useFormTopErrors();
 
   const { showToast } = useCalloutToast();
@@ -150,8 +155,10 @@ function ErrorToast() {
           <FormattedMessage id={err.messageID ?? ""} values={err.arguments} />
         ),
       });
+      // Close the dialog to let error toast shows outside
+      onDismiss();
     }
-  }, [errors, showToast]);
+  }, [errors, onDismiss, showToast]);
 
   return <></>;
 }
