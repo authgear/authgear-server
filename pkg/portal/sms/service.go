@@ -39,12 +39,12 @@ func (s *Service) sendByTwilio(
 		messagingServiceSID = *cfg.MessagingServiceSID
 	}
 	twilioClient := twilio.NewTwilioClient(&config.TwilioCredentials{
-		CredentialType:      &cfg.CredentialType,
-		AccountSID:          cfg.AccountSID,
-		AuthToken:           cfg.AuthToken,
-		APIKeySID:           cfg.APIKeySID,
-		APIKeySecret:        cfg.APIKeySecret,
-		MessagingServiceSID: messagingServiceSID,
+		CredentialType_WriteOnly: &cfg.CredentialType,
+		AccountSID:               cfg.AccountSID,
+		AuthToken:                cfg.AuthToken,
+		APIKeySID:                cfg.APIKeySID,
+		APIKeySecret:             cfg.APIKeySecret,
+		MessagingServiceSID:      messagingServiceSID,
 	})
 
 	translationService := NewTranslationService(app)
