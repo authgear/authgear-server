@@ -198,8 +198,7 @@ function constructFormState(
     providerType = SMSProviderType.Twilio;
   }
 
-  let twilioCredentialType: TwilioCredentialType =
-    TwilioCredentialType.AuthToken;
+  let twilioCredentialType: TwilioCredentialType = TwilioCredentialType.ApiKey;
   let twilioSID = "";
   let twilioAPIKeySID = "";
   let twilioAuthToken: string | null = "";
