@@ -322,7 +322,8 @@
 /pkg/portal/transport/system_config_handler.go:28:10: requestcontext
 /pkg/resolver/handler/resolve.go:45:9: requestcontext
 /pkg/util/graphqlutil/graphiql.go:27:32: requestcontext
-/pkg/util/httproute/httproute.go:142:38: requestcontext
+/pkg/util/httproute/httproute.go:141:6: requestcontext
+/pkg/util/httproute/httproute.go:149:38: requestcontext
 /pkg/util/httputil/csp.go:158:42: requestcontext
 /pkg/util/httputil/csp.go:164:42: requestcontext
 /pkg/util/httputil/file_server.go:116:11: requestcontext

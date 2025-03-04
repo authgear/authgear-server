@@ -135,7 +135,14 @@ func (r *Router) NotFound(route Route, h http.Handler) {
 }
 
 func (r *Router) HTTPHandler() http.Handler {
-	return r.router
+	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		// Apply a workaround for https://github.com/golang/go/issues/70834
+		// Detect early context canceled, and close the connection with best effort.
+		if req.Context().Err() != nil {
+			rw.Header().Set("Connection", "close")
+		}
+		r.router.ServeHTTP(rw, req)
+	})
 }
 
 func GetParam(r *http.Request, name string) string {

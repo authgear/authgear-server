@@ -1,6 +1,7 @@
 package httproute
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -278,5 +279,42 @@ func TestMiddleware(t *testing.T) {
 				"after m1",
 			})
 		})
+	})
+}
+
+func TestRouter(t *testing.T) {
+	Convey("Do nothing if context does not close early", t, func() {
+		router := NewRouter()
+		router.Add(Route{
+			Methods:     []string{"GET"},
+			PathPattern: "/",
+		}, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		}))
+
+		ctx := context.Background()
+
+		r, _ := http.NewRequestWithContext(ctx, "GET", "/", nil)
+		w := httptest.NewRecorder()
+
+		router.HTTPHandler().ServeHTTP(w, r)
+		So(w.Header().Get("Connection"), ShouldEqual, "")
+	})
+
+	Convey("Add Connection: close if context closes early", t, func() {
+		router := NewRouter()
+		router.Add(Route{
+			Methods:     []string{"GET"},
+			PathPattern: "/",
+		}, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		}))
+
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel()
+
+		r, _ := http.NewRequestWithContext(ctx, "GET", "/", nil)
+		w := httptest.NewRecorder()
+
+		router.HTTPHandler().ServeHTTP(w, r)
+		So(w.Header().Get("Connection"), ShouldEqual, "close")
 	})
 }
