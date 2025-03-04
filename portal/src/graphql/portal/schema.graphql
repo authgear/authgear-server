@@ -806,13 +806,13 @@ input SMSProviderConfigurationTwilioInput {
   accountSID: String!
 
   """"""
-  apiKeySID: String!
+  apiKeySID: String
 
   """"""
-  apiKeySecret: String!
+  apiKeySecret: String
 
   """"""
-  authToken: String!
+  authToken: String
 
   """"""
   credentialType: TwilioCredentialType!
