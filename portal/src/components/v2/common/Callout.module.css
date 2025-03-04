@@ -1,0 +1,5 @@
+.calloutRoot {
+  /* Originally the background color is --accent-a2, which is transparent
+  Use accent-2 to make it a solid color */
+  background-color: var(--accent-2);
+}

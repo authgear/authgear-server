@@ -7,6 +7,7 @@ import DefaultButton from "../../DefaultButton";
 import FormPhoneTextField from "../../FormPhoneTextField";
 import { PortalAPIAppConfig } from "../../types";
 import { useSendTestSMSMutation } from "../../graphql/portal/mutations/sendTestSMS";
+import { CalloutColor, useCalloutToast } from "../v2/common/Callout";
 
 export interface TestSMSDialogProps {
   appID: string;
@@ -34,6 +35,9 @@ export function TestSMSDialog({
     []
   );
 
+  // eslint-disable-next-line no-useless-assignment
+  const { Component: ToastComponent, showToast } = useCalloutToast();
+
   const { sendTestSMS, loading: sendTestSMSLoading } =
     useSendTestSMSMutation(appID);
 
@@ -41,8 +45,14 @@ export function TestSMSDialog({
     sendTestSMS({
       to,
       config: input,
-    });
-  }, [input, sendTestSMS, to]);
+    })
+      .then(() => {
+        showToast({ color: CalloutColor.success, text: "success" });
+      })
+      .catch(() => {
+        showToast({ color: CalloutColor.error, text: "error" });
+      });
+  }, [input, sendTestSMS, showToast, to]);
 
   return (
     <Dialog
@@ -78,6 +88,7 @@ export function TestSMSDialog({
           text={<FormattedMessage id="cancel" />}
         />
       </DialogFooter>
+      <ToastComponent />
     </Dialog>
   );
 }
