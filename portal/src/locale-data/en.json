@@ -1047,7 +1047,7 @@
   "DesignScreen.preview.pages.title.CreatePassword": "Create Password",
   "DesignScreen.preview.pages.title.Error": "Error page",
   "DesignScreen.action.try": "Try",
-  "DesignScreen.action.try.disabledHint": "Click on Save button to preview changes",
+  "DesignScreen.action.try.disabledHint": "Save changes to try the design",
 
   "UISettingsScreen.title": "Design",
   "UISettingsScreen.description": "Authgear comes with some simple styling for your login and signup page. You can customize the look and feel here.",
