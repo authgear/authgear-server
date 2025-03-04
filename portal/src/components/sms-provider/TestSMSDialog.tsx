@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import { SmsProviderConfigurationInput } from "../../graphql/portal/globalTypes.generated";
 import { Dialog, DialogFooter, IDialogProps, Text } from "@fluentui/react";
@@ -8,6 +8,40 @@ import FormPhoneTextField from "../../FormPhoneTextField";
 import { PortalAPIAppConfig } from "../../types";
 import { useSendTestSMSMutation } from "../../graphql/portal/mutations/sendTestSMS";
 import { CalloutColor, useCalloutToast } from "../v2/common/Callout";
+import { FormProvider, useFormTopErrors } from "../../form";
+import { ErrorParseRule, makeReasonErrorParseRule } from "../../error/parse";
+import { APISMSGatewayError } from "../../error/error";
+
+const ERROR_RULES: ErrorParseRule[] = [
+  makeReasonErrorParseRule(
+    "SMSGatewayInvalidPhoneNumber",
+    "TestSMSDialog.errors.gateway-invalid-phone-number-error",
+    (err) => ({
+      code: (err as APISMSGatewayError).info.ProviderErrorCode,
+    })
+  ),
+  makeReasonErrorParseRule(
+    "SMSGatewayAuthenticationFailed",
+    "TestSMSDialog.errors.gateway-authentication-failed-error",
+    (err) => ({
+      code: (err as APISMSGatewayError).info.ProviderErrorCode,
+    })
+  ),
+  makeReasonErrorParseRule(
+    "SMSGatewayDeliveryRejected",
+    "TestSMSDialog.errors.gateway-delivery-rejected-error",
+    (err) => ({
+      code: (err as APISMSGatewayError).info.ProviderErrorCode,
+    })
+  ),
+  makeReasonErrorParseRule(
+    "SMSGatewayRateLimited",
+    "TestSMSDialog.errors.gateway-rate-limited-error",
+    (err) => ({
+      code: (err as APISMSGatewayError).info.ProviderErrorCode,
+    })
+  ),
+];
 
 export interface TestSMSDialogProps {
   appID: string;
@@ -38,8 +72,11 @@ export function TestSMSDialog({
   // eslint-disable-next-line no-useless-assignment
   const { Component: ToastComponent, showToast } = useCalloutToast();
 
-  const { sendTestSMS, loading: sendTestSMSLoading } =
-    useSendTestSMSMutation(appID);
+  const {
+    sendTestSMS,
+    loading: sendTestSMSLoading,
+    error: sendTestSMSError,
+  } = useSendTestSMSMutation(appID);
 
   const onSend = useCallback(() => {
     sendTestSMS({
@@ -47,48 +84,81 @@ export function TestSMSDialog({
       config: input,
     })
       .then(() => {
-        showToast({ color: CalloutColor.success, text: "success" });
+        showToast({
+          color: CalloutColor.success,
+          text: <FormattedMessage id="TestSMSDialog.toast.success" />,
+        });
       })
-      .catch(() => {
-        showToast({ color: CalloutColor.error, text: "error" });
-      });
+      // The error is handled by toast
+      .catch(console.warn);
   }, [input, sendTestSMS, showToast, to]);
 
   return (
-    <Dialog
-      hidden={isHidden}
-      dialogContentProps={useMemo<IDialogProps["dialogContentProps"]>(() => {
-        return {
-          title: <FormattedMessage id="TestSMSDialog.title" />,
-        };
-      }, [])}
-      onDismiss={onCancel}
+    <FormProvider
+      loading={sendTestSMSLoading}
+      error={sendTestSMSError}
+      rules={ERROR_RULES}
     >
-      <div>
-        <Text className="mb-3" block={true}>
-          <FormattedMessage id="TestSMSDialog.description" />
-        </Text>
-        <FormPhoneTextField
-          parentJSONPointer=""
-          fieldName="to"
-          allowlist={effectiveAppConfig?.ui?.phone_input?.allowlist}
-          pinnedList={effectiveAppConfig?.ui?.phone_input?.pinned_list}
-          inputValue={toInputValue}
-          onChange={onChangeValues}
-        />
-      </div>
-      <DialogFooter>
-        <PrimaryButton
-          onClick={onSend}
-          disabled={!to || sendTestSMSLoading}
-          text={<FormattedMessage id="TestSMSDialog.send" />}
-        />
-        <DefaultButton
-          onClick={onCancel}
-          text={<FormattedMessage id="cancel" />}
-        />
-      </DialogFooter>
+      <Dialog
+        hidden={isHidden}
+        dialogContentProps={useMemo<IDialogProps["dialogContentProps"]>(() => {
+          return {
+            title: <FormattedMessage id="TestSMSDialog.title" />,
+          };
+        }, [])}
+        onDismiss={onCancel}
+      >
+        <div>
+          <Text className="mb-3" block={true}>
+            <FormattedMessage id="TestSMSDialog.description" />
+          </Text>
+          <FormPhoneTextField
+            parentJSONPointer=""
+            fieldName="to"
+            allowlist={effectiveAppConfig?.ui?.phone_input?.allowlist}
+            pinnedList={effectiveAppConfig?.ui?.phone_input?.pinned_list}
+            inputValue={toInputValue}
+            onChange={onChangeValues}
+          />
+        </div>
+        <DialogFooter>
+          <PrimaryButton
+            onClick={onSend}
+            disabled={!to || sendTestSMSLoading}
+            text={<FormattedMessage id="TestSMSDialog.send" />}
+          />
+          <DefaultButton
+            onClick={onCancel}
+            text={<FormattedMessage id="cancel" />}
+          />
+        </DialogFooter>
+        <ToastComponent />
+        <ErrorToast />
+      </Dialog>
+    </FormProvider>
+  );
+}
+
+function ErrorToast() {
+  const errors = useFormTopErrors();
+
+  // eslint-disable-next-line no-useless-assignment
+  const { Component: ToastComponent, showToast } = useCalloutToast();
+
+  useEffect(() => {
+    for (const err of errors) {
+      showToast({
+        color: CalloutColor.error,
+        text: (
+          <FormattedMessage id={err.messageID ?? ""} values={err.arguments} />
+        ),
+      });
+    }
+  }, [errors, showToast]);
+
+  return (
+    <>
       <ToastComponent />
-    </Dialog>
+    </>
   );
 }
