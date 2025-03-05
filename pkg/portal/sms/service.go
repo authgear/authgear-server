@@ -34,17 +34,14 @@ func (s *Service) sendByTwilio(
 	to string,
 	cfg model.SMSProviderConfigurationTwilioInput,
 ) error {
-	messagingServiceSID := ""
-	if cfg.MessagingServiceSID != nil {
-		messagingServiceSID = *cfg.MessagingServiceSID
-	}
 	twilioClient := twilio.NewTwilioClient(&config.TwilioCredentials{
 		CredentialType_WriteOnly: &cfg.CredentialType,
 		AccountSID:               cfg.AccountSID,
 		AuthToken:                cfg.AuthToken,
 		APIKeySID:                cfg.APIKeySID,
 		APIKeySecret:             cfg.APIKeySecret,
-		MessagingServiceSID:      messagingServiceSID,
+		MessagingServiceSID:      cfg.MessagingServiceSID,
+		From:                     cfg.From,
 	})
 
 	translationService := NewTranslationService(app)

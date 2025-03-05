@@ -70,6 +70,9 @@ var smsProviderConfigurationTwilioInput = graphql.NewInputObject(graphql.InputOb
 		"messagingServiceSID": &graphql.InputObjectFieldConfig{
 			Type: graphql.String,
 		},
+		"from": &graphql.InputObjectFieldConfig{
+			Type: graphql.String,
+		},
 	},
 })
 

@@ -786,6 +786,7 @@ type SMSProviderSecretsUpdateInstructionTwilioCredentials struct {
 	APIKeySID           string               `json:"apiKeySID,omitempty"`
 	APIKeySecret        string               `json:"apiKeySecret,omitempty"`
 	MessagingServiceSID string               `json:"messagingServiceSID,omitempty"`
+	From                string               `json:"from,omitempty"`
 }
 
 type SMSProviderSecretsUpdateInstructionCustomSMSProvider struct {
@@ -858,6 +859,7 @@ func (i *SMSProviderSecretsUpdateInstruction) set(currentConfig *SecretConfig) (
 			APIKeySID:                i.SetData.TwilioCredentials.APIKeySID,
 			APIKeySecret:             i.SetData.TwilioCredentials.APIKeySecret,
 			MessagingServiceSID:      i.SetData.TwilioCredentials.MessagingServiceSID,
+			From:                     i.SetData.TwilioCredentials.From,
 		}
 		err := upsert(TwilioCredentialsKey, twilioCredentials)
 		if err != nil {

@@ -14,7 +14,8 @@ type SMSProviderConfigurationTwilioInput struct {
 	AuthToken           string                      `json:"authToken,omitempty"`
 	APIKeySID           string                      `json:"apiKeySID,omitempty"`
 	APIKeySecret        string                      `json:"apiKeySecret,omitempty"`
-	MessagingServiceSID *string                     `json:"messagingServiceSID,omitempty"`
+	MessagingServiceSID string                      `json:"messagingServiceSID,omitempty"`
+	From                string                      `json:"from,omitempty"`
 }
 
 type SMSProviderConfigurationWebhookInput struct {

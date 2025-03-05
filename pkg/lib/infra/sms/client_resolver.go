@@ -29,6 +29,7 @@ type TwilioClientCredentials struct {
 	APIKeySID           string
 	APIKeySecret        string
 	MessagingServiceSID string
+	From                string
 }
 
 func (c *TwilioClientCredentials) toSecret() *config.TwilioCredentials {
@@ -42,6 +43,7 @@ func (c *TwilioClientCredentials) toSecret() *config.TwilioCredentials {
 		APIKeySID:                c.APIKeySID,
 		APIKeySecret:             c.APIKeySecret,
 		MessagingServiceSID:      c.MessagingServiceSID,
+		From:                     c.From,
 	}
 }
 
@@ -234,6 +236,7 @@ func (r *ClientResolver) clientsFromAuthgearSecretsYAML() (*nexmo.NexmoClient, *
 			APIKeySID:           r.AuthgearSecretsYAMLTwilioCredentials.APIKeySID,
 			APIKeySecret:        r.AuthgearSecretsYAMLTwilioCredentials.APIKeySecret,
 			MessagingServiceSID: r.AuthgearSecretsYAMLTwilioCredentials.MessagingServiceSID,
+			From:                r.AuthgearSecretsYAMLTwilioCredentials.From,
 		}
 	}
 
@@ -252,7 +255,6 @@ func (r *ClientResolver) clientsFromEnv() (*nexmo.NexmoClient, *NexmoClientCrede
 	var twilioClientCredentials *TwilioClientCredentials
 	var customClientCredentials *CustomClientCredentials
 
-	print(fmt.Sprintf("%v", r.EnvironmentNexmoCredentials))
 	if r.EnvironmentNexmoCredentials != (config.SMSGatewayEnvironmentNexmoCredentials{}) {
 		nexmoClientCredentials = &NexmoClientCredentials{
 			APIKey:    r.EnvironmentNexmoCredentials.APIKey,
@@ -269,6 +271,7 @@ func (r *ClientResolver) clientsFromEnv() (*nexmo.NexmoClient, *NexmoClientCrede
 			APIKeySID:           "",
 			APIKeySecret:        "",
 			MessagingServiceSID: r.EnvironmentTwilioCredentials.MessagingServiceSID,
+			From:                "",
 		}
 	}
 

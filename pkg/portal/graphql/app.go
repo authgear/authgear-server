@@ -198,13 +198,16 @@ var smsProviderTwilioCredentials = graphql.NewObject(graphql.ObjectConfig{
 			Type: graphql.String,
 		},
 		"apiKeySID": &graphql.Field{
-			Type: graphql.NewNonNull(graphql.String),
+			Type: graphql.String,
 		},
 		"apiKeySecret": &graphql.Field{
 			Type: graphql.String,
 		},
 		"messagingServiceSID": &graphql.Field{
-			Type: graphql.NewNonNull(graphql.String),
+			Type: graphql.String,
+		},
+		"from": &graphql.Field{
+			Type: graphql.String,
 		},
 	},
 })

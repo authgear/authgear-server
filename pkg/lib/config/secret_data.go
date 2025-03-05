@@ -266,7 +266,8 @@ var _ = SecretConfigSchema.Add("TwilioCredentials", `
 		"auth_token": { "type": "string" },
 		"api_key_sid": { "type": "string" },
 		"api_key_secret": { "type": "string" },
-		"message_service_sid": { "type": "string" }
+		"message_service_sid": { "type": "string" },
+		"from": { "type": "string" }
 	},
 	"required": ["account_sid"],
 	"allOf": [
@@ -297,6 +298,7 @@ type TwilioCredentials struct {
 	APIKeySID                string                `json:"api_key_sid,omitempty"`
 	APIKeySecret             string                `json:"api_key_secret,omitempty"`
 	MessagingServiceSID      string                `json:"message_service_sid,omitempty"`
+	From                     string                `json:"from,omitempty"`
 }
 
 func (c *TwilioCredentials) SensitiveStrings() []string {

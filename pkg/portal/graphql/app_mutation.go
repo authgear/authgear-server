@@ -159,13 +159,16 @@ var smsProviderTwilioCredentialsInput = graphql.NewInputObject(graphql.InputObje
 			Type: graphql.String,
 		},
 		"apiKeySID": &graphql.InputObjectFieldConfig{
-			Type: graphql.NewNonNull(graphql.String),
+			Type: graphql.String,
 		},
 		"apiKeySecret": &graphql.InputObjectFieldConfig{
 			Type: graphql.String,
 		},
 		"messagingServiceSID": &graphql.InputObjectFieldConfig{
-			Type: graphql.NewNonNull(graphql.String),
+			Type: graphql.String,
+		},
+		"from": &graphql.InputObjectFieldConfig{
+			Type: graphql.String,
 		},
 	},
 })
