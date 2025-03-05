@@ -1,4 +1,8 @@
-import { InfoCircledIcon, Cross2Icon } from "@radix-ui/react-icons";
+import {
+  Cross2Icon,
+  CheckCircledIcon,
+  ExclamationTriangleIcon,
+} from "@radix-ui/react-icons";
 import { Callout as RadixCallout } from "@radix-ui/themes";
 import React, { ComponentProps, useCallback } from "react";
 import styles from "./Callout.module.css";
@@ -26,6 +30,15 @@ function colorToRadixColor(
   }
 }
 
+function CalloutIcon({ color }: { color: CalloutColor }) {
+  switch (color) {
+    case CalloutColor.error:
+      return <ExclamationTriangleIcon />;
+    case CalloutColor.success:
+      return <CheckCircledIcon />;
+  }
+}
+
 export function Callout({
   color,
   text,
@@ -45,7 +58,7 @@ export function Callout({
       variant="surface"
     >
       <RadixCallout.Icon className={styles.calloutIcon}>
-        <InfoCircledIcon />
+        <CalloutIcon color={color} />
       </RadixCallout.Icon>
       <RadixCallout.Text className={styles.calloutText}>
         {text}
