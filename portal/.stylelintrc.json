@@ -1,5 +1,5 @@
 {
-  "extends": ["@oursky/stylelint-oursky/config/oursky"],
+  "extends": ["./node_modules/@oursky/stylelint-oursky/config/oursky.mjs"],
   "rules": {
     "plugin/no-unsupported-browser-features": [
       true,
