@@ -855,11 +855,18 @@ func (i *SMSProviderSecretsUpdateInstruction) set(currentConfig *SecretConfig) (
 		twilioCredentials := TwilioCredentials{
 			CredentialType_WriteOnly: &i.SetData.TwilioCredentials.CredentialType,
 			AccountSID:               i.SetData.TwilioCredentials.AccountSID,
-			AuthToken:                i.SetData.TwilioCredentials.AuthToken,
-			APIKeySID:                i.SetData.TwilioCredentials.APIKeySID,
-			APIKeySecret:             i.SetData.TwilioCredentials.APIKeySecret,
-			MessagingServiceSID:      i.SetData.TwilioCredentials.MessagingServiceSID,
-			From:                     i.SetData.TwilioCredentials.From,
+		}
+		switch i.SetData.TwilioCredentials.CredentialType {
+		case TwilioCredentialTypeAPIKey:
+			twilioCredentials.APIKeySID = i.SetData.TwilioCredentials.APIKeySID
+			twilioCredentials.APIKeySecret = i.SetData.TwilioCredentials.APIKeySecret
+		case TwilioCredentialTypeAuthToken:
+			twilioCredentials.AuthToken = i.SetData.TwilioCredentials.AuthToken
+		}
+		if i.SetData.TwilioCredentials.MessagingServiceSID != "" {
+			twilioCredentials.MessagingServiceSID = i.SetData.TwilioCredentials.MessagingServiceSID
+		} else if i.SetData.TwilioCredentials.From != "" {
+			twilioCredentials.From = i.SetData.TwilioCredentials.From
 		}
 		err := upsert(TwilioCredentialsKey, twilioCredentials)
 		if err != nil {
