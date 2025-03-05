@@ -409,10 +409,6 @@ function constructSecretUpdateInstruction(
         console.error("unexpected null twilioCredentials");
         return undefined;
       }
-      if (secrets.smsProviderSecrets.twilioCredentials.authToken == null) {
-        console.error("unexpected masked twilioCredentials");
-        return undefined;
-      }
       return {
         smsProviderSecrets: {
           action: "set",
