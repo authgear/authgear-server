@@ -10,7 +10,8 @@
           "css-gradients",
           "css3-cursors",
           "flexbox",
-          "multicolumn"
+          "multicolumn",
+          "css-nesting"
         ]
       }
     ],
