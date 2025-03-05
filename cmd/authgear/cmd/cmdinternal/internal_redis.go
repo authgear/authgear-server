@@ -14,13 +14,10 @@ func init() {
 	binder := authgearcmd.GetBinder()
 
 	cmdInternal.AddCommand(cmdInternalRedis)
-	cmdInternalRedis.AddCommand(cmdInternalRedisListNonExpiringKeys)
 	cmdInternalRedis.AddCommand(cmdInternalRedisCleanUpNonExpiringKeys)
 
 	cmdInternalRedisCleanUpNonExpiringKeys.AddCommand(cmdInternalRedisCleanUpNonExpiringKeysAccessEvents)
 	cmdInternalRedisCleanUpNonExpiringKeys.AddCommand(cmdInternalRedisCleanUpNonExpiringKeysSessionHashes)
-
-	binder.BindString(cmdInternalRedisListNonExpiringKeys.Flags(), authgearcmd.ArgRedisURL)
 
 	binder.BindString(cmdInternalRedisCleanUpNonExpiringKeysAccessEvents.Flags(), authgearcmd.ArgRedisURL)
 	_ = cmdInternalRedisCleanUpNonExpiringKeysAccessEvents.Flags().Bool("dry-run", true, "Dry-run or not.")
@@ -32,31 +29,6 @@ func init() {
 var cmdInternalRedis = &cobra.Command{
 	Use:   "redis",
 	Short: "Redis commands",
-}
-
-var cmdInternalRedisListNonExpiringKeys = &cobra.Command{
-	Use:   "list-non-expiring-keys",
-	Short: "List all non-expiring keys",
-	RunE: func(cmd *cobra.Command, args []string) error {
-		binder := authgearcmd.GetBinder()
-
-		redisURL, err := binder.GetRequiredString(cmd, authgearcmd.ArgRedisURL)
-		if err != nil {
-			return err
-		}
-
-		redisClient, err := cmdredis.NewClient(redisURL)
-		if err != nil {
-			return err
-		}
-
-		err = cmdredis.ListNonExpiringKeys(cmd.Context(), redisClient, os.Stdout, log.Default())
-		if err != nil {
-			return err
-		}
-
-		return nil
-	},
 }
 
 // According to https://linear.app/authgear/issue/DEV-1325/properly-clean-up-redis-keys
