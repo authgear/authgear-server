@@ -1252,7 +1252,7 @@ function TwilioForm({ form }: { form: AppSecretConfigFormModel<FormState> }) {
           <>
             {render?.(props)}
             <div className="inline-flex">
-              <Tooltip tooltipMessageId="SMSProviderConfigurationScreen.form.twilio.twilioMessagingServiceSID.hint" />
+              <Tooltip tooltipMessageId="SMSProviderConfigurationScreen.form.twilio.twilioMessagingServiceSID.tooltip" />
             </div>
           </>
         ),
@@ -1271,7 +1271,7 @@ function TwilioForm({ form }: { form: AppSecretConfigFormModel<FormState> }) {
           <>
             {render?.(props)}
             <div className="inline-flex">
-              <Tooltip tooltipMessageId="SMSProviderConfigurationScreen.form.twilio.twilioFrom.hint" />
+              <Tooltip tooltipMessageId="SMSProviderConfigurationScreen.form.twilio.twilioFrom.tooltip" />
             </div>
           </>
         ),
@@ -1299,11 +1299,6 @@ function TwilioForm({ form }: { form: AppSecretConfigFormModel<FormState> }) {
       flexContainer: {
         display: "flex",
         columnGap: "16px",
-        selectors: {
-          ".ms-ChoiceField": {
-            display: "block",
-          },
-        },
       },
     }),
     []
@@ -1333,41 +1328,54 @@ function TwilioForm({ form }: { form: AppSecretConfigFormModel<FormState> }) {
         styles={credentialTypeChoiceGroupStyles}
         disabled={isTwilioSecretMasked}
       />
-      <ChoiceGroup
-        selectedKey={form.state.twilioSenderType}
-        options={senderOptions}
-        onChange={onSenderTypeChange}
-        disabled={isTwilioSecretMasked}
-        label={renderToString(
-          "SMSProviderConfigurationScreen.form.twilio.sender"
+      <div className="flex flex-col gap-3">
+        <ChoiceGroup
+          selectedKey={form.state.twilioSenderType}
+          options={senderOptions}
+          onChange={onSenderTypeChange}
+          disabled={isTwilioSecretMasked}
+          label={renderToString(
+            "SMSProviderConfigurationScreen.form.twilio.sender"
+          )}
+          styles={senderTypeChoiceGroupStyles}
+        />
+        {form.state.twilioSenderType ===
+        TwilioSenderType.MessagingServiceSID ? (
+          <div className="flex flex-col gap-2">
+            <FormTextField
+              type="text"
+              placeholder={renderToString(
+                "SMSProviderConfigurationScreen.form.twilio.twilioMessagingServiceSID.placeholder"
+              )}
+              value={form.state.twilioMessagingServiceSID}
+              onChange={onStringChangeCallbacks.twilioMessagingServiceSID}
+              disabled={isTwilioSecretMasked}
+              parentJSONPointer={/\/secrets\/\d+\/data/}
+              fieldName="message_service_sid"
+            />
+            <Text>
+              <FormattedMessage
+                id="SMSProviderConfigurationScreen.form.twilio.twilioMessagingServiceSID.hint"
+                values={{
+                  href: "https://www.twilio.com/docs/messaging/services",
+                }}
+              />
+            </Text>
+          </div>
+        ) : (
+          <FormTextField
+            type="text"
+            placeholder={renderToString(
+              "SMSProviderConfigurationScreen.form.twilio.twilioFrom.placeholder"
+            )}
+            value={form.state.twilioFrom}
+            onChange={onStringChangeCallbacks.twilioFrom}
+            disabled={isTwilioSecretMasked}
+            parentJSONPointer={/\/secrets\/\d+\/data/}
+            fieldName="from"
+          />
         )}
-        styles={senderTypeChoiceGroupStyles}
-      />
-      {form.state.twilioSenderType === TwilioSenderType.MessagingServiceSID ? (
-        <FormTextField
-          type="text"
-          placeholder={renderToString(
-            "SMSProviderConfigurationScreen.form.twilio.twilioMessagingServiceSID.placeholder"
-          )}
-          value={form.state.twilioMessagingServiceSID}
-          onChange={onStringChangeCallbacks.twilioMessagingServiceSID}
-          disabled={isTwilioSecretMasked}
-          parentJSONPointer={/\/secrets\/\d+\/data/}
-          fieldName="message_service_sid"
-        />
-      ) : (
-        <FormTextField
-          type="text"
-          placeholder={renderToString(
-            "SMSProviderConfigurationScreen.form.twilio.twilioFrom.placeholder"
-          )}
-          value={form.state.twilioFrom}
-          onChange={onStringChangeCallbacks.twilioFrom}
-          disabled={isTwilioSecretMasked}
-          parentJSONPointer={/\/secrets\/\d+\/data/}
-          fieldName="from"
-        />
-      )}
+      </div>
     </div>
   );
 }
