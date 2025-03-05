@@ -26,6 +26,7 @@ import {
 } from "../../types";
 import { useViewerQuery } from "./query/viewerQuery";
 import {
+  SendTestEmailOptions,
   useSendTestEmailMutation,
   UseSendTestEmailMutationReturnType,
 } from "./mutations/sendTestEmail";
@@ -54,7 +55,10 @@ function isLocationState(raw: unknown): raw is LocationState {
   );
 }
 
-type ProviderType = "sendgrid" | "custom";
+enum ProviderType {
+  Sendgrid = "sendgrid",
+  Custom = "custom",
+}
 
 const MASKED_PASSWORD_VALUE = "****************";
 
@@ -64,10 +68,14 @@ const SENDGRID_USERNAME = "apikey";
 
 interface FormState {
   enabled: boolean;
-  host: string;
-  portString: string;
-  username: string;
-  password: string;
+  providerType: ProviderType;
+  sendgridAPIKey: string;
+
+  customHost: string;
+  customPortString: string;
+  customUsername: string;
+  customPassword: string;
+
   isPasswordMasked: boolean;
 }
 
@@ -76,18 +84,44 @@ function constructFormState(
   secrets: PortalAPISecretConfig
 ): FormState {
   const enabled = secrets.smtpSecret != null;
-  const host = secrets.smtpSecret?.host ?? "";
-  const portString =
-    secrets.smtpSecret?.port != null ? String(secrets.smtpSecret.port) : "";
-  const username = secrets.smtpSecret?.username ?? "";
-  const password = secrets.smtpSecret?.password ?? "";
+
+  const isSendgrid =
+    secrets.smtpSecret != null &&
+    secrets.smtpSecret.host === SENDGRID_HOST &&
+    String(secrets.smtpSecret.port) === SENDGRID_PORT_STRING &&
+    secrets.smtpSecret.username === SENDGRID_USERNAME;
+  const providerType = isSendgrid ? ProviderType.Sendgrid : ProviderType.Custom;
   const isPasswordMasked = enabled && secrets.smtpSecret?.password == null;
+
+  let sendgridAPIKey = "";
+  let customHost = "";
+  let customPortString = "";
+  let customUsername = "";
+  let customPassword = "";
+
+  switch (providerType) {
+    case ProviderType.Sendgrid:
+      sendgridAPIKey = secrets.smtpSecret?.password ?? "";
+      break;
+    case ProviderType.Custom:
+      customHost = secrets.smtpSecret?.host ?? "";
+      customPortString =
+        secrets.smtpSecret?.port != null ? String(secrets.smtpSecret.port) : "";
+      customUsername = secrets.smtpSecret?.username ?? "";
+      customPassword = secrets.smtpSecret?.password ?? "";
+      break;
+
+    default:
+      break;
+  }
   return {
     enabled,
-    host,
-    portString,
-    username,
-    password,
+    providerType,
+    sendgridAPIKey,
+    customHost,
+    customPortString,
+    customUsername,
+    customPassword,
     isPasswordMasked,
   };
 }
@@ -102,20 +136,31 @@ function constructConfig(
   const newSecrets = produce(secrets, (secrets) => {
     if (!currentState.enabled) {
       secrets.smtpSecret = null;
-    } else if (currentState.isPasswordMasked) {
-      secrets.smtpSecret = {
-        host: currentState.host,
-        port: Number(currentState.portString),
-        username: currentState.username,
-        password: null,
-      };
     } else {
-      secrets.smtpSecret = {
-        host: currentState.host,
-        port: Number(currentState.portString),
-        username: currentState.username,
-        password: currentState.password,
-      };
+      switch (currentState.providerType) {
+        case ProviderType.Sendgrid:
+          secrets.smtpSecret = {
+            host: SENDGRID_HOST,
+            port: Number(SENDGRID_PORT_STRING),
+            username: SENDGRID_USERNAME,
+            password: currentState.isPasswordMasked
+              ? null
+              : currentState.sendgridAPIKey,
+          };
+          break;
+        case ProviderType.Custom:
+          secrets.smtpSecret = {
+            host: currentState.customHost,
+            port: Number(currentState.customPortString),
+            username: currentState.customUsername,
+            password: currentState.isPasswordMasked
+              ? null
+              : currentState.customPassword,
+          };
+          break;
+        default:
+          console.error("unexpected provider type", currentState.providerType);
+      }
     }
   });
   return [config, newSecrets];
@@ -174,17 +219,78 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
     const { renderToString } = useContext(Context);
 
     const openSendTestEmailDialogButtonEnabled = useMemo(() => {
-      return (
-        state.host !== "" &&
-        state.portString !== "" &&
-        state.username !== "" &&
-        state.password !== ""
-      );
+      if (!state.enabled) {
+        return false;
+      }
+      switch (state.providerType) {
+        case ProviderType.Sendgrid:
+          return state.sendgridAPIKey !== "";
+        case ProviderType.Custom:
+          return (
+            state.customHost !== "" &&
+            state.customPortString !== "" &&
+            state.customUsername !== "" &&
+            state.customPassword !== ""
+          );
+      }
     }, [state]);
 
     const sendTestEmailButtonEnabled = useMemo(() => {
       return toAddress !== "";
     }, [toAddress]);
+
+    const onStringChangeCallbacks = useMemo(() => {
+      const callbackFactory = (
+        key:
+          | "sendgridAPIKey"
+          | "customHost"
+          | "customUsername"
+          | "customPassword"
+      ) => {
+        return (_: unknown, value?: string) => {
+          if (value != null) {
+            setState((state) => {
+              return {
+                ...state,
+                [key]: value,
+              };
+            });
+          }
+        };
+      };
+      return {
+        sendgridAPIKey: callbackFactory("sendgridAPIKey"),
+        customHost: callbackFactory("customHost"),
+        customUsername: callbackFactory("customUsername"),
+        customPassword: callbackFactory("customPassword"),
+      };
+    }, [setState]);
+
+    const onCustomPortChange = useCallback(
+      (_: unknown, value?: string) => {
+        if (value != null) {
+          let newValue: string | undefined;
+          if (value !== "") {
+            const port = Number(value);
+            if (!isNaN(port)) {
+              newValue = value;
+            }
+          } else {
+            newValue = "";
+          }
+          if (newValue !== undefined) {
+            const v = newValue;
+            setState((state) => {
+              return {
+                ...state,
+                customPortString: v,
+              };
+            });
+          }
+        }
+      },
+      [setState]
+    );
 
     const onChangeEnabled = useCallback(
       (_event, checked?: boolean) => {
@@ -193,74 +299,6 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
             return {
               ...state,
               enabled: checked,
-            };
-          });
-        }
-      },
-      [setState]
-    );
-
-    const onChangeHost = useCallback(
-      (_, value?: string) => {
-        if (value != null) {
-          setState((state) => {
-            return {
-              ...state,
-              host: value,
-            };
-          });
-        }
-      },
-      [setState]
-    );
-
-    const onChangePort = useCallback(
-      (_, value?: string) => {
-        if (value != null) {
-          if (value === "") {
-            setState((state) => {
-              return {
-                ...state,
-                portString: "",
-              };
-            });
-          } else {
-            const port = Number(value);
-            if (!isNaN(port)) {
-              setState((state) => {
-                return {
-                  ...state,
-                  portString: value,
-                };
-              });
-            }
-          }
-        }
-      },
-      [setState]
-    );
-
-    const onChangeUsername = useCallback(
-      (_, value?: string) => {
-        if (value != null) {
-          setState((state) => {
-            return {
-              ...state,
-              username: value,
-            };
-          });
-        }
-      },
-      [setState]
-    );
-
-    const onChangePassword = useCallback(
-      (_, value?: string) => {
-        if (value != null) {
-          setState((state) => {
-            return {
-              ...state,
-              password: value,
             };
           });
         }
@@ -315,13 +353,29 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
         e?.preventDefault();
         e?.stopPropagation();
 
-        sendTestEmail({
-          smtpHost: state.host,
-          smtpPort: parseInt(state.portString, 10),
-          smtpUsername: state.username,
-          smtpPassword: state.password,
-          to: toAddress,
-        }).then(
+        let input: SendTestEmailOptions;
+        switch (state.providerType) {
+          case ProviderType.Sendgrid:
+            input = {
+              smtpHost: SENDGRID_HOST,
+              smtpPort: parseInt(SENDGRID_PORT_STRING, 10),
+              smtpUsername: SENDGRID_USERNAME,
+              smtpPassword: state.sendgridAPIKey,
+              to: toAddress,
+            };
+            break;
+          case ProviderType.Custom:
+            input = {
+              smtpHost: state.customHost,
+              smtpPort: parseInt(state.customPortString, 10),
+              smtpUsername: state.customUsername,
+              smtpPassword: state.customPassword,
+              to: toAddress,
+            };
+            break;
+        }
+
+        sendTestEmail(input).then(
           () => {
             setIsDialogHidden(true);
           },
@@ -350,14 +404,6 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
       };
     }, [renderToString]);
 
-    const providerType: ProviderType = useMemo(() => {
-      const isSendgrid =
-        state.host === SENDGRID_HOST &&
-        state.portString === SENDGRID_PORT_STRING &&
-        state.username === SENDGRID_USERNAME;
-      return isSendgrid ? "sendgrid" : "custom";
-    }, [state]);
-
     const onClickProviderSendgrid = useCallback(
       (e: React.MouseEvent<unknown>) => {
         e.preventDefault();
@@ -366,10 +412,7 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
         setState((state) => {
           return {
             ...state,
-            host: SENDGRID_HOST,
-            portString: SENDGRID_PORT_STRING,
-            username: SENDGRID_USERNAME,
-            password: "",
+            providerType: ProviderType.Sendgrid,
           };
         });
       },
@@ -384,10 +427,7 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
         setState((state) => {
           return {
             ...state,
-            host: "",
-            portString: "",
-            username: "",
-            password: "",
+            providerType: ProviderType.Custom,
           };
         });
       },
@@ -437,7 +477,7 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
               <ProviderCard
                 className={styles.columnLeft}
                 onClick={onClickProviderSendgrid}
-                isSelected={providerType === "sendgrid"}
+                isSelected={state.providerType === ProviderType.Sendgrid}
                 disabled={state.isPasswordMasked}
                 logoSrc={logoSendgrid}
               >
@@ -446,13 +486,13 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
               <ProviderCard
                 className={styles.columnRight}
                 onClick={onClickProviderCustom}
-                isSelected={providerType === "custom"}
+                isSelected={state.providerType === ProviderType.Custom}
                 disabled={state.isPasswordMasked}
                 iconProps={CUSTOM_PROVIDER_ICON_PROPS}
               >
                 <FormattedMessage id="SMTPConfigurationScreen.provider.custom" />
               </ProviderCard>
-              {providerType === "custom" ? (
+              {form.state.providerType === ProviderType.Custom ? (
                 <>
                   <ProviderCardDescription>
                     <FormattedMessage id="SMTPConfigurationScreen.custom.description" />
@@ -461,10 +501,10 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
                     className={styles.columnLeft}
                     type="text"
                     label={renderToString("SMTPConfigurationScreen.host.label")}
-                    value={state.host}
+                    value={state.customHost}
                     disabled={state.isPasswordMasked}
                     required={true}
-                    onChange={onChangeHost}
+                    onChange={onStringChangeCallbacks.customHost}
                     parentJSONPointer={/\/secrets\/\d+\/data/}
                     fieldName="host"
                     {...hostProps}
@@ -473,10 +513,10 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
                     className={styles.columnLeft}
                     type="text"
                     label={renderToString("SMTPConfigurationScreen.port.label")}
-                    value={state.portString}
+                    value={state.customPortString}
                     disabled={state.isPasswordMasked}
                     required={true}
-                    onChange={onChangePort}
+                    onChange={onCustomPortChange}
                     parentJSONPointer={/\/secrets\/\d+\/data/}
                     fieldName="port"
                     {...portProps}
@@ -487,10 +527,10 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
                     label={renderToString(
                       "SMTPConfigurationScreen.username.label"
                     )}
-                    value={state.username}
+                    value={state.customUsername}
                     disabled={state.isPasswordMasked}
                     required={true}
-                    onChange={onChangeUsername}
+                    onChange={onStringChangeCallbacks.customUsername}
                     parentJSONPointer={/\/secrets\/\d+\/data/}
                     fieldName="username"
                   />
@@ -503,17 +543,17 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
                     value={
                       state.isPasswordMasked
                         ? MASKED_PASSWORD_VALUE
-                        : state.password
+                        : state.customPassword
                     }
                     disabled={state.isPasswordMasked}
                     required={true}
-                    onChange={onChangePassword}
+                    onChange={onStringChangeCallbacks.customPassword}
                     parentJSONPointer={/\/secrets\/\d+\/data/}
                     fieldName="password"
                   />
                 </>
               ) : null}
-              {providerType === "sendgrid" ? (
+              {form.state.providerType === ProviderType.Sendgrid ? (
                 <>
                   <ProviderCardDescription>
                     <FormattedMessage id="SMTPConfigurationScreen.sendgrid.description" />
@@ -527,11 +567,11 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
                     value={
                       state.isPasswordMasked
                         ? MASKED_PASSWORD_VALUE
-                        : state.password
+                        : state.sendgridAPIKey
                     }
                     required={true}
                     disabled={state.isPasswordMasked}
-                    onChange={onChangePassword}
+                    onChange={onStringChangeCallbacks.sendgridAPIKey}
                     parentJSONPointer={/\/secrets\/\d+\/data/}
                     fieldName="password"
                     {...sendgridAPIKeyProps}
