@@ -818,6 +818,9 @@ input SMSProviderConfigurationTwilioInput {
   credentialType: TwilioCredentialType!
 
   """"""
+  from: String
+
+  """"""
   messagingServiceSID: String
 }
 
@@ -872,7 +875,7 @@ type SMSProviderTwilioCredentials {
   accountSID: String!
 
   """"""
-  apiKeySID: String!
+  apiKeySID: String
 
   """"""
   apiKeySecret: String
@@ -884,7 +887,10 @@ type SMSProviderTwilioCredentials {
   credentialType: TwilioCredentialType!
 
   """"""
-  messagingServiceSID: String!
+  from: String
+
+  """"""
+  messagingServiceSID: String
 }
 
 """"""
@@ -893,7 +899,7 @@ input SMSProviderTwilioCredentialsInput {
   accountSID: String!
 
   """"""
-  apiKeySID: String!
+  apiKeySID: String
 
   """"""
   apiKeySecret: String
@@ -905,7 +911,10 @@ input SMSProviderTwilioCredentialsInput {
   credentialType: TwilioCredentialType!
 
   """"""
-  messagingServiceSID: String!
+  from: String
+
+  """"""
+  messagingServiceSID: String
 }
 
 """SMTP secret"""
