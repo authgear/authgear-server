@@ -3,6 +3,7 @@ import { useLocation, useNavigate, useParams } from "react-router-dom";
 import {
   AppSecretKey,
   SmsProviderConfigurationInput,
+  SmsProviderConfigurationTwilioInput,
   TwilioCredentialType,
 } from "./globalTypes.generated";
 import React, {
@@ -538,9 +539,33 @@ function useTestSMSConfig(
       return null;
     }
     switch (state.providerType) {
-      case SMSProviderType.Twilio:
+      case SMSProviderType.Twilio: {
         if (!state.twilioSID) {
           return null;
+        }
+        const twilio: SmsProviderConfigurationTwilioInput = {
+          credentialType: state.twilioCredentialType,
+          accountSID: state.twilioSID,
+          authToken: state.twilioAuthToken ?? "",
+          apiKeySID: state.twilioAPIKeySID,
+          apiKeySecret: state.twilioAPIKeySecret ?? "",
+        };
+        switch (state.twilioCredentialType) {
+          case TwilioCredentialType.ApiKey:
+            twilio.apiKeySID = state.twilioAPIKeySID;
+            twilio.apiKeySecret = state.twilioAPIKeySecret;
+            break;
+          case TwilioCredentialType.AuthToken:
+            twilio.authToken = state.twilioAuthToken;
+            break;
+        }
+        switch (state.twilioSenderType) {
+          case TwilioSenderType.From:
+            twilio.from = state.twilioFrom;
+            break;
+          case TwilioSenderType.MessagingServiceSID:
+            twilio.messagingServiceSID = state.twilioMessagingServiceSID;
+            break;
         }
         return {
           twilio: {
@@ -550,8 +575,10 @@ function useTestSMSConfig(
             apiKeySID: state.twilioAPIKeySID,
             apiKeySecret: state.twilioAPIKeySecret ?? "",
             messagingServiceSID: state.twilioMessagingServiceSID,
+            from: state.twilioFrom,
           },
         };
+      }
       case SMSProviderType.Webhook:
         if (!state.webhookURL) {
           return null;
@@ -588,8 +615,10 @@ function useTestSMSConfig(
     state.twilioAPIKeySecret,
     state.twilioAuthToken,
     state.twilioCredentialType,
+    state.twilioFrom,
     state.twilioMessagingServiceSID,
     state.twilioSID,
+    state.twilioSenderType,
     state.webhookTimeout,
     state.webhookURL,
   ]);
