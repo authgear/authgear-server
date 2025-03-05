@@ -50,7 +50,11 @@ func (t *TwilioClient) send0(ctx context.Context, opts smsapi.SendOptions) ([]by
 	if t.TwilioCredentials.MessagingServiceSID != "" {
 		values.Set("MessagingServiceSid", t.TwilioCredentials.MessagingServiceSID)
 	} else {
-		values.Set("From", opts.Sender)
+		from := opts.Sender
+		if t.TwilioCredentials.From != "" {
+			from = t.TwilioCredentials.From
+		}
+		values.Set("From", from)
 	}
 
 	requestBody := values.Encode()
