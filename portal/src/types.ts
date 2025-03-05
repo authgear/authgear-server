@@ -730,9 +730,10 @@ export interface SMSProviderTwilioCredentials {
   credentialType: TwilioCredentialType;
   accountSID: string;
   authToken?: string | null;
-  apiKeySID: string;
+  apiKeySID?: string | null;
   apiKeySecret?: string | null;
-  messagingServiceSID: string;
+  messagingServiceSID?: string | null;
+  from?: string | null;
 }
 
 export interface SMSProviderCustomSMSProviderSecrets {

@@ -27,6 +27,7 @@ import {
   PortalAPISecretConfig,
   PortalAPISecretConfigUpdateInstruction,
   SMSProvider,
+  SMSProviderTwilioCredentials,
   getHookKind,
 } from "../../types";
 import { produce } from "immer";
@@ -77,6 +78,7 @@ import { ErrorParseRule, makeReasonErrorParseRule } from "../../error/parse";
 import { APISMSGatewayError } from "../../error/error";
 import { ReauthDialog } from "../../components/common/ReauthDialog";
 import { TestSMSDialog } from "../../components/sms-provider/TestSMSDialog";
+import Tooltip from "../../Tooltip";
 
 const SECRETS = [AppSecretKey.SmsProviderSecrets, AppSecretKey.WebhookSecret];
 
@@ -129,6 +131,11 @@ enum SMSProviderType {
   Deno = "deno",
 }
 
+enum TwilioSenderType {
+  MessagingServiceSID = "MessagingServiceSID",
+  From = "From",
+}
+
 interface ConfigFormState {
   enabled: boolean;
   providerType: SMSProviderType;
@@ -140,7 +147,9 @@ interface ConfigFormState {
   twilioAuthToken: string | null;
   twilioAPIKeySID: string;
   twilioAPIKeySecret: string | null;
+  twilioSenderType: TwilioSenderType;
   twilioMessagingServiceSID: string;
+  twilioFrom: string;
 
   // webhook
   webhookURL: string;
@@ -203,7 +212,9 @@ function constructFormState(
   let twilioAPIKeySID = "";
   let twilioAuthToken: string | null = "";
   let twilioAPIKeySecret: string | null = "";
+  let twilioSenderType: TwilioSenderType = TwilioSenderType.From;
   let twilioMessagingServiceSID = "";
+  let twilioFrom = "";
 
   if (enabled && providerType === SMSProviderType.Twilio) {
     twilioSID = secrets.smsProviderSecrets?.twilioCredentials?.accountSID ?? "";
@@ -226,8 +237,14 @@ function constructFormState(
             : "";
     }
 
-    twilioMessagingServiceSID =
-      secrets.smsProviderSecrets?.twilioCredentials?.messagingServiceSID ?? "";
+    if (secrets.smsProviderSecrets?.twilioCredentials?.messagingServiceSID) {
+      twilioSenderType = TwilioSenderType.MessagingServiceSID;
+      twilioMessagingServiceSID =
+        secrets.smsProviderSecrets.twilioCredentials.messagingServiceSID;
+    } else if (secrets.smsProviderSecrets?.twilioCredentials?.from) {
+      twilioSenderType = TwilioSenderType.From;
+      twilioFrom = secrets.smsProviderSecrets.twilioCredentials.from;
+    }
   }
 
   let webhookURL = "";
@@ -270,7 +287,9 @@ function constructFormState(
     twilioAuthToken,
     twilioAPIKeySID,
     twilioAPIKeySecret,
+    twilioSenderType,
     twilioMessagingServiceSID,
+    twilioFrom,
 
     webhookURL,
     webhookTimeout,
@@ -320,18 +339,32 @@ function constructConfig(
       secrets.smsProviderSecrets = null;
     } else {
       switch (currentState.providerType) {
-        case SMSProviderType.Twilio:
-          secrets.smsProviderSecrets = {
-            twilioCredentials: {
-              credentialType: currentState.twilioCredentialType,
-              accountSID: currentState.twilioSID,
-              authToken: currentState.twilioAuthToken,
-              apiKeySID: currentState.twilioAPIKeySID,
-              apiKeySecret: currentState.twilioAPIKeySecret,
-              messagingServiceSID: currentState.twilioMessagingServiceSID,
-            },
+        case SMSProviderType.Twilio: {
+          const twilioCredentials: SMSProviderTwilioCredentials = {
+            credentialType: currentState.twilioCredentialType,
+            accountSID: currentState.twilioSID,
           };
+          switch (currentState.twilioCredentialType) {
+            case TwilioCredentialType.ApiKey:
+              twilioCredentials.apiKeySID = currentState.twilioAPIKeySID;
+              twilioCredentials.apiKeySecret = currentState.twilioAPIKeySecret;
+              break;
+            case TwilioCredentialType.AuthToken:
+              twilioCredentials.authToken = currentState.twilioAuthToken;
+              break;
+          }
+          switch (currentState.twilioSenderType) {
+            case TwilioSenderType.From:
+              twilioCredentials.from = currentState.twilioFrom;
+              break;
+            case TwilioSenderType.MessagingServiceSID:
+              twilioCredentials.messagingServiceSID =
+                currentState.twilioMessagingServiceSID;
+              break;
+          }
+          secrets.smsProviderSecrets = { twilioCredentials: twilioCredentials };
           break;
+        }
         case SMSProviderType.Webhook:
           secrets.smsProviderSecrets = {
             customSMSProviderCredentials: {
@@ -395,6 +428,7 @@ function constructSecretUpdateInstruction(
               messagingServiceSID:
                 secrets.smsProviderSecrets.twilioCredentials
                   .messagingServiceSID,
+              from: secrets.smsProviderSecrets.twilioCredentials.from,
             },
           },
         },
@@ -1007,6 +1041,7 @@ function TwilioForm({ form }: { form: AppSecretConfigFormModel<FormState> }) {
         | "twilioAPIKeySID"
         | "twilioAPIKeySecret"
         | "twilioMessagingServiceSID"
+        | "twilioFrom"
     ) => {
       return (
         event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -1027,6 +1062,7 @@ function TwilioForm({ form }: { form: AppSecretConfigFormModel<FormState> }) {
       twilioAPIKeySID: callbackFactory("twilioAPIKeySID"),
       twilioAPIKeySecret: callbackFactory("twilioAPIKeySecret"),
       twilioMessagingServiceSID: callbackFactory("twilioMessagingServiceSID"),
+      twilioFrom: callbackFactory("twilioFrom"),
     };
   }, [form]);
 
@@ -1157,9 +1193,83 @@ function TwilioForm({ form }: { form: AppSecretConfigFormModel<FormState> }) {
     [form]
   );
 
-  const choiceGroupStyles: Partial<IChoiceGroupStyles> = useMemo(
+  const credentialTypeChoiceGroupStyles: Partial<IChoiceGroupStyles> = useMemo(
     () => ({
       flexContainer: {
+        selectors: {
+          ".ms-ChoiceField": {
+            display: "block",
+          },
+        },
+      },
+    }),
+    []
+  );
+
+  const senderOptions = useMemo<IChoiceGroupOption[]>(() => {
+    return [
+      {
+        key: TwilioSenderType.MessagingServiceSID,
+        text: renderToString(
+          "SMSProviderConfigurationScreen.form.twilio.twilioMessagingServiceSID"
+        ),
+        // eslint-disable-next-line react/no-unstable-nested-components
+        onRenderLabel: (
+          props?: IChoiceGroupOption & IChoiceGroupOptionProps,
+          render?: (
+            props?: IChoiceGroupOption & IChoiceGroupOptionProps
+          ) => JSX.Element | null
+        ) => (
+          <>
+            {render?.(props)}
+            <div className="inline-flex">
+              <Tooltip tooltipMessageId="SMSProviderConfigurationScreen.form.twilio.twilioMessagingServiceSID.hint" />
+            </div>
+          </>
+        ),
+      },
+      {
+        key: TwilioSenderType.From,
+        text: renderToString(
+          "SMSProviderConfigurationScreen.form.twilio.twilioFrom"
+        ), // eslint-disable-next-line react/no-unstable-nested-components
+        onRenderLabel: (
+          props?: IChoiceGroupOption & IChoiceGroupOptionProps,
+          render?: (
+            props?: IChoiceGroupOption & IChoiceGroupOptionProps
+          ) => JSX.Element | null
+        ) => (
+          <>
+            {render?.(props)}
+            <div className="inline-flex">
+              <Tooltip tooltipMessageId="SMSProviderConfigurationScreen.form.twilio.twilioFrom.hint" />
+            </div>
+          </>
+        ),
+      },
+    ];
+  }, [renderToString]);
+
+  const onSenderTypeChange = useCallback(
+    (_: unknown, option?: IChoiceGroupOption) => {
+      if (option == null) {
+        return;
+      }
+      form.setState((prev) => {
+        return {
+          ...prev,
+          twilioSenderType: option.key as TwilioSenderType,
+        };
+      });
+    },
+    [form]
+  );
+
+  const senderTypeChoiceGroupStyles: Partial<IChoiceGroupStyles> = useMemo(
+    () => ({
+      flexContainer: {
+        display: "flex",
+        columnGap: "16px",
         selectors: {
           ".ms-ChoiceField": {
             display: "block",
@@ -1191,19 +1301,44 @@ function TwilioForm({ form }: { form: AppSecretConfigFormModel<FormState> }) {
         options={credentialTypeOptions}
         selectedKey={form.state.twilioCredentialType}
         onChange={onCredentialTypeChange}
-        styles={choiceGroupStyles}
-      />
-      <FormTextField
-        type="text"
-        label={renderToString(
-          "SMSProviderConfigurationScreen.form.twilio.twilioMessagingServiceSID"
-        )}
-        value={form.state.twilioMessagingServiceSID}
-        onChange={onStringChangeCallbacks.twilioMessagingServiceSID}
+        styles={credentialTypeChoiceGroupStyles}
         disabled={isTwilioSecretMasked}
-        parentJSONPointer={/\/secrets\/\d+\/data/}
-        fieldName="message_service_sid"
       />
+      <ChoiceGroup
+        selectedKey={form.state.twilioSenderType}
+        options={senderOptions}
+        onChange={onSenderTypeChange}
+        disabled={isTwilioSecretMasked}
+        label={renderToString(
+          "SMSProviderConfigurationScreen.form.twilio.sender"
+        )}
+        styles={senderTypeChoiceGroupStyles}
+      />
+      {form.state.twilioSenderType === TwilioSenderType.MessagingServiceSID ? (
+        <FormTextField
+          type="text"
+          placeholder={renderToString(
+            "SMSProviderConfigurationScreen.form.twilio.twilioMessagingServiceSID.placeholder"
+          )}
+          value={form.state.twilioMessagingServiceSID}
+          onChange={onStringChangeCallbacks.twilioMessagingServiceSID}
+          disabled={isTwilioSecretMasked}
+          parentJSONPointer={/\/secrets\/\d+\/data/}
+          fieldName="message_service_sid"
+        />
+      ) : (
+        <FormTextField
+          type="text"
+          placeholder={renderToString(
+            "SMSProviderConfigurationScreen.form.twilio.twilioFrom.placeholder"
+          )}
+          value={form.state.twilioFrom}
+          onChange={onStringChangeCallbacks.twilioFrom}
+          disabled={isTwilioSecretMasked}
+          parentJSONPointer={/\/secrets\/\d+\/data/}
+          fieldName="from"
+        />
+      )}
     </div>
   );
 }
