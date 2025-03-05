@@ -1,6 +1,8 @@
 package accountmanagement
 
 import (
+	"errors"
+
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 )
 
@@ -17,5 +19,8 @@ var ErrAccountManagementAuthenticatorNotOwnedbyToUser = apierrors.Invalid.WithRe
 var ErrAccountManagementSecondaryAuthenticatorIsRequired = apierrors.Invalid.WithReason("AccountManagementSecondaryAuthenticatorIsRequired").New("at least one secondary authenticator is needed")
 
 func NewErrAccountManagementDuplicatedIdentity(originalErr error) error {
-	return apierrors.AlreadyExists.WithReason("AccountManagementDuplicatedIdentity").Wrap(originalErr, "identity already exists")
+	return errors.Join(
+		apierrors.AlreadyExists.WithReason("AccountManagementDuplicatedIdentity").New("identity already exists"),
+		originalErr,
+	)
 }

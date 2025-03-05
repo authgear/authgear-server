@@ -21,6 +21,8 @@ func NewFactory(level Level, hooks ...logrus.Hook) *Factory {
 	logger.Level = level.Logrus()
 	logger.Out = ioutil.Discard
 	logger.Hooks.Add(&StackHook{})
+	logger.Hooks.Add(&ContextCauseHook{})
+	logger.Hooks.Add(&SkipLoggingHook{})
 	logger.Hooks.Add(NewWriterHook(os.Stderr))
 
 	for _, hook := range hooks {

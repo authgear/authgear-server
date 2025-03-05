@@ -93,7 +93,7 @@ func (h *AuthflowV2SettingsIdentityEditEmailHandler) GetData(ctx context.Context
 	}
 
 	if err != nil && errors.Is(err, api.ErrIdentityNotFound) {
-		return nil, apierrors.AddDetails(err, errorutil.Details{
+		return nil, errorutil.WithDetails(err, errorutil.Details{
 			"LoginIDType": apierrors.APIErrorDetail.Value(model.LoginIDKeyTypeEmail),
 		})
 	} else if err != nil {

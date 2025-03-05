@@ -46,6 +46,39 @@ func TestHTTPURLScheme(t *testing.T) {
 	})
 }
 
+func TestHTTPServerAddress(t *testing.T) {
+	Convey("HTTPServerAddress", t, func() {
+		test := func(hostAndPort string, expected string) {
+			actual, ok := HTTPServerAddress(hostAndPort)
+			if expected == "" {
+				So(ok, ShouldBeFalse)
+				So(actual, ShouldBeNil)
+			} else {
+				So(actual.Value.AsString(), ShouldEqual, expected)
+				So(string(actual.Key), ShouldEqual, "server.address")
+			}
+		}
+
+		// Lookback
+		test("localhost", "localhost")
+		test("127.0.0.1", "127.0.0.1")
+		test("[::1]", "::1")
+		test("localhost:80", "localhost")
+		test("127.0.0.1:80", "127.0.0.1")
+		test("[::1]:80", "::1")
+
+		// Real world
+		test("example.com", "example.com")
+		test("example.com:80", "example.com")
+		test("example.com:443", "example.com")
+
+		// Missing ]
+		test("[::1", "")
+		// IPv6 not enclosed in []
+		test("::1:80", "")
+	})
+}
+
 func TestHTTPResponseStatusCode(t *testing.T) {
 	Convey("HTTPResponseStatusCode", t, func() {
 		test := func(statusCode int) {

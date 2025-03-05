@@ -47,25 +47,6 @@ func TestAPIError(t *testing.T) {
 				Info:    map[string]interface{}{},
 			})
 		})
-		Convey("error with details", func() {
-			NotAuthenticated := apierrors.Invalid.WithReason("ValidationFailure")
-			err := NotAuthenticated.NewWithDetails(
-				"failed to validate form payload",
-				apierrors.Details{
-					"field":   apierrors.APIErrorDetail.Value("email"),
-					"user_id": "user-id",
-				},
-			)
-			apiErr := apierrors.AsAPIError(err)
-			So(apiErr, ShouldResemble, &apierrors.APIError{
-				Kind:    apierrors.Kind{Name: apierrors.Invalid, Reason: "ValidationFailure"},
-				Message: "failed to validate form payload",
-				Code:    400,
-				Info: map[string]interface{}{
-					"field": "email",
-				},
-			})
-		})
 		Convey("error with info", func() {
 			NotAuthenticated := apierrors.Invalid.WithReason("ValidationFailure")
 			err := NotAuthenticated.NewWithInfo(

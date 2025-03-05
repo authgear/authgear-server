@@ -8,6 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
+	"github.com/authgear/authgear-server/pkg/util/errorutil"
 )
 
 type RequestMiddleware struct {
@@ -40,7 +41,13 @@ func (m *RequestMiddleware) Handle(next http.Handler) http.Handler {
 			if errors.Is(err, configsource.ErrAppNotFound) {
 				http.Error(w, configsource.ErrAppNotFound.Error(), http.StatusNotFound)
 			} else {
-				logger.WithError(err).Error("failed to resolve config")
+				err = errorutil.ForceLogging(err)
+
+				otelauthgear.TrackContextCanceled(r.Context(), err, r, bool(m.RootProvider.EnvironmentConfig.TrustProxy))
+
+				// Our logging mechanism is not context-aware.
+				// We explicitly attach context here because it was the position we observed the log.
+				logger.WithContext(r.Context()).WithError(err).Error("failed to resolve config")
 				http.Error(w, "internal server error", http.StatusInternalServerError)
 			}
 			return

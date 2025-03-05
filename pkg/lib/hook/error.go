@@ -7,15 +7,11 @@ import (
 var WebHookDisallowed = apierrors.Forbidden.WithReason("WebHookDisallowed")
 
 var WebHookDeliveryTimeout = apierrors.InternalError.WithReason("WebHookDeliveryTimeout")
-var WebHookInvalidResponse = apierrors.InternalError.WithReason("WebHookInvalidResponse")
+var WebHookInvalidResponse = apierrors.InternalError.WithReason("WebHookInvalidResponse").SkipLoggingToExternalService()
 
 var DenoRunError = apierrors.BadRequest.WithReason("DenoRunError")
 
 var DenoCheckError = apierrors.Invalid.WithReason("DenoCheckError")
-
-func init() {
-	apierrors.SkipLoggingForKinds[WebHookInvalidResponse] = true
-}
 
 type OperationDisallowedItem struct {
 	Title  string `json:"title"`

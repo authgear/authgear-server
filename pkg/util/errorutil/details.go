@@ -17,6 +17,10 @@ type errorDetails struct {
 }
 
 func WithDetails(err error, d Details) error {
+	if err == nil {
+		return nil
+	}
+
 	return &errorDetails{err, d}
 }
 

@@ -1,12 +1,15 @@
 package httproute
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.opentelemetry.io/otel/attribute"
 )
 
 func TestRoute(t *testing.T) {
@@ -248,5 +251,70 @@ func TestMiddleware(t *testing.T) {
 				"after m1",
 			})
 		})
+
+		Convey("Label is put into context", func() {
+			router := NewRouter()
+			router.Add(Route{
+				Methods:     []string{"GET"},
+				PathPattern: "/",
+				Middleware:  makeMiddleware("m1"),
+			}, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				labeler, ok := otelhttp.LabelerFromContext(r.Context())
+				So(ok, ShouldBeTrue)
+
+				attrs := labeler.Get()
+				So(attrs, ShouldHaveLength, 1)
+				So(attrs[0], ShouldEqual, attribute.Key("http.route").String("/"))
+
+				observedLabels = append(observedLabels, "handler")
+			}))
+
+			r, _ := http.NewRequest("GET", "/", nil)
+			w := httptest.NewRecorder()
+
+			router.HTTPHandler().ServeHTTP(w, r)
+			So(observedLabels, ShouldResemble, []string{
+				"before m1",
+				"handler",
+				"after m1",
+			})
+		})
+	})
+}
+
+func TestRouter(t *testing.T) {
+	Convey("Do nothing if context does not close early", t, func() {
+		router := NewRouter()
+		router.Add(Route{
+			Methods:     []string{"GET"},
+			PathPattern: "/",
+		}, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		}))
+
+		ctx := context.Background()
+
+		r, _ := http.NewRequestWithContext(ctx, "GET", "/", nil)
+		w := httptest.NewRecorder()
+
+		router.HTTPHandler().ServeHTTP(w, r)
+		So(w.Header().Get("Connection"), ShouldEqual, "")
+	})
+
+	Convey("Add Connection: close if context closes early", t, func() {
+		router := NewRouter()
+		router.Add(Route{
+			Methods:     []string{"GET"},
+			PathPattern: "/",
+		}, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		}))
+
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel()
+
+		r, _ := http.NewRequestWithContext(ctx, "GET", "/", nil)
+		w := httptest.NewRecorder()
+
+		router.HTTPHandler().ServeHTTP(w, r)
+		So(w.Header().Get("Connection"), ShouldEqual, "close")
 	})
 }

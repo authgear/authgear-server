@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	libevent "github.com/authgear/authgear-server/pkg/lib/event"
@@ -58,7 +57,6 @@ func (s *AuditService) Log(ctx context.Context, app *model.App, payload event.No
 
 	cfg := app.Context.Config
 	loggerFactory := s.LoggerFactory.ReplaceHooks(
-		apierrors.SkipLoggingHook{},
 		log.NewDefaultMaskLogHook(),
 		config.NewSecretMaskLogHook(cfg.SecretConfig),
 		sentry.NewLogHookFromContext(ctx),

@@ -37,7 +37,7 @@ func (t T) Update(accessControl accesscontrol.T, role accesscontrol.Role, pointe
 
 		if val, err := ptr.Traverse(incoming); err == nil {
 			if !allowed {
-				return nil, AccessControlViolated.NewWithDetails(
+				return nil, AccessControlViolated.NewWithInfo(
 					fmt.Sprintf("%v being updated by %v with level %v", subject, role, level),
 					apierrors.Details{
 						"subject": subject,
@@ -53,7 +53,7 @@ func (t T) Update(accessControl accesscontrol.T, role accesscontrol.Role, pointe
 			}
 		} else {
 			if !allowed {
-				return nil, AccessControlViolated.NewWithDetails(
+				return nil, AccessControlViolated.NewWithInfo(
 					fmt.Sprintf("%v being deleted by %v with level %v", subject, role, level),
 					apierrors.Details{
 						"subject": subject,

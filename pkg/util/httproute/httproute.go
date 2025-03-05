@@ -92,11 +92,18 @@ func (r *Router) Health(h http.Handler) {
 }
 
 func (r *Router) Add(route Route, h http.Handler) {
-	h = otelutil.WithHTTPRoute(route.PathPattern, h)
+	middlewares := []Middleware{
+		MiddlewareFunc(otelutil.SetupLabeler),
+		MiddlewareFunc(otelutil.WithHTTPRoute(route.PathPattern)),
+	}
 
 	if route.Middleware != nil {
-		h = route.Middleware.Handle(h)
+		middlewares = append(middlewares, route.Middleware)
 	}
+
+	finalMiddleware := Chain(middlewares...)
+	h = finalMiddleware.Handle(h)
+
 	for _, method := range route.Methods {
 		r.router.Handler(method, route.PathPattern, h)
 	}
@@ -109,19 +116,33 @@ func (r *Router) AddRoutes(h http.Handler, routes ...Route) {
 }
 
 func (r *Router) NotFound(route Route, h http.Handler) {
-	// In case we migrate to ServeMux pattern,
-	// "/" means matches every path.
-	// https://pkg.go.dev/net/http#hdr-Patterns-ServeMux
-	h = otelutil.WithHTTPRoute("/", h)
+	middlewares := []Middleware{
+		MiddlewareFunc(otelutil.SetupLabeler),
+		// In case we migrate to ServeMux pattern,
+		// "/" means matches every path.
+		// https://pkg.go.dev/net/http#hdr-Patterns-ServeMux
+		MiddlewareFunc(otelutil.WithHTTPRoute("/")),
+	}
 
 	if route.Middleware != nil {
-		h = route.Middleware.Handle(h)
+		middlewares = append(middlewares, route.Middleware)
 	}
+
+	finalMiddleware := Chain(middlewares...)
+	h = finalMiddleware.Handle(h)
+
 	r.router.NotFound = h
 }
 
 func (r *Router) HTTPHandler() http.Handler {
-	return r.router
+	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		// Apply a workaround for https://github.com/golang/go/issues/70834
+		// Detect early context canceled, and close the connection with best effort.
+		if req.Context().Err() != nil {
+			rw.Header().Set("Connection", "close")
+		}
+		r.router.ServeHTTP(rw, req)
+	})
 }
 
 func GetParam(r *http.Request, name string) string {

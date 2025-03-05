@@ -216,7 +216,7 @@ func (t T) CheckWrite(accessControl accesscontrol.T, role accesscontrol.Role, th
 	check := func(subject accesscontrol.Subject) error {
 		level := accessControl.GetLevel(subject, role, config.AccessControlLevelReadwrite)
 		if level < config.AccessControlLevelReadwrite {
-			return AccessControlViolated.NewWithDetails(
+			return AccessControlViolated.NewWithInfo(
 				fmt.Sprintf("%v being written by %v with level %v", subject, role, level),
 				apierrors.Details{
 					"subject": subject,

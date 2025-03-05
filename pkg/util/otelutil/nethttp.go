@@ -1,6 +1,7 @@
 package otelutil
 
 import (
+	"net"
 	"net/http"
 	"strings"
 
@@ -58,15 +59,75 @@ func HTTPURLScheme(scheme string) attribute.KeyValue {
 	}
 }
 
+// HTTPServerAddress implements https://opentelemetry.io/docs/specs/semconv/http/http-spans/#setting-serveraddress-and-serverport-attributes
+// But the above link does not specify very clearly how to handle IPv6 address.
+// Thus, the Go SDK implementation is followed.
+// See https://github.com/open-telemetry/opentelemetry-go/blob/main/semconv/internal/v4/net.go#L283
+func HTTPServerAddress(hostAndPort string) (*attribute.KeyValue, bool) {
+	var hostPart string
+	var err error
+
+	if strings.HasPrefix(hostAndPort, "[") {
+		addrEnd := strings.LastIndex(hostAndPort, "]")
+		if addrEnd < 0 {
+			// Invalid input.
+			return nil, false
+		}
+
+		colon := strings.LastIndex(hostAndPort[addrEnd:], ":")
+		if colon < 0 {
+			// No port.
+		} else {
+			// Use SplitHostPort for validation only.
+			_, _, err = net.SplitHostPort(hostAndPort)
+			if err != nil {
+				return nil, false
+			}
+		}
+		hostPart = hostAndPort[1:addrEnd]
+	} else {
+		colon := strings.LastIndex(hostAndPort, ":")
+		if colon < 0 {
+			// No port.
+			hostPart = hostAndPort
+		} else {
+			hostPart, _, err = net.SplitHostPort(hostAndPort)
+			if err != nil {
+				return nil, false
+			}
+		}
+	}
+
+	var addr string
+	if parsedIP := net.ParseIP(hostPart); parsedIP != nil {
+		addr = parsedIP.String()
+	} else {
+		addr = hostPart
+	}
+
+	out := semconv.ServerAddress(addr)
+	return &out, true
+}
+
 // HTTPResponseStatusCode implements https://opentelemetry.io/docs/specs/semconv/attributes-registry/http/#http-response-status-code
 func HTTPResponseStatusCode(statusCode int) attribute.KeyValue {
 	return semconv.HTTPResponseStatusCode(statusCode)
 }
 
-func WithHTTPRoute(httpRoute string, h http.Handler) http.Handler {
+func WithHTTPRoute(httpRoute string) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			labeler, _ := otelhttp.LabelerFromContext(r.Context())
+			labeler.Add(semconv.HTTPRoute(httpRoute))
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+
+func SetupLabeler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		labeler, _ := otelhttp.LabelerFromContext(r.Context())
-		labeler.Add(semconv.HTTPRoute(httpRoute))
-		h.ServeHTTP(w, r)
+		labeler := &otelhttp.Labeler{}
+		r = r.WithContext(otelhttp.ContextWithLabeler(r.Context(), labeler))
+		next.ServeHTTP(w, r)
 	})
 }
