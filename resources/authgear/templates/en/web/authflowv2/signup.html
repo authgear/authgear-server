@@ -131,81 +131,81 @@
   {{ if $.InlinePreview }}
     {{ $formController = "" }}
   {{ end }}
-  <form
-    class="flex flex-col gap-4 mt-8"
-    method="post"
-    novalidate
-    data-controller="{{ $formController }}"
-    data-retain-form-form-id-value="auth-form"
-    data-controller="turbo-form"
-    data-action="{{ if (or $show_captcha_phone $show_captcha_text) }}submit->bot-protection#verifyFormSubmit {{ end }}submit->turbo-form#submitForm"
-  >
-    {{ $.CSRFField }}
-    <input type="hidden" name="q_login_id_key" value="{{ $.LoginIDKey }}">
-    {{ range $.IdentityCandidates }}
-    {{ if eq .type "login_id" }}{{ if eq .login_id_key $.LoginIDKey }}
-      <input type="hidden" name="q_login_id_type" value="{{ .login_id_type }}">
-      <div data-controller="text-field" class="flex flex-col gap-2">
-        {{ if eq .login_id_type "phone" }}
-          {{ template "authflowv2/__phone_input.html"
-            (dict
-              "Placeholder" (include "v2.component.input.default.placeholder-phone" nil)
-              "PlaceholderWithExample" (include "v2.component.input.default.placeholder-phone-with-example" nil)
-              "IsError" $display_input_error
-              "AutoFocus" $.ShouldFocusInput
-              "PhoneInputAttrs" `
-                data-text-field-target="input"
-              `
-              "InputName" "q_login_id"
-              "InputAttrs" `
-                data-controller="retain-form-input"
-                data-retain-form-form-target="input"
-                data-retain-form-form-name-param="phone"
-                data-action="input->retain-form-input#input retain-form-input:input->retain-form-form#input"
-              `
-              "Value" $.LoginIDDefaultValue
-              "ReadOnly" $.LoginIDInputReadOnly
-            )
-          }}
-          {{ if $show_captcha_phone }}
-            {{ template "web/authflowv2/__bot_protection_form_input.html" $ }}
+  {{ if $has_login_id }}
+    <form
+      class="flex flex-col gap-4 mt-8"
+      method="post"
+      novalidate
+      data-controller="{{ $formController }}"
+      data-retain-form-form-id-value="auth-form"
+      data-controller="turbo-form"
+      data-action="{{ if (or $show_captcha_phone $show_captcha_text) }}submit->bot-protection#verifyFormSubmit {{ end }}submit->turbo-form#submitForm"
+    >
+      {{ $.CSRFField }}
+      <input type="hidden" name="q_login_id_key" value="{{ $.LoginIDKey }}">
+      {{ range $.IdentityCandidates }}
+      {{ if eq .type "login_id" }}{{ if eq .login_id_key $.LoginIDKey }}
+        <input type="hidden" name="q_login_id_type" value="{{ .login_id_type }}">
+        <div data-controller="text-field" class="flex flex-col gap-2">
+          {{ if eq .login_id_type "phone" }}
+            {{ template "authflowv2/__phone_input.html"
+              (dict
+                "Placeholder" (include "v2.component.input.default.placeholder-phone" nil)
+                "PlaceholderWithExample" (include "v2.component.input.default.placeholder-phone-with-example" nil)
+                "IsError" $display_input_error
+                "AutoFocus" $.ShouldFocusInput
+                "PhoneInputAttrs" `
+                  data-text-field-target="input"
+                `
+                "InputName" "q_login_id"
+                "InputAttrs" `
+                  data-controller="retain-form-input"
+                  data-retain-form-form-target="input"
+                  data-retain-form-form-name-param="phone"
+                  data-action="input->retain-form-input#input retain-form-input:input->retain-form-form#input"
+                `
+                "Value" $.LoginIDDefaultValue
+                "ReadOnly" $.LoginIDInputReadOnly
+              )
+            }}
+            {{ if $show_captcha_phone }}
+              {{ template "web/authflowv2/__bot_protection_form_input.html" $ }}
+            {{ end }}
+          {{ else }}
+            <input
+              data-text-field-target="input"
+              {{ if $.ShouldFocusInput }}autofocus{{ end }}
+              {{ if $.LoginIDInputReadOnly }}readonly{{ end }}
+              class="block input w-full {{ if $display_input_error }}input--error{{end}}"
+              type="{{ $.NonPhoneLoginIDInputType }}"
+              name="q_login_id"
+              autocomplete="username"
+              autocapitalize="none"
+              placeholder="{{ include "v2.component.input.default.placeholder-login-id" (dict "variant" $.LoginIDKey) }}"
+              data-controller="retain-form-input"
+              data-action="input->retain-form-input#input retain-form-input:input->retain-form-form#input"
+              data-retain-form-form-target="input"
+              data-retain-form-form-name-param="text"
+              value="{{ $.LoginIDDefaultValue }}"
+            >
+            {{ if $show_captcha_text }}
+              {{ template "web/authflowv2/__bot_protection_form_input.html" $ }}
+            {{ end }}
           {{ end }}
-        {{ else }}
-          <input
-            data-text-field-target="input"
-            {{ if $.ShouldFocusInput }}autofocus{{ end }}
-            {{ if $.LoginIDInputReadOnly }}readonly{{ end }}
-            class="block input w-full {{ if $display_input_error }}input--error{{end}}"
-            type="{{ $.NonPhoneLoginIDInputType }}"
-            name="q_login_id"
-            autocomplete="username"
-            autocapitalize="none"
-            placeholder="{{ include "v2.component.input.default.placeholder-login-id" (dict "variant" $.LoginIDKey) }}"
-            data-controller="retain-form-input"
-            data-action="input->retain-form-input#input retain-form-input:input->retain-form-form#input"
-            data-retain-form-form-target="input"
-            data-retain-form-form-name-param="text"
-            value="{{ $.LoginIDDefaultValue }}"
-          >
-          {{ if $show_captcha_text }}
-            {{ template "web/authflowv2/__bot_protection_form_input.html" $ }}
+          {{ if $display_input_error }}
+            <p class="input__error-message" data-text-field-target="errorMessage">
+              {{ template "authflowv2/__error.html" $ }}
+            </p>
           {{ end }}
-        {{ end }}
-        {{ if $display_input_error }}
-          <p class="input__error-message" data-text-field-target="errorMessage">
-            {{ template "authflowv2/__error.html" $ }}
-          </p>
-        {{ end }}
 
-        <!-- This field is for Chrome and Safari to consider the above field as username for autocomplete -->
-        <!-- both `class="hidden"` and `display:none` do not work for iOS autofill -->
-        <!-- The hash of the style attribute is sha256-fOghyYcDMsLl/lf7piKeVgEljdV7IgqwGymlDo5oDhU= -->
-        <input style="position:absolute;width:0;height:0;" aria-hidden="true" type="password" autocomplete="current-password" name="">
-      </div>
-    {{ end }}{{ end }}
-    {{ end }}
+          <!-- This field is for Chrome and Safari to consider the above field as username for autocomplete -->
+          <!-- both `class="hidden"` and `display:none` do not work for iOS autofill -->
+          <!-- The hash of the style attribute is sha256-fOghyYcDMsLl/lf7piKeVgEljdV7IgqwGymlDo5oDhU= -->
+          <input style="position:absolute;width:0;height:0;" aria-hidden="true" type="password" autocomplete="current-password" name="">
+        </div>
+      {{ end }}{{ end }}
+      {{ end }}
 
-    {{ if $has_login_id }}
       <button
         class="primary-btn w-full"
         type="submit"
@@ -213,8 +213,8 @@
         value="login_id"
         data-authgear-event="authgear.button.sign_up"
       >{{ include "v2.component.button.default.label-continue" nil }}</button>
-    {{ end }}
-  </form>
+    </form>
+  {{ end }}
 
   {{ if and $.CanSwitchToLogin (not $isContinue) }}
     <p class="body-text--md mt-4">
@@ -227,7 +227,7 @@
     {{ if $show_input_form }}
       {{ template "authflowv2/__divider.html" (dict "Classname" "my-8")  }}
     {{ else }}
-      <div class="my-8"></div>
+      <div class="pt-8"></div>
     {{ end }}
     <section class="flex flex-col gap-4">
       {{ range .IdentityCandidates }}
