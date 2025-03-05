@@ -329,6 +329,8 @@ One of the comment says enabling "Use the new Virtualization framework" would he
 After >5000 requests to the portal, "upstream timed out" errors will begin to pop up.
 If enabling "Use the new Virtualization framework" did not help, you can restart Docker Desktop on Mac as a workaround.
 
+[Radix Icons] https://www.radix-ui.com/icons can only be imported in code, and no fonts is available. Currently, vite will select a most suitable chunk to bundle the icons.
+
 ## Comment tags
 
 - `FIXME`: Should be fixed as soon as possible
