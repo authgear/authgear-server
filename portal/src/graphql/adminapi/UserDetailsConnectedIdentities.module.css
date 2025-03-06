@@ -34,6 +34,7 @@
     "       .              desc          .           button-group";
   grid-template-columns: min-content auto 1fr 330px;
 
+  /* stylelint-disable-next-line media-query-no-invalid */
   @media screen(tablet) {
     grid-template-areas:
       "        icon           name           name        "
@@ -48,6 +49,7 @@
       "       .              info          info           button-group"
       "       .              desc          .              button-group";
 
+    /* stylelint-disable-next-line media-query-no-invalid */
     @media screen(tablet) {
       grid-template-areas:
         "        icon           name           name        "
