@@ -12,155 +12,283 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func testCleanUpNonExpiringKeysAccessEventsSetupFixture(ctx context.Context, redisClient *goredis.Client) {
+var t_expired = time.Date(2025, 3, 5, 0, 0, 0, 0, time.UTC)
+var t_now = time.Date(2025, 3, 5, 1, 0, 0, 0, time.UTC)
+var t_future = time.Date(2025, 3, 5, 2, 0, 0, 0, time.UTC)
+
+func testCleanUpNonExpiringKeysSetupFixture(ctx context.Context, redisClient *goredis.Client) {
 	var err error
 
-	_, err = redisClient.Set(ctx, "app:accounts:access-events:idpsession-a", "", 0).Result()
-	So(err, ShouldBeNil)
-
-	_, err = redisClient.Set(ctx, "app:accounts:access-events:idpsession-b", "", 0).Result()
-	So(err, ShouldBeNil)
-
-	_, err = redisClient.Set(ctx, "app:accounts:access-events:offline-grant-a", "", 0).Result()
-	So(err, ShouldBeNil)
-
-	_, err = redisClient.Set(ctx, "app:accounts:access-events:offline-grant-b", "", 0).Result()
-	So(err, ShouldBeNil)
-
-	_, err = redisClient.Set(ctx, "app:accounts:session:idpsession-a", "", 5*time.Second).Result()
-	So(err, ShouldBeNil)
-
-	_, err = redisClient.Set(ctx, "app:accounts:offline-grant:offline-grant-a", "", 5*time.Second).Result()
-	So(err, ShouldBeNil)
-}
-
-func TestCleanUpNonExpiringKeysAccessEventsDryRunTrue(t *testing.T) {
-	memoryRedis := miniredis.RunT(t)
-
-	Convey("CleanUpNonExpiringKeysAccessEvents dry-run=true", t, func() {
-		ctx := context.Background()
-		redisClient := goredis.NewClient(&goredis.Options{Addr: memoryRedis.Addr()})
-
-		testCleanUpNonExpiringKeysAccessEventsSetupFixture(ctx, redisClient)
-
-		dryRun := true
-		stdout := &bytes.Buffer{}
-		stderr := &bytes.Buffer{}
-		logger := log.New(stderr, "", 0)
-		err := CleanUpNonExpiringKeysAccessEvents(ctx, redisClient, dryRun, stdout, logger)
-		So(err, ShouldBeNil)
-		So(stderr.String(), ShouldEqual, `SCAN with cursor 0: 4
-done SCAN: 4
-would delete app:accounts:access-events:idpsession-b
-would delete app:accounts:access-events:offline-grant-b
-`)
-		So(stdout.String(), ShouldEqual, `app:accounts:access-events:idpsession-b
-app:accounts:access-events:offline-grant-b
-`)
-	})
-}
-
-func TestCleanUpNonExpiringKeysAccessEventsDryRunFalse(t *testing.T) {
-	memoryRedis := miniredis.RunT(t)
-
-	Convey("CleanUpNonExpiringKeysAccessEvents dry-run=false", t, func() {
-		ctx := context.Background()
-		redisClient := goredis.NewClient(&goredis.Options{Addr: memoryRedis.Addr()})
-
-		testCleanUpNonExpiringKeysAccessEventsSetupFixture(ctx, redisClient)
-
-		dryRun := false
-		stdout := &bytes.Buffer{}
-		stderr := &bytes.Buffer{}
-		logger := log.New(stderr, "", 0)
-		err := CleanUpNonExpiringKeysAccessEvents(ctx, redisClient, dryRun, stdout, logger)
-		So(err, ShouldBeNil)
-		So(stderr.String(), ShouldEqual, `SCAN with cursor 0: 4
-done SCAN: 4
-deleted app:accounts:access-events:idpsession-b
-deleted app:accounts:access-events:offline-grant-b
-`)
-		So(stdout.String(), ShouldEqual, `app:accounts:access-events:idpsession-b
-app:accounts:access-events:offline-grant-b
-`)
-	})
-}
-
-func testCleanUpNonExpiringKeysSessionHashesSetupFixture(ctx context.Context, redisClient *goredis.Client) {
-	var err error
-
-	hset := func(hashKey string, fieldKey string) {
-		_, err = redisClient.HSet(ctx, hashKey, fieldKey, "not-important").Result()
+	set_WITH_EXPIRE := func(key string) {
+		_, err = redisClient.Set(ctx, key, "not-important", 10*time.Second).Result()
 		So(err, ShouldBeNil)
 	}
 
-	set := func(key string) {
+	set_NO_EXPIRE := func(key string) {
 		_, err = redisClient.Set(ctx, key, "not-important", 0).Result()
 		So(err, ShouldBeNil)
 	}
+	hset := func(hashKey string, key string, expire time.Time) {
+		b, err := expire.MarshalText()
+		So(err, ShouldBeNil)
+		_, err = redisClient.HSet(ctx, hashKey, key, b).Result()
+		So(err, ShouldBeNil)
+	}
 
-	hset("app:accounts:session-list:user-a", "app:accounts:session:user-a-idpsession")
-	hset("app:accounts:offline-grant-list:user-a", "app:accounts:offline-grant:user-a-offlinegrant")
+	// These represent old non-expiring keys.
+	set_NO_EXPIRE("app:accounts:access-events:old")
+	set_NO_EXPIRE("app:accounts:failed-attempts:purpose:old")
+	set_NO_EXPIRE("app:accounts:lockout:old")
 
-	hset("app:accounts:session-list:user-b", "app:accounts:session:user-b-idpsession")
-	hset("app:accounts:offline-grant-list:user-b", "app:accounts:offline-grant:user-b-offlinegrant")
+	// These represent new expiring keys.
+	set_WITH_EXPIRE("app:accounts:access-events:new")
+	set_WITH_EXPIRE("app:accounts:failed-attempts:purpose:new")
+	set_WITH_EXPIRE("app:accounts:lockout:new")
 
-	set("app:accounts:session:user-a-idpsession")
-	set("app:accounts:offline-grant:user-b-offlinegrant")
+	hset("app:accounts:session-list:all-expired", "expired", t_expired)
+	hset("app:accounts:session-list:some-expired", "expired", t_expired)
+	hset("app:accounts:session-list:some-expired", "not-expired", t_future)
+	hset("app:accounts:session-list:no-expired", "not-expired", t_future)
+
+	hset("app:accounts:offline-grant-list:all-expired", "expired", t_expired)
+	hset("app:accounts:offline-grant-list:some-expired", "expired", t_expired)
+	hset("app:accounts:offline-grant-list:some-expired", "not-expired", t_future)
+	hset("app:accounts:offline-grant-list:no-expired", "not-expired", t_future)
 }
 
-func TestCleanUpNonExpiringKeysSessionHashesDryRunTrue(t *testing.T) {
-	memoryRedis := miniredis.RunT(t)
-
-	Convey("CleanUpNonExpiringKeysSessionHashes dry-run=true", t, func() {
+func TestCleanUpNonExpiringKeys(t *testing.T) {
+	Convey("CleanUpNonExpiringKeys", t, func() {
+		memoryRedis := miniredis.RunT(t)
 		ctx := context.Background()
 		redisClient := goredis.NewClient(&goredis.Options{Addr: memoryRedis.Addr()})
-
-		testCleanUpNonExpiringKeysSessionHashesSetupFixture(ctx, redisClient)
-
-		dryRun := true
 		stdout := &bytes.Buffer{}
 		stderr := &bytes.Buffer{}
 		logger := log.New(stderr, "", 0)
-		err := CleanUpNonExpiringKeysSessionHashes(ctx, redisClient, dryRun, stdout, logger)
-		So(err, ShouldBeNil)
-		So(stderr.String(), ShouldEqual, `SCAN app:*:session-list:* with cursor 0: 2
-done SCAN app:*:session-list:*: 2
-SCAN app:*:offline-grant-list:* with cursor 0: 2
-done SCAN app:*:offline-grant-list:*: 2
-would delete app:accounts:offline-grant-list:user-a
-would delete app:accounts:session-list:user-b
-`)
-		So(stdout.String(), ShouldEqual, `app:accounts:offline-grant-list:user-a
-app:accounts:session-list:user-b
-`)
-	})
-}
+		testCleanUpNonExpiringKeysSetupFixture(ctx, redisClient)
 
-func TestCleanUpNonExpiringKeysSessionHashesDryRunFalse(t *testing.T) {
-	memoryRedis := miniredis.RunT(t)
+		Convey("validate SCAN count", func() {
+			err := CleanUpNonExpiringKeys(ctx, redisClient, stdout, logger, CleanUpNonExpiringKeysOptions{
+				ScanCountString:  "a",
+				KeyPattern:       "failed-attempts",
+				ExpirationString: "1234s",
+				DryRun:           true,
+				Now:              t_now,
+			})
+			So(err, ShouldBeError, "SCAN count must be an integer: a")
+		})
 
-	Convey("CleanUpNonExpiringKeysSessionHashes dry-run=false", t, func() {
-		ctx := context.Background()
-		redisClient := goredis.NewClient(&goredis.Options{Addr: memoryRedis.Addr()})
+		Convey("validate expiration syntax", func() {
+			err := CleanUpNonExpiringKeys(ctx, redisClient, stdout, logger, CleanUpNonExpiringKeysOptions{
+				ScanCountString:  "10",
+				KeyPattern:       "failed-attempts",
+				ExpirationString: "a",
+				DryRun:           true,
+				Now:              t_now,
+			})
+			So(err, ShouldBeError, "expiration must be a valid Go duration literal: a")
+		})
 
-		testCleanUpNonExpiringKeysSessionHashesSetupFixture(ctx, redisClient)
+		Convey("validate expiration value", func() {
+			err := CleanUpNonExpiringKeys(ctx, redisClient, stdout, logger, CleanUpNonExpiringKeysOptions{
+				ScanCountString:  "10",
+				KeyPattern:       "failed-attempts",
+				ExpirationString: "-1s",
+				DryRun:           true,
+				Now:              t_now,
+			})
+			So(err, ShouldBeError, "expiration cannot be less than 0: -1s")
+		})
 
-		dryRun := false
-		stdout := &bytes.Buffer{}
-		stderr := &bytes.Buffer{}
-		logger := log.New(stderr, "", 0)
-		err := CleanUpNonExpiringKeysSessionHashes(ctx, redisClient, dryRun, stdout, logger)
-		So(err, ShouldBeNil)
-		So(stderr.String(), ShouldEqual, `SCAN app:*:session-list:* with cursor 0: 2
-done SCAN app:*:session-list:*: 2
-SCAN app:*:offline-grant-list:* with cursor 0: 2
-done SCAN app:*:offline-grant-list:*: 2
-deleted app:accounts:offline-grant-list:user-a
-deleted app:accounts:session-list:user-b
+		Convey("validate key pattern", func() {
+			err := CleanUpNonExpiringKeys(ctx, redisClient, stdout, logger, CleanUpNonExpiringKeysOptions{
+				ScanCountString:  "10",
+				KeyPattern:       "a",
+				ExpirationString: "1234s",
+				DryRun:           true,
+				Now:              t_now,
+			})
+			So(err, ShouldBeError, "unsupported key patttern: a")
+		})
+
+		Convey("validate now", func() {
+			err := CleanUpNonExpiringKeys(ctx, redisClient, stdout, logger, CleanUpNonExpiringKeysOptions{
+				ScanCountString:  "10",
+				KeyPattern:       "session-list",
+				ExpirationString: "1234s",
+				DryRun:           true,
+				Now:              time.Time{},
+			})
+			So(err, ShouldBeError, "now cannot be zero")
+		})
+
+		Convey("session-list dry-run=true", func() {
+			err := CleanUpNonExpiringKeys(ctx, redisClient, stdout, logger, CleanUpNonExpiringKeysOptions{
+				ScanCountString:  "10",
+				KeyPattern:       "session-list",
+				ExpirationString: "1234s",
+				DryRun:           true,
+				Now:              t_now,
+			})
+			So(err, ShouldBeNil)
+			So(stderr.String(), ShouldEqual, `SCAN 0 app:*:session-list:* scanned_total=3 expired_total=0
+(dry-run) EXPIRE app:accounts:session-list:all-expired 1234
+done scanned_total=3 expired_total=1
 `)
-		So(stdout.String(), ShouldEqual, `app:accounts:offline-grant-list:user-a
-app:accounts:session-list:user-b
+			So(stdout.String(), ShouldEqual, `app:accounts:session-list:all-expired
 `)
+		})
+
+		Convey("offline-grant-list dry-run=true", func() {
+			err := CleanUpNonExpiringKeys(ctx, redisClient, stdout, logger, CleanUpNonExpiringKeysOptions{
+				ScanCountString:  "10",
+				KeyPattern:       "offline-grant-list",
+				ExpirationString: "1234s",
+				DryRun:           true,
+				Now:              t_now,
+			})
+			So(err, ShouldBeNil)
+			So(stderr.String(), ShouldEqual, `SCAN 0 app:*:offline-grant-list:* scanned_total=3 expired_total=0
+(dry-run) EXPIRE app:accounts:offline-grant-list:all-expired 1234
+done scanned_total=3 expired_total=1
+`)
+			So(stdout.String(), ShouldEqual, `app:accounts:offline-grant-list:all-expired
+`)
+		})
+
+		Convey("failed-attempts dry-run=true", func() {
+			err := CleanUpNonExpiringKeys(ctx, redisClient, stdout, logger, CleanUpNonExpiringKeysOptions{
+				ScanCountString:  "10",
+				KeyPattern:       "failed-attempts",
+				ExpirationString: "1234s",
+				DryRun:           true,
+				Now:              t_now,
+			})
+			So(err, ShouldBeNil)
+			So(stderr.String(), ShouldEqual, `SCAN 0 app:*:failed-attempts:* scanned_total=2 expired_total=0
+(dry-run) EXPIRE app:accounts:failed-attempts:purpose:old 1234
+done scanned_total=2 expired_total=1
+`)
+			So(stdout.String(), ShouldEqual, `app:accounts:failed-attempts:purpose:old
+`)
+		})
+
+		Convey("access-events dry-run=true", func() {
+			err := CleanUpNonExpiringKeys(ctx, redisClient, stdout, logger, CleanUpNonExpiringKeysOptions{
+				ScanCountString:  "10",
+				KeyPattern:       "access-events",
+				ExpirationString: "1234s",
+				DryRun:           true,
+				Now:              t_now,
+			})
+			So(err, ShouldBeNil)
+			So(stderr.String(), ShouldEqual, `SCAN 0 app:*:access-events:* scanned_total=2 expired_total=0
+(dry-run) EXPIRE app:accounts:access-events:old 1234
+done scanned_total=2 expired_total=1
+`)
+			So(stdout.String(), ShouldEqual, `app:accounts:access-events:old
+`)
+		})
+
+		Convey("lockout dry-run=true", func() {
+			err := CleanUpNonExpiringKeys(ctx, redisClient, stdout, logger, CleanUpNonExpiringKeysOptions{
+				ScanCountString:  "10",
+				KeyPattern:       "lockout",
+				ExpirationString: "1234s",
+				DryRun:           true,
+				Now:              t_now,
+			})
+			So(err, ShouldBeNil)
+			So(stderr.String(), ShouldEqual, `SCAN 0 app:*:lockout:* scanned_total=2 expired_total=0
+(dry-run) EXPIRE app:accounts:lockout:old 1234
+done scanned_total=2 expired_total=1
+`)
+			So(stdout.String(), ShouldEqual, `app:accounts:lockout:old
+`)
+		})
+
+		Convey("session-list dry-run=false", func() {
+			err := CleanUpNonExpiringKeys(ctx, redisClient, stdout, logger, CleanUpNonExpiringKeysOptions{
+				ScanCountString:  "10",
+				KeyPattern:       "session-list",
+				ExpirationString: "1234s",
+				DryRun:           false,
+				Now:              t_now,
+			})
+			So(err, ShouldBeNil)
+			So(stderr.String(), ShouldEqual, `SCAN 0 app:*:session-list:* scanned_total=3 expired_total=0
+EXPIRE app:accounts:session-list:all-expired 1234
+done scanned_total=3 expired_total=1
+`)
+			So(stdout.String(), ShouldEqual, `app:accounts:session-list:all-expired
+`)
+		})
+
+		Convey("offline-grant-list dry-run=false", func() {
+			err := CleanUpNonExpiringKeys(ctx, redisClient, stdout, logger, CleanUpNonExpiringKeysOptions{
+				ScanCountString:  "10",
+				KeyPattern:       "offline-grant-list",
+				ExpirationString: "1234s",
+				DryRun:           false,
+				Now:              t_now,
+			})
+			So(err, ShouldBeNil)
+			So(stderr.String(), ShouldEqual, `SCAN 0 app:*:offline-grant-list:* scanned_total=3 expired_total=0
+EXPIRE app:accounts:offline-grant-list:all-expired 1234
+done scanned_total=3 expired_total=1
+`)
+			So(stdout.String(), ShouldEqual, `app:accounts:offline-grant-list:all-expired
+`)
+		})
+
+		Convey("failed-attempts dry-run=false", func() {
+			err := CleanUpNonExpiringKeys(ctx, redisClient, stdout, logger, CleanUpNonExpiringKeysOptions{
+				ScanCountString:  "10",
+				KeyPattern:       "failed-attempts",
+				ExpirationString: "1234s",
+				DryRun:           false,
+				Now:              t_now,
+			})
+			So(err, ShouldBeNil)
+			So(stderr.String(), ShouldEqual, `SCAN 0 app:*:failed-attempts:* scanned_total=2 expired_total=0
+EXPIRE app:accounts:failed-attempts:purpose:old 1234
+done scanned_total=2 expired_total=1
+`)
+			So(stdout.String(), ShouldEqual, `app:accounts:failed-attempts:purpose:old
+`)
+		})
+
+		Convey("access-events dry-run=false", func() {
+			err := CleanUpNonExpiringKeys(ctx, redisClient, stdout, logger, CleanUpNonExpiringKeysOptions{
+				ScanCountString:  "10",
+				KeyPattern:       "access-events",
+				ExpirationString: "1234s",
+				DryRun:           false,
+				Now:              t_now,
+			})
+			So(err, ShouldBeNil)
+			So(stderr.String(), ShouldEqual, `SCAN 0 app:*:access-events:* scanned_total=2 expired_total=0
+EXPIRE app:accounts:access-events:old 1234
+done scanned_total=2 expired_total=1
+`)
+			So(stdout.String(), ShouldEqual, `app:accounts:access-events:old
+`)
+		})
+
+		Convey("lockout dry-run=false", func() {
+			err := CleanUpNonExpiringKeys(ctx, redisClient, stdout, logger, CleanUpNonExpiringKeysOptions{
+				ScanCountString:  "10",
+				KeyPattern:       "lockout",
+				ExpirationString: "1234s",
+				DryRun:           false,
+				Now:              t_now,
+			})
+			So(err, ShouldBeNil)
+			So(stderr.String(), ShouldEqual, `SCAN 0 app:*:lockout:* scanned_total=2 expired_total=0
+EXPIRE app:accounts:lockout:old 1234
+done scanned_total=2 expired_total=1
+`)
+			So(stdout.String(), ShouldEqual, `app:accounts:lockout:old
+`)
+		})
 	})
 }
