@@ -15,3 +15,8 @@ lint:
 	npm run eslint
 	npm run stylelint
 	npm run prettier
+
+.PHONY: outdated
+outdated:
+	npm outdated caniuse-lite --json | jq -e '.["caniuse-lite"] == null'
+	npm outdated stylelint-no-unsupported-browser-features --json | jq -e '.["stylelint-no-unsupported-browser-features"] == null'

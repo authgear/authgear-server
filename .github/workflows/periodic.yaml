@@ -1,0 +1,34 @@
+name: CI - Check Outdated Packages
+
+on:
+  schedule:
+    - cron: "0 0 1 * *"
+
+
+jobs:
+  authui-check:
+    if: ${{ github.repository != 'oursky/authgear-server' }}
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version-file: "./.tool-versions"
+    - run: npm ci
+      working-directory: ./authui
+    - run: make outdated
+      working-directory: ./authui
+      if: ${{ !cancelled() }}
+  portal-check:
+    if: ${{ github.repository != 'oursky/authgear-server' }}
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version-file: "./.tool-versions"
+    - run: npm ci
+      working-directory: ./portal
+    - run: make outdated
+      working-directory: ./portal
+      if: ${{ !cancelled() }}
