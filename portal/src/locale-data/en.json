@@ -1613,7 +1613,7 @@
   "TestSMSDialog.title": "Test SMS",
   "TestSMSDialog.description": "Enter a phone number to test the current SMS configuration.",
   "TestSMSDialog.send": "Send",
-  "TestSMSDialog.toast.success": "Test SMS sent.",
+  "TestSMSDialog.toast.success": "Test SMS sent successfully!",
   "TestSMSDialog.errors.gateway-invalid-phone-number-error": "Please enter a correct phone number. (Gateway error code: {code})",
   "TestSMSDialog.errors.gateway-authentication-failed-error": "Please check the gateway credentials. (Gateway error code: {code})",
   "TestSMSDialog.errors.gateway-delivery-rejected-error": "Delivery rejected by gateway. (Gateway error code: {code})",
