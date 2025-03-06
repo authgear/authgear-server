@@ -12,7 +12,8 @@
           "flexbox",
           "multicolumn",
           "css-nesting",
-          "css-overflow"
+          "css-overflow",
+          "css-display-contents"
         ]
       }
     ],
