@@ -8,39 +8,39 @@ import React, { ComponentProps, useCallback } from "react";
 import styles from "./Callout.module.css";
 import { useToastContext, useToastProviderContext } from "./Toast";
 
-export enum CalloutColor {
+export enum CalloutType {
   error = "error",
   success = "success",
 }
 
 export interface CalloutProps {
-  color: CalloutColor;
+  type: CalloutType;
   text?: React.ReactChild;
   showCloseButton?: boolean;
 }
 
-function colorToRadixColor(
-  color: CalloutColor
+function typeToRadixColor(
+  type: CalloutType
 ): ComponentProps<typeof RadixCallout.Root>["color"] {
-  switch (color) {
-    case CalloutColor.error:
+  switch (type) {
+    case CalloutType.error:
       return "red";
-    case CalloutColor.success:
+    case CalloutType.success:
       return "green";
   }
 }
 
-function CalloutIcon({ color }: { color: CalloutColor }) {
+function CalloutIcon({ color }: { color: CalloutType }) {
   switch (color) {
-    case CalloutColor.error:
+    case CalloutType.error:
       return <ExclamationTriangleIcon />;
-    case CalloutColor.success:
+    case CalloutType.success:
       return <CheckCircledIcon />;
   }
 }
 
 export function Callout({
-  color,
+  type,
   text,
   showCloseButton = true,
 }: CalloutProps): React.ReactElement {
@@ -53,12 +53,12 @@ export function Callout({
   return (
     <RadixCallout.Root
       className={styles.calloutRoot}
-      color={colorToRadixColor(color)}
+      color={typeToRadixColor(type)}
       size="2"
       variant="surface"
     >
       <RadixCallout.Icon className={styles.calloutIcon}>
-        <CalloutIcon color={color} />
+        <CalloutIcon color={type} />
       </RadixCallout.Icon>
       <RadixCallout.Text className={styles.calloutText}>
         {text}

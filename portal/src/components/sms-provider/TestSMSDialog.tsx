@@ -7,7 +7,7 @@ import DefaultButton from "../../DefaultButton";
 import FormPhoneTextField from "../../FormPhoneTextField";
 import { PortalAPIAppConfig } from "../../types";
 import { useSendTestSMSMutation } from "../../graphql/portal/mutations/sendTestSMS";
-import { CalloutColor, useCalloutToast } from "../v2/common/Callout";
+import { CalloutType, useCalloutToast } from "../v2/common/Callout";
 import { FormProvider, useFormTopErrors } from "../../form";
 import { ErrorParseRule, makeReasonErrorParseRule } from "../../error/parse";
 import { APISMSGatewayError } from "../../error/error";
@@ -87,7 +87,7 @@ export function TestSMSDialog({
     })
       .then(() => {
         showToast({
-          color: CalloutColor.success,
+          type: CalloutType.success,
           text: <FormattedMessage id="TestSMSDialog.toast.success" />,
         });
         onDismiss();
@@ -150,7 +150,7 @@ function ErrorToast({ onDismiss }: { onDismiss: () => void }) {
   useEffect(() => {
     for (const err of errors) {
       showToast({
-        color: CalloutColor.error,
+        type: CalloutType.error,
         text: (
           <FormattedMessage id={err.messageID ?? ""} values={err.arguments} />
         ),
