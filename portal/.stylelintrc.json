@@ -11,7 +11,8 @@
           "css3-cursors",
           "flexbox",
           "multicolumn",
-          "css-nesting"
+          "css-nesting",
+          "css-overflow"
         ]
       }
     ],
