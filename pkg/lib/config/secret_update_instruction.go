@@ -780,9 +780,13 @@ type SMSProviderSecretsUpdateInstructionSetData struct {
 }
 
 type SMSProviderSecretsUpdateInstructionTwilioCredentials struct {
-	AccountSID          string `json:"accountSID,omitempty"`
-	AuthToken           string `json:"authToken,omitempty"`
-	MessagingServiceSID string `json:"messagingServiceSID,omitempty"`
+	CredentialType      TwilioCredentialType `json:"credentialType,omitempty"`
+	AccountSID          string               `json:"accountSID,omitempty"`
+	AuthToken           string               `json:"authToken,omitempty"`
+	APIKeySID           string               `json:"apiKeySID,omitempty"`
+	APIKeySecret        string               `json:"apiKeySecret,omitempty"`
+	MessagingServiceSID string               `json:"messagingServiceSID,omitempty"`
+	From                string               `json:"from,omitempty"`
 }
 
 type SMSProviderSecretsUpdateInstructionCustomSMSProvider struct {
@@ -849,9 +853,20 @@ func (i *SMSProviderSecretsUpdateInstruction) set(currentConfig *SecretConfig) (
 
 	if i.SetData.TwilioCredentials != nil {
 		twilioCredentials := TwilioCredentials{
-			AccountSID:          i.SetData.TwilioCredentials.AccountSID,
-			AuthToken:           i.SetData.TwilioCredentials.AuthToken,
-			MessagingServiceSID: i.SetData.TwilioCredentials.MessagingServiceSID,
+			CredentialType_WriteOnly: &i.SetData.TwilioCredentials.CredentialType,
+			AccountSID:               i.SetData.TwilioCredentials.AccountSID,
+		}
+		switch i.SetData.TwilioCredentials.CredentialType {
+		case TwilioCredentialTypeAPIKey:
+			twilioCredentials.APIKeySID = i.SetData.TwilioCredentials.APIKeySID
+			twilioCredentials.APIKeySecret = i.SetData.TwilioCredentials.APIKeySecret
+		case TwilioCredentialTypeAuthToken:
+			twilioCredentials.AuthToken = i.SetData.TwilioCredentials.AuthToken
+		}
+		if i.SetData.TwilioCredentials.MessagingServiceSID != "" {
+			twilioCredentials.MessagingServiceSID = i.SetData.TwilioCredentials.MessagingServiceSID
+		} else if i.SetData.TwilioCredentials.From != "" {
+			twilioCredentials.From = i.SetData.TwilioCredentials.From
 		}
 		err := upsert(TwilioCredentialsKey, twilioCredentials)
 		if err != nil {

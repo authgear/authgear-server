@@ -85,9 +85,13 @@ type SAMLSpSigningSecrets struct {
 }
 
 type SMSProviderTwilioCredentials struct {
-	AccountSID          string  `json:"accountSID,omitempty"`
-	AuthToken           *string `json:"authToken,omitempty"`
-	MessagingServiceSID string  `json:"messagingServiceSID,omitempty"`
+	CredentialType      config.TwilioCredentialType `json:"credentialType,omitempty"`
+	AccountSID          string                      `json:"accountSID,omitempty"`
+	AuthToken           *string                     `json:"authToken,omitempty"`
+	APIKeySID           string                      `json:"apiKeySID,omitempty"`
+	APIKeySecret        *string                     `json:"apiKeySecret,omitempty"`
+	MessagingServiceSID string                      `json:"messagingServiceSID,omitempty"`
+	From                string                      `json:"from,omitempty"`
 }
 
 type SMSProviderCustomSMSProviderConfigs struct {
@@ -268,11 +272,15 @@ func NewSecretConfig(secretConfig *config.SecretConfig, unmaskedSecrets []config
 	smsProviderSecrets := &SMSProviderSecrets{}
 	if twilioCredentials, ok := secretConfig.LookupData(config.TwilioCredentialsKey).(*config.TwilioCredentials); ok {
 		smsProviderSecrets.TwilioCredentials = &SMSProviderTwilioCredentials{
+			CredentialType:      twilioCredentials.GetCredentialType(),
 			AccountSID:          twilioCredentials.AccountSID,
+			APIKeySID:           twilioCredentials.APIKeySID,
 			MessagingServiceSID: twilioCredentials.MessagingServiceSID,
+			From:                twilioCredentials.From,
 		}
 		if _, exist := unmaskedSecretsSet[config.TwilioCredentialsKey]; exist {
 			smsProviderSecrets.TwilioCredentials.AuthToken = &twilioCredentials.AuthToken
+			smsProviderSecrets.TwilioCredentials.APIKeySecret = &twilioCredentials.APIKeySecret
 		}
 
 	}

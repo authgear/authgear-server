@@ -258,26 +258,65 @@ var _ = SecretConfigSchema.Add("TwilioCredentials", `
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
+		"credential_type": {
+			"type": "string",
+			"enum": ["api_key", "auth_token"]
+		},
 		"account_sid": { "type": "string" },
 		"auth_token": { "type": "string" },
-		"message_service_sid": { "type": "string" }
+		"api_key_sid": { "type": "string" },
+		"api_key_secret": { "type": "string" },
+		"message_service_sid": { "type": "string" },
+		"from": { "type": "string" }
 	},
-	"required": ["account_sid", "auth_token"]
+	"required": ["account_sid"],
+	"allOf": [
+		{
+			"if": {
+				"properties": { "credential_type": { "const": "api_key" } },
+				"required": ["credential_type"]
+			},
+			"then": { "required": ["api_key_sid", "api_key_secret"] },
+			"else": { "required": ["auth_token"] }
+		}
+	]
 }
 `)
 
+type TwilioCredentialType string
+
+const (
+	TwilioCredentialTypeAPIKey    TwilioCredentialType = "api_key"
+	TwilioCredentialTypeAuthToken TwilioCredentialType = "auth_token"
+)
+
 type TwilioCredentials struct {
-	AccountSID          string `json:"account_sid,omitempty"`
-	AuthToken           string `json:"auth_token,omitempty"`
-	MessagingServiceSID string `json:"message_service_sid,omitempty"`
+	// For write only, always use GetCredentialType to read the value
+	CredentialType_WriteOnly *TwilioCredentialType `json:"credential_type,omitempty"`
+	AccountSID               string                `json:"account_sid,omitempty"`
+	AuthToken                string                `json:"auth_token,omitempty"`
+	APIKeySID                string                `json:"api_key_sid,omitempty"`
+	APIKeySecret             string                `json:"api_key_secret,omitempty"`
+	MessagingServiceSID      string                `json:"message_service_sid,omitempty"`
+	From                     string                `json:"from,omitempty"`
 }
 
 func (c *TwilioCredentials) SensitiveStrings() []string {
 	return []string{
 		c.AccountSID,
 		c.AuthToken,
+		c.APIKeySID,
+		c.APIKeySecret,
 		c.MessagingServiceSID,
 	}
+}
+
+func (c *TwilioCredentials) GetCredentialType() TwilioCredentialType {
+	if c.CredentialType_WriteOnly == nil {
+		// Old data does not specify credential_type. Treat it as auth_token.
+		return TwilioCredentialTypeAuthToken
+	}
+	return *c.CredentialType_WriteOnly
 }
 
 var _ = SecretConfigSchema.Add("NexmoCredentials", `

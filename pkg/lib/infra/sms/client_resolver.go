@@ -11,10 +11,40 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms/twilio"
 )
 
+func NewTwilioClientCredentialsFromSecrets(secret *config.TwilioCredentials) *TwilioClientCredentials {
+	return &TwilioClientCredentials{
+		CredentialType:      secret.GetCredentialType(),
+		AccountSID:          secret.AccountSID,
+		AuthToken:           secret.AuthToken,
+		APIKeySID:           secret.APIKeySID,
+		APIKeySecret:        secret.APIKeySecret,
+		MessagingServiceSID: secret.MessagingServiceSID,
+	}
+}
+
 type TwilioClientCredentials struct {
+	CredentialType      config.TwilioCredentialType
 	AccountSID          string
 	AuthToken           string
+	APIKeySID           string
+	APIKeySecret        string
 	MessagingServiceSID string
+	From                string
+}
+
+func (c *TwilioClientCredentials) toSecret() *config.TwilioCredentials {
+	if c == nil {
+		return nil
+	}
+	return &config.TwilioCredentials{
+		CredentialType_WriteOnly: &c.CredentialType,
+		AccountSID:               c.AccountSID,
+		AuthToken:                c.AuthToken,
+		APIKeySID:                c.APIKeySID,
+		APIKeySecret:             c.APIKeySecret,
+		MessagingServiceSID:      c.MessagingServiceSID,
+		From:                     c.From,
+	}
 }
 
 func (TwilioClientCredentials) smsClientCredentials() {}
@@ -198,10 +228,15 @@ func (r *ClientResolver) clientsFromAuthgearSecretsYAML() (*nexmo.NexmoClient, *
 	}
 
 	if r.AuthgearSecretsYAMLTwilioCredentials != nil {
+		credtyp := r.AuthgearSecretsYAMLTwilioCredentials.GetCredentialType()
 		twilioClientCredentials = &TwilioClientCredentials{
+			CredentialType:      credtyp,
 			AccountSID:          r.AuthgearSecretsYAMLTwilioCredentials.AccountSID,
 			AuthToken:           r.AuthgearSecretsYAMLTwilioCredentials.AuthToken,
+			APIKeySID:           r.AuthgearSecretsYAMLTwilioCredentials.APIKeySID,
+			APIKeySecret:        r.AuthgearSecretsYAMLTwilioCredentials.APIKeySecret,
 			MessagingServiceSID: r.AuthgearSecretsYAMLTwilioCredentials.MessagingServiceSID,
+			From:                r.AuthgearSecretsYAMLTwilioCredentials.From,
 		}
 	}
 
@@ -220,7 +255,6 @@ func (r *ClientResolver) clientsFromEnv() (*nexmo.NexmoClient, *NexmoClientCrede
 	var twilioClientCredentials *TwilioClientCredentials
 	var customClientCredentials *CustomClientCredentials
 
-	print(fmt.Sprintf("%v", r.EnvironmentNexmoCredentials))
 	if r.EnvironmentNexmoCredentials != (config.SMSGatewayEnvironmentNexmoCredentials{}) {
 		nexmoClientCredentials = &NexmoClientCredentials{
 			APIKey:    r.EnvironmentNexmoCredentials.APIKey,
@@ -229,10 +263,15 @@ func (r *ClientResolver) clientsFromEnv() (*nexmo.NexmoClient, *NexmoClientCrede
 	}
 
 	if r.EnvironmentTwilioCredentials != (config.SMSGatewayEnvironmentTwilioCredentials{}) {
+		credtyp := config.TwilioCredentialTypeAuthToken
 		twilioClientCredentials = &TwilioClientCredentials{
+			CredentialType:      credtyp,
 			AccountSID:          r.EnvironmentTwilioCredentials.AccountSID,
 			AuthToken:           r.EnvironmentTwilioCredentials.AuthToken,
+			APIKeySID:           "",
+			APIKeySecret:        "",
 			MessagingServiceSID: r.EnvironmentTwilioCredentials.MessagingServiceSID,
+			From:                "",
 		}
 	}
 
@@ -247,7 +286,7 @@ func (r *ClientResolver) clientsFromEnv() (*nexmo.NexmoClient, *NexmoClientCrede
 		}
 	}
 
-	return nexmo.NewNexmoClient((*config.NexmoCredentials)(nexmoClientCredentials)), nexmoClientCredentials, twilio.NewTwilioClient((*config.TwilioCredentials)(twilioClientCredentials)), twilioClientCredentials, custom.NewCustomClient((*config.CustomSMSProviderConfig)(customClientCredentials), r.SMSDenoHook, r.SMSWebHook), customClientCredentials
+	return nexmo.NewNexmoClient((*config.NexmoCredentials)(nexmoClientCredentials)), nexmoClientCredentials, twilio.NewTwilioClient(twilioClientCredentials.toSecret()), twilioClientCredentials, custom.NewCustomClient((*config.CustomSMSProviderConfig)(customClientCredentials), r.SMSDenoHook, r.SMSWebHook), customClientCredentials
 }
 
 func (r *ClientResolver) resolveRawClients() (*nexmo.NexmoClient, *NexmoClientCredentials, *twilio.TwilioClient, *TwilioClientCredentials, *custom.CustomClient, *CustomClientCredentials) {

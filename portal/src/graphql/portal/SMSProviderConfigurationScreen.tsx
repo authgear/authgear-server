@@ -3,6 +3,8 @@ import { useLocation, useNavigate, useParams } from "react-router-dom";
 import {
   AppSecretKey,
   SmsProviderConfigurationInput,
+  SmsProviderConfigurationTwilioInput,
+  TwilioCredentialType,
 } from "./globalTypes.generated";
 import React, {
   useCallback,
@@ -26,6 +28,7 @@ import {
   PortalAPISecretConfig,
   PortalAPISecretConfigUpdateInstruction,
   SMSProvider,
+  SMSProviderTwilioCredentials,
   getHookKind,
 } from "../../types";
 import { produce } from "immer";
@@ -33,7 +36,13 @@ import {
   FormattedMessage,
   Context as MessageContext,
 } from "@oursky/react-messageformat";
-import { Text } from "@fluentui/react";
+import {
+  ChoiceGroup,
+  IChoiceGroupOption,
+  IChoiceGroupOptionProps,
+  IChoiceGroupStyles,
+  Text,
+} from "@fluentui/react";
 import ScreenContent from "../../ScreenContent";
 import ScreenTitle from "../../ScreenTitle";
 import styles from "./SMSProviderConfigurationScreen.module.css";
@@ -62,14 +71,15 @@ import {
 } from "../../util/resource";
 import { DENO_TYPES_URL } from "../../util/deno";
 import { genRandomHexadecimalString } from "../../util/random";
-import HorizontalDivider from "../../HorizontalDivider";
-import FormPhoneTextField from "../../FormPhoneTextField";
 import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";
 import { useSendTestSMSMutation } from "./mutations/sendTestSMS";
 import { useCheckDenoHookMutation } from "./mutations/checkDenoHook";
 import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
 import { ErrorParseRule, makeReasonErrorParseRule } from "../../error/parse";
 import { APISMSGatewayError } from "../../error/error";
+import { ReauthDialog } from "../../components/common/ReauthDialog";
+import { TestSMSDialog } from "../../components/sms-provider/TestSMSDialog";
+import Tooltip from "../../Tooltip";
 
 const SECRETS = [AppSecretKey.SmsProviderSecrets, AppSecretKey.WebhookSecret];
 
@@ -122,15 +132,25 @@ enum SMSProviderType {
   Deno = "deno",
 }
 
+enum TwilioSenderType {
+  MessagingServiceSID = "MessagingServiceSID",
+  From = "From",
+}
+
 interface ConfigFormState {
   enabled: boolean;
   providerType: SMSProviderType;
   webhookSecretKey: string | null;
 
   // twilio
+  twilioCredentialType: TwilioCredentialType;
   twilioSID: string;
   twilioAuthToken: string | null;
+  twilioAPIKeySID: string;
+  twilioAPIKeySecret: string | null;
+  twilioSenderType: TwilioSenderType;
   twilioMessagingServiceSID: string;
+  twilioFrom: string;
 
   // webhook
   webhookURL: string;
@@ -188,18 +208,44 @@ function constructFormState(
     providerType = SMSProviderType.Twilio;
   }
 
+  let twilioCredentialType: TwilioCredentialType = TwilioCredentialType.ApiKey;
   let twilioSID = "";
+  let twilioAPIKeySID = "";
   let twilioAuthToken: string | null = "";
+  let twilioAPIKeySecret: string | null = "";
+  let twilioSenderType: TwilioSenderType = TwilioSenderType.From;
   let twilioMessagingServiceSID = "";
+  let twilioFrom = "";
 
   if (enabled && providerType === SMSProviderType.Twilio) {
     twilioSID = secrets.smsProviderSecrets?.twilioCredentials?.accountSID ?? "";
-    twilioAuthToken =
-      secrets.smsProviderSecrets?.twilioCredentials != null
-        ? secrets.smsProviderSecrets.twilioCredentials.authToken ?? null
-        : "";
-    twilioMessagingServiceSID =
-      secrets.smsProviderSecrets?.twilioCredentials?.messagingServiceSID ?? "";
+    twilioCredentialType =
+      secrets.smsProviderSecrets?.twilioCredentials?.credentialType ??
+      TwilioCredentialType.AuthToken;
+    switch (twilioCredentialType) {
+      case TwilioCredentialType.AuthToken:
+        twilioAuthToken =
+          secrets.smsProviderSecrets?.twilioCredentials != null
+            ? secrets.smsProviderSecrets.twilioCredentials.authToken ?? null
+            : "";
+        break;
+      case TwilioCredentialType.ApiKey:
+        twilioAPIKeySID =
+          secrets.smsProviderSecrets?.twilioCredentials?.apiKeySID ?? "";
+        twilioAPIKeySecret =
+          secrets.smsProviderSecrets?.twilioCredentials != null
+            ? secrets.smsProviderSecrets.twilioCredentials.apiKeySecret ?? null
+            : "";
+    }
+
+    if (secrets.smsProviderSecrets?.twilioCredentials?.messagingServiceSID) {
+      twilioSenderType = TwilioSenderType.MessagingServiceSID;
+      twilioMessagingServiceSID =
+        secrets.smsProviderSecrets.twilioCredentials.messagingServiceSID;
+    } else if (secrets.smsProviderSecrets?.twilioCredentials?.from) {
+      twilioSenderType = TwilioSenderType.From;
+      twilioFrom = secrets.smsProviderSecrets.twilioCredentials.from;
+    }
   }
 
   let webhookURL = "";
@@ -237,16 +283,21 @@ function constructFormState(
     providerType,
     webhookSecretKey: secrets.webhookSecret?.secret ?? null,
 
+    twilioCredentialType,
     twilioSID,
     twilioAuthToken,
+    twilioAPIKeySID,
+    twilioAPIKeySecret,
+    twilioSenderType,
     twilioMessagingServiceSID,
+    twilioFrom,
 
     webhookURL,
     webhookTimeout,
 
     denoHookURL,
     denoHookTimeout,
-  };
+  } satisfies ConfigFormState;
 }
 
 function constructConfig(
@@ -289,15 +340,32 @@ function constructConfig(
       secrets.smsProviderSecrets = null;
     } else {
       switch (currentState.providerType) {
-        case SMSProviderType.Twilio:
-          secrets.smsProviderSecrets = {
-            twilioCredentials: {
-              accountSID: currentState.twilioSID,
-              authToken: currentState.twilioAuthToken,
-              messagingServiceSID: currentState.twilioMessagingServiceSID,
-            },
+        case SMSProviderType.Twilio: {
+          const twilioCredentials: SMSProviderTwilioCredentials = {
+            credentialType: currentState.twilioCredentialType,
+            accountSID: currentState.twilioSID,
           };
+          switch (currentState.twilioCredentialType) {
+            case TwilioCredentialType.ApiKey:
+              twilioCredentials.apiKeySID = currentState.twilioAPIKeySID;
+              twilioCredentials.apiKeySecret = currentState.twilioAPIKeySecret;
+              break;
+            case TwilioCredentialType.AuthToken:
+              twilioCredentials.authToken = currentState.twilioAuthToken;
+              break;
+          }
+          switch (currentState.twilioSenderType) {
+            case TwilioSenderType.From:
+              twilioCredentials.from = currentState.twilioFrom;
+              break;
+            case TwilioSenderType.MessagingServiceSID:
+              twilioCredentials.messagingServiceSID =
+                currentState.twilioMessagingServiceSID;
+              break;
+          }
+          secrets.smsProviderSecrets = { twilioCredentials: twilioCredentials };
           break;
+        }
         case SMSProviderType.Webhook:
           secrets.smsProviderSecrets = {
             customSMSProviderCredentials: {
@@ -341,21 +409,23 @@ function constructSecretUpdateInstruction(
         console.error("unexpected null twilioCredentials");
         return undefined;
       }
-      if (secrets.smsProviderSecrets.twilioCredentials.authToken == null) {
-        console.error("unexpected masked twilioCredentials");
-        return undefined;
-      }
       return {
         smsProviderSecrets: {
           action: "set",
           setData: {
             twilioCredentials: {
+              credentialType:
+                secrets.smsProviderSecrets.twilioCredentials.credentialType,
               accountSID:
                 secrets.smsProviderSecrets.twilioCredentials.accountSID,
               authToken: secrets.smsProviderSecrets.twilioCredentials.authToken,
+              apiKeySID: secrets.smsProviderSecrets.twilioCredentials.apiKeySID,
+              apiKeySecret:
+                secrets.smsProviderSecrets.twilioCredentials.apiKeySecret,
               messagingServiceSID:
                 secrets.smsProviderSecrets.twilioCredentials
                   .messagingServiceSID,
+              from: secrets.smsProviderSecrets.twilioCredentials.from,
             },
           },
         },
@@ -460,22 +530,51 @@ function useTestSMSConfig(
 ): SmsProviderConfigurationInput | null {
   const denoResourceIdx = useDenoScriptResourceIndex(state);
 
-  return useMemo(() => {
+  return useMemo((): SmsProviderConfigurationInput | null => {
     if (!state.enabled) {
       return null;
     }
     switch (state.providerType) {
-      case SMSProviderType.Twilio:
-        if (!state.twilioSID || !state.twilioAuthToken) {
+      case SMSProviderType.Twilio: {
+        if (!state.twilioSID) {
           return null;
+        }
+        const twilio: SmsProviderConfigurationTwilioInput = {
+          credentialType: state.twilioCredentialType,
+          accountSID: state.twilioSID,
+          authToken: state.twilioAuthToken ?? "",
+          apiKeySID: state.twilioAPIKeySID,
+          apiKeySecret: state.twilioAPIKeySecret ?? "",
+        };
+        switch (state.twilioCredentialType) {
+          case TwilioCredentialType.ApiKey:
+            twilio.apiKeySID = state.twilioAPIKeySID;
+            twilio.apiKeySecret = state.twilioAPIKeySecret;
+            break;
+          case TwilioCredentialType.AuthToken:
+            twilio.authToken = state.twilioAuthToken;
+            break;
+        }
+        switch (state.twilioSenderType) {
+          case TwilioSenderType.From:
+            twilio.from = state.twilioFrom;
+            break;
+          case TwilioSenderType.MessagingServiceSID:
+            twilio.messagingServiceSID = state.twilioMessagingServiceSID;
+            break;
         }
         return {
           twilio: {
+            credentialType: state.twilioCredentialType,
             accountSID: state.twilioSID,
-            authToken: state.twilioAuthToken,
+            authToken: state.twilioAuthToken ?? "",
+            apiKeySID: state.twilioAPIKeySID,
+            apiKeySecret: state.twilioAPIKeySecret ?? "",
             messagingServiceSID: state.twilioMessagingServiceSID,
+            from: state.twilioFrom,
           },
         };
+      }
       case SMSProviderType.Webhook:
         if (!state.webhookURL) {
           return null;
@@ -508,12 +607,38 @@ function useTestSMSConfig(
     state.enabled,
     state.providerType,
     state.resources,
+    state.twilioAPIKeySID,
+    state.twilioAPIKeySecret,
     state.twilioAuthToken,
+    state.twilioCredentialType,
+    state.twilioFrom,
     state.twilioMessagingServiceSID,
     state.twilioSID,
+    state.twilioSenderType,
     state.webhookTimeout,
     state.webhookURL,
   ]);
+}
+
+function computeIsSecretMasked(state: FormState): boolean {
+  if (!state.enabled) {
+    return false;
+  }
+  switch (state.providerType) {
+    case SMSProviderType.Twilio:
+      switch (state.twilioCredentialType) {
+        case TwilioCredentialType.ApiKey:
+          return state.twilioAPIKeySecret == null;
+        case TwilioCredentialType.AuthToken:
+          return state.twilioAuthToken == null;
+      }
+      throw new Error("unreachable code");
+    case SMSProviderType.Webhook:
+      return state.webhookSecretKey == null;
+    case SMSProviderType.Deno:
+      return false;
+  }
+  throw new Error("unreachable code");
 }
 
 const SMSProviderConfigurationScreen: React.VFC =
@@ -669,17 +794,31 @@ function SMSProviderConfigurationContent(props: {
   const {
     form,
     effectiveAppConfig,
-    sendTestSMSHandle,
     checkDenoHookHandle,
     isCustomSMSProviderDisabled,
   } = props;
+  const { appID } = useParams() as { appID: string };
   const { state, setState } = form;
   const { renderToString } = useContext(MessageContext);
   const navigate = useNavigate();
 
+  const [isReauthDialogHidden, setIsReauthDialogHidden] = useState(true);
+  const [isTestSMSDialogHidden, setIsTestSMSDialogHidden] = useState(true);
+
+  const { checkDenoHook, loading: checkDenoHookLoading } = checkDenoHookHandle;
+
+  const isSecretMasked = useMemo(
+    () => computeIsSecretMasked(form.state),
+    [form.state]
+  );
+
   const onChangeEnabled = useCallback(
     (_event, checked?: boolean) => {
       if (checked != null) {
+        if (isSecretMasked) {
+          setIsReauthDialogHidden(false);
+          return;
+        }
         setState((state) => {
           return {
             ...state,
@@ -688,10 +827,10 @@ function SMSProviderConfigurationContent(props: {
         });
       }
     },
-    [setState]
+    [isSecretMasked, setState]
   );
 
-  const onRevealSecrets = useCallback(() => {
+  const triggerReauth = useCallback(() => {
     const state: LocationState = {
       isRevealSecrets: true,
     };
@@ -702,83 +841,146 @@ function SMSProviderConfigurationContent(props: {
     });
   }, [navigate]);
 
+  const onRevealSecrets = useCallback(() => {
+    setIsReauthDialogHidden(false);
+  }, []);
+
+  const testConfig = useTestSMSConfig(form.state);
+
+  const onTestSMS = useCallback(async () => {
+    if (isSecretMasked) {
+      setIsReauthDialogHidden(false);
+      return;
+    }
+    if (form.state.providerType === SMSProviderType.Deno) {
+      await checkDenoHook(testConfig?.deno?.script ?? "");
+    }
+    setIsTestSMSDialogHidden(false);
+  }, [
+    checkDenoHook,
+    form.state.providerType,
+    isSecretMasked,
+    testConfig?.deno?.script,
+  ]);
+
+  const onCancelTestSMS = useCallback(() => {
+    setIsTestSMSDialogHidden(true);
+  }, []);
+
   return (
-    <ScreenContent>
-      <ScreenTitle className={styles.widget}>
-        <FormattedMessage id="SMSProviderConfigurationScreen.title" />
-      </ScreenTitle>
-      <ScreenDescription className={styles.widget}>
-        <FormattedMessage id="SMSProviderConfigurationScreen.description" />
-      </ScreenDescription>
-      {isCustomSMSProviderDisabled ? (
-        <FeatureDisabledMessageBar
-          className={styles.widget}
-          messageID="FeatureConfig.custom-sms-provider.disabled"
-        />
-      ) : null}
+    <>
+      <ScreenContent>
+        <ScreenTitle className={styles.widget}>
+          <FormattedMessage id="SMSProviderConfigurationScreen.title" />
+        </ScreenTitle>
+        <ScreenDescription className={styles.widget}>
+          <FormattedMessage id="SMSProviderConfigurationScreen.description" />
+        </ScreenDescription>
+        {isCustomSMSProviderDisabled ? (
+          <FeatureDisabledMessageBar
+            className={styles.widget}
+            messageID="FeatureConfig.custom-sms-provider.disabled"
+          />
+        ) : null}
 
-      <Widget className={styles.widget} contentLayout="grid">
-        <Toggle
-          className={styles.columnFull}
-          disabled={isCustomSMSProviderDisabled}
-          checked={state.enabled}
-          onChange={onChangeEnabled}
-          label={renderToString("SMSProviderConfigurationScreen.enable.label")}
-          inlineLabel={true}
-        />
-      </Widget>
-
-      {state.enabled ? (
-        <Widget className={cn(styles.widget, "flex flex-col gap-y-4")}>
-          <ProviderSection form={form} />
-          <FormSection form={form} onRevealSecrets={onRevealSecrets} />
+        <Widget className={styles.widget} contentLayout="grid">
+          <Toggle
+            className={styles.columnFull}
+            disabled={isCustomSMSProviderDisabled}
+            checked={state.enabled}
+            onChange={onChangeEnabled}
+            label={renderToString(
+              "SMSProviderConfigurationScreen.enable.label"
+            )}
+            inlineLabel={true}
+          />
         </Widget>
-      ) : null}
 
-      <Widget className={cn(styles.widget, "w-min pt-1")}>
-        <FormSaveButton />
-      </Widget>
-
-      {form.state.enabled ? (
-        <>
-          <Widget className={cn(styles.widget, "py-1")}>
-            <HorizontalDivider />
-          </Widget>
-          <div className={styles.widget}>
-            <TestSMSSection
+        {state.enabled ? (
+          <Widget className={cn(styles.widget, "flex flex-col gap-y-4")}>
+            <ProviderSection
               form={form}
-              effectiveAppConfig={effectiveAppConfig}
-              sendTestSMSHandle={sendTestSMSHandle}
-              checkDenoHookHandle={checkDenoHookHandle}
+              isSecretMasked={isSecretMasked}
+              onRevealSecrets={onRevealSecrets}
             />
-          </div>
-        </>
+            <FormSection form={form} onRevealSecrets={onRevealSecrets} />
+          </Widget>
+        ) : null}
+
+        {form.state.enabled ? (
+          <>
+            <div className={cn(styles.widget, "flex w-max pt-1 gap-4")}>
+              <DefaultButton
+                className="w-max"
+                text={
+                  <FormattedMessage id="SMSProviderConfigurationScreen.testSMS" />
+                }
+                disabled={testConfig == null || checkDenoHookLoading}
+                onClick={onTestSMS}
+              />
+              {isSecretMasked ? (
+                <PrimaryButton
+                  className="w-max"
+                  onClick={onRevealSecrets}
+                  text={<FormattedMessage id="edit" />}
+                />
+              ) : (
+                <FormSaveButton />
+              )}
+            </div>
+          </>
+        ) : null}
+      </ScreenContent>
+      <ReauthDialog
+        isHidden={isReauthDialogHidden}
+        onConfirm={useCallback(() => {
+          triggerReauth();
+        }, [triggerReauth])}
+        onCancel={useCallback(() => {
+          setIsReauthDialogHidden(true);
+        }, [])}
+      />
+      {testConfig != null ? (
+        <TestSMSDialog
+          appID={appID}
+          isHidden={isTestSMSDialogHidden}
+          effectiveAppConfig={effectiveAppConfig}
+          input={testConfig}
+          onDismiss={onCancelTestSMS}
+        />
       ) : null}
-    </ScreenContent>
+    </>
   );
 }
 
 function ProviderSection({
+  isSecretMasked,
   form,
+  onRevealSecrets,
 }: {
+  isSecretMasked: boolean;
   form: AppSecretConfigFormModel<FormState>;
+  onRevealSecrets: () => void;
 }) {
-  const onSelectTwilio = useCallback(() => {
-    form.setState((state) => {
-      return { ...state, providerType: SMSProviderType.Twilio };
-    });
-  }, [form]);
+  const onSelectProviderCallbacks = useMemo(() => {
+    const makeCallback = (provider: SMSProviderType) => {
+      return () => {
+        if (isSecretMasked) {
+          onRevealSecrets();
+          return;
+        }
+        form.setState((state) => {
+          return { ...state, providerType: provider };
+        });
+      };
+    };
 
-  const onSelectWebhook = useCallback(() => {
-    form.setState((state) => {
-      return { ...state, providerType: SMSProviderType.Webhook };
-    });
-  }, [form]);
-  const onSelectDeno = useCallback(() => {
-    form.setState((state) => {
-      return { ...state, providerType: SMSProviderType.Deno };
-    });
-  }, [form]);
+    return {
+      twilio: makeCallback(SMSProviderType.Twilio),
+      webhook: makeCallback(SMSProviderType.Webhook),
+      deno: makeCallback(SMSProviderType.Deno),
+    };
+  }, [form, isSecretMasked, onRevealSecrets]);
 
   return (
     <div className="flex flex-col gap-y-3">
@@ -787,21 +989,21 @@ function ProviderSection({
       </Text>
       <div className={styles.providerGrid}>
         <ProviderCard
-          onClick={onSelectTwilio}
+          onClick={onSelectProviderCallbacks.twilio}
           isSelected={form.state.providerType === SMSProviderType.Twilio}
           logoSrc={logoTwilio}
         >
           <FormattedMessage id="SMSProviderConfigurationScreen.provider.twilio" />
         </ProviderCard>
         <ProviderCard
-          onClick={onSelectWebhook}
+          onClick={onSelectProviderCallbacks.webhook}
           isSelected={form.state.providerType === SMSProviderType.Webhook}
           logoSrc={logoWebhook}
         >
           <FormattedMessage id="SMSProviderConfigurationScreen.provider.webhook" />
         </ProviderCard>
         <ProviderCard
-          onClick={onSelectDeno}
+          onClick={onSelectProviderCallbacks.deno}
           isSelected={form.state.providerType === SMSProviderType.Deno}
           logoSrc={logoDeno}
         >
@@ -845,7 +1047,7 @@ function FormSection({
 }) {
   switch (form.state.providerType) {
     case SMSProviderType.Twilio:
-      return <TwilioForm form={form} onRevealSecrets={onRevealSecrets} />;
+      return <TwilioForm form={form} />;
     case SMSProviderType.Webhook:
       return <WebhookForm form={form} onRevealSecrets={onRevealSecrets} />;
     case SMSProviderType.Deno:
@@ -853,39 +1055,250 @@ function FormSection({
   }
 }
 
-function TwilioForm({
-  form,
-  onRevealSecrets,
-}: {
-  form: AppSecretConfigFormModel<FormState>;
-  onRevealSecrets: () => void;
-}) {
+function TwilioForm({ form }: { form: AppSecretConfigFormModel<FormState> }) {
   const { renderToString } = useContext(MessageContext);
 
-  const onChangeCallbacks = useMemo(() => {
+  const onStringChangeCallbacks = useMemo(() => {
     const callbackFactory = (
-      key: "twilioSID" | "twilioAuthToken" | "twilioMessagingServiceSID"
+      key:
+        | "twilioSID"
+        | "twilioAuthToken"
+        | "twilioAPIKeySID"
+        | "twilioAPIKeySecret"
+        | "twilioMessagingServiceSID"
+        | "twilioFrom"
     ) => {
       return (
         event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>
       ) => {
         form.setState((prevState) => {
           const value = event.currentTarget.value;
-          return {
+          const s: FormState = {
             ...prevState,
-            [key]: value,
-          } satisfies FormState;
+          };
+          s[key] = value;
+          return s;
         });
       };
     };
     return {
       twilioSID: callbackFactory("twilioSID"),
       twilioAuthToken: callbackFactory("twilioAuthToken"),
+      twilioAPIKeySID: callbackFactory("twilioAPIKeySID"),
+      twilioAPIKeySecret: callbackFactory("twilioAPIKeySecret"),
       twilioMessagingServiceSID: callbackFactory("twilioMessagingServiceSID"),
+      twilioFrom: callbackFactory("twilioFrom"),
     };
   }, [form]);
 
-  const isTwilioSecretMasked = form.state.twilioAuthToken == null;
+  const isTwilioSecretMasked =
+    form.state.twilioCredentialType === TwilioCredentialType.AuthToken
+      ? form.state.twilioAuthToken == null
+      : form.state.twilioAPIKeySecret == null;
+
+  const credentialTypeOptions = useMemo<IChoiceGroupOption[]>(() => {
+    return [
+      {
+        key: TwilioCredentialType.AuthToken,
+        text: renderToString(
+          "SMSProviderConfigurationScreen.form.twilio.credentialType.options.authToken"
+        ),
+        // eslint-disable-next-line react/no-unstable-nested-components
+        onRenderField: (
+          props?: IChoiceGroupOption & IChoiceGroupOptionProps,
+          render?: (
+            props?: IChoiceGroupOption & IChoiceGroupOptionProps
+          ) => JSX.Element | null
+        ) => {
+          const checked = props?.checked ?? false;
+          return (
+            <>
+              {render?.(props)}
+              {checked ? (
+                <FormTextField
+                  className={styles.textFieldInOption}
+                  type="text"
+                  label={renderToString(
+                    "SMSProviderConfigurationScreen.form.twilio.twilioAuthToken"
+                  )}
+                  value={
+                    isTwilioSecretMasked
+                      ? "********"
+                      : form.state.twilioAuthToken ?? ""
+                  }
+                  disabled={isTwilioSecretMasked}
+                  required={true}
+                  onChange={onStringChangeCallbacks.twilioAuthToken}
+                  parentJSONPointer={/\/secrets\/\d+\/data/}
+                  fieldName="auth_token"
+                />
+              ) : null}
+            </>
+          );
+        },
+      },
+      {
+        key: TwilioCredentialType.ApiKey,
+        text: renderToString(
+          "SMSProviderConfigurationScreen.form.twilio.credentialType.options.apiKey"
+        ),
+        // eslint-disable-next-line react/no-unstable-nested-components
+        onRenderField: (
+          props?: IChoiceGroupOption & IChoiceGroupOptionProps,
+          render?: (
+            props?: IChoiceGroupOption & IChoiceGroupOptionProps
+          ) => JSX.Element | null
+        ) => {
+          const checked = props?.checked ?? false;
+          return (
+            <>
+              {render?.(props)}
+              {checked ? (
+                <>
+                  <FormTextField
+                    className={styles.textFieldInOption}
+                    type="text"
+                    label={renderToString(
+                      "SMSProviderConfigurationScreen.form.twilio.apiKeySID"
+                    )}
+                    value={form.state.twilioAPIKeySID}
+                    required={true}
+                    onChange={onStringChangeCallbacks.twilioAPIKeySID}
+                    disabled={isTwilioSecretMasked}
+                    parentJSONPointer={/\/secrets\/\d+\/data/}
+                    fieldName="api_key_sid"
+                  />
+                  <FormTextField
+                    className={styles.textFieldInOption}
+                    type="text"
+                    label={renderToString(
+                      "SMSProviderConfigurationScreen.form.twilio.apiKeySecret"
+                    )}
+                    value={
+                      isTwilioSecretMasked
+                        ? "********"
+                        : form.state.twilioAPIKeySecret ?? ""
+                    }
+                    disabled={isTwilioSecretMasked}
+                    required={true}
+                    onChange={onStringChangeCallbacks.twilioAPIKeySecret}
+                    parentJSONPointer={/\/secrets\/\d+\/data/}
+                    fieldName="api_key_secret"
+                  />
+                </>
+              ) : null}
+            </>
+          );
+        },
+      },
+    ];
+  }, [
+    form.state.twilioAPIKeySID,
+    form.state.twilioAPIKeySecret,
+    form.state.twilioAuthToken,
+    isTwilioSecretMasked,
+    onStringChangeCallbacks.twilioAPIKeySID,
+    onStringChangeCallbacks.twilioAPIKeySecret,
+    onStringChangeCallbacks.twilioAuthToken,
+    renderToString,
+  ]);
+
+  const onCredentialTypeChange = useCallback(
+    (_: unknown, option?: IChoiceGroupOption) => {
+      if (option == null) {
+        return;
+      }
+      form.setState((prev) => {
+        return {
+          ...prev,
+          twilioCredentialType: option.key as TwilioCredentialType,
+        };
+      });
+    },
+    [form]
+  );
+
+  const credentialTypeChoiceGroupStyles: Partial<IChoiceGroupStyles> = useMemo(
+    () => ({
+      flexContainer: {
+        selectors: {
+          ".ms-ChoiceField": {
+            display: "block",
+          },
+        },
+      },
+    }),
+    []
+  );
+
+  const senderOptions = useMemo<IChoiceGroupOption[]>(() => {
+    return [
+      {
+        key: TwilioSenderType.MessagingServiceSID,
+        text: renderToString(
+          "SMSProviderConfigurationScreen.form.twilio.twilioMessagingServiceSID"
+        ),
+        // eslint-disable-next-line react/no-unstable-nested-components
+        onRenderLabel: (
+          props?: IChoiceGroupOption & IChoiceGroupOptionProps,
+          render?: (
+            props?: IChoiceGroupOption & IChoiceGroupOptionProps
+          ) => JSX.Element | null
+        ) => (
+          <>
+            {render?.(props)}
+            <div className="inline-flex">
+              <Tooltip tooltipMessageId="SMSProviderConfigurationScreen.form.twilio.twilioMessagingServiceSID.tooltip" />
+            </div>
+          </>
+        ),
+      },
+      {
+        key: TwilioSenderType.From,
+        text: renderToString(
+          "SMSProviderConfigurationScreen.form.twilio.twilioFrom"
+        ), // eslint-disable-next-line react/no-unstable-nested-components
+        onRenderLabel: (
+          props?: IChoiceGroupOption & IChoiceGroupOptionProps,
+          render?: (
+            props?: IChoiceGroupOption & IChoiceGroupOptionProps
+          ) => JSX.Element | null
+        ) => (
+          <>
+            {render?.(props)}
+            <div className="inline-flex">
+              <Tooltip tooltipMessageId="SMSProviderConfigurationScreen.form.twilio.twilioFrom.tooltip" />
+            </div>
+          </>
+        ),
+      },
+    ];
+  }, [renderToString]);
+
+  const onSenderTypeChange = useCallback(
+    (_: unknown, option?: IChoiceGroupOption) => {
+      if (option == null) {
+        return;
+      }
+      form.setState((prev) => {
+        return {
+          ...prev,
+          twilioSenderType: option.key as TwilioSenderType,
+        };
+      });
+    },
+    [form]
+  );
+
+  const senderTypeChoiceGroupStyles: Partial<IChoiceGroupStyles> = useMemo(
+    () => ({
+      flexContainer: {
+        display: "flex",
+        columnGap: "16px",
+      },
+    }),
+    []
+  );
 
   return (
     <div className="flex flex-col gap-y-4">
@@ -896,43 +1309,69 @@ function TwilioForm({
         )}
         value={form.state.twilioSID}
         required={true}
-        onChange={onChangeCallbacks.twilioSID}
+        onChange={onStringChangeCallbacks.twilioSID}
         disabled={isTwilioSecretMasked}
         parentJSONPointer={/\/secrets\/\d+\/data/}
         fieldName="account_sid"
       />
-      <FormTextField
-        type="text"
+      <ChoiceGroup
         label={renderToString(
-          "SMSProviderConfigurationScreen.form.twilio.twilioAuthToken"
+          "SMSProviderConfigurationScreen.form.twilio.credentialType"
         )}
-        value={
-          isTwilioSecretMasked ? "********" : form.state.twilioAuthToken ?? ""
-        }
+        options={credentialTypeOptions}
+        selectedKey={form.state.twilioCredentialType}
+        onChange={onCredentialTypeChange}
+        styles={credentialTypeChoiceGroupStyles}
         disabled={isTwilioSecretMasked}
-        required={true}
-        onChange={onChangeCallbacks.twilioAuthToken}
-        parentJSONPointer={/\/secrets\/\d+\/data/}
-        fieldName="auth_token"
       />
-      <FormTextField
-        type="text"
-        label={renderToString(
-          "SMSProviderConfigurationScreen.form.twilio.twilioMessagingServiceSID"
-        )}
-        value={form.state.twilioMessagingServiceSID}
-        onChange={onChangeCallbacks.twilioMessagingServiceSID}
-        disabled={isTwilioSecretMasked}
-        parentJSONPointer={/\/secrets\/\d+\/data/}
-        fieldName="message_service_sid"
-      />
-      {isTwilioSecretMasked ? (
-        <PrimaryButton
-          className="w-min"
-          onClick={onRevealSecrets}
-          text={<FormattedMessage id="edit" />}
+      <div className="flex flex-col gap-3">
+        <ChoiceGroup
+          selectedKey={form.state.twilioSenderType}
+          options={senderOptions}
+          onChange={onSenderTypeChange}
+          disabled={isTwilioSecretMasked}
+          label={renderToString(
+            "SMSProviderConfigurationScreen.form.twilio.sender"
+          )}
+          styles={senderTypeChoiceGroupStyles}
         />
-      ) : null}
+        {form.state.twilioSenderType ===
+        TwilioSenderType.MessagingServiceSID ? (
+          <div className="flex flex-col gap-2">
+            <FormTextField
+              type="text"
+              placeholder={renderToString(
+                "SMSProviderConfigurationScreen.form.twilio.twilioMessagingServiceSID.placeholder"
+              )}
+              value={form.state.twilioMessagingServiceSID}
+              onChange={onStringChangeCallbacks.twilioMessagingServiceSID}
+              disabled={isTwilioSecretMasked}
+              parentJSONPointer={/\/secrets\/\d+\/data/}
+              fieldName="message_service_sid"
+            />
+            <Text>
+              <FormattedMessage
+                id="SMSProviderConfigurationScreen.form.twilio.twilioMessagingServiceSID.hint"
+                values={{
+                  href: "https://www.twilio.com/docs/messaging/services",
+                }}
+              />
+            </Text>
+          </div>
+        ) : (
+          <FormTextField
+            type="text"
+            placeholder={renderToString(
+              "SMSProviderConfigurationScreen.form.twilio.twilioFrom.placeholder"
+            )}
+            value={form.state.twilioFrom}
+            onChange={onStringChangeCallbacks.twilioFrom}
+            disabled={isTwilioSecretMasked}
+            parentJSONPointer={/\/secrets\/\d+\/data/}
+            fieldName="from"
+          />
+        )}
+      </div>
     </div>
   );
 }
@@ -992,6 +1431,7 @@ function WebhookForm({
         value={form.state.webhookURL}
         required={true}
         onChange={onURLChange}
+        disabled={isWebhookSecretMasked}
         parentJSONPointer={/\/secrets\/\d+\/data/}
         fieldName="url"
       />
@@ -1058,6 +1498,7 @@ function WebhookForm({
         )}
         value={String(form.state.webhookTimeout)}
         onChange={onTimeoutChange}
+        disabled={isWebhookSecretMasked}
         parentJSONPointer={/\/secrets\/\d+\/data/}
         fieldName="timeout"
         description={renderToString(
@@ -1166,78 +1607,6 @@ function DenoHookForm({ form }: { form: AppSecretConfigFormModel<FormState> }) {
           "SMSProviderConfigurationScreen.form.deno.timeout.description"
         )}
       />
-    </div>
-  );
-}
-
-function TestSMSSection({
-  form,
-  effectiveAppConfig,
-  sendTestSMSHandle,
-  checkDenoHookHandle,
-}: {
-  form: AppSecretConfigFormModel<FormState>;
-  effectiveAppConfig: PortalAPIAppConfig | undefined;
-  sendTestSMSHandle: ReturnType<typeof useSendTestSMSMutation>;
-  checkDenoHookHandle: ReturnType<typeof useCheckDenoHookMutation>;
-}) {
-  const { sendTestSMS, loading: sendTestSMSLoading } = sendTestSMSHandle;
-  const { checkDenoHook, loading: checkDenoHookLoading } = checkDenoHookHandle;
-  const [toInputValue, setToInputValue] = useState("");
-  const [to, setTo] = useState("");
-  const onChangeValues = useCallback(
-    (values: { e164?: string; rawInputValue: string }) => {
-      const { e164, rawInputValue } = values;
-      setTo(e164 ?? "");
-      setToInputValue(rawInputValue);
-    },
-    []
-  );
-
-  const loading = sendTestSMSLoading || checkDenoHookLoading;
-
-  const testConfig = useTestSMSConfig(form.state);
-
-  const onSendTestSMS = useCallback(async () => {
-    if (testConfig == null) {
-      console.error("onSendTestSMS triggered but testConfig is null");
-      return;
-    }
-    if (form.state.providerType === SMSProviderType.Deno) {
-      checkDenoHook(testConfig.deno?.script ?? "");
-    }
-    sendTestSMS({
-      to: to,
-      config: testConfig,
-    }).catch(() => {
-      // Error is shown in outer form container
-    });
-  }, [checkDenoHook, form.state.providerType, sendTestSMS, testConfig, to]);
-
-  return (
-    <div className="flex flex-col gap-y-3">
-      <Text variant="xLarge">
-        <FormattedMessage id="SMSProviderConfigurationScreen.test.title" />
-      </Text>
-
-      <div className="flex flex-col gap-y-4">
-        <FormPhoneTextField
-          parentJSONPointer=""
-          fieldName="to"
-          allowlist={effectiveAppConfig?.ui?.phone_input?.allowlist}
-          pinnedList={effectiveAppConfig?.ui?.phone_input?.pinned_list}
-          inputValue={toInputValue}
-          onChange={onChangeValues}
-        />
-        <PrimaryButton
-          className="w-min"
-          disabled={to === "" || loading || testConfig == null}
-          onClick={onSendTestSMS}
-          text={
-            <FormattedMessage id="SMSProviderConfigurationScreen.test.send.label" />
-          }
-        />
-      </div>
     </div>
   );
 }

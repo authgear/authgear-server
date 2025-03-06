@@ -806,7 +806,19 @@ input SMSProviderConfigurationTwilioInput {
   accountSID: String!
 
   """"""
-  authToken: String!
+  apiKeySID: String
+
+  """"""
+  apiKeySecret: String
+
+  """"""
+  authToken: String
+
+  """"""
+  credentialType: TwilioCredentialType!
+
+  """"""
+  from: String
 
   """"""
   messagingServiceSID: String
@@ -863,10 +875,22 @@ type SMSProviderTwilioCredentials {
   accountSID: String!
 
   """"""
+  apiKeySID: String
+
+  """"""
+  apiKeySecret: String
+
+  """"""
   authToken: String
 
   """"""
-  messagingServiceSID: String!
+  credentialType: TwilioCredentialType!
+
+  """"""
+  from: String
+
+  """"""
+  messagingServiceSID: String
 }
 
 """"""
@@ -875,10 +899,22 @@ input SMSProviderTwilioCredentialsInput {
   accountSID: String!
 
   """"""
+  apiKeySID: String
+
+  """"""
+  apiKeySecret: String
+
+  """"""
   authToken: String
 
   """"""
-  messagingServiceSID: String!
+  credentialType: TwilioCredentialType!
+
+  """"""
+  from: String
+
+  """"""
+  messagingServiceSID: String
 }
 
 """SMTP secret"""
@@ -1186,6 +1222,15 @@ type TutorialStatus {
 
 """The `TutorialStatusData` scalar type represents tutorial status data"""
 scalar TutorialStatusData
+
+""""""
+enum TwilioCredentialType {
+  """"""
+  api_key
+
+  """"""
+  auth_token
+}
 
 """"""
 input UpdateAppInput {

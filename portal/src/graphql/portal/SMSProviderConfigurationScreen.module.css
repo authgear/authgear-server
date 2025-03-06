@@ -13,3 +13,7 @@
 .providerGrid {
   @apply grid gap-4 grid-cols-2;
 }
+
+.textFieldInOption {
+  @apply ml-6 my-1;
+}

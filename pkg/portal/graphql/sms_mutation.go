@@ -52,13 +52,25 @@ var smsProviderConfigurationInput = graphql.NewInputObject(graphql.InputObjectCo
 var smsProviderConfigurationTwilioInput = graphql.NewInputObject(graphql.InputObjectConfig{
 	Name: "SMSProviderConfigurationTwilioInput",
 	Fields: graphql.InputObjectConfigFieldMap{
+		"credentialType": &graphql.InputObjectFieldConfig{
+			Type: graphql.NewNonNull(twilioCredentialType),
+		},
 		"accountSID": &graphql.InputObjectFieldConfig{
 			Type: graphql.NewNonNull(graphql.String),
 		},
 		"authToken": &graphql.InputObjectFieldConfig{
-			Type: graphql.NewNonNull(graphql.String),
+			Type: graphql.String,
+		},
+		"apiKeySID": &graphql.InputObjectFieldConfig{
+			Type: graphql.String,
+		},
+		"apiKeySecret": &graphql.InputObjectFieldConfig{
+			Type: graphql.String,
 		},
 		"messagingServiceSID": &graphql.InputObjectFieldConfig{
+			Type: graphql.String,
+		},
+		"from": &graphql.InputObjectFieldConfig{
 			Type: graphql.String,
 		},
 	},

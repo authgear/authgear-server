@@ -172,18 +172,42 @@ var samlSpSigningSecret = graphql.NewObject(graphql.ObjectConfig{
 	},
 })
 
+var twilioCredentialType = graphql.NewEnum(graphql.EnumConfig{
+	Name: "TwilioCredentialType",
+	Values: graphql.EnumValueConfigMap{
+		string(config.TwilioCredentialTypeAPIKey): &graphql.EnumValueConfig{
+			Value: config.TwilioCredentialTypeAPIKey,
+		},
+		string(config.TwilioCredentialTypeAuthToken): &graphql.EnumValueConfig{
+			Value: config.TwilioCredentialTypeAuthToken,
+		},
+	},
+})
+
 var smsProviderTwilioCredentials = graphql.NewObject(graphql.ObjectConfig{
 	Name:        "SMSProviderTwilioCredentials",
 	Description: "Twilio credentials",
 	Fields: graphql.Fields{
+		"credentialType": &graphql.Field{
+			Type: graphql.NewNonNull(twilioCredentialType),
+		},
 		"accountSID": &graphql.Field{
 			Type: graphql.NewNonNull(graphql.String),
 		},
 		"authToken": &graphql.Field{
 			Type: graphql.String,
 		},
+		"apiKeySID": &graphql.Field{
+			Type: graphql.String,
+		},
+		"apiKeySecret": &graphql.Field{
+			Type: graphql.String,
+		},
 		"messagingServiceSID": &graphql.Field{
-			Type: graphql.NewNonNull(graphql.String),
+			Type: graphql.String,
+		},
+		"from": &graphql.Field{
+			Type: graphql.String,
 		},
 	},
 })
