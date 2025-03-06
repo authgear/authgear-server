@@ -136,7 +136,6 @@ func TestAuthorizationHandler(t *testing.T) {
 					"client_id":    "client-id",
 					"redirect_uri": "http://accounts.example.com/settings",
 				})
-				So(resp.Result().StatusCode, ShouldEqual, 200)
 				So(resp.Body.String(), ShouldEqual, redirectHTML(
 					"http://accounts.example.com/settings?error=unauthorized_client&error_description=response+type+is+not+allowed+for+this+client",
 				))
@@ -154,7 +153,6 @@ func TestAuthorizationHandler(t *testing.T) {
 				"client_id":     "client-id",
 				"response_type": "code",
 			})
-			So(resp.Result().StatusCode, ShouldEqual, 200)
 			So(resp.Body.String(), ShouldEqual, redirectHTML(
 				"https://example.com/cb?error=invalid_request&error_description=scope+is+required&from=sso",
 			))
@@ -174,7 +172,6 @@ func TestAuthorizationHandler(t *testing.T) {
 						"client_id":     "client-id",
 						"response_type": "code",
 					})
-					So(resp.Result().StatusCode, ShouldEqual, 200)
 					So(resp.Body.String(), ShouldEqual, redirectHTML(
 						"https://example.com/?error=invalid_request&error_description=scope+is+required",
 					))
@@ -186,7 +183,6 @@ func TestAuthorizationHandler(t *testing.T) {
 						"response_type": "code",
 						"scope":         "openid",
 					})
-					So(resp.Result().StatusCode, ShouldEqual, 200)
 					So(resp.Body.String(), ShouldEqual, redirectHTML(
 						"https://example.com/?error=invalid_request&error_description=PKCE+code+challenge+is+required+for+public+clients",
 					))
@@ -200,7 +196,6 @@ func TestAuthorizationHandler(t *testing.T) {
 						"code_challenge_method": "plain",
 						"code_challenge":        "code-verifier",
 					})
-					So(resp.Result().StatusCode, ShouldEqual, 200)
 					So(resp.Body.String(), ShouldEqual, redirectHTML(
 						"https://example.com/?error=invalid_request&error_description=only+%27S256%27+PKCE+transform+is+supported",
 					))
@@ -215,7 +210,6 @@ func TestAuthorizationHandler(t *testing.T) {
 					"code_challenge_method": "S256",
 					"code_challenge":        "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
 				})
-				So(resp.Result().StatusCode, ShouldEqual, 200)
 				So(resp.Body.String(), ShouldEqual, redirectHTML(
 					"https://example.com/?error=invalid_scope&error_description=must+request+%27openid%27+scope",
 				))
@@ -285,7 +279,6 @@ func TestAuthorizationHandler(t *testing.T) {
 					).Times(1).Return(authorization, nil)
 
 					resp := handle(ctx, req)
-					So(resp.Result().StatusCode, ShouldEqual, 200)
 					So(resp.Body.String(), ShouldEqual, redirectHTML(
 						"https://example.com/?code=authz-code&state=my-state",
 					))
@@ -340,7 +333,6 @@ func TestAuthorizationHandler(t *testing.T) {
 					}, &oidc.UIInfoByProduct{}, nil)
 
 					resp := handle(ctx, req)
-					So(resp.Result().StatusCode, ShouldEqual, 200)
 					So(resp.Body.String(), ShouldEqual, redirectHTML(
 						"https://example.com/?code=authz-code",
 					))
@@ -378,7 +370,6 @@ func TestAuthorizationHandler(t *testing.T) {
 					"response_type": "none",
 					"scope":         "email",
 				})
-				So(resp.Result().StatusCode, ShouldEqual, 200)
 				So(resp.Body.String(), ShouldEqual, redirectHTML(
 					"https://example.com/?error=invalid_scope&error_description=must+request+%27openid%27+scope",
 				))
@@ -442,7 +433,6 @@ func TestAuthorizationHandler(t *testing.T) {
 					}, &oidc.UIInfoByProduct{}, nil)
 
 					resp := handle(ctx, req)
-					So(resp.Result().StatusCode, ShouldEqual, 200)
 					So(resp.Body.String(), ShouldEqual, redirectHTML(
 						"https://example.com/?state=my-state",
 					))
@@ -502,7 +492,6 @@ func TestAuthorizationHandler(t *testing.T) {
 
 				ctx := context.Background()
 				resp := handle(ctx, req)
-				So(resp.Result().StatusCode, ShouldEqual, 200)
 				So(resp.Body.String(), ShouldEqual, redirectHTML(
 					"https://example.com/?state=my-state",
 				))

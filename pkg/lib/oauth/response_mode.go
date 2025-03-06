@@ -88,19 +88,23 @@ func WriteResponse(w http.ResponseWriter, r *http.Request, redirectURI *url.URL,
 }
 
 func HTMLRedirect(rw http.ResponseWriter, r *http.Request, redirectURI string) {
-	rw.Header().Set("Content-Type", "text/html; charset=utf-8")
-	// XHR and redirect.
+	// About this redirect approach.
+	// We use a combination of redirects in this approach.
 	//
-	// Normally we should use HTTP 302 to redirect.
-	// However, when XHR is used, redirect is followed automatically.
-	// The final redirect URI may be custom URI which is considered unsecure by user agent.
-	// Therefore, we write HTML and use <meta http-equiv="refresh"> to redirect.
-	// rw.Header().Set("Location", redirectURI)
-	// rw.WriteHeader(http.StatusFound)
-
-	// iframe
+	// 1. HTTP 303 with Location header. The use of 303 forces the use of GET method.
+	//    This redirect is preferred when the browser respects it.
+	// 2. <meta http-equiv="refresh">. In case 1 fails, this does the redirect.
+	// 3. window.location.href. In case 2 fails, this does the redirect.
+	//
+	// Using iframe is also supported, see PROJECT_ROOT/experiments/DEV-2544
 	// When an iframe is used to load the response, the iframe must have allow-top-navigation set.
 	// Then the window.location.href will navigate the top-level frame.
+
+	rw.Header().Set("Content-Type", "text/html; charset=utf-8")
+	rw.Header().Set("Location", redirectURI)
+	// 303, not 302.
+	rw.WriteHeader(http.StatusSeeOther)
+
 	err := htmlRedirectTemplate.Execute(rw, map[string]string{
 		"CSPNonce":     httputil.GetCSPNonce(r.Context()),
 		"redirect_uri": redirectURI,
