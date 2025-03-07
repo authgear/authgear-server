@@ -6,15 +6,8 @@
       {
         "ignorePartialSupport": true,
         "ignore": [
-          "viewport-units",
-          "css-appearance",
-          "css-gradients",
           "css3-cursors",
-          "flexbox",
-          "multicolumn",
-          "css-nesting",
-          "css-overflow",
-          "css-display-contents"
+          "css-nesting"
         ]
       }
     ],
