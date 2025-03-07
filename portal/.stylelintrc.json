@@ -1,16 +1,13 @@
 {
-  "extends": ["@oursky/stylelint-oursky/config/oursky"],
+  "extends": ["./node_modules/@oursky/stylelint-oursky/config/oursky.mjs"],
   "rules": {
     "plugin/no-unsupported-browser-features": [
       true,
       {
+        "ignorePartialSupport": true,
         "ignore": [
-          "viewport-units",
-          "css-appearance",
-          "css-gradients",
           "css3-cursors",
-          "flexbox",
-          "multicolumn"
+          "css-nesting"
         ]
       }
     ],
