@@ -4,6 +4,7 @@
     "plugin/no-unsupported-browser-features": [
       true,
       {
+        "ignorePartialSupport": true,
         "ignore": [
           "viewport-units",
           "css-appearance",
