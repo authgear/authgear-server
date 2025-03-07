@@ -116,7 +116,8 @@ func (k Kind) NewWithCauses(msg string, cs []Cause) error {
 }
 
 func IsAPIError(err error) bool {
-	if _, ok := err.(*APIError); ok {
+	var apierror *APIError
+	if errors.As(err, &apierror) {
 		return true
 	}
 
