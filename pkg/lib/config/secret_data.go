@@ -225,7 +225,8 @@ var _ = SecretConfigSchema.Add("SMTPServerCredentials", `
 		"port": { "type": "integer", "minimum": 1, "maximum": 65535 },
 		"mode": { "$ref": "#/$defs/SMTPMode" },
 		"username": { "type": "string" },
-		"password": { "type": "string" }
+		"password": { "type": "string" },
+		"sender": { "type": "string", "format": "email-name-addr" }
 	},
 	"required": ["host", "port", "username", "password"]
 }
@@ -237,6 +238,7 @@ type SMTPServerCredentials struct {
 	Mode     SMTPMode `json:"mode,omitempty"`
 	Username string   `json:"username,omitempty"`
 	Password string   `json:"password,omitempty"`
+	Sender   string   `json:"sender,omitempty"`
 }
 
 func (c *SMTPServerCredentials) SensitiveStrings() []string {
