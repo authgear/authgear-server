@@ -75,8 +75,12 @@ import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";
 import { useSendTestSMSMutation } from "./mutations/sendTestSMS";
 import { useCheckDenoHookMutation } from "./mutations/checkDenoHook";
 import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
-import { ErrorParseRule, makeReasonErrorParseRule } from "../../error/parse";
-import { APISMSGatewayError } from "../../error/error";
+import {
+  ErrorParseRule,
+  makeLocalErrorParseRule,
+  makeReasonErrorParseRule,
+} from "../../error/parse";
+import { APIError, APISMSGatewayError, LocalError } from "../../error/error";
 import { ReauthDialog } from "../../components/common/ReauthDialog";
 import { TestSMSDialog } from "../../components/sms-provider/TestSMSDialog";
 import Tooltip from "../../Tooltip";
@@ -467,6 +471,40 @@ function constructSecretUpdateInstruction(
   }
 }
 
+const localErrorFromRequired: LocalError = {
+  errorName: "__local",
+  reason: "__local",
+  info: {
+    error: {
+      messageID: "errors.validation.required",
+    },
+  },
+};
+
+const fromErrorRules: ErrorParseRule[] = [
+  makeLocalErrorParseRule(
+    localErrorFromRequired,
+    localErrorFromRequired.info.error
+  ),
+];
+
+const localErrorMessagingServiceSIDRequired: LocalError = {
+  errorName: "__local",
+  reason: "__local",
+  info: {
+    error: {
+      messageID: "errors.validation.required",
+    },
+  },
+};
+
+const messagingServiceSIDErrorRules: ErrorParseRule[] = [
+  makeLocalErrorParseRule(
+    localErrorMessagingServiceSIDRequired,
+    localErrorMessagingServiceSIDRequired.info.error
+  ),
+];
+
 function makeSpecifiersFromState(state: ConfigFormState): ResourceSpecifier[] {
   const specifiers = [];
   if (state.denoHookURL) {
@@ -709,6 +747,8 @@ function SMSProviderConfigurationScreen1({
   const sendTestSMSHandle = useSendTestSMSMutation(appID);
   const checkDenoHookHandle = useCheckDenoHookMutation(appID);
 
+  const [localError, setLocalError] = useState<APIError | null>(null);
+
   const state = useMemo<FormState>(() => {
     return {
       ...configForm.state,
@@ -746,6 +786,39 @@ function SMSProviderConfigurationScreen1({
     },
   };
 
+  const validateForm = useCallback(async () => {
+    setLocalError(null);
+    if (!form.state.enabled) {
+      return;
+    }
+    switch (form.state.providerType) {
+      case SMSProviderType.Twilio:
+        switch (form.state.twilioSenderType) {
+          case TwilioSenderType.From:
+            if (!form.state.twilioFrom) {
+              setLocalError(localErrorFromRequired);
+              throw new Error("twilioFrom is required");
+            }
+            break;
+          case TwilioSenderType.MessagingServiceSID:
+            if (!form.state.twilioMessagingServiceSID) {
+              setLocalError(localErrorMessagingServiceSIDRequired);
+              throw new Error("twilioMessagingServiceSID is required");
+            }
+            break;
+        }
+        break;
+      default:
+        break;
+    }
+  }, [
+    form.state.enabled,
+    form.state.providerType,
+    form.state.twilioFrom,
+    form.state.twilioMessagingServiceSID,
+    form.state.twilioSenderType,
+  ]);
+
   if (loadingAppConfig || form.isLoading || featureConfig.loading) {
     return <ShowLoading />;
   }
@@ -766,8 +839,11 @@ function SMSProviderConfigurationScreen1({
   return (
     <FormContainer
       form={form}
+      beforeSave={validateForm}
       hideFooterComponent={true}
-      localError={checkDenoHookHandle.error ?? sendTestSMSHandle.error}
+      localError={
+        checkDenoHookHandle.error ?? sendTestSMSHandle.error ?? localError
+      }
       errorRules={ERROR_RULES}
     >
       <SMSProviderConfigurationContent
@@ -1333,6 +1409,7 @@ function TwilioForm({ form }: { form: AppSecretConfigFormModel<FormState> }) {
           label={renderToString(
             "SMSProviderConfigurationScreen.form.twilio.sender"
           )}
+          required={true}
           styles={senderTypeChoiceGroupStyles}
         />
         {form.state.twilioSenderType ===
@@ -1346,6 +1423,7 @@ function TwilioForm({ form }: { form: AppSecretConfigFormModel<FormState> }) {
               value={form.state.twilioMessagingServiceSID}
               onChange={onStringChangeCallbacks.twilioMessagingServiceSID}
               disabled={isTwilioSecretMasked}
+              errorRules={messagingServiceSIDErrorRules}
               parentJSONPointer={/\/secrets\/\d+\/data/}
               fieldName="message_service_sid"
             />
@@ -1369,6 +1447,7 @@ function TwilioForm({ form }: { form: AppSecretConfigFormModel<FormState> }) {
             disabled={isTwilioSecretMasked}
             parentJSONPointer={/\/secrets\/\d+\/data/}
             fieldName="from"
+            errorRules={fromErrorRules}
           />
         )}
       </div>
