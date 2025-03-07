@@ -17,5 +17,7 @@ lint:
 
 .PHONY: outdated
 outdated:
-	npm outdated caniuse-lite --json | jq -e '.["caniuse-lite"] == null'
-	npm outdated stylelint-no-unsupported-browser-features --json | jq -e '.["stylelint-no-unsupported-browser-features"] == null'
+	@# Duplicate the output of npm outdated to stderr so that we can see the details in the build log.
+	@# Also suppress the stdout of jq because it just prints either true or false,
+	@# what we cares is just the exit code given by -e.
+	npm outdated caniuse-lite stylelint-no-unsupported-browser-features --json | tee /dev/stderr | jq -e '. == {}' >/dev/null
