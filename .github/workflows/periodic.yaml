@@ -7,7 +7,8 @@ on:
 
 jobs:
   authui-check:
-    if: ${{ github.repository != 'oursky/authgear-server' }}
+    # Only need to run in the source repository.
+    if: ${{ github.repository == 'authgear/authgear-server' }}
     runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
@@ -20,7 +21,8 @@ jobs:
       working-directory: ./authui
       if: ${{ !cancelled() }}
   portal-check:
-    if: ${{ github.repository != 'oursky/authgear-server' }}
+    # Only need to run in the source repository.
+    if: ${{ github.repository == 'authgear/authgear-server' }}
     runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
