@@ -43,6 +43,8 @@ import {
   ProviderCard,
   ProviderCardDescription,
 } from "../../components/common/ProviderCard";
+import { ErrorParseRule, ErrorParseRuleResult } from "../../error/parse";
+import { APIError, APISMTPTestFailedError } from "../../error/error";
 
 interface LocationState {
   isEdit: boolean;
@@ -200,6 +202,23 @@ function constructSecretUpdateInstruction(
 const CUSTOM_PROVIDER_ICON_PROPS = {
   iconName: "Mail",
 };
+
+const ERROR_RULES: ErrorParseRule[] = [
+  (apiError: APIError): ErrorParseRuleResult => {
+    if (apiError.reason === "SMTPTestFailed") {
+      return {
+        parsedAPIErrors: [
+          { message: (apiError as APISMTPTestFailedError).info.Message },
+        ],
+        fullyHandled: true,
+      };
+    }
+    return {
+      parsedAPIErrors: [],
+      fullyHandled: false,
+    };
+  },
+];
 
 interface SMTPConfigurationScreenContentProps {
   isCustomSMTPDisabled: boolean;
@@ -659,7 +678,11 @@ const SMTPConfigurationScreen1: React.VFC<{
   }
 
   return (
-    <FormContainer form={form} localError={sendTestEmailHandle.error}>
+    <FormContainer
+      form={form}
+      errorRules={ERROR_RULES}
+      localError={sendTestEmailHandle.error}
+    >
       <SMTPConfigurationScreenContent
         isCustomSMTPDisabled={
           featureConfig.effectiveFeatureConfig?.messaging

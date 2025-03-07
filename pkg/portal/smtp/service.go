@@ -2,6 +2,7 @@ package smtp
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"gopkg.in/gomail.v2"
@@ -74,7 +75,9 @@ func (s *Service) SendTestEmail(ctx context.Context, app *model.App, options Sen
 
 	err = dialer.DialAndSend(message)
 	if err != nil {
-		return
+		return errors.Join(SMTPTestFailed.NewWithInfo("smtp test failed", map[string]interface{}{
+			"Message": err.Error(),
+		}), err)
 	}
 
 	return

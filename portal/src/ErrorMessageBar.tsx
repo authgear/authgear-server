@@ -36,7 +36,11 @@ export const ErrorMessageBar: React.VFC<ErrorMessageBarProps> = (
     <MessageBar messageBarType={MessageBarType.error}>
       {errors.map((err, i) => (
         <Text key={i}>
-          <FormattedMessage id={err.messageID ?? ""} values={err.arguments} />
+          {err.messageID ? (
+            <FormattedMessage id={err.messageID ?? ""} values={err.arguments} />
+          ) : (
+            err.message ?? ""
+          )}
         </Text>
       ))}
     </MessageBar>

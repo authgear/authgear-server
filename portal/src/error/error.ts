@@ -107,6 +107,14 @@ export interface APISMSGatewayError {
   };
 }
 
+export interface APISMTPTestFailedError {
+  errorName: string;
+  reason: "SMTPTestFailed";
+  info: {
+    Message: string;
+  };
+}
+
 export type APIError = { message?: string } & (
   | NetworkError
   | RequestEntityTooLargeError
@@ -147,6 +155,7 @@ export type APIError = { message?: string } & (
   | APISendPasswordNoTargetError
   | APIAuthenticatorNotFoundError
   | APISMSGatewayError
+  | APISMTPTestFailedError
 );
 
 export function isAPIError(value: unknown): value is APIError {
