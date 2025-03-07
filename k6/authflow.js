@@ -84,7 +84,10 @@ export function redirect(result) {
   if (!checkResult) {
     fail(`unexpected action: ${result}`);
   }
-  return http.get(result.action.data.finish_redirect_uri);
+  return http.get(result.action.data.finish_redirect_uri, {
+    // Do not follow redirect so that the body can be captured.
+    redirects: 0,
+  });
 }
 
 function authflowIdentify({ username, phone, email, result }) {
