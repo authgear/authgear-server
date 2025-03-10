@@ -147,6 +147,7 @@ func init() {
 	config.Prompt_AppID.DefineFlag(cmdInit)
 	config.Prompt_PublicOrigin.DefineFlag(cmdInit)
 	config.Prompt_PortalOrigin.DefineFlag(cmdInit)
+	config.Prompt_PortalClientID.DefineFlag(cmdInit)
 	config.Prompt_PhoneOTPMode.DefineFlag(cmdInit)
 	config.Prompt_DisableEmailVerification.DefineFlag(cmdInit)
 	config.Prompt_SearchImplementation.DefineFlag(cmdInit)

@@ -35,6 +35,7 @@ func GenerateAppConfigFromOptions(opts *GenerateAppConfigOptions) *AppConfig {
 
 type GenerateOAuthClientConfigOptions struct {
 	Name                  string
+	ClientID              string
 	ApplicationType       OAuthClientApplicationType
 	RedirectURI           string
 	PostLogoutRedirectURI string
@@ -44,11 +45,16 @@ func GenerateOAuthConfigFromOptions(opts *GenerateOAuthClientConfigOptions) (*OA
 	if opts.ApplicationType.IsConfidential() {
 		return nil, errors.New("generating confidential clients is not supported")
 	}
-	clientID := make([]byte, 8)
-	corerand.SecureRand.Read(clientID)
+
+	clientID := opts.ClientID
+	if clientID == "" {
+		randomBytes := make([]byte, 8)
+		corerand.SecureRand.Read(randomBytes)
+		clientID = hex.EncodeToString(randomBytes)
+	}
 
 	cfg := &OAuthClientConfig{
-		ClientID:            hex.EncodeToString(clientID),
+		ClientID:            clientID,
 		Name:                opts.Name,
 		ApplicationType:     opts.ApplicationType,
 		RedirectURIs:        []string{opts.RedirectURI},
