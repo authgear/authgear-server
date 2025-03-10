@@ -13,14 +13,20 @@ import (
 
 type (
 	authorizationResultCode struct {
-		RedirectURI  *url.URL
+		RedirectURI *url.URL
+
 		ResponseMode string
-		Response     protocol.AuthorizationResponse
-		Cookies      []*http.Cookie
+		UseHTTP200   bool
+
+		Response protocol.AuthorizationResponse
+		Cookies  []*http.Cookie
 	}
 	authorizationResultError struct {
-		RedirectURI   *url.URL
-		ResponseMode  string
+		RedirectURI *url.URL
+
+		ResponseMode string
+		UseHTTP200   bool
+
 		InternalError bool
 		Response      protocol.ErrorResponse
 		Cookies       []*http.Cookie
@@ -31,7 +37,13 @@ func (a authorizationResultCode) WriteResponse(rw http.ResponseWriter, r *http.R
 	for _, cookie := range a.Cookies {
 		httputil.UpdateCookie(rw, cookie)
 	}
-	oauth.WriteResponse(rw, r, a.RedirectURI, a.ResponseMode, a.Response)
+	writeResponseOptions := oauth.WriteResponseOptions{
+		RedirectURI:  a.RedirectURI,
+		ResponseMode: a.ResponseMode,
+		UseHTTP200:   a.UseHTTP200,
+		Response:     a.Response,
+	}
+	oauth.WriteResponse(rw, r, writeResponseOptions)
 }
 
 func (a authorizationResultCode) IsInternalError() bool {
@@ -43,7 +55,14 @@ func (a authorizationResultError) WriteResponse(rw http.ResponseWriter, r *http.
 		httputil.UpdateCookie(rw, cookie)
 	}
 	if a.RedirectURI != nil {
-		oauth.WriteResponse(rw, r, a.RedirectURI, a.ResponseMode, a.Response)
+		writeResponseOptions := oauth.WriteResponseOptions{
+			RedirectURI:  a.RedirectURI,
+			ResponseMode: a.ResponseMode,
+			UseHTTP200:   a.UseHTTP200,
+			Response:     a.Response,
+		}
+
+		oauth.WriteResponse(rw, r, writeResponseOptions)
 	} else {
 		err := "Invalid OAuth authorization request:\n"
 		keys := make([]string, 0, len(a.Response))

@@ -14,7 +14,7 @@ func ConfigureProxyRedirectRoute(route httproute.Route) httproute.Route {
 }
 
 type ProtocolProxyRedirectHandler interface {
-	Validate(redirectURIWithQuery string) error
+	Validate(redirectURIWithQuery string) (*oauth.WriteResponseOptions, error)
 }
 
 type ProxyRedirectHandler struct {
@@ -23,10 +23,10 @@ type ProxyRedirectHandler struct {
 
 func (h *ProxyRedirectHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	redirectURI := r.URL.Query().Get("redirect_uri")
-	err := h.ProxyRedirectHandler.Validate(redirectURI)
+	options, err := h.ProxyRedirectHandler.Validate(redirectURI)
 
 	if err == nil {
-		oauth.HTMLRedirect(rw, r, redirectURI)
+		oauth.WriteResponse(rw, r, *options)
 	} else {
 		http.Error(rw, err.Error(), 400)
 	}

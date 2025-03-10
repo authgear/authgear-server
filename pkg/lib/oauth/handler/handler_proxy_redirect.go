@@ -5,6 +5,7 @@ import (
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
@@ -15,10 +16,10 @@ type ProxyRedirectHandler struct {
 	AppDomains  config.AppDomains
 }
 
-func (h *ProxyRedirectHandler) Validate(redirectURIWithQuery string) error {
+func (h *ProxyRedirectHandler) Validate(redirectURIWithQuery string) (*oauth.WriteResponseOptions, error) {
 	u, err := url.Parse(redirectURIWithQuery)
 	if err != nil {
-		return errors.New("invalid redirect URI")
+		return nil, errors.New("invalid redirect URI")
 	}
 
 	// Remove the query and fragment before validation
@@ -31,17 +32,32 @@ func (h *ProxyRedirectHandler) Validate(redirectURIWithQuery string) error {
 	}
 
 	if redirectURI.String() == "" {
-		return errors.New("invalid redirect URI")
+		return nil, errors.New("invalid redirect URI")
 	}
 
+	useHTTP200 := false
+	isValid := false
 	for _, c := range h.OAuthConfig.Clients {
 		client := c
+
 		err = validateRedirectURI(&client, h.HTTPProto, h.HTTPOrigin, h.AppDomains, []string{}, redirectURI)
-		// pass the validation in one of the OAuth clients
 		if err == nil {
-			return nil
+			isValid = true
+
+			if client.UseHTTP200() {
+				useHTTP200 = true
+			}
 		}
 	}
 
-	return errors.New("redirect URI is not allowed")
+	if !isValid {
+		return nil, errors.New("redirect URI is not allowed")
+	}
+
+	return &oauth.WriteResponseOptions{
+		RedirectURI:  u,
+		ResponseMode: "query",
+		UseHTTP200:   useHTTP200,
+		Response:     make(map[string]string),
+	}, nil
 }

@@ -514,7 +514,7 @@ func (h *AuthorizationHandler) doHandle(
 	sessionType := resolvedSession.SessionType()
 	sessionID := resolvedSession.SessionID()
 
-	result, err := h.finishAuthorization(ctx, redirectURI, r, sessionType, sessionID, authenticationInfo, idTokenHintSID, nil, autoGrantAuthz)
+	result, err := h.finishAuthorization(ctx, client, redirectURI, r, sessionType, sessionID, authenticationInfo, idTokenHintSID, nil, autoGrantAuthz)
 	if err != nil {
 		if errors.Is(err, oauth.ErrAuthorizationNotFound) {
 			return nil, protocol.NewError("access_denied", "authorization required")
@@ -582,6 +582,7 @@ func (h *AuthorizationHandler) doHandlePreAuthenticatedURL(
 	return authorizationResultCode{
 		RedirectURI:  redirectURI,
 		ResponseMode: r.ResponseMode(),
+		UseHTTP200:   client.UseHTTP200(),
 		Response:     resp,
 		Cookies:      []*http.Cookie{cookie},
 	}, nil
@@ -625,6 +626,7 @@ func (h *AuthorizationHandler) handleSettingsAction(
 
 func (h *AuthorizationHandler) finishSettingsAction(
 	ctx context.Context,
+	client *config.OAuthClientConfig,
 	redirectURI *url.URL,
 	r protocol.AuthorizationRequest,
 	cookies []*http.Cookie,
@@ -649,6 +651,7 @@ func (h *AuthorizationHandler) finishSettingsAction(
 	return authorizationResultCode{
 		RedirectURI:  redirectURI,
 		ResponseMode: r.ResponseMode(),
+		UseHTTP200:   client.UseHTTP200(),
 		Response:     resp,
 		Cookies:      cookies,
 	}, nil
@@ -656,6 +659,7 @@ func (h *AuthorizationHandler) finishSettingsAction(
 
 func (h *AuthorizationHandler) finishAuthorization(
 	ctx context.Context,
+	client *config.OAuthClientConfig,
 	redirectURI *url.URL,
 	r protocol.AuthorizationRequest,
 	sessionType session.Type,
@@ -710,6 +714,7 @@ func (h *AuthorizationHandler) finishAuthorization(
 	return authorizationResultCode{
 		RedirectURI:  redirectURI,
 		ResponseMode: r.ResponseMode(),
+		UseHTTP200:   client.UseHTTP200(),
 		Response:     resp,
 		Cookies:      cookies,
 	}, nil
@@ -736,7 +741,7 @@ func (h *AuthorizationHandler) doHandleConsentRequest(
 	responseType := r.ResponseType()
 	switch {
 	case responseType.Equal(SettingsActonResponseType):
-		return h.finishSettingsAction(ctx, redirectURI, r, []*http.Cookie{})
+		return h.finishSettingsAction(ctx, client, redirectURI, r, []*http.Cookie{})
 	default:
 		_, uiInfoByProduct, err := h.UIInfoResolver.ResolveForAuthorizationEndpoint(ctx, client, r)
 		if err != nil {
@@ -752,7 +757,7 @@ func (h *AuthorizationHandler) doHandleConsentRequest(
 			sessionType = session.Type(authenticationInfo.AuthenticatedBySessionType)
 		}
 
-		return h.finishAuthorization(ctx, redirectURI, r, sessionType, sessionID, authenticationInfo, idTokenHintSID, []*http.Cookie{}, grantAuthz)
+		return h.finishAuthorization(ctx, client, redirectURI, r, sessionType, sessionID, authenticationInfo, idTokenHintSID, []*http.Cookie{}, grantAuthz)
 	}
 }
 

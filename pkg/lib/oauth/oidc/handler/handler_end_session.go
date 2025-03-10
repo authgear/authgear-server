@@ -81,7 +81,18 @@ func (h *EndSessionHandler) Handle(ctx context.Context, s session.ResolvedSessio
 		redirectURI = urlutil.WithQueryParamsAdded(uri, map[string]string{"state": state}).String()
 	}
 
-	oauth.HTMLRedirect(rw, r, redirectURI)
+	redirectURIURL, err := url.Parse(redirectURI)
+	if err != nil {
+		panic(err)
+	}
+
+	writeResponseOptions := oauth.WriteResponseOptions{
+		RedirectURI:  redirectURIURL,
+		ResponseMode: "query",
+		UseHTTP200:   client.UseHTTP200(),
+		Response:     make(map[string]string),
+	}
+	oauth.WriteResponse(rw, r, writeResponseOptions)
 	return nil
 }
 
