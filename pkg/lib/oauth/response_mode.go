@@ -68,26 +68,66 @@ func init() {
 	}
 }
 
-func WriteResponse(w http.ResponseWriter, r *http.Request, redirectURI *url.URL, responseMode string, response map[string]string) {
+type WriteResponseOptions struct {
+	RedirectURI  *url.URL
+	ResponseMode string
+	UseHTTP200   bool
+	Response     map[string]string
+}
+
+func WriteResponse(w http.ResponseWriter, r *http.Request, options WriteResponseOptions) {
+	responseMode := options.ResponseMode
 	if responseMode == "" {
 		responseMode = "query"
 	}
 
+	useHTTP200 := options.UseHTTP200
+
 	switch responseMode {
 	case "query":
-		HTMLRedirect(w, r, urlutil.WithQueryParamsAdded(redirectURI, response).String())
+		switch useHTTP200 {
+		case true:
+			HTTP200HTMLRedirect(w, r, urlutil.WithQueryParamsAdded(options.RedirectURI, options.Response).String())
+		default:
+			HTTP303HTMLRedirect(w, r, urlutil.WithQueryParamsAdded(options.RedirectURI, options.Response).String())
+		}
 	case "fragment":
-		HTMLRedirect(w, r, urlutil.WithQueryParamsSetToFragment(redirectURI, response).String())
+		switch useHTTP200 {
+		case true:
+			HTTP200HTMLRedirect(w, r, urlutil.WithQueryParamsSetToFragment(options.RedirectURI, options.Response).String())
+		default:
+			HTTP303HTMLRedirect(w, r, urlutil.WithQueryParamsSetToFragment(options.RedirectURI, options.Response).String())
+		}
 	case "cookie":
-		HTMLRedirect(w, r, urlutil.WithQueryParamsAdded(redirectURI, response).String())
+		switch useHTTP200 {
+		case true:
+			HTTP200HTMLRedirect(w, r, urlutil.WithQueryParamsAdded(options.RedirectURI, options.Response).String())
+		default:
+			HTTP303HTMLRedirect(w, r, urlutil.WithQueryParamsAdded(options.RedirectURI, options.Response).String())
+		}
 	case "form_post":
-		FormPost(w, r, redirectURI, response)
+		FormPost(w, r, options.RedirectURI, options.Response)
 	default:
 		http.Error(w, fmt.Sprintf("oauth: invalid response_mode %s", responseMode), http.StatusBadRequest)
 	}
 }
 
-func HTMLRedirect(rw http.ResponseWriter, r *http.Request, redirectURI string) {
+func HTTP200HTMLRedirect(rw http.ResponseWriter, r *http.Request, redirectURI string) {
+	// This redirect approach is kept for backward compatibility with custom UI is in use.
+	// See https://linear.app/authgear/issue/DEV-2544/revisit-oauth-redirect-approach
+	rw.Header().Set("Content-Type", "text/html; charset=utf-8")
+	rw.WriteHeader(http.StatusOK)
+
+	err := htmlRedirectTemplate.Execute(rw, map[string]string{
+		"CSPNonce":     httputil.GetCSPNonce(r.Context()),
+		"redirect_uri": redirectURI,
+	})
+	if err != nil {
+		panic(fmt.Errorf("oauth: failed to execute html_redirect template: %w", err))
+	}
+}
+
+func HTTP303HTMLRedirect(rw http.ResponseWriter, r *http.Request, redirectURI string) {
 	// About this redirect approach.
 	// We use a combination of redirects in this approach.
 	//

@@ -14,7 +14,9 @@ import (
 func TestWriteResponse(t *testing.T) {
 	Convey("WriteResponse", t, func() {
 		type testCase struct {
-			ResponseMode       string
+			UseHTTP200   bool
+			ResponseMode string
+
 			ExpectedStatusCode int
 			ExpectedHeaders    http.Header
 			ExpectedBody       string
@@ -29,7 +31,13 @@ func TestWriteResponse(t *testing.T) {
 				"code":  "this_is_the_code",
 				"state": "this_is_the_state",
 			}
-			WriteResponse(w, r, redirectURI, testCase.ResponseMode, response)
+			writeResponseOptions := WriteResponseOptions{
+				ResponseMode: testCase.ResponseMode,
+				UseHTTP200:   testCase.UseHTTP200,
+				RedirectURI:  redirectURI,
+				Response:     response,
+			}
+			WriteResponse(w, r, writeResponseOptions)
 			So(w.Body.String(), ShouldEqual, testCase.ExpectedBody)
 			So(w.Result().StatusCode, ShouldEqual, testCase.ExpectedStatusCode)
 			for k, expected := range testCase.ExpectedHeaders {
@@ -40,6 +48,47 @@ func TestWriteResponse(t *testing.T) {
 
 		test(testCase{
 			ResponseMode:       "",
+			UseHTTP200:         false,
+			ExpectedStatusCode: 303,
+			ExpectedHeaders: http.Header{
+				"Location": []string{"https://example.com?code=this_is_the_code&state=this_is_the_state"},
+			},
+			ExpectedBody: `<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="refresh" content="0;url=https://example.com?code=this_is_the_code&amp;state=this_is_the_state" />
+</head>
+<body>
+<script nonce="nonce">
+window.location.href = "https:\/\/example.com?code=this_is_the_code\u0026state=this_is_the_state"
+</script>
+</body>
+</html>
+`,
+		})
+
+		test(testCase{
+			ResponseMode:       "",
+			UseHTTP200:         true,
+			ExpectedStatusCode: 200,
+			ExpectedHeaders:    http.Header{},
+			ExpectedBody: `<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="refresh" content="0;url=https://example.com?code=this_is_the_code&amp;state=this_is_the_state" />
+</head>
+<body>
+<script nonce="nonce">
+window.location.href = "https:\/\/example.com?code=this_is_the_code\u0026state=this_is_the_state"
+</script>
+</body>
+</html>
+`,
+		})
+
+		test(testCase{
+			ResponseMode:       "query",
+			UseHTTP200:         false,
 			ExpectedStatusCode: 303,
 			ExpectedHeaders: http.Header{
 				"Location": []string{"https://example.com?code=this_is_the_code&state=this_is_the_state"},
@@ -60,10 +109,9 @@ window.location.href = "https:\/\/example.com?code=this_is_the_code\u0026state=t
 
 		test(testCase{
 			ResponseMode:       "query",
-			ExpectedStatusCode: 303,
-			ExpectedHeaders: http.Header{
-				"Location": []string{"https://example.com?code=this_is_the_code&state=this_is_the_state"},
-			},
+			UseHTTP200:         true,
+			ExpectedStatusCode: 200,
+			ExpectedHeaders:    http.Header{},
 			ExpectedBody: `<!DOCTYPE html>
 <html>
 <head>
@@ -80,10 +128,30 @@ window.location.href = "https:\/\/example.com?code=this_is_the_code\u0026state=t
 
 		test(testCase{
 			ResponseMode:       "fragment",
+			UseHTTP200:         false,
 			ExpectedStatusCode: 303,
 			ExpectedHeaders: http.Header{
 				"Location": []string{"https://example.com#code=this_is_the_code&state=this_is_the_state"},
 			},
+			ExpectedBody: `<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="refresh" content="0;url=https://example.com#code=this_is_the_code&amp;state=this_is_the_state" />
+</head>
+<body>
+<script nonce="nonce">
+window.location.href = "https:\/\/example.com#code=this_is_the_code\u0026state=this_is_the_state"
+</script>
+</body>
+</html>
+`,
+		})
+
+		test(testCase{
+			ResponseMode:       "fragment",
+			UseHTTP200:         true,
+			ExpectedStatusCode: 200,
+			ExpectedHeaders:    http.Header{},
 			ExpectedBody: `<!DOCTYPE html>
 <html>
 <head>

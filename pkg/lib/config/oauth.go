@@ -204,6 +204,10 @@ type OAuthClientConfig struct {
 	PreAuthenticatedURLAllowedOrigins      []string                     `json:"x_pre_authenticated_url_allowed_origins,omitempty"`
 }
 
+func (c *OAuthClientConfig) UseHTTP200() bool {
+	return c.CustomUIURI != ""
+}
+
 var _ = Schema.Add("AuthenticationFlowAllowlist", `
 {
 	"type": "object",
