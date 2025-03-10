@@ -929,7 +929,11 @@ function SMSProviderConfigurationContent(props: {
               )}
             </div>
           </>
-        ) : null}
+        ) : (
+          <div className={styles.widget}>
+            <FormSaveButton />
+          </div>
+        )}
       </ScreenContent>
       <ReauthDialog
         isHidden={isReauthDialogHidden}
