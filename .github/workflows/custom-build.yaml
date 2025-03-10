@@ -42,6 +42,10 @@ jobs:
     if: ${{ github.repository == 'authgear/authgear-server' }}
     steps:
     - uses: actions/checkout@v4
+    - uses: ./.github/actions/set-git-tag-name
+      with:
+        github_ref_type: ${{ github.ref_type }}
+        github_ref_name: ${{ github.ref_name }}
     - name: Install qemu for multi arch build
       run: docker run --privileged --rm tonistiigi/binfmt --install all
     - uses: ./.github/actions/docker-buildx-create
@@ -89,6 +93,10 @@ jobs:
     if: ${{ github.repository == 'authgear/authgear-server' }}
     steps:
     - uses: actions/checkout@v4
+    - uses: ./.github/actions/set-git-tag-name
+      with:
+        github_ref_type: ${{ github.ref_type }}
+        github_ref_name: ${{ github.ref_name }}
     - name: Install qemu for multi arch build
       run: docker run --privileged --rm tonistiigi/binfmt --install all
     - uses: ./.github/actions/docker-buildx-create
