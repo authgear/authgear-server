@@ -154,9 +154,15 @@ func TestAPIError(t *testing.T) {
 			So(apierrors.IsAPIError(apiErr), ShouldEqual, true)
 		})
 
-		Convey("joined error", func() {
+		Convey("joined error with api error in the front", func() {
 			apiErr := apierrors.BadRequest.WithReason("Test").New("test")
 			joinedError := errors.Join(apiErr, errors.New("test"))
+			So(apierrors.IsAPIError(joinedError), ShouldEqual, true)
+		})
+
+		Convey("joined error with api error in the end", func() {
+			apiErr := apierrors.BadRequest.WithReason("Test").New("test")
+			joinedError := errors.Join(errors.New("test"), apiErr)
 			So(apierrors.IsAPIError(joinedError), ShouldEqual, true)
 		})
 	})
