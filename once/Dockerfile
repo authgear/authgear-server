@@ -277,7 +277,7 @@ RUN set -eux; \
 	usermod --append --groups sudo authgear; \
 	printf "authgear ALL=(ALL) NOPASSWD:ALL\n" > /etc/sudoers.d/900-authgear
 
-## Install PostgreSQL 16.6 with pg_partman
+## Install PostgreSQL 16.x with pg_partman
 ##
 ##
 ## We have to install the package postgresql-common first.
@@ -329,7 +329,7 @@ RUN set -eux; \
 		/etc/postgresql-common/createcluster.conf \
 	; \
 	apt-get install -y --no-install-recommends --no-install-suggests \
-		postgresql-16=16.6-\* postgresql-16-partman; \
+		postgresql-16=16.\* postgresql-16-partman; \
 	rm -rf /var/lib/apt/lists/*; \
 	find / \
 		-user postgres \
