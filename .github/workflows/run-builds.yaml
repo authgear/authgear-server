@@ -60,6 +60,10 @@ jobs:
       ARM64_DIGEST: "${{needs.authgear-image-arm64.outputs.image_digest}}"
     steps:
     - uses: actions/checkout@v4
+    - uses: ./.github/actions/set-git-tag-name
+      with:
+        github_ref_type: ${{ github.ref_type }}
+        github_ref_name: ${{ github.ref_name }}
     - name: docker login
       if: ${{ github.repository == 'authgear/authgear-server' && github.event_name == 'push' }}
       env:
@@ -126,6 +130,10 @@ jobs:
       ARM64_DIGEST: "${{needs.portal-image-arm64.outputs.image_digest}}"
     steps:
     - uses: actions/checkout@v4
+    - uses: ./.github/actions/set-git-tag-name
+      with:
+        github_ref_type: ${{ github.ref_type }}
+        github_ref_name: ${{ github.ref_name }}
     - name: docker login
       if: ${{ github.repository == 'authgear/authgear-server' && github.event_name == 'push' }}
       env:

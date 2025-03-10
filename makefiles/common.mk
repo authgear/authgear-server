@@ -14,10 +14,6 @@
 #    you specify the variable with ::= instead of = or :=
 #    If you fail to do so, the variable becomes recursively expanded variable accidentally.
 #
-# GIT_NAME could be empty.
-ifeq ($(origin GIT_NAME), undefined)
-	GIT_NAME ::= $(shell git describe --exact-match 2>/dev/null)
-endif
 ifeq ($(origin GIT_HASH), undefined)
 	GIT_HASH ::= git-$(shell git rev-parse --short=12 HEAD)
 endif
@@ -93,10 +89,10 @@ build-image:
 .PHONY: tag-image
 tag-image:
 IMAGE_SOURCES ::=
-TAGS ::= --tag $(IMAGE_NAME):latest
-TAGS += --tag $(IMAGE_NAME):$(GIT_HASH)
-ifneq (${GIT_NAME},)
-TAGS += --tag $(IMAGE_NAME):$(GIT_NAME)
+TAGS ::= --tag $(IMAGE_NAME):$(GIT_HASH)
+ifneq (${GIT_TAG_NAME},)
+TAGS += --tag $(IMAGE_NAME):release-$(GIT_HASH)
+TAGS += --tag $(IMAGE_NAME):release-$(GIT_TAG_NAME)
 endif
 IMAGE_SOURCES := $(foreach digest,$(SOURCE_DIGESTS),${IMAGE_NAME}@${digest} )
 tag-image:

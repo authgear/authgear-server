@@ -1,0 +1,20 @@
+name: "Set GIT_TAG_NAME environment variable"
+description: "Set GIT_TAG_NAME environment variable"
+inputs:
+  github_ref_type:
+    required: true
+  github_ref_name:
+    required: true
+runs:
+  using: "composite"
+  steps:
+  - name: "Set GIT_TAG_NAME environment variable"
+    shell: bash
+    env:
+      GITHUB_REF_TYPE: ${{ inputs.github_ref_type }}
+      GITHUB_REF_NAME: ${{ inputs.github_ref_name }}
+    run: |
+      set -ex
+      if [ "$GITHUB_REF_TYPE" = "tag" ]; then
+        echo "GIT_TAG_NAME=$GITHUB_REF_NAME" >> "$GITHUB_ENV"
+      fi
