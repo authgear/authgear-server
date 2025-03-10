@@ -1,38 +1,151 @@
 package config
 
 import (
+	"context"
 	"errors"
-	"net/url"
+
+	"github.com/spf13/cobra"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/cliutil"
 )
 
-func ReadAppConfigOptionsFromConsole() *config.GenerateAppConfigOptions {
-	opts := &config.GenerateAppConfigOptions{}
-
-	opts.AppID = promptString{
-		Title:        "App ID",
-		DefaultValue: "my-app",
-	}.Prompt()
-
-	opts.PublicOrigin = promptString{
-		Title:        "HTTP origin of authgear",
-		DefaultValue: "http://localhost:3000",
-	}.Prompt()
-
-	return opts
+var Prompt_AppID = cliutil.PromptString{
+	Title:                       "App ID",
+	InteractiveDefaultUserInput: "my-app",
+	NonInteractiveFlagName:      "app-id",
 }
 
-func ReadOAuthClientConfigsFromConsole() (*config.GenerateOAuthClientConfigOptions, error) {
-	portalOrigin := promptString{
-		Title:        "HTTP origin of portal",
-		DefaultValue: "http://portal.localhost:8000",
-	}.Prompt()
+var Prompt_PublicOrigin = cliutil.PromptURL{
+	Title:                       "HTTP origin of authgear",
+	InteractiveDefaultUserInput: "http://localhost:3000",
+	NonInteractiveFlagName:      "public-origin",
+}
 
-	u, err := url.Parse(portalOrigin)
+var Prompt_PortalOrigin = cliutil.PromptURL{
+	Title:                       "HTTP origin of portal",
+	InteractiveDefaultUserInput: "http://portal.localhost:8000",
+	NonInteractiveFlagName:      "portal-origin",
+}
+
+var Prompt_PhoneOTPMode = cliutil.PromptString{
+	Title:                       `Phone OTP Mode (sms, whatsapp, whatsapp_sms)`,
+	InteractiveDefaultUserInput: "sms",
+	NonInteractiveFlagName:      "phone-otp-mode",
+	Validate: func(ctx context.Context, value string) error {
+		validChoices := []string{"sms", "whatsapp", "whatsapp_sms"}
+		for _, choice := range validChoices {
+			if value == choice {
+				return nil
+			}
+		}
+		return errors.New("must enter 'sms', 'whatsapp', or 'whatsapp_sms'")
+	},
+}
+
+var Prompt_DisableEmailVerification = cliutil.PromptBool{
+	Title:                       "Would you like to turn off email verification? (In case you don't have SMTP credentials in your initial setup)",
+	InteractiveDefaultUserInput: false,
+	NonInteractiveFlagName:      "disable-email-verification",
+}
+
+var Prompt_SearchImplementation = cliutil.PromptString{
+	Title:                       "Select a service for searching (elasticsearch, postgresql, none)",
+	InteractiveDefaultUserInput: string(config.SearchImplementationElasticsearch),
+	NonInteractiveFlagName:      "search-implementation",
+	Validate: func(ctx context.Context, value string) error {
+		validChoices := []string{
+			string(config.SearchImplementationElasticsearch),
+			string(config.SearchImplementationPostgresql),
+			string(config.SearchImplementationNone),
+		}
+		for _, choice := range validChoices {
+			if value == choice {
+				return nil
+			}
+		}
+		return errors.New("must enter 'elasticsearch', 'postgresql' or 'none'")
+	},
+}
+
+var Prompt_DatabaseURL = cliutil.PromptURL{
+	Title:                       "Database URL",
+	InteractiveDefaultUserInput: "postgres://postgres:postgres@127.0.0.1:5432/postgres?sslmode=disable",
+	NonInteractiveFlagName:      "database-url",
+}
+
+var Prompt_DatabaseSchema = cliutil.PromptString{
+	Title:                       "Database schema",
+	InteractiveDefaultUserInput: "public",
+	NonInteractiveFlagName:      "database-schema",
+}
+
+var Prompt_AuditDatabaseURL = cliutil.PromptURL{
+	Title:                       "Audit Database URL",
+	InteractiveDefaultUserInput: "postgres://postgres:postgres@127.0.0.1:5432/postgres?sslmode=disable",
+	NonInteractiveFlagName:      "audit-database-url",
+}
+
+var Prompt_AuditDatabaseSchema = cliutil.PromptString{
+	Title:                       "Audit Database schema",
+	InteractiveDefaultUserInput: "public",
+	NonInteractiveFlagName:      "audit-database-schema",
+}
+
+var Prompt_SearchDatabaseURL = cliutil.PromptURL{
+	Title:                       "Search Database URL",
+	InteractiveDefaultUserInput: "postgres://postgres:postgres@127.0.0.1:5432/postgres?sslmode=disable",
+	NonInteractiveFlagName:      "search-database-url",
+}
+
+var Prompt_SearchDatabaseSchema = cliutil.PromptString{
+	Title:                       "Search Database schema",
+	InteractiveDefaultUserInput: "public",
+	NonInteractiveFlagName:      "search-database-schema",
+}
+
+var Prompt_ElasticsearchURL = cliutil.PromptURL{
+	Title:                       "Elasticsearch URL",
+	InteractiveDefaultUserInput: "http://localhost:9200",
+	NonInteractiveFlagName:      "elasticsearch-url",
+}
+
+var Prompt_RedisURL = cliutil.PromptURL{
+	Title:                       "Redis URL",
+	InteractiveDefaultUserInput: "redis://localhost",
+	NonInteractiveFlagName:      "redis-url",
+}
+
+var Prompt_AnalyticRedisURL = cliutil.PromptURL{
+	Title:                       "Redis URL for analytic",
+	InteractiveDefaultUserInput: "redis://localhost/1",
+	NonInteractiveFlagName:      "analytic-redis-url",
+}
+
+func ReadAppConfigOptionsFromConsole(ctx context.Context, cmd *cobra.Command) (*config.GenerateAppConfigOptions, error) {
+	opts := &config.GenerateAppConfigOptions{}
+	var err error
+
+	opts.AppID, err = Prompt_AppID.Prompt(ctx, cmd)
 	if err != nil {
-		return nil, errors.New("invalid portal origin")
+		return nil, err
 	}
+
+	publicOrigin, err := Prompt_PublicOrigin.Prompt(ctx, cmd)
+	if err != nil {
+		return nil, err
+	}
+	opts.PublicOrigin = publicOrigin.String()
+
+	return opts, nil
+}
+
+func ReadOAuthClientConfigsFromConsole(ctx context.Context, cmd *cobra.Command) (*config.GenerateOAuthClientConfigOptions, error) {
+	u, err := Prompt_PortalOrigin.Prompt(ctx, cmd)
+	if err != nil {
+		return nil, err
+	}
+
 	u.Path = "/oauth-redirect"
 	redirectURI := u.String()
 
@@ -47,115 +160,106 @@ func ReadOAuthClientConfigsFromConsole() (*config.GenerateOAuthClientConfigOptio
 	}, nil
 }
 
-func ReadPhoneOTPMode() config.AuthenticatorPhoneOTPMode {
-	p := promptString{
-		Title:        `Phone OTP Mode (sms, whatsapp, whatsapp_sms)`,
-		DefaultValue: "sms",
-		Validate: func(value string) error {
-			validChoices := []string{"sms", "whatsapp", "whatsapp_sms"}
-			for _, choice := range validChoices {
-				if value == choice {
-					return nil
-				}
-			}
-			return errors.New("must enter 'sms', 'whatsapp', or 'whatsapp_sms'")
-		},
+func ReadPhoneOTPMode(ctx context.Context, cmd *cobra.Command) (config.AuthenticatorPhoneOTPMode, error) {
+	input, err := Prompt_PhoneOTPMode.Prompt(ctx, cmd)
+	if err != nil {
+		return "", err
 	}
-	input := p.Prompt()
 
 	switch input {
 	case "sms":
-		return config.AuthenticatorPhoneOTPModeSMSOnly
+		return config.AuthenticatorPhoneOTPModeSMSOnly, nil
 	case "whatsapp":
-		return config.AuthenticatorPhoneOTPModeWhatsappOnly
+		return config.AuthenticatorPhoneOTPModeWhatsappOnly, nil
 	case "whatsapp_sms":
-		return config.AuthenticatorPhoneOTPModeWhatsappSMS
+		return config.AuthenticatorPhoneOTPModeWhatsappSMS, nil
 	default:
 		// This case should never be reached due to validation
-		return config.AuthenticatorPhoneOTPModeSMSOnly
+		return config.AuthenticatorPhoneOTPModeSMSOnly, nil
 	}
 }
 
-func ReadSkipEmailVerification() bool {
-	return promptBool{
-		Title:        "Would you like to turn off email verification? (In case you don't have SMTP credentials in your initial setup)",
-		DefaultValue: false,
-	}.Prompt()
+func ReadSkipEmailVerification(ctx context.Context, cmd *cobra.Command) (bool, error) {
+	b, err := Prompt_DisableEmailVerification.Prompt(ctx, cmd)
+	if err != nil {
+		return false, err
+	}
+	return b, nil
 }
 
-func ReadSearchImplementation() config.SearchImplementation {
-	return config.SearchImplementation(promptString{
-		Title:        "Select a service for searching (elasticsearch, postgresql, none)",
-		DefaultValue: string(config.SearchImplementationElasticsearch),
-		Validate: func(value string) error {
-			validChoices := []string{
-				string(config.SearchImplementationElasticsearch),
-				string(config.SearchImplementationPostgresql),
-				string(config.SearchImplementationNone),
-			}
-			for _, choice := range validChoices {
-				if value == choice {
-					return nil
-				}
-			}
-			return errors.New("must enter 'elasticsearch', 'postgresql' or 'none'")
-		},
-	}.Prompt())
+func ReadSearchImplementation(ctx context.Context, cmd *cobra.Command) (config.SearchImplementation, error) {
+	s, err := Prompt_SearchImplementation.Prompt(ctx, cmd)
+	if err != nil {
+		return "", err
+	}
+
+	return config.SearchImplementation(s), nil
 }
 
-func ReadSecretConfigOptionsFromConsole(searchImpl config.SearchImplementation) *config.GenerateSecretConfigOptions {
+func ReadSecretConfigOptionsFromConsole(ctx context.Context, cmd *cobra.Command, searchImpl config.SearchImplementation) (*config.GenerateSecretConfigOptions, error) {
 	opts := &config.GenerateSecretConfigOptions{}
 
-	opts.DatabaseURL = promptURL{
-		Title:        "Database URL",
-		DefaultValue: "postgres://postgres:postgres@127.0.0.1:5432/postgres?sslmode=disable",
-	}.Prompt()
+	databaseURL, err := Prompt_DatabaseURL.Prompt(ctx, cmd)
+	if err != nil {
+		return nil, err
+	}
+	opts.DatabaseURL = databaseURL.String()
 
-	opts.DatabaseSchema = promptString{
-		Title:        "Database schema",
-		DefaultValue: "public",
-	}.Prompt()
+	databaseSchema, err := Prompt_DatabaseSchema.Prompt(ctx, cmd)
+	if err != nil {
+		return nil, err
+	}
+	opts.DatabaseSchema = databaseSchema
 
-	opts.AuditDatabaseURL = promptURL{
-		Title:        "Audit Database URL",
-		DefaultValue: "postgres://postgres:postgres@127.0.0.1:5432/postgres?sslmode=disable",
-	}.Prompt()
+	auditDatabaseURL, err := Prompt_AuditDatabaseURL.Prompt(ctx, cmd)
+	if err != nil {
+		return nil, err
+	}
+	opts.AuditDatabaseURL = auditDatabaseURL.String()
 
-	opts.AuditDatabaseSchema = promptString{
-		Title:        "Audit Database schema",
-		DefaultValue: "public",
-	}.Prompt()
+	auditDatabaseSchema, err := Prompt_AuditDatabaseSchema.Prompt(ctx, cmd)
+	if err != nil {
+		return nil, err
+	}
+	opts.AuditDatabaseSchema = auditDatabaseSchema
 
 	switch searchImpl {
 	case config.SearchImplementationNone:
 		break
 	case config.SearchImplementationPostgresql:
-		opts.SearchDatabaseURL = promptString{
-			Title:        "Search Database URL",
-			DefaultValue: "postgres://postgres:postgres@127.0.0.1:5432/postgres?sslmode=disable",
-		}.Prompt()
-		opts.SearchDatabaseSchema = promptString{
-			Title:        "Search Database schema",
-			DefaultValue: "public",
-		}.Prompt()
+		searchDatabaseURL, err := Prompt_SearchDatabaseURL.Prompt(ctx, cmd)
+		if err != nil {
+			return nil, err
+		}
+		opts.SearchDatabaseURL = searchDatabaseURL.String()
+
+		searchDatabaseSchema, err := Prompt_SearchDatabaseSchema.Prompt(ctx, cmd)
+		if err != nil {
+			return nil, err
+		}
+		opts.SearchDatabaseSchema = searchDatabaseSchema
 	case config.SearchImplementationElasticsearch:
 		fallthrough
 	default:
-		opts.ElasticsearchURL = promptString{
-			Title:        "Elasticsearch URL",
-			DefaultValue: "http://localhost:9200",
-		}.Prompt()
+		elasticsearchURL, err := Prompt_ElasticsearchURL.Prompt(ctx, cmd)
+		if err != nil {
+			return nil, err
+		}
+
+		opts.ElasticsearchURL = elasticsearchURL.String()
 	}
 
-	opts.RedisURL = promptURL{
-		Title:        "Redis URL",
-		DefaultValue: "redis://localhost",
-	}.Prompt()
+	redisURL, err := Prompt_RedisURL.Prompt(ctx, cmd)
+	if err != nil {
+		return nil, err
+	}
+	opts.RedisURL = redisURL.String()
 
-	opts.AnalyticRedisURL = promptURL{
-		Title:        "Redis URL for analytic",
-		DefaultValue: "redis://localhost/1",
-	}.Prompt()
+	analyticRedisURL, err := Prompt_AnalyticRedisURL.Prompt(ctx, cmd)
+	if err != nil {
+		return nil, err
+	}
+	opts.AnalyticRedisURL = analyticRedisURL.String()
 
-	return opts
+	return opts, nil
 }
