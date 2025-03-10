@@ -28,6 +28,12 @@ var Prompt_PortalOrigin = cliutil.PromptURL{
 	NonInteractiveFlagName:      "portal-origin",
 }
 
+var Prompt_PortalClientID = cliutil.PromptString{
+	Title:                       "The client ID of portal. If left empty, generate a random one.",
+	InteractiveDefaultUserInput: "",
+	NonInteractiveFlagName:      "portal-client-id",
+}
+
 var Prompt_PhoneOTPMode = cliutil.PromptString{
 	Title:                       `Phone OTP Mode (sms, whatsapp, whatsapp_sms)`,
 	InteractiveDefaultUserInput: "sms",
@@ -152,8 +158,14 @@ func ReadOAuthClientConfigsFromConsole(ctx context.Context, cmd *cobra.Command) 
 	u.Path = "/"
 	postLogoutRedirectURI := u.String()
 
+	clientID, err := Prompt_PortalClientID.Prompt(ctx, cmd)
+	if err != nil {
+		return nil, err
+	}
+
 	return &config.GenerateOAuthClientConfigOptions{
 		Name:                  "Portal",
+		ClientID:              clientID,
 		RedirectURI:           redirectURI,
 		PostLogoutRedirectURI: postLogoutRedirectURI,
 		ApplicationType:       config.OAuthClientApplicationTypeTraditionalWeb,
