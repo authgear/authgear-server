@@ -2,6 +2,7 @@ package apierrors_test
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"testing"
 
@@ -144,6 +145,25 @@ func TestAPIError(t *testing.T) {
 					"byte_offset": int64(0),
 				},
 			})
+		})
+	})
+
+	Convey("IsAPIError", t, func() {
+		Convey("simple error", func() {
+			apiErr := apierrors.BadRequest.WithReason("Test").New("test")
+			So(apierrors.IsAPIError(apiErr), ShouldEqual, true)
+		})
+
+		Convey("joined error with api error in the front", func() {
+			apiErr := apierrors.BadRequest.WithReason("Test").New("test")
+			joinedError := errors.Join(apiErr, errors.New("test"))
+			So(apierrors.IsAPIError(joinedError), ShouldEqual, true)
+		})
+
+		Convey("joined error with api error in the end", func() {
+			apiErr := apierrors.BadRequest.WithReason("Test").New("test")
+			joinedError := errors.Join(errors.New("test"), apiErr)
+			So(apierrors.IsAPIError(joinedError), ShouldEqual, true)
 		})
 	})
 
