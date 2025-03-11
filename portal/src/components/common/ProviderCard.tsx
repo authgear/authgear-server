@@ -26,6 +26,7 @@ const PROVIDER_CARD_ICON_STYLE = {
   width: "32px",
   height: "32px",
   fontSize: "32px",
+  lineHeight: "32px",
 };
 
 export function ProviderCard(props: ProviderCardProps): React.ReactElement {
