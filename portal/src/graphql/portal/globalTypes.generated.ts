@@ -761,6 +761,7 @@ export type SmtpSecret = {
   host: Scalars['String']['output'];
   password?: Maybe<Scalars['String']['output']>;
   port: Scalars['Int']['output'];
+  sender?: Maybe<Scalars['String']['output']>;
   username: Scalars['String']['output'];
 };
 
@@ -768,6 +769,7 @@ export type SmtpSecretInput = {
   host: Scalars['String']['input'];
   password?: InputMaybe<Scalars['String']['input']>;
   port: Scalars['Int']['input'];
+  sender?: InputMaybe<Scalars['String']['input']>;
   username: Scalars['String']['input'];
 };
 
@@ -1088,6 +1090,8 @@ export type SendTestSmtpConfigurationEmailInput = {
   smtpPassword: Scalars['String']['input'];
   /** SMTP Port. */
   smtpPort: Scalars['Int']['input'];
+  /** SMTP Sender. */
+  smtpSender: Scalars['String']['input'];
   /** SMTP Username. */
   smtpUsername: Scalars['String']['input'];
   /** The recipient email address. */

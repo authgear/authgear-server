@@ -929,6 +929,9 @@ type SMTPSecret {
   port: Int!
 
   """"""
+  sender: String
+
+  """"""
   username: String!
 }
 
@@ -942,6 +945,9 @@ input SMTPSecretInput {
 
   """"""
   port: Int!
+
+  """"""
+  sender: String
 
   """"""
   username: String!
@@ -1468,6 +1474,9 @@ input sendTestSMTPConfigurationEmailInput {
 
   """SMTP Port."""
   smtpPort: Int!
+
+  """SMTP Sender."""
+  smtpSender: String!
 
   """SMTP Username."""
   smtpUsername: String!
