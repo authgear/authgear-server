@@ -27,6 +27,7 @@ type EngineTemplateResolver interface {
 	ResolvePlainText(ctx context.Context, desc *PlainText, preferredLanguages []string) (*TextTemplateEffectiveResource, error)
 	ResolveMessagePlainText(ctx context.Context, desc *MessagePlainText, preferredLanguages []string) (*TextTemplateEffectiveResource, error)
 	ResolveTranslations(ctx context.Context, preferredLanguages []string) (map[string]Translation, error)
+	ResolveAppSpecificTranslations(ctx context.Context, preferredLanguages []string) (map[string]Translation, error)
 }
 
 type Engine struct {
@@ -38,13 +39,23 @@ func (e *Engine) Translation(ctx context.Context, preferredLanguages []string) (
 	if err != nil {
 		return nil, err
 	}
+	return e.parseTranslations(translations)
+}
 
+func (e *Engine) AppSpecificTranslation(ctx context.Context, preferredLanguages []string) (*TranslationMap, error) {
+	translations, err := e.Resolver.ResolveAppSpecificTranslations(ctx, preferredLanguages)
+	if err != nil {
+		return nil, err
+	}
+	return e.parseTranslations(translations)
+}
+
+func (e *Engine) parseTranslations(translations map[string]Translation) (*TranslationMap, error) {
 	// Parse translations.
 	var items = make(map[string]*parse.Tree)
 	for key, translation := range translations {
-		var tree *parse.Tree
 		tag := language.Make(translation.LanguageTag)
-		tree, err = messageformat.FormatTemplateParseTree(tag, translation.Value)
+		tree, err := messageformat.FormatTemplateParseTree(tag, translation.Value)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse messageformat for key %s: %w", key, err)
 		}

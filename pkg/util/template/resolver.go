@@ -83,3 +83,18 @@ func (r *Resolver) ResolveTranslations(ctx context.Context, preferredLanguages [
 
 	return resrc.(map[string]Translation), nil
 }
+
+func (r *Resolver) ResolveAppSpecificTranslations(ctx context.Context, preferredLanguages []string) (map[string]Translation, error) {
+	resrc, err := r.Resources.Read(ctx, TranslationJSON, resource.AppEffectiveResource{
+		EffectiveResource: resource.EffectiveResource{
+			SupportedTags: []string(r.SupportedLanguageTags),
+			DefaultTag:    string(r.DefaultLanguageTag),
+			PreferredTags: preferredLanguages,
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return resrc.(map[string]Translation), nil
+}

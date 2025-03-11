@@ -298,6 +298,10 @@ func ProvideBotProtectionConfig() *config.BotProtectionConfig {
 	return &config.BotProtectionConfig{}
 }
 
+func ProvideNilSMTPSecrets() *config.SMTPServerCredentials {
+	return nil
+}
+
 func ProvideLocalizationConfig(defaultLang template.DefaultLanguageTag, supported template.SupportedLanguageTags) *config.LocalizationConfig {
 	defaultLangStr := string(defaultLang)
 	return &config.LocalizationConfig{
@@ -339,6 +343,7 @@ var RequestMiddlewareDependencySet = wire.NewSet(
 	ProvideGoogleTagManagerConfig,
 	ProvideLocalizationConfig,
 	ProvideBotProtectionConfig,
+	ProvideNilSMTPSecrets,
 
 	ProvideCookieManager,
 

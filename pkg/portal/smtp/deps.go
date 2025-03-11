@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/wire"
 
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -35,4 +36,8 @@ func ProvideDefaultLanguageTag(app *model.App) template.DefaultLanguageTag {
 
 func ProvideSupportedLanguageTags(app *model.App) template.SupportedLanguageTags {
 	return template.SupportedLanguageTags(app.Context.Config.AppConfig.Localization.SupportedLanguages)
+}
+
+func ProvideNilSMTPSecrets() *config.SMTPServerCredentials {
+	return nil
 }

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	htmltemplate "html/template"
 
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/util/intl"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -18,10 +19,12 @@ type StaticAssetResolver interface {
 }
 
 type Service struct {
-	TemplateEngine *template.Engine
-	StaticAssets   StaticAssetResolver
+	TemplateEngine        *template.Engine
+	StaticAssets          StaticAssetResolver
+	SMTPServerCredentials *config.SMTPServerCredentials
 
-	translations *template.TranslationMap `wire:"-"`
+	translations            *template.TranslationMap `wire:"-"`
+	appSpecificTranslations *template.TranslationMap `wire:"-"`
 }
 
 func (s *Service) translationMap(ctx context.Context) (*template.TranslationMap, error) {
@@ -34,6 +37,18 @@ func (s *Service) translationMap(ctx context.Context) (*template.TranslationMap,
 		s.translations = t
 	}
 	return s.translations, nil
+}
+
+func (s *Service) appSpecificTranslationMap(ctx context.Context) (*template.TranslationMap, error) {
+	if s.appSpecificTranslations == nil {
+		preferredLanguageTags := intl.GetPreferredLanguageTags(ctx)
+		t, err := s.TemplateEngine.AppSpecificTranslation(ctx, preferredLanguageTags)
+		if err != nil {
+			return nil, err
+		}
+		s.appSpecificTranslations = t
+	}
+	return s.appSpecificTranslations, nil
 }
 
 func (s *Service) renderTemplate(ctx context.Context, tpl template.Resource, variables *PreparedTemplateVariables) (*template.RenderResult, error) {
@@ -75,11 +90,36 @@ func (s *Service) emailMessageHeader(ctx context.Context, name SpecName, variabl
 		return
 	}
 
+	appTranslations, err := s.appSpecificTranslationMap(ctx)
+	if err != nil {
+		return
+	}
+
+	// Resolve sender
+	// First, use base translation
 	sender, err = t.RenderText(fmt.Sprintf("email.%s.sender", name), variables)
 	if errors.Is(err, template.ErrNotFound) {
 		sender, err = t.RenderText("email.default.sender", variables)
 	}
 	if err != nil {
+		return
+	}
+
+	// Then, override with smtp secrets
+	if s.SMTPServerCredentials != nil && s.SMTPServerCredentials.Sender != "" {
+		sender = s.SMTPServerCredentials.Sender
+	}
+
+	// Finally, override with app translations
+	appSender, err := appTranslations.RenderText(fmt.Sprintf("email.%s.sender", name), variables)
+	if errors.Is(err, template.ErrNotFound) {
+		appSender, err = appTranslations.RenderText("email.default.sender", variables)
+	}
+	if err != nil && !errors.Is(err, template.ErrNotFound) {
+		return
+	}
+	if appSender != "" {
+		sender = appSender
 		return
 	}
 

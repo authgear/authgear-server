@@ -18,6 +18,7 @@ func NewTranslationService(app *model.App) *translation.Service {
 		ProvideResourceManager,
 		ProvideDefaultLanguageTag,
 		ProvideSupportedLanguageTags,
+		ProvideNilSMTPSecrets,
 
 		translation.DependencySet,
 		template.DependencySet,

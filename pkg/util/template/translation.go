@@ -242,6 +242,13 @@ func (t *translationJSON) viewEffectiveResource(resources []resource.ResourceFil
 		}
 
 		fsLevel := resrc.Location.Fs.GetFsLevel()
+		if _, ok := view.(resource.AppEffectiveResourceView); ok {
+			// If it is a AppEffectiveResourceView, skip other FS
+			if fsLevel != resource.FsLevelApp {
+				return nil
+			}
+		}
+
 		for key, val := range jsonObj {
 			value, ok := val.(string)
 			if !ok {
