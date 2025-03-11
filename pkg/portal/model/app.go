@@ -46,6 +46,7 @@ type SMTPSecret struct {
 	Port     int     `json:"port,omitempty"`
 	Username string  `json:"username,omitempty"`
 	Password *string `json:"password,omitempty"`
+	Sender   string  `json:"sender,omitempty"`
 }
 
 type OAuthClientSecretKey struct {
@@ -198,6 +199,7 @@ func NewSecretConfig(secretConfig *config.SecretConfig, unmaskedSecrets []config
 			Host:     smtp.Host,
 			Port:     smtp.Port,
 			Username: smtp.Username,
+			Sender:   smtp.Sender,
 		}
 		if _, exist := unmaskedSecretsSet[config.SMTPServerCredentialsKey]; exist {
 			smtpSecret.Password = &smtp.Password

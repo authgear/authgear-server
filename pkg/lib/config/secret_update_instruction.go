@@ -205,6 +205,7 @@ type SMTPServerCredentialsUpdateInstructionData struct {
 	Port     int    `json:"port,omitempty"`
 	Username string `json:"username,omitempty"`
 	Password string `json:"password,omitempty"`
+	Sender   string `json:"sender,omitempty"`
 }
 
 type SMTPServerCredentialsUpdateInstruction struct {
@@ -238,6 +239,7 @@ func (i *SMTPServerCredentialsUpdateInstruction) set(currentConfig *SecretConfig
 		Port:     i.Data.Port,
 		Username: i.Data.Username,
 		Password: i.Data.Password,
+		Sender:   i.Data.Sender,
 	}
 
 	var data []byte

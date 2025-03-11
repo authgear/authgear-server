@@ -36,6 +36,10 @@ var sendTestSMTPConfigurationEmailInput = graphql.NewInputObject(graphql.InputOb
 			Type:        graphql.NewNonNull(graphql.String),
 			Description: "SMTP Password.",
 		},
+		"smtpSender": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewNonNull(graphql.String),
+			Description: "SMTP Sender.",
+		},
 	},
 })
 
@@ -57,6 +61,7 @@ var _ = registerMutationField(
 			smtpPort := input["smtpPort"].(int)
 			smtpUsername := input["smtpUsername"].(string)
 			smtpPassword := input["smtpPassword"].(string)
+			smtpSender := input["smtpSender"].(string)
 
 			resolvedNodeID := relay.FromGlobalID(appNodeID)
 			if resolvedNodeID == nil || resolvedNodeID.Type != typeApp {
@@ -84,6 +89,7 @@ var _ = registerMutationField(
 				SMTPPort:     smtpPort,
 				SMTPUsername: smtpUsername,
 				SMTPPassword: smtpPassword,
+				SMTPSender:   smtpSender,
 			})
 			if err != nil {
 				return nil, err
