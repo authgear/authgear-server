@@ -4,6 +4,7 @@ import { usePortalClient } from "../../portal/apollo";
 import {
   SendTestEmailMutationMutation,
   SendTestEmailMutationDocument,
+  SendTestEmailMutationMutationVariables,
 } from "./sendTestEmail.generated";
 
 export interface SendTestEmailOptions {
@@ -11,6 +12,7 @@ export interface SendTestEmailOptions {
   smtpPort: number;
   smtpUsername: string;
   smtpPassword: string;
+  smtpSender: string;
   to: string;
 }
 
@@ -24,10 +26,12 @@ export function useSendTestEmailMutation(
   appID: string
 ): UseSendTestEmailMutationReturnType {
   const client = usePortalClient();
-  const [mutationFunction, { error, loading }] =
-    useMutation<SendTestEmailMutationMutation>(SendTestEmailMutationDocument, {
-      client,
-    });
+  const [mutationFunction, { error, loading }] = useMutation<
+    SendTestEmailMutationMutation,
+    SendTestEmailMutationMutationVariables
+  >(SendTestEmailMutationDocument, {
+    client,
+  });
   const sendTestEmail = useCallback(
     async (options: SendTestEmailOptions) => {
       await mutationFunction({

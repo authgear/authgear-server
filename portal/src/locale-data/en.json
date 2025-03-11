@@ -1565,6 +1565,8 @@
   "SMTPConfigurationScreen.sendgrid.api-key.label": "API Key",
   "SMTPConfigurationScreen.sendgrid.api-key.tooltip": "Your SendGrid API Key",
   "SMTPConfigurationScreen.password.label": "Password",
+  "SMTPConfigurationScreen.senderName.label": "Default Sender Name",
+  "SMTPConfigurationScreen.senderAddress.label": "Default Sender Email",
   "SMTPConfigurationScreen.send-test-email.label": "Send Test Email",
   "SMTPConfigurationScreen.send-test-email-dialog.title": "Enter the recipient email address",
   "SMTPConfigurationScreen.send-test-email-dialog.description": "Test your SMTP configuration by sending an email to the given address.",

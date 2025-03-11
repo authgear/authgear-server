@@ -2,6 +2,8 @@ import {
   OAuthSsoProviderClientSecretInput,
   SmsProviderSecretsSetDataInput,
   TwilioCredentialType,
+  SmtpSecret,
+  SmtpSecretUpdateInstructionsInput,
 } from "./graphql/portal/globalTypes.generated";
 
 // type aliases in JSON schema
@@ -678,13 +680,6 @@ export interface AdminAPISecret {
   privateKeyPEM?: string | null;
 }
 
-export interface SMTPSecret {
-  host: string;
-  port: number;
-  username: string;
-  password?: string | null;
-}
-
 export interface OAuthClientSecretKey {
   keyID: string;
   createdAt?: string | null;
@@ -745,7 +740,7 @@ export interface PortalAPISecretConfig {
   oauthSSOProviderClientSecrets?: OAuthSSOProviderClientSecret[] | null;
   webhookSecret?: WebhookSecret | null;
   adminAPISecrets?: AdminAPISecret[] | null;
-  smtpSecret?: SMTPSecret | null;
+  smtpSecret?: SmtpSecret | null;
   oauthClientSecrets?: OAuthClientSecret[] | null;
   botProtectionProviderSecret?: BotProtectionProviderSecret | null;
   samlIdpSigningSecrets?: SAMLIdpSigningSecrets | null;
@@ -765,18 +760,6 @@ export interface SSOProviderFormSecretViewModel {
 export interface OAuthSSOProviderClientSecretUpdateInstruction {
   action: string;
   data?: OAuthSSOProviderClientSecretUpdateInstructionDataItem[] | null;
-}
-
-export interface SMTPSecretUpdateInstructionData {
-  host: string;
-  port: number;
-  username: string;
-  password: string | null;
-}
-
-export interface SMTPSecretUpdateInstruction {
-  action: string;
-  data?: SMTPSecretUpdateInstructionData | null;
 }
 
 export interface BotProtectionProviderSecretUpdateInstructionData {
@@ -841,7 +824,7 @@ export interface SMSProviderSecretsUpdateInstructions {
 
 export interface PortalAPISecretConfigUpdateInstruction {
   oauthSSOProviderClientSecrets?: OAuthSSOProviderClientSecretUpdateInstruction | null;
-  smtpSecret?: SMTPSecretUpdateInstruction | null;
+  smtpSecret?: SmtpSecretUpdateInstructionsInput | null;
   oauthClientSecrets?: OAuthClientSecretsUpdateInstruction | null;
   adminAPIAuthKey?: AdminApiAuthKeyUpdateInstruction | null;
   botProtectionProviderSecret?: BotProtectionProviderSecretUpdateInstruction | null;
