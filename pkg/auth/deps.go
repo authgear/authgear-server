@@ -298,7 +298,7 @@ func ProvideBotProtectionConfig() *config.BotProtectionConfig {
 	return &config.BotProtectionConfig{}
 }
 
-func ProvideNilSMTPSecrets() *config.SMTPServerCredentials {
+func ProvideNilSMTPServerCredentialsSecretItem() *config.SMTPServerCredentialsSecretItem {
 	return nil
 }
 
@@ -343,7 +343,7 @@ var RequestMiddlewareDependencySet = wire.NewSet(
 	ProvideGoogleTagManagerConfig,
 	ProvideLocalizationConfig,
 	ProvideBotProtectionConfig,
-	ProvideNilSMTPSecrets,
+	ProvideNilSMTPServerCredentialsSecretItem,
 
 	ProvideCookieManager,
 

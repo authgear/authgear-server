@@ -38,6 +38,6 @@ func ProvideSupportedLanguageTags(app *model.App) template.SupportedLanguageTags
 	return template.SupportedLanguageTags(app.Context.Config.AppConfig.Localization.SupportedLanguages)
 }
 
-func ProvideNilSMTPSecrets() *config.SMTPServerCredentials {
+func ProvideNilSMTPServerCredentialsSecretItem() *config.SMTPServerCredentialsSecretItem {
 	return nil
 }

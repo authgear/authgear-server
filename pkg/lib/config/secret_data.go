@@ -232,6 +232,12 @@ var _ = SecretConfigSchema.Add("SMTPServerCredentials", `
 }
 `)
 
+type SMTPServerCredentialsSecretItem SecretItem
+
+func (s *SMTPServerCredentialsSecretItem) GetData() *SMTPServerCredentials {
+	return s.Data.(*SMTPServerCredentials)
+}
+
 type SMTPServerCredentials struct {
 	Host     string   `json:"host,omitempty"`
 	Port     int      `json:"port,omitempty"`

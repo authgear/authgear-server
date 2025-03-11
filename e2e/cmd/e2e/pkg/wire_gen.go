@@ -239,11 +239,11 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
-	smtpServerCredentials := deps.ProvideSMTPServerCredentials(secretConfig)
+	smtpServerCredentialsSecretItem := deps.ProvideSMTPServerCredentialsItem(secretConfig)
 	translationService := &translation.Service{
-		TemplateEngine:        engine,
-		StaticAssets:          staticAssetResolver,
-		SMTPServerCredentials: smtpServerCredentials,
+		TemplateEngine:                  engine,
+		StaticAssets:                    staticAssetResolver,
+		SMTPServerCredentialsSecretItem: smtpServerCredentialsSecretItem,
 	}
 	configService := &passkey2.ConfigService{
 		Request:            request,
@@ -640,6 +640,7 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	mailLogger := mail.NewLogger(factory)
+	smtpServerCredentials := deps.ProvideSMTPServerCredentials(secretConfig)
 	dialer := mail.NewGomailDialer(smtpServerCredentials)
 	sender := &mail.Sender{
 		Logger:       mailLogger,

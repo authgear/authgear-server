@@ -120,6 +120,7 @@ var secretDeps = wire.NewSet(
 	ProvideAdminAPIAuthKeyMaterials,
 	ProvideOAuthSSOProviderCredentials,
 	ProvideSMTPServerCredentials,
+	ProvideSMTPServerCredentialsItem,
 	ProvideTwilioCredentials,
 	ProvideNexmoCredentials,
 	ProvideCustomSMSProviderConfig,
@@ -180,6 +181,11 @@ func ProvideOAuthSSOProviderCredentials(c *config.SecretConfig) *config.OAuthSSO
 func ProvideSMTPServerCredentials(c *config.SecretConfig) *config.SMTPServerCredentials {
 	s, _ := c.LookupData(config.SMTPServerCredentialsKey).(*config.SMTPServerCredentials)
 	return s
+}
+
+func ProvideSMTPServerCredentialsItem(c *config.SecretConfig) *config.SMTPServerCredentialsSecretItem {
+	_, s, _ := c.Lookup(config.SMTPServerCredentialsKey)
+	return (*config.SMTPServerCredentialsSecretItem)(s)
 }
 
 func ProvideTwilioCredentials(c *config.SecretConfig) *config.TwilioCredentials {

@@ -330,11 +330,11 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
-	smtpServerCredentials := deps.ProvideSMTPServerCredentials(secretConfig)
+	smtpServerCredentialsSecretItem := deps.ProvideSMTPServerCredentialsItem(secretConfig)
 	translationService := &translation.Service{
-		TemplateEngine:        engine,
-		StaticAssets:          staticAssetResolver,
-		SMTPServerCredentials: smtpServerCredentials,
+		TemplateEngine:                  engine,
+		StaticAssets:                    staticAssetResolver,
+		SMTPServerCredentialsSecretItem: smtpServerCredentialsSecretItem,
 	}
 	configService := &passkey2.ConfigService{
 		Request:            request,
@@ -740,6 +740,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	mailLogger := mail.NewLogger(factory)
+	smtpServerCredentials := deps.ProvideSMTPServerCredentials(secretConfig)
 	dialer := mail.NewGomailDialer(smtpServerCredentials)
 	sender := &mail.Sender{
 		Logger:       mailLogger,
@@ -1093,11 +1094,11 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
-	smtpServerCredentials := deps.ProvideSMTPServerCredentials(secretConfig)
+	smtpServerCredentialsSecretItem := deps.ProvideSMTPServerCredentialsItem(secretConfig)
 	translationService := &translation.Service{
-		TemplateEngine:        engine,
-		StaticAssets:          staticAssetResolver,
-		SMTPServerCredentials: smtpServerCredentials,
+		TemplateEngine:                  engine,
+		StaticAssets:                    staticAssetResolver,
+		SMTPServerCredentialsSecretItem: smtpServerCredentialsSecretItem,
 	}
 	configService := &passkey2.ConfigService{
 		Request:            request,

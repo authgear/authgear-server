@@ -166,11 +166,11 @@ func NewReindexer(pool *db.Pool, databaseCredentials *CmdDBCredential, searchDat
 		Resources:         nilResourceManager,
 		EmbeddedResources: nilResourceManager,
 	}
-	smtpServerCredentials := deps.ProvideSMTPServerCredentials(secretConfig)
+	smtpServerCredentialsSecretItem := deps.ProvideSMTPServerCredentialsItem(secretConfig)
 	translationService := &translation.Service{
-		TemplateEngine:        engine,
-		StaticAssets:          staticAssetResolver,
-		SMTPServerCredentials: smtpServerCredentials,
+		TemplateEngine:                  engine,
+		StaticAssets:                    staticAssetResolver,
+		SMTPServerCredentialsSecretItem: smtpServerCredentialsSecretItem,
 	}
 	configService := &passkey2.ConfigService{
 		Request:            request,

@@ -19,9 +19,9 @@ type StaticAssetResolver interface {
 }
 
 type Service struct {
-	TemplateEngine        *template.Engine
-	StaticAssets          StaticAssetResolver
-	SMTPServerCredentials *config.SMTPServerCredentials
+	TemplateEngine                  *template.Engine
+	StaticAssets                    StaticAssetResolver
+	SMTPServerCredentialsSecretItem *config.SMTPServerCredentialsSecretItem
 
 	translations            *template.TranslationMap `wire:"-"`
 	appSpecificTranslations *template.TranslationMap `wire:"-"`
@@ -106,8 +106,8 @@ func (s *Service) emailMessageHeader(ctx context.Context, name SpecName, variabl
 	}
 
 	// Then, override with smtp secrets
-	if s.SMTPServerCredentials != nil && s.SMTPServerCredentials.Sender != "" {
-		sender = s.SMTPServerCredentials.Sender
+	if s.SMTPServerCredentialsSecretItem != nil && s.SMTPServerCredentialsSecretItem.GetData().Sender != "" {
+		sender = s.SMTPServerCredentialsSecretItem.GetData().Sender
 	}
 
 	// Finally, override with app translations

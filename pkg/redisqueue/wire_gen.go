@@ -196,11 +196,11 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
-	smtpServerCredentials := deps.ProvideSMTPServerCredentials(secretConfig)
+	smtpServerCredentialsSecretItem := deps.ProvideSMTPServerCredentialsItem(secretConfig)
 	translationService := &translation.Service{
-		TemplateEngine:        engine,
-		StaticAssets:          staticAssetResolver,
-		SMTPServerCredentials: smtpServerCredentials,
+		TemplateEngine:                  engine,
+		StaticAssets:                    staticAssetResolver,
+		SMTPServerCredentialsSecretItem: smtpServerCredentialsSecretItem,
 	}
 	configService := &passkey2.ConfigService{
 		Request:            request,
@@ -597,6 +597,7 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	mailLogger := mail.NewLogger(factory)
+	smtpServerCredentials := deps.ProvideSMTPServerCredentials(secretConfig)
 	dialer := mail.NewGomailDialer(smtpServerCredentials)
 	sender := &mail.Sender{
 		Logger:       mailLogger,
@@ -993,11 +994,11 @@ func newUserExportService(ctx context.Context, p *deps.AppProvider) *userexport.
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
-	smtpServerCredentials := deps.ProvideSMTPServerCredentials(secretConfig)
+	smtpServerCredentialsSecretItem := deps.ProvideSMTPServerCredentialsItem(secretConfig)
 	translationService := &translation.Service{
-		TemplateEngine:        engine,
-		StaticAssets:          staticAssetResolver,
-		SMTPServerCredentials: smtpServerCredentials,
+		TemplateEngine:                  engine,
+		StaticAssets:                    staticAssetResolver,
+		SMTPServerCredentialsSecretItem: smtpServerCredentialsSecretItem,
 	}
 	configService := &passkey2.ConfigService{
 		Request:            request,
@@ -1367,11 +1368,11 @@ func newSearchReindexer(ctx context.Context, p *deps.AppProvider) *reindex.Reind
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
-	smtpServerCredentials := deps.ProvideSMTPServerCredentials(secretConfig)
+	smtpServerCredentialsSecretItem := deps.ProvideSMTPServerCredentialsItem(secretConfig)
 	translationService := &translation.Service{
-		TemplateEngine:        engine,
-		StaticAssets:          staticAssetResolver,
-		SMTPServerCredentials: smtpServerCredentials,
+		TemplateEngine:                  engine,
+		StaticAssets:                    staticAssetResolver,
+		SMTPServerCredentialsSecretItem: smtpServerCredentialsSecretItem,
 	}
 	configService := &passkey2.ConfigService{
 		Request:            request,
