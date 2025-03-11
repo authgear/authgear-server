@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/util/intl"
+	"github.com/authgear/authgear-server/pkg/util/resource"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
@@ -23,8 +24,7 @@ type Service struct {
 	StaticAssets                    StaticAssetResolver
 	SMTPServerCredentialsSecretItem *config.SMTPServerCredentialsSecretItem
 
-	translations            *template.TranslationMap `wire:"-"`
-	appSpecificTranslations *template.TranslationMap `wire:"-"`
+	translations *template.TranslationMap `wire:"-"`
 }
 
 func (s *Service) translationMap(ctx context.Context) (*template.TranslationMap, error) {
@@ -39,16 +39,13 @@ func (s *Service) translationMap(ctx context.Context) (*template.TranslationMap,
 	return s.translations, nil
 }
 
-func (s *Service) appSpecificTranslationMap(ctx context.Context) (*template.TranslationMap, error) {
-	if s.appSpecificTranslations == nil {
-		preferredLanguageTags := intl.GetPreferredLanguageTags(ctx)
-		t, err := s.TemplateEngine.AppSpecificTranslation(ctx, preferredLanguageTags)
-		if err != nil {
-			return nil, err
-		}
-		s.appSpecificTranslations = t
+func (s *Service) levelSpecificTranslationMap(ctx context.Context, level resource.FsLevel) (*template.TranslationMap, error) {
+	preferredLanguageTags := intl.GetPreferredLanguageTags(ctx)
+	t, err := s.TemplateEngine.LevelSpecificTranslation(ctx, level, preferredLanguageTags)
+	if err != nil {
+		return nil, err
 	}
-	return s.appSpecificTranslations, nil
+	return t, nil
 }
 
 func (s *Service) renderTemplate(ctx context.Context, tpl template.Resource, variables *PreparedTemplateVariables) (*template.RenderResult, error) {
@@ -85,55 +82,58 @@ func (s *Service) GetSenderForTestSMS(ctx context.Context) (sender string, err e
 }
 
 func (s *Service) emailMessageHeader(ctx context.Context, name SpecName, variables *PreparedTemplateVariables) (sender, replyTo, subject string, err error) {
-	t, err := s.translationMap(ctx)
+	baseTranslations, err := s.translationMap(ctx)
 	if err != nil {
 		return
 	}
 
-	appTranslations, err := s.appSpecificTranslationMap(ctx)
-	if err != nil {
-		return
+	resolveSender := func(t *template.TranslationMap) (string, error) {
+		sender, err := t.RenderText(fmt.Sprintf("email.%s.sender", name), variables)
+		if errors.Is(err, template.ErrNotFound) {
+			sender, err = t.RenderText("email.default.sender", variables)
+		}
+		if err != nil {
+			return "", err
+		}
+		return sender, nil
 	}
 
 	// Resolve sender
-	// First, use base translation
-	sender, err = t.RenderText(fmt.Sprintf("email.%s.sender", name), variables)
+	// If no smtp secret, probably in local, just use sender in translation
+	if s.SMTPServerCredentialsSecretItem == nil {
+		sender, err = resolveSender(baseTranslations)
+		if err != nil {
+			return
+		}
+	} else {
+		// If the secret has sender, use it
+		if s.SMTPServerCredentialsSecretItem.GetData().Sender != "" {
+			sender = s.SMTPServerCredentialsSecretItem.GetData().Sender
+		} else {
+			// Depends on the secret fs level, resolve sender from different level of translation
+			var levelTranslations *template.TranslationMap
+			levelTranslations, err = s.levelSpecificTranslationMap(ctx, s.SMTPServerCredentialsSecretItem.FsLevel)
+			if err != nil {
+				return
+			}
+			sender, err = resolveSender(levelTranslations)
+			if err != nil {
+				return
+			}
+		}
+	}
+
+	replyTo, err = baseTranslations.RenderText(fmt.Sprintf("email.%s.reply-to", name), variables)
 	if errors.Is(err, template.ErrNotFound) {
-		sender, err = t.RenderText("email.default.sender", variables)
+		replyTo, err = baseTranslations.RenderText("email.default.reply-to", variables)
 	}
 	if err != nil {
 		return
 	}
 
-	// Then, override with smtp secrets
-	if s.SMTPServerCredentialsSecretItem != nil && s.SMTPServerCredentialsSecretItem.GetData().Sender != "" {
-		sender = s.SMTPServerCredentialsSecretItem.GetData().Sender
-	}
-
-	// Finally, override with app translations
-	appSender, err := appTranslations.RenderText(fmt.Sprintf("email.%s.sender", name), variables)
+	subject, err = baseTranslations.RenderText(fmt.Sprintf("email.%s.subject", name), variables)
 	if errors.Is(err, template.ErrNotFound) {
-		appSender, err = appTranslations.RenderText("email.default.sender", variables)
-	}
-	if err != nil && !errors.Is(err, template.ErrNotFound) {
-		return
-	}
-	if appSender != "" {
-		sender = appSender
-		return
-	}
-
-	replyTo, err = t.RenderText(fmt.Sprintf("email.%s.reply-to", name), variables)
-	if errors.Is(err, template.ErrNotFound) {
-		replyTo, err = t.RenderText("email.default.reply-to", variables)
-	}
-	if err != nil {
-		return
-	}
-
-	subject, err = t.RenderText(fmt.Sprintf("email.%s.subject", name), variables)
-	if errors.Is(err, template.ErrNotFound) {
-		subject, err = t.RenderText("email.default.subject", variables)
+		subject, err = baseTranslations.RenderText("email.default.subject", variables)
 	}
 	if err != nil {
 		return

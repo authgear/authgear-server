@@ -14,6 +14,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/util/intl"
 	"github.com/authgear/authgear-server/pkg/util/messageformat"
+	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
 type RenderResult struct {
@@ -27,7 +28,7 @@ type EngineTemplateResolver interface {
 	ResolvePlainText(ctx context.Context, desc *PlainText, preferredLanguages []string) (*TextTemplateEffectiveResource, error)
 	ResolveMessagePlainText(ctx context.Context, desc *MessagePlainText, preferredLanguages []string) (*TextTemplateEffectiveResource, error)
 	ResolveTranslations(ctx context.Context, preferredLanguages []string) (map[string]Translation, error)
-	ResolveAppSpecificTranslations(ctx context.Context, preferredLanguages []string) (map[string]Translation, error)
+	ResolveLevelSpecificTranslations(ctx context.Context, level resource.FsLevel, preferredLanguages []string) (map[string]Translation, error)
 }
 
 type Engine struct {
@@ -42,8 +43,8 @@ func (e *Engine) Translation(ctx context.Context, preferredLanguages []string) (
 	return e.parseTranslations(translations)
 }
 
-func (e *Engine) AppSpecificTranslation(ctx context.Context, preferredLanguages []string) (*TranslationMap, error) {
-	translations, err := e.Resolver.ResolveAppSpecificTranslations(ctx, preferredLanguages)
+func (e *Engine) LevelSpecificTranslation(ctx context.Context, level resource.FsLevel, preferredLanguages []string) (*TranslationMap, error) {
+	translations, err := e.Resolver.ResolveLevelSpecificTranslations(ctx, level, preferredLanguages)
 	if err != nil {
 		return nil, err
 	}
