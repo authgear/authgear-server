@@ -1,6 +1,6 @@
 /cmd/authgear/background/contextbackground.go:8:34: contextbackground
-/cmd/authgear/main.go:47:9: contextbackground
-/cmd/portal/main.go:41:9: contextbackground
+/cmd/authgear/main.go:49:9: contextbackground
+/cmd/portal/main.go:43:9: contextbackground
 /pkg/admin/transport/handler_graphql.go:48:9: requestcontext
 /pkg/admin/transport/handler_user_export_create.go:55:9: requestcontext
 /pkg/admin/transport/handler_user_export_get.go:37:9: requestcontext

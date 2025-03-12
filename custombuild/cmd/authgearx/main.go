@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"github.com/joho/godotenv"
-	_ "go.uber.org/automaxprocs"
+	"go.uber.org/automaxprocs/maxprocs"
 
 	"github.com/authgear/authgear-server/cmd/authgear/cmd"
 	_ "github.com/authgear/authgear-server/cmd/authgear/cmd/cmdaudit"
@@ -38,6 +38,8 @@ import (
 )
 
 func main() {
+	_, _ = maxprocs.Set()
+
 	debug.TrapSIGQUIT()
 
 	err := godotenv.Load()
