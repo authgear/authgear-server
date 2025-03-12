@@ -1,14 +1,18 @@
 package config
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
 
+	"github.com/spf13/cobra"
 	"sigs.k8s.io/yaml"
+
+	"github.com/authgear/authgear-server/pkg/util/cliutil"
 )
 
-func MarshalConfigYAML(cfg interface{}, outputFolderPath string, fileName string) error {
+func MarshalConfigYAML(ctx context.Context, cmd *cobra.Command, cfg interface{}, outputFolderPath string, fileName string) error {
 	yaml, err := yaml.Marshal(cfg)
 	if err != nil {
 		return err
@@ -18,15 +22,22 @@ func MarshalConfigYAML(cfg interface{}, outputFolderPath string, fileName string
 
 	file, err := os.OpenFile(outputPath, os.O_RDWR|os.O_CREATE|os.O_EXCL, 0666)
 	if os.IsExist(err) {
-		overwrite := promptBool{
-			Title:        fmt.Sprintf("%s already exists, overwrite?", outputPath),
-			DefaultValue: false,
-		}.Prompt()
+		var overwrite bool
+		overwrite, err = cliutil.PromptBool{
+			Title:                       fmt.Sprintf("%v already exists, overwrite?", outputPath),
+			InteractiveDefaultUserInput: false,
+			NonInteractiveFlagName:      "overwrite",
+		}.Prompt(ctx, cmd)
+		if err != nil {
+			return err
+		}
+
 		if !overwrite {
-			fmt.Println("cancelled")
+			fmt.Fprintf(os.Stderr, "canceled\n")
 			return ErrUserCancel
 		}
-		file, err = os.Create(outputPath)
+
+		file, err = os.OpenFile(outputPath, os.O_RDWR|os.O_TRUNC, 0666)
 	}
 	if err != nil {
 		return err
@@ -34,6 +45,6 @@ func MarshalConfigYAML(cfg interface{}, outputFolderPath string, fileName string
 	defer file.Close()
 
 	_, err = file.Write(yaml)
-	fmt.Printf("config written to %s\n", outputPath)
+	fmt.Printf("config written to %v\n", outputPath)
 	return err
 }
