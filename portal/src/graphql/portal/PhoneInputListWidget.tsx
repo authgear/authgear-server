@@ -93,7 +93,7 @@ function makeCountryCodeListColumns(
     {
       key: "selected",
       fieldName: "selected",
-      name: renderToString("LoginIDConfigurationScreen.phone.columns.active"),
+      name: "",
       minWidth: 90,
       maxWidth: 90,
       className: styles.callingCodeListColumnAlignLeft,

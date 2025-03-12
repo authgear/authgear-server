@@ -18,8 +18,6 @@ import {
   // eslint-disable-next-line no-restricted-imports
   ActionButton,
   IToggleProps,
-  ChoiceGroup,
-  IChoiceGroupOption,
 } from "@fluentui/react";
 import { useParams } from "react-router-dom";
 import { produce } from "immer";
@@ -2401,33 +2399,9 @@ function PhoneSettings(props: PhoneSettingsProps) {
     "delete_disabled"
   );
 
-  const phoneValidationOptions = useMemo<IChoiceGroupOption[]>(() => {
-    return [
-      {
-        key: LibphonenumberValidationMethod.isPossibleNumber,
-        text: renderToString(
-          "LoginMethodConfigurationScreen.phone.validation.options.isPossibleNumber"
-        ),
-      },
-      {
-        key: LibphonenumberValidationMethod.isValidNumber,
-        // https://github.com/microsoft/fluentui/blob/%40fluentui/react_v8.121.13/packages/react/src/components/ChoiceGroup/ChoiceGroupOption/ChoiceGroupOption.base.tsx#L64
-        // renderToString is not working because the html elements will be escaped
-        text: (
-          <FormattedMessage
-            id="LoginMethodConfigurationScreen.phone.validation.options.isValidNumber"
-            values={{
-              href: "https://github.com/google/libphonenumber/blob/master/FAQ.md#what-does-it-mean-for-a-phone-number-to-be-valid",
-            }}
-          />
-        ) as unknown as string,
-      },
-    ];
-  }, [renderToString]);
-
   const onPhoneValidationMethodChange = useCallback(
-    (_: unknown, option?: IChoiceGroupOption) => {
-      if (option == null) {
+    (_: unknown, checked?: boolean) => {
+      if (checked == null) {
         return;
       }
       setState((prev) => {
@@ -2438,7 +2412,9 @@ function PhoneSettings(props: PhoneSettingsProps) {
             validation: {
               implementation: "libphonenumber",
               libphonenumber: {
-                validation_method: option.key as LibphonenumberValidationMethod,
+                validation_method: checked
+                  ? LibphonenumberValidationMethod.isValidNumber
+                  : LibphonenumberValidationMethod.isPossibleNumber,
               },
             },
           },
@@ -2453,62 +2429,104 @@ function PhoneSettings(props: PhoneSettingsProps) {
       <WidgetTitle>
         <FormattedMessage id="LoginMethodConfigurationScreen.phone.title" />
       </WidgetTitle>
-      <WidgetDescription>
-        <FormattedMessage id="LoginMethodConfigurationScreen.phone.description" />
-      </WidgetDescription>
-      <PhoneInputListWidget
-        disabled={false}
-        allowedAlpha2={phoneInputConfig.allowlist}
-        pinnedAlpha2={phoneInputConfig.pinned_list}
-        onChange={onChangePhoneList}
-      />
-      <ChoiceGroup
-        label={renderToString(
-          "LoginMethodConfigurationScreen.phone.validation.title"
-        )}
-        options={phoneValidationOptions}
-        selectedKey={
-          phoneInputConfig.validation.libphonenumber?.validation_method
-        }
-        onChange={onPhoneValidationMethodChange}
-      />
-      <Checkbox
-        label={renderToString(
-          "LoginIDConfigurationScreen.phone.preselect-by-ip"
-        )}
-        checked={phoneInputConfig.preselect_by_ip_disabled !== true}
-        onChange={onChangePreselectByIP}
-      />
-      <Checkbox
-        label={renderToString(
-          "LoginIDConfigurationScreen.phone.create-disabled"
-        )}
-        checked={
-          loginIDKeyConfigsControl.find((a) => a.value.type === "phone")?.value
-            .create_disabled ?? false
-        }
-        onChange={onChangeCreateDisabled}
-      />
-      <Checkbox
-        label={renderToString(
-          "LoginIDConfigurationScreen.phone.update-disabled"
-        )}
-        checked={
-          loginIDKeyConfigsControl.find((a) => a.value.type === "phone")?.value
-            .update_disabled ?? false
-        }
-        onChange={onChangeUpdateDisabled}
-      />
-      <Checkbox
-        label={renderToString(
-          "LoginIDConfigurationScreen.phone.delete-disabled"
-        )}
-        checked={
-          loginIDKeyConfigsControl.find((a) => a.value.type === "phone")?.value
-            .delete_disabled ?? false
-        }
-        onChange={onChangeDeleteDisabled}
-      />
+      <div className="flex flex-col gap-8">
+        <section className="flex flex-col gap-4">
+          <SectionTitle>
+            <FormattedMessage id="LoginMethodConfigurationScreen.phone.section.countries.title" />
+          </SectionTitle>
+          <PhoneInputListWidget
+            disabled={false}
+            allowedAlpha2={phoneInputConfig.allowlist}
+            pinnedAlpha2={phoneInputConfig.pinned_list}
+            onChange={onChangePhoneList}
+          />
+        </section>
+
+        <section className="flex flex-col gap-4">
+          <SectionTitle>
+            <FormattedMessage id="LoginMethodConfigurationScreen.phone.section.preSelectCountryCode.title" />
+          </SectionTitle>
+          <Toggle
+            onText={renderToString(
+              "LoginIDConfigurationScreen.phone.preselect-by-ip"
+            )}
+            offText={renderToString(
+              "LoginIDConfigurationScreen.phone.preselect-by-ip"
+            )}
+            checked={phoneInputConfig.preselect_by_ip_disabled !== true}
+            onChange={onChangePreselectByIP}
+          />
+        </section>
+
+        <section className="flex flex-col gap-4">
+          <SectionTitle>
+            <FormattedMessage id="LoginMethodConfigurationScreen.phone.section.phoneNumberValidation.title" />
+          </SectionTitle>
+          <Toggle
+            onText={
+              (
+                <FormattedMessage
+                  id="LoginMethodConfigurationScreen.phone.validation.label"
+                  values={{
+                    href: "https://github.com/google/libphonenumber/blob/master/FAQ.md#what-does-it-mean-for-a-phone-number-to-be-valid",
+                  }}
+                />
+              ) as unknown as string
+            }
+            offText={
+              (
+                <FormattedMessage
+                  id="LoginMethodConfigurationScreen.phone.validation.label"
+                  values={{
+                    href: "https://github.com/google/libphonenumber/blob/master/FAQ.md#what-does-it-mean-for-a-phone-number-to-be-valid",
+                  }}
+                />
+              ) as unknown as string
+            }
+            checked={
+              phoneInputConfig.validation.libphonenumber?.validation_method ===
+              LibphonenumberValidationMethod.isValidNumber
+            }
+            onChange={onPhoneValidationMethodChange}
+          />
+        </section>
+
+        <section className="flex flex-col gap-4">
+          <SectionTitle>
+            <FormattedMessage id="LoginMethodConfigurationScreen.phone.section.userPhoneNumberPermissions.title" />
+          </SectionTitle>
+          <Checkbox
+            label={renderToString(
+              "LoginIDConfigurationScreen.phone.create-disabled"
+            )}
+            checked={
+              loginIDKeyConfigsControl.find((a) => a.value.type === "phone")
+                ?.value.create_disabled ?? false
+            }
+            onChange={onChangeCreateDisabled}
+          />
+          <Checkbox
+            label={renderToString(
+              "LoginIDConfigurationScreen.phone.update-disabled"
+            )}
+            checked={
+              loginIDKeyConfigsControl.find((a) => a.value.type === "phone")
+                ?.value.update_disabled ?? false
+            }
+            onChange={onChangeUpdateDisabled}
+          />
+          <Checkbox
+            label={renderToString(
+              "LoginIDConfigurationScreen.phone.delete-disabled"
+            )}
+            checked={
+              loginIDKeyConfigsControl.find((a) => a.value.type === "phone")
+                ?.value.delete_disabled ?? false
+            }
+            onChange={onChangeDeleteDisabled}
+          />
+        </section>
+      </div>
     </Widget>
   );
 }
@@ -3659,3 +3677,22 @@ const LoginMethodConfigurationScreen: React.VFC =
   };
 
 export default LoginMethodConfigurationScreen;
+
+const SECTION_TITLE_STYLES = {
+  root: {
+    fontWeight: "600",
+  },
+};
+
+function SectionTitle({ children }: { children: React.ReactChild }) {
+  return (
+    <Text
+      as="h3"
+      block={true}
+      variant="mediumPlus"
+      styles={SECTION_TITLE_STYLES}
+    >
+      {children}
+    </Text>
+  );
+}
