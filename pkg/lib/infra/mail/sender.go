@@ -91,7 +91,9 @@ func applyTo(opts *SendOptions, message *gomail.Message) error {
 }
 
 func (s *Sender) applyReplyTo(opts *SendOptions, message *gomail.Message) error {
-	message.SetHeader("Reply-To", opts.ReplyTo)
+	if opts.ReplyTo != "" {
+		message.SetHeader("Reply-To", opts.ReplyTo)
+	}
 	return nil
 }
 
