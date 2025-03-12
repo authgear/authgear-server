@@ -82,7 +82,7 @@ func (s *Service) GetSenderForTestSMS(ctx context.Context) (sender string, err e
 }
 
 func (s *Service) emailMessageHeader(ctx context.Context, name SpecName, variables *PreparedTemplateVariables) (sender, replyTo, subject string, err error) {
-	baseTranslations, err := s.translationMap(ctx)
+	effectiveTranslations, err := s.translationMap(ctx)
 	if err != nil {
 		return
 	}
@@ -101,7 +101,7 @@ func (s *Service) emailMessageHeader(ctx context.Context, name SpecName, variabl
 	// Resolve sender
 	// If no smtp secret, probably in local, just use sender in translation
 	if s.SMTPServerCredentialsSecretItem == nil {
-		sender, err = resolveSender(baseTranslations)
+		sender, err = resolveSender(effectiveTranslations)
 		if err != nil {
 			return
 		}
@@ -123,17 +123,17 @@ func (s *Service) emailMessageHeader(ctx context.Context, name SpecName, variabl
 		}
 	}
 
-	replyTo, err = baseTranslations.RenderText(fmt.Sprintf("email.%s.reply-to", name), variables)
+	replyTo, err = effectiveTranslations.RenderText(fmt.Sprintf("email.%s.reply-to", name), variables)
 	if errors.Is(err, template.ErrNotFound) {
-		replyTo, err = baseTranslations.RenderText("email.default.reply-to", variables)
+		replyTo, err = effectiveTranslations.RenderText("email.default.reply-to", variables)
 	}
 	if err != nil {
 		return
 	}
 
-	subject, err = baseTranslations.RenderText(fmt.Sprintf("email.%s.subject", name), variables)
+	subject, err = effectiveTranslations.RenderText(fmt.Sprintf("email.%s.subject", name), variables)
 	if errors.Is(err, template.ErrNotFound) {
-		subject, err = baseTranslations.RenderText("email.default.subject", variables)
+		subject, err = effectiveTranslations.RenderText("email.default.subject", variables)
 	}
 	if err != nil {
 		return
