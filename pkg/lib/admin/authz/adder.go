@@ -36,7 +36,9 @@ func (a *Adder) AddAuthz(
 		_ = payload.Set(jwt.AudienceKey, string(appID))
 		_ = payload.Set(jwt.IssuedAtKey, now.Unix())
 		_ = payload.Set(jwt.ExpirationKey, now.Add(duration.Short).Unix())
-		_ = payload.Set(JWTKeyAuditContext, auditContext)
+		if auditContext != nil {
+			_ = payload.Set(JWTKeyAuditContext, auditContext)
+		}
 
 		key, _ := authKey.Set.Key(0)
 
