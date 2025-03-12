@@ -110,9 +110,7 @@ export interface APISMSGatewayError {
 export interface APISMTPTestFailedError {
   errorName: string;
   reason: "SMTPTestFailed";
-  info: {
-    Message: string;
-  };
+  message: string;
 }
 
 export type APIError = { message?: string } & (

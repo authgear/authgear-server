@@ -249,7 +249,7 @@ const ERROR_RULES: ErrorParseRule[] = [
     if (apiError.reason === "SMTPTestFailed") {
       return {
         parsedAPIErrors: [
-          { message: (apiError as APISMTPTestFailedError).info.Message },
+          { message: (apiError as APISMTPTestFailedError).message },
         ],
         fullyHandled: true,
       };

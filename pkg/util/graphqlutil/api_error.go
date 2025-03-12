@@ -55,6 +55,7 @@ func (a APIErrorExtension) ExecutionDidStart(ctx context.Context) (context.Conte
 					WithField("path", gqlError.Path).
 					WithField("stack", errorutil.Callers(10000)).
 					Error("unexpected error when executing GraphQL query")
+				result.Errors[i] = gqlerrors.NewFormattedError("unexpected error")
 				continue
 			}
 
@@ -62,6 +63,7 @@ func (a APIErrorExtension) ExecutionDidStart(ctx context.Context) (context.Conte
 			if gqlError.Extensions == nil {
 				gqlError.Extensions = make(map[string]interface{})
 			}
+			gqlError.Message = apiError.Message
 			gqlError.Extensions["errorName"] = apiError.Name
 			gqlError.Extensions["reason"] = apiError.Reason
 			if len(apiError.Info) > 0 {
