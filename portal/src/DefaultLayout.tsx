@@ -18,7 +18,13 @@ const DefaultLayout: React.VFC<DefaultLayoutProps> = function DefaultLayout(
   return (
     <div className={cn(styles.container, className)}>
       <div className={styles.header}>{messageBar}</div>
-      <div className={cn(footerPosition === "sticky" && styles.contentExpand)}>
+      <div
+        className={cn(
+          footerPosition === "sticky"
+            ? styles.contentExpand
+            : styles.contentExpandNoShrink
+        )}
+      >
         {children}
       </div>
       {footer != null ? (

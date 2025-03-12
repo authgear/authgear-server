@@ -8,7 +8,11 @@
 }
 
 .contentExpand {
-  @apply flex-1;
+  @apply flex flex-col flex-1;
+}
+
+.contentExpandNoShrink {
+  @apply flex flex-col flex-1-0-auto;
 }
 
 .footer {
