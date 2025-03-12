@@ -5,9 +5,9 @@
 
 .searchBox {
   width: 300px;
-  margin: 7px 20px;
+  margin: 7px 0px;
 
-  @apply self-end tablet:self-auto tablet:w-auto;
+  @apply self-start tablet:self-auto tablet:w-auto;
 }
 
 .listWrapper {
