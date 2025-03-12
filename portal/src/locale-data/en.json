@@ -572,7 +572,6 @@
   "LoginIDConfigurationScreen.phone.create-disabled": "Forbid the user to add phone number after signup",
   "LoginIDConfigurationScreen.phone.update-disabled": "Forbid the user to update phone number after signup",
   "LoginIDConfigurationScreen.phone.delete-disabled": "Forbid the user to delete phone number after signup",
-  "LoginIDConfigurationScreen.phone.columns.active": "Active",
   "LoginIDConfigurationScreen.phone.columns.country-or-area": "Country / Area",
   "LoginIDConfigurationScreen.phone.columns.code": "Code",
   "LoginIDConfigurationScreen.phone.columns.order": "Order",
