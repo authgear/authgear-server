@@ -2,8 +2,6 @@
 # We use /bin/bash instead of /bin/sh because we need process substitution.
 # See https://www.shellcheck.net/wiki/SC3001
 
-set -e
-
 check_user_is_correct() {
 	if [ "$(id -u -n)" != "authgear" ]; then
 		printf 1>&2 "docker-entrypoint.sh is supposed to be run with the user authgear.\n"
@@ -42,6 +40,21 @@ check_REDIS_PASSWORD_is_set() {
 check_MINIO_ROOT_PASSWORD_is_set() {
 	if [ -z "$MINIO_ROOT_PASSWORD" ]; then
 		printf 1>&2 "MINIO_ROOT_PASSWORD must be set.\n"
+		exit 1
+	fi
+}
+
+check_AUTHGEAR_ONCE_environment_variables_are_set() {
+	if [ -z "$AUTHGEAR_ONCE_ADMIN_USER_EMAIL" ]; then
+		printf 1>&2 "AUTHGEAR_ONCE_ADMIN_USER_EMAIL must be set.\n"
+		exit 1
+	fi
+	if [ -z "$AUTHGEAR_ONCE_ADMIN_USER_PASSWORD" ]; then
+		printf 1>&2 "AUTHGEAR_ONCE_ADMIN_USER_PASSWORD must be set.\n"
+		exit 1
+	fi
+	if [ "$(printf "%s" "$AUTHGEAR_ONCE_ADMIN_USER_PASSWORD" | wc -c)" -lt 8 ]; then
+		printf 1>&2 "AUTHGEAR_ONCE_ADMIN_USER_PASSWORD must be at least 8 characters long.\n"
 		exit 1
 	fi
 }
@@ -385,8 +398,11 @@ secrets:
 EOF
 }
 
-docker_authgear_create_project_accounts() {
-	docker_postgresql_temp_server_start
+docker_authgear_init() {
+	docker_wrapper &
+	wrapper_pid=$!
+	# Wait 2 seconds for the server to start.
+	sleep 2
 
 	init_output="$(mktemp -d)"
 	authgear init --interactive=false \
@@ -406,7 +422,39 @@ docker_authgear_create_project_accounts() {
 	authgear-portal internal domain create-default --default-domain-suffix '.projects.authgear'
 	rm -r "$init_output"
 
-	docker_postgresql_temp_server_stop
+	query_file="$(mktemp)"
+	cat >"$query_file" <<'EOF'
+mutation createUser($email: String!, $password: String!) {
+  createUser(input: {
+    definition: {
+      loginID: {
+        key: "email"
+        value: $email
+      }
+    }
+    password: $password
+  }) {
+    user {
+      id
+    }
+  }
+}
+EOF
+
+	authgear internal admin-api invoke \
+		--app-id accounts \
+		--endpoint "http://localhost:3002" \
+		--host "accounts.projects.authgear" \
+		--query-file "$query_file" \
+		--operation-name "createUser" \
+		--variables-json "$(jq -cn --arg email "$AUTHGEAR_ONCE_ADMIN_USER_EMAIL" --arg password "$AUTHGEAR_ONCE_ADMIN_USER_PASSWORD" '{email: $email, password: $password}')"
+	exit_status="$?"
+	# Wait 2 seconds to let the server to finish running hooks.
+	sleep 2
+	kill -SIGTERM "$wrapper_pid"
+	# Wait 2 seconds to let the process exits.
+	sleep 2
+	return "$exit_status"
 }
 
 main() {
@@ -418,6 +466,7 @@ main() {
 	check_POSTGRES_PASSWORD_is_set
 	check_REDIS_PASSWORD_is_set
 	check_MINIO_ROOT_PASSWORD_is_set
+	check_AUTHGEAR_ONCE_environment_variables_are_set
 	docker_nginx_check_environment_variables
 
 	docker_nginx_create_directories
@@ -458,7 +507,14 @@ main() {
 	docker_authgear_run_database_migrations
 	docker_authgear_create_deployment_runtime_directory
 	if [ -n "$run_initialization" ]; then
-		docker_authgear_create_project_accounts
+		docker_authgear_init
+		exit_status="$?"
+		if [ "$exit_status" -ne 0 ]; then
+			printf 1>&2 "Deleting PostgreSQL database directory (%s) due to error.\n" "$PGDATA"
+			# We cannot remove "$PGDATA" itself because it is a volume mount.
+			sudo find "$PGDATA" -mindepth 1 -delete
+			exit "$exit_status"
+		fi
 	fi
 
 	# Replace this process with the given arguments.

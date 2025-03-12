@@ -85,7 +85,7 @@ def main():
     if os.getenv("AUTHGEAR_CERTBOT_ENVIRONMENT") == "production":
         certbot_use_staging = False
 
-    email_env_name = "AUTHGEAR_CERTBOT_EMAIL"
+    email_env_name = "AUTHGEAR_ONCE_ADMIN_USER_EMAIL"
     email_env_val = os.getenv(email_env_name)
     if email_env_val is None:
         print(f"certbot: {email_env_name} is undefined", file=sys.stderr)
