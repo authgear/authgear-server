@@ -40,6 +40,14 @@ RUN set -eux; \
 		less; \
 	rm -rf /var/lib/apt/lists/*
 
+## Install jq.
+## We need it to do some JSON manipulation.
+RUN set -eux; \
+	apt-get update; \
+	apt-get install -y --no-install-recommends --no-install-suggests \
+		jq; \
+	rm -rf /var/lib/apt/lists/*
+
 ## Install sudo
 ## We do not run the container as root so we need it so that the user can become root as needed.
 RUN set -eux; \
