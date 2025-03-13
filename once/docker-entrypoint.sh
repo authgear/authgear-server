@@ -441,20 +441,25 @@ mutation createUser($email: String!, $password: String!) {
 }
 EOF
 
+	query_output="$(mktemp)"
 	authgear internal admin-api invoke \
 		--app-id accounts \
 		--endpoint "http://localhost:3002" \
 		--host "accounts.projects.authgear" \
 		--query-file "$query_file" \
 		--operation-name "createUser" \
-		--variables-json "$(jq -cn --arg email "$AUTHGEAR_ONCE_ADMIN_USER_EMAIL" --arg password "$AUTHGEAR_ONCE_ADMIN_USER_PASSWORD" '{email: $email, password: $password}')"
-	exit_status="$?"
-	# Wait 2 seconds to let the server to finish running hooks.
-	sleep 2
+		--variables-json "$(jq -cn --arg email "$AUTHGEAR_ONCE_ADMIN_USER_EMAIL" --arg password "$AUTHGEAR_ONCE_ADMIN_USER_PASSWORD" '{email: $email, password: $password}')" | tee "$query_output"
+	decoded_node_id="$(jq <"$query_output" --raw-output '.data.createUser.user.id' | basenc --base64url --decode)"
+	raw_id="${decoded_node_id#User:}"
+
+	authgear-portal internal collaborator add \
+		--app-id accounts \
+		--user-id "$raw_id" \
+		--role owner
+
 	kill -SIGTERM "$wrapper_pid"
 	# Wait 2 seconds to let the process exits.
 	sleep 2
-	return "$exit_status"
 }
 
 main() {
