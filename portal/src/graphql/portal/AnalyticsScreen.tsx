@@ -315,7 +315,7 @@ const AnalyticsScreenContent: React.VFC = function AnalyticsScreenContent() {
     <>
       <CommandBarContainer isLoading={loading} primaryItems={primaryItems}>
         <ScreenContent layout="list">
-          <ScreenTitle>
+          <ScreenTitle className={styles.widget}>
             <FormattedMessage id="AnalyticsScreen.title" />
           </ScreenTitle>
           <ScreenDescription className={styles.widget}>
