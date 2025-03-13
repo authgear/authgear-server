@@ -331,14 +331,14 @@ XState: my x state`)
 					return service
 				}
 
-				Convey("custom fs", func() {
+				Convey("STMP from custom layer; No SMTP sender; Has translation", func() {
 					service := makeServiceWithMultiLayerFs(func(o options) {
 
 						o.WriteFile(o.CustomFS, "en", "translation.json", `{
-	"email.default.sender":"customlayer@example.com"
+	"email.default.sender":"custom-translation@example.com"
 }`)
 						o.WriteFile(o.AppFS, "en", "translation.json", `{
-  "email.default.sender":"applayer@example.com"
+  "email.default.sender":"app-translation@example.com"
 }`)
 					})
 					service.SMTPServerCredentialsSecretItem = &config.SMTPServerCredentialsSecretItem{
@@ -357,17 +357,74 @@ XState: my x state`)
 						HasPassword: true,
 					})
 					So(err, ShouldBeNil)
-					So(data.Sender, ShouldEqual, "customlayer@example.com")
+					So(data.Sender, ShouldEqual, "custom-translation@example.com")
 				})
 
-				Convey("app fs", func() {
+				Convey("STMP from custom layer; Has SMTP sender; No translation", func() {
+					service := makeServiceWithMultiLayerFs(func(o options) {
+						o.WriteFile(o.AppFS, "en", "translation.json", `{
+  "email.default.sender":"app-translation@example.com"
+}`)
+					})
+					service.SMTPServerCredentialsSecretItem = &config.SMTPServerCredentialsSecretItem{
+						Key: config.SMTPServerCredentialsKey,
+						Data: &config.SMTPServerCredentials{
+							Sender: "custom-sender@example.com",
+						},
+						FsLevel: resource.FsLevelCustom,
+					}
+
+					data, err := service.EmailMessageData(ctx, messageSpec, &translation.PartialTemplateVariables{
+						Email:       "my-email@example.com",
+						Phone:       "+85298765432",
+						Code:        "123456",
+						URL:         "https://www.example.com/url",
+						Host:        "https://www.example.com",
+						Link:        "https://www.example.com/link",
+						HasPassword: true,
+					})
+					So(err, ShouldBeNil)
+					So(data.Sender, ShouldEqual, "custom-sender@example.com")
+				})
+
+				Convey("STMP from custom layer; Has SMTP sender; Has translation", func() {
+					service := makeServiceWithMultiLayerFs(func(o options) {
+						o.WriteFile(o.CustomFS, "en", "translation.json", `{
+	"email.default.sender":"custom-translation@example.com"
+}`)
+						o.WriteFile(o.AppFS, "en", "translation.json", `{
+  "email.default.sender":"app-translation@example.com"
+}`)
+					})
+					service.SMTPServerCredentialsSecretItem = &config.SMTPServerCredentialsSecretItem{
+						Key: config.SMTPServerCredentialsKey,
+						Data: &config.SMTPServerCredentials{
+							Sender: "custom-sender@example.com",
+						},
+						FsLevel: resource.FsLevelCustom,
+					}
+
+					data, err := service.EmailMessageData(ctx, messageSpec, &translation.PartialTemplateVariables{
+						Email:       "my-email@example.com",
+						Phone:       "+85298765432",
+						Code:        "123456",
+						URL:         "https://www.example.com/url",
+						Host:        "https://www.example.com",
+						Link:        "https://www.example.com/link",
+						HasPassword: true,
+					})
+					So(err, ShouldBeNil)
+					So(data.Sender, ShouldEqual, "custom-sender@example.com")
+				})
+
+				Convey("SMTP from app layer; No SMTP sender; Has translation", func() {
 					service := makeServiceWithMultiLayerFs(func(o options) {
 
 						o.WriteFile(o.CustomFS, "en", "translation.json", `{
-	"email.default.sender":"customlayer@example.com"
+	"email.default.sender":"custom-translation@example.com"
 }`)
 						o.WriteFile(o.AppFS, "en", "translation.json", `{
-  "email.default.sender":"applayer@example.com"
+  "email.default.sender":"app-translation@example.com"
 }`)
 					})
 					service.SMTPServerCredentialsSecretItem = &config.SMTPServerCredentialsSecretItem{
@@ -386,25 +443,22 @@ XState: my x state`)
 						HasPassword: true,
 					})
 					So(err, ShouldBeNil)
-					So(data.Sender, ShouldEqual, "applayer@example.com")
+					So(data.Sender, ShouldEqual, "app-translation@example.com")
 				})
 
-				Convey("use sender in secret if exist", func() {
+				Convey("SMTP from app layer; Has SMTP sender; No translation", func() {
 					service := makeServiceWithMultiLayerFs(func(o options) {
 
 						o.WriteFile(o.CustomFS, "en", "translation.json", `{
-	"email.default.sender":"customlayer@example.com"
-}`)
-						o.WriteFile(o.AppFS, "en", "translation.json", `{
-  "email.default.sender":"applayer@example.com"
+	"email.default.sender":"custom-translation@example.com"
 }`)
 					})
 					service.SMTPServerCredentialsSecretItem = &config.SMTPServerCredentialsSecretItem{
 						Key: config.SMTPServerCredentialsKey,
 						Data: &config.SMTPServerCredentials{
-							Sender: "secretsender@example.com",
+							Sender: "app-sender@example.com",
 						},
-						FsLevel: resource.FsLevelCustom,
+						FsLevel: resource.FsLevelApp,
 					}
 
 					data, err := service.EmailMessageData(ctx, messageSpec, &translation.PartialTemplateVariables{
@@ -417,9 +471,39 @@ XState: my x state`)
 						HasPassword: true,
 					})
 					So(err, ShouldBeNil)
-					So(data.Sender, ShouldEqual, "secretsender@example.com")
+					So(data.Sender, ShouldEqual, "app-sender@example.com")
 				})
 
+				Convey("SMTP from app layer; Has SMTP sender; Has translation", func() {
+					service := makeServiceWithMultiLayerFs(func(o options) {
+
+						o.WriteFile(o.CustomFS, "en", "translation.json", `{
+	"email.default.sender":"custom-translation@example.com"
+}`)
+						o.WriteFile(o.AppFS, "en", "translation.json", `{
+  "email.default.sender":"app-translation@example.com"
+}`)
+					})
+					service.SMTPServerCredentialsSecretItem = &config.SMTPServerCredentialsSecretItem{
+						Key: config.SMTPServerCredentialsKey,
+						Data: &config.SMTPServerCredentials{
+							Sender: "app-sender@example.com",
+						},
+						FsLevel: resource.FsLevelApp,
+					}
+
+					data, err := service.EmailMessageData(ctx, messageSpec, &translation.PartialTemplateVariables{
+						Email:       "my-email@example.com",
+						Phone:       "+85298765432",
+						Code:        "123456",
+						URL:         "https://www.example.com/url",
+						Host:        "https://www.example.com",
+						Link:        "https://www.example.com/link",
+						HasPassword: true,
+					})
+					So(err, ShouldBeNil)
+					So(data.Sender, ShouldEqual, "app-sender@example.com")
+				})
 			})
 		})
 	})

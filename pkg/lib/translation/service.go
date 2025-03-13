@@ -106,7 +106,9 @@ func (s *Service) emailMessageHeader(ctx context.Context, name SpecName, variabl
 			return
 		}
 	} else {
-		// If the secret has sender, use it
+		// If the secret has sender, use it.
+		// If the developer wants to have different senders for different locales,
+		// they have to remove the sender in the secret.
 		if s.SMTPServerCredentialsSecretItem.GetData().Sender != "" {
 			sender = s.SMTPServerCredentialsSecretItem.GetData().Sender
 		} else {
