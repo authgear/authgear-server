@@ -10,6 +10,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/spf13/afero"
 
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/util/intl"
@@ -18,35 +19,10 @@ import (
 )
 
 func TestService(t *testing.T) {
-	Convey("Service", t, func() {
+
+	makeService := func(addtionalFSs ...resource.LeveledAferoFs) *translation.Service {
 		ctl := gomock.NewController(t)
 		defer ctl.Finish()
-
-		var TemplateMessageSMSTXT = template.RegisterMessagePlainText("messages/sms.txt")
-		var TemplateMessageEmailTXT = template.RegisterMessagePlainText("messages/email.txt")
-		var TemplateMessageEmailHTML = template.RegisterMessageHTML("messages/email.html")
-		var TemplateMessageWhatsappTXT = template.RegisterMessagePlainText("messages/whatsapp.txt")
-
-		var messageSpec = &translation.MessageSpec{
-			MessageType:       translation.MessageTypeSetupPrimaryOOB,
-			Name:              translation.SpecNameSetupPrimaryOOB,
-			TXTEmailTemplate:  TemplateMessageEmailTXT,
-			HTMLEmailTemplate: TemplateMessageEmailHTML,
-			SMSTemplate:       TemplateMessageSMSTXT,
-			WhatsappTemplate:  TemplateMessageWhatsappTXT,
-		}
-
-		ctx := context.Background()
-		ctx = uiparam.WithUIParam(ctx, &uiparam.T{
-			ClientID: "my client id",
-			Prompt: []string{
-				"my prompt",
-			},
-			State:     "my state",
-			XState:    "my x state",
-			UILocales: "my ui locales",
-		})
-		ctx = intl.WithPreferredLanguageTags(ctx, []string{"zh", "en"})
 
 		fs := afero.NewMemMapFs()
 
@@ -89,10 +65,14 @@ XState: {{ .XState }}`, lang, path))
 		}
 
 		r := &resource.Registry{}
-		manager := resource.NewManager(r, []resource.Fs{resource.LeveledAferoFs{
+		fSs := []resource.Fs{resource.LeveledAferoFs{
 			Fs:      fs,
 			FsLevel: resource.FsLevelBuiltin,
-		}})
+		}}
+		for _, fs := range addtionalFSs {
+			fSs = append(fSs, fs)
+		}
+		manager := resource.NewManager(r, fSs)
 		resolver := &template.Resolver{
 			Resources:             manager,
 			DefaultLanguageTag:    "en",
@@ -104,6 +84,39 @@ XState: {{ .XState }}`, lang, path))
 			TemplateEngine: engine,
 			StaticAssets:   NewMockStaticAssetResolver(ctl),
 		}
+		return &service
+	}
+
+	Convey("Service", t, func() {
+		ctl := gomock.NewController(t)
+		defer ctl.Finish()
+
+		var TemplateMessageSMSTXT = template.RegisterMessagePlainText("messages/sms.txt")
+		var TemplateMessageEmailTXT = template.RegisterMessagePlainText("messages/email.txt")
+		var TemplateMessageEmailHTML = template.RegisterMessageHTML("messages/email.html")
+		var TemplateMessageWhatsappTXT = template.RegisterMessagePlainText("messages/whatsapp.txt")
+
+		var messageSpec = &translation.MessageSpec{
+			MessageType:       translation.MessageTypeSetupPrimaryOOB,
+			Name:              translation.SpecNameSetupPrimaryOOB,
+			TXTEmailTemplate:  TemplateMessageEmailTXT,
+			HTMLEmailTemplate: TemplateMessageEmailHTML,
+			SMSTemplate:       TemplateMessageSMSTXT,
+			WhatsappTemplate:  TemplateMessageWhatsappTXT,
+		}
+
+		ctx := context.Background()
+		ctx = uiparam.WithUIParam(ctx, &uiparam.T{
+			ClientID: "my client id",
+			Prompt: []string{
+				"my prompt",
+			},
+			State:     "my state",
+			XState:    "my x state",
+			UILocales: "my ui locales",
+		})
+		ctx = intl.WithPreferredLanguageTags(ctx, []string{"zh", "en"})
+		service := makeService()
 
 		Convey("it should render otp messages correctly", func() {
 			emailMessageData, err := service.EmailMessageData(ctx, messageSpec, &translation.PartialTemplateVariables{
@@ -284,6 +297,100 @@ State: my state
 UILocales: my ui locales
 URL: 
 XState: my x state`)
+		})
+
+		Convey("Service.EmailMessageData", func() {
+			Convey("sender is always resolved from the same fs level of secret", func() {
+				makeServiceWithMultiLayerFs := func() *translation.Service {
+					writeFile := func(fs afero.Fs, lang string, name string, data string) {
+						_ = fs.MkdirAll("templates/"+lang, 0777)
+						_ = afero.WriteFile(fs, "templates/"+lang+"/"+name, []byte(data), 0666)
+					}
+					customFs := afero.NewMemMapFs()
+					writeFile(customFs, "en", "translation.json", `{
+	"email.default.sender":"customlayer@example.com"
+}`)
+
+					appFs := afero.NewMemMapFs()
+					writeFile(appFs, "en", "translation.json", `{
+  "email.default.sender":"applayer@example.com"
+}`)
+					service := makeService(resource.LeveledAferoFs{
+						Fs:      customFs,
+						FsLevel: resource.FsLevelCustom,
+					}, resource.LeveledAferoFs{
+						Fs:      appFs,
+						FsLevel: resource.FsLevelApp,
+					})
+					return service
+				}
+
+				Convey("custom fs", func() {
+					service := makeServiceWithMultiLayerFs()
+					service.SMTPServerCredentialsSecretItem = &config.SMTPServerCredentialsSecretItem{
+						Key:     config.SMTPServerCredentialsKey,
+						Data:    &config.SMTPServerCredentials{},
+						FsLevel: resource.FsLevelCustom,
+					}
+
+					data, err := service.EmailMessageData(ctx, messageSpec, &translation.PartialTemplateVariables{
+						Email:       "my-email@example.com",
+						Phone:       "+85298765432",
+						Code:        "123456",
+						URL:         "https://www.example.com/url",
+						Host:        "https://www.example.com",
+						Link:        "https://www.example.com/link",
+						HasPassword: true,
+					})
+					So(err, ShouldBeNil)
+					So(data.Sender, ShouldEqual, "customlayer@example.com")
+				})
+
+				Convey("app fs", func() {
+					service := makeServiceWithMultiLayerFs()
+					service.SMTPServerCredentialsSecretItem = &config.SMTPServerCredentialsSecretItem{
+						Key:     config.SMTPServerCredentialsKey,
+						Data:    &config.SMTPServerCredentials{},
+						FsLevel: resource.FsLevelApp,
+					}
+
+					data, err := service.EmailMessageData(ctx, messageSpec, &translation.PartialTemplateVariables{
+						Email:       "my-email@example.com",
+						Phone:       "+85298765432",
+						Code:        "123456",
+						URL:         "https://www.example.com/url",
+						Host:        "https://www.example.com",
+						Link:        "https://www.example.com/link",
+						HasPassword: true,
+					})
+					So(err, ShouldBeNil)
+					So(data.Sender, ShouldEqual, "applayer@example.com")
+				})
+
+				Convey("use sender in secret if exist", func() {
+					service := makeServiceWithMultiLayerFs()
+					service.SMTPServerCredentialsSecretItem = &config.SMTPServerCredentialsSecretItem{
+						Key: config.SMTPServerCredentialsKey,
+						Data: &config.SMTPServerCredentials{
+							Sender: "secretsender@example.com",
+						},
+						FsLevel: resource.FsLevelCustom,
+					}
+
+					data, err := service.EmailMessageData(ctx, messageSpec, &translation.PartialTemplateVariables{
+						Email:       "my-email@example.com",
+						Phone:       "+85298765432",
+						Code:        "123456",
+						URL:         "https://www.example.com/url",
+						Host:        "https://www.example.com",
+						Link:        "https://www.example.com/link",
+						HasPassword: true,
+					})
+					So(err, ShouldBeNil)
+					So(data.Sender, ShouldEqual, "secretsender@example.com")
+				})
+
+			})
 		})
 	})
 }
