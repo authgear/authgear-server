@@ -301,20 +301,26 @@ XState: my x state`)
 
 		Convey("Service.EmailMessageData", func() {
 			Convey("sender is always resolved from the same fs level of secret", func() {
-				makeServiceWithMultiLayerFs := func() *translation.Service {
+				type options struct {
+					WriteFile func(fs afero.Fs, lang string, name string, data string)
+					CustomFS  afero.Fs
+					AppFS     afero.Fs
+				}
+
+				makeServiceWithMultiLayerFs := func(f func(options)) *translation.Service {
 					writeFile := func(fs afero.Fs, lang string, name string, data string) {
 						_ = fs.MkdirAll("templates/"+lang, 0777)
 						_ = afero.WriteFile(fs, "templates/"+lang+"/"+name, []byte(data), 0666)
 					}
 					customFs := afero.NewMemMapFs()
-					writeFile(customFs, "en", "translation.json", `{
-	"email.default.sender":"customlayer@example.com"
-}`)
-
 					appFs := afero.NewMemMapFs()
-					writeFile(appFs, "en", "translation.json", `{
-  "email.default.sender":"applayer@example.com"
-}`)
+
+					f(options{
+						WriteFile: writeFile,
+						CustomFS:  customFs,
+						AppFS:     appFs,
+					})
+
 					service := makeService(resource.LeveledAferoFs{
 						Fs:      customFs,
 						FsLevel: resource.FsLevelCustom,
@@ -326,7 +332,15 @@ XState: my x state`)
 				}
 
 				Convey("custom fs", func() {
-					service := makeServiceWithMultiLayerFs()
+					service := makeServiceWithMultiLayerFs(func(o options) {
+
+						o.WriteFile(o.CustomFS, "en", "translation.json", `{
+	"email.default.sender":"customlayer@example.com"
+}`)
+						o.WriteFile(o.AppFS, "en", "translation.json", `{
+  "email.default.sender":"applayer@example.com"
+}`)
+					})
 					service.SMTPServerCredentialsSecretItem = &config.SMTPServerCredentialsSecretItem{
 						Key:     config.SMTPServerCredentialsKey,
 						Data:    &config.SMTPServerCredentials{},
@@ -347,7 +361,15 @@ XState: my x state`)
 				})
 
 				Convey("app fs", func() {
-					service := makeServiceWithMultiLayerFs()
+					service := makeServiceWithMultiLayerFs(func(o options) {
+
+						o.WriteFile(o.CustomFS, "en", "translation.json", `{
+	"email.default.sender":"customlayer@example.com"
+}`)
+						o.WriteFile(o.AppFS, "en", "translation.json", `{
+  "email.default.sender":"applayer@example.com"
+}`)
+					})
 					service.SMTPServerCredentialsSecretItem = &config.SMTPServerCredentialsSecretItem{
 						Key:     config.SMTPServerCredentialsKey,
 						Data:    &config.SMTPServerCredentials{},
@@ -368,7 +390,15 @@ XState: my x state`)
 				})
 
 				Convey("use sender in secret if exist", func() {
-					service := makeServiceWithMultiLayerFs()
+					service := makeServiceWithMultiLayerFs(func(o options) {
+
+						o.WriteFile(o.CustomFS, "en", "translation.json", `{
+	"email.default.sender":"customlayer@example.com"
+}`)
+						o.WriteFile(o.AppFS, "en", "translation.json", `{
+  "email.default.sender":"applayer@example.com"
+}`)
+					})
 					service.SMTPServerCredentialsSecretItem = &config.SMTPServerCredentialsSecretItem{
 						Key: config.SMTPServerCredentialsKey,
 						Data: &config.SMTPServerCredentials{
