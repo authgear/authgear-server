@@ -22,3 +22,8 @@ outdated:
 	@# Also suppress the stdout of jq because it just prints either true or false,
 	@# what we cares is just the exit code given by -e.
 	npm outdated browserslist caniuse-lite stylelint-no-unsupported-browser-features --json | tee /dev/stderr | jq -e '. == {}' >/dev/null
+
+.PHONY: deploy-storybook
+deploy-storybook: export CHROMATIC_PROJECT_TOKEN := $(CHROMATIC_PROJECT_TOKEN)
+deploy-storybook:
+	npx chromatic --exit-zero-on-changes
