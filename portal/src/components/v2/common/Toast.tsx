@@ -59,7 +59,7 @@ export function ToastProvider({
 
   return (
     <ProviderCtx.Provider value={context}>
-      <Toast.Provider swipeDirection="right">
+      <Toast.Provider swipeDirection="right" duration={100000}>
         {children}
         {Array.from(toasts.entries()).map(([id, el]) => (
           <ToastRoot key={id} id={id}>
@@ -92,6 +92,11 @@ export function useToastContext(): ToastContext {
   if (ctx == null) {
     throw new Error("ToastContext not found");
   }
+  return ctx;
+}
+
+export function useMaybeToastContext(): ToastContext | undefined {
+  const ctx = useContext(ToastCtx);
   return ctx;
 }
 

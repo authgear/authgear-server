@@ -6,7 +6,7 @@ import {
 import { Callout as RadixCallout } from "@radix-ui/themes";
 import React, { ComponentProps, useCallback } from "react";
 import styles from "./Callout.module.css";
-import { useToastContext, useToastProviderContext } from "./Toast";
+import { useMaybeToastContext, useToastProviderContext } from "./Toast";
 
 export enum CalloutType {
   error = "error",
@@ -33,9 +33,9 @@ function typeToRadixColor(
 function CalloutIcon({ color }: { color: CalloutType }) {
   switch (color) {
     case CalloutType.error:
-      return <ExclamationTriangleIcon />;
+      return <ExclamationTriangleIcon width="1rem" height="1rem" />;
     case CalloutType.success:
-      return <CheckCircledIcon />;
+      return <CheckCircledIcon width="1rem" height="1rem" />;
   }
 }
 
@@ -44,11 +44,11 @@ export function Callout({
   text,
   showCloseButton = true,
 }: CalloutProps): React.ReactElement {
-  const { setOpen } = useToastContext();
+  const toastContext = useMaybeToastContext();
 
   const onClose = useCallback(() => {
-    setOpen(false);
-  }, [setOpen]);
+    toastContext?.setOpen(false);
+  }, [toastContext]);
 
   return (
     <RadixCallout.Root
@@ -69,7 +69,7 @@ export function Callout({
           onClick={onClose}
           className={styles.calloutAction}
         >
-          <Cross2Icon />
+          <Cross2Icon width="1rem" height="1rem" />
         </button>
       ) : null}
     </RadixCallout.Root>
