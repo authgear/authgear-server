@@ -1,5 +1,6 @@
 import { defineConfig, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
+import path from "path";
 import { parse } from "node-html-parser";
 
 const plugin: Plugin = {
@@ -53,6 +54,11 @@ export default defineConfig(() => ({
       // Active issue: https://github.com/vitejs/vite/issues/13672
       // Workaround from https://github.com/vitejs/vite/issues/10506#issuecomment-1367718113
       maxParallelFileOps: 1,
+    },
+  },
+  resolve: {
+    alias: {
+      "@components": path.resolve(__dirname, "./src/components"),
     },
   },
 }));
