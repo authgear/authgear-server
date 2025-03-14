@@ -3,6 +3,7 @@ import MESSAGES from "./locale-data/en.json";
 import { DEFAULT_TEMPLATE_LOCALE } from "./resources";
 
 export interface SystemConfig {
+  authgearAppID: string;
   authgearClientID: string;
   authgearEndpoint: string;
   authgearWebSDKSessionType: "cookie" | "refresh_token";
@@ -246,6 +247,7 @@ export function instantiateSystemConfig(
   config: PartialSystemConfig
 ): SystemConfig {
   return {
+    authgearAppID: config.authgearAppID ?? "",
     authgearClientID: config.authgearClientID ?? "",
     authgearEndpoint: config.authgearEndpoint ?? "",
     authgearWebSDKSessionType: config.authgearWebSDKSessionType ?? "cookie",
