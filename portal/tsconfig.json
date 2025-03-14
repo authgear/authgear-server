@@ -18,10 +18,7 @@
     "noImplicitReturns": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "esModuleInterop": true,
-    "paths": {
-      "@components/*": ["./src/components/*"]
-    }
+    "esModuleInterop": true
   },
   "include": ["./src", "vite.config.ts"]
 }

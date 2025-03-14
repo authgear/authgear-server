@@ -56,9 +56,4 @@ export default defineConfig(() => ({
       maxParallelFileOps: 1,
     },
   },
-  resolve: {
-    alias: {
-      "@components": path.resolve(__dirname, "./src/components"),
-    },
-  },
 }));
