@@ -21,7 +21,7 @@ function typeToColor(type: CalloutType): string {
     case "error":
       return "semantics-error";
     case "success":
-      return "green";
+      return "semantics-success";
   }
 }
 

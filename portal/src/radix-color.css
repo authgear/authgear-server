@@ -56,3 +56,59 @@
   --accent-a11: var(--semantics-error-a11);
   --accent-a12: var(--semantics-error-a12);
 }
+
+:root {
+  --semantics-success-1: #fbfefc;
+  --semantics-success-2: #f4fbf6;
+  --semantics-success-3: #e6f6eb;
+  --semantics-success-4: #d6f1df;
+  --semantics-success-5: #c4e8d1;
+  --semantics-success-6: #adddc0;
+  --semantics-success-7: #8eceaa;
+  --semantics-success-8: #5bb98b;
+  --semantics-success-9: #30a46c;
+  --semantics-success-10: #2b9a66;
+  --semantics-success-11: #218358;
+  --semantics-success-12: #193b2d;
+
+  --semantics-success-a1: #00c04004;
+  --semantics-success-a2: #00a32f0b;
+  --semantics-success-a3: #00a43319;
+  --semantics-success-a4: #00a83829;
+  --semantics-success-a5: #019c393b;
+  --semantics-success-a6: #00963c52;
+  --semantics-success-a7: #00914071;
+  --semantics-success-a8: #00924ba4;
+  --semantics-success-a9: #008f4acf;
+  --semantics-success-a10: #008647d4;
+  --semantics-success-a11: #00713fde;
+  --semantics-success-a12: #002616e6;
+}
+
+[data-accent-color="semantics-success"] {
+  --accent-1: var(--semantics-success-1);
+  --accent-2: var(--semantics-success-2);
+  --accent-3: var(--semantics-success-3);
+  --accent-4: var(--semantics-success-4);
+  --accent-5: var(--semantics-success-5);
+  --accent-6: var(--semantics-success-6);
+  --accent-7: var(--semantics-success-7);
+  --accent-8: var(--semantics-success-8);
+  --accent-9: var(--semantics-success-9);
+  --accent-10: var(--semantics-success-10);
+  --accent-11: var(--semantics-success-11);
+  --accent-12: var(--semantics-success-12);
+
+  --accent-a1: var(--semantics-success-a1);
+  --accent-a2: var(--semantics-success-a2);
+  --accent-a3: var(--semantics-success-a3);
+  --accent-a4: var(--semantics-success-a4);
+  --accent-a5: var(--semantics-success-a5);
+  --accent-a6: var(--semantics-success-a6);
+  --accent-a7: var(--semantics-success-a7);
+  --accent-a8: var(--semantics-success-a8);
+  --accent-a9: var(--semantics-success-a9);
+  --accent-a10: var(--semantics-success-a10);
+  --accent-a11: var(--semantics-success-a11);
+  --accent-a12: var(--semantics-success-a12);
+}
