@@ -6,7 +6,7 @@ import {
 import { Callout as RadixCallout } from "@radix-ui/themes";
 import React, { ComponentProps, useCallback } from "react";
 import styles from "./Callout.module.css";
-import { useMaybeToastContext, useToastProviderContext } from "./Toast";
+import { useMaybeToastContext, useToastProviderContext } from "../Toast/Toast";
 
 export enum CalloutType {
   error = "error",

@@ -7,7 +7,7 @@ import DefaultButton from "../../DefaultButton";
 import FormPhoneTextField from "../../FormPhoneTextField";
 import { PortalAPIAppConfig } from "../../types";
 import { useSendTestSMSMutation } from "../../graphql/portal/mutations/sendTestSMS";
-import { CalloutType, useCalloutToast } from "../v2/common/Callout";
+import { CalloutType, useCalloutToast } from "../v2/Callout/Callout";
 import { FormProvider, useFormTopErrors } from "../../form";
 import { ErrorParseRule, makeReasonErrorParseRule } from "../../error/parse";
 import { APISMSGatewayError } from "../../error/error";

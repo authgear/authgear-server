@@ -10,7 +10,7 @@ import { useUnauthenticatedDialogContext } from "./components/auth/Unauthenticat
 import { useUIImplementation } from "./hook/useUIImplementation";
 import { useSystemConfig } from "./context/SystemConfigContext";
 import { Theme } from "@radix-ui/themes";
-import { ToastProvider } from "./components/v2/common/Toast";
+import { ToastProvider } from "./components/v2/Toast/Toast";
 
 const RolesScreen = lazy(async () => import("./graphql/adminapi/RolesScreen"));
 const AddRoleScreen = lazy(
