@@ -5,6 +5,7 @@ import (
 )
 
 type SystemConfig struct {
+	AuthgearAppID             string         `json:"authgearAppID"`
 	AuthgearClientID          string         `json:"authgearClientID"`
 	AuthgearEndpoint          string         `json:"authgearEndpoint"`
 	AuthgearWebSDKSessionType string         `json:"authgearWebSDKSessionType"`

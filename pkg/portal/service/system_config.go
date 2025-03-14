@@ -51,6 +51,7 @@ func (p *SystemConfigProvider) SystemConfig(ctx context.Context) (*model.SystemC
 	}
 
 	return &model.SystemConfig{
+		AuthgearAppID:             p.AuthgearConfig.AppID,
 		AuthgearClientID:          p.AuthgearConfig.ClientID,
 		AuthgearEndpoint:          p.AuthgearConfig.Endpoint,
 		AuthgearWebSDKSessionType: p.AuthgearConfig.WebSDKSessionType,
