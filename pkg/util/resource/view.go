@@ -15,6 +15,7 @@ package resource
 // |- AppFileView
 // |- EffectiveFileView
 // |- EffectiveResourceView
+// //|- LevelEffectiveResourceView
 // |- ValidateResourceView
 type View interface {
 	view()
@@ -41,6 +42,13 @@ type EffectiveResourceView interface {
 	SupportedLanguageTags() []string
 	DefaultLanguageTag() string
 	PreferredLanguageTags() []string
+}
+
+// LevelEffectiveResourceView is like EffectiveResourceView, but it only resolve in the specified FS level.
+type LevelEffectiveResourceView interface {
+	EffectiveResourceView
+	LevelEffectiveResourceView()
+	GetFSLevel() FsLevel
 }
 
 // ValidateResourceView validates the resource itself.
@@ -89,6 +97,16 @@ func (v EffectiveResource) DefaultLanguageTag() string {
 func (v EffectiveResource) PreferredLanguageTags() []string {
 	return v.PreferredTags
 }
+
+type LevelEffectiveResource struct {
+	EffectiveResource
+	FsLevel FsLevel
+}
+
+var _ LevelEffectiveResourceView = LevelEffectiveResource{}
+
+func (v LevelEffectiveResource) LevelEffectiveResourceView() {}
+func (v LevelEffectiveResource) GetFSLevel() FsLevel         { return v.FsLevel }
 
 type ValidateResource struct{}
 

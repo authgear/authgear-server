@@ -475,6 +475,10 @@ func (d AuthgearSecretYAMLDescriptor) viewAppFile(resources []resource.ResourceF
 		return nil, fmt.Errorf("malformed secret config: %w", err)
 	}
 
+	for idx, _ := range cfg.Secrets {
+		cfg.Secrets[idx].FsLevel = resource.FsLevelApp
+	}
+
 	bytes, err := yaml.Marshal(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal secret config: %w", err)
@@ -490,6 +494,9 @@ func (d AuthgearSecretYAMLDescriptor) viewEffectiveResource(ctx context.Context,
 		if err := yaml.Unmarshal(layer.Data, &cfg); err != nil {
 			return nil, fmt.Errorf("malformed secret config: %w", err)
 		}
+		for idx, _ := range cfg.Secrets {
+			cfg.Secrets[idx].FsLevel = layer.Location.Fs.GetFsLevel()
+		}
 		cfgs = append(cfgs, &cfg)
 	}
 
@@ -499,11 +506,18 @@ func (d AuthgearSecretYAMLDescriptor) viewEffectiveResource(ctx context.Context,
 		return nil, err
 	}
 
-	secretConfig, err := config.ParseSecret(ctx, mergedYAML)
+	mergedConfig, err = config.ParseSecretData(ctx, *mergedConfig)
+	if err != nil {
+		return nil, fmt.Errorf("cannot parse secret config data: %w", err)
+	}
+
+	// Validate the merged config by parsing it
+	// Do not use the return value because it unset FsLevel
+	_, err = config.ParseSecret(ctx, mergedYAML)
 	if err != nil {
 		return nil, fmt.Errorf("cannot parse secret config: %w", err)
 	}
-	return secretConfig, nil
+	return mergedConfig, nil
 }
 
 func (d AuthgearSecretYAMLDescriptor) UpdateResource(ctx context.Context, _ []resource.ResourceFile, resrc *resource.ResourceFile, data []byte) (*resource.ResourceFile, error) {

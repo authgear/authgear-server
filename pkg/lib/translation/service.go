@@ -6,8 +6,10 @@ import (
 	"fmt"
 	htmltemplate "html/template"
 
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/util/intl"
+	"github.com/authgear/authgear-server/pkg/util/resource"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
@@ -18,8 +20,9 @@ type StaticAssetResolver interface {
 }
 
 type Service struct {
-	TemplateEngine *template.Engine
-	StaticAssets   StaticAssetResolver
+	TemplateEngine                  *template.Engine
+	StaticAssets                    StaticAssetResolver
+	SMTPServerCredentialsSecretItem *config.SMTPServerCredentialsSecretItem
 
 	translations *template.TranslationMap `wire:"-"`
 }
@@ -34,6 +37,15 @@ func (s *Service) translationMap(ctx context.Context) (*template.TranslationMap,
 		s.translations = t
 	}
 	return s.translations, nil
+}
+
+func (s *Service) levelSpecificTranslationMap(ctx context.Context, level resource.FsLevel) (*template.TranslationMap, error) {
+	preferredLanguageTags := intl.GetPreferredLanguageTags(ctx)
+	t, err := s.TemplateEngine.LevelSpecificTranslation(ctx, level, preferredLanguageTags)
+	if err != nil {
+		return nil, err
+	}
+	return t, nil
 }
 
 func (s *Service) renderTemplate(ctx context.Context, tpl template.Resource, variables *PreparedTemplateVariables) (*template.RenderResult, error) {
@@ -70,30 +82,60 @@ func (s *Service) GetSenderForTestSMS(ctx context.Context) (sender string, err e
 }
 
 func (s *Service) emailMessageHeader(ctx context.Context, name SpecName, variables *PreparedTemplateVariables) (sender, replyTo, subject string, err error) {
-	t, err := s.translationMap(ctx)
+	effectiveTranslations, err := s.translationMap(ctx)
 	if err != nil {
 		return
 	}
 
-	sender, err = t.RenderText(fmt.Sprintf("email.%s.sender", name), variables)
+	resolveSender := func(t *template.TranslationMap) (string, error) {
+		sender, err := t.RenderText(fmt.Sprintf("email.%s.sender", name), variables)
+		if errors.Is(err, template.ErrNotFound) {
+			sender, err = t.RenderText("email.default.sender", variables)
+		}
+		if err != nil {
+			return "", err
+		}
+		return sender, nil
+	}
+
+	// Resolve sender
+	// If no smtp secret, probably in local, just use sender in translation
+	if s.SMTPServerCredentialsSecretItem == nil {
+		sender, err = resolveSender(effectiveTranslations)
+		if err != nil {
+			return
+		}
+	} else {
+		// If the secret has sender, use it.
+		// If the developer wants to have different senders for different locales,
+		// they have to remove the sender in the secret.
+		if s.SMTPServerCredentialsSecretItem.GetData().Sender != "" {
+			sender = s.SMTPServerCredentialsSecretItem.GetData().Sender
+		} else {
+			// Depends on the secret fs level, resolve sender from different level of translation
+			var levelTranslations *template.TranslationMap
+			levelTranslations, err = s.levelSpecificTranslationMap(ctx, s.SMTPServerCredentialsSecretItem.FsLevel)
+			if err != nil {
+				return
+			}
+			sender, err = resolveSender(levelTranslations)
+			if err != nil {
+				return
+			}
+		}
+	}
+
+	replyTo, err = effectiveTranslations.RenderText(fmt.Sprintf("email.%s.reply-to", name), variables)
 	if errors.Is(err, template.ErrNotFound) {
-		sender, err = t.RenderText("email.default.sender", variables)
+		replyTo, err = effectiveTranslations.RenderText("email.default.reply-to", variables)
 	}
 	if err != nil {
 		return
 	}
 
-	replyTo, err = t.RenderText(fmt.Sprintf("email.%s.reply-to", name), variables)
+	subject, err = effectiveTranslations.RenderText(fmt.Sprintf("email.%s.subject", name), variables)
 	if errors.Is(err, template.ErrNotFound) {
-		replyTo, err = t.RenderText("email.default.reply-to", variables)
-	}
-	if err != nil {
-		return
-	}
-
-	subject, err = t.RenderText(fmt.Sprintf("email.%s.subject", name), variables)
-	if errors.Is(err, template.ErrNotFound) {
-		subject, err = t.RenderText("email.default.subject", variables)
+		subject, err = effectiveTranslations.RenderText("email.default.subject", variables)
 	}
 	if err != nil {
 		return

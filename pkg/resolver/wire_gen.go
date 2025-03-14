@@ -330,9 +330,11 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
+	smtpServerCredentialsSecretItem := deps.ProvideSMTPServerCredentialsItem(secretConfig)
 	translationService := &translation.Service{
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
+		TemplateEngine:                  engine,
+		StaticAssets:                    staticAssetResolver,
+		SMTPServerCredentialsSecretItem: smtpServerCredentialsSecretItem,
 	}
 	configService := &passkey2.ConfigService{
 		Request:            request,
@@ -1092,9 +1094,11 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
+	smtpServerCredentialsSecretItem := deps.ProvideSMTPServerCredentialsItem(secretConfig)
 	translationService := &translation.Service{
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
+		TemplateEngine:                  engine,
+		StaticAssets:                    staticAssetResolver,
+		SMTPServerCredentialsSecretItem: smtpServerCredentialsSecretItem,
 	}
 	configService := &passkey2.ConfigService{
 		Request:            request,

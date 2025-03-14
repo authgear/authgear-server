@@ -227,13 +227,13 @@ type languageTag string
 type translationKey string
 type translationValue string
 
-func (t *translationJSON) viewEffectiveResource(resources []resource.ResourceFile, view resource.EffectiveResourceView) (interface{}, error) {
-
-	preferredLanguageTags := view.PreferredLanguageTags()
-	defaultLanguageTag := view.DefaultLanguageTag()
-
-	appSpecificTranslationMap := make(map[translationKey]map[resource.FsLevel]map[languageTag]translationValue)
-	translationMap := make(map[translationKey]map[languageTag]translationValue)
+func (t *translationJSON) prepareTranslationMaps(resources []resource.ResourceFile, view resource.EffectiveResourceView) (
+	appSpecificTranslationMap map[translationKey]map[resource.FsLevel]map[languageTag]translationValue,
+	translationMap map[translationKey]map[languageTag]translationValue,
+	err error,
+) {
+	appSpecificTranslationMap = make(map[translationKey]map[resource.FsLevel]map[languageTag]translationValue)
+	translationMap = make(map[translationKey]map[languageTag]translationValue)
 
 	add := func(langTag string, resrc resource.ResourceFile) error {
 		var jsonObj map[string]interface{}
@@ -242,6 +242,13 @@ func (t *translationJSON) viewEffectiveResource(resources []resource.ResourceFil
 		}
 
 		fsLevel := resrc.Location.Fs.GetFsLevel()
+		if view, ok := view.(resource.LevelEffectiveResourceView); ok {
+			// If it is a LevelEffectiveResourceView, skip other FS except the specified one
+			if fsLevel != view.GetFSLevel() {
+				return nil
+			}
+		}
+
 		for key, val := range jsonObj {
 			value, ok := val.(string)
 			if !ok {
@@ -273,12 +280,25 @@ func (t *translationJSON) viewEffectiveResource(resources []resource.ResourceFil
 		}
 		return nil
 	}
+
 	extractLanguageTag := func(resrc resource.ResourceFile) string {
 		langTag := templateLanguageTagRegex.FindStringSubmatch(resrc.Location.Path)[1]
 		return langTag
 	}
 
-	err := intlresource.Prepare(resources, view, extractLanguageTag, add)
+	err = intlresource.Prepare(resources, view, extractLanguageTag, add)
+	if err != nil {
+		return nil, nil, err
+	}
+	return
+}
+
+func (t *translationJSON) viewEffectiveResource(resources []resource.ResourceFile, view resource.EffectiveResourceView) (interface{}, error) {
+
+	preferredLanguageTags := view.PreferredLanguageTags()
+	defaultLanguageTag := view.DefaultLanguageTag()
+
+	appSpecificTranslationMap, translationMap, err := t.prepareTranslationMaps(resources, view)
 	if err != nil {
 		return nil, err
 	}

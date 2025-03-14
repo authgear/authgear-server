@@ -104,6 +104,9 @@ var smtpSecret = graphql.NewObject(graphql.ObjectConfig{
 		"password": &graphql.Field{
 			Type: graphql.String,
 		},
+		"sender": &graphql.Field{
+			Type: graphql.String,
+		},
 	},
 })
 

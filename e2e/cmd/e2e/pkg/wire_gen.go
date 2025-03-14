@@ -239,9 +239,11 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
+	smtpServerCredentialsSecretItem := deps.ProvideSMTPServerCredentialsItem(secretConfig)
 	translationService := &translation.Service{
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
+		TemplateEngine:                  engine,
+		StaticAssets:                    staticAssetResolver,
+		SMTPServerCredentialsSecretItem: smtpServerCredentialsSecretItem,
 	}
 	configService := &passkey2.ConfigService{
 		Request:            request,

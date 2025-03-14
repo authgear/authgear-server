@@ -2,6 +2,7 @@ package smtp
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"gopkg.in/gomail.v2"
@@ -18,6 +19,7 @@ type SendTestEmailOptions struct {
 	SMTPPort     int
 	SMTPUsername string
 	SMTPPassword string
+	SMTPSender   string
 }
 
 type MailSender interface {
@@ -52,11 +54,6 @@ func (s *Service) SendRealEmail(ctx context.Context, opts mail.SendOptions) (err
 }
 
 func (s *Service) SendTestEmail(ctx context.Context, app *model.App, options SendTestEmailOptions) (err error) {
-	translationService := NewTranslationService(app)
-	sender, err := translationService.GetSenderForTestEmail(ctx)
-	if err != nil {
-		return
-	}
 
 	dialer := gomail.NewDialer(
 		options.SMTPHost,
@@ -67,14 +64,14 @@ func (s *Service) SendTestEmail(ctx context.Context, app *model.App, options Sen
 	// Do not set dialer.SSL so that SSL mode is inferred from the given port.
 
 	message := gomail.NewMessage()
-	message.SetHeader("From", sender)
+	message.SetHeader("From", options.SMTPSender)
 	message.SetHeader("To", options.To)
 	message.SetHeader("Subject", "[Test] Authgear email")
 	message.SetBody("text/plain", fmt.Sprintf("This email was successfully sent from %s", app.ID))
 
 	err = dialer.DialAndSend(message)
 	if err != nil {
-		return
+		return errors.Join(SMTPTestFailed.New(err.Error()), err)
 	}
 
 	return

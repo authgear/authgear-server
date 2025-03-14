@@ -3,6 +3,7 @@ import { useLocation, useParams, useNavigate } from "react-router-dom";
 import { produce } from "immer";
 import { Dialog, DialogFooter } from "@fluentui/react";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
+import { parseSender } from "email-addresses";
 import { useTextFieldTooltip } from "../../useTextFieldTooltip";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
@@ -43,6 +44,8 @@ import {
   ProviderCard,
   ProviderCardDescription,
 } from "../../components/common/ProviderCard";
+import { ErrorParseRule, ErrorParseRuleResult } from "../../error/parse";
+import { APIError, APISMTPTestFailedError } from "../../error/error";
 
 interface LocationState {
   isEdit: boolean;
@@ -70,11 +73,15 @@ interface FormState {
   enabled: boolean;
   providerType: ProviderType;
   sendgridAPIKey: string;
+  sendgridSenderName: string;
+  sendgridSenderAddress: string;
 
   customHost: string;
   customPortString: string;
   customUsername: string;
   customPassword: string;
+  customSenderName: string;
+  customSenderAddress: string;
 
   isPasswordMasked: boolean;
 }
@@ -94,14 +101,26 @@ function constructFormState(
   const isPasswordMasked = enabled && secrets.smtpSecret?.password == null;
 
   let sendgridAPIKey = "";
+  let sendgridSenderName = "";
+  let sendgridSenderAddress = "";
   let customHost = "";
   let customPortString = "";
   let customUsername = "";
   let customPassword = "";
+  let customSenderName = "";
+  let customSenderAddress = "";
+
+  const secretSender = secrets.smtpSecret?.sender
+    ? parseSender(secrets.smtpSecret.sender)
+    : null;
 
   switch (providerType) {
     case ProviderType.Sendgrid:
       sendgridAPIKey = secrets.smtpSecret?.password ?? "";
+      if (secretSender?.type === "mailbox") {
+        sendgridSenderName = secretSender.name ?? "";
+        sendgridSenderAddress = secretSender.address;
+      }
       break;
     case ProviderType.Custom:
       customHost = secrets.smtpSecret?.host ?? "";
@@ -109,6 +128,10 @@ function constructFormState(
         secrets.smtpSecret?.port != null ? String(secrets.smtpSecret.port) : "";
       customUsername = secrets.smtpSecret?.username ?? "";
       customPassword = secrets.smtpSecret?.password ?? "";
+      if (secretSender?.type === "mailbox") {
+        customSenderName = secretSender.name ?? "";
+        customSenderAddress = secretSender.address;
+      }
       break;
 
     default:
@@ -118,12 +141,23 @@ function constructFormState(
     enabled,
     providerType,
     sendgridAPIKey,
+    sendgridSenderName,
+    sendgridSenderAddress,
     customHost,
     customPortString,
     customUsername,
     customPassword,
+    customSenderName,
+    customSenderAddress,
     isPasswordMasked,
   };
+}
+
+function composeSender(name: string, address: string) {
+  if (!name) {
+    return address;
+  }
+  return `${name} <${address}>`;
 }
 
 function constructConfig(
@@ -146,6 +180,10 @@ function constructConfig(
             password: currentState.isPasswordMasked
               ? null
               : currentState.sendgridAPIKey,
+            sender: composeSender(
+              currentState.sendgridSenderName,
+              currentState.sendgridSenderAddress
+            ),
           };
           break;
         case ProviderType.Custom:
@@ -156,6 +194,10 @@ function constructConfig(
             password: currentState.isPasswordMasked
               ? null
               : currentState.customPassword,
+            sender: composeSender(
+              currentState.customSenderName,
+              currentState.customSenderAddress
+            ),
           };
           break;
         default:
@@ -192,6 +234,7 @@ function constructSecretUpdateInstruction(
         port: secrets.smtpSecret.port,
         username: secrets.smtpSecret.username,
         password: secrets.smtpSecret.password,
+        sender: secrets.smtpSecret.sender,
       },
     },
   };
@@ -200,6 +243,23 @@ function constructSecretUpdateInstruction(
 const CUSTOM_PROVIDER_ICON_PROPS = {
   iconName: "Mail",
 };
+
+const ERROR_RULES: ErrorParseRule[] = [
+  (apiError: APIError): ErrorParseRuleResult => {
+    if (apiError.reason === "SMTPTestFailed") {
+      return {
+        parsedAPIErrors: [
+          { message: (apiError as APISMTPTestFailedError).message },
+        ],
+        fullyHandled: true,
+      };
+    }
+    return {
+      parsedAPIErrors: [],
+      fullyHandled: false,
+    };
+  },
+];
 
 interface SMTPConfigurationScreenContentProps {
   isCustomSMTPDisabled: boolean;
@@ -224,13 +284,16 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
       }
       switch (state.providerType) {
         case ProviderType.Sendgrid:
-          return state.sendgridAPIKey !== "";
+          return (
+            state.sendgridAPIKey !== "" && state.sendgridSenderAddress !== ""
+          );
         case ProviderType.Custom:
           return (
             state.customHost !== "" &&
             state.customPortString !== "" &&
             state.customUsername !== "" &&
-            state.customPassword !== ""
+            state.customPassword !== "" &&
+            state.customSenderAddress !== ""
           );
       }
     }, [state]);
@@ -243,26 +306,35 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
       const callbackFactory = (
         key:
           | "sendgridAPIKey"
+          | "sendgridSenderName"
+          | "sendgridSenderAddress"
           | "customHost"
           | "customUsername"
           | "customPassword"
+          | "customSenderName"
+          | "customSenderAddress"
       ) => {
         return (_: unknown, value?: string) => {
           if (value != null) {
             setState((state) => {
-              return {
+              const s: FormState = {
                 ...state,
-                [key]: value,
               };
+              s[key] = value;
+              return s;
             });
           }
         };
       };
       return {
         sendgridAPIKey: callbackFactory("sendgridAPIKey"),
+        sendgridSenderName: callbackFactory("sendgridSenderName"),
+        sendgridSenderAddress: callbackFactory("sendgridSenderAddress"),
         customHost: callbackFactory("customHost"),
         customUsername: callbackFactory("customUsername"),
         customPassword: callbackFactory("customPassword"),
+        customSenderName: callbackFactory("customSenderName"),
+        customSenderAddress: callbackFactory("customSenderAddress"),
       };
     }, [setState]);
 
@@ -361,6 +433,10 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
               smtpPort: parseInt(SENDGRID_PORT_STRING, 10),
               smtpUsername: SENDGRID_USERNAME,
               smtpPassword: state.sendgridAPIKey,
+              smtpSender: composeSender(
+                state.sendgridSenderName,
+                state.sendgridSenderAddress
+              ),
               to: toAddress,
             };
             break;
@@ -370,6 +446,10 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
               smtpPort: parseInt(state.customPortString, 10),
               smtpUsername: state.customUsername,
               smtpPassword: state.customPassword,
+              smtpSender: composeSender(
+                state.customSenderName,
+                state.customSenderAddress
+              ),
               to: toAddress,
             };
             break;
@@ -551,6 +631,33 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
                     parentJSONPointer={/\/secrets\/\d+\/data/}
                     fieldName="password"
                   />
+                  <FormTextField
+                    className={styles.columnLeft}
+                    type="text"
+                    label={renderToString(
+                      "SMTPConfigurationScreen.senderName.label"
+                    )}
+                    value={state.customSenderName}
+                    disabled={state.isPasswordMasked}
+                    onChange={onStringChangeCallbacks.customSenderName}
+                    parentJSONPointer={/\/secrets\/\d+\/data/}
+                    /* Otherwise, the field is registered twice, and the error will be shown twice. */
+                    /* Luckily, this field will not have any error so we can work around this way. */
+                    fieldName="__THIS_IS_INTENTIONALLY_CHANGED_TO_A_NONEXISTENT_FIELD_NAME__"
+                  />
+                  <FormTextField
+                    className={styles.columnLeft}
+                    type="text"
+                    label={renderToString(
+                      "SMTPConfigurationScreen.senderAddress.label"
+                    )}
+                    value={state.customSenderAddress}
+                    disabled={state.isPasswordMasked}
+                    required={true}
+                    onChange={onStringChangeCallbacks.customSenderAddress}
+                    parentJSONPointer={/\/secrets\/\d+\/data/}
+                    fieldName="sender"
+                  />
                 </>
               ) : null}
               {form.state.providerType === ProviderType.Sendgrid ? (
@@ -575,6 +682,32 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
                     parentJSONPointer={/\/secrets\/\d+\/data/}
                     fieldName="password"
                     {...sendgridAPIKeyProps}
+                  />
+
+                  <FormTextField
+                    className={styles.columnLeft}
+                    type="text"
+                    label={renderToString(
+                      "SMTPConfigurationScreen.senderName.label"
+                    )}
+                    value={state.sendgridSenderName}
+                    disabled={state.isPasswordMasked}
+                    onChange={onStringChangeCallbacks.sendgridSenderName}
+                    parentJSONPointer={/\/secrets\/\d+\/data/}
+                    fieldName="sender"
+                  />
+                  <FormTextField
+                    className={styles.columnLeft}
+                    type="text"
+                    label={renderToString(
+                      "SMTPConfigurationScreen.senderAddress.label"
+                    )}
+                    value={state.sendgridSenderAddress}
+                    disabled={state.isPasswordMasked}
+                    required={true}
+                    onChange={onStringChangeCallbacks.sendgridSenderAddress}
+                    parentJSONPointer={/\/secrets\/\d+\/data/}
+                    fieldName="sender"
                   />
                 </>
               ) : null}
@@ -659,7 +792,11 @@ const SMTPConfigurationScreen1: React.VFC<{
   }
 
   return (
-    <FormContainer form={form} localError={sendTestEmailHandle.error}>
+    <FormContainer
+      form={form}
+      errorRules={ERROR_RULES}
+      localError={sendTestEmailHandle.error}
+    >
       <SMTPConfigurationScreenContent
         isCustomSMTPDisabled={
           featureConfig.effectiveFeatureConfig?.messaging

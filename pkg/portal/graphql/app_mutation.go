@@ -71,6 +71,9 @@ var smtpSecretInput = graphql.NewInputObject(graphql.InputObjectConfig{
 		"password": &graphql.InputObjectFieldConfig{
 			Type: graphql.String,
 		},
+		"sender": &graphql.InputObjectFieldConfig{
+			Type: graphql.String,
+		},
 	},
 })
 

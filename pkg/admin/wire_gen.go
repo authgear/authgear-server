@@ -301,9 +301,11 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
+	smtpServerCredentialsSecretItem := deps.ProvideSMTPServerCredentialsItem(secretConfig)
 	translationService := &translation.Service{
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
+		TemplateEngine:                  engine,
+		StaticAssets:                    staticAssetResolver,
+		SMTPServerCredentialsSecretItem: smtpServerCredentialsSecretItem,
 	}
 	configService := &passkey2.ConfigService{
 		Request:            request,
@@ -1538,9 +1540,11 @@ func newUserExportCreateHandler(p *deps.RequestProvider) http.Handler {
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
+	smtpServerCredentialsSecretItem := deps.ProvideSMTPServerCredentialsItem(secretConfig)
 	translationService := &translation.Service{
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
+		TemplateEngine:                  engine,
+		StaticAssets:                    staticAssetResolver,
+		SMTPServerCredentialsSecretItem: smtpServerCredentialsSecretItem,
 	}
 	configService := &passkey2.ConfigService{
 		Request:            request,

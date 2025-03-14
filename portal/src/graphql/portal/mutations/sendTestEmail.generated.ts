@@ -9,6 +9,7 @@ export type SendTestEmailMutationMutationVariables = Types.Exact<{
   smtpPort: Types.Scalars['Int']['input'];
   smtpUsername: Types.Scalars['String']['input'];
   smtpPassword: Types.Scalars['String']['input'];
+  smtpSender: Types.Scalars['String']['input'];
   to: Types.Scalars['String']['input'];
 }>;
 
@@ -17,9 +18,9 @@ export type SendTestEmailMutationMutation = { __typename?: 'Mutation', sendTestS
 
 
 export const SendTestEmailMutationDocument = gql`
-    mutation sendTestEmailMutation($appID: ID!, $smtpHost: String!, $smtpPort: Int!, $smtpUsername: String!, $smtpPassword: String!, $to: String!) {
+    mutation sendTestEmailMutation($appID: ID!, $smtpHost: String!, $smtpPort: Int!, $smtpUsername: String!, $smtpPassword: String!, $smtpSender: String!, $to: String!) {
   sendTestSMTPConfigurationEmail(
-    input: {appID: $appID, smtpHost: $smtpHost, smtpPort: $smtpPort, smtpUsername: $smtpUsername, smtpPassword: $smtpPassword, to: $to}
+    input: {appID: $appID, smtpHost: $smtpHost, smtpPort: $smtpPort, smtpUsername: $smtpUsername, smtpPassword: $smtpPassword, smtpSender: $smtpSender, to: $to}
   )
 }
     `;
@@ -43,6 +44,7 @@ export type SendTestEmailMutationMutationFn = Apollo.MutationFunction<SendTestEm
  *      smtpPort: // value for 'smtpPort'
  *      smtpUsername: // value for 'smtpUsername'
  *      smtpPassword: // value for 'smtpPassword'
+ *      smtpSender: // value for 'smtpSender'
  *      to: // value for 'to'
  *   },
  * });

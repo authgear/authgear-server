@@ -1,6 +1,6 @@
 {
   "app.name": "Authgear",
-  "email.default.sender": "no-reply@authgear.com",
+  "email.default.sender": "builtin-sender@localhost",
   "email.default.reply-to": "",
   "email.default.subject": "",
   "sms.default.sender": "Authgear",

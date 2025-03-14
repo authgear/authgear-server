@@ -10,6 +10,7 @@ import (
 
 	"sigs.k8s.io/yaml"
 
+	"github.com/authgear/authgear-server/pkg/util/resource"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
@@ -31,10 +32,11 @@ type SecretConfig struct {
 	Secrets []SecretItem `json:"secrets,omitempty"`
 }
 
+const validationErrorMessage = "invalid secrets"
+
 // ParsePartialSecret unmarshals inputYAML into a full SecretConfig,
 // without performing validation.
 func ParsePartialSecret(ctx context.Context, inputYAML []byte) (*SecretConfig, error) {
-	const validationErrorMessage = "invalid secrets"
 
 	jsonData, err := yaml.YAMLToJSON(inputYAML)
 	if err != nil {
@@ -48,19 +50,10 @@ func ParsePartialSecret(ctx context.Context, inputYAML []byte) (*SecretConfig, e
 		return nil, err
 	}
 
-	vctx := &validation.Context{}
-	for i := range config.Secrets {
-		config.Secrets[i].parse(ctx, vctx.Child("secrets", strconv.Itoa(i)))
-	}
-	if err := vctx.Error(validationErrorMessage); err != nil {
-		return nil, err
-	}
-
-	return &config, nil
+	return ParseSecretData(ctx, config)
 }
 
 func ParseSecret(ctx context.Context, inputYAML []byte) (*SecretConfig, error) {
-	const validationErrorMessage = "invalid secrets"
 
 	jsonData, err := yaml.YAMLToJSON(inputYAML)
 	if err != nil {
@@ -83,6 +76,10 @@ func ParseSecret(ctx context.Context, inputYAML []byte) (*SecretConfig, error) {
 		return nil, err
 	}
 
+	return ParseSecretData(ctx, config)
+}
+
+func ParseSecretData(ctx context.Context, config SecretConfig) (*SecretConfig, error) {
 	vctx := &validation.Context{}
 	for i := range config.Secrets {
 		config.Secrets[i].parse(ctx, vctx.Child("secrets", strconv.Itoa(i)))
@@ -450,9 +447,10 @@ var _ = SecretConfigSchema.AddJSON("SecretItem", map[string]interface{}{
 })
 
 type SecretItem struct {
-	Key     SecretKey       `json:"key,omitempty"`
-	RawData json.RawMessage `json:"data,omitempty"`
-	Data    SecretItemData  `json:"-"`
+	Key     SecretKey        `json:"key,omitempty"`
+	RawData json.RawMessage  `json:"data,omitempty"`
+	Data    SecretItemData   `json:"-"`
+	FsLevel resource.FsLevel `json:"-"`
 }
 
 func (i *SecretItem) parse(ctx context.Context, vctx *validation.Context) {

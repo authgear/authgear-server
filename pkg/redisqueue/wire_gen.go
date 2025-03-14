@@ -196,9 +196,11 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
+	smtpServerCredentialsSecretItem := deps.ProvideSMTPServerCredentialsItem(secretConfig)
 	translationService := &translation.Service{
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
+		TemplateEngine:                  engine,
+		StaticAssets:                    staticAssetResolver,
+		SMTPServerCredentialsSecretItem: smtpServerCredentialsSecretItem,
 	}
 	configService := &passkey2.ConfigService{
 		Request:            request,
@@ -992,9 +994,11 @@ func newUserExportService(ctx context.Context, p *deps.AppProvider) *userexport.
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
+	smtpServerCredentialsSecretItem := deps.ProvideSMTPServerCredentialsItem(secretConfig)
 	translationService := &translation.Service{
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
+		TemplateEngine:                  engine,
+		StaticAssets:                    staticAssetResolver,
+		SMTPServerCredentialsSecretItem: smtpServerCredentialsSecretItem,
 	}
 	configService := &passkey2.ConfigService{
 		Request:            request,
@@ -1364,9 +1368,11 @@ func newSearchReindexer(ctx context.Context, p *deps.AppProvider) *reindex.Reind
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
+	smtpServerCredentialsSecretItem := deps.ProvideSMTPServerCredentialsItem(secretConfig)
 	translationService := &translation.Service{
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
+		TemplateEngine:                  engine,
+		StaticAssets:                    staticAssetResolver,
+		SMTPServerCredentialsSecretItem: smtpServerCredentialsSecretItem,
 	}
 	configService := &passkey2.ConfigService{
 		Request:            request,
