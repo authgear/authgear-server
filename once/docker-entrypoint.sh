@@ -404,23 +404,43 @@ docker_authgear_init() {
 	# Wait 2 seconds for the server to start.
 	sleep 2
 
-	init_output="$(mktemp -d)"
+
+	app_id_accounts="accounts"
+	init_output_accounts="$(mktemp -d)"
 	authgear init --interactive=false \
+		--purpose=portal \
 		--for-helm-chart=true \
-		--app-id=accounts \
+		--app-id="$app_id_accounts" \
 		--public-origin="$AUTHGEAR_HTTP_ORIGIN_ACCOUNTS" \
 		--portal-origin="$AUTHGEAR_HTTP_ORIGIN_PORTAL" \
 		--portal-client-id=portal \
 		--phone-otp-mode=sms \
 		--disable-email-verification=true \
 		--search-implementation=postgresql \
-		-o "$init_output"
-	authgear-portal internal configsource create "$init_output"
+		-o "$init_output_accounts"
+	authgear-portal internal configsource create "$init_output_accounts"
+	host_accounts="$(echo "$AUTHGEAR_HTTP_ORIGIN_ACCOUNTS" | awk -F '://' '{ print $2 }')"
+	authgear-portal internal domain create-custom "$app_id_accounts" --domain "$host_accounts" --apex-domain "$host_accounts"
+	rm -r "$init_output_accounts"
 
-	accounts_host="$(echo "$AUTHGEAR_HTTP_ORIGIN_ACCOUNTS" | awk -F '://' '{ print $2 }')"
-	authgear-portal internal domain create-custom accounts --domain "$accounts_host" --apex-domain "$accounts_host"
+	app_id_project="project"
+	init_output_project="$(mktemp -d)"
+	authgear init --interactive=false \
+		--purpose=project \
+		--for-helm-chart=true \
+		--app-id="$app_id_project" \
+		--public-origin="$AUTHGEAR_HTTP_ORIGIN_PROJECT" \
+		--phone-otp-mode=sms \
+		--disable-email-verification=true \
+		--search-implementation=postgresql \
+		-o "$init_output_project"
+	authgear-portal internal configsource create "$init_output_project"
+	host_project="$(echo "$AUTHGEAR_HTTP_ORIGIN_PROJECT" | awk -F '://' '{ print $2 }')"
+	authgear-portal internal domain create-custom "$app_id_project" --domain "$host_project" --apex-domain "$host_project"
+	rm -r "$init_output_project"
+
+	# Create default domain after all projects have been created.
 	authgear-portal internal domain create-default --default-domain-suffix '.projects.authgear'
-	rm -r "$init_output"
 
 	query_file="$(mktemp)"
 	cat >"$query_file" <<'EOF'
@@ -452,8 +472,13 @@ EOF
 	decoded_node_id="$(jq <"$query_output" --raw-output '.data.createUser.user.id' | basenc --base64url --decode)"
 	raw_id="${decoded_node_id#User:}"
 
+	# Add collaborator to both projects.
 	authgear-portal internal collaborator add \
-		--app-id accounts \
+		--app-id "$app_id_accounts" \
+		--user-id "$raw_id" \
+		--role owner
+	authgear-portal internal collaborator add \
+		--app-id "$app_id_project" \
 		--user-id "$raw_id" \
 		--role owner
 
