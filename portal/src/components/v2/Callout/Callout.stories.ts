@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { Callout, CalloutType } from "./Callout";
+import { Callout } from "./Callout";
 
 // More on how to set up stories at: https://storybook.js.org/docs/writing-stories#default-export
 const meta = {
@@ -32,12 +32,12 @@ type Story = StoryObj<typeof meta>;
 
 export const Error: Story = {
   args: {
-    type: CalloutType.error,
+    type: "error",
   },
 };
 
 export const Success: Story = {
   args: {
-    type: CalloutType.success,
+    type: "success",
   },
 };
