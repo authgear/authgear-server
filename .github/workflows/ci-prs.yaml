@@ -5,6 +5,7 @@ on:
     branches:
     - '*'
     - '!gh-pages'
+    - '!ui-review*'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

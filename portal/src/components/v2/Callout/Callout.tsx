@@ -6,16 +6,13 @@ import {
 import { Callout as RadixCallout } from "@radix-ui/themes";
 import React, { ComponentProps, useCallback } from "react";
 import styles from "./Callout.module.css";
-import { useToastContext, useToastProviderContext } from "./Toast";
+import { useMaybeToastContext, useToastProviderContext } from "../Toast/Toast";
 
-export enum CalloutType {
-  error = "error",
-  success = "success",
-}
+export type CalloutType = "error" | "success";
 
 export interface CalloutProps {
   type: CalloutType;
-  text?: React.ReactChild;
+  text?: React.ReactNode;
   showCloseButton?: boolean;
 }
 
@@ -23,19 +20,19 @@ function typeToRadixColor(
   type: CalloutType
 ): ComponentProps<typeof RadixCallout.Root>["color"] {
   switch (type) {
-    case CalloutType.error:
+    case "error":
       return "red";
-    case CalloutType.success:
+    case "success":
       return "green";
   }
 }
 
 function CalloutIcon({ color }: { color: CalloutType }) {
   switch (color) {
-    case CalloutType.error:
-      return <ExclamationTriangleIcon />;
-    case CalloutType.success:
-      return <CheckCircledIcon />;
+    case "error":
+      return <ExclamationTriangleIcon width="1rem" height="1rem" />;
+    case "success":
+      return <CheckCircledIcon width="1rem" height="1rem" />;
   }
 }
 
@@ -44,11 +41,11 @@ export function Callout({
   text,
   showCloseButton = true,
 }: CalloutProps): React.ReactElement {
-  const { setOpen } = useToastContext();
+  const toastContext = useMaybeToastContext();
 
   const onClose = useCallback(() => {
-    setOpen(false);
-  }, [setOpen]);
+    toastContext?.setOpen(false);
+  }, [toastContext]);
 
   return (
     <RadixCallout.Root
@@ -69,7 +66,7 @@ export function Callout({
           onClick={onClose}
           className={styles.calloutAction}
         >
-          <Cross2Icon />
+          <Cross2Icon width="1rem" height="1rem" />
         </button>
       ) : null}
     </RadixCallout.Root>
