@@ -4,7 +4,7 @@ import {
   ExclamationTriangleIcon,
 } from "@radix-ui/react-icons";
 import { Callout as RadixCallout } from "@radix-ui/themes";
-import React, { ComponentProps, useCallback } from "react";
+import React, { useCallback } from "react";
 import styles from "./Callout.module.css";
 import { useMaybeToastContext, useToastProviderContext } from "../Toast/Toast";
 
@@ -16,12 +16,10 @@ export interface CalloutProps {
   showCloseButton?: boolean;
 }
 
-function typeToRadixColor(
-  type: CalloutType
-): ComponentProps<typeof RadixCallout.Root>["color"] {
+function typeToColor(type: CalloutType): string {
   switch (type) {
     case "error":
-      return "red";
+      return "semantics-error";
     case "success":
       return "green";
   }
@@ -50,7 +48,7 @@ export function Callout({
   return (
     <RadixCallout.Root
       className={styles.calloutRoot}
-      color={typeToRadixColor(type)}
+      data-accent-color={typeToColor(type)}
       size="2"
       variant="surface"
     >
