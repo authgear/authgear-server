@@ -1,3 +1,8 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss/base";
+
+/* Ensure radix styles overrides tailwind base styles */
+/* See https://www.radix-ui.com/themes/docs/overview/styling#tailwind-base-styles */
+@import "@radix-ui/themes/styles.css";
+
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
