@@ -1,6 +1,5 @@
 import { defineConfig, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
-import path from "path";
 import { parse } from "node-html-parser";
 
 const plugin: Plugin = {
