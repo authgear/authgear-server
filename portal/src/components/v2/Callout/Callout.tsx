@@ -12,7 +12,7 @@ export type CalloutType = "error" | "success";
 
 export interface CalloutProps {
   type: CalloutType;
-  text?: React.ReactChild;
+  text?: React.ReactNode;
   showCloseButton?: boolean;
 }
 
