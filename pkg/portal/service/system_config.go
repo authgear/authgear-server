@@ -55,6 +55,7 @@ func (p *SystemConfigProvider) SystemConfig(ctx context.Context) (*model.SystemC
 		AuthgearClientID:          p.AuthgearConfig.ClientID,
 		AuthgearEndpoint:          p.AuthgearConfig.Endpoint,
 		AuthgearWebSDKSessionType: p.AuthgearConfig.WebSDKSessionType,
+		IsAuthgearOnce:            AUTHGEARONCE,
 		SentryDSN:                 p.FrontendSentryConfig.DSN,
 		AppHostSuffix:             p.AppConfig.HostSuffix,
 		AvailableLanguages:        intl.AvailableLanguages,
