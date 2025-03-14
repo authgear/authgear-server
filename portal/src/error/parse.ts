@@ -101,6 +101,12 @@ function getFormatErrorMessage(cause: FormatErrorCause): ParsedAPIError | null {
       messageID: "errors.validation.format.duration.nonPositive",
     };
   }
+  // We need to specially handle this becacuse hyphens cannot be put in messageformat select argument.
+  if (cause.details.format === "email-name-addr") {
+    return {
+      messageID: "errors.validation.format.email-name-addr",
+    };
+  }
   return null;
 }
 
