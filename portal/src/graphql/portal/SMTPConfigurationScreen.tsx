@@ -641,7 +641,9 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
                     disabled={state.isPasswordMasked}
                     onChange={onStringChangeCallbacks.customSenderName}
                     parentJSONPointer={/\/secrets\/\d+\/data/}
-                    fieldName="sender"
+                    /* Otherwise, the field is registered twice, and the error will be shown twice. */
+                    /* Luckily, this field will not have any error so we can work around this way. */
+                    fieldName="__THIS_IS_INTENTIONALLY_CHANGED_TO_A_NONEXISTENT_FIELD_NAME__"
                   />
                   <FormTextField
                     className={styles.columnLeft}
