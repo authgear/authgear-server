@@ -523,4 +523,4 @@ In case you need to switch to sessionType=cookie, you
 
 |        |                                                                                                                                                                                                     |
 | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Portal | [<img src="https://github.com/authgear/authgear-server/actions/workflows/chromatic.yaml/badge.svg?branch=ui-review" />](https://ui-review--67d2b9f5a864651d3793fe7e.chromatic.com/) |
+| Portal | [<img src="https://github.com/authgear/authgear-server/actions/workflows/chromatic.yaml/badge.svg?branch=ui-review-pending" />](https://ui-review-pending--67d2b9f5a864651d3793fe7e.chromatic.com/) |

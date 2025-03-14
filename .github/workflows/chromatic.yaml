@@ -11,7 +11,6 @@ on:
   push:
     branches:
       - "ui-review*"
-    tags:
       - "ui-review-pending"
   workflow_dispatch: {}
 
@@ -25,8 +24,7 @@ jobs:
         with:
           fetch-depth: 0
       - run: |
-          git tag -f ui-review-pending
-          git push -f origin ui-review-pending
+          git push -f origin HEAD:ui-review-pending
 
   deploy-portal-chromatic:
     runs-on: ubuntu-24.04
