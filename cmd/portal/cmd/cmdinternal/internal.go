@@ -54,6 +54,7 @@ func init() {
 
 	cmdInternal.AddCommand(cmdInternalConfigSource)
 	cmdInternal.AddCommand(cmdInternalDomain)
+	cmdInternal.AddCommand(cmdInternalCollaborator)
 	cmdInternal.AddCommand(cmdInternalBreakingChange)
 
 	cmdInternalBreakingChange.AddCommand(cmdInternalBreakingChangeMigrateK8SToDB)
@@ -66,6 +67,8 @@ func init() {
 
 	cmdInternalDomain.AddCommand(cmdInternalDomainCreateDefault)
 	cmdInternalDomain.AddCommand(cmdInternalDomainCreateCustom)
+
+	cmdInternalCollaborator.AddCommand(cmdInternalCollaboratorAdd)
 
 	binder.BindString(cmdInternalConfigSourceCreate.Flags(), portalcmd.ArgDatabaseURL)
 	binder.BindString(cmdInternalConfigSourceCreate.Flags(), portalcmd.ArgDatabaseSchema)
@@ -86,6 +89,15 @@ func init() {
 	binder.BindString(cmdInternalDomainCreateCustom.Flags(), portalcmd.ArgDatabaseSchema)
 	binder.BindString(cmdInternalDomainCreateCustom.Flags(), portalcmd.ArgDomain)
 	binder.BindString(cmdInternalDomainCreateCustom.Flags(), portalcmd.ArgApexDomain)
+
+	binder.BindString(cmdInternalCollaboratorAdd.Flags(), portalcmd.ArgDatabaseURL)
+	binder.BindString(cmdInternalCollaboratorAdd.Flags(), portalcmd.ArgDatabaseSchema)
+	cmdInternalCollaboratorAdd.Flags().String("app-id", "", "The ID of the app to add the collaborator to.")
+	_ = cmdInternalCollaboratorAdd.MarkFlagRequired("app-id")
+	cmdInternalCollaboratorAdd.Flags().String("user-id", "", "The raw user ID of the collaborator")
+	_ = cmdInternalCollaboratorAdd.MarkFlagRequired("user-id")
+	cmdInternalCollaboratorAdd.Flags().String("role", "", "The role of collaborator. Valid values are owner or editor.")
+	_ = cmdInternalCollaboratorAdd.MarkFlagRequired("role")
 
 	binder.BindString(cmdInternalBreakingChangeMigrateK8SToDB.Flags(), portalcmd.ArgDatabaseURL)
 	binder.BindString(cmdInternalBreakingChangeMigrateK8SToDB.Flags(), portalcmd.ArgDatabaseSchema)
