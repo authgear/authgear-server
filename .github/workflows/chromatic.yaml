@@ -10,7 +10,7 @@ concurrency:
 on:
   push:
     branches:
-      - "ui-review"
+      - "ui-review*"
     tags:
       - "ui-review-pending"
   workflow_dispatch: {}
