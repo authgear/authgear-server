@@ -9,6 +9,7 @@ type SystemConfig struct {
 	AuthgearClientID          string         `json:"authgearClientID"`
 	AuthgearEndpoint          string         `json:"authgearEndpoint"`
 	AuthgearWebSDKSessionType string         `json:"authgearWebSDKSessionType"`
+	IsAuthgearOnce            bool           `json:"isAuthgearOnce"`
 	SentryDSN                 string         `json:"sentryDSN,omitempty"`
 	AppHostSuffix             string         `json:"appHostSuffix"`
 	AvailableLanguages        []string       `json:"availableLanguages"`

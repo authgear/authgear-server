@@ -7,6 +7,7 @@ export interface SystemConfig {
   authgearClientID: string;
   authgearEndpoint: string;
   authgearWebSDKSessionType: "cookie" | "refresh_token";
+  isAuthgearOnce: boolean;
   sentryDSN: string;
   appHostSuffix: string;
   availableLanguages: string[];
@@ -251,6 +252,7 @@ export function instantiateSystemConfig(
     authgearClientID: config.authgearClientID ?? "",
     authgearEndpoint: config.authgearEndpoint ?? "",
     authgearWebSDKSessionType: config.authgearWebSDKSessionType ?? "cookie",
+    isAuthgearOnce: config.isAuthgearOnce ?? false,
     sentryDSN: config.sentryDSN ?? "",
     appHostSuffix: config.appHostSuffix ?? "",
     availableLanguages: config.availableLanguages ?? [DEFAULT_TEMPLATE_LOCALE],
