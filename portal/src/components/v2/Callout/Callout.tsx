@@ -4,38 +4,33 @@ import {
   ExclamationTriangleIcon,
 } from "@radix-ui/react-icons";
 import { Callout as RadixCallout } from "@radix-ui/themes";
-import React, { ComponentProps, useCallback } from "react";
+import React, { useCallback } from "react";
 import styles from "./Callout.module.css";
-import { useToastContext, useToastProviderContext } from "./Toast";
+import { useMaybeToastContext, useToastProviderContext } from "../Toast/Toast";
 
-export enum CalloutType {
-  error = "error",
-  success = "success",
-}
+export type CalloutType = "error" | "success";
 
 export interface CalloutProps {
   type: CalloutType;
-  text?: React.ReactChild;
+  text?: React.ReactNode;
   showCloseButton?: boolean;
 }
 
-function typeToRadixColor(
-  type: CalloutType
-): ComponentProps<typeof RadixCallout.Root>["color"] {
+function typeToColor(type: CalloutType): string {
   switch (type) {
-    case CalloutType.error:
-      return "red";
-    case CalloutType.success:
-      return "green";
+    case "error":
+      return "semantics-error";
+    case "success":
+      return "semantics-success";
   }
 }
 
 function CalloutIcon({ color }: { color: CalloutType }) {
   switch (color) {
-    case CalloutType.error:
-      return <ExclamationTriangleIcon />;
-    case CalloutType.success:
-      return <CheckCircledIcon />;
+    case "error":
+      return <ExclamationTriangleIcon width="1rem" height="1rem" />;
+    case "success":
+      return <CheckCircledIcon width="1rem" height="1rem" />;
   }
 }
 
@@ -44,16 +39,16 @@ export function Callout({
   text,
   showCloseButton = true,
 }: CalloutProps): React.ReactElement {
-  const { setOpen } = useToastContext();
+  const toastContext = useMaybeToastContext();
 
   const onClose = useCallback(() => {
-    setOpen(false);
-  }, [setOpen]);
+    toastContext?.setOpen(false);
+  }, [toastContext]);
 
   return (
     <RadixCallout.Root
       className={styles.calloutRoot}
-      color={typeToRadixColor(type)}
+      data-accent-color={typeToColor(type)}
       size="2"
       variant="surface"
     >
@@ -69,7 +64,7 @@ export function Callout({
           onClick={onClose}
           className={styles.calloutAction}
         >
-          <Cross2Icon />
+          <Cross2Icon width="1rem" height="1rem" />
         </button>
       ) : null}
     </RadixCallout.Root>

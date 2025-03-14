@@ -5,6 +5,9 @@
 
   grid-template-areas: "icon text action";
   grid-template-columns: auto 1fr auto;
+
+  align-items: center;
+  width: 22.5rem;
 }
 
 .calloutIcon {
@@ -19,4 +22,5 @@
   grid-area: action;
   cursor: pointer;
   color: var(--accent-12);
+  line-height: 0px;
 }

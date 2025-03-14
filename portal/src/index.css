@@ -1,4 +1,5 @@
-@import "@radix-ui/themes/styles.css";
+@import "./tailwind.css";
+@import "./icons/authgear-portal-icons.css";
 
 /* Ensure the page is least as tall as the viewport */
 html,

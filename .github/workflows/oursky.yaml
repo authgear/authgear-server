@@ -6,6 +6,7 @@ on:
     - '*'
     - '!HEAD'
     - '!gh-pages'
+    - '!ui-review*'
     tags:
     - '*'
 

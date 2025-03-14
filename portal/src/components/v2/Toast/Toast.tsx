@@ -95,6 +95,11 @@ export function useToastContext(): ToastContext {
   return ctx;
 }
 
+export function useMaybeToastContext(): ToastContext | undefined {
+  const ctx = useContext(ToastCtx);
+  return ctx;
+}
+
 function ToastRoot({
   id,
   children,

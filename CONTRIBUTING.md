@@ -20,6 +20,7 @@
     * [Create a LDAP user](#create-a-ldap-user)
     * [Configure Authgear](#configure-authgear)
     * [Start with the profile ldap](#start-with-the-profile-ldap)
+  * [Storybooks](#storybooks)
 
 # Contributing guide
 
@@ -516,3 +517,10 @@ In case you need to switch to sessionType=cookie, you
 
 - Use `AUTHGEAR_WEB_SDK_SESSION_TYPE=cookie` in your .env
 - Access the portal at port 8001 or 8011
+
+# Storybooks
+
+
+|        |                                                                                                                                                                                                     |
+| ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Portal | [<img src="https://github.com/authgear/authgear-server/actions/workflows/chromatic.yaml/badge.svg?branch=ui-review-pending" />](https://ui-review-pending--67d2b9f5a864651d3793fe7e.chromatic.com/) |

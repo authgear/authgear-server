@@ -1,0 +1,44 @@
+name: Chromatic
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+on:
+  push:
+    branches:
+      - "ui-review*"
+      - "ui-review-pending"
+  workflow_dispatch: {}
+
+jobs:
+  setup-tag:
+    runs-on: ubuntu-24.04
+    if: ${{ github.repository == 'authgear/authgear-server' && github.event_name == 'workflow_dispatch'}}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - run: |
+          git push -f origin HEAD:ui-review-pending
+
+  deploy-portal-chromatic:
+    runs-on: ubuntu-24.04
+    if: ${{ github.repository == 'authgear/authgear-server' && github.event_name == 'push' }}
+    env:
+      CHROMATIC_PROJECT_TOKEN: "${{ secrets.PORTAL_CHROMATIC_TOKEN }}"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v3
+        with:
+          node-version: "20"
+      - run: npm ci
+        working-directory: ./portal
+      - run: make deploy-storybook
+        working-directory: ./portal

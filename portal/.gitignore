@@ -3,3 +3,5 @@ dist/*
 !dist/.gitkeep
 .parcel-cache/
 parcel-bundle-reports/
+
+*storybook.log
