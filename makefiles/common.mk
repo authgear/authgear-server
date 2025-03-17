@@ -56,31 +56,32 @@ build:
 	go build -o $(BIN_NAME) -tags "$(GO_BUILD_TAGS)" -ldflags ${LDFLAGS} ./cmd/$(TARGET)
 
 
-
 .PHONY: build-image
-build-image:
-DOCKERFILE ?= ./Dockerfile
-IMAGE_TAG_BASE ::= $(IMAGE_NAME):$(GIT_HASH)
-BUILD_OPTS ::=
+ifeq ($(origin DOCKERFILE), undefined)
+build-image: DOCKERFILE ::= ./Dockerfile
+endif
+
+build-image: BUILD_OPTS ::=
 ifeq ($(BUILD_ARCH),amd64)
-BUILD_OPTS += --platform linux/$(BUILD_ARCH)
+build-image: BUILD_OPTS += --platform linux/$(BUILD_ARCH)
 else ifeq ($(BUILD_ARCH),arm64)
-BUILD_OPTS += --platform linux/$(BUILD_ARCH)
+build-image: BUILD_OPTS += --platform linux/$(BUILD_ARCH)
 endif
 ifneq ($(OUTPUT),)
-BUILD_OPTS += --output=$(OUTPUT)
+build-image: BUILD_OPTS += --output=$(OUTPUT)
 endif
 ifneq ($(EXTRA_BUILD_OPTS),)
-BUILD_OPTS += $(EXTRA_BUILD_OPTS)
+build-image: BUILD_OPTS += $(EXTRA_BUILD_OPTS)
 endif
 ifneq ($(METADATA_FILE),)
-BUILD_OPTS += --metadata-file $(METADATA_FILE)
+build-image: BUILD_OPTS += --metadata-file $(METADATA_FILE)
 endif
+
+# Add --pull so that we are using the latest base image.
+# The build context is the parent directory
+# --provenance=false because we have no idea to figure out how to deal with the unknown manifest yet.
+# See https://github.com/authgear/authgear-server/pull/4943#discussion_r1891263998
 build-image:
-	@# Add --pull so that we are using the latest base image.
-	@# The build context is the parent directory
-	@# --provenance=false because we have no idea to figure out how to deal with the unknown manifest yet.
-	@# See https://github.com/authgear/authgear-server/pull/4943#discussion_r1891263998
 	docker build --pull \
 		--provenance=false \
 		--file "$(DOCKERFILE)" \
@@ -88,14 +89,14 @@ build-image:
 		--build-arg GIT_HASH=$(GIT_HASH) ${BUILD_CTX}
 
 .PHONY: tag-image
-tag-image:
-IMAGE_SOURCES ::=
-TAGS ::= --tag $(IMAGE_NAME):$(GIT_HASH)
+tag-image: TAGS ::= --tag $(IMAGE_NAME):$(GIT_HASH)
 ifneq (${GIT_TAG_NAME},)
-TAGS += --tag $(IMAGE_NAME):release-$(GIT_HASH)
-TAGS += --tag $(IMAGE_NAME):release-$(GIT_TAG_NAME)
+tag-image: TAGS += --tag $(IMAGE_NAME):release-$(GIT_HASH)
+tag-image: TAGS += --tag $(IMAGE_NAME):release-$(GIT_TAG_NAME)
 endif
-IMAGE_SOURCES := $(foreach digest,$(SOURCE_DIGESTS),${IMAGE_NAME}@${digest} )
+
+tag-image: IMAGE_SOURCES ::=
+tag-image: IMAGE_SOURCES := $(foreach digest,$(SOURCE_DIGESTS),${IMAGE_NAME}@${digest} )
 tag-image:
 	docker buildx imagetools create \
 		$(TAGS) \
