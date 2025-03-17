@@ -28,7 +28,6 @@ runs:
     env:
       DOCKERFILE: ${{ inputs.dockerfile }}
       IMAGE_NAME: ${{ inputs.image_name }}
-      REPO: ${{ inputs.docker_repo }}
       BUILD_ARCH: amd64
       EXTRA_BUILD_OPTS: '--ssh=default'
       OUTPUT: ${{ format('type=image,name={0},push-by-digest=true,name-canonical=true,push=true', inputs.image_name) }}
