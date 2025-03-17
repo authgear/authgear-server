@@ -7,6 +7,7 @@ import { Callout as RadixCallout } from "@radix-ui/themes";
 import React, { useCallback } from "react";
 import styles from "./Callout.module.css";
 import { useMaybeToastContext, useToastProviderContext } from "../Toast/Toast";
+import { semanticToRadixColor } from "../../../util/radix";
 
 export type CalloutType = "error" | "success";
 
@@ -16,12 +17,12 @@ export interface CalloutProps {
   showCloseButton?: boolean;
 }
 
-function typeToColor(type: CalloutType): string {
+function typeToSemantic(type: CalloutType) {
   switch (type) {
     case "error":
-      return "semantics-error";
+      return "error";
     case "success":
-      return "semantics-success";
+      return "success";
   }
 }
 
@@ -48,7 +49,7 @@ export function Callout({
   return (
     <RadixCallout.Root
       className={styles.calloutRoot}
-      data-accent-color={typeToColor(type)}
+      color={semanticToRadixColor(typeToSemantic(type))}
       size="2"
       variant="surface"
     >
