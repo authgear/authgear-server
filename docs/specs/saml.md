@@ -19,9 +19,10 @@
   - [Unsupported `NameIDFormat`](#3_3)
 - [Attributes](#4)
   - [Customizing the attributes](#4_1)
-  - [Use a hook to compute SAML attributes](#4_2)
-    - [Payload](#4_2_1)
-    - [Response](#4_2_2)
+  - [Use a go template to render SAML attributes](#4_2)
+  - [Use a hook to compute SAML attributes](#4_3)
+    - [Payload](#4_3_1)
+    - [Response](#4_3_2)
 - [Bindings](#5)
   - [Supported Bindings](#5_1)
   - [Unsupported Bindings](#5_2)
@@ -439,7 +440,12 @@ The `attributes` object under items of `service_providers` is used to customize 
   - `from_user_profile_attribute`: Required. A JSON pointer to a field of the user profile. A value will be read using the JSON pointer from the user profile. And write to the SAML attribute with `Name` specified by `to_saml_attribute`.
   - `to_saml_attribute`: Required. The `Name` of the SAML attribute to write the value.
 
-  2. A hook. It runs a hook to computes the resulting SAML attributes. See the below section [Use a hook to compute SAML attributes](#use-a-hook-to-compute-saml-attributes) for more details about the hook. The object contains the following fields:
+  2. A object uses go template to render a string as the value of a attribute. The object contains the following fields:
+
+  - `from_go_template`: Required. A go template which will be used to render the attribute. See the below section [Use a go template to render SAML attributes](#4_2) for more details and examples.
+  - `to_saml_attribute`: Required. The `Name` of the SAML attribute to write the value.
+
+  3. A hook. It runs a hook to computes the resulting SAML attributes. See the below section [Use a hook to compute SAML attributes](#4_3) for more details about the hook. The object contains the following fields:
 
   - `hook`: Required. The url of the hook to execute. It could be either a webhook url, or a deno hook. See [hook](./hook.md) for details.
 
@@ -455,13 +461,55 @@ The `attributes` object under items of `service_providers` is used to customize 
 
   The value in the SAML attribute with `Name` equal to `username` will be the phone number of the user.
 
-### <a id="4_2"></a> Use a hook to compute SAML attributes
+### <a id="4_2"></a> Use a go template to render SAML attributes
+
+You can provide a [go template](https://pkg.go.dev/text/template) to render a SAML attribute.
+
+The data provided to the go template is the user profile object.
+
+Here is an example:
+
+Given the following `attributes` config:
+
+```yaml
+attributes:
+  definitions:
+    - name: mail
+      name_format: urn:oasis:names:tc:SAML:2.0:attrname-format:basic
+  mappings:
+    - from_go_template: "{{.preferred_username}}@example.com"
+      to_saml_attribute: mail
+```
+
+With a user with the following profile:
+
+```jsonc
+{
+  "sub": "f9639c43-1529-4f7d-9468-451e91228010",
+  "preferred_username": "employee00001"
+}
+```
+
+The outputted SAML attribute will be:
+
+```xml
+<saml:Attribute
+  NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:basic"
+  Name="mail">
+  <saml:AttributeValue
+    xsi:type="xs:string">employee00001@example.com</saml:AttributeValue>
+</saml:Attribute>
+```
+
+Currently, only `xs:string` is supported as the type of the SAML attribute rendered by go template.
+
+### <a id="4_3"></a> Use a hook to compute SAML attributes
 
 You can either use a typescript deno hook, or a webhook to compute the SAML attributes.
 
 See the below sections for the payload the hook receives, and the expected response.
 
-#### <a id="4_2_1"></a> Payload
+#### <a id="4_3_1"></a> Payload
 
 The hook will receive an object, containing the following fields:
 
@@ -489,7 +537,7 @@ Here is an example of the payload:
 }
 ```
 
-#### <a id="4_2_2"></a> Response
+#### <a id="4_3_2"></a> Response
 
 The hook is expected to return a object, which the key is the `Name` of the SAML attribute, and the value is the value of the SAML attribute.
 
