@@ -35,14 +35,9 @@ runs:
       printf "$DOCKER_PASSWORD" | docker login --password-stdin --username "$DOCKER_USERNAME" $DOCKER_REGISTRY
   - id: build_image
     run: |
-      METADATA_FILE="$(mktemp).json"
+      export METADATA_FILE="$(mktemp).json"
       echo "METADATA_FILE=$METADATA_FILE"
-      make build-image \
-        BUILD_ARCH=$BUILD_ARCH \
-        OUTPUT=$OUTPUT \
-        TARGET=$TARGET \
-        IMAGE_NAME=$IMAGE_NAME \
-        METADATA_FILE="$METADATA_FILE"
+      make build-image
       (set -x && cat "$METADATA_FILE")
       DIGEST="$(jq < "$METADATA_FILE" '.["containerimage.digest"]' -r)"
       echo "image_digest=$DIGEST" >> "$GITHUB_OUTPUT"
@@ -50,7 +45,7 @@ runs:
     env:
       TARGET: ${{ inputs.target }}
       IMAGE_NAME: ${{ inputs.image_name }}
-      OUTPUT: ${{ (inputs.push_image == 'true') && 'type=image,name=$$IMAGE_NAME,push-by-digest=true,name-canonical=true,push=true' || ''}}
+      OUTPUT: ${{ (inputs.push_image == 'true') && format('type=image,name={0},push-by-digest=true,name-canonical=true,push=true', inputs.image_name) || '' }}
       BUILD_ARCH: ${{ inputs.build_arch }}
   - name: docker logout
     if: ${{ always() }}
