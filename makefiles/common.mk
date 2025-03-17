@@ -1,19 +1,3 @@
-# The use of variables
-#
-# We use simply expanded variables in this Makefile.
-#
-# This means
-# 1. You use ::= instead of = because = defines a recursively expanded variable.
-#    See https://www.gnu.org/software/make/manual/html_node/Simple-Assignment.html
-# 2. You use ::= instead of := because ::= is a POSIX standard.
-#    See https://www.gnu.org/software/make/manual/html_node/Simple-Assignment.html
-# 3. You do not use ?= because it is shorthand to define a recursively expanded variable.
-#    See https://www.gnu.org/software/make/manual/html_node/Conditional-Assignment.html
-#    You should use the long form documented in the above link instead.
-# 4. When you override a variable in the command line, as documented in https://www.gnu.org/software/make/manual/html_node/Overriding.html
-#    you specify the variable with ::= instead of = or :=
-#    If you fail to do so, the variable becomes recursively expanded variable accidentally.
-#
 ifeq ($(origin GIT_HASH), undefined)
 GIT_HASH ::= git-$(shell git rev-parse --short=12 HEAD)
 endif
