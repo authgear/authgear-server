@@ -59,6 +59,7 @@ build:
 
 .PHONY: build-image
 build-image:
+DOCKERFILE ?= ./Dockerfile
 IMAGE_TAG_BASE ::= $(IMAGE_NAME):$(GIT_HASH)
 BUILD_OPTS ::=
 ifeq ($(BUILD_ARCH),amd64)
@@ -82,7 +83,7 @@ build-image:
 	@# See https://github.com/authgear/authgear-server/pull/4943#discussion_r1891263998
 	docker build --pull \
 		--provenance=false \
-		--file ./cmd/$(TARGET)/Dockerfile \
+		--file "$(DOCKERFILE)" \
 		$(BUILD_OPTS) \
 		--build-arg GIT_HASH=$(GIT_HASH) ${BUILD_CTX}
 

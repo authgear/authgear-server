@@ -66,7 +66,7 @@ jobs:
     - name: Build and push to HK
       uses: ./.github/actions/build-custom-image
       with:
-        target: authgearx
+        dockerfile: ./cmd/authgearx/Dockerfile
         image_name: "${{ secrets.AUTHGEAR_CUSTOM_BUILD_REPO_PREFIX_HK }}/authgear-server"
         gcp_project_id: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_GOOGLE_PROJECT_ID_HK }}
         gcp_workload_identity_provider: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_GOOGLE_WORKLOAD_IDENTITY_PROVIDER_HK }}
@@ -75,7 +75,7 @@ jobs:
     - name: Build and push to US
       uses: ./.github/actions/build-custom-image
       with:
-        target: authgearx
+        dockerfile: ./cmd/authgearx/Dockerfile
         image_name: "${{ secrets.AUTHGEAR_CUSTOM_BUILD_REPO_PREFIX_US }}/authgear-server"
         gcp_project_id: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_GOOGLE_PROJECT_ID_US }}
         gcp_workload_identity_provider: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_GOOGLE_WORKLOAD_IDENTITY_PROVIDER_US }}
@@ -117,7 +117,7 @@ jobs:
     - name: Build and push to HK
       uses: ./.github/actions/build-custom-image
       with:
-        target: portalx
+        dockerfile: ./cmd/portalx/Dockerfile
         image_name: "${{ secrets.AUTHGEAR_CUSTOM_BUILD_REPO_PREFIX_HK }}/authgear-portal"
         gcp_project_id: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_GOOGLE_PROJECT_ID_HK }}
         gcp_workload_identity_provider: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_GOOGLE_WORKLOAD_IDENTITY_PROVIDER_HK }}
@@ -126,7 +126,7 @@ jobs:
     - name: Build and push to US
       uses: ./.github/actions/build-custom-image
       with:
-        target: portalx
+        dockerfile: ./cmd/portalx/Dockerfile
         image_name: "${{ secrets.AUTHGEAR_CUSTOM_BUILD_REPO_PREFIX_US }}/authgear-portal"
         gcp_project_id: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_GOOGLE_PROJECT_ID_US }}
         gcp_workload_identity_provider: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_GOOGLE_WORKLOAD_IDENTITY_PROVIDER_US }}

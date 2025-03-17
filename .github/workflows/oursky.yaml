@@ -34,7 +34,7 @@ jobs:
     - uses: ./.github/actions/docker-buildx-create
     - name: Build and Push
       env:
-        TARGET: authgearx
+        DOCKERFILE: ./cmd/authgearx/Dockerfile
         BUILD_ARCH: amd64
         IMAGE_NAME: ${{ format('{0}/authgear-server', secrets.AUTHGEAR_CUSTOM_BUILD_REPO_PREFIX) }}
         OUTPUT: ${{ format('type=image,name={0}/authgear-server,push-by-digest=true,name-canonical=true,push=true', secrets.AUTHGEAR_CUSTOM_BUILD_REPO_PREFIX) }}
@@ -77,7 +77,7 @@ jobs:
     - uses: ./.github/actions/docker-buildx-create
     - name: Build and Push
       env:
-        TARGET: portalx
+        DOCKERFILE: ./cmd/portalx/Dockerfile
         BUILD_ARCH: amd64
         IMAGE_NAME: ${{ format('{0}/authgear-portal', secrets.AUTHGEAR_CUSTOM_BUILD_REPO_PREFIX) }}
         OUTPUT: ${{ format('type=image,name={0}/authgear-portal,push-by-digest=true,name-canonical=true,push=true', secrets.AUTHGEAR_CUSTOM_BUILD_REPO_PREFIX) }}

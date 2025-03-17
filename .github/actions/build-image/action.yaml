@@ -1,6 +1,6 @@
 name: Build image
 inputs:
-  target:
+  dockerfile:
     required: true
   image_name:
     required: true
@@ -43,7 +43,7 @@ runs:
       echo "image_digest=$DIGEST" >> "$GITHUB_OUTPUT"
     shell: bash
     env:
-      TARGET: ${{ inputs.target }}
+      DOCKERFILE: ${{ inputs.dockerfile }}
       IMAGE_NAME: ${{ inputs.image_name }}
       OUTPUT: ${{ (inputs.push_image == 'true') && format('type=image,name={0},push-by-digest=true,name-canonical=true,push=true', inputs.image_name) || '' }}
       BUILD_ARCH: ${{ inputs.build_arch }}

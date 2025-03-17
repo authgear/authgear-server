@@ -1,6 +1,6 @@
 name: Build custom image
 inputs:
-  target:
+  dockerfile:
     required: true
   image_name:
     required: true
@@ -26,7 +26,7 @@ runs:
       gcloud auth configure-docker "$REPO"
   - name: Build and Push
     env:
-      TARGET: ${{ inputs.target }}
+      DOCKERFILE: ${{ inputs.dockerfile }}
       IMAGE_NAME: ${{ inputs.image_name }}
       REPO: ${{ inputs.docker_repo }}
       BUILD_ARCH: amd64
