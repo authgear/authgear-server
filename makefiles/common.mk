@@ -15,10 +15,10 @@
 #    If you fail to do so, the variable becomes recursively expanded variable accidentally.
 #
 ifeq ($(origin GIT_HASH), undefined)
-	GIT_HASH ::= git-$(shell git rev-parse --short=12 HEAD)
+GIT_HASH ::= git-$(shell git rev-parse --short=12 HEAD)
 endif
 ifeq ($(origin LDFLAGS), undefined)
-	LDFLAGS ::= "-X github.com/authgear/authgear-server/pkg/version.Version=${GIT_HASH}"
+LDFLAGS ::= "-X github.com/authgear/authgear-server/pkg/version.Version=${GIT_HASH}"
 endif
 
 
@@ -32,10 +32,10 @@ GO_BUILD_TAGS ::= osusergo netgo static_build timetzdata
 # we use a simpler mechanism to append to GO_BUILD_TAGS.
 # We define AUTHGEARLITE and AUTHGEARONCE, and if they are 1, then the corresponding build tag is appended.
 ifeq ($(AUTHGEARLITE), 1)
-	GO_BUILD_TAGS += authgearlite
+GO_BUILD_TAGS += authgearlite
 endif
 ifeq ($(AUTHGEARONCE), 1)
-	GO_BUILD_TAGS += authgearonce
+GO_BUILD_TAGS += authgearonce
 endif
 # authgeardev: This build tag represents the build is for local development purpose.
 #              Currently, it affects whether the builtin resource FS uses OS FS or embed.FS.
