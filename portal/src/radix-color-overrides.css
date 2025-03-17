@@ -1,0 +1,79 @@
+/* This file defines our own custom color palette */
+/* https://www.figma.com/design/wAIzBnO9un4fYcq5ampR5k/Radix-Themes-(Storybook)?node-id=3795-92063&t=hD90rcrEF95c6rUb-0 */
+/* All colors should be generated from https://www.radix-ui.com/colors/custom */
+
+/* stylelint-disable no-duplicate-selectors -- We always have dupliacted selectors in this file */
+
+:root,
+.light,
+.light-theme {
+  --indigo-1: #fcfdff;
+  --indigo-2: #f5f9ff;
+  --indigo-3: #eaf3ff;
+  --indigo-4: #dbebff;
+  --indigo-5: #c9e1ff;
+  --indigo-6: #b4d4ff;
+  --indigo-7: #9bc2ff;
+  --indigo-8: #76a9fc;
+  --indigo-9: #176df3;
+  --indigo-10: #055fe1;
+  --indigo-11: #0e64e6;
+  --indigo-12: #0d2f68;
+
+  --indigo-a1: #0055ff03;
+  --indigo-a2: #0066ff0a;
+  --indigo-a3: #006eff15;
+  --indigo-a4: #0072ff24;
+  --indigo-a5: #0072ff36;
+  --indigo-a6: #016dff4b;
+  --indigo-a7: #0064ff64;
+  --indigo-a8: #005ffa89;
+  --indigo-a9: #005ff2e8;
+  --indigo-a10: #005ce0fa;
+  --indigo-a11: #005be5f1;
+  --indigo-a12: #002460f2;
+
+  --indigo-contrast: #fff;
+  --indigo-surface: #f3f8ffcc;
+  --indigo-indicator: #176df3;
+  --indigo-track: #176df3;
+}
+
+@supports (color: color(display-p3 1 1 1)) {
+  @media (color-gamut: p3) {
+    :root,
+    .light,
+    .light-theme {
+      --indigo-1: oklch(99.4% 0.003 260.1);
+      --indigo-2: oklch(98.2% 0.0102 260.1);
+      --indigo-3: oklch(96% 0.0212 260.1);
+      --indigo-4: oklch(93.7% 0.0405 260.1);
+      --indigo-5: oklch(90.5% 0.0596 260.1);
+      --indigo-6: oklch(86.4% 0.0785 260.1);
+      --indigo-7: oklch(80.8% 0.0993 260.1);
+      --indigo-8: oklch(73.3% 0.1339 260.1);
+      --indigo-9: oklch(56.9% 0.2159 260.1);
+      --indigo-10: oklch(52.5% 0.2113 260.1);
+      --indigo-11: oklch(54.1% 0.2113 260.1);
+      --indigo-12: oklch(32% 0.1072 260.1);
+
+      --indigo-a1: color(display-p3 0.0235 0.349 1 / 0.012);
+      --indigo-a2: color(display-p3 0.0235 0.349 0.8941 / 0.036);
+      --indigo-a3: color(display-p3 0.0078 0.3725 0.949 / 0.075);
+      --indigo-a4: color(display-p3 0.0078 0.3686 0.9412 / 0.13);
+      --indigo-a5: color(display-p3 0.0078 0.3725 0.9412 / 0.193);
+      --indigo-a6: color(display-p3 0.0039 0.3647 0.9451 / 0.271);
+      --indigo-a7: color(display-p3 0.0039 0.3294 0.949 / 0.361);
+      --indigo-a8: color(display-p3 0.0039 0.3098 0.9294 / 0.495);
+      --indigo-a9: color(display-p3 0 0.2706 0.902 / 0.797);
+      --indigo-a10: color(display-p3 0 0.2471 0.8235 / 0.844);
+      --indigo-a11: color(display-p3 0 0.251 0.8431 / 0.824);
+      --indigo-a12: color(display-p3 0 0.098 0.3333 / 0.91);
+
+      --indigo-contrast: #fff;
+      --indigo-surface: color(display-p3 0.9569 0.9725 1 / 0.8);
+      --indigo-indicator: oklch(56.9% 0.2159 260.1);
+      --indigo-track: oklch(56.9% 0.2159 260.1);
+    }
+  }
+}
