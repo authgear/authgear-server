@@ -9,8 +9,8 @@ import ShowLoading from "./ShowLoading";
 import { useUnauthenticatedDialogContext } from "./components/auth/UnauthenticatedDialogContext";
 import { useUIImplementation } from "./hook/useUIImplementation";
 import { useSystemConfig } from "./context/SystemConfigContext";
-import { Theme } from "@radix-ui/themes";
 import { ToastProvider } from "./components/v2/Toast/Toast";
+import { ThemeProvider } from "./components/v2/ThemeProvider/ThemeProvider";
 
 const RolesScreen = lazy(async () => import("./graphql/adminapi/RolesScreen"));
 const AddRoleScreen = lazy(
@@ -220,8 +220,7 @@ const AppRoot: React.VFC = function AppRoot() {
   const useAuthUIV2 = uiImplementation === "authflowv2";
 
   return (
-    // We only want Theme as a variable and context provider, and don't want it to affect the layout
-    <Theme className="contents">
+    <ThemeProvider>
       <ToastProvider>
         <ApolloProvider client={client}>
           <ScreenLayout>
@@ -878,7 +877,7 @@ const AppRoot: React.VFC = function AppRoot() {
           </ScreenLayout>
         </ApolloProvider>
       </ToastProvider>
-    </Theme>
+    </ThemeProvider>
   );
 };
 
