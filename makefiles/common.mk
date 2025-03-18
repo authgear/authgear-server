@@ -1,24 +1,8 @@
-# The use of variables
-#
-# We use simply expanded variables in this Makefile.
-#
-# This means
-# 1. You use ::= instead of = because = defines a recursively expanded variable.
-#    See https://www.gnu.org/software/make/manual/html_node/Simple-Assignment.html
-# 2. You use ::= instead of := because ::= is a POSIX standard.
-#    See https://www.gnu.org/software/make/manual/html_node/Simple-Assignment.html
-# 3. You do not use ?= because it is shorthand to define a recursively expanded variable.
-#    See https://www.gnu.org/software/make/manual/html_node/Conditional-Assignment.html
-#    You should use the long form documented in the above link instead.
-# 4. When you override a variable in the command line, as documented in https://www.gnu.org/software/make/manual/html_node/Overriding.html
-#    you specify the variable with ::= instead of = or :=
-#    If you fail to do so, the variable becomes recursively expanded variable accidentally.
-#
 ifeq ($(origin GIT_HASH), undefined)
-	GIT_HASH ::= git-$(shell git rev-parse --short=12 HEAD)
+GIT_HASH ::= git-$(shell git rev-parse --short=12 HEAD)
 endif
 ifeq ($(origin LDFLAGS), undefined)
-	LDFLAGS ::= "-X github.com/authgear/authgear-server/pkg/version.Version=${GIT_HASH}"
+LDFLAGS ::= "-X github.com/authgear/authgear-server/pkg/version.Version=${GIT_HASH}"
 endif
 
 
@@ -32,10 +16,10 @@ GO_BUILD_TAGS ::= osusergo netgo static_build timetzdata
 # we use a simpler mechanism to append to GO_BUILD_TAGS.
 # We define AUTHGEARLITE and AUTHGEARONCE, and if they are 1, then the corresponding build tag is appended.
 ifeq ($(AUTHGEARLITE), 1)
-	GO_BUILD_TAGS += authgearlite
+GO_BUILD_TAGS += authgearlite
 endif
 ifeq ($(AUTHGEARONCE), 1)
-	GO_BUILD_TAGS += authgearonce
+GO_BUILD_TAGS += authgearonce
 endif
 # authgeardev: This build tag represents the build is for local development purpose.
 #              Currently, it affects whether the builtin resource FS uses OS FS or embed.FS.
@@ -56,45 +40,47 @@ build:
 	go build -o $(BIN_NAME) -tags "$(GO_BUILD_TAGS)" -ldflags ${LDFLAGS} ./cmd/$(TARGET)
 
 
-
 .PHONY: build-image
-build-image:
-IMAGE_TAG_BASE ::= $(IMAGE_NAME):$(GIT_HASH)
-BUILD_OPTS ::=
+ifeq ($(origin DOCKERFILE), undefined)
+build-image: DOCKERFILE ::= ./Dockerfile
+endif
+
+build-image: BUILD_OPTS ::=
 ifeq ($(BUILD_ARCH),amd64)
-BUILD_OPTS += --platform linux/$(BUILD_ARCH)
+build-image: BUILD_OPTS += --platform linux/$(BUILD_ARCH)
 else ifeq ($(BUILD_ARCH),arm64)
-BUILD_OPTS += --platform linux/$(BUILD_ARCH)
+build-image: BUILD_OPTS += --platform linux/$(BUILD_ARCH)
 endif
 ifneq ($(OUTPUT),)
-BUILD_OPTS += --output=$(OUTPUT)
+build-image: BUILD_OPTS += --output=$(OUTPUT)
 endif
 ifneq ($(EXTRA_BUILD_OPTS),)
-BUILD_OPTS += $(EXTRA_BUILD_OPTS)
+build-image: BUILD_OPTS += $(EXTRA_BUILD_OPTS)
 endif
 ifneq ($(METADATA_FILE),)
-BUILD_OPTS += --metadata-file $(METADATA_FILE)
+build-image: BUILD_OPTS += --metadata-file $(METADATA_FILE)
 endif
+
+# Add --pull so that we are using the latest base image.
+# The build context is the parent directory
+# --provenance=false because we have no idea to figure out how to deal with the unknown manifest yet.
+# See https://github.com/authgear/authgear-server/pull/4943#discussion_r1891263998
 build-image:
-	@# Add --pull so that we are using the latest base image.
-	@# The build context is the parent directory
-	@# --provenance=false because we have no idea to figure out how to deal with the unknown manifest yet.
-	@# See https://github.com/authgear/authgear-server/pull/4943#discussion_r1891263998
 	docker build --pull \
 		--provenance=false \
-		--file ./cmd/$(TARGET)/Dockerfile \
+		--file "$(DOCKERFILE)" \
 		$(BUILD_OPTS) \
 		--build-arg GIT_HASH=$(GIT_HASH) ${BUILD_CTX}
 
 .PHONY: tag-image
-tag-image:
-IMAGE_SOURCES ::=
-TAGS ::= --tag $(IMAGE_NAME):$(GIT_HASH)
+tag-image: TAGS ::= --tag $(IMAGE_NAME):$(GIT_HASH)
 ifneq (${GIT_TAG_NAME},)
-TAGS += --tag $(IMAGE_NAME):release-$(GIT_HASH)
-TAGS += --tag $(IMAGE_NAME):release-$(GIT_TAG_NAME)
+tag-image: TAGS += --tag $(IMAGE_NAME):release-$(GIT_HASH)
+tag-image: TAGS += --tag $(IMAGE_NAME):release-$(GIT_TAG_NAME)
 endif
-IMAGE_SOURCES := $(foreach digest,$(SOURCE_DIGESTS),${IMAGE_NAME}@${digest} )
+
+tag-image: IMAGE_SOURCES ::=
+tag-image: IMAGE_SOURCES := $(foreach digest,$(SOURCE_DIGESTS),${IMAGE_NAME}@${digest} )
 tag-image:
 	docker buildx imagetools create \
 		$(TAGS) \

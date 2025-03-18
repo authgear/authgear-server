@@ -14,6 +14,7 @@ import { AppListItem, Viewer } from "./globalTypes.generated";
 import styles from "./AppsScreen.module.css";
 import { useCapture } from "../../gtm_v2";
 import { toTypedID } from "../../util/graphql";
+import { useSystemConfig } from "../../context/SystemConfigContext";
 
 interface AppCardData {
   appName: string;
@@ -88,18 +89,12 @@ interface AppListProps {
 }
 
 const AppList: React.VFC<AppListProps> = function AppList(props: AppListProps) {
-  const { apps, viewer } = props;
+  const { apps: unfilteredApps, viewer } = props;
   const projectQuotaReached = isProjectQuotaReached(viewer);
   const navigate = useNavigate();
+  const { authgearAppID, isAuthgearOnce } = useSystemConfig();
 
-  useEffect(() => {
-    if (
-      (apps === null || apps.length === 0) &&
-      !viewer.isOnboardingSurveyCompleted
-    ) {
-      navigate("/onboarding-survey");
-    }
-  }, [apps, viewer, navigate]);
+  const createButtonDisabled = projectQuotaReached || isAuthgearOnce;
 
   const onCreateClick = useCallback(
     (e) => {
@@ -110,8 +105,23 @@ const AppList: React.VFC<AppListProps> = function AppList(props: AppListProps) {
     [navigate]
   );
 
+  const apps = useMemo(() => {
+    return (unfilteredApps ?? []).filter((a) => {
+      if (isAuthgearOnce && a.appID === authgearAppID) {
+        return false;
+      }
+      return true;
+    });
+  }, [unfilteredApps, isAuthgearOnce, authgearAppID]);
+
+  useEffect(() => {
+    if (apps.length === 0 && !viewer.isOnboardingSurveyCompleted) {
+      navigate("/onboarding-survey");
+    }
+  }, [apps.length, viewer.isOnboardingSurveyCompleted, navigate]);
+
   const appCardsData: AppCardData[] = useMemo(() => {
-    return (apps ?? []).map((app) => {
+    return apps.map((app) => {
       const appID = app.appID;
       const appOrigin = app.publicOrigin;
       const typedID = toTypedID("App", appID);
@@ -137,15 +147,17 @@ const AppList: React.VFC<AppListProps> = function AppList(props: AppListProps) {
               return <AppCard key={appCardData.appID} {...appCardData} />;
             })}
           </section>
-          <div className="space-y-4">
-            <PrimaryButton
-              className={styles.createButton}
-              onClick={onCreateClick}
-              text={<FormattedMessage id="AppsScreen.create-app" />}
-              disabled={projectQuotaReached}
-            />
-            <ProjectQuotaMessageBar viewer={viewer} />
-          </div>
+          {!isAuthgearOnce ? (
+            <div className="space-y-4">
+              <PrimaryButton
+                className={styles.createButton}
+                onClick={onCreateClick}
+                text={<FormattedMessage id="AppsScreen.create-app" />}
+                disabled={createButtonDisabled}
+              />
+              <ProjectQuotaMessageBar viewer={viewer} />
+            </div>
+          ) : null}
         </section>
       </ScreenLayoutScrollView>
     </main>

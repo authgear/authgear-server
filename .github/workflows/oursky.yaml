@@ -34,21 +34,18 @@ jobs:
     - uses: ./.github/actions/docker-buildx-create
     - name: Build and Push
       env:
-        REPO_PREFIX: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_REPO_PREFIX }}
+        DOCKERFILE: ./cmd/authgearx/Dockerfile
+        BUILD_ARCH: amd64
+        IMAGE_NAME: ${{ format('{0}/authgear-server', secrets.AUTHGEAR_CUSTOM_BUILD_REPO_PREFIX) }}
+        OUTPUT: ${{ format('type=image,name={0}/authgear-server,push-by-digest=true,name-canonical=true,push=true', secrets.AUTHGEAR_CUSTOM_BUILD_REPO_PREFIX) }}
+        EXTRA_BUILD_OPTS: '--ssh=default'
       run: |
-        METADATA_FILE="$(mktemp).json"
+        export METADATA_FILE="$(mktemp).json"
         echo "METADATA_FILE=$METADATA_FILE"
-        IMAGE_NAME="$REPO_PREFIX/authgear-server"
-        make -C custombuild build-image \
-          TARGET=authgearx \
-          BUILD_ARCH=amd64 \
-          OUTPUT="type=image,name=$IMAGE_NAME,push-by-digest=true,name-canonical=true,push=true" \
-          IMAGE_NAME=$IMAGE_NAME \
-          METADATA_FILE="$METADATA_FILE" \
-          EXTRA_BUILD_OPTS="--ssh=default"
+        make -C custombuild build-image
         (set -x && cat "$METADATA_FILE")
-        DIGEST="$(jq < "$METADATA_FILE" '.["containerimage.digest"]' -r)"
-        make -C custombuild tag-image SOURCE_DIGESTS="$DIGEST" IMAGE_NAME=$IMAGE_NAME
+        export SOURCE_DIGESTS="$(jq < "$METADATA_FILE" '.["containerimage.digest"]' -r)"
+        make -C custombuild tag-image
     - name: Clean up SSH key
       if: ${{ always() }}
       run: |
@@ -80,21 +77,18 @@ jobs:
     - uses: ./.github/actions/docker-buildx-create
     - name: Build and Push
       env:
-        REPO_PREFIX: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_REPO_PREFIX }}
+        DOCKERFILE: ./cmd/portalx/Dockerfile
+        BUILD_ARCH: amd64
+        IMAGE_NAME: ${{ format('{0}/authgear-portal', secrets.AUTHGEAR_CUSTOM_BUILD_REPO_PREFIX) }}
+        OUTPUT: ${{ format('type=image,name={0}/authgear-portal,push-by-digest=true,name-canonical=true,push=true', secrets.AUTHGEAR_CUSTOM_BUILD_REPO_PREFIX) }}
+        EXTRA_BUILD_OPTS: '--ssh=default'
       run: |
-        METADATA_FILE="$(mktemp).json"
+        export METADATA_FILE="$(mktemp).json"
         echo "METADATA_FILE=$METADATA_FILE"
-        IMAGE_NAME="$REPO_PREFIX/authgear-portal"
-        make -C custombuild build-image \
-          TARGET=portalx \
-          BUILD_ARCH=amd64 \
-          OUTPUT="type=image,name=$IMAGE_NAME,push-by-digest=true,name-canonical=true,push=true" \
-          IMAGE_NAME=$IMAGE_NAME \
-          METADATA_FILE="$METADATA_FILE" \
-          EXTRA_BUILD_OPTS="--ssh=default"
+        make -C custombuild build-image
         (set -x && cat "$METADATA_FILE")
-        DIGEST="$(jq < "$METADATA_FILE" '.["containerimage.digest"]' -r)"
-        make -C custombuild tag-image SOURCE_DIGESTS="$DIGEST" IMAGE_NAME=$IMAGE_NAME
+        export SOURCE_DIGESTS="$(jq < "$METADATA_FILE" '.["containerimage.digest"]' -r)"
+        make -C custombuild tag-image
     - name: Clean up SSH key
       if: ${{ always() }}
       run: |

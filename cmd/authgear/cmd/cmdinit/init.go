@@ -2,6 +2,7 @@ package cmdinit
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"os"
 	"time"
@@ -21,6 +22,24 @@ var cmdInit = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := cmd.Context()
 
+		forHelmChart, err := cmd.Flags().GetBool("for-helm-chart")
+		if err != nil {
+			return err
+		}
+
+		purpose, err := cmd.Flags().GetString("purpose")
+		if err != nil {
+			return err
+		}
+		switch purpose {
+		case "portal":
+			break
+		case "project":
+			break
+		default:
+			return fmt.Errorf("invalid purpose: %v", purpose)
+		}
+
 		binder := authgearcmd.GetBinder()
 		outputFolderPath := binder.GetString(cmd, authgearcmd.ArgOutputFolder)
 		if outputFolderPath == "" {
@@ -29,11 +48,6 @@ var cmdInit = &cobra.Command{
 
 		// obtain options
 		appConfigOpts, err := config.ReadAppConfigOptionsFromConsole(ctx, cmd)
-		if err != nil {
-			return err
-		}
-
-		oauthClientConfigOpts, err := config.ReadOAuthClientConfigsFromConsole(ctx, cmd)
 		if err != nil {
 			return err
 		}
@@ -53,8 +67,16 @@ var cmdInit = &cobra.Command{
 			return err
 		}
 
+		var oauthClientConfigOpts *libconfig.GenerateOAuthClientConfigOptions
+		if purpose == "portal" {
+			oauthClientConfigOpts, err = config.ReadOAuthClientConfigsFromConsole(ctx, cmd)
+			if err != nil {
+				return err
+			}
+		}
+
 		var appSecretsOpts *libconfig.GenerateSecretConfigOptions
-		if forHelmChart, err := cmd.Flags().GetBool("for-helm-chart"); err == nil && forHelmChart {
+		if forHelmChart {
 			// Skip all the db, redis, elasticsearch credentials
 			// Those are provided via the helm chart
 			appSecretsOpts = &libconfig.GenerateSecretConfigOptions{}
@@ -69,16 +91,17 @@ var cmdInit = &cobra.Command{
 		appConfig := libconfig.GenerateAppConfigFromOptions(appConfigOpts)
 
 		// generate oauth client for the portal
-		oauthClientConfig, err := libconfig.GenerateOAuthConfigFromOptions(oauthClientConfigOpts)
-		if err != nil {
-			return err
+		if oauthClientConfigOpts != nil {
+			oauthClientConfig, err := libconfig.GenerateOAuthConfigFromOptions(oauthClientConfigOpts)
+			if err != nil {
+				return err
+			}
+			// assign oauth client to app config
+			if appConfig.OAuth == nil {
+				appConfig.OAuth = &libconfig.OAuthConfig{}
+			}
+			appConfig.OAuth.Clients = append(appConfig.OAuth.Clients, *oauthClientConfig)
 		}
-
-		// assign oauth client to app config
-		if appConfig.OAuth == nil {
-			appConfig.OAuth = &libconfig.OAuthConfig{}
-		}
-		appConfig.OAuth.Clients = append(appConfig.OAuth.Clients, *oauthClientConfig)
 
 		// assign phone otp mode to app config
 		appConfig.Authenticator = &libconfig.AuthenticatorConfig{
@@ -141,6 +164,7 @@ func init() {
 
 	binder.BindString(cmdInit.PersistentFlags(), authgearcmd.ArgOutputFolder)
 	_ = cmdInit.Flags().Bool("for-helm-chart", false, "Generate config for helm chart deployment")
+	_ = cmdInit.Flags().String("purpose", "portal", "The purpose of the project: portal, project")
 	_ = cmdInit.Flags().Bool("overwrite", false, "overwrite files if they exist already")
 
 	cliutil.DefineFlagInteractive(cmdInit)

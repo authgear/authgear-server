@@ -21,7 +21,7 @@ jobs:
     - id: build_image
       uses: ./.github/actions/build-image
       with:
-        target: authgear
+        dockerfile: ./cmd/authgear/Dockerfile
         image_name: quay.io/theauthgear/authgear-server
         push_image: "${{ env.PUSH_IMAGE }}"
         build_arch: amd64
@@ -40,7 +40,7 @@ jobs:
     - id: build_image
       uses: ./.github/actions/build-image
       with:
-        target: authgear
+        dockerfile: ./cmd/authgear/Dockerfile
         image_name: quay.io/theauthgear/authgear-server
         push_image: "${{ env.PUSH_IMAGE }}"
         build_arch: arm64
@@ -53,11 +53,9 @@ jobs:
     runs-on: ubuntu-24.04
     needs: ["authgear-image-amd64", "authgear-image-arm64"]
     env:
-      TARGET: authgear
       IMAGE_NAME: quay.io/theauthgear/authgear-server
       PUSH_IMAGE: "${{ (github.repository == 'authgear/authgear-server' && github.event_name == 'push') && 'true' || 'false' }}"
-      AMD64_DIGEST: "${{needs.authgear-image-amd64.outputs.image_digest}}"
-      ARM64_DIGEST: "${{needs.authgear-image-arm64.outputs.image_digest}}"
+      SOURCE_DIGESTS: ${{ format('{0} {1}', needs.authgear-image-amd64.outputs.image_digest, needs.authgear-image-arm64.outputs.image_digest) }}
     steps:
     - uses: actions/checkout@v4
     - uses: ./.github/actions/set-git-tag-name
@@ -71,7 +69,7 @@ jobs:
         DOCKER_PASSWORD: ${{ secrets.QUAY_ROBOT_TOKEN }}
       run: |
         printf "$DOCKER_PASSWORD" | docker login --password-stdin --username "$DOCKER_USERNAME" quay.io
-    - run: make tag-image SOURCE_DIGESTS="$AMD64_DIGEST $ARM64_DIGEST" IMAGE_NAME=$IMAGE_NAME
+    - run: make tag-image
     - name: docker logout
       if: ${{ always() }}
       run: |
@@ -90,7 +88,7 @@ jobs:
     - id: build_image
       uses: ./.github/actions/build-image
       with:
-        target: portal
+        dockerfile: ./cmd/portal/Dockerfile
         image_name: quay.io/theauthgear/authgear-portal
         push_image: "${{ env.PUSH_IMAGE }}"
         build_arch: amd64
@@ -110,7 +108,7 @@ jobs:
     - id: build_image
       uses: ./.github/actions/build-image
       with:
-        target: portal
+        dockerfile: ./cmd/portal/Dockerfile
         image_name: quay.io/theauthgear/authgear-portal
         push_image: "${{ env.PUSH_IMAGE }}"
         build_arch: arm64
@@ -123,11 +121,9 @@ jobs:
     runs-on: ubuntu-24.04
     needs: ["portal-image-amd64", "portal-image-arm64"]
     env:
-      TARGET: authgear
       IMAGE_NAME: quay.io/theauthgear/authgear-portal
       PUSH_IMAGE: "${{ (github.repository == 'authgear/authgear-server' && github.event_name == 'push') && 'true' || 'false' }}"
-      AMD64_DIGEST: "${{needs.portal-image-amd64.outputs.image_digest}}"
-      ARM64_DIGEST: "${{needs.portal-image-arm64.outputs.image_digest}}"
+      SOURCE_DIGESTS: ${{ format('{0} {1}', needs.portal-image-amd64.outputs.image_digest, needs.portal-image-arm64.outputs.image_digest) }}
     steps:
     - uses: actions/checkout@v4
     - uses: ./.github/actions/set-git-tag-name
@@ -141,7 +137,72 @@ jobs:
         DOCKER_PASSWORD: ${{ secrets.QUAY_ROBOT_TOKEN }}
       run: |
         printf "$DOCKER_PASSWORD" | docker login --password-stdin --username "$DOCKER_USERNAME" quay.io
-    - run: make tag-image SOURCE_DIGESTS="$AMD64_DIGEST $ARM64_DIGEST" IMAGE_NAME=$IMAGE_NAME
+    - run: make tag-image
+    - name: docker logout
+      if: ${{ always() }}
+      run: |
+        docker logout quay.io
+
+  once-image-amd64:
+    if: ${{ github.repository != 'oursky/authgear-server' }}
+    runs-on: ubuntu-24.04
+    outputs:
+      image_digest: ${{ steps.build_image.outputs.image_digest }}
+    env:
+      PUSH_IMAGE: "${{ (github.repository == 'authgear/authgear-server' && github.event_name == 'push') && 'true' || 'false' }}"
+    steps:
+    - uses: actions/checkout@v4
+    - id: build_image
+      uses: ./.github/actions/build-image
+      with:
+        dockerfile: ./once/Dockerfile
+        image_name: quay.io/theauthgear/authgear-once
+        push_image: "${{ env.PUSH_IMAGE }}"
+        build_arch: amd64
+        docker_registry: quay.io
+        docker_username: "${{ env.PUSH_IMAGE == 'true' && secrets.QUAY_USERNAME || '' }}"
+        docker_password: "${{ env.PUSH_IMAGE == 'true' && secrets.QUAY_ROBOT_TOKEN || '' }}"
+  once-image-arm64:
+    if: ${{ (github.repository == 'authgear/authgear-server' && github.event_name == 'push' && !inputs.amd64-build-only) }}
+    runs-on: ubuntu-24.04-arm
+    outputs:
+      image_digest: ${{ steps.build_image.outputs.image_digest }}
+    env:
+      PUSH_IMAGE: "${{ (github.repository == 'authgear/authgear-server' && github.event_name == 'push') && 'true' || 'false' }}"
+    steps:
+    - uses: actions/checkout@v4
+    - id: build_image
+      uses: ./.github/actions/build-image
+      with:
+        dockerfile: ./once/Dockerfile
+        image_name: quay.io/theauthgear/authgear-once
+        push_image: "${{ env.PUSH_IMAGE }}"
+        build_arch: arm64
+        docker_registry: quay.io
+        docker_username: "${{ env.PUSH_IMAGE == 'true' && secrets.QUAY_USERNAME || '' }}"
+        docker_password: "${{ env.PUSH_IMAGE == 'true' && secrets.QUAY_ROBOT_TOKEN || '' }}"
+  once-image:
+    if: ${{ (github.repository == 'authgear/authgear-server' && github.event_name == 'push' && !inputs.amd64-build-only) }}
+    runs-on: ubuntu-24.04
+    needs: ["once-image-amd64", "once-image-arm64"]
+    env:
+      IMAGE_NAME: quay.io/theauthgear/authgear-once
+      PUSH_IMAGE: "${{ (github.repository == 'authgear/authgear-server' && github.event_name == 'push') && 'true' || 'false' }}"
+      SOURCE_DIGESTS: ${{ format('{0} {1}', needs.once-image-amd64.outputs.image_digest, needs.once-image-arm64.outputs.image_digest) }}
+    steps:
+    - uses: actions/checkout@v4
+    - uses: ./.github/actions/set-git-tag-name
+      with:
+        github_ref_type: ${{ github.ref_type }}
+        github_ref_name: ${{ github.ref_name }}
+    - name: docker login
+      if: ${{ github.repository == 'authgear/authgear-server' && github.event_name == 'push' }}
+      env:
+        DOCKER_USERNAME: ${{ secrets.QUAY_USERNAME }}
+        DOCKER_PASSWORD: ${{ secrets.QUAY_ROBOT_TOKEN }}
+      run: |
+        printf "$DOCKER_PASSWORD" | docker login --password-stdin --username "$DOCKER_USERNAME" quay.io
+    - run: make tag-image
     - name: docker logout
       if: ${{ always() }}
       run: |
