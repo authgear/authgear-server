@@ -517,6 +517,28 @@ The outputted SAML attribute will be:
 
 Currently, only `xs:string` is supported as the type of the SAML attribute rendered by go template.
 
+If the referenced value is missing or empty in user profile, an empty string will be rendered:
+
+If the user profile is:
+
+```jsonc
+{
+  "sub": "f9639c43-1529-4f7d-9468-451e91228010",
+  "phone_number": "+85212341234"
+}
+```
+
+The above example will output:
+
+```xml
+<saml:Attribute
+  NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:basic"
+  Name="mail">
+  <saml:AttributeValue
+    xsi:type="xs:string">@example.com</saml:AttributeValue>
+</saml:Attribute>
+```
+
 ### <a id="4_3"></a> Use a hook to compute SAML attributes
 
 You can either use a typescript deno hook, or a webhook to compute the SAML attributes.
