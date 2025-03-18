@@ -418,10 +418,16 @@ saml:
             name_format: urn:oasis:names:tc:SAML:2.0:attrname-format:uri
             friendly_name: Username
         mappings:
-          - from_user_profile_attribute: /email
-            to_saml_attribute: https://schemas.xmlsoap.org/ws/2005/05/identity/claims/email
-          - from_user_profile_attribute: /preferred_username
-            to_saml_attribute: https://schemas.xmlsoap.org/ws/2005/05/identity/claims/upn
+          - from:
+              user_profile:
+                pointer: /email
+            to:
+              saml_attribute: https://schemas.xmlsoap.org/ws/2005/05/identity/claims/email
+          - from:
+              user_profile:
+                pointer: /preferred_username
+            to:
+              saml_attribute: https://schemas.xmlsoap.org/ws/2005/05/identity/claims/upn
           - hook: authgeardeno:///deno/saml_mapping.ts
 ```
 
@@ -437,13 +443,13 @@ The `attributes` object under items of `service_providers` is used to customize 
 
   1. A simple mapping object. It maps a value from a user profile attribute to a SAML attribute. The object contains the following fields:
 
-  - `from_user_profile_attribute`: Required. A JSON pointer to a field of the user profile. A value will be read using the JSON pointer from the user profile. And write to the SAML attribute with `Name` specified by `to_saml_attribute`.
-  - `to_saml_attribute`: Required. The `Name` of the SAML attribute to write the value.
+  - `from.user_profile.pointer`: Required. A JSON pointer to a field of the user profile. A value will be read using the JSON pointer from the user profile. And write to the SAML attribute with `Name` specified by `to.saml_attribute`.
+  - `to.saml_attribute`: Required. The `Name` of the SAML attribute to write the value.
 
   2. A object uses go template to render a string as the value of a attribute. The object contains the following fields:
 
-  - `from_go_template`: Required. A go template which will be used to render the attribute. See the below section [Use a go template to render SAML attributes](#4_2) for more details and examples.
-  - `to_saml_attribute`: Required. The `Name` of the SAML attribute to write the value.
+  - `from.template`: Required. A go template which will be used to render the attribute. See the below section [Use a go template to render SAML attributes](#4_2) for more details and examples.
+  - `to.saml_attribute`: Required. The `Name` of the SAML attribute to write the value.
 
   3. A hook. It runs a hook to computes the resulting SAML attributes. See the below section [Use a hook to compute SAML attributes](#4_3) for more details about the hook. The object contains the following fields:
 
@@ -453,10 +459,16 @@ The `attributes` object under items of `service_providers` is used to customize 
 
   ```yaml
   mappings:
-    - from_user_profile_attribute: /email
-      to_saml_attribute: username
-    - from_user_profile_attribute: /phone_number
-      to_saml_attribute: username
+    - from:
+        user_profile:
+          pointer: /email
+      to:
+        saml_attribute: username
+    - from:
+        user_profile:
+          pointer: /phone_number
+      to:
+        saml_attribute: username
   ```
 
   The value in the SAML attribute with `Name` equal to `username` will be the phone number of the user.
@@ -477,8 +489,10 @@ attributes:
     - name: mail
       name_format: urn:oasis:names:tc:SAML:2.0:attrname-format:basic
   mappings:
-    - from_go_template: "{{.preferred_username}}@example.com"
-      to_saml_attribute: mail
+    - from:
+        template: "{{.preferred_username}}@example.com"
+      to:
+        saml_attribute: mail
 ```
 
 With a user with the following profile:
@@ -755,10 +769,16 @@ saml:
             name_format: urn:oasis:names:tc:SAML:2.0:attrname-format:uri
             friendly_name: Username
         mappings:
-          - from_user_profile_attribute: /email
-            to_saml_attribute: https://schemas.xmlsoap.org/ws/2005/05/identity/claims/email
-          - from_user_profile_attribute: /preferred_username
-            to_saml_attribute: https://schemas.xmlsoap.org/ws/2005/05/identity/claims/upn
+          - from:
+              user_profile:
+                pointer: /email
+            to:
+              saml_attribute: https://schemas.xmlsoap.org/ws/2005/05/identity/claims/email
+          - from:
+              user_profile:
+                pointer: /preferred_username
+            to:
+              saml_attribute: https://schemas.xmlsoap.org/ws/2005/05/identity/claims/upn
           - hook: authgeardeno:///deno/saml_mapping.ts
 ```
 
