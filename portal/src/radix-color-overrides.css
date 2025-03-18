@@ -3,6 +3,7 @@
 /* All colors should be generated from https://www.radix-ui.com/colors/custom */
 
 /* stylelint-disable no-duplicate-selectors -- We always have dupliacted selectors in this file */
+/* stylelint-disable plugin/no-unsupported-browser-features,hue-degree-notation -- The css is generated */
 
 :root,
 .light,
