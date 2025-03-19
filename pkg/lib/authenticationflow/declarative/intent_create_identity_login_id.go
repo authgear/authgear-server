@@ -2,13 +2,10 @@ package declarative
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
-	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
-	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/stringutil"
 )
@@ -84,7 +81,7 @@ func (n *IntentCreateIdentityLoginID) ReactTo(ctx context.Context, deps *authflo
 		}
 
 		loginID := inputTakeLoginID.GetLoginID()
-		spec := n.makeLoginIDSpec(loginID)
+		spec := makeLoginIDSpec(n.Identification, stringutil.NewUserInputString(loginID))
 
 		return authflow.NewSubFlow(&IntentCheckConflictAndCreateIdenity{
 			JSONPointer: n.JSONPointer,
@@ -94,28 +91,4 @@ func (n *IntentCreateIdentityLoginID) ReactTo(ctx context.Context, deps *authflo
 	}
 
 	return nil, authflow.ErrIncompatibleInput
-}
-
-func (n *IntentCreateIdentityLoginID) makeLoginIDSpec(loginID string) *identity.Spec {
-	spec := &identity.Spec{
-		Type: model.IdentityTypeLoginID,
-		LoginID: &identity.LoginIDSpec{
-			Value: stringutil.NewUserInputString(loginID),
-		},
-	}
-	switch n.Identification {
-	case config.AuthenticationFlowIdentificationEmail:
-		spec.LoginID.Type = model.LoginIDKeyTypeEmail
-		spec.LoginID.Key = string(spec.LoginID.Type)
-	case config.AuthenticationFlowIdentificationPhone:
-		spec.LoginID.Type = model.LoginIDKeyTypePhone
-		spec.LoginID.Key = string(spec.LoginID.Type)
-	case config.AuthenticationFlowIdentificationUsername:
-		spec.LoginID.Type = model.LoginIDKeyTypeUsername
-		spec.LoginID.Key = string(spec.LoginID.Type)
-	default:
-		panic(fmt.Errorf("unexpected identification method: %v", n.Identification))
-	}
-
-	return spec
 }

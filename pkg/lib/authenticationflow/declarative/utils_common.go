@@ -20,6 +20,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/phone"
+	"github.com/authgear/authgear-server/pkg/util/stringutil"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
@@ -832,4 +833,28 @@ func createAuthenticator(ctx context.Context, deps *authflow.Dependencies, userI
 
 func isNodeRestored(nodePointer jsonpointer.T, restoreTo jsonpointer.T) bool {
 	return !authflow.JSONPointerSubtract(nodePointer, restoreTo).More()
+}
+
+func makeLoginIDSpec(identification config.AuthenticationFlowIdentification, userInput stringutil.UserInputString) *identity.Spec {
+	spec := &identity.Spec{
+		Type: model.IdentityTypeLoginID,
+		LoginID: &identity.LoginIDSpec{
+			Value: userInput,
+		},
+	}
+	switch identification {
+	case config.AuthenticationFlowIdentificationEmail:
+		spec.LoginID.Type = model.LoginIDKeyTypeEmail
+		spec.LoginID.Key = string(spec.LoginID.Type)
+	case config.AuthenticationFlowIdentificationPhone:
+		spec.LoginID.Type = model.LoginIDKeyTypePhone
+		spec.LoginID.Key = string(spec.LoginID.Type)
+	case config.AuthenticationFlowIdentificationUsername:
+		spec.LoginID.Type = model.LoginIDKeyTypeUsername
+		spec.LoginID.Key = string(spec.LoginID.Type)
+	default:
+		panic(fmt.Errorf("unexpected identification method: %v", identification))
+	}
+
+	return spec
 }

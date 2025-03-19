@@ -2,7 +2,6 @@ package declarative
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
@@ -76,12 +75,7 @@ func (n *IntentPromoteIdentityLoginID) ReactTo(ctx context.Context, deps *authfl
 			return nil, err
 		}
 		loginID := inputTakeLoginID.GetLoginID()
-		specForLookup := &identity.Spec{
-			Type: model.IdentityTypeLoginID,
-			LoginID: &identity.LoginIDSpec{
-				Value: stringutil.NewUserInputString(loginID),
-			},
-		}
+		specForLookup := makeLoginIDSpec(n.Identification, stringutil.NewUserInputString(loginID))
 
 		syntheticInput := &InputStepIdentify{
 			Identification: n.SyntheticInput.Identification,
@@ -92,7 +86,7 @@ func (n *IntentPromoteIdentityLoginID) ReactTo(ctx context.Context, deps *authfl
 		if err != nil {
 			// promote
 			if apierrors.IsKind(err, api.UserNotFound) {
-				spec := n.makeLoginIDSpec(loginID)
+				spec := makeLoginIDSpec(n.Identification, stringutil.NewUserInputString(loginID))
 
 				conflicts, err := n.checkConflictByAccountLinkings(ctx, deps, flows, spec)
 				if err != nil {
@@ -134,30 +128,6 @@ func (n *IntentPromoteIdentityLoginID) ReactTo(ctx context.Context, deps *authfl
 	}
 
 	return nil, authflow.ErrIncompatibleInput
-}
-
-func (n *IntentPromoteIdentityLoginID) makeLoginIDSpec(loginID string) *identity.Spec {
-	spec := &identity.Spec{
-		Type: model.IdentityTypeLoginID,
-		LoginID: &identity.LoginIDSpec{
-			Value: stringutil.NewUserInputString(loginID),
-		},
-	}
-	switch n.Identification {
-	case config.AuthenticationFlowIdentificationEmail:
-		spec.LoginID.Type = model.LoginIDKeyTypeEmail
-		spec.LoginID.Key = string(spec.LoginID.Type)
-	case config.AuthenticationFlowIdentificationPhone:
-		spec.LoginID.Type = model.LoginIDKeyTypePhone
-		spec.LoginID.Key = string(spec.LoginID.Type)
-	case config.AuthenticationFlowIdentificationUsername:
-		spec.LoginID.Type = model.LoginIDKeyTypeUsername
-		spec.LoginID.Key = string(spec.LoginID.Type)
-	default:
-		panic(fmt.Errorf("unexpected identification method: %v", n.Identification))
-	}
-
-	return spec
 }
 
 func (n *IntentPromoteIdentityLoginID) checkConflictByAccountLinkings(
