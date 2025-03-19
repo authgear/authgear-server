@@ -1,5 +1,4 @@
 name: Login with non-existing email login id
-focus: true
 before:
   - type: user_import
     user_import: google_user.json
@@ -35,8 +34,16 @@ steps:
           "message": "user not found",
           "code": 404,
           "info": {
+            "ExistingIdentities": [
+              {
+                "IdentityType": "oauth",
+                "OAuthProviderType": "google"
+              }
+            ],
             "FlowType": "login",
+            "IdentityTypeExisting": "oauth",
             "IdentityTypeIncoming": "login_id",
-            "LoginIDTypeIncoming": "email"
+            "LoginIDTypeIncoming": "email",
+            "OAuthProviderTypeExisting": "google"
           }
         }
