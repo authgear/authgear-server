@@ -9,9 +9,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
-	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
-	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/stringutil"
 )
@@ -80,12 +78,7 @@ func (n *IntentLookupIdentityLoginID) ReactTo(ctx context.Context, deps *authflo
 		}
 
 		loginID := inputTakeLoginID.GetLoginID()
-		spec := &identity.Spec{
-			Type: model.IdentityTypeLoginID,
-			LoginID: &identity.LoginIDSpec{
-				Value: stringutil.NewUserInputString(loginID),
-			},
-		}
+		spec := makeLoginIDSpec(n.Identification, stringutil.NewUserInputString(loginID))
 
 		syntheticInput := &InputStepIdentify{
 			Identification: n.SyntheticInput.Identification,

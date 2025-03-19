@@ -392,7 +392,7 @@ func (s *Service) SearchBySpec(ctx context.Context, spec *identity.Spec) (exactM
 	switch spec.Type {
 	case model.IdentityTypeLoginID:
 		// For login ID, we treat the login ID value as email, phone_number and preferred_username.
-		loginID := spec.LoginID.Value
+		loginID := spec.LoginID.Value.TrimSpace()
 		claimsToSearch[string(model.ClaimEmail)] = loginID
 		claimsToSearch[string(model.ClaimPhoneNumber)] = loginID
 		claimsToSearch[string(model.ClaimPreferredUsername)] = loginID

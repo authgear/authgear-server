@@ -5,9 +5,7 @@ import (
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
-	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
-	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/stringutil"
 )
@@ -71,12 +69,7 @@ func (n *IntentUseIdentityLoginID) ReactTo(ctx context.Context, deps *authflow.D
 			return nil, err
 		}
 		loginID := inputTakeLoginID.GetLoginID()
-		spec := &identity.Spec{
-			Type: model.IdentityTypeLoginID,
-			LoginID: &identity.LoginIDSpec{
-				Value: stringutil.NewUserInputString(loginID),
-			},
-		}
+		spec := makeLoginIDSpec(n.Identification, stringutil.NewUserInputString(loginID))
 
 		exactMatch, err := findExactOneIdentityInfo(ctx, deps, spec)
 		if err != nil {

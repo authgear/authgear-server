@@ -1,0 +1,49 @@
+name: Login with non-existing email login id
+before:
+  - type: user_import
+    user_import: google_user.json
+  - type: custom_sql
+    custom_sql:
+      path: google_user.sql
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "login",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "identification": "email",
+        "login_id": "mock@example.com"
+      }
+    output:
+      error: |
+        {
+          "name": "NotFound",
+          "reason": "UserNotFound",
+          "message": "user not found",
+          "code": 404,
+          "info": {
+            "ExistingIdentities": [
+              {
+                "IdentityType": "oauth",
+                "OAuthProviderType": "google"
+              }
+            ],
+            "FlowType": "login",
+            "IdentityTypeExisting": "oauth",
+            "IdentityTypeIncoming": "login_id",
+            "LoginIDTypeIncoming": "email",
+            "OAuthProviderTypeExisting": "google"
+          }
+        }
