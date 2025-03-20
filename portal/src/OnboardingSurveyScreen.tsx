@@ -615,6 +615,8 @@ function Step3Team(_props: StepProps) {
 }
 
 function Step3Personal(_props: StepProps) {
+  const { viewer } = useViewerQuery();
+  const { geoIPCountryCode } = viewer ?? {};
   const personalWebsiteFromLocalStorage =
     getFromLocalStorage("project_website");
   const [personalWebsite, setPersonalWebsite] = useState(
@@ -716,6 +718,7 @@ function Step3Personal(_props: StepProps) {
             )}
             inputValue={personalPhone.rawInputValue}
             onChange={(v) => setPersonalPhone(v)}
+            initialCountry={geoIPCountryCode ?? undefined}
           />
         </FormProvider>
       </div>
