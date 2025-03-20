@@ -66,8 +66,8 @@ func (a APIErrorExtension) ExecutionDidStart(ctx context.Context) (context.Conte
 			gqlError.Message = apiError.Message
 			gqlError.Extensions["errorName"] = apiError.Name
 			gqlError.Extensions["reason"] = apiError.Reason
-			if len(apiError.Info) > 0 {
-				gqlError.Extensions["info"] = apiError.Info
+			if len(apiError.Info_ReadOnly) > 0 {
+				gqlError.Extensions["info"] = apiError.Info_ReadOnly
 			}
 			result.Errors[i] = gqlError
 		}

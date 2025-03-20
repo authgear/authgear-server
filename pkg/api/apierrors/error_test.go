@@ -18,10 +18,10 @@ func TestAPIError(t *testing.T) {
 			err := apierrors.NewInternalError("internal server error")
 			apiErr := apierrors.AsAPIError(err)
 			So(apiErr, ShouldResemble, &apierrors.APIError{
-				Kind:    apierrors.Kind{Name: apierrors.InternalError, Reason: string(apierrors.InternalError)},
-				Message: "internal server error",
-				Code:    500,
-				Info:    map[string]interface{}{},
+				Kind:          apierrors.Kind{Name: apierrors.InternalError, Reason: string(apierrors.InternalError)},
+				Message:       "internal server error",
+				Code:          500,
+				Info_ReadOnly: map[string]interface{}{},
 			})
 		})
 		Convey("wrapped error", func() {
@@ -31,10 +31,10 @@ func TestAPIError(t *testing.T) {
 
 			apiErr := apierrors.AsAPIError(err)
 			So(apiErr, ShouldResemble, &apierrors.APIError{
-				Kind:    apierrors.Kind{Name: apierrors.InternalError, Reason: string(apierrors.InternalError)},
-				Message: "internal server error",
-				Code:    500,
-				Info:    map[string]interface{}{},
+				Kind:          apierrors.Kind{Name: apierrors.InternalError, Reason: string(apierrors.InternalError)},
+				Message:       "internal server error",
+				Code:          500,
+				Info_ReadOnly: map[string]interface{}{},
 			})
 		})
 		Convey("common error", func() {
@@ -42,10 +42,10 @@ func TestAPIError(t *testing.T) {
 			err := NotAuthenticated.New("authentication required")
 			apiErr := apierrors.AsAPIError(err)
 			So(apiErr, ShouldResemble, &apierrors.APIError{
-				Kind:    apierrors.Kind{Name: apierrors.Unauthorized, Reason: "NotAuthenticated"},
-				Message: "authentication required",
-				Code:    401,
-				Info:    map[string]interface{}{},
+				Kind:          apierrors.Kind{Name: apierrors.Unauthorized, Reason: "NotAuthenticated"},
+				Message:       "authentication required",
+				Code:          401,
+				Info_ReadOnly: map[string]interface{}{},
 			})
 		})
 		Convey("error with info", func() {
@@ -59,7 +59,7 @@ func TestAPIError(t *testing.T) {
 				Kind:    apierrors.Kind{Name: apierrors.Invalid, Reason: "ValidationFailure"},
 				Message: "failed to validate form payload",
 				Code:    400,
-				Info: map[string]interface{}{
+				Info_ReadOnly: map[string]interface{}{
 					"field": "email",
 				},
 			})
@@ -75,7 +75,7 @@ func TestAPIError(t *testing.T) {
 				Kind:    apierrors.Kind{Name: apierrors.Invalid, Reason: "ValidationFailure"},
 				Message: "invalid code",
 				Code:    400,
-				Info: map[string]interface{}{
+				Info_ReadOnly: map[string]interface{}{
 					"cause": apierrors.StringCause("CodeExpired"),
 				},
 			})
@@ -94,7 +94,7 @@ func TestAPIError(t *testing.T) {
 				Kind:    apierrors.Kind{Name: apierrors.Invalid, Reason: "ValidationFailure"},
 				Message: "invalid password format",
 				Code:    400,
-				Info: map[string]interface{}{
+				Info_ReadOnly: map[string]interface{}{
 					"causes": []apierrors.Cause{
 						apierrors.StringCause("TooShort"),
 						apierrors.StringCause("TooSimple"),
@@ -113,7 +113,7 @@ func TestAPIError(t *testing.T) {
 				Kind:    apierrors.Kind{Name: apierrors.InternalError, Reason: "UnexpectedError"},
 				Message: "unexpected error occurred",
 				Code:    apierrors.InternalError.HTTPStatus(),
-				Info: map[string]interface{}{
+				Info_ReadOnly: map[string]interface{}{
 					"b": "b",
 				},
 			})
@@ -127,7 +127,7 @@ func TestAPIError(t *testing.T) {
 				Kind:    apierrors.Kind{Name: apierrors.BadRequest, Reason: "InvalidJSON"},
 				Message: "invalid character '}' looking for beginning of value",
 				Code:    400,
-				Info: map[string]interface{}{
+				Info_ReadOnly: map[string]interface{}{
 					"byte_offset": int64(6),
 				},
 			})
@@ -141,10 +141,21 @@ func TestAPIError(t *testing.T) {
 				Kind:    apierrors.Kind{Name: apierrors.BadRequest, Reason: "InvalidJSON"},
 				Message: "unexpected end of JSON input",
 				Code:    400,
-				Info: map[string]interface{}{
+				Info_ReadOnly: map[string]interface{}{
 					"byte_offset": int64(0),
 				},
 			})
+		})
+		Convey("it does not mutate the original error", func() {
+			originalErr := apierrors.BadRequest.WithReason("test").New("testing error")
+
+			newErr := errorutil.WithDetails(originalErr, errorutil.Details{"newkey": "test"})
+
+			_ = apierrors.AsAPIError(newErr)
+
+			// The original error info should not be modified
+			So(originalErr.(*apierrors.APIError).Info_ReadOnly, ShouldResemble, make(apierrors.Details))
+
 		})
 	})
 
@@ -170,20 +181,20 @@ func TestAPIError(t *testing.T) {
 	Convey("APIError", t, func() {
 		Convey("simple error", func() {
 			apiErr := &apierrors.APIError{
-				Kind:    apierrors.Kind{Name: apierrors.InternalError, Reason: string(apierrors.InternalError)},
-				Message: "internal server error",
-				Code:    500,
-				Info:    map[string]interface{}{},
+				Kind:          apierrors.Kind{Name: apierrors.InternalError, Reason: string(apierrors.InternalError)},
+				Message:       "internal server error",
+				Code:          500,
+				Info_ReadOnly: map[string]interface{}{},
 			}
 			json, _ := json.Marshal(apiErr)
 			So(string(json), ShouldEqual, `{"name":"InternalError","reason":"InternalError","message":"internal server error","code":500}`)
 		})
 		Convey("common error", func() {
 			apiErr := &apierrors.APIError{
-				Kind:    apierrors.Kind{Name: apierrors.Unauthorized, Reason: "NotAuthenticated"},
-				Message: "authentication required",
-				Code:    401,
-				Info:    map[string]interface{}{},
+				Kind:          apierrors.Kind{Name: apierrors.Unauthorized, Reason: "NotAuthenticated"},
+				Message:       "authentication required",
+				Code:          401,
+				Info_ReadOnly: map[string]interface{}{},
 			}
 			json, _ := json.Marshal(apiErr)
 			So(string(json), ShouldEqual, `{"name":"Unauthorized","reason":"NotAuthenticated","message":"authentication required","code":401}`)
@@ -193,7 +204,7 @@ func TestAPIError(t *testing.T) {
 				Kind:    apierrors.Kind{Name: apierrors.Invalid, Reason: "ValidationFailure"},
 				Message: "failed to validate form payload",
 				Code:    400,
-				Info: map[string]interface{}{
+				Info_ReadOnly: map[string]interface{}{
 					"field": "email",
 				},
 			}
@@ -205,7 +216,7 @@ func TestAPIError(t *testing.T) {
 				Kind:    apierrors.Kind{Name: apierrors.Invalid, Reason: "ValidationFailure"},
 				Message: "invalid password format",
 				Code:    400,
-				Info: map[string]interface{}{
+				Info_ReadOnly: map[string]interface{}{
 					"causes": []apierrors.Cause{
 						apierrors.StringCause("TooShort"),
 						apierrors.StringCause("TooSimple"),

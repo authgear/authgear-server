@@ -34,7 +34,7 @@ func NewPasswordPolicyViewModel(policies []password.Policy, rules string, apiErr
 
 				policy.Info["x_error_is_password_policy_violated"] = true
 
-				for _, causei := range apiError.Info["causes"].([]interface{}) {
+				for _, causei := range apiError.Info_ReadOnly["causes"].([]interface{}) {
 					if cause, ok := causei.(map[string]interface{}); ok {
 						if kind, ok := cause["Name"].(string); ok {
 							if kind == string(policy.Name) {
