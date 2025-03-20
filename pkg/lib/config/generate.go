@@ -14,9 +14,10 @@ import (
 )
 
 type GenerateAppConfigOptions struct {
-	AppID        string
-	PublicOrigin string
-	CookieDomain string
+	AppID                       string
+	PublicOrigin                string
+	CookieDomain                string
+	PhoneNumberValidationMethod LibphonenumberValidationMethod
 }
 
 func GenerateAppConfigFromOptions(opts *GenerateAppConfigOptions) *AppConfig {
@@ -29,6 +30,16 @@ func GenerateAppConfigFromOptions(opts *GenerateAppConfigOptions) *AppConfig {
 	}
 	if opts.CookieDomain != "" {
 		cfg.HTTP.CookieDomain = &opts.CookieDomain
+	}
+	if opts.PhoneNumberValidationMethod != "" {
+		cfg.UI.PhoneInput = &PhoneInputConfig{
+			Validation: &PhoneInputValidationConfig{
+				Implementation: PhoneInputValidationImplementationLibphonenumber,
+				Libphonenumber: &PhoneInputValidationLibphonenumber{
+					ValidationMethod: opts.PhoneNumberValidationMethod,
+				},
+			},
+		}
 	}
 	return cfg
 }
