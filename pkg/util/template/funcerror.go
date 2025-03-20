@@ -123,7 +123,7 @@ func getErrorByReason(apiErr *apierrors.APIError, reasons []string) *apierrors.A
 // nolint: gocognit
 func getValidationErrorByLocation(apiErr *apierrors.APIError, locations []string) *apierrors.APIError {
 	out := apiErr.Clone()
-	causes, ok := out.Info["causes"].([]interface{})
+	causes, ok := out.Info_ReadOnly["causes"].([]interface{})
 	if !ok {
 		return nil
 	}
@@ -143,7 +143,7 @@ func getValidationErrorByLocation(apiErr *apierrors.APIError, locations []string
 	if len(trimmedCauses) == 0 {
 		return nil
 	}
-	out.Info["causes"] = trimmedCauses
+	out.Info_ReadOnly["causes"] = trimmedCauses
 	return out
 }
 

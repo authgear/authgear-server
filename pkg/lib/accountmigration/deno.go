@@ -39,7 +39,7 @@ func (h *AccountMigrationDenoHook) Call(ctx context.Context, u *url.URL, hookReq
 	hookResp, err := ParseHookResponse(ctx, bytes.NewReader(b))
 	if err != nil {
 		apiError := apierrors.AsAPIError(err)
-		err = hook.WebHookInvalidResponse.NewWithInfo("invalid response body", apiError.Info)
+		err = hook.WebHookInvalidResponse.NewWithInfo("invalid response body", apiError.Info_ReadOnly)
 		return nil, err
 	}
 

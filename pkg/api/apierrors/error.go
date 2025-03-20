@@ -40,9 +40,10 @@ func (c MapCause) MarshalJSON() ([]byte, error) {
 
 type APIError struct {
 	Kind
-	Message string  `json:"message"`
-	Code    int     `json:"code"`
-	Info    Details `json:"info,omitempty"`
+	Message string `json:"message"`
+	Code    int    `json:"code"`
+	// Do not mutate Info directly, use CloneWithInfo instead
+	Info_ReadOnly Details `json:"info,omitempty"`
 }
 
 var _ error = (*APIError)(nil)
@@ -57,15 +58,15 @@ func (e *APIError) Error() string {
 }
 
 func (e *APIError) FillDetails(details Details) {
-	for key, val := range e.Info {
+	for key, val := range e.Info_ReadOnly {
 		details[key] = val
 	}
 }
 
 func (e *APIError) HasCause(kind string) bool {
-	if c, ok := e.Info["cause"].(Cause); ok {
+	if c, ok := e.Info_ReadOnly["cause"].(Cause); ok {
 		return c.Kind() == kind
-	} else if cs, ok := e.Info["causes"].([]Cause); ok {
+	} else if cs, ok := e.Info_ReadOnly["causes"].([]Cause); ok {
 		for _, c := range cs {
 			if c.Kind() == kind {
 				return true
@@ -88,6 +89,12 @@ func (e *APIError) Clone() *APIError {
 	return ee.(*APIError)
 }
 
+func (e *APIError) CloneWithInfo(info Details) *APIError {
+	newE := e.Clone()
+	newE.Info_ReadOnly = info
+	return newE
+}
+
 // NewWithInfo wraps all value in info with APIErrorDetail, making them appear in the response.
 func (k Kind) NewWithInfo(msg string, info Details) error {
 	d := Details{}
@@ -95,10 +102,10 @@ func (k Kind) NewWithInfo(msg string, info Details) error {
 		d[k] = APIErrorDetail.Value(v)
 	}
 	return &APIError{
-		Kind:    k,
-		Message: msg,
-		Code:    k.Name.HTTPStatus(),
-		Info:    d,
+		Kind:          k,
+		Message:       msg,
+		Code:          k.Name.HTTPStatus(),
+		Info_ReadOnly: d,
 	}
 }
 
@@ -150,8 +157,8 @@ func AsAPIError(err error) *APIError {
 
 	var apiError *APIError
 	if errors.As(err, &apiError) {
-		apiError.Info = mergeInfo(apiError.Info, info)
-		return apiError
+		mergedInfo := mergeInfo(apiError.Info_ReadOnly, info)
+		return apiError.CloneWithInfo(mergedInfo)
 	}
 
 	var v *validation.AggregatedError
@@ -163,18 +170,18 @@ func AsAPIError(err error) *APIError {
 		}
 		info["causes"] = causes
 		return &APIError{
-			Kind:    ValidationFailed,
-			Message: v.Message,
-			Code:    ValidationFailed.Name.HTTPStatus(),
-			Info:    info,
+			Kind:          ValidationFailed,
+			Message:       v.Message,
+			Code:          ValidationFailed.Name.HTTPStatus(),
+			Info_ReadOnly: info,
 		}
 	}
 
 	return &APIError{
-		Kind:    Kind{Name: InternalError, Reason: "UnexpectedError"},
-		Message: "unexpected error occurred",
-		Code:    InternalError.HTTPStatus(),
-		Info:    info,
+		Kind:          Kind{Name: InternalError, Reason: "UnexpectedError"},
+		Message:       "unexpected error occurred",
+		Code:          InternalError.HTTPStatus(),
+		Info_ReadOnly: info,
 	}
 }
 
@@ -220,7 +227,7 @@ func newInvalidJSON(err *json.SyntaxError) *APIError {
 		Kind:    Kind{Name: BadRequest, Reason: "InvalidJSON"},
 		Message: err.Error(),
 		Code:    BadRequest.HTTPStatus(),
-		Info: map[string]interface{}{
+		Info_ReadOnly: map[string]interface{}{
 			"byte_offset": err.Offset,
 		},
 	}

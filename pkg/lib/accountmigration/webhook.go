@@ -46,7 +46,7 @@ func (h *AccountMigrationWebHook) Call(ctx context.Context, u *url.URL, hookReq 
 	hookResp, err = ParseHookResponse(ctx, resp.Body)
 	if err != nil {
 		apiError := apierrors.AsAPIError(err)
-		err = hook.WebHookInvalidResponse.NewWithInfo("invalid response body", apiError.Info)
+		err = hook.WebHookInvalidResponse.NewWithInfo("invalid response body", apiError.Info_ReadOnly)
 		return nil, err
 	}
 	return hookResp, nil

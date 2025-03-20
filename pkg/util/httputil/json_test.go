@@ -30,7 +30,7 @@ func TestBindJSONBody(t *testing.T) {
 				},
 				Message: "request body too large",
 				Code:    413,
-				Info: map[string]interface{}{
+				Info_ReadOnly: map[string]interface{}{
 					"limit": int64(1),
 				},
 			})

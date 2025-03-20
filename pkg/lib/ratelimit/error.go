@@ -24,5 +24,5 @@ func IsRateLimitErrorWithBucketName(err error, bucketName BucketName) bool {
 		return false
 	}
 
-	return apiError.Info[bucketNameKey] == bucketName
+	return apiError.Info_ReadOnly[bucketNameKey] == bucketName
 }
