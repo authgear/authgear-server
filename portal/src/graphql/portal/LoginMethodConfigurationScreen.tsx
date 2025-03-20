@@ -18,6 +18,8 @@ import {
   // eslint-disable-next-line no-restricted-imports
   ActionButton,
   IToggleProps,
+  IChoiceGroupOption,
+  ChoiceGroup,
 } from "@fluentui/react";
 import { useParams } from "react-router-dom";
 import { produce } from "immer";
@@ -2399,9 +2401,34 @@ function PhoneSettings(props: PhoneSettingsProps) {
     "delete_disabled"
   );
 
+  const phoneValidationOptions = useMemo<IChoiceGroupOption[]>(() => {
+    return [
+      {
+        key: LibphonenumberValidationMethod.isPossibleNumber,
+        text: renderToString(
+          "LoginMethodConfigurationScreen.phone.validation.options.isPossibleNumber"
+        ),
+        styles: { root: { marginTop: 0 } },
+      },
+      {
+        key: LibphonenumberValidationMethod.isValidNumber,
+        // https://github.com/microsoft/fluentui/blob/%40fluentui/react_v8.121.13/packages/react/src/components/ChoiceGroup/ChoiceGroupOption/ChoiceGroupOption.base.tsx#L64
+        // renderToString is not working because the html elements will be escaped
+        text: (
+          <FormattedMessage
+            id="LoginMethodConfigurationScreen.phone.validation.options.isValidNumber"
+            values={{
+              href: "https://github.com/google/libphonenumber/blob/master/FAQ.md#what-does-it-mean-for-a-phone-number-to-be-valid",
+            }}
+          />
+        ) as unknown as string,
+      },
+    ];
+  }, [renderToString]);
+
   const onPhoneValidationMethodChange = useCallback(
-    (_: unknown, checked?: boolean) => {
-      if (checked == null) {
+    (_: unknown, option?: IChoiceGroupOption) => {
+      if (option == null) {
         return;
       }
       setState((prev) => {
@@ -2412,9 +2439,7 @@ function PhoneSettings(props: PhoneSettingsProps) {
             validation: {
               implementation: "libphonenumber",
               libphonenumber: {
-                validation_method: checked
-                  ? LibphonenumberValidationMethod.isValidNumber
-                  : LibphonenumberValidationMethod.isPossibleNumber,
+                validation_method: option.key as LibphonenumberValidationMethod,
               },
             },
           },
@@ -2462,30 +2487,10 @@ function PhoneSettings(props: PhoneSettingsProps) {
           <SectionTitle>
             <FormattedMessage id="LoginMethodConfigurationScreen.phone.section.phoneNumberValidation.title" />
           </SectionTitle>
-          <Toggle
-            onText={
-              (
-                <FormattedMessage
-                  id="LoginMethodConfigurationScreen.phone.validation.label"
-                  values={{
-                    href: "https://github.com/google/libphonenumber/blob/master/FAQ.md#what-does-it-mean-for-a-phone-number-to-be-valid",
-                  }}
-                />
-              ) as unknown as string
-            }
-            offText={
-              (
-                <FormattedMessage
-                  id="LoginMethodConfigurationScreen.phone.validation.label"
-                  values={{
-                    href: "https://github.com/google/libphonenumber/blob/master/FAQ.md#what-does-it-mean-for-a-phone-number-to-be-valid",
-                  }}
-                />
-              ) as unknown as string
-            }
-            checked={
-              phoneInputConfig.validation.libphonenumber?.validation_method ===
-              LibphonenumberValidationMethod.isValidNumber
+          <ChoiceGroup
+            options={phoneValidationOptions}
+            selectedKey={
+              phoneInputConfig.validation.libphonenumber?.validation_method
             }
             onChange={onPhoneValidationMethodChange}
           />
