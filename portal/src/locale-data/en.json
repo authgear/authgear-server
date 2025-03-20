@@ -577,7 +577,6 @@
   "LoginIDConfigurationScreen.phone.columns.code": "Code",
   "LoginIDConfigurationScreen.phone.columns.order": "Order",
   "LoginIDConfigurationScreen.phone.columns.pinned": "Pinned for Selection",
-  "LoginIDConfigurationScreen.phone.default-order": "Default (ascending)",
 
   "calling-code-area.gmss": "Global Mobile Satellite System",
   "calling-code-area.international": "International Networks",
