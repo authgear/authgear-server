@@ -1,5 +1,7 @@
 package config
 
+import "github.com/iawaknahc/jsonschema/pkg/jsonpointer"
+
 var _ = Schema.Add("UserProfileJSONPointer", `
 {
 	"type": "object",
@@ -19,9 +21,14 @@ var _ = Schema.Add("UserProfileJSONPointer", `
 `)
 
 type UserProfileJSONPointer struct {
-	UserProfile *JSONPointer `json:"user_profile,omitempty"`
+	UserProfile *JSONPointer `json:"user_profile,omitempty" nullable:"true"`
 }
 
 type JSONPointer struct {
 	Pointer string `json:"pointer,omitempty"`
+}
+
+func (p JSONPointer) MustGetJSONPointer() jsonpointer.T {
+	pointer := jsonpointer.MustParse(string(p.Pointer))
+	return pointer
 }

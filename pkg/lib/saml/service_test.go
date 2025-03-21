@@ -1,6 +1,7 @@
 package saml_test
 
 import (
+	"encoding/json"
 	"net/url"
 	"testing"
 	"time"
@@ -64,14 +65,18 @@ func TestSAMLService(t *testing.T) {
 	loginEndpoint, _ := url.Parse("http://idp.local/login")
 	endpoints.EXPECT().SAMLLoginURL(spID).AnyTimes().Return(loginEndpoint)
 
-	createService := func() *saml.Service {
-		sp := &config.SAMLServiceProviderConfig{
+	createSP := func() *config.SAMLServiceProviderConfig {
+		return &config.SAMLServiceProviderConfig{
 			ClientID:     spID,
 			NameIDFormat: samlprotocol.SAMLNameIDFormatEmailAddress,
 			AcsURLs: []string{
 				"http://localhost/saml-test",
 			},
 		}
+	}
+
+	createService := func() *saml.Service {
+		sp := createSP()
 		return &saml.Service{
 			Clock: clk,
 			AppID: config.AppID("test"),
@@ -316,4 +321,192 @@ func TestSAMLService(t *testing.T) {
 			So(err, ShouldHaveSameTypeAs, expectedErr)
 		})
 	})
+
+	Convey("ResolveUserAttributes", t, func() {
+		svc := createService()
+		sp := createSP()
+		sp.Attributes = &config.SAMLAttributesConfig{
+			Definitions: []config.SAMLAttributeDefinition{
+				{Name: "strattr", NameFormat: config.SAMLAttributeNameFormatUnspecified},
+				{Name: "boolattr", NameFormat: config.SAMLAttributeNameFormatUnspecified},
+				{Name: "floatattr", NameFormat: config.SAMLAttributeNameFormatUnspecified},
+				{Name: "sliceattr", NameFormat: config.SAMLAttributeNameFormatUnspecified},
+				{Name: "mapattr", NameFormat: config.SAMLAttributeNameFormatUnspecified},
+				{Name: "nestedattr", NameFormat: config.SAMLAttributeNameFormatUnspecified},
+				{Name: "nullattr", NameFormat: config.SAMLAttributeNameFormatUnspecified},
+			},
+			Mappings: []config.SAMLAttributeMapping{
+				{
+					From: &config.SAMLAttributeMappingFrom{
+						UserProfileJSONPointer: config.UserProfileJSONPointer{
+							UserProfile: &config.JSONPointer{
+								Pointer: "/str",
+							},
+						},
+					},
+					To: &config.SAMLAttributeMappingTo{
+						SAMLAttribute: "strattr",
+					},
+				},
+				{
+					From: &config.SAMLAttributeMappingFrom{
+						UserProfileJSONPointer: config.UserProfileJSONPointer{
+							UserProfile: &config.JSONPointer{
+								Pointer: "/bool",
+							},
+						},
+					},
+					To: &config.SAMLAttributeMappingTo{
+						SAMLAttribute: "boolattr",
+					},
+				},
+				{
+					From: &config.SAMLAttributeMappingFrom{
+						UserProfileJSONPointer: config.UserProfileJSONPointer{
+							UserProfile: &config.JSONPointer{
+								Pointer: "/float",
+							},
+						},
+					},
+					To: &config.SAMLAttributeMappingTo{
+						SAMLAttribute: "floatattr",
+					},
+				},
+				{
+					From: &config.SAMLAttributeMappingFrom{
+						UserProfileJSONPointer: config.UserProfileJSONPointer{
+							UserProfile: &config.JSONPointer{
+								Pointer: "/slice",
+							},
+						},
+					},
+					To: &config.SAMLAttributeMappingTo{
+						SAMLAttribute: "sliceattr",
+					},
+				},
+				{
+					From: &config.SAMLAttributeMappingFrom{
+						UserProfileJSONPointer: config.UserProfileJSONPointer{
+							UserProfile: &config.JSONPointer{
+								Pointer: "/map",
+							},
+						},
+					},
+					To: &config.SAMLAttributeMappingTo{
+						SAMLAttribute: "mapattr",
+					},
+				},
+				{
+					From: &config.SAMLAttributeMappingFrom{
+						UserProfileJSONPointer: config.UserProfileJSONPointer{
+							UserProfile: &config.JSONPointer{
+								Pointer: "/map/nested",
+							},
+						},
+					},
+					To: &config.SAMLAttributeMappingTo{
+						SAMLAttribute: "nestedattr",
+					},
+				},
+				{
+					From: &config.SAMLAttributeMappingFrom{
+						UserProfileJSONPointer: config.UserProfileJSONPointer{
+							UserProfile: &config.JSONPointer{
+								Pointer: "/null",
+							},
+						},
+					},
+					To: &config.SAMLAttributeMappingTo{
+						SAMLAttribute: "nullattr",
+					},
+				},
+			},
+		}
+
+		var userInfo map[string]interface{}
+		err := json.Unmarshal([]byte(userInfoJson), &userInfo)
+		So(err, ShouldBeNil)
+		attrs, err := svc.ResolveUserAttributes(sp, userInfo)
+		So(err, ShouldBeNil)
+		So(attrs, ShouldResemble, []samlprotocol.Attribute{
+			{
+				FriendlyName: "User ID",
+				Name:         "sub",
+				NameFormat:   samlprotocol.SAMLAttrnameFormatBasic,
+				Values: []samlprotocol.AttributeValue{{
+					Type:  samlprotocol.SAMLAttrTypeString,
+					Value: "userid",
+				}},
+			},
+			{
+				Name:       "strattr",
+				NameFormat: string(config.SAMLAttributeNameFormatUnspecified),
+				Values: []samlprotocol.AttributeValue{{
+					Type:  samlprotocol.SAMLAttrTypeString,
+					Value: "teststr",
+				}},
+			},
+			{
+				Name:       "boolattr",
+				NameFormat: string(config.SAMLAttributeNameFormatUnspecified),
+				Values: []samlprotocol.AttributeValue{{
+					Type:  samlprotocol.SAMLAttrTypeString,
+					Value: "true",
+				}},
+			},
+			{
+				Name:       "floatattr",
+				NameFormat: string(config.SAMLAttributeNameFormatUnspecified),
+				Values: []samlprotocol.AttributeValue{{
+					Type:  samlprotocol.SAMLAttrTypeString,
+					Value: "12.5",
+				}},
+			},
+			{
+				Name:       "sliceattr",
+				NameFormat: string(config.SAMLAttributeNameFormatUnspecified),
+				Values: []samlprotocol.AttributeValue{{
+					Type:  samlprotocol.SAMLAttrTypeString,
+					Value: "item1",
+				}, {
+					Type:  samlprotocol.SAMLAttrTypeString,
+					Value: "item2",
+				}},
+			},
+			{
+				Name:       "mapattr",
+				NameFormat: string(config.SAMLAttributeNameFormatUnspecified),
+				Values: []samlprotocol.AttributeValue{{
+					Type:  samlprotocol.SAMLAttrTypeString,
+					Value: `{"nested":"nesteditem"}`,
+				}},
+			},
+			{
+				Name:       "nestedattr",
+				NameFormat: string(config.SAMLAttributeNameFormatUnspecified),
+				Values: []samlprotocol.AttributeValue{{
+					Type:  samlprotocol.SAMLAttrTypeString,
+					Value: "nesteditem",
+				}},
+			},
+			{
+				Name:       "nullattr",
+				NameFormat: string(config.SAMLAttributeNameFormatUnspecified),
+				Values:     []samlprotocol.AttributeValue{},
+			},
+		})
+	})
 }
+
+var userInfoJson string = `
+{
+		"sub": "userid",
+		"str": "teststr",
+		"bool": true,
+		"float": 12.5,
+		"slice": ["item1", "item2"],
+		"map": {
+			"nested": "nesteditem"
+		}
+}
+`

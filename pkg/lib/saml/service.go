@@ -5,6 +5,7 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"net/url"
 	"strings"
@@ -401,6 +402,11 @@ func (s *Service) IssueLoginSuccessResponse(
 		return nil, err
 	}
 
+	attributes, err := s.ResolveUserAttributes(sp, userInfo)
+	if err != nil {
+		return nil, err
+	}
+
 	assertion := &samlprotocol.Assertion{
 		ID:           samlprotocol.GenerateAssertionID(),
 		IssueInstant: now,
@@ -440,18 +446,7 @@ func (s *Service) IssueLoginSuccessResponse(
 		},
 		AttributeStatements: []samlprotocol.AttributeStatement{
 			{
-				// TODO(saml): Return more attributes
-				Attributes: []samlprotocol.Attribute{
-					{
-						FriendlyName: "User ID",
-						Name:         "sub",
-						NameFormat:   samlprotocol.SAMLAttrnameFormatBasic,
-						Values: []samlprotocol.AttributeValue{{
-							Type:  samlprotocol.SAMLAttrTypeString,
-							Value: authenticatedUserId,
-						}},
-					},
-				},
+				Attributes: attributes,
 			},
 		},
 	}
@@ -867,7 +862,7 @@ func (s *Service) idpSigningContext() (*dsig.SigningContext, error) {
 	return signingContext, nil
 }
 
-func (s Service) recordSessionParticipant(
+func (s *Service) recordSessionParticipant(
 	ctx context.Context,
 	sp *config.SAMLServiceProviderConfig) error {
 	resolvedSession := session.GetSession(ctx)
@@ -892,6 +887,63 @@ func (s Service) recordSessionParticipant(
 	return nil
 }
 
+func (s *Service) ResolveUserAttributes(sp *config.SAMLServiceProviderConfig, userInfo map[string]interface{}) ([]samlprotocol.Attribute, error) {
+	attrs := []samlprotocol.Attribute{
+		{
+			FriendlyName: "User ID",
+			Name:         "sub",
+			NameFormat:   samlprotocol.SAMLAttrnameFormatBasic,
+			Values: []samlprotocol.AttributeValue{{
+				Type:  samlprotocol.SAMLAttrTypeString,
+				Value: userInfo["sub"].(string),
+			}},
+		},
+	}
+
+	valuesMap := map[string][]string{}
+	for _, mapping := range sp.Attributes.Mappings {
+		values := []string{}
+		switch {
+		case mapping.From.UserProfile != nil:
+			jsonPointer := mapping.From.UserProfile.MustGetJSONPointer()
+			raw, err := jsonPointer.Traverse(userInfo)
+			if err != nil {
+				// If the attribute does not exist, just skip
+			} else {
+				values, err = formatAttribute(raw)
+				if err != nil {
+					return nil, err
+				}
+			}
+		}
+		valuesMap[mapping.To.SAMLAttribute] = values
+	}
+
+	for _, attrDef := range sp.Attributes.Definitions {
+		values, ok := valuesMap[attrDef.Name]
+		if !ok {
+			continue
+		}
+		attrValues := []samlprotocol.AttributeValue{}
+		for _, val := range values {
+			attrValues = append(attrValues,
+				samlprotocol.AttributeValue{
+					Type:  samlprotocol.SAMLAttrTypeString,
+					Value: val,
+				},
+			)
+		}
+
+		attrs = append(attrs, samlprotocol.Attribute{
+			Name:       attrDef.Name,
+			NameFormat: string(attrDef.NameFormat),
+			Values:     attrValues,
+		})
+	}
+
+	return attrs, nil
+}
+
 func spToClientLike(sp *config.SAMLServiceProviderConfig) *oauth.ClientLike {
 	// Note(tung): Note sure if there could be third party SAML apps in the future,
 	// now it is always first party app.
@@ -911,4 +963,56 @@ var _ dsig.X509KeyStore = &x509KeyStore{}
 
 func (x *x509KeyStore) GetKeyPair() (privateKey *rsa.PrivateKey, cert []byte, err error) {
 	return x.privateKey, x.cert, nil
+}
+
+func formatAttribute(raw interface{}) ([]string, error) {
+	// Serialize and Parse it once to ensure it only include types in encoding/json
+	rawBytes, err := json.Marshal(raw)
+	if err != nil {
+		// This should not fail, panic if failed
+		panic(err)
+	}
+	var parsedRaw interface{}
+	err = json.Unmarshal(rawBytes, &parsedRaw)
+	if err != nil {
+		// This should not fail, panic if failed
+		panic(err)
+	}
+	raw = parsedRaw
+
+	formatSlice := func(raw []any) ([]string, error) {
+		values := []string{}
+		for _, itemRaw := range raw {
+			itemValues, err := formatAttribute(itemRaw)
+			if err != nil {
+				return nil, err
+			}
+			values = append(values, itemValues...)
+		}
+		return values, nil
+	}
+
+	formatMap := func(raw map[string]any) ([]string, error) {
+		// If it is an object, output the json stringified object
+		b, err := json.Marshal(raw)
+		if err != nil {
+			return nil, err
+		}
+		return []string{string(b)}, nil
+	}
+
+	switch raw := raw.(type) {
+	case string:
+		return []string{raw}, nil
+	case float64:
+		return []string{fmt.Sprintf("%v", raw)}, nil
+	case bool:
+		return []string{fmt.Sprintf("%v", raw)}, nil
+	case []any:
+		return formatSlice(raw)
+	case map[string]any:
+		return formatMap(raw)
+	default:
+		return []string{}, nil
+	}
 }
