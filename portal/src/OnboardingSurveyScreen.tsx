@@ -27,6 +27,7 @@ import { useProvideError } from "./hook/error";
 import { useViewerQuery } from "./graphql/portal/query/viewerQuery";
 import SurveyLayout from "./OnboardingSurveyLayout";
 import styles from "./OnboardingSurveyScreen.module.css";
+import ShowLoading from "./ShowLoading";
 
 const buttonTranslationKeys = {
   step1_roleChoiceGroup_Dev: "OnboardingSurveyScreen.step1.roleChoiceGroup.Dev",
@@ -561,6 +562,10 @@ function Step3Team(_props: StepProps) {
     };
   }, [theme]);
 
+  if (viewerLoading || viewer === undefined) {
+    return <ShowLoading />;
+  }
+
   return (
     <SurveyLayout
       contentClassName={styles.step3Content}
@@ -600,16 +605,14 @@ function Step3Team(_props: StepProps) {
             selectedChoices={companySizeChoicesState}
             setChoice={setCompanySizeChoicesState}
           />
-          {!viewerLoading && viewer != null ? (
-            <PhoneTextField
-              label={renderToString(
-                "OnboardingSurveyScreen.step3-team.phone.label"
-              )}
-              inputValue={companyPhone.rawInputValue}
-              initialCountry={viewer.geoIPCountryCode ?? undefined}
-              onChange={(v) => setCompanyPhone(v)}
-            />
-          ) : null}
+          <PhoneTextField
+            label={renderToString(
+              "OnboardingSurveyScreen.step3-team.phone.label"
+            )}
+            inputValue={companyPhone.rawInputValue}
+            initialCountry={viewer?.geoIPCountryCode ?? undefined}
+            onChange={(v) => setCompanyPhone(v)}
+          />
         </FormProvider>
       </div>
     </SurveyLayout>
@@ -618,7 +621,6 @@ function Step3Team(_props: StepProps) {
 
 function Step3Personal(_props: StepProps) {
   const { viewer, loading: viewerLoading } = useViewerQuery();
-  const { geoIPCountryCode } = viewer ?? {};
   const personalWebsiteFromLocalStorage =
     getFromLocalStorage("project_website");
   const [personalWebsite, setPersonalWebsite] = useState(
@@ -679,6 +681,11 @@ function Step3Personal(_props: StepProps) {
       },
     };
   }, [theme]);
+
+  if (viewerLoading || viewer === undefined) {
+    return <ShowLoading />;
+  }
+
   return (
     <SurveyLayout
       contentClassName={styles.step3Content}
@@ -714,16 +721,14 @@ function Step3Personal(_props: StepProps) {
             value={personalWebsite}
             onChange={(_, v) => setPersonalWebsite(v!)}
           />
-          {!viewerLoading && viewer != null ? (
-            <PhoneTextField
-              label={renderToString(
-                "OnboardingSurveyScreen.step3-personal.phone.label"
-              )}
-              inputValue={personalPhone.rawInputValue}
-              onChange={(v) => setPersonalPhone(v)}
-              initialCountry={geoIPCountryCode ?? undefined}
-            />
-          ) : null}
+          <PhoneTextField
+            label={renderToString(
+              "OnboardingSurveyScreen.step3-personal.phone.label"
+            )}
+            inputValue={personalPhone.rawInputValue}
+            onChange={(v) => setPersonalPhone(v)}
+            initialCountry={viewer?.geoIPCountryCode ?? undefined}
+          />
         </FormProvider>
       </div>
     </SurveyLayout>
