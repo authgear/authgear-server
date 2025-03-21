@@ -215,6 +215,10 @@ var _ = Schema.Add("SAMLAttributesConfig", `
 		"definitions": {
 			"type": "array",
 			"items": { "$ref": "#/$defs/SAMLAttributeDefinition" }
+		},
+		"mappings": {
+			"type": "array",
+			"items": { "$ref": "#/$defs/SAMLAttributeMapping" }
 		}
 	}
 }
@@ -222,6 +226,7 @@ var _ = Schema.Add("SAMLAttributesConfig", `
 
 type SAMLAttributesConfig struct {
 	Definitions []SAMLAttributeDefinition `json:"definitions,omitempty"`
+	Mappings    []SAMLAttributeMapping    `json:"mappings,omitempty"`
 }
 
 var _ = Schema.Add("SAMLAttributeDefinition", `
@@ -247,6 +252,51 @@ func (c *SAMLAttributeDefinition) SetDefaults() {
 	if c.NameFormat == "" {
 		c.NameFormat = SAMLAttributeNameFormatUnspecified
 	}
+}
+
+var _ = Schema.Add("SAMLAttributeMapping", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"from": { "$ref": "#/$defs/SAMLAttributeMappingFrom" },
+		"to": { "$ref": "#/$defs/SAMLAttributeMappingTo" }
+	},
+	"required": ["from", "to"]
+}
+`)
+
+type SAMLAttributeMapping struct {
+	From *SAMLAttributeMappingFrom `json:"from,omitempty"`
+	To   *SAMLAttributeMappingTo   `json:"to,omitempty"`
+}
+
+var _ = Schema.Add("SAMLAttributeMappingFrom", `
+{
+	"type": "object",
+	"oneOf": [
+	  { "ref": "#/$defs/UserProfileJSONPointer" }
+	]
+}
+`)
+
+type SAMLAttributeMappingFrom struct {
+	UserProfileJSONPointer
+}
+
+var _ = Schema.Add("SAMLAttributeMappingTo", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"saml_attribute": { "type": "string" }
+	},
+	"required": ["saml_attribute"]
+}
+`)
+
+type SAMLAttributeMappingTo struct {
+	SAMLAttribute string `json:"saml_attribute,omitempty"`
 }
 
 var _ = Schema.Add("SAMLAttributeNameFormat", `

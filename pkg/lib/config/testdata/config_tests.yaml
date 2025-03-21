@@ -1207,6 +1207,12 @@ config:
             - name: "mail"
               name_format: "urn:oasis:names:tc:SAML:2.0:attrname-format:basic"
               friendly_name: "Mail Address"
+          mappings:
+            - from:
+                user_profile:
+                  pointer: "/email"
+              to:
+                saml_attribute: "mail"
 ---
 name: saml-signing
 error: null
