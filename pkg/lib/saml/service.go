@@ -122,6 +122,16 @@ func (s *Service) IdpMetadata(serviceProviderId string) (*samlprotocol.Metadata,
 		}
 	}
 
+	var attributes []samlprotocol.Attribute
+
+	for _, attr := range sp.Attributes.Definitions {
+		attributes = append(attributes, samlprotocol.Attribute{
+			Name:         attr.Name,
+			NameFormat:   string(attr.NameFormat),
+			FriendlyName: attr.FriendlyName,
+		})
+	}
+
 	descriptor := samlprotocol.EntityDescriptor{
 		EntityID: s.IdpEntityID(),
 		IDPSSODescriptors: []samlprotocol.IDPSSODescriptor{
@@ -137,6 +147,7 @@ func (s *Service) IdpMetadata(serviceProviderId string) (*samlprotocol.Metadata,
 					SingleLogoutServices: sloServices,
 				},
 				SingleSignOnServices: ssoServices,
+				Attributes:           attributes,
 			},
 		},
 	}
