@@ -375,6 +375,28 @@ func (c *AppConfig) validateSAML(ctx *validation.Context) {
 						EmitErrorMessage("client_id does not exist in /oauth/clients")
 				}
 			}
+
+			for mappingIdx, mapping := range sp.Attributes.Mappings {
+				found := false
+				for _, definition := range sp.Attributes.Definitions {
+					if definition.Name == mapping.To.SAMLAttribute {
+						found = true
+						break
+					}
+				}
+				if !found {
+					ctx.Child(
+						"saml",
+						"service_providers",
+						strconv.Itoa(idx),
+						"mappings",
+						strconv.Itoa(mappingIdx),
+						"to",
+						"saml_attribute",
+					).
+						EmitErrorMessage("saml_attribute does match any defined attribute name in definitions")
+				}
+			}
 		}
 	}
 }
