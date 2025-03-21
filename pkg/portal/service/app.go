@@ -549,9 +549,10 @@ func (s *AppService) generateResources(appHost string, appID string) (map[string
 	// Generate app config
 	publicOrigin := &url.URL{Scheme: "https", Host: appHost}
 	appConfig := config.GenerateAppConfigFromOptions(&config.GenerateAppConfigOptions{
-		AppID:        appID,
-		PublicOrigin: publicOrigin.String(),
-		CookieDomain: appHost,
+		AppID:                       appID,
+		PublicOrigin:                publicOrigin.String(),
+		CookieDomain:                appHost,
+		PhoneNumberValidationMethod: config.LibphonenumberValidationMethodIsPossibleNumber,
 	})
 	appConfigYAML, err := yaml.Marshal(appConfig)
 	if err != nil {
