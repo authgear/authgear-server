@@ -275,7 +275,7 @@ var _ = Schema.Add("SAMLAttributeMappingFrom", `
 {
 	"type": "object",
 	"oneOf": [
-	  { "ref": "#/$defs/UserProfileJSONPointer" }
+	  { "$ref": "#/$defs/UserProfileJSONPointer" }
 	]
 }
 `)
