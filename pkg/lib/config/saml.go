@@ -40,7 +40,8 @@ var _ = Schema.Add("SAMLServiceProviderConfig", `
 		"slo_enabled": { "type": "boolean" },
 		"slo_callback_url": { "type": "string", "format": "uri" },
 		"slo_binding": { "$ref": "#/$defs/SAMLSLOBinding" },
-		"signature_verification_enabled": { "type": "boolean" }
+		"signature_verification_enabled": { "type": "boolean" },
+		"attributes": { "$ref": "#/$defs/SAMLAttributesConfig" }
 	},
 	"required": ["client_id", "acs_urls"],
 	"allOf": [
@@ -131,6 +132,7 @@ type SAMLServiceProviderConfig struct {
 	SLOCallbackURL               string                        `json:"slo_callback_url,omitempty"`
 	SLOBinding                   samlprotocol.SAMLBinding      `json:"slo_binding,omitempty"`
 	SignatureVerificationEnabled bool                          `json:"signature_verification_enabled,omitempty"`
+	Attributes                   *SAMLAttributesConfig         `json:"attributes,omitempty"`
 }
 
 func (c *SAMLServiceProviderConfig) SetDefaults() {
@@ -203,4 +205,115 @@ type SAMLSigningDigestMethod string
 
 const (
 	SAMLSigningDigestMethodSHA256 SAMLSigningDigestMethod = "SHA256"
+)
+
+var _ = Schema.Add("SAMLAttributesConfig", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"definitions": {
+			"type": "array",
+			"items": { "$ref": "#/$defs/SAMLAttributeDefinition" }
+		},
+		"mappings": {
+			"type": "array",
+			"items": { "$ref": "#/$defs/SAMLAttributeMapping" }
+		}
+	}
+}
+`)
+
+type SAMLAttributesConfig struct {
+	Definitions []SAMLAttributeDefinition `json:"definitions,omitempty"`
+	Mappings    []SAMLAttributeMapping    `json:"mappings,omitempty"`
+}
+
+var _ = Schema.Add("SAMLAttributeDefinition", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"name": { "type": "string" },
+		"name_format": { "type": "string" },
+		"friendly_name": { "type": "string" }
+	},
+	"required": ["name"]
+}
+`)
+
+type SAMLAttributeDefinition struct {
+	Name         string                  `json:"name,omitempty"`
+	NameFormat   SAMLAttributeNameFormat `json:"name_format,omitempty"`
+	FriendlyName string                  `json:"friendly_name,omitempty"`
+}
+
+func (c *SAMLAttributeDefinition) SetDefaults() {
+	if c.NameFormat == "" {
+		c.NameFormat = SAMLAttributeNameFormatUnspecified
+	}
+}
+
+var _ = Schema.Add("SAMLAttributeMapping", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"from": { "$ref": "#/$defs/SAMLAttributeMappingFrom" },
+		"to": { "$ref": "#/$defs/SAMLAttributeMappingTo" }
+	},
+	"required": ["from", "to"]
+}
+`)
+
+type SAMLAttributeMapping struct {
+	From *SAMLAttributeMappingFrom `json:"from,omitempty"`
+	To   *SAMLAttributeMappingTo   `json:"to,omitempty"`
+}
+
+var _ = Schema.Add("SAMLAttributeMappingFrom", `
+{
+	"type": "object",
+	"oneOf": [
+	  { "$ref": "#/$defs/UserProfileJSONPointer" }
+	]
+}
+`)
+
+type SAMLAttributeMappingFrom struct {
+	UserProfileJSONPointer
+}
+
+var _ = Schema.Add("SAMLAttributeMappingTo", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"saml_attribute": { "type": "string" }
+	},
+	"required": ["saml_attribute"]
+}
+`)
+
+type SAMLAttributeMappingTo struct {
+	SAMLAttribute string `json:"saml_attribute,omitempty"`
+}
+
+var _ = Schema.Add("SAMLAttributeNameFormat", `
+{
+	"type": "string",
+	"enum": [
+		"urn:oasis:names:tc:SAML:2.0:attrname-format:unspecified",
+		"urn:oasis:names:tc:SAML:2.0:attrname-format:uri",
+		"urn:oasis:names:tc:SAML:2.0:attrname-format:basic"
+	]
+}
+`)
+
+type SAMLAttributeNameFormat string
+
+const (
+	SAMLAttributeNameFormatUnspecified SAMLAttributeNameFormat = "urn:oasis:names:tc:SAML:2.0:attrname-format:unspecified"
+	SAMLAttributeNameFormatURI         SAMLAttributeNameFormat = "urn:oasis:names:tc:SAML:2.0:attrname-format:uri"
+	SAMLAttributeNameFormatBasic       SAMLAttributeNameFormat = "urn:oasis:names:tc:SAML:2.0:attrname-format:basic"
 )
