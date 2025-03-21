@@ -21,7 +21,7 @@ import {
   IconButton,
   IIconProps,
 } from "@fluentui/react";
-import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import { Context } from "@oursky/react-messageformat";
 import { useTextField } from "../../hook/useInput";
 import OrderButtons, { swap } from "../../OrderButtons";
 import { useGetTelecomCountryName } from "../../util/translations";
@@ -403,11 +403,7 @@ const CountryCallingCodeList: React.VFC<CountryCallingCodeListProps> =
                 />
               );
             }
-            return (
-              <span>
-                <FormattedMessage id="LoginIDConfigurationScreen.phone.default-order" />
-              </span>
-            );
+            return null;
           case "pinned":
             return (
               <CountryCallingCodeListPinButton
