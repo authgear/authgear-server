@@ -448,7 +448,7 @@ The `attributes` object under items of `service_providers` is used to customize 
 
   2. A object uses go template to render a string as the value of a attribute. The object contains the following fields:
 
-  - `from.template`: Required. A go template which will be used to render the attribute. See the below section [Use a go template to render SAML attributes](#4_2) for more details and examples.
+  - `from.text_template`: Required. An object representing a go text template which will be used to render the attribute. See the below section [Use a go template to render SAML attributes](#4_2) for more details and examples.
   - `to.saml_attribute`: Required. The `Name` of the SAML attribute to write the value.
 
   3. A hook. It runs a hook to computes the resulting SAML attributes. See the below section [Use a hook to compute SAML attributes](#4_3) for more details about the hook. The object contains the following fields:
@@ -475,9 +475,9 @@ The `attributes` object under items of `service_providers` is used to customize 
 
 ### <a id="4_2"></a> Use a go template to render SAML attributes
 
-You can provide a [go template](https://pkg.go.dev/text/template) to render a SAML attribute.
+You can provide a [go text template](https://pkg.go.dev/text/template) to render a SAML attribute.
 
-The data provided to the go template is the user profile object.
+The data provided to the template is the user profile object.
 
 Here is an example:
 
@@ -490,7 +490,8 @@ attributes:
       name_format: urn:oasis:names:tc:SAML:2.0:attrname-format:basic
   mappings:
     - from:
-        template: "{{.preferred_username}}@example.com"
+        text_template:
+          template: "{{.preferred_username}}@example.com"
       to:
         saml_attribute: mail
 ```
