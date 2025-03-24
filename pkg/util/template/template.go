@@ -1,9 +1,17 @@
 package template
 
-var templateValidator = NewValidator(
+var privateTemplateValidator = NewValidator(
 	AllowRangeNode(true),
 	AllowTemplateNode(true),
 	AllowDeclaration(true),
 	AllowIdentifierNode(true),
 	MaxDepth(99),
+)
+
+var publicTemplateValidator = NewValidator(
+	AllowRangeNode(true),
+	AllowTemplateNode(true),
+	AllowDeclaration(true),
+	AllowIdentifierNode(true),
+	MaxDepth(10),
 )

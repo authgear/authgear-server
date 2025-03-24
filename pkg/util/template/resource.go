@@ -389,7 +389,7 @@ func viewHTMLTemplates(name string, resources []resource.ResourceFile, rawView r
 			if err != nil {
 				return nil, fmt.Errorf("invalid HTML template: %w", err)
 			}
-			err = templateValidator.ValidateHTMLTemplate(template)
+			err = privateTemplateValidator.ValidateHTMLTemplate(template)
 			if err != nil {
 				return nil, fmt.Errorf("invalid HTML template: %w", err)
 			}
@@ -445,7 +445,7 @@ func viewTextTemplates(name string, resources []resource.ResourceFile, rawView r
 			if err != nil {
 				return nil, fmt.Errorf("invalid text template: %w", err)
 			}
-			err = templateValidator.ValidateTextTemplate(template)
+			err = privateTemplateValidator.ValidateTextTemplate(template)
 			if err != nil {
 				return nil, fmt.Errorf("invalid text template: %w", err)
 			}

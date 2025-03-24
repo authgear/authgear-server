@@ -12,6 +12,7 @@ import (
 
 	"golang.org/x/text/language"
 
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/intl"
 	"github.com/authgear/authgear-server/pkg/util/messageformat"
 	"github.com/authgear/authgear-server/pkg/util/resource"
@@ -80,6 +81,26 @@ func (e *Engine) Render(ctx context.Context, resource Resource, preferredLanguag
 	default:
 		panic("template: unexpected template resource type")
 	}
+}
+
+func (e *Engine) RenderPublicText(ctx context.Context, tpl config.TextTemplate, data interface{}) (string, error) {
+	t := texttemplate.New("")
+	var err error
+	t, err = t.Parse(tpl.TextTemplate.Template)
+	if err != nil {
+		return "", err
+	}
+	err = publicTemplateValidator.ValidateTextTemplate(t)
+	if err != nil {
+		return "", err
+	}
+
+	var buf strings.Builder
+	err = t.Execute(NewLimitWriter(&buf), data)
+	if err != nil {
+		return "", fmt.Errorf("failed to execute public text template: %w", err)
+	}
+	return buf.String(), nil
 }
 
 func (e *Engine) renderHTML(ctx context.Context, desc *HTML, preferredLanguages []string, data interface{}) (*RenderResult, error) {
