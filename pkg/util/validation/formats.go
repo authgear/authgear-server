@@ -60,6 +60,7 @@ func init() {
 	jsonschemaformat.DefaultChecker["x_re2_regex"] = FormatRe2Regex{}
 	jsonschemaformat.DefaultChecker["x_role_group_key"] = rolesgroupsutil.FormatKey{}
 	jsonschemaformat.DefaultChecker["x_x509_certificate_pem"] = FormatX509CertPem{}
+	jsonschemaformat.DefaultChecker["x_text_template"] = FormatTextTemplate{}
 }
 
 // FormatEmail checks if input is an email address.
@@ -669,5 +670,21 @@ func (FormatX509CertPem) CheckFormat(ctx context.Context, value interface{}) err
 	if err != nil {
 		return fmt.Errorf("invalid x509 cert")
 	}
+	return nil
+}
+
+type FormatTextTemplate struct{}
+
+func (FormatTextTemplate) CheckFormat(ctx context.Context, value interface{}) error {
+	str, ok := value.(string)
+	if !ok {
+		return nil
+	}
+
+	_, err := template.New("").Parse(str)
+	if err != nil {
+		return fmt.Errorf("invalid text template")
+	}
+
 	return nil
 }
