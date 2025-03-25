@@ -61,9 +61,9 @@ func (s *Service) makeAuthenticationTemplateComponents(code string) []TemplateCo
 	return component
 }
 
-func (s *Service) prepareOTPComponents(template *config.WhatsappTemplateConfig, code string) []TemplateComponent {
+func (s *Service) prepareOTPComponents(template *config.WhatsappOnPremisesOTPTemplateConfig, code string) []TemplateComponent {
 	switch template.Type {
-	case config.WhatsappTemplateTypeAuthentication:
+	case config.WhatsappOnPremisesTemplateTypeAuthentication:
 		return s.makeAuthenticationTemplateComponents(code)
 	default:
 		panic("whatsapp: unknown template type")

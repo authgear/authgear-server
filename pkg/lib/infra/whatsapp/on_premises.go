@@ -108,7 +108,7 @@ func (c *OnPremisesClient) SendTemplate(
 	return send(true)
 }
 
-func (c *OnPremisesClient) GetOTPTemplate() *config.WhatsappTemplateConfig {
+func (c *OnPremisesClient) GetOTPTemplate() *config.WhatsappOnPremisesOTPTemplateConfig {
 	return &c.Credentials.Templates.OTP
 }
 

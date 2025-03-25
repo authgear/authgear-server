@@ -1,39 +1,28 @@
 package config
 
-type WhatsappTemplatesConfig struct {
-	OTP WhatsappTemplateConfig `json:"otp"`
+type WhatsappOnPremisesTemplatesConfig struct {
+	OTP WhatsappOnPremisesOTPTemplateConfig `json:"otp"`
 }
 
-var _ = SecretConfigSchema.Add("WhatsappTemplatesConfig", `
+var _ = SecretConfigSchema.Add("WhatsappOnPremisesTemplatesConfig", `
 {
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
-		"otp": { "$ref": "#/$defs/WhatsappTemplateConfig" }
+		"otp": { "$ref": "#/$defs/WhatsappOnPremisesOTPTemplateConfig" }
 	},
 	"required": ["otp"]
 }
 `)
 
-var _ = SecretConfigSchema.Add("WhatsappOnPremTemplatesConfig", `
-{
-	"allOf": [
-		{ "$ref": "#/$defs/WhatsappTemplatesConfig" }
-	],
-	"properties": {
-		"otp": { "$ref": "#/$defs/WhatsappOnPremTemplateConfig" }
-	}
-}
-`)
-
-type WhatsappTemplateType string
+type WhatsappOnPremisesTemplateType string
 
 const (
-	WhatsappTemplateTypeAuthentication WhatsappTemplateType = "authentication"
+	WhatsappOnPremisesTemplateTypeAuthentication WhatsappOnPremisesTemplateType = "authentication"
 )
 
 // ref: https://developers.facebook.com/docs/whatsapp/api/messages/message-templates
-var _ = SecretConfigSchema.Add("WhatsappTemplateLanguage", `
+var _ = SecretConfigSchema.Add("WhatsappOnPremisesTemplateLanguage", `
 {
 	"type": "string",
 	"enum": [
@@ -56,67 +45,37 @@ var _ = SecretConfigSchema.Add("WhatsappTemplateLanguage", `
 }
 `)
 
-var _ = SecretConfigSchema.Add("WhatsappTemplateType", `
+var _ = SecretConfigSchema.Add("WhatsappOnPremisesTemplateType", `
 {
 	"type": "string",
 	"enum": ["authentication"]
 }
 `)
 
-type WhatsappTemplateConfig struct {
-	Name      string               `json:"name"`
-	Type      WhatsappTemplateType `json:"type"`
-	Namespace string               `json:"namespace,omitempty"`
-	Languages []string             `json:"languages"`
+type WhatsappOnPremisesOTPTemplateConfig struct {
+	Name      string                         `json:"name"`
+	Type      WhatsappOnPremisesTemplateType `json:"type"`
+	Namespace string                         `json:"namespace,omitempty"`
+	Languages []string                       `json:"languages"`
 }
 
-var _ = SecretConfigSchema.Add("WhatsappTemplateConfig", `
+var _ = SecretConfigSchema.Add("WhatsappOnPremisesOTPTemplateConfig", `
 {
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
 		"name": { "type": "string", "minLength": 1 },
-		"type": { "$ref": "#/$defs/WhatsappTemplateType" },
+		"type": { "$ref": "#/$defs/WhatsappOnPremisesTemplateType" },
 		"namespace": { "type": "string", "minLength": 1 },
 		"languages": {
 			"type": "array",
 			"items": {
-				"$ref": "#/$defs/WhatsappTemplateLanguage",
+				"$ref": "#/$defs/WhatsappOnPremisesTemplateLanguage",
 				"minLength": 1
 			}
 		}
 	},
 	"required": ["name", "type", "languages"]
-}
-`)
-
-var _ = SecretConfigSchema.Add("WhatsappOnPremTemplateConfig", `
-{
-	"type": "object",
-	"allOf": [
-		{ "$ref": "#/$defs/WhatsappTemplateConfig" },
-		{
-			"required": ["namespace"]
-		}
-	]
-}
-`)
-
-type WhatsappTemplateComponentParameter struct {
-	Parameters []string `json:"parameters,omitempty"`
-}
-
-var _ = SecretConfigSchema.Add("WhatsappTemplateComponentParameter", `
-{
-	"type": "object",
-	"additionalProperties": false,
-	"properties": {
-		"parameters": {
-			"type": "array",
-			"items": { "type": "string", "minLength": 1 }
-		}
-	},
-	"required": ["parameters"]
 }
 `)
 
@@ -128,17 +87,17 @@ var _ = SecretConfigSchema.Add("WhatsappOnPremisesCredentials", `
 		"api_endpoint": { "type": "string", "minLength": 1 },
 		"username": { "type": "string", "minLength": 1 },
 		"password": { "type": "string", "minLength": 1 },
-		"templates": { "$ref": "#/$defs/WhatsappOnPremTemplatesConfig" }
+		"templates": { "$ref": "#/$defs/WhatsappOnPremisesTemplatesConfig" }
 	},
 	"required": ["api_endpoint", "username", "password", "templates"]
 }
 `)
 
 type WhatsappOnPremisesCredentials struct {
-	APIEndpoint string                   `json:"api_endpoint"`
-	Username    string                   `json:"username"`
-	Password    string                   `json:"password"`
-	Templates   *WhatsappTemplatesConfig `json:"templates"`
+	APIEndpoint string                             `json:"api_endpoint"`
+	Username    string                             `json:"username"`
+	Password    string                             `json:"password"`
+	Templates   *WhatsappOnPremisesTemplatesConfig `json:"templates"`
 }
 
 func (c *WhatsappOnPremisesCredentials) SensitiveStrings() []string {
