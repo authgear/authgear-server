@@ -55,6 +55,19 @@ func (h *LoginResultHandler) handleLoginResult(
 			return nil, errResult
 		}
 
+		var unsupportedAttributeTypeErr *samlprotocol.UnsupportedAttributeTypeError
+		if errors.As(err, &unsupportedAttributeTypeErr) {
+			errResult := NewSAMLErrorResult(err,
+				samlprotocol.NewServerErrorResponse(
+					now,
+					h.SAMLService.IdpEntityID(),
+					"unsupported attribute type",
+					unsupportedAttributeTypeErr.GetDetailElements(),
+				),
+			)
+			return nil, errResult
+		}
+
 		return nil, err
 	}
 

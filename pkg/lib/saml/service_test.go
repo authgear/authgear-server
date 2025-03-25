@@ -323,178 +323,192 @@ func TestSAMLService(t *testing.T) {
 	})
 
 	Convey("ResolveUserAttributes", t, func() {
-		svc := createService()
-		sp := createSP()
-		sp.Attributes = &config.SAMLAttributesConfig{
-			Definitions: []config.SAMLAttributeDefinition{
-				{Name: "strattr", NameFormat: config.SAMLAttributeNameFormatUnspecified, FriendlyName: "A string"},
-				{Name: "boolattr", NameFormat: config.SAMLAttributeNameFormatUnspecified},
-				{Name: "floatattr", NameFormat: config.SAMLAttributeNameFormatUnspecified},
-				{Name: "sliceattr", NameFormat: config.SAMLAttributeNameFormatUnspecified},
-				{Name: "mapattr", NameFormat: config.SAMLAttributeNameFormatUnspecified},
-				{Name: "nestedattr", NameFormat: config.SAMLAttributeNameFormatUnspecified},
-				{Name: "nullattr", NameFormat: config.SAMLAttributeNameFormatUnspecified},
-			},
-			Mappings: []config.SAMLAttributeMapping{
-				{
-					From: &config.SAMLAttributeMappingFrom{
-						UserProfileJSONPointer: config.UserProfileJSONPointer{
-							UserProfile: &config.JSONPointer{
-								Pointer: "/str",
+		Convey("success", func() {
+			svc := createService()
+			sp := createSP()
+			sp.Attributes = &config.SAMLAttributesConfig{
+				Definitions: []config.SAMLAttributeDefinition{
+					{Name: "strattr", NameFormat: config.SAMLAttributeNameFormatUnspecified, FriendlyName: "A string"},
+					{Name: "boolattr", NameFormat: config.SAMLAttributeNameFormatUnspecified},
+					{Name: "floatattr", NameFormat: config.SAMLAttributeNameFormatUnspecified},
+					{Name: "sliceattr", NameFormat: config.SAMLAttributeNameFormatUnspecified},
+					{Name: "nestedattr", NameFormat: config.SAMLAttributeNameFormatUnspecified},
+					{Name: "nullattr", NameFormat: config.SAMLAttributeNameFormatUnspecified},
+				},
+				Mappings: []config.SAMLAttributeMapping{
+					{
+						From: &config.SAMLAttributeMappingFrom{
+							UserProfileJSONPointer: config.UserProfileJSONPointer{
+								UserProfile: &config.JSONPointer{
+									Pointer: "/str",
+								},
 							},
 						},
-					},
-					To: &config.SAMLAttributeMappingTo{
-						SAMLAttribute: "strattr",
-					},
-				},
-				{
-					From: &config.SAMLAttributeMappingFrom{
-						UserProfileJSONPointer: config.UserProfileJSONPointer{
-							UserProfile: &config.JSONPointer{
-								Pointer: "/bool",
-							},
+						To: &config.SAMLAttributeMappingTo{
+							SAMLAttribute: "strattr",
 						},
 					},
-					To: &config.SAMLAttributeMappingTo{
-						SAMLAttribute: "boolattr",
-					},
-				},
-				{
-					From: &config.SAMLAttributeMappingFrom{
-						UserProfileJSONPointer: config.UserProfileJSONPointer{
-							UserProfile: &config.JSONPointer{
-								Pointer: "/float",
+					{
+						From: &config.SAMLAttributeMappingFrom{
+							UserProfileJSONPointer: config.UserProfileJSONPointer{
+								UserProfile: &config.JSONPointer{
+									Pointer: "/bool",
+								},
 							},
 						},
-					},
-					To: &config.SAMLAttributeMappingTo{
-						SAMLAttribute: "floatattr",
-					},
-				},
-				{
-					From: &config.SAMLAttributeMappingFrom{
-						UserProfileJSONPointer: config.UserProfileJSONPointer{
-							UserProfile: &config.JSONPointer{
-								Pointer: "/slice",
-							},
+						To: &config.SAMLAttributeMappingTo{
+							SAMLAttribute: "boolattr",
 						},
 					},
-					To: &config.SAMLAttributeMappingTo{
-						SAMLAttribute: "sliceattr",
-					},
-				},
-				{
-					From: &config.SAMLAttributeMappingFrom{
-						UserProfileJSONPointer: config.UserProfileJSONPointer{
-							UserProfile: &config.JSONPointer{
-								Pointer: "/map",
+					{
+						From: &config.SAMLAttributeMappingFrom{
+							UserProfileJSONPointer: config.UserProfileJSONPointer{
+								UserProfile: &config.JSONPointer{
+									Pointer: "/float",
+								},
 							},
 						},
-					},
-					To: &config.SAMLAttributeMappingTo{
-						SAMLAttribute: "mapattr",
-					},
-				},
-				{
-					From: &config.SAMLAttributeMappingFrom{
-						UserProfileJSONPointer: config.UserProfileJSONPointer{
-							UserProfile: &config.JSONPointer{
-								Pointer: "/map/nested",
-							},
+						To: &config.SAMLAttributeMappingTo{
+							SAMLAttribute: "floatattr",
 						},
 					},
-					To: &config.SAMLAttributeMappingTo{
-						SAMLAttribute: "nestedattr",
-					},
-				},
-				{
-					From: &config.SAMLAttributeMappingFrom{
-						UserProfileJSONPointer: config.UserProfileJSONPointer{
-							UserProfile: &config.JSONPointer{
-								Pointer: "/null",
+					{
+						From: &config.SAMLAttributeMappingFrom{
+							UserProfileJSONPointer: config.UserProfileJSONPointer{
+								UserProfile: &config.JSONPointer{
+									Pointer: "/slice",
+								},
 							},
 						},
+						To: &config.SAMLAttributeMappingTo{
+							SAMLAttribute: "sliceattr",
+						},
 					},
-					To: &config.SAMLAttributeMappingTo{
-						SAMLAttribute: "nullattr",
+					{
+						From: &config.SAMLAttributeMappingFrom{
+							UserProfileJSONPointer: config.UserProfileJSONPointer{
+								UserProfile: &config.JSONPointer{
+									Pointer: "/map/nested",
+								},
+							},
+						},
+						To: &config.SAMLAttributeMappingTo{
+							SAMLAttribute: "nestedattr",
+						},
+					},
+					{
+						From: &config.SAMLAttributeMappingFrom{
+							UserProfileJSONPointer: config.UserProfileJSONPointer{
+								UserProfile: &config.JSONPointer{
+									Pointer: "/null",
+								},
+							},
+						},
+						To: &config.SAMLAttributeMappingTo{
+							SAMLAttribute: "nullattr",
+						},
 					},
 				},
-			},
-		}
+			}
 
-		var userInfo map[string]interface{}
-		err := json.Unmarshal([]byte(userInfoJson), &userInfo)
-		So(err, ShouldBeNil)
-		attrs, err := svc.ResolveUserAttributes(sp, userInfo)
-		So(err, ShouldBeNil)
-		So(attrs, ShouldResemble, []samlprotocol.Attribute{
-			{
-				FriendlyName: "User ID",
-				Name:         "sub",
-				NameFormat:   samlprotocol.SAMLAttrnameFormatBasic,
-				Values: []samlprotocol.AttributeValue{{
-					Type:  samlprotocol.SAMLAttrTypeString,
-					Value: "userid",
-				}},
-			},
-			{
-				Name:         "strattr",
-				NameFormat:   string(config.SAMLAttributeNameFormatUnspecified),
-				FriendlyName: "A string",
-				Values: []samlprotocol.AttributeValue{{
-					Type:  samlprotocol.SAMLAttrTypeString,
-					Value: "teststr",
-				}},
-			},
-			{
-				Name:       "boolattr",
-				NameFormat: string(config.SAMLAttributeNameFormatUnspecified),
-				Values: []samlprotocol.AttributeValue{{
-					Type:  samlprotocol.SAMLAttrTypeString,
-					Value: "true",
-				}},
-			},
-			{
-				Name:       "floatattr",
-				NameFormat: string(config.SAMLAttributeNameFormatUnspecified),
-				Values: []samlprotocol.AttributeValue{{
-					Type:  samlprotocol.SAMLAttrTypeString,
-					Value: "12.5",
-				}},
-			},
-			{
-				Name:       "sliceattr",
-				NameFormat: string(config.SAMLAttributeNameFormatUnspecified),
-				Values: []samlprotocol.AttributeValue{{
-					Type:  samlprotocol.SAMLAttrTypeString,
-					Value: "item1",
-				}, {
-					Type:  samlprotocol.SAMLAttrTypeString,
-					Value: "item2",
-				}},
-			},
-			{
-				Name:       "mapattr",
-				NameFormat: string(config.SAMLAttributeNameFormatUnspecified),
-				Values: []samlprotocol.AttributeValue{{
-					Type:  samlprotocol.SAMLAttrTypeString,
-					Value: `{"nested":"nesteditem"}`,
-				}},
-			},
-			{
-				Name:       "nestedattr",
-				NameFormat: string(config.SAMLAttributeNameFormatUnspecified),
-				Values: []samlprotocol.AttributeValue{{
-					Type:  samlprotocol.SAMLAttrTypeString,
-					Value: "nesteditem",
-				}},
-			},
-			{
-				Name:       "nullattr",
-				NameFormat: string(config.SAMLAttributeNameFormatUnspecified),
-				Values:     []samlprotocol.AttributeValue{},
-			},
+			var userInfo map[string]interface{}
+			err := json.Unmarshal([]byte(userInfoJson), &userInfo)
+			So(err, ShouldBeNil)
+			attrs, err := svc.ResolveUserAttributes(sp, userInfo)
+			So(err, ShouldBeNil)
+			So(attrs, ShouldResemble, []samlprotocol.Attribute{
+				{
+					FriendlyName: "User ID",
+					Name:         "sub",
+					NameFormat:   samlprotocol.SAMLAttrnameFormatBasic,
+					Values: []samlprotocol.AttributeValue{{
+						Type:  samlprotocol.SAMLAttrTypeString,
+						Value: "userid",
+					}},
+				},
+				{
+					Name:         "strattr",
+					NameFormat:   string(config.SAMLAttributeNameFormatUnspecified),
+					FriendlyName: "A string",
+					Values: []samlprotocol.AttributeValue{{
+						Type:  samlprotocol.SAMLAttrTypeString,
+						Value: "teststr",
+					}},
+				},
+				{
+					Name:       "boolattr",
+					NameFormat: string(config.SAMLAttributeNameFormatUnspecified),
+					Values: []samlprotocol.AttributeValue{{
+						Type:  samlprotocol.SAMLAttrTypeBoolean,
+						Value: "true",
+					}},
+				},
+				{
+					Name:       "floatattr",
+					NameFormat: string(config.SAMLAttributeNameFormatUnspecified),
+					Values: []samlprotocol.AttributeValue{{
+						Type:  samlprotocol.SAMLAttrTypeDecimal,
+						Value: "12.5",
+					}},
+				},
+				{
+					Name:       "sliceattr",
+					NameFormat: string(config.SAMLAttributeNameFormatUnspecified),
+					Values: []samlprotocol.AttributeValue{{
+						Type:  samlprotocol.SAMLAttrTypeString,
+						Value: "item1",
+					}, {
+						Type:  samlprotocol.SAMLAttrTypeString,
+						Value: "item2",
+					}},
+				},
+				{
+					Name:       "nestedattr",
+					NameFormat: string(config.SAMLAttributeNameFormatUnspecified),
+					Values: []samlprotocol.AttributeValue{{
+						Type:  samlprotocol.SAMLAttrTypeString,
+						Value: "nesteditem",
+					}},
+				},
+				{
+					Name:       "nullattr",
+					NameFormat: string(config.SAMLAttributeNameFormatUnspecified),
+					Values:     []samlprotocol.AttributeValue{},
+				},
+			})
+		})
+
+		Convey("map is not supported", func() {
+			svc := createService()
+			sp := createSP()
+			sp.Attributes = &config.SAMLAttributesConfig{
+				Definitions: []config.SAMLAttributeDefinition{
+					{Name: "mapattr", NameFormat: config.SAMLAttributeNameFormatUnspecified},
+				},
+				Mappings: []config.SAMLAttributeMapping{
+					{
+						From: &config.SAMLAttributeMappingFrom{
+							UserProfileJSONPointer: config.UserProfileJSONPointer{
+								UserProfile: &config.JSONPointer{
+									Pointer: "/map",
+								},
+							},
+						},
+						To: &config.SAMLAttributeMappingTo{
+							SAMLAttribute: "mapattr",
+						},
+					},
+				},
+			}
+
+			var userInfo map[string]interface{}
+			err := json.Unmarshal([]byte(userInfoJson), &userInfo)
+			So(err, ShouldBeNil)
+			_, err = svc.ResolveUserAttributes(sp, userInfo)
+			So(err, ShouldBeError, &samlprotocol.UnsupportedAttributeTypeError{
+				AttributeName:      "mapattr",
+				UserProfilePointer: "/map",
+			})
 		})
 	})
 }

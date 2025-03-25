@@ -6,6 +6,7 @@ import (
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/url"
 	"strings"
@@ -36,6 +37,8 @@ var x509SignatureAlgorithmByIdentifier = map[string]x509.SignatureAlgorithm{
 	"http://www.w3.org/2001/04/xmldsig-more#rsa-sha256": x509.SHA256WithRSA,
 	"http://www.w3.org/2000/09/xmldsig#dsa-sha1":        x509.DSAWithSHA1,
 }
+
+var errCannotFormatMap error = errors.New("cannot format a map to saml attribute")
 
 //go:generate mockgen -source=service.go -destination=service_mock_test.go -package saml_test
 
@@ -888,6 +891,20 @@ func (s *Service) recordSessionParticipant(
 }
 
 func (s *Service) ResolveUserAttributes(sp *config.SAMLServiceProviderConfig, userInfo map[string]interface{}) ([]samlprotocol.Attribute, error) {
+	// Serialize and Parse it once to ensure it only include types in encoding/json
+	rawBytes, err := json.Marshal(userInfo)
+	if err != nil {
+		// This should not fail, panic if failed
+		panic(err)
+	}
+	var parsedRaw map[string]interface{}
+	err = json.Unmarshal(rawBytes, &parsedRaw)
+	if err != nil {
+		// This should not fail, panic if failed
+		panic(err)
+	}
+	userInfo = parsedRaw
+
 	attrs := []samlprotocol.Attribute{
 		{
 			FriendlyName: "User ID",
@@ -900,9 +917,9 @@ func (s *Service) ResolveUserAttributes(sp *config.SAMLServiceProviderConfig, us
 		},
 	}
 
-	valuesMap := map[string][]string{}
+	valuesMap := map[string][]samlprotocol.AttributeValue{}
 	for _, mapping := range sp.Attributes.Mappings {
-		values := []string{}
+		values := []samlprotocol.AttributeValue{}
 		switch {
 		case mapping.From.UserProfile != nil:
 			jsonPointer := mapping.From.UserProfile.MustGetJSONPointer()
@@ -912,6 +929,12 @@ func (s *Service) ResolveUserAttributes(sp *config.SAMLServiceProviderConfig, us
 			} else {
 				values, err = formatAttribute(raw)
 				if err != nil {
+					if errors.Is(err, errCannotFormatMap) {
+						return nil, &samlprotocol.UnsupportedAttributeTypeError{
+							AttributeName:      mapping.To.SAMLAttribute,
+							UserProfilePointer: mapping.From.UserProfile.Pointer,
+						}
+					}
 					return nil, err
 				}
 			}
@@ -922,23 +945,14 @@ func (s *Service) ResolveUserAttributes(sp *config.SAMLServiceProviderConfig, us
 	for _, attrDef := range sp.Attributes.Definitions {
 		values, ok := valuesMap[attrDef.Name]
 		if !ok {
-			continue
-		}
-		attrValues := []samlprotocol.AttributeValue{}
-		for _, val := range values {
-			attrValues = append(attrValues,
-				samlprotocol.AttributeValue{
-					Type:  samlprotocol.SAMLAttrTypeString,
-					Value: val,
-				},
-			)
+			values = []samlprotocol.AttributeValue{}
 		}
 
 		attrs = append(attrs, samlprotocol.Attribute{
 			Name:         attrDef.Name,
 			NameFormat:   string(attrDef.NameFormat),
 			FriendlyName: attrDef.FriendlyName,
-			Values:       attrValues,
+			Values:       values,
 		})
 	}
 
@@ -966,23 +980,10 @@ func (x *x509KeyStore) GetKeyPair() (privateKey *rsa.PrivateKey, cert []byte, er
 	return x.privateKey, x.cert, nil
 }
 
-func formatAttribute(raw interface{}) ([]string, error) {
-	// Serialize and Parse it once to ensure it only include types in encoding/json
-	rawBytes, err := json.Marshal(raw)
-	if err != nil {
-		// This should not fail, panic if failed
-		panic(err)
-	}
-	var parsedRaw interface{}
-	err = json.Unmarshal(rawBytes, &parsedRaw)
-	if err != nil {
-		// This should not fail, panic if failed
-		panic(err)
-	}
-	raw = parsedRaw
+func formatAttribute(raw interface{}) ([]samlprotocol.AttributeValue, error) {
 
-	formatSlice := func(raw []any) ([]string, error) {
-		values := []string{}
+	formatSlice := func(raw []any) ([]samlprotocol.AttributeValue, error) {
+		values := []samlprotocol.AttributeValue{}
 		for _, itemRaw := range raw {
 			itemValues, err := formatAttribute(itemRaw)
 			if err != nil {
@@ -993,27 +994,27 @@ func formatAttribute(raw interface{}) ([]string, error) {
 		return values, nil
 	}
 
-	formatMap := func(raw map[string]any) ([]string, error) {
-		// If it is an object, output the json stringified object
-		b, err := json.Marshal(raw)
-		if err != nil {
-			return nil, err
-		}
-		return []string{string(b)}, nil
-	}
-
 	switch raw := raw.(type) {
 	case string:
-		return []string{raw}, nil
+		return []samlprotocol.AttributeValue{{
+			Type:  samlprotocol.SAMLAttrTypeString,
+			Value: raw,
+		}}, nil
 	case float64:
-		return []string{fmt.Sprintf("%v", raw)}, nil
+		return []samlprotocol.AttributeValue{{
+			Type:  samlprotocol.SAMLAttrTypeDecimal,
+			Value: fmt.Sprintf("%v", raw),
+		}}, nil
 	case bool:
-		return []string{fmt.Sprintf("%v", raw)}, nil
+		return []samlprotocol.AttributeValue{{
+			Type:  samlprotocol.SAMLAttrTypeBoolean,
+			Value: fmt.Sprintf("%v", raw),
+		}}, nil
 	case []any:
 		return formatSlice(raw)
 	case map[string]any:
-		return formatMap(raw)
+		return nil, errCannotFormatMap
 	default:
-		return []string{}, nil
+		return []samlprotocol.AttributeValue{}, nil
 	}
 }
