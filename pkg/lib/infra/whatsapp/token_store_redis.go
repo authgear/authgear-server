@@ -20,7 +20,7 @@ type TokenStore struct {
 	Clock clock.Clock
 }
 
-func (s *TokenStore) Set(ctx context.Context, token *UserToken) error {
+func (s *TokenStore) Set(ctx context.Context, token *onPremisesUserToken) error {
 	data, err := json.Marshal(token)
 	if err != nil {
 		return err
@@ -39,9 +39,9 @@ func (s *TokenStore) Set(ctx context.Context, token *UserToken) error {
 	})
 }
 
-func (s *TokenStore) Get(ctx context.Context, endpoint string, username string) (*UserToken, error) {
+func (s *TokenStore) Get(ctx context.Context, endpoint string, username string) (*onPremisesUserToken, error) {
 	key := redisTokenKey(s.AppID, endpoint, username)
-	var token *UserToken
+	var token *onPremisesUserToken
 	err := s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
 		data, err := conn.Get(ctx, key).Bytes()
 		if errors.Is(err, goredis.Nil) {
