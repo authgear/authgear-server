@@ -446,6 +446,16 @@ The `attributes` object under items of `service_providers` is used to customize 
   - `from.user_profile.pointer`: Required. A JSON pointer to a field of the user profile. A value will be read using the JSON pointer from the user profile. And write to the SAML attribute with `Name` specified by `to.saml_attribute`.
   - `to.saml_attribute`: Required. The `Name` of the SAML attribute to write the value.
 
+  When using a simple mapping, the SAML attribute `Type` will be derived from the mapped json value in the user profile automatically. See the following table for the mappings:
+
+  | JSON Data Type | SAML Attribute Type                                                                                                                                                             |
+  | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+  | String         | [xs:string](https://www.w3.org/TR/xmlschema-2/#string)                                                                                                                          |
+  | Number         | [xs:decimal](https://www.w3.org/TR/xmlschema-2/#decimal)                                                                                                                        |
+  | Boolean        | [xs:boolean](https://www.w3.org/TR/xmlschema-2/#boolean)                                                                                                                        |
+  | Array          | For each element in the array, an `AttributeValue` element will be appended to the SAML attribute, with the corresponding `Type` set according to the type of the JSON element. |
+  | Object         | Not supported. An error will be returned when trying to map an Object to a SAML attribute                                                                                       |
+
   2. A object uses go template to render a string as the value of a attribute. The object contains the following fields:
 
   - `from.text_template`: Required. An object representing a go text template which will be used to render the attribute. See the below section [Use a go template to render SAML attributes](#4_2) for more details and examples.
