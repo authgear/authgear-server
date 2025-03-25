@@ -89,6 +89,8 @@ func (s *Service) ResolveSendAuthenticationOTPOptions(ctx context.Context, opts 
 			TemplateNamespace:  otpTemplate.Namespace,
 			TemplateComponents: components,
 		}, nil
+	case config.WhatsappAPITypeCloudAPI:
+		panic(fmt.Errorf("FIXME"))
 	default:
 		panic(fmt.Errorf("whatsapp: unknown api type"))
 	}
@@ -108,6 +110,8 @@ func (s *Service) SendAuthenticationOTP(ctx context.Context, opts *ResolvedSendA
 			opts.TemplateLanguage,
 			opts.TemplateComponents,
 			opts.TemplateNamespace)
+	case config.WhatsappAPITypeCloudAPI:
+		panic(fmt.Errorf("FIXME"))
 	default:
 		panic(fmt.Errorf("whatsapp: unknown api type"))
 	}

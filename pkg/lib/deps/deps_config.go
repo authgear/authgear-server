@@ -133,6 +133,7 @@ var secretDeps = wire.NewSet(
 	ProvideCaptchaCloudflareCredentials,
 	ProvideBotProtectionProvidersCredentials,
 	ProvideWhatsappOnPremisesCredentials,
+	ProvideWhatsappCloudAPICredentials,
 	ProvideLDAPServerUserCredentials,
 	ProvideSAMLIdpSigningMaterials,
 	ProvideSAMLSpSigningMaterials,
@@ -244,6 +245,11 @@ func ProvideBotProtectionProvidersCredentials(c *config.SecretConfig) *config.Bo
 
 func ProvideWhatsappOnPremisesCredentials(c *config.SecretConfig) *config.WhatsappOnPremisesCredentials {
 	s, _ := c.LookupData(config.WhatsappOnPremisesCredentialsKey).(*config.WhatsappOnPremisesCredentials)
+	return s
+}
+
+func ProvideWhatsappCloudAPICredentials(c *config.SecretConfig) *config.WhatsappCloudAPICredentials {
+	s, _ := c.LookupData(config.WhatsappCloudAPICredentialsKey).(*config.WhatsappCloudAPICredentials)
 	return s
 }
 
