@@ -428,7 +428,7 @@ func TestSAMLService(t *testing.T) {
 					{
 						From: &config.SAMLAttributeMappingFrom{
 							TextTemplate: config.TextTemplate{TextTemplate: &config.TextTemplateBody{
-								Template: "{{.sub}}@example.com",
+								Template: `{{if .sub}}{{.sub}}@example.com{{end}}`,
 							}},
 						},
 						To: &config.SAMLAttributeMappingTo{

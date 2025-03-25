@@ -84,18 +84,23 @@ func (e *Engine) Render(ctx context.Context, resource Resource, preferredLanguag
 }
 
 func (e *Engine) RenderPublicText(ctx context.Context, tpl config.TextTemplate, data interface{}) (string, error) {
-	t := texttemplate.New("")
+	rawTemplate := texttemplate.New("")
 	var err error
-	t, err = t.Parse(tpl.TextTemplate.Template)
+	rawTemplate, err = rawTemplate.Parse(tpl.TextTemplate.Template)
 	if err != nil {
 		return "", err
 	}
-	err = publicTemplateValidator.ValidateTextTemplate(t)
+	err = publicTemplateValidator.ValidateTextTemplate(rawTemplate)
 	if err != nil {
 		return "", err
 	}
 
 	var buf strings.Builder
+	t := &AGTextTemplate{}
+	err = t.Wrap(rawTemplate)
+	if err != nil {
+		return "", err
+	}
 	err = t.Execute(NewLimitWriter(&buf), data)
 	if err != nil {
 		return "", fmt.Errorf("failed to execute public text template: %w", err)
