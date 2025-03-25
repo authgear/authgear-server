@@ -27,6 +27,7 @@ import { useProvideError } from "./hook/error";
 import { useViewerQuery } from "./graphql/portal/query/viewerQuery";
 import SurveyLayout from "./OnboardingSurveyLayout";
 import styles from "./OnboardingSurveyScreen.module.css";
+import ShowLoading from "./ShowLoading";
 
 const buttonTranslationKeys = {
   step1_roleChoiceGroup_Dev: "OnboardingSurveyScreen.step1.roleChoiceGroup.Dev",
@@ -484,8 +485,7 @@ function Step2(_props: StepProps) {
 }
 
 function Step3Team(_props: StepProps) {
-  const { viewer } = useViewerQuery();
-  const { geoIPCountryCode } = viewer ?? {};
+  const { viewer, loading: viewerLoading } = useViewerQuery();
 
   const prefix = "step3team";
   const companyNameFromLocalStorage = getFromLocalStorage("company_name");
@@ -561,6 +561,11 @@ function Step3Team(_props: StepProps) {
       },
     };
   }, [theme]);
+
+  if (viewerLoading || viewer === undefined) {
+    return <ShowLoading />;
+  }
+
   return (
     <SurveyLayout
       contentClassName={styles.step3Content}
@@ -605,7 +610,7 @@ function Step3Team(_props: StepProps) {
               "OnboardingSurveyScreen.step3-team.phone.label"
             )}
             inputValue={companyPhone.rawInputValue}
-            initialCountry={geoIPCountryCode ?? undefined}
+            initialCountry={viewer?.geoIPCountryCode ?? undefined}
             onChange={(v) => setCompanyPhone(v)}
           />
         </FormProvider>
@@ -615,6 +620,7 @@ function Step3Team(_props: StepProps) {
 }
 
 function Step3Personal(_props: StepProps) {
+  const { viewer, loading: viewerLoading } = useViewerQuery();
   const personalWebsiteFromLocalStorage =
     getFromLocalStorage("project_website");
   const [personalWebsite, setPersonalWebsite] = useState(
@@ -675,6 +681,11 @@ function Step3Personal(_props: StepProps) {
       },
     };
   }, [theme]);
+
+  if (viewerLoading || viewer === undefined) {
+    return <ShowLoading />;
+  }
+
   return (
     <SurveyLayout
       contentClassName={styles.step3Content}
@@ -716,6 +727,7 @@ function Step3Personal(_props: StepProps) {
             )}
             inputValue={personalPhone.rawInputValue}
             onChange={(v) => setPersonalPhone(v)}
+            initialCountry={viewer?.geoIPCountryCode ?? undefined}
           />
         </FormProvider>
       </div>
