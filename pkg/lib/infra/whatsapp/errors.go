@@ -22,10 +22,21 @@ var ErrBadRequest = errors.New("whatsapp: bad request")
 var ErrUnexpectedLoginResponse = errors.New("whatsapp: unexpected login response body")
 
 type WhatsappAPIError struct {
-	APIType        config.WhatsappAPIType    `json:"api_type,omitempty"`
-	HTTPStatusCode int                       `json:"http_status_code,omitempty"`
-	DumpedResponse []byte                    `json:"dumped_response,omitempty"`
-	ParsedResponse *WhatsappAPIErrorResponse `json:"-"`
+	APIType            config.WhatsappAPIType              `json:"api_type,omitempty"`
+	HTTPStatusCode     int                                 `json:"http_status_code,omitempty"`
+	DumpedResponse     []byte                              `json:"dumped_response,omitempty"`
+	OnPremisesResponse *WhatsappOnPremisesAPIErrorResponse `json:"-"`
+	CloudAPIResponse   *WhatsappCloudAPIErrorResponse      `json:"-"`
+}
+
+func (e *WhatsappAPIError) GetErrorCode() (int, bool) {
+	if e.APIType == config.WhatsappAPITypeOnPremises && e.OnPremisesResponse != nil {
+		return e.OnPremisesResponse.FirstErrorCode()
+	}
+	if e.APIType == config.WhatsappAPITypeCloudAPI && e.CloudAPIResponse != nil {
+		return e.CloudAPIResponse.Error.Code, true
+	}
+	return 0, false
 }
 
 var _ error = &WhatsappAPIError{}
@@ -42,8 +53,8 @@ func (e *WhatsappAPIError) SkipLogging() bool {
 	case 401:
 		return true
 	default:
-		if e.ParsedResponse != nil {
-			if firstErrorCode, ok := e.ParsedResponse.FirstErrorCode(); ok {
+		if e.OnPremisesResponse != nil {
+			if firstErrorCode, ok := e.OnPremisesResponse.FirstErrorCode(); ok {
 				switch firstErrorCode {
 				case errorCodeInvalidUser:
 					return true

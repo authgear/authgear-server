@@ -14,19 +14,8 @@ import (
 	nethttputil "net/http/httputil"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
-
-type HTTPClient struct {
-	*http.Client
-}
-
-func NewHTTPClient() HTTPClient {
-	return HTTPClient{
-		httputil.NewExternalClient(5 * time.Second),
-	}
-}
 
 type WhatsappOnPremisesClientLogger struct{ *log.Logger }
 
@@ -177,7 +166,7 @@ func (c *OnPremisesClient) sendTemplate(
 	if err != nil {
 		return errors.Join(err, whatsappAPIErr)
 	} else {
-		whatsappAPIErr.ParsedResponse = errResp
+		whatsappAPIErr.OnPremisesResponse = errResp
 	}
 
 	if resp.StatusCode == 401 {
@@ -196,14 +185,14 @@ func (c *OnPremisesClient) sendTemplate(
 	return whatsappAPIErr
 }
 
-func (c *OnPremisesClient) tryParseErrorResponse(resp *http.Response) (*WhatsappAPIErrorResponse, error) {
+func (c *OnPremisesClient) tryParseErrorResponse(resp *http.Response) (*WhatsappOnPremisesAPIErrorResponse, error) {
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		// If we failed to read the response body, it is an error
 		return nil, err
 	}
 
-	var errResp WhatsappAPIErrorResponse
+	var errResp WhatsappOnPremisesAPIErrorResponse
 	parseErr := json.Unmarshal(respBody, &errResp)
 	// The api could return other errors in format we don't understand, so non-nil parseErr is expected.
 	// Just return nil in this case.
@@ -244,7 +233,7 @@ func (c *OnPremisesClient) login(ctx context.Context) (*onPremisesUserToken, err
 		// Thus parse error should be ignored.
 		errResp, parseErr := c.tryParseErrorResponse(resp)
 		if parseErr == nil {
-			whatsappAPIErr.ParsedResponse = errResp
+			whatsappAPIErr.OnPremisesResponse = errResp
 		}
 		return nil, whatsappAPIErr
 	}

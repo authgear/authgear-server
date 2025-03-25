@@ -330,11 +330,9 @@ func (s *Sender) SendWhatsappImmediately(ctx context.Context, msgType translatio
 		if ok := errors.As(err, &apiErr); ok {
 			metricOptions = append(metricOptions, otelauthgear.WithWhatsappAPIType(apiErr.APIType))
 			metricOptions = append(metricOptions, otelauthgear.WithHTTPStatusCode(apiErr.HTTPStatusCode))
-			if apiErr.ParsedResponse != nil {
-				firstErr, ok := apiErr.ParsedResponse.FirstErrorCode()
-				if ok {
-					metricOptions = append(metricOptions, otelauthgear.WithWhatsappAPIErrorCode(firstErr))
-				}
+			errorCode, ok := apiErr.GetErrorCode()
+			if ok {
+				metricOptions = append(metricOptions, otelauthgear.WithWhatsappAPIErrorCode(errorCode))
 			}
 		}
 

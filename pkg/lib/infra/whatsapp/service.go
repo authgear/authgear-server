@@ -20,6 +20,7 @@ type Service struct {
 	WhatsappConfig     *config.WhatsappConfig
 	LocalizationConfig *config.LocalizationConfig
 	OnPremisesClient   *OnPremisesClient
+	CloudAPIClient     *CloudAPIClient
 }
 
 func (s *Service) resolveTemplateLanguage(ctx context.Context, supportedLanguages []string) string {
@@ -88,7 +89,17 @@ func (s *Service) SendAuthenticationOTP(ctx context.Context, opts *SendAuthentic
 			lang,
 			components)
 	case config.WhatsappAPITypeCloudAPI:
-		panic(fmt.Errorf("FIXME"))
+		if s.CloudAPIClient == nil {
+			return ErrNoAvailableWhatsappClient
+		}
+
+		configuredLanguages := s.CloudAPIClient.GetLanguages()
+		lang := s.resolveTemplateLanguage(ctx, configuredLanguages)
+		return s.CloudAPIClient.SendAuthenticationOTP(
+			ctx,
+			opts,
+			lang,
+		)
 	default:
 		panic(fmt.Errorf("whatsapp: unknown api type"))
 	}
