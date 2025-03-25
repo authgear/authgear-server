@@ -327,7 +327,7 @@ func TestSAMLService(t *testing.T) {
 		sp := createSP()
 		sp.Attributes = &config.SAMLAttributesConfig{
 			Definitions: []config.SAMLAttributeDefinition{
-				{Name: "strattr", NameFormat: config.SAMLAttributeNameFormatUnspecified},
+				{Name: "strattr", NameFormat: config.SAMLAttributeNameFormatUnspecified, FriendlyName: "A string"},
 				{Name: "boolattr", NameFormat: config.SAMLAttributeNameFormatUnspecified},
 				{Name: "floatattr", NameFormat: config.SAMLAttributeNameFormatUnspecified},
 				{Name: "sliceattr", NameFormat: config.SAMLAttributeNameFormatUnspecified},
@@ -439,8 +439,9 @@ func TestSAMLService(t *testing.T) {
 				}},
 			},
 			{
-				Name:       "strattr",
-				NameFormat: string(config.SAMLAttributeNameFormatUnspecified),
+				Name:         "strattr",
+				NameFormat:   string(config.SAMLAttributeNameFormatUnspecified),
+				FriendlyName: "A string",
 				Values: []samlprotocol.AttributeValue{{
 					Type:  samlprotocol.SAMLAttrTypeString,
 					Value: "teststr",

@@ -935,9 +935,10 @@ func (s *Service) ResolveUserAttributes(sp *config.SAMLServiceProviderConfig, us
 		}
 
 		attrs = append(attrs, samlprotocol.Attribute{
-			Name:       attrDef.Name,
-			NameFormat: string(attrDef.NameFormat),
-			Values:     attrValues,
+			Name:         attrDef.Name,
+			NameFormat:   string(attrDef.NameFormat),
+			FriendlyName: attrDef.FriendlyName,
+			Values:       attrValues,
 		})
 	}
 
