@@ -70,9 +70,9 @@ var _ = SecretConfigSchema.Add("WhatsappOnPremisesOTPTemplateConfig", `
 		"languages": {
 			"type": "array",
 			"items": {
-				"$ref": "#/$defs/WhatsappOnPremisesTemplateLanguage",
-				"minLength": 1
-			}
+				"$ref": "#/$defs/WhatsappOnPremisesTemplateLanguage"
+			},
+			"minItems": 1
 		}
 	},
 	"required": ["name", "type", "languages"]
