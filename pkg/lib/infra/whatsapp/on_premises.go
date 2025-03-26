@@ -176,7 +176,7 @@ func (c *OnPremisesClient) sendTemplate(
 	if errResp != nil {
 		if firstErrorCode, ok := errResp.FirstErrorCode(); ok {
 			switch firstErrorCode {
-			case errorCodeInvalidUser:
+			case onPremisesErrorCodeInvalidUser:
 				return errors.Join(ErrInvalidWhatsappUser, whatsappAPIErr)
 			}
 		}

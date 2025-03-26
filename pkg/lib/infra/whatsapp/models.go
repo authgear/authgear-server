@@ -22,10 +22,6 @@ type WhatsappOnPremisesAPIErrorDetail struct {
 	Details string `json:"details"`
 }
 
-const (
-	errorCodeInvalidUser = 1013
-)
-
 // The documented Meta Graph API error fields are
 // https://developers.facebook.com/docs/graph-api/guides/error-handling
 //

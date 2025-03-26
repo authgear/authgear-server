@@ -149,13 +149,9 @@ func (c *CloudAPIClient) SendAuthenticationOTP(ctx context.Context, opts *SendAu
 	whatsappAPIError.CloudAPIResponse = errResp
 
 	if errResp != nil {
-		// The list of error codes.
-		// https://developers.facebook.com/docs/whatsapp/cloud-api/support/error-codes/
-		// This code could possibly means invalid whatsapp user.
-		// However, in my own testing, the response is still successful even if I send to
-		// non-whatsapp number.
-		// So this code path may not be actually reachable.
-		if errResp.Error.Code == 131026 {
+		// This code path is not actually reachable because Cloud API does not report
+		// invalid Whatsapp number in this endpoint.
+		if errResp.Error.Code == cloudAPIErrorCodeMaybeInvalidUser {
 			return errors.Join(ErrInvalidWhatsappUser, whatsappAPIError)
 		}
 	}

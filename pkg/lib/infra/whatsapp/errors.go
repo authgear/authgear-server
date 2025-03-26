@@ -21,6 +21,16 @@ var ErrUnauthorized = errors.New("whatsapp: unauthorized")
 var ErrBadRequest = errors.New("whatsapp: bad request")
 var ErrUnexpectedLoginResponse = errors.New("whatsapp: unexpected login response body")
 
+const (
+	onPremisesErrorCodeInvalidUser = 1013
+	// The list of error codes.
+	// https://developers.facebook.com/docs/whatsapp/cloud-api/support/error-codes/
+	// This code could possibly means invalid whatsapp user.
+	// However, in my own testing, the response is still successful even if I send to
+	// non-whatsapp number.
+	cloudAPIErrorCodeMaybeInvalidUser = 131026
+)
+
 type WhatsappAPIError struct {
 	APIType            config.WhatsappAPIType              `json:"api_type,omitempty"`
 	HTTPStatusCode     int                                 `json:"http_status_code,omitempty"`
@@ -55,10 +65,14 @@ func (e *WhatsappAPIError) SkipLogging() bool {
 	default:
 		if e.OnPremisesResponse != nil {
 			if firstErrorCode, ok := e.OnPremisesResponse.FirstErrorCode(); ok {
-				switch firstErrorCode {
-				case errorCodeInvalidUser:
+				if firstErrorCode == onPremisesErrorCodeInvalidUser {
 					return true
 				}
+			}
+		}
+		if e.CloudAPIResponse != nil {
+			if e.CloudAPIResponse.Error.Code == cloudAPIErrorCodeMaybeInvalidUser {
+				return true
 			}
 		}
 
