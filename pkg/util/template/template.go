@@ -10,7 +10,7 @@ var privateTemplateValidator = NewValidator(
 
 var publicTemplateValidator = NewValidator(
 	AllowRangeNode(true),
-	AllowTemplateNode(true),
+	AllowTemplateNode(false),
 	AllowDeclaration(true),
 	AllowIdentifierNode(true),
 	MaxDepth(10),
