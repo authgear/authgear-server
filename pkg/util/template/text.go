@@ -14,16 +14,6 @@ type AGTextTemplate struct {
 	rewrittenTemplate *texttemplate.Template
 }
 
-func (t *AGTextTemplate) Parse(text string) error {
-	textTpl := texttemplate.New("")
-	parsed, err := textTpl.Parse(text)
-	if err != nil {
-		return err
-	}
-	t.originalTemplate = parsed
-	return t.rewrite()
-}
-
 func (t *AGTextTemplate) Wrap(tpl *texttemplate.Template) error {
 	t.originalTemplate = tpl
 	return t.rewrite()

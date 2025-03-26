@@ -9,7 +9,6 @@ import (
 	url "net/url"
 	reflect "reflect"
 
-	config "github.com/authgear/authgear-server/pkg/lib/config"
 	oauth "github.com/authgear/authgear-server/pkg/lib/oauth"
 	idpsession "github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	gomock "github.com/golang/mock/gomock"
@@ -204,7 +203,7 @@ func (m *MockTemplateEngine) EXPECT() *MockTemplateEngineMockRecorder {
 }
 
 // RenderPublicText mocks base method.
-func (m *MockTemplateEngine) RenderPublicText(ctx context.Context, tpl config.TextTemplate, data interface{}) (string, error) {
+func (m *MockTemplateEngine) RenderPublicText(ctx context.Context, tpl string, data interface{}) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RenderPublicText", ctx, tpl, data)
 	ret0, _ := ret[0].(string)

@@ -12,7 +12,6 @@ import (
 
 	"golang.org/x/text/language"
 
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/intl"
 	"github.com/authgear/authgear-server/pkg/util/messageformat"
 	"github.com/authgear/authgear-server/pkg/util/resource"
@@ -83,21 +82,20 @@ func (e *Engine) Render(ctx context.Context, resource Resource, preferredLanguag
 	}
 }
 
-func (e *Engine) RenderPublicText(ctx context.Context, tpl config.TextTemplate, data interface{}) (string, error) {
-	rawTemplate := texttemplate.New("")
-	var err error
-	rawTemplate, err = rawTemplate.Parse(tpl.TextTemplate.Template)
+func (e *Engine) RenderPublicText(ctx context.Context, tplStr string, data interface{}) (string, error) {
+	tpl := &texttemplate.Template{}
+	tpl, err := tpl.Parse(tplStr)
 	if err != nil {
 		return "", err
 	}
-	err = publicTemplateValidator.ValidateTextTemplate(rawTemplate)
+	err = publicTemplateValidator.ValidateTextTemplate(tpl)
 	if err != nil {
 		return "", err
 	}
 
 	var buf strings.Builder
 	t := &AGTextTemplate{}
-	err = t.Wrap(rawTemplate)
+	err = t.Wrap(tpl)
 	if err != nil {
 		return "", err
 	}

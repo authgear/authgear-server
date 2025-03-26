@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+	texttemplate "text/template"
 
 	. "github.com/smartystreets/goconvey/convey"
 
@@ -65,9 +66,10 @@ func TestAGTextTemplate(t *testing.T) {
 
 		for idx, c := range cases {
 			Convey(fmt.Sprintf("rewrite %d", idx), func() {
-
 				tpl := &template.AGTextTemplate{}
-				err := tpl.Parse(c.tpl)
+				textTpl := &texttemplate.Template{}
+				textTpl = texttemplate.Must(textTpl.Parse(c.tpl))
+				err := tpl.Wrap(textTpl)
 				So(err, ShouldBeNil)
 				So(tpl.String(""), ShouldEqual, c.output)
 				for tplName, childOutput := range c.childOutputs {
@@ -173,7 +175,9 @@ func TestAGTextTemplate(t *testing.T) {
 			Convey(fmt.Sprintf("execute %d", idx), func() {
 
 				tpl := &template.AGTextTemplate{}
-				err := tpl.Parse(c.tpl)
+				textTpl := &texttemplate.Template{}
+				textTpl = texttemplate.Must(textTpl.Parse(c.tpl))
+				err := tpl.Wrap(textTpl)
 				So(err, ShouldBeNil)
 				var buf strings.Builder
 				err = tpl.Execute(&buf, c.data)

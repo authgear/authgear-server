@@ -68,7 +68,7 @@ type OfflineGrantService interface {
 }
 
 type TemplateEngine interface {
-	RenderPublicText(ctx context.Context, tpl config.TextTemplate, data interface{}) (string, error)
+	RenderPublicText(ctx context.Context, tpl string, data interface{}) (string, error)
 }
 
 type Service struct {
@@ -956,7 +956,7 @@ func (s *Service) ResolveUserAttributes(ctx context.Context, sp *config.SAMLServ
 			}
 		case mapping.From.TextTemplate.TextTemplate != nil:
 			{
-				value, err := s.TemplateEngine.RenderPublicText(ctx, mapping.From.TextTemplate, userInfo)
+				value, err := s.TemplateEngine.RenderPublicText(ctx, mapping.From.TextTemplate.TextTemplate.Template, userInfo)
 				if err != nil {
 					return nil, err
 				}
