@@ -34,6 +34,8 @@ Contact us: <br>
 
 ## Who is using Authgear
 
+We're grateful to the companies listed below for their ongoing support and significant impact on our community. If you want to join the list, email us at hello@authgear.com!
+
 <table>
     <tr>
     <td>
@@ -107,4 +109,4 @@ Currently there are 42 contributors for this repository. Feel free to contribute
 
 ---
 
-Part of [Skymarkers](https://www.skymakers.digital/). ❤️ We love open-source.
+Part of [Skymarkers](https://www.skymakers.digital/). We 😻 open-source.
