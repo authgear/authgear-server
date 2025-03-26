@@ -8,6 +8,8 @@ import (
 )
 
 type Redis_6_0_Cmdable interface {
+	Ping(ctx context.Context) *goredis.StatusCmd
+
 	Del(ctx context.Context, keys ...string) *goredis.IntCmd
 
 	Get(ctx context.Context, key string) *goredis.StringCmd

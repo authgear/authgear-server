@@ -54,6 +54,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/searchdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis/globalredis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redisqueue"
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms"
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms/custom"
@@ -115,10 +116,15 @@ func newHealthzHandler(p *deps.RootProvider, w http.ResponseWriter, r *http.Requ
 	factory := p.LoggerFactory
 	handle := globaldb.NewHandle(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
 	sqlExecutor := globaldb.NewSQLExecutor(handle)
+	redisPool := p.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(redisPool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig, factory)
 	handlerLogger := healthz.NewHandlerLogger(factory)
 	handler := &healthz.Handler{
 		GlobalDatabase: handle,
 		GlobalExecutor: sqlExecutor,
+		GlobalRedis:    globalredisHandle,
 		Logger:         handlerLogger,
 	}
 	return handler
