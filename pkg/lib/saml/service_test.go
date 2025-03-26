@@ -333,6 +333,7 @@ func TestSAMLService(t *testing.T) {
 					{Name: "floatattr", NameFormat: config.SAMLAttributeNameFormatUnspecified},
 					{Name: "sliceattr", NameFormat: config.SAMLAttributeNameFormatUnspecified},
 					{Name: "nestedattr", NameFormat: config.SAMLAttributeNameFormatUnspecified},
+					{Name: "missingattr", NameFormat: config.SAMLAttributeNameFormatUnspecified},
 					{Name: "nullattr", NameFormat: config.SAMLAttributeNameFormatUnspecified},
 				},
 				Mappings: []config.SAMLAttributeMapping{
@@ -394,6 +395,18 @@ func TestSAMLService(t *testing.T) {
 						},
 						To: &config.SAMLAttributeMappingTo{
 							SAMLAttribute: "nestedattr",
+						},
+					},
+					{
+						From: &config.SAMLAttributeMappingFrom{
+							UserProfileJSONPointer: config.UserProfileJSONPointer{
+								UserProfile: &config.JSONPointer{
+									Pointer: "/missing",
+								},
+							},
+						},
+						To: &config.SAMLAttributeMappingTo{
+							SAMLAttribute: "missingattr",
 						},
 					},
 					{
@@ -471,9 +484,14 @@ func TestSAMLService(t *testing.T) {
 					}},
 				},
 				{
-					Name:       "nullattr",
+					Name:       "missingattr",
 					NameFormat: string(config.SAMLAttributeNameFormatUnspecified),
 					Values:     []samlprotocol.AttributeValue{},
+				},
+				{
+					Name:       "nullattr",
+					NameFormat: string(config.SAMLAttributeNameFormatUnspecified),
+					Values:     []samlprotocol.AttributeValue{{IsNil: true}},
 				},
 			})
 		})
@@ -522,6 +540,7 @@ var userInfoJson string = `
 		"slice": ["item1", "item2"],
 		"map": {
 			"nested": "nesteditem"
-		}
+		},
+		"null": null
 }
 `

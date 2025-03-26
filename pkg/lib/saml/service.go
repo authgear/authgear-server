@@ -994,6 +994,10 @@ func formatAttribute(raw interface{}) ([]samlprotocol.AttributeValue, error) {
 		return values, nil
 	}
 
+	if raw == nil {
+		return []samlprotocol.AttributeValue{{IsNil: true}}, nil
+	}
+
 	switch raw := raw.(type) {
 	case string:
 		return []samlprotocol.AttributeValue{{
