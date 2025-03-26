@@ -31,7 +31,7 @@ With a comprehensive range of out-of-the-box features to accelerate your project
 Contact us: <br>
 [![schedule a demo](https://img.shields.io/badge/schedule%20a%20demo-0b63e9)](https://www.authgear.com/schedule-demo/?utm_source=github&utm_medium=readme&utm_campaign=contact_us)
 
----
+
 ## Who is using Authgear
 
 <table>
@@ -46,28 +46,18 @@ Contact us: <br>
     </tr>
 </table>
 
-## Documentation and quick-start guide
-The easiest way to start is to sign up at [authgear.com](https://authgear.com) for a free account.
-
-[✅ Quick Start Guide](https://docs.authgear.com/get-started/start-building)
-
-Our Quick Start Guide includes tutorials and code examples for popular programming languages, tools, and frameworks like JavaScript, Go, PHP, Next.js, Laravel, Spring, and more.
-
-For more details about getting started with using Authgear, check out the official documentation site at https://docs.authgear.com.
-
-Also, you can take a look at our [example projects repos](https://github.com/orgs/authgear/repositories?language=&q=example&sort=&type=all) that demonstrate how to use Authgear.
-
-## What is Authgear Server?
-Authgear server is the open-source project that powers Authgear's authentication-as-a-service solution. It includes the code for the server, AuthUI, the Portal, and Admin API. You can use Authgear Server to set up your own self-hosted instance of Authgear service.
-
 ## Features and Components
+
 Authgear Server includes the following features and components of Authgear:
 - Authgear server (the actual service)
 - Portal (a GUI tool for managing Authgear projects)
 - AuthUI  (a customizable User Interface (UI) for login, user registration, and profile settings pages)
 - Admin API (provides a GraphQL interface for developers to interact with services and data on Authgear)
 
+This repo is the open-source project that powers Authgear's authentication-as-a-service solution. It includes the code for the server, AuthUI, the Portal, and Admin API. You can use it to set up your own self-hosted instance of Authgear service.
+
 ### Authgear SDK
+
 In addition to Authgear Server, we provide SDKs that developers can use to integrate Authgear into their apps.
 
 These SDKs exist as standalone projects under the following repositories:
@@ -78,7 +68,19 @@ These SDKs exist as standalone projects under the following repositories:
 - [Flutter](https://github.com/authgear/authgear-sdk-flutter)
 - [Xamarin](https://github.com/authgear/authgear-sdk-xamarin)
 
-## Setting up the project and running Authgear Server
+## Documentation and getting started
+The easiest way to start is to sign up at [authgear.com](https://authgear.com) for a free account.
+
+[✅ Quick Start Guide](https://docs.authgear.com/get-started/start-building)
+
+Our Quick Start Guide includes tutorials and code examples for popular programming languages, tools, and frameworks like JavaScript, Go, PHP, Next.js, Laravel, Spring, and more.
+
+For more details about getting started with using Authgear, check out the official documentation site at https://docs.authgear.com.
+
+Also, you can take a look at our [example projects repos](https://github.com/orgs/authgear/repositories?language=&q=example&sort=&type=all) that demonstrate how to use Authgear.
+
+## Installation and setup
+
 The Authgear Server project allows developers to set up their own instance of Authgear.
 
 We've provided detailed instructions on how to set up a self-hosted instance of Authgear here: https://docs.authgear.com/deploy-on-your-cloud/local
