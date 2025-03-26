@@ -72,7 +72,7 @@ In addition to Authgear Server, we provide SDKs that developers can use to integ
 
 These SDKs exist as standalone projects under the following repositories:
 
-- [JavaScript/React native](https://github.com/authgear/authgear-sdk-js)
+- [JavaScript/React native/Capacitor](https://github.com/authgear/authgear-sdk-js)
 - [iOS](https://github.com/authgear/authgear-sdk-ios)
 - [Android](https://github.com/authgear/authgear-sdk-android)
 - [Flutter](https://github.com/authgear/authgear-sdk-flutter)
