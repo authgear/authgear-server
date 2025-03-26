@@ -455,6 +455,9 @@ The `attributes` object under items of `service_providers` is used to customize 
   | Boolean        | [xs:boolean](https://www.w3.org/TR/xmlschema-2/#boolean)                                                                                                                        |
   | Array          | For each element in the array, an `AttributeValue` element will be appended to the SAML attribute, with the corresponding `Type` set according to the type of the JSON element. |
   | Object         | Not supported. An error will be returned when trying to map an Object to a SAML attribute                                                                                       |
+  | Null           | An `<AttributeValue>` with `xsi:nil="true"` will be outputted                                                                                                                   |
+
+  And for any missing keys in the user profile JSON, an attribute with no `<AttributeValue>` will be outputted.
 
   2. A object uses go template to render a string as the value of a attribute. The object contains the following fields:
 
