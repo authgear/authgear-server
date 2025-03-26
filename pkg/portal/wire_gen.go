@@ -11,6 +11,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/analytic"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/config/plan"
+	"github.com/authgear/authgear-server/pkg/lib/healthz"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
@@ -100,6 +101,29 @@ func newSessionInfoMiddleware(p *deps.RequestProvider) httproute.Middleware {
 var (
 	_wireSystemClockValue = clock.NewSystemClock()
 )
+
+func newHealthzHandler(p *deps.RequestProvider) http.Handler {
+	rootProvider := p.RootProvider
+	pool := rootProvider.Database
+	environmentConfig := rootProvider.EnvironmentConfig
+	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
+	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
+	factory := rootProvider.LoggerFactory
+	handle := globaldb.NewHandle(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
+	sqlExecutor := globaldb.NewSQLExecutor(handle)
+	redisPool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(redisPool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig, factory)
+	handlerLogger := healthz.NewHandlerLogger(factory)
+	handler := &healthz.Handler{
+		GlobalDatabase: handle,
+		GlobalExecutor: sqlExecutor,
+		GlobalRedis:    globalredisHandle,
+		Logger:         handlerLogger,
+	}
+	return handler
+}
 
 func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	request := p.Request
