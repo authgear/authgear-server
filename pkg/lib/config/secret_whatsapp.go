@@ -21,30 +21,6 @@ const (
 	WhatsappOnPremisesTemplateTypeAuthentication WhatsappOnPremisesTemplateType = "authentication"
 )
 
-// ref: https://developers.facebook.com/docs/whatsapp/api/messages/message-templates
-var _ = SecretConfigSchema.Add("WhatsappOnPremisesTemplateLanguage", `
-{
-	"type": "string",
-	"enum": [
-		"af", "sq", "ar", "az", "bn",
-		"bg", "ca", "zh_CN", "zh_HK", "zh_TW",
-		"hr", "cs", "da", "nl", "en",
-		"en_GB", "en_US", "et", "fil", "fi",
-		"fr", "ka", "de", "el", "gu",
-		"ha", "he", "hi", "hu", "id",
-		"ga", "it", "ja", "kn", "kk",
-		"rw_RW", "ko", "ky_KG", "lo", "lv",
-		"lt", "mk", "ms", "ml", "mr",
-		"nb", "fa", "pl", "pt_BR", "pt_PT",
-		"pa", "ro", "ru", "sr", "sk",
-		"sl", "es", "es_AR", "es_ES", "es_MX",
-		"sw", "sv", "ta", "te", "th",
-		"tr", "uk", "ur", "uz", "vi",
-		"zu"
-	]
-}
-`)
-
 var _ = SecretConfigSchema.Add("WhatsappOnPremisesTemplateType", `
 {
 	"type": "string",
@@ -70,7 +46,7 @@ var _ = SecretConfigSchema.Add("WhatsappOnPremisesOTPTemplateConfig", `
 		"languages": {
 			"type": "array",
 			"items": {
-				"$ref": "#/$defs/WhatsappOnPremisesTemplateLanguage"
+				"$ref": "#/$defs/WhatsappTemplateLanguage"
 			},
 			"minItems": 1
 		}
@@ -148,8 +124,12 @@ func (c *WhatsappCloudAPICredentials) SensitiveStrings() []string {
 	}
 }
 
+// The list of template languages of On-Premises API can be found at
+// https://developers.facebook.com/docs/whatsapp/api/messages/message-templates
+// The list of template languages of Cloud CPI can be found at
 // https://developers.facebook.com/docs/whatsapp/business-management-api/message-templates/supported-languages
-var _ = SecretConfigSchema.Add("WhatsappCloudAPITemplateLanguage", `
+// This list was compiled on 2025-03-26. The above 2 lists are the same on that day.
+var _ = SecretConfigSchema.Add("WhatsappTemplateLanguage", `
 {
 	"type": "string",
 	"enum": [
@@ -278,7 +258,7 @@ var _ = SecretConfigSchema.Add("WhatsappCloudAPIAuthenticationTemplateCopyCodeBu
 		"languages": {
 			"type": "array",
 			"items": {
-				"$ref": "#/$defs/WhatsappCloudAPITemplateLanguage"
+				"$ref": "#/$defs/WhatsappTemplateLanguage"
 			},
 			"minItems": 1
 		}
