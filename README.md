@@ -2,9 +2,9 @@
 </a>
 
 <h3>
-  <a href="https://docs.authgear.com/?utm_source=github&utm_medium=readme&utm_campaign=saas">📘 Docs</a>
-  | <a href="https://www.authgear.com/?utm_source=github&utm_medium=readme&utm_campaign=saas">☁️ SaaS Cloud</a>
-  | <a href="https://demo.authgear.com/?utm_source=github&utm_medium=readme&utm_campaign=saas">✨ Demo</a>
+  <a href="https://docs.authgear.com/?utm_source=github&utm_medium=readme&utm_campaign=top_links">📘 Docs</a>
+  | <a href="https://www.authgear.com/?utm_source=github&utm_medium=readme&utm_campaign=top_links">☁️ SaaS Cloud</a>
+  | <a href="https://demo.authgear.com/?utm_source=github&utm_medium=readme&utm_campaign=top_links">✨ Demo</a>
   | <a href="https://discord.gg/Kdn5vcYwAS">💬 Discord</a>
 </h3>
 
