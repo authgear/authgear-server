@@ -19,9 +19,10 @@
   - [Unsupported `NameIDFormat`](#3_3)
 - [Attributes](#4)
   - [Customizing the attributes](#4_1)
-  - [Use a hook to compute SAML attributes](#4_2)
-    - [Payload](#4_2_1)
-    - [Response](#4_2_2)
+  - [Use a go template to render SAML attributes](#4_2)
+  - [Use a hook to compute SAML attributes](#4_3)
+    - [Payload](#4_3_1)
+    - [Response](#4_3_2)
 - [Bindings](#5)
   - [Supported Bindings](#5_1)
   - [Unsupported Bindings](#5_2)
@@ -303,7 +304,7 @@ saml:
       nameid_attribute_pointer: /preferred_username
 ```
 
-- `nameid_attribute_pointer`: The JSON pointer pointing to a user's standard attribute or custom attribute which will be used as the NameID. The login will fail if the attribute does not exist or it is empty. The default is `/sub`. Only the following values are accepted:
+- `nameid_attribute_pointer`: The JSON pointer pointing to the user profile which will be used as the NameID. The login will fail if the attribute pointed by the pointer does not exist or it is empty. The default is `/sub`. Only the following values are accepted:
   - `/sub`: The user id. This is the default.
   - `/preferred_username`: The username.
   - `/email`: The email.
@@ -417,10 +418,16 @@ saml:
             name_format: urn:oasis:names:tc:SAML:2.0:attrname-format:uri
             friendly_name: Username
         mappings:
-          - from_user_profile_attribute: /email
-            to_saml_attribute: https://schemas.xmlsoap.org/ws/2005/05/identity/claims/email
-          - from_user_profile_attribute: /preferred_username
-            to_saml_attribute: https://schemas.xmlsoap.org/ws/2005/05/identity/claims/upn
+          - from:
+              user_profile:
+                pointer: /email
+            to:
+              saml_attribute: https://schemas.xmlsoap.org/ws/2005/05/identity/claims/email
+          - from:
+              user_profile:
+                pointer: /preferred_username
+            to:
+              saml_attribute: https://schemas.xmlsoap.org/ws/2005/05/identity/claims/upn
           - hook: authgeardeno:///deno/saml_mapping.ts
 ```
 
@@ -436,10 +443,28 @@ The `attributes` object under items of `service_providers` is used to customize 
 
   1. A simple mapping object. It maps a value from a user profile attribute to a SAML attribute. The object contains the following fields:
 
-  - `from_user_profile_attribute`: Required. A JSON pointer to a field of the user profile. A value will be read using the JSON pointer from the user profile. And write to the SAML attribute with `Name` specified by `to_saml_attribute`.
-  - `to_saml_attribute`: Required. The `Name` of the SAML attribute to write the value.
+  - `from.user_profile.pointer`: Required. A JSON pointer to a field of the user profile. A value will be read using the JSON pointer from the user profile. And write to the SAML attribute with `Name` specified by `to.saml_attribute`.
+  - `to.saml_attribute`: Required. The `Name` of the SAML attribute to write the value.
 
-  2. A hook. It runs a hook to computes the resulting SAML attributes. See the below section [Use a hook to compute SAML attributes](#use-a-hook-to-compute-saml-attributes) for more details about the hook. The object contains the following fields:
+  When using a simple mapping, the SAML attribute `Type` will be derived from the mapped json value in the user profile automatically. See the following table for the mappings:
+
+  | JSON Data Type | SAML Attribute Type                                                                                                                                                             |
+  | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+  | String         | [xs:string](https://www.w3.org/TR/xmlschema-2/#string)                                                                                                                          |
+  | Number         | [xs:decimal](https://www.w3.org/TR/xmlschema-2/#decimal)                                                                                                                        |
+  | Boolean        | [xs:boolean](https://www.w3.org/TR/xmlschema-2/#boolean)                                                                                                                        |
+  | Array          | For each element in the array, an `AttributeValue` element will be appended to the SAML attribute, with the corresponding `Type` set according to the type of the JSON element. |
+  | Object         | Not supported. An error will be returned when trying to map an Object to a SAML attribute                                                                                       |
+  | Null           | An `<AttributeValue>` with `xsi:nil="true"` will be outputted                                                                                                                   |
+
+  And for any missing keys in the user profile JSON, an attribute with no `<AttributeValue>` will be outputted.
+
+  2. A object uses go template to render a string as the value of a attribute. The object contains the following fields:
+
+  - `from.text_template`: Required. An object representing a go text template which will be used to render the attribute. See the below section [Use a go template to render SAML attributes](#4_2) for more details and examples.
+  - `to.saml_attribute`: Required. The `Name` of the SAML attribute to write the value.
+
+  3. A hook. It runs a hook to computes the resulting SAML attributes. See the below section [Use a hook to compute SAML attributes](#4_3) for more details about the hook. The object contains the following fields:
 
   - `hook`: Required. The url of the hook to execute. It could be either a webhook url, or a deno hook. See [hook](./hook.md) for details.
 
@@ -447,21 +472,94 @@ The `attributes` object under items of `service_providers` is used to customize 
 
   ```yaml
   mappings:
-    - from_user_profile_attribute: /email
-      to_saml_attribute: username
-    - from_user_profile_attribute: /phone_number
-      to_saml_attribute: username
+    - from:
+        user_profile:
+          pointer: /email
+      to:
+        saml_attribute: username
+    - from:
+        user_profile:
+          pointer: /phone_number
+      to:
+        saml_attribute: username
   ```
 
   The value in the SAML attribute with `Name` equal to `username` will be the phone number of the user.
 
-### <a id="4_2"></a> Use a hook to compute SAML attributes
+### <a id="4_2"></a> Use a go template to render SAML attributes
+
+You can provide a [go text template](https://pkg.go.dev/text/template) to render a SAML attribute.
+
+The data provided to the template is the user profile object.
+
+Here is an example:
+
+Given the following `attributes` config:
+
+```yaml
+attributes:
+  definitions:
+    - name: mail
+      name_format: urn:oasis:names:tc:SAML:2.0:attrname-format:basic
+  mappings:
+    - from:
+        text_template:
+          template: "{{.preferred_username}}@example.com"
+      to:
+        saml_attribute: mail
+```
+
+With a user with the following profile:
+
+```jsonc
+{
+  "sub": "f9639c43-1529-4f7d-9468-451e91228010",
+  "preferred_username": "employee00001"
+}
+```
+
+The outputted SAML attribute will be:
+
+```xml
+<saml:Attribute
+  NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:basic"
+  Name="mail">
+  <saml:AttributeValue
+    xsi:type="xs:string">employee00001@example.com</saml:AttributeValue>
+</saml:Attribute>
+```
+
+Currently, only `xs:string` is supported as the type of the SAML attribute rendered by go template.
+
+If the referenced value is missing or empty in user profile, an empty string will be rendered:
+
+If the user profile is:
+
+```jsonc
+{
+  "sub": "f9639c43-1529-4f7d-9468-451e91228010",
+  "phone_number": "+85212341234"
+}
+```
+
+The above example will output:
+
+```xml
+<saml:Attribute
+  NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:basic"
+  Name="mail">
+  <saml:AttributeValue
+    xsi:type="xs:string">@example.com</saml:AttributeValue>
+</saml:Attribute>
+```
+
+### <a id="4_3"></a> Use a hook to compute SAML attributes
 
 You can either use a typescript deno hook, or a webhook to compute the SAML attributes.
 
 See the below sections for the payload the hook receives, and the expected response.
 
-#### <a id="4_2_1"></a> Payload
+#### <a id="4_3_1"></a> Payload
 
 The hook will receive an object, containing the following fields:
 
@@ -489,7 +587,7 @@ Here is an example of the payload:
 }
 ```
 
-#### <a id="4_2_2"></a> Response
+#### <a id="4_3_2"></a> Response
 
 The hook is expected to return a object, which the key is the `Name` of the SAML attribute, and the value is the value of the SAML attribute.
 
@@ -707,10 +805,16 @@ saml:
             name_format: urn:oasis:names:tc:SAML:2.0:attrname-format:uri
             friendly_name: Username
         mappings:
-          - from_user_profile_attribute: /email
-            to_saml_attribute: https://schemas.xmlsoap.org/ws/2005/05/identity/claims/email
-          - from_user_profile_attribute: /preferred_username
-            to_saml_attribute: https://schemas.xmlsoap.org/ws/2005/05/identity/claims/upn
+          - from:
+              user_profile:
+                pointer: /email
+            to:
+              saml_attribute: https://schemas.xmlsoap.org/ws/2005/05/identity/claims/email
+          - from:
+              user_profile:
+                pointer: /preferred_username
+            to:
+              saml_attribute: https://schemas.xmlsoap.org/ws/2005/05/identity/claims/upn
           - hook: authgeardeno:///deno/saml_mapping.ts
 ```
 
