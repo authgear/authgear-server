@@ -20,6 +20,7 @@ type Service struct {
 	WhatsappConfig     *config.WhatsappConfig
 	LocalizationConfig *config.LocalizationConfig
 	OnPremisesClient   *OnPremisesClient
+	CloudAPIClient     *CloudAPIClient
 }
 
 func (s *Service) resolveTemplateLanguage(ctx context.Context, supportedLanguages []string) string {
@@ -41,73 +42,64 @@ func (s *Service) resolveTemplateLanguage(ctx context.Context, supportedLanguage
 	return supportedLanguageTags[idx]
 }
 
-func (s *Service) makeAuthenticationTemplateComponents(code string) []TemplateComponent {
+func (s *Service) makeAuthenticationTemplateComponents(code string) []onPremisesTemplateComponent {
 	// See https://developers.facebook.com/docs/whatsapp/api/messages/message-templates/authentication-message-templates
 
-	var component []TemplateComponent = []TemplateComponent{}
+	var component []onPremisesTemplateComponent = []onPremisesTemplateComponent{}
 
-	body := NewTemplateComponent(TemplateComponentTypeBody)
+	body := onPremisesNewTemplateComponent(onPremisesTemplateComponentTypeBody)
 	// The body is just the code.
-	bodyParam := NewTemplateComponentTextParameter(code)
+	bodyParam := onPremisesNewTemplateComponentTextParameter(code)
 	body.Parameters = append(body.Parameters, *bodyParam)
 	component = append(component, *body)
 
-	button := NewTemplateButtonComponent(TemplateComponentSubTypeURL, 0)
+	button := onPremisesNewTemplateButtonComponent(onPremisesTemplateComponentSubTypeURL, 0)
 	// The button copies the code.
-	buttonParam := NewTemplateComponentTextParameter(code)
+	buttonParam := onPremisesNewTemplateComponentTextParameter(code)
 	button.Parameters = append(button.Parameters, *buttonParam)
 	component = append(component, *button)
 
 	return component
 }
 
-func (s *Service) prepareOTPComponents(template *config.WhatsappTemplateConfig, code string) []TemplateComponent {
+func (s *Service) prepareOTPComponents(template *config.WhatsappOnPremisesOTPTemplateConfig, code string) []onPremisesTemplateComponent {
 	switch template.Type {
-	case config.WhatsappTemplateTypeAuthentication:
+	case config.WhatsappOnPremisesTemplateTypeAuthentication:
 		return s.makeAuthenticationTemplateComponents(code)
 	default:
 		panic("whatsapp: unknown template type")
 	}
 }
 
-func (s *Service) ResolveSendAuthenticationOTPOptions(ctx context.Context, opts *SendAuthenticationOTPOptions) (*ResolvedSendAuthenticationOTPOptions, error) {
-	switch s.WhatsappConfig.APIType {
-	case config.WhatsappAPITypeOnPremises:
-		if s.OnPremisesClient == nil {
-			return nil, ErrNoAvailableWhatsappClient
-		}
-
-		otpTemplate := s.OnPremisesClient.GetOTPTemplate()
-		lang := s.resolveTemplateLanguage(ctx, otpTemplate.Languages)
-		components := s.prepareOTPComponents(otpTemplate, opts.OTP)
-
-		return &ResolvedSendAuthenticationOTPOptions{
-			To:                 opts.To,
-			OTP:                opts.OTP,
-			TemplateName:       otpTemplate.Name,
-			TemplateLanguage:   lang,
-			TemplateNamespace:  otpTemplate.Namespace,
-			TemplateComponents: components,
-		}, nil
-	default:
-		panic(fmt.Errorf("whatsapp: unknown api type"))
-	}
-}
-
-func (s *Service) SendAuthenticationOTP(ctx context.Context, opts *ResolvedSendAuthenticationOTPOptions) error {
+func (s *Service) SendAuthenticationOTP(ctx context.Context, opts *SendAuthenticationOTPOptions) error {
 	switch s.WhatsappConfig.APIType {
 	case config.WhatsappAPITypeOnPremises:
 		if s.OnPremisesClient == nil {
 			return ErrNoAvailableWhatsappClient
 		}
 
+		otpTemplate := s.OnPremisesClient.GetOTPTemplate()
+		lang := s.resolveTemplateLanguage(ctx, otpTemplate.Languages)
+		components := s.prepareOTPComponents(otpTemplate, opts.OTP)
+
 		return s.OnPremisesClient.SendTemplate(
 			ctx,
 			opts.To,
-			opts.TemplateName,
-			opts.TemplateLanguage,
-			opts.TemplateComponents,
-			opts.TemplateNamespace)
+			otpTemplate,
+			lang,
+			components)
+	case config.WhatsappAPITypeCloudAPI:
+		if s.CloudAPIClient == nil {
+			return ErrNoAvailableWhatsappClient
+		}
+
+		configuredLanguages := s.CloudAPIClient.GetLanguages()
+		lang := s.resolveTemplateLanguage(ctx, configuredLanguages)
+		return s.CloudAPIClient.SendAuthenticationOTP(
+			ctx,
+			opts,
+			lang,
+		)
 	default:
 		panic(fmt.Errorf("whatsapp: unknown api type"))
 	}

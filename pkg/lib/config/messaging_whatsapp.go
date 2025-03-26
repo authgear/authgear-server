@@ -3,7 +3,7 @@ package config
 var _ = Schema.Add("WhatsappAPIType", `
 {
 	"type": "string",
-	"enum": ["on-premises"]
+	"enum": ["on-premises", "cloud-api"]
 }
 `)
 
@@ -11,6 +11,7 @@ type WhatsappAPIType string
 
 const (
 	WhatsappAPITypeOnPremises WhatsappAPIType = "on-premises"
+	WhatsappAPITypeCloudAPI   WhatsappAPIType = "cloud-api"
 )
 
 var _ = Schema.Add("WhatsappConfig", `

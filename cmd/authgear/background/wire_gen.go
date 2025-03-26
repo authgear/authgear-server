@@ -764,11 +764,14 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 	}
 	httpClient := whatsapp.NewHTTPClient()
 	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(factory, whatsappConfig, whatsappOnPremisesCredentials, tokenStore, httpClient)
+	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
+	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappConfig, whatsappCloudAPICredentials, httpClient)
 	whatsappService := &whatsapp.Service{
 		Logger:             serviceLogger,
 		WhatsappConfig:     whatsappConfig,
 		LocalizationConfig: localizationConfig,
 		OnPremisesClient:   onPremisesClient,
+		CloudAPIClient:     cloudAPIClient,
 	}
 	devMode := environmentConfig.DevMode
 	featureTestModeEmailSuppressed := deps.ProvideTestModeEmailSuppressed(testModeFeatureConfig)

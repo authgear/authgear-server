@@ -1,12 +1,10 @@
-package whatsapp_test
+package whatsapp
 
 import (
 	"testing"
 	"time"
 
 	. "github.com/smartystreets/goconvey/convey"
-
-	"github.com/authgear/authgear-server/pkg/lib/infra/whatsapp"
 )
 
 func TestLoginResponseUserExpiresTime(t *testing.T) {
@@ -18,7 +16,7 @@ func TestLoginResponseUserExpiresTime(t *testing.T) {
 		}
 
 		Convey("UnmarshalText", func() {
-			var obj whatsapp.LoginResponseUserExpiresTime
+			var obj onPremisesloginResponseUserExpiresTime
 			err := obj.UnmarshalText([]byte(fixture))
 			So(err, ShouldBeNil)
 
@@ -26,7 +24,7 @@ func TestLoginResponseUserExpiresTime(t *testing.T) {
 		})
 
 		Convey("MarshalText", func() {
-			obj := whatsapp.LoginResponseUserExpiresTime(expectedTime)
+			obj := onPremisesloginResponseUserExpiresTime(expectedTime)
 
 			textbytes, err := obj.MarshalText()
 			So(err, ShouldBeNil)

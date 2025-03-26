@@ -14,19 +14,8 @@ import (
 	nethttputil "net/http/httputil"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
-
-type HTTPClient struct {
-	*http.Client
-}
-
-func NewHTTPClient() HTTPClient {
-	return HTTPClient{
-		httputil.NewExternalClient(5 * time.Second),
-	}
-}
 
 type WhatsappOnPremisesClientLogger struct{ *log.Logger }
 
@@ -68,10 +57,10 @@ func NewWhatsappOnPremisesClient(
 func (c *OnPremisesClient) SendTemplate(
 	ctx context.Context,
 	to string,
-	templateName string,
+	templateConfig *config.WhatsappOnPremisesOTPTemplateConfig,
 	templateLanguage string,
-	templateComponents []TemplateComponent,
-	namespace string) error {
+	templateComponents []onPremisesTemplateComponent,
+) error {
 	token, err := c.TokenStore.Get(ctx, c.Credentials.APIEndpoint, c.Credentials.Username)
 	if err != nil {
 		return err
@@ -91,7 +80,7 @@ func (c *OnPremisesClient) SendTemplate(
 	}
 	var send func(retryOnUnauthorized bool) error
 	send = func(retryOnUnauthorized bool) error {
-		err = c.sendTemplate(ctx, token.Token, to, templateName, templateLanguage, templateComponents, namespace)
+		err = c.sendTemplate(ctx, token.Token, to, templateConfig.Name, templateLanguage, templateComponents, templateConfig.Namespace)
 		if err != nil {
 			if retryOnUnauthorized && errors.Is(err, ErrUnauthorized) {
 				err := refreshToken()
@@ -108,7 +97,7 @@ func (c *OnPremisesClient) SendTemplate(
 	return send(true)
 }
 
-func (c *OnPremisesClient) GetOTPTemplate() *config.WhatsappTemplateConfig {
+func (c *OnPremisesClient) GetOTPTemplate() *config.WhatsappOnPremisesOTPTemplateConfig {
 	return &c.Credentials.Templates.OTP
 }
 
@@ -118,16 +107,16 @@ func (c *OnPremisesClient) sendTemplate(
 	to string,
 	templateName string,
 	templateLanguage string,
-	templateComponents []TemplateComponent,
+	templateComponents []onPremisesTemplateComponent,
 	namespace string) error {
 	url := c.Endpoint.JoinPath("/v1/messages")
-	body := &SendTemplateRequest{
+	body := &onPremisesSendTemplateRequest{
 		RecipientType: "individual",
 		To:            to,
 		Type:          "template",
-		Template: &Template{
+		Template: &onPremisesTemplate{
 			Name: templateName,
-			Language: &TemplateLanguage{
+			Language: &onPremisesTemplateLanguage{
 				Policy: "deterministic",
 				Code:   templateLanguage,
 			},
@@ -177,7 +166,7 @@ func (c *OnPremisesClient) sendTemplate(
 	if err != nil {
 		return errors.Join(err, whatsappAPIErr)
 	} else {
-		whatsappAPIErr.ParsedResponse = errResp
+		whatsappAPIErr.OnPremisesResponse = errResp
 	}
 
 	if resp.StatusCode == 401 {
@@ -187,7 +176,7 @@ func (c *OnPremisesClient) sendTemplate(
 	if errResp != nil {
 		if firstErrorCode, ok := errResp.FirstErrorCode(); ok {
 			switch firstErrorCode {
-			case errorCodeInvalidUser:
+			case onPremisesErrorCodeInvalidUser:
 				return errors.Join(ErrInvalidWhatsappUser, whatsappAPIErr)
 			}
 		}
@@ -196,14 +185,14 @@ func (c *OnPremisesClient) sendTemplate(
 	return whatsappAPIErr
 }
 
-func (c *OnPremisesClient) tryParseErrorResponse(resp *http.Response) (*WhatsappAPIErrorResponse, error) {
+func (c *OnPremisesClient) tryParseErrorResponse(resp *http.Response) (*WhatsappOnPremisesAPIErrorResponse, error) {
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		// If we failed to read the response body, it is an error
 		return nil, err
 	}
 
-	var errResp WhatsappAPIErrorResponse
+	var errResp WhatsappOnPremisesAPIErrorResponse
 	parseErr := json.Unmarshal(respBody, &errResp)
 	// The api could return other errors in format we don't understand, so non-nil parseErr is expected.
 	// Just return nil in this case.
@@ -214,7 +203,7 @@ func (c *OnPremisesClient) tryParseErrorResponse(resp *http.Response) (*Whatsapp
 	return &errResp, nil
 }
 
-func (c *OnPremisesClient) login(ctx context.Context) (*UserToken, error) {
+func (c *OnPremisesClient) login(ctx context.Context) (*onPremisesUserToken, error) {
 	url := c.Endpoint.JoinPath("/v1/users/login")
 	req, err := http.NewRequestWithContext(ctx, "POST", url.String(), bytes.NewBuffer([]byte{}))
 	if err != nil {
@@ -244,7 +233,7 @@ func (c *OnPremisesClient) login(ctx context.Context) (*UserToken, error) {
 		// Thus parse error should be ignored.
 		errResp, parseErr := c.tryParseErrorResponse(resp)
 		if parseErr == nil {
-			whatsappAPIErr.ParsedResponse = errResp
+			whatsappAPIErr.OnPremisesResponse = errResp
 		}
 		return nil, whatsappAPIErr
 	}
@@ -254,7 +243,7 @@ func (c *OnPremisesClient) login(ctx context.Context) (*UserToken, error) {
 		return nil, errors.Join(err, whatsappAPIErr)
 	}
 
-	var loginResponse LoginResponse
+	var loginResponse onPremisesLoginResponse
 	err = json.Unmarshal(loginHTTPResponseBytes, &loginResponse)
 	if err != nil {
 		return nil, errors.Join(err, whatsappAPIErr)
@@ -264,7 +253,7 @@ func (c *OnPremisesClient) login(ctx context.Context) (*UserToken, error) {
 		return nil, errors.Join(ErrUnexpectedLoginResponse, whatsappAPIErr)
 	}
 
-	return &UserToken{
+	return &onPremisesUserToken{
 		Endpoint: c.Credentials.APIEndpoint,
 		Username: c.Credentials.Username,
 		Token:    loginResponse.Users[0].Token,

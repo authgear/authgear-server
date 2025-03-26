@@ -663,11 +663,14 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 	}
 	httpClient := whatsapp.NewHTTPClient()
 	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(factory, whatsappConfig, whatsappOnPremisesCredentials, tokenStore, httpClient)
+	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
+	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappConfig, whatsappCloudAPICredentials, httpClient)
 	whatsappService := &whatsapp.Service{
 		Logger:             serviceLogger,
 		WhatsappConfig:     whatsappConfig,
 		LocalizationConfig: localizationConfig,
 		OnPremisesClient:   onPremisesClient,
+		CloudAPIClient:     cloudAPIClient,
 	}
 	devMode := environmentConfig.DevMode
 	featureTestModeEmailSuppressed := deps.ProvideTestModeEmailSuppressed(testModeFeatureConfig)

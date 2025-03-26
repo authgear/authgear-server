@@ -43,8 +43,7 @@ type SMSSender interface {
 }
 
 type WhatsappSender interface {
-	ResolveSendAuthenticationOTPOptions(ctx context.Context, opts *whatsapp.SendAuthenticationOTPOptions) (*whatsapp.ResolvedSendAuthenticationOTPOptions, error)
-	SendAuthenticationOTP(ctx context.Context, opts *whatsapp.ResolvedSendAuthenticationOTPOptions) error
+	SendAuthenticationOTP(ctx context.Context, opts *whatsapp.SendAuthenticationOTPOptions) error
 }
 
 type Sender struct {
@@ -309,20 +308,17 @@ func (s *Sender) SendWhatsappImmediately(ctx context.Context, msgType translatio
 	}
 
 	if s.FeatureTestModeWhatsappSuppressed {
-		resolvedOpts := s.resolveWhatsappOptionsOrFallback(ctx, opts)
-		return s.testModeSendWhatsapp(ctx, msgType, resolvedOpts)
+		return s.testModeSendWhatsapp(ctx, msgType, opts)
 	}
 
 	if s.TestModeWhatsappConfig.Enabled {
 		if r, ok := s.TestModeWhatsappConfig.MatchTarget(opts.To); ok && r.Suppressed {
-			resolvedOpts := s.resolveWhatsappOptionsOrFallback(ctx, opts)
-			return s.testModeSendWhatsapp(ctx, msgType, resolvedOpts)
+			return s.testModeSendWhatsapp(ctx, msgType, opts)
 		}
 	}
 
 	if s.DevMode {
-		resolvedOpts := s.resolveWhatsappOptionsOrFallback(ctx, opts)
-		return s.devModeSendWhatsapp(ctx, msgType, resolvedOpts)
+		return s.devModeSendWhatsapp(ctx, msgType, opts)
 	}
 
 	// Send immediately.
@@ -334,11 +330,9 @@ func (s *Sender) SendWhatsappImmediately(ctx context.Context, msgType translatio
 		if ok := errors.As(err, &apiErr); ok {
 			metricOptions = append(metricOptions, otelauthgear.WithWhatsappAPIType(apiErr.APIType))
 			metricOptions = append(metricOptions, otelauthgear.WithHTTPStatusCode(apiErr.HTTPStatusCode))
-			if apiErr.ParsedResponse != nil {
-				firstErr, ok := apiErr.ParsedResponse.FirstErrorCode()
-				if ok {
-					metricOptions = append(metricOptions, otelauthgear.WithWhatsappAPIErrorCode(firstErr))
-				}
+			errorCode, ok := apiErr.GetErrorCode()
+			if ok {
+				metricOptions = append(metricOptions, otelauthgear.WithWhatsappAPIErrorCode(errorCode))
 			}
 		}
 
@@ -380,25 +374,8 @@ func (s *Sender) SendWhatsappImmediately(ctx context.Context, msgType translatio
 	return nil
 }
 
-func (s *Sender) resolveWhatsappOptionsOrFallback(ctx context.Context, opts *whatsapp.SendAuthenticationOTPOptions) *whatsapp.ResolvedSendAuthenticationOTPOptions {
-	resolvedOpts, err := s.WhatsappSender.ResolveSendAuthenticationOTPOptions(ctx, opts)
-	if err != nil {
-		return &whatsapp.ResolvedSendAuthenticationOTPOptions{
-			To:  opts.To,
-			OTP: opts.OTP,
-		}
-	}
-
-	return resolvedOpts
-}
-
 func (s *Sender) sendWhatsapp(ctx context.Context, opts *whatsapp.SendAuthenticationOTPOptions) error {
-	resolvedOpts, err := s.WhatsappSender.ResolveSendAuthenticationOTPOptions(ctx, opts)
-	if err != nil {
-		return err
-	}
-
-	err = s.WhatsappSender.SendAuthenticationOTP(ctx, resolvedOpts)
+	err := s.WhatsappSender.SendAuthenticationOTP(ctx, opts)
 	if err != nil {
 		return err
 	}
@@ -406,25 +383,11 @@ func (s *Sender) sendWhatsapp(ctx context.Context, opts *whatsapp.SendAuthentica
 	return nil
 }
 
-func (s *Sender) testModeSendWhatsapp(ctx context.Context, msgType translation.MessageType, opts *whatsapp.ResolvedSendAuthenticationOTPOptions) error {
+func (s *Sender) testModeSendWhatsapp(ctx context.Context, msgType translation.MessageType, opts *whatsapp.SendAuthenticationOTPOptions) error {
 	entry := s.Logger.
 		WithField("message_type", string(msgType)).
 		WithField("recipient", opts.To).
 		WithField("otp", opts.OTP)
-
-	if opts.TemplateName != "" {
-		entry = entry.WithField("template_name", opts.TemplateName)
-	}
-	if opts.TemplateLanguage != "" {
-		entry = entry.WithField("template_language", opts.TemplateLanguage)
-	}
-	if opts.TemplateNamespace != "" {
-		entry = entry.WithField("template_namespace", opts.TemplateNamespace)
-	}
-	if len(opts.TemplateComponents) > 0 {
-		b, _ := json.Marshal(opts.TemplateComponents)
-		entry = entry.WithField("template_components", string(b))
-	}
 
 	entry.Warn("Whatsapp is suppressed in test mode")
 	desc := fmt.Sprintf("Whatsapp (%v) to %v is suppressed by test mode.", msgType, opts.To)
@@ -433,25 +396,11 @@ func (s *Sender) testModeSendWhatsapp(ctx context.Context, msgType translation.M
 	})
 }
 
-func (s *Sender) devModeSendWhatsapp(ctx context.Context, msgType translation.MessageType, opts *whatsapp.ResolvedSendAuthenticationOTPOptions) error {
+func (s *Sender) devModeSendWhatsapp(ctx context.Context, msgType translation.MessageType, opts *whatsapp.SendAuthenticationOTPOptions) error {
 	entry := s.Logger.
 		WithField("message_type", string(msgType)).
 		WithField("recipient", opts.To).
 		WithField("otp", opts.OTP)
-
-	if opts.TemplateName != "" {
-		entry = entry.WithField("template_name", opts.TemplateName)
-	}
-	if opts.TemplateLanguage != "" {
-		entry = entry.WithField("template_language", opts.TemplateLanguage)
-	}
-	if opts.TemplateNamespace != "" {
-		entry = entry.WithField("template_namespace", opts.TemplateNamespace)
-	}
-	if len(opts.TemplateComponents) > 0 {
-		b, _ := json.Marshal(opts.TemplateComponents)
-		entry = entry.WithField("template_components", string(b))
-	}
 
 	entry.Warn("Whatsapp is suppressed in development mode")
 	desc := fmt.Sprintf("Whatsapp (%v) to %v is suppressed by development mode.", msgType, opts.To)
