@@ -16,6 +16,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis/globalredis"
 	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
 	"github.com/authgear/authgear-server/pkg/lib/tester"
 	"github.com/authgear/authgear-server/pkg/lib/tutorial"
@@ -246,7 +247,10 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		PlanStore:      store,
 		AppConfig:      appConfig,
 	}
-	globalredisHandle := rootProvider.GlobalRedisHandle
+	redisPool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(redisPool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig, logFactory)
 	appSecretVisitTokenStoreImpl := &appsecret.AppSecretVisitTokenStoreImpl{
 		Redis: globalredisHandle,
 	}
@@ -585,7 +589,10 @@ func newStripeWebhookHandler(p *deps.RequestProvider) http.Handler {
 		PlanStore:      store,
 		AppConfig:      appConfig,
 	}
-	globalredisHandle := rootProvider.GlobalRedisHandle
+	redisPool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(redisPool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig, logFactory)
 	stripeCache := libstripe.NewStripeCache()
 	request := p.Request
 	trustProxy := environmentConfig.TrustProxy

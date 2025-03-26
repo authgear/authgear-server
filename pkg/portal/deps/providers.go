@@ -10,7 +10,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
-	"github.com/authgear/authgear-server/pkg/lib/infra/redis/globalredis"
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
 	portalresource "github.com/authgear/authgear-server/pkg/portal/resource"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -43,7 +42,6 @@ type RootProvider struct {
 
 	Database               *db.Pool
 	RedisPool              *redis.Pool
-	GlobalRedisHandle      *globalredis.Handle
 	ConfigSourceController *configsource.Controller
 	Resources              *resource.Manager
 	AppBaseResources       *resource.Manager
@@ -88,12 +86,6 @@ func NewRootProvider(
 	)
 
 	redisPool := redis.NewPool()
-	globalRedisHandle := globalredis.NewHandle(
-		redisPool,
-		&cfg.RedisConfig,
-		&cfg.GlobalRedis,
-		loggerFactory,
-	)
 
 	filesystemCache := httputil.NewFilesystemCache()
 
@@ -119,7 +111,6 @@ func NewRootProvider(
 		SentryHub:                  sentryHub,
 		Database:                   db.NewPool(),
 		RedisPool:                  redisPool,
-		GlobalRedisHandle:          globalRedisHandle,
 		Resources: resource.NewManagerWithDir(resource.NewManagerWithDirOptions{
 			Registry:              portalresource.PortalRegistry,
 			BuiltinResourceFS:     runtimeresource.EmbedFS_resources_portal,
