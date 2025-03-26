@@ -1,4 +1,19 @@
-# Authgear Server
+<a href="https://www.authgear.com/?utm_source=github&utm_medium=readme&utm_campaign=logo"><img src="https://raw.githubusercontent.com/authgear/.github/main/profile/authgear-logo-github.svg" width="400" alt="Authgear Logo">
+</a>
+
+<h3>
+  <a href="https://docs.authgear.com/?utm_source=github&utm_medium=readme&utm_campaign=saas">📘 Docs</a>
+  | <a href="https://www.authgear.com/?utm_source=github&utm_medium=readme&utm_campaign=saas">☁️ SaaS Cloud</a>
+  | <a href="https://demo.authgear.com/?utm_source=github&utm_medium=readme&utm_campaign=saas">✨ Demo</a>
+  | <a href="https://discord.gg/Kdn5vcYwAS">💬 Discord</a>
+</h3>
+
+[![checks](https://img.shields.io/github/checks-status/authgear/authgear-server/main)](https://github.com/authgear/authgear-server/actions?query=branch%3Amain)
+[![release](https://img.shields.io/github/v/release/authgear/authgear-server)](https://github.com/authgear/authgear-server/releases)
+[![cloud](https://img.shields.io/badge/cloud-available-green)](https://demo.authgear.com/?utm_source=github&utm_medium=readme&utm_campaign=badge)
+
+
+# Authgear: Open source alternative to Auth0 / Firebase Auth
 Authgear is an extensible turnkey solution for all of your consumer authentication needs.
 
 We provide a simple auth and self-service portal for your users to start with, customizable as you grow with a simple GraphQL-based Admin API and programmable authentication flows for signup, login, and re-auth.
@@ -13,9 +28,23 @@ With a comprehensive range of out-of-the-box features to accelerate your project
 - B2B Enterprise Connections: ADFS, LDAP
 - and more...
 
----
+Contact us: <br>
+[![schedule a demo](https://img.shields.io/badge/schedule%20a%20demo-0b63e9)](https://www.authgear.com/schedule-demo/?utm_source=github&utm_medium=readme&utm_campaign=contact_us)
 
-**[🏡 Website](https://authgear.com) [💬 Chat](https://go.authgear.com/discord) [🏛️ Forum](https://github.com/orgs/authgear/discussions) [📋 Docs](https://docs.authgear.com/)**
+---
+## Who is using Authgear
+
+<table>
+    <tr>
+    <td>
+    <a href="https://www.bupa.com.hk/">
+    <img src="https://raw.githubusercontent.com/authgear/.github/main/meta/adopters/bupa.png" alt="Bupa"></a></td>
+    <td><a href="https://www.cimic.com.au/"><img src="https://raw.githubusercontent.com/authgear/.github/main/meta/adopters/cimic-group.png" alt="Cimic Group"></a></td>
+    <td><a href="https://www.hkland.com"><img src="https://raw.githubusercontent.com/authgear/.github/main/meta/adopters/hongkong-land.png" alt="Hongkong Land"></a></td>
+    <td><a href="https://www.k11.com/"><img src="https://raw.githubusercontent.com/authgear/.github/main/meta/adopters/k11.png" alt="K11"></a></td>
+    <td><a href="https://www.mtr.com.hk/"><img src="https://raw.githubusercontent.com/authgear/.github/main/meta/adopters/mtr.png" alt="MTR"></a></td>
+    </tr>
+</table>
 
 ## Documentation and quick-start guide
 The easiest way to start is to sign up at [authgear.com](https://authgear.com) for a free account.
@@ -59,7 +88,21 @@ We've provided detailed instructions on how to set up a self-hosted instance of 
 ## How to contribute
 Please refer to [CONTRIBUTING.md](CONTRIBUTING.md) if you need instructions on contributing to the development of Authgear Server.
 
+## Contributors
+
+Currently there are 42 contributors for this repository. Feel free to contribute!
+
+<a href="https://github.com/authgear/authgear-server/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=authgear/authgear-server" />
+</a>
+
+<small>Made with [contrib.rocks](https://contrib.rocks).</small>
+
 ## Credits
 
 - Free email provider domains list provided by: https://gist.github.com/tbrianjones/5992856/
 - This product includes GeoLite2 data created by MaxMind, available from https://www.maxmind.com
+
+---
+
+Part of [Skymarkers](https://www.skymakers.digital/). ❤️ We love open-source.
