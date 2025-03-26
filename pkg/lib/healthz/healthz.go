@@ -8,6 +8,8 @@ import (
 	sq "github.com/Masterminds/squirrel"
 
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis/globalredis"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
@@ -20,6 +22,7 @@ func NewHandlerLogger(lf *log.Factory) HandlerLogger {
 type Handler struct {
 	GlobalDatabase *globaldb.Handle
 	GlobalExecutor *globaldb.SQLExecutor
+	GlobalRedis    *globalredis.Handle
 	Logger         HandlerLogger
 }
 
@@ -51,6 +54,18 @@ func (h *Handler) CheckHealth(ctx context.Context) (err error) {
 		}
 
 		h.Logger.Debugf("global database connection healthz passed")
+		return nil
+	})
+	if err != nil {
+		return
+	}
+
+	err = h.GlobalRedis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
+		_, err := conn.Ping(ctx).Result()
+		if err != nil {
+			return err
+		}
+		h.Logger.Debugf("global redis connection healthz passed")
 		return nil
 	})
 	if err != nil {

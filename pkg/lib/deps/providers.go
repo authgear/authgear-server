@@ -16,7 +16,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/analyticredis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
-	"github.com/authgear/authgear-server/pkg/lib/infra/redis/globalredis"
 	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -138,12 +137,6 @@ func (p *RootProvider) NewAppProvider(ctx context.Context, appCtx *config.AppCon
 		cfg.SecretConfig.LookupData(config.RedisCredentialsKey).(*config.RedisCredentials),
 		loggerFactory,
 	)
-	globalRedis := globalredis.NewHandle(
-		p.RedisPool,
-		&p.EnvironmentConfig.RedisConfig,
-		&p.EnvironmentConfig.GlobalRedis,
-		loggerFactory,
-	)
 
 	var analyticRedisCredentials *config.AnalyticRedisCredentials
 	if c := cfg.SecretConfig.LookupData(config.AnalyticRedisCredentialsKey); c != nil {
@@ -164,7 +157,6 @@ func (p *RootProvider) NewAppProvider(ctx context.Context, appCtx *config.AppCon
 		AuditReadDatabase:  auditReadDatabase,
 		AuditWriteDatabase: auditWriteDatabase,
 		Redis:              redis,
-		GlobalRedis:        globalRedis,
 		AnalyticRedis:      analyticRedis,
 		AppContext:         appCtx,
 	}
@@ -212,7 +204,6 @@ type AppProvider struct {
 	Redis              *appredis.Handle
 	AnalyticRedis      *analyticredis.Handle
 	AppContext         *config.AppContext
-	GlobalRedis        *globalredis.Handle
 }
 
 func (p *AppProvider) NewRequestProvider(w http.ResponseWriter, r *http.Request) *RequestProvider {

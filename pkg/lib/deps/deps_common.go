@@ -44,7 +44,6 @@ import (
 	featurepasskey "github.com/authgear/authgear-server/pkg/lib/feature/passkey"
 	featurestdattrs "github.com/authgear/authgear-server/pkg/lib/feature/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
-	"github.com/authgear/authgear-server/pkg/lib/healthz"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/ldap"
 	"github.com/authgear/authgear-server/pkg/lib/saml"
@@ -105,8 +104,6 @@ var CommonDependencySet = wire.NewSet(
 	auditdb.DependencySet,
 	searchdb.DependencySet,
 	template.DependencySet,
-
-	healthz.DependencySet,
 
 	wire.NewSet(
 		authenticationinfo.DependencySet,

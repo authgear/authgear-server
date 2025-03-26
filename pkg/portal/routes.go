@@ -13,7 +13,7 @@ import (
 
 func NewRouter(p *deps.RootProvider) http.Handler {
 	router := httproute.NewRouter()
-	router.Health(http.HandlerFunc(httputil.HealthCheckHandler))
+	router.Health(p.Handler(newHealthzHandler))
 
 	securityMiddleware := httproute.Chain(
 		httproute.MiddlewareFunc(httputil.XContentTypeOptionsNosniff),

@@ -14,6 +14,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis/globalredis"
 	"github.com/authgear/authgear-server/pkg/lib/tutorial"
 	"github.com/authgear/authgear-server/pkg/lib/usage"
 	appresource "github.com/authgear/authgear-server/pkg/portal/appresource/factory"
@@ -62,6 +63,7 @@ var DependencySet = wire.NewSet(
 	clock.DependencySet,
 
 	globaldb.DependencySet,
+	globalredis.DependencySet,
 
 	template.DependencySet,
 	endpoint.DependencySet,

@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/wire"
 
+	"github.com/authgear/authgear-server/pkg/lib/healthz"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
 	"github.com/authgear/authgear-server/pkg/portal/deps"
@@ -52,6 +53,14 @@ func newSessionInfoMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		DependencySet,
 		session.DependencySet,
 		wire.Bind(new(httproute.Middleware), new(*session.SessionInfoMiddleware)),
+	))
+}
+
+func newHealthzHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		healthz.DependencySet,
+		wire.Bind(new(http.Handler), new(*healthz.Handler)),
 	))
 }
 

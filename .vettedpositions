@@ -292,9 +292,9 @@
 /pkg/lib/deps/middleware_request.go:36:30: requestcontext
 /pkg/lib/deps/middleware_request.go:46:39: requestcontext
 /pkg/lib/deps/middleware_request.go:50:24: requestcontext
-/pkg/lib/deps/providers.go:176:25: requestcontext
+/pkg/lib/deps/providers.go:168:25: requestcontext
 /pkg/lib/dpop/middleware.go:45:35: requestcontext
-/pkg/lib/healthz/healthz.go:27:23: requestcontext
+/pkg/lib/healthz/healthz.go:30:23: requestcontext
 /pkg/lib/infra/middleware/sentry.go:21:47: requestcontext
 /pkg/lib/oauth/response_mode.go:122:40: requestcontext
 /pkg/lib/oauth/response_mode.go:149:40: requestcontext

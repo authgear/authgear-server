@@ -13,6 +13,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis/globalredis"
 	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -29,6 +30,7 @@ var EnvConfigDeps = wire.NewSet(
 		"AuthUISentryDSN",
 		"AuthUIWindowMessageAllowedOrigins",
 		"GlobalDatabase",
+		"GlobalRedis",
 		"DatabaseConfig",
 		"ImagesCDNHost",
 		"WebAppCDNHost",
@@ -61,6 +63,7 @@ var rootDeps = wire.NewSet(
 		"EnvironmentConfig",
 		"ConfigSourceConfig",
 		"DatabasePool",
+		"RedisPool",
 		"EmbeddedResources",
 	),
 
@@ -68,6 +71,7 @@ var rootDeps = wire.NewSet(
 
 	clock.DependencySet,
 	globaldb.DependencySet,
+	globalredis.DependencySet,
 	configsource.DependencySet,
 )
 
@@ -81,7 +85,6 @@ var AppRootDeps = wire.NewSet(
 		"AuditReadDatabase",
 		"AuditWriteDatabase",
 		"Redis",
-		"GlobalRedis",
 		"AnalyticRedis",
 		"AppContext",
 	),
