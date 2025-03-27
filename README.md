@@ -21,7 +21,7 @@ Authgear is an open-source extensible turnkey solution for all of your consumer 
 
 Available for self-hosting and on [Authgear Cloud](https://www.authgear.com/?utm_source=github&utm_medium=readme&utm_campaign=intro).
 
-With a wide range of out-of-the-box features, it's perfect for SaaS product apps and multi-apps ecosystem, such as:
+With a wide range of out-of-the-box features, it's perfect for SaaS product and multi-apps ecosystem, such as:
 
 - Passwordless login: Magic-link/OTP with Email, SMS, WhatsApp
 - Passkeys
@@ -64,6 +64,21 @@ We're grateful to the companies listed below for their ongoing support and signi
 
 ## Features and Components
 
+| | |
+|-|-|
+|<h3>Signup/Login page</h3><p>Beautiful and customizable signup and login page ready to use, support dark/light modes</p>| |
+|<h3>Passwords, OTP, Passkeys, Biometric</h3><p>All modern authentication methods that your users love. Add secure authentication for your users without compromising on user experience</p>| |
+|<h3>Multifactor Auth (MFA)</h3><p>Secure your application with additional authentication factors. TOTP (Google Authenticator, Authy), SMS/ Email OTP, Additional Password </p><p>\*Adaptive MFA coming soon</p>| |
+|<h3>User Management Portal perfect for User Support</h3><p>GUI for managing user profile, session revocation, analytics, monitoring, logs, setting up authentication and authorization requirements </p>| |
+|<h3>Account Settings </h3><p>Pre-built account settings component for your user to self-manage profile, verify their e-mail, or change their password, etc.</p>| |
+|<h3>Role-based Access Control</h3><p>Extend access management on your application that Authgear powers using Roles and Groups</p>| |
+|<h3>Social and Enterprise (OAuth) Connection</h3><p>Let your user login with Google, Facebook, Apple, WeChat, Linkedin, ADFS, etc with very simple configs.</p>| |
+|<h3>Passkeys</h3><p>Easier and more secure anti-phishing alternative to passwords. Support FIDO2 compliant hardware keys and password managers</p>| |
+|<h3>Webhook and TypeScript Hooks</h3><p>Get notified when important events such as new user signup happen. Customize and extend Authgear's capabilities with custom logic.</p>||
+|<h3>I18n and Email/SMS templates</h3><p>Localization for different languages and customizable email/SMS templates for authentication flows.</p>||
+
+### Components
+
 The repo `authgear-server` includes the following components of Authgear:
 
 - Authgear server (the core service)
@@ -79,7 +94,9 @@ In addition to Authgear Server, we provide SDKs that developers can use to integ
 
 These SDKs exist as standalone projects under the following repositories:
 
-- [JavaScript/React native/Capacitor](https://github.com/authgear/authgear-sdk-js)
+- [JavaScript (Web) - NextJS, Vue, React, Angular](https://github.com/authgear/authgear-sdk-js)
+- [React Native](https://github.com/authgear/authgear-sdk-js)
+- [Capacitor](https://github.com/authgear/authgear-sdk-js)
 - [iOS](https://github.com/authgear/authgear-sdk-ios)
 - [Android](https://github.com/authgear/authgear-sdk-android)
 - [Flutter](https://github.com/authgear/authgear-sdk-flutter)
