@@ -20,8 +20,8 @@ func TestAGTextTemplate(t *testing.T) {
 		}
 		cases := []testCase{
 			{
-				tpl:    "{{ .a | html | js }}",
-				output: "{{.a | html | js | _value_or_empty_string}}",
+				tpl:    "{{ eq (not .a) }}",
+				output: "{{eq (not .a) | _value_or_empty_string}}",
 			},
 			{
 				tpl:    "{{ .a }}",
@@ -32,8 +32,8 @@ func TestAGTextTemplate(t *testing.T) {
 				output: "{{.a.b.c | _value_or_empty_string}}",
 			},
 			{
-				tpl:    "{{ html .a.b.c }}",
-				output: "{{html .a.b.c | _value_or_empty_string}}",
+				tpl:    "{{ len .a.b.c }}",
+				output: "{{len .a.b.c | _value_or_empty_string}}",
 			},
 			{
 				tpl: `
@@ -43,25 +43,11 @@ func TestAGTextTemplate(t *testing.T) {
 {{ end }}
 {{ end }}`,
 				output: `
-{{range .Items}}
+{{range .Items}}{{_record_iteration}}
 {{if .a}}
 {{.a | _value_or_empty_string}}
 {{end}}
 {{end}}`},
-			{
-				tpl: `
-{{ define "temp1" }}
-	{{ if .a }}
-		{{ .a }}
-	{{ end }}
-{{ end }}
-{{ template "temp1" }}
-`,
-				output: "\n\n{{template \"temp1\"}}\n",
-				childOutputs: map[string]string{
-					"temp1": "\n\t{{if .a}}\n\t\t{{.a | _value_or_empty_string}}\n\t{{end}}\n",
-				},
-			},
 		}
 
 		for idx, c := range cases {
@@ -98,20 +84,6 @@ func TestAGTextTemplate(t *testing.T) {
 					"a": map[string]interface{}{},
 				},
 				output: "",
-			},
-			{
-				tpl: "{{.a|html}}",
-				data: map[string]interface{}{
-					"a": "<button/>",
-				},
-				output: "&lt;button/&gt;",
-			},
-			{
-				tpl: "{{html .a}}",
-				data: map[string]interface{}{
-					"a": "<button/>",
-				},
-				output: "&lt;button/&gt;",
 			},
 			{
 				tpl: "{{.a}}",
@@ -185,5 +157,48 @@ func TestAGTextTemplate(t *testing.T) {
 				So(buf.String(), ShouldEqual, c.output)
 			})
 		}
+
+		Convey("should error if max iteration reached", func() {
+			Convey("simple loop", func() {
+				textTpl := &texttemplate.Template{}
+				textTpl = texttemplate.Must(textTpl.Parse("{{range . }}.{{end}}"))
+				tpl := &template.AGTextTemplate{}
+				err := tpl.Wrap(textTpl)
+				So(err, ShouldBeNil)
+				var buf strings.Builder
+				err = tpl.Execute(&buf, make([]string, 101))
+				So(err, ShouldBeError, "template: :1:4: executing \"\" at <_record_iteration>: error calling _record_iteration: max iteration exceeded")
+
+				err = tpl.Execute(&buf, make([]string, 100))
+				So(err, ShouldBeNil)
+			})
+			Convey("nested loop", func() {
+
+				// Go 1.23.6 does not support {{ range int }} yet, so we simulate it with a nested data
+				makeNestedData := func(n int) [][]string {
+					nestedData := [][]string{}
+					for i := 0; i < n; i++ {
+						el := []string{}
+						for j := 0; j < n; j++ {
+							el = append(el, ".")
+						}
+						nestedData = append(nestedData, el)
+					}
+					return nestedData
+				}
+
+				textTpl := &texttemplate.Template{}
+				textTpl = texttemplate.Must(textTpl.Parse("{{range . }}{{range . }}.{{end}}{{end}}"))
+				tpl := &template.AGTextTemplate{}
+				err := tpl.Wrap(textTpl)
+				So(err, ShouldBeNil)
+				var buf strings.Builder
+				err = tpl.Execute(&buf, makeNestedData(10))
+				So(err, ShouldBeError, "template: :1:4: executing \"\" at <_record_iteration>: error calling _record_iteration: max iteration exceeded")
+
+				err = tpl.Execute(&buf, makeNestedData(9))
+				So(err, ShouldBeNil)
+			})
+		})
 	})
 }

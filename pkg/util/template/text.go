@@ -8,6 +8,12 @@ import (
 	"text/template/parse"
 )
 
+const (
+	maxIteration int = 100
+)
+
+var ErrMaxIteractionExceed = fmt.Errorf("max iteration exceeded")
+
 // AGTextTemplate is a wrapper of text/template, execpt that <no value> will always be rendered as empty string
 type AGTextTemplate struct {
 	originalTemplate  *texttemplate.Template
@@ -20,7 +26,7 @@ func (t *AGTextTemplate) Wrap(tpl *texttemplate.Template) error {
 		return err
 	}
 	t.originalTemplate = cloned
-	err = publicTemplateValidator.validateTree(t.originalTemplate.Tree)
+	err = publicTemplateValidator.ValidateTextTemplate(t.originalTemplate)
 	if err != nil {
 		return err
 	}
@@ -28,7 +34,8 @@ func (t *AGTextTemplate) Wrap(tpl *texttemplate.Template) error {
 }
 
 func (t *AGTextTemplate) Execute(wr io.Writer, data any) error {
-	return t.rewrittenTemplate.Execute(wr, data)
+	// Call makeFuncMap each execution to ensure `iterationCount` is independent for each execution
+	return t.rewrittenTemplate.Funcs(makeFuncMap()).Execute(wr, data)
 }
 
 func (t *AGTextTemplate) rewrite() error {
@@ -36,9 +43,7 @@ func (t *AGTextTemplate) rewrite() error {
 	if err != nil {
 		return err
 	}
-	clone = clone.Funcs(texttemplate.FuncMap{
-		"_value_or_empty_string": valueOrEmptyString,
-	})
+	clone = clone.Funcs(makeFuncMap())
 
 	tpls := clone.Templates()
 
@@ -66,11 +71,35 @@ func (t *AGTextTemplate) String(templateName string) string {
 	return result
 }
 
+func makeFuncMap() texttemplate.FuncMap {
+	iterationCount := 0
+	recordIteration := func() (string, error) {
+		iterationCount += 1
+		if iterationCount > maxIteration {
+			return "", ErrMaxIteractionExceed
+		}
+		return "", nil
+	}
+	return texttemplate.FuncMap{
+		"_value_or_empty_string": valueOrEmptyString,
+		"_record_iteration":      recordIteration,
+	}
+}
+
 func rewriteNode(node parse.Node) {
 	rewriteBranch := func(branchNode *parse.BranchNode) {
 		if branchNode.List != nil {
 			for _, child := range branchNode.List.Nodes {
 				rewriteNode(child)
+			}
+			if branchNode.NodeType == parse.NodeRange {
+				temptpl := texttemplate.New("")
+				temptpl = temptpl.Funcs(makeFuncMap())
+				temptpl = texttemplate.Must(temptpl.Parse("{{- _record_iteration -}}"))
+				newNodes := []parse.Node{}
+				newNodes = append(newNodes, temptpl.Root)
+				newNodes = append(newNodes, branchNode.List.Nodes...)
+				branchNode.List.Nodes = newNodes
 			}
 		}
 		if branchNode.ElseList != nil {

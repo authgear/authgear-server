@@ -118,9 +118,11 @@ func (v *Validator) validateTree(tree *parse.Tree) (err error) {
 			}
 		case *parse.CommandNode:
 			for _, arg := range n.Args {
-				if ident, ok := arg.(*parse.IdentifierNode); ok && !v.allowIdentifierNode && !checkIdentifier(ident.Ident, v.forbiddenIdentifiers) {
-					err = fmt.Errorf("%s: forbidden identifier %s", formatLocation(tree, n), ident.Ident)
-					break
+				if ident, ok := arg.(*parse.IdentifierNode); ok {
+					if !v.allowIdentifierNode || !checkIdentifier(ident.Ident, v.forbiddenIdentifiers) {
+						err = fmt.Errorf("%s: forbidden identifier %s", formatLocation(tree, n), ident.Ident)
+						break
+					}
 				}
 			}
 		case *parse.RangeNode:

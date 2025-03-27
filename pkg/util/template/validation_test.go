@@ -17,7 +17,7 @@ func TestTemplateValidation(t *testing.T) {
 
 		Convey("should allow good templates", func() {
 			var err error
-			v := NewValidator()
+			v := NewValidator(AllowIdentifierNode(true))
 
 			err = v.ValidateHTMLTemplate(template(`{{ if ne .UserName "" }}Welcome, {{ .UserName }}{{ else }}Please login{{ end }}`))
 			So(err, ShouldBeNil)
@@ -48,7 +48,13 @@ func TestTemplateValidation(t *testing.T) {
 
 		Convey("should not allow disabled functions", func() {
 			var err error
-			v := NewValidator()
+			v := NewValidator(
+				ForbidIdentifiers([]string{
+					"print",
+					"printf",
+					"println",
+				}),
+			)
 
 			err = v.ValidateHTMLTemplate(template(`{{printf "%010000000d" 0}}`))
 			So(err, ShouldBeError, "email:1:2: forbidden identifier printf")
@@ -69,7 +75,7 @@ func TestTemplateValidation(t *testing.T) {
 		Convey("should not allow nesting too deep", func() {
 			var err error
 
-			v := NewValidator()
+			v := NewValidator(AllowIdentifierNode(true))
 			err = v.ValidateHTMLTemplate(template(`{{ js (js (js "\\" | js | js | js) | js | js | js) | js | js | js }}`))
 			So(err, ShouldBeError, "email:1:3: pipeline is forbidden")
 
@@ -101,7 +107,7 @@ func TestTemplateValidation(t *testing.T) {
 
 		Convey("should traverse into template nodes pipe", func() {
 			var err error
-			v := NewValidator(AllowTemplateNode(true))
+			v := NewValidator(AllowTemplateNode(true), AllowIdentifierNode(true))
 
 			err = v.ValidateHTMLTemplate((template(`{{ template "name" js (js (js (js (js "\\")))) }}`)))
 			So(err, ShouldBeError, "email:1:31: template nested too deep")

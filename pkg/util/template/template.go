@@ -24,6 +24,7 @@ var publicTemplateValidator = NewValidator(
 		"println",
 		"call",
 		"html",
+		"js",
 		"urlquery",
 	}),
 	MaxDepth(10),
