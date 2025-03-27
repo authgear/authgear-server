@@ -15,20 +15,32 @@
 )](https://discord.gg/Kdn5vcYwAS)
 
 
-# Authgear: Open source alternative to Auth0 / Firebase Auth
-Authgear is an extensible turnkey solution for all of your consumer authentication needs.
+# Authgear: Open source alternative to Auth0 / Clerk / Firebase Auth
 
-We provide a simple auth and self-service portal for your users to start with, customizable as you grow with a simple GraphQL-based Admin API and programmable authentication flows for signup, login, and re-auth.
+Authgear is an open-source extensible turnkey solution for all of your consumer authentication needs. Authgear gets you started in 5 minutes with developer-friendly SDKs and a comprehensive portal.
 
-With a comprehensive range of out-of-the-box features to accelerate your projects, such as:
+Available for self-hosting and on [Authgear Cloud](https://www.authgear.com/?utm_source=github&utm_medium=readme&utm_campaign=intro).
 
-- Passwordless login: Magic-link/OTP with Email, SMS, WhatsApp; Passkeys
+With a wide range of out-of-the-box features, it's perfect for SaaS product apps and multi-apps ecosystem, such as:
+
+- Passwordless login: Magic-link/OTP with Email, SMS, WhatsApp
+- Passkeys
+- Pre-built signup/login page
+- Pre-built user account settings page
 - Biometric Login on iOS and Android
-- 2FA: TOTP, SMS, Email
+- 2FA: TOTP (Google Authenticator, Authy), SMS, Email
 - Integration with analytics, CDP, and drip campaigns
-- Enterprise Security: Audit logs, Bruteforce Protection, Rate Limits
+- Enterprise Security: Audit logs, Bruteforce Protection, Bot Production, Rate Limits
+- Modern authentication and authorization protocols and SSO: OIDC/OAuth 2.0/SAML
 - B2B Enterprise Connections: ADFS, LDAP
 - and more...
+
+**Why developers use Authgear**
+
+- **Authgear Portal**: Web-interface for user management and setting up authentication/authorization configurations
+- **Admin API**: Powerful GraphQL API to manage resources and all things authentication
+- **End-user Experience**: Beautiful and tailorable out-of-the-box pre-built authentication flows
+- **Enterprise-grade security**: MFA, SSO, RBAC, and audit logs.
 
 Contact us: <br>
 [![schedule a demo](https://img.shields.io/badge/schedule%20a%20demo-0b63e9)](https://www.authgear.com/schedule-demo/?utm_source=github&utm_medium=readme&utm_campaign=contact_us)
@@ -52,9 +64,10 @@ We're grateful to the companies listed below for their ongoing support and signi
 
 ## Features and Components
 
-Authgear Server includes the following features and components of Authgear:
-- Authgear server (the actual service)
-- Portal (a GUI tool for managing Authgear projects)
+The repo `authgear-server` includes the following components of Authgear:
+
+- Authgear server (the core service)
+- Portal (a web-interface for managing configurations in Authgear projects)
 - AuthUI  (a customizable User Interface (UI) for login, user registration, and profile settings pages)
 - Admin API (provides a GraphQL interface for developers to interact with services and data on Authgear)
 
