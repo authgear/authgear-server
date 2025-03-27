@@ -117,13 +117,9 @@ func (v *Validator) validateTree(tree *parse.Tree) (err error) {
 				err = fmt.Errorf("%s: pipeline is forbidden", formatLocation(tree, n))
 			}
 		case *parse.CommandNode:
-			for _, arg := range n.Args {
-				if ident, ok := arg.(*parse.IdentifierNode); ok {
-					if !v.allowIdentifierNode || !checkIdentifier(ident.Ident, v.forbiddenIdentifiers) {
-						err = fmt.Errorf("%s: forbidden identifier %s", formatLocation(tree, n), ident.Ident)
-						break
-					}
-				}
+			err = v.validateCommandNode(tree, n)
+			if err != nil {
+				break
 			}
 		case *parse.RangeNode:
 			if v.allowRangeNode {
@@ -146,6 +142,17 @@ func (v *Validator) validateTree(tree *parse.Tree) (err error) {
 
 	traverseTree(tree, validateFn)
 	return
+}
+
+func (v *Validator) validateCommandNode(tree *parse.Tree, n *parse.CommandNode) error {
+	for _, arg := range n.Args {
+		if ident, ok := arg.(*parse.IdentifierNode); ok {
+			if !v.allowIdentifierNode || !checkIdentifier(ident.Ident, v.forbiddenIdentifiers) {
+				return fmt.Errorf("%s: forbidden identifier %s", formatLocation(tree, n), ident.Ident)
+			}
+		}
+	}
+	return nil
 }
 
 func checkIdentifier(id string, badIdentifiers []string) bool {
