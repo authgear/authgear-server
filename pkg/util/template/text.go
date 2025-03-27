@@ -15,7 +15,15 @@ type AGTextTemplate struct {
 }
 
 func (t *AGTextTemplate) Wrap(tpl *texttemplate.Template) error {
-	t.originalTemplate = tpl
+	cloned, err := tpl.Clone()
+	if err != nil {
+		return err
+	}
+	t.originalTemplate = cloned
+	err = publicTemplateValidator.validateTree(t.originalTemplate.Tree)
+	if err != nil {
+		return err
+	}
 	return t.rewrite()
 }
 

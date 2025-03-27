@@ -9,11 +9,12 @@ import (
 )
 
 type Validator struct {
-	allowRangeNode      bool
-	allowTemplateNode   bool
-	allowDeclaration    bool
-	allowIdentifierNode bool
-	maxDepth            int
+	allowRangeNode       bool
+	allowTemplateNode    bool
+	allowDeclaration     bool
+	allowIdentifierNode  bool
+	forbiddenIdentifiers []string
+	maxDepth             int
 }
 
 type ValidatorOption func(*Validator)
@@ -45,6 +46,12 @@ func AllowIdentifierNode(b bool) ValidatorOption {
 func MaxDepth(d int) ValidatorOption {
 	return func(v *Validator) {
 		v.maxDepth = d
+	}
+}
+
+func ForbidIdentifiers(idens []string) ValidatorOption {
+	return func(v *Validator) {
+		v.forbiddenIdentifiers = idens
 	}
 }
 
@@ -111,7 +118,7 @@ func (v *Validator) validateTree(tree *parse.Tree) (err error) {
 			}
 		case *parse.CommandNode:
 			for _, arg := range n.Args {
-				if ident, ok := arg.(*parse.IdentifierNode); ok && !v.allowIdentifierNode && !checkIdentifier(ident.Ident) {
+				if ident, ok := arg.(*parse.IdentifierNode); ok && !v.allowIdentifierNode && !checkIdentifier(ident.Ident, v.forbiddenIdentifiers) {
 					err = fmt.Errorf("%s: forbidden identifier %s", formatLocation(tree, n), ident.Ident)
 					break
 				}
@@ -139,13 +146,7 @@ func (v *Validator) validateTree(tree *parse.Tree) (err error) {
 	return
 }
 
-var badIdentifiers = []string{
-	"print",
-	"printf",
-	"println",
-}
-
-func checkIdentifier(id string) bool {
+func checkIdentifier(id string, badIdentifiers []string) bool {
 	for _, badID := range badIdentifiers {
 		if id == badID {
 			return false

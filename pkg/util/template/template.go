@@ -5,6 +5,11 @@ var privateTemplateValidator = NewValidator(
 	AllowTemplateNode(true),
 	AllowDeclaration(true),
 	AllowIdentifierNode(true),
+	ForbidIdentifiers([]string{
+		"print",
+		"printf",
+		"println",
+	}),
 	MaxDepth(99),
 )
 
@@ -13,5 +18,13 @@ var publicTemplateValidator = NewValidator(
 	AllowTemplateNode(false),
 	AllowDeclaration(true),
 	AllowIdentifierNode(true),
+	ForbidIdentifiers([]string{
+		"print",
+		"printf",
+		"println",
+		"call",
+		"html",
+		"urlquery",
+	}),
 	MaxDepth(10),
 )
