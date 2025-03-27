@@ -41,12 +41,16 @@ func TestAGTextTemplate(t *testing.T) {
 {{ if .a }}
 {{ .a }}
 {{ end }}
+{{ else }}
+.
 {{ end }}`,
 				output: `
 {{range .Items}}{{_record_iteration}}
 {{if .a}}
 {{.a | _value_or_empty_string}}
 {{end}}
+{{else}}{{_record_iteration}}
+.
 {{end}}`},
 		}
 

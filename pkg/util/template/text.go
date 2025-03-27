@@ -93,18 +93,15 @@ func rewriteNode(node parse.Node) {
 				rewriteNode(child)
 			}
 			if branchNode.NodeType == parse.NodeRange {
-				temptpl := texttemplate.New("")
-				temptpl = temptpl.Funcs(makeFuncMap())
-				temptpl = texttemplate.Must(temptpl.Parse("{{- _record_iteration -}}"))
-				newNodes := []parse.Node{}
-				newNodes = append(newNodes, temptpl.Root)
-				newNodes = append(newNodes, branchNode.List.Nodes...)
-				branchNode.List.Nodes = newNodes
+				injectSideEffect("_record_iteration", branchNode.List)
 			}
 		}
 		if branchNode.ElseList != nil {
 			for _, child := range branchNode.ElseList.Nodes {
 				rewriteNode(child)
+			}
+			if branchNode.NodeType == parse.NodeRange {
+				injectSideEffect("_record_iteration", branchNode.ElseList)
 			}
 		}
 	}
@@ -135,6 +132,16 @@ func rewriteNode(node parse.Node) {
 	default:
 		// No need to modify other nodes
 	}
+}
+
+func injectSideEffect(iden string, listNode *parse.ListNode) {
+	temptpl := texttemplate.New("")
+	temptpl = temptpl.Funcs(makeFuncMap())
+	temptpl = texttemplate.Must(temptpl.Parse(fmt.Sprintf("{{- %s -}}", iden)))
+	newNodes := []parse.Node{}
+	newNodes = append(newNodes, temptpl.Root)
+	newNodes = append(newNodes, listNode.Nodes...)
+	listNode.Nodes = newNodes
 }
 
 // newIdentCmd produces a command containing a single identifier node.
