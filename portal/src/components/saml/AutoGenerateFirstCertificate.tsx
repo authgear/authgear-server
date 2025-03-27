@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect } from "react";
+import { produce } from "immer";
 import { PortalAPIAppConfig, SAMLIdpSigningCertificate } from "../../types";
 import { useUpdateAppAndSecretConfigMutation } from "../../graphql/portal/mutations/updateAppAndSecretMutation";
 import ShowError from "../../ShowError";
@@ -41,10 +42,11 @@ export function AutoGenerateFirstCertificate({
     } else {
       keyID = certificates[0].keyID;
     }
-    const newConfig = { ...rawAppConfig };
-    newConfig.saml ??= {};
-    newConfig.saml.signing ??= {};
-    newConfig.saml.signing.key_id = keyID;
+    const newConfig = produce(rawAppConfig, (newConfig) => {
+      newConfig.saml ??= {};
+      newConfig.saml.signing ??= {};
+      newConfig.saml.signing.key_id = keyID;
+    });
     await updateAppAndSecretConfig({
       appConfig: newConfig,
     });
