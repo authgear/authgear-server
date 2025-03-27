@@ -73,6 +73,7 @@ We're grateful to the companies listed below for their ongoing support and signi
 |<h3>Account Settings </h3><p>Pre-built account settings component for your user to self-manage profile, verify their e-mail, or change their password, etc.</p>| |
 |<h3>Role-based Access Control</h3><p>Extend access management on your application that Authgear powers using Roles and Groups</p>| |
 |<h3>Social and Enterprise (OAuth) Connection</h3><p>Let your user login with Google, Facebook, Apple, WeChat, Linkedin, ADFS, etc with very simple configs.</p>| |
+|<h3>SAML Enterprise SSO</h3><p>Enable SSO with enterprise softwares using SAML protocol</p>| |
 |<h3>Passkeys</h3><p>Easier and more secure anti-phishing alternative to passwords. Support FIDO2 compliant hardware keys and password managers</p>| |
 |<h3>Webhook and TypeScript Hooks</h3><p>Get notified when important events such as new user signup happen. Customize and extend Authgear's capabilities with custom logic.</p>||
 |<h3>I18n and Email/SMS templates</h3><p>Localization for different languages and customizable email/SMS templates for authentication flows.</p>||
