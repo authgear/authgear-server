@@ -33,12 +33,11 @@ type OnPremisesClient struct {
 
 func NewWhatsappOnPremisesClient(
 	lf *log.Factory,
-	cfg *config.WhatsappConfig,
 	credentials *config.WhatsappOnPremisesCredentials,
 	tokenStore *TokenStore,
 	httpClient HTTPClient,
 ) *OnPremisesClient {
-	if cfg.APIType != config.WhatsappAPITypeOnPremises || credentials == nil {
+	if credentials == nil {
 		return nil
 	}
 	endpoint, err := url.Parse(credentials.APIEndpoint)

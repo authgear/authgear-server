@@ -266,8 +266,7 @@ localization:
   fallback_language: en
   supported_languages: ["en"]
 messaging:
-  whatsapp:
-    api_type: on-premises
+  whatsapp: {}
   rate_limits:
     sms: {}
     sms_per_ip:

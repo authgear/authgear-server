@@ -20,11 +20,10 @@ type CloudAPIClient struct {
 }
 
 func NewWhatsappCloudAPIClient(
-	cfg *config.WhatsappConfig,
 	credentials *config.WhatsappCloudAPICredentials,
 	httpClient HTTPClient,
 ) *CloudAPIClient {
-	if cfg.APIType != config.WhatsappAPITypeCloudAPI || credentials == nil {
+	if credentials == nil {
 		return nil
 	}
 	return &CloudAPIClient{

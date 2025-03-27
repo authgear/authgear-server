@@ -804,6 +804,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	}
 	serviceLogger := whatsapp.NewServiceLogger(factory)
 	whatsappConfig := messagingConfig.Whatsapp
+	globalWhatsappAPIType := environmentConfig.WhatsappAPIType
 	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
 	tokenStore := &whatsapp.TokenStore{
 		Redis: handle,
@@ -811,15 +812,16 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Clock: clock,
 	}
 	httpClient := whatsapp.NewHTTPClient()
-	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(factory, whatsappConfig, whatsappOnPremisesCredentials, tokenStore, httpClient)
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(factory, whatsappOnPremisesCredentials, tokenStore, httpClient)
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
-	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappConfig, whatsappCloudAPICredentials, httpClient)
+	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient)
 	whatsappService := &whatsapp.Service{
-		Logger:             serviceLogger,
-		WhatsappConfig:     whatsappConfig,
-		LocalizationConfig: localizationConfig,
-		OnPremisesClient:   onPremisesClient,
-		CloudAPIClient:     cloudAPIClient,
+		Logger:                serviceLogger,
+		WhatsappConfig:        whatsappConfig,
+		LocalizationConfig:    localizationConfig,
+		GlobalWhatsappAPIType: globalWhatsappAPIType,
+		OnPremisesClient:      onPremisesClient,
+		CloudAPIClient:        cloudAPIClient,
 	}
 	devMode := environmentConfig.DevMode
 	featureTestModeEmailSuppressed := deps.ProvideTestModeEmailSuppressed(testModeFeatureConfig)

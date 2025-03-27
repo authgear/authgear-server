@@ -655,6 +655,7 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 	}
 	serviceLogger := whatsapp.NewServiceLogger(factory)
 	whatsappConfig := messagingConfig.Whatsapp
+	globalWhatsappAPIType := environmentConfig.WhatsappAPIType
 	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
 	tokenStore := &whatsapp.TokenStore{
 		Redis: appredisHandle,
@@ -662,15 +663,16 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		Clock: clock,
 	}
 	httpClient := whatsapp.NewHTTPClient()
-	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(factory, whatsappConfig, whatsappOnPremisesCredentials, tokenStore, httpClient)
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(factory, whatsappOnPremisesCredentials, tokenStore, httpClient)
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
-	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappConfig, whatsappCloudAPICredentials, httpClient)
+	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient)
 	whatsappService := &whatsapp.Service{
-		Logger:             serviceLogger,
-		WhatsappConfig:     whatsappConfig,
-		LocalizationConfig: localizationConfig,
-		OnPremisesClient:   onPremisesClient,
-		CloudAPIClient:     cloudAPIClient,
+		Logger:                serviceLogger,
+		WhatsappConfig:        whatsappConfig,
+		LocalizationConfig:    localizationConfig,
+		GlobalWhatsappAPIType: globalWhatsappAPIType,
+		OnPremisesClient:      onPremisesClient,
+		CloudAPIClient:        cloudAPIClient,
 	}
 	devMode := environmentConfig.DevMode
 	featureTestModeEmailSuppressed := deps.ProvideTestModeEmailSuppressed(testModeFeatureConfig)
