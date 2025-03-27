@@ -1224,6 +1224,7 @@ func (a *Attribute) Element() *etree.Element {
 type AttributeValue struct {
 	Type   string `xml:"http://www.w3.org/2001/XMLSchema-instance type,attr"`
 	Value  string `xml:",chardata"`
+	IsNil  bool
 	NameID *NameID
 }
 
@@ -1232,7 +1233,12 @@ func (a *AttributeValue) Element() *etree.Element {
 	el := etree.NewElement("saml:AttributeValue")
 	el.CreateAttr("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance")
 	el.CreateAttr("xmlns:xs", "http://www.w3.org/2001/XMLSchema")
-	el.CreateAttr("xsi:type", a.Type)
+	if a.Type != "" {
+		el.CreateAttr("xsi:type", a.Type)
+	}
+	if a.IsNil {
+		el.CreateAttr("xsi:nil", "true")
+	}
 	if a.NameID != nil {
 		el.AddChild(a.NameID.Element())
 	}

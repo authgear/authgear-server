@@ -57,7 +57,9 @@ const (
 )
 
 var (
-	SAMLAttrTypeString = fmt.Sprintf("%s:string", xmlSchemaNamespace)
+	SAMLAttrTypeString  = fmt.Sprintf("%s:string", xmlSchemaNamespace)
+	SAMLAttrTypeBoolean = fmt.Sprintf("%s:boolean", xmlSchemaNamespace)
+	SAMLAttrTypeDecimal = fmt.Sprintf("%s:decimal", xmlSchemaNamespace)
 )
 
 const canonicalizerPrefixList = ""

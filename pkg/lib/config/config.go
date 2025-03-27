@@ -362,19 +362,45 @@ func (c *AppConfig) validateSAML(ctx *validation.Context) {
 		}
 
 		for idx, sp := range c.SAML.ServiceProviders {
-			if sp.ClientID != "" {
-				found := false
-				for _, oauthClient := range c.OAuth.Clients {
-					if sp.ClientID == oauthClient.ClientID {
-						found = true
-						break
-					}
-				}
-				if !found {
-					ctx.Child("saml", "service_providers", strconv.Itoa(idx), "client_id").
-						EmitErrorMessage("client_id does not exist in /oauth/clients")
-				}
+			c.validateSAMLServiceProvider(ctx, idx, sp)
+		}
+	}
+}
+
+func (c *AppConfig) validateSAMLServiceProvider(ctx *validation.Context, idx int, sp *SAMLServiceProviderConfig) {
+	if sp.ClientID != "" {
+		found := false
+		for _, oauthClient := range c.OAuth.Clients {
+			if sp.ClientID == oauthClient.ClientID {
+				found = true
+				break
 			}
+		}
+		if !found {
+			ctx.Child("saml", "service_providers", strconv.Itoa(idx), "client_id").
+				EmitErrorMessage("client_id does not exist in /oauth/clients")
+		}
+	}
+
+	for mappingIdx, mapping := range sp.Attributes.Mappings {
+		found := false
+		for _, definition := range sp.Attributes.Definitions {
+			if definition.Name == mapping.To.SAMLAttribute {
+				found = true
+				break
+			}
+		}
+		if !found {
+			ctx.Child(
+				"saml",
+				"service_providers",
+				strconv.Itoa(idx),
+				"mappings",
+				strconv.Itoa(mappingIdx),
+				"to",
+				"saml_attribute",
+			).
+				EmitErrorMessage("saml_attribute does match any defined attribute name in definitions")
 		}
 	}
 }
