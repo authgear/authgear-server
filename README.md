@@ -11,6 +11,8 @@
 [![checks](https://img.shields.io/github/checks-status/authgear/authgear-server/main)](https://github.com/authgear/authgear-server/actions?query=branch%3Amain)
 [![release](https://img.shields.io/github/v/release/authgear/authgear-server)](https://github.com/authgear/authgear-server/releases)
 [![cloud](https://img.shields.io/badge/cloud-available-green)](https://demo.authgear.com/?utm_source=github&utm_medium=readme&utm_campaign=badge)
+[![discord](https://img.shields.io/discord/918079010917982220?label=discord&labelColor=5865F2
+)](https://discord.gg/Kdn5vcYwAS)
 
 
 # Authgear: Open source alternative to Auth0 / Firebase Auth
