@@ -103,7 +103,11 @@ var CommonDependencySet = wire.NewSet(
 	appdb.DependencySet,
 	auditdb.DependencySet,
 	searchdb.DependencySet,
-	template.DependencySet,
+
+	wire.NewSet(
+		template.DependencySet,
+		wire.Bind(new(saml.TemplateEngine), new(*template.Engine)),
+	),
 
 	wire.NewSet(
 		authenticationinfo.DependencySet,

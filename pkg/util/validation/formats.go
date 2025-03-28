@@ -13,7 +13,7 @@ import (
 	"path"
 	"regexp"
 	"strings"
-	"text/template"
+	texttemplate "text/template"
 	"time"
 
 	"github.com/go-ldap/ldap/v3"
@@ -267,7 +267,7 @@ func (FormatLDAPSearchFilterTemplate) CheckFormat(ctx context.Context, value int
 		return nil
 	}
 
-	tmpl, err := template.New("search_filter").Parse(str)
+	tmpl, err := texttemplate.New("search_filter").Parse(str)
 	tmplError := errors.New("invalid template")
 	if err != nil {
 		return tmplError

@@ -67,6 +67,10 @@ type OfflineGrantService interface {
 	) (*oauth.OfflineGrant, error)
 }
 
+type TemplateEngine interface {
+	RenderPublicText(ctx context.Context, tpl string, data interface{}) (string, error)
+}
+
 type Service struct {
 	Clock                   clock.Clock
 	AppID                   config.AppID
@@ -79,6 +83,7 @@ type Service struct {
 
 	IDPSessionProvider          IDPSessionProvider
 	OfflineGrantSessionProvider OfflineGrantService
+	TemplateEngine              TemplateEngine
 }
 
 func (s *Service) IdpEntityID() string {
@@ -313,7 +318,7 @@ func (s *Service) IssueLoginSuccessResponse(
 	)
 
 	clientLike := spToClientLike(sp)
-	userInfo, err := s.UserInfoProvider.GetUserInfo(ctx, authenticatedUserId, clientLike)
+	userInfo, err := s.getUserInfo(ctx, authenticatedUserId, clientLike)
 	if err != nil {
 		return nil, err
 	}
@@ -405,7 +410,7 @@ func (s *Service) IssueLoginSuccessResponse(
 		return nil, err
 	}
 
-	attributes, err := s.ResolveUserAttributes(sp, userInfo)
+	attributes, err := s.ResolveUserAttributes(ctx, sp, userInfo)
 	if err != nil {
 		return nil, err
 	}
@@ -890,7 +895,12 @@ func (s *Service) recordSessionParticipant(
 	return nil
 }
 
-func (s *Service) ResolveUserAttributes(sp *config.SAMLServiceProviderConfig, userInfo map[string]interface{}) ([]samlprotocol.Attribute, error) {
+func (s *Service) getUserInfo(ctx context.Context, userID string, clientLike *oauth.ClientLike) (map[string]interface{}, error) {
+	userInfo, err := s.UserInfoProvider.GetUserInfo(ctx, userID, clientLike)
+	if err != nil {
+		return nil, err
+	}
+
 	// Serialize and Parse it once to ensure it only include types in encoding/json
 	rawBytes, err := json.Marshal(userInfo)
 	if err != nil {
@@ -905,6 +915,10 @@ func (s *Service) ResolveUserAttributes(sp *config.SAMLServiceProviderConfig, us
 	}
 	userInfo = parsedRaw
 
+	return userInfo, nil
+}
+
+func (s *Service) ResolveUserAttributes(ctx context.Context, sp *config.SAMLServiceProviderConfig, userInfo map[string]interface{}) ([]samlprotocol.Attribute, error) {
 	attrs := []samlprotocol.Attribute{
 		{
 			FriendlyName: "User ID",
@@ -921,22 +935,35 @@ func (s *Service) ResolveUserAttributes(sp *config.SAMLServiceProviderConfig, us
 	for _, mapping := range sp.Attributes.Mappings {
 		values := []samlprotocol.AttributeValue{}
 		switch {
-		case mapping.From.UserProfile != nil:
-			jsonPointer := mapping.From.UserProfile.MustGetJSONPointer()
-			raw, err := jsonPointer.Traverse(userInfo)
-			if err != nil {
-				// If the attribute does not exist, just skip
-			} else {
-				values, err = formatAttribute(raw)
+		case mapping.From.UserProfileJSONPointer.UserProfile != nil:
+			{
+				jsonPointer := mapping.From.UserProfile.MustGetJSONPointer()
+				raw, err := jsonPointer.Traverse(userInfo)
 				if err != nil {
-					if errors.Is(err, errCannotFormatMap) {
-						return nil, &samlprotocol.UnsupportedAttributeTypeError{
-							AttributeName:      mapping.To.SAMLAttribute,
-							UserProfilePointer: mapping.From.UserProfile.Pointer,
+					// If the attribute does not exist, just skip
+				} else {
+					values, err = formatAttribute(raw)
+					if err != nil {
+						if errors.Is(err, errCannotFormatMap) {
+							return nil, &samlprotocol.UnsupportedAttributeTypeError{
+								AttributeName:      mapping.To.SAMLAttribute,
+								UserProfilePointer: mapping.From.UserProfile.Pointer,
+							}
 						}
+						return nil, err
 					}
+				}
+			}
+		case mapping.From.TextTemplate.TextTemplate != nil:
+			{
+				value, err := s.TemplateEngine.RenderPublicText(ctx, mapping.From.TextTemplate.TextTemplate.Template, userInfo)
+				if err != nil {
 					return nil, err
 				}
+				values = append(values, samlprotocol.AttributeValue{
+					Type:  samlprotocol.SAMLAttrTypeString,
+					Value: value,
+				})
 			}
 		}
 		valuesMap[mapping.To.SAMLAttribute] = values

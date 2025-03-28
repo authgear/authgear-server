@@ -178,3 +178,41 @@ func (mr *MockOfflineGrantServiceMockRecorder) AddSAMLServiceProviderParticipant
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddSAMLServiceProviderParticipant", reflect.TypeOf((*MockOfflineGrantService)(nil).AddSAMLServiceProviderParticipant), ctx, grant, serviceProviderID)
 }
+
+// MockTemplateEngine is a mock of TemplateEngine interface.
+type MockTemplateEngine struct {
+	ctrl     *gomock.Controller
+	recorder *MockTemplateEngineMockRecorder
+}
+
+// MockTemplateEngineMockRecorder is the mock recorder for MockTemplateEngine.
+type MockTemplateEngineMockRecorder struct {
+	mock *MockTemplateEngine
+}
+
+// NewMockTemplateEngine creates a new mock instance.
+func NewMockTemplateEngine(ctrl *gomock.Controller) *MockTemplateEngine {
+	mock := &MockTemplateEngine{ctrl: ctrl}
+	mock.recorder = &MockTemplateEngineMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockTemplateEngine) EXPECT() *MockTemplateEngineMockRecorder {
+	return m.recorder
+}
+
+// RenderPublicText mocks base method.
+func (m *MockTemplateEngine) RenderPublicText(ctx context.Context, tpl string, data interface{}) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RenderPublicText", ctx, tpl, data)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// RenderPublicText indicates an expected call of RenderPublicText.
+func (mr *MockTemplateEngineMockRecorder) RenderPublicText(ctx, tpl, data interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RenderPublicText", reflect.TypeOf((*MockTemplateEngine)(nil).RenderPublicText), ctx, tpl, data)
+}

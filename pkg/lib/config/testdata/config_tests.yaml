@@ -1207,12 +1207,20 @@ config:
             - name: "mail"
               name_format: "urn:oasis:names:tc:SAML:2.0:attrname-format:basic"
               friendly_name: "Mail Address"
+            - name: "phone"
+              name_format: "urn:oasis:names:tc:SAML:2.0:attrname-format:basic"
+              friendly_name: "Phone Number"
           mappings:
             - from:
                 user_profile:
                   pointer: "/email"
               to:
                 saml_attribute: "mail"
+            - from:
+                text_template:
+                  template: "{{.phone_number}}"
+              to:
+                saml_attribute: "phone"
 ---
 name: saml-signing
 error: null

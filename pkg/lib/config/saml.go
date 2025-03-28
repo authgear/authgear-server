@@ -275,13 +275,15 @@ var _ = Schema.Add("SAMLAttributeMappingFrom", `
 {
 	"type": "object",
 	"oneOf": [
-	  { "$ref": "#/$defs/UserProfileJSONPointer" }
+	  { "$ref": "#/$defs/UserProfileJSONPointer" },
+	  { "$ref": "#/$defs/TextTemplate" }
 	]
 }
 `)
 
 type SAMLAttributeMappingFrom struct {
 	UserProfileJSONPointer
+	TextTemplate
 }
 
 var _ = Schema.Add("SAMLAttributeMappingTo", `

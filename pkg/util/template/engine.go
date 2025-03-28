@@ -82,6 +82,30 @@ func (e *Engine) Render(ctx context.Context, resource Resource, preferredLanguag
 	}
 }
 
+func (e *Engine) RenderPublicText(ctx context.Context, tplStr string, data interface{}) (string, error) {
+	tpl := &texttemplate.Template{}
+	tpl, err := tpl.Parse(tplStr)
+	if err != nil {
+		return "", err
+	}
+	err = publicTemplateValidator.ValidateTextTemplate(tpl)
+	if err != nil {
+		return "", err
+	}
+
+	var buf strings.Builder
+	t := &AGTextTemplate{}
+	err = t.Wrap(tpl)
+	if err != nil {
+		return "", err
+	}
+	err = t.Execute(NewLimitWriter(&buf), data)
+	if err != nil {
+		return "", fmt.Errorf("failed to execute public text template: %w", err)
+	}
+	return buf.String(), nil
+}
+
 func (e *Engine) renderHTML(ctx context.Context, desc *HTML, preferredLanguages []string, data interface{}) (*RenderResult, error) {
 	t := htmltemplate.New("")
 	funcMap := MakeTemplateFuncMap(t)

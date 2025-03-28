@@ -1,6 +1,7 @@
 package saml_test
 
 import (
+	"context"
 	"encoding/json"
 	"net/url"
 	"testing"
@@ -13,6 +14,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/saml"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
 const pemCert = `
@@ -91,6 +93,7 @@ func TestSAMLService(t *testing.T) {
 			SAMLIdpSigningMaterials: nil,
 			SAMLSpSigningMaterials:  nil,
 			Endpoints:               endpoints,
+			TemplateEngine:          &template.Engine{},
 		}
 	}
 
@@ -335,6 +338,7 @@ func TestSAMLService(t *testing.T) {
 					{Name: "nestedattr", NameFormat: config.SAMLAttributeNameFormatUnspecified},
 					{Name: "missingattr", NameFormat: config.SAMLAttributeNameFormatUnspecified},
 					{Name: "nullattr", NameFormat: config.SAMLAttributeNameFormatUnspecified},
+					{Name: "templateattr", NameFormat: config.SAMLAttributeNameFormatUnspecified},
 				},
 				Mappings: []config.SAMLAttributeMapping{
 					{
@@ -421,13 +425,23 @@ func TestSAMLService(t *testing.T) {
 							SAMLAttribute: "nullattr",
 						},
 					},
+					{
+						From: &config.SAMLAttributeMappingFrom{
+							TextTemplate: config.TextTemplate{TextTemplate: &config.TextTemplateBody{
+								Template: `{{if .sub}}{{.sub}}@example.com{{end}}`,
+							}},
+						},
+						To: &config.SAMLAttributeMappingTo{
+							SAMLAttribute: "templateattr",
+						},
+					},
 				},
 			}
 
 			var userInfo map[string]interface{}
 			err := json.Unmarshal([]byte(userInfoJson), &userInfo)
 			So(err, ShouldBeNil)
-			attrs, err := svc.ResolveUserAttributes(sp, userInfo)
+			attrs, err := svc.ResolveUserAttributes(context.Background(), sp, userInfo)
 			So(err, ShouldBeNil)
 			So(attrs, ShouldResemble, []samlprotocol.Attribute{
 				{
@@ -493,6 +507,14 @@ func TestSAMLService(t *testing.T) {
 					NameFormat: string(config.SAMLAttributeNameFormatUnspecified),
 					Values:     []samlprotocol.AttributeValue{{IsNil: true}},
 				},
+				{
+					Name:       "templateattr",
+					NameFormat: string(config.SAMLAttributeNameFormatUnspecified),
+					Values: []samlprotocol.AttributeValue{{
+						Type:  samlprotocol.SAMLAttrTypeString,
+						Value: "userid@example.com",
+					}},
+				},
 			})
 		})
 
@@ -522,7 +544,7 @@ func TestSAMLService(t *testing.T) {
 			var userInfo map[string]interface{}
 			err := json.Unmarshal([]byte(userInfoJson), &userInfo)
 			So(err, ShouldBeNil)
-			_, err = svc.ResolveUserAttributes(sp, userInfo)
+			_, err = svc.ResolveUserAttributes(context.Background(), sp, userInfo)
 			So(err, ShouldBeError, &samlprotocol.UnsupportedAttributeTypeError{
 				AttributeName:      "mapattr",
 				UserProfilePointer: "/map",
