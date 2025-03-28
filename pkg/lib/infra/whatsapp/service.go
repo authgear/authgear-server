@@ -16,11 +16,12 @@ func NewServiceLogger(lf *log.Factory) ServiceLogger {
 }
 
 type Service struct {
-	Logger             ServiceLogger
-	WhatsappConfig     *config.WhatsappConfig
-	LocalizationConfig *config.LocalizationConfig
-	OnPremisesClient   *OnPremisesClient
-	CloudAPIClient     *CloudAPIClient
+	Logger                ServiceLogger
+	WhatsappConfig        *config.WhatsappConfig
+	LocalizationConfig    *config.LocalizationConfig
+	GlobalWhatsappAPIType config.GlobalWhatsappAPIType
+	OnPremisesClient      *OnPremisesClient
+	CloudAPIClient        *CloudAPIClient
 }
 
 func (s *Service) resolveTemplateLanguage(ctx context.Context, supportedLanguages []string) string {
@@ -72,7 +73,7 @@ func (s *Service) prepareOTPComponents(template *config.WhatsappOnPremisesOTPTem
 }
 
 func (s *Service) SendAuthenticationOTP(ctx context.Context, opts *SendAuthenticationOTPOptions) error {
-	switch s.WhatsappConfig.APIType {
+	switch s.WhatsappConfig.GetAPIType(s.GlobalWhatsappAPIType) {
 	case config.WhatsappAPITypeOnPremises:
 		if s.OnPremisesClient == nil {
 			return ErrNoAvailableWhatsappClient

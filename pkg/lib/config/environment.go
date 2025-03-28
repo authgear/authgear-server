@@ -28,6 +28,8 @@ type GlobalUIImplementation UIImplementation
 
 type GlobalUISettingsImplementation SettingsUIImplementation
 
+type GlobalWhatsappAPIType WhatsappAPIType
+
 func (s AppHostSuffixes) CheckIsDefaultDomain(host string) bool {
 	for _, suffix := range s {
 		if before, found := strings.CutSuffix(host, suffix); found {
@@ -105,6 +107,8 @@ type EnvironmentConfig struct {
 	UIImplementation GlobalUIImplementation `envconfig:"UI_IMPLEMENTATION"`
 
 	UISettingsImplementation GlobalUISettingsImplementation `envconfig:"UI_SETTINGS_IMPLEMENTATION"`
+
+	WhatsappAPIType GlobalWhatsappAPIType `envconfig:"WHATSAPP_API_TYPE"`
 
 	UserExportObjectStore *UserExportObjectStoreConfig `envconfig:"USEREXPORT_OBJECT_STORE"`
 

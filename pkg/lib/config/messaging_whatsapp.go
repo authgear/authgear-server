@@ -25,11 +25,23 @@ var _ = Schema.Add("WhatsappConfig", `
 `)
 
 type WhatsappConfig struct {
-	APIType WhatsappAPIType `json:"api_type,omitempty"`
+	APIType_NoDefault WhatsappAPIType `json:"api_type,omitempty"`
 }
 
-func (c *WhatsappConfig) SetDefaults() {
-	if string(c.APIType) == "" {
-		c.APIType = WhatsappAPITypeOnPremises
+func (c *WhatsappConfig) GetAPIType(globalCfg GlobalWhatsappAPIType) WhatsappAPIType {
+	switch c.APIType_NoDefault {
+	case WhatsappAPITypeOnPremises:
+		return WhatsappAPITypeOnPremises
+	case WhatsappAPITypeCloudAPI:
+		return WhatsappAPITypeCloudAPI
+	default:
+		switch WhatsappAPIType(globalCfg) {
+		case WhatsappAPITypeOnPremises:
+			return WhatsappAPITypeOnPremises
+		case WhatsappAPITypeCloudAPI:
+			return WhatsappAPITypeCloudAPI
+		default:
+			return WhatsappAPITypeOnPremises
+		}
 	}
 }
