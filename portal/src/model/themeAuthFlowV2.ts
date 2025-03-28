@@ -298,7 +298,21 @@ abstract class StyleProperty<T> extends AbstractStyle<T> {
     this.value = value;
   }
 
-  abstract getCSSValue(): string | undefined;
+  getCSSValue(): string | undefined {
+    const raw = this.getRawCSSValue();
+    if (raw == null) {
+      return undefined;
+    }
+    // Looks like there are some problem in postcss:
+    // When you have a Declaration({prop: "someprop", value: "1px\\"})
+    // You add it to a `Root` object.
+    // And call `root.toString()`.
+    // The output will be { someprop: 1px\; } which missed one `\`
+    // While Declaration({prop: "someprop", value: "1px\\"}).toString() gives you `someprop: 1px\\;` which is correct.
+    // Actually there is no need to allow \ character in values, so we just remove them here.
+    return raw.replace(/\\/g, "");
+  }
+  abstract getRawCSSValue(): string | undefined;
 }
 
 export class ColorStyleProperty extends StyleProperty<string | undefined> {
@@ -314,7 +328,7 @@ export class ColorStyleProperty extends StyleProperty<string | undefined> {
     visitor.visitColorStyleProperty(this);
   }
 
-  getCSSValue(): string | undefined {
+  getRawCSSValue(): string | undefined {
     return this.value;
   }
 }
@@ -343,7 +357,7 @@ export class AlignItemsStyleProperty extends StyleProperty<
     visitor.visitAlignItemsStyleProperty(this);
   }
 
-  getCSSValue(): string | undefined {
+  getRawCSSValue(): string | undefined {
     switch (this.value) {
       case "start":
         return "start";
@@ -384,7 +398,7 @@ export class AlignOrHideItemsStyleProperty extends StyleProperty<
     visitor.visitAlignOrHideItemsStyleProperty(this);
   }
 
-  getCSSValue(): string | undefined {
+  getRawCSSValue(): string | undefined {
     switch (this.value) {
       case "start":
         return "start";
@@ -433,7 +447,7 @@ export class BorderRadiusStyleProperty extends StyleProperty<
     visitor.visitBorderRadiusStyleProperty(this);
   }
 
-  getCSSValue(): string | undefined {
+  getRawCSSValue(): string | undefined {
     switch (this.value?.type) {
       case "rounded":
         return this.value.radius !== "" ? this.value.radius : undefined;
@@ -460,7 +474,7 @@ export class SpaceStyleProperty extends StyleProperty<string | undefined> {
     visitor.visitSpaceStyleProperty(this);
   }
 
-  getCSSValue(): string | undefined {
+  getRawCSSValue(): string | undefined {
     return this.value;
   }
 }
@@ -478,7 +492,7 @@ export class HeightStyleProperty extends StyleProperty<string | undefined> {
     visitor.visitHeightStyleProperty(this);
   }
 
-  getCSSValue(): string | undefined {
+  getRawCSSValue(): string | undefined {
     return this.value;
   }
 }
@@ -503,7 +517,7 @@ export class TextDecorationStyleProperty extends StyleProperty<
     visitor.visitTextDecoarationStyleProperty(this);
   }
 
-  getCSSValue(): string | undefined {
+  getRawCSSValue(): string | undefined {
     return this.value;
   }
 }
