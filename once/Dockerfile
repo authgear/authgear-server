@@ -69,8 +69,7 @@ RUN set -eux; \
             libmagic-mgc \
             ca-certificates \
             media-types \
-            tzdata; \
-        dpkg --status tzdata | awk '$1 ~ /^Version:$/ { print $2 }' | grep '^2024b'; \
+            tzdata=2025a\*; \
         rm -rf /var/lib/apt/lists/*
 COPY --from=authgear-stage-1 /src/authgear /usr/local/bin/
 # There is no need to run update-ca-certificates
@@ -177,8 +176,7 @@ RUN set -eux; \
             libmagic-mgc \
             ca-certificates \
             media-types \
-            tzdata; \
-        dpkg --status tzdata | awk '$1 ~ /^Version:$/ { print $2 }' | grep '^2024b'; \
+            tzdata=2025a\*; \
         rm -rf /var/lib/apt/lists/*
 COPY --from=authgear-portal-stage-2 /src/authgear-portal /usr/local/bin/
 # There is no need to run update-ca-certificates
