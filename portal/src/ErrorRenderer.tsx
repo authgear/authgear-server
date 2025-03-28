@@ -23,9 +23,13 @@ const ErrorRenderer: React.VFC<ErrorRendererProps> = function ErrorRenderer(
   const children = [];
   for (let i = 0; i < errorArray.length; i++) {
     const e = errorArray[i];
-    children.push(
-      <FormattedMessage key={i} id={e.messageID ?? ""} values={e.arguments} />
-    );
+    if (e.messageID) {
+      children.push(
+        <FormattedMessage key={i} id={e.messageID ?? ""} values={e.arguments} />
+      );
+    } else {
+      children.push(<>{e.message}</>);
+    }
   }
 
   if (children.length === 0) {
