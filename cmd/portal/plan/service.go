@@ -106,15 +106,7 @@ func (s Service) UpdateAppPlan(ctx context.Context, appID string, planName strin
 			return err
 		}
 
-		featureConfigYAML, e := yaml.Marshal(p.RawFeatureConfig)
-		if e != nil {
-			err = e
-			return
-		}
-
 		consrc.PlanName = p.Name
-		// json.Marshal handled base64 encoded of the YAML file
-		consrc.Data[configsource.AuthgearFeatureYAML] = featureConfigYAML
 		consrc.UpdatedAt = s.Clock.NowUTC()
 		err = s.ConfigSourceStore.UpdateDatabaseSource(ctx, consrc)
 		if err != nil {
