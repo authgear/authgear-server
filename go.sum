@@ -262,6 +262,8 @@ github.com/hashicorp/golang-lru v0.5.4/go.mod h1:iADmTwqILo4mZ8BN3D2Q6+9jd8WM5uG
 github.com/hpcloud/tail v1.0.0/go.mod h1:ab1qPbhIpdTxEkNHXyeSf5vhxWSCs/tWer42PpOxQnU=
 github.com/huandu/xstrings v1.4.0 h1:D17IlohoQq4UcpqD7fDk80P7l+lwAmlFaBHgOipl2FU=
 github.com/huandu/xstrings v1.4.0/go.mod h1:y5/lhBue+AyNmUVz9RLU9xbLR0o4KIIExikq4ovT0aE=
+github.com/iawaknahc/gogenwrapper v0.0.0-20250315204045-eb8ab595ac5c h1:JwJzV3LkV76E8buck8mTnQFsdtH3WtXnFRNliiXtecw=
+github.com/iawaknahc/gogenwrapper v0.0.0-20250315204045-eb8ab595ac5c/go.mod h1:Wi8UvegjqfQnzlcTGqj1BqnD6hayuDka3lw7Zdm4tHQ=
 github.com/iawaknahc/gomessageformat v0.0.0-20210428033148-c3f8592094b5 h1:i6r7zTbhSdHbhCVEJsM8W62F7MvxXfkpkwGrvfL+sFw=
 github.com/iawaknahc/gomessageformat v0.0.0-20210428033148-c3f8592094b5/go.mod h1:N6C14Rpg3pJZ9zDMbmF/zPu8LJDsmVzMAD3bc+bregI=
 github.com/iawaknahc/jsonschema v0.0.0-20250219112344-8b65018f0c9f h1:7fg9r1heGxzvbzpbRhrLg38ofAy6bP8LroR7H3buCLE=
