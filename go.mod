@@ -249,5 +249,6 @@ require (
 tool (
 	github.com/golang/mock/mockgen
 	github.com/google/wire/cmd/wire
+	golang.org/x/tools/cmd/goimports
 	golang.org/x/vuln/cmd/govulncheck
 )

@@ -55,17 +55,6 @@
             ))
 
             (pkgs.buildGoModule {
-              name = "goimports";
-              src = pkgs.fetchgit {
-                url = "https://go.googlesource.com/tools";
-                rev = "refs/tags/v0.29.0";
-                hash = "sha256-h3UjRY1w0AyONADNiLhxXt9/z7Tb/40FJI8rKGXpBeM=";
-              };
-              vendorHash = "sha256-5JE4/2yn5emRuq4wGTeNnAJa+QZayDq2n+dL3gMML/M=";
-              subPackages = [ "cmd/goimports" ];
-            })
-
-            (pkgs.buildGoModule {
               name = "xk6";
               src = pkgs.fetchFromGitHub {
                 owner = "grafana";
