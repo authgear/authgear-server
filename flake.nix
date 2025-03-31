@@ -55,18 +55,6 @@
             ))
 
             (pkgs.buildGoModule {
-              name = "wire";
-              src = pkgs.fetchFromGitHub {
-                owner = "google";
-                repo = "wire";
-                rev = "v0.5.0";
-                sha256 = "sha256-9xjymiyPFMKbysgZULmcBEMI26naUrLMgTA+d7Q+DA0=";
-              };
-              vendorHash = "sha256-ZFUX4LgPte6oAf94D82Man/P9VMpx+CDNCTMBwiy9Fc=";
-              subPackages = [ "cmd/wire" ];
-            })
-
-            (pkgs.buildGoModule {
               name = "govulncheck";
               src = pkgs.fetchgit {
                 url = "https://go.googlesource.com/vuln";

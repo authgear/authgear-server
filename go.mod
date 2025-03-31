@@ -244,4 +244,7 @@ require (
 	sigs.k8s.io/structured-merge-diff/v4 v4.4.1 // indirect
 )
 
-tool github.com/golang/mock/mockgen
+tool (
+	github.com/golang/mock/mockgen
+	github.com/google/wire/cmd/wire
+)

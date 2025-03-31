@@ -20,7 +20,6 @@ authgearonce-start-portal:
 vendor:
 	curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$(go env GOPATH)/bin v1.63.4
 	go mod download
-	go install github.com/google/wire/cmd/wire
 	go install golang.org/x/vuln/cmd/govulncheck@latest
 	go install golang.org/x/tools/cmd/goimports@latest
 	go install go.k6.io/xk6/cmd/xk6@latest
