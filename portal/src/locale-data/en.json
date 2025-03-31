@@ -1945,7 +1945,7 @@
   "LoginMethodConfigurationScreen.email.description": "Set the rules of email address format.",
   "LoginMethodConfigurationScreen.phone.title": "Phone Number Settings",
   "LoginMethodConfigurationScreen.phone.validation.options.isValidNumber": "Validate phone number with {ExternalLink, react, children{libphonenumber} href{{href}}}",
-  "LoginMethodConfigurationScreen.phone.validation.options.isPossibleNumber": "Do not validate phone number",
+  "LoginMethodConfigurationScreen.phone.validation.options.isPossibleNumber": "Validate country code and phone number length only",
   "LoginMethodConfigurationScreen.username.title": "Username Settings",
   "LoginMethodConfigurationScreen.username.description": "Set the rules of username format.",
   "LoginMethodConfigurationScreen.verificationAndPasswordless.title": "Verification and Passwordless Settings",
