@@ -53,19 +53,6 @@
                 ];
               }
             ))
-
-            (pkgs.buildGoModule {
-              name = "xk6";
-              src = pkgs.fetchFromGitHub {
-                owner = "grafana";
-                repo = "xk6";
-                rev = "v0.14.0";
-                sha256 = "sha256-s68kM8HPl+hSsiXbO1nO3D3R8MN9fABc9M+30jDCfek=";
-              };
-              vendorHash = null;
-              doCheck = false;
-              subPackages = [ "cmd/xk6" ];
-            })
           ];
           buildInputs = [
             pkgs.icu
