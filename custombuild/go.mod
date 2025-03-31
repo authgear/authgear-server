@@ -31,7 +31,6 @@ require (
 	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/Masterminds/sprig v2.22.0+incompatible // indirect
 	github.com/Masterminds/squirrel v1.5.4 // indirect
-	github.com/XSAM/otelsql v0.37.0 // indirect
 	github.com/abadojack/whatlanggo v1.0.1 // indirect
 	github.com/authgear/oauthrelyingparty v1.5.0 // indirect
 	github.com/aws/aws-sdk-go v1.55.6 // indirect

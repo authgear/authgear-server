@@ -4,8 +4,6 @@ import (
 	"database/sql"
 	"errors"
 	"sync"
-
-	"github.com/authgear/authgear-server/pkg/util/otelutil"
 )
 
 var actualPoolOpener = openPostgresDB
@@ -66,7 +64,7 @@ func (p *Pool) Close() (err error) {
 }
 
 func openPostgresDB(info ConnectionInfo, opts ConnectionOptions) (*sql.DB, error) {
-	pgdb, err := otelutil.OTelSQLOpenPostgres(info.DatabaseURL)
+	pgdb, err := sql.Open("postgres", info.DatabaseURL)
 	if err != nil {
 		return nil, err
 	}

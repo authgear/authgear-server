@@ -83,7 +83,6 @@ require (
 )
 
 require (
-	github.com/XSAM/otelsql v0.37.0
 	github.com/authgear/oauthrelyingparty v1.5.0
 	github.com/coder/websocket v1.8.13
 	github.com/go-gsm/charset v1.0.0
