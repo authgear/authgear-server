@@ -66,7 +66,12 @@ func (p *Pool) Close() (err error) {
 }
 
 func openPostgresDB(info ConnectionInfo, opts ConnectionOptions) (*sql.DB, error) {
-	pgdb, err := oteldatabasesql.Open("postgres", info.DatabaseURL)
+	pgdb, err := oteldatabasesql.Open(oteldatabasesql.OpenOptions{
+		DriverName: "postgres",
+		DSN:        info.DatabaseURL,
+		PoolName:   string(info.Purpose),
+		IdleMax:    opts.MaxIdleConnection,
+	})
 	if err != nil {
 		return nil, err
 	}

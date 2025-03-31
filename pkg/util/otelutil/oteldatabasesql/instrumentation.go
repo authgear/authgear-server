@@ -4,14 +4,127 @@ import (
 	"context"
 	"database/sql"
 	"database/sql/driver"
+	"fmt"
+	"time"
+
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/semconv/v1.30.0"
 
 	"github.com/authgear/authgear-server/pkg/util/databasesqlwrapper"
 )
 
-func Open(driverName string, dsn string) (*sql.DB, error) {
+var meter = otel.Meter("github.com/authgear/authgear-server/pkg/util/otelutil/oteldatabasesql")
+
+func mustFloat64Histogram(name string, options ...metric.Float64HistogramOption) metric.Float64Histogram {
+	histogram, err := meter.Float64Histogram(name, options...)
+	if err != nil {
+		panic(err)
+	}
+	return histogram
+}
+
+func mustInt64ObservableGauge(name string, options ...metric.Int64ObservableGaugeOption) metric.Int64ObservableGauge {
+	counter, err := meter.Int64ObservableGauge(name, options...)
+	if err != nil {
+		panic(err)
+	}
+	return counter
+}
+
+// DBClientConnectionCount is https://opentelemetry.io/docs/specs/semconv/database/database-metrics/#metric-dbclientconnectioncount
+var DBClientConnectionCount = mustInt64ObservableGauge(
+	semconv.DBClientConnectionCountName,
+	metric.WithDescription(semconv.DBClientConnectionCountDescription),
+	metric.WithUnit(semconv.DBClientConnectionCountUnit),
+)
+
+// DBClientConnectionIdleMax is https://opentelemetry.io/docs/specs/semconv/database/database-metrics/#metric-dbclientconnectionidlemax
+var DBClientConnectionIdleMax = mustInt64ObservableGauge(
+	semconv.DBClientConnectionIdleMaxName,
+	metric.WithDescription(semconv.DBClientConnectionIdleMaxDescription),
+	metric.WithUnit(semconv.DBClientConnectionIdleMaxUnit),
+)
+
+// DBClientConnectionMax is https://opentelemetry.io/docs/specs/semconv/database/database-metrics/#metric-dbclientconnectionmax
+var DBClientConnectionMax = mustInt64ObservableGauge(
+	semconv.DBClientConnectionMaxName,
+	metric.WithDescription(semconv.DBClientConnectionMaxDescription),
+	metric.WithUnit(semconv.DBClientConnectionMaxUnit),
+)
+
+var DBClientConnectionCreateTimeHistogram = mustFloat64Histogram(
+	semconv.DBClientConnectionCreateTimeName,
+	metric.WithDescription(semconv.DBClientConnectionCreateTimeDescription),
+	metric.WithUnit(semconv.DBClientConnectionCreateTimeUnit),
+	// The spec does not specify an explicit boundary.
+	// We borrow the boundary from http request.
+	metric.WithExplicitBucketBoundaries(
+		0.005,
+		0.01,
+		0.025,
+		0.05,
+		0.075,
+		0.1,
+		0.25,
+		0.5,
+		0.75,
+		1,
+		2.5,
+		5,
+		7.5,
+		10,
+	),
+)
+
+// DBClientConnectionUseTimeHistogram is https://opentelemetry.io/docs/specs/semconv/database/database-metrics/#metric-dbclientconnectionuse_time
+var DBClientConnectionUseTimeHistogram = mustFloat64Histogram(
+	semconv.DBClientConnectionUseTimeName,
+	metric.WithDescription(semconv.DBClientConnectionUseTimeDescription),
+	metric.WithUnit(semconv.DBClientConnectionUseTimeUnit),
+	// The spec does not specify an explicit boundary.
+	// We borrow the boundary from http request.
+	metric.WithExplicitBucketBoundaries(
+		0.005,
+		0.01,
+		0.025,
+		0.05,
+		0.075,
+		0.1,
+		0.25,
+		0.5,
+		0.75,
+		1,
+		2.5,
+		5,
+		7.5,
+		10,
+	),
+)
+
+type OpenOptions struct {
+	DriverName string
+	DSN        string
+	PoolName   string
+	IdleMax    int
+}
+
+func Open(opts OpenOptions) (*sql.DB, error) {
+	var commonAttrs []attribute.KeyValue
+	var poolAttrs []attribute.KeyValue
+
+	switch opts.DriverName {
+	case "postgres":
+		commonAttrs = append(commonAttrs, semconv.DBSystemNamePostgreSQL)
+	default:
+		panic(fmt.Errorf("unknown driver: %v", opts.DriverName))
+	}
+	poolAttrs = append(poolAttrs, semconv.DBClientConnectionPoolName(opts.PoolName))
+
 	var wrapDriver func(d driver.Driver) driver.Driver
 	var wrapConnector func(c driver.Connector) driver.Connector
-	var wrapConn func(c driver.Conn) driver.Conn
+	var wrapConn func(ctx context.Context, c driver.Conn) driver.Conn
 	var wrapStmt func(s driver.Stmt) driver.Stmt
 	var wrapTx func(t driver.Tx) driver.Tx
 	var wrapRows func(r driver.Rows) driver.Rows
@@ -20,11 +133,23 @@ func Open(driverName string, dsn string) (*sql.DB, error) {
 		return databasesqlwrapper.WrapDriver(d, databasesqlwrapper.DriverInterceptor{
 			Open: func(original databasesqlwrapper.Driver_Open) databasesqlwrapper.Driver_Open {
 				return func(name string) (driver.Conn, error) {
+					// We have no context here.
+					ctx := context.TODO()
+					// Intentionally not calling .UTC() to use monotonic clock.
+					startTime := time.Now()
 					conn, err := original(name)
 					if err != nil {
 						return nil, err
 					}
-					return wrapConn(conn), nil
+					createDuration := time.Since(startTime)
+					seconds := createDuration.Seconds()
+					DBClientConnectionCreateTimeHistogram.Record(
+						ctx,
+						seconds,
+						metric.WithAttributes(commonAttrs...),
+						metric.WithAttributes(poolAttrs...),
+					)
+					return wrapConn(ctx, conn), nil
 				}
 			},
 			OpenConnector: func(original databasesqlwrapper.Driver_OpenConnector) databasesqlwrapper.Driver_OpenConnector {
@@ -43,11 +168,21 @@ func Open(driverName string, dsn string) (*sql.DB, error) {
 		return databasesqlwrapper.WrapConnector(c, databasesqlwrapper.ConnectorInterceptor{
 			Connect: func(original databasesqlwrapper.Connector_Connect) databasesqlwrapper.Connector_Connect {
 				return func(ctx context.Context) (driver.Conn, error) {
+					// Intentionally not calling .UTC() to use monotonic clock.
+					startTime := time.Now()
 					conn, err := original(ctx)
 					if err != nil {
 						return nil, err
 					}
-					return wrapConn(conn), nil
+					createDuration := time.Since(startTime)
+					seconds := createDuration.Seconds()
+					DBClientConnectionCreateTimeHistogram.Record(
+						ctx,
+						seconds,
+						metric.WithAttributes(commonAttrs...),
+						metric.WithAttributes(poolAttrs...),
+					)
+					return wrapConn(ctx, conn), nil
 				}
 			},
 			Driver: func(original databasesqlwrapper.Connector_Driver) databasesqlwrapper.Connector_Driver {
@@ -59,8 +194,23 @@ func Open(driverName string, dsn string) (*sql.DB, error) {
 		})
 	}
 
-	wrapConn = func(c driver.Conn) driver.Conn {
+	wrapConn = func(ctx context.Context, c driver.Conn) driver.Conn {
+		// Intentionally not calling .UTC() to use monotonic clock.
+		startTime := time.Now()
 		return databasesqlwrapper.WrapConn(c, databasesqlwrapper.ConnInterceptor{
+			Close: func(original databasesqlwrapper.Conn_Close) databasesqlwrapper.Conn_Close {
+				return func() error {
+					useDuration := time.Since(startTime)
+					seconds := useDuration.Seconds()
+					DBClientConnectionUseTimeHistogram.Record(
+						ctx,
+						seconds,
+						metric.WithAttributes(commonAttrs...),
+						metric.WithAttributes(poolAttrs...),
+					)
+					return original()
+				}
+			},
 			Begin: func(original databasesqlwrapper.Conn_Begin) databasesqlwrapper.Conn_Begin {
 				return func() (driver.Tx, error) {
 					tx, err := original()
@@ -202,7 +352,7 @@ func Open(driverName string, dsn string) (*sql.DB, error) {
 		})
 	}
 
-	db, err := sql.Open(driverName, dsn)
+	db, err := sql.Open(opts.DriverName, opts.DSN)
 	if err != nil {
 		return nil, err
 	}
@@ -214,17 +364,55 @@ func Open(driverName string, dsn string) (*sql.DB, error) {
 	wrappedDriver := wrapDriver(originalDriver)
 
 	if driverContext, ok := wrappedDriver.(driver.DriverContext); ok {
-		connector, err := driverContext.OpenConnector(dsn)
+		connector, err := driverContext.OpenConnector(opts.DSN)
 		if err != nil {
 			return nil, err
 		}
-		return sql.OpenDB(connector), nil
+		db = sql.OpenDB(connector)
+	} else {
+		db = sql.OpenDB(contextIgnoringConnector{
+			driver: wrappedDriver,
+			dsn:    opts.DSN,
+		})
 	}
 
-	return sql.OpenDB(contextIgnoringConnector{
-		driver: wrappedDriver,
-		dsn:    dsn,
-	}), nil
+	_, err = meter.RegisterCallback(func(ctx context.Context, o metric.Observer) error {
+		stats := db.Stats()
+
+		o.ObserveInt64(
+			DBClientConnectionCount,
+			int64(stats.InUse),
+			metric.WithAttributes(commonAttrs...),
+			metric.WithAttributes(poolAttrs...),
+			metric.WithAttributes(semconv.DBClientConnectionStateUsed),
+		)
+		o.ObserveInt64(
+			DBClientConnectionCount,
+			int64(stats.Idle),
+			metric.WithAttributes(commonAttrs...),
+			metric.WithAttributes(poolAttrs...),
+			metric.WithAttributes(semconv.DBClientConnectionStateIdle),
+		)
+		o.ObserveInt64(
+			DBClientConnectionIdleMax,
+			int64(opts.IdleMax),
+			metric.WithAttributes(commonAttrs...),
+			metric.WithAttributes(poolAttrs...),
+		)
+		o.ObserveInt64(
+			DBClientConnectionMax,
+			int64(stats.MaxOpenConnections),
+			metric.WithAttributes(commonAttrs...),
+			metric.WithAttributes(poolAttrs...),
+		)
+
+		return nil
+	}, DBClientConnectionCount, DBClientConnectionIdleMax, DBClientConnectionMax)
+	if err != nil {
+		return nil, err
+	}
+
+	return db, nil
 }
 
 type contextIgnoringConnector struct {
