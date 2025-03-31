@@ -37,8 +37,7 @@ func TestSign(t *testing.T) {
 		_ = payload.Set("foobar", 42)
 
 		alg := jwa.RS256
-		// nolint: gosec
-		privKey, err := rsa.GenerateKey(rand.Reader, 512)
+		privKey, err := rsa.GenerateKey(rand.Reader, 2048)
 		So(err, ShouldBeNil)
 
 		jwkKey, err := jwk.FromRaw(privKey)
@@ -56,8 +55,7 @@ func TestSign(t *testing.T) {
 		_ = payload.Set("foobar", 42)
 
 		alg := jwa.RS256
-		// nolint: gosec
-		privKey, err := rsa.GenerateKey(rand.Reader, 512)
+		privKey, err := rsa.GenerateKey(rand.Reader, 2048)
 		So(err, ShouldBeNil)
 
 		jwkKey, err := jwk.FromRaw(privKey)
@@ -91,8 +89,7 @@ func TestSign(t *testing.T) {
 		_ = payload.Set("foobar", 42)
 
 		alg := jwa.RS256
-		// nolint: gosec
-		privKey, err := rsa.GenerateKey(rand.Reader, 512)
+		privKey, err := rsa.GenerateKey(rand.Reader, 2048)
 		So(err, ShouldBeNil)
 
 		token, err := Sign(payload, alg, privKey)

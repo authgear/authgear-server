@@ -19,7 +19,7 @@ func TestUUID(t *testing.T) {
 func TestKeyGeneration(t *testing.T) {
 	var a Authgear
 
-	pkcs8pem := a.GenerateRSAPrivateKeyInPKCS8PEM(128)
+	pkcs8pem := a.GenerateRSAPrivateKeyInPKCS8PEM(2048)
 	jwkValue := a.JwkKeyFromPKCS8PEM(pkcs8pem)
 	jwkValueObj := jwkValue.(map[string]interface{})
 	if jwkValueObj["kty"].(string) != "RSA" {
@@ -37,7 +37,7 @@ func TestSignJWT(t *testing.T) {
 	var a Authgear
 
 	alg := "RS256"
-	pkcs8pem := a.GenerateRSAPrivateKeyInPKCS8PEM(1024)
+	pkcs8pem := a.GenerateRSAPrivateKeyInPKCS8PEM(2048)
 	jwkValue := a.JwkKeyFromPKCS8PEM(pkcs8pem)
 	pubKey := a.JwkPublicKeyFromJWKPrivateKey(jwkValue)
 	payload := map[string]interface{}{

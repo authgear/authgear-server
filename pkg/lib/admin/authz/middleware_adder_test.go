@@ -39,8 +39,7 @@ func TestMiddleware(t *testing.T) {
 		})
 
 		Convey("jwt auth success", func() {
-			// nolint:gosec
-			privKey, err := rsa.GenerateKey(rand.Reader, 512)
+			privKey, err := rsa.GenerateKey(rand.Reader, 2048)
 			So(err, ShouldBeNil)
 
 			jwkKey, err := jwk.FromRaw(privKey)
@@ -81,8 +80,7 @@ func TestMiddleware(t *testing.T) {
 		})
 
 		Convey("jwt auth failure", func() {
-			// nolint:gosec
-			privKey, err := rsa.GenerateKey(rand.Reader, 512)
+			privKey, err := rsa.GenerateKey(rand.Reader, 2048)
 			So(err, ShouldBeNil)
 
 			jwkKey, err := jwk.FromRaw(privKey)
