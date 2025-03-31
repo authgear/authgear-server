@@ -58,7 +58,7 @@ func (tc *TestCase) Run(t *testing.T) {
 		Test:     t,
 	})
 	if err != nil {
-		t.Fatalf(err.Error())
+		t.Fatalf("%v", err.Error())
 	}
 
 	err = tc.executeBeforeAll(cmd)

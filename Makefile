@@ -18,13 +18,8 @@ authgearonce-start-portal:
 
 .PHONY: vendor
 vendor:
-	curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$(go env GOPATH)/bin v1.63.4
+	curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$(go env GOPATH)/bin v1.64.8
 	go mod download
-	go install github.com/golang/mock/mockgen
-	go install github.com/google/wire/cmd/wire
-	go install golang.org/x/vuln/cmd/govulncheck@latest
-	go install golang.org/x/tools/cmd/goimports@latest
-	go install go.k6.io/xk6/cmd/xk6@latest
 	$(MAKE) build-frondend
 
 .PHONY: build-frondend
@@ -91,7 +86,7 @@ sort-vettedpositions:
 .PHONY: fmt
 fmt:
 	# Ignore generated files, such as wire_gen.go and *_mock_test.go
-	find ./devtools ./pkg ./cmd ./e2e -name '*.go' -not -name 'wire_gen.go' -not -name '*_mock_test.go' | sort | xargs goimports -w -format-only -local github.com/authgear/authgear-server
+	find ./devtools ./pkg ./cmd ./e2e -name '*.go' -not -name 'wire_gen.go' -not -name '*_mock_test.go' | sort | xargs go tool goimports -w -format-only -local github.com/authgear/authgear-server
 	$(MAKE) sort-translations
 
 .PHONY: binary

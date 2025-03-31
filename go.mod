@@ -2,7 +2,7 @@ module github.com/authgear/authgear-server
 
 // go1.21 supports toolchain
 // See https://go.dev/doc/toolchain
-go 1.23.6
+go 1.24.1
 
 require (
 	github.com/Masterminds/sprig v2.22.0+incompatible
@@ -141,6 +141,8 @@ require (
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.59.0 // indirect
 	go.opentelemetry.io/otel/trace v1.35.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.5.0 // indirect
+	golang.org/x/telemetry v0.0.0-20240522233618-39ace7a40ae7 // indirect
+	golang.org/x/vuln v1.1.4 // indirect
 	google.golang.org/grpc v1.71.0 // indirect
 )
 
@@ -242,4 +244,11 @@ require (
 	sigs.k8s.io/gateway-api v1.1.0 // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.4.1 // indirect
+)
+
+tool (
+	github.com/golang/mock/mockgen
+	github.com/google/wire/cmd/wire
+	golang.org/x/tools/cmd/goimports
+	golang.org/x/vuln/cmd/govulncheck
 )

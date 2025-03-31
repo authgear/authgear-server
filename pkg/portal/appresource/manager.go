@@ -25,7 +25,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
-//go:generate mockgen -source=manager.go -destination=manager_mock_test.go -package appresource_test
+//go:generate go tool mockgen -source=manager.go -destination=manager_mock_test.go -package appresource_test
 
 const ConfigFileMaxSize = 100 * 1024
 

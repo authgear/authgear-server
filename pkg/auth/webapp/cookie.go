@@ -7,7 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
-//go:generate mockgen -source=cookie.go -destination=cookie_mock_test.go -package webapp
+//go:generate go tool mockgen -source=cookie.go -destination=cookie_mock_test.go -package webapp
 
 type CookieManager interface {
 	GetCookie(r *http.Request, def *httputil.CookieDef) (*http.Cookie, error)

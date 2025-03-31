@@ -14,7 +14,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
-//go:generate mockgen -source=sink.go -destination=sink_mock_test.go -package hook
+//go:generate go tool mockgen -source=sink.go -destination=sink_mock_test.go -package hook
 
 type Logger struct{ *log.Logger }
 

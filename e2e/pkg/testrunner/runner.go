@@ -30,7 +30,7 @@ func (tr *TestRunner) Run() {
 
 	testCases, err := tr.loadFromPath(tr.Path)
 	if err != nil {
-		t.Fatalf(err.Error())
+		t.Fatalf("%v", err.Error())
 	}
 
 	hasFocus := false
@@ -90,13 +90,13 @@ func (tr *TestRunner) loadFromPath(path string) ([]TestCase, error) {
 			var invalidSchemaMessage = fmt.Sprintf("invalid schema at %s#%d", relativePath, i+1)
 			err = TestCaseSchema.Validator().ValidateWithMessage(ctx, bytes.NewReader(jsonData), invalidSchemaMessage)
 			if err != nil {
-				t.Errorf(err.Error())
+				t.Errorf("%v", err.Error())
 				continue
 			}
 
 			err = json.Unmarshal(jsonData, &testCase)
 			if err != nil {
-				t.Errorf(err.Error())
+				t.Errorf("%v", err.Error())
 				continue
 			}
 

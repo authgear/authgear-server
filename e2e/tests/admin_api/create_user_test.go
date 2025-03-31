@@ -20,7 +20,7 @@ func TestCreateUserWithPassword(t *testing.T) {
 		Test: t,
 	})
 	if err != nil {
-		t.Fatalf(err.Error())
+		t.Fatalf("%v", err.Error())
 	}
 
 	userEmail := fmt.Sprintf("%s@example.com", cmd.AppID)
@@ -58,13 +58,13 @@ func TestCreateUserWithPassword(t *testing.T) {
 		},
 	})
 	if err != nil {
-		t.Fatalf(err.Error())
+		t.Fatalf("%v", err.Error())
 	}
 
 	// Verify password created with expireAfter
 	passwordCreated, err := verifyPasswordCreated(cmd, userEmail)
 	if err != nil {
-		t.Fatalf(err.Error())
+		t.Fatalf("%v", err.Error())
 	}
 	if !passwordCreated {
 		t.Fatalf("Password not created with expireAfter")
@@ -73,7 +73,7 @@ func TestCreateUserWithPassword(t *testing.T) {
 	// Verify email sent
 	emailSent, err := verifyEmailInLog("Get Started With Authgear", userEmail)
 	if err != nil {
-		t.Fatalf(err.Error())
+		t.Fatalf("%v", err.Error())
 	}
 	if !emailSent {
 		t.Fatalf("Create user email with recipient '%s' not found.", userEmail)

@@ -40,7 +40,7 @@ var x509SignatureAlgorithmByIdentifier = map[string]x509.SignatureAlgorithm{
 
 var errCannotFormatMap error = errors.New("cannot format a map to saml attribute")
 
-//go:generate mockgen -source=service.go -destination=service_mock_test.go -package saml_test
+//go:generate go tool mockgen -source=service.go -destination=service_mock_test.go -package saml_test
 
 type SAMLEndpoints interface {
 	SAMLLoginURL(serviceProviderId string) *url.URL

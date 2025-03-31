@@ -19,8 +19,7 @@ func TestVerifyWithSet(t *testing.T) {
 		payload := jwt.New()
 		_ = payload.Set("foobar", 42)
 
-		// nolint: gosec
-		privKey, err := rsa.GenerateKey(rand.Reader, 512)
+		privKey, err := rsa.GenerateKey(rand.Reader, 2048)
 		So(err, ShouldBeNil)
 
 		jwkKey, err := jwk.FromRaw(privKey)

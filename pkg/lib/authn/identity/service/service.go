@@ -14,7 +14,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
-//go:generate mockgen -source=service.go -destination=service_mock_test.go -package service
+//go:generate go tool mockgen -source=service.go -destination=service_mock_test.go -package service
 
 type LoginIDIdentityProvider interface {
 	New(ctx context.Context, userID string, loginID identity.LoginIDSpec, options loginid.CheckerOptions) (*identity.LoginID, error)

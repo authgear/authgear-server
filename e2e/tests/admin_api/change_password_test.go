@@ -19,19 +19,19 @@ func TestChangePassword(t *testing.T) {
 		Test: t,
 	})
 	if err != nil {
-		t.Fatalf(err.Error())
+		t.Fatalf("%v", err.Error())
 	}
 
 	username := "change_password_test"
 
 	// Create user
 	if err := cmd.ImportUsers("../../tests/admin_api/users.json"); err != nil {
-		t.Fatalf(err.Error())
+		t.Fatalf("%v", err.Error())
 	}
 
 	userID, originalPasswordHash, err := getPasswordHash(cmd, username)
 	if err != nil {
-		t.Fatalf(err.Error())
+		t.Fatalf("%v", err.Error())
 	}
 
 	resp, err := cmd.Client.GraphQLAPI(nil, nil, cmd.AppID, e2eclient.GraphQLAPIRequest{
@@ -63,7 +63,7 @@ func TestChangePassword(t *testing.T) {
 		},
 	})
 	if err != nil {
-		t.Fatalf(err.Error())
+		t.Fatalf("%v", err.Error())
 	}
 	if resp.Errors != nil {
 		t.Fatalf("error: %v", resp.Errors)
@@ -72,7 +72,7 @@ func TestChangePassword(t *testing.T) {
 	// Verify password updated
 	_, newPasswordHash, err := getPasswordHash(cmd, username)
 	if err != nil {
-		t.Fatalf(err.Error())
+		t.Fatalf("%v", err.Error())
 	}
 
 	if originalPasswordHash == newPasswordHash {
@@ -82,7 +82,7 @@ func TestChangePassword(t *testing.T) {
 	// Verify email sent
 	emailSent, err := verifyEmailInLog("[Authgear] Your password has been changed", username)
 	if err != nil {
-		t.Fatalf(err.Error())
+		t.Fatalf("%v", err.Error())
 	}
 	if !emailSent {
 		t.Fatalf("Reset password email with recipient '%s' not found.", username)
@@ -97,19 +97,19 @@ func TestChangePasswordNoTarget(t *testing.T) {
 		Test: t,
 	})
 	if err != nil {
-		t.Fatalf(err.Error())
+		t.Fatalf("%v", err.Error())
 	}
 
 	username := "change_password_test_no_target"
 
 	// Create user
 	if err := cmd.ImportUsers("../../tests/admin_api/users.json"); err != nil {
-		t.Fatalf(err.Error())
+		t.Fatalf("%v", err.Error())
 	}
 
 	userID, _, err := getPasswordHash(cmd, username)
 	if err != nil {
-		t.Fatalf(err.Error())
+		t.Fatalf("%v", err.Error())
 	}
 
 	resp, err := cmd.Client.GraphQLAPI(nil, nil, cmd.AppID, e2eclient.GraphQLAPIRequest{
@@ -141,7 +141,7 @@ func TestChangePasswordNoTarget(t *testing.T) {
 		},
 	})
 	if err != nil {
-		t.Fatalf(err.Error())
+		t.Fatalf("%v", err.Error())
 	}
 
 	if resp.Errors == nil {

@@ -23,7 +23,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/jwtutil"
 )
 
-//go:generate mockgen -source=id_token.go -destination=id_token_mock_test.go -package oidc
+//go:generate go tool mockgen -source=id_token.go -destination=id_token_mock_test.go -package oidc
 
 type UserInfoService interface {
 	GetUserInfoBearer(ctx context.Context, userID string) (*userinfo.UserInfo, error)

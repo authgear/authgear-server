@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-//go:generate mockgen -source=store.go -destination=store_mock_test.go -package idpsession
+//go:generate go tool mockgen -source=store.go -destination=store_mock_test.go -package idpsession
 
 // Store represents the backing store for IdP sessions.
 // Note that the returned sessions may not be valid (e.g. can be expired)

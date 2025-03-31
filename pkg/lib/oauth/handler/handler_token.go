@@ -48,7 +48,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
-//go:generate mockgen -source=handler_token.go -destination=handler_token_mock_test.go -package handler_test
+//go:generate go tool mockgen -source=handler_token.go -destination=handler_token_mock_test.go -package handler_test
 
 const (
 	// nolint:gosec

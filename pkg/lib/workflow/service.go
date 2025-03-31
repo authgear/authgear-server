@@ -9,7 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
-//go:generate mockgen -source=service.go -destination=service_mock_test.go -package workflow
+//go:generate go tool mockgen -source=service.go -destination=service_mock_test.go -package workflow
 
 type WorkflowAction struct {
 	Type        WorkflowActionType `json:"type"`

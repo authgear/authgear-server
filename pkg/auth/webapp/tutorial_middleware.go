@@ -4,7 +4,7 @@ import (
 	"net/http"
 )
 
-//go:generate mockgen -source=tutorial_middleware.go -destination=tutorial_middleware_mock_test.go -package webapp
+//go:generate go tool mockgen -source=tutorial_middleware.go -destination=tutorial_middleware_mock_test.go -package webapp
 
 type TutorialMiddlewareTutorialCookie interface {
 	SetAll(rw http.ResponseWriter)

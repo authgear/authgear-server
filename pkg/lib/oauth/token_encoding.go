@@ -23,7 +23,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/jwtutil"
 )
 
-//go:generate mockgen -source=token_encoding.go -destination=token_encoding_mock_test.go -package oauth
+//go:generate go tool mockgen -source=token_encoding.go -destination=token_encoding_mock_test.go -package oauth
 
 type IDTokenIssuer interface {
 	Iss() string
