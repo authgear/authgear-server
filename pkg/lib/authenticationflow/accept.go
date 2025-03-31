@@ -23,6 +23,10 @@ func NewAcceptResult() *AcceptResult {
 	}
 }
 
+const (
+	MAX_LOOP = 100
+)
+
 // Accept executes the flow to the deepest using input.
 // In addition to the errors caused by intents and nodes,
 // ErrEOF and ErrNoChange can be returned.
@@ -58,7 +62,12 @@ func accept(ctx context.Context, deps *Dependencies, flows Flows, result *Accept
 		}
 	}()
 
+	loopCount := 0
 	for {
+		loopCount += 1
+		if loopCount > MAX_LOOP {
+			panic(fmt.Errorf("number of loops reached limit"))
+		}
 		var findInputReactorResult *FindInputReactorResult
 		findInputReactorResult, err = FindInputReactor(ctx, deps, flows)
 		if err != nil {
