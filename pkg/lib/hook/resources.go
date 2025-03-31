@@ -11,7 +11,7 @@ import (
 
 var DenoFileFilenameRegexp = regexp.MustCompile(`^deno/[.0-9a-zA-Z]+\.ts$`)
 
-//go:generate mockgen -source=resources.go -destination=resources_mock_test.go -package hook
+//go:generate go tool mockgen -source=resources.go -destination=resources_mock_test.go -package hook
 
 type denoClientContextKeyType struct{}
 

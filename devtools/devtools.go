@@ -13,6 +13,5 @@ package devtools
 // Because the imports are main packages,
 // this package itself cannot compile.
 import (
-	_ "github.com/golang/mock/mockgen"
 	_ "github.com/google/wire/cmd/wire"
 )

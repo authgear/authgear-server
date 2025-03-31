@@ -20,7 +20,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
-//go:generate mockgen -source=provider.go -destination=provider_mock_test.go -package idpsession
+//go:generate go tool mockgen -source=provider.go -destination=provider_mock_test.go -package idpsession
 
 const (
 	tokenAlphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"

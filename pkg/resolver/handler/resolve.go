@@ -19,7 +19,7 @@ func ConfigureResolveRoute(route httproute.Route) []httproute.Route {
 	}
 }
 
-//go:generate mockgen -source=resolve.go -destination=resolve_mock_test.go -package handler
+//go:generate go tool mockgen -source=resolve.go -destination=resolve_mock_test.go -package handler
 
 type Database interface {
 	ReadOnly(ctx context.Context, do func(ctx context.Context) error) error

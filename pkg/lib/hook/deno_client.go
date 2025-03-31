@@ -13,7 +13,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
-//go:generate mockgen -source=deno_client.go -destination=deno_client_mock_test.go -package hook
+//go:generate go tool mockgen -source=deno_client.go -destination=deno_client_mock_test.go -package hook
 
 type DenoClient interface {
 	Run(ctx context.Context, script string, input interface{}) (out interface{}, err error)

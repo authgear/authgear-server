@@ -5,7 +5,7 @@ import (
 	"reflect"
 )
 
-//go:generate mockgen -source=node.go -destination=node_mock_test.go -package interaction
+//go:generate go tool mockgen -source=node.go -destination=node_mock_test.go -package interaction
 
 type Node interface {
 	// Prepare the node with data required by DeriveEdges.

@@ -55,18 +55,6 @@
             ))
 
             (pkgs.buildGoModule {
-              name = "mockgen";
-              src = pkgs.fetchFromGitHub {
-                owner = "golang";
-                repo = "mock";
-                rev = "v1.6.0";
-                sha256 = "sha256-5Kp7oTmd8kqUN+rzm9cLqp9nb3jZdQyltGGQDiRSWcE=";
-              };
-              subPackages = [ "mockgen" ];
-              vendorHash = "sha256-5gkrn+OxbNN8J1lbgbxM8jACtKA7t07sbfJ7gVJWpJM=";
-            })
-
-            (pkgs.buildGoModule {
               name = "wire";
               src = pkgs.fetchFromGitHub {
                 owner = "google";

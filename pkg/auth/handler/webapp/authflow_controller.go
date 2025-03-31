@@ -30,7 +30,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/setutil"
 )
 
-//go:generate mockgen -source=authflow_controller.go -destination=authflow_controller_mock_test.go -package webapp
+//go:generate go tool mockgen -source=authflow_controller.go -destination=authflow_controller_mock_test.go -package webapp
 
 type AuthflowControllerHandler func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error
 type AuthflowControllerErrorHandler func(ctx context.Context, w http.ResponseWriter, r *http.Request, err error) error

@@ -17,7 +17,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/vipsutil"
 )
 
-//go:generate mockgen -source=get.go -destination=get_mock_test.go -package handler
+//go:generate go tool mockgen -source=get.go -destination=get_mock_test.go -package handler
 
 func ConfigureGetRoute(route httproute.Route) httproute.Route {
 	return route.

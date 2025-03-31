@@ -27,7 +27,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
-//go:generate mockgen -source=handler_authz.go -destination=handler_authz_mock_test.go -package handler_test
+//go:generate go tool mockgen -source=handler_authz.go -destination=handler_authz_mock_test.go -package handler_test
 
 const (
 	CodeResponseTypeElement          = "code"

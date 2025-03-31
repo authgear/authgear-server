@@ -10,7 +10,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/urlutil"
 )
 
-//go:generate mockgen -source=dynamic_csp_middleware.go -destination=dynamic_csp_middleware_mock_test.go -package webapp
+//go:generate go tool mockgen -source=dynamic_csp_middleware.go -destination=dynamic_csp_middleware_mock_test.go -package webapp
 
 type AllowFrameAncestorsFromEnv bool
 

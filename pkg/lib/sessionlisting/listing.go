@@ -12,7 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 )
 
-//go:generate mockgen -source=listing.go -destination=listing_mock_test.go -package sessionlisting_test
+//go:generate go tool mockgen -source=listing.go -destination=listing_mock_test.go -package sessionlisting_test
 
 // Session in the sessionlisting package wrapped the model.Session to provide
 // extra information for internal display

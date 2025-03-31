@@ -16,7 +16,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
-//go:generate mockgen -source=service.go -destination=service_mock_test.go -package event
+//go:generate go tool mockgen -source=service.go -destination=service_mock_test.go -package event
 
 type Database interface {
 	UseHook(ctx context.Context, hook db.TransactionHook)

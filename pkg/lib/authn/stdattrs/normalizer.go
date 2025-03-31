@@ -11,7 +11,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
-//go:generate mockgen -source=normalizer.go -destination=normalizer_mock_test.go -package stdattrs
+//go:generate go tool mockgen -source=normalizer.go -destination=normalizer_mock_test.go -package stdattrs
 
 type LoginIDNormalizerFactory interface {
 	NormalizerWithLoginIDType(loginIDKeyType model.LoginIDKeyType) internalinterface.LoginIDNormalizer

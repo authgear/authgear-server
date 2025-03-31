@@ -11,7 +11,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
-//go:generate mockgen -source=default_domain.go -destination=default_domain_mock_test.go -package service
+//go:generate go tool mockgen -source=default_domain.go -destination=default_domain_mock_test.go -package service
 
 var ErrHostSuffixNotConfigured = errors.New("host suffix not configured")
 

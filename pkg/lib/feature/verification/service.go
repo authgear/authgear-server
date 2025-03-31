@@ -12,7 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
-//go:generate mockgen -source=service.go -destination=service_mock_test.go -package verification
+//go:generate go tool mockgen -source=service.go -destination=service_mock_test.go -package verification
 
 type ClaimStore interface {
 	ListByUser(ctx context.Context, userID string) ([]*Claim, error)

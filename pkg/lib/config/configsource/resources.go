@@ -20,7 +20,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
-//go:generate mockgen -source=resources.go -destination=resources_mock_test.go -package configsource
+//go:generate go tool mockgen -source=resources.go -destination=resources_mock_test.go -package configsource
 
 const (
 	AuthgearYAML        = "authgear.yaml"

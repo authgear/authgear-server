@@ -12,7 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
-//go:generate mockgen -source=accountmanagement_v1_identification.go -destination=accountmanagement_v1_identification_mock_test.go -package api
+//go:generate go tool mockgen -source=accountmanagement_v1_identification.go -destination=accountmanagement_v1_identification_mock_test.go -package api
 
 func ConfigureAccountManagementV1IdentificationRoute(route httproute.Route) httproute.Route {
 	return route.WithMethods("OPTIONS", "POST").WithPathPattern("/api/v1/account/identification")

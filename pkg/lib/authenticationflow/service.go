@@ -14,7 +14,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
-//go:generate mockgen -source=service.go -destination=service_mock_test.go -package authenticationflow
+//go:generate go tool mockgen -source=service.go -destination=service_mock_test.go -package authenticationflow
 
 type ServiceOutput struct {
 	Session       *Session
