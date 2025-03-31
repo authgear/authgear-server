@@ -141,6 +141,8 @@ require (
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.59.0 // indirect
 	go.opentelemetry.io/otel/trace v1.35.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.5.0 // indirect
+	golang.org/x/telemetry v0.0.0-20240522233618-39ace7a40ae7 // indirect
+	golang.org/x/vuln v1.1.4 // indirect
 	google.golang.org/grpc v1.71.0 // indirect
 )
 
@@ -247,4 +249,5 @@ require (
 tool (
 	github.com/golang/mock/mockgen
 	github.com/google/wire/cmd/wire
+	golang.org/x/vuln/cmd/govulncheck
 )
