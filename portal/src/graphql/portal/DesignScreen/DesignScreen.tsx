@@ -448,6 +448,8 @@ const ButtonConfiguration: React.VFC<ButtonConfigurationProps> =
         ) : null}
         <Configuration labelKey="DesignScreen.configuration.button.borderRadiusStyle.label">
           <BorderRadius
+            parentJSONPointer="/primaryButton"
+            fieldName="borderRadius"
             value={
               designForm.state.customisableLightTheme.primaryButton
                 .borderRadius ?? DEFAULT_LIGHT_THEME.primaryButton.borderRadius
@@ -602,6 +604,8 @@ const InputConfiguration: React.VFC<InputConfigurationProps> =
       <ConfigurationGroup labelKey="DesignScreen.configuration.input.label">
         <Configuration labelKey="DesignScreen.configuration.input.border.label">
           <BorderRadius
+            parentJSONPointer="/inputField"
+            fieldName="borderRadius"
             value={
               designForm.state.customisableLightTheme.inputField.borderRadius ??
               DEFAULT_LIGHT_THEME.inputField.borderRadius
@@ -1090,6 +1094,7 @@ const DesignScreen: React.VFC = function DesignScreen() {
       errorRules={form.errorRules}
       stickyFooterComponent={true}
       hideFooterComponent={true}
+      localError={form.validationError}
     >
       <DesignScreenContent
         appID={appID}

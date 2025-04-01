@@ -71,7 +71,8 @@ const AppLogoHeightSetter: React.VFC<AppLogoHeightSetterProps> =
 
     useEffect(() => {
       onChange(`${heightPX}px`);
-    }, [heightPX, onChange]);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [heightPX]);
 
     const onChangeInput = useCallback(
       (
