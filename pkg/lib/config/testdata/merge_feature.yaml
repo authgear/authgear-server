@@ -20,7 +20,30 @@ configs:
         enabled: true
         period: month
         quota: 5
+  - admin_api:
+      create_session_enabled: false
+      user_export_usage:
+        enabled: false
+        period: month
+        quota: 1
+  - admin_api:
+      user_import_usage:
+        enabled: true
+        period: day
+        quota: 2
+  - admin_api:
+      create_session_enabled: true
 result:
+  admin_api:
+    create_session_enabled: true
+    user_import_usage:
+      enabled: true
+      period: day
+      quota: 2
+    user_export_usage:
+      enabled: false
+      period: month
+      quota: 1
   ui:
     white_labeling:
       disabled: true
