@@ -20,7 +20,8 @@
     * [Create a LDAP user](#create-a-ldap-user)
     * [Configure Authgear](#configure-authgear)
     * [Start with the profile ldap](#start-with-the-profile-ldap)
-  * [Storybooks](#storybooks)
+  * [Switching between sessionType=refresh\_token and sessionType=cookie](#switching-between-sessiontyperefresh_token-and-sessiontypecookie)
+* [Storybooks](#storybooks)
 
 # Contributing guide
 
@@ -128,22 +129,17 @@ use flake
 2. Generate config files
 
    ```sh
-   $ go run ./cmd/authgear init -o ./var
-   App ID (default 'my-app'): accounts
-   HTTP origin of authgear (default 'http://localhost:3000'): http://localhost:3100
-   HTTP origin of portal (default 'http://portal.localhost:8000'):
-   Phone OTP Mode (sms, whatsapp, whatsapp_sms) (default 'sms'): sms
-   Would you like to turn off email verification? (In case you don't have SMTP credentials in your initial setup) [Y/N] (default 'false'):
-   Select a service for searching (elasticsearch, postgresql, none) (default 'elasticsearch'):
-   Database URL (default 'postgres://postgres:postgres@127.0.0.1:5432/postgres?sslmode=disable'): postgres://postgres:postgres@127.0.0.1:5432/app?sslmode=disable
-   Database schema (default 'public'):
-   Audit Database URL (default 'postgres://postgres:postgres@127.0.0.1:5432/postgres?sslmode=disable'): postgres://postgres:postgres@127.0.0.1:5432/audit?sslmode=disable
-   Audit Database schema (default 'public'):
-   Elasticsearch URL (default 'http://localhost:9200'):
-   Redis URL (default 'redis://localhost'):
-   Redis URL for analytic (default 'redis://localhost/1'):
-   config written to var/authgear.yaml
-   config written to var/authgear.secrets.yaml
+   $ go run ./cmd/authgear init \
+      --interactive false \
+      --output-folder ./var \
+      --purpose portal \
+      --app-id accounts \
+      --public-origin 'http://accounts.portal.localhost:3100' \
+      --portal-origin 'http://portal.localhost:8000' \
+      --portal-client-id portal \
+      --phone-otp-mode sms \
+      --disable-email-verification true \
+      --search-implementation postgresql
    ```
 
    You need to make changes according to the example shown above.
@@ -151,43 +147,28 @@ use flake
    `authgear.yaml` must contain the following contents for the portal to work.
 
    ```yaml
-   id: accounts # Make sure the ID matches AUTHGEAR_APP_ID environment variable.
-   http:
-      # Make sure this matches the host used to access main Authgear server.
-      public_origin: "http://accounts.portal.localhost:3100"
-      cookie_domain: portal.localhost
    oauth:
-      clients:
-         # Create a client for the portal.
-         # Since we assume the cookie is shared, there is no grant nor response.
-         - name: Portal
-           client_id: portal
-           # Note that the trailing slash is very important here
-           # URIs are compared byte by byte.
-           refresh_token_lifetime_seconds: 86400
-           refresh_token_idle_timeout_enabled: true
-           refresh_token_idle_timeout_seconds: 1800
-           issue_jwt_access_token: true
-           access_token_lifetime_seconds: 900
-           redirect_uris:
-              # See nginx.conf for the difference between 8000, 8001, 8010, and 8011
-              - "http://portal.localhost:8000/oauth-redirect"
-              - "http://portal.localhost:8001/oauth-redirect"
-              - "http://portal.localhost:8010/oauth-redirect"
-              - "http://portal.localhost:8011/oauth-redirect"
-              # This redirect URI is used by the iOS and Android demo app.
-              - "com.authgear.example://host/path"
-              # This redirect URI is used by the React Native demo app.
-              - "com.authgear.example.rn://host/path"
-              # This redirect URI is used by the Flutter demo app.
-              - com.authgear.exampleapp.flutter://host/path
-              # This redirect URI is used by the Xamarin demo app.
-              - com.authgear.exampleapp.xamarin://host/path
-           post_logout_redirect_uris:
-              # This redirect URI is used by the portal development server.
-              - "http://portal.localhost:8000/"
-              # This redirect URI is used by the portal production build.
-              - "http://portal.localhost:8010/"
+     clients:
+     - client_id: portal
+       redirect_uris:
+       # See nginx.conf for the difference between 8000, 8001, 8010, and 8011
+       - "http://portal.localhost:8000/oauth-redirect"
+       - "http://portal.localhost:8001/oauth-redirect"
+       - "http://portal.localhost:8010/oauth-redirect"
+       - "http://portal.localhost:8011/oauth-redirect"
+       # This redirect URI is used by the iOS and Android demo app.
+       - "com.authgear.example://host/path"
+       # This redirect URI is used by the React Native demo app.
+       - "com.authgear.example.rn://host/path"
+       # This redirect URI is used by the Flutter demo app.
+       - com.authgear.exampleapp.flutter://host/path
+       # This redirect URI is used by the Xamarin demo app.
+       - com.authgear.exampleapp.xamarin://host/path
+       post_logout_redirect_uris:
+       # This redirect URI is used by the portal development server.
+       - "http://portal.localhost:8000/"
+       # This redirect URI is used by the portal production build.
+       - "http://portal.localhost:8010/"
    ```
 
 3. Set up `.localhost`
@@ -204,8 +185,8 @@ use flake
 1. Start the database
 
    ```sh
-   docker compose build db
-   docker compose up -d db pgbouncer
+   docker compose build postgres16
+   docker compose up -d postgres16 pgbouncer
    ```
 
 2. Apply migrations
@@ -214,15 +195,20 @@ use flake
    go run ./cmd/authgear database migrate up
    go run ./cmd/authgear audit database migrate up
    go run ./cmd/authgear images database migrate up
-   go run ./cmd/portal database migrate up
-
-   # Run search database migration if you want to use postgresql search implementation
    go run ./cmd/authgear search database migrate up
+   go run ./cmd/portal database migrate up
+   ```
+
+3. Create the project in the database
+
+   ```sh
+   go run ./cmd/portal internal configsource create ./var
    ```
 
 3. Add domain
 
-   ```
+   ```sh
+   go run ./cmd/portal internal domain create-default --default-domain-suffix ".localhost"
    go run ./cmd/portal internal domain create-custom accounts --apex-domain="accounts.portal.localhost" --domain="accounts.portal.localhost"
    ```
 
@@ -250,43 +236,47 @@ mc mb local/userexport
 
 ## Create an account for yourselves and grant you access to the portal
 
-As the first project `accounts` is created by the script instead of by user, we need to add `owner` role to this project so as to gain access in the portal.
+1. Create an account
 
-1. Register an account in [http://accounts.portal.localhost:3100](http://accounts.portal.localhost:3100)
+   The following command assumes everything is running, as it invokes the Admin API server to create an account!
 
-   You will get the email otp code in the terminal which is running authgear server in the following form:
-
+   ```sh
+   $ go run ./cmd/authgear internal admin-api invoke \
+     --app-id accounts \
+     --endpoint "http://localhost:3002" \
+     --host "accounts.portal.localhost:3100" \
+     --query '
+       mutation createUser($email: String!, $password: String!) {
+         createUser(input: {
+           definition: {
+             loginID: {
+               key: "email"
+               value: $email
+             }
+           }
+           password: $password
+         }) {
+           user {
+             id
+           }
+         }
+       }
+     ' \
+     --variables-json "$(jq -cn --arg email "user@example.com" --arg password "password" '{email: $email, password: $password}')" | tee ./query_output
    ```
-   skip sending email in development mode        app=accounts body="Email Verification\n\nThis email is sent to verify <your email> on Authgear. Use this code in the verification page.\n\n<your code>\n\nIf you didn't sign in or sign up please ignore this email.\n" logger=mail-sender recipient=<your email> reply_to= sender=no-reply@authgear.com subject="[Authgear] Email Verification Instruction"
+
+2. Make the account the owner of `accounts`
+
+   ```sh
+   decoded_node_id="$(jq <./query_output --raw-output '.data.createUser.user.id' | basenc --base64url --decode)"
+   raw_id="${decoded_node_id#User:}"
+   go run ./cmd/portal internal collaborator add \
+      --app-id accounts \
+      --user-id "$raw_id" \
+      --role owner
    ```
 
-   You can search this message with the keyword `Email Verification Instruction`.
-
-2. Configure user permission for the project
-
-   1. Connect to the database
-
-   2. Go to the `_auth_user` table
-
-   3. Copy the `id` value in the first row which is the account you registered
-
-   4. Go to the `_portal_app_collaborator` table
-
-   5. Create a new row of data
-
-      1. For the `id` column, fill in with any string
-
-      2. For the `app_id` column, fill in with `accounts`
-
-      3. For the `user_id` column, fill in with the value you copied
-
-      4. For the `created_at` column, fill in with `NOW()`
-
-      5. For the `role` column, fill in with `owner`
-
-      6. Save the data
-
-   6. Now you can navigate to your project in the [portal](http://portal.localhost:8000)
+3. Now you can navigate to your project in the [portal](http://portal.localhost:8000)
 
 ## Known issues
 
