@@ -26,7 +26,25 @@ func (c *AdminAPIFeatureConfig) Merge(layer *FeatureConfig) MergeableFeatureConf
 	if layer.AdminAPI == nil {
 		return c
 	}
-	return layer.AdminAPI
+
+	var merged *AdminAPIFeatureConfig = c
+	if merged == nil {
+		merged = &AdminAPIFeatureConfig{}
+	}
+
+	if layer.AdminAPI.CreateSessionEnabled != nil {
+		merged.CreateSessionEnabled = layer.AdminAPI.CreateSessionEnabled
+	}
+
+	if layer.AdminAPI.UserImportUsage != nil {
+		merged.UserImportUsage = layer.AdminAPI.UserImportUsage
+	}
+
+	if layer.AdminAPI.UserExportUsage != nil {
+		merged.UserExportUsage = layer.AdminAPI.UserExportUsage
+	}
+
+	return merged
 }
 
 func (c *AdminAPIFeatureConfig) SetDefaults() {
