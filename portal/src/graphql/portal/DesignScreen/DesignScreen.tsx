@@ -1090,7 +1090,7 @@ const DesignScreen: React.VFC = function DesignScreen() {
     <FormContainer
       className={cn("h-full", "flex", "flex-col")}
       form={form}
-      canSave={true}
+      canSave={form.validationError == null}
       errorRules={form.errorRules}
       stickyFooterComponent={true}
       hideFooterComponent={true}
