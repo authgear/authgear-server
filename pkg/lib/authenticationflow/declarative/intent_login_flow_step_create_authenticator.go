@@ -6,6 +6,7 @@ import (
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
+	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
@@ -105,8 +106,8 @@ func (i *IntentLoginFlowStepCreateAuthenticator) CanReactTo(ctx context.Context,
 		return nil, err
 	}
 	if len(flows.Nearest.Nodes) == 0 && len(internalOptions) == 0 {
-		// Nothing can be selected, skip this step.
-		return nil, authflow.ErrEOF
+		// Nothing can be selected, throw error because this step cannot be skipped in login flow
+		return nil, api.ErrNoAuthenticator
 	}
 
 	// Let the input to select which authentication method to use.
