@@ -1008,11 +1008,7 @@ func (c *AuthflowController) makeHTTPHandler(s *webapp.Session, screen *webapp.A
 		}
 
 		if err != nil {
-			if apierrors.IsAPIError(err) {
-				c.renderError(r.Context(), w, r, err)
-			} else {
-				panic(err)
-			}
+			c.renderError(r.Context(), w, r, err)
 		}
 	})
 }
