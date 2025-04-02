@@ -38,4 +38,4 @@ dumpschema:
 # See https://docs.docker.com/desktop/features/containerd/#enable-the-containerd-image-store
 .PHONY: docker-compose-build
 docker-compose-build:
-	docker buildx bake --allow=fs.read=../postgres/postgres12 --file docker-compose.yaml --file docker-compose-build-cache.json
+	docker buildx bake --allow=fs.read=../postgres/postgres16 --file docker-compose.yaml --file docker-compose-build-cache.json

@@ -1,7 +1,7 @@
 services:
   db:
     build:
-      context: ../postgres/postgres12
+      context: ../postgres/postgres16
     environment:
       POSTGRES_USER: "postgres"
       POSTGRES_PASSWORD: "postgres"

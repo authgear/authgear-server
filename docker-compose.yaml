@@ -1,10 +1,10 @@
 services:
   # When you change this service, please also change the corresponding service in `find . -name docker-compose.yaml`
-  db:
+  postgres16:
     build:
-      context: ./postgres/postgres12
+      context: ./postgres/postgres16
     volumes:
-    - db_data:/var/lib/postgresql/data
+    - postgres16_data:/var/lib/postgresql/data
     - ./postgresql.conf:/etc/postgresql/postgresql.conf
     command: ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]
     environment:
@@ -14,22 +14,6 @@ services:
     # In case you need to use psql or other GUI client to connect to the database,
     # you need to connect via the 6432 port.
     # Otherwise, psql or other GUI client will consume the connection count.
-    - "6432:5432"
-
-  db16:
-    # This database is not actually used now.
-    # Guard this with a profile first.
-    profiles: ["postgres16"]
-    build:
-      context: ./postgres/postgres16
-    volumes:
-    - db16_data:/var/lib/postgresql/data
-    - ./postgresql.conf:/etc/postgresql/postgresql.conf
-    command: ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]
-    environment:
-      POSTGRES_USER: "postgres"
-      POSTGRES_PASSWORD: "postgres"
-    ports:
     - "6432:5432"
 
   pgbouncer:
@@ -42,13 +26,13 @@ services:
       PGBOUNCER_MAX_CLIENT_CONN: "120"
       PGBOUNCER_DATABASE: "*"
       POSTGRESQL_DATABASE: "postgres"
-      POSTGRESQL_HOST: "db"
+      POSTGRESQL_HOST: "postgres16"
       POSTGRESQL_PORT: "5432"
       POSTGRESQL_USERNAME: "postgres"
       POSTGRESQL_PASSWORD: "postgres"
-      PGBOUNCER_DSN_0: "app=host=db port=5432 dbname=postgres"
-      PGBOUNCER_DSN_1: "audit=host=db port=5432 dbname=postgres"
-      PGBOUNCER_DSN_2: "search=host=db port=5432 dbname=postgres"
+      PGBOUNCER_DSN_0: "app=host=postgres16 port=5432 dbname=postgres"
+      PGBOUNCER_DSN_1: "audit=host=postgres16 port=5432 dbname=postgres"
+      PGBOUNCER_DSN_2: "search=host=postgres16 port=5432 dbname=postgres"
       PGBOUNCER_LOG_CONNECTIONS: "1"
       PGBOUNCER_LOG_DISCONNECTIONS: "1"
 
@@ -164,9 +148,7 @@ services:
 volumes:
   redis_data:
     driver: local
-  db_data:
-    driver: local
-  db16_data:
+  postgres16_data:
     driver: local
   elasticsearch_data:
     driver: local
