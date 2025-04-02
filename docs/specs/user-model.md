@@ -76,7 +76,7 @@ A user must have at least 1 Login ID identity or 1 OAuth identity.
 
 ### Identity attributes
 
-See [Identity Attributes](./account-linking.md#identity-attributes)
+See [Identity Attributes](./glossary.md#identity-attributes)
 
 The identity attributes are used to detect duplicate identity. For example, an Email Login ID and the email claim of an OAuth Identity. This prevents duplicate user when the user forgets the original authentication method.
 

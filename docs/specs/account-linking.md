@@ -97,10 +97,10 @@ Currently, only `oauth` is supported in account linking. However, account linkin
 
 We define linkings between the new oauth identity and any existing identities using the `oauth_claim` and `user_profile` fields.
 
-- `oauth_claim`: An object containing a json pointer, specified in `oauth_claim.pointer`, pointing to a claim of the incoming [OAuth User Profile](./sso-providers.md#oauth-user-profile).
-- `user_profile`: An object containing a json pointer, specified in `user_profile.pointer`, pointing to an attribute of the [User Info](./user-profile/design.md#user-info-endpoint), or the attribute of an existing authgear identity. For the meaning of attribute of authgear identity, please read the [Identity Attributes](#identity-attributes) section.
+- `oauth_claim`: An object containing a json pointer, specified in `oauth_claim.pointer`, pointing to a claim of the incoming [OAuth User Profile](./glossary.md#oauth-user-profile).
+- `user_profile`: An object containing a json pointer, specified in `user_profile.pointer`, pointing to an attribute of the [User Info](./glossary.md#user-info), or the attribute of an existing authgear identity. For the meaning of attribute of authgear identity, please read the [Identity Attributes](#identity-attributes) section.
 
-Whenever the value pointed by `oauth_claim.pointer` of the new oauth identity matches the value pointed by `user_profile.pointer` of any existing [User Info](./user-profile/design.md#user-info-endpoint), account linking will be triggered.
+Whenever the value pointed by `oauth_claim.pointer` of the new oauth identity matches the value pointed by `user_profile.pointer` of any existing [User Info](./glossary.md#user-info), account linking will be triggered.
 
 For what should happen on linking, please read the following [Linking Actions](#linking-actions) section.
 
@@ -220,7 +220,7 @@ The following table summarizes the identity attributes of Email Login ID, Userna
 | Username      | `example`        | `{ "preferred_username": "example" }` |
 | Phone         | `+8520001`       | `{ "phone_number": "+8520001" }`      |
 
-OAuth identities also contributes attributes of the [User Info](./user-profile/design.md#user-info-endpoint), but it is more complicated than the above three identity types. The following sections will discuss the related behavior and configs.
+OAuth identities also contributes attributes of the [User Info](./glossary.md#user-info), but it is more complicated than the above three identity types. The following sections will discuss the related behavior and configs.
 
 ### Identity Attributes of OAuth Identity
 
@@ -248,7 +248,7 @@ identity:
 
 The above config means:
 
-For any oauth identity of `adfs`, we will read a value from the `"primary_phone"` claim of the provider user profile, and write that value into the `"phone_number"` attribute of the identity attributes. Note that, it is not writing directly to the [User Info](./user-profile/design.md#user-info-endpoint). The user can later select this identity in the portal to populate these attributes into the [User Info](./user-profile/design.md#user-info-endpoint).
+For any oauth identity of `adfs`, we will read a value from the `"primary_phone"` claim of the provider user profile, and write that value into the `"phone_number"` attribute of the identity attributes. Note that, it is not writing directly to the [User Info](./glossary.md#user-info). The user can later select this identity in the portal to populate these attributes into the [User Info](./glossary.md#user-info).
 
 And the meaning of each configs are:
 
@@ -421,8 +421,8 @@ account_linking:
 
 The above configs defined the account linking behavior of two login id types:
 
-- For `phone`, link with any existing user or identity by looking at the `"phone_number"` value in the [User Info](./user-profile/design.md#user-info-endpoint) or identity attribute. When linking occurs, use `login_and_link` as the action. Read the [Linking Actions](#linking-actions) section for the exact meaning of `login_and_link`.
-- For `username`, link with any existing user or identity by looking at the `"preferred_username"` value in the [User Info](./user-profile/design.md#user-info-endpoint) or identity attribute. When linking occurs, returns an error and stop the signup flow.
+- For `phone`, link with any existing user or identity by looking at the `"phone_number"` value in the [User Info](./glossary.md#user-info) or identity attribute. When linking occurs, use `login_and_link` as the action. Read the [Linking Actions](#linking-actions) section for the exact meaning of `login_and_link`.
+- For `username`, link with any existing user or identity by looking at the `"preferred_username"` value in the [User Info](./glossary.md#user-info) or identity attribute. When linking occurs, returns an error and stop the signup flow.
 
 ### Defaults of Account Linking of Login IDs
 

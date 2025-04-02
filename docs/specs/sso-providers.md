@@ -43,7 +43,7 @@ The actual shape varies with the type of the OAuth provider.
 
 ## Identity Attributes
 
-See [Identity Attributes](./account-linking.md#identity-attributes)
+See [Identity Attributes](./glossary.md.md#identity-attributes)
 
 ## Algorithm for converting the OAuth User Profile to the identity attributes
 
