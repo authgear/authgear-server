@@ -175,6 +175,8 @@ func (t *TwilioClient) makeError(
 		err = errors.Join(smsapi.ErrKindAuthenticationFailed.NewWithInfo(
 			"twilio authentication failed", details), err)
 	case 30002:
+		fallthrough
+	case 21266:
 		err = errors.Join(smsapi.ErrKindDeliveryRejected.NewWithInfo(
 			"twilio delievry rejected", details), err)
 	}
