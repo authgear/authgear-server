@@ -7,6 +7,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/otelutil/oteldatabasesql"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
@@ -93,7 +94,13 @@ func (h *HookHandle) WithTx(ctx context.Context, do func(ctx context.Context) er
 		return
 	}
 
-	tx, err := beginTx(ctx, logger, db)
+	conn, err := db.Conn(ctx)
+	if err != nil {
+		return
+	}
+	defer conn.Close()
+
+	tx, err := beginTx(ctx, logger, conn)
 	if err != nil {
 		return
 	}
@@ -139,7 +146,13 @@ func (h *HookHandle) ReadOnly(ctx context.Context, do func(ctx context.Context) 
 		return
 	}
 
-	tx, err := beginTx(ctx, logger, db)
+	conn, err := db.Conn(ctx)
+	if err != nil {
+		return
+	}
+	defer conn.Close()
+
+	tx, err := beginTx(ctx, logger, conn)
 	if err != nil {
 		return
 	}
@@ -209,10 +222,10 @@ func (*HookHandle) IsInTx(ctx context.Context) bool {
 	return isInTx
 }
 
-func beginTx(ctx context.Context, logger *log.Logger, beginTxer beginTxer) (*sql.Tx, error) {
+func beginTx(ctx context.Context, logger *log.Logger, conn *oteldatabasesql.Conn) (*sql.Tx, error) {
 	// Pass a nil TxOptions to use default isolation level.
 	var txOptions *sql.TxOptions
-	tx, err := beginTxer.BeginTx(ctx, txOptions)
+	tx, err := conn.BeginTx(ctx, txOptions)
 	if err != nil {
 		return nil, fmt.Errorf("hook-handle: failed to begin transaction: %w", err)
 	}
@@ -250,7 +263,7 @@ func rollbackTx(logger *log.Logger, tx *sql.Tx) error {
 	return nil
 }
 
-func (h *HookHandle) openDB() (*sql.DB, error) {
+func (h *HookHandle) openDB() (*oteldatabasesql.ConnPool, error) {
 	h.Logger.WithFields(map[string]interface{}{
 		"purpose":                    h.ConnectionInfo.Purpose,
 		"max_open_conns":             h.ConnectionOptions.MaxOpenConnection,

@@ -1,16 +1,16 @@
 package db
 
 import (
-	"database/sql"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
+
+	"github.com/authgear/authgear-server/pkg/util/otelutil/oteldatabasesql"
 )
 
 func TestPool(t *testing.T) {
-	// dummyPoolOpener returns a new pointer to an zero value of sql.DB.
-	dummyPoolOpener := func(info ConnectionInfo, opts ConnectionOptions) (*sql.DB, error) {
-		return &sql.DB{}, nil
+	dummyPoolOpener := func(info ConnectionInfo, opts ConnectionOptions) (*oteldatabasesql.ConnPool, error) {
+		return &oteldatabasesql.ConnPool{}, nil
 	}
 
 	Convey("Pool", t, func() {

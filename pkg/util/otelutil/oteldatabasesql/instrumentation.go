@@ -54,10 +54,36 @@ var DBClientConnectionMax = mustInt64ObservableGauge(
 	metric.WithUnit(semconv.DBClientConnectionMaxUnit),
 )
 
+// DBClientConnectionCreateTimeHistogram is https://opentelemetry.io/docs/specs/semconv/database/database-metrics/#metric-dbclientconnectioncreate_time
 var DBClientConnectionCreateTimeHistogram = mustFloat64Histogram(
 	semconv.DBClientConnectionCreateTimeName,
 	metric.WithDescription(semconv.DBClientConnectionCreateTimeDescription),
 	metric.WithUnit(semconv.DBClientConnectionCreateTimeUnit),
+	// The spec does not specify an explicit boundary.
+	// We borrow the boundary from http request.
+	metric.WithExplicitBucketBoundaries(
+		0.005,
+		0.01,
+		0.025,
+		0.05,
+		0.075,
+		0.1,
+		0.25,
+		0.5,
+		0.75,
+		1,
+		2.5,
+		5,
+		7.5,
+		10,
+	),
+)
+
+// DBClientConnectionWaitTimeHistogram is https://opentelemetry.io/docs/specs/semconv/database/database-metrics/#metric-dbclientconnectionwait_time
+var DBClientConnectionWaitTimeHistogram = mustFloat64Histogram(
+	semconv.DBClientConnectionWaitTimeName,
+	metric.WithDescription(semconv.DBClientConnectionWaitTimeDescription),
+	metric.WithUnit(semconv.DBClientConnectionWaitTimeUnit),
 	// The spec does not specify an explicit boundary.
 	// We borrow the boundary from http request.
 	metric.WithExplicitBucketBoundaries(
@@ -121,6 +147,94 @@ var DBClientOperationDurationHistogram = mustFloat64Histogram(
 	),
 )
 
+// Conn is a wrapper around *sql.Conn.
+// Conn is used to track connection use time.
+type Conn struct {
+	ctx         context.Context
+	conn        *sql.Conn
+	startTime   time.Time
+	commonAttrs []attribute.KeyValue
+	poolAttrs   []attribute.KeyValue
+}
+
+func (c *Conn) BeginTx(ctx context.Context, opts *sql.TxOptions) (*sql.Tx, error) {
+	return c.conn.BeginTx(ctx, opts)
+}
+
+func (c *Conn) PrepareContext(ctx context.Context, query string) (*sql.Stmt, error) {
+	return c.conn.PrepareContext(ctx, query)
+}
+
+func (c *Conn) Close() error {
+	defer func() {
+		elapsed := time.Since(c.startTime)
+		seconds := elapsed.Seconds()
+		DBClientConnectionUseTimeHistogram.Record(
+			c.ctx,
+			seconds,
+			metric.WithAttributes(c.commonAttrs...),
+			metric.WithAttributes(c.poolAttrs...),
+		)
+	}()
+	return c.conn.Close()
+}
+
+// ConnPool is a wrapper around *sql.DB.
+// ConnPool only supports Conn() which returns a wrapped *sql.Conn.
+// ConnPool is used to track connection wait time.
+type ConnPool struct {
+	db          *sql.DB
+	commonAttrs []attribute.KeyValue
+	poolAttrs   []attribute.KeyValue
+}
+
+func (p *ConnPool) Conn(ctx context.Context) (*Conn, error) {
+	// Intentionally not calling .UTC() to use monotonic clock.
+	startTime := time.Now()
+	defer func() {
+		elapsed := time.Since(startTime)
+		seconds := elapsed.Seconds()
+		DBClientConnectionWaitTimeHistogram.Record(
+			ctx,
+			seconds,
+			metric.WithAttributes(p.commonAttrs...),
+			metric.WithAttributes(p.poolAttrs...),
+		)
+	}()
+	sqlConn, err := p.db.Conn(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return &Conn{
+		ctx: ctx,
+		// Intentionally not calling .UTC() to use monotonic clock.
+		startTime:   time.Now(),
+		conn:        sqlConn,
+		commonAttrs: p.commonAttrs,
+		poolAttrs:   p.poolAttrs,
+	}, nil
+}
+
+func (p *ConnPool) Close() error {
+	return p.db.Close()
+}
+
+func (p *ConnPool) SetConnMaxIdleTime(d time.Duration) {
+	p.db.SetConnMaxIdleTime(d)
+}
+
+func (p *ConnPool) SetConnMaxLifetime(d time.Duration) {
+	p.db.SetConnMaxLifetime(d)
+}
+
+func (p *ConnPool) SetMaxIdleConns(n int) {
+	p.db.SetMaxIdleConns(n)
+}
+
+func (p *ConnPool) SetMaxOpenConns(n int) {
+	p.db.SetMaxOpenConns(n)
+}
+
 type OpenOptions struct {
 	DriverName string
 	DSN        string
@@ -129,7 +243,7 @@ type OpenOptions struct {
 }
 
 //nolint:gocognit
-func Open(opts OpenOptions) (*sql.DB, error) {
+func Open(opts OpenOptions) (*ConnPool, error) {
 	var commonAttrs []attribute.KeyValue
 	var poolAttrs []attribute.KeyValue
 
@@ -156,18 +270,20 @@ func Open(opts OpenOptions) (*sql.DB, error) {
 					ctx := context.TODO()
 					// Intentionally not calling .UTC() to use monotonic clock.
 					startTime := time.Now()
+					defer func() {
+						elapsed := time.Since(startTime)
+						seconds := elapsed.Seconds()
+						DBClientConnectionCreateTimeHistogram.Record(
+							ctx,
+							seconds,
+							metric.WithAttributes(commonAttrs...),
+							metric.WithAttributes(poolAttrs...),
+						)
+					}()
 					conn, err := original(name)
 					if err != nil {
 						return nil, err
 					}
-					createDuration := time.Since(startTime)
-					seconds := createDuration.Seconds()
-					DBClientConnectionCreateTimeHistogram.Record(
-						ctx,
-						seconds,
-						metric.WithAttributes(commonAttrs...),
-						metric.WithAttributes(poolAttrs...),
-					)
 					return wrapConn(ctx, conn), nil
 				}
 			},
@@ -189,18 +305,20 @@ func Open(opts OpenOptions) (*sql.DB, error) {
 				return func(ctx context.Context) (driver.Conn, error) {
 					// Intentionally not calling .UTC() to use monotonic clock.
 					startTime := time.Now()
+					defer func() {
+						elapsed := time.Since(startTime)
+						seconds := elapsed.Seconds()
+						DBClientConnectionCreateTimeHistogram.Record(
+							ctx,
+							seconds,
+							metric.WithAttributes(commonAttrs...),
+							metric.WithAttributes(poolAttrs...),
+						)
+					}()
 					conn, err := original(ctx)
 					if err != nil {
 						return nil, err
 					}
-					createDuration := time.Since(startTime)
-					seconds := createDuration.Seconds()
-					DBClientConnectionCreateTimeHistogram.Record(
-						ctx,
-						seconds,
-						metric.WithAttributes(commonAttrs...),
-						metric.WithAttributes(poolAttrs...),
-					)
 					return wrapConn(ctx, conn), nil
 				}
 			},
@@ -214,19 +332,9 @@ func Open(opts OpenOptions) (*sql.DB, error) {
 	}
 
 	wrapConn = func(ctx context.Context, c driver.Conn) driver.Conn {
-		// Intentionally not calling .UTC() to use monotonic clock.
-		startTime := time.Now()
 		return databasesqlwrapper.WrapConn(c, databasesqlwrapper.ConnInterceptor{
 			Close: func(original databasesqlwrapper.Conn_Close) databasesqlwrapper.Conn_Close {
 				return func() error {
-					useDuration := time.Since(startTime)
-					seconds := useDuration.Seconds()
-					DBClientConnectionUseTimeHistogram.Record(
-						ctx,
-						seconds,
-						metric.WithAttributes(commonAttrs...),
-						metric.WithAttributes(poolAttrs...),
-					)
 					return original()
 				}
 			},
@@ -613,7 +721,11 @@ func Open(opts OpenOptions) (*sql.DB, error) {
 		return nil, err
 	}
 
-	return db, nil
+	return &ConnPool{
+		db:          db,
+		commonAttrs: commonAttrs,
+		poolAttrs:   poolAttrs,
+	}, nil
 }
 
 type contextIgnoringConnector struct {
