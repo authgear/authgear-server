@@ -18,6 +18,11 @@ linters:
   # Disable linter that does not work with go1.18
   #- staticcheck
   #- gosimple
+  exclusions:
+    rules:
+    - path: pkg/util/databasesqlwrapper
+      linters:
+      - gocognit
 
 linters-settings:
   gofmt:

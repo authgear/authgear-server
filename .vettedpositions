@@ -332,6 +332,7 @@
 /pkg/util/jwkutil/contextbackground.go:11:52: contextbackground
 /pkg/util/otelutil/nethttp.go:120:46: requestcontext
 /pkg/util/otelutil/nethttp.go:130:49: requestcontext
+/pkg/util/otelutil/oteldatabasesql/instrumentation.go:156:13: contextbackground
 /pkg/util/pubsub/http_handler.go:51:40: requestcontext
 /pkg/util/sentry/request.go:25:9: requestcontext
 /pkg/util/template/engine.go:344:9: requestcontext

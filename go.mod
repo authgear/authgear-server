@@ -83,12 +83,12 @@ require (
 )
 
 require (
-	github.com/XSAM/otelsql v0.37.0
 	github.com/authgear/oauthrelyingparty v1.5.0
 	github.com/coder/websocket v1.8.13
 	github.com/go-gsm/charset v1.0.0
 	github.com/go-ldap/ldap/v3 v3.4.10
 	github.com/goaux/decowriter v1.0.0
+	github.com/iawaknahc/gogenwrapper v0.0.0-20250315204045-eb8ab595ac5c
 	github.com/kr/pretty v0.3.1
 	github.com/minio/minio-go/v7 v7.0.88
 	github.com/rivo/uniseg v0.4.7
