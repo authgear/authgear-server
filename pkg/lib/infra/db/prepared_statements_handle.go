@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/otelutil/oteldatabasesql"
 )
 
 type preparedStatementsHandleContextKeyType struct{}
@@ -15,7 +16,7 @@ var preparedStatementsHandleContextKey = preparedStatementsHandleContextKeyType{
 
 type preparedStatementsHandle struct {
 	logger           *log.Logger
-	conn             *sql.Conn
+	conn             *oteldatabasesql.Conn
 	cachedStatements map[string]*sql.Stmt
 }
 

@@ -121,6 +121,59 @@ var DBClientOperationDurationHistogram = mustFloat64Histogram(
 	),
 )
 
+// Conn is a wrapper around *sql.Conn.
+// Conn is used to track connection use time.
+type Conn struct {
+	conn *sql.Conn
+}
+
+func (c *Conn) BeginTx(ctx context.Context, opts *sql.TxOptions) (*sql.Tx, error) {
+	return c.conn.BeginTx(ctx, opts)
+}
+
+func (c *Conn) PrepareContext(ctx context.Context, query string) (*sql.Stmt, error) {
+	return c.conn.PrepareContext(ctx, query)
+}
+
+func (c *Conn) Close() error {
+	return c.conn.Close()
+}
+
+// ConnPool is a wrapper around *sql.DB.
+// ConnPool only supports Conn() which returns a wrapped *sql.Conn.
+// ConnPool is used to track connection wait time.
+type ConnPool struct {
+	db *sql.DB
+}
+
+func (p *ConnPool) Conn(ctx context.Context) (*Conn, error) {
+	sqlConn, err := p.db.Conn(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return &Conn{conn: sqlConn}, nil
+}
+
+func (p *ConnPool) Close() error {
+	return p.db.Close()
+}
+
+func (p *ConnPool) SetConnMaxIdleTime(d time.Duration) {
+	p.db.SetConnMaxIdleTime(d)
+}
+
+func (p *ConnPool) SetConnMaxLifetime(d time.Duration) {
+	p.db.SetConnMaxLifetime(d)
+}
+
+func (p *ConnPool) SetMaxIdleConns(n int) {
+	p.db.SetMaxIdleConns(n)
+}
+
+func (p *ConnPool) SetMaxOpenConns(n int) {
+	p.db.SetMaxOpenConns(n)
+}
+
 type OpenOptions struct {
 	DriverName string
 	DSN        string
@@ -129,7 +182,7 @@ type OpenOptions struct {
 }
 
 //nolint:gocognit
-func Open(opts OpenOptions) (*sql.DB, error) {
+func Open(opts OpenOptions) (*ConnPool, error) {
 	var commonAttrs []attribute.KeyValue
 	var poolAttrs []attribute.KeyValue
 
@@ -613,7 +666,7 @@ func Open(opts OpenOptions) (*sql.DB, error) {
 		return nil, err
 	}
 
-	return db, nil
+	return &ConnPool{db: db}, nil
 }
 
 type contextIgnoringConnector struct {

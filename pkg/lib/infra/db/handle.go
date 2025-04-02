@@ -15,10 +15,6 @@ type txLike interface {
 	QueryRowContext(ctx context.Context, query string, args ...any) *sql.Row
 }
 
-type beginTxer interface {
-	BeginTx(ctx context.Context, opts *sql.TxOptions) (*sql.Tx, error)
-}
-
 // Handle allows a function to be run within a transaction.
 type Handle interface {
 	// WithTx runs do within a transaction.
