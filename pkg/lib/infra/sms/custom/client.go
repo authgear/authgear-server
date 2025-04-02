@@ -106,9 +106,10 @@ func (w *SMSWebHook) Call(ctx context.Context, u *url.URL, payload SendOptions) 
 		if resp.StatusCode >= 200 && resp.StatusCode < 300 {
 			return nil
 		}
-		return errors.Join(err, &smsapi.SendError{
+		// Ignore the parse error, return smsapi.SendError with dumped response
+		return &smsapi.SendError{
 			DumpedResponse: dumpedResponse,
-		})
+		}
 	}
 
 	return handleResponse(responseBody, dumpedResponse)
