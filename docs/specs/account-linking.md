@@ -1,26 +1,30 @@
-# Account Linking
+* [Account Linking](#account-linking)
+  * [Introduction](#introduction)
+  * [Configuration](#configuration)
+    * [Defining how the linking occurs and the corresponding action](#defining-how-the-linking-occurs-and-the-corresponding-action)
+      * [Defining Linkings](#defining-linkings)
+      * [Linking Actions](#linking-actions)
+    * [Customize the config in specific step](#customize-the-config-in-specific-step)
+    * [Default Behaviors](#default-behaviors)
+      * [The Current Defaults](#the-current-defaults)
+      * [The default linking of different provider types](#the-default-linking-of-different-provider-types)
+  * [Identity Attributes](#identity-attributes)
+    * [Identity Attributes of Email Login ID, Username Login ID, Phone Login ID](#identity-attributes-of-email-login-id-username-login-id-phone-login-id)
+    * [Identity Attributes of OAuth Identity](#identity-attributes-of-oauth-identity)
+    * [Customizing the identity attributes](#customizing-the-identity-attributes)
+  * [Login and Link Flow](#login-and-link-flow)
+  * [Q&amp;A](#qa)
+    * [Why we need to login the user before linking the account?](#why-we-need-to-login-the-user-before-linking-the-account)
+    * [Why we need to continue the original signup flow instead of simply adding the oauth identity to the user?](#why-we-need-to-continue-the-original-signup-flow-instead-of-simply-adding-the-oauth-identity-to-the-user)
+  * [Account Linking by Login IDs](#account-linking-by-login-ids)
+    * [Defaults of Account Linking of Login IDs](#defaults-of-account-linking-of-login-ids)
+  * [Account Linking in Promote Flow](#account-linking-in-promote-flow)
+  * [Usecases](#usecases)
+    * [Common Cases](#common-cases)
+    * [Edge Cases](#edge-cases)
+  * [References](#references)
 
-- [Introduction](#introduction)
-- [Configuration](#configuration)
-  - [Defining how the linking occurs and the corresponding action](#defining-how-the-linking-occurs-and-the-corresponding-action)
-    - [Defining Linkings](#defining-linkings)
-    - [Linking Actions](#linking-actions)
-  - [Customize the config in specific step](#customize-the-config-in-specific-step)
-  - [Default Behaviors](#default-behaviors)
-    - [The Current Defaults](#the-current-defaults)
-    - [The default linking of different provider types](#the-default-linking-of-different-provider-types)
-- [Identity Attributes](#identity-attributes)
-  - [The built-in oauth identity standard attributes](#the-built-in-oauth-identity-standard-attributes)
-  - [Customizing the oauth identity attributes](#customizing-the-oauth-identity-attributes)
-- [Login and Link Flow](#login-and-link-flow)
-- [Account Linking by Login IDs](#account-linking-by-login-ids)
-  - [Defaults of Account Linking of Login IDs](#defaults-of-account-linking-of-Login-ids)
-- [Account Linking in Promote Flow](#account-linking-in-promote-flow)
-- [Q&A](#qa)
-  - [Why we need to login the user before linking the account?](#why-we-need-to-login-the-user-before-linking-the-account)
-  - [Why we need to continue the original signup flow instead of simply adding the oauth identity to the user?](#why-we-need-to-continue-the-original-signup-flow-instead-of-simply-adding-the-oauth-identity-to-the-user)
-- [Usecases](#usecases)
-- [References](#references)
+# Account Linking
 
 ## Introduction
 
@@ -93,11 +97,10 @@ Currently, only `oauth` is supported in account linking. However, account linkin
 
 We define linkings between the new oauth identity and any existing identities using the `oauth_claim` and `user_profile` fields.
 
-- `oauth_claim`: An object containing a json pointer, specified in `oauth_claim.pointer`, pointing to a claim of the incoming oauth user profile. Note that, for oidc compatible providers, this pointer is used to access value from the oidc claims, which is from the user info endpoint. For non-oidc compatible providers, please read the [SSO Providers](/docs/specs/sso-providers.md) document for the corresponing logics authgear implemented to obtain a user profile from the provider.
+- `oauth_claim`: An object containing a json pointer, specified in `oauth_claim.pointer`, pointing to a claim of the incoming [OAuth User Profile](./sso-providers.md#oauth-user-profile).
+- `user_profile`: An object containing a json pointer, specified in `user_profile.pointer`, pointing to an attribute of the [User Info](./user-profile/design.md#user-info-endpoint), or the attribute of an existing authgear identity. For the meaning of attribute of authgear identity, please read the [Identity Attributes](#identity-attributes) section.
 
-- `user_profile`: An object containing a json pointer, specified in `user_profile.pointer`, pointing to a value of the user profile of an existing authgear user, or the attribute of an existing authgear identity. For the meaning of attribute of authgear identity, please read the [Identity Attribute](#identity-attribute) section.
-
-Whenever the value pointed by `oauth_claim.pointer` of the new oauth identity matches the value pointed by `user_profile.pointer` of any existing authgear identity or authgear user profile, account linking will be triggered.
+Whenever the value pointed by `oauth_claim.pointer` of the new oauth identity matches the value pointed by `user_profile.pointer` of any existing [User Info](./user-profile/design.md#user-info-endpoint), account linking will be triggered.
 
 For what should happen on linking, please read the following [Linking Actions](#linking-actions) section.
 
@@ -110,7 +113,7 @@ We define the action to link the new oauth identity with the existing identity's
   - `error`: Reject the signup with an error.
   - `login`: Switch to login flow of the existing account.
     - This will not be implemented as it seems a duplicate of `"error"`.
-  - `login_and_link`: Switch to login flow of the existing account. After user completing the login flow, add the new oauth identity to the logged in account. When `login_and_link` is choosed, read the [Login and link flow](#login-and-link-flow) section for the detailed behavior of this option.
+  - `login_and_link`: Switch to login flow of the existing account. After user completing the login flow, add the new oauth identity to the logged in account. When `login_and_link` is chosen, read the [Login and link flow](#login-and-link-flow) section for the detailed behavior of this option.
   - `always_link_without_login`: This is similar to `login_and_link`, but no login is required. Caution: This could become a risk that someone will be able to takeover some authgear accounts using identities from the oauth provider. Only use this option if you trust the oauth provider and knows the linking logics works as you expected.
   - `link_without_login_when_verified`: This is similar to `login_and_link`, but no login is required only if the oauth provider claims that the email in the user's claim is verified, by using the `email_verified` claim.
   - `create_new_account`: Create a new account with this new identity, ignoring the link.
@@ -173,7 +176,7 @@ Not all configs are overridable inside a flow. We only support overriding the fo
 
 Read the above [Defining how the linking occurs and the corresponding action](#defining-how-the-linking-occurs-and-the-corresponding-action) section for meaning of each fields.
 
-`oauth_claim` and `user_profile` is not supported in the config overrides because we think there is no valid usecase for it. You propably always want a consistent linking logics between flows.
+`oauth_claim` and `user_profile` is not supported in the config overrides because we think there is no valid usecase for it. You probably always want a consistent linking logics between flows.
 
 Additionally, `login_flow` is available as a configurable parameter of account linking. If a login flow is triggered during account linking, and `login_flow` is provided, the configured `login_flow` will be used as the name of the login flow which used to perform account linking. If not provided, the current flow name will be used. For example, if you triggered account linking in the `default` signup flow, then `default` login flow will be used if `login_flow` is not specified.
 
@@ -182,7 +185,7 @@ Additionally, `login_flow` is available as a configurable parameter of account l
 The account linking config will be read according to the below precedence:
 
 1. If exist, always use the configurations in `account_linking` inside the current flow object in `signup_flows`.
-2. Else, use the `authentication_flow.account_linking` confuguration, if exist.
+2. Else, use the `authentication_flow.account_linking` configuration, if exist.
 3. Else, it is the built in default behavior. Please read the following sections for detail.
 
 #### The Current Defaults
@@ -207,23 +210,27 @@ Different default account linking configs could be provided for different type o
 
 ## Identity Attributes
 
-In authgear, each identity contributes to some standard attributes of the authgear user profile. Please see the following table for the standard attributes contributed by the email, username and phone identities.
+### Identity Attributes of Email Login ID, Username Login ID, Phone Login ID
 
-| Identity Type | Value            | Standard Attributes                   |
+The following table summarizes the identity attributes of Email Login ID, Username Login ID, Phone Login ID.
+
+| Identity Type | Value            | Identity Attributes                   |
 | ------------- | ---------------- | ------------------------------------- |
 | Email         | `id@example.com` | `{ "email": "id@example.com" }`       |
 | Username      | `example`        | `{ "preferred_username": "example" }` |
 | Phone         | `+8520001`       | `{ "phone_number": "+8520001" }`      |
 
-OAuth identities also contributes attributes of the user profile, but it is more complicated than the above three identity types. The following sections will discuss the related behavior and configs.
+OAuth identities also contributes attributes of the [User Info](./user-profile/design.md#user-info-endpoint), but it is more complicated than the above three identity types. The following sections will discuss the related behavior and configs.
 
-### The built-in oauth identity standard attributes
+### Identity Attributes of OAuth Identity
 
-For each supported oauth provider types, authgear has implemented a built-in standard attribute mappings. You could find the mappings of each provider in the [SSO Providers](/docs/specs/sso-providers.md) document.
+See the [SSO Providers](/docs/specs/sso-providers.md) document
 
-### Customizing the oauth identity attributes
+### Customizing the identity attributes
 
-As the built-in mappings may not be able to handle all use cases, we support configuring custom mappings on oauth identity attributes. Let's start with the following example config:
+Customizing the identity attributes are supported.
+
+Let's start with the following example config:
 
 ```yaml
 identity:
@@ -241,13 +248,13 @@ identity:
 
 The above config means:
 
-For any oauth identity of `adfs`, we will read a value from the `"primary_phone"` claim of the provider user profile, and write that value into the `"phone_number"` attribute of that identity. Note that, it is not writing directly to the user's attribute, but the attributes that belongs to this identity. The user can later select this identity in the portal to populate these attributes into the authgear user profile.
+For any oauth identity of `adfs`, we will read a value from the `"primary_phone"` claim of the provider user profile, and write that value into the `"phone_number"` attribute of the identity attributes. Note that, it is not writing directly to the [User Info](./user-profile/design.md#user-info-endpoint). The user can later select this identity in the portal to populate these attributes into the [User Info](./user-profile/design.md#user-info-endpoint).
 
 And the meaning of each configs are:
 
-- `user_profile_mapping`: It is an array, which specifies a mapping. From one claim of the provider user profile, to one attribute of the authgear user identity attribute.
+- `user_profile_mapping`: It is an array, which specifies a mapping. From one claim of the provider user profile, to one attribute of the identity attributes.
   - `user_profile_mapping.oauth_claim`: An object, which only has one field `pointer`. The `pointer` is the JSON pointer pointing to the claim value of the oauth provider user profile.
-  - `user_profile_mapping.user_profile`: An object, which only has one field `pointer`. The `pointer` is the JSON pointer pointing to the attribute of the authgear identity attribute.
+  - `user_profile_mapping.user_profile`: An object, which only has one field `pointer`. The `pointer` is the JSON pointer pointing to the attribute of the identity attributes
     - We only support standard attributes at the moment, but custom attributes may also be supported in the future.
 
 ## Login and Link Flow
@@ -308,7 +315,7 @@ login_flows:
 Assume now there is an existing authgear user with the following identities and authenticators:
 
 - User A
-  - Email Identity: a@example.com
+  - Email Login ID: a@example.com
   - Primary Password Authenticator
 
 And now, the user tries to sign up with a new google account, which has an email `a@example.com` in the google user profile. And authgear matched that oauth identity to the existing login ID `a@example.com`.
@@ -351,14 +358,14 @@ And now, the user tries to sign up with a new google account, which has an email
                        - type: view_recovery_code
    ```
 
-7. As the next step of the original flow is to create primary password authenticator, the user will need to create primary password authenticator if he doesn't have one. As the original user already has a primary password authenticator, the step will be skipped. The priciple is, the resumed signup flow will try to skip all identification or authentication steps that the user already has one related identity or authenticator.
+7. As the next step of the original flow is to create primary password authenticator, the user will need to create primary password authenticator if he doesn't have one. As the original user already has a primary password authenticator, the step will be skipped. The principle is, the resumed signup flow will try to skip all identification or authentication steps that the user already has one related identity or authenticator.
 8. And the next step will be creating `secondary_totp`. As the user does not have a secondary totp, the user will create a totp in this step.
 9. Finally, all created identities and authenticators will be added to the existing user, together with the new oauth identity.
 
 Resulting user:
 
 - User A
-  - Email Identity: a@example.com
+  - Email Login ID: a@example.com
   - OAuth Identity: Google (email:a@example.com)
   - Primary Password Authenticator
   - Secondary TOTP Authenticator
@@ -367,7 +374,7 @@ Resulting user:
 
 ### Why we need to login the user before linking the account?
 
-This is to prevent the user account being taken over using a oauth idenity. For example, if an idp allows registering an user account without verifying the email, that idp can be used to create accounts to take over authgear accounts if we link the account without running the login flow. Therefore passing the login flow before linking the account is neccessary.
+This is to prevent the user account being taken over using a oauth identity. For example, if an idp allows registering an user account without verifying the email, that idp can be used to create accounts to take over authgear accounts if we link the account without running the login flow. Therefore passing the login flow before linking the account is necessary.
 
 ### Why we need to continue the original signup flow instead of simply adding the oauth identity to the user?
 
@@ -393,7 +400,7 @@ signup_flows:
                   - authentication: secondary_totp
 ```
 
-If we add the oauth identity to the user without completing the whole signup flow, the step that create `secondary_totp` would be skipped. Which may break the assumption that all users created by signup flow with oauth identity will have `secondary_totp` setup. Therefore we should continue the signup flow. However, we should skip unncessary steps to prevent duplicated authenticators of the same type being added.
+If we add the oauth identity to the user without completing the whole signup flow, the step that create `secondary_totp` would be skipped. Which may break the assumption that all users created by signup flow with oauth identity will have `secondary_totp` setup. Therefore we should continue the signup flow. However, we should skip unnecessary steps to prevent duplicated authenticators of the same type being added.
 
 ## Account Linking by Login IDs
 
@@ -414,8 +421,8 @@ account_linking:
 
 The above configs defined the account linking behavior of two login id types:
 
-- For `phone`, link with any existing user or identity by looking at the `"phone_number"` value in the user profile or identity attribute. When linking occurs, use `login_and_link` as the action. Read the [Linking Actions](#linking-actions) section for the exact meaning of `login_and_link`.
-- For `username`, link with any existing user or identity by looking at the `"preferred_username"` value in the user profile or identity attribute. When linking occurs, returns an error and stop the signup flow.
+- For `phone`, link with any existing user or identity by looking at the `"phone_number"` value in the [User Info](./user-profile/design.md#user-info-endpoint) or identity attribute. When linking occurs, use `login_and_link` as the action. Read the [Linking Actions](#linking-actions) section for the exact meaning of `login_and_link`.
+- For `username`, link with any existing user or identity by looking at the `"preferred_username"` value in the [User Info](./user-profile/design.md#user-info-endpoint) or identity attribute. When linking occurs, returns an error and stop the signup flow.
 
 ### Defaults of Account Linking of Login IDs
 
@@ -544,7 +551,7 @@ Any action set in `authentication_flow.account_linking` will be treated as error
                - identification: oauth
    ```
 
-3. Consider a signup flow which accepts using google account OR phone number, but phone number wil still be collected if user signup with google. And the followings are wanted:
+3. Consider a signup flow which accepts using google account OR phone number, but phone number will still be collected if user signup with google. And the followings are wanted:
 
    - The user can login with the google account.
    - The user cannot login with the phone number.
@@ -604,7 +611,7 @@ Any action set in `authentication_flow.account_linking` will be treated as error
                  steps:
                    - type: identity
                      one_of:
-                       - identificaiton: email # No override, therefore login is still required for account linking
+                       - identification: email # No override, therefore login is still required for account linking
    ```
 
 ## References

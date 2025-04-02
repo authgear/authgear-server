@@ -304,7 +304,7 @@ saml:
       nameid_attribute_pointer: /preferred_username
 ```
 
-- `nameid_attribute_pointer`: The JSON pointer pointing to the user profile which will be used as the NameID. The login will fail if the attribute pointed by the pointer does not exist or it is empty. The default is `/sub`. Only the following values are accepted:
+- `nameid_attribute_pointer`: The JSON pointer pointing to the [User Info](./user-profile/design.md#user-info-endpoint) which will be used as the NameID. The login will fail if the attribute pointed by the pointer does not exist or it is empty. The default is `/sub`. Only the following values are accepted:
   - `/sub`: The user id. This is the default.
   - `/preferred_username`: The username.
   - `/email`: The email.
@@ -332,9 +332,9 @@ The following `NameIDFormat`s are not supported at the moment, but they are comm
 
 ## <a id="4"></a> Attributes
 
-By default, all attributes of the user, including standard attributes and custom attributes, will be included in the SAML assertion `<AttributeStatement>` element. The `Name` of the `<Attribute>` will be same as the name of the attribute. The user id will also be included as an `<Attribute>` with `Name="sub"`.
+By default, only the `sub` claim of the [User Info](./user-profile/design.md#user-info-endpoint) is included in the SAML assertion `<AttributeStatement>` element.
 
-For example, if the response of the `/oauth2/userinfo` endpoint of a user is:
+For example, if the [User Info](./user-profile/design.md#user-info-endpoint) is:
 
 ```json
 {
@@ -360,46 +360,8 @@ Then the SAML attributes of the user will be:
     <saml:AttributeValue
       xsi:type="xs:string">f9639c43-1529-4f7d-9468-451e91228010</saml:AttributeValue>
   </saml:Attribute>
-  <saml:Attribute
-    NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:basic"
-    Name="email">
-    <saml:AttributeValue
-      xsi:type="xs:string">test@example.com</saml:AttributeValue>
-  </saml:Attribute>
-  <saml:Attribute
-    NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:basic"
-    Name="email_verified">
-    <saml:AttributeValue
-      xsi:type="xs:boolean">true</saml:AttributeValue>
-  </saml:Attribute>
-  <saml:Attribute
-    NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:basic"
-    Name="phone_number">
-    <saml:AttributeValue
-      xsi:type="xs:string">+85200000001</saml:AttributeValue>
-  </saml:Attribute>
-  <saml:Attribute
-    NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:basic"
-    Name="phone_number_verified">
-    <saml:AttributeValue
-      xsi:type="xs:boolean">true</saml:AttributeValue>
-  </saml:Attribute>
-  <saml:Attribute
-    NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:basic"
-    Name="preferred_username">
-    <saml:AttributeValue
-      xsi:type="xs:string">employee00001</saml:AttributeValue>
-  </saml:Attribute>
-  <saml:Attribute
-    NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:basic"
-    Name="employee_id">
-    <saml:AttributeValue
-      xsi:type="xs:string">00001</saml:AttributeValue>
-  </saml:Attribute>
 </saml:AttributeStatement>
 ```
-
-For all supported attributes, please read [User profile](user-profile/design.md)
 
 ### <a id="4_1"></a> Customizing the attributes
 
@@ -441,12 +403,12 @@ The `attributes` object under items of `service_providers` is used to customize 
 
 - `mappings`: Required if `definitions` is not empty, else optional. When provided, it MUST be a list of objects, in one of the following types:
 
-  1. A simple mapping object. It maps a value from a user profile attribute to a SAML attribute. The object contains the following fields:
+  1. A simple mapping object. It maps a value from an attribute of the [User Info](./user-profile/design.md#user-info-endpoint) to a SAML attribute. The object contains the following fields:
 
-  - `from.user_profile.pointer`: Required. A JSON pointer to a field of the user profile. A value will be read using the JSON pointer from the user profile. And write to the SAML attribute with `Name` specified by `to.saml_attribute`.
+  - `from.user_profile.pointer`: Required. A JSON pointer to an attribute of the [User Info](./user-profile/design.md#user-info-endpoint). A value will be read using the JSON pointer to the [User Info](./user-profile/design.md#user-info-endpoint). And write to the SAML attribute with `Name` specified by `to.saml_attribute`.
   - `to.saml_attribute`: Required. The `Name` of the SAML attribute to write the value.
 
-  When using a simple mapping, the SAML attribute `Type` will be derived from the mapped json value in the user profile automatically. See the following table for the mappings:
+  When using a simple mapping, the SAML attribute `Type` will be derived from the mapped json value in the [User Info](./user-profile/design.md#user-info-endpoint) automatically. See the following table for the mappings:
 
   | JSON Data Type | SAML Attribute Type                                                                                                                                                             |
   | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -457,7 +419,7 @@ The `attributes` object under items of `service_providers` is used to customize 
   | Object         | Not supported. An error will be returned when trying to map an Object to a SAML attribute                                                                                       |
   | Null           | An `<AttributeValue>` with `xsi:nil="true"` will be outputted                                                                                                                   |
 
-  And for any missing keys in the user profile JSON, an attribute with no `<AttributeValue>` will be outputted.
+  And for any missing keys in the [User Info](./user-profile/design.md#user-info-endpoint), an attribute with no `<AttributeValue>` will be outputted.
 
   2. A object uses go template to render a string as the value of a attribute. The object contains the following fields:
 
@@ -490,7 +452,7 @@ The `attributes` object under items of `service_providers` is used to customize 
 
 You can provide a [go text template](https://pkg.go.dev/text/template) to render a SAML attribute.
 
-The data provided to the template is the user profile object.
+The data provided to the template is the [User Info](./user-profile/design.md#user-info-endpoint).
 
 Here is an example:
 
@@ -509,7 +471,7 @@ attributes:
         saml_attribute: mail
 ```
 
-With a user with the following profile:
+With the following [User Info](./user-profile/design.md#user-info-endpoint):
 
 ```jsonc
 {
@@ -531,9 +493,9 @@ The outputted SAML attribute will be:
 
 Currently, only `xs:string` is supported as the type of the SAML attribute rendered by go template.
 
-If the referenced value is missing or empty in user profile, an empty string will be rendered:
+If the referenced value is missing or empty in the [User Info](./user-profile/design.md#user-info-endpoint), an empty string will be rendered:
 
-If the user profile is:
+If the [User Info](./user-profile/design.md#user-info-endpoint) is:
 
 ```jsonc
 {
@@ -563,7 +525,7 @@ See the below sections for the payload the hook receives, and the expected respo
 
 The hook will receive an object, containing the following fields:
 
-- `user`: The user profile object. It will be same as the JSON object you got when calling the `oauth2/userinfo` endpoint.
+- `user`: The [User Info](./user-profile/design.md#user-info-endpoint).
 - `saml_attributes`: The resulting SAML attributes from the previous mappings step. If the hook is the first step, it will be an empty object `{}`.
 
 Here is an example of the payload:

@@ -74,13 +74,11 @@ A user with anonymous identity is considered as anonymous user.
 
 A user must have at least 1 Login ID identity or 1 OAuth identity.
 
-### Identity Claims
+### Identity attributes
 
-The information of an identity are mapped to [Standard Claims](https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims)
+See [Identity Attributes](./account-linking.md#identity-attributes)
 
-Currently, only `email` is mapped.
-
-The claims are used to detect duplicate identity. For example, an Email Login ID and the email claim of an OAuth Identity. This prevents duplicate user when the user forgets the original authentication method.
+The identity attributes are used to detect duplicate identity. For example, an Email Login ID and the email claim of an OAuth Identity. This prevents duplicate user when the user forgets the original authentication method.
 
 ### OAuth Identity
 
