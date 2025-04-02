@@ -29,8 +29,6 @@ export const ColorPicker: React.VFC<ColorPickerProps> = function ColorPicker(
   useEffect(() => {
     if (color != null) {
       setInputValue(color);
-    } else {
-      setInputValue("");
     }
   }, [color]);
 
@@ -52,7 +50,11 @@ export const ColorPicker: React.VFC<ColorPickerProps> = function ColorPicker(
   }, []);
   const onBlurInput = useCallback(() => {
     setIsFocusingInput(false);
-  }, []);
+    if (color == null) {
+      // Clear the input value on blur if the value is not a valid color
+      setInputValue("");
+    }
+  }, [color]);
 
   const showColorPicker = useCallback(() => {
     setIsFocusingInput(true);
