@@ -157,7 +157,9 @@ func (t *TwilioClient) makeError(
 
 	// See https://www.twilio.com/docs/api/errors
 	switch errorCode {
-	case 21211:
+	case 21211: // Invalid 'To' Phone Number
+		fallthrough
+	case 21265: // 'To' number cannot be a Short Code
 		err = errors.Join(smsapi.ErrKindInvalidPhoneNumber.NewWithInfo(
 			"phone number rejected by twilio", details), err)
 	case 30022:
@@ -174,9 +176,27 @@ func (t *TwilioClient) makeError(
 	case 20003:
 		err = errors.Join(smsapi.ErrKindAuthenticationFailed.NewWithInfo(
 			"twilio authentication failed", details), err)
-	case 30002:
+	case 30002: // Account suspended
 		fallthrough
-	case 21266:
+	case 21264: // ‘From’ phone number not verified
+		fallthrough
+	case 21266: // 'To' and 'From' numbers cannot be the same
+		fallthrough
+	case 21267: // Alphanumeric Sender ID cannot be used as the 'From' number on trial accounts
+		fallthrough
+	case 21606: // The 'From' phone number provided is not a valid message-capable Twilio phone number for this destination/account
+		fallthrough
+	case 21607: // The 'from' phone number must be the sandbox phone number for trial accounts.
+		fallthrough
+	case 21659: // 'From' is not a Twilio phone number or Short Code country mismatch
+		fallthrough
+	case 21660: // Mismatch between the 'From' number and the account
+		fallthrough
+	case 21661: // 'From' number is not SMS-capable
+		fallthrough
+	case 21910: // Invalid 'From' and 'To' pair. 'From' and 'To' should be of the same channel
+		fallthrough
+	case 63007: // Twilio could not find a Channel with the specified 'From' address
 		err = errors.Join(smsapi.ErrKindDeliveryRejected.NewWithInfo(
 			"twilio delievry rejected", details), err)
 	}
