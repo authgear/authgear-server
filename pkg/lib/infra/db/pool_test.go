@@ -3,8 +3,9 @@ package db
 import (
 	"testing"
 
-	"github.com/authgear/authgear-server/pkg/util/otelutil/oteldatabasesql"
 	. "github.com/smartystreets/goconvey/convey"
+
+	"github.com/authgear/authgear-server/pkg/util/otelutil/oteldatabasesql"
 )
 
 func TestPool(t *testing.T) {

@@ -54,10 +54,36 @@ var DBClientConnectionMax = mustInt64ObservableGauge(
 	metric.WithUnit(semconv.DBClientConnectionMaxUnit),
 )
 
+// DBClientConnectionCreateTimeHistogram is https://opentelemetry.io/docs/specs/semconv/database/database-metrics/#metric-dbclientconnectioncreate_time
 var DBClientConnectionCreateTimeHistogram = mustFloat64Histogram(
 	semconv.DBClientConnectionCreateTimeName,
 	metric.WithDescription(semconv.DBClientConnectionCreateTimeDescription),
 	metric.WithUnit(semconv.DBClientConnectionCreateTimeUnit),
+	// The spec does not specify an explicit boundary.
+	// We borrow the boundary from http request.
+	metric.WithExplicitBucketBoundaries(
+		0.005,
+		0.01,
+		0.025,
+		0.05,
+		0.075,
+		0.1,
+		0.25,
+		0.5,
+		0.75,
+		1,
+		2.5,
+		5,
+		7.5,
+		10,
+	),
+)
+
+// DBClientConnectionWaitTimeHistogram is https://opentelemetry.io/docs/specs/semconv/database/database-metrics/#metric-dbclientconnectionwait_time
+var DBClientConnectionWaitTimeHistogram = mustFloat64Histogram(
+	semconv.DBClientConnectionWaitTimeName,
+	metric.WithDescription(semconv.DBClientConnectionWaitTimeDescription),
+	metric.WithUnit(semconv.DBClientConnectionWaitTimeUnit),
 	// The spec does not specify an explicit boundary.
 	// We borrow the boundary from http request.
 	metric.WithExplicitBucketBoundaries(
@@ -124,7 +150,11 @@ var DBClientOperationDurationHistogram = mustFloat64Histogram(
 // Conn is a wrapper around *sql.Conn.
 // Conn is used to track connection use time.
 type Conn struct {
-	conn *sql.Conn
+	ctx         context.Context
+	conn        *sql.Conn
+	startTime   time.Time
+	commonAttrs []attribute.KeyValue
+	poolAttrs   []attribute.KeyValue
 }
 
 func (c *Conn) BeginTx(ctx context.Context, opts *sql.TxOptions) (*sql.Tx, error) {
@@ -136,6 +166,16 @@ func (c *Conn) PrepareContext(ctx context.Context, query string) (*sql.Stmt, err
 }
 
 func (c *Conn) Close() error {
+	defer func() {
+		elapsed := time.Since(c.startTime)
+		seconds := elapsed.Seconds()
+		DBClientConnectionUseTimeHistogram.Record(
+			c.ctx,
+			seconds,
+			metric.WithAttributes(c.commonAttrs...),
+			metric.WithAttributes(c.poolAttrs...),
+		)
+	}()
 	return c.conn.Close()
 }
 
@@ -143,15 +183,36 @@ func (c *Conn) Close() error {
 // ConnPool only supports Conn() which returns a wrapped *sql.Conn.
 // ConnPool is used to track connection wait time.
 type ConnPool struct {
-	db *sql.DB
+	db          *sql.DB
+	commonAttrs []attribute.KeyValue
+	poolAttrs   []attribute.KeyValue
 }
 
 func (p *ConnPool) Conn(ctx context.Context) (*Conn, error) {
+	// Intentionally not calling .UTC() to use monotonic clock.
+	startTime := time.Now()
+	defer func() {
+		elapsed := time.Since(startTime)
+		seconds := elapsed.Seconds()
+		DBClientConnectionWaitTimeHistogram.Record(
+			ctx,
+			seconds,
+			metric.WithAttributes(p.commonAttrs...),
+			metric.WithAttributes(p.poolAttrs...),
+		)
+	}()
 	sqlConn, err := p.db.Conn(ctx)
 	if err != nil {
 		return nil, err
 	}
-	return &Conn{conn: sqlConn}, nil
+	return &Conn{
+		ctx: ctx,
+		// Intentionally not calling .UTC() to use monotonic clock.
+		startTime:   time.Now(),
+		conn:        sqlConn,
+		commonAttrs: p.commonAttrs,
+		poolAttrs:   p.poolAttrs,
+	}, nil
 }
 
 func (p *ConnPool) Close() error {
@@ -271,19 +332,9 @@ func Open(opts OpenOptions) (*ConnPool, error) {
 	}
 
 	wrapConn = func(ctx context.Context, c driver.Conn) driver.Conn {
-		// Intentionally not calling .UTC() to use monotonic clock.
-		startTime := time.Now()
 		return databasesqlwrapper.WrapConn(c, databasesqlwrapper.ConnInterceptor{
 			Close: func(original databasesqlwrapper.Conn_Close) databasesqlwrapper.Conn_Close {
 				return func() error {
-					useDuration := time.Since(startTime)
-					seconds := useDuration.Seconds()
-					DBClientConnectionUseTimeHistogram.Record(
-						ctx,
-						seconds,
-						metric.WithAttributes(commonAttrs...),
-						metric.WithAttributes(poolAttrs...),
-					)
 					return original()
 				}
 			},
@@ -670,7 +721,11 @@ func Open(opts OpenOptions) (*ConnPool, error) {
 		return nil, err
 	}
 
-	return &ConnPool{db: db}, nil
+	return &ConnPool{
+		db:          db,
+		commonAttrs: commonAttrs,
+		poolAttrs:   poolAttrs,
+	}, nil
 }
 
 type contextIgnoringConnector struct {
