@@ -18,7 +18,7 @@ require (
 	github.com/lib/pq v1.10.9
 	github.com/lor00x/goldap v0.0.0-20240304151906-8d785c64d1c8
 	github.com/otiai10/copy v1.14.0
-	github.com/phires/go-guerrilla v1.6.6
+	github.com/phires/go-guerrilla v1.6.7
 	github.com/smartystreets/goconvey v1.8.1
 	github.com/spf13/cobra v1.9.1
 	github.com/vjeantet/ldapserver v1.0.1
@@ -170,7 +170,7 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/exp v0.0.0-20250305212735-054e65f0b394 // indirect
 	golang.org/x/mod v0.24.0 // indirect
-	golang.org/x/net v0.37.0 // indirect
+	golang.org/x/net v0.38.0 // indirect
 	golang.org/x/oauth2 v0.28.0 // indirect
 	golang.org/x/sync v0.12.0 // indirect
 	golang.org/x/sys v0.31.0 // indirect
