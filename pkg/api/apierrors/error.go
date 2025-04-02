@@ -177,12 +177,7 @@ func AsAPIError(err error) *APIError {
 		}
 	}
 
-	return &APIError{
-		Kind:          Kind{Name: InternalError, Reason: "UnexpectedError"},
-		Message:       "unexpected error occurred",
-		Code:          InternalError.HTTPStatus(),
-		Info_ReadOnly: info,
-	}
+	return UnexpectedError.NewWithInfo("unexpected error occurred", info).(*APIError)
 }
 
 func IsKind(err error, kind Kind) bool {
