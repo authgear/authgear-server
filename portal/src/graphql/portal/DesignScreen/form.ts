@@ -51,6 +51,7 @@ import {
   LocalValidationError,
   makeLocalValidationError,
 } from "../../../error/validation";
+import { validateBorderRadius } from "./validations";
 
 const LOCALE_BASED_RESOUCE_DEFINITIONS = [
   RESOURCE_TRANSLATION_JSON,
@@ -939,47 +940,4 @@ function validateCustomizedTheme(
     // so skip validation
   }
   return causes;
-}
-
-function validateBorderRadius(
-  location: string,
-  borderRadius: BorderRadiusStyle
-): LocalValidationError[] {
-  switch (borderRadius.type) {
-    case "none":
-      return [];
-    case "rounded-full":
-      return [];
-    case "rounded": {
-      const parsed = /^(?<num>[\d.]+)(?<unit>\w{0,})$/.exec(
-        borderRadius.radius
-      );
-      if (
-        // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
-        parsed == null ||
-        parsed.groups == null ||
-        isNaN(Number(parsed.groups["num"]))
-      ) {
-        return [
-          {
-            location: location,
-            messageID: "errors.validation.borderRadius.format",
-          },
-        ];
-      }
-      const num = Number(parsed.groups["num"]);
-      if (
-        !["", "px", "em", "rem"].includes(parsed.groups["unit"]) ||
-        (num !== 0 && parsed.groups["unit"] === "")
-      ) {
-        return [
-          {
-            location: location,
-            messageID: "errors.validation.borderRadius.unit",
-          },
-        ];
-      }
-      return [];
-    }
-  }
 }
