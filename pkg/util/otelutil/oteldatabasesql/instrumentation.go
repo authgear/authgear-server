@@ -209,18 +209,20 @@ func Open(opts OpenOptions) (*ConnPool, error) {
 					ctx := context.TODO()
 					// Intentionally not calling .UTC() to use monotonic clock.
 					startTime := time.Now()
+					defer func() {
+						elapsed := time.Since(startTime)
+						seconds := elapsed.Seconds()
+						DBClientConnectionCreateTimeHistogram.Record(
+							ctx,
+							seconds,
+							metric.WithAttributes(commonAttrs...),
+							metric.WithAttributes(poolAttrs...),
+						)
+					}()
 					conn, err := original(name)
 					if err != nil {
 						return nil, err
 					}
-					createDuration := time.Since(startTime)
-					seconds := createDuration.Seconds()
-					DBClientConnectionCreateTimeHistogram.Record(
-						ctx,
-						seconds,
-						metric.WithAttributes(commonAttrs...),
-						metric.WithAttributes(poolAttrs...),
-					)
 					return wrapConn(ctx, conn), nil
 				}
 			},
@@ -242,18 +244,20 @@ func Open(opts OpenOptions) (*ConnPool, error) {
 				return func(ctx context.Context) (driver.Conn, error) {
 					// Intentionally not calling .UTC() to use monotonic clock.
 					startTime := time.Now()
+					defer func() {
+						elapsed := time.Since(startTime)
+						seconds := elapsed.Seconds()
+						DBClientConnectionCreateTimeHistogram.Record(
+							ctx,
+							seconds,
+							metric.WithAttributes(commonAttrs...),
+							metric.WithAttributes(poolAttrs...),
+						)
+					}()
 					conn, err := original(ctx)
 					if err != nil {
 						return nil, err
 					}
-					createDuration := time.Since(startTime)
-					seconds := createDuration.Seconds()
-					DBClientConnectionCreateTimeHistogram.Record(
-						ctx,
-						seconds,
-						metric.WithAttributes(commonAttrs...),
-						metric.WithAttributes(poolAttrs...),
-					)
 					return wrapConn(ctx, conn), nil
 				}
 			},
