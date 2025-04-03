@@ -71,6 +71,13 @@ const AppLogoHeightSetter: React.VFC<AppLogoHeightSetterProps> =
 
     useEffect(() => {
       onChange(`${heightPX}px`);
+      // This causes infinite rerendering, because
+      // invoking onChange causes the form state to change, and
+      // therefore the onChange callback will change, and
+      // finally this effect run again.
+      //
+      // The effect here should only take heightPX as deps because
+      // what it want is when heightPX change, call onChange, but not call onChange when onChange change.
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [heightPX]);
 
