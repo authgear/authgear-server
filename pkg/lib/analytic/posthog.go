@@ -18,6 +18,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/timeutil"
 )
 
 type PosthogCredentials struct {
@@ -152,8 +153,7 @@ func (p *PosthogIntegration) getAppIDs(ctx context.Context) (appIDs []string, er
 }
 
 func (p *PosthogIntegration) preparePosthogGroup(ctx context.Context, appID string, now time.Time) (*PosthogGroup, error) {
-	year := now.Year()
-	month := now.Month()
+	year, month := timeutil.PreviousMonth(now)
 
 	mau, _, err := p.ReadCounterStore.GetMonthlyActiveUserCount(ctx, config.AppID(appID), year, int(month))
 	if err != nil {
