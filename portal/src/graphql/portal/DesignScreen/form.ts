@@ -46,6 +46,12 @@ import { makeImageSizeTooLargeErrorRule } from "../../../error/resources";
 import { nonNullable } from "../../../util/types";
 import { nullishCoalesce, or_ } from "../../../util/operators";
 import { deriveColors } from "../../../util/theme";
+import {
+  APIValidationError,
+  LocalValidationError,
+  makeLocalValidationError,
+} from "../../../error/validation";
+import { validateBorderRadius } from "./validations";
 
 const LOCALE_BASED_RESOUCE_DEFINITIONS = [
   RESOURCE_TRANSLATION_JSON,
@@ -177,6 +183,8 @@ export interface BranchDesignForm {
   setCustomerSupportLink: (url: string) => void;
   setDefaultClientURI: (url: string) => void;
   setDisplayAuthgearLogo: (disabled: boolean) => void;
+
+  validationError: APIValidationError | null;
 }
 
 function constructConfigFormState(config: PortalAPIAppConfig): ConfigFormState {
@@ -278,6 +286,13 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
   const [selectedLanguage, setSelectedLanguage] = useState(
     configForm.state.fallbackLanguage
   );
+  const [validationErrorsByTheme, setValidationErrorsByTheme] = useState<{
+    [Theme.Dark]: LocalValidationError[];
+    [Theme.Light]: LocalValidationError[];
+  }>({
+    [Theme.Dark]: [],
+    [Theme.Light]: [],
+  });
 
   const specifiers = useMemo<ResourceSpecifier[]>(() => {
     const specifiers: ResourceSpecifier[] = [];
@@ -498,10 +513,20 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
         targetTheme: Theme
       ) => {
         resourceForm.setState((s) => {
+          const newState = updater(
+            getThemeFromResourceFormState(resourceForm.state, targetTheme)
+          );
+          const validationErrors = validateCustomizedTheme(newState);
+          setValidationErrorsByTheme((prev) => {
+            return produce(prev, (draft) => {
+              draft[targetTheme] = validationErrors;
+            });
+          });
+          if (validationErrors.length > 0) {
+            // Do not update the resource if there is any validation error
+            return s;
+          }
           return produce(s, (draft) => {
-            const newState = updater(
-              getThemeFromResourceFormState(s, targetTheme)
-            );
             const resourceSpecifier = selectByTheme(
               {
                 [Theme.Light]: LightThemeResourceSpecifier,
@@ -857,6 +882,12 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
         setIconColor: (color) => _setIconColor(color, Theme.Dark),
         setLinkColor: (color) => _setLinkColor(color, Theme.Dark),
       },
+
+      validationError: makeLocalValidationError(
+        validationErrorsByTheme[Theme.Light].concat(
+          validationErrorsByTheme[Theme.Dark]
+        )
+      ),
     }),
     [
       configForm,
@@ -864,6 +895,7 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
       backgroundImageResourceForm,
       state,
       errorRules,
+      validationErrorsByTheme,
       resourceMutator,
       _setAppLogo,
       _setLogoHeight,
@@ -877,4 +909,35 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
   );
 
   return designForm;
+}
+
+function validateCustomizedTheme(
+  state: PartialCustomisableTheme
+): LocalValidationError[] {
+  const causes: LocalValidationError[] = [];
+  if (state.inputField.borderRadius != null) {
+    causes.push(
+      ...validateBorderRadius(
+        "/inputField/borderRadius",
+        state.inputField.borderRadius
+      )
+    );
+  }
+  if (state.phoneInputField.borderRadius) {
+    // phoneInputField.borderRadius shares the same value of state.inputField.borderRadius
+    // so skip validation
+  }
+  if (state.primaryButton.borderRadius) {
+    causes.push(
+      ...validateBorderRadius(
+        "/primaryButton/borderRadius",
+        state.primaryButton.borderRadius
+      )
+    );
+  }
+  if (state.secondaryButton.borderRadius) {
+    // secondaryButton.borderRadius shares the same value of state.primaryButton.borderRadius
+    // so skip validation
+  }
+  return causes;
 }

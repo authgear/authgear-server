@@ -9,7 +9,6 @@ import { Context as MFContext } from "@oursky/react-messageformat";
 import cn from "classnames";
 
 import ButtonToggleGroup, { Option } from "../common/ButtonToggleGroup";
-import TextField from "../../TextField";
 
 import {
   AllBorderRadiusStyleTypes,
@@ -19,15 +18,17 @@ import {
 } from "../../model/themeAuthFlowV2";
 
 import styles from "./BorderRadius.module.css";
+import FormTextField, { FormTextFieldProps } from "../../FormTextField";
 
-interface BorderRadiusProps {
+interface BorderRadiusProps
+  extends Omit<FormTextFieldProps, "value" | "onChange"> {
   value: BorderRadiusStyle;
   onChange: (value: BorderRadiusStyle) => void;
 }
 const BorderRadius: React.VFC<BorderRadiusProps> = function BorderRadius(
   props
 ) {
-  const { value, onChange } = props;
+  const { value, onChange, ...textFieldProps } = props;
   const { renderToString } = useContext(MFContext);
   const options = useMemo(
     () => AllBorderRadiusStyleTypes.map((value) => ({ value })),
@@ -41,12 +42,14 @@ const BorderRadius: React.VFC<BorderRadiusProps> = function BorderRadius(
     return value.radius;
   });
 
+  const valueRadiusValue = value.type === "rounded" ? value.radius : undefined;
   useEffect(() => {
-    if (value.type !== "rounded") {
-      return;
+    if (valueRadiusValue == null) {
+      setRadiusValue(DEFAULT_BORDER_RADIUS);
+    } else {
+      setRadiusValue(valueRadiusValue);
     }
-    setRadiusValue(value.radius);
-  }, [value]);
+  }, [valueRadiusValue]);
 
   const onSelectOption = useCallback(
     (option: Option<BorderRadiusStyleType>) => {
@@ -134,7 +137,8 @@ const BorderRadius: React.VFC<BorderRadiusProps> = function BorderRadius(
         renderOption={renderOption}
       ></ButtonToggleGroup>
       {value.type === "rounded" ? (
-        <TextField
+        <FormTextField
+          {...textFieldProps}
           className={cn("mt-3")}
           label={renderToString(
             "DesignScreen.configuration.borderRadius.label"

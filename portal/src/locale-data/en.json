@@ -106,6 +106,8 @@
   "errors.validation.noSecondaryAuthenticator": "Can't save the config. At least one secondary authenticator is needed.",
   "errors.validation.blocked": "{reason, select, EmailDomainBlocklist{Email is not allowed} EmailDomainAllowlist{Email is not allowed} UsernameReserved{Username is not allowed} UsernameExcludedKeywords{Username is not allowed} PhoneNumberCountryCodeAllowlist{Phone number is from an unsupported region} other {}}",
   "errors.validation.passkey": "To use passkey, at least one Login ID must be activated",
+  "errors.validation.borderRadius.format": "The value must be a number followed by a unit. For example: 16px",
+  "errors.validation.borderRadius.unit": "Unsupported unit. Only px, em and rem are supported.",
   "errors.password-mismatch": "New password does not match with confirm password, please double check",
   "errors.password-policy.password-reused": "Password cannot be reused, please check password policies below",
   "errors.password-policy.containing-excluded-keywords": "Password contains excluded keywords, please check password policies below",
