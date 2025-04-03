@@ -78,3 +78,75 @@
     }
   }
 }
+
+.dark,
+.dark-theme {
+  --indigo-1: #0a111d;
+  --indigo-2: #0e1827;
+  --indigo-3: #0e254c;
+  --indigo-4: #0e2f67;
+  --indigo-5: #133a7a;
+  --indigo-6: #1b458b;
+  --indigo-7: #23529f;
+  --indigo-8: #2960bb;
+  --indigo-9: #176df3;
+  --indigo-10: #005ee3;
+  --indigo-11: #83b7ff;
+  --indigo-12: #cfe3ff;
+
+  --indigo-a1: #0012fd0d;
+  --indigo-a2: #005cfb18;
+  --indigo-a3: #0661fd40;
+  --indigo-a4: #0964fd5d;
+  --indigo-a5: #166efe71;
+  --indigo-a6: #2577ff83;
+  --indigo-a7: #2f7dfe99;
+  --indigo-a8: #327ffeb7;
+  --indigo-a9: #1771fef3;
+  --indigo-a10: #0068ffe1;
+  --indigo-a11: #83b7ff;
+  --indigo-a12: #cfe3ff;
+
+  --indigo-contrast: #fff;
+  --indigo-surface: #0c1f3d80;
+  --indigo-indicator: #176df3;
+  --indigo-track: #176df3;
+}
+
+@supports (color: color(display-p3 1 1 1)) {
+  @media (color-gamut: p3) {
+    .dark,
+    .dark-theme {
+      --indigo-1: oklch(17.8% 0.0279 260.1);
+      --indigo-2: oklch(20.7% 0.0341 260.1);
+      --indigo-3: oklch(27.1% 0.0783 260.1);
+      --indigo-4: oklch(31.8% 0.1053 260.1);
+      --indigo-5: oklch(36.1% 0.118 260.1);
+      --indigo-6: oklch(40.4% 0.1249 260.1);
+      --indigo-7: oklch(45% 0.1358 260.1);
+      --indigo-8: oklch(50.3% 0.155 260.1);
+      --indigo-9: oklch(56.9% 0.2159 260.1);
+      --indigo-10: oklch(52.5% 0.2159 260.1);
+      --indigo-11: oklch(77.7% 0.1393 260.1);
+      --indigo-12: oklch(91.1% 0.0483 260.1);
+
+      --indigo-a1: color(display-p3 0 0.0667 0.9882 / 0.047);
+      --indigo-a2: color(display-p3 0.0235 0.3765 0.9922 / 0.089);
+      --indigo-a3: color(display-p3 0.1176 0.3843 1 / 0.236);
+      --indigo-a4: color(display-p3 0.1373 0.4 1 / 0.345);
+      --indigo-a5: color(display-p3 0.1882 0.4353 1 / 0.425);
+      --indigo-a6: color(display-p3 0.2314 0.4706 1 / 0.492);
+      --indigo-a7: color(display-p3 0.2745 0.5059 1 / 0.576);
+      --indigo-a8: color(display-p3 0.2902 0.5137 1 / 0.69);
+      --indigo-a9: color(display-p3 0.2196 0.4549 1 / 0.916);
+      --indigo-a10: color(display-p3 0.1647 0.4118 1 / 0.849);
+      --indigo-a11: color(display-p3 0.5725 0.7333 1 / 0.975);
+      --indigo-a12: color(display-p3 0.8392 0.898 1 / 0.988);
+
+      --indigo-contrast: #fff;
+      --indigo-surface: color(display-p3 0.0588 0.1098 0.2275 / 0.5);
+      --indigo-indicator: oklch(56.9% 0.2159 260.1);
+      --indigo-track: oklch(56.9% 0.2159 260.1);
+    }
+  }
+}
