@@ -75,48 +75,13 @@ import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";
 import { useSendTestSMSMutation } from "./mutations/sendTestSMS";
 import { useCheckDenoHookMutation } from "./mutations/checkDenoHook";
 import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
-import {
-  ErrorParseRule,
-  makeLocalErrorParseRule,
-  makeReasonErrorParseRule,
-} from "../../error/parse";
-import { APIError, APISMSGatewayError, LocalError } from "../../error/error";
+import { ErrorParseRule, makeLocalErrorParseRule } from "../../error/parse";
+import { APIError, LocalError } from "../../error/error";
 import { ReauthDialog } from "../../components/common/ReauthDialog";
 import { TestSMSDialog } from "../../components/sms-provider/TestSMSDialog";
 import Tooltip from "../../Tooltip";
 
 const SECRETS = [AppSecretKey.SmsProviderSecrets, AppSecretKey.WebhookSecret];
-
-const ERROR_RULES: ErrorParseRule[] = [
-  makeReasonErrorParseRule(
-    "SMSGatewayInvalidPhoneNumber",
-    "SMSProviderConfigurationScreen.errors.gateway-invalid-phone-number-error",
-    (err) => ({
-      code: (err as APISMSGatewayError).info.ProviderErrorCode,
-    })
-  ),
-  makeReasonErrorParseRule(
-    "SMSGatewayAuthenticationFailed",
-    "SMSProviderConfigurationScreen.errors.gateway-authentication-failed-error",
-    (err) => ({
-      code: (err as APISMSGatewayError).info.ProviderErrorCode,
-    })
-  ),
-  makeReasonErrorParseRule(
-    "SMSGatewayDeliveryRejected",
-    "SMSProviderConfigurationScreen.errors.gateway-delivery-rejected-error",
-    (err) => ({
-      code: (err as APISMSGatewayError).info.ProviderErrorCode,
-    })
-  ),
-  makeReasonErrorParseRule(
-    "SMSGatewayRateLimited",
-    "SMSProviderConfigurationScreen.errors.gateway-rate-limited-error",
-    (err) => ({
-      code: (err as APISMSGatewayError).info.ProviderErrorCode,
-    })
-  ),
-];
 
 interface LocationState {
   isRevealSecrets: boolean;
@@ -846,7 +811,6 @@ function SMSProviderConfigurationScreen1({
       localError={
         checkDenoHookHandle.error ?? sendTestSMSHandle.error ?? localError
       }
-      errorRules={ERROR_RULES}
     >
       <SMSProviderConfigurationContent
         form={form}

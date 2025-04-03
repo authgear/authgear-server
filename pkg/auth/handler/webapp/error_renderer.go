@@ -17,6 +17,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms/smsapi"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
+	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
@@ -28,7 +29,14 @@ type ErrorRendererAuthflowV2Navigator interface {
 	NavigateNonRecoverableError(r *http.Request, u *url.URL, e error)
 }
 
+type ErrorRendererLogger struct{ *log.Logger }
+
+func NewErrorRendererLogger(lf *log.Factory) ErrorRendererLogger {
+	return ErrorRendererLogger{lf.New("error_renderer")}
+}
+
 type ErrorRenderer struct {
+	Logger                  ErrorRendererLogger
 	ErrorService            *webapp.ErrorService
 	UIImplementationService ErrorRendererUIImplementationService
 	Renderer                Renderer
@@ -119,6 +127,10 @@ func (s *ErrorRenderer) makeNonRecoverableResult(ctx context.Context, u url.URL,
 
 func (s *ErrorRenderer) MakeAuthflowErrorResult(ctx context.Context, w http.ResponseWriter, r *http.Request, u url.URL, err error) httputil.Result {
 	apierror := apierrors.AsAPIError(err)
+
+	if apierrors.IsKind(apierror, apierrors.UnexpectedError) {
+		s.Logger.WithError(err).Error("unexpected error")
+	}
 
 	recoverable := func() *webapp.Result {
 		cookie, err := s.ErrorService.SetRecoverableError(ctx, r, apierror)
