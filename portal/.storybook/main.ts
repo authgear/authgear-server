@@ -16,6 +16,7 @@ const config: StorybookConfig = {
     getAbsolutePath("@storybook/addon-onboarding"),
     getAbsolutePath("@chromatic-com/storybook"),
     getAbsolutePath("@storybook/experimental-addon-test"),
+    getAbsolutePath("storybook-addon-pseudo-states"),
   ],
   framework: {
     name: getAbsolutePath("@storybook/react-vite"),
