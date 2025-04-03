@@ -23,8 +23,8 @@ func GenerateAccountRecoveryFlowConfig(cfg *config.AppConfig) *config.Authentica
 	oneOfs := []*config.AuthenticationFlowAccountRecoveryFlowOneOf{}
 	if hasEmail {
 		oneOfs = append(oneOfs, &config.AuthenticationFlowAccountRecoveryFlowOneOf{
-			Identification: config.AuthenticationFlowAccountRecoveryIdentificationEmail,
-			OnFailure:      config.AuthenticationFlowAccountRecoveryIdentificationOnFailureIgnore,
+			Identification:      config.AuthenticationFlowAccountRecoveryIdentificationEmail,
+			OnFailure_WriteOnly: config.AuthenticationFlowAccountRecoveryIdentificationOnFailureIgnore,
 			Steps: []*config.AuthenticationFlowAccountRecoveryFlowStep{
 				{
 					Type:            config.AuthenticationFlowAccountRecoveryFlowTypeSelectDestination,
@@ -35,8 +35,8 @@ func GenerateAccountRecoveryFlowConfig(cfg *config.AppConfig) *config.Authentica
 	}
 	if hasPhone {
 		oneOfs = append(oneOfs, &config.AuthenticationFlowAccountRecoveryFlowOneOf{
-			Identification: config.AuthenticationFlowAccountRecoveryIdentificationPhone,
-			OnFailure:      config.AuthenticationFlowAccountRecoveryIdentificationOnFailureIgnore,
+			Identification:      config.AuthenticationFlowAccountRecoveryIdentificationPhone,
+			OnFailure_WriteOnly: config.AuthenticationFlowAccountRecoveryIdentificationOnFailureIgnore,
 			Steps: []*config.AuthenticationFlowAccountRecoveryFlowStep{
 				{
 					Type:            config.AuthenticationFlowAccountRecoveryFlowTypeSelectDestination,

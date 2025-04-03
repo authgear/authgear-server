@@ -1454,10 +1454,17 @@ const (
 )
 
 type AuthenticationFlowAccountRecoveryFlowOneOf struct {
-	Identification AuthenticationFlowAccountRecoveryIdentification          `json:"identification,omitempty"`
-	BotProtection  *AuthenticationFlowBotProtection                         `json:"bot_protection,omitempty" nullable:"true"`
-	OnFailure      AuthenticationFlowAccountRecoveryIdentificationOnFailure `json:"on_failure,omitempty"`
-	Steps          []*AuthenticationFlowAccountRecoveryFlowStep             `json:"steps,omitempty"`
+	Identification      AuthenticationFlowAccountRecoveryIdentification          `json:"identification,omitempty"`
+	BotProtection       *AuthenticationFlowBotProtection                         `json:"bot_protection,omitempty" nullable:"true"`
+	OnFailure_WriteOnly AuthenticationFlowAccountRecoveryIdentificationOnFailure `json:"on_failure,omitempty"`
+	Steps               []*AuthenticationFlowAccountRecoveryFlowStep             `json:"steps,omitempty"`
+}
+
+func (o *AuthenticationFlowAccountRecoveryFlowOneOf) GetOnFailure() AuthenticationFlowAccountRecoveryIdentificationOnFailure {
+	if o.OnFailure_WriteOnly != "" {
+		return o.OnFailure_WriteOnly
+	}
+	return AuthenticationFlowAccountRecoveryIdentificationOnFailureIgnore
 }
 
 var (
