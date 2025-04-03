@@ -25,5 +25,6 @@ export const Dark: Story = {
     darkMode: true,
     size: "4",
     highContrast: true,
+    disabled: false,
   },
 };
