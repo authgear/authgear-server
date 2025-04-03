@@ -11,7 +11,6 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms/smsapi"
@@ -112,7 +111,7 @@ func (w *SMSWebHook) Call(ctx context.Context, u *url.URL, payload SendOptions) 
 		}
 	}
 
-	return handleResponse(responseBody, dumpedResponse)
+	return handleResponse("webhook", responseBody, dumpedResponse)
 }
 
 func NewSMSDenoHookForTest(lf *log.Factory, denoEndpoint config.DenoEndpoint, smsCfg *config.CustomSMSProviderConfig) *SMSDenoHook {
@@ -176,7 +175,7 @@ func (d *SMSDenoHook) handleOutput(output interface{}) error {
 		})
 	}
 
-	return handleResponse(responseBody, jsonText)
+	return handleResponse("denohook", responseBody, jsonText)
 }
 
 type CustomClient struct {
@@ -224,40 +223,31 @@ func (c *CustomClient) Send(ctx context.Context, opts smsapi.SendOptions) error 
 	}
 }
 
-func handleResponse(responseBody *ResponseBody, dumpedResponse []byte) error {
+func handleResponse(gatewayType string, responseBody *ResponseBody, dumpedResponse []byte) error {
+
 	err := &smsapi.SendError{
 		DumpedResponse: dumpedResponse,
 	}
-
-	errorDetail := func() apierrors.Details {
-		d := apierrors.Details{}
-		if responseBody.ProviderName != "" {
-			d["ProviderName"] = responseBody.ProviderName
-		} else {
-			d["ProviderName"] = "webhook"
-		}
-		if responseBody.ProviderErrorCode != "" {
-			d["ProviderErrorCode"] = responseBody.ProviderErrorCode
-		}
-		return d
+	if responseBody.ProviderName != "" {
+		err.ProviderName = responseBody.ProviderName
+	} else {
+		err.ProviderName = gatewayType
+	}
+	if responseBody.ProviderErrorCode != "" {
+		err.ProviderErrorCode = responseBody.ProviderErrorCode
 	}
 
 	switch responseBody.Code {
 	case "ok":
 		return nil
 	case "invalid_phone_number":
-		return errors.Join(smsapi.ErrKindInvalidPhoneNumber.NewWithInfo(
-			"phone number rejected by sms gateway", errorDetail()), err)
+		err.APIErrorKind = &smsapi.ErrKindInvalidPhoneNumber
 	case "rate_limited":
-		return errors.Join(smsapi.ErrKindRateLimited.NewWithInfo(
-			"sms gateway rate limited", errorDetail()), err)
+		err.APIErrorKind = &smsapi.ErrKindRateLimited
 	case "authentication_failed":
-		return errors.Join(smsapi.ErrKindAuthenticationFailed.NewWithInfo(
-			"sms gateway authentication failed", errorDetail()), err)
+		err.APIErrorKind = &smsapi.ErrKindAuthenticationFailed
 	case "delivery_rejected":
-		return errors.Join(smsapi.ErrKindDeliveryRejected.NewWithInfo(
-			"sms gateway delievery rejected", errorDetail()), err)
-	default:
-		return err
+		err.APIErrorKind = &smsapi.ErrKindDeliveryRejected
 	}
+	return err
 }

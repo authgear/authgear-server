@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httputil"
@@ -11,7 +12,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms/smsapi"
 	utilhttputil "github.com/authgear/authgear-server/pkg/util/httputil"
@@ -146,13 +146,10 @@ func (t *TwilioClient) makeError(
 	errorCode int,
 	dumpedResponse []byte,
 ) error {
-	var err error = &smsapi.SendError{
-		DumpedResponse: dumpedResponse,
-	}
-
-	details := apierrors.Details{
-		"ProviderErrorCode": errorCode,
-		"ProviderName":      "twilio",
+	err := &smsapi.SendError{
+		DumpedResponse:    dumpedResponse,
+		ProviderName:      "twilio",
+		ProviderErrorCode: fmt.Sprintf("%d", errorCode),
 	}
 
 	// See https://www.twilio.com/docs/api/errors
@@ -160,8 +157,7 @@ func (t *TwilioClient) makeError(
 	case 21211: // Invalid 'To' Phone Number
 		fallthrough
 	case 21265: // 'To' number cannot be a Short Code
-		err = errors.Join(smsapi.ErrKindInvalidPhoneNumber.NewWithInfo(
-			"phone number rejected by twilio", details), err)
+		err.APIErrorKind = &smsapi.ErrKindInvalidPhoneNumber
 	case 30022:
 		fallthrough
 	case 14107:
@@ -171,11 +167,9 @@ func (t *TwilioClient) makeError(
 	case 63017:
 		fallthrough
 	case 63018:
-		err = errors.Join(smsapi.ErrKindRateLimited.NewWithInfo(
-			"twilio rate limited", details), err)
+		err.APIErrorKind = &smsapi.ErrKindRateLimited
 	case 20003:
-		err = errors.Join(smsapi.ErrKindAuthenticationFailed.NewWithInfo(
-			"twilio authentication failed", details), err)
+		err.APIErrorKind = &smsapi.ErrKindAuthenticationFailed
 	case 30002: // Account suspended
 		fallthrough
 	case 21264: // ‘From’ phone number not verified
@@ -197,8 +191,7 @@ func (t *TwilioClient) makeError(
 	case 21910: // Invalid 'From' and 'To' pair. 'From' and 'To' should be of the same channel
 		fallthrough
 	case 63007: // Twilio could not find a Channel with the specified 'From' address
-		err = errors.Join(smsapi.ErrKindDeliveryRejected.NewWithInfo(
-			"twilio delievry rejected", details), err)
+		err.APIErrorKind = &smsapi.ErrKindDeliveryRejected
 	}
 
 	return err

@@ -9,8 +9,12 @@ import { PortalAPIAppConfig } from "../../types";
 import { useSendTestSMSMutation } from "../../graphql/portal/mutations/sendTestSMS";
 import { useCalloutToast } from "../v2/Callout/Callout";
 import { FormProvider, useFormTopErrors } from "../../form";
-import { ErrorParseRule, makeReasonErrorParseRule } from "../../error/parse";
-import { APISMSGatewayError } from "../../error/error";
+import {
+  ErrorParseRule,
+  ErrorParseRuleResult,
+  makeReasonErrorParseRule,
+} from "../../error/parse";
+import { APIError, APISMSGatewayError } from "../../error/error";
 
 const topErrorRules: ErrorParseRule[] = [
   makeReasonErrorParseRule(
@@ -34,6 +38,21 @@ const topErrorRules: ErrorParseRule[] = [
       code: (err as APISMSGatewayError).info.ProviderErrorCode,
     })
   ),
+  (apiError: APIError): ErrorParseRuleResult => {
+    return {
+      parsedAPIErrors: [
+        {
+          messageID: "TestSMSDialog.errors.unknown-error",
+          arguments: {
+            code:
+              (apiError as Partial<APISMSGatewayError> | null)?.info
+                ?.ProviderErrorCode ?? "-",
+          },
+        },
+      ],
+      fullyHandled: true,
+    };
+  },
 ];
 
 const phoneFieldErrorRules: ErrorParseRule[] = [

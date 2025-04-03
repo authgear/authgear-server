@@ -96,7 +96,7 @@ func (e *APIError) CloneWithInfo(info Details) *APIError {
 }
 
 // NewWithInfo wraps all value in info with APIErrorDetail, making them appear in the response.
-func (k Kind) NewWithInfo(msg string, info Details) error {
+func (k Kind) NewWithInfo(msg string, info Details) *APIError {
 	d := Details{}
 	for k, v := range info {
 		d[k] = APIErrorDetail.Value(v)
