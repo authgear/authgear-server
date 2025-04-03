@@ -145,7 +145,7 @@ func (i *IntentAccountRecoveryFlowStepIdentify) ReactTo(ctx context.Context, dep
 				return authflow.NewSubFlow(&IntentUseAccountRecoveryIdentity{
 					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
 					Identification: identification,
-					OnFailure:      branch.OnFailure,
+					OnFailure:      branch.GetOnFailure(),
 				}), nil
 			}
 		}
