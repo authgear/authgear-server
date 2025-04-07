@@ -60,7 +60,7 @@ export function StepIcon({
         darkMode ? "dark" : null
       )}
     >
-      {checked ? <CheckIcon width="21px" height="21px" /> : text}
+      {checked ? <CheckIcon className={styles.stepIcon__checkIcon} /> : text}
     </div>
   );
 }

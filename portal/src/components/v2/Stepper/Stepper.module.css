@@ -15,6 +15,10 @@
   opacity: initial;
 }
 
+.stepIcon__checkIcon {
+  @apply w-5 h-5;
+}
+
 :global(.dark).stepIcon,
 :global(.dark) .stepIcon {
   color: var(--accent-9);
