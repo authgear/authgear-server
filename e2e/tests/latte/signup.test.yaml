@@ -1,0 +1,123 @@
+name: latte/signup
+authgear.yaml:
+  extend: ./authgear.yaml
+steps:
+- action: create
+  input: |
+    {
+      "type": "signup_login",
+      "name": "default"
+    }
+  output:
+    result: |
+      {
+        "state_token": "[[string]]",
+        "type": "signup_login",
+        "name": "default",
+        "action": {
+          "type": "identify",
+          "data": {
+            "type": "identification_data",
+            "options": [
+              {
+                "identification": "phone"
+              }
+            ]
+          }
+        }
+      }
+- action: input
+  input: |
+    {
+      "identification": "phone",
+      "login_id": "+85251000000"
+    }
+  output:
+    result: |
+      {
+        "state_token": "[[string]]",
+        "type": "signup",
+        "name": "default",
+        "action": {
+          "type": "verify",
+          "data": {
+            "type": "verify_oob_otp_data",
+            "channel": "sms",
+            "code_length": 6,
+            "otp_form": "code"
+          }
+        }
+      }
+- action: input
+  input: |
+    {
+      "code": "111111",
+      "authentication": "primary_oob_otp_sms"
+    }
+  output:
+    result: |
+      {
+        "state_token": "[[string]]",
+        "type": "signup",
+        "name": "default",
+        "action": {
+          "type": "identify",
+          "data": {
+            "type": "identification_data",
+            "options": [
+              {
+                "identification": "email"
+              }
+            ]
+          }
+        }
+      }
+- action: input
+  input: |
+    {
+      "identification": "email",
+      "login_id": "user@example.com",
+      "authentication": "primary_oob_otp_email"
+    }
+  output:
+    result: |
+      {
+        "state_token": "[[string]]",
+        "type": "signup",
+        "name": "default",
+        "action": {
+          "type": "create_authenticator",
+          "data": {
+            "type": "create_authenticator_data",
+            "options": [
+              {
+                "authentication": "primary_password",
+                "password_policy": {
+                  "alphabet_required": true,
+                  "digit_required": true,
+                  "history": {
+                    "enabled": false
+                  },
+                  "minimum_length": 8
+                }
+              }
+            ]
+          }
+        }
+      }
+- action: input
+  input: |
+    {
+      "authentication": "primary_password",
+      "new_password": "a12345678"
+    }
+  output:
+    result: |
+      {
+        "state_token": "[[string]]",
+        "type": "signup",
+        "name": "default",
+        "action": {
+          "type": "finished"
+        }
+      }

@@ -1,0 +1,184 @@
+http:
+  public_origin: http://app.authgeare2e.localhost:4000
+id: accounts
+test_mode:
+  sms:
+    enabled: true
+    rules:
+    - regex: .*
+      suppressed: true
+  oob_otp:
+    enabled: true
+    rules:
+    - fixed_code: "111111"
+      regex: .*
+authentication:
+  identities:
+  - login_id
+  lockout:
+    backoff_factor: 1
+    history_duration: 10m
+    lockout_type: per_user
+    max_attempts: 10
+    maximum_duration: 5m
+    minimum_duration: 5m
+    password:
+      enabled: true
+  primary_authenticators:
+  - oob_otp_sms
+  - oob_otp_email
+  - password
+  recovery_code:
+    disabled: true
+  secondary_authentication_mode: disabled
+authentication_flow:
+  signup_flows:
+  - name: default
+    steps:
+    - type: identify
+      name: phone
+      one_of:
+      - identification: phone
+    - type: verify
+      target_step: phone
+    - type: create_authenticator
+      one_of:
+      - authentication: primary_oob_otp_sms
+        target_step: phone
+    - type: identify
+      name: email
+      one_of:
+      - identification: email
+    - type: create_authenticator
+      one_of:
+      - authentication: primary_oob_otp_email
+        target_step: email
+        verification_required: false
+    - type: create_authenticator
+      one_of:
+      - authentication: primary_password
+  login_flows:
+  - name: default
+    steps:
+    - type: identify
+      name: phone
+      one_of:
+      - identification: phone
+    - type: authenticate
+      one_of:
+      - authentication: primary_oob_otp_sms
+        target_step: phone
+    - type: check_account_status
+    - type: authenticate
+      one_of:
+      - authentication: primary_password
+      - authentication: primary_oob_otp_email
+  signup_login_flows:
+  - name: default
+    steps:
+    - type: identify
+      one_of:
+      - identification: phone
+        signup_flow: default
+        login_flow: default
+  account_recovery_flows:
+  - name: default
+    steps:
+    - type: identify
+      one_of:
+      - identification: phone
+        on_failure: ignore
+        steps:
+        - type: select_destination
+          enumerate_destinations: true
+          allowed_channels:
+          - channel: email
+            otp_form: link
+        - type: verify_account_recovery_code
+        - type: reset_password
+authenticator:
+  oob_otp:
+    email:
+      email_otp_mode: login_link
+      maximum: 99
+      valid_periods:
+        code: 300s
+        link: 1200s
+    sms:
+      maximum: 99
+      phone_otp_mode: sms
+      valid_periods:
+        code: 300s
+        link: 1200s
+  password:
+    force_change: true
+    policy:
+      alphabet_required: true
+      digit_required: true
+      excluded_keywords: []
+      history_days: 0
+      history_size: 0
+      lowercase_required: false
+      min_length: 8
+      minimum_guessable_level: 0
+      symbol_required: false
+      uppercase_required: false
+forgot_password:
+  code_valid_period: 1200s
+  enabled: true
+  valid_periods:
+    code: 300s
+    link: 1200s
+identity:
+  login_id:
+    keys:
+    - create_disabled: true
+      delete_disabled: true
+      key: phone
+      max_length: 40
+      type: phone
+      update_disabled: true
+    - create_disabled: false
+      delete_disabled: false
+      key: email
+      max_length: 320
+      type: email
+      update_disabled: false
+    types:
+      email:
+        block_free_email_provider_domains: false
+        block_plus_sign: false
+        case_sensitive: false
+        domain_allowlist_enabled: false
+        domain_blocklist_enabled: false
+        ignore_dot_sign: false
+      username:
+        ascii_only: true
+        block_reserved_usernames: true
+        case_sensitive: false
+        exclude_keywords_enabled: false
+verification:
+  claims:
+    email:
+      enabled: true
+      required: false
+    phone_number:
+      enabled: true
+      required: true
+  code_valid_period: 300s
+  criteria: any
+  rate_limits:
+    email:
+      max_failed_attempts_revoke_otp: 5
+      trigger_cooldown: 5s
+      trigger_per_ip:
+        burst: 120
+        enabled: true
+        period: 1m
+      trigger_per_user:
+        burst: 10
+        enabled: true
+        period: 24h
+    sms:
+      max_failed_attempts_revoke_otp: 5
+      trigger_cooldown: 5s

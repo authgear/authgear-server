@@ -1,0 +1,128 @@
+name: latte/login
+authgear.yaml:
+  extend: ./authgear.yaml
+before:
+- type: custom_sql
+  custom_sql:
+    path: ./user.sql
+steps:
+- action: create
+  input: |
+    {
+      "type": "signup_login",
+      "name": "default"
+    }
+  output:
+    result: |
+      {
+        "state_token": "[[string]]",
+        "type": "signup_login",
+        "name": "default",
+        "action": {
+          "type": "identify",
+          "data": {
+            "type": "identification_data",
+            "options": [
+              {
+                "identification": "phone"
+              }
+            ]
+          }
+        }
+      }
+- action: input
+  input: |
+    {
+      "identification": "phone",
+      "login_id": "+85251000000"
+    }
+  output:
+    result: |
+      {
+        "state_token": "[[string]]",
+        "type": "login",
+        "name": "default",
+        "action": {
+          "type": "authenticate",
+          "data": {
+            "type": "authentication_data",
+            "options": [
+              {
+                "authentication": "primary_oob_otp_sms",
+                "channels": ["sms"],
+                "masked_display_name": "+8525100****",
+                "otp_form": "code"
+              }
+            ]
+          }
+        }
+      }
+- action: input
+  input: |
+    {
+      "authentication": "primary_oob_otp_sms",
+      "index": 0
+    }
+  output:
+    result: |
+      {
+        "state_token": "[[string]]",
+        "type": "login",
+        "name": "default",
+        "action": {
+          "type": "authenticate",
+          "authentication": "primary_oob_otp_sms",
+          "data": {
+            "type": "verify_oob_otp_data",
+            "channel": "sms",
+            "code_length": 6,
+            "otp_form": "code",
+            "masked_claim_value": "+8525100****"
+          }
+        }
+      }
+- action: input
+  input: |
+    {
+      "code": "111111"
+    }
+  output:
+    result: |
+      {
+        "state_token": "[[string]]",
+        "type": "login",
+        "name": "default",
+        "action": {
+          "type": "authenticate",
+          "data": {
+            "type": "authentication_data",
+            "options": [
+              {
+                "authentication": "primary_password"
+              },
+              {
+                "authentication": "primary_oob_otp_email",
+                "channels": ["email"],
+                "masked_display_name": "us**@example.com",
+                "otp_form": "link"
+              }
+            ]
+          }
+        }
+      }
+- action: input
+  input: |
+    {
+      "authentication": "primary_password",
+      "password": "a12345678"
+    }
+  output:
+    result: |
+      {
+        "state_token": "[[string]]",
+        "type": "login",
+        "name": "default",
+        "action": {
+          "type": "finished"
+        }
+      }

@@ -205,6 +205,7 @@ var _ = Schema.Add("AuthenticationFlowSignupFlowAuthenticate", `
 		},
 		"bot_protection": { "$ref": "#/$defs/AuthenticationFlowBotProtection" },
 		"target_step": { "$ref": "#/$defs/AuthenticationFlowObjectName" },
+		"verification_required": { "type": "boolean" },
 		"steps": {
 			"type": "array",
 			"items": { "$ref": "#/$defs/AuthenticationFlowSignupFlowStep" }
