@@ -579,5 +579,70 @@ steps:
       type: create_authenticator
   type: identify
 `)
+
+		// verification=false, email, otp
+		// The OTP authenticator still requires verification.
+		test(`
+authentication:
+  identities:
+  - login_id
+  primary_authenticators:
+  - oob_otp_email
+identity:
+  login_id:
+    keys:
+    - type: email
+verification:
+  claims:
+    email:
+      enabled: true
+      required: false
+`, `
+name: default
+steps:
+- name: signup_identify
+  type: identify
+  one_of:
+  - identification: email
+    steps:
+    - name: authenticate_primary_email
+      type: create_authenticator
+      one_of:
+      - authentication: primary_oob_otp_email
+        target_step: signup_identify
+`)
+
+		// verification=false, phone, otp
+		// The OTP authenticator still requires verification.
+		test(`
+authentication:
+  identities:
+  - login_id
+  primary_authenticators:
+  - oob_otp_sms
+identity:
+  login_id:
+    keys:
+    - type: phone
+verification:
+  claims:
+    phone_number:
+      enabled: true
+      required: false
+`, `
+name: default
+steps:
+- name: signup_identify
+  type: identify
+  one_of:
+  - identification: phone
+    steps:
+    - name: authenticate_primary_phone
+      type: create_authenticator
+      one_of:
+      - authentication: primary_oob_otp_sms
+        target_step: signup_identify
+`)
+
 	})
 }
