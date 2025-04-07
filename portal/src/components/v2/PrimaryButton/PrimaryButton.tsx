@@ -7,6 +7,7 @@ export interface PrimaryButtonProps {
   size: "1" | "2" | "3" | "4";
   highContrast: boolean;
   disabled?: boolean;
+  loading?: boolean;
   text?: React.ReactNode;
 }
 
@@ -15,6 +16,7 @@ export function PrimaryButton({
   size,
   highContrast,
   disabled,
+  loading,
   text,
 }: PrimaryButtonProps): React.ReactElement {
   return (
@@ -25,6 +27,7 @@ export function PrimaryButton({
       highContrast={highContrast}
       disabled={disabled}
       color="indigo"
+      loading={loading}
     >
       {text}
     </Button>

@@ -27,6 +27,7 @@ export interface TextButtonProps {
   size: "1" | "2" | "3" | "4";
   darkMode?: boolean;
   disabled?: boolean;
+  loading?: boolean;
   text?: React.ReactNode;
   iconStart?: React.ReactNode;
 }
@@ -36,6 +37,7 @@ export function TextButton({
   size,
   darkMode,
   disabled,
+  loading,
   text,
   iconStart,
 }: TextButtonProps): React.ReactElement {
@@ -47,6 +49,7 @@ export function TextButton({
       highContrast={varientToHighContrast(variant)}
       disabled={disabled}
       color={varientToColor(variant)}
+      loading={loading}
     >
       {iconStart}
       {text}
