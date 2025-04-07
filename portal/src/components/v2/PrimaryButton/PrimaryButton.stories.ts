@@ -20,11 +20,24 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
+export const Default: Story = {
+  args: {
+    size: "2",
+    highContrast: false,
+    disabled: false,
+  },
+};
+
 export const Dark: Story = {
   args: {
     darkMode: true,
-    size: "4",
+    size: "2",
     highContrast: true,
     disabled: false,
+  },
+  parameters: {
+    backgrounds: {
+      default: "dark",
+    },
   },
 };
