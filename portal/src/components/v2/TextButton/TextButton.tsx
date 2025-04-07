@@ -24,6 +24,7 @@ function varientToHighContrast(type: TextButtonVariant): boolean {
 
 export interface TextButtonProps {
   varient: TextButtonVariant;
+  size: "1" | "2" | "3" | "4";
   darkMode?: boolean;
   disabled?: boolean;
   text?: React.ReactNode;
@@ -32,6 +33,7 @@ export interface TextButtonProps {
 
 export function TextButton({
   varient: variant,
+  size,
   darkMode,
   disabled,
   text,
@@ -40,7 +42,7 @@ export function TextButton({
   return (
     <Button
       className={cn(darkMode ? "dark" : null)}
-      size={"4"}
+      size={size}
       variant="ghost"
       highContrast={varientToHighContrast(variant)}
       disabled={disabled}

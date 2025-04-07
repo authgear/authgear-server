@@ -16,6 +16,7 @@ const meta = {
   },
   args: {
     text: "Click Me",
+    size: "2",
   },
 } satisfies Meta<typeof TextButton>;
 
@@ -49,6 +50,7 @@ export const DarkSecondaryBack: Story = {
     darkMode: true,
     disabled: false,
     iconStart: <ArrowLeftIcon width={20} height={20} />,
+    text: "Back",
   },
   parameters: {
     backgrounds: {
