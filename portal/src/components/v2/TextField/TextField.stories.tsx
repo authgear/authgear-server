@@ -1,6 +1,7 @@
 import React from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import { TextField } from "./TextField";
+import { InfoCircledIcon, MagnifyingGlassIcon } from "@radix-ui/react-icons";
 
 // More on how to set up stories at: https://storybook.js.org/docs/writing-stories#default-export
 const meta = {
@@ -48,5 +49,12 @@ export const Dark: Story = {
 export const Error: Story = {
   args: {
     error: "This field is required",
+  },
+};
+
+export const IconsStartEnd: Story = {
+  args: {
+    iconStart: <MagnifyingGlassIcon height="16" width="16" />,
+    iconEnd: <InfoCircledIcon height="16" width="16" />,
   },
 };

@@ -22,6 +22,8 @@ export interface TextFieldProps {
   readOnly?: boolean;
   placeholder?: string;
   error?: React.ReactNode;
+  iconStart?: React.ReactNode;
+  iconEnd?: React.ReactNode;
 }
 
 export function TextField({
@@ -32,6 +34,8 @@ export function TextField({
   readOnly,
   placeholder,
   error,
+  iconStart,
+  iconEnd,
 }: TextFieldProps): React.ReactElement {
   return (
     <label className={cn(styles.textField, darkMode ? "dark" : null)}>
@@ -47,7 +51,14 @@ export function TextField({
         placeholder={placeholder}
         disabled={disabled}
         readOnly={readOnly}
-      />
+      >
+        <RadixTextField.Slot>
+          {iconStart != null ? iconStart : null}
+        </RadixTextField.Slot>
+        <RadixTextField.Slot>
+          {iconEnd != null ? iconEnd : null}
+        </RadixTextField.Slot>
+      </RadixTextField.Root>
       {error != null ? (
         <p className={styles.textField__errorMessage}>{error}</p>
       ) : null}
