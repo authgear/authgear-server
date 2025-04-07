@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httputil"
@@ -11,7 +12,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms/smsapi"
 	utilhttputil "github.com/authgear/authgear-server/pkg/util/httputil"
@@ -146,20 +146,18 @@ func (t *TwilioClient) makeError(
 	errorCode int,
 	dumpedResponse []byte,
 ) error {
-	var err error = &smsapi.SendError{
-		DumpedResponse: dumpedResponse,
-	}
-
-	details := apierrors.Details{
-		"ProviderErrorCode": errorCode,
-		"ProviderName":      "twilio",
+	err := &smsapi.SendError{
+		DumpedResponse:    dumpedResponse,
+		ProviderName:      "twilio",
+		ProviderErrorCode: fmt.Sprintf("%d", errorCode),
 	}
 
 	// See https://www.twilio.com/docs/api/errors
 	switch errorCode {
-	case 21211:
-		err = errors.Join(smsapi.ErrKindInvalidPhoneNumber.NewWithInfo(
-			"phone number rejected by twilio", details), err)
+	case 21211: // Invalid 'To' Phone Number
+		fallthrough
+	case 21265: // 'To' number cannot be a Short Code
+		err.APIErrorKind = &smsapi.ErrKindInvalidPhoneNumber
 	case 30022:
 		fallthrough
 	case 14107:
@@ -169,14 +167,31 @@ func (t *TwilioClient) makeError(
 	case 63017:
 		fallthrough
 	case 63018:
-		err = errors.Join(smsapi.ErrKindRateLimited.NewWithInfo(
-			"twilio rate limited", details), err)
+		err.APIErrorKind = &smsapi.ErrKindRateLimited
 	case 20003:
-		err = errors.Join(smsapi.ErrKindAuthenticationFailed.NewWithInfo(
-			"twilio authentication failed", details), err)
-	case 30002:
-		err = errors.Join(smsapi.ErrKindDeliveryRejected.NewWithInfo(
-			"twilio delievry rejected", details), err)
+		err.APIErrorKind = &smsapi.ErrKindAuthenticationFailed
+	case 30002: // Account suspended
+		fallthrough
+	case 21264: // ‘From’ phone number not verified
+		fallthrough
+	case 21266: // 'To' and 'From' numbers cannot be the same
+		fallthrough
+	case 21267: // Alphanumeric Sender ID cannot be used as the 'From' number on trial accounts
+		fallthrough
+	case 21606: // The 'From' phone number provided is not a valid message-capable Twilio phone number for this destination/account
+		fallthrough
+	case 21607: // The 'from' phone number must be the sandbox phone number for trial accounts.
+		fallthrough
+	case 21659: // 'From' is not a Twilio phone number or Short Code country mismatch
+		fallthrough
+	case 21660: // Mismatch between the 'From' number and the account
+		fallthrough
+	case 21661: // 'From' number is not SMS-capable
+		fallthrough
+	case 21910: // Invalid 'From' and 'To' pair. 'From' and 'To' should be of the same channel
+		fallthrough
+	case 63007: // Twilio could not find a Channel with the specified 'From' address
+		err.APIErrorKind = &smsapi.ErrKindDeliveryRejected
 	}
 
 	return err

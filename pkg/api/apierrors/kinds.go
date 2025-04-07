@@ -61,3 +61,4 @@ func (n Name) WithReason(reason string) Kind {
 }
 
 var ValidationFailed = Invalid.WithReason("ValidationFailed")
+var UnexpectedError = InternalError.WithReason("UnexpectedError")

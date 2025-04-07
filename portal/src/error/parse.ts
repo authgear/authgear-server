@@ -596,6 +596,11 @@ function parseErrorWithRules(
           topErrors.push(...matchedErrors);
         }
       }
+
+      if (handled) {
+        // The current rule fully handled the error, do not propagate to next rule
+        break;
+      }
     }
 
     if (!handled) {

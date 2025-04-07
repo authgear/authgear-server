@@ -7,6 +7,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
+	"github.com/authgear/authgear-server/pkg/util/errorutil"
 )
 
 var NoAvailableClient = apierrors.InternalError.
@@ -70,9 +71,39 @@ type Client interface {
 
 type SendError struct {
 	DumpedResponse []byte `json:"dumped_response,omitempty"`
+
+	APIErrorKind      *apierrors.Kind `json:"api_error_kind,omitempty"`
+	ProviderName      string          `json:"provider_name,omitempty"`
+	ProviderErrorCode string          `json:"provider_error_code,omitempty"`
 }
 
 func (e *SendError) Error() string {
 	jsonText, _ := json.Marshal(e)
 	return string(jsonText)
+}
+
+func (e *SendError) As(target any) bool {
+	switch target.(type) {
+	case **apierrors.APIError:
+		apierr := e.asAPIError()
+		*target.(**apierrors.APIError) = apierr
+		return true
+	case *errorutil.Detailer:
+		apierr := e.asAPIError()
+		*target.(*errorutil.Detailer) = apierr
+		return true
+	}
+	return false
+}
+
+func (e *SendError) asAPIError() *apierrors.APIError {
+	details := apierrors.Details{
+		"ProviderErrorCode": e.ProviderErrorCode,
+		"ProviderName":      e.ProviderName,
+	}
+	kind := apierrors.UnexpectedError
+	if e.APIErrorKind != nil {
+		kind = *e.APIErrorKind
+	}
+	return kind.NewWithInfo("sms gateway send error", details)
 }
