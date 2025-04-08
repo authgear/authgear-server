@@ -5,7 +5,7 @@ import { Button } from "@radix-ui/themes";
 export interface PrimaryButtonProps {
   darkMode?: boolean;
   size: "1" | "2" | "3" | "4";
-  highContrast: boolean;
+  highContrast?: boolean;
   disabled?: boolean;
   loading?: boolean;
   text?: React.ReactNode;

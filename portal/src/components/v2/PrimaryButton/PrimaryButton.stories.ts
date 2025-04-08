@@ -11,6 +11,10 @@ const meta = {
         type: "text",
       },
     },
+    darkMode: {
+      description:
+        "When highContrast=false, PrimaryButton in darkMode is visually the same as its non-darkMode counterpart. So you won't see any difference by toggling this. See https://www.radix-ui.com/themes/playground#button",
+    },
   },
   args: {
     text: "Start",
@@ -28,7 +32,7 @@ export const Default: Story = {
   },
 };
 
-export const Dark: Story = {
+export const DarkHighContrast: Story = {
   args: {
     darkMode: true,
     size: "2",
