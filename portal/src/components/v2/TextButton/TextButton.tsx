@@ -4,7 +4,7 @@ import { Button } from "@radix-ui/themes";
 
 export type TextButtonVariant = "default" | "secondary";
 
-function varientToColor(type: TextButtonVariant) {
+function variantToColor(type: TextButtonVariant) {
   switch (type) {
     case "default":
       return "indigo";
@@ -13,7 +13,7 @@ function varientToColor(type: TextButtonVariant) {
   }
 }
 
-function varientToHighContrast(type: TextButtonVariant): boolean {
+function variantToHighContrast(type: TextButtonVariant): boolean {
   switch (type) {
     case "default":
       return false;
@@ -23,7 +23,7 @@ function varientToHighContrast(type: TextButtonVariant): boolean {
 }
 
 export interface TextButtonProps {
-  varient: TextButtonVariant;
+  variant: TextButtonVariant;
   size: "1" | "2" | "3" | "4";
   darkMode?: boolean;
   disabled?: boolean;
@@ -33,7 +33,7 @@ export interface TextButtonProps {
 }
 
 export function TextButton({
-  varient: variant,
+  variant,
   size,
   darkMode,
   disabled,
@@ -46,9 +46,9 @@ export function TextButton({
       className={cn(darkMode ? "dark" : null)}
       size={size}
       variant="ghost"
-      highContrast={varientToHighContrast(variant)}
+      highContrast={variantToHighContrast(variant)}
       disabled={disabled}
-      color={varientToColor(variant)}
+      color={variantToColor(variant)}
       loading={loading}
     >
       {iconStart}

@@ -25,7 +25,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   args: {
-    varient: "default",
+    variant: "default",
     darkMode: false,
     disabled: false,
   },
@@ -33,7 +33,7 @@ export const Default: Story = {
 
 export const DarkSecondary: Story = {
   args: {
-    varient: "secondary",
+    variant: "secondary",
     darkMode: true,
     disabled: false,
   },
@@ -46,7 +46,7 @@ export const DarkSecondary: Story = {
 
 export const DarkSecondaryBack: Story = {
   args: {
-    varient: "secondary",
+    variant: "secondary",
     darkMode: true,
     disabled: false,
     iconStart: <ArrowLeftIcon width={20} height={20} />,
