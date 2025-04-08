@@ -1,0 +1,59 @@
+.stepIcon {
+  @apply w-7 h-7;
+  @apply flex items-center justify-center;
+  @apply rounded-full;
+  color: var(--accent-contrast);
+  background-color: var(--accent-9);
+  opacity: 0.3;
+  font-size: var(--font-size-3);
+  font-weight: 600;
+  line-height: var(--line-height-3);
+  letter-spacing: var(--letter-spacing-3);
+}
+
+.stepIcon--active {
+  opacity: initial;
+}
+
+.stepIcon__checkIcon {
+  @apply w-5 h-5;
+}
+
+:global(.dark).stepIcon,
+:global(.dark) .stepIcon {
+  color: var(--accent-9);
+  background-color: var(--accent-contrast);
+}
+
+.stepTrail {
+  @apply h-0.5;
+  @apply relative;
+  background-color: var(--accent-a5);
+}
+
+:global(.dark).stepTrail,
+:global(.dark) .stepTrail {
+  background-color: var(--white-a4);
+}
+
+.stepTrailFilling {
+  @apply absolute top-0 left-0 bottom-0;
+  background-color: var(--accent-9);
+}
+
+:global(.dark).stepTrailFilling,
+:global(.dark) .stepTrailFilling {
+  background-color: var(--accent-contrast);
+}
+
+.stepper {
+  @apply flex items-center;
+}
+
+.stepper .stepIcon {
+  @apply flex-none;
+}
+
+.stepper .stepTrail {
+  @apply flex-1;
+}
