@@ -62,6 +62,8 @@ import {
   UnauthenticatedDialogContextValue,
 } from "./components/auth/UnauthenticatedDialogContext";
 import { isNetworkError } from "./util/error";
+import { ToastProvider } from "./components/v2/Toast/Toast";
+import { ThemeProvider } from "./components/v2/ThemeProvider/ThemeProvider";
 
 const AppsScreen = lazy(async () => import("./graphql/portal/AppsScreen"));
 const CreateProjectScreen = lazy(
@@ -242,9 +244,13 @@ const PortalRoot = function PortalRoot() {
       <Helmet>
         <title>{renderToString("system.title")} </title>
       </Helmet>
-      <div className={styles.root}>
-        <ReactAppRoutes />
-      </div>
+      <ThemeProvider>
+        <ToastProvider>
+          <div className={styles.root}>
+            <ReactAppRoutes />
+          </div>
+        </ToastProvider>
+      </ThemeProvider>
     </>
   );
 };
@@ -257,6 +263,7 @@ const defaultComponents = {
   ExternalLink,
   ReactRouterLink: Link,
   DocLink,
+  br: () => <br />,
 };
 
 export interface LoadCurrentUserProps {
