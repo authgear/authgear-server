@@ -1,7 +1,5 @@
-import React from "react";
 import type { Meta, StoryObj } from "@storybook/react";
-import { ArrowLeftIcon } from "@radix-ui/react-icons";
-import { TextButton } from "./TextButton";
+import { TextButton, TextButtonIcon } from "./TextButton";
 
 // More on how to set up stories at: https://storybook.js.org/docs/writing-stories#default-export
 const meta = {
@@ -13,10 +11,25 @@ const meta = {
         type: "text",
       },
     },
+    iconStart: {
+      options: ["none", ...Object.keys(TextButtonIcon)],
+      mapping: {
+        none: undefined,
+        ...Object.keys(TextButtonIcon).reduce<Record<string, any>>(
+          (mapping, it) => {
+            mapping[it] = TextButtonIcon[
+              it as keyof typeof TextButtonIcon
+            ] as any;
+            return mapping;
+          },
+          {}
+        ),
+      },
+    },
   },
   args: {
     text: "Click Me",
-    size: "2",
+    size: "4",
   },
 } satisfies Meta<typeof TextButton>;
 
@@ -49,7 +62,7 @@ export const DarkSecondaryBack: Story = {
     variant: "secondary",
     darkMode: true,
     disabled: false,
-    iconStart: <ArrowLeftIcon width={20} height={20} />,
+    iconStart: TextButtonIcon.Back,
     text: "Back",
   },
   parameters: {

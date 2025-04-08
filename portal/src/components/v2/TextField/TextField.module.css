@@ -33,3 +33,8 @@
   line-height: var(--line-height-3);
   letter-spacing: var(--letter-spacing-3);
 }
+
+.textFieldIcon {
+  height: var(--space-4);
+  width: var(--space-4);
+}

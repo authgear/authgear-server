@@ -1,7 +1,6 @@
 import React from "react";
 import type { Meta, StoryObj } from "@storybook/react";
-import { TextField } from "./TextField";
-import { InfoCircledIcon, MagnifyingGlassIcon } from "@radix-ui/react-icons";
+import { TextField, TextFieldIcon } from "./TextField";
 
 // More on how to set up stories at: https://storybook.js.org/docs/writing-stories#default-export
 const meta = {
@@ -11,6 +10,36 @@ const meta = {
     error: {
       control: {
         type: "text",
+      },
+    },
+    iconStart: {
+      options: ["none", ...Object.keys(TextFieldIcon)],
+      mapping: {
+        none: undefined,
+        ...Object.keys(TextFieldIcon).reduce<Record<string, any>>(
+          (mapping, it) => {
+            mapping[it] = TextFieldIcon[
+              it as keyof typeof TextFieldIcon
+            ] as any;
+            return mapping;
+          },
+          {}
+        ),
+      },
+    },
+    iconEnd: {
+      options: ["none", ...Object.keys(TextFieldIcon)],
+      mapping: {
+        none: undefined,
+        ...Object.keys(TextFieldIcon).reduce<Record<string, any>>(
+          (mapping, it) => {
+            mapping[it] = TextFieldIcon[
+              it as keyof typeof TextFieldIcon
+            ] as any;
+            return mapping;
+          },
+          {}
+        ),
       },
     },
   },
@@ -54,7 +83,7 @@ export const Error: Story = {
 
 export const IconsStartEnd: Story = {
   args: {
-    iconStart: <MagnifyingGlassIcon height="16" width="16" />,
-    iconEnd: <InfoCircledIcon height="16" width="16" />,
+    iconStart: TextFieldIcon.MagnifyingGlass,
+    iconEnd: TextFieldIcon.InfoCircled,
   },
 };
