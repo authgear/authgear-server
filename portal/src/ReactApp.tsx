@@ -68,7 +68,7 @@ const CreateProjectScreen = lazy(
   async () => import("./graphql/portal/CreateProjectScreen")
 );
 const OnboardingSurveyScreen = lazy(
-  async () => import("./OnboardingSurveyScreen")
+  async () => import("./screens/v2/OnboardingSurvey/OnboardingSurveyScreen")
 );
 const ProjectWizardScreen = lazy(
   async () => import("./graphql/portal/ProjectWizardScreen")
