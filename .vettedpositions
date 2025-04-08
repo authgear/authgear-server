@@ -23,7 +23,7 @@
 /pkg/auth/handler/api/workflow_websocket.go:55:9: requestcontext
 /pkg/auth/handler/oauth/app_session_token.go:69:27: requestcontext
 /pkg/auth/handler/oauth/authorize.go:52:26: requestcontext
-/pkg/auth/handler/oauth/challenge.go:91:27: requestcontext
+/pkg/auth/handler/oauth/challenge.go:93:27: requestcontext
 /pkg/auth/handler/oauth/consent.go:85:27: requestcontext
 /pkg/auth/handler/oauth/consent.go:105:28: requestcontext
 /pkg/auth/handler/oauth/consent.go:114:28: requestcontext

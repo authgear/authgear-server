@@ -45,9 +45,11 @@ type ChallengeRequest struct {
 	Purpose challenge.Purpose `json:"purpose"`
 }
 
-func (p *ChallengeRequest) Validate(ctx *validation.Context) {
+var _ validation.Validator = (*ChallengeRequest)(nil)
+
+func (p *ChallengeRequest) Validate(ctx context.Context, validationCtx *validation.Context) {
 	if !p.Purpose.IsValid() {
-		ctx.Child("purpose").EmitErrorMessage("unknown challenge purpose")
+		validationCtx.Child("purpose").EmitErrorMessage("unknown challenge purpose")
 	}
 }
 
