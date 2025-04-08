@@ -1,0 +1,15 @@
+.heading {
+  color: var(--gray-12);
+  font-weight: 600;
+  font-size: var(--font-size-6);
+  line-height: var(--line-height-6);
+  letter-spacing: var(--letter-spacing-6);
+}
+
+.body {
+  color: var(--gray-12);
+  font-weight: 600;
+  font-size: var(--font-size-4);
+  line-height: var(--line-height-4);
+  letter-spacing: var(--letter-spacing-4);
+}

@@ -1,4 +1,5 @@
 import React from "react";
+import cn from "classnames";
 import styles from "./OnboardingSurveyLayout.module.css";
 import { Logo } from "../common/Logo";
 
@@ -20,7 +21,11 @@ export function OnboardingSurveyLayout({
   return (
     <div className={styles.onboardingSurveyLayout__root}>
       <Header />
-      <div className={styles.onboardingSurveyLayout__content}>{children}</div>
+      <div className={styles.onboardingSurveyLayout__bg}>
+        <div className={cn(styles.onboardingSurveyLayout__content, "dark")}>
+          {children}
+        </div>
+      </div>
     </div>
   );
 }
