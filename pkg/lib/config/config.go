@@ -99,6 +99,8 @@ type AppConfig struct {
 	AuthenticationFlow *AuthenticationFlowConfig `json:"authentication_flow,omitempty"`
 }
 
+var _ validation.Validator = (*AppConfig)(nil)
+
 func (c *AppConfig) SetDefaults() {
 	c.Deprecated_WelcomeMessage = nil
 	c.Deprecated_OTP = nil
