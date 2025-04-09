@@ -6,10 +6,11 @@ import {
 import { Start } from "./Start";
 import {
   useOnboardingSurveyForm,
-  Step,
+  OnboardingSurveyStep,
   OnboardingSurveyFormModel,
 } from "./form";
 import { OnboardingSurveyLayout } from "../../../components/onboarding/OnboardingSurveyLayout";
+import { Step1 } from "./Step1";
 
 function OnboardingSurveyScreen(): React.ReactElement {
   const form = useOnboardingSurveyForm();
@@ -27,15 +28,15 @@ function OnboardingSurveyScreenContent() {
   const { form } = useFormContainerBaseContext<OnboardingSurveyFormModel>();
 
   switch (form.state.step) {
-    case Step.start:
+    case OnboardingSurveyStep.start:
       return <Start />;
-    case Step.step1:
+    case OnboardingSurveyStep.step1:
+      return <Step1 />;
+    case OnboardingSurveyStep.step2:
       return <></>;
-    case Step.step2:
+    case OnboardingSurveyStep.step3:
       return <></>;
-    case Step.step3:
-      return <></>;
-    case Step.step4:
+    case OnboardingSurveyStep.step4:
       return <></>;
   }
 }

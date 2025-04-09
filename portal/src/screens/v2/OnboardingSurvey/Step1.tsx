@@ -1,32 +1,27 @@
 import React from "react";
 import { Text } from "../../../components/onboarding/Text";
-import { EmojiIcon } from "../../../components/onboarding/EmojiIcon";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import { PrimaryButton } from "../../../components/v2/PrimaryButton/PrimaryButton";
 import { OnboardingSurveyFormModel } from "./form";
 import { useFormContainerBaseContext } from "../../../FormContainerBase";
+import { OnboardingSurveyStepper } from "../../../components/onboarding/OnboardingSurveyStepper";
 
-export function Start(): React.ReactElement {
+export function Step1(): React.ReactElement {
   const { form } = useFormContainerBaseContext<OnboardingSurveyFormModel>();
 
   return (
     <div className="grid grid-cols-1 gap-16 text-center">
-      <div className="grid grid-cols-1 gap-8 ">
-        <EmojiIcon>🪄</EmojiIcon>
-        <div className="grid grid-cols-1 gap-4 ">
-          <Text.Heading>
-            <FormattedMessage id="OnboardingSurveyScreen.start.header" />
-          </Text.Heading>
-          <Text.Body>
-            <FormattedMessage id="OnboardingSurveyScreen.start.body" />
-          </Text.Body>
-        </div>
+      <OnboardingSurveyStepper step={form.state.step} />
+      <div className="grid grid-cols-1 gap-8">
+        <Text.Heading>
+          <FormattedMessage id="OnboardingSurveyScreen.step1.header" />
+        </Text.Heading>
       </div>
       <div>
         <PrimaryButton
           size="4"
           highContrast={true}
-          text={<FormattedMessage id="OnboardingSurveyScreen.actions.start" />}
+          text={<FormattedMessage id="OnboardingSurveyScreen.actions.next" />}
           onClick={form.toNextStep}
         />
       </div>
