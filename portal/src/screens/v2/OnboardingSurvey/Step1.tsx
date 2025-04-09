@@ -75,6 +75,7 @@ export function Step1(): React.ReactElement {
           highContrast={true}
           text={<FormattedMessage id="OnboardingSurveyScreen.actions.next" />}
           onClick={form.toNextStep}
+          disabled={!form.canNavigateToNextStep}
         />
       </div>
     </div>

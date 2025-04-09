@@ -93,6 +93,7 @@ function deleteFormStateFromStorage(storage: Storage): void {
 const STORAGE = window.localStorage;
 
 export interface OnboardingSurveyFormModel extends SimpleFormModel<FormState> {
+  canNavigateToNextStep: boolean;
   toNextStep: () => void;
 }
 
@@ -126,28 +127,64 @@ export function useOnboardingSurveyForm(): OnboardingSurveyFormModel {
     1000
   );
 
-  const toNextStep = useCallback(() => {
+  const canNavigateToNextStep = useMemo(() => {
     switch (formState.step) {
       case OnboardingSurveyStep.start:
-        form.setState((prev) => {
-          return produce(prev, (draft) => {
-            draft.step = OnboardingSurveyStep.step1;
-            return draft;
-          });
-        });
-
-        break;
-
-      default:
-        throw new Error("TODO");
+        return true;
+      case OnboardingSurveyStep.step1:
+        return formState.role != null;
+      case OnboardingSurveyStep.step2:
+        return formState.team_or_personal_account != null;
+      case OnboardingSurveyStep.step3:
+        switch (formState.team_or_personal_account) {
+          case TeamOrPersonal.Personal:
+            return true;
+          case TeamOrPersonal.Team:
+            return (
+              formState.company_name != null && formState.company_size != null
+            );
+          default:
+            return false;
+        }
+      case OnboardingSurveyStep.step4:
+        // No next step
+        return false;
     }
-  }, [form, formState]);
+  }, [formState]);
+
+  const toNextStep = useCallback(() => {
+    if (!canNavigateToNextStep) {
+      throw new Error(
+        "Cannot navigate to next step, check canNavigateToNextStep"
+      );
+    }
+    form.setState((prev) => {
+      return produce(prev, (draft) => {
+        switch (formState.step) {
+          case OnboardingSurveyStep.start:
+            draft.step = OnboardingSurveyStep.step1;
+            break;
+          case OnboardingSurveyStep.step1:
+            draft.step = OnboardingSurveyStep.step2;
+            break;
+          case OnboardingSurveyStep.step3:
+            draft.step = OnboardingSurveyStep.step4;
+            break;
+
+          default:
+            throw new Error("no next step is available");
+        }
+        return draft;
+      });
+    });
+  }, [canNavigateToNextStep, form, formState.step]);
 
   return useMemo(
     () => ({
       ...form,
       toNextStep: toNextStep,
+      canNavigateToNextStep: canNavigateToNextStep,
     }),
-    [form, toNextStep]
+    [canNavigateToNextStep, form, toNextStep]
   );
 }
