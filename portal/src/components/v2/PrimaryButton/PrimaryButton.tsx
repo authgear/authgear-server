@@ -9,6 +9,8 @@ export interface PrimaryButtonProps {
   disabled?: boolean;
   loading?: boolean;
   text?: React.ReactNode;
+
+  onClick?: React.MouseEventHandler<HTMLButtonElement>;
 }
 
 export function PrimaryButton({
@@ -18,6 +20,7 @@ export function PrimaryButton({
   disabled,
   loading,
   text,
+  onClick,
 }: PrimaryButtonProps): React.ReactElement {
   return (
     <Button
@@ -28,6 +31,7 @@ export function PrimaryButton({
       disabled={disabled}
       color="indigo"
       loading={loading}
+      onClick={onClick}
     >
       {text}
     </Button>
