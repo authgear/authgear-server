@@ -1,3 +1,5 @@
 .onboardingSurveyStepper {
-  width: 22rem;
+  width: 100%;
+  max-width: 22rem;
+  @apply justify-self-center;
 }

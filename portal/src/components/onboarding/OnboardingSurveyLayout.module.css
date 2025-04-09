@@ -12,6 +12,6 @@
 
 .onboardingSurveyLayout__content {
   @apply flex-1-0-auto self-center;
-  @apply flex flex-col items-center py-30;
-  max-width: 600px;
+  @apply flex flex-col items-center py-30 px-4;
+  width: 100%;
 }

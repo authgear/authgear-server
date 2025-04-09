@@ -1878,6 +1878,10 @@
   "OnboardingSurveyScreen.start.header": "Welcome to Authgear!",
   "OnboardingSurveyScreen.start.body": "Share a bit about yourself for a personalized experience.{br, react}This will take less than 2 minutes—Let's go!",
   "OnboardingSurveyScreen.step1.header": "What is your role?",
+  "OnboardingSurveyScreen.step1.roles.developer": "Developer",
+  "OnboardingSurveyScreen.step1.roles.pm": "Product/Project Manager",
+  "OnboardingSurveyScreen.step1.roles.business": "Business",
+  "OnboardingSurveyScreen.step1.roles.other": "Other",
   "OnboardingSurveyScreen.actions.start": "Start",
   "OnboardingSurveyScreen.actions.next": "Next",
 
