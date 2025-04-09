@@ -1877,7 +1877,9 @@
 
   "OnboardingSurveyScreen.start.header": "Welcome to Authgear!",
   "OnboardingSurveyScreen.start.body": "Share a bit about yourself for a personalized experience.{br, react}This will take less than 2 minutes—Let's go!",
-  "OnboardingSurveyScreen.start.start": "Start",
+  "OnboardingSurveyScreen.step1.header": "What is your role?",
+  "OnboardingSurveyScreen.actions.start": "Start",
+  "OnboardingSurveyScreen.actions.next": "Next",
 
   "GetStartedScreen.title": "Getting Started 🎉",
   "GetStartedScreen.description": "Here are a few steps to get you set up for success.",

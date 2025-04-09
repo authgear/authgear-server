@@ -30,7 +30,7 @@ export enum UseCases {
   Other = "Other",
 }
 
-export enum Step {
+export enum OnboardingSurveyStep {
   "start" = "start",
   "step1" = "step1",
   "step2" = "step2",
@@ -39,7 +39,7 @@ export enum Step {
 }
 
 const zFormState = z.object({
-  step: z.nativeEnum(Step),
+  step: z.nativeEnum(OnboardingSurveyStep),
 
   // step 1
   role: z.nativeEnum(Role).optional(),
@@ -100,7 +100,7 @@ export function useOnboardingSurveyForm(): OnboardingSurveyFormModel {
   const [defaultState] = useState<FormState>(() => {
     return (
       readFormStateFromStorage(STORAGE) ?? {
-        step: Step.start,
+        step: OnboardingSurveyStep.start,
       }
     );
   });
@@ -128,10 +128,10 @@ export function useOnboardingSurveyForm(): OnboardingSurveyFormModel {
 
   const toNextStep = useCallback(() => {
     switch (formState.step) {
-      case Step.start:
+      case OnboardingSurveyStep.start:
         form.setState((prev) => {
           return produce(prev, (draft) => {
-            draft.step = Step.step1;
+            draft.step = OnboardingSurveyStep.step1;
             return draft;
           });
         });
