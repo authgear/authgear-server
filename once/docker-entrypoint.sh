@@ -148,12 +148,12 @@ CREATE DATABASE :"db";
 }
 
 docker_redis_create_directories() {
-	sudo mkdir -p /var/lib/redis/data
-	sudo chmod 0700 /var/lib/redis/data
+	sudo mkdir -p "$AUTHGEARONCE_REDIS_DATA_DIRECTORY"
+	sudo chmod 0700 "$AUTHGEARONCE_REDIS_DATA_DIRECTORY"
 	sudo mkdir -p /var/run/redis
 	sudo chmod 0700 /var/run/redis
 
-	sudo find /var/lib/redis/data \! -user "authgear" -exec chown "authgear:authgear" '{}' +
+	sudo find "$AUTHGEARONCE_REDIS_DATA_DIRECTORY" \! -user "authgear" -exec chown "authgear:authgear" '{}' +
 	sudo find /var/run/redis \! -user "authgear" -exec chown "authgear:authgear" '{}' +
 }
 
@@ -292,22 +292,25 @@ docker_nginx_create_fake_certificate() {
 }
 
 docker_certbot_create_directories() {
+	# --work-dir
 	sudo mkdir -p /var/lib/letsencrypt
+	# --logs-dir
 	sudo mkdir -p /var/log/letsencrypt
-	sudo mkdir -p /etc/letsencrypt
+	# --config-dir
+	sudo mkdir -p "$AUTHGEARONCE_CERTBOT_DATA_DIRECTORY"
 
 	sudo find /var/lib/letsencrypt \! -user "authgear" -exec chown "authgear:authgear" '{}' +
 	sudo find /var/log/letsencrypt \! -user "authgear" -exec chown "authgear:authgear" '{}' +
-	sudo find /etc/letsencrypt \! -user "authgear" -exec chown "authgear:authgear" '{}' +
+	sudo find "$AUTHGEARONCE_CERTBOT_DATA_DIRECTORY" \! -user "authgear" -exec chown "authgear:authgear" '{}' +
 }
 
 docker_certbot_create_cli_ini() {
 	# certbot stores its data (like certificates, accounts) in --config-dir
 	# It also reads its config (cli.ini) in --config-dir.
-	# If we naively volume mount /etc/letsencrypt, /etc/letsencrypt/cli.ini will be obscured by the mount.
+	# If we naively volume mount --config-dir, --config-dir/cli.ini will be obscured by the mount.
 	# Therefore, when we build the image, we copy the original /etc/letsencrypt/cli.ini to /home/authgear/certbot.ini,
-	# and we always write a fresh /etc/letsencrypt/cli.ini.
-	cli_ini="/etc/letsencrypt/cli.ini"
+	# and we always write a fresh --config-dir/cli.ini.
+	cli_ini="$AUTHGEARONCE_CERTBOT_DATA_DIRECTORY/cli.ini"
 	cp /home/authgear/certbot.ini.example "$cli_ini"
 	sed -E -i 's,^#?\s*(max-log-backups)\s+.*,\1 = 10,' "$cli_ini"
 	sed -E -i 's,^#?\s*(preconfigured-renewal)\s+.*,\1 = False,' "$cli_ini"
@@ -324,15 +327,15 @@ docker_certbot_create_cli_ini() {
 }
 
 docker_minio_create_directories() {
-	sudo mkdir -p /var/lib/minio/data
-	sudo chmod 0700 /var/lib/minio/data
+	sudo mkdir -p "$AUTHGEARONCE_MINIO_DATA_DIRECTORY"
+	sudo chmod 0700 "$AUTHGEARONCE_MINIO_DATA_DIRECTORY"
 
-	sudo find /var/lib/minio/data \! -user "authgear" -exec chown "authgear:authgear" '{}' +
+	sudo find "$AUTHGEARONCE_MINIO_DATA_DIRECTORY" \! -user "authgear" -exec chown "authgear:authgear" '{}' +
 }
 
 docker_minio_create_buckets() {
 	# We need to start the server temporarily.
-	minio server /var/lib/minio/data &
+	minio server "$AUTHGEARONCE_MINIO_DATA_DIRECTORY" &
 	minio_pid=$!
 
 	# 1 second should be enough. It starts very fast.
