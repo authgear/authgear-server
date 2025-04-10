@@ -1,5 +1,6 @@
 .formField {
-  @apply grid grid-cols-1 text-left;
+  @apply grid grid-cols-1 content-start text-left;
+  grid-template-rows: auto minmax(auto, 1fr);
   gap: var(--space-2);
 }
 

@@ -1,0 +1,3 @@
+.textArea--error {
+  box-shadow: inset 0 0 0 var(--text-area-border-width) var(--red-11);
+}

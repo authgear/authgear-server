@@ -15,7 +15,7 @@ import {
 } from "../../../components/v2/RadioCards/RadioCards";
 import { produce } from "immer";
 import { BackButton } from "../../../components/onboarding/BackButton";
-import { TextField } from "../../../components/v2/TextField/TextField";
+import { TextArea } from "../../../components/v2/TextArea/TextArea";
 
 export function Step4(): React.ReactElement {
   const { form } = useFormContainerBaseContext<OnboardingSurveyFormModel>();
@@ -84,10 +84,11 @@ export function Step4(): React.ReactElement {
         />
         <div
           className={cn(
-            form.state.use_cases?.includes(UseCase.Other) ? null : "hidden"
+            form.state.use_cases?.includes(UseCase.Other) ? null : "hidden",
+            "h-[6.375rem] flex flex-col [&>*]:flex-1"
           )}
         >
-          <TextField
+          <TextArea
             size="2"
             optional={true}
             label={
@@ -98,7 +99,7 @@ export function Step4(): React.ReactElement {
             )}
             value={form.state.use_case_other}
             onChange={useCallback(
-              (e: React.ChangeEvent<HTMLInputElement>) => {
+              (e: React.ChangeEvent<HTMLTextAreaElement>) => {
                 const value = e.currentTarget.value;
                 form.setState((prev) =>
                   produce(prev, (draft) => {
