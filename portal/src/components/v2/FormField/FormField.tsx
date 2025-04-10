@@ -1,6 +1,7 @@
 import React from "react";
 import cn from "classnames";
 import styles from "./FormField.module.css";
+import { FormattedMessage } from "@oursky/react-messageformat";
 
 type FormFieldSize = "2" | "3";
 
@@ -8,6 +9,7 @@ export interface FormFieldProps {
   darkMode?: boolean;
   size: FormFieldSize;
   label?: React.ReactNode;
+  optional?: boolean;
   error?: React.ReactNode;
   children?: React.ReactNode;
 }
@@ -16,6 +18,7 @@ export function FormField({
   darkMode,
   size,
   label,
+  optional,
   error,
   children,
 }: FormFieldProps): React.ReactElement {
@@ -24,6 +27,12 @@ export function FormField({
       {label ? (
         <p className={cn(styles.formField__label, sizeToLabelClass(size))}>
           {label}
+          {optional ? (
+            <span className={styles.formField__labelOptional}>
+              &nbsp;
+              <FormattedMessage id="FormField.optional" />
+            </span>
+          ) : null}
         </p>
       ) : null}
       {children}

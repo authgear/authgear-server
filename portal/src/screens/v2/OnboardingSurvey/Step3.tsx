@@ -40,7 +40,38 @@ export function Step3(): React.ReactElement {
 }
 
 function Step3PersonalForm() {
-  return <></>;
+  const { form } = useFormContainerBaseContext<OnboardingSurveyFormModel>();
+  return (
+    <div className="grid grid-cols-1 gap-8">
+      <div className="grid grid-cols-1 gap-4">
+        <Text.Heading>
+          <FormattedMessage id="OnboardingSurveyScreen.step3.personal.header" />
+        </Text.Heading>
+      </div>
+      <div className="grid grid-cols-1 gap-8 max-w-full w-110 justify-self-center">
+        <TextField
+          size="3"
+          optional={true}
+          label={
+            <FormattedMessage id="OnboardingSurveyScreen.step3.personal.fields.projectWebsite" />
+          }
+          onChange={useCallback(
+            (e: React.ChangeEvent<HTMLInputElement>) => {
+              const value = e.currentTarget.value;
+              form.setState((prev) =>
+                produce(prev, (draft) => {
+                  draft.project_website = value;
+                  return draft;
+                })
+              );
+            },
+            [form]
+          )}
+        />
+        {/* TODO(tung): Phone number field */}
+      </div>
+    </div>
+  );
 }
 
 function Step3TeamForm() {
@@ -58,6 +89,19 @@ function Step3TeamForm() {
           label={
             <FormattedMessage id="OnboardingSurveyScreen.step3.team.fields.companyName" />
           }
+          value={form.state.company_name ?? ""}
+          onChange={useCallback(
+            (e: React.ChangeEvent<HTMLInputElement>) => {
+              const value = e.currentTarget.value;
+              form.setState((prev) =>
+                produce(prev, (draft) => {
+                  draft.company_name = value;
+                  return draft;
+                })
+              );
+            },
+            [form]
+          )}
         />
         <FormField
           size="3"

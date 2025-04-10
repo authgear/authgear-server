@@ -1897,6 +1897,8 @@
   "OnboardingSurveyScreen.step3.team.size.midsize.subtitle": "Mid-size",
   "OnboardingSurveyScreen.step3.team.size.enterprise.title": "1000+",
   "OnboardingSurveyScreen.step3.team.size.enterprise.subtitle": "Enterprise",
+  "OnboardingSurveyScreen.step3.personal.header": "Tell us about yourself",
+  "OnboardingSurveyScreen.step3.personal.fields.projectWebsite": "Project Website",
   "OnboardingSurveyScreen.actions.start": "Start",
   "OnboardingSurveyScreen.actions.next": "Next",
   "OnboardingSurveyScreen.actions.back": "Back",
@@ -2170,6 +2172,8 @@
 
   "DowngradeReminder.title": "Downgrading to Free",
   "DowngradeReminder.description": "Your project is downgrading to “Free” on {date}. The prorated subscription fee and additional SMS/WhatsApp cost for this billing cycle will be charged on that date.",
+
+  "FormField.optional": "(Optional)",
 
   "Locales.af": "Afrikaans",
   "Locales.am": "Amharic",
