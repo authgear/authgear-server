@@ -55,6 +55,7 @@ function Step3PersonalForm() {
           label={
             <FormattedMessage id="OnboardingSurveyScreen.step3.personal.fields.projectWebsite" />
           }
+          value={form.state.project_website}
           onChange={useCallback(
             (e: React.ChangeEvent<HTMLInputElement>) => {
               const value = e.currentTarget.value;

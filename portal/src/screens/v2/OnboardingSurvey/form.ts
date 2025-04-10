@@ -23,7 +23,7 @@ export enum CompanySize {
   "1000+" = "1000+",
 }
 
-export enum UseCases {
+export enum UseCase {
   BuildingNewSoftwareProject = "BuildingNewSoftwareProject",
   SSOSolution = "SSOSolution",
   EnhanceSecurity = "EnhanceSecurity",
@@ -56,7 +56,7 @@ const zFormState = z.object({
   project_website: z.string().optional(),
 
   // step 4
-  use_cases: z.nativeEnum(UseCases).array().optional(),
+  use_cases: z.nativeEnum(UseCase).array().optional(),
   use_case_other: z.string().optional(),
 });
 

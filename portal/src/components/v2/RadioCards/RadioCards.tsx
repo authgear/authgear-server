@@ -1,6 +1,6 @@
 import cn from "classnames";
 import { RadioCards as RadixRadioCards } from "@radix-ui/themes";
-import React from "react";
+import React, { useMemo } from "react";
 import styles from "./RadioCards.module.css";
 
 export interface RadioCardOption<T extends string> {
@@ -10,28 +10,120 @@ export interface RadioCardOption<T extends string> {
   disabled?: boolean;
 }
 
-export interface RadioCardsProps<T extends string> {
+interface RadioCardsPropsBase<T extends string> {
   darkMode?: boolean;
   highContrast?: boolean;
   size: "1" | "2" | "3";
-  value: T | null;
   options: RadioCardOption<T>[];
-  onValueChange: (newValue: T) => void;
-
   itemMinWidth?: number;
   itemFillSpaces?: boolean;
+  numberOfColumns?: number;
+}
+
+export interface RadioCardsProps<T extends string>
+  extends RadioCardsPropsBase<T> {
+  value: T | null;
+  onValueChange: (newValue: T) => void;
 }
 
 export function RadioCards<T extends string>({
-  darkMode,
-  highContrast,
-  size,
   value,
   onValueChange,
   options,
+  ...rootProps
+}: RadioCardsProps<T>): React.ReactElement {
+  const onToggleCallbacks = useMemo(() => {
+    return options.map((option) => {
+      const fn = () => {
+        if (value === option.value) {
+          return;
+        }
+        onValueChange(option.value);
+      };
+      return fn;
+    });
+  }, [onValueChange, options, value]);
+
+  return (
+    <Root {...rootProps}>
+      {options.map((option, idx) => {
+        return (
+          <OptionItem
+            key={option.value}
+            option={option}
+            checked={value === option.value}
+            onToggle={onToggleCallbacks[idx]}
+          />
+        );
+      })}
+    </Root>
+  );
+}
+
+export interface MultiSelectRadioCardsProps<T extends string>
+  extends RadioCardsPropsBase<T> {
+  values: T[];
+  onValuesChange: (newValues: T[]) => void;
+}
+
+export function MultiSelectRadioCards<T extends string>({
+  values,
+  onValuesChange,
+  options,
+  ...rootProps
+}: MultiSelectRadioCardsProps<T>): React.ReactElement {
+  const checkedValuesSet = useMemo(() => new Set(values), [values]);
+
+  const onToggleCallbacks = useMemo(() => {
+    return options.map((option) => {
+      const fn = () => {
+        const newValues = new Set(checkedValuesSet);
+        if (!checkedValuesSet.has(option.value)) {
+          newValues.add(option.value);
+        } else {
+          newValues.delete(option.value);
+        }
+        onValuesChange(Array.from(newValues));
+      };
+      return fn;
+    });
+  }, [checkedValuesSet, onValuesChange, options]);
+
+  return (
+    <Root {...rootProps}>
+      {options.map((option, idx) => {
+        return (
+          <OptionItem
+            key={option.value}
+            option={option}
+            checked={checkedValuesSet.has(option.value)}
+            onToggle={onToggleCallbacks[idx]}
+          />
+        );
+      })}
+    </Root>
+  );
+}
+
+interface RootProps {
+  darkMode?: boolean;
+  highContrast?: boolean;
+  size: "1" | "2" | "3";
+  itemMinWidth?: number;
+  itemFillSpaces?: boolean;
+  numberOfColumns?: number;
+  children?: React.ReactNode;
+}
+
+function Root({
+  darkMode,
+  size,
+  highContrast,
   itemMinWidth = 160,
   itemFillSpaces = false,
-}: RadioCardsProps<T>): React.ReactElement {
+  numberOfColumns,
+  children,
+}: RootProps) {
   return (
     <RadixRadioCards.Root
       className={cn(styles.radioCards__root, darkMode ? "dark" : null)}
@@ -39,31 +131,41 @@ export function RadioCards<T extends string>({
       variant="surface"
       color="indigo"
       highContrast={highContrast}
-      value={value ?? undefined}
-      onValueChange={onValueChange}
-      columns={`repeat(auto-fit, minmax(${itemMinWidth}px, ${itemMaxSize(
-        itemFillSpaces
-      )}))`}
+      columns={`repeat(${gridColumnRepeat(
+        numberOfColumns
+      )}, minmax(${itemMinWidth}px, ${itemMaxSize(itemFillSpaces)}))`}
     >
-      {options.map((option) => {
-        return (
-          <RadixRadioCards.Item
-            key={option.value}
-            value={option.value}
-            disabled={option.disabled}
-          >
-            <div className={styles.radioCards__itemTextContainer}>
-              <p className={styles.radioCards__itemTextTitle}>{option.title}</p>
-              {option.subtitle ? (
-                <p className={styles.radioCards__itemTextSubtitle}>
-                  {option.subtitle}
-                </p>
-              ) : null}
-            </div>
-          </RadixRadioCards.Item>
-        );
-      })}
+      {children}
     </RadixRadioCards.Root>
+  );
+}
+
+function OptionItem<T extends string>({
+  option,
+  checked,
+  onToggle,
+}: {
+  option: RadioCardOption<T>;
+  checked?: boolean;
+  onToggle?: () => void;
+}) {
+  return (
+    <RadixRadioCards.Item
+      key={option.value}
+      value={option.value}
+      disabled={option.disabled}
+      checked={checked}
+      onClick={onToggle}
+    >
+      <div className={styles.radioCards__itemTextContainer}>
+        <p className={styles.radioCards__itemTextTitle}>{option.title}</p>
+        {option.subtitle ? (
+          <p className={styles.radioCards__itemTextSubtitle}>
+            {option.subtitle}
+          </p>
+        ) : null}
+      </div>
+    </RadixRadioCards.Item>
   );
 }
 
@@ -72,4 +174,11 @@ function itemMaxSize(itemFillSpaces: boolean) {
     return "1fr";
   }
   return "max-content";
+}
+
+function gridColumnRepeat(numberOfColumns: number | undefined) {
+  if (numberOfColumns == null) {
+    return "auto-fit";
+  }
+  return `${numberOfColumns}`;
 }
