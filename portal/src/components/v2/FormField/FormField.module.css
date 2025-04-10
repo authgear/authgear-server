@@ -8,6 +8,10 @@
   color: var(--gray-12);
 }
 
+.formField__labelOptional {
+  color: var(--white-a6);
+}
+
 .formField__label--size2 {
   font-size: var(--font-size-2);
   font-weight: 600;

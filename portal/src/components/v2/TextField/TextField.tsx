@@ -25,27 +25,40 @@ export interface TextFieldProps {
   darkMode?: boolean;
   size: TextFieldSize;
   label?: React.ReactNode;
+  optional?: boolean;
   disabled?: boolean;
   readOnly?: boolean;
   placeholder?: string;
   error?: React.ReactNode;
   iconStart?: TextFieldIcon;
   iconEnd?: TextFieldIcon;
+
+  value?: string;
+  onChange?: React.ChangeEventHandler<HTMLInputElement>;
 }
 
 export function TextField({
   darkMode,
   size,
   label,
+  optional,
   disabled,
   readOnly,
   placeholder,
   error,
   iconStart,
   iconEnd,
+  value,
+  onChange,
 }: TextFieldProps): React.ReactElement {
   return (
-    <FormField darkMode={darkMode} size={size} label={label} error={error}>
+    <FormField
+      darkMode={darkMode}
+      size={size}
+      label={label}
+      optional={optional}
+      error={error}
+    >
       <RadixTextField.Root
         className={cn(error != null ? styles["textField--error"] : null)}
         variant="surface"
@@ -53,6 +66,8 @@ export function TextField({
         placeholder={placeholder}
         disabled={disabled}
         readOnly={readOnly}
+        value={value}
+        onChange={onChange}
       >
         <RadixTextField.Slot>
           {iconStart != null ? <Icon icon={iconStart} /> : null}
