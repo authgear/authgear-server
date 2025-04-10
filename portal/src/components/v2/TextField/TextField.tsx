@@ -3,17 +3,9 @@ import cn from "classnames";
 import { TextField as RadixTextField } from "@radix-ui/themes";
 import styles from "./TextField.module.css";
 import { InfoCircledIcon, MagnifyingGlassIcon } from "@radix-ui/react-icons";
+import { FormField } from "../FormField/FormField";
 
 type TextFieldSize = "2" | "3";
-
-function sizeToLabelClass(size: TextFieldSize) {
-  switch (size) {
-    case "2":
-      return styles["textField__label--size2"];
-    case "3":
-      return styles["textField__label--size3"];
-  }
-}
 
 function Icon({ icon }: { icon: TextFieldIcon }): React.ReactElement {
   switch (icon) {
@@ -53,12 +45,7 @@ export function TextField({
   iconEnd,
 }: TextFieldProps): React.ReactElement {
   return (
-    <label className={cn(styles.textField, darkMode ? "dark" : null)}>
-      {label ? (
-        <p className={cn(styles.textField__label, sizeToLabelClass(size))}>
-          {label}
-        </p>
-      ) : null}
+    <FormField darkMode={darkMode} size={size} label={label} error={error}>
       <RadixTextField.Root
         className={cn(error != null ? styles["textField--error"] : null)}
         variant="surface"
@@ -74,9 +61,6 @@ export function TextField({
           {iconEnd != null ? <Icon icon={iconEnd} /> : null}
         </RadixTextField.Slot>
       </RadixTextField.Root>
-      {error != null ? (
-        <p className={styles.textField__errorMessage}>{error}</p>
-      ) : null}
-    </label>
+    </FormField>
   );
 }

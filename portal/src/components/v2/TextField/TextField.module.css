@@ -1,5 +1,5 @@
 .textField {
-  @apply grid grid-cols-1;
+  @apply grid grid-cols-1 text-left;
   gap: var(--space-2);
 }
 

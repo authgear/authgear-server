@@ -17,6 +17,9 @@ export interface RadioCardsProps<T extends string> {
   value: T | null;
   options: RadioCardOption<T>[];
   onValueChange: (newValue: T) => void;
+
+  itemMinWidth?: number;
+  itemFillSpaces?: boolean;
 }
 
 export function RadioCards<T extends string>({
@@ -26,6 +29,8 @@ export function RadioCards<T extends string>({
   value,
   onValueChange,
   options,
+  itemMinWidth = 160,
+  itemFillSpaces = false,
 }: RadioCardsProps<T>): React.ReactElement {
   return (
     <RadixRadioCards.Root
@@ -36,7 +41,9 @@ export function RadioCards<T extends string>({
       highContrast={highContrast}
       value={value ?? undefined}
       onValueChange={onValueChange}
-      columns="repeat(auto-fit, minmax(160px, max-content))"
+      columns={`repeat(auto-fit, minmax(${itemMinWidth}px, ${itemMaxSize(
+        itemFillSpaces
+      )}))`}
     >
       {options.map((option) => {
         return (
@@ -58,4 +65,11 @@ export function RadioCards<T extends string>({
       })}
     </RadixRadioCards.Root>
   );
+}
+
+function itemMaxSize(itemFillSpaces: boolean) {
+  if (itemFillSpaces) {
+    return "1fr";
+  }
+  return "max-content";
 }
