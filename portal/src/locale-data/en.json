@@ -1882,8 +1882,13 @@
   "OnboardingSurveyScreen.step1.roles.pm": "Product/Project Manager",
   "OnboardingSurveyScreen.step1.roles.business": "Business",
   "OnboardingSurveyScreen.step1.roles.other": "Other",
+  "OnboardingSurveyScreen.step2.header": "Who will be using Authgear?",
+  "OnboardingSurveyScreen.step2.body": "Are you creating this account for a company or personal project?",
+  "OnboardingSurveyScreen.step2.options.team": "My Team/Company",
+  "OnboardingSurveyScreen.step2.options.personal": "Just Me",
   "OnboardingSurveyScreen.actions.start": "Start",
   "OnboardingSurveyScreen.actions.next": "Next",
+  "OnboardingSurveyScreen.actions.back": "Back",
 
   "GetStartedScreen.title": "Getting Started 🎉",
   "GetStartedScreen.description": "Here are a few steps to get you set up for success.",
