@@ -50,7 +50,7 @@ function Step3PersonalForm() {
       </div>
       <div className="grid grid-cols-1 gap-8 max-w-full w-110 justify-self-center">
         <TextField
-          size="3"
+          size="2"
           optional={true}
           label={
             <FormattedMessage id="OnboardingSurveyScreen.step3.personal.fields.projectWebsite" />
@@ -105,7 +105,7 @@ function Step3TeamForm() {
           )}
         />
         <FormField
-          size="3"
+          size="2"
           label={
             <FormattedMessage id="OnboardingSurveyScreen.step3.team.fields.companySize" />
           }
