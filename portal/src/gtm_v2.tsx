@@ -51,8 +51,11 @@ function useDispatch(): (event: object) => void {
   try {
     return useReactHookGTMDispatch();
   } catch {
-    // if container id is not configured, return no-op function
-    return () => {};
+    // if container id is not configured, log the event
+    return (event: object) => {
+      // eslint-disable-next-line no-console
+      console.debug("tracking event:", event);
+    };
   }
 }
 
