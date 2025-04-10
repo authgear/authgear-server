@@ -95,6 +95,7 @@ const STORAGE = window.localStorage;
 export interface OnboardingSurveyFormModel extends SimpleFormModel<FormState> {
   canNavigateToNextStep: boolean;
   toNextStep: () => void;
+  toPreviousStep: () => void;
 }
 
 export function useOnboardingSurveyForm(): OnboardingSurveyFormModel {
@@ -167,6 +168,9 @@ export function useOnboardingSurveyForm(): OnboardingSurveyFormModel {
           case OnboardingSurveyStep.step1:
             draft.step = OnboardingSurveyStep.step2;
             break;
+          case OnboardingSurveyStep.step2:
+            draft.step = OnboardingSurveyStep.step3;
+            break;
           case OnboardingSurveyStep.step3:
             draft.step = OnboardingSurveyStep.step4;
             break;
@@ -179,12 +183,35 @@ export function useOnboardingSurveyForm(): OnboardingSurveyFormModel {
     });
   }, [canNavigateToNextStep, form, formState.step]);
 
+  const toPreviousStep = useCallback(() => {
+    form.setState((prev) => {
+      return produce(prev, (draft) => {
+        switch (formState.step) {
+          case OnboardingSurveyStep.step2:
+            draft.step = OnboardingSurveyStep.step1;
+            break;
+          case OnboardingSurveyStep.step3:
+            draft.step = OnboardingSurveyStep.step2;
+            break;
+          case OnboardingSurveyStep.step4:
+            draft.step = OnboardingSurveyStep.step3;
+            break;
+
+          default:
+            throw new Error("no previous step is available");
+        }
+        return draft;
+      });
+    });
+  }, [form, formState.step]);
+
   return useMemo(
     () => ({
       ...form,
       toNextStep: toNextStep,
       canNavigateToNextStep: canNavigateToNextStep,
+      toPreviousStep: toPreviousStep,
     }),
-    [canNavigateToNextStep, form, toNextStep]
+    [canNavigateToNextStep, form, toNextStep, toPreviousStep]
   );
 }

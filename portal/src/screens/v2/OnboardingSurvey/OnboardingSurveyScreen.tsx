@@ -11,6 +11,7 @@ import {
 } from "./form";
 import { OnboardingSurveyLayout } from "../../../components/onboarding/OnboardingSurveyLayout";
 import { Step1 } from "./Step1";
+import { Step2 } from "./Step2";
 
 function OnboardingSurveyScreen(): React.ReactElement {
   const form = useOnboardingSurveyForm();
@@ -33,7 +34,7 @@ function OnboardingSurveyScreenContent() {
     case OnboardingSurveyStep.step1:
       return <Step1 />;
     case OnboardingSurveyStep.step2:
-      return <></>;
+      return <Step2 />;
     case OnboardingSurveyStep.step3:
       return <></>;
     case OnboardingSurveyStep.step4:

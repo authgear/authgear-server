@@ -61,6 +61,8 @@ export interface TextButtonProps {
   loading?: boolean;
   text?: React.ReactNode;
   iconStart?: TextButtonIcon;
+
+  onClick?: React.MouseEventHandler<HTMLButtonElement>;
 }
 
 export function TextButton({
@@ -71,6 +73,8 @@ export function TextButton({
   loading,
   text,
   iconStart,
+
+  onClick,
 }: TextButtonProps): React.ReactElement {
   return (
     <Button
@@ -81,6 +85,7 @@ export function TextButton({
       disabled={disabled}
       color={variantToColor(variant)}
       loading={loading}
+      onClick={onClick}
     >
       {iconStart != null ? <Icon icon={iconStart} size={size} /> : null}
       {text}
