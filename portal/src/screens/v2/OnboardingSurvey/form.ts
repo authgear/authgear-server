@@ -3,6 +3,9 @@ import { SimpleFormModel, useSimpleForm } from "../../../hook/useSimpleForm";
 import { useCallback, useMemo, useState } from "react";
 import { useDebouncedEffect } from "../../../hook/useDebouncedEffect";
 import { produce } from "immer";
+import { useCapture } from "../../../gtm_v2";
+import { useSaveOnboardingSurveyMutation } from "../../../graphql/portal/mutations/saveOnboardingSurveyMutation";
+import { useViewerQuery } from "../../../graphql/portal/query/viewerQuery";
 
 export enum Role {
   Developer = "Developer",
@@ -96,9 +99,16 @@ export interface OnboardingSurveyFormModel extends SimpleFormModel<FormState> {
   canNavigateToNextStep: boolean;
   toNextStep: () => void;
   toPreviousStep: () => void;
+  canSave: boolean;
 }
 
 export function useOnboardingSurveyForm(): OnboardingSurveyFormModel {
+  const capture = useCapture();
+
+  const { saveOnboardingSurveyHook: updateCustAttrHook } =
+    useSaveOnboardingSurveyMutation();
+  const { refetch: refetchViewer } = useViewerQuery();
+
   const [defaultState] = useState<FormState>(() => {
     return (
       readFormStateFromStorage(STORAGE) ?? {
@@ -107,10 +117,22 @@ export function useOnboardingSurveyForm(): OnboardingSurveyFormModel {
     );
   });
 
-  const submit = useCallback(async () => {
-    // TODO
-    deleteFormStateFromStorage(STORAGE);
-  }, []);
+  const submit = useCallback(
+    async (formState: FormState) => {
+      capture("onboardingSurvey.set-use_cases");
+      // TODO(tung): Send the event in server
+      // capture("onboardingSurvey.set-completed-survey", {
+      //   $set: {
+      //     survey_json: formState,
+      //   },
+      // });
+      const stateJsonStr = JSON.stringify(formState);
+      await updateCustAttrHook(stateJsonStr);
+      await refetchViewer();
+      deleteFormStateFromStorage(STORAGE);
+    },
+    [capture, refetchViewer, updateCustAttrHook]
+  );
 
   const form = useSimpleForm<FormState>({
     stateMode:
@@ -120,11 +142,16 @@ export function useOnboardingSurveyForm(): OnboardingSurveyFormModel {
   });
 
   const formState = form.state;
+  const isSubmitted = form.isSubmitted;
 
   useDebouncedEffect(
     useCallback(() => {
-      writeFormStateToStorage(STORAGE, formState);
-    }, [formState]),
+      if (!isSubmitted) {
+        writeFormStateToStorage(STORAGE, formState);
+      } else {
+        deleteFormStateFromStorage(STORAGE);
+      }
+    }, [formState, isSubmitted]),
     1000
   );
 
@@ -159,31 +186,50 @@ export function useOnboardingSurveyForm(): OnboardingSurveyFormModel {
         "Cannot navigate to next step, check canNavigateToNextStep"
       );
     }
+    let nextStep: OnboardingSurveyStep;
+    switch (formState.step) {
+      case OnboardingSurveyStep.start:
+        nextStep = OnboardingSurveyStep.step1;
+        break;
+      case OnboardingSurveyStep.step1:
+        nextStep = OnboardingSurveyStep.step2;
+        capture("onboardingSurvey.set-role");
+        break;
+      case OnboardingSurveyStep.step2:
+        capture("onboardingSurvey.set-team_or_personal_account");
+        nextStep = OnboardingSurveyStep.step3;
+        break;
+      case OnboardingSurveyStep.step3:
+        switch (form.state.team_or_personal_account) {
+          case TeamOrPersonal.Team:
+            capture("onboardingSurvey.set-company_details");
+            break;
+          case TeamOrPersonal.Personal:
+            capture("onboardingSurvey.set-project_details");
+            break;
+          default:
+            console.error(
+              "unexpected team_or_personal_account",
+              form.state.team_or_personal_account
+            );
+            break;
+        }
+        nextStep = OnboardingSurveyStep.step4;
+        break;
+
+      default:
+        throw new Error("no next step is available");
+    }
     form.setState((prev) => {
       return produce(prev, (draft) => {
-        switch (formState.step) {
-          case OnboardingSurveyStep.start:
-            draft.step = OnboardingSurveyStep.step1;
-            break;
-          case OnboardingSurveyStep.step1:
-            draft.step = OnboardingSurveyStep.step2;
-            break;
-          case OnboardingSurveyStep.step2:
-            draft.step = OnboardingSurveyStep.step3;
-            break;
-          case OnboardingSurveyStep.step3:
-            draft.step = OnboardingSurveyStep.step4;
-            break;
-
-          default:
-            throw new Error("no next step is available");
-        }
+        draft.step = nextStep;
         return draft;
       });
     });
-  }, [canNavigateToNextStep, form, formState.step]);
+  }, [canNavigateToNextStep, form, formState.step, capture]);
 
   const toPreviousStep = useCallback(() => {
+    capture("onboardingSurvey.set-clicked-back");
     form.setState((prev) => {
       return produce(prev, (draft) => {
         switch (formState.step) {
@@ -203,7 +249,14 @@ export function useOnboardingSurveyForm(): OnboardingSurveyFormModel {
         return draft;
       });
     });
-  }, [form, formState.step]);
+  }, [capture, form, formState.step]);
+
+  const canSave = useMemo(() => {
+    if (formState.step !== OnboardingSurveyStep.step4) {
+      return false;
+    }
+    return formState.use_cases !== undefined;
+  }, [formState.step, formState.use_cases]);
 
   return useMemo(
     () => ({
@@ -211,7 +264,8 @@ export function useOnboardingSurveyForm(): OnboardingSurveyFormModel {
       toNextStep: toNextStep,
       canNavigateToNextStep: canNavigateToNextStep,
       toPreviousStep: toPreviousStep,
+      canSave,
     }),
-    [canNavigateToNextStep, form, toNextStep, toPreviousStep]
+    [canNavigateToNextStep, form, toNextStep, toPreviousStep, canSave]
   );
 }

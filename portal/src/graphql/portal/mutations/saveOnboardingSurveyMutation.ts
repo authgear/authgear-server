@@ -25,9 +25,13 @@ export function useSaveOnboardingSurveyMutation(): UseSaveOnboardingSurveyMutati
     );
   const saveOnboardingSurveyHook = useCallback(
     async (surveyJson: string) => {
-      await mutationFunction({
+      const result = await mutationFunction({
         variables: { surveyJSON: surveyJson },
       });
+      if (result.errors != null && result.errors.length > 0) {
+        // eslint-disable-next-line @typescript-eslint/only-throw-error
+        throw result.errors;
+      }
     },
     [mutationFunction]
   );
