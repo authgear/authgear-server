@@ -21,53 +21,53 @@ export function Step1(): React.ReactElement {
         <Text.Heading>
           <FormattedMessage id="OnboardingSurveyScreen.step1.header" />
         </Text.Heading>
-      </div>
-      <div>
-        <RadioCards
-          highContrast={true}
-          size="3"
-          value={form.state.role ?? null}
-          options={useMemo<RadioCardOption<Role>[]>(
-            () => [
-              {
-                value: Role.Developer,
-                title: (
-                  <FormattedMessage id="OnboardingSurveyScreen.step1.roles.developer" />
-                ),
+        <div>
+          <RadioCards
+            highContrast={true}
+            size="3"
+            value={form.state.role ?? null}
+            options={useMemo<RadioCardOption<Role>[]>(
+              () => [
+                {
+                  value: Role.Developer,
+                  title: (
+                    <FormattedMessage id="OnboardingSurveyScreen.step1.roles.developer" />
+                  ),
+                },
+                {
+                  value: Role.ProjectManager,
+                  title: (
+                    <FormattedMessage id="OnboardingSurveyScreen.step1.roles.pm" />
+                  ),
+                },
+                {
+                  value: Role.Business,
+                  title: (
+                    <FormattedMessage id="OnboardingSurveyScreen.step1.roles.business" />
+                  ),
+                },
+                {
+                  value: Role.Other,
+                  title: (
+                    <FormattedMessage id="OnboardingSurveyScreen.step1.roles.other" />
+                  ),
+                },
+              ],
+              []
+            )}
+            onValueChange={useCallback(
+              (newRole: Role) => {
+                form.setState((prev) =>
+                  produce(prev, (draft) => {
+                    draft.role = newRole;
+                    return draft;
+                  })
+                );
               },
-              {
-                value: Role.ProjectManager,
-                title: (
-                  <FormattedMessage id="OnboardingSurveyScreen.step1.roles.pm" />
-                ),
-              },
-              {
-                value: Role.Business,
-                title: (
-                  <FormattedMessage id="OnboardingSurveyScreen.step1.roles.business" />
-                ),
-              },
-              {
-                value: Role.Other,
-                title: (
-                  <FormattedMessage id="OnboardingSurveyScreen.step1.roles.other" />
-                ),
-              },
-            ],
-            []
-          )}
-          onValueChange={useCallback(
-            (newRole: Role) => {
-              form.setState((prev) =>
-                produce(prev, (draft) => {
-                  draft.role = newRole;
-                  return draft;
-                })
-              );
-            },
-            [form]
-          )}
-        />
+              [form]
+            )}
+          />
+        </div>
       </div>
       <div>
         <PrimaryButton

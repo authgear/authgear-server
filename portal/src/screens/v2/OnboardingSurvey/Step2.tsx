@@ -18,48 +18,50 @@ export function Step2(): React.ReactElement {
   return (
     <div className="grid grid-cols-1 gap-16 text-center self-stretch">
       <OnboardingSurveyStepper step={form.state.step} />
-      <div className="grid grid-cols-1 gap-4">
-        <Text.Heading>
-          <FormattedMessage id="OnboardingSurveyScreen.step2.header" />
-        </Text.Heading>
-        <Text.Body>
-          <FormattedMessage id="OnboardingSurveyScreen.step2.body" />
-        </Text.Body>
-      </div>
-      <div>
-        <RadioCards
-          highContrast={true}
-          size="3"
-          value={form.state.team_or_personal_account ?? null}
-          options={useMemo<RadioCardOption<TeamOrPersonal>[]>(
-            () => [
-              {
-                value: TeamOrPersonal.Team,
-                title: (
-                  <FormattedMessage id="OnboardingSurveyScreen.step2.options.team" />
-                ),
+      <div className="grid grid-cols-1 gap-8">
+        <div className="grid grid-cols-1 gap-4">
+          <Text.Heading>
+            <FormattedMessage id="OnboardingSurveyScreen.step2.header" />
+          </Text.Heading>
+          <Text.Body>
+            <FormattedMessage id="OnboardingSurveyScreen.step2.body" />
+          </Text.Body>
+        </div>
+        <div>
+          <RadioCards
+            highContrast={true}
+            size="3"
+            value={form.state.team_or_personal_account ?? null}
+            options={useMemo<RadioCardOption<TeamOrPersonal>[]>(
+              () => [
+                {
+                  value: TeamOrPersonal.Team,
+                  title: (
+                    <FormattedMessage id="OnboardingSurveyScreen.step2.options.team" />
+                  ),
+                },
+                {
+                  value: TeamOrPersonal.Personal,
+                  title: (
+                    <FormattedMessage id="OnboardingSurveyScreen.step2.options.personal" />
+                  ),
+                },
+              ],
+              []
+            )}
+            onValueChange={useCallback(
+              (newValue: TeamOrPersonal) => {
+                form.setState((prev) =>
+                  produce(prev, (draft) => {
+                    draft.team_or_personal_account = newValue;
+                    return draft;
+                  })
+                );
               },
-              {
-                value: TeamOrPersonal.Personal,
-                title: (
-                  <FormattedMessage id="OnboardingSurveyScreen.step2.options.personal" />
-                ),
-              },
-            ],
-            []
-          )}
-          onValueChange={useCallback(
-            (newValue: TeamOrPersonal) => {
-              form.setState((prev) =>
-                produce(prev, (draft) => {
-                  draft.team_or_personal_account = newValue;
-                  return draft;
-                })
-              );
-            },
-            [form]
-          )}
-        />
+              [form]
+            )}
+          />
+        </div>
       </div>
       <div className="flex items-center justify-center gap-8">
         <BackButton onClick={form.toPreviousStep} />
