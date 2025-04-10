@@ -11,11 +11,16 @@ function Heading({ className, children }: TextProps): React.ReactElement {
   return <span className={cn(styles.heading, className)}>{children}</span>;
 }
 
+function HeadingHint({ className, children }: TextProps): React.ReactElement {
+  return <span className={cn(styles.headingHint, className)}>{children}</span>;
+}
+
 function Body({ className, children }: TextProps): React.ReactElement {
   return <span className={cn(styles.body, className)}>{children}</span>;
 }
 
 export const Text = {
   Heading,
+  HeadingHint,
   Body,
 };

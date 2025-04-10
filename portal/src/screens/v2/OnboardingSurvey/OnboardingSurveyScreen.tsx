@@ -13,6 +13,7 @@ import { OnboardingSurveyLayout } from "../../../components/onboarding/Onboardin
 import { Step1 } from "./Step1";
 import { Step2 } from "./Step2";
 import { Step3 } from "./Step3";
+import { Step4 } from "./Step4";
 
 function OnboardingSurveyScreen(): React.ReactElement {
   const form = useOnboardingSurveyForm();
@@ -39,7 +40,7 @@ function OnboardingSurveyScreenContent() {
     case OnboardingSurveyStep.step3:
       return <Step3 />;
     case OnboardingSurveyStep.step4:
-      return <></>;
+      return <Step4 />;
   }
 }
 

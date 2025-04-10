@@ -6,6 +6,14 @@
   letter-spacing: var(--letter-spacing-6);
 }
 
+.headingHint {
+  color: var(--white-a6);
+  font-weight: 600;
+  font-size: var(--font-size-3);
+  line-height: var(--line-height-3);
+  letter-spacing: var(--letter-spacing-3);
+}
+
 .body {
   color: var(--gray-12);
   font-weight: var(--font-weight-regular);
