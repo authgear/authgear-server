@@ -258,6 +258,7 @@ COPY --from=authgear-once-stage-authgeardeno --chown=authgear:authgear /usr/loca
 
 ENTRYPOINT ["docker-entrypoint.sh"]
 
+ENV AUTHGEARONCE_CREDENTIALS_SHELL_SCRIPT=/var/lib/authgearonce/credentials.sh
 ENV PGDATA=/var/lib/authgearonce/postgresql/data
 ENV AUTHGEARONCE_REDIS_DATA_DIRECTORY=/var/lib/authgearonce/redis/data
 ENV AUTHGEARONCE_MINIO_DATA_DIRECTORY=/var/lib/authgearonce/minio/data
