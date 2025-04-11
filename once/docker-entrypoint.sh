@@ -54,7 +54,7 @@ check_http_origin_not_equal_to_each_other() {
 	fi
 }
 
-docker_credentials_create_directory() {
+docker_authgearonce_create_directory() {
 	dir="$(dirname "$AUTHGEARONCE_ENV_SHELL_SCRIPT")"
 	sudo mkdir -p "$dir"
 	sudo chmod 0755 "$dir"
@@ -471,11 +471,18 @@ EOF
 }
 
 main() {
-	docker_credentials_create_directory
+	check_user_is_correct
+
+	docker_authgearonce_create_directory
+
 	run_initialization=''
 	if ! [ -r "$AUTHGEARONCE_ENV_SHELL_SCRIPT" ]; then
-		# The credentials file does not exist.
+		# The env file does not exist.
 		# This means the volume is new.
+		# In this case, we require the environment variables to be set.
+		check_AUTHGEAR_ONCE_environment_variables_are_set
+		docker_nginx_check_environment_variables
+
 		printf 1>&2 "%s is not found. Generating new passwords.\n" "$AUTHGEARONCE_ENV_SHELL_SCRIPT"
 		run_initialization=1
 
@@ -485,15 +492,23 @@ main() {
 			printf "export REDIS_PASSWORD=%s\n" "$(generate_password)"
 			printf "export MINIO_ROOT_PASSWORD=%s\n" "$(generate_password)"
 		} >> "$AUTHGEARONCE_ENV_SHELL_SCRIPT"
+
+		# We persist the environment variables
+		{
+			printf "export AUTHGEAR_ONCE_ADMIN_USER_EMAIL=%s\n" "$AUTHGEAR_ONCE_ADMIN_USER_EMAIL"
+			printf "export AUTHGEAR_ONCE_ADMIN_USER_PASSWORD=%s\n" "$AUTHGEAR_ONCE_ADMIN_USER_PASSWORD"
+			printf "export AUTHGEAR_HTTP_ORIGIN_PROJECT=%s\n" "$AUTHGEAR_HTTP_ORIGIN_PROJECT"
+			printf "export AUTHGEAR_HTTP_ORIGIN_PORTAL=%s\n" "$AUTHGEAR_HTTP_ORIGIN_PORTAL"
+			printf "export AUTHGEAR_HTTP_ORIGIN_ACCOUNTS=%s\n" "$AUTHGEAR_HTTP_ORIGIN_ACCOUNTS"
+		} >> "$AUTHGEARONCE_ENV_SHELL_SCRIPT"
+		if [ -n "$AUTHGEAR_CERTBOT_ENVIRONMENT" ]; then
+			printf "export AUTHGEAR_CERTBOT_ENVIRONMENT=%s\n" "$AUTHGEAR_CERTBOT_ENVIRONMENT" >> "$AUTHGEARONCE_ENV_SHELL_SCRIPT"
+		fi
 	else
 		printf 1>&2 "%s is found. Passwords inside it will be used.\n" "$AUTHGEARONCE_ENV_SHELL_SCRIPT"
 	fi
-	# Always source the credentials file.
+	# Always source the env file.
 	. "$AUTHGEARONCE_ENV_SHELL_SCRIPT"
-
-	check_user_is_correct
-	check_AUTHGEAR_ONCE_environment_variables_are_set
-	docker_nginx_check_environment_variables
 
 	docker_nginx_create_directories
 	docker_nginx_create_fake_certificate
