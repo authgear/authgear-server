@@ -506,11 +506,11 @@ func (m SetupApp) ToInstallation() Installation {
 		break
 	default:
 		opts := m.makeSendTestEmailOptions()
-		installation.SMTPHost = opts.Host
-		installation.SMTPPort = opts.Port
-		installation.SMTPUsername = opts.Username
-		installation.SMTPPassword = opts.Password
-		installation.SMTPSenderAddress = opts.SenderAddress
+		installation.AUTHGEAR_SMTP_HOST = opts.Host
+		installation.AUTHGEAR_SMTP_PORT = opts.Port
+		installation.AUTHGEAR_SMTP_USERNAME = opts.Username
+		installation.AUTHGEAR_SMTP_PASSWORD = opts.Password
+		installation.AUTHGEAR_SMTP_SENDER_ADDRESS = opts.SenderAddress
 	}
 	return installation
 }
@@ -558,13 +558,11 @@ type Installation struct {
 	AUTHGEAR_ONCE_ADMIN_USER_EMAIL    string
 	AUTHGEAR_ONCE_ADMIN_USER_PASSWORD string
 	AUTHGEAR_CERTBOT_ENVIRONMENT      string
-
-	// FIXME(authgearonce): Set up SMTP.
-	SMTPHost          string
-	SMTPPort          int
-	SMTPUsername      string
-	SMTPPassword      string
-	SMTPSenderAddress string
+	AUTHGEAR_SMTP_HOST                string
+	AUTHGEAR_SMTP_PORT                int
+	AUTHGEAR_SMTP_USERNAME            string
+	AUTHGEAR_SMTP_PASSWORD            string
+	AUTHGEAR_SMTP_SENDER_ADDRESS      string
 
 	Spinner            spinner.Model
 	InstallationStatus InstallationStatus
@@ -677,7 +675,18 @@ func newDockerRunOptionsForInstallation(m Installation) internal.DockerRunOption
 		fmt.Sprintf("AUTHGEAR_HTTP_ORIGIN_ACCOUNTS=%v", m.AUTHGEAR_HTTP_ORIGIN_ACCOUNTS),
 		fmt.Sprintf("AUTHGEAR_ONCE_ADMIN_USER_EMAIL=%v", m.AUTHGEAR_ONCE_ADMIN_USER_EMAIL),
 		fmt.Sprintf("AUTHGEAR_ONCE_ADMIN_USER_PASSWORD=%v", m.AUTHGEAR_ONCE_ADMIN_USER_PASSWORD),
-		fmt.Sprintf("AUTHGEAR_CERTBOT_ENVIRONMENT=%v", m.AUTHGEAR_CERTBOT_ENVIRONMENT),
+	}
+	if m.AUTHGEAR_CERTBOT_ENVIRONMENT != "" {
+		opts.Env = append(opts.Env, fmt.Sprintf("AUTHGEAR_CERTBOT_ENVIRONMENT=%v", m.AUTHGEAR_CERTBOT_ENVIRONMENT))
+	}
+	if m.AUTHGEAR_SMTP_HOST != "" {
+		opts.Env = append(opts.Env,
+			fmt.Sprintf("AUTHGEAR_SMTP_HOST=%v", m.AUTHGEAR_SMTP_HOST),
+			fmt.Sprintf("AUTHGEAR_SMTP_PORT=%v", m.AUTHGEAR_SMTP_PORT),
+			fmt.Sprintf("AUTHGEAR_SMTP_USERNAME=%v", m.AUTHGEAR_SMTP_USERNAME),
+			fmt.Sprintf("AUTHGEAR_SMTP_PASSWORD=%v", m.AUTHGEAR_SMTP_PASSWORD),
+			fmt.Sprintf("AUTHGEAR_SMTP_SENDER_ADDRESS=%v", m.AUTHGEAR_SMTP_SENDER_ADDRESS),
+		)
 	}
 	return opts
 }
