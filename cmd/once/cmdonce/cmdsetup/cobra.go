@@ -45,20 +45,20 @@ var CmdSetup = &cobra.Command{
 		return nil
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		survey := Survey{}
-		prog := tea.NewProgram(survey)
+		setupApp := SetupApp{}
+		prog := tea.NewProgram(setupApp)
 		model, err := prog.Run()
 		if err != nil {
 			return err
 		}
 
-		survey = model.(Survey)
+		setupApp = model.(SetupApp)
 		// The user quits the setup. Just exit 0.
-		if !survey.Complete {
+		if !setupApp.Complete {
 			return nil
 		}
 
-		_ = survey.ToResult()
+		_ = setupApp.ToResult()
 		return nil
 	},
 }
