@@ -66,10 +66,12 @@ type SetupApp struct {
 	LoadingMessage string
 	Spinner        spinner.Model
 
-	FatalErr error
+	FatalError FatalError
 
 	RecoverableErr    error
 	RecoverableErrCmd tea.Cmd
+
+	Installation *Installation
 }
 
 var _ tea.Model = SetupApp{}
@@ -101,10 +103,16 @@ func SetupAppAbort() tea.Msg {
 	return msgSetupAppAbort{}
 }
 
-type msgSetupAppFinish struct{}
+type msgSetupAppEndSurvey struct{}
 
-func SetupAppFinish() tea.Msg {
-	return msgSetupAppFinish{}
+func SetupAppEndSurvey() tea.Msg {
+	return msgSetupAppEndSurvey{}
+}
+
+type msgSetupStartInstallation struct{}
+
+func SetupAppStartInstallation() tea.Msg {
+	return msgSetupStartInstallation{}
 }
 
 var (
@@ -120,23 +128,25 @@ func (m SetupApp) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 
 	switch msg := msg.(type) {
+	case msgSetupAppAbort:
+		return m, tea.Quit
 	case msgSetupAppInit:
 		_, err := exec.LookPath(internal.BinDocker)
 		if err != nil {
-			m.FatalErr = errNoDocker
+			m.FatalError = m.FatalError.WithErr(errNoDocker)
 			return m, tea.Quit
 		}
 
 		volumes, err := internal.DockerVolumeLs(m.Context)
 		if err != nil {
-			m.FatalErr = err
+			m.FatalError = m.FatalError.WithErr(err)
 			return m, tea.Quit
 		}
 
 		if slices.ContainsFunc(volumes, func(v internal.DockerVolume) bool {
 			return v.Name == internal.NameDockerVolume && v.Scope == internal.DockerVolumeScopeLocal
 		}) {
-			m.FatalErr = errDockerVolumeExists
+			m.FatalError = m.FatalError.WithErr(errDockerVolumeExists)
 			return m, tea.Quit
 		}
 
@@ -147,10 +157,6 @@ func (m SetupApp) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if cmd != nil {
 			cmds = append(cmds, cmd)
 		}
-	case msgSetupAppAbort:
-		return m, tea.Quit
-	case msgSetupAppFinish:
-		return m, tea.Quit
 	case tea.KeyMsg:
 		switch msg.Type {
 		case tea.KeyCtrlC:
@@ -190,6 +196,10 @@ func (m SetupApp) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		picker.Prompt = fmt.Sprintf("A test email is sent to %v, did you receive it", msg.Opts.ToAddress)
 		q.Model = picker
 		m.Questions = append(m.Questions, q)
+	case msgSetupAppEndSurvey:
+		installation := m.ToInstallation()
+		m.Installation = &installation
+		return m, SetupAppStartInstallation
 	}
 
 	for idx := range m.Questions {
@@ -199,11 +209,16 @@ func (m SetupApp) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.Questions[idx] = updated.(Question)
 		cmds = append(cmds, newCmd)
 	}
-	if m.Loading {
-		var updated spinner.Model
-		var newCmd tea.Cmd
-		updated, newCmd = m.Spinner.Update(msg)
-		m.Spinner = updated
+	var updated spinner.Model
+	var newCmd tea.Cmd
+	updated, newCmd = m.Spinner.Update(msg)
+	m.Spinner = updated
+	cmds = append(cmds, newCmd)
+
+	if m.Installation != nil {
+		updated, newCmd := m.Installation.Update(msg)
+		installation := updated.(Installation)
+		m.Installation = &installation
 		cmds = append(cmds, newCmd)
 	}
 
@@ -223,6 +238,7 @@ func (m SetupApp) appendNextQuestion() (SetupApp, tea.Cmd) {
 		return m, nil
 	}
 
+	// FIXME(authgearonce): ensure 3 domains are different.
 	// Second, we need to perform cross-field validation on the particular question.
 	switch m.Questions[len(m.Questions)-1].Name {
 	case QuestionName_EnterAdminPassword_Confirm:
@@ -283,7 +299,7 @@ func (m SetupApp) appendNextQuestion() (SetupApp, tea.Cmd) {
 			q = q.WithValue(m.retainedValues.SMTPHost)
 			m.Questions = append(m.Questions, q)
 		case SMTPSkip:
-			return m, SetupAppFinish
+			return m, SetupAppEndSurvey
 		}
 	case QuestionName_EnterSMTPHost:
 		q := newQuestion(Question_EnterSMTPPort)
@@ -319,7 +335,7 @@ func (m SetupApp) appendNextQuestion() (SetupApp, tea.Cmd) {
 		value := m.Questions[len(m.Questions)-1].Value()
 		switch value {
 		case SendTestEmailResultSuccess:
-			return m, SetupAppFinish
+			return m, SetupAppEndSurvey
 		case SendTestEmailResultCorrectSenderAndRetry:
 			// Start over from Question_EnterTestEmailAddress
 			idx, oldQuestion := m.mustFindQuestionByName_ReturnIndex(QuestionName_EnterTestEmailAddress)
@@ -432,66 +448,280 @@ func (m SetupApp) View() string {
 			bubbleteautil.StyleForegroundSemanticInfo.Render("Please hit enter to continue"),
 		)
 	}
-	if m.FatalErr != nil {
-		var errMsg string
-		var actionableMsg string
 
-		switch {
-		case errors.Is(m.FatalErr, errNoDocker):
-			errMsg = fmt.Sprintf("%v is not installed on your machine.", internal.BinDocker)
-			actionableMsg = "Visit https://docs.docker.com/get-started/get-docker/ to install it"
-		case errors.Is(m.FatalErr, errDockerVolumeExists):
-			errMsg = fmt.Sprintf("The docker volume %v exists already.", internal.NameDockerVolume)
-			actionableMsg = fmt.Sprintf("Either run `%v start` to start Authgear, or run `docker volume rm %v` to remove the volume (you will lose all data!)", internal.ProgramName, internal.NameDockerVolume)
-		}
-
-		if errMsg == "" || actionableMsg == "" {
-			fmt.Fprintf(&b,
-				"❌ Encountered this fatal error:\n\n  %v\n\n",
-				bubbleteautil.StyleForegroundSemanticError.Render(m.FatalErr.Error()),
-			)
-		} else {
-			fmt.Fprintf(&b,
-				"❌ Encountered this fatal error:\n\n  %v\n\nHere are some actions you may take:\n\n  %v\n\n",
-				bubbleteautil.StyleForegroundSemanticError.Render(errMsg),
-				bubbleteautil.StyleForegroundSemanticInfo.Render(actionableMsg),
-			)
-		}
+	// FatalError outputs correct newlines.
+	fmt.Fprintf(&b, "%v", m.FatalError.View())
+	// Installation outputs correct newlines.
+	if m.Installation != nil {
+		fmt.Fprintf(&b, "%v", m.Installation.View())
 	}
 	return b.String()
 }
 
-func (m SetupApp) ToResult() SetupAppResult {
-	result := SetupAppResult{
-		CertbotEnabled:                    m.mustFindQuestionByName(QuestionName_EnableCertbot).Value() == ValueTrue,
+func (m SetupApp) ToInstallation() Installation {
+	certbotEnabled := m.mustFindQuestionByName(QuestionName_EnableCertbot).Value() == ValueTrue
+
+	installation := Installation{
+		Context: m.Context,
+
 		AUTHGEAR_ONCE_ADMIN_USER_EMAIL:    m.mustFindQuestionByName(QuestionName_EnterAdminEmail).Value(),
 		AUTHGEAR_ONCE_ADMIN_USER_PASSWORD: m.mustFindQuestionByName(QuestionName_EnterAdminPassword).Value(),
 	}
 	scheme := "http"
-	if result.CertbotEnabled {
+	if certbotEnabled {
 		scheme = "https"
-		result.AUTHGEAR_CERTBOT_ENVIRONMENT = m.mustFindQuestionByName(QuestionName_SelectCertbotEnvironment).Value()
+		installation.AUTHGEAR_CERTBOT_ENVIRONMENT = m.mustFindQuestionByName(QuestionName_SelectCertbotEnvironment).Value()
 	}
-	result.AUTHGEAR_HTTP_ORIGIN_PROJECT = fmt.Sprintf("%v://%v", scheme, m.mustFindQuestionByName(QuestionName_EnterDomain_Project).Value())
-	result.AUTHGEAR_HTTP_ORIGIN_PORTAL = fmt.Sprintf("%v://%v", scheme, m.mustFindQuestionByName(QuestionName_EnterDomain_Portal).Value())
-	result.AUTHGEAR_HTTP_ORIGIN_ACCOUNTS = fmt.Sprintf("%v://%v", scheme, m.mustFindQuestionByName(QuestionName_EnterDomain_Accounts).Value())
+	installation.AUTHGEAR_HTTP_ORIGIN_PROJECT = fmt.Sprintf("%v://%v", scheme, m.mustFindQuestionByName(QuestionName_EnterDomain_Project).Value())
+	installation.AUTHGEAR_HTTP_ORIGIN_PORTAL = fmt.Sprintf("%v://%v", scheme, m.mustFindQuestionByName(QuestionName_EnterDomain_Portal).Value())
+	installation.AUTHGEAR_HTTP_ORIGIN_ACCOUNTS = fmt.Sprintf("%v://%v", scheme, m.mustFindQuestionByName(QuestionName_EnterDomain_Accounts).Value())
 
 	switch m.mustFindQuestionByName(QuestionName_SelectSMTP).Value() {
 	case SMTPSkip:
 		break
 	default:
 		opts := m.makeSendTestEmailOptions()
-		result.SMTPHost = opts.Host
-		result.SMTPPort = opts.Port
-		result.SMTPUsername = opts.Username
-		result.SMTPPassword = opts.Password
-		result.SMTPSenderAddress = opts.SenderAddress
+		installation.SMTPHost = opts.Host
+		installation.SMTPPort = opts.Port
+		installation.SMTPUsername = opts.Username
+		installation.SMTPPassword = opts.Password
+		installation.SMTPSenderAddress = opts.SenderAddress
 	}
-	return result
+	return installation
+}
+
+func (m SetupApp) HasError() bool {
+	if m.FatalError.Err != nil {
+		return true
+	}
+	if m.Installation != nil {
+		if m.Installation.FatalError.Err != nil {
+			return true
+		}
+	}
+	return false
 }
 
 func newQuestion(q Question) Question {
 	// q is copied.
 	q.Model = q.Model.Focus()
 	return q
+}
+
+type msgInstallationInstall struct {
+	Err error
+}
+
+type msgInstallationStart struct {
+	Err error
+}
+
+type InstallationStatus int
+
+const (
+	InstallationStatusInstalling InstallationStatus = iota
+	InstallationStatusStarting
+	InstallationStatusDone
+)
+
+type Installation struct {
+	Context context.Context
+
+	AUTHGEAR_HTTP_ORIGIN_PROJECT      string
+	AUTHGEAR_HTTP_ORIGIN_PORTAL       string
+	AUTHGEAR_HTTP_ORIGIN_ACCOUNTS     string
+	AUTHGEAR_ONCE_ADMIN_USER_EMAIL    string
+	AUTHGEAR_ONCE_ADMIN_USER_PASSWORD string
+	AUTHGEAR_CERTBOT_ENVIRONMENT      string
+
+	// FIXME(authgearonce): Set up SMTP.
+	SMTPHost          string
+	SMTPPort          int
+	SMTPUsername      string
+	SMTPPassword      string
+	SMTPSenderAddress string
+
+	Spinner            spinner.Model
+	InstallationStatus InstallationStatus
+	Loading            bool
+
+	FatalError FatalError
+}
+
+var _ tea.Model = Installation{}
+
+func (m Installation) Init() tea.Cmd {
+	return nil
+}
+
+func (m Installation) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var cmds []tea.Cmd
+
+	switch msg := msg.(type) {
+	case msgSetupStartInstallation:
+		m.Spinner = spinner.New()
+		m.Spinner.Spinner = spinner.Dot
+		m.Spinner.Style = bubbleteautil.StyleForegroundSemanticInfo
+
+		dockerRunOptions := newDockerRunOptionsForInstallation(m)
+		m.Loading = true
+		cmds = append(cmds, m.Spinner.Tick, func() tea.Msg {
+			err := internal.DockerRun(m.Context, dockerRunOptions)
+			return msgInstallationInstall{
+				Err: err,
+			}
+		})
+	case msgInstallationInstall:
+		m.Loading = false
+		if msg.Err != nil {
+			m.FatalError = m.FatalError.WithErr(msg.Err)
+			return m, tea.Quit
+		} else {
+			m.Loading = true
+			m.InstallationStatus = InstallationStatusStarting
+			dockerRunOptions := newDockerRunOptionsForStarting()
+			cmds = append(cmds, func() tea.Msg {
+				err := internal.DockerRun(m.Context, dockerRunOptions)
+				return msgInstallationStart{
+					Err: err,
+				}
+			})
+		}
+	case msgInstallationStart:
+		m.Loading = false
+		if msg.Err != nil {
+			m.FatalError = m.FatalError.WithErr(msg.Err)
+			return m, tea.Quit
+		} else {
+			m.InstallationStatus = InstallationStatusDone
+			return m, tea.Quit
+		}
+	}
+
+	var updated spinner.Model
+	var newCmd tea.Cmd
+	updated, newCmd = m.Spinner.Update(msg)
+	m.Spinner = updated
+	cmds = append(cmds, newCmd)
+
+	return m, tea.Batch(cmds...)
+}
+
+func (m Installation) View() string {
+	var b strings.Builder
+	fmt.Fprintf(&b, "The installation is going to take few minutes:\n")
+	switch m.InstallationStatus {
+	case InstallationStatusInstalling:
+		var spinner string
+		if m.Loading {
+			spinner = fmt.Sprintf(" %v", m.Spinner.View())
+		}
+		fmt.Fprintf(&b, "  Installing%v\n", spinner)
+	case InstallationStatusStarting:
+		fmt.Fprintf(&b, "  Installed\n")
+		var spinner string
+		if m.Loading {
+			spinner = fmt.Sprintf(" %v", m.Spinner.View())
+		}
+		fmt.Fprintf(&b, "  Starting%v\n", spinner)
+	case InstallationStatusDone:
+		fmt.Fprintf(&b, "  Installed\n")
+		fmt.Fprintf(&b, "  Started\n")
+		fmt.Fprintf(
+			&b,
+			"\nReady! Start using Authear by visiting\n\n  %v\n\n",
+			bubbleteautil.StyleForegroundSemanticInfo.Render(m.AUTHGEAR_HTTP_ORIGIN_PORTAL),
+		)
+	}
+
+	fmt.Fprintf(&b, "%v", m.FatalError.View())
+
+	return b.String()
+}
+
+func newDockerRunOptionsForInstallation(m Installation) internal.DockerRunOptions {
+	opts := newDockerRunOptionsForStarting()
+	opts.Detach = false
+	// Run the shell command true to exit 0 when container has finished first run.
+	opts.Command = []string{"true"}
+	// Remove the container because this container always run `true`.
+	opts.Rm = true
+	opts.Env = []string{
+		fmt.Sprintf("AUTHGEAR_HTTP_ORIGIN_PROJECT=%v", m.AUTHGEAR_HTTP_ORIGIN_PROJECT),
+		fmt.Sprintf("AUTHGEAR_HTTP_ORIGIN_PORTAL=%v", m.AUTHGEAR_HTTP_ORIGIN_PORTAL),
+		fmt.Sprintf("AUTHGEAR_HTTP_ORIGIN_ACCOUNTS=%v", m.AUTHGEAR_HTTP_ORIGIN_ACCOUNTS),
+		fmt.Sprintf("AUTHGEAR_ONCE_ADMIN_USER_EMAIL=%v", m.AUTHGEAR_ONCE_ADMIN_USER_EMAIL),
+		fmt.Sprintf("AUTHGEAR_ONCE_ADMIN_USER_PASSWORD=%v", m.AUTHGEAR_ONCE_ADMIN_USER_PASSWORD),
+		fmt.Sprintf("AUTHGEAR_CERTBOT_ENVIRONMENT=%v", m.AUTHGEAR_CERTBOT_ENVIRONMENT),
+	}
+	return opts
+}
+
+func newDockerRunOptionsForStarting() internal.DockerRunOptions {
+	return internal.DockerRunOptions{
+		Detach: true,
+		Volume: []string{"authgearonce_data:/var/lib/authgearonce"},
+		Publish: []string{
+			"80:80",
+			"443:443",
+			"5432:5432",
+			"9001:9001",
+			"8090:8090",
+		},
+		Name:  internal.NameDockerContainer,
+		Image: internal.FIXME_DockerImage,
+	}
+}
+
+type FatalError struct {
+	Err error
+}
+
+var _ tea.Model = FatalError{}
+
+func (m FatalError) Init() tea.Cmd {
+	return nil
+}
+
+func (m FatalError) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	return m, nil
+}
+
+func (m FatalError) View() string {
+	if m.Err == nil {
+		return ""
+	}
+
+	var b strings.Builder
+	var errMsg string
+	var actionableMsg string
+
+	switch {
+	case errors.Is(m.Err, errNoDocker):
+		errMsg = fmt.Sprintf("%v is not installed on your machine.", internal.BinDocker)
+		actionableMsg = "Visit https://docs.docker.com/get-started/get-docker/ to install it"
+	case errors.Is(m.Err, errDockerVolumeExists):
+		errMsg = fmt.Sprintf("The docker volume %v exists already.", internal.NameDockerVolume)
+		actionableMsg = fmt.Sprintf("Either run `%v start` to start Authgear, or run `docker volume rm %v` to remove the volume (you will lose all data!)", internal.ProgramName, internal.NameDockerVolume)
+	}
+
+	if errMsg == "" || actionableMsg == "" {
+		fmt.Fprintf(&b,
+			"❌ Encountered this fatal error:\n\n  %v\n\n",
+			bubbleteautil.StyleForegroundSemanticError.Render(m.Err.Error()),
+		)
+	} else {
+		fmt.Fprintf(&b,
+			"❌ Encountered this fatal error:\n\n  %v\n\nHere are some actions you may take:\n\n  %v\n\n",
+			bubbleteautil.StyleForegroundSemanticError.Render(errMsg),
+			bubbleteautil.StyleForegroundSemanticInfo.Render(actionableMsg),
+		)
+	}
+
+	return b.String()
+}
+
+func (m FatalError) WithErr(err error) FatalError {
+	m.Err = err
+	return m
 }

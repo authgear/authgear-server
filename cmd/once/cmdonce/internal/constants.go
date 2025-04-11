@@ -9,4 +9,7 @@ const (
 	NameDockerVolume = "authgearonce_data"
 	// NameDockerContainer is the name of the Docker container.
 	NameDockerContainer = "authgearonce"
+
+	// FIXME(authgearonce): DEV-2630
+	FIXME_DockerImage = "authgearonce:test"
 )
