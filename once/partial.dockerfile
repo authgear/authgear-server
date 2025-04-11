@@ -157,7 +157,7 @@ ENV PATH=/usr/lib/postgresql/$PG_MAJOR/bin:$PATH
 ## daemonize yes
 ## pidfile /run/redis/redis-server.pid
 ## logfile /var/log/redis/redis-server.log
-## dir /var/lib/redis
+## dir AUTHGEARONCE_REDIS_DATA_DIRECTORY
 ##
 ## Use this command to what out which option are not commented.
 ##
@@ -174,7 +174,7 @@ ENV PATH=/usr/lib/postgresql/$PG_MAJOR/bin:$PATH
 ## logfile ""
 ##   Ask redis-server to write to stdout.
 ##
-## dir /var/lib/redis/data
+## dir AUTHGEARONCE_REDIS_DATA_DIRECTORY
 ##   Make sure when the config file is used, the data directory is predictable.
 ##
 ## bind * -::*
@@ -258,13 +258,14 @@ COPY --from=authgear-once-stage-authgeardeno --chown=authgear:authgear /usr/loca
 
 ENTRYPOINT ["docker-entrypoint.sh"]
 
-ENV PGDATA=/var/lib/postgresql/data
+ENV AUTHGEARONCE_ENV_SHELL_SCRIPT=/var/lib/authgearonce/env.sh
+ENV PGDATA=/var/lib/authgearonce/postgresql/data
+ENV AUTHGEARONCE_REDIS_DATA_DIRECTORY=/var/lib/authgearonce/redis/data
+ENV AUTHGEARONCE_MINIO_DATA_DIRECTORY=/var/lib/authgearonce/minio/data
+ENV AUTHGEARONCE_CERTBOT_DATA_DIRECTORY=/var/lib/authgearonce/certbot/data
 ENV MINIO_ROOT_USER=authgear
 
-VOLUME /var/lib/postgresql/data
-VOLUME /var/lib/redis/data
-VOLUME /var/lib/minio/data
-VOLUME /etc/letsencrypt
+VOLUME /var/lib/authgearonce
 
 # postgres
 EXPOSE 5432

@@ -55,6 +55,34 @@ var Prompt_DisableEmailVerification = cliutil.PromptBool{
 	NonInteractiveFlagName:      "disable-email-verification",
 }
 
+var Prompt_SMTPHost = cliutil.PromptString{
+	Title:                       "SMTP host",
+	InteractiveDefaultUserInput: "",
+	NonInteractiveFlagName:      "smtp-host",
+}
+
+var Prompt_SMTPPort = cliutil.PromptOptionalPort{
+	Title:                  "SMTP port. e.g. 25, 587",
+	NonInteractiveFlagName: "smtp-port",
+}
+
+var Prompt_SMTPUsername = cliutil.PromptString{
+	Title:                       "SMTP username",
+	InteractiveDefaultUserInput: "",
+	NonInteractiveFlagName:      "smtp-username",
+}
+
+var Prompt_SMTPPassword = cliutil.PromptString{
+	Title:                       "SMTP password",
+	InteractiveDefaultUserInput: "",
+	NonInteractiveFlagName:      "smtp-password",
+}
+
+var Prompt_SMTPSenderAddress = cliutil.PromptOptionalEmailAddress{
+	Title:                  "SMTP sender address",
+	NonInteractiveFlagName: "smtp-sender-address",
+}
+
 var Prompt_SearchImplementation = cliutil.PromptString{
 	Title:                       "Select a service for searching (elasticsearch, postgresql, none)",
 	InteractiveDefaultUserInput: string(config.SearchImplementationElasticsearch),
@@ -206,6 +234,45 @@ func ReadSearchImplementation(ctx context.Context, cmd *cobra.Command) (config.S
 	}
 
 	return config.SearchImplementation(s), nil
+}
+
+func ReadSMTPConfig(ctx context.Context, cmd *cobra.Command) (*config.SMTPServerCredentials, error) {
+	host, err := Prompt_SMTPHost.Prompt(ctx, cmd)
+	if err != nil {
+		return nil, err
+	}
+
+	port, err := Prompt_SMTPPort.Prompt(ctx, cmd)
+	if err != nil {
+		return nil, err
+	}
+
+	username, err := Prompt_SMTPUsername.Prompt(ctx, cmd)
+	if err != nil {
+		return nil, err
+	}
+
+	password, err := Prompt_SMTPPassword.Prompt(ctx, cmd)
+	if err != nil {
+		return nil, err
+	}
+
+	sender, err := Prompt_SMTPSenderAddress.Prompt(ctx, cmd)
+	if err != nil {
+		return nil, err
+	}
+
+	if host != "" && port != nil && username != "" && password != "" && sender != "" {
+		return &config.SMTPServerCredentials{
+			Host:     host,
+			Port:     *port,
+			Username: username,
+			Password: password,
+			Sender:   sender,
+		}, nil
+	}
+
+	return nil, nil
 }
 
 func ReadSecretConfigOptionsFromConsole(ctx context.Context, cmd *cobra.Command, searchImpl config.SearchImplementation) (*config.GenerateSecretConfigOptions, error) {
