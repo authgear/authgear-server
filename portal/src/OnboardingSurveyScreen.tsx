@@ -773,7 +773,7 @@ function Step4(_props: StepProps) {
   const { refetch: refetchViewer } = useViewerQuery();
   useEffect(() => goToFirstUnfilled(4, navigate), [navigate]);
   const {
-    saveOnboardingSurveyHook: updateCustAttrHook,
+    saveOnboardingSurvey: updateCustAttrHook,
     error: updateCustAttrError,
     loading: updateCustAttrLoading,
   } = useSaveOnboardingSurveyMutation();

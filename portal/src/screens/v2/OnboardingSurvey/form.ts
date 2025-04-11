@@ -105,8 +105,7 @@ export interface OnboardingSurveyFormModel extends SimpleFormModel<FormState> {
 export function useOnboardingSurveyForm(): OnboardingSurveyFormModel {
   const capture = useCapture();
 
-  const { saveOnboardingSurveyHook: updateCustAttrHook } =
-    useSaveOnboardingSurveyMutation();
+  const { saveOnboardingSurvey } = useSaveOnboardingSurveyMutation();
   const { refetch: refetchViewer } = useViewerQuery();
 
   const [initialState, setInitialState] = useState<FormState>(() => {
@@ -120,19 +119,13 @@ export function useOnboardingSurveyForm(): OnboardingSurveyFormModel {
   const submit = useCallback(
     async (formState: FormState) => {
       capture("onboardingSurvey.set-use_cases");
-      // TODO(tung): Send the event in server
-      // capture("onboardingSurvey.set-completed-survey", {
-      //   $set: {
-      //     survey_json: formState,
-      //   },
-      // });
       const stateJsonStr = JSON.stringify(formState);
-      await updateCustAttrHook(stateJsonStr);
+      await saveOnboardingSurvey(stateJsonStr);
       await refetchViewer();
       deleteFormStateFromStorage(STORAGE);
       setInitialState(formState);
     },
-    [capture, refetchViewer, updateCustAttrHook]
+    [capture, refetchViewer, saveOnboardingSurvey]
   );
 
   const form = useSimpleForm<FormState>({
