@@ -109,7 +109,7 @@ export function useOnboardingSurveyForm(): OnboardingSurveyFormModel {
     useSaveOnboardingSurveyMutation();
   const { refetch: refetchViewer } = useViewerQuery();
 
-  const [defaultState] = useState<FormState>(() => {
+  const [initialState, setInitialState] = useState<FormState>(() => {
     return (
       readFormStateFromStorage(STORAGE) ?? {
         step: OnboardingSurveyStep.start,
@@ -130,14 +130,14 @@ export function useOnboardingSurveyForm(): OnboardingSurveyFormModel {
       await updateCustAttrHook(stateJsonStr);
       await refetchViewer();
       deleteFormStateFromStorage(STORAGE);
+      setInitialState(formState);
     },
     [capture, refetchViewer, updateCustAttrHook]
   );
 
   const form = useSimpleForm<FormState>({
-    stateMode:
-      "ConstantInitialStateAndResetCurrentStatetoInitialStateAfterSave",
-    defaultState,
+    stateMode: "UpdateInitialStateWithUseEffect",
+    defaultState: initialState,
     submit,
   });
 

@@ -119,8 +119,9 @@ export function Step4(): React.ReactElement {
           size="4"
           highContrast={true}
           text={<FormattedMessage id="OnboardingSurveyScreen.actions.finish" />}
-          onClick={form.toNextStep}
-          disabled={!form.canNavigateToNextStep}
+          onClick={form.save}
+          loading={form.isUpdating}
+          disabled={!form.canSave}
         />
       </div>
     </div>
