@@ -215,10 +215,17 @@ var (
 )
 
 func NewPosthogIntegration(pool *db.Pool, databaseCredentials *config.DatabaseCredentials, auditDatabaseCredentials *config.AuditDatabaseCredentials, redisPool *redis.Pool, credentials *config.AnalyticRedisCredentials, posthogCredentials *analytic.PosthogCredentials) *analytic.PosthogIntegration {
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	factory := NewLoggerFactory()
+	posthogLogger := analytic.NewPosthogLogger(factory)
+	posthogService := analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+		Logger:             posthogLogger,
+	}
 	clockClock := _wireSystemClockValue
 	globalDatabaseCredentialsEnvironmentConfig := NewGlobalDatabaseCredentials(databaseCredentials)
 	databaseEnvironmentConfig := config.NewDefaultDatabaseEnvironmentConfig()
-	factory := NewLoggerFactory()
 	handle := globaldb.NewHandle(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
 	sqlBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
 	sqlExecutor := globaldb.NewSQLExecutor(handle)
@@ -233,14 +240,13 @@ func NewPosthogIntegration(pool *db.Pool, databaseCredentials *config.DatabaseCr
 		SQLBuilder:  appdbSQLBuilder,
 		SQLExecutor: appdbSQLExecutor,
 	}
-	posthogHTTPClient := analytic.NewPosthogHTTPClient()
-	posthogLogger := analytic.NewPosthogLogger(factory)
 	redisEnvironmentConfig := config.NewDefaultRedisEnvironmentConfig()
 	analyticredisHandle := analyticredis.NewHandle(redisPool, redisEnvironmentConfig, credentials, factory)
 	readStoreRedis := &meter.ReadStoreRedis{
 		Redis: analyticredisHandle,
 	}
 	posthogIntegration := &analytic.PosthogIntegration{
+		PosthogService:     posthogService,
 		PosthogCredentials: posthogCredentials,
 		Clock:              clockClock,
 		GlobalHandle:       handle,

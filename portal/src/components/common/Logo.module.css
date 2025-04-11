@@ -1,0 +1,9 @@
+.logo__img {
+  @apply block;
+  height: 24px;
+  width: auto;
+}
+
+.logo__container {
+  @apply px-6 py-3;
+}

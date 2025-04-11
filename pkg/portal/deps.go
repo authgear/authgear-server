@@ -49,12 +49,23 @@ func ProvideDenoClient(endpoint config.DenoEndpoint, logger hook.Logger) *hook.D
 	}
 }
 
+func ProvidePosthogCredential(analyticConfig *config.AnalyticConfig) *analytic.PosthogCredentials {
+	if analyticConfig.PosthogEndpoint != "" && analyticConfig.PosthogAPIKey != "" {
+		return &analytic.PosthogCredentials{
+			Endpoint: analyticConfig.PosthogEndpoint,
+			APIKey:   analyticConfig.PosthogAPIKey,
+		}
+	}
+	return nil
+}
+
 var denoDependencySet = wire.NewSet(
 	ProvideDenoClient,
 	hook.NewLogger,
 )
 
 var DependencySet = wire.NewSet(
+	ProvidePosthogCredential,
 	deps.DependencySet,
 	deps.MailDependencySet,
 
@@ -76,10 +87,12 @@ var DependencySet = wire.NewSet(
 	auditdb.NewReadHandle,
 	auditdb.NewWriteHandle,
 	auditdb.DependencySet,
-	analytic.DependencySet,
 	configsource.DependencySet,
 
 	usage.DependencySet,
+
+	analytic.DependencySet,
+	wire.Bind(new(service.OnboardServicePosthogService), new(*analytic.PosthogService)),
 
 	wire.Bind(new(service.AuthzAdder), new(*adminauthz.Adder)),
 	wire.Bind(new(service.CollaboratorServiceEndpointsProvider), new(*endpoint.EndpointsProvider)),
