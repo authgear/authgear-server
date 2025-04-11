@@ -61,8 +61,8 @@ type SetupApp struct {
 	LoadingMessage string
 	Spinner        spinner.Model
 
-	Err           error
-	ErrRecoverCmd tea.Cmd
+	RecoverableErr    error
+	RecoverableErrCmd tea.Cmd
 }
 
 var _ tea.Model = SetupApp{}
@@ -118,11 +118,11 @@ func (m SetupApp) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case tea.KeyCtrlC:
 			return m, SetupAppAbort
 		case tea.KeyEnter:
-			if m.Err != nil {
-				m.Err = nil
-				if m.ErrRecoverCmd != nil {
-					cmds = append(cmds, m.ErrRecoverCmd)
-					m.ErrRecoverCmd = nil
+			if m.RecoverableErr != nil {
+				m.RecoverableErr = nil
+				if m.RecoverableErrCmd != nil {
+					cmds = append(cmds, m.RecoverableErrCmd)
+					m.RecoverableErrCmd = nil
 				}
 			} else {
 				var cmd tea.Cmd
@@ -141,8 +141,8 @@ func (m SetupApp) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return msgAskForSendTestEmailResult{Opts: msg.Opts}
 		}
 		if msg.Err != nil {
-			m.Err = msg.Err
-			m.ErrRecoverCmd = errRecoverCmd
+			m.RecoverableErr = msg.Err
+			m.RecoverableErrCmd = errRecoverCmd
 		} else {
 			cmds = append(cmds, errRecoverCmd)
 		}
@@ -388,9 +388,9 @@ func (m SetupApp) View() string {
 	if m.Loading {
 		fmt.Fprintf(&b, "%v %v\n", m.Spinner.View(), m.LoadingMessage)
 	}
-	if m.Err != nil {
+	if m.RecoverableErr != nil {
 		fmt.Fprintf(&b, "❌ Encountered this error\n%v\n%v\n",
-			bubbleteautil.StyleForegroundSemanticError.Render(m.Err.Error()),
+			bubbleteautil.StyleForegroundSemanticError.Render(m.RecoverableErr.Error()),
 			bubbleteautil.StyleForegroundSemanticInfo.Render("Please hit enter to continue"),
 		)
 	}
