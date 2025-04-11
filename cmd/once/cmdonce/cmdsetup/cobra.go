@@ -30,7 +30,7 @@ var CmdSetup = &cobra.Command{
 		}
 
 		setupApp = model.(SetupApp)
-		if setupApp.FatalErr != nil {
+		if setupApp.HasError() {
 			os.Exit(1)
 		}
 		return nil
