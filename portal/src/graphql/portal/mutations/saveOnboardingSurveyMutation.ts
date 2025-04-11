@@ -7,7 +7,7 @@ import {
 } from "./saveOnboardingSurveyMutation.generated";
 
 export interface UseSaveOnboardingSurveyMutationReturnType {
-  saveOnboardingSurveyHook: (surveyJson: string) => Promise<void>;
+  saveOnboardingSurvey: (surveyJson: string) => Promise<void>;
   loading: boolean;
   error: unknown;
   reset: () => void;
@@ -23,7 +23,7 @@ export function useSaveOnboardingSurveyMutation(): UseSaveOnboardingSurveyMutati
         client,
       }
     );
-  const saveOnboardingSurveyHook = useCallback(
+  const saveOnboardingSurvey = useCallback(
     async (surveyJson: string) => {
       const result = await mutationFunction({
         variables: { surveyJSON: surveyJson },
@@ -36,5 +36,5 @@ export function useSaveOnboardingSurveyMutation(): UseSaveOnboardingSurveyMutati
     [mutationFunction]
   );
 
-  return { saveOnboardingSurveyHook, error, loading, reset };
+  return { saveOnboardingSurvey: saveOnboardingSurvey, error, loading, reset };
 }
