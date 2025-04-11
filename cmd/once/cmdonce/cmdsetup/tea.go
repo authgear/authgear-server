@@ -51,7 +51,7 @@ type RetainedValues struct {
 	TestEmailAddress  string
 }
 
-type Survey struct {
+type SetupApp struct {
 	Complete bool
 
 	Questions      []Question
@@ -65,12 +65,12 @@ type Survey struct {
 	ErrRecoverCmd tea.Cmd
 }
 
-var _ tea.Model = Survey{}
+var _ tea.Model = SetupApp{}
 
-type msgSurveyInit struct{}
+type msgSetupAppInit struct{}
 
-func SurveyInit() tea.Msg {
-	return msgSurveyInit{}
+func SetupAppInit() tea.Msg {
+	return msgSetupAppInit{}
 }
 
 type msgSendTestEmail struct {
@@ -82,41 +82,41 @@ type msgAskForSendTestEmailResult struct {
 	Opts SendTestEmailOptions
 }
 
-type msgSurveyAbort struct{}
+type msgSetupAppAbort struct{}
 
-func SurveyAbort() tea.Msg {
-	return msgSurveyAbort{}
+func SetupAppAbort() tea.Msg {
+	return msgSetupAppAbort{}
 }
 
-type msgSurveyFinish struct{}
+type msgSetupAppFinish struct{}
 
-func SurveyFinish() tea.Msg {
-	return msgSurveyFinish{}
+func SetupAppFinish() tea.Msg {
+	return msgSetupAppFinish{}
 }
 
-func (m Survey) Init() tea.Cmd {
-	return SurveyInit
+func (m SetupApp) Init() tea.Cmd {
+	return SetupAppInit
 }
 
-func (m Survey) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m SetupApp) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 
 	switch msg := msg.(type) {
-	case msgSurveyInit:
+	case msgSetupAppInit:
 		var cmd tea.Cmd
 		m, cmd = m.appendNextQuestion()
 		if cmd != nil {
 			cmds = append(cmds, cmd)
 		}
-	case msgSurveyAbort:
+	case msgSetupAppAbort:
 		return m, tea.Quit
-	case msgSurveyFinish:
+	case msgSetupAppFinish:
 		m.Complete = true
 		return m, tea.Quit
 	case tea.KeyMsg:
 		switch msg.Type {
 		case tea.KeyCtrlC:
-			return m, SurveyAbort
+			return m, SetupAppAbort
 		case tea.KeyEnter:
 			if m.Err != nil {
 				m.Err = nil
@@ -172,7 +172,7 @@ func (m Survey) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, tea.Batch(cmds...)
 }
 
-func (m Survey) appendNextQuestion() (Survey, tea.Cmd) {
+func (m SetupApp) appendNextQuestion() (SetupApp, tea.Cmd) {
 	if len(m.Questions) == 0 {
 		m.Questions = append(m.Questions, newQuestion(Question_AcceptAgreement))
 		return m, nil
@@ -185,7 +185,7 @@ func (m Survey) appendNextQuestion() (Survey, tea.Cmd) {
 		return m, nil
 	}
 
-	// Second, we need to perform survey-level validation on the particular question.
+	// Second, we need to perform cross-field validation on the particular question.
 	switch m.Questions[len(m.Questions)-1].Name {
 	case QuestionName_EnterAdminPassword_Confirm:
 		passwordValue := m.mustFindQuestionByName(QuestionName_EnterAdminPassword).Value()
@@ -245,7 +245,7 @@ func (m Survey) appendNextQuestion() (Survey, tea.Cmd) {
 			q = q.WithValue(m.retainedValues.SMTPHost)
 			m.Questions = append(m.Questions, q)
 		case SMTPSkip:
-			return m, SurveyFinish
+			return m, SetupAppFinish
 		}
 	case QuestionName_EnterSMTPHost:
 		q := newQuestion(Question_EnterSMTPPort)
@@ -281,7 +281,7 @@ func (m Survey) appendNextQuestion() (Survey, tea.Cmd) {
 		value := m.Questions[len(m.Questions)-1].Value()
 		switch value {
 		case SendTestEmailResultSuccess:
-			return m, SurveyFinish
+			return m, SetupAppFinish
 		case SendTestEmailResultCorrectSenderAndRetry:
 			// Start over from Question_EnterTestEmailAddress
 			idx, oldQuestion := m.mustFindQuestionByName_ReturnIndex(QuestionName_EnterTestEmailAddress)
@@ -303,7 +303,7 @@ func (m Survey) appendNextQuestion() (Survey, tea.Cmd) {
 	return m, nil
 }
 
-func (m Survey) findQuestionByName(name QuestionName) (*int, *Question, bool) {
+func (m SetupApp) findQuestionByName(name QuestionName) (*int, *Question, bool) {
 	for idx, q := range m.Questions {
 		if q.Name == name {
 			idx := idx
@@ -314,7 +314,7 @@ func (m Survey) findQuestionByName(name QuestionName) (*int, *Question, bool) {
 	return nil, nil, false
 }
 
-func (m Survey) mustFindQuestionByName_ReturnIndex(name QuestionName) (int, Question) {
+func (m SetupApp) mustFindQuestionByName_ReturnIndex(name QuestionName) (int, Question) {
 	idx, q, ok := m.findQuestionByName(name)
 	if !ok {
 		panic(fmt.Errorf("question not found: %v", name))
@@ -322,12 +322,12 @@ func (m Survey) mustFindQuestionByName_ReturnIndex(name QuestionName) (int, Ques
 	return *idx, *q
 }
 
-func (m Survey) mustFindQuestionByName(name QuestionName) Question {
+func (m SetupApp) mustFindQuestionByName(name QuestionName) Question {
 	_, q := m.mustFindQuestionByName_ReturnIndex(name)
 	return q
 }
 
-func (m Survey) retainValues() RetainedValues {
+func (m SetupApp) retainValues() RetainedValues {
 	values := RetainedValues{}
 	if _, smtpHost, ok := m.findQuestionByName(QuestionName_EnterSMTPHost); ok {
 		values.SMTPHost = smtpHost.Value()
@@ -347,7 +347,7 @@ func (m Survey) retainValues() RetainedValues {
 	return values
 }
 
-func (m Survey) makeSendTestEmailOptions() SendTestEmailOptions {
+func (m SetupApp) makeSendTestEmailOptions() SendTestEmailOptions {
 	opts := SendTestEmailOptions{
 		SenderAddress: m.mustFindQuestionByName(QuestionName_EnterSMTPSenderAddress).Value(),
 		ToAddress:     m.mustFindQuestionByName(QuestionName_EnterTestEmailAddress).Value(),
@@ -367,7 +367,7 @@ func (m Survey) makeSendTestEmailOptions() SendTestEmailOptions {
 	return opts
 }
 
-func (m *Survey) StartLoading(msg string) tea.Cmd {
+func (m *SetupApp) StartLoading(msg string) tea.Cmd {
 	m.Loading = true
 	m.LoadingMessage = msg
 	m.Spinner = spinner.New()
@@ -376,11 +376,11 @@ func (m *Survey) StartLoading(msg string) tea.Cmd {
 	return m.Spinner.Tick
 }
 
-func (m *Survey) StopLoading() {
+func (m *SetupApp) StopLoading() {
 	m.Loading = false
 }
 
-func (m Survey) View() string {
+func (m SetupApp) View() string {
 	var b strings.Builder
 	for _, q := range m.Questions {
 		fmt.Fprintf(&b, "%v\n", q.View())
@@ -397,22 +397,21 @@ func (m Survey) View() string {
 	return b.String()
 }
 
-func (m Survey) ToResult() SurveyResult {
-	result := SurveyResult{
-		DomainProject:  m.mustFindQuestionByName(QuestionName_EnterDomain_Project).Value(),
-		DomainPortal:   m.mustFindQuestionByName(QuestionName_EnterDomain_Portal).Value(),
-		DomainAccounts: m.mustFindQuestionByName(QuestionName_EnterDomain_Accounts).Value(),
-
-		CertbotEnabled: m.mustFindQuestionByName(QuestionName_EnableCertbot).Value() == ValueTrue,
-		// Assume staging by default.
-		CertbotEnvironment: CertbotEnvironmentStaging,
-
-		AdminEmailAddress: m.mustFindQuestionByName(QuestionName_EnterAdminEmail).Value(),
-		AdminPassword:     m.mustFindQuestionByName(QuestionName_EnterAdminPassword).Value(),
+func (m SetupApp) ToResult() SetupAppResult {
+	result := SetupAppResult{
+		CertbotEnabled:                    m.mustFindQuestionByName(QuestionName_EnableCertbot).Value() == ValueTrue,
+		AUTHGEAR_ONCE_ADMIN_USER_EMAIL:    m.mustFindQuestionByName(QuestionName_EnterAdminEmail).Value(),
+		AUTHGEAR_ONCE_ADMIN_USER_PASSWORD: m.mustFindQuestionByName(QuestionName_EnterAdminPassword).Value(),
 	}
+	scheme := "http"
 	if result.CertbotEnabled {
-		result.CertbotEnvironment = m.mustFindQuestionByName(QuestionName_SelectCertbotEnvironment).Value()
+		scheme = "https"
+		result.AUTHGEAR_CERTBOT_ENVIRONMENT = m.mustFindQuestionByName(QuestionName_SelectCertbotEnvironment).Value()
 	}
+	result.AUTHGEAR_HTTP_ORIGIN_PROJECT = fmt.Sprintf("%v://%v", scheme, m.mustFindQuestionByName(QuestionName_EnterDomain_Project).Value())
+	result.AUTHGEAR_HTTP_ORIGIN_PORTAL = fmt.Sprintf("%v://%v", scheme, m.mustFindQuestionByName(QuestionName_EnterDomain_Portal).Value())
+	result.AUTHGEAR_HTTP_ORIGIN_ACCOUNTS = fmt.Sprintf("%v://%v", scheme, m.mustFindQuestionByName(QuestionName_EnterDomain_Accounts).Value())
+
 	switch m.mustFindQuestionByName(QuestionName_SelectSMTP).Value() {
 	case SMTPSkip:
 		break
