@@ -1906,10 +1906,13 @@
   "OnboardingSurveyScreen.step4.usecases.other": "Other",
   "OnboardingSurveyScreen.step4.usecases.other.label": "Describe your reason",
   "OnboardingSurveyScreen.step4.usecases.other.placeholder": "Please describe your reason for using Authgear...",
+  "OnboardingSurveyScreen.completed.header": "You're All Set!",
+  "OnboardingSurveyScreen.completed.body": "Your account info is saved. Now let’s create your first project with Authgear and unlock seamless authentication experiences.",
   "OnboardingSurveyScreen.actions.start": "Start",
   "OnboardingSurveyScreen.actions.next": "Next",
   "OnboardingSurveyScreen.actions.back": "Back",
   "OnboardingSurveyScreen.actions.finish": "Finish",
+  "OnboardingSurveyScreen.actions.createProject": "Create Project",
 
   "GetStartedScreen.title": "Getting Started 🎉",
   "GetStartedScreen.description": "Here are a few steps to get you set up for success.",
