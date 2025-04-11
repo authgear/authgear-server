@@ -1,13 +1,18 @@
 package cmdsetup
 
 import (
+	"context"
+	"errors"
 	"fmt"
+	"os/exec"
+	"slices"
 	"strconv"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 
+	"github.com/authgear/authgear-server/cmd/once/cmdonce/internal"
 	"github.com/authgear/authgear-server/pkg/util/bubbleteautil"
 )
 
@@ -52,7 +57,7 @@ type RetainedValues struct {
 }
 
 type SetupApp struct {
-	Complete bool
+	Context context.Context
 
 	Questions      []Question
 	retainedValues RetainedValues
@@ -60,6 +65,8 @@ type SetupApp struct {
 	Loading        bool
 	LoadingMessage string
 	Spinner        spinner.Model
+
+	FatalErr error
 
 	RecoverableErr    error
 	RecoverableErrCmd tea.Cmd
@@ -71,6 +78,12 @@ type msgSetupAppInit struct{}
 
 func SetupAppInit() tea.Msg {
 	return msgSetupAppInit{}
+}
+
+type msgSetupAppStartSurvey struct{}
+
+func SetupAppStartSurvey() tea.Msg {
+	return msgSetupAppStartSurvey{}
 }
 
 type msgSendTestEmail struct {
@@ -94,6 +107,11 @@ func SetupAppFinish() tea.Msg {
 	return msgSetupAppFinish{}
 }
 
+var (
+	errNoDocker           = errors.New("no docker")
+	errDockerVolumeExists = errors.New("docker volume exists")
+)
+
 func (m SetupApp) Init() tea.Cmd {
 	return SetupAppInit
 }
@@ -103,6 +121,27 @@ func (m SetupApp) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case msgSetupAppInit:
+		_, err := exec.LookPath(internal.BinDocker)
+		if err != nil {
+			m.FatalErr = errNoDocker
+			return m, tea.Quit
+		}
+
+		volumes, err := internal.DockerVolumeLs(m.Context)
+		if err != nil {
+			m.FatalErr = err
+			return m, tea.Quit
+		}
+
+		if slices.ContainsFunc(volumes, func(v internal.DockerVolume) bool {
+			return v.Name == internal.NameDockerVolume && v.Scope == internal.DockerVolumeScopeLocal
+		}) {
+			m.FatalErr = errDockerVolumeExists
+			return m, tea.Quit
+		}
+
+		return m, SetupAppStartSurvey
+	case msgSetupAppStartSurvey:
 		var cmd tea.Cmd
 		m, cmd = m.appendNextQuestion()
 		if cmd != nil {
@@ -111,7 +150,6 @@ func (m SetupApp) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case msgSetupAppAbort:
 		return m, tea.Quit
 	case msgSetupAppFinish:
-		m.Complete = true
 		return m, tea.Quit
 	case tea.KeyMsg:
 		switch msg.Type {
@@ -393,6 +431,32 @@ func (m SetupApp) View() string {
 			bubbleteautil.StyleForegroundSemanticError.Render(m.RecoverableErr.Error()),
 			bubbleteautil.StyleForegroundSemanticInfo.Render("Please hit enter to continue"),
 		)
+	}
+	if m.FatalErr != nil {
+		var errMsg string
+		var actionableMsg string
+
+		switch {
+		case errors.Is(m.FatalErr, errNoDocker):
+			errMsg = fmt.Sprintf("%v is not installed on your machine.", internal.BinDocker)
+			actionableMsg = "Visit https://docs.docker.com/get-started/get-docker/ to install it"
+		case errors.Is(m.FatalErr, errDockerVolumeExists):
+			errMsg = fmt.Sprintf("The docker volume %v exists already.", internal.NameDockerVolume)
+			actionableMsg = fmt.Sprintf("Either run `%v start` to start Authgear, or run `docker volume rm %v` to remove the volume (you will lose all data!)", internal.ProgramName, internal.NameDockerVolume)
+		}
+
+		if errMsg == "" || actionableMsg == "" {
+			fmt.Fprintf(&b,
+				"❌ Encountered this fatal error:\n\n  %v\n\n",
+				bubbleteautil.StyleForegroundSemanticError.Render(m.FatalErr.Error()),
+			)
+		} else {
+			fmt.Fprintf(&b,
+				"❌ Encountered this fatal error:\n\n  %v\n\nHere are some actions you may take:\n\n  %v\n\n",
+				bubbleteautil.StyleForegroundSemanticError.Render(errMsg),
+				bubbleteautil.StyleForegroundSemanticInfo.Render(actionableMsg),
+			)
+		}
 	}
 	return b.String()
 }
