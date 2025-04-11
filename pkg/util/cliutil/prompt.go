@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/mail"
 	"net/url"
 	"os"
 	"strconv"
@@ -194,6 +195,68 @@ func (p PromptBool) Prompt(ctx context.Context, cmd *cobra.Command) (bool, error
 
 func (p PromptBool) DefineFlag(cmd *cobra.Command) {
 	_ = cmd.Flags().Bool(p.NonInteractiveFlagName, p.InteractiveDefaultUserInput, p.Title)
+}
+
+type PromptOptionalPort struct {
+	Title                  string
+	NonInteractiveFlagName string
+}
+
+func (p PromptOptionalPort) Prompt(ctx context.Context, cmd *cobra.Command) (*int, error) {
+	return Prompt[*int]{
+		Title:                  p.Title,
+		NonInteractiveFlagName: p.NonInteractiveFlagName,
+		Parse: func(ctx context.Context, userInput string) (*int, error) {
+			if userInput == "" {
+				return nil, nil
+			}
+			i, err := strconv.Atoi(userInput)
+			if err != nil {
+				return nil, fmt.Errorf("Please enter a port within range [1,65535]")
+			}
+			if i < 1 || i > 65535 {
+				return nil, fmt.Errorf("Please enter a port within range [1,65535]")
+			}
+			return &i, nil
+		},
+	}.Prompt(ctx, cmd)
+}
+
+func (p PromptOptionalPort) DefineFlag(cmd *cobra.Command) {
+	_ = cmd.Flags().String(p.NonInteractiveFlagName, "", p.Title)
+}
+
+type PromptOptionalEmailAddress struct {
+	Title                  string
+	NonInteractiveFlagName string
+}
+
+func (p PromptOptionalEmailAddress) Prompt(ctx context.Context, cmd *cobra.Command) (string, error) {
+	return Prompt[string]{
+		Title:                  p.Title,
+		NonInteractiveFlagName: p.NonInteractiveFlagName,
+		Parse: func(ctx context.Context, userInput string) (string, error) {
+			if userInput == "" {
+				return "", nil
+			}
+
+			addr, err := mail.ParseAddress(userInput)
+			if err != nil {
+				return "", fmt.Errorf("Please enter a valid email address")
+			}
+			if addr.Name != "" {
+				return "", fmt.Errorf("Please enter an email address without name")
+			}
+			if addr.Address != userInput {
+				return "", fmt.Errorf("Please enter an email address without spaces")
+			}
+			return userInput, nil
+		},
+	}.Prompt(ctx, cmd)
+}
+
+func (p PromptOptionalEmailAddress) DefineFlag(cmd *cobra.Command) {
+	_ = cmd.Flags().String(p.NonInteractiveFlagName, "", p.Title)
 }
 
 func DefineFlagInteractive(cmd *cobra.Command) {
