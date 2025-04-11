@@ -398,7 +398,12 @@ docker_authgear_init() {
 		--portal-origin="$AUTHGEAR_HTTP_ORIGIN_PORTAL" \
 		--portal-client-id=portal \
 		--phone-otp-mode=sms \
-		--disable-email-verification=true \
+		--disable-email-verification=false \
+		--smtp-host="$AUTHGEAR_SMTP_HOST" \
+		--smtp-port="$AUTHGEAR_SMTP_PORT" \
+		--smtp-username="$AUTHGEAR_SMTP_USERNAME" \
+		--smtp-password="$AUTHGEAR_SMTP_PASSWORD" \
+		--smtp-sender-address="$AUTHGEAR_SMTP_SENDER_ADDRESS" \
 		--search-implementation=postgresql \
 		-o "$init_output_accounts"
 	authgear-portal internal configsource create "$init_output_accounts"
@@ -414,7 +419,12 @@ docker_authgear_init() {
 		--app-id="$app_id_project" \
 		--public-origin="$AUTHGEAR_HTTP_ORIGIN_PROJECT" \
 		--phone-otp-mode=sms \
-		--disable-email-verification=true \
+		--disable-email-verification=false \
+		--smtp-host="$AUTHGEAR_SMTP_HOST" \
+		--smtp-port="$AUTHGEAR_SMTP_PORT" \
+		--smtp-username="$AUTHGEAR_SMTP_USERNAME" \
+		--smtp-password="$AUTHGEAR_SMTP_PASSWORD" \
+		--smtp-sender-address="$AUTHGEAR_SMTP_SENDER_ADDRESS" \
 		--search-implementation=postgresql \
 		-o "$init_output_project"
 	authgear-portal internal configsource create "$init_output_project"
@@ -501,6 +511,21 @@ main() {
 			printf "export AUTHGEAR_HTTP_ORIGIN_PORTAL=%s\n" "$AUTHGEAR_HTTP_ORIGIN_PORTAL"
 			printf "export AUTHGEAR_HTTP_ORIGIN_ACCOUNTS=%s\n" "$AUTHGEAR_HTTP_ORIGIN_ACCOUNTS"
 		} >> "$AUTHGEARONCE_ENV_SHELL_SCRIPT"
+		if [ -n "$AUTHGEAR_SMTP_HOST" ]; then
+			printf "export AUTHGEAR_SMTP_HOST=%s\n" "$AUTHGEAR_SMTP_HOST" >> "$AUTHGEARONCE_ENV_SHELL_SCRIPT"
+		fi
+		if [ -n "$AUTHGEAR_SMTP_PORT" ]; then
+			printf "export AUTHGEAR_SMTP_PORT=%s\n" "$AUTHGEAR_SMTP_PORT" >> "$AUTHGEARONCE_ENV_SHELL_SCRIPT"
+		fi
+		if [ -n "$AUTHGEAR_SMTP_USERNAME" ]; then
+			printf "export AUTHGEAR_SMTP_USERNAME=%s\n" "$AUTHGEAR_SMTP_USERNAME" >> "$AUTHGEARONCE_ENV_SHELL_SCRIPT"
+		fi
+		if [ -n "$AUTHGEAR_SMTP_PASSWORD" ]; then
+			printf "export AUTHGEAR_SMTP_PASSWORD=%s\n" "$AUTHGEAR_SMTP_PASSWORD" >> "$AUTHGEARONCE_ENV_SHELL_SCRIPT"
+		fi
+		if [ -n "$AUTHGEAR_SMTP_SENDER_ADDRESS" ]; then
+			printf "export AUTHGEAR_SMTP_SENDER_ADDRESS=%s\n" "$AUTHGEAR_SMTP_SENDER_ADDRESS" >> "$AUTHGEARONCE_ENV_SHELL_SCRIPT"
+		fi
 		if [ -n "$AUTHGEAR_CERTBOT_ENVIRONMENT" ]; then
 			printf "export AUTHGEAR_CERTBOT_ENVIRONMENT=%s\n" "$AUTHGEAR_CERTBOT_ENVIRONMENT" >> "$AUTHGEARONCE_ENV_SHELL_SCRIPT"
 		fi
