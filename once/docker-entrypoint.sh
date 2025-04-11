@@ -55,7 +55,7 @@ check_http_origin_not_equal_to_each_other() {
 }
 
 docker_credentials_create_directory() {
-	dir="$(dirname "$AUTHGEARONCE_CREDENTIALS_SHELL_SCRIPT")"
+	dir="$(dirname "$AUTHGEARONCE_ENV_SHELL_SCRIPT")"
 	sudo mkdir -p "$dir"
 	sudo chmod 0755 "$dir"
 	sudo find "$dir" \! -user "authgear" -exec chown "authgear":"authgear" '{}' +
@@ -473,10 +473,10 @@ EOF
 main() {
 	docker_credentials_create_directory
 	run_initialization=''
-	if ! [ -r "$AUTHGEARONCE_CREDENTIALS_SHELL_SCRIPT" ]; then
+	if ! [ -r "$AUTHGEARONCE_ENV_SHELL_SCRIPT" ]; then
 		# The credentials file does not exist.
 		# This means the volume is new.
-		printf 1>&2 "%s is not found. Generating new passwords.\n" "$AUTHGEARONCE_CREDENTIALS_SHELL_SCRIPT"
+		printf 1>&2 "%s is not found. Generating new passwords.\n" "$AUTHGEARONCE_ENV_SHELL_SCRIPT"
 		run_initialization=1
 
 		# Always generate a new password. Ignore the environment variable.
@@ -484,12 +484,12 @@ main() {
 			printf "export POSTGRES_PASSWORD=%s\n" "$(generate_password)"
 			printf "export REDIS_PASSWORD=%s\n" "$(generate_password)"
 			printf "export MINIO_ROOT_PASSWORD=%s\n" "$(generate_password)"
-		} >> "$AUTHGEARONCE_CREDENTIALS_SHELL_SCRIPT"
+		} >> "$AUTHGEARONCE_ENV_SHELL_SCRIPT"
 	else
-		printf 1>&2 "%s is found. Passwords inside it will be used.\n" "$AUTHGEARONCE_CREDENTIALS_SHELL_SCRIPT"
+		printf 1>&2 "%s is found. Passwords inside it will be used.\n" "$AUTHGEARONCE_ENV_SHELL_SCRIPT"
 	fi
 	# Always source the credentials file.
-	. "$AUTHGEARONCE_CREDENTIALS_SHELL_SCRIPT"
+	. "$AUTHGEARONCE_ENV_SHELL_SCRIPT"
 
 	check_user_is_correct
 	check_AUTHGEAR_ONCE_environment_variables_are_set
