@@ -20,6 +20,11 @@ type DockerVolume struct {
 	Scope string `json:"Scope"`
 }
 
+type DockerContainer struct {
+	ID    string `json:"ID"`
+	Names string `json:"Names"`
+}
+
 func runCmd(c *exec.Cmd) (stdout string, stderr string, err error) {
 	var stdoutBuf bytes.Buffer
 	var stderrBuf bytes.Buffer
@@ -120,6 +125,45 @@ func DockerRun(ctx context.Context, opts DockerRunOptions) error {
 	}
 
 	c := exec.CommandContext(ctx, "docker", args...)
+	stdout, stderr, err := runCmd(c)
+	if err != nil {
+		return errors.Join(&CmdError{Stdout: stdout, Stderr: stderr}, err)
+	}
+	return nil
+}
+
+func DockerLs(ctx context.Context) ([]DockerContainer, error) {
+	c := exec.CommandContext(ctx, "docker", "ps", "--all", "--format", "json", "--no-trunc")
+	stdout, stderr, err := runCmd(c)
+	if err != nil {
+		return nil, errors.Join(&CmdError{Stdout: stdout, Stderr: stderr}, err)
+	}
+
+	var cs []DockerContainer
+	for line := range lines(stdout) {
+		var c DockerContainer
+
+		err = json.Unmarshal([]byte(line), &c)
+		if err != nil {
+			return nil, err
+		}
+
+		cs = append(cs, c)
+	}
+	return cs, nil
+}
+
+func DockerStart(ctx context.Context, name string) error {
+	c := exec.CommandContext(ctx, "docker", "start", name)
+	stdout, stderr, err := runCmd(c)
+	if err != nil {
+		return errors.Join(&CmdError{Stdout: stdout, Stderr: stderr}, err)
+	}
+	return nil
+}
+
+func DockerStop(ctx context.Context, name string) error {
+	c := exec.CommandContext(ctx, "docker", "stop", name)
 	stdout, stderr, err := runCmd(c)
 	if err != nil {
 		return errors.Join(&CmdError{Stdout: stdout, Stderr: stderr}, err)
