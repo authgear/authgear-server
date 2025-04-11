@@ -2,7 +2,6 @@ package cmdsetup
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"os/exec"
 	"slices"
@@ -66,7 +65,7 @@ type SetupApp struct {
 	LoadingMessage string
 	Spinner        spinner.Model
 
-	FatalError FatalError
+	FatalError internal.FatalError
 
 	RecoverableErr    error
 	RecoverableErrCmd tea.Cmd
@@ -115,11 +114,6 @@ func SetupAppStartInstallation() tea.Msg {
 	return msgSetupStartInstallation{}
 }
 
-var (
-	errNoDocker           = errors.New("no docker")
-	errDockerVolumeExists = errors.New("docker volume exists")
-)
-
 func (m SetupApp) Init() tea.Cmd {
 	return SetupAppInit
 }
@@ -133,7 +127,7 @@ func (m SetupApp) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case msgSetupAppInit:
 		_, err := exec.LookPath(internal.BinDocker)
 		if err != nil {
-			m.FatalError = m.FatalError.WithErr(errNoDocker)
+			m.FatalError = m.FatalError.WithErr(internal.ErrNoDocker)
 			return m, tea.Quit
 		}
 
@@ -146,7 +140,7 @@ func (m SetupApp) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if slices.ContainsFunc(volumes, func(v internal.DockerVolume) bool {
 			return v.Name == internal.NameDockerVolume && v.Scope == internal.DockerVolumeScopeLocal
 		}) {
-			m.FatalError = m.FatalError.WithErr(errDockerVolumeExists)
+			m.FatalError = m.FatalError.WithErr(internal.ErrDockerVolumeExists)
 			return m, tea.Quit
 		}
 
@@ -568,7 +562,7 @@ type Installation struct {
 	InstallationStatus InstallationStatus
 	Loading            bool
 
-	FatalError FatalError
+	FatalError internal.FatalError
 }
 
 var _ tea.Model = Installation{}
@@ -705,57 +699,4 @@ func newDockerRunOptionsForStarting() internal.DockerRunOptions {
 		Name:  internal.NameDockerContainer,
 		Image: internal.FIXME_DockerImage,
 	}
-}
-
-type FatalError struct {
-	Err error
-}
-
-var _ tea.Model = FatalError{}
-
-func (m FatalError) Init() tea.Cmd {
-	return nil
-}
-
-func (m FatalError) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	return m, nil
-}
-
-func (m FatalError) View() string {
-	if m.Err == nil {
-		return ""
-	}
-
-	var b strings.Builder
-	var errMsg string
-	var actionableMsg string
-
-	switch {
-	case errors.Is(m.Err, errNoDocker):
-		errMsg = fmt.Sprintf("%v is not installed on your machine.", internal.BinDocker)
-		actionableMsg = "Visit https://docs.docker.com/get-started/get-docker/ to install it"
-	case errors.Is(m.Err, errDockerVolumeExists):
-		errMsg = fmt.Sprintf("The docker volume %v exists already.", internal.NameDockerVolume)
-		actionableMsg = fmt.Sprintf("Either run `%v start` to start Authgear, or run `docker volume rm %v` to remove the volume (you will lose all data!)", internal.ProgramName, internal.NameDockerVolume)
-	}
-
-	if errMsg == "" || actionableMsg == "" {
-		fmt.Fprintf(&b,
-			"❌ Encountered this fatal error:\n\n  %v\n\n",
-			bubbleteautil.StyleForegroundSemanticError.Render(m.Err.Error()),
-		)
-	} else {
-		fmt.Fprintf(&b,
-			"❌ Encountered this fatal error:\n\n  %v\n\nHere are some actions you may take:\n\n  %v\n\n",
-			bubbleteautil.StyleForegroundSemanticError.Render(errMsg),
-			bubbleteautil.StyleForegroundSemanticInfo.Render(actionableMsg),
-		)
-	}
-
-	return b.String()
-}
-
-func (m FatalError) WithErr(err error) FatalError {
-	m.Err = err
-	return m
 }
