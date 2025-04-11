@@ -13,6 +13,7 @@ type Model interface {
 	Blur() Model
 	Value() string
 	WithValue(val string) Model
+	WithError(err error) Model
 }
 
 type HideErrorMsg struct{}

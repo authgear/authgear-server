@@ -238,24 +238,49 @@ func (m SetupApp) appendNextQuestion() (SetupApp, tea.Cmd) {
 		return m, nil
 	}
 
-	// FIXME(authgearonce): ensure 3 domains are different.
 	// Second, we need to perform cross-field validation on the particular question.
 	switch m.Questions[len(m.Questions)-1].Name {
+	case QuestionName_EnterDomain_Project:
+		// This is the first domain entered.
+		// So it cannot be equal to any previous values.
+	case QuestionName_EnterDomain_Portal:
+		project := m.mustFindQuestionByName(QuestionName_EnterDomain_Project).Value()
+		portal := m.mustFindQuestionByName(QuestionName_EnterDomain_Portal).Value()
+
+		if portal == project {
+			err := fmt.Errorf("It cannot be equal to %v. Please enter a different value", project)
+			m.Questions[len(m.Questions)-1].Model = m.Questions[len(m.Questions)-1].Model.WithError(err)
+			return m, nil
+		} else {
+			m.Questions[len(m.Questions)-1].Model = m.Questions[len(m.Questions)-1].Model.WithError(nil)
+		}
+	case QuestionName_EnterDomain_Accounts:
+		// The is the last domain entered.
+		project := m.mustFindQuestionByName(QuestionName_EnterDomain_Project).Value()
+		portal := m.mustFindQuestionByName(QuestionName_EnterDomain_Portal).Value()
+		accounts := m.mustFindQuestionByName(QuestionName_EnterDomain_Accounts).Value()
+
+		if accounts == project {
+			err := fmt.Errorf("It cannot be equal to %v. Please enter a different value", project)
+			m.Questions[len(m.Questions)-1].Model = m.Questions[len(m.Questions)-1].Model.WithError(err)
+			return m, nil
+		} else if accounts == portal {
+			err := fmt.Errorf("It cannot be equal to %v. Please enter a different value", portal)
+			m.Questions[len(m.Questions)-1].Model = m.Questions[len(m.Questions)-1].Model.WithError(err)
+			return m, nil
+		} else {
+			m.Questions[len(m.Questions)-1].Model = m.Questions[len(m.Questions)-1].Model.WithError(nil)
+		}
 	case QuestionName_EnterAdminPassword_Confirm:
 		passwordValue := m.mustFindQuestionByName(QuestionName_EnterAdminPassword).Value()
+		confirmValue := m.mustFindQuestionByName(QuestionName_EnterAdminPassword_Confirm).Value()
 
-		confirmModel := m.Questions[len(m.Questions)-1].Model.(bubbleteautil.SingleLineTextInput)
-		confirmValue := confirmModel.Value()
-
-		var err error
 		if confirmValue != passwordValue {
-			err = fmt.Errorf("Passwords mismatch. Please confirm they are the same")
-		}
-
-		confirmModel = confirmModel.WithError(err).(bubbleteautil.SingleLineTextInput)
-		m.Questions[len(m.Questions)-1].Model = confirmModel
-		if err != nil {
+			err := fmt.Errorf("Passwords mismatch. Please confirm they are the same")
+			m.Questions[len(m.Questions)-1].Model = m.Questions[len(m.Questions)-1].Model.WithError(err)
 			return m, nil
+		} else {
+			m.Questions[len(m.Questions)-1].Model = m.Questions[len(m.Questions)-1].Model.WithError(nil)
 		}
 	}
 
