@@ -17,6 +17,8 @@
 
 # Authgear: Open source alternative to Auth0 / Clerk / Firebase Auth
 
+<img src="https://raw.githubusercontent.com/authgear/.github/main/meta/features/banner.jpg" width="800" alt="Authgear">
+
 Authgear is an open-source extensible turnkey solution for all of your consumer authentication needs. Authgear gets you started in 5 minutes with developer-friendly SDKs and a comprehensive portal.
 
 Available for self-hosting and on [Authgear Cloud](https://www.authgear.com/?utm_source=github&utm_medium=readme&utm_campaign=intro).
@@ -66,11 +68,11 @@ We're grateful to the companies listed below for their ongoing support and signi
 
 | | |
 |-|-|
-|<h3>Signup/Login page</h3><p>Beautiful and customizable signup and login page ready to use, support dark/light modes</p>| |
-|<h3>Passwords, OTP, Passkeys, Biometric</h3><p>All modern authentication methods that your users love. Add secure authentication for your users without compromising on user experience</p>| |
-|<h3>Multifactor Auth (MFA)</h3><p>Secure your application with additional authentication factors. TOTP (Google Authenticator, Authy), SMS/ Email OTP, Additional Password </p><p>\*Adaptive MFA coming soon</p>| |
-|<h3>User Management Portal perfect for User Support</h3><p>GUI for managing user profile, session revocation, analytics, monitoring, logs, setting up authentication and authorization requirements </p>| |
-|<h3>Account Settings </h3><p>Pre-built account settings component for your user to self-manage profile, verify their e-mail, or change their password, etc.</p>| |
+|<h3>Signup/Login page</h3><p>Beautiful and customizable signup and login page ready to use, support dark/light modes</p>| <img src="https://raw.githubusercontent.com/authgear/.github/main/meta/features/signup-login-page.png" width="300" alt="Pre-built signup/login page"> |
+|<h3>Passwords, OTP, Passkeys, Biometric</h3><p>All modern authentication methods that your users love. Add secure authentication for your users without compromising on user experience</p>| <img src="https://raw.githubusercontent.com/authgear/.github/main/meta/features/login-methods.png" width="300" alt="Authgear"> |
+|<h3>Multifactor Auth (MFA)</h3><p>Secure your application with additional authentication factors. TOTP (Google Authenticator, Authy), SMS/ Email OTP, Additional Password </p><p>\*Adaptive MFA coming soon</p>| <img src="https://raw.githubusercontent.com/authgear/.github/main/meta/features/mfa.png" width="300" alt="Multifactor Authentication"> |
+|<h3>User Management Portal perfect for User Support</h3><p>GUI for managing user profile, session revocation, analytics, monitoring, logs, setting up authentication and authorization requirements </p>| <img src="https://raw.githubusercontent.com/authgear/.github/main/meta/features/user-management.png" width="300" alt="Multifactor Authentication"> |
+|<h3>Account Settings </h3><p>Pre-built account settings component for your user to self-manage profile, verify their e-mail, or change their password, etc.</p>| <img src="https://raw.githubusercontent.com/authgear/.github/main/meta/features/account-settings.png" width="300" alt="Plug-and-play account settings"> |
 |<h3>Role-based Access Control</h3><p>Extend access management on your application that Authgear powers using Roles and Groups</p>| |
 |<h3>Social and Enterprise (OAuth) Connection</h3><p>Let your user login with Google, Facebook, Apple, WeChat, Linkedin, ADFS, etc with very simple configs.</p>| |
 |<h3>SAML Enterprise SSO</h3><p>Enable SSO with enterprise softwares using SAML protocol</p>| |
