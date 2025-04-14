@@ -129,7 +129,7 @@ function Step3TeamForm({ geoIPCountryCode }: FormProps) {
       </div>
       <div className="grid grid-cols-1 gap-8 max-w-full w-110 justify-self-center">
         <TextField
-          size="3"
+          size="2"
           label={
             <FormattedMessage id="OnboardingSurveyScreen.step3.team.fields.companyName" />
           }
