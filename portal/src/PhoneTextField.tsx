@@ -1,5 +1,6 @@
 /* global IntlTelInputInitOptions IntlTelInputInstance JSX */
 import React, { createRef } from "react";
+import cn from "classnames";
 import { Text, Label } from "@fluentui/react";
 import intlTelInput from "intl-tel-input";
 import { SystemConfigContext } from "./context/SystemConfigContext";
@@ -30,6 +31,8 @@ export interface PhoneTextFieldValues {
 
 export interface PhoneTextFieldProps {
   className?: string;
+  inputContainerClassName?: string;
+  inputClassNameOverride?: string;
   label?: string;
   disabled?: boolean;
   pinnedList?: string[];
@@ -60,6 +63,9 @@ export default class PhoneTextField extends React.Component<PhoneTextFieldProps>
       customContainer: styles.container,
       formatOnDisplay: false,
     };
+    if (this.props.inputContainerClassName) {
+      options.customContainer = `${options.customContainer} ${this.props.inputContainerClassName}`;
+    }
     if (this.props.initialCountry != null) {
       // seems IntlTelInputInitOptions.initialCountry must be lowercase
       // https://github.com/jackocnr/intl-tel-input/blob/c53a32b4f39996d50cde4ffa0df37726e8435ec2/src/spec/tests/options/initialCountry.js#L15
@@ -78,6 +84,7 @@ export default class PhoneTextField extends React.Component<PhoneTextFieldProps>
       const instance = intlTelInput(this.inputRef.current, options);
       instance.setNumber(this.props.inputValue);
       this.instance = instance;
+      this._formatInputValue(this.inputRef.current);
 
       this.inputRef.current.addEventListener("input", this.onInputChange);
       this.inputRef.current.addEventListener("blur", this.onInputBlur);
@@ -107,23 +114,24 @@ export default class PhoneTextField extends React.Component<PhoneTextFieldProps>
 
   onInputBlur = (e: Event): void => {
     if (e.target instanceof HTMLInputElement) {
-      const values = this.prepareValues();
-      if (values != null) {
-        const { countryCallingCode, rawInputValue } = values;
-        if (countryCallingCode != null) {
-          const value = trimCountryCallingCode(
-            rawInputValue,
-            countryCallingCode
-          );
-          e.target.value = value;
-        }
-      }
+      this._formatInputValue(e.target);
     }
   };
 
   onCountryChange = (): void => {
     this.emitOnChange();
   };
+
+  _formatInputValue(el: HTMLInputElement): void {
+    const values = this.prepareValues();
+    if (values != null) {
+      const { countryCallingCode, rawInputValue } = values;
+      if (countryCallingCode != null) {
+        const value = trimCountryCallingCode(rawInputValue, countryCallingCode);
+        el.value = value;
+      }
+    }
+  }
 
   emitOnChange(): void {
     const values = this.prepareValues();
@@ -187,7 +195,7 @@ export default class PhoneTextField extends React.Component<PhoneTextFieldProps>
               errorMessage != null ? errorText : inputFocusBorderAlt,
             backgroundColor: disabled ? disabledBackground : undefined,
           }}
-          className={styles.input}
+          className={cn(this.props.inputClassNameOverride ?? styles.input)}
           type="text"
           ref={this.inputRef}
           disabled={disabled}

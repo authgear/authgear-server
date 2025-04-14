@@ -13,6 +13,7 @@ import { produce } from "immer";
 import { BackButton } from "../../../components/onboarding/BackButton";
 import { TextField } from "../../../components/v2/TextField/TextField";
 import { FormField } from "../../../components/v2/FormField/FormField";
+import { OnboardingSurveyPhoneInput } from "../../../components/onboarding/OnboardingSurveyPhoneInput";
 
 export function Step3(): React.ReactElement {
   const { form } = useFormContainerBaseContext<OnboardingSurveyFormModel>();
@@ -41,6 +42,7 @@ export function Step3(): React.ReactElement {
 
 function Step3PersonalForm() {
   const { form } = useFormContainerBaseContext<OnboardingSurveyFormModel>();
+
   return (
     <div className="grid grid-cols-1 gap-8">
       <div className="grid grid-cols-1 gap-4">
@@ -69,7 +71,29 @@ function Step3PersonalForm() {
             [form]
           )}
         />
-        {/* TODO(tung): Phone number field */}
+        <FormField
+          size="2"
+          label={
+            <FormattedMessage id="OnboardingSurveyScreen.step3.personal.fields.phone" />
+          }
+          optional={true}
+        >
+          <OnboardingSurveyPhoneInput
+            inputValue={form.state.phone_number ?? ""}
+            onChange={(v) => {
+              form.setState((prev) =>
+                produce(prev, (draft) => {
+                  if (v.e164) {
+                    draft.phone_number = v.e164;
+                  } else {
+                    draft.phone_number = v.rawInputValue;
+                  }
+                  return draft;
+                })
+              );
+            }}
+          />
+        </FormField>
       </div>
     </div>
   );
@@ -170,7 +194,29 @@ function Step3TeamForm() {
             )}
           />
         </FormField>
-        {/* TODO(tung): Phone number field */}
+        <FormField
+          size="2"
+          label={
+            <FormattedMessage id="OnboardingSurveyScreen.step3.team.fields.phone" />
+          }
+          optional={true}
+        >
+          <OnboardingSurveyPhoneInput
+            inputValue={form.state.phone_number ?? ""}
+            onChange={(v) => {
+              form.setState((prev) =>
+                produce(prev, (draft) => {
+                  if (v.e164) {
+                    draft.phone_number = v.e164;
+                  } else {
+                    draft.phone_number = v.rawInputValue;
+                  }
+                  return draft;
+                })
+              );
+            }}
+          />
+        </FormField>
       </div>
     </div>
   );
