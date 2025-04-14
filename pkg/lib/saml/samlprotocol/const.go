@@ -36,6 +36,9 @@ func (b SAMLBinding) IsACSSupported() bool {
 
 type SAMLNameIDFormat string
 
+// NameIDFormat is a type alias for metadata.go, which is a copied file.
+type NameIDFormat = SAMLNameIDFormat
+
 const (
 	SAMLNameIDFormatUnspecified  SAMLNameIDFormat = "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified"
 	SAMLNameIDFormatEmailAddress SAMLNameIDFormat = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"

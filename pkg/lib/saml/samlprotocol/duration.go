@@ -1,5 +1,4 @@
-// NOTE: Copied from https://github.com/crewjam/saml/blob/1dfacaea137943953459ad09aedf007c1b92deb2/duration.go
-
+// NOTE: Copied from https://raw.githubusercontent.com/crewjam/saml/refs/tags/v0.5.0/duration.go
 package samlprotocol
 
 import (
@@ -59,8 +58,6 @@ var (
 )
 
 // UnmarshalText implements the encoding.TextUnmarshaler interface.
-//
-//nolint:gocognit
 func (d *Duration) UnmarshalText(text []byte) error {
 	if text == nil {
 		*d = 0

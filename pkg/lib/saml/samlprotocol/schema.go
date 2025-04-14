@@ -1,3 +1,6 @@
+// NOTE: Copied from https://raw.githubusercontent.com/crewjam/saml/refs/tags/v0.5.0/schema.go
+// With some changes.
+
 package samlprotocol
 
 import (
@@ -11,9 +14,6 @@ import (
 	"github.com/beevik/etree"
 	"github.com/russellhaering/goxmldsig/etreeutils"
 )
-
-// Note(tung): This file was copied from https://github.com/crewjam/saml/blob/193e551d9a8420216fae88c2b8f4b46696b7bb63/schema.go
-// We've made some changes to some schemas so that they can be used properly in our code
 
 // RequestedAuthnContext represents the SAML object of the same name, an indication of the
 // requirements on the authentication process.
@@ -109,6 +109,21 @@ func (r *LogoutRequest) Element() *etree.Element {
 		el.AddChild(r.SessionIndex.Element())
 	}
 	return el
+}
+
+// MarshalXML implements xml.Marshaler
+func (r *LogoutRequest) MarshalXML(e *xml.Encoder, _ xml.StartElement) error {
+	type Alias LogoutRequest
+	aux := &struct {
+		IssueInstant RelaxedTime  `xml:",attr"`
+		NotOnOrAfter *RelaxedTime `xml:",attr"`
+		*Alias
+	}{
+		IssueInstant: RelaxedTime(r.IssueInstant),
+		NotOnOrAfter: (*RelaxedTime)(r.NotOnOrAfter),
+		Alias:        (*Alias)(r),
+	}
+	return e.Encode(aux)
 }
 
 // UnmarshalXML implements xml.Unmarshaler
@@ -342,12 +357,15 @@ func (r *ArtifactResolve) Element() *etree.Element {
 	if r.Issuer != nil {
 		el.AddChild(r.Issuer.Element())
 	}
+	if r.Signature != nil {
+		// ADFS requires that <Signature> come before <Artifact>.
+		// ref: https://github.com/crewjam/saml/issues/535
+		// ref: https://www.wiktorzychla.com/2017/09/adfs-and-saml2-artifact-binding-woes.html
+		el.AddChild(r.Signature)
+	}
 	artifact := etree.NewElement("samlp:Artifact")
 	artifact.SetText(r.Artifact)
 	el.AddChild(artifact)
-	if r.Signature != nil {
-		el.AddChild(r.Signature)
-	}
 	return el
 }
 
@@ -486,8 +504,6 @@ type Response struct {
 	// TODO(ross): more than one Assertion is allowed
 	Assertion *Assertion `xml:"urn:oasis:names:tc:SAML:2.0:assertion Assertion"`
 }
-
-var _ Respondable = &Response{}
 
 // Element returns an etree.Element representing the object in XML form.
 func (r *Response) Element() *etree.Element {
@@ -1261,8 +1277,6 @@ type LogoutResponse struct {
 	Signature    *etree.Element
 	Status       Status `xml:"urn:oasis:names:tc:SAML:2.0:protocol Status"`
 }
-
-var _ Respondable = &LogoutResponse{}
 
 // Element returns an etree.Element representing the object in XML form.
 func (r *LogoutResponse) Element() *etree.Element {
