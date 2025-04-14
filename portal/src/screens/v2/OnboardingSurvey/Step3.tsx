@@ -70,7 +70,7 @@ function Step3PersonalForm({ geoIPCountryCode }: FormProps) {
       </div>
       <div className="grid grid-cols-1 gap-8 max-w-full w-110 justify-self-center">
         <TextField
-          size="2"
+          size="3"
           optional={true}
           label={
             <FormattedMessage id="OnboardingSurveyScreen.step3.personal.fields.projectWebsite" />
@@ -90,7 +90,7 @@ function Step3PersonalForm({ geoIPCountryCode }: FormProps) {
           )}
         />
         <FormField
-          size="2"
+          size="3"
           label={
             <FormattedMessage id="OnboardingSurveyScreen.step3.personal.fields.phone" />
           }
@@ -129,7 +129,7 @@ function Step3TeamForm({ geoIPCountryCode }: FormProps) {
       </div>
       <div className="grid grid-cols-1 gap-8 max-w-full w-110 justify-self-center">
         <TextField
-          size="2"
+          size="3"
           label={
             <FormattedMessage id="OnboardingSurveyScreen.step3.team.fields.companyName" />
           }
@@ -148,7 +148,7 @@ function Step3TeamForm({ geoIPCountryCode }: FormProps) {
           )}
         />
         <FormField
-          size="2"
+          size="3"
           label={
             <FormattedMessage id="OnboardingSurveyScreen.step3.team.fields.companySize" />
           }
@@ -214,7 +214,7 @@ function Step3TeamForm({ geoIPCountryCode }: FormProps) {
           />
         </FormField>
         <FormField
-          size="2"
+          size="3"
           label={
             <FormattedMessage id="OnboardingSurveyScreen.step3.team.fields.phone" />
           }

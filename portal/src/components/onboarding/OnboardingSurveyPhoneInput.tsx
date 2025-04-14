@@ -16,7 +16,7 @@ export function OnboardingSurveyPhoneInput(
     <PhoneTextField
       {...props}
       inputContainerClassName={cn(
-        "rt-TextFieldRoot rt-r-size-2 rt-variant-surface",
+        "rt-TextFieldRoot rt-r-size-3 rt-variant-surface",
         styles.onboardingSurveyPhoneInput__container
       )}
       inputClassNameOverride="rt-reset rt-TextFieldInput h-full"
