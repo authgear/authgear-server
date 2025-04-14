@@ -116,6 +116,7 @@ export function Step4(): React.ReactElement {
       <div className="flex items-center justify-center gap-8">
         <BackButton onClick={form.toPreviousStep} />
         <PrimaryButton
+          type="submit"
           size="4"
           highContrast={true}
           text={<FormattedMessage id="OnboardingSurveyScreen.actions.finish" />}

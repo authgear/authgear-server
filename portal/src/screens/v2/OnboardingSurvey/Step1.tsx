@@ -71,6 +71,7 @@ export function Step1(): React.ReactElement {
       </div>
       <div>
         <PrimaryButton
+          type="submit"
           size="4"
           highContrast={true}
           text={<FormattedMessage id="OnboardingSurveyScreen.actions.next" />}

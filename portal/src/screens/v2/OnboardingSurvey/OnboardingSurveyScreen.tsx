@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback } from "react";
 import {
   FormContainerBase,
   useFormContainerBaseContext,
@@ -19,10 +19,35 @@ import { Completed } from "./Completed";
 function OnboardingSurveyScreen(): React.ReactElement {
   const form = useOnboardingSurveyForm();
 
+  const handleFormSubmit = useCallback(
+    (e: React.FormEvent) => {
+      e.preventDefault();
+
+      switch (form.state.step) {
+        case OnboardingSurveyStep.start:
+        case OnboardingSurveyStep.step1:
+        case OnboardingSurveyStep.step2:
+        case OnboardingSurveyStep.step3:
+          if (form.canNavigateToNextStep) {
+            form.toNextStep();
+          }
+          break;
+        case OnboardingSurveyStep.step4:
+          if (form.canSave) {
+            form.save();
+          }
+          break;
+      }
+    },
+    [form]
+  );
+
   return (
     <FormContainerBase form={form}>
       <OnboardingSurveyLayout>
-        <OnboardingSurveyScreenContent />
+        <form className="contents" onSubmit={handleFormSubmit}>
+          <OnboardingSurveyScreenContent />
+        </form>
       </OnboardingSurveyLayout>
     </FormContainerBase>
   );

@@ -10,6 +10,7 @@ export interface PrimaryButtonProps {
   loading?: boolean;
   text?: React.ReactNode;
 
+  type?: "button" | "reset" | "submit";
   onClick?: React.MouseEventHandler<HTMLButtonElement>;
 }
 
@@ -20,10 +21,13 @@ export function PrimaryButton({
   disabled,
   loading,
   text,
+
+  type = "button",
   onClick,
 }: PrimaryButtonProps): React.ReactElement {
   return (
     <Button
+      type={type}
       className={cn(darkMode ? "dark" : null)}
       size={size}
       variant="solid"
