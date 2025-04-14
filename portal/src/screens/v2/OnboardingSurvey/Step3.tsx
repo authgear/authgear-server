@@ -14,17 +14,30 @@ import { BackButton } from "../../../components/onboarding/BackButton";
 import { TextField } from "../../../components/v2/TextField/TextField";
 import { FormField } from "../../../components/v2/FormField/FormField";
 import { OnboardingSurveyPhoneInput } from "../../../components/onboarding/OnboardingSurveyPhoneInput";
+import { useViewerQuery } from "../../../graphql/portal/query/viewerQuery";
+import ShowLoading from "../../../ShowLoading";
 
 export function Step3(): React.ReactElement {
   const { form } = useFormContainerBaseContext<OnboardingSurveyFormModel>();
+  const { viewer, loading: viewerLoading } = useViewerQuery({
+    fetchPolicy: "cache-first",
+  });
+
+  if (viewerLoading || viewer === undefined) {
+    return <ShowLoading />;
+  }
 
   return (
     <div className="grid grid-cols-1 gap-16 text-center self-stretch">
       <OnboardingSurveyStepper step={form.state.step} />
       {form.state.team_or_personal_account === TeamOrPersonal.Personal ? (
-        <Step3PersonalForm />
+        <Step3PersonalForm
+          geoIPCountryCode={viewer?.geoIPCountryCode ?? undefined}
+        />
       ) : (
-        <Step3TeamForm />
+        <Step3TeamForm
+          geoIPCountryCode={viewer?.geoIPCountryCode ?? undefined}
+        />
       )}
       <div className="flex items-center justify-center gap-8">
         <BackButton onClick={form.toPreviousStep} />
@@ -40,7 +53,11 @@ export function Step3(): React.ReactElement {
   );
 }
 
-function Step3PersonalForm() {
+interface FormProps {
+  geoIPCountryCode: string | undefined;
+}
+
+function Step3PersonalForm({ geoIPCountryCode }: FormProps) {
   const { form } = useFormContainerBaseContext<OnboardingSurveyFormModel>();
 
   return (
@@ -92,6 +109,7 @@ function Step3PersonalForm() {
                 })
               );
             }}
+            initialCountry={geoIPCountryCode}
           />
         </FormField>
       </div>
@@ -99,7 +117,7 @@ function Step3PersonalForm() {
   );
 }
 
-function Step3TeamForm() {
+function Step3TeamForm({ geoIPCountryCode }: FormProps) {
   const { form } = useFormContainerBaseContext<OnboardingSurveyFormModel>();
   return (
     <div className="grid grid-cols-1 gap-8">
@@ -215,6 +233,7 @@ function Step3TeamForm() {
                 })
               );
             }}
+            initialCountry={geoIPCountryCode}
           />
         </FormField>
       </div>
