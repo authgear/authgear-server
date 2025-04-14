@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "@zod/mini";
 import { SimpleFormModel, useSimpleForm } from "../../../hook/useSimpleForm";
 import { useCallback, useMemo, useState } from "react";
 import { useDebouncedEffect } from "../../../hook/useDebouncedEffect";
@@ -42,25 +42,25 @@ export enum OnboardingSurveyStep {
 }
 
 const zFormState = z.object({
-  step: z.nativeEnum(OnboardingSurveyStep),
+  step: z.enum(OnboardingSurveyStep),
 
   // step 1
-  role: z.nativeEnum(Role).optional(),
+  role: z.optional(z.enum(Role)),
 
   // step 2
-  team_or_personal_account: z.nativeEnum(TeamOrPersonal).optional(),
+  team_or_personal_account: z.optional(z.enum(TeamOrPersonal)),
 
   // step 3
-  phone_number: z.string().optional(),
+  phone_number: z.optional(z.string()),
   // step 3 - team
-  company_name: z.string().optional(),
-  company_size: z.nativeEnum(CompanySize).optional(),
+  company_name: z.optional(z.string()),
+  company_size: z.optional(z.enum(CompanySize)),
   // step 3 - personal
-  project_website: z.string().optional(),
+  project_website: z.optional(z.string()),
 
   // step 4
-  use_cases: z.nativeEnum(UseCase).array().optional(),
-  use_case_other: z.string().optional(),
+  use_cases: z.optional(z.array(z.enum(UseCase))),
+  use_case_other: z.optional(z.string()),
 });
 
 export type FormState = z.infer<typeof zFormState>;
@@ -70,14 +70,13 @@ const STORAGE_KEY = "authgear-onboarding-survey-v2";
 function readFormStateFromStorage(storage: Storage): FormState | null {
   const raw = storage.getItem(STORAGE_KEY);
   if (raw == null) return null;
-  const parseResult = z
-    .preprocess((raw) => {
-      if (typeof raw !== "string") {
-        return null;
-      }
-      return JSON.parse(raw);
-    }, zFormState)
-    .safeParse(raw);
+  let rawObj: unknown;
+  try {
+    rawObj = JSON.parse(raw);
+  } catch {
+    return null;
+  }
+  const parseResult = zFormState.safeParse(rawObj);
   if (parseResult.success) {
     return parseResult.data;
   }
