@@ -609,7 +609,7 @@ function Step3Team(_props: StepProps) {
             label={renderToString(
               "OnboardingSurveyScreen.step3-team.phone.label"
             )}
-            inputValue={companyPhone.rawInputValue}
+            initialInputValue={companyPhone.rawInputValue}
             initialCountry={viewer?.geoIPCountryCode ?? undefined}
             onChange={(v) => setCompanyPhone(v)}
           />
@@ -725,7 +725,7 @@ function Step3Personal(_props: StepProps) {
             label={renderToString(
               "OnboardingSurveyScreen.step3-personal.phone.label"
             )}
-            inputValue={personalPhone.rawInputValue}
+            initialInputValue={personalPhone.rawInputValue}
             onChange={(v) => setPersonalPhone(v)}
             initialCountry={viewer?.geoIPCountryCode ?? undefined}
           />

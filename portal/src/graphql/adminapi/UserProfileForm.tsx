@@ -417,7 +417,7 @@ function CustomAttributeControl(props: CustomAttributeControlProps) {
       return (
         <FormPhoneTextField
           className={styles.customAttributeControl}
-          inputValue={customAttributes["phone_number" + pointer]}
+          initialInputValue={customAttributes["phone_number" + pointer]}
           onChange={onChangePhoneNumber}
           parentJSONPointer={parent}
           fieldName={fieldName}

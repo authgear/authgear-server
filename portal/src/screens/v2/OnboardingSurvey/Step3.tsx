@@ -96,7 +96,7 @@ function Step3PersonalForm({ geoIPCountryCode }: FormProps) {
           optional={true}
         >
           <OnboardingSurveyPhoneInput
-            inputValue={form.state.phone_number ?? ""}
+            initialInputValue={form.state.phone_number ?? ""}
             onChange={(v) => {
               form.setState((prev) =>
                 produce(prev, (draft) => {
@@ -220,14 +220,14 @@ function Step3TeamForm({ geoIPCountryCode }: FormProps) {
           optional={true}
         >
           <OnboardingSurveyPhoneInput
-            inputValue={form.state.phone_number ?? ""}
+            initialInputValue={form.state.phone_number ?? ""}
             onChange={(v) => {
               form.setState((prev) =>
                 produce(prev, (draft) => {
                   if (v.e164) {
                     draft.phone_number = v.e164;
                   } else {
-                    draft.phone_number = v.rawInputValue;
+                    draft.phone_number = v.partialValue;
                   }
                   return draft;
                 })

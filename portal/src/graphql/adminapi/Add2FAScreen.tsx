@@ -81,7 +81,7 @@ function PhoneField(props: { onChange: (value: string) => void }) {
       className={styles.widget}
       allowlist={effectiveAppConfig?.ui?.phone_input?.allowlist}
       pinnedList={effectiveAppConfig?.ui?.phone_input?.pinned_list}
-      inputValue={inputValue}
+      initialInputValue={inputValue}
       onChange={onChangeValues}
       errorRules={errorRules}
     />

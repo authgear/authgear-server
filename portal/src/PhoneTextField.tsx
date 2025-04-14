@@ -38,7 +38,7 @@ export interface PhoneTextFieldProps {
   pinnedList?: string[];
   allowlist?: string[];
   initialCountry?: string;
-  inputValue: string;
+  initialInputValue: string;
   onChange: (values: PhoneTextFieldValues) => void;
   errorMessage?: React.ReactNode;
 }
@@ -82,7 +82,7 @@ export default class PhoneTextField extends React.Component<PhoneTextFieldProps>
 
     if (this.inputRef.current != null) {
       const instance = intlTelInput(this.inputRef.current, options);
-      instance.setNumber(this.props.inputValue);
+      instance.setNumber(this.props.initialInputValue);
       this.instance = instance;
       this._formatInputValue(this.inputRef.current);
 
@@ -92,12 +92,6 @@ export default class PhoneTextField extends React.Component<PhoneTextFieldProps>
         "countrychange",
         this.onCountryChange
       );
-    }
-  }
-
-  componentDidUpdate(prevProps: PhoneTextFieldProps): void {
-    if (prevProps.inputValue !== this.props.inputValue) {
-      this.instance?.setNumber(this.props.inputValue);
     }
   }
 

@@ -6,7 +6,7 @@ import styles from "./OnboardingSurveyPhoneInput.module.css";
 export interface OnboardingSurveyPhoneInputProps
   extends Pick<
     PhoneTextFieldProps,
-    "initialCountry" | "inputValue" | "onChange"
+    "initialCountry" | "initialInputValue" | "onChange"
   > {}
 
 export function OnboardingSurveyPhoneInput(

@@ -61,7 +61,7 @@ function LoginIDField(props: LoginIDFieldProps) {
       className={styles.widget}
       allowlist={effectiveAppConfig?.ui?.phone_input?.allowlist}
       pinnedList={effectiveAppConfig?.ui?.phone_input?.pinned_list}
-      inputValue={inputValue}
+      initialInputValue={inputValue}
       onChange={onChangeValues}
     />
   );
