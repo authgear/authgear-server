@@ -247,7 +247,7 @@ export function useOnboardingSurveyForm(): OnboardingSurveyFormModel {
     if (formState.step !== OnboardingSurveyStep.step4) {
       return false;
     }
-    return formState.use_cases !== undefined;
+    return formState.use_cases !== undefined && formState.use_cases.length > 0;
   }, [formState.step, formState.use_cases]);
 
   return useMemo(
