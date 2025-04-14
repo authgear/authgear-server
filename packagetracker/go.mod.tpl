@@ -5,5 +5,5 @@ module github.com/authgear/authgear-server/packagetracker
 go 1.24.2
 
 require (
-	github.com/crewjam/saml v0.4.14
+	github.com/crewjam/saml v0.5.0
 )

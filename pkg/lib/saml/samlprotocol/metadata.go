@@ -1,3 +1,6 @@
+// NOTE: Copied from https://raw.githubusercontent.com/crewjam/saml/refs/tags/v0.5.0/schema.go
+// With some changes.
+
 package samlprotocol
 
 import (
@@ -9,9 +12,107 @@ import (
 	"github.com/beevik/etree"
 )
 
-// Copied from https://github.com/crewjam/saml/blob/main/metadata.go#L53
-// The type of ValidUntil is time.Time causing it cannot be omitted
-// So we make our own EntityDescriptor
+// HTTPPostBinding is the official URN for the HTTP-POST binding (transport)
+const HTTPPostBinding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
+
+// HTTPRedirectBinding is the official URN for the HTTP-Redirect binding (transport)
+const HTTPRedirectBinding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
+
+// HTTPArtifactBinding is the official URN for the HTTP-Artifact binding (transport)
+const HTTPArtifactBinding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Artifact"
+
+// SOAPBinding is the official URN for the SOAP binding (transport)
+const SOAPBinding = "urn:oasis:names:tc:SAML:2.0:bindings:SOAP"
+
+// SOAPBindingV1 is the URN for the SOAP binding in SAML 1.0
+const SOAPBindingV1 = "urn:oasis:names:tc:SAML:1.0:bindings:SOAP-binding"
+
+// EntitiesDescriptor represents the SAML object of the same name.
+//
+// See http://docs.oasis-open.org/security/saml/v2.0/saml-metadata-2.0-os.pdf §2.3.1
+type EntitiesDescriptor struct {
+	XMLName             xml.Name       `xml:"urn:oasis:names:tc:SAML:2.0:metadata EntitiesDescriptor"`
+	ID                  *string        `xml:",attr,omitempty"`
+	ValidUntil          *time.Time     `xml:"validUntil,attr,omitempty"`
+	CacheDuration       *time.Duration `xml:"cacheDuration,attr,omitempty"`
+	Name                *string        `xml:",attr,omitempty"`
+	Signature           *etree.Element
+	EntitiesDescriptors []EntitiesDescriptor `xml:"urn:oasis:names:tc:SAML:2.0:metadata EntitiesDescriptor"`
+	EntityDescriptors   []EntityDescriptor   `xml:"urn:oasis:names:tc:SAML:2.0:metadata EntityDescriptor"`
+}
+
+// MarshalXML implements xml.Marshaler
+func (m EntitiesDescriptor) MarshalXML(e *xml.Encoder, _ xml.StartElement) error {
+	var validUntil *RelaxedTime
+	var cacheDuration *Duration
+	if m.ValidUntil != nil {
+		vu := RelaxedTime(*m.ValidUntil)
+		validUntil = &vu
+	}
+	if m.CacheDuration != nil {
+		cd := Duration(*m.CacheDuration)
+		cacheDuration = &cd
+	}
+	type Alias EntitiesDescriptor
+	aux := &struct {
+		ValidUntil    *RelaxedTime `xml:"validUntil,attr,omitempty"`
+		CacheDuration *Duration    `xml:"cacheDuration,attr,omitempty"`
+		*Alias
+	}{
+		ValidUntil:    validUntil,
+		CacheDuration: cacheDuration,
+		Alias:         (*Alias)(&m),
+	}
+	return e.Encode(aux)
+}
+
+// UnmarshalXML implements xml.Unmarshaler
+func (m *EntitiesDescriptor) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	type Alias EntitiesDescriptor
+	aux := &struct {
+		ValidUntil    *RelaxedTime `xml:"validUntil,attr,omitempty"`
+		CacheDuration *Duration    `xml:"cacheDuration,attr,omitempty"`
+		*Alias
+	}{
+		Alias: (*Alias)(m),
+	}
+	if err := d.DecodeElement(aux, &start); err != nil {
+		return err
+	}
+	if aux.ValidUntil != nil {
+		t := time.Time(*aux.ValidUntil)
+		m.ValidUntil = &t
+	}
+	if aux.CacheDuration != nil {
+		d := time.Duration(*aux.CacheDuration)
+		m.CacheDuration = &d
+	}
+	return nil
+}
+
+// Metadata as been renamed to EntityDescriptor
+//
+// This change was made to be consistent with the rest of the API which uses names
+// from the SAML specification for types.
+//
+// This is a tombstone to help you discover this fact. You should update references
+// to saml.Metadata to be saml.EntityDescriptor.
+// var Metadata = struct{}{}
+type Metadata struct {
+	EntityDescriptor
+}
+
+func (m *Metadata) ToXMLBytes() []byte {
+	buf, err := xml.MarshalIndent(m, "", "  ")
+	if err != nil {
+		panic(err)
+	}
+	return buf
+}
+
+// EntityDescriptor represents the SAML EntityDescriptor object.
+//
+// See http://docs.oasis-open.org/security/saml/v2.0/saml-metadata-2.0-os.pdf §2.3.2
 type EntityDescriptor struct {
 	XMLName                       xml.Name      `xml:"urn:oasis:names:tc:SAML:2.0:metadata EntityDescriptor"`
 	EntityID                      string        `xml:"entityID,attr"`
@@ -69,50 +170,6 @@ func (m *EntityDescriptor) UnmarshalXML(d *xml.Decoder, start xml.StartElement) 
 	}
 	m.CacheDuration = time.Duration(aux.CacheDuration)
 	return nil
-}
-
-type Metadata struct {
-	EntityDescriptor
-}
-
-func (m *Metadata) ToXMLBytes() []byte {
-	buf, err := xml.MarshalIndent(m, "", "  ")
-	if err != nil {
-		panic(err)
-	}
-	return buf
-}
-
-// NOTE: The below are copied from https://github.com/crewjam/saml/blob/b07b16cf83c4171d16da4d85608cb827f183cd79/metadata.go
-// Some minor changes were made so that the code can live in our codebase
-
-// HTTPPostBinding is the official URN for the HTTP-POST binding (transport)
-const HTTPPostBinding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
-
-// HTTPRedirectBinding is the official URN for the HTTP-Redirect binding (transport)
-const HTTPRedirectBinding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
-
-// HTTPArtifactBinding is the official URN for the HTTP-Artifact binding (transport)
-const HTTPArtifactBinding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Artifact"
-
-// SOAPBinding is the official URN for the SOAP binding (transport)
-const SOAPBinding = "urn:oasis:names:tc:SAML:2.0:bindings:SOAP"
-
-// SOAPBindingV1 is the URN for the SOAP binding in SAML 1.0
-const SOAPBindingV1 = "urn:oasis:names:tc:SAML:1.0:bindings:SOAP-binding"
-
-// EntitiesDescriptor represents the SAML object of the same name.
-//
-// See http://docs.oasis-open.org/security/saml/v2.0/saml-metadata-2.0-os.pdf §2.3.1
-type EntitiesDescriptor struct {
-	XMLName             xml.Name       `xml:"urn:oasis:names:tc:SAML:2.0:metadata EntitiesDescriptor"`
-	ID                  *string        `xml:",attr,omitempty"`
-	ValidUntil          *time.Time     `xml:"validUntil,attr,omitempty"`
-	CacheDuration       *time.Duration `xml:"cacheDuration,attr,omitempty"`
-	Name                *string        `xml:",attr,omitempty"`
-	Signature           *etree.Element
-	EntitiesDescriptors []EntitiesDescriptor `xml:"urn:oasis:names:tc:SAML:2.0:metadata EntitiesDescriptor"`
-	EntityDescriptors   []EntityDescriptor   `xml:"urn:oasis:names:tc:SAML:2.0:metadata EntityDescriptor"`
 }
 
 // Organization represents the SAML Organization object.
@@ -324,10 +381,10 @@ func (m *IndexedEndpoint) UnmarshalXML(d *xml.Decoder, start xml.StartElement) e
 // See http://docs.oasis-open.org/security/saml/v2.0/saml-metadata-2.0-os.pdf §2.4.2
 type SSODescriptor struct {
 	RoleDescriptor
-	ArtifactResolutionServices []IndexedEndpoint  `xml:"ArtifactResolutionService"`
-	SingleLogoutServices       []Endpoint         `xml:"SingleLogoutService"`
-	ManageNameIDServices       []Endpoint         `xml:"ManageNameIDService"`
-	NameIDFormats              []SAMLNameIDFormat `xml:"NameIDFormat"`
+	ArtifactResolutionServices []IndexedEndpoint `xml:"ArtifactResolutionService"`
+	SingleLogoutServices       []Endpoint        `xml:"SingleLogoutService"`
+	ManageNameIDServices       []Endpoint        `xml:"ManageNameIDService"`
+	NameIDFormats              []NameIDFormat    `xml:"NameIDFormat"`
 }
 
 // IDPSSODescriptor represents the SAML IDPSSODescriptorType object.
@@ -382,9 +439,9 @@ type RequestedAttribute struct {
 // See http://docs.oasis-open.org/security/saml/v2.0/saml-metadata-2.0-os.pdf §2.4.5
 type AuthnAuthorityDescriptor struct {
 	RoleDescriptor
-	AuthnQueryServices         []Endpoint         `xml:"AuthnQueryService"`
-	AssertionIDRequestServices []Endpoint         `xml:"AssertionIDRequestService"`
-	NameIDFormats              []SAMLNameIDFormat `xml:"NameIDFormat"`
+	AuthnQueryServices         []Endpoint     `xml:"AuthnQueryService"`
+	AssertionIDRequestServices []Endpoint     `xml:"AssertionIDRequestService"`
+	NameIDFormats              []NameIDFormat `xml:"NameIDFormat"`
 }
 
 // PDPDescriptor represents the SAML PDPDescriptor object.
@@ -392,9 +449,9 @@ type AuthnAuthorityDescriptor struct {
 // See http://docs.oasis-open.org/security/saml/v2.0/saml-metadata-2.0-os.pdf §2.4.6
 type PDPDescriptor struct {
 	RoleDescriptor
-	AuthzServices              []Endpoint         `xml:"AuthzService"`
-	AssertionIDRequestServices []Endpoint         `xml:"AssertionIDRequestService"`
-	NameIDFormats              []SAMLNameIDFormat `xml:"NameIDFormat"`
+	AuthzServices              []Endpoint     `xml:"AuthzService"`
+	AssertionIDRequestServices []Endpoint     `xml:"AssertionIDRequestService"`
+	NameIDFormats              []NameIDFormat `xml:"NameIDFormat"`
 }
 
 // AttributeAuthorityDescriptor represents the SAML AttributeAuthorityDescriptor object.
@@ -402,11 +459,11 @@ type PDPDescriptor struct {
 // See http://docs.oasis-open.org/security/saml/v2.0/saml-metadata-2.0-os.pdf §2.4.7
 type AttributeAuthorityDescriptor struct {
 	RoleDescriptor
-	AttributeServices          []Endpoint         `xml:"AttributeService"`
-	AssertionIDRequestServices []Endpoint         `xml:"AssertionIDRequestService"`
-	NameIDFormats              []SAMLNameIDFormat `xml:"NameIDFormat"`
-	AttributeProfiles          []string           `xml:"AttributeProfile"`
-	Attributes                 []Attribute        `xml:"Attribute"`
+	AttributeServices          []Endpoint     `xml:"AttributeService"`
+	AssertionIDRequestServices []Endpoint     `xml:"AssertionIDRequestService"`
+	NameIDFormats              []NameIDFormat `xml:"NameIDFormat"`
+	AttributeProfiles          []string       `xml:"AttributeProfile"`
+	Attributes                 []Attribute    `xml:"Attribute"`
 }
 
 // AffiliationDescriptor represents the SAML AffiliationDescriptor object.

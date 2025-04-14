@@ -23,6 +23,9 @@ linters:
     - path: pkg/util/databasesqlwrapper
       linters:
       - gocognit
+    - path: pkg/lib/saml/samlprotocol/duration.go
+      linters:
+      - gocognit
 
 linters-settings:
   gofmt:
