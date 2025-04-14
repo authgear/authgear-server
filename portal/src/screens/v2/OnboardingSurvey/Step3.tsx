@@ -16,6 +16,7 @@ import { FormField } from "../../../components/v2/FormField/FormField";
 import { OnboardingSurveyPhoneInput } from "../../../components/onboarding/OnboardingSurveyPhoneInput";
 import { useViewerQuery } from "../../../graphql/portal/query/viewerQuery";
 import ShowLoading from "../../../ShowLoading";
+import { PhoneTextFieldValues } from "../../../PhoneTextField";
 
 export function Step3(): React.ReactElement {
   const { form } = useFormContainerBaseContext<OnboardingSurveyFormModel>();
@@ -60,6 +61,7 @@ interface FormProps {
 
 function Step3PersonalForm({ geoIPCountryCode }: FormProps) {
   const { form } = useFormContainerBaseContext<OnboardingSurveyFormModel>();
+  const [phoneNumber, onPhoneNumberChange] = usePhoneNumberState();
 
   return (
     <div className="grid grid-cols-1 gap-8">
@@ -97,19 +99,8 @@ function Step3PersonalForm({ geoIPCountryCode }: FormProps) {
           optional={true}
         >
           <OnboardingSurveyPhoneInput
-            initialInputValue={form.state.phone_number ?? ""}
-            onChange={(v) => {
-              form.setState((prev) =>
-                produce(prev, (draft) => {
-                  if (v.e164) {
-                    draft.phone_number = v.e164;
-                  } else {
-                    draft.phone_number = v.rawInputValue;
-                  }
-                  return draft;
-                })
-              );
-            }}
+            initialInputValue={phoneNumber}
+            onChange={onPhoneNumberChange}
             initialCountry={geoIPCountryCode}
           />
         </FormField>
@@ -120,6 +111,7 @@ function Step3PersonalForm({ geoIPCountryCode }: FormProps) {
 
 function Step3TeamForm({ geoIPCountryCode }: FormProps) {
   const { form } = useFormContainerBaseContext<OnboardingSurveyFormModel>();
+  const [phoneNumber, onPhoneNumberChange] = usePhoneNumberState();
   return (
     <div className="grid grid-cols-1 gap-8">
       <div className="grid grid-cols-1 gap-4">
@@ -221,23 +213,33 @@ function Step3TeamForm({ geoIPCountryCode }: FormProps) {
           optional={true}
         >
           <OnboardingSurveyPhoneInput
-            initialInputValue={form.state.phone_number ?? ""}
-            onChange={(v) => {
-              form.setState((prev) =>
-                produce(prev, (draft) => {
-                  if (v.e164) {
-                    draft.phone_number = v.e164;
-                  } else {
-                    draft.phone_number = v.partialValue;
-                  }
-                  return draft;
-                })
-              );
-            }}
+            initialInputValue={phoneNumber}
+            onChange={onPhoneNumberChange}
             initialCountry={geoIPCountryCode}
           />
         </FormField>
       </div>
     </div>
   );
+}
+
+function usePhoneNumberState(): [string, (v: PhoneTextFieldValues) => void] {
+  const { form } = useFormContainerBaseContext<OnboardingSurveyFormModel>();
+  const onChange = useCallback(
+    (v: PhoneTextFieldValues) => {
+      form.setState((prev) =>
+        produce(prev, (draft) => {
+          if (v.e164) {
+            draft.phone_number = v.e164;
+          } else {
+            draft.phone_number = v.partialValue;
+          }
+          return draft;
+        })
+      );
+    },
+    [form]
+  );
+
+  return [form.state.phone_number ?? "", onChange];
 }
