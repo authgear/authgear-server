@@ -73,12 +73,12 @@ We're grateful to the companies listed below for their ongoing support and signi
 |<h3>Multifactor Auth (MFA)</h3><p>Secure your application with additional authentication factors. TOTP (Google Authenticator, Authy), SMS/ Email OTP, Additional Password </p><p>\*Adaptive MFA coming soon</p>| <img src="https://raw.githubusercontent.com/authgear/.github/main/meta/features/mfa.png" width="500" alt="Multifactor Authentication"> |
 |<h3>User Management Portal perfect for User Support</h3><p>GUI for managing user profile, session revocation, analytics, monitoring, logs, setting up authentication and authorization requirements </p>| <img src="https://raw.githubusercontent.com/authgear/.github/main/meta/features/user-management.png" width="500" alt="Multifactor Authentication"> |
 |<h3>Account Settings </h3><p>Pre-built account settings component for your user to self-manage profile, verify their e-mail, or change their password, etc.</p>| <img src="https://raw.githubusercontent.com/authgear/.github/main/meta/features/account-settings.png" width="500" alt="Plug-and-play account settings"> |
-|<h3>Role-based Access Control</h3><p>Extend access management on your application that Authgear powers using Roles and Groups</p>| |
-|<h3>Social and Enterprise (OAuth) Connection</h3><p>Let your user login with Google, Facebook, Apple, WeChat, Linkedin, ADFS, etc with very simple configs.</p>| |
-|<h3>SAML Enterprise SSO</h3><p>Enable SSO with enterprise softwares using SAML protocol</p>| |
-|<h3>Passkeys</h3><p>Easier and more secure anti-phishing alternative to passwords. Support FIDO2 compliant hardware keys and password managers</p>| |
-|<h3>Webhook and TypeScript Hooks</h3><p>Get notified when important events such as new user signup happen. Customize and extend Authgear's capabilities with custom logic.</p>||
-|<h3>I18n and Email/SMS templates</h3><p>Localization for different languages and customizable email/SMS templates for authentication flows.</p>||
+|<h3>Role-based Access Control</h3><p>Extend access management on your application that Authgear powers using Roles and Groups</p>| <img src="https://raw.githubusercontent.com/authgear/.github/main/meta/features/rbac.png" width="500" alt="Role-based Access Control"> |
+|<h3>Social and Enterprise (OAuth) Connection</h3><p>Let your user login with Google, Facebook, Apple, WeChat, Linkedin, ADFS, etc with very simple configs.</p>| <img src="https://raw.githubusercontent.com/authgear/.github/main/meta/features/social-connections.png" width="500" alt="OAuth Connections"> |
+|<h3>SAML Enterprise SSO</h3><p>Enable SSO with enterprise softwares using SAML protocol</p>| <img src="https://raw.githubusercontent.com/authgear/.github/main/meta/features/saml-sso.png" width="500" alt="SAML Enterprise SSO"> |
+|<h3>Passkeys</h3><p>Easier and more secure anti-phishing alternative to passwords. Support FIDO2 compliant hardware keys and password managers</p>| <img src="https://raw.githubusercontent.com/authgear/.github/main/meta/features/passkeys.png" width="500" alt="Login with Passkeys"> |
+|<h3>Webhook and TypeScript Hooks</h3><p>Get notified when important events such as new user signup happen. Customize and extend Authgear's capabilities with custom logic.</p>| <img src="https://raw.githubusercontent.com/authgear/.github/main/meta/features/hooks.png" width="500" alt="Webhook and TypeScript Hooks"> |
+|<h3>I18n and Email/SMS templates</h3><p>Localization for different languages and customizable email/SMS templates for authentication flows.</p>| <img src="https://raw.githubusercontent.com/authgear/.github/main/meta/features/i18n.png" width="500" alt="I18n and Email/SMS Templates"> |
 
 ### Components
 
