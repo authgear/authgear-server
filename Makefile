@@ -232,3 +232,13 @@ once/Dockerfile:
 	sed -e '/^# syntax=/d' ./cmd/portal/Dockerfile >> $@
 	printf "\n" >> $@
 	sed -e '/^# syntax=/d' ./once/partial.dockerfile >> $@
+
+.PHONY: authgearonce-set-git-tag-name
+authgearonce-set-git-tag-name:
+	@./scripts/sh/authgearonce-set-git-tag-name.sh
+
+.PHONY: authgearonce-binary
+authgearonce-binary:
+	rm -rf ./dist
+	mkdir ./dist
+	$(MAKE) build TARGET::=once BIN_NAME::=./dist/authgear-once-"$(shell go env GOOS)"-"$(shell go env GOARCH)"
