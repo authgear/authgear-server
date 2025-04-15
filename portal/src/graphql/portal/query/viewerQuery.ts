@@ -1,4 +1,4 @@
-import { useQuery, QueryResult } from "@apollo/client";
+import { useQuery, QueryResult, WatchQueryFetchPolicy } from "@apollo/client";
 import { Viewer } from "../globalTypes.generated";
 import { ViewerQueryQuery, ViewerQueryDocument } from "./viewerQuery.generated";
 import { usePortalClient } from "../../portal/apollo";
@@ -8,13 +8,15 @@ export interface UseViewerQueryReturnType
   viewer?: Viewer | null;
 }
 
-export function useViewerQuery(): UseViewerQueryReturnType {
+export function useViewerQuery(options?: {
+  fetchPolicy?: WatchQueryFetchPolicy;
+}): UseViewerQueryReturnType {
   const client = usePortalClient();
   const { data, loading, error, refetch } = useQuery<ViewerQueryQuery>(
     ViewerQueryDocument,
     {
       client,
-      fetchPolicy: "network-only",
+      fetchPolicy: options?.fetchPolicy ?? "network-only",
     }
   );
 

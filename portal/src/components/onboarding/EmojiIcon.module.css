@@ -1,0 +1,7 @@
+.emojiIcon {
+  @apply block;
+  line-height: 52px;
+  font-weight: 600;
+  letter-spacing: 0px;
+  font-size: 54px;
+}

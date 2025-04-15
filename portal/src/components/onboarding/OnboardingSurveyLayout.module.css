@@ -1,0 +1,17 @@
+.onboardingSurveyLayout__root {
+  @apply flex-1-0-auto;
+  @apply flex flex-col;
+}
+
+.onboardingSurveyLayout__bg {
+  @apply flex-1-0-auto;
+  background-image: url("images/onboarding-bg.svg");
+  @apply bg-no-repeat bg-cover;
+  @apply flex flex-col;
+}
+
+.onboardingSurveyLayout__content {
+  @apply flex-1-0-auto self-center;
+  @apply flex flex-col items-center py-30 px-4;
+  width: 100%;
+}

@@ -9,6 +9,9 @@ export interface PrimaryButtonProps {
   disabled?: boolean;
   loading?: boolean;
   text?: React.ReactNode;
+
+  type?: "button" | "reset" | "submit";
+  onClick?: React.MouseEventHandler<HTMLButtonElement>;
 }
 
 export function PrimaryButton({
@@ -18,9 +21,13 @@ export function PrimaryButton({
   disabled,
   loading,
   text,
+
+  type = "button",
+  onClick,
 }: PrimaryButtonProps): React.ReactElement {
   return (
     <Button
+      type={type}
       className={cn(darkMode ? "dark" : null)}
       size={size}
       variant="solid"
@@ -28,6 +35,7 @@ export function PrimaryButton({
       disabled={disabled}
       color="indigo"
       loading={loading}
+      onClick={onClick}
     >
       {text}
     </Button>

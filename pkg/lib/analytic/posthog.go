@@ -43,6 +43,7 @@ func NewPosthogHTTPClient() PosthogHTTPClient {
 }
 
 type PosthogIntegration struct {
+	PosthogService
 	PosthogCredentials *PosthogCredentials
 	Clock              clock.Clock
 	GlobalHandle       *globaldb.Handle
@@ -64,11 +65,6 @@ type PosthogGroup struct {
 }
 
 func (p *PosthogIntegration) SetGroupProperties(ctx context.Context) error {
-	endpoint, err := url.Parse(p.PosthogCredentials.Endpoint)
-	if err != nil {
-		return err
-	}
-
 	now := p.Clock.NowUTC()
 
 	appIDs, err := p.getAppIDs(ctx)
@@ -100,7 +96,7 @@ func (p *PosthogIntegration) SetGroupProperties(ctx context.Context) error {
 		return err
 	}
 
-	err = p.Batch(ctx, endpoint, events)
+	err = p.Batch(ctx, events)
 	if err != nil {
 		return err
 	}
@@ -109,13 +105,8 @@ func (p *PosthogIntegration) SetGroupProperties(ctx context.Context) error {
 }
 
 func (p *PosthogIntegration) SetUserProperties(ctx context.Context, portalAppID string) error {
-	endpoint, err := url.Parse(p.PosthogCredentials.Endpoint)
-	if err != nil {
-		return err
-	}
-
 	var users []*User
-	err = p.AppDBHandle.WithTx(ctx, func(ctx context.Context) error {
+	err := p.AppDBHandle.WithTx(ctx, func(ctx context.Context) error {
 		var err error
 		users, err = p.AppDBStore.GetAllUsers(ctx, portalAppID)
 		if err != nil {
@@ -133,7 +124,7 @@ func (p *PosthogIntegration) SetUserProperties(ctx context.Context, portalAppID 
 		return err
 	}
 
-	err = p.Batch(ctx, endpoint, events)
+	err = p.Batch(ctx, events)
 	if err != nil {
 		return err
 	}
@@ -296,8 +287,28 @@ type PosthogBatchRequest struct {
 	Batch  []json.RawMessage `json:"batch,omitempty"`
 }
 
-func (p *PosthogIntegration) Batch(ctx context.Context, endpoint *url.URL, events []json.RawMessage) error {
-	u := *endpoint
+type PosthogService struct {
+	PosthogCredentials *PosthogCredentials
+	HTTPClient         PosthogHTTPClient
+	Logger             PosthogLogger
+}
+
+func (p *PosthogService) endpoint() (*url.URL, error) {
+	if p.PosthogCredentials == nil {
+		return nil, ErrMissingPosthogCredential
+	}
+	endpoint, err := url.Parse(p.PosthogCredentials.Endpoint)
+	if err != nil {
+		return nil, fmt.Errorf("invalid posthog endpoint: %w", err)
+	}
+	return endpoint, nil
+}
+
+func (p *PosthogService) Batch(ctx context.Context, events []json.RawMessage) error {
+	u, err := p.endpoint()
+	if err != nil {
+		return err
+	}
 	u.Path = "/batch"
 
 	// The hard limit is 20MB.

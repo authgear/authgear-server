@@ -2,12 +2,15 @@ package service
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 
 	"github.com/graphql-go/graphql"
 
 	relay "github.com/authgear/authgear-server/pkg/graphqlgo/relay"
+	"github.com/authgear/authgear-server/pkg/lib/analytic"
 
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
 	"github.com/authgear/authgear-server/pkg/portal/model"
@@ -18,10 +21,16 @@ type OnboardServiceAdminAPIService interface {
 	SelfDirector(ctx context.Context, actorUserID string, usage Usage) (func(*http.Request), error)
 }
 
+type OnboardServicePosthogService interface {
+	Batch(ctx context.Context, events []json.RawMessage) error
+}
+
 type OnboardService struct {
 	HTTPClient     HTTPClient
 	AuthgearConfig *portalconfig.AuthgearConfig
 	AdminAPI       OnboardServiceAdminAPIService
+
+	PosthogService OnboardServicePosthogService
 }
 
 func (s *OnboardService) graphqlDo(ctx context.Context, params graphqlutil.DoParams, actorID string) (*graphql.Result, error) {
@@ -74,6 +83,25 @@ func (s *OnboardService) SubmitOnboardEntry(ctx context.Context, entry model.Onb
 	if err != nil {
 		return err
 	}
+
+	event := map[string]interface{}{
+		"event":       "onboardingSurvey.set-completed-survey",
+		"distinct_id": actorID,
+		"properties": map[string]interface{}{
+			"$set": map[string]interface{}{
+				"survey_json": json.RawMessage(entry.SurveyJSON),
+			},
+		},
+	}
+	eventBytes, err := json.Marshal(event)
+	if err != nil {
+		return fmt.Errorf("failed to marshal survey entry event: %w", err)
+	}
+	err = s.PosthogService.Batch(ctx, []json.RawMessage{eventBytes})
+	if err != nil && !errors.Is(err, analytic.ErrMissingPosthogCredential) {
+		return fmt.Errorf("failed to send survey entry event: %w", err)
+	}
+
 	return nil
 }
 

@@ -1,0 +1,19 @@
+.onboardingSurveyPhoneInput__container {
+  height: var(--text-field-height);
+}
+
+.onboardingSurveyPhoneInput__container :global(.iti__dropdown-content) {
+  background: var(--accent-12);
+}
+
+.onboardingSurveyPhoneInput__container :global(.iti__dial-code) {
+  color: var(--gray-12);
+}
+
+.onboardingSurveyPhoneInput__container :global(.iti__arrow) {
+  border-top-color: var(--gray-12);
+}
+
+.onboardingSurveyPhoneInput__container :global(.iti__arrow--up) {
+  border-bottom-color: var(--gray-12);
+}

@@ -139,7 +139,7 @@ export function TestSMSDialog({
             fieldName="to"
             allowlist={effectiveAppConfig?.ui?.phone_input?.allowlist}
             pinnedList={effectiveAppConfig?.ui?.phone_input?.pinned_list}
-            inputValue={toInputValue}
+            initialInputValue={toInputValue}
             onChange={onChangeValues}
             errorRules={phoneFieldErrorRules}
           />

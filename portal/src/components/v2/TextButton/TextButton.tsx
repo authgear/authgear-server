@@ -61,6 +61,9 @@ export interface TextButtonProps {
   loading?: boolean;
   text?: React.ReactNode;
   iconStart?: TextButtonIcon;
+
+  type?: "button" | "reset" | "submit";
+  onClick?: React.MouseEventHandler<HTMLButtonElement>;
 }
 
 export function TextButton({
@@ -71,9 +74,13 @@ export function TextButton({
   loading,
   text,
   iconStart,
+
+  type = "button",
+  onClick,
 }: TextButtonProps): React.ReactElement {
   return (
     <Button
+      type={type}
       className={cn(darkMode ? "dark" : null)}
       size={size}
       variant="ghost"
@@ -81,6 +88,7 @@ export function TextButton({
       disabled={disabled}
       color={variantToColor(variant)}
       loading={loading}
+      onClick={onClick}
     >
       {iconStart != null ? <Icon icon={iconStart} size={size} /> : null}
       {text}

@@ -24,25 +24,7 @@ import ExternalLink from "./ExternalLink";
 import { useLogout } from "./graphql/portal/Authenticated";
 import { useCapture } from "./gtm_v2";
 import { useSettingsAnchor } from "./hook/authgear";
-
-interface LogoProps {
-  isNavbarHeader?: boolean;
-}
-
-const Logo: React.VFC<LogoProps> = (props) => {
-  const { isNavbarHeader = false } = props;
-  const { renderToString } = useContext(Context);
-
-  return (
-    <img
-      className={isNavbarHeader ? styles.logoNavHeader : styles.logo}
-      alt={renderToString("system.name")}
-      src={renderToString(
-        isNavbarHeader ? "system.logo-inverted-uri" : "system.logo-uri"
-      )}
-    />
-  );
-};
+import { Logo } from "./components/common/Logo";
 
 interface MobileViewHeaderAppSectionProps {
   appID: string;
@@ -160,7 +142,7 @@ const MobileViewNavbarHeader: IRenderFunction<IPanelProps> = (props) => {
         className={styles.hamburger}
         onClick={onClick}
       />
-      <Logo isNavbarHeader={true} />
+      <Logo inverted={true} />
     </div>
   );
 };
