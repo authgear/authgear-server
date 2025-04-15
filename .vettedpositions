@@ -153,8 +153,8 @@
 /pkg/auth/handler/webapp/create_passkey.go:53:27: requestcontext
 /pkg/auth/handler/webapp/create_password.go:107:27: requestcontext
 /pkg/auth/handler/webapp/csrf_error_instruction.go:49:33: requestcontext
-/pkg/auth/handler/webapp/csrf_middleware.go:70:5: requestcontext
-/pkg/auth/handler/webapp/csrf_middleware.go:82:3: requestcontext
+/pkg/auth/handler/webapp/csrf_middleware.go:78:5: requestcontext
+/pkg/auth/handler/webapp/csrf_middleware.go:90:3: requestcontext
 /pkg/auth/handler/webapp/enter_login_id.go:144:27: requestcontext
 /pkg/auth/handler/webapp/enter_login_id.go:146:31: requestcontext
 /pkg/auth/handler/webapp/enter_oob_otp.go:161:27: requestcontext
