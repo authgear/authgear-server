@@ -6,7 +6,7 @@ const (
 
 const (
 	// ProgramName is the name of this program.
-	ProgramName = "authgearonce"
+	ProgramName = "authgear-once"
 	// BinDocker is the name of the binary of docker.
 	BinDocker = "docker"
 
