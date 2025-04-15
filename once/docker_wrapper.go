@@ -144,7 +144,7 @@ func main() {
 		decowriter.New(os.Stderr, []byte("docker-certbot  | "), []byte("")),
 	)
 	minio := NewChild(
-		[]string{"minio", "server", "/var/lib/minio/data", "--console-address", ":9001"},
+		[]string{"minio", "server", os.Getenv("AUTHGEARONCE_MINIO_DATA_DIRECTORY"), "--console-address", ":9001"},
 		decowriter.New(os.Stdout, []byte("minio           | "), []byte("")),
 		decowriter.New(os.Stderr, []byte("minio           | "), []byte("")),
 	)

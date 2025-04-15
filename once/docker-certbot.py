@@ -92,7 +92,11 @@ def main():
         sys.exit(1)
 
     cmd = []
+
     cmd.append("certbot")
+    cmd.append("--config-dir")
+    cmd.append(os.environ["AUTHGEARONCE_CERTBOT_DATA_DIRECTORY"])
+
     cmd.append("run")
 
     if certbot_use_staging:

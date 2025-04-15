@@ -61,6 +61,14 @@ var cmdInit = &cobra.Command{
 		if err != nil {
 			return err
 		}
+		var smtpConfig *libconfig.SMTPServerCredentials
+		if !skipEmailVerification {
+			// Do something
+			smtpConfig, err = config.ReadSMTPConfig(ctx, cmd)
+			if err != nil {
+				return err
+			}
+		}
 
 		searchImpl, err := config.ReadSearchImplementation(ctx, cmd)
 		if err != nil {
@@ -85,6 +93,10 @@ var cmdInit = &cobra.Command{
 			if err != nil {
 				return err
 			}
+		}
+		// Authgear once uses this command non-interactively to configure SMTP.
+		if smtpConfig != nil {
+			appSecretsOpts.SMTPServerCredentials = smtpConfig
 		}
 
 		// generate app config
@@ -174,6 +186,11 @@ func init() {
 	config.Prompt_PortalClientID.DefineFlag(cmdInit)
 	config.Prompt_PhoneOTPMode.DefineFlag(cmdInit)
 	config.Prompt_DisableEmailVerification.DefineFlag(cmdInit)
+	config.Prompt_SMTPHost.DefineFlag(cmdInit)
+	config.Prompt_SMTPPort.DefineFlag(cmdInit)
+	config.Prompt_SMTPUsername.DefineFlag(cmdInit)
+	config.Prompt_SMTPPassword.DefineFlag(cmdInit)
+	config.Prompt_SMTPSenderAddress.DefineFlag(cmdInit)
 	config.Prompt_SearchImplementation.DefineFlag(cmdInit)
 	config.Prompt_DatabaseURL.DefineFlag(cmdInit)
 	config.Prompt_DatabaseSchema.DefineFlag(cmdInit)
