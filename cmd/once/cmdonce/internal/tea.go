@@ -43,6 +43,9 @@ func (m FatalError) View() string {
 	case errors.Is(m.Err, ErrDockerContainerNotExists):
 		errMsg = fmt.Sprintf("The docker container %v does not exist. Maybe you did not run `%v setup` before?", NameDockerContainer, ProgramName)
 		actionableMsg = fmt.Sprintf("Run `%v setup` to set up Authgear first.", ProgramName)
+	case errors.Is(m.Err, ErrCommandUpgradeNotImplemented):
+		errMsg = fmt.Sprintf("This command is not implemented yet.")
+		actionableMsg = fmt.Sprintf("Re-run the oneliner in the email to upgrade this program.")
 	}
 
 	if errMsg == "" || actionableMsg == "" {
