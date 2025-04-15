@@ -9,7 +9,7 @@ package samlprotocol
 // It is intended you run it with
 //  go generate -tags updatecrewjamsaml ./pkg/lib/saml/samlprotocol
 
-//go:generate curl -sSL https://raw.githubusercontent.com/crewjam/saml/refs/tags/v0.5.0/schema.go -o schema.go
-//go:generate curl -sSL https://raw.githubusercontent.com/crewjam/saml/refs/tags/v0.5.0/duration.go -o duration.go
-//go:generate curl -sSL https://raw.githubusercontent.com/crewjam/saml/refs/tags/v0.5.0/time.go -o time.go
-//go:generate curl -sSL https://raw.githubusercontent.com/crewjam/saml/refs/tags/v0.5.0/metadata.go -o metadata.go
+//go:generate curl -sSL https://raw.githubusercontent.com/crewjam/saml/refs/tags/v0.5.1/schema.go -o schema.go
+//go:generate curl -sSL https://raw.githubusercontent.com/crewjam/saml/refs/tags/v0.5.1/duration.go -o duration.go
+//go:generate curl -sSL https://raw.githubusercontent.com/crewjam/saml/refs/tags/v0.5.1/time.go -o time.go
+//go:generate curl -sSL https://raw.githubusercontent.com/crewjam/saml/refs/tags/v0.5.1/metadata.go -o metadata.go

@@ -1,4 +1,4 @@
-// NOTE: Copied from https://raw.githubusercontent.com/crewjam/saml/refs/tags/v0.5.0/schema.go
+// NOTE: Copied from https://raw.githubusercontent.com/crewjam/saml/refs/tags/v0.5.1/schema.go
 // With some changes.
 
 package samlprotocol
