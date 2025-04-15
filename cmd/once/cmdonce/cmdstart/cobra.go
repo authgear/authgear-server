@@ -35,18 +35,44 @@ var CmdStart = &cobra.Command{
 			}
 		}()
 
+		image, err := cmd.Flags().GetString("image")
+		if err != nil {
+			return err
+		}
+
 		ctx := cmd.Context()
+
+		volumes, err := internal.DockerVolumeLs(ctx)
+		if err != nil {
+			return
+		}
+		volumeExists := slices.ContainsFunc(volumes, func(v internal.DockerVolume) bool {
+			return v.Name == internal.NameDockerVolume && v.Scope == internal.DockerVolumeScopeLocal
+		})
+
 		cs, err := internal.DockerLs(ctx)
 		if err != nil {
 			return
 		}
-		ok := slices.ContainsFunc(cs, func(c internal.DockerContainer) bool {
+		containerExists := slices.ContainsFunc(cs, func(c internal.DockerContainer) bool {
 			return c.Names == internal.NameDockerContainer
 		})
-		if !ok {
+
+		if !volumeExists {
 			err = internal.ErrDockerContainerNotExists
 			return
 		}
+
+		if !containerExists {
+			// Run the container without providing any environment variables.
+			// We assume the environment variables are persisted in the volume.
+			opts := internal.NewDockerRunOptionsForStarting(image)
+			err = internal.DockerRun(ctx, opts)
+			if err != nil {
+				return
+			}
+		}
+
 		err = internal.DockerStart(ctx, internal.NameDockerContainer)
 		if err != nil {
 			return

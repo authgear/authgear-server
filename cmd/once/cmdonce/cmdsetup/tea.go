@@ -602,7 +602,7 @@ func (m Installation) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		} else {
 			m.Loading = true
 			m.InstallationStatus = InstallationStatusStarting
-			dockerRunOptions := newDockerRunOptionsForStarting(m.Image)
+			dockerRunOptions := internal.NewDockerRunOptionsForStarting(m.Image)
 			cmds = append(cmds, func() tea.Msg {
 				err := internal.DockerRun(m.Context, dockerRunOptions)
 				return msgInstallationStart{
@@ -663,7 +663,7 @@ func (m Installation) View() string {
 }
 
 func newDockerRunOptionsForInstallation(m Installation) internal.DockerRunOptions {
-	opts := newDockerRunOptionsForStarting(m.Image)
+	opts := internal.NewDockerRunOptionsForStarting(m.Image)
 	opts.Detach = false
 	// Run the shell command true to exit 0 when container has finished first run.
 	opts.Command = []string{"true"}
@@ -689,24 +689,4 @@ func newDockerRunOptionsForInstallation(m Installation) internal.DockerRunOption
 		)
 	}
 	return opts
-}
-
-func newDockerRunOptionsForStarting(image string) internal.DockerRunOptions {
-	if image == "" {
-		image = fmt.Sprintf("%v:%v", internal.DefaultDockerName_NoTag, internal.Version)
-	}
-
-	return internal.DockerRunOptions{
-		Detach: true,
-		Volume: []string{"authgearonce_data:/var/lib/authgearonce"},
-		Publish: []string{
-			"80:80",
-			"443:443",
-			"5432:5432",
-			"9001:9001",
-			"8090:8090",
-		},
-		Name:  internal.NameDockerContainer,
-		Image: image,
-	}
 }
