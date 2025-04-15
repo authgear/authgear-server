@@ -1,4 +1,4 @@
-// NOTE: Copied from https://raw.githubusercontent.com/crewjam/saml/refs/tags/v0.5.0/duration.go
+// NOTE: Copied from https://raw.githubusercontent.com/crewjam/saml/refs/tags/v0.5.1/duration.go
 package samlprotocol
 
 import (

@@ -1,4 +1,4 @@
-// NOTE: Copied from https://raw.githubusercontent.com/crewjam/saml/refs/tags/v0.5.0/flate.go
+// NOTE: Copied from https://raw.githubusercontent.com/crewjam/saml/refs/tags/v0.5.1/flate.go
 
 package samlbinding
 
