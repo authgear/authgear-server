@@ -78,15 +78,6 @@ func DockerVolumeLs(ctx context.Context) ([]DockerVolume, error) {
 	return vs, nil
 }
 
-func DockerVolumeCreate(ctx context.Context, name string) error {
-	c := exec.CommandContext(ctx, "docker", "volume", "create", name)
-	stdout, stderr, err := runCmd(c)
-	if err != nil {
-		return errors.Join(&CmdError{Stdout: stdout, Stderr: stderr}, err)
-	}
-	return nil
-}
-
 type DockerRunOptions struct {
 	Detach  bool
 	Rm      bool
