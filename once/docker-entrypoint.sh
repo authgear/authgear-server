@@ -504,6 +504,12 @@ main() {
 		} >> "$AUTHGEARONCE_ENV_SHELL_SCRIPT"
 
 		# We persist the environment variables
+		# NOTE(once): Possibly breaking change
+		# These environment variables are part of the public API between the once image and the once command.
+		# The once command provide these variables with `-e` in `docker run`.
+		# If you introduce a new environment variable in the future,
+		# you must think of the missing case of the environment variable,
+		# as there is a running installation of the old version without this environment variable.
 		{
 			printf "export AUTHGEAR_ONCE_ADMIN_USER_EMAIL=%s\n" "$AUTHGEAR_ONCE_ADMIN_USER_EMAIL"
 			printf "export AUTHGEAR_ONCE_ADMIN_USER_PASSWORD=%s\n" "$AUTHGEAR_ONCE_ADMIN_USER_PASSWORD"
