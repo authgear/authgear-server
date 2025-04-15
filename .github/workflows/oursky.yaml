@@ -9,6 +9,7 @@ on:
     - '!ui-review*'
     tags:
     - '*'
+    - '!authgear-once/*'
 
 jobs:
   authgear-image-custom:

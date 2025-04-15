@@ -8,6 +8,7 @@ on:
     - '!ui-review*'
     tags:
     - '*'
+    - '!authgear-once/*'
 
 # We need to set id-token to write.
 # But we cannot simply write

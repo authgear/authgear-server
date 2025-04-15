@@ -1,0 +1,25 @@
+name: CI - Tags
+
+on:
+  push:
+    tags:
+    - '*'
+    - '!staging-*'
+    - '!authgear-once/*'
+
+jobs:
+  checks:
+    if: ${{ github.repository == 'authgear/authgear-server' }}
+    uses: ./.github/workflows/run-checks.yaml
+  builds:
+    if: ${{ github.repository == 'authgear/authgear-server' }}
+    needs: checks
+    secrets: inherit
+    uses: ./.github/workflows/run-builds.yaml
+    with:
+      push-image: true
+  release:
+    if: ${{ github.repository == 'authgear/authgear-server' }}
+    needs: builds
+    secrets: inherit
+    uses: ./.github/workflows/run-release.yaml
