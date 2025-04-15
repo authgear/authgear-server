@@ -33,7 +33,7 @@ import {
 } from "../../error/parse";
 import { SimpleFormModel, useSimpleForm } from "../../hook/useSimpleForm";
 import FormTextField from "../../FormTextField";
-import FormContainer from "../../FormContainer";
+import FormContainer, { FormSaveButton } from "../../FormContainer";
 
 import styles from "./AddUserScreen.module.css";
 import { validatePassword } from "../../error/password";
@@ -419,6 +419,16 @@ const AddUserContent: React.VFC<AddUserContentProps> = function AddUserContent(
           </>
         )}
       </div>
+      <div className={styles.widget}>
+        <FormSaveButton
+          saveButtonProps={{
+            labelId: "AddUserScreen.add-user.label",
+            iconProps: {
+              iconName: "Add",
+            },
+          }}
+        />
+      </div>
     </ScreenContent>
   );
 };
@@ -511,16 +521,6 @@ const AddUserScreen: React.VFC = function AddUserScreen() {
     form.state.selectedLoginIDType != null &&
     form.state[form.state.selectedLoginIDType].length > 0;
 
-  const saveButtonProps = useMemo(
-    () => ({
-      labelId: "AddUserScreen.add-user.label",
-      iconProps: {
-        iconName: "Add",
-      },
-    }),
-    []
-  );
-
   useEffect(() => {
     if (form.isSubmitted) {
       navigate("./..");
@@ -536,11 +536,7 @@ const AddUserScreen: React.VFC = function AddUserScreen() {
   }
 
   return (
-    <FormContainer
-      form={form}
-      canSave={canSave}
-      saveButtonProps={saveButtonProps}
-    >
+    <FormContainer form={form} canSave={canSave} hideFooterComponent={true}>
       <AddUserContent
         form={form}
         primaryAuthenticators={primaryAuthenticators}
