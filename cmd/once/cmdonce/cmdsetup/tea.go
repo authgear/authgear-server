@@ -57,6 +57,7 @@ type RetainedValues struct {
 
 type SetupApp struct {
 	Context context.Context
+	Image   string
 
 	Questions      []Question
 	retainedValues RetainedValues
@@ -482,6 +483,7 @@ func (m SetupApp) ToInstallation() Installation {
 
 	installation := Installation{
 		Context: m.Context,
+		Image:   m.Image,
 
 		AUTHGEAR_ONCE_ADMIN_USER_EMAIL:    m.mustFindQuestionByName(QuestionName_EnterAdminEmail).Value(),
 		AUTHGEAR_ONCE_ADMIN_USER_PASSWORD: m.mustFindQuestionByName(QuestionName_EnterAdminPassword).Value(),
@@ -545,6 +547,7 @@ const (
 
 type Installation struct {
 	Context context.Context
+	Image   string
 
 	AUTHGEAR_HTTP_ORIGIN_PROJECT      string
 	AUTHGEAR_HTTP_ORIGIN_PORTAL       string
@@ -596,7 +599,7 @@ func (m Installation) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		} else {
 			m.Loading = true
 			m.InstallationStatus = InstallationStatusStarting
-			dockerRunOptions := newDockerRunOptionsForStarting()
+			dockerRunOptions := newDockerRunOptionsForStarting(m.Image)
 			cmds = append(cmds, func() tea.Msg {
 				err := internal.DockerRun(m.Context, dockerRunOptions)
 				return msgInstallationStart{
@@ -657,7 +660,7 @@ func (m Installation) View() string {
 }
 
 func newDockerRunOptionsForInstallation(m Installation) internal.DockerRunOptions {
-	opts := newDockerRunOptionsForStarting()
+	opts := newDockerRunOptionsForStarting(m.Image)
 	opts.Detach = false
 	// Run the shell command true to exit 0 when container has finished first run.
 	opts.Command = []string{"true"}
@@ -685,7 +688,11 @@ func newDockerRunOptionsForInstallation(m Installation) internal.DockerRunOption
 	return opts
 }
 
-func newDockerRunOptionsForStarting() internal.DockerRunOptions {
+func newDockerRunOptionsForStarting(image string) internal.DockerRunOptions {
+	if image == "" {
+		image = fmt.Sprintf("%v:%v", internal.DefaultDockerName_NoTag, internal.Version)
+	}
+
 	return internal.DockerRunOptions{
 		Detach: true,
 		Volume: []string{"authgearonce_data:/var/lib/authgearonce"},
@@ -697,6 +704,6 @@ func newDockerRunOptionsForStarting() internal.DockerRunOptions {
 			"8090:8090",
 		},
 		Name:  internal.NameDockerContainer,
-		Image: internal.FIXME_DockerImage,
+		Image: image,
 	}
 }

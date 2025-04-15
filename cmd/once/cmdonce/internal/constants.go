@@ -1,6 +1,10 @@
 package internal
 
 const (
+	Version = "1.0.0"
+)
+
+const (
 	// ProgramName is the name of this program.
 	ProgramName = "authgearonce"
 	// BinDocker is the name of the binary of docker.
@@ -10,6 +14,5 @@ const (
 	// NameDockerContainer is the name of the Docker container.
 	NameDockerContainer = "authgearonce"
 
-	// FIXME(authgearonce): DEV-2630
-	FIXME_DockerImage = "authgearonce:test"
+	DefaultDockerName_NoTag = "quay.io/theauthgear/authgear-once"
 )
