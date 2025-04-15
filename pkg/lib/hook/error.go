@@ -6,7 +6,8 @@ import (
 
 var WebHookDisallowed = apierrors.Forbidden.WithReason("WebHookDisallowed")
 
-var WebHookDeliveryTimeout = apierrors.InternalError.WithReason("WebHookDeliveryTimeout")
+var WebHookDeliveryUnknownFailure = apierrors.InternalError.WithReason("WebHookDeliveryUnknownFailure").SkipLoggingToExternalService()
+var WebHookDeliveryTimeout = apierrors.InternalError.WithReason("WebHookDeliveryTimeout").SkipLoggingToExternalService()
 var WebHookInvalidResponse = apierrors.InternalError.WithReason("WebHookInvalidResponse").SkipLoggingToExternalService()
 
 var DenoRunError = apierrors.BadRequest.WithReason("DenoRunError")

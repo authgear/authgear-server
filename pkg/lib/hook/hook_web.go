@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/url"
 	"os"
@@ -11,6 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
 	"github.com/authgear/authgear-server/pkg/util/crypto"
 	"github.com/authgear/authgear-server/pkg/util/jwkutil"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -23,8 +25,8 @@ func NewWebHookLogger(lf *log.Factory) WebHookLogger { return WebHookLogger{lf.N
 type WebHook interface {
 	SupportURL(u *url.URL) bool
 	PrepareRequest(ctx context.Context, u *url.URL, body interface{}) (*http.Request, error)
-	PerformWithResponse(client *http.Client, request *http.Request) (resp *http.Response, err error)
-	PerformNoResponse(client *http.Client, request *http.Request) error
+	PerformWithResponse(ctx context.Context, client *http.Client, request *http.Request) (resp *http.Response, err error)
+	PerformNoResponse(ctx context.Context, client *http.Client, request *http.Request) error
 }
 
 type WebHookImpl struct {
@@ -62,20 +64,47 @@ func (h *WebHookImpl) PrepareRequest(ctx context.Context, u *url.URL, body inter
 
 // The caller should close the response body if the response is not nil.
 func (h *WebHookImpl) PerformWithResponse(
+	ctx context.Context,
 	client *http.Client,
 	request *http.Request) (resp *http.Response, err error) {
 
-	return performRequest(client, request)
+	resp, err = performRequest(client, request)
+	if err != nil {
+		otelauthgear.IntCounterAddOne(
+			ctx,
+			otelauthgear.CounterBlockingWebhookCount,
+			otelauthgear.WithStatusError(),
+		)
+	} else {
+		otelauthgear.IntCounterAddOne(
+			ctx,
+			otelauthgear.CounterBlockingWebhookCount,
+			otelauthgear.WithStatusOk(),
+		)
+	}
+	return resp, err
 }
 
 func (h *WebHookImpl) PerformNoResponse(
+	ctx context.Context,
 	client *http.Client,
 	request *http.Request) error {
 
 	go func() {
 		resp, err := performRequest(client, request)
 		if err != nil {
+			otelauthgear.IntCounterAddOne(
+				ctx,
+				otelauthgear.CounterNonBlockingWebhookCount,
+				otelauthgear.WithStatusError(),
+			)
 			h.Logger.WithError(err).Error("failed to dispatch nonblocking webhook")
+		} else {
+			otelauthgear.IntCounterAddOne(
+				ctx,
+				otelauthgear.CounterNonBlockingWebhookCount,
+				otelauthgear.WithStatusOk(),
+			)
 		}
 		if resp != nil {
 			defer resp.Body.Close()
@@ -99,7 +128,7 @@ func (h *EventWebHookImpl) DeliverBlockingEvent(ctx context.Context, u *url.URL,
 		return nil, err
 	}
 
-	resp, err := h.PerformWithResponse(h.SyncHTTP.Client, request)
+	resp, err := h.PerformWithResponse(ctx, h.SyncHTTP.Client, request)
 	defer func() {
 		if resp != nil {
 			resp.Body.Close()
@@ -129,7 +158,7 @@ func (h *EventWebHookImpl) DeliverNonBlockingEvent(ctx context.Context, u *url.U
 		return err
 	}
 
-	return h.PerformNoResponse(h.AsyncHTTP.Client, request)
+	return h.PerformNoResponse(ctx, h.AsyncHTTP.Client, request)
 }
 
 func performRequest(
@@ -140,6 +169,7 @@ func performRequest(
 		err = WebHookDeliveryTimeout.New("webhook delivery timeout")
 		return
 	} else if err != nil {
+		err = errors.Join(WebHookDeliveryUnknownFailure.New("failed to deliver webhook"), err)
 		return
 	}
 

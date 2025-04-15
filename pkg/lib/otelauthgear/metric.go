@@ -10,7 +10,7 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
-	"go.opentelemetry.io/otel/semconv/v1.27.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.27.0"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -173,6 +173,22 @@ var CounterContextCanceledCount = mustInt64Counter(
 	"authgear.context_canceled.count",
 	metric.WithDescription("The number of context canceled error encountered"),
 	metric.WithUnit("{error}"),
+)
+
+// CounterNonBlockingWebhookCount has the following labels:
+// - AttributeKeyStatus
+var CounterNonBlockingWebhookCount = mustInt64Counter(
+	"authgear.webhook.non_blocking.count",
+	metric.WithDescription("The number of non blocking webhook"),
+	metric.WithUnit("{request}"),
+)
+
+// CounterBlockingWebhookCount has the following labels:
+// - AttributeKeyStatus
+var CounterBlockingWebhookCount = mustInt64Counter(
+	"authgear.webhook.blocking.count",
+	metric.WithDescription("The number of blocking webhook"),
+	metric.WithUnit("{request}"),
 )
 
 // HTTPServerRequestDurationHistogram is https://opentelemetry.io/docs/specs/semconv/http/http-metrics/#metric-httpserverrequestduration

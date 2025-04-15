@@ -30,7 +30,7 @@ func (h *ProofOfPhoneNumberVerificationWebHook) Call(ctx context.Context, u *url
 		return nil, err
 	}
 
-	resp, err := h.PerformWithResponse(h.Client.Client, req)
+	resp, err := h.PerformWithResponse(ctx, h.Client.Client, req)
 	defer func() {
 		if resp != nil {
 			resp.Body.Close()
