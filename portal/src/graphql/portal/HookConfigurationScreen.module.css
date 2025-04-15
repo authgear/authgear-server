@@ -39,7 +39,6 @@
   flex-direction: row;
   column-gap: 12px;
   flex: 1 0 0;
-  padding: 10px 0;
 }
 
 .hookHeader {
@@ -112,4 +111,5 @@
   border-bottom-style: solid;
   overflow-y: hidden;
   overflow-x: auto;
+  padding: 10px 0;
 }
