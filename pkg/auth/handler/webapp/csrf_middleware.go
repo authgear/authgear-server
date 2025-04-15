@@ -11,13 +11,13 @@ import (
 	"github.com/gorilla/securecookie"
 	"github.com/sirupsen/logrus"
 
-	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
-	"github.com/authgear/authgear-server/pkg/util/jwkutil"
-	"github.com/authgear/authgear-server/pkg/util/log"
-
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	webapp "github.com/authgear/authgear-server/pkg/auth/webapp"
+	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
+	"github.com/authgear/authgear-server/pkg/util/jwkutil"
+	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
 type CSRFMiddlewareLogger struct{ *log.Logger }
@@ -46,6 +46,14 @@ func (m *CSRFMiddleware) Handle(next http.Handler) http.Handler {
 		return next
 	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		proto := httputil.GetProto(r, bool(m.TrustProxy))
+		if proto == "http" {
+			// By default, gorilla/csrf assumes https
+			// Thus it is safe in production environment.
+			// We need to explicitly tell it is plaintext in development environment.
+			r = csrf.PlaintextHTTPRequest(r)
+		}
+
 		cookieThatWouldBeWrittenByOurCookieManager := m.Cookies.ValueCookie(webapp.CSRFCookieDef, "unimportant")
 		options := []csrf.Option{
 			csrf.FieldName(webapp.CSRFFieldName),
