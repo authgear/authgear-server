@@ -535,6 +535,9 @@ main() {
 		if [ -n "$AUTHGEAR_CERTBOT_ENVIRONMENT" ]; then
 			printf "export AUTHGEAR_CERTBOT_ENVIRONMENT=%s\n" "$AUTHGEAR_CERTBOT_ENVIRONMENT" >> "$AUTHGEARONCE_ENV_SHELL_SCRIPT"
 		fi
+		if [ -n "$AUTHGEAR_CERTBOT_RUN_INTERVAL" ]; then
+			printf "export AUTHGEAR_CERTBOT_RUN_INTERVAL=%s\n" "$AUTHGEAR_CERTBOT_RUN_INTERVAL" >> "$AUTHGEARONCE_ENV_SHELL_SCRIPT"
+		fi
 	else
 		printf 1>&2 "%s is found. Passwords inside it will be used.\n" "$AUTHGEARONCE_ENV_SHELL_SCRIPT"
 	fi
