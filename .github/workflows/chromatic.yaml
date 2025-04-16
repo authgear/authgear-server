@@ -26,6 +26,18 @@ jobs:
       - run: |
           git push -f origin HEAD:ui-review-pending
 
+  deploy-portal-chromatic-patch-build:
+    runs-on: ubuntu-24.04
+    if: ${{ github.repository == 'authgear/authgear-server' && github.event_name == 'workflow_dispatch'}}
+    env:
+      CHROMATIC_PROJECT_TOKEN: "${{ secrets.PORTAL_CHROMATIC_TOKEN }}"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - run: |
+          npx chromatic --project-token=$CHROMATIC_PROJECT_TOKEN --patch-build=ui-review-pending...ui-review
+
   deploy-portal-chromatic:
     runs-on: ubuntu-24.04
     if: ${{ github.repository == 'authgear/authgear-server' && github.event_name == 'push' }}
