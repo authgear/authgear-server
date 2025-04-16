@@ -1024,6 +1024,7 @@
   "v2.error.verification-code-required": "Παρακαλούμε εισάγετε τον κωδικό επαλήθευσης που μόλις λάβατε.",
   "v2.error.web-ui-invalid-session-return": "Μπορεί να πατήσατε το κουμπί επιστροφής ή υπάρχει κάποιο πρόβλημα με τα cookies. Δοκιμάστε: <ol><li>Να εκτελέσετε ξανά τη λειτουργία από την εφαρμογή.</li><li>Να δοκιμάσετε ξανά αφού καθαρίσετε τα cookies.</li><li>Εάν το πρόβλημα παραμένει, επικοινωνήστε με τον διαχειριστή.</li></ol>",
   "v2.error.web-ui-session-completed": "Μια στιγμή, θα ανακατευθυνθείτε στην εφαρμογή σας.",
+  "v2.error.webhook-delivery-failed": "Η λειτουργία δεν επιτρέπεται επειδή η παράδοση του webhook είχε ως αποτέλεσμα άγνωστο σφάλμα.",
   "v2.error.webhook-delivery-timeout": "Η λειτουργία δεν επιτρέπεται επειδή η παράδοση του webhook είχε ως αποτέλεσμα το timeout.",
   "v2.error.webhook-disallowed": "Η λειτουργία δεν επιτρέπεται",
   "v2.error.webhook-invalid-response": "[Για τον Προγραμματιστή] Ο χειριστής του webhook σας ΔΕΝ επέστρεψε έγκυρη απάντηση. Παρακαλούμε επισκεφθείτε <a class=\"link\" target=\"_blank\" href=\"https://docs.authgear.com/webhooks/webhooks\">https://docs.authgear.com/webhooks/webhooks</a>",

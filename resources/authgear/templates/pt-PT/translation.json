@@ -1024,6 +1024,7 @@
   "v2.error.verification-code-required": "Por favor, insira o código de verificação que você acabou de receber.",
   "v2.error.web-ui-invalid-session-return": "Pode ter premido o botão de retroceder ou há algum problema com os cookies. Tente: <ol><li>Realizar a ação novamente a partir da aplicação.</li><li>Tentar novamente após limpar os cookies.</li><li>Se o problema persistir, por favor contacte o administrador.</li></ol>",
   "v2.error.web-ui-session-completed": "Apenas um momento, você será redirecionado para o seu aplicativo.",
+  "v2.error.webhook-delivery-failed": "A operação não é permitida porque a entrega do webhook resultou num erro desconhecido.",
   "v2.error.webhook-delivery-timeout": "A operação não é permitida porque a entrega do webhook resultou em tempo limite.",
   "v2.error.webhook-disallowed": "A operação não é permitida",
   "v2.error.webhook-invalid-response": "[Para o Desenvolvedor] O seu manipulador de webhook NÃO devolveu uma resposta válida. Por favor, visite <a class=\"link\" target=\"_blank\" href=\"https://docs.authgear.com/webhooks/webhooks\">https://docs.authgear.com/webhooks/webhooks</a>",
