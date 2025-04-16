@@ -672,6 +672,13 @@ func (c *AuthflowController) AdvanceWithInputs(
 }
 
 func (c *AuthflowController) Finish(ctx context.Context, r *http.Request, s *webapp.Session) (*webapp.Result, error) {
+	if s == nil {
+		panic(fmt.Errorf("unexpected: session is missing in Finish"))
+	}
+	if s.Authflow == nil {
+		return nil, fmt.Errorf("cannot finish authflow: session is not in a flow")
+	}
+
 	result := &webapp.Result{}
 	screen, ok := s.Authflow.AllScreens[GetXStepFromQuery(r)]
 	if !ok {
