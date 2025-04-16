@@ -92,11 +92,17 @@ func (s *Sender) SendEmailInNewGoroutine(ctx context.Context, msgType translatio
 	sendInTx := func(ctx context.Context) error {
 		err := s.MailSender.Send(*opts)
 		if err != nil {
+			// Log the send error immediately.
+			s.Logger.WithError(err).WithFields(logrus.Fields{
+				"email": mail.MaskAddress(opts.Recipient),
+			}).Error("failed to send email")
+
 			otelauthgear.IntCounterAddOne(
 				ctx,
 				otelauthgear.CounterEmailRequestCount,
 				otelauthgear.WithStatusError(),
 			)
+
 			dispatchErr := s.DispatchEventImmediatelyWithTx(ctx, &nonblocking.EmailErrorEventPayload{
 				Description: s.errorToDescription(err),
 			})
@@ -127,14 +133,10 @@ func (s *Sender) SendEmailInNewGoroutine(ctx context.Context, msgType translatio
 	ctxWithoutCancel := context.WithoutCancel(ctx)
 	go func(ctx context.Context) {
 		// Always use a new transaction to send in async routine
-		asyncErr := s.Database.ReadOnly(ctx, func(ctx context.Context) error {
+		// No need to handle the error as sendInTx is assumed to have handle it by logging.
+		_ = s.Database.ReadOnly(ctx, func(ctx context.Context) error {
 			return sendInTx(ctx)
 		})
-		if asyncErr != nil {
-			s.Logger.WithError(asyncErr).WithFields(logrus.Fields{
-				"email": mail.MaskAddress(opts.Recipient),
-			}).Error("failed to send email")
-		}
 	}(ctxWithoutCancel)
 
 	return nil
@@ -208,11 +210,18 @@ func (s *Sender) sendSMS(ctx context.Context, msgType translation.MessageType, o
 	sendInTx := func(ctx context.Context) error {
 		err = s.SMSSender.Send(ctx, client, *opts)
 		if err != nil {
+			// Log the send error immediately.
+			// TODO: Handle expected errors https://linear.app/authgear/issue/DEV-1139
+			s.Logger.WithError(err).WithFields(logrus.Fields{
+				"phone": phone.Mask(opts.To),
+			}).Error("failed to send SMS")
+
 			otelauthgear.IntCounterAddOne(
 				ctx,
 				otelauthgear.CounterSMSRequestCount,
 				otelauthgear.WithStatusError(),
 			)
+
 			dispatchErr := s.DispatchEventImmediatelyWithTx(ctx, &nonblocking.SMSErrorEventPayload{
 				Description: s.errorToDescription(err),
 			})
@@ -229,15 +238,10 @@ func (s *Sender) sendSMS(ctx context.Context, msgType translation.MessageType, o
 		ctxWithoutCancel := context.WithoutCancel(ctx)
 		go func(ctx context.Context) {
 			// Always use a new transaction to send in async routine
-			asyncErr := s.Database.ReadOnly(ctx, func(ctx context.Context) error {
+			// No need to handle the error as sendInTx is assumed to have handle it by logging.
+			_ = s.Database.ReadOnly(ctx, func(ctx context.Context) error {
 				return sendInTx(ctx)
 			})
-			if asyncErr != nil {
-				// TODO: Handle expected errors https://linear.app/authgear/issue/DEV-1139
-				s.Logger.WithError(asyncErr).WithFields(logrus.Fields{
-					"phone": phone.Mask(opts.To),
-				}).Error("failed to send SMS")
-			}
 		}(ctxWithoutCancel)
 	} else {
 		err = sendInTx(ctx)
@@ -324,6 +328,10 @@ func (s *Sender) SendWhatsappImmediately(ctx context.Context, msgType translatio
 	// Send immediately.
 	err = s.sendWhatsapp(ctx, opts)
 	if err != nil {
+		// Log the send error immediately.
+		s.Logger.WithError(err).WithFields(logrus.Fields{
+			"phone": phone.Mask(opts.To),
+		}).Error("failed to send Whatsapp")
 
 		metricOptions := []otelauthgear.MetricOption{otelauthgear.WithStatusError()}
 		var apiErr *whatsapp.WhatsappAPIError
@@ -341,10 +349,6 @@ func (s *Sender) SendWhatsappImmediately(ctx context.Context, msgType translatio
 			otelauthgear.CounterWhatsappRequestCount,
 			metricOptions...,
 		)
-
-		s.Logger.WithError(err).WithFields(logrus.Fields{
-			"phone": phone.Mask(opts.To),
-		}).Error("failed to send Whatsapp")
 
 		dispatchErr := s.DispatchEventImmediatelyWithTx(ctx, &nonblocking.WhatsappErrorEventPayload{
 			Description: s.errorToDescription(err),
