@@ -37,7 +37,7 @@ export function FormField({
       ) : null}
       {children}
       {error != null ? (
-        <p className={styles.textField__errorMessage}>{error}</p>
+        <p className={styles.formField__errorMessage}>{error}</p>
       ) : null}
     </label>
   );
