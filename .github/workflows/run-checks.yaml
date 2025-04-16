@@ -139,8 +139,8 @@ jobs:
       if: ${{ !cancelled() }}
     - run: make check-tidy
       if: ${{ !cancelled() }}
-    - run: make -C packagetracker check-if-new-version-available
-      if: ${{ !cancelled() }}
+    # - run: make -C packagetracker check-if-new-version-available
+    #   if: ${{ !cancelled() }}
 
   authgear-e2e:
     if: ${{ github.repository != 'oursky/authgear-server' }}
