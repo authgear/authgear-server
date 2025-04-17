@@ -337,7 +337,7 @@ func (c *AuthflowController) HandleStep(ctx context.Context, w http.ResponseWrit
 	handler.ServeHTTP(w, r)
 }
 
-func (c *AuthflowController) HandleWithoutFlow(ctx context.Context, w http.ResponseWriter, r *http.Request, handlers *AuthflowControllerHandlers) {
+func (c *AuthflowController) HandleWithoutScreen(ctx context.Context, w http.ResponseWriter, r *http.Request, handlers *AuthflowControllerHandlers) {
 	if handled := c.handleInlinePreviewIfNecessary(ctx, w, r, handlers); handled {
 		return
 	}
@@ -348,11 +348,22 @@ func (c *AuthflowController) HandleWithoutFlow(ctx context.Context, w http.Respo
 		if !c.isWebSessionNotFoundOrCompletedError(err) {
 			c.Logger.WithError(err).Errorf("failed to get web session")
 		}
+		c.renderError(ctx, w, r, err)
+		return
 	} else {
 		session = s
 	}
 
 	handler := c.makeHTTPHandler(session, nil, handlers)
+	handler.ServeHTTP(w, r)
+}
+
+func (c *AuthflowController) HandleWithoutSession(ctx context.Context, w http.ResponseWriter, r *http.Request, handlers *AuthflowControllerHandlers) {
+	if handled := c.handleInlinePreviewIfNecessary(ctx, w, r, handlers); handled {
+		return
+	}
+
+	handler := c.makeHTTPHandler(nil, nil, handlers)
 	handler.ServeHTTP(w, r)
 }
 

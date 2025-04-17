@@ -22,7 +22,7 @@ type CSRFErrorInstructionHandler struct {
 	Renderer      Renderer
 }
 
-func (h *CSRFErrorInstructionHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
+func (h *CSRFErrorInstructionHandler) GetData(w http.ResponseWriter, r *http.Request) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
@@ -37,8 +37,8 @@ func (h *CSRFErrorInstructionHandler) GetData(w http.ResponseWriter, r *http.Req
 
 func (h *CSRFErrorInstructionHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var handlers AuthflowControllerHandlers
-	handlers.Get(func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
-		data, err := h.GetData(w, r, s, screen)
+	handlers.Get(func(ctx context.Context, _ *webapp.Session, _ *webapp.AuthflowScreenWithFlowResponse) error {
+		data, err := h.GetData(w, r)
 		if err != nil {
 			return err
 		}
@@ -46,5 +46,5 @@ func (h *CSRFErrorInstructionHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 		h.Renderer.RenderHTML(w, r, TemplateCSRFErrorInstructionHTML, data)
 		return nil
 	})
-	h.Controller.HandleWithoutFlow(r.Context(), w, r, &handlers)
+	h.Controller.HandleWithoutSession(r.Context(), w, r, &handlers)
 }
