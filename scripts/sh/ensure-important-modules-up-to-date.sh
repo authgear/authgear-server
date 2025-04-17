@@ -2,34 +2,14 @@
 
 output="$(go list -u -m -json all | jq --raw-output --argjson packages '
 [
-  "github.com/nyaruka/phonenumbers",
-  "golang.org/x/crypto",
-  "golang.org/x/exp",
-  "golang.org/x/image",
-  "golang.org/x/mod",
-  "golang.org/x/net",
-  "golang.org/x/oauth2",
-  "golang.org/x/sync",
-  "golang.org/x/sys",
-  "golang.org/x/telemetry",
-  "golang.org/x/term",
-  "golang.org/x/text",
-  "golang.org/x/time",
-  "golang.org/x/tools",
-  "golang.org/x/vuln"
+  "github.com/nyaruka/phonenumbers"
 ]
 ' '
-[
-  if [.Path] | inside($packages) then
-    if .Update != null then
-      "\(.Path) \(.Version) [\(.Update.Version)]"
-    else
-      null
-    end
-  else
-    null
-  end
-] | map(select(. != null)) | .[]
+if .Update != null and ([.Path] | inside($packages)) then
+  "\(.Path) \(.Version) [\(.Update.Version)]"
+else
+  null
+end | values
 ')"
 
 if [ -n "$output" ]; then
