@@ -11,6 +11,8 @@ type QuestionName int
 const (
 	QuestionName_AcceptAgreement QuestionName = iota
 
+	QuestionName_EnterDomain_Apex
+	QuestionName_ConfirmDefaultDomains
 	QuestionName_EnterDomain_Project
 	QuestionName_EnterDomain_Portal
 	QuestionName_EnterDomain_Accounts
@@ -67,11 +69,37 @@ Authgear ONCE license agreement: https://authgear.com/once/license
 	}),
 }
 
+var Question_EnterDomain_Apex = Question{
+	Name: QuestionName_EnterDomain_Apex,
+	Model: bubbleteautil.NewSingleLineTextInput(bubbleteautil.SingleLineTextInput{
+		Title:        "Domain Setup\n\n",
+		Prompt:       "Enter the domain of your project (e.g. myapp.com)",
+		ValidateFunc: validateDomain,
+	}),
+}
+
+var Question_ConfirmDefaultDomains = Question{
+	Name: QuestionName_ConfirmDefaultDomains,
+	Model: bubbleteautil.NewSimplePicker(bubbleteautil.SimplePicker{
+		Title:  "TO BE REPLACED",
+		Prompt: "Confirm domain setup?",
+		Items: []bubbleteautil.SimplePickerItem{
+			{
+				Label: "Yes, use the default domains",
+				Value: ValueTrue,
+			},
+			{
+				Label: "No, customize the domains",
+				Value: ValueFalse,
+			},
+		},
+	}),
+}
+
 var Question_EnterDomain_Project = Question{
 	Name: QuestionName_EnterDomain_Project,
 	Model: bubbleteautil.NewSingleLineTextInput(bubbleteautil.SingleLineTextInput{
-		Title:        "Domain Setup\n\n",
-		Prompt:       "Domain of your project (e.g. auth.mybusiness.com)",
+		Prompt:       "Domain of the authentication endpoint (e.g. auth.myapp.com)",
 		ValidateFunc: validateDomain,
 	}),
 }
@@ -79,7 +107,7 @@ var Question_EnterDomain_Project = Question{
 var Question_EnterDomain_Portal = Question{
 	Name: QuestionName_EnterDomain_Portal,
 	Model: bubbleteautil.NewSingleLineTextInput(bubbleteautil.SingleLineTextInput{
-		Prompt:       "Domain of Authgear portal (e.g. authgear-portal.mybusiness.com)",
+		Prompt:       "Domain of Authgear portal (e.g. authgear-portal.myapp.com)",
 		ValidateFunc: validateDomain,
 	}),
 }
@@ -87,7 +115,7 @@ var Question_EnterDomain_Portal = Question{
 var Question_EnterDomain_Accounts = Question{
 	Name: QuestionName_EnterDomain_Accounts,
 	Model: bubbleteautil.NewSingleLineTextInput(bubbleteautil.SingleLineTextInput{
-		Prompt:       "Domain to login Authgear portal (e.g. authgear-portal-accounts.mybusiness.com)",
+		Prompt:       "Domain to login Authgear portal (e.g. authgear-portal-accounts.myapp.com)",
 		ValidateFunc: validateDomain,
 	}),
 }

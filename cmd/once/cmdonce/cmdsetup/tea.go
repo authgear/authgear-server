@@ -286,7 +286,35 @@ func (m SetupApp) appendNextQuestion() (SetupApp, tea.Cmd) {
 	// Finally proceed to next question, if there is any.
 	switch m.Questions[len(m.Questions)-1].Name {
 	case QuestionName_AcceptAgreement:
-		m.Questions = append(m.Questions, newQuestion(Question_EnterDomain_Project))
+		m.Questions = append(m.Questions, newQuestion(Question_EnterDomain_Apex))
+	case QuestionName_EnterDomain_Apex:
+		domains := m.ToSuggestedDomains()
+
+		q := newQuestion(Question_ConfirmDefaultDomains)
+		questionModel := q.Model.(bubbleteautil.SimplePicker)
+		questionModel.Title = fmt.Sprintf(`The following domains will be set up:
+- %v
+    The authentication endpoint
+- %v
+    The Authgear portal
+- %v
+    For logging into the Authgear portal
+
+`, bubbleteautil.StyleForegroundSemanticInfo.Render(domains.Project),
+			bubbleteautil.StyleForegroundSemanticInfo.Render(domains.Portal),
+			bubbleteautil.StyleForegroundSemanticInfo.Render(domains.Accounts),
+		)
+		q.Model = questionModel
+
+		m.Questions = append(m.Questions, q)
+	case QuestionName_ConfirmDefaultDomains:
+		value := m.Questions[len(m.Questions)-1].Value()
+		switch value {
+		case ValueTrue:
+			m.Questions = append(m.Questions, newQuestion(Question_EnableCertbot))
+		case ValueFalse:
+			m.Questions = append(m.Questions, newQuestion(Question_EnterDomain_Project))
+		}
 	case QuestionName_EnterDomain_Project:
 		m.Questions = append(m.Questions, newQuestion(Question_EnterDomain_Portal))
 	case QuestionName_EnterDomain_Portal:
@@ -478,24 +506,48 @@ func (m SetupApp) View() string {
 	return b.String()
 }
 
+func (m SetupApp) ToSuggestedDomains() Domains {
+	apexDomain := m.mustFindQuestionByName(QuestionName_EnterDomain_Apex).Value()
+	return Domains{
+		Project:  fmt.Sprintf("auth.%v", apexDomain),
+		Portal:   fmt.Sprintf("authgear-portal.%v", apexDomain),
+		Accounts: fmt.Sprintf("authgear-portal-accounts.%v", apexDomain),
+	}
+}
+
+func (m SetupApp) ToDomains() Domains {
+	confirmSuggestedDomains := m.mustFindQuestionByName(QuestionName_ConfirmDefaultDomains).Value() == ValueTrue
+	if confirmSuggestedDomains {
+		return m.ToSuggestedDomains()
+	}
+
+	return Domains{
+		Project:  m.mustFindQuestionByName(QuestionName_EnterDomain_Project).Value(),
+		Portal:   m.mustFindQuestionByName(QuestionName_EnterDomain_Portal).Value(),
+		Accounts: m.mustFindQuestionByName(QuestionName_EnterDomain_Accounts).Value(),
+	}
+}
+
 func (m SetupApp) ToInstallation() Installation {
 	certbotEnabled := m.mustFindQuestionByName(QuestionName_EnableCertbot).Value() == ValueTrue
 
 	installation := Installation{
-		Context: m.Context,
-		Image:   m.Image,
-
+		Context:                           m.Context,
+		Image:                             m.Image,
 		AUTHGEAR_ONCE_ADMIN_USER_EMAIL:    m.mustFindQuestionByName(QuestionName_EnterAdminEmail).Value(),
 		AUTHGEAR_ONCE_ADMIN_USER_PASSWORD: m.mustFindQuestionByName(QuestionName_EnterAdminPassword).Value(),
 	}
+
+	domains := m.ToDomains()
+
 	scheme := "http"
 	if certbotEnabled {
 		scheme = "https"
 		installation.AUTHGEAR_CERTBOT_ENVIRONMENT = m.mustFindQuestionByName(QuestionName_SelectCertbotEnvironment).Value()
 	}
-	installation.AUTHGEAR_HTTP_ORIGIN_PROJECT = fmt.Sprintf("%v://%v", scheme, m.mustFindQuestionByName(QuestionName_EnterDomain_Project).Value())
-	installation.AUTHGEAR_HTTP_ORIGIN_PORTAL = fmt.Sprintf("%v://%v", scheme, m.mustFindQuestionByName(QuestionName_EnterDomain_Portal).Value())
-	installation.AUTHGEAR_HTTP_ORIGIN_ACCOUNTS = fmt.Sprintf("%v://%v", scheme, m.mustFindQuestionByName(QuestionName_EnterDomain_Accounts).Value())
+	installation.AUTHGEAR_HTTP_ORIGIN_PROJECT = fmt.Sprintf("%v://%v", scheme, domains.Project)
+	installation.AUTHGEAR_HTTP_ORIGIN_PORTAL = fmt.Sprintf("%v://%v", scheme, domains.Portal)
+	installation.AUTHGEAR_HTTP_ORIGIN_ACCOUNTS = fmt.Sprintf("%v://%v", scheme, domains.Accounts)
 
 	switch m.mustFindQuestionByName(QuestionName_SelectSMTP).Value() {
 	case SMTPSkip:
@@ -544,6 +596,12 @@ const (
 	InstallationStatusStarting
 	InstallationStatusDone
 )
+
+type Domains struct {
+	Project  string
+	Portal   string
+	Accounts string
+}
 
 type Installation struct {
 	Context context.Context
