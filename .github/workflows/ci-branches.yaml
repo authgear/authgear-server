@@ -6,17 +6,15 @@ on:
     - '*'
     - '!gh-pages'
     - '!ui-review*'
-    tags:
-    - '*'
 
 jobs:
   checks:
+    if: ${{ github.repository != 'oursky/authgear-server' }}
     uses: ./.github/workflows/run-checks.yaml
   builds:
+    if: ${{ github.repository != 'oursky/authgear-server' }}
     needs: checks
+    secrets: inherit
     uses: ./.github/workflows/run-builds.yaml
-    secrets: inherit
-  release:
-    needs: builds
-    uses: ./.github/workflows/run-release.yaml
-    secrets: inherit
+    with:
+      push-image: ${{ github.repository == 'authgear-server' }}

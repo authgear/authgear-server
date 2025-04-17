@@ -22,7 +22,12 @@ var CmdSetup = &cobra.Command{
 		return nil
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		setupApp := SetupApp{Context: cmd.Context()}
+		image, err := cmd.Flags().GetString("image")
+		if err != nil {
+			return err
+		}
+
+		setupApp := SetupApp{Context: cmd.Context(), Image: image}
 		prog := tea.NewProgram(setupApp)
 		model, err := prog.Run()
 		if err != nil {

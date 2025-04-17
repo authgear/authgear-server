@@ -57,6 +57,7 @@ type RetainedValues struct {
 
 type SetupApp struct {
 	Context context.Context
+	Image   string
 
 	Questions      []Question
 	retainedValues RetainedValues
@@ -482,6 +483,7 @@ func (m SetupApp) ToInstallation() Installation {
 
 	installation := Installation{
 		Context: m.Context,
+		Image:   m.Image,
 
 		AUTHGEAR_ONCE_ADMIN_USER_EMAIL:    m.mustFindQuestionByName(QuestionName_EnterAdminEmail).Value(),
 		AUTHGEAR_ONCE_ADMIN_USER_PASSWORD: m.mustFindQuestionByName(QuestionName_EnterAdminPassword).Value(),
@@ -545,6 +547,7 @@ const (
 
 type Installation struct {
 	Context context.Context
+	Image   string
 
 	AUTHGEAR_HTTP_ORIGIN_PROJECT      string
 	AUTHGEAR_HTTP_ORIGIN_PORTAL       string
@@ -583,6 +586,9 @@ func (m Installation) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		dockerRunOptions := newDockerRunOptionsForInstallation(m)
 		m.Loading = true
 		cmds = append(cmds, m.Spinner.Tick, func() tea.Msg {
+			// `docker run` is smart enough to pull the image and create the volume if the volume does not exist.
+			// So we do not need to do that manually.
+			// In fact, if we `docker pull`, it will result in error if we pull a image that exists only locally.
 			err := internal.DockerRun(m.Context, dockerRunOptions)
 			return msgInstallationInstall{
 				Err: err,
@@ -596,7 +602,7 @@ func (m Installation) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		} else {
 			m.Loading = true
 			m.InstallationStatus = InstallationStatusStarting
-			dockerRunOptions := newDockerRunOptionsForStarting()
+			dockerRunOptions := internal.NewDockerRunOptionsForStarting(m.Image)
 			cmds = append(cmds, func() tea.Msg {
 				err := internal.DockerRun(m.Context, dockerRunOptions)
 				return msgInstallationStart{
@@ -657,7 +663,7 @@ func (m Installation) View() string {
 }
 
 func newDockerRunOptionsForInstallation(m Installation) internal.DockerRunOptions {
-	opts := newDockerRunOptionsForStarting()
+	opts := internal.NewDockerRunOptionsForStarting(m.Image)
 	opts.Detach = false
 	// Run the shell command true to exit 0 when container has finished first run.
 	opts.Command = []string{"true"}
@@ -683,20 +689,4 @@ func newDockerRunOptionsForInstallation(m Installation) internal.DockerRunOption
 		)
 	}
 	return opts
-}
-
-func newDockerRunOptionsForStarting() internal.DockerRunOptions {
-	return internal.DockerRunOptions{
-		Detach: true,
-		Volume: []string{"authgearonce_data:/var/lib/authgearonce"},
-		Publish: []string{
-			"80:80",
-			"443:443",
-			"5432:5432",
-			"9001:9001",
-			"8090:8090",
-		},
-		Name:  internal.NameDockerContainer,
-		Image: internal.FIXME_DockerImage,
-	}
 }

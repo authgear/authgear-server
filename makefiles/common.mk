@@ -75,6 +75,7 @@ build-image:
 .PHONY: tag-image
 tag-image: TAGS ::= --tag $(IMAGE_NAME):$(GIT_HASH)
 ifneq (${GIT_TAG_NAME},)
+tag-image: TAGS += --tag $(IMAGE_NAME):$(GIT_TAG_NAME)
 tag-image: TAGS += --tag $(IMAGE_NAME):release-$(GIT_HASH)
 tag-image: TAGS += --tag $(IMAGE_NAME):release-$(GIT_TAG_NAME)
 endif

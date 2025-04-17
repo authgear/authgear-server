@@ -5,7 +5,6 @@ on:
 
 jobs:
   authui-test:
-    if: ${{ github.repository != 'oursky/authgear-server' }}
     runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
@@ -54,7 +53,6 @@ jobs:
       if: ${{ !cancelled() }}
 
   portal-test:
-    if: ${{ github.repository != 'oursky/authgear-server' }}
     runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
@@ -108,7 +106,6 @@ jobs:
 
 
   authgear-test:
-    if: ${{ github.repository != 'oursky/authgear-server' }}
     runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
@@ -143,7 +140,6 @@ jobs:
       if: ${{ !cancelled() }}
 
   authgear-e2e:
-    if: ${{ github.repository != 'oursky/authgear-server' }}
     runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
@@ -169,7 +165,6 @@ jobs:
         COMPOSE_INTERACTIVE_NO_CLI: 1
 
   k6:
-    if: ${{ github.repository != 'oursky/authgear-server' }}
     runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4

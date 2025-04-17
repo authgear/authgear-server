@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"iter"
 	"os/exec"
 	"strings"
@@ -78,15 +79,6 @@ func DockerVolumeLs(ctx context.Context) ([]DockerVolume, error) {
 	return vs, nil
 }
 
-func DockerVolumeCreate(ctx context.Context, name string) error {
-	c := exec.CommandContext(ctx, "docker", "volume", "create", name)
-	stdout, stderr, err := runCmd(c)
-	if err != nil {
-		return errors.Join(&CmdError{Stdout: stdout, Stderr: stderr}, err)
-	}
-	return nil
-}
-
 type DockerRunOptions struct {
 	Detach  bool
 	Rm      bool
@@ -96,6 +88,26 @@ type DockerRunOptions struct {
 	Name    string
 	Image   string
 	Command []string
+}
+
+func NewDockerRunOptionsForStarting(image string) DockerRunOptions {
+	if image == "" {
+		image = fmt.Sprintf("%v:%v", DefaultDockerName_NoTag, Version)
+	}
+
+	return DockerRunOptions{
+		Detach: true,
+		Volume: []string{fmt.Sprintf("%v:/var/lib/authgearonce", NameDockerVolume)},
+		Publish: []string{
+			"80:80",
+			"443:443",
+			"5432:5432",
+			"9001:9001",
+			"8090:8090",
+		},
+		Name:  NameDockerContainer,
+		Image: image,
+	}
 }
 
 func DockerRun(ctx context.Context, opts DockerRunOptions) error {

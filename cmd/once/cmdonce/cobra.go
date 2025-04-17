@@ -9,19 +9,23 @@ import (
 	"github.com/authgear/authgear-server/cmd/once/cmdonce/cmdsetup"
 	"github.com/authgear/authgear-server/cmd/once/cmdonce/cmdstart"
 	"github.com/authgear/authgear-server/cmd/once/cmdonce/cmdstop"
+	"github.com/authgear/authgear-server/cmd/once/cmdonce/cmdupgrade"
 	"github.com/authgear/authgear-server/cmd/once/cmdonce/internal"
-	"github.com/authgear/authgear-server/pkg/version"
 )
 
 func init() {
 	CmdRoot.AddCommand(cmdsetup.CmdSetup)
 	CmdRoot.AddCommand(cmdstart.CmdStart)
 	CmdRoot.AddCommand(cmdstop.CmdStop)
+	CmdRoot.AddCommand(cmdupgrade.CmdUpgrade)
+
+	_ = CmdRoot.PersistentFlags().String("image", "", "Override the default image")
+	_ = CmdRoot.PersistentFlags().MarkHidden("image")
 }
 
 var CmdRoot = &cobra.Command{
 	Use:     internal.ProgramName,
-	Version: version.Version,
+	Version: internal.Version,
 }
 
 func Run(ctx context.Context) {

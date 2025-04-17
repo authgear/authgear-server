@@ -468,6 +468,9 @@ ENV MINIO_ROOT_USER=authgear
 
 VOLUME /var/lib/authgearonce
 
+# NOTE(once): Possibly breaking change
+# These ports are part of the public API between the once image and the once command.
+# The once command publish SOME of these ports with `-p` in `docker run`.
 # postgres
 EXPOSE 5432
 # redis

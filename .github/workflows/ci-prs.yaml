@@ -13,8 +13,10 @@ concurrency:
 
 jobs:
   checks:
+    if: ${{ github.repository != 'oursky/authgear-server' }}
     uses: ./.github/workflows/run-checks.yaml
   builds:
+    if: ${{ github.repository != 'oursky/authgear-server' }}
     needs: checks
     uses: ./.github/workflows/run-builds.yaml
     with:
