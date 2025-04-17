@@ -1,28 +1,25 @@
+* [SMS Gateway](#sms-gateway)
+  * [Configuration](#configuration)
+    * [Webhook](#webhook)
+    * [Deno Hook](#deno-hook)
+    * [Request](#request)
+    * [Response](#response)
+      * [Backward Compatibility](#backward-compatibility)
+
 # SMS Gateway
 
 This document describes configuration of sms gateway.
 
-- [Using Custom SMS Gateway](#using-custom-sms-gateway)
-  - [Configuration](#configuration)
-  - [Webhook Signature](#webhook-signature)
-  - [Webhook Body](#webhook-body)
-  - [Deno Script](#deno-script)
-
-## Using Custom SMS Gateway
-
-When using custom sms gateway, `messaging.sms_provider` must be set to value `custom` in configuration. A secret with key `sms.custom` must also exist in secret configuration.
-
-### Configuration
+## Configuration
 
 The following configs must be specified in `authgear.yaml`:
 
 ```yaml
 messaging:
-  sms_provider: custom
+  sms_gateway:
+    provider: custom
+    use_config_from: authgear.secrets.yaml
 ```
-
-- `messaging.sms_provider`
-  - Must be `custom` when using custom sms gateway
 
 And the following secrets must be specified in `authgear.secrets.yaml`:
 
@@ -44,20 +41,6 @@ And the following secrets must be specified in `authgear.secrets.yaml`:
 When `url` in config is an http / https URL, a request is sent to the specified url.
 
 See [webhook](./hook.md#webhook) for details.
-
-The request body is in json format with the following fields:
-
-- `to`: The recipient of the sms.
-- `body`: The body of the sms.
-
-Example:
-
-```json
-{
-  "to": "+85298765432",
-  "body": "You otp is 123456"
-}
-```
 
 ### Deno Hook
 
@@ -85,6 +68,68 @@ export default async function (
 }
 ```
 
+### Request
+
+The request is a JSON object. Its TypeScript equivalent definition is as follows:
+
+```typescript
+interface CustomSMSGatewayPayload {
+  // The recipient phone number in E.164 format.
+  // For example, "+85298765432"
+  to: string;
+
+  // The fully formatted message body ready to be sent.
+  // This is already localized.
+  // For example, "123456 is your Myapp verification code"
+  body: string;
+
+  // IETF BCP 47 language tag describing the language of body.
+  language_tag: string;
+
+  // The Authgear project ID.
+  // For example, "myapp"
+  app_id: string;
+
+  // One of the listed literal.
+  template_name:
+    | "authenticate_primary_oob_sms.txt"
+    | "authenticate_secondary_oob_sms.txt"
+    | "forgot_password_oob_sms.txt"
+    | "forgot_password_sms.txt"
+    | "setup_primary_oob_sms.txt"
+    | "setup_secondary_oob_sms.txt"
+    | "verification_sms.txt"
+    ;
+
+  template_variables: {
+    // This is present when template_name is
+    // - "authenticate_primary_oob_sms.txt"
+    // - "authenticate_secondary_oob_sms.txt"
+    // - "forgot_password_oob_sms.txt"
+    // - "setup_primary_oob_sms.txt"
+    // - "setup_secondary_oob_sms.txt"
+    // - "verification_sms.txt"
+    code?: string;
+    // This is present when template_name is
+    // - "forgot_password_sms.txt"
+    link?: string;
+  };
+}
+```
+
+#### Use case 1: Simply send the body
+
+In case you have configured the SMS template in the portal, you can just send `body` to `to`, ignoring all other fields.
+
+#### Use case 2: Send SMS to +86 phone numbers
+
+You usually cannot send arbitrary SMS messages to +86 phone numbers.
+The service provider capable of sending SMS messages to +86 phone numbers typically require you to
+register pre-defined templates.
+
+You can use `template_name` to select a suitable pre-defined template registered in your service provider.
+And then use `template_variables` to interpolate the template.
+
 ### Response
 
 The deno hook and webhook shares the same response schema:
@@ -108,7 +153,7 @@ interface CustomSMSGatewayResponse {
   provider_error_code?: string;
 
   // This field is only set by deployment-wise sms gateway.
-  // The error message of any error occured in the gateway. This will not be exposed to user and is only for debug purpose.
+  // The error message of any error occurred in the gateway. This will not be exposed to user and is only for debug purpose.
   go_error?: string;
 
   // This field is only set by deployment-wise sms gateway.
