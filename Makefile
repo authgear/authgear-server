@@ -37,9 +37,7 @@ go-mod-tidy:
 
 .PHONY: ensure-important-modules-up-to-date
 ensure-important-modules-up-to-date:
-	# If grep matches something, it exits 0, otherwise it exits 1.
-	# In our case, we want to invert the exit code.
-	$(MAKE) go-mod-outdated | grep "github.com/nyaruka/phonenumbers"; status_code=$$?; if [ $$status_code -eq 0 ]; then exit 1; else exit 0; fi;
+	./scripts/sh/ensure-important-modules-up-to-date.sh
 
 .PHONY: generate
 generate:
