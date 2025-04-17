@@ -24,7 +24,7 @@ type AuthflowV2ErrorHandler struct {
 	Renderer      handlerwebapp.Renderer
 }
 
-func (h *AuthflowV2ErrorHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
+func (h *AuthflowV2ErrorHandler) GetData(w http.ResponseWriter, r *http.Request) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
@@ -44,8 +44,8 @@ func (h *AuthflowV2ErrorHandler) GetInlinePreviewData(w http.ResponseWriter, r *
 
 func (h *AuthflowV2ErrorHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var handlers handlerwebapp.AuthflowControllerHandlers
-	handlers.Get(func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
-		data, err := h.GetData(w, r, s, screen)
+	handlers.Get(func(ctx context.Context, _ *webapp.Session, _ *webapp.AuthflowScreenWithFlowResponse) error {
+		data, err := h.GetData(w, r)
 		if err != nil {
 			return err
 		}
@@ -62,5 +62,5 @@ func (h *AuthflowV2ErrorHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 		h.Renderer.RenderHTML(w, r, TemplateWebFatalErrorHTML, data)
 		return nil
 	})
-	h.Controller.HandleWithoutFlow(r.Context(), w, r, &handlers)
+	h.Controller.HandleWithoutSession(r.Context(), w, r, &handlers)
 }

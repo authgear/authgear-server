@@ -57,5 +57,5 @@ func (h *AuthflowV2ResetPasswordSuccessHandler) ServeHTTP(w http.ResponseWriter,
 		return nil
 	})
 
-	h.Controller.HandleWithoutFlow(r.Context(), w, r, &handlers)
+	h.Controller.HandleWithoutScreen(r.Context(), w, r, &handlers)
 }
