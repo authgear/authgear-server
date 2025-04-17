@@ -43,10 +43,10 @@ require (
 	github.com/spf13/viper v1.20.0
 	github.com/trustelem/zxcvbn v1.0.1
 	github.com/ua-parser/uap-go v0.0.0-20250213224047-9c035f085b90
-	golang.org/x/crypto v0.36.0
-	golang.org/x/net v0.37.0
-	golang.org/x/oauth2 v0.28.0
-	golang.org/x/text v0.23.0
+	golang.org/x/crypto v0.37.0
+	golang.org/x/net v0.39.0
+	golang.org/x/oauth2 v0.29.0
+	golang.org/x/text v0.24.0
 	google.golang.org/api v0.227.0
 	gopkg.in/fsnotify.v1 v1.4.7
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
@@ -67,7 +67,7 @@ require (
 	github.com/stripe/stripe-go/v72 v72.122.0
 	github.com/tdewolff/parse/v2 v2.7.21
 	github.com/vimeo/go-magic v1.0.0
-	golang.org/x/term v0.30.0
+	golang.org/x/term v0.31.0
 )
 
 require (
@@ -78,7 +78,7 @@ require (
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/yudai/gojsondiff v1.0.0
 	go.uber.org/automaxprocs v1.6.0
-	golang.org/x/exp v0.0.0-20250305212735-054e65f0b394
+	golang.org/x/exp v0.0.0-20250408133849-7e4ce0ab07d0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -159,7 +159,7 @@ require (
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.59.0 // indirect
 	go.opentelemetry.io/otel/trace v1.35.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.5.0 // indirect
-	golang.org/x/telemetry v0.0.0-20240522233618-39ace7a40ae7 // indirect
+	golang.org/x/telemetry v0.0.0-20250416144257-dbf0ff6f62d5 // indirect
 	golang.org/x/vuln v1.1.4 // indirect
 	google.golang.org/grpc v1.71.0 // indirect
 )
@@ -243,12 +243,12 @@ require (
 	github.com/yudai/pp v2.0.1+incompatible // indirect
 	github.com/yuin/gopher-lua v1.1.1 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	golang.org/x/image v0.18.0 // indirect
+	golang.org/x/image v0.26.0 // indirect
 	golang.org/x/mod v0.24.0 // indirect
-	golang.org/x/sync v0.12.0 // indirect
-	golang.org/x/sys v0.31.0
+	golang.org/x/sync v0.13.0 // indirect
+	golang.org/x/sys v0.32.0
 	golang.org/x/time v0.11.0 // indirect
-	golang.org/x/tools v0.31.0
+	golang.org/x/tools v0.32.0
 	google.golang.org/genproto v0.0.0-20250303144028-a0af3efb3deb // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20250303144028-a0af3efb3deb // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250313205543-e70fdf4c4cb4 // indirect
