@@ -1024,6 +1024,7 @@
   "v2.error.verification-code-required": "Wprowadź kod weryfikacyjny, który właśnie otrzymałeś.",
   "v2.error.web-ui-invalid-session-return": "Możliwe, że nacisnąłeś przycisk powrotu lub występuje problem z ciasteczkami. Spróbuj: <ol><li>Wykonać akcję ponownie z aplikacji.</li><li>Spróbować ponownie po wyczyszczeniu ciasteczek.</li><li>Jeśli problem będzie się utrzymywał, skontaktuj się z administratorem.</li></ol>",
   "v2.error.web-ui-session-completed": "Chwileczkę, zostaniesz przekierowany do swojej aplikacji.",
+  "v2.error.webhook-delivery-failed": "Operacja jest niedozwolona, ponieważ dostarczenie webhooka zakończyło się nieznanym błędem.",
   "v2.error.webhook-delivery-timeout": "Operacja jest niedozwolona, ponieważ dostarczenie webhook zakończyło się przekroczeniem limitu czasu.",
   "v2.error.webhook-disallowed": "Operacja jest niedozwolona",
   "v2.error.webhook-invalid-response": "[Do Dewelopera] Twój program obsługi webhook NIE zwrócił prawidłowej odpowiedzi. Odwiedź <a class=\"link\" target=\"_blank\" href=\"https://docs.authgear.com/webhooks/webhooks\">https://docs.authgear.com/webhooks/webhooks</a>",

@@ -19,12 +19,12 @@ type mockWebHook struct {
 var _ hook.WebHook = &mockWebHook{}
 
 // PerformNoResponse implements hook.WebHook.
-func (m *mockWebHook) PerformNoResponse(client *http.Client, request *http.Request) error {
+func (m *mockWebHook) PerformNoResponse(ctx context.Context, client *http.Client, request *http.Request) error {
 	panic("not implemented")
 }
 
 // PerformWithResponse implements hook.WebHook.
-func (m *mockWebHook) PerformWithResponse(client *http.Client, request *http.Request) (resp *http.Response, err error) {
+func (m *mockWebHook) PerformWithResponse(ctx context.Context, client *http.Client, request *http.Request) (resp *http.Response, err error) {
 	panic("not implemented")
 }
 

@@ -1024,6 +1024,7 @@
   "v2.error.verification-code-required": "Veuillez saisir le code de vérification que vous venez de recevoir.",
   "v2.error.web-ui-invalid-session-return": "Vous avez peut-être appuyé sur le bouton Précédent, ou il y a un problème avec les cookies. Essayez : <ol><li>D''effectuer à nouveau l''action à partir de l''application.</li><li>Réessayez après avoir effacé les cookies.</li><li>Si le problème persiste, veuillez contacter l''administrateur.</li></ol>",
   "v2.error.web-ui-session-completed": "Attendez un instant, vous serez redirigé vers votre application.",
+  "v2.error.webhook-delivery-failed": "L''opération est interdite car la livraison du webhook a entraîné une erreur inconnue.",
   "v2.error.webhook-delivery-timeout": "L''opération n''est pas autorisée car la livraison du webhook a entraîné un délai d''attente.",
   "v2.error.webhook-disallowed": "L''opération n''est pas autorisée",
   "v2.error.webhook-invalid-response": "[Pour le développeur] Votre gestionnaire de webhook n''a PAS renvoyé une réponse valide. Veuillez visiter <a class=\"link\" target=\"_blank\" href=\"https://docs.authgear.com/webhooks/webhooks\">https://docs.authgear.com/webhooks/webhooks</a>",

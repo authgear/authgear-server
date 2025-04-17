@@ -150,7 +150,7 @@ func (s *Sender) testModeSendEmail(ctx context.Context, msgType translation.Mess
 		WithField("sender", opts.Sender).
 		WithField("subject", opts.Subject).
 		WithField("reply_to", opts.ReplyTo).
-		Warn("email is suppressed by test mode")
+		Info("email is suppressed by test mode")
 
 	desc := fmt.Sprintf("email (%v) to %v is suppressed by test mode.", msgType, opts.Recipient)
 	return s.DispatchEventImmediatelyWithTx(ctx, &nonblocking.EmailSuppressedEventPayload{
@@ -166,7 +166,7 @@ func (s *Sender) devModeSendEmail(ctx context.Context, msgType translation.Messa
 		WithField("sender", opts.Sender).
 		WithField("subject", opts.Subject).
 		WithField("reply_to", opts.ReplyTo).
-		Warn("email is suppressed by development mode")
+		Info("email is suppressed by development mode")
 
 	desc := fmt.Sprintf("email (%v) to %v is suppressed by development mode", msgType, opts.Recipient)
 	return s.DispatchEventImmediatelyWithTx(ctx, &nonblocking.EmailSuppressedEventPayload{
@@ -279,7 +279,7 @@ func (s *Sender) testModeSendSMS(ctx context.Context, msgType translation.Messag
 		WithField("template_name", opts.TemplateName).
 		WithField("language_tag", opts.LanguageTag).
 		WithField("template_variables", opts.TemplateVariables).
-		Warn("SMS is suppressed in test mode")
+		Info("SMS is suppressed in test mode")
 
 	desc := fmt.Sprintf("SMS (%v) to %v is suppressed by test mode.", msgType, opts.To)
 	return s.DispatchEventImmediatelyWithTx(ctx, &nonblocking.SMSSuppressedEventPayload{
@@ -297,7 +297,7 @@ func (s *Sender) devModeSendSMS(ctx context.Context, msgType translation.Message
 		WithField("template_name", opts.TemplateName).
 		WithField("language_tag", opts.LanguageTag).
 		WithField("template_variables", opts.TemplateVariables).
-		Warn("SMS is suppressed in development mode")
+		Info("SMS is suppressed in development mode")
 
 	desc := fmt.Sprintf("SMS (%v) to %v is suppressed by development mode.", msgType, opts.To)
 	return s.DispatchEventImmediatelyWithTx(ctx, &nonblocking.SMSSuppressedEventPayload{
@@ -393,7 +393,7 @@ func (s *Sender) testModeSendWhatsapp(ctx context.Context, msgType translation.M
 		WithField("recipient", opts.To).
 		WithField("otp", opts.OTP)
 
-	entry.Warn("Whatsapp is suppressed in test mode")
+	entry.Info("Whatsapp is suppressed in test mode")
 	desc := fmt.Sprintf("Whatsapp (%v) to %v is suppressed by test mode.", msgType, opts.To)
 	return s.DispatchEventImmediatelyWithTx(ctx, &nonblocking.WhatsappSuppressedEventPayload{
 		Description: desc,
@@ -406,7 +406,7 @@ func (s *Sender) devModeSendWhatsapp(ctx context.Context, msgType translation.Me
 		WithField("recipient", opts.To).
 		WithField("otp", opts.OTP)
 
-	entry.Warn("Whatsapp is suppressed in development mode")
+	entry.Info("Whatsapp is suppressed in development mode")
 	desc := fmt.Sprintf("Whatsapp (%v) to %v is suppressed by development mode.", msgType, opts.To)
 	return s.DispatchEventImmediatelyWithTx(ctx, &nonblocking.WhatsappSuppressedEventPayload{
 		Description: desc,
