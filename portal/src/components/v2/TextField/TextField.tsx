@@ -69,12 +69,17 @@ export function TextField({
         value={value}
         onChange={onChange}
       >
-        <RadixTextField.Slot>
-          {iconStart != null ? <Icon icon={iconStart} /> : null}
-        </RadixTextField.Slot>
-        <RadixTextField.Slot>
-          {iconEnd != null ? <Icon icon={iconEnd} /> : null}
-        </RadixTextField.Slot>
+        {iconStart != null ? (
+          <RadixTextField.Slot side="left">
+            <Icon icon={iconStart} />
+          </RadixTextField.Slot>
+        ) : null}
+
+        {iconEnd != null ? (
+          <RadixTextField.Slot side="right">
+            <Icon icon={iconEnd} />
+          </RadixTextField.Slot>
+        ) : null}
       </RadixTextField.Root>
     </FormField>
   );
