@@ -10,9 +10,9 @@ type TextFieldSize = "2" | "3";
 function Icon({ icon }: { icon: TextFieldIcon }): React.ReactElement {
   switch (icon) {
     case TextFieldIcon.MagnifyingGlass:
-      return <MagnifyingGlassIcon className={styles.textFieldIcon} />;
+      return <MagnifyingGlassIcon className={styles.textField__icon} />;
     case TextFieldIcon.InfoCircled:
-      return <InfoCircledIcon className={styles.textFieldIcon} />;
+      return <InfoCircledIcon className={styles.textField__icon} />;
   }
 }
 
@@ -30,6 +30,7 @@ export interface TextFieldProps {
   readOnly?: boolean;
   placeholder?: string;
   error?: React.ReactNode;
+  suffix?: React.ReactNode;
   iconStart?: TextFieldIcon;
   iconEnd?: TextFieldIcon;
 
@@ -46,6 +47,7 @@ export function TextField({
   readOnly,
   placeholder,
   error,
+  suffix,
   iconStart,
   iconEnd,
   value,
@@ -74,8 +76,14 @@ export function TextField({
             <Icon icon={iconStart} />
           </RadixTextField.Slot>
         ) : null}
-
-        {iconEnd != null ? (
+        {suffix != null ? (
+          <RadixTextField.Slot
+            className={styles.textField__suffix}
+            side="right"
+          >
+            {suffix}
+          </RadixTextField.Slot>
+        ) : iconEnd != null ? (
           <RadixTextField.Slot side="right">
             <Icon icon={iconEnd} />
           </RadixTextField.Slot>

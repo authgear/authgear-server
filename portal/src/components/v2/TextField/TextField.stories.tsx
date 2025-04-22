@@ -87,3 +87,16 @@ export const IconsStartEnd: Story = {
     iconEnd: TextFieldIcon.InfoCircled,
   },
 };
+
+export const Suffix: Story = {
+  args: {
+    suffix: ".authgearapps.com",
+  },
+  render: (args) => {
+    return (
+      <div style={{ width: "560px" }}>
+        <TextField {...args} />
+      </div>
+    );
+  },
+};
