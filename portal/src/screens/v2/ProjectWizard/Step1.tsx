@@ -10,9 +10,11 @@ import { ProjectWizardStepper } from "../../../components/project-wizard/Project
 import { ProjectWizardFormModel } from "./form";
 import { TextField } from "../../../components/v2/TextField/TextField";
 import { produce } from "immer";
+import { useSystemConfig } from "../../../context/SystemConfigContext";
 
 export function Step1(): React.ReactElement {
   const { form } = useFormContainerBaseContext<ProjectWizardFormModel>();
+  const systemConfig = useSystemConfig();
   const { renderToString } = useContext(MessageContext);
 
   return (
@@ -55,7 +57,7 @@ export function Step1(): React.ReactElement {
           placeholder={renderToString(
             "ProjectWizardScreen.step1.fields.projectID.placeholder"
           )}
-          suffix=".authgearapps.com" // FIXME(tung): This should be from server
+          suffix={systemConfig.appHostSuffix}
           value={form.state.projectID}
           onChange={useCallback(
             (e: React.ChangeEvent<HTMLInputElement>) => {
