@@ -1,0 +1,30 @@
+.projectWizardLayout__root {
+  @apply flex-1-0-auto;
+  @apply flex flex-col;
+}
+
+.projectWizardLayout__content {
+  @apply flex-1;
+  @apply flex;
+  @apply overflow-hidden;
+}
+
+.projectWizardLayout__left {
+  @apply flex-1;
+  @apply flex flex-col;
+  @apply overflow-y-auto;
+  background-color: var(--accent-contrast);
+}
+
+.projectWizardLayout__leftFormContainer {
+  @apply flex-1-0-auto;
+  @apply flex flex-col;
+  @apply py-16 px-24;
+}
+
+.projectWizardLayout__right {
+  @apply flex tablet:hidden;
+  @apply flex-1;
+  @apply flex-col;
+  background-color: var(--accent-a2);
+}
