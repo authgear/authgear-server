@@ -49,6 +49,9 @@ import PasswordSettings, {
 } from "./PasswordSettings";
 import { formatDuration, parseDuration } from "../../util/duration";
 import HorizontalDivider from "../../HorizontalDivider";
+import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";
+import { useSystemConfig } from "../../context/SystemConfigContext";
+import { RedMessageBar_RemindConfigureSMSProviderInNonSMSProviderScreen } from "../../RedMessageBar";
 
 interface AuthenticatorTypeFormState<T> {
   isChecked: boolean;
@@ -89,7 +92,14 @@ interface FeatureConfigFormState {
   featureConfig?: PortalAPIFeatureConfig;
 }
 
-interface FormState extends ConfigFormState, FeatureConfigFormState {}
+interface SecretConfigFormState {
+  smsProviderConfigured: boolean;
+}
+
+interface FormState
+  extends ConfigFormState,
+    FeatureConfigFormState,
+    SecretConfigFormState {}
 
 interface FormModel {
   isLoading: boolean;
@@ -318,6 +328,7 @@ interface MFAConfigurationContentProps {
 const MFAConfigurationContent: React.VFC<MFAConfigurationContentProps> =
   function MFAConfigurationContent(props) {
     const { isLoginIDEmailEnabled, isLoginIDPhoneEnabled } = props;
+    const { isAuthgearOnce } = useSystemConfig();
     const { state, setState } = props.form;
     const {
       mfaMode,
@@ -334,6 +345,8 @@ const MFAConfigurationContent: React.VFC<MFAConfigurationContentProps> =
       resetPasswordWithEmailBy,
       resetPasswordWithPhoneBy,
       authenticatorPasswordConfig,
+
+      smsProviderConfigured,
     } = state;
     const { renderToString } = useContext(Context);
     const {
@@ -360,6 +373,12 @@ const MFAConfigurationContent: React.VFC<MFAConfigurationContentProps> =
       mfaMode,
       renderMFAMode
     );
+
+    const isSMSRequiredForSomeEnabledFeatures = useMemo(() => {
+      return secondary
+        .filter((c) => c.type === "oob_otp_sms")
+        .some((c) => c.isChecked);
+    }, [secondary]);
 
     const featureDisabled = useMemo(() => {
       return (
@@ -483,6 +502,13 @@ const MFAConfigurationContent: React.VFC<MFAConfigurationContentProps> =
           <ScreenDescription className={styles.widget}>
             <FormattedMessage id="MFAConfigurationScreen.description" />
           </ScreenDescription>
+          {isAuthgearOnce &&
+          isSMSRequiredForSomeEnabledFeatures &&
+          !smsProviderConfigured ? (
+            <RedMessageBar_RemindConfigureSMSProviderInNonSMSProviderScreen
+              className={styles.widget}
+            />
+          ) : null}
           <Widget className={styles.widget}>
             <WidgetTitle>
               <FormattedMessage id="MFAConfigurationScreen.policy.title" />
@@ -607,6 +633,7 @@ const MFAConfigurationContent: React.VFC<MFAConfigurationContentProps> =
 
 const MFAConfigurationScreen: React.VFC = function MFAConfigurationScreen() {
   const { appID } = useParams() as { appID: string };
+  const secretConfig = useAppAndSecretConfigQuery(appID);
   const featureConfig = useAppFeatureConfigQuery(appID);
   const configForm = useAppConfigForm({
     appID,
@@ -633,15 +660,27 @@ const MFAConfigurationScreen: React.VFC = function MFAConfigurationScreen() {
   const state = useMemo<FormState>(() => {
     return {
       featureConfig: featureConfig.effectiveFeatureConfig,
+      smsProviderConfigured:
+        secretConfig.secretConfig?.smsProviderSecrets?.twilioCredentials !=
+          null ||
+        secretConfig.secretConfig?.smsProviderSecrets
+          ?.customSMSProviderCredentials != null,
       ...configForm.state,
     };
-  }, [featureConfig.effectiveFeatureConfig, configForm.state]);
+  }, [
+    featureConfig.effectiveFeatureConfig,
+    configForm.state,
+    secretConfig.secretConfig?.smsProviderSecrets?.twilioCredentials,
+    secretConfig.secretConfig?.smsProviderSecrets?.customSMSProviderCredentials,
+  ]);
 
   const form: FormModel = {
-    isLoading: configForm.isLoading || featureConfig.loading,
+    isLoading:
+      configForm.isLoading || featureConfig.loading || secretConfig.loading,
     isUpdating: configForm.isUpdating,
     isDirty: configForm.isDirty,
-    loadError: configForm.loadError ?? featureConfig.error,
+    loadError:
+      configForm.loadError ?? featureConfig.error ?? secretConfig.error,
     updateError: configForm.updateError,
     state,
     setState: (fn) => {
@@ -651,6 +690,7 @@ const MFAConfigurationScreen: React.VFC = function MFAConfigurationScreen() {
     reload: () => {
       configForm.reload();
       featureConfig.refetch().finally(() => {});
+      secretConfig.refetch().finally(() => {});
     },
     reset: () => {
       configForm.reset();
