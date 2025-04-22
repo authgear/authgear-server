@@ -133,8 +133,12 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
     false;
   const skippedTutorial = app?.tutorialStatus.data.skipped === true;
 
-  const { auditLogEnabled, analyticEnabled, showCustomSMSGateway } =
-    useSystemConfig();
+  const {
+    isAuthgearOnce,
+    auditLogEnabled,
+    analyticEnabled,
+    showCustomSMSGateway,
+  } = useSystemConfig();
 
   const app2appEnabled = useMemo(() => {
     if (effectiveFeatureConfig != null) {
@@ -342,14 +346,18 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
           },
           {
             type: "link" as const,
-            textKey: "ScreenNav.smtp",
+            textKey: isAuthgearOnce
+              ? "ScreenNav.smtp--authgearonce"
+              : "ScreenNav.smtp",
             url: `/project/${appID}/advanced/smtp`,
           },
           ...(showCustomSMSGateway
             ? [
                 {
                   type: "link" as const,
-                  textKey: "ScreenNav.sms-gateway",
+                  textKey: isAuthgearOnce
+                    ? "ScreenNav.sms-gateway--authgearonce"
+                    : "ScreenNav.sms-gateway",
                   url: `/project/${appID}/advanced/sms-gateway`,
                 },
               ]
@@ -384,6 +392,7 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
 
     return links;
   }, [
+    isAuthgearOnce,
     showCustomSMSGateway,
     mobileView,
     skippedTutorial,
