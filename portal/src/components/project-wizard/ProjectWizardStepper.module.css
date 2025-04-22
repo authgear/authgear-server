@@ -1,0 +1,5 @@
+.projectWizardStepper {
+  width: 100%;
+  max-width: 15.25rem;
+  @apply justify-self-start;
+}
