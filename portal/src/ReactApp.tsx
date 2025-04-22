@@ -15,15 +15,10 @@ import {
   init as sentryInit,
 } from "@sentry/react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import {
-  LocaleProvider,
-  FormattedMessage,
-  Context,
-} from "@oursky/react-messageformat";
+import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import { ApolloProvider } from "@apollo/client";
 import { Helmet, HelmetProvider } from "react-helmet-async";
 import AppRoot from "./AppRoot";
-import MESSAGES from "./locale-data/en.json";
 import styles from "./ReactApp.module.css";
 import { SystemConfigContext } from "./context/SystemConfigContext";
 import {
@@ -33,9 +28,7 @@ import {
   instantiateSystemConfig,
   mergeSystemConfig,
 } from "./system-config";
-import { loadTheme, ILinkProps } from "@fluentui/react";
-import ExternalLink from "./ExternalLink";
-import Link from "./Link";
+import { loadTheme } from "@fluentui/react";
 import Authenticated, {
   configureAuthgear,
   AuthenticatedContextProvider,
@@ -64,6 +57,7 @@ import {
 import { isNetworkError } from "./util/error";
 import { ToastProvider } from "./components/v2/Toast/Toast";
 import { ThemeProvider } from "./components/v2/ThemeProvider/ThemeProvider";
+import { AppLocaleProvider } from "./components/common/AppLocaleProvider";
 
 const AppsScreen = lazy(async () => import("./graphql/portal/AppsScreen"));
 const CreateProjectScreen = lazy(
@@ -255,17 +249,6 @@ const PortalRoot = function PortalRoot() {
   );
 };
 
-const DocLink: React.VFC<ILinkProps> = (props: ILinkProps) => {
-  return <ExternalLink {...props} />;
-};
-
-const defaultComponents = {
-  ExternalLink,
-  ReactRouterLink: Link,
-  DocLink,
-  br: () => <br />,
-};
-
 export interface LoadCurrentUserProps {
   children?: React.ReactNode;
 }
@@ -348,15 +331,11 @@ const ReactApp: React.VFC = function ReactApp() {
 
   if (error != null) {
     return (
-      <LocaleProvider
-        locale="en"
-        messageByID={MESSAGES}
-        defaultComponents={defaultComponents}
-      >
+      <AppLocaleProvider>
         <p>
           <FormattedMessage id="error.failed-to-initialize-app" />
         </p>
-      </LocaleProvider>
+      </AppLocaleProvider>
     );
   } else if (!systemConfig) {
     // Avoid rendering components from @fluentui/react, since themes are not loaded yet.
@@ -368,11 +347,7 @@ const ReactApp: React.VFC = function ReactApp() {
       <GTMProvider containerID={systemConfig.gtmContainerID}>
         <ErrorContextProvider>
           <LoadingContextProvider>
-            <LocaleProvider
-              locale="en"
-              messageByID={systemConfig.translations.en}
-              defaultComponents={defaultComponents}
-            >
+            <AppLocaleProvider systemConfig={systemConfig}>
               <HelmetProvider>
                 <PortalClientProvider value={apolloClient}>
                   <ApolloProvider client={apolloClient}>
@@ -394,7 +369,7 @@ const ReactApp: React.VFC = function ReactApp() {
                   </ApolloProvider>
                 </PortalClientProvider>
               </HelmetProvider>
-            </LocaleProvider>
+            </AppLocaleProvider>
           </LoadingContextProvider>
         </ErrorContextProvider>
       </GTMProvider>

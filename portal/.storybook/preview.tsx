@@ -1,6 +1,7 @@
 import React from "react";
 import type { Preview } from "@storybook/react";
 import { ThemeProvider } from "../src/components/v2/ThemeProvider/ThemeProvider";
+import { AppLocaleProvider } from "../src/components/common/AppLocaleProvider";
 import "../src/index.css";
 
 const preview: Preview = {
@@ -16,9 +17,11 @@ const preview: Preview = {
   decorators: [
     (Story) => {
       return (
-        <ThemeProvider>
-          <Story />
-        </ThemeProvider>
+        <AppLocaleProvider>
+          <ThemeProvider>
+            <Story />
+          </ThemeProvider>
+        </AppLocaleProvider>
       );
     },
   ],
