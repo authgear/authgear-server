@@ -100,3 +100,16 @@ export const Suffix: Story = {
     );
   },
 };
+
+export const Hint: Story = {
+  args: {
+    hint: "This is some hint under the field.",
+  },
+  render: (args) => {
+    return (
+      <div style={{ width: "560px" }}>
+        <TextField {...args} />
+      </div>
+    );
+  },
+};
