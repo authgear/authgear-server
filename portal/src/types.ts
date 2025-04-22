@@ -363,15 +363,39 @@ export const authenticatorEmailOTPModeList = ["code", "login_link"] as const;
 export type AuthenticatorEmailOTPMode =
   (typeof authenticatorEmailOTPModeList)[number];
 
-export const authenticatorPhoneOTPModeList = [
+export type AuthenticatorPhoneOTPMode = "sms" | "whatsapp_sms" | "whatsapp";
+
+export function AuthenticatorPhoneOTPMode_includesSMS(
+  mode: AuthenticatorPhoneOTPMode
+): boolean {
+  switch (mode) {
+    case "sms":
+      return true;
+    case "whatsapp_sms":
+      return true;
+    default:
+      return false;
+  }
+}
+
+export function AuthenticatorPhoneOTPMode_includesWhatsapp(
+  mode: AuthenticatorPhoneOTPMode
+): boolean {
+  switch (mode) {
+    case "whatsapp":
+      return true;
+    case "whatsapp_sms":
+      return true;
+    default:
+      return false;
+  }
+}
+
+export const AuthenticatorPhoneOTPMode_list: AuthenticatorPhoneOTPMode[] = [
   "sms",
   "whatsapp_sms",
   "whatsapp",
-] as const;
-export type AuthenticatorPhoneOTPMode =
-  (typeof authenticatorPhoneOTPModeList)[number];
-
-export const authenticatorPhoneOTPSMSModeList = ["sms", "whatsapp_sms"];
+];
 
 export interface AuthenticationRateLimitsConfig {
   oob_otp?: AuthenticationRateLimitsOOBOTPConfig;
