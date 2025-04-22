@@ -40,15 +40,16 @@ import {
   VerificationCriteria,
   VerificationClaimsConfig,
   PasswordPolicyFeatureConfig,
-  authenticatorPhoneOTPModeList,
-  authenticatorPhoneOTPSMSModeList,
   verificationCriteriaList,
   authenticatorEmailOTPModeList,
   AuthenticatorEmailOTPMode,
   AuthenticatorOOBEmailConfig,
+  AuthenticatorPhoneOTPMode_list,
   RateLimitConfig,
   UIImplementation,
   LibphonenumberValidationMethod,
+  AuthenticatorPhoneOTPMode_includesSMS,
+  AuthenticatorPhoneOTPMode_includesWhatsapp,
 } from "../../types";
 import {
   DEFAULT_TEMPLATE_LOCALE,
@@ -129,6 +130,7 @@ import {
   makeLocalValidationError,
 } from "../../error/validation";
 import { useUIImplementation } from "../../hook/useUIImplementation";
+import { useSystemConfig } from "../../context/SystemConfigContext";
 
 function splitByNewline(text: string): string[] {
   return text
@@ -2798,6 +2800,8 @@ function VerificationSettings(props: VerificationSettingsProps) {
     emailVerificationDailyLimit,
   } = props;
 
+  const { isAuthgearOnce } = useSystemConfig();
+
   const { renderToString } = useContext(Context);
 
   const onChangeOTPValidPeriodSeconds = useCallback(
@@ -2911,11 +2915,13 @@ function VerificationSettings(props: VerificationSettingsProps) {
 
   const phoneOTPModes = useMemo(
     () =>
-      authenticatorPhoneOTPModeList.map((mode) => ({
+      AuthenticatorPhoneOTPMode_list.map((mode) => ({
         key: mode,
         text: renderToString("AuthenticatorPhoneOTPMode." + mode),
+        disabled:
+          isAuthgearOnce && AuthenticatorPhoneOTPMode_includesWhatsapp(mode),
       })),
-    [renderToString]
+    [isAuthgearOnce, renderToString]
   );
   const onChangePhoneOTPMode = useCallback(
     (_, option) => {
@@ -3007,9 +3013,11 @@ function VerificationSettings(props: VerificationSettingsProps) {
     "phone_number"
   );
 
-  const showSMSLimitSetting = authenticatorPhoneOTPSMSModeList.includes(
-    authenticatorOOBSMSConfig.phone_otp_mode ?? ""
-  );
+  const showSMSLimitSetting =
+    authenticatorOOBSMSConfig.phone_otp_mode != null &&
+    AuthenticatorPhoneOTPMode_includesSMS(
+      authenticatorOOBSMSConfig.phone_otp_mode
+    );
 
   return (
     <Widget>
