@@ -81,6 +81,7 @@ import { ReauthDialog } from "../../components/common/ReauthDialog";
 import { TestSMSDialog } from "../../components/sms-provider/TestSMSDialog";
 import Tooltip from "../../Tooltip";
 import { useSystemConfig } from "../../context/SystemConfigContext";
+import { RedMessageBar_RemindConfigureSMSProviderInSMSProviderScreen } from "../../RedMessageBar";
 
 const SECRETS = [AppSecretKey.SmsProviderSecrets, AppSecretKey.WebhookSecret];
 
@@ -136,6 +137,9 @@ interface ConfigFormState {
 interface FormState extends ConfigFormState {
   resources: Resource[];
   diff: ResourcesDiffResult | null;
+
+  isSMSRequiredForSomeEnabledFeatures: boolean;
+  smsProviderConfigured: boolean;
 }
 
 function constructFormState(
@@ -694,6 +698,7 @@ function SMSProviderConfigurationScreen1({
     loading: loadingAppConfig,
     error: appConfigError,
     refetch: refetchAppConfig,
+    secretConfig,
   } = useAppAndSecretConfigQuery(appID, secretToken);
   const configForm = useAppSecretConfigForm({
     appID,
@@ -722,8 +727,39 @@ function SMSProviderConfigurationScreen1({
       ...configForm.state,
       resources: resources.state,
       diff: resources.diff,
+
+      isSMSRequiredForSomeEnabledFeatures:
+        // primary authentication uses SMS.
+        effectiveAppConfig?.authentication?.primary_authenticators?.includes(
+          "oob_otp_sms"
+        ) === true ||
+        // secondary authenticatoin uses SMS AND secondary authentication is enabled.
+        (effectiveAppConfig?.authentication?.secondary_authenticators?.includes(
+          "oob_otp_sms"
+        ) === true &&
+          (effectiveAppConfig.authentication.secondary_authentication_mode ===
+            "if_exists" ||
+            effectiveAppConfig.authentication.secondary_authentication_mode ===
+              "required")) ||
+        // phone verification enabled.
+        effectiveAppConfig?.verification?.claims?.phone_number?.enabled ===
+          true,
+
+      smsProviderConfigured:
+        secretConfig?.smsProviderSecrets?.twilioCredentials != null ||
+        secretConfig?.smsProviderSecrets?.customSMSProviderCredentials != null,
     };
-  }, [configForm.state, resources.state, resources.diff]);
+  }, [
+    configForm.state,
+    resources.state,
+    resources.diff,
+    effectiveAppConfig?.authentication?.primary_authenticators,
+    effectiveAppConfig?.authentication?.secondary_authenticators,
+    effectiveAppConfig?.authentication?.secondary_authentication_mode,
+    effectiveAppConfig?.verification?.claims?.phone_number?.enabled,
+    secretConfig?.smsProviderSecrets?.twilioCredentials,
+    secretConfig?.smsProviderSecrets?.customSMSProviderCredentials,
+  ]);
 
   const form: AppSecretConfigFormModel<FormState> = {
     isLoading: configForm.isLoading || resources.isLoading,
@@ -843,6 +879,7 @@ function SMSProviderConfigurationContent(props: {
   const { isAuthgearOnce } = useSystemConfig();
   const { appID } = useParams() as { appID: string };
   const { state, setState } = form;
+  const { isSMSRequiredForSomeEnabledFeatures, smsProviderConfigured } = state;
   const { renderToString } = useContext(MessageContext);
   const navigate = useNavigate();
 
@@ -930,7 +967,13 @@ function SMSProviderConfigurationContent(props: {
             messageID="FeatureConfig.custom-sms-provider.disabled"
           />
         ) : null}
-
+        {isAuthgearOnce &&
+        isSMSRequiredForSomeEnabledFeatures &&
+        !smsProviderConfigured ? (
+          <RedMessageBar_RemindConfigureSMSProviderInSMSProviderScreen
+            className={styles.widget}
+          />
+        ) : null}
         <Widget className={styles.widget} contentLayout="grid">
           <Toggle
             className={styles.columnFull}
