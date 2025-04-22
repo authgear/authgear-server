@@ -31,6 +31,7 @@ export interface TextFieldProps {
   placeholder?: string;
   error?: React.ReactNode;
   suffix?: React.ReactNode;
+  hint?: React.ReactNode;
   iconStart?: TextFieldIcon;
   iconEnd?: TextFieldIcon;
 
@@ -47,6 +48,7 @@ export function TextField({
   readOnly,
   placeholder,
   error,
+  hint,
   suffix,
   iconStart,
   iconEnd,
@@ -60,6 +62,7 @@ export function TextField({
       label={label}
       optional={optional}
       error={error}
+      hint={hint}
     >
       <RadixTextField.Root
         className={cn(error != null ? styles["textField--error"] : null)}
