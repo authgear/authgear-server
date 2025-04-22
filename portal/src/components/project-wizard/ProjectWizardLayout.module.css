@@ -23,8 +23,14 @@
 }
 
 .projectWizardLayout__right {
-  @apply flex tablet:hidden;
+  @apply hidden;
   @apply flex-1;
   @apply flex-col;
   background-color: var(--accent-a2);
+}
+
+@media (min-width: 960px) {
+  .projectWizardLayout__right {
+    @apply flex;
+  }
 }
