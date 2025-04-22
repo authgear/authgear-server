@@ -46,6 +46,7 @@ import {
 } from "../../components/common/ProviderCard";
 import { ErrorParseRule, ErrorParseRuleResult } from "../../error/parse";
 import { APIError, APISMTPTestFailedError } from "../../error/error";
+import { useSystemConfig } from "../../context/SystemConfigContext";
 
 interface LocationState {
   isEdit: boolean;
@@ -272,6 +273,8 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
     const { form, sendTestEmailHandle, isCustomSMTPDisabled } = props;
     const { state, setState } = form;
     const { sendTestEmail, loading } = sendTestEmailHandle;
+
+    const { isAuthgearOnce } = useSystemConfig();
 
     const [isDialogHidden, setIsDialogHidden] = useState(true);
     const [toAddress, setToAddress] = useState("");
@@ -531,7 +534,11 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
     return (
       <ScreenContent>
         <ScreenTitle className={styles.widget}>
-          <FormattedMessage id="SMTPConfigurationScreen.title" />
+          {isAuthgearOnce ? (
+            <FormattedMessage id="SMTPConfigurationScreen.title--authgearonce" />
+          ) : (
+            <FormattedMessage id="SMTPConfigurationScreen.title" />
+          )}
         </ScreenTitle>
         <ScreenDescription className={styles.widget}>
           <FormattedMessage id="SMTPConfigurationScreen.description" />

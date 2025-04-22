@@ -80,6 +80,7 @@ import { APIError, LocalError } from "../../error/error";
 import { ReauthDialog } from "../../components/common/ReauthDialog";
 import { TestSMSDialog } from "../../components/sms-provider/TestSMSDialog";
 import Tooltip from "../../Tooltip";
+import { useSystemConfig } from "../../context/SystemConfigContext";
 
 const SECRETS = [AppSecretKey.SmsProviderSecrets, AppSecretKey.WebhookSecret];
 
@@ -839,6 +840,7 @@ function SMSProviderConfigurationContent(props: {
     checkDenoHookHandle,
     isCustomSMSProviderDisabled,
   } = props;
+  const { isAuthgearOnce } = useSystemConfig();
   const { appID } = useParams() as { appID: string };
   const { state, setState } = form;
   const { renderToString } = useContext(MessageContext);
@@ -913,7 +915,11 @@ function SMSProviderConfigurationContent(props: {
     <>
       <ScreenContent>
         <ScreenTitle className={styles.widget}>
-          <FormattedMessage id="SMSProviderConfigurationScreen.title" />
+          {isAuthgearOnce ? (
+            <FormattedMessage id="SMSProviderConfigurationScreen.title--authgearonce" />
+          ) : (
+            <FormattedMessage id="SMSProviderConfigurationScreen.title" />
+          )}
         </ScreenTitle>
         <ScreenDescription className={styles.widget}>
           <FormattedMessage id="SMSProviderConfigurationScreen.description" />
@@ -932,7 +938,9 @@ function SMSProviderConfigurationContent(props: {
             checked={state.enabled}
             onChange={onChangeEnabled}
             label={renderToString(
-              "SMSProviderConfigurationScreen.enable.label"
+              isAuthgearOnce
+                ? "SMSProviderConfigurationScreen.enable.label--authgearonce"
+                : "SMSProviderConfigurationScreen.enable.label"
             )}
             inlineLabel={true}
           />

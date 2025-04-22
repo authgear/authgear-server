@@ -176,7 +176,9 @@
   "ScreenNav.audit-log": "Audit Log",
   "ScreenNav.admin-api": "Admin API",
   "ScreenNav.smtp": "Custom Email Provider",
+  "ScreenNav.smtp--authgearonce": "Email Provider",
   "ScreenNav.sms-gateway": "Custom SMS Gateway",
+  "ScreenNav.sms-gateway--authgearonce": "SMS Gateway",
   "ScreenNav.account-deletion": "Account Deletion",
   "ScreenNav.account-anonymization": "Account Anonymization",
   "ScreenNav.session": "Cookie Lifetime",
@@ -1556,6 +1558,7 @@
   "SubscriptionScreen.reactivate.error": "Failed to reactivate plan. Please send an email to {ExternalLink, react, children{hello@authgear.com} href{mailto:hello@authgear.com}} from the email address associated with your Authgear account and the plan you would like to reactivate.",
 
   "SMTPConfigurationScreen.title": "Custom Email Provider",
+  "SMTPConfigurationScreen.title--authgearonce": "Email Provider",
   "SMTPConfigurationScreen.description": "Optimize for email deliverability by using your own SMTP server to send Authgear Emails (such as password reset code, verification) in your own domains",
   "SMTPConfigurationScreen.enable.label": "Use my own provider",
   "SMTPConfigurationScreen.host.label": "Host",
@@ -1577,8 +1580,10 @@
   "SMTPConfigurationScreen.custom.description": "Set your SMTP provider manually. Check {DocLink, react, href{https://docs.authgear.com/customize/custom-email-provider} children{our instructions}} if you need help.",
 
   "SMSProviderConfigurationScreen.title": "Custom SMS Gateway",
+  "SMSProviderConfigurationScreen.title--authgearonce": "SMS Gateway",
   "SMSProviderConfigurationScreen.description": "Use your own SMS gateway for sending messages.",
   "SMSProviderConfigurationScreen.enable.label": "Enable Custom SMS Gateway",
+  "SMSProviderConfigurationScreen.enable.label--authgearonce": "Enable SMS Gateway",
   "SMSProviderConfigurationScreen.provider.title": "SMS Gateway Provider",
   "SMSProviderConfigurationScreen.provider.twilio": "Twilio",
   "SMSProviderConfigurationScreen.provider.twilio.description": "Learn more about {ExternalLink, react, href{{href}} children{Twilio integration}}.",
