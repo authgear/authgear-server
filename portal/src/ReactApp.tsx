@@ -73,7 +73,7 @@ const OnboardingSurveyScreen = lazy(
   async () => import("./screens/v2/OnboardingSurvey/OnboardingSurveyScreen")
 );
 const ProjectWizardScreen = lazy(
-  async () => import("./graphql/portal/ProjectWizardScreen")
+  async () => import("./screens/v2/ProjectWizard/ProjectWizardScreen")
 );
 const OnboardingRedirect = lazy(async () => import("./OnboardingRedirect"));
 const OAuthRedirect = lazy(async () => import("./OAuthRedirect"));
@@ -188,8 +188,6 @@ const ReactAppRoutes: React.VFC = function ReactAppRoutes() {
             <Route path="wizard">
               <Route
                 index={true}
-                // @ts-expect-error
-                path="*"
                 element={
                   <Authenticated>
                     <Suspense fallback={<ShowLoading />}>
