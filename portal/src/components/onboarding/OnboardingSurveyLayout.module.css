@@ -7,6 +7,7 @@
   @apply flex-1-0-auto;
   @apply bg-no-repeat bg-cover;
   @apply flex flex-col;
+  background-color: var(--accent-9);
 }
 
 .onboardingSurveyLayout__content {
