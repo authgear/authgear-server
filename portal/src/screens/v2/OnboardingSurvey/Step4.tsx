@@ -13,7 +13,7 @@ import {
   RadioCardOption,
 } from "../../../components/v2/RadioCards/RadioCards";
 import { produce } from "immer";
-import { BackButton } from "../../../components/onboarding/BackButton";
+import { OnboardingSurveyBackButton } from "../../../components/onboarding/OnboardingSurveyBackButton";
 import { TextArea } from "../../../components/v2/TextArea/TextArea";
 import { WhiteButton } from "../../../components/v2/WhiteButton/WhiteButton";
 
@@ -114,7 +114,7 @@ export function Step4(): React.ReactElement {
         </div>
       </div>
       <div className="flex items-center justify-center gap-8">
-        <BackButton onClick={form.toPreviousStep} />
+        <OnboardingSurveyBackButton onClick={form.toPreviousStep} />
         <WhiteButton
           type="submit"
           size="4"

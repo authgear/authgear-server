@@ -2,6 +2,7 @@ import React from "react";
 import cn from "classnames";
 import { Button } from "@radix-ui/themes";
 import { ArrowLeftIcon } from "@radix-ui/react-icons";
+import styles from "./TextButton.module.css";
 
 export type TextButtonVariant = "default" | "secondary";
 
@@ -81,7 +82,7 @@ export function TextButton({
   return (
     <Button
       type={type}
-      className={cn(darkMode ? "dark" : null)}
+      className={cn(styles.textButton, darkMode ? "dark" : null)}
       size={size}
       variant="ghost"
       highContrast={variantToHighContrast(variant)}
