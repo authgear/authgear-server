@@ -1086,7 +1086,6 @@
   "v2.page.enter-totp.reauth.description": "Voor je veiligheid moeten we verifiëren dat het jij bent. Voer de 6-cijferige code in die je ziet op het authenticator-apparaat/app.",
   "v2.page.fatal-error.default.title": "Onverwachte problemen",
   "v2.page.fatal-error.identify-not-found.title": "{LoginIDType,select,email{E-mail} phone{Telefoonnummer} username{Gebruikersnaam} other{Identiteit}} Niet Gevonden",
-  "v2.page.fatal-error.no-available-sms-client.title": "Kan geen SMS verzenden",
   "v2.page.fatal-error.redirecting.title": "Doorsturen",
   "v2.page.fatal-error.token-invalid.title": "Pagina verlopen of ongeldig",
   "v2.page.forgot-password-link-sent.default.description": "Een link om uw wachtwoord opnieuw in te stellen is verzonden naar {MaskedLoginID}",

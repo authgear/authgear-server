@@ -1086,7 +1086,6 @@
   "v2.page.enter-totp.reauth.description": "Para sa iyong seguridad, kailangan naming i-verify na ikaw ito. Ilagay ang 6-digit na code na nakikita mo sa authenticator device/app.",
   "v2.page.fatal-error.default.title": "Hindi inaasahang Mga Isyu",
   "v2.page.fatal-error.identify-not-found.title": "{LoginIDType,select,email{Email} phone{Telepono} username{Username} other{Pagkakakilanlan}} Hindi Natagpuan",
-  "v2.page.fatal-error.no-available-sms-client.title": "Nabigo ang pagpapadala ng SMS",
   "v2.page.fatal-error.redirecting.title": "Nililipat",
   "v2.page.fatal-error.token-invalid.title": "Nag-expire o di-wastong pahina",
   "v2.page.forgot-password-link-sent.default.description": "Ang isang link upang i-reset ang iyong password ay ipinadala na sa {MaskedLoginID}",

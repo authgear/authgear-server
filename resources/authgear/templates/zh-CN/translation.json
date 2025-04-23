@@ -1086,7 +1086,6 @@
   "v2.page.enter-totp.reauth.description": "为了您的安全,我们需要验证是您本人。输入您在认证设备/应用程序中看到的6位数代码。",
   "v2.page.fatal-error.default.title": "意外问题",
   "v2.page.fatal-error.identify-not-found.title": "{LoginIDType,select,email{电子邮件} phone{电话} username{用户名} other{身份}}未找到",
-  "v2.page.fatal-error.no-available-sms-client.title": "无法发送短信",
   "v2.page.fatal-error.redirecting.title": "重定向中",
   "v2.page.fatal-error.token-invalid.title": "页面已过期或无效",
   "v2.page.forgot-password-link-sent.default.description": "重置密码的链接已发送到 {MaskedLoginID}",

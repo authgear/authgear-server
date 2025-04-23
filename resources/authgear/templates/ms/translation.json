@@ -1086,7 +1086,6 @@
   "v2.page.enter-totp.reauth.description": "Untuk keselamatan anda, kami perlu mengesahkan ia anda. Masukkan kod 6 digit yang anda lihat dalam peranti/aplikasi pengaut.",
   "v2.page.fatal-error.default.title": "Isu Tidak Dijangka",
   "v2.page.fatal-error.identify-not-found.title": "{LoginIDType,select,email{Email} phone{Telefon} username{Nama Pengguna} other{Identiti}} Tidak Dijumpai",
-  "v2.page.fatal-error.no-available-sms-client.title": "Gagal menghantar SMS",
   "v2.page.fatal-error.redirecting.title": "Mengalihkan",
   "v2.page.fatal-error.token-invalid.title": "Halaman luput atau tidak sah",
   "v2.page.forgot-password-link-sent.default.description": "Pautan untuk menetapkan semula kata laluan anda telah dihantar ke {MaskedLoginID}",

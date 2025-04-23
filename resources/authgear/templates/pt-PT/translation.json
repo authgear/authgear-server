@@ -1086,7 +1086,6 @@
   "v2.page.enter-totp.reauth.description": "Por sua segurança, precisamos verificar que é você. Digite o código de 6 dígitos que você vê no dispositivo/aplicativo autenticador.",
   "v2.page.fatal-error.default.title": "Problemas Inesperados",
   "v2.page.fatal-error.identify-not-found.title": "{LoginIDType,select,email{Email} phone{Telefone} username{Nome de Utilizador} other{Identidade}} Não Encontrado",
-  "v2.page.fatal-error.no-available-sms-client.title": "Falha ao enviar SMS",
   "v2.page.fatal-error.redirecting.title": "Redirecionando",
   "v2.page.fatal-error.token-invalid.title": "Página expirada ou inválida",
   "v2.page.forgot-password-link-sent.default.description": "Um link para redefinir a tua palavra-passe foi enviado para {MaskedLoginID}",
