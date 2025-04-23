@@ -1885,7 +1885,11 @@
   "ProjectWizardScreen.step1.fields.projectID.label": "Endpoint Domain",
   "ProjectWizardScreen.step1.fields.projectID.hint": "This is your Authgear Endpoint for your applications. Once chosen, the project cannot be renamed.",
   "ProjectWizardScreen.step1.fields.projectID.placeholder": "acme-corporation",
+  "ProjectWizardScreen.step2.header": "Setting up {projectName}",
+  "ProjectWizardScreen.step2.fields.loginMethods.label": "Choose how your end-users sign in to your applications",
+  "ProjectWizardScreen.step2.fields.isPasswordEnabled.label": "Use OTP or password for email and phone logins",
   "ProjectWizardScreen.actions.next": "Next",
+  "ProjectWizardScreen.actions.back": "Back",
 
   "GetStartedScreen.title": "Getting Started 🎉",
   "GetStartedScreen.description": "Here are a few steps to get you set up for success.",

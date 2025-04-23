@@ -10,7 +10,7 @@ import {
   RadioCards,
 } from "../../../components/v2/RadioCards/RadioCards";
 import { produce } from "immer";
-import { BackButton } from "../../../components/onboarding/BackButton";
+import { OnboardingSurveyBackButton } from "../../../components/onboarding/OnboardingSurveyBackButton";
 import { TextField } from "../../../components/v2/TextField/TextField";
 import { FormField } from "../../../components/v2/FormField/FormField";
 import { OnboardingSurveyPhoneInput } from "../../../components/onboarding/OnboardingSurveyPhoneInput";
@@ -41,7 +41,7 @@ export function Step3(): React.ReactElement {
         />
       )}
       <div className="flex items-center justify-center gap-8">
-        <BackButton onClick={form.toPreviousStep} />
+        <OnboardingSurveyBackButton onClick={form.toPreviousStep} />
         <PrimaryButton
           type="submit"
           size="4"
