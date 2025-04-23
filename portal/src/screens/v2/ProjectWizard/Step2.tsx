@@ -1,12 +1,19 @@
-import React from "react";
+import React, { useCallback, useMemo } from "react";
 import { Text } from "../../../components/onboarding/Text";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import { PrimaryButton } from "../../../components/v2/PrimaryButton/PrimaryButton";
 import { useFormContainerBaseContext } from "../../../FormContainerBase";
 import { ProjectWizardStepper } from "../../../components/project-wizard/ProjectWizardStepper";
-import { ProjectWizardFormModel } from "./form";
+import { ProjectWizardFormModel, LoginMethod } from "./form";
 import { FormField } from "../../../components/v2/FormField/FormField";
 import { ProjectWizardBackButton } from "../../../components/project-wizard/ProjectWizardBackButton";
+import {
+  ToggleGroup,
+  ToggleGroupOption,
+} from "../../../components/v2/ToggleGroup/ToggleGroup";
+import loginEmailIcon from "../../../images/login_email.svg";
+import loginPhoneIcon from "../../../images/login_phone.svg";
+import { produce } from "immer";
 
 export function Step2(): React.ReactElement {
   const { form } = useFormContainerBaseContext<ProjectWizardFormModel>();
@@ -27,7 +34,40 @@ export function Step2(): React.ReactElement {
             <FormattedMessage id="ProjectWizardScreen.step2.fields.loginMethods.label" />
           }
         >
-          {/* TODO */}
+          <div className="flex flex-col max-h-[316px] max-w-100">
+            <ToggleGroup
+              items={useMemo<ToggleGroupOption<LoginMethod>[]>(() => {
+                return [
+                  {
+                    value: LoginMethod.Email,
+                    text: (
+                      <FormattedMessage id="ProjectWizardScreen.loginMethods.email" />
+                    ),
+                    icon: <img src={loginEmailIcon} width={20} height={20} />,
+                  },
+                  {
+                    value: LoginMethod.Phone,
+                    text: (
+                      <FormattedMessage id="ProjectWizardScreen.loginMethods.phone" />
+                    ),
+                    icon: <img src={loginPhoneIcon} width={20} height={20} />,
+                  },
+                ];
+              }, [])}
+              values={form.state.loginMethods}
+              onValuesChange={useCallback(
+                (newValues: LoginMethod[]) => {
+                  form.setState((prev) =>
+                    produce(prev, (draft) => {
+                      draft.loginMethods = newValues;
+                      return draft;
+                    })
+                  );
+                },
+                [form]
+              )}
+            />
+          </div>
         </FormField>
         <FormField
           size="3"
