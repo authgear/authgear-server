@@ -13,6 +13,11 @@ export enum LoginMethod {
   Phone = "Phone",
 }
 
+export enum AuthMethod {
+  Passwordless = "Passwordless",
+  Password = "Password",
+}
+
 export interface FormState {
   step: ProjectWizardStep;
 
@@ -22,7 +27,7 @@ export interface FormState {
 
   // step 2
   loginMethods: LoginMethod[];
-  isPasswordEnabled: boolean;
+  authMethod: AuthMethod;
 
   // step 3 (TODO)
 }
@@ -41,7 +46,7 @@ const initialState: FormState = {
   projectID: "",
 
   loginMethods: [LoginMethod.Email, LoginMethod.Phone],
-  isPasswordEnabled: false,
+  authMethod: AuthMethod.Passwordless,
 };
 
 export function useProjectWizardForm(): ProjectWizardFormModel {

@@ -145,6 +145,7 @@ function OptionItem<T extends string>({
 }) {
   return (
     <RadixRadioCards.Item
+      className={styles.iconRadioCards__item}
       key={option.value}
       value={option.value}
       disabled={option.disabled}
