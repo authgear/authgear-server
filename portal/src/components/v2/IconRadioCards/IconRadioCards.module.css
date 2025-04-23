@@ -1,5 +1,9 @@
 .iconRadioCards__root {
-  justify-content: center;
+  @apply justify-start;
+}
+
+.iconRadioCards__item {
+  @apply justify-start;
 }
 
 .iconRadioCards__itemContainer {
