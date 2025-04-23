@@ -33,6 +33,11 @@ export function Step2(): React.ReactElement {
           label={
             <FormattedMessage id="ProjectWizardScreen.step2.fields.loginMethods.label" />
           }
+          error={
+            form.state.loginMethods.length === 0 ? (
+              <FormattedMessage id="ProjectWizardScreen.errors.loginMethodRequired" />
+            ) : null
+          }
         >
           <div className="flex flex-col max-h-[316px] max-w-100">
             <ToggleGroup

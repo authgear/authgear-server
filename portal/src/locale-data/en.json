@@ -1892,6 +1892,7 @@
   "ProjectWizardScreen.actions.back": "Back",
   "ProjectWizardScreen.loginMethods.email": "Email",
   "ProjectWizardScreen.loginMethods.phone": "Phone",
+  "ProjectWizardScreen.errors.loginMethodRequired": "Please select at least one login method.",
 
   "GetStartedScreen.title": "Getting Started 🎉",
   "GetStartedScreen.description": "Here are a few steps to get you set up for success.",
