@@ -1,14 +1,14 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { Switch } from "./Switch";
+import { Toggle } from "./Toggle";
 
 // More on how to set up stories at: https://storybook.js.org/docs/writing-stories#default-export
 const meta = {
-  component: Switch,
+  component: Toggle,
   tags: ["autodocs"],
   argTypes: {
     onCheckedChange: { table: { disable: true } },
   },
-} satisfies Meta<typeof Switch>;
+} satisfies Meta<typeof Toggle>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
