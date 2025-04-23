@@ -19,7 +19,7 @@
 .projectWizardLayout__leftFormContainer {
   @apply flex-1-0-auto;
   @apply flex flex-col;
-  @apply py-16 px-24;
+  @apply py-8 px-4;
 }
 
 .projectWizardLayout__right {
@@ -32,5 +32,14 @@
 @media (min-width: 960px) {
   .projectWizardLayout__right {
     @apply flex;
+  }
+  .projectWizardLayout__leftFormContainer {
+    @apply py-16 px-6;
+  }
+}
+
+@media (min-width: theme("screens.desktop.min")) {
+  .projectWizardLayout__leftFormContainer {
+    @apply py-16 px-24;
   }
 }
