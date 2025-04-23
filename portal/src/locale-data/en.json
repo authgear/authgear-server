@@ -1890,6 +1890,8 @@
   "ProjectWizardScreen.step2.fields.isPasswordEnabled.label": "Use OTP or password for email and phone logins",
   "ProjectWizardScreen.actions.next": "Next",
   "ProjectWizardScreen.actions.back": "Back",
+  "ProjectWizardScreen.loginMethods.email": "Email",
+  "ProjectWizardScreen.loginMethods.phone": "Phone",
 
   "GetStartedScreen.title": "Getting Started 🎉",
   "GetStartedScreen.description": "Here are a few steps to get you set up for success.",
