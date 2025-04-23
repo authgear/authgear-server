@@ -28,8 +28,7 @@
 }
 
 .formField__inputContainer {
-  @apply grid grid-cols-1 content-start text-left;
-  grid-template-rows: auto minmax(auto, 1fr);
+  @apply grid grid-cols-1 content-start text-left grid-flow-row;
   gap: var(--space-1);
 }
 

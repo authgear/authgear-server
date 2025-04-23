@@ -4,7 +4,7 @@ import { FormattedMessage } from "@oursky/react-messageformat";
 import { PrimaryButton } from "../../../components/v2/PrimaryButton/PrimaryButton";
 import { useFormContainerBaseContext } from "../../../FormContainerBase";
 import { ProjectWizardStepper } from "../../../components/project-wizard/ProjectWizardStepper";
-import { ProjectWizardFormModel, LoginMethod } from "./form";
+import { ProjectWizardFormModel, LoginMethod, AuthMethod } from "./form";
 import { FormField } from "../../../components/v2/FormField/FormField";
 import { ProjectWizardBackButton } from "../../../components/project-wizard/ProjectWizardBackButton";
 import {
@@ -13,7 +13,13 @@ import {
 } from "../../../components/v2/ToggleGroup/ToggleGroup";
 import loginEmailIcon from "../../../images/login_email.svg";
 import loginPhoneIcon from "../../../images/login_phone.svg";
+import passwordlessIcon from "../../../images/passwordless_icon.svg";
+import passwordIcon from "../../../images/password_icon.svg";
 import { produce } from "immer";
+import {
+  IconRadioCards,
+  IconRadioCardOption,
+} from "../../../components/v2/IconRadioCards/IconRadioCards";
 
 export function Step2(): React.ReactElement {
   const { form } = useFormContainerBaseContext<ProjectWizardFormModel>();
@@ -77,10 +83,49 @@ export function Step2(): React.ReactElement {
         <FormField
           size="3"
           label={
-            <FormattedMessage id="ProjectWizardScreen.step2.fields.isPasswordEnabled.label" />
+            <FormattedMessage id="ProjectWizardScreen.step2.fields.authMethod.label" />
           }
         >
-          {/* TODO */}
+          <IconRadioCards
+            size="2"
+            itemMinWidth={286}
+            options={useMemo<IconRadioCardOption<AuthMethod>[]>(() => {
+              return [
+                {
+                  value: AuthMethod.Passwordless,
+                  icon: <img src={passwordlessIcon} width={40} height={40} />,
+                  title: (
+                    <FormattedMessage id="ProjectWizardScreen.authMethod.passwordless.title" />
+                  ),
+                  subtitle: (
+                    <FormattedMessage id="ProjectWizardScreen.authMethod.passwordless.subtitle" />
+                  ),
+                },
+                {
+                  value: AuthMethod.Password,
+                  icon: <img src={passwordIcon} width={40} height={40} />,
+                  title: (
+                    <FormattedMessage id="ProjectWizardScreen.authMethod.password.title" />
+                  ),
+                  subtitle: (
+                    <FormattedMessage id="ProjectWizardScreen.authMethod.password.subtitle" />
+                  ),
+                },
+              ];
+            }, [])}
+            value={form.state.authMethod}
+            onValueChange={useCallback(
+              (newValue: AuthMethod) => {
+                form.setState((prev) =>
+                  produce(prev, (draft) => {
+                    draft.authMethod = newValue;
+                    return draft;
+                  })
+                );
+              },
+              [form]
+            )}
+          />
         </FormField>
       </div>
       <div className="grid grid-flow-col grid-rows-1 gap-8 items-center justify-start">
