@@ -971,7 +971,7 @@
   "v2.error.new-password-typo": "再輸入的新密碼與新密碼不同，請確保兩者相同。",
   "v2.error.no-authenticator": "你的帳戶沒有可用的驗證方法。請聯絡客戶服務。",
   "v2.error.no-available-authenticator": "登入需要雙重認證 (2FA)，但您尚未設定。請聯絡系統管理員尋求協助。",
-  "v2.error.no-available-sms-client": "系統可能有錯誤配置。請聯繫系統管理員。",
+  "v2.error.no-available-sms-client": "請在管理員入口網站中配置簡訊提供商以啟用基於電話的身份驗證。",
   "v2.error.no-available-whatsapp-client": "缺少 WhatsApp API 配置,請聯繫系統管理員。",
   "v2.error.no-passkey": "您的裝置上未找到通行密鑰。請選擇其他身份驗證方法。",
   "v2.error.no-public-signup": "<p>註冊已停用，</p><p>請聯絡系統管理員。</p>",

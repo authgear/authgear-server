@@ -971,7 +971,7 @@
   "v2.error.new-password-typo": "Ang re-entered na bagong password ay hindi tumutugma sa bagong password. Mangyaring tiyaking magkatugma ang dalawa.",
   "v2.error.no-authenticator": "Ang iyong account ay walang anumang magagamit na authentication method upang makapagpatuloy. Mangyaring makipag-ugnayan sa suporta.",
   "v2.error.no-available-authenticator": "Kinakailangan ang Two-factor authentication (2FA) upang maka-log in, ngunit hindi mo pa ito nai-set up. Mangyaring makipag-ugnayan sa system admin para sa tulong.",
-  "v2.error.no-available-sms-client": "Maaaring may mali sa pagka-configure ng sistema. Mangyaring makipag-ugnayan sa systems admin.",
+  "v2.error.no-available-sms-client": "Mangyaring i-configure ang isang SMS provider sa admin portal upang paganahin ang authentication na nakabatay sa telepono.",
   "v2.error.no-available-whatsapp-client": "Nawawala ang kumpigurasyon ng WhatsApp API, mangyaring makipag-ugnayan sa system admin.",
   "v2.error.no-passkey": "Hindi mahanap ang Passkey sa iyong device. Mangyaring pumili ng ibang paraan ng pagpapatunay.",
   "v2.error.no-public-signup": "<p>Ang pag-sign up ay hindi pinapayagan.</p><p>Mangyaring makipag-ugnayan sa system admin.</p>",
