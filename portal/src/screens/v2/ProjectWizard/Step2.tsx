@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo } from "react";
+import cn from "classnames";
 import { Text } from "../../../components/onboarding/Text";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import { PrimaryButton } from "../../../components/v2/PrimaryButton/PrimaryButton";
@@ -23,6 +24,13 @@ import {
 
 export function Step2(): React.ReactElement {
   const { form } = useFormContainerBaseContext<ProjectWizardFormModel>();
+
+  const showAuthMethodField = useMemo(() => {
+    return (
+      form.state.loginMethods.includes(LoginMethod.Email) ||
+      form.state.loginMethods.includes(LoginMethod.Phone)
+    );
+  }, [form.state.loginMethods]);
 
   return (
     <div className="grid grid-cols-1 gap-12 text-left self-stretch">
@@ -80,53 +88,55 @@ export function Step2(): React.ReactElement {
             />
           </div>
         </FormField>
-        <FormField
-          size="3"
-          label={
-            <FormattedMessage id="ProjectWizardScreen.step2.fields.authMethod.label" />
-          }
-        >
-          <IconRadioCards
-            size="2"
-            itemMinWidth={286}
-            options={useMemo<IconRadioCardOption<AuthMethod>[]>(() => {
-              return [
-                {
-                  value: AuthMethod.Passwordless,
-                  icon: <img src={passwordlessIcon} width={40} height={40} />,
-                  title: (
-                    <FormattedMessage id="ProjectWizardScreen.authMethod.passwordless.title" />
-                  ),
-                  subtitle: (
-                    <FormattedMessage id="ProjectWizardScreen.authMethod.passwordless.subtitle" />
-                  ),
+        <div className={cn(showAuthMethodField ? null : "hidden")}>
+          <FormField
+            size="3"
+            label={
+              <FormattedMessage id="ProjectWizardScreen.step2.fields.authMethod.label" />
+            }
+          >
+            <IconRadioCards
+              size="2"
+              itemMinWidth={286}
+              options={useMemo<IconRadioCardOption<AuthMethod>[]>(() => {
+                return [
+                  {
+                    value: AuthMethod.Passwordless,
+                    icon: <img src={passwordlessIcon} width={40} height={40} />,
+                    title: (
+                      <FormattedMessage id="ProjectWizardScreen.authMethod.passwordless.title" />
+                    ),
+                    subtitle: (
+                      <FormattedMessage id="ProjectWizardScreen.authMethod.passwordless.subtitle" />
+                    ),
+                  },
+                  {
+                    value: AuthMethod.Password,
+                    icon: <img src={passwordIcon} width={40} height={40} />,
+                    title: (
+                      <FormattedMessage id="ProjectWizardScreen.authMethod.password.title" />
+                    ),
+                    subtitle: (
+                      <FormattedMessage id="ProjectWizardScreen.authMethod.password.subtitle" />
+                    ),
+                  },
+                ];
+              }, [])}
+              value={form.state.authMethod}
+              onValueChange={useCallback(
+                (newValue: AuthMethod) => {
+                  form.setState((prev) =>
+                    produce(prev, (draft) => {
+                      draft.authMethod = newValue;
+                      return draft;
+                    })
+                  );
                 },
-                {
-                  value: AuthMethod.Password,
-                  icon: <img src={passwordIcon} width={40} height={40} />,
-                  title: (
-                    <FormattedMessage id="ProjectWizardScreen.authMethod.password.title" />
-                  ),
-                  subtitle: (
-                    <FormattedMessage id="ProjectWizardScreen.authMethod.password.subtitle" />
-                  ),
-                },
-              ];
-            }, [])}
-            value={form.state.authMethod}
-            onValueChange={useCallback(
-              (newValue: AuthMethod) => {
-                form.setState((prev) =>
-                  produce(prev, (draft) => {
-                    draft.authMethod = newValue;
-                    return draft;
-                  })
-                );
-              },
-              [form]
-            )}
-          />
-        </FormField>
+                [form]
+              )}
+            />
+          </FormField>
+        </div>
       </div>
       <div className="grid grid-flow-col grid-rows-1 gap-8 items-center justify-start">
         <ProjectWizardBackButton onClick={form.toPreviousStep} />
