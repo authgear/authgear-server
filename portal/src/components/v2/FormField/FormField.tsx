@@ -11,6 +11,7 @@ export interface FormFieldProps {
   label?: React.ReactNode;
   optional?: boolean;
   error?: React.ReactNode;
+  hint?: React.ReactNode;
   children?: React.ReactNode;
 }
 
@@ -20,6 +21,7 @@ export function FormField({
   label,
   optional,
   error,
+  hint,
   children,
 }: FormFieldProps): React.ReactElement {
   return (
@@ -35,10 +37,13 @@ export function FormField({
           ) : null}
         </p>
       ) : null}
-      {children}
-      {error != null ? (
-        <p className={styles.formField__errorMessage}>{error}</p>
-      ) : null}
+      <div className={styles.formField__inputContainer}>
+        {children}
+        {error != null ? (
+          <p className={styles.formField__errorMessage}>{error}</p>
+        ) : null}
+        {hint != null ? <p className={styles.formField__hint}>{hint}</p> : null}
+      </div>
     </label>
   );
 }

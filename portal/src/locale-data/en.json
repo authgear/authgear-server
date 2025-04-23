@@ -1879,6 +1879,14 @@
   "OnboardingSurveyScreen.actions.finish": "Finish",
   "OnboardingSurveyScreen.actions.createProject": "Create Project",
 
+  "ProjectWizardScreen.step1.header": "Create your project",
+  "ProjectWizardScreen.step1.fields.projectName.label": "Project Name",
+  "ProjectWizardScreen.step1.fields.projectName.placeholder": "Example: Acme Corporation",
+  "ProjectWizardScreen.step1.fields.projectID.label": "Endpoint Domain",
+  "ProjectWizardScreen.step1.fields.projectID.hint": "This is your Authgear Endpoint for your applications. Once chosen, the project cannot be renamed.",
+  "ProjectWizardScreen.step1.fields.projectID.placeholder": "acme-corporation",
+  "ProjectWizardScreen.actions.next": "Next",
+
   "GetStartedScreen.title": "Getting Started 🎉",
   "GetStartedScreen.description": "Here are a few steps to get you set up for success.",
   "GetStartedScreen.counter": "{remaining, plural, =0{Done! You are ready to go.} other{# remaining}}",
