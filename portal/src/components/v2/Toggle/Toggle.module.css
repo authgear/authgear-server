@@ -1,8 +1,8 @@
-.switch {
+.toggle {
   @apply flex flex-row items-center gap-2;
 }
 
-.switch__text {
+.toggle__text {
   color: var(--gray-12);
   font-size: var(--font-size-2);
   font-weight: var(--font-weight-regular);
