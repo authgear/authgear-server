@@ -25,7 +25,7 @@ export function FormField({
   children,
 }: FormFieldProps): React.ReactElement {
   return (
-    <label className={cn(styles.formField, darkMode ? "dark" : null)}>
+    <div className={cn(styles.formField, darkMode ? "dark" : null)}>
       {label ? (
         <p className={cn(styles.formField__label, sizeToLabelClass(size))}>
           {label}
@@ -44,7 +44,7 @@ export function FormField({
         ) : null}
         {hint != null ? <p className={styles.formField__hint}>{hint}</p> : null}
       </div>
-    </label>
+    </div>
   );
 }
 
