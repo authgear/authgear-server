@@ -970,9 +970,9 @@ function SMSProviderConfigurationContent(props: {
         {isAuthgearOnce &&
         isSMSRequiredForSomeEnabledFeatures &&
         !smsProviderConfigured ? (
-          <RedMessageBar_RemindConfigureSMSProviderInSMSProviderScreen
-            className={styles.widget}
-          />
+          <div className={cn(styles.widget, "flex flex-col")}>
+            <RedMessageBar_RemindConfigureSMSProviderInSMSProviderScreen className="self-start w-fit" />
+          </div>
         ) : null}
         <Widget className={styles.widget} contentLayout="grid">
           <Toggle
