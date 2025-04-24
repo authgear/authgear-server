@@ -63,6 +63,7 @@ export function TextField({
       optional={optional}
       error={error}
       hint={hint}
+      labelSpace="1"
     >
       <RadixTextField.Root
         className={cn(error != null ? styles["textField--error"] : null)}
