@@ -95,9 +95,9 @@ export function Step3(): React.ReactElement {
         <PrimaryButton
           type="submit"
           size="3"
-          text={<FormattedMessage id="ProjectWizardScreen.actions.next" />}
-          onClick={form.toNextStep}
-          disabled={!form.canNavigateToNextStep}
+          text={<FormattedMessage id="ProjectWizardScreen.actions.done" />}
+          onClick={form.save}
+          disabled={!form.canSave}
         />
       </div>
     </div>

@@ -1895,6 +1895,7 @@
   "ProjectWizardScreen.step3.fields.buttonLabelColor.label": "Button label color",
   "ProjectWizardScreen.actions.next": "Next",
   "ProjectWizardScreen.actions.back": "Back",
+  "ProjectWizardScreen.actions.done": "Done",
   "ProjectWizardScreen.loginMethods.email": "Email",
   "ProjectWizardScreen.loginMethods.phone": "Phone",
   "ProjectWizardScreen.loginMethods.username": "Username",
