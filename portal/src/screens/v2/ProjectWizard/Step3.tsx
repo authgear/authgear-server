@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { Text } from "../../../components/onboarding/Text";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import { PrimaryButton } from "../../../components/v2/PrimaryButton/PrimaryButton";
@@ -13,6 +13,10 @@ import {
   ImageInputErrorCode,
 } from "../../../components/v2/ImageInput/ImageInput";
 import { produce } from "immer";
+import {
+  ColorHex,
+  ColorInput,
+} from "../../../components/v2/ColorInput/ColorInput";
 
 export function Step3(): React.ReactElement {
   const { form } = useFormContainerBaseContext<ProjectWizardFormModel>();
@@ -50,6 +54,24 @@ export function Step3(): React.ReactElement {
     }
   }, []);
 
+  const handleColorChange = useMemo(() => {
+    const fnFactory = (stateKey: "buttonAndLinkColor" | "buttonLabelColor") => {
+      const fn = (newColor: ColorHex) => {
+        form.setState((prev) =>
+          produce(prev, (draft) => {
+            draft[stateKey] = newColor;
+            return draft;
+          })
+        );
+      };
+      return fn;
+    };
+    return {
+      buttonAndLinkColor: fnFactory("buttonAndLinkColor"),
+      buttonLabelColor: fnFactory("buttonLabelColor"),
+    };
+  }, [form]);
+
   return (
     <div className="grid grid-cols-1 gap-12 text-left self-stretch">
       <ProjectWizardStepper step={form.state.step} />
@@ -79,15 +101,21 @@ export function Step3(): React.ReactElement {
             <FormattedMessage id="ProjectWizardScreen.step3.fields.buttonAndLinkColor.label" />
           }
         >
-          {/* TODO */}
-        </FormField>{" "}
+          <ColorInput
+            value={form.state.buttonAndLinkColor}
+            onValueChange={handleColorChange.buttonAndLinkColor}
+          />
+        </FormField>
         <FormField
           size="3"
           label={
             <FormattedMessage id="ProjectWizardScreen.step3.fields.buttonLabelColor.label" />
           }
         >
-          {/* TODO */}
+          <ColorInput
+            value={form.state.buttonLabelColor}
+            onValueChange={handleColorChange.buttonLabelColor}
+          />
         </FormField>
       </div>
       <div className="grid grid-flow-col grid-rows-1 gap-8 items-center justify-start">
