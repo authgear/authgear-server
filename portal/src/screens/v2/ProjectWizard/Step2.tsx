@@ -25,11 +25,19 @@ import {
 export function Step2(): React.ReactElement {
   const { form } = useFormContainerBaseContext<ProjectWizardFormModel>();
 
-  const showAuthMethodField = useMemo(() => {
-    return (
-      form.state.loginMethods.includes(LoginMethod.Email) ||
-      form.state.loginMethods.includes(LoginMethod.Phone)
-    );
+  const enabledLoginIDs = useMemo(() => {
+    const emailEnabled = form.state.loginMethods.includes(LoginMethod.Email);
+    const phoneEnabled = form.state.loginMethods.includes(LoginMethod.Phone);
+    if (emailEnabled && phoneEnabled) {
+      return "all";
+    }
+    if (emailEnabled) {
+      return "email";
+    }
+    if (phoneEnabled) {
+      return "phone";
+    }
+    return null;
   }, [form.state.loginMethods]);
 
   return (
@@ -88,11 +96,19 @@ export function Step2(): React.ReactElement {
             />
           </div>
         </FormField>
-        <div className={cn(showAuthMethodField ? null : "hidden")}>
+        <div className={cn(enabledLoginIDs != null ? null : "hidden")}>
           <FormField
             size="3"
             label={
-              <FormattedMessage id="ProjectWizardScreen.step2.fields.authMethod.label" />
+              <FormattedMessage
+                id={
+                  enabledLoginIDs === "all"
+                    ? "ProjectWizardScreen.step2.fields.authMethod.label--all"
+                    : enabledLoginIDs === "email"
+                    ? "ProjectWizardScreen.step2.fields.authMethod.label--email"
+                    : "ProjectWizardScreen.step2.fields.authMethod.label--phone"
+                }
+              />
             }
           >
             <IconRadioCards
