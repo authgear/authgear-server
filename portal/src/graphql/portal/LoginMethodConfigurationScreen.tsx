@@ -131,6 +131,8 @@ import {
 } from "../../error/validation";
 import { useUIImplementation } from "../../hook/useUIImplementation";
 import { useSystemConfig } from "../../context/SystemConfigContext";
+import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";
+import { RedMessageBar_RemindConfigureSMSProviderInNonSMSProviderScreen } from "../../RedMessageBar";
 
 function splitByNewline(text: string): string[] {
   return text
@@ -512,10 +514,15 @@ interface FeatureConfigFormState {
   passwordPolicyFeatureConfig: PasswordPolicyFeatureConfig;
 }
 
+interface SecretConfigFormState {
+  smsProviderConfigured: boolean;
+}
+
 interface FormState
   extends ConfigFormState,
     ResourcesFormState,
-    FeatureConfigFormState {}
+    FeatureConfigFormState,
+    SecretConfigFormState {}
 
 interface FormModel {
   isLoading: boolean;
@@ -3197,6 +3204,8 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
 
     const { renderToString } = useContext(Context);
 
+    const { isAuthgearOnce } = useSystemConfig();
+
     const {
       uiImplementation: projectUIImplementation,
       identitiesControl,
@@ -3230,7 +3239,18 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
       passwordPolicyFeatureConfig,
 
       resources,
+
+      smsProviderConfigured,
     } = state;
+
+    const isSMSRequiredForSomeEnabledFeatures = useMemo(() => {
+      const oob_otp_sms_enabled = primaryAuthenticatorsControl
+        .filter((c) => c.value === "oob_otp_sms")
+        .some((c) => c.isChecked);
+      const phoneVerificationEnabled =
+        verificationClaims?.phone_number?.enabled ?? true;
+      return oob_otp_sms_enabled || phoneVerificationEnabled;
+    }, [primaryAuthenticatorsControl, verificationClaims]);
 
     const showFreePlanWarning = useMemo(
       () => shouldShowFreePlanWarning(state),
@@ -3408,6 +3428,13 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
             loginMethod={loginMethod}
             passkeyChecked={passkeyChecked}
           />
+          {isAuthgearOnce &&
+          isSMSRequiredForSomeEnabledFeatures &&
+          !smsProviderConfigured ? (
+            <RedMessageBar_RemindConfigureSMSProviderInNonSMSProviderScreen
+              className={styles.widget}
+            />
+          ) : null}
           <HorizontalDivider className={styles.separator} />
           <LoginMethodChooser
             showFreePlanWarning={showFreePlanWarning}
@@ -3608,6 +3635,8 @@ const LoginMethodConfigurationScreen: React.VFC =
   function LoginMethodConfigurationScreen() {
     const { appID } = useParams() as { appID: string };
 
+    const secretConfig = useAppAndSecretConfigQuery(appID);
+
     const featureConfig = useAppFeatureConfigQuery(appID);
 
     const configForm = useAppConfigForm({
@@ -3628,6 +3657,11 @@ const LoginMethodConfigurationScreen: React.VFC =
             ?.disabled ?? false,
         passwordPolicyFeatureConfig:
           featureConfig.effectiveFeatureConfig?.authenticator?.password?.policy,
+        smsProviderConfigured:
+          secretConfig.secretConfig?.smsProviderSecrets?.twilioCredentials !=
+            null ||
+          secretConfig.secretConfig?.smsProviderSecrets
+            ?.customSMSProviderCredentials != null,
         ...configForm.state,
       };
     }, [
@@ -3637,15 +3671,24 @@ const LoginMethodConfigurationScreen: React.VFC =
         ?.disabled,
       featureConfig.effectiveFeatureConfig?.authenticator?.password?.policy,
       configForm.state,
+      secretConfig.secretConfig?.smsProviderSecrets?.twilioCredentials,
+      secretConfig.secretConfig?.smsProviderSecrets
+        ?.customSMSProviderCredentials,
     ]);
 
     const form: FormModel = {
       isLoading:
-        configForm.isLoading || resourceForm.isLoading || featureConfig.loading,
+        configForm.isLoading ||
+        resourceForm.isLoading ||
+        featureConfig.loading ||
+        secretConfig.loading,
       isUpdating: configForm.isUpdating || resourceForm.isUpdating,
       isDirty: configForm.isDirty || resourceForm.isDirty,
       loadError:
-        configForm.loadError ?? resourceForm.loadError ?? featureConfig.error,
+        configForm.loadError ??
+        resourceForm.loadError ??
+        featureConfig.error ??
+        secretConfig.error,
       updateError: configForm.updateError ?? resourceForm.updateError,
       state,
       setState: (fn) => {
@@ -3658,6 +3701,7 @@ const LoginMethodConfigurationScreen: React.VFC =
         configForm.reload();
         resourceForm.reload();
         featureConfig.refetch().finally(() => {});
+        secretConfig.refetch().finally(() => {});
       },
       reset: () => {
         configForm.reset();

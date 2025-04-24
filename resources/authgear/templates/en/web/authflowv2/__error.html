@@ -250,6 +250,8 @@
       <span>{{ include "v2.error.invalid-whatsapp-user" nil }}</span>
     {{ else if eq .Error.reason "NoAvailableWhatsappClient" }}
       <span>{{ include "v2.error.no-available-whatsapp-client" nil }}</span>
+    {{ else if eq .Error.reason "NoAvailableSMSClient" }}
+      <span>{{ include "v2.error.no-available-sms-client" nil }}</span>
     {{ else if eq .Error.reason "ChangePasswordFailed" }}
       {{ $cause := .Error.info.cause }}
         {{ if (eq $cause.kind "PasswordReused") }}

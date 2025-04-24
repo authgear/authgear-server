@@ -12,9 +12,6 @@
     {{ if eq .Error.reason "AccountManagementTokenInvalid" }}
       {{ $title = include "v2.page.fatal-error.token-invalid.title" nil }}
     {{ end }}
-    {{ if eq .Error.reason "NoAvailableSMSClient" }}
-      {{ $title = include "v2.page.fatal-error.no-available-sms-client.title" nil }}
-    {{ end }}
     {{ if eq .Error.reason "IdentityNotFound" }}
       {{ $title = include "v2.page.fatal-error.identify-not-found.title" (dict "LoginIDType" .Error.info.LoginIDType) }}
     {{ end }}
@@ -35,8 +32,6 @@
       {{ $error_message = include "v2.error.no-public-signup" nil }}
     {{ else if eq .Error.reason "AccountManagementTokenInvalid" }}
       {{ $error_message = include "v2.error.settings-token-invalid" nil }}
-    {{ else if eq .Error.reason "NoAvailableSMSClient" }}
-      {{ $error_message = include "v2.error.no-available-sms-client" nil }}
     {{ else if eq .Error.reason "IdentityNotFound" }}
       {{ $error_message = include "v2.error.identify-not-found" (dict "LoginIDType" .Error.info.LoginIDType) }}
     {{ else if eq .Error.reason "WebUISessionCompleted" }}

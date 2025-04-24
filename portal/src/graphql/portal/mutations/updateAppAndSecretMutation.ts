@@ -54,6 +54,7 @@ export function useUpdateAppAndSecretConfigMutation(appID: string): {
             ? secretConfigUpdateInstructionsChecksum
             : undefined,
         },
+        refetchQueries: ["appAndSecretConfigQuery"],
       });
       return result.data?.updateApp.app ?? null;
     },
