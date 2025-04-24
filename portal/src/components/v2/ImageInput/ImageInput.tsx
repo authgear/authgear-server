@@ -71,7 +71,11 @@ export function ImageInput({
 
   return (
     <div className={styles.imageInput}>
-      <div className={styles.imageInput__imageContainer}>
+      <button
+        type="button"
+        className={styles.imageInput__imageContainer}
+        onClick={handleUpload}
+      >
         {value == null ? (
           <img
             className={styles.imageInput__placeholder}
@@ -80,7 +84,7 @@ export function ImageInput({
         ) : (
           <img className={styles.imageInput__preview} src={value} />
         )}
-      </div>
+      </button>
       <div className={styles.imageInput__rightColumn}>
         <p className={styles.imageInput__hint}>
           <FormattedMessage id="ImageInput.hint" />
