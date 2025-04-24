@@ -11,6 +11,7 @@ export function ThemeProvider({
       // We only want Theme as a variable and context provider, and don't want it to affect the layout
       className="contents"
       accentColor="indigo"
+      grayColor="slate"
     >
       {children}
     </Theme>

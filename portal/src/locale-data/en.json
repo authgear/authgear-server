@@ -136,6 +136,7 @@
   "errors.roles.key.duplicated": "This key is already used, please use a different key",
   "errors.groups.key.duplicated": "This key is already used, please use a different key",
   "errors.authenticator.not-found": "Authenticator not found",
+  "errors.image-too-large": "The image size is too large. Please upload a image that is within the size limit.",
 
   "warnings.free-plan": "To avoid spam content, free plans are limited to send 5 SMS and Whatsapp messsage by default. To be eligible for 100 free SMS/Whatsapp per mo, please complete {ExternalLink, react, href{https://go.authgear.com/portal-support} children{the application form}}.",
 
@@ -2180,6 +2181,9 @@
   "DowngradeReminder.description": "Your project is downgrading to “Free” on {date}. The prorated subscription fee and additional SMS/WhatsApp cost for this billing cycle will be charged on that date.",
 
   "FormField.optional": "(Optional)",
+
+  "ImageInput.hint": "Upload image under 100KB, PNG, JPG, or GIF image only.",
+  "ImageInput.upload": "Upload",
 
   "Locales.af": "Afrikaans",
   "Locales.am": "Amharic",
