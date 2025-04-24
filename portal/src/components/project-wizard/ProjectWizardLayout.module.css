@@ -38,6 +38,7 @@
   }
 }
 
+/* stylelint-disable-next-line media-query-no-invalid */
 @media (min-width: theme("screens.desktop.min")) {
   .projectWizardLayout__leftFormContainer {
     @apply py-16 px-24;
