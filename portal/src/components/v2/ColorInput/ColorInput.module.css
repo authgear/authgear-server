@@ -1,0 +1,9 @@
+.colorInput__pickerContainer {
+  @apply w-4 h-4 relative;
+  border: 1px solid var(--gray-7);
+  border-radius: var(--radius-2);
+}
+
+.colorInput__pickerButton {
+  @apply top-0 left-0 right-0 bottom-0 absolute bg-transparent;
+}
