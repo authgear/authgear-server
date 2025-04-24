@@ -30,7 +30,8 @@ export interface FormState {
   loginMethods: LoginMethod[];
   authMethods: AuthMethod[];
 
-  // step 3 (TODO)
+  // step 3
+  logoBase64DataURL?: string;
 }
 
 function sanitizeFormState(state: FormState): FormState {
