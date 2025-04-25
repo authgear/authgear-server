@@ -6,6 +6,10 @@
   @apply justify-start;
 }
 
+.iconRadioCards__itemWrapper {
+  @apply grid;
+}
+
 .iconRadioCards__itemContainer {
   @apply self-stretch flex items-start gap-3;
 }

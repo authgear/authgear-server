@@ -131,6 +131,10 @@ export function Step2(): React.ReactElement {
                       <FormattedMessage id="ProjectWizardScreen.authMethod.passwordless.subtitle" />
                     ),
                     disabled: !emailEnabled && !phoneEnabled,
+                    tooltip:
+                      !emailEnabled && !phoneEnabled ? (
+                        <FormattedMessage id="ProjectWizardScreen.authMethod.passwordless.tooltip" />
+                      ) : null,
                   },
                   {
                     value: AuthMethod.Password,
@@ -142,6 +146,9 @@ export function Step2(): React.ReactElement {
                       <FormattedMessage id="ProjectWizardScreen.authMethod.password.subtitle" />
                     ),
                     disabled: usernameEnabled,
+                    tooltip: usernameEnabled ? (
+                      <FormattedMessage id="ProjectWizardScreen.authMethod.password.tooltip" />
+                    ) : null,
                   },
                 ];
               }, [emailEnabled, phoneEnabled, usernameEnabled])}

@@ -35,6 +35,29 @@ export const Default: Story = {
   },
 };
 
+export const WithTooltip: Story = {
+  args: {
+    size: "2",
+    options: [
+      {
+        value: `1`,
+        icon: <img src={passwordlessIcon} width={40} height={40} />,
+        title: `Passwordless`,
+        subtitle: `One-Time-Password (OTP)`,
+        tooltip: "This is a tooltip",
+      },
+      {
+        value: `2`,
+        icon: <img src={passwordlessIcon} width={40} height={40} />,
+        title: `Passwordless`,
+        subtitle: `One-Time-Password (OTP)`,
+        tooltip: "This is a tooltip",
+        disabled: true,
+      },
+    ],
+  },
+};
+
 function Demo({ args }: { args: IconRadioCardsProps<string> }) {
   const { value: _0, onValueChange: _1, ...rest } = args;
 
