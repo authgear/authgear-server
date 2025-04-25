@@ -15,13 +15,13 @@ import {
 import loginEmailIcon from "../../../images/login_email.svg";
 import loginPhoneIcon from "../../../images/login_phone.svg";
 import loginUsernameIcon from "../../../images/login_username.svg";
-import passwordlessIcon from "../../../images/passwordless_icon.svg";
-import passwordIcon from "../../../images/password_icon.svg";
 import { produce } from "immer";
 import {
   IconRadioCardOption,
   MultiSelectIconRadioCards,
 } from "../../../components/v2/IconRadioCards/IconRadioCards";
+import { SquareIcon } from "../../../components/v2/SquareIcon/SquareIcon";
+import { ButtonIcon, InputIcon } from "@radix-ui/react-icons";
 
 export function Step2(): React.ReactElement {
   const { form } = useFormContainerBaseContext<ProjectWizardFormModel>();
@@ -128,7 +128,15 @@ export function Step2(): React.ReactElement {
                 return [
                   {
                     value: AuthMethod.Passwordless,
-                    icon: <img src={passwordlessIcon} width={40} height={40} />,
+                    icon: (
+                      <SquareIcon
+                        className="text-[var(--accent-9)]"
+                        Icon={ButtonIcon}
+                        size="7"
+                        radius="4"
+                        iconSize="1.375rem"
+                      />
+                    ),
                     title: (
                       <FormattedMessage id="ProjectWizardScreen.authMethod.passwordless.title" />
                     ),
@@ -143,7 +151,15 @@ export function Step2(): React.ReactElement {
                   },
                   {
                     value: AuthMethod.Password,
-                    icon: <img src={passwordIcon} width={40} height={40} />,
+                    icon: (
+                      <SquareIcon
+                        className="text-[var(--accent-9)]"
+                        Icon={InputIcon}
+                        size="7"
+                        radius="4"
+                        iconSize="1.375rem"
+                      />
+                    ),
                     title: (
                       <FormattedMessage id="ProjectWizardScreen.authMethod.password.title" />
                     ),
