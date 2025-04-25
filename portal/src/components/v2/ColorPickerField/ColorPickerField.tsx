@@ -3,18 +3,37 @@ import { TextField as RadixTextField } from "@radix-ui/themes";
 import { TextInput } from "../TextField/TextField";
 
 import styles from "./ColorPickerField.module.css";
+import { FormField } from "../FormField/FormField";
 
 export type ColorHex = string;
+
+type ColorPickerFieldSize = "2" | "3";
 
 // Note: Only the format of #xxxxxx is accepted by color input, so we do not handle other color format
 const COLOR_REGEX = /^#?[0-9a-fA-F]{6}$/;
 
 export interface ColorPickerFieldProps {
+  darkMode?: boolean;
+  size: ColorPickerFieldSize;
+  disabled?: boolean;
+  placeholder?: string;
+  optional?: boolean;
+  label?: React.ReactNode;
+  error?: React.ReactNode;
+  hint?: React.ReactNode;
   value: ColorHex;
   onValueChange?: (value: ColorHex) => void;
 }
 
 export function ColorPickerField({
+  darkMode,
+  size,
+  disabled,
+  placeholder,
+  optional,
+  label,
+  error,
+  hint,
   value,
   onValueChange,
 }: ColorPickerFieldProps): React.ReactElement {
@@ -45,16 +64,28 @@ export function ColorPickerField({
   }, [value]);
 
   return (
-    <TextInput
-      size="3"
-      value={textInputValue}
-      onChange={onTextInputChange}
-      onBlur={onTextInputBlur}
+    <FormField
+      darkMode={darkMode}
+      size={size}
+      label={label}
+      optional={optional}
+      error={error}
+      hint={hint}
+      labelSpace="1"
     >
-      <RadixTextField.Slot side="left">
-        <ColorPicker value={value} onValueChange={onValueChange} />
-      </RadixTextField.Slot>
-    </TextInput>
+      <TextInput
+        size={size}
+        value={textInputValue}
+        disabled={disabled}
+        placeholder={placeholder}
+        onChange={onTextInputChange}
+        onBlur={onTextInputBlur}
+      >
+        <RadixTextField.Slot side="left">
+          <ColorPicker value={value} onValueChange={onValueChange} />
+        </RadixTextField.Slot>
+      </TextInput>
+    </FormField>
   );
 }
 
