@@ -1894,6 +1894,7 @@
   "ProjectWizardScreen.actions.back": "Back",
   "ProjectWizardScreen.loginMethods.email": "Email",
   "ProjectWizardScreen.loginMethods.phone": "Phone",
+  "ProjectWizardScreen.loginMethods.username": "Username",
   "ProjectWizardScreen.authMethod.passwordless.title": "Passwordless",
   "ProjectWizardScreen.authMethod.passwordless.subtitle": "One-Time-Password (OTP)",
   "ProjectWizardScreen.authMethod.password.title": "Input Password",
