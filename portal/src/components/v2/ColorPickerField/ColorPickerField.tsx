@@ -2,22 +2,22 @@ import React, { useCallback, useRef, useState, useEffect } from "react";
 import { TextField as RadixTextField } from "@radix-ui/themes";
 import { TextInput } from "../TextField/TextField";
 
-import styles from "./ColorInput.module.css";
+import styles from "./ColorPickerField.module.css";
 
 export type ColorHex = string;
 
 // Note: Only the format of #xxxxxx is accepted by color input, so we do not handle other color format
 const COLOR_REGEX = /^#?[0-9a-fA-F]{6}$/;
 
-export interface ColorInputProps {
+export interface ColorPickerFieldProps {
   value: ColorHex;
   onValueChange?: (value: ColorHex) => void;
 }
 
-export function ColorInput({
+export function ColorPickerField({
   value,
   onValueChange,
-}: ColorInputProps): React.ReactElement {
+}: ColorPickerFieldProps): React.ReactElement {
   const [textInputValue, setTextInputValue] = useState(value);
   const onTextInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -81,12 +81,12 @@ function ColorPicker({
 
   return (
     <div
-      className={styles.colorInput__pickerContainer}
+      className={styles.colorPickerField__pickerContainer}
       style={{ backgroundColor: value }}
     >
       <button
         type="button"
-        className={styles.colorInput__pickerButton}
+        className={styles.colorPickerField__pickerButton}
         onClick={openPicker}
       />
       <input
