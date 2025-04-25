@@ -28,9 +28,37 @@ export interface FormState {
 
   // step 2
   loginMethods: LoginMethod[];
-  authMethod: AuthMethod;
+  authMethods: AuthMethod[];
 
   // step 3 (TODO)
+}
+
+function sanitizeFormState(state: FormState): FormState {
+  return produce(state, (newState) => {
+    newState.projectID = state.projectID.trim();
+    newState.projectName = state.projectName.trim();
+
+    const isEmailSelected = state.loginMethods.includes(LoginMethod.Email);
+    const isPhoneSelected = state.loginMethods.includes(LoginMethod.Phone);
+    const isUsernameSelected = state.loginMethods.includes(
+      LoginMethod.Username
+    );
+
+    const selectedAuthMethods = new Set(state.authMethods);
+
+    if (!isEmailSelected && !isPhoneSelected) {
+      // Passwordless is not allowed if no email or phone
+      selectedAuthMethods.delete(AuthMethod.Passwordless);
+    }
+
+    if (isUsernameSelected) {
+      // Password is required if username is enabled
+      selectedAuthMethods.add(AuthMethod.Password);
+    }
+
+    newState.authMethods = Array.from(selectedAuthMethods);
+    return newState;
+  });
 }
 
 export interface ProjectWizardFormModel extends SimpleFormModel<FormState> {
@@ -38,6 +66,8 @@ export interface ProjectWizardFormModel extends SimpleFormModel<FormState> {
   toNextStep: () => void;
   toPreviousStep: () => void;
   canSave: boolean;
+
+  effectiveAuthMethods: AuthMethod[];
 }
 
 const initialState: FormState = {
@@ -47,7 +77,7 @@ const initialState: FormState = {
   projectID: "",
 
   loginMethods: [LoginMethod.Email, LoginMethod.Phone],
-  authMethod: AuthMethod.Passwordless,
+  authMethods: [AuthMethod.Passwordless],
 };
 
 export function useProjectWizardForm(): ProjectWizardFormModel {
@@ -63,20 +93,25 @@ export function useProjectWizardForm(): ProjectWizardFormModel {
 
   const formState = form.state;
 
+  const formStateSanitized = useMemo(
+    () => sanitizeFormState(formState),
+    [formState]
+  );
+
   const canNavigateToNextStep = useMemo(() => {
-    switch (formState.step) {
+    switch (formStateSanitized.step) {
       case ProjectWizardStep.step1:
         return (
-          formState.projectID.trim() !== "" &&
-          formState.projectName.trim() !== ""
+          formStateSanitized.projectID.trim() !== "" &&
+          formStateSanitized.projectName.trim() !== ""
         );
       case ProjectWizardStep.step2:
-        return formState.loginMethods.length > 0;
+        return formStateSanitized.loginMethods.length > 0;
       case ProjectWizardStep.step3:
         // No next step
         return false;
     }
-  }, [formState]);
+  }, [formStateSanitized]);
 
   const toNextStep = useCallback(() => {
     if (!canNavigateToNextStep) {
@@ -137,7 +172,15 @@ export function useProjectWizardForm(): ProjectWizardFormModel {
       canNavigateToNextStep: canNavigateToNextStep,
       toPreviousStep: toPreviousStep,
       canSave,
+      effectiveAuthMethods: formStateSanitized.authMethods,
     }),
-    [form, toNextStep, canNavigateToNextStep, toPreviousStep, canSave]
+    [
+      form,
+      toNextStep,
+      canNavigateToNextStep,
+      toPreviousStep,
+      canSave,
+      formStateSanitized.authMethods,
+    ]
   );
 }
