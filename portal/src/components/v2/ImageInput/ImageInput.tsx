@@ -4,12 +4,13 @@ import styles from "./ImageInput.module.css";
 import placeholderIcon from "../../../images/image_input_placeholder_icon.svg";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import { SecondaryButton } from "../SecondaryButton/SecondaryButton";
+import { IconButton, IconButtonIcon } from "../IconButton/IconButton";
 
 export interface ImageInputProps {
   sizeLimitKB?: number;
 
   value: string | null; // Must be a base64 data url of an image if not null
-  onValueChange?: (imageBase64DataURL: string) => void;
+  onValueChange?: (imageBase64DataURL: string | null) => void;
   onError?: (error: ImageInputError) => void;
 }
 
@@ -40,6 +41,10 @@ export function ImageInput({
   const handleUpload = useCallback(() => {
     inputRef.current?.click();
   }, []);
+
+  const clearValue = useCallback(() => {
+    onValueChange?.(null);
+  }, [onValueChange]);
 
   const handleFileChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -89,12 +94,23 @@ export function ImageInput({
         <p className={styles.imageInput__hint}>
           <FormattedMessage id="ImageInput.hint" />
         </p>
-        <SecondaryButton
-          type="button"
-          size="2"
-          text={<FormattedMessage id="ImageInput.upload" />}
-          onClick={handleUpload}
-        />
+        <div className={styles.imageInput__buttonContainer}>
+          <SecondaryButton
+            type="button"
+            size="2"
+            text={<FormattedMessage id="ImageInput.upload" />}
+            onClick={handleUpload}
+          />
+          {value != null ? (
+            <IconButton
+              type="button"
+              size="2"
+              variant="destroy"
+              icon={IconButtonIcon.Trash}
+              onClick={clearValue}
+            />
+          ) : null}
+        </div>
       </div>
       <input
         ref={inputRef}

@@ -25,11 +25,11 @@ export function Step3(): React.ReactElement {
     useState<React.ReactNode | null>(null);
 
   const handleImageChange = useCallback(
-    (imageBase64DataURL: string) => {
+    (imageBase64DataURL: string | null) => {
       setImageFieldError(null);
       form.setState((prev) =>
         produce(prev, (draft) => {
-          draft.logoBase64DataURL = imageBase64DataURL;
+          draft.logoBase64DataURL = imageBase64DataURL ?? undefined;
           return draft;
         })
       );
