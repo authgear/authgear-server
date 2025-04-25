@@ -2,12 +2,14 @@ import cn from "classnames";
 import { RadioCards as RadixRadioCards } from "@radix-ui/themes";
 import React, { useMemo } from "react";
 import styles from "./IconRadioCards.module.css";
+import { Tooltip } from "../Tooltip/Tooltip";
 
 export interface IconRadioCardOption<T extends string> {
   value: T;
   icon: React.ReactNode;
   title: React.ReactNode;
   subtitle?: React.ReactNode;
+  tooltip?: React.ReactNode;
   disabled?: boolean;
 }
 
@@ -144,28 +146,35 @@ function OptionItem<T extends string>({
   onToggle?: () => void;
 }) {
   return (
-    <RadixRadioCards.Item
-      className={styles.iconRadioCards__item}
-      key={option.value}
-      value={option.value}
-      disabled={option.disabled}
-      checked={checked}
-      onClick={onToggle}
-    >
-      <div className={styles.iconRadioCards__itemContainer}>
-        <div className={styles.iconRadioCards__iconContainer}>
-          {option.icon}
-        </div>
-        <div className={styles.iconRadioCards__itemTextContainer}>
-          <p className={styles.iconRadioCards__itemTextTitle}>{option.title}</p>
-          {option.subtitle ? (
-            <p className={styles.iconRadioCards__itemTextSubtitle}>
-              {option.subtitle}
-            </p>
-          ) : null}
-        </div>
+    <Tooltip content={option.tooltip} disabled={option.tooltip == null}>
+      {/* We need this extra div because Tooltip and RadixRadioCards.Item both write to data-state attribute causing bugs */}
+      <div className={styles.iconRadioCards__itemWrapper}>
+        <RadixRadioCards.Item
+          className={styles.iconRadioCards__item}
+          key={option.value}
+          value={option.value}
+          disabled={option.disabled}
+          checked={checked}
+          onClick={onToggle}
+        >
+          <div className={styles.iconRadioCards__itemContainer}>
+            <div className={styles.iconRadioCards__iconContainer}>
+              {option.icon}
+            </div>
+            <div className={styles.iconRadioCards__itemTextContainer}>
+              <p className={styles.iconRadioCards__itemTextTitle}>
+                {option.title}
+              </p>
+              {option.subtitle ? (
+                <p className={styles.iconRadioCards__itemTextSubtitle}>
+                  {option.subtitle}
+                </p>
+              ) : null}
+            </div>
+          </div>
+        </RadixRadioCards.Item>
       </div>
-    </RadixRadioCards.Item>
+    </Tooltip>
   );
 }
 
