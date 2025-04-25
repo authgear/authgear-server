@@ -19,16 +19,26 @@ import passwordlessIcon from "../../../images/passwordless_icon.svg";
 import passwordIcon from "../../../images/password_icon.svg";
 import { produce } from "immer";
 import {
-  IconRadioCards,
   IconRadioCardOption,
+  MultiSelectIconRadioCards,
 } from "../../../components/v2/IconRadioCards/IconRadioCards";
 
 export function Step2(): React.ReactElement {
   const { form } = useFormContainerBaseContext<ProjectWizardFormModel>();
+  const emailEnabled = useMemo(
+    () => form.state.loginMethods.includes(LoginMethod.Email),
+    [form.state.loginMethods]
+  );
+  const phoneEnabled = useMemo(
+    () => form.state.loginMethods.includes(LoginMethod.Phone),
+    [form.state.loginMethods]
+  );
+  const usernameEnabled = useMemo(
+    () => form.state.loginMethods.includes(LoginMethod.Username),
+    [form.state.loginMethods]
+  );
 
   const enabledLoginIDs = useMemo(() => {
-    const emailEnabled = form.state.loginMethods.includes(LoginMethod.Email);
-    const phoneEnabled = form.state.loginMethods.includes(LoginMethod.Phone);
     if (emailEnabled && phoneEnabled) {
       return "all";
     }
@@ -39,7 +49,7 @@ export function Step2(): React.ReactElement {
       return "phone";
     }
     return null;
-  }, [form.state.loginMethods]);
+  }, [emailEnabled, phoneEnabled]);
 
   return (
     <div className="grid grid-cols-1 gap-12 text-left self-stretch">
@@ -121,7 +131,7 @@ export function Step2(): React.ReactElement {
               />
             }
           >
-            <IconRadioCards
+            <MultiSelectIconRadioCards
               size="2"
               itemMinWidth={286}
               options={useMemo<IconRadioCardOption<AuthMethod>[]>(() => {
@@ -135,6 +145,7 @@ export function Step2(): React.ReactElement {
                     subtitle: (
                       <FormattedMessage id="ProjectWizardScreen.authMethod.passwordless.subtitle" />
                     ),
+                    disabled: !emailEnabled && !phoneEnabled,
                   },
                   {
                     value: AuthMethod.Password,
@@ -145,15 +156,16 @@ export function Step2(): React.ReactElement {
                     subtitle: (
                       <FormattedMessage id="ProjectWizardScreen.authMethod.password.subtitle" />
                     ),
+                    disabled: usernameEnabled,
                   },
                 ];
-              }, [])}
-              value={form.state.authMethod}
-              onValueChange={useCallback(
-                (newValue: AuthMethod) => {
+              }, [emailEnabled, phoneEnabled, usernameEnabled])}
+              values={form.effectiveAuthMethods}
+              onValuesChange={useCallback(
+                (newValues: AuthMethod[]) => {
                   form.setState((prev) =>
                     produce(prev, (draft) => {
-                      draft.authMethod = newValue;
+                      draft.authMethods = newValues;
                       return draft;
                     })
                   );
