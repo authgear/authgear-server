@@ -15,8 +15,8 @@ import {
 import { produce } from "immer";
 import {
   ColorHex,
-  ColorInput,
-} from "../../../components/v2/ColorInput/ColorInput";
+  ColorPickerField,
+} from "../../../components/v2/ColorPickerField/ColorPickerField";
 
 export function Step3(): React.ReactElement {
   const { form } = useFormContainerBaseContext<ProjectWizardFormModel>();
@@ -101,7 +101,7 @@ export function Step3(): React.ReactElement {
             <FormattedMessage id="ProjectWizardScreen.step3.fields.buttonAndLinkColor.label" />
           }
         >
-          <ColorInput
+          <ColorPickerField
             value={form.state.buttonAndLinkColor}
             onValueChange={handleColorChange.buttonAndLinkColor}
           />
@@ -112,7 +112,7 @@ export function Step3(): React.ReactElement {
             <FormattedMessage id="ProjectWizardScreen.step3.fields.buttonLabelColor.label" />
           }
         >
-          <ColorInput
+          <ColorPickerField
             value={form.state.buttonLabelColor}
             onValueChange={handleColorChange.buttonLabelColor}
           />
