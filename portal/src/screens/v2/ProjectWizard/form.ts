@@ -11,6 +11,7 @@ export enum ProjectWizardStep {
 export enum LoginMethod {
   Email = "Email",
   Phone = "Phone",
+  Username = "username",
 }
 
 export enum AuthMethod {
