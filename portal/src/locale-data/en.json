@@ -1900,6 +1900,7 @@
   "ProjectWizardScreen.authMethod.password.subtitle": "Enter password to authenticate",
   "ProjectWizardScreen.authMethod.password.tooltip": "Password is required for login with username",
   "ProjectWizardScreen.errors.loginMethodRequired": "Please select at least one login method.",
+  "ProjectWizardScreen.errors.authMethodRequired": "Please select at least one authentication method.",
 
   "GetStartedScreen.title": "Getting Started 🎉",
   "GetStartedScreen.description": "Here are a few steps to get you set up for success.",

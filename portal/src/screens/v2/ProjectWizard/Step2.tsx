@@ -115,6 +115,11 @@ export function Step2(): React.ReactElement {
                 id={"ProjectWizardScreen.step2.fields.authMethod.label"}
               />
             }
+            error={
+              form.effectiveAuthMethods.length === 0 ? (
+                <FormattedMessage id="ProjectWizardScreen.errors.authMethodRequired" />
+              ) : null
+            }
           >
             <MultiSelectIconRadioCards
               size="2"
