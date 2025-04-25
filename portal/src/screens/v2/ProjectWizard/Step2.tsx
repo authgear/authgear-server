@@ -14,6 +14,7 @@ import {
 } from "../../../components/v2/ToggleGroup/ToggleGroup";
 import loginEmailIcon from "../../../images/login_email.svg";
 import loginPhoneIcon from "../../../images/login_phone.svg";
+import loginUsernameIcon from "../../../images/login_username.svg";
 import passwordlessIcon from "../../../images/passwordless_icon.svg";
 import passwordIcon from "../../../images/password_icon.svg";
 import { produce } from "immer";
@@ -78,6 +79,15 @@ export function Step2(): React.ReactElement {
                       <FormattedMessage id="ProjectWizardScreen.loginMethods.phone" />
                     ),
                     icon: <img src={loginPhoneIcon} width={20} height={20} />,
+                  },
+                  {
+                    value: LoginMethod.Username,
+                    text: (
+                      <FormattedMessage id="ProjectWizardScreen.loginMethods.username" />
+                    ),
+                    icon: (
+                      <img src={loginUsernameIcon} width={20} height={20} />
+                    ),
                   },
                 ];
               }, [])}
