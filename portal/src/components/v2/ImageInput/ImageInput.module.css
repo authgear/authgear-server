@@ -26,10 +26,9 @@
 }
 
 .imageInput__placeholder {
-  width: var(--space-7);
-  height: var(--space-7);
-  object-fit: cover;
-  @apply self-center justify-self-center;
+  color: var(--gray-11);
+  --square-icon__background-color: var(--gray-a3);
+  @apply justify-self-center self-center;
 }
 
 .imageInput__preview {
