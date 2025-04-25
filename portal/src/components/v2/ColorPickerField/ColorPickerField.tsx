@@ -1,6 +1,6 @@
 import React, { useCallback, useRef, useState, useEffect } from "react";
 import { TextField as RadixTextField } from "@radix-ui/themes";
-import { TextInput } from "../TextField/TextField";
+import { TextField } from "../TextField/TextField";
 
 import styles from "./ColorPickerField.module.css";
 import { FormField } from "../FormField/FormField";
@@ -73,7 +73,7 @@ export function ColorPickerField({
       hint={hint}
       labelSpace="1"
     >
-      <TextInput
+      <TextField.Input
         size={size}
         value={textInputValue}
         disabled={disabled}
@@ -84,7 +84,7 @@ export function ColorPickerField({
         <RadixTextField.Slot side="left">
           <ColorPicker value={value} onValueChange={onValueChange} />
         </RadixTextField.Slot>
-      </TextInput>
+      </TextField.Input>
     </FormField>
   );
 }

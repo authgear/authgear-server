@@ -46,7 +46,7 @@ export interface TextFieldProps extends TextInputProps {
   onChange?: React.ChangeEventHandler<HTMLInputElement>;
 }
 
-export function TextField(props: TextFieldProps): React.ReactElement {
+function TextField_(props: TextFieldProps): React.ReactElement {
   const {
     darkMode,
     size,
@@ -68,7 +68,7 @@ export function TextField(props: TextFieldProps): React.ReactElement {
       hint={hint}
       labelSpace="1"
     >
-      <TextInput {...props}>
+      <Input {...props}>
         {iconStart != null ? (
           <RadixTextField.Slot side="left">
             <Icon icon={iconStart} />
@@ -86,12 +86,12 @@ export function TextField(props: TextFieldProps): React.ReactElement {
             <Icon icon={iconEnd} />
           </RadixTextField.Slot>
         ) : null}
-      </TextInput>
+      </Input>
     </FormField>
   );
 }
 
-export function TextInput({
+function Input({
   size,
   disabled,
   readOnly,
@@ -118,3 +118,5 @@ export function TextInput({
     </RadixTextField.Root>
   );
 }
+
+export const TextField = Object.assign(TextField_, { Input });
