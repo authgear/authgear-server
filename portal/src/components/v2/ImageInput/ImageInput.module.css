@@ -38,3 +38,7 @@
   @apply self-stretch justify-self-stretch;
   object-fit: contain;
 }
+
+.imageInput__buttonContainer {
+  @apply grid grid-flow-col gap-2 items-end;
+}
