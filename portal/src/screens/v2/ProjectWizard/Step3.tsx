@@ -95,28 +95,22 @@ export function Step3(): React.ReactElement {
             onError={handleImageError}
           />
         </FormField>
-        <FormField
+        <ColorPickerField
           size="3"
           label={
             <FormattedMessage id="ProjectWizardScreen.step3.fields.buttonAndLinkColor.label" />
           }
-        >
-          <ColorPickerField
-            value={form.state.buttonAndLinkColor}
-            onValueChange={handleColorChange.buttonAndLinkColor}
-          />
-        </FormField>
-        <FormField
+          value={form.state.buttonAndLinkColor}
+          onValueChange={handleColorChange.buttonAndLinkColor}
+        />
+        <ColorPickerField
           size="3"
           label={
             <FormattedMessage id="ProjectWizardScreen.step3.fields.buttonLabelColor.label" />
           }
-        >
-          <ColorPickerField
-            value={form.state.buttonLabelColor}
-            onValueChange={handleColorChange.buttonLabelColor}
-          />
-        </FormField>
+          value={form.state.buttonLabelColor}
+          onValueChange={handleColorChange.buttonLabelColor}
+        />
       </div>
       <div className="grid grid-flow-col grid-rows-1 gap-8 items-center justify-start">
         <ProjectWizardBackButton onClick={form.toPreviousStep} />
