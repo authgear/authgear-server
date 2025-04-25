@@ -105,8 +105,21 @@ export function useProjectWizardForm(): ProjectWizardFormModel {
           formStateSanitized.projectID.trim() !== "" &&
           formStateSanitized.projectName.trim() !== ""
         );
-      case ProjectWizardStep.step2:
-        return formStateSanitized.loginMethods.length > 0;
+      case ProjectWizardStep.step2: {
+        if (formStateSanitized.loginMethods.length === 0) {
+          return false;
+        }
+        const loginMethods = new Set(formStateSanitized.loginMethods);
+        if (
+          formStateSanitized.authMethods.length === 0 &&
+          [LoginMethod.Email, LoginMethod.Phone, LoginMethod.Username].some(
+            (method) => loginMethods.has(method)
+          )
+        ) {
+          return false;
+        }
+        return true;
+      }
       case ProjectWizardStep.step3:
         // No next step
         return false;
