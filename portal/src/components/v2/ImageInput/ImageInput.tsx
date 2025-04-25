@@ -1,10 +1,11 @@
 import React, { useCallback, useRef } from "react";
 import styles from "./ImageInput.module.css";
 
-import placeholderIcon from "../../../images/image_input_placeholder_icon.svg";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import { SecondaryButton } from "../SecondaryButton/SecondaryButton";
 import { IconButton, IconButtonIcon } from "../IconButton/IconButton";
+import { SquareIcon } from "../SquareIcon/SquareIcon";
+import { ImageIcon } from "@radix-ui/react-icons";
 
 export interface ImageInputProps {
   sizeLimitKB?: number;
@@ -82,9 +83,11 @@ export function ImageInput({
         onClick={handleUpload}
       >
         {value == null ? (
-          <img
+          <SquareIcon
             className={styles.imageInput__placeholder}
-            src={placeholderIcon}
+            Icon={ImageIcon}
+            size="7"
+            radius="3"
           />
         ) : (
           <img className={styles.imageInput__preview} src={value} />
