@@ -38,19 +38,6 @@ export function Step2(): React.ReactElement {
     [form.state.loginMethods]
   );
 
-  const enabledLoginIDs = useMemo(() => {
-    if (emailEnabled && phoneEnabled) {
-      return "all";
-    }
-    if (emailEnabled) {
-      return "email";
-    }
-    if (phoneEnabled) {
-      return "phone";
-    }
-    return null;
-  }, [emailEnabled, phoneEnabled]);
-
   return (
     <div className="grid grid-cols-1 gap-12 text-left self-stretch">
       <ProjectWizardStepper step={form.state.step} />
@@ -116,18 +103,16 @@ export function Step2(): React.ReactElement {
             />
           </div>
         </FormField>
-        <div className={cn(enabledLoginIDs != null ? null : "hidden")}>
+        <div
+          className={cn(
+            usernameEnabled || phoneEnabled || emailEnabled ? null : "hidden"
+          )}
+        >
           <FormField
             size="3"
             label={
               <FormattedMessage
-                id={
-                  enabledLoginIDs === "all"
-                    ? "ProjectWizardScreen.step2.fields.authMethod.label--all"
-                    : enabledLoginIDs === "email"
-                    ? "ProjectWizardScreen.step2.fields.authMethod.label--email"
-                    : "ProjectWizardScreen.step2.fields.authMethod.label--phone"
-                }
+                id={"ProjectWizardScreen.step2.fields.authMethod.label"}
               />
             }
           >
