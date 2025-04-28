@@ -14,8 +14,8 @@ import { useAppListQuery } from "./query/appListQuery";
 import { ErrorParseRule, makeReasonErrorParseRule } from "../../error/parse";
 import { useSimpleForm } from "../../hook/useSimpleForm";
 import {
-  randomProjectName,
-  projectNameWithCompanyName,
+  randomProjectID,
+  projectIDFromCompanyName,
 } from "../../util/projectname";
 import PrimaryButton from "../../PrimaryButton";
 
@@ -25,7 +25,7 @@ interface FormState {
 
 function makeDefaultState(): FormState {
   return {
-    appID: randomProjectName(),
+    appID: randomProjectID(),
   };
 }
 
@@ -95,7 +95,7 @@ function CreateProjectScreenContent(props: CreateProjectScreenContentProps) {
     if (typedState) {
       const intermediateName = processCompanyName(typedState.company_name);
       if (intermediateName !== "")
-        defaultState.appID = projectNameWithCompanyName(intermediateName);
+        defaultState.appID = projectIDFromCompanyName(intermediateName);
     }
     return defaultState;
   }, [state]);

@@ -1,6 +1,11 @@
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { SimpleFormModel, useSimpleForm } from "../../../hook/useSimpleForm";
 import { produce } from "immer";
+import { useLocation } from "react-router-dom";
+import {
+  projectIDFromCompanyName,
+  randomProjectID,
+} from "../../../util/projectname";
 
 export enum ProjectWizardStep {
   "step1" = "step1",
@@ -73,28 +78,59 @@ export interface ProjectWizardFormModel extends SimpleFormModel<FormState> {
   effectiveAuthMethods: AuthMethod[];
 }
 
-const initialState: FormState = {
-  step: ProjectWizardStep.step1,
+function processCompanyName(companyName: string): string {
+  return companyName
+    .trim()
+    .split("")
+    .filter((char) => /[a-zA-Z\s]/.exec(char))
+    .join("")
+    .split(" ")
+    .filter((word) => word !== "")
+    .join("-")
+    .toLowerCase();
+}
 
-  projectName: "",
-  projectID: "",
+function makeDefaultState(companyName?: string): FormState {
+  const processedCompanyName = companyName
+    ? processCompanyName(companyName)
+    : null;
+  return {
+    step: ProjectWizardStep.step1,
 
-  loginMethods: [LoginMethod.Email],
-  authMethods: [AuthMethod.Passwordless],
+    projectName: companyName ? companyName : "",
+    projectID: processedCompanyName
+      ? projectIDFromCompanyName(processedCompanyName)
+      : randomProjectID(),
 
-  logoBase64DataURL: undefined,
-  buttonAndLinkColor: "#176DF3",
-  buttonLabelColor: "#FFFFFF",
-};
+    loginMethods: [LoginMethod.Email],
+    authMethods: [AuthMethod.Passwordless],
+
+    logoBase64DataURL: undefined,
+    buttonAndLinkColor: "#176DF3",
+    buttonLabelColor: "#FFFFFF",
+  };
+}
+
+interface LocationState {
+  company_name: string;
+}
 
 export function useProjectWizardForm(): ProjectWizardFormModel {
+  const { state } = useLocation();
+
+  const [defaultState] = useState(() => {
+    const typedState: LocationState | null = state as LocationState | null;
+    const defaultState = makeDefaultState(typedState?.company_name);
+    return defaultState;
+  });
+
   const submit = useCallback(async (_formState: FormState) => {
     // TODO
   }, []);
 
   const form = useSimpleForm<FormState>({
     stateMode: "UpdateInitialStateWithUseEffect",
-    defaultState: initialState,
+    defaultState: defaultState,
     submit,
   });
 

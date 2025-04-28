@@ -1,8 +1,8 @@
 import { describe, it, expect } from "@jest/globals";
 import {
-  deterministicProjectName,
+  deterministicProjectID,
   extractBits,
-  projectNameWithCompanyName,
+  projectIDFromCompanyName,
 } from "./projectname";
 
 describe("extractBits", () => {
@@ -37,7 +37,7 @@ describe("deterministicProjectName", () => {
     // last 6 bits 000000 is not used
     // So the name is 'abandon-000000'
     const fortyEightBits = new Uint8Array([0, 0, 0, 0, 0, 0]);
-    expect(deterministicProjectName(fortyEightBits)).toEqual("abandon-000000");
+    expect(deterministicProjectID(fortyEightBits)).toEqual("abandon-000000");
   });
 
   it("deterministicProjectName([0, 0, 0, 0, 1, 0]) is 'abandon-000004'", () => {
@@ -47,7 +47,7 @@ describe("deterministicProjectName", () => {
     // last 6 bits 000000 is not used
     // So the name is 'abandon-000000'
     const fortyEightBits = new Uint8Array([0, 0, 0, 0, 1, 0]);
-    expect(deterministicProjectName(fortyEightBits)).toEqual("abandon-000004");
+    expect(deterministicProjectID(fortyEightBits)).toEqual("abandon-000004");
   });
 
   it("deterministicProjectName([87, 87, 87, 87, 87, 87]) is 'firm-pwldul' ", () => {
@@ -57,13 +57,13 @@ describe("deterministicProjectName", () => {
     // last 6 bits 010111 is not used
     // So the name is 'firm-000000'
     const fortyEightBits = new Uint8Array([87, 87, 87, 87, 87, 87]);
-    expect(deterministicProjectName(fortyEightBits)).toEqual("firm-pwldul");
+    expect(deterministicProjectID(fortyEightBits)).toEqual("firm-pwldul");
   });
 });
 
 describe("projectNameWithCompanyName", () => {
   it("projectNameWithCompanyName('authgear') starts with 'authgear-` and ends with 6 lowercase-alphanumeric characters", () => {
-    const authgearProjectName = projectNameWithCompanyName("authgear");
+    const authgearProjectName = projectIDFromCompanyName("authgear");
     expect(authgearProjectName).toMatch(/^authgear-[a-z0-9]{6}$/);
   });
 });
