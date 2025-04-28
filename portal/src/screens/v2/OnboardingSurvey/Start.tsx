@@ -2,9 +2,9 @@ import React from "react";
 import { Text } from "../../../components/onboarding/Text";
 import { EmojiIcon } from "../../../components/onboarding/EmojiIcon";
 import { FormattedMessage } from "@oursky/react-messageformat";
-import { PrimaryButton } from "../../../components/v2/PrimaryButton/PrimaryButton";
 import { OnboardingSurveyFormModel } from "./form";
 import { useFormContainerBaseContext } from "../../../FormContainerBase";
+import { WhiteButton } from "../../../components/v2/WhiteButton/WhiteButton";
 
 export function Start(): React.ReactElement {
   const { form } = useFormContainerBaseContext<OnboardingSurveyFormModel>();
@@ -23,10 +23,9 @@ export function Start(): React.ReactElement {
         </div>
       </div>
       <div>
-        <PrimaryButton
+        <WhiteButton
           type="submit"
           size="4"
-          highContrast={true}
           text={<FormattedMessage id="OnboardingSurveyScreen.actions.start" />}
           onClick={form.toNextStep}
         />

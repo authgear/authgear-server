@@ -1,0 +1,138 @@
+.whiteButton {
+  /* The color is generated with https://www.radix-ui.com/colors/custom
+  // Accent=#ffffff
+  // Gray=#ffffff
+  // Background=#000000
+  // Mode=Dark */
+  --accent-1: #000;
+  --accent-2: #131313;
+  --accent-3: #1f1f1f;
+  --accent-4: #282828;
+  --accent-5: #303030;
+  --accent-6: #3a3a3a;
+  --accent-7: #484848;
+  --accent-8: #616161;
+  --accent-9: #fff;
+  --accent-10: #f6f6f6;
+  --accent-11: #b4b4b4;
+  --accent-12: #eee;
+
+  --accent-a1: #00000000;
+  --accent-a2: #ffffff13;
+  --accent-a3: #ffffff1f;
+  --accent-a4: #ffffff28;
+  --accent-a5: #ffffff30;
+  --accent-a6: #ffffff3a;
+  --accent-a7: #ffffff48;
+  --accent-a8: #ffffff61;
+  --accent-a9: #ffffff;
+  --accent-a10: #fffffff6;
+  --accent-a11: #ffffffb4;
+  --accent-a12: #ffffffee;
+
+  --accent-contrast: #311921;
+  --accent-surface: #26262680;
+  --accent-indicator: #fff;
+  --accent-track: #fff;
+
+  --gray-1: #000;
+  --gray-2: #131313;
+  --gray-3: #1f1f1f;
+  --gray-4: #282828;
+  --gray-5: #303030;
+  --gray-6: #3a3a3a;
+  --gray-7: #484848;
+  --gray-8: #616161;
+  --gray-9: #6f6f6f;
+  --gray-10: #7c7c7c;
+  --gray-11: #b4b4b4;
+  --gray-12: #eee;
+
+  --gray-a1: #00000000;
+  --gray-a2: #ffffff13;
+  --gray-a3: #ffffff1f;
+  --gray-a4: #ffffff28;
+  --gray-a5: #ffffff30;
+  --gray-a6: #ffffff3a;
+  --gray-a7: #ffffff48;
+  --gray-a8: #ffffff61;
+  --gray-a9: #ffffff6f;
+  --gray-a10: #ffffff7c;
+  --gray-a11: #ffffffb4;
+  --gray-a12: #ffffffee;
+
+  --gray-contrast: #ffffff;
+  --gray-surface: rgba(0, 0, 0, 0.05);
+  --gray-indicator: #6f6f6f;
+  --gray-track: #6f6f6f;
+}
+
+/* stylelint-disable plugin/no-unsupported-browser-features,hue-degree-notation -- The css is generated */
+@supports (color: color(display-p3 1 1 1)) {
+  @media (color-gamut: p3) {
+    .whiteButton {
+      --accent-1: oklch(0% 0 none);
+      --accent-2: oklch(18.5% 0 none);
+      --accent-3: oklch(24% 0 none);
+      --accent-4: oklch(27.7% 0 none);
+      --accent-5: oklch(31% 0 none);
+      --accent-6: oklch(34.8% 0 none);
+      --accent-7: oklch(40% 0 none);
+      --accent-8: oklch(49.1% 0 none);
+      --accent-9: oklch(100% 0 none);
+      --accent-10: oklch(97.3% 0 none);
+      --accent-11: oklch(77% 0 none);
+      --accent-12: oklch(94.9% 0 none);
+
+      --accent-a1: color(display-p3 0 0 0 / 0);
+      --accent-a2: color(display-p3 1 1 1 / 0.0745);
+      --accent-a3: color(display-p3 1 1 1 / 0.1216);
+      --accent-a4: color(display-p3 1 1 1 / 0.1569);
+      --accent-a5: color(display-p3 1 1 1 / 0.1882);
+      --accent-a6: color(display-p3 1 1 1 / 0.2275);
+      --accent-a7: color(display-p3 1 1 1 / 0.2824);
+      --accent-a8: color(display-p3 1 1 1 / 0.3804);
+      --accent-a9: color(display-p3 1 1 1);
+      --accent-a10: color(display-p3 1 1 1 / 0.9647);
+      --accent-a11: color(display-p3 1 1 1 / 0.7059);
+      --accent-a12: color(display-p3 1 1 1 / 0.9333);
+
+      --accent-contrast: #311921;
+      --accent-surface: color(display-p3 0.149 0.149 0.149 / 0.5);
+      --accent-indicator: oklch(100% 0 none);
+      --accent-track: oklch(100% 0 none);
+
+      --gray-1: oklch(0% 0 none);
+      --gray-2: oklch(18.5% 0 none);
+      --gray-3: oklch(24% 0 none);
+      --gray-4: oklch(27.7% 0 none);
+      --gray-5: oklch(31% 0 none);
+      --gray-6: oklch(34.8% 0 none);
+      --gray-7: oklch(40% 0 none);
+      --gray-8: oklch(49.1% 0 none);
+      --gray-9: oklch(54% 0 none);
+      --gray-10: oklch(58.6% 0 none);
+      --gray-11: oklch(77% 0 none);
+      --gray-12: oklch(94.9% 0 none);
+
+      --gray-a1: color(display-p3 0 0 0 / 0);
+      --gray-a2: color(display-p3 1 1 1 / 0.0745);
+      --gray-a3: color(display-p3 1 1 1 / 0.1216);
+      --gray-a4: color(display-p3 1 1 1 / 0.1569);
+      --gray-a5: color(display-p3 1 1 1 / 0.1882);
+      --gray-a6: color(display-p3 1 1 1 / 0.2275);
+      --gray-a7: color(display-p3 1 1 1 / 0.2824);
+      --gray-a8: color(display-p3 1 1 1 / 0.3804);
+      --gray-a9: color(display-p3 1 1 1 / 0.4353);
+      --gray-a10: color(display-p3 1 1 1 / 0.4863);
+      --gray-a11: color(display-p3 1 1 1 / 0.7059);
+      --gray-a12: color(display-p3 1 1 1 / 0.9333);
+
+      --gray-contrast: #ffffff;
+      --gray-surface: color(display-p3 0 0 0 / 5%);
+      --gray-indicator: oklch(54% 0 none);
+      --gray-track: oklch(54% 0 none);
+    }
+  }
+}
+/* stylelint-enable plugin/no-unsupported-browser-features,hue-degree-notation */

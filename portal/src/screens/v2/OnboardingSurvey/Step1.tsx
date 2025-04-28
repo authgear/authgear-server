@@ -1,7 +1,6 @@
 import React, { useCallback, useMemo } from "react";
 import { Text } from "../../../components/onboarding/Text";
 import { FormattedMessage } from "@oursky/react-messageformat";
-import { PrimaryButton } from "../../../components/v2/PrimaryButton/PrimaryButton";
 import { OnboardingSurveyFormModel, Role } from "./form";
 import { useFormContainerBaseContext } from "../../../FormContainerBase";
 import { OnboardingSurveyStepper } from "../../../components/onboarding/OnboardingSurveyStepper";
@@ -10,6 +9,7 @@ import {
   RadioCards,
 } from "../../../components/v2/RadioCards/RadioCards";
 import { produce } from "immer";
+import { WhiteButton } from "../../../components/v2/WhiteButton/WhiteButton";
 
 export function Step1(): React.ReactElement {
   const { form } = useFormContainerBaseContext<OnboardingSurveyFormModel>();
@@ -70,10 +70,9 @@ export function Step1(): React.ReactElement {
         </div>
       </div>
       <div>
-        <PrimaryButton
+        <WhiteButton
           type="submit"
           size="4"
-          highContrast={true}
           text={<FormattedMessage id="OnboardingSurveyScreen.actions.next" />}
           onClick={form.toNextStep}
           disabled={!form.canNavigateToNextStep}
