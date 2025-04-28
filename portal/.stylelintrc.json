@@ -5,10 +5,7 @@
       true,
       {
         "ignorePartialSupport": true,
-        "ignore": [
-          "css3-cursors",
-          "css-nesting"
-        ]
+        "ignore": ["css3-cursors", "css-nesting"]
       }
     ],
     "oursky/flex": null,
@@ -25,6 +22,7 @@
       }
     ],
     "function-no-unknown": [true, { "ignoreFunctions": ["theme"] }],
-    "length-zero-no-unit": null
+    "length-zero-no-unit": null,
+    "alpha-value-notation": null
   }
 }

@@ -66,6 +66,8 @@
   --gray-indicator: #6f6f6f;
   --gray-track: #6f6f6f;
 }
+
+/* stylelint-disable plugin/no-unsupported-browser-features,hue-degree-notation -- The css is generated */
 @supports (color: color(display-p3 1 1 1)) {
   @media (color-gamut: p3) {
     .whiteButton {
@@ -133,3 +135,4 @@
     }
   }
 }
+/* stylelint-enable plugin/no-unsupported-browser-features,hue-degree-notation */
