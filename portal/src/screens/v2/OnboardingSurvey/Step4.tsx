@@ -5,7 +5,6 @@ import {
   Context as MessageContext,
   FormattedMessage,
 } from "@oursky/react-messageformat";
-import { PrimaryButton } from "../../../components/v2/PrimaryButton/PrimaryButton";
 import { OnboardingSurveyFormModel, UseCase } from "./form";
 import { useFormContainerBaseContext } from "../../../FormContainerBase";
 import { OnboardingSurveyStepper } from "../../../components/onboarding/OnboardingSurveyStepper";
@@ -16,6 +15,7 @@ import {
 import { produce } from "immer";
 import { BackButton } from "../../../components/onboarding/BackButton";
 import { TextArea } from "../../../components/v2/TextArea/TextArea";
+import { WhiteButton } from "../../../components/v2/WhiteButton/WhiteButton";
 
 export function Step4(): React.ReactElement {
   const { form } = useFormContainerBaseContext<OnboardingSurveyFormModel>();
@@ -115,10 +115,9 @@ export function Step4(): React.ReactElement {
       </div>
       <div className="flex items-center justify-center gap-8">
         <BackButton onClick={form.toPreviousStep} />
-        <PrimaryButton
+        <WhiteButton
           type="submit"
           size="4"
-          highContrast={true}
           text={<FormattedMessage id="OnboardingSurveyScreen.actions.finish" />}
           onClick={form.save}
           loading={form.isUpdating}
