@@ -5,6 +5,8 @@ import { FormattedMessage } from "@oursky/react-messageformat";
 
 type FormFieldSize = "2" | "3";
 
+type FormFieldLabelSpace = "1" | "2";
+
 export interface FormFieldProps {
   darkMode?: boolean;
   size: FormFieldSize;
@@ -13,6 +15,8 @@ export interface FormFieldProps {
   error?: React.ReactNode;
   hint?: React.ReactNode;
   children?: React.ReactNode;
+
+  labelSpace?: FormFieldLabelSpace;
 }
 
 export function FormField({
@@ -23,9 +27,17 @@ export function FormField({
   error,
   hint,
   children,
+
+  labelSpace = "2",
 }: FormFieldProps): React.ReactElement {
   return (
-    <label className={cn(styles.formField, darkMode ? "dark" : null)}>
+    <div
+      className={cn(
+        styles.formField,
+        labelSpaceClassName(labelSpace),
+        darkMode ? "dark" : null
+      )}
+    >
       {label ? (
         <p className={cn(styles.formField__label, sizeToLabelClass(size))}>
           {label}
@@ -44,7 +56,7 @@ export function FormField({
         ) : null}
         {hint != null ? <p className={styles.formField__hint}>{hint}</p> : null}
       </div>
-    </label>
+    </div>
   );
 }
 
@@ -54,5 +66,14 @@ function sizeToLabelClass(size: FormFieldSize) {
       return styles["formField__label--size2"];
     case "3":
       return styles["formField__label--size3"];
+  }
+}
+
+function labelSpaceClassName(space: FormFieldLabelSpace) {
+  switch (space) {
+    case "1":
+      return styles["formField--space1"];
+    case "2":
+      return styles["formField--space2"];
   }
 }

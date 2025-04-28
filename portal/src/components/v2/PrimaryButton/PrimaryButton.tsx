@@ -1,6 +1,7 @@
 import React from "react";
 import cn from "classnames";
 import { Button } from "@radix-ui/themes";
+import styles from "./PrimaryButton.module.css";
 
 export interface PrimaryButtonProps {
   darkMode?: boolean;
@@ -28,7 +29,7 @@ export function PrimaryButton({
   return (
     <Button
       type={type}
-      className={cn(darkMode ? "dark" : null)}
+      className={cn(styles.primaryButton, darkMode ? "dark" : null)}
       size={size}
       variant="solid"
       highContrast={highContrast}

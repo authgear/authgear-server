@@ -6,7 +6,7 @@ import {
 } from "../v2/TextButton/TextButton";
 import { FormattedMessage } from "@oursky/react-messageformat";
 
-export function BackButton({
+export function OnboardingSurveyBackButton({
   onClick,
   disabled,
 }: Pick<TextButtonProps, "onClick" | "disabled">): React.ReactElement {

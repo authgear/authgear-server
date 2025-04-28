@@ -1,0 +1,11 @@
+.toggle {
+  @apply flex flex-row items-center gap-2;
+}
+
+.toggle__text {
+  color: var(--gray-12);
+  font-size: var(--font-size-2);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-2);
+  letter-spacing: var(--letter-spacing-2);
+}
