@@ -1,0 +1,27 @@
+.squareIcon {
+  width: var(--square-icon__size);
+  height: var(--square-icon__size);
+
+  border-radius: var(--square-icon__radius);
+  background-color: var(--square-icon__background-color, var(--accent-3));
+
+  @apply grid items-center justify-center;
+}
+
+.squareIcon--size7 {
+  --square-icon__size: var(--space-7);
+}
+
+.squareIcon--radius3 {
+  --square-icon__radius: var(--radius-3);
+}
+
+.squareIcon--radius4 {
+  --square-icon__radius: var(--radius-4);
+}
+
+.squareIcon__icon {
+  width: var(--square-icon__icon-size, 1.125rem);
+  height: var(--square-icon__icon-size, 1.125rem);
+  color: currentColor;
+}

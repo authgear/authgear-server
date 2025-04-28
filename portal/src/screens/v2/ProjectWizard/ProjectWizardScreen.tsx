@@ -11,6 +11,7 @@ import {
 import { ProjectWizardLayout } from "../../../components/project-wizard/ProjectWizardLayout";
 import { Step1 } from "./Step1";
 import { Step2 } from "./Step2";
+import { Step3 } from "./Step3";
 
 function ProjectWizardScreen(): React.ReactElement {
   const form = useProjectWizardForm();
@@ -55,7 +56,7 @@ function ProjectWizardScreenContent() {
     case ProjectWizardStep.step2:
       return <Step2 />;
     case ProjectWizardStep.step3:
-      return <></>;
+      return <Step3 />;
   }
 }
 

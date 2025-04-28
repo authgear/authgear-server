@@ -21,40 +21,43 @@ export enum TextFieldIcon {
   InfoCircled = "InfoCircled",
 }
 
-export interface TextFieldProps {
-  darkMode?: boolean;
+export interface TextInputProps {
   size: TextFieldSize;
-  label?: React.ReactNode;
-  optional?: boolean;
   disabled?: boolean;
   readOnly?: boolean;
   placeholder?: string;
   error?: React.ReactNode;
+
+  value?: string;
+  onChange?: React.ChangeEventHandler<HTMLInputElement>;
+  onBlur?: React.FocusEventHandler<HTMLInputElement>;
+}
+
+export interface TextFieldProps extends TextInputProps {
+  darkMode?: boolean;
+  label?: React.ReactNode;
+  optional?: boolean;
   suffix?: React.ReactNode;
-  hint?: React.ReactNode;
   iconStart?: TextFieldIcon;
   iconEnd?: TextFieldIcon;
+  hint?: React.ReactNode;
 
   value?: string;
   onChange?: React.ChangeEventHandler<HTMLInputElement>;
 }
 
-export function TextField({
-  darkMode,
-  size,
-  label,
-  optional,
-  disabled,
-  readOnly,
-  placeholder,
-  error,
-  hint,
-  suffix,
-  iconStart,
-  iconEnd,
-  value,
-  onChange,
-}: TextFieldProps): React.ReactElement {
+function TextField_(props: TextFieldProps): React.ReactElement {
+  const {
+    darkMode,
+    size,
+    label,
+    optional,
+    error,
+    hint,
+    iconStart,
+    iconEnd,
+    suffix,
+  } = props;
   return (
     <FormField
       darkMode={darkMode}
@@ -65,16 +68,7 @@ export function TextField({
       hint={hint}
       labelSpace="1"
     >
-      <RadixTextField.Root
-        className={cn(error != null ? styles["textField--error"] : null)}
-        variant="surface"
-        size={size}
-        placeholder={placeholder}
-        disabled={disabled}
-        readOnly={readOnly}
-        value={value}
-        onChange={onChange}
-      >
+      <Input {...props}>
         {iconStart != null ? (
           <RadixTextField.Slot side="left">
             <Icon icon={iconStart} />
@@ -92,7 +86,37 @@ export function TextField({
             <Icon icon={iconEnd} />
           </RadixTextField.Slot>
         ) : null}
-      </RadixTextField.Root>
+      </Input>
     </FormField>
   );
 }
+
+function Input({
+  size,
+  disabled,
+  readOnly,
+  placeholder,
+  error,
+  value,
+  onChange,
+  onBlur,
+  children,
+}: TextInputProps & { children: React.ReactNode }): React.ReactElement {
+  return (
+    <RadixTextField.Root
+      className={cn(error != null ? styles["textField--error"] : null)}
+      variant="surface"
+      size={size}
+      placeholder={placeholder}
+      disabled={disabled}
+      readOnly={readOnly}
+      value={value}
+      onChange={onChange}
+      onBlur={onBlur}
+    >
+      {children}
+    </RadixTextField.Root>
+  );
+}
+
+export const TextField = Object.assign(TextField_, { Input });
