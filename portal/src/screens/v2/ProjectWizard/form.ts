@@ -76,7 +76,7 @@ const initialState: FormState = {
   projectName: "",
   projectID: "",
 
-  loginMethods: [LoginMethod.Email, LoginMethod.Phone],
+  loginMethods: [LoginMethod.Email],
   authMethods: [AuthMethod.Passwordless],
 };
 
