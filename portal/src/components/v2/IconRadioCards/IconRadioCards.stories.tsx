@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import { IconRadioCards, IconRadioCardsProps } from "./IconRadioCards";
-import passwordlessIcon from "../../../images/passwordless_icon.svg";
+import { SquareIcon } from "../SquareIcon/SquareIcon";
+import { ButtonIcon } from "@radix-ui/react-icons";
 
 // More on how to set up stories at: https://storybook.js.org/docs/writing-stories#default-export
 const meta = {
@@ -14,7 +15,15 @@ const meta = {
   args: {
     options: new Array(2).fill(null).map((_, idx) => ({
       value: `${idx + 1}`,
-      icon: <img src={passwordlessIcon} width={40} height={40} />,
+      icon: (
+        <SquareIcon
+          className="text-[var(--accent-9)]"
+          Icon={ButtonIcon}
+          size="7"
+          radius="4"
+          iconSize="1.375rem"
+        />
+      ),
       title: `Passwordless`,
       subtitle: `One-Time-Password (OTP)`,
     })),
@@ -41,14 +50,30 @@ export const WithTooltip: Story = {
     options: [
       {
         value: `1`,
-        icon: <img src={passwordlessIcon} width={40} height={40} />,
+        icon: (
+          <SquareIcon
+            className="text-[var(--accent-9)]"
+            Icon={ButtonIcon}
+            size="7"
+            radius="4"
+            iconSize="1.375rem"
+          />
+        ),
         title: `Passwordless`,
         subtitle: `One-Time-Password (OTP)`,
         tooltip: "This is a tooltip",
       },
       {
         value: `2`,
-        icon: <img src={passwordlessIcon} width={40} height={40} />,
+        icon: (
+          <SquareIcon
+            className="text-[var(--accent-9)]"
+            Icon={ButtonIcon}
+            size="7"
+            radius="4"
+            iconSize="1.375rem"
+          />
+        ),
         title: `Passwordless`,
         subtitle: `One-Time-Password (OTP)`,
         tooltip: "This is a tooltip",

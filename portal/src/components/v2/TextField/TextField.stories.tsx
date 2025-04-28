@@ -12,6 +12,11 @@ const meta = {
         type: "text",
       },
     },
+    hint: {
+      control: {
+        type: "text",
+      },
+    },
     iconStart: {
       options: ["none", ...Object.keys(TextFieldIcon)],
       mapping: {
