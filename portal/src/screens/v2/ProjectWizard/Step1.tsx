@@ -78,8 +78,9 @@ export function Step1(): React.ReactElement {
           type="submit"
           size="3"
           text={<FormattedMessage id="ProjectWizardScreen.actions.next" />}
-          onClick={form.toNextStep}
-          disabled={!form.canNavigateToNextStep}
+          loading={form.isUpdating}
+          onClick={form.save}
+          disabled={!form.canSave}
         />
       </div>
     </div>

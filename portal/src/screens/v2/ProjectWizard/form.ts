@@ -6,6 +6,7 @@ import {
   projectIDFromCompanyName,
   randomProjectID,
 } from "../../../util/projectname";
+import { useCreateAppMutation } from "../../../graphql/portal/mutations/createAppMutation";
 
 export enum ProjectWizardStep {
   "step1" = "step1",
@@ -70,8 +71,6 @@ function sanitizeFormState(state: FormState): FormState {
 }
 
 export interface ProjectWizardFormModel extends SimpleFormModel<FormState> {
-  canNavigateToNextStep: boolean;
-  toNextStep: () => void;
   toPreviousStep: () => void;
   canSave: boolean;
 
@@ -117,16 +116,46 @@ interface LocationState {
 
 export function useProjectWizardForm(): ProjectWizardFormModel {
   const { state } = useLocation();
+  const { createApp } = useCreateAppMutation();
 
-  const [defaultState] = useState(() => {
+  const [defaultState, setDefaultState] = useState(() => {
     const typedState: LocationState | null = state as LocationState | null;
     const defaultState = makeDefaultState(typedState?.company_name);
     return defaultState;
   });
 
-  const submit = useCallback(async (_formState: FormState) => {
-    // TODO
-  }, []);
+  const submit = useCallback(
+    async (formState: FormState) => {
+      const sanitizedFormState = sanitizeFormState(formState);
+      if (!computeCanSave(sanitizedFormState)) {
+        throw new Error(
+          "Cannot navigate to next step, check canNavigateToNextStep"
+        );
+      }
+      let nextStep: ProjectWizardStep | null;
+      switch (formState.step) {
+        case ProjectWizardStep.step1: {
+          await createApp(sanitizedFormState.projectID);
+          nextStep = ProjectWizardStep.step2;
+          break;
+        }
+        case ProjectWizardStep.step2:
+          nextStep = ProjectWizardStep.step3;
+          break;
+        case ProjectWizardStep.step3:
+          nextStep = null;
+      }
+      setDefaultState(
+        produce(formState, (draft) => {
+          if (nextStep != null) {
+            draft.step = nextStep;
+          }
+          return draft;
+        })
+      );
+    },
+    [createApp]
+  );
 
   const form = useSimpleForm<FormState>({
     stateMode: "UpdateInitialStateWithUseEffect",
@@ -140,59 +169,6 @@ export function useProjectWizardForm(): ProjectWizardFormModel {
     () => sanitizeFormState(formState),
     [formState]
   );
-
-  const canNavigateToNextStep = useMemo(() => {
-    switch (formStateSanitized.step) {
-      case ProjectWizardStep.step1:
-        return (
-          formStateSanitized.projectID.trim() !== "" &&
-          formStateSanitized.projectName.trim() !== ""
-        );
-      case ProjectWizardStep.step2: {
-        if (formStateSanitized.loginMethods.length === 0) {
-          return false;
-        }
-        const loginMethods = new Set(formStateSanitized.loginMethods);
-        if (
-          formStateSanitized.authMethods.length === 0 &&
-          [LoginMethod.Email, LoginMethod.Phone, LoginMethod.Username].some(
-            (method) => loginMethods.has(method)
-          )
-        ) {
-          return false;
-        }
-        return true;
-      }
-      case ProjectWizardStep.step3:
-        // No next step
-        return false;
-    }
-  }, [formStateSanitized]);
-
-  const toNextStep = useCallback(() => {
-    if (!canNavigateToNextStep) {
-      throw new Error(
-        "Cannot navigate to next step, check canNavigateToNextStep"
-      );
-    }
-    let nextStep: ProjectWizardStep;
-    switch (formState.step) {
-      case ProjectWizardStep.step1:
-        nextStep = ProjectWizardStep.step2;
-        break;
-      case ProjectWizardStep.step2:
-        nextStep = ProjectWizardStep.step3;
-        break;
-      default:
-        throw new Error("no next step is available");
-    }
-    form.setState((prev) => {
-      return produce(prev, (draft) => {
-        draft.step = nextStep;
-        return draft;
-      });
-    });
-  }, [canNavigateToNextStep, form, formState.step]);
 
   const toPreviousStep = useCallback(() => {
     form.setState((prev) => {
@@ -213,30 +189,45 @@ export function useProjectWizardForm(): ProjectWizardFormModel {
     });
   }, [form, formState.step]);
 
-  const canSave = useMemo(() => {
-    if (formState.step !== ProjectWizardStep.step3) {
-      return false;
-    }
-    // TODO
-    return true;
-  }, [formState.step]);
+  const canSave = useMemo(
+    () => computeCanSave(formStateSanitized),
+    [formStateSanitized]
+  );
 
   return useMemo(
     () => ({
       ...form,
-      toNextStep: toNextStep,
-      canNavigateToNextStep: canNavigateToNextStep,
       toPreviousStep: toPreviousStep,
       canSave,
       effectiveAuthMethods: formStateSanitized.authMethods,
     }),
-    [
-      form,
-      toNextStep,
-      canNavigateToNextStep,
-      toPreviousStep,
-      canSave,
-      formStateSanitized.authMethods,
-    ]
+    [form, toPreviousStep, canSave, formStateSanitized.authMethods]
   );
+}
+
+function computeCanSave(formStateSanitized: FormState): boolean {
+  switch (formStateSanitized.step) {
+    case ProjectWizardStep.step1:
+      return (
+        formStateSanitized.projectID.trim() !== "" &&
+        formStateSanitized.projectName.trim() !== ""
+      );
+    case ProjectWizardStep.step2: {
+      if (formStateSanitized.loginMethods.length === 0) {
+        return false;
+      }
+      const loginMethods = new Set(formStateSanitized.loginMethods);
+      if (
+        formStateSanitized.authMethods.length === 0 &&
+        [LoginMethod.Email, LoginMethod.Phone, LoginMethod.Username].some(
+          (method) => loginMethods.has(method)
+        )
+      ) {
+        return false;
+      }
+      return true;
+    }
+    case ProjectWizardStep.step3:
+      return true;
+  }
 }

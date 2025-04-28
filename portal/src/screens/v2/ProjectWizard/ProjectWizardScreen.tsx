@@ -20,18 +20,8 @@ function ProjectWizardScreen(): React.ReactElement {
     (e: React.FormEvent) => {
       e.preventDefault();
 
-      switch (form.state.step) {
-        case ProjectWizardStep.step1:
-        case ProjectWizardStep.step2:
-          if (form.canNavigateToNextStep) {
-            form.toNextStep();
-          }
-          break;
-        case ProjectWizardStep.step3:
-          if (form.canSave) {
-            form.save();
-          }
-          break;
+      if (form.canSave) {
+        form.save();
       }
     },
     [form]
