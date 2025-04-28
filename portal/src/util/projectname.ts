@@ -66,7 +66,7 @@ export function deterministicAlphanumericString(bits: number): string {
  * @param {Uint8Array} fortyEightBits Uint8Array of length 6
  * @returns {string}
  */
-export function deterministicProjectName(fortyEightBits: Uint8Array): string {
+export function deterministicProjectID(fortyEightBits: Uint8Array): string {
   if (fortyEightBits.length !== 6) {
     throw new Error("fortyEightBits must be 6 bytes");
   }
@@ -78,11 +78,11 @@ export function deterministicProjectName(fortyEightBits: Uint8Array): string {
   return `${firstRandomString}-${alphaNumericString}`;
 }
 
-export function randomProjectName(): string {
-  return deterministicProjectName(getRandom48Bits());
+export function randomProjectID(): string {
+  return deterministicProjectID(getRandom48Bits());
 }
 
-export function projectNameWithCompanyName(companyName: string): string {
+export function projectIDFromCompanyName(companyName: string): string {
   const randomBits = getRandom48Bits();
   const [_, thirtyOneBits] = extractBits(randomBits);
   const alphaNumericString = deterministicAlphanumericString(thirtyOneBits);
