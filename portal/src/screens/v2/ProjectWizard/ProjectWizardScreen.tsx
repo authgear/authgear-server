@@ -69,7 +69,7 @@ function ProjectWizardScreen(): React.ReactElement {
   const existingAppNodeID = appContext?.appNodeID;
 
   const client = usePortalClient();
-  const skipFormStateQuery = existingAppNodeID == null;
+  const skipAppSpecificQuery = existingAppNodeID == null;
   const screenNavQuery = useQuery<
     ScreenNavQueryQuery,
     ScreenNavQueryQueryVariables
@@ -79,10 +79,10 @@ function ProjectWizardScreen(): React.ReactElement {
       id: existingAppNodeID!,
     },
     fetchPolicy: "cache-first",
-    skip: skipFormStateQuery,
+    skip: skipAppSpecificQuery,
   });
 
-  if (skipFormStateQuery) {
+  if (skipAppSpecificQuery) {
     return <Loaded initialState={null} />;
   }
 
