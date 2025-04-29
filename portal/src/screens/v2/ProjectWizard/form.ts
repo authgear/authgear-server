@@ -9,6 +9,13 @@ import {
 import { useCreateAppMutation } from "../../../graphql/portal/mutations/createAppMutation";
 import { useOptionalAppContext } from "../../../context/AppContext";
 import { useSaveProjectWizardDataMutation } from "../../../graphql/portal/mutations/saveProjectWizardDataMutation";
+import {
+  LoginIDKeyConfig,
+  PortalAPIAppConfig,
+  PrimaryAuthenticatorType,
+} from "../../../types";
+import { useAppAndSecretConfigQuery } from "../../../graphql/portal/query/appAndSecretConfigQuery";
+import { useUpdateAppAndSecretConfigMutation } from "../../../graphql/portal/mutations/updateAppAndSecretMutation";
 
 export enum ProjectWizardStep {
   "step1" = "step1",
@@ -75,6 +82,8 @@ function sanitizeFormState(state: FormState): FormState {
 export interface ProjectWizardFormModel extends SimpleFormModel<FormState> {
   toPreviousStep: () => void;
   canSave: boolean;
+  isInitializing: boolean;
+  initializeError: unknown;
 
   effectiveAuthMethods: AuthMethod[];
   isProjectIDEditable: boolean;
@@ -125,6 +134,71 @@ interface LocationState {
   company_name: string;
 }
 
+function deriveLoginIDKeysFromFormState(
+  formState: FormState
+): LoginIDKeyConfig[] {
+  const keys: LoginIDKeyConfig[] = [];
+  for (const method of formState.loginMethods) {
+    switch (method) {
+      case LoginMethod.Email:
+        keys.push({ type: "email" });
+        break;
+      case LoginMethod.Phone:
+        keys.push({ type: "phone" });
+        break;
+      case LoginMethod.Username:
+        keys.push({ type: "username" });
+        break;
+    }
+  }
+  return keys;
+}
+
+function derivePrimaryAuthenticatorsFromFormState(
+  formState: FormState
+): PrimaryAuthenticatorType[] {
+  const authenticators: PrimaryAuthenticatorType[] = [];
+  for (const method of formState.authMethods) {
+    switch (method) {
+      case AuthMethod.Password:
+        authenticators.push("password");
+        break;
+      case AuthMethod.Passwordless:
+        if (formState.loginMethods.includes(LoginMethod.Email)) {
+          authenticators.push("oob_otp_email");
+        }
+        if (formState.loginMethods.includes(LoginMethod.Phone)) {
+          authenticators.push("oob_otp_sms");
+        }
+        break;
+    }
+  }
+  return authenticators;
+}
+
+function constructConfig(
+  config: PortalAPIAppConfig,
+  currentState: FormState
+): PortalAPIAppConfig {
+  return produce(config, (config) => {
+    config.identity ??= {};
+    config.identity.login_id ??= {};
+    config.identity.login_id.keys =
+      deriveLoginIDKeysFromFormState(currentState);
+    config.authentication ??= {};
+    config.authentication.identities = ["oauth", "login_id"];
+
+    config.authentication.primary_authenticators =
+      derivePrimaryAuthenticatorsFromFormState(currentState);
+
+    config.authentication.identities.push("passkey");
+    config.authentication.primary_authenticators.push("passkey");
+
+    config.authentication.secondary_authentication_mode = "if_exists";
+    config.authentication.secondary_authenticators = ["totp"];
+  });
+}
+
 export function useProjectWizardForm(
   initialState: FormState | null
 ): ProjectWizardFormModel {
@@ -132,9 +206,20 @@ export function useProjectWizardForm(
   const existingAppNodeID = appContext?.appNodeID;
   const navigate = useNavigate();
   const { state } = useLocation();
+
   const { createApp } = useCreateAppMutation();
   const { mutate: saveProjectWizardDataMutation } =
     useSaveProjectWizardDataMutation();
+
+  const skip = existingAppNodeID == null;
+  const {
+    error: appConfigLoadError,
+    rawAppConfig,
+    rawAppConfigChecksum,
+    refetch: reloadAppConfig,
+  } = useAppAndSecretConfigQuery(existingAppNodeID!, null, skip);
+  const { updateAppAndSecretConfig: updateAppConfig } =
+    useUpdateAppAndSecretConfigMutation(existingAppNodeID!);
 
   const [defaultState, setDefaultState] = useState(() => {
     if (initialState != null) {
@@ -195,12 +280,30 @@ export function useProjectWizardForm(
           return null;
         case ProjectWizardStep.step3:
           // Set it to null to indicate the flow is finished
+          if (rawAppConfig == null) {
+            throw new Error("unexpected error: rawAppConfig is null");
+          }
+          await updateAppConfig({
+            appConfig: constructConfig(rawAppConfig, updatedState),
+            appConfigChecksum: rawAppConfigChecksum,
+            ignoreConflict: true,
+          });
           await saveProjectWizardDataMutation(existingAppNodeID!, null);
+          await reloadAppConfig();
           setDefaultState(updatedState);
+
           return `/project/${existingAppNodeID}`;
       }
     },
-    [createApp, existingAppNodeID, saveProjectWizardDataMutation]
+    [
+      createApp,
+      existingAppNodeID,
+      rawAppConfig,
+      rawAppConfigChecksum,
+      reloadAppConfig,
+      saveProjectWizardDataMutation,
+      updateAppConfig,
+    ]
   );
 
   const form = useSimpleForm<FormState>({
@@ -252,6 +355,8 @@ export function useProjectWizardForm(
       ...form,
       toPreviousStep: toPreviousStep,
       canSave,
+      isInitializing: rawAppConfig == null,
+      initializeError: appConfigLoadError,
       effectiveAuthMethods: formStateSanitized.authMethods,
       isProjectIDEditable: existingAppNodeID == null,
     }),
@@ -259,6 +364,8 @@ export function useProjectWizardForm(
       form,
       toPreviousStep,
       canSave,
+      rawAppConfig,
+      appConfigLoadError,
       formStateSanitized.authMethods,
       existingAppNodeID,
     ]

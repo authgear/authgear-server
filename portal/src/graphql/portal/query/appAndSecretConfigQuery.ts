@@ -27,7 +27,8 @@ export interface AppAndSecretConfigQueryResult
 }
 export const useAppAndSecretConfigQuery = (
   appID: string,
-  token: string | null = null
+  token: string | null = null,
+  skip: boolean = false
 ): AppAndSecretConfigQueryResult => {
   const client = usePortalClient();
   const { data, loading, error, refetch } = useQuery<
@@ -39,6 +40,7 @@ export const useAppAndSecretConfigQuery = (
       id: appID,
       token: token,
     },
+    skip: skip,
   });
 
   const queryData = useMemo(() => {
