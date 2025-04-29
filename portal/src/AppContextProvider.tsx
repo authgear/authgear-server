@@ -11,17 +11,18 @@ export default function AppContextProvider(
   props: AppContextProviderProps
 ): ReactElement {
   const { children } = props;
-  const { appID } = useParams() as { appID: string };
+  const { appID: appNodeID } = useParams() as { appID: string };
 
   // NOTE: check if appID actually exist in authorized app list
-  const { effectiveAppConfig, viewer } = useAppAndSecretConfigQuery(appID);
+  const { effectiveAppConfig, viewer } = useAppAndSecretConfigQuery(appNodeID);
 
   const appContextValue = useMemo(() => {
     return {
+      appNodeID: appNodeID,
       appID: effectiveAppConfig?.id ?? "",
       currentCollaboratorRole: viewer?.role ?? "",
     };
-  }, [effectiveAppConfig, viewer?.role]);
+  }, [appNodeID, effectiveAppConfig, viewer?.role]);
 
   return (
     <AppContext.Provider value={appContextValue}>
