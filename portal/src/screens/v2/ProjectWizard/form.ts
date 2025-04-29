@@ -132,27 +132,33 @@ export function useProjectWizardForm(): ProjectWizardFormModel {
           "Cannot navigate to next step, check canNavigateToNextStep"
         );
       }
-      let nextStep: ProjectWizardStep | null;
+      const updatedState = produce(formState, (draft) => {
+        switch (draft.step) {
+          case ProjectWizardStep.step1: {
+            draft.step = ProjectWizardStep.step2;
+            break;
+          }
+          case ProjectWizardStep.step2:
+            draft.step = ProjectWizardStep.step3;
+            break;
+          case ProjectWizardStep.step3:
+            break;
+        }
+        return draft;
+      });
       switch (formState.step) {
         case ProjectWizardStep.step1: {
-          await createApp(sanitizedFormState.projectID);
-          nextStep = ProjectWizardStep.step2;
+          await createApp(sanitizedFormState.projectID, updatedState);
           break;
         }
         case ProjectWizardStep.step2:
-          nextStep = ProjectWizardStep.step3;
+          // TODO
           break;
         case ProjectWizardStep.step3:
-          nextStep = null;
+          // TODO
+          break;
       }
-      setDefaultState(
-        produce(formState, (draft) => {
-          if (nextStep != null) {
-            draft.step = nextStep;
-          }
-          return draft;
-        })
-      );
+      setDefaultState(updatedState);
     },
     [createApp]
   );
