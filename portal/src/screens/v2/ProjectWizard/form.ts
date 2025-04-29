@@ -8,6 +8,7 @@ import {
 } from "../../../util/projectname";
 import { useCreateAppMutation } from "../../../graphql/portal/mutations/createAppMutation";
 import { useOptionalAppContext } from "../../../context/AppContext";
+import { useSaveProjectWizardDataMutation } from "../../../graphql/portal/mutations/saveProjectWizardDataMutation";
 
 export enum ProjectWizardStep {
   "step1" = "step1",
@@ -119,10 +120,12 @@ export function useProjectWizardForm(
   initialState: FormState | null
 ): ProjectWizardFormModel {
   const appContext = useOptionalAppContext();
-  const existingAppID = appContext?.appID;
+  const existingAppNodeID = appContext?.appNodeID;
   const navigate = useNavigate();
   const { state } = useLocation();
   const { createApp } = useCreateAppMutation();
+  const { mutate: saveProjectWizardDataMutation } =
+    useSaveProjectWizardDataMutation();
 
   const [defaultState, setDefaultState] = useState(() => {
     if (initialState != null) {
@@ -157,28 +160,35 @@ export function useProjectWizardForm(
       });
       switch (formState.step) {
         case ProjectWizardStep.step1: {
-          if (!existingAppID) {
+          if (!existingAppNodeID) {
             const appID = await createApp(
               sanitizedFormState.projectID,
               updatedState
             );
             setDefaultState(updatedState);
             return `/project/${encodeURIComponent(appID!)}/wizard`;
+            // eslint-disable-next-line no-else-return
+          } else {
+            await saveProjectWizardDataMutation(
+              existingAppNodeID,
+              updatedState
+            );
+            setDefaultState(updatedState);
+            return null;
           }
-          break;
         }
         case ProjectWizardStep.step2:
-          // TODO
+          await saveProjectWizardDataMutation(existingAppNodeID!, updatedState);
           setDefaultState(updatedState);
-          break;
+          return null;
         case ProjectWizardStep.step3:
-          // TODO
+          // Set it to null to indicate the flow is finished
+          await saveProjectWizardDataMutation(existingAppNodeID!, null);
           setDefaultState(updatedState);
-          break;
+          return null;
       }
-      return null;
     },
-    [createApp, existingAppID]
+    [createApp, existingAppNodeID, saveProjectWizardDataMutation]
   );
 
   const form = useSimpleForm<FormState>({

@@ -14,7 +14,7 @@ import { Step1 } from "./Step1";
 import { Step2 } from "./Step2";
 import { Step3 } from "./Step3";
 import { useOptionalAppContext } from "../../../context/AppContext";
-import { useOptionalPortalClient } from "../../../graphql/portal/apollo";
+import { usePortalClient } from "../../../graphql/portal/apollo";
 import { useQuery } from "@apollo/client";
 import {
   ScreenNavQueryDocument,
@@ -68,8 +68,8 @@ function ProjectWizardScreen(): React.ReactElement {
   const appContext = useOptionalAppContext();
   const existingAppNodeID = appContext?.appNodeID;
 
-  const client = useOptionalPortalClient();
-  const skipFormStateQuery = existingAppNodeID == null || client == null;
+  const client = usePortalClient();
+  const skipFormStateQuery = existingAppNodeID == null;
   const screenNavQuery = useQuery<
     ScreenNavQueryQuery,
     ScreenNavQueryQueryVariables
