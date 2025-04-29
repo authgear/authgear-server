@@ -39,7 +39,18 @@ var CmdSetup = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		image := internal.GetDockerImage(cmd)
 
-		setupApp := SetupApp{Context: cmd.Context(), Image: image}
+		licenseKey := args[0]
+		fingerprint := internal.GenerateMachineFingerprint()
+
+		// TODO: check license with license key and fingerprint.
+
+		setupApp := SetupApp{
+			Context:                           cmd.Context(),
+			AUTHGEAR_ONCE_LICENSE_KEY:         licenseKey,
+			AUTHGEAR_ONCE_MACHINE_FINGERPRINT: fingerprint,
+			Image:                             image,
+		}
+
 		prog := tea.NewProgram(setupApp)
 		model, err := prog.Run()
 		if err != nil {
@@ -50,6 +61,9 @@ var CmdSetup = &cobra.Command{
 		if setupApp.HasError() {
 			os.Exit(1)
 		}
+
+		// TODO: activate the license key
+
 		return nil
 	},
 }
