@@ -1,7 +1,9 @@
-import React from "react";
+import React, { useMemo } from "react";
 import cn from "classnames";
 import styles from "./FormField.module.css";
 import { FormattedMessage } from "@oursky/react-messageformat";
+import { ErrorParseRule } from "../../../error/parse";
+import { useErrorMessage } from "../../../formbinding";
 
 type FormFieldSize = "2" | "3";
 
@@ -17,6 +19,10 @@ export interface FormFieldProps {
   children?: React.ReactNode;
 
   labelSpace?: FormFieldLabelSpace;
+
+  parentJSONPointer?: string | RegExp;
+  fieldName?: string;
+  errorRules?: ErrorParseRule[];
 }
 
 export function FormField({
@@ -24,12 +30,32 @@ export function FormField({
   size,
   label,
   optional,
-  error,
+  error: propsError,
   hint,
   children,
 
   labelSpace = "2",
+
+  parentJSONPointer = "",
+  fieldName,
+  errorRules,
 }: FormFieldProps): React.ReactElement {
+  const field = useMemo(
+    () =>
+      fieldName != null
+        ? {
+            parentJSONPointer,
+            fieldName,
+            rules: errorRules,
+          }
+        : undefined,
+    [parentJSONPointer, fieldName, errorRules]
+  );
+
+  const fieldProps = useErrorMessage(field);
+
+  const error = propsError ?? fieldProps.errorMessage;
+
   return (
     <div
       className={cn(

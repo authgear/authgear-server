@@ -1,9 +1,11 @@
-import React from "react";
+import React, { useMemo } from "react";
 import cn from "classnames";
 import { TextField as RadixTextField } from "@radix-ui/themes";
 import styles from "./TextField.module.css";
 import { InfoCircledIcon, MagnifyingGlassIcon } from "@radix-ui/react-icons";
 import { FormField } from "../FormField/FormField";
+import { ErrorParseRule } from "../../../error/parse";
+import { useErrorMessage } from "../../../formbinding";
 
 type TextFieldSize = "2" | "3";
 
@@ -44,6 +46,10 @@ export interface TextFieldProps extends TextInputProps {
 
   value?: string;
   onChange?: React.ChangeEventHandler<HTMLInputElement>;
+
+  parentJSONPointer?: string | RegExp;
+  fieldName?: string;
+  errorRules?: ErrorParseRule[];
 }
 
 function TextField_(props: TextFieldProps): React.ReactElement {
@@ -57,7 +63,25 @@ function TextField_(props: TextFieldProps): React.ReactElement {
     iconStart,
     iconEnd,
     suffix,
+
+    parentJSONPointer = "",
+    fieldName,
+    errorRules,
   } = props;
+  const field = useMemo(
+    () =>
+      fieldName != null
+        ? {
+            parentJSONPointer,
+            fieldName,
+            rules: errorRules,
+          }
+        : undefined,
+    [parentJSONPointer, fieldName, errorRules]
+  );
+
+  const fieldProps = useErrorMessage(field);
+
   return (
     <FormField
       darkMode={darkMode}
@@ -67,8 +91,15 @@ function TextField_(props: TextFieldProps): React.ReactElement {
       error={error}
       hint={hint}
       labelSpace="1"
+      parentJSONPointer={parentJSONPointer}
+      fieldName={fieldName}
+      errorRules={errorRules}
     >
-      <Input {...props}>
+      <Input
+        {...props}
+        disabled={props.disabled || fieldProps.disabled}
+        error={props.error ?? fieldProps.errorMessage}
+      >
         {iconStart != null ? (
           <RadixTextField.Slot side="left">
             <Icon icon={iconStart} />
