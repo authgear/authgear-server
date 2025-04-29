@@ -1,12 +1,13 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { SimpleFormModel, useSimpleForm } from "../../../hook/useSimpleForm";
 import { produce } from "immer";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   projectIDFromCompanyName,
   randomProjectID,
 } from "../../../util/projectname";
 import { useCreateAppMutation } from "../../../graphql/portal/mutations/createAppMutation";
+import { useOptionalAppContext } from "../../../context/AppContext";
 
 export enum ProjectWizardStep {
   "step1" = "step1",
@@ -114,18 +115,26 @@ interface LocationState {
   company_name: string;
 }
 
-export function useProjectWizardForm(): ProjectWizardFormModel {
+export function useProjectWizardForm(
+  initialState: FormState | null
+): ProjectWizardFormModel {
+  const appContext = useOptionalAppContext();
+  const existingAppID = appContext?.appID;
+  const navigate = useNavigate();
   const { state } = useLocation();
   const { createApp } = useCreateAppMutation();
 
   const [defaultState, setDefaultState] = useState(() => {
+    if (initialState != null) {
+      return initialState;
+    }
     const typedState: LocationState | null = state as LocationState | null;
     const defaultState = makeDefaultState(typedState?.company_name);
     return defaultState;
   });
 
   const submit = useCallback(
-    async (formState: FormState) => {
+    async (formState: FormState): Promise<string | null> => {
       const sanitizedFormState = sanitizeFormState(formState);
       if (!computeCanSave(sanitizedFormState)) {
         throw new Error(
@@ -148,19 +157,28 @@ export function useProjectWizardForm(): ProjectWizardFormModel {
       });
       switch (formState.step) {
         case ProjectWizardStep.step1: {
-          await createApp(sanitizedFormState.projectID, updatedState);
+          if (!existingAppID) {
+            const appID = await createApp(
+              sanitizedFormState.projectID,
+              updatedState
+            );
+            setDefaultState(updatedState);
+            return `/project/${encodeURIComponent(appID!)}/wizard`;
+          }
           break;
         }
         case ProjectWizardStep.step2:
           // TODO
+          setDefaultState(updatedState);
           break;
         case ProjectWizardStep.step3:
           // TODO
+          setDefaultState(updatedState);
           break;
       }
-      setDefaultState(updatedState);
+      return null;
     },
-    [createApp]
+    [createApp, existingAppID]
   );
 
   const form = useSimpleForm<FormState>({
@@ -170,6 +188,13 @@ export function useProjectWizardForm(): ProjectWizardFormModel {
   });
 
   const formState = form.state;
+  const nextPath = form.submissionResult;
+
+  useEffect(() => {
+    if (nextPath) {
+      navigate(nextPath);
+    }
+  }, [navigate, nextPath]);
 
   const formStateSanitized = useMemo(
     () => sanitizeFormState(formState),
