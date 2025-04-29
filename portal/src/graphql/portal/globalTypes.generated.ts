@@ -20,6 +20,8 @@ export type Scalars = {
   DateTime: { input: GQL_DateTime; output: GQL_DateTime; }
   /** The `FeatureConfig` scalar type represents an feature config JSON object */
   FeatureConfig: { input: GQL_FeatureConfig; output: GQL_FeatureConfig; }
+  /** The `ProjectWizardData` scalar type represents form data of project wizard */
+  ProjectWizardData: { input: any; output: any; }
   /** The `StripeError` scalar type represents Stripe error */
   StripeError: { input: GQL_StripeError; output: GQL_StripeError; }
   /** The `TutorialStatusData` scalar type represents tutorial status data */
@@ -203,6 +205,8 @@ export enum CollaboratorRole {
 export type CreateAppInput = {
   /** ID of the new app. */
   id: Scalars['String']['input'];
+  /** Data of project wizard */
+  projectWizardData: Scalars['ProjectWizardData']['input'];
 };
 
 export type CreateAppPayload = {
