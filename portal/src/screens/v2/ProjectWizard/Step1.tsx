@@ -58,6 +58,7 @@ export function Step1(): React.ReactElement {
             "ProjectWizardScreen.step1.fields.projectID.placeholder"
           )}
           suffix={systemConfig.appHostSuffix}
+          disabled={!form.isProjectIDEditable}
           value={form.state.projectID}
           onChange={useCallback(
             (e: React.ChangeEvent<HTMLInputElement>) => {
