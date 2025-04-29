@@ -12,15 +12,29 @@ import (
 )
 
 var CmdSetup = &cobra.Command{
-	Use:          "setup",
-	Short:        "Set up your Authgear ONCE installation.",
-	SilenceUsage: true,
-	PreRunE: func(cmd *cobra.Command, args []string) error {
+	Use:           "setup license-key",
+	Short:         "Set up your Authgear ONCE installation.",
+	SilenceUsage:  true,
+	SilenceErrors: true,
+	PreRunE: func(cmd *cobra.Command, args []string) (err error) {
+		defer func() {
+			if err != nil {
+				err = internal.PrintError(err)
+			}
+		}()
+
+		err = cobra.ExactArgs(1)(cmd, args)
+		if err != nil {
+			return
+		}
+
 		// tea requires a terminal to run, so we do this checking prior to launching the tea program.
 		if !termutil.IsTerminal(os.Stdout.Fd()) {
-			return fmt.Errorf("This command sets up your Authgear ONCE installation interactively. Thus, you must run it connected to a terminal.")
+			err = fmt.Errorf("This command sets up your Authgear ONCE installation interactively. Thus, you must run it connected to a terminal.")
+			return
 		}
-		return nil
+
+		return
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		image := internal.GetDockerImage(cmd)
