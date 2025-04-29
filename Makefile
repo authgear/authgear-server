@@ -236,6 +236,12 @@ authgearonce-set-git-tag-name:
 	@./scripts/sh/authgearonce-set-git-tag-name.sh
 
 .PHONY: authgearonce-binary
+ifeq ($(AUTHGEARONCE_LICENSE_SERVER_ENV), local)
+GO_BUILD_TAGS += authgearonce_license_server_local
+endif
+ifeq ($(AUTHGEARONCE_LICENSE_SERVER_ENV), staging)
+GO_BUILD_TAGS += authgearonce_license_server_staging
+endif
 authgearonce-binary:
 	rm -rf ./dist
 	mkdir ./dist
