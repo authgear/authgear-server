@@ -197,7 +197,7 @@ export function useProjectWizardForm(
           // Set it to null to indicate the flow is finished
           await saveProjectWizardDataMutation(existingAppNodeID!, null);
           setDefaultState(updatedState);
-          return null;
+          return `/project/${existingAppNodeID}`;
       }
     },
     [createApp, existingAppNodeID, saveProjectWizardDataMutation]
