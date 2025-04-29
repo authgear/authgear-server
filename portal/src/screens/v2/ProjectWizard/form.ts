@@ -48,6 +48,13 @@ import {
 import { TranslationKey } from "../../../model/translations";
 import { deriveColors } from "../../../util/theme";
 import { ImageValue } from "../../../components/v2/ImageInput/ImageInput";
+import { usePortalClient } from "../../../graphql/portal/apollo";
+import { useQuery } from "@apollo/client";
+import {
+  ScreenNavQueryDocument,
+  ScreenNavQueryQuery,
+  ScreenNavQueryQueryVariables,
+} from "../../../graphql/portal/query/screenNavQuery.generated";
 
 export enum ProjectWizardStep {
   "step1" = "step1",
@@ -233,6 +240,7 @@ export function useProjectWizardForm(
   const navigate = useNavigate();
   const { state } = useLocation();
 
+  const portalClient = usePortalClient();
   const { createApp } = useCreateAppMutation();
   const { mutate: saveProjectWizardDataMutation } =
     useSaveProjectWizardDataMutation();
@@ -246,6 +254,16 @@ export function useProjectWizardForm(
   } = useAppAndSecretConfigQuery(existingAppNodeID!, null, skip);
   const { updateAppAndSecretConfig: updateAppConfig } =
     useUpdateAppAndSecretConfigMutation(existingAppNodeID!);
+  const { refetch: reloadScreenNavQuery } = useQuery<
+    ScreenNavQueryQuery,
+    ScreenNavQueryQueryVariables
+  >(ScreenNavQueryDocument, {
+    client: portalClient,
+    variables: {
+      id: existingAppNodeID!,
+    },
+    skip: true,
+  });
 
   const [defaultState, setDefaultState] = useState(() => {
     if (initialState != null) {
@@ -326,6 +344,8 @@ export function useProjectWizardForm(
           // Set it to null to indicate the flow is finished
           await saveProjectWizardDataMutation(existingAppNodeID!, null);
           await reloadAppConfig();
+          // Reload the tutorial data, so portal will not redirect user back to wizard again
+          await reloadScreenNavQuery();
           setDefaultState(updatedState);
 
           return `/project/${existingAppNodeID}`;
@@ -338,6 +358,7 @@ export function useProjectWizardForm(
       rawAppConfig,
       rawAppConfigChecksum,
       reloadAppConfig,
+      reloadScreenNavQuery,
       resourceForm,
       saveProjectWizardDataMutation,
       updateAppConfig,
