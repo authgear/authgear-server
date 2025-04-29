@@ -8,8 +8,9 @@ import {
   WatermarkEnabledDisplay,
   getThemeTargetSelector,
 } from "../../../model/themeAuthFlowV2";
+import { TranslationKey } from "../../../model/translations";
 import { PortalAPIAppConfig } from "../../../types";
-import { AppLogoResource, BranchDesignFormState, TranslationKey } from "./form";
+import { AppLogoResource, BranchDesignFormState } from "./form";
 
 export type PreviewPageType =
   | "Login"

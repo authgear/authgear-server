@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from "react";
+import React, { useCallback, useMemo, useRef } from "react";
 import styles from "./ImageInput.module.css";
 
 import { FormattedMessage } from "@oursky/react-messageformat";
@@ -6,12 +6,23 @@ import { SecondaryButton } from "../SecondaryButton/SecondaryButton";
 import { IconButton, IconButtonIcon } from "../IconButton/IconButton";
 import { SquareIcon } from "../SquareIcon/SquareIcon";
 import { ImageIcon } from "@radix-ui/react-icons";
+import {
+  base64EncodedDataToDataURI,
+  dataURIToBase64EncodedData,
+} from "../../../util/uri";
+
+export type ImageFileExtension = ".jpeg" | ".png" | ".gif";
+
+export interface ImageValue {
+  base64EncodedData: string;
+  extension: ImageFileExtension;
+}
 
 export interface ImageInputProps {
   sizeLimitKB?: number;
 
-  value: string | null; // Must be a base64 data url of an image if not null
-  onValueChange?: (imageBase64DataURL: string | null) => void;
+  value: ImageValue | null;
+  onValueChange?: (value: ImageValue | null) => void;
   onError?: (error: ImageInputError) => void;
 }
 
@@ -59,9 +70,9 @@ export function ImageInput({
         onError?.(new ImageInputError(ImageInputErrorCode.FILE_TOO_LARGE));
         return;
       }
-      fileToBase64DataURL(file)
-        .then((url) => {
-          onValueChange?.(url);
+      fileToImageValue(file)
+        .then((value) => {
+          onValueChange?.(value);
         })
         .catch((e) => {
           onError?.(new ImageInputError(ImageInputErrorCode.UNKNOWN, e));
@@ -75,6 +86,13 @@ export function ImageInput({
     [onError, onValueChange, sizeLimitKB]
   );
 
+  const valuesrc = useMemo(() => {
+    if (value != null) {
+      return base64EncodedDataToDataURI(value.base64EncodedData);
+    }
+    return undefined;
+  }, [value]);
+
   return (
     <div className={styles.imageInput}>
       <button
@@ -82,7 +100,7 @@ export function ImageInput({
         className={styles.imageInput__imageContainer}
         onClick={handleUpload}
       >
-        {value == null ? (
+        {valuesrc == null ? (
           <SquareIcon
             className={styles.imageInput__placeholder}
             Icon={ImageIcon}
@@ -90,7 +108,7 @@ export function ImageInput({
             radius="3"
           />
         ) : (
-          <img className={styles.imageInput__preview} src={value} />
+          <img className={styles.imageInput__preview} src={valuesrc} />
         )}
       </button>
       <div className={styles.imageInput__rightColumn}>
@@ -126,11 +144,29 @@ export function ImageInput({
   );
 }
 
-async function fileToBase64DataURL(file: File) {
-  return new Promise<string>((resolve, reject) => {
+function mediaTypeToExtension(mime: string): ImageFileExtension {
+  switch (mime) {
+    case "image/png":
+      return ".png";
+    case "image/jpeg":
+      return ".jpeg";
+    case "image/gif":
+      return ".gif";
+    default:
+      throw new Error(`unsupported media type: ${mime}`);
+  }
+}
+
+async function fileToImageValue(file: File) {
+  return new Promise<ImageValue>((resolve, reject) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
-    reader.onload = () => resolve(reader.result as string);
+    const extension = mediaTypeToExtension(file.type);
+    reader.onload = () =>
+      resolve({
+        base64EncodedData: dataURIToBase64EncodedData(reader.result as string),
+        extension,
+      });
     reader.onerror = reject;
   });
 }
