@@ -95,11 +95,15 @@ func NewDockerRunOptionsForStarting(image string) DockerRunOptions {
 		Detach: true,
 		Volume: []string{fmt.Sprintf("%v:/var/lib/authgearonce", NameDockerVolume)},
 		Publish: []string{
+			// Only publish HTTP/HTTPS ports on fixed host ports.
+			// Note that these ports are published on 0.0.0.0
 			"80:80",
 			"443:443",
-			"5432:5432",
-			"9001:9001",
-			"8090:8090",
+			// Let docker to randomly select available host ports.
+			// Note that these ports are published on 127.0.0.1
+			"5432",
+			"9001",
+			"8090",
 		},
 		Name:  NameDockerContainer,
 		Image: image,
