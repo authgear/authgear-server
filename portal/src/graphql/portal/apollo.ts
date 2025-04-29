@@ -104,10 +104,4 @@ export function usePortalClient(): ApolloClient<NormalizedCacheObject> {
   return client;
 }
 
-export function useOptionalPortalClient():
-  | ApolloClient<NormalizedCacheObject>
-  | undefined {
-  return useContext(PortalClientContext);
-}
-
 export { PortalClientProvider };
