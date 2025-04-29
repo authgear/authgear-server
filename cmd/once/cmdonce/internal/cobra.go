@@ -27,3 +27,16 @@ func GetLicenseServerEndpoint(cmd *cobra.Command) string {
 	}
 	return LicenseServerEndpoint
 }
+
+func GetDockerImage(cmd *cobra.Command) string {
+	image, err := cmd.Flags().GetString("image")
+	if err != nil {
+		panic(err)
+	}
+
+	if image != "" {
+		return image
+	}
+
+	return fmt.Sprintf("%v:%v", DefaultDockerName_NoTag, Version)
+}

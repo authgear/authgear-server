@@ -7,6 +7,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/spf13/cobra"
 
+	"github.com/authgear/authgear-server/cmd/once/cmdonce/internal"
 	"github.com/authgear/authgear-server/pkg/util/termutil"
 )
 
@@ -22,10 +23,7 @@ var CmdSetup = &cobra.Command{
 		return nil
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		image, err := cmd.Flags().GetString("image")
-		if err != nil {
-			return err
-		}
+		image := internal.GetDockerImage(cmd)
 
 		setupApp := SetupApp{Context: cmd.Context(), Image: image}
 		prog := tea.NewProgram(setupApp)

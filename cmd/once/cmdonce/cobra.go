@@ -10,10 +10,12 @@ import (
 	"github.com/authgear/authgear-server/cmd/once/cmdonce/cmdstart"
 	"github.com/authgear/authgear-server/cmd/once/cmdonce/cmdstop"
 	"github.com/authgear/authgear-server/cmd/once/cmdonce/cmdupgrade"
+	"github.com/authgear/authgear-server/cmd/once/cmdonce/cmdversion"
 	"github.com/authgear/authgear-server/cmd/once/cmdonce/internal"
 )
 
 func init() {
+	CmdRoot.AddCommand(cmdversion.CmdVersion)
 	CmdRoot.AddCommand(cmdsetup.CmdSetup)
 	CmdRoot.AddCommand(cmdstart.CmdStart)
 	CmdRoot.AddCommand(cmdstop.CmdStop)
@@ -29,8 +31,9 @@ func init() {
 }
 
 var CmdRoot = &cobra.Command{
-	Use:     internal.ProgramName,
-	Version: internal.Version,
+	Use: internal.ProgramName,
+	// Suppress the --version flag.
+	Version: "",
 }
 
 func Run(ctx context.Context) {

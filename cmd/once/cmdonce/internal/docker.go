@@ -91,10 +91,6 @@ type DockerRunOptions struct {
 }
 
 func NewDockerRunOptionsForStarting(image string) DockerRunOptions {
-	if image == "" {
-		image = fmt.Sprintf("%v:%v", DefaultDockerName_NoTag, Version)
-	}
-
 	return DockerRunOptions{
 		Detach: true,
 		Volume: []string{fmt.Sprintf("%v:/var/lib/authgearonce", NameDockerVolume)},

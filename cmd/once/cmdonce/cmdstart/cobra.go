@@ -35,10 +35,7 @@ var CmdStart = &cobra.Command{
 			}
 		}()
 
-		image, err := cmd.Flags().GetString("image")
-		if err != nil {
-			return err
-		}
+		image := internal.GetDockerImage(cmd)
 
 		ctx := cmd.Context()
 
