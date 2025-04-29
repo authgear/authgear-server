@@ -190,12 +190,6 @@ function constructConfig(
 
     config.authentication.primary_authenticators =
       derivePrimaryAuthenticatorsFromFormState(currentState);
-
-    config.authentication.identities.push("passkey");
-    config.authentication.primary_authenticators.push("passkey");
-
-    config.authentication.secondary_authentication_mode = "if_exists";
-    config.authentication.secondary_authenticators = ["totp"];
   });
 }
 
@@ -279,7 +273,6 @@ export function useProjectWizardForm(
           setDefaultState(updatedState);
           return null;
         case ProjectWizardStep.step3:
-          // Set it to null to indicate the flow is finished
           if (rawAppConfig == null) {
             throw new Error("unexpected error: rawAppConfig is null");
           }
@@ -288,6 +281,7 @@ export function useProjectWizardForm(
             appConfigChecksum: rawAppConfigChecksum,
             ignoreConflict: true,
           });
+          // Set it to null to indicate the flow is finished
           await saveProjectWizardDataMutation(existingAppNodeID!, null);
           await reloadAppConfig();
           setDefaultState(updatedState);
