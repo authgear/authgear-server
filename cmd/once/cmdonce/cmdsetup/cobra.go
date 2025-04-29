@@ -29,7 +29,7 @@ var CmdSetup = &cobra.Command{
 		}
 
 		// tea requires a terminal to run, so we do this checking prior to launching the tea program.
-		if !termutil.IsTerminal(os.Stdout.Fd()) {
+		if !termutil.StdinStdoutIsTerminal() {
 			err = fmt.Errorf("This command sets up your Authgear ONCE installation interactively. Thus, you must run it connected to a terminal.")
 			return
 		}
