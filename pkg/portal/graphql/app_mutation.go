@@ -521,6 +521,10 @@ var createAppInput = graphql.NewInputObject(graphql.InputObjectConfig{
 			Type:        graphql.NewNonNull(graphql.String),
 			Description: "ID of the new app.",
 		},
+		"projectWizardData": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewNonNull(ProjectWizardData),
+			Description: "Data of project wizard",
+		},
 	},
 })
 
@@ -546,6 +550,7 @@ var _ = registerMutationField(
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 			input := p.Args["input"].(map[string]interface{})
 			appID := input["id"].(string)
+			projectWizardData := input["projectWizardData"]
 
 			ctx := p.Context
 
@@ -565,6 +570,11 @@ var _ = registerMutationField(
 			}
 
 			app, err := gqlCtx.AppService.Create(ctx, actorID, appID)
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.TutorialService.SaveProjectWizardData(ctx, app.ID, projectWizardData)
 			if err != nil {
 				return nil, err
 			}

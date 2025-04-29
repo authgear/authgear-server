@@ -75,6 +75,24 @@ func (s *Service) RecordProgresses(ctx context.Context, appID string, ps []Progr
 	return
 }
 
+// SaveProjectWizardData acquires connection.
+func (s *Service) SaveProjectWizardData(ctx context.Context, appID string, data interface{}) error {
+	return s.GlobalDatabase.WithTx(ctx, func(ctx context.Context) error {
+		entry, err := s.Store.Get(ctx, appID)
+		if err != nil {
+			return err
+		}
+
+		entry.SetProjectWizardData(data)
+
+		err = s.Store.Save(ctx, entry)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+}
+
 // OnUpdateResource0 assumes acquired connection.
 func (s *Service) OnUpdateResource0(ctx context.Context, appID string, resourcesInAllFss []resource.ResourceFile, resourceInTargetFs *resource.ResourceFile, data []byte) (err error) {
 	ps, err := s.detectProgresses(ctx, resourceInTargetFs, data)
