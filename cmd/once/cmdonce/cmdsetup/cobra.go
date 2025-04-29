@@ -3,11 +3,13 @@ package cmdsetup
 import (
 	"fmt"
 	"os"
+	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/spf13/cobra"
 
 	"github.com/authgear/authgear-server/cmd/once/cmdonce/internal"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/termutil"
 )
 
@@ -37,15 +39,27 @@ var CmdSetup = &cobra.Command{
 		return
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		image := internal.GetDockerImage(cmd)
-
+		ctx := cmd.Context()
+		client := httputil.NewExternalClient(10 * time.Second)
 		licenseKey := args[0]
+		endpoint := internal.GetLicenseServerEndpoint(cmd)
 		fingerprint := internal.GenerateMachineFingerprint()
 
-		// TODO: check license with license key and fingerprint.
+		licenseOpts := internal.LicenseOptions{
+			Endpoint:    endpoint,
+			LicenseKey:  licenseKey,
+			Fingerprint: fingerprint,
+		}
 
+		err := internal.CheckLicense(ctx, client, licenseOpts)
+		if err != nil {
+			err = internal.PrintError(err)
+			return err
+		}
+
+		image := internal.GetDockerImage(cmd)
 		setupApp := SetupApp{
-			Context:                           cmd.Context(),
+			Context:                           ctx,
 			AUTHGEAR_ONCE_LICENSE_KEY:         licenseKey,
 			AUTHGEAR_ONCE_MACHINE_FINGERPRINT: fingerprint,
 			Image:                             image,
@@ -62,7 +76,11 @@ var CmdSetup = &cobra.Command{
 			os.Exit(1)
 		}
 
-		// TODO: activate the license key
+		err = internal.ActivateLicense(ctx, client, licenseOpts)
+		if err != nil {
+			err = internal.PrintError(err)
+			return err
+		}
 
 		return nil
 	},
