@@ -84,7 +84,7 @@ function CreateProjectScreenContent(props: CreateProjectScreenContentProps) {
 
   const submit = useCallback(
     async (state: FormState) => {
-      return createApp(state.appID);
+      return createApp(state.appID, null);
     },
     [createApp]
   );
