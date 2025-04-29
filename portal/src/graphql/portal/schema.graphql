@@ -273,6 +273,9 @@ enum CollaboratorRole {
 input CreateAppInput {
   """ID of the new app."""
   id: String!
+
+  """Data of project wizard"""
+  projectWizardData: ProjectWizardData!
 }
 
 """"""
@@ -634,6 +637,11 @@ type PreviewUpdateSubscriptionPayload {
   """"""
   currency: String!
 }
+
+"""
+The `ProjectWizardData` scalar type represents form data of project wizard
+"""
+scalar ProjectWizardData
 
 """"""
 type Query {
