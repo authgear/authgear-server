@@ -77,6 +77,7 @@ export interface ProjectWizardFormModel extends SimpleFormModel<FormState> {
   canSave: boolean;
 
   effectiveAuthMethods: AuthMethod[];
+  isProjectIDEditable: boolean;
 }
 
 function processCompanyName(companyName: string): string {
@@ -91,7 +92,13 @@ function processCompanyName(companyName: string): string {
     .toLowerCase();
 }
 
-function makeDefaultState(companyName?: string): FormState {
+function makeDefaultState({
+  projectID,
+  companyName,
+}: {
+  projectID?: string;
+  companyName?: string;
+}): FormState {
   const processedCompanyName = companyName
     ? processCompanyName(companyName)
     : null;
@@ -99,7 +106,9 @@ function makeDefaultState(companyName?: string): FormState {
     step: ProjectWizardStep.step1,
 
     projectName: companyName ? companyName : "",
-    projectID: processedCompanyName
+    projectID: projectID
+      ? projectID
+      : processedCompanyName
       ? projectIDFromCompanyName(processedCompanyName)
       : randomProjectID(),
 
@@ -132,7 +141,10 @@ export function useProjectWizardForm(
       return initialState;
     }
     const typedState: LocationState | null = state as LocationState | null;
-    const defaultState = makeDefaultState(typedState?.company_name);
+    const defaultState = makeDefaultState({
+      projectID: appContext?.appID,
+      companyName: typedState?.company_name,
+    });
     return defaultState;
   });
 
@@ -241,8 +253,15 @@ export function useProjectWizardForm(
       toPreviousStep: toPreviousStep,
       canSave,
       effectiveAuthMethods: formStateSanitized.authMethods,
+      isProjectIDEditable: existingAppNodeID == null,
     }),
-    [form, toPreviousStep, canSave, formStateSanitized.authMethods]
+    [
+      form,
+      toPreviousStep,
+      canSave,
+      formStateSanitized.authMethods,
+      existingAppNodeID,
+    ]
   );
 }
 

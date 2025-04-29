@@ -2,6 +2,7 @@ import React, { useMemo, type ReactElement } from "react";
 import { useParams } from "react-router-dom";
 import { useAppAndSecretConfigQuery } from "./graphql/portal/query/appAndSecretConfigQuery";
 import { AppContext } from "./context/AppContext";
+import ShowLoading from "./ShowLoading";
 
 export interface AppContextProviderProps {
   children?: React.ReactNode;
@@ -23,6 +24,10 @@ export default function AppContextProvider(
       currentCollaboratorRole: viewer?.role ?? "",
     };
   }, [appNodeID, effectiveAppConfig, viewer?.role]);
+
+  if (effectiveAppConfig == null) {
+    return <ShowLoading />;
+  }
 
   return (
     <AppContext.Provider value={appContextValue}>
