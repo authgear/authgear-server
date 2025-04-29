@@ -229,6 +229,10 @@ function constructConfig(
 
     config.authentication.primary_authenticators =
       derivePrimaryAuthenticatorsFromFormState(currentState);
+
+    config.ui ??= {};
+    config.ui.dark_theme_disabled = true;
+    config.ui.light_theme_disabled = undefined;
   });
 }
 
