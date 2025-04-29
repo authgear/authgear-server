@@ -317,7 +317,7 @@ export function useProjectWizardForm(
 
   useEffect(() => {
     if (nextPath) {
-      navigate(nextPath);
+      navigate(nextPath, { replace: true });
     }
   }, [navigate, nextPath]);
 
