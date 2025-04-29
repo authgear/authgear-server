@@ -118,6 +118,7 @@ type TutorialService interface {
 	Get(ctx context.Context, appID string) (*tutorial.Entry, error)
 	RecordProgresses(ctx context.Context, appID string, ps []tutorial.Progress) (err error)
 	Skip(ctx context.Context, appID string) (err error)
+	SaveProjectWizardData(ctx context.Context, appID string, data interface{}) error
 }
 
 type OnboardService interface {
