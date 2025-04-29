@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { SimpleFormModel, useSimpleForm } from "../../../hook/useSimpleForm";
 import { produce } from "immer";
+import { parse as parseCSS } from "postcss";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   projectIDFromCompanyName,
@@ -16,6 +17,37 @@ import {
 } from "../../../types";
 import { useAppAndSecretConfigQuery } from "../../../graphql/portal/query/appAndSecretConfigQuery";
 import { useUpdateAppAndSecretConfigMutation } from "../../../graphql/portal/mutations/updateAppAndSecretMutation";
+import {
+  Resource,
+  ResourceDefinition,
+  ResourceSpecifier,
+  expandDef,
+  expandSpecifier,
+  resolveResource,
+  specifierId,
+} from "../../../util/resource";
+import {
+  ResourceFormModel,
+  ResourcesFormState,
+  useResourceForm,
+} from "../../../hook/useResourceForm";
+import {
+  RESOURCE_APP_LOGO,
+  RESOURCE_AUTHGEAR_AUTHFLOW_V2_LIGHT_THEME_CSS,
+  RESOURCE_TRANSLATION_JSON,
+} from "../../../resources";
+import {
+  CssAstVisitor,
+  CustomisableThemeStyleGroup,
+  EMPTY_THEME,
+  PartialCustomisableTheme,
+  StyleCssVisitor,
+  Theme,
+  getThemeTargetSelector,
+} from "../../../model/themeAuthFlowV2";
+import { TranslationKey } from "../../../model/translations";
+import { deriveColors } from "../../../util/theme";
+import { ImageValue } from "../../../components/v2/ImageInput/ImageInput";
 
 export enum ProjectWizardStep {
   "step1" = "step1",
@@ -46,7 +78,7 @@ export interface FormState {
   authMethods: AuthMethod[];
 
   // step 3
-  logoBase64DataURL?: string;
+  logo: ImageValue | null;
   buttonAndLinkColor: string;
   buttonLabelColor: string;
 }
@@ -124,7 +156,7 @@ function makeDefaultState({
     loginMethods: [LoginMethod.Email],
     authMethods: [AuthMethod.Passwordless],
 
-    logoBase64DataURL: undefined,
+    logo: null,
     buttonAndLinkColor: "#176DF3",
     buttonLabelColor: "#FFFFFF",
   };
@@ -227,6 +259,14 @@ export function useProjectWizardForm(
     return defaultState;
   });
 
+  const [
+    resourceForm,
+    { setAppName, setAppLogo, setButtonAndLinkColor, setLabelColor },
+  ] = useProjectWizardResourceForm(
+    existingAppNodeID,
+    rawAppConfig?.localization?.fallback_language ?? "en"
+  );
+
   const submit = useCallback(
     async (formState: FormState): Promise<string | null> => {
       const sanitizedFormState = sanitizeFormState(formState);
@@ -235,7 +275,7 @@ export function useProjectWizardForm(
           "Cannot navigate to next step, check canNavigateToNextStep"
         );
       }
-      const updatedState = produce(formState, (draft) => {
+      const updatedState = produce(sanitizedFormState, (draft) => {
         switch (draft.step) {
           case ProjectWizardStep.step1: {
             draft.step = ProjectWizardStep.step2;
@@ -272,21 +312,24 @@ export function useProjectWizardForm(
           await saveProjectWizardDataMutation(existingAppNodeID!, updatedState);
           setDefaultState(updatedState);
           return null;
-        case ProjectWizardStep.step3:
+        case ProjectWizardStep.step3: {
           if (rawAppConfig == null) {
             throw new Error("unexpected error: rawAppConfig is null");
           }
+          const newConfig = constructConfig(rawAppConfig, updatedState);
           await updateAppConfig({
-            appConfig: constructConfig(rawAppConfig, updatedState),
+            appConfig: newConfig,
             appConfigChecksum: rawAppConfigChecksum,
             ignoreConflict: true,
           });
+          await resourceForm.save();
           // Set it to null to indicate the flow is finished
           await saveProjectWizardDataMutation(existingAppNodeID!, null);
           await reloadAppConfig();
           setDefaultState(updatedState);
 
           return `/project/${existingAppNodeID}`;
+        }
       }
     },
     [
@@ -295,6 +338,7 @@ export function useProjectWizardForm(
       rawAppConfig,
       rawAppConfigChecksum,
       reloadAppConfig,
+      resourceForm,
       saveProjectWizardDataMutation,
       updateAppConfig,
     ]
@@ -319,6 +363,21 @@ export function useProjectWizardForm(
     () => sanitizeFormState(formState),
     [formState]
   );
+
+  // Sync resource form
+  useEffect(() => {
+    setAppName(formState.projectName);
+  }, [formState.projectName, setAppName]);
+  useEffect(() => {
+    setAppLogo(formState.logo);
+  }, [formState.logo, setAppLogo]);
+
+  useEffect(() => {
+    setButtonAndLinkColor(formState.buttonAndLinkColor);
+  }, [formState.buttonAndLinkColor, setButtonAndLinkColor]);
+  useEffect(() => {
+    setLabelColor(formState.buttonLabelColor);
+  }, [formState.buttonLabelColor, setLabelColor]);
 
   const toPreviousStep = useCallback(() => {
     form.setState((prev) => {
@@ -364,6 +423,218 @@ export function useProjectWizardForm(
       existingAppNodeID,
     ]
   );
+}
+
+const LOCALE_BASED_RESOUCE_DEFINITIONS = [
+  RESOURCE_TRANSLATION_JSON,
+  RESOURCE_APP_LOGO,
+];
+
+const THEME_RESOURCE_DEFINITIONS = [
+  RESOURCE_AUTHGEAR_AUTHFLOW_V2_LIGHT_THEME_CSS,
+];
+
+const LightThemeResourceSpecifier = {
+  def: RESOURCE_AUTHGEAR_AUTHFLOW_V2_LIGHT_THEME_CSS,
+  locale: null,
+  extension: null,
+};
+
+function getLightThemeFromResourceFormState(
+  state: ResourcesFormState
+): PartialCustomisableTheme {
+  const themeResource =
+    state.resources[specifierId(LightThemeResourceSpecifier)];
+  if (themeResource?.nullableValue == null) {
+    return EMPTY_THEME;
+  }
+  const root = parseCSS(themeResource.nullableValue);
+  const styleCSSVisitor = new StyleCssVisitor(
+    getThemeTargetSelector(Theme.Light),
+    new CustomisableThemeStyleGroup()
+  );
+  return styleCSSVisitor.getStyle(root);
+}
+
+function useProjectWizardResourceForm(
+  appNodeID: string | undefined,
+  locale: string
+): [
+  ResourceFormModel<ResourcesFormState>,
+  {
+    setAppName: (appName: string) => void;
+    setAppLogo: (logo: ImageValue | null) => void;
+    setButtonAndLinkColor: (color: string) => void;
+    setLabelColor: (color: string) => void;
+  }
+] {
+  const specifiers = useMemo<ResourceSpecifier[]>(() => {
+    const specifiers: ResourceSpecifier[] = [];
+    for (const def of THEME_RESOURCE_DEFINITIONS) {
+      specifiers.push({
+        def,
+        locale: null,
+        extension: null,
+      });
+    }
+    for (const def of LOCALE_BASED_RESOUCE_DEFINITIONS) {
+      specifiers.push(...expandDef(def, locale));
+    }
+    return specifiers;
+  }, [locale]);
+
+  const resourceForm = useResourceForm(appNodeID, specifiers);
+  const resourceFormSetState = resourceForm.setState;
+
+  const resourceMutator = useMemo(() => {
+    return {
+      setTranslationValue: (key: string, value: string) => {
+        resourceFormSetState((s) => {
+          return produce(s, (draft) => {
+            const specifier: ResourceSpecifier = {
+              def: RESOURCE_TRANSLATION_JSON,
+              locale: locale,
+              extension: null,
+            };
+            const translationResource = resolveResource(s.resources, [
+              specifier,
+            ]);
+            if (!translationResource?.nullableValue) {
+              return;
+            }
+            const jsonValue = JSON.parse(translationResource.nullableValue);
+            if (value === "") {
+              delete jsonValue[key];
+            } else {
+              jsonValue[key] = value;
+            }
+            draft.resources[specifierId(specifier)] = {
+              specifier: specifier,
+              path: expandSpecifier(specifier),
+              nullableValue: JSON.stringify(jsonValue, null, 2),
+            };
+          });
+        });
+      },
+      setImage: (
+        def: ResourceDefinition,
+        image: {
+          base64EncodedData: string;
+          extension: string;
+        } | null
+      ) => {
+        resourceFormSetState((prev) => {
+          return produce(prev, (draft) => {
+            const specifiers = expandDef(def, locale);
+            for (const specifier of specifiers) {
+              const resource = draft.resources[specifierId(specifier)];
+              if (resource != null) {
+                resource.nullableValue = "";
+              }
+            }
+            if (image == null) {
+              return;
+            }
+            const specifier = {
+              def,
+              extension: image.extension,
+              locale: locale,
+            };
+            const resource: Resource = {
+              specifier,
+              path: expandSpecifier(specifier),
+              nullableValue: image.base64EncodedData,
+            };
+            draft.resources[specifierId(specifier)] = resource;
+          });
+        });
+      },
+      updateCustomisableTheme: (
+        updater: (prev: PartialCustomisableTheme) => PartialCustomisableTheme
+      ) => {
+        resourceFormSetState((s) => {
+          const newState = updater(getLightThemeFromResourceFormState(s));
+          return produce(s, (draft) => {
+            const resourceSpecifier = LightThemeResourceSpecifier;
+            const themeResource = draft.resources[
+              specifierId(resourceSpecifier)
+            ] ?? {
+              specifier: resourceSpecifier,
+              path: expandSpecifier(resourceSpecifier),
+            };
+
+            themeResource.nullableValue = (() => {
+              const cssAstVisitor = new CssAstVisitor(
+                getThemeTargetSelector(Theme.Light)
+              );
+              const styleGroup = new CustomisableThemeStyleGroup(newState);
+              styleGroup.acceptCssAstVisitor(cssAstVisitor);
+              if (cssAstVisitor.getDeclarations().length <= 0) {
+                return "";
+              }
+              return cssAstVisitor.getCSS().toResult().css;
+            })();
+
+            draft.resources[specifierId(resourceSpecifier)] = themeResource;
+          });
+        });
+      },
+    };
+  }, [resourceFormSetState, locale]);
+
+  const setAppName = useCallback(
+    (appName: string) => {
+      resourceMutator.setTranslationValue(TranslationKey.AppName, appName);
+    },
+    [resourceMutator]
+  );
+
+  const setAppLogo = useCallback(
+    (imageValue: ImageValue | null) => {
+      resourceMutator.setImage(RESOURCE_APP_LOGO, imageValue);
+    },
+    [resourceMutator]
+  );
+
+  const setButtonAndLinkColor = useCallback(
+    (color: string) => {
+      const derivedColors = deriveColors(color);
+      resourceMutator.updateCustomisableTheme((prev) => {
+        return produce(prev, (draft) => {
+          if (derivedColors != null) {
+            draft.primaryButton.backgroundColor = color;
+            draft.primaryButton.backgroundColorActive = derivedColors.variant;
+            draft.primaryButton.backgroundColorHover = derivedColors.variant;
+
+            draft.icon.color = color;
+
+            draft.link.color = color;
+            draft.link.colorActive = derivedColors.variant;
+            draft.link.colorHover = derivedColors.variant;
+          }
+          return draft;
+        });
+      });
+    },
+    [resourceMutator]
+  );
+
+  const setLabelColor = useCallback(
+    (color: string) => {
+      resourceMutator.updateCustomisableTheme((prev) => {
+        return produce(prev, (draft) => {
+          draft.primaryButton.labelColor = color;
+          return draft;
+        });
+      });
+    },
+    [resourceMutator]
+  );
+
+  return [
+    resourceForm,
+    { setAppName, setAppLogo, setButtonAndLinkColor, setLabelColor },
+  ];
 }
 
 function computeCanSave(formStateSanitized: FormState): boolean {

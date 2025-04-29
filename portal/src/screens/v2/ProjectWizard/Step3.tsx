@@ -11,6 +11,7 @@ import {
   ImageInput,
   ImageInputError,
   ImageInputErrorCode,
+  ImageValue,
 } from "../../../components/v2/ImageInput/ImageInput";
 import { produce } from "immer";
 import {
@@ -25,11 +26,11 @@ export function Step3(): React.ReactElement {
     useState<React.ReactNode | null>(null);
 
   const handleImageChange = useCallback(
-    (imageBase64DataURL: string | null) => {
+    (imageValue: ImageValue | null) => {
       setImageFieldError(null);
       form.setState((prev) =>
         produce(prev, (draft) => {
-          draft.logoBase64DataURL = imageBase64DataURL ?? undefined;
+          draft.logo = imageValue;
           return draft;
         })
       );
@@ -90,7 +91,7 @@ export function Step3(): React.ReactElement {
           error={imageFieldError}
         >
           <ImageInput
-            value={form.state.logoBase64DataURL ?? null}
+            value={form.state.logo}
             onValueChange={handleImageChange}
             onError={handleImageError}
           />
