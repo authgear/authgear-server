@@ -206,7 +206,7 @@ export type CreateAppInput = {
   /** ID of the new app. */
   id: Scalars['String']['input'];
   /** Data of project wizard */
-  projectWizardData: Scalars['ProjectWizardData']['input'];
+  projectWizardData?: InputMaybe<Scalars['ProjectWizardData']['input']>;
 };
 
 export type CreateAppPayload = {

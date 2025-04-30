@@ -522,7 +522,7 @@ var createAppInput = graphql.NewInputObject(graphql.InputObjectConfig{
 			Description: "ID of the new app.",
 		},
 		"projectWizardData": &graphql.InputObjectFieldConfig{
-			Type:        graphql.NewNonNull(ProjectWizardData),
+			Type:        ProjectWizardData,
 			Description: "Data of project wizard",
 		},
 	},
