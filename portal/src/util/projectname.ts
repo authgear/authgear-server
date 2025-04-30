@@ -88,3 +88,15 @@ export function projectIDFromCompanyName(companyName: string): string {
   const alphaNumericString = deterministicAlphanumericString(thirtyOneBits);
   return `${companyName}-${alphaNumericString}`;
 }
+
+export function processCompanyName(companyName: string): string {
+  return companyName
+    .trim()
+    .split("")
+    .filter((char) => /[a-zA-Z\s]/.exec(char))
+    .join("")
+    .split(" ")
+    .filter((word) => word !== "")
+    .join("-")
+    .toLowerCase();
+}
