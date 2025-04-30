@@ -22,8 +22,10 @@ import {
 } from "../../../components/v2/IconRadioCards/IconRadioCards";
 import { SquareIcon } from "../../../components/v2/SquareIcon/SquareIcon";
 import { ButtonIcon, InputIcon } from "@radix-ui/react-icons";
+import { useCapture } from "../../../gtm_v2";
 
 export function Step2(): React.ReactElement {
+  const capture = useCapture();
   const { form } = useFormContainerBaseContext<ProjectWizardFormModel>();
   const emailEnabled = useMemo(
     () => form.state.loginMethods.includes(LoginMethod.Email),
@@ -99,6 +101,15 @@ export function Step2(): React.ReactElement {
                   );
                 },
                 [form]
+              )}
+              onToggle={useCallback(
+                (checked: boolean, method: LoginMethod) => {
+                  capture("projectWizard.clicked-auth", {
+                    method: method,
+                    checked: checked,
+                  });
+                },
+                [capture]
               )}
             />
           </div>

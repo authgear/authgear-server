@@ -23,6 +23,8 @@ export interface ColorPickerFieldProps {
   hint?: React.ReactNode;
   value: ColorHex;
   onValueChange?: (value: ColorHex) => void;
+  onFocus?: React.FocusEventHandler<HTMLInputElement>;
+  onOpenPicker?: () => void;
 }
 
 export function ColorPickerField({
@@ -36,6 +38,8 @@ export function ColorPickerField({
   hint,
   value,
   onValueChange,
+  onFocus,
+  onOpenPicker,
 }: ColorPickerFieldProps): React.ReactElement {
   const [textInputValue, setTextInputValue] = useState(value);
   const onTextInputChange = useCallback(
@@ -80,9 +84,14 @@ export function ColorPickerField({
         placeholder={placeholder}
         onChange={onTextInputChange}
         onBlur={onTextInputBlur}
+        onFocus={onFocus}
       >
         <RadixTextField.Slot side="left">
-          <ColorPicker value={value} onValueChange={onValueChange} />
+          <ColorPicker
+            value={value}
+            onValueChange={onValueChange}
+            onOpen={onOpenPicker}
+          />
         </RadixTextField.Slot>
       </TextField.Input>
     </FormField>
@@ -92,15 +101,18 @@ export function ColorPickerField({
 function ColorPicker({
   value,
   onValueChange,
+  onOpen,
 }: {
   value: ColorHex;
   onValueChange?: (value: ColorHex) => void;
+  onOpen?: () => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const openPicker = useCallback(() => {
+    onOpen?.();
     inputRef.current?.click();
-  }, []);
+  }, [onOpen]);
 
   const handleColorInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {

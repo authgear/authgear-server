@@ -18,8 +18,10 @@ import {
   ColorHex,
   ColorPickerField,
 } from "../../../components/v2/ColorPickerField/ColorPickerField";
+import { useCapture } from "../../../gtm_v2";
 
 export function Step3(): React.ReactElement {
+  const capture = useCapture();
   const { form } = useFormContainerBaseContext<ProjectWizardFormModel>();
 
   const [imageFieldError, setImageFieldError] =
@@ -73,6 +75,14 @@ export function Step3(): React.ReactElement {
     };
   }, [form]);
 
+  const trackButtonColorEvent = useCallback(() => {
+    capture("projectWizard.clicked-button-color");
+  }, [capture]);
+
+  const trackLabelColorEvent = useCallback(() => {
+    capture("projectWizard.clicked-label-color");
+  }, [capture]);
+
   return (
     <div className="grid grid-cols-1 gap-12 text-left self-stretch">
       <ProjectWizardStepper step={form.state.step} />
@@ -94,6 +104,9 @@ export function Step3(): React.ReactElement {
             value={form.state.logo}
             onValueChange={handleImageChange}
             onError={handleImageError}
+            onClickUpload={useCallback(() => {
+              capture("projectWizard.clicked-upload");
+            }, [capture])}
           />
         </FormField>
         <ColorPickerField
@@ -103,6 +116,8 @@ export function Step3(): React.ReactElement {
           }
           value={form.state.buttonAndLinkColor}
           onValueChange={handleColorChange.buttonAndLinkColor}
+          onOpenPicker={trackButtonColorEvent}
+          onFocus={trackButtonColorEvent}
         />
         <ColorPickerField
           size="3"
@@ -111,6 +126,8 @@ export function Step3(): React.ReactElement {
           }
           value={form.state.buttonLabelColor}
           onValueChange={handleColorChange.buttonLabelColor}
+          onOpenPicker={trackLabelColorEvent}
+          onFocus={trackLabelColorEvent}
         />
       </div>
       <div className="grid grid-flow-col grid-rows-1 gap-8 items-center justify-start">
