@@ -275,7 +275,7 @@ input CreateAppInput {
   id: String!
 
   """Data of project wizard"""
-  projectWizardData: ProjectWizardData!
+  projectWizardData: ProjectWizardData
 }
 
 """"""
