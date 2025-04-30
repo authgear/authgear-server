@@ -422,7 +422,7 @@ export function useProjectWizardForm(
       ...form,
       toPreviousStep: toPreviousStep,
       canSave,
-      isInitializing: rawAppConfig == null,
+      isInitializing: rawAppConfig == null && existingAppNodeID != null,
       initializeError: appConfigLoadError,
       effectiveAuthMethods: formStateSanitized.authMethods,
       isProjectIDEditable: existingAppNodeID == null,
