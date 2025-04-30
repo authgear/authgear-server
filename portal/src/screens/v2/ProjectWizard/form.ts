@@ -4,6 +4,7 @@ import { produce } from "immer";
 import { parse as parseCSS } from "postcss";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
+  processCompanyName,
   projectIDFromCompanyName,
   randomProjectID,
 } from "../../../util/projectname";
@@ -126,18 +127,6 @@ export interface ProjectWizardFormModel extends SimpleFormModel<FormState> {
 
   effectiveAuthMethods: AuthMethod[];
   isProjectIDEditable: boolean;
-}
-
-function processCompanyName(companyName: string): string {
-  return companyName
-    .trim()
-    .split("")
-    .filter((char) => /[a-zA-Z\s]/.exec(char))
-    .join("")
-    .split(" ")
-    .filter((word) => word !== "")
-    .join("-")
-    .toLowerCase();
 }
 
 function makeDefaultState({

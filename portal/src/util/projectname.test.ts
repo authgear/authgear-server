@@ -3,6 +3,7 @@ import {
   deterministicProjectID,
   extractBits,
   projectIDFromCompanyName,
+  processCompanyName,
 } from "./projectname";
 
 describe("extractBits", () => {
@@ -65,5 +66,18 @@ describe("projectIDFromCompanyName", () => {
   it("projectIDFromCompanyName('authgear') starts with 'authgear-` and ends with 6 lowercase-alphanumeric characters", () => {
     const authgearProjectName = projectIDFromCompanyName("authgear");
     expect(authgearProjectName).toMatch(/^authgear-[a-z0-9]{6}$/);
+  });
+});
+
+describe("processCompanyName", () => {
+  it("Convert company name to words for project ID", () => {
+    const r1 = processCompanyName("Authgear");
+    expect(r1).toMatch("authgear");
+
+    const r2 = processCompanyName("Oursky Authgear");
+    expect(r2).toMatch("oursky-authgear");
+
+    const r3 = processCompanyName(" Oursky! Authgear! ");
+    expect(r3).toMatch("oursky-authgear");
   });
 });
