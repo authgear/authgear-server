@@ -10,13 +10,14 @@ enum AuthgearGTMTriggerTypeV2 {
 }
 
 export type AuthgearGTMEventTypeV2 =
-  | "projectWizard.clicked-option"
-  | "projectWizard.set-primary_auth"
-  | "projectWizard.set-passkey"
-  | "projectWizard.set-2fa"
-  | "projectWizard.clicked-skip"
+  | "projectWizard.set-name"
+  | "projectWizard.set-auth"
+  | "projectWizard.set-branding"
   | "projectWizard.clicked-back"
-  | "projectWizard.completed"
+  | "projectWizard.clicked-auth"
+  | "projectWizard.clicked-upload"
+  | "projectWizard.clicked-button-color"
+  | "projectWizard.clicked-label-color"
   | "getStarted.clicked-signup"
   | "getStarted.clicked-customize"
   | "getStarted.clicked-create_app"

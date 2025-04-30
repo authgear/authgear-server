@@ -56,6 +56,7 @@ import {
   ScreenNavQueryQuery,
   ScreenNavQueryQueryVariables,
 } from "../../../graphql/portal/query/screenNavQuery.generated";
+import { useCapture } from "../../../gtm_v2";
 
 export enum ProjectWizardStep {
   "step1" = "step1",
@@ -228,6 +229,7 @@ function constructConfig(
 export function useProjectWizardForm(
   initialState: FormState | null
 ): ProjectWizardFormModel {
+  const capture = useCapture();
   const appContext = useOptionalAppContext();
   const existingAppNodeID = appContext?.appNodeID;
   const navigate = useNavigate();
@@ -302,6 +304,7 @@ export function useProjectWizardForm(
       });
       switch (formState.step) {
         case ProjectWizardStep.step1: {
+          capture("projectWizard.set-name");
           if (!existingAppNodeID) {
             const appID = await createApp(
               sanitizedFormState.projectID,
@@ -320,10 +323,12 @@ export function useProjectWizardForm(
           }
         }
         case ProjectWizardStep.step2:
+          capture("projectWizard.set-auth");
           await saveProjectWizardDataMutation(existingAppNodeID!, updatedState);
           setDefaultState(updatedState);
           return null;
         case ProjectWizardStep.step3: {
+          capture("projectWizard.set-branding");
           if (rawAppConfig == null) {
             throw new Error("unexpected error: rawAppConfig is null");
           }
@@ -346,6 +351,7 @@ export function useProjectWizardForm(
       }
     },
     [
+      capture,
       createApp,
       existingAppNodeID,
       rawAppConfig,
@@ -394,6 +400,7 @@ export function useProjectWizardForm(
   }, [formState.buttonLabelColor, setLabelColor]);
 
   const toPreviousStep = useCallback(() => {
+    capture("projectWizard.clicked-back");
     form.setState((prev) => {
       return produce(prev, (draft) => {
         switch (formState.step) {
@@ -410,7 +417,7 @@ export function useProjectWizardForm(
         return draft;
       });
     });
-  }, [form, formState.step]);
+  }, [capture, form, formState.step]);
 
   const canSave = useMemo(
     () => computeCanSave(formStateSanitized),

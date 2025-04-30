@@ -15,6 +15,7 @@ export interface ToggleGroupProps<T extends string> {
   items: ToggleGroupOption<T>[];
   values: T[];
   onValuesChange?: (newValues: T[]) => void;
+  onToggle?: (checked: boolean, value: T) => void;
 }
 
 export function ToggleGroup<T extends string>({
@@ -22,11 +23,13 @@ export function ToggleGroup<T extends string>({
   items,
   values,
   onValuesChange,
+  onToggle,
 }: ToggleGroupProps<T>): React.ReactElement {
   const valuesSet = useMemo(() => new Set(values), [values]);
 
   const handleCheckedChange = useCallback(
     (checked: boolean, value: T) => {
+      onToggle?.(checked, value);
       const newValuesSet = new Set(values);
       if (checked) {
         newValuesSet.add(value);
@@ -35,7 +38,7 @@ export function ToggleGroup<T extends string>({
       }
       onValuesChange?.(Array.from(newValuesSet));
     },
-    [onValuesChange, values]
+    [onValuesChange, onToggle, values]
   );
 
   return (

@@ -32,6 +32,7 @@ export interface TextInputProps {
 
   value?: string;
   onChange?: React.ChangeEventHandler<HTMLInputElement>;
+  onFocus?: React.FocusEventHandler<HTMLInputElement>;
   onBlur?: React.FocusEventHandler<HTMLInputElement>;
 }
 
@@ -131,6 +132,7 @@ function Input({
   value,
   onChange,
   onBlur,
+  onFocus,
   children,
 }: TextInputProps & { children: React.ReactNode }): React.ReactElement {
   return (
@@ -144,6 +146,7 @@ function Input({
       value={value}
       onChange={onChange}
       onBlur={onBlur}
+      onFocus={onFocus}
     >
       {children}
     </RadixTextField.Root>
