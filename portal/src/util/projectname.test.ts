@@ -29,8 +29,8 @@ describe("extractBits", () => {
   });
 });
 
-describe("deterministicProjectName", () => {
-  it("deterministicProjectName([0, 0, 0, 0, 0, 0]) is 'abandon-000000'", () => {
+describe("deterministicProjectID", () => {
+  it("deterministicProjectID([0, 0, 0, 0, 0, 0]) is 'abandon-000000'", () => {
     // [0, 0, 0, 0, 0, 0] is 0b00000000000_0000000000000000000000000000000_000000
     // 0b00000000000 is 'abandon'
     // 0000000000000000000000000000000 is '000000'
@@ -40,7 +40,7 @@ describe("deterministicProjectName", () => {
     expect(deterministicProjectID(fortyEightBits)).toEqual("abandon-000000");
   });
 
-  it("deterministicProjectName([0, 0, 0, 0, 1, 0]) is 'abandon-000004'", () => {
+  it("deterministicProjectID([0, 0, 0, 0, 1, 0]) is 'abandon-000004'", () => {
     // [0, 0, 0, 0, 1, 0] is 0b00000000000_0000000000000000000000000000100_000000
     // 0b00000000000 is 'abandon'
     // 0000000000000000000000000000100 is '000004'
@@ -50,7 +50,7 @@ describe("deterministicProjectName", () => {
     expect(deterministicProjectID(fortyEightBits)).toEqual("abandon-000004");
   });
 
-  it("deterministicProjectName([87, 87, 87, 87, 87, 87]) is 'firm-pwldul' ", () => {
+  it("deterministicProjectID([87, 87, 87, 87, 87, 87]) is 'firm-pwldul' ", () => {
     // [87, 87, 87, 87, 87, 87] is 0b01010111010_1011101010111010101110101011101_010111
     // 0b0b01010111010 is 'firm'
     // 1011101010111010101110101011101 is 'pwldul'
@@ -61,8 +61,8 @@ describe("deterministicProjectName", () => {
   });
 });
 
-describe("projectNameWithCompanyName", () => {
-  it("projectNameWithCompanyName('authgear') starts with 'authgear-` and ends with 6 lowercase-alphanumeric characters", () => {
+describe("projectIDFromCompanyName", () => {
+  it("projectIDFromCompanyName('authgear') starts with 'authgear-` and ends with 6 lowercase-alphanumeric characters", () => {
     const authgearProjectName = projectIDFromCompanyName("authgear");
     expect(authgearProjectName).toMatch(/^authgear-[a-z0-9]{6}$/);
   });
