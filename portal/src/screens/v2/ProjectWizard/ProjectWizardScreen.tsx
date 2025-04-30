@@ -22,6 +22,7 @@ import {
   ScreenNavQueryQueryVariables,
 } from "../../../graphql/portal/query/screenNavQuery.generated";
 import ShowLoading from "../../../ShowLoading";
+import ShowError from "../../../ShowError";
 
 function Loaded({
   initialState,
@@ -40,6 +41,14 @@ function Loaded({
     },
     [form]
   );
+
+  if (form.isInitializing) {
+    return <ShowLoading />;
+  }
+
+  if (form.initializeError) {
+    return <ShowError error={form.initializeError} />;
+  }
 
   return (
     <FormContainerBase form={form}>
