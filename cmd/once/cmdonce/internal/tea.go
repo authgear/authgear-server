@@ -46,6 +46,15 @@ func (m FatalError) View() string {
 	case errors.Is(m.Err, ErrCommandUpgradeNotImplemented):
 		errMsg = fmt.Sprintf("This command is not implemented yet.")
 		actionableMsg = fmt.Sprintf("Re-run the oneliner in the email to upgrade this program.")
+	case errors.Is(m.Err, ErrLicenseServerLicenseKeyNotFound):
+		errMsg = fmt.Sprintf("The license key you entered is invalid.")
+		actionableMsg = fmt.Sprintf("If you think this is an error, please contact us at once@authgear.com")
+	case errors.Is(m.Err, ErrLicenseServerLicenseKeyAlreadyActivated):
+		errMsg = fmt.Sprintf("The license key you entered has already been activated.")
+		actionableMsg = fmt.Sprintf("If you think this is an error, please contact us at once@authgear.com")
+	case errors.Is(m.Err, ErrLicenseServerLicenseKeyExpired):
+		errMsg = fmt.Sprintf("The license key you entered is expired.")
+		actionableMsg = fmt.Sprintf("If you think this is an error, please contact us at once@authgear.com")
 	}
 
 	if errMsg == "" || actionableMsg == "" {

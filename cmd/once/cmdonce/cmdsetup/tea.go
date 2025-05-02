@@ -56,8 +56,10 @@ type RetainedValues struct {
 }
 
 type SetupApp struct {
-	Context context.Context
-	Image   string
+	Context                           context.Context
+	Image                             string
+	AUTHGEAR_ONCE_LICENSE_KEY         string
+	AUTHGEAR_ONCE_MACHINE_FINGERPRINT string
 
 	Questions      []Question
 	retainedValues RetainedValues
@@ -534,6 +536,8 @@ func (m SetupApp) ToInstallation() Installation {
 	installation := Installation{
 		Context:                           m.Context,
 		Image:                             m.Image,
+		AUTHGEAR_ONCE_MACHINE_FINGERPRINT: m.AUTHGEAR_ONCE_MACHINE_FINGERPRINT,
+		AUTHGEAR_ONCE_LICENSE_KEY:         m.AUTHGEAR_ONCE_LICENSE_KEY,
 		AUTHGEAR_ONCE_ADMIN_USER_EMAIL:    m.mustFindQuestionByName(QuestionName_EnterAdminEmail).Value(),
 		AUTHGEAR_ONCE_ADMIN_USER_PASSWORD: m.mustFindQuestionByName(QuestionName_EnterAdminPassword).Value(),
 	}
@@ -607,6 +611,8 @@ type Installation struct {
 	Context context.Context
 	Image   string
 
+	AUTHGEAR_ONCE_MACHINE_FINGERPRINT string
+	AUTHGEAR_ONCE_LICENSE_KEY         string
 	AUTHGEAR_HTTP_ORIGIN_PROJECT      string
 	AUTHGEAR_HTTP_ORIGIN_PORTAL       string
 	AUTHGEAR_HTTP_ORIGIN_ACCOUNTS     string
@@ -728,6 +734,8 @@ func newDockerRunOptionsForInstallation(m Installation) internal.DockerRunOption
 	// Remove the container because this container always run `true`.
 	opts.Rm = true
 	opts.Env = []string{
+		fmt.Sprintf("AUTHGEAR_ONCE_LICENSE_KEY=%v", m.AUTHGEAR_ONCE_LICENSE_KEY),
+		fmt.Sprintf("AUTHGEAR_ONCE_MACHINE_FINGERPRINT=%v", m.AUTHGEAR_ONCE_MACHINE_FINGERPRINT),
 		fmt.Sprintf("AUTHGEAR_HTTP_ORIGIN_PROJECT=%v", m.AUTHGEAR_HTTP_ORIGIN_PROJECT),
 		fmt.Sprintf("AUTHGEAR_HTTP_ORIGIN_PORTAL=%v", m.AUTHGEAR_HTTP_ORIGIN_PORTAL),
 		fmt.Sprintf("AUTHGEAR_HTTP_ORIGIN_ACCOUNTS=%v", m.AUTHGEAR_HTTP_ORIGIN_ACCOUNTS),

@@ -91,6 +91,8 @@ jobs:
     - name: Show the version of gmake
       run: gmake --version
     - run: gmake authgearonce-binary
+      env:
+        AUTHGEARONCE_LICENSE_SERVER_ENV: ${{ vars.AUTHGEARONCE_LICENSE_SERVER_ENV }}
     - uses: actions/upload-artifact@v4
       with:
         name: authgear-once-darwin-arm64
@@ -107,6 +109,8 @@ jobs:
       with:
         go-version-file: "./go.mod"
     - run: make authgearonce-binary
+      env:
+        AUTHGEARONCE_LICENSE_SERVER_ENV: ${{ vars.AUTHGEARONCE_LICENSE_SERVER_ENV }}
     - uses: actions/upload-artifact@v4
       with:
         name: authgear-once-linux-amd64
@@ -123,6 +127,8 @@ jobs:
       with:
         go-version-file: "./go.mod"
     - run: make authgearonce-binary
+      env:
+        AUTHGEARONCE_LICENSE_SERVER_ENV: ${{ vars.AUTHGEARONCE_LICENSE_SERVER_ENV }}
     - uses: actions/upload-artifact@v4
       with:
         name: authgear-once-linux-arm64

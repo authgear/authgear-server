@@ -11,6 +11,20 @@ var CmdUpgrade = &cobra.Command{
 	Short:         "Upgrade this program and Authgear",
 	SilenceUsage:  true,
 	SilenceErrors: true,
+	PreRunE: func(cmd *cobra.Command, args []string) (err error) {
+		defer func() {
+			if err != nil {
+				err = internal.PrintError(err)
+			}
+		}()
+
+		err = cobra.NoArgs(cmd, args)
+		if err != nil {
+			return
+		}
+
+		return
+	},
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		defer func() {
 			if err != nil {

@@ -21,6 +21,11 @@ var CmdStart = &cobra.Command{
 			}
 		}()
 
+		err = cobra.NoArgs(cmd, args)
+		if err != nil {
+			return
+		}
+
 		_, err = exec.LookPath(internal.BinDocker)
 		if err != nil {
 			err = internal.ErrNoDocker
@@ -35,10 +40,7 @@ var CmdStart = &cobra.Command{
 			}
 		}()
 
-		image, err := cmd.Flags().GetString("image")
-		if err != nil {
-			return err
-		}
+		image := internal.GetDockerImage(cmd)
 
 		ctx := cmd.Context()
 
