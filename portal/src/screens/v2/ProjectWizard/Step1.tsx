@@ -11,6 +11,22 @@ import { ProjectWizardFormModel } from "./form";
 import { TextField } from "../../../components/v2/TextField/TextField";
 import { produce } from "immer";
 import { useSystemConfig } from "../../../context/SystemConfigContext";
+import { ErrorParseRule, makeReasonErrorParseRule } from "../../../error/parse";
+
+const errorRules: ErrorParseRule[] = [
+  makeReasonErrorParseRule(
+    "DuplicatedAppID",
+    "ProjectWizardScreen.error.duplicated-app-id"
+  ),
+  makeReasonErrorParseRule(
+    "AppIDReserved",
+    "ProjectWizardScreen.error.reserved-app-id"
+  ),
+  makeReasonErrorParseRule(
+    "InvalidAppID",
+    "ProjectWizardScreen.error.invalid-app-id"
+  ),
+];
 
 export function Step1(): React.ReactElement {
   const { form } = useFormContainerBaseContext<ProjectWizardFormModel>();
@@ -58,6 +74,7 @@ export function Step1(): React.ReactElement {
             "ProjectWizardScreen.step1.fields.projectID.placeholder"
           )}
           suffix={systemConfig.appHostSuffix}
+          disabled={!form.isProjectIDEditable}
           value={form.state.projectID}
           onChange={useCallback(
             (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -71,6 +88,9 @@ export function Step1(): React.ReactElement {
             },
             [form]
           )}
+          parentJSONPointer=""
+          fieldName="app_id"
+          errorRules={errorRules}
         />
       </div>
       <div>
@@ -78,8 +98,9 @@ export function Step1(): React.ReactElement {
           type="submit"
           size="3"
           text={<FormattedMessage id="ProjectWizardScreen.actions.next" />}
-          onClick={form.toNextStep}
-          disabled={!form.canNavigateToNextStep}
+          loading={form.isUpdating}
+          onClick={form.save}
+          disabled={!form.canSave}
         />
       </div>
     </div>

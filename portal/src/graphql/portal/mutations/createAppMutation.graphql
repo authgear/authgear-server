@@ -1,5 +1,8 @@
-mutation createAppMutation($appID: String!) {
-  createApp(input: { id: $appID }) {
+mutation createAppMutation(
+  $appID: String!
+  $projectWizardData: ProjectWizardData!
+) {
+  createApp(input: { id: $appID, projectWizardData: $projectWizardData }) {
     app {
       id
     }

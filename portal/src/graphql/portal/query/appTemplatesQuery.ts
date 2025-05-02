@@ -29,7 +29,7 @@ interface SpecifierPathPair {
 }
 
 export function useAppTemplatesQuery(
-  appID: string,
+  appID: string | undefined,
   specifiers: ResourceSpecifier[]
 ): AppTemplatesQueryResult {
   const client = usePortalClient();
@@ -51,9 +51,10 @@ export function useAppTemplatesQuery(
   >(AppTemplatesQueryDocument, {
     client,
     variables: {
-      id: appID,
+      id: appID ?? "",
       paths: pairs.map((pair) => pair.path),
     },
+    skip: appID == null,
   });
 
   const resources = useMemo(() => {

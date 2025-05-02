@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { ImageInput, ImageInputProps } from "./ImageInput";
+import { ImageInput, ImageInputProps, ImageValue } from "./ImageInput";
 import React, { useState } from "react";
 
 // More on how to set up stories at: https://storybook.js.org/docs/writing-stories#default-export
@@ -20,7 +20,7 @@ const meta = {
 } satisfies Meta<typeof ImageInput>;
 
 function Demo({ value: _, ...args }: ImageInputProps) {
-  const [value, setValue] = useState<string | null>(null);
+  const [value, setValue] = useState<ImageValue | null>(null);
 
   return (
     <div style={{ width: "600px" }}>

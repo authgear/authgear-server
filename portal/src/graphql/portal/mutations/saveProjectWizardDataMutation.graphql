@@ -1,0 +1,10 @@
+mutation saveProjectWizardDataMutation(
+  $appID: String!
+  $data: ProjectWizardData
+) {
+  saveProjectWizardData(input: { id: $appID, data: $data }) {
+    app {
+      id
+    }
+  }
+}

@@ -20,6 +20,8 @@ export type Scalars = {
   DateTime: { input: GQL_DateTime; output: GQL_DateTime; }
   /** The `FeatureConfig` scalar type represents an feature config JSON object */
   FeatureConfig: { input: GQL_FeatureConfig; output: GQL_FeatureConfig; }
+  /** The `ProjectWizardData` scalar type represents form data of project wizard */
+  ProjectWizardData: { input: any; output: any; }
   /** The `StripeError` scalar type represents Stripe error */
   StripeError: { input: GQL_StripeError; output: GQL_StripeError; }
   /** The `TutorialStatusData` scalar type represents tutorial status data */
@@ -203,6 +205,8 @@ export enum CollaboratorRole {
 export type CreateAppInput = {
   /** ID of the new app. */
   id: Scalars['String']['input'];
+  /** Data of project wizard */
+  projectWizardData?: InputMaybe<Scalars['ProjectWizardData']['input']>;
 };
 
 export type CreateAppPayload = {
@@ -374,6 +378,8 @@ export type Mutation = {
   reconcileCheckoutSession: ReconcileCheckoutSessionPayload;
   /** Updates the current user's custom attribute with 'survey' key */
   saveOnboardingSurvey?: Maybe<Scalars['Boolean']['output']>;
+  /** Save the progress of project wizard of the app */
+  saveProjectWizardData: SaveProjectWizardDataPayload;
   /** Send a SMS to test the configuration */
   sendTestSMSConfiguration?: Maybe<Scalars['Boolean']['output']>;
   /** Send test STMP configuration email */
@@ -470,6 +476,11 @@ export type MutationReconcileCheckoutSessionArgs = {
 
 export type MutationSaveOnboardingSurveyArgs = {
   input: SaveOnboardingSurveyInput;
+};
+
+
+export type MutationSaveProjectWizardDataArgs = {
+  input: SaveProjectWizardDataInput;
 };
 
 
@@ -776,6 +787,18 @@ export type SmtpSecretInput = {
 export type SaveOnboardingSurveyInput = {
   /** Onboarding survey result JSON. */
   surveyJSON: Scalars['String']['input'];
+};
+
+export type SaveProjectWizardDataInput = {
+  /** The project wizard data to save. */
+  data?: InputMaybe<Scalars['ProjectWizardData']['input']>;
+  /** ID of the app. */
+  id: Scalars['String']['input'];
+};
+
+export type SaveProjectWizardDataPayload = {
+  __typename?: 'SaveProjectWizardDataPayload';
+  app: App;
 };
 
 /** The content of authgear.secrets.yaml */
