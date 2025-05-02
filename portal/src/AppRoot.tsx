@@ -219,7 +219,7 @@ const AppRoot: React.VFC = function AppRoot() {
     effectiveAppConfig?.ui?.implementation
   );
 
-  if (loading) {
+  if (loading || screenNavQuery.loading) {
     return <ShowLoading />;
   }
 
@@ -239,7 +239,7 @@ const AppRoot: React.VFC = function AppRoot() {
   // any other value means in-progress
 
   // Project wizard in-progress, continue
-  if (projectWizardData != null) {
+  if (projectWizardData != null && !projectWizardData.completed) {
     return (
       <Navigate
         to={`/project/${encodeURIComponent(appID)}/wizard`}
@@ -249,7 +249,7 @@ const AppRoot: React.VFC = function AppRoot() {
   }
 
   // In ONCE, we always force the user to complete the wizard if it is not completed or not started
-  if (projectWizardData === undefined && isAuthgearOnce) {
+  if (projectWizardData == null && isAuthgearOnce) {
     return (
       <Navigate
         to={`/project/${encodeURIComponent(appID)}/wizard`}

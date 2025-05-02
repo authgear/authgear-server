@@ -76,6 +76,7 @@ export enum AuthMethod {
 }
 
 export interface FormState {
+  completed: boolean;
   step: ProjectWizardStep;
 
   // step 1
@@ -141,6 +142,7 @@ function makeDefaultState({
     ? processCompanyName(companyName)
     : null;
   return {
+    completed: false,
     step: ProjectWizardStep.step1,
 
     projectName: companyName ? companyName : "",
@@ -298,6 +300,7 @@ export function useProjectWizardForm(
             draft.step = ProjectWizardStep.step3;
             break;
           case ProjectWizardStep.step3:
+            draft.completed = true;
             break;
         }
         return draft;
@@ -340,7 +343,7 @@ export function useProjectWizardForm(
           });
           await resourceForm.save();
           // Set it to null to indicate the flow is finished
-          await saveProjectWizardDataMutation(existingAppNodeID!, null);
+          await saveProjectWizardDataMutation(existingAppNodeID!, updatedState);
           await reloadAppConfig();
           // Reload the tutorial data, so portal will not redirect user back to wizard again
           await reloadScreenNavQuery();
