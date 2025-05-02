@@ -1,3 +1,5 @@
+import { NodeType } from "../graphql/adminapi/node";
+
 export function extractRawID(id: string): string {
   // eslint-disable-next-line @typescript-eslint/no-deprecated
   const decoded = atob(id);
@@ -8,7 +10,7 @@ export function extractRawID(id: string): string {
   return parts[1];
 }
 
-export function toTypedID(typename: string, rawID: string): string {
+export function toTypedID(typename: NodeType | "App", rawID: string): string {
   // eslint-disable-next-line @typescript-eslint/no-deprecated
   return btoa(`${typename}:${rawID}`)
     .replace(/\+/g, "-")
