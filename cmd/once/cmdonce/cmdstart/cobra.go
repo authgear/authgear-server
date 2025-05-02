@@ -40,8 +40,6 @@ var CmdStart = &cobra.Command{
 			}
 		}()
 
-		image := internal.GetDockerImage(cmd)
-
 		ctx := cmd.Context()
 
 		volumes, err := internal.DockerVolumeLs(ctx)
@@ -68,8 +66,15 @@ var CmdStart = &cobra.Command{
 		if !containerExists {
 			// Run the container without providing any environment variables.
 			// We assume the environment variables are persisted in the volume.
+
+			var image string
+			image, err = internal.FindAuthgearOnceImageInVolume(ctx)
+			if err != nil {
+				return
+			}
+
 			opts := internal.NewDockerRunOptionsForStarting(image)
-			err = internal.DockerRun(ctx, opts)
+			_, err = internal.DockerRun(ctx, opts)
 			if err != nil {
 				return
 			}

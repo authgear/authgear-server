@@ -654,7 +654,7 @@ func (m Installation) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// `docker run` is smart enough to pull the image and create the volume if the volume does not exist.
 			// So we do not need to do that manually.
 			// In fact, if we `docker pull`, it will result in error if we pull a image that exists only locally.
-			err := internal.DockerRun(m.Context, dockerRunOptions)
+			_, err := internal.DockerRun(m.Context, dockerRunOptions)
 			return msgInstallationInstall{
 				Err: err,
 			}
@@ -669,7 +669,7 @@ func (m Installation) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.InstallationStatus = InstallationStatusStarting
 			dockerRunOptions := internal.NewDockerRunOptionsForStarting(m.AUTHGEAR_ONCE_IMAGE)
 			cmds = append(cmds, func() tea.Msg {
-				err := internal.DockerRun(m.Context, dockerRunOptions)
+				_, err := internal.DockerRun(m.Context, dockerRunOptions)
 				return msgInstallationStart{
 					Err: err,
 				}
