@@ -22,6 +22,7 @@ export interface ImageInputProps {
   sizeLimitKB?: number;
 
   value: ImageValue | null;
+  onClickUpload?: () => void;
   onValueChange?: (value: ImageValue | null) => void;
   onError?: (error: ImageInputError) => void;
 }
@@ -46,13 +47,15 @@ export function ImageInput({
   value,
   sizeLimitKB = 100,
   onError,
+  onClickUpload,
   onValueChange,
 }: ImageInputProps): React.ReactElement {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleUpload = useCallback(() => {
+    onClickUpload?.();
     inputRef.current?.click();
-  }, []);
+  }, [onClickUpload]);
 
   const clearValue = useCallback(() => {
     onValueChange?.(null);
