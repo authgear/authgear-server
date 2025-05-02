@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import { DefaultEffects, Text } from "@fluentui/react";
 import PrimaryButton from "../../PrimaryButton";
@@ -133,6 +133,15 @@ const AppList: React.VFC<AppListProps> = function AppList(props: AppListProps) {
       };
     });
   }, [apps]);
+
+  if (isAuthgearOnce && apps.length === 1) {
+    return (
+      <Navigate
+        to={`/project/${encodeURIComponent(toTypedID("App", apps[0].appID))}`}
+        replace={true}
+      />
+    );
+  }
 
   return (
     <main className={styles.root}>
