@@ -1,6 +1,7 @@
 import { createContext, useContext } from "react";
 
 export interface AppContextValue {
+  appNodeID: string;
   appID: string;
   currentCollaboratorRole: string;
 }
@@ -13,4 +14,8 @@ export function useAppContext(): AppContextValue {
     throw Error("useAppContext must be used within AppContext.Provider");
   }
   return value;
+}
+
+export function useOptionalAppContext(): AppContextValue | null {
+  return useContext(AppContext);
 }

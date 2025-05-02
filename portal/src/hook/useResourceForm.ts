@@ -52,7 +52,7 @@ function constructResourcesFromResourcesFormState(
   return Object.values(state.resources).filter(Boolean) as Resource[];
 }
 export function useResourceForm(
-  appID: string,
+  appID: string | undefined,
   specifiers: ResourceSpecifier[]
 ): ResourceFormModel<ResourcesFormState>;
 export function useResourceForm<State>(
@@ -62,7 +62,7 @@ export function useResourceForm<State>(
   constructResources: ResourcesConstructor<State>
 ): ResourceFormModel<State>;
 export function useResourceForm<State>(
-  appID: string,
+  appID: string | undefined,
   specifiers: ResourceSpecifier[],
   constructState: StateConstructor<any> = constructResourcesFormStateFromResources,
   constructResources: ResourcesConstructor<any> = constructResourcesFromResourcesFormState
@@ -78,7 +78,7 @@ export function useResourceForm<State>(
     error: updateError,
     updateAppTemplates: updateResources,
     resetError,
-  } = useUpdateAppTemplatesMutation(appID);
+  } = useUpdateAppTemplatesMutation(appID!);
 
   const initialState = useMemo(
     () => constructState(resources),

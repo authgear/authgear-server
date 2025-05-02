@@ -17,6 +17,11 @@ var TutorialStatusData = graphqlutil.NewJSONObjectScalar(
 	"The `TutorialStatusData` scalar type represents tutorial status data",
 )
 
+var ProjectWizardData = graphqlutil.NewJSONObjectScalar(
+	"ProjectWizardData",
+	"The `ProjectWizardData` scalar type represents form data of project wizard",
+)
+
 var StripeError = graphqlutil.NewJSONObjectScalar(
 	"StripeError",
 	"The `StripeError` scalar type represents Stripe error",

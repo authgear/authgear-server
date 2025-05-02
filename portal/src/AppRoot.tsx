@@ -1,6 +1,6 @@
 import React, { useMemo, lazy, Suspense } from "react";
 import { Routes, Route, useParams, Navigate } from "react-router-dom";
-import { ApolloProvider } from "@apollo/client";
+import { ApolloProvider, useQuery } from "@apollo/client";
 
 import { makeClient } from "./graphql/adminapi/apollo";
 import { useAppAndSecretConfigQuery } from "./graphql/portal/query/appAndSecretConfigQuery";
@@ -9,6 +9,11 @@ import ShowLoading from "./ShowLoading";
 import { useUnauthenticatedDialogContext } from "./components/auth/UnauthenticatedDialogContext";
 import { useUIImplementation } from "./hook/useUIImplementation";
 import { useSystemConfig } from "./context/SystemConfigContext";
+import {
+  ScreenNavQueryDocument,
+  ScreenNavQueryQuery,
+} from "./graphql/portal/query/screenNavQuery.generated";
+import { usePortalClient } from "./graphql/portal/apollo";
 
 const RolesScreen = lazy(async () => import("./graphql/adminapi/RolesScreen"));
 const AddRoleScreen = lazy(
@@ -187,6 +192,7 @@ const AppRoot: React.VFC = function AppRoot() {
   const { appID } = useParams() as { appID: string };
   const { setDisplayUnauthenticatedDialog } = useUnauthenticatedDialogContext();
   const { showCustomSMSGateway } = useSystemConfig();
+  const portalClient = usePortalClient();
   const client = useMemo(() => {
     const onLogout = () => {
       setDisplayUnauthenticatedDialog(true);
@@ -197,6 +203,17 @@ const AppRoot: React.VFC = function AppRoot() {
   // NOTE: check if appID actually exist in authorized app list
   const { effectiveAppConfig, loading, error } =
     useAppAndSecretConfigQuery(appID);
+
+  const screenNavQuery = useQuery<ScreenNavQueryQuery>(ScreenNavQueryDocument, {
+    client: portalClient,
+    variables: {
+      id: appID,
+    },
+  });
+  const projectWizardData =
+    screenNavQuery.data?.node?.__typename === "App"
+      ? screenNavQuery.data.node.tutorialStatus.data.project_wizard
+      : null;
 
   const uiImplementation = useUIImplementation(
     effectiveAppConfig?.ui?.implementation
@@ -213,6 +230,16 @@ const AppRoot: React.VFC = function AppRoot() {
   // redirect to app list if app id is invalid
   if (isInvalidAppID) {
     return <Navigate to="/projects" replace={true} />;
+  }
+
+  // Continue project wizard if it is not completed
+  if (projectWizardData != null) {
+    return (
+      <Navigate
+        to={`/project/${encodeURIComponent(appID)}/wizard`}
+        replace={true}
+      />
+    );
   }
 
   const useAuthUIV2 = uiImplementation === "authflowv2";

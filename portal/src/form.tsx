@@ -145,7 +145,7 @@ export interface FormFieldProps {
   errors: readonly ParsedAPIError[];
 }
 
-export function useFormField(field: FormField): FormFieldProps {
+export function useFormField(field: FormField | undefined): FormFieldProps {
   const ctx = useContext(context);
   if (!ctx) {
     throw new Error("Attempted to use useFormField outside FormProvider");
@@ -154,13 +154,16 @@ export function useFormField(field: FormField): FormFieldProps {
   const { loading, registerField, unregisterField, fieldErrors } = ctx;
 
   useEffect(() => {
+    if (field == null) {
+      return () => {};
+    }
     registerField(field);
     return () => unregisterField(field);
   }, [registerField, unregisterField, field]);
 
   // We cannot simply use get to retrieve errors because FormField is not a value type.
   const errors = useMemo(
-    () => getFieldErrors(fieldErrors, field),
+    () => (field ? getFieldErrors(fieldErrors, field) : []),
     [field, fieldErrors]
   );
 

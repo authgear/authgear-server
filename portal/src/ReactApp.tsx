@@ -60,9 +60,7 @@ import { ThemeProvider } from "./components/v2/ThemeProvider/ThemeProvider";
 import { AppLocaleProvider } from "./components/common/AppLocaleProvider";
 
 const AppsScreen = lazy(async () => import("./graphql/portal/AppsScreen"));
-const CreateProjectScreen = lazy(
-  async () => import("./graphql/portal/CreateProjectScreen")
-);
+
 const OnboardingSurveyScreen = lazy(
   async () => import("./screens/v2/OnboardingSurvey/OnboardingSurveyScreen")
 );
@@ -144,7 +142,7 @@ const ReactAppRoutes: React.VFC = function ReactAppRoutes() {
             element={
               <Authenticated>
                 <Suspense fallback={<ShowLoading />}>
-                  <CreateProjectScreen />
+                  <ProjectWizardScreen />
                 </Suspense>
               </Authenticated>
             }

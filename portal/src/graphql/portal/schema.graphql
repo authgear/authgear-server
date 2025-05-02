@@ -273,6 +273,9 @@ enum CollaboratorRole {
 input CreateAppInput {
   """ID of the new app."""
   id: String!
+
+  """Data of project wizard"""
+  projectWizardData: ProjectWizardData
 }
 
 """"""
@@ -523,6 +526,9 @@ type Mutation {
   """Updates the current user's custom attribute with 'survey' key"""
   saveOnboardingSurvey(input: SaveOnboardingSurveyInput!): Boolean
 
+  """Save the progress of project wizard of the app"""
+  saveProjectWizardData(input: SaveProjectWizardDataInput!): SaveProjectWizardDataPayload!
+
   """Send a SMS to test the configuration"""
   sendTestSMSConfiguration(input: SendTestSMSInput!): Boolean
 
@@ -634,6 +640,11 @@ type PreviewUpdateSubscriptionPayload {
   """"""
   currency: String!
 }
+
+"""
+The `ProjectWizardData` scalar type represents form data of project wizard
+"""
+scalar ProjectWizardData
 
 """"""
 type Query {
@@ -957,6 +968,21 @@ input SMTPSecretInput {
 input SaveOnboardingSurveyInput {
   """Onboarding survey result JSON."""
   surveyJSON: String!
+}
+
+""""""
+input SaveProjectWizardDataInput {
+  """The project wizard data to save."""
+  data: ProjectWizardData
+
+  """ID of the app."""
+  id: String!
+}
+
+""""""
+type SaveProjectWizardDataPayload {
+  """"""
+  app: App!
 }
 
 """The content of authgear.secrets.yaml"""

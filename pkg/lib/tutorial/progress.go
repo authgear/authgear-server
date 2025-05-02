@@ -52,3 +52,7 @@ func (e *Entry) AddProgress(ps []Progress) {
 func (e *Entry) Skip() {
 	e.Data["skipped"] = true
 }
+
+func (e *Entry) SetProjectWizardData(data interface{}) {
+	e.Data["project_wizard"] = data
+}
