@@ -1,28 +1,9 @@
 import React from "react";
 import cn from "classnames";
-import { Button } from "@radix-ui/themes";
 import { ArrowLeftIcon } from "@radix-ui/react-icons";
 import styles from "./TextButton.module.css";
 
 export type TextButtonVariant = "default" | "secondary";
-
-function variantToColor(type: TextButtonVariant) {
-  switch (type) {
-    case "default":
-      return "indigo";
-    case "secondary":
-      return "gray";
-  }
-}
-
-function variantToHighContrast(type: TextButtonVariant): boolean {
-  switch (type) {
-    case "default":
-      return false;
-    case "secondary":
-      return true;
-  }
-}
 
 export type TextButtonSize = "3" | "4";
 
@@ -75,24 +56,49 @@ export function TextButton({
   loading,
   text,
   iconStart,
-
   type = "button",
   onClick,
 }: TextButtonProps): React.ReactElement {
   return (
-    <Button
+    <button
+      // eslint-disable-next-line react/button-has-type
       type={type}
-      className={cn(styles.textButton, darkMode ? "dark" : null)}
-      size={size}
-      variant="ghost"
-      highContrast={variantToHighContrast(variant)}
-      disabled={disabled}
-      color={variantToColor(variant)}
-      loading={loading}
+      className={cn(
+        styles.textButton,
+        sizeToClassName(size),
+        variantToClassName(variant),
+        darkMode ? "dark" : null
+      )}
       onClick={onClick}
+      disabled={disabled}
     >
-      {iconStart != null ? <Icon icon={iconStart} size={size} /> : null}
-      {text}
-    </Button>
+      <span
+        className={cn(
+          styles.textButton__content,
+          loading ? styles[".textButton__content--hidden"] : null
+        )}
+      >
+        {iconStart ? <Icon icon={iconStart} size={size} /> : null}
+        {text}
+      </span>
+    </button>
   );
+}
+
+function sizeToClassName(size: TextButtonSize): string {
+  switch (size) {
+    case "3":
+      return styles["textButton--size3"];
+    case "4":
+      return styles["textButton--size4"];
+  }
+}
+
+function variantToClassName(variant: TextButtonVariant): string {
+  switch (variant) {
+    case "default":
+      return styles["textButton--default"];
+    case "secondary":
+      return styles["textButton--secondary"];
+  }
 }
