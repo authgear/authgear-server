@@ -1,3 +1,93 @@
 .textButton {
+  @apply grid grid-flow-col gap-1 items-center;
+  @apply cursor-pointer;
+  @apply relative;
+  color: var(--text-button__normal-color);
+  border-radius: var(--text-button__radius);
+  outline: none;
+}
+
+.textButton:hover:not([disabled]) {
+  color: var(--text-button__hover-color);
+  opacity: var(--text-button__hover-opacity);
+}
+
+.textButton:active:not([disabled]) {
+  color: var(--text-button__active-color);
+  opacity: var(--text-button__active-opacity);
+}
+
+.textButton:focus-visible:not([disabled]) {
+  outline: 2px solid var(--text-button__focus-color--outer);
+  outline-offset: 4px;
+}
+
+.textButton:focus-visible:not([disabled])::after {
+  position: absolute;
+  display: block;
+  content: "";
+  pointer-events: none;
+  @apply top-0 left-0 bottom-0 right-0;
+  outline: 2px solid var(--text-button__focus-color--inner);
+  outline-offset: 2px;
+  border-radius: var(--text-button__radius);
+  user-select: none;
+}
+
+.textButton:disabled {
+  @apply cursor-not-allowed;
+  color: var(--text-button__disabled-color);
+  opacity: 1;
+}
+
+.textButton--size3 {
+  @apply h-8;
+
+  font-size: var(--font-size-3);
   font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-3);
+  letter-spacing: var(--letter-spacing-3);
+  border-radius: var(--radius-3);
+  --text-button__radius: var(--radius-3);
+}
+
+.textButton--size4 {
+  @apply h-9;
+
+  font-size: var(--font-size-4);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-4);
+  letter-spacing: var(--letter-spacing-4);
+  --text-button__radius: var(--radius-4);
+}
+
+.textButton--default {
+  --text-button__normal-color: var(--accent-9);
+  --text-button__focus-color--outer: var(--accent-a8);
+  --text-button__focus-color--inner: var(--accent-3);
+  --text-button__hover-color: var(--accent-10);
+  --text-button__hover-opacity: 1;
+  --text-button__active-color: var(--accent-10);
+  --text-button__active-opacity: 0.92;
+  --text-button__disabled-color: var(--gray-a10);
+}
+
+.textButton--secondary {
+  --text-button__normal-color: var(--gray-12);
+  --text-button__focus-color--outer: var(--gray-a8);
+  --text-button__focus-color--inner: var(--gray-3);
+  --text-button__focus-color: var(--gray-a8);
+  --text-button__hover-color: var(--gray-12);
+  --text-button__hover-opacity: 0.88;
+  --text-button__active-color: var(--gray-12);
+  --text-button__active-opacity: 0.92;
+  --text-button__disabled-color: var(--gray-a10);
+}
+
+.textButton__content {
+  @apply contents;
+}
+
+.textButton__content--hidden {
+  @apply invisible;
 }
