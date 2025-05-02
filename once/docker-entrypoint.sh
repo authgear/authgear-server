@@ -18,6 +18,11 @@ generate_password() {
 }
 
 check_AUTHGEAR_ONCE_environment_variables_are_set() {
+	if [ -z "$AUTHGEAR_ONCE_IMAGE" ]; then
+		printf 1>&2 "AUTHGEAR_ONCE_IMAGE must be set.\n"
+		exit 1
+	fi
+
 	if [ -z "$AUTHGEAR_ONCE_LICENSE_KEY" ]; then
 		printf 1>&2 "AUTHGEAR_ONCE_LICENSE_KEY must be set.\n"
 		exit 1
@@ -519,6 +524,7 @@ main() {
 		# you must think of the missing case of the environment variable,
 		# as there is a running installation of the old version without this environment variable.
 		{
+			printf "export AUTHGEAR_ONCE_IMAGE=%s\n" "$AUTHGEAR_ONCE_IMAGE"
 			printf "export AUTHGEAR_ONCE_LICENSE_KEY=%s\n" "$AUTHGEAR_ONCE_LICENSE_KEY"
 			printf "export AUTHGEAR_ONCE_MACHINE_FINGERPRINT=%s\n" "$AUTHGEAR_ONCE_MACHINE_FINGERPRINT"
 			printf "export AUTHGEAR_ONCE_ADMIN_USER_EMAIL=%s\n" "$AUTHGEAR_ONCE_ADMIN_USER_EMAIL"

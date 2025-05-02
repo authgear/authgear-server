@@ -62,7 +62,7 @@ var CmdSetup = &cobra.Command{
 			Context:                           ctx,
 			AUTHGEAR_ONCE_LICENSE_KEY:         licenseKey,
 			AUTHGEAR_ONCE_MACHINE_FINGERPRINT: fingerprint,
-			Image:                             image,
+			AUTHGEAR_ONCE_IMAGE:               image,
 		}
 
 		prog := tea.NewProgram(setupApp)
