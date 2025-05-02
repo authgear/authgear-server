@@ -112,7 +112,12 @@ func NewDockerRunOptionsForStarting(image string) DockerRunOptions {
 	}
 }
 
-func DockerRun(ctx context.Context, opts DockerRunOptions) error {
+type DockerRunResult struct {
+	Stdout string
+	Stderr string
+}
+
+func DockerRun(ctx context.Context, opts DockerRunOptions) (*DockerRunResult, error) {
 	args := []string{"run"}
 
 	if opts.Detach {
@@ -144,9 +149,9 @@ func DockerRun(ctx context.Context, opts DockerRunOptions) error {
 	c := exec.CommandContext(ctx, "docker", args...)
 	stdout, stderr, err := runCmd(c)
 	if err != nil {
-		return errors.Join(&CmdError{Stdout: stdout, Stderr: stderr}, err)
+		return nil, errors.Join(&CmdError{Stdout: stdout, Stderr: stderr}, err)
 	}
-	return nil
+	return &DockerRunResult{Stdout: stdout, Stderr: stderr}, nil
 }
 
 func DockerLs(ctx context.Context) ([]DockerContainer, error) {
@@ -186,4 +191,26 @@ func DockerStop(ctx context.Context, name string) error {
 		return errors.Join(&CmdError{Stdout: stdout, Stderr: stderr}, err)
 	}
 	return nil
+}
+
+func FindAuthgearOnceImageInVolume(ctx context.Context) (image string, err error) {
+	opts := DockerRunOptions{
+		Rm:     true,
+		Volume: []string{fmt.Sprintf("%v:/var/lib/authgearonce", NameDockerVolume)},
+		// Use busybox to inspect the volume.
+		Image: "busybox:1",
+		Command: []string{
+			"sh",
+			"-c",
+			`</var/lib/authgearonce/env.sh awk -F = '/AUTHGEAR_ONCE_IMAGE/ { print $2 }'`,
+		},
+	}
+
+	result, err := DockerRun(ctx, opts)
+	if err != nil {
+		return
+	}
+
+	image = strings.TrimSpace(result.Stdout)
+	return
 }

@@ -57,7 +57,7 @@ type RetainedValues struct {
 
 type SetupApp struct {
 	Context                           context.Context
-	Image                             string
+	AUTHGEAR_ONCE_IMAGE               string
 	AUTHGEAR_ONCE_LICENSE_KEY         string
 	AUTHGEAR_ONCE_MACHINE_FINGERPRINT string
 
@@ -535,7 +535,7 @@ func (m SetupApp) ToInstallation() Installation {
 
 	installation := Installation{
 		Context:                           m.Context,
-		Image:                             m.Image,
+		AUTHGEAR_ONCE_IMAGE:               m.AUTHGEAR_ONCE_IMAGE,
 		AUTHGEAR_ONCE_MACHINE_FINGERPRINT: m.AUTHGEAR_ONCE_MACHINE_FINGERPRINT,
 		AUTHGEAR_ONCE_LICENSE_KEY:         m.AUTHGEAR_ONCE_LICENSE_KEY,
 		AUTHGEAR_ONCE_ADMIN_USER_EMAIL:    m.mustFindQuestionByName(QuestionName_EnterAdminEmail).Value(),
@@ -609,10 +609,11 @@ type Domains struct {
 
 type Installation struct {
 	Context context.Context
-	Image   string
 
+	AUTHGEAR_ONCE_IMAGE               string
 	AUTHGEAR_ONCE_MACHINE_FINGERPRINT string
 	AUTHGEAR_ONCE_LICENSE_KEY         string
+
 	AUTHGEAR_HTTP_ORIGIN_PROJECT      string
 	AUTHGEAR_HTTP_ORIGIN_PORTAL       string
 	AUTHGEAR_HTTP_ORIGIN_ACCOUNTS     string
@@ -653,7 +654,7 @@ func (m Installation) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// `docker run` is smart enough to pull the image and create the volume if the volume does not exist.
 			// So we do not need to do that manually.
 			// In fact, if we `docker pull`, it will result in error if we pull a image that exists only locally.
-			err := internal.DockerRun(m.Context, dockerRunOptions)
+			_, err := internal.DockerRun(m.Context, dockerRunOptions)
 			return msgInstallationInstall{
 				Err: err,
 			}
@@ -666,9 +667,9 @@ func (m Installation) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		} else {
 			m.Loading = true
 			m.InstallationStatus = InstallationStatusStarting
-			dockerRunOptions := internal.NewDockerRunOptionsForStarting(m.Image)
+			dockerRunOptions := internal.NewDockerRunOptionsForStarting(m.AUTHGEAR_ONCE_IMAGE)
 			cmds = append(cmds, func() tea.Msg {
-				err := internal.DockerRun(m.Context, dockerRunOptions)
+				_, err := internal.DockerRun(m.Context, dockerRunOptions)
 				return msgInstallationStart{
 					Err: err,
 				}
@@ -727,7 +728,7 @@ func (m Installation) View() string {
 }
 
 func newDockerRunOptionsForInstallation(m Installation) internal.DockerRunOptions {
-	opts := internal.NewDockerRunOptionsForStarting(m.Image)
+	opts := internal.NewDockerRunOptionsForStarting(m.AUTHGEAR_ONCE_IMAGE)
 	opts.Detach = false
 	// No need to specify --restart as this is a short-lived container.
 	opts.Restart = ""
@@ -736,6 +737,7 @@ func newDockerRunOptionsForInstallation(m Installation) internal.DockerRunOption
 	// Remove the container because this container always run `true`.
 	opts.Rm = true
 	opts.Env = []string{
+		fmt.Sprintf("AUTHGEAR_ONCE_IMAGE=%v", m.AUTHGEAR_ONCE_IMAGE),
 		fmt.Sprintf("AUTHGEAR_ONCE_LICENSE_KEY=%v", m.AUTHGEAR_ONCE_LICENSE_KEY),
 		fmt.Sprintf("AUTHGEAR_ONCE_MACHINE_FINGERPRINT=%v", m.AUTHGEAR_ONCE_MACHINE_FINGERPRINT),
 		fmt.Sprintf("AUTHGEAR_HTTP_ORIGIN_PROJECT=%v", m.AUTHGEAR_HTTP_ORIGIN_PROJECT),
