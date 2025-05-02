@@ -191,7 +191,7 @@ const EditConfigurationScreen = lazy(
 const AppRoot: React.VFC = function AppRoot() {
   const { appID } = useParams() as { appID: string };
   const { setDisplayUnauthenticatedDialog } = useUnauthenticatedDialogContext();
-  const { showCustomSMSGateway } = useSystemConfig();
+  const { showCustomSMSGateway, isAuthgearOnce } = useSystemConfig();
   const portalClient = usePortalClient();
   const client = useMemo(() => {
     const onLogout = () => {
@@ -232,7 +232,13 @@ const AppRoot: React.VFC = function AppRoot() {
     return <Navigate to="/projects" replace={true} />;
   }
 
+  /* Handle project wizard redirection */
   // Continue project wizard if it is not completed
+  // null means completed
+  // undefined means not started
+  // any other value means in-progress
+
+  // Project wizard in-progress, continue
   if (projectWizardData != null) {
     return (
       <Navigate
@@ -241,6 +247,18 @@ const AppRoot: React.VFC = function AppRoot() {
       />
     );
   }
+
+  // In ONCE, we always force the user to complete the wizard if it is not completed or not started
+  if (projectWizardData === undefined && isAuthgearOnce) {
+    return (
+      <Navigate
+        to={`/project/${encodeURIComponent(appID)}/wizard`}
+        replace={true}
+      />
+    );
+  }
+
+  // In other cases, skip the wizard if it is not started
 
   const useAuthUIV2 = uiImplementation === "authflowv2";
 
