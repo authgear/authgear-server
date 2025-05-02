@@ -1844,7 +1844,9 @@
   "OnboardingSurveyScreen.actions.createProject": "Create Project",
 
   "ProjectWizardScreen.step1.header": "Create your project",
+  "ProjectWizardScreen.step1.header--once": "Setup",
   "ProjectWizardScreen.step1.fields.projectName.label": "Project Name",
+  "ProjectWizardScreen.step1.fields.projectName.label--once": "Organization name",
   "ProjectWizardScreen.step1.fields.projectName.placeholder": "Example: Acme Corporation",
   "ProjectWizardScreen.step1.fields.projectID.label": "Endpoint Domain",
   "ProjectWizardScreen.step1.fields.projectID.hint": "This is your Authgear Endpoint for your applications. Once chosen, the project cannot be renamed.",
