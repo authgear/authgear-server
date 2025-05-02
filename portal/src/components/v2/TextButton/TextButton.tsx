@@ -71,7 +71,7 @@ export function TextButton({
         darkMode ? "dark" : null
       )}
       onClick={onClick}
-      disabled={disabled}
+      disabled={loading ? true : disabled}
     >
       <span
         className={cn(
