@@ -1,5 +1,6 @@
 import React from "react";
 import cn from "classnames";
+import { Spinner, SpinnerProps } from "@radix-ui/themes";
 import { ArrowLeftIcon } from "@radix-ui/react-icons";
 import styles from "./TextButton.module.css";
 
@@ -75,11 +76,19 @@ export function TextButton({
       <span
         className={cn(
           styles.textButton__content,
-          loading ? styles[".textButton__content--hidden"] : null
+          loading ? styles["textButton__content--hidden"] : null
         )}
       >
         {iconStart ? <Icon icon={iconStart} size={size} /> : null}
         {text}
+      </span>
+      <span
+        className={cn(
+          styles["textButton__spinnerContainer"],
+          !loading ? "invisible" : null
+        )}
+      >
+        <Spinner size={sizeToSpinnerSize(size)} />
       </span>
     </button>
   );
@@ -100,5 +109,14 @@ function variantToClassName(variant: TextButtonVariant): string {
       return styles["textButton--default"];
     case "secondary":
       return styles["textButton--secondary"];
+  }
+}
+
+function sizeToSpinnerSize(size: TextButtonSize): SpinnerProps["size"] {
+  switch (size) {
+    case "3":
+      return "2";
+    case "4":
+      return "3";
   }
 }
