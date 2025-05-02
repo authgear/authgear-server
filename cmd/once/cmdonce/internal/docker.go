@@ -81,6 +81,7 @@ func DockerVolumeLs(ctx context.Context) ([]DockerVolume, error) {
 
 type DockerRunOptions struct {
 	Detach  bool
+	Restart string
 	Rm      bool
 	Volume  []string
 	Publish []string
@@ -92,8 +93,9 @@ type DockerRunOptions struct {
 
 func NewDockerRunOptionsForStarting(image string) DockerRunOptions {
 	return DockerRunOptions{
-		Detach: true,
-		Volume: []string{fmt.Sprintf("%v:/var/lib/authgearonce", NameDockerVolume)},
+		Detach:  true,
+		Restart: "always",
+		Volume:  []string{fmt.Sprintf("%v:/var/lib/authgearonce", NameDockerVolume)},
 		Publish: []string{
 			// Only publish HTTP/HTTPS ports on fixed host ports.
 			// Note that these ports are published on 0.0.0.0
@@ -115,6 +117,9 @@ func DockerRun(ctx context.Context, opts DockerRunOptions) error {
 
 	if opts.Detach {
 		args = append(args, "--detach")
+	}
+	if opts.Restart != "" {
+		args = append(args, "--restart", opts.Restart)
 	}
 	if opts.Rm {
 		args = append(args, "--rm")

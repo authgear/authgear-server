@@ -729,6 +729,8 @@ func (m Installation) View() string {
 func newDockerRunOptionsForInstallation(m Installation) internal.DockerRunOptions {
 	opts := internal.NewDockerRunOptionsForStarting(m.Image)
 	opts.Detach = false
+	// No need to specify --restart as this is a short-lived container.
+	opts.Restart = ""
 	// Run the shell command true to exit 0 when container has finished first run.
 	opts.Command = []string{"true"}
 	// Remove the container because this container always run `true`.
