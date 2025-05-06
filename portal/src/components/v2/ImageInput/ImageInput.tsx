@@ -6,6 +6,7 @@ import { SecondaryButton } from "../SecondaryButton/SecondaryButton";
 import { IconButton, IconButtonIcon } from "../IconButton/IconButton";
 import { SquareIcon } from "../SquareIcon/SquareIcon";
 import { ImageIcon } from "@radix-ui/react-icons";
+import { Text } from "@radix-ui/themes";
 import {
   base64EncodedDataToDataURI,
   dataURIToBase64EncodedData,
@@ -115,9 +116,14 @@ export function ImageInput({
         )}
       </button>
       <div className={styles.imageInput__rightColumn}>
-        <p className={styles.imageInput__hint}>
+        <Text
+          as="p"
+          size={"2"}
+          weight={"regular"}
+          className={styles.imageInput__hint}
+        >
           <FormattedMessage id="ImageInput.hint" />
-        </p>
+        </Text>
         <div className={styles.imageInput__buttonContainer}>
           <SecondaryButton
             type="button"

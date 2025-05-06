@@ -12,9 +12,6 @@ import {
   ToggleGroup,
   ToggleGroupOption,
 } from "../../../components/v2/ToggleGroup/ToggleGroup";
-import loginEmailIcon from "../../../images/login_email.svg";
-import loginPhoneIcon from "../../../images/login_phone.svg";
-import loginUsernameIcon from "../../../images/login_username.svg";
 import { produce } from "immer";
 import {
   IconRadioCardOption,
@@ -23,6 +20,27 @@ import {
 import { SquareIcon } from "../../../components/v2/SquareIcon/SquareIcon";
 import { ButtonIcon, InputIcon } from "@radix-ui/react-icons";
 import { useCapture } from "../../../gtm_v2";
+
+function LoginMethodIcon({ method }: { method: LoginMethod }) {
+  let iconClassName = "";
+  switch (method) {
+    case LoginMethod.Email:
+      iconClassName = "fa-envelope";
+
+      break;
+    case LoginMethod.Phone:
+      iconClassName = "fa-mobile";
+      break;
+    case LoginMethod.Username:
+      iconClassName = "fa-user";
+      break;
+  }
+  return (
+    <i
+      className={cn("fa", iconClassName, "text-xl text-center h-[1em] w-[1em]")}
+    />
+  );
+}
 
 export function Step2(): React.ReactElement {
   const capture = useCapture();
@@ -70,23 +88,21 @@ export function Step2(): React.ReactElement {
                     text: (
                       <FormattedMessage id="ProjectWizardScreen.loginMethods.email" />
                     ),
-                    icon: <img src={loginEmailIcon} width={20} height={20} />,
+                    icon: <LoginMethodIcon method={LoginMethod.Email} />,
                   },
                   {
                     value: LoginMethod.Phone,
                     text: (
                       <FormattedMessage id="ProjectWizardScreen.loginMethods.phone" />
                     ),
-                    icon: <img src={loginPhoneIcon} width={20} height={20} />,
+                    icon: <LoginMethodIcon method={LoginMethod.Phone} />,
                   },
                   {
                     value: LoginMethod.Username,
                     text: (
                       <FormattedMessage id="ProjectWizardScreen.loginMethods.username" />
                     ),
-                    icon: (
-                      <img src={loginUsernameIcon} width={20} height={20} />
-                    ),
+                    icon: <LoginMethodIcon method={LoginMethod.Username} />,
                   },
                 ];
               }, [])}

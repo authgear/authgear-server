@@ -1,6 +1,7 @@
 import React, { useMemo } from "react";
 import cn from "classnames";
 import styles from "./FormField.module.css";
+import { Text } from "@radix-ui/themes";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import { ErrorParseRule } from "../../../error/parse";
 import { useErrorMessage } from "../../../formbinding";
@@ -65,7 +66,12 @@ export function FormField({
       )}
     >
       {label ? (
-        <p className={cn(styles.formField__label, sizeToLabelClass(size))}>
+        <Text
+          as="p"
+          size={size}
+          weight={"medium"}
+          className={styles.formField__label}
+        >
           {label}
           {optional ? (
             <span className={styles.formField__labelOptional}>
@@ -73,26 +79,33 @@ export function FormField({
               <FormattedMessage id="FormField.optional" />
             </span>
           ) : null}
-        </p>
+        </Text>
       ) : null}
       <div className={styles.formField__inputContainer}>
         {children}
         {error != null ? (
-          <p className={styles.formField__errorMessage}>{error}</p>
+          <Text
+            as="p"
+            className={styles.formField__errorMessage}
+            size={"1"}
+            weight={"regular"}
+          >
+            {error}
+          </Text>
         ) : null}
-        {hint != null ? <p className={styles.formField__hint}>{hint}</p> : null}
+        {hint != null ? (
+          <Text
+            as="p"
+            className={styles.formField__hint}
+            size={"1"}
+            weight={"regular"}
+          >
+            {hint}
+          </Text>
+        ) : null}
       </div>
     </div>
   );
-}
-
-function sizeToLabelClass(size: FormFieldSize) {
-  switch (size) {
-    case "2":
-      return styles["formField__label--size2"];
-    case "3":
-      return styles["formField__label--size3"];
-  }
 }
 
 function labelSpaceClassName(space: FormFieldLabelSpace) {

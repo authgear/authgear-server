@@ -1,5 +1,7 @@
 import React, { useCallback, useMemo } from "react";
+import { Text } from "@radix-ui/themes";
 import cn from "classnames";
+
 import { Toggle } from "../Toggle/Toggle";
 import styles from "./ToggleGroup.module.css";
 
@@ -81,11 +83,23 @@ export function ToggleGroupItem<T extends string>({
       <div className={styles.toggleGroupItem__leftColumn}>
         {icon ? icon : null}
         <div className={styles.toggleGroupItem__textContainer}>
-          <p className={styles.toggleGroupItem__text}>{text}</p>
+          <Text
+            as="p"
+            size={"3"}
+            weight={"medium"}
+            className={styles.toggleGroupItem__text}
+          >
+            {text}
+          </Text>
           {supportingText ? (
-            <p className={styles.toggleGroupItem__supportingText}>
+            <Text
+              as="p"
+              size={"2"}
+              weight={"regular"}
+              className={styles.toggleGroupItem__supportingText}
+            >
               {supportingText}
-            </p>
+            </Text>
           ) : null}
         </div>
       </div>

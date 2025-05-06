@@ -1,8 +1,7 @@
 import React from "react";
+import cn from "classnames";
 import type { Meta, StoryObj } from "@storybook/react";
 import { ToggleGroupItem } from "./ToggleGroup";
-import loginEmailIcon from "../../../images/login_email.svg";
-import loginPhoneIcon from "../../../images/login_phone.svg";
 
 enum DemoIcon {
   "email" = "email",
@@ -26,7 +25,11 @@ const meta = {
       <div style={{ width: "386px" }}>
         <ToggleGroupItem
           {...args}
-          icon={args.icon != null ? toIcon(args.icon as DemoIcon) : null}
+          icon={
+            args.icon != null ? (
+              <DemoIconComponent icon={args.icon as DemoIcon} />
+            ) : null
+          }
         />
       </div>
     );
@@ -52,11 +55,20 @@ export const WithIcon: Story = {
   },
 };
 
-function toIcon(demoIcon: DemoIcon): React.ReactElement {
-  switch (demoIcon) {
+function DemoIconComponent({ icon }: { icon: DemoIcon }) {
+  let iconClassName = "";
+  switch (icon) {
     case DemoIcon.email:
-      return <img src={loginEmailIcon} width={20} height={20} />;
+      iconClassName = "fa-envelope";
+
+      break;
     case DemoIcon.phone:
-      return <img src={loginPhoneIcon} width={20} height={20} />;
+      iconClassName = "fa-mobile";
+      break;
   }
+  return (
+    <div className="h-5 w-5 grid items-center justify-center">
+      <i className={cn("fa", iconClassName, "text-xl")} />
+    </div>
+  );
 }

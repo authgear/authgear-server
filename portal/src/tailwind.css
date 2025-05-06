@@ -7,7 +7,4 @@
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
 @import "radix-color-overrides.css";
-
-:root {
-  --font-weight-semibold: 600;
-}
+@import "radix-typography.css";

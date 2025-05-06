@@ -1,5 +1,5 @@
 import React from "react";
-import { Switch as RadixSwitch } from "@radix-ui/themes";
+import { Switch as RadixSwitch, Text } from "@radix-ui/themes";
 import styles from "./Toggle.module.css";
 
 export interface ToggleProps {
@@ -22,7 +22,16 @@ export function Toggle({
         checked={checked}
         onCheckedChange={onCheckedChange}
       />
-      {text ? <p className={styles.toggle__text}>{text}</p> : null}
+      {text ? (
+        <Text
+          as="p"
+          size={"2"}
+          weight={"regular"}
+          className={styles.toggle__text}
+        >
+          {text}
+        </Text>
+      ) : null}
     </label>
   );
 }
