@@ -1,5 +1,5 @@
 import cn from "classnames";
-import { RadioCards as RadixRadioCards } from "@radix-ui/themes";
+import { RadioCards as RadixRadioCards, Text } from "@radix-ui/themes";
 import React, { useMemo } from "react";
 import styles from "./IconRadioCards.module.css";
 import { Tooltip } from "../Tooltip/Tooltip";
@@ -162,13 +162,23 @@ function OptionItem<T extends string>({
               {option.icon}
             </div>
             <div className={styles.iconRadioCards__itemTextContainer}>
-              <p className={styles.iconRadioCards__itemTextTitle}>
+              <Text
+                as="p"
+                size={"2"}
+                weight={"medium"}
+                className={styles.iconRadioCards__itemTextTitle}
+              >
                 {option.title}
-              </p>
+              </Text>
               {option.subtitle ? (
-                <p className={styles.iconRadioCards__itemTextSubtitle}>
+                <Text
+                  as="p"
+                  size={"2"}
+                  weight={"regular"}
+                  className={styles.iconRadioCards__itemTextSubtitle}
+                >
                   {option.subtitle}
-                </p>
+                </Text>
               ) : null}
             </div>
           </div>

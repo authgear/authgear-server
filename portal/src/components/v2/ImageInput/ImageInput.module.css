@@ -10,10 +10,6 @@
 .imageInput__hint {
   @apply overflow-hidden text-ellipsis self-stretch;
   color: var(--gray-a11);
-  font-size: var(--font-size-2);
-  font-weight: var(--font-weight-regular);
-  line-height: var(--line-height-2);
-  letter-spacing: var(--letter-spacing-2);
 }
 
 .imageInput__imageContainer {

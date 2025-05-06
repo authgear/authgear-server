@@ -21,20 +21,6 @@
   color: var(--white-a6);
 }
 
-.formField__label--size2 {
-  font-size: var(--font-size-2);
-  font-weight: var(--font-weight-medium);
-  line-height: var(--line-height-2);
-  letter-spacing: var(--letter-spacing-2);
-}
-
-.formField__label--size3 {
-  font-size: var(--font-size-3);
-  font-weight: var(--font-weight-medium);
-  line-height: var(--line-height-3);
-  letter-spacing: var(--letter-spacing-3);
-}
-
 .formField__inputContainer {
   @apply grid grid-cols-1 content-start text-left grid-flow-row;
   gap: var(--space-1);
@@ -42,16 +28,8 @@
 
 .formField__errorMessage {
   color: var(--red-11);
-  font-size: var(--font-size-1);
-  font-weight: var(--font-weight-regular);
-  line-height: var(--line-height-1);
-  letter-spacing: var(--letter-spacing-1);
 }
 
 .formField__hint {
   color: var(--gray-a11);
-  font-size: var(--font-size-1);
-  font-weight: var(--font-weight-regular);
-  line-height: var(--line-height-1);
-  letter-spacing: var(--letter-spacing-1);
 }

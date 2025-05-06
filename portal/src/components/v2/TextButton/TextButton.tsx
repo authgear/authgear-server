@@ -1,6 +1,6 @@
 import React from "react";
 import cn from "classnames";
-import { Spinner, SpinnerProps } from "@radix-ui/themes";
+import { Spinner, SpinnerProps, Text } from "@radix-ui/themes";
 import { ArrowLeftIcon } from "@radix-ui/react-icons";
 import styles from "./TextButton.module.css";
 
@@ -73,7 +73,10 @@ export function TextButton({
       onClick={onClick}
       disabled={loading ? true : disabled}
     >
-      <span
+      <Text
+        as="span"
+        size={size}
+        weight={"medium"}
         className={cn(
           styles.textButton__content,
           loading ? styles["textButton__content--hidden"] : null
@@ -81,7 +84,7 @@ export function TextButton({
       >
         {iconStart ? <Icon icon={iconStart} size={size} /> : null}
         {text}
-      </span>
+      </Text>
       <span
         className={cn(
           styles["textButton__spinnerContainer"],
