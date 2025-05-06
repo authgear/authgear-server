@@ -7,6 +7,12 @@
   outline: none;
 }
 
+.textButton:disabled {
+  @apply cursor-not-allowed;
+  color: var(--text-button__disabled-color);
+  opacity: 1;
+}
+
 .textButton:hover:not([disabled]) {
   color: var(--text-button__hover-color);
   opacity: var(--text-button__hover-opacity);
@@ -17,11 +23,13 @@
   opacity: var(--text-button__active-opacity);
 }
 
+/* stylelint-disable-next-line plugin/no-unsupported-browser-features -- ignore the style if focus-visible is not supported */
 .textButton:focus-visible:not([disabled]) {
   outline: 2px solid var(--text-button__focus-color--outer);
   outline-offset: 4px;
 }
 
+/* stylelint-disable-next-line plugin/no-unsupported-browser-features -- ignore the style if focus-visible is not supported  */
 .textButton:focus-visible:not([disabled])::after {
   position: absolute;
   display: block;
@@ -32,12 +40,6 @@
   outline-offset: 2px;
   border-radius: var(--text-button__radius);
   user-select: none;
-}
-
-.textButton:disabled {
-  @apply cursor-not-allowed;
-  color: var(--text-button__disabled-color);
-  opacity: 1;
 }
 
 .textButton--size3 {
