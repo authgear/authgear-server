@@ -29,7 +29,7 @@ export function SecondaryButton({
       size={size}
       variant="outline"
       highContrast={false}
-      disabled={disabled}
+      disabled={loading ? true : disabled}
       color="gray"
       loading={loading}
       onClick={onClick}

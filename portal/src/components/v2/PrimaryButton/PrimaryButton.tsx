@@ -33,7 +33,7 @@ export function PrimaryButton({
       size={size}
       variant="solid"
       highContrast={highContrast}
-      disabled={disabled}
+      disabled={loading ? true : disabled}
       color="indigo"
       loading={loading}
       onClick={onClick}
