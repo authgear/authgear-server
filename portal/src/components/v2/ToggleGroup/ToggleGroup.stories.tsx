@@ -1,8 +1,6 @@
 import React, { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import { ToggleGroup, ToggleGroupProps } from "./ToggleGroup";
-import loginEmailIcon from "../../../images/login_email.svg";
-import loginPhoneIcon from "../../../images/login_phone.svg";
 
 // More on how to set up stories at: https://storybook.js.org/docs/writing-stories#default-export
 const meta = {
@@ -13,32 +11,32 @@ const meta = {
       {
         value: "email",
         text: "Email",
-        icon: <img src={loginEmailIcon} width={20} height={20} />,
+        icon: <DemoIcon />,
       },
       {
         value: "phone",
         text: "Phone",
-        icon: <img src={loginPhoneIcon} width={20} height={20} />,
+        icon: <DemoIcon />,
       },
       {
         value: "phone2",
         text: "Phone",
-        icon: <img src={loginPhoneIcon} width={20} height={20} />,
+        icon: <DemoIcon />,
       },
       {
         value: "phone3",
         text: "Phone",
-        icon: <img src={loginPhoneIcon} width={20} height={20} />,
+        icon: <DemoIcon />,
       },
       {
         value: "phone4",
         text: "Phone",
-        icon: <img src={loginPhoneIcon} width={20} height={20} />,
+        icon: <DemoIcon />,
       },
       {
         value: "phone5",
         text: "Phone",
-        icon: <img src={loginPhoneIcon} width={20} height={20} />,
+        icon: <DemoIcon />,
       },
     ],
     values: [],
@@ -82,5 +80,13 @@ function Demo({
         <ToggleGroup {...rest} values={values} onValuesChange={setValues} />
       </div>
     </>
+  );
+}
+
+function DemoIcon() {
+  return (
+    <div className="h-5 w-5 grid items-center justify-center">
+      <i className={"fa fa-envelope text-xl"} />
+    </div>
   );
 }
