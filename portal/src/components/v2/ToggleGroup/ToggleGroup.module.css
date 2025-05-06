@@ -32,7 +32,7 @@
 .toggleGroupItem__text {
   color: var(--gray-12);
   font-size: var(--font-size-3);
-  font-weight: var(--font-weight-semibold);
+  font-weight: var(--font-weight-medium);
   line-height: var(--line-height-3);
   letter-spacing: var(--letter-spacing-3);
 }

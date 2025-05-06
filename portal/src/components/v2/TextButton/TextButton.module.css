@@ -46,7 +46,7 @@
   @apply h-8;
 
   font-size: var(--font-size-3);
-  font-weight: var(--font-weight-semibold);
+  font-weight: var(--font-weight-medium);
   line-height: var(--line-height-3);
   letter-spacing: var(--letter-spacing-3);
   border-radius: var(--radius-3);
@@ -57,7 +57,7 @@
   @apply h-9;
 
   font-size: var(--font-size-4);
-  font-weight: var(--font-weight-semibold);
+  font-weight: var(--font-weight-medium);
   line-height: var(--line-height-4);
   letter-spacing: var(--letter-spacing-4);
   --text-button__radius: var(--radius-4);

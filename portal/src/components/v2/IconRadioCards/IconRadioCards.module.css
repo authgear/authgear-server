@@ -26,7 +26,7 @@
 .iconRadioCards__itemTextTitle {
   color: var(--gray-a12);
   font-size: var(--font-size-2);
-  font-weight: var(--font-weight-semibold);
+  font-weight: var(--font-weight-medium);
   line-height: var(--line-height-2);
   letter-spacing: var(--letter-spacing-2);
 }
