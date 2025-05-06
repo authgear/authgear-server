@@ -15,6 +15,7 @@ import styles from "./AppsScreen.module.css";
 import { useCapture } from "../../gtm_v2";
 import { toTypedID } from "../../util/graphql";
 import { useSystemConfig } from "../../context/SystemConfigContext";
+import { shouldShowSurvey } from "../../util/survey";
 
 interface AppCardData {
   appName: string;
@@ -92,7 +93,8 @@ const AppList: React.VFC<AppListProps> = function AppList(props: AppListProps) {
   const { apps: unfilteredApps, viewer } = props;
   const projectQuotaReached = isProjectQuotaReached(viewer);
   const navigate = useNavigate();
-  const { authgearAppID, isAuthgearOnce } = useSystemConfig();
+  const systemConfig = useSystemConfig();
+  const { authgearAppID, isAuthgearOnce } = systemConfig;
 
   const createButtonDisabled = projectQuotaReached || isAuthgearOnce;
 
@@ -115,10 +117,17 @@ const AppList: React.VFC<AppListProps> = function AppList(props: AppListProps) {
   }, [unfilteredApps, isAuthgearOnce, authgearAppID]);
 
   useEffect(() => {
-    if (apps.length === 0 && !viewer.isOnboardingSurveyCompleted) {
+    if (shouldShowSurvey(systemConfig, apps, viewer)) {
       navigate("/onboarding-survey");
     }
-  }, [apps.length, viewer.isOnboardingSurveyCompleted, navigate]);
+  }, [
+    apps.length,
+    viewer.isOnboardingSurveyCompleted,
+    navigate,
+    systemConfig,
+    apps,
+    viewer,
+  ]);
 
   const appCardsData: AppCardData[] = useMemo(() => {
     return apps.map((app) => {

@@ -4,6 +4,8 @@ import ShowLoading from "./ShowLoading";
 import ShowError from "./ShowError";
 import { useAppListQuery } from "./graphql/portal/query/appListQuery";
 import { useViewerQuery } from "./graphql/portal/query/viewerQuery";
+import { useSystemConfig } from "./context/SystemConfigContext";
+import { shouldShowSurvey } from "./util/survey";
 
 const OnboardingRedirect: React.VFC = function OnboardingRedirect() {
   const {
@@ -19,6 +21,7 @@ const OnboardingRedirect: React.VFC = function OnboardingRedirect() {
     refetch: refetchViewer,
   } = useViewerQuery();
   const navigate = useNavigate();
+  const systemConfig = useSystemConfig();
 
   useEffect(() => {
     if (loadingAppList || loadingViewer) {
@@ -30,10 +33,7 @@ const OnboardingRedirect: React.VFC = function OnboardingRedirect() {
     if (viewer === undefined || viewer === null) {
       return;
     }
-    if (
-      (apps === null || apps.length === 0) &&
-      !viewer.isOnboardingSurveyCompleted
-    ) {
+    if (shouldShowSurvey(systemConfig, apps, viewer)) {
       navigate("/onboarding-survey");
     } else {
       navigate("/");
@@ -46,6 +46,7 @@ const OnboardingRedirect: React.VFC = function OnboardingRedirect() {
     loadingViewer,
     errorAppList,
     errorViewer,
+    systemConfig,
   ]);
 
   if (loadingAppList || loadingViewer) {
