@@ -309,11 +309,23 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
             },
           ]
         : []),
-      {
-        type: "link" as const,
-        textKey: "ScreenNav.billing",
-        url: `/project/${appID}/billing`,
-      },
+
+      ...(isAuthgearOnce
+        ? [
+            {
+              type: "link" as const,
+              textKey: "ScreenNav.license",
+              url: `/project/${appID}/license`,
+            },
+          ]
+        : [
+            {
+              type: "link" as const,
+              textKey: "ScreenNav.billing",
+              url: `/project/${appID}/billing`,
+            },
+          ]),
+
       {
         type: "group" as const,
         textKey: "ScreenNav.advanced",
