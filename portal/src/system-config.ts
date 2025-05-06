@@ -22,6 +22,7 @@ export interface SystemConfig {
   gtmContainerID: string;
   uiImplementation: string;
   uiSettingsImplemenation: string;
+  projectWizardImplementation: "v1" | "v2";
   showCustomSMSGateway: boolean;
 }
 
@@ -276,6 +277,7 @@ export function instantiateSystemConfig(
     gtmContainerID: config.gtmContainerID ?? "",
     uiImplementation: config.uiImplementation ?? "authflowv2",
     uiSettingsImplemenation: config.uiSettingsImplemenation ?? "v2",
+    projectWizardImplementation: config.projectWizardImplementation ?? "v1",
     showCustomSMSGateway: config.showCustomSMSGateway ?? false,
   };
 }

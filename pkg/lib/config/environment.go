@@ -110,7 +110,7 @@ type EnvironmentConfig struct {
 
 	UISettingsImplementation GlobalUISettingsImplementation `envconfig:"UI_SETTINGS_IMPLEMENTATION"`
 
-	ProjectWizardImplementation ProjectWizardImplementaion `envconfig:"PROJECT_WIZARD_IMPLEMENTATION" default:"v1"`
+	ProjectWizardImplementation ProjectWizardImplementaion `envconfig:"PROJECT_WIZARD_IMPLEMENTATION"`
 
 	WhatsappAPIType GlobalWhatsappAPIType `envconfig:"WHATSAPP_API_TYPE"`
 

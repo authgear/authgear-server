@@ -1,6 +1,6 @@
 mutation createAppMutation(
   $appID: String!
-  $projectWizardData: ProjectWizardData!
+  $projectWizardData: ProjectWizardData
 ) {
   createApp(input: { id: $appID, projectWizardData: $projectWizardData }) {
     app {
