@@ -3,10 +3,12 @@ package cmdsetup
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"os/exec"
 	"slices"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
@@ -56,7 +58,10 @@ type RetainedValues struct {
 }
 
 type SetupApp struct {
-	Context                           context.Context
+	Context        context.Context
+	HTTPClient     *http.Client
+	LicenseOptions internal.LicenseOptions
+
 	AUTHGEAR_ONCE_IMAGE               string
 	AUTHGEAR_ONCE_LICENSE_KEY         string
 	AUTHGEAR_ONCE_MACHINE_FINGERPRINT string
@@ -109,6 +114,17 @@ type msgSetupAppEndSurvey struct{}
 
 func SetupAppEndSurvey() tea.Msg {
 	return msgSetupAppEndSurvey{}
+}
+
+type msgSetupAppActivateLicense struct{}
+
+func SetupAppActivateLicense() tea.Msg {
+	return msgSetupAppActivateLicense{}
+}
+
+type msgSetupAppActivateLicenseResult struct {
+	LicenseObject *internal.LicenseObject
+	Err           error
 }
 
 type msgSetupStartInstallation struct{}
@@ -194,9 +210,26 @@ func (m SetupApp) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		q.Model = picker
 		m.Questions = append(m.Questions, q)
 	case msgSetupAppEndSurvey:
-		installation := m.ToInstallation()
-		m.Installation = &installation
-		return m, SetupAppStartInstallation
+		return m, tea.Batch(
+			m.StartLoading("Activating license..."),
+			func() tea.Msg {
+				licenseObject, err := internal.ActivateLicense(m.Context, m.HTTPClient, m.LicenseOptions)
+				return msgSetupAppActivateLicenseResult{
+					LicenseObject: licenseObject,
+					Err:           err,
+				}
+			},
+		)
+	case msgSetupAppActivateLicenseResult:
+		m.StopLoading()
+		if msg.Err != nil {
+			m.FatalError = m.FatalError.WithErr(msg.Err)
+			return m, tea.Quit
+		} else {
+			installation := m.ToInstallation(msg.LicenseObject)
+			m.Installation = &installation
+			return m, SetupAppStartInstallation
+		}
 	}
 
 	for idx := range m.Questions {
@@ -530,7 +563,7 @@ func (m SetupApp) ToDomains() Domains {
 	}
 }
 
-func (m SetupApp) ToInstallation() Installation {
+func (m SetupApp) ToInstallation(licenseObject *internal.LicenseObject) Installation {
 	certbotEnabled := m.mustFindQuestionByName(QuestionName_EnableCertbot).Value() == ValueTrue
 
 	installation := Installation{
@@ -538,6 +571,9 @@ func (m SetupApp) ToInstallation() Installation {
 		AUTHGEAR_ONCE_IMAGE:               m.AUTHGEAR_ONCE_IMAGE,
 		AUTHGEAR_ONCE_MACHINE_FINGERPRINT: m.AUTHGEAR_ONCE_MACHINE_FINGERPRINT,
 		AUTHGEAR_ONCE_LICENSE_KEY:         m.AUTHGEAR_ONCE_LICENSE_KEY,
+		AUTHGEAR_ONCE_LICENSE_EXPIRE_AT:   licenseObject.ExpireAt.Format(time.RFC3339),
+		AUTHGEAR_ONCE_LICENSEE_EMAIL:      nilStringToEmptyString(licenseObject.LicenseeEmail),
+
 		AUTHGEAR_ONCE_ADMIN_USER_EMAIL:    m.mustFindQuestionByName(QuestionName_EnterAdminEmail).Value(),
 		AUTHGEAR_ONCE_ADMIN_USER_PASSWORD: m.mustFindQuestionByName(QuestionName_EnterAdminPassword).Value(),
 	}
@@ -613,6 +649,8 @@ type Installation struct {
 	AUTHGEAR_ONCE_IMAGE               string
 	AUTHGEAR_ONCE_MACHINE_FINGERPRINT string
 	AUTHGEAR_ONCE_LICENSE_KEY         string
+	AUTHGEAR_ONCE_LICENSE_EXPIRE_AT   string
+	AUTHGEAR_ONCE_LICENSEE_EMAIL      string
 
 	AUTHGEAR_HTTP_ORIGIN_PROJECT      string
 	AUTHGEAR_HTTP_ORIGIN_PORTAL       string
@@ -739,6 +777,8 @@ func newDockerRunOptionsForInstallation(m Installation) internal.DockerRunOption
 	opts.Env = []string{
 		fmt.Sprintf("AUTHGEAR_ONCE_IMAGE=%v", m.AUTHGEAR_ONCE_IMAGE),
 		fmt.Sprintf("AUTHGEAR_ONCE_LICENSE_KEY=%v", m.AUTHGEAR_ONCE_LICENSE_KEY),
+		fmt.Sprintf("AUTHGEAR_ONCE_LICENSE_EXPIRE_AT=%v", m.AUTHGEAR_ONCE_LICENSE_EXPIRE_AT),
+		fmt.Sprintf("AUTHGEAR_ONCE_LICENSEE_EMAIL=%v", m.AUTHGEAR_ONCE_LICENSEE_EMAIL),
 		fmt.Sprintf("AUTHGEAR_ONCE_MACHINE_FINGERPRINT=%v", m.AUTHGEAR_ONCE_MACHINE_FINGERPRINT),
 		fmt.Sprintf("AUTHGEAR_HTTP_ORIGIN_PROJECT=%v", m.AUTHGEAR_HTTP_ORIGIN_PROJECT),
 		fmt.Sprintf("AUTHGEAR_HTTP_ORIGIN_PORTAL=%v", m.AUTHGEAR_HTTP_ORIGIN_PORTAL),
@@ -759,4 +799,11 @@ func newDockerRunOptionsForInstallation(m Installation) internal.DockerRunOption
 		)
 	}
 	return opts
+}
+
+func nilStringToEmptyString(s *string) string {
+	if s == nil {
+		return ""
+	}
+	return *s
 }
