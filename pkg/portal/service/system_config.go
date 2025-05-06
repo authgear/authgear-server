@@ -21,17 +21,18 @@ type ResourceManager interface {
 }
 
 type SystemConfigProvider struct {
-	AuthgearConfig                 *config.AuthgearConfig
-	AppConfig                      *config.AppConfig
-	SearchConfig                   *config.SearchConfig
-	AuditLogConfig                 *config.AuditLogConfig
-	AnalyticConfig                 *configlib.AnalyticConfig
-	GTMConfig                      *config.GoogleTagManagerConfig
-	FrontendSentryConfig           *config.PortalFrontendSentryConfig
-	PortalFeaturesConfig           *config.PortalFeaturesConfig
-	GlobalUIImplementation         configlib.GlobalUIImplementation
-	GlobalUISettingsImplementation configlib.GlobalUISettingsImplementation
-	Resources                      ResourceManager
+	AuthgearConfig                   *config.AuthgearConfig
+	AppConfig                        *config.AppConfig
+	SearchConfig                     *config.SearchConfig
+	AuditLogConfig                   *config.AuditLogConfig
+	AnalyticConfig                   *configlib.AnalyticConfig
+	GTMConfig                        *config.GoogleTagManagerConfig
+	FrontendSentryConfig             *config.PortalFrontendSentryConfig
+	PortalFeaturesConfig             *config.PortalFeaturesConfig
+	GlobalUIImplementation           configlib.GlobalUIImplementation
+	GlobalUISettingsImplementation   configlib.GlobalUISettingsImplementation
+	GlobalProjectWizardImplementaion configlib.ProjectWizardImplementaion
+	Resources                        ResourceManager
 }
 
 func (p *SystemConfigProvider) SystemConfig(ctx context.Context) (*model.SystemConfig, error) {
@@ -51,26 +52,27 @@ func (p *SystemConfigProvider) SystemConfig(ctx context.Context) (*model.SystemC
 	}
 
 	return &model.SystemConfig{
-		AuthgearAppID:             p.AuthgearConfig.AppID,
-		AuthgearClientID:          p.AuthgearConfig.ClientID,
-		AuthgearEndpoint:          p.AuthgearConfig.Endpoint,
-		AuthgearWebSDKSessionType: p.AuthgearConfig.WebSDKSessionType,
-		IsAuthgearOnce:            AUTHGEARONCE,
-		SentryDSN:                 p.FrontendSentryConfig.DSN,
-		AppHostSuffix:             p.AppConfig.HostSuffix,
-		AvailableLanguages:        intl.AvailableLanguages,
-		BuiltinLanguages:          intl.BuiltinLanguages,
-		Themes:                    themes,
-		Translations:              translations,
-		SearchEnabled:             p.SearchConfig.Enabled,
-		AuditLogEnabled:           p.AuditLogConfig.Enabled,
-		AnalyticEnabled:           p.AnalyticConfig.Enabled,
-		AnalyticEpoch:             analyticEpoch,
-		GitCommitHash:             strings.TrimPrefix(version.Version, "git-"),
-		GTMContainerID:            p.GTMConfig.ContainerID,
-		UIImplementation:          string(p.GlobalUIImplementation),
-		UISettingsImplementation:  string(p.GlobalUISettingsImplementation),
-		ShowCustomSMSGateway:      p.PortalFeaturesConfig.ShowCustomSMSGateway,
+		AuthgearAppID:               p.AuthgearConfig.AppID,
+		AuthgearClientID:            p.AuthgearConfig.ClientID,
+		AuthgearEndpoint:            p.AuthgearConfig.Endpoint,
+		AuthgearWebSDKSessionType:   p.AuthgearConfig.WebSDKSessionType,
+		IsAuthgearOnce:              AUTHGEARONCE,
+		SentryDSN:                   p.FrontendSentryConfig.DSN,
+		AppHostSuffix:               p.AppConfig.HostSuffix,
+		AvailableLanguages:          intl.AvailableLanguages,
+		BuiltinLanguages:            intl.BuiltinLanguages,
+		Themes:                      themes,
+		Translations:                translations,
+		SearchEnabled:               p.SearchConfig.Enabled,
+		AuditLogEnabled:             p.AuditLogConfig.Enabled,
+		AnalyticEnabled:             p.AnalyticConfig.Enabled,
+		AnalyticEpoch:               analyticEpoch,
+		GitCommitHash:               strings.TrimPrefix(version.Version, "git-"),
+		GTMContainerID:              p.GTMConfig.ContainerID,
+		UIImplementation:            string(p.GlobalUIImplementation),
+		UISettingsImplementation:    string(p.GlobalUISettingsImplementation),
+		ProjectWizardImplementation: string(p.GlobalProjectWizardImplementaion),
+		ShowCustomSMSGateway:        p.PortalFeaturesConfig.ShowCustomSMSGateway,
 	}, nil
 }
 

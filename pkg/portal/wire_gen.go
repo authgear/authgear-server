@@ -444,19 +444,21 @@ func newSystemConfigHandler(p *deps.RequestProvider) http.Handler {
 	environmentConfig := rootProvider.EnvironmentConfig
 	globalUIImplementation := environmentConfig.UIImplementation
 	globalUISettingsImplementation := environmentConfig.UISettingsImplementation
+	projectWizardImplementaion := environmentConfig.ProjectWizardImplementation
 	manager := rootProvider.Resources
 	systemConfigProvider := &service.SystemConfigProvider{
-		AuthgearConfig:                 authgearConfig,
-		AppConfig:                      appConfig,
-		SearchConfig:                   searchConfig,
-		AuditLogConfig:                 auditLogConfig,
-		AnalyticConfig:                 analyticConfig,
-		GTMConfig:                      googleTagManagerConfig,
-		FrontendSentryConfig:           portalFrontendSentryConfig,
-		PortalFeaturesConfig:           portalFeaturesConfig,
-		GlobalUIImplementation:         globalUIImplementation,
-		GlobalUISettingsImplementation: globalUISettingsImplementation,
-		Resources:                      manager,
+		AuthgearConfig:                   authgearConfig,
+		AppConfig:                        appConfig,
+		SearchConfig:                     searchConfig,
+		AuditLogConfig:                   auditLogConfig,
+		AnalyticConfig:                   analyticConfig,
+		GTMConfig:                        googleTagManagerConfig,
+		FrontendSentryConfig:             portalFrontendSentryConfig,
+		PortalFeaturesConfig:             portalFeaturesConfig,
+		GlobalUIImplementation:           globalUIImplementation,
+		GlobalUISettingsImplementation:   globalUISettingsImplementation,
+		GlobalProjectWizardImplementaion: projectWizardImplementaion,
+		Resources:                        manager,
 	}
 	filesystemCache := rootProvider.FilesystemCache
 	systemConfigHandler := &transport.SystemConfigHandler{
