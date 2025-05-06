@@ -147,28 +147,25 @@ export interface FormFieldProps {
 
 export function useFormField(field: FormField | undefined): FormFieldProps {
   const ctx = useContext(context);
-  if (!ctx) {
-    throw new Error("Attempted to use useFormField outside FormProvider");
-  }
   // eslint-disable-next-line @typescript-eslint/unbound-method
-  const { loading, registerField, unregisterField, fieldErrors } = ctx;
+  const { loading, registerField, unregisterField, fieldErrors } = ctx ?? {};
 
   useEffect(() => {
     if (field == null) {
       return () => {};
     }
-    registerField(field);
-    return () => unregisterField(field);
+    registerField?.(field);
+    return () => unregisterField?.(field);
   }, [registerField, unregisterField, field]);
 
   // We cannot simply use get to retrieve errors because FormField is not a value type.
   const errors = useMemo(
-    () => (field ? getFieldErrors(fieldErrors, field) : []),
+    () => (field && fieldErrors ? getFieldErrors(fieldErrors, field) : []),
     [field, fieldErrors]
   );
 
   return {
-    loading,
+    loading: loading ?? false,
     errors,
   };
 }
