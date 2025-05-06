@@ -51,7 +51,7 @@ var CmdSetup = &cobra.Command{
 			Fingerprint: fingerprint,
 		}
 
-		err := internal.CheckLicense(ctx, client, licenseOpts)
+		_, err := internal.CheckLicense(ctx, client, licenseOpts)
 		if err != nil {
 			err = internal.PrintError(err)
 			return err
@@ -76,7 +76,7 @@ var CmdSetup = &cobra.Command{
 			os.Exit(1)
 		}
 
-		err = internal.ActivateLicense(ctx, client, licenseOpts)
+		_, err = internal.ActivateLicense(ctx, client, licenseOpts)
 		if err != nil {
 			err = internal.PrintError(err)
 			return err
