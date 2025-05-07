@@ -43,6 +43,7 @@ var EnvConfigDeps = wire.NewSet(
 		"AppHostSuffixes",
 		"UIImplementation",
 		"UISettingsImplementation",
+		"ProjectWizardImplementation",
 		"WhatsappAPIType",
 		"UserExportObjectStore",
 		"SMSGatewayConfig",
