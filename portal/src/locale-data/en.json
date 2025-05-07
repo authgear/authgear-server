@@ -1559,6 +1559,13 @@
   "SubscriptionScreen.reactivate.confirmation": "Are you sure to reactivate the subscription?",
   "SubscriptionScreen.reactivate.error": "Failed to reactivate plan. Please send an email to {ExternalLink, react, children{hello@authgear.com} href{mailto:hello@authgear.com}} from the email address associated with your Authgear account and the plan you would like to reactivate.",
 
+  "LicenseScreen.title": "License",
+  "LicenseScreen.description": "License information about your Authgear ONCE instance",
+  "LicenseScreen.license-key": "License key",
+  "LicenseScreen.email": "Email",
+  "LicenseScreen.lifetime-usage": "Lifetime usage",
+  "LicenseScreen.license-expiry": "Receiving free updates until {expireAt}",
+
   "SMTPConfigurationScreen.title": "Custom Email Provider",
   "SMTPConfigurationScreen.title--authgearonce": "Email Provider",
   "SMTPConfigurationScreen.description": "Optimize for email deliverability by using your own SMTP server to send Authgear Emails (such as password reset code, verification) in your own domains",
