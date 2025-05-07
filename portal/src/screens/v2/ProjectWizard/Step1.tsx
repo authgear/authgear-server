@@ -1,6 +1,6 @@
 import React, { useCallback, useContext } from "react";
 import cn from "classnames";
-import { Text } from "../../../components/onboarding/Text";
+import { Text } from "../../../components/project-wizard/Text";
 import {
   Context as MessageContext,
   FormattedMessage,
