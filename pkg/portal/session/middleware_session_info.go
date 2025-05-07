@@ -146,7 +146,12 @@ func (m *SessionInfoMiddleware) getJWKs(ctx context.Context) (jwk.Set, error) {
 		return jwkIface.(jwk.Set), nil
 	}
 
-	endpoint, err := url.JoinPath(m.AuthgearConfig.Endpoint, "/.well-known/openid-configuration")
+	endpointStr := m.AuthgearConfig.Endpoint
+	if m.AuthgearConfig.EndpointInternal != "" {
+		endpointStr = m.AuthgearConfig.EndpointInternal
+	}
+
+	endpoint, err := url.JoinPath(endpointStr, "/.well-known/openid-configuration")
 	if err != nil {
 		return nil, err
 	}
