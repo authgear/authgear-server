@@ -99,10 +99,12 @@ function ProjectWizardScreen(): React.ReactElement {
     return <ShowLoading />;
   }
 
-  const initialState =
+  const previousState: FormState | null =
     screenNavQuery.data.node?.__typename === "App"
       ? screenNavQuery.data.node.tutorialStatus.data.project_wizard
       : null;
+
+  const initialState = previousState?.completed ? null : previousState;
 
   return <Loaded initialState={initialState} />;
 }

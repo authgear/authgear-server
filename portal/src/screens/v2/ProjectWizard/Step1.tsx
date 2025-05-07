@@ -1,4 +1,5 @@
 import React, { useCallback, useContext } from "react";
+import cn from "classnames";
 import { Text } from "../../../components/onboarding/Text";
 import {
   Context as MessageContext,
@@ -38,12 +39,24 @@ export function Step1(): React.ReactElement {
       <ProjectWizardStepper step={form.state.step} />
       <div className="grid grid-cols-1 gap-6">
         <Text.Heading>
-          <FormattedMessage id="ProjectWizardScreen.step1.header" />
+          <FormattedMessage
+            id={
+              systemConfig.isAuthgearOnce
+                ? "ProjectWizardScreen.step1.header--once"
+                : "ProjectWizardScreen.step1.header"
+            }
+          />
         </Text.Heading>
         <TextField
           size="3"
           label={
-            <FormattedMessage id="ProjectWizardScreen.step1.fields.projectName.label" />
+            <FormattedMessage
+              id={
+                systemConfig.isAuthgearOnce
+                  ? "ProjectWizardScreen.step1.fields.projectName.label--once"
+                  : "ProjectWizardScreen.step1.fields.projectName.label"
+              }
+            />
           }
           placeholder={renderToString(
             "ProjectWizardScreen.step1.fields.projectName.placeholder"
@@ -62,36 +75,38 @@ export function Step1(): React.ReactElement {
             [form]
           )}
         />
-        <TextField
-          size="3"
-          label={
-            <FormattedMessage id="ProjectWizardScreen.step1.fields.projectID.label" />
-          }
-          hint={
-            <FormattedMessage id="ProjectWizardScreen.step1.fields.projectID.hint" />
-          }
-          placeholder={renderToString(
-            "ProjectWizardScreen.step1.fields.projectID.placeholder"
-          )}
-          suffix={systemConfig.appHostSuffix}
-          disabled={!form.isProjectIDEditable}
-          value={form.state.projectID}
-          onChange={useCallback(
-            (e: React.ChangeEvent<HTMLInputElement>) => {
-              const value = e.currentTarget.value;
-              form.setState((prev) =>
-                produce(prev, (draft) => {
-                  draft.projectID = value;
-                  return draft;
-                })
-              );
-            },
-            [form]
-          )}
-          parentJSONPointer=""
-          fieldName="app_id"
-          errorRules={errorRules}
-        />
+        <div className={cn(systemConfig.isAuthgearOnce ? "hidden" : null)}>
+          <TextField
+            size="3"
+            label={
+              <FormattedMessage id="ProjectWizardScreen.step1.fields.projectID.label" />
+            }
+            hint={
+              <FormattedMessage id="ProjectWizardScreen.step1.fields.projectID.hint" />
+            }
+            placeholder={renderToString(
+              "ProjectWizardScreen.step1.fields.projectID.placeholder"
+            )}
+            suffix={systemConfig.appHostSuffix}
+            disabled={!form.isProjectIDEditable}
+            value={form.state.projectID}
+            onChange={useCallback(
+              (e: React.ChangeEvent<HTMLInputElement>) => {
+                const value = e.currentTarget.value;
+                form.setState((prev) =>
+                  produce(prev, (draft) => {
+                    draft.projectID = value;
+                    return draft;
+                  })
+                );
+              },
+              [form]
+            )}
+            parentJSONPointer=""
+            fieldName="app_id"
+            errorRules={errorRules}
+          />
+        </div>
       </div>
       <div>
         <PrimaryButton
