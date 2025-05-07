@@ -124,6 +124,11 @@ http {
         location / {
             proxy_pass http://localhost:3003;
             include /etc/nginx/snippets/authgear_location.conf;
+            proxy_set_header Host $http_host;
+            proxy_set_header X-Forwarded-Host $http_host;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_set_header X-Forwarded-Scheme $scheme;
+            proxy_set_header X-Scheme $scheme;
         }
     }
 
@@ -136,22 +141,42 @@ http {
         location / {
             proxy_pass http://localhost:3000;
             include /etc/nginx/snippets/authgear_location.conf;
+            proxy_set_header Host __AUTHGEAR_HTTP_HOST_ACCOUNTS__;
+            proxy_set_header X-Forwarded-Host __AUTHGEAR_HTTP_HOST_ACCOUNTS__;
+            proxy_set_header X-Forwarded-Proto __AUTHGEAR_HTTP_EXPECTED_SCHEME_ACCOUNTS__;
+            proxy_set_header X-Forwarded-scheme __AUTHGEAR_HTTP_EXPECTED_SCHEME_ACCOUNTS__;
+            proxy_set_header X-Scheme __AUTHGEAR_HTTP_EXPECTED_SCHEME_ACCOUNTS__;
         }
 
         location /_api/admin {
             proxy_pass http://localhost:3002;
             include /etc/nginx/snippets/authgear_location.conf;
+            proxy_set_header Host __AUTHGEAR_HTTP_HOST_ACCOUNTS__;
+            proxy_set_header X-Forwarded-Host __AUTHGEAR_HTTP_HOST_ACCOUNTS__;
+            proxy_set_header X-Forwarded-Proto __AUTHGEAR_HTTP_EXPECTED_SCHEME_ACCOUNTS__;
+            proxy_set_header X-Forwarded-scheme __AUTHGEAR_HTTP_EXPECTED_SCHEME_ACCOUNTS__;
+            proxy_set_header X-Scheme __AUTHGEAR_HTTP_EXPECTED_SCHEME_ACCOUNTS__;
         }
 
         location /_resolver {
             proxy_pass http://localhost:3001;
             include /etc/nginx/snippets/authgear_location.conf;
+            proxy_set_header Host __AUTHGEAR_HTTP_HOST_ACCOUNTS__;
+            proxy_set_header X-Forwarded-Host __AUTHGEAR_HTTP_HOST_ACCOUNTS__;
+            proxy_set_header X-Forwarded-Proto __AUTHGEAR_HTTP_EXPECTED_SCHEME_ACCOUNTS__;
+            proxy_set_header X-Forwarded-scheme __AUTHGEAR_HTTP_EXPECTED_SCHEME_ACCOUNTS__;
+            proxy_set_header X-Scheme __AUTHGEAR_HTTP_EXPECTED_SCHEME_ACCOUNTS__;
         }
 
         location /_images {
             client_max_body_size 10M;
             proxy_pass http://localhost:3004;
             include /etc/nginx/snippets/authgear_location.conf;
+            proxy_set_header Host __AUTHGEAR_HTTP_HOST_ACCOUNTS__;
+            proxy_set_header X-Forwarded-Host __AUTHGEAR_HTTP_HOST_ACCOUNTS__;
+            proxy_set_header X-Forwarded-Proto __AUTHGEAR_HTTP_EXPECTED_SCHEME_ACCOUNTS__;
+            proxy_set_header X-Forwarded-scheme __AUTHGEAR_HTTP_EXPECTED_SCHEME_ACCOUNTS__;
+            proxy_set_header X-Scheme __AUTHGEAR_HTTP_EXPECTED_SCHEME_ACCOUNTS__;
         }
     }
 
@@ -178,22 +203,42 @@ http {
         location / {
             proxy_pass http://localhost:3000;
             include /etc/nginx/snippets/authgear_location.conf;
+            proxy_set_header Host $http_host;
+            proxy_set_header X-Forwarded-Host $http_host;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_set_header X-Forwarded-Scheme $scheme;
+            proxy_set_header X-Scheme $scheme;
         }
 
         location /_api/admin {
             proxy_pass http://localhost:3002;
             include /etc/nginx/snippets/authgear_location.conf;
+            proxy_set_header Host $http_host;
+            proxy_set_header X-Forwarded-Host $http_host;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_set_header X-Forwarded-Scheme $scheme;
+            proxy_set_header X-Scheme $scheme;
         }
 
         location /_resolver {
             proxy_pass http://localhost:3001;
             include /etc/nginx/snippets/authgear_location.conf;
+            proxy_set_header Host $http_host;
+            proxy_set_header X-Forwarded-Host $http_host;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_set_header X-Forwarded-Scheme $scheme;
+            proxy_set_header X-Scheme $scheme;
         }
 
         location /_images {
             client_max_body_size 10M;
             proxy_pass http://localhost:3004;
             include /etc/nginx/snippets/authgear_location.conf;
+            proxy_set_header Host $http_host;
+            proxy_set_header X-Forwarded-Host $http_host;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_set_header X-Forwarded-Scheme $scheme;
+            proxy_set_header X-Scheme $scheme;
         }
     }
 
@@ -220,22 +265,42 @@ http {
         location / {
             proxy_pass http://localhost:3000;
             include /etc/nginx/snippets/authgear_location.conf;
+            proxy_set_header Host $http_host;
+            proxy_set_header X-Forwarded-Host $http_host;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_set_header X-Forwarded-Scheme $scheme;
+            proxy_set_header X-Scheme $scheme;
         }
 
         location /_api/admin {
             proxy_pass http://localhost:3002;
             include /etc/nginx/snippets/authgear_location.conf;
+            proxy_set_header Host $http_host;
+            proxy_set_header X-Forwarded-Host $http_host;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_set_header X-Forwarded-Scheme $scheme;
+            proxy_set_header X-Scheme $scheme;
         }
 
         location /_resolver {
             proxy_pass http://localhost:3001;
             include /etc/nginx/snippets/authgear_location.conf;
+            proxy_set_header Host $http_host;
+            proxy_set_header X-Forwarded-Host $http_host;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_set_header X-Forwarded-Scheme $scheme;
+            proxy_set_header X-Scheme $scheme;
         }
 
         location /_images {
             client_max_body_size 10M;
             proxy_pass http://localhost:3004;
             include /etc/nginx/snippets/authgear_location.conf;
+            proxy_set_header Host $http_host;
+            proxy_set_header X-Forwarded-Host $http_host;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_set_header X-Forwarded-Scheme $scheme;
+            proxy_set_header X-Scheme $scheme;
         }
     }
 
@@ -248,22 +313,42 @@ http {
         location / {
             proxy_pass http://localhost:3000;
             include /etc/nginx/snippets/authgear_location.conf;
+            proxy_set_header Host __AUTHGEAR_HTTP_HOST_PROJECT__;
+            proxy_set_header X-Forwarded-Host __AUTHGEAR_HTTP_HOST_PROJECT__;
+            proxy_set_header X-Forwarded-Proto __AUTHGEAR_HTTP_EXPECTED_SCHEME_PROJECT__;
+            proxy_set_header X-Forwarded-Scheme __AUTHGEAR_HTTP_EXPECTED_SCHEME_PROJECT__;
+            proxy_set_header X-Scheme __AUTHGEAR_HTTP_EXPECTED_SCHEME_PROJECT__;
         }
 
         location /_api/admin {
             proxy_pass http://localhost:3002;
             include /etc/nginx/snippets/authgear_location.conf;
+            proxy_set_header Host __AUTHGEAR_HTTP_HOST_PROJECT__;
+            proxy_set_header X-Forwarded-Host __AUTHGEAR_HTTP_HOST_PROJECT__;
+            proxy_set_header X-Forwarded-Proto __AUTHGEAR_HTTP_EXPECTED_SCHEME_PROJECT__;
+            proxy_set_header X-Forwarded-Scheme __AUTHGEAR_HTTP_EXPECTED_SCHEME_PROJECT__;
+            proxy_set_header X-Scheme __AUTHGEAR_HTTP_EXPECTED_SCHEME_PROJECT__;
         }
 
         location /_resolver {
             proxy_pass http://localhost:3001;
             include /etc/nginx/snippets/authgear_location.conf;
+            proxy_set_header Host __AUTHGEAR_HTTP_HOST_PROJECT__;
+            proxy_set_header X-Forwarded-Host __AUTHGEAR_HTTP_HOST_PROJECT__;
+            proxy_set_header X-Forwarded-Proto __AUTHGEAR_HTTP_EXPECTED_SCHEME_PROJECT__;
+            proxy_set_header X-Forwarded-Scheme __AUTHGEAR_HTTP_EXPECTED_SCHEME_PROJECT__;
+            proxy_set_header X-Scheme __AUTHGEAR_HTTP_EXPECTED_SCHEME_PROJECT__;
         }
 
         location /_images {
             client_max_body_size 10M;
             proxy_pass http://localhost:3004;
             include /etc/nginx/snippets/authgear_location.conf;
+            proxy_set_header Host __AUTHGEAR_HTTP_HOST_PROJECT__;
+            proxy_set_header X-Forwarded-Host __AUTHGEAR_HTTP_HOST_PROJECT__;
+            proxy_set_header X-Forwarded-Proto __AUTHGEAR_HTTP_EXPECTED_SCHEME_PROJECT__;
+            proxy_set_header X-Forwarded-Scheme __AUTHGEAR_HTTP_EXPECTED_SCHEME_PROJECT__;
+            proxy_set_header X-Scheme __AUTHGEAR_HTTP_EXPECTED_SCHEME_PROJECT__;
         }
     }
 
