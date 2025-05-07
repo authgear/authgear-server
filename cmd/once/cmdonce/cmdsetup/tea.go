@@ -137,6 +137,29 @@ func (m SetupApp) Init() tea.Cmd {
 	return SetupAppInit
 }
 
+func (m SetupApp) msgSetupAppInit() (tea.Model, tea.Cmd) {
+	_, err := exec.LookPath(internal.BinDocker)
+	if err != nil {
+		m.FatalError = m.FatalError.WithErr(internal.ErrNoDocker)
+		return m, tea.Quit
+	}
+
+	volumes, err := internal.DockerVolumeLs(m.Context)
+	if err != nil {
+		m.FatalError = m.FatalError.WithErr(err)
+		return m, tea.Quit
+	}
+
+	if slices.ContainsFunc(volumes, func(v internal.DockerVolume) bool {
+		return v.Name == internal.NameDockerVolume && v.Scope == internal.DockerVolumeScopeLocal
+	}) {
+		m.FatalError = m.FatalError.WithErr(internal.ErrDockerVolumeExists)
+		return m, tea.Quit
+	}
+
+	return m, SetupAppStartSurvey
+}
+
 func (m SetupApp) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 
@@ -144,26 +167,7 @@ func (m SetupApp) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case msgSetupAppAbort:
 		return m, tea.Quit
 	case msgSetupAppInit:
-		_, err := exec.LookPath(internal.BinDocker)
-		if err != nil {
-			m.FatalError = m.FatalError.WithErr(internal.ErrNoDocker)
-			return m, tea.Quit
-		}
-
-		volumes, err := internal.DockerVolumeLs(m.Context)
-		if err != nil {
-			m.FatalError = m.FatalError.WithErr(err)
-			return m, tea.Quit
-		}
-
-		if slices.ContainsFunc(volumes, func(v internal.DockerVolume) bool {
-			return v.Name == internal.NameDockerVolume && v.Scope == internal.DockerVolumeScopeLocal
-		}) {
-			m.FatalError = m.FatalError.WithErr(internal.ErrDockerVolumeExists)
-			return m, tea.Quit
-		}
-
-		return m, SetupAppStartSurvey
+		return m.msgSetupAppInit()
 	case msgSetupAppStartSurvey:
 		var cmd tea.Cmd
 		m, cmd = m.appendNextQuestion()
