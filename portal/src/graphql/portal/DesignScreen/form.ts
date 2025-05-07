@@ -36,6 +36,7 @@ import {
   ResourceSpecifier,
   expandDef,
   expandSpecifier,
+  resolveResource,
   specifierId,
 } from "../../../util/resource";
 import { useAppConfigForm } from "../../../hook/useAppConfigForm";
@@ -52,6 +53,7 @@ import {
   makeLocalValidationError,
 } from "../../../error/validation";
 import { validateBorderRadius } from "./validations";
+import { TranslationKey } from "../../../model/translations";
 
 const LOCALE_BASED_RESOUCE_DEFINITIONS = [
   RESOURCE_TRANSLATION_JSON,
@@ -115,13 +117,6 @@ interface ResourcesFormState {
 
 interface FeatureConfig {
   whiteLabelingDisabled: boolean;
-}
-
-export const enum TranslationKey {
-  AppName = "app.name",
-  PrivacyPolicy = "privacy-policy-link",
-  TermsOfService = "terms-of-service-link",
-  CustomerSupport = "customer-support-link",
 }
 
 export type BranchDesignFormState = {
@@ -227,19 +222,6 @@ function constructConfigFromFormState(
       draft.ui.light_theme_disabled = undefined;
     }
   });
-}
-
-function resolveResource(
-  resources: Partial<Record<string, Resource>>,
-  specifiers: [ResourceSpecifier] | ResourceSpecifier[]
-): Resource | null {
-  for (const specifier of specifiers) {
-    const resource = resources[specifierId(specifier)];
-    if (resource?.nullableValue) {
-      return resource;
-    }
-  }
-  return resources[specifierId(specifiers[specifiers.length - 1])] ?? null;
 }
 
 function getThemeFromResourceFormState(

@@ -521,6 +521,10 @@ var createAppInput = graphql.NewInputObject(graphql.InputObjectConfig{
 			Type:        graphql.NewNonNull(graphql.String),
 			Description: "ID of the new app.",
 		},
+		"projectWizardData": &graphql.InputObjectFieldConfig{
+			Type:        ProjectWizardData,
+			Description: "Data of project wizard",
+		},
 	},
 })
 
@@ -546,6 +550,7 @@ var _ = registerMutationField(
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 			input := p.Args["input"].(map[string]interface{})
 			appID := input["id"].(string)
+			projectWizardData := input["projectWizardData"]
 
 			ctx := p.Context
 
@@ -565,6 +570,11 @@ var _ = registerMutationField(
 			}
 
 			app, err := gqlCtx.AppService.Create(ctx, actorID, appID)
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.TutorialService.SaveProjectWizardData(ctx, app.ID, projectWizardData)
 			if err != nil {
 				return nil, err
 			}
@@ -892,6 +902,78 @@ var _ = registerMutationField(
 
 			return graphqlutil.NewLazyValue(map[string]interface{}{
 				"token": token.TokenID,
+			}).Value, nil
+		},
+	},
+)
+
+var saveProjectWizardDataInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "SaveProjectWizardDataInput",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"id": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewNonNull(graphql.String),
+			Description: "ID of the app.",
+		},
+		"data": &graphql.InputObjectFieldConfig{
+			Type:        ProjectWizardData,
+			Description: "The project wizard data to save.",
+		},
+	},
+})
+
+var saveProjectWizardDataPayload = graphql.NewObject(graphql.ObjectConfig{
+	Name: "SaveProjectWizardDataPayload",
+	Fields: graphql.Fields{
+		"app": &graphql.Field{
+			Type: graphql.NewNonNull(nodeApp),
+		},
+	},
+})
+
+var _ = registerMutationField(
+	"saveProjectWizardData",
+	&graphql.Field{
+		Description: "Save the progress of project wizard of the app",
+		Type:        graphql.NewNonNull(saveProjectWizardDataPayload),
+		Args: graphql.FieldConfigArgument{
+			"input": &graphql.ArgumentConfig{
+				Type: graphql.NewNonNull(saveProjectWizardDataInput),
+			},
+		},
+		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			ctx := p.Context
+			// Access Control: authenicated user.
+			sessionInfo := session.GetValidSessionInfo(ctx)
+			if sessionInfo == nil {
+				return nil, Unauthenticated.New("only authenticated users can saveProjectWizardData")
+			}
+
+			input := p.Args["input"].(map[string]interface{})
+			appNodeID := input["id"].(string)
+			data := input["data"]
+
+			resolvedNodeID := relay.FromGlobalID(appNodeID)
+			if resolvedNodeID == nil || resolvedNodeID.Type != typeApp {
+				return nil, apierrors.NewInvalid("invalid app ID")
+			}
+			appID := resolvedNodeID.ID
+
+			gqlCtx := GQLContext(ctx)
+
+			// Access control: collaborator.
+			_, err := gqlCtx.AuthzService.CheckAccessOfViewer(ctx, appID)
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.TutorialService.SaveProjectWizardData(ctx, appID, data)
+			if err != nil {
+				return nil, err
+			}
+
+			appLazy := gqlCtx.Apps.Load(ctx, appID)
+			return graphqlutil.NewLazyValue(map[string]interface{}{
+				"app": appLazy,
 			}).Value, nil
 		},
 	},

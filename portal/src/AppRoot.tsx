@@ -1,6 +1,6 @@
 import React, { useMemo, lazy, Suspense } from "react";
 import { Routes, Route, useParams, Navigate } from "react-router-dom";
-import { ApolloProvider } from "@apollo/client";
+import { ApolloProvider, useQuery } from "@apollo/client";
 
 import { makeClient } from "./graphql/adminapi/apollo";
 import { useAppAndSecretConfigQuery } from "./graphql/portal/query/appAndSecretConfigQuery";
@@ -9,6 +9,11 @@ import ShowLoading from "./ShowLoading";
 import { useUnauthenticatedDialogContext } from "./components/auth/UnauthenticatedDialogContext";
 import { useUIImplementation } from "./hook/useUIImplementation";
 import { useSystemConfig } from "./context/SystemConfigContext";
+import {
+  ScreenNavQueryDocument,
+  ScreenNavQueryQuery,
+} from "./graphql/portal/query/screenNavQuery.generated";
+import { usePortalClient } from "./graphql/portal/apollo";
 
 const RolesScreen = lazy(async () => import("./graphql/adminapi/RolesScreen"));
 const AddRoleScreen = lazy(
@@ -186,7 +191,8 @@ const EditConfigurationScreen = lazy(
 const AppRoot: React.VFC = function AppRoot() {
   const { appID } = useParams() as { appID: string };
   const { setDisplayUnauthenticatedDialog } = useUnauthenticatedDialogContext();
-  const { showCustomSMSGateway } = useSystemConfig();
+  const { showCustomSMSGateway, isAuthgearOnce } = useSystemConfig();
+  const portalClient = usePortalClient();
   const client = useMemo(() => {
     const onLogout = () => {
       setDisplayUnauthenticatedDialog(true);
@@ -198,11 +204,22 @@ const AppRoot: React.VFC = function AppRoot() {
   const { effectiveAppConfig, loading, error } =
     useAppAndSecretConfigQuery(appID);
 
+  const screenNavQuery = useQuery<ScreenNavQueryQuery>(ScreenNavQueryDocument, {
+    client: portalClient,
+    variables: {
+      id: appID,
+    },
+  });
+  const projectWizardData =
+    screenNavQuery.data?.node?.__typename === "App"
+      ? screenNavQuery.data.node.tutorialStatus.data.project_wizard
+      : null;
+
   const uiImplementation = useUIImplementation(
     effectiveAppConfig?.ui?.implementation
   );
 
-  if (loading) {
+  if (loading || screenNavQuery.loading) {
     return <ShowLoading />;
   }
 
@@ -214,6 +231,34 @@ const AppRoot: React.VFC = function AppRoot() {
   if (isInvalidAppID) {
     return <Navigate to="/projects" replace={true} />;
   }
+
+  /* Handle project wizard redirection */
+  // Continue project wizard if it is not completed
+  // null means completed
+  // undefined means not started
+  // any other value means in-progress
+
+  // Project wizard in-progress, continue
+  if (projectWizardData != null && !projectWizardData.completed) {
+    return (
+      <Navigate
+        to={`/project/${encodeURIComponent(appID)}/wizard`}
+        replace={true}
+      />
+    );
+  }
+
+  // In ONCE, we always force the user to complete the wizard if it is not completed or not started
+  if (projectWizardData == null && isAuthgearOnce) {
+    return (
+      <Navigate
+        to={`/project/${encodeURIComponent(appID)}/wizard`}
+        replace={true}
+      />
+    );
+  }
+
+  // In other cases, skip the wizard if it is not started
 
   const useAuthUIV2 = uiImplementation === "authflowv2";
 

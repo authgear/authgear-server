@@ -31,7 +31,7 @@ export function WhiteButton({
       size={size}
       variant="solid"
       highContrast={false}
-      disabled={disabled}
+      disabled={loading ? true : disabled}
       loading={loading}
       onClick={onClick}
     >

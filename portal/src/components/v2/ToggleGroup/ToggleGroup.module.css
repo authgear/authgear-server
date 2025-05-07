@@ -1,0 +1,38 @@
+.toggleGroup {
+  @apply flex flex-col overflow-y-auto;
+  border: 1px solid var(--gray-a4);
+  border-radius: var(--radius-4);
+}
+
+.toggleGroup > * {
+  @apply flex-none;
+}
+
+.toggleGroup__itemSeparator {
+  @apply block;
+  border: 0;
+  background-color: var(--gray-a4);
+  height: 1px;
+}
+
+.toggleGroupItem {
+  @apply flex items-center gap-6 p-4 cursor-pointer;
+}
+
+.toggleGroupItem__leftColumn {
+  @apply flex items-center gap-3;
+  @apply flex-1 overflow-hidden text-ellipsis;
+}
+
+.toggleGroupItem__textContainer {
+  @apply flex flex-col gap-[0.125rem];
+  @apply flex-1 overflow-hidden text-ellipsis;
+}
+
+.toggleGroupItem__text {
+  color: var(--gray-12);
+}
+
+.toggleGroupItem__supportingText {
+  color: var(--gray-a11);
+}

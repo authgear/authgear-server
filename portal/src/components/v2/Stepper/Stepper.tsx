@@ -1,6 +1,7 @@
 import React from "react";
 import cn from "classnames";
 import { CheckIcon } from "@radix-ui/react-icons";
+import { Text } from "@radix-ui/themes";
 import styles from "./Stepper.module.css";
 
 export interface Step {
@@ -53,7 +54,10 @@ export function StepIcon({
   text,
 }: StepIconProps): React.ReactElement {
   return (
-    <div
+    <Text
+      as="div"
+      size="3"
+      weight={"medium"}
       className={cn(
         styles.stepIcon,
         active ? styles["stepIcon--active"] : null,
@@ -61,7 +65,7 @@ export function StepIcon({
       )}
     >
       {checked ? <CheckIcon className={styles.stepIcon__checkIcon} /> : text}
-    </div>
+    </Text>
   );
 }
 

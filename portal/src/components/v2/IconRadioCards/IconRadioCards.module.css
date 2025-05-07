@@ -1,0 +1,32 @@
+.iconRadioCards__root {
+  @apply justify-start;
+}
+
+.iconRadioCards__item {
+  @apply justify-start;
+}
+
+.iconRadioCards__itemWrapper {
+  @apply grid;
+}
+
+.iconRadioCards__itemContainer {
+  @apply self-stretch flex items-start gap-3;
+}
+
+.iconRadioCards__iconContainer {
+  @apply flex flex-none;
+}
+
+.iconRadioCards__itemTextContainer {
+  @apply flex-1 overflow-hidden text-ellipsis;
+  @apply flex flex-col text-left;
+}
+
+.iconRadioCards__itemTextTitle {
+  color: var(--gray-a12);
+}
+
+.iconRadioCards__itemTextSubtitle {
+  color: var(--gray-a11);
+}

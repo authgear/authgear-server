@@ -28,7 +28,7 @@ const meta = {
     },
   },
   args: {
-    text: "Click Me",
+    text: "Button",
     size: "4",
   },
 } satisfies Meta<typeof TextButton>;

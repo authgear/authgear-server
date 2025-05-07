@@ -3,6 +3,7 @@ import type { Preview } from "@storybook/react";
 import { ThemeProvider } from "../src/components/v2/ThemeProvider/ThemeProvider";
 import { AppLocaleProvider } from "../src/components/common/AppLocaleProvider";
 import "../src/index.css";
+import "@fortawesome/fontawesome-free/css/all.min.css";
 
 const preview: Preview = {
   parameters: {

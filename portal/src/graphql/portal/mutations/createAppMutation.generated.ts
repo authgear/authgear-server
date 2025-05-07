@@ -5,6 +5,7 @@ import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type CreateAppMutationMutationVariables = Types.Exact<{
   appID: Types.Scalars['String']['input'];
+  projectWizardData?: Types.InputMaybe<Types.Scalars['ProjectWizardData']['input']>;
 }>;
 
 
@@ -12,8 +13,8 @@ export type CreateAppMutationMutation = { __typename?: 'Mutation', createApp: { 
 
 
 export const CreateAppMutationDocument = gql`
-    mutation createAppMutation($appID: String!) {
-  createApp(input: {id: $appID}) {
+    mutation createAppMutation($appID: String!, $projectWizardData: ProjectWizardData) {
+  createApp(input: {id: $appID, projectWizardData: $projectWizardData}) {
     app {
       id
     }
@@ -36,6 +37,7 @@ export type CreateAppMutationMutationFn = Apollo.MutationFunction<CreateAppMutat
  * const [createAppMutationMutation, { data, loading, error }] = useCreateAppMutationMutation({
  *   variables: {
  *      appID: // value for 'appID'
+ *      projectWizardData: // value for 'projectWizardData'
  *   },
  * });
  */

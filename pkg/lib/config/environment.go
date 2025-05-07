@@ -28,6 +28,8 @@ type GlobalUIImplementation UIImplementation
 
 type GlobalUISettingsImplementation SettingsUIImplementation
 
+type ProjectWizardImplementaion string
+
 type GlobalWhatsappAPIType WhatsappAPIType
 
 func (s AppHostSuffixes) CheckIsDefaultDomain(host string) bool {
@@ -108,9 +110,16 @@ type EnvironmentConfig struct {
 
 	UISettingsImplementation GlobalUISettingsImplementation `envconfig:"UI_SETTINGS_IMPLEMENTATION"`
 
+	ProjectWizardImplementation ProjectWizardImplementaion `envconfig:"PROJECT_WIZARD_IMPLEMENTATION"`
+
 	WhatsappAPIType GlobalWhatsappAPIType `envconfig:"WHATSAPP_API_TYPE"`
 
 	UserExportObjectStore *UserExportObjectStoreConfig `envconfig:"USEREXPORT_OBJECT_STORE"`
 
 	SMSGatewayConfig SMSGatewayEnvironmentConfig `envconfig:"SMS_GATEWAY"`
 }
+
+const (
+	ProjectWizardImplementaionV1 ProjectWizardImplementaion = "v1"
+	ProjectWizardImplementaionV2 ProjectWizardImplementaion = "v2"
+)

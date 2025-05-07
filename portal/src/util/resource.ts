@@ -245,3 +245,16 @@ export function makeDenoScriptSpecifier(url: string): ResourceSpecifier {
     extension: null,
   };
 }
+
+export function resolveResource(
+  resources: Partial<Record<string, Resource>>,
+  specifiers: [ResourceSpecifier] | ResourceSpecifier[]
+): Resource | null {
+  for (const specifier of specifiers) {
+    const resource = resources[specifierId(specifier)];
+    if (resource?.nullableValue) {
+      return resource;
+    }
+  }
+  return resources[specifierId(specifiers[specifiers.length - 1])] ?? null;
+}

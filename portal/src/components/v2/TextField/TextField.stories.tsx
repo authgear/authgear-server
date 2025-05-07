@@ -12,6 +12,11 @@ const meta = {
         type: "text",
       },
     },
+    hint: {
+      control: {
+        type: "text",
+      },
+    },
     iconStart: {
       options: ["none", ...Object.keys(TextFieldIcon)],
       mapping: {
@@ -85,5 +90,31 @@ export const IconsStartEnd: Story = {
   args: {
     iconStart: TextFieldIcon.MagnifyingGlass,
     iconEnd: TextFieldIcon.InfoCircled,
+  },
+};
+
+export const Suffix: Story = {
+  args: {
+    suffix: ".authgearapps.com",
+  },
+  render: (args) => {
+    return (
+      <div style={{ width: "560px" }}>
+        <TextField {...args} />
+      </div>
+    );
+  },
+};
+
+export const Hint: Story = {
+  args: {
+    hint: "This is some hint under the field.",
+  },
+  render: (args) => {
+    return (
+      <div style={{ width: "560px" }}>
+        <TextField {...args} />
+      </div>
+    );
   },
 };

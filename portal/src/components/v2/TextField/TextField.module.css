@@ -2,7 +2,13 @@
   box-shadow: inset 0 0 0 var(--text-field-border-width) var(--red-11);
 }
 
-.textFieldIcon {
+.textField__icon {
   height: var(--space-4);
   width: var(--space-4);
+}
+
+.textField__suffix {
+  background-color: var(--gray-a3);
+  border-left: 1px solid var(--gray-a6);
+  color: var(--gray-a11);
 }

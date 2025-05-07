@@ -1,0 +1,14 @@
+.iconButton__icon--size1 {
+  width: var(--space-4);
+  height: var(--space-4);
+}
+
+.iconButton__icon--size2 {
+  width: var(--space-4);
+  height: var(--space-4);
+}
+
+.iconButton__icon--size3 {
+  width: 1.125rem;
+  height: 1.125rem;
+}

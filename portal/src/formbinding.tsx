@@ -47,7 +47,9 @@ export function useErrorDialog(formField: FormField): DialogProps {
   };
 }
 
-export function useErrorMessage(formField: FormField): FieldProps<JSX.Element> {
+export function useErrorMessage(
+  formField: FormField | undefined
+): FieldProps<JSX.Element> {
   const { loading, errors } = useFormField(formField);
   if (errors.length <= 0) {
     return {
