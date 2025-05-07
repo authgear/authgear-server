@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from "react";
-import { Text } from "../../../components/onboarding/Text";
+import { Text } from "../../../components/project-wizard/Text";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import { PrimaryButton } from "../../../components/v2/PrimaryButton/PrimaryButton";
 import { useFormContainerBaseContext } from "../../../FormContainerBase";
@@ -87,12 +87,20 @@ export function Step3(): React.ReactElement {
     <div className="grid grid-cols-1 gap-12 text-left self-stretch">
       <ProjectWizardStepper step={form.state.step} />
       <div className="grid grid-cols-1 gap-6 max-w-[400px]">
-        <Text.Heading>
-          <FormattedMessage
-            id="ProjectWizardScreen.step3.header"
-            values={{ projectName: form.state.projectName }}
-          />
-        </Text.Heading>
+        <div className="grid grid-cols-1 gap-1">
+          <Text.Heading>
+            <FormattedMessage
+              id="ProjectWizardScreen.step3.header"
+              values={{ projectName: form.state.projectName }}
+            />
+          </Text.Heading>
+          <Text.Subheading>
+            <FormattedMessage
+              id="ProjectWizardScreen.step3.subheader"
+              values={{ projectName: form.state.projectName }}
+            />
+          </Text.Subheading>
+        </div>
         <FormField
           size="3"
           label={
