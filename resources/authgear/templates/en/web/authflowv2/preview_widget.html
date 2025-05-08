@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+
+<html
+{{ if and ($.DarkThemeEnabled) (not $.LightThemeEnabled) }}
+  class="dark"
+{{ end }}
+  lang="{{ $.ResolvedLanguageTag }}"
+  dir="{{ $.HTMLDir }}"
+  data-controller="format-date inline-preview"
+  data-dark-theme-enabled="{{ $.DarkThemeEnabled }}"
+  data-light-theme-enabled="{{ $.LightThemeEnabled }}"
+  data-watermark-enabled={{ $.WatermarkEnabled }}
+  data-inline-preview="{{ $.InlinePreview }}"
+  data-inline-preview-previewable-resource-outlet="[data-previewable-resource-key-value]"
+  data-inline-preview-is-inline-preview-value="{{ $.InlinePreview }}"
+  >
+{{ template "authflowv2/__html_head.html" . }}
+
+
+<body>
+
+
+
+</body>
+</html>

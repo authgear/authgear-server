@@ -404,3 +404,35 @@ var AuthflowV2UIHandlerDependencySet = wire.NewSet(
 	wire.Bind(new(handlerwebapp.AuthflowNavigator), new(*handlerwebappauthflowv2.AuthflowV2Navigator)),
 	wire.Bind(new(handlerwebappauthflowv2.AuthflowV2ChangePasswordNavigator), new(*handlerwebappauthflowv2.AuthflowV2Navigator)),
 )
+
+var NoProjectDependencySet = wire.NewSet(
+	deps.RootDependencySet,
+	wire.Bind(new(template.ResourceManager), new(*resource.Manager)),
+	wire.Bind(new(web.ResourceManager), new(*resource.Manager)),
+	wire.Bind(new(web.EmbeddedResourceManager), new(*web.GlobalEmbeddedResourceManager)),
+
+	ProvideNilSMTPServerCredentialsSecretItem,
+	ProvideLocalizationConfig,
+	template.DependencySet,
+	httputil.DependencySet,
+
+	deps.ProvideRemoteIP,
+	deps.ProvideUserAgentString,
+	deps.ProvideHTTPHost,
+	deps.ProvideHTTPProto,
+
+	wire.Struct(new(web.StaticAssetResolver), "*"),
+	wire.Bind(new(viewmodelswebapp.StaticAssetResolver), new(*web.StaticAssetResolver)),
+	wire.Bind(new(translation.StaticAssetResolver), new(*web.StaticAssetResolver)),
+
+	wire.Value(template.DefaultLanguageTag(intl.BuiltinBaseLanguage)),
+	wire.Value(template.SupportedLanguageTags([]string{intl.BuiltinBaseLanguage})),
+
+	wire.Struct(new(handlerwebapp.ResponseRenderer), "*"),
+	wire.Bind(new(handlerwebapp.Renderer), new(*handlerwebapp.ResponseRenderer)),
+
+	wire.Struct(new(viewmodelswebapp.NoProjectBaseViewModeler), "*"),
+
+	translation.DependencySet,
+	wire.Bind(new(viewmodelswebapp.TranslationService), new(*translation.Service)),
+)
