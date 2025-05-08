@@ -4,6 +4,7 @@ export TRUST_PROXY='true'
 export AUTHGEAR_APP_ID=accounts
 export AUTHGEAR_CLIENT_ID=portal
 export AUTHGEAR_ENDPOINT="$AUTHGEAR_HTTP_ORIGIN_ACCOUNTS"
+export AUTHGEAR_ENDPOINT_INTERNAL="http://accounts.projects.authgear"
 export AUTHGEAR_WEB_SDK_SESSION_TYPE=refresh_token
 
 export DATABASE_SCHEMA=public
