@@ -12,5 +12,4 @@ var (
 	ErrLicenseServerUnknownResponse            = errors.New("unknown response from license server")
 	ErrLicenseServerLicenseKeyNotFound         = errors.New("license server license key not found")
 	ErrLicenseServerLicenseKeyAlreadyActivated = errors.New("license server license key already activated")
-	ErrLicenseServerLicenseKeyExpired          = errors.New("license server license key expired")
 )

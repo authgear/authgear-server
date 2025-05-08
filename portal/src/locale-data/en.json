@@ -173,6 +173,7 @@
   "ScreenNav.bot-protection": "Bot Protection",
   "ScreenNav.hooks": "Hooks",
   "ScreenNav.billing": "Billing",
+  "ScreenNav.license": "License",
   "ScreenNav.advanced": "Advanced",
   "ScreenNav.audit-log": "Audit Log",
   "ScreenNav.admin-api": "Admin API",
@@ -1557,6 +1558,13 @@
   "SubscriptionScreen.reactivate.title": "Reactivate Subscription",
   "SubscriptionScreen.reactivate.confirmation": "Are you sure to reactivate the subscription?",
   "SubscriptionScreen.reactivate.error": "Failed to reactivate plan. Please send an email to {ExternalLink, react, children{hello@authgear.com} href{mailto:hello@authgear.com}} from the email address associated with your Authgear account and the plan you would like to reactivate.",
+
+  "LicenseScreen.title": "License",
+  "LicenseScreen.description": "License information about your Authgear ONCE instance",
+  "LicenseScreen.license-key": "License key",
+  "LicenseScreen.email": "Email",
+  "LicenseScreen.lifetime-usage": "Lifetime usage",
+  "LicenseScreen.license-expiry": "Receiving free updates until {expireAt}",
 
   "SMTPConfigurationScreen.title": "Custom Email Provider",
   "SMTPConfigurationScreen.title--authgearonce": "Email Provider",

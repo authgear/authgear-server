@@ -10,6 +10,7 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"strings"
+	"time"
 )
 
 type LicenseServerResponseError struct {
@@ -26,7 +27,23 @@ type LicenseOptions struct {
 	Fingerprint string
 }
 
-func invokeLicenseEndpoint(ctx context.Context, client *http.Client, opts LicenseOptions, path string) (err error) {
+type ErrorObject struct {
+	Code string `json:"code"`
+}
+
+type LicenseObject struct {
+	ExpireAt      *time.Time `json:"expire_at"`
+	IsActivated   bool       `json:"is_activated"`
+	IsExpired     bool       `json:"is_expired"`
+	LicenseeEmail *string    `json:"licensee_email"`
+}
+
+type LicenseResponse struct {
+	Data  *LicenseObject `json:"data"`
+	Error *ErrorObject   `json:"error"`
+}
+
+func invokeLicenseEndpoint(ctx context.Context, client *http.Client, opts LicenseOptions, path string) (licenseObject *LicenseObject, err error) {
 	u, err := url.JoinPath(opts.Endpoint, path)
 	if err != nil {
 		return
@@ -50,7 +67,7 @@ func invokeLicenseEndpoint(ctx context.Context, client *http.Client, opts Licens
 
 	dumpedResponse, err := httputil.DumpResponse(resp, true)
 	if err != nil {
-		return err
+		return
 	}
 
 	defer func() {
@@ -59,23 +76,19 @@ func invokeLicenseEndpoint(ctx context.Context, client *http.Client, opts Licens
 		}
 	}()
 
-	var jsonBody map[string]any
-	err = json.NewDecoder(resp.Body).Decode(&jsonBody)
+	var licenseResponse LicenseResponse
+	err = json.NewDecoder(resp.Body).Decode(&licenseResponse)
 	if err != nil {
-		return err
+		return
 	}
 
-	if errorObj, ok := jsonBody["error"].(map[string]any); ok {
-		code := errorObj["code"].(string)
-		switch code {
+	if licenseResponse.Error != nil {
+		switch licenseResponse.Error.Code {
 		case "license_key_not_found":
 			err = ErrLicenseServerLicenseKeyNotFound
 			return
 		case "license_key_already_activated":
 			err = ErrLicenseServerLicenseKeyAlreadyActivated
-			return
-		case "license_key_expired":
-			err = ErrLicenseServerLicenseKeyExpired
 			return
 		default:
 			err = ErrLicenseServerUnknownResponse
@@ -83,13 +96,14 @@ func invokeLicenseEndpoint(ctx context.Context, client *http.Client, opts Licens
 		}
 	}
 
+	licenseObject = licenseResponse.Data
 	return
 }
 
-func CheckLicense(ctx context.Context, client *http.Client, opts LicenseOptions) (err error) {
+func CheckLicense(ctx context.Context, client *http.Client, opts LicenseOptions) (licenseObject *LicenseObject, err error) {
 	return invokeLicenseEndpoint(ctx, client, opts, "/v1/license/check")
 }
 
-func ActivateLicense(ctx context.Context, client *http.Client, opts LicenseOptions) (err error) {
+func ActivateLicense(ctx context.Context, client *http.Client, opts LicenseOptions) (licenseObject *LicenseObject, err error) {
 	return invokeLicenseEndpoint(ctx, client, opts, "/v1/license/activate")
 }

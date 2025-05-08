@@ -10,6 +10,9 @@ type SystemConfig struct {
 	AuthgearEndpoint            string         `json:"authgearEndpoint"`
 	AuthgearWebSDKSessionType   string         `json:"authgearWebSDKSessionType"`
 	IsAuthgearOnce              bool           `json:"isAuthgearOnce"`
+	AuthgearOnceLicenseKey      string         `json:"authgearOnceLicenseKey,omitempty"`
+	AuthgearOnceLicenseExpireAt string         `json:"authgearOnceLicenseExpireAt,omitempty"`
+	AuthgearOnceLicenseeEmail   string         `json:"authgearOnceLicenseeEmail,omitempty"`
 	SentryDSN                   string         `json:"sentryDSN,omitempty"`
 	AppHostSuffix               string         `json:"appHostSuffix"`
 	AvailableLanguages          []string       `json:"availableLanguages"`

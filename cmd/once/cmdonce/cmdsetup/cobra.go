@@ -51,7 +51,7 @@ var CmdSetup = &cobra.Command{
 			Fingerprint: fingerprint,
 		}
 
-		err := internal.CheckLicense(ctx, client, licenseOpts)
+		_, err := internal.CheckLicense(ctx, client, licenseOpts)
 		if err != nil {
 			err = internal.PrintError(err)
 			return err
@@ -60,6 +60,8 @@ var CmdSetup = &cobra.Command{
 		image := internal.GetDockerImage(cmd)
 		setupApp := SetupApp{
 			Context:                           ctx,
+			HTTPClient:                        client,
+			LicenseOptions:                    licenseOpts,
 			AUTHGEAR_ONCE_LICENSE_KEY:         licenseKey,
 			AUTHGEAR_ONCE_MACHINE_FINGERPRINT: fingerprint,
 			AUTHGEAR_ONCE_IMAGE:               image,
@@ -74,12 +76,6 @@ var CmdSetup = &cobra.Command{
 		setupApp = model.(SetupApp)
 		if setupApp.HasError() {
 			os.Exit(1)
-		}
-
-		err = internal.ActivateLicense(ctx, client, licenseOpts)
-		if err != nil {
-			err = internal.PrintError(err)
-			return err
 		}
 
 		return nil
