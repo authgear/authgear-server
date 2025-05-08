@@ -575,7 +575,7 @@ func (m SetupApp) ToInstallation(licenseObject *internal.LicenseObject) Installa
 		AUTHGEAR_ONCE_IMAGE:               m.AUTHGEAR_ONCE_IMAGE,
 		AUTHGEAR_ONCE_MACHINE_FINGERPRINT: m.AUTHGEAR_ONCE_MACHINE_FINGERPRINT,
 		AUTHGEAR_ONCE_LICENSE_KEY:         m.AUTHGEAR_ONCE_LICENSE_KEY,
-		AUTHGEAR_ONCE_LICENSE_EXPIRE_AT:   licenseObject.ExpireAt.Format(time.RFC3339),
+		AUTHGEAR_ONCE_LICENSE_EXPIRE_AT:   nilTimeToEmptyString(licenseObject.ExpireAt),
 		AUTHGEAR_ONCE_LICENSEE_EMAIL:      nilStringToEmptyString(licenseObject.LicenseeEmail),
 
 		AUTHGEAR_ONCE_ADMIN_USER_EMAIL:    m.mustFindQuestionByName(QuestionName_EnterAdminEmail).Value(),
@@ -810,4 +810,12 @@ func nilStringToEmptyString(s *string) string {
 		return ""
 	}
 	return *s
+}
+
+func nilTimeToEmptyString(t *time.Time) string {
+	if t == nil {
+		return ""
+	}
+
+	return t.Format(time.RFC3339)
 }
