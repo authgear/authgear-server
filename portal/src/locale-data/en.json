@@ -1894,7 +1894,7 @@
   "ProjectWizardScreen.step1.fields.projectName.label--once": "Organization name",
   "ProjectWizardScreen.step1.fields.projectName.placeholder": "Example: Acme Corporation",
   "ProjectWizardScreen.step1.fields.projectID.label": "Endpoint Domain",
-  "ProjectWizardScreen.step1.fields.projectID.hint": "This is your Authgear Endpoint for your applications. Once chosen, the project cannot be renamed.",
+  "ProjectWizardScreen.step1.fields.projectID.hint": "This is the Authgear Endpoint for your applications. Once chose, it cannot be changed. You can set up a custom domain with your branding later.",
   "ProjectWizardScreen.step1.fields.projectID.placeholder": "acme-corporation",
   "ProjectWizardScreen.step2.header": "Setting up {projectName}",
   "ProjectWizardScreen.step2.fields.loginMethods.label": "Choose how your end-users sign in to your applications",
