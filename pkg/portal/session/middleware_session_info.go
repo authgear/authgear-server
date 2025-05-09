@@ -160,6 +160,10 @@ func (m *SessionInfoMiddleware) getJWKs(ctx context.Context) (jwk.Set, error) {
 	if err != nil {
 		return nil, err
 	}
+	if m.AuthgearConfig.EndpointInternal != "" {
+		oidcDiscoveryDocument = oidcDiscoveryDocument.WithRewrittenEndpoints(m.AuthgearConfig.Endpoint, m.AuthgearConfig.EndpointInternal)
+	}
+
 	simpleCache.Set(cacheKeyOpenIDConfiguration, oidcDiscoveryDocument, 0)
 
 	jwkSet, err := oidcDiscoveryDocument.FetchJWKs(ctx, m.HTTPClient.Client)
