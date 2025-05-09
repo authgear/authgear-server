@@ -53,20 +53,6 @@ var _ = Schema.Add("AuthenticationFlowObjectName", `
 }
 `)
 
-var _ = Schema.Add("AuthenticationFlowIdentification", `
-{
-	"type": "string",
-	"enum": [
-		"email",
-		"phone",
-		"username",
-		"oauth",
-		"passkey",
-		"ldap"
-	]
-}
-`)
-
 var _ = Schema.Add("AuthenticationFlowSignupFlow", `
 {
 	"type": "object",
@@ -175,7 +161,17 @@ var _ = Schema.Add("AuthenticationFlowSignupFlowIdentify", `
 	"type": "object",
 	"required": ["identification"],
 	"properties": {
-		"identification": { "$ref": "#/$defs/AuthenticationFlowIdentification" },
+		"identification": {
+			"type": "string",
+			"enum": [
+				"email",
+				"phone",
+				"username",
+				"oauth",
+				"passkey",
+				"ldap"
+			]
+		},
 		"bot_protection": { "$ref": "#/$defs/AuthenticationFlowBotProtection" },
 		"steps": {
 			"type": "array",
@@ -320,7 +316,18 @@ var _ = Schema.Add("AuthenticationFlowLoginFlowIdentify", `
 	"type": "object",
 	"required": ["identification"],
 	"properties": {
-		"identification": { "$ref": "#/$defs/AuthenticationFlowIdentification" },
+		"identification": {
+			"type": "string",
+			"enum": [
+				"email",
+				"phone",
+				"username",
+				"oauth",
+				"passkey",
+				"ldap",
+				"id_token"
+			]
+		},
 		"bot_protection": { "$ref": "#/$defs/AuthenticationFlowBotProtection" },
 		"steps": {
 			"type": "array",
@@ -413,7 +420,18 @@ var _ = Schema.Add("AuthenticationFlowSignupLoginFlowIdentify", `
 	"type": "object",
 	"required": ["identification", "signup_flow", "login_flow"],
 	"properties": {
-		"identification": { "$ref": "#/$defs/AuthenticationFlowIdentification" },
+		"identification": {
+			"type": "string",
+			"enum": [
+				"email",
+				"phone",
+				"username",
+				"oauth",
+				"passkey",
+				"ldap",
+				"id_token"
+			]
+		},
 		"bot_protection": { "$ref": "#/$defs/AuthenticationFlowBotProtection" },
 		"signup_flow": { "$ref": "#/$defs/AuthenticationFlowObjectName" },
 		"login_flow": { "$ref": "#/$defs/AuthenticationFlowObjectName" }
