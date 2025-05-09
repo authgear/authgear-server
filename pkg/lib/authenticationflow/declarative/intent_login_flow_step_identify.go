@@ -25,6 +25,7 @@ func init() {
 //
 //   IntentUseIdentityPasskey (MilestoneIdentificationMethod, MilestoneFlowUseIdentity)
 //     NodeDoUseIdentityPasskey (MilestoneDoUseIdentity)
+// FIXME(DEV-2695): Support ID token
 
 type IntentLoginFlowStepIdentify struct {
 	FlowReference authflow.FlowReference `json:"flow_reference,omitempty"`
@@ -46,6 +47,7 @@ func (i *IntentLoginFlowStepIdentify) GetJSONPointer() jsonpointer.T {
 var _ IntentLoginFlowStepAuthenticateTarget = &IntentLoginFlowStepIdentify{}
 
 func (*IntentLoginFlowStepIdentify) GetIdentity(_ context.Context, _ *authflow.Dependencies, flows authflow.Flows) *identity.Info {
+	// FIXME(DEV-2695): Support ID token
 	m1, m1Flows, ok := authflow.FindMilestoneInCurrentFlow[MilestoneFlowUseIdentity](flows)
 	if !ok {
 		panic(fmt.Errorf("MilestoneFlowUseIdentity is absent in IntentLoginFlowStepIdentify"))

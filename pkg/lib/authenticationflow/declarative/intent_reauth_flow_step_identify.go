@@ -100,9 +100,10 @@ func (i *IntentReauthFlowStepIdentify) ReactTo(ctx context.Context, deps *authfl
 
 		switch identification {
 		case config.AuthenticationFlowIdentificationIDToken:
-			return authflow.NewNodeSimple(&NodeIdentifyWithIDToken{
-				JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
-				Identification: identification,
+			return authflow.NewSubFlow(&IntentIdentifyWithIDToken{
+				JSONPointer:      authflow.JSONPointerForOneOf(i.JSONPointer, idx),
+				Identification:   identification,
+				PrefilledIDToken: authflow.GetIDToken(ctx),
 			}), nil
 		}
 	case len(flows.Nearest.Nodes) == 0:
@@ -116,7 +117,7 @@ func (i *IntentReauthFlowStepIdentify) ReactTo(ctx context.Context, deps *authfl
 
 			switch identification {
 			case config.AuthenticationFlowIdentificationIDToken:
-				return authflow.NewNodeSimple(&NodeIdentifyWithIDToken{
+				return authflow.NewSubFlow(&IntentIdentifyWithIDToken{
 					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
 					Identification: identification,
 				}), nil
