@@ -14,12 +14,66 @@
   data-inline-preview-previewable-resource-outlet="[data-previewable-resource-key-value]"
   data-inline-preview-is-inline-preview-value="{{ $.InlinePreview }}"
   >
-{{ template "authflowv2/__html_head.html" . }}
+  {{ template "authflowv2/__html_head.html" . }}
+  {{ $appName := (translate "app.name" nil) }}
+  <body>
+    <div class="layout--default">
+      <div class="layout__header--default"></div>
+        <div class="widget">
+          <div class="widget-content">
+            <div class="flex-1-0-auto">
+              <div class="screen-logo-layout">
+                {{ template "authflowv2/__header.html" . }}
+                <div class="screen-title-description">
+                  <h1 class="screen-title">
+                    {{ include "v2.page.login.default.title" (dict
+                      "AppName" $appName
+                      "ClientName" "")
+                    }}
+                  </h1>
+                  <h2 class="screen-description">
+                    {{ include "v2.page.login.default.subtitle" (dict
+                      "AppName" $appName
+                      "ClientName" "")
+                    }}
+                  </h2>
+                </div>
+              </div>
+              <form
+                class="flex flex-col gap-4 mt-8"
+              >
+                <div class="flex flex-col gap-2">
+                  <input
+                    class="block input w-full"
+                    placeholder="{{ include "v2.component.input.default.placeholder-login-id" (dict "variant" $.NonPhoneLoginIDType) }}"
+                  >
+                </div>
+                <button
+                  class="primary-btn w-full"
+                  type="button"
+                >{{ include "v2.component.button.default.label-login" nil }}</button>
+              </form>
+              <p class="body-text--md mt-4">
+                {{ include "v2.page.login.default.switch-to-signup" (dict "href" "" )}}
+              </p>
 
+              {{ template "authflowv2/__divider.html" (dict "Classname" "my-8")  }}
 
-<body>
-
-
-
-</body>
+              <section class="flex flex-col gap-4">
+                <a
+                  class="secondary-btn w-full"
+                >
+                  <div class="flex gap-2">
+                    <i class="alternative-icon material-icons">smartphone</i>
+                    {{ include "v2.component.button.default.label-continue-with-phone" nil }}
+                  </div>
+                </a>
+              </section>
+            </div>
+            {{ template "authflowv2/__watermark.html" . }}
+          </div>
+        </div>
+      <div class="layout__footer--default"></div>
+    </div>
+  </body>
 </html>
