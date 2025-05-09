@@ -70,6 +70,12 @@ func NewIntentSignupLoginFlowStepIdentify(ctx context.Context, deps *authflow.De
 			ldapOptions := NewIdentificationOptionLDAP(deps.Config.Identity.LDAP, b.BotProtection, deps.Config.BotProtection)
 			options = append(options, ldapOptions...)
 			break
+		case config.AuthenticationFlowIdentificationIDToken:
+			// ID token is an advanced usage, and it inheritly does not support user interaction.
+			// Thus bot protection is not supported.
+			var botProtection *config.AuthenticationFlowBotProtection = nil
+			c := NewIdentificationOptionIDToken(b.Identification, botProtection, deps.Config.BotProtection)
+			options = append(options, c)
 		}
 	}
 
@@ -147,6 +153,12 @@ func (i *IntentSignupLoginFlowStepIdentify) ReactTo(ctx context.Context, deps *a
 			case config.AuthenticationFlowIdentificationLDAP:
 				return authflow.NewSubFlow(&IntentLookupIdentityLDAP{
 					JSONPointer: authflow.JSONPointerForOneOf(i.JSONPointer, idx),
+				}), nil
+			case config.AuthenticationFlowIdentificationIDToken:
+				return authflow.NewSubFlow(&IntentLookupWithIDToken{
+					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
+					Identification: identification,
+					SyntheticInput: syntheticInput,
 				}), nil
 			}
 		}

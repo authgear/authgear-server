@@ -15,7 +15,7 @@ import (
 )
 
 type IntentLoginFlowStepAuthenticateTarget interface {
-	GetIdentity(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) *identity.Info
+	IntentLoginFlowStepAuthenticateTarget(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (*identity.Info, bool)
 }
 
 func init() {

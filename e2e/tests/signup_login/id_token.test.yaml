@@ -1,0 +1,332 @@
+name: SignupLogin with valid ID token should switch to login flow
+authgear.yaml:
+  override: |
+    authentication_flow:
+      signup_login_flows:
+      - name: default
+        steps:
+        - type: identify
+          one_of:
+          - identification: id_token
+            signup_flow: default
+            login_flow: default
+          - identification: username
+            signup_flow: default
+            login_flow: default
+      login_flows:
+      - name: default
+        steps:
+        - type: identify
+          one_of:
+          - identification: id_token
+        - type: authenticate
+          one_of:
+          - authentication: primary_password
+before:
+- type: user_import
+  user_import: users.json
+steps:
+- action: "create"
+  input: |
+    {
+      "type": "signup_login",
+      "name": "default"
+    }
+  output:
+    result: |
+      {
+        "state_token": "[[string]]",
+        "type": "signup_login",
+        "name": "default",
+        "action": {
+          "type": "identify",
+          "data": {
+            "type": "identification_data",
+            "options": [
+              {
+                "identification": "id_token"
+              },
+              {
+                "identification": "username"
+              }
+            ]
+          }
+        }
+      }
+- action: query
+  query: |
+    SELECT id
+    FROM _auth_user
+    WHERE app_id = '{{ .AppID }}'
+    AND standard_attributes ->> 'preferred_username' = 'e2e_login';
+  query_output:
+    rows: |
+      [
+        {
+          "id": "[[string]]"
+        }
+      ]
+- action: input
+  input: |
+    {
+      "identification": "id_token",
+      "id_token": "{{ generateIDToken (index .prev.result.rows 0).id }}"
+    }
+  output:
+    result: |
+      {
+        "state_token": "[[string]]",
+        "type": "login",
+        "name": "default",
+        "action": {
+          "type": "authenticate",
+          "data": {
+            "type": "authentication_data",
+            "options": [
+              "[[arrayof]]",
+              {
+                "authentication": "primary_password"
+              }
+            ]
+          }
+        }
+      }
+- action: input
+  input: |
+    {
+      "authentication": "primary_password",
+      "password": "password"
+    }
+  output:
+    result: |
+      {
+        "state_token": "[[string]]",
+        "type": "login",
+        "name": "default",
+        "action": {
+          "type": "finished"
+        }
+      }
+---
+name: SignupLogin with ID token with invalid subject should return user not found error
+authgear.yaml:
+  override: |
+    authentication_flow:
+      signup_login_flows:
+      - name: default
+        steps:
+        - type: identify
+          one_of:
+          - identification: id_token
+            signup_flow: default
+            login_flow: default
+          - identification: username
+            signup_flow: default
+            login_flow: default
+      login_flows:
+      - name: default
+        steps:
+        - type: identify
+          one_of:
+          - identification: id_token
+        - type: authenticate
+          one_of:
+          - authentication: primary_password
+steps:
+- action: "create"
+  input: |
+    {
+      "type": "signup_login",
+      "name": "default"
+    }
+  output:
+    result: |
+      {
+        "state_token": "[[string]]",
+        "type": "signup_login",
+        "name": "default",
+        "action": {
+          "type": "identify",
+          "data": {
+            "type": "identification_data",
+            "options": [
+              {
+                "identification": "id_token"
+              },
+              {
+                "identification": "username"
+              }
+            ]
+          }
+        }
+      }
+- action: input
+  input: |
+    {
+      "identification": "id_token",
+      "id_token": "{{ generateIDToken "no-such-user-id" }}"
+    }
+  output:
+    error: |
+      {
+        "name": "NotFound",
+        "reason": "UserNotFound",
+        "message": "user not found",
+        "code": 404,
+        "info": {
+          "FlowType": "signup_login"
+        }
+      }
+---
+name: SignupLogin with malformed ID token should return a genernal invalid error
+authgear.yaml:
+  override: |
+    authentication_flow:
+      signup_login_flows:
+      - name: default
+        steps:
+        - type: identify
+          one_of:
+          - identification: id_token
+            signup_flow: default
+            login_flow: default
+          - identification: username
+            signup_flow: default
+            login_flow: default
+      login_flows:
+      - name: default
+        steps:
+        - type: identify
+          one_of:
+          - identification: id_token
+        - type: authenticate
+          one_of:
+          - authentication: primary_password
+steps:
+- action: "create"
+  input: |
+    {
+      "type": "signup_login",
+      "name": "default"
+    }
+  output:
+    result: |
+      {
+        "state_token": "[[string]]",
+        "type": "signup_login",
+        "name": "default",
+        "action": {
+          "type": "identify",
+          "data": {
+            "type": "identification_data",
+            "options": [
+              {
+                "identification": "id_token"
+              },
+              {
+                "identification": "username"
+              }
+            ]
+          }
+        }
+      }
+- action: input
+  input: |
+    {
+      "identification": "id_token",
+      "id_token": "invalid"
+    }
+  output:
+    error: |
+      {
+        "name": "Invalid",
+        "reason": "Invalid",
+        "message": "invalid ID token",
+        "code": 400,
+        "info": {
+          "FlowType": "signup_login"
+        }
+      }
+---
+name: SignupLogin with non ID token should switch to signup flow
+authgear.yaml:
+  override: |
+    authentication_flow:
+      signup_login_flows:
+      - name: default
+        steps:
+        - type: identify
+          one_of:
+          - identification: id_token
+            signup_flow: default
+            login_flow: default
+          - identification: username
+            signup_flow: default
+            login_flow: default
+      login_flows:
+      - name: default
+        steps:
+        - type: identify
+          one_of:
+          - identification: id_token
+        - type: authenticate
+          one_of:
+          - authentication: primary_password
+steps:
+- action: "create"
+  input: |
+    {
+      "type": "signup_login",
+      "name": "default"
+    }
+  output:
+    result: |
+      {
+        "state_token": "[[string]]",
+        "type": "signup_login",
+        "name": "default",
+        "action": {
+          "type": "identify",
+          "data": {
+            "type": "identification_data",
+            "options": [
+              {
+                "identification": "id_token"
+              },
+              {
+                "identification": "username"
+              }
+            ]
+          }
+        }
+      }
+- action: input
+  input: |
+    {
+      "identification": "username",
+      "login_id": "newusername"
+    }
+  output:
+    result: |
+      {
+        "state_token": "[[string]]",
+        "type": "signup",
+        "name": "default",
+        "action": {
+          "type": "create_authenticator",
+          "data": {
+            "options": [
+              {
+                "authentication": "primary_password",
+                "password_policy": {
+                  "history": {
+                    "enabled": false
+                  },
+                  "minimum_length": 8
+                }
+              }
+            ],
+            "type": "create_authenticator_data"
+          }
+        }
+      }

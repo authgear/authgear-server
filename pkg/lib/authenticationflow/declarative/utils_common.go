@@ -255,7 +255,12 @@ func getAuthenticationOptionsForLogin(ctx context.Context, deps *authflow.Depend
 			})
 		}
 
-		info := target.GetIdentity(ctx, deps, flows.Replace(targetStepFlow))
+		info, ok := target.IntentLoginFlowStepAuthenticateTarget(ctx, deps, flows.Replace(targetStepFlow))
+		if !ok {
+			return nil, InvalidTargetStep.NewWithInfo("the referenced target_step does not associate with an identity, perhaps the taken branch is an ID token.", apierrors.Details{
+				"target_step": targetStepName,
+			})
+		}
 
 		return info, nil
 	}
