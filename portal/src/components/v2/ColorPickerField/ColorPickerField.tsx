@@ -135,7 +135,7 @@ function ColorPicker({
       <input
         ref={inputRef}
         type="color"
-        className="h-0 w-0"
+        className="h-0 w-0 appearance-none border-none"
         onChange={handleColorInputChange}
       />
     </div>

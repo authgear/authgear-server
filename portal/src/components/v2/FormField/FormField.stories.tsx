@@ -118,7 +118,7 @@ function ToggleGroupDemo({ ...args }: FormFieldProps) {
           items={[
             {
               value: "1",
-              text: "Optiona 1",
+              text: "Option 1",
               icon: <ImageIcon width={20} height={20} />,
             },
             {

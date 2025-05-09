@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo, useRef } from "react";
+import cn from "classnames";
 import styles from "./ImageInput.module.css";
 
 import { FormattedMessage } from "@oursky/react-messageformat";
@@ -101,7 +102,10 @@ export function ImageInput({
     <div className={styles.imageInput}>
       <button
         type="button"
-        className={styles.imageInput__imageContainer}
+        className={cn(
+          styles.imageInput__imageContainer,
+          valuesrc == null ? styles["imageInput__imageContainer--hover"] : null
+        )}
         onClick={handleUpload}
       >
         {valuesrc == null ? (
