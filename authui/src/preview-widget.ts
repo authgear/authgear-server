@@ -43,7 +43,6 @@ export class PreviewWidgetController extends Controller {
   }
 
   loginMethodsValueChanged() {
-    console.debug("changed this.loginMethodsValue", this.loginMethodsValue);
     const loginMethodsSet = new Set(this.loginMethodsValue);
     const hasUsernameAndEmail =
       loginMethodsSet.has(LoginMethod.Username) &&
