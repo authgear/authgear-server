@@ -25,14 +25,14 @@
   background-color: var(--gray-2);
 }
 
-.imageInput__imageContainer:hover .imageInput__placeholder {
-  --square-icon__background-color: var(--gray-a4);
-}
-
 .imageInput__placeholder {
   color: var(--gray-11);
   --square-icon__background-color: var(--gray-a3);
   @apply justify-self-center self-center;
+}
+
+.imageInput__imageContainer:hover .imageInput__placeholder {
+  --square-icon__background-color: var(--gray-a4);
 }
 
 .imageInput__preview {
