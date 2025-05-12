@@ -25,7 +25,7 @@
       <div class="preview-widget__layout-header">
         <div class="preview-widget__badge">
           <i class="material-icons">visibility</i>
-          <p>{{ include "v2.page.preview.title" nil }}</p>
+          <p>{{ include "v2.page.preview.default.title" nil }}</p>
         </div>
       </div>
       <div class="widget--preview">
@@ -53,7 +53,7 @@
                   {{ template "authflowv2/__alert_message.html"
                     (dict
                       "Type" "error"
-                      "Message" (include "v2.page.preview.no-login-methods" nil)
+                      "Message" (include "v2.page.preview.default.no-login-methods" nil)
                     )
                   }}
                 </div>
