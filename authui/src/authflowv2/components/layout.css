@@ -12,14 +12,24 @@
     --layout__bg-image-opacity: 1;
   }
 
-  .layout--default {
+  .layout--common {
     @apply z-0;
     @apply relative;
     @apply flex flex-col flex-1-0-auto;
     @apply items-center justify-start;
+  }
 
+  .layout--common::before {
+    content: "";
+    @apply -z-10;
+    @apply absolute top-0 left-0 right-0 bottom-0;
+    @apply pointer-events-none;
     /* padding */
     @apply tablet:px-16 desktop:px-60;
+  }
+
+  .layout--default {
+    @apply layout--common;
 
     /* In mobile layout, we never see the background color */
     /* Instead, the background-color should be the same as the widget's. */
@@ -28,10 +38,6 @@
   }
 
   .layout--default::before {
-    content: "";
-    @apply -z-10;
-    @apply absolute top-0 left-0 right-0 bottom-0;
-    @apply pointer-events-none;
     /* In mobile layout, we should never see the background image as well */
     /* It should only show background-color that same as widget's background-color */
     /* background-image should only be seen in non-mobile layout */
@@ -42,6 +48,20 @@
       background-size: var(--layout__bg_size);
       opacity: var(--layout__bg-image-opacity);
     }
+  }
+
+  .layout--preview {
+    @apply layout--common;
+    @apply bg-[var(--layout\_\_bg-color)];
+  }
+
+  .layout--preview::before {
+    /* Always show background image in preview */
+    background-image: var(--layout__bg-image);
+    background-repeat: var(--layout__bg_repeat);
+    background-position: var(--layout__bg_position);
+    background-size: var(--layout__bg_size);
+    opacity: var(--layout__bg-image-opacity);
   }
 
   /* alignment-card */

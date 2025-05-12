@@ -40,6 +40,11 @@
     @apply flex flex-col overflow-hidden;
   }
 
+  .widget--preview {
+    @apply widget;
+    max-width: var(--widget__max-width);
+  }
+
   .widget-content {
     @apply relative;
     @apply h-full w-full;
@@ -48,6 +53,11 @@
 
     @apply px-6 py-10;
     max-width: var(--widget__max-width);
+  }
+
+  .widget-content--preview {
+    @apply widget-content;
+    @apply self-stretch;
   }
 
   .widget-content.widget-content--settings {
