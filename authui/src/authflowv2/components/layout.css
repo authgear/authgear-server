@@ -9,9 +9,12 @@
   :root.dark {
     --layout__bg-color: var(--color-surface-primary);
     --layout__bg-image: ;
+    --layout__bg-image-opacity: 1;
   }
 
   .layout--default {
+    @apply z-0;
+    @apply relative;
     @apply flex flex-col flex-1-0-auto;
     @apply items-center justify-start;
 
@@ -22,7 +25,13 @@
     /* Instead, the background-color should be the same as the widget's. */
     /* In non-mobile layout, we see the true background-color */
     @apply bg-[var(--color-surface-primary)] tablet:bg-[var(--layout\_\_bg-color)];
+  }
 
+  .layout--default::before {
+    content: "";
+    @apply -z-10;
+    @apply absolute top-0 left-0 right-0 bottom-0;
+    @apply pointer-events-none;
     /* In mobile layout, we should never see the background image as well */
     /* It should only show background-color that same as widget's background-color */
     /* background-image should only be seen in non-mobile layout */
@@ -31,6 +40,7 @@
       background-repeat: var(--layout__bg_repeat);
       background-position: var(--layout__bg_position);
       background-size: var(--layout__bg_size);
+      opacity: var(--layout__bg-image-opacity);
     }
   }
 

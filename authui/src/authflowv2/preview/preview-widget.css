@@ -1,0 +1,29 @@
+.preview-widget {
+  --layout__bg-image: url("./bg-preview-widget.png");
+  --layout__bg_position: center;
+  --layout__bg_repeat: no-repeat;
+  --layout__bg_size: cover;
+  --layout__bg-image-opacity: 0.25;
+
+  --widget__box-shadow: 0px 4px 50px 0px #0000001a;
+}
+
+.preview-widget__layout-header {
+  @apply w-full min-h-0 h-16;
+  @apply flex justify-center items-end;
+}
+
+.preview-widget__badge {
+  @apply inline-block;
+  color: #ab6400;
+  background-color: #ffde003d;
+  border-radius: 0.75rem 0.75rem 0px 0px;
+  @apply flex items-center gap-1;
+  @apply py-1 px-2;
+
+  font-family: var(--typography-body-small__font-family);
+  font-size: var(--typography-body-small__font-size);
+  line-height: var(--typography-body-small__line-height);
+  letter-spacing: var(--typography-body-small__letter-spacing);
+  font-weight: var(--typography-body-small__font-weight);
+}
