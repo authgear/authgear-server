@@ -3,6 +3,7 @@ package viewmodels
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	htmltemplate "html/template"
 	"net/http"
 	"net/url"
@@ -430,6 +431,13 @@ type NoProjectBaseViewModeler struct {
 func (m *NoProjectBaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) BaseViewModel {
 	ctx := r.Context()
 	now := m.Clock.NowUTC().Unix()
+	geoipCountryCode := "HK"
+	requestIP := httputil.GetIP(r, bool(m.TrustProxy))
+	geoipInfo, ok := geoip.IPString(requestIP)
+	if ok && geoipInfo.CountryCode != "" {
+		geoipCountryCode = geoipInfo.CountryCode
+	}
+
 	model := BaseViewModel{
 		ColorScheme: webapp.GetColorScheme(ctx),
 		RequestURI:  r.URL.RequestURI(),
@@ -457,9 +465,9 @@ func (m *NoProjectBaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWr
 		WatermarkEnabled:  true,
 
 		// These are not important in preview
-		AllowedPhoneCountryCodeJSON: "[]",
-		PinnedPhoneCountryCodeJSON:  "[]",
-		GeoIPCountryCode:            "HK",
+		AllowedPhoneCountryCodeJSON: fmt.Sprintf("[\"%s\"]", geoipCountryCode),
+		PinnedPhoneCountryCodeJSON:  fmt.Sprintf("[\"%s\"]", geoipCountryCode),
+		GeoIPCountryCode:            geoipCountryCode,
 		BrandPageURI:                "",
 		ClientURI:                   "",
 		ClientName:                  "",
