@@ -243,6 +243,7 @@
 /pkg/auth/handler/webapp/viewmodels/base.go:382:47: requestcontext
 /pkg/auth/handler/webapp/viewmodels/base.go:387:28: requestcontext
 /pkg/auth/handler/webapp/viewmodels/base.go:400:33: requestcontext
+/pkg/auth/handler/webapp/viewmodels/base.go:431:9: requestcontext
 /pkg/auth/handler/webapp/websocket.go:45:25: requestcontext
 /pkg/auth/handler/webapp/websocket.go:56:25: requestcontext
 /pkg/auth/handler/webapp/websocket.go:80:30: requestcontext
