@@ -39,6 +39,7 @@ export function TextArea({
       label={label}
       optional={optional}
       error={error}
+      labelSpace="1"
     >
       <RadixTextArea
         className={cn(error != null ? styles["textArea--error"] : null)}
