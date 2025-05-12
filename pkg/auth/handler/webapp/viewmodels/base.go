@@ -419,6 +419,93 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 	return model
 }
 
+type NoProjectBaseViewModeler struct {
+	TrustProxy                        config.TrustProxy
+	AuthUIWindowMessageAllowedOrigins config.AuthUIWindowMessageAllowedOrigins
+	Clock                             clock.Clock
+	Translations                      TranslationService
+	StaticAssets                      StaticAssetResolver
+}
+
+func (m *NoProjectBaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) BaseViewModel {
+	ctx := r.Context()
+	now := m.Clock.NowUTC().Unix()
+	model := BaseViewModel{
+		ColorScheme: webapp.GetColorScheme(ctx),
+		RequestURI:  r.URL.RequestURI(),
+		HasXStep:    false,
+		CSPNonce:    "",
+		CSRFField:   "",
+		Translations: &TranslationsCompatImpl{
+			Context:            ctx,
+			TranslationService: m.Translations,
+		},
+		HasAppSpecificAsset: func(id string) bool {
+			return m.StaticAssets.HasAppSpecificAsset(ctx, id)
+		},
+		StaticAssetURL: func(id string) (url string) {
+			url, _ = m.StaticAssets.StaticAssetURL(ctx, id)
+			return
+		},
+		GeneratedStaticAssetURL: func(id string) (url string) {
+			url, _ = m.StaticAssets.GeneratedStaticAssetURL(id)
+			return
+		},
+		// Only support light mode at the moment
+		DarkThemeEnabled:  false,
+		LightThemeEnabled: true,
+		WatermarkEnabled:  true,
+
+		// These are not important in preview
+		AllowedPhoneCountryCodeJSON: "[]",
+		PinnedPhoneCountryCodeJSON:  "[]",
+		GeoIPCountryCode:            "HK",
+		BrandPageURI:                "",
+		ClientURI:                   "",
+		ClientName:                  "",
+		SliceContains:               SliceContains,
+		MakeURL: func(path string, pairs ...string) string {
+			return ""
+		},
+		MakeURLWithBackURL: func(path string, pairs ...string) string {
+			return ""
+		},
+		MakeBackURL: func(path string, pairs ...string) string {
+			return ""
+		},
+		ForgotPasswordEnabled:         false,
+		PublicSignupDisabled:          false,
+		PageLoadedAt:                  int(now),
+		FlashMessageType:              "",
+		ResolvedLanguageTag:           "en",
+		ResolvedCLDRLocale:            "en",
+		HTMLDir:                       "ltr",
+		GoogleTagManagerContainerID:   "",
+		BotProtectionEnabled:          false,
+		BotProtectionProviderType:     "",
+		BotProtectionProviderSiteKey:  "",
+		ResolvedBotProtectionLanguage: "",
+		HasThirdPartyClient:           false,
+		AuthUISentryDSN:               "",
+		AuthUIWindowMessageAllowedOrigins: func() string {
+			requestProto := httputil.GetProto(r, bool(m.TrustProxy))
+			processedAllowedOrgins := slice.Map(m.AuthUIWindowMessageAllowedOrigins, func(origin string) string {
+				return composeAuthUIWindowMessageAllowedOrigin(origin, requestProto)
+			})
+			return strings.Join(processedAllowedOrgins, ",")
+		}(),
+		LogUnknownError: func(err map[string]interface{}) string {
+			return ""
+		},
+		IsSettingsAction:  false,
+		IsNativePlatform:  false,
+		Platform:          "",
+		ShouldFocusInput:  false,
+		WebsocketDisabled: true,
+	}
+	return model
+}
+
 // Assume allowed origin is either host or a real origin
 func composeAuthUIWindowMessageAllowedOrigin(allowedOrigin string, proto string) string {
 	if strings.HasPrefix(allowedOrigin, "http://") || strings.HasPrefix(allowedOrigin, "https://") {

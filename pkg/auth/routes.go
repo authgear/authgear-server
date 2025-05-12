@@ -43,7 +43,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) ht
 
 	router.Health(p.RootHandler(newHealthzHandler))
 
-	rootChain := httproute.Chain(
+	noProjectChain := httproute.Chain(
 		p.RootMiddleware(newOtelMiddleware),
 		p.RootMiddleware(newPanicMiddleware),
 		p.RootMiddleware(newBodyLimitMiddleware),
@@ -51,6 +51,10 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) ht
 		httproute.MiddlewareFunc(httputil.XContentTypeOptionsNosniff),
 		httproute.MiddlewareFunc(httputil.PermissionsPolicyHeader),
 		httproute.MiddlewareFunc(httputil.XRobotsTag),
+	)
+
+	rootChain := httproute.Chain(
+		noProjectChain,
 		MakeWebAppRequestMiddleware(p, configSource, newWebAppRequestMiddleware),
 		p.Middleware(newContextHolderMiddleware),
 	)
@@ -306,6 +310,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) ht
 	webappWebsocketRoute := httproute.Route{Middleware: webappWebsocketChain}
 	webappAPIRoute := httproute.Route{Middleware: webappAPIChain}
 	webappPagePreviewRoute := httproute.Route{Middleware: webappPagePreviewChain}
+	noProjectRoute := httproute.Route{Middleware: noProjectChain}
 
 	router.Add(webapphandler.ConfigureRootRoute(webappAuthEntrypointRoute), p.Handler(newWebAppRootHandler))
 	router.Add(webapphandler.ConfigureOAuthEntrypointRoute(webappAuthEntrypointRoute), p.Handler(newWebAppOAuthEntrypointHandler))
@@ -568,6 +573,9 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) ht
 
 	router.Add(apihandler.ConfigureAccountManagementV1IdentificationRoute(accountManagementRoute), p.Handler(newAPIAccountManagementV1IdentificationHandler))
 	router.Add(apihandler.ConfigureAccountManagementV1IdentificationOAuthRoute(accountManagementRoute), p.Handler(newAPIAccountManagementV1IdentificationOAuthHandler))
+
+	// Routes without project context
+	router.Add(webapphandlerauthflowv2.ConfigureNoProjectPreviewWidgetRoute(noProjectRoute), p.RootHandler(newPreviewWidgetHandler))
 
 	router.NotFound(webappNotFoundRoute, &webapphandler.ImplementationSwitcherHandler{
 		Interaction: p.Handler(newWebAppNotFoundHandler),
