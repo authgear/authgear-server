@@ -46,10 +46,22 @@
                     "ClientName" "")
                   }}
                 </h2>
+                <div
+                  data-preview-widget-target="noLoginMethodsError"
+                  class="pt-4"
+                >
+                  {{ template "authflowv2/__alert_message.html"
+                    (dict
+                      "Type" "error"
+                      "Message" (include "v2.page.preview.no-login-methods" nil)
+                    )
+                  }}
+                </div>
               </div>
             </div>
             <form
               class="flex flex-col gap-4 mt-8"
+              data-preview-widget-target="loginIDSection"
             >
               <div class="flex flex-col gap-2">
                 <input
@@ -83,10 +95,10 @@
                 class="primary-btn w-full"
                 type="button"
               >{{ include "v2.component.button.default.label-login" nil }}</button>
+              <p class="body-text--md mt-4">
+                {{ include "v2.page.login.default.switch-to-signup" (dict "href" "" )}}
+              </p>
             </form>
-            <p class="body-text--md mt-4">
-              {{ include "v2.page.login.default.switch-to-signup" (dict "href" "" )}}
-            </p>
 
             <section
               data-preview-widget-target="branchSection"

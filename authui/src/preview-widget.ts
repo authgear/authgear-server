@@ -23,16 +23,20 @@ export class PreviewWidgetController extends Controller {
     "usernameInput",
     "loginIDInput",
     "phoneInput",
+    "loginIDSection",
     "branchSection",
     "branchOptionPhone",
+    "noLoginMethodsError",
   ];
 
   declare emailInputTarget: HTMLElement;
   declare usernameInputTarget: HTMLElement;
   declare loginIDInputTarget: HTMLElement;
   declare phoneInputTarget: HTMLElement;
+  declare loginIDSectionTarget: HTMLElement;
   declare branchSectionTarget: HTMLElement;
   declare branchOptionPhoneTarget: HTMLElement;
+  declare noLoginMethodsErrorTarget: HTMLElement;
 
   connect() {
     this.loginMethodsValueChanged();
@@ -92,10 +96,15 @@ export class PreviewWidgetController extends Controller {
       vm.loginInput === "username_and_email"
     );
     showElementIf(this.phoneInputTarget, vm.loginInput === "phone");
+    showElementIf(this.loginIDSectionTarget, vm.loginInput !== "none");
     showElementIf(this.branchSectionTarget, vm.branches.length > 0);
     showElementIf(
       this.branchOptionPhoneTarget,
       vm.branches.includes(LoginMethod.Phone)
+    );
+    showElementIf(
+      this.noLoginMethodsErrorTarget,
+      vm.loginInput === "none" && vm.branches.length === 0
     );
   }
 }
