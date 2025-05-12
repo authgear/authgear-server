@@ -1,6 +1,7 @@
 import React from "react";
 import styles from "./ProjectWizardLayout.module.css";
 import ScreenHeader from "../../ScreenHeader";
+import { ProjectWizardPreview } from "./ProjectWizardPreview";
 
 function Header() {
   return <ScreenHeader showHamburger={false} />;
@@ -23,7 +24,7 @@ export function ProjectWizardLayout({
           </div>
         </section>
         <section className={styles.projectWizardLayout__right}>
-          {/* TODO(Tung): Preview */}
+          <ProjectWizardPreview className="flex-1" />
         </section>
       </div>
     </div>

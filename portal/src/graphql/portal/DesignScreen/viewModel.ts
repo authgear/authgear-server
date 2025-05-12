@@ -1,3 +1,4 @@
+import { PreviewCustomisationMessage } from "../../../model/preview";
 import {
   CSSVariable,
   CssAstVisitor,
@@ -84,14 +85,6 @@ export function getSupportedPreviewPagesFromConfig(
   pages.push({ key: "Error", screen: PreviewPage.Error }); // Always have error page preview
 
   return pages;
-}
-
-export interface PreviewCustomisationMessage {
-  type: "PreviewCustomisationMessage";
-  theme: string;
-  cssVars: Record<string, string>;
-  images: Record<string, string | null>;
-  translations: Record<string, string>;
 }
 
 export function mapDesignFormStateToPreviewCustomisationMessage(
