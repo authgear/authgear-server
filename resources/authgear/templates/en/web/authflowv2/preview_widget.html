@@ -16,7 +16,10 @@
   >
   {{ template "authflowv2/__html_head.html" . }}
   {{ $appName := (translate "app.name" nil) }}
-  <body>
+  <body 
+    data-controller="previewable-resource"
+    data-previewable-resource-key-value="previewWidgetLoginMethods"
+    data-previewable-resource-changable-attribute-value="data-preview-widget-login-methods-value">
     <div class="layout--default">
       <div class="layout__header--default"></div>
         <div class="widget">
@@ -44,9 +47,26 @@
               >
                 <div class="flex flex-col gap-2">
                   <input
+                    data-preview-widget-target="emailInput"
                     class="block input w-full"
-                    placeholder="{{ include "v2.component.input.default.placeholder-login-id" (dict "variant" $.NonPhoneLoginIDType) }}"
+                    placeholder="{{ include "v2.component.input.default.placeholder-login-id" (dict "variant" "email") }}"
                   >
+                  <input
+                    data-preview-widget-target="loginIDInput"
+                    class="block input w-full"
+                    placeholder="{{ include "v2.component.input.default.placeholder-login-id" (dict "variant" "") }}"
+                  >
+                  {{ template "authflowv2/__phone_input.html"
+                    (dict
+                      "Placeholder" (include "v2.component.input.default.placeholder-phone" nil)
+                      "PlaceholderWithExample" (include "v2.component.input.default.placeholder-phone-with-example" nil)
+                      "IsError" false
+                      "AutoFocus" false
+                      "ContainerInputAttrs" `
+                        data-preview-widget-target="phoneInput"
+                      `
+                    )
+                  }}
                 </div>
                 <button
                   class="primary-btn w-full"
@@ -59,8 +79,11 @@
 
               {{ template "authflowv2/__divider.html" (dict "Classname" "my-8")  }}
 
-              <section class="flex flex-col gap-4">
+              <section
+                data-preview-widget-target="branchSection"
+                class="flex flex-col gap-4">
                 <a
+                  data-preview-widget-target="branchOptionPhone"
                   class="secondary-btn w-full"
                 >
                   <div class="flex gap-2">

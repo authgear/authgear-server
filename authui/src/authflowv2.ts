@@ -55,6 +55,7 @@ import {
   FormatInputDateController,
 } from "./authflowv2/date";
 import { isNetworkError } from "./errors";
+import { PreviewWidgetController } from "./preview-widget";
 
 axios.defaults.withCredentials = true;
 
@@ -127,6 +128,7 @@ Stimulus.register(
 Stimulus.register("body-scroll-lock", BodyScrollLockController);
 Stimulus.register("click-to-switch", ClickToSwitchController);
 Stimulus.register("inline-preview", InlinePreviewController);
+Stimulus.register("preview-widget", PreviewWidgetController);
 Stimulus.register("previewable-resource", PreviewableResourceController);
 Stimulus.register(
   "bot-protection-token-input",

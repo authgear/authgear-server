@@ -7,6 +7,7 @@ interface PreviewCustomisationMessage {
   cssVars: Record<string, string>;
   images: Record<string, string | null>;
   translations: Record<string, string>;
+  data: Record<string, string>;
 }
 
 function parsePreviewCustomisationMessage(
@@ -20,6 +21,7 @@ function parsePreviewCustomisationMessage(
     cssVars: message.cssVars ?? {},
     images: message.images ?? {},
     translations: message.translations ?? {},
+    data: message.data ?? {},
   };
 }
 
@@ -83,6 +85,14 @@ export class InlinePreviewController extends Controller {
     }
 
     for (const [key, value] of Object.entries(customisationMessage.images)) {
+      for (const outlet of this.previewableResourceOutlets) {
+        if (outlet.keyValue === key) {
+          outlet?.setValue(value);
+        }
+      }
+    }
+
+    for (const [key, value] of Object.entries(customisationMessage.data)) {
       for (const outlet of this.previewableResourceOutlets) {
         if (outlet.keyValue === key) {
           outlet?.setValue(value);

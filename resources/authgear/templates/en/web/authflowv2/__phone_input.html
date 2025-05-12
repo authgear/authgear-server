@@ -6,6 +6,7 @@
     "InputAttrs" `data-foo="bar"`
     "IsError" true
     "AutoFocus" true
+    "ContainerInputAttrs" `data-foo="bar"`
     "PhoneInputAttrs" `data-foo="bar"`
     "Value" "+12345678"
     "ReadOnly" true
@@ -14,7 +15,9 @@
 -->
 
 {{ define "authflowv2/__phone_input.html" }}
-<div class="phone-input" data-controller="phone-input">
+<div class="phone-input"
+  data-controller="phone-input" 
+  {{ if $.ContainerInputAttrs }}{{ htmlattr $.ContainerInputAttrs }}{{ end }}>
   <!-- NOTE: Use class="hidden" here for noscript,
     this will be reverted during connect() in phoneInput.ts -->
   <div
