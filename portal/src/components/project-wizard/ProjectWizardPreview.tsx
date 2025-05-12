@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef } from "react";
+import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import cn from "classnames";
 import { useFormContainerBaseContext } from "../../FormContainerBase";
 import {
@@ -35,6 +35,13 @@ export function ProjectWizardPreview({
     url.pathname = "noproject/preview/widget";
     return url.toString();
   }, [authgearEndpoint]);
+
+  useEffect(() => {
+    const message = mapProjectWizardFormStateToPreviewCustomisationMessage(
+      form.state
+    );
+    authUIIframeRef.current?.contentWindow?.postMessage(message, "*");
+  }, [form.state]);
 
   const onLoadIframe = useCallback(() => {
     const message = mapProjectWizardFormStateToPreviewCustomisationMessage(
@@ -89,6 +96,9 @@ function mapProjectWizardFormStateToPreviewCustomisationMessage(
     cssVars,
     images,
     translations,
+    data: {
+      previewWidgetLoginMethods: JSON.stringify(state.loginMethods),
+    },
   };
 }
 

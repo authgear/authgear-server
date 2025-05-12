@@ -34,7 +34,12 @@ export class PreviewWidgetController extends Controller {
   declare branchSectionTarget: HTMLElement;
   declare branchOptionPhoneTarget: HTMLElement;
 
+  connect() {
+    this.loginMethodsValueChanged();
+  }
+
   loginMethodsValueChanged() {
+    console.debug("changed this.loginMethodsValue", this.loginMethodsValue);
     const loginMethodsSet = new Set(this.loginMethodsValue);
     const hasUsernameAndEmail =
       loginMethodsSet.has(LoginMethod.Username) &&

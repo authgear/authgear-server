@@ -439,11 +439,12 @@ func (m *NoProjectBaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWr
 	}
 
 	model := BaseViewModel{
-		ColorScheme: webapp.GetColorScheme(ctx),
-		RequestURI:  r.URL.RequestURI(),
-		HasXStep:    false,
-		CSPNonce:    "",
-		CSRFField:   "",
+		InlinePreview: true,
+		ColorScheme:   webapp.GetColorScheme(ctx),
+		RequestURI:    r.URL.RequestURI(),
+		HasXStep:      false,
+		CSPNonce:      "",
+		CSRFField:     "",
 		Translations: &TranslationsCompatImpl{
 			Context:            ctx,
 			TranslationService: m.Translations,

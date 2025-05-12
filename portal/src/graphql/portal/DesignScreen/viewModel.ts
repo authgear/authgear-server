@@ -172,6 +172,7 @@ export function mapDesignFormStateToPreviewCustomisationMessage(
     cssVars,
     images,
     translations,
+    data: {},
   };
 }
 
