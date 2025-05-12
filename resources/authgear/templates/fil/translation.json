@@ -1106,6 +1106,8 @@
   "v2.page.forgot-password.default.title": "Nakalimutan ang password?",
   "v2.page.forgot-password.email.send-via-phone": "Ipadala sa pamamagitan ng Telepono",
   "v2.page.forgot-password.phone.send-via-email": "Ipadala sa pamamagitan ng Email",
+  "v2.page.preview.title": "Ito ay isang preview",
+  "v2.page.preview.no-login-methods": "Walang napiling mga paraan ng pag-login.",
   "v2.page.login.default.subtitle": "Mag-log in sa {AppName}",
   "v2.page.login.default.switch-to-signup": "Walang account? <a href=\"{href}\">Gumawa ng isa</a>",
   "v2.page.login.default.title": "Maligayang pagdating",

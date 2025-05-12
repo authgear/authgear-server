@@ -1106,6 +1106,8 @@
   "v2.page.forgot-password.default.title": "Wachtwoord vergeten?",
   "v2.page.forgot-password.email.send-via-phone": "Verzenden via telefoon",
   "v2.page.forgot-password.phone.send-via-email": "Verzenden via e-mail",
+  "v2.page.preview.title": "Dit is een voorbeeld",
+  "v2.page.preview.no-login-methods": "Geen inlogmethoden geselecteerd.",
   "v2.page.login.default.subtitle": "Log in op {AppName}",
   "v2.page.login.default.switch-to-signup": "Geen account? <a href=\"{href}\">Maak er een aan</a>",
   "v2.page.login.default.title": "Welkom",

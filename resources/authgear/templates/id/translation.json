@@ -1106,6 +1106,8 @@
   "v2.page.forgot-password.default.title": "Lupa kata sandi?",
   "v2.page.forgot-password.email.send-via-phone": "Kirim melalui Telepon",
   "v2.page.forgot-password.phone.send-via-email": "Kirim melalui Email",
+  "v2.page.preview.title": "Ini adalah pratinjau",
+  "v2.page.preview.no-login-methods": "Tidak ada metode login yang dipilih.",
   "v2.page.login.default.subtitle": "Masuk ke {AppName}",
   "v2.page.login.default.switch-to-signup": "Belum punya akun? <a href=\"{href}\">Buat satu</a>",
   "v2.page.login.default.title": "Selamat Datang",

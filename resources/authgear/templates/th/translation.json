@@ -1106,6 +1106,8 @@
   "v2.page.forgot-password.default.title": "ลืมรหัสผ่าน?",
   "v2.page.forgot-password.email.send-via-phone": "ส่งผ่านโทรศัพท์",
   "v2.page.forgot-password.phone.send-via-email": "ส่งผ่านอีเมล",
+  "v2.page.preview.title": "นี่คือตัวอย่าง",
+  "v2.page.preview.no-login-methods": "ไม่ได้เลือกวิธีการเข้าสู่ระบบ",
   "v2.page.login.default.subtitle": "เข้าสู่ระบบ {AppName}",
   "v2.page.login.default.switch-to-signup": "ไม่มีบัญชี? <a href=\"{href}\">สร้างบัญชี</a>",
   "v2.page.login.default.title": "ยินดีต้อนรับ",

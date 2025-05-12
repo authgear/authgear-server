@@ -1106,6 +1106,8 @@
   "v2.page.forgot-password.default.title": "パスワードを忘れた?",
   "v2.page.forgot-password.email.send-via-phone": "電話で送信",
   "v2.page.forgot-password.phone.send-via-email": "メールで送信",
+  "v2.page.preview.title": "これはプレビューです",
+  "v2.page.preview.no-login-methods": "ログイン方法が選択されていません。",
   "v2.page.login.default.subtitle": "{AppName}にログイン",
   "v2.page.login.default.switch-to-signup": "アカウントをお持ちでないですか? <a href=\"{href}\">新規作成</a>",
   "v2.page.login.default.title": "ようこそ",

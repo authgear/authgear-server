@@ -1106,6 +1106,8 @@
   "v2.page.forgot-password.default.title": "Esqueceste-te da palavra-passe?",
   "v2.page.forgot-password.email.send-via-phone": "Enviar via Telefone",
   "v2.page.forgot-password.phone.send-via-email": "Enviar via Email",
+  "v2.page.preview.title": "Isto é uma pré-visualização",
+  "v2.page.preview.no-login-methods": "Nenhum método de início de sessão selecionado.",
   "v2.page.login.default.subtitle": "Iniciar sessão em {AppName}",
   "v2.page.login.default.switch-to-signup": "Não tem conta? <a href=\"{href}\">Criar uma</a>",
   "v2.page.login.default.title": "Bem-vindo",

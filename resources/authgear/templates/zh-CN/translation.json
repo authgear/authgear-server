@@ -1106,6 +1106,8 @@
   "v2.page.forgot-password.default.title": "忘记密码?",
   "v2.page.forgot-password.email.send-via-phone": "通过手机发送",
   "v2.page.forgot-password.phone.send-via-email": "通过电子邮件发送",
+  "v2.page.preview.title": "这是预览",
+  "v2.page.preview.no-login-methods": "未选择登录方式。",
   "v2.page.login.default.subtitle": "登录 {AppName}",
   "v2.page.login.default.switch-to-signup": "没有账号? <a href=\"{href}\">创建一个</a>",
   "v2.page.login.default.title": "欢迎",

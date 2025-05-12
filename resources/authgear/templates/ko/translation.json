@@ -1106,6 +1106,8 @@
   "v2.page.forgot-password.default.title": "비밀번호를 잊으셨나요?",
   "v2.page.forgot-password.email.send-via-phone": "전화로 보내기",
   "v2.page.forgot-password.phone.send-via-email": "이메일로 보내기",
+  "v2.page.preview.title": "이것은 미리보기입니다",
+  "v2.page.preview.no-login-methods": "선택된 로그인 방법이 없습니다.",
   "v2.page.login.default.subtitle": "{AppName}에 로그인하기",
   "v2.page.login.default.switch-to-signup": "계정이 없으십니까? <a href=\"{href}\">생성하기</a>",
   "v2.page.login.default.title": "원승",

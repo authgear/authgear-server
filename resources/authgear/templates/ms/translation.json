@@ -1106,6 +1106,8 @@
   "v2.page.forgot-password.default.title": "Lupa kata laluan?",
   "v2.page.forgot-password.email.send-via-phone": "Hantar melalui Telefon",
   "v2.page.forgot-password.phone.send-via-email": "Hantar melalui E-mel",
+  "v2.page.preview.title": "Ini adalah pratonton",
+  "v2.page.preview.no-login-methods": "Tiada kaedah log masuk dipilih.",
   "v2.page.login.default.subtitle": "Log masuk ke {AppName}",
   "v2.page.login.default.switch-to-signup": "Tiada akaun? <a href=\"{href}\">Buat satu</a>",
   "v2.page.login.default.title": "Selamat datang",

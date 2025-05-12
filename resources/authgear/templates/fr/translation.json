@@ -1106,6 +1106,8 @@
   "v2.page.forgot-password.default.title": "Mot de passe oublié ?",
   "v2.page.forgot-password.email.send-via-phone": "Envoyer par téléphone",
   "v2.page.forgot-password.phone.send-via-email": "Envoyer par e-mail",
+  "v2.page.preview.title": "Ceci est un aperçu",
+  "v2.page.preview.no-login-methods": "Aucune méthode de connexion sélectionnée.",
   "v2.page.login.default.subtitle": "Connectez-vous à {AppName}",
   "v2.page.login.default.switch-to-signup": "Pas de compte ? <a href=\"{href}\">En créer un</a>",
   "v2.page.login.default.title": "Bienvenue",
