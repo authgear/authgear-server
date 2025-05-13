@@ -1,0 +1,37 @@
+part: AuthenticationFlowLoginFlowIdentify
+name: AuthenticationFlowLoginFlowIdentify
+error: |-
+  invalid value:
+  /identification: enum
+    map[actual:foobar expected:[email phone username oauth passkey ldap id_token]]
+value:
+  identification: foobar
+---
+part: AuthenticationFlowSignupFlowIdentify
+name: AuthenticationFlowSignupFlowIdentify
+error: |-
+  invalid value:
+  /identification: enum
+    map[actual:foobar expected:[email phone username oauth passkey ldap]]
+value:
+  identification: foobar
+---
+part: AuthenticationFlowSignupLoginFlowIdentify
+name: AuthenticationFlowSignupLoginFlowIdentify
+error: |-
+  invalid value:
+  /identification: enum
+    map[actual:foobar expected:[email phone username oauth passkey ldap id_token]]
+value:
+  identification: foobar
+  login_flow: a
+  signup_flow: a
+---
+part: AuthenticationFlowReauthFlowIdentify
+name: AuthenticationFlowReauthFlowIdentify
+error: |-
+  invalid value:
+  /identification: enum
+    map[actual:foobar expected:[id_token]]
+value:
+  identification: foobar

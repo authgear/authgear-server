@@ -2,9 +2,12 @@ package declarative
 
 import (
 	"context"
+	"errors"
 
+	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
+	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 )
 
 func init() {
@@ -30,6 +33,10 @@ func NewNodeDoUseIDToken(ctx context.Context, deps *authflow.Dependencies, flows
 	userID := token.Subject()
 	_, err = deps.Users.GetRaw(ctx, userID)
 	if err != nil {
+		if errors.Is(err, user.ErrUserNotFound) {
+			return nil, api.ErrUserNotFound
+		}
+
 		return nil, err
 	}
 

@@ -1,0 +1,99 @@
+name: Login with ID token
+authgear.yaml:
+  override: |
+    authentication_flow:
+      login_flows:
+      - name: default
+        steps:
+        - type: identify
+          one_of:
+          - identification: email
+          - identification: id_token
+        - type: authenticate
+          one_of:
+          - authentication: primary_password
+before:
+- type: user_import
+  user_import: import.json
+steps:
+- action: create
+  input: |
+    {
+      "type": "login",
+      "name": "default"
+    }
+  output:
+    result: |
+      {
+        "state_token": "[[string]]",
+        "type": "login",
+        "name": "default",
+        "action": {
+          "type": "identify",
+          "data": {
+            "type": "identification_data",
+            "options": [
+              {
+                "identification": "email"
+              },
+              {
+                "identification": "id_token"
+              }
+            ]
+          }
+        }
+      }
+- action: query
+  query: |
+    SELECT id
+    FROM _auth_user
+    WHERE app_id = '{{ .AppID }}'
+    AND standard_attributes ->> 'preferred_username' = 'e2e_login';
+  query_output:
+    rows: |
+      [
+        {
+          "id": "[[string]]"
+        }
+      ]
+- action: input
+  input: |
+    {
+      "identification": "id_token",
+      "id_token": "{{ generateIDToken (index .prev.result.rows 0).id }}"
+    }
+  output:
+    result: |
+      {
+        "state_token": "[[string]]",
+        "type": "login",
+        "name": "default",
+        "action": {
+          "type": "authenticate",
+          "data": {
+            "type": "authentication_data",
+            "options": [
+              "[[arrayof]]",
+              {
+                "authentication": "primary_password"
+              }
+            ]
+          }
+        }
+      }
+- action: input
+  input: |
+    {
+      "authentication": "primary_password",
+      "password": "password"
+    }
+  output:
+    result: |
+      {
+        "state_token": "[[string]]",
+        "type": "login",
+        "name": "default",
+        "action": {
+          "type": "finished"
+        }
+      }
