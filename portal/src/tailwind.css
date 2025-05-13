@@ -7,4 +7,4 @@
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
 @import "radix-color-overrides.css";
-@import "radix-typography.css";
+@import "radix-theme-overrides.css";

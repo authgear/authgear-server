@@ -15,47 +15,14 @@ html {
     "Arial", sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
 }
 
-/* NOTE(portal): Later on when we introduce a styling framework
- * we may need to remove some of the following rules */
-
-/* Turn on border-box which is a much more sensible default
- * Set the margin and padding of all elements to 0 so they are predictable */
-*,
-*::before,
-*::after {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  /* For some reason, some elements will have font-family: ; set by the user agent stylesheet */
-  /* So we reset it to inherit */
-  font-family: inherit;
-}
-
-/* Make button looks like div */
-button {
-  appearance: none;
-  background-color: transparent;
-  border: none;
-}
-
-/* Make button cursor looks "correct" */
-button:not([disabled]):hover {
+/* For all <button> element not in fluent or radix */
+button:not(:disabled) {
   cursor: pointer;
 }
 
+/* For fluent buttons */
 button[disabled] {
   cursor: not-allowed;
-}
-
-/* Remove underline of anchor */
-a {
-  text-decoration: none;
-  cursor: pointer;
-}
-
-/* Make select looks like div */
-select {
-  appearance: none;
 }
 
 /* Some shared configs */
