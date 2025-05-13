@@ -26,6 +26,9 @@ html {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  /* For some reason, some elements will have font-family: ; set by the user agent stylesheet */
+  /* So we reset it to inherit */
+  font-family: inherit;
 }
 
 /* Make button looks like div */
