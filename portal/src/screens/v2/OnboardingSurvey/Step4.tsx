@@ -15,7 +15,7 @@ import {
 import { produce } from "immer";
 import { OnboardingSurveyBackButton } from "../../../components/onboarding/OnboardingSurveyBackButton";
 import { TextArea } from "../../../components/v2/TextArea/TextArea";
-import { WhiteButton } from "../../../components/v2/WhiteButton/WhiteButton";
+import { WhiteButton } from "../../../components/v2/Button/WhiteButton/WhiteButton";
 
 export function Step4(): React.ReactElement {
   const { form } = useFormContainerBaseContext<OnboardingSurveyFormModel>();

@@ -2,7 +2,7 @@ import React, { useCallback } from "react";
 import { EmojiIcon } from "../../../components/onboarding/EmojiIcon";
 import { Text } from "../../../components/onboarding/Text";
 import { FormattedMessage } from "@oursky/react-messageformat";
-import { PrimaryButton } from "../../../components/v2/PrimaryButton/PrimaryButton";
+import { PrimaryButton } from "../../../components/v2/Button/PrimaryButton/PrimaryButton";
 import { useNavigate } from "react-router-dom";
 import { useFormContainerBaseContext } from "../../../FormContainerBase";
 import { OnboardingSurveyFormModel } from "./form";

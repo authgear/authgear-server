@@ -5,7 +5,7 @@ import {
   Context as MessageContext,
   FormattedMessage,
 } from "@oursky/react-messageformat";
-import { PrimaryButton } from "../../../components/v2/PrimaryButton/PrimaryButton";
+import { PrimaryButton } from "../../../components/v2/Button/PrimaryButton/PrimaryButton";
 import { useFormContainerBaseContext } from "../../../FormContainerBase";
 import { ProjectWizardStepper } from "../../../components/project-wizard/ProjectWizardStepper";
 import { ProjectWizardFormModel } from "./form";

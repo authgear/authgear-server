@@ -16,7 +16,7 @@ import { OnboardingSurveyPhoneInput } from "../../../components/onboarding/Onboa
 import { useViewerQuery } from "../../../graphql/portal/query/viewerQuery";
 import ShowLoading from "../../../ShowLoading";
 import { PhoneTextFieldValues } from "../../../PhoneTextField";
-import { WhiteButton } from "../../../components/v2/WhiteButton/WhiteButton";
+import { WhiteButton } from "../../../components/v2/Button/WhiteButton/WhiteButton";
 
 export function Step3(): React.ReactElement {
   const { form } = useFormContainerBaseContext<OnboardingSurveyFormModel>();

@@ -3,7 +3,7 @@ import cn from "classnames";
 import styles from "./ImageInput.module.css";
 
 import { FormattedMessage } from "@oursky/react-messageformat";
-import { SecondaryButton } from "../SecondaryButton/SecondaryButton";
+import { SecondaryButton } from "../Button/SecondaryButton/SecondaryButton";
 import { IconButton, IconButtonIcon } from "../IconButton/IconButton";
 import { SquareIcon } from "../SquareIcon/SquareIcon";
 import { ImageIcon } from "@radix-ui/react-icons";

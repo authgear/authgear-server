@@ -4,7 +4,7 @@ import { EmojiIcon } from "../../../components/onboarding/EmojiIcon";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import { OnboardingSurveyFormModel } from "./form";
 import { useFormContainerBaseContext } from "../../../FormContainerBase";
-import { WhiteButton } from "../../../components/v2/WhiteButton/WhiteButton";
+import { WhiteButton } from "../../../components/v2/Button/WhiteButton/WhiteButton";
 
 export function Start(): React.ReactElement {
   const { form } = useFormContainerBaseContext<OnboardingSurveyFormModel>();
