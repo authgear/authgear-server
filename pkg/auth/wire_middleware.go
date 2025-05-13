@@ -100,6 +100,13 @@ func newDynamicCSPMiddleware(
 	))
 }
 
+func newNoProjectCSPMiddleware(p *deps.RootProvider) httproute.Middleware {
+	panic(wire.Build(
+		NoProjectDependencySet,
+		wire.Bind(new(httproute.Middleware), new(*webapp.NoProjectCSPMiddleware)),
+	))
+}
+
 func newCSRFMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	panic(wire.Build(
 		DependencySet,

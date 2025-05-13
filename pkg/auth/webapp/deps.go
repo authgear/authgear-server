@@ -38,3 +38,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(SessionStore), new(*SessionStoreRedis)),
 	wire.Struct(new(Service2), "*"),
 )
+
+var NoProjectDependencySet = wire.NewSet(
+	wire.Struct(new(NoProjectCSPMiddleware), "*"),
+)

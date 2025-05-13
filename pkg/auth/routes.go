@@ -48,6 +48,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) ht
 		p.RootMiddleware(newPanicMiddleware),
 		p.RootMiddleware(newBodyLimitMiddleware),
 		p.RootMiddleware(newSentryMiddleware),
+		p.RootMiddleware(newNoProjectCSPMiddleware),
 		httproute.MiddlewareFunc(httputil.XContentTypeOptionsNosniff),
 		httproute.MiddlewareFunc(httputil.PermissionsPolicyHeader),
 		httproute.MiddlewareFunc(httputil.XRobotsTag),

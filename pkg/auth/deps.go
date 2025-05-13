@@ -435,4 +435,6 @@ var NoProjectDependencySet = wire.NewSet(
 
 	translation.DependencySet,
 	wire.Bind(new(viewmodelswebapp.TranslationService), new(*translation.Service)),
+
+	webapp.NoProjectDependencySet,
 )
