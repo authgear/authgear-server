@@ -438,12 +438,13 @@ func (m *NoProjectBaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWr
 		geoipCountryCode = geoipInfo.CountryCode
 	}
 
+	cspNonce := httputil.GetCSPNonce(ctx)
 	model := BaseViewModel{
 		InlinePreview: true,
 		ColorScheme:   webapp.GetColorScheme(ctx),
 		RequestURI:    r.URL.RequestURI(),
 		HasXStep:      false,
-		CSPNonce:      "",
+		CSPNonce:      cspNonce,
 		CSRFField:     "",
 		Translations: &TranslationsCompatImpl{
 			Context:            ctx,
