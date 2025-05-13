@@ -39,6 +39,8 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(Service2), "*"),
 )
 
-var NoProjectDependencySet = wire.NewSet(
+var RootMiddlewareDependencySet = wire.NewSet(
+	NewContextHolderMiddlewareLogger,
 	wire.Struct(new(NoProjectCSPMiddleware), "*"),
+	wire.Struct(new(ContextHolderMiddleware), "*"),
 )
