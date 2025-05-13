@@ -6,6 +6,7 @@
   --layout__bg-image-opacity: 0.25;
 
   --widget__box-shadow: 0px 4px 50px 0px #0000001a;
+  --widget__border-radius: var(--border-radius-large);
 }
 
 .preview-widget__layout-header {
