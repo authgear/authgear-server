@@ -3,7 +3,7 @@ import {
   TextButton,
   TextButtonIcon,
   TextButtonProps,
-} from "../v2/TextButton/TextButton";
+} from "../v2/Button/TextButton/TextButton";
 import { FormattedMessage } from "@oursky/react-messageformat";
 
 export function ProjectWizardBackButton({

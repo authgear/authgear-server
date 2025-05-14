@@ -2,7 +2,7 @@ import React, { useCallback, useMemo } from "react";
 import cn from "classnames";
 import { Text } from "../../../components/project-wizard/Text";
 import { FormattedMessage } from "@oursky/react-messageformat";
-import { PrimaryButton } from "../../../components/v2/PrimaryButton/PrimaryButton";
+import { PrimaryButton } from "../../../components/v2/Button/PrimaryButton/PrimaryButton";
 import { useFormContainerBaseContext } from "../../../FormContainerBase";
 import { ProjectWizardStepper } from "../../../components/project-wizard/ProjectWizardStepper";
 import { ProjectWizardFormModel, LoginMethod, AuthMethod } from "./form";

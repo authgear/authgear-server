@@ -1,6 +1,6 @@
 module.exports = {
   corePlugins: {
-    preflight: false,
+    preflight: true,
   },
   content: ["./src/**/*.{js,jsx,ts,tsx}"],
   darkMode: "class",

@@ -9,7 +9,7 @@ import {
   RadioCards,
 } from "../../../components/v2/RadioCards/RadioCards";
 import { produce } from "immer";
-import { WhiteButton } from "../../../components/v2/WhiteButton/WhiteButton";
+import { WhiteButton } from "../../../components/v2/Button/WhiteButton/WhiteButton";
 import { OnboardingSurveyBackButton } from "../../../components/onboarding/OnboardingSurveyBackButton";
 
 export function Step2(): React.ReactElement {
