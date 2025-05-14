@@ -9,10 +9,10 @@ body,
   height: 100%;
 }
 
-/* Ensure the default page font is compatible with common operation systems */
 html {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica",
-    "Arial", sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+  /* Use system font. This string is copied from the stylesheet of github.com. */
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans",
+    Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
 }
 
 /* For all <button> element not in fluent or radix */
