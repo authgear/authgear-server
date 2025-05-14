@@ -32,7 +32,7 @@ export function ProjectWizardPreview({
 
   const src = useMemo(() => {
     const url = new URL(authgearEndpoint);
-    url.pathname = "noproject/preview/widget";
+    url.pathname = "/noproject/preview/widget";
     return url.toString();
   }, [authgearEndpoint]);
 
