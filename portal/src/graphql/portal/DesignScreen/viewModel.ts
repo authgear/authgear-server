@@ -1,3 +1,4 @@
+import { PreviewCustomisationMessage } from "../../../model/preview";
 import {
   CSSVariable,
   CssAstVisitor,
@@ -86,14 +87,6 @@ export function getSupportedPreviewPagesFromConfig(
   return pages;
 }
 
-export interface PreviewCustomisationMessage {
-  type: "PreviewCustomisationMessage";
-  theme: string;
-  cssVars: Record<string, string>;
-  images: Record<string, string | null>;
-  translations: Record<string, string>;
-}
-
 export function mapDesignFormStateToPreviewCustomisationMessage(
   state: BranchDesignFormState
 ): PreviewCustomisationMessage {
@@ -179,6 +172,7 @@ export function mapDesignFormStateToPreviewCustomisationMessage(
     cssVars,
     images,
     translations,
+    data: {},
   };
 }
 

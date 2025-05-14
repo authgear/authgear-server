@@ -16,51 +16,98 @@
   >
   {{ template "authflowv2/__html_head.html" . }}
   {{ $appName := (translate "app.name" nil) }}
-  <body>
-    <div class="layout--default">
-      <div class="layout__header--default"></div>
-        <div class="widget">
-          <div class="widget-content">
-            <div class="flex-1-0-auto">
-              <div class="screen-logo-layout">
-                {{ template "authflowv2/__header.html" . }}
-                <div class="screen-title-description">
-                  <h1 class="screen-title">
-                    {{ include "v2.page.login.default.title" (dict
-                      "AppName" $appName
-                      "ClientName" "")
-                    }}
-                  </h1>
-                  <h2 class="screen-description">
-                    {{ include "v2.page.login.default.subtitle" (dict
-                      "AppName" $appName
-                      "ClientName" "")
-                    }}
-                  </h2>
+  <body
+    class="preview-widget"
+    data-controller="previewable-resource preview-widget"
+    data-previewable-resource-key-value="previewWidgetLoginMethods"
+    data-previewable-resource-changable-attribute-value="data-preview-widget-login-methods-value">
+    <div class="layout--preview">
+      <div class="preview-widget__layout-header">
+        <div class="preview-widget__badge">
+          <i class="material-icons">visibility</i>
+          <p>{{ include "v2.page.preview.default.title" nil }}</p>
+        </div>
+      </div>
+      <div class="widget--preview">
+        <div class="widget-content--preview">
+          <div class="flex-1-0-auto">
+            <div class="screen-logo-layout">
+              {{ template "authflowv2/__header.html" . }}
+              <div class="screen-title-description">
+                <h1 class="screen-title">
+                  {{ include "v2.page.login.default.title" (dict
+                    "AppName" $appName
+                    "ClientName" "")
+                  }}
+                </h1>
+                <h2 class="screen-description">
+                  {{ include "v2.page.login.default.subtitle" (dict
+                    "AppName" $appName
+                    "ClientName" "")
+                  }}
+                </h2>
+                <div
+                  data-preview-widget-target="noLoginMethodsError"
+                  class="pt-4"
+                >
+                  {{ template "authflowv2/__alert_message.html"
+                    (dict
+                      "Type" "error"
+                      "Message" (include "v2.page.preview.default.no-login-methods" nil)
+                    )
+                  }}
                 </div>
               </div>
-              <form
-                class="flex flex-col gap-4 mt-8"
-              >
-                <div class="flex flex-col gap-2">
-                  <input
-                    class="block input w-full"
-                    placeholder="{{ include "v2.component.input.default.placeholder-login-id" (dict "variant" $.NonPhoneLoginIDType) }}"
-                  >
-                </div>
-                <button
-                  class="primary-btn w-full"
-                  type="button"
-                >{{ include "v2.component.button.default.label-login" nil }}</button>
-              </form>
+            </div>
+            <form
+              class="flex flex-col gap-4 mt-8"
+              data-preview-widget-target="loginIDSection"
+            >
+              <div class="flex flex-col gap-2">
+                <input
+                  data-preview-widget-target="emailInput"
+                  class="block input w-full"
+                  placeholder="{{ include "v2.component.input.default.placeholder-login-id" (dict "variant" "email") }}"
+                >
+                <input
+                  data-preview-widget-target="usernameInput"
+                  class="block input w-full"
+                  placeholder="{{ include "v2.component.input.default.placeholder-login-id" (dict "variant" "username") }}"
+                >
+                <input
+                  data-preview-widget-target="loginIDInput"
+                  class="block input w-full"
+                  placeholder="{{ include "v2.component.input.default.placeholder-login-id" (dict "variant" "") }}"
+                >
+                {{ template "authflowv2/__phone_input.html"
+                  (dict
+                    "Placeholder" (include "v2.component.input.default.placeholder-phone" nil)
+                    "PlaceholderWithExample" (include "v2.component.input.default.placeholder-phone-with-example" nil)
+                    "IsError" false
+                    "AutoFocus" false
+                    "ContainerAttrs" `
+                      data-preview-widget-target="phoneInput"
+                    `
+                  )
+                }}
+              </div>
+              <button
+                class="primary-btn w-full"
+                type="button"
+              >{{ include "v2.component.button.default.label-login" nil }}</button>
               <p class="body-text--md mt-4">
                 {{ include "v2.page.login.default.switch-to-signup" (dict "href" "" )}}
               </p>
+            </form>
 
-              {{ template "authflowv2/__divider.html" (dict "Classname" "my-8")  }}
-
-              <section class="flex flex-col gap-4">
+            <section
+              data-preview-widget-target="branchSection"
+            >
+              {{ template "authflowv2/__divider.html" (dict "Classname" "py-8")  }}
+              <section
+                class="flex flex-col gap-4">
                 <a
+                  data-preview-widget-target="branchOptionPhone"
                   class="secondary-btn w-full"
                 >
                   <div class="flex gap-2">
@@ -69,10 +116,11 @@
                   </div>
                 </a>
               </section>
-            </div>
-            {{ template "authflowv2/__watermark.html" . }}
+            </section>
           </div>
+          {{ template "authflowv2/__watermark.html" . }}
         </div>
+      </div>
       <div class="layout__footer--default"></div>
     </div>
   </body>
