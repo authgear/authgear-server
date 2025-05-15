@@ -282,7 +282,8 @@ func OAuthSSOProviderConfigSchemaBuilder(builder validation.SchemaBuilder) valid
 		Property("alias", validation.SchemaBuilder{}.Type(validation.TypeString).MinLength(1)).
 		Property("modify_disabled", validation.SchemaBuilder{}.Type(validation.TypeBoolean)).
 		Property("create_disabled", validation.SchemaBuilder{}.Type(validation.TypeBoolean)).
-		Property("delete_disabled", validation.SchemaBuilder{}.Type(validation.TypeBoolean))
+		Property("delete_disabled", validation.SchemaBuilder{}.Type(validation.TypeBoolean)).
+		Property("is_active", validation.SchemaBuilder{}.Type(validation.TypeBoolean))
 	builder.AddRequired("alias")
 	return builder
 }
@@ -300,6 +301,10 @@ func (c OAuthSSOProviderConfig) SetDefaults() {
 
 	if _, ok := c["delete_disabled"].(bool); !ok {
 		c["delete_disabled"] = c["modify_disabled"].(bool)
+	}
+
+	if _, ok := c["is_active"].(bool); !ok {
+		c["is_active"] = true
 	}
 
 	c.AsProviderConfig().SetDefaults()
@@ -327,6 +332,9 @@ func (c OAuthSSOProviderConfig) CreateDisabled() bool {
 }
 func (c OAuthSSOProviderConfig) DeleteDisabled() bool {
 	return c["delete_disabled"].(bool)
+}
+func (c OAuthSSOProviderConfig) IsActive() bool {
+	return c["is_active"].(bool)
 }
 
 type OAuthSSOConfig struct {
