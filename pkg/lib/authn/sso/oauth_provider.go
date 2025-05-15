@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
 
 	"github.com/authgear/authgear-server/pkg/api"
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/oauthrelyingpartyutil"
@@ -42,7 +43,12 @@ func (p *OAuthProviderFactory) getActiveOrDemoProvider(alias string) (provider o
 
 	if config.OAuthSSOProviderConfig(providerConfig).IsDisabled() {
 		// TODO(tung): handle demo status
-		err = api.ErrOAuthProviderInactive
+
+		details := apierrors.Details{
+			"OAuthProviderAlias": alias,
+			"OAuthProviderType":  providerConfig.Type(),
+		}
+		err = api.OAuthProviderInactive.NewWithInfo("oauth provider is inactive because of missing credentials", details)
 		return
 	}
 
