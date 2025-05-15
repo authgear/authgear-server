@@ -77,6 +77,8 @@ export enum LoginMethod {
   LinkedIn = "LinkedIn",
   MicrosoftEntraID = "MicrosoftEntraID",
   MicrosoftADFS = "MicrosoftADFS",
+  WechatWeb = "WechatWeb",
+  WechatMobile = "WechatMobile",
 }
 
 export enum AuthMethod {
@@ -203,6 +205,10 @@ function deriveLoginIDKeysFromFormState(
         break;
       case LoginMethod.MicrosoftADFS:
         break;
+      case LoginMethod.WechatWeb:
+        break;
+      case LoginMethod.WechatMobile:
+        break;
     }
   }
   return keys;
@@ -260,6 +266,22 @@ function deriveOAuthProvidersFromFormState(
         configs.push({
           type: "adfs",
           alias: "adfs",
+          is_active: false,
+        });
+        break;
+      case LoginMethod.WechatWeb:
+        configs.push({
+          type: "wechat",
+          app_type: "web",
+          alias: "wechat_web",
+          is_active: false,
+        });
+        break;
+      case LoginMethod.WechatMobile:
+        configs.push({
+          type: "wechat",
+          app_type: "mobile",
+          alias: "wechat_mobile",
           is_active: false,
         });
         break;
