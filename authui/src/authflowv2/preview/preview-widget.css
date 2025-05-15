@@ -28,3 +28,11 @@
   letter-spacing: var(--typography-body-small__letter-spacing);
   font-weight: var(--typography-body-small__font-weight);
 }
+
+.preview-widget__branch-section--branch-only {
+  @apply pt-8;
+}
+
+.preview-widget__branch-section--branch-only .preview-widget__branch-divider {
+  @apply hidden;
+}

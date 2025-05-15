@@ -154,6 +154,16 @@ export class PreviewWidgetController extends Controller {
       this.noLoginMethodsErrorTarget,
       vm.loginInput === "none" && vm.branches.length === 0
     );
+
+    if (vm.branches.length > 0 && vm.loginInput === "none") {
+      this.branchSectionTarget.classList.add(
+        "preview-widget__branch-section--branch-only"
+      );
+    } else {
+      this.branchSectionTarget.classList.remove(
+        "preview-widget__branch-section--branch-only"
+      );
+    }
   }
 }
 
