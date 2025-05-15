@@ -194,8 +194,9 @@ func (c *OAuthSSOProviderCredentials) SensitiveStrings() []string {
 }
 
 type OAuthSSOProviderCredentialsItem struct {
-	Alias        string `json:"alias,omitempty"`
-	ClientSecret string `json:"client_secret,omitempty"`
+	Alias string `json:"alias,omitempty"`
+	// client_secret can be empty string for inactive providers
+	ClientSecret string `json:"client_secret"`
 }
 
 func (c *OAuthSSOProviderCredentialsItem) SensitiveStrings() []string {
