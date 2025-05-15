@@ -13,6 +13,7 @@ import { useOptionalAppContext } from "../../../context/AppContext";
 import { useSaveProjectWizardDataMutation } from "../../../graphql/portal/mutations/saveProjectWizardDataMutation";
 import {
   LoginIDKeyConfig,
+  OAuthSSOProviderConfig,
   PortalAPIAppConfig,
   PrimaryAuthenticatorType,
 } from "../../../types";
@@ -187,9 +188,89 @@ function deriveLoginIDKeysFromFormState(
       case LoginMethod.Username:
         keys.push({ type: "username" });
         break;
+      case LoginMethod.Google:
+        break;
+      case LoginMethod.Apple:
+        break;
+      case LoginMethod.Facebook:
+        break;
+      case LoginMethod.Github:
+        break;
+      case LoginMethod.LinkedIn:
+        break;
+      case LoginMethod.MicrosoftEntraID:
+        break;
+      case LoginMethod.MicrosoftADFS:
+        break;
     }
   }
   return keys;
+}
+
+function deriveOAuthProvidersFromFormState(
+  formState: FormState
+): OAuthSSOProviderConfig[] {
+  const configs: OAuthSSOProviderConfig[] = [];
+  for (const method of formState.loginMethods) {
+    switch (method) {
+      case LoginMethod.Apple:
+        configs.push({
+          type: "apple",
+          alias: "apple",
+          is_active: false,
+        });
+        break;
+      case LoginMethod.Google:
+        configs.push({
+          type: "google",
+          alias: "google",
+          is_active: false,
+        });
+        break;
+      case LoginMethod.Facebook:
+        configs.push({
+          type: "facebook",
+          alias: "facebook",
+          is_active: false,
+        });
+        break;
+      case LoginMethod.Github:
+        configs.push({
+          type: "github",
+          alias: "github",
+          is_active: false,
+        });
+        break;
+      case LoginMethod.LinkedIn:
+        configs.push({
+          type: "linkedin",
+          alias: "linkedin",
+          is_active: false,
+        });
+        break;
+      case LoginMethod.MicrosoftEntraID:
+        configs.push({
+          type: "azureadv2",
+          alias: "azureadv2",
+          is_active: false,
+        });
+        break;
+      case LoginMethod.MicrosoftADFS:
+        configs.push({
+          type: "adfs",
+          alias: "adfs",
+          is_active: false,
+        });
+        break;
+      case LoginMethod.Email:
+        break;
+      case LoginMethod.Phone:
+        break;
+      case LoginMethod.Username:
+        break;
+    }
+  }
+  return configs;
 }
 
 function derivePrimaryAuthenticatorsFromFormState(
@@ -223,6 +304,10 @@ function constructConfig(
     config.identity.login_id ??= {};
     config.identity.login_id.keys =
       deriveLoginIDKeysFromFormState(currentState);
+    config.identity.oauth = {
+      providers: deriveOAuthProvidersFromFormState(currentState),
+    };
+
     config.authentication ??= {};
     config.authentication.identities = ["oauth", "login_id"];
 
