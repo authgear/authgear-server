@@ -403,6 +403,7 @@ identity:
         alias: google
         create_disabled: false
         delete_disabled: false
+        is_active: true
         claims:
           email:
             assume_verified: true
@@ -412,6 +413,7 @@ identity:
         alias: facebook
         create_disabled: false
         delete_disabled: false
+        is_active: true
         claims:
           email:
             assume_verified: true
@@ -421,6 +423,7 @@ identity:
         alias: linkedin
         create_disabled: false
         delete_disabled: false
+        is_active: true
         claims:
           email:
             assume_verified: true
@@ -430,6 +433,7 @@ identity:
         alias: azureadv2
         create_disabled: false
         delete_disabled: false
+        is_active: true
         claims:
           email:
             assume_verified: true
@@ -440,6 +444,7 @@ identity:
         alias: azureadb2c
         create_disabled: false
         delete_disabled: false
+        is_active: true
         claims:
           email:
             assume_verified: true
@@ -451,6 +456,7 @@ identity:
         alias: adfs
         create_disabled: false
         delete_disabled: false
+        is_active: true
         claims:
           email:
             assume_verified: true
@@ -461,6 +467,7 @@ identity:
         alias: apple
         create_disabled: false
         delete_disabled: false
+        is_active: true
         claims:
           email:
             assume_verified: true
@@ -472,6 +479,7 @@ identity:
         alias: wechat
         create_disabled: false
         delete_disabled: false
+        is_active: true
         claims:
           email:
             assume_verified: true
