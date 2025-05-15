@@ -43,7 +43,6 @@ fingerprint
 flag
 forward_to_inbox
 function
-functions
 height
 hide
 highlight
