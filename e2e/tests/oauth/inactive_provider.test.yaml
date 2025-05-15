@@ -1,0 +1,53 @@
+name: Inactive OAuth Provider
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+        - oauth
+      primary_authenticators:
+        - password
+
+    identity:
+      oauth:
+        providers:
+          - alias: google
+            client_id: "google"
+            type: google
+            disabled: true
+    authentication_flow:
+      login_flows:
+        - name: default
+          steps:
+          - type: identify
+            one_of:
+            - identification: oauth
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "login",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "identification": "oauth",
+        "alias": "google",
+        "redirect_uri": "http://mock"
+      }
+    output:
+      error: |
+        {
+          "name": "Invalid",
+          "reason": "OAuthProviderInactive",
+          "message": "oauth provider is inactive because of missing credentials",
+          "code": 400
+        } 
