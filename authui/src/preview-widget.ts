@@ -11,6 +11,8 @@ export enum LoginMethod {
   LinkedIn = "LinkedIn",
   MicrosoftEntraID = "MicrosoftEntraID",
   MicrosoftADFS = "MicrosoftADFS",
+  WechatWeb = "WechatWeb",
+  WechatMobile = "WechatMobile",
 }
 
 interface PreviewWidgetViewModel {
@@ -40,6 +42,7 @@ export class PreviewWidgetController extends Controller {
     "branchOptionLinkedin",
     "branchOptionAzureadv2",
     "branchOptionAdfs",
+    "branchOptionWechat",
     "noLoginMethodsError",
   ];
 
@@ -57,6 +60,7 @@ export class PreviewWidgetController extends Controller {
   declare branchOptionLinkedinTarget: HTMLElement;
   declare branchOptionAzureadv2Target: HTMLElement;
   declare branchOptionAdfsTarget: HTMLElement;
+  declare branchOptionWechatTarget: HTMLElement;
   declare noLoginMethodsErrorTarget: HTMLElement;
 
   connect() {
@@ -140,6 +144,11 @@ export class PreviewWidgetController extends Controller {
     showElementIf(
       this.branchOptionAdfsTarget,
       vm.branches.includes(LoginMethod.MicrosoftADFS)
+    );
+    showElementIf(
+      this.branchOptionWechatTarget,
+      vm.branches.includes(LoginMethod.WechatWeb) ||
+        vm.branches.includes(LoginMethod.WechatMobile)
     );
     showElementIf(
       this.noLoginMethodsErrorTarget,

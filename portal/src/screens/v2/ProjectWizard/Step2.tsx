@@ -54,6 +54,12 @@ function LoginMethodIcon({ method }: { method: LoginMethod }) {
     case LoginMethod.MicrosoftADFS:
       iconClassName = "fab fa-microsoft";
       break;
+    case LoginMethod.WechatWeb:
+      iconClassName = "fab fa-weixin";
+      break;
+    case LoginMethod.WechatMobile:
+      iconClassName = "fab fa-weixin";
+      break;
   }
   return (
     <i className={cn(iconClassName, "text-xl text-center h-[1em] w-[1em]")} />
@@ -174,6 +180,26 @@ export function Step2(): React.ReactElement {
                     icon: (
                       <LoginMethodIcon method={LoginMethod.MicrosoftADFS} />
                     ),
+                  },
+                  {
+                    value: LoginMethod.WechatWeb,
+                    text: (
+                      <FormattedMessage id="ProjectWizardScreen.loginMethods.wechatWeb" />
+                    ),
+                    supportingText: (
+                      <FormattedMessage id="ProjectWizardScreen.loginMethods.wechatWeb.supportingText" />
+                    ),
+                    icon: <LoginMethodIcon method={LoginMethod.WechatWeb} />,
+                  },
+                  {
+                    value: LoginMethod.WechatMobile,
+                    text: (
+                      <FormattedMessage id="ProjectWizardScreen.loginMethods.wechatMobile" />
+                    ),
+                    supportingText: (
+                      <FormattedMessage id="ProjectWizardScreen.loginMethods.wechatMobile.supportingText" />
+                    ),
+                    icon: <LoginMethodIcon method={LoginMethod.WechatMobile} />,
                   },
                 ];
               }, [])}
