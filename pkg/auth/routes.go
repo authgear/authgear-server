@@ -43,20 +43,26 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) ht
 
 	router.Health(p.RootHandler(newHealthzHandler))
 
-	noProjectChain := httproute.Chain(
+	baseChain := httproute.Chain(
+		p.RootMiddleware(newContextHolderMiddleware),
 		p.RootMiddleware(newOtelMiddleware),
 		p.RootMiddleware(newPanicMiddleware),
 		p.RootMiddleware(newBodyLimitMiddleware),
 		p.RootMiddleware(newSentryMiddleware),
+		p.RootMiddleware(newNoProjectCSPMiddleware),
 		httproute.MiddlewareFunc(httputil.XContentTypeOptionsNosniff),
 		httproute.MiddlewareFunc(httputil.PermissionsPolicyHeader),
 		httproute.MiddlewareFunc(httputil.XRobotsTag),
 	)
 
+	noProjectChain := httproute.Chain(
+		baseChain,
+		p.RootMiddleware(newNoProjectCSPMiddleware),
+	)
+
 	rootChain := httproute.Chain(
-		noProjectChain,
+		baseChain,
 		MakeWebAppRequestMiddleware(p, configSource, newWebAppRequestMiddleware),
-		p.Middleware(newContextHolderMiddleware),
 	)
 
 	// This route is intentionally simple.

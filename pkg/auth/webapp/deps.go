@@ -38,3 +38,9 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(SessionStore), new(*SessionStoreRedis)),
 	wire.Struct(new(Service2), "*"),
 )
+
+var RootMiddlewareDependencySet = wire.NewSet(
+	NewContextHolderMiddlewareLogger,
+	wire.Struct(new(NoProjectCSPMiddleware), "*"),
+	wire.Struct(new(ContextHolderMiddleware), "*"),
+)

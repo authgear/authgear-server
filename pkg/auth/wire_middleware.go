@@ -82,9 +82,10 @@ func newCORSMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	))
 }
 
-func newContextHolderMiddleware(p *deps.RequestProvider) httproute.Middleware {
+func newContextHolderMiddleware(p *deps.RootProvider) httproute.Middleware {
 	panic(wire.Build(
-		DependencySet,
+		deps.RootDependencySet,
+		webapp.RootMiddlewareDependencySet,
 		wire.Bind(new(httproute.Middleware), new(*webapp.ContextHolderMiddleware)),
 	))
 }
@@ -97,6 +98,14 @@ func newDynamicCSPMiddleware(
 	panic(wire.Build(
 		DependencySet,
 		wire.Bind(new(httproute.Middleware), new(*webapp.DynamicCSPMiddleware)),
+	))
+}
+
+func newNoProjectCSPMiddleware(p *deps.RootProvider) httproute.Middleware {
+	panic(wire.Build(
+		NoProjectDependencySet,
+		webapp.RootMiddlewareDependencySet,
+		wire.Bind(new(httproute.Middleware), new(*webapp.NoProjectCSPMiddleware)),
 	))
 }
 
