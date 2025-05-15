@@ -34,9 +34,15 @@ func (p *OAuthProviderFactory) GetProviderConfig(alias string) (oauthrelyingpart
 	return providerConfig, nil
 }
 
-func (p *OAuthProviderFactory) getProvider(alias string) (provider oauthrelyingparty.Provider, deps *oauthrelyingparty.Dependencies, err error) {
+func (p *OAuthProviderFactory) getActiveOrDemoProvider(alias string) (provider oauthrelyingparty.Provider, deps *oauthrelyingparty.Dependencies, err error) {
 	providerConfig, err := p.GetProviderConfig(alias)
 	if err != nil {
+		return
+	}
+
+	if config.OAuthSSOProviderConfig(providerConfig).IsDisabled() {
+		// TODO(tung): handle demo status
+		err = api.ErrOAuthProviderInactive
 		return
 	}
 
@@ -59,7 +65,7 @@ func (p *OAuthProviderFactory) getProvider(alias string) (provider oauthrelyingp
 }
 
 func (p *OAuthProviderFactory) GetAuthorizationURL(ctx context.Context, alias string, options oauthrelyingparty.GetAuthorizationURLOptions) (url string, err error) {
-	provider, deps, err := p.getProvider(alias)
+	provider, deps, err := p.getActiveOrDemoProvider(alias)
 	if err != nil {
 		return
 	}
@@ -68,7 +74,7 @@ func (p *OAuthProviderFactory) GetAuthorizationURL(ctx context.Context, alias st
 }
 
 func (p *OAuthProviderFactory) GetUserProfile(ctx context.Context, alias string, options oauthrelyingparty.GetUserProfileOptions) (userProfile oauthrelyingparty.UserProfile, err error) {
-	provider, deps, err := p.getProvider(alias)
+	provider, deps, err := p.getActiveOrDemoProvider(alias)
 	if err != nil {
 		return
 	}
