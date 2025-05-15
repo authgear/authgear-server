@@ -32,6 +32,8 @@ type IdentificationOption struct {
 	Alias string `json:"alias,omitempty"`
 	// WechatAppType is specific to OAuth.
 	WechatAppType wechat.AppType `json:"wechat_app_type,omitempty"`
+	// ProviderStatus is specific to OAuth.
+	ProviderStatus OAuthProviderStatus `json:"provider_status,omitempty"`
 
 	// WebAuthnRequestOptions is specific to Passkey.
 	RequestOptions *model.WebAuthnRequestOptions `json:"request_options,omitempty"`
@@ -58,12 +60,19 @@ func NewIdentificationOptionsOAuth(oauthConfig *config.OAuthSSOConfig, oauthFeat
 	output := []IdentificationOption{}
 	for _, p := range oauthConfig.Providers {
 		if !identity.IsOAuthSSOProviderTypeDisabled(p.AsProviderConfig(), oauthFeatureConfig) {
+			status := OAuthProviderStatusActive
+			if p.IsDisabled() {
+				status = OAuthProviderStatusInactive
+				// TODO(tung): Add demo status
+			}
+
 			output = append(output, IdentificationOption{
 				Identification: config.AuthenticationFlowIdentificationOAuth,
 				BotProtection:  GetBotProtectionData(authflowCfg, appCfg),
 				ProviderType:   p.AsProviderConfig().Type(),
 				Alias:          p.Alias(),
 				WechatAppType:  wechat.ProviderConfig(p).AppType(),
+				ProviderStatus: status,
 			})
 		}
 	}
