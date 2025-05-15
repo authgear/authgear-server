@@ -54,6 +54,9 @@ function LoginMethodIcon({ method }: { method: LoginMethod }) {
     case LoginMethod.MicrosoftADFS:
       iconClassName = "fab fa-microsoft";
       break;
+    case LoginMethod.MicrosoftAzureADB2C:
+      iconClassName = "fab fa-microsoft";
+      break;
     case LoginMethod.WechatWeb:
       iconClassName = "fab fa-weixin";
       break;
@@ -179,6 +182,17 @@ export function Step2(): React.ReactElement {
                     ),
                     icon: (
                       <LoginMethodIcon method={LoginMethod.MicrosoftADFS} />
+                    ),
+                  },
+                  {
+                    value: LoginMethod.MicrosoftAzureADB2C,
+                    text: (
+                      <FormattedMessage id="ProjectWizardScreen.loginMethods.microsoftAzureADB2C" />
+                    ),
+                    icon: (
+                      <LoginMethodIcon
+                        method={LoginMethod.MicrosoftAzureADB2C}
+                      />
                     ),
                   },
                   {
