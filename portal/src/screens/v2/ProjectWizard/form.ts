@@ -77,6 +77,7 @@ export enum LoginMethod {
   LinkedIn = "LinkedIn",
   MicrosoftEntraID = "MicrosoftEntraID",
   MicrosoftADFS = "MicrosoftADFS",
+  MicrosoftAzureADB2C = "MicrosoftAzureADB2C",
   WechatWeb = "WechatWeb",
   WechatMobile = "WechatMobile",
 }
@@ -205,6 +206,8 @@ function deriveLoginIDKeysFromFormState(
         break;
       case LoginMethod.MicrosoftADFS:
         break;
+      case LoginMethod.MicrosoftAzureADB2C:
+        break;
       case LoginMethod.WechatWeb:
         break;
       case LoginMethod.WechatMobile:
@@ -266,6 +269,13 @@ function deriveOAuthProvidersFromFormState(
         configs.push({
           type: "adfs",
           alias: "adfs",
+          is_active: false,
+        });
+        break;
+      case LoginMethod.MicrosoftAzureADB2C:
+        configs.push({
+          type: "azureadb2c",
+          alias: "azureadb2c",
           is_active: false,
         });
         break;
