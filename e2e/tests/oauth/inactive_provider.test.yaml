@@ -49,5 +49,9 @@ steps:
           "name": "Invalid",
           "reason": "OAuthProviderInactive",
           "message": "oauth provider is inactive because of missing credentials",
-          "code": 400
+          "code": 400,
+          "info": {
+            "OAuthProviderAlias": "google",
+            "OAuthProviderType": "google"
+          }
         } 

@@ -25,9 +25,10 @@ var UserNotFound = apierrors.NotFound.WithReason("UserNotFound")
 var ErrUserNotFound = UserNotFound.New("user not found")
 var ErrIdentityNotFound = apierrors.NotFound.WithReason("IdentityNotFound").New("identity not found")
 
+var OAuthProviderInactive = apierrors.Invalid.WithReason("OAuthProviderInactive")
+
 var ErrInvalidCredentials = InvalidCredentials.New("invalid credentials")
 var ErrOAuthProviderNotFound = apierrors.NotFound.WithReason("OAuthProviderNotFound").New("oauth provider not found")
-var ErrOAuthProviderInactive = apierrors.Invalid.WithReason("OAuthProviderInactive").New("oauth provider is inactive because of missing credentials")
 var ErrIdentityModifyDisabled = NewInvariantViolated("IdentityModifyDisabled", "identity modification disabled", nil)
 var ErrMismatchedUser = NewInvariantViolated("MismatchedUser", "mismatched user", nil)
 var ErrNoAuthenticator = NewInvariantViolated("NoAuthenticator", "no authenticator", nil)
