@@ -67,7 +67,14 @@ export enum ProjectWizardStep {
 export enum LoginMethod {
   Email = "Email",
   Phone = "Phone",
-  Username = "username",
+  Username = "Username",
+  Google = "Google",
+  Apple = "Apple",
+  Facebook = "Facebook",
+  Github = "Github",
+  LinkedIn = "LinkedIn",
+  MicrosoftEntraID = "MicrosoftEntraID",
+  MicrosoftADFS = "MicrosoftADFS",
 }
 
 export enum AuthMethod {
