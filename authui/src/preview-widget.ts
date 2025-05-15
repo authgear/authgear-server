@@ -1,9 +1,16 @@
 import { Controller } from "@hotwired/stimulus";
 
-enum LoginMethod {
+export enum LoginMethod {
   Email = "Email",
   Phone = "Phone",
-  Username = "username",
+  Username = "Username",
+  Google = "Google",
+  Apple = "Apple",
+  Facebook = "Facebook",
+  Github = "Github",
+  LinkedIn = "LinkedIn",
+  MicrosoftEntraID = "MicrosoftEntraID",
+  MicrosoftADFS = "MicrosoftADFS",
 }
 
 interface PreviewWidgetViewModel {
@@ -26,6 +33,13 @@ export class PreviewWidgetController extends Controller {
     "branchSection",
     "branchOptionUsername",
     "branchOptionPhone",
+    "branchOptionGoogle",
+    "branchOptionApple",
+    "branchOptionFacebook",
+    "branchOptionGithub",
+    "branchOptionLinkedin",
+    "branchOptionAzureadv2",
+    "branchOptionAdfs",
     "noLoginMethodsError",
   ];
 
@@ -36,6 +50,13 @@ export class PreviewWidgetController extends Controller {
   declare branchSectionTarget: HTMLElement;
   declare branchOptionUsernameTarget: HTMLElement;
   declare branchOptionPhoneTarget: HTMLElement;
+  declare branchOptionGoogleTarget: HTMLElement;
+  declare branchOptionAppleTarget: HTMLElement;
+  declare branchOptionFacebookTarget: HTMLElement;
+  declare branchOptionGithubTarget: HTMLElement;
+  declare branchOptionLinkedinTarget: HTMLElement;
+  declare branchOptionAzureadv2Target: HTMLElement;
+  declare branchOptionAdfsTarget: HTMLElement;
   declare noLoginMethodsErrorTarget: HTMLElement;
 
   connect() {
@@ -91,6 +112,34 @@ export class PreviewWidgetController extends Controller {
     showElementIf(
       this.branchOptionPhoneTarget,
       vm.branches.includes(LoginMethod.Phone)
+    );
+    showElementIf(
+      this.branchOptionGoogleTarget,
+      vm.branches.includes(LoginMethod.Google)
+    );
+    showElementIf(
+      this.branchOptionAppleTarget,
+      vm.branches.includes(LoginMethod.Apple)
+    );
+    showElementIf(
+      this.branchOptionFacebookTarget,
+      vm.branches.includes(LoginMethod.Facebook)
+    );
+    showElementIf(
+      this.branchOptionGithubTarget,
+      vm.branches.includes(LoginMethod.Github)
+    );
+    showElementIf(
+      this.branchOptionLinkedinTarget,
+      vm.branches.includes(LoginMethod.LinkedIn)
+    );
+    showElementIf(
+      this.branchOptionAzureadv2Target,
+      vm.branches.includes(LoginMethod.MicrosoftEntraID)
+    );
+    showElementIf(
+      this.branchOptionAdfsTarget,
+      vm.branches.includes(LoginMethod.MicrosoftADFS)
     );
     showElementIf(
       this.noLoginMethodsErrorTarget,
