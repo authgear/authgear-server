@@ -15,6 +15,7 @@ import {
   LoginIDKeyConfig,
   OAuthSSOProviderConfig,
   PortalAPIAppConfig,
+  PortalAPISecretConfigUpdateInstruction,
   PrimaryAuthenticatorType,
 } from "../../../types";
 import { useAppAndSecretConfigQuery } from "../../../graphql/portal/query/appAndSecretConfigQuery";
@@ -320,6 +321,23 @@ function constructConfig(
   });
 }
 
+function constructSecretUpdateInstruction(
+  newConfig: PortalAPIAppConfig
+): PortalAPISecretConfigUpdateInstruction | undefined {
+  if (newConfig.identity?.oauth?.providers == null) {
+    return undefined;
+  }
+  return {
+    oauthSSOProviderClientSecrets: {
+      action: "set",
+      data: newConfig.identity.oauth.providers.map((provider) => ({
+        newAlias: provider.alias,
+        newClientSecret: "",
+      })),
+    },
+  };
+}
+
 export function useProjectWizardForm(
   initialState: FormState | null
 ): ProjectWizardFormModel {
@@ -428,9 +446,12 @@ export function useProjectWizardForm(
             throw new Error("unexpected error: rawAppConfig is null");
           }
           const newConfig = constructConfig(rawAppConfig, updatedState);
+          const secretUpdateInstruction =
+            constructSecretUpdateInstruction(newConfig);
           await updateAppConfig({
             appConfig: newConfig,
             appConfigChecksum: rawAppConfigChecksum,
+            secretConfigUpdateInstructions: secretUpdateInstruction,
             ignoreConflict: true,
           });
           await resourceForm.save();
