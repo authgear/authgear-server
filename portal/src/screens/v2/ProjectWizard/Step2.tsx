@@ -25,20 +25,38 @@ function LoginMethodIcon({ method }: { method: LoginMethod }) {
   let iconClassName = "";
   switch (method) {
     case LoginMethod.Email:
-      iconClassName = "fa-envelope";
-
+      iconClassName = "fa fa-envelope";
       break;
     case LoginMethod.Phone:
-      iconClassName = "fa-mobile";
+      iconClassName = "fa fa-mobile";
       break;
     case LoginMethod.Username:
-      iconClassName = "fa-user";
+      iconClassName = "fa fa-user";
+      break;
+    case LoginMethod.Google:
+      iconClassName = "fab fa-google";
+      break;
+    case LoginMethod.Apple:
+      iconClassName = "fab fa-apple";
+      break;
+    case LoginMethod.Facebook:
+      iconClassName = "fab fa-facebook";
+      break;
+    case LoginMethod.Github:
+      iconClassName = "fab fa-github";
+      break;
+    case LoginMethod.LinkedIn:
+      iconClassName = "fab fa-linkedin";
+      break;
+    case LoginMethod.MicrosoftEntraID:
+      iconClassName = "fab fa-microsoft";
+      break;
+    case LoginMethod.MicrosoftADFS:
+      iconClassName = "fab fa-microsoft";
       break;
   }
   return (
-    <i
-      className={cn("fa", iconClassName, "text-xl text-center h-[1em] w-[1em]")}
-    />
+    <i className={cn(iconClassName, "text-xl text-center h-[1em] w-[1em]")} />
   );
 }
 
@@ -103,6 +121,59 @@ export function Step2(): React.ReactElement {
                       <FormattedMessage id="ProjectWizardScreen.loginMethods.username" />
                     ),
                     icon: <LoginMethodIcon method={LoginMethod.Username} />,
+                  },
+                  {
+                    value: LoginMethod.Google,
+                    text: (
+                      <FormattedMessage id="ProjectWizardScreen.loginMethods.google" />
+                    ),
+                    icon: <LoginMethodIcon method={LoginMethod.Google} />,
+                  },
+                  {
+                    value: LoginMethod.Apple,
+                    text: (
+                      <FormattedMessage id="ProjectWizardScreen.loginMethods.apple" />
+                    ),
+                    icon: <LoginMethodIcon method={LoginMethod.Apple} />,
+                  },
+                  {
+                    value: LoginMethod.Facebook,
+                    text: (
+                      <FormattedMessage id="ProjectWizardScreen.loginMethods.facebook" />
+                    ),
+                    icon: <LoginMethodIcon method={LoginMethod.Facebook} />,
+                  },
+                  {
+                    value: LoginMethod.Github,
+                    text: (
+                      <FormattedMessage id="ProjectWizardScreen.loginMethods.github" />
+                    ),
+                    icon: <LoginMethodIcon method={LoginMethod.Github} />,
+                  },
+                  {
+                    value: LoginMethod.LinkedIn,
+                    text: (
+                      <FormattedMessage id="ProjectWizardScreen.loginMethods.linkedin" />
+                    ),
+                    icon: <LoginMethodIcon method={LoginMethod.LinkedIn} />,
+                  },
+                  {
+                    value: LoginMethod.MicrosoftEntraID,
+                    text: (
+                      <FormattedMessage id="ProjectWizardScreen.loginMethods.microsoftEntraID" />
+                    ),
+                    icon: (
+                      <LoginMethodIcon method={LoginMethod.MicrosoftEntraID} />
+                    ),
+                  },
+                  {
+                    value: LoginMethod.MicrosoftADFS,
+                    text: (
+                      <FormattedMessage id="ProjectWizardScreen.loginMethods.microsoftADFS" />
+                    ),
+                    icon: (
+                      <LoginMethodIcon method={LoginMethod.MicrosoftADFS} />
+                    ),
                   },
                 ];
               }, [])}
