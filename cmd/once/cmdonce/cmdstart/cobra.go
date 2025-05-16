@@ -31,6 +31,11 @@ var CmdStart = &cobra.Command{
 			err = internal.ErrNoDocker
 		}
 
+		err = internal.CheckAllPublishedPortsNotListening()
+		if err != nil {
+			return
+		}
+
 		return
 	},
 	RunE: func(cmd *cobra.Command, args []string) (err error) {

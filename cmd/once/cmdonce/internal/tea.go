@@ -32,6 +32,7 @@ func (m FatalError) View() string {
 	var b strings.Builder
 	var errMsg string
 	var actionableMsg string
+	var errTCPPortAlreadyListening *ErrTCPPortAlreadyListening
 
 	switch {
 	case errors.Is(m.Err, ErrNoDocker):
@@ -52,6 +53,9 @@ func (m FatalError) View() string {
 	case errors.Is(m.Err, ErrLicenseServerLicenseKeyAlreadyActivated):
 		errMsg = fmt.Sprintf("The license key you entered has already been activated.")
 		actionableMsg = fmt.Sprintf("If you think this is an error, please contact us at once@authgear.com")
+	case errors.As(m.Err, &errTCPPortAlreadyListening):
+		errMsg = fmt.Sprintf("The port %v is already bound on your machine.", errTCPPortAlreadyListening.Port)
+		actionableMsg = fmt.Sprintf("Maybe another service on your machine is listening on %v. You may need to stop that first.", errTCPPortAlreadyListening.Port)
 	}
 
 	if errMsg == "" || actionableMsg == "" {

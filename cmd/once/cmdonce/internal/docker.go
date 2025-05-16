@@ -213,3 +213,18 @@ func FindAuthgearOnceImageInVolume(ctx context.Context) (image string, err error
 	image = strings.TrimSpace(result.Stdout)
 	return
 }
+
+// CheckAllPublishedPortsNotListening loops through DockerPublishedPorts
+// and checks if any of them are already listening on the host.
+// It returns an error if any of the ports are already in use.
+func CheckAllPublishedPortsNotListening() error {
+	var errs []error
+
+	for _, port := range DockerPublishedPorts {
+		if err := CheckTCPPortIsListening(port); err != nil {
+			errs = append(errs, err)
+		}
+	}
+
+	return errors.Join(errs...)
+}

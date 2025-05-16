@@ -36,6 +36,11 @@ var CmdSetup = &cobra.Command{
 			return
 		}
 
+		err = internal.CheckAllPublishedPortsNotListening()
+		if err != nil {
+			return
+		}
+
 		return
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
