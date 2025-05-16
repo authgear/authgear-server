@@ -471,14 +471,20 @@ VOLUME /var/lib/authgearonce
 # NOTE(once): Possibly breaking change
 # These ports are part of the public API between the once image and the once command.
 # The once command publish SOME of these ports with `-p` in `docker run`.
-# postgres
-EXPOSE 5432
-# redis
-EXPOSE 6379
+#
+# There are published ports.
 # http
 EXPOSE 80
 # https
 EXPOSE 443
+#
+# These are unpublished ports.
+# Given that the machine may be directly connected to the internet,
+# it is more secure not to publish the port on the host machine at all.
+# postgres
+EXPOSE 5432
+# redis
+EXPOSE 6379
 # minio
 EXPOSE 9000
 # minio web console
