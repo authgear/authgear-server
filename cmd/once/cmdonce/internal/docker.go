@@ -193,6 +193,27 @@ func DockerStop(ctx context.Context, name string) error {
 	return nil
 }
 
+type DockerRmOptions struct {
+	Force bool
+}
+
+func DockerRm(ctx context.Context, name string, options DockerRmOptions) error {
+	args := []string{"rm"}
+
+	if options.Force {
+		args = append(args, "-f")
+	}
+
+	args = append(args, name)
+
+	c := exec.CommandContext(ctx, "docker", args...)
+	stdout, stderr, err := runCmd(c)
+	if err != nil {
+		return errors.Join(&CmdError{Stdout: stdout, Stderr: stderr}, err)
+	}
+	return nil
+}
+
 func GetPersistentEnvironmentVariableInVolume(ctx context.Context, envVarName string) (image string, err error) {
 	opts := DockerRunOptions{
 		Rm:     true,

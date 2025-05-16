@@ -99,32 +99,30 @@ var CmdSetup = &cobra.Command{
 			return err
 		}
 
-		if volumeExists {
-			fmt.Printf("TODO: ResetupApp\n")
-		} else {
-			setupApp := SetupApp{
-				Context:        ctx,
-				HTTPClient:     client,
-				LicenseOptions: licenseOpts,
+		setupApp := SetupApp{
+			Context:        ctx,
+			HTTPClient:     client,
+			LicenseOptions: licenseOpts,
 
-				QuestionName_EnableCertbot_Prompt:            internal.FlagsGetBool(cmd, "prompt-enable-certbot"),
-				QuestionName_SelectCertbotEnvironment_Prompt: internal.FlagsGetBool(cmd, "prompt-certbot-environment"),
+			IsResetup: volumeExists,
 
-				AUTHGEAR_ONCE_LICENSE_KEY:         licenseKey,
-				AUTHGEAR_ONCE_MACHINE_FINGERPRINT: fingerprint,
-				AUTHGEAR_ONCE_IMAGE:               image,
-			}
+			QuestionName_EnableCertbot_Prompt:            internal.FlagsGetBool(cmd, "prompt-enable-certbot"),
+			QuestionName_SelectCertbotEnvironment_Prompt: internal.FlagsGetBool(cmd, "prompt-certbot-environment"),
 
-			prog := tea.NewProgram(setupApp)
-			model, err := prog.Run()
-			if err != nil {
-				return err
-			}
+			AUTHGEAR_ONCE_LICENSE_KEY:         licenseKey,
+			AUTHGEAR_ONCE_MACHINE_FINGERPRINT: fingerprint,
+			AUTHGEAR_ONCE_IMAGE:               image,
+		}
 
-			setupApp = model.(SetupApp)
-			if setupApp.HasError() {
-				os.Exit(1)
-			}
+		prog := tea.NewProgram(setupApp)
+		model, err := prog.Run()
+		if err != nil {
+			return err
+		}
+
+		setupApp = model.(SetupApp)
+		if setupApp.HasError() {
+			os.Exit(1)
 		}
 
 		return nil
