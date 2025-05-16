@@ -118,7 +118,7 @@
                     {{ include "v2.page.signup.default.signup-with-phone" nil }}
                   </div>
                 </a>
-                {{ define "__oauth_button" }}
+                {{ define "__oauth_button.html" }}
                   <button
                     {{ if $.attrs }}{{ htmlattr $.attrs }}{{ end }}
                     class="secondary-btn w-full"
@@ -134,55 +134,55 @@
                   </button>
                 {{ end }}
                 {{
-                  template "__oauth_button" (dict
+                  template "__oauth_button.html" (dict
                     "provider_type" "google"
                     "attrs" `data-preview-widget-target="branchOptionGoogle"`
                   )
                 }}
                 {{
-                  template "__oauth_button" (dict
+                  template "__oauth_button.html" (dict
                     "provider_type" "apple"
                     "attrs" `data-preview-widget-target="branchOptionApple"`
                   )
                 }}
                 {{
-                  template "__oauth_button" (dict
+                  template "__oauth_button.html" (dict
                     "provider_type" "facebook"
                     "attrs" `data-preview-widget-target="branchOptionFacebook"`
                   )
                 }}
                 {{
-                  template "__oauth_button" (dict
+                  template "__oauth_button.html" (dict
                     "provider_type" "github"
                     "attrs" `data-preview-widget-target="branchOptionGithub"`
                   )
                 }}
                 {{
-                  template "__oauth_button" (dict
+                  template "__oauth_button.html" (dict
                     "provider_type" "linkedin"
                     "attrs" `data-preview-widget-target="branchOptionLinkedin"`
                   )
                 }}
                 {{
-                  template "__oauth_button" (dict
+                  template "__oauth_button.html" (dict
                     "provider_type" "azureadv2"
                     "attrs" `data-preview-widget-target="branchOptionAzureadv2"`
                   )
                 }}
                 {{
-                  template "__oauth_button" (dict
+                  template "__oauth_button.html" (dict
                     "provider_type" "adfs"
                     "attrs" `data-preview-widget-target="branchOptionAdfs"`
                   )
                 }}
                 {{
-                  template "__oauth_button" (dict
+                  template "__oauth_button.html" (dict
                     "provider_type" "azureadb2c"
                     "attrs" `data-preview-widget-target="branchOptionAzureadb2c"`
                   )
                 }}
                 {{
-                  template "__oauth_button" (dict
+                  template "__oauth_button.html" (dict
                     "provider_type" "wechat"
                     "attrs" `data-preview-widget-target="branchOptionWechat"`
                   )
