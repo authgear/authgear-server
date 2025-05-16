@@ -162,7 +162,7 @@ func (c *SecretConfig) validateOAuthProviders(ctx *validation.Context, appConfig
 			if matchedItem == nil {
 				ctx.EmitErrorMessage(fmt.Sprintf("OAuth SSO provider client credentials for '%s' is required", providerAlias))
 			} else {
-				if matchedItem.ClientSecret == "" {
+				if matchedItem.ClientSecret == "" && !p.IsDisabled() {
 					ctx.Child("secrets", fmt.Sprintf("%d", secretIndex), "data", "items", fmt.Sprintf("%d", matchedItemIndex)).EmitError(
 						"required",
 						map[string]interface{}{

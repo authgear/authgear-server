@@ -65,6 +65,8 @@ func (e *EdgeUseIdentityOAuthProvider) Instantiate(goCtx context.Context, ctx *i
 		return nil, api.ErrOAuthProviderNotFound
 	}
 
+	// TODO(tung): Handle inactive provider
+
 	nonceSource := ctx.Nonces.GenerateAndSet()
 	errorRedirectURI := input.GetErrorRedirectURI()
 
