@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"slices"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -63,17 +62,6 @@ var CmdSetup = &cobra.Command{
 			return
 		}
 
-		volumes, err := internal.DockerVolumeLs(cmd.Context())
-		if err != nil {
-			return
-		}
-		if slices.ContainsFunc(volumes, func(v internal.DockerVolume) bool {
-			return v.Name == internal.NameDockerVolume && v.Scope == internal.DockerVolumeScopeLocal
-		}) {
-			err = internal.ErrDockerVolumeExists
-			return
-		}
-
 		return
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -81,7 +69,23 @@ var CmdSetup = &cobra.Command{
 		client := httputil.NewExternalClient(10 * time.Second)
 		licenseKey := args[0]
 		endpoint := internal.GetLicenseServerEndpoint(cmd)
-		fingerprint := internal.GenerateMachineFingerprint()
+		image := internal.GetDockerImage(cmd)
+
+		volumeExists, err := internal.CheckVolumeExists(cmd.Context())
+		if err != nil {
+			err = internal.PrintError(err)
+			return err
+		}
+		fingerprint := ""
+		if volumeExists {
+			fingerprint, err = internal.GetPersistentEnvironmentVariableInVolume(cmd.Context(), "AUTHGEAR_ONCE_MACHINE_FINGERPRINT")
+			if err != nil {
+				err = internal.PrintError(err)
+				return err
+			}
+		} else {
+			fingerprint = internal.GenerateMachineFingerprint()
+		}
 
 		licenseOpts := internal.LicenseOptions{
 			Endpoint:    endpoint,
@@ -89,35 +93,38 @@ var CmdSetup = &cobra.Command{
 			Fingerprint: fingerprint,
 		}
 
-		_, err := internal.CheckLicense(ctx, client, licenseOpts)
+		_, err = internal.CheckLicense(ctx, client, licenseOpts)
 		if err != nil {
 			err = internal.PrintError(err)
 			return err
 		}
 
-		image := internal.GetDockerImage(cmd)
-		setupApp := SetupApp{
-			Context:        ctx,
-			HTTPClient:     client,
-			LicenseOptions: licenseOpts,
+		if volumeExists {
+			fmt.Printf("TODO: ResetupApp\n")
+		} else {
+			setupApp := SetupApp{
+				Context:        ctx,
+				HTTPClient:     client,
+				LicenseOptions: licenseOpts,
 
-			QuestionName_EnableCertbot_Prompt:            internal.FlagsGetBool(cmd, "prompt-enable-certbot"),
-			QuestionName_SelectCertbotEnvironment_Prompt: internal.FlagsGetBool(cmd, "prompt-certbot-environment"),
+				QuestionName_EnableCertbot_Prompt:            internal.FlagsGetBool(cmd, "prompt-enable-certbot"),
+				QuestionName_SelectCertbotEnvironment_Prompt: internal.FlagsGetBool(cmd, "prompt-certbot-environment"),
 
-			AUTHGEAR_ONCE_LICENSE_KEY:         licenseKey,
-			AUTHGEAR_ONCE_MACHINE_FINGERPRINT: fingerprint,
-			AUTHGEAR_ONCE_IMAGE:               image,
-		}
+				AUTHGEAR_ONCE_LICENSE_KEY:         licenseKey,
+				AUTHGEAR_ONCE_MACHINE_FINGERPRINT: fingerprint,
+				AUTHGEAR_ONCE_IMAGE:               image,
+			}
 
-		prog := tea.NewProgram(setupApp)
-		model, err := prog.Run()
-		if err != nil {
-			return err
-		}
+			prog := tea.NewProgram(setupApp)
+			model, err := prog.Run()
+			if err != nil {
+				return err
+			}
 
-		setupApp = model.(SetupApp)
-		if setupApp.HasError() {
-			os.Exit(1)
+			setupApp = model.(SetupApp)
+			if setupApp.HasError() {
+				os.Exit(1)
+			}
 		}
 
 		return nil

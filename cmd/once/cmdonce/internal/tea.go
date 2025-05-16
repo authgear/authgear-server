@@ -38,9 +38,6 @@ func (m FatalError) View() string {
 	case errors.Is(m.Err, ErrNoDocker):
 		errMsg = fmt.Sprintf("%v is not installed on your machine.", BinDocker)
 		actionableMsg = "Visit https://docs.docker.com/get-started/get-docker/ to install it."
-	case errors.Is(m.Err, ErrDockerVolumeExists):
-		errMsg = fmt.Sprintf("The docker volume %v exists already.", NameDockerVolume)
-		actionableMsg = fmt.Sprintf("Either run `%v start` to start Authgear, or run `docker volume rm %v` to remove the volume (you will lose all data!).", ProgramName, NameDockerVolume)
 	case errors.Is(m.Err, ErrDockerContainerNotExists):
 		errMsg = fmt.Sprintf("The docker container %v does not exist. Maybe you did not run `%v setup` before?", NameDockerContainer, ProgramName)
 		actionableMsg = fmt.Sprintf("Run `%v setup` to set up Authgear first.", ProgramName)

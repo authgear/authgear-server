@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"iter"
 	"os/exec"
+	"slices"
 	"strings"
 
 	"github.com/authgear/authgear-server/pkg/util/slice"
@@ -227,4 +228,17 @@ func CheckAllPublishedPortsNotListening() error {
 	}
 
 	return errors.Join(errs...)
+}
+
+func CheckVolumeExists(ctx context.Context) (bool, error) {
+	volumes, err := DockerVolumeLs(ctx)
+	if err != nil {
+		return false, err
+	}
+	if slices.ContainsFunc(volumes, func(v DockerVolume) bool {
+		return v.Name == NameDockerVolume && v.Scope == DockerVolumeScopeLocal
+	}) {
+		return true, nil
+	}
+	return false, nil
 }

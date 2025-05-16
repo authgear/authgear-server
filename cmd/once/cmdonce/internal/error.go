@@ -7,7 +7,6 @@ import (
 
 var (
 	ErrNoDocker                                = errors.New("no docker")
-	ErrDockerVolumeExists                      = errors.New("docker volume exists")
 	ErrDockerContainerNotExists                = errors.New("docker container does not exist")
 	ErrCommandUpgradeNotImplemented            = errors.New("command upgrade not implemented")
 	ErrLicenseServerUnknownResponse            = errors.New("unknown response from license server")
