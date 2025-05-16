@@ -19,6 +19,14 @@ const plugin: Plugin = {
         e.setAttribute("nonce", "{{ $.CSPNonce }}");
       }
 
+      const head = html.querySelector("head")!;
+      for (const e of elements) {
+        if (e.getAttribute("data-order") === "last") {
+          head.removeChild(e);
+          head.appendChild(e);
+        }
+      }
+
       return html.toString();
     },
   },
