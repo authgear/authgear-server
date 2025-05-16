@@ -5,4 +5,7 @@ package internal
 const (
 	LicenseServerEndpoint            = "https://once-license-staging.authgear.com"
 	LicenseServerEndpointOverridable = true
+
+	QuestionName_EnableCertbot_PromptByDefault            = true
+	QuestionName_SelectCertbotEnvironment_PromptByDefault = false
 )

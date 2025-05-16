@@ -13,6 +13,19 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/termutil"
 )
 
+func init() {
+	_ = CmdSetup.Flags().Bool(
+		"prompt-enable-certbot",
+		internal.QuestionName_EnableCertbot_PromptByDefault,
+		"Ask you whether to enable certbot.",
+	)
+	_ = CmdSetup.Flags().Bool(
+		"prompt-certbot-environment",
+		internal.QuestionName_SelectCertbotEnvironment_PromptByDefault,
+		"Ask you which certbot environment to use",
+	)
+}
+
 var CmdSetup = &cobra.Command{
 	Use:           "setup license-key",
 	Short:         "Set up your Authgear ONCE installation.",
@@ -64,9 +77,13 @@ var CmdSetup = &cobra.Command{
 
 		image := internal.GetDockerImage(cmd)
 		setupApp := SetupApp{
-			Context:                           ctx,
-			HTTPClient:                        client,
-			LicenseOptions:                    licenseOpts,
+			Context:        ctx,
+			HTTPClient:     client,
+			LicenseOptions: licenseOpts,
+
+			QuestionName_EnableCertbot_Prompt:            internal.FlagsGetBool(cmd, "prompt-enable-certbot"),
+			QuestionName_SelectCertbotEnvironment_Prompt: internal.FlagsGetBool(cmd, "prompt-certbot-environment"),
+
 			AUTHGEAR_ONCE_LICENSE_KEY:         licenseKey,
 			AUTHGEAR_ONCE_MACHINE_FINGERPRINT: fingerprint,
 			AUTHGEAR_ONCE_IMAGE:               image,

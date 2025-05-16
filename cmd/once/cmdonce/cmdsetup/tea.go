@@ -62,6 +62,9 @@ type SetupApp struct {
 	HTTPClient     *http.Client
 	LicenseOptions internal.LicenseOptions
 
+	QuestionName_EnableCertbot_Prompt            bool
+	QuestionName_SelectCertbotEnvironment_Prompt bool
+
 	AUTHGEAR_ONCE_IMAGE               string
 	AUTHGEAR_ONCE_LICENSE_KEY         string
 	AUTHGEAR_ONCE_MACHINE_FINGERPRINT string
@@ -362,12 +365,20 @@ func (m SetupApp) appendNextQuestion() (SetupApp, tea.Cmd) {
 	case QuestionName_EnterDomain_Portal:
 		m.Questions = append(m.Questions, newQuestion(Question_EnterDomain_Accounts))
 	case QuestionName_EnterDomain_Accounts:
-		m.Questions = append(m.Questions, newQuestion(Question_EnableCertbot))
+		if m.QuestionName_EnableCertbot_Prompt {
+			m.Questions = append(m.Questions, newQuestion(Question_EnableCertbot))
+		} else {
+			m.Questions = append(m.Questions, newQuestion(Question_EnterAdminEmail))
+		}
 	case QuestionName_EnableCertbot:
 		value := m.Questions[len(m.Questions)-1].Value()
 		switch value {
 		case ValueTrue:
-			m.Questions = append(m.Questions, newQuestion(Question_SelectCertbotEnvironment))
+			if m.QuestionName_SelectCertbotEnvironment_Prompt {
+				m.Questions = append(m.Questions, newQuestion(Question_SelectCertbotEnvironment))
+			} else {
+				m.Questions = append(m.Questions, newQuestion(Question_EnterAdminEmail))
+			}
 		case ValueFalse:
 			m.Questions = append(m.Questions, newQuestion(Question_EnterAdminEmail))
 		}
@@ -571,7 +582,15 @@ func (m SetupApp) ToDomains() Domains {
 }
 
 func (m SetupApp) ToInstallation(licenseObject *internal.LicenseObject) Installation {
-	certbotEnabled := m.mustFindQuestionByName(QuestionName_EnableCertbot).Value() == ValueTrue
+	certbotEnabled := true
+	if _, q, ok := m.findQuestionByName(QuestionName_EnableCertbot); ok {
+		certbotEnabled = q.Value() == ValueTrue
+	}
+
+	certbotEnvironment := CertbotEnvironmentProduction
+	if _, q, ok := m.findQuestionByName(QuestionName_SelectCertbotEnvironment); ok {
+		certbotEnvironment = q.Value()
+	}
 
 	installation := Installation{
 		Context:                           m.Context,
@@ -590,8 +609,9 @@ func (m SetupApp) ToInstallation(licenseObject *internal.LicenseObject) Installa
 	scheme := "http"
 	if certbotEnabled {
 		scheme = "https"
-		installation.AUTHGEAR_CERTBOT_ENVIRONMENT = m.mustFindQuestionByName(QuestionName_SelectCertbotEnvironment).Value()
+		installation.AUTHGEAR_CERTBOT_ENVIRONMENT = certbotEnvironment
 	}
+
 	installation.AUTHGEAR_HTTP_ORIGIN_PROJECT = fmt.Sprintf("%v://%v", scheme, domains.Project)
 	installation.AUTHGEAR_HTTP_ORIGIN_PORTAL = fmt.Sprintf("%v://%v", scheme, domains.Portal)
 	installation.AUTHGEAR_HTTP_ORIGIN_ACCOUNTS = fmt.Sprintf("%v://%v", scheme, domains.Accounts)
