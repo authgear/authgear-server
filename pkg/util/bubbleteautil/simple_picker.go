@@ -150,6 +150,10 @@ func (m SimplePicker) Blur() Model {
 	return m
 }
 
+func (m SimplePicker) IsFocused() bool {
+	return m.focused
+}
+
 func (m SimplePicker) Validate() (updated Model, valid bool) {
 	m.showErrorIfPresent = true
 	valid = m.Err == nil

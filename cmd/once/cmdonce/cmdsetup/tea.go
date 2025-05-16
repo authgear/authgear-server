@@ -173,7 +173,7 @@ func (m SetupApp) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					cmds = append(cmds, m.RecoverableErrCmd)
 					m.RecoverableErrCmd = nil
 				}
-			} else {
+			} else if m.IsCurrentQuestionFocused() {
 				var cmd tea.Cmd
 				m, cmd = m.appendNextQuestion()
 				if cmd != nil {
@@ -202,6 +202,7 @@ func (m SetupApp) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		q.Model = picker
 		m.Questions = append(m.Questions, q)
 	case msgSetupAppEndSurvey:
+		m = m.blurCurrentQuestion()
 		return m, SetupAppActivateLicense
 	case msgSetupAppActivateLicense:
 		return m, tea.Batch(
@@ -226,6 +227,7 @@ func (m SetupApp) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, SetupAppStartInstallation
 		}
 	case msgSetupAppInitResetup:
+		m = m.blurCurrentQuestion()
 		resetup := m.ToResetup()
 		m.Resetup = &resetup
 		return m, func() tea.Msg { return msgSetupAppStartResetup{} }
@@ -321,6 +323,10 @@ func (m SetupApp) performCrossFieldValidation() (SetupApp, bool) {
 func (m SetupApp) blurCurrentQuestion() SetupApp {
 	m.Questions[len(m.Questions)-1].Model = m.Questions[len(m.Questions)-1].Model.Blur()
 	return m
+}
+
+func (m SetupApp) IsCurrentQuestionFocused() bool {
+	return m.Questions[len(m.Questions)-1].Model.IsFocused()
 }
 
 func (m SetupApp) proceed_QuestionName_EnterDomain_Apex() SetupApp {

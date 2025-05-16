@@ -97,6 +97,10 @@ func (m SingleLineTextInput) Blur() Model {
 	return m
 }
 
+func (m SingleLineTextInput) IsFocused() bool {
+	return m.model.Focused()
+}
+
 func (m SingleLineTextInput) Value() string {
 	return m.model.Value()
 }

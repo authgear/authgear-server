@@ -11,6 +11,7 @@ type Model interface {
 	Validate() (Model, bool)
 	Focus() Model
 	Blur() Model
+	IsFocused() bool
 	Value() string
 	WithValue(val string) Model
 	WithError(err error) Model
