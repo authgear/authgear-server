@@ -1032,6 +1032,8 @@
   "v2.error.webhook-pre-signup-disallowed": "Signup is disallowed",
   "v2.page.inactive-oauth-provider.default.title": "{provider} OAuth Demo",
   "v2.page.inactive-oauth-provider.default.provider-name": "{ OAuthProviderType, select, google {Google} facebook {Facebook} github {GitHub} linkedin {LinkedIn} azureadv2 {Azure AD} azureadb2c {Azure AD B2C} adfs {AD FS} apple {Apple} wechat {WeChat} other {OAuth} }",
+  "v2.page.inactive-oauth-provider.default.developer-warning": "[Developers] Missing configuration keys. Configure with your own keys in the Authgear Portal to enable {provider} login.",
+  "v2.page.inactive-oauth-provider.default.return-button-label": "Return",
   "v2.page.account-linking.default.by-email": "Login to {IdentityDisplayName}",
   "v2.page.account-linking.default.by-phone": "Login to {IdentityDisplayName}",
   "v2.page.account-linking.default.by-username": "Login to {IdentityDisplayName}",
