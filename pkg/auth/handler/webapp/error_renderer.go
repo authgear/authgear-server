@@ -125,14 +125,14 @@ func (s *ErrorRenderer) makeNonRecoverableResult(ctx context.Context, u url.URL,
 }
 
 func (s *ErrorRenderer) MakeAuthflowErrorResult(ctx context.Context, w http.ResponseWriter, r *http.Request, u url.URL, err error) httputil.Result {
-	apierror := apierrors.AsAPIError(err)
+	apierr := apierrors.AsAPIError(err)
 
-	if apierrors.IsKind(apierror, apierrors.UnexpectedError) {
+	if apierrors.IsKind(apierr, apierrors.UnexpectedError) {
 		s.Logger.WithError(err).Error("unexpected error")
 	}
 
 	recoverable := func() *webapp.Result {
-		cookie, err := s.ErrorService.SetRecoverableError(ctx, r, apierror)
+		cookie, err := s.ErrorService.SetRecoverableError(ctx, r, apierr)
 		if err != nil {
 			panic(err)
 		}
@@ -148,10 +148,10 @@ func (s *ErrorRenderer) MakeAuthflowErrorResult(ctx context.Context, w http.Resp
 
 	switch {
 	case apierrors.IsKind(err, webapp.WebUISessionCompleted):
-		return s.makeSessionCompletedErrorResult(ctx, w, r, u, apierror)
+		return s.makeSessionCompletedErrorResult(ctx, w, r, u, apierr)
 	case apierrors.IsKind(err, api.OAuthProviderInactive):
 		fallthrough
-	case apierror.Reason == "AuthenticationFlowNoPublicSignup":
+	case apierr.Reason == "AuthenticationFlowNoPublicSignup":
 		fallthrough
 	case errors.Is(err, authflow.ErrFlowNotFound):
 		fallthrough
@@ -167,7 +167,12 @@ func (s *ErrorRenderer) MakeAuthflowErrorResult(ctx context.Context, w http.Resp
 		case config.UIImplementationAuthflowV2:
 			s.AuthflowV2Navigator.NavigateNonRecoverableError(r, &u, err)
 		}
-		return s.makeNonRecoverableResult(ctx, u, apierror)
+		fmt.Println("r.URL.String()", r.URL.String())
+		apierr = apierr.CloneWithAdditionalInfo(apierrors.Details{
+			"FromURL": r.URL.String(),
+		})
+		fmt.Println("apiErr", apierr.Info_ReadOnly)
+		return s.makeNonRecoverableResult(ctx, u, apierr)
 	default:
 		return recoverable()
 	}
