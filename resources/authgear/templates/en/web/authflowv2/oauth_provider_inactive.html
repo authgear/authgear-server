@@ -23,7 +23,11 @@
 {{ end }} 
 
 {{ define "__oauth_provider_inactive_action.html" }}
-<a class="primary-btn w-full">
+<a
+  class="primary-btn w-full"
+  data-turbo-action="replace"
+  href="{{ $.Error.info.FromURL }}"
+>
   {{ include "v2.page.inactive-oauth-provider.default.return-button-label" nil }}
 </a>
 {{ end }}
