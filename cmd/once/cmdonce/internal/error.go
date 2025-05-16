@@ -2,6 +2,7 @@ package internal
 
 import (
 	"errors"
+	"fmt"
 )
 
 var (
@@ -13,3 +14,11 @@ var (
 	ErrLicenseServerLicenseKeyNotFound         = errors.New("license server license key not found")
 	ErrLicenseServerLicenseKeyAlreadyActivated = errors.New("license server license key already activated")
 )
+
+type ErrTCPPortAlreadyListening struct {
+	Port int
+}
+
+func (e *ErrTCPPortAlreadyListening) Error() string {
+	return fmt.Sprintf("TCP port %v already listening", e.Port)
+}
