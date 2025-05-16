@@ -14,6 +14,16 @@
       "Icon" $icon
       "Title" $title
       "ErrorMessage" $error_message
+      "ErrorAlertMessage" (include "v2.page.inactive-oauth-provider.default.developer-warning" (dict
+        "provider" $provider_name
+      ))
+      "Action" (include "__oauth_provider_inactive_action.html" .)
     )
   }}
 {{ end }} 
+
+{{ define "__oauth_provider_inactive_action.html" }}
+<a class="primary-btn w-full">
+  {{ include "v2.page.inactive-oauth-provider.default.return-button-label" nil }}
+</a>
+{{ end }}
