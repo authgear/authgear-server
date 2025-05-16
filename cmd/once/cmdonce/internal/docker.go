@@ -10,11 +10,15 @@ import (
 	"iter"
 	"os/exec"
 	"strings"
+
+	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
 const (
 	DockerVolumeScopeLocal = "local"
 )
+
+var DockerPublishedPorts []int = []int{80, 443}
 
 type DockerVolume struct {
 	Name  string `json:"Name"`
@@ -96,15 +100,15 @@ func NewDockerRunOptionsForStarting(image string) DockerRunOptions {
 		Detach:  true,
 		Restart: "always",
 		Volume:  []string{fmt.Sprintf("%v:/var/lib/authgearonce", NameDockerVolume)},
-		Publish: []string{
-			// Only publish HTTP/HTTPS ports on fixed host ports.
-			// Note that these ports are published on 0.0.0.0
-			"80:80",
-			"443:443",
-		},
-		Name:  NameDockerContainer,
-		Image: image,
+		Publish: slice.Map(DockerPublishedPorts, dockerPublishPortOnAllInterfaces),
+		Name:    NameDockerContainer,
+		Image:   image,
 	}
+}
+
+// dockerPublishPortOnAllInterfaces takes port and returns port:port.
+func dockerPublishPortOnAllInterfaces(port int) string {
+	return fmt.Sprintf("%v:%v", port, port)
 }
 
 type DockerRunResult struct {
