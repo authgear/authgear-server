@@ -95,6 +95,12 @@ func (e *APIError) CloneWithInfo(info Details) *APIError {
 	return newE
 }
 
+func (e *APIError) CloneWithAdditionalInfo(additionalInfo Details) *APIError {
+	newE := e.Clone()
+	newE.Info_ReadOnly = mergeInfo(newE.Info_ReadOnly, additionalInfo)
+	return newE
+}
+
 // NewWithInfo wraps all value in info with APIErrorDetail, making them appear in the response.
 func (k Kind) NewWithInfo(msg string, info Details) *APIError {
 	d := Details{}
