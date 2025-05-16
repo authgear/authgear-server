@@ -192,7 +192,7 @@ func DockerStop(ctx context.Context, name string) error {
 	return nil
 }
 
-func FindAuthgearOnceImageInVolume(ctx context.Context) (image string, err error) {
+func GetPersistentEnvironmentVariableInVolume(ctx context.Context, envVarName string) (image string, err error) {
 	opts := DockerRunOptions{
 		Rm:     true,
 		Volume: []string{fmt.Sprintf("%v:/var/lib/authgearonce", NameDockerVolume)},
@@ -201,7 +201,7 @@ func FindAuthgearOnceImageInVolume(ctx context.Context) (image string, err error
 		Command: []string{
 			"sh",
 			"-c",
-			`</var/lib/authgearonce/env.sh awk -F = '/AUTHGEAR_ONCE_IMAGE/ { print $2 }'`,
+			fmt.Sprintf(`</var/lib/authgearonce/env.sh awk -F = '/%v/ { print $2 }'`, envVarName),
 		},
 	}
 

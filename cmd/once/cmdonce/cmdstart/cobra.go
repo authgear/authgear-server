@@ -73,7 +73,7 @@ var CmdStart = &cobra.Command{
 			// We assume the environment variables are persisted in the volume.
 
 			var image string
-			image, err = internal.FindAuthgearOnceImageInVolume(ctx)
+			image, err = internal.GetPersistentEnvironmentVariableInVolume(ctx, "AUTHGEAR_ONCE_IMAGE")
 			if err != nil {
 				return
 			}
