@@ -1,8 +1,11 @@
 package cmdsetup
 
 import (
+	"errors"
 	"fmt"
 	"os"
+	"os/exec"
+	"slices"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -51,6 +54,23 @@ var CmdSetup = &cobra.Command{
 
 		err = internal.CheckAllPublishedPortsNotListening()
 		if err != nil {
+			return
+		}
+
+		_, err = exec.LookPath(internal.BinDocker)
+		if err != nil {
+			err = errors.Join(err, internal.ErrNoDocker)
+			return
+		}
+
+		volumes, err := internal.DockerVolumeLs(cmd.Context())
+		if err != nil {
+			return
+		}
+		if slices.ContainsFunc(volumes, func(v internal.DockerVolume) bool {
+			return v.Name == internal.NameDockerVolume && v.Scope == internal.DockerVolumeScopeLocal
+		}) {
+			err = internal.ErrDockerVolumeExists
 			return
 		}
 

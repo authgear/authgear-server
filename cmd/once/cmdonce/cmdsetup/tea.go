@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"os/exec"
-	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -141,25 +139,6 @@ func (m SetupApp) Init() tea.Cmd {
 }
 
 func (m SetupApp) msgSetupAppInit() (tea.Model, tea.Cmd) {
-	_, err := exec.LookPath(internal.BinDocker)
-	if err != nil {
-		m.FatalError = m.FatalError.WithErr(internal.ErrNoDocker)
-		return m, tea.Quit
-	}
-
-	volumes, err := internal.DockerVolumeLs(m.Context)
-	if err != nil {
-		m.FatalError = m.FatalError.WithErr(err)
-		return m, tea.Quit
-	}
-
-	if slices.ContainsFunc(volumes, func(v internal.DockerVolume) bool {
-		return v.Name == internal.NameDockerVolume && v.Scope == internal.DockerVolumeScopeLocal
-	}) {
-		m.FatalError = m.FatalError.WithErr(internal.ErrDockerVolumeExists)
-		return m, tea.Quit
-	}
-
 	return m, SetupAppStartSurvey
 }
 
