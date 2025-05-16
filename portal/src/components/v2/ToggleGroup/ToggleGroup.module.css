@@ -16,7 +16,7 @@
 }
 
 .toggleGroupItem {
-  @apply flex items-center gap-6 p-4 cursor-pointer;
+  @apply flex items-center gap-6 px-4 h-14 cursor-pointer;
 }
 
 .toggleGroupItem__leftColumn {
