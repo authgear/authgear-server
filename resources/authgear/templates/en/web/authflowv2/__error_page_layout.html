@@ -8,6 +8,18 @@
         {{ .ErrorMessage }}
       </div>
     {{ end }}
+    {{ if .ErrorAlertMessage }}
+      {{ template "authflowv2/__alert_message.html"
+        (dict
+        "Type" "error"
+        "Message" .ErrorAlertMessage
+        )
+      }}
+    {{ end }}
   </header>
+  <div></div>
+  {{ if .Action }}
+  <div>{{ .Action }}</div>
+  {{ end }}
 </div>
 {{- end}}

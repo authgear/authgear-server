@@ -76,8 +76,9 @@ const (
 	SettingsV2RouteAdvancedSettings = "/settings/advanced_settings"
 
 	// The following routes are dead ends.
-	AuthflowV2RouteAccountStatus   = "/authflow/v2/account_status"
-	AuthflowV2RouteNoAuthenticator = "/authflow/v2/no_authenticator"
+	AuthflowV2RouteAccountStatus         = "/authflow/v2/account_status"
+	AuthflowV2RouteNoAuthenticator       = "/authflow/v2/no_authenticator"
+	AuthflowV2RouteOAuthProviderInactive = "/authflow/v2/oauth_provider_inactive"
 
 	AuthflowV2RouteFinishFlow = "/authflow/v2/finish"
 
@@ -144,6 +145,8 @@ func (n *AuthflowV2Navigator) NavigateNonRecoverableError(r *http.Request, u *ur
 		u.Path = AuthflowV2RouteNoAuthenticator
 	case errors.Is(e, authflow.ErrFlowNotFound):
 		u.Path = n.Endpoints.ErrorEndpointURL().Path
+	case apierrors.IsKind(e, api.OAuthProviderInactive):
+		u.Path = AuthflowV2RouteOAuthProviderInactive
 	case apierrors.IsKind(e, webapp.WebUIInvalidSession):
 		// Show WebUIInvalidSession error in different page.
 		u.Path = n.Endpoints.ErrorEndpointURL().Path
