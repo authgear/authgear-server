@@ -347,6 +347,24 @@ config:
           disabled: true
 
 ---
+name: oauth-provider-validate-provider-fields-if-not-disabled
+error: |-
+  invalid configuration:
+  /identity/oauth/providers/0: required
+    map[actual:[alias claims client_id create_disabled delete_disabled disabled type] expected:[client_id key_id team_id type] missing:[key_id team_id]]
+config:
+  id: test
+  http:
+    public_origin: http://test
+  identity:
+    oauth:
+      providers:
+        - type: apple
+          alias: apple
+          client_id: client_id
+          disabled: false
+
+---
 name: oauth-client-max-concurrent-session
 error: null
 config:
