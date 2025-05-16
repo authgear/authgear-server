@@ -214,6 +214,8 @@ func (m SetupApp) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		q.Model = picker
 		m.Questions = append(m.Questions, q)
 	case msgSetupAppEndSurvey:
+		return m, SetupAppActivateLicense
+	case msgSetupAppActivateLicense:
 		return m, tea.Batch(
 			m.StartLoading("Activating license..."),
 			func() tea.Msg {
@@ -226,9 +228,10 @@ func (m SetupApp) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		)
 	case msgSetupAppActivateLicenseResult:
 		m.StopLoading()
+		errRecoverCmd := SetupAppActivateLicense
 		if msg.Err != nil {
-			m.FatalError = m.FatalError.WithErr(msg.Err)
-			return m, tea.Quit
+			m.RecoverableErr = msg.Err
+			m.RecoverableErrCmd = errRecoverCmd
 		} else {
 			installation := m.ToInstallation(msg.LicenseObject)
 			m.Installation = &installation
@@ -530,7 +533,7 @@ func (m SetupApp) View() string {
 		fmt.Fprintf(&b, "%v %v\n", m.Spinner.View(), m.LoadingMessage)
 	}
 	if m.RecoverableErr != nil {
-		fmt.Fprintf(&b, "❌ Encountered this error\n%v\n%v\n",
+		fmt.Fprintf(&b, "❌ Encountered this error\n%v\n\n%v\n",
 			bubbleteautil.StyleForegroundSemanticError.Render(m.RecoverableErr.Error()),
 			bubbleteautil.StyleForegroundSemanticInfo.Render("Please hit enter to continue"),
 		)
