@@ -1,0 +1,19 @@
+{{ template "authflowv2/__page_frame.html" . }}
+{{ define "page-content" }}
+  {{ $provider_name := include "v2.page.inactive-oauth-provider.default.provider-name" $.Error.info }}
+  {{ $title := include "v2.page.inactive-oauth-provider.default.title" (dict
+    "provider" $provider_name
+  ) }}
+  {{ $error_message := include "v2.error.inactive-oauth-provider" (dict
+    "provider" $provider_name
+  ) }}
+  {{ $icon := "error" }}
+  
+  {{ template "authflowv2/__error_page_layout.html"
+    (dict
+      "Icon" $icon
+      "Title" $title
+      "ErrorMessage" $error_message
+    )
+  }}
+{{ end }} 
