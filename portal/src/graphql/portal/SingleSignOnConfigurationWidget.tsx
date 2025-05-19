@@ -30,6 +30,7 @@ import {
 } from "../../hook/useOAuthProviderForm";
 import { Badge } from "../../components/v2/Badge/Badge";
 import { Callout } from "../../components/v2/Callout/Callout";
+import { deriveOAuthProviderDisabled } from "../../model/oauthProviders";
 
 const MASKED_SECRET = "***************";
 
@@ -359,9 +360,18 @@ export function useSingleSignOnConfigurationWidget(
   );
 
   const onChange = useCallback(
-    (config: OAuthSSOProviderConfig, secret: SSOProviderFormSecretViewModel) =>
+    (
+      newConfig: OAuthSSOProviderConfig,
+      secret: SSOProviderFormSecretViewModel
+    ) =>
       setState((state) =>
         produce(state, (state) => {
+          const config = produce(newConfig, (config) => {
+            config.disabled = deriveOAuthProviderDisabled(config, secret)
+              ? true
+              : undefined;
+          });
+
           if (providerIndex === -1) {
             state.providers.push({
               config,
