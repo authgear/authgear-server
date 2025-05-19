@@ -42,7 +42,11 @@ var _ = Schema.Add("LoginIDConfig", `
 
 type LoginIDConfig struct {
 	Types *LoginIDTypesConfig `json:"types,omitempty"`
-	Keys  []LoginIDKeyConfig  `json:"keys,omitempty"`
+	// NOTE(tung): omitempty cannot be applied to `keys``, because empty array is a valid config.
+	// When the array is empty and omitempty is set, the key is omitted in the output of portal graphql api.
+	// As a result, when portal save the config, `keys` will be undefined, and the value in go will be nil.
+	// And when the value is nil, default will be applied and added email to keys, which is unexpected.
+	Keys []LoginIDKeyConfig `json:"keys"`
 }
 
 func (c *LoginIDConfig) SetDefaults() {
