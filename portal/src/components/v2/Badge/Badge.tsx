@@ -2,8 +2,8 @@ import React from "react";
 import { Badge as RadixBadge } from "@radix-ui/themes";
 import { semanticToRadixColor } from "../../../util/radix";
 
-type BadgeSize = "1" | "2";
-type BadgeVariant = "info" | "neutral" | "success" | "warning" | "error";
+export type BadgeSize = "1" | "2";
+export type BadgeVariant = "info" | "neutral" | "success" | "warning" | "error";
 
 export interface BadgeProps {
   size: BadgeSize;
