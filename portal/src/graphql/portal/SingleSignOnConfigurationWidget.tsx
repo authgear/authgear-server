@@ -28,6 +28,7 @@ import {
   OAuthProviderFormModel,
   SSOProviderFormState,
 } from "../../hook/useOAuthProviderForm";
+import { Badge } from "../../components/v2/Badge/Badge";
 
 const MASKED_SECRET = "***************";
 
@@ -249,6 +250,34 @@ const OAuthClientIcon: React.VFC<OAuthClientIconProps> =
     const { iconClassName } = oauthProviders[providerItemKey];
     return <i className={cn("fab", iconClassName, styles.widgetLabelIcon)} />;
   };
+
+function ProviderStatus({
+  providerConfig,
+}: {
+  providerConfig: OAuthSSOProviderConfig;
+}) {
+  if (providerConfig.disabled) {
+    return (
+      <Badge
+        size="1"
+        variant="error"
+        text={
+          <FormattedMessage id="SingleSignOnConfigurationScreen.providerStatus.inactive" />
+        }
+      />
+    );
+  }
+  // TODO(tung): Handle demo status
+  return (
+    <Badge
+      size="1"
+      variant="success"
+      text={
+        <FormattedMessage id="SingleSignOnConfigurationScreen.providerStatus.active" />
+      }
+    />
+  );
+}
 
 export function useSingleSignOnConfigurationWidget(
   initialAlias: string,
@@ -844,23 +873,32 @@ export const OAuthClientRow: React.VFC<OAuthClientRowProps> =
 
     return (
       <div className={cn(styles.rowContainer, className)}>
-        <div className={styles.rowIcon}>
-          <OAuthClientIcon providerItemKey={providerItemKey} />
+        <div className={styles.rowColumn}>
+          <div className={styles.rowIcon}>
+            <OAuthClientIcon providerItemKey={providerItemKey} />
+          </div>
+          <div className={styles.rowContent}>
+            <div className={styles.rowName}>
+              <Text variant="medium" className={styles.rowTitle} block={true}>
+                {`${renderToString(titleId)}${
+                  subtitleId != null ? ` (${renderToString(subtitleId)})` : ""
+                }`}
+                {showAlias ? ` - ${providerConfig.alias}` : null}
+              </Text>
+            </div>
+            <div className={styles.rowDescription}>
+              <Text
+                variant="small"
+                className={styles.rowDescription}
+                block={true}
+              >
+                <FormattedMessage id={descriptionId} />
+              </Text>
+            </div>
+          </div>
         </div>
-        <div className={styles.rowContent}>
-          <div className={styles.rowName}>
-            <Text variant="medium" className={styles.rowTitle}>
-              {`${renderToString(titleId)}${
-                subtitleId != null ? ` (${renderToString(subtitleId)})` : ""
-              }`}
-              {showAlias ? ` - ${providerConfig.alias}` : null}
-            </Text>
-          </div>
-          <div className={styles.rowDescription}>
-            <Text variant="small" className={styles.rowDescription}>
-              <FormattedMessage id={descriptionId} />
-            </Text>
-          </div>
+        <div className={styles.rowColumn}>
+          <ProviderStatus providerConfig={providerConfig} />
         </div>
         <div className={styles.rowActions}>
           <ActionButton
@@ -879,5 +917,25 @@ export const OAuthClientRow: React.VFC<OAuthClientRowProps> =
       </div>
     );
   };
+
+export const OAuthClientRowHeader: React.VFC<{ className?: string }> = ({
+  className,
+}) => {
+  return (
+    <div className={cn(styles.rowContainer, className)}>
+      <div className={styles.rowColumn}>
+        <Text variant="medium" className={styles.rowHeader} block={true}>
+          <FormattedMessage id="SingleSignOnConfigurationScreen.header.provider" />
+        </Text>
+      </div>
+      <div className={styles.rowColumn}>
+        <Text variant="medium" className={styles.rowHeader} block={true}>
+          <FormattedMessage id="SingleSignOnConfigurationScreen.header.configuration" />
+        </Text>
+      </div>
+      <div className={styles.rowActions}></div>
+    </div>
+  );
+};
 
 export default SingleSignOnConfigurationWidget;
