@@ -156,6 +156,12 @@ func (m SimplePicker) IsFocused() bool {
 
 func (m SimplePicker) Validate() (updated Model, valid bool) {
 	m.showErrorIfPresent = true
+
+	// Always run ValidateFunc again to ensure Err is up-to-date.
+	if m.ValidateFunc != nil {
+		m.Err = m.ValidateFunc(m.Items[m.index].Value)
+	}
+
 	valid = m.Err == nil
 	updated = m
 	return

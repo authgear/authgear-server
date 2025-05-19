@@ -79,6 +79,15 @@ func (m SingleLineTextInput) View() string {
 
 func (m SingleLineTextInput) Validate() (updated Model, valid bool) {
 	m.showErrorIfPresent = true
+
+	// Always run ValidateFunc again to ensure Err is up-to-date.
+	// When the input is freshly created, its Update method does not run,
+	// Err is nil.
+	// But if ValidateFunc returns error on empty input, the validation was incorrectly skipped.
+	if m.ValidateFunc != nil {
+		m.model.Err = m.ValidateFunc(m.model.Value())
+	}
+
 	// Intentionally do not consider m.Err because m.Err is external error.
 	valid = m.model.Err == nil
 	updated = m
