@@ -399,7 +399,7 @@ secrets:
 EOF
 }
 
-docker_authgear_init() {
+docker_authgear_first_time_setup() {
 	docker_wrapper &
 	wrapper_pid=$!
 	# Wait 2 seconds for the server to start.
@@ -425,8 +425,6 @@ docker_authgear_init() {
 		--search-implementation=postgresql \
 		-o "$init_output_accounts"
 	authgear-portal internal configsource create "$init_output_accounts"
-	host_accounts="$(echo "$AUTHGEAR_HTTP_ORIGIN_ACCOUNTS" | awk -F '://' '{ print $2 }')"
-	authgear-portal internal domain create-custom "$app_id_accounts" --domain "$host_accounts" --apex-domain "$host_accounts"
 	rm -r "$init_output_accounts"
 
 	app_id_project="project"
@@ -446,12 +444,11 @@ docker_authgear_init() {
 		--search-implementation=postgresql \
 		-o "$init_output_project"
 	authgear-portal internal configsource create "$init_output_project"
-	host_project="$(echo "$AUTHGEAR_HTTP_ORIGIN_PROJECT" | awk -F '://' '{ print $2 }')"
-	authgear-portal internal domain create-custom "$app_id_project" --domain "$host_project" --apex-domain "$host_project"
 	rm -r "$init_output_project"
 
-	# Create default domain after all projects have been created.
-	authgear-portal internal domain create-default --default-domain-suffix '.projects.authgear'
+	# Set up domains first.
+	# Otherwise, Admin API server cannot resolve which project.
+	docker_authgear_setup_domains
 
 	query_file="$(mktemp)"
 	cat >"$query_file" <<'EOF'
@@ -492,6 +489,21 @@ EOF
 		--app-id "$app_id_project" \
 		--user-id "$raw_id" \
 		--role owner
+
+	kill -SIGTERM "$wrapper_pid"
+	# Wait 2 seconds to let the process exits.
+	sleep 2
+}
+
+docker_authgear_rerun_setup() {
+	docker_wrapper &
+	wrapper_pid=$!
+	# Wait 2 seconds for the server to start.
+	sleep 2
+
+
+	docker_authgear_setup_domains
+
 
 	kill -SIGTERM "$wrapper_pid"
 	# Wait 2 seconds to let the process exits.
@@ -579,6 +591,71 @@ docker_authgearonce_update_env_sh() {
 	mv "$updated" "$original"
 }
 
+docker_authgear_setup_domains() {
+	docker_postgresql_psql \
+		--dbname authgear <<-'EOSQL'
+DELETE FROM _portal_domain;
+	EOSQL
+
+	app_id_accounts="accounts"
+	host_accounts="$(echo "$AUTHGEAR_HTTP_ORIGIN_ACCOUNTS" | awk -F '://' '{ print $2 }')"
+	authgear-portal internal domain create-custom "$app_id_accounts" --domain "$host_accounts" --apex-domain "$host_accounts"
+
+	app_id_project="project"
+	host_project="$(echo "$AUTHGEAR_HTTP_ORIGIN_PROJECT" | awk -F '://' '{ print $2 }')"
+	authgear-portal internal domain create-custom "$app_id_project" --domain "$host_project" --apex-domain "$host_project"
+
+	authgear-portal internal domain create-default --default-domain-suffix '.projects.authgear'
+
+	# We need to update the public_origin, as well as,
+	# the redirect URIs of the portal.
+	sql_output=$(docker_postgresql_psql \
+		--dbname authgear \
+		--tuples-only \
+		--set app_id="$app_id_accounts" <<-'EOSQL'
+SELECT data->>'authgear.yaml' FROM _portal_config_source where app_id = :'app_id';
+		EOSQL
+	)
+	updated=$(echo -n "$sql_output" \
+		| sed -E 's/[[:space:]]//' \
+		| base64 -d \
+		| yq --yaml-output --arg public_origin "$AUTHGEAR_HTTP_ORIGIN_ACCOUNTS" '.http.public_origin = $public_origin' \
+		| yq --yaml-output --arg portal_origin "$AUTHGEAR_HTTP_ORIGIN_PORTAL" '.oauth.clients[0].post_logout_redirect_uris[0] = "\($portal_origin)/"' \
+		| yq --yaml-output --arg portal_origin "$AUTHGEAR_HTTP_ORIGIN_PORTAL" '.oauth.clients[0].redirect_uris[0] = "\($portal_origin)/oauth-redirect"' \
+		| base64 -w 0)
+	docker_postgresql_psql \
+		--dbname authgear \
+		--set app_id="$app_id_accounts" \
+		--set v="$updated" <<-'EOSQL'
+UPDATE _portal_config_source
+SET data = jsonb_set(data, '{authgear.yaml}', to_jsonb(:'v' ::text))
+WHERE app_id = :'app_id';
+		EOSQL
+
+	# This is rather simple.
+	# We just need to update the public_origin.
+	sql_output=$(docker_postgresql_psql \
+		--dbname authgear \
+		--tuples-only \
+		--set app_id="$app_id_project" <<-'EOSQL'
+SELECT data->>'authgear.yaml' FROM _portal_config_source where app_id = :'app_id';
+		EOSQL
+	)
+	updated=$(echo -n "$sql_output" \
+		| sed -E 's/[[:space:]]//' \
+		| base64 -d \
+		| yq --yaml-output --arg public_origin "$AUTHGEAR_HTTP_ORIGIN_PROJECT" '.http.public_origin = $public_origin' \
+		| base64 -w 0)
+	docker_postgresql_psql \
+		--dbname authgear \
+		--set app_id="$app_id_project" \
+		--set v="$updated" <<-'EOSQL'
+UPDATE _portal_config_source
+SET data = jsonb_set(data, '{authgear.yaml}', to_jsonb(:'v' ::text))
+WHERE app_id = :'app_id';
+		EOSQL
+}
+
 main() {
 	check_user_is_correct
 
@@ -639,8 +716,15 @@ main() {
 	docker_authgear_source_env
 	docker_authgear_run_database_migrations
 	docker_authgear_create_deployment_runtime_directory
+
 	if [ "$what_to_do" = 'first_time_setup' ]; then
-		docker_authgear_init
+		docker_authgear_first_time_setup
+		exit_status="$?"
+		if [ "$exit_status" -ne 0 ]; then
+			exit "$exit_status"
+		fi
+	elif [ "$what_to_do" = 'rerun_setup' ]; then
+		docker_authgear_rerun_setup
 		exit_status="$?"
 		if [ "$exit_status" -ne 0 ]; then
 			exit "$exit_status"
