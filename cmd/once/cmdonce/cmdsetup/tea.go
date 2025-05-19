@@ -709,16 +709,15 @@ func (m SetupApp) ToInstallation(licenseObject *internal.LicenseObject) Installa
 
 		AUTHGEAR_ONCE_ADMIN_USER_EMAIL:    m.mustFindQuestionByName(QuestionName_EnterAdminEmail).Value(),
 		AUTHGEAR_ONCE_ADMIN_USER_PASSWORD: m.mustFindQuestionByName(QuestionName_EnterAdminPassword).Value(),
+
+		AUTHGEAR_CERTBOT_ENABLED:     strconv.FormatBool(certbotEnabled),
+		AUTHGEAR_CERTBOT_ENVIRONMENT: certbotEnvironment,
 	}
 
 	domains := m.ToDomains()
 
+	// FIXME: Allow http or https in local, and https for non-local
 	scheme := "http"
-	if certbotEnabled {
-		scheme = "https"
-		installation.AUTHGEAR_CERTBOT_ENVIRONMENT = certbotEnvironment
-	}
-
 	installation.AUTHGEAR_HTTP_ORIGIN_PROJECT = fmt.Sprintf("%v://%v", scheme, domains.Project)
 	installation.AUTHGEAR_HTTP_ORIGIN_PORTAL = fmt.Sprintf("%v://%v", scheme, domains.Portal)
 	installation.AUTHGEAR_HTTP_ORIGIN_ACCOUNTS = fmt.Sprintf("%v://%v", scheme, domains.Accounts)
@@ -749,18 +748,16 @@ func (m SetupApp) ToResetup() Resetup {
 	}
 
 	resetup := Resetup{
-		Context:             m.Context,
-		AUTHGEAR_ONCE_IMAGE: m.AUTHGEAR_ONCE_IMAGE,
+		Context:                      m.Context,
+		AUTHGEAR_ONCE_IMAGE:          m.AUTHGEAR_ONCE_IMAGE,
+		AUTHGEAR_CERTBOT_ENABLED:     strconv.FormatBool(certbotEnabled),
+		AUTHGEAR_CERTBOT_ENVIRONMENT: certbotEnvironment,
 	}
 
 	domains := m.ToDomains()
 
+	// FIXME: Allow http or https in local, and https for non-local
 	scheme := "http"
-	if certbotEnabled {
-		scheme = "https"
-		resetup.AUTHGEAR_CERTBOT_ENVIRONMENT = certbotEnvironment
-	}
-
 	resetup.AUTHGEAR_HTTP_ORIGIN_PROJECT = fmt.Sprintf("%v://%v", scheme, domains.Project)
 	resetup.AUTHGEAR_HTTP_ORIGIN_PORTAL = fmt.Sprintf("%v://%v", scheme, domains.Portal)
 	resetup.AUTHGEAR_HTTP_ORIGIN_ACCOUNTS = fmt.Sprintf("%v://%v", scheme, domains.Accounts)
@@ -822,6 +819,7 @@ type Installation struct {
 	AUTHGEAR_HTTP_ORIGIN_ACCOUNTS     string
 	AUTHGEAR_ONCE_ADMIN_USER_EMAIL    string
 	AUTHGEAR_ONCE_ADMIN_USER_PASSWORD string
+	AUTHGEAR_CERTBOT_ENABLED          string
 	AUTHGEAR_CERTBOT_ENVIRONMENT      string
 	AUTHGEAR_SMTP_HOST                string
 	AUTHGEAR_SMTP_PORT                int
@@ -950,9 +948,8 @@ func newDockerRunOptionsForInstallation(m Installation) internal.DockerRunOption
 		fmt.Sprintf("AUTHGEAR_HTTP_ORIGIN_ACCOUNTS=%v", m.AUTHGEAR_HTTP_ORIGIN_ACCOUNTS),
 		fmt.Sprintf("AUTHGEAR_ONCE_ADMIN_USER_EMAIL=%v", m.AUTHGEAR_ONCE_ADMIN_USER_EMAIL),
 		fmt.Sprintf("AUTHGEAR_ONCE_ADMIN_USER_PASSWORD=%v", m.AUTHGEAR_ONCE_ADMIN_USER_PASSWORD),
-	}
-	if m.AUTHGEAR_CERTBOT_ENVIRONMENT != "" {
-		opts.Env = append(opts.Env, fmt.Sprintf("AUTHGEAR_CERTBOT_ENVIRONMENT=%v", m.AUTHGEAR_CERTBOT_ENVIRONMENT))
+		fmt.Sprintf("AUTHGEAR_CERTBOT_ENABLED=%v", m.AUTHGEAR_CERTBOT_ENABLED),
+		fmt.Sprintf("AUTHGEAR_CERTBOT_ENVIRONMENT=%v", m.AUTHGEAR_CERTBOT_ENVIRONMENT),
 	}
 	if m.AUTHGEAR_SMTP_HOST != "" {
 		opts.Env = append(opts.Env,
@@ -980,9 +977,8 @@ func newDockerRunOptionsForResetup(m Resetup) internal.DockerRunOptions {
 		fmt.Sprintf("AUTHGEAR_HTTP_ORIGIN_PROJECT=%v", m.AUTHGEAR_HTTP_ORIGIN_PROJECT),
 		fmt.Sprintf("AUTHGEAR_HTTP_ORIGIN_PORTAL=%v", m.AUTHGEAR_HTTP_ORIGIN_PORTAL),
 		fmt.Sprintf("AUTHGEAR_HTTP_ORIGIN_ACCOUNTS=%v", m.AUTHGEAR_HTTP_ORIGIN_ACCOUNTS),
-	}
-	if m.AUTHGEAR_CERTBOT_ENVIRONMENT != "" {
-		opts.Env = append(opts.Env, fmt.Sprintf("AUTHGEAR_CERTBOT_ENVIRONMENT=%v", m.AUTHGEAR_CERTBOT_ENVIRONMENT))
+		fmt.Sprintf("AUTHGEAR_CERTBOT_ENABLED=%v", m.AUTHGEAR_CERTBOT_ENABLED),
+		fmt.Sprintf("AUTHGEAR_CERTBOT_ENVIRONMENT=%v", m.AUTHGEAR_CERTBOT_ENVIRONMENT),
 	}
 	return opts
 }
@@ -1002,7 +998,9 @@ type Resetup struct {
 	AUTHGEAR_HTTP_ORIGIN_PROJECT  string
 	AUTHGEAR_HTTP_ORIGIN_PORTAL   string
 	AUTHGEAR_HTTP_ORIGIN_ACCOUNTS string
-	AUTHGEAR_CERTBOT_ENVIRONMENT  string
+
+	AUTHGEAR_CERTBOT_ENABLED     string
+	AUTHGEAR_CERTBOT_ENVIRONMENT string
 
 	Spinner            spinner.Model
 	InstallationStatus InstallationStatus
