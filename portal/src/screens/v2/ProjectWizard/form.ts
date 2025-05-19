@@ -227,56 +227,56 @@ function deriveOAuthProvidersFromFormState(
         configs.push({
           type: "apple",
           alias: "apple",
-          is_active: false,
+          disabled: true,
         });
         break;
       case LoginMethod.Google:
         configs.push({
           type: "google",
           alias: "google",
-          is_active: false,
+          disabled: true,
         });
         break;
       case LoginMethod.Facebook:
         configs.push({
           type: "facebook",
           alias: "facebook",
-          is_active: false,
+          disabled: true,
         });
         break;
       case LoginMethod.Github:
         configs.push({
           type: "github",
           alias: "github",
-          is_active: false,
+          disabled: true,
         });
         break;
       case LoginMethod.LinkedIn:
         configs.push({
           type: "linkedin",
           alias: "linkedin",
-          is_active: false,
+          disabled: true,
         });
         break;
       case LoginMethod.MicrosoftEntraID:
         configs.push({
           type: "azureadv2",
           alias: "azureadv2",
-          is_active: false,
+          disabled: true,
         });
         break;
       case LoginMethod.MicrosoftADFS:
         configs.push({
           type: "adfs",
           alias: "adfs",
-          is_active: false,
+          disabled: true,
         });
         break;
       case LoginMethod.MicrosoftAzureADB2C:
         configs.push({
           type: "azureadb2c",
           alias: "azureadb2c",
-          is_active: false,
+          disabled: true,
         });
         break;
       case LoginMethod.WechatWeb:
@@ -284,7 +284,7 @@ function deriveOAuthProvidersFromFormState(
           type: "wechat",
           app_type: "web",
           alias: "wechat_web",
-          is_active: false,
+          disabled: true,
         });
         break;
       case LoginMethod.WechatMobile:
@@ -292,7 +292,7 @@ function deriveOAuthProvidersFromFormState(
           type: "wechat",
           app_type: "mobile",
           alias: "wechat_mobile",
-          is_active: false,
+          disabled: true,
         });
         break;
       case LoginMethod.Email:
