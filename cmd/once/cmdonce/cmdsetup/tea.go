@@ -933,8 +933,8 @@ func newDockerRunOptionsForInstallation(m Installation) internal.DockerRunOption
 	opts.Detach = false
 	// No need to specify --restart as this is a short-lived container.
 	opts.Restart = ""
-	// Run the shell command true to exit 0 when container has finished first run.
-	opts.Command = []string{"true"}
+	// Block on getting the TLS certificates.
+	opts.Command = []string{"docker_wrapper", "--block-on-getting-tls-certificates"}
 	// Keep or remove the container by a flag.
 	opts.Rm = !internal.KeepInstallationContainerByDefault
 	// Do not specify name so that it will not clash with the actual container.
@@ -970,8 +970,8 @@ func newDockerRunOptionsForResetup(m Resetup) internal.DockerRunOptions {
 	opts.Detach = false
 	// No need to specify --restart as this is a short-lived container.
 	opts.Restart = ""
-	// Run the shell command true to exit 0 when container has finished first run.
-	opts.Command = []string{"true"}
+	// Block on getting the TLS certificates.
+	opts.Command = []string{"docker_wrapper", "--block-on-getting-tls-certificates"}
 	// Keep or remove the container by a flag.
 	opts.Rm = !internal.KeepInstallationContainerByDefault
 	// Do not specify name so that it will not clash with the actual container.
