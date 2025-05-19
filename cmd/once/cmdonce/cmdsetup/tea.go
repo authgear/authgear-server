@@ -2,8 +2,10 @@ package cmdsetup
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -229,7 +231,7 @@ func (m SetupApp) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	case msgSetupAppInitResetup:
 		m = m.blurCurrentQuestion()
-		resetup := m.ToResetup()
+		resetup := m.ToResetup(m.LicenseOptions)
 		m.Resetup = &resetup
 		return m, func() tea.Msg { return msgSetupAppStartResetup{} }
 	}
@@ -735,7 +737,7 @@ func (m SetupApp) ToInstallation(licenseObject *internal.LicenseObject) Installa
 	return installation
 }
 
-func (m SetupApp) ToResetup() Resetup {
+func (m SetupApp) ToResetup(licenseOptions internal.LicenseOptions) Resetup {
 	certbotEnabled := true
 	if _, q, ok := m.findQuestionByName(QuestionName_EnableCertbot); ok {
 		certbotEnabled = q.Value() == ValueTrue
@@ -748,6 +750,7 @@ func (m SetupApp) ToResetup() Resetup {
 
 	resetup := Resetup{
 		Context:                      m.Context,
+		AUTHGEAR_ONCE_LICENSE_KEY:    licenseOptions.LicenseKey,
 		AUTHGEAR_ONCE_IMAGE:          m.AUTHGEAR_ONCE_IMAGE,
 		AUTHGEAR_CERTBOT_ENABLED:     strconv.FormatBool(certbotEnabled),
 		AUTHGEAR_CERTBOT_ENVIRONMENT: certbotEnvironment,
@@ -852,7 +855,13 @@ func (m Installation) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// `docker run` is smart enough to pull the image and create the volume if the volume does not exist.
 			// So we do not need to do that manually.
 			// In fact, if we `docker pull`, it will result in error if we pull a image that exists only locally.
-			_, err := internal.DockerRun(m.Context, dockerRunOptions)
+			_, err := internal.DockerRunWithCertbotErrorHandling(m.Context, dockerRunOptions)
+			if errors.Is(err, internal.ErrCertbotExitCode10) {
+				err = errors.Join(&internal.ErrCertbotFailedToGetCertificates{
+					LicenseKey: m.AUTHGEAR_ONCE_LICENSE_KEY,
+					Domains:    m.ToDomains(),
+				}, err)
+			}
 			return msgInstallationInstall{
 				Err: err,
 			}
@@ -925,6 +934,14 @@ func (m Installation) View() string {
 	return b.String()
 }
 
+func (m Installation) ToDomains() []string {
+	return originsToDomains(
+		m.AUTHGEAR_HTTP_ORIGIN_PROJECT,
+		m.AUTHGEAR_HTTP_ORIGIN_PORTAL,
+		m.AUTHGEAR_HTTP_ORIGIN_ACCOUNTS,
+	)
+}
+
 func newDockerRunOptionsForInstallation(m Installation) internal.DockerRunOptions {
 	opts := internal.NewDockerRunOptionsForStarting(m.AUTHGEAR_ONCE_IMAGE)
 	opts.Detach = false
@@ -995,6 +1012,7 @@ type msgResetupStart struct {
 type Resetup struct {
 	Context context.Context
 
+	AUTHGEAR_ONCE_LICENSE_KEY     string
 	AUTHGEAR_ONCE_IMAGE           string
 	AUTHGEAR_HTTP_ORIGIN_PROJECT  string
 	AUTHGEAR_HTTP_ORIGIN_PORTAL   string
@@ -1039,7 +1057,13 @@ func (m Resetup) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 			// docker run
-			_, err = internal.DockerRun(m.Context, dockerRunOptions)
+			_, err = internal.DockerRunWithCertbotErrorHandling(m.Context, dockerRunOptions)
+			if errors.Is(err, internal.ErrCertbotExitCode10) {
+				err = errors.Join(&internal.ErrCertbotFailedToGetCertificates{
+					LicenseKey: m.AUTHGEAR_ONCE_LICENSE_KEY,
+					Domains:    m.ToDomains(),
+				}, err)
+			}
 			if err != nil {
 				return msgResetupResult{
 					Err: err,
@@ -1116,6 +1140,14 @@ func (m Resetup) View() string {
 	return b.String()
 }
 
+func (m Resetup) ToDomains() []string {
+	return originsToDomains(
+		m.AUTHGEAR_HTTP_ORIGIN_PROJECT,
+		m.AUTHGEAR_HTTP_ORIGIN_PORTAL,
+		m.AUTHGEAR_HTTP_ORIGIN_ACCOUNTS,
+	)
+}
+
 func nilStringToEmptyString(s *string) string {
 	if s == nil {
 		return ""
@@ -1129,4 +1161,16 @@ func nilTimeToEmptyString(t *time.Time) string {
 	}
 
 	return t.Format(time.RFC3339)
+}
+
+func originsToDomains(origins ...string) []string {
+	var domains []string
+	for _, origin := range origins {
+		u, err := url.Parse(origin)
+		if err != nil {
+			panic(err)
+		}
+		domains = append(domains, u.Host)
+	}
+	return domains
 }

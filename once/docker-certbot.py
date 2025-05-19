@@ -138,7 +138,11 @@ def main():
     if len(sys.argv) >= 2 and sys.argv[1] == "--block-on-getting-tls-certificates":
         completed_process = run_once()
         if completed_process is not None:
-            sys.exit(completed_process.returncode)
+            if completed_process.returncode != 0:
+                # NOTE(once): exiting with 10 is a public API between the once image and the once command.
+                sys.exit(10)
+            else:
+                sys.exit(0)
         else:
             sys.exit(0)
     else:

@@ -19,6 +19,10 @@ const (
 	DockerVolumeScopeLocal = "local"
 )
 
+const (
+	CertbotExitCode10 = 10
+)
+
 var DockerPublishedPorts []int = []int{80, 443}
 
 type DockerVolume struct {
@@ -40,6 +44,15 @@ func runCmd(c *exec.Cmd) (stdout string, stderr string, err error) {
 	stdout = stdoutBuf.String()
 	stderr = stderrBuf.String()
 	return
+}
+
+func getExitError(err error) (*exec.ExitError, bool) {
+	var e *exec.ExitError
+	ok := errors.As(err, &e)
+	if ok {
+		return e, true
+	}
+	return nil, false
 }
 
 type CmdError struct {
@@ -262,4 +275,17 @@ func CheckVolumeExists(ctx context.Context) (bool, error) {
 		return true, nil
 	}
 	return false, nil
+}
+
+func DockerRunWithCertbotErrorHandling(ctx context.Context, opts DockerRunOptions) (*DockerRunResult, error) {
+
+	result, err := DockerRun(ctx, opts)
+	if err != nil {
+		if exitErr, ok := getExitError(err); ok {
+			if exitErr.ProcessState.ExitCode() == CertbotExitCode10 {
+				err = errors.Join(ErrCertbotExitCode10, err)
+			}
+		}
+	}
+	return result, err
 }
