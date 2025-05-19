@@ -6,10 +6,8 @@ const (
 	LicenseServerEndpoint            = "https://once-license-staging.authgear.com"
 	LicenseServerEndpointOverridable = true
 
-	QuestionName_EnableCertbot_PromptByDefault            = true
-	QuestionName_SelectCertbotEnvironment_PromptByDefault = false
+	QuestionName_EnableCertbot_PromptEnabled            = false
+	QuestionName_SelectCertbotEnvironment_PromptEnabled = false
 
 	KeepInstallationContainerByDefault = false
-
-	AllowHTTPSchemeFlag = false
 )

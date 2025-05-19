@@ -16,23 +16,16 @@ import (
 )
 
 func init() {
-	_ = CmdSetup.Flags().Bool(
-		"prompt-enable-certbot",
-		internal.QuestionName_EnableCertbot_PromptByDefault,
-		"Ask you whether to enable certbot.",
+	CmdSetup.Flags().Bool(
+		"certbot-disabled",
+		false,
+		"Disable certbot integration which gets TLS certificates from Let's Encrypt",
 	)
-	_ = CmdSetup.Flags().Bool(
-		"prompt-certbot-environment",
-		internal.QuestionName_SelectCertbotEnvironment_PromptByDefault,
-		"Ask you which certbot environment to use",
+	CmdSetup.Flags().String(
+		"certbot-environment",
+		CertbotEnvironmentProduction,
+		fmt.Sprintf("Certbot environment. Either %v or %v", CertbotEnvironmentProduction, CertbotEnvironmentStaging),
 	)
-	if internal.AllowHTTPSchemeFlag {
-		_ = CmdSetup.Flags().String(
-			"http-scheme",
-			"https",
-			"The expected HTTP scheme. It could be http only for local development.",
-		)
-	}
 }
 
 var CmdSetup = &cobra.Command{
@@ -78,6 +71,28 @@ var CmdSetup = &cobra.Command{
 		endpoint := internal.GetLicenseServerEndpoint(cmd)
 		image := internal.GetDockerImage(cmd)
 
+		certbotDisabled, err := cmd.Flags().GetBool("certbot-disabled")
+		if err != nil {
+			err = internal.PrintError(err)
+			return err
+		}
+
+		certbotEnvironment, err := cmd.Flags().GetString("certbot-environment")
+		if err != nil {
+			err = internal.PrintError(err)
+			return err
+		}
+		switch certbotEnvironment {
+		case CertbotEnvironmentProduction:
+			break
+		case CertbotEnvironmentStaging:
+			break
+		default:
+			err = fmt.Errorf("invalid --certbot-environment")
+			err = internal.PrintError(err)
+			return err
+		}
+
 		volumeExists, err := internal.CheckVolumeExists(cmd.Context())
 		if err != nil {
 			err = internal.PrintError(err)
@@ -107,15 +122,8 @@ var CmdSetup = &cobra.Command{
 		}
 
 		httpScheme := "https"
-		if internal.AllowHTTPSchemeFlag {
-			var rawHTTPScheme string
-			rawHTTPScheme, err = cmd.Flags().GetString("http-scheme")
-			if err != nil {
-				// This is a programming error.
-				panic(err)
-			}
-
-			httpScheme = rawHTTPScheme
+		if certbotDisabled {
+			httpScheme = "http"
 		}
 
 		setupApp := SetupApp{
@@ -126,8 +134,11 @@ var CmdSetup = &cobra.Command{
 			HTTPScheme: httpScheme,
 			IsResetup:  volumeExists,
 
-			QuestionName_EnableCertbot_Prompt:            internal.FlagsGetBool(cmd, "prompt-enable-certbot"),
-			QuestionName_SelectCertbotEnvironment_Prompt: internal.FlagsGetBool(cmd, "prompt-certbot-environment"),
+			AUTHGEAR_CERTBOT_ENABLED:     !certbotDisabled,
+			AUTHGEAR_CERTBOT_ENVIRONMENT: certbotEnvironment,
+
+			QuestionName_EnableCertbot_PromptEnabled:            internal.QuestionName_EnableCertbot_PromptEnabled,
+			QuestionName_SelectCertbotEnvironment_PromptEnabled: internal.QuestionName_SelectCertbotEnvironment_PromptEnabled,
 
 			AUTHGEAR_ONCE_LICENSE_KEY:         licenseKey,
 			AUTHGEAR_ONCE_MACHINE_FINGERPRINT: fingerprint,

@@ -4,6 +4,8 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"os"
+	"slices"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -64,11 +66,11 @@ func (m FatalError) View() string {
 		errMsg = errMsgBuf.String()
 		actionableMsg = fmt.Sprintf(`- Integration with Let's Encrypt is enabled by default. If you do not want this, you can run this command to turn it off:
 
-  TODO
+  %v
 
 - Or, you may have made a typo in the domains. You can re-run this command to correct it.
 - Or, you may not have set up the required DNS records. Please check that.
-`)
+`, suggestCertbotFixToCommandSetup(os.Args))
 	}
 
 	if errMsg == "" || actionableMsg == "" {
@@ -100,4 +102,14 @@ func indentLines(lines string, indent string) string {
 		fmt.Fprintf(&out, "%v%v\n", indent, line)
 	}
 	return out.String()
+}
+
+func suggestCertbotFixToCommandSetup(args []string) string {
+	copied := make([]string, len(args))
+	for idx, arg := range args {
+		copied[idx] = arg
+	}
+	lastIndex := len(copied) - 1
+	copied = slices.Insert(copied, lastIndex, "--certbot-disabled")
+	return strings.Join(copied, " ")
 }

@@ -17,8 +17,7 @@ var (
 )
 
 type ErrCertbotFailedToGetCertificates struct {
-	LicenseKey string
-	Domains    []string
+	Domains []string
 }
 
 func (e *ErrCertbotFailedToGetCertificates) Error() string {

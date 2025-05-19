@@ -65,8 +65,11 @@ type SetupApp struct {
 	HTTPScheme string
 	IsResetup  bool
 
-	QuestionName_EnableCertbot_Prompt            bool
-	QuestionName_SelectCertbotEnvironment_Prompt bool
+	AUTHGEAR_CERTBOT_ENABLED     bool
+	AUTHGEAR_CERTBOT_ENVIRONMENT string
+
+	QuestionName_EnableCertbot_PromptEnabled            bool
+	QuestionName_SelectCertbotEnvironment_PromptEnabled bool
 
 	AUTHGEAR_ONCE_IMAGE               string
 	AUTHGEAR_ONCE_LICENSE_KEY         string
@@ -356,18 +359,6 @@ func (m SetupApp) proceed_QuestionName_EnterDomain_Apex() SetupApp {
 	return m
 }
 
-func (m SetupApp) proceed_QuestionName_ConfirmDefaultDomains() SetupApp {
-	value := m.Questions[len(m.Questions)-1].Value()
-	switch value {
-	case ValueTrue:
-		m.Questions = append(m.Questions, newQuestion(Question_EnableCertbot))
-	case ValueFalse:
-		m.Questions = append(m.Questions, newQuestion(Question_EnterDomain_Project))
-	}
-
-	return m
-}
-
 func (m SetupApp) appendNextQuestionForSetup() (SetupApp, tea.Cmd) {
 	if len(m.Questions) == 0 {
 		m.Questions = append(m.Questions, newQuestion(Question_AcceptAgreement))
@@ -397,13 +388,23 @@ func (m SetupApp) appendNextQuestionForSetup() (SetupApp, tea.Cmd) {
 	case QuestionName_EnterDomain_Apex:
 		m = m.proceed_QuestionName_EnterDomain_Apex()
 	case QuestionName_ConfirmDefaultDomains:
-		m = m.proceed_QuestionName_ConfirmDefaultDomains()
+		value := m.Questions[len(m.Questions)-1].Value()
+		switch value {
+		case ValueTrue:
+			if m.QuestionName_EnableCertbot_PromptEnabled {
+				m.Questions = append(m.Questions, newQuestion(Question_EnableCertbot))
+			} else {
+				m.Questions = append(m.Questions, newQuestion(Question_EnterAdminEmail))
+			}
+		case ValueFalse:
+			m.Questions = append(m.Questions, newQuestion(Question_EnterDomain_Project))
+		}
 	case QuestionName_EnterDomain_Project:
 		m.Questions = append(m.Questions, newQuestion(Question_EnterDomain_Portal))
 	case QuestionName_EnterDomain_Portal:
 		m.Questions = append(m.Questions, newQuestion(Question_EnterDomain_Accounts))
 	case QuestionName_EnterDomain_Accounts:
-		if m.QuestionName_EnableCertbot_Prompt {
+		if m.QuestionName_EnableCertbot_PromptEnabled {
 			m.Questions = append(m.Questions, newQuestion(Question_EnableCertbot))
 		} else {
 			m.Questions = append(m.Questions, newQuestion(Question_EnterAdminEmail))
@@ -412,7 +413,7 @@ func (m SetupApp) appendNextQuestionForSetup() (SetupApp, tea.Cmd) {
 		value := m.Questions[len(m.Questions)-1].Value()
 		switch value {
 		case ValueTrue:
-			if m.QuestionName_SelectCertbotEnvironment_Prompt {
+			if m.QuestionName_SelectCertbotEnvironment_PromptEnabled {
 				m.Questions = append(m.Questions, newQuestion(Question_SelectCertbotEnvironment))
 			} else {
 				m.Questions = append(m.Questions, newQuestion(Question_EnterAdminEmail))
@@ -526,13 +527,23 @@ func (m SetupApp) appendNextQuestionForResetup() (SetupApp, tea.Cmd) {
 	case QuestionName_EnterDomain_Apex:
 		m = m.proceed_QuestionName_EnterDomain_Apex()
 	case QuestionName_ConfirmDefaultDomains:
-		m = m.proceed_QuestionName_ConfirmDefaultDomains()
+		value := m.Questions[len(m.Questions)-1].Value()
+		switch value {
+		case ValueTrue:
+			if m.QuestionName_EnableCertbot_PromptEnabled {
+				m.Questions = append(m.Questions, newQuestion(Question_EnableCertbot))
+			} else {
+				return m, func() tea.Msg { return msgSetupAppInitResetup{} }
+			}
+		case ValueFalse:
+			m.Questions = append(m.Questions, newQuestion(Question_EnterDomain_Project))
+		}
 	case QuestionName_EnterDomain_Project:
 		m.Questions = append(m.Questions, newQuestion(Question_EnterDomain_Portal))
 	case QuestionName_EnterDomain_Portal:
 		m.Questions = append(m.Questions, newQuestion(Question_EnterDomain_Accounts))
 	case QuestionName_EnterDomain_Accounts:
-		if m.QuestionName_EnableCertbot_Prompt {
+		if m.QuestionName_EnableCertbot_PromptEnabled {
 			m.Questions = append(m.Questions, newQuestion(Question_EnableCertbot))
 		} else {
 			return m, func() tea.Msg { return msgSetupAppInitResetup{} }
@@ -541,7 +552,7 @@ func (m SetupApp) appendNextQuestionForResetup() (SetupApp, tea.Cmd) {
 		value := m.Questions[len(m.Questions)-1].Value()
 		switch value {
 		case ValueTrue:
-			if m.QuestionName_SelectCertbotEnvironment_Prompt {
+			if m.QuestionName_SelectCertbotEnvironment_PromptEnabled {
 				m.Questions = append(m.Questions, newQuestion(Question_SelectCertbotEnvironment))
 			} else {
 				return m, func() tea.Msg { return msgSetupAppInitResetup{} }
@@ -692,12 +703,12 @@ func (m SetupApp) ToDomains() Domains {
 }
 
 func (m SetupApp) ToInstallation(licenseObject *internal.LicenseObject) Installation {
-	certbotEnabled := true
+	certbotEnabled := m.AUTHGEAR_CERTBOT_ENABLED
 	if _, q, ok := m.findQuestionByName(QuestionName_EnableCertbot); ok {
 		certbotEnabled = q.Value() == ValueTrue
 	}
 
-	certbotEnvironment := CertbotEnvironmentProduction
+	certbotEnvironment := m.AUTHGEAR_CERTBOT_ENVIRONMENT
 	if _, q, ok := m.findQuestionByName(QuestionName_SelectCertbotEnvironment); ok {
 		certbotEnvironment = q.Value()
 	}
@@ -738,12 +749,12 @@ func (m SetupApp) ToInstallation(licenseObject *internal.LicenseObject) Installa
 }
 
 func (m SetupApp) ToResetup(licenseOptions internal.LicenseOptions) Resetup {
-	certbotEnabled := true
+	certbotEnabled := m.AUTHGEAR_CERTBOT_ENABLED
 	if _, q, ok := m.findQuestionByName(QuestionName_EnableCertbot); ok {
 		certbotEnabled = q.Value() == ValueTrue
 	}
 
-	certbotEnvironment := CertbotEnvironmentProduction
+	certbotEnvironment := m.AUTHGEAR_CERTBOT_ENVIRONMENT
 	if _, q, ok := m.findQuestionByName(QuestionName_SelectCertbotEnvironment); ok {
 		certbotEnvironment = q.Value()
 	}
@@ -858,8 +869,7 @@ func (m Installation) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			_, err := internal.DockerRunWithCertbotErrorHandling(m.Context, dockerRunOptions)
 			if errors.Is(err, internal.ErrCertbotExitCode10) {
 				err = errors.Join(&internal.ErrCertbotFailedToGetCertificates{
-					LicenseKey: m.AUTHGEAR_ONCE_LICENSE_KEY,
-					Domains:    m.ToDomains(),
+					Domains: m.ToDomains(),
 				}, err)
 			}
 			return msgInstallationInstall{
@@ -922,9 +932,13 @@ func (m Installation) View() string {
 	case InstallationStatusDone:
 		fmt.Fprintf(&b, "  Installed\n")
 		fmt.Fprintf(&b, "  Started\n")
+		fmt.Fprintf(&b, "\n")
+		if m.AUTHGEAR_CERTBOT_ENABLED == "true" {
+			fmt.Fprintf(&b, "Generated TLS certificates issued by Let's Encrypt.\n")
+		}
 		fmt.Fprintf(
 			&b,
-			"\nReady! Start using Authear by visiting\n\n  %v\n\n",
+			"Ready! Start using Authear by visiting\n\n  %v\n\n",
 			bubbleteautil.StyleForegroundSemanticInfo.Render(m.AUTHGEAR_HTTP_ORIGIN_PORTAL),
 		)
 	}
@@ -1060,8 +1074,7 @@ func (m Resetup) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			_, err = internal.DockerRunWithCertbotErrorHandling(m.Context, dockerRunOptions)
 			if errors.Is(err, internal.ErrCertbotExitCode10) {
 				err = errors.Join(&internal.ErrCertbotFailedToGetCertificates{
-					LicenseKey: m.AUTHGEAR_ONCE_LICENSE_KEY,
-					Domains:    m.ToDomains(),
+					Domains: m.ToDomains(),
 				}, err)
 			}
 			if err != nil {
@@ -1128,9 +1141,13 @@ func (m Resetup) View() string {
 	case InstallationStatusDone:
 		fmt.Fprintf(&b, "  Installed\n")
 		fmt.Fprintf(&b, "  Started\n")
+		fmt.Fprintf(&b, "\n")
+		if m.AUTHGEAR_CERTBOT_ENABLED == "true" {
+			fmt.Fprintf(&b, "Generated TLS certificates issued by Let's Encrypt.\n")
+		}
 		fmt.Fprintf(
 			&b,
-			"\nReady! Start using Authear by visiting\n\n  %v\n\n",
+			"Ready! Start using Authear by visiting\n\n  %v\n\n",
 			bubbleteautil.StyleForegroundSemanticInfo.Render(m.AUTHGEAR_HTTP_ORIGIN_PORTAL),
 		)
 	}

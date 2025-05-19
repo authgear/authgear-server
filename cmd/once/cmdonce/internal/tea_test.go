@@ -60,3 +60,17 @@ sentence 2
 		}
 	})
 }
+
+func TestSuggestCertbotFixToCommandSetup(t *testing.T) {
+	Convey("suggestCertbotFixToCommandSetup", t, func() {
+		actual := suggestCertbotFixToCommandSetup([]string{
+			"authgear-once",
+			"--image",
+			"authgearonce:test",
+			"--certbot-environment",
+			"staging",
+			"license-key",
+		})
+		So(actual, ShouldEqual, "authgear-once --image authgearonce:test --certbot-environment staging --certbot-disabled license-key")
+	})
+}
