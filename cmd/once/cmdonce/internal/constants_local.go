@@ -8,4 +8,6 @@ const (
 
 	QuestionName_EnableCertbot_PromptByDefault            = true
 	QuestionName_SelectCertbotEnvironment_PromptByDefault = true
+
+	KeepInstallationContainerByDefault = true
 )

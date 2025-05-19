@@ -935,8 +935,10 @@ func newDockerRunOptionsForInstallation(m Installation) internal.DockerRunOption
 	opts.Restart = ""
 	// Run the shell command true to exit 0 when container has finished first run.
 	opts.Command = []string{"true"}
-	// Remove the container because this container always run `true`.
-	opts.Rm = true
+	// Keep or remove the container by a flag.
+	opts.Rm = !internal.KeepInstallationContainerByDefault
+	// Do not specify name so that it will not clash with the actual container.
+	opts.Name = ""
 	opts.Env = []string{
 		fmt.Sprintf("AUTHGEAR_ONCE_IMAGE=%v", m.AUTHGEAR_ONCE_IMAGE),
 		fmt.Sprintf("AUTHGEAR_ONCE_LICENSE_KEY=%v", m.AUTHGEAR_ONCE_LICENSE_KEY),
@@ -970,8 +972,10 @@ func newDockerRunOptionsForResetup(m Resetup) internal.DockerRunOptions {
 	opts.Restart = ""
 	// Run the shell command true to exit 0 when container has finished first run.
 	opts.Command = []string{"true"}
-	// Remove the container because this container always run `true`.
-	opts.Rm = true
+	// Keep or remove the container by a flag.
+	opts.Rm = !internal.KeepInstallationContainerByDefault
+	// Do not specify name so that it will not clash with the actual container.
+	opts.Name = ""
 	opts.Env = []string{
 		fmt.Sprintf("AUTHGEAR_ONCE_IMAGE=%v", m.AUTHGEAR_ONCE_IMAGE),
 		fmt.Sprintf("AUTHGEAR_HTTP_ORIGIN_PROJECT=%v", m.AUTHGEAR_HTTP_ORIGIN_PROJECT),
