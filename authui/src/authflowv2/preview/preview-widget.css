@@ -1,9 +1,8 @@
 .preview-widget {
-  --layout__bg-image: url("./bg-preview-widget.png");
+  --layout__bg-image: url("./bg-preview-widget.svg");
   --layout__bg_position: center;
-  --layout__bg_repeat: no-repeat;
-  --layout__bg_size: cover;
-  --layout__bg-image-opacity: 0.25;
+  --layout__bg_repeat: repeat;
+  --layout__bg_size: auto;
 
   --widget__box-shadow: 0px 4px 50px 0px #0000001a;
   --widget__border-radius: var(--border-radius-large);
