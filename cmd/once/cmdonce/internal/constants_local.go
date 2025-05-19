@@ -10,4 +10,6 @@ const (
 	QuestionName_SelectCertbotEnvironment_PromptByDefault = true
 
 	KeepInstallationContainerByDefault = true
+
+	AllowHTTPSchemeFlag = true
 )

@@ -60,7 +60,8 @@ type SetupApp struct {
 	HTTPClient     *http.Client
 	LicenseOptions internal.LicenseOptions
 
-	IsResetup bool
+	HTTPScheme string
+	IsResetup  bool
 
 	QuestionName_EnableCertbot_Prompt            bool
 	QuestionName_SelectCertbotEnvironment_Prompt bool
@@ -716,11 +717,9 @@ func (m SetupApp) ToInstallation(licenseObject *internal.LicenseObject) Installa
 
 	domains := m.ToDomains()
 
-	// FIXME: Allow http or https in local, and https for non-local
-	scheme := "http"
-	installation.AUTHGEAR_HTTP_ORIGIN_PROJECT = fmt.Sprintf("%v://%v", scheme, domains.Project)
-	installation.AUTHGEAR_HTTP_ORIGIN_PORTAL = fmt.Sprintf("%v://%v", scheme, domains.Portal)
-	installation.AUTHGEAR_HTTP_ORIGIN_ACCOUNTS = fmt.Sprintf("%v://%v", scheme, domains.Accounts)
+	installation.AUTHGEAR_HTTP_ORIGIN_PROJECT = fmt.Sprintf("%v://%v", m.HTTPScheme, domains.Project)
+	installation.AUTHGEAR_HTTP_ORIGIN_PORTAL = fmt.Sprintf("%v://%v", m.HTTPScheme, domains.Portal)
+	installation.AUTHGEAR_HTTP_ORIGIN_ACCOUNTS = fmt.Sprintf("%v://%v", m.HTTPScheme, domains.Accounts)
 
 	switch m.mustFindQuestionByName(QuestionName_SelectSMTP).Value() {
 	case SMTPSkip:
@@ -756,11 +755,9 @@ func (m SetupApp) ToResetup() Resetup {
 
 	domains := m.ToDomains()
 
-	// FIXME: Allow http or https in local, and https for non-local
-	scheme := "http"
-	resetup.AUTHGEAR_HTTP_ORIGIN_PROJECT = fmt.Sprintf("%v://%v", scheme, domains.Project)
-	resetup.AUTHGEAR_HTTP_ORIGIN_PORTAL = fmt.Sprintf("%v://%v", scheme, domains.Portal)
-	resetup.AUTHGEAR_HTTP_ORIGIN_ACCOUNTS = fmt.Sprintf("%v://%v", scheme, domains.Accounts)
+	resetup.AUTHGEAR_HTTP_ORIGIN_PROJECT = fmt.Sprintf("%v://%v", m.HTTPScheme, domains.Project)
+	resetup.AUTHGEAR_HTTP_ORIGIN_PORTAL = fmt.Sprintf("%v://%v", m.HTTPScheme, domains.Portal)
+	resetup.AUTHGEAR_HTTP_ORIGIN_ACCOUNTS = fmt.Sprintf("%v://%v", m.HTTPScheme, domains.Accounts)
 
 	return resetup
 }

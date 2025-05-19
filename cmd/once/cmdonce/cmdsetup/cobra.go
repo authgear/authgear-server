@@ -26,6 +26,13 @@ func init() {
 		internal.QuestionName_SelectCertbotEnvironment_PromptByDefault,
 		"Ask you which certbot environment to use",
 	)
+	if internal.AllowHTTPSchemeFlag {
+		_ = CmdSetup.Flags().String(
+			"http-scheme",
+			"https",
+			"The expected HTTP scheme. It could be http only for local development.",
+		)
+	}
 }
 
 var CmdSetup = &cobra.Command{
@@ -99,12 +106,25 @@ var CmdSetup = &cobra.Command{
 			return err
 		}
 
+		httpScheme := "https"
+		if internal.AllowHTTPSchemeFlag {
+			var rawHTTPScheme string
+			rawHTTPScheme, err = cmd.Flags().GetString("http-scheme")
+			if err != nil {
+				// This is a programming error.
+				panic(err)
+			}
+
+			httpScheme = rawHTTPScheme
+		}
+
 		setupApp := SetupApp{
 			Context:        ctx,
 			HTTPClient:     client,
 			LicenseOptions: licenseOpts,
 
-			IsResetup: volumeExists,
+			HTTPScheme: httpScheme,
+			IsResetup:  volumeExists,
 
 			QuestionName_EnableCertbot_Prompt:            internal.FlagsGetBool(cmd, "prompt-enable-certbot"),
 			QuestionName_SelectCertbotEnvironment_Prompt: internal.FlagsGetBool(cmd, "prompt-certbot-environment"),
