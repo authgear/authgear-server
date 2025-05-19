@@ -708,6 +708,17 @@
 
   "EditSingleSignOnConfigurationScreen.title": "Edit Social Connection",
 
+  "SingleSignOnConfigurationWidget.providers.apple.inactiveMessage": "Client ID, Client Secret, Key ID or Team ID is missing. Please configure with your own keys to enable the login.",
+  "SingleSignOnConfigurationWidget.providers.google.inactiveMessage": "Client ID or Client Secret is missing. Please configure with your own keys to enable the login.",
+  "SingleSignOnConfigurationWidget.providers.facebook.inactiveMessage": "Client ID or Client Secret is missing. Please configure with your own keys to enable the login.",
+  "SingleSignOnConfigurationWidget.providers.github.inactiveMessage": "Client ID or Client Secret is missing. Please configure with your own keys to enable the login.",
+  "SingleSignOnConfigurationWidget.providers.linkedin.inactiveMessage": "Client ID or Client Secret is missing. Please configure with your own keys to enable the login.",
+  "SingleSignOnConfigurationWidget.providers.azureadv2.inactiveMessage": "Client ID, Client Secret or Tenant is missing. Please configure with your own keys to enable the login.",
+  "SingleSignOnConfigurationWidget.providers.azureadb2c.inactiveMessage": "Client ID, Client Secret, Tenant or Policy is missing. Please configure with your own keys to enable the login.",
+  "SingleSignOnConfigurationWidget.providers.adfs.inactiveMessage": "Client ID, Client Secret or Discovery Document Endpoint is missing. Please configure with your own keys to enable the login.",
+  "SingleSignOnConfigurationWidget.providers.wechat.web.inactiveMessage": "Client ID, Client Secret or Account ID is missing. Please configure with your own keys to enable the login.",
+  "SingleSignOnConfigurationWidget.providers.wechat.mobile.inactiveMessage": "Client ID, Client Secret or Account ID is missing. Please configure with your own keys to enable the login.",
+
   "OAuthBranding.apple": "Sign in with Apple",
   "OAuthBranding.google": "Sign in with Google",
   "OAuthBranding.facebook": "Login with Facebook",
