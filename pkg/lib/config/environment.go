@@ -32,7 +32,7 @@ type ProjectWizardImplementaion string
 
 type GlobalWhatsappAPIType WhatsappAPIType
 
-type OAuthDemoCredentialRedirectURI string
+type SharedAuthgearEndpoint string
 
 func (s AppHostSuffixes) CheckIsDefaultDomain(host string) bool {
 	for _, suffix := range s {
@@ -120,7 +120,7 @@ type EnvironmentConfig struct {
 
 	SMSGatewayConfig SMSGatewayEnvironmentConfig `envconfig:"SMS_GATEWAY"`
 
-	OAuthDemoCredentialRedirectURI OAuthDemoCredentialRedirectURI `envconfig:"OAUTH_DEMO_CREDENTIAL_REDIRECT_URI"`
+	SharedAuthgearEndpoint SharedAuthgearEndpoint `envconfig:"SHARED_AUTHGEAR_ENDPOINT"`
 }
 
 const (
