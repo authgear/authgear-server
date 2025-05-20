@@ -255,13 +255,15 @@ When you are in this step of this flow, you will see a response like the followi
           {
             "identification": "oauth",
             "provider_type": "google",
-            "alias": "google"
+            "alias": "google",
+            "provider_status": "active"
           },
           {
             "identification": "oauth",
             "provider_type": "wechat",
             "alias": "wechat_mobile",
-            "wechat_app_type": "mobile"
+            "wechat_app_type": "mobile",
+            "provider_status": "active"
           }
         ]
       }
@@ -396,7 +398,8 @@ The presence of this means you can sign up with an OAuth provider.
 {
   "identification": "oauth",
   "provider_type": "google",
-  "alias": "google"
+  "alias": "google",
+  "provider_status": "active"
 }
 ```
 
@@ -411,6 +414,10 @@ The presence of this means you can sign up with an OAuth provider.
   - `apple`
   - `wechat`
 - `alias`: The identifier of the OAuth provider. You pass this in the input.
+- `provider_status`: The status about this option. It has the following valid values.
+  - `active`: The OAuth provider has credentials configured and it is usable.
+  - `missing_credentials`: The OAuth provider is missing credentials and it is NOT usable.
+  - `using_demo_credentials`: The OAuth provider is using a shared credentials for demo purpose. It is NOT for production use.
 
 The corresponding input is
 
