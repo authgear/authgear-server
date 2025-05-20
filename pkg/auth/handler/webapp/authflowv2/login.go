@@ -38,10 +38,6 @@ var AuthflowLoginLoginIDSchema = validation.NewSimpleSchema(`
 	}
 `)
 
-type AuthflowLoginEndpointsProvider interface {
-	SSOCallbackURL(alias string, isDemo bool) *url.URL
-}
-
 type AuthflowLoginViewModel struct {
 	AllowLoginOnly bool
 }
@@ -63,7 +59,6 @@ type AuthflowV2LoginHandler struct {
 	MeterService         handlerwebapp.MeterService
 	TutorialCookie       handlerwebapp.TutorialCookie
 	ErrorService         handlerwebapp.ErrorService
-	Endpoints            AuthflowLoginEndpointsProvider
 }
 
 func (h *AuthflowV2LoginHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse, allowLoginOnly bool) (map[string]interface{}, error) {
@@ -107,8 +102,10 @@ func (h *AuthflowV2LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 	}
 
 	oauthPostAction := func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse, providerAlias string) error {
-		// TODO: Support demo credentials
-		callbackURL := h.Endpoints.SSOCallbackURL(providerAlias, false).String()
+		callbackURL, err := h.Controller.GetSSOCallbackURL(providerAlias)
+		if err != nil {
+			return err
+		}
 		input := map[string]interface{}{
 			"identification": "oauth",
 			"alias":          providerAlias,
@@ -116,7 +113,7 @@ func (h *AuthflowV2LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 			"response_mode":  oauthrelyingparty.ResponseModeFormPost,
 		}
 
-		err := handlerwebapp.HandleIdentificationBotProtection(ctx, config.AuthenticationFlowIdentificationOAuth, screen.StateTokenFlowResponse, r.Form, input)
+		err = handlerwebapp.HandleIdentificationBotProtection(ctx, config.AuthenticationFlowIdentificationOAuth, screen.StateTokenFlowResponse, r.Form, input)
 		if err != nil {
 			return err
 		}

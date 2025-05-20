@@ -53,7 +53,6 @@ type AuthflowV2AccountLinkingHandler struct {
 	Controller    *handlerwebapp.AuthflowController
 	BaseViewModel *viewmodels.BaseViewModeler
 	Renderer      handlerwebapp.Renderer
-	Endpoints     handlerwebapp.AuthflowSignupEndpointsProvider
 }
 
 func NewAuthflowV2AccountLinkingViewModel(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) AuthflowV2AccountLinkingViewModel {
@@ -128,10 +127,13 @@ func (h *AuthflowV2AccountLinkingHandler) ServeHTTP(w http.ResponseWriter, r *ht
 			}
 		case config.AuthenticationFlowIdentificationOAuth:
 			providerAlias := option.Alias
+			redirectURI, err := h.Controller.GetSSOCallbackURL(providerAlias)
+			if err != nil {
+				return err
+			}
 			input = map[string]interface{}{
-				"index": index,
-				// TODO: Support demo credentials
-				"redirect_uri": h.Endpoints.SSOCallbackURL(providerAlias, false).String(),
+				"index":        index,
+				"redirect_uri": redirectURI,
 			}
 		case config.AuthenticationFlowIdentificationLDAP:
 			// TODO(DEV-1672): Support Account Linking for LDAP
