@@ -12,6 +12,7 @@ func TestCheckTCPPortIsListening(t *testing.T) {
 	Convey("CheckTCPPortIsListening", t, func() {
 		Convey("When port is available", func() {
 			// Find a free port by opening and immediately closing a listener
+			//nolint: gosec // G102
 			listener, err := net.Listen("tcp", ":0")
 			if err != nil {
 				t.Fatalf("Cannot set up test: %v", err)
@@ -28,6 +29,7 @@ func TestCheckTCPPortIsListening(t *testing.T) {
 
 		Convey("When port is already in use", func() {
 			// Find a free port by letting the OS assign one
+			//nolint: gosec // G102
 			listener, err := net.Listen("tcp", ":0")
 			if err != nil {
 				t.Fatalf("Cannot set up test: %v", err)
@@ -51,6 +53,7 @@ func TestCheckTCPPortIsListening(t *testing.T) {
 			// where a port might be available on one protocol but not another
 
 			// Let OS find an available port
+			//nolint: gosec // G102
 			listener, err := net.Listen("tcp4", ":0")
 			if err != nil {
 				t.Skipf("Cannot set up test with tcp4: %v", err)
@@ -82,6 +85,7 @@ func TestCheckTCPPortIsListening(t *testing.T) {
 
 			// Test with highest valid port 65535
 			// First check if it's already in use
+			//nolint: gosec // G102
 			listener, err := net.Listen("tcp", ":65535")
 			if err != nil {
 				// Port is in use or not available, skip this check
