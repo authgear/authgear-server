@@ -4,7 +4,11 @@ import (
 	"context"
 	"database/sql"
 	"database/sql/driver"
+	"encoding/base64"
 	"fmt"
+	"os"
+	"strconv"
+	"sync"
 	"time"
 
 	"go.opentelemetry.io/otel"
@@ -13,6 +17,7 @@ import (
 	"go.opentelemetry.io/otel/semconv/v1.30.0"
 
 	"github.com/authgear/authgear-server/pkg/util/databasesqlwrapper"
+	"github.com/authgear/authgear-server/pkg/util/debug"
 )
 
 var meter = otel.Meter("github.com/authgear/authgear-server/pkg/util/otelutil/oteldatabasesql")
@@ -189,6 +194,7 @@ type ConnPool struct {
 }
 
 func (p *ConnPool) Conn(ctx context.Context) (*Conn, error) {
+
 	// Intentionally not calling .UTC() to use monotonic clock.
 	startTime := time.Now()
 	defer func() {
@@ -201,10 +207,29 @@ func (p *ConnPool) Conn(ctx context.Context) (*Conn, error) {
 			metric.WithAttributes(p.poolAttrs...),
 		)
 	}()
+
+	Conn_blocking_ended := make(chan struct{}, 1)
+	debug_connectionTimeout := once_get_AUTHGEARDEBUG_DATABASE_CONNECTION_WAIT_TIME_TIMEOUT_MILLISECONDS()
+	if debug_connectionTimeout > 0 {
+		go func() {
+			select {
+			case <-Conn_blocking_ended:
+				break
+			case <-time.After(debug_connectionTimeout):
+				stack := debug.Stack()
+				fmt.Fprintf(os.Stderr, "AUTHGEARDEBUG_DATABASE_CONNECTION_WAIT_TIME_TIMEOUT_MILLISECONDS: %v\n", base64.StdEncoding.EncodeToString(stack))
+			}
+		}()
+	}
+
 	sqlConn, err := p.db.Conn(ctx)
+	if debug_connectionTimeout > 0 {
+		Conn_blocking_ended <- struct{}{}
+	}
 	if err != nil {
 		return nil, err
 	}
+
 	return &Conn{
 		ctx: ctx,
 		// Intentionally not calling .UTC() to use monotonic clock.
@@ -742,3 +767,20 @@ func (c contextIgnoringConnector) Connect(_ context.Context) (driver.Conn, error
 func (c contextIgnoringConnector) Driver() driver.Driver {
 	return c.driver
 }
+
+func get_AUTHGEARDEBUG_DATABASE_CONNECTION_WAIT_TIME_TIMEOUT_MILLISECONDS() time.Duration {
+	s := os.Getenv("AUTHGEARDEBUG_DATABASE_CONNECTION_WAIT_TIME_TIMEOUT_MILLISECONDS")
+	if s == "" {
+		return 0
+	}
+	millis, err := strconv.Atoi(s)
+	if err != nil {
+		return 0
+	}
+	if millis <= 0 {
+		return 0
+	}
+	return time.Duration(millis) * time.Millisecond
+}
+
+var once_get_AUTHGEARDEBUG_DATABASE_CONNECTION_WAIT_TIME_TIMEOUT_MILLISECONDS = sync.OnceValue(get_AUTHGEARDEBUG_DATABASE_CONNECTION_WAIT_TIME_TIMEOUT_MILLISECONDS)
