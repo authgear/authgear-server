@@ -78,6 +78,8 @@ const (
 	// The following routes are dead ends.
 	AuthflowV2RouteAccountStatus   = "/authflow/v2/account_status"
 	AuthflowV2RouteNoAuthenticator = "/authflow/v2/no_authenticator"
+	// nolint:gosec
+	AuthflowV2RouteOAuthProviderMissingCredentials = "/authflow/v2/oauth_provider_missing_credential"
 
 	AuthflowV2RouteFinishFlow = "/authflow/v2/finish"
 
@@ -144,6 +146,8 @@ func (n *AuthflowV2Navigator) NavigateNonRecoverableError(r *http.Request, u *ur
 		u.Path = AuthflowV2RouteNoAuthenticator
 	case errors.Is(e, authflow.ErrFlowNotFound):
 		u.Path = n.Endpoints.ErrorEndpointURL().Path
+	case apierrors.IsKind(e, api.OAuthProviderMissingCredentials):
+		u.Path = AuthflowV2RouteOAuthProviderMissingCredentials
 	case apierrors.IsKind(e, webapp.WebUIInvalidSession):
 		// Show WebUIInvalidSession error in different page.
 		u.Path = n.Endpoints.ErrorEndpointURL().Path

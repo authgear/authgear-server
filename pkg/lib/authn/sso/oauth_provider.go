@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
 
 	"github.com/authgear/authgear-server/pkg/api"
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/oauthrelyingpartyutil"
@@ -34,9 +35,20 @@ func (p *OAuthProviderFactory) GetProviderConfig(alias string) (oauthrelyingpart
 	return providerConfig, nil
 }
 
-func (p *OAuthProviderFactory) getProvider(alias string) (provider oauthrelyingparty.Provider, deps *oauthrelyingparty.Dependencies, err error) {
+func (p *OAuthProviderFactory) getActiveOrDemoProvider(alias string) (provider oauthrelyingparty.Provider, deps *oauthrelyingparty.Dependencies, err error) {
 	providerConfig, err := p.GetProviderConfig(alias)
 	if err != nil {
+		return
+	}
+
+	if config.OAuthSSOProviderConfig(providerConfig).IsMissingCredentialAllowed() {
+		// TODO(tung): handle demo status
+
+		details := apierrors.Details{
+			"OAuthProviderAlias": alias,
+			"OAuthProviderType":  providerConfig.Type(),
+		}
+		err = api.OAuthProviderMissingCredentials.NewWithInfo("oauth provider is missing credentials", details)
 		return
 	}
 
@@ -59,7 +71,7 @@ func (p *OAuthProviderFactory) getProvider(alias string) (provider oauthrelyingp
 }
 
 func (p *OAuthProviderFactory) GetAuthorizationURL(ctx context.Context, alias string, options oauthrelyingparty.GetAuthorizationURLOptions) (url string, err error) {
-	provider, deps, err := p.getProvider(alias)
+	provider, deps, err := p.getActiveOrDemoProvider(alias)
 	if err != nil {
 		return
 	}
@@ -68,7 +80,7 @@ func (p *OAuthProviderFactory) GetAuthorizationURL(ctx context.Context, alias st
 }
 
 func (p *OAuthProviderFactory) GetUserProfile(ctx context.Context, alias string, options oauthrelyingparty.GetUserProfileOptions) (userProfile oauthrelyingparty.UserProfile, err error) {
-	provider, deps, err := p.getProvider(alias)
+	provider, deps, err := p.getActiveOrDemoProvider(alias)
 	if err != nil {
 		return
 	}
