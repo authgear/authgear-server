@@ -8,9 +8,9 @@ import (
 type OAuthProviderStatus string
 
 const (
-	OAuthProviderStatusActive   OAuthProviderStatus = "active"
-	OAuthProviderStatusInactive OAuthProviderStatus = "inactive"
-	// TODO(tung): Add demo status
+	OAuthProviderStatusActive               OAuthProviderStatus = "active"
+	OAuthProviderStatusMissingCredentials   OAuthProviderStatus = "missing_credentials"
+	OAuthProviderStatusUsingDemoCredentials OAuthProviderStatus = "using_demo_credentials"
 )
 
 type OAuthData struct {
