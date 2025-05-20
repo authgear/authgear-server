@@ -408,6 +408,8 @@ docker_authgear_first_time_setup() {
 
 	app_id_accounts="accounts"
 	init_output_accounts="$(mktemp -d)"
+	# The trailing . in src is important.
+	cp -R "$HOME/resources/." "$init_output_accounts"
 	authgear init --interactive=false \
 		--purpose=portal \
 		--for-helm-chart=true \
