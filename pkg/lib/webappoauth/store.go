@@ -8,7 +8,6 @@ import (
 
 	goredis "github.com/redis/go-redis/v9"
 
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/globalredis"
 	"github.com/authgear/authgear-server/pkg/util/base32"
@@ -19,7 +18,6 @@ import (
 
 type Store struct {
 	Redis *globalredis.Handle
-	AppID config.AppID
 }
 
 func NewStateToken() (stateToken string, stateTokenHash string) {
@@ -57,8 +55,7 @@ func (s *Store) GenerateState(ctx context.Context, state *WebappOAuthState) (sta
 
 	return
 }
-
-func (s *Store) PopAndRecoverState(ctx context.Context, stateToken string) (state *WebappOAuthState, err error) {
+func (s *Store) readState(ctx context.Context, stateToken string, deleteKey bool) (state *WebappOAuthState, err error) {
 	stateTokenHash := crypto.SHA256String(stateToken)
 	key := stateKey(stateTokenHash)
 
@@ -73,9 +70,11 @@ func (s *Store) PopAndRecoverState(ctx context.Context, stateToken string) (stat
 			return err
 		}
 
-		_, err = conn.Del(ctx, key).Result()
-		if err != nil {
-			return err
+		if deleteKey {
+			_, err = conn.Del(ctx, key).Result()
+			if err != nil {
+				return err
+			}
 		}
 
 		return nil
@@ -92,6 +91,14 @@ func (s *Store) PopAndRecoverState(ctx context.Context, stateToken string) (stat
 
 	state = &stateStruct
 	return
+}
+
+func (s *Store) PopAndRecoverState(ctx context.Context, stateToken string) (state *WebappOAuthState, err error) {
+	return s.readState(ctx, stateToken, true)
+}
+
+func (s *Store) RecoverState(ctx context.Context, stateToken string) (state *WebappOAuthState, err error) {
+	return s.readState(ctx, stateToken, false)
 }
 
 func stateKey(stateTokenHash string) string {
