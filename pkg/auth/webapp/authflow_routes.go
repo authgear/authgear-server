@@ -76,6 +76,7 @@ type AuthflowNavigatorOAuthStateStore interface {
 }
 
 type AuthflowNavigator struct {
+	AppID           config.AppID
 	Endpoints       AuthflowNavigatorEndpointsProvider
 	OAuthStateStore AuthflowNavigatorOAuthStateStore
 }
@@ -275,6 +276,7 @@ func (n *AuthflowNavigator) navigateStepIdentify(ctx context.Context, s *Authflo
 			q := authorizationURL.Query()
 
 			state := &webappoauth.WebappOAuthState{
+				AppID:            string(n.AppID),
 				WebSessionID:     webSessionID,
 				UIImplementation: config.Deprecated_UIImplementationAuthflow,
 				XStep:            s.Screen.StateToken.XStep,

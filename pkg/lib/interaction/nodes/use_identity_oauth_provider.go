@@ -84,6 +84,7 @@ func (e *EdgeUseIdentityOAuthProvider) Instantiate(goCtx context.Context, ctx *i
 	}
 
 	state := &webappoauth.WebappOAuthState{
+		AppID:            string(ctx.Config.ID),
 		UIImplementation: config.UIImplementationInteraction,
 		WebSessionID:     ctx.WebSessionID,
 	}
