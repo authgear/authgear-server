@@ -145,7 +145,7 @@ func (n *AuthflowV2Navigator) NavigateNonRecoverableError(r *http.Request, u *ur
 		u.Path = AuthflowV2RouteNoAuthenticator
 	case errors.Is(e, authflow.ErrFlowNotFound):
 		u.Path = n.Endpoints.ErrorEndpointURL().Path
-	case apierrors.IsKind(e, api.OAuthProviderInactive):
+	case apierrors.IsKind(e, api.OAuthProviderMissingCredentials):
 		u.Path = AuthflowV2RouteOAuthProviderInactive
 	case apierrors.IsKind(e, webapp.WebUIInvalidSession):
 		// Show WebUIInvalidSession error in different page.

@@ -47,7 +47,7 @@ steps:
       error: |
         {
           "name": "Invalid",
-          "reason": "OAuthProviderInactive",
+          "reason": "OAuthProviderMissingCredentials",
           "message": "oauth provider is inactive because of missing credentials",
           "code": 400,
           "info": {
