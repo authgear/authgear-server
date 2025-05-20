@@ -929,11 +929,11 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          rand,
 	}
-	oAuthDemoCredentialRedirectURI := environmentConfig.OAuthDemoCredentialRedirectURI
+	sharedAuthgearEndpoint := environmentConfig.SharedAuthgearEndpoint
 	oAuthEndpoints := &endpoints.OAuthEndpoints{
-		HTTPHost:                       httpHost,
-		HTTPProto:                      httpProto,
-		OAuthDemoCredentialRedirectURI: oAuthDemoCredentialRedirectURI,
+		HTTPHost:               httpHost,
+		HTTPProto:              httpProto,
+		SharedAuthgearEndpoint: sharedAuthgearEndpoint,
 	}
 	globalUIImplementation := environmentConfig.UIImplementation
 	globalUISettingsImplementation := environmentConfig.UISettingsImplementation

@@ -225,11 +225,11 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
-	oAuthDemoCredentialRedirectURI := environmentConfig.OAuthDemoCredentialRedirectURI
+	sharedAuthgearEndpoint := environmentConfig.SharedAuthgearEndpoint
 	oAuthEndpoints := &endpoints.OAuthEndpoints{
-		HTTPHost:                       httpHost,
-		HTTPProto:                      httpProto,
-		OAuthDemoCredentialRedirectURI: oAuthDemoCredentialRedirectURI,
+		HTTPHost:               httpHost,
+		HTTPProto:              httpProto,
+		SharedAuthgearEndpoint: sharedAuthgearEndpoint,
 	}
 	uiConfig := appConfig.UI
 	globalUIImplementation := environmentConfig.UIImplementation
