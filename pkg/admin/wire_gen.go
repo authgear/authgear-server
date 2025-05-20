@@ -929,6 +929,12 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          rand,
 	}
+	oAuthDemoCredentialRedirectURI := environmentConfig.OAuthDemoCredentialRedirectURI
+	oAuthEndpoints := &endpoints.OAuthEndpoints{
+		HTTPHost:                       httpHost,
+		HTTPProto:                      httpProto,
+		OAuthDemoCredentialRedirectURI: oAuthDemoCredentialRedirectURI,
+	}
 	globalUIImplementation := environmentConfig.UIImplementation
 	globalUISettingsImplementation := environmentConfig.UISettingsImplementation
 	uiImplementationService := &web.UIImplementationService{
@@ -937,8 +943,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		GlobalUISettingsImplementation: globalUISettingsImplementation,
 	}
 	endpointsEndpoints := &endpoints.Endpoints{
-		HTTPHost:                httpHost,
-		HTTPProto:               httpProto,
+		OAuthEndpoints:          oAuthEndpoints,
 		UIImplementationService: uiImplementationService,
 	}
 	oauthclientResolver := &oauthclient.Resolver{
@@ -1033,7 +1038,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig, factory)
 	webappoauthStore := &webappoauth.Store{
 		Redis: globalredisHandle,
-		AppID: appID,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
