@@ -170,6 +170,7 @@ func (h *AuthflowV2SettingsIdentityListOAuthHandler) ServeHTTP(w http.ResponseWr
 		state := &webappoauth.WebappOAuthState{
 			AppID:                  string(h.AppID),
 			AccountManagementToken: output.Token,
+			ProviderAlias:          alias,
 		}
 		stateToken, err := h.OAuthStateStore.GenerateState(ctx, state)
 		if err != nil {

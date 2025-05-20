@@ -67,6 +67,7 @@ func (h *AuthflowV2WechatHandler) GetData(ctx context.Context, w http.ResponseWr
 			Path:     r.URL.Path,
 			RawQuery: r.URL.Query().Encode(),
 		}).String(),
+		ProviderAlias: screenData.Alias,
 	}
 	stateToken, err := h.OAuthStateStore.GenerateState(ctx, state)
 	if err != nil {

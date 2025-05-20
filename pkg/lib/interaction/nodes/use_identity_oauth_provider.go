@@ -87,6 +87,7 @@ func (e *EdgeUseIdentityOAuthProvider) Instantiate(goCtx context.Context, ctx *i
 		AppID:            string(ctx.Config.ID),
 		UIImplementation: config.UIImplementationInteraction,
 		WebSessionID:     ctx.WebSessionID,
+		ProviderAlias:    alias,
 	}
 	stateToken, err := ctx.OAuthStateStore.GenerateState(goCtx, state)
 	if err != nil {

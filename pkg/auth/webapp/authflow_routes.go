@@ -281,6 +281,7 @@ func (n *AuthflowNavigator) navigateStepIdentify(ctx context.Context, s *Authflo
 				UIImplementation: config.Deprecated_UIImplementationAuthflow,
 				XStep:            s.Screen.StateToken.XStep,
 				ErrorRedirectURI: expectedPath,
+				ProviderAlias:    data.Alias,
 			}
 
 			stateToken, err := n.OAuthStateStore.GenerateState(ctx, state)
