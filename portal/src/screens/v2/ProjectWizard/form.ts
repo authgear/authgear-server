@@ -13,7 +13,9 @@ import { useOptionalAppContext } from "../../../context/AppContext";
 import { useSaveProjectWizardDataMutation } from "../../../graphql/portal/mutations/saveProjectWizardDataMutation";
 import {
   LoginIDKeyConfig,
+  OAuthSSOProviderConfig,
   PortalAPIAppConfig,
+  PortalAPISecretConfigUpdateInstruction,
   PrimaryAuthenticatorType,
 } from "../../../types";
 import { useAppAndSecretConfigQuery } from "../../../graphql/portal/query/appAndSecretConfigQuery";
@@ -67,7 +69,17 @@ export enum ProjectWizardStep {
 export enum LoginMethod {
   Email = "Email",
   Phone = "Phone",
-  Username = "username",
+  Username = "Username",
+  Google = "Google",
+  Apple = "Apple",
+  Facebook = "Facebook",
+  Github = "Github",
+  LinkedIn = "LinkedIn",
+  MicrosoftEntraID = "MicrosoftEntraID",
+  MicrosoftADFS = "MicrosoftADFS",
+  MicrosoftAzureADB2C = "MicrosoftAzureADB2C",
+  WechatWeb = "WechatWeb",
+  WechatMobile = "WechatMobile",
 }
 
 export enum AuthMethod {
@@ -180,9 +192,118 @@ function deriveLoginIDKeysFromFormState(
       case LoginMethod.Username:
         keys.push({ type: "username" });
         break;
+      case LoginMethod.Google:
+        break;
+      case LoginMethod.Apple:
+        break;
+      case LoginMethod.Facebook:
+        break;
+      case LoginMethod.Github:
+        break;
+      case LoginMethod.LinkedIn:
+        break;
+      case LoginMethod.MicrosoftEntraID:
+        break;
+      case LoginMethod.MicrosoftADFS:
+        break;
+      case LoginMethod.MicrosoftAzureADB2C:
+        break;
+      case LoginMethod.WechatWeb:
+        break;
+      case LoginMethod.WechatMobile:
+        break;
     }
   }
   return keys;
+}
+
+function deriveOAuthProvidersFromFormState(
+  formState: FormState
+): OAuthSSOProviderConfig[] {
+  const configs: OAuthSSOProviderConfig[] = [];
+  for (const method of formState.loginMethods) {
+    switch (method) {
+      case LoginMethod.Apple:
+        configs.push({
+          type: "apple",
+          alias: "apple",
+          disabled: true,
+        });
+        break;
+      case LoginMethod.Google:
+        configs.push({
+          type: "google",
+          alias: "google",
+          disabled: true,
+        });
+        break;
+      case LoginMethod.Facebook:
+        configs.push({
+          type: "facebook",
+          alias: "facebook",
+          disabled: true,
+        });
+        break;
+      case LoginMethod.Github:
+        configs.push({
+          type: "github",
+          alias: "github",
+          disabled: true,
+        });
+        break;
+      case LoginMethod.LinkedIn:
+        configs.push({
+          type: "linkedin",
+          alias: "linkedin",
+          disabled: true,
+        });
+        break;
+      case LoginMethod.MicrosoftEntraID:
+        configs.push({
+          type: "azureadv2",
+          alias: "azureadv2",
+          disabled: true,
+        });
+        break;
+      case LoginMethod.MicrosoftADFS:
+        configs.push({
+          type: "adfs",
+          alias: "adfs",
+          disabled: true,
+        });
+        break;
+      case LoginMethod.MicrosoftAzureADB2C:
+        configs.push({
+          type: "azureadb2c",
+          alias: "azureadb2c",
+          disabled: true,
+        });
+        break;
+      case LoginMethod.WechatWeb:
+        configs.push({
+          type: "wechat",
+          app_type: "web",
+          alias: "wechat_web",
+          disabled: true,
+        });
+        break;
+      case LoginMethod.WechatMobile:
+        configs.push({
+          type: "wechat",
+          app_type: "mobile",
+          alias: "wechat_mobile",
+          disabled: true,
+        });
+        break;
+      case LoginMethod.Email:
+        break;
+      case LoginMethod.Phone:
+        break;
+      case LoginMethod.Username:
+        break;
+    }
+  }
+  return configs;
 }
 
 function derivePrimaryAuthenticatorsFromFormState(
@@ -216,6 +337,10 @@ function constructConfig(
     config.identity.login_id ??= {};
     config.identity.login_id.keys =
       deriveLoginIDKeysFromFormState(currentState);
+    config.identity.oauth = {
+      providers: deriveOAuthProvidersFromFormState(currentState),
+    };
+
     config.authentication ??= {};
     config.authentication.identities = ["oauth", "login_id"];
 
@@ -226,6 +351,23 @@ function constructConfig(
     config.ui.dark_theme_disabled = true;
     config.ui.light_theme_disabled = undefined;
   });
+}
+
+function constructSecretUpdateInstruction(
+  newConfig: PortalAPIAppConfig
+): PortalAPISecretConfigUpdateInstruction | undefined {
+  if (newConfig.identity?.oauth?.providers == null) {
+    return undefined;
+  }
+  return {
+    oauthSSOProviderClientSecrets: {
+      action: "set",
+      data: newConfig.identity.oauth.providers.map((provider) => ({
+        newAlias: provider.alias,
+        newClientSecret: "",
+      })),
+    },
+  };
 }
 
 export function useProjectWizardForm(
@@ -336,9 +478,12 @@ export function useProjectWizardForm(
             throw new Error("unexpected error: rawAppConfig is null");
           }
           const newConfig = constructConfig(rawAppConfig, updatedState);
+          const secretUpdateInstruction =
+            constructSecretUpdateInstruction(newConfig);
           await updateAppConfig({
             appConfig: newConfig,
             appConfigChecksum: rawAppConfigChecksum,
+            secretConfigUpdateInstructions: secretUpdateInstruction,
             ignoreConflict: true,
           });
           await resourceForm.save();
