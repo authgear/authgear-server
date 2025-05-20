@@ -9,27 +9,27 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
-var TemplateWebAuthflowV2OAuthProviderInactiveHTML = template.RegisterHTML(
-	"web/authflowv2/oauth_provider_inactive.html",
+var TemplateWebAuthflowV2OAuthProviderMissingCredentialsHTML = template.RegisterHTML(
+	"web/authflowv2/oauth_provider_missing_credential.html",
 	handlerwebapp.Components...,
 )
 
-func ConfigureAuthflowV2OAuthProviderInactiveRoute(route httproute.Route) httproute.Route {
+func ConfigureAuthflowV2OAuthProviderMissingCredentialsRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "GET").
-		WithPathPattern(AuthflowV2RouteOAuthProviderInactive)
+		WithPathPattern(AuthflowV2RouteOAuthProviderMissingCredentials)
 }
 
-type AuthflowV2OAuthProviderInactiveHandler struct {
+type AuthflowV2OAuthProviderMissingCredentialsHandler struct {
 	BaseViewModel *viewmodels.BaseViewModeler
 	Renderer      handlerwebapp.Renderer
 }
 
-func (h *AuthflowV2OAuthProviderInactiveHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *AuthflowV2OAuthProviderMissingCredentialsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	data := make(map[string]interface{})
 
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
 	viewmodels.Embed(data, baseViewModel)
 
-	h.Renderer.RenderHTML(w, r, TemplateWebAuthflowV2OAuthProviderInactiveHTML, data)
+	h.Renderer.RenderHTML(w, r, TemplateWebAuthflowV2OAuthProviderMissingCredentialsHTML, data)
 }
