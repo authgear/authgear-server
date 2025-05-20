@@ -16,7 +16,7 @@ import (
 
 func ConfigureNoProjectSSOCallbackRoute(route httproute.Route) httproute.Route {
 	return route.
-		WithMethods("GET").
+		WithMethods("OPTIONS", "POST", "GET").
 		WithPathPattern("/noproject/sso/oauth2/callback")
 }
 
