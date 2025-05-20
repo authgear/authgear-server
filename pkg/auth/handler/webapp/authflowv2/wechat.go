@@ -44,6 +44,7 @@ type AuthflowV2WechatHandlerOAuthStateStore interface {
 }
 
 type AuthflowV2WechatHandler struct {
+	AppID           config.AppID
 	Controller      *handlerwebapp.AuthflowController
 	BaseViewModel   *viewmodels.BaseViewModeler
 	Renderer        handlerwebapp.Renderer
@@ -58,6 +59,7 @@ func (h *AuthflowV2WechatHandler) GetData(ctx context.Context, w http.ResponseWr
 
 	screenData := screen.StateTokenFlowResponse.Action.Data.(declarative.OAuthData)
 	state := &webappoauth.WebappOAuthState{
+		AppID:            string(h.AppID),
 		WebSessionID:     s.ID,
 		UIImplementation: config.UIImplementationAuthflowV2,
 		XStep:            screen.Screen.StateToken.XStep,

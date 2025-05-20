@@ -5,6 +5,7 @@ import (
 )
 
 type WebappOAuthState struct {
+	AppID            string                  `json:"app_id"`
 	UIImplementation config.UIImplementation `json:"ui_implementation"`
 	WebSessionID     string                  `json:"web_session_id"`
 

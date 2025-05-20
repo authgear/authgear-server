@@ -14,6 +14,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/accountmanagement"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	identityservice "github.com/authgear/authgear-server/pkg/lib/authn/identity/service"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/session"
@@ -43,6 +44,7 @@ type AuthflowV2SettingsIdentityListOAuthViewModel struct {
 }
 
 type AuthflowV2SettingsIdentityListOAuthHandler struct {
+	AppID             config.AppID
 	Database          *appdb.Handle
 	ControllerFactory handlerwebapp.ControllerFactory
 	BaseViewModel     *viewmodels.BaseViewModeler
@@ -166,6 +168,7 @@ func (h *AuthflowV2SettingsIdentityListOAuthHandler) ServeHTTP(w http.ResponseWr
 		}
 
 		state := &webappoauth.WebappOAuthState{
+			AppID:                  string(h.AppID),
 			AccountManagementToken: output.Token,
 		}
 		stateToken, err := h.OAuthStateStore.GenerateState(ctx, state)
