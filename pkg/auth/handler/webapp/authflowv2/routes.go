@@ -76,9 +76,10 @@ const (
 	SettingsV2RouteAdvancedSettings = "/settings/advanced_settings"
 
 	// The following routes are dead ends.
-	AuthflowV2RouteAccountStatus                   = "/authflow/v2/account_status"
-	AuthflowV2RouteNoAuthenticator                 = "/authflow/v2/no_authenticator"
-	AuthflowV2RouteOAuthProviderMissingCredentials = "/authflow/v2/oauth_provider_inactive"
+	AuthflowV2RouteAccountStatus   = "/authflow/v2/account_status"
+	AuthflowV2RouteNoAuthenticator = "/authflow/v2/no_authenticator"
+	// nolint:gosec
+	AuthflowV2RouteOAuthProviderMissingCredentials = "/authflow/v2/oauth_provider_missing_credential"
 
 	AuthflowV2RouteFinishFlow = "/authflow/v2/finish"
 
