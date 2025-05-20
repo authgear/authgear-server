@@ -10,7 +10,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
-	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis/globalredis"
 	"github.com/authgear/authgear-server/pkg/util/base32"
 	"github.com/authgear/authgear-server/pkg/util/crypto"
 	"github.com/authgear/authgear-server/pkg/util/duration"
@@ -18,7 +18,7 @@ import (
 )
 
 type Store struct {
-	Redis *appredis.Handle
+	Redis *globalredis.Handle
 	AppID config.AppID
 }
 
@@ -39,7 +39,7 @@ func (s *Store) GenerateState(ctx context.Context, state *WebappOAuthState) (sta
 	ttl := duration.UserInteraction
 
 	stateToken, stateTokenHash := NewStateToken()
-	key := stateKey(string(s.AppID), stateTokenHash)
+	key := stateKey(stateTokenHash)
 
 	err = s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
 		_, err := conn.SetNX(ctx, key, data, ttl).Result()
@@ -60,7 +60,7 @@ func (s *Store) GenerateState(ctx context.Context, state *WebappOAuthState) (sta
 
 func (s *Store) PopAndRecoverState(ctx context.Context, stateToken string) (state *WebappOAuthState, err error) {
 	stateTokenHash := crypto.SHA256String(stateToken)
-	key := stateKey(string(s.AppID), stateTokenHash)
+	key := stateKey(stateTokenHash)
 
 	var data []byte
 	err = s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
@@ -94,6 +94,6 @@ func (s *Store) PopAndRecoverState(ctx context.Context, stateToken string) (stat
 	return
 }
 
-func stateKey(appID string, stateTokenHash string) string {
-	return fmt.Sprintf("app:%s:oauthrelyingparty-state:%s", appID, stateTokenHash)
+func stateKey(stateTokenHash string) string {
+	return fmt.Sprintf("oauthrelyingparty-state:%s", stateTokenHash)
 }
