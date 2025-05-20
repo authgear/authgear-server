@@ -3,7 +3,7 @@ import {
   SSOProviderFormSecretViewModel,
 } from "../types";
 
-export function deriveOAuthProviderDisabled(
+export function isOAuthProviderMissingCredential(
   config: OAuthSSOProviderConfig,
   secret: SSOProviderFormSecretViewModel
 ): boolean {
