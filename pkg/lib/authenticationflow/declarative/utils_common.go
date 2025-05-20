@@ -747,11 +747,18 @@ func getOAuthData(ctx context.Context, deps *authflow.Dependencies, opts GetOAut
 		return
 	}
 
+	status := OAuthProviderStatusActive
+	if config.OAuthSSOProviderConfig(providerConfig).IsMissingCredentialAllowed() {
+		status = OAuthProviderStatusMissingCredentials
+		// TODO(tung): Add demo status
+	}
+
 	data = NewOAuthData(OAuthData{
 		Alias:                 opts.Alias,
 		OAuthProviderType:     providerConfig.Type(),
 		OAuthAuthorizationURL: authorizationURL,
 		WechatAppType:         wechat.ProviderConfig(providerConfig).AppType(),
+		ProviderStatus:        status,
 	})
 	return
 }
