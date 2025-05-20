@@ -11,9 +11,9 @@ import (
 )
 
 type OAuthEndpoints struct {
-	HTTPHost                       httputil.HTTPHost
-	HTTPProto                      httputil.HTTPProto
-	OAuthDemoCredentialRedirectURI config.OAuthDemoCredentialRedirectURI
+	HTTPHost               httputil.HTTPHost
+	HTTPProto              httputil.HTTPProto
+	SharedAuthgearEndpoint config.SharedAuthgearEndpoint
 }
 
 type EndpointsUIImplementationService interface {
@@ -52,10 +52,11 @@ func (e *OAuthEndpoints) urlOf(relPath string) *url.URL {
 func (e *OAuthEndpoints) SSOCallbackEndpointURL() *url.URL { return e.urlOf("sso/oauth2/callback") }
 func (e *OAuthEndpoints) SSOCallbackURL(alias string, isDemo bool) *url.URL {
 	if isDemo {
-		u, err := url.Parse(string(e.OAuthDemoCredentialRedirectURI))
+		u, err := url.Parse(string(e.SharedAuthgearEndpoint))
 		if err != nil {
-			panic(fmt.Errorf("demo credential redirect uri is not a valid uri: %w", err))
+			panic(fmt.Errorf("SHARED_AUTHGEAR_ENDPOINT is not a valid uri: %w", err))
 		}
+		u.Path = path.Join(u.Path, "/noproject/sso/oauth2/callback")
 		return u
 	}
 	u := e.SSOCallbackEndpointURL()

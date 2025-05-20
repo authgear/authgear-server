@@ -11,9 +11,9 @@ func TestEndpoints(t *testing.T) {
 	Convey("Endpoints", t, func() {
 		endpoints := Endpoints{
 			OAuthEndpoints: &OAuthEndpoints{
-				HTTPProto:                      "https",
-				HTTPHost:                       "example.com",
-				OAuthDemoCredentialRedirectURI: "https://example.com/demo",
+				HTTPProto:              "https",
+				HTTPHost:               "example.com",
+				SharedAuthgearEndpoint: "https://shared.example.com",
 			},
 		}
 
@@ -37,6 +37,6 @@ func TestEndpoints(t *testing.T) {
 		So(endpoints.SettingsEndpointURL().String(), ShouldEqual, "https://example.com/settings")
 		So(endpoints.SSOCallbackEndpointURL().String(), ShouldEqual, "https://example.com/sso/oauth2/callback")
 		So(endpoints.SSOCallbackURL("google", false).String(), ShouldEqual, "https://example.com/sso/oauth2/callback/google")
-		So(endpoints.SSOCallbackURL("google", true).String(), ShouldEqual, "https://example.com/demo")
+		So(endpoints.SSOCallbackURL("google", true).String(), ShouldEqual, "https://shared.example.com/noproject/sso/oauth2/callback")
 	})
 }

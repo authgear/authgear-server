@@ -877,11 +877,11 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 		Clock:           clockClock,
 		Random:          rand,
 	}
-	oAuthDemoCredentialRedirectURI := environmentConfig.OAuthDemoCredentialRedirectURI
+	sharedAuthgearEndpoint := environmentConfig.SharedAuthgearEndpoint
 	oAuthEndpoints := &endpoints.OAuthEndpoints{
-		HTTPHost:                       httpHost,
-		HTTPProto:                      httpProto,
-		OAuthDemoCredentialRedirectURI: oAuthDemoCredentialRedirectURI,
+		HTTPHost:               httpHost,
+		HTTPProto:              httpProto,
+		SharedAuthgearEndpoint: sharedAuthgearEndpoint,
 	}
 	globalUIImplementation := environmentConfig.UIImplementation
 	globalUISettingsImplementation := environmentConfig.UISettingsImplementation
