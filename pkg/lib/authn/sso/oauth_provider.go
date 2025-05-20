@@ -41,14 +41,14 @@ func (p *OAuthProviderFactory) getActiveOrDemoProvider(alias string) (provider o
 		return
 	}
 
-	if config.OAuthSSOProviderConfig(providerConfig).IsDisabled() {
+	if config.OAuthSSOProviderConfig(providerConfig).IsMissingCredentialAllowed() {
 		// TODO(tung): handle demo status
 
 		details := apierrors.Details{
 			"OAuthProviderAlias": alias,
 			"OAuthProviderType":  providerConfig.Type(),
 		}
-		err = api.OAuthProviderMissingCredentials.NewWithInfo("oauth provider is inactive because of missing credentials", details)
+		err = api.OAuthProviderMissingCredentials.NewWithInfo("oauth provider is missing credentials", details)
 		return
 	}
 

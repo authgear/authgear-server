@@ -227,56 +227,56 @@ function deriveOAuthProvidersFromFormState(
         configs.push({
           type: "apple",
           alias: "apple",
-          disabled: true,
+          missing_credential_allowed: true,
         });
         break;
       case LoginMethod.Google:
         configs.push({
           type: "google",
           alias: "google",
-          disabled: true,
+          missing_credential_allowed: true,
         });
         break;
       case LoginMethod.Facebook:
         configs.push({
           type: "facebook",
           alias: "facebook",
-          disabled: true,
+          missing_credential_allowed: true,
         });
         break;
       case LoginMethod.Github:
         configs.push({
           type: "github",
           alias: "github",
-          disabled: true,
+          missing_credential_allowed: true,
         });
         break;
       case LoginMethod.LinkedIn:
         configs.push({
           type: "linkedin",
           alias: "linkedin",
-          disabled: true,
+          missing_credential_allowed: true,
         });
         break;
       case LoginMethod.MicrosoftEntraID:
         configs.push({
           type: "azureadv2",
           alias: "azureadv2",
-          disabled: true,
+          missing_credential_allowed: true,
         });
         break;
       case LoginMethod.MicrosoftADFS:
         configs.push({
           type: "adfs",
           alias: "adfs",
-          disabled: true,
+          missing_credential_allowed: true,
         });
         break;
       case LoginMethod.MicrosoftAzureADB2C:
         configs.push({
           type: "azureadb2c",
           alias: "azureadb2c",
-          disabled: true,
+          missing_credential_allowed: true,
         });
         break;
       case LoginMethod.WechatWeb:
@@ -284,7 +284,7 @@ function deriveOAuthProvidersFromFormState(
           type: "wechat",
           app_type: "web",
           alias: "wechat_web",
-          disabled: true,
+          missing_credential_allowed: true,
         });
         break;
       case LoginMethod.WechatMobile:
@@ -292,7 +292,7 @@ function deriveOAuthProvidersFromFormState(
           type: "wechat",
           app_type: "mobile",
           alias: "wechat_mobile",
-          disabled: true,
+          missing_credential_allowed: true,
         });
         break;
       case LoginMethod.Email:

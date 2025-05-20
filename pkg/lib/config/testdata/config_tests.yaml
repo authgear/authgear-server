@@ -344,14 +344,14 @@ config:
         - type: apple
           alias: apple
           client_id: client_id
-          disabled: true
+          missing_credential_allowed: true
 
 ---
-name: oauth-provider-validate-provider-fields-if-not-disabled
+name: oauth-provider-validate-provider-fields-if-not-missing-credential-allowed
 error: |-
   invalid configuration:
   /identity/oauth/providers/0: required
-    map[actual:[alias claims client_id create_disabled delete_disabled disabled type] expected:[client_id key_id team_id type] missing:[key_id team_id]]
+    map[actual:[alias claims client_id create_disabled delete_disabled missing_credential_allowed type] expected:[client_id key_id team_id type] missing:[key_id team_id]]
 config:
   id: test
   http:
@@ -362,7 +362,7 @@ config:
         - type: apple
           alias: apple
           client_id: client_id
-          disabled: false
+          missing_credential_allowed: false
 
 ---
 name: oauth-client-max-concurrent-session

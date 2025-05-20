@@ -94,7 +94,7 @@ export interface OAuthSSOProviderConfig {
   type: OAuthSSOProviderType;
   create_disabled?: boolean;
   delete_disabled?: boolean;
-  disabled?: boolean;
+  missing_credential_allowed?: boolean;
   client_id?: string;
   tenant?: string;
   key_id?: string;
