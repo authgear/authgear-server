@@ -56,7 +56,6 @@
 /pkg/auth/handler/webapp/authflow_forgot_password_otp.go:213:26: requestcontext
 /pkg/auth/handler/webapp/authflow_forgot_password_success.go:52:26: requestcontext
 /pkg/auth/handler/webapp/authflow_login.go:196:33: requestcontext
-/pkg/auth/handler/webapp/authflow_wechat.go:171:26: requestcontext
 /pkg/auth/handler/webapp/authflow_oob_otp_link.go:136:26: requestcontext
 /pkg/auth/handler/webapp/authflow_promote.go:128:33: requestcontext
 /pkg/auth/handler/webapp/authflow_prompt_create_passkey.go:102:26: requestcontext
@@ -70,6 +69,7 @@
 /pkg/auth/handler/webapp/authflow_terminate_other_sessions.go:73:26: requestcontext
 /pkg/auth/handler/webapp/authflow_use_passkey.go:108:26: requestcontext
 /pkg/auth/handler/webapp/authflow_view_recovery_code.go:85:26: requestcontext
+/pkg/auth/handler/webapp/authflow_wechat.go:171:26: requestcontext
 /pkg/auth/handler/webapp/authflow_wechat.go:171:26: requestcontext
 /pkg/auth/handler/webapp/authflow_whatsapp_otp.go:147:26: requestcontext
 /pkg/auth/handler/webapp/authflowv2/account_linking.go:154:26: requestcontext
@@ -172,6 +172,7 @@
 /pkg/auth/handler/webapp/login.go:115:28: requestcontext
 /pkg/auth/handler/webapp/login_link_otp.go:121:27: requestcontext
 /pkg/auth/handler/webapp/logout.go:71:27: requestcontext
+/pkg/auth/handler/webapp/noproject_sso_callback.go:38:9: requestcontext
 /pkg/auth/handler/webapp/panic_middleware.go:68:61: requestcontext
 /pkg/auth/handler/webapp/passkey_creation_options.go:43:28: requestcontext
 /pkg/auth/handler/webapp/passkey_request_options.go:52:28: requestcontext
@@ -340,4 +341,3 @@
 /pkg/util/pubsub/http_handler.go:51:40: requestcontext
 /pkg/util/sentry/request.go:25:9: requestcontext
 /pkg/util/template/engine.go:344:9: requestcontext
-/pkg/auth/handler/webapp/noproject_sso_callback.go:38:9: requestcontext
