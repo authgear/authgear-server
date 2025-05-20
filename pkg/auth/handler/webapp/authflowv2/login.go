@@ -39,7 +39,7 @@ var AuthflowLoginLoginIDSchema = validation.NewSimpleSchema(`
 `)
 
 type AuthflowLoginEndpointsProvider interface {
-	SSOCallbackURL(alias string) *url.URL
+	SSOCallbackURL(alias string, isDemo bool) *url.URL
 }
 
 type AuthflowLoginViewModel struct {
@@ -107,7 +107,8 @@ func (h *AuthflowV2LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 	}
 
 	oauthPostAction := func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse, providerAlias string) error {
-		callbackURL := h.Endpoints.SSOCallbackURL(providerAlias).String()
+		// TODO: Support demo credentials
+		callbackURL := h.Endpoints.SSOCallbackURL(providerAlias, false).String()
 		input := map[string]interface{}{
 			"identification": "oauth",
 			"alias":          providerAlias,
