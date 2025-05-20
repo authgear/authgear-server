@@ -749,7 +749,7 @@ func getOAuthData(ctx context.Context, deps *authflow.Dependencies, opts GetOAut
 
 	status := OAuthProviderStatusActive
 	if config.OAuthSSOProviderConfig(providerConfig).IsMissingCredentialAllowed() {
-		status = OAuthProviderStatusInactive
+		status = OAuthProviderStatusMissingCredentials
 		// TODO(tung): Add demo status
 	}
 
