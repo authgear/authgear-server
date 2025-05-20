@@ -47,6 +47,7 @@ var EnvConfigDeps = wire.NewSet(
 		"WhatsappAPIType",
 		"UserExportObjectStore",
 		"SMSGatewayConfig",
+		"OAuthDemoCredentialRedirectURI",
 	),
 	wire.FieldsOf(new(*config.SMSGatewayEnvironmentConfig),
 		"Default",
