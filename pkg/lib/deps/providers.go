@@ -6,7 +6,7 @@ import (
 
 	getsentry "github.com/getsentry/sentry-go"
 
-	"github.com/authgear/authgear-server"
+	runtimeresource "github.com/authgear/authgear-server"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
@@ -166,6 +166,13 @@ func (p *RootProvider) NewAppProvider(ctx context.Context, appCtx *config.AppCon
 func (p *RootProvider) RootHandler(factory func(*RootProvider, http.ResponseWriter, *http.Request, context.Context) http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		h := factory(p, w, r, r.Context())
+		h.ServeHTTP(w, r)
+	})
+}
+
+func (p *RootProvider) RootHandlerWithConfigSource(cfgSource *configsource.ConfigSource, factory func(*configsource.ConfigSource, *RootProvider, http.ResponseWriter, *http.Request, context.Context) http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		h := factory(cfgSource, p, w, r, r.Context())
 		h.ServeHTTP(w, r)
 	})
 }
