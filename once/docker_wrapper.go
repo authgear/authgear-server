@@ -138,8 +138,13 @@ func main() {
 		decowriter.New(os.Stdout, []byte("nginx           | "), []byte("")),
 		decowriter.New(os.Stderr, []byte("nginx           | "), []byte("")),
 	)
-	certbot := NewChild(
+	certbot_daemon := NewChild(
 		[]string{"docker-certbot.py"},
+		decowriter.New(os.Stdout, []byte("docker-certbot  | "), []byte("")),
+		decowriter.New(os.Stderr, []byte("docker-certbot  | "), []byte("")),
+	)
+	certbot_once := NewChild(
+		[]string{"docker-certbot.py", "--block-on-getting-tls-certificates"},
 		decowriter.New(os.Stdout, []byte("docker-certbot  | "), []byte("")),
 		decowriter.New(os.Stderr, []byte("docker-certbot  | "), []byte("")),
 	)
@@ -196,15 +201,20 @@ func main() {
 		}
 	}
 
-	start(postgres)
-	start(redis)
-	start(nginx)
-	start(certbot)
-	start(minio)
-	start(authgeardeno)
-	start(authgear)
-	start(authgearportal)
-	start(authgearimages)
+	if len(os.Args) >= 2 && os.Args[1] == "--block-on-getting-tls-certificates" {
+		start(nginx)
+		start(certbot_once)
+	} else {
+		start(postgres)
+		start(redis)
+		start(nginx)
+		start(certbot_daemon)
+		start(minio)
+		start(authgeardeno)
+		start(authgear)
+		start(authgearportal)
+		start(authgearimages)
+	}
 
 	// Some child failed to start, trigger reap now.
 	if len(childResults) > 0 {

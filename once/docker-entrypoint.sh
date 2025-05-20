@@ -17,12 +17,7 @@ generate_password() {
 	head -c 33 /dev/urandom | basenc --base64url -w 0
 }
 
-check_AUTHGEAR_ONCE_environment_variables_are_set() {
-	if [ -z "$AUTHGEAR_ONCE_IMAGE" ]; then
-		printf 1>&2 "AUTHGEAR_ONCE_IMAGE must be set.\n"
-		exit 1
-	fi
-
+docker_authgearonce_check_immutable_environment_variables_are_set() {
 	if [ -z "$AUTHGEAR_ONCE_LICENSE_KEY" ]; then
 		printf 1>&2 "AUTHGEAR_ONCE_LICENSE_KEY must be set.\n"
 		exit 1
@@ -260,7 +255,12 @@ docker_nginx_render_server_block() {
 	sed -i -E "s,__AUTHGEAR_HTTP_EXPECTED_SCHEME_${1}__,${scheme}," /etc/nginx/nginx.conf
 }
 
-docker_nginx_check_environment_variables() {
+docker_authgearonce_check_mutable_environment_variables_are_set() {
+	if [ -z "$AUTHGEAR_ONCE_IMAGE" ]; then
+		printf 1>&2 "AUTHGEAR_ONCE_IMAGE must be set.\n"
+		exit 1
+	fi
+
 	check_http_origin_is_set "PORTAL"
 	check_http_origin_is_set "ACCOUNTS"
 	check_http_origin_is_set "PROJECT"
@@ -399,7 +399,7 @@ secrets:
 EOF
 }
 
-docker_authgear_init() {
+docker_authgear_first_time_setup() {
 	docker_wrapper &
 	wrapper_pid=$!
 	# Wait 2 seconds for the server to start.
@@ -425,8 +425,6 @@ docker_authgear_init() {
 		--search-implementation=postgresql \
 		-o "$init_output_accounts"
 	authgear-portal internal configsource create "$init_output_accounts"
-	host_accounts="$(echo "$AUTHGEAR_HTTP_ORIGIN_ACCOUNTS" | awk -F '://' '{ print $2 }')"
-	authgear-portal internal domain create-custom "$app_id_accounts" --domain "$host_accounts" --apex-domain "$host_accounts"
 	rm -r "$init_output_accounts"
 
 	app_id_project="project"
@@ -446,12 +444,11 @@ docker_authgear_init() {
 		--search-implementation=postgresql \
 		-o "$init_output_project"
 	authgear-portal internal configsource create "$init_output_project"
-	host_project="$(echo "$AUTHGEAR_HTTP_ORIGIN_PROJECT" | awk -F '://' '{ print $2 }')"
-	authgear-portal internal domain create-custom "$app_id_project" --domain "$host_project" --apex-domain "$host_project"
 	rm -r "$init_output_project"
 
-	# Create default domain after all projects have been created.
-	authgear-portal internal domain create-default --default-domain-suffix '.projects.authgear'
+	# Set up domains first.
+	# Otherwise, Admin API server cannot resolve which project.
+	docker_authgear_setup_domains
 
 	query_file="$(mktemp)"
 	cat >"$query_file" <<'EOF'
@@ -498,71 +495,184 @@ EOF
 	sleep 2
 }
 
+docker_authgear_rerun_setup() {
+	docker_wrapper &
+	wrapper_pid=$!
+	# Wait 2 seconds for the server to start.
+	sleep 2
+
+
+	docker_authgear_setup_domains
+
+
+	kill -SIGTERM "$wrapper_pid"
+	# Wait 2 seconds to let the process exits.
+	sleep 2
+}
+
+docker_authgearonce_generate_passwords() {
+	{
+		printf "export POSTGRES_PASSWORD=%s\n" "$(generate_password)"
+		printf "export REDIS_PASSWORD=%s\n" "$(generate_password)"
+		printf "export MINIO_ROOT_PASSWORD=%s\n" "$(generate_password)"
+	} >> "$1"
+}
+
+docker_authgearonce_persist_immutable_environment_variables() {
+	# We persist the environment variables
+	# NOTE(once): Possibly breaking change
+	# These environment variables are part of the public API between the once image and the once command.
+	# The once command provide these variables with `-e` in `docker run`.
+	# If you introduce a new environment variable in the future,
+	# you must think of the missing case of the environment variable,
+	# as there is a running installation of the old version without this environment variable.
+	{
+		printf "export AUTHGEAR_ONCE_LICENSE_KEY=%s\n" "$AUTHGEAR_ONCE_LICENSE_KEY"
+		printf "export AUTHGEAR_ONCE_LICENSE_EXPIRE_AT=%s\n" "$AUTHGEAR_ONCE_LICENSE_EXPIRE_AT"
+		printf "export AUTHGEAR_ONCE_LICENSEE_EMAIL=%s\n" "$AUTHGEAR_ONCE_LICENSEE_EMAIL"
+		printf "export AUTHGEAR_ONCE_MACHINE_FINGERPRINT=%s\n" "$AUTHGEAR_ONCE_MACHINE_FINGERPRINT"
+		printf "export AUTHGEAR_ONCE_ADMIN_USER_EMAIL=%s\n" "$AUTHGEAR_ONCE_ADMIN_USER_EMAIL"
+		printf "export AUTHGEAR_ONCE_ADMIN_USER_PASSWORD=%s\n" "$AUTHGEAR_ONCE_ADMIN_USER_PASSWORD"
+	} >> "$1"
+	if [ -n "$AUTHGEAR_SMTP_HOST" ]; then
+		printf "export AUTHGEAR_SMTP_HOST=%s\n" "$AUTHGEAR_SMTP_HOST" >> "$1"
+	fi
+	if [ -n "$AUTHGEAR_SMTP_PORT" ]; then
+		printf "export AUTHGEAR_SMTP_PORT=%s\n" "$AUTHGEAR_SMTP_PORT" >> "$1"
+	fi
+	if [ -n "$AUTHGEAR_SMTP_USERNAME" ]; then
+		printf "export AUTHGEAR_SMTP_USERNAME=%s\n" "$AUTHGEAR_SMTP_USERNAME" >> "$1"
+	fi
+	if [ -n "$AUTHGEAR_SMTP_PASSWORD" ]; then
+		printf "export AUTHGEAR_SMTP_PASSWORD=%s\n" "$AUTHGEAR_SMTP_PASSWORD" >> "$1"
+	fi
+	if [ -n "$AUTHGEAR_SMTP_SENDER_ADDRESS" ]; then
+		printf "export AUTHGEAR_SMTP_SENDER_ADDRESS=%s\n" "$AUTHGEAR_SMTP_SENDER_ADDRESS" >> "$1"
+	fi
+}
+
+docker_authgearonce_persist_mutable_environment_variables() {
+	{
+		printf "export AUTHGEAR_ONCE_IMAGE=%s\n" "$AUTHGEAR_ONCE_IMAGE"
+		printf "export AUTHGEAR_HTTP_ORIGIN_PROJECT=%s\n" "$AUTHGEAR_HTTP_ORIGIN_PROJECT"
+		printf "export AUTHGEAR_HTTP_ORIGIN_PORTAL=%s\n" "$AUTHGEAR_HTTP_ORIGIN_PORTAL"
+		printf "export AUTHGEAR_HTTP_ORIGIN_ACCOUNTS=%s\n" "$AUTHGEAR_HTTP_ORIGIN_ACCOUNTS"
+		printf "export AUTHGEAR_CERTBOT_ENABLED=%s\n" "$AUTHGEAR_CERTBOT_ENABLED"
+		printf "export AUTHGEAR_CERTBOT_ENVIRONMENT=%s\n" "$AUTHGEAR_CERTBOT_ENVIRONMENT"
+		printf "export AUTHGEAR_CERTBOT_RUN_INTERVAL=%s\n" "$AUTHGEAR_CERTBOT_RUN_INTERVAL"
+	} >> "$1"
+}
+
+docker_authgearonce_create_env_sh() {
+	docker_authgearonce_check_immutable_environment_variables_are_set
+	docker_authgearonce_check_mutable_environment_variables_are_set
+
+	printf 1>&2 "Creating %s\n" "$AUTHGEARONCE_ENV_SHELL_SCRIPT"
+	docker_authgearonce_generate_passwords "$AUTHGEARONCE_ENV_SHELL_SCRIPT"
+
+	docker_authgearonce_persist_immutable_environment_variables "$AUTHGEARONCE_ENV_SHELL_SCRIPT"
+	docker_authgearonce_persist_mutable_environment_variables "$AUTHGEARONCE_ENV_SHELL_SCRIPT"
+}
+
+docker_authgearonce_update_env_sh() {
+	docker_authgearonce_check_mutable_environment_variables_are_set
+
+	printf 1>&2 "Updating %s\n" "$AUTHGEARONCE_ENV_SHELL_SCRIPT"
+
+	original="$AUTHGEARONCE_ENV_SHELL_SCRIPT"
+	updated="${AUTHGEARONCE_ENV_SHELL_SCRIPT}.tmp"
+
+	sed <"$original" >"$updated" -E '/^export (AUTHGEAR_ONCE_IMAGE|AUTHGEAR_HTTP_ORIGIN_PROJECT|AUTHGEAR_HTTP_ORIGIN_PORTAL|AUTHGEAR_HTTP_ORIGIN_ACCOUNTS|AUTHGEAR_CERTBOT_ENABLED|AUTHGEAR_CERTBOT_ENVIRONMENT|AUTHGEAR_CERTBOT_RUN_INTERVAL)=/d'
+
+	docker_authgearonce_persist_mutable_environment_variables "$updated"
+	mv "$updated" "$original"
+}
+
+docker_authgear_setup_domains() {
+	docker_postgresql_psql \
+		--dbname authgear <<-'EOSQL'
+DELETE FROM _portal_domain;
+	EOSQL
+
+	app_id_accounts="accounts"
+	host_accounts="$(echo "$AUTHGEAR_HTTP_ORIGIN_ACCOUNTS" | awk -F '://' '{ print $2 }')"
+	authgear-portal internal domain create-custom "$app_id_accounts" --domain "$host_accounts" --apex-domain "$host_accounts"
+
+	app_id_project="project"
+	host_project="$(echo "$AUTHGEAR_HTTP_ORIGIN_PROJECT" | awk -F '://' '{ print $2 }')"
+	authgear-portal internal domain create-custom "$app_id_project" --domain "$host_project" --apex-domain "$host_project"
+
+	authgear-portal internal domain create-default --default-domain-suffix '.projects.authgear'
+
+	# We need to update the public_origin, as well as,
+	# the redirect URIs of the portal.
+	sql_output=$(docker_postgresql_psql \
+		--dbname authgear \
+		--tuples-only \
+		--set app_id="$app_id_accounts" <<-'EOSQL'
+SELECT data->>'authgear.yaml' FROM _portal_config_source where app_id = :'app_id';
+		EOSQL
+	)
+	updated=$(echo -n "$sql_output" \
+		| sed -E 's/[[:space:]]//' \
+		| base64 -d \
+		| yq --yaml-output --arg public_origin "$AUTHGEAR_HTTP_ORIGIN_ACCOUNTS" '.http.public_origin = $public_origin' \
+		| yq --yaml-output --arg portal_origin "$AUTHGEAR_HTTP_ORIGIN_PORTAL" '.oauth.clients[0].post_logout_redirect_uris[0] = "\($portal_origin)/"' \
+		| yq --yaml-output --arg portal_origin "$AUTHGEAR_HTTP_ORIGIN_PORTAL" '.oauth.clients[0].redirect_uris[0] = "\($portal_origin)/oauth-redirect"' \
+		| base64 -w 0)
+	docker_postgresql_psql \
+		--dbname authgear \
+		--set app_id="$app_id_accounts" \
+		--set v="$updated" <<-'EOSQL'
+UPDATE _portal_config_source
+SET data = jsonb_set(data, '{authgear.yaml}', to_jsonb(:'v' ::text))
+WHERE app_id = :'app_id';
+		EOSQL
+
+	# This is rather simple.
+	# We just need to update the public_origin.
+	sql_output=$(docker_postgresql_psql \
+		--dbname authgear \
+		--tuples-only \
+		--set app_id="$app_id_project" <<-'EOSQL'
+SELECT data->>'authgear.yaml' FROM _portal_config_source where app_id = :'app_id';
+		EOSQL
+	)
+	updated=$(echo -n "$sql_output" \
+		| sed -E 's/[[:space:]]//' \
+		| base64 -d \
+		| yq --yaml-output --arg public_origin "$AUTHGEAR_HTTP_ORIGIN_PROJECT" '.http.public_origin = $public_origin' \
+		| base64 -w 0)
+	docker_postgresql_psql \
+		--dbname authgear \
+		--set app_id="$app_id_project" \
+		--set v="$updated" <<-'EOSQL'
+UPDATE _portal_config_source
+SET data = jsonb_set(data, '{authgear.yaml}', to_jsonb(:'v' ::text))
+WHERE app_id = :'app_id';
+		EOSQL
+}
+
 main() {
 	check_user_is_correct
 
 	docker_authgearonce_create_directory
 
-	run_initialization=''
+	what_to_do=''
 	if ! [ -r "$AUTHGEARONCE_ENV_SHELL_SCRIPT" ]; then
 		# The env file does not exist.
 		# This means the volume is new.
 		# In this case, we require the environment variables to be set.
-		check_AUTHGEAR_ONCE_environment_variables_are_set
-		docker_nginx_check_environment_variables
-
-		printf 1>&2 "%s is not found. Generating new passwords.\n" "$AUTHGEARONCE_ENV_SHELL_SCRIPT"
-		run_initialization=1
-
-		# Always generate a new password. Ignore the environment variable.
-		{
-			printf "export POSTGRES_PASSWORD=%s\n" "$(generate_password)"
-			printf "export REDIS_PASSWORD=%s\n" "$(generate_password)"
-			printf "export MINIO_ROOT_PASSWORD=%s\n" "$(generate_password)"
-		} >> "$AUTHGEARONCE_ENV_SHELL_SCRIPT"
-
-		# We persist the environment variables
-		# NOTE(once): Possibly breaking change
-		# These environment variables are part of the public API between the once image and the once command.
-		# The once command provide these variables with `-e` in `docker run`.
-		# If you introduce a new environment variable in the future,
-		# you must think of the missing case of the environment variable,
-		# as there is a running installation of the old version without this environment variable.
-		{
-			printf "export AUTHGEAR_ONCE_IMAGE=%s\n" "$AUTHGEAR_ONCE_IMAGE"
-			printf "export AUTHGEAR_ONCE_LICENSE_KEY=%s\n" "$AUTHGEAR_ONCE_LICENSE_KEY"
-			printf "export AUTHGEAR_ONCE_LICENSE_EXPIRE_AT=%s\n" "$AUTHGEAR_ONCE_LICENSE_EXPIRE_AT"
-			printf "export AUTHGEAR_ONCE_LICENSEE_EMAIL=%s\n" "$AUTHGEAR_ONCE_LICENSEE_EMAIL"
-			printf "export AUTHGEAR_ONCE_MACHINE_FINGERPRINT=%s\n" "$AUTHGEAR_ONCE_MACHINE_FINGERPRINT"
-			printf "export AUTHGEAR_ONCE_ADMIN_USER_EMAIL=%s\n" "$AUTHGEAR_ONCE_ADMIN_USER_EMAIL"
-			printf "export AUTHGEAR_ONCE_ADMIN_USER_PASSWORD=%s\n" "$AUTHGEAR_ONCE_ADMIN_USER_PASSWORD"
-			printf "export AUTHGEAR_HTTP_ORIGIN_PROJECT=%s\n" "$AUTHGEAR_HTTP_ORIGIN_PROJECT"
-			printf "export AUTHGEAR_HTTP_ORIGIN_PORTAL=%s\n" "$AUTHGEAR_HTTP_ORIGIN_PORTAL"
-			printf "export AUTHGEAR_HTTP_ORIGIN_ACCOUNTS=%s\n" "$AUTHGEAR_HTTP_ORIGIN_ACCOUNTS"
-		} >> "$AUTHGEARONCE_ENV_SHELL_SCRIPT"
-		if [ -n "$AUTHGEAR_SMTP_HOST" ]; then
-			printf "export AUTHGEAR_SMTP_HOST=%s\n" "$AUTHGEAR_SMTP_HOST" >> "$AUTHGEARONCE_ENV_SHELL_SCRIPT"
-		fi
-		if [ -n "$AUTHGEAR_SMTP_PORT" ]; then
-			printf "export AUTHGEAR_SMTP_PORT=%s\n" "$AUTHGEAR_SMTP_PORT" >> "$AUTHGEARONCE_ENV_SHELL_SCRIPT"
-		fi
-		if [ -n "$AUTHGEAR_SMTP_USERNAME" ]; then
-			printf "export AUTHGEAR_SMTP_USERNAME=%s\n" "$AUTHGEAR_SMTP_USERNAME" >> "$AUTHGEARONCE_ENV_SHELL_SCRIPT"
-		fi
-		if [ -n "$AUTHGEAR_SMTP_PASSWORD" ]; then
-			printf "export AUTHGEAR_SMTP_PASSWORD=%s\n" "$AUTHGEAR_SMTP_PASSWORD" >> "$AUTHGEARONCE_ENV_SHELL_SCRIPT"
-		fi
-		if [ -n "$AUTHGEAR_SMTP_SENDER_ADDRESS" ]; then
-			printf "export AUTHGEAR_SMTP_SENDER_ADDRESS=%s\n" "$AUTHGEAR_SMTP_SENDER_ADDRESS" >> "$AUTHGEARONCE_ENV_SHELL_SCRIPT"
-		fi
-		if [ -n "$AUTHGEAR_CERTBOT_ENVIRONMENT" ]; then
-			printf "export AUTHGEAR_CERTBOT_ENVIRONMENT=%s\n" "$AUTHGEAR_CERTBOT_ENVIRONMENT" >> "$AUTHGEARONCE_ENV_SHELL_SCRIPT"
-		fi
-		if [ -n "$AUTHGEAR_CERTBOT_RUN_INTERVAL" ]; then
-			printf "export AUTHGEAR_CERTBOT_RUN_INTERVAL=%s\n" "$AUTHGEAR_CERTBOT_RUN_INTERVAL" >> "$AUTHGEARONCE_ENV_SHELL_SCRIPT"
-		fi
+		what_to_do='first_time_setup'
+		docker_authgearonce_create_env_sh
+	elif [ -n "$AUTHGEAR_ONCE_IMAGE" ]; then
+		# Just pick one of the required environment to check.
+		# If it is non-empty, then the setup command is re-run.
+		what_to_do='rerun_setup'
+		docker_authgearonce_update_env_sh
 	else
-		printf 1>&2 "%s is found. Passwords inside it will be used.\n" "$AUTHGEARONCE_ENV_SHELL_SCRIPT"
+		# Otherwise, the start command is run.
+		printf 1>&2 "Reading %s\n" "$AUTHGEARONCE_ENV_SHELL_SCRIPT"
 	fi
 	# Always source the env file.
 	. "$AUTHGEARONCE_ENV_SHELL_SCRIPT"
@@ -603,8 +713,15 @@ main() {
 	docker_authgear_source_env
 	docker_authgear_run_database_migrations
 	docker_authgear_create_deployment_runtime_directory
-	if [ -n "$run_initialization" ]; then
-		docker_authgear_init
+
+	if [ "$what_to_do" = 'first_time_setup' ]; then
+		docker_authgear_first_time_setup
+		exit_status="$?"
+		if [ "$exit_status" -ne 0 ]; then
+			exit "$exit_status"
+		fi
+	elif [ "$what_to_do" = 'rerun_setup' ]; then
+		docker_authgear_rerun_setup
 		exit_status="$?"
 		if [ "$exit_status" -ne 0 ]; then
 			exit "$exit_status"

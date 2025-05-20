@@ -40,3 +40,11 @@ func GetDockerImage(cmd *cobra.Command) string {
 
 	return fmt.Sprintf("%v:%v", DefaultDockerName_NoTag, Version)
 }
+
+func FlagsGetBool(cmd *cobra.Command, name string) bool {
+	b, err := cmd.Flags().GetBool(name)
+	if err != nil {
+		panic(err)
+	}
+	return b
+}

@@ -9,12 +9,21 @@ import (
 	"fmt"
 	"iter"
 	"os/exec"
+	"slices"
 	"strings"
+
+	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
 const (
 	DockerVolumeScopeLocal = "local"
 )
+
+const (
+	CertbotExitCode10 = 10
+)
+
+var DockerPublishedPorts []int = []int{80, 443}
 
 type DockerVolume struct {
 	Name  string `json:"Name"`
@@ -35,6 +44,15 @@ func runCmd(c *exec.Cmd) (stdout string, stderr string, err error) {
 	stdout = stdoutBuf.String()
 	stderr = stderrBuf.String()
 	return
+}
+
+func getExitError(err error) (*exec.ExitError, bool) {
+	var e *exec.ExitError
+	ok := errors.As(err, &e)
+	if ok {
+		return e, true
+	}
+	return nil, false
 }
 
 type CmdError struct {
@@ -96,20 +114,15 @@ func NewDockerRunOptionsForStarting(image string) DockerRunOptions {
 		Detach:  true,
 		Restart: "always",
 		Volume:  []string{fmt.Sprintf("%v:/var/lib/authgearonce", NameDockerVolume)},
-		Publish: []string{
-			// Only publish HTTP/HTTPS ports on fixed host ports.
-			// Note that these ports are published on 0.0.0.0
-			"80:80",
-			"443:443",
-			// Let docker to randomly select available host ports.
-			// Note that these ports are published on 127.0.0.1
-			"5432",
-			"9001",
-			"8090",
-		},
-		Name:  NameDockerContainer,
-		Image: image,
+		Publish: slice.Map(DockerPublishedPorts, dockerPublishPortOnAllInterfaces),
+		Name:    NameDockerContainer,
+		Image:   image,
 	}
+}
+
+// dockerPublishPortOnAllInterfaces takes port and returns port:port.
+func dockerPublishPortOnAllInterfaces(port int) string {
+	return fmt.Sprintf("%v:%v", port, port)
 }
 
 type DockerRunResult struct {
@@ -193,7 +206,28 @@ func DockerStop(ctx context.Context, name string) error {
 	return nil
 }
 
-func FindAuthgearOnceImageInVolume(ctx context.Context) (image string, err error) {
+type DockerRmOptions struct {
+	Force bool
+}
+
+func DockerRm(ctx context.Context, name string, options DockerRmOptions) error {
+	args := []string{"rm"}
+
+	if options.Force {
+		args = append(args, "-f")
+	}
+
+	args = append(args, name)
+
+	c := exec.CommandContext(ctx, "docker", args...)
+	stdout, stderr, err := runCmd(c)
+	if err != nil {
+		return errors.Join(&CmdError{Stdout: stdout, Stderr: stderr}, err)
+	}
+	return nil
+}
+
+func GetPersistentEnvironmentVariableInVolume(ctx context.Context, envVarName string) (image string, err error) {
 	opts := DockerRunOptions{
 		Rm:     true,
 		Volume: []string{fmt.Sprintf("%v:/var/lib/authgearonce", NameDockerVolume)},
@@ -202,7 +236,7 @@ func FindAuthgearOnceImageInVolume(ctx context.Context) (image string, err error
 		Command: []string{
 			"sh",
 			"-c",
-			`</var/lib/authgearonce/env.sh awk -F = '/AUTHGEAR_ONCE_IMAGE/ { print $2 }'`,
+			fmt.Sprintf(`</var/lib/authgearonce/env.sh awk -F = '/%v/ { print $2 }'`, envVarName),
 		},
 	}
 
@@ -213,4 +247,45 @@ func FindAuthgearOnceImageInVolume(ctx context.Context) (image string, err error
 
 	image = strings.TrimSpace(result.Stdout)
 	return
+}
+
+// CheckAllPublishedPortsNotListening loops through DockerPublishedPorts
+// and checks if any of them are already listening on the host.
+// It returns an error if any of the ports are already in use.
+func CheckAllPublishedPortsNotListening() error {
+	var errs []error
+
+	for _, port := range DockerPublishedPorts {
+		if err := CheckTCPPortIsListening(port); err != nil {
+			errs = append(errs, err)
+		}
+	}
+
+	return errors.Join(errs...)
+}
+
+func CheckVolumeExists(ctx context.Context) (bool, error) {
+	volumes, err := DockerVolumeLs(ctx)
+	if err != nil {
+		return false, err
+	}
+	if slices.ContainsFunc(volumes, func(v DockerVolume) bool {
+		return v.Name == NameDockerVolume && v.Scope == DockerVolumeScopeLocal
+	}) {
+		return true, nil
+	}
+	return false, nil
+}
+
+func DockerRunWithCertbotErrorHandling(ctx context.Context, opts DockerRunOptions) (*DockerRunResult, error) {
+
+	result, err := DockerRun(ctx, opts)
+	if err != nil {
+		if exitErr, ok := getExitError(err); ok {
+			if exitErr.ProcessState.ExitCode() == CertbotExitCode10 {
+				err = errors.Join(ErrCertbotExitCode10, err)
+			}
+		}
+	}
+	return result, err
 }

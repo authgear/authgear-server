@@ -135,12 +135,12 @@ var Question_EnableCertbot = Question{
 		Prompt: "Obtain TLS certificates issued by Let's Encrypt with certbot for the above domains",
 		Items: []bubbleteautil.SimplePickerItem{
 			{
-				Label: "No, I will have TLS termination elsewhere.",
-				Value: ValueFalse,
-			},
-			{
 				Label: "Yes, I assure the DNS records of the above domains are properly set up, and the traffic is routed to this machine.",
 				Value: ValueTrue,
+			},
+			{
+				Label: "No, I will have TLS termination elsewhere.",
+				Value: ValueFalse,
 			},
 		},
 	}),

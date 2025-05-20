@@ -249,6 +249,14 @@ RUN set -eux; \
 		jq; \
 	rm -rf /var/lib/apt/lists/*
 
+## Install yq.
+## We need it to do some YAML manipulation.
+RUN set -eux; \
+	apt-get update; \
+	apt-get install -y --no-install-recommends --no-install-suggests \
+		yq; \
+	rm -rf /var/lib/apt/lists/*
+
 ## Install sudo
 ## We do not run the container as root so we need it so that the user can become root as needed.
 RUN set -eux; \
@@ -471,14 +479,20 @@ VOLUME /var/lib/authgearonce
 # NOTE(once): Possibly breaking change
 # These ports are part of the public API between the once image and the once command.
 # The once command publish SOME of these ports with `-p` in `docker run`.
-# postgres
-EXPOSE 5432
-# redis
-EXPOSE 6379
+#
+# There are published ports.
 # http
 EXPOSE 80
 # https
 EXPOSE 443
+#
+# These are unpublished ports.
+# Given that the machine may be directly connected to the internet,
+# it is more secure not to publish the port on the host machine at all.
+# postgres
+EXPOSE 5432
+# redis
+EXPOSE 6379
 # minio
 EXPOSE 9000
 # minio web console

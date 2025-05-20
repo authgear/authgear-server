@@ -31,6 +31,11 @@ var CmdStart = &cobra.Command{
 			err = internal.ErrNoDocker
 		}
 
+		err = internal.CheckAllPublishedPortsNotListening()
+		if err != nil {
+			return
+		}
+
 		return
 	},
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
@@ -68,7 +73,7 @@ var CmdStart = &cobra.Command{
 			// We assume the environment variables are persisted in the volume.
 
 			var image string
-			image, err = internal.FindAuthgearOnceImageInVolume(ctx)
+			image, err = internal.GetPersistentEnvironmentVariableInVolume(ctx, "AUTHGEAR_ONCE_IMAGE")
 			if err != nil {
 				return
 			}

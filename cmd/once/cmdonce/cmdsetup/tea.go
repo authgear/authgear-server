@@ -2,10 +2,10 @@ package cmdsetup
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
-	"os/exec"
-	"slices"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -62,6 +62,15 @@ type SetupApp struct {
 	HTTPClient     *http.Client
 	LicenseOptions internal.LicenseOptions
 
+	HTTPScheme string
+	IsResetup  bool
+
+	AUTHGEAR_CERTBOT_ENABLED     bool
+	AUTHGEAR_CERTBOT_ENVIRONMENT string
+
+	QuestionName_EnableCertbot_PromptEnabled            bool
+	QuestionName_SelectCertbotEnvironment_PromptEnabled bool
+
 	AUTHGEAR_ONCE_IMAGE               string
 	AUTHGEAR_ONCE_LICENSE_KEY         string
 	AUTHGEAR_ONCE_MACHINE_FINGERPRINT string
@@ -79,6 +88,7 @@ type SetupApp struct {
 	RecoverableErrCmd tea.Cmd
 
 	Installation *Installation
+	Resetup      *Resetup
 }
 
 var _ tea.Model = SetupApp{}
@@ -116,6 +126,9 @@ func SetupAppEndSurvey() tea.Msg {
 	return msgSetupAppEndSurvey{}
 }
 
+type msgSetupAppInitResetup struct{}
+type msgSetupAppStartResetup struct{}
+
 type msgSetupAppActivateLicense struct{}
 
 func SetupAppActivateLicense() tea.Msg {
@@ -138,25 +151,6 @@ func (m SetupApp) Init() tea.Cmd {
 }
 
 func (m SetupApp) msgSetupAppInit() (tea.Model, tea.Cmd) {
-	_, err := exec.LookPath(internal.BinDocker)
-	if err != nil {
-		m.FatalError = m.FatalError.WithErr(internal.ErrNoDocker)
-		return m, tea.Quit
-	}
-
-	volumes, err := internal.DockerVolumeLs(m.Context)
-	if err != nil {
-		m.FatalError = m.FatalError.WithErr(err)
-		return m, tea.Quit
-	}
-
-	if slices.ContainsFunc(volumes, func(v internal.DockerVolume) bool {
-		return v.Name == internal.NameDockerVolume && v.Scope == internal.DockerVolumeScopeLocal
-	}) {
-		m.FatalError = m.FatalError.WithErr(internal.ErrDockerVolumeExists)
-		return m, tea.Quit
-	}
-
 	return m, SetupAppStartSurvey
 }
 
@@ -185,7 +179,7 @@ func (m SetupApp) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					cmds = append(cmds, m.RecoverableErrCmd)
 					m.RecoverableErrCmd = nil
 				}
-			} else {
+			} else if m.IsCurrentQuestionFocused() {
 				var cmd tea.Cmd
 				m, cmd = m.appendNextQuestion()
 				if cmd != nil {
@@ -214,6 +208,9 @@ func (m SetupApp) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		q.Model = picker
 		m.Questions = append(m.Questions, q)
 	case msgSetupAppEndSurvey:
+		m = m.blurCurrentQuestion()
+		return m, SetupAppActivateLicense
+	case msgSetupAppActivateLicense:
 		return m, tea.Batch(
 			m.StartLoading("Activating license..."),
 			func() tea.Msg {
@@ -226,14 +223,20 @@ func (m SetupApp) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		)
 	case msgSetupAppActivateLicenseResult:
 		m.StopLoading()
+		errRecoverCmd := SetupAppActivateLicense
 		if msg.Err != nil {
-			m.FatalError = m.FatalError.WithErr(msg.Err)
-			return m, tea.Quit
+			m.RecoverableErr = msg.Err
+			m.RecoverableErrCmd = errRecoverCmd
 		} else {
 			installation := m.ToInstallation(msg.LicenseObject)
 			m.Installation = &installation
 			return m, SetupAppStartInstallation
 		}
+	case msgSetupAppInitResetup:
+		m = m.blurCurrentQuestion()
+		resetup := m.ToResetup(m.LicenseOptions)
+		m.Resetup = &resetup
+		return m, func() tea.Msg { return msgSetupAppStartResetup{} }
 	}
 
 	for idx := range m.Questions {
@@ -255,24 +258,26 @@ func (m SetupApp) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.Installation = &installation
 		cmds = append(cmds, newCmd)
 	}
+	if m.Resetup != nil {
+		updated, newCmd := m.Resetup.Update(msg)
+		resetup := updated.(Resetup)
+		m.Resetup = &resetup
+		cmds = append(cmds, newCmd)
+	}
 
 	return m, tea.Batch(cmds...)
 }
 
-func (m SetupApp) appendNextQuestion() (SetupApp, tea.Cmd) {
-	if len(m.Questions) == 0 {
-		m.Questions = append(m.Questions, newQuestion(Question_AcceptAgreement))
-		return m, nil
-	}
-
-	// First, we need to perform simple field-level validation on the answer.
+func (m SetupApp) performSimpleValidation() (SetupApp, bool) {
 	updated, valid := m.Questions[len(m.Questions)-1].Model.Validate()
 	m.Questions[len(m.Questions)-1].Model = updated.(bubbleteautil.Model)
 	if !valid {
-		return m, nil
+		return m, true
 	}
+	return m, false
+}
 
-	// Second, we need to perform cross-field validation on the particular question.
+func (m SetupApp) performCrossFieldValidation() (SetupApp, bool) {
 	switch m.Questions[len(m.Questions)-1].Name {
 	case QuestionName_EnterDomain_Project:
 		// This is the first domain entered.
@@ -284,7 +289,7 @@ func (m SetupApp) appendNextQuestion() (SetupApp, tea.Cmd) {
 		if portal == project {
 			err := fmt.Errorf("It cannot be equal to %v. Please enter a different value", project)
 			m.Questions[len(m.Questions)-1].Model = m.Questions[len(m.Questions)-1].Model.WithError(err)
-			return m, nil
+			return m, true
 		} else {
 			m.Questions[len(m.Questions)-1].Model = m.Questions[len(m.Questions)-1].Model.WithError(nil)
 		}
@@ -297,11 +302,11 @@ func (m SetupApp) appendNextQuestion() (SetupApp, tea.Cmd) {
 		if accounts == project {
 			err := fmt.Errorf("It cannot be equal to %v. Please enter a different value", project)
 			m.Questions[len(m.Questions)-1].Model = m.Questions[len(m.Questions)-1].Model.WithError(err)
-			return m, nil
+			return m, true
 		} else if accounts == portal {
 			err := fmt.Errorf("It cannot be equal to %v. Please enter a different value", portal)
 			m.Questions[len(m.Questions)-1].Model = m.Questions[len(m.Questions)-1].Model.WithError(err)
-			return m, nil
+			return m, true
 		} else {
 			m.Questions[len(m.Questions)-1].Model = m.Questions[len(m.Questions)-1].Model.WithError(nil)
 		}
@@ -312,26 +317,30 @@ func (m SetupApp) appendNextQuestion() (SetupApp, tea.Cmd) {
 		if confirmValue != passwordValue {
 			err := fmt.Errorf("Passwords mismatch. Please confirm they are the same")
 			m.Questions[len(m.Questions)-1].Model = m.Questions[len(m.Questions)-1].Model.WithError(err)
-			return m, nil
+			return m, true
 		} else {
 			m.Questions[len(m.Questions)-1].Model = m.Questions[len(m.Questions)-1].Model.WithError(nil)
 		}
 	}
 
-	// When we reach here, the current question is answered.
-	// Blur it.
+	return m, false
+}
+
+func (m SetupApp) blurCurrentQuestion() SetupApp {
 	m.Questions[len(m.Questions)-1].Model = m.Questions[len(m.Questions)-1].Model.Blur()
+	return m
+}
 
-	// Finally proceed to next question, if there is any.
-	switch m.Questions[len(m.Questions)-1].Name {
-	case QuestionName_AcceptAgreement:
-		m.Questions = append(m.Questions, newQuestion(Question_EnterDomain_Apex))
-	case QuestionName_EnterDomain_Apex:
-		domains := m.ToSuggestedDomains()
+func (m SetupApp) IsCurrentQuestionFocused() bool {
+	return m.Questions[len(m.Questions)-1].Model.IsFocused()
+}
 
-		q := newQuestion(Question_ConfirmDefaultDomains)
-		questionModel := q.Model.(bubbleteautil.SimplePicker)
-		questionModel.Title = fmt.Sprintf(`The following domains will be set up:
+func (m SetupApp) proceed_QuestionName_EnterDomain_Apex() SetupApp {
+	domains := m.ToSuggestedDomains()
+
+	q := newQuestion(Question_ConfirmDefaultDomains)
+	questionModel := q.Model.(bubbleteautil.SimplePicker)
+	questionModel.Title = fmt.Sprintf(`The following domains will be set up:
 - %v
     The authentication endpoint
 - %v
@@ -340,17 +349,53 @@ func (m SetupApp) appendNextQuestion() (SetupApp, tea.Cmd) {
     For logging into the Authgear portal
 
 `, bubbleteautil.StyleForegroundSemanticInfo.Render(domains.Project),
-			bubbleteautil.StyleForegroundSemanticInfo.Render(domains.Portal),
-			bubbleteautil.StyleForegroundSemanticInfo.Render(domains.Accounts),
-		)
-		q.Model = questionModel
+		bubbleteautil.StyleForegroundSemanticInfo.Render(domains.Portal),
+		bubbleteautil.StyleForegroundSemanticInfo.Render(domains.Accounts),
+	)
+	q.Model = questionModel
 
-		m.Questions = append(m.Questions, q)
+	m.Questions = append(m.Questions, q)
+
+	return m
+}
+
+func (m SetupApp) appendNextQuestionForSetup() (SetupApp, tea.Cmd) {
+	if len(m.Questions) == 0 {
+		m.Questions = append(m.Questions, newQuestion(Question_AcceptAgreement))
+		return m, nil
+	}
+
+	// First, we need to perform simple field-level validation on the answer.
+	m, earlyReturn := m.performSimpleValidation()
+	if earlyReturn {
+		return m, nil
+	}
+
+	// Second, we need to perform cross-field validation on the particular question.
+	m, earlyReturn = m.performCrossFieldValidation()
+	if earlyReturn {
+		return m, nil
+	}
+
+	// When we reach here, the current question is answered.
+	// Blur it.
+	m = m.blurCurrentQuestion()
+
+	// Finally proceed to next question, if there is any.
+	switch m.Questions[len(m.Questions)-1].Name {
+	case QuestionName_AcceptAgreement:
+		m.Questions = append(m.Questions, newQuestion(Question_EnterDomain_Apex))
+	case QuestionName_EnterDomain_Apex:
+		m = m.proceed_QuestionName_EnterDomain_Apex()
 	case QuestionName_ConfirmDefaultDomains:
 		value := m.Questions[len(m.Questions)-1].Value()
 		switch value {
 		case ValueTrue:
-			m.Questions = append(m.Questions, newQuestion(Question_EnableCertbot))
+			if m.QuestionName_EnableCertbot_PromptEnabled {
+				m.Questions = append(m.Questions, newQuestion(Question_EnableCertbot))
+			} else {
+				m.Questions = append(m.Questions, newQuestion(Question_EnterAdminEmail))
+			}
 		case ValueFalse:
 			m.Questions = append(m.Questions, newQuestion(Question_EnterDomain_Project))
 		}
@@ -359,12 +404,20 @@ func (m SetupApp) appendNextQuestion() (SetupApp, tea.Cmd) {
 	case QuestionName_EnterDomain_Portal:
 		m.Questions = append(m.Questions, newQuestion(Question_EnterDomain_Accounts))
 	case QuestionName_EnterDomain_Accounts:
-		m.Questions = append(m.Questions, newQuestion(Question_EnableCertbot))
+		if m.QuestionName_EnableCertbot_PromptEnabled {
+			m.Questions = append(m.Questions, newQuestion(Question_EnableCertbot))
+		} else {
+			m.Questions = append(m.Questions, newQuestion(Question_EnterAdminEmail))
+		}
 	case QuestionName_EnableCertbot:
 		value := m.Questions[len(m.Questions)-1].Value()
 		switch value {
 		case ValueTrue:
-			m.Questions = append(m.Questions, newQuestion(Question_SelectCertbotEnvironment))
+			if m.QuestionName_SelectCertbotEnvironment_PromptEnabled {
+				m.Questions = append(m.Questions, newQuestion(Question_SelectCertbotEnvironment))
+			} else {
+				m.Questions = append(m.Questions, newQuestion(Question_EnterAdminEmail))
+			}
 		case ValueFalse:
 			m.Questions = append(m.Questions, newQuestion(Question_EnterAdminEmail))
 		}
@@ -442,6 +495,84 @@ func (m SetupApp) appendNextQuestion() (SetupApp, tea.Cmd) {
 	}
 
 	return m, nil
+}
+
+func (m SetupApp) appendNextQuestionForResetup() (SetupApp, tea.Cmd) {
+	if len(m.Questions) == 0 {
+		q := newQuestion(Question_EnterDomain_Apex)
+		questionModel := q.Model.(bubbleteautil.SingleLineTextInput)
+		questionModel.Title = "Re-running the installation......\n\n"
+		q.Model = questionModel
+		m.Questions = append(m.Questions, q)
+		return m, nil
+	}
+
+	// First, we need to perform simple field-level validation on the answer.
+	m, earlyReturn := m.performSimpleValidation()
+	if earlyReturn {
+		return m, nil
+	}
+
+	// Second, we need to perform cross-field validation on the particular question.
+	m, earlyReturn = m.performCrossFieldValidation()
+	if earlyReturn {
+		return m, nil
+	}
+
+	// When we reach here, the current question is answered.
+	// Blur it.
+	m = m.blurCurrentQuestion()
+
+	switch m.Questions[len(m.Questions)-1].Name {
+	case QuestionName_EnterDomain_Apex:
+		m = m.proceed_QuestionName_EnterDomain_Apex()
+	case QuestionName_ConfirmDefaultDomains:
+		value := m.Questions[len(m.Questions)-1].Value()
+		switch value {
+		case ValueTrue:
+			if m.QuestionName_EnableCertbot_PromptEnabled {
+				m.Questions = append(m.Questions, newQuestion(Question_EnableCertbot))
+			} else {
+				return m, func() tea.Msg { return msgSetupAppInitResetup{} }
+			}
+		case ValueFalse:
+			m.Questions = append(m.Questions, newQuestion(Question_EnterDomain_Project))
+		}
+	case QuestionName_EnterDomain_Project:
+		m.Questions = append(m.Questions, newQuestion(Question_EnterDomain_Portal))
+	case QuestionName_EnterDomain_Portal:
+		m.Questions = append(m.Questions, newQuestion(Question_EnterDomain_Accounts))
+	case QuestionName_EnterDomain_Accounts:
+		if m.QuestionName_EnableCertbot_PromptEnabled {
+			m.Questions = append(m.Questions, newQuestion(Question_EnableCertbot))
+		} else {
+			return m, func() tea.Msg { return msgSetupAppInitResetup{} }
+		}
+	case QuestionName_EnableCertbot:
+		value := m.Questions[len(m.Questions)-1].Value()
+		switch value {
+		case ValueTrue:
+			if m.QuestionName_SelectCertbotEnvironment_PromptEnabled {
+				m.Questions = append(m.Questions, newQuestion(Question_SelectCertbotEnvironment))
+			} else {
+				return m, func() tea.Msg { return msgSetupAppInitResetup{} }
+			}
+		case ValueFalse:
+			return m, func() tea.Msg { return msgSetupAppInitResetup{} }
+		}
+	case QuestionName_SelectCertbotEnvironment:
+		return m, func() tea.Msg { return msgSetupAppInitResetup{} }
+	}
+
+	return m, nil
+}
+
+func (m SetupApp) appendNextQuestion() (SetupApp, tea.Cmd) {
+	if m.IsResetup {
+		return m.appendNextQuestionForResetup()
+	} else {
+		return m.appendNextQuestionForSetup()
+	}
 }
 
 func (m SetupApp) findQuestionByName(name QuestionName) (*int, *Question, bool) {
@@ -530,7 +661,7 @@ func (m SetupApp) View() string {
 		fmt.Fprintf(&b, "%v %v\n", m.Spinner.View(), m.LoadingMessage)
 	}
 	if m.RecoverableErr != nil {
-		fmt.Fprintf(&b, "❌ Encountered this error\n%v\n%v\n",
+		fmt.Fprintf(&b, "❌ Encountered this error\n%v\n\n%v\n",
 			bubbleteautil.StyleForegroundSemanticError.Render(m.RecoverableErr.Error()),
 			bubbleteautil.StyleForegroundSemanticInfo.Render("Please hit enter to continue"),
 		)
@@ -541,6 +672,10 @@ func (m SetupApp) View() string {
 	// Installation outputs correct newlines.
 	if m.Installation != nil {
 		fmt.Fprintf(&b, "%v", m.Installation.View())
+	}
+	// Resetup outputs correct newlines.
+	if m.Resetup != nil {
+		fmt.Fprintf(&b, "%v", m.Resetup.View())
 	}
 	return b.String()
 }
@@ -568,7 +703,15 @@ func (m SetupApp) ToDomains() Domains {
 }
 
 func (m SetupApp) ToInstallation(licenseObject *internal.LicenseObject) Installation {
-	certbotEnabled := m.mustFindQuestionByName(QuestionName_EnableCertbot).Value() == ValueTrue
+	certbotEnabled := m.AUTHGEAR_CERTBOT_ENABLED
+	if _, q, ok := m.findQuestionByName(QuestionName_EnableCertbot); ok {
+		certbotEnabled = q.Value() == ValueTrue
+	}
+
+	certbotEnvironment := m.AUTHGEAR_CERTBOT_ENVIRONMENT
+	if _, q, ok := m.findQuestionByName(QuestionName_SelectCertbotEnvironment); ok {
+		certbotEnvironment = q.Value()
+	}
 
 	installation := Installation{
 		Context:                           m.Context,
@@ -580,18 +723,16 @@ func (m SetupApp) ToInstallation(licenseObject *internal.LicenseObject) Installa
 
 		AUTHGEAR_ONCE_ADMIN_USER_EMAIL:    m.mustFindQuestionByName(QuestionName_EnterAdminEmail).Value(),
 		AUTHGEAR_ONCE_ADMIN_USER_PASSWORD: m.mustFindQuestionByName(QuestionName_EnterAdminPassword).Value(),
+
+		AUTHGEAR_CERTBOT_ENABLED:     strconv.FormatBool(certbotEnabled),
+		AUTHGEAR_CERTBOT_ENVIRONMENT: certbotEnvironment,
 	}
 
 	domains := m.ToDomains()
 
-	scheme := "http"
-	if certbotEnabled {
-		scheme = "https"
-		installation.AUTHGEAR_CERTBOT_ENVIRONMENT = m.mustFindQuestionByName(QuestionName_SelectCertbotEnvironment).Value()
-	}
-	installation.AUTHGEAR_HTTP_ORIGIN_PROJECT = fmt.Sprintf("%v://%v", scheme, domains.Project)
-	installation.AUTHGEAR_HTTP_ORIGIN_PORTAL = fmt.Sprintf("%v://%v", scheme, domains.Portal)
-	installation.AUTHGEAR_HTTP_ORIGIN_ACCOUNTS = fmt.Sprintf("%v://%v", scheme, domains.Accounts)
+	installation.AUTHGEAR_HTTP_ORIGIN_PROJECT = fmt.Sprintf("%v://%v", m.HTTPScheme, domains.Project)
+	installation.AUTHGEAR_HTTP_ORIGIN_PORTAL = fmt.Sprintf("%v://%v", m.HTTPScheme, domains.Portal)
+	installation.AUTHGEAR_HTTP_ORIGIN_ACCOUNTS = fmt.Sprintf("%v://%v", m.HTTPScheme, domains.Accounts)
 
 	switch m.mustFindQuestionByName(QuestionName_SelectSMTP).Value() {
 	case SMTPSkip:
@@ -605,6 +746,34 @@ func (m SetupApp) ToInstallation(licenseObject *internal.LicenseObject) Installa
 		installation.AUTHGEAR_SMTP_SENDER_ADDRESS = opts.SenderAddress
 	}
 	return installation
+}
+
+func (m SetupApp) ToResetup(licenseOptions internal.LicenseOptions) Resetup {
+	certbotEnabled := m.AUTHGEAR_CERTBOT_ENABLED
+	if _, q, ok := m.findQuestionByName(QuestionName_EnableCertbot); ok {
+		certbotEnabled = q.Value() == ValueTrue
+	}
+
+	certbotEnvironment := m.AUTHGEAR_CERTBOT_ENVIRONMENT
+	if _, q, ok := m.findQuestionByName(QuestionName_SelectCertbotEnvironment); ok {
+		certbotEnvironment = q.Value()
+	}
+
+	resetup := Resetup{
+		Context:                      m.Context,
+		AUTHGEAR_ONCE_LICENSE_KEY:    licenseOptions.LicenseKey,
+		AUTHGEAR_ONCE_IMAGE:          m.AUTHGEAR_ONCE_IMAGE,
+		AUTHGEAR_CERTBOT_ENABLED:     strconv.FormatBool(certbotEnabled),
+		AUTHGEAR_CERTBOT_ENVIRONMENT: certbotEnvironment,
+	}
+
+	domains := m.ToDomains()
+
+	resetup.AUTHGEAR_HTTP_ORIGIN_PROJECT = fmt.Sprintf("%v://%v", m.HTTPScheme, domains.Project)
+	resetup.AUTHGEAR_HTTP_ORIGIN_PORTAL = fmt.Sprintf("%v://%v", m.HTTPScheme, domains.Portal)
+	resetup.AUTHGEAR_HTTP_ORIGIN_ACCOUNTS = fmt.Sprintf("%v://%v", m.HTTPScheme, domains.Accounts)
+
+	return resetup
 }
 
 func (m SetupApp) HasError() bool {
@@ -661,6 +830,7 @@ type Installation struct {
 	AUTHGEAR_HTTP_ORIGIN_ACCOUNTS     string
 	AUTHGEAR_ONCE_ADMIN_USER_EMAIL    string
 	AUTHGEAR_ONCE_ADMIN_USER_PASSWORD string
+	AUTHGEAR_CERTBOT_ENABLED          string
 	AUTHGEAR_CERTBOT_ENVIRONMENT      string
 	AUTHGEAR_SMTP_HOST                string
 	AUTHGEAR_SMTP_PORT                int
@@ -696,7 +866,12 @@ func (m Installation) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// `docker run` is smart enough to pull the image and create the volume if the volume does not exist.
 			// So we do not need to do that manually.
 			// In fact, if we `docker pull`, it will result in error if we pull a image that exists only locally.
-			_, err := internal.DockerRun(m.Context, dockerRunOptions)
+			_, err := internal.DockerRunWithCertbotErrorHandling(m.Context, dockerRunOptions)
+			if errors.Is(err, internal.ErrCertbotExitCode10) {
+				err = errors.Join(&internal.ErrCertbotFailedToGetCertificates{
+					Domains: m.ToDomains(),
+				}, err)
+			}
 			return msgInstallationInstall{
 				Err: err,
 			}
@@ -757,9 +932,13 @@ func (m Installation) View() string {
 	case InstallationStatusDone:
 		fmt.Fprintf(&b, "  Installed\n")
 		fmt.Fprintf(&b, "  Started\n")
+		fmt.Fprintf(&b, "\n")
+		if m.AUTHGEAR_CERTBOT_ENABLED == "true" {
+			fmt.Fprintf(&b, "Generated TLS certificates issued by Let's Encrypt.\n")
+		}
 		fmt.Fprintf(
 			&b,
-			"\nReady! Start using Authear by visiting\n\n  %v\n\n",
+			"Ready! Start using Authear by visiting\n\n  %v\n\n",
 			bubbleteautil.StyleForegroundSemanticInfo.Render(m.AUTHGEAR_HTTP_ORIGIN_PORTAL),
 		)
 	}
@@ -769,15 +948,25 @@ func (m Installation) View() string {
 	return b.String()
 }
 
+func (m Installation) ToDomains() []string {
+	return originsToDomains(
+		m.AUTHGEAR_HTTP_ORIGIN_PROJECT,
+		m.AUTHGEAR_HTTP_ORIGIN_PORTAL,
+		m.AUTHGEAR_HTTP_ORIGIN_ACCOUNTS,
+	)
+}
+
 func newDockerRunOptionsForInstallation(m Installation) internal.DockerRunOptions {
 	opts := internal.NewDockerRunOptionsForStarting(m.AUTHGEAR_ONCE_IMAGE)
 	opts.Detach = false
 	// No need to specify --restart as this is a short-lived container.
 	opts.Restart = ""
-	// Run the shell command true to exit 0 when container has finished first run.
-	opts.Command = []string{"true"}
-	// Remove the container because this container always run `true`.
-	opts.Rm = true
+	// Block on getting the TLS certificates.
+	opts.Command = []string{"docker_wrapper", "--block-on-getting-tls-certificates"}
+	// Keep or remove the container by a flag.
+	opts.Rm = !internal.KeepInstallationContainerByDefault
+	// Do not specify name so that it will not clash with the actual container.
+	opts.Name = ""
 	opts.Env = []string{
 		fmt.Sprintf("AUTHGEAR_ONCE_IMAGE=%v", m.AUTHGEAR_ONCE_IMAGE),
 		fmt.Sprintf("AUTHGEAR_ONCE_LICENSE_KEY=%v", m.AUTHGEAR_ONCE_LICENSE_KEY),
@@ -789,9 +978,8 @@ func newDockerRunOptionsForInstallation(m Installation) internal.DockerRunOption
 		fmt.Sprintf("AUTHGEAR_HTTP_ORIGIN_ACCOUNTS=%v", m.AUTHGEAR_HTTP_ORIGIN_ACCOUNTS),
 		fmt.Sprintf("AUTHGEAR_ONCE_ADMIN_USER_EMAIL=%v", m.AUTHGEAR_ONCE_ADMIN_USER_EMAIL),
 		fmt.Sprintf("AUTHGEAR_ONCE_ADMIN_USER_PASSWORD=%v", m.AUTHGEAR_ONCE_ADMIN_USER_PASSWORD),
-	}
-	if m.AUTHGEAR_CERTBOT_ENVIRONMENT != "" {
-		opts.Env = append(opts.Env, fmt.Sprintf("AUTHGEAR_CERTBOT_ENVIRONMENT=%v", m.AUTHGEAR_CERTBOT_ENVIRONMENT))
+		fmt.Sprintf("AUTHGEAR_CERTBOT_ENABLED=%v", m.AUTHGEAR_CERTBOT_ENABLED),
+		fmt.Sprintf("AUTHGEAR_CERTBOT_ENVIRONMENT=%v", m.AUTHGEAR_CERTBOT_ENVIRONMENT),
 	}
 	if m.AUTHGEAR_SMTP_HOST != "" {
 		opts.Env = append(opts.Env,
@@ -803,6 +991,178 @@ func newDockerRunOptionsForInstallation(m Installation) internal.DockerRunOption
 		)
 	}
 	return opts
+}
+
+func newDockerRunOptionsForResetup(m Resetup) internal.DockerRunOptions {
+	opts := internal.NewDockerRunOptionsForStarting(m.AUTHGEAR_ONCE_IMAGE)
+	opts.Detach = false
+	// No need to specify --restart as this is a short-lived container.
+	opts.Restart = ""
+	// Block on getting the TLS certificates.
+	opts.Command = []string{"docker_wrapper", "--block-on-getting-tls-certificates"}
+	// Keep or remove the container by a flag.
+	opts.Rm = !internal.KeepInstallationContainerByDefault
+	// Do not specify name so that it will not clash with the actual container.
+	opts.Name = ""
+	opts.Env = []string{
+		fmt.Sprintf("AUTHGEAR_ONCE_IMAGE=%v", m.AUTHGEAR_ONCE_IMAGE),
+		fmt.Sprintf("AUTHGEAR_HTTP_ORIGIN_PROJECT=%v", m.AUTHGEAR_HTTP_ORIGIN_PROJECT),
+		fmt.Sprintf("AUTHGEAR_HTTP_ORIGIN_PORTAL=%v", m.AUTHGEAR_HTTP_ORIGIN_PORTAL),
+		fmt.Sprintf("AUTHGEAR_HTTP_ORIGIN_ACCOUNTS=%v", m.AUTHGEAR_HTTP_ORIGIN_ACCOUNTS),
+		fmt.Sprintf("AUTHGEAR_CERTBOT_ENABLED=%v", m.AUTHGEAR_CERTBOT_ENABLED),
+		fmt.Sprintf("AUTHGEAR_CERTBOT_ENVIRONMENT=%v", m.AUTHGEAR_CERTBOT_ENVIRONMENT),
+	}
+	return opts
+}
+
+type msgResetupResult struct {
+	Err error
+}
+
+type msgResetupStart struct {
+	Err error
+}
+
+type Resetup struct {
+	Context context.Context
+
+	AUTHGEAR_ONCE_LICENSE_KEY     string
+	AUTHGEAR_ONCE_IMAGE           string
+	AUTHGEAR_HTTP_ORIGIN_PROJECT  string
+	AUTHGEAR_HTTP_ORIGIN_PORTAL   string
+	AUTHGEAR_HTTP_ORIGIN_ACCOUNTS string
+
+	AUTHGEAR_CERTBOT_ENABLED     string
+	AUTHGEAR_CERTBOT_ENVIRONMENT string
+
+	Spinner            spinner.Model
+	InstallationStatus InstallationStatus
+	Loading            bool
+
+	FatalError internal.FatalError
+}
+
+var _ tea.Model = Resetup{}
+
+func (m Resetup) Init() tea.Cmd {
+	return nil
+}
+
+func (m Resetup) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var cmds []tea.Cmd
+
+	switch msg := msg.(type) {
+	case msgSetupAppStartResetup:
+		m.Spinner = spinner.New()
+		m.Spinner.Spinner = spinner.Dot
+		m.Spinner.Style = bubbleteautil.StyleForegroundSemanticInfo
+
+		dockerRunOptions := newDockerRunOptionsForResetup(m)
+		m.Loading = true
+		cmds = append(cmds, m.Spinner.Tick, func() tea.Msg {
+			// docker rm -f authgearonce
+			err := internal.DockerRm(m.Context, internal.NameDockerContainer, internal.DockerRmOptions{
+				Force: true,
+			})
+			if err != nil {
+				return msgResetupResult{
+					Err: err,
+				}
+			}
+
+			// docker run
+			_, err = internal.DockerRunWithCertbotErrorHandling(m.Context, dockerRunOptions)
+			if errors.Is(err, internal.ErrCertbotExitCode10) {
+				err = errors.Join(&internal.ErrCertbotFailedToGetCertificates{
+					Domains: m.ToDomains(),
+				}, err)
+			}
+			if err != nil {
+				return msgResetupResult{
+					Err: err,
+				}
+			}
+
+			return msgResetupResult{}
+		})
+	case msgResetupResult:
+		m.Loading = false
+		if msg.Err != nil {
+			m.FatalError = m.FatalError.WithErr(msg.Err)
+			return m, tea.Quit
+		} else {
+			m.Loading = true
+			m.InstallationStatus = InstallationStatusStarting
+			dockerRunOptions := internal.NewDockerRunOptionsForStarting(m.AUTHGEAR_ONCE_IMAGE)
+			cmds = append(cmds, func() tea.Msg {
+				_, err := internal.DockerRun(m.Context, dockerRunOptions)
+				return msgResetupStart{
+					Err: err,
+				}
+			})
+		}
+	case msgResetupStart:
+		m.Loading = false
+		if msg.Err != nil {
+			m.FatalError = m.FatalError.WithErr(msg.Err)
+			return m, tea.Quit
+		} else {
+			m.InstallationStatus = InstallationStatusDone
+			return m, tea.Quit
+		}
+	}
+
+	var updated spinner.Model
+	var newCmd tea.Cmd
+	updated, newCmd = m.Spinner.Update(msg)
+	m.Spinner = updated
+	cmds = append(cmds, newCmd)
+
+	return m, tea.Batch(cmds...)
+}
+
+func (m Resetup) View() string {
+	var b strings.Builder
+	fmt.Fprintf(&b, "The installation is going to take few minutes:\n")
+	switch m.InstallationStatus {
+	case InstallationStatusInstalling:
+		var spinner string
+		if m.Loading {
+			spinner = fmt.Sprintf(" %v", m.Spinner.View())
+		}
+		fmt.Fprintf(&b, "  Installing%v\n", spinner)
+	case InstallationStatusStarting:
+		fmt.Fprintf(&b, "  Installed\n")
+		var spinner string
+		if m.Loading {
+			spinner = fmt.Sprintf(" %v", m.Spinner.View())
+		}
+		fmt.Fprintf(&b, "  Starting%v\n", spinner)
+	case InstallationStatusDone:
+		fmt.Fprintf(&b, "  Installed\n")
+		fmt.Fprintf(&b, "  Started\n")
+		fmt.Fprintf(&b, "\n")
+		if m.AUTHGEAR_CERTBOT_ENABLED == "true" {
+			fmt.Fprintf(&b, "Generated TLS certificates issued by Let's Encrypt.\n")
+		}
+		fmt.Fprintf(
+			&b,
+			"Ready! Start using Authear by visiting\n\n  %v\n\n",
+			bubbleteautil.StyleForegroundSemanticInfo.Render(m.AUTHGEAR_HTTP_ORIGIN_PORTAL),
+		)
+	}
+
+	fmt.Fprintf(&b, "%v", m.FatalError.View())
+
+	return b.String()
+}
+
+func (m Resetup) ToDomains() []string {
+	return originsToDomains(
+		m.AUTHGEAR_HTTP_ORIGIN_PROJECT,
+		m.AUTHGEAR_HTTP_ORIGIN_PORTAL,
+		m.AUTHGEAR_HTTP_ORIGIN_ACCOUNTS,
+	)
 }
 
 func nilStringToEmptyString(s *string) string {
@@ -818,4 +1178,16 @@ func nilTimeToEmptyString(t *time.Time) string {
 	}
 
 	return t.Format(time.RFC3339)
+}
+
+func originsToDomains(origins ...string) []string {
+	var domains []string
+	for _, origin := range origins {
+		u, err := url.Parse(origin)
+		if err != nil {
+			panic(err)
+		}
+		domains = append(domains, u.Host)
+	}
+	return domains
 }
