@@ -30,7 +30,7 @@ import {
 } from "../../hook/useOAuthProviderForm";
 import { Badge } from "../../components/v2/Badge/Badge";
 import { Callout } from "../../components/v2/Callout/Callout";
-import { deriveOAuthProviderDisabled } from "../../model/oauthProviders";
+import { isOAuthProviderMissingCredential } from "../../model/oauthProviders";
 
 const MASKED_SECRET = "***************";
 
@@ -279,7 +279,7 @@ function ProviderStatus({
 }: {
   providerConfig: OAuthSSOProviderConfig;
 }) {
-  if (providerConfig.disabled) {
+  if (providerConfig.missing_credential_allowed) {
     return (
       <Badge
         size="1"
@@ -367,9 +367,10 @@ export function useSingleSignOnConfigurationWidget(
       setState((state) =>
         produce(state, (state) => {
           const config = produce(newConfig, (config) => {
-            config.disabled = deriveOAuthProviderDisabled(config, secret)
-              ? true
-              : undefined;
+            config.missing_credential_allowed =
+              isOAuthProviderMissingCredential(config, secret)
+                ? true
+                : undefined;
           });
 
           if (providerIndex === -1) {
@@ -430,7 +431,7 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
       onChange,
       disabled: featureDisabled,
     } = props;
-    const isInactive = Boolean(config.disabled);
+    const isInactive = Boolean(config.missing_credential_allowed);
 
     const { renderToString } = useContext(Context);
 
