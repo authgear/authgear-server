@@ -25,7 +25,7 @@ var UserNotFound = apierrors.NotFound.WithReason("UserNotFound")
 var ErrUserNotFound = UserNotFound.New("user not found")
 var ErrIdentityNotFound = apierrors.NotFound.WithReason("IdentityNotFound").New("identity not found")
 
-var OAuthProviderInactive = apierrors.Invalid.WithReason("OAuthProviderInactive")
+var OAuthProviderMissingCredentials = apierrors.Invalid.WithReason("OAuthProviderMissingCredentials")
 
 var ErrInvalidCredentials = InvalidCredentials.New("invalid credentials")
 var ErrOAuthProviderNotFound = apierrors.NotFound.WithReason("OAuthProviderNotFound").New("oauth provider not found")

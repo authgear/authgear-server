@@ -149,7 +149,7 @@ func (s *ErrorRenderer) MakeAuthflowErrorResult(ctx context.Context, w http.Resp
 	switch {
 	case apierrors.IsKind(err, webapp.WebUISessionCompleted):
 		return s.makeSessionCompletedErrorResult(ctx, w, r, u, apierr)
-	case apierrors.IsKind(err, api.OAuthProviderInactive):
+	case apierrors.IsKind(err, api.OAuthProviderMissingCredentials):
 		fallthrough
 	case apierr.Reason == "AuthenticationFlowNoPublicSignup":
 		fallthrough

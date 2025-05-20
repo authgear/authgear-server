@@ -48,7 +48,7 @@ func (p *OAuthProviderFactory) getActiveOrDemoProvider(alias string) (provider o
 			"OAuthProviderAlias": alias,
 			"OAuthProviderType":  providerConfig.Type(),
 		}
-		err = api.OAuthProviderInactive.NewWithInfo("oauth provider is inactive because of missing credentials", details)
+		err = api.OAuthProviderMissingCredentials.NewWithInfo("oauth provider is inactive because of missing credentials", details)
 		return
 	}
 
