@@ -7,6 +7,9 @@
   grid-template-columns: auto 1fr auto;
 
   align-items: center;
+}
+
+.calloutRoot--toast {
   width: 22.5rem;
 }
 
