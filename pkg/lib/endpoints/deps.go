@@ -8,6 +8,7 @@ import (
 )
 
 var DependencySet = wire.NewSet(
+	wire.Struct(new(OAuthEndpoints), "*"),
 	wire.Struct(new(Endpoints), "*"),
 )
 

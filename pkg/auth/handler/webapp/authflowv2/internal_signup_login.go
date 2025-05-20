@@ -134,7 +134,8 @@ func (h *InternalAuthflowV2SignupLoginHandler) ServeHTTP(w http.ResponseWriter, 
 
 	handlers.PostAction("oauth", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		providerAlias := r.Form.Get("x_provider_alias")
-		callbackURL := h.Endpoints.SSOCallbackURL(providerAlias).String()
+		// TODO: Support demo credentials
+		callbackURL := h.Endpoints.SSOCallbackURL(providerAlias, false).String()
 		input := map[string]interface{}{
 			"identification": "oauth",
 			"alias":          providerAlias,

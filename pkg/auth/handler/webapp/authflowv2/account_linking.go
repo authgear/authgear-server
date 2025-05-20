@@ -129,8 +129,9 @@ func (h *AuthflowV2AccountLinkingHandler) ServeHTTP(w http.ResponseWriter, r *ht
 		case config.AuthenticationFlowIdentificationOAuth:
 			providerAlias := option.Alias
 			input = map[string]interface{}{
-				"index":        index,
-				"redirect_uri": h.Endpoints.SSOCallbackURL(providerAlias).String(),
+				"index": index,
+				// TODO: Support demo credentials
+				"redirect_uri": h.Endpoints.SSOCallbackURL(providerAlias, false).String(),
 			}
 		case config.AuthenticationFlowIdentificationLDAP:
 			// TODO(DEV-1672): Support Account Linking for LDAP

@@ -11,8 +11,9 @@ import (
 )
 
 type OAuthEndpoints struct {
-	HTTPHost  httputil.HTTPHost
-	HTTPProto httputil.HTTPProto
+	HTTPHost                       httputil.HTTPHost
+	HTTPProto                      httputil.HTTPProto
+	OAuthDemoCredentialRedirectURI config.OAuthDemoCredentialRedirectURI
 }
 
 type EndpointsUIImplementationService interface {
@@ -49,7 +50,14 @@ func (e *OAuthEndpoints) urlOf(relPath string) *url.URL {
 }
 
 func (e *OAuthEndpoints) SSOCallbackEndpointURL() *url.URL { return e.urlOf("sso/oauth2/callback") }
-func (e *OAuthEndpoints) SSOCallbackURL(alias string) *url.URL {
+func (e *OAuthEndpoints) SSOCallbackURL(alias string, isDemo bool) *url.URL {
+	if isDemo {
+		u, err := url.Parse(string(e.OAuthDemoCredentialRedirectURI))
+		if err != nil {
+			panic(fmt.Errorf("demo credential redirect uri is not a valid uri: %w", err))
+		}
+		return u
+	}
 	u := e.SSOCallbackEndpointURL()
 	u.Path = path.Join(u.Path, url.PathEscape(alias))
 	return u
