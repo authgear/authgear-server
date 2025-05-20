@@ -10,7 +10,7 @@ type OAuthProviderStatus string
 const (
 	OAuthProviderStatusActive               OAuthProviderStatus = "active"
 	OAuthProviderStatusMissingCredentials   OAuthProviderStatus = "missing_credentials"
-	OAuthProviderStatusUsingDemoCredentials OAuthProviderStatus = "using_demo_credentials"
+	OAuthProviderStatusUsingDemoCredentials OAuthProviderStatus = "using_demo_credentials" // nolint: gosec
 )
 
 type OAuthData struct {
