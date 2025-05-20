@@ -3,8 +3,9 @@ package endpoints
 import (
 	"net/url"
 
-	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/google/wire"
+
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 var DependencySet = wire.NewSet(
