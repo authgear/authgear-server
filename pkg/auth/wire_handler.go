@@ -44,6 +44,13 @@ func newPreviewWidgetHandler(p *deps.RootProvider, w http.ResponseWriter, r *htt
 	))
 }
 
+func newNoProjectSSOCallbackHandler(p *deps.RootProvider, w http.ResponseWriter, r *http.Request, ctx context.Context) http.Handler {
+	panic(wire.Build(
+		wire.Struct(new(handlerwebappauthflowv2.SSOCallbackHandler), "*"),
+		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.SSOCallbackHandler)),
+	))
+}
+
 func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
