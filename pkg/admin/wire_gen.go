@@ -1027,8 +1027,12 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		HTTPClient:                   oAuthHTTPClient,
 		SimpleStoreRedisFactory:      simpleStoreRedisFactory,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig, factory)
 	webappoauthStore := &webappoauth.Store{
-		Redis: appredisHandle,
+		Redis: globalredisHandle,
 		AppID: appID,
 	}
 	mfaFacade := &facade.MFAFacade{
