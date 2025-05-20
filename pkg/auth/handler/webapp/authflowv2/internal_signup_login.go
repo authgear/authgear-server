@@ -45,7 +45,6 @@ type InternalAuthflowV2SignupLoginHandler struct {
 	Renderer          handlerwebapp.Renderer
 	MeterService      handlerwebapp.MeterService
 	TutorialCookie    handlerwebapp.TutorialCookie
-	Endpoints         handlerwebapp.AuthflowSignupEndpointsProvider
 }
 
 type AuthflowV2SignupUIVariant string
@@ -134,8 +133,10 @@ func (h *InternalAuthflowV2SignupLoginHandler) ServeHTTP(w http.ResponseWriter, 
 
 	handlers.PostAction("oauth", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		providerAlias := r.Form.Get("x_provider_alias")
-		// TODO: Support demo credentials
-		callbackURL := h.Endpoints.SSOCallbackURL(providerAlias, false).String()
+		callbackURL, err := h.Controller.GetSSOCallbackURL(providerAlias)
+		if err != nil {
+			return err
+		}
 		input := map[string]interface{}{
 			"identification": "oauth",
 			"alias":          providerAlias,
@@ -143,7 +144,7 @@ func (h *InternalAuthflowV2SignupLoginHandler) ServeHTTP(w http.ResponseWriter, 
 			"response_mode":  oauthrelyingparty.ResponseModeFormPost,
 		}
 
-		err := handlerwebapp.HandleIdentificationBotProtection(ctx, config.AuthenticationFlowIdentificationOAuth, screen.StateTokenFlowResponse, r.Form, input)
+		err = handlerwebapp.HandleIdentificationBotProtection(ctx, config.AuthenticationFlowIdentificationOAuth, screen.StateTokenFlowResponse, r.Form, input)
 		if err != nil {
 			return err
 		}

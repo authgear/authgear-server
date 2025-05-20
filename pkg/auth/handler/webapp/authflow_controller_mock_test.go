@@ -8,6 +8,7 @@ import (
 	context "context"
 	json "encoding/json"
 	http "net/http"
+	url "net/url"
 	reflect "reflect"
 
 	webapp "github.com/authgear/authgear-server/pkg/auth/webapp"
@@ -457,4 +458,41 @@ func (m *MockAuthflowNavigator) NavigateVerifyBotProtection(result *webapp.Resul
 func (mr *MockAuthflowNavigatorMockRecorder) NavigateVerifyBotProtection(result interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NavigateVerifyBotProtection", reflect.TypeOf((*MockAuthflowNavigator)(nil).NavigateVerifyBotProtection), result)
+}
+
+// MockAuthflowEndpoints is a mock of AuthflowEndpoints interface.
+type MockAuthflowEndpoints struct {
+	ctrl     *gomock.Controller
+	recorder *MockAuthflowEndpointsMockRecorder
+}
+
+// MockAuthflowEndpointsMockRecorder is the mock recorder for MockAuthflowEndpoints.
+type MockAuthflowEndpointsMockRecorder struct {
+	mock *MockAuthflowEndpoints
+}
+
+// NewMockAuthflowEndpoints creates a new mock instance.
+func NewMockAuthflowEndpoints(ctrl *gomock.Controller) *MockAuthflowEndpoints {
+	mock := &MockAuthflowEndpoints{ctrl: ctrl}
+	mock.recorder = &MockAuthflowEndpointsMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockAuthflowEndpoints) EXPECT() *MockAuthflowEndpointsMockRecorder {
+	return m.recorder
+}
+
+// SSOCallbackURL mocks base method.
+func (m *MockAuthflowEndpoints) SSOCallbackURL(alias string, isDemo bool) *url.URL {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SSOCallbackURL", alias, isDemo)
+	ret0, _ := ret[0].(*url.URL)
+	return ret0
+}
+
+// SSOCallbackURL indicates an expected call of SSOCallbackURL.
+func (mr *MockAuthflowEndpointsMockRecorder) SSOCallbackURL(alias, isDemo interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SSOCallbackURL", reflect.TypeOf((*MockAuthflowEndpoints)(nil).SSOCallbackURL), alias, isDemo)
 }
