@@ -10,8 +10,10 @@ import (
 func TestEndpoints(t *testing.T) {
 	Convey("Endpoints", t, func() {
 		endpoints := Endpoints{
-			HTTPProto: "https",
-			HTTPHost:  "example.com",
+			OAuthEndpoints: &OAuthEndpoints{
+				HTTPProto: "https",
+				HTTPHost:  "example.com",
+			},
 		}
 
 		So(endpoints.Origin(), ShouldResemble, &url.URL{

@@ -2,8 +2,13 @@ package webapp
 
 import (
 	"context"
+	"fmt"
 	"net/http"
+	"net/url"
 
+	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
+	"github.com/authgear/authgear-server/pkg/lib/endpoints"
 	"github.com/authgear/authgear-server/pkg/lib/webappoauth"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -25,20 +30,42 @@ type NoProjectSSOCallbackHandlerOAuthStateStore interface {
 }
 
 type NoProjectSSOCallbackHandler struct {
+	ConfigSource    *configsource.ConfigSource
 	OAuthStateStore NoProjectSSOCallbackHandlerOAuthStateStore
 }
 
 func (h *NoProjectSSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	stateToken := r.FormValue("state")
-	_, err := h.OAuthStateStore.RecoverState(r.Context(), stateToken)
+	state, err := h.OAuthStateStore.RecoverState(ctx, stateToken)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	// TODO
+
+	publicOrigin := ""
+	err = h.ConfigSource.ContextResolver.ResolveContext(ctx, state.AppID, func(ctx context.Context, appCtx *config.AppContext) error {
+		publicOrigin = appCtx.Config.AppConfig.HTTP.PublicOrigin
+		return nil
+	})
+	if err != nil {
+		http.Error(w, fmt.Sprintf("failed to resolve public origin of app id: %s", state.AppID), http.StatusInternalServerError)
+		return
+	}
+
+	publicOriginURL, err := url.Parse(publicOrigin)
+	if err != nil {
+		panic(fmt.Errorf("unexpected: public origin of app %s is not a valid url. %w", state.AppID, err))
+	}
+	oauthEndpoints := endpoints.NewOAuthEndpoints(publicOriginURL)
+	redirectURL := oauthEndpoints.SSOCallbackURL(state.ProviderAlias)
+	redirectURL.RawQuery = r.URL.RawQuery
+
+	// Use 307 so that method and body is kept
+	http.Redirect(w, r, oauthEndpoints.SSOCallbackURL(state.ProviderAlias).String(), http.StatusTemporaryRedirect)
 }
