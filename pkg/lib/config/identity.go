@@ -284,13 +284,13 @@ func OAuthSSOProviderConfigSchemaBuilder(providerSchemaBuilder validation.Schema
 		Property("modify_disabled", validation.SchemaBuilder{}.Type(validation.TypeBoolean)).
 		Property("create_disabled", validation.SchemaBuilder{}.Type(validation.TypeBoolean)).
 		Property("delete_disabled", validation.SchemaBuilder{}.Type(validation.TypeBoolean)).
-		Property("disabled", validation.SchemaBuilder{}.Type(validation.TypeBoolean))
+		Property("missing_credential_allowed", validation.SchemaBuilder{}.Type(validation.TypeBoolean))
 	builder.AddRequired("alias")
 
 	_if := validation.SchemaBuilder{}
 	_if.Properties().
-		Property("disabled", validation.SchemaBuilder{}.Const(true))
-	_if.Required("disabled")
+		Property("missing_credential_allowed", validation.SchemaBuilder{}.Const(true))
+	_if.Required("missing_credential_allowed")
 
 	builder.AllOf(validation.SchemaBuilder{}.If(_if).
 		Else(providerSchemaBuilder))
@@ -339,12 +339,12 @@ func (c OAuthSSOProviderConfig) CreateDisabled() bool {
 func (c OAuthSSOProviderConfig) DeleteDisabled() bool {
 	return c["delete_disabled"].(bool)
 }
-func (c OAuthSSOProviderConfig) IsDisabled() bool {
-	disabled, ok := c["disabled"].(bool)
+func (c OAuthSSOProviderConfig) IsMissingCredentialAllowed() bool {
+	v, ok := c["missing_credential_allowed"].(bool)
 	if !ok {
 		return false
 	}
-	return disabled
+	return v
 }
 
 type OAuthSSOConfig struct {

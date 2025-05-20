@@ -61,7 +61,7 @@ func NewIdentificationOptionsOAuth(oauthConfig *config.OAuthSSOConfig, oauthFeat
 	for _, p := range oauthConfig.Providers {
 		if !identity.IsOAuthSSOProviderTypeDisabled(p.AsProviderConfig(), oauthFeatureConfig) {
 			status := OAuthProviderStatusActive
-			if p.IsDisabled() {
+			if p.IsMissingCredentialAllowed() {
 				status = OAuthProviderStatusInactive
 				// TODO(tung): Add demo status
 			}
