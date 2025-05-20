@@ -361,6 +361,7 @@ func (n *AuthflowV2Navigator) navigateStepIdentify(ctx context.Context, s *webap
 				UIImplementation: config.UIImplementationAuthflowV2,
 				XStep:            s.Screen.StateToken.XStep,
 				ErrorRedirectURI: errorRedirectURI.String(),
+				ProviderAlias:    data.Alias,
 			}
 			stateToken, err := n.OAuthStateStore.GenerateState(ctx, state)
 			if err != nil {
