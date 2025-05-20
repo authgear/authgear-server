@@ -19,7 +19,7 @@ type OAuthData struct {
 	OAuthProviderType     string              `json:"oauth_provider_type,omitempty"`
 	OAuthAuthorizationURL string              `json:"oauth_authorization_url,omitempty"`
 	WechatAppType         wechat.AppType      `json:"wechat_app_type,omitempty"`
-	ProviderStatus        OAuthProviderStatus `json:"status,omitempty"`
+	ProviderStatus        OAuthProviderStatus `json:"provider_status,omitempty"`
 }
 
 var _ authflow.Data = OAuthData{}
