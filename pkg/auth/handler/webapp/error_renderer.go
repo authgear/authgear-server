@@ -167,11 +167,9 @@ func (s *ErrorRenderer) MakeAuthflowErrorResult(ctx context.Context, w http.Resp
 		case config.UIImplementationAuthflowV2:
 			s.AuthflowV2Navigator.NavigateNonRecoverableError(r, &u, err)
 		}
-		fmt.Println("r.URL.String()", r.URL.String())
 		apierr = apierr.CloneWithAdditionalInfo(apierrors.Details{
 			"FromURL": r.URL.String(),
 		})
-		fmt.Println("apiErr", apierr.Info_ReadOnly)
 		return s.makeNonRecoverableResult(ctx, u, apierr)
 	default:
 		return recoverable()
