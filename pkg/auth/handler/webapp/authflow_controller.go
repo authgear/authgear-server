@@ -115,6 +115,10 @@ type AuthflowOAuthCallbackResponse struct {
 	State *webappoauth.WebappOAuthState
 }
 
+type AuthflowEndpoints interface {
+	SSOCallbackURL(alias string, isDemo bool) *url.URL
+}
+
 type AuthflowController struct {
 	Logger                  AuthflowControllerLogger
 	TesterEndpointsProvider tester.EndpointsProvider
@@ -125,6 +129,7 @@ type AuthflowController struct {
 	Sessions       AuthflowControllerSessionStore
 	SessionCookie  webapp.SessionCookieDef
 	SignedUpCookie webapp.SignedUpCookieDef
+	Endpoints      AuthflowEndpoints
 
 	Authflows AuthflowControllerAuthflowService
 
@@ -133,6 +138,7 @@ type AuthflowController struct {
 	UIInfoResolver AuthflowControllerUIInfoResolver
 
 	UIConfig            *config.UIConfig
+	OAuthSSOConfig      *config.OAuthSSOConfig
 	OAuthClientResolver AuthflowControllerOAuthClientResolver
 
 	Navigator     AuthflowNavigator
@@ -1171,4 +1177,13 @@ func (c *AuthflowController) finishSession(
 		// Do nothing for other flows
 	}
 	return nil
+}
+
+func (c *AuthflowController) GetSSOCallbackURL(alias string) (string, error) {
+	oauthProviderConfig, ok := c.OAuthSSOConfig.GetProviderConfig(alias)
+	if !ok {
+		return "", fmt.Errorf("unknown alias %s", alias)
+	}
+	callbackURL := c.Endpoints.SSOCallbackURL(alias, config.OAuthSSOProviderConfig(oauthProviderConfig).IsMissingCredentialAllowed()).String()
+	return callbackURL, nil
 }
