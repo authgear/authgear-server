@@ -422,7 +422,7 @@ var NoProjectDependencySet = wire.NewSet(
 	deps.ProvideHTTPProto,
 
 	webappoauth.DependencySet,
-	wire.Bind(new(handlerwebappauthflowv2.NoProjectSSOCallbackHandlerOAuthStateStore), new(*webappoauth.Store)),
+	wire.Bind(new(handlerwebapp.NoProjectSSOCallbackHandlerOAuthStateStore), new(*webappoauth.Store)),
 
 	wire.Struct(new(web.StaticAssetResolver), "*"),
 	wire.Bind(new(viewmodelswebapp.StaticAssetResolver), new(*web.StaticAssetResolver)),

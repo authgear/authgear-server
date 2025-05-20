@@ -125,4 +125,6 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(AuthflowFinishFlowHandler), "*"),
 
 	wire.Struct(new(ResponseWriter), "*"),
+
+	wire.Struct(new(NoProjectSSOCallbackHandler), "*"),
 )
