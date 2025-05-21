@@ -422,6 +422,20 @@ func (mr *MockAuthflowNavigatorMockRecorder) Navigate(ctx, screen, r, webSession
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Navigate", reflect.TypeOf((*MockAuthflowNavigator)(nil).Navigate), ctx, screen, r, webSessionID, result)
 }
 
+// NavigateOAuthProviderDemoCredentialPage mocks base method.
+func (m *MockAuthflowNavigator) NavigateOAuthProviderDemoCredentialPage(screen *webapp.AuthflowScreen, r *http.Request) *webapp.Result {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "NavigateOAuthProviderDemoCredentialPage", screen, r)
+	ret0, _ := ret[0].(*webapp.Result)
+	return ret0
+}
+
+// NavigateOAuthProviderDemoCredentialPage indicates an expected call of NavigateOAuthProviderDemoCredentialPage.
+func (mr *MockAuthflowNavigatorMockRecorder) NavigateOAuthProviderDemoCredentialPage(screen, r interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NavigateOAuthProviderDemoCredentialPage", reflect.TypeOf((*MockAuthflowNavigator)(nil).NavigateOAuthProviderDemoCredentialPage), screen, r)
+}
+
 // NavigateResetPasswordSuccessPage mocks base method.
 func (m *MockAuthflowNavigator) NavigateResetPasswordSuccessPage() string {
 	m.ctrl.T.Helper()
