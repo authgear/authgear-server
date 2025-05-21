@@ -34,6 +34,10 @@ var CmdRoot = &cobra.Command{
 	Use: internal.ProgramName,
 	// Suppress the --version flag.
 	Version: "",
+	CompletionOptions: cobra.CompletionOptions{
+		// Hide the subcommand `completion`, instead of disabling it.
+		HiddenDefaultCmd: true,
+	},
 }
 
 func Run(ctx context.Context) {
