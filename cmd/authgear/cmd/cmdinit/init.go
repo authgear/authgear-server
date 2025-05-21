@@ -61,6 +61,12 @@ var cmdInit = &cobra.Command{
 		if err != nil {
 			return err
 		}
+
+		skipPublicSignup, err := config.ReadSkipPublicSignup(ctx, cmd)
+		if err != nil {
+			return err
+		}
+
 		var smtpConfig *libconfig.SMTPServerCredentials
 		if !skipEmailVerification {
 			// Do something
@@ -135,6 +141,13 @@ var cmdInit = &cobra.Command{
 			},
 		}
 
+		if skipPublicSignup {
+			if appConfig.Authentication == nil {
+				appConfig.Authentication = &libconfig.AuthenticationConfig{}
+			}
+			appConfig.Authentication.PublicSignupDisabled = skipPublicSignup
+		}
+
 		// Set search implementation
 		appConfig.Search = &libconfig.SearchConfig{
 			Implementation: searchImpl,
@@ -184,6 +197,7 @@ func init() {
 	config.Prompt_PublicOrigin.DefineFlag(cmdInit)
 	config.Prompt_PortalOrigin.DefineFlag(cmdInit)
 	config.Prompt_PortalClientID.DefineFlag(cmdInit)
+	config.Prompt_DisablePublicSignup.DefineFlag(cmdInit)
 	config.Prompt_PhoneOTPMode.DefineFlag(cmdInit)
 	config.Prompt_DisableEmailVerification.DefineFlag(cmdInit)
 	config.Prompt_SMTPHost.DefineFlag(cmdInit)

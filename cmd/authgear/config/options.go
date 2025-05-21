@@ -55,6 +55,12 @@ var Prompt_DisableEmailVerification = cliutil.PromptBool{
 	NonInteractiveFlagName:      "disable-email-verification",
 }
 
+var Prompt_DisablePublicSignup = cliutil.PromptBool{
+	Title:                       "Would you like to turn off public signup? (If turned off, you have to provision the users yourself in the portal)",
+	InteractiveDefaultUserInput: false,
+	NonInteractiveFlagName:      "disable-public-signup",
+}
+
 var Prompt_SMTPHost = cliutil.PromptString{
 	Title:                       "SMTP host",
 	InteractiveDefaultUserInput: "",
@@ -221,6 +227,14 @@ func ReadPhoneOTPMode(ctx context.Context, cmd *cobra.Command) (config.Authentic
 
 func ReadSkipEmailVerification(ctx context.Context, cmd *cobra.Command) (bool, error) {
 	b, err := Prompt_DisableEmailVerification.Prompt(ctx, cmd)
+	if err != nil {
+		return false, err
+	}
+	return b, nil
+}
+
+func ReadSkipPublicSignup(ctx context.Context, cmd *cobra.Command) (bool, error) {
+	b, err := Prompt_DisablePublicSignup.Prompt(ctx, cmd)
 	if err != nil {
 		return false, err
 	}
