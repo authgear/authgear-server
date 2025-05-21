@@ -1,16 +1,16 @@
 <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-<rect x="0.5" y="0.5" width="63" height="63" fill="white"/>
-<rect x="0.5" y="0.5" width="63" height="63" stroke="#F0F0F0"/>
-<line x1="63" y1="9.5" x2="1" y2="9.49999" stroke="#F9F9F9"/>
-<line x1="63" y1="18.5" x2="1" y2="18.5" stroke="#F9F9F9"/>
-<line x1="63" y1="27.5" x2="1" y2="27.5" stroke="#F9F9F9"/>
-<line x1="63" y1="36.5" x2="1" y2="36.5" stroke="#F9F9F9"/>
-<line x1="63" y1="45.5" x2="1" y2="45.5" stroke="#F9F9F9"/>
-<line x1="63" y1="54.5" x2="1" y2="54.5" stroke="#F9F9F9"/>
-<line x1="9.5" y1="1" x2="9.5" y2="63" stroke="#F9F9F9"/>
-<line x1="18.5" y1="1" x2="18.5" y2="63" stroke="#F9F9F9"/>
-<line x1="27.5" y1="1" x2="27.5" y2="63" stroke="#F9F9F9"/>
-<line x1="36.5" y1="1" x2="36.5" y2="63" stroke="#F9F9F9"/>
-<line x1="45.5" y1="1" x2="45.5" y2="63" stroke="#F9F9F9"/>
-<line x1="54.5" y1="1" x2="54.5" y2="63" stroke="#F9F9F9"/>
+<rect x="0.25" y="0.25" width="63.5" height="63.5" fill="#FCFCFC"/>
+<rect x="0.25" y="0.25" width="63.5" height="63.5" stroke="#F0F0F0" stroke-width="0.5"/>
+<line x1="63.5" y1="9.5" x2="0.5" y2="9.49999" stroke="#F9F9F9"/>
+<line x1="63.5" y1="18.5" x2="0.5" y2="18.5" stroke="#F9F9F9"/>
+<line x1="63.5" y1="27.5" x2="0.5" y2="27.5" stroke="#F9F9F9"/>
+<line x1="63.5" y1="36.5" x2="0.5" y2="36.5" stroke="#F9F9F9"/>
+<line x1="63.5" y1="45.5" x2="0.5" y2="45.5" stroke="#F9F9F9"/>
+<line x1="63.5" y1="54.5" x2="0.5" y2="54.5" stroke="#F9F9F9"/>
+<line x1="9.5" y1="0.5" x2="9.5" y2="63.5" stroke="#F9F9F9"/>
+<line x1="18.5" y1="0.5" x2="18.5" y2="63.5" stroke="#F9F9F9"/>
+<line x1="27.5" y1="0.5" x2="27.5" y2="63.5" stroke="#F9F9F9"/>
+<line x1="36.5" y1="0.5" x2="36.5" y2="63.5" stroke="#F9F9F9"/>
+<line x1="45.5" y1="0.5" x2="45.5" y2="63.5" stroke="#F9F9F9"/>
+<line x1="54.5" y1="0.5" x2="54.5" y2="63.5" stroke="#F9F9F9"/>
 </svg>
