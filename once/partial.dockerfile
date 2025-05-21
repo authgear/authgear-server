@@ -260,6 +260,7 @@ USER authgear
 WORKDIR /home/authgear
 
 COPY ./once/resources /home/authgear/resources/
+COPY ./once/project-resources /home/authgear/project-resources/
 COPY --chown=authgear:authgear ./once/docker-entrypoint.sh ./once/docker-certbot.py /usr/local/bin/
 COPY --chown=authgear:authgear ./once/bashrc /home/authgear/.bashrc
 COPY --from=authgear-once-stage-wrapper --chown=authgear:authgear /src/docker_wrapper /usr/local/bin/

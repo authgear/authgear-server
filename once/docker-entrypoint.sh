@@ -447,6 +447,7 @@ docker_authgear_first_time_setup() {
 		--smtp-sender-address="$AUTHGEAR_SMTP_SENDER_ADDRESS" \
 		--search-implementation=postgresql \
 		-o "$init_output_project"
+	cp -R "$HOME/project-resources/." "$init_output_project"
 	authgear-portal internal configsource create "$init_output_project"
 	rm -r "$init_output_project"
 
