@@ -32,10 +32,10 @@ var _ = SecretConfigSchema.Add("SSOOAuthDemoCredentials", `
 `)
 
 type SSOOAuthDemoCredentials struct {
-	Items []OauthDemoCredentialsItems `json:"items,omitempty"`
+	Items []SSOOAuthDemoCredentialsItems `json:"items,omitempty"`
 }
 
-type OauthDemoCredentialsItems struct {
+type SSOOAuthDemoCredentialsItems struct {
 	ProviderConfig oauthrelyingparty.ProviderConfig `json:"provider_config,omitempty"`
 	ClientSecret   string                           `json:"client_secret,omitempty"`
 }
@@ -48,4 +48,13 @@ func (c *SSOOAuthDemoCredentials) SensitiveStrings() []string {
 		}
 	}
 	return secrets
+}
+
+func (c *SSOOAuthDemoCredentials) LookupByProviderType(providerType string) (*SSOOAuthDemoCredentialsItems, bool) {
+	for _, item := range c.Items {
+		if item.ProviderConfig.Type() == providerType {
+			return &item, true
+		}
+	}
+	return nil, false
 }
