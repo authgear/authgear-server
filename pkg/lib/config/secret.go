@@ -331,6 +331,7 @@ const (
 	AdminAPIAuthKeyKey          SecretKey = "admin-api.auth"
 	// nolint: gosec
 	OAuthSSOProviderCredentialsKey SecretKey = "sso.oauth.client"
+	SSOOAuthDemoCredentialsKey     SecretKey = "sso.oauth.demo_credentials"
 	SMTPServerCredentialsKey       SecretKey = "mail.smtp"
 	// nolint: gosec
 	TwilioCredentialsKey SecretKey = "sms.twilio"
@@ -383,6 +384,7 @@ var secretItemKeys = map[SecretKey]secretKeyDef{
 	AnalyticRedisCredentialsKey:                {"AnalyticRedisCredentials", func() SecretItemData { return &AnalyticRedisCredentials{} }},
 	AdminAPIAuthKeyKey:                         {"AdminAPIAuthKey", func() SecretItemData { return &AdminAPIAuthKey{} }},
 	OAuthSSOProviderCredentialsKey:             {"OAuthSSOProviderCredentials", func() SecretItemData { return &OAuthSSOProviderCredentials{} }},
+	SSOOAuthDemoCredentialsKey:                 {"SSOOAuthDemoCredentials", func() SecretItemData { return &SSOOAuthDemoCredentials{} }},
 	SMTPServerCredentialsKey:                   {"SMTPServerCredentials", func() SecretItemData { return &SMTPServerCredentials{} }},
 	TwilioCredentialsKey:                       {"TwilioCredentials", func() SecretItemData { return &TwilioCredentials{} }},
 	NexmoCredentialsKey:                        {"NexmoCredentials", func() SecretItemData { return &NexmoCredentials{} }},
