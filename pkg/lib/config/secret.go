@@ -260,17 +260,27 @@ func (c *SecretConfig) validateSAMLServiceProviderCerts(ctx *validation.Context,
 	}
 }
 
-func (c *SecretConfig) Validate(appConfig *AppConfig) error {
-	ctx := &validation.Context{}
+func (c *SecretConfig) validateSSOOAuthDemoCredentials(ctx context.Context, vctx *validation.Context, demoCredentials *SSOOAuthDemoCredentials) {
+	for i, item := range demoCredentials.Items {
+		providerConfig := item.ProviderConfig
+		provider := providerConfig.MustGetProvider()
+		schema := validation.SchemaBuilder(provider.GetJSONSchema()).ToSimpleSchema()
+		itemCtx := vctx.Child("items", strconv.Itoa(i))
+		itemCtx.AddError(schema.Validator().ValidateValue(ctx, providerConfig))
+	}
+}
 
-	c.validateRequire(ctx, DatabaseCredentialsKey, "database credentials")
+func (c *SecretConfig) Validate(ctx context.Context, appConfig *AppConfig) error {
+	vctx := &validation.Context{}
+
+	c.validateRequire(vctx, DatabaseCredentialsKey, "database credentials")
 	// AuditDatabaseCredentialsKey is not required
 	// ElasticsearchCredentialsKey is not required
-	c.validateRequire(ctx, RedisCredentialsKey, "redis credentials")
-	c.validateRequire(ctx, AdminAPIAuthKeyKey, "admin API auth key materials")
+	c.validateRequire(vctx, RedisCredentialsKey, "redis credentials")
+	c.validateRequire(vctx, AdminAPIAuthKeyKey, "admin API auth key materials")
 
 	if len(appConfig.Identity.OAuth.Providers) > 0 {
-		c.validateOAuthProviders(ctx, appConfig)
+		c.validateOAuthProviders(vctx, appConfig)
 	}
 
 	confidentialClients := []OAuthClientConfig{}
@@ -281,36 +291,41 @@ func (c *SecretConfig) Validate(appConfig *AppConfig) error {
 	}
 
 	if len(confidentialClients) > 0 {
-		c.validateConfidentialClients(ctx, confidentialClients)
+		c.validateConfidentialClients(vctx, confidentialClients)
 	}
 
-	c.validateRequire(ctx, OAuthKeyMaterialsKey, "OAuth key materials")
-	c.validateRequire(ctx, CSRFKeyMaterialsKey, "CSRF key materials")
+	c.validateRequire(vctx, OAuthKeyMaterialsKey, "OAuth key materials")
+	c.validateRequire(vctx, CSRFKeyMaterialsKey, "CSRF key materials")
 	if len(appConfig.Hook.BlockingHandlers) > 0 || len(appConfig.Hook.NonBlockingHandlers) > 0 {
-		c.validateRequire(ctx, WebhookKeyMaterialsKey, "web-hook signing key materials")
+		c.validateRequire(vctx, WebhookKeyMaterialsKey, "web-hook signing key materials")
 	}
 	if appConfig.BotProtection != nil && appConfig.BotProtection.Enabled && appConfig.BotProtection.Provider != nil {
-		c.validateRequire(ctx, BotProtectionProviderCredentialsKey, "bot protection key materials")
-		c.validateBotProtectionSecrets(ctx, appConfig.BotProtection.Provider)
+		c.validateRequire(vctx, BotProtectionProviderCredentialsKey, "bot protection key materials")
+		c.validateBotProtectionSecrets(vctx, appConfig.BotProtection.Provider)
 	}
 	if appConfig.Identity.LDAP != nil && len(appConfig.Identity.LDAP.Servers) > 0 {
-		c.validateRequire(ctx, LDAPServerUserCredentialsKey, "LDAP server user credentials")
-		c.validateLDAPServerUserSecrets(ctx, appConfig.Identity.LDAP.Servers)
+		c.validateRequire(vctx, LDAPServerUserCredentialsKey, "LDAP server user credentials")
+		c.validateLDAPServerUserSecrets(vctx, appConfig.Identity.LDAP.Servers)
 	}
 
 	if len(appConfig.SAML.ServiceProviders) > 0 {
-		c.validateRequire(ctx, SAMLIdpSigningMaterialsKey, "saml idp signing key materials")
+		c.validateRequire(vctx, SAMLIdpSigningMaterialsKey, "saml idp signing key materials")
 		for _, sp := range appConfig.SAML.ServiceProviders {
 			if sp.SignatureVerificationEnabled {
-				c.validateSAMLServiceProviderCerts(ctx, sp)
+				c.validateSAMLServiceProviderCerts(vctx, sp)
 			}
 		}
 	}
 	if appConfig.SAML.Signing.KeyID != "" {
-		c.validateSAMLSigningKey(ctx, appConfig.SAML.Signing.KeyID)
+		c.validateSAMLSigningKey(vctx, appConfig.SAML.Signing.KeyID)
 	}
 
-	return ctx.Error("invalid secrets")
+	demoCredentials, ok := c.LookupData(SSOOAuthDemoCredentialsKey).(*SSOOAuthDemoCredentials)
+	if ok {
+		c.validateSSOOAuthDemoCredentials(ctx, vctx, demoCredentials)
+	}
+
+	return vctx.Error("invalid secrets")
 }
 
 func (c *SecretConfig) GetCustomSMSProviderConfig() *CustomSMSProviderConfig {
