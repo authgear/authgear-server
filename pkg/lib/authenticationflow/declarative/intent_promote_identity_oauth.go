@@ -51,7 +51,13 @@ func (i *IntentPromoteIdentityOAuth) CanReactTo(ctx context.Context, deps *authf
 		if currentBranch, ok := current.(config.AuthenticationFlowObjectBotProtectionConfigProvider); ok {
 			authflowCfg = currentBranch.GetBotProtectionConfig()
 		}
-		oauthOptions := NewIdentificationOptionsOAuth(deps.Config.Identity.OAuth, deps.FeatureConfig.Identity.OAuth.Providers, authflowCfg, deps.Config.BotProtection)
+		oauthOptions := NewIdentificationOptionsOAuth(
+			deps.Config.Identity.OAuth,
+			deps.FeatureConfig.Identity.OAuth.Providers,
+			authflowCfg,
+			deps.Config.BotProtection,
+			deps.SSOOAuthDemoCredentials,
+		)
 
 		isBotProtectionRequired, err := IsBotProtectionRequired(ctx, deps, flows, i.JSONPointer)
 		if err != nil {

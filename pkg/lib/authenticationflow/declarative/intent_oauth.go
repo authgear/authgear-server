@@ -64,7 +64,13 @@ func (i *IntentOAuth) CanReactTo(ctx context.Context, deps *authflow.Dependencie
 			authflowCfg = currentBranch.GetBotProtectionConfig()
 		}
 
-		oauthOptions := NewIdentificationOptionsOAuth(deps.Config.Identity.OAuth, deps.FeatureConfig.Identity.OAuth.Providers, authflowCfg, deps.Config.BotProtection)
+		oauthOptions := NewIdentificationOptionsOAuth(
+			deps.Config.Identity.OAuth,
+			deps.FeatureConfig.Identity.OAuth.Providers,
+			authflowCfg,
+			deps.Config.BotProtection,
+			deps.SSOOAuthDemoCredentials,
+		)
 
 		isBotProtectionRequired, err := IsBotProtectionRequired(ctx, deps, flows, i.JSONPointer)
 		if err != nil {
