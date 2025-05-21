@@ -42,7 +42,7 @@ func (*IntentAccountLinking) Kind() string {
 }
 
 func (i *IntentAccountLinking) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
-	return NewAccountLinkingIdentifyData(i.getOptions()), nil
+	return NewAccountLinkingIdentifyData(i.getOptions(deps)), nil
 }
 
 func (i *IntentAccountLinking) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
@@ -60,7 +60,7 @@ func (i *IntentAccountLinking) CanReactTo(ctx context.Context, deps *authflow.De
 		return &InputSchemaAccountLinkingIdentification{
 			FlowRootObject: flowRootObject,
 			JSONPointer:    i.JSONPointer,
-			Options:        i.getOptions(),
+			Options:        i.getOptions(deps),
 		}, nil
 	case 1: // Enter the login flow
 		return nil, nil
@@ -78,7 +78,7 @@ func (i *IntentAccountLinking) ReactTo(ctx context.Context, deps *authflow.Depen
 			idx := inputTakeAccountLinkingIdentification.GetAccountLinkingIdentificationIndex()
 			redirectURI := inputTakeAccountLinkingIdentification.GetAccountLinkingOAuthRedirectURI()
 			responseMode := inputTakeAccountLinkingIdentification.GetAccountLinkingOAuthResponseMode()
-			selectedOption := i.getOptions()[idx]
+			selectedOption := i.getOptions(deps)[idx]
 
 			return authflow.NewNodeSimple(&NodeUseAccountLinkingIdentification{
 				Option:       selectedOption.AccountLinkingIdentificationOption,
@@ -220,12 +220,13 @@ func (i *IntentAccountLinking) createSyntheticInputOAuthConflict(
 	return input
 }
 
-func (i *IntentAccountLinking) getOptions() []AccountLinkingIdentificationOptionInternal {
+func (i *IntentAccountLinking) getOptions(deps *authflow.Dependencies) []AccountLinkingIdentificationOptionInternal {
 	return slice.FlatMap(i.Conflicts, func(c *AccountLinkingConflict) []AccountLinkingIdentificationOptionInternal {
 		var identifcation config.AuthenticationFlowIdentification
 		var maskedDisplayName string
 		var providerType string
 		var providerAlias string
+		var providerStatus OAuthProviderStatus
 
 		identity := c.Identity
 
@@ -252,6 +253,15 @@ func (i *IntentAccountLinking) getOptions() []AccountLinkingIdentificationOption
 			providerType = identity.OAuth.ProviderID.Type
 			maskedDisplayName = identity.OAuth.GetDisplayName()
 			providerAlias = identity.OAuth.ProviderAlias
+			providerConfig, ok := deps.Config.Identity.OAuth.GetProviderConfig(providerAlias)
+			if !ok {
+				// For some reason the provider does not exist, so it is impossible to link this account.
+				// Set provider_status to missing_credentials
+				providerStatus = config.OAuthProviderStatusMissingCredentials
+			} else {
+				providerStatus = config.OAuthSSOProviderConfig(providerConfig).ComputeProviderStatus(deps.SSOOAuthDemoCredentials)
+			}
+
 		default:
 			// Other types are not supported in account linking, exclude them in options
 			return []AccountLinkingIdentificationOptionInternal{}
@@ -263,6 +273,7 @@ func (i *IntentAccountLinking) getOptions() []AccountLinkingIdentificationOption
 				MaskedDisplayName: maskedDisplayName,
 				ProviderType:      providerType,
 				Alias:             providerAlias,
+				ProviderStatus:    providerStatus,
 				Action:            c.Action,
 			},
 			Conflict: c,
