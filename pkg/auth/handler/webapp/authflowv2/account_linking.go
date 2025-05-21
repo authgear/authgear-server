@@ -42,6 +42,7 @@ type AuthflowV2AccountLinkingOption struct {
 	Identification    config.AuthenticationFlowIdentification
 	MaskedDisplayName string
 	ProviderType      string
+	ProviderStatus    config.OAuthProviderStatus
 	Index             int
 }
 
@@ -70,6 +71,7 @@ func NewAuthflowV2AccountLinkingViewModel(s *webapp.Session, screen *webapp.Auth
 			Identification:    option.Identifcation,
 			MaskedDisplayName: option.MaskedDisplayName,
 			ProviderType:      option.ProviderType,
+			ProviderStatus:    option.ProviderStatus,
 			Index:             idx,
 		})
 	}
