@@ -93,6 +93,11 @@
                 <span>
                   {{ include (printf "v2.component.oauth-branding.%s.label" .ProviderType) nil }}
                 </span>
+                {{ if or (eq .ProviderStatus "using_demo_credentials") (eq .ProviderStatus "missing_credentials") }}
+                  <div class="badge">
+                    {{ include "v2.component.oauth-branding-demo-badge.default.label" nil }}
+                  </div>
+                {{ end }}
               </div>
             </button>
           {{- end }}

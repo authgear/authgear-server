@@ -920,6 +920,7 @@
   "v2.component.oauth-branding.iamsmart.label": "Continue with iAM Smart",
   "v2.component.oauth-branding.linkedin.label": "Sign in with LinkedIn",
   "v2.component.oauth-branding.wechat.label": "Login with WeChat",
+  "v2.component.oauth-branding-demo-badge.default.label": "Demo",
   "v2.component.oob-otp-resend-button.default.countdown-unit": "Resend code in %s",
   "v2.component.oob-otp-resend-button.default.label": "Resend code",
   "v2.component.password-input.default.hide-password": "Hide password",

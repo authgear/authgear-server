@@ -58,9 +58,10 @@ type AuthflowViewModel struct {
 }
 
 type AuthflowViewModeler struct {
-	Authentication *config.AuthenticationConfig
-	LoginID        *config.LoginIDConfig
-	Identity       *config.IdentityConfig
+	Authentication          *config.AuthenticationConfig
+	LoginID                 *config.LoginIDConfig
+	Identity                *config.IdentityConfig
+	SSOOAuthDemoCredentials *config.SSOOAuthDemoCredentials
 }
 
 // nolint: gocognit
@@ -272,6 +273,7 @@ func (m *AuthflowViewModeler) NewWithAuthflow(
 				"provider_type":     string(o.ProviderType),
 				"provider_alias":    o.Alias,
 				"provider_app_type": string(o.WechatAppType),
+				"provider_status":   string(o.ProviderStatus),
 			}
 			candidates = append(candidates, candidate)
 		case config.AuthenticationFlowIdentificationLDAP:
@@ -467,6 +469,7 @@ func (m *AuthflowViewModeler) NewWithConfig() AuthflowViewModel {
 			"provider_type":     oauthProvider.AsProviderConfig().Type(),
 			"provider_alias":    oauthProvider.Alias(),
 			"provider_app_type": wechat.ProviderConfig(oauthProvider).AppType(),
+			"provider_status":   oauthProvider.ComputeProviderStatus(m.SSOOAuthDemoCredentials),
 		}
 		candidates = append(candidates, candidate)
 	}
