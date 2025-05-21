@@ -419,6 +419,7 @@ docker_authgear_first_time_setup() {
 		--portal-client-id=portal \
 		--phone-otp-mode=sms \
 		--disable-email-verification=false \
+		--disable-public-signup=true \
 		--smtp-host="$AUTHGEAR_SMTP_HOST" \
 		--smtp-port="$AUTHGEAR_SMTP_PORT" \
 		--smtp-username="$AUTHGEAR_SMTP_USERNAME" \
@@ -426,10 +427,6 @@ docker_authgear_first_time_setup() {
 		--smtp-sender-address="$AUTHGEAR_SMTP_SENDER_ADDRESS" \
 		--search-implementation=postgresql \
 		-o "$init_output_accounts"
-
-	# Disable public signup
-	yq <"$init_output_accounts/authgear.yaml" --yaml-output '.authentication.public_signup_disabled = true' >"$init_output_accounts/authgear.yaml.tmp"
-	mv "$init_output_accounts/authgear.yaml.tmp" "$init_output_accounts/authgear.yaml"
 
 	authgear-portal internal configsource create "$init_output_accounts"
 	rm -r "$init_output_accounts"
