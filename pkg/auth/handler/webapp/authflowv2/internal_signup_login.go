@@ -8,8 +8,6 @@ import (
 
 	"net/url"
 
-	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
-
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	v2viewmodels "github.com/authgear/authgear-server/pkg/auth/handler/webapp/authflowv2/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
@@ -65,6 +63,10 @@ type AuthflowV2SignupViewModel struct {
 	UIVariant        AuthflowV2SignupUIVariant
 }
 
+func (h *InternalAuthflowV2SignupLoginHandler) getAuthflowViewModel(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse, r *http.Request) viewmodels.AuthflowViewModel {
+	return h.AuthflowViewModel.NewWithAuthflow(s, screen.StateTokenFlowResponse, r)
+}
+
 func (h *InternalAuthflowV2SignupLoginHandler) GetData(
 	w http.ResponseWriter, r *http.Request,
 	s *webapp.Session,
@@ -76,7 +78,7 @@ func (h *InternalAuthflowV2SignupLoginHandler) GetData(
 		baseViewModel.SetTutorial(httputil.SignupLoginTutorialCookieName)
 	}
 	viewmodels.Embed(data, baseViewModel)
-	authflowViewModel := h.AuthflowViewModel.NewWithAuthflow(s, screen.StateTokenFlowResponse, r)
+	authflowViewModel := h.getAuthflowViewModel(s, screen, r)
 	viewmodels.Embed(data, authflowViewModel)
 	viewmodels.Embed(data, v2viewmodels.NewOAuthErrorViewModel(baseViewModel.RawError))
 
@@ -133,26 +135,20 @@ func (h *InternalAuthflowV2SignupLoginHandler) ServeHTTP(w http.ResponseWriter, 
 
 	handlers.PostAction("oauth", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		providerAlias := r.Form.Get("x_provider_alias")
-		callbackURL, err := h.Controller.GetSSOCallbackURL(providerAlias)
-		if err != nil {
-			return err
-		}
-		input := map[string]interface{}{
-			"identification": "oauth",
-			"alias":          providerAlias,
-			"redirect_uri":   callbackURL,
-			"response_mode":  oauthrelyingparty.ResponseModeFormPost,
-		}
 
-		err = handlerwebapp.HandleIdentificationBotProtection(ctx, config.AuthenticationFlowIdentificationOAuth, screen.StateTokenFlowResponse, r.Form, input)
+		authflowViewModel := h.getAuthflowViewModel(s, screen, r)
+		result, err := h.Controller.UseOAuthIdentification(ctx, s, w, r, screen.Screen, providerAlias, authflowViewModel.IdentificationOptions, func(input map[string]interface{}) (result *webapp.Result, err error) {
+			err = handlerwebapp.HandleIdentificationBotProtection(ctx, config.AuthenticationFlowIdentificationOAuth, screen.StateTokenFlowResponse, r.Form, input)
+			if err != nil {
+				return nil, err
+			}
+
+			return h.Controller.ReplaceScreen(ctx, r, s, authflow.FlowTypeSignupLogin, input)
+		})
 		if err != nil {
 			return err
 		}
 
-		result, err := h.Controller.ReplaceScreen(ctx, r, s, authflow.FlowTypeSignupLogin, input)
-		if err != nil {
-			return err
-		}
 		result.WriteResponse(w, r)
 		return nil
 	})

@@ -9,6 +9,7 @@ import (
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
+	authflowv2viewmodels "github.com/authgear/authgear-server/pkg/auth/handler/webapp/authflowv2/viewmodels"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -105,6 +106,9 @@ type AuthflowScreen struct {
 	WechatCallbackData *AuthflowWechatCallbackData `json:"wechat_callback_data,omitempty"`
 	// IsBotProtectionRequired will be used to determine whether to navigate to bot protection verification screen.
 	IsBotProtectionRequired bool `json:"is_bot_protection_required,omitempty"`
+
+	// viewmodels used in specific screens
+	OAuthProviderDemoCredentialViewModel *authflowv2viewmodels.OAuthProviderDemoCredentialViewModel `json:"oauth_provider_demo_credential,omitempty"`
 }
 
 func newAuthflowScreen(flowResponse *authflow.FlowResponse, previousXStep string, previousInput map[string]interface{}) *AuthflowScreen {
