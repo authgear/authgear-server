@@ -64,9 +64,10 @@ const (
 	// nolint: gosec
 	AuthflowV2RouteResetPassword = "/authflow/v2/reset_password"
 	// nolint: gosec
-	AuthflowV2RouteResetPasswordSuccess = "/authflow/v2/reset_password/success"
-	AuthflowV2RouteWechat               = "/authflow/v2/wechat"
-	AuthflowV2RouteAccountLinking       = "/authflow/v2/account_linking"
+	AuthflowV2RouteResetPasswordSuccess        = "/authflow/v2/reset_password/success"
+	AuthflowV2RouteWechat                      = "/authflow/v2/wechat"
+	AuthflowV2RouteAccountLinking              = "/authflow/v2/account_linking"
+	AuthflowV2RouteOAuthProviderDemoCredential = "/authflow/v2/oauth_provider_demo_credential"
 
 	SettingsV2RouteSettings                   = "/settings"
 	SettingsV2RouteProfilePictureEditSettings = "/settings/profile/picture/edit"
