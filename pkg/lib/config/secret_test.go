@@ -103,7 +103,7 @@ func TestSecretConfigValidate(t *testing.T) {
 					panic(err)
 				}
 
-				err = secretConfig.Validate(appConfig)
+				err = secretConfig.Validate(ctx, appConfig)
 				if testCase.Error != nil {
 					So(err, ShouldBeError, *testCase.Error)
 				} else {

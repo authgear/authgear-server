@@ -42,7 +42,7 @@ func LoadConfig(ctx context.Context, res *resource.Manager) (*config.Config, err
 		SecretConfig:  secretConfig,
 		FeatureConfig: featureConfig,
 	}
-	if err = cfg.SecretConfig.Validate(cfg.AppConfig); err != nil {
+	if err = cfg.SecretConfig.Validate(ctx, cfg.AppConfig); err != nil {
 		return nil, fmt.Errorf("invalid secret config: %w", err)
 	}
 
