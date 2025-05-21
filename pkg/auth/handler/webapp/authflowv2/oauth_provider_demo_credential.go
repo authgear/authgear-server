@@ -33,7 +33,9 @@ func (h *AuthflowV2OAuthProviderDemoCredentialHandler) GetData(w http.ResponseWr
 
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
 	viewmodels.Embed(data, baseViewModel)
-	viewmodels.Embed(data, screen.Screen.OAuthProviderDemoCredentialViewModel)
+	if screen.Screen.OAuthProviderDemoCredentialViewModel != nil {
+		viewmodels.Embed(data, screen.Screen.OAuthProviderDemoCredentialViewModel)
+	}
 
 	return data, nil
 }
@@ -50,5 +52,5 @@ func (h *AuthflowV2OAuthProviderDemoCredentialHandler) ServeHTTP(w http.Response
 		return nil
 	})
 
-	h.Controller.HandleWithoutScreen(r.Context(), w, r, &handlers)
+	h.Controller.HandleStep(r.Context(), w, r, &handlers)
 }

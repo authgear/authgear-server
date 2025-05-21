@@ -729,8 +729,7 @@ func (c *AuthflowController) DelayScreen(ctx context.Context, r *http.Request,
 	targetResult *webapp.Result,
 	screenFactory func(*webapp.AuthflowScreen) *webapp.AuthflowScreen,
 ) (*webapp.AuthflowScreen, error) {
-	prevXStep := sourceScreen.StateToken.XStep
-	screen := webapp.NewAuthflowScreenWithResult(prevXStep, targetResult)
+	screen := webapp.NewAuthflowDelayedScreenWithResult(sourceScreen, targetResult)
 	if screenFactory != nil {
 		screen = screenFactory(screen)
 	}
@@ -1110,6 +1109,10 @@ func (c *AuthflowController) renderError(ctx context.Context, w http.ResponseWri
 }
 
 func (c *AuthflowController) checkPath(ctx context.Context, w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+	if screen.Screen != nil && screen.Screen.SkipPathCheck {
+		return nil
+	}
+
 	// We derive the intended path of the screen,
 	// and check if the paths match.
 	result := &webapp.Result{}
