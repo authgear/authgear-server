@@ -265,7 +265,7 @@ func (c *SecretConfig) validateSSOOAuthDemoCredentials(ctx context.Context, vctx
 		providerConfig := item.ProviderConfig
 		provider := providerConfig.MustGetProvider()
 		schema := validation.SchemaBuilder(provider.GetJSONSchema()).ToSimpleSchema()
-		itemCtx := vctx.Child("items", strconv.Itoa(i))
+		itemCtx := vctx.Child("items", strconv.Itoa(i), "provider_config")
 		itemCtx.AddError(schema.Validator().ValidateValue(ctx, providerConfig))
 	}
 }
@@ -320,9 +320,10 @@ func (c *SecretConfig) Validate(ctx context.Context, appConfig *AppConfig) error
 		c.validateSAMLSigningKey(vctx, appConfig.SAML.Signing.KeyID)
 	}
 
-	demoCredentials, ok := c.LookupData(SSOOAuthDemoCredentialsKey).(*SSOOAuthDemoCredentials)
+	idx, demoCredentials, ok := c.LookupDataWithIndex(SSOOAuthDemoCredentialsKey)
 	if ok {
-		c.validateSSOOAuthDemoCredentials(ctx, vctx, demoCredentials)
+		childCtx := vctx.Child("secrets", strconv.Itoa(idx), "data")
+		c.validateSSOOAuthDemoCredentials(ctx, childCtx, demoCredentials.(*SSOOAuthDemoCredentials))
 	}
 
 	return vctx.Error("invalid secrets")
