@@ -141,7 +141,6 @@ type AuthflowController struct {
 	UIInfoResolver AuthflowControllerUIInfoResolver
 
 	UIConfig            *config.UIConfig
-	OAuthSSOConfig      *config.OAuthSSOConfig
 	OAuthClientResolver AuthflowControllerOAuthClientResolver
 
 	Navigator     AuthflowNavigator
@@ -1189,12 +1188,21 @@ func (c *AuthflowController) finishSession(
 	return nil
 }
 
-func (c *AuthflowController) GetSSOCallbackURL(alias string) (string, error) {
-	oauthProviderConfig, ok := c.OAuthSSOConfig.GetProviderConfig(alias)
-	if !ok {
+func (c *AuthflowController) GetAccountLinkingSSOCallbackURL(alias string, data declarative.AccountLinkingIdentifyData) (string, error) {
+	var idenOption *declarative.AccountLinkingIdentificationOption
+	for _, option := range data.Options {
+		option := option
+		if option.Alias == alias {
+			idenOption = &option
+			break
+		}
+	}
+	if idenOption == nil {
 		return "", fmt.Errorf("unknown alias %s", alias)
 	}
-	callbackURL := c.Endpoints.SSOCallbackURL(alias, config.OAuthSSOProviderConfig(oauthProviderConfig).IsMissingCredentialAllowed()).String()
+
+	isDemo := idenOption.ProviderStatus == config.OAuthProviderStatusUsingDemoCredentials
+	callbackURL := c.Endpoints.SSOCallbackURL(alias, isDemo).String()
 	return callbackURL, nil
 }
 
@@ -1208,19 +1216,9 @@ func (c *AuthflowController) UseOAuthIdentification(
 		result *webapp.Result,
 		err error),
 ) (*webapp.Result, error) {
-	callbackURL, err := c.GetSSOCallbackURL(alias)
-	if err != nil {
-		return nil, err
-	}
-	input := map[string]interface{}{
-		"identification": "oauth",
-		"alias":          alias,
-		"redirect_uri":   callbackURL,
-		"response_mode":  oauthrelyingparty.ResponseModeFormPost,
-	}
-
 	var idenOption *declarative.IdentificationOption
 	for _, option := range identificationOptions {
+		option := option
 		if option.Alias == alias {
 			idenOption = &option
 			break
@@ -1228,6 +1226,16 @@ func (c *AuthflowController) UseOAuthIdentification(
 	}
 	if idenOption == nil {
 		return nil, fmt.Errorf("unknown alias %s", alias)
+	}
+
+	isDemo := idenOption.ProviderStatus == config.OAuthProviderStatusUsingDemoCredentials
+	callbackURL := c.Endpoints.SSOCallbackURL(alias, isDemo).String()
+
+	input := map[string]interface{}{
+		"identification": "oauth",
+		"alias":          alias,
+		"redirect_uri":   callbackURL,
+		"response_mode":  oauthrelyingparty.ResponseModeFormPost,
 	}
 
 	result, err := flowExecutor(input)
