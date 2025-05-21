@@ -347,8 +347,9 @@ const (
 	AdminAPIAuthKeyKey          SecretKey = "admin-api.auth"
 	// nolint: gosec
 	OAuthSSOProviderCredentialsKey SecretKey = "sso.oauth.client"
-	SSOOAuthDemoCredentialsKey     SecretKey = "sso.oauth.demo_credentials"
-	SMTPServerCredentialsKey       SecretKey = "mail.smtp"
+	// nolint: gosec
+	SSOOAuthDemoCredentialsKey SecretKey = "sso.oauth.demo_credentials"
+	SMTPServerCredentialsKey   SecretKey = "mail.smtp"
 	// nolint: gosec
 	TwilioCredentialsKey SecretKey = "sms.twilio"
 	// nolint: gosec
