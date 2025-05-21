@@ -18,7 +18,7 @@ var TemplateWebAuthflowV2OAuthProviderDemoCredentialHTML = template.RegisterHTML
 
 func ConfigureAuthflowV2OAuthProviderDemoCredentialRoute(route httproute.Route) httproute.Route {
 	return route.
-		WithMethods("OPTIONS", "GET").
+		WithMethods("OPTIONS", "GET", "POST").
 		WithPathPattern(AuthflowV2RouteOAuthProviderDemoCredential)
 }
 
@@ -33,6 +33,7 @@ func (h *AuthflowV2OAuthProviderDemoCredentialHandler) GetData(w http.ResponseWr
 
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
 	viewmodels.Embed(data, baseViewModel)
+
 	if screen.Screen.OAuthProviderDemoCredentialViewModel != nil {
 		viewmodels.Embed(data, screen.Screen.OAuthProviderDemoCredentialViewModel)
 	}
@@ -49,6 +50,15 @@ func (h *AuthflowV2OAuthProviderDemoCredentialHandler) ServeHTTP(w http.Response
 		}
 
 		h.Renderer.RenderHTML(w, r, TemplateWebAuthflowV2OAuthProviderDemoCredentialHTML, data)
+		return nil
+	})
+
+	handlers.PostAction("", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+		result, err := h.Controller.AdvanceToDelayedScreen(r, s)
+		if err != nil {
+			return err
+		}
+		result.WriteResponse(w, r)
 		return nil
 	})
 
