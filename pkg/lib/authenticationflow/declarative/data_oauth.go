@@ -2,16 +2,11 @@ package declarative
 
 import (
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/wechat"
 )
 
-type OAuthProviderStatus string
-
-const (
-	OAuthProviderStatusActive               OAuthProviderStatus = "active"
-	OAuthProviderStatusMissingCredentials   OAuthProviderStatus = "missing_credentials"
-	OAuthProviderStatusUsingDemoCredentials OAuthProviderStatus = "using_demo_credentials" // nolint: gosec
-)
+type OAuthProviderStatus = config.OAuthProviderStatus
 
 type OAuthData struct {
 	TypedData

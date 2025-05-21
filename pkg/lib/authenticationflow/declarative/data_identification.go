@@ -56,15 +56,11 @@ func NewIdentificationOptionLoginID(i config.AuthenticationFlowIdentification, a
 	}
 }
 
-func NewIdentificationOptionsOAuth(oauthConfig *config.OAuthSSOConfig, oauthFeatureConfig *config.OAuthSSOProvidersFeatureConfig, authflowCfg *config.AuthenticationFlowBotProtection, appCfg *config.BotProtectionConfig) []IdentificationOption {
+func NewIdentificationOptionsOAuth(oauthConfig *config.OAuthSSOConfig, oauthFeatureConfig *config.OAuthSSOProvidersFeatureConfig, authflowCfg *config.AuthenticationFlowBotProtection, appCfg *config.BotProtectionConfig, demoCredentials *config.SSOOAuthDemoCredentials) []IdentificationOption {
 	output := []IdentificationOption{}
 	for _, p := range oauthConfig.Providers {
 		if !identity.IsOAuthSSOProviderTypeDisabled(p.AsProviderConfig(), oauthFeatureConfig) {
-			status := OAuthProviderStatusActive
-			if p.IsMissingCredentialAllowed() {
-				status = OAuthProviderStatusMissingCredentials
-				// TODO(tung): Add demo status
-			}
+			status := p.ComputeProviderStatus(demoCredentials)
 
 			output = append(output, IdentificationOption{
 				Identification: config.AuthenticationFlowIdentificationOAuth,

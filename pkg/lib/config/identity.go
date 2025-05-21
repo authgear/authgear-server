@@ -352,6 +352,29 @@ func (c OAuthSSOProviderConfig) IsMissingCredentialAllowed() bool {
 	return v
 }
 
+type OAuthProviderStatus string
+
+const (
+	OAuthProviderStatusActive               OAuthProviderStatus = "active"
+	OAuthProviderStatusMissingCredentials   OAuthProviderStatus = "missing_credentials"
+	OAuthProviderStatusUsingDemoCredentials OAuthProviderStatus = "using_demo_credentials" // nolint: gosec
+)
+
+func (c OAuthSSOProviderConfig) ComputeProviderStatus(demoCredentials *SSOOAuthDemoCredentials) OAuthProviderStatus {
+	if !c.IsMissingCredentialAllowed() {
+		return OAuthProviderStatusActive
+	}
+	if demoCredentials == nil {
+		return OAuthProviderStatusMissingCredentials
+	}
+	typ := c.AsProviderConfig().Type()
+	_, ok := demoCredentials.LookupByProviderType(typ)
+	if ok {
+		return OAuthProviderStatusUsingDemoCredentials
+	}
+	return OAuthProviderStatusMissingCredentials
+}
+
 type OAuthSSOConfig struct {
 	Providers []OAuthSSOProviderConfig `json:"providers,omitempty"`
 }
