@@ -14,6 +14,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
+	authflowv2viewmodels "github.com/authgear/authgear-server/pkg/auth/handler/webapp/authflowv2/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
@@ -28,6 +29,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/setutil"
+	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
 )
 
 //go:generate go tool mockgen -source=authflow_controller.go -destination=authflow_controller_mock_test.go -package webapp
@@ -97,6 +99,7 @@ type AuthflowNavigator interface {
 	NavigateSelectAccount(result *webapp.Result)
 	NavigateResetPasswordSuccessPage() string
 	NavigateVerifyBotProtection(result *webapp.Result)
+	NavigateOAuthProviderDemoCredentialPage(screen *webapp.AuthflowScreen, r *http.Request) *webapp.Result
 }
 
 type AuthflowControllerLogger struct{ *log.Logger }
@@ -724,9 +727,13 @@ func (c *AuthflowController) DelayScreen(ctx context.Context, r *http.Request,
 	s *webapp.Session,
 	sourceScreen *webapp.AuthflowScreen,
 	targetResult *webapp.Result,
+	screenFactory func(*webapp.AuthflowScreen) *webapp.AuthflowScreen,
 ) (*webapp.AuthflowScreen, error) {
 	prevXStep := sourceScreen.StateToken.XStep
 	screen := webapp.NewAuthflowScreenWithResult(prevXStep, targetResult)
+	if screenFactory != nil {
+		screen = screenFactory(screen)
+	}
 	s.RememberScreen(screen)
 	err := c.updateSession(ctx, r, s)
 	if err != nil {
@@ -1186,4 +1193,60 @@ func (c *AuthflowController) GetSSOCallbackURL(alias string) (string, error) {
 	}
 	callbackURL := c.Endpoints.SSOCallbackURL(alias, config.OAuthSSOProviderConfig(oauthProviderConfig).IsMissingCredentialAllowed()).String()
 	return callbackURL, nil
+}
+
+func (c *AuthflowController) UseOAuthIdentification(
+	ctx context.Context, s *webapp.Session,
+	w http.ResponseWriter, r *http.Request,
+	screen *webapp.AuthflowScreen,
+	alias string, identificationOptions []declarative.IdentificationOption,
+	flowExecutor func(input map[string]interface{},
+	) (
+		result *webapp.Result,
+		err error),
+) (*webapp.Result, error) {
+	callbackURL, err := c.GetSSOCallbackURL(alias)
+	if err != nil {
+		return nil, err
+	}
+	input := map[string]interface{}{
+		"identification": "oauth",
+		"alias":          alias,
+		"redirect_uri":   callbackURL,
+		"response_mode":  oauthrelyingparty.ResponseModeFormPost,
+	}
+
+	var idenOption *declarative.IdentificationOption
+	for _, option := range identificationOptions {
+		if option.Alias == alias {
+			idenOption = &option
+			break
+		}
+	}
+	if idenOption == nil {
+		return nil, fmt.Errorf("unknown alias %s", alias)
+	}
+
+	result, err := flowExecutor(input)
+	if err != nil {
+		return nil, err
+	}
+
+	if idenOption.ProviderStatus == config.OAuthProviderStatusUsingDemoCredentials {
+		// Insert a confirmation screen if the provider is using demo credentials
+		newScreen, err := c.DelayScreen(ctx, r, s, screen, result, func(newScreen *webapp.AuthflowScreen) *webapp.AuthflowScreen {
+			newScreen.OAuthProviderDemoCredentialViewModel = &authflowv2viewmodels.OAuthProviderDemoCredentialViewModel{
+				ProviderType: idenOption.ProviderType,
+				FromURL:      r.URL.String(),
+			}
+			return newScreen
+		})
+		if err != nil {
+			return nil, err
+		}
+		newResult := c.Navigator.NavigateOAuthProviderDemoCredentialPage(newScreen, r)
+		result = newResult
+	}
+
+	return result, nil
 }

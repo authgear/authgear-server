@@ -8,13 +8,15 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
+	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/wechat"
 )
 
 type AuthflowViewModel struct {
-	IdentityCandidates []map[string]interface{}
+	IdentificationOptions []declarative.IdentificationOption
+	IdentityCandidates    []map[string]interface{}
 
 	LoginIDDisabled        bool
 	PhoneLoginIDEnabled    bool
@@ -285,7 +287,8 @@ func (m *AuthflowViewModeler) NewWithAuthflow(
 	}
 
 	return AuthflowViewModel{
-		IdentityCandidates: candidates,
+		IdentificationOptions: options,
+		IdentityCandidates:    candidates,
 
 		LoginIDDisabled:           loginIDDisabled,
 		PhoneLoginIDEnabled:       hasPhone,

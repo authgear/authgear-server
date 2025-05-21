@@ -103,7 +103,7 @@ func (h *AuthflowV2ChangePasswordHandler) ServeHTTP(w http.ResponseWriter, r *ht
 		if err != nil {
 			return err
 		}
-		newScreen, err := h.Controller.DelayScreen(ctx, r, s, screen.Screen, result)
+		newScreen, err := h.Controller.DelayScreen(ctx, r, s, screen.Screen, result, nil)
 		if err != nil {
 			return err
 		}
