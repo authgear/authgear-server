@@ -47,6 +47,7 @@ type AuthflowV2AccountLinkingOption struct {
 
 type AuthflowV2AccountLinkingViewModel struct {
 	Options []AuthflowV2AccountLinkingOption
+	Data    declarative.AccountLinkingIdentifyData
 }
 
 type AuthflowV2AccountLinkingHandler struct {
@@ -75,6 +76,7 @@ func NewAuthflowV2AccountLinkingViewModel(s *webapp.Session, screen *webapp.Auth
 
 	return AuthflowV2AccountLinkingViewModel{
 		Options: options,
+		Data:    data,
 	}
 }
 
@@ -127,7 +129,8 @@ func (h *AuthflowV2AccountLinkingHandler) ServeHTTP(w http.ResponseWriter, r *ht
 			}
 		case config.AuthenticationFlowIdentificationOAuth:
 			providerAlias := option.Alias
-			redirectURI, err := h.Controller.GetSSOCallbackURL(providerAlias)
+			screenViewModel := NewAuthflowV2AccountLinkingViewModel(s, screen)
+			redirectURI, err := h.Controller.GetAccountLinkingSSOCallbackURL(providerAlias, screenViewModel.Data)
 			if err != nil {
 				return err
 			}
