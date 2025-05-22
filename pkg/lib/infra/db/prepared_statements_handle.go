@@ -85,13 +85,15 @@ func (h *preparedStatementsHandle) Close() error {
 	return err
 }
 
-func (h *preparedStatementsHandle) WithTx(ctx context.Context, do func(ctx context.Context) error) (err error) {
-	tx, err := beginTx(ctx, h.logger, h.conn)
+func (h *preparedStatementsHandle) WithTx(ctx_original context.Context, do func(ctx context.Context) error) (err error) {
+	ctx_hooks := contextWithHooks(ctx_original, &hooksContextValue{})
+
+	tx, err := beginTx(ctx_hooks, h.logger, h.conn)
 	if err != nil {
 		return
 	}
 
-	ctx = hookHandleContextWithValue(ctx, &hookHandleContextValue{
+	ctx_hooks_tx := contextWithTxLike(ctx_hooks, &txLikeContextValue{
 		TxLike: tx,
 	})
 
@@ -99,8 +101,8 @@ func (h *preparedStatementsHandle) WithTx(ctx context.Context, do func(ctx conte
 
 	defer func() {
 		if shouldRunDidCommitHooks {
-			for _, hook := range mustHookHandleContextGetValue(ctx).Hooks {
-				hook.DidCommitTx(ctx)
+			for _, hook := range mustContextGetHooks(ctx_hooks_tx).Hooks {
+				hook.DidCommitTx(ctx_hooks_tx)
 			}
 		}
 	}()
@@ -112,13 +114,13 @@ func (h *preparedStatementsHandle) WithTx(ctx context.Context, do func(ctx conte
 		} else if err != nil {
 			_ = rollbackTx(h.logger, tx)
 		} else {
-			err = commitTx(ctx, h.logger, tx, mustHookHandleContextGetValue(ctx).Hooks)
+			err = commitTx(ctx_hooks_tx, h.logger, tx, mustContextGetHooks(ctx_hooks_tx).Hooks)
 			if err == nil {
 				shouldRunDidCommitHooks = true
 			}
 		}
 	}()
 
-	err = do(ctx)
+	err = do(ctx_hooks_tx)
 	return
 }

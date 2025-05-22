@@ -11,13 +11,60 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
-type hookHandleContextKeyType struct{}
+type hooksContextKeyType struct{}
 
-var hookHandleContextKey = hookHandleContextKeyType{}
+var hooksContextKey = hooksContextKeyType{}
 
-type hookHandleContextValue struct {
+type hooksContextValue struct {
+	Hooks []TransactionHook
+}
+
+func contextWithHooks(ctx context.Context, value *hooksContextValue) context.Context {
+	return context.WithValue(ctx, hooksContextKey, value)
+}
+
+func contextGetHooks(ctx context.Context) (*hooksContextValue, bool) {
+	v, ok := ctx.Value(hooksContextKey).(*hooksContextValue)
+	if !ok {
+		return nil, false
+	}
+	return v, true
+}
+
+func mustContextGetHooks(ctx context.Context) *hooksContextValue {
+	v, ok := contextGetHooks(ctx)
+	if !ok {
+		panic(fmt.Errorf("programming_error: hooks is not initialized"))
+	}
+	return v
+}
+
+type txLikeContextKeyType struct{}
+
+var txLikeContextKey = txLikeContextKeyType{}
+
+type txLikeContextValue struct {
 	TxLike txLike
-	Hooks  []TransactionHook
+}
+
+func contextWithTxLike(ctx context.Context, value *txLikeContextValue) context.Context {
+	return context.WithValue(ctx, txLikeContextKey, value)
+}
+
+func contextGetTxLike(ctx context.Context) (*txLikeContextValue, bool) {
+	v, ok := ctx.Value(txLikeContextKey).(*txLikeContextValue)
+	if !ok {
+		return nil, false
+	}
+	return v, true
+}
+
+func mustContextGetTxLike(ctx context.Context) *txLikeContextValue {
+	v, ok := contextGetTxLike(ctx)
+	if !ok {
+		panic(fmt.Errorf("programming_error: tx is not initialized"))
+	}
+	return v
 }
 
 type HookHandle struct {
@@ -27,28 +74,8 @@ type HookHandle struct {
 	Logger            *log.Logger
 }
 
-func hookHandleContextWithValue(ctx context.Context, value *hookHandleContextValue) context.Context {
-	return context.WithValue(ctx, hookHandleContextKey, value)
-}
-
-func hookHandleContextGetValue(ctx context.Context) (*hookHandleContextValue, bool) {
-	v, ok := ctx.Value(hookHandleContextKey).(*hookHandleContextValue)
-	if !ok {
-		return nil, false
-	}
-	return v, true
-}
-
-func mustHookHandleContextGetValue(ctx context.Context) *hookHandleContextValue {
-	v, ok := hookHandleContextGetValue(ctx)
-	if !ok {
-		panic(fmt.Errorf("hook-handle: transaction not started"))
-	}
-	return v
-}
-
 func mustGetTxLike(ctx context.Context) txLike {
-	return mustHookHandleContextGetValue(ctx).TxLike
+	return mustContextGetTxLike(ctx).TxLike
 }
 
 var _ Handle = (*HookHandle)(nil)
@@ -63,11 +90,7 @@ func NewHookHandle(pool *Pool, info ConnectionInfo, opts ConnectionOptions, lf *
 }
 
 func (h *HookHandle) UseHook(ctx context.Context, hook TransactionHook) {
-	v, ok := hookHandleContextGetValue(ctx)
-	if !ok {
-		panic(fmt.Errorf("hook-handle: transaction not started"))
-	}
-
+	v := mustContextGetHooks(ctx)
 	v.Hooks = append(v.Hooks, hook)
 }
 
@@ -86,7 +109,9 @@ func (h *HookHandle) UseHook(ctx context.Context, hook TransactionHook) {
 //			})
 //		}()
 //	})
-func (h *HookHandle) WithTx(ctx context.Context, do func(ctx context.Context) error) (err error) {
+func (h *HookHandle) WithTx(ctx_original context.Context, do func(ctx context.Context) error) (err error) {
+	ctx_hooks := contextWithHooks(ctx_original, &hooksContextValue{})
+
 	id := uuid.New()
 	logger := h.Logger.WithField("debug_id", id)
 	db, err := h.openDB()
@@ -94,18 +119,18 @@ func (h *HookHandle) WithTx(ctx context.Context, do func(ctx context.Context) er
 		return
 	}
 
-	conn, err := db.Conn(ctx)
+	conn, err := db.Conn(ctx_hooks)
 	if err != nil {
 		return
 	}
 	defer conn.Close()
 
-	tx, err := beginTx(ctx, logger, conn)
+	tx, err := beginTx(ctx_hooks, logger, conn)
 	if err != nil {
 		return
 	}
 
-	ctx = hookHandleContextWithValue(ctx, &hookHandleContextValue{
+	ctx_hooks_tx := contextWithTxLike(ctx_hooks, &txLikeContextValue{
 		TxLike: tx,
 	})
 
@@ -113,8 +138,8 @@ func (h *HookHandle) WithTx(ctx context.Context, do func(ctx context.Context) er
 
 	defer func() {
 		if shouldRunDidCommitHooks {
-			for _, hook := range mustHookHandleContextGetValue(ctx).Hooks {
-				hook.DidCommitTx(ctx)
+			for _, hook := range mustContextGetHooks(ctx_hooks_tx).Hooks {
+				hook.DidCommitTx(ctx_hooks_tx)
 			}
 		}
 	}()
@@ -126,19 +151,21 @@ func (h *HookHandle) WithTx(ctx context.Context, do func(ctx context.Context) er
 		} else if err != nil {
 			_ = rollbackTx(logger, tx)
 		} else {
-			err = commitTx(ctx, logger, tx, mustHookHandleContextGetValue(ctx).Hooks)
+			err = commitTx(ctx_hooks_tx, logger, tx, mustContextGetHooks(ctx_hooks_tx).Hooks)
 			if err == nil {
 				shouldRunDidCommitHooks = true
 			}
 		}
 	}()
 
-	err = do(ctx)
+	err = do(ctx_hooks_tx)
 	return
 }
 
 // ReadOnly is like WithTx, except that it always rolls back.
-func (h *HookHandle) ReadOnly(ctx context.Context, do func(ctx context.Context) error) (err error) {
+func (h *HookHandle) ReadOnly(ctx_original context.Context, do func(ctx context.Context) error) (err error) {
+	ctx_hooks := contextWithHooks(ctx_original, &hooksContextValue{})
+
 	id := uuid.New()
 	logger := h.Logger.WithField("debug_id", id)
 	db, err := h.openDB()
@@ -146,18 +173,18 @@ func (h *HookHandle) ReadOnly(ctx context.Context, do func(ctx context.Context) 
 		return
 	}
 
-	conn, err := db.Conn(ctx)
+	conn, err := db.Conn(ctx_hooks)
 	if err != nil {
 		return
 	}
 	defer conn.Close()
 
-	tx, err := beginTx(ctx, logger, conn)
+	tx, err := beginTx(ctx_hooks, logger, conn)
 	if err != nil {
 		return
 	}
 
-	ctx = hookHandleContextWithValue(ctx, &hookHandleContextValue{
+	ctx_hooks_tx := contextWithTxLike(ctx_hooks, &txLikeContextValue{
 		TxLike: tx,
 	})
 
@@ -165,8 +192,8 @@ func (h *HookHandle) ReadOnly(ctx context.Context, do func(ctx context.Context) 
 
 	defer func() {
 		if shouldRunDidCommitHooks {
-			for _, hook := range mustHookHandleContextGetValue(ctx).Hooks {
-				hook.DidCommitTx(ctx)
+			for _, hook := range mustContextGetHooks(ctx_hooks_tx).Hooks {
+				hook.DidCommitTx(ctx_hooks_tx)
 			}
 		}
 	}()
@@ -185,7 +212,7 @@ func (h *HookHandle) ReadOnly(ctx context.Context, do func(ctx context.Context) 
 		}
 	}()
 
-	err = do(ctx)
+	err = do(ctx_hooks_tx)
 	return
 }
 
@@ -218,7 +245,7 @@ func (h *HookHandle) WithPrepareStatementsHandle(ctx context.Context, do func(ct
 }
 
 func (*HookHandle) IsInTx(ctx context.Context) bool {
-	_, isInTx := hookHandleContextGetValue(ctx)
+	_, isInTx := contextGetTxLike(ctx)
 	return isInTx
 }
 
