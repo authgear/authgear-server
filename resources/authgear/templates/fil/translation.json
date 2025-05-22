@@ -1381,7 +1381,7 @@
   "v2.page.signup.continue.subtitle-username": "Ipasok ang iyong username",
   "v2.page.signup.continue.title": "Magpatuloy sa Pag-sign Up",
   "v2.page.signup.default.signup-with-email": "Magpatuloy gamit ang Email",
-  "v2.page.signup.default.signup-with-photo": "Magpatuloy gamit ang Numero ng Telepono",
+  "v2.page.signup.default.signup-with-phone": "Magpatuloy gamit ang Numero ng Telepono",
   "v2.page.signup.default.signup-with-username": "Magpatuloy gamit ang Username",
   "v2.page.signup.default.subtitle": "Mag-sign up para sa {AppName}",
   "v2.page.signup.default.switch-to-login": "May account na ba? <a href=\"{href}\">Mag-log in</a>",

@@ -1381,7 +1381,7 @@
   "v2.page.signup.continue.subtitle-username": "ユーザー名を入力してください",
   "v2.page.signup.continue.title": "サインアップを続ける",
   "v2.page.signup.default.signup-with-email": "メールで続ける",
-  "v2.page.signup.default.signup-with-photo": "電話番号で続ける",
+  "v2.page.signup.default.signup-with-phone": "電話番号で続ける",
   "v2.page.signup.default.signup-with-username": "ユーザー名で続ける",
   "v2.page.signup.default.subtitle": "{AppName}に登録する",
   "v2.page.signup.default.switch-to-login": "すでにアカウントをお持ちですか? <a href=\"{href}\">ログイン</a>",

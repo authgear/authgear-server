@@ -1381,7 +1381,7 @@
   "v2.page.signup.continue.subtitle-username": "請輸入您的使用者名稱",
   "v2.page.signup.continue.title": "繼續註冊",
   "v2.page.signup.default.signup-with-email": "使用電郵繼續",
-  "v2.page.signup.default.signup-with-photo": "使用電話號碼繼續",
+  "v2.page.signup.default.signup-with-phone": "使用電話號碼繼續",
   "v2.page.signup.default.signup-with-username": "使用用戶名稱繼續",
   "v2.page.signup.default.subtitle": "建立您的 {AppName} 帳號",
   "v2.page.signup.default.switch-to-login": "已經有帳號？ <a href=\"{href}\">登入</a>",

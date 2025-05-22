@@ -1381,7 +1381,7 @@
   "v2.page.signup.continue.subtitle-username": "Εισάγετε το όνομα χρήστη σας",
   "v2.page.signup.continue.title": "Συνέχεια Εγγραφής",
   "v2.page.signup.default.signup-with-email": "Συνεχίστε με Email",
-  "v2.page.signup.default.signup-with-photo": "Συνέχεια με Αριθμό Τηλεφώνου",
+  "v2.page.signup.default.signup-with-phone": "Συνέχεια με Αριθμό Τηλεφώνου",
   "v2.page.signup.default.signup-with-username": "Συνεχίστε με Όνομα Χρήστη",
   "v2.page.signup.default.subtitle": "Εγγραφείτε στο {AppName}",
   "v2.page.signup.default.switch-to-login": "Έχετε ήδη λογαριασμό; <a href=\"{href}\">Συνδεθείτε</a>",

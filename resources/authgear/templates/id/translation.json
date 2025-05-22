@@ -1381,7 +1381,7 @@
   "v2.page.signup.continue.subtitle-username": "Masukkan nama pengguna Anda",
   "v2.page.signup.continue.title": "Lanjutkan Pendaftaran",
   "v2.page.signup.default.signup-with-email": "Lanjutkan dengan Email",
-  "v2.page.signup.default.signup-with-photo": "Lanjutkan dengan Nomor Telepon",
+  "v2.page.signup.default.signup-with-phone": "Lanjutkan dengan Nomor Telepon",
   "v2.page.signup.default.signup-with-username": "Lanjutkan dengan Nama Pengguna",
   "v2.page.signup.default.subtitle": "Daftar untuk {AppName}",
   "v2.page.signup.default.switch-to-login": "Sudah memiliki akun? <a href=\"{href}\">Masuk</a>",
