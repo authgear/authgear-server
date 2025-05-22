@@ -294,6 +294,8 @@ func Open(opts OpenOptions) (ConnPool_, error) {
 	switch opts.DriverName {
 	case "postgres":
 		commonAttrs = append(commonAttrs, semconv.DBSystemNamePostgreSQL)
+	case "sqlite3":
+		commonAttrs = append(commonAttrs, semconv.DBSystemNameSqlite)
 	default:
 		panic(fmt.Errorf("unknown driver: %v", opts.DriverName))
 	}

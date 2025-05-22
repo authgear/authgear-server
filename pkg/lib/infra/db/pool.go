@@ -7,6 +7,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/otelutil/oteldatabasesql"
 )
 
+//go:generate go tool mockgen -source=pool.go -destination=pool_mock_test.go -package db
+
 type Pool_ interface {
 	Open(info ConnectionInfo, opts ConnectionOptions) (db oteldatabasesql.ConnPool_, err error)
 	Close() (err error)
