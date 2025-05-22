@@ -7,21 +7,30 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/otelutil/oteldatabasesql"
 )
 
+//go:generate go tool mockgen -source=pool.go -destination=pool_mock_test.go -package db
+
+type Pool_ interface {
+	Open(info ConnectionInfo, opts ConnectionOptions) (db oteldatabasesql.ConnPool_, err error)
+	Close() (err error)
+}
+
 var actualPoolOpener = openPostgresDB
 
 type Pool struct {
 	closed     bool
 	closeMutex sync.RWMutex
 
-	cache      map[ConnectionInfo]*oteldatabasesql.ConnPool
+	cache      map[ConnectionInfo]oteldatabasesql.ConnPool_
 	cacheMutex sync.RWMutex
 }
 
+var _ Pool_ = (*Pool)(nil)
+
 func NewPool() *Pool {
-	return &Pool{cache: map[ConnectionInfo]*oteldatabasesql.ConnPool{}}
+	return &Pool{cache: map[ConnectionInfo]oteldatabasesql.ConnPool_{}}
 }
 
-func (p *Pool) Open(info ConnectionInfo, opts ConnectionOptions) (db *oteldatabasesql.ConnPool, err error) {
+func (p *Pool) Open(info ConnectionInfo, opts ConnectionOptions) (db oteldatabasesql.ConnPool_, err error) {
 	p.closeMutex.RLock()
 	defer func() { p.closeMutex.RUnlock() }()
 	if p.closed {
@@ -64,7 +73,7 @@ func (p *Pool) Close() (err error) {
 	return
 }
 
-func openPostgresDB(info ConnectionInfo, opts ConnectionOptions) (*oteldatabasesql.ConnPool, error) {
+func openPostgresDB(info ConnectionInfo, opts ConnectionOptions) (oteldatabasesql.ConnPool_, error) {
 	pgdb, err := oteldatabasesql.Open(oteldatabasesql.OpenOptions{
 		DriverName: "postgres",
 		DSN:        info.DatabaseURL,

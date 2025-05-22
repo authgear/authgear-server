@@ -93,6 +93,7 @@ require (
 	github.com/goaux/decowriter v1.0.0
 	github.com/iawaknahc/gogenwrapper v0.0.0-20250315204045-eb8ab595ac5c
 	github.com/kr/pretty v0.3.1
+	github.com/mattn/go-sqlite3 v1.14.19
 	github.com/minio/minio-go/v7 v7.0.91
 	github.com/rivo/uniseg v0.4.7
 	github.com/russellhaering/goxmldsig v1.5.0

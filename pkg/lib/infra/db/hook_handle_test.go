@@ -5,7 +5,12 @@ import (
 	"database/sql"
 	"testing"
 
+	"github.com/golang/mock/gomock"
+	_ "github.com/mattn/go-sqlite3"
 	. "github.com/smartystreets/goconvey/convey"
+
+	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/otelutil/oteldatabasesql"
 )
 
 type mockTransactionHook struct {
@@ -78,5 +83,70 @@ func TestContext(t *testing.T) {
 
 		// The tx is different
 		So(level1Value.tx != level2Value.tx, ShouldBeTrue)
+	})
+}
+
+type transactionHookThatUseHookHandle struct {
+	HookHandle *HookHandle
+	Counter    int
+}
+
+var _ TransactionHook = (*transactionHookThatUseHookHandle)(nil)
+
+func (h *transactionHookThatUseHookHandle) WillCommitTx(ctx context.Context) error { return nil }
+func (h *transactionHookThatUseHookHandle) DidCommitTx(ctx context.Context) {
+	_ = h.HookHandle.WithTx(ctx, func(ctx context.Context) error {
+		return nil
+	})
+	h.Counter += 1
+}
+
+func TestHookHandle(t *testing.T) {
+	Convey("HookHandle", t, func() {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		pool := NewMockPool_(ctrl)
+
+		hookHandle := &HookHandle{
+			Pool:   pool,
+			Logger: log.Null,
+		}
+
+		// Construct a real connection pool of size 1.
+		connPool, err := oteldatabasesql.Open(oteldatabasesql.OpenOptions{
+			DriverName: "sqlite3",
+			DSN:        ":memory:",
+		})
+		So(err, ShouldBeNil)
+		connPool.SetMaxOpenConns(1)
+		connPool.SetMaxIdleConns(0)
+		connPool.SetConnMaxLifetime(0)
+		connPool.SetConnMaxIdleTime(0)
+
+		pool.EXPECT().Open(gomock.Any(), gomock.Any()).AnyTimes().Return(connPool, nil)
+
+		ctx := context.Background()
+
+		Convey("Does nothing in WithTx() should not block.", func() {
+			err := hookHandle.WithTx(ctx, func(ctx context.Context) error {
+				return nil
+			})
+			So(err, ShouldBeNil)
+		})
+
+		// Before the fix, this test will block indefinitely.
+		Convey("Add a hook that call WithTx() again should not block.", func() {
+			hook := &transactionHookThatUseHookHandle{
+				HookHandle: hookHandle,
+				Counter:    1,
+			}
+			err := hookHandle.WithTx(ctx, func(ctx context.Context) error {
+				hookHandle.UseHook(ctx, hook)
+				return nil
+			})
+			So(hook.Counter, ShouldEqual, 2)
+			So(err, ShouldBeNil)
+		})
 	})
 }
