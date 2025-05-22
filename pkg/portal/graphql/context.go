@@ -54,6 +54,7 @@ type AppService interface {
 	UpdateResources0(ctx context.Context, app *model.App, updates []appresource.Update) error
 	GetProjectQuota(ctx context.Context, userID string) (int, error)
 	LoadAppSecretConfig(ctx context.Context, app *model.App, sessionInfo *apimodel.SessionInfo, token string) (*model.SecretConfig, string, error)
+	LoadEffectiveSecretConfig(ctx context.Context, app *model.App) (*model.EffectiveSecretConfig, error)
 	GenerateSecretVisitToken(ctx context.Context,
 		app *model.App,
 		sessionInfo *apimodel.SessionInfo,
