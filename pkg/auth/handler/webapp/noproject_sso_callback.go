@@ -54,8 +54,7 @@ func (h *NoProjectSSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 		return nil
 	})
 	if err != nil {
-		http.Error(w, fmt.Sprintf("failed to resolve public origin of app id: %s", state.AppID), http.StatusInternalServerError)
-		return
+		panic(fmt.Errorf("failed to resolve public origin of app id: %s %w", state.AppID, err))
 	}
 
 	publicOriginURL, err := url.Parse(publicOrigin)
