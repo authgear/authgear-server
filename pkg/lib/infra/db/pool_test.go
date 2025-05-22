@@ -9,7 +9,7 @@ import (
 )
 
 func TestPool(t *testing.T) {
-	dummyPoolOpener := func(info ConnectionInfo, opts ConnectionOptions) (*oteldatabasesql.ConnPool, error) {
+	dummyPoolOpener := func(info ConnectionInfo, opts ConnectionOptions) (oteldatabasesql.ConnPool_, error) {
 		return &oteldatabasesql.ConnPool{}, nil
 	}
 

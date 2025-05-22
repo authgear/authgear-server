@@ -245,7 +245,7 @@ func (*HookHandle) IsInTx(ctx context.Context) bool {
 	return isInTx
 }
 
-func beginTx(ctx context.Context, logger *log.Logger, conn *oteldatabasesql.Conn) (*sql.Tx, error) {
+func beginTx(ctx context.Context, logger *log.Logger, conn oteldatabasesql.Conn_) (*sql.Tx, error) {
 	// Pass a nil TxOptions to use default isolation level.
 	var txOptions *sql.TxOptions
 	tx, err := conn.BeginTx(ctx, txOptions)
@@ -286,7 +286,7 @@ func rollbackTx(logger *log.Logger, tx *sql.Tx) error {
 	return nil
 }
 
-func (h *HookHandle) openDB() (*oteldatabasesql.ConnPool, error) {
+func (h *HookHandle) openDB() (oteldatabasesql.ConnPool_, error) {
 	h.Logger.WithFields(map[string]interface{}{
 		"purpose":                    h.ConnectionInfo.Purpose,
 		"max_open_conns":             h.ConnectionOptions.MaxOpenConnection,

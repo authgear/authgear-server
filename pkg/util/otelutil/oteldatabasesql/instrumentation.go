@@ -152,6 +152,14 @@ var DBClientOperationDurationHistogram = mustFloat64Histogram(
 	),
 )
 
+type Conn_ interface {
+	BeginTx(ctx context.Context, opts *sql.TxOptions) (*sql.Tx, error)
+	PrepareContext(ctx context.Context, query string) (*sql.Stmt, error)
+	Close() error
+}
+
+var _ Conn_ = (*Conn)(nil)
+
 // Conn is a wrapper around *sql.Conn.
 // Conn is used to track connection use time.
 type Conn struct {
@@ -184,6 +192,17 @@ func (c *Conn) Close() error {
 	return c.conn.Close()
 }
 
+type ConnPool_ interface {
+	Conn(ctx context.Context) (Conn_, error)
+	Close() error
+	SetConnMaxIdleTime(d time.Duration)
+	SetConnMaxLifetime(d time.Duration)
+	SetMaxIdleConns(n int)
+	SetMaxOpenConns(n int)
+}
+
+var _ ConnPool_ = (*ConnPool)(nil)
+
 // ConnPool is a wrapper around *sql.DB.
 // ConnPool only supports Conn() which returns a wrapped *sql.Conn.
 // ConnPool is used to track connection wait time.
@@ -193,7 +212,7 @@ type ConnPool struct {
 	poolAttrs   []attribute.KeyValue
 }
 
-func (p *ConnPool) Conn(ctx context.Context) (*Conn, error) {
+func (p *ConnPool) Conn(ctx context.Context) (Conn_, error) {
 
 	// Intentionally not calling .UTC() to use monotonic clock.
 	startTime := time.Now()
@@ -268,7 +287,7 @@ type OpenOptions struct {
 }
 
 //nolint:gocognit
-func Open(opts OpenOptions) (*ConnPool, error) {
+func Open(opts OpenOptions) (ConnPool_, error) {
 	var commonAttrs []attribute.KeyValue
 	var poolAttrs []attribute.KeyValue
 

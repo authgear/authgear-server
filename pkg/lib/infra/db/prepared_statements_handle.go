@@ -16,7 +16,7 @@ var preparedStatementsHandleContextKey = preparedStatementsHandleContextKeyType{
 
 type preparedStatementsHandle struct {
 	logger           *log.Logger
-	conn             *oteldatabasesql.Conn
+	conn             oteldatabasesql.Conn_
 	cachedStatements map[string]*sql.Stmt
 }
 

@@ -13,15 +13,15 @@ type Pool struct {
 	closed     bool
 	closeMutex sync.RWMutex
 
-	cache      map[ConnectionInfo]*oteldatabasesql.ConnPool
+	cache      map[ConnectionInfo]oteldatabasesql.ConnPool_
 	cacheMutex sync.RWMutex
 }
 
 func NewPool() *Pool {
-	return &Pool{cache: map[ConnectionInfo]*oteldatabasesql.ConnPool{}}
+	return &Pool{cache: map[ConnectionInfo]oteldatabasesql.ConnPool_{}}
 }
 
-func (p *Pool) Open(info ConnectionInfo, opts ConnectionOptions) (db *oteldatabasesql.ConnPool, err error) {
+func (p *Pool) Open(info ConnectionInfo, opts ConnectionOptions) (db oteldatabasesql.ConnPool_, err error) {
 	p.closeMutex.RLock()
 	defer func() { p.closeMutex.RUnlock() }()
 	if p.closed {
@@ -64,7 +64,7 @@ func (p *Pool) Close() (err error) {
 	return
 }
 
-func openPostgresDB(info ConnectionInfo, opts ConnectionOptions) (*oteldatabasesql.ConnPool, error) {
+func openPostgresDB(info ConnectionInfo, opts ConnectionOptions) (oteldatabasesql.ConnPool_, error) {
 	pgdb, err := oteldatabasesql.Open(oteldatabasesql.OpenOptions{
 		DriverName: "postgres",
 		DSN:        info.DatabaseURL,
