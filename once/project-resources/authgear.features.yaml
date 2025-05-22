@@ -1,0 +1,4 @@
+oauth:
+  client:
+    custom_ui_enabled: true
+    app2app_enabled: true
