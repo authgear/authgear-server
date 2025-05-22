@@ -4,6 +4,7 @@ import cn from "classnames";
 import { produce } from "immer";
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import FormTextField from "../../FormTextField";
+import ChoiceButton from "../../ChoiceButton";
 import {
   createOAuthSSOProviderItemKey,
   isOAuthSSOProvider,
@@ -34,6 +35,8 @@ import { isOAuthProviderMissingCredential } from "../../model/oauthProviders";
 import { EffectiveSecretConfig } from "./globalTypes.generated";
 
 const MASKED_SECRET = "***************";
+
+type CredentialStatus = "active" | "missing_credential" | "demo";
 
 interface SingleSignOnConfigurationWidgetProps {
   className?: string;
@@ -374,6 +377,15 @@ export function useSingleSignOnConfigurationWidget(
     `/secrets/\\d+/data/items/${providerIndex}`
   );
 
+  const providersWithDemoCredentials = useMemo<Set<string>>(() => {
+    return new Set(
+      effectiveSecretConfig?.oauthSSOProviderDemoSecrets?.map((it) => it.type)
+    );
+  }, [effectiveSecretConfig]);
+  const isDemoCredentialAvailable = providersWithDemoCredentials.has(
+    provider.config.type
+  );
+
   const onChange = useCallback(
     (
       newConfig: OAuthSSOProviderConfig,
@@ -382,6 +394,11 @@ export function useSingleSignOnConfigurationWidget(
       setState((state) =>
         produce(state, (state) => {
           const config = produce(newConfig, (config) => {
+            if (isDemoCredentialAvailable) {
+              // If demo credential is avaiable, the user have to choose between demo credential and custom credential
+              return;
+            }
+            // Else, set it automatically
             config.missing_credential_allowed =
               isOAuthProviderMissingCredential(config, secret)
                 ? true
@@ -409,21 +426,13 @@ export function useSingleSignOnConfigurationWidget(
           }
         })
       ),
-    [setState, providerIndex]
+    [setState, providerIndex, isDemoCredentialAvailable]
   );
-
-  const providersWithDemoCredentials = useMemo<Set<string>>(() => {
-    return new Set(
-      effectiveSecretConfig?.oauthSSOProviderDemoSecrets?.map((it) => it.type)
-    );
-  }, [effectiveSecretConfig]);
 
   return {
     jsonPointer: jsonPointer,
     clientSecretParentJsonPointer: clientSecretParentJsonPointer,
-    isDemoCredentialAvailable: providersWithDemoCredentials.has(
-      provider.config.type
-    ),
+    isDemoCredentialAvailable: isDemoCredentialAvailable,
     config: provider.config,
     secret: provider.secret,
     onChange: onChange,
@@ -586,7 +595,7 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
 
     const noneditable = featureDisabled;
 
-    const credentialStatus = useMemo(() => {
+    const credentialStatus = useMemo<CredentialStatus>(() => {
       if (isMissingCredential && !isDemoCredentialAvailable) {
         return "missing_credential";
       }
@@ -595,6 +604,18 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
       }
       return "active";
     }, [isDemoCredentialAvailable, isMissingCredential]);
+
+    const isDemoCredentialSelected = credentialStatus === "demo";
+
+    const handleDemoCredentialSelectedChange = useCallback(
+      (value: boolean) => {
+        const newConfig = produce(config, (config) => {
+          config.missing_credential_allowed = value;
+        });
+        onChange(newConfig, secret);
+      },
+      [config, onChange, secret]
+    );
 
     return (
       <Widget className={className}>
@@ -606,6 +627,20 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
         </div>
         {featureDisabled ? (
           <FeatureDisabledMessageBar messageID="FeatureConfig.disabled" />
+        ) : null}
+        {isDemoCredentialAvailable ? (
+          <div className="grid grid-cols-2 gap-4 grid-flow-col p-px">
+            <DemoCredentialStatusButton
+              targetValue={false}
+              value={isDemoCredentialSelected}
+              onClick={handleDemoCredentialSelectedChange}
+            />
+            <DemoCredentialStatusButton
+              targetValue={true}
+              value={isDemoCredentialSelected}
+              onClick={handleDemoCredentialSelectedChange}
+            />
+          </div>
         ) : null}
         {credentialStatus === "missing_credential" ? (
           <Callout
@@ -1042,3 +1077,65 @@ export const OAuthClientRowHeader: React.VFC<{ className?: string }> = ({
 };
 
 export default SingleSignOnConfigurationWidget;
+
+interface DemoCredentialStatusButtonProps {
+  value: boolean;
+  targetValue: boolean;
+  disabled?: boolean;
+  onClick?: (value: boolean) => void;
+}
+
+function DemoCredentialStatusButton(props: DemoCredentialStatusButtonProps) {
+  const { targetValue, value, disabled, onClick: onClickProp } = props;
+  const checked = targetValue === value;
+
+  const { renderToString } = useContext(Context);
+
+  const onClick = useCallback(
+    (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      onClickProp?.(targetValue);
+    },
+    [onClickProp, targetValue]
+  );
+
+  const textID = useMemo(() => {
+    switch (targetValue) {
+      case false:
+        return "SingleSignOnConfigurationWidget.credentialStatusButton.custom.text";
+      case true:
+        return "SingleSignOnConfigurationWidget.credentialStatusButton.demo.text";
+    }
+  }, [targetValue]);
+
+  const secondaryTextID = useMemo(() => {
+    switch (targetValue) {
+      case false:
+        return "SingleSignOnConfigurationWidget.credentialStatusButton.custom.secondaryText";
+      case true:
+        return "SingleSignOnConfigurationWidget.credentialStatusButton.demo.secondaryText";
+    }
+  }, [targetValue]);
+
+  const CheckMark = useMemo(() => {
+    return () => {
+      return (
+        <div className="pr-4">
+          <Checkbox checked={checked} />
+        </div>
+      );
+    };
+  }, [checked]);
+
+  return (
+    <ChoiceButton
+      disabled={disabled}
+      checked={checked}
+      text={renderToString(textID)}
+      secondaryText={renderToString(secondaryTextID)}
+      IconComponent={CheckMark}
+      onClick={onClick}
+    />
+  );
+}
