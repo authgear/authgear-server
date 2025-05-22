@@ -28,6 +28,12 @@ export const Error: Story = {
   },
 };
 
+export const Warning: Story = {
+  args: {
+    type: "warning",
+  },
+};
+
 export const Success: Story = {
   args: {
     type: "success",
