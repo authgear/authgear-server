@@ -7,7 +7,7 @@ enum LoginMethod {
 }
 
 interface PreviewWidgetViewModel {
-  loginInput: "username_and_email" | "email" | "username" | "phone" | "none";
+  loginInput: "email" | "username" | "phone" | "none";
   branches: LoginMethod[];
 }
 
@@ -21,20 +21,20 @@ export class PreviewWidgetController extends Controller {
   static targets = [
     "emailInput",
     "usernameInput",
-    "loginIDInput",
     "phoneInput",
     "loginIDSection",
     "branchSection",
+    "branchOptionUsername",
     "branchOptionPhone",
     "noLoginMethodsError",
   ];
 
   declare emailInputTarget: HTMLElement;
   declare usernameInputTarget: HTMLElement;
-  declare loginIDInputTarget: HTMLElement;
   declare phoneInputTarget: HTMLElement;
   declare loginIDSectionTarget: HTMLElement;
   declare branchSectionTarget: HTMLElement;
+  declare branchOptionUsernameTarget: HTMLElement;
   declare branchOptionPhoneTarget: HTMLElement;
   declare noLoginMethodsErrorTarget: HTMLElement;
 
@@ -44,12 +44,7 @@ export class PreviewWidgetController extends Controller {
 
   loginMethodsValueChanged() {
     const loginMethodsSet = new Set(this.loginMethodsValue);
-    const hasUsernameAndEmail =
-      loginMethodsSet.has(LoginMethod.Username) &&
-      loginMethodsSet.has(LoginMethod.Email);
-    const loginInput = hasUsernameAndEmail
-      ? "username_and_email"
-      : loginMethodsSet.has(LoginMethod.Email)
+    const loginInput = loginMethodsSet.has(LoginMethod.Email)
       ? "email"
       : loginMethodsSet.has(LoginMethod.Username)
       ? "username"
@@ -59,10 +54,6 @@ export class PreviewWidgetController extends Controller {
 
     const remainingMethods = new Set(this.loginMethodsValue);
     switch (loginInput) {
-      case "username_and_email":
-        remainingMethods.delete(LoginMethod.Username);
-        remainingMethods.delete(LoginMethod.Email);
-        break;
       case "email":
         remainingMethods.delete(LoginMethod.Email);
         break;
@@ -90,13 +81,13 @@ export class PreviewWidgetController extends Controller {
   private updateElements(vm: PreviewWidgetViewModel) {
     showElementIf(this.emailInputTarget, vm.loginInput === "email");
     showElementIf(this.usernameInputTarget, vm.loginInput === "username");
-    showElementIf(
-      this.loginIDInputTarget,
-      vm.loginInput === "username_and_email"
-    );
     showElementIf(this.phoneInputTarget, vm.loginInput === "phone");
     showElementIf(this.loginIDSectionTarget, vm.loginInput !== "none");
     showElementIf(this.branchSectionTarget, vm.branches.length > 0);
+    showElementIf(
+      this.branchOptionUsernameTarget,
+      vm.branches.includes(LoginMethod.Username)
+    );
     showElementIf(
       this.branchOptionPhoneTarget,
       vm.branches.includes(LoginMethod.Phone)
