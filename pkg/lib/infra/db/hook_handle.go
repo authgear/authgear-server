@@ -68,7 +68,7 @@ func mustContextGetTxLike(ctx context.Context) *txLikeContextValue {
 }
 
 type HookHandle struct {
-	Pool              *Pool
+	Pool              Pool_
 	ConnectionInfo    ConnectionInfo
 	ConnectionOptions ConnectionOptions
 	Logger            *log.Logger
@@ -80,7 +80,7 @@ func mustGetTxLike(ctx context.Context) txLike {
 
 var _ Handle = (*HookHandle)(nil)
 
-func NewHookHandle(pool *Pool, info ConnectionInfo, opts ConnectionOptions, lf *log.Factory) *HookHandle {
+func NewHookHandle(pool Pool_, info ConnectionInfo, opts ConnectionOptions, lf *log.Factory) *HookHandle {
 	return &HookHandle{
 		Pool:              pool,
 		ConnectionInfo:    info,

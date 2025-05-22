@@ -7,6 +7,11 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/otelutil/oteldatabasesql"
 )
 
+type Pool_ interface {
+	Open(info ConnectionInfo, opts ConnectionOptions) (db oteldatabasesql.ConnPool_, err error)
+	Close() (err error)
+}
+
 var actualPoolOpener = openPostgresDB
 
 type Pool struct {
@@ -16,6 +21,8 @@ type Pool struct {
 	cache      map[ConnectionInfo]oteldatabasesql.ConnPool_
 	cacheMutex sync.RWMutex
 }
+
+var _ Pool_ = (*Pool)(nil)
 
 func NewPool() *Pool {
 	return &Pool{cache: map[ConnectionInfo]oteldatabasesql.ConnPool_{}}
