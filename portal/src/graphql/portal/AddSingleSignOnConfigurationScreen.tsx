@@ -27,6 +27,9 @@ import {
 } from "../../hook/useOAuthProviderForm";
 import { useNavigate, useParams } from "react-router-dom";
 import FormContainer from "../../FormContainer";
+import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";
+import ShowLoading from "../../ShowLoading";
+import { EffectiveSecretConfig } from "./globalTypes.generated";
 
 interface OAuthClientMenuProps {
   form: OAuthProviderFormModel;
@@ -88,15 +91,18 @@ interface OAuthClientFormProps {
   initialAlias: string;
   providerItemKey: OAuthSSOProviderItemKey;
   form: OAuthProviderFormModel;
+  effectiveSecretConfig: EffectiveSecretConfig | undefined;
 }
 
 const OAuthClientForm: React.VFC<OAuthClientFormProps> =
   function OAuthClientForm(props) {
-    const { initialAlias, providerItemKey, form } = props;
+    const { initialAlias, providerItemKey, form, effectiveSecretConfig } =
+      props;
     const widgetProps = useSingleSignOnConfigurationWidget(
       initialAlias,
       providerItemKey,
-      form
+      form,
+      effectiveSecretConfig
     );
     return (
       <SingleSignOnConfigurationWidget
@@ -110,7 +116,11 @@ const AddSingleSignOnConfigurationContent: React.VFC =
   function AddSingleSignOnConfigurationContent() {
     const navigate = useNavigate();
     const { appID } = useParams() as { appID: string };
+
+    const { loading: isEffectiveSecretLoading, effectiveSecretConfig } =
+      useAppAndSecretConfigQuery(appID, null);
     const form = useOAuthProviderForm(appID, null);
+
     const [selectedProviderKey, setSelectedProviderKey] =
       useState<OAuthSSOProviderItemKey>();
     const [newAlias, setNewAlias] = useState<string | null>(null);
@@ -153,6 +163,10 @@ const AddSingleSignOnConfigurationContent: React.VFC =
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedProviderKey]);
 
+    if (isEffectiveSecretLoading) {
+      return <ShowLoading />;
+    }
+
     return (
       <FormContainer
         form={form}
@@ -177,6 +191,7 @@ const AddSingleSignOnConfigurationContent: React.VFC =
                 initialAlias={newAlias}
                 form={form}
                 providerItemKey={selectedProviderKey}
+                effectiveSecretConfig={effectiveSecretConfig}
               />
             ) : (
               <OAuthClientMenu form={form} onSelect={onMenuSelect} />

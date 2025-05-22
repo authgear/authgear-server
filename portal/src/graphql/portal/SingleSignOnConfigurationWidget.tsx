@@ -31,6 +31,7 @@ import {
 import { Badge } from "../../components/v2/Badge/Badge";
 import { Callout } from "../../components/v2/Callout/Callout";
 import { isOAuthProviderMissingCredential } from "../../model/oauthProviders";
+import { EffectiveSecretConfig } from "./globalTypes.generated";
 
 const MASKED_SECRET = "***************";
 
@@ -40,6 +41,7 @@ interface SingleSignOnConfigurationWidgetProps {
   jsonPointer: string;
   clientSecretParentJsonPointer: RegExp;
 
+  isDemoCredentialAvailable: boolean;
   config: OAuthSSOProviderConfig;
   secret: SSOProviderFormSecretViewModel;
   onChange: (
@@ -318,6 +320,7 @@ export function useSingleSignOnConfigurationWidget(
   initialAlias: string,
   providerItemKey: OAuthSSOProviderItemKey,
   form: OAuthProviderFormModel,
+  effectiveSecretConfig: EffectiveSecretConfig | undefined,
   oauthSSOFeatureConfig?: OAuthSSOFeatureConfig
 ): SingleSignOnConfigurationWidgetProps {
   const {
@@ -409,9 +412,18 @@ export function useSingleSignOnConfigurationWidget(
     [setState, providerIndex]
   );
 
+  const providersWithDemoCredentials = useMemo<Set<string>>(() => {
+    return new Set(
+      effectiveSecretConfig?.oauthSSOProviderDemoSecrets?.map((it) => it.type)
+    );
+  }, [effectiveSecretConfig]);
+
   return {
     jsonPointer: jsonPointer,
     clientSecretParentJsonPointer: clientSecretParentJsonPointer,
+    isDemoCredentialAvailable: providersWithDemoCredentials.has(
+      provider.config.type
+    ),
     config: provider.config,
     secret: provider.secret,
     onChange: onChange,
@@ -438,12 +450,13 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
       className,
       jsonPointer,
       clientSecretParentJsonPointer,
+      isDemoCredentialAvailable,
       config,
       secret,
       onChange,
       disabled: featureDisabled,
     } = props;
-    const isInactive = Boolean(config.missing_credential_allowed);
+    const isMissingCredential = Boolean(config.missing_credential_allowed);
 
     const { renderToString } = useContext(Context);
 
@@ -573,6 +586,16 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
 
     const noneditable = featureDisabled;
 
+    const credentialStatus = useMemo(() => {
+      if (isMissingCredential && !isDemoCredentialAvailable) {
+        return "missing_credential";
+      }
+      if (isMissingCredential && isDemoCredentialAvailable) {
+        return "demo";
+      }
+      return "active";
+    }, [isDemoCredentialAvailable, isMissingCredential]);
+
     return (
       <Widget className={className}>
         <div className={styles.widgetHeader}>
@@ -584,238 +607,251 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
         {featureDisabled ? (
           <FeatureDisabledMessageBar messageID="FeatureConfig.disabled" />
         ) : null}
-        {isInactive ? (
+        {credentialStatus === "missing_credential" ? (
           <Callout
             className="w-full"
             type="error"
             text={<FormattedMessage id={inactiveMessageId} />}
             showCloseButton={false}
           />
-        ) : null}
-        {visibleFields.has("alias") ? (
-          <FormTextField
-            parentJSONPointer={jsonPointer}
-            fieldName="alias"
-            label={renderToString(
-              "SingleSignOnConfigurationScreen.widget.alias"
-            )}
-            className={styles.textField}
-            styles={TEXT_FIELD_STYLE}
-            value={config.alias}
-            onChange={onAliasChange}
-            disabled={noneditable}
-          />
-        ) : null}
-        {visibleFields.has("client_id") ? (
-          <FormTextField
-            parentJSONPointer={jsonPointer}
-            fieldName="client_id"
-            label={renderToString(
-              "SingleSignOnConfigurationScreen.widget.client-id"
-            )}
-            className={styles.textField}
-            styles={TEXT_FIELD_STYLE}
-            value={config.client_id ?? ""}
-            onChange={onClientIDChange}
-            disabled={noneditable}
-          />
-        ) : null}
-        {visibleFields.has("client_secret") ? (
-          <FormTextField
-            parentJSONPointer={clientSecretParentJsonPointer}
-            fieldName="client_secret"
-            label={renderToString(
-              "SingleSignOnConfigurationScreen.widget.client-secret"
-            )}
-            className={styles.textField}
-            styles={
-              isSecretFieldTextArea
-                ? MULTILINE_TEXT_FIELD_STYLE
-                : TEXT_FIELD_STYLE
+        ) : credentialStatus === "demo" ? (
+          <Callout
+            className="w-full"
+            type="warning"
+            text={
+              <FormattedMessage id="SingleSignOnConfigurationWidget.hint.usingDemoCredential" />
             }
-            multiline={isSecretFieldTextArea}
-            value={
-              noneditable || secret.newClientSecret == null
-                ? MASKED_SECRET
-                : secret.newClientSecret
-            }
-            onChange={onClientSecretChange}
-            disabled={noneditable || secret.newClientSecret == null}
+            showCloseButton={false}
           />
         ) : null}
-        {visibleFields.has("tenant") ? (
-          <FormTextField
-            parentJSONPointer={jsonPointer}
-            fieldName="tenant"
-            label={renderToString(
-              "SingleSignOnConfigurationScreen.widget.tenant"
-            )}
-            className={styles.textField}
-            styles={TEXT_FIELD_STYLE}
-            value={config.tenant ?? ""}
-            onChange={onTenantChange}
-            disabled={noneditable}
-          />
-        ) : null}
-        {visibleFields.has("policy") ? (
-          <FormTextField
-            parentJSONPointer={jsonPointer}
-            fieldName="policy"
-            label={renderToString(
-              "SingleSignOnConfigurationScreen.widget.policy"
-            )}
-            className={styles.textField}
-            styles={TEXT_FIELD_STYLE}
-            value={config.policy ?? ""}
-            placeholder={renderToString(
-              "SingleSignOnConfigurationScreen.widget.policy.placeholder"
-            )}
-            onChange={onPolicyChange}
-            disabled={noneditable}
-          />
-        ) : null}
-        {visibleFields.has("domain_hint") ? (
-          <FormTextField
-            parentJSONPointer={jsonPointer}
-            fieldName="domain_hint"
-            label={renderToString(
-              "SingleSignOnConfigurationScreen.widget.domain-hint"
-            )}
-            placeholder={renderToString(
-              "SingleSignOnConfigurationScreen.widget.domain-hint.placeholder"
-            )}
-            // @ts-expect-error
-            description={
-              <FormattedMessage id="SingleSignOnConfigurationScreen.widget.domain-hint.description" />
-            }
-            className={styles.textField}
-            styles={TEXT_FIELD_STYLE}
-            value={config.domain_hint ?? ""}
-            onChange={onDomainHintChange}
-            disabled={noneditable}
-          />
-        ) : null}
-        {visibleFields.has("discovery_document_endpoint") ? (
-          <FormTextField
-            parentJSONPointer={jsonPointer}
-            fieldName="discovery_document_endpoint"
-            label={renderToString(
-              "SingleSignOnConfigurationScreen.widget.discovery-document-endpoint"
-            )}
-            className={styles.textField}
-            styles={TEXT_FIELD_STYLE}
-            value={config.discovery_document_endpoint ?? ""}
-            onChange={onDiscoveryDocumentEndpointChange}
-            placeholder="http://example.com/.well-known/openid-configuration"
-            disabled={noneditable}
-          />
-        ) : null}
-        {visibleFields.has("key_id") ? (
-          <FormTextField
-            parentJSONPointer={jsonPointer}
-            fieldName="key_id"
-            label={renderToString(
-              "SingleSignOnConfigurationScreen.widget.key-id"
-            )}
-            className={styles.textField}
-            styles={TEXT_FIELD_STYLE}
-            value={config.key_id ?? ""}
-            onChange={onKeyIDChange}
-            disabled={noneditable}
-          />
-        ) : null}
-        {visibleFields.has("team_id") ? (
-          <FormTextField
-            parentJSONPointer={jsonPointer}
-            fieldName="team_id"
-            label={renderToString(
-              "SingleSignOnConfigurationScreen.widget.team-id"
-            )}
-            className={styles.textField}
-            styles={TEXT_FIELD_STYLE}
-            value={config.team_id ?? ""}
-            onChange={onTeamIDChange}
-            disabled={noneditable}
-          />
-        ) : null}
-        {visibleFields.has("account_id") ? (
-          <FormTextField
-            parentJSONPointer={jsonPointer}
-            fieldName="account_id"
-            label={renderToString(
-              "SingleSignOnConfigurationScreen.widget.account-id"
-            )}
-            className={styles.textField}
-            styles={TEXT_FIELD_STYLE}
-            value={config.account_id ?? ""}
-            onChange={onAccountIDChange}
-            disabled={noneditable}
-          />
-        ) : null}
-        {visibleFields.has("is_sandbox_account") ? (
-          <Checkbox
-            label={renderToString(
-              "SingleSignOnConfigurationScreen.widget.is-sandbox-account"
-            )}
-            className={styles.checkbox}
-            checked={config.is_sandbox_account ?? false}
-            onChange={onIsSandBoxAccountChange}
-            disabled={noneditable}
-          />
-        ) : null}
-        {visibleFields.has("wechat_redirect_uris") ? (
-          <FormTextFieldList
-            parentJSONPointer={jsonPointer}
-            fieldName="wechat_redirect_uris"
-            list={config.wechat_redirect_uris ?? []}
-            onListItemChange={onWeChatRedirectUrisChange}
-            onListItemAdd={onWeChatRedirectUrisChange}
-            onListItemDelete={onWeChatRedirectUrisChange}
-            addButtonLabelMessageID="SingleSignOnConfigurationScreen.widget.add-uri"
-            className={styles.fieldList}
-            label={
-              <LabelWithTooltip
-                labelId="SingleSignOnConfigurationScreen.widget.wechat-redirect-uris-label"
-                tooltipHeaderId="SingleSignOnConfigurationScreen.widget.wechat-redirect-uris-label"
-                tooltipMessageId="SingleSignOnConfigurationScreen.widget.wechat-redirect-uris-tooltip-message"
-                directionalHint={DirectionalHint.bottomLeftEdge}
+        {credentialStatus !== "demo" ? (
+          <>
+            {visibleFields.has("alias") ? (
+              <FormTextField
+                parentJSONPointer={jsonPointer}
+                fieldName="alias"
+                label={renderToString(
+                  "SingleSignOnConfigurationScreen.widget.alias"
+                )}
+                className={styles.textField}
+                styles={TEXT_FIELD_STYLE}
+                value={config.alias}
+                onChange={onAliasChange}
+                disabled={noneditable}
               />
-            }
-            disabled={noneditable}
-          />
-        ) : null}
-        {visibleFields.has("email_required") ? (
-          <Checkbox
-            label={renderToString(
-              "SingleSignOnConfigurationScreen.widget.email-required"
-            )}
-            className={styles.checkbox}
-            checked={config.claims?.email?.required ?? true}
-            onChange={onEmailRequiredChange}
-            disabled={noneditable}
-          />
-        ) : null}
-        {visibleFields.has("create_disabled") ? (
-          <Checkbox
-            label={renderToString(
-              "SingleSignOnConfigurationScreen.widget.create-disabled"
-            )}
-            className={styles.checkbox}
-            checked={config.create_disabled ?? false}
-            onChange={onCreateDisabledChange}
-            disabled={noneditable}
-          />
-        ) : null}
-        {visibleFields.has("delete_disabled") ? (
-          <Checkbox
-            label={renderToString(
-              "SingleSignOnConfigurationScreen.widget.delete-disabled"
-            )}
-            className={styles.checkbox}
-            checked={config.delete_disabled ?? false}
-            onChange={onDeleteDisabledChange}
-            disabled={noneditable}
-          />
+            ) : null}
+            {visibleFields.has("client_id") ? (
+              <FormTextField
+                parentJSONPointer={jsonPointer}
+                fieldName="client_id"
+                label={renderToString(
+                  "SingleSignOnConfigurationScreen.widget.client-id"
+                )}
+                className={styles.textField}
+                styles={TEXT_FIELD_STYLE}
+                value={config.client_id ?? ""}
+                onChange={onClientIDChange}
+                disabled={noneditable}
+              />
+            ) : null}
+            {visibleFields.has("client_secret") ? (
+              <FormTextField
+                parentJSONPointer={clientSecretParentJsonPointer}
+                fieldName="client_secret"
+                label={renderToString(
+                  "SingleSignOnConfigurationScreen.widget.client-secret"
+                )}
+                className={styles.textField}
+                styles={
+                  isSecretFieldTextArea
+                    ? MULTILINE_TEXT_FIELD_STYLE
+                    : TEXT_FIELD_STYLE
+                }
+                multiline={isSecretFieldTextArea}
+                value={
+                  noneditable || secret.newClientSecret == null
+                    ? MASKED_SECRET
+                    : secret.newClientSecret
+                }
+                onChange={onClientSecretChange}
+                disabled={noneditable || secret.newClientSecret == null}
+              />
+            ) : null}
+            {visibleFields.has("tenant") ? (
+              <FormTextField
+                parentJSONPointer={jsonPointer}
+                fieldName="tenant"
+                label={renderToString(
+                  "SingleSignOnConfigurationScreen.widget.tenant"
+                )}
+                className={styles.textField}
+                styles={TEXT_FIELD_STYLE}
+                value={config.tenant ?? ""}
+                onChange={onTenantChange}
+                disabled={noneditable}
+              />
+            ) : null}
+            {visibleFields.has("policy") ? (
+              <FormTextField
+                parentJSONPointer={jsonPointer}
+                fieldName="policy"
+                label={renderToString(
+                  "SingleSignOnConfigurationScreen.widget.policy"
+                )}
+                className={styles.textField}
+                styles={TEXT_FIELD_STYLE}
+                value={config.policy ?? ""}
+                placeholder={renderToString(
+                  "SingleSignOnConfigurationScreen.widget.policy.placeholder"
+                )}
+                onChange={onPolicyChange}
+                disabled={noneditable}
+              />
+            ) : null}
+            {visibleFields.has("domain_hint") ? (
+              <FormTextField
+                parentJSONPointer={jsonPointer}
+                fieldName="domain_hint"
+                label={renderToString(
+                  "SingleSignOnConfigurationScreen.widget.domain-hint"
+                )}
+                placeholder={renderToString(
+                  "SingleSignOnConfigurationScreen.widget.domain-hint.placeholder"
+                )}
+                // @ts-expect-error
+                description={
+                  <FormattedMessage id="SingleSignOnConfigurationScreen.widget.domain-hint.description" />
+                }
+                className={styles.textField}
+                styles={TEXT_FIELD_STYLE}
+                value={config.domain_hint ?? ""}
+                onChange={onDomainHintChange}
+                disabled={noneditable}
+              />
+            ) : null}
+            {visibleFields.has("discovery_document_endpoint") ? (
+              <FormTextField
+                parentJSONPointer={jsonPointer}
+                fieldName="discovery_document_endpoint"
+                label={renderToString(
+                  "SingleSignOnConfigurationScreen.widget.discovery-document-endpoint"
+                )}
+                className={styles.textField}
+                styles={TEXT_FIELD_STYLE}
+                value={config.discovery_document_endpoint ?? ""}
+                onChange={onDiscoveryDocumentEndpointChange}
+                placeholder="http://example.com/.well-known/openid-configuration"
+                disabled={noneditable}
+              />
+            ) : null}
+            {visibleFields.has("key_id") ? (
+              <FormTextField
+                parentJSONPointer={jsonPointer}
+                fieldName="key_id"
+                label={renderToString(
+                  "SingleSignOnConfigurationScreen.widget.key-id"
+                )}
+                className={styles.textField}
+                styles={TEXT_FIELD_STYLE}
+                value={config.key_id ?? ""}
+                onChange={onKeyIDChange}
+                disabled={noneditable}
+              />
+            ) : null}
+            {visibleFields.has("team_id") ? (
+              <FormTextField
+                parentJSONPointer={jsonPointer}
+                fieldName="team_id"
+                label={renderToString(
+                  "SingleSignOnConfigurationScreen.widget.team-id"
+                )}
+                className={styles.textField}
+                styles={TEXT_FIELD_STYLE}
+                value={config.team_id ?? ""}
+                onChange={onTeamIDChange}
+                disabled={noneditable}
+              />
+            ) : null}
+            {visibleFields.has("account_id") ? (
+              <FormTextField
+                parentJSONPointer={jsonPointer}
+                fieldName="account_id"
+                label={renderToString(
+                  "SingleSignOnConfigurationScreen.widget.account-id"
+                )}
+                className={styles.textField}
+                styles={TEXT_FIELD_STYLE}
+                value={config.account_id ?? ""}
+                onChange={onAccountIDChange}
+                disabled={noneditable}
+              />
+            ) : null}
+            {visibleFields.has("is_sandbox_account") ? (
+              <Checkbox
+                label={renderToString(
+                  "SingleSignOnConfigurationScreen.widget.is-sandbox-account"
+                )}
+                className={styles.checkbox}
+                checked={config.is_sandbox_account ?? false}
+                onChange={onIsSandBoxAccountChange}
+                disabled={noneditable}
+              />
+            ) : null}
+            {visibleFields.has("wechat_redirect_uris") ? (
+              <FormTextFieldList
+                parentJSONPointer={jsonPointer}
+                fieldName="wechat_redirect_uris"
+                list={config.wechat_redirect_uris ?? []}
+                onListItemChange={onWeChatRedirectUrisChange}
+                onListItemAdd={onWeChatRedirectUrisChange}
+                onListItemDelete={onWeChatRedirectUrisChange}
+                addButtonLabelMessageID="SingleSignOnConfigurationScreen.widget.add-uri"
+                className={styles.fieldList}
+                label={
+                  <LabelWithTooltip
+                    labelId="SingleSignOnConfigurationScreen.widget.wechat-redirect-uris-label"
+                    tooltipHeaderId="SingleSignOnConfigurationScreen.widget.wechat-redirect-uris-label"
+                    tooltipMessageId="SingleSignOnConfigurationScreen.widget.wechat-redirect-uris-tooltip-message"
+                    directionalHint={DirectionalHint.bottomLeftEdge}
+                  />
+                }
+                disabled={noneditable}
+              />
+            ) : null}
+            {visibleFields.has("email_required") ? (
+              <Checkbox
+                label={renderToString(
+                  "SingleSignOnConfigurationScreen.widget.email-required"
+                )}
+                className={styles.checkbox}
+                checked={config.claims?.email?.required ?? true}
+                onChange={onEmailRequiredChange}
+                disabled={noneditable}
+              />
+            ) : null}
+            {visibleFields.has("create_disabled") ? (
+              <Checkbox
+                label={renderToString(
+                  "SingleSignOnConfigurationScreen.widget.create-disabled"
+                )}
+                className={styles.checkbox}
+                checked={config.create_disabled ?? false}
+                onChange={onCreateDisabledChange}
+                disabled={noneditable}
+              />
+            ) : null}
+            {visibleFields.has("delete_disabled") ? (
+              <Checkbox
+                label={renderToString(
+                  "SingleSignOnConfigurationScreen.widget.delete-disabled"
+                )}
+                className={styles.checkbox}
+                checked={config.delete_disabled ?? false}
+                onChange={onDeleteDisabledChange}
+                disabled={noneditable}
+              />
+            ) : null}
+          </>
         ) : null}
       </Widget>
     );
