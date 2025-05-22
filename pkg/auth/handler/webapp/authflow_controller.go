@@ -120,7 +120,8 @@ type AuthflowOAuthCallbackResponse struct {
 }
 
 type AuthflowEndpoints interface {
-	SSOCallbackURL(alias string, isDemo bool) *url.URL
+	SSOCallbackURL(alias string) *url.URL
+	SharedSSOCallbackURL() *url.URL
 }
 
 type AuthflowController struct {
@@ -1202,8 +1203,12 @@ func (c *AuthflowController) GetAccountLinkingSSOCallbackURL(alias string, data 
 		return "", fmt.Errorf("unknown alias %s", alias)
 	}
 
-	isDemo := idenOption.ProviderStatus == config.OAuthProviderStatusUsingDemoCredentials
-	callbackURL := c.Endpoints.SSOCallbackURL(alias, isDemo).String()
+	var callbackURL string
+	if idenOption.ProviderStatus == config.OAuthProviderStatusUsingDemoCredentials {
+		callbackURL = c.Endpoints.SharedSSOCallbackURL().String()
+	} else {
+		callbackURL = c.Endpoints.SSOCallbackURL(alias).String()
+	}
 	return callbackURL, nil
 }
 
@@ -1228,9 +1233,12 @@ func (c *AuthflowController) UseOAuthIdentification(
 	if idenOption == nil {
 		return nil, fmt.Errorf("unknown alias %s", alias)
 	}
-
-	isDemo := idenOption.ProviderStatus == config.OAuthProviderStatusUsingDemoCredentials
-	callbackURL := c.Endpoints.SSOCallbackURL(alias, isDemo).String()
+	var callbackURL string
+	if idenOption.ProviderStatus == config.OAuthProviderStatusUsingDemoCredentials {
+		callbackURL = c.Endpoints.SharedSSOCallbackURL().String()
+	} else {
+		callbackURL = c.Endpoints.SSOCallbackURL(alias).String()
+	}
 
 	input := map[string]interface{}{
 		"identification": "oauth",

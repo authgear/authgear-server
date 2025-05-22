@@ -76,7 +76,7 @@ func (e *EdgeUseIdentityOAuthProvider) Instantiate(goCtx context.Context, ctx *i
 
 	nonce := crypto.SHA256String(nonceSource)
 
-	redirectURIForOAuthProvider := ctx.OAuthRedirectURIBuilder.SSOCallbackURL(alias, false).String()
+	redirectURIForOAuthProvider := ctx.OAuthRedirectURIBuilder.SSOCallbackURL(alias).String()
 	// Special case: wechat needs to use a special callback endpoint.
 	if providerConfig.Type() == wechat.Type {
 		redirectURIForOAuthProvider = ctx.OAuthRedirectURIBuilder.WeChatCallbackEndpointURL().String()
