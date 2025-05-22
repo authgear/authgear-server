@@ -87,6 +87,14 @@ func (h *preparedStatementsHandle) Close() error {
 
 func (h *preparedStatementsHandle) WithTx(ctx_original context.Context, do func(ctx context.Context) error) (err error) {
 	ctx_hooks := contextWithHooks(ctx_original, &hooksContextValue{})
+	shouldRunDidCommitHooks := false
+	defer func() {
+		if shouldRunDidCommitHooks {
+			for _, hook := range mustContextGetHooks(ctx_hooks).Hooks {
+				hook.DidCommitTx(ctx_hooks)
+			}
+		}
+	}()
 
 	tx, err := beginTx(ctx_hooks, h.logger, h.conn)
 	if err != nil {
@@ -96,16 +104,6 @@ func (h *preparedStatementsHandle) WithTx(ctx_original context.Context, do func(
 	ctx_hooks_tx := contextWithTxLike(ctx_hooks, &txLikeContextValue{
 		TxLike: tx,
 	})
-
-	shouldRunDidCommitHooks := false
-
-	defer func() {
-		if shouldRunDidCommitHooks {
-			for _, hook := range mustContextGetHooks(ctx_hooks_tx).Hooks {
-				hook.DidCommitTx(ctx_hooks_tx)
-			}
-		}
-	}()
 
 	defer func() {
 		if r := recover(); r != nil {

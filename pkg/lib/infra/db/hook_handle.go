@@ -111,6 +111,14 @@ func (h *HookHandle) UseHook(ctx context.Context, hook TransactionHook) {
 //	})
 func (h *HookHandle) WithTx(ctx_original context.Context, do func(ctx context.Context) error) (err error) {
 	ctx_hooks := contextWithHooks(ctx_original, &hooksContextValue{})
+	shouldRunDidCommitHooks := false
+	defer func() {
+		if shouldRunDidCommitHooks {
+			for _, hook := range mustContextGetHooks(ctx_hooks).Hooks {
+				hook.DidCommitTx(ctx_hooks)
+			}
+		}
+	}()
 
 	id := uuid.New()
 	logger := h.Logger.WithField("debug_id", id)
@@ -133,16 +141,6 @@ func (h *HookHandle) WithTx(ctx_original context.Context, do func(ctx context.Co
 	ctx_hooks_tx := contextWithTxLike(ctx_hooks, &txLikeContextValue{
 		TxLike: tx,
 	})
-
-	shouldRunDidCommitHooks := false
-
-	defer func() {
-		if shouldRunDidCommitHooks {
-			for _, hook := range mustContextGetHooks(ctx_hooks_tx).Hooks {
-				hook.DidCommitTx(ctx_hooks_tx)
-			}
-		}
-	}()
 
 	defer func() {
 		if r := recover(); r != nil {
@@ -165,6 +163,14 @@ func (h *HookHandle) WithTx(ctx_original context.Context, do func(ctx context.Co
 // ReadOnly is like WithTx, except that it always rolls back.
 func (h *HookHandle) ReadOnly(ctx_original context.Context, do func(ctx context.Context) error) (err error) {
 	ctx_hooks := contextWithHooks(ctx_original, &hooksContextValue{})
+	shouldRunDidCommitHooks := false
+	defer func() {
+		if shouldRunDidCommitHooks {
+			for _, hook := range mustContextGetHooks(ctx_hooks).Hooks {
+				hook.DidCommitTx(ctx_hooks)
+			}
+		}
+	}()
 
 	id := uuid.New()
 	logger := h.Logger.WithField("debug_id", id)
@@ -187,16 +193,6 @@ func (h *HookHandle) ReadOnly(ctx_original context.Context, do func(ctx context.
 	ctx_hooks_tx := contextWithTxLike(ctx_hooks, &txLikeContextValue{
 		TxLike: tx,
 	})
-
-	shouldRunDidCommitHooks := false
-
-	defer func() {
-		if shouldRunDidCommitHooks {
-			for _, hook := range mustContextGetHooks(ctx_hooks_tx).Hooks {
-				hook.DidCommitTx(ctx_hooks_tx)
-			}
-		}
-	}()
 
 	defer func() {
 		if r := recover(); r != nil {
