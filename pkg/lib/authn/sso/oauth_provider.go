@@ -59,7 +59,7 @@ func (p *OAuthProviderFactory) getActiveOrDemoProvider(alias string) (provider o
 			ProviderConfig: demoItem.ProviderConfig,
 			ClientSecret:   demoItem.ClientSecret,
 			HTTPClient:     p.HTTPClient.Client,
-			SimpleStore:    p.SimpleStoreRedisFactory.GetStoreByProvider(providerConfig.Type(), alias),
+			SimpleStore:    p.SimpleStoreRedisFactory.GetStoreByProvider(demoItem.ProviderConfig.Type(), alias),
 		}
 
 		provider = demoItem.ProviderConfig.MustGetProvider()
