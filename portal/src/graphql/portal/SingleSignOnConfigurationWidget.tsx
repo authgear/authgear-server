@@ -276,10 +276,23 @@ const OAuthClientIcon: React.VFC<OAuthClientIconProps> =
 
 function ProviderStatus({
   providerConfig,
+  providersWithDemoCredentials,
 }: {
   providerConfig: OAuthSSOProviderConfig;
+  providersWithDemoCredentials: Set<string>;
 }) {
   if (providerConfig.missing_credential_allowed) {
+    if (providersWithDemoCredentials.has(providerConfig.type)) {
+      return (
+        <Badge
+          size="1"
+          variant="warning"
+          text={
+            <FormattedMessage id="SingleSignOnConfigurationScreen.providerStatus.demo" />
+          }
+        />
+      );
+    }
     return (
       <Badge
         size="1"
@@ -290,7 +303,6 @@ function ProviderStatus({
       />
     );
   }
-  // TODO(tung): Handle demo status
   return (
     <Badge
       size="1"
@@ -885,14 +897,21 @@ interface OAuthClientRowProps {
   className?: string;
   providerConfig: OAuthSSOProviderConfig;
   showAlias: boolean;
+  providersWithDemoCredentials: Set<string>;
   onEditClick?: (provider: OAuthSSOProviderConfig) => void;
   onDeleteClick?: (provider: OAuthSSOProviderConfig) => void;
 }
 
 export const OAuthClientRow: React.VFC<OAuthClientRowProps> =
   function OAuthClientRow(props) {
-    const { className, providerConfig, showAlias, onEditClick, onDeleteClick } =
-      props;
+    const {
+      className,
+      providerConfig,
+      showAlias,
+      providersWithDemoCredentials,
+      onEditClick,
+      onDeleteClick,
+    } = props;
     const { renderToString } = useContext(Context);
     const { themes } = useSystemConfig();
 
@@ -943,7 +962,10 @@ export const OAuthClientRow: React.VFC<OAuthClientRowProps> =
           </div>
         </div>
         <div className={styles.rowColumn}>
-          <ProviderStatus providerConfig={providerConfig} />
+          <ProviderStatus
+            providerConfig={providerConfig}
+            providersWithDemoCredentials={providersWithDemoCredentials}
+          />
         </div>
         <div className={styles.rowActions}>
           <ActionButton

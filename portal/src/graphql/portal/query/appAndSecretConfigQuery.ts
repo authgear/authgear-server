@@ -7,7 +7,7 @@ import {
   AppAndSecretConfigQueryDocument,
 } from "./appAndSecretConfigQuery.generated";
 import { PortalAPIAppConfig, PortalAPISecretConfig } from "../../../types";
-import { Collaborator } from "../globalTypes.generated";
+import { Collaborator, EffectiveSecretConfig } from "../globalTypes.generated";
 
 export interface AppAndSecretConfigQueryResult
   extends Pick<
@@ -24,6 +24,7 @@ export interface AppAndSecretConfigQueryResult
   secretConfigChecksum?: string;
   viewer: Collaborator | null;
   samlIdpEntityID?: string;
+  effectiveSecretConfig?: EffectiveSecretConfig;
 }
 export const useAppAndSecretConfigQuery = (
   appID: string,
@@ -53,6 +54,7 @@ export const useAppAndSecretConfigQuery = (
       secretConfigChecksum: appConfigNode?.secretConfigChecksum ?? undefined,
       viewer: appConfigNode?.viewer ?? null,
       samlIdpEntityID: appConfigNode?.samlIdpEntityID ?? undefined,
+      effectiveSecretConfig: appConfigNode?.effectiveSecretConfig ?? undefined,
     };
   }, [data]);
 

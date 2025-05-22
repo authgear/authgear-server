@@ -26,7 +26,6 @@ import ShowOnlyIfSIWEIsDisabled from "./ShowOnlyIfSIWEIsDisabled";
 import FormContainer from "../../FormContainer";
 import {
   createOAuthSSOProviderItemKey,
-  OAuthSSOFeatureConfig,
   OAuthSSOProviderConfig,
   OAuthSSOProviderItemKey,
 } from "../../types";
@@ -34,7 +33,7 @@ import styles from "./SingleSignOnConfigurationScreen.module.css";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import { useLocationEffect } from "../../hook/useLocationEffect";
 import { useAppSecretVisitToken } from "./mutations/generateAppSecretVisitTokenMutation";
-import { AppSecretKey } from "./globalTypes.generated";
+import { AppSecretKey, EffectiveSecretConfig } from "./globalTypes.generated";
 import PrimaryButton from "../../PrimaryButton";
 import cn from "classnames";
 import ScreenContentHeader from "../../ScreenContentHeader";
@@ -44,6 +43,7 @@ import {
   OAuthProviderFormModel,
   useOAuthProviderForm,
 } from "../../hook/useOAuthProviderForm";
+import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";
 
 interface LocationState {
   isRevealSecrets: boolean;
@@ -61,12 +61,17 @@ interface SingleSignOnConfigurationContentProps {
   form: OAuthProviderFormModel;
   oauthClientsMaximum: number;
   onDeleteProvider: (k: OAuthSSOProviderItemKey, alias: string) => void;
-  oauthSSOFeatureConfig?: OAuthSSOFeatureConfig;
+  effectiveSecretConfig: EffectiveSecretConfig | undefined;
 }
 
 const SingleSignOnConfigurationContent: React.VFC<SingleSignOnConfigurationContentProps> =
   function SingleSignOnConfigurationContent(props) {
-    const { oauthClientsMaximum, onDeleteProvider, form } = props;
+    const {
+      oauthClientsMaximum,
+      onDeleteProvider,
+      form,
+      effectiveSecretConfig,
+    } = props;
     const { renderToString } = useContext(IntlContext);
 
     const limitReached = form.state.providers.length >= oauthClientsMaximum;
@@ -114,6 +119,12 @@ const SingleSignOnConfigurationContent: React.VFC<SingleSignOnConfigurationConte
       }
       return keysWithDuplication;
     }, [form.state.providers]);
+
+    const providersWithDemoCredentials = useMemo(() => {
+      return new Set(
+        effectiveSecretConfig?.oauthSSOProviderDemoSecrets?.map((it) => it.type)
+      );
+    }, [effectiveSecretConfig?.oauthSSOProviderDemoSecrets]);
 
     return (
       <ScreenContent
@@ -172,6 +183,7 @@ const SingleSignOnConfigurationContent: React.VFC<SingleSignOnConfigurationConte
                       )
                     )}
                     providerConfig={provider.config}
+                    providersWithDemoCredentials={providersWithDemoCredentials}
                     onEditClick={onEditConnection}
                     onDeleteClick={onDeleteConnection}
                   />
@@ -205,6 +217,9 @@ const SingleSignOnConfigurationScreen1: React.VFC<{
   const { themes } = useSystemConfig();
   const form = useOAuthProviderForm(appID, secretVisitToken);
   const featureConfig = useAppFeatureConfigQuery(appID);
+
+  const { loading: isEffectiveSecretLoading, effectiveSecretConfig } =
+    useAppAndSecretConfigQuery(appID, secretVisitToken);
 
   const oauthClientsMaximum = useMemo(
     () =>
@@ -258,7 +273,7 @@ const SingleSignOnConfigurationScreen1: React.VFC<{
     };
   }, [renderToString]);
 
-  if (form.isLoading || featureConfig.loading) {
+  if (form.isLoading || featureConfig.loading || isEffectiveSecretLoading) {
     return <ShowLoading />;
   }
 
@@ -280,6 +295,7 @@ const SingleSignOnConfigurationScreen1: React.VFC<{
         form={form}
         oauthClientsMaximum={oauthClientsMaximum}
         onDeleteProvider={onDisplayDeleteDialog}
+        effectiveSecretConfig={effectiveSecretConfig}
       />
       <Dialog
         hidden={!isDeleteDialogVisible}
