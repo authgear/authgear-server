@@ -132,6 +132,7 @@ type AuthflowV2NavigatorOAuthStateStore interface {
 }
 
 type AuthflowV2Navigator struct {
+	AppID           config.AppID
 	Endpoints       AuthflowV2NavigatorEndpointsProvider
 	OAuthStateStore AuthflowV2NavigatorOAuthStateStore
 }
@@ -355,10 +356,12 @@ func (n *AuthflowV2Navigator) navigateStepIdentify(ctx context.Context, s *webap
 			errorRedirectURI := url.URL{Path: r.URL.Path, RawQuery: r.URL.Query().Encode()}
 
 			state := &webappoauth.WebappOAuthState{
+				AppID:            string(n.AppID),
 				WebSessionID:     webSessionID,
 				UIImplementation: config.UIImplementationAuthflowV2,
 				XStep:            s.Screen.StateToken.XStep,
 				ErrorRedirectURI: errorRedirectURI.String(),
+				ProviderAlias:    data.Alias,
 			}
 			stateToken, err := n.OAuthStateStore.GenerateState(ctx, state)
 			if err != nil {

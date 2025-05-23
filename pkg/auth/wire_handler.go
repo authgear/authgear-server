@@ -14,6 +14,7 @@ import (
 	handlersaml "github.com/authgear/authgear-server/pkg/auth/handler/saml"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	handlerwebappauthflowv2 "github.com/authgear/authgear-server/pkg/auth/handler/webapp/authflowv2"
+	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/healthz"
 	"github.com/authgear/authgear-server/pkg/lib/web"
@@ -41,6 +42,14 @@ func newPreviewWidgetHandler(p *deps.RootProvider, w http.ResponseWriter, r *htt
 		NoProjectDependencySet,
 		wire.Struct(new(handlerwebappauthflowv2.PreviewWidgetHandler), "*"),
 		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.PreviewWidgetHandler)),
+	))
+}
+
+func newNoProjectSSOCallbackHandler(configSource *configsource.ConfigSource, p *deps.RootProvider, w http.ResponseWriter, r *http.Request, ctx context.Context) http.Handler {
+	panic(wire.Build(
+		NoProjectDependencySet,
+		wire.Struct(new(handlerwebapp.NoProjectSSOCallbackHandler), "*"),
+		wire.Bind(new(http.Handler), new(*handlerwebapp.NoProjectSSOCallbackHandler)),
 	))
 }
 
