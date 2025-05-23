@@ -29,6 +29,7 @@ import {
   useOAuthProviderForm,
 } from "../../hook/useOAuthProviderForm";
 import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";
+import { useLoadableView } from "../../hook/useLoadableView";
 
 interface LocationState {
   isRevealSecrets: boolean;
@@ -146,9 +147,11 @@ const EditSingleSignOnConfigurationScreen1: React.VFC<{
   secretVisitToken,
 }) {
   const form = useOAuthProviderForm(appID, secretVisitToken);
-  const featureConfig = useAppFeatureConfigQuery(appID);
-  const { loading: isEffectiveSecretLoading, effectiveSecretConfig } =
-    useAppAndSecretConfigQuery(appID, secretVisitToken);
+  const featureConfigQuery = useAppFeatureConfigQuery(appID);
+  const effectiveSecretConfigQuery = useAppAndSecretConfigQuery(
+    appID,
+    secretVisitToken
+  );
 
   const isReadyToEdit = useMemo(() => {
     const isSecretPresent =
@@ -188,40 +191,27 @@ const EditSingleSignOnConfigurationScreen1: React.VFC<{
     }
   }, [isReadyToEdit, onRevealSecrets]);
 
-  if (
-    !isReadyToEdit ||
-    form.isLoading ||
-    featureConfig.loading ||
-    isEffectiveSecretLoading
-  ) {
-    return <ShowLoading />;
-  }
-
-  if (form.loadError ?? featureConfig.error) {
-    return (
-      <ShowError
-        error={form.loadError ?? featureConfig.error}
-        onRetry={() => {
-          form.reload();
-          featureConfig.refetch().finally(() => {});
-        }}
-      />
-    );
-  }
-
-  return (
-    <FormContainer form={form} afterSave={onSaveSuccess}>
-      <EditSingleSignOnConfigurationContent
-        form={form}
-        alias={alias}
-        providerItemKey={providerItemKey}
-        oauthSSOFeatureConfig={
-          featureConfig.effectiveFeatureConfig?.identity?.oauth
-        }
-        effectiveSecretConfig={effectiveSecretConfig}
-      />
-    </FormContainer>
-  );
+  return useLoadableView({
+    loadables: [form, featureConfigQuery, effectiveSecretConfigQuery] as const,
+    isLoading: !isReadyToEdit,
+    render: ([form, featureConfigQuery, effectiveSecretConfigQuery]) => {
+      return (
+        <FormContainer form={form} afterSave={onSaveSuccess}>
+          <EditSingleSignOnConfigurationContent
+            form={form}
+            alias={alias}
+            providerItemKey={providerItemKey}
+            oauthSSOFeatureConfig={
+              featureConfigQuery.effectiveFeatureConfig?.identity?.oauth
+            }
+            effectiveSecretConfig={
+              effectiveSecretConfigQuery.effectiveSecretConfig
+            }
+          />
+        </FormContainer>
+      );
+    },
+  });
 };
 
 const SECRETS = [AppSecretKey.OauthSsoProviderClientSecrets];

@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { QueryResult, useQuery } from "@apollo/client";
 import { usePortalClient } from "../../portal/apollo";
 import {
@@ -7,15 +7,17 @@ import {
   AppFeatureConfigFragment,
   AppFeatureConfigQueryDocument,
 } from "./appFeatureConfigQuery.generated";
+import { Loadable } from "../../../hook/useLoadableView";
 
 interface AppFeatureConfigQueryResult
   extends Pick<
-    QueryResult<
-      AppFeatureConfigQueryQuery,
-      AppFeatureConfigQueryQueryVariables
+      QueryResult<
+        AppFeatureConfigQueryQuery,
+        AppFeatureConfigQueryQueryVariables
+      >,
+      "loading" | "error" | "refetch"
     >,
-    "loading" | "error" | "refetch"
-  > {
+    Loadable {
   effectiveFeatureConfig: AppFeatureConfigFragment["effectiveFeatureConfig"];
   planName: AppFeatureConfigFragment["planName"] | null;
 }
@@ -41,5 +43,15 @@ export const useAppFeatureConfigQuery = (
     };
   }, [data]);
 
-  return { ...queryData, loading, error, refetch };
+  return {
+    ...queryData,
+    loading,
+    error,
+    refetch,
+    isLoading: loading,
+    loadError: error,
+    reload: useCallback(() => {
+      refetch();
+    }, [refetch]),
+  };
 };
