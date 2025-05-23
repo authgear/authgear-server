@@ -747,11 +747,7 @@ func getOAuthData(ctx context.Context, deps *authflow.Dependencies, opts GetOAut
 		return
 	}
 
-	status := OAuthProviderStatusActive
-	if config.OAuthSSOProviderConfig(providerConfig).IsMissingCredentialAllowed() {
-		status = OAuthProviderStatusMissingCredentials
-		// TODO(tung): Add demo status
-	}
+	status := config.OAuthSSOProviderConfig(providerConfig).ComputeProviderStatus(deps.SSOOAuthDemoCredentials)
 
 	data = NewOAuthData(OAuthData{
 		Alias:                 opts.Alias,

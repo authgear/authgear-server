@@ -21,6 +21,7 @@ type StandardAttributesNormalizer interface {
 type OAuthProviderFactory struct {
 	IdentityConfig               *config.IdentityConfig
 	Credentials                  *config.OAuthSSOProviderCredentials
+	SSOOAuthDemoCredentials      *config.SSOOAuthDemoCredentials
 	Clock                        clock.Clock
 	StandardAttributesNormalizer StandardAttributesNormalizer
 	HTTPClient                   OAuthHTTPClient
@@ -42,13 +43,26 @@ func (p *OAuthProviderFactory) getActiveOrDemoProvider(alias string) (provider o
 	}
 
 	if config.OAuthSSOProviderConfig(providerConfig).IsMissingCredentialAllowed() {
-		// TODO(tung): handle demo status
-
-		details := apierrors.Details{
-			"OAuthProviderAlias": alias,
-			"OAuthProviderType":  providerConfig.Type(),
+		if p.SSOOAuthDemoCredentials == nil {
+			err = newOAuthProviderMissingCredentialsError(alias, providerConfig.Type(), false)
+			return
 		}
-		err = api.OAuthProviderMissingCredentials.NewWithInfo("oauth provider is missing credentials", details)
+
+		demoItem, ok := p.SSOOAuthDemoCredentials.LookupByProviderType(providerConfig.Type())
+		if !ok {
+			err = newOAuthProviderMissingCredentialsError(alias, providerConfig.Type(), true)
+			return
+		}
+
+		deps = &oauthrelyingparty.Dependencies{
+			Clock:          p.Clock,
+			ProviderConfig: demoItem.ProviderConfig,
+			ClientSecret:   demoItem.ClientSecret,
+			HTTPClient:     p.HTTPClient.Client,
+			SimpleStore:    p.SimpleStoreRedisFactory.GetStoreByProvider(demoItem.ProviderConfig.Type(), alias),
+		}
+
+		provider = demoItem.ProviderConfig.MustGetProvider()
 		return
 	}
 
@@ -102,4 +116,12 @@ func (p *OAuthProviderFactory) GetUserProfile(ctx context.Context, alias string,
 	}
 
 	return
+}
+
+func newOAuthProviderMissingCredentialsError(alias string, providerType string, isDemo bool) error {
+	details := apierrors.Details{
+		"OAuthProviderAlias": alias,
+		"OAuthProviderType":  providerType,
+	}
+	return api.OAuthProviderMissingCredentials.NewWithInfo("oauth provider is missing credentials", details)
 }

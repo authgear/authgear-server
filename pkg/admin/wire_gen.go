@@ -1019,6 +1019,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Sender:      messagingSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
+	ssooAuthDemoCredentials := deps.ProvideSSOOAuthDemoCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	simpleStoreRedisFactory := &sso.SimpleStoreRedisFactory{
 		AppID: appID,
@@ -1027,6 +1028,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
+		SSOOAuthDemoCredentials:      ssooAuthDemoCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
