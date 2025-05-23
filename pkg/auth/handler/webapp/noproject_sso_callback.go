@@ -62,7 +62,7 @@ func (h *NoProjectSSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 		panic(fmt.Errorf("unexpected: public origin of app %s is not a valid url. %w", state.AppID, err))
 	}
 	oauthEndpoints := endpoints.NewOAuthEndpoints(publicOriginURL)
-	redirectURL := oauthEndpoints.SSOCallbackURL(state.ProviderAlias, false)
+	redirectURL := oauthEndpoints.SSOCallbackURL(state.ProviderAlias)
 	redirectURL.RawQuery = r.URL.RawQuery
 
 	// Use 307 so that method and body is kept

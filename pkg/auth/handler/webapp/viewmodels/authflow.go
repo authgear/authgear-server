@@ -8,13 +8,15 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
+	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/wechat"
 )
 
 type AuthflowViewModel struct {
-	IdentityCandidates []map[string]interface{}
+	IdentificationOptions []declarative.IdentificationOption
+	IdentityCandidates    []map[string]interface{}
 
 	LoginIDDisabled        bool
 	PhoneLoginIDEnabled    bool
@@ -56,9 +58,10 @@ type AuthflowViewModel struct {
 }
 
 type AuthflowViewModeler struct {
-	Authentication *config.AuthenticationConfig
-	LoginID        *config.LoginIDConfig
-	Identity       *config.IdentityConfig
+	Authentication          *config.AuthenticationConfig
+	LoginID                 *config.LoginIDConfig
+	Identity                *config.IdentityConfig
+	SSOOAuthDemoCredentials *config.SSOOAuthDemoCredentials
 }
 
 // nolint: gocognit
@@ -270,6 +273,7 @@ func (m *AuthflowViewModeler) NewWithAuthflow(
 				"provider_type":     string(o.ProviderType),
 				"provider_alias":    o.Alias,
 				"provider_app_type": string(o.WechatAppType),
+				"provider_status":   string(o.ProviderStatus),
 			}
 			candidates = append(candidates, candidate)
 		case config.AuthenticationFlowIdentificationLDAP:
@@ -285,7 +289,8 @@ func (m *AuthflowViewModeler) NewWithAuthflow(
 	}
 
 	return AuthflowViewModel{
-		IdentityCandidates: candidates,
+		IdentificationOptions: options,
+		IdentityCandidates:    candidates,
 
 		LoginIDDisabled:           loginIDDisabled,
 		PhoneLoginIDEnabled:       hasPhone,
@@ -464,6 +469,7 @@ func (m *AuthflowViewModeler) NewWithConfig() AuthflowViewModel {
 			"provider_type":     oauthProvider.AsProviderConfig().Type(),
 			"provider_alias":    oauthProvider.Alias(),
 			"provider_app_type": wechat.ProviderConfig(oauthProvider).AppType(),
+			"provider_status":   oauthProvider.ComputeProviderStatus(m.SSOOAuthDemoCredentials),
 		}
 		candidates = append(candidates, candidate)
 	}

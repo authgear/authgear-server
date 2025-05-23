@@ -49,18 +49,18 @@ func (e *OAuthEndpoints) urlOf(relPath string) *url.URL {
 	return u
 }
 
-func (e *OAuthEndpoints) SSOCallbackEndpointURL() *url.URL { return e.urlOf("sso/oauth2/callback") }
-func (e *OAuthEndpoints) SSOCallbackURL(alias string, isDemo bool) *url.URL {
-	if isDemo {
-		u, err := url.Parse(string(e.SharedAuthgearEndpoint))
-		if err != nil {
-			panic(fmt.Errorf("SHARED_AUTHGEAR_ENDPOINT is not a valid uri: %w", err))
-		}
-		u.Path = path.Join(u.Path, "/noproject/sso/oauth2/callback")
-		return u
-	}
-	u := e.SSOCallbackEndpointURL()
+func (e *OAuthEndpoints) ssoCallbackEndpointURL() *url.URL { return e.urlOf("sso/oauth2/callback") }
+func (e *OAuthEndpoints) SSOCallbackURL(alias string) *url.URL {
+	u := e.ssoCallbackEndpointURL()
 	u.Path = path.Join(u.Path, url.PathEscape(alias))
+	return u
+}
+func (e *OAuthEndpoints) SharedSSOCallbackURL() *url.URL {
+	u, err := url.Parse(string(e.SharedAuthgearEndpoint))
+	if err != nil {
+		panic(fmt.Errorf("SHARED_AUTHGEAR_ENDPOINT is not a valid uri: %w", err))
+	}
+	u.Path = path.Join(u.Path, "/noproject/sso/oauth2/callback")
 	return u
 }
 

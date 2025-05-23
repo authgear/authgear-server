@@ -1,0 +1,26 @@
+@layer components {
+  :root {
+    --badge__font-family: var(--typography-body-small__font-family);
+    --badge__font-size: var(--typography-body-small__font-size);
+    --badge__line-height: var(--typography-body-small__line-height);
+    --badge__letter-spacing: var(--typography-body-small__letter-spacing);
+    --badge__font-weight: var(--typography-body-small__font-weight);
+    --badge__background-color: var(--color-primary-theme-lighter);
+    --badge__color: var(--color-primary-theme-primary);
+  }
+
+  .badge {
+    @apply flex items-center;
+    @apply px-1.5 py-0.5;
+    @apply rounded-sm;
+
+    font-family: var(--badge__font-family);
+    font-size: var(--badge__font-size);
+    line-height: var(--badge__line-height);
+    letter-spacing: var(--badge__letter-spacing);
+    font-weight: var(--badge__font-weight);
+
+    background-color: var(--badge__background-color);
+    color: var(--badge__color);
+  }
+}

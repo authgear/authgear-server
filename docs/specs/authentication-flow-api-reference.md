@@ -522,7 +522,8 @@ During identification steps in signup flow, an account linking could be triggere
             "action": "login_and_link",
             "masked_display_name": "exam****@gmail.com",
             "provider_type": "github",
-            "alias": "github"
+            "alias": "github",
+            "provider_status": "active"
           }
         ]
       }
@@ -541,6 +542,8 @@ This means account linking was triggered by the previously identified identity. 
 
   - `provider_type`: Only exist if `identification` is `oauth`. It is the type of the oauth provider. Read [identification: oauth](#identification-oauth) for details.
   - `alias`: Only exist if `identification` is `oauth`. It is the alias of the oauth provider. Read [identification: oauth](#identification-oauth) for details.
+  - `provider_status`: Only exist if `identification` is `oauth`. The status of the oauth provider. Read [identification: oauth](#identification-oauth) for details.
+
 
 You should pass an input to choose an option to continue for the account linking, here is an example of the corresponding input:
 

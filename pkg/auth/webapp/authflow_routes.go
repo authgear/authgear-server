@@ -131,6 +131,11 @@ func (n *AuthflowNavigator) NavigateChangePasswordSuccessPage(s *AuthflowScreen,
 	return &Result{}
 }
 
+func (n *AuthflowNavigator) NavigateOAuthProviderDemoCredentialPage(s *AuthflowScreen, r *http.Request) (result *Result) {
+	// Not supported
+	return &Result{}
+}
+
 func (n *AuthflowNavigator) NavigateResetPasswordSuccessPage() string {
 	return AuthflowRouteResetPasswordSuccess
 }

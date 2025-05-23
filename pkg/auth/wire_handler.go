@@ -1187,6 +1187,13 @@ func newWebAppAuthflowV2OAuthProviderMissingCredentialsHandler(p *deps.RequestPr
 	))
 }
 
+func newWebAppAuthflowV2OAuthProviderDemoCredentialHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		AuthflowV2UIHandlerDependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2OAuthProviderDemoCredentialHandler)),
+	))
+}
+
 func newWebAppAuthflowFinishFlowHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		AuthflowUIHandlerDependencySet,
