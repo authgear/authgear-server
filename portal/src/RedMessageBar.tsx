@@ -62,3 +62,13 @@ export function RedMessageBar_RemindConfigureSMSProviderInSMSProviderScreen(
     </RedMessageBar>
   );
 }
+
+export function RedMessageBar_RemindConfigureSMTPInSMTPConfigurationScreen(
+  props: IMessageBarProps
+): React.ReactElement {
+  return (
+    <RedMessageBar {...props}>
+      <FormattedMessage id="RedMessageBar.remind-configure-smtp-in-smtp-configuration-screen" />
+    </RedMessageBar>
+  );
+}

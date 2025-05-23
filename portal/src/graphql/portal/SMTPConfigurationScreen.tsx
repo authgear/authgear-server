@@ -1,3 +1,4 @@
+import cn from "classnames";
 import React, { useCallback, useContext, useState, useMemo } from "react";
 import { useLocation, useParams, useNavigate } from "react-router-dom";
 import { produce } from "immer";
@@ -38,6 +39,7 @@ import DefaultButton from "../../DefaultButton";
 import { AppSecretKey } from "./globalTypes.generated";
 import { useLocationEffect } from "../../hook/useLocationEffect";
 import { useAppSecretVisitToken } from "./mutations/generateAppSecretVisitTokenMutation";
+import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
 import {
@@ -47,6 +49,7 @@ import {
 import { ErrorParseRule, ErrorParseRuleResult } from "../../error/parse";
 import { APIError, APISMTPTestFailedError } from "../../error/error";
 import { useSystemConfig } from "../../context/SystemConfigContext";
+import { RedMessageBar_RemindConfigureSMTPInSMTPConfigurationScreen } from "../../RedMessageBar";
 
 interface LocationState {
   isEdit: boolean;
@@ -70,7 +73,7 @@ const SENDGRID_HOST = "smtp.sendgrid.net";
 const SENDGRID_PORT_STRING = "587";
 const SENDGRID_USERNAME = "apikey";
 
-interface FormState {
+interface ConfigFormState {
   enabled: boolean;
   providerType: ProviderType;
   sendgridAPIKey: string;
@@ -87,10 +90,15 @@ interface FormState {
   isPasswordMasked: boolean;
 }
 
+interface FormState extends ConfigFormState {
+  isSMTPRequiredForSomeEnabledFeatures: boolean;
+  smtpConfigured: boolean;
+}
+
 function constructFormState(
   _config: PortalAPIAppConfig,
   secrets: PortalAPISecretConfig
-): FormState {
+): ConfigFormState {
   const enabled = secrets.smtpSecret != null;
 
   const isSendgrid =
@@ -164,8 +172,8 @@ function composeSender(name: string, address: string) {
 function constructConfig(
   config: PortalAPIAppConfig,
   secrets: PortalAPISecretConfig,
-  _initialState: FormState,
-  currentState: FormState,
+  _initialState: ConfigFormState,
+  currentState: ConfigFormState,
   _effectiveConfig: PortalAPIAppConfig
 ): [PortalAPIAppConfig, PortalAPISecretConfig] {
   const newSecrets = produce(secrets, (secrets) => {
@@ -212,7 +220,7 @@ function constructConfig(
 function constructSecretUpdateInstruction(
   _config: PortalAPIAppConfig,
   secrets: PortalAPISecretConfig,
-  _currentState: FormState
+  _currentState: ConfigFormState
 ): PortalAPISecretConfigUpdateInstruction | undefined {
   if (!secrets.smtpSecret) {
     return {
@@ -272,6 +280,7 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
   function SMTPConfigurationScreenContent(props) {
     const { form, sendTestEmailHandle, isCustomSMTPDisabled } = props;
     const { state, setState } = form;
+    const { isSMTPRequiredForSomeEnabledFeatures, smtpConfigured } = state;
     const { sendTestEmail, loading } = sendTestEmailHandle;
 
     const { isAuthgearOnce } = useSystemConfig();
@@ -549,7 +558,13 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
             messageID="FeatureConfig.custom-smtp.disabled"
           />
         ) : null}
-
+        {isAuthgearOnce &&
+        isSMTPRequiredForSomeEnabledFeatures &&
+        !smtpConfigured ? (
+          <div className={cn(styles.widget, "flex flex-col")}>
+            <RedMessageBar_RemindConfigureSMTPInSMTPConfigurationScreen className="self-start w-fit" />
+          </div>
+        ) : null}
         <Widget className={styles.widget} contentLayout="grid">
           <Toggle
             className={styles.columnFull}
@@ -771,7 +786,8 @@ const SMTPConfigurationScreen1: React.VFC<{
   appID: string;
   secretToken: string | null;
 }> = function SMTPConfigurationScreen1({ appID, secretToken }) {
-  const form = useAppSecretConfigForm({
+  const configQuery = useAppAndSecretConfigQuery(appID, secretToken);
+  const configForm = useAppSecretConfigForm({
     appID,
     secretVisitToken: secretToken,
     constructFormState,
@@ -782,17 +798,73 @@ const SMTPConfigurationScreen1: React.VFC<{
 
   const sendTestEmailHandle = useSendTestEmailMutation(appID);
 
-  if (form.isLoading || featureConfig.loading) {
+  const state = useMemo<FormState>(() => {
+    return {
+      ...configForm.state,
+      isSMTPRequiredForSomeEnabledFeatures:
+        // primary authentication uses email OTP.
+        configQuery.effectiveAppConfig?.authentication?.primary_authenticators?.includes(
+          "oob_otp_email"
+        ) === true ||
+        // secondary authentication uses email OTP and secondary authentication is enabled.
+        (configQuery.effectiveAppConfig?.authentication?.secondary_authenticators?.includes(
+          "oob_otp_email"
+        ) === true &&
+          (configQuery.effectiveAppConfig.authentication
+            .secondary_authentication_mode === "if_exists" ||
+            configQuery.effectiveAppConfig.authentication
+              .secondary_authentication_mode === "required")) ||
+        configQuery.effectiveAppConfig?.verification?.claims?.email?.enabled ===
+          true,
+      smtpConfigured: configQuery.secretConfig?.smtpSecret != null,
+    };
+  }, [
+    configForm.state,
+    configQuery.effectiveAppConfig?.authentication?.primary_authenticators,
+    configQuery.effectiveAppConfig?.authentication
+      ?.secondary_authentication_mode,
+    configQuery.effectiveAppConfig?.authentication?.secondary_authenticators,
+    configQuery.effectiveAppConfig?.verification?.claims?.email?.enabled,
+    configQuery.secretConfig?.smtpSecret,
+  ]);
+
+  const form: AppSecretConfigFormModel<FormState> = {
+    isLoading:
+      configQuery.loading || configForm.isLoading || featureConfig.loading,
+    isUpdating: configForm.isUpdating,
+    isDirty: configForm.isDirty,
+    loadError:
+      configQuery.error ?? (configForm.loadError || featureConfig.error),
+    updateError: configForm.updateError,
+    state,
+    setState: (fn) => {
+      const newState = fn(state);
+      configForm.setState(() => ({
+        ...newState,
+      }));
+    },
+    reload: () => {
+      configForm.reload();
+      featureConfig.refetch().finally(() => {});
+    },
+    reset: () => {
+      configForm.reset();
+    },
+    save: async (ignoreConflict: boolean = false) => {
+      await configForm.save(ignoreConflict);
+    },
+  };
+
+  if (form.isLoading) {
     return <ShowLoading />;
   }
 
-  if (form.loadError ?? featureConfig.error) {
+  if (form.loadError) {
     return (
       <ShowError
-        error={form.loadError ?? featureConfig.error}
+        error={form.loadError}
         onRetry={() => {
           form.reload();
-          featureConfig.refetch().finally(() => {});
         }}
       />
     );
