@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { QueryResult, useQuery } from "@apollo/client";
 import { usePortalClient } from "../../portal/apollo";
 import {
@@ -8,15 +8,17 @@ import {
 } from "./appAndSecretConfigQuery.generated";
 import { PortalAPIAppConfig, PortalAPISecretConfig } from "../../../types";
 import { Collaborator, EffectiveSecretConfig } from "../globalTypes.generated";
+import { Loadable } from "../../../hook/useLoadableView";
 
 export interface AppAndSecretConfigQueryResult
   extends Pick<
-    QueryResult<
-      AppAndSecretConfigQueryQuery,
-      AppAndSecretConfigQueryQueryVariables
+      QueryResult<
+        AppAndSecretConfigQueryQuery,
+        AppAndSecretConfigQueryQueryVariables
+      >,
+      "loading" | "error" | "refetch"
     >,
-    "loading" | "error" | "refetch"
-  > {
+    Loadable {
   rawAppConfig: PortalAPIAppConfig | null;
   rawAppConfigChecksum?: string;
   effectiveAppConfig: PortalAPIAppConfig | null;
@@ -58,5 +60,15 @@ export const useAppAndSecretConfigQuery = (
     };
   }, [data]);
 
-  return { ...queryData, loading, error, refetch };
+  return {
+    ...queryData,
+    loading,
+    error,
+    refetch,
+    isLoading: loading,
+    loadError: error,
+    reload: useCallback(() => {
+      refetch();
+    }, [refetch]),
+  };
 };

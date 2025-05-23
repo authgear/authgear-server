@@ -44,6 +44,7 @@ import {
   useOAuthProviderForm,
 } from "../../hook/useOAuthProviderForm";
 import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";
+import { useLoadableView } from "../../hook/useLoadableView";
 
 interface LocationState {
   isRevealSecrets: boolean;
@@ -216,16 +217,21 @@ const SingleSignOnConfigurationScreen1: React.VFC<{
   const { renderToString } = useContext(IntlContext);
   const { themes } = useSystemConfig();
   const form = useOAuthProviderForm(appID, secretVisitToken);
-  const featureConfig = useAppFeatureConfigQuery(appID);
+  const featureConfigQuery = useAppFeatureConfigQuery(appID);
 
-  const { loading: isEffectiveSecretLoading, effectiveSecretConfig } =
-    useAppAndSecretConfigQuery(appID, secretVisitToken);
+  const effectiveSecretConfigQuery = useAppAndSecretConfigQuery(
+    appID,
+    secretVisitToken
+  );
 
   const oauthClientsMaximum = useMemo(
     () =>
-      featureConfig.effectiveFeatureConfig?.identity?.oauth
+      featureConfigQuery.effectiveFeatureConfig?.identity?.oauth
         ?.maximum_providers ?? 99,
-    [featureConfig.effectiveFeatureConfig?.identity?.oauth?.maximum_providers]
+    [
+      featureConfigQuery.effectiveFeatureConfig?.identity?.oauth
+        ?.maximum_providers,
+    ]
   );
 
   const [isDeleteDialogVisible, setIsDeleteDialogVisible] = useState(false);
@@ -273,60 +279,51 @@ const SingleSignOnConfigurationScreen1: React.VFC<{
     };
   }, [renderToString]);
 
-  if (form.isLoading || featureConfig.loading || isEffectiveSecretLoading) {
-    return <ShowLoading />;
-  }
-
-  if (form.loadError ?? featureConfig.error) {
-    return (
-      <ShowError
-        error={form.loadError ?? featureConfig.error}
-        onRetry={() => {
-          form.reload();
-          featureConfig.refetch().finally(() => {});
-        }}
-      />
-    );
-  }
-
-  return (
-    <FormContainer form={form} hideFooterComponent={true}>
-      <SingleSignOnConfigurationContent
-        form={form}
-        oauthClientsMaximum={oauthClientsMaximum}
-        onDeleteProvider={onDisplayDeleteDialog}
-        effectiveSecretConfig={effectiveSecretConfig}
-      />
-      <Dialog
-        hidden={!isDeleteDialogVisible}
-        dialogContentProps={deleteDialogContentProps}
-        modalProps={{ isBlocking: !form.isUpdating }}
-        onDismiss={onDismissDeleteDialog}
-      >
-        <DialogFooter>
-          <PrimaryButton
-            text={
-              <div className={styles.deleteButton}>
-                {form.isUpdating ? (
-                  <Spinner size={SpinnerSize.xSmall} ariaLive="assertive" />
-                ) : null}
-                <span>
-                  <FormattedMessage id="SingleSignOnConfigurationScreen.delete-confirm-dialog.delete" />
-                </span>
-              </div>
+  return useLoadableView({
+    loadables: [form, featureConfigQuery, effectiveSecretConfigQuery] as const,
+    render: ([form, _, effectiveSecretConfigQuery]) => {
+      return (
+        <FormContainer form={form} hideFooterComponent={true}>
+          <SingleSignOnConfigurationContent
+            form={form}
+            oauthClientsMaximum={oauthClientsMaximum}
+            onDeleteProvider={onDisplayDeleteDialog}
+            effectiveSecretConfig={
+              effectiveSecretConfigQuery.effectiveSecretConfig
             }
-            theme={themes.destructive}
-            disabled={form.isUpdating}
-            onClick={deleteConnection}
           />
-          <DefaultButton
-            onClick={onDismissDeleteDialog}
-            text={<FormattedMessage id="cancel" />}
-          />
-        </DialogFooter>
-      </Dialog>
-    </FormContainer>
-  );
+          <Dialog
+            hidden={!isDeleteDialogVisible}
+            dialogContentProps={deleteDialogContentProps}
+            modalProps={{ isBlocking: !form.isUpdating }}
+            onDismiss={onDismissDeleteDialog}
+          >
+            <DialogFooter>
+              <PrimaryButton
+                text={
+                  <div className={styles.deleteButton}>
+                    {form.isUpdating ? (
+                      <Spinner size={SpinnerSize.xSmall} ariaLive="assertive" />
+                    ) : null}
+                    <span>
+                      <FormattedMessage id="SingleSignOnConfigurationScreen.delete-confirm-dialog.delete" />
+                    </span>
+                  </div>
+                }
+                theme={themes.destructive}
+                disabled={form.isUpdating}
+                onClick={deleteConnection}
+              />
+              <DefaultButton
+                onClick={onDismissDeleteDialog}
+                text={<FormattedMessage id="cancel" />}
+              />
+            </DialogFooter>
+          </Dialog>
+        </FormContainer>
+      );
+    },
+  });
 };
 
 const SECRETS = [AppSecretKey.OauthSsoProviderClientSecrets];

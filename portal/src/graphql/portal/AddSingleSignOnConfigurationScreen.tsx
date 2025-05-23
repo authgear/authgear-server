@@ -28,8 +28,8 @@ import {
 import { useNavigate, useParams } from "react-router-dom";
 import FormContainer from "../../FormContainer";
 import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";
-import ShowLoading from "../../ShowLoading";
 import { EffectiveSecretConfig } from "./globalTypes.generated";
+import { useLoadableView } from "../../hook/useLoadableView";
 
 interface OAuthClientMenuProps {
   form: OAuthProviderFormModel;
@@ -117,8 +117,7 @@ const AddSingleSignOnConfigurationContent: React.VFC =
     const navigate = useNavigate();
     const { appID } = useParams() as { appID: string };
 
-    const { loading: isEffectiveSecretLoading, effectiveSecretConfig } =
-      useAppAndSecretConfigQuery(appID, null);
+    const effectiveSecretConfigQuery = useAppAndSecretConfigQuery(appID, null);
     const form = useOAuthProviderForm(appID, null);
 
     const [selectedProviderKey, setSelectedProviderKey] =
@@ -163,43 +162,46 @@ const AddSingleSignOnConfigurationContent: React.VFC =
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedProviderKey]);
 
-    if (isEffectiveSecretLoading) {
-      return <ShowLoading />;
-    }
-
-    return (
-      <FormContainer
-        form={form}
-        afterSave={onSaveSuccess}
-        hideFooterComponent={selectedProviderKey == null}
-      >
-        <ScreenContent
-          header={
-            <ScreenContentHeader
-              title={
-                <NavBreadcrumb
-                  className={cn(styles.widget, styles.breadcrumb)}
-                  items={navBreadcrumbItems}
+    return useLoadableView({
+      loadables: [effectiveSecretConfigQuery] as const,
+      render: ([effectiveSecretConfigQuery]) => {
+        return (
+          <FormContainer
+            form={form}
+            afterSave={onSaveSuccess}
+            hideFooterComponent={selectedProviderKey == null}
+          >
+            <ScreenContent
+              header={
+                <ScreenContentHeader
+                  title={
+                    <NavBreadcrumb
+                      className={cn(styles.widget, styles.breadcrumb)}
+                      items={navBreadcrumbItems}
+                    />
+                  }
                 />
               }
-            />
-          }
-        >
-          <ShowOnlyIfSIWEIsDisabled>
-            {newAlias != null && selectedProviderKey != null ? (
-              <OAuthClientForm
-                initialAlias={newAlias}
-                form={form}
-                providerItemKey={selectedProviderKey}
-                effectiveSecretConfig={effectiveSecretConfig}
-              />
-            ) : (
-              <OAuthClientMenu form={form} onSelect={onMenuSelect} />
-            )}
-          </ShowOnlyIfSIWEIsDisabled>
-        </ScreenContent>
-      </FormContainer>
-    );
+            >
+              <ShowOnlyIfSIWEIsDisabled>
+                {newAlias != null && selectedProviderKey != null ? (
+                  <OAuthClientForm
+                    initialAlias={newAlias}
+                    form={form}
+                    providerItemKey={selectedProviderKey}
+                    effectiveSecretConfig={
+                      effectiveSecretConfigQuery.effectiveSecretConfig
+                    }
+                  />
+                ) : (
+                  <OAuthClientMenu form={form} onSelect={onMenuSelect} />
+                )}
+              </ShowOnlyIfSIWEIsDisabled>
+            </ScreenContent>
+          </FormContainer>
+        );
+      },
+    });
   };
 
 const AddSingleSignOnConfigurationScreen: React.VFC = () => {
