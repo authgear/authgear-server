@@ -35,13 +35,13 @@
               {{ template "authflowv2/__header.html" . }}
               <div class="screen-title-description">
                 <h1 class="screen-title">
-                  {{ include "v2.page.login.default.title" (dict
+                  {{ include "v2.page.signup-login.default.title" (dict
                     "AppName" $appName
                     "ClientName" "")
                   }}
                 </h1>
                 <h2 class="screen-description">
-                  {{ include "v2.page.login.default.subtitle" (dict
+                  {{ include "v2.page.signup-login.default.subtitle" (dict
                     "AppName" $appName
                     "ClientName" "")
                   }}
@@ -74,11 +74,6 @@
                   class="block input w-full"
                   placeholder="{{ include "v2.component.input.default.placeholder-login-id" (dict "variant" "username") }}"
                 >
-                <input
-                  data-preview-widget-target="loginIDInput"
-                  class="block input w-full"
-                  placeholder="{{ include "v2.component.input.default.placeholder-login-id" (dict "variant" "") }}"
-                >
                 {{ template "authflowv2/__phone_input.html"
                   (dict
                     "Placeholder" (include "v2.component.input.default.placeholder-phone" nil)
@@ -95,9 +90,6 @@
                 class="primary-btn w-full"
                 type="button"
               >{{ include "v2.component.button.default.label-login" nil }}</button>
-              <p class="body-text--md mt-4">
-                {{ include "v2.page.login.default.switch-to-signup" (dict "href" "" )}}
-              </p>
             </form>
 
             <section
@@ -107,12 +99,21 @@
               <section
                 class="flex flex-col gap-4">
                 <a
+                  class="secondary-btn w-full"
+                  data-preview-widget-target="branchOptionUsername"
+                >
+                  <div class="flex gap-2">
+                    <i class="alternative-icon material-icons">person</i>
+                    {{ include "v2.page.signup.default.signup-with-username" nil }}
+                  </div>
+                </a>
+                <a
                   data-preview-widget-target="branchOptionPhone"
                   class="secondary-btn w-full"
                 >
                   <div class="flex gap-2">
                     <i class="alternative-icon material-icons">smartphone</i>
-                    {{ include "v2.component.button.default.label-continue-with-phone" nil }}
+                    {{ include "v2.page.signup.default.signup-with-phone" nil }}
                   </div>
                 </a>
               </section>

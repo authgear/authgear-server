@@ -1381,7 +1381,7 @@
   "v2.page.signup.continue.subtitle-username": "ป้อนชื่อผู้ใช้ของคุณ",
   "v2.page.signup.continue.title": "ดำเนินการลงทะเบียนต่อ",
   "v2.page.signup.default.signup-with-email": "ดำเนินการต่อด้วย Email",
-  "v2.page.signup.default.signup-with-photo": "ดำเนินการต''อด''วยหมายเลขโทรศัพท''",
+  "v2.page.signup.default.signup-with-phone": "ดำเนินการต''อด''วยหมายเลขโทรศัพท''",
   "v2.page.signup.default.signup-with-username": "ดำเนินการต่อด้วย Username",
   "v2.page.signup.default.subtitle": "ลงทะเบียนสำหรับ {AppName}",
   "v2.page.signup.default.switch-to-login": "มีบัญชีอยู่แล้ว? <a href=\"{href}\">เข้าสู่ระบบ</a>",

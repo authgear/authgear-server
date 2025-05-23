@@ -1381,7 +1381,7 @@
   "v2.page.signup.continue.subtitle-username": "输入您的用户名",
   "v2.page.signup.continue.title": "继续注册",
   "v2.page.signup.default.signup-with-email": "使用电子邮箱继续",
-  "v2.page.signup.default.signup-with-photo": "使用手机号码继续",
+  "v2.page.signup.default.signup-with-phone": "使用手机号码继续",
   "v2.page.signup.default.signup-with-username": "使用用户名继续",
   "v2.page.signup.default.subtitle": "注册 {AppName}",
   "v2.page.signup.default.switch-to-login": "已有账号? <a href=\"{href}\">登录</a>",

@@ -40,7 +40,7 @@ import {
 import {
   CssAstVisitor,
   CustomisableThemeStyleGroup,
-  EMPTY_THEME,
+  DEFAULT_LIGHT_THEME,
   PartialCustomisableTheme,
   StyleCssVisitor,
   Theme,
@@ -470,7 +470,7 @@ function getLightThemeFromResourceFormState(
   const themeResource =
     state.resources[specifierId(LightThemeResourceSpecifier)];
   if (themeResource?.nullableValue == null) {
-    return EMPTY_THEME;
+    return DEFAULT_LIGHT_THEME;
   }
   const root = parseCSS(themeResource.nullableValue);
   const styleCSSVisitor = new StyleCssVisitor(

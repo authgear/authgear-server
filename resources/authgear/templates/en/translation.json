@@ -1381,7 +1381,7 @@
   "v2.page.signup.continue.subtitle-username": "Enter your username",
   "v2.page.signup.continue.title": "Continue Sign Up",
   "v2.page.signup.default.signup-with-email": "Continue with Email",
-  "v2.page.signup.default.signup-with-photo": "Continue with Phone Number",
+  "v2.page.signup.default.signup-with-phone": "Continue with Phone Number",
   "v2.page.signup.default.signup-with-username": "Continue with Username",
   "v2.page.signup.default.subtitle": "Sign up for {AppName}",
   "v2.page.signup.default.switch-to-login": "Already have an account? <a href=\"{href}\">Log in</a>",

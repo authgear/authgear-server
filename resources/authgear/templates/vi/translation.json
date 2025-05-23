@@ -1381,7 +1381,7 @@
   "v2.page.signup.continue.subtitle-username": "Nhập tên người dùng của bạn",
   "v2.page.signup.continue.title": "Tiếp tục Đăng ký",
   "v2.page.signup.default.signup-with-email": "Tiếp tục với Email",
-  "v2.page.signup.default.signup-with-photo": "Tiếp tục với Số điện thoại",
+  "v2.page.signup.default.signup-with-phone": "Tiếp tục với Số điện thoại",
   "v2.page.signup.default.signup-with-username": "Tiếp tục với Tên người dùng",
   "v2.page.signup.default.subtitle": "Đăng ký tài khoản {AppName}",
   "v2.page.signup.default.switch-to-login": "Đã có tài khoản? <a href=\"{href}\">Đăng nhập</a>",
