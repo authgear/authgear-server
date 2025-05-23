@@ -972,6 +972,7 @@
   "v2.error.no-authenticator": "Uw account heeft geen bruikbare authenticatiemethode om verder te gaan. Neem contact op met de ondersteuning.",
   "v2.error.no-available-authenticator": "Twee-factor authenticatie (2FA) is vereist om in te loggen, maar je hebt het nog niet ingesteld. Neem contact op met de systeembeheerder voor assistentie.",
   "v2.error.no-available-sms-client": "Configureer een SMS-provider in het beheerdersportaal om telefoonauthenticatie mogelijk te maken.",
+  "v2.error.no-available-smtp-configuration": "Configureer een e-mailprovider in het beheerdersportaal om e-mailverificatie mogelijk te maken.",
   "v2.error.no-available-whatsapp-client": "WhatsApp API-configuratie ontbreekt, neem contact op met de systeembeheerder.",
   "v2.error.no-passkey": "Er is geen Passkey gevonden op uw apparaat. Selecteer een andere authenticatiemethode.",
   "v2.error.no-public-signup": "<p>Aanmelden is uitgeschakeld.</p><p>Neem contact op met de systeembeheerder.</p>",

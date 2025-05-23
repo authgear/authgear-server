@@ -972,6 +972,7 @@
   "v2.error.no-authenticator": "Your account does not have any usable authentication method to proceed. Please contact support.",
   "v2.error.no-available-authenticator": "Two-factor authentication (2FA) is required to log in, but you haven''t set it up yet. Please contact system admin for assistance.",
   "v2.error.no-available-sms-client": "Please configure an SMS provider in the admin portal to enable phone-based authentication.",
+  "v2.error.no-available-smtp-configuration": "Please configure an Email provider in the admin portal to enable email verification.",
   "v2.error.no-available-whatsapp-client": "WhatsApp API configuration is missing, please contact system admin.",
   "v2.error.no-passkey": "Passkey is not found on your device. Please select another authentication method.",
   "v2.error.no-public-signup": "<p>Sign up is disabled.</p><p>Please contact system admin.</p>",

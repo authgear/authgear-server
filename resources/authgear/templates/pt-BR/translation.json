@@ -972,6 +972,7 @@
   "v2.error.no-authenticator": "Sua conta não possui nenhum método de autenticação utilizável para prosseguir. Entre em contato com o suporte.",
   "v2.error.no-available-authenticator": "A autenticação de dois fatores (2FA) é necessária para fazer login, mas você ainda não a configurou. Entre em contato com o administrador do sistema para obter assistência.",
   "v2.error.no-available-sms-client": "Por favor, configure um provedor de SMS no portal de administração para habilitar a autenticação baseada em telefone.",
+  "v2.error.no-available-smtp-configuration": "Por favor, configure um provedor de Email no portal de administração para habilitar a verificação de email.",
   "v2.error.no-available-whatsapp-client": "A configuração da API do WhatsApp está faltando, entre em contato com o administrador do sistema.",
   "v2.error.no-passkey": "Passkey não encontrado no seu dispositivo. Selecione outro método de autenticação.",
   "v2.error.no-public-signup": "<p>O cadastro está desativado.</p><p>Entre em contato com o administrador do sistema.</p>",
