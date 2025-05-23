@@ -1,7 +1,8 @@
 // ref https://github.com/bitcoinjs/bip39/blob/master/src/wordlists/english.json
 import wordlist from "./wordlist.json";
 
-function determineWord(index: number): string {
+function determineWord(seed: number): string {
+  const index = seed % wordlist.length;
   return wordlist[index];
 }
 

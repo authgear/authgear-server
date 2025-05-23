@@ -58,7 +58,7 @@ describe("deterministicProjectID", () => {
     // last 6 bits 010111 is not used
     // So the name is 'firm-000000'
     const fortyEightBits = new Uint8Array([87, 87, 87, 87, 87, 87]);
-    expect(deterministicProjectID(fortyEightBits)).toEqual("firm-pwldul");
+    expect(deterministicProjectID(fortyEightBits)).toEqual("forget-pwldul");
   });
 });
 
