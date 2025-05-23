@@ -2164,6 +2164,7 @@
 
   "RedMessageBar.remind-configure-sms-provider-in-non-sms-provider-screen": "An SMS provider is required for this feature to work properly. Please configure it in the{ReactRouterLink, react, to{{to}} children{SMS Provider}} Settings to avoid potential issues.",
   "RedMessageBar.remind-configure-sms-provider-in-sms-provider-screen": "SMS provider is not configured. This may cause authentication issues for phone-based logins and verifications.",
+  "RedMessageBar.remind-configure-smtp-in-non-smtp-configuration-screen": "An Email provider is required for this feature to work properly. Please configure it in the{ReactRouterLink, react, to{{to}} children{Email provider}} Settings to avoid potential issues.",
   "RedMessageBar.remind-configure-smtp-in-smtp-configuration-screen": "Email provider is not configured. This may cause authentication issues for email-based logins and verifications.",
 
   "CurrentPlanCard.subscriptionFee.title": "Subscription Fee",
