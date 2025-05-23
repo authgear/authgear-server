@@ -108,10 +108,10 @@ const CustomTextConfigurationScreen: React.VFC =
 
     const form: FormModel = useMemo(
       () => ({
-        isLoading: config.loading || resourceForm.isLoading,
+        isLoading: config.isLoading || resourceForm.isLoading,
         isUpdating: resourceForm.isUpdating,
         isDirty: resourceForm.isDirty,
-        loadError: config.error ?? resourceForm.loadError,
+        loadError: config.loadError ?? resourceForm.loadError,
         updateError: resourceForm.updateError,
         state,
         setState: (fn) => {

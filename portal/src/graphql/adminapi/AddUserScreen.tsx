@@ -437,8 +437,12 @@ const AddUserScreen: React.VFC = function AddUserScreen() {
   const { appID } = useParams() as { appID: string };
   const navigate = useNavigate();
 
-  const { effectiveAppConfig, loading, error, refetch } =
-    useAppAndSecretConfigQuery(appID);
+  const {
+    effectiveAppConfig,
+    isLoading: loading,
+    loadError: error,
+    refetch,
+  } = useAppAndSecretConfigQuery(appID);
 
   const primaryAuthenticators = useMemo(
     () => effectiveAppConfig?.authentication?.primary_authenticators ?? [],

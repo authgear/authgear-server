@@ -317,6 +317,37 @@ func (s *AppService) LoadAppSecretConfig(
 	return secretConfig, checksum, nil
 }
 
+// LoadEffectiveSecretConfig does not need connection.
+func (s *AppService) LoadEffectiveSecretConfig(ctx context.Context, app *model.App) (*model.EffectiveSecretConfig, error) {
+	resMgr := s.AppResMgrFactory.NewManagerWithAppContext(app.Context)
+	result, err := resMgr.ReadEffectiveFile(ctx, configsource.SecretConfig, &resource.EffectiveResource{})
+	if err != nil {
+		return nil, err
+	}
+	secretConfig, ok := result.(*config.SecretConfig)
+	if !ok {
+		panic(fmt.Errorf("unexpected: result is not a SecretConfig"))
+	}
+
+	effectiveSecretConfig := &model.EffectiveSecretConfig{
+		OAuthSSOProviderDemoSecrets: []model.OAuthSSOProviderDemoSecretItem{},
+	}
+
+	demoSecrets, ok := secretConfig.LookupData(config.SSOOAuthDemoCredentialsKey).(*config.SSOOAuthDemoCredentials)
+	if !ok {
+		return effectiveSecretConfig, nil
+	}
+
+	for _, item := range demoSecrets.Items {
+		item := item
+		effectiveSecretConfig.OAuthSSOProviderDemoSecrets = append(effectiveSecretConfig.OAuthSSOProviderDemoSecrets, model.OAuthSSOProviderDemoSecretItem{
+			Type: item.ProviderConfig.Type(),
+		})
+	}
+
+	return effectiveSecretConfig, nil
+}
+
 // GenerateSecretVisitToken does not need connection.
 func (s *AppService) GenerateSecretVisitToken(
 	ctx context.Context,

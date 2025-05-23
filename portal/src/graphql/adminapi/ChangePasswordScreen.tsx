@@ -197,8 +197,8 @@ const ChangePasswordScreen: React.VFC = function ChangePasswordScreen() {
 
   const {
     effectiveAppConfig,
-    loading: loadingConfig,
-    error: configError,
+    isLoading: loadingConfig,
+    loadError: configError,
     refetch: refetchConfig,
   } = useAppAndSecretConfigQuery(appID);
 

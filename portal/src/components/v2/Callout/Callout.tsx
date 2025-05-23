@@ -10,7 +10,7 @@ import styles from "./Callout.module.css";
 import { useMaybeToastContext, useToastProviderContext } from "../Toast/Toast";
 import { semanticToRadixColor } from "../../../util/radix";
 
-export type CalloutType = "error" | "success";
+export type CalloutType = "error" | "success" | "warning";
 
 export interface CalloutProps {
   className?: string;
@@ -25,6 +25,8 @@ function typeToSemantic(type: CalloutType) {
       return "error";
     case "success":
       return "success";
+    case "warning":
+      return "warning";
   }
 }
 
@@ -34,6 +36,8 @@ function CalloutIcon({ color }: { color: CalloutType }) {
       return <ExclamationTriangleIcon width="1rem" height="1rem" />;
     case "success":
       return <CheckCircledIcon width="1rem" height="1rem" />;
+    case "warning":
+      return <ExclamationTriangleIcon width="1rem" height="1rem" />;
   }
 }
 

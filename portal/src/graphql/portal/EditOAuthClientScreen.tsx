@@ -690,7 +690,7 @@ const EditOAuthClientScreen1: React.VFC<{
 }> = function EditOAuthClientScreen1({ appID, clientID, secretToken }) {
   const form = useOAuthClientForm(appID, secretToken);
   const {
-    loading: appQueryLoading,
+    isLoading: appQueryLoading,
     samlIdpEntityID,
     secretConfig,
     rawAppConfig,
@@ -706,18 +706,18 @@ const EditOAuthClientScreen1: React.VFC<{
   }, [searchParams]);
 
   const customUIEnabled = useMemo(() => {
-    if (featureConfig.loading) {
+    if (featureConfig.isLoading) {
       return false;
     }
     return featureConfig.effectiveFeatureConfig?.oauth?.client
       ?.custom_ui_enabled;
   }, [
-    featureConfig.loading,
+    featureConfig.isLoading,
     featureConfig.effectiveFeatureConfig?.oauth?.client?.custom_ui_enabled,
   ]);
 
   const app2appEnabled = useMemo(() => {
-    if (featureConfig.loading) {
+    if (featureConfig.isLoading) {
       return false;
     }
     return featureConfig.effectiveFeatureConfig?.oauth?.client?.app2app_enabled;

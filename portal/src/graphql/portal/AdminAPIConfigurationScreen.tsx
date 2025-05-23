@@ -451,13 +451,13 @@ const AdminAPIConfigurationScreen1: React.VFC<{
     [queryResult.rawAppConfig, updateAppAndSecretConfig, refetchAppAndSecret]
   );
 
-  if (queryResult.loading) {
+  if (queryResult.isLoading) {
     return <ShowLoading />;
   }
 
-  if (queryResult.error) {
+  if (queryResult.loadError) {
     return (
-      <ShowError error={queryResult.error} onRetry={queryResult.refetch} />
+      <ShowError error={queryResult.loadError} onRetry={queryResult.refetch} />
     );
   }
 

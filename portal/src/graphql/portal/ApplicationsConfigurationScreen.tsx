@@ -510,13 +510,13 @@ const ApplicationsConfigurationScreen: React.VFC =
     }, [featureConfig]);
 
     const isLoading = useMemo(
-      () => form.isLoading || featureConfig.loading,
-      [form.isLoading, featureConfig.loading]
+      () => form.isLoading || featureConfig.isLoading,
+      [form.isLoading, featureConfig.isLoading]
     );
 
     const error = useMemo(
-      () => form.loadError ?? featureConfig.error,
-      [form.loadError, featureConfig.error]
+      () => form.loadError ?? featureConfig.loadError,
+      [form.loadError, featureConfig.loadError]
     );
 
     const onRetry = useCallback(() => {
@@ -524,7 +524,7 @@ const ApplicationsConfigurationScreen: React.VFC =
         form.reload();
       }
 
-      if (featureConfig.error) {
+      if (featureConfig.loadError) {
         featureConfig.refetch().finally(() => {});
       }
     }, [form, featureConfig]);

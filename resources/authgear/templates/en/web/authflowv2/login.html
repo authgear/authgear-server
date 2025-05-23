@@ -262,6 +262,11 @@
                     <span>
                       {{ include (printf "v2.component.oauth-branding.%s.label" .provider_type) nil }}
                     </span>
+                    {{ if or (eq .provider_status "using_demo_credentials") (eq .provider_status "missing_credentials") }}
+                      <div class="badge">
+                        {{ include "v2.component.oauth-branding-demo-badge.default.label" nil }}
+                      </div>
+                    {{ end }}
                   </div>
                 </button>
               </form>

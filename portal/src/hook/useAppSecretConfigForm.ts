@@ -61,8 +61,8 @@ export function useAppSecretConfigForm<State>(
   } = options;
 
   const {
-    loading: isLoading,
-    error: loadError,
+    isLoading,
+    loadError,
     rawAppConfig,
     rawAppConfigChecksum,
     effectiveAppConfig,

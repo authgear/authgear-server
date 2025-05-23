@@ -42,7 +42,8 @@ func ConfigureAuthflowLoginRoute(route httproute.Route) httproute.Route {
 }
 
 type AuthflowLoginEndpointsProvider interface {
-	SSOCallbackURL(alias string, isDemo bool) *url.URL
+	SSOCallbackURL(alias string) *url.URL
+	SharedSSOCallbackURL() *url.URL
 }
 
 type AuthflowLoginViewModel struct {
@@ -91,7 +92,7 @@ func (h *AuthflowLoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	}
 
 	oauthPostAction := func(ctx context.Context, s *webapp.Session, providerAlias string) error {
-		callbackURL := h.Endpoints.SSOCallbackURL(providerAlias, false).String()
+		callbackURL := h.Endpoints.SSOCallbackURL(providerAlias).String()
 		input := map[string]interface{}{
 			"identification": "oauth",
 			"alias":          providerAlias,

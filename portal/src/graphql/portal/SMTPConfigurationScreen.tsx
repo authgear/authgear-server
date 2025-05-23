@@ -782,14 +782,14 @@ const SMTPConfigurationScreen1: React.VFC<{
 
   const sendTestEmailHandle = useSendTestEmailMutation(appID);
 
-  if (form.isLoading || featureConfig.loading) {
+  if (form.isLoading || featureConfig.isLoading) {
     return <ShowLoading />;
   }
 
-  if (form.loadError ?? featureConfig.error) {
+  if (form.loadError ?? featureConfig.loadError) {
     return (
       <ShowError
-        error={form.loadError ?? featureConfig.error}
+        error={form.loadError ?? featureConfig.loadError}
         onRetry={() => {
           form.reload();
           featureConfig.refetch().finally(() => {});

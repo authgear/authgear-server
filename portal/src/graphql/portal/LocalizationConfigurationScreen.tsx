@@ -873,10 +873,10 @@ const LocalizationConfigurationScreen: React.VFC =
 
     const form: FormModel = useMemo(
       () => ({
-        isLoading: config.loading || resources.isLoading,
+        isLoading: config.isLoading || resources.isLoading,
         isUpdating: resources.isUpdating,
         isDirty: resources.isDirty,
-        loadError: config.error ?? resources.loadError,
+        loadError: config.loadError ?? resources.loadError,
         updateError: resources.updateError,
         state,
         setState: (fn) => {

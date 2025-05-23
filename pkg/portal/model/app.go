@@ -117,6 +117,14 @@ type SecretConfig struct {
 	SMSProviderSecrets            *SMSProviderSecrets            `json:"smsProviderSecrets,omitempty"`
 }
 
+type EffectiveSecretConfig struct {
+	OAuthSSOProviderDemoSecrets []OAuthSSOProviderDemoSecretItem `json:"oauthSSOProviderDemoSecrets"`
+}
+
+type OAuthSSOProviderDemoSecretItem struct {
+	Type string `json:"type"`
+}
+
 //nolint:gocognit
 func NewSecretConfig(secretConfig *config.SecretConfig, unmaskedSecrets []config.SecretKey, now time.Time) (*SecretConfig, error) {
 	out := &SecretConfig{}

@@ -19,7 +19,7 @@ import styles from "./SingleSignOnConfigurationScreen.module.css";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import { useLocationEffect } from "../../hook/useLocationEffect";
 import { useAppSecretVisitToken } from "./mutations/generateAppSecretVisitTokenMutation";
-import { AppSecretKey } from "./globalTypes.generated";
+import { AppSecretKey, EffectiveSecretConfig } from "./globalTypes.generated";
 import { startReauthentication } from "./Authenticated";
 import cn from "classnames";
 import NavBreadcrumb from "../../NavBreadcrumb";
@@ -28,6 +28,8 @@ import {
   OAuthProviderFormModel,
   useOAuthProviderForm,
 } from "../../hook/useOAuthProviderForm";
+import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";
+import { useLoadableView } from "../../hook/useLoadableView";
 
 interface LocationState {
   isRevealSecrets: boolean;
@@ -45,16 +47,23 @@ interface OAuthClientItemProps {
   providerItemKey: OAuthSSOProviderItemKey;
   form: OAuthProviderFormModel;
   oauthSSOFeatureConfig?: OAuthSSOFeatureConfig;
+  effectiveSecretConfig: EffectiveSecretConfig | undefined;
 }
 
 const OAuthClientItem: React.VFC<OAuthClientItemProps> =
   function OAuthClientItem(props) {
-    const { initialAlias, providerItemKey, form, oauthSSOFeatureConfig } =
-      props;
+    const {
+      initialAlias,
+      providerItemKey,
+      form,
+      oauthSSOFeatureConfig,
+      effectiveSecretConfig,
+    } = props;
     const widgetProps = useSingleSignOnConfigurationWidget(
       initialAlias,
       providerItemKey,
       form,
+      effectiveSecretConfig,
       oauthSSOFeatureConfig
     );
     return (
@@ -70,11 +79,18 @@ interface EditSingleSignOnConfigurationContentProps {
   form: OAuthProviderFormModel;
   providerItemKey: OAuthSSOProviderItemKey;
   oauthSSOFeatureConfig?: OAuthSSOFeatureConfig;
+  effectiveSecretConfig: EffectiveSecretConfig | undefined;
 }
 
 const EditSingleSignOnConfigurationContent: React.VFC<EditSingleSignOnConfigurationContentProps> =
   function EditSingleSignOnConfigurationContent(props) {
-    const { alias, form, providerItemKey, oauthSSOFeatureConfig } = props;
+    const {
+      alias,
+      form,
+      providerItemKey,
+      oauthSSOFeatureConfig,
+      effectiveSecretConfig,
+    } = props;
 
     const navBreadcrumbItems = useMemo(() => {
       return [
@@ -112,6 +128,7 @@ const EditSingleSignOnConfigurationContent: React.VFC<EditSingleSignOnConfigurat
             providerItemKey={providerItemKey}
             form={form}
             oauthSSOFeatureConfig={oauthSSOFeatureConfig}
+            effectiveSecretConfig={effectiveSecretConfig}
           />
         </ShowOnlyIfSIWEIsDisabled>
       </ScreenContent>
@@ -129,9 +146,12 @@ const EditSingleSignOnConfigurationScreen1: React.VFC<{
   providerItemKey,
   secretVisitToken,
 }) {
-  const config = useOAuthProviderForm(appID, secretVisitToken);
-  const featureConfig = useAppFeatureConfigQuery(appID);
-  const form = config;
+  const form = useOAuthProviderForm(appID, secretVisitToken);
+  const featureConfigQuery = useAppFeatureConfigQuery(appID);
+  const effectiveSecretConfigQuery = useAppAndSecretConfigQuery(
+    appID,
+    secretVisitToken
+  );
 
   const isReadyToEdit = useMemo(() => {
     const isSecretPresent =
@@ -171,34 +191,27 @@ const EditSingleSignOnConfigurationScreen1: React.VFC<{
     }
   }, [isReadyToEdit, onRevealSecrets]);
 
-  if (!isReadyToEdit || form.isLoading || featureConfig.loading) {
-    return <ShowLoading />;
-  }
-
-  if (form.loadError ?? featureConfig.error) {
-    return (
-      <ShowError
-        error={form.loadError ?? featureConfig.error}
-        onRetry={() => {
-          form.reload();
-          featureConfig.refetch().finally(() => {});
-        }}
-      />
-    );
-  }
-
-  return (
-    <FormContainer form={form} afterSave={onSaveSuccess}>
-      <EditSingleSignOnConfigurationContent
-        form={form}
-        alias={alias}
-        providerItemKey={providerItemKey}
-        oauthSSOFeatureConfig={
-          featureConfig.effectiveFeatureConfig?.identity?.oauth
-        }
-      />
-    </FormContainer>
-  );
+  return useLoadableView({
+    loadables: [form, featureConfigQuery, effectiveSecretConfigQuery] as const,
+    isLoading: !isReadyToEdit,
+    render: ([form, featureConfigQuery, effectiveSecretConfigQuery]) => {
+      return (
+        <FormContainer form={form} afterSave={onSaveSuccess}>
+          <EditSingleSignOnConfigurationContent
+            form={form}
+            alias={alias}
+            providerItemKey={providerItemKey}
+            oauthSSOFeatureConfig={
+              featureConfigQuery.effectiveFeatureConfig?.identity?.oauth
+            }
+            effectiveSecretConfig={
+              effectiveSecretConfigQuery.effectiveSecretConfig
+            }
+          />
+        </FormContainer>
+      );
+    },
+  });
 };
 
 const SECRETS = [AppSecretKey.OauthSsoProviderClientSecrets];

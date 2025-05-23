@@ -516,8 +516,8 @@ export default function GetStartedScreen(): React.ReactElement {
 
   const {
     effectiveAppConfig,
-    loading: appConfigLoading,
-    error,
+    isLoading: appConfigLoading,
+    loadError: error,
     refetch,
   } = useAppAndSecretConfigQuery(appID);
 

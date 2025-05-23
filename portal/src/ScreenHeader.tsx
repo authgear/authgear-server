@@ -34,7 +34,8 @@ const MobileViewHeaderAppSection: React.VFC<MobileViewHeaderAppSectionProps> = (
   props
 ) => {
   const { appID } = props;
-  const { effectiveAppConfig, loading } = useAppAndSecretConfigQuery(appID);
+  const { effectiveAppConfig, isLoading: loading } =
+    useAppAndSecretConfigQuery(appID);
   const { themes } = useSystemConfig();
 
   if (loading) {
@@ -58,7 +59,8 @@ const DesktopViewHeaderAppSection: React.VFC<
   DesktopViewHeaderAppSectionProps
 > = (props) => {
   const { appID } = props;
-  const { effectiveAppConfig, loading } = useAppAndSecretConfigQuery(appID);
+  const { effectiveAppConfig, isLoading: loading } =
+    useAppAndSecretConfigQuery(appID);
   const { themes } = useSystemConfig();
 
   if (loading) {

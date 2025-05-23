@@ -1404,7 +1404,7 @@ const HookConfigurationScreen1: React.VFC<{
   });
   const featureConfig = useAppFeatureConfigQuery(appID);
 
-  if (featureConfig.loading) {
+  if (featureConfig.isLoading) {
     return <ShowLoading />;
   }
 
@@ -1412,10 +1412,10 @@ const HookConfigurationScreen1: React.VFC<{
     return <ShowError error={form.loadError} onRetry={form.reload} />;
   }
 
-  if (featureConfig.error) {
+  if (featureConfig.loadError) {
     return (
       <ShowError
-        error={featureConfig.error}
+        error={featureConfig.loadError}
         onRetry={() => {
           featureConfig.refetch().finally(() => {});
         }}

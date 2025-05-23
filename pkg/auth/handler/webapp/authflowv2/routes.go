@@ -67,6 +67,8 @@ const (
 	AuthflowV2RouteResetPasswordSuccess = "/authflow/v2/reset_password/success"
 	AuthflowV2RouteWechat               = "/authflow/v2/wechat"
 	AuthflowV2RouteAccountLinking       = "/authflow/v2/account_linking"
+	// nolint:gosec
+	AuthflowV2RouteOAuthProviderDemoCredential = "/authflow/v2/oauth_provider_demo_credential"
 
 	SettingsV2RouteSettings                   = "/settings"
 	SettingsV2RouteProfilePictureEditSettings = "/settings/profile/picture/edit"
@@ -163,25 +165,29 @@ func (n *AuthflowV2Navigator) NavigateResetPasswordSuccessPage() string {
 	return AuthflowV2RouteResetPasswordSuccess
 }
 
-func (n *AuthflowV2Navigator) NavigateChangePasswordSuccessPage(s *webapp.AuthflowScreen, r *http.Request, webSessionID string) (result *webapp.Result) {
-	navigate := func(path string, query *url.Values) (result *webapp.Result) {
-		u := *r.URL
-		u.Path = path
-		q := u.Query()
-		q.Set(webapp.AuthflowQueryKey, s.StateToken.XStep)
-		for k, param := range *query {
-			for _, p := range param {
-				q.Add(k, p)
-			}
+func (n *AuthflowV2Navigator) navigateWithScreen(path string, screen *webapp.AuthflowScreen, r *http.Request, query *url.Values) (result *webapp.Result) {
+	u := *r.URL
+	u.Path = path
+	q := u.Query()
+	q.Set(webapp.AuthflowQueryKey, screen.StateToken.XStep)
+	for k, param := range *query {
+		for _, p := range param {
+			q.Add(k, p)
 		}
-		u.RawQuery = q.Encode()
-		result = &webapp.Result{}
-		result.NavigationAction = webapp.NavigationActionAdvance
-		result.RedirectURI = u.String()
-		return result
 	}
+	u.RawQuery = q.Encode()
+	result = &webapp.Result{}
+	result.NavigationAction = webapp.NavigationActionAdvance
+	result.RedirectURI = u.String()
+	return result
+}
 
-	return navigate(AuthflowV2RouteChangePasswordSuccess, &url.Values{})
+func (n *AuthflowV2Navigator) NavigateChangePasswordSuccessPage(s *webapp.AuthflowScreen, r *http.Request, webSessionID string) (result *webapp.Result) {
+	return n.navigateWithScreen(AuthflowV2RouteChangePasswordSuccess, s, r, &url.Values{})
+}
+
+func (n *AuthflowV2Navigator) NavigateOAuthProviderDemoCredentialPage(s *webapp.AuthflowScreen, r *http.Request) (result *webapp.Result) {
+	return n.navigateWithScreen(AuthflowV2RouteOAuthProviderDemoCredential, s, r, &url.Values{})
 }
 
 func (n *AuthflowV2Navigator) Navigate(ctx context.Context, s *webapp.AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *webapp.Result) {

@@ -81,8 +81,8 @@ const PhoneScreen: React.VFC = function PhoneScreen() {
   } = useUserQuery(userID);
   const {
     effectiveAppConfig,
-    loading: loadingAppConfig,
-    error: appConfigError,
+    isLoading: loadingAppConfig,
+    loadError: appConfigError,
     refetch: refetchAppConfig,
   } = useAppAndSecretConfigQuery(appID);
 

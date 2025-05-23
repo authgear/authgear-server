@@ -65,11 +65,10 @@ func (e *EdgeUseIdentityOAuthProvider) Instantiate(goCtx context.Context, ctx *i
 		return nil, api.ErrOAuthProviderNotFound
 	}
 
-	// TODO(tung): Handle inactive provider
-
 	nonceSource := ctx.Nonces.GenerateAndSet()
 	errorRedirectURI := input.GetErrorRedirectURI()
 
+	// NOTE(tung): Demo provider not supported in interaction
 	providerConfig, err := ctx.OAuthProviderFactory.GetProviderConfig(alias)
 	if err != nil {
 		return nil, err
@@ -77,7 +76,7 @@ func (e *EdgeUseIdentityOAuthProvider) Instantiate(goCtx context.Context, ctx *i
 
 	nonce := crypto.SHA256String(nonceSource)
 
-	redirectURIForOAuthProvider := ctx.OAuthRedirectURIBuilder.SSOCallbackURL(alias, false).String()
+	redirectURIForOAuthProvider := ctx.OAuthRedirectURIBuilder.SSOCallbackURL(alias).String()
 	// Special case: wechat needs to use a special callback endpoint.
 	if providerConfig.Type() == wechat.Type {
 		redirectURIForOAuthProvider = ctx.OAuthRedirectURIBuilder.WeChatCallbackEndpointURL().String()

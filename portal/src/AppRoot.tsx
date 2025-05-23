@@ -204,8 +204,11 @@ const AppRoot: React.VFC = function AppRoot() {
   }, [appID, setDisplayUnauthenticatedDialog]);
 
   // NOTE: check if appID actually exist in authorized app list
-  const { effectiveAppConfig, loading, error } =
-    useAppAndSecretConfigQuery(appID);
+  const {
+    effectiveAppConfig,
+    isLoading: loading,
+    loadError: error,
+  } = useAppAndSecretConfigQuery(appID);
 
   const screenNavQuery = useQuery<ScreenNavQueryQuery>(ScreenNavQueryDocument, {
     client: portalClient,

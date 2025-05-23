@@ -322,6 +322,26 @@ var appSecretKey = graphql.NewEnum(graphql.EnumConfig{
 	},
 })
 
+var effectiveSecretConfig = graphql.NewObject(graphql.ObjectConfig{
+	Name:        "EffectiveSecretConfig",
+	Description: "Effective secret config",
+	Fields: graphql.Fields{
+		"oauthSSOProviderDemoSecrets": &graphql.Field{
+			Type: graphql.NewList(graphql.NewNonNull(oauthSSOProviderDemoSecretItem)),
+		},
+	},
+})
+
+var oauthSSOProviderDemoSecretItem = graphql.NewObject(graphql.ObjectConfig{
+	Name:        "OAuthSSOProviderDemoSecretItem",
+	Description: "OAuth SSO Provider demo secret item",
+	Fields: graphql.Fields{
+		"type": &graphql.Field{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+	},
+})
+
 var secretKeyToConfigKeyMap map[AppSecretKey][]config.SecretKey = map[AppSecretKey][]config.SecretKey{
 	AppSecretKeyOauthSSOProviderClientSecrets: {config.OAuthSSOProviderCredentialsKey},
 	AppSecretKeyWebhookSecret:                 {config.WebhookKeyMaterialsKey},
@@ -438,7 +458,7 @@ var nodeApp = node(
 				},
 			},
 			"secretConfigChecksum": &graphql.Field{
-				Type: graphql.NewNonNull(AppConfig),
+				Type: graphql.NewNonNull(graphql.String),
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 					ctx := p.Context
 					gqlCtx := GQLContext(ctx)
@@ -459,6 +479,23 @@ var nodeApp = node(
 						return nil, err
 					}
 					return checksum, nil
+				},
+			},
+			"effectiveSecretConfig": &graphql.Field{
+				Type: graphql.NewNonNull(effectiveSecretConfig),
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					ctx := p.Context
+					gqlCtx := GQLContext(ctx)
+					app := p.Source.(*model.App)
+					sessionInfo := session.GetValidSessionInfo(ctx)
+					if sessionInfo == nil {
+						return nil, Unauthenticated.New("only authenticated users can view app secret")
+					}
+					effectiveSecretConfig, err := gqlCtx.AppService.LoadEffectiveSecretConfig(ctx, app)
+					if err != nil {
+						return nil, err
+					}
+					return effectiveSecretConfig, nil
 				},
 			},
 			"effectiveAppConfig": &graphql.Field{

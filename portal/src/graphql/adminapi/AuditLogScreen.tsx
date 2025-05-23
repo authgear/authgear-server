@@ -154,14 +154,14 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
   const featureConfig = useAppFeatureConfigQuery(appID);
 
   const logRetrievalDays = useMemo(() => {
-    if (featureConfig.loading) {
+    if (featureConfig.isLoading) {
       return -1;
     }
     return (
       featureConfig.effectiveFeatureConfig?.audit_log?.retrieval_days ?? -1
     );
   }, [
-    featureConfig.loading,
+    featureConfig.isLoading,
     featureConfig.effectiveFeatureConfig?.audit_log?.retrieval_days,
   ]);
 
@@ -404,7 +404,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
         sortDirection,
       },
       fetchPolicy: "network-only",
-      skip: featureConfig.loading,
+      skip: featureConfig.isLoading,
     }
   );
 
@@ -414,10 +414,10 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     if (error != null) {
       return <ShowError error={error} onRetry={refetch} />;
     }
-    if (featureConfig.error != null) {
+    if (featureConfig.loadError != null) {
       return (
         <ShowError
-          error={featureConfig.error}
+          error={featureConfig.loadError}
           onRetry={() => {
             featureConfig.refetch().finally(() => {});
           }}
