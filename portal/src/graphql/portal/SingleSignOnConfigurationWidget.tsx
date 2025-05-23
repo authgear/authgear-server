@@ -1,4 +1,4 @@
-import { Checkbox, DirectionalHint, Label, Text } from "@fluentui/react";
+import { Checkbox, DirectionalHint, Label, Text, Icon } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import cn from "classnames";
 import { produce } from "immer";
@@ -1118,23 +1118,42 @@ function DemoCredentialStatusButton(props: DemoCredentialStatusButtonProps) {
     }
   }, [targetValue]);
 
-  const CheckMark = useMemo(() => {
-    return () => {
+  const IconComponent = useMemo(() => {
+    return function IconComponent() {
+      const { themes } = useSystemConfig();
+      let iconName: string;
+      switch (targetValue) {
+        case false:
+          iconName = "BulletedList";
+          break;
+        case true:
+          iconName = "FavoriteList";
+          break;
+      }
       return (
-        <div className="pr-4">
-          <Checkbox checked={checked} />
-        </div>
+        <Icon
+          className="mr-4"
+          iconName={iconName}
+          styles={{
+            root: {
+              color: themes.main.palette.themePrimary,
+              fontSize: "24px",
+              lineHeight: "1",
+            },
+          }}
+        />
       );
     };
-  }, [checked]);
+  }, [targetValue]);
 
   return (
     <ChoiceButton
       disabled={disabled}
       checked={checked}
+      styles={{ root: { paddingLeft: 26 } }}
       text={renderToString(textID)}
       secondaryText={renderToString(secondaryTextID)}
-      IconComponent={CheckMark}
+      IconComponent={IconComponent}
       onClick={onClick}
     />
   );
