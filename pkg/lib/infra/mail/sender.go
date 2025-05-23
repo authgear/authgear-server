@@ -5,11 +5,12 @@ import (
 
 	"gopkg.in/gomail.v2"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
-var ErrMissingSMTPConfiguration = errors.New("mail: configuration is missing")
+var ErrNoAvailableSMTPConfiguration = apierrors.InternalError.WithReason("NoAvailableSMTPConfiguration").New("no available SMTP configuration")
 
 type SendOptions struct {
 	Sender    string
@@ -45,13 +46,13 @@ func NewGomailDialer(smtp *config.SMTPServerCredentials) *gomail.Dialer {
 
 type updateGomailMessageFunc func(opts *SendOptions, msg *gomail.Message) error
 
-func (s *Sender) Send(opts SendOptions) (err error) {
+func (s *Sender) PrepareMessage(opts SendOptions) (message *gomail.Message, err error) {
 	if s.GomailDialer == nil {
-		err = ErrMissingSMTPConfiguration
+		err = ErrNoAvailableSMTPConfiguration
 		return
 	}
 
-	message := gomail.NewMessage()
+	message = gomail.NewMessage()
 
 	funcs := []updateGomailMessageFunc{
 		s.applyFrom,
@@ -66,6 +67,15 @@ func (s *Sender) Send(opts SendOptions) (err error) {
 		if err = f(&opts, message); err != nil {
 			return
 		}
+	}
+
+	return
+}
+
+func (s *Sender) Send(message *gomail.Message) (err error) {
+	if s.GomailDialer == nil {
+		err = ErrNoAvailableSMTPConfiguration
+		return
 	}
 
 	err = s.GomailDialer.DialAndSend(message)

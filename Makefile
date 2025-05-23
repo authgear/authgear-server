@@ -200,6 +200,16 @@ generate-material-icons:
 generate-twemoji-icons:
 	$(MAKE) -C ./scripts/python generate-twemoji-icons
 
+# This make target helps you in updating an existing translation key.
+# When you are asked to update an update existing translation key, you do
+# 1. Update the value in English.
+# 2. `make translation-json-del-key KEY=the-key` to remove the key in other translation JSON files.
+# 3. `cd scripts/python; make generate-translations` to re-generate the missing key.
+.PHONY: translation-json-del-key
+translation-json-del-key: KEY=
+translation-json-del-key:
+	find . -path './resources/authgear/templates/*/translation.json' -not -path './resources/authgear/templates/*/messages/translation.json' -not -path './resources/authgear/templates/en/translation.json' -exec sh -c "jq <\$$1 'del(.[\"$(KEY)\"])' > \$$1.tmp; mv \$$1.tmp \$$1" _ '{}' \;
+
 .PHONY: logs-summary
 logs-summary:
 	git log --first-parent --format='%as (%h) %s' $(A)..$(B)

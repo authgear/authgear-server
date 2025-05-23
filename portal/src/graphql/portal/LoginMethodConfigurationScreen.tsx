@@ -132,7 +132,10 @@ import {
 import { useUIImplementation } from "../../hook/useUIImplementation";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";
-import { RedMessageBar_RemindConfigureSMSProviderInNonSMSProviderScreen } from "../../RedMessageBar";
+import {
+  RedMessageBar_RemindConfigureSMSProviderInNonSMSProviderScreen,
+  RedMessageBar_RemindConfigureSMTPInNonSMTPConfigurationScreen,
+} from "../../RedMessageBar";
 
 function splitByNewline(text: string): string[] {
   return text
@@ -516,6 +519,7 @@ interface FeatureConfigFormState {
 
 interface SecretConfigFormState {
   smsProviderConfigured: boolean;
+  smtpConfigured: boolean;
 }
 
 interface FormState
@@ -3241,16 +3245,63 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
       resources,
 
       smsProviderConfigured,
+      smtpConfigured,
     } = state;
 
+    const loginIDEnabled = useMemo(() => {
+      const loginIDEnabled = identitiesControl
+        .filter((c) => c.value === "login_id")
+        .some((c) => c.isChecked);
+      return loginIDEnabled;
+    }, [identitiesControl]);
+
     const isSMSRequiredForSomeEnabledFeatures = useMemo(() => {
+      const phoneLoginIDEnabled = loginIDKeyConfigsControl
+        .filter((c) => c.value.type === "phone")
+        .some((c) => c.isChecked);
+
       const oob_otp_sms_enabled = primaryAuthenticatorsControl
         .filter((c) => c.value === "oob_otp_sms")
         .some((c) => c.isChecked);
+
       const phoneVerificationEnabled =
         verificationClaims?.phone_number?.enabled ?? true;
-      return oob_otp_sms_enabled || phoneVerificationEnabled;
-    }, [primaryAuthenticatorsControl, verificationClaims]);
+
+      return (
+        loginIDEnabled &&
+        phoneLoginIDEnabled &&
+        (oob_otp_sms_enabled || phoneVerificationEnabled)
+      );
+    }, [
+      loginIDEnabled,
+      loginIDKeyConfigsControl,
+      primaryAuthenticatorsControl,
+      verificationClaims,
+    ]);
+
+    const isSMTPRequiredForSomeEnabledFeatures = useMemo(() => {
+      const emailLoginIDEnabled = loginIDKeyConfigsControl
+        .filter((c) => c.value.type === "email")
+        .some((c) => c.isChecked);
+
+      const oob_otp_email_enabled = primaryAuthenticatorsControl
+        .filter((c) => c.value === "oob_otp_email")
+        .some((c) => c.isChecked);
+
+      const emailVerificationEnabled =
+        verificationClaims?.email?.enabled ?? true;
+
+      return (
+        loginIDEnabled &&
+        emailLoginIDEnabled &&
+        (oob_otp_email_enabled || emailVerificationEnabled)
+      );
+    }, [
+      loginIDEnabled,
+      loginIDKeyConfigsControl,
+      primaryAuthenticatorsControl,
+      verificationClaims,
+    ]);
 
     const showFreePlanWarning = useMemo(
       () => shouldShowFreePlanWarning(state),
@@ -3432,6 +3483,13 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
           isSMSRequiredForSomeEnabledFeatures &&
           !smsProviderConfigured ? (
             <RedMessageBar_RemindConfigureSMSProviderInNonSMSProviderScreen
+              className={styles.widget}
+            />
+          ) : null}
+          {isAuthgearOnce &&
+          isSMTPRequiredForSomeEnabledFeatures &&
+          !smtpConfigured ? (
+            <RedMessageBar_RemindConfigureSMTPInNonSMTPConfigurationScreen
               className={styles.widget}
             />
           ) : null}
@@ -3662,6 +3720,7 @@ const LoginMethodConfigurationScreen: React.VFC =
             null ||
           secretConfig.secretConfig?.smsProviderSecrets
             ?.customSMSProviderCredentials != null,
+        smtpConfigured: secretConfig.secretConfig?.smtpSecret != null,
         ...configForm.state,
       };
     }, [
@@ -3674,6 +3733,7 @@ const LoginMethodConfigurationScreen: React.VFC =
       secretConfig.secretConfig?.smsProviderSecrets?.twilioCredentials,
       secretConfig.secretConfig?.smsProviderSecrets
         ?.customSMSProviderCredentials,
+      secretConfig.secretConfig?.smtpSecret,
     ]);
 
     const form: FormModel = {

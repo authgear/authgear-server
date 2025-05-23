@@ -51,7 +51,10 @@ import { formatDuration, parseDuration } from "../../util/duration";
 import HorizontalDivider from "../../HorizontalDivider";
 import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";
 import { useSystemConfig } from "../../context/SystemConfigContext";
-import { RedMessageBar_RemindConfigureSMSProviderInNonSMSProviderScreen } from "../../RedMessageBar";
+import {
+  RedMessageBar_RemindConfigureSMSProviderInNonSMSProviderScreen,
+  RedMessageBar_RemindConfigureSMTPInNonSMTPConfigurationScreen,
+} from "../../RedMessageBar";
 
 interface AuthenticatorTypeFormState<T> {
   isChecked: boolean;
@@ -94,6 +97,7 @@ interface FeatureConfigFormState {
 
 interface SecretConfigFormState {
   smsProviderConfigured: boolean;
+  smtpConfigured: boolean;
 }
 
 interface FormState
@@ -347,6 +351,7 @@ const MFAConfigurationContent: React.VFC<MFAConfigurationContentProps> =
       authenticatorPasswordConfig,
 
       smsProviderConfigured,
+      smtpConfigured,
     } = state;
     const { renderToString } = useContext(Context);
     const {
@@ -377,6 +382,12 @@ const MFAConfigurationContent: React.VFC<MFAConfigurationContentProps> =
     const isSMSRequiredForSomeEnabledFeatures = useMemo(() => {
       return secondary
         .filter((c) => c.type === "oob_otp_sms")
+        .some((c) => c.isChecked);
+    }, [secondary]);
+
+    const isSMTPRequiredForSomeEnabledFeatures = useMemo(() => {
+      return secondary
+        .filter((c) => c.type === "oob_otp_email")
         .some((c) => c.isChecked);
     }, [secondary]);
 
@@ -506,6 +517,13 @@ const MFAConfigurationContent: React.VFC<MFAConfigurationContentProps> =
           isSMSRequiredForSomeEnabledFeatures &&
           !smsProviderConfigured ? (
             <RedMessageBar_RemindConfigureSMSProviderInNonSMSProviderScreen
+              className={styles.widget}
+            />
+          ) : null}
+          {isAuthgearOnce &&
+          isSMTPRequiredForSomeEnabledFeatures &&
+          !smtpConfigured ? (
+            <RedMessageBar_RemindConfigureSMTPInNonSMTPConfigurationScreen
               className={styles.widget}
             />
           ) : null}
@@ -665,6 +683,7 @@ const MFAConfigurationScreen: React.VFC = function MFAConfigurationScreen() {
           null ||
         secretConfig.secretConfig?.smsProviderSecrets
           ?.customSMSProviderCredentials != null,
+      smtpConfigured: secretConfig.secretConfig?.smtpSecret != null,
       ...configForm.state,
     };
   }, [
@@ -672,6 +691,7 @@ const MFAConfigurationScreen: React.VFC = function MFAConfigurationScreen() {
     configForm.state,
     secretConfig.secretConfig?.smsProviderSecrets?.twilioCredentials,
     secretConfig.secretConfig?.smsProviderSecrets?.customSMSProviderCredentials,
+    secretConfig.secretConfig?.smtpSecret,
   ]);
 
   const form: FormModel = {

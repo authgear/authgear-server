@@ -62,3 +62,27 @@ export function RedMessageBar_RemindConfigureSMSProviderInSMSProviderScreen(
     </RedMessageBar>
   );
 }
+
+export function RedMessageBar_RemindConfigureSMTPInSMTPConfigurationScreen(
+  props: IMessageBarProps
+): React.ReactElement {
+  return (
+    <RedMessageBar {...props}>
+      <FormattedMessage id="RedMessageBar.remind-configure-smtp-in-smtp-configuration-screen" />
+    </RedMessageBar>
+  );
+}
+
+export function RedMessageBar_RemindConfigureSMTPInNonSMTPConfigurationScreen(
+  props: IMessageBarProps
+): React.ReactElement {
+  const { appID } = useParams() as { appID: string };
+  return (
+    <RedMessageBar {...props}>
+      <FormattedMessage
+        id="RedMessageBar.remind-configure-smtp-in-non-smtp-configuration-screen"
+        values={{ to: `/project/${appID}/advanced/smtp` }}
+      />
+    </RedMessageBar>
+  );
+}
