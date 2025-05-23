@@ -41,7 +41,7 @@ func ConfigureSettingsRoute(route httproute.Route) httproute.Route {
 }
 
 type SettingsEndpointsProvider interface {
-	SSOCallbackURL(provider string) *url.URL
+	SSOCallbackURL(alias string, isDemo bool) *url.URL
 }
 
 type SettingsOAuthStateStore interface {

@@ -1,3 +1,4 @@
+import cn from "classnames";
 import {
   Cross2Icon,
   CheckCircledIcon,
@@ -12,6 +13,7 @@ import { semanticToRadixColor } from "../../../util/radix";
 export type CalloutType = "error" | "success";
 
 export interface CalloutProps {
+  className?: string;
   type: CalloutType;
   text?: React.ReactNode;
   showCloseButton?: boolean;
@@ -36,6 +38,7 @@ function CalloutIcon({ color }: { color: CalloutType }) {
 }
 
 export function Callout({
+  className,
   type,
   text,
   showCloseButton = true,
@@ -48,7 +51,7 @@ export function Callout({
 
   return (
     <RadixCallout.Root
-      className={styles.calloutRoot}
+      className={cn(styles.calloutRoot, className)}
       color={semanticToRadixColor(typeToSemantic(type))}
       size="2"
       variant="surface"
@@ -79,7 +82,12 @@ export function useCalloutToast(): {
 
   const showToast = useCallback(
     (props: CalloutProps) => {
-      registerToast(<Callout {...props} />);
+      registerToast(
+        <Callout
+          {...props}
+          className={cn(props.className, styles["calloutRoot--toast"])}
+        />
+      );
     },
     [registerToast]
   );

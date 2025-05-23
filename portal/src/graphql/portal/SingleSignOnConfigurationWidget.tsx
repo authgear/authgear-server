@@ -28,6 +28,9 @@ import {
   OAuthProviderFormModel,
   SSOProviderFormState,
 } from "../../hook/useOAuthProviderForm";
+import { Badge } from "../../components/v2/Badge/Badge";
+import { Callout } from "../../components/v2/Callout/Callout";
+import { isOAuthProviderMissingCredential } from "../../model/oauthProviders";
 
 const MASKED_SECRET = "***************";
 
@@ -61,6 +64,7 @@ interface OAuthProviderInfo {
   titleId: string;
   subtitleId?: string;
   descriptionId: string;
+  inactiveMessageId: string;
 }
 
 const TEXT_FIELD_STYLE = { errorMessage: { whiteSpace: "pre" } };
@@ -85,6 +89,8 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
     isSecretFieldTextArea: true,
     titleId: "AddSingleSignOnConfigurationScreen.card.apple.title",
     descriptionId: "AddSingleSignOnConfigurationScreen.card.apple.description",
+    inactiveMessageId:
+      "SingleSignOnConfigurationWidget.providers.apple.inactiveMessage",
   },
   google: {
     providerType: "google",
@@ -99,6 +105,8 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
     isSecretFieldTextArea: false,
     titleId: "AddSingleSignOnConfigurationScreen.card.google.title",
     descriptionId: "AddSingleSignOnConfigurationScreen.card.google.description",
+    inactiveMessageId:
+      "SingleSignOnConfigurationWidget.providers.google.inactiveMessage",
   },
   facebook: {
     providerType: "facebook",
@@ -114,6 +122,8 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
     titleId: "AddSingleSignOnConfigurationScreen.card.facebook.title",
     descriptionId:
       "AddSingleSignOnConfigurationScreen.card.facebook.description",
+    inactiveMessageId:
+      "SingleSignOnConfigurationWidget.providers.facebook.inactiveMessage",
   },
   github: {
     providerType: "github",
@@ -129,6 +139,8 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
     isSecretFieldTextArea: false,
     titleId: "AddSingleSignOnConfigurationScreen.card.github.title",
     descriptionId: "AddSingleSignOnConfigurationScreen.card.github.description",
+    inactiveMessageId:
+      "SingleSignOnConfigurationWidget.providers.github.inactiveMessage",
   },
   linkedin: {
     providerType: "linkedin",
@@ -144,6 +156,8 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
     titleId: "AddSingleSignOnConfigurationScreen.card.linkedin.title",
     descriptionId:
       "AddSingleSignOnConfigurationScreen.card.linkedin.description",
+    inactiveMessageId:
+      "SingleSignOnConfigurationWidget.providers.linkedin.inactiveMessage",
   },
   azureadv2: {
     providerType: "azureadv2",
@@ -161,6 +175,8 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
     titleId: "AddSingleSignOnConfigurationScreen.card.azureadv2.title",
     descriptionId:
       "AddSingleSignOnConfigurationScreen.card.azureadv2.description",
+    inactiveMessageId:
+      "SingleSignOnConfigurationWidget.providers.azureadv2.inactiveMessage",
   },
   azureadb2c: {
     providerType: "azureadb2c",
@@ -180,6 +196,8 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
     titleId: "AddSingleSignOnConfigurationScreen.card.azureadb2c.title",
     descriptionId:
       "AddSingleSignOnConfigurationScreen.card.azureadb2c.description",
+    inactiveMessageId:
+      "SingleSignOnConfigurationWidget.providers.azureadb2c.inactiveMessage",
   },
   adfs: {
     providerType: "adfs",
@@ -196,6 +214,8 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
     isSecretFieldTextArea: false,
     titleId: "AddSingleSignOnConfigurationScreen.card.adfs.title",
     descriptionId: "AddSingleSignOnConfigurationScreen.card.adfs.description",
+    inactiveMessageId:
+      "SingleSignOnConfigurationWidget.providers.adfs.inactiveMessage",
   },
   "wechat.web": {
     providerType: "wechat",
@@ -215,6 +235,8 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
     subtitleId: "AddSingleSignOnConfigurationScreen.card.wechat.web.subtitle",
     descriptionId:
       "AddSingleSignOnConfigurationScreen.card.wechat.web.description",
+    inactiveMessageId:
+      "SingleSignOnConfigurationWidget.providers.wechat.web.inactiveMessage",
   },
   "wechat.mobile": {
     providerType: "wechat",
@@ -235,6 +257,8 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
       "AddSingleSignOnConfigurationScreen.card.wechat.mobile.subtitle",
     descriptionId:
       "AddSingleSignOnConfigurationScreen.card.wechat.mobile.description",
+    inactiveMessageId:
+      "SingleSignOnConfigurationWidget.providers.wechat.mobile.inactiveMessage",
   },
 };
 
@@ -249,6 +273,34 @@ const OAuthClientIcon: React.VFC<OAuthClientIconProps> =
     const { iconClassName } = oauthProviders[providerItemKey];
     return <i className={cn("fab", iconClassName, styles.widgetLabelIcon)} />;
   };
+
+function ProviderStatus({
+  providerConfig,
+}: {
+  providerConfig: OAuthSSOProviderConfig;
+}) {
+  if (providerConfig.missing_credential_allowed) {
+    return (
+      <Badge
+        size="1"
+        variant="error"
+        text={
+          <FormattedMessage id="SingleSignOnConfigurationScreen.providerStatus.inactive" />
+        }
+      />
+    );
+  }
+  // TODO(tung): Handle demo status
+  return (
+    <Badge
+      size="1"
+      variant="success"
+      text={
+        <FormattedMessage id="SingleSignOnConfigurationScreen.providerStatus.active" />
+      }
+    />
+  );
+}
 
 export function useSingleSignOnConfigurationWidget(
   initialAlias: string,
@@ -308,9 +360,19 @@ export function useSingleSignOnConfigurationWidget(
   );
 
   const onChange = useCallback(
-    (config: OAuthSSOProviderConfig, secret: SSOProviderFormSecretViewModel) =>
+    (
+      newConfig: OAuthSSOProviderConfig,
+      secret: SSOProviderFormSecretViewModel
+    ) =>
       setState((state) =>
         produce(state, (state) => {
+          const config = produce(newConfig, (config) => {
+            config.missing_credential_allowed =
+              isOAuthProviderMissingCredential(config, secret)
+                ? true
+                : undefined;
+          });
+
           if (providerIndex === -1) {
             state.providers.push({
               config,
@@ -369,6 +431,7 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
       onChange,
       disabled: featureDisabled,
     } = props;
+    const isInactive = Boolean(config.missing_credential_allowed);
 
     const { renderToString } = useContext(Context);
 
@@ -377,8 +440,11 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
       config.app_type
     );
 
-    const { isSecretFieldTextArea, fields: visibleFields } =
-      oauthProviders[providerItemKey];
+    const {
+      isSecretFieldTextArea,
+      fields: visibleFields,
+      inactiveMessageId,
+    } = oauthProviders[providerItemKey];
 
     const messageID = "OAuthBranding." + providerItemKey;
 
@@ -505,6 +571,14 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
         </div>
         {featureDisabled ? (
           <FeatureDisabledMessageBar messageID="FeatureConfig.disabled" />
+        ) : null}
+        {isInactive ? (
+          <Callout
+            className="w-full"
+            type="error"
+            text={<FormattedMessage id={inactiveMessageId} />}
+            showCloseButton={false}
+          />
         ) : null}
         {visibleFields.has("alias") ? (
           <FormTextField
@@ -844,23 +918,32 @@ export const OAuthClientRow: React.VFC<OAuthClientRowProps> =
 
     return (
       <div className={cn(styles.rowContainer, className)}>
-        <div className={styles.rowIcon}>
-          <OAuthClientIcon providerItemKey={providerItemKey} />
+        <div className={styles.rowColumn}>
+          <div className={styles.rowIcon}>
+            <OAuthClientIcon providerItemKey={providerItemKey} />
+          </div>
+          <div className={styles.rowContent}>
+            <div className={styles.rowName}>
+              <Text variant="medium" className={styles.rowTitle} block={true}>
+                {`${renderToString(titleId)}${
+                  subtitleId != null ? ` (${renderToString(subtitleId)})` : ""
+                }`}
+                {showAlias ? ` - ${providerConfig.alias}` : null}
+              </Text>
+            </div>
+            <div className={styles.rowDescription}>
+              <Text
+                variant="small"
+                className={styles.rowDescription}
+                block={true}
+              >
+                <FormattedMessage id={descriptionId} />
+              </Text>
+            </div>
+          </div>
         </div>
-        <div className={styles.rowContent}>
-          <div className={styles.rowName}>
-            <Text variant="medium" className={styles.rowTitle}>
-              {`${renderToString(titleId)}${
-                subtitleId != null ? ` (${renderToString(subtitleId)})` : ""
-              }`}
-              {showAlias ? ` - ${providerConfig.alias}` : null}
-            </Text>
-          </div>
-          <div className={styles.rowDescription}>
-            <Text variant="small" className={styles.rowDescription}>
-              <FormattedMessage id={descriptionId} />
-            </Text>
-          </div>
+        <div className={styles.rowColumn}>
+          <ProviderStatus providerConfig={providerConfig} />
         </div>
         <div className={styles.rowActions}>
           <ActionButton
@@ -879,5 +962,25 @@ export const OAuthClientRow: React.VFC<OAuthClientRowProps> =
       </div>
     );
   };
+
+export const OAuthClientRowHeader: React.VFC<{ className?: string }> = ({
+  className,
+}) => {
+  return (
+    <div className={cn(styles.rowContainer, className)}>
+      <div className={styles.rowColumn}>
+        <Text variant="medium" className={styles.rowHeader} block={true}>
+          <FormattedMessage id="SingleSignOnConfigurationScreen.header.provider" />
+        </Text>
+      </div>
+      <div className={styles.rowColumn}>
+        <Text variant="medium" className={styles.rowHeader} block={true}>
+          <FormattedMessage id="SingleSignOnConfigurationScreen.header.configuration" />
+        </Text>
+      </div>
+      <div className={styles.rowActions}></div>
+    </div>
+  );
+};
 
 export default SingleSignOnConfigurationWidget;

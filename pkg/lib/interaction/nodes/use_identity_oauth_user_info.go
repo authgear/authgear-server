@@ -56,7 +56,7 @@ func (e *EdgeUseIdentityOAuthUserInfo) Instantiate(goCtx context.Context, ctx *i
 		return nil, fmt.Errorf("invalid nonce")
 	}
 
-	redirectURI := ctx.OAuthRedirectURIBuilder.SSOCallbackURL(alias)
+	redirectURI := ctx.OAuthRedirectURIBuilder.SSOCallbackURL(alias, false)
 
 	providerConfig, err := ctx.OAuthProviderFactory.GetProviderConfig(alias)
 	if err != nil {

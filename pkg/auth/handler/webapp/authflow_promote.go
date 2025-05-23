@@ -39,7 +39,7 @@ func ConfigureAuthflowPromoteRoute(route httproute.Route) httproute.Route {
 }
 
 type AuthflowPromoteEndpointsProvider interface {
-	SSOCallbackURL(alias string) *url.URL
+	SSOCallbackURL(alias string, isDemo bool) *url.URL
 }
 
 type AuthflowPromoteHandler struct {
@@ -85,7 +85,7 @@ func (h *AuthflowPromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 
 	handlers.PostAction("oauth", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		providerAlias := r.Form.Get("x_provider_alias")
-		callbackURL := h.Endpoints.SSOCallbackURL(providerAlias).String()
+		callbackURL := h.Endpoints.SSOCallbackURL(providerAlias, false).String()
 		input := map[string]interface{}{
 			"identification": "oauth",
 			"alias":          providerAlias,

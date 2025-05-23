@@ -13,6 +13,7 @@ const meta = {
     },
   },
   args: {
+    className: "w-90",
     text: "Some text in the callout",
     showCloseButton: true,
   },

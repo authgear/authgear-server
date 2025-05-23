@@ -32,6 +32,8 @@ type IdentificationOption struct {
 	Alias string `json:"alias,omitempty"`
 	// WechatAppType is specific to OAuth.
 	WechatAppType wechat.AppType `json:"wechat_app_type,omitempty"`
+	// ProviderStatus is specific to OAuth.
+	ProviderStatus OAuthProviderStatus `json:"provider_status,omitempty"`
 
 	// WebAuthnRequestOptions is specific to Passkey.
 	RequestOptions *model.WebAuthnRequestOptions `json:"request_options,omitempty"`
@@ -54,16 +56,19 @@ func NewIdentificationOptionLoginID(i config.AuthenticationFlowIdentification, a
 	}
 }
 
-func NewIdentificationOptionsOAuth(oauthConfig *config.OAuthSSOConfig, oauthFeatureConfig *config.OAuthSSOProvidersFeatureConfig, authflowCfg *config.AuthenticationFlowBotProtection, appCfg *config.BotProtectionConfig) []IdentificationOption {
+func NewIdentificationOptionsOAuth(oauthConfig *config.OAuthSSOConfig, oauthFeatureConfig *config.OAuthSSOProvidersFeatureConfig, authflowCfg *config.AuthenticationFlowBotProtection, appCfg *config.BotProtectionConfig, demoCredentials *config.SSOOAuthDemoCredentials) []IdentificationOption {
 	output := []IdentificationOption{}
 	for _, p := range oauthConfig.Providers {
 		if !identity.IsOAuthSSOProviderTypeDisabled(p.AsProviderConfig(), oauthFeatureConfig) {
+			status := p.ComputeProviderStatus(demoCredentials)
+
 			output = append(output, IdentificationOption{
 				Identification: config.AuthenticationFlowIdentificationOAuth,
 				BotProtection:  GetBotProtectionData(authflowCfg, appCfg),
 				ProviderType:   p.AsProviderConfig().Type(),
 				Alias:          p.Alias(),
 				WechatAppType:  wechat.ProviderConfig(p).AppType(),
+				ProviderStatus: status,
 			})
 		}
 	}

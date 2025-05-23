@@ -239,8 +239,9 @@ type UserFacade interface {
 }
 
 type Dependencies struct {
-	Config        *config.AppConfig
-	FeatureConfig *config.FeatureConfig
+	Config                  *config.AppConfig
+	FeatureConfig           *config.FeatureConfig
+	SSOOAuthDemoCredentials *config.SSOOAuthDemoCredentials
 
 	Clock      clock.Clock
 	RemoteIP   httputil.RemoteIP

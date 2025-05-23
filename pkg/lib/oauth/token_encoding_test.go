@@ -72,8 +72,10 @@ func TestAccessToken(t *testing.T) {
 			Clock:         clock.NewMockClockAtTime(now),
 			IDTokenIssuer: mockIDTokenIssuer,
 			BaseURL: &endpoints.Endpoints{
-				HTTPHost:  "test1.authgear.com",
-				HTTPProto: "http",
+				OAuthEndpoints: &endpoints.OAuthEndpoints{
+					HTTPHost:  "test1.authgear.com",
+					HTTPProto: "http",
+				},
 			},
 			Events:     mockEventService,
 			Identities: mockIdentityService,

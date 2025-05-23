@@ -42,7 +42,12 @@ var _ = Schema.Add("LoginIDConfig", `
 
 type LoginIDConfig struct {
 	Types *LoginIDTypesConfig `json:"types,omitempty"`
-	Keys  []LoginIDKeyConfig  `json:"keys,omitempty"`
+	// NOTE(tung): omitempty cannot be applied to `keys`, because empty array is a valid config.
+	// When the array is empty and omitempty is set, the key is omitted in the output of portal graphql api.
+	// As a result, when portal save the config, `keys` will be undefined, and the value in go will be nil.
+	// And when the value is nil, default will be applied and added email to keys, which is unexpected.
+	// Use `omitzero` instead so empty array will be outputted, while nil will still be omitted.
+	Keys []LoginIDKeyConfig `json:"keys,omitzero"`
 }
 
 func (c *LoginIDConfig) SetDefaults() {
@@ -277,13 +282,24 @@ var _ = Schema.Add("OAuthSSOConfig", `
 }
 `)
 
-func OAuthSSOProviderConfigSchemaBuilder(builder validation.SchemaBuilder) validation.SchemaBuilder {
+func OAuthSSOProviderConfigSchemaBuilder(providerSchemaBuilder validation.SchemaBuilder) validation.SchemaBuilder {
+	builder := validation.SchemaBuilder{}
 	builder.Properties().
 		Property("alias", validation.SchemaBuilder{}.Type(validation.TypeString).MinLength(1)).
 		Property("modify_disabled", validation.SchemaBuilder{}.Type(validation.TypeBoolean)).
 		Property("create_disabled", validation.SchemaBuilder{}.Type(validation.TypeBoolean)).
-		Property("delete_disabled", validation.SchemaBuilder{}.Type(validation.TypeBoolean))
+		Property("delete_disabled", validation.SchemaBuilder{}.Type(validation.TypeBoolean)).
+		Property("missing_credential_allowed", validation.SchemaBuilder{}.Type(validation.TypeBoolean))
 	builder.AddRequired("alias")
+
+	_if := validation.SchemaBuilder{}
+	_if.Properties().
+		Property("missing_credential_allowed", validation.SchemaBuilder{}.Const(true))
+	_if.Required("missing_credential_allowed")
+
+	builder.AllOf(validation.SchemaBuilder{}.If(_if).
+		Else(providerSchemaBuilder))
+
 	return builder
 }
 
@@ -327,6 +343,36 @@ func (c OAuthSSOProviderConfig) CreateDisabled() bool {
 }
 func (c OAuthSSOProviderConfig) DeleteDisabled() bool {
 	return c["delete_disabled"].(bool)
+}
+func (c OAuthSSOProviderConfig) IsMissingCredentialAllowed() bool {
+	v, ok := c["missing_credential_allowed"].(bool)
+	if !ok {
+		return false
+	}
+	return v
+}
+
+type OAuthProviderStatus string
+
+const (
+	OAuthProviderStatusActive               OAuthProviderStatus = "active"
+	OAuthProviderStatusMissingCredentials   OAuthProviderStatus = "missing_credentials"
+	OAuthProviderStatusUsingDemoCredentials OAuthProviderStatus = "using_demo_credentials" // nolint: gosec
+)
+
+func (c OAuthSSOProviderConfig) ComputeProviderStatus(demoCredentials *SSOOAuthDemoCredentials) OAuthProviderStatus {
+	if !c.IsMissingCredentialAllowed() {
+		return OAuthProviderStatusActive
+	}
+	if demoCredentials == nil {
+		return OAuthProviderStatusMissingCredentials
+	}
+	typ := c.AsProviderConfig().Type()
+	_, ok := demoCredentials.LookupByProviderType(typ)
+	if ok {
+		return OAuthProviderStatusUsingDemoCredentials
+	}
+	return OAuthProviderStatusMissingCredentials
 }
 
 type OAuthSSOConfig struct {

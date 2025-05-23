@@ -18,17 +18,19 @@ import (
 
 func TestDumpSchema(t *testing.T) {
 	Convey("DumpSchema", t, func() {
-		s, err := config.DumpSchema()
+		_, err := config.DumpSchema()
 		So(err, ShouldBeNil)
-		t.Logf("Dumping the schema of authgear.yaml\n%s", s)
+		// Uncomment to see the current config schema
+		// t.Logf("Dumping the schema of authgear.yaml\n%s", s)
 	})
 }
 
 func TestDumpSecretConfigSchema(t *testing.T) {
 	Convey("DumpSecretConfigSchema", t, func() {
-		s, err := config.DumpSecretConfigSchema()
+		_, err := config.DumpSecretConfigSchema()
 		So(err, ShouldBeNil)
-		t.Logf("Dumping the schema of authgear.secret.yaml\n%s", s)
+		// Uncomment to see the current secret schema
+		// t.Logf("Dumping the schema of authgear.secret.yaml\n%s", s)
 	})
 }
 

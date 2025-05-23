@@ -65,6 +65,10 @@
   @apply p-3;
 }
 
+.rowColumn {
+  @apply flex flex-1 gap-3 items-center;
+}
+
 .rowIcon {
   @apply flex items-center justify-center;
   @apply w-6 h-6;
@@ -75,15 +79,18 @@
 }
 
 .rowContent {
-  @apply flex-1;
   @apply flex flex-col;
 }
 
 .rowDescription {
-  @apply mt-0.5;
   @apply text-tertiary;
 }
 
 .rowActions {
-  @apply flex items-center gap-x-3;
+  @apply w-30;
+  @apply flex items-center justify-end gap-x-3;
+}
+
+.rowHeader {
+  @apply font-semibold;
 }

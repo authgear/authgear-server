@@ -877,6 +877,12 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 		Clock:           clockClock,
 		Random:          rand,
 	}
+	sharedAuthgearEndpoint := environmentConfig.SharedAuthgearEndpoint
+	oAuthEndpoints := &endpoints.OAuthEndpoints{
+		HTTPHost:               httpHost,
+		HTTPProto:              httpProto,
+		SharedAuthgearEndpoint: sharedAuthgearEndpoint,
+	}
 	globalUIImplementation := environmentConfig.UIImplementation
 	globalUISettingsImplementation := environmentConfig.UISettingsImplementation
 	uiImplementationService := &web.UIImplementationService{
@@ -885,8 +891,7 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 		GlobalUISettingsImplementation: globalUISettingsImplementation,
 	}
 	endpointsEndpoints := &endpoints.Endpoints{
-		HTTPHost:                httpHost,
-		HTTPProto:               httpProto,
+		OAuthEndpoints:          oAuthEndpoints,
 		UIImplementationService: uiImplementationService,
 	}
 	oauthclientResolver := &oauthclient.Resolver{

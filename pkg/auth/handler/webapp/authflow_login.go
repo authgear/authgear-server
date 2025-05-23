@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-
 	"net/url"
 
 	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
@@ -43,7 +42,7 @@ func ConfigureAuthflowLoginRoute(route httproute.Route) httproute.Route {
 }
 
 type AuthflowLoginEndpointsProvider interface {
-	SSOCallbackURL(alias string) *url.URL
+	SSOCallbackURL(alias string, isDemo bool) *url.URL
 }
 
 type AuthflowLoginViewModel struct {
@@ -92,7 +91,7 @@ func (h *AuthflowLoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	}
 
 	oauthPostAction := func(ctx context.Context, s *webapp.Session, providerAlias string) error {
-		callbackURL := h.Endpoints.SSOCallbackURL(providerAlias).String()
+		callbackURL := h.Endpoints.SSOCallbackURL(providerAlias, false).String()
 		input := map[string]interface{}{
 			"identification": "oauth",
 			"alias":          providerAlias,

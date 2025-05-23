@@ -12,7 +12,10 @@ import {
   Context as IntlContext,
   FormattedMessage,
 } from "@oursky/react-messageformat";
-import { OAuthClientRow } from "./SingleSignOnConfigurationWidget";
+import {
+  OAuthClientRow,
+  OAuthClientRowHeader,
+} from "./SingleSignOnConfigurationWidget";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import ScreenContent from "../../ScreenContent";
@@ -153,20 +156,26 @@ const SingleSignOnConfigurationContent: React.VFC<SingleSignOnConfigurationConte
         <ShowOnlyIfSIWEIsDisabled className={styles.widget}>
           <div className={styles.content}>
             {form.state.providers.length > 0 ? (
-              form.state.providers.map((provider) => (
-                <OAuthClientRow
+              form.state.providers.map((provider, idx) => (
+                <React.Fragment
                   key={`${provider.config.type}/${provider.config.alias}`}
-                  className={styles.contentItem}
-                  showAlias={providerKeysWithDuplications.has(
-                    createOAuthSSOProviderItemKey(
-                      provider.config.type,
-                      provider.config.app_type
-                    )
-                  )}
-                  providerConfig={provider.config}
-                  onEditClick={onEditConnection}
-                  onDeleteClick={onDeleteConnection}
-                />
+                >
+                  {idx === 0 ? (
+                    <OAuthClientRowHeader className={styles.contentHeader} />
+                  ) : null}
+                  <OAuthClientRow
+                    className={styles.contentItem}
+                    showAlias={providerKeysWithDuplications.has(
+                      createOAuthSSOProviderItemKey(
+                        provider.config.type,
+                        provider.config.app_type
+                      )
+                    )}
+                    providerConfig={provider.config}
+                    onEditClick={onEditConnection}
+                    onDeleteClick={onDeleteConnection}
+                  />
+                </React.Fragment>
               ))
             ) : (
               <div className={styles.emptyMessage}>

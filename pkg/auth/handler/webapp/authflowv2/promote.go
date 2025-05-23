@@ -35,7 +35,7 @@ func ConfigureAuthflowV2PromoteRoute(route httproute.Route) httproute.Route {
 }
 
 type AuthflowV2PromoteEndpointsProvider interface {
-	SSOCallbackURL(alias string) *url.URL
+	SSOCallbackURL(alias string, isDemo bool) *url.URL
 }
 
 type AuthflowV2PromoteHandler struct {
@@ -43,7 +43,6 @@ type AuthflowV2PromoteHandler struct {
 	BaseViewModel     *viewmodels.BaseViewModeler
 	AuthflowViewModel *viewmodels.AuthflowViewModeler
 	Renderer          handlerwebapp.Renderer
-	Endpoints         AuthflowV2PromoteEndpointsProvider
 }
 
 func (h *AuthflowV2PromoteHandler) GetData(
@@ -86,7 +85,10 @@ func (h *AuthflowV2PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 
 	handlers.PostAction("oauth", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		providerAlias := r.Form.Get("x_provider_alias")
-		callbackURL := h.Endpoints.SSOCallbackURL(providerAlias).String()
+		callbackURL, err := h.Controller.GetSSOCallbackURL(providerAlias)
+		if err != nil {
+			return err
+		}
 		input := map[string]interface{}{
 			"identification": "oauth",
 			"alias":          providerAlias,
@@ -94,7 +96,7 @@ func (h *AuthflowV2PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 			"response_mode":  oauthrelyingparty.ResponseModeFormPost,
 		}
 
-		err := handlerwebapp.HandleIdentificationBotProtection(ctx, config.AuthenticationFlowIdentificationOAuth, screen.StateTokenFlowResponse, r.Form, input)
+		err = handlerwebapp.HandleIdentificationBotProtection(ctx, config.AuthenticationFlowIdentificationOAuth, screen.StateTokenFlowResponse, r.Form, input)
 		if err != nil {
 			return err
 		}

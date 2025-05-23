@@ -5,8 +5,10 @@ import (
 )
 
 type WebappOAuthState struct {
+	AppID            string                  `json:"app_id"`
 	UIImplementation config.UIImplementation `json:"ui_implementation"`
 	WebSessionID     string                  `json:"web_session_id"`
+	ProviderAlias    string                  `json:"provider_alias"`
 
 	// authflow, authflowv2 specific fields
 	XStep            string `json:"x_step"`

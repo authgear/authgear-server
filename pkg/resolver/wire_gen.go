@@ -225,6 +225,12 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	sharedAuthgearEndpoint := environmentConfig.SharedAuthgearEndpoint
+	oAuthEndpoints := &endpoints.OAuthEndpoints{
+		HTTPHost:               httpHost,
+		HTTPProto:              httpProto,
+		SharedAuthgearEndpoint: sharedAuthgearEndpoint,
+	}
 	uiConfig := appConfig.UI
 	globalUIImplementation := environmentConfig.UIImplementation
 	globalUISettingsImplementation := environmentConfig.UISettingsImplementation
@@ -234,8 +240,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		GlobalUISettingsImplementation: globalUISettingsImplementation,
 	}
 	endpointsEndpoints := &endpoints.Endpoints{
-		HTTPHost:                httpHost,
-		HTTPProto:               httpProto,
+		OAuthEndpoints:          oAuthEndpoints,
 		UIImplementationService: uiImplementationService,
 	}
 	userStore := &user.Store{

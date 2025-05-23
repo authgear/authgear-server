@@ -74,7 +74,7 @@ func checkConfigSource(ctx context.Context, cs *ConfigSource) error {
 		},
 	}
 
-	if err := baseSecrets.Overlay(secretsConfig).Validate(appConfig); err != nil {
+	if err := baseSecrets.Overlay(secretsConfig).Validate(ctx, appConfig); err != nil {
 		return fmt.Errorf("invalid secrets config: %w", err)
 	}
 

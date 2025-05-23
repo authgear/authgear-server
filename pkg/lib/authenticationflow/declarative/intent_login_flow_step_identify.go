@@ -88,6 +88,7 @@ func NewIntentLoginFlowStepIdentify(ctx context.Context, deps *authflow.Dependen
 			oauthOptions := NewIdentificationOptionsOAuth(
 				deps.Config.Identity.OAuth,
 				deps.FeatureConfig.Identity.OAuth.Providers, b.BotProtection, deps.Config.BotProtection,
+				deps.SSOOAuthDemoCredentials,
 			)
 			options = append(options, oauthOptions...)
 		case config.AuthenticationFlowIdentificationPasskey:

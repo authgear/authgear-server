@@ -10,24 +10,29 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/urlutil"
 )
 
+type OAuthEndpoints struct {
+	HTTPHost               httputil.HTTPHost
+	HTTPProto              httputil.HTTPProto
+	SharedAuthgearEndpoint config.SharedAuthgearEndpoint
+}
+
 type EndpointsUIImplementationService interface {
 	GetUIImplementation() config.UIImplementation
 }
 
 type Endpoints struct {
-	HTTPHost                httputil.HTTPHost
-	HTTPProto               httputil.HTTPProto
+	*OAuthEndpoints
 	UIImplementationService EndpointsUIImplementationService
 }
 
-func (e *Endpoints) Origin() *url.URL {
+func (e *OAuthEndpoints) Origin() *url.URL {
 	return &url.URL{
 		Host:   string(e.HTTPHost),
 		Scheme: string(e.HTTPProto),
 	}
 }
 
-func (e *Endpoints) urlOf(relPath string) *url.URL {
+func (e *OAuthEndpoints) urlOf(relPath string) *url.URL {
 	// If we do not set Path = "/", then in urlOf,
 	// Path will have no leading /.
 	// It is problematic when Path is used in comparison.
@@ -41,6 +46,21 @@ func (e *Endpoints) urlOf(relPath string) *url.URL {
 	// Because String() will add leading / to make the URL legal.
 	u := e.Origin()
 	u.Path = path.Join("/", relPath)
+	return u
+}
+
+func (e *OAuthEndpoints) SSOCallbackEndpointURL() *url.URL { return e.urlOf("sso/oauth2/callback") }
+func (e *OAuthEndpoints) SSOCallbackURL(alias string, isDemo bool) *url.URL {
+	if isDemo {
+		u, err := url.Parse(string(e.SharedAuthgearEndpoint))
+		if err != nil {
+			panic(fmt.Errorf("SHARED_AUTHGEAR_ENDPOINT is not a valid uri: %w", err))
+		}
+		u.Path = path.Join(u.Path, "/noproject/sso/oauth2/callback")
+		return u
+	}
+	u := e.SSOCallbackEndpointURL()
+	u.Path = path.Join(u.Path, url.PathEscape(alias))
 	return u
 }
 
@@ -101,7 +121,6 @@ func (e *Endpoints) VerifyBotProtectionEndpointURL() *url.URL {
 		panic(fmt.Errorf("unexpected ui implementation %s", uiImpl))
 	}
 }
-func (e *Endpoints) SSOCallbackEndpointURL() *url.URL { return e.urlOf("sso/oauth2/callback") }
 
 func (e *Endpoints) WeChatAuthorizeEndpointURL() *url.URL { return e.urlOf("sso/wechat/auth") }
 func (e *Endpoints) WeChatCallbackEndpointURL() *url.URL {
@@ -183,12 +202,6 @@ func (e *Endpoints) SettingsEditLoginIDUsername(loginIDKey string) *url.URL {
 	q := u.Query()
 	q.Set("q_login_id_key", loginIDKey)
 	u.RawQuery = q.Encode()
-	return u
-}
-
-func (e *Endpoints) SSOCallbackURL(alias string) *url.URL {
-	u := e.SSOCallbackEndpointURL()
-	u.Path = path.Join(u.Path, url.PathEscape(alias))
 	return u
 }
 

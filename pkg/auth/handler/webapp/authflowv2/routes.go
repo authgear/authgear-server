@@ -78,6 +78,8 @@ const (
 	// The following routes are dead ends.
 	AuthflowV2RouteAccountStatus   = "/authflow/v2/account_status"
 	AuthflowV2RouteNoAuthenticator = "/authflow/v2/no_authenticator"
+	// nolint:gosec
+	AuthflowV2RouteOAuthProviderMissingCredentials = "/authflow/v2/oauth_provider_missing_credential"
 
 	AuthflowV2RouteFinishFlow = "/authflow/v2/finish"
 
@@ -130,6 +132,7 @@ type AuthflowV2NavigatorOAuthStateStore interface {
 }
 
 type AuthflowV2Navigator struct {
+	AppID           config.AppID
 	Endpoints       AuthflowV2NavigatorEndpointsProvider
 	OAuthStateStore AuthflowV2NavigatorOAuthStateStore
 }
@@ -144,6 +147,8 @@ func (n *AuthflowV2Navigator) NavigateNonRecoverableError(r *http.Request, u *ur
 		u.Path = AuthflowV2RouteNoAuthenticator
 	case errors.Is(e, authflow.ErrFlowNotFound):
 		u.Path = n.Endpoints.ErrorEndpointURL().Path
+	case apierrors.IsKind(e, api.OAuthProviderMissingCredentials):
+		u.Path = AuthflowV2RouteOAuthProviderMissingCredentials
 	case apierrors.IsKind(e, webapp.WebUIInvalidSession):
 		// Show WebUIInvalidSession error in different page.
 		u.Path = n.Endpoints.ErrorEndpointURL().Path
@@ -351,10 +356,12 @@ func (n *AuthflowV2Navigator) navigateStepIdentify(ctx context.Context, s *webap
 			errorRedirectURI := url.URL{Path: r.URL.Path, RawQuery: r.URL.Query().Encode()}
 
 			state := &webappoauth.WebappOAuthState{
+				AppID:            string(n.AppID),
 				WebSessionID:     webSessionID,
 				UIImplementation: config.UIImplementationAuthflowV2,
 				XStep:            s.Screen.StateToken.XStep,
 				ErrorRedirectURI: errorRedirectURI.String(),
+				ProviderAlias:    data.Alias,
 			}
 			stateToken, err := n.OAuthStateStore.GenerateState(ctx, state)
 			if err != nil {
