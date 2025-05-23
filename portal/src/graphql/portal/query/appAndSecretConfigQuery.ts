@@ -10,15 +10,13 @@ import { PortalAPIAppConfig, PortalAPISecretConfig } from "../../../types";
 import { Collaborator, EffectiveSecretConfig } from "../globalTypes.generated";
 import { Loadable } from "../../../hook/useLoadableView";
 
-export interface AppAndSecretConfigQueryResult
-  extends Pick<
-      QueryResult<
-        AppAndSecretConfigQueryQuery,
-        AppAndSecretConfigQueryQueryVariables
-      >,
-      "loading" | "error" | "refetch"
-    >,
-    Loadable {
+export interface AppAndSecretConfigQueryResult extends Loadable {
+  isLoading: boolean;
+  loadError: unknown;
+  refetch: QueryResult<
+    AppAndSecretConfigQueryQuery,
+    AppAndSecretConfigQueryQueryVariables
+  >["refetch"];
   rawAppConfig: PortalAPIAppConfig | null;
   rawAppConfigChecksum?: string;
   effectiveAppConfig: PortalAPIAppConfig | null;
@@ -62,8 +60,6 @@ export const useAppAndSecretConfigQuery = (
 
   return {
     ...queryData,
-    loading,
-    error,
     refetch,
     isLoading: loading,
     loadError: error,

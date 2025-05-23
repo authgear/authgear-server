@@ -690,7 +690,7 @@ const EditOAuthClientScreen1: React.VFC<{
 }> = function EditOAuthClientScreen1({ appID, clientID, secretToken }) {
   const form = useOAuthClientForm(appID, secretToken);
   const {
-    loading: appQueryLoading,
+    isLoading: appQueryLoading,
     samlIdpEntityID,
     secretConfig,
     rawAppConfig,

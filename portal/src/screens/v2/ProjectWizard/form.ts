@@ -386,7 +386,7 @@ export function useProjectWizardForm(
 
   const skip = existingAppNodeID == null;
   const {
-    error: appConfigLoadError,
+    loadError: appConfigLoadError,
     rawAppConfig,
     rawAppConfigChecksum,
     refetch: reloadAppConfig,

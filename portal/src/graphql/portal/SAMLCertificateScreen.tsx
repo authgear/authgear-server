@@ -108,8 +108,13 @@ export default function SAMLCertificateScreen(): React.ReactElement {
   const { appID } = useParams() as {
     appID: string;
   };
-  const { rawAppConfig, secretConfig, loading, error, refetch } =
-    useAppAndSecretConfigQuery(appID);
+  const {
+    rawAppConfig,
+    secretConfig,
+    isLoading: loading,
+    loadError: error,
+    refetch,
+  } = useAppAndSecretConfigQuery(appID);
 
   if (error) {
     return <ShowError error={error} onRetry={refetch} />;

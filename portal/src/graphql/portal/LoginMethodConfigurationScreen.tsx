@@ -3741,14 +3741,14 @@ const LoginMethodConfigurationScreen: React.VFC =
         configForm.isLoading ||
         resourceForm.isLoading ||
         featureConfig.loading ||
-        secretConfig.loading,
+        secretConfig.isLoading,
       isUpdating: configForm.isUpdating || resourceForm.isUpdating,
       isDirty: configForm.isDirty || resourceForm.isDirty,
       loadError:
         configForm.loadError ??
         resourceForm.loadError ??
         featureConfig.error ??
-        secretConfig.error,
+        secretConfig.loadError,
       updateError: configForm.updateError ?? resourceForm.updateError,
       state,
       setState: (fn) => {
