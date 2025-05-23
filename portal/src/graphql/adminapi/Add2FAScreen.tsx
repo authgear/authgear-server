@@ -173,8 +173,8 @@ const Add2FAScreen: React.VFC<Add2FAScreenProps> = function Add2FAScreen({
   } = useUserQuery(userID);
   const {
     effectiveAppConfig,
-    loading: loadingAppConfig,
-    error: appConfigError,
+    isLoading: loadingAppConfig,
+    loadError: appConfigError,
     refetch: refetchAppConfig,
   } = useAppAndSecretConfigQuery(appID);
 

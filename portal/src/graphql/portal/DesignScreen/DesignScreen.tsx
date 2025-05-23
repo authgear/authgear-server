@@ -1049,8 +1049,8 @@ const DesignScreen: React.VFC = function DesignScreen() {
   const { appID } = useParams() as { appID: string };
   const {
     effectiveAppConfig,
-    loading: appConfigLoading,
-    error: appConfigError,
+    isLoading: appConfigLoading,
+    loadError: appConfigError,
     refetch: reloadConfig,
   } = useAppAndSecretConfigQuery(appID);
   const form = useBrandDesignForm(appID);

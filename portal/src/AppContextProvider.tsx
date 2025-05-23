@@ -16,8 +16,12 @@ export default function AppContextProvider(
   const { appID: appNodeID } = useParams() as { appID: string };
 
   // NOTE: check if appID actually exist in authorized app list
-  const { effectiveAppConfig, viewer, error, loading } =
-    useAppAndSecretConfigQuery(appNodeID);
+  const {
+    effectiveAppConfig,
+    viewer,
+    loadError: error,
+    isLoading: loading,
+  } = useAppAndSecretConfigQuery(appNodeID);
 
   const appContextValue = useMemo(() => {
     return {

@@ -676,11 +676,11 @@ const MFAConfigurationScreen: React.VFC = function MFAConfigurationScreen() {
 
   const form: FormModel = {
     isLoading:
-      configForm.isLoading || featureConfig.loading || secretConfig.loading,
+      configForm.isLoading || featureConfig.loading || secretConfig.isLoading,
     isUpdating: configForm.isUpdating,
     isDirty: configForm.isDirty,
     loadError:
-      configForm.loadError ?? featureConfig.error ?? secretConfig.error,
+      configForm.loadError ?? featureConfig.error ?? secretConfig.loadError,
     updateError: configForm.updateError,
     state,
     setState: (fn) => {

@@ -114,8 +114,8 @@ export default function App2AppConfigurationScreen(): React.ReactElement {
   const { appID } = useParams() as { appID: string };
 
   const {
-    loading: isLoading,
-    error: loadError,
+    isLoading: isLoading,
+    loadError: loadError,
     effectiveAppConfig,
     refetch: reload,
   } = useAppAndSecretConfigQuery(appID);

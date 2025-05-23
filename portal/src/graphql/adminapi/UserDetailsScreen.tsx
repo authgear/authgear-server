@@ -698,8 +698,8 @@ const UserDetailsScreen: React.VFC = function UserDetailsScreen() {
   const { user, loading: loadingUser, error, refetch } = useUserQuery(userID);
   const {
     effectiveAppConfig,
-    loading: loadingAppConfig,
-    error: appConfigError,
+    isLoading: loadingAppConfig,
+    loadError: appConfigError,
     refetch: refetchAppConfig,
   } = useAppAndSecretConfigQuery(appID);
   const loading = loadingUser || loadingAppConfig;

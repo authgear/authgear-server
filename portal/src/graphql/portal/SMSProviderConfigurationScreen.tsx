@@ -695,8 +695,8 @@ function SMSProviderConfigurationScreen1({
 }) {
   const {
     effectiveAppConfig,
-    loading: loadingAppConfig,
-    error: appConfigError,
+    isLoading: loadingAppConfig,
+    loadError: appConfigError,
     refetch: refetchAppConfig,
     secretConfig,
   } = useAppAndSecretConfigQuery(appID, secretToken);
