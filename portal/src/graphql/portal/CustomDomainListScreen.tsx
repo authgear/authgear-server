@@ -729,11 +729,15 @@ const CustomDomainListScreen: React.VFC = function CustomDomainListScreen() {
     navigate(".", { replace: true });
   }, [navigate]);
 
-  const isloading = or_(fetchingDomains, form.isLoading, featureConfig.loading);
+  const isloading = or_(
+    fetchingDomains,
+    form.isLoading,
+    featureConfig.isLoading
+  );
 
   const error = nullishCoalesce(
     fetchDomainsError,
-    featureConfig.error,
+    featureConfig.loadError,
     form.loadError
   );
 

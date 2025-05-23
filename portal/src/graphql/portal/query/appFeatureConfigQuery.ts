@@ -9,15 +9,11 @@ import {
 } from "./appFeatureConfigQuery.generated";
 import { Loadable } from "../../../hook/useLoadableView";
 
-interface AppFeatureConfigQueryResult
-  extends Pick<
-      QueryResult<
-        AppFeatureConfigQueryQuery,
-        AppFeatureConfigQueryQueryVariables
-      >,
-      "loading" | "error" | "refetch"
-    >,
-    Loadable {
+interface AppFeatureConfigQueryResult extends Loadable {
+  refetch: QueryResult<
+    AppFeatureConfigQueryQuery,
+    AppFeatureConfigQueryQueryVariables
+  >["refetch"];
   effectiveFeatureConfig: AppFeatureConfigFragment["effectiveFeatureConfig"];
   planName: AppFeatureConfigFragment["planName"] | null;
 }
@@ -45,8 +41,6 @@ export const useAppFeatureConfigQuery = (
 
   return {
     ...queryData,
-    loading,
-    error,
     refetch,
     isLoading: loading,
     loadError: error,

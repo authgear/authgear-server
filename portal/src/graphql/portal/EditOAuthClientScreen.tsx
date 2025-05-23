@@ -706,18 +706,18 @@ const EditOAuthClientScreen1: React.VFC<{
   }, [searchParams]);
 
   const customUIEnabled = useMemo(() => {
-    if (featureConfig.loading) {
+    if (featureConfig.isLoading) {
       return false;
     }
     return featureConfig.effectiveFeatureConfig?.oauth?.client
       ?.custom_ui_enabled;
   }, [
-    featureConfig.loading,
+    featureConfig.isLoading,
     featureConfig.effectiveFeatureConfig?.oauth?.client?.custom_ui_enabled,
   ]);
 
   const app2appEnabled = useMemo(() => {
-    if (featureConfig.loading) {
+    if (featureConfig.isLoading) {
       return false;
     }
     return featureConfig.effectiveFeatureConfig?.oauth?.client?.app2app_enabled;

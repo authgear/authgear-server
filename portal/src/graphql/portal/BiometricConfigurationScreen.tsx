@@ -150,7 +150,7 @@ const BiometricConfigurationScreen: React.VFC =
 
     const featureConfig = useAppFeatureConfigQuery(appID);
 
-    if (form.isLoading || featureConfig.loading) {
+    if (form.isLoading || featureConfig.isLoading) {
       return <ShowLoading />;
     }
 
@@ -158,10 +158,10 @@ const BiometricConfigurationScreen: React.VFC =
       return <ShowError error={form.loadError} onRetry={form.reload} />;
     }
 
-    if (featureConfig.error) {
+    if (featureConfig.loadError) {
       return (
         <ShowError
-          error={featureConfig.error}
+          error={featureConfig.loadError}
           onRetry={featureConfig.refetch}
         />
       );
