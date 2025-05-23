@@ -32,6 +32,8 @@ type ProjectWizardImplementaion string
 
 type GlobalWhatsappAPIType WhatsappAPIType
 
+type SharedAuthgearEndpoint string
+
 func (s AppHostSuffixes) CheckIsDefaultDomain(host string) bool {
 	for _, suffix := range s {
 		if before, found := strings.CutSuffix(host, suffix); found {
@@ -117,6 +119,8 @@ type EnvironmentConfig struct {
 	UserExportObjectStore *UserExportObjectStoreConfig `envconfig:"USEREXPORT_OBJECT_STORE"`
 
 	SMSGatewayConfig SMSGatewayEnvironmentConfig `envconfig:"SMS_GATEWAY"`
+
+	SharedAuthgearEndpoint SharedAuthgearEndpoint `envconfig:"SHARED_AUTHGEAR_ENDPOINT"`
 }
 
 const (

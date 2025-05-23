@@ -583,6 +583,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) ht
 
 	// Routes without project context
 	router.Add(webapphandlerauthflowv2.ConfigureNoProjectPreviewWidgetRoute(noProjectRoute), p.RootHandler(newPreviewWidgetHandler))
+	router.Add(webapphandler.ConfigureNoProjectSSOCallbackRoute(noProjectRoute), p.RootHandlerWithConfigSource(configSource, newNoProjectSSOCallbackHandler))
 
 	router.NotFound(webappNotFoundRoute, &webapphandler.ImplementationSwitcherHandler{
 		Interaction: p.Handler(newWebAppNotFoundHandler),
