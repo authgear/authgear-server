@@ -23,7 +23,8 @@ type SendTestEmailOptions struct {
 }
 
 type MailSender interface {
-	Send(opts mail.SendOptions) error
+	PrepareMessage(opts mail.SendOptions) (*gomail.Message, error)
+	Send(*gomail.Message) error
 }
 
 type Logger struct{ *log.Logger }
@@ -50,7 +51,17 @@ func (s *Service) SendRealEmail(ctx context.Context, opts mail.SendOptions) (err
 		return
 	}
 
-	return s.MailSender.Send(opts)
+	message, err := s.MailSender.PrepareMessage(opts)
+	if err != nil {
+		return
+	}
+
+	err = s.MailSender.Send(message)
+	if err != nil {
+		return
+	}
+
+	return
 }
 
 func (s *Service) SendTestEmail(ctx context.Context, app *model.App, options SendTestEmailOptions) (err error) {

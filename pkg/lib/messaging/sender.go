@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/sirupsen/logrus"
+	"gopkg.in/gomail.v2"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/event"
@@ -34,7 +35,8 @@ type EventService interface {
 }
 
 type MailSender interface {
-	Send(opts mail.SendOptions) error
+	PrepareMessage(opts mail.SendOptions) (*gomail.Message, error)
+	Send(*gomail.Message) error
 }
 
 type SMSSender interface {
@@ -89,8 +91,13 @@ func (s *Sender) SendEmailInNewGoroutine(ctx context.Context, msgType translatio
 		return s.devModeSendEmail(ctx, msgType, opts)
 	}
 
+	message, err := s.MailSender.PrepareMessage(*opts)
+	if err != nil {
+		return err
+	}
+
 	sendInTx := func(ctx context.Context) error {
-		err := s.MailSender.Send(*opts)
+		err := s.MailSender.Send(message)
 		if err != nil {
 			// Log the send error immediately.
 			s.Logger.WithError(err).WithFields(logrus.Fields{
