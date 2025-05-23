@@ -971,7 +971,7 @@
   "v2.error.new-password-typo": "Ponownie wprowadzone nowe hasło nie pasuje do nowego hasła. Upewnij się, że oba hasła są takie same.",
   "v2.error.no-authenticator": "Twoje konto nie ma żadnej przydatnej metody uwierzytelniania, aby kontynuować. Skontaktuj się z pomocą techniczną.",
   "v2.error.no-available-authenticator": "Do zalogowania wymagane jest uwierzytelnianie dwuskładnikowe (2FA), ale nie zostało ono jeszcze skonfigurowane. Skontaktuj się z administratorem systemu w celu uzyskania pomocy.",
-  "v2.error.no-available-sms-client": "Skonfiguruj dostawcę SMS w portalu administratora, aby włączyć uwierzytelnianie oparte na telefonie.",
+  "v2.error.no-available-sms-client": "Skonfiguruj dostawcę SMS w portalu administratora, aby włączyć weryfikację telefoniczną.",
   "v2.error.no-available-smtp-configuration": "Skonfiguruj dostawcę poczty e-mail w portalu administratora, aby włączyć weryfikację e-mail.",
   "v2.error.no-available-whatsapp-client": "Brak konfiguracji API WhatsApp, skontaktuj się z administratorem systemu.",
   "v2.error.no-passkey": "Passkey nie został znaleziony na Twoim urządzeniu. Wybierz inną metodę uwierzytelniania.",

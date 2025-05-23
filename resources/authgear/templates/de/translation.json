@@ -971,7 +971,7 @@
   "v2.error.new-password-typo": "Das erneut eingegebene neue Passwort stimmt nicht mit dem neuen Passwort überein. Bitte stellen Sie sicher, dass beide übereinstimmen.",
   "v2.error.no-authenticator": "Ihr Konto hat keine verwendbare Authentifizierungsmethode, um fortzufahren. Bitte wenden Sie sich an den Support.",
   "v2.error.no-available-authenticator": "Für die Anmeldung ist eine Zwei-Faktor-Authentifizierung (2FA) erforderlich, aber Sie haben diese noch nicht eingerichtet. Bitte wenden Sie sich an den Systemadministrator, um Unterstützung zu erhalten.",
-  "v2.error.no-available-sms-client": "Bitte konfigurieren Sie einen SMS-Anbieter im Admin-Portal, um die telefonbasierte Authentifizierung zu aktivieren.",
+  "v2.error.no-available-sms-client": "Bitte konfigurieren Sie einen SMS-Anbieter im Admin-Portal, um die Telefonverifizierung zu aktivieren.",
   "v2.error.no-available-smtp-configuration": "Bitte konfigurieren Sie einen E-Mail-Anbieter im Admin-Portal, um die E-Mail-Verifizierung zu aktivieren.",
   "v2.error.no-available-whatsapp-client": "WhatsApp-API-Konfiguration fehlt, bitte wenden Sie sich an den Systemadministrator.",
   "v2.error.no-passkey": "Auf Ihrem Gerät wurde kein Passkey gefunden. Bitte wählen Sie eine andere Authentifizierungsmethode.",
