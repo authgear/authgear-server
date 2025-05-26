@@ -282,6 +282,13 @@ var _ = Schema.Add("OAuthSSOConfig", `
 }
 `)
 
+type OAuthSSOProviderCredentialsBehavior string
+
+const (
+	OAuthSSOProviderCredentialsBehaviorUseProjectCredentials OAuthSSOProviderCredentialsBehavior = "use_project_credentials"
+	OAuthSSOProviderCredentialsBehaviorUseDemoCredentials    OAuthSSOProviderCredentialsBehavior = "use_demo_credentials"
+)
+
 func OAuthSSOProviderConfigSchemaBuilder(providerSchemaBuilder validation.SchemaBuilder) validation.SchemaBuilder {
 	builder := validation.SchemaBuilder{}
 	builder.Properties().
@@ -289,13 +296,13 @@ func OAuthSSOProviderConfigSchemaBuilder(providerSchemaBuilder validation.Schema
 		Property("modify_disabled", validation.SchemaBuilder{}.Type(validation.TypeBoolean)).
 		Property("create_disabled", validation.SchemaBuilder{}.Type(validation.TypeBoolean)).
 		Property("delete_disabled", validation.SchemaBuilder{}.Type(validation.TypeBoolean)).
-		Property("missing_credential_allowed", validation.SchemaBuilder{}.Type(validation.TypeBoolean))
+		Property("credentials_behavior", validation.SchemaBuilder{}.Type(validation.TypeString).Enum("use_project_credentials", "use_demo_credentials"))
 	builder.AddRequired("alias")
 
 	_if := validation.SchemaBuilder{}
 	_if.Properties().
-		Property("missing_credential_allowed", validation.SchemaBuilder{}.Const(true))
-	_if.Required("missing_credential_allowed")
+		Property("credentials_behavior", validation.SchemaBuilder{}.Const("use_demo_credentials"))
+	_if.Required("credentials_behavior")
 
 	builder.AllOf(validation.SchemaBuilder{}.If(_if).
 		Else(providerSchemaBuilder))
@@ -344,12 +351,12 @@ func (c OAuthSSOProviderConfig) CreateDisabled() bool {
 func (c OAuthSSOProviderConfig) DeleteDisabled() bool {
 	return c["delete_disabled"].(bool)
 }
-func (c OAuthSSOProviderConfig) IsMissingCredentialAllowed() bool {
-	v, ok := c["missing_credential_allowed"].(bool)
+func (c OAuthSSOProviderConfig) GetCredentialsBehavior() OAuthSSOProviderCredentialsBehavior {
+	v, ok := c["credentials_behavior"].(string)
 	if !ok {
-		return false
+		return OAuthSSOProviderCredentialsBehaviorUseProjectCredentials
 	}
-	return v
+	return OAuthSSOProviderCredentialsBehavior(v)
 }
 
 type OAuthProviderStatus string
@@ -361,7 +368,7 @@ const (
 )
 
 func (c OAuthSSOProviderConfig) ComputeProviderStatus(demoCredentials *SSOOAuthDemoCredentials) OAuthProviderStatus {
-	if !c.IsMissingCredentialAllowed() {
+	if c.GetCredentialsBehavior() == OAuthSSOProviderCredentialsBehaviorUseProjectCredentials {
 		return OAuthProviderStatusActive
 	}
 	if demoCredentials == nil {
