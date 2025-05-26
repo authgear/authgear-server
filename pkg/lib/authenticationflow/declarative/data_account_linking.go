@@ -15,6 +15,8 @@ type AccountLinkingIdentificationOption struct {
 	ProviderType string `json:"provider_type,omitempty"`
 	// Alias is specific to OAuth.
 	Alias string `json:"alias,omitempty"`
+	// ProviderStatus is specific to OAuth.
+	ProviderStatus OAuthProviderStatus `json:"provider_status,omitempty"`
 }
 
 type AccountLinkingIdentificationOptionInternal struct {

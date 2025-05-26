@@ -35,8 +35,7 @@ func TestEndpoints(t *testing.T) {
 		So(endpoints.PromoteUserEndpointURL().String(), ShouldEqual, "https://example.com/flows/promote_user")
 		So(endpoints.LogoutEndpointURL().String(), ShouldEqual, "https://example.com/logout")
 		So(endpoints.SettingsEndpointURL().String(), ShouldEqual, "https://example.com/settings")
-		So(endpoints.SSOCallbackEndpointURL().String(), ShouldEqual, "https://example.com/sso/oauth2/callback")
-		So(endpoints.SSOCallbackURL("google", false).String(), ShouldEqual, "https://example.com/sso/oauth2/callback/google")
-		So(endpoints.SSOCallbackURL("google", true).String(), ShouldEqual, "https://shared.example.com/noproject/sso/oauth2/callback")
+		So(endpoints.SSOCallbackURL("google").String(), ShouldEqual, "https://example.com/sso/oauth2/callback/google")
+		So(endpoints.SharedSSOCallbackURL().String(), ShouldEqual, "https://shared.example.com/noproject/sso/oauth2/callback")
 	})
 }

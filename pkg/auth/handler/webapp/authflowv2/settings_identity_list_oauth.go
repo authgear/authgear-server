@@ -158,7 +158,7 @@ func (h *AuthflowV2SettingsIdentityListOAuthHandler) ServeHTTP(w http.ResponseWr
 
 		alias := r.Form.Get("x_provider_alias")
 		// TODO: Support demo credentials
-		redirectURI := h.Endpoints.SSOCallbackURL(alias, false).String()
+		redirectURI := h.Endpoints.SSOCallbackURL(alias).String()
 
 		output, err := h.AccountManagement.StartAddIdentityOAuth(ctx, s, &accountmanagement.StartAddIdentityOAuthInput{
 			Alias:       alias,
