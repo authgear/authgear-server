@@ -286,7 +286,8 @@ type OAuthSSOProviderCredentialsBehavior string
 
 const (
 	OAuthSSOProviderCredentialsBehaviorUseProjectCredentials OAuthSSOProviderCredentialsBehavior = "use_project_credentials"
-	OAuthSSOProviderCredentialsBehaviorUseDemoCredentials    OAuthSSOProviderCredentialsBehavior = "use_demo_credentials"
+	//nolint: gosec
+	OAuthSSOProviderCredentialsBehaviorUseDemoCredentials OAuthSSOProviderCredentialsBehavior = "use_demo_credentials"
 )
 
 func OAuthSSOProviderConfigSchemaBuilder(providerSchemaBuilder validation.SchemaBuilder) validation.SchemaBuilder {
