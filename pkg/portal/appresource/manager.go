@@ -121,6 +121,10 @@ func (m *Manager) ReadAppFile(ctx context.Context, desc resource.Descriptor, vie
 	return m.AppResourceManager.Read(ctx, desc, view)
 }
 
+func (m *Manager) ReadEffectiveFile(ctx context.Context, desc resource.Descriptor, view resource.EffectiveResourceView) (interface{}, error) {
+	return m.AppResourceManager.Read(ctx, desc, view)
+}
+
 // ApplyUpdates0 assume acquired connection.
 func (m *Manager) ApplyUpdates0(ctx context.Context, appID string, updates []Update) ([]*resource.ResourceFile, error) {
 	// Construct new resource manager.

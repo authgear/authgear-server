@@ -57,6 +57,9 @@ type App implements Node {
   """"""
   effectiveFeatureConfig: FeatureConfig!
 
+  """"""
+  effectiveSecretConfig: EffectiveSecretConfig!
+
   """The ID of an object"""
   id: ID!
 
@@ -85,7 +88,7 @@ type App implements Node {
   secretConfig(token: String): SecretConfig!
 
   """"""
-  secretConfigChecksum: AppConfig!
+  secretConfigChecksum: String!
 
   """"""
   subscription: Subscription
@@ -429,6 +432,12 @@ type Domain {
   verificationDNSRecord: String!
 }
 
+"""Effective secret config"""
+type EffectiveSecretConfig {
+  """"""
+  oauthSSOProviderDemoSecrets: [OAuthSSOProviderDemoSecretItem!]
+}
+
 """
 The `FeatureConfig` scalar type represents an feature config JSON object
 """
@@ -612,6 +621,12 @@ input OAuthSSOProviderClientSecretsUpdateInstructionsInput {
 
   """"""
   data: [OAuthSSOProviderClientSecretInput!]
+}
+
+"""OAuth SSO Provider demo secret item"""
+type OAuthSSOProviderDemoSecretItem {
+  """"""
+  type: String!
 }
 
 """"""

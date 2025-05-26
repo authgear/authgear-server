@@ -440,8 +440,8 @@ const EditPictureScreen: React.VFC = function EditPictureScreen() {
 
   const {
     effectiveAppConfig,
-    loading: loadingAppConfig,
-    error: appConfigError,
+    isLoading: loadingAppConfig,
+    loadError: appConfigError,
     refetch: refetchAppConfig,
   } = useAppAndSecretConfigQuery(appID);
 

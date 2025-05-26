@@ -718,6 +718,11 @@
   "SingleSignOnConfigurationWidget.providers.adfs.inactiveMessage": "Client ID, Client Secret or Discovery Document Endpoint is missing. Please configure with your own keys to enable the login.",
   "SingleSignOnConfigurationWidget.providers.wechat.web.inactiveMessage": "Client ID, Client Secret or Account ID is missing. Please configure with your own keys to enable the login.",
   "SingleSignOnConfigurationWidget.providers.wechat.mobile.inactiveMessage": "Client ID, Client Secret or Account ID is missing. Please configure with your own keys to enable the login.",
+  "SingleSignOnConfigurationWidget.hint.usingDemoCredential": "This login is using Authgear development keys. It is intended for testing and should not be used in Production environments. Please configure with your own keys to enable the login.",
+  "SingleSignOnConfigurationWidget.credentialStatusButton.custom.text": "Custom credentials",
+  "SingleSignOnConfigurationWidget.credentialStatusButton.custom.secondaryText": "Configure your own credentials",
+  "SingleSignOnConfigurationWidget.credentialStatusButton.demo.text": "Authgear demo credentials",
+  "SingleSignOnConfigurationWidget.credentialStatusButton.demo.secondaryText": "Test with authgear demo credentials without setup",
 
   "OAuthBranding.apple": "Sign in with Apple",
   "OAuthBranding.google": "Sign in with Google",

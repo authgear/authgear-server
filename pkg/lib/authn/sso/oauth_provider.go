@@ -42,7 +42,7 @@ func (p *OAuthProviderFactory) getActiveOrDemoProvider(alias string) (provider o
 		return
 	}
 
-	if config.OAuthSSOProviderConfig(providerConfig).IsMissingCredentialAllowed() {
+	if config.OAuthSSOProviderConfig(providerConfig).GetCredentialsBehavior() == config.OAuthSSOProviderCredentialsBehaviorUseDemoCredentials {
 		if p.SSOOAuthDemoCredentials == nil {
 			err = newOAuthProviderMissingCredentialsError(alias, providerConfig.Type(), false)
 			return

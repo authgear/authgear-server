@@ -227,56 +227,56 @@ function deriveOAuthProvidersFromFormState(
         configs.push({
           type: "apple",
           alias: "apple",
-          missing_credential_allowed: true,
+          credentials_behavior: "use_demo_credentials",
         });
         break;
       case LoginMethod.Google:
         configs.push({
           type: "google",
           alias: "google",
-          missing_credential_allowed: true,
+          credentials_behavior: "use_demo_credentials",
         });
         break;
       case LoginMethod.Facebook:
         configs.push({
           type: "facebook",
           alias: "facebook",
-          missing_credential_allowed: true,
+          credentials_behavior: "use_demo_credentials",
         });
         break;
       case LoginMethod.Github:
         configs.push({
           type: "github",
           alias: "github",
-          missing_credential_allowed: true,
+          credentials_behavior: "use_demo_credentials",
         });
         break;
       case LoginMethod.LinkedIn:
         configs.push({
           type: "linkedin",
           alias: "linkedin",
-          missing_credential_allowed: true,
+          credentials_behavior: "use_demo_credentials",
         });
         break;
       case LoginMethod.MicrosoftEntraID:
         configs.push({
           type: "azureadv2",
           alias: "azureadv2",
-          missing_credential_allowed: true,
+          credentials_behavior: "use_demo_credentials",
         });
         break;
       case LoginMethod.MicrosoftADFS:
         configs.push({
           type: "adfs",
           alias: "adfs",
-          missing_credential_allowed: true,
+          credentials_behavior: "use_demo_credentials",
         });
         break;
       case LoginMethod.MicrosoftAzureADB2C:
         configs.push({
           type: "azureadb2c",
           alias: "azureadb2c",
-          missing_credential_allowed: true,
+          credentials_behavior: "use_demo_credentials",
         });
         break;
       case LoginMethod.WechatWeb:
@@ -284,7 +284,7 @@ function deriveOAuthProvidersFromFormState(
           type: "wechat",
           app_type: "web",
           alias: "wechat_web",
-          missing_credential_allowed: true,
+          credentials_behavior: "use_demo_credentials",
         });
         break;
       case LoginMethod.WechatMobile:
@@ -292,7 +292,7 @@ function deriveOAuthProvidersFromFormState(
           type: "wechat",
           app_type: "mobile",
           alias: "wechat_mobile",
-          missing_credential_allowed: true,
+          credentials_behavior: "use_demo_credentials",
         });
         break;
       case LoginMethod.Email:
@@ -386,7 +386,7 @@ export function useProjectWizardForm(
 
   const skip = existingAppNodeID == null;
   const {
-    error: appConfigLoadError,
+    loadError: appConfigLoadError,
     rawAppConfig,
     rawAppConfigChecksum,
     refetch: reloadAppConfig,

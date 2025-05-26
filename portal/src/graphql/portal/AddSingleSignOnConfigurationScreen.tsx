@@ -27,6 +27,9 @@ import {
 } from "../../hook/useOAuthProviderForm";
 import { useNavigate, useParams } from "react-router-dom";
 import FormContainer from "../../FormContainer";
+import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";
+import { EffectiveSecretConfig } from "./globalTypes.generated";
+import { useLoadableView } from "../../hook/useLoadableView";
 
 interface OAuthClientMenuProps {
   form: OAuthProviderFormModel;
@@ -88,15 +91,18 @@ interface OAuthClientFormProps {
   initialAlias: string;
   providerItemKey: OAuthSSOProviderItemKey;
   form: OAuthProviderFormModel;
+  effectiveSecretConfig: EffectiveSecretConfig | undefined;
 }
 
 const OAuthClientForm: React.VFC<OAuthClientFormProps> =
   function OAuthClientForm(props) {
-    const { initialAlias, providerItemKey, form } = props;
+    const { initialAlias, providerItemKey, form, effectiveSecretConfig } =
+      props;
     const widgetProps = useSingleSignOnConfigurationWidget(
       initialAlias,
       providerItemKey,
-      form
+      form,
+      effectiveSecretConfig
     );
     return (
       <SingleSignOnConfigurationWidget
@@ -110,7 +116,10 @@ const AddSingleSignOnConfigurationContent: React.VFC =
   function AddSingleSignOnConfigurationContent() {
     const navigate = useNavigate();
     const { appID } = useParams() as { appID: string };
+
+    const effectiveSecretConfigQuery = useAppAndSecretConfigQuery(appID, null);
     const form = useOAuthProviderForm(appID, null);
+
     const [selectedProviderKey, setSelectedProviderKey] =
       useState<OAuthSSOProviderItemKey>();
     const [newAlias, setNewAlias] = useState<string | null>(null);
@@ -153,38 +162,46 @@ const AddSingleSignOnConfigurationContent: React.VFC =
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedProviderKey]);
 
-    return (
-      <FormContainer
-        form={form}
-        afterSave={onSaveSuccess}
-        hideFooterComponent={selectedProviderKey == null}
-      >
-        <ScreenContent
-          header={
-            <ScreenContentHeader
-              title={
-                <NavBreadcrumb
-                  className={cn(styles.widget, styles.breadcrumb)}
-                  items={navBreadcrumbItems}
+    return useLoadableView({
+      loadables: [effectiveSecretConfigQuery] as const,
+      render: ([effectiveSecretConfigQuery]) => {
+        return (
+          <FormContainer
+            form={form}
+            afterSave={onSaveSuccess}
+            hideFooterComponent={selectedProviderKey == null}
+          >
+            <ScreenContent
+              header={
+                <ScreenContentHeader
+                  title={
+                    <NavBreadcrumb
+                      className={cn(styles.widget, styles.breadcrumb)}
+                      items={navBreadcrumbItems}
+                    />
+                  }
                 />
               }
-            />
-          }
-        >
-          <ShowOnlyIfSIWEIsDisabled>
-            {newAlias != null && selectedProviderKey != null ? (
-              <OAuthClientForm
-                initialAlias={newAlias}
-                form={form}
-                providerItemKey={selectedProviderKey}
-              />
-            ) : (
-              <OAuthClientMenu form={form} onSelect={onMenuSelect} />
-            )}
-          </ShowOnlyIfSIWEIsDisabled>
-        </ScreenContent>
-      </FormContainer>
-    );
+            >
+              <ShowOnlyIfSIWEIsDisabled>
+                {newAlias != null && selectedProviderKey != null ? (
+                  <OAuthClientForm
+                    initialAlias={newAlias}
+                    form={form}
+                    providerItemKey={selectedProviderKey}
+                    effectiveSecretConfig={
+                      effectiveSecretConfigQuery.effectiveSecretConfig
+                    }
+                  />
+                ) : (
+                  <OAuthClientMenu form={form} onSelect={onMenuSelect} />
+                )}
+              </ShowOnlyIfSIWEIsDisabled>
+            </ScreenContent>
+          </FormContainer>
+        );
+      },
+    });
   };
 
 const AddSingleSignOnConfigurationScreen: React.VFC = () => {

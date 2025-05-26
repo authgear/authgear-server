@@ -64,6 +64,7 @@ export type App = Node & {
   domains: Array<Domain>;
   effectiveAppConfig: Scalars['AppConfig']['output'];
   effectiveFeatureConfig: Scalars['FeatureConfig']['output'];
+  effectiveSecretConfig: EffectiveSecretConfig;
   /** The ID of an object */
   id: Scalars['ID']['output'];
   isProcessingSubscription: Scalars['Boolean']['output'];
@@ -74,7 +75,7 @@ export type App = Node & {
   resources: Array<AppResource>;
   samlIdpEntityID: Scalars['String']['output'];
   secretConfig: SecretConfig;
-  secretConfigChecksum: Scalars['AppConfig']['output'];
+  secretConfigChecksum: Scalars['String']['output'];
   subscription?: Maybe<Subscription>;
   subscriptionUsage?: Maybe<SubscriptionUsage>;
   tutorialStatus: TutorialStatus;
@@ -306,6 +307,12 @@ export type Domain = {
   isCustom: Scalars['Boolean']['output'];
   isVerified: Scalars['Boolean']['output'];
   verificationDNSRecord: Scalars['String']['output'];
+};
+
+/** Effective secret config */
+export type EffectiveSecretConfig = {
+  __typename?: 'EffectiveSecretConfig';
+  oauthSSOProviderDemoSecrets?: Maybe<Array<OAuthSsoProviderDemoSecretItem>>;
 };
 
 export type GenerateAppSecretVisitTokenInput = {
@@ -559,6 +566,12 @@ export type OAuthSsoProviderClientSecretInput = {
 export type OAuthSsoProviderClientSecretsUpdateInstructionsInput = {
   action: Scalars['String']['input'];
   data?: InputMaybe<Array<OAuthSsoProviderClientSecretInput>>;
+};
+
+/** OAuth SSO Provider demo secret item */
+export type OAuthSsoProviderDemoSecretItem = {
+  __typename?: 'OAuthSSOProviderDemoSecretItem';
+  type: Scalars['String']['output'];
 };
 
 export enum Periodical {

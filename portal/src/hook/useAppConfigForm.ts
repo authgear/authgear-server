@@ -54,8 +54,8 @@ export function useAppConfigForm<State>(
   } = options;
 
   const {
-    loading: isLoading,
-    error: loadError,
+    isLoading,
+    loadError,
     effectiveAppConfig,
     rawAppConfig: rawConfig,
     rawAppConfigChecksum,
