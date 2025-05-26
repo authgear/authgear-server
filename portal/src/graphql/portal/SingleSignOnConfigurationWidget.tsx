@@ -286,7 +286,7 @@ function ProviderStatus({
   providerConfig: OAuthSSOProviderConfig;
   providersWithDemoCredentials: Set<string>;
 }) {
-  if (providerConfig.missing_credential_allowed) {
+  if (providerConfig.credentials_behavior === "use_demo_credentials") {
     if (providersWithDemoCredentials.has(providerConfig.type)) {
       return (
         <Badge
@@ -399,10 +399,12 @@ export function useSingleSignOnConfigurationWidget(
               return;
             }
             // Else, set it automatically
-            config.missing_credential_allowed =
-              isOAuthProviderMissingCredential(config, secret)
-                ? true
-                : undefined;
+            config.credentials_behavior = isOAuthProviderMissingCredential(
+              config,
+              secret
+            )
+              ? "use_demo_credentials"
+              : "use_project_credentials";
           });
 
           if (providerIndex === -1) {
@@ -465,7 +467,8 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
       onChange,
       disabled: featureDisabled,
     } = props;
-    const isMissingCredential = Boolean(config.missing_credential_allowed);
+    const isMissingCredential =
+      config.credentials_behavior === "use_demo_credentials";
 
     const { renderToString } = useContext(Context);
 
@@ -610,7 +613,9 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
     const handleDemoCredentialSelectedChange = useCallback(
       (value: boolean) => {
         const newConfig = produce(config, (config) => {
-          config.missing_credential_allowed = value;
+          config.credentials_behavior = value
+            ? "use_demo_credentials"
+            : "use_project_credentials";
         });
         onChange(newConfig, secret);
       },
