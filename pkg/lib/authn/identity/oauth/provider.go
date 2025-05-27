@@ -57,18 +57,15 @@ func (p *Provider) GetMany(ctx context.Context, ids []string) ([]*identity.OAuth
 
 func (p *Provider) New(
 	userID string,
-	providerID oauthrelyingparty.ProviderID,
-	subjectID string,
-	profile map[string]interface{},
-	claims map[string]interface{},
+	spec *identity.OAuthSpec,
 ) *identity.OAuth {
 	i := &identity.OAuth{
 		ID:                uuid.New(),
 		UserID:            userID,
-		ProviderID:        providerID,
-		ProviderSubjectID: subjectID,
-		UserProfile:       profile,
-		Claims:            claims,
+		ProviderID:        spec.ProviderID,
+		ProviderSubjectID: spec.SubjectID,
+		UserProfile:       spec.RawProfile,
+		Claims:            spec.StandardClaims,
 	}
 
 	alias := ""
@@ -87,18 +84,17 @@ func (p *Provider) New(
 
 func (p *Provider) WithUpdate(
 	iden *identity.OAuth,
-	rawProfile map[string]interface{},
-	claims map[string]interface{},
+	spec *identity.OAuthSpec,
 ) *identity.OAuth {
 	newIden := *iden
 	// For non-Apple provider, we can just update.
 	// For Apple, we need to merge given_name and family_name because
 	// they only available at THE FIRST TIME authorization.
 	if newIden.ProviderID.Type == liboauthrelyingparty.TypeApple {
-		newIden.Apple_MergeRawProfileAndClaims(rawProfile, claims)
+		newIden.Apple_MergeRawProfileAndClaims(spec.RawProfile, spec.StandardClaims)
 	} else {
-		newIden.UserProfile = rawProfile
-		newIden.Claims = claims
+		newIden.UserProfile = spec.RawProfile
+		newIden.Claims = spec.StandardClaims
 	}
 
 	return &newIden
