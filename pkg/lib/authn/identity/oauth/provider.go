@@ -7,16 +7,14 @@ import (
 	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	liboauthrelyingparty "github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
 type Provider struct {
-	Store          *Store
-	Clock          clock.Clock
-	IdentityConfig *config.IdentityConfig
+	Store *Store
+	Clock clock.Clock
 }
 
 func (p *Provider) List(ctx context.Context, userID string) ([]*identity.OAuth, error) {
@@ -66,17 +64,7 @@ func (p *Provider) New(
 		ProviderSubjectID: spec.SubjectID,
 		UserProfile:       spec.RawProfile,
 		Claims:            spec.StandardClaims,
-	}
-
-	alias := ""
-	for _, providerConfig := range p.IdentityConfig.OAuth.Providers {
-		providerID := providerConfig.AsProviderConfig().ProviderID()
-		if providerID.Equal(i.ProviderID) {
-			alias = providerConfig.Alias()
-		}
-	}
-	if alias != "" {
-		i.ProviderAlias = alias
+		ProviderAlias:     spec.ProviderAlias,
 	}
 
 	return i

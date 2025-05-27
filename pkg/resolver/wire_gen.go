@@ -291,9 +291,8 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth.Provider{
-		Store:          oauthStore,
-		Clock:          clock,
-		IdentityConfig: identityConfig,
+		Store: oauthStore,
+		Clock: clock,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -1054,9 +1053,8 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth.Provider{
-		Store:          oauthStore,
-		Clock:          clockClock,
-		IdentityConfig: identityConfig,
+		Store: oauthStore,
+		Clock: clockClock,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,

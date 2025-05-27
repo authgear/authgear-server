@@ -225,9 +225,8 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth.Provider{
-		Store:          oauthStore,
-		Clock:          clockClock,
-		IdentityConfig: identityConfig,
+		Store: oauthStore,
+		Clock: clockClock,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
