@@ -166,8 +166,6 @@ export default async function (
 }
 ```
 
-TODO(tung): Document `contraints`, and possible values of `amr`.
-
 If `contraints.amr` with value `["mfa"]` is returned in the response, depending on where the authentication is triggered, the following behavior applies:
 
 - Authentication Flow / Auth UI:
@@ -178,6 +176,10 @@ If `contraints.amr` with value `["mfa"]` is returned in the response, depending 
 - Workflow / Latte: Fail immediately, because workflow does not support Adaptive MFA.
 
 Note, you have no control on the MFA steps in the Authentication Flow when using `user.auth.adaptive_control`. If you need full control on when the MFA steps being inserted, see Advanced Use Cases [TODO(tung): Insert the link] below.
+
+"amr" stands for (Authentication Methods References)[https://www.rfc-editor.org/rfc/rfc8176.html], it is a claim used with OpenID Connect for storing details about how the authentication was performed. Only "mfa" is supported at the moment. Any other values will have no effect.
+
+TODO(tung): Document `contraints`, and possible values of `amr`.
 
 ## Advanced Use Cases
 
