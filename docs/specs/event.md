@@ -241,6 +241,40 @@ Example payload:
 
 #### user.auth.adaptive_control
 
+```mermaid
+flowchart TD
+ subgraph Signup["Signup / Promote"]
+        signup_create_authenticator["create_authenticator"]
+        signup_create_authenticator_2fa["create_authenticator"]
+        signup_identify["identify"]
+        signup_adaptive_control[user.auth.adaptive_control]:::event
+        signup_contraints@{ shape: diamond, label: "contraints.amr === [\"mfa\"]?" }
+        signup_finish["Finish"]
+  end
+    signup_identify --> signup_create_authenticator
+    signup_create_authenticator --> signup_adaptive_control
+    signup_adaptive_control -- "response" --> signup_contraints
+    signup_contraints -- "yes" --> signup_create_authenticator_2fa
+    signup_contraints -- "no" --> signup_finish
+    signup_create_authenticator_2fa --> signup_finish
+  subgraph Login["Login / Reauth"]
+        login_authenticate["authenticate"]
+        login_authenticate_2fa["authenticate"]
+        login_identify["identify"]
+        login_adaptive_control[user.auth.adaptive_control]:::event
+        login_contraints@{ shape: diamond, label: "contraints.amr === [\"mfa\"]?" }
+        login_finish["Finish"]
+  end
+    login_identify --> login_authenticate
+    login_authenticate --> login_adaptive_control
+    login_adaptive_control -- "response" --> login_contraints
+    login_contraints -- "yes" --> login_authenticate_2fa
+    login_contraints -- "no" --> login_finish
+    login_authenticate_2fa --> login_finish
+    
+  classDef event fill:#dddddd
+```
+
 Occurs right before any authentication completes, such as login.
 
 Example payload:
