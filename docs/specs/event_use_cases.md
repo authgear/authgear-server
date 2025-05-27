@@ -5,6 +5,7 @@ This document documents the expected use cases of some events.
 ## Table of Contents
 
 ### Simple Use Cases
+
 - [Blocking / Allowing user signup or login according to geo location](#blocking--allowing-user-signup-or-login-according-to-geo-location)
 - [Blocking / Allowing user login according to user roles for a certain application](#blocking--allowing-user-login-according-to-user-roles-for-a-certain-application)
 - [Ensure a user login to a specific App with a specific flow](#ensure-a-user-login-to-a-specific-app-with-a-specific-flow)
@@ -13,7 +14,9 @@ This document documents the expected use cases of some events.
 - [Require MFA only for users with high risk (Adaptive MFA)](#require-mfa-only-for-users-with-high-risk-adaptive-mfa)
 
 ### Advanced Use Cases
+
 - [Applying stricter rate limits for account enumeration according to geo location](#applying-stricter-rate-limits-for-account-enumeration-according-to-geo-location)
+- [Adaptive MFA with customized Authflow](#adaptive-mfa-with-customized-authflow)
 
 ## Simple Use Cases
 
@@ -244,3 +247,62 @@ By setting `overrides.rate_limit.weight` to 2, it means this attempt of identifi
 `weight` can also be lower than 1. When set to `0`, this attempt will never hit rate limit.
 
 TODO(tung): Document `overrides`. The only supported property is `rate_limit` at the moment.
+
+### Adaptive MFA with customized Authflow
+
+While adaptive MFA can be implemented with `user.auth.adaptive_control`, you have no control on the step order because the MFA steps must appear after the hook is called, and this is handled automatically by the authentication flow.
+
+If you want full control on the flow, use `user.auth.identified` instead.
+
+Firstly, define a step to handle Adaptive MFA in the authentifaction flow.
+
+```yaml
+authentication_flows:
+  login_flows:
+    - name: default
+      steps:
+        - name: login_identify
+          type: identify
+          one_of:
+            - identification: phone
+              steps:
+                - name: authenticate_primary_phone
+                  type: authenticate
+                  one_of:
+                    - authentication: primary_oob_otp_sms
+                      target_step: login_identify
+        - type: authenticate # Add this step
+          show_if_any_amr_required: ["mfa"]
+          one_of:
+            - authentication: secondary_totp
+        - type: check_account_status
+        - type: terminate_other_sessions
+```
+
+In the above example, we handle adaptive MFA by adding a `authenticate` step in the flow, with `show_if_any_amr_required` set.
+The value of `show_if_any_amr_required` is `["mfa"]`, which means if `"mfa"` is required in `amr`, the step will be shown.
+
+Then, return the constraints in your `user.auth.identified` hook:
+
+```typescript
+export default async function (
+  e: EventUserAuthIdentified
+): Promise<EventUserAuthIdentifiedResponse> {
+  if (e.context.geo_location_code !== "HK") {
+    return {
+      // Allow the login with a mfa contraint
+      is_allowed: true,
+      contraints: {
+        amr: ["mfa"],
+      },
+    };
+  }
+  // Else, simply allow the login
+  return {
+    is_allowed: true,
+  };
+}
+```
+
+Because we only return `contraints.amr` if the user is outside Hong Kong, the user will see the `authenticate` step with an option `secondary_totp` only if he is signing in outside Hong Kong.
+Users in Hong Kong will skip the step and continue to the next step `check_account_status`.
