@@ -180,6 +180,20 @@ Occurs right before the account anonymization is scheduled.
 
 #### user.auth.identified
 
+```mermaid
+flowchart TD
+ subgraph Signup["Signup / Promote"]
+        signup_create_authenticator["create_authenticator"]
+        signup_identify["identify"]
+  end
+    signup_identify -- "user.auth.identified" --> signup_create_authenticator
+  subgraph Login["Login / Reauth"]
+        login_authenticate["authenticate"]
+        login_identify["identify"]
+  end
+    login_identify -- "user.auth.identified" --> login_authenticate 
+```
+
 Occurs right after an identity is identified during authentication, such as login.
 
 Example payload:
