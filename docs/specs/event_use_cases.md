@@ -2,6 +2,19 @@
 
 This document documents the expected use cases of some events.
 
+## Table of Contents
+
+### Simple Use Cases
+- [Blocking / Allowing user signup or login according to geo location](#blocking--allowing-user-signup-or-login-according-to-geo-location)
+- [Blocking / Allowing user login according to user roles for a certain application](#blocking--allowing-user-login-according-to-user-roles-for-a-certain-application)
+- [Ensure a user login to a specific App with a specific flow](#ensure-a-user-login-to-a-specific-app-with-a-specific-flow)
+- [Email domain whitelist](#email-domain-whitelist)
+- [Block login during weekends](#block-login-during-weekends)
+- [Require MFA only for users with high risk (Adaptive MFA)](#require-mfa-only-for-users-with-high-risk-adaptive-mfa)
+
+### Advanced Use Cases
+- [Applying stricter rate limits for account enumeration according to geo location](#applying-stricter-rate-limits-for-account-enumeration-according-to-geo-location)
+
 ## Simple Use Cases
 
 ### Blocking / Allowing user signup or login according to geo location
