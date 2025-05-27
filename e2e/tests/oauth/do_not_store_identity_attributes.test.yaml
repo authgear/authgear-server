@@ -1,0 +1,205 @@
+name: do_not_store_identity_attributes/absent
+authgear.yaml:
+  override: |
+    authentication:
+        identities:
+          - oauth
+        primary_authenticators:
+          - password
+    identity:
+      oauth:
+        providers:
+          - alias: google
+            client_id: "google"
+            type: google
+steps:
+- action: "create"
+  input: |
+    {
+      "type": "signup",
+      "name": "default"
+    }
+  output:
+    result: |
+      {
+        "action": {
+          "type": "identify"
+        }
+      }
+
+- action: input
+  input: |
+    {
+      "identification": "oauth",
+      "alias": "google",
+      "redirect_uri": "http://mock"
+    }
+  output:
+    result: |
+      {
+        "action": {
+          "type": "identify",
+          "data": {
+            "oauth_authorization_url": "[[string]]"
+          }
+        }
+      }
+
+- action: oauth_redirect
+  to: "{{ .prev.result.action.data.oauth_authorization_url }}"
+  redirect_uri: http://mock
+  output:
+    result: |
+      {
+        "query": "[[string]]"
+      }
+
+- action: input
+  input: |
+    {
+      "query": "{{ .prev.result.query }}"
+    }
+  output:
+    result: |
+      {
+        "action": {
+          "type": "finished"
+        }
+      }
+
+- action: query
+  query: |
+    SELECT provider_type, provider_user_id, claims, profile
+    FROM _auth_identity_oauth
+    WHERE app_id = '{{ .AppID }}'
+  query_output:
+    rows: |
+      [
+        {
+          "provider_type": "google",
+          "provider_user_id": "mock",
+          "claims": {
+            "email": "[[string]]",
+            "phone_number": "[[string]]",
+            "preferred_username": "[[string]]"
+          },
+          "profile": {
+            "aud": [
+              "google"
+            ],
+            "email": "[[string]]",
+            "exp": "[[string]]",
+            "iat": "[[string]]",
+            "iss": "https://accounts.google.com",
+            "jti": "google",
+            "nbf": "[[string]]",
+            "phone_number": "[[string]]",
+            "preferred_username": "[[string]]",
+            "sub": "mock",
+            "upn": "[[string]]"
+          }
+        }
+      ]
+
+---
+name: do_not_store_identity_attributes/true
+authgear.yaml:
+  override: |
+    authentication:
+        identities:
+          - oauth
+        primary_authenticators:
+          - password
+    identity:
+      oauth:
+        providers:
+          - alias: google
+            client_id: "google"
+            type: google
+            do_not_store_identity_attributes: true
+steps:
+- action: "create"
+  input: |
+    {
+      "type": "signup",
+      "name": "default"
+    }
+  output:
+    result: |
+      {
+        "action": {
+          "type": "identify"
+        }
+      }
+
+- action: input
+  input: |
+    {
+      "identification": "oauth",
+      "alias": "google",
+      "redirect_uri": "http://mock"
+    }
+  output:
+    result: |
+      {
+        "action": {
+          "type": "identify",
+          "data": {
+            "oauth_authorization_url": "[[string]]"
+          }
+        }
+      }
+
+- action: oauth_redirect
+  to: "{{ .prev.result.action.data.oauth_authorization_url }}"
+  redirect_uri: http://mock
+  output:
+    result: |
+      {
+        "query": "[[string]]"
+      }
+
+- action: input
+  input: |
+    {
+      "query": "{{ .prev.result.query }}"
+    }
+  output:
+    result: |
+      {
+        "action": {
+          "type": "finished"
+        }
+      }
+
+- action: query
+  query: |
+    SELECT provider_type, provider_user_id, claims, profile
+    FROM _auth_identity_oauth
+    WHERE app_id = '{{ .AppID }}'
+  query_output:
+    rows: |
+      [
+        {
+          "provider_type": "google",
+          "provider_user_id": "mock",
+          "claims": {
+            "email": "[[never]]",
+            "phone_number": "[[never]]",
+            "preferred_username": "[[never]]"
+          },
+          "profile": {
+            "aud": "[[never]]",
+            "email": "[[never]]",
+            "exp": "[[never]]",
+            "iat": "[[never]]",
+            "iss": "[[never]]",
+            "jti": "[[never]]",
+            "nbf": "[[never]]",
+            "phone_number": "[[never]]",
+            "preferred_username": "[[never]]",
+            "sub": "[[never]]",
+            "upn": "[[never]]"
+          }
+        }
+      ]
