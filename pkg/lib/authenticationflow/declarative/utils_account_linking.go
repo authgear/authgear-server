@@ -25,7 +25,7 @@ func resolveAccountLinkingConfigsOAuth(
 
 	for _, oauthConfig := range cfg.OAuth {
 		oauthConfig := oauthConfig
-		if oauthConfig.Alias == request.Alias {
+		if oauthConfig.Alias == request.Spec.OAuth.ProviderAlias {
 			matches = append(matches, oauthConfig)
 		}
 	}
@@ -436,8 +436,7 @@ type CreateIdentityRequest struct {
 }
 
 type CreateIdentityRequestOAuth struct {
-	Alias string         `json:"alias,omitempty"`
-	Spec  *identity.Spec `json:"spec,omitempty"`
+	Spec *identity.Spec `json:"spec,omitempty"`
 }
 
 type CreateIdentityRequestLoginID struct {
@@ -448,12 +447,11 @@ type CreateIdentityRequestLDAP struct {
 	Spec *identity.Spec `json:"spec,omitempty"`
 }
 
-func NewCreateOAuthIdentityRequest(alias string, spec *identity.Spec) *CreateIdentityRequest {
+func NewCreateOAuthIdentityRequest(spec *identity.Spec) *CreateIdentityRequest {
 	return &CreateIdentityRequest{
 		Type: model.IdentityTypeOAuth,
 		OAuth: &CreateIdentityRequestOAuth{
-			Alias: alias,
-			Spec:  spec,
+			Spec: spec,
 		},
 	}
 }

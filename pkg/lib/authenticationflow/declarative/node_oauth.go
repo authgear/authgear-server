@@ -86,7 +86,7 @@ func (n *NodeOAuth) reactTo(ctx context.Context, deps *authflow.Dependencies, fl
 		return authflow.NewSubFlow(&IntentCheckConflictAndCreateIdenity{
 			JSONPointer: n.JSONPointer,
 			UserID:      n.NewUserID,
-			Request:     NewCreateOAuthIdentityRequest(n.Alias, spec),
+			Request:     NewCreateOAuthIdentityRequest(spec),
 		}), nil
 	}
 	// Else login
