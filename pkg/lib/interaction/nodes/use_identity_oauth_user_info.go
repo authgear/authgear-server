@@ -75,15 +75,9 @@ func (e *EdgeUseIdentityOAuthUserInfo) Instantiate(goCtx context.Context, ctx *i
 		return nil, err
 	}
 
-	providerID := providerConfig.ProviderID()
 	spec := &identity.Spec{
-		Type: model.IdentityTypeOAuth,
-		OAuth: &identity.OAuthSpec{
-			ProviderID:     providerID,
-			SubjectID:      userInfo.ProviderUserID,
-			RawProfile:     userInfo.ProviderRawProfile,
-			StandardClaims: userInfo.StandardAttributes,
-		},
+		Type:  model.IdentityTypeOAuth,
+		OAuth: identity.NewIncomingOAuthSpec(providerConfig, userInfo),
 	}
 
 	return &NodeUseIdentityOAuthUserInfo{
