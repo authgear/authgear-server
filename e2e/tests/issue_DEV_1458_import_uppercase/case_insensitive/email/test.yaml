@@ -36,6 +36,8 @@ steps:
         [
           {
             "id": "[[string]]",
-            "standard_attributes": "{\"email\": \"lowerupper@ca.se\"}"
+            "standard_attributes": {
+              "email": "lowerupper@ca.se"
+            }
           }
         ]

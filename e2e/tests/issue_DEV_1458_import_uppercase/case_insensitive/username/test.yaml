@@ -36,6 +36,8 @@ steps:
         [
           {
             "id": "[[string]]",
-            "standard_attributes": "{\"preferred_username\": \"lowerupper\"}"
+            "standard_attributes": {
+              "preferred_username": "lowerupper"
+            }
           }
         ]
