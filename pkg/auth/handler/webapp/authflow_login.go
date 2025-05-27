@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-
 	"net/url"
 
 	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
@@ -44,6 +43,7 @@ func ConfigureAuthflowLoginRoute(route httproute.Route) httproute.Route {
 
 type AuthflowLoginEndpointsProvider interface {
 	SSOCallbackURL(alias string) *url.URL
+	SharedSSOCallbackURL() *url.URL
 }
 
 type AuthflowLoginViewModel struct {

@@ -67,6 +67,8 @@ const (
 	AuthflowV2RouteResetPasswordSuccess = "/authflow/v2/reset_password/success"
 	AuthflowV2RouteWechat               = "/authflow/v2/wechat"
 	AuthflowV2RouteAccountLinking       = "/authflow/v2/account_linking"
+	// nolint:gosec
+	AuthflowV2RouteOAuthProviderDemoCredential = "/authflow/v2/oauth_provider_demo_credential"
 
 	SettingsV2RouteSettings                   = "/settings"
 	SettingsV2RouteProfilePictureEditSettings = "/settings/profile/picture/edit"
@@ -78,6 +80,8 @@ const (
 	// The following routes are dead ends.
 	AuthflowV2RouteAccountStatus   = "/authflow/v2/account_status"
 	AuthflowV2RouteNoAuthenticator = "/authflow/v2/no_authenticator"
+	// nolint:gosec
+	AuthflowV2RouteOAuthProviderMissingCredentials = "/authflow/v2/oauth_provider_missing_credential"
 
 	AuthflowV2RouteFinishFlow = "/authflow/v2/finish"
 
@@ -130,6 +134,7 @@ type AuthflowV2NavigatorOAuthStateStore interface {
 }
 
 type AuthflowV2Navigator struct {
+	AppID           config.AppID
 	Endpoints       AuthflowV2NavigatorEndpointsProvider
 	OAuthStateStore AuthflowV2NavigatorOAuthStateStore
 }
@@ -144,6 +149,8 @@ func (n *AuthflowV2Navigator) NavigateNonRecoverableError(r *http.Request, u *ur
 		u.Path = AuthflowV2RouteNoAuthenticator
 	case errors.Is(e, authflow.ErrFlowNotFound):
 		u.Path = n.Endpoints.ErrorEndpointURL().Path
+	case apierrors.IsKind(e, api.OAuthProviderMissingCredentials):
+		u.Path = AuthflowV2RouteOAuthProviderMissingCredentials
 	case apierrors.IsKind(e, webapp.WebUIInvalidSession):
 		// Show WebUIInvalidSession error in different page.
 		u.Path = n.Endpoints.ErrorEndpointURL().Path
@@ -158,25 +165,29 @@ func (n *AuthflowV2Navigator) NavigateResetPasswordSuccessPage() string {
 	return AuthflowV2RouteResetPasswordSuccess
 }
 
-func (n *AuthflowV2Navigator) NavigateChangePasswordSuccessPage(s *webapp.AuthflowScreen, r *http.Request, webSessionID string) (result *webapp.Result) {
-	navigate := func(path string, query *url.Values) (result *webapp.Result) {
-		u := *r.URL
-		u.Path = path
-		q := u.Query()
-		q.Set(webapp.AuthflowQueryKey, s.StateToken.XStep)
-		for k, param := range *query {
-			for _, p := range param {
-				q.Add(k, p)
-			}
+func (n *AuthflowV2Navigator) navigateWithScreen(path string, screen *webapp.AuthflowScreen, r *http.Request, query *url.Values) (result *webapp.Result) {
+	u := *r.URL
+	u.Path = path
+	q := u.Query()
+	q.Set(webapp.AuthflowQueryKey, screen.StateToken.XStep)
+	for k, param := range *query {
+		for _, p := range param {
+			q.Add(k, p)
 		}
-		u.RawQuery = q.Encode()
-		result = &webapp.Result{}
-		result.NavigationAction = webapp.NavigationActionAdvance
-		result.RedirectURI = u.String()
-		return result
 	}
+	u.RawQuery = q.Encode()
+	result = &webapp.Result{}
+	result.NavigationAction = webapp.NavigationActionAdvance
+	result.RedirectURI = u.String()
+	return result
+}
 
-	return navigate(AuthflowV2RouteChangePasswordSuccess, &url.Values{})
+func (n *AuthflowV2Navigator) NavigateChangePasswordSuccessPage(s *webapp.AuthflowScreen, r *http.Request, webSessionID string) (result *webapp.Result) {
+	return n.navigateWithScreen(AuthflowV2RouteChangePasswordSuccess, s, r, &url.Values{})
+}
+
+func (n *AuthflowV2Navigator) NavigateOAuthProviderDemoCredentialPage(s *webapp.AuthflowScreen, r *http.Request) (result *webapp.Result) {
+	return n.navigateWithScreen(AuthflowV2RouteOAuthProviderDemoCredential, s, r, &url.Values{})
 }
 
 func (n *AuthflowV2Navigator) Navigate(ctx context.Context, s *webapp.AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *webapp.Result) {
@@ -351,10 +362,12 @@ func (n *AuthflowV2Navigator) navigateStepIdentify(ctx context.Context, s *webap
 			errorRedirectURI := url.URL{Path: r.URL.Path, RawQuery: r.URL.Query().Encode()}
 
 			state := &webappoauth.WebappOAuthState{
+				AppID:            string(n.AppID),
 				WebSessionID:     webSessionID,
 				UIImplementation: config.UIImplementationAuthflowV2,
 				XStep:            s.Screen.StateToken.XStep,
 				ErrorRedirectURI: errorRedirectURI.String(),
+				ProviderAlias:    data.Alias,
 			}
 			stateToken, err := n.OAuthStateStore.GenerateState(ctx, state)
 			if err != nil {

@@ -695,8 +695,8 @@ function SMSProviderConfigurationScreen1({
 }) {
   const {
     effectiveAppConfig,
-    loading: loadingAppConfig,
-    error: appConfigError,
+    isLoading: loadingAppConfig,
+    loadError: appConfigError,
     refetch: refetchAppConfig,
     secretConfig,
   } = useAppAndSecretConfigQuery(appID, secretToken);
@@ -823,14 +823,14 @@ function SMSProviderConfigurationScreen1({
     form.state.twilioSenderType,
   ]);
 
-  if (loadingAppConfig || form.isLoading || featureConfig.loading) {
+  if (loadingAppConfig || form.isLoading || featureConfig.isLoading) {
     return <ShowLoading />;
   }
 
-  if (appConfigError ?? form.loadError ?? featureConfig.error) {
+  if (appConfigError ?? form.loadError ?? featureConfig.loadError) {
     return (
       <ShowError
-        error={form.loadError ?? featureConfig.error}
+        error={form.loadError ?? featureConfig.loadError}
         onRetry={() => {
           refetchAppConfig().finally(() => {});
           form.reload();

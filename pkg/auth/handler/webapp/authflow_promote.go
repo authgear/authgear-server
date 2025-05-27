@@ -40,6 +40,7 @@ func ConfigureAuthflowPromoteRoute(route httproute.Route) httproute.Route {
 
 type AuthflowPromoteEndpointsProvider interface {
 	SSOCallbackURL(alias string) *url.URL
+	SharedSSOCallbackURL() *url.URL
 }
 
 type AuthflowPromoteHandler struct {

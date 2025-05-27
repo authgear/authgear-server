@@ -12,8 +12,11 @@ import (
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
+	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
+
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
+	authflowv2viewmodels "github.com/authgear/authgear-server/pkg/auth/handler/webapp/authflowv2/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
@@ -97,6 +100,7 @@ type AuthflowNavigator interface {
 	NavigateSelectAccount(result *webapp.Result)
 	NavigateResetPasswordSuccessPage() string
 	NavigateVerifyBotProtection(result *webapp.Result)
+	NavigateOAuthProviderDemoCredentialPage(screen *webapp.AuthflowScreen, r *http.Request) *webapp.Result
 }
 
 type AuthflowControllerLogger struct{ *log.Logger }
@@ -115,6 +119,11 @@ type AuthflowOAuthCallbackResponse struct {
 	State *webappoauth.WebappOAuthState
 }
 
+type AuthflowEndpoints interface {
+	SSOCallbackURL(alias string) *url.URL
+	SharedSSOCallbackURL() *url.URL
+}
+
 type AuthflowController struct {
 	Logger                  AuthflowControllerLogger
 	TesterEndpointsProvider tester.EndpointsProvider
@@ -125,6 +134,7 @@ type AuthflowController struct {
 	Sessions       AuthflowControllerSessionStore
 	SessionCookie  webapp.SessionCookieDef
 	SignedUpCookie webapp.SignedUpCookieDef
+	Endpoints      AuthflowEndpoints
 
 	Authflows AuthflowControllerAuthflowService
 
@@ -718,9 +728,12 @@ func (c *AuthflowController) DelayScreen(ctx context.Context, r *http.Request,
 	s *webapp.Session,
 	sourceScreen *webapp.AuthflowScreen,
 	targetResult *webapp.Result,
+	screenFactory func(*webapp.AuthflowScreen) *webapp.AuthflowScreen,
 ) (*webapp.AuthflowScreen, error) {
-	prevXStep := sourceScreen.StateToken.XStep
-	screen := webapp.NewAuthflowScreenWithResult(prevXStep, targetResult)
+	screen := webapp.NewAuthflowDelayedScreenWithResult(sourceScreen, targetResult)
+	if screenFactory != nil {
+		screen = screenFactory(screen)
+	}
 	s.RememberScreen(screen)
 	err := c.updateSession(ctx, r, s)
 	if err != nil {
@@ -1097,6 +1110,10 @@ func (c *AuthflowController) renderError(ctx context.Context, w http.ResponseWri
 }
 
 func (c *AuthflowController) checkPath(ctx context.Context, w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+	if screen.Screen != nil && screen.Screen.SkipPathCheck {
+		return nil
+	}
+
 	// We derive the intended path of the screen,
 	// and check if the paths match.
 	result := &webapp.Result{}
@@ -1171,4 +1188,85 @@ func (c *AuthflowController) finishSession(
 		// Do nothing for other flows
 	}
 	return nil
+}
+
+func (c *AuthflowController) GetAccountLinkingSSOCallbackURL(alias string, data declarative.AccountLinkingIdentifyData) (string, error) {
+	var idenOption *declarative.AccountLinkingIdentificationOption
+	for _, option := range data.Options {
+		option := option
+		if option.Alias == alias {
+			idenOption = &option
+			break
+		}
+	}
+	if idenOption == nil {
+		return "", fmt.Errorf("unknown alias %s", alias)
+	}
+
+	var callbackURL string
+	if idenOption.ProviderStatus == config.OAuthProviderStatusUsingDemoCredentials {
+		callbackURL = c.Endpoints.SharedSSOCallbackURL().String()
+	} else {
+		callbackURL = c.Endpoints.SSOCallbackURL(alias).String()
+	}
+	return callbackURL, nil
+}
+
+func (c *AuthflowController) UseOAuthIdentification(
+	ctx context.Context, s *webapp.Session,
+	w http.ResponseWriter, r *http.Request,
+	screen *webapp.AuthflowScreen,
+	alias string, identificationOptions []declarative.IdentificationOption,
+	flowExecutor func(input map[string]interface{},
+	) (
+		result *webapp.Result,
+		err error),
+) (*webapp.Result, error) {
+	var idenOption *declarative.IdentificationOption
+	for _, option := range identificationOptions {
+		option := option
+		if option.Alias == alias {
+			idenOption = &option
+			break
+		}
+	}
+	if idenOption == nil {
+		return nil, fmt.Errorf("unknown alias %s", alias)
+	}
+	var callbackURL string
+	if idenOption.ProviderStatus == config.OAuthProviderStatusUsingDemoCredentials {
+		callbackURL = c.Endpoints.SharedSSOCallbackURL().String()
+	} else {
+		callbackURL = c.Endpoints.SSOCallbackURL(alias).String()
+	}
+
+	input := map[string]interface{}{
+		"identification": "oauth",
+		"alias":          alias,
+		"redirect_uri":   callbackURL,
+		"response_mode":  oauthrelyingparty.ResponseModeFormPost,
+	}
+
+	result, err := flowExecutor(input)
+	if err != nil {
+		return nil, err
+	}
+
+	if idenOption.ProviderStatus == config.OAuthProviderStatusUsingDemoCredentials {
+		// Insert a confirmation screen if the provider is using demo credentials
+		newScreen, err := c.DelayScreen(ctx, r, s, screen, result, func(newScreen *webapp.AuthflowScreen) *webapp.AuthflowScreen {
+			newScreen.OAuthProviderDemoCredentialViewModel = &authflowv2viewmodels.OAuthProviderDemoCredentialViewModel{
+				ProviderType: idenOption.ProviderType,
+				FromURL:      r.URL.String(),
+			}
+			return newScreen
+		})
+		if err != nil {
+			return nil, err
+		}
+		newResult := c.Navigator.NavigateOAuthProviderDemoCredentialPage(newScreen, r)
+		result = newResult
+	}
+
+	return result, nil
 }

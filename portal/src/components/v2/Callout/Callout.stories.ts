@@ -13,6 +13,7 @@ const meta = {
     },
   },
   args: {
+    className: "w-90",
     text: "Some text in the callout",
     showCloseButton: true,
   },
@@ -24,6 +25,12 @@ type Story = StoryObj<typeof meta>;
 export const Error: Story = {
   args: {
     type: "error",
+  },
+};
+
+export const Warning: Story = {
+  args: {
+    type: "warning",
   },
 };
 

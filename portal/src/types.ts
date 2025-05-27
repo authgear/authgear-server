@@ -89,11 +89,16 @@ export interface OAuthClaimConfig {
 export interface OAuthClaimsConfig {
   email?: OAuthClaimConfig;
 }
+export type OAuthSSOProviderCredentialsBehavior =
+  | "use_project_credentials"
+  | "use_demo_credentials";
+
 export interface OAuthSSOProviderConfig {
   alias: string;
   type: OAuthSSOProviderType;
   create_disabled?: boolean;
   delete_disabled?: boolean;
+  credentials_behavior?: OAuthSSOProviderCredentialsBehavior;
   client_id?: string;
   tenant?: string;
   key_id?: string;

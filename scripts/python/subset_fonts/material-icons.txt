@@ -8,6 +8,7 @@ api
 arrow_back_ios
 arrow_forward_ios
 auto_delete
+badge
 block
 border_color
 box
@@ -43,7 +44,6 @@ fingerprint
 flag
 forward_to_inbox
 function
-functions
 height
 hide
 highlight

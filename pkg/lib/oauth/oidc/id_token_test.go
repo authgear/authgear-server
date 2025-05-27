@@ -82,8 +82,10 @@ func TestIDTokenIssuer(t *testing.T) {
 		issuer := &IDTokenIssuer{
 			Secrets: secrets,
 			BaseURL: &endpoints.Endpoints{
-				HTTPHost:  "test.authgear.com",
-				HTTPProto: "http",
+				OAuthEndpoints: &endpoints.OAuthEndpoints{
+					HTTPHost:  "test.authgear.com",
+					HTTPProto: "http",
+				},
 			},
 			UserInfoService: mockUserInfoService,
 			Clock:           clock.NewMockClockAtTime(now),

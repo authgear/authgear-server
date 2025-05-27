@@ -33,8 +33,8 @@ const PortalAdminsSettings: React.VFC = function PortalAdminsSettings() {
   const {
     effectiveFeatureConfig,
     planName,
-    loading: featureConfigLoading,
-    error: featureConfigError,
+    isLoading: featureConfigLoading,
+    loadError: featureConfigError,
     refetch: featureConfigRefetch,
   } = useAppFeatureConfigQuery(appID);
 

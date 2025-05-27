@@ -1,3 +1,4 @@
+import cn from "classnames";
 import {
   Cross2Icon,
   CheckCircledIcon,
@@ -9,9 +10,10 @@ import styles from "./Callout.module.css";
 import { useMaybeToastContext, useToastProviderContext } from "../Toast/Toast";
 import { semanticToRadixColor } from "../../../util/radix";
 
-export type CalloutType = "error" | "success";
+export type CalloutType = "error" | "success" | "warning";
 
 export interface CalloutProps {
+  className?: string;
   type: CalloutType;
   text?: React.ReactNode;
   showCloseButton?: boolean;
@@ -23,6 +25,8 @@ function typeToSemantic(type: CalloutType) {
       return "error";
     case "success":
       return "success";
+    case "warning":
+      return "warning";
   }
 }
 
@@ -32,10 +36,13 @@ function CalloutIcon({ color }: { color: CalloutType }) {
       return <ExclamationTriangleIcon width="1rem" height="1rem" />;
     case "success":
       return <CheckCircledIcon width="1rem" height="1rem" />;
+    case "warning":
+      return <ExclamationTriangleIcon width="1rem" height="1rem" />;
   }
 }
 
 export function Callout({
+  className,
   type,
   text,
   showCloseButton = true,
@@ -48,7 +55,7 @@ export function Callout({
 
   return (
     <RadixCallout.Root
-      className={styles.calloutRoot}
+      className={cn(styles.calloutRoot, className)}
       color={semanticToRadixColor(typeToSemantic(type))}
       size="2"
       variant="surface"
@@ -79,7 +86,12 @@ export function useCalloutToast(): {
 
   const showToast = useCallback(
     (props: CalloutProps) => {
-      registerToast(<Callout {...props} />);
+      registerToast(
+        <Callout
+          {...props}
+          className={cn(props.className, styles["calloutRoot--toast"])}
+        />
+      );
     },
     [registerToast]
   );

@@ -9,6 +9,7 @@ import (
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
+	authflowv2viewmodels "github.com/authgear/authgear-server/pkg/auth/handler/webapp/authflowv2/viewmodels"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -105,6 +106,12 @@ type AuthflowScreen struct {
 	WechatCallbackData *AuthflowWechatCallbackData `json:"wechat_callback_data,omitempty"`
 	// IsBotProtectionRequired will be used to determine whether to navigate to bot protection verification screen.
 	IsBotProtectionRequired bool `json:"is_bot_protection_required,omitempty"`
+
+	// In some cases, we intentionally add screens between steps, so the path may not match
+	SkipPathCheck bool `json:"skip_path_check,omitempty"`
+
+	// viewmodels used in specific screens
+	OAuthProviderDemoCredentialViewModel *authflowv2viewmodels.OAuthProviderDemoCredentialViewModel `json:"oauth_provider_demo_credential,omitempty"`
 }
 
 func newAuthflowScreen(flowResponse *authflow.FlowResponse, previousXStep string, previousInput map[string]interface{}) *AuthflowScreen {
@@ -307,16 +314,19 @@ type AuthflowScreenWithFlowResponse struct {
 	BranchStateTokenFlowResponse *authflow.FlowResponse
 }
 
-func NewAuthflowScreenWithResult(previousXStep string, targetResult *Result) *AuthflowScreen {
+func NewAuthflowDelayedScreenWithResult(
+	sourceScreen *AuthflowScreen, targetResult *Result) *AuthflowScreen {
 	return &AuthflowScreen{
 		DelayedUIScreenData: &AuthflowDelayedUIScreenData{
 			TargetResult: targetResult,
 		},
-		PreviousXStep: previousXStep,
+		PreviousXStep: sourceScreen.StateToken.XStep,
 		StateToken: &AuthflowStateToken{
 			XStep:      newXStep(),
-			StateToken: "",
+			StateToken: sourceScreen.StateToken.StateToken,
 		},
+		// Delayed screen does not have a corresponding authflow step, skip the path check
+		SkipPathCheck: true,
 	}
 }
 

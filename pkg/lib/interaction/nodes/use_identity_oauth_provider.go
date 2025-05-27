@@ -68,6 +68,7 @@ func (e *EdgeUseIdentityOAuthProvider) Instantiate(goCtx context.Context, ctx *i
 	nonceSource := ctx.Nonces.GenerateAndSet()
 	errorRedirectURI := input.GetErrorRedirectURI()
 
+	// NOTE(tung): Demo provider not supported in interaction
 	providerConfig, err := ctx.OAuthProviderFactory.GetProviderConfig(alias)
 	if err != nil {
 		return nil, err
@@ -82,8 +83,10 @@ func (e *EdgeUseIdentityOAuthProvider) Instantiate(goCtx context.Context, ctx *i
 	}
 
 	state := &webappoauth.WebappOAuthState{
+		AppID:            string(ctx.Config.ID),
 		UIImplementation: config.UIImplementationInteraction,
 		WebSessionID:     ctx.WebSessionID,
+		ProviderAlias:    alias,
 	}
 	stateToken, err := ctx.OAuthStateStore.GenerateState(goCtx, state)
 	if err != nil {

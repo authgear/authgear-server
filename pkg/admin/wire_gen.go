@@ -929,6 +929,12 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          rand,
 	}
+	sharedAuthgearEndpoint := environmentConfig.SharedAuthgearEndpoint
+	oAuthEndpoints := &endpoints.OAuthEndpoints{
+		HTTPHost:               httpHost,
+		HTTPProto:              httpProto,
+		SharedAuthgearEndpoint: sharedAuthgearEndpoint,
+	}
 	globalUIImplementation := environmentConfig.UIImplementation
 	globalUISettingsImplementation := environmentConfig.UISettingsImplementation
 	uiImplementationService := &web.UIImplementationService{
@@ -937,8 +943,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		GlobalUISettingsImplementation: globalUISettingsImplementation,
 	}
 	endpointsEndpoints := &endpoints.Endpoints{
-		HTTPHost:                httpHost,
-		HTTPProto:               httpProto,
+		OAuthEndpoints:          oAuthEndpoints,
 		UIImplementationService: uiImplementationService,
 	}
 	oauthclientResolver := &oauthclient.Resolver{
@@ -1014,6 +1019,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Sender:      messagingSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
+	ssooAuthDemoCredentials := deps.ProvideSSOOAuthDemoCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	simpleStoreRedisFactory := &sso.SimpleStoreRedisFactory{
 		AppID: appID,
@@ -1022,14 +1028,18 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
+		SSOOAuthDemoCredentials:      ssooAuthDemoCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
 		SimpleStoreRedisFactory:      simpleStoreRedisFactory,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig, factory)
 	webappoauthStore := &webappoauth.Store{
-		Redis: appredisHandle,
-		AppID: appID,
+		Redis: globalredisHandle,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,

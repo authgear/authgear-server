@@ -747,11 +747,14 @@ func getOAuthData(ctx context.Context, deps *authflow.Dependencies, opts GetOAut
 		return
 	}
 
+	status := config.OAuthSSOProviderConfig(providerConfig).ComputeProviderStatus(deps.SSOOAuthDemoCredentials)
+
 	data = NewOAuthData(OAuthData{
 		Alias:                 opts.Alias,
 		OAuthProviderType:     providerConfig.Type(),
 		OAuthAuthorizationURL: authorizationURL,
 		WechatAppType:         wechat.ProviderConfig(providerConfig).AppType(),
+		ProviderStatus:        status,
 	})
 	return
 }

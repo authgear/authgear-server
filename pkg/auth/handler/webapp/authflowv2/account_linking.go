@@ -42,18 +42,19 @@ type AuthflowV2AccountLinkingOption struct {
 	Identification    config.AuthenticationFlowIdentification
 	MaskedDisplayName string
 	ProviderType      string
+	ProviderStatus    config.OAuthProviderStatus
 	Index             int
 }
 
 type AuthflowV2AccountLinkingViewModel struct {
 	Options []AuthflowV2AccountLinkingOption
+	Data    declarative.AccountLinkingIdentifyData
 }
 
 type AuthflowV2AccountLinkingHandler struct {
 	Controller    *handlerwebapp.AuthflowController
 	BaseViewModel *viewmodels.BaseViewModeler
 	Renderer      handlerwebapp.Renderer
-	Endpoints     handlerwebapp.AuthflowSignupEndpointsProvider
 }
 
 func NewAuthflowV2AccountLinkingViewModel(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) AuthflowV2AccountLinkingViewModel {
@@ -70,12 +71,14 @@ func NewAuthflowV2AccountLinkingViewModel(s *webapp.Session, screen *webapp.Auth
 			Identification:    option.Identifcation,
 			MaskedDisplayName: option.MaskedDisplayName,
 			ProviderType:      option.ProviderType,
+			ProviderStatus:    option.ProviderStatus,
 			Index:             idx,
 		})
 	}
 
 	return AuthflowV2AccountLinkingViewModel{
 		Options: options,
+		Data:    data,
 	}
 }
 
@@ -128,9 +131,14 @@ func (h *AuthflowV2AccountLinkingHandler) ServeHTTP(w http.ResponseWriter, r *ht
 			}
 		case config.AuthenticationFlowIdentificationOAuth:
 			providerAlias := option.Alias
+			screenViewModel := NewAuthflowV2AccountLinkingViewModel(s, screen)
+			redirectURI, err := h.Controller.GetAccountLinkingSSOCallbackURL(providerAlias, screenViewModel.Data)
+			if err != nil {
+				return err
+			}
 			input = map[string]interface{}{
 				"index":        index,
-				"redirect_uri": h.Endpoints.SSOCallbackURL(providerAlias).String(),
+				"redirect_uri": redirectURI,
 			}
 		case config.AuthenticationFlowIdentificationLDAP:
 			// TODO(DEV-1672): Support Account Linking for LDAP

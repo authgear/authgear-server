@@ -6,8 +6,6 @@ import (
 
 	"net/url"
 
-	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
-
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
@@ -36,6 +34,7 @@ func ConfigureAuthflowV2PromoteRoute(route httproute.Route) httproute.Route {
 
 type AuthflowV2PromoteEndpointsProvider interface {
 	SSOCallbackURL(alias string) *url.URL
+	SharedSSOCallbackURL() *url.URL
 }
 
 type AuthflowV2PromoteHandler struct {
@@ -43,7 +42,10 @@ type AuthflowV2PromoteHandler struct {
 	BaseViewModel     *viewmodels.BaseViewModeler
 	AuthflowViewModel *viewmodels.AuthflowViewModeler
 	Renderer          handlerwebapp.Renderer
-	Endpoints         AuthflowV2PromoteEndpointsProvider
+}
+
+func (h *AuthflowV2PromoteHandler) getAuthflowViewModel(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse, r *http.Request) viewmodels.AuthflowViewModel {
+	return h.AuthflowViewModel.NewWithAuthflow(s, screen.StateTokenFlowResponse, r)
 }
 
 func (h *AuthflowV2PromoteHandler) GetData(
@@ -56,7 +58,7 @@ func (h *AuthflowV2PromoteHandler) GetData(
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
 	viewmodels.Embed(data, baseViewModel)
 
-	authflowViewModel := h.AuthflowViewModel.NewWithAuthflow(s, screen.StateTokenFlowResponse, r)
+	authflowViewModel := h.getAuthflowViewModel(s, screen, r)
 	viewmodels.Embed(data, authflowViewModel)
 
 	signupViewModel := AuthflowV2SignupViewModel{
@@ -86,20 +88,15 @@ func (h *AuthflowV2PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 
 	handlers.PostAction("oauth", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		providerAlias := r.Form.Get("x_provider_alias")
-		callbackURL := h.Endpoints.SSOCallbackURL(providerAlias).String()
-		input := map[string]interface{}{
-			"identification": "oauth",
-			"alias":          providerAlias,
-			"redirect_uri":   callbackURL,
-			"response_mode":  oauthrelyingparty.ResponseModeFormPost,
-		}
+		authflowViewModel := h.getAuthflowViewModel(s, screen, r)
+		result, err := h.Controller.UseOAuthIdentification(ctx, s, w, r, screen.Screen, providerAlias, authflowViewModel.IdentificationOptions, func(input map[string]interface{}) (result *webapp.Result, err error) {
+			err = handlerwebapp.HandleIdentificationBotProtection(ctx, config.AuthenticationFlowIdentificationOAuth, screen.StateTokenFlowResponse, r.Form, input)
+			if err != nil {
+				return nil, err
+			}
 
-		err := handlerwebapp.HandleIdentificationBotProtection(ctx, config.AuthenticationFlowIdentificationOAuth, screen.StateTokenFlowResponse, r.Form, input)
-		if err != nil {
-			return err
-		}
-
-		result, err := h.Controller.AdvanceWithInput(ctx, r, s, screen, input, nil)
+			return h.Controller.AdvanceWithInput(ctx, r, s, screen, input, nil)
+		})
 		if err != nil {
 			return err
 		}

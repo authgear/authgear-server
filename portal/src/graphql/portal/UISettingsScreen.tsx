@@ -770,10 +770,11 @@ const UISettingsScreen: React.VFC = function UISettingsScreen() {
   const form: FormModel = useMemo(
     () => ({
       isLoading:
-        config.isLoading || resources.isLoading || featureConfig.loading,
+        config.isLoading || resources.isLoading || featureConfig.isLoading,
       isUpdating: config.isUpdating || resources.isUpdating,
       isDirty: config.isDirty || resources.isDirty,
-      loadError: config.loadError ?? resources.loadError ?? featureConfig.error,
+      loadError:
+        config.loadError ?? resources.loadError ?? featureConfig.loadError,
       updateError: config.updateError ?? resources.updateError,
       state,
       setState: (fn) => {

@@ -8,6 +8,7 @@ import (
 	context "context"
 	json "encoding/json"
 	http "net/http"
+	url "net/url"
 	reflect "reflect"
 
 	webapp "github.com/authgear/authgear-server/pkg/auth/webapp"
@@ -421,6 +422,20 @@ func (mr *MockAuthflowNavigatorMockRecorder) Navigate(ctx, screen, r, webSession
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Navigate", reflect.TypeOf((*MockAuthflowNavigator)(nil).Navigate), ctx, screen, r, webSessionID, result)
 }
 
+// NavigateOAuthProviderDemoCredentialPage mocks base method.
+func (m *MockAuthflowNavigator) NavigateOAuthProviderDemoCredentialPage(screen *webapp.AuthflowScreen, r *http.Request) *webapp.Result {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "NavigateOAuthProviderDemoCredentialPage", screen, r)
+	ret0, _ := ret[0].(*webapp.Result)
+	return ret0
+}
+
+// NavigateOAuthProviderDemoCredentialPage indicates an expected call of NavigateOAuthProviderDemoCredentialPage.
+func (mr *MockAuthflowNavigatorMockRecorder) NavigateOAuthProviderDemoCredentialPage(screen, r interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NavigateOAuthProviderDemoCredentialPage", reflect.TypeOf((*MockAuthflowNavigator)(nil).NavigateOAuthProviderDemoCredentialPage), screen, r)
+}
+
 // NavigateResetPasswordSuccessPage mocks base method.
 func (m *MockAuthflowNavigator) NavigateResetPasswordSuccessPage() string {
 	m.ctrl.T.Helper()
@@ -457,4 +472,55 @@ func (m *MockAuthflowNavigator) NavigateVerifyBotProtection(result *webapp.Resul
 func (mr *MockAuthflowNavigatorMockRecorder) NavigateVerifyBotProtection(result interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NavigateVerifyBotProtection", reflect.TypeOf((*MockAuthflowNavigator)(nil).NavigateVerifyBotProtection), result)
+}
+
+// MockAuthflowEndpoints is a mock of AuthflowEndpoints interface.
+type MockAuthflowEndpoints struct {
+	ctrl     *gomock.Controller
+	recorder *MockAuthflowEndpointsMockRecorder
+}
+
+// MockAuthflowEndpointsMockRecorder is the mock recorder for MockAuthflowEndpoints.
+type MockAuthflowEndpointsMockRecorder struct {
+	mock *MockAuthflowEndpoints
+}
+
+// NewMockAuthflowEndpoints creates a new mock instance.
+func NewMockAuthflowEndpoints(ctrl *gomock.Controller) *MockAuthflowEndpoints {
+	mock := &MockAuthflowEndpoints{ctrl: ctrl}
+	mock.recorder = &MockAuthflowEndpointsMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockAuthflowEndpoints) EXPECT() *MockAuthflowEndpointsMockRecorder {
+	return m.recorder
+}
+
+// SSOCallbackURL mocks base method.
+func (m *MockAuthflowEndpoints) SSOCallbackURL(alias string) *url.URL {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SSOCallbackURL", alias)
+	ret0, _ := ret[0].(*url.URL)
+	return ret0
+}
+
+// SSOCallbackURL indicates an expected call of SSOCallbackURL.
+func (mr *MockAuthflowEndpointsMockRecorder) SSOCallbackURL(alias interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SSOCallbackURL", reflect.TypeOf((*MockAuthflowEndpoints)(nil).SSOCallbackURL), alias)
+}
+
+// SharedSSOCallbackURL mocks base method.
+func (m *MockAuthflowEndpoints) SharedSSOCallbackURL() *url.URL {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SharedSSOCallbackURL")
+	ret0, _ := ret[0].(*url.URL)
+	return ret0
+}
+
+// SharedSSOCallbackURL indicates an expected call of SharedSSOCallbackURL.
+func (mr *MockAuthflowEndpointsMockRecorder) SharedSSOCallbackURL() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SharedSSOCallbackURL", reflect.TypeOf((*MockAuthflowEndpoints)(nil).SharedSSOCallbackURL))
 }

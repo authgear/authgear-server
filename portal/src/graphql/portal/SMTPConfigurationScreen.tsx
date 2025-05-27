@@ -830,11 +830,12 @@ const SMTPConfigurationScreen1: React.VFC<{
 
   const form: AppSecretConfigFormModel<FormState> = {
     isLoading:
-      configQuery.loading || configForm.isLoading || featureConfig.loading,
+      configQuery.isLoading || configForm.isLoading || featureConfig.isLoading,
     isUpdating: configForm.isUpdating,
     isDirty: configForm.isDirty,
     loadError:
-      configQuery.error ?? (configForm.loadError || featureConfig.error),
+      configQuery.loadError ??
+      (configForm.loadError || featureConfig.loadError),
     updateError: configForm.updateError,
     state,
     setState: (fn) => {

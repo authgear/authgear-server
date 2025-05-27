@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
 
 	"github.com/authgear/authgear-server/pkg/api"
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/oauthrelyingpartyutil"
@@ -20,6 +21,7 @@ type StandardAttributesNormalizer interface {
 type OAuthProviderFactory struct {
 	IdentityConfig               *config.IdentityConfig
 	Credentials                  *config.OAuthSSOProviderCredentials
+	SSOOAuthDemoCredentials      *config.SSOOAuthDemoCredentials
 	Clock                        clock.Clock
 	StandardAttributesNormalizer StandardAttributesNormalizer
 	HTTPClient                   OAuthHTTPClient
@@ -34,9 +36,33 @@ func (p *OAuthProviderFactory) GetProviderConfig(alias string) (oauthrelyingpart
 	return providerConfig, nil
 }
 
-func (p *OAuthProviderFactory) getProvider(alias string) (provider oauthrelyingparty.Provider, deps *oauthrelyingparty.Dependencies, err error) {
+func (p *OAuthProviderFactory) getActiveOrDemoProvider(alias string) (provider oauthrelyingparty.Provider, deps *oauthrelyingparty.Dependencies, err error) {
 	providerConfig, err := p.GetProviderConfig(alias)
 	if err != nil {
+		return
+	}
+
+	if config.OAuthSSOProviderConfig(providerConfig).GetCredentialsBehavior() == config.OAuthSSOProviderCredentialsBehaviorUseDemoCredentials {
+		if p.SSOOAuthDemoCredentials == nil {
+			err = newOAuthProviderMissingCredentialsError(alias, providerConfig.Type(), false)
+			return
+		}
+
+		demoItem, ok := p.SSOOAuthDemoCredentials.LookupByProviderType(providerConfig.Type())
+		if !ok {
+			err = newOAuthProviderMissingCredentialsError(alias, providerConfig.Type(), true)
+			return
+		}
+
+		deps = &oauthrelyingparty.Dependencies{
+			Clock:          p.Clock,
+			ProviderConfig: demoItem.ProviderConfig,
+			ClientSecret:   demoItem.ClientSecret,
+			HTTPClient:     p.HTTPClient.Client,
+			SimpleStore:    p.SimpleStoreRedisFactory.GetStoreByProvider(demoItem.ProviderConfig.Type(), alias),
+		}
+
+		provider = demoItem.ProviderConfig.MustGetProvider()
 		return
 	}
 
@@ -59,7 +85,7 @@ func (p *OAuthProviderFactory) getProvider(alias string) (provider oauthrelyingp
 }
 
 func (p *OAuthProviderFactory) GetAuthorizationURL(ctx context.Context, alias string, options oauthrelyingparty.GetAuthorizationURLOptions) (url string, err error) {
-	provider, deps, err := p.getProvider(alias)
+	provider, deps, err := p.getActiveOrDemoProvider(alias)
 	if err != nil {
 		return
 	}
@@ -68,7 +94,7 @@ func (p *OAuthProviderFactory) GetAuthorizationURL(ctx context.Context, alias st
 }
 
 func (p *OAuthProviderFactory) GetUserProfile(ctx context.Context, alias string, options oauthrelyingparty.GetUserProfileOptions) (userProfile oauthrelyingparty.UserProfile, err error) {
-	provider, deps, err := p.getProvider(alias)
+	provider, deps, err := p.getActiveOrDemoProvider(alias)
 	if err != nil {
 		return
 	}
@@ -90,4 +116,12 @@ func (p *OAuthProviderFactory) GetUserProfile(ctx context.Context, alias string,
 	}
 
 	return
+}
+
+func newOAuthProviderMissingCredentialsError(alias string, providerType string, isDemo bool) error {
+	details := apierrors.Details{
+		"OAuthProviderAlias": alias,
+		"OAuthProviderType":  providerType,
+	}
+	return api.OAuthProviderMissingCredentials.NewWithInfo("oauth provider is missing credentials", details)
 }

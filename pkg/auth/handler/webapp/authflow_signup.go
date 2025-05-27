@@ -43,6 +43,7 @@ func ConfigureAuthflowSignupRoute(route httproute.Route) httproute.Route {
 
 type AuthflowSignupEndpointsProvider interface {
 	SSOCallbackURL(alias string) *url.URL
+	SharedSSOCallbackURL() *url.URL
 }
 
 type AuthflowSignupHandler struct {
