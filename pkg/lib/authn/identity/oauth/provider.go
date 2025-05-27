@@ -67,6 +67,10 @@ func (p *Provider) New(
 		ProviderAlias:     spec.ProviderAlias,
 	}
 
+	if spec.DoNotStoreIdentityAttributes {
+		p.stripPII(i)
+	}
+
 	return i
 }
 
@@ -85,7 +89,18 @@ func (p *Provider) WithUpdate(
 		newIden.Claims = spec.StandardClaims
 	}
 
+	if spec.DoNotStoreIdentityAttributes {
+		p.stripPII(&newIden)
+	}
+
 	return &newIden
+}
+
+// stripPII mutates i in-place.
+func (p *Provider) stripPII(i *identity.OAuth) {
+	// Strip and replace it with an empty map.
+	i.UserProfile = make(map[string]any)
+	i.Claims = make(map[string]any)
 }
 
 func (p *Provider) Create(ctx context.Context, i *identity.OAuth) error {
