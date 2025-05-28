@@ -9,6 +9,7 @@
       - [user.profile.pre_update](#userprofilepre_update)
       - [user.pre_schedule_deletion](#userpre_schedule_deletion)
       - [user.pre_schedule_anonymization](#userpre_schedule_anonymization)
+      - [user.auth.initialize](#userauthinitialize)
       - [user.auth.identified](#userauthidentified)
       - [user.auth.adaptive_control](#userauthadaptive_control)
       - [oidc.jwt.pre_create](#oidcjwtpre_create)
@@ -174,6 +175,23 @@ Occurs right before the account anonymization is scheduled.
 {
   "payload": {
     "user": { /* ... */ }
+  }
+}
+```
+
+#### user.auth.initialize
+
+Occurs right before any authentication, such as login.
+
+Example payload:
+
+```json5
+{
+  "authentication": {
+    "authentication_flow": {
+      "type": "login",
+      "name": "default"
+    }
   }
 }
 ```

@@ -306,3 +306,47 @@ export default async function (
 
 Because we only return `contraints.amr` if the user is outside Hong Kong, the user will see the `authenticate` step with an option `secondary_totp` only if he is signing in outside Hong Kong.
 Users in Hong Kong will skip the step and continue to the next step `check_account_status`.
+
+### Enable bot protection under specific conditions
+
+Use `user.auth.initialize` to enable bot protection under specific conditions.
+
+For example, if you want to display captcha only for user outside Hong Kong:
+
+Firstly, enable bot protection with mode `risk_level_dependent`.
+
+```yaml
+bot_protection:
+  enabled: true
+  requirements:
+    signup_or_login:
+      mode: "risk_level_dependent"
+      risk_level_condition:
+        gte: 2
+```
+
+`risk_level_condition.gte` means bot protection is only enabled if risk level is greater than or equal to (gte) 2.
+
+Then, return `risk_level` in your `user.auth.initialize` hook:
+
+```typescript
+export default async function (
+  e: EventUserAuthIdentified
+): Promise<EventUserAuthIdentifiedResponse> {
+  if (e.context.geo_location_code !== "HK") {
+    return {
+      // Allow the login with a mfa contraint
+      is_allowed: true,
+      risk_level: 2,
+    };
+  }
+  // Else, simply allow the login
+  return {
+    is_allowed: true,
+  };
+}
+```
+
+Because `risk_level` is 2, it triggers bot protection for signup or login flow.
+
+TODO(tung): Update bot protection spec.
