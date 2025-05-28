@@ -126,6 +126,7 @@ func (n *IntentUseIdentityPasskey) ReactTo(ctx context.Context, deps *authflow.D
 		n, err := NewNodeDoUseIdentityPasskey(ctx, flows, &NodeDoUseIdentityPasskey{
 			AssertionResponse: assertionResponseBytes,
 			Identity:          exactMatch,
+			IdentitySpec:      identitySpec,
 			Authenticator:     authenticatorInfo,
 			RequireUpdate:     verifyResult.Passkey,
 		})

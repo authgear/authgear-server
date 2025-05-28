@@ -77,7 +77,8 @@ func (n *IntentUseIdentityLoginID) ReactTo(ctx context.Context, deps *authflow.D
 		}
 
 		n, err := NewNodeDoUseIdentity(ctx, flows, &NodeDoUseIdentity{
-			Identity: exactMatch,
+			Identity:     exactMatch,
+			IdentitySpec: spec,
 		})
 		if err != nil {
 			return nil, err

@@ -107,7 +107,8 @@ func (n *IntentPromoteIdentityLoginID) ReactTo(ctx context.Context, deps *authfl
 				}
 
 				return authflow.NewNodeSimple(&NodeDoCreateIdentity{
-					Identity: info,
+					Identity:     info,
+					IdentitySpec: spec,
 				}), bpSpecialErr
 
 			}
