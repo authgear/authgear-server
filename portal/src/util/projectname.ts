@@ -1,4 +1,8 @@
-// ref https://github.com/bitcoinjs/bip39/blob/master/src/wordlists/english.json
+// ./wordlist.json is originally https://github.com/bitcoinjs/bip39/blob/master/src/wordlists/english.json
+// However, we found that some of the words are actually reserved words in reserved_app_id.txt
+// Therefore, the following words are removed from the list.
+// The implementation is also changed to accommodate the fact that the list is no longer 2048 items long.
+// Removed words: about, abuse, access, account, alpha, apple, arrow, asset, atom, auto, ball, board, book, business, chat, client, cloud, code, connect, control, design, destroy, develop, direct, dish, domain, edit, example, exchange, favorite, feed, file, forum, friend, gallery, game, gate, general, gift, guide, help, home, host, icon, image, index, invite, job, lab, legal, library, link, list, live, local, mail, main, manage, market, master, media, member, mirror, mobile, monitor, net, news, office, old, online, panel, payment, photo, picture, post, private, project, public, put, report, search, service, share, shop, social, sport, staff, stage, start, student, style, survey, system, tag, target, team, test, ticket, time, tool, track, travel, update, upgrade, video, visa, web, work
 import wordlist from "./wordlist.json";
 
 function determineWord(seed: number): string {
