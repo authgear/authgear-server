@@ -1,0 +1,255 @@
+name: Account linking - Incoming OAuth - do_not_store_identity_attributes=true - action=login_and_link
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+      - login_id
+      - oauth
+    identity:
+      oauth:
+        providers:
+        - alias: google
+          client_id: "google"
+          type: google
+          do_not_store_identity_attributes: true
+    account_linking:
+      oauth:
+      - alias: google
+        action: login_and_link
+        oauth_claim:
+          pointer: "/email"
+        user_profile:
+          pointer: "/email"
+before:
+- type: user_import
+  user_import: email_users.json
+steps:
+- action: create
+  input: |
+    {
+      "type": "signup",
+      "name": "default"
+    }
+  output:
+    result: |
+      {
+        "action": {
+          "type": "identify"
+        }
+      }
+
+- action: input
+  input: |
+    {
+      "identification": "oauth",
+      "alias": "google",
+      "redirect_uri": "http://mock"
+    }
+  output:
+    result: |
+      {
+        "action": {
+          "type": "identify",
+          "data": {
+            "oauth_authorization_url": "[[string]]"
+          }
+        }
+      }
+- action: oauth_redirect
+  to: "{{ .prev.result.action.data.oauth_authorization_url }}"
+  redirect_uri: http://mock
+  output:
+    result: |
+      {
+        "query": "[[string]]"
+      }
+
+- action: input
+  input: |
+    {
+      "query": "{{ .prev.result.query }}"
+    }
+  output:
+    result: |
+      {
+        "action": {
+          "type": "identify",
+          "identification": "oauth",
+          "data": {
+            "type": "account_linking_identification_data"
+          }
+        }
+      }
+
+- action: input
+  input: |
+    {
+      "index": 0
+    }
+  output:
+    result: |
+      {
+        "action": {
+          "type": "authenticate",
+          "data": {
+            "type": "authentication_data"
+          }
+        }
+      }
+
+- action: input
+  input: |
+    {
+      "authentication": "primary_password",
+      "password": "12341234"
+    }
+  output:
+    result: |
+      {
+        "action": {
+          "type": "finished"
+        }
+      }
+
+- action: query
+  query: |
+    SELECT i.type, l.login_id, o.provider_type, o.claims, o.profile
+    FROM _auth_user u
+    JOIN _auth_identity i
+    ON u.id = i.user_id
+    LEFT JOIN _auth_identity_login_id l
+    ON i.id = l.id
+    LEFT JOIN _auth_identity_oauth o
+    ON i.id = o.id
+    WHERE u.app_id = '{{ .AppID }}'
+    ORDER BY i.type ASC
+  query_output:
+    rows: |
+      [
+        {
+          "claims": null,
+          "login_id": "mock@example.com",
+          "profile": null,
+          "provider_type": null,
+          "type": "login_id"
+        },
+        {
+          "claims": {
+            "email": "[[never]]",
+            "phone_number": "[[never]]",
+            "preferred_username": "[[never]]"
+          },
+          "login_id": null,
+          "profile": {
+            "aud": "[[never]]",
+            "email": "[[never]]",
+            "exp": "[[never]]",
+            "iat": "[[never]]",
+            "iss": "[[never]]",
+            "jti": "[[never]]",
+            "nbf": "[[never]]",
+            "phone_number": "[[never]]",
+            "preferred_username": "[[never]]",
+            "sub": "[[never]]",
+            "upn": "[[never]]"
+          },
+          "provider_type": "google",
+          "type": "oauth"
+        }
+      ]
+
+---
+name: Account linking - Incoming OAuth - do_not_store_identity_attributes=true - action=error
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+      - login_id
+      - oauth
+    identity:
+      oauth:
+        providers:
+        - alias: google
+          client_id: "google"
+          type: google
+          do_not_store_identity_attributes: true
+    account_linking:
+      oauth:
+      - alias: google
+        action: error
+        oauth_claim:
+          pointer: "/email"
+        user_profile:
+          pointer: "/email"
+before:
+- type: user_import
+  user_import: email_users.json
+steps:
+- action: create
+  input: |
+    {
+      "type": "signup",
+      "name": "default"
+    }
+  output:
+    result: |
+      {
+        "action": {
+          "type": "identify"
+        }
+      }
+
+- action: input
+  input: |
+    {
+      "identification": "oauth",
+      "alias": "google",
+      "redirect_uri": "http://mock"
+    }
+  output:
+    result: |
+      {
+        "action": {
+          "type": "identify",
+          "data": {
+            "oauth_authorization_url": "[[string]]"
+          }
+        }
+      }
+- action: oauth_redirect
+  to: "{{ .prev.result.action.data.oauth_authorization_url }}"
+  redirect_uri: http://mock
+  output:
+    result: |
+      {
+        "query": "[[string]]"
+      }
+
+- action: input
+  input: |
+    {
+      "query": "{{ .prev.result.query }}"
+    }
+  output:
+    error: |
+      {
+        "name": "Invalid",
+        "reason": "InvariantViolated",
+        "message": "identity already exists",
+        "code": 400,
+        "info": {
+          "ExistingIdentities": [
+            {
+              "IdentityType": "login_id",
+              "LoginIDType": "email"
+            }
+          ],
+          "IdentityTypeExisting": "login_id",
+          "IdentityTypeIncoming": "oauth",
+          "LoginIDTypeExisting": "email",
+          "OAuthProviderTypeIncoming": "google",
+          "cause": {
+            "kind": "DuplicatedIdentity"
+          }
+        }
+      }
