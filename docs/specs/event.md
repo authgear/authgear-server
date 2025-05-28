@@ -946,19 +946,65 @@ Occurs when biometric login is disabled. It will be triggered only when the user
 
 ```mermaid
 flowchart TD
-    Start([Start]) --> UserAuthInitialize[user.auth.initialize]
-    UserAuthInitialize --> BotProtection[Bot Protection]
-    BotProtection -- "Failed" --> BotProtectionFailed[bot_protection.verification.failed]
-    BotProtection -- "Success" --> Identify[Identify]
-    Identify --> UserAuthIdentified[user.auth.identified]
-    UserAuthIdentified --> CreateAuthenticator[Create Authenticator]
-    CreateAuthenticator --> UserAuthAdaptiveControl[user.auth.adaptive_control]
-    UserAuthAdaptiveControl --> UserPreCreate[user.pre_create]
-    UserPreCreate --> CreateUser[Create User]
-    CreateUser --> UserCreated[user.created]
-    UserCreated --> OIDCJWTPreCreate[oidc.jwt.pre_create]
-    OIDCJWTPreCreate --> Finish([Finish])
+    subgraph "Signup Flow"
+        Start([Start]) --> UserAuthInitialize[user.auth.initialize]
+        UserAuthInitialize --> BotProtection[Bot Protection]
+        BotProtection -- "Failed" --> BotProtectionFailed[bot_protection.verification.failed]
+        BotProtection -- "Success" --> Identify[Identify]
+        Identify --> UserAuthIdentified[user.auth.identified]
+        UserAuthIdentified --> CreateAuthenticator[Create Authenticator]
+        CreateAuthenticator --> UserAuthAdaptiveControl[user.auth.adaptive_control]
+        UserAuthAdaptiveControl --> UserPreCreate[user.pre_create]
+        UserPreCreate --> CreateUser[Create User]
+        CreateUser --> UserCreated[user.created]
+        UserCreated --> FinishSignup([Finish])
+    end
+
+    subgraph "Authorization Code Exchange"
+        ExchangeCode[Exchange Code for Tokens]
+        ExchangeCode --> OIDCJWTPreCreate[oidc.jwt.pre_create]:::event
+        OIDCJWTPreCreate --> IssueTokens[Issue Tokens]
+        IssueTokens --> FinishAuthCode([Finish])
+    end
+
+    FinishSignup --> ExchangeCode
 
     classDef event fill:#dddddd
     class UserAuthInitialize,BotProtectionFailed,UserAuthIdentified,UserAuthAdaptiveControl,UserPreCreate,UserCreated,OIDCJWTPreCreate event
+```
+
+### Login
+
+```mermaid
+flowchart TD
+    subgraph "Login Flow"
+        Start([Start]) --> UserAuthInitialize[user.auth.initialize]:::event
+        UserAuthInitialize --> BotProtection[Bot Protection]
+        BotProtection -- "Failed" --> BotProtectionFailed[bot_protection.verification.failed]:::event
+        BotProtection -- "Success" --> Identify[Identify]
+        Identify -- "Success" --> UserAuthIdentified[user.auth.identified]:::event
+        Identify -- "Identify failed" --> LoginIdFailed[authentication.identity.login_id.failed]:::event
+
+        UserAuthIdentified --> AuthenticatePrimary["Authenticate<br>(Primary Authenticator)"]
+
+        AuthenticatePrimary -- "Success" --> AuthenticateSecondary["Authenticate<br>(Secondary Authenticator)"]
+        AuthenticatePrimary -- "Failed" --> PrimaryAuthFailed["authentication.primary.password.failed<br>authentication.primary.oob_otp_email.failed<br>authentication.primary.oob_otp_sms.failed"]:::event
+
+        AuthenticateSecondary -- "Success" --> UserAuthAdaptiveControl[user.auth.adaptive_control]:::event
+        AuthenticateSecondary -- "Failed" --> SecondaryAuthFailed["authentication.secondary.password.failed<br>authentication.secondary.totp.failed<br>authentication.secondary.oob_otp_email.failed<br>authentication.secondary.oob_otp_sms.failed<br>authentication.secondary.recovery_code.failed"]:::event
+
+        UserAuthAdaptiveControl --> UserAuthenticated[user.authenticated]:::event
+    end
+
+    subgraph "Authorization Code Exchange"
+        ExchangeCode[Exchange Code for Tokens]
+        ExchangeCode --> OIDCJWTPreCreate[oidc.jwt.pre_create]:::event
+        OIDCJWTPreCreate --> IssueTokens[Issue Tokens]
+        IssueTokens --> FinishAuthCode([Finish])
+    end
+
+    UserAuthenticated --> ExchangeCode
+
+    classDef event fill:#dddddd
+    class UserAuthInitialize,BotProtectionFailed,UserAuthIdentified,LoginIdFailed,UserAuthAdaptiveControl,UserAuthenticated,PrimaryAuthFailed,SecondaryAuthFailed,OIDCJWTPreCreate event
 ```
