@@ -290,7 +290,7 @@ flowchart TD
         signup_create_authenticator["create_authenticator"]
         signup_create_authenticator_2fa["create_authenticator"]
         signup_identify["identify"]
-        signup_adaptive_control[user.auth.adaptive_control]:::event
+        signup_adaptive_control[user.auth.adaptive_control]:::blockingEvent
         signup_contraints@{ shape: diamond, label: "contraints.amr === [\"mfa\"]?" }
         signup_finish["Finish"]
   end
@@ -304,7 +304,7 @@ flowchart TD
         login_authenticate["authenticate"]
         login_authenticate_2fa["authenticate"]
         login_identify["identify"]
-        login_adaptive_control[user.auth.adaptive_control]:::event
+        login_adaptive_control[user.auth.adaptive_control]:::blockingEvent
         login_contraints@{ shape: diamond, label: "contraints.amr === [\"mfa\"]?" }
         login_finish["Finish"]
   end
@@ -940,14 +940,28 @@ Occurs when biometric login is disabled. It will be triggered only when the user
 }
 ```
 
-## Trigger Points
+## Trigger Points Diagrams
+
+**Diagram Legend:**
+
+```mermaid
+graph LR
+    Blocking[Blocking Event]:::blockingEvent
+    NonBlocking[Non-Blocking Event]:::event
+    Process[Steps of the flow]:::processNode
+
+    classDef blockingEvent fill:#ADD8E6
+    classDef event fill:#98FB98
+    classDef processNode fill:#dddddd
+```
 
 ### Signup
 
 ```mermaid
 flowchart TD
     subgraph "Signup Flow"
-        Start([Start]) --> UserAuthInitialize[user.auth.initialize]
+        Start([Start])
+        Start --> UserAuthInitialize[user.auth.initialize]
         UserAuthInitialize --> BotProtection[Bot Protection]
         BotProtection -- "Failed" --> BotProtectionFailed[bot_protection.verification.failed]
         BotProtection -- "Success" --> Identify[Identify]
@@ -962,15 +976,19 @@ flowchart TD
 
     subgraph "Authorization Code Exchange"
         ExchangeCode[Exchange Code for Tokens]
-        ExchangeCode --> OIDCJWTPreCreate[oidc.jwt.pre_create]:::event
+        ExchangeCode --> OIDCJWTPreCreate[oidc.jwt.pre_create]
         OIDCJWTPreCreate --> IssueTokens[Issue Tokens]
         IssueTokens --> FinishAuthCode([Finish])
     end
 
     FinishSignup --> ExchangeCode
 
-    classDef event fill:#dddddd
-    class UserAuthInitialize,BotProtectionFailed,UserAuthIdentified,UserAuthAdaptiveControl,UserPreCreate,UserCreated,OIDCJWTPreCreate event
+    classDef event fill:#98FB98
+    classDef blockingEvent fill:#ADD8E6
+    classDef processNode fill:#dddddd
+    class BotProtectionFailed,UserCreated event
+    class UserAuthInitialize,UserAuthIdentified,UserAuthAdaptiveControl,UserPreCreate,OIDCJWTPreCreate blockingEvent
+    class Start,BotProtection,Identify,CreateAuthenticator,CreateUser,FinishSignup,ExchangeCode,IssueTokens,FinishAuthCode processNode
 ```
 
 ### Login
@@ -978,33 +996,38 @@ flowchart TD
 ```mermaid
 flowchart TD
     subgraph "Login Flow"
-        Start([Start]) --> UserAuthInitialize[user.auth.initialize]:::event
+        Start([Start])
+        Start --> UserAuthInitialize[user.auth.initialize]
         UserAuthInitialize --> BotProtection[Bot Protection]
-        BotProtection -- "Failed" --> BotProtectionFailed[bot_protection.verification.failed]:::event
+        BotProtection -- "Failed" --> BotProtectionFailed[bot_protection.verification.failed]
         BotProtection -- "Success" --> Identify[Identify]
-        Identify -- "Success" --> UserAuthIdentified[user.auth.identified]:::event
-        Identify -- "Identify failed" --> LoginIdFailed[authentication.identity.login_id.failed]:::event
+        Identify -- "Success" --> UserAuthIdentified[user.auth.identified]
+        Identify -- "Identify failed" --> LoginIdFailed[authentication.identity.login_id.failed]
 
         UserAuthIdentified --> AuthenticatePrimary["Authenticate<br>(Primary Authenticator)"]
 
         AuthenticatePrimary -- "Success" --> AuthenticateSecondary["Authenticate<br>(Secondary Authenticator)"]
         AuthenticatePrimary -- "Failed" --> PrimaryAuthFailed["authentication.primary.password.failed<br>authentication.primary.oob_otp_email.failed<br>authentication.primary.oob_otp_sms.failed"]:::event
 
-        AuthenticateSecondary -- "Success" --> UserAuthAdaptiveControl[user.auth.adaptive_control]:::event
+        AuthenticateSecondary -- "Success" --> UserAuthAdaptiveControl[user.auth.adaptive_control]
         AuthenticateSecondary -- "Failed" --> SecondaryAuthFailed["authentication.secondary.password.failed<br>authentication.secondary.totp.failed<br>authentication.secondary.oob_otp_email.failed<br>authentication.secondary.oob_otp_sms.failed<br>authentication.secondary.recovery_code.failed"]:::event
 
-        UserAuthAdaptiveControl --> UserAuthenticated[user.authenticated]:::event
+        UserAuthAdaptiveControl --> UserAuthenticated[user.authenticated]
     end
 
     subgraph "Authorization Code Exchange"
         ExchangeCode[Exchange Code for Tokens]
-        ExchangeCode --> OIDCJWTPreCreate[oidc.jwt.pre_create]:::event
+        ExchangeCode --> OIDCJWTPreCreate[oidc.jwt.pre_create]
         OIDCJWTPreCreate --> IssueTokens[Issue Tokens]
         IssueTokens --> FinishAuthCode([Finish])
     end
 
     UserAuthenticated --> ExchangeCode
 
-    classDef event fill:#dddddd
-    class UserAuthInitialize,BotProtectionFailed,UserAuthIdentified,LoginIdFailed,UserAuthAdaptiveControl,UserAuthenticated,PrimaryAuthFailed,SecondaryAuthFailed,OIDCJWTPreCreate event
+    classDef event fill:#98FB98
+    classDef blockingEvent fill:#ADD8E6
+    classDef processNode fill:#dddddd
+    class BotProtectionFailed,LoginIdFailed,PrimaryAuthFailed,SecondaryAuthFailed,UserAuthenticated event
+    class UserAuthInitialize,UserAuthIdentified,UserAuthAdaptiveControl,OIDCJWTPreCreate blockingEvent
+    class Start,Identify,AuthenticatePrimary,AuthenticateSecondary,UserAuthenticated,ExchangeCode,IssueTokens,FinishAuthCode processNode
 ```
