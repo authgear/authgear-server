@@ -232,10 +232,8 @@ export default async function (
   } else {
     return {
       is_allowed: true,
-      overrides: {
-        rate_limit: {
-          weight: 2,
-        },
+      rate_limit: {
+        weight: 2,
       },
     };
   }
