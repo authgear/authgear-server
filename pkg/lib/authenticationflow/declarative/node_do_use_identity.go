@@ -44,6 +44,7 @@ var _ authflow.NodeSimple = &NodeDoUseIdentity{}
 var _ authflow.Milestone = &NodeDoUseIdentity{}
 var _ MilestoneDoUseUser = &NodeDoUseIdentity{}
 var _ MilestoneDoUseIdentity = &NodeDoUseIdentity{}
+var _ authflow.IdentitySpecGetter = &NodeDoUseIdentity{}
 
 func (*NodeDoUseIdentity) Kind() string {
 	return "NodeDoUseIdentity"
@@ -54,3 +55,7 @@ func (n *NodeDoUseIdentity) MilestoneDoUseUser() string {
 	return n.Identity.UserID
 }
 func (n *NodeDoUseIdentity) MilestoneDoUseIdentity() *identity.Info { return n.Identity }
+
+func (n *NodeDoUseIdentity) GetIdentitySpecs(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) []*identity.Spec {
+	return []*identity.Spec{n.IdentitySpec}
+}

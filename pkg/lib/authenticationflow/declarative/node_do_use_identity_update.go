@@ -53,6 +53,7 @@ func NewNodeDoUseIdentityWithUpdate(ctx context.Context, deps *authflow.Dependen
 var _ authflow.NodeSimple = &NodeDoUseIdentityWithUpdate{}
 var _ authflow.EffectGetter = &NodeDoUseIdentityWithUpdate{}
 var _ authflow.Milestone = &NodeDoUseIdentityWithUpdate{}
+var _ authflow.IdentitySpecGetter = &NodeDoUseIdentityWithUpdate{}
 var _ MilestoneDoUseUser = &NodeDoUseIdentityWithUpdate{}
 var _ MilestoneDoUseIdentity = &NodeDoUseIdentityWithUpdate{}
 
@@ -75,4 +76,8 @@ func (n *NodeDoUseIdentityWithUpdate) GetEffects(ctx context.Context, deps *auth
 			return deps.Identities.Update(ctx, n.OldIdentityInfo, n.NewIdentityInfo)
 		}),
 	}, nil
+}
+
+func (n *NodeDoUseIdentityWithUpdate) GetIdentitySpecs(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) []*identity.Spec {
+	return []*identity.Spec{n.NewIdentitySpec}
 }
