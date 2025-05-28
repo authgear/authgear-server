@@ -9,7 +9,9 @@ import (
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/oauth/oauthsession"
 	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
@@ -67,6 +69,11 @@ type OAuthClientResolver interface {
 	ResolveClient(clientID string) *config.OAuthClientConfig
 }
 
+type OAuthSessionStore interface {
+	Get(ctx context.Context, entryID string) (entry *oauthsession.Entry, err error)
+	Save(ctx context.Context, entry *oauthsession.Entry) (err error)
+}
+
 type Service struct {
 	Deps                *Dependencies
 	Logger              ServiceLogger
@@ -75,6 +82,7 @@ type Service struct {
 	UIConfig            *config.UIConfig
 	UIInfoResolver      ServiceUIInfoResolver
 	OAuthClientResolver OAuthClientResolver
+	OAuthSessionStore   OAuthSessionStore
 }
 
 func (s *Service) CreateNewFlow(ctx context.Context, publicFlow PublicFlow, sessionOptions *SessionOptions) (output *ServiceOutput, err error) {
@@ -128,11 +136,17 @@ func (s *Service) createNewFlowWithSession(ctx context.Context, publicFlow Publi
 	sessionOutput := session.ToOutput()
 
 	var cookies []*http.Cookie
+	var identitySpecs []*identity.Spec
 	if isEOF {
 		err = s.Database.WithTx(ctx, func(ctx context.Context) error {
-			cookies, err = s.finishFlow(ctx, flow)
+			cookies, identitySpecs, err = s.finishFlow(ctx, flow)
 			return err
 		})
+		if err != nil {
+			return
+		}
+
+		err = s.saveIdentitySpecsToOAuthSession(ctx, session, identitySpecs)
 		if err != nil {
 			return
 		}
@@ -324,11 +338,17 @@ func (s *Service) FeedInput(ctx context.Context, stateToken string, rawMessage j
 	sessionOutput := session.ToOutput()
 
 	var cookies []*http.Cookie
+	var identitySpecs []*identity.Spec
 	if isEOF {
 		err = s.Database.WithTx(ctx, func(ctx context.Context) error {
-			cookies, err = s.finishFlow(ctx, flow)
+			cookies, identitySpecs, err = s.finishFlow(ctx, flow)
 			return err
 		})
+		if err != nil {
+			return
+		}
+
+		err = s.saveIdentitySpecsToOAuthSession(ctx, session, identitySpecs)
 		if err != nil {
 			return
 		}
@@ -382,11 +402,17 @@ func (s *Service) FeedSyntheticInput(ctx context.Context, stateToken string, syn
 	sessionOutput := session.ToOutput()
 
 	var cookies []*http.Cookie
+	var identitySpecs []*identity.Spec
 	if isEOF {
 		err = s.Database.WithTx(ctx, func(ctx context.Context) error {
-			cookies, err = s.finishFlow(ctx, flow)
+			cookies, identitySpecs, err = s.finishFlow(ctx, flow)
 			return err
 		})
+		if err != nil {
+			return
+		}
+
+		err = s.saveIdentitySpecsToOAuthSession(ctx, session, identitySpecs)
 		if err != nil {
 			return
 		}
@@ -558,16 +584,22 @@ func (s *Service) feedSyntheticInput(ctx context.Context, session *Session, stat
 	return
 }
 
-func (s *Service) finishFlow(ctx context.Context, flow *Flow) (cookies []*http.Cookie, err error) {
+func (s *Service) finishFlow(ctx context.Context, flow *Flow) (cookies []*http.Cookie, identitySpecs []*identity.Spec, err error) {
 	// When the flow is finished, we have the following things to do:
 	// 1. Apply all effects.
 	// 2. Collect cookies.
+	// 3. Collect identity specs.
 	err = ApplyAllEffects(ctx, s.Deps, NewFlows(flow))
 	if err != nil {
 		return
 	}
 
 	cookies, err = CollectCookies(ctx, s.Deps, NewFlows(flow))
+	if err != nil {
+		return
+	}
+
+	identitySpecs, err = CollectIdentitySpecs(ctx, s.Deps, NewFlows(flow))
 	if err != nil {
 		return
 	}
@@ -665,4 +697,29 @@ func (s *Service) getSessionAndUpdateContext(ctx context.Context, flowID string)
 	ctx = session.MakeContext(ctx, s.Deps)
 
 	return ctx, session, nil
+}
+
+func (s *Service) saveIdentitySpecsToOAuthSession(ctx context.Context, session *Session, identitySpecs []*identity.Spec) (err error) {
+	// Do not bother to save if there is none.
+	if len(identitySpecs) <= 0 {
+		return
+	}
+
+	// Skip saving if this authflow session is not associated with a oauthsession.
+	if session.OAuthSessionID == "" {
+		return
+	}
+
+	entry, err := s.OAuthSessionStore.Get(ctx, session.OAuthSessionID)
+	if err != nil {
+		return
+	}
+
+	entry.T.IdentitySpecs = identitySpecs
+	err = s.OAuthSessionStore.Save(ctx, entry)
+	if err != nil {
+		return
+	}
+
+	return
 }

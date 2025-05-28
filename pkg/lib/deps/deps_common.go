@@ -130,6 +130,7 @@ var CommonDependencySet = wire.NewSet(
 		oauthsession.DependencySet,
 		wire.Bind(new(oauthhandler.OAuthSessionService), new(*oauthsession.StoreRedis)),
 		wire.Bind(new(interaction.OAuthSessions), new(*oauthsession.StoreRedis)),
+		wire.Bind(new(authenticationflow.OAuthSessionStore), new(*oauthsession.StoreRedis)),
 	),
 
 	wire.NewSet(
