@@ -35,3 +35,18 @@ func NewIncomingOAuthSpec(providerConfig oauthrelyingparty.ProviderConfig, userP
 		StandardClaims:                     userProfile.StandardAttributes,
 	}
 }
+
+func (s OAuthSpec) ToClaimsForIDToken() map[string]any {
+	claims := make(map[string]any)
+	claims[IdentityClaimOAuthProviderAlias] = s.ProviderAlias
+	claims[IdentityClaimOAuthProviderType] = s.ProviderID.Type
+	claims[IdentityClaimOAuthSubjectID] = s.SubjectID
+
+	if s.RawProfile != nil {
+		claims[IdentityClaimOAuthProfile] = s.RawProfile
+	} else {
+		claims[IdentityClaimOAuthProfile] = make(map[string]any)
+	}
+
+	return claims
+}
