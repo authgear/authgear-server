@@ -17,6 +17,7 @@ func init() {
 type NodeDoUseIdentityPasskey struct {
 	AssertionResponse []byte              `json:"assertion_response,omitempty"`
 	Identity          *identity.Info      `json:"identity,omitempty"`
+	IdentitySpec      *identity.Spec      `json:"identity_spec,omitempty"`
 	Authenticator     *authenticator.Info `json:"authenticator,omitempty"`
 	RequireUpdate     bool                `json:"require_update,omitempty"`
 }

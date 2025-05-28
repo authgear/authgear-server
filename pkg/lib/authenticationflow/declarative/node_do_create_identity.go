@@ -12,8 +12,9 @@ func init() {
 }
 
 type NodeDoCreateIdentity struct {
-	SkipCreate bool           `json:"skip_create,omitempty"`
-	Identity   *identity.Info `json:"identity,omitempty"`
+	SkipCreate   bool           `json:"skip_create,omitempty"`
+	Identity     *identity.Info `json:"identity,omitempty"`
+	IdentitySpec *identity.Spec `json:"identity_spec,omitempty"`
 }
 
 var _ authflow.NodeSimple = &NodeDoCreateIdentity{}

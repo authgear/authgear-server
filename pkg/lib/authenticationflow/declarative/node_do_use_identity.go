@@ -14,7 +14,8 @@ func init() {
 }
 
 type NodeDoUseIdentity struct {
-	Identity *identity.Info `json:"identity,omitempty"`
+	Identity     *identity.Info `json:"identity,omitempty"`
+	IdentitySpec *identity.Spec `json:"identity_spec,omitempty"`
 }
 
 func NewNodeDoUseIdentity(ctx context.Context, flows authflow.Flows, n *NodeDoUseIdentity) (*NodeDoUseIdentity, error) {
