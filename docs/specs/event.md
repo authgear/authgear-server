@@ -939,3 +939,26 @@ Occurs when biometric login is disabled. It will be triggered only when the user
   }
 }
 ```
+
+## Trigger Points
+
+### Signup
+
+```mermaid
+flowchart TD
+    Start([Start]) --> UserAuthInitialize[user.auth.initialize]
+    UserAuthInitialize --> BotProtection[Bot Protection]
+    BotProtection -- "Failed" --> BotProtectionFailed[bot_protection.verification.failed]
+    BotProtection -- "Success" --> Identify[Identify]
+    Identify --> UserAuthIdentified[user.auth.identified]
+    UserAuthIdentified --> CreateAuthenticator[Create Authenticator]
+    CreateAuthenticator --> UserAuthAdaptiveControl[user.auth.adaptive_control]
+    UserAuthAdaptiveControl --> UserPreCreate[user.pre_create]
+    UserPreCreate --> CreateUser[Create User]
+    CreateUser --> UserCreated[user.created]
+    UserCreated --> OIDCJWTPreCreate[oidc.jwt.pre_create]
+    OIDCJWTPreCreate --> Finish([Finish])
+
+    classDef event fill:#dddddd
+    class UserAuthInitialize,BotProtectionFailed,UserAuthIdentified,UserAuthAdaptiveControl,UserPreCreate,UserCreated,OIDCJWTPreCreate event
+```
