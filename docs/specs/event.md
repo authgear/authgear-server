@@ -978,7 +978,6 @@ flowchart TD
         ExchangeCode[Exchange Code for Tokens]
         ExchangeCode --> OIDCJWTPreCreate[oidc.jwt.pre_create]
         OIDCJWTPreCreate --> IssueTokens[Issue Tokens]
-        IssueTokens --> FinishAuthCode([Finish])
     end
 
     FinishSignup --> ExchangeCode
@@ -988,7 +987,7 @@ flowchart TD
     classDef processNode fill:#dddddd
     class BotProtectionFailed,UserCreated event
     class UserAuthInitialize,UserAuthIdentified,UserAuthAdaptiveControl,UserPreCreate,OIDCJWTPreCreate blockingEvent
-    class Start,BotProtection,Identify,CreateAuthenticator,CreateUser,FinishSignup,ExchangeCode,IssueTokens,FinishAuthCode processNode
+    class Start,BotProtection,Identify,CreateAuthenticator,CreateUser,FinishSignup,ExchangeCode,IssueTokens processNode
 ```
 
 ### Login
@@ -1013,21 +1012,21 @@ flowchart TD
         AuthenticateSecondary -- "Failed" --> SecondaryAuthFailed["authentication.secondary.password.failed<br>authentication.secondary.totp.failed<br>authentication.secondary.oob_otp_email.failed<br>authentication.secondary.oob_otp_sms.failed<br>authentication.secondary.recovery_code.failed"]:::event
 
         UserAuthAdaptiveControl --> UserAuthenticated[user.authenticated]
+        UserAuthenticated --> FinishLogin([Finish])
     end
 
     subgraph "Authorization Code Exchange"
         ExchangeCode[Exchange Code for Tokens]
         ExchangeCode --> OIDCJWTPreCreate[oidc.jwt.pre_create]
         OIDCJWTPreCreate --> IssueTokens[Issue Tokens]
-        IssueTokens --> FinishAuthCode([Finish])
     end
 
-    UserAuthenticated --> ExchangeCode
+    FinishLogin --> ExchangeCode
 
     classDef event fill:#98FB98
     classDef blockingEvent fill:#ADD8E6
     classDef processNode fill:#dddddd
     class BotProtectionFailed,LoginIdFailed,PrimaryAuthFailed,SecondaryAuthFailed,UserAuthenticated event
     class UserAuthInitialize,UserAuthIdentified,UserAuthAdaptiveControl,OIDCJWTPreCreate blockingEvent
-    class Start,Identify,AuthenticatePrimary,AuthenticateSecondary,UserAuthenticated,ExchangeCode,IssueTokens,FinishAuthCode processNode
+    class Start,Identify,AuthenticatePrimary,AuthenticateSecondary,UserAuthenticated,ExchangeCode,IssueTokens,FinishLogin processNode
 ```
