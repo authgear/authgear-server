@@ -383,6 +383,24 @@ config:
           do_not_store_identity_attributes: "foobar"
 
 ---
+name: oauth-provider-include_identity_attributes_in_id_token/type
+error: |-
+  invalid configuration:
+  /identity/oauth/providers/0/include_identity_attributes_in_id_token: type
+    map[actual:[string] expected:[boolean]]
+config:
+  id: test
+  http:
+    public_origin: http://test
+  identity:
+    oauth:
+      providers:
+        - type: google
+          alias: google
+          client_id: client_id
+          include_identity_attributes_in_id_token: "foobar"
+
+---
 name: oauth-client-max-concurrent-session
 error: null
 config:

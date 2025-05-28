@@ -298,6 +298,7 @@ func OAuthSSOProviderConfigSchemaBuilder(providerSchemaBuilder validation.Schema
 		Property("create_disabled", validation.SchemaBuilder{}.Type(validation.TypeBoolean)).
 		Property("delete_disabled", validation.SchemaBuilder{}.Type(validation.TypeBoolean)).
 		Property("do_not_store_identity_attributes", validation.SchemaBuilder{}.Type(validation.TypeBoolean)).
+		Property("include_identity_attributes_in_id_token", validation.SchemaBuilder{}.Type(validation.TypeBoolean)).
 		Property("credentials_behavior", validation.SchemaBuilder{}.Type(validation.TypeString).Enum("use_project_credentials", "use_demo_credentials"))
 	builder.AddRequired("alias")
 
@@ -328,6 +329,7 @@ func (c OAuthSSOProviderConfig) SetDefaults() {
 	}
 
 	// Intentionally not setting default of do_not_store_identity_attributes.
+	// Intenttinally not setting default of include_identity_attributes_in_id_token.
 
 	c.AsProviderConfig().SetDefaults()
 
@@ -368,6 +370,14 @@ func (c OAuthSSOProviderConfig) DoNotStoreIdentityAttributes() bool {
 	if !ok {
 		// If absent, the default is false, which means DO store identity attributes.
 		// That is the original behavior.
+		return false
+	}
+	return b
+}
+
+func (c OAuthSSOProviderConfig) IncludeIdentityAttributesInIDToken() bool {
+	b, ok := c["include_identity_attributes_in_id_token"].(bool)
+	if !ok {
 		return false
 	}
 	return b
