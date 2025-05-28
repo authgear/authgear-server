@@ -196,7 +196,7 @@ var Question_SelectSMTP = Question{
 	Model: bubbleteautil.NewSimplePicker(bubbleteautil.SimplePicker{
 		Title: `Email provider
 
-You must configure a email provider to use Authgear. It's used for verifying email addresses and sending other system emails.
+You must configure an email provider to use Authgear. It's used for verifying email addresses and sending other system emails.
 
 `,
 		Prompt: "Email provider",
