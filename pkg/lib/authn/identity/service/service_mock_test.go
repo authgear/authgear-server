@@ -373,17 +373,17 @@ func (mr *MockOAuthIdentityProviderMockRecorder) ListByClaim(ctx, name, value in
 }
 
 // New mocks base method.
-func (m *MockOAuthIdentityProvider) New(userID string, providerID oauthrelyingparty.ProviderID, subjectID string, profile, claims map[string]interface{}) *identity.OAuth {
+func (m *MockOAuthIdentityProvider) New(userID string, spec *identity.OAuthSpec) *identity.OAuth {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "New", userID, providerID, subjectID, profile, claims)
+	ret := m.ctrl.Call(m, "New", userID, spec)
 	ret0, _ := ret[0].(*identity.OAuth)
 	return ret0
 }
 
 // New indicates an expected call of New.
-func (mr *MockOAuthIdentityProviderMockRecorder) New(userID, providerID, subjectID, profile, claims interface{}) *gomock.Call {
+func (mr *MockOAuthIdentityProviderMockRecorder) New(userID, spec interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "New", reflect.TypeOf((*MockOAuthIdentityProvider)(nil).New), userID, providerID, subjectID, profile, claims)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "New", reflect.TypeOf((*MockOAuthIdentityProvider)(nil).New), userID, spec)
 }
 
 // Update mocks base method.
@@ -401,17 +401,17 @@ func (mr *MockOAuthIdentityProviderMockRecorder) Update(ctx, i interface{}) *gom
 }
 
 // WithUpdate mocks base method.
-func (m *MockOAuthIdentityProvider) WithUpdate(iden *identity.OAuth, rawProfile, claims map[string]interface{}) *identity.OAuth {
+func (m *MockOAuthIdentityProvider) WithUpdate(iden *identity.OAuth, spec *identity.OAuthSpec) *identity.OAuth {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "WithUpdate", iden, rawProfile, claims)
+	ret := m.ctrl.Call(m, "WithUpdate", iden, spec)
 	ret0, _ := ret[0].(*identity.OAuth)
 	return ret0
 }
 
 // WithUpdate indicates an expected call of WithUpdate.
-func (mr *MockOAuthIdentityProviderMockRecorder) WithUpdate(iden, rawProfile, claims interface{}) *gomock.Call {
+func (mr *MockOAuthIdentityProviderMockRecorder) WithUpdate(iden, spec interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithUpdate", reflect.TypeOf((*MockOAuthIdentityProvider)(nil).WithUpdate), iden, rawProfile, claims)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithUpdate", reflect.TypeOf((*MockOAuthIdentityProvider)(nil).WithUpdate), iden, spec)
 }
 
 // MockAnonymousIdentityProvider is a mock of AnonymousIdentityProvider interface.

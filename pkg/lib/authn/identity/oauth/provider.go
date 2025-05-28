@@ -7,16 +7,14 @@ import (
 	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	liboauthrelyingparty "github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
 type Provider struct {
-	Store          *Store
-	Clock          clock.Clock
-	IdentityConfig *config.IdentityConfig
+	Store *Store
+	Clock clock.Clock
 }
 
 func (p *Provider) List(ctx context.Context, userID string) ([]*identity.OAuth, error) {
@@ -57,29 +55,20 @@ func (p *Provider) GetMany(ctx context.Context, ids []string) ([]*identity.OAuth
 
 func (p *Provider) New(
 	userID string,
-	providerID oauthrelyingparty.ProviderID,
-	subjectID string,
-	profile map[string]interface{},
-	claims map[string]interface{},
+	spec *identity.OAuthSpec,
 ) *identity.OAuth {
 	i := &identity.OAuth{
 		ID:                uuid.New(),
 		UserID:            userID,
-		ProviderID:        providerID,
-		ProviderSubjectID: subjectID,
-		UserProfile:       profile,
-		Claims:            claims,
+		ProviderID:        spec.ProviderID,
+		ProviderSubjectID: spec.SubjectID,
+		UserProfile:       spec.RawProfile,
+		Claims:            spec.StandardClaims,
+		ProviderAlias:     spec.ProviderAlias,
 	}
 
-	alias := ""
-	for _, providerConfig := range p.IdentityConfig.OAuth.Providers {
-		providerID := providerConfig.AsProviderConfig().ProviderID()
-		if providerID.Equal(i.ProviderID) {
-			alias = providerConfig.Alias()
-		}
-	}
-	if alias != "" {
-		i.ProviderAlias = alias
+	if spec.DoNotStoreIdentityAttributes {
+		p.stripPII(i)
 	}
 
 	return i
@@ -87,21 +76,31 @@ func (p *Provider) New(
 
 func (p *Provider) WithUpdate(
 	iden *identity.OAuth,
-	rawProfile map[string]interface{},
-	claims map[string]interface{},
+	spec *identity.OAuthSpec,
 ) *identity.OAuth {
 	newIden := *iden
 	// For non-Apple provider, we can just update.
 	// For Apple, we need to merge given_name and family_name because
 	// they only available at THE FIRST TIME authorization.
 	if newIden.ProviderID.Type == liboauthrelyingparty.TypeApple {
-		newIden.Apple_MergeRawProfileAndClaims(rawProfile, claims)
+		newIden.Apple_MergeRawProfileAndClaims(spec.RawProfile, spec.StandardClaims)
 	} else {
-		newIden.UserProfile = rawProfile
-		newIden.Claims = claims
+		newIden.UserProfile = spec.RawProfile
+		newIden.Claims = spec.StandardClaims
+	}
+
+	if spec.DoNotStoreIdentityAttributes {
+		p.stripPII(&newIden)
 	}
 
 	return &newIden
+}
+
+// stripPII mutates i in-place.
+func (p *Provider) stripPII(i *identity.OAuth) {
+	// Strip and replace it with an empty map.
+	i.UserProfile = make(map[string]any)
+	i.Claims = make(map[string]any)
 }
 
 func (p *Provider) Create(ctx context.Context, i *identity.OAuth) error {

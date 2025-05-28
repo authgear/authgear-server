@@ -34,14 +34,8 @@ type LoginIDIdentityProvider interface {
 }
 
 type OAuthIdentityProvider interface {
-	New(
-		userID string,
-		providerID oauthrelyingparty.ProviderID,
-		subjectID string,
-		profile map[string]interface{},
-		claims map[string]interface{},
-	) *identity.OAuth
-	WithUpdate(iden *identity.OAuth, rawProfile map[string]interface{}, claims map[string]interface{}) *identity.OAuth
+	New(userID string, spec *identity.OAuthSpec) *identity.OAuth
+	WithUpdate(iden *identity.OAuth, spec *identity.OAuthSpec) *identity.OAuth
 
 	Get(ctx context.Context, userID, id string) (*identity.OAuth, error)
 	GetMany(ctx context.Context, ids []string) ([]*identity.OAuth, error)
@@ -702,11 +696,7 @@ func (s *Service) New(ctx context.Context, userID string, spec *identity.Spec, o
 		}
 		return l.ToInfo(), nil
 	case model.IdentityTypeOAuth:
-		providerID := spec.OAuth.ProviderID
-		subjectID := spec.OAuth.SubjectID
-		rawProfile := spec.OAuth.RawProfile
-		standardClaims := spec.OAuth.StandardClaims
-		o := s.OAuth.New(userID, providerID, subjectID, rawProfile, standardClaims)
+		o := s.OAuth.New(userID, spec.OAuth)
 		return o.ToInfo(), nil
 	case model.IdentityTypeAnonymous:
 		keyID := spec.Anonymous.KeyID
@@ -853,13 +843,7 @@ func (s *Service) UpdateWithSpec(ctx context.Context, info *identity.Info, spec 
 		}
 		return i.ToInfo(), nil
 	case model.IdentityTypeOAuth:
-		rawProfile := spec.OAuth.RawProfile
-		standardClaims := spec.OAuth.StandardClaims
-		i := s.OAuth.WithUpdate(
-			info.OAuth,
-			rawProfile,
-			standardClaims,
-		)
+		i := s.OAuth.WithUpdate(info.OAuth, spec.OAuth)
 		return i.ToInfo(), nil
 	case model.IdentityTypeLDAP:
 		i := s.LDAP.WithUpdate(info.LDAP, spec.LDAP.LastLoginUserName, spec.LDAP.Claims, spec.LDAP.RawEntryJSON)

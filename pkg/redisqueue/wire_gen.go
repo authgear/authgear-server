@@ -140,9 +140,8 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth.Provider{
-		Store:          oauthStore,
-		Clock:          clock,
-		IdentityConfig: identityConfig,
+		Store: oauthStore,
+		Clock: clock,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -947,9 +946,8 @@ func newUserExportService(ctx context.Context, p *deps.AppProvider) *userexport.
 		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth.Provider{
-		Store:          oauthStore,
-		Clock:          clockClock,
-		IdentityConfig: identityConfig,
+		Store: oauthStore,
+		Clock: clockClock,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -1322,9 +1320,8 @@ func newSearchReindexer(ctx context.Context, p *deps.AppProvider) *reindex.Reind
 		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth.Provider{
-		Store:          oauthStore,
-		Clock:          clockClock,
-		IdentityConfig: identityConfig,
+		Store: oauthStore,
+		Clock: clockClock,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,

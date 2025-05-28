@@ -2,6 +2,7 @@ package e2e
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"text/template"
 
@@ -66,7 +67,17 @@ func ParseRows(rows *sql.Rows) (outputRows []map[string]interface{}, err error) 
 
 			if z, ok := (scanArgs[i]).(*sql.NullString); ok {
 				if z.Valid { // not null
-					row[v.Name()] = z.String
+					databaseTypeName := v.DatabaseTypeName()
+					if databaseTypeName == "JSONB" {
+						var value any
+						err = json.Unmarshal([]byte(z.String), &value)
+						if err != nil {
+							return
+						}
+						row[v.Name()] = value
+					} else {
+						row[v.Name()] = z.String
+					}
 				} else { // null
 					row[v.Name()] = nil
 				}

@@ -250,9 +250,8 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth.Provider{
-		Store:          oauthStore,
-		Clock:          clockClock,
-		IdentityConfig: identityConfig,
+		Store: oauthStore,
+		Clock: clockClock,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -1507,9 +1506,8 @@ func newUserExportCreateHandler(p *deps.RequestProvider) http.Handler {
 		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth.Provider{
-		Store:          oauthStore,
-		Clock:          clockClock,
-		IdentityConfig: identityConfig,
+		Store: oauthStore,
+		Clock: clockClock,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,

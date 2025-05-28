@@ -127,9 +127,8 @@ func NewReindexer(pool *db.Pool, databaseCredentials *CmdDBCredential, appID Cmd
 		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth.Provider{
-		Store:          oauthStore,
-		Clock:          clock,
-		IdentityConfig: identityConfig,
+		Store: oauthStore,
+		Clock: clock,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,

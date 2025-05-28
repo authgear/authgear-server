@@ -221,15 +221,9 @@ func (s *Service) FinishAdding(ctx context.Context, input *FinishAddingInput) (*
 		return nil, err
 	}
 
-	providerID := providerConfig.ProviderID()
 	spec := &identity.Spec{
-		Type: model.IdentityTypeOAuth,
-		OAuth: &identity.OAuthSpec{
-			ProviderID:     providerID,
-			SubjectID:      userProfile.ProviderUserID,
-			RawProfile:     userProfile.ProviderRawProfile,
-			StandardClaims: userProfile.StandardAttributes,
-		},
+		Type:  model.IdentityTypeOAuth,
+		OAuth: identity.NewIncomingOAuthSpec(providerConfig, userProfile),
 	}
 
 	info, err := s.Identities.New(

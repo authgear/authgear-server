@@ -297,6 +297,7 @@ func OAuthSSOProviderConfigSchemaBuilder(providerSchemaBuilder validation.Schema
 		Property("modify_disabled", validation.SchemaBuilder{}.Type(validation.TypeBoolean)).
 		Property("create_disabled", validation.SchemaBuilder{}.Type(validation.TypeBoolean)).
 		Property("delete_disabled", validation.SchemaBuilder{}.Type(validation.TypeBoolean)).
+		Property("do_not_store_identity_attributes", validation.SchemaBuilder{}.Type(validation.TypeBoolean)).
 		Property("credentials_behavior", validation.SchemaBuilder{}.Type(validation.TypeString).Enum("use_project_credentials", "use_demo_credentials"))
 	builder.AddRequired("alias")
 
@@ -325,6 +326,8 @@ func (c OAuthSSOProviderConfig) SetDefaults() {
 	if _, ok := c["delete_disabled"].(bool); !ok {
 		c["delete_disabled"] = c["modify_disabled"].(bool)
 	}
+
+	// Intentionally not setting default of do_not_store_identity_attributes.
 
 	c.AsProviderConfig().SetDefaults()
 
@@ -358,6 +361,16 @@ func (c OAuthSSOProviderConfig) GetCredentialsBehavior() OAuthSSOProviderCredent
 		return OAuthSSOProviderCredentialsBehaviorUseProjectCredentials
 	}
 	return OAuthSSOProviderCredentialsBehavior(v)
+}
+
+func (c OAuthSSOProviderConfig) DoNotStoreIdentityAttributes() bool {
+	b, ok := c["do_not_store_identity_attributes"].(bool)
+	if !ok {
+		// If absent, the default is false, which means DO store identity attributes.
+		// That is the original behavior.
+		return false
+	}
+	return b
 }
 
 type OAuthProviderStatus string

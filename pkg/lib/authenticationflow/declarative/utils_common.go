@@ -708,15 +708,9 @@ func handleOAuthAuthorizationResponse(ctx context.Context, deps *authflow.Depend
 		return nil, err
 	}
 
-	providerID := providerConfig.ProviderID()
 	identitySpec := &identity.Spec{
-		Type: model.IdentityTypeOAuth,
-		OAuth: &identity.OAuthSpec{
-			ProviderID:     providerID,
-			SubjectID:      authInfo.ProviderUserID,
-			RawProfile:     authInfo.ProviderRawProfile,
-			StandardClaims: authInfo.StandardAttributes,
-		},
+		Type:  model.IdentityTypeOAuth,
+		OAuth: identity.NewIncomingOAuthSpec(providerConfig, authInfo),
 	}
 
 	return identitySpec, nil

@@ -365,6 +365,24 @@ config:
           credentials_behavior: use_project_credentials
 
 ---
+name: oauth-provider-do_not_store_identity_attributes/type
+error: |-
+  invalid configuration:
+  /identity/oauth/providers/0/do_not_store_identity_attributes: type
+    map[actual:[string] expected:[boolean]]
+config:
+  id: test
+  http:
+    public_origin: http://test
+  identity:
+    oauth:
+      providers:
+        - type: google
+          alias: google
+          client_id: client_id
+          do_not_store_identity_attributes: "foobar"
+
+---
 name: oauth-client-max-concurrent-session
 error: null
 config:
