@@ -37,7 +37,7 @@ func NewOAuthCandidate(cfg config.OAuthSSOProviderConfig, demoCredentials *confi
 		CandidateKeyType:              string(model.IdentityTypeOAuth),
 		CandidateKeyProviderType:      string(cfg.AsProviderConfig().Type()),
 		CandidateKeyProviderAlias:     cfg.Alias(),
-		CandidateKeyProviderStatus:    cfg.ComputeProviderStatus(demoCredentials),
+		CandidateKeyProviderStatus:    string(cfg.ComputeProviderStatus(demoCredentials)),
 		CandidateKeyProviderSubjectID: "",
 		CandidateKeyProviderAppType:   string(wechat.ProviderConfig(cfg).AppType()),
 		CandidateKeyDisplayID:         "",
