@@ -406,6 +406,7 @@ var _ = TestCaseSchema.Add("StepResult", `
 `)
 
 type StepResult struct {
+	Step   *Step       `json:"step"`
 	Result interface{} `json:"result"`
 	Error  error       `json:"error"`
 }
