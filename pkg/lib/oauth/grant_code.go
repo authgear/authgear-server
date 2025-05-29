@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/dpop"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 )
@@ -22,6 +23,9 @@ type CodeGrant struct {
 
 	RedirectURI          string                        `json:"redirect_uri"`
 	AuthorizationRequest protocol.AuthorizationRequest `json:"authorization_request"`
+
+	// IdentitySpecs is for supporting include_identity_attributes_in_id_token.
+	IdentitySpecs []*identity.Spec `json:"identity_specs,omitzero"`
 }
 
 func (g *CodeGrant) MatchDPoPJKT(proof *dpop.DPoPProof) bool {
