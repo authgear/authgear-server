@@ -966,9 +966,13 @@ flowchart TD
         BotProtection -- "Failed" --> BotProtectionFailed[bot_protection.verification.failed]
         BotProtection -- "Success" --> Identify[Identify]
         Identify --> UserAuthIdentified[user.auth.identified]
-        UserAuthIdentified --> CreateAuthenticator[Create Authenticator]
-        CreateAuthenticator --> UserAuthAdaptiveControl[user.auth.adaptive_control]
-        UserAuthAdaptiveControl --> UserPreCreate[user.pre_create]
+        UserAuthIdentified --> Verify[Verify]
+        Verify --> CreateAuthenticator[Create Authenticator]
+        CreateAuthenticator --> ViewRecoveryCode[View Recovery Code]
+        ViewRecoveryCode --> PromptCreatePasskey[Prompt Create Passkey]
+        PromptCreatePasskey --> UserAuthAdaptiveControl[user.auth.adaptive_control]
+        UserAuthAdaptiveControl --> CreateAuthenticatorAdaptive["Create Authenticator<br>(Adaptive)"]
+        CreateAuthenticatorAdaptive --> UserPreCreate[user.pre_create]
         UserPreCreate --> CreateUser[Create User]
         CreateUser --> UserCreated[user.created]
         UserCreated --> FinishSignup([Finish])
@@ -987,7 +991,7 @@ flowchart TD
     classDef processNode fill:#dddddd
     class BotProtectionFailed,UserCreated event
     class UserAuthInitialize,UserAuthIdentified,UserAuthAdaptiveControl,UserPreCreate,OIDCJWTPreCreate blockingEvent
-    class Start,BotProtection,Identify,CreateAuthenticator,CreateUser,FinishSignup,ExchangeCode,IssueTokens processNode
+    class Start,BotProtection,Identify,Verify,CreateAuthenticator,ViewRecoveryCode,PromptCreatePasskey,CreateAuthenticatorAdaptive,CreateUser,FinishSignup,ExchangeCode,IssueTokens processNode
 ```
 
 ### Login
