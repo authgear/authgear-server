@@ -191,11 +191,9 @@ If `contraints.amr` with value `["mfa"]` is returned in the response, depending 
 - Interaction: Fail immediately, because interaction does not support Adaptive MFA.
 - Workflow / Latte: Fail immediately, because workflow does not support Adaptive MFA.
 
-Note, you have no control on the MFA steps in the Authentication Flow when using `user.auth.adaptive_control`. If you need full control on when the MFA steps being inserted, see Advanced Use Cases [TODO(tung): Insert the link] below.
+Note, you have no control on the MFA steps in the Authentication Flow when using `user.auth.adaptive_control`. If you need full control on when the MFA steps being inserted, see [Adaptive MFA with customized Authflow](#adaptive-mfa-with-customized-authflow) below.
 
 "amr" stands for (Authentication Methods References)[https://www.rfc-editor.org/rfc/rfc8176.html], it is a claim used with OpenID Connect for storing details about how the authentication was performed. Only "mfa" is supported at the moment. Any other values will have no effect.
-
-TODO(tung): Document `contraints`, and possible values of `amr`.
 
 ## Advanced Use Cases
 
@@ -243,8 +241,6 @@ export default async function (
 By setting `overrides.rate_limit.weight` to 2, it means this attempt of identification will contribute `2` counts to the rate limit. Therefore, 5 attempts are only allowed in 1 minute. (10 / 2 = 5)
 
 `weight` can also be lower than 1. When set to `0`, this attempt will never hit rate limit.
-
-TODO(tung): Document `overrides`. The only supported property is `rate_limit` at the moment.
 
 ### Adaptive MFA with customized Authflow
 
