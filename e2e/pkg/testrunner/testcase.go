@@ -125,11 +125,6 @@ func (tc *TestCase) executeStep(
 	var flowResponse *authflowclient.FlowResponse
 	var flowErr error
 
-	var lastStep *StepResult
-	if len(prevSteps) != 0 {
-		lastStep = &prevSteps[len(prevSteps)-1]
-	}
-
 	switch step.Action {
 	case StepActionCreate:
 		var flowReference authflowclient.FlowReference
@@ -160,7 +155,7 @@ func (tc *TestCase) executeStep(
 
 	case StepActionGenerateTOTPCode:
 		var parsedTOTPSecret string
-		parsedTOTPSecret, ok = prepareTOTPSecret(t, cmd, lastStep, step.TOTPSecret)
+		parsedTOTPSecret, ok = renderTemplateString(t, cmd, prevSteps, step.TOTPSecret)
 		if !ok {
 			return nil, state, false
 		}
@@ -181,7 +176,7 @@ func (tc *TestCase) executeStep(
 
 	case StepActionOAuthRedirect:
 		var parsedTo string
-		parsedTo, ok = prepareTo(t, cmd, lastStep, step.To)
+		parsedTo, ok = renderTemplateString(t, cmd, prevSteps, step.To)
 		if !ok {
 			return nil, state, false
 		}
@@ -238,7 +233,7 @@ func (tc *TestCase) executeStep(
 	case StepActionHTTPRequest:
 		var outputOk bool = true
 		var httpResult interface{} = nil
-		url, ok := prepareHTTPRequestURL(t, cmd, lastStep, step.HTTPRequestURL)
+		url, ok := renderTemplateString(t, cmd, prevSteps, step.HTTPRequestURL)
 		if !ok {
 			return nil, state, false
 		}
@@ -285,7 +280,7 @@ func (tc *TestCase) executeStep(
 
 		var relayState string
 		if step.SAMLRequestRelayState != "" {
-			rs, ok := prepareSAMLRelayState(t, cmd, lastStep, step.SAMLRequestRelayState)
+			rs, ok := renderTemplateString(t, cmd, prevSteps, step.SAMLRequestRelayState)
 			if !ok {
 				return nil, state, false
 			}
@@ -323,7 +318,7 @@ func (tc *TestCase) executeStep(
 	case StepActionInput:
 		fallthrough
 	case "":
-		input, ok := prepareInput(t, cmd, lastStep, step.Input)
+		input, ok := prepareInput(t, cmd, prevSteps, step.Input)
 		if !ok {
 			return nil, state, false
 		}
@@ -354,15 +349,14 @@ func (tc *TestCase) executeStep(
 	return result, nextState, true
 }
 
-func prepareInput(t *testing.T, cmd *End2EndCmd, prev *StepResult, input string) (prepared map[string]interface{}, ok bool) {
-	parsedInput, err := execTemplate(cmd, prev, input)
-	if err != nil {
-		t.Errorf("failed to parse input: %v\n", err)
+func prepareInput(t *testing.T, cmd *End2EndCmd, prevSteps []StepResult, input string) (prepared map[string]interface{}, ok bool) {
+	renderedString, ok := renderTemplateString(t, cmd, prevSteps, input)
+	if !ok {
 		return nil, false
 	}
 
 	var inputMap map[string]interface{}
-	err = json.Unmarshal([]byte(parsedInput), &inputMap)
+	err := json.Unmarshal([]byte(renderedString), &inputMap)
 	if err != nil {
 		t.Errorf("failed to parse input: %v\n", err)
 		return nil, false
@@ -371,46 +365,17 @@ func prepareInput(t *testing.T, cmd *End2EndCmd, prev *StepResult, input string)
 	return inputMap, true
 }
 
-func prepareTOTPSecret(t *testing.T, cmd *End2EndCmd, prev *StepResult, totpSecret string) (prepared string, ok bool) {
-	parsedTOTPSecret, err := execTemplate(cmd, prev, totpSecret)
+func renderTemplateString(t *testing.T, cmd *End2EndCmd, prevSteps []StepResult, templateString string) (string, bool) {
+	renderedString, err := execTemplate(cmd, prevSteps, templateString)
 	if err != nil {
-		t.Errorf("failed to parse totp_secret: %v\n", err)
+		t.Errorf("failed to render template string: %v", err)
 		return "", false
 	}
 
-	return parsedTOTPSecret, true
+	return renderedString, true
 }
 
-func prepareTo(t *testing.T, cmd *End2EndCmd, prev *StepResult, to string) (prepared string, ok bool) {
-	parsedTo, err := execTemplate(cmd, prev, to)
-	if err != nil {
-		t.Errorf("failed to parse to: %v\n", err)
-		return "", false
-	}
-
-	return parsedTo, true
-}
-func prepareSAMLRelayState(t *testing.T, cmd *End2EndCmd, prev *StepResult, relayStateTpl string) (prepared string, ok bool) {
-	relayState, err := execTemplate(cmd, prev, relayStateTpl)
-	if err != nil {
-		t.Errorf("failed to parse saml_request_relay_state: %v\n", err)
-		return "", false
-	}
-
-	return relayState, true
-}
-
-func prepareHTTPRequestURL(t *testing.T, cmd *End2EndCmd, prev *StepResult, url string) (prepared string, ok bool) {
-	url, err := execTemplate(cmd, prev, url)
-	if err != nil {
-		t.Errorf("failed to parse http_request_url: %v\n", err)
-		return "", false
-	}
-
-	return url, true
-}
-
-func execTemplate(cmd *End2EndCmd, prev *StepResult, content string) (string, error) {
+func execTemplate(cmd *End2EndCmd, prevSteps []StepResult, content string) (string, error) {
 	tmpl := texttemplate.New("")
 	tmpl.Funcs(makeTemplateFuncMap(cmd))
 
@@ -422,9 +387,12 @@ func execTemplate(cmd *End2EndCmd, prev *StepResult, content string) (string, er
 	data := make(map[string]interface{})
 
 	// Add prev result to data
-	data["prev"], err = toMap(prev)
-	if err != nil {
-		return "", err
+	if len(prevSteps) > 0 {
+		lastStep := prevSteps[len(prevSteps)-1]
+		data["prev"], err = toMap(lastStep)
+		if err != nil {
+			return "", err
+		}
 	}
 
 	var buf strings.Builder
