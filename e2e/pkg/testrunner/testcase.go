@@ -323,13 +323,7 @@ func (tc *TestCase) executeStep(
 	case StepActionInput:
 		fallthrough
 	case "":
-		if len(prevSteps) == 0 {
-			t.Errorf("no previous step result in '%s'", step.Name)
-			return
-		}
-
-		lastStep := prevSteps[len(prevSteps)-1]
-		input, ok := prepareInput(t, cmd, &lastStep, step.Input)
+		input, ok := prepareInput(t, cmd, lastStep, step.Input)
 		if !ok {
 			return nil, state, false
 		}
