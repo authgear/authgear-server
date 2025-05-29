@@ -12,6 +12,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
@@ -68,6 +69,7 @@ type IssueIDTokenOptions struct {
 	AuthenticationInfo authenticationinfo.T
 	ClientLike         *oauth.ClientLike
 	DeviceSecretHash   string
+	IdentitySpecs      []*identity.Spec
 }
 
 func (ti *IDTokenIssuer) IssueIDToken(ctx context.Context, opts IssueIDTokenOptions) (string, error) {
@@ -108,6 +110,17 @@ func (ti *IDTokenIssuer) IssueIDToken(ctx context.Context, opts IssueIDTokenOpti
 	// Populate authorization flow specific claims
 	if nonce := opts.Nonce; nonce != "" {
 		_ = claims.Set("nonce", nonce)
+	}
+
+	// Populate model.ClaimOAuthUsed
+	var oauthUsed []map[string]any
+	for _, idenSpec := range opts.IdentitySpecs {
+		if idenSpec.Type == model.IdentityTypeOAuth && idenSpec.OAuth != nil && idenSpec.OAuth.IncludeIdentityAttributesInIDToken {
+			oauthUsed = append(oauthUsed, idenSpec.OAuth.ToClaimsForIDToken())
+		}
+	}
+	if len(oauthUsed) > 0 {
+		_ = claims.Set(string(model.ClaimOAuthAsserted), oauthUsed)
 	}
 
 	// Sign the token.

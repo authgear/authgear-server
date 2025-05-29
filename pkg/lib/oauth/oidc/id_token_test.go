@@ -9,7 +9,10 @@ import (
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	. "github.com/smartystreets/goconvey/convey"
 
+	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
+
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/endpoints"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
@@ -119,6 +122,20 @@ func TestIDTokenIssuer(t *testing.T) {
 			ClientLike:         oauth.ClientClientLike(client, scopes),
 			Nonce:              "nonce-1",
 			DeviceSecretHash:   testDeviceSecretHash,
+			IdentitySpecs: []*identity.Spec{
+				{
+					Type: model.IdentityTypeOAuth,
+					OAuth: &identity.OAuthSpec{
+						IncludeIdentityAttributesInIDToken: true,
+						ProviderAlias:                      "google",
+						ProviderID:                         oauthrelyingparty.NewProviderID("google", make(map[string]any)),
+						SubjectID:                          "google-user-id",
+						RawProfile: map[string]any{
+							"google_specific_field": 42,
+						},
+					},
+				},
+			},
 		})
 		So(err, ShouldBeNil)
 
@@ -154,5 +171,20 @@ func TestIDTokenIssuer(t *testing.T) {
 		// Authz-specific claims
 		nonce, _ := token.Get(string("nonce"))
 		So(nonce, ShouldEqual, "nonce-1")
+
+		// Authgear-specific claims
+		oauthUsed, ok := token.Get("https://authgear.com/claims/oauth/asserted")
+		So(ok, ShouldBeTrue)
+		So(oauthUsed, ShouldResemble, []any{
+			map[string]any{
+				"https://authgear.com/claims/oauth/profile": map[string]any{
+					"google_specific_field": float64(42),
+				},
+				"https://authgear.com/claims/oauth/provider_alias": "google",
+				"https://authgear.com/claims/oauth/provider_type":  "google",
+				"https://authgear.com/claims/oauth/subject_id":     "google-user-id",
+			},
+		},
+		)
 	})
 }
