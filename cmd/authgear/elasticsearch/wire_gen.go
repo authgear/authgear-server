@@ -91,6 +91,7 @@ func NewReindexer(pool *db.Pool, databaseCredentials *CmdDBCredential, appID Cmd
 	identityConfig := appConfig.Identity
 	featureConfig := config.FeatureConfig
 	identityFeatureConfig := featureConfig.Identity
+	ssooAuthDemoCredentials := deps.ProvideSSOOAuthDemoCredentials(secretConfig)
 	serviceStore := &service.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -221,17 +222,18 @@ func NewReindexer(pool *db.Pool, databaseCredentials *CmdDBCredential, appID Cmd
 		StandardAttributesNormalizer: normalizer,
 	}
 	serviceService := &service.Service{
-		Authentication:        authenticationConfig,
-		Identity:              identityConfig,
-		IdentityFeatureConfig: identityFeatureConfig,
-		Store:                 serviceStore,
-		LoginID:               provider,
-		OAuth:                 oauthProvider,
-		Anonymous:             anonymousProvider,
-		Biometric:             biometricProvider,
-		Passkey:               passkeyProvider,
-		SIWE:                  siweProvider,
-		LDAP:                  ldapProvider,
+		Authentication:          authenticationConfig,
+		Identity:                identityConfig,
+		IdentityFeatureConfig:   identityFeatureConfig,
+		SSOOAuthDemoCredentials: ssooAuthDemoCredentials,
+		Store:                   serviceStore,
+		LoginID:                 provider,
+		OAuth:                   oauthProvider,
+		Anonymous:               anonymousProvider,
+		Biometric:               biometricProvider,
+		Passkey:                 passkeyProvider,
+		SIWE:                    siweProvider,
+		LDAP:                    ldapProvider,
 	}
 	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,

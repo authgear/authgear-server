@@ -114,17 +114,18 @@ type LDAPIdentityProvider interface {
 }
 
 type Service struct {
-	Authentication        *config.AuthenticationConfig
-	Identity              *config.IdentityConfig
-	IdentityFeatureConfig *config.IdentityFeatureConfig
-	Store                 *Store
-	LoginID               LoginIDIdentityProvider
-	OAuth                 OAuthIdentityProvider
-	Anonymous             AnonymousIdentityProvider
-	Biometric             BiometricIdentityProvider
-	Passkey               PasskeyIdentityProvider
-	SIWE                  SIWEIdentityProvider
-	LDAP                  LDAPIdentityProvider
+	Authentication          *config.AuthenticationConfig
+	Identity                *config.IdentityConfig
+	IdentityFeatureConfig   *config.IdentityFeatureConfig
+	SSOOAuthDemoCredentials *config.SSOOAuthDemoCredentials
+	Store                   *Store
+	LoginID                 LoginIDIdentityProvider
+	OAuth                   OAuthIdentityProvider
+	Anonymous               AnonymousIdentityProvider
+	Biometric               BiometricIdentityProvider
+	Passkey                 PasskeyIdentityProvider
+	SIWE                    SIWEIdentityProvider
+	LDAP                    LDAPIdentityProvider
 }
 
 func (s *Service) Get(ctx context.Context, id string) (*identity.Info, error) {
@@ -1105,7 +1106,7 @@ func (s *Service) listOAuthCandidates(oauths []*identity.OAuth) []identity.Candi
 			continue
 		}
 		configProviderID := pc.AsProviderConfig().ProviderID()
-		candidate := identity.NewOAuthCandidate(pc)
+		candidate := identity.NewOAuthCandidate(pc, s.SSOOAuthDemoCredentials)
 		matched := false
 		for _, iden := range oauths {
 			if iden.ProviderID.Equal(configProviderID) {

@@ -26,10 +26,11 @@ type InputUseIdentityOAuthProvider interface {
 }
 
 type EdgeUseIdentityOAuthProvider struct {
-	IsAuthentication bool
-	IsCreating       bool
-	Configs          []config.OAuthSSOProviderConfig
-	FeatureConfig    *config.OAuthSSOProvidersFeatureConfig
+	IsAuthentication        bool
+	IsCreating              bool
+	Configs                 []config.OAuthSSOProviderConfig
+	FeatureConfig           *config.OAuthSSOProvidersFeatureConfig
+	SSOOAuthDemoCredentials *config.SSOOAuthDemoCredentials
 }
 
 func (e *EdgeUseIdentityOAuthProvider) GetIdentityCandidates() []identity.Candidate {
@@ -37,7 +38,7 @@ func (e *EdgeUseIdentityOAuthProvider) GetIdentityCandidates() []identity.Candid
 	for _, c := range e.Configs {
 		conf := c
 		if !identity.IsOAuthSSOProviderTypeDisabled(conf.AsProviderConfig(), e.FeatureConfig) {
-			candidates = append(candidates, identity.NewOAuthCandidate(conf))
+			candidates = append(candidates, identity.NewOAuthCandidate(conf, e.SSOOAuthDemoCredentials))
 		}
 	}
 	return candidates
