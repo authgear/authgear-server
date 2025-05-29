@@ -274,29 +274,27 @@ func (h *AuthorizationHandler) doHandleConsent(ctx context.Context, req *http.Re
 		return resultErr, nil
 	}
 
-	oauthSessionEntry := consentRequest.OAuthSessionEntry
-	redirectURI := consentRequest.RedirectURI
-	client := consentRequest.Client
-	authInfoEntry := consentRequest.AuthInfoEntry
-
-	authzReq := oauthSessionEntry.T.AuthorizationRequest
-	autoGrantAuthz := client.IsFirstParty()
+	autoGrantAuthz := consentRequest.Client.IsFirstParty()
 	grantAuthz := autoGrantAuthz || withUserConsent
 
-	result, err := h.doHandleConsentRequest(ctx, redirectURI, client, authzReq, authInfoEntry.T, req, grantAuthz)
+	result, err := h.doHandleConsentRequest(ctx, doHandleConsentRequestOptions{
+		ConsentRequest: consentRequest,
+		HTTPRequest:    req,
+		GrantAuthz:     grantAuthz,
+	})
 	if err != nil {
 		if !grantAuthz && IsConsentRequiredError(err) {
 			return nil, &ConsentRequired{
-				UserID: authInfoEntry.T.UserID,
-				Scopes: authzReq.Scope(),
-				Client: client,
+				UserID: consentRequest.AuthInfoEntry.T.UserID,
+				Scopes: consentRequest.OAuthSessionEntry.T.AuthorizationRequest.Scope(),
+				Client: consentRequest.Client,
 			}
 		}
 
 		var oauthError *protocol.OAuthProtocolError
 		resultErr := authorizationResultError{
-			RedirectURI:  redirectURI,
-			ResponseMode: authzReq.ResponseMode(),
+			RedirectURI:  consentRequest.RedirectURI,
+			ResponseMode: consentRequest.OAuthSessionEntry.T.AuthorizationRequest.ResponseMode(),
 		}
 		if errors.As(err, &oauthError) {
 			resultErr.Response = oauthError.Response
@@ -305,19 +303,19 @@ func (h *AuthorizationHandler) doHandleConsent(ctx context.Context, req *http.Re
 			resultErr.Response = protocol.NewErrorResponse("server_error", "internal server error")
 			resultErr.InternalError = true
 		}
-		state := authzReq.State()
+		state := consentRequest.OAuthSessionEntry.T.AuthorizationRequest.State()
 		if state != "" {
-			resultErr.Response.State(authzReq.State())
+			resultErr.Response.State(consentRequest.OAuthSessionEntry.T.AuthorizationRequest.State())
 		}
 		result = resultErr
 	} else {
 		// delete oauth session with best effort
 		// don't block the user in case of failure
-		err = h.OAuthSessionService.Delete(ctx, oauthSessionEntry.ID)
+		err = h.OAuthSessionService.Delete(ctx, consentRequest.OAuthSessionEntry.ID)
 		if err != nil {
 			h.Logger.WithError(err).Error("failed to consume oauth session")
 		}
-		err = h.AuthenticationInfoService.Delete(ctx, authInfoEntry.ID)
+		err = h.AuthenticationInfoService.Delete(ctx, consentRequest.AuthInfoEntry.ID)
 		if err != nil {
 			h.Logger.WithError(err).Error("failed to consume authentication info")
 		}
@@ -747,30 +745,47 @@ func (h *AuthorizationHandler) finishAuthorization(
 	}, nil
 }
 
+type doHandleConsentRequestOptions struct {
+	ConsentRequest *consentRequest
+	HTTPRequest    *http.Request
+	GrantAuthz     bool
+}
+
 func (h *AuthorizationHandler) doHandleConsentRequest(
 	ctx context.Context,
-	redirectURI *url.URL,
-	client *config.OAuthClientConfig,
-	r protocol.AuthorizationRequest,
-	authenticationInfo authenticationinfo.T,
-	req *http.Request,
-	grantAuthz bool,
+	opts doHandleConsentRequestOptions,
 ) (httputil.Result, error) {
-	if err := h.validateRequest(client, r); err != nil {
+	if err := h.validateRequest(
+		opts.ConsentRequest.Client,
+		opts.ConsentRequest.OAuthSessionEntry.T.AuthorizationRequest,
+	); err != nil {
 		return nil, err
 	}
 
-	err := oauth.ValidateScopes(client, r.Scope())
+	err := oauth.ValidateScopes(
+		opts.ConsentRequest.Client,
+		opts.ConsentRequest.OAuthSessionEntry.T.AuthorizationRequest.Scope(),
+	)
 	if err != nil {
 		return nil, err
 	}
 
-	responseType := r.ResponseType()
+	responseType := opts.ConsentRequest.OAuthSessionEntry.T.AuthorizationRequest.ResponseType()
 	switch {
 	case responseType.Equal(SettingsActonResponseType):
-		return h.finishSettingsAction(ctx, client, redirectURI, r, []*http.Cookie{})
+		return h.finishSettingsAction(
+			ctx,
+			opts.ConsentRequest.Client,
+			opts.ConsentRequest.RedirectURI,
+			opts.ConsentRequest.OAuthSessionEntry.T.AuthorizationRequest,
+			[]*http.Cookie{},
+		)
 	default:
-		_, uiInfoByProduct, err := h.UIInfoResolver.ResolveForAuthorizationEndpoint(ctx, client, r)
+		_, uiInfoByProduct, err := h.UIInfoResolver.ResolveForAuthorizationEndpoint(
+			ctx,
+			opts.ConsentRequest.Client,
+			opts.ConsentRequest.OAuthSessionEntry.T.AuthorizationRequest,
+		)
 		if err != nil {
 			return nil, err
 		}
@@ -779,21 +794,21 @@ func (h *AuthorizationHandler) doHandleConsentRequest(
 		sessionID := ""
 		var sessionType session.Type = ""
 
-		if authenticationInfo.AuthenticatedBySessionID != "" {
-			sessionID = authenticationInfo.AuthenticatedBySessionID
-			sessionType = session.Type(authenticationInfo.AuthenticatedBySessionType)
+		if opts.ConsentRequest.AuthInfoEntry.T.AuthenticatedBySessionID != "" {
+			sessionID = opts.ConsentRequest.AuthInfoEntry.T.AuthenticatedBySessionID
+			sessionType = session.Type(opts.ConsentRequest.AuthInfoEntry.T.AuthenticatedBySessionType)
 		}
 
 		return h.finishAuthorization(ctx, FinishAuthorizationOptions{
-			Client:               client,
-			RedirectURI:          redirectURI,
-			AuthorizationRequest: r,
+			Client:               opts.ConsentRequest.Client,
+			RedirectURI:          opts.ConsentRequest.RedirectURI,
+			AuthorizationRequest: opts.ConsentRequest.OAuthSessionEntry.T.AuthorizationRequest,
 			SessionType:          sessionType,
 			SessionID:            sessionID,
-			AuthenticationInfo:   authenticationInfo,
+			AuthenticationInfo:   opts.ConsentRequest.AuthInfoEntry.T,
 			IDTokenHintSID:       idTokenHintSID,
 			Cookies:              []*http.Cookie{},
-			GrantAuthz:           grantAuthz,
+			GrantAuthz:           opts.GrantAuthz,
 		})
 	}
 }
