@@ -710,12 +710,16 @@ func (h *AuthorizationHandler) finishAuthorization(
 	case responseType.Equal(CodeResponseType):
 		err = h.generateCodeResponse(
 			ctx,
-			opts.RedirectURI.String(),
-			opts.SessionType, opts.SessionID,
-			opts.AuthenticationInfo,
-			opts.IDTokenHintSID,
-			opts.AuthorizationRequest,
-			authz,
+			&CreateCodeGrantOptions{
+				Authorization:        authz,
+				SessionType:          opts.SessionType,
+				SessionID:            opts.SessionID,
+				AuthenticationInfo:   opts.AuthenticationInfo,
+				IDTokenHintSID:       opts.IDTokenHintSID,
+				RedirectURI:          opts.RedirectURI.String(),
+				AuthorizationRequest: opts.AuthorizationRequest,
+				DPoPJKT:              opts.AuthorizationRequest.DPoPJKT(),
+			},
 			resp,
 		)
 		if err != nil {
@@ -887,25 +891,10 @@ func (h *AuthorizationHandler) validateRequest(
 
 func (h *AuthorizationHandler) generateCodeResponse(
 	ctx context.Context,
-	redirectURI string,
-	sessionType session.Type,
-	sessionID string,
-	authenticationInfo authenticationinfo.T,
-	idTokenHintSID string,
-	r protocol.AuthorizationRequest,
-	authz *oauth.Authorization,
+	createCodeGrantOptions *CreateCodeGrantOptions,
 	resp protocol.AuthorizationResponse,
 ) error {
-	code, _, err := h.CodeGrantService.CreateCodeGrant(ctx, &CreateCodeGrantOptions{
-		Authorization:        authz,
-		SessionType:          sessionType,
-		SessionID:            sessionID,
-		AuthenticationInfo:   authenticationInfo,
-		IDTokenHintSID:       idTokenHintSID,
-		RedirectURI:          redirectURI,
-		AuthorizationRequest: r,
-		DPoPJKT:              r.DPoPJKT(),
-	})
+	code, _, err := h.CodeGrantService.CreateCodeGrant(ctx, createCodeGrantOptions)
 	if err != nil {
 		return err
 	}
