@@ -266,15 +266,15 @@ authentication_flows:
                     - authentication: primary_oob_otp_sms
                       target_step: login_identify
         - type: authenticate # Add this step
-          show_if_any_amr_required: ["mfa"]
+          show_untill_amr_fulfilled: true
           one_of:
             - authentication: secondary_totp
         - type: check_account_status
         - type: terminate_other_sessions
 ```
 
-In the above example, we handle adaptive MFA by adding a `authenticate` step in the flow, with `show_if_any_amr_required` set.
-The value of `show_if_any_amr_required` is `["mfa"]`, which means if `"mfa"` is required in `amr`, the step will be shown.
+In the above example, we handle adaptive MFA by adding a `authenticate` step in the flow, with `show_untill_amr_fulfilled` set to `true`.
+The value of `show_untill_amr_fulfilled` is `true`, which means the authenticate step will authenticate the user until `amr` constraints are fufilled in the flow. If no `amr` constraint is set, the step will be skipped.
 
 Then, return the constraints in your `user.auth.identified` hook:
 
