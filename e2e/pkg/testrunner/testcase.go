@@ -346,6 +346,10 @@ func (tc *TestCase) executeStep(
 		return nil, state, false
 	}
 
+	if result != nil {
+		result.Step = &step
+	}
+
 	return result, nextState, true
 }
 
@@ -384,7 +388,7 @@ func execTemplate(cmd *End2EndCmd, prevSteps []StepResult, content string) (stri
 		return "", err
 	}
 
-	data := make(map[string]interface{})
+	data := make(map[string]any)
 
 	// Add prev result to data
 	if len(prevSteps) > 0 {
@@ -394,6 +398,22 @@ func execTemplate(cmd *End2EndCmd, prevSteps []StepResult, content string) (stri
 			return "", err
 		}
 	}
+
+	// Add named steps to data
+	steps := make(map[string]any)
+	for _, step := range prevSteps {
+		if step.Step.Name != "" {
+			_, ok := steps[step.Step.Name]
+			if ok {
+				return "", fmt.Errorf("step name duplicated: %v", step.Step.Name)
+			}
+			steps[step.Step.Name], err = toMap(step)
+			if err != nil {
+				return "", err
+			}
+		}
+	}
+	data["steps"] = steps
 
 	var buf strings.Builder
 	err = tmpl.Execute(&buf, data)
