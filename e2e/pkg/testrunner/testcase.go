@@ -127,14 +127,12 @@ func (tc *TestCase) executeStep(
 
 	switch step.Action {
 	case StepActionCreate:
-		var flowReference authflowclient.FlowReference
-		err := json.Unmarshal([]byte(step.Input), &flowReference)
-		if err != nil {
-			t.Errorf("failed to parse input in '%s': %v\n", step.Name, err)
-			return
+		input, ok := prepareInput(t, cmd, prevSteps, step.Input)
+		if !ok {
+			return nil, state, false
 		}
 
-		flowResponse, flowErr = client.CreateFlow(flowReference, "")
+		flowResponse, flowErr = client.CreateFlow(input)
 
 		if step.Output != nil {
 			ok := validateOutput(t, step, flowResponse, flowErr)
@@ -315,6 +313,18 @@ func (tc *TestCase) executeStep(
 			Result: httpResult,
 			Error:  nil,
 		}
+	case StepActionOAuthSetup:
+		output, err := client.SetupOAuth()
+		if err != nil {
+			t.Errorf("failed to setup oauth: %v", err)
+			return nil, state, false
+		}
+
+		result = &StepResult{
+			Result: output,
+			Error:  nil,
+		}
+
 	case StepActionInput:
 		fallthrough
 	case "":

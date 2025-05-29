@@ -136,7 +136,8 @@ var _ = TestCaseSchema.Add("Step", `
 			"generate_totp_code",
 			"query",
 			"saml_request",
-			"http_request"
+			"http_request",
+			"oauth_setup"
 		]},
 		"input": { "type": "string" },
 		"to": { "type": "string" },
@@ -291,6 +292,7 @@ const (
 	StepActionQuery            StepAction = "query"
 	StepActionSAMLRequest      StepAction = "saml_request"
 	StepActionHTTPRequest      StepAction = "http_request"
+	StepActionOAuthSetup       StepAction = "oauth_setup"
 )
 
 var _ = TestCaseSchema.Add("SessionCookie", `
