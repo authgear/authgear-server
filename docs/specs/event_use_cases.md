@@ -325,7 +325,7 @@ bot_protection:
 
 `risk_level_condition.gte` means bot protection is only enabled if risk level is greater than or equal to (gte) 2.
 
-Then, return `risk_level` in your `user.auth.initialize` hook:
+Then, return `bot_protection.risk_level` in your `user.auth.initialize` hook:
 
 ```typescript
 export default async function (
@@ -333,9 +333,10 @@ export default async function (
 ): Promise<EventUserAuthIdentifiedResponse> {
   if (e.context.geo_location_code !== "HK") {
     return {
-      // Allow the login with a mfa contraint
       is_allowed: true,
-      risk_level: 2,
+      bot_protection: {
+        risk_level: 2,
+      }
     };
   }
   // Else, simply allow the login

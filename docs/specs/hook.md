@@ -4,6 +4,9 @@
 - [Lifecycle of Event Delivery](#lifecycle-of-event-delivery)
 - [Blocking Events](#blocking-events)
   * [Blocking Event Mutations](#blocking-event-mutations)
+  * [Blocking Event Authentication Constraints](#blocking-event-authentication-constraints)
+  * [Using Blocking Event with Rate Limits](#using-blocking-event-with-rate-limits)
+  * [Using Blocking Event with Bot Protection](#using-blocking-event-with-bot-protection)
 - [Non-blocking Events](#non-blocking-events)
   * [Future works of non-blocking events](#future-works-of-non-blocking-events)
 - [Webhook](#webhook)
@@ -70,7 +73,7 @@ To fail the operation, respond with `is_allowed` set to `false`, and a non-empty
 }
 ```
 
-If any hook fails the operation, the operation is failed. The operation fails with error
+If any hook fails the operation, the operation fails with error
 
 ```json
 {
@@ -144,6 +147,109 @@ The payload will only be validated after traversing the Hooks chain.
 Mutations do NOT generate extra events to avoid infinite loop.
 
 Currently, only `standard_attributes`, `custom_attributes`, `roles` and `groups` of the user object are mutable.
+
+## Blocking Event Authentication Constraints
+
+The `constraints` property in the response of blocking events can contain the following properties:
+
+- `amr`: An array of Authentication Methods References (AMR) values that are required for the authentication. The supported values are:
+  - `pwd`: Password-based authentication
+  - `otp`: One-time password authentication (TOTP, OOB email, OOB SMS)
+  - `sms`: SMS-based authentication
+  - `mfa`: Multi-factor authentication (multiple authenticators are used)
+  - `x_passkey`: Passkey authentication
+
+When multiple values are returned in `amr`, they are in AND condition. For example, for `"amr": ["mfa", "otp"]`, the user must fulfil `mfa` AND `otp` in the authentication flow.
+
+`x_biometric` is not supported in `constraints`.
+
+The following blocking events support authentication constraints:
+
+- `user.auth.identified`
+- `user.auth.adaptive_control`
+
+Example response requiring MFA for authentication:
+
+```json
+{
+  "is_allowed": true,
+  "constraints": {
+    "amr": ["mfa"]
+  }
+}
+```
+
+### Relationship with OIDC ID Token
+
+The generated ID Token is guaranteed to include all values in `constraints.amr` in the `amr` claim of the ID Token.
+
+### Relationship with Authentication Flow
+
+The constraints are enforced based on the authentication flow type:
+
+- Signup / Promote: Enforces setup of corresponding authenticator according to value of `amr`.
+- Login / Reauth: Enforces use of corresponding authenticator according to value of `amr`.
+- Account Recovery: No effect (does not support 2FA)
+
+
+## Using Blocking Event with Rate Limits
+
+The `rate_limit` property in the response of blocking events can contain the following properties:
+
+- `weight`: A number that determines how much this attempt contributes to the rate limit. The default value is 1. A value of 0 means this attempt will never hit the rate limit.
+
+The rate limit is enforced based on the authentication flow type:
+
+The following blocking events support rate limit override:
+
+- `user.auth.identified`
+
+Example response with rate limit override:
+
+```json
+{
+  "is_allowed": true,
+  "rate_limit": {
+    "weight": 2
+  }
+}
+```
+
+## Using Blocking Event with Bot Protection
+
+The `bot_protection` property in the response of blocking events can contain the following properties:
+
+- `risk_level`: A number that determines the risk level of the request. The risk level is used to determine whether bot protection should be required based on the project configuration.
+
+The following blocking events support bot protection:
+
+- `user.auth.initialize`
+- `user.auth.identified`
+
+Example response with bot protection:
+
+```json
+{
+  "is_allowed": true,
+  "bot_protection": {
+    "risk_level": 2
+  }
+}
+```
+
+The bot protection behavior depends on the project configuration:
+
+```yaml
+bot_protection:
+  enabled: true
+  requirements:
+    signup_or_login:
+      mode: "risk_level_dependent"
+      risk_level_condition:
+        gte: 2
+```
+
+In this example, bot protection is required when the risk level is greater than or equal to 2.
 
 # Non-blocking Events
 
