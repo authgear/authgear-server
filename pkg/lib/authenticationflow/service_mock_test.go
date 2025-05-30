@@ -10,6 +10,7 @@ import (
 
 	authenticationinfo "github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	config "github.com/authgear/authgear-server/pkg/lib/config"
+	oauthsession "github.com/authgear/authgear-server/pkg/lib/oauth/oauthsession"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -259,4 +260,56 @@ func (m *MockOAuthClientResolver) ResolveClient(clientID string) *config.OAuthCl
 func (mr *MockOAuthClientResolverMockRecorder) ResolveClient(clientID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResolveClient", reflect.TypeOf((*MockOAuthClientResolver)(nil).ResolveClient), clientID)
+}
+
+// MockOAuthSessionStore is a mock of OAuthSessionStore interface.
+type MockOAuthSessionStore struct {
+	ctrl     *gomock.Controller
+	recorder *MockOAuthSessionStoreMockRecorder
+}
+
+// MockOAuthSessionStoreMockRecorder is the mock recorder for MockOAuthSessionStore.
+type MockOAuthSessionStoreMockRecorder struct {
+	mock *MockOAuthSessionStore
+}
+
+// NewMockOAuthSessionStore creates a new mock instance.
+func NewMockOAuthSessionStore(ctrl *gomock.Controller) *MockOAuthSessionStore {
+	mock := &MockOAuthSessionStore{ctrl: ctrl}
+	mock.recorder = &MockOAuthSessionStoreMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockOAuthSessionStore) EXPECT() *MockOAuthSessionStoreMockRecorder {
+	return m.recorder
+}
+
+// Get mocks base method.
+func (m *MockOAuthSessionStore) Get(ctx context.Context, entryID string) (*oauthsession.Entry, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Get", ctx, entryID)
+	ret0, _ := ret[0].(*oauthsession.Entry)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Get indicates an expected call of Get.
+func (mr *MockOAuthSessionStoreMockRecorder) Get(ctx, entryID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockOAuthSessionStore)(nil).Get), ctx, entryID)
+}
+
+// Save mocks base method.
+func (m *MockOAuthSessionStore) Save(ctx context.Context, entry *oauthsession.Entry) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Save", ctx, entry)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Save indicates an expected call of Save.
+func (mr *MockOAuthSessionStoreMockRecorder) Save(ctx, entry interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Save", reflect.TypeOf((*MockOAuthSessionStore)(nil).Save), ctx, entry)
 }

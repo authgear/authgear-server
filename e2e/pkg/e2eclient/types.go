@@ -4,12 +4,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 )
 
-type FlowReference struct {
-	Type     string `json:"type"`
-	Name     string `json:"name"`
-	URLQuery string `json:"url_query,omitempty"`
-}
-
 type FlowAction struct {
 	Type           string                 `json:"type"`
 	Identification string                 `json:"identification,omitempty"`

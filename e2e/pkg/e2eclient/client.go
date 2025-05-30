@@ -16,8 +16,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/lestrrat-go/jwx/v2/jwt"
+
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
+	"github.com/authgear/authgear-server/pkg/util/pkce"
 	"github.com/authgear/authgear-server/pkg/util/secretcode"
 )
 
@@ -42,13 +45,14 @@ func (t *ProjectHostRewriteTransport) RoundTrip(req *http.Request) (*http.Respon
 }
 
 type Client struct {
-	Context       context.Context
-	CookieJar     http.CookieJar
-	HTTPClient    *http.Client
-	OAuthClient   *http.Client
-	MainEndpoint  *url.URL
-	AdminEndpoint *url.URL
-	HTTPHost      httputil.HTTPHost
+	Context          context.Context
+	CookieJar        http.CookieJar
+	HTTPClient       *http.Client
+	NoRedirectClient *http.Client
+	OAuthClient      *http.Client
+	MainEndpoint     *url.URL
+	AdminEndpoint    *url.URL
+	HTTPHost         httputil.HTTPHost
 
 	SAMLClient *SAMLClient
 }
@@ -134,23 +138,23 @@ func NewClient(ctx context.Context, mainListenAddr string, adminListenAddr strin
 	}
 
 	return &Client{
-		Context:       ctx,
-		CookieJar:     customJar,
-		HTTPClient:    httpClient,
-		OAuthClient:   oauthClient,
-		MainEndpoint:  mainEndpointURL,
-		AdminEndpoint: adminEndpointURL,
-		HTTPHost:      httpHost,
-		SAMLClient:    samlClient,
+		Context:          ctx,
+		CookieJar:        customJar,
+		HTTPClient:       httpClient,
+		NoRedirectClient: noRedirectClient,
+		OAuthClient:      oauthClient,
+		MainEndpoint:     mainEndpointURL,
+		AdminEndpoint:    adminEndpointURL,
+		HTTPHost:         httpHost,
+		SAMLClient:       samlClient,
 	}
 }
 
 // CreateFlow creates a new authentication flow.
-func (c *Client) CreateFlow(flowReference FlowReference, urlQuery string) (*FlowResponse, error) {
+func (c *Client) CreateFlow(input map[string]any) (*FlowResponse, error) {
 	endpoint := c.MainEndpoint.JoinPath("/api/v1/authentication_flows")
-	endpoint.RawQuery = urlQuery
 
-	req, err := c.makeRequest(nil, endpoint, flowReference)
+	req, err := c.makeRequest(nil, endpoint, input)
 	if err != nil {
 		return nil, err
 	}
@@ -213,6 +217,131 @@ func (c *Client) OAuthRedirect(url string, redirectUntil string) (finalURL strin
 
 		url = location
 	}
+}
+
+func (c *Client) SetupOAuth() (output map[string]any, err error) {
+	u := c.MainEndpoint.JoinPath("/oauth2/authorize")
+
+	values := make(url.Values)
+	values.Set("client_id", "e2e")
+	values.Set("redirect_uri", "http://localhost:4000")
+	values.Set("response_type", "code")
+	values.Set("code_challenge_method", "S256")
+
+	codeVerifier := pkce.GenerateS256Verifier()
+	values.Set("code_challenge", codeVerifier.Challenge())
+	values.Set("scope", strings.Join([]string{
+		"openid",
+		"offline_access",
+		"https://authgear.com/scopes/full-access",
+	}, " "))
+	values.Set("x_sso_enabled", "false")
+
+	u.RawQuery = values.Encode()
+
+	req, err := http.NewRequestWithContext(c.Context, "GET", u.String(), nil)
+	if err != nil {
+		return
+	}
+
+	resp, err := c.NoRedirectClient.Do(req)
+	if err != nil {
+		return
+	}
+	defer resp.Body.Close()
+
+	location := resp.Header.Get("Location")
+
+	redirectURI, err := url.Parse(location)
+	if err != nil {
+		return
+	}
+
+	output = map[string]any{
+		"query":         redirectURI.RawQuery,
+		"code_verifier": codeVerifier.CodeVerifier,
+	}
+	return
+}
+
+type OAuthExchangeCodeOptions struct {
+	CodeVerifier string
+	RedirectURI  string
+}
+
+type OAuthExchangeCodeResult struct {
+	IDToken map[string]any `json:"id_token"`
+}
+
+func (c *Client) OAuthExchangeCode(opts OAuthExchangeCodeOptions) (result *OAuthExchangeCodeResult, err error) {
+	// We first need to visit the RedirectURI and extract the authorization code.
+
+	req, err := http.NewRequestWithContext(c.Context, "GET", opts.RedirectURI, nil)
+	if err != nil {
+		return
+	}
+
+	resp, err := c.NoRedirectClient.Do(req)
+	if err != nil {
+		return
+	}
+	defer resp.Body.Close()
+
+	redirectURI, err := url.Parse(resp.Header.Get("Location"))
+	if err != nil {
+		return
+	}
+
+	code := redirectURI.Query().Get("code")
+
+	u := c.MainEndpoint.JoinPath("/oauth2/token")
+
+	values := make(url.Values)
+	values.Set("grant_type", "authorization_code")
+	values.Set("client_id", "e2e")
+	values.Set("code", code)
+	values.Set("redirect_uri", "http://localhost:4000")
+	values.Set("code_verifier", opts.CodeVerifier)
+
+	tokenReq, err := http.NewRequestWithContext(
+		c.Context,
+		"POST",
+		u.String(),
+		strings.NewReader(values.Encode()),
+	)
+	if err != nil {
+		return
+	}
+	tokenReq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	tokenResp, err := c.NoRedirectClient.Do(tokenReq)
+	if err != nil {
+		return
+	}
+	defer tokenResp.Body.Close()
+
+	var tokenRespBody map[string]any
+	err = json.NewDecoder(tokenResp.Body).Decode(&tokenRespBody)
+	if err != nil {
+		return
+	}
+
+	idTokenStr := tokenRespBody["id_token"].(string)
+
+	idToken, err := jwt.ParseInsecure([]byte(idTokenStr))
+	if err != nil {
+		return
+	}
+
+	idTokenMap, err := idToken.AsMap(c.Context)
+	if err != nil {
+		return
+	}
+
+	result = &OAuthExchangeCodeResult{
+		IDToken: idTokenMap,
+	}
+	return
 }
 
 // InputFlow submits the input to the flow.

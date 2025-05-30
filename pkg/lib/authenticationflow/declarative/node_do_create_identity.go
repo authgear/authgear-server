@@ -12,14 +12,16 @@ func init() {
 }
 
 type NodeDoCreateIdentity struct {
-	SkipCreate bool           `json:"skip_create,omitempty"`
-	Identity   *identity.Info `json:"identity,omitempty"`
+	SkipCreate   bool           `json:"skip_create,omitempty"`
+	Identity     *identity.Info `json:"identity,omitempty"`
+	IdentitySpec *identity.Spec `json:"identity_spec,omitempty"`
 }
 
 var _ authflow.NodeSimple = &NodeDoCreateIdentity{}
 var _ authflow.Milestone = &NodeDoCreateIdentity{}
 var _ MilestoneDoCreateIdentity = &NodeDoCreateIdentity{}
 var _ authflow.EffectGetter = &NodeDoCreateIdentity{}
+var _ authflow.IdentitySpecGetter = &NodeDoCreateIdentity{}
 
 func (n *NodeDoCreateIdentity) Kind() string {
 	return "NodeDoCreateIdentity"
@@ -28,6 +30,9 @@ func (n *NodeDoCreateIdentity) Kind() string {
 func (*NodeDoCreateIdentity) Milestone() {}
 func (n *NodeDoCreateIdentity) MilestoneDoCreateIdentity() *identity.Info {
 	return n.Identity
+}
+func (n *NodeDoCreateIdentity) GetIdentitySpecs(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) []*identity.Spec {
+	return []*identity.Spec{n.IdentitySpec}
 }
 func (n *NodeDoCreateIdentity) MilestoneDoCreateIdentitySkipCreate() {
 	n.SkipCreate = true
