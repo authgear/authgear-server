@@ -9,9 +9,9 @@
       - [user.profile.pre_update](#userprofilepre_update)
       - [user.pre_schedule_deletion](#userpre_schedule_deletion)
       - [user.pre_schedule_anonymization](#userpre_schedule_anonymization)
-      - [user.auth.initialize](#userauthinitialize)
-      - [user.auth.identified](#userauthidentified)
-      - [user.auth.adaptive_control](#userauthadaptive_control)
+      - [authentication.pre_initialize](#authenticationpre_initialize)
+      - [authentication.post_identified](#authenticationpost_identified)
+      - [authentication.pre_authenticated](#authenticationpre_authenticated)
       - [oidc.jwt.pre_create](#oidcjwtpre_create)
     + [Non-blocking Events](#non-blocking-events)
       - [user.created](#usercreated)
@@ -179,7 +179,7 @@ Occurs right before the account anonymization is scheduled.
 }
 ```
 
-#### user.auth.initialize
+#### authentication.pre_initialize
 
 Occurs right before any authentication, such as login.
 
@@ -196,7 +196,7 @@ Example payload:
 }
 ```
 
-#### user.auth.identified
+#### authentication.post_identified
 
 ```mermaid
 flowchart TD
@@ -204,12 +204,12 @@ flowchart TD
         signup_create_authenticator["create_authenticator"]
         signup_identify["identify"]
   end
-    signup_identify -- "user.auth.identified" --> signup_create_authenticator
+    signup_identify -- "authentication.post_identified" --> signup_create_authenticator
   subgraph Login["Login / Reauth"]
         login_authenticate["authenticate"]
         login_identify["identify"]
   end
-    login_identify -- "user.auth.identified" --> login_authenticate 
+    login_identify -- "authentication.post_identified" --> login_authenticate 
 ```
 
 Occurs right after an identity is identified during authentication, such as login.
@@ -282,7 +282,7 @@ Example payload:
 }
 ```
 
-#### user.auth.adaptive_control
+#### authentication.pre_authenticated
 
 ```mermaid
 flowchart TD
@@ -290,8 +290,8 @@ flowchart TD
         signup_create_authenticator["create_authenticator"]
         signup_create_authenticator_2fa["create_authenticator"]
         signup_identify["identify"]
-        signup_adaptive_control[user.auth.adaptive_control]:::blockingEvent
-        signup_contraints@{ shape: diamond, label: "contraints.amr === [\"mfa\"]?" }
+        signup_adaptive_control[authentication.pre_authenticated]:::blockingEvent
+        signup_contraints@{ shape: diamond, label: "contraints.amr not fulfilled?" }
         signup_finish["Finish"]
   end
     signup_identify --> signup_create_authenticator
@@ -304,8 +304,8 @@ flowchart TD
         login_authenticate["authenticate"]
         login_authenticate_2fa["authenticate"]
         login_identify["identify"]
-        login_adaptive_control[user.auth.adaptive_control]:::blockingEvent
-        login_contraints@{ shape: diamond, label: "contraints.amr === [\"mfa\"]?" }
+        login_adaptive_control[authentication.pre_authenticated]:::blockingEvent
+        login_contraints@{ shape: diamond, label: "contraints.amr not fulfilled?" }
         login_finish["Finish"]
   end
     login_identify --> login_authenticate
@@ -735,307 +735,4 @@ Occurs after the user failed to input the OTP delivered to their phone.
     "user": { /* ... */ }
   }
 }
-```
-
-#### authentication.secondary.recovery_code.failed
-
-Occurs after the user failed to input the recovery code.
-
-```json5
-{
-  "payload": {
-    "user": { /* ... */ }
-  }
-}
-```
-
-#### bot_protection.verification.failed
-
-Occurs after someone failed to pass the bot protection verification.
-
-```json5
-{
-  "payload": {
-    /* The useful information is in the event context, like IP address, timestamp */
-  }
-}
-```
-
-#### identity.email.added
-
-Occurs when a new email is added to existing user. Email can be added by user in setting page, added by admin through admin api or portal.
-
-```json5
-{
-  "payload": {
-    "user": { /* ... */ },
-    "identity": { /* ... */ }
-  }
-}
-```
-
-
-#### identity.email.removed
-
-Occurs when email is removed from existing user. Email can be removed by user in setting page, removed by admin through admin api or portal.
-
-```json5
-{
-  "payload": {
-    "user": { /* ... */ },
-    "identity": { /* ... */ }
-  }
-}
-```
-
-
-#### identity.email.updated
-
-Occurs when email is updated. Email can be updated by user in setting page.
-
-```json5
-{
-  "payload": {
-    "user": { /* ... */ },
-    "old_identity": { /* ... */ },
-    "new_identity": { /* ... */ }
-  }
-}
-```
-
-#### identity.phone.added
-
-Occurs when a new phone number is added to existing user. Phone number can be added by user in setting page, added by admin through admin api or portal.
-
-```json5
-{
-  "payload": {
-    "user": { /* ... */ },
-    "identity": { /* ... */ }
-  }
-}
-```
-
-
-#### identity.phone.removed
-
-Occurs when phone number is removed from existing user. Phone number can be removed by user in setting page, removed by admin through admin api or portal.
-
-```json5
-{
-  "payload": {
-    "user": { /* ... */ },
-    "identity": { /* ... */ }
-  }
-}
-```
-
-
-#### identity.phone.updated
-
-Occurs when phone number is updated. Phone number can be updated by user in setting page.
-
-
-```json5
-{
-  "payload": {
-    "user": { /* ... */ },
-    "old_identity": { /* ... */ },
-    "new_identity": { /* ... */ }
-  }
-}
-```
-
-#### identity.username.added
-
-Occurs when a new username is added to existing user. Username can be added by user in setting page, added by admin through admin api or portal.
-
-```json5
-{
-  "payload": {
-    "user": { /* ... */ },
-    "identity": { /* ... */ }
-  }
-}
-```
-
-
-#### identity.username.removed
-
-Occurs when username is removed from existing user. Username can be removed by user in setting page, removed by admin through admin api or portal.
-
-```json5
-{
-  "payload": {
-    "user": { /* ... */ },
-    "identity": { /* ... */ }
-  }
-}
-```
-
-
-#### identity.username.updated
-
-Occurs when username is updated. Username can be updated by user in setting page.
-
-```json5
-{
-  "payload": {
-    "user": { /* ... */ },
-    "old_identity": { /* ... */ },
-    "new_identity": { /* ... */ }
-  }
-}
-```
-
-#### identity.oauth.connected
-
-Occurs when user connected to a new OAuth provider.
-
-```json5
-{
-  "payload": {
-    "user": { /* ... */ },
-    "identity": { /* ... */ }
-  }
-}
-```
-
-#### identity.oauth.disconnected
-
-Occurs when user disconnected from an OAuth provider. It can be done by user disconnected OAuth provider in the setting page, or admin removed OAuth identity through admin api or portal.
-
-```json5
-{
-  "payload": {
-    "user": { /* ... */ },
-    "identity": { /* ... */ }
-  }
-}
-```
-
-#### identity.biometric.enabled
-
-Occurs when user enabled biometric login.
-
-```json5
-{
-  "payload": {
-    "user": { /* ... */ },
-    "identity": { /* ... */ }
-  }
-}
-```
-
-#### identity.biometric.disabled
-
-Occurs when biometric login is disabled. It will be triggered only when the user disabled it from the settings page or the admin disabled it from the admin api or portal.
-
-```json5
-{
-  "payload": {
-    "user": { /* ... */ },
-    "identity": { /* ... */ }
-  }
-}
-```
-
-## Trigger Points Diagrams
-
-**Diagram Legend:**
-
-```mermaid
-graph LR
-    Blocking[Blocking Event]:::blockingEvent
-    NonBlocking[Non-Blocking Event]:::event
-    Process[Steps of the flow]:::processNode
-
-    classDef blockingEvent fill:#ADD8E6
-    classDef event fill:#98FB98
-    classDef processNode fill:#dddddd
-```
-
-### Signup
-
-```mermaid
-flowchart TD
-    subgraph "Signup Flow"
-        Start([Start])
-        Start --> UserAuthInitialize[user.auth.initialize]
-        UserAuthInitialize --> BotProtection[Bot Protection]
-        BotProtection -- "Failed" --> BotProtectionFailed[bot_protection.verification.failed]
-        BotProtection -- "Success" --> Identify[Identify]
-        Identify --> UserAuthIdentified[user.auth.identified]
-        UserAuthIdentified --> Verify[Verify]
-        Verify --> CreateAuthenticator[Create Authenticator]
-        CreateAuthenticator --> ViewRecoveryCode[View Recovery Code]
-        ViewRecoveryCode --> PromptCreatePasskey[Prompt Create Passkey]
-        PromptCreatePasskey --> UserAuthAdaptiveControl[user.auth.adaptive_control]
-        UserAuthAdaptiveControl --> CreateAuthenticatorAdaptive["Create Authenticator<br>(Fulfill AMR Constraints)"]
-        CreateAuthenticatorAdaptive --> UserPreCreate[user.pre_create]
-        UserPreCreate --> CreateUser[Create User]
-        CreateUser --> UserCreated[user.created]
-        UserCreated --> FinishSignup([Finish])
-    end
-
-    subgraph "Authorization Code Exchange"
-        ExchangeCode[Exchange Code for Tokens]
-        ExchangeCode --> OIDCJWTPreCreate[oidc.jwt.pre_create]
-        OIDCJWTPreCreate --> IssueTokens[Issue Tokens]
-    end
-
-    FinishSignup --> ExchangeCode
-
-    classDef event fill:#98FB98
-    classDef blockingEvent fill:#ADD8E6
-    classDef processNode fill:#dddddd
-    class BotProtectionFailed,UserCreated event
-    class UserAuthInitialize,UserAuthIdentified,UserAuthAdaptiveControl,UserPreCreate,OIDCJWTPreCreate blockingEvent
-    class Start,BotProtection,Identify,Verify,CreateAuthenticator,ViewRecoveryCode,PromptCreatePasskey,CreateAuthenticatorAdaptive,CreateUser,FinishSignup,ExchangeCode,IssueTokens processNode
-```
-
-### Login
-
-```mermaid
-flowchart TD
-    subgraph "Login Flow"
-        Start([Start])
-        Start --> UserAuthInitialize[user.auth.initialize]
-        UserAuthInitialize --> BotProtection[Bot Protection]
-        BotProtection -- "Failed" --> BotProtectionFailed[bot_protection.verification.failed]
-        BotProtection -- "Success" --> Identify[Identify]
-        Identify -- "Success" --> UserAuthIdentified[user.auth.identified]
-        Identify -- "Failed" --> LoginIdFailed[authentication.identity.login_id.failed]
-
-        UserAuthIdentified --> AuthenticatePrimary["Authenticate<br>(Primary Authenticator)"]
-
-        AuthenticatePrimary -- "Success" --> AuthenticateSecondary["Authenticate<br>(Secondary Authenticator)"]
-        AuthenticatePrimary -- "Failed" --> PrimaryAuthFailed["authentication.primary.password.failed<br>authentication.primary.oob_otp_email.failed<br>authentication.primary.oob_otp_sms.failed"]:::event
-
-        AuthenticateSecondary -- "Success" --> ChangePassword[Change Password]
-        AuthenticateSecondary -- "Failed" --> SecondaryAuthFailed["authentication.secondary.password.failed<br>authentication.secondary.totp.failed<br>authentication.secondary.oob_otp_email.failed<br>authentication.secondary.oob_otp_sms.failed<br>authentication.secondary.recovery_code.failed"]:::event
-
-        ChangePassword --> CheckAccountStatus[Check Account Status]
-        CheckAccountStatus --> TerminateOtherSessions[Terminate Other Sessions]
-        TerminateOtherSessions --> PromptCreatePasskey[Prompt Create Passkey]
-        PromptCreatePasskey --> UserAuthAdaptiveControl[user.auth.adaptive_control]
-        UserAuthAdaptiveControl --> AuthenticateAdaptive["Authenticate<br>(Fulfill AMR Constraints)"]
-        AuthenticateAdaptive --> UserAuthenticated[user.authenticated]
-        UserAuthenticated --> FinishLogin([Finish])
-    end
-
-    subgraph "Authorization Code Exchange"
-        ExchangeCode[Exchange Code for Tokens]
-        ExchangeCode --> OIDCJWTPreCreate[oidc.jwt.pre_create]
-        OIDCJWTPreCreate --> IssueTokens[Issue Tokens]
-    end
-
-    FinishLogin --> ExchangeCode
-
-    classDef event fill:#98FB98
-    classDef blockingEvent fill:#ADD8E6
-    classDef processNode fill:#dddddd
-    class BotProtectionFailed,LoginIdFailed,PrimaryAuthFailed,SecondaryAuthFailed,UserAuthenticated event
-    class UserAuthInitialize,UserAuthIdentified,UserAuthAdaptiveControl,OIDCJWTPreCreate blockingEvent
-    class Start,BotProtection,Identify,AuthenticatePrimary,AuthenticateSecondary,ChangePassword,CheckAccountStatus,TerminateOtherSessions,PromptCreatePasskey,AuthenticateAdaptive,ExchangeCode,IssueTokens,FinishLogin processNode
 ```
