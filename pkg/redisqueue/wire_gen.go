@@ -105,6 +105,7 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 	authenticationConfig := appConfig.Authentication
 	featureConfig := config.FeatureConfig
 	identityFeatureConfig := featureConfig.Identity
+	ssooAuthDemoCredentials := deps.ProvideSSOOAuthDemoCredentials(secretConfig)
 	serviceStore := &service.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -236,17 +237,18 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		StandardAttributesNormalizer: normalizer,
 	}
 	serviceService := &service.Service{
-		Authentication:        authenticationConfig,
-		Identity:              identityConfig,
-		IdentityFeatureConfig: identityFeatureConfig,
-		Store:                 serviceStore,
-		LoginID:               provider,
-		OAuth:                 oauthProvider,
-		Anonymous:             anonymousProvider,
-		Biometric:             biometricProvider,
-		Passkey:               passkeyProvider,
-		SIWE:                  siweProvider,
-		LDAP:                  ldapProvider,
+		Authentication:          authenticationConfig,
+		Identity:                identityConfig,
+		IdentityFeatureConfig:   identityFeatureConfig,
+		SSOOAuthDemoCredentials: ssooAuthDemoCredentials,
+		Store:                   serviceStore,
+		LoginID:                 provider,
+		OAuth:                   oauthProvider,
+		Anonymous:               anonymousProvider,
+		Biometric:               biometricProvider,
+		Passkey:                 passkeyProvider,
+		SIWE:                    siweProvider,
+		LDAP:                    ldapProvider,
 	}
 	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -910,6 +912,7 @@ func newUserExportService(ctx context.Context, p *deps.AppProvider) *userexport.
 	identityConfig := appConfig.Identity
 	featureConfig := config.FeatureConfig
 	identityFeatureConfig := featureConfig.Identity
+	ssooAuthDemoCredentials := deps.ProvideSSOOAuthDemoCredentials(secretConfig)
 	serviceStore := &service.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -1043,17 +1046,18 @@ func newUserExportService(ctx context.Context, p *deps.AppProvider) *userexport.
 		StandardAttributesNormalizer: normalizer,
 	}
 	serviceService := &service.Service{
-		Authentication:        authenticationConfig,
-		Identity:              identityConfig,
-		IdentityFeatureConfig: identityFeatureConfig,
-		Store:                 serviceStore,
-		LoginID:               provider,
-		OAuth:                 oauthProvider,
-		Anonymous:             anonymousProvider,
-		Biometric:             biometricProvider,
-		Passkey:               passkeyProvider,
-		SIWE:                  siweProvider,
-		LDAP:                  ldapProvider,
+		Authentication:          authenticationConfig,
+		Identity:                identityConfig,
+		IdentityFeatureConfig:   identityFeatureConfig,
+		SSOOAuthDemoCredentials: ssooAuthDemoCredentials,
+		Store:                   serviceStore,
+		LoginID:                 provider,
+		OAuth:                   oauthProvider,
+		Anonymous:               anonymousProvider,
+		Biometric:               biometricProvider,
+		Passkey:                 passkeyProvider,
+		SIWE:                    siweProvider,
+		LDAP:                    ldapProvider,
 	}
 	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -1284,6 +1288,7 @@ func newSearchReindexer(ctx context.Context, p *deps.AppProvider) *reindex.Reind
 	identityConfig := appConfig.Identity
 	featureConfig := config.FeatureConfig
 	identityFeatureConfig := featureConfig.Identity
+	ssooAuthDemoCredentials := deps.ProvideSSOOAuthDemoCredentials(secretConfig)
 	serviceStore := &service.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -1416,17 +1421,18 @@ func newSearchReindexer(ctx context.Context, p *deps.AppProvider) *reindex.Reind
 		StandardAttributesNormalizer: normalizer,
 	}
 	serviceService := &service.Service{
-		Authentication:        authenticationConfig,
-		Identity:              identityConfig,
-		IdentityFeatureConfig: identityFeatureConfig,
-		Store:                 serviceStore,
-		LoginID:               provider,
-		OAuth:                 oauthProvider,
-		Anonymous:             anonymousProvider,
-		Biometric:             biometricProvider,
-		Passkey:               passkeyProvider,
-		SIWE:                  siweProvider,
-		LDAP:                  ldapProvider,
+		Authentication:          authenticationConfig,
+		Identity:                identityConfig,
+		IdentityFeatureConfig:   identityFeatureConfig,
+		SSOOAuthDemoCredentials: ssooAuthDemoCredentials,
+		Store:                   serviceStore,
+		LoginID:                 provider,
+		OAuth:                   oauthProvider,
+		Anonymous:               anonymousProvider,
+		Biometric:               biometricProvider,
+		Passkey:                 passkeyProvider,
+		SIWE:                    siweProvider,
+		LDAP:                    ldapProvider,
 	}
 	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,

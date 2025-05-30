@@ -16,6 +16,7 @@ const (
 
 	CandidateKeyProviderType      = "provider_type"
 	CandidateKeyProviderAlias     = "provider_alias"
+	CandidateKeyProviderStatus    = "provider_status"
 	CandidateKeyProviderSubjectID = "provider_subject_id"
 	CandidateKeyProviderAppType   = "provider_app_type"
 
@@ -30,12 +31,13 @@ const (
 	CandidateKeyDeleteDisabled = "delete_disabled"
 )
 
-func NewOAuthCandidate(cfg config.OAuthSSOProviderConfig) Candidate {
+func NewOAuthCandidate(cfg config.OAuthSSOProviderConfig, demoCredentials *config.SSOOAuthDemoCredentials) Candidate {
 	return Candidate{
 		CandidateKeyIdentityID:        "",
 		CandidateKeyType:              string(model.IdentityTypeOAuth),
 		CandidateKeyProviderType:      string(cfg.AsProviderConfig().Type()),
 		CandidateKeyProviderAlias:     cfg.Alias(),
+		CandidateKeyProviderStatus:    string(cfg.ComputeProviderStatus(demoCredentials)),
 		CandidateKeyProviderSubjectID: "",
 		CandidateKeyProviderAppType:   string(wechat.ProviderConfig(cfg).AppType()),
 		CandidateKeyDisplayID:         "",

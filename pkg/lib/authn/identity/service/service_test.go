@@ -82,6 +82,7 @@ func TestProviderListCandidates(t *testing.T) {
 					"create_disabled":     false,
 					"update_disabled":     true,
 					"delete_disabled":     false,
+					"provider_status":     "active",
 				},
 			})
 		})
@@ -230,6 +231,7 @@ func TestProviderListCandidates(t *testing.T) {
 					"create_disabled":     false,
 					"update_disabled":     true,
 					"delete_disabled":     false,
+					"provider_status":     "active",
 				},
 			})
 		})

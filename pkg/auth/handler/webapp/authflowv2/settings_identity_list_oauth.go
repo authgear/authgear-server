@@ -2,6 +2,7 @@ package authflowv2
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"net/url"
@@ -56,12 +57,7 @@ type AuthflowV2SettingsIdentityListOAuthHandler struct {
 	AccountManagement accountmanagement.Service
 }
 
-func (h *AuthflowV2SettingsIdentityListOAuthHandler) GetData(ctx context.Context, r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
-	data := map[string]interface{}{}
-
-	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
-	viewmodels.Embed(data, baseViewModel)
-
+func (h *AuthflowV2SettingsIdentityListOAuthHandler) getViewModel(ctx context.Context) (*AuthflowV2SettingsIdentityListOAuthViewModel, error) {
 	userID := session.GetUserID(ctx)
 
 	candidates, err := h.Identities.ListCandidates(ctx, *userID)
@@ -106,11 +102,24 @@ func (h *AuthflowV2SettingsIdentityListOAuthHandler) GetData(ctx context.Context
 	if err != nil {
 		return nil, err
 	}
-	vm := AuthflowV2SettingsIdentityListOAuthViewModel{
+
+	return &AuthflowV2SettingsIdentityListOAuthViewModel{
 		OAuthCandidates: oauthCandidates,
 		OAuthIdentities: oauthIdentities,
 		Verifications:   verifications,
 		IdentityCount:   len(remaining),
+	}, nil
+}
+
+func (h *AuthflowV2SettingsIdentityListOAuthHandler) GetData(ctx context.Context, r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
+	data := map[string]interface{}{}
+
+	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
+	viewmodels.Embed(data, baseViewModel)
+
+	vm, err := h.getViewModel(ctx)
+	if err != nil {
+		return nil, err
 	}
 	viewmodels.Embed(data, vm)
 
@@ -156,9 +165,34 @@ func (h *AuthflowV2SettingsIdentityListOAuthHandler) ServeHTTP(w http.ResponseWr
 	ctrl.PostAction("add", func(ctx context.Context) error {
 		s := session.GetSession(ctx)
 
+		var vm *AuthflowV2SettingsIdentityListOAuthViewModel
+		err := h.Database.WithTx(ctx, func(ctx context.Context) error {
+			vm, err = h.getViewModel(ctx)
+			return err
+		})
+		if err != nil {
+			return err
+		}
+
 		alias := r.Form.Get("x_provider_alias")
-		// TODO: Support demo credentials
-		redirectURI := h.Endpoints.SSOCallbackURL(alias).String()
+		var candidate identity.Candidate
+		for _, c := range vm.OAuthCandidates {
+			if c[identity.CandidateKeyProviderAlias] == alias {
+				candidate = c
+				break
+			}
+		}
+		if candidate == nil {
+			return fmt.Errorf("unknown provider alias: %s", alias)
+		}
+
+		var redirectURI string
+		status, ok := candidate[identity.CandidateKeyProviderStatus].(string)
+		if ok && status == string(config.OAuthProviderStatusUsingDemoCredentials) {
+			redirectURI = h.Endpoints.SharedSSOCallbackURL().String()
+		} else {
+			redirectURI = h.Endpoints.SSOCallbackURL(alias).String()
+		}
 
 		output, err := h.AccountManagement.StartAddIdentityOAuth(ctx, s, &accountmanagement.StartAddIdentityOAuthInput{
 			Alias:       alias,

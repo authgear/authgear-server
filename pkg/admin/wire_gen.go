@@ -214,6 +214,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
+	ssooAuthDemoCredentials := deps.ProvideSSOOAuthDemoCredentials(secretConfig)
 	serviceStore := &service.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -347,17 +348,18 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributesNormalizer: normalizer,
 	}
 	serviceService := &service.Service{
-		Authentication:        authenticationConfig,
-		Identity:              identityConfig,
-		IdentityFeatureConfig: identityFeatureConfig,
-		Store:                 serviceStore,
-		LoginID:               provider,
-		OAuth:                 oauthProvider,
-		Anonymous:             anonymousProvider,
-		Biometric:             biometricProvider,
-		Passkey:               passkeyProvider,
-		SIWE:                  siweProvider,
-		LDAP:                  ldapProvider,
+		Authentication:          authenticationConfig,
+		Identity:                identityConfig,
+		IdentityFeatureConfig:   identityFeatureConfig,
+		SSOOAuthDemoCredentials: ssooAuthDemoCredentials,
+		Store:                   serviceStore,
+		LoginID:                 provider,
+		OAuth:                   oauthProvider,
+		Anonymous:               anonymousProvider,
+		Biometric:               biometricProvider,
+		Passkey:                 passkeyProvider,
+		SIWE:                    siweProvider,
+		LDAP:                    ldapProvider,
 	}
 	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -1018,7 +1020,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Sender:      messagingSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	ssooAuthDemoCredentials := deps.ProvideSSOOAuthDemoCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	simpleStoreRedisFactory := &sso.SimpleStoreRedisFactory{
 		AppID: appID,
@@ -1470,6 +1471,7 @@ func newUserExportCreateHandler(p *deps.RequestProvider) http.Handler {
 	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
+	ssooAuthDemoCredentials := deps.ProvideSSOOAuthDemoCredentials(secretConfig)
 	serviceStore := &service.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -1600,17 +1602,18 @@ func newUserExportCreateHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributesNormalizer: normalizer,
 	}
 	serviceService := &service.Service{
-		Authentication:        authenticationConfig,
-		Identity:              identityConfig,
-		IdentityFeatureConfig: identityFeatureConfig,
-		Store:                 serviceStore,
-		LoginID:               provider,
-		OAuth:                 oauthProvider,
-		Anonymous:             anonymousProvider,
-		Biometric:             biometricProvider,
-		Passkey:               passkeyProvider,
-		SIWE:                  siweProvider,
-		LDAP:                  ldapProvider,
+		Authentication:          authenticationConfig,
+		Identity:                identityConfig,
+		IdentityFeatureConfig:   identityFeatureConfig,
+		SSOOAuthDemoCredentials: ssooAuthDemoCredentials,
+		Store:                   serviceStore,
+		LoginID:                 provider,
+		OAuth:                   oauthProvider,
+		Anonymous:               anonymousProvider,
+		Biometric:               biometricProvider,
+		Passkey:                 passkeyProvider,
+		SIWE:                    siweProvider,
+		LDAP:                    ldapProvider,
 	}
 	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
