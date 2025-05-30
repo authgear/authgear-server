@@ -64,3 +64,14 @@ steps:
           }
         }
       }
+
+- action: oauth_exchange_code
+  oauth_exchange_code_code_verifier: "{{ .steps.oauth_setup.result.code_verifier }}"
+  oauth_exchange_code_redirect_uri: "{{ .prev.result.action.data.finish_redirect_uri }}"
+  output:
+    result: |
+      {
+        "id_token": {
+          "iss": "[[string]]"
+        }
+      }
