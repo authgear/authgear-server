@@ -242,7 +242,7 @@ Example payload:
         "created_at": "2025-05-27T06:32:54.005206Z",
         "updated_at": "2025-05-27T06:32:54.066087Z"
       },
-      "used_identities": [
+      "asserted_identities": [
         { /* The identified identities in the current authentication */
           "id": "8f84ed75-5c8b-45c1-b657-b0c65ac3affe",
           "claims": {
@@ -260,7 +260,7 @@ Example payload:
           "updated_at": "2025-05-27T06:32:54.02264Z"
         },
       ],
-      "used_authenticators": [],
+      "asserted_authenticators": [],
     },
     "identity": { /* The identified identity */
       "id": "8f84ed75-5c8b-45c1-b657-b0c65ac3affe",
@@ -348,7 +348,7 @@ Example payload:
         "created_at": "2025-05-27T06:32:54.005206Z",
         "updated_at": "2025-05-27T06:32:54.066087Z"
       },
-      "used_identities": [
+      "asserted_identities": [
         { /* The identified identities in the current authentication */
           "id": "8f84ed75-5c8b-45c1-b657-b0c65ac3affe",
           "claims": {
@@ -366,7 +366,7 @@ Example payload:
           "updated_at": "2025-05-27T06:32:54.02264Z"
         },
       ],
-      "used_authenticators": [ /* Authenticator used during the authentication */
+      "asserted_authenticators": [ /* Authenticator used during the authentication */
         {
           "id": "2a6f9927-c76c-4112-868a-879547239266",
           "type": "oob_otp_sms",
