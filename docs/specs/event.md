@@ -9,9 +9,9 @@
       - [user.profile.pre_update](#userprofilepre_update)
       - [user.pre_schedule_deletion](#userpre_schedule_deletion)
       - [user.pre_schedule_anonymization](#userpre_schedule_anonymization)
-      - [user.auth.initialize](#userauthinitialize)
-      - [user.auth.identified](#userauthidentified)
-      - [user.auth.adaptive_control](#userauthadaptive_control)
+      - [authentication.pre_initialize](#authenticationpre_initialize)
+      - [authentication.post_identified](#authenticationpost_identified)
+      - [authentication.pre_authenticated](#authenticationpre_authenticated)
       - [oidc.jwt.pre_create](#oidcjwtpre_create)
     + [Non-blocking Events](#non-blocking-events)
       - [user.created](#usercreated)
@@ -179,7 +179,7 @@ Occurs right before the account anonymization is scheduled.
 }
 ```
 
-#### user.auth.initialize
+#### authentication.pre_initialize
 
 Occurs right before any authentication, such as login.
 
@@ -196,7 +196,7 @@ Example payload:
 }
 ```
 
-#### user.auth.identified
+#### authentication.post_identified
 
 ```mermaid
 flowchart TD
@@ -204,12 +204,12 @@ flowchart TD
         signup_create_authenticator["create_authenticator"]
         signup_identify["identify"]
   end
-    signup_identify -- "user.auth.identified" --> signup_create_authenticator
+    signup_identify -- "authentication.post_identified" --> signup_create_authenticator
   subgraph Login["Login / Reauth"]
         login_authenticate["authenticate"]
         login_identify["identify"]
   end
-    login_identify -- "user.auth.identified" --> login_authenticate 
+    login_identify -- "authentication.post_identified" --> login_authenticate 
 ```
 
 Occurs right after an identity is identified during authentication, such as login.
@@ -282,7 +282,7 @@ Example payload:
 }
 ```
 
-#### user.auth.adaptive_control
+#### authentication.pre_authenticated
 
 ```mermaid
 flowchart TD
@@ -290,8 +290,8 @@ flowchart TD
         signup_create_authenticator["create_authenticator"]
         signup_create_authenticator_2fa["create_authenticator"]
         signup_identify["identify"]
-        signup_adaptive_control[user.auth.adaptive_control]:::blockingEvent
-        signup_contraints@{ shape: diamond, label: "contraints.amr === [\"mfa\"]?" }
+        signup_adaptive_control[authentication.pre_authenticated]:::blockingEvent
+        signup_contraints@{ shape: diamond, label: "contraints.amr not fulfilled?" }
         signup_finish["Finish"]
   end
     signup_identify --> signup_create_authenticator
@@ -304,8 +304,8 @@ flowchart TD
         login_authenticate["authenticate"]
         login_authenticate_2fa["authenticate"]
         login_identify["identify"]
-        login_adaptive_control[user.auth.adaptive_control]:::blockingEvent
-        login_contraints@{ shape: diamond, label: "contraints.amr === [\"mfa\"]?" }
+        login_adaptive_control[authentication.pre_authenticated]:::blockingEvent
+        login_contraints@{ shape: diamond, label: "contraints.amr not fulfilled?" }
         login_finish["Finish"]
   end
     login_identify --> login_authenticate

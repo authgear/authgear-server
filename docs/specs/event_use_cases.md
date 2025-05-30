@@ -22,14 +22,14 @@ This document documents the expected use cases of some events.
 
 ### Blocking / Allowing user signup or login according to geo location
 
-You can use `user.auth.identified` to block or allow users from a certain location.
+You can use `authentication.post_identified` to block or allow users from a certain location.
 
 For example, if you want to allow only users in Hong Kong to use your app:
 
 ```typescript
 export default async function (
-  e: EventUserAuthIdentified
-): Promise<EventUserAuthIdentifiedResponse> {
+  e: EventAuthenticationPostIdentified
+): Promise<EventAuthenticationPostIdentifiedResponse> {
   if (e.context.geo_location_code === "HK") {
     return {
       is_allowed: true,
@@ -44,14 +44,14 @@ export default async function (
 
 ### Blocking / Allowing user login according to user roles for a certain application
 
-You can use `user.auth.identified` to block or allow user authenticate in a certain app according to their roles, standard or custom attributes.
+You can use `authentication.post_identified` to block or allow user authenticate in a certain app according to their roles, standard or custom attributes.
 
 For example, if you want to allow only users with role `sales` to access the app `crm-system` with client id is `c8da9b322e1f494e`:
 
 ```typescript
 export default async function (
-  e: EventUserAuthIdentified
-): Promise<EventUserAuthIdentifiedResponse> {
+  e: EventAuthenticationPostIdentified
+): Promise<EventAuthenticationPostIdentifiedResponse> {
   if (
     e.context.client_id === "c8da9b322e1f494e" &&
     ["login", "signup"].contains(e.context.authentication_flow?.type)
@@ -80,14 +80,14 @@ export default async function (
 
 ### Ensure a user login to a specific App with a specific flow
 
-You can use `user.auth.identified` to block user from logging into a specific app without using a correct flow.
+You can use `authentication.post_identified` to block user from logging into a specific app without using a correct flow.
 
 For example, if you want to enforce 2FA in the app `hr-system` with client ID `c8da9b322e1f494e`, and you have an authentication flow named `2fa_required_login` which require 2FA during user login:
 
 ```typescript
 export default async function (
-  e: EventUserAuthIdentified
-): Promise<EventUserAuthIdentifiedResponse> {
+  e: EventAuthenticationPostIdentified
+): Promise<EventAuthenticationPostIdentifiedResponse> {
   if (
     e.context.client_id === "c8da9b322e1f494e" &&
     e.context.authentication_flow?.type === "login"
@@ -111,14 +111,14 @@ export default async function (
 
 ### Email domain whitelist
 
-You can use `user.auth.identified` to block user from signing up in your system if they are not signing up with a specific email domain.
+You can use `authentication.post_identified` to block user from signing up in your system if they are not signing up with a specific email domain.
 
 For example, you only want user with email domain `@authgear.com` to be able to signup:
 
 ```typescript
 export default async function (
-  e: EventUserAuthIdentified
-): Promise<EventUserAuthIdentifiedResponse> {
+  e: EventAuthenticationPostIdentified
+): Promise<EventAuthenticationPostIdentifiedResponse> {
   if (e.identity.claims?.email?.endsWith("@authgear.com")) {
     return {
       is_allowed: true,
@@ -133,14 +133,14 @@ export default async function (
 
 ### Block login during weekends
 
-You can use `user.auth.identified` to block user from logging in during weekends.
+You can use `authentication.post_identified` to block user from logging in during weekends.
 
 For example, if your business only operate during weekdays, therefore you do not want any user login during weekends:
 
 ```typescript
 export default async function (
-  e: EventUserAuthIdentified
-): Promise<EventUserAuthIdentifiedResponse> {
+  e: EventAuthenticationPostIdentified
+): Promise<EventAuthenticationPostIdentifiedResponse> {
   const today = new Date();
   // 0 is sunday, and 6 is saturday
   if (today.getDay() === 0 || today.getDay() === 6) {
@@ -158,14 +158,14 @@ Note: Even login is blocked during weekends, refresh tokens, access tokens and I
 
 ### Require MFA only for users with high risk (Adaptive MFA)
 
-You can use `user.auth.adaptive_control` to implement Adaptive MFA.
+You can use `authentication.pre_authenticated` to implement Adaptive MFA.
 
 For example, you consider logins from outside `HK` is at a higher risk, therefore MFA should be required:
 
 ```typescript
 export default async function (
-  e: EventUserAuthAdaptiveControl
-): Promise<EventUserAuthAdaptiveControlResponse> {
+  e: EventAuthenticationPreAuthenticated
+): Promise<EventAuthenticationPreAuthenticatedResponse> {
   if (e.context.geo_location_code !== "HK") {
     return {
       // Allow the login with a mfa contraint
@@ -191,7 +191,7 @@ If `contraints.amr` with value `["mfa"]` is returned in the response, depending 
 - Interaction: Fail immediately, because interaction does not support Adaptive MFA.
 - Workflow / Latte: Fail immediately, because workflow does not support Adaptive MFA.
 
-Note, you have no control on the MFA steps in the Authentication Flow when using `user.auth.adaptive_control`. If you need full control on when the MFA steps being inserted, see [Adaptive MFA with customized Authflow](#adaptive-mfa-with-customized-authflow) below.
+Note, you have no control on the MFA steps in the Authentication Flow when using `authentication.pre_authenticated`. If you need full control on when the MFA steps being inserted, see [Adaptive MFA with customized Authflow](#adaptive-mfa-with-customized-authflow) below.
 
 "amr" stands for (Authentication Methods References)[https://www.rfc-editor.org/rfc/rfc8176.html], it is a claim used with OpenID Connect for storing details about how the authentication was performed. Only "mfa" is supported at the moment. Any other values will have no effect.
 
@@ -199,7 +199,7 @@ Note, you have no control on the MFA steps in the Authentication Flow when using
 
 ### Applying stricter rate limits for account enumeration according to geo location
 
-You can use `user.auth.identified` to apply a stricter rate limit for account enumeration based on geo location.
+You can use `authentication.post_identified` to apply a stricter rate limit for account enumeration based on geo location.
 
 For example, you want to allow 10 attempts of account enumeration per minute in Hong Kong. And 5 attepts per minute in any other places outside Hong Kong.
 
@@ -221,8 +221,8 @@ Then, you can write the following hook:
 
 ```typescript
 export default async function (
-  e: EventUserAuthIdentified
-): Promise<EventUserAuthIdentifiedResponse> {
+  e: EventAuthenticationPostIdentified
+): Promise<EventAuthenticationPostIdentifiedResponse> {
   if (e.context.geo_location_code === "HK") {
     return {
       is_allowed: true,
@@ -244,9 +244,9 @@ By setting `overrides.rate_limit.weight` to 2, it means this attempt of identifi
 
 ### Adaptive MFA with customized Authflow
 
-While adaptive MFA can be implemented with `user.auth.adaptive_control`, you have no control on the step order because the MFA steps must appear after the hook is called, and this is handled automatically by the authentication flow.
+While adaptive MFA can be implemented with `authentication.pre_authenticated`, you have no control on the step order because the MFA steps must appear after the hook is called, and this is handled automatically by the authentication flow.
 
-If you want full control on the flow, use `user.auth.identified` instead.
+If you want full control on the flow, use `authentication.post_identified` instead.
 
 Firstly, define a step to handle Adaptive MFA in the authentifaction flow.
 
@@ -276,12 +276,12 @@ authentication_flows:
 In the above example, we handle adaptive MFA by adding a `authenticate` step in the flow, with `show_untill_amr_fulfilled` set to `true`.
 The value of `show_untill_amr_fulfilled` is `true`, which means the authenticate step will authenticate the user until `amr` constraints are fufilled in the flow. If no `amr` constraint is set, the step will be skipped.
 
-Then, return the constraints in your `user.auth.identified` hook:
+Then, return the constraints in your `authentication.post_identified` hook:
 
 ```typescript
 export default async function (
-  e: EventUserAuthIdentified
-): Promise<EventUserAuthIdentifiedResponse> {
+  e: EventAuthenticationPostIdentified
+): Promise<EventAuthenticationPostIdentifiedResponse> {
   if (e.context.geo_location_code !== "HK") {
     return {
       // Allow the login with a mfa contraint
@@ -303,7 +303,7 @@ Users in Hong Kong will skip the step and continue to the next step `check_accou
 
 ### Enable bot protection under specific conditions
 
-Use `user.auth.initialize` to enable bot protection under specific conditions.
+Use `authentication.pre_initialize` to enable bot protection under specific conditions.
 
 For example, if you want to display captcha only for user outside Hong Kong:
 
@@ -321,12 +321,12 @@ bot_protection:
 
 `risk_level_condition.gte` means bot protection is only enabled if risk level is greater than or equal to (gte) 2.
 
-Then, return `bot_protection.risk_level` in your `user.auth.initialize` hook:
+Then, return `bot_protection.risk_level` in your `authentication.pre_initialize` hook:
 
 ```typescript
 export default async function (
-  e: EventUserAuthIdentified
-): Promise<EventUserAuthIdentifiedResponse> {
+  e: EventAuthenticationPreInitialize
+): Promise<EventAuthenticationPreInitializeResponse> {
   if (e.context.geo_location_code !== "HK") {
     return {
       is_allowed: true,
@@ -343,5 +343,3 @@ export default async function (
 ```
 
 Because `risk_level` is 2, it triggers bot protection for signup or login flow.
-
-TODO(tung): Update bot protection spec.
