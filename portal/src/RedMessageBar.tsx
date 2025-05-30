@@ -9,6 +9,7 @@ import {
 } from "@fluentui/react";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import { useParams } from "react-router-dom";
+import { useMergedStyles } from "./util/mergeStyles";
 
 export default function RedMessageBar(
   props: IMessageBarProps
@@ -24,7 +25,24 @@ export default function RedMessageBar(
     }),
     [theme.semanticColors.errorText]
   );
+
   const { styles: stylesProp, ...rest } = props;
+
+  const styles = useMergedStyles(
+    {
+      root: {
+        selectors: {
+          ".ms-Link": {
+            // Since both the text and the link are of the same color (errorText),
+            // we need to add an underline to the link to make them distinguishable.
+            textDecoration: "underline",
+          },
+        },
+      },
+    },
+    stylesProp
+  );
+
   return (
     <ThemeProvider as={React.Fragment} theme={newTheme}>
       <MessageBar
@@ -32,7 +50,7 @@ export default function RedMessageBar(
         messageBarIconProps={{
           iconName: "Warning",
         }}
-        styles={stylesProp}
+        styles={styles}
         {...rest}
       />
     </ThemeProvider>
