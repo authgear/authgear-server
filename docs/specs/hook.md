@@ -219,37 +219,25 @@ Example response with rate limit override:
 
 The `bot_protection` property in the response of blocking events can contain the following properties:
 
-- `risk_level`: A number that determines the risk level of the request. The risk level is used to determine whether bot protection should be required based on the project configuration.
+- `mode`: A string that determines whether bot protection should be enabled for this request. Supported values are "always", "never".
 
-The following blocking events support bot protection:
+The following blocking events support bot protection overrides:
 
-- `user.auth.initialize`
-- `user.auth.identified`
+- `authentication.pre_initialize`
+- `authentication.post_identified`
 
-Example response with bot protection:
+Example response with bot protection override:
 
 ```json
 {
   "is_allowed": true,
   "bot_protection": {
-    "risk_level": 2
+    "mode": "always"
   }
 }
 ```
 
-The bot protection behavior depends on the project configuration:
-
-```yaml
-bot_protection:
-  enabled: true
-  requirements:
-    signup_or_login:
-      mode: "risk_level_dependent"
-      risk_level_condition:
-        gte: 2
-```
-
-In this example, bot protection is required when the risk level is greater than or equal to 2.
+This overrides the original `mode` of bot_protection in your config. Therefore, bot_protection will be turned on or off based on the returned mode.
 
 # Non-blocking Events
 
