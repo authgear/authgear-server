@@ -307,21 +307,19 @@ Use `authentication.pre_initialize` to enable bot protection under specific cond
 
 For example, if you want to display captcha only for user outside Hong Kong:
 
-Firstly, enable bot protection with mode `risk_level_dependent`.
+Firstly, enable bot protection with mode `never`.
 
 ```yaml
 bot_protection:
   enabled: true
   requirements:
     signup_or_login:
-      mode: "risk_level_dependent"
-      risk_level_condition:
-        gte: 2
+      mode: "never"
 ```
 
-`risk_level_condition.gte` means bot protection is only enabled if risk level is greater than or equal to (gte) 2.
+When `mode` is `never`, bot protection will not be enabled by default.
 
-Then, return `bot_protection.risk_level` in your `authentication.pre_initialize` hook:
+Then, return `bot_protection.mode` in your `authentication.pre_initialize` hook:
 
 ```typescript
 export default async function (
@@ -331,7 +329,7 @@ export default async function (
     return {
       is_allowed: true,
       bot_protection: {
-        risk_level: 2,
+        mode: "always"
       }
     };
   }
@@ -342,4 +340,4 @@ export default async function (
 }
 ```
 
-Because `risk_level` is 2, it triggers bot protection for signup or login flow.
+This overrides the original `mode` of bot_protection in your config. Therefore, bot_protection will be turned on if the user is trying to signup or login outside Hong Kong.
