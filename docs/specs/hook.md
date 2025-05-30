@@ -165,8 +165,8 @@ When multiple values are returned in `amr`, they are in AND condition. For examp
 
 The following blocking events support authentication constraints:
 
-- `user.auth.identified`
-- `user.auth.adaptive_control`
+- `authentication.post_identified`
+- `authentication.pre_authenticated`
 
 Example response requiring MFA for authentication:
 
@@ -202,7 +202,7 @@ The rate limit is enforced based on the authentication flow type:
 
 The following blocking events support rate limit override:
 
-- `user.auth.identified`
+- `authentication.post_identified`
 
 Example response with rate limit override:
 
