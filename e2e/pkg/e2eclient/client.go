@@ -16,6 +16,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/lestrrat-go/jwx/v2/jwt"
+
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/pkce"
@@ -258,6 +260,86 @@ func (c *Client) SetupOAuth() (output map[string]any, err error) {
 	output = map[string]any{
 		"query":         redirectURI.RawQuery,
 		"code_verifier": codeVerifier.CodeVerifier,
+	}
+	return
+}
+
+type OAuthExchangeCodeOptions struct {
+	CodeVerifier string
+	RedirectURI  string
+}
+
+type OAuthExchangeCodeResult struct {
+	IDToken map[string]any `json:"id_token"`
+}
+
+func (c *Client) OAuthExchangeCode(opts OAuthExchangeCodeOptions) (result *OAuthExchangeCodeResult, err error) {
+	// We first need to visit the RedirectURI and extract the authorization code.
+
+	req, err := http.NewRequestWithContext(c.Context, "GET", opts.RedirectURI, nil)
+	if err != nil {
+		return
+	}
+
+	resp, err := c.NoRedirectClient.Do(req)
+	if err != nil {
+		return
+	}
+	defer resp.Body.Close()
+
+	redirectURI, err := url.Parse(resp.Header.Get("Location"))
+	if err != nil {
+		return
+	}
+
+	code := redirectURI.Query().Get("code")
+
+	u := c.MainEndpoint.JoinPath("/oauth2/token")
+
+	values := make(url.Values)
+	values.Set("grant_type", "authorization_code")
+	values.Set("client_id", "e2e")
+	values.Set("code", code)
+	values.Set("redirect_uri", "http://localhost:4000")
+	values.Set("code_verifier", opts.CodeVerifier)
+
+	tokenReq, err := http.NewRequestWithContext(
+		c.Context,
+		"POST",
+		u.String(),
+		strings.NewReader(values.Encode()),
+	)
+	if err != nil {
+		return
+	}
+	tokenReq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	tokenResp, err := c.NoRedirectClient.Do(tokenReq)
+	if err != nil {
+		return
+	}
+	defer tokenResp.Body.Close()
+
+	var tokenRespBody map[string]any
+	err = json.NewDecoder(tokenResp.Body).Decode(&tokenRespBody)
+	if err != nil {
+		return
+	}
+
+	idTokenStr := tokenRespBody["id_token"].(string)
+
+	idToken, err := jwt.ParseInsecure([]byte(idTokenStr))
+	if err != nil {
+		return
+	}
+
+	idTokenMap, err := idToken.AsMap(c.Context)
+	if err != nil {
+		return
+	}
+
+	result = &OAuthExchangeCodeResult{
+		IDToken: idTokenMap,
 	}
 	return
 }

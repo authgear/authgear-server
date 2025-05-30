@@ -324,6 +324,36 @@ func (tc *TestCase) executeStep(
 			Result: output,
 			Error:  nil,
 		}
+	case StepActionOAuthExchangeCode:
+		var codeVerifier string
+		codeVerifier, ok = renderTemplateString(t, cmd, prevSteps, step.OAuthExchangeCodeCodeVerifier)
+		if !ok {
+			return nil, state, false
+		}
+
+		var redirectURI string
+		redirectURI, ok = renderTemplateString(t, cmd, prevSteps, step.OAuthExchangeCodeRedirectURI)
+
+		output, err := client.OAuthExchangeCode(authflowclient.OAuthExchangeCodeOptions{
+			CodeVerifier: codeVerifier,
+			RedirectURI:  redirectURI,
+		})
+		if err != nil {
+			t.Errorf("failed to exchange code: %v\n", err)
+			return
+		}
+
+		if step.Output != nil {
+			ok := validateOAuthExchangeCodeOutput(t, step, output)
+			if !ok {
+				return nil, state, false
+			}
+		}
+
+		result = &StepResult{
+			Result: output,
+			Error:  nil,
+		}
 
 	case StepActionInput:
 		fallthrough
@@ -775,6 +805,28 @@ func validateSAMLOutput(t *testing.T, samlOutput *SAMLOutput, response *http.Res
 		}
 	}
 	return ok
+}
+
+func validateOAuthExchangeCodeOutput(t *testing.T, step Step, output *authflowclient.OAuthExchangeCodeResult) (ok bool) {
+	outputJSON, _ := json.MarshalIndent(output, "", "  ")
+
+	violations, err := MatchJSON(string(outputJSON), step.Output.Result)
+	if err != nil {
+		t.Errorf("failed to match output in '%s': %v\n", step.Name, err)
+		t.Errorf("  result: %v\n", string(outputJSON))
+		return false
+	}
+
+	if len(violations) > 0 {
+		t.Errorf("result output mismatch in '%v':\n", step.Name)
+		for _, violation := range violations {
+			t.Errorf("  | %s: %s. Expected %s, got %s", violation.Path, violation.Message, violation.Expected, violation.Actual)
+		}
+		t.Errorf("  result: %v\n", string(outputJSON))
+		return false
+	}
+
+	return true
 }
 
 func toMap(data interface{}) (map[string]interface{}, error) {
