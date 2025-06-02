@@ -20,8 +20,8 @@ type NodeDoCreateIdentity struct {
 var _ authflow.NodeSimple = &NodeDoCreateIdentity{}
 var _ authflow.Milestone = &NodeDoCreateIdentity{}
 var _ MilestoneDoCreateIdentity = &NodeDoCreateIdentity{}
+var _ MilestoneGetIdentitySpecs = &NodeDoCreateIdentity{}
 var _ authflow.EffectGetter = &NodeDoCreateIdentity{}
-var _ authflow.IdentitySpecGetter = &NodeDoCreateIdentity{}
 
 func (n *NodeDoCreateIdentity) Kind() string {
 	return "NodeDoCreateIdentity"
@@ -31,7 +31,7 @@ func (*NodeDoCreateIdentity) Milestone() {}
 func (n *NodeDoCreateIdentity) MilestoneDoCreateIdentity() *identity.Info {
 	return n.Identity
 }
-func (n *NodeDoCreateIdentity) GetIdentitySpecs(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) []*identity.Spec {
+func (n *NodeDoCreateIdentity) MilestoneGetIdentitySpecs() []*identity.Spec {
 	return []*identity.Spec{n.IdentitySpec}
 }
 func (n *NodeDoCreateIdentity) MilestoneDoCreateIdentitySkipCreate() {

@@ -47,11 +47,11 @@ func NewNodeDoUseIdentityPasskey(ctx context.Context, flows authflow.Flows, n *N
 var _ authflow.NodeSimple = &NodeDoUseIdentityPasskey{}
 var _ authflow.EffectGetter = &NodeDoUseIdentityPasskey{}
 var _ authflow.Milestone = &NodeDoUseIdentityPasskey{}
-var _ authflow.IdentitySpecGetter = &NodeDoUseIdentityPasskey{}
 var _ MilestoneDoUseUser = &NodeDoUseIdentityPasskey{}
 var _ MilestoneDoUseIdentity = &NodeDoUseIdentityPasskey{}
 var _ MilestoneDidSelectAuthenticator = &NodeDoUseIdentityPasskey{}
 var _ MilestoneDidAuthenticate = &NodeDoUseIdentityPasskey{}
+var _ MilestoneGetIdentitySpecs = &NodeDoUseIdentityPasskey{}
 
 func (*NodeDoUseIdentityPasskey) Kind() string {
 	return "NodeDoUseIdentityPasskey"
@@ -83,6 +83,6 @@ func (n *NodeDoUseIdentityPasskey) MilestoneDidAuthenticate() (amr []string) {
 	return n.Authenticator.AMR()
 }
 
-func (n *NodeDoUseIdentityPasskey) GetIdentitySpecs(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) []*identity.Spec {
+func (n *NodeDoUseIdentityPasskey) MilestoneGetIdentitySpecs() []*identity.Spec {
 	return []*identity.Spec{n.IdentitySpec}
 }

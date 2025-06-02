@@ -48,8 +48,7 @@ func (s *CodeGrantService) CreateCodeGrant(ctx context.Context, opts *CreateCode
 
 		RedirectURI:          opts.RedirectURI,
 		AuthorizationRequest: opts.AuthorizationRequest,
-		// FIXME(dev-2754): Use IdentitySpecs from AuthenticationInfo
-		// IdentitySpecs:        opts.AuthenticationInfo.IdentitySpecs,
+		IdentitySpecs:        opts.AuthenticationInfo.IdentitySpecs,
 	}
 
 	err = s.CodeGrants.CreateCodeGrant(ctx, codeGrant)

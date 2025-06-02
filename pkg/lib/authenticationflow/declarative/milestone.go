@@ -76,6 +76,28 @@ func collectAMR(ctx context.Context, deps *authflow.Dependencies, flows authflow
 	return
 }
 
+func collectIdentitySpecs(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (specs []*identity.Spec, err error) {
+	err = authflow.TraverseFlow(authflow.Traverser{
+		NodeSimple: func(nodeSimple authflow.NodeSimple, w *authflow.Flow) error {
+			if n, ok := nodeSimple.(MilestoneGetIdentitySpecs); ok {
+				specs = append(specs, n.MilestoneGetIdentitySpecs()...)
+			}
+			return nil
+		},
+		Intent: func(intent authflow.Intent, w *authflow.Flow) error {
+			if i, ok := intent.(MilestoneGetIdentitySpecs); ok {
+				specs = append(specs, i.MilestoneGetIdentitySpecs()...)
+			}
+			return nil
+		},
+	}, flows.Root)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
 func collectAuthenticationLockoutMethod(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (methods []config.AuthenticationLockoutMethod, err error) {
 	err = authflow.TraverseFlow(authflow.Traverser{
 		NodeSimple: func(nodeSimple authflow.NodeSimple, w *authflow.Flow) error {
@@ -299,4 +321,9 @@ type MilestonePromptCreatePasskey interface {
 type MilestoneCheckLoginHint interface {
 	authflow.Milestone
 	MilestoneCheckLoginHint()
+}
+
+type MilestoneGetIdentitySpecs interface {
+	authflow.Milestone
+	MilestoneGetIdentitySpecs() []*identity.Spec
 }
