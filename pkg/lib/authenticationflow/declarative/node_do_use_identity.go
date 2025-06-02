@@ -23,22 +23,22 @@ type NodeDoUseIdentity struct {
 	Constraints             *eventapi.Constraints `json:"constraints,omitempty"`
 }
 
-func NewNodeDoUseIdentity(ctx context.Context, flows authflow.Flows, deps *authflow.Dependencies, n *NodeDoUseIdentity) (authenticationflow.ReactToResult, error) {
+func NewNodeDoUseIdentity(ctx context.Context, flows authflow.Flows, deps *authflow.Dependencies, n *NodeDoUseIdentity) (*NodeDoUseIdentity, authflow.DelayedOneTimeFunction, error) {
 	userID, err := getUserID(flows)
 	if errors.Is(err, ErrNoUserID) {
 		err = nil
 	}
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	if userID != "" && userID != n.Identity.UserID {
-		return nil, ErrDifferentUserID
+		return nil, nil, ErrDifferentUserID
 	}
 
 	if userIDHint := authflow.GetUserIDHint(ctx); userIDHint != "" {
 		if userIDHint != n.Identity.UserID {
-			return nil, api.ErrMismatchedUser
+			return nil, nil, api.ErrMismatchedUser
 		}
 	}
 
@@ -48,20 +48,32 @@ func NewNodeDoUseIdentity(ctx context.Context, flows authflow.Flows, deps *authf
 	}
 	e, err := deps.Events.PrepareBlockingEventWithTx(ctx, payload)
 	if err != nil {
+		return nil, nil, err
+	}
+
+	var delayedFunction authflow.DelayedOneTimeFunction = func(ctx context.Context, deps *authenticationflow.Dependencies) error {
+		err = deps.Events.DispatchEventWithoutTx(ctx, e)
+		if err != nil {
+			return err
+		}
+		n.IsPostIdentifiedInvoked = true
+		n.Constraints = payload.Constraints
+		return nil
+	}
+
+	return n, delayedFunction, nil
+
+}
+
+func NewNodeDoUseIdentityReactToResult(ctx context.Context, flows authflow.Flows, deps *authflow.Dependencies, n *NodeDoUseIdentity) (authenticationflow.ReactToResult, error) {
+	_, delayedFunction, err := NewNodeDoUseIdentity(ctx, flows, deps, n)
+	if err != nil {
 		return nil, err
 	}
 
 	return &authenticationflow.NodeWithDelayedOneTimeFunction{
-		Node: authenticationflow.NewNodeSimple(n),
-		DelayedOneTimeFunction: func(ctx context.Context, deps *authenticationflow.Dependencies) error {
-			err = deps.Events.DispatchEventWithoutTx(ctx, e)
-			if err != nil {
-				return err
-			}
-			n.IsPostIdentifiedInvoked = true
-			n.Constraints = payload.Constraints
-			return nil
-		},
+		Node:                   authenticationflow.NewNodeSimple(n),
+		DelayedOneTimeFunction: delayedFunction,
 	}, nil
 }
 
