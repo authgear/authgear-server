@@ -12,8 +12,8 @@ const (
 )
 
 type AuthenticationPostIdentifiedBlockingEventPayload struct {
-	Identity    model.Identity    `json:"identity"`
-	Constraints event.Constraints `json:"constraints,omitempty"`
+	Identity    model.Identity     `json:"identity"`
+	Constraints *event.Constraints `json:"constraints,omitempty"`
 }
 
 func (e *AuthenticationPostIdentifiedBlockingEventPayload) BlockingEventType() event.Type {
@@ -32,7 +32,7 @@ func (e *AuthenticationPostIdentifiedBlockingEventPayload) FillContext(ctx *even
 
 func (e *AuthenticationPostIdentifiedBlockingEventPayload) ApplyHookResponse(ctx context.Context, response event.HookResponse) event.ApplyHookResponseResult {
 	if response.Constraints.AMR != nil {
-		e.Constraints = response.Constraints
+		e.Constraints = &response.Constraints
 	}
 	return event.ApplyHookResponseResult{UserMutationsEverApplied: false}
 }
