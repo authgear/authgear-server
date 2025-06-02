@@ -263,6 +263,7 @@ Example payload:
         },
       ],
       "asserted_authenticators": [],
+      "amr": []
     },
     "identity": { /* The identified identity */
       "id": "8f84ed75-5c8b-45c1-b657-b0c65ac3affe",
@@ -375,6 +376,7 @@ Example payload:
           "kind": "primary"
         }
       ],
+      "amr": []
     },
   }
 }
