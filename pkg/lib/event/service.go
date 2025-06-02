@@ -127,6 +127,24 @@ func (s *Service) DispatchEventImmediately(ctx context.Context, payload event.No
 	return
 }
 
+// DispatchBlockingEventWithoutTx dispatches the blocking event immediately without transaction.
+func (s *Service) DispatchBlockingEventWithoutTx(ctx context.Context, payload event.BlockingPayload) (err error) {
+	eventContext := s.makeContext(ctx, payload)
+	var seq int64
+	seq, err = s.nextSeq(ctx)
+	if err != nil {
+		return
+	}
+	e := newBlockingEvent(seq, payload, eventContext)
+	for _, sink := range s.Sinks {
+		err = sink.ReceiveBlockingEvent(ctx, e)
+		if err != nil {
+			return
+		}
+	}
+	return
+}
+
 func (s *Service) WillCommitTx(ctx context.Context) (err error) {
 	defer func() {
 		s.NonBlockingPayloads = nil

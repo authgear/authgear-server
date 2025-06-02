@@ -118,6 +118,7 @@ type RateLimiter interface {
 type EventService interface {
 	DispatchEventOnCommit(ctx context.Context, payload event.Payload) error
 	DispatchEventImmediately(ctx context.Context, payload event.NonBlockingPayload) error
+	DispatchBlockingEventWithoutTx(ctx context.Context, payload event.BlockingPayload) error
 }
 
 type UserService interface {

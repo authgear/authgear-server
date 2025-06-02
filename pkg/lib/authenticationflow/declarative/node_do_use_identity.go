@@ -6,6 +6,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api"
 	eventapi "github.com/authgear/authgear-server/pkg/api/event"
+	blocking "github.com/authgear/authgear-server/pkg/api/event/blocking"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
@@ -16,9 +17,10 @@ func init() {
 }
 
 type NodeDoUseIdentity struct {
-	Identity     *identity.Info        `json:"identity,omitempty"`
-	IdentitySpec *identity.Spec        `json:"identity_spec,omitempty"`
-	Constraints  *eventapi.Constraints `json:"constraints,omitempty"`
+	Identity                *identity.Info        `json:"identity,omitempty"`
+	IdentitySpec            *identity.Spec        `json:"identity_spec,omitempty"`
+	IsPostIdentifiedInvoked bool                  `json:"is_post_identified_invoked"`
+	Constraints             *eventapi.Constraints `json:"constraints,omitempty"`
 }
 
 func NewNodeDoUseIdentity(ctx context.Context, flows authflow.Flows, n *NodeDoUseIdentity) (authenticationflow.ReactToResult, error) {
@@ -43,7 +45,16 @@ func NewNodeDoUseIdentity(ctx context.Context, flows authflow.Flows, n *NodeDoUs
 	return &authenticationflow.NodeWithDelayedOneTimeFunction{
 		Node: authenticationflow.NewNodeSimple(n),
 		DelayedOneTimeFunction: func(ctx context.Context, deps *authenticationflow.Dependencies) error {
-			// TODO(tung): Call blocking event
+			payload := &blocking.AuthenticationPostIdentifiedBlockingEventPayload{
+				Identity:    n.Identity.ToModel(),
+				Constraints: nil,
+			}
+			err := deps.Events.DispatchBlockingEventWithoutTx(ctx, payload)
+			if err != nil {
+				return err
+			}
+			n.IsPostIdentifiedInvoked = true
+			n.Constraints = payload.Constraints
 			return nil
 		},
 	}, nil
@@ -51,12 +62,24 @@ func NewNodeDoUseIdentity(ctx context.Context, flows authflow.Flows, n *NodeDoUs
 
 var _ authflow.NodeSimple = &NodeDoUseIdentity{}
 var _ authflow.Milestone = &NodeDoUseIdentity{}
+var _ authflow.InputReactor = &NodeDoUseIdentity{}
 var _ MilestoneDoUseUser = &NodeDoUseIdentity{}
 var _ MilestoneDoUseIdentity = &NodeDoUseIdentity{}
 var _ MilestoneGetIdentitySpecs = &NodeDoUseIdentity{}
 
 func (*NodeDoUseIdentity) Kind() string {
 	return "NodeDoUseIdentity"
+}
+
+func (n *NodeDoUseIdentity) CanReactTo(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows) (authenticationflow.InputSchema, error) {
+	if n.IsPostIdentifiedInvoked {
+		return nil, authflow.ErrEOF
+	}
+	return nil, authflow.ErrPauseAndRetryAccept
+}
+
+func (n *NodeDoUseIdentity) ReactTo(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows, input authenticationflow.Input) (authenticationflow.ReactToResult, error) {
+	return nil, authflow.ErrEOF
 }
 
 func (*NodeDoUseIdentity) Milestone() {}
