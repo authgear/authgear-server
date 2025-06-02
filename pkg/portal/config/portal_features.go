@@ -1,5 +1,5 @@
 package config
 
 type PortalFeaturesConfig struct {
-	ShowCustomSMSGateway bool `envconfig:"SHOW_CUSTOM_SMS_GATEWAY" default:"false"`
+	// PORTAL_FEATURES_SHOW_CUSTOM_SMS_GATEWAY=true was deprecated.
 }

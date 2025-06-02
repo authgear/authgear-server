@@ -26,7 +26,6 @@ export interface SystemConfig {
   uiImplementation: string;
   uiSettingsImplemenation: string;
   projectWizardImplementation: "v1" | "v2";
-  showCustomSMSGateway: boolean;
 }
 
 export interface SystemConfigThemes {
@@ -284,6 +283,5 @@ export function instantiateSystemConfig(
     uiImplementation: config.uiImplementation ?? "authflowv2",
     uiSettingsImplemenation: config.uiSettingsImplemenation ?? "v2",
     projectWizardImplementation: config.projectWizardImplementation ?? "v1",
-    showCustomSMSGateway: config.showCustomSMSGateway ?? false,
   };
 }

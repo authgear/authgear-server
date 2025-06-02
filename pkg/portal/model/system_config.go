@@ -28,5 +28,4 @@ type SystemConfig struct {
 	UIImplementation            string         `json:"uiImplementation,omitempty"`
 	UISettingsImplementation    string         `json:"uiSettingsImplementation,omitempty"`
 	ProjectWizardImplementation string         `json:"projectWizardImplementation,omitempty"`
-	ShowCustomSMSGateway        bool           `json:"showCustomSMSGateway,omitempty"`
 }

@@ -75,7 +75,6 @@ func (p *SystemConfigProvider) SystemConfig(ctx context.Context) (*model.SystemC
 		UIImplementation:            string(p.GlobalUIImplementation),
 		UISettingsImplementation:    string(p.GlobalUISettingsImplementation),
 		ProjectWizardImplementation: string(p.GlobalProjectWizardImplementaion),
-		ShowCustomSMSGateway:        p.PortalFeaturesConfig.ShowCustomSMSGateway,
 	}, nil
 }
 
