@@ -187,10 +187,12 @@ Example payload:
 
 ```json5
 {
-  "authentication": {
-    "authentication_flow": {
-      "type": "login",
-      "name": "default"
+  "payload": {
+    "authentication": {
+      "authentication_flow": {
+        "type": "login",
+        "name": "default"
+      }
     }
   }
 }
