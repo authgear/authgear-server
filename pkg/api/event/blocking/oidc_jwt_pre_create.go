@@ -42,7 +42,7 @@ func (e *OIDCJWTPreCreateBlockingEventPayload) ApplyHookResponse(ctx context.Con
 		e.JWT.Payload = response.Mutations.JWT.Payload
 		mutationsEverApplied = true
 	}
-	return event.ApplyHookResponseResult{UserMutationsEverApplied: mutationsEverApplied}
+	return event.ApplyHookResponseResult{MutationsEverApplied: mutationsEverApplied}
 }
 
 func (e *OIDCJWTPreCreateBlockingEventPayload) PerformEffects(ctx context.Context, effectCtx event.MutationsEffectContext) error {

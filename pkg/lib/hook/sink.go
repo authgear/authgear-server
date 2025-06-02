@@ -121,7 +121,7 @@ func (s *Sink) DeliverBlockingEvent(ctx context.Context, e *event.Event) error {
 		}
 
 		result := e.ApplyHookResponse(ctx, *resp)
-		if result.UserMutationsEverApplied {
+		if result.MutationsEverApplied {
 			mutationsEverApplied = true
 		}
 	}

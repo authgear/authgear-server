@@ -39,7 +39,7 @@ func (e *UserPreScheduleDeletionBlockingEventPayload) ApplyHookResponse(ctx cont
 	if mutated {
 		e.UserModel = user
 	}
-	return event.ApplyHookResponseResult{UserMutationsEverApplied: mutated}
+	return event.ApplyHookResponseResult{MutationsEverApplied: mutated}
 }
 
 func (e *UserPreScheduleDeletionBlockingEventPayload) PerformEffects(ctx context.Context, effectCtx event.MutationsEffectContext) error {

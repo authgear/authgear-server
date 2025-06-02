@@ -154,7 +154,7 @@ func (e *MockBlockingEvent1) ApplyHookResponse(ctx context.Context, response eve
 	if mutated {
 		e.User = user
 	}
-	return event.ApplyHookResponseResult{UserMutationsEverApplied: mutated}
+	return event.ApplyHookResponseResult{MutationsEverApplied: mutated}
 }
 
 func (e *MockBlockingEvent1) PerformEffects(ctx context.Context, effectCtx event.MutationsEffectContext) error {
@@ -179,7 +179,7 @@ func (e *MockBlockingEvent2) ApplyHookResponse(ctx context.Context, response eve
 	if mutated {
 		e.User = user
 	}
-	return event.ApplyHookResponseResult{UserMutationsEverApplied: mutated}
+	return event.ApplyHookResponseResult{MutationsEverApplied: mutated}
 }
 
 func (e *MockBlockingEvent2) PerformEffects(ctx context.Context, effectCtx event.MutationsEffectContext) error {
