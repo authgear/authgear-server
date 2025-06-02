@@ -123,7 +123,7 @@ func (n *IntentUseIdentityPasskey) ReactTo(ctx context.Context, deps *authflow.D
 			return nil, err
 		}
 
-		n, err := NewNodeDoUseIdentityPasskey(ctx, flows, &NodeDoUseIdentityPasskey{
+		result, err := NewNodeDoUseIdentityPasskey(ctx, flows, deps, &NodeDoUseIdentityPasskey{
 			AssertionResponse: assertionResponseBytes,
 			Identity:          exactMatch,
 			Authenticator:     authenticatorInfo,
@@ -133,7 +133,7 @@ func (n *IntentUseIdentityPasskey) ReactTo(ctx context.Context, deps *authflow.D
 			return nil, err
 		}
 
-		return authflow.NewNodeSimple(n), bpSpecialErr
+		return result, bpSpecialErr
 	}
 
 	return nil, authflow.ErrIncompatibleInput
