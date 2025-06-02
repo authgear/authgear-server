@@ -16,6 +16,7 @@ func init() {
 type NodeDoUseIdentityWithUpdate struct {
 	OldIdentityInfo *identity.Info `json:"old_identity_info,omitempty"`
 	NewIdentityInfo *identity.Info `json:"new_identity_info,omitempty"`
+	NewIdentitySpec *identity.Spec `json:"new_identity_spec,omitempty"`
 }
 
 func NewNodeDoUseIdentityWithUpdate(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, oldIdentityInfo *identity.Info, spec *identity.Spec) (*NodeDoUseIdentityWithUpdate, error) {
@@ -45,6 +46,7 @@ func NewNodeDoUseIdentityWithUpdate(ctx context.Context, deps *authflow.Dependen
 	return &NodeDoUseIdentityWithUpdate{
 		OldIdentityInfo: oldIdentityInfo,
 		NewIdentityInfo: newIdentityInfo,
+		NewIdentitySpec: spec,
 	}, nil
 }
 
@@ -53,6 +55,7 @@ var _ authflow.EffectGetter = &NodeDoUseIdentityWithUpdate{}
 var _ authflow.Milestone = &NodeDoUseIdentityWithUpdate{}
 var _ MilestoneDoUseUser = &NodeDoUseIdentityWithUpdate{}
 var _ MilestoneDoUseIdentity = &NodeDoUseIdentityWithUpdate{}
+var _ MilestoneGetIdentitySpecs = &NodeDoUseIdentityWithUpdate{}
 
 func (*NodeDoUseIdentityWithUpdate) Kind() string {
 	return "NodeDoUseIdentityWithUpdate"
@@ -73,4 +76,8 @@ func (n *NodeDoUseIdentityWithUpdate) GetEffects(ctx context.Context, deps *auth
 			return deps.Identities.Update(ctx, n.OldIdentityInfo, n.NewIdentityInfo)
 		}),
 	}, nil
+}
+
+func (n *NodeDoUseIdentityWithUpdate) MilestoneGetIdentitySpecs() []*identity.Spec {
+	return []*identity.Spec{n.NewIdentitySpec}
 }

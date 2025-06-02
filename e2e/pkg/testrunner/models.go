@@ -136,7 +136,9 @@ var _ = TestCaseSchema.Add("Step", `
 			"generate_totp_code",
 			"query",
 			"saml_request",
-			"http_request"
+			"http_request",
+			"oauth_setup",
+			"oauth_exchange_code"
 		]},
 		"input": { "type": "string" },
 		"to": { "type": "string" },
@@ -157,7 +159,9 @@ var _ = TestCaseSchema.Add("Step", `
 		"http_request_headers": { "type": "object" },
 		"http_request_body": { "type": "string" },
 		"http_request_session_cookie": { "$ref": "#/$defs/SessionCookie" },
-		"http_output": { "$ref": "#/$defs/HTTPOutput" }
+		"http_output": { "$ref": "#/$defs/HTTPOutput" },
+		"oauth_exchange_code_code_verifier": { "type": "string" },
+		"oauth_exchange_code_redirect_uri": { "type": "string" }
 	},
 	"allOf": [
         {
@@ -237,6 +241,19 @@ var _ = TestCaseSchema.Add("Step", `
 								"http_request_url"
 							]
 					}
+				},
+				{
+					"if": {
+						"properties": {
+							"action": { "const": "oauth_exchange_code" }
+						}
+					},
+					"then": {
+						"required": [
+							"oauth_exchange_code_code_verifier",
+							"oauth_exchange_code_redirect_uri"
+						]
+					}
 				}
     ]
 }
@@ -279,18 +296,24 @@ type Step struct {
 	HTTPRequestBody          string            `json:"http_request_body"`
 	HTTPRequestSessionCookie *SessionCookie    `json:"http_request_session_cookie"`
 	HTTPOutput               *HTTPOutput       `json:"http_output"`
+
+	// `action` == "oauth_exchange_code"
+	OAuthExchangeCodeCodeVerifier string `json:"oauth_exchange_code_code_verifier"`
+	OAuthExchangeCodeRedirectURI  string `json:"oauth_exchange_code_redirect_uri"`
 }
 
 type StepAction string
 
 const (
-	StepActionCreate           StepAction = "create"
-	StepActionInput            StepAction = "input"
-	StepActionOAuthRedirect    StepAction = "oauth_redirect"
-	StepActionGenerateTOTPCode StepAction = "generate_totp_code"
-	StepActionQuery            StepAction = "query"
-	StepActionSAMLRequest      StepAction = "saml_request"
-	StepActionHTTPRequest      StepAction = "http_request"
+	StepActionCreate            StepAction = "create"
+	StepActionInput             StepAction = "input"
+	StepActionOAuthRedirect     StepAction = "oauth_redirect"
+	StepActionGenerateTOTPCode  StepAction = "generate_totp_code"
+	StepActionQuery             StepAction = "query"
+	StepActionSAMLRequest       StepAction = "saml_request"
+	StepActionHTTPRequest       StepAction = "http_request"
+	StepActionOAuthSetup        StepAction = "oauth_setup"
+	StepActionOAuthExchangeCode StepAction = "oauth_exchange_code"
 )
 
 var _ = TestCaseSchema.Add("SessionCookie", `
@@ -406,6 +429,7 @@ var _ = TestCaseSchema.Add("StepResult", `
 `)
 
 type StepResult struct {
+	Step   *Step       `json:"step"`
 	Result interface{} `json:"result"`
 	Error  error       `json:"error"`
 }

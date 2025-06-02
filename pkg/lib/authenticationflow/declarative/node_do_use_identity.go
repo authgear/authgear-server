@@ -14,7 +14,8 @@ func init() {
 }
 
 type NodeDoUseIdentity struct {
-	Identity *identity.Info `json:"identity,omitempty"`
+	Identity     *identity.Info `json:"identity,omitempty"`
+	IdentitySpec *identity.Spec `json:"identity_spec,omitempty"`
 }
 
 func NewNodeDoUseIdentity(ctx context.Context, flows authflow.Flows, n *NodeDoUseIdentity) (*NodeDoUseIdentity, error) {
@@ -43,6 +44,7 @@ var _ authflow.NodeSimple = &NodeDoUseIdentity{}
 var _ authflow.Milestone = &NodeDoUseIdentity{}
 var _ MilestoneDoUseUser = &NodeDoUseIdentity{}
 var _ MilestoneDoUseIdentity = &NodeDoUseIdentity{}
+var _ MilestoneGetIdentitySpecs = &NodeDoUseIdentity{}
 
 func (*NodeDoUseIdentity) Kind() string {
 	return "NodeDoUseIdentity"
@@ -53,3 +55,7 @@ func (n *NodeDoUseIdentity) MilestoneDoUseUser() string {
 	return n.Identity.UserID
 }
 func (n *NodeDoUseIdentity) MilestoneDoUseIdentity() *identity.Info { return n.Identity }
+
+func (n *NodeDoUseIdentity) MilestoneGetIdentitySpecs() []*identity.Spec {
+	return []*identity.Spec{n.IdentitySpec}
+}

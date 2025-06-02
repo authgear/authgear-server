@@ -17,6 +17,7 @@ func init() {
 type NodeDoUseIdentityPasskey struct {
 	AssertionResponse []byte              `json:"assertion_response,omitempty"`
 	Identity          *identity.Info      `json:"identity,omitempty"`
+	IdentitySpec      *identity.Spec      `json:"identity_spec,omitempty"`
 	Authenticator     *authenticator.Info `json:"authenticator,omitempty"`
 	RequireUpdate     bool                `json:"require_update,omitempty"`
 }
@@ -50,6 +51,7 @@ var _ MilestoneDoUseUser = &NodeDoUseIdentityPasskey{}
 var _ MilestoneDoUseIdentity = &NodeDoUseIdentityPasskey{}
 var _ MilestoneDidSelectAuthenticator = &NodeDoUseIdentityPasskey{}
 var _ MilestoneDidAuthenticate = &NodeDoUseIdentityPasskey{}
+var _ MilestoneGetIdentitySpecs = &NodeDoUseIdentityPasskey{}
 
 func (*NodeDoUseIdentityPasskey) Kind() string {
 	return "NodeDoUseIdentityPasskey"
@@ -79,4 +81,8 @@ func (n *NodeDoUseIdentityPasskey) MilestoneDidSelectAuthenticator() *authentica
 }
 func (n *NodeDoUseIdentityPasskey) MilestoneDidAuthenticate() (amr []string) {
 	return n.Authenticator.AMR()
+}
+
+func (n *NodeDoUseIdentityPasskey) MilestoneGetIdentitySpecs() []*identity.Spec {
+	return []*identity.Spec{n.IdentitySpec}
 }

@@ -1714,6 +1714,7 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 			AuthenticationInfo: info,
 			ClientLike:         oauth.ClientClientLike(client, code.AuthorizationRequest.Scope()),
 			DeviceSecretHash:   deviceSecretHash,
+			IdentitySpecs:      code.IdentitySpecs,
 		})
 		if err != nil {
 			return nil, err

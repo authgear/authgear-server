@@ -69,7 +69,8 @@ func (i *IntentCheckConflictAndCreateIdenity) ReactTo(ctx context.Context, deps 
 				return nil, err
 			}
 			return authflow.NewNodeSimple(&NodeDoCreateIdentity{
-				Identity: info,
+				Identity:     info,
+				IdentitySpec: spec,
 			}), nil
 		} else {
 			return authflow.NewSubFlow(&IntentAccountLinking{

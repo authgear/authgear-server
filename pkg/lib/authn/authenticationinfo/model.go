@@ -3,6 +3,7 @@ package authenticationinfo
 import (
 	"time"
 
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/util/base32"
 	"github.com/authgear/authgear-server/pkg/util/rand"
 )
@@ -27,6 +28,8 @@ type T struct {
 	// the idp session id will also be stored in AuthenticatedBySessionID.
 	AuthenticatedBySessionType string
 	AuthenticatedBySessionID   string
+
+	IdentitySpecs []*identity.Spec `json:"identity_specs,omitzero"`
 }
 
 type Entry struct {

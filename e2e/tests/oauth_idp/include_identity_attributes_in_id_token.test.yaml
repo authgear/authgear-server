@@ -1,0 +1,112 @@
+name: include_identity_attributes_in_id_token=true
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+      - oauth
+      primary_authenticators:
+      - password
+    identity:
+      oauth:
+        providers:
+        - alias: google
+          client_id: "google"
+          type: google
+          include_identity_attributes_in_id_token: true
+steps:
+- action: oauth_setup
+  name: oauth_setup
+- action: create
+  input: |
+    {
+      "type": "signup",
+      "name": "default",
+      "url_query": "{{ .steps.oauth_setup.result.query }}"
+    }
+  output:
+    result: |
+      {
+        "state_token": "[[string]]",
+        "type": "signup",
+        "name": "default",
+        "action": {
+            "type": "identify",
+            "data": {
+                "type": "identification_data",
+                "options": "[[array]]"
+            }
+        }
+      }
+
+- action: input
+  input: |
+    {
+      "identification": "oauth",
+      "alias": "google",
+      "redirect_uri": "http://mock"
+    }
+  output:
+    result: |
+      {
+        "action": {
+          "type": "identify",
+          "data": {
+            "oauth_authorization_url": "[[string]]"
+          }
+        }
+      }
+
+- action: oauth_redirect
+  to: "{{ .prev.result.action.data.oauth_authorization_url }}"
+  redirect_uri: http://mock
+  output:
+    result: |
+      {
+        "query": "[[string]]"
+      }
+
+- action: input
+  input: |
+    {
+      "query": "{{ .prev.result.query }}"
+    }
+  output:
+    result: |
+      {
+        "action": {
+          "type": "finished",
+          "data": {
+            "finish_redirect_uri": "[[string]]"
+          }
+        }
+      }
+
+- action: oauth_exchange_code
+  oauth_exchange_code_code_verifier: "{{ .steps.oauth_setup.result.code_verifier }}"
+  oauth_exchange_code_redirect_uri: "{{ .prev.result.action.data.finish_redirect_uri }}"
+  output:
+    result: |
+      {
+        "id_token": {
+          "iss": "[[string]]",
+          "https://authgear.com/claims/oauth/asserted": [
+            {
+              "https://authgear.com/claims/oauth/provider_type": "google",
+              "https://authgear.com/claims/oauth/provider_alias": "google",
+              "https://authgear.com/claims/oauth/subject_id": "mock",
+              "https://authgear.com/claims/oauth/profile": {
+                "aud": [
+                  "google"
+                ],
+                "email": "mock@example.com",
+                "iss": "https://accounts.google.com",
+                "jti": "google",
+                "phone_number": "+85295000001",
+                "preferred_username": "mock",
+                "sub": "mock",
+                "upn": "mock"
+              }
+            }
+          ]
+        }
+      }

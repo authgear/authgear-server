@@ -48,6 +48,7 @@ func (s *CodeGrantService) CreateCodeGrant(ctx context.Context, opts *CreateCode
 
 		RedirectURI:          opts.RedirectURI,
 		AuthorizationRequest: opts.AuthorizationRequest,
+		IdentitySpecs:        opts.AuthenticationInfo.IdentitySpecs,
 	}
 
 	err = s.CodeGrants.CreateCodeGrant(ctx, codeGrant)

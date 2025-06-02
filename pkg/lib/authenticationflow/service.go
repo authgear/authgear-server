@@ -10,6 +10,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/oauth/oauthsession"
 	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
@@ -67,6 +68,11 @@ type OAuthClientResolver interface {
 	ResolveClient(clientID string) *config.OAuthClientConfig
 }
 
+type OAuthSessionStore interface {
+	Get(ctx context.Context, entryID string) (entry *oauthsession.Entry, err error)
+	Save(ctx context.Context, entry *oauthsession.Entry) (err error)
+}
+
 type Service struct {
 	Deps                *Dependencies
 	Logger              ServiceLogger
@@ -75,6 +81,7 @@ type Service struct {
 	UIConfig            *config.UIConfig
 	UIInfoResolver      ServiceUIInfoResolver
 	OAuthClientResolver OAuthClientResolver
+	OAuthSessionStore   OAuthSessionStore
 }
 
 func (s *Service) CreateNewFlow(ctx context.Context, publicFlow PublicFlow, sessionOptions *SessionOptions) (output *ServiceOutput, err error) {

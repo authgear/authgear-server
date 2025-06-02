@@ -143,7 +143,8 @@ func (i *IntentAccountLinking) ReactTo(ctx context.Context, deps *authflow.Depen
 			return nil, err
 		}
 		return authflow.NewNodeSimple(&NodeDoCreateIdentity{
-			Identity: info,
+			Identity:     info,
+			IdentitySpec: i.IncomingIdentitySpec,
 		}), nil
 	}
 

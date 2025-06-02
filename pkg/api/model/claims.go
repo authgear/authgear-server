@@ -16,4 +16,5 @@ const (
 	ClaimUserIsAnonymous       ClaimName = "https://authgear.com/claims/user/is_anonymous"
 	ClaimUserIsVerified        ClaimName = "https://authgear.com/claims/user/is_verified"
 	ClaimUserCanReauthenticate ClaimName = "https://authgear.com/claims/user/can_reauthenticate"
+	ClaimOAuthAsserted         ClaimName = "https://authgear.com/claims/oauth/asserted"
 )

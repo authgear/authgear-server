@@ -27,15 +27,23 @@ type NodeDoCreateSession struct {
 
 func NewNodeDoCreateSession(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, n *NodeDoCreateSession) (*NodeDoCreateSession, error) {
 	attrs := session.NewAttrs(n.UserID)
+
 	amr, err := collectAMR(ctx, deps, flows)
 	if err != nil {
 		return nil, err
 	}
 	attrs.SetAMR(amr)
+
+	identitySpecs, err := collectIdentitySpecs(ctx, deps, flows)
+	if err != nil {
+		return nil, err
+	}
+
 	authnInfo := authenticationinfo.T{
 		UserID:          n.UserID,
 		AuthenticatedAt: deps.Clock.NowUTC(),
 		AMR:             amr,
+		IdentitySpecs:   identitySpecs,
 	}
 	var newSession *idpsession.IDPSession = nil
 	var sessionCookie *http.Cookie = nil
