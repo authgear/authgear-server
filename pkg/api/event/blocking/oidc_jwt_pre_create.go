@@ -36,13 +36,13 @@ func (e *OIDCJWTPreCreateBlockingEventPayload) GetTriggeredBy() event.TriggeredB
 
 func (e *OIDCJWTPreCreateBlockingEventPayload) FillContext(ctx *event.Context) {}
 
-func (e *OIDCJWTPreCreateBlockingEventPayload) ApplyHookResponse(ctx context.Context, response event.HookResponse) bool {
+func (e *OIDCJWTPreCreateBlockingEventPayload) ApplyHookResponse(ctx context.Context, response event.HookResponse) event.ApplyHookResponseResult {
+	mutationsEverApplied := false
 	if response.Mutations.JWT.Payload != nil {
 		e.JWT.Payload = response.Mutations.JWT.Payload
-		return true
+		mutationsEverApplied = true
 	}
-
-	return false
+	return event.ApplyHookResponseResult{UserMutationsEverApplied: mutationsEverApplied}
 }
 
 func (e *OIDCJWTPreCreateBlockingEventPayload) PerformEffects(ctx context.Context, effectCtx event.MutationsEffectContext) error {
