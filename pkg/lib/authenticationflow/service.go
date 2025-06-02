@@ -191,24 +191,31 @@ func (s *Service) createNewFlow(ctx context.Context, session *Session, publicFlo
 	// Feed an nil input to the flow to let it proceed.
 	var rawMessage json.RawMessage
 	var acceptResult *AcceptResult = NewAcceptResult()
-	err = s.Database.ReadOnly(ctx, func(ctx context.Context) error {
-		err = Accept(ctx, s.Deps, NewFlows(flow), acceptResult, rawMessage)
-		isEOF := errors.Is(err, ErrEOF)
-		if err != nil && !isEOF {
-			return err
+	var shouldAccept = true
+	for shouldAccept {
+		shouldAccept = false
+		err = s.Database.ReadOnly(ctx, func(ctx context.Context) error {
+			err = Accept(ctx, s.Deps, NewFlows(flow), acceptResult, rawMessage)
+			isEOF := errors.Is(err, ErrEOF)
+			if err != nil && !isEOF {
+				return err
+			}
+			flowAction, err = s.getFlowAction(ctx, session, flow)
+			if err != nil {
+				return err
+			}
+			if isEOF {
+				return ErrEOF
+			}
+			return nil
+		})
+		acceptErr := s.processAcceptResult(ctx, session, acceptResult)
+		if acceptErr != nil {
+			return nil, nil, acceptErr
 		}
-		flowAction, err = s.getFlowAction(ctx, session, flow)
-		if err != nil {
-			return err
+		if errors.Is(err, ErrPauseAndRetryAccept) {
+			shouldAccept = true
 		}
-		if isEOF {
-			return ErrEOF
-		}
-		return nil
-	})
-	acceptErr := s.processAcceptResult(ctx, session, acceptResult)
-	if acceptErr != nil {
-		return nil, nil, acceptErr
 	}
 
 	// As a special case, we do not treat ErrNoChange as error because
@@ -462,31 +469,39 @@ func (s *Service) feedInput(ctx context.Context, session *Session, stateToken st
 		return
 	}
 
-	var acceptResult *AcceptResult = NewAcceptResult()
-	err = s.Database.ReadOnly(ctx, func(ctx context.Context) error {
-		// Apply the run-effects.
-		err = ApplyRunEffects(ctx, s.Deps, NewFlows(flow))
-		if err != nil {
-			return err
+	var shouldAccept = true
+	for shouldAccept {
+		shouldAccept = false
+		var acceptResult *AcceptResult = NewAcceptResult()
+		err = s.Database.ReadOnly(ctx, func(ctx context.Context) error {
+			// Apply the run-effects.
+			err = ApplyRunEffects(ctx, s.Deps, NewFlows(flow))
+			if err != nil {
+				return err
+			}
+
+			err = Accept(ctx, s.Deps, NewFlows(flow), acceptResult, rawMessage)
+			isEOF := errors.Is(err, ErrEOF)
+			if err != nil && !isEOF {
+				return err
+			}
+			flowAction, err = s.getFlowAction(ctx, session, flow)
+			if err != nil {
+				return err
+			}
+			if isEOF {
+				return ErrEOF
+			}
+			return nil
+		})
+		acceptErr := s.processAcceptResult(ctx, session, acceptResult)
+		if acceptErr != nil {
+			return nil, nil, acceptErr
 		}
 
-		err = Accept(ctx, s.Deps, NewFlows(flow), acceptResult, rawMessage)
-		isEOF := errors.Is(err, ErrEOF)
-		if err != nil && !isEOF {
-			return err
+		if errors.Is(err, ErrPauseAndRetryAccept) {
+			shouldAccept = true
 		}
-		flowAction, err = s.getFlowAction(ctx, session, flow)
-		if err != nil {
-			return err
-		}
-		if isEOF {
-			return ErrEOF
-		}
-		return nil
-	})
-	acceptErr := s.processAcceptResult(ctx, session, acceptResult)
-	if acceptErr != nil {
-		return nil, nil, acceptErr
 	}
 
 	isEOF := errors.Is(err, ErrEOF)
