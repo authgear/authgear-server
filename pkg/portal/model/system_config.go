@@ -27,5 +27,4 @@ type SystemConfig struct {
 	GTMContainerID              string         `json:"gtmContainerID,omitempty"`
 	UIImplementation            string         `json:"uiImplementation,omitempty"`
 	UISettingsImplementation    string         `json:"uiSettingsImplementation,omitempty"`
-	ProjectWizardImplementation string         `json:"projectWizardImplementation,omitempty"`
 }

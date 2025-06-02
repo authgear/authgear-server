@@ -28,8 +28,6 @@ type GlobalUIImplementation UIImplementation
 
 type GlobalUISettingsImplementation SettingsUIImplementation
 
-type ProjectWizardImplementaion string
-
 type GlobalWhatsappAPIType WhatsappAPIType
 
 type SharedAuthgearEndpoint string
@@ -112,7 +110,7 @@ type EnvironmentConfig struct {
 
 	UISettingsImplementation GlobalUISettingsImplementation `envconfig:"UI_SETTINGS_IMPLEMENTATION"`
 
-	ProjectWizardImplementation ProjectWizardImplementaion `envconfig:"PROJECT_WIZARD_IMPLEMENTATION"`
+	// PROJECT_WIZARD_IMPLEMENTATION was deprecated.
 
 	WhatsappAPIType GlobalWhatsappAPIType `envconfig:"WHATSAPP_API_TYPE"`
 
@@ -122,8 +120,3 @@ type EnvironmentConfig struct {
 
 	SharedAuthgearEndpoint SharedAuthgearEndpoint `envconfig:"SHARED_AUTHGEAR_ENDPOINT"`
 }
-
-const (
-	ProjectWizardImplementaionV1 ProjectWizardImplementaion = "v1"
-	ProjectWizardImplementaionV2 ProjectWizardImplementaion = "v2"
-)

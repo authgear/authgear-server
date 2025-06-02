@@ -20,10 +20,7 @@ import { ApolloProvider } from "@apollo/client";
 import { Helmet, HelmetProvider } from "react-helmet-async";
 import AppRoot from "./AppRoot";
 import styles from "./ReactApp.module.css";
-import {
-  SystemConfigContext,
-  useSystemConfig,
-} from "./context/SystemConfigContext";
+import { SystemConfigContext } from "./context/SystemConfigContext";
 import {
   SystemConfig,
   PartialSystemConfig,
@@ -124,8 +121,6 @@ async function initApp(systemConfig: SystemConfig) {
 
 // ReactAppRoutes defines the routes.
 const ReactAppRoutes: React.VFC = function ReactAppRoutes() {
-  const { projectWizardImplementation } = useSystemConfig();
-
   return (
     <BrowserRouter>
       <Routes>
@@ -154,11 +149,7 @@ const ReactAppRoutes: React.VFC = function ReactAppRoutes() {
             element={
               <Authenticated>
                 <Suspense fallback={<ShowLoading />}>
-                  {projectWizardImplementation === "v2" ? (
-                    <ProjectWizardScreenV2 />
-                  ) : (
-                    <CreateProjectScreenV1 />
-                  )}
+                  <ProjectWizardScreenV2 />
                 </Suspense>
               </Authenticated>
             }
@@ -202,11 +193,7 @@ const ReactAppRoutes: React.VFC = function ReactAppRoutes() {
                   <Authenticated>
                     <Suspense fallback={<ShowLoading />}>
                       <AppContextProvider>
-                        {projectWizardImplementation === "v2" ? (
-                          <ProjectWizardScreenV2 />
-                        ) : (
-                          <ProjectWizardScreenV1 />
-                        )}
+                        <ProjectWizardScreenV2 />
                       </AppContextProvider>
                     </Suspense>
                   </Authenticated>
