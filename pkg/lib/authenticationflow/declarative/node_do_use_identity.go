@@ -23,7 +23,7 @@ type NodeDoUseIdentity struct {
 	Constraints             *eventapi.Constraints `json:"constraints,omitempty"`
 }
 
-func NewNodeDoUseIdentity(ctx context.Context, flows authflow.Flows, n *NodeDoUseIdentity) (authenticationflow.ReactToResult, error) {
+func NewNodeDoUseIdentity(ctx context.Context, flows authflow.Flows, deps *authflow.Dependencies, n *NodeDoUseIdentity) (authenticationflow.ReactToResult, error) {
 	userID, err := getUserID(flows)
 	if errors.Is(err, ErrNoUserID) {
 		err = nil
@@ -42,14 +42,19 @@ func NewNodeDoUseIdentity(ctx context.Context, flows authflow.Flows, n *NodeDoUs
 		}
 	}
 
+	payload := &blocking.AuthenticationPostIdentifiedBlockingEventPayload{
+		Identity:    n.Identity.ToModel(),
+		Constraints: nil,
+	}
+	e, err := deps.Events.PrepareBlockingEventWithTx(ctx, payload)
+	if err != nil {
+		return nil, err
+	}
+
 	return &authenticationflow.NodeWithDelayedOneTimeFunction{
 		Node: authenticationflow.NewNodeSimple(n),
 		DelayedOneTimeFunction: func(ctx context.Context, deps *authenticationflow.Dependencies) error {
-			payload := &blocking.AuthenticationPostIdentifiedBlockingEventPayload{
-				Identity:    n.Identity.ToModel(),
-				Constraints: nil,
-			}
-			err := deps.Events.DispatchBlockingEventWithoutTx(ctx, payload)
+			err = deps.Events.DispatchEventWithoutTx(ctx, e)
 			if err != nil {
 				return err
 			}
