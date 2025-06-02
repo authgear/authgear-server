@@ -1829,17 +1829,6 @@
   "GoogleTagManagerConfigurationScreen.container-id.label": "Tag Manager Container ID",
   "GoogleTagManagerConfigurationScreen.container-id.placeholder": "e.g. GTM-123456",
 
-  "WizardContentLayout.skip.label": "Skip and I’ll set up my project manually",
-
-  "CreateProjectScreen.title": "{apps, plural, =0{Create your first project} other{Create a new project}}",
-  "CreateProjectScreen.create-project.label": "Create Project",
-  "CreateProjectScreen.app-id.label": "What is the name of your project?",
-  "CreateProjectScreen.app-id.description": "This is your Authgear endpoint for your applications. Once chosen, the project cannot be renamed.",
-  "CreateProjectScreen.phone-number.label": "Would you mind to share us your phone number?",
-  "CreateProjectScreen.error.duplicated-app-id": "Project ID already exist",
-  "CreateProjectScreen.error.reserved-app-id": "Project ID is reserved",
-  "CreateProjectScreen.error.invalid-app-id": "Invalid Project ID. Project ID should start and end with lowercase alphanumeric characters or numbers, and it should contain only lowercase alphanumeric characters, numbers or '-'",
-
   "ProjectWizardScreen.step.title": "Setting up {appID} ({currentStep}/{totalStep})",
   "ProjectWizardScreen.step1.question": "How should the users sign in to your application?",
   "ProjectWizardScreen.step1.option.email-password": "Email and Password",

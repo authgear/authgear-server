@@ -61,13 +61,6 @@ import { AppLocaleProvider } from "./components/common/AppLocaleProvider";
 
 const AppsScreen = lazy(async () => import("./graphql/portal/AppsScreen"));
 
-const CreateProjectScreenV1 = lazy(
-  async () => import("./graphql/portal/CreateProjectScreen")
-);
-const ProjectWizardScreenV1 = lazy(
-  async () => import("./graphql/portal/ProjectWizardScreen")
-);
-
 const OnboardingSurveyScreen = lazy(
   async () => import("./screens/v2/OnboardingSurvey/OnboardingSurveyScreen")
 );
