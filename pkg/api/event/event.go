@@ -35,7 +35,7 @@ type Payload interface {
 }
 
 type ApplyHookResponseResult struct {
-	UserMutationsEverApplied bool
+	MutationsEverApplied bool
 }
 
 type BlockingPayload interface {
@@ -68,7 +68,7 @@ type Event struct {
 func (e *Event) ApplyHookResponse(ctx context.Context, response HookResponse) ApplyHookResponseResult {
 	if blockingPayload, ok := e.Payload.(BlockingPayload); ok {
 		result := blockingPayload.ApplyHookResponse(ctx, response)
-		if result.UserMutationsEverApplied {
+		if result.MutationsEverApplied {
 			e.Payload = blockingPayload
 		}
 		return result

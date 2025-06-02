@@ -34,7 +34,7 @@ func (e *AuthenticationPostIdentifiedBlockingEventPayload) ApplyHookResponse(ctx
 	if response.Constraints.AMR != nil {
 		e.Constraints = &response.Constraints
 	}
-	return event.ApplyHookResponseResult{UserMutationsEverApplied: false}
+	return event.ApplyHookResponseResult{MutationsEverApplied: false}
 }
 
 func (e *AuthenticationPostIdentifiedBlockingEventPayload) PerformEffects(ctx context.Context, effectCtx event.MutationsEffectContext) error {
