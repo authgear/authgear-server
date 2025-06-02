@@ -961,17 +961,17 @@ graph LR
 flowchart TD
     subgraph "Signup Flow"
         Start([Start])
-        Start --> UserAuthInitialize[user.auth.initialize]
-        UserAuthInitialize --> BotProtection[Bot Protection]
-        BotProtection -- "Failed" --> BotProtectionFailed[bot_protection.verification.failed]
+        Start --> AuthenticationPreInitialize[authentication.pre_initialize]
+        AuthenticationPreInitialize --> BotProtection[Bot Protection]
+        BotProtection -- "Failed" --> BotProtectionVerificationFailed[bot_protection.verification.failed]
         BotProtection -- "Success" --> Identify[Identify]
-        Identify --> UserAuthIdentified[user.auth.identified]
-        UserAuthIdentified --> Verify[Verify]
+        Identify --> AuthenticationPostIdentified[authentication.post_identified]
+        AuthenticationPostIdentified --> Verify[Verify]
         Verify --> CreateAuthenticator[Create Authenticator]
         CreateAuthenticator --> ViewRecoveryCode[View Recovery Code]
         ViewRecoveryCode --> PromptCreatePasskey[Prompt Create Passkey]
-        PromptCreatePasskey --> UserAuthAdaptiveControl[user.auth.adaptive_control]
-        UserAuthAdaptiveControl --> CreateAuthenticatorAdaptive["Create Authenticator<br>(Fulfill AMR Constraints)"]
+        PromptCreatePasskey --> AuthenticationPreAuthenticated[authentication.pre_authenticated]
+        AuthenticationPreAuthenticated --> CreateAuthenticatorAdaptive["Create Authenticator<br>(Fulfill AMR Constraints)"]
         CreateAuthenticatorAdaptive --> UserPreCreate[user.pre_create]
         UserPreCreate --> CreateUser[Create User]
         CreateUser --> UserCreated[user.created]
@@ -989,8 +989,8 @@ flowchart TD
     classDef event fill:#98FB98
     classDef blockingEvent fill:#ADD8E6
     classDef processNode fill:#dddddd
-    class BotProtectionFailed,UserCreated event
-    class UserAuthInitialize,UserAuthIdentified,UserAuthAdaptiveControl,UserPreCreate,OIDCJWTPreCreate blockingEvent
+    class BotProtectionVerificationFailed,UserCreated event
+    class AuthenticationPreInitialize,AuthenticationPostIdentified,AuthenticationPreAuthenticated,UserPreCreate,OIDCJWTPreCreate blockingEvent
     class Start,BotProtection,Identify,Verify,CreateAuthenticator,ViewRecoveryCode,PromptCreatePasskey,CreateAuthenticatorAdaptive,CreateUser,FinishSignup,ExchangeCode,IssueTokens processNode
 ```
 
@@ -1000,14 +1000,14 @@ flowchart TD
 flowchart TD
     subgraph "Login Flow"
         Start([Start])
-        Start --> UserAuthInitialize[user.auth.initialize]
-        UserAuthInitialize --> BotProtection[Bot Protection]
-        BotProtection -- "Failed" --> BotProtectionFailed[bot_protection.verification.failed]
+        Start --> AuthenticationPreInitialize[authentication.pre_initialize]
+        AuthenticationPreInitialize --> BotProtection[Bot Protection]
+        BotProtection -- "Failed" --> BotProtectionVerificationFailed[bot_protection.verification.failed]
         BotProtection -- "Success" --> Identify[Identify]
-        Identify -- "Success" --> UserAuthIdentified[user.auth.identified]
-        Identify -- "Failed" --> LoginIdFailed[authentication.identity.login_id.failed]
+        Identify -- "Success" --> AuthenticationPostIdentified[authentication.post_identified]
+        Identify -- "Failed" --> AuthenticationIdentityLoginIDFailed[authentication.identity.login_id.failed]
 
-        UserAuthIdentified --> AuthenticatePrimary["Authenticate<br>(Primary Authenticator)"]
+        AuthenticationPostIdentified --> AuthenticatePrimary["Authenticate<br>(Primary Authenticator)"]
 
         AuthenticatePrimary -- "Success" --> AuthenticateSecondary["Authenticate<br>(Secondary Authenticator)"]
         AuthenticatePrimary -- "Failed" --> PrimaryAuthFailed["authentication.primary.password.failed<br>authentication.primary.oob_otp_email.failed<br>authentication.primary.oob_otp_sms.failed"]:::event
@@ -1018,8 +1018,8 @@ flowchart TD
         ChangePassword --> CheckAccountStatus[Check Account Status]
         CheckAccountStatus --> TerminateOtherSessions[Terminate Other Sessions]
         TerminateOtherSessions --> PromptCreatePasskey[Prompt Create Passkey]
-        PromptCreatePasskey --> UserAuthAdaptiveControl[user.auth.adaptive_control]
-        UserAuthAdaptiveControl --> AuthenticateAdaptive["Authenticate<br>(Fulfill AMR Constraints)"]
+        PromptCreatePasskey --> AuthenticationPreAuthenticated[authentication.pre_authenticated]
+        AuthenticationPreAuthenticated --> AuthenticateAdaptive["Authenticate<br>(Fulfill AMR Constraints)"]
         AuthenticateAdaptive --> UserAuthenticated[user.authenticated]
         UserAuthenticated --> FinishLogin([Finish])
     end
@@ -1035,7 +1035,7 @@ flowchart TD
     classDef event fill:#98FB98
     classDef blockingEvent fill:#ADD8E6
     classDef processNode fill:#dddddd
-    class BotProtectionFailed,LoginIdFailed,PrimaryAuthFailed,SecondaryAuthFailed,UserAuthenticated event
-    class UserAuthInitialize,UserAuthIdentified,UserAuthAdaptiveControl,OIDCJWTPreCreate blockingEvent
+    class BotProtectionVerificationFailed,AuthenticationIdentityLoginIDFailed,PrimaryAuthFailed,SecondaryAuthFailed,UserAuthenticated event
+    class AuthenticationPreInitialize,AuthenticationPostIdentified,AuthenticationPreAuthenticated,OIDCJWTPreCreate blockingEvent
     class Start,BotProtection,Identify,AuthenticatePrimary,AuthenticateSecondary,ChangePassword,CheckAccountStatus,TerminateOtherSessions,PromptCreatePasskey,AuthenticateAdaptive,ExchangeCode,IssueTokens,FinishLogin processNode
 ```
