@@ -40,7 +40,7 @@ func (e *UserPreCreateBlockingEventPayload) ApplyHookResponse(ctx context.Contex
 	if mutated {
 		e.UserModel = user
 	}
-	return event.ApplyHookResponseResult{UserMutationsEverApplied: mutated}
+	return event.ApplyHookResponseResult{MutationsEverApplied: mutated}
 }
 
 func (e *UserPreCreateBlockingEventPayload) PerformEffects(ctx context.Context, effectCtx event.MutationsEffectContext) error {

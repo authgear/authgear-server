@@ -39,7 +39,7 @@ func (e *UserPreScheduleAnonymizationBlockingEventPayload) ApplyHookResponse(ctx
 	if mutated {
 		e.UserModel = user
 	}
-	return event.ApplyHookResponseResult{UserMutationsEverApplied: mutated}
+	return event.ApplyHookResponseResult{MutationsEverApplied: mutated}
 }
 
 func (e *UserPreScheduleAnonymizationBlockingEventPayload) PerformEffects(ctx context.Context, effectCtx event.MutationsEffectContext) error {
