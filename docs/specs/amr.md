@@ -22,3 +22,4 @@ The following AMR values are supported:
 - The `mfa` AMR value is automatically added when multiple authenticators are used in a single authentication flow.
 - The `x_biometric` and `x_passkey` values are custom AMR values that are not defined in RFC 8176, but are used to represent biometric and passkey authentication methods respectively.
 - The AMR values are included in the ID token claims to indicate which authentication methods were used during the authentication process.
+- Auth0 is using `phr` to represent passkey authentication. https://auth0.com/blog/all-you-need-to-know-about-passkeys-at-auth0/
