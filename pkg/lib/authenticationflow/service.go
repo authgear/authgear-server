@@ -215,6 +215,7 @@ func (s *Service) createNewFlow(ctx context.Context, session *Session, publicFlo
 		}
 		if errors.Is(err, ErrPauseAndRetryAccept) {
 			shouldAccept = true
+			err = nil
 		}
 	}
 
@@ -501,6 +502,7 @@ func (s *Service) feedInput(ctx context.Context, session *Session, stateToken st
 
 		if errors.Is(err, ErrPauseAndRetryAccept) {
 			shouldAccept = true
+			err = nil
 		}
 	}
 
@@ -528,31 +530,40 @@ func (s *Service) feedSyntheticInput(ctx context.Context, session *Session, stat
 		return
 	}
 
-	var acceptResult *AcceptResult = NewAcceptResult()
-	err = s.Database.ReadOnly(ctx, func(ctx context.Context) error {
-		// Apply the run-effects.
-		err = ApplyRunEffects(ctx, s.Deps, NewFlows(flow))
-		if err != nil {
-			return err
+	var shouldAccept = true
+	for shouldAccept {
+		shouldAccept = false
+		var acceptResult *AcceptResult = NewAcceptResult()
+		err = s.Database.ReadOnly(ctx, func(ctx context.Context) error {
+			// Apply the run-effects.
+			err = ApplyRunEffects(ctx, s.Deps, NewFlows(flow))
+			if err != nil {
+				return err
+			}
+
+			err = AcceptSyntheticInput(ctx, s.Deps, NewFlows(flow), acceptResult, syntheticInput)
+			isEOF := errors.Is(err, ErrEOF)
+			if err != nil && !isEOF {
+				return err
+			}
+			flowAction, err = s.getFlowAction(ctx, session, flow)
+			if err != nil {
+				return err
+			}
+			if isEOF {
+				return ErrEOF
+			}
+			return nil
+		})
+		acceptErr := s.processAcceptResult(ctx, session, acceptResult)
+		if acceptErr != nil {
+			return nil, nil, acceptErr
 		}
 
-		err = AcceptSyntheticInput(ctx, s.Deps, NewFlows(flow), acceptResult, syntheticInput)
-		isEOF := errors.Is(err, ErrEOF)
-		if err != nil && !isEOF {
-			return err
+		if errors.Is(err, ErrPauseAndRetryAccept) {
+			shouldAccept = true
+			err = nil
 		}
-		flowAction, err = s.getFlowAction(ctx, session, flow)
-		if err != nil {
-			return err
-		}
-		if isEOF {
-			return ErrEOF
-		}
-		return nil
-	})
-	acceptErr := s.processAcceptResult(ctx, session, acceptResult)
-	if acceptErr != nil {
-		return nil, nil, acceptErr
 	}
 
 	isEOF := errors.Is(err, ErrEOF)
