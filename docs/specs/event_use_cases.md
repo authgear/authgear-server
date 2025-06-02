@@ -12,6 +12,7 @@ This document documents the expected use cases of some events.
 - [Email domain whitelist](#email-domain-whitelist)
 - [Block login during weekends](#block-login-during-weekends)
 - [Require MFA only for users with high risk (Adaptive MFA)](#require-mfa-only-for-users-with-high-risk-adaptive-mfa)
+- [Block user login according to AMR](#block-user-login-according-to-amr)
 
 ### Advanced Use Cases
 
@@ -194,6 +195,27 @@ If `contraints.amr` with value `["mfa"]` is returned in the response, depending 
 Note, you have no control on the MFA steps in the Authentication Flow when using `authentication.pre_authenticated`. If you need full control on when the MFA steps being inserted, see [Adaptive MFA with customized Authflow](#adaptive-mfa-with-customized-authflow) below.
 
 "amr" stands for (Authentication Methods References)[https://www.rfc-editor.org/rfc/rfc8176.html], it is a claim used with OpenID Connect for storing details about how the authentication was performed. Only "mfa" is supported at the moment. Any other values will have no effect.
+
+### Block user login according to AMR
+
+You can use `authentication.pre_authenticated` to block user login according to the AMR (Authentication Methods References) used during authentication.
+
+For example, if you want to block users who did not use `mfa` (multi-factor authentication) during the authentication:
+
+```typescript
+export default async function (
+  e: EventAuthenticationPreAuthenticated
+): Promise<EventAuthenticationPreAuthenticatedResponse> {
+  if (!e.amr.includes("mfa")) {
+    return {
+      is_allowed: false,
+    };
+  }
+  return {
+    is_allowed: true,
+  };
+}
+```
 
 ## Advanced Use Cases
 
