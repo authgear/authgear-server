@@ -36,9 +36,9 @@ func (e *OIDCJWTPreCreateBlockingEventPayload) GetTriggeredBy() event.TriggeredB
 
 func (e *OIDCJWTPreCreateBlockingEventPayload) FillContext(ctx *event.Context) {}
 
-func (e *OIDCJWTPreCreateBlockingEventPayload) ApplyMutations(ctx context.Context, mutations event.Mutations) bool {
-	if mutations.JWT.Payload != nil {
-		e.JWT.Payload = mutations.JWT.Payload
+func (e *OIDCJWTPreCreateBlockingEventPayload) ApplyHookResponse(ctx context.Context, response event.HookResponse) bool {
+	if response.Mutations.JWT.Payload != nil {
+		e.JWT.Payload = response.Mutations.JWT.Payload
 		return true
 	}
 

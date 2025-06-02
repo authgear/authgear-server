@@ -34,8 +34,8 @@ func (e *UserPreScheduleAnonymizationBlockingEventPayload) GetTriggeredBy() even
 
 func (e *UserPreScheduleAnonymizationBlockingEventPayload) FillContext(ctx *event.Context) {}
 
-func (e *UserPreScheduleAnonymizationBlockingEventPayload) ApplyMutations(ctx context.Context, mutations event.Mutations) bool {
-	user, mutated := ApplyUserMutations(e.UserModel, mutations.User)
+func (e *UserPreScheduleAnonymizationBlockingEventPayload) ApplyHookResponse(ctx context.Context, response event.HookResponse) bool {
+	user, mutated := ApplyUserMutations(e.UserModel, response.Mutations.User)
 	if mutated {
 		e.UserModel = user
 		return true

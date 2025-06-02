@@ -34,8 +34,8 @@ func (e *UserPreScheduleDeletionBlockingEventPayload) GetTriggeredBy() event.Tri
 
 func (e *UserPreScheduleDeletionBlockingEventPayload) FillContext(ctx *event.Context) {}
 
-func (e *UserPreScheduleDeletionBlockingEventPayload) ApplyMutations(ctx context.Context, mutations event.Mutations) bool {
-	user, mutated := ApplyUserMutations(e.UserModel, mutations.User)
+func (e *UserPreScheduleDeletionBlockingEventPayload) ApplyHookResponse(ctx context.Context, response event.HookResponse) bool {
+	user, mutated := ApplyUserMutations(e.UserModel, response.Mutations.User)
 	if mutated {
 		e.UserModel = user
 		return true
