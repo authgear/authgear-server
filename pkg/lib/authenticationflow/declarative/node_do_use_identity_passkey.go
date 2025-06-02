@@ -2,11 +2,7 @@ package declarative
 
 import (
 	"context"
-	"errors"
 
-	"github.com/authgear/authgear-server/pkg/api"
-	eventapi "github.com/authgear/authgear-server/pkg/api/event"
-	blocking "github.com/authgear/authgear-server/pkg/api/event/blocking"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
@@ -18,54 +14,28 @@ func init() {
 }
 
 type NodeDoUseIdentityPasskey struct {
-	AssertionResponse       []byte                `json:"assertion_response,omitempty"`
-	Identity                *identity.Info        `json:"identity,omitempty"`
-	IdentitySpec            *identity.Spec        `json:"identity_spec,omitempty"`
-	Authenticator           *authenticator.Info   `json:"authenticator,omitempty"`
-	RequireUpdate           bool                  `json:"require_update,omitempty"`
-	IsPostIdentifiedInvoked bool                  `json:"is_post_identified_invoked"`
-	Constraints             *eventapi.Constraints `json:"constraints,omitempty"`
+	*NodeDoUseIdentity
+	AssertionResponse []byte              `json:"assertion_response,omitempty"`
+	Identity          *identity.Info      `json:"identity,omitempty"`
+	IdentitySpec      *identity.Spec      `json:"identity_spec,omitempty"`
+	Authenticator     *authenticator.Info `json:"authenticator,omitempty"`
+	RequireUpdate     bool                `json:"require_update,omitempty"`
 }
 
 func NewNodeDoUseIdentityPasskey(ctx context.Context, flows authflow.Flows, deps *authflow.Dependencies, n *NodeDoUseIdentityPasskey) (authenticationflow.ReactToResult, error) {
-	userID, err := getUserID(flows)
-	if errors.Is(err, ErrNoUserID) {
-		err = nil
-	}
+	nodeDoUseIden, delayedFn, err := NewNodeDoUseIdentity(ctx, flows, deps, &NodeDoUseIdentity{
+		Identity:     n.Identity,
+		IdentitySpec: n.IdentitySpec,
+	})
 	if err != nil {
 		return nil, err
 	}
 
-	if userID != "" && userID != n.Identity.UserID {
-		return nil, ErrDifferentUserID
-	}
-
-	if userIDHint := authflow.GetUserIDHint(ctx); userIDHint != "" {
-		if userIDHint != n.Identity.UserID {
-			return nil, api.ErrMismatchedUser
-		}
-	}
-
-	payload := &blocking.AuthenticationPostIdentifiedBlockingEventPayload{
-		Identity:    n.Identity.ToModel(),
-		Constraints: nil,
-	}
-	e, err := deps.Events.PrepareBlockingEventWithTx(ctx, payload)
-	if err != nil {
-		return nil, err
-	}
+	n.NodeDoUseIdentity = nodeDoUseIden
 
 	return &authenticationflow.NodeWithDelayedOneTimeFunction{
-		Node: authenticationflow.NewNodeSimple(n),
-		DelayedOneTimeFunction: func(ctx context.Context, deps *authenticationflow.Dependencies) error {
-			err = deps.Events.DispatchEventWithoutTx(ctx, e)
-			if err != nil {
-				return err
-			}
-			n.IsPostIdentifiedInvoked = true
-			n.Constraints = payload.Constraints
-			return nil
-		},
+		Node:                   authenticationflow.NewNodeSimple(n),
+		DelayedOneTimeFunction: delayedFn,
 	}, nil
 }
 
@@ -83,15 +53,12 @@ func (*NodeDoUseIdentityPasskey) Kind() string {
 	return "NodeDoUseIdentityPasskey"
 }
 
-func (n *NodeDoUseIdentityPasskey) CanReactTo(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows) (authenticationflow.InputSchema, error) {
-	if n.IsPostIdentifiedInvoked {
-		return nil, authflow.ErrEOF
-	}
-	return nil, authflow.ErrPauseAndRetryAccept
+func (n *NodeDoUseIdentityPasskey) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authenticationflow.Flows) (authenticationflow.InputSchema, error) {
+	return n.NodeDoUseIdentity.CanReactTo(ctx, deps, flows)
 }
 
-func (n *NodeDoUseIdentityPasskey) ReactTo(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows, input authenticationflow.Input) (authenticationflow.ReactToResult, error) {
-	return nil, authflow.ErrEOF
+func (n *NodeDoUseIdentityPasskey) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authenticationflow.Input) (authenticationflow.ReactToResult, error) {
+	return n.NodeDoUseIdentity.ReactTo(ctx, deps, flows, input)
 }
 
 func (n *NodeDoUseIdentityPasskey) GetEffects(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) ([]authflow.Effect, error) {
@@ -112,7 +79,9 @@ func (*NodeDoUseIdentityPasskey) Milestone() {}
 func (n *NodeDoUseIdentityPasskey) MilestoneDoUseUser() string {
 	return n.Identity.UserID
 }
-func (n *NodeDoUseIdentityPasskey) MilestoneDoUseIdentity() *identity.Info { return n.Identity }
+func (n *NodeDoUseIdentityPasskey) MilestoneDoUseIdentity() *identity.Info {
+	return n.NodeDoUseIdentity.MilestoneDoUseIdentity()
+}
 func (n *NodeDoUseIdentityPasskey) MilestoneDidSelectAuthenticator() *authenticator.Info {
 	return n.Authenticator
 }
