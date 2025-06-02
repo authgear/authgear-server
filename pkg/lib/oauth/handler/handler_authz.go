@@ -10,7 +10,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
-	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oauthsession"
@@ -523,8 +522,6 @@ func (h *AuthorizationHandler) doHandle(
 		IDTokenHintSID:       idTokenHintSID,
 		Cookies:              nil,
 		GrantAuthz:           autoGrantAuthz,
-		// When prompt=none, we cannot populate this.
-		IdentitySpecs: nil,
 	})
 	if err != nil {
 		if errors.Is(err, oauth.ErrAuthorizationNotFound) {
@@ -678,7 +675,6 @@ type FinishAuthorizationOptions struct {
 	IDTokenHintSID       string
 	Cookies              []*http.Cookie
 	GrantAuthz           bool
-	IdentitySpecs        []*identity.Spec
 }
 
 func (h *AuthorizationHandler) finishAuthorization(
@@ -721,7 +717,6 @@ func (h *AuthorizationHandler) finishAuthorization(
 				RedirectURI:          opts.RedirectURI.String(),
 				AuthorizationRequest: opts.AuthorizationRequest,
 				DPoPJKT:              opts.AuthorizationRequest.DPoPJKT(),
-				IdentitySpecs:        opts.IdentitySpecs,
 			},
 			resp,
 		)
@@ -814,7 +809,6 @@ func (h *AuthorizationHandler) doHandleConsentRequest(
 			IDTokenHintSID:       idTokenHintSID,
 			Cookies:              []*http.Cookie{},
 			GrantAuthz:           opts.GrantAuthz,
-			IdentitySpecs:        opts.ConsentRequest.OAuthSessionEntry.T.IdentitySpecs,
 		})
 	}
 }

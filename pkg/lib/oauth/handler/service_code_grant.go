@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
-	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
@@ -30,7 +29,6 @@ type CreateCodeGrantOptions struct {
 	RedirectURI          string
 	AuthorizationRequest protocol.AuthorizationRequest
 	DPoPJKT              string
-	IdentitySpecs        []*identity.Spec
 }
 
 func (s *CodeGrantService) CreateCodeGrant(ctx context.Context, opts *CreateCodeGrantOptions) (code string, grant *oauth.CodeGrant, err error) {
@@ -50,7 +48,8 @@ func (s *CodeGrantService) CreateCodeGrant(ctx context.Context, opts *CreateCode
 
 		RedirectURI:          opts.RedirectURI,
 		AuthorizationRequest: opts.AuthorizationRequest,
-		IdentitySpecs:        opts.IdentitySpecs,
+		// FIXME(dev-2754): Use IdentitySpecs from AuthenticationInfo
+		// IdentitySpecs:        opts.AuthenticationInfo.IdentitySpecs,
 	}
 
 	err = s.CodeGrants.CreateCodeGrant(ctx, codeGrant)
