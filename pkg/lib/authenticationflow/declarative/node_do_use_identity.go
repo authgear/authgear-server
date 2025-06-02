@@ -5,6 +5,8 @@ import (
 	"errors"
 
 	"github.com/authgear/authgear-server/pkg/api"
+	eventapi "github.com/authgear/authgear-server/pkg/api/event"
+	"github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 )
@@ -14,11 +16,12 @@ func init() {
 }
 
 type NodeDoUseIdentity struct {
-	Identity     *identity.Info `json:"identity,omitempty"`
-	IdentitySpec *identity.Spec `json:"identity_spec,omitempty"`
+	Identity     *identity.Info        `json:"identity,omitempty"`
+	IdentitySpec *identity.Spec        `json:"identity_spec,omitempty"`
+	Constraints  *eventapi.Constraints `json:"constraints,omitempty"`
 }
 
-func NewNodeDoUseIdentity(ctx context.Context, flows authflow.Flows, n *NodeDoUseIdentity) (*NodeDoUseIdentity, error) {
+func NewNodeDoUseIdentity(ctx context.Context, flows authflow.Flows, n *NodeDoUseIdentity) (authenticationflow.ReactToResult, error) {
 	userID, err := getUserID(flows)
 	if errors.Is(err, ErrNoUserID) {
 		err = nil
@@ -37,7 +40,13 @@ func NewNodeDoUseIdentity(ctx context.Context, flows authflow.Flows, n *NodeDoUs
 		}
 	}
 
-	return n, nil
+	return &authenticationflow.NodeWithDelayedOneTimeFunction{
+		Node: authenticationflow.NewNodeSimple(n),
+		DelayedOneTimeFunction: func(ctx context.Context, deps *authenticationflow.Dependencies) error {
+			// TODO(tung): Call blocking event
+			return nil
+		},
+	}, nil
 }
 
 var _ authflow.NodeSimple = &NodeDoUseIdentity{}
