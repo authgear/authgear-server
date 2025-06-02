@@ -329,7 +329,7 @@ func (c OAuthSSOProviderConfig) SetDefaults() {
 	}
 
 	// Intentionally not setting default of do_not_store_identity_attributes.
-	// Intenttinally not setting default of include_identity_attributes_in_id_token.
+	// Intentionally not setting default of include_identity_attributes_in_id_token.
 
 	c.AsProviderConfig().SetDefaults()
 
