@@ -149,9 +149,9 @@ func (e *MockBlockingEvent1) BlockingEventType() event.Type {
 func (e *MockBlockingEvent1) FillContext(ctx *event.Context) {
 }
 
-func (e *MockBlockingEvent1) ApplyMutations(ctx context.Context, mutations event.Mutations) bool {
-	if mutations.User.StandardAttributes != nil {
-		e.User.StandardAttributes = mutations.User.StandardAttributes
+func (e *MockBlockingEvent1) ApplyHookResponse(ctx context.Context, response event.HookResponse) bool {
+	if response.Mutations.User.StandardAttributes != nil {
+		e.User.StandardAttributes = response.Mutations.User.StandardAttributes
 		return true
 
 	}
@@ -176,9 +176,9 @@ func (e *MockBlockingEvent2) BlockingEventType() event.Type {
 func (e *MockBlockingEvent2) FillContext(ctx *event.Context) {
 }
 
-func (e *MockBlockingEvent2) ApplyMutations(ctx context.Context, mutations event.Mutations) bool {
-	if mutations.User.StandardAttributes != nil {
-		e.User.StandardAttributes = mutations.User.StandardAttributes
+func (e *MockBlockingEvent2) ApplyHookResponse(ctx context.Context, response event.HookResponse) bool {
+	if response.Mutations.User.StandardAttributes != nil {
+		e.User.StandardAttributes = response.Mutations.User.StandardAttributes
 		return true
 	}
 

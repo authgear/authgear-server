@@ -35,8 +35,8 @@ func (e *UserPreCreateBlockingEventPayload) GetTriggeredBy() event.TriggeredByTy
 
 func (e *UserPreCreateBlockingEventPayload) FillContext(ctx *event.Context) {}
 
-func (e *UserPreCreateBlockingEventPayload) ApplyMutations(ctx context.Context, mutations event.Mutations) bool {
-	user, mutated := ApplyUserMutations(e.UserModel, mutations.User)
+func (e *UserPreCreateBlockingEventPayload) ApplyHookResponse(ctx context.Context, response event.HookResponse) bool {
+	user, mutated := ApplyUserMutations(e.UserModel, response.Mutations.User)
 	if mutated {
 		e.UserModel = user
 		return true
