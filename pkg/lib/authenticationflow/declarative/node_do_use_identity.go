@@ -42,9 +42,18 @@ func NewNodeDoUseIdentity(ctx context.Context, flows authflow.Flows, deps *authf
 		}
 	}
 
+	authCtx, err := GetAuthenticationContext(ctx, flows, deps)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// Include the identity of this node
+	authCtx.AddAssertedIdentity(n.Identity.ToModel())
+
 	payload := &blocking.AuthenticationPostIdentifiedBlockingEventPayload{
-		Identity:    n.Identity.ToModel(),
-		Constraints: nil,
+		Identity:       n.Identity.ToModel(),
+		Constraints:    nil,
+		Authentication: *authCtx,
 	}
 	e, err := deps.Events.PrepareBlockingEventWithTx(ctx, payload)
 	if err != nil {
