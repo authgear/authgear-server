@@ -68,9 +68,10 @@ func (i *IntentCheckConflictAndCreateIdenity) ReactTo(ctx context.Context, deps 
 			if err != nil {
 				return nil, err
 			}
-			return authflow.NewNodeSimple(&NodeDoCreateIdentity{
-				Identity: info,
-			}), nil
+			return NewNodeDoCreateIdentityReactToResult(ctx, deps, NodeDoCreateIdentityOptions{
+				SkipCreate: false,
+				Identity:   info,
+			})
 		} else {
 			return authflow.NewSubFlow(&IntentAccountLinking{
 				JSONPointer:          i.JSONPointer,

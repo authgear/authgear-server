@@ -3,6 +3,9 @@ package declarative
 import (
 	"context"
 
+	eventapi "github.com/authgear/authgear-server/pkg/api/event"
+	blocking "github.com/authgear/authgear-server/pkg/api/event/blocking"
+	"github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 )
@@ -11,15 +14,62 @@ func init() {
 	authflow.RegisterNode(&NodeDoCreateIdentity{})
 }
 
+type NodeDoCreateIdentityOptions struct {
+	SkipCreate bool
+	Identity   *identity.Info
+}
+
+func NewNodeDoCreateIdentity(ctx context.Context, deps *authenticationflow.Dependencies, opts NodeDoCreateIdentityOptions) (*NodeDoCreateIdentity, authflow.DelayedOneTimeFunction, error) {
+	n := &NodeDoCreateIdentity{
+		SkipCreate: opts.SkipCreate,
+		Identity:   opts.Identity,
+	}
+	payload := &blocking.AuthenticationPostIdentifiedBlockingEventPayload{
+		Identity:    n.Identity.ToModel(),
+		Constraints: nil,
+	}
+	e, err := deps.Events.PrepareBlockingEventWithTx(ctx, payload)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var delayedFunction authflow.DelayedOneTimeFunction = func(ctx context.Context, deps *authenticationflow.Dependencies) error {
+		err = deps.Events.DispatchEventWithoutTx(ctx, e)
+		if err != nil {
+			return err
+		}
+		n.IsPostIdentifiedInvoked = true
+		n.Constraints = payload.Constraints
+		return nil
+	}
+
+	return n, delayedFunction, nil
+}
+
+func NewNodeDoCreateIdentityReactToResult(ctx context.Context, deps *authenticationflow.Dependencies, opts NodeDoCreateIdentityOptions) (authenticationflow.ReactToResult, error) {
+	node, delayedFunction, err := NewNodeDoCreateIdentity(ctx, deps, opts)
+	if err != nil {
+		return nil, err
+	}
+
+	return &authenticationflow.NodeWithDelayedOneTimeFunction{
+		Node:                   authenticationflow.NewNodeSimple(node),
+		DelayedOneTimeFunction: delayedFunction,
+	}, nil
+}
+
 type NodeDoCreateIdentity struct {
-	SkipCreate bool           `json:"skip_create,omitempty"`
-	Identity   *identity.Info `json:"identity,omitempty"`
+	SkipCreate              bool                  `json:"skip_create,omitempty"`
+	Identity                *identity.Info        `json:"identity,omitempty"`
+	IsPostIdentifiedInvoked bool                  `json:"is_post_identified_invoked"`
+	Constraints             *eventapi.Constraints `json:"constraints,omitempty"`
 }
 
 var _ authflow.NodeSimple = &NodeDoCreateIdentity{}
 var _ authflow.Milestone = &NodeDoCreateIdentity{}
 var _ MilestoneDoCreateIdentity = &NodeDoCreateIdentity{}
 var _ authflow.EffectGetter = &NodeDoCreateIdentity{}
+var _ authflow.InputReactor = &NodeDoCreateIdentity{}
 
 func (n *NodeDoCreateIdentity) Kind() string {
 	return "NodeDoCreateIdentity"
@@ -34,6 +84,17 @@ func (n *NodeDoCreateIdentity) MilestoneDoCreateIdentitySkipCreate() {
 }
 func (n *NodeDoCreateIdentity) MilestoneDoCreateIdentityUpdate(newInfo *identity.Info) {
 	n.Identity = newInfo
+}
+
+func (n *NodeDoCreateIdentity) CanReactTo(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows) (authenticationflow.InputSchema, error) {
+	if n.IsPostIdentifiedInvoked {
+		return nil, authflow.ErrEOF
+	}
+	return nil, authflow.ErrPauseAndRetryAccept
+}
+
+func (n *NodeDoCreateIdentity) ReactTo(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows, input authenticationflow.Input) (authenticationflow.ReactToResult, error) {
+	return nil, authflow.ErrEOF
 }
 
 func (n *NodeDoCreateIdentity) GetEffects(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (effs []authflow.Effect, err error) {

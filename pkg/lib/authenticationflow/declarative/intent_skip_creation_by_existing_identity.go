@@ -58,8 +58,8 @@ func (n *IntentSkipCreationByExistingIdentity) CanReactTo(ctx context.Context, d
 }
 
 func (n *IntentSkipCreationByExistingIdentity) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (authflow.ReactToResult, error) {
-	return authflow.NewNodeSimple(&NodeDoCreateIdentity{
+	return NewNodeDoCreateIdentityReactToResult(ctx, deps, NodeDoCreateIdentityOptions{
 		Identity:   n.Identity,
 		SkipCreate: true,
-	}), nil
+	})
 }
