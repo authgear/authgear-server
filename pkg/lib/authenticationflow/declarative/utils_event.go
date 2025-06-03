@@ -39,12 +39,12 @@ func GetAuthenticationContext(ctx context.Context, flows authenticationflow.Flow
 		return nil, err
 	}
 
-	assertedAuthenticators, err := collectAuthenticators(ctx, deps, flows)
+	assertedAuthenticators, err := collectAssertedAuthenticators(ctx, deps, flows)
 	if err != nil {
 		return nil, err
 	}
 
-	assertedIdentities, err := collectIdentities(ctx, deps, flows)
+	assertedIdentities, err := collectAssertedIdentities(ctx, deps, flows)
 	if err != nil {
 		return nil, err
 	}
@@ -67,13 +67,16 @@ func GetAuthenticationContext(ctx context.Context, flows authenticationflow.Flow
 	return authCtx, nil
 }
 
-func collectAuthenticators(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows) (authenticators []*authenticator.Info, err error) {
+func collectAssertedAuthenticators(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows) (authenticators []*authenticator.Info, err error) {
 	err = authenticationflow.TraverseFlow(authenticationflow.Traverser{
 		NodeSimple: func(nodeSimple authenticationflow.NodeSimple, w *authenticationflow.Flow) error {
 			if n, ok := nodeSimple.(MilestoneDidAuthenticate); ok {
 				if info, ok := n.MilestoneDidAuthenticateAuthenticator(); ok {
 					authenticators = append(authenticators, info)
 				}
+			}
+			if n, ok := nodeSimple.(MilestoneDoCreateAuthenticator); ok {
+				authenticators = append(authenticators, n.MilestoneDoCreateAuthenticator())
 			}
 			return nil
 		},
@@ -82,6 +85,9 @@ func collectAuthenticators(ctx context.Context, deps *authenticationflow.Depende
 				if info, ok := i.MilestoneDidAuthenticateAuthenticator(); ok {
 					authenticators = append(authenticators, info)
 				}
+			}
+			if i, ok := intent.(MilestoneDoCreateAuthenticator); ok {
+				authenticators = append(authenticators, i.MilestoneDoCreateAuthenticator())
 			}
 			return nil
 		},
@@ -94,17 +100,23 @@ func collectAuthenticators(ctx context.Context, deps *authenticationflow.Depende
 	return
 }
 
-func collectIdentities(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows) (identities []*identity.Info, err error) {
+func collectAssertedIdentities(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows) (identities []*identity.Info, err error) {
 	err = authenticationflow.TraverseFlow(authenticationflow.Traverser{
 		NodeSimple: func(nodeSimple authenticationflow.NodeSimple, w *authenticationflow.Flow) error {
 			if n, ok := nodeSimple.(MilestoneDoUseIdentity); ok {
 				identities = append(identities, n.MilestoneDoUseIdentity())
+			}
+			if n, ok := nodeSimple.(MilestoneDoCreateIdentity); ok {
+				identities = append(identities, n.MilestoneDoCreateIdentity())
 			}
 			return nil
 		},
 		Intent: func(intent authenticationflow.Intent, w *authenticationflow.Flow) error {
 			if i, ok := intent.(MilestoneDoUseIdentity); ok {
 				identities = append(identities, i.MilestoneDoUseIdentity())
+			}
+			if i, ok := intent.(MilestoneDoCreateIdentity); ok {
+				identities = append(identities, i.MilestoneDoCreateIdentity())
 			}
 			return nil
 		},
