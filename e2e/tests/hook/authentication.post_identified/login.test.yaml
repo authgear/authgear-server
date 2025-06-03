@@ -1,0 +1,55 @@
+name: Login blocked by authentication.post_identified
+authgear.yaml:
+  override: |
+    hook:
+      blocking_handlers:
+      - event: authentication.post_identified
+        url: authgeardeno:///deno/notallowed.ts
+extra_files_directory: ./var
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "login",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "state_token": "[[string]]",
+          "type": "login",
+          "name": "default",
+          "action": {
+              "type": "identify",
+              "data": {
+                  "type": "identification_data",
+                  "options": "[[array]]"
+              }
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_login"
+      }
+    output:
+      error: |
+        {
+          "name": "Forbidden",
+          "reason": "WebHookDisallowed",
+          "code": 403,
+          "info": {
+            "event_type": "authentication.post_identified",
+            "reasons": [
+              {
+                "reason": "",
+                "title": ""
+              }
+            ]
+          }
+        }
