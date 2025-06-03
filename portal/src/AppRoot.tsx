@@ -194,7 +194,7 @@ const EditConfigurationScreen = lazy(
 const AppRoot: React.VFC = function AppRoot() {
   const { appID } = useParams() as { appID: string };
   const { setDisplayUnauthenticatedDialog } = useUnauthenticatedDialogContext();
-  const { showCustomSMSGateway, isAuthgearOnce } = useSystemConfig();
+  const { isAuthgearOnce } = useSystemConfig();
   const portalClient = usePortalClient();
   const client = useMemo(() => {
     const onLogout = () => {
@@ -846,16 +846,14 @@ const AppRoot: React.VFC = function AppRoot() {
                 </Suspense>
               }
             />
-            {showCustomSMSGateway ? (
-              <Route
-                path="sms-gateway"
-                element={
-                  <Suspense fallback={<ShowLoading />}>
-                    <SMSProviderConfigurationScreen />
-                  </Suspense>
-                }
-              />
-            ) : null}
+            <Route
+              path="sms-gateway"
+              element={
+                <Suspense fallback={<ShowLoading />}>
+                  <SMSProviderConfigurationScreen />
+                </Suspense>
+              }
+            />
             <Route
               path="endpoint-direct-access"
               element={

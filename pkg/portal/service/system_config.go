@@ -21,18 +21,17 @@ type ResourceManager interface {
 }
 
 type SystemConfigProvider struct {
-	AuthgearConfig                   *config.AuthgearConfig
-	AppConfig                        *config.AppConfig
-	SearchConfig                     *config.SearchConfig
-	AuditLogConfig                   *config.AuditLogConfig
-	AnalyticConfig                   *configlib.AnalyticConfig
-	GTMConfig                        *config.GoogleTagManagerConfig
-	FrontendSentryConfig             *config.PortalFrontendSentryConfig
-	PortalFeaturesConfig             *config.PortalFeaturesConfig
-	GlobalUIImplementation           configlib.GlobalUIImplementation
-	GlobalUISettingsImplementation   configlib.GlobalUISettingsImplementation
-	GlobalProjectWizardImplementaion configlib.ProjectWizardImplementaion
-	Resources                        ResourceManager
+	AuthgearConfig                 *config.AuthgearConfig
+	AppConfig                      *config.AppConfig
+	SearchConfig                   *config.SearchConfig
+	AuditLogConfig                 *config.AuditLogConfig
+	AnalyticConfig                 *configlib.AnalyticConfig
+	GTMConfig                      *config.GoogleTagManagerConfig
+	FrontendSentryConfig           *config.PortalFrontendSentryConfig
+	PortalFeaturesConfig           *config.PortalFeaturesConfig
+	GlobalUIImplementation         configlib.GlobalUIImplementation
+	GlobalUISettingsImplementation configlib.GlobalUISettingsImplementation
+	Resources                      ResourceManager
 }
 
 func (p *SystemConfigProvider) SystemConfig(ctx context.Context) (*model.SystemConfig, error) {
@@ -74,8 +73,6 @@ func (p *SystemConfigProvider) SystemConfig(ctx context.Context) (*model.SystemC
 		GTMContainerID:              p.GTMConfig.ContainerID,
 		UIImplementation:            string(p.GlobalUIImplementation),
 		UISettingsImplementation:    string(p.GlobalUISettingsImplementation),
-		ProjectWizardImplementation: string(p.GlobalProjectWizardImplementaion),
-		ShowCustomSMSGateway:        p.PortalFeaturesConfig.ShowCustomSMSGateway,
 	}, nil
 }
 

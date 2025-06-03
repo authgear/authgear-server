@@ -82,7 +82,6 @@ var DependencySet = wire.NewSet(
 		"AppHostSuffixes",
 		"UIImplementation",
 		"UISettingsImplementation",
-		"ProjectWizardImplementation",
 		"SAML",
 	),
 	wire.FieldsOf(new(*RequestProvider),
