@@ -6,16 +6,12 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"time"
 
 	"github.com/lib/pq"
-	"github.com/spf13/afero"
 	"sigs.k8s.io/yaml"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/util/filepathutil"
-	"github.com/authgear/authgear-server/pkg/util/resource"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
@@ -27,7 +23,7 @@ type CreateOptions struct {
 
 func Create(ctx context.Context, opt *CreateOptions) error {
 	// construct config source
-	data, err := constructConfigSourceData(opt.ResourceDir)
+	data, err := pack(opt.ResourceDir)
 	if err != nil {
 		return fmt.Errorf("invalid resource directory: %w", err)
 	}
@@ -98,47 +94,6 @@ func createConfigSource(ctx context.Context, tx *sql.Tx, appID string, data map[
 	}
 
 	return nil
-}
-
-func constructConfigSourceData(resourceDir string) (map[string]string, error) {
-	fs := afero.NewBasePathFs(afero.NewOsFs(), resourceDir)
-	appFs := &resource.LeveledAferoFs{Fs: fs, FsLevel: resource.FsLevelApp}
-
-	locations, err := resource.EnumerateAllLocations(appFs)
-	if err != nil {
-		return nil, err
-	}
-
-	manager := resource.NewManager(resource.DefaultRegistry, []resource.Fs{appFs})
-	var matches []resource.Location
-	for _, l := range locations {
-		for _, desc := range manager.Registry.Descriptors {
-			if _, ok := desc.MatchResource(l.Path); ok {
-				matches = append(matches, l)
-				break
-			}
-		}
-	}
-
-	// Read the files to construct config source data
-	dbData := make(map[string]string)
-	for _, l := range matches {
-		path := l.Path
-		f, err := fs.Open(l.Path)
-		if err != nil {
-			return nil, err
-		}
-		defer f.Close()
-		data, err := ioutil.ReadAll(f)
-		if err != nil {
-			return nil, err
-		}
-
-		str := base64.StdEncoding.EncodeToString(data)
-		dbData[filepathutil.EscapePath(path)] = str
-	}
-
-	return dbData, nil
 }
 
 func validateConfigSource(data map[string]string) error {
