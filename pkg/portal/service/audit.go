@@ -15,6 +15,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	portalsession "github.com/authgear/authgear-server/pkg/portal/session"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/geoip"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/intl"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -126,6 +127,12 @@ func (s *AuditService) makeContext(ctx context.Context, appID string, payload ev
 		HTTPReferer: s.Request.Header.Get("Referer"),
 	}
 
+	var geoIPCountryCode *string
+	geoipInfo, ok := geoip.IPString(string(s.RemoteIP))
+	if ok && geoipInfo.CountryCode != "" {
+		geoIPCountryCode = &geoipInfo.CountryCode
+	}
+
 	eventCtx := &event.Context{
 		Timestamp: s.Clock.NowUTC().Unix(),
 		// We do not populate UserID because the event is not about UserID.
@@ -134,6 +141,7 @@ func (s *AuditService) makeContext(ctx context.Context, appID string, payload ev
 		PreferredLanguages: preferredLanguageTags,
 		Language:           "",
 		IPAddress:          string(s.RemoteIP),
+		GeoLocationCode:    geoIPCountryCode,
 		UserAgent:          string(s.UserAgentString),
 		ClientID:           clientID,
 		AppID:              appID,
