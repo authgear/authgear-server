@@ -17,8 +17,6 @@ func GetAuthenticationContext(ctx context.Context, flows authenticationflow.Flow
 	var authenticationFlow *event.AuthenticationFlowContext
 	var u *model.User
 	var amr []string
-	var assertedAuthenticators []model.Authenticator
-	var assertedIdentities []model.Identity
 
 	flowRef := authenticationflow.FindCurrentFlowReference(flows.Root)
 	if flowRef != nil {
@@ -41,33 +39,32 @@ func GetAuthenticationContext(ctx context.Context, flows authenticationflow.Flow
 		return nil, err
 	}
 
-	auths, err := collectAuthenticators(ctx, deps, flows)
+	assertedAuthenticators, err := collectAuthenticators(ctx, deps, flows)
 	if err != nil {
 		return nil, err
 	}
 
-	assertedAuthenticators = make([]model.Authenticator, len(auths))
-	for i, info := range auths {
-		assertedAuthenticators[i] = info.ToModel()
-	}
-
-	ids, err := collectIdentities(ctx, deps, flows)
+	assertedIdentities, err := collectIdentities(ctx, deps, flows)
 	if err != nil {
 		return nil, err
 	}
 
-	assertedIdentities = make([]model.Identity, len(ids))
-	for i, info := range ids {
-		assertedIdentities[i] = info.ToModel()
-	}
-
-	return &event.AuthenticationContext{
+	authCtx := &event.AuthenticationContext{
 		AuthenticationFlow:     authenticationFlow,
 		User:                   u,
 		AMR:                    amr,
-		AssertedAuthenticators: assertedAuthenticators,
-		AssertedIdentities:     assertedIdentities,
-	}, nil
+		AssertedAuthenticators: []model.Authenticator{},
+		AssertedIdentities:     []model.Identity{},
+	}
+
+	for _, authn := range assertedAuthenticators {
+		authCtx.AddAssertedAuthenticator(authn.ToModel())
+	}
+	for _, iden := range assertedIdentities {
+		authCtx.AddAssertedIdentity(iden.ToModel())
+	}
+
+	return authCtx, nil
 }
 
 func collectAuthenticators(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows) (authenticators []*authenticator.Info, err error) {
@@ -94,18 +91,6 @@ func collectAuthenticators(ctx context.Context, deps *authenticationflow.Depende
 		return
 	}
 
-	// Deduplicate by Info.ID
-	seen := map[string]struct{}{}
-	var dedupedAuthenticators []*authenticator.Info
-	for _, info := range authenticators {
-		if _, ok := seen[info.ID]; ok {
-			continue
-		}
-		seen[info.ID] = struct{}{}
-		dedupedAuthenticators = append(dedupedAuthenticators, info)
-	}
-	authenticators = dedupedAuthenticators
-
 	return
 }
 
@@ -127,18 +112,6 @@ func collectIdentities(ctx context.Context, deps *authenticationflow.Dependencie
 	if err != nil {
 		return
 	}
-
-	// Deduplicate by Info.ID
-	seen := map[string]struct{}{}
-	var dedupedIdentities []*identity.Info
-	for _, info := range identities {
-		if _, ok := seen[info.ID]; ok {
-			continue
-		}
-		seen[info.ID] = struct{}{}
-		dedupedIdentities = append(dedupedIdentities, info)
-	}
-	identities = dedupedIdentities
 
 	return
 }
