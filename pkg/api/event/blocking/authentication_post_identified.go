@@ -12,7 +12,9 @@ const (
 )
 
 type AuthenticationPostIdentifiedBlockingEventPayload struct {
-	Identity    model.Identity     `json:"identity"`
+	Identity       model.Identity              `json:"identity"`
+	Authentication event.AuthenticationContext `json:"authentication"`
+
 	Constraints *event.Constraints `json:"-"`
 }
 
