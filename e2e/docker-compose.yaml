@@ -6,10 +6,15 @@ services:
       POSTGRES_USER: "postgres"
       POSTGRES_PASSWORD: "postgres"
     ports:
-    - "15432:5432"
+      - "15432:5432"
 
   redis:
     # Azure cache for Redis supports 6.0 only
     image: redis:6.0.20
     ports:
-    - "16379:6379"
+      - "16379:6379"
+
+  deno:
+    image: quay.io/theauthgear/authgear-deno:git-d45155d1627d
+    ports:
+      - "18090:8090"
