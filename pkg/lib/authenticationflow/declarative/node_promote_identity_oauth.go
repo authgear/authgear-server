@@ -86,7 +86,7 @@ func (n *NodePromoteIdentityOAuth) ReactTo(ctx context.Context, deps *authflow.D
 					return nil, err
 				}
 
-				return NewNodeDoCreateIdentityReactToResult(ctx, deps, NodeDoCreateIdentityOptions{
+				return NewNodeDoCreateIdentityReactToResult(ctx, flows, deps, NodeDoCreateIdentityOptions{
 					SkipCreate:   false,
 					Identity:     info,
 					IdentitySpec: spec,
