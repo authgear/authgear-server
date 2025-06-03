@@ -131,6 +131,7 @@ type MilestoneFlowAuthenticate interface {
 type MilestoneDidAuthenticate interface {
 	authflow.Milestone
 	MilestoneDidAuthenticate() (amr []string)
+	MilestoneDidAuthenticateAuthenticator() (*authenticator.Info, bool)
 }
 
 type MilestoneDoCreateSession interface {
