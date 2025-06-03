@@ -48,3 +48,6 @@ func (n *NodeDoUseAuthenticatorPasskey) MilestoneDidSelectAuthenticator() *authe
 func (n *NodeDoUseAuthenticatorPasskey) MilestoneDidAuthenticate() (amr []string) {
 	return n.Authenticator.AMR()
 }
+func (n *NodeDoUseAuthenticatorPasskey) MilestoneDidAuthenticateAuthenticator() (*authenticator.Info, bool) {
+	return n.Authenticator, true
+}

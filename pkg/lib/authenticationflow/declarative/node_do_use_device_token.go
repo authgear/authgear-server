@@ -2,6 +2,7 @@ package declarative
 
 import (
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
@@ -25,3 +26,6 @@ func (*NodeDoUseDeviceToken) MilestoneDidSelectAuthenticationMethod() config.Aut
 	return config.AuthenticationFlowAuthenticationDeviceToken
 }
 func (*NodeDoUseDeviceToken) MilestoneDidAuthenticate() (amr []string) { return }
+func (*NodeDoUseDeviceToken) MilestoneDidAuthenticateAuthenticator() (*authenticator.Info, bool) {
+	return nil, false
+}

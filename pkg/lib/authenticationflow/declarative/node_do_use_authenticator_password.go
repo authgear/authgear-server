@@ -40,6 +40,9 @@ func (n *NodeDoUseAuthenticatorPassword) MilestoneDidSelectAuthenticator() *auth
 func (n *NodeDoUseAuthenticatorPassword) MilestoneDidAuthenticate() (amr []string) {
 	return n.Authenticator.AMR()
 }
+func (n *NodeDoUseAuthenticatorPassword) MilestoneDidAuthenticateAuthenticator() (*authenticator.Info, bool) {
+	return n.Authenticator, true
+}
 func (n *NodeDoUseAuthenticatorPassword) MilestoneDidUseAuthenticationLockoutMethod() (config.AuthenticationLockoutMethod, bool) {
 	return config.AuthenticationLockoutMethodFromAuthenticatorType(n.Authenticator.Type)
 }
