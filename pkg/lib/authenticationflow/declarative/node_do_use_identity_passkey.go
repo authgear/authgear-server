@@ -105,3 +105,7 @@ func (n *NodeDoUseIdentityPasskey) MilestoneDidAuthenticate() (amr []string) {
 func (n *NodeDoUseIdentityPasskey) MilestoneGetIdentitySpecs() []*identity.Spec {
 	return n.NodeDoUseIdentity.MilestoneGetIdentitySpecs()
 }
+
+func (n *NodeDoUseIdentityPasskey) MilestoneDidAuthenticateAuthenticator() (*authenticator.Info, bool) {
+	return n.Authenticator, true
+}
