@@ -29,6 +29,7 @@ var _ = TestCaseSchema.Add("TestCase", `
 		"name": { "type": "string" },
 		"focus": { "type": "boolean" },
 		"authgear.yaml": { "$ref": "#/$defs/AuthgearYAMLSource" },
+		"extra_files_directory": { "type": "string" },
 		"steps": { "type": "array", "items": { "$ref": "#/$defs/Step" } },
 		"before": { "type": "array", "items": { "$ref": "#/$defs/BeforeHook" } }
 	},
