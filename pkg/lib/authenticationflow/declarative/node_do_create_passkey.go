@@ -12,7 +12,39 @@ func init() {
 	authflow.RegisterNode(&NodeDoCreatePasskey{})
 }
 
+type NodeDoCreatePasskeyOptions struct {
+	SkipCreate          bool
+	Identity            *identity.Info
+	Authenticator       *authenticator.Info
+	AttestationResponse []byte
+}
+
+func NewNodeDoCreatePasskeyReactToResult(ctx context.Context, deps *authflow.Dependencies, opts NodeDoCreatePasskeyOptions) (authflow.ReactToResult, error) {
+	nodeDoCreateIdentityOpts := NodeDoCreateIdentityOptions{
+		SkipCreate: opts.SkipCreate,
+		Identity:   opts.Identity,
+	}
+	doCreateIdenNode, delayedFunction, err := NewNodeDoCreateIdentity(ctx, deps, nodeDoCreateIdentityOpts)
+	if err != nil {
+		return nil, err
+	}
+
+	node := &NodeDoCreatePasskey{
+		NodeDoCreateIdentity: doCreateIdenNode,
+		SkipCreate:           opts.SkipCreate,
+		Identity:             opts.Identity,
+		Authenticator:        opts.Authenticator,
+		AttestationResponse:  opts.AttestationResponse,
+	}
+
+	return &authflow.NodeWithDelayedOneTimeFunction{
+		Node:                   authflow.NewNodeSimple(node),
+		DelayedOneTimeFunction: delayedFunction,
+	}, nil
+}
+
 type NodeDoCreatePasskey struct {
+	*NodeDoCreateIdentity
 	SkipCreate          bool                `json:"skip_create,omitempty"`
 	Identity            *identity.Info      `json:"identity,omitempty"`
 	Authenticator       *authenticator.Info `json:"authenticator,omitempty"`
@@ -22,6 +54,7 @@ type NodeDoCreatePasskey struct {
 var _ authflow.NodeSimple = &NodeDoCreatePasskey{}
 var _ authflow.EffectGetter = &NodeDoCreatePasskey{}
 var _ authflow.Milestone = &NodeDoCreatePasskey{}
+var _ authflow.InputReactor = &NodeDoCreatePasskey{}
 var _ MilestoneDoCreateIdentity = &NodeDoCreatePasskey{}
 var _ MilestoneDoCreateAuthenticator = &NodeDoCreatePasskey{}
 var _ MilestoneDoCreatePasskey = &NodeDoCreatePasskey{}
@@ -32,7 +65,7 @@ func (n *NodeDoCreatePasskey) Kind() string {
 
 func (*NodeDoCreatePasskey) Milestone() {}
 func (n *NodeDoCreatePasskey) MilestoneDoCreateIdentity() *identity.Info {
-	return n.Identity
+	return n.NodeDoCreateIdentity.MilestoneDoCreateIdentity()
 }
 func (n *NodeDoCreatePasskey) MilestoneDoCreateAuthenticator() *authenticator.Info {
 	return n.Authenticator
@@ -50,29 +83,36 @@ func (n *NodeDoCreatePasskey) MilestoneDoCreateIdentityUpdate(newInfo *identity.
 	panic("NodeDoCreatePasskey does not support update identity")
 }
 func (n *NodeDoCreatePasskey) MilestoneDoCreatePasskeyUpdateUserID(userID string) {
-	n.Identity = n.Identity.UpdateUserID(userID)
+	n.NodeDoCreateIdentity.Identity = n.NodeDoCreateIdentity.Identity.UpdateUserID(userID)
 	n.Authenticator = n.Authenticator.UpdateUserID(userID)
 }
 
+func (n *NodeDoCreatePasskey) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
+	return n.NodeDoCreateIdentity.CanReactTo(ctx, deps, flows)
+}
+
+func (n *NodeDoCreatePasskey) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (authflow.ReactToResult, error) {
+	return n.NodeDoCreateIdentity.ReactTo(ctx, deps, flows, input)
+}
 func (n *NodeDoCreatePasskey) GetEffects(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (effs []authflow.Effect, err error) {
-	if n.SkipCreate {
-		return nil, nil
+	effects, err := n.NodeDoCreateIdentity.GetEffects(ctx, deps, flows)
+	if err != nil {
+		return nil, err
 	}
 
-	return []authflow.Effect{
-		authflow.RunEffect(func(ctx context.Context, deps *authflow.Dependencies) error {
-			err := deps.Identities.Create(ctx, n.Identity)
-			if err != nil {
-				return err
-			}
+	if n.SkipCreate {
+		return effects, nil
+	}
 
-			return nil
-		}),
+	newEffects := []authflow.Effect{
 		authflow.RunEffect(func(ctx context.Context, deps *authflow.Dependencies) error {
 			return deps.Authenticators.Create(ctx, n.Authenticator, false)
 		}),
 		authflow.OnCommitEffect(func(ctx context.Context, deps *authflow.Dependencies) error {
 			return deps.PasskeyService.ConsumeAttestationResponse(ctx, n.AttestationResponse)
 		}),
-	}, nil
+	}
+
+	effects = append(effects, newEffects...)
+	return effects, nil
 }

@@ -5,7 +5,6 @@ import (
 
 	eventapi "github.com/authgear/authgear-server/pkg/api/event"
 	blocking "github.com/authgear/authgear-server/pkg/api/event/blocking"
-	"github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 )
@@ -20,7 +19,7 @@ type NodeDoCreateIdentityOptions struct {
 	IdentitySpec *identity.Spec
 }
 
-func NewNodeDoCreateIdentity(ctx context.Context, deps *authenticationflow.Dependencies, opts NodeDoCreateIdentityOptions) (*NodeDoCreateIdentity, authflow.DelayedOneTimeFunction, error) {
+func NewNodeDoCreateIdentity(ctx context.Context, deps *authflow.Dependencies, opts NodeDoCreateIdentityOptions) (*NodeDoCreateIdentity, authflow.DelayedOneTimeFunction, error) {
 	n := &NodeDoCreateIdentity{
 		SkipCreate:   opts.SkipCreate,
 		Identity:     opts.Identity,
@@ -35,7 +34,7 @@ func NewNodeDoCreateIdentity(ctx context.Context, deps *authenticationflow.Depen
 		return nil, nil, err
 	}
 
-	var delayedFunction authflow.DelayedOneTimeFunction = func(ctx context.Context, deps *authenticationflow.Dependencies) error {
+	var delayedFunction authflow.DelayedOneTimeFunction = func(ctx context.Context, deps *authflow.Dependencies) error {
 		err = deps.Events.DispatchEventWithoutTx(ctx, e)
 		if err != nil {
 			return err
@@ -48,14 +47,14 @@ func NewNodeDoCreateIdentity(ctx context.Context, deps *authenticationflow.Depen
 	return n, delayedFunction, nil
 }
 
-func NewNodeDoCreateIdentityReactToResult(ctx context.Context, deps *authenticationflow.Dependencies, opts NodeDoCreateIdentityOptions) (authenticationflow.ReactToResult, error) {
+func NewNodeDoCreateIdentityReactToResult(ctx context.Context, deps *authflow.Dependencies, opts NodeDoCreateIdentityOptions) (authflow.ReactToResult, error) {
 	node, delayedFunction, err := NewNodeDoCreateIdentity(ctx, deps, opts)
 	if err != nil {
 		return nil, err
 	}
 
-	return &authenticationflow.NodeWithDelayedOneTimeFunction{
-		Node:                   authenticationflow.NewNodeSimple(node),
+	return &authflow.NodeWithDelayedOneTimeFunction{
+		Node:                   authflow.NewNodeSimple(node),
 		DelayedOneTimeFunction: delayedFunction,
 	}, nil
 }
@@ -93,14 +92,14 @@ func (n *NodeDoCreateIdentity) MilestoneDoCreateIdentityUpdate(newInfo *identity
 	n.Identity = newInfo
 }
 
-func (n *NodeDoCreateIdentity) CanReactTo(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows) (authenticationflow.InputSchema, error) {
+func (n *NodeDoCreateIdentity) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
 	if n.IsPostIdentifiedInvoked {
 		return nil, authflow.ErrEOF
 	}
 	return nil, authflow.ErrPauseAndRetryAccept
 }
 
-func (n *NodeDoCreateIdentity) ReactTo(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows, input authenticationflow.Input) (authenticationflow.ReactToResult, error) {
+func (n *NodeDoCreateIdentity) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (authflow.ReactToResult, error) {
 	return nil, authflow.ErrEOF
 }
 
