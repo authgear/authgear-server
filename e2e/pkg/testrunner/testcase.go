@@ -41,10 +41,11 @@ type TestCase struct {
 	Path string `json:"path"`
 	// Applying focus to a test case will make it the only test case to run,
 	// mainly used for debugging new test cases.
-	Focus              bool               `json:"focus"`
-	AuthgearYAMLSource AuthgearYAMLSource `json:"authgear.yaml"`
-	Steps              []Step             `json:"steps"`
-	Before             []BeforeHook       `json:"before"`
+	Focus               bool               `json:"focus"`
+	AuthgearYAMLSource  AuthgearYAMLSource `json:"authgear.yaml"`
+	ExtraFilesDirectory string             `json:"extra_files_directory"`
+	Steps               []Step             `json:"steps"`
+	Before              []BeforeHook       `json:"before"`
 }
 
 func (tc *TestCase) FullName() string {

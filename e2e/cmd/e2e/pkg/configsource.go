@@ -19,7 +19,7 @@ import (
 
 var BuiltInConfigSourceDir = "./var"
 
-func (c *End2End) CreateApp(ctx context.Context, appID string, baseConfigSourceDir string, override string) error {
+func (c *End2End) CreateApp(ctx context.Context, appID string, baseConfigSourceDir string, override string, extraFilesDir string) error {
 	cfg, err := LoadConfigFromEnv()
 	if err != nil {
 		return err
@@ -28,6 +28,13 @@ func (c *End2End) CreateApp(ctx context.Context, appID string, baseConfigSourceD
 	configSourceDir, err := c.createTempConfigSource(ctx, appID, baseConfigSourceDir, override)
 	if err != nil {
 		return err
+	}
+
+	if extraFilesDir != "" {
+		err = cp.Copy(extraFilesDir, configSourceDir)
+		if err != nil {
+			return err
+		}
 	}
 
 	err = CreatePortalConfigSource(
