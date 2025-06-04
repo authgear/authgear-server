@@ -148,6 +148,14 @@ Mutations do NOT generate extra events to avoid infinite loop.
 
 Currently, only `standard_attributes`, `custom_attributes`, `roles` and `groups` of the user object are mutable.
 
+The following blocking events support mutations:
+
+- `user.pre_create`
+- `user.profile.pre_update`
+- `user.pre_schedule_deletion`
+- `user.pre_schedule_anonymization`
+- `oidc.jwt.pre_create`
+
 ## Blocking Event Authentication Constraints
 
 The `constraints` property in the response of blocking events can contain the following properties:
@@ -165,6 +173,7 @@ When multiple values are returned in `amr`, they are in AND condition. For examp
 
 The following blocking events support authentication constraints:
 
+- `authentication.pre_initialize`
 - `authentication.post_identified`
 - `authentication.pre_authenticated`
 
