@@ -14,7 +14,6 @@ func init() {
 type NodeDoUseIdentityWithUpdate struct {
 	*NodeDoUseIdentity
 	OldIdentityInfo *identity.Info `json:"old_identity_info,omitempty"`
-	NewIdentityInfo *identity.Info `json:"new_identity_info,omitempty"`
 }
 
 func NewNodeDoUseIdentityWithUpdate(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, oldIdentityInfo *identity.Info, spec *identity.Spec) (authflow.ReactToResult, error) {
@@ -33,7 +32,6 @@ func NewNodeDoUseIdentityWithUpdate(ctx context.Context, deps *authflow.Dependen
 	n := &NodeDoUseIdentityWithUpdate{
 		NodeDoUseIdentity: nodeDoUseIden,
 		OldIdentityInfo:   oldIdentityInfo,
-		NewIdentityInfo:   newIdentityInfo,
 	}
 
 	return &authflow.NodeWithDelayedOneTimeFunction{
@@ -63,7 +61,7 @@ func (n *NodeDoUseIdentityWithUpdate) ReactTo(ctx context.Context, deps *authflo
 
 func (*NodeDoUseIdentityWithUpdate) Milestone() {}
 func (n *NodeDoUseIdentityWithUpdate) MilestoneDoUseUser() string {
-	return n.NewIdentityInfo.UserID
+	return n.NodeDoUseIdentity.Identity.UserID
 }
 
 func (n *NodeDoUseIdentityWithUpdate) MilestoneDoUseIdentity() *identity.Info {
@@ -73,7 +71,7 @@ func (n *NodeDoUseIdentityWithUpdate) MilestoneDoUseIdentity() *identity.Info {
 func (n *NodeDoUseIdentityWithUpdate) GetEffects(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) ([]authflow.Effect, error) {
 	return []authflow.Effect{
 		authflow.RunEffect(func(ctx context.Context, deps *authflow.Dependencies) error {
-			return deps.Identities.Update(ctx, n.OldIdentityInfo, n.NewIdentityInfo)
+			return deps.Identities.Update(ctx, n.OldIdentityInfo, n.NodeDoUseIdentity.Identity)
 		}),
 	}, nil
 }

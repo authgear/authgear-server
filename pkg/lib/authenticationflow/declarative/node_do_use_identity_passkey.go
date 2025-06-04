@@ -16,17 +16,30 @@ func init() {
 type NodeDoUseIdentityPasskey struct {
 	*NodeDoUseIdentity
 	AssertionResponse []byte              `json:"assertion_response,omitempty"`
-	Identity          *identity.Info      `json:"identity,omitempty"`
 	Authenticator     *authenticator.Info `json:"authenticator,omitempty"`
 	RequireUpdate     bool                `json:"require_update,omitempty"`
 }
 
-func NewNodeDoUseIdentityPasskey(ctx context.Context, flows authflow.Flows, deps *authflow.Dependencies, n *NodeDoUseIdentityPasskey) (authenticationflow.ReactToResult, error) {
+type NodeDoUseIdentityPasskeyOptions struct {
+	Identity          *identity.Info
+	AssertionResponse []byte
+	Authenticator     *authenticator.Info
+	RequireUpdate     bool
+}
+
+func NewNodeDoUseIdentityPasskey(ctx context.Context, flows authflow.Flows, deps *authflow.Dependencies, opts *NodeDoUseIdentityPasskeyOptions) (authenticationflow.ReactToResult, error) {
 	nodeDoUseIden, delayedFn, err := NewNodeDoUseIdentity(ctx, flows, deps, &NodeDoUseIdentity{
-		Identity: n.Identity,
+		Identity: opts.Identity,
 	})
 	if err != nil {
 		return nil, err
+	}
+
+	n := &NodeDoUseIdentityPasskey{
+		NodeDoUseIdentity: nodeDoUseIden,
+		AssertionResponse: opts.AssertionResponse,
+		Authenticator:     opts.Authenticator,
+		RequireUpdate:     opts.RequireUpdate,
 	}
 
 	n.NodeDoUseIdentity = nodeDoUseIden
