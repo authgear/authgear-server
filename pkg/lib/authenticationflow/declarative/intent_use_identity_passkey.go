@@ -123,7 +123,7 @@ func (n *IntentUseIdentityPasskey) ReactTo(ctx context.Context, deps *authflow.D
 			return nil, err
 		}
 
-		result, err := NewNodeDoUseIdentityPasskey(ctx, flows, deps, &NodeDoUseIdentityPasskey{
+		result, err := NewNodeDoUseIdentityPasskey(ctx, flows, deps, &NodeDoUseIdentityPasskeyOptions{
 			AssertionResponse: assertionResponseBytes,
 			Identity:          exactMatch,
 			IdentitySpec:      identitySpec,
