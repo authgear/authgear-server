@@ -13,7 +13,7 @@ const (
 
 type AuthenticationPostIdentifiedBlockingEventPayload struct {
 	Identity    model.Identity     `json:"identity"`
-	Constraints *event.Constraints `json:"constraints,omitempty"`
+	Constraints *event.Constraints `json:"-"`
 }
 
 func (e *AuthenticationPostIdentifiedBlockingEventPayload) BlockingEventType() event.Type {
