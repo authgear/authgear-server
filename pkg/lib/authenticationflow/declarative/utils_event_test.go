@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	. "github.com/smartystreets/goconvey/convey"
+
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
@@ -13,7 +15,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
-	. "github.com/smartystreets/goconvey/convey"
 )
 
 // MockUserService is a mock implementation of authenticationflow.UserService
@@ -327,7 +328,7 @@ func TestGetAuthenticationContext(t *testing.T) {
 			So(result.AuthenticationFlow.Type, ShouldEqual, string(authenticationflow.FlowTypeSignup))
 			So(result.AuthenticationFlow.Name, ShouldEqual, "test_signup")
 			So(result.User, ShouldBeNil) // User should be nil in signup flow initially
-			So(result.AMR, ShouldBeEmpty)
+			So(result.AMR, ShouldResemble, []string{"pwd"})
 			So(result.AssertedAuthenticators, ShouldHaveLength, 1)
 			So(result.AssertedAuthenticators[0], ShouldResemble, assertedAuthenticator.ToModel())
 			So(result.AssertedIdentities, ShouldHaveLength, 1)
