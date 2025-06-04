@@ -33,8 +33,8 @@ func (e *AuthenticationPostIdentifiedBlockingEventPayload) GetTriggeredBy() even
 func (e *AuthenticationPostIdentifiedBlockingEventPayload) FillContext(ctx *event.Context) {}
 
 func (e *AuthenticationPostIdentifiedBlockingEventPayload) ApplyHookResponse(ctx context.Context, response event.HookResponse) event.ApplyHookResponseResult {
-	if response.Constraints.AMR != nil {
-		e.Constraints = &response.Constraints
+	if response.Constraints != nil {
+		e.Constraints = response.Constraints
 	}
 	return event.ApplyHookResponseResult{MutationsEverApplied: false}
 }
