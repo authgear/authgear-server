@@ -97,6 +97,17 @@ func TestGetAuthenticationContext(t *testing.T) {
 				},
 			}
 
+			// Add a second authenticator for MFA test
+			assertedAuthenticator2 := &authenticator.Info{
+				ID:        "test-authn-2",
+				UserID:    "test-user-1",
+				CreatedAt: fixedTime,
+				UpdatedAt: fixedTime,
+				Type:      model.AuthenticatorTypePassword,
+				Kind:      authenticator.KindPrimary,
+				Password:  &authenticator.Password{},
+			}
+
 			// Create a mock dependencies instance
 			mockDeps := &authenticationflow.Dependencies{
 				Users: &MockUserService{
@@ -178,6 +189,37 @@ func TestGetAuthenticationContext(t *testing.T) {
 										},
 									},
 								},
+								{
+									Type: authenticationflow.NodeTypeSubFlow,
+									SubFlow: &authenticationflow.Flow{
+										Intent: &declarative.IntentLoginFlowStepAuthenticate{
+											FlowReference: authenticationflow.FlowReference{},
+											StepName:      "stepauthenticate2",
+										},
+										Nodes: []authenticationflow.Node{
+											{
+												Type: authenticationflow.NodeTypeSubFlow,
+												SubFlow: &authenticationflow.Flow{
+													Intent: &declarative.IntentUseAuthenticatorPassword{},
+													Nodes: []authenticationflow.Node{
+														{
+															Type: authenticationflow.NodeTypeSimple,
+															Simple: &declarative.NodeDidSelectAuthenticator{
+																Authenticator: assertedAuthenticator2,
+															},
+														},
+														{
+															Type: authenticationflow.NodeTypeSimple,
+															Simple: &declarative.NodeDoUseAuthenticatorSimple{
+																Authenticator: assertedAuthenticator2,
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
 							},
 						},
 					},
@@ -192,9 +234,10 @@ func TestGetAuthenticationContext(t *testing.T) {
 			So(result.AuthenticationFlow.Type, ShouldEqual, string(authenticationflow.FlowTypeLogin))
 			So(result.AuthenticationFlow.Name, ShouldEqual, "test")
 			So(result.User, ShouldResemble, testUser)
-			So(result.AMR, ShouldResemble, []string{"otp"})
-			So(result.AssertedAuthenticators, ShouldHaveLength, 1)
-			So(result.AssertedAuthenticators[0], ShouldResemble, assertedAuthenticator.ToModel())
+			So(result.AMR, ShouldResemble, []string{"mfa", "otp", "pwd"})
+			So(result.AssertedAuthenticators, ShouldHaveLength, 2)
+			So(result.AssertedAuthenticators, ShouldContain, assertedAuthenticator.ToModel())
+			So(result.AssertedAuthenticators, ShouldContain, assertedAuthenticator2.ToModel())
 			So(result.AssertedIdentities, ShouldHaveLength, 1)
 			So(result.AssertedIdentities[0], ShouldResemble, assertedIdentity.ToModel())
 
