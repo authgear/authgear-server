@@ -188,6 +188,13 @@ Example response requiring MFA for authentication:
 }
 ```
 
+### Behavior on multiple hooks on the same event
+
+Technically, it is possible to have multiple hooks configured on a single event.
+
+In this case, hooks are called sequentially according to the order in the config. Only the last non null `constraints` returned from the hooks will be effective.
+
+
 ### Relationship with OIDC ID Token
 
 The generated ID Token is guaranteed to include all values in `constraints.amr` in the `amr` claim of the ID Token.
@@ -224,6 +231,12 @@ Example response with rate limit override:
 }
 ```
 
+### Behavior on multiple hooks on the same event
+
+Technically, it is possible to have multiple hooks configured on a single event.
+
+In this case, hooks are called sequentially according to the order in the config. Only the last non null `rate_limit` returned from the hooks will be effective.
+
 ## Using Blocking Event with Bot Protection
 
 The `bot_protection` property in the response of blocking events can contain the following properties:
@@ -247,6 +260,13 @@ Example response with bot protection override:
 ```
 
 This overrides the original `mode` of bot_protection in your config. Therefore, bot_protection will be turned on or off based on the returned mode.
+
+### Behavior on multiple hooks on the same event
+
+Technically, it is possible to have multiple hooks configured on a single event.
+
+In this case, hooks are called sequentially according to the order in the config. Only the last non null `bot_protection` returned from the hooks will be effective.
+
 
 # Non-blocking Events
 
