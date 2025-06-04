@@ -57,11 +57,23 @@ func collectAMR(ctx context.Context, deps *authflow.Dependencies, flows authflow
 			if n, ok := nodeSimple.(MilestoneDidAuthenticate); ok {
 				amr = append(amr, n.MilestoneDidAuthenticate()...)
 			}
+			if n, ok := nodeSimple.(MilestoneDoCreateAuthenticator); ok {
+				info := n.MilestoneDoCreateAuthenticator()
+				if info != nil {
+					amr = append(amr, info.AMR()...)
+				}
+			}
 			return nil
 		},
 		Intent: func(intent authflow.Intent, w *authflow.Flow) error {
 			if i, ok := intent.(MilestoneDidAuthenticate); ok {
 				amr = append(amr, i.MilestoneDidAuthenticate()...)
+			}
+			if i, ok := intent.(MilestoneDoCreateAuthenticator); ok {
+				info := i.MilestoneDoCreateAuthenticator()
+				if info != nil {
+					amr = append(amr, info.AMR()...)
+				}
 			}
 			return nil
 		},
