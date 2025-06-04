@@ -6,6 +6,7 @@ import (
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
@@ -52,15 +53,21 @@ func getUserID(flows authflow.Flows) (userID string, err error) {
 }
 
 func collectAMR(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (amr []string, err error) {
+	usedAuthenticatorIDs := map[string]struct{}{}
+
 	err = authflow.TraverseFlow(authflow.Traverser{
 		NodeSimple: func(nodeSimple authflow.NodeSimple, w *authflow.Flow) error {
 			if n, ok := nodeSimple.(MilestoneDidAuthenticate); ok {
 				amr = append(amr, n.MilestoneDidAuthenticate()...)
+				if authInfo, ok := n.MilestoneDidAuthenticateAuthenticator(); ok && authInfo != nil {
+					usedAuthenticatorIDs[authInfo.ID] = struct{}{}
+				}
 			}
 			if n, ok := nodeSimple.(MilestoneDoCreateAuthenticator); ok {
 				info := n.MilestoneDoCreateAuthenticator()
 				if info != nil {
 					amr = append(amr, info.AMR()...)
+					usedAuthenticatorIDs[info.ID] = struct{}{}
 				}
 			}
 			return nil
@@ -68,11 +75,15 @@ func collectAMR(ctx context.Context, deps *authflow.Dependencies, flows authflow
 		Intent: func(intent authflow.Intent, w *authflow.Flow) error {
 			if i, ok := intent.(MilestoneDidAuthenticate); ok {
 				amr = append(amr, i.MilestoneDidAuthenticate()...)
+				if authInfo, ok := i.MilestoneDidAuthenticateAuthenticator(); ok && authInfo != nil {
+					usedAuthenticatorIDs[authInfo.ID] = struct{}{}
+				}
 			}
 			if i, ok := intent.(MilestoneDoCreateAuthenticator); ok {
 				info := i.MilestoneDoCreateAuthenticator()
 				if info != nil {
 					amr = append(amr, info.AMR()...)
+					usedAuthenticatorIDs[info.ID] = struct{}{}
 				}
 			}
 			return nil
@@ -80,6 +91,10 @@ func collectAMR(ctx context.Context, deps *authflow.Dependencies, flows authflow
 	}, flows.Root)
 	if err != nil {
 		return
+	}
+
+	if len(usedAuthenticatorIDs) > 1 {
+		amr = append(amr, model.AMRMFA)
 	}
 
 	amr = slice.Deduplicate(amr)
