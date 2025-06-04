@@ -68,11 +68,11 @@ var HookResponseSchema = validation.NewSimpleSchema(`
 `)
 
 type HookResponse struct {
-	IsAllowed   bool        `json:"is_allowed"`
-	Title       string      `json:"title,omitempty"`
-	Reason      string      `json:"reason,omitempty"`
-	Mutations   Mutations   `json:"mutations,omitempty"`
-	Constraints Constraints `json:"constraints,omitempty"`
+	IsAllowed   bool         `json:"is_allowed"`
+	Title       string       `json:"title,omitempty"`
+	Reason      string       `json:"reason,omitempty"`
+	Mutations   Mutations    `json:"mutations,omitempty"`
+	Constraints *Constraints `json:"constraints,omitempty"`
 }
 
 type Constraints struct {
