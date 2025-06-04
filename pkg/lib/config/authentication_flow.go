@@ -286,6 +286,7 @@ var _ = Schema.Add("AuthenticationFlowLoginFlowStep", `
 				"required": ["one_of"],
 				"properties": {
 					"optional": { "type": "boolean" },
+					"show_until_amr_constraints_fulfilled": { "type": "boolean" },
 					"one_of": {
 						"type": "array",
 						"items": { "$ref": "#/$defs/AuthenticationFlowLoginFlowAuthenticate" }
@@ -1075,6 +1076,9 @@ type AuthenticationFlowLoginFlowStep struct {
 
 	// TargetStep is relevant when Type is change_password.
 	TargetStep string `json:"target_step,omitempty"`
+
+	// show_until_amr_constraints_fulfilled is relevant when Type is authenticate.
+	ShowUntilAMRConstraintsFulfilled *bool `json:"show_until_amr_constraints_fulfilled,omitempty"`
 }
 
 var (
@@ -1122,6 +1126,13 @@ func (s *AuthenticationFlowLoginFlowStep) GetSignupFlowOrLoginFlowOneOf() []Auth
 
 func (s *AuthenticationFlowLoginFlowStep) IsOptional() bool {
 	if s.Optional != nil && *s.Optional {
+		return true
+	}
+	return false
+}
+
+func (s *AuthenticationFlowLoginFlowStep) IsShowUntilAMRConstraintsFulfilled() bool {
+	if s.ShowUntilAMRConstraintsFulfilled != nil && *s.ShowUntilAMRConstraintsFulfilled {
 		return true
 	}
 	return false
