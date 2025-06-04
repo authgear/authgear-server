@@ -32,7 +32,6 @@ func NewNodeDoCreatePasskeyReactToResult(ctx context.Context, deps *authflow.Dep
 	node := &NodeDoCreatePasskey{
 		NodeDoCreateIdentity: doCreateIdenNode,
 		SkipCreate:           opts.SkipCreate,
-		Identity:             opts.Identity,
 		Authenticator:        opts.Authenticator,
 		AttestationResponse:  opts.AttestationResponse,
 	}
@@ -46,7 +45,6 @@ func NewNodeDoCreatePasskeyReactToResult(ctx context.Context, deps *authflow.Dep
 type NodeDoCreatePasskey struct {
 	*NodeDoCreateIdentity
 	SkipCreate          bool                `json:"skip_create,omitempty"`
-	Identity            *identity.Info      `json:"identity,omitempty"`
 	Authenticator       *authenticator.Info `json:"authenticator,omitempty"`
 	AttestationResponse []byte              `json:"attestation_response,omitempty"`
 }
