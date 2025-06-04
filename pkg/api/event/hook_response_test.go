@@ -127,7 +127,7 @@ func TestParseHookResponse(t *testing.T) {
 			}
 		}`, &HookResponse{
 			IsAllowed: true,
-			Constraints: Constraints{
+			Constraints: &Constraints{
 				AMR: []string{"pwd", "otp"},
 			},
 		})
@@ -153,7 +153,7 @@ func TestParseHookResponse(t *testing.T) {
 					},
 				},
 			},
-			Constraints: Constraints{
+			Constraints: &Constraints{
 				AMR: []string{"pwd"},
 			},
 		})
