@@ -26,7 +26,13 @@ func (e *AuthenticationPostIdentifiedBlockingEventPayload) BlockingEventType() e
 }
 
 func (e *AuthenticationPostIdentifiedBlockingEventPayload) UserID() string {
-	return e.Identity.UserID
+	if e.Identity != nil {
+		return e.Identity.UserID
+	}
+	if e.Authentication.User != nil {
+		return e.Authentication.User.ID
+	}
+	return ""
 }
 
 func (e *AuthenticationPostIdentifiedBlockingEventPayload) GetTriggeredBy() event.TriggeredByType {
