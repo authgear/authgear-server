@@ -9,6 +9,7 @@ import (
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 )
@@ -306,4 +307,9 @@ type MilestoneGetIdentitySpecs interface {
 type MilestoneContraintsProvider interface {
 	authflow.Milestone
 	MilestoneContraintsProvider() *event.Constraints
+}
+
+type MilestoneDidConsumeRecoveryCode interface {
+	authflow.Milestone
+	MilestoneDidConsumeRecoveryCode() *mfa.RecoveryCode
 }

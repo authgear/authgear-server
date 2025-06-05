@@ -6,11 +6,13 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
+	"github.com/authgear/authgear-server/pkg/util/setutil"
 	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
 func collectAMR(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (amr []string, err error) {
-	usedAuthenticatorIDs := map[string]struct{}{}
+	usedAuthenticatorIDs := setutil.Set[string]{}
+	usedRecoveryCodeIDs := setutil.Set[string]{}
 
 	err = authflow.TraverseFlow(authflow.Traverser{
 		NodeSimple: func(nodeSimple authflow.NodeSimple, w *authflow.Flow) error {
@@ -25,6 +27,12 @@ func collectAMR(ctx context.Context, deps *authflow.Dependencies, flows authflow
 				if info != nil {
 					amr = append(amr, info.AMR()...)
 					usedAuthenticatorIDs[info.ID] = struct{}{}
+				}
+			}
+			if n, ok := nodeSimple.(MilestoneDidConsumeRecoveryCode); ok {
+				rc := n.MilestoneDidConsumeRecoveryCode()
+				if rc != nil {
+					usedRecoveryCodeIDs[rc.ID] = struct{}{}
 				}
 			}
 			return nil
@@ -43,6 +51,12 @@ func collectAMR(ctx context.Context, deps *authflow.Dependencies, flows authflow
 					usedAuthenticatorIDs[info.ID] = struct{}{}
 				}
 			}
+			if i, ok := intent.(MilestoneDidConsumeRecoveryCode); ok {
+				rc := i.MilestoneDidConsumeRecoveryCode()
+				if rc != nil {
+					usedRecoveryCodeIDs[rc.ID] = struct{}{}
+				}
+			}
 			return nil
 		},
 	}, flows.Root)
@@ -51,6 +65,9 @@ func collectAMR(ctx context.Context, deps *authflow.Dependencies, flows authflow
 	}
 
 	if len(usedAuthenticatorIDs) > 1 {
+		amr = append(amr, model.AMRMFA)
+	} else if len(usedRecoveryCodeIDs) > 0 && len(usedAuthenticatorIDs) > 0 {
+		// Also count as MFA if the user has used one authenticator AND recovery code
 		amr = append(amr, model.AMRMFA)
 	}
 

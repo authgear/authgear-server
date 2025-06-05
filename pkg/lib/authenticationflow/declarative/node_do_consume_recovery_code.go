@@ -21,6 +21,7 @@ var _ authflow.NodeSimple = &NodeDoConsumeRecoveryCode{}
 var _ authflow.Milestone = &NodeDoConsumeRecoveryCode{}
 var _ MilestoneDidAuthenticate = &NodeDoConsumeRecoveryCode{}
 var _ MilestoneDidUseAuthenticationLockoutMethod = &NodeDoConsumeRecoveryCode{}
+var _ MilestoneDidConsumeRecoveryCode = &NodeDoConsumeRecoveryCode{}
 var _ authflow.EffectGetter = &NodeDoConsumeRecoveryCode{}
 
 func (*NodeDoConsumeRecoveryCode) Kind() string {
@@ -34,6 +35,9 @@ func (*NodeDoConsumeRecoveryCode) MilestoneDidAuthenticateAuthenticator() (*auth
 }
 func (*NodeDoConsumeRecoveryCode) MilestoneDidUseAuthenticationLockoutMethod() (config.AuthenticationLockoutMethod, bool) {
 	return config.AuthenticationLockoutMethodRecoveryCode, true
+}
+func (n *NodeDoConsumeRecoveryCode) MilestoneDidConsumeRecoveryCode() *mfa.RecoveryCode {
+	return n.RecoveryCode
 }
 
 func (n *NodeDoConsumeRecoveryCode) GetEffects(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) ([]authflow.Effect, error) {
