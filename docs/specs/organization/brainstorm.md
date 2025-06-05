@@ -85,6 +85,23 @@ organizations:
 
 https://openid.net/specs/openid-connect-core-1_0.html#ThirdPartyInitiatedLogin MUST BE implemented first.
 
+```mermaid
+sequenceDiagram
+    PortalAdmin ->> Portal: Invite user@example.com to myspa
+    Portal ->> Portal: Check if myspa has initiate_login_uri configured
+    Portal ->> Portal: myspa has initiate_login_uri=https://myspa.com/login
+    Portal ->> user@example.com: Send invitation email
+    user@example.com ->> myspa.com: Click the link and visit https://myspa.com/login
+    myspa.com ->> myspa.com: Call startAuthentication() with query parameters
+    myspa.com ->> user@example.com: Redirect to https://myproject.authgear.cloud/oauth2/authorize
+    user@example.com ->> myproject.authgear.cloud: Follow redirect
+    myproject.authgear.cloud ->> myproject.authgear.cloud: Authenticate the end-user
+    myproject.authgear.cloud ->> myproject.authgear.cloud: Process the query and run the organization joining logic
+    myproject.authgear.cloud ->> user@example.com: Redirect back to redirect_uri
+    user@example.com ->> myspa.com: Follow redirect
+    myspa.com ->> user@example.com: Display authenticated contents
+```
+
 The URL must be a HTTPS URL so most likely it is relevant to a web client application.
 
 Suppose the project `myapp` has set up `auth.myapp.com` as the custom domain of Authgear.
