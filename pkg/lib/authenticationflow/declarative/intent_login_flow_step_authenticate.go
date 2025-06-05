@@ -500,7 +500,7 @@ func (i *IntentLoginFlowStepAuthenticate) clone() *IntentLoginFlowStepAuthentica
 		UserID                           string
 		Options                          []AuthenticateOption
 		DeviceTokenEnabled               bool
-		ShowUntilAMRConstraintsFulfilled bool `json:"show_until_amr_constraints_fulfilled,omitempty"`
+		ShowUntilAMRConstraintsFulfilled bool
 	}{
 		FlowReference:                    i.FlowReference,
 		JSONPointer:                      i.JSONPointer,

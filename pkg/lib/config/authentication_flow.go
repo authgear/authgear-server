@@ -1307,6 +1307,9 @@ type AuthenticationFlowReauthFlowStep struct {
 
 	// OneOf is relevant when Type is identify or authenticate.
 	OneOf []*AuthenticationFlowReauthFlowOneOf `json:"one_of,omitempty"`
+
+	// show_until_amr_constraints_fulfilled is relevant when Type is authenticate.
+	ShowUntilAMRConstraintsFulfilled *bool `json:"show_until_amr_constraints_fulfilled,omitempty"`
 }
 
 var _ AuthenticationFlowObjectFlowStep = &AuthenticationFlowReauthFlowStep{}
@@ -1331,6 +1334,13 @@ func (s *AuthenticationFlowReauthFlowStep) GetOneOf() []AuthenticationFlowObject
 	default:
 		return nil
 	}
+}
+
+func (s *AuthenticationFlowReauthFlowStep) IsShowUntilAMRConstraintsFulfilled() bool {
+	if s.ShowUntilAMRConstraintsFulfilled != nil && *s.ShowUntilAMRConstraintsFulfilled {
+		return true
+	}
+	return false
 }
 
 type AuthenticationFlowReauthFlowOneOf struct {
