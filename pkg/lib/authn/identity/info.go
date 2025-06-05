@@ -430,3 +430,33 @@ func (i *Info) UpdateUserID(newUserID string) *Info {
 	}
 	return i
 }
+
+func (i *Info) ToIdentification() config.AuthenticationFlowIdentification {
+	switch i.Type {
+	case model.IdentityTypeLoginID:
+		switch i.LoginID.LoginIDType {
+		case model.LoginIDKeyTypeEmail:
+			return config.AuthenticationFlowIdentificationEmail
+		case model.LoginIDKeyTypePhone:
+			return config.AuthenticationFlowIdentificationPhone
+		case model.LoginIDKeyTypeUsername:
+			return config.AuthenticationFlowIdentificationUsername
+		default:
+			panic(fmt.Errorf("identity: unexpected login ID type: %s", i.LoginID.LoginIDType))
+		}
+	case model.IdentityTypeOAuth:
+		return config.AuthenticationFlowIdentificationOAuth
+	case model.IdentityTypePasskey:
+		return config.AuthenticationFlowIdentificationPasskey
+	case model.IdentityTypeLDAP:
+		return config.AuthenticationFlowIdentificationLDAP
+	case model.IdentityTypeAnonymous:
+		fallthrough
+	case model.IdentityTypeBiometric:
+		fallthrough
+	case model.IdentityTypeSIWE:
+		fallthrough
+	default:
+		panic(fmt.Errorf("identity: identity type %v has not corresponding identification value", i.Type))
+	}
+}

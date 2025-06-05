@@ -31,12 +31,14 @@ func NewNodeDoCreateIdentity(ctx context.Context, deps *authflow.Dependencies, f
 		return nil, nil, err
 	}
 
+	idenModel := n.Identity.ToModel()
 	// Include the identity of this node
-	authCtx.AddAssertedIdentity(n.Identity.ToModel())
+	authCtx.AddAssertedIdentity(idenModel)
 
 	payload := &blocking.AuthenticationPostIdentifiedBlockingEventPayload{
-		Identity:       n.Identity.ToModel(),
+		Identity:       &idenModel,
 		Constraints:    nil,
+		Identification: n.Identity.ToIdentification(),
 		Authentication: *authCtx,
 	}
 	e, err := deps.Events.PrepareBlockingEventWithTx(ctx, payload)
