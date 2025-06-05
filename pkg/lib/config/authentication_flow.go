@@ -117,7 +117,8 @@ var _ = Schema.Add("AuthenticationFlowSignupFlowStep", `
 					"one_of": {
 						"type": "array",
 						"items": { "$ref": "#/$defs/AuthenticationFlowSignupFlowAuthenticate" }
-					}
+					},
+					"show_until_amr_constraints_fulfilled": { "type": "boolean" }
 				}
 			}
 		},
@@ -915,6 +916,8 @@ type AuthenticationFlowSignupFlowStep struct {
 	TargetStep string `json:"target_step,omitempty"`
 	// UserProfile is relevant when Type is fill_in_user_profile.
 	UserProfile []*AuthenticationFlowSignupFlowUserProfile `json:"user_profile,omitempty"`
+	// show_until_amr_constraints_fulfilled is relevant when Type is create_authenticator.
+	ShowUntilAMRConstraintsFulfilled *bool `json:"show_until_amr_constraints_fulfilled,omitempty"`
 }
 
 var (
@@ -958,6 +961,13 @@ func (s *AuthenticationFlowSignupFlowStep) GetSignupFlowOrLoginFlowOneOf() []Aut
 	default:
 		return nil
 	}
+}
+
+func (s *AuthenticationFlowSignupFlowStep) IsShowUntilAMRConstraintsFulfilled() bool {
+	if s.ShowUntilAMRConstraintsFulfilled != nil && *s.ShowUntilAMRConstraintsFulfilled {
+		return true
+	}
+	return false
 }
 
 type AuthenticationFlowSignupFlowOneOf struct {

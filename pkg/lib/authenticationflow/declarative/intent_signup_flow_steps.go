@@ -82,13 +82,17 @@ func (i *IntentSignupFlowSteps) ReactTo(ctx context.Context, deps *authflow.Depe
 			UserID:      i.UserID,
 		}), nil
 	case config.AuthenticationFlowSignupFlowStepTypeCreateAuthenticator:
-		return authflow.NewSubFlow(&IntentSignupFlowStepCreateAuthenticator{
+		i, err := NewIntentSignupFlowStepCreateAuthenticator(ctx, deps, flows, &IntentSignupFlowStepCreateAuthenticator{
 			FlowReference:          i.FlowReference,
 			StepName:               step.Name,
 			JSONPointer:            authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
 			UserID:                 i.UserID,
 			IsUpdatingExistingUser: i.IsUpdatingExistingUser,
-		}), nil
+		})
+		if err != nil {
+			return nil, err
+		}
+		return authflow.NewSubFlow(i), nil
 	case config.AuthenticationFlowSignupFlowStepTypeViewRecoveryCode:
 		return authflow.NewSubFlow(NewIntentSignupFlowStepViewRecoveryCode(ctx, deps, &IntentSignupFlowStepViewRecoveryCode{
 			StepName:               step.Name,

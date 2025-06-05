@@ -49,6 +49,12 @@ type AuthenticateOption struct {
 	AMR []string `json:"amr,omitempty"`
 }
 
+var _ AMROption = AuthenticateOption{}
+
+func (o AuthenticateOption) GetAMR() []string {
+	return o.AMR
+}
+
 func (o *AuthenticateOption) ToOutput(ctx context.Context) AuthenticateOptionForOutput {
 	shdBypassBotProtection := ShouldExistingResultBypassBotProtectionRequirement(ctx)
 	if shdBypassBotProtection {

@@ -106,6 +106,19 @@ func findAMRContraints(flows authflow.Flows) ([]string, bool) {
 	return constraints, found
 }
 
+func remainingAMRConstraintsInFlow(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) ([]string, error) {
+	amrContraints, found := findAMRContraints(flows)
+	if !found {
+		return []string{}, nil
+	}
+	currentAMRs, err := collectAMR(ctx, deps, flows)
+	if err != nil {
+		return nil, err
+	}
+	remainingContrains := remainingAMRConstraints(amrContraints, currentAMRs)
+	return remainingContrains, nil
+}
+
 func remainingAMRConstraints(constraints []string, amrs []string) []string {
 	var unfulfilledConstraints []string
 	for _, c := range constraints {
@@ -116,17 +129,21 @@ func remainingAMRConstraints(constraints []string, amrs []string) []string {
 	return unfulfilledConstraints
 }
 
-func filterAuthenticateOptionsByAMRConstraint(options []AuthenticateOption, amrConstraints []string) []AuthenticateOption {
+type AMROption interface {
+	GetAMR() []string
+}
+
+func filterAMROptionsByAMRConstraint[T AMROption](options []T, amrConstraints []string) []T {
 	// Special case: mfa can be fulfilled by any authenticators
 	if len(amrConstraints) == 1 && amrConstraints[0] == model.AMRMFA {
 		return options
 	}
 
 	// If there are other contraints, the user can only choose options that can fulfil the remaining contraints
-	var newOptions []AuthenticateOption = []AuthenticateOption{}
+	var newOptions []T = []T{}
 	for _, option := range options {
 		option := option
-		for _, amr := range option.AMR {
+		for _, amr := range option.GetAMR() {
 			if slice.ContainsString(amrConstraints, amr) {
 				newOptions = append(newOptions, option)
 				break
