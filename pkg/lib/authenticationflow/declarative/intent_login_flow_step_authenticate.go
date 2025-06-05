@@ -12,7 +12,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
-	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
 type IntentLoginFlowStepAuthenticateTarget interface {
@@ -468,6 +467,11 @@ func (i *IntentLoginFlowStepAuthenticate) remainingAMRConstraints(ctx context.Co
 }
 
 func (i *IntentLoginFlowStepAuthenticate) newIntentLoginFlowStepAuthenticateForAMRConstraint(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.ReactToResult, error) {
+	current, err := i.currentFlowObject(deps)
+	if err != nil {
+		return nil, err
+	}
+	step := i.step(current)
 	subintent := i.clone()
 	remainingAMRs, err := i.remainingAMRConstraints(ctx, deps, flows)
 	if err != nil {
@@ -477,18 +481,13 @@ func (i *IntentLoginFlowStepAuthenticate) newIntentLoginFlowStepAuthenticateForA
 	subintent.ShowUntilAMRConstraintsFulfilled = false
 	// To fulfil AMR contraints, device tokens cannot be used
 	subintent.DeviceTokenEnabled = false
-	// The subflow should only contain options that can fulfill remaining amr
-	// TODO(tung): Filter out used authenticators for mfa
-	var newOptions []AuthenticateOption = []AuthenticateOption{}
-	for _, option := range i.Options {
-		option := option
-		for _, amr := range option.AMR {
-			if slice.ContainsString(remainingAMRs, amr) {
-				newOptions = append(newOptions, option)
-				break
-			}
-		}
+
+	options, _, err := getAuthenticationOptionsForLogin(ctx, deps, flows, i.UserID, step)
+	if err != nil {
+		return nil, err
 	}
+	// The subflow should only contain options that can fulfill remaining amr
+	newOptions := filterAuthenticateOptionsByAMRConstraint(options, remainingAMRs)
 	subintent.Options = newOptions
 	return authflow.NewSubFlow(subintent), nil
 }
