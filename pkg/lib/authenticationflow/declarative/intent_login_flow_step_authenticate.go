@@ -12,6 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
+	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
 type IntentLoginFlowStepAuthenticateTarget interface {
@@ -46,6 +47,8 @@ type IntentLoginFlowStepAuthenticate struct {
 	UserID             string                 `json:"user_id,omitempty"`
 	Options            []AuthenticateOption   `json:"options"`
 	DeviceTokenEnabled bool                   `json:"device_token_enabled"`
+
+	ShowUntilAMRConstraintsFulfilled bool `json:"show_until_amr_constraints_fulfilled,omitempty"`
 }
 
 var _ authflow.TargetStep = &IntentLoginFlowStepAuthenticate{}
@@ -99,6 +102,10 @@ func NewIntentLoginFlowStepAuthenticate(ctx context.Context, deps *authflow.Depe
 
 	i.Options = options
 	i.DeviceTokenEnabled = deviceTokenEnabled
+
+	if step.IsShowUntilAMRConstraintsFulfilled() {
+		i.ShowUntilAMRConstraintsFulfilled = true
+	}
 	return i, nil
 }
 
@@ -116,6 +123,19 @@ func (i *IntentLoginFlowStepAuthenticate) CanReactTo(ctx context.Context, deps *
 		return nil, err
 	}
 	step := i.step(current)
+
+	if i.ShowUntilAMRConstraintsFulfilled {
+		remainingAMRs, err := i.remainingAMRConstraints(ctx, deps, flows)
+		if err != nil {
+			return nil, err
+		}
+		// No remaining AMRs, end
+		if len(remainingAMRs) == 0 {
+			return nil, authflow.ErrEOF
+		}
+		// Let ReactTo create sub-authenticate steps
+		return nil, nil
+	}
 
 	_, _, deviceTokenInspected := authflow.FindMilestoneInCurrentFlow[MilestoneDeviceTokenInspected](flows)
 
@@ -187,6 +207,10 @@ func (i *IntentLoginFlowStepAuthenticate) ReactTo(ctx context.Context, deps *aut
 		return nil, err
 	}
 	step := i.step(current)
+
+	if i.ShowUntilAMRConstraintsFulfilled {
+		return i.newIntentLoginFlowStepAuthenticateForAMRConstraint(ctx, deps, flows)
+	}
 
 	_, _, deviceTokenInspected := authflow.FindMilestoneInCurrentFlow[MilestoneDeviceTokenInspected](flows)
 
@@ -396,7 +420,7 @@ func (i *IntentLoginFlowStepAuthenticate) currentFlowObject(deps *authflow.Depen
 	return current, nil
 }
 
-func (*IntentLoginFlowStepAuthenticate) step(o config.AuthenticationFlowObject) *config.AuthenticationFlowLoginFlowStep {
+func (i *IntentLoginFlowStepAuthenticate) step(o config.AuthenticationFlowObject) *config.AuthenticationFlowLoginFlowStep {
 	step, ok := o.(*config.AuthenticationFlowLoginFlowStep)
 	if !ok {
 		panic(fmt.Errorf("flow object is %T", o))
@@ -428,4 +452,65 @@ func (i *IntentLoginFlowStepAuthenticate) jsonPointer(step *config.Authenticatio
 	}
 
 	panic(fmt.Errorf("selected authentication method is not allowed"))
+}
+
+func (i *IntentLoginFlowStepAuthenticate) remainingAMRConstraints(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) ([]string, error) {
+	amrContraints, found := findAMRContraints(flows)
+	if !found {
+		return []string{}, nil
+	}
+	currentAMRs, err := collectAMR(ctx, deps, flows)
+	if err != nil {
+		return nil, err
+	}
+	remainingContrains := remainingAMRConstraints(amrContraints, currentAMRs)
+	return remainingContrains, nil
+}
+
+func (i *IntentLoginFlowStepAuthenticate) newIntentLoginFlowStepAuthenticateForAMRConstraint(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.ReactToResult, error) {
+	subintent := i.clone()
+	remainingAMRs, err := i.remainingAMRConstraints(ctx, deps, flows)
+	if err != nil {
+		return nil, err
+	}
+	// The subflow should not check constraints again
+	subintent.ShowUntilAMRConstraintsFulfilled = false
+	// To fulfil AMR contraints, device tokens cannot be used
+	subintent.DeviceTokenEnabled = false
+	// The subflow should only contain options that can fulfill remaining amr
+	// TODO(tung): Filter out used authenticators for mfa
+	var newOptions []AuthenticateOption = []AuthenticateOption{}
+	for _, option := range i.Options {
+		option := option
+		for _, amr := range option.AMR {
+			if slice.ContainsString(remainingAMRs, amr) {
+				newOptions = append(newOptions, option)
+				break
+			}
+		}
+	}
+	subintent.Options = newOptions
+	return authflow.NewSubFlow(subintent), nil
+}
+
+func (i *IntentLoginFlowStepAuthenticate) clone() *IntentLoginFlowStepAuthenticate {
+	s := struct {
+		FlowReference                    authflow.FlowReference
+		JSONPointer                      jsonpointer.T
+		StepName                         string
+		UserID                           string
+		Options                          []AuthenticateOption
+		DeviceTokenEnabled               bool
+		ShowUntilAMRConstraintsFulfilled bool `json:"show_until_amr_constraints_fulfilled,omitempty"`
+	}{
+		FlowReference:                    i.FlowReference,
+		JSONPointer:                      i.JSONPointer,
+		StepName:                         i.StepName,
+		UserID:                           i.UserID,
+		Options:                          i.Options,
+		DeviceTokenEnabled:               i.DeviceTokenEnabled,
+		ShowUntilAMRConstraintsFulfilled: i.ShowUntilAMRConstraintsFulfilled,
+	}
+	cloned := IntentLoginFlowStepAuthenticate(s)
+	return &cloned
 }

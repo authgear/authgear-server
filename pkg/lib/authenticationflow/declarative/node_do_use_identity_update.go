@@ -48,6 +48,7 @@ var _ authflow.InputReactor = &NodeDoUseIdentityWithUpdate{}
 var _ MilestoneDoUseUser = &NodeDoUseIdentityWithUpdate{}
 var _ MilestoneDoUseIdentity = &NodeDoUseIdentityWithUpdate{}
 var _ MilestoneGetIdentitySpecs = &NodeDoUseIdentityWithUpdate{}
+var _ MilestoneContraintsProvider = &NodeDoUseIdentityWithUpdate{}
 
 func (*NodeDoUseIdentityWithUpdate) Kind() string {
 	return "NodeDoUseIdentityWithUpdate"

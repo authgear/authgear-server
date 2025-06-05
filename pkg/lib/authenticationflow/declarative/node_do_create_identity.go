@@ -83,9 +83,14 @@ var _ MilestoneDoCreateIdentity = &NodeDoCreateIdentity{}
 var _ MilestoneGetIdentitySpecs = &NodeDoCreateIdentity{}
 var _ authflow.EffectGetter = &NodeDoCreateIdentity{}
 var _ authflow.InputReactor = &NodeDoCreateIdentity{}
+var _ MilestoneContraintsProvider = &NodeDoCreateIdentity{}
 
 func (n *NodeDoCreateIdentity) Kind() string {
 	return "NodeDoCreateIdentity"
+}
+
+func (n *NodeDoCreateIdentity) MilestoneContraintsProvider() *eventapi.Constraints {
+	return n.Constraints
 }
 
 func (*NodeDoCreateIdentity) Milestone() {}
