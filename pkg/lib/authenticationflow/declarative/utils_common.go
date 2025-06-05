@@ -423,6 +423,15 @@ func getAuthenticationOptionsForLogin(ctx context.Context, deps *authflow.Depend
 
 // nolint:gocognit
 func getAuthenticationOptionsForReauth(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, userID string, step *config.AuthenticationFlowReauthFlowStep) ([]AuthenticateOption, error) {
+	assertedAuthn, err := collectAssertedAuthenticators(flows)
+	if err != nil {
+		return nil, err
+	}
+
+	assertedAuthenticatorIDs := setutil.NewSetFromSlice(assertedAuthn, func(a *authenticator.Info) string {
+		return a.ID
+	})
+
 	options := []AuthenticateOption{}
 
 	identities, err := deps.Identities.ListByUser(ctx, userID)
@@ -434,6 +443,9 @@ func getAuthenticationOptionsForReauth(ctx context.Context, deps *authflow.Depen
 	if err != nil {
 		return nil, err
 	}
+	authenticators = authenticator.ApplyFilters(authenticators, authenticator.FilterFunc(func(ai *authenticator.Info) bool {
+		return !assertedAuthenticatorIDs.Has(ai.ID)
+	}))
 
 	checkHasAuthenticator := func(kind model.AuthenticatorKind, typ model.AuthenticatorType) bool {
 		as := authenticator.ApplyFilters(
