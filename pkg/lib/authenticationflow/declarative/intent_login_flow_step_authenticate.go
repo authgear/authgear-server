@@ -124,7 +124,7 @@ func (i *IntentLoginFlowStepAuthenticate) CanReactTo(ctx context.Context, deps *
 	step := i.step(current)
 
 	if i.ShowUntilAMRConstraintsFulfilled {
-		remainingAMRs, err := i.remainingAMRConstraints(ctx, deps, flows)
+		remainingAMRs, err := remainingAMRConstraintsInFlow(ctx, deps, flows)
 		if err != nil {
 			return nil, err
 		}
@@ -453,19 +453,6 @@ func (i *IntentLoginFlowStepAuthenticate) jsonPointer(step *config.Authenticatio
 	panic(fmt.Errorf("selected authentication method is not allowed"))
 }
 
-func (i *IntentLoginFlowStepAuthenticate) remainingAMRConstraints(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) ([]string, error) {
-	amrContraints, found := findAMRContraints(flows)
-	if !found {
-		return []string{}, nil
-	}
-	currentAMRs, err := collectAMR(ctx, deps, flows)
-	if err != nil {
-		return nil, err
-	}
-	remainingContrains := remainingAMRConstraints(amrContraints, currentAMRs)
-	return remainingContrains, nil
-}
-
 func (i *IntentLoginFlowStepAuthenticate) newIntentLoginFlowStepAuthenticateForAMRConstraint(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.ReactToResult, error) {
 	current, err := i.currentFlowObject(deps)
 	if err != nil {
@@ -473,7 +460,7 @@ func (i *IntentLoginFlowStepAuthenticate) newIntentLoginFlowStepAuthenticateForA
 	}
 	step := i.step(current)
 	subintent := i.clone()
-	remainingAMRs, err := i.remainingAMRConstraints(ctx, deps, flows)
+	remainingAMRs, err := remainingAMRConstraintsInFlow(ctx, deps, flows)
 	if err != nil {
 		return nil, err
 	}
@@ -487,7 +474,7 @@ func (i *IntentLoginFlowStepAuthenticate) newIntentLoginFlowStepAuthenticateForA
 		return nil, err
 	}
 	// The subflow should only contain options that can fulfill remaining amr
-	newOptions := filterAuthenticateOptionsByAMRConstraint(options, remainingAMRs)
+	newOptions := filterAMROptionsByAMRConstraint(options, remainingAMRs)
 	subintent.Options = newOptions
 	return authflow.NewSubFlow(subintent), nil
 }

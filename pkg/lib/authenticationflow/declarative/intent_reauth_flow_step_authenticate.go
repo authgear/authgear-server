@@ -69,7 +69,7 @@ func (*IntentReauthFlowStepAuthenticate) Kind() string {
 
 func (i *IntentReauthFlowStepAuthenticate) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
 	if i.ShowUntilAMRConstraintsFulfilled {
-		remainingAMRs, err := i.remainingAMRConstraints(ctx, deps, flows)
+		remainingAMRs, err := remainingAMRConstraintsInFlow(ctx, deps, flows)
 		if err != nil {
 			return nil, err
 		}
@@ -308,19 +308,6 @@ func (i *IntentReauthFlowStepAuthenticate) currentFlowObject(deps *authflow.Depe
 	return current, nil
 }
 
-func (i *IntentReauthFlowStepAuthenticate) remainingAMRConstraints(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) ([]string, error) {
-	amrContraints, found := findAMRContraints(flows)
-	if !found {
-		return []string{}, nil
-	}
-	currentAMRs, err := collectAMR(ctx, deps, flows)
-	if err != nil {
-		return nil, err
-	}
-	remainingContrains := remainingAMRConstraints(amrContraints, currentAMRs)
-	return remainingContrains, nil
-}
-
 func (i *IntentReauthFlowStepAuthenticate) clone() *IntentReauthFlowStepAuthenticate {
 	s := struct {
 		FlowReference                    authflow.FlowReference
@@ -348,7 +335,7 @@ func (i *IntentReauthFlowStepAuthenticate) newIntentReauthFlowStepAuthenticateFo
 	}
 	step := i.step(current)
 	subintent := i.clone()
-	remainingAMRs, err := i.remainingAMRConstraints(ctx, deps, flows)
+	remainingAMRs, err := remainingAMRConstraintsInFlow(ctx, deps, flows)
 	if err != nil {
 		return nil, err
 	}
@@ -360,7 +347,7 @@ func (i *IntentReauthFlowStepAuthenticate) newIntentReauthFlowStepAuthenticateFo
 		return nil, err
 	}
 	// The subflow should only contain options that can fulfill remaining amr
-	newOptions := filterAuthenticateOptionsByAMRConstraint(options, remainingAMRs)
+	newOptions := filterAMROptionsByAMRConstraint(options, remainingAMRs)
 	subintent.Options = newOptions
 	return authflow.NewSubFlow(subintent), nil
 }

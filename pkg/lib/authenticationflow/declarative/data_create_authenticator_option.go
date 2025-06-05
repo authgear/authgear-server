@@ -5,6 +5,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
@@ -60,6 +61,13 @@ type CreateAuthenticatorOption struct {
 type CreateAuthenticatorOptionInternal struct {
 	CreateAuthenticatorOption
 	UnmaskedTarget string
+	AMR            []string
+}
+
+var _ AMROption = CreateAuthenticatorOptionInternal{}
+
+func (o CreateAuthenticatorOptionInternal) GetAMR() []string {
+	return o.AMR
 }
 
 type CreateAuthenticatorTarget struct {
@@ -126,6 +134,7 @@ func NewCreateAuthenticationOptions(
 					PasswordPolicy: passwordPolicy,
 					BotProtection:  GetBotProtectionData(b.GetBotProtectionConfig(), deps.Config.BotProtection),
 				},
+				AMR: authenticator.AMR(model.AuthenticatorTypePassword),
 			})
 		case config.AuthenticationFlowAuthenticationPrimaryPasskey:
 			// Cannot create passkey in this step.
@@ -145,7 +154,6 @@ func NewCreateAuthenticationOptions(
 			channels := getChannels(model.ClaimEmail, deps.Config.Authenticator.OOB)
 			otpForm := getOTPForm(purpose, model.ClaimEmail, deps.Config.Authenticator.OOB.Email)
 			options = append(options, CreateAuthenticatorOptionInternal{
-				UnmaskedTarget: unmaskedTarget,
 				CreateAuthenticatorOption: CreateAuthenticatorOption{
 					Authentication: b.GetAuthentication(),
 					OTPForm:        otpForm,
@@ -153,6 +161,8 @@ func NewCreateAuthenticationOptions(
 					Target:         target,
 					BotProtection:  GetBotProtectionData(b.GetBotProtectionConfig(), deps.Config.BotProtection),
 				},
+				UnmaskedTarget: unmaskedTarget,
+				AMR:            authenticator.AMR(model.AuthenticatorTypeOOBEmail),
 			})
 		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
 			fallthrough
@@ -177,6 +187,7 @@ func NewCreateAuthenticationOptions(
 					BotProtection:  GetBotProtectionData(b.GetBotProtectionConfig(), deps.Config.BotProtection),
 				},
 				UnmaskedTarget: unmaskedTarget,
+				AMR:            authenticator.AMR(model.AuthenticatorTypeOOBSMS),
 			})
 		case config.AuthenticationFlowAuthenticationSecondaryTOTP:
 			options = append(options, CreateAuthenticatorOptionInternal{
@@ -184,6 +195,7 @@ func NewCreateAuthenticationOptions(
 					Authentication: b.GetAuthentication(),
 					BotProtection:  GetBotProtectionData(b.GetBotProtectionConfig(), deps.Config.BotProtection),
 				},
+				AMR: authenticator.AMR(model.AuthenticatorTypeTOTP),
 			})
 		case config.AuthenticationFlowAuthenticationRecoveryCode:
 			// Recovery code is not created in this step.
