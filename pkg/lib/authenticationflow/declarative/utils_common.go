@@ -20,6 +20,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/phone"
+	"github.com/authgear/authgear-server/pkg/util/setutil"
 	"github.com/authgear/authgear-server/pkg/util/stringutil"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
@@ -206,6 +207,16 @@ func getAuthenticationOptionsForLogin(ctx context.Context, deps *authflow.Depend
 	deviceTokenEnabled bool,
 	err error,
 ) {
+
+	assertedAuthn, err := collectAssertedAuthenticators(flows)
+	if err != nil {
+		return nil, false, err
+	}
+
+	assertedAuthenticatorIDs := setutil.NewSetFromSlice(assertedAuthn, func(a *authenticator.Info) string {
+		return a.ID
+	})
+
 	options = []AuthenticateOption{}
 
 	identities, err := deps.Identities.ListByUser(ctx, userID)
@@ -217,6 +228,9 @@ func getAuthenticationOptionsForLogin(ctx context.Context, deps *authflow.Depend
 	if err != nil {
 		return nil, false, err
 	}
+	authenticators = authenticator.ApplyFilters(authenticators, authenticator.FilterFunc(func(ai *authenticator.Info) bool {
+		return !assertedAuthenticatorIDs.Has(ai.ID)
+	}))
 
 	secondaryAuthenticators := authenticator.ApplyFilters(authenticators, authenticator.KeepKind(model.AuthenticatorKindSecondary))
 	userRecoveryCodes, err := deps.MFA.ListRecoveryCodes(ctx, userID)

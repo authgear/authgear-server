@@ -98,3 +98,24 @@ func remainingAMRConstraints(constraints []string, amrs []string) []string {
 	}
 	return unfulfilledConstraints
 }
+
+func filterAuthenticateOptionsByAMRConstraint(options []AuthenticateOption, amrConstraints []string) []AuthenticateOption {
+	// Special case: mfa can be fulfilled by any authenticators
+	if len(amrConstraints) == 1 && amrConstraints[0] == model.AMRMFA {
+		return options
+	}
+
+	// If there are other contraints, the user can only choose options that can fulfil the remaining contraints
+	var newOptions []AuthenticateOption = []AuthenticateOption{}
+	for _, option := range options {
+		option := option
+		for _, amr := range option.AMR {
+			if slice.ContainsString(amrConstraints, amr) {
+				newOptions = append(newOptions, option)
+				break
+			}
+		}
+	}
+
+	return newOptions
+}
