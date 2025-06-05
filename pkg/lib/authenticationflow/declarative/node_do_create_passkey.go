@@ -54,6 +54,7 @@ var _ authflow.InputReactor = &NodeDoCreatePasskey{}
 var _ MilestoneDoCreateIdentity = &NodeDoCreatePasskey{}
 var _ MilestoneDoCreateAuthenticator = &NodeDoCreatePasskey{}
 var _ MilestoneDoCreatePasskey = &NodeDoCreatePasskey{}
+var _ MilestoneContraintsProvider = &NodeDoCreatePasskey{}
 
 func (n *NodeDoCreatePasskey) Kind() string {
 	return "NodeDoCreatePasskey"
