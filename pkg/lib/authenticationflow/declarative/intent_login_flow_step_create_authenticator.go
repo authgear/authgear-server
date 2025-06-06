@@ -58,6 +58,7 @@ var _ authflow.Intent = &IntentLoginFlowStepCreateAuthenticator{}
 var _ authflow.DataOutputer = &IntentLoginFlowStepCreateAuthenticator{}
 var _ authflow.Milestone = &IntentLoginFlowStepCreateAuthenticator{}
 var _ MilestoneSwitchToExistingUser = &IntentLoginFlowStepCreateAuthenticator{}
+var _ MilestoneFlowCreateAuthenticator = &IntentLoginFlowStepCreateAuthenticator{}
 
 func (*IntentLoginFlowStepCreateAuthenticator) Milestone() {}
 func (i *IntentLoginFlowStepCreateAuthenticator) MilestoneSwitchToExistingUser(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, newUserID string) error {
@@ -82,6 +83,13 @@ func (i *IntentLoginFlowStepCreateAuthenticator) MilestoneSwitchToExistingUser(c
 	}
 
 	return nil
+}
+func (i *IntentLoginFlowStepCreateAuthenticator) MilestoneFlowCreateAuthenticator(flows authflow.Flows) (created MilestoneDoCreateAuthenticator, newFlow authflow.Flows, ok bool) {
+	m, flows, ok := authflow.FindMilestoneInCurrentFlow[MilestoneFlowCreateAuthenticator](flows)
+	if !ok {
+		return nil, flows, ok
+	}
+	return m.MilestoneFlowCreateAuthenticator(flows)
 }
 
 func (*IntentLoginFlowStepCreateAuthenticator) Kind() string {

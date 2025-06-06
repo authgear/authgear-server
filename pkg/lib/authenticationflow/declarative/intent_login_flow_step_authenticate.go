@@ -161,7 +161,7 @@ func (i *IntentLoginFlowStepAuthenticate) CanReactTo(ctx context.Context, deps *
 
 	_, _, nestedStepsHandled := authflow.FindMilestoneInCurrentFlow[MilestoneNestedSteps](flows)
 
-	createAuthenticatorMilestones := authflow.FindAllMilestones[MilestoneFlowCreateAuthenticator](flows.Root)
+	_, _, authenticatorCreated := authflow.FindMilestoneInCurrentFlow[MilestoneFlowCreateAuthenticator](flows)
 
 	switch {
 	case i.DeviceTokenEnabled && !deviceTokenInspected:
@@ -174,10 +174,12 @@ func (i *IntentLoginFlowStepAuthenticate) CanReactTo(ctx context.Context, deps *
 				return nil, authflow.ErrEOF
 			}
 
-			if len(createAuthenticatorMilestones) > 0 {
+			if authenticatorCreated {
 				// Skip this step if the user has just created authenticator.
 				return nil, authflow.ErrEOF
 			}
+
+			return nil, api.ErrNoAuthenticator
 		}
 
 		shouldBypassBotProtection := ShouldExistingResultBypassBotProtectionRequirement(ctx)
