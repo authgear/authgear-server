@@ -53,7 +53,7 @@ func (n *IntentCreateIdentityLoginID) CanReactTo(ctx context.Context, deps *auth
 		return nil, authflow.ErrEOF
 	}
 
-	flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+	flowRootObject, err := findNearestFlowObjectInFlow(deps, flows, n)
 	if err != nil {
 		return nil, err
 	}

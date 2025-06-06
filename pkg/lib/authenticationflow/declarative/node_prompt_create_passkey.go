@@ -67,7 +67,7 @@ func (n *NodePromptCreatePasskey) CanReactTo(ctx context.Context, deps *authflow
 		return nil, nil
 	}
 
-	flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+	flowRootObject, err := findNearestFlowObjectInFlow(deps, flows, n)
 	if err != nil {
 		return nil, err
 	}

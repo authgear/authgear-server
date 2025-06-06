@@ -49,7 +49,7 @@ func (n *IntentPromoteIdentityLoginID) CanReactTo(ctx context.Context, deps *aut
 	if identified {
 		return nil, authflow.ErrEOF
 	}
-	flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+	flowRootObject, err := findNearestFlowObjectInFlow(deps, flows, n)
 	if err != nil {
 		return nil, err
 	}
@@ -144,7 +144,7 @@ func (n *IntentPromoteIdentityLoginID) checkConflictByAccountLinkings(
 	spec *identity.Spec) (conflicts []*AccountLinkingConflict, err error) {
 	switch spec.Type {
 	case model.IdentityTypeLoginID:
-		return linkByIncomingLoginIDSpec(ctx, deps, flows, n.UserID, NewCreateLoginIDIdentityRequest(spec).LoginID, n.JSONPointer)
+		return linkByIncomingLoginIDSpec(ctx, deps, flows, n.UserID, NewCreateLoginIDIdentityRequest(spec).LoginID, n.JSONPointer, n)
 	default:
 		panic("unexpected spec type")
 	}

@@ -36,6 +36,9 @@ func NewIntentLoginFlowEnsureContraintsFulfilled(ctx context.Context, deps *auth
 			{
 				Authentication: config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS,
 			},
+			{
+				Authentication: config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail,
+			},
 		},
 		ShowUntilAMRConstraintsFulfilled: &trueValue,
 	}

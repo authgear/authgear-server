@@ -159,8 +159,9 @@ func linkByIncomingOAuthSpec(
 	userID string,
 	request *CreateIdentityRequestOAuth,
 	identificationJSONPointer jsonpointer.T,
+	originNode authflow.NodeOrIntent,
 ) (conflicts []*AccountLinkingConflict, err error) {
-	flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+	flowRootObject, err := findNearestFlowObjectInFlow(deps, flows, originNode)
 	if err != nil {
 		return nil, err
 	}
@@ -254,8 +255,9 @@ func linkByIncomingLoginIDSpec(
 	userID string,
 	request *CreateIdentityRequestLoginID,
 	identificationJSONPointer jsonpointer.T,
+	originNode authflow.NodeOrIntent,
 ) (conflicts []*AccountLinkingConflict, err error) {
-	flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+	flowRootObject, err := findNearestFlowObjectInFlow(deps, flows, originNode)
 	if err != nil {
 		return nil, err
 	}

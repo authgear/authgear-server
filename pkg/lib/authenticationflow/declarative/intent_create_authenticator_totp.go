@@ -103,7 +103,7 @@ func (n *IntentCreateAuthenticatorTOTP) CanReactTo(ctx context.Context, deps *au
 	if created {
 		return nil, authflow.ErrEOF
 	}
-	flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+	flowRootObject, err := findNearestFlowObjectInFlow(deps, flows, n)
 	if err != nil {
 		return nil, err
 	}

@@ -51,7 +51,7 @@ func (n *IntentUseAuthenticatorTOTP) CanReactTo(ctx context.Context, deps *authf
 	if authenticated {
 		return nil, authflow.ErrEOF
 	}
-	flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+	flowRootObject, err := findNearestFlowObjectInFlow(deps, flows, n)
 	if err != nil {
 		return nil, err
 	}

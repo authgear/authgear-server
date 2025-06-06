@@ -112,7 +112,7 @@ func (i *IntentLoginFlowStepCreateAuthenticator) CanReactTo(ctx context.Context,
 
 	// Let the input to select which authentication method to use.
 	if len(flows.Nearest.Nodes) == 0 {
-		flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+		flowRootObject, err := findNearestFlowObjectInFlow(deps, flows, i)
 		if err != nil {
 			return nil, err
 		}
