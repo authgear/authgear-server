@@ -52,7 +52,7 @@ func (n *IntentUseRecoveryCode) CanReactTo(ctx context.Context, deps *authflow.D
 		return nil, err
 	}
 
-	isBotProtectionRequired, err := IsBotProtectionRequired(ctx, deps, flows, n.JSONPointer)
+	isBotProtectionRequired, err := IsBotProtectionRequired(ctx, deps, flows, n.JSONPointer, n)
 	if err != nil {
 		return nil, err
 	}
@@ -69,7 +69,7 @@ func (n *IntentUseRecoveryCode) ReactTo(ctx context.Context, deps *authflow.Depe
 	var inputTakeRecoveryCode inputTakeRecoveryCode
 	if authflow.AsInput(input, &inputTakeRecoveryCode) {
 		var bpSpecialErr error
-		bpSpecialErr, err := HandleBotProtection(ctx, deps, flows, n.JSONPointer, input)
+		bpSpecialErr, err := HandleBotProtection(ctx, deps, flows, n.JSONPointer, input, n)
 		if err != nil {
 			return nil, err
 		}

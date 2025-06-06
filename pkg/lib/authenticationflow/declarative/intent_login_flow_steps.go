@@ -31,7 +31,7 @@ func (*IntentLoginFlowSteps) Milestone()            {}
 func (*IntentLoginFlowSteps) MilestoneNestedSteps() {}
 
 func (i *IntentLoginFlowSteps) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
-	current, err := i.currentFlowObject(deps)
+	current, err := i.currentFlowObject(deps, flows, i)
 	if err != nil {
 		return nil, err
 	}
@@ -45,7 +45,7 @@ func (i *IntentLoginFlowSteps) CanReactTo(ctx context.Context, deps *authflow.De
 }
 
 func (i *IntentLoginFlowSteps) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (authflow.ReactToResult, error) {
-	current, err := i.currentFlowObject(deps)
+	current, err := i.currentFlowObject(deps, flows, i)
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +71,7 @@ func (i *IntentLoginFlowSteps) ReactTo(ctx context.Context, deps *authflow.Depen
 			StepName:      step.Name,
 			JSONPointer:   authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
 			UserID:        i.userID(flows),
-		})
+		}, i)
 		if err != nil {
 			return nil, err
 		}
@@ -109,8 +109,8 @@ func (i *IntentLoginFlowSteps) ReactTo(ctx context.Context, deps *authflow.Depen
 	return nil, authflow.ErrIncompatibleInput
 }
 
-func (i *IntentLoginFlowSteps) currentFlowObject(deps *authflow.Dependencies) (config.AuthenticationFlowObject, error) {
-	rootObject, err := flowRootObject(deps, i.FlowReference)
+func (i *IntentLoginFlowSteps) currentFlowObject(deps *authflow.Dependencies, flows authflow.Flows, origin authflow.NodeOrIntent) (config.AuthenticationFlowObject, error) {
+	rootObject, err := findNearestFlowObjectInFlow(deps, flows, origin)
 	if err != nil {
 		return nil, err
 	}

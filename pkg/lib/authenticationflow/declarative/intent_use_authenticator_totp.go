@@ -56,7 +56,7 @@ func (n *IntentUseAuthenticatorTOTP) CanReactTo(ctx context.Context, deps *authf
 		return nil, err
 	}
 
-	isBotProtectionRequired, err := IsBotProtectionRequired(ctx, deps, flows, n.JSONPointer)
+	isBotProtectionRequired, err := IsBotProtectionRequired(ctx, deps, flows, n.JSONPointer, n)
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +73,7 @@ func (n *IntentUseAuthenticatorTOTP) ReactTo(ctx context.Context, deps *authflow
 	var inputTakeTOTP inputTakeTOTP
 	if authflow.AsInput(input, &inputTakeTOTP) {
 		var bpSpecialErr error
-		bpSpecialErr, err := HandleBotProtection(ctx, deps, flows, n.JSONPointer, input)
+		bpSpecialErr, err := HandleBotProtection(ctx, deps, flows, n.JSONPointer, input, n)
 		if err != nil {
 			return nil, err
 		}

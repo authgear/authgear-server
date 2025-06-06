@@ -59,7 +59,7 @@ func (i *IntentPromoteIdentityOAuth) CanReactTo(ctx context.Context, deps *authf
 			deps.SSOOAuthDemoCredentials,
 		)
 
-		isBotProtectionRequired, err := IsBotProtectionRequired(ctx, deps, flows, i.JSONPointer)
+		isBotProtectionRequired, err := IsBotProtectionRequired(ctx, deps, flows, i.JSONPointer, i)
 		if err != nil {
 			return nil, err
 		}
@@ -79,7 +79,7 @@ func (i *IntentPromoteIdentityOAuth) ReactTo(ctx context.Context, deps *authflow
 		var inputOAuth inputTakeOAuthAuthorizationRequest
 		if authflow.AsInput(input, &inputOAuth) {
 			var bpSpecialErr error
-			bpSpecialErr, err := HandleBotProtection(ctx, deps, flows, i.JSONPointer, input)
+			bpSpecialErr, err := HandleBotProtection(ctx, deps, flows, i.JSONPointer, input, i)
 			if err != nil {
 				return nil, err
 			}

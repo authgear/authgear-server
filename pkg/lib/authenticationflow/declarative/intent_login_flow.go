@@ -66,6 +66,12 @@ func (i *IntentLoginFlow) ReactTo(ctx context.Context, deps *authflow.Dependenci
 	case len(flows.Nearest.Nodes) == 1:
 		return NewNodePreAuthenticateNodeSimple(ctx, flows, deps)
 	case len(flows.Nearest.Nodes) == 2:
+		i, err := NewIntentLoginFlowEnsureContraintsFulfilled(ctx, deps, flows, i.FlowReference)
+		if err != nil {
+			return nil, err
+		}
+		return authflow.NewSubFlow(i), nil
+	case len(flows.Nearest.Nodes) == 3:
 		userID, err := i.userID(flows)
 		if err != nil {
 			return nil, err
