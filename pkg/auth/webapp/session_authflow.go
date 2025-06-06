@@ -14,15 +14,15 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/whatsapp"
+	"github.com/authgear/authgear-server/pkg/lib/webappoauth"
 	"github.com/authgear/authgear-server/pkg/util/base32"
 	corerand "github.com/authgear/authgear-server/pkg/util/rand"
 )
 
 type AuthflowWechatCallbackData struct {
-	State            string `json:"state"`
-	Code             string `json:"code,omitempty"`
-	Error            string `json:"error,omitempty"`
-	ErrorDescription string `json:"error_description,omitempty"`
+	State            string                        `json:"state"`
+	WebappOAuthState *webappoauth.WebappOAuthState `json:"webapp_oauth_state"`
+	Query            string                        `json:"query"`
 }
 
 type AuthflowFinishedUIScreenData struct {

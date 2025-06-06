@@ -69,8 +69,7 @@
 /pkg/auth/handler/webapp/authflow_terminate_other_sessions.go:73:26: requestcontext
 /pkg/auth/handler/webapp/authflow_use_passkey.go:108:26: requestcontext
 /pkg/auth/handler/webapp/authflow_view_recovery_code.go:85:26: requestcontext
-/pkg/auth/handler/webapp/authflow_wechat.go:171:26: requestcontext
-/pkg/auth/handler/webapp/authflow_wechat.go:171:26: requestcontext
+/pkg/auth/handler/webapp/authflow_wechat.go:159:26: requestcontext
 /pkg/auth/handler/webapp/authflow_whatsapp_otp.go:147:26: requestcontext
 /pkg/auth/handler/webapp/authflowv2/account_linking.go:159:26: requestcontext
 /pkg/auth/handler/webapp/authflowv2/account_linking.go:159:26: requestcontext
@@ -148,7 +147,7 @@
 /pkg/auth/handler/webapp/authflowv2/verify_bot_protection.go:85:26: requestcontext
 /pkg/auth/handler/webapp/authflowv2/verify_login_link.go:113:30: requestcontext
 /pkg/auth/handler/webapp/authflowv2/view_recovery_code.go:86:26: requestcontext
-/pkg/auth/handler/webapp/authflowv2/wechat.go:172:26: requestcontext
+/pkg/auth/handler/webapp/authflowv2/wechat.go:160:26: requestcontext
 /pkg/auth/handler/webapp/change_password.go:72:27: requestcontext
 /pkg/auth/handler/webapp/change_secondary_password.go:71:27: requestcontext
 /pkg/auth/handler/webapp/confirm_terminate_other_sessions.go:66:27: requestcontext

@@ -86,9 +86,8 @@ func (h *WechatCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 
 			screen.WechatCallbackData = &webapp.AuthflowWechatCallbackData{
 				State:            stateToken,
-				Code:             code,
-				Error:            error_,
-				ErrorDescription: errorDescription,
+				WebappOAuthState: state,
+				Query:            r.Form.Encode(),
 			}
 
 			err = ctrl.UpdateSession(ctx, session)
