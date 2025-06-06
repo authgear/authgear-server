@@ -118,22 +118,10 @@ func (h *AuthflowWechatHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 
 	submit := func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		data := screen.Screen.WechatCallbackData
-
-		input := map[string]interface{}{}
-		switch {
-		case data.Code != "":
-			input["code"] = data.Code
-		case data.Error != "":
-			input["error"] = data.Error
-			input["error_description"] = data.ErrorDescription
-		}
-
-		result, err := h.Controller.AdvanceWithInput(ctx, r, s, screen, input, nil)
-		if err != nil {
-			return err
-		}
-
-		result.WriteResponse(w, r)
+		h.Controller.HandleOAuthCallback(ctx, w, r, AuthflowOAuthCallbackResponse{
+			State: data.WebappOAuthState,
+			Query: data.Query,
+		})
 		return nil
 	}
 
