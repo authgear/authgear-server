@@ -42,8 +42,8 @@ type IntentReauthFlowStepAuthenticate struct {
 var _ authflow.Intent = &IntentReauthFlowStepAuthenticate{}
 var _ authflow.DataOutputer = &IntentReauthFlowStepAuthenticate{}
 
-func NewIntentReauthFlowStepAuthenticate(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, i *IntentReauthFlowStepAuthenticate) (*IntentReauthFlowStepAuthenticate, error) {
-	current, err := i.currentFlowObject(deps)
+func NewIntentReauthFlowStepAuthenticate(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, i *IntentReauthFlowStepAuthenticate, originNode authflow.NodeOrIntent) (*IntentReauthFlowStepAuthenticate, error) {
+	current, err := i.currentFlowObject(deps, flows, originNode)
 	if err != nil {
 		return nil, err
 	}
@@ -131,7 +131,7 @@ func (i *IntentReauthFlowStepAuthenticate) CanReactTo(ctx context.Context, deps 
 }
 
 func (i *IntentReauthFlowStepAuthenticate) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (authflow.ReactToResult, error) {
-	current, err := i.currentFlowObject(deps)
+	current, err := i.currentFlowObject(deps, flows, i)
 	if err != nil {
 		return nil, err
 	}
@@ -296,8 +296,8 @@ func (i *IntentReauthFlowStepAuthenticate) jsonPointer(step *config.Authenticati
 	panic(fmt.Errorf("selected authentication method is not allowed"))
 }
 
-func (i *IntentReauthFlowStepAuthenticate) currentFlowObject(deps *authflow.Dependencies) (config.AuthenticationFlowObject, error) {
-	rootObject, err := flowRootObject(deps, i.FlowReference)
+func (i *IntentReauthFlowStepAuthenticate) currentFlowObject(deps *authflow.Dependencies, flows authflow.Flows, origin authflow.NodeOrIntent) (config.AuthenticationFlowObject, error) {
+	rootObject, err := findNearestFlowObjectInFlow(deps, flows, origin)
 	if err != nil {
 		return nil, err
 	}
@@ -329,7 +329,7 @@ func (i *IntentReauthFlowStepAuthenticate) clone() *IntentReauthFlowStepAuthenti
 }
 
 func (i *IntentReauthFlowStepAuthenticate) newIntentReauthFlowStepAuthenticateForAMRConstraint(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.ReactToResult, error) {
-	current, err := i.currentFlowObject(deps)
+	current, err := i.currentFlowObject(deps, flows, i)
 	if err != nil {
 		return nil, err
 	}
