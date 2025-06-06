@@ -179,6 +179,14 @@ func (i *IntentLoginFlowStepAuthenticate) CanReactTo(ctx context.Context, deps *
 				return nil, authflow.ErrEOF
 			}
 
+			shouldCreateAuthenticator, err := i.canCreateAuthenticator(ctx, step, deps)
+			if err != nil {
+				return nil, err
+			}
+			if shouldCreateAuthenticator {
+				return nil, nil
+			}
+
 			return nil, api.ErrNoAuthenticator
 		}
 
@@ -245,30 +253,30 @@ func (i *IntentLoginFlowStepAuthenticate) ReactTo(ctx context.Context, deps *aut
 		}), nil
 
 	case !authenticationMethodSelected:
+		if len(i.Options) == 0 {
+			shouldCreateAuthenticator, err := i.canCreateAuthenticator(ctx, step, deps)
+			if err != nil {
+				return nil, err
+			}
+
+			if shouldCreateAuthenticator {
+				nextStep := &IntentLoginFlowStepCreateAuthenticator{
+					FlowReference:          i.FlowReference,
+					StepName:               step.Name,
+					JSONPointer:            i.JSONPointer,
+					UserID:                 i.UserID,
+					IsUpdatingExistingUser: true,
+				}
+				return authflow.NewSubFlow(nextStep), nil
+			} else {
+				// Otherwise this step is NON-optional but have no options
+				return nil, api.ErrNoAuthenticator
+			}
+		}
+
 		var inputTakeAuthenticationMethod inputTakeAuthenticationMethod
 		if authflow.AsInput(input, &inputTakeAuthenticationMethod) {
 			authentication := inputTakeAuthenticationMethod.GetAuthenticationMethod()
-
-			if len(i.Options) == 0 {
-				shouldCreateAuthenticator, err := i.canCreateAuthenticator(ctx, step, deps)
-				if err != nil {
-					return nil, err
-				}
-
-				if shouldCreateAuthenticator {
-					nextStep := &IntentLoginFlowStepCreateAuthenticator{
-						FlowReference:          i.FlowReference,
-						StepName:               step.Name,
-						JSONPointer:            i.JSONPointer,
-						UserID:                 i.UserID,
-						IsUpdatingExistingUser: true,
-					}
-					return authflow.NewSubFlow(nextStep), nil
-				} else {
-					// Otherwise this step is NON-optional but have no options
-					return nil, api.ErrNoAuthenticator
-				}
-			}
 
 			idx, err := i.getIndex(step, authentication)
 			if err != nil {
