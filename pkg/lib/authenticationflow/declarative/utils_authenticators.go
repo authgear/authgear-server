@@ -80,7 +80,10 @@ func collectAssertedAuthenticators(flows authenticationflow.Flows) (authenticato
 				}
 			}
 			if n, ok := nodeSimple.(MilestoneDoCreateAuthenticator); ok {
-				authenticators = append(authenticators, n.MilestoneDoCreateAuthenticator())
+				authn, ok := n.MilestoneDoCreateAuthenticator()
+				if ok {
+					authenticators = append(authenticators, authn)
+				}
 			}
 			return nil
 		},
@@ -91,7 +94,10 @@ func collectAssertedAuthenticators(flows authenticationflow.Flows) (authenticato
 				}
 			}
 			if i, ok := intent.(MilestoneDoCreateAuthenticator); ok {
-				authenticators = append(authenticators, i.MilestoneDoCreateAuthenticator())
+				authn, ok := i.MilestoneDoCreateAuthenticator()
+				if ok {
+					authenticators = append(authenticators, authn)
+				}
 			}
 			return nil
 		},

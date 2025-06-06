@@ -64,8 +64,8 @@ func (*NodeDoCreatePasskey) Milestone() {}
 func (n *NodeDoCreatePasskey) MilestoneDoCreateIdentity() *identity.Info {
 	return n.NodeDoCreateIdentity.MilestoneDoCreateIdentity()
 }
-func (n *NodeDoCreatePasskey) MilestoneDoCreateAuthenticator() *authenticator.Info {
-	return n.Authenticator
+func (n *NodeDoCreatePasskey) MilestoneDoCreateAuthenticator() (*authenticator.Info, bool) {
+	return n.Authenticator, !n.SkipCreate
 }
 func (n *NodeDoCreatePasskey) MilestoneDoCreateAuthenticatorSkipCreate() {
 	n.SkipCreate = true
