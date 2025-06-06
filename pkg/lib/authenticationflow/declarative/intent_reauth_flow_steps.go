@@ -71,7 +71,7 @@ func (i *IntentReauthFlowSteps) ReactTo(ctx context.Context, deps *authflow.Depe
 			StepName:      step.Name,
 			JSONPointer:   authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
 			UserID:        i.userID(flows),
-		})
+		}, i)
 		if err != nil {
 			return nil, err
 		}

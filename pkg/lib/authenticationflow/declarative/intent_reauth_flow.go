@@ -59,6 +59,14 @@ func (i *IntentReauthFlow) ReactTo(ctx context.Context, deps *authflow.Dependenc
 			JSONPointer:   i.JSONPointer,
 		}), nil
 	case len(flows.Nearest.Nodes) == 1:
+		return NewNodePreAuthenticateNodeSimple(ctx, flows, deps)
+	case len(flows.Nearest.Nodes) == 2:
+		i, err := NewIntentReauthFlowEnsureContraintsFulfilled(ctx, deps, flows, i.FlowReference)
+		if err != nil {
+			return nil, err
+		}
+		return authflow.NewSubFlow(i), nil
+	case len(flows.Nearest.Nodes) == 3:
 		n, err := NewNodeDidReauthenticate(ctx, deps, flows, &NodeDidReauthenticate{
 			UserID: i.userID(flows),
 		})
