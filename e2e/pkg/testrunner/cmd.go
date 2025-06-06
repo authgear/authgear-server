@@ -44,11 +44,17 @@ func NewEnd2EndCmd(options NewEnd2EndCmdOptions) (*End2EndCmd, error) {
 		Test:     options.Test,
 	}
 
+	extraFilesDirectory := ""
+	if e.TestCase.ExtraFilesDirectory != "" {
+		extraFilesDirectory = e.resolvePath(e.TestCase.ExtraFilesDirectory)
+	}
+
 	cmd := fmt.Sprintf(
-		"./dist/e2e create-configsource --app-id %s --config-source %s --config-override \"%s\"",
+		"./dist/e2e create-configsource --app-id %s --config-source %s --config-override \"%s\" --config-source-extra-files-directory \"%s\"",
 		e.AppID,
 		e.resolvePath(e.TestCase.AuthgearYAMLSource.Extend),
 		e.TestCase.AuthgearYAMLSource.Override,
+		extraFilesDirectory,
 	)
 	if _, err := e.execCmd(cmd); err != nil {
 		return nil, err

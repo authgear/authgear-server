@@ -4,6 +4,7 @@ import (
 	"context"
 
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
@@ -28,6 +29,9 @@ func (*NodeDoConsumeRecoveryCode) Kind() string {
 
 func (*NodeDoConsumeRecoveryCode) Milestone()                               {}
 func (*NodeDoConsumeRecoveryCode) MilestoneDidAuthenticate() (amr []string) { return }
+func (*NodeDoConsumeRecoveryCode) MilestoneDidAuthenticateAuthenticator() (*authenticator.Info, bool) {
+	return nil, false
+}
 func (*NodeDoConsumeRecoveryCode) MilestoneDidUseAuthenticationLockoutMethod() (config.AuthenticationLockoutMethod, bool) {
 	return config.AuthenticationLockoutMethodRecoveryCode, true
 }
