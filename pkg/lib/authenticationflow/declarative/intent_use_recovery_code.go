@@ -47,7 +47,7 @@ func (n *IntentUseRecoveryCode) CanReactTo(ctx context.Context, deps *authflow.D
 	if authenticated {
 		return nil, authflow.ErrEOF
 	}
-	flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+	flowRootObject, err := findNearestFlowObjectInFlow(deps, flows, n)
 	if err != nil {
 		return nil, err
 	}

@@ -91,7 +91,7 @@ func (i *IntentAccountRecoveryFlowStepIdentify) CanReactTo(ctx context.Context, 
 			// When restoring the intent, no input is needed
 			return nil, nil
 		}
-		flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+		flowRootObject, err := findNearestFlowObjectInFlow(deps, flows, i)
 		if err != nil {
 			return nil, err
 		}

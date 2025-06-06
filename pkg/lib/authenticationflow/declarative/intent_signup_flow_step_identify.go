@@ -192,7 +192,7 @@ func (i *IntentSignupFlowStepIdentify) CanReactTo(ctx context.Context, deps *aut
 
 	// Let the input to select which identification method to use.
 	if len(flows.Nearest.Nodes) == 0 {
-		flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+		flowRootObject, err := findNearestFlowObjectInFlow(deps, flows, i)
 		if err != nil {
 			return nil, err
 		}

@@ -63,7 +63,7 @@ func (i *IntentCreateAuthenticatorOOBOTP) MilestoneSwitchToExistingUser(ctx cont
 }
 
 func (n *IntentCreateAuthenticatorOOBOTP) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
-	flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+	flowRootObject, err := findNearestFlowObjectInFlow(deps, flows, n)
 	if err != nil {
 		return nil, err
 	}
@@ -123,7 +123,7 @@ func (n *IntentCreateAuthenticatorOOBOTP) CanReactTo(ctx context.Context, deps *
 }
 
 func (n *IntentCreateAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (authflow.ReactToResult, error) {
-	rootObject, err := findFlowRootObjectInFlow(deps, flows)
+	rootObject, err := findNearestFlowObjectInFlow(deps, flows, n)
 	if err != nil {
 		return nil, err
 	}

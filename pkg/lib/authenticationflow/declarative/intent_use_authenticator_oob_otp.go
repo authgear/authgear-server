@@ -53,7 +53,7 @@ func (n *IntentUseAuthenticatorOOBOTP) CanReactTo(ctx context.Context, deps *aut
 	_, _, claimVerified := authflow.FindMilestoneInCurrentFlow[MilestoneDoMarkClaimVerified](flows)
 	_, _, authenticated := authflow.FindMilestoneInCurrentFlow[MilestoneDidAuthenticate](flows)
 
-	flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+	flowRootObject, err := findNearestFlowObjectInFlow(deps, flows, n)
 	if err != nil {
 		return nil, err
 	}

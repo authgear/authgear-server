@@ -93,7 +93,7 @@ func (*IntentAccountRecoveryFlowStepSelectDestination) Kind() string {
 func (i *IntentAccountRecoveryFlowStepSelectDestination) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
 	switch len(flows.Nearest.Nodes) {
 	case 0:
-		flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+		flowRootObject, err := findNearestFlowObjectInFlow(deps, flows, i)
 		if err != nil {
 			return nil, err
 		}
