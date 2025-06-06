@@ -110,7 +110,7 @@ func (i *IntentReauthFlowStepAuthenticate) CanReactTo(ctx context.Context, deps 
 			return nil, api.ErrNoAuthenticator
 		}
 
-		flowRootObject, err := flowRootObject(deps, i.FlowReference)
+		flowRootObject, err := findNearestFlowObjectInFlow(deps, flows, i)
 		if err != nil {
 			return nil, err
 		}

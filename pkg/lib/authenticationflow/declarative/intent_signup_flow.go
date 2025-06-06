@@ -43,7 +43,7 @@ func (i *IntentSignupFlow) FlowFlowReference() authflow.FlowReference {
 }
 
 func (i *IntentSignupFlow) FlowRootObject(deps *authflow.Dependencies) (config.AuthenticationFlowObject, error) {
-	return flowRootObject(deps, i.FlowReference)
+	return getFlowRootObject(deps, i.FlowReference)
 }
 
 func (*IntentSignupFlow) Milestone() {}

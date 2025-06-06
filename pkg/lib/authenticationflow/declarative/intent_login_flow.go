@@ -43,7 +43,7 @@ func (i *IntentLoginFlow) FlowFlowReference() authflow.FlowReference {
 }
 
 func (i *IntentLoginFlow) FlowRootObject(deps *authflow.Dependencies) (config.AuthenticationFlowObject, error) {
-	return flowRootObject(deps, i.FlowReference)
+	return getFlowRootObject(deps, i.FlowReference)
 }
 
 func (*IntentLoginFlow) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {

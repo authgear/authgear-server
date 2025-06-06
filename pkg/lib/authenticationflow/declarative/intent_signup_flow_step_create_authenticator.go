@@ -47,8 +47,8 @@ type IntentSignupFlowStepCreateAuthenticator struct {
 	ShowUntilAMRConstraintsFulfilled bool                                `json:"show_until_amr_constraints_fulfilled,omitempty"`
 }
 
-func NewIntentSignupFlowStepCreateAuthenticator(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, i *IntentSignupFlowStepCreateAuthenticator) (*IntentSignupFlowStepCreateAuthenticator, error) {
-	current, err := i.currentFlowObject(deps)
+func NewIntentSignupFlowStepCreateAuthenticator(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, i *IntentSignupFlowStepCreateAuthenticator, originNode authflow.NodeOrIntent) (*IntentSignupFlowStepCreateAuthenticator, error) {
+	current, err := i.currentFlowObject(deps, flows, originNode)
 	if err != nil {
 		return nil, err
 	}
@@ -187,7 +187,7 @@ func (i *IntentSignupFlowStepCreateAuthenticator) ReactTo(ctx context.Context, d
 		}
 	}
 
-	current, err := i.currentFlowObject(deps)
+	current, err := i.currentFlowObject(deps, flows, i)
 	if err != nil {
 		return nil, err
 	}
@@ -327,8 +327,8 @@ func (i *IntentSignupFlowStepCreateAuthenticator) jsonPointer(step *config.Authe
 	panic(fmt.Errorf("selected identification method is not allowed"))
 }
 
-func (i *IntentSignupFlowStepCreateAuthenticator) currentFlowObject(deps *authflow.Dependencies) (config.AuthenticationFlowObject, error) {
-	rootObject, err := flowRootObject(deps, i.FlowReference)
+func (i *IntentSignupFlowStepCreateAuthenticator) currentFlowObject(deps *authflow.Dependencies, flows authflow.Flows, originNode authflow.NodeOrIntent) (config.AuthenticationFlowObject, error) {
+	rootObject, err := findNearestFlowObjectInFlow(deps, flows, originNode)
 	if err != nil {
 		return nil, err
 	}
@@ -377,7 +377,7 @@ func (i *IntentSignupFlowStepCreateAuthenticator) reactToExistingAuthenticator(c
 	_, _, authenticatorCreated := authflow.FindMilestoneInCurrentFlow[MilestoneFlowCreateAuthenticator](flows)
 	_, _, nestedStepsHandled := authflow.FindMilestoneInCurrentFlow[MilestoneNestedSteps](flows)
 
-	current, err := i.currentFlowObject(deps)
+	current, err := i.currentFlowObject(deps, flows, i)
 	if err != nil {
 		return nil, err
 	}
@@ -440,7 +440,7 @@ func (i *IntentSignupFlowStepCreateAuthenticator) findAuthenticatorByOption(in [
 }
 
 func (i *IntentSignupFlowStepCreateAuthenticator) newIntentSignupFlowStepCreateAuthenticatorForAMRConstraint(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.ReactToResult, error) {
-	current, err := i.currentFlowObject(deps)
+	current, err := i.currentFlowObject(deps, flows, i)
 	if err != nil {
 		return nil, err
 	}

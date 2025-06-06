@@ -39,7 +39,7 @@ func authenticatorIsDefault(ctx context.Context, deps *authflow.Dependencies, us
 	return
 }
 
-func flowRootObject(deps *authflow.Dependencies, flowReference authflow.FlowReference) (config.AuthenticationFlowObject, error) {
+func getFlowRootObject(deps *authflow.Dependencies, flowReference authflow.FlowReference) (config.AuthenticationFlowObject, error) {
 	switch flowReference.Type {
 	case authflow.FlowTypeSignup:
 		return flowRootObjectForSignupFlow(deps, flowReference)

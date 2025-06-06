@@ -64,20 +64,11 @@ func accept(ctx context.Context, deps *Dependencies, flows Flows, result *Accept
 
 	loopCount := 0
 
-	var nextNode Node
+	var nextNodeType string
 	for {
 		loopCount += 1
 		if loopCount > MAX_LOOP {
-			var nodeType string
-			switch nextNode.Type {
-			case NodeTypeSimple:
-				nodeType = fmt.Sprintf("%T", nextNode.Simple)
-			case NodeTypeSubFlow:
-				nodeType = fmt.Sprintf("%T", nextNode.SubFlow.Intent)
-			default:
-				nodeType = "unknown"
-			}
-			panic(fmt.Errorf("number of loops reached limit. next node is %s", nodeType))
+			panic(fmt.Errorf("number of loops reached limit. next node is %s", nextNodeType))
 		}
 		var findInputReactorResult *FindInputReactorResult
 		findInputReactorResult, err = FindInputReactor(ctx, deps, flows)
@@ -197,6 +188,7 @@ func accept(ctx context.Context, deps *Dependencies, flows Flows, result *Accept
 		}
 
 		// We need to append the nextNode to the closest flow.
+		var nextNode Node
 		switch reactToResult := reactToResult.(type) {
 		case *Node:
 			nextNode = *reactToResult
@@ -206,6 +198,16 @@ func accept(ctx context.Context, deps *Dependencies, flows Flows, result *Accept
 		default:
 			panic(fmt.Errorf("failed to append node: uxepected type of ReactToResult %t", reactToResult))
 		}
+		switch nextNode.Type {
+		case NodeTypeSimple:
+			nextNodeType = fmt.Sprintf("%T", nextNode.Simple)
+		case NodeTypeSubFlow:
+			nextNodeType = fmt.Sprintf("%T", nextNode.SubFlow.Intent)
+		default:
+			nextNodeType = "unknown"
+		}
+		// Uncomment this line when you need to debug authflow
+		// fmt.Println("The next node is", nextNodeType)
 		err = appendNode(ctx, deps, findInputReactorResult.Flows, nextNode)
 		if err != nil {
 			return

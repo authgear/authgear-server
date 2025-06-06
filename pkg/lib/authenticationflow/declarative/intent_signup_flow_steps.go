@@ -39,7 +39,7 @@ func (i *IntentSignupFlowSteps) MilestoneSwitchToExistingUser(ctx context.Contex
 }
 
 func (i *IntentSignupFlowSteps) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
-	current, err := i.currentFlowObject(deps)
+	current, err := i.currentFlowObject(deps, flows, i)
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +53,7 @@ func (i *IntentSignupFlowSteps) CanReactTo(ctx context.Context, deps *authflow.D
 }
 
 func (i *IntentSignupFlowSteps) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (authflow.ReactToResult, error) {
-	current, err := i.currentFlowObject(deps)
+	current, err := i.currentFlowObject(deps, flows, i)
 	if err != nil {
 		return nil, err
 	}
@@ -64,13 +64,13 @@ func (i *IntentSignupFlowSteps) ReactTo(ctx context.Context, deps *authflow.Depe
 
 	switch step.Type {
 	case config.AuthenticationFlowSignupFlowStepTypeIdentify:
-		stepIdentify, err := NewIntentSignupFlowStepIdentify(ctx, deps, &IntentSignupFlowStepIdentify{
+		stepIdentify, err := NewIntentSignupFlowStepIdentify(ctx, deps, flows, &IntentSignupFlowStepIdentify{
 			FlowReference:          i.FlowReference,
 			StepName:               step.Name,
 			JSONPointer:            authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
 			UserID:                 i.UserID,
 			IsUpdatingExistingUser: i.IsUpdatingExistingUser,
-		})
+		}, i)
 		if err != nil {
 			return nil, err
 		}
@@ -88,7 +88,7 @@ func (i *IntentSignupFlowSteps) ReactTo(ctx context.Context, deps *authflow.Depe
 			JSONPointer:            authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
 			UserID:                 i.UserID,
 			IsUpdatingExistingUser: i.IsUpdatingExistingUser,
-		})
+		}, i)
 		if err != nil {
 			return nil, err
 		}
@@ -127,8 +127,8 @@ func (i *IntentSignupFlowSteps) steps(o config.AuthenticationFlowObject) []confi
 	return steps
 }
 
-func (i *IntentSignupFlowSteps) currentFlowObject(deps *authflow.Dependencies) (config.AuthenticationFlowObject, error) {
-	rootObject, err := flowRootObject(deps, i.FlowReference)
+func (i *IntentSignupFlowSteps) currentFlowObject(deps *authflow.Dependencies, flows authflow.Flows, originNode authflow.NodeOrIntent) (config.AuthenticationFlowObject, error) {
+	rootObject, err := findNearestFlowObjectInFlow(deps, flows, originNode)
 	if err != nil {
 		return nil, err
 	}

@@ -151,7 +151,7 @@ func (i *IntentLoginFlowStepCreateAuthenticator) ReactTo(ctx context.Context, de
 		}
 	}
 
-	current, err := i.currentFlowObject(deps)
+	current, err := i.currentFlowObject(deps, flows, i)
 	if err != nil {
 		return nil, err
 	}
@@ -289,8 +289,8 @@ func (i *IntentLoginFlowStepCreateAuthenticator) jsonPointer(step *config.Authen
 	panic(fmt.Errorf("selected identification method is not allowed"))
 }
 
-func (i *IntentLoginFlowStepCreateAuthenticator) currentFlowObject(deps *authflow.Dependencies) (config.AuthenticationFlowObject, error) {
-	rootObject, err := flowRootObject(deps, i.FlowReference)
+func (i *IntentLoginFlowStepCreateAuthenticator) currentFlowObject(deps *authflow.Dependencies, flows authflow.Flows, originNode authflow.NodeOrIntent) (config.AuthenticationFlowObject, error) {
+	rootObject, err := findNearestFlowObjectInFlow(deps, flows, originNode)
 	if err != nil {
 		return nil, err
 	}
@@ -322,7 +322,7 @@ func (i *IntentLoginFlowStepCreateAuthenticator) findAuthenticatorOfSameType(ctx
 }
 
 func (i *IntentLoginFlowStepCreateAuthenticator) getOptions(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) ([]CreateAuthenticatorOptionInternal, error) {
-	current, err := i.currentFlowObject(deps)
+	current, err := i.currentFlowObject(deps, flows, i)
 	if err != nil {
 		return nil, err
 	}
@@ -346,7 +346,7 @@ func (i *IntentLoginFlowStepCreateAuthenticator) reactToExistingAuthenticator(ct
 	_, _, authenticatorCreated := authflow.FindMilestoneInCurrentFlow[MilestoneFlowCreateAuthenticator](flows)
 	_, _, nestedStepsHandled := authflow.FindMilestoneInCurrentFlow[MilestoneNestedSteps](flows)
 
-	current, err := i.currentFlowObject(deps)
+	current, err := i.currentFlowObject(deps, flows, i)
 	if err != nil {
 		return nil, err
 	}
