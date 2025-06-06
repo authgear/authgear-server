@@ -223,6 +223,7 @@ func getAuthenticationOptionsForLogin(ctx context.Context, deps *authflow.Depend
 	assertedAuthenticatorIDs := setutil.NewSetFromSlice(assertedAuthn, func(a *authenticator.Info) string {
 		return a.ID
 	})
+	assertedPrimaryPasswordAuthenticators := authenticator.ApplyFilters(assertedAuthn, authenticator.KeepKind(model.AuthenticatorKindPrimary), authenticator.KeepType(model.AuthenticatorTypePassword))
 
 	options = []AuthenticateOption{}
 
@@ -296,6 +297,10 @@ func getAuthenticationOptionsForLogin(ctx context.Context, deps *authflow.Depend
 	}
 
 	useAuthenticationOptionAddPrimaryPassword := func(options []AuthenticateOption, botProtection *config.AuthenticationFlowBotProtection) []AuthenticateOption {
+		// Do not allow authenticating with primary password multiple times
+		if len(assertedPrimaryPasswordAuthenticators) > 0 {
+			return options
+		}
 		// We always add primary_password even though the end-user does not actually has one.
 		// Showing this branch is necessary to convince the frontend to show a primary password page, where
 		// the end-user can trigger account recovery flow and create a new password.
