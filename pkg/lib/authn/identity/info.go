@@ -184,6 +184,7 @@ func (i *Info) ToModel() model.Identity {
 	return model.Identity{
 		Meta:   i.GetMeta(),
 		Type:   string(i.Type),
+		UserID: i.UserID,
 		Claims: claims,
 	}
 }

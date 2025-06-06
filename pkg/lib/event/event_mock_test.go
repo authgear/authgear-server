@@ -149,14 +149,13 @@ func (e *MockBlockingEvent1) BlockingEventType() event.Type {
 func (e *MockBlockingEvent1) FillContext(ctx *event.Context) {
 }
 
-func (e *MockBlockingEvent1) ApplyMutations(ctx context.Context, mutations event.Mutations) bool {
-	if mutations.User.StandardAttributes != nil {
-		e.User.StandardAttributes = mutations.User.StandardAttributes
-		return true
-
+func (e *MockBlockingEvent1) ApplyHookResponse(ctx context.Context, response event.HookResponse) event.ApplyHookResponseResult {
+	mutated := false
+	if response.Mutations.User.StandardAttributes != nil {
+		e.User.StandardAttributes = response.Mutations.User.StandardAttributes
+		mutated = true
 	}
-
-	return false
+	return event.ApplyHookResponseResult{MutationsEverApplied: mutated}
 }
 
 func (e *MockBlockingEvent1) PerformEffects(ctx context.Context, effectCtx event.MutationsEffectContext) error {
@@ -176,13 +175,13 @@ func (e *MockBlockingEvent2) BlockingEventType() event.Type {
 func (e *MockBlockingEvent2) FillContext(ctx *event.Context) {
 }
 
-func (e *MockBlockingEvent2) ApplyMutations(ctx context.Context, mutations event.Mutations) bool {
-	if mutations.User.StandardAttributes != nil {
-		e.User.StandardAttributes = mutations.User.StandardAttributes
-		return true
+func (e *MockBlockingEvent2) ApplyHookResponse(ctx context.Context, response event.HookResponse) event.ApplyHookResponseResult {
+	mutated := false
+	if response.Mutations.User.StandardAttributes != nil {
+		e.User.StandardAttributes = response.Mutations.User.StandardAttributes
+		mutated = true
 	}
-
-	return false
+	return event.ApplyHookResponseResult{MutationsEverApplied: mutated}
 }
 
 func (e *MockBlockingEvent2) PerformEffects(ctx context.Context, effectCtx event.MutationsEffectContext) error {
