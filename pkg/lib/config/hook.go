@@ -39,7 +39,8 @@ var _ = Schema.Add("BlockingHookHandlersConfig", `
 			"user.profile.pre_update",
 			"user.pre_schedule_deletion",
 			"user.pre_schedule_anonymization",
-			"oidc.jwt.pre_create"
+			"oidc.jwt.pre_create",
+			"authentication.post_identified"
 
 		] },
 		"url": { "type": "string", "format": "x_hook_uri" }

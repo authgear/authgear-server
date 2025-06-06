@@ -25,6 +25,10 @@ var ErrUpdateNode = errors.New("update node")
 // This error originates from Accept and will be propagated to public API.
 var ErrNoChange = errors.New("no change")
 
+// ErrPauseAndRetryAccept means the authflow must pause at this point, process all delayed functions
+// And finally, retry the accept process
+var ErrPauseAndRetryAccept = errors.New("pause and retry")
+
 // ErrEOF means end of flow.
 // This error originates from CanReactTo and will be propagated to public API.
 var ErrEOF = errors.New("eof")

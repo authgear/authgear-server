@@ -76,14 +76,14 @@ func (n *IntentUseIdentityLoginID) ReactTo(ctx context.Context, deps *authflow.D
 			return nil, err
 		}
 
-		n, err := NewNodeDoUseIdentity(ctx, flows, &NodeDoUseIdentity{
+		n, err := NewNodeDoUseIdentityReactToResult(ctx, flows, deps, &NodeDoUseIdentity{
 			Identity: exactMatch,
 		})
 		if err != nil {
 			return nil, err
 		}
 
-		return authflow.NewNodeSimple(n), bpSpecialErr
+		return n, bpSpecialErr
 	}
 
 	return nil, authflow.ErrIncompatibleInput

@@ -86,9 +86,10 @@ func (n *NodePromoteIdentityOAuth) ReactTo(ctx context.Context, deps *authflow.D
 					return nil, err
 				}
 
-				return authflow.NewNodeSimple(&NodeDoCreateIdentity{
-					Identity: info,
-				}), nil
+				return NewNodeDoCreateIdentityReactToResult(ctx, deps, NodeDoCreateIdentityOptions{
+					SkipCreate: false,
+					Identity:   info,
+				})
 			}
 			// general error
 			return nil, err

@@ -122,11 +122,11 @@ func (n *NodePromptCreatePasskey) ReactTo(ctx context.Context, deps *authflow.De
 			return nil, err
 		}
 
-		return authflow.NewNodeSimple(&NodeDoCreatePasskey{
+		return NewNodeDoCreatePasskeyReactToResult(ctx, deps, NodeDoCreatePasskeyOptions{
 			Identity:            identityInfo,
 			Authenticator:       authenticatorInfo,
 			AttestationResponse: creationResponseBytes,
-		}), nil
+		})
 	case inputNodePromptCreatePasskey.IsSkip():
 		return authflow.NewNodeSimple(&NodeSentinel{}), nil
 	default:

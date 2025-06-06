@@ -80,7 +80,7 @@ func (n *NodeOAuth) OutputData(ctx context.Context, deps *authflow.Dependencies,
 	return data, nil
 }
 
-func (n *NodeOAuth) reactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, spec *identity.Spec) (*authflow.Node, error) {
+func (n *NodeOAuth) reactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, spec *identity.Spec) (authflow.ReactToResult, error) {
 	// signup
 	if n.NewUserID != "" {
 		return authflow.NewSubFlow(&IntentCheckConflictAndCreateIdenity{
@@ -96,10 +96,5 @@ func (n *NodeOAuth) reactTo(ctx context.Context, deps *authflow.Dependencies, fl
 		return nil, err
 	}
 
-	newNode, err := NewNodeDoUseIdentityWithUpdate(ctx, deps, flows, exactMatch, spec)
-	if err != nil {
-		return nil, err
-	}
-
-	return authflow.NewNodeSimple(newNode), nil
+	return NewNodeDoUseIdentityWithUpdate(ctx, deps, flows, exactMatch, spec)
 }

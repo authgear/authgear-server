@@ -106,9 +106,15 @@ func (n *IntentPromoteIdentityLoginID) ReactTo(ctx context.Context, deps *authfl
 					return nil, err
 				}
 
-				return authflow.NewNodeSimple(&NodeDoCreateIdentity{
-					Identity: info,
-				}), bpSpecialErr
+				reactToResult, err := NewNodeDoCreateIdentityReactToResult(ctx, deps, NodeDoCreateIdentityOptions{
+					SkipCreate: false,
+					Identity:   info,
+				})
+				if err != nil {
+					return nil, err
+				}
+
+				return reactToResult, bpSpecialErr
 
 			}
 			// general error
