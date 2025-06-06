@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/slice"
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 )
 
@@ -21,25 +22,42 @@ type IntentLoginFlowEnsureContraintsFulfilled struct {
 }
 
 func NewIntentLoginFlowEnsureContraintsFulfilled(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows, flowRef authenticationflow.FlowReference) (*IntentLoginFlowEnsureContraintsFulfilled, error) {
-	// TODO(tung): Traverse the flow to compute the list of OneOf
+	authentications := []config.AuthenticationFlowAuthentication{}
+	err := authenticationflow.TraverseFlow(authenticationflow.Traverser{
+		NodeSimple: func(nodeSimple authenticationflow.NodeSimple, w *authenticationflow.Flow) error {
+			if n, ok := nodeSimple.(MilestoneAuthenticateOptions); ok {
+				for _, o := range n.MilestoneAuthenticateOptions() {
+					authentications = append(authentications, o.Authentication)
+				}
+			}
+			return nil
+		},
+		Intent: func(intent authenticationflow.Intent, w *authenticationflow.Flow) error {
+			if i, ok := intent.(MilestoneAuthenticateOptions); ok {
+				for _, o := range i.MilestoneAuthenticateOptions() {
+					authentications = append(authentications, o.Authentication)
+				}
+			}
+			return nil
+		},
+	}, flows.Root)
+	if err != nil {
+		return nil, err
+	}
+
+	var oneOfs []*config.AuthenticationFlowLoginFlowOneOf
+	authentications = slice.Deduplicate(authentications)
+	for _, auth := range authentications {
+		oneOfs = append(oneOfs, &config.AuthenticationFlowLoginFlowOneOf{
+			Authentication: auth,
+		})
+	}
+
 	trueValue := true
 	// Generate a temporary config for this step only
 	flowObject := &config.AuthenticationFlowLoginFlowStep{
-		Type: config.AuthenticationFlowLoginFlowStepTypeAuthenticate,
-		OneOf: []*config.AuthenticationFlowLoginFlowOneOf{
-			{
-				Authentication: config.AuthenticationFlowAuthenticationSecondaryPassword,
-			},
-			{
-				Authentication: config.AuthenticationFlowAuthenticationSecondaryTOTP,
-			},
-			{
-				Authentication: config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS,
-			},
-			{
-				Authentication: config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail,
-			},
-		},
+		Type:                             config.AuthenticationFlowLoginFlowStepTypeAuthenticate,
+		OneOf:                            oneOfs,
 		ShowUntilAMRConstraintsFulfilled: &trueValue,
 	}
 

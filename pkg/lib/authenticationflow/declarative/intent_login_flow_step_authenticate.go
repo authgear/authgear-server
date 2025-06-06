@@ -51,6 +51,13 @@ type IntentLoginFlowStepAuthenticate struct {
 }
 
 var _ authflow.TargetStep = &IntentLoginFlowStepAuthenticate{}
+var _ authflow.Milestone = &IntentLoginFlowStepAuthenticate{}
+var _ MilestoneAuthenticateOptions = &IntentLoginFlowStepAuthenticate{}
+
+func (i *IntentLoginFlowStepAuthenticate) Milestone() {}
+func (i *IntentLoginFlowStepAuthenticate) MilestoneAuthenticateOptions() []AuthenticateOption {
+	return i.Options
+}
 
 func (i *IntentLoginFlowStepAuthenticate) GetName() string {
 	return i.StepName
