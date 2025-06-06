@@ -167,7 +167,7 @@ type MilestoneFlowCreateAuthenticator interface {
 
 type MilestoneDoCreateAuthenticator interface {
 	authflow.Milestone
-	MilestoneDoCreateAuthenticator() *authenticator.Info
+	MilestoneDoCreateAuthenticator() (*authenticator.Info, bool)
 	MilestoneDoCreateAuthenticatorSkipCreate()
 	MilestoneDoCreateAuthenticatorUpdate(newInfo *authenticator.Info)
 }

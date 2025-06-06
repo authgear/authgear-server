@@ -39,8 +39,8 @@ func (n *NodeSkipCreationByExistingAuthenticator) MilestoneFlowSelectAuthenticat
 func (n *NodeSkipCreationByExistingAuthenticator) MilestoneDidSelectAuthenticationMethod() config.AuthenticationFlowAuthentication {
 	return n.Authentication
 }
-func (n *NodeSkipCreationByExistingAuthenticator) MilestoneDoCreateAuthenticator() *authenticator.Info {
-	return n.Authenticator
+func (n *NodeSkipCreationByExistingAuthenticator) MilestoneDoCreateAuthenticator() (*authenticator.Info, bool) {
+	return n.Authenticator, false
 }
 func (n *NodeSkipCreationByExistingAuthenticator) MilestoneDoCreateAuthenticatorSkipCreate() {
 	// Already skipping

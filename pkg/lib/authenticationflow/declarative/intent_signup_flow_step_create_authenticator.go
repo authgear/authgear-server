@@ -88,15 +88,17 @@ func (i *IntentSignupFlowStepCreateAuthenticator) MilestoneSwitchToExistingUser(
 	if ok {
 		milestone, _, ok := m1.MilestoneFlowCreateAuthenticator(m1Flows)
 		if ok {
-			authn := milestone.MilestoneDoCreateAuthenticator()
-			existing, err := i.findAuthenticatorOfSameType(ctx, deps, authn.Type)
-			if err != nil {
-				return err
-			}
-			if existing != nil {
-				milestone.MilestoneDoCreateAuthenticatorSkipCreate()
-			} else {
-				milestone.MilestoneDoCreateAuthenticatorUpdate(authn.UpdateUserID(newUserID))
+			authn, ok := milestone.MilestoneDoCreateAuthenticator()
+			if ok {
+				existing, err := i.findAuthenticatorOfSameType(ctx, deps, authn.Type)
+				if err != nil {
+					return err
+				}
+				if existing != nil {
+					milestone.MilestoneDoCreateAuthenticatorSkipCreate()
+				} else {
+					milestone.MilestoneDoCreateAuthenticatorUpdate(authn.UpdateUserID(newUserID))
+				}
 			}
 		}
 	}

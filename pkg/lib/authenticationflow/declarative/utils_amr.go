@@ -23,8 +23,8 @@ func collectAMR(ctx context.Context, deps *authflow.Dependencies, flows authflow
 				}
 			}
 			if n, ok := nodeSimple.(MilestoneDoCreateAuthenticator); ok {
-				info := n.MilestoneDoCreateAuthenticator()
-				if info != nil {
+				info, ok := n.MilestoneDoCreateAuthenticator()
+				if ok {
 					amr = append(amr, info.AMR()...)
 					usedAuthenticatorIDs[info.ID] = struct{}{}
 				}
@@ -45,8 +45,8 @@ func collectAMR(ctx context.Context, deps *authflow.Dependencies, flows authflow
 				}
 			}
 			if i, ok := intent.(MilestoneDoCreateAuthenticator); ok {
-				info := i.MilestoneDoCreateAuthenticator()
-				if info != nil {
+				info, ok := i.MilestoneDoCreateAuthenticator()
+				if ok {
 					amr = append(amr, info.AMR()...)
 					usedAuthenticatorIDs[info.ID] = struct{}{}
 				}
