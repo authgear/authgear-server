@@ -142,10 +142,11 @@ func (i *IntentAccountLinking) ReactTo(ctx context.Context, deps *authflow.Depen
 		if err != nil {
 			return nil, err
 		}
-		return authflow.NewNodeSimple(&NodeDoCreateIdentity{
+		return NewNodeDoCreateIdentityReactToResult(ctx, deps, NodeDoCreateIdentityOptions{
+			SkipCreate:   false,
 			Identity:     info,
 			IdentitySpec: i.IncomingIdentitySpec,
-		}), nil
+		})
 	}
 
 	return nil, authflow.ErrIncompatibleInput

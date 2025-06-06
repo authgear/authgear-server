@@ -38,6 +38,17 @@ var HookResponseSchema = validation.NewSimpleSchema(`
 							}
 						}
 					}
+				},
+				"constraints": {
+					"type": "object",
+					"properties": {
+						"amr": {
+							"type": "array",
+							"items": {
+								"type": "string"
+							}
+						}
+					}
 				}
 			},
 			"required": ["is_allowed"]
@@ -57,10 +68,15 @@ var HookResponseSchema = validation.NewSimpleSchema(`
 `)
 
 type HookResponse struct {
-	IsAllowed bool      `json:"is_allowed"`
-	Title     string    `json:"title,omitempty"`
-	Reason    string    `json:"reason,omitempty"`
-	Mutations Mutations `json:"mutations,omitempty"`
+	IsAllowed   bool        `json:"is_allowed"`
+	Title       string      `json:"title,omitempty"`
+	Reason      string      `json:"reason,omitempty"`
+	Mutations   Mutations   `json:"mutations,omitempty"`
+	Constraints Constraints `json:"constraints,omitempty"`
+}
+
+type Constraints struct {
+	AMR []string `json:"amr,omitempty"`
 }
 
 type Mutations struct {
