@@ -313,3 +313,8 @@ type MilestoneDidConsumeRecoveryCode interface {
 	authflow.Milestone
 	MilestoneDidConsumeRecoveryCode() *mfa.RecoveryCode
 }
+
+type MilestoneAuthenticationFlowObjectProvider interface {
+	authflow.Milestone
+	MilestoneAuthenticationFlowObjectProvider() config.AuthenticationFlowObject
+}

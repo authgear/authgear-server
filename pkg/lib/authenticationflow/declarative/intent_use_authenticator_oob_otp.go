@@ -89,7 +89,7 @@ func (n *IntentUseAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *authfl
 		var inputTakeAuthenticationOptionIndex inputTakeAuthenticationOptionIndex
 		if authflow.AsInput(input, &inputTakeAuthenticationOptionIndex) {
 			var bpSpecialErr error
-			bpSpecialErr, err := HandleBotProtection(ctx, deps, flows, n.JSONPointer, input)
+			bpSpecialErr, err := HandleBotProtection(ctx, deps, flows, n.JSONPointer, input, n)
 			if err != nil {
 				return nil, err
 			}

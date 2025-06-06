@@ -201,6 +201,30 @@ func findFlowRootObjectInFlow(deps *authflow.Dependencies, flows authflow.Flows)
 	return nearestPublicFlow.FlowRootObject(deps)
 }
 
+func findNearestFlowObjectInFlow(deps *authflow.Dependencies, flows authflow.Flows, currentNode authflow.NodeOrIntent) (config.AuthenticationFlowObject, error) {
+	var nearestPublicFlow authflow.PublicFlow
+	var flowObject config.AuthenticationFlowObject
+	_ = authflow.TraverseIntentFromNodeToRoot(func(intent authflow.Intent) error {
+		if nearestPublicFlow != nil || flowObject != nil {
+			return nil
+		}
+		if publicFlow, ok := intent.(authflow.PublicFlow); ok {
+			nearestPublicFlow = publicFlow
+		}
+		if provider, ok := intent.(MilestoneAuthenticationFlowObjectProvider); ok {
+			flowObject = provider.MilestoneAuthenticationFlowObjectProvider()
+		}
+		return nil
+	}, flows.Root, currentNode)
+	if nearestPublicFlow == nil && flowObject == nil {
+		panic("failed to find flow object: no flow object available")
+	}
+	if flowObject != nil {
+		return flowObject, nil
+	}
+	return nearestPublicFlow.FlowRootObject(deps)
+}
+
 // nolint: gocognit
 func getAuthenticationOptionsForLogin(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, userID string, step *config.AuthenticationFlowLoginFlowStep) (
 	options []AuthenticateOption,
