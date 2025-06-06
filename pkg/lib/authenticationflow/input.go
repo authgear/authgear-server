@@ -8,7 +8,9 @@ import (
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
@@ -73,8 +75,14 @@ type FindInputReactorResult struct {
 	InputSchema  InputSchema
 }
 
-func FindInputReactor(ctx context.Context, deps *Dependencies, flows Flows) (*FindInputReactorResult, error) {
-	return FindInputReactorForFlow(ctx, deps, flows)
+func FindInputReactor(ctx context.Context, deps *Dependencies, flows Flows) (reactor *FindInputReactorResult, err error) {
+	reactor, err = FindInputReactorForFlow(ctx, deps, flows)
+	if err != nil {
+		err = errorutil.WithDetails(err, errorutil.Details{
+			"FlowType": apierrors.APIErrorDetail.Value(flows.Nearest.Intent.(PublicFlow).FlowType()),
+		})
+	}
+	return
 }
 
 func FindInputReactorForFlow(ctx context.Context, deps *Dependencies, flows Flows) (*FindInputReactorResult, error) {
