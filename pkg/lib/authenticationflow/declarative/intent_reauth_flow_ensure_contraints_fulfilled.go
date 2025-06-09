@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/util/slice"
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 )
 
@@ -22,35 +22,29 @@ type IntentReauthFlowEnsureContraintsFulfilled struct {
 }
 
 func NewIntentReauthFlowEnsureContraintsFulfilled(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows, flowRef authenticationflow.FlowReference) (*IntentReauthFlowEnsureContraintsFulfilled, error) {
-	authentications := []config.AuthenticationFlowAuthentication{}
-	err := authenticationflow.TraverseFlow(authenticationflow.Traverser{
-		NodeSimple: func(nodeSimple authenticationflow.NodeSimple, w *authenticationflow.Flow) error {
-			if n, ok := nodeSimple.(MilestoneAuthenticateOptions); ok {
-				for _, o := range n.MilestoneAuthenticateOptions() {
-					authentications = append(authentications, o.Authentication)
-				}
-			}
-			return nil
-		},
-		Intent: func(intent authenticationflow.Intent, w *authenticationflow.Flow) error {
-			if i, ok := intent.(MilestoneAuthenticateOptions); ok {
-				for _, o := range i.MilestoneAuthenticateOptions() {
-					authentications = append(authentications, o.Authentication)
-				}
-			}
-			return nil
-		},
-	}, flows.Root)
-	if err != nil {
-		return nil, err
+	var oneOfs []*config.AuthenticationFlowReauthFlowOneOf
+
+	addOneOf := func(am config.AuthenticationFlowAuthentication) {
+		oneOf := &config.AuthenticationFlowReauthFlowOneOf{
+			Authentication: am,
+		}
+
+		oneOfs = append(oneOfs, oneOf)
 	}
 
-	var oneOfs []*config.AuthenticationFlowReauthFlowOneOf
-	authentications = slice.Deduplicate(authentications)
-	for _, auth := range authentications {
-		oneOfs = append(oneOfs, &config.AuthenticationFlowReauthFlowOneOf{
-			Authentication: auth,
-		})
+	for _, authenticatorType := range *deps.Config.Authentication.SecondaryAuthenticators {
+		switch authenticatorType {
+		case model.AuthenticatorTypePassword:
+			addOneOf(config.AuthenticationFlowAuthenticationSecondaryPassword)
+		case model.AuthenticatorTypeOOBEmail:
+			addOneOf(config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail)
+		case model.AuthenticatorTypeOOBSMS:
+			addOneOf(config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS)
+		case model.AuthenticatorTypeTOTP:
+			addOneOf(config.AuthenticationFlowAuthenticationSecondaryTOTP)
+		case model.AuthenticatorTypePasskey:
+			addOneOf(config.AuthenticationFlowAuthenticationPrimaryPasskey)
+		}
 	}
 
 	trueValue := true

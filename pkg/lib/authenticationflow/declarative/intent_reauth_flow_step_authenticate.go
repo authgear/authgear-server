@@ -42,7 +42,6 @@ type IntentReauthFlowStepAuthenticate struct {
 var _ authflow.Intent = &IntentReauthFlowStepAuthenticate{}
 var _ authflow.DataOutputer = &IntentReauthFlowStepAuthenticate{}
 var _ authflow.Milestone = &IntentReauthFlowStepAuthenticate{}
-var _ MilestoneAuthenticateOptions = &IntentReauthFlowStepAuthenticate{}
 
 func NewIntentReauthFlowStepAuthenticate(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, i *IntentReauthFlowStepAuthenticate, originNode authflow.NodeOrIntent) (*IntentReauthFlowStepAuthenticate, error) {
 	current, err := i.currentFlowObject(deps, flows, originNode)
@@ -66,9 +65,6 @@ func NewIntentReauthFlowStepAuthenticate(ctx context.Context, deps *authflow.Dep
 }
 
 func (i *IntentReauthFlowStepAuthenticate) Milestone() {
-}
-func (i *IntentReauthFlowStepAuthenticate) MilestoneAuthenticateOptions() []AuthenticateOption {
-	return i.Options
 }
 
 func (*IntentReauthFlowStepAuthenticate) Kind() string {
