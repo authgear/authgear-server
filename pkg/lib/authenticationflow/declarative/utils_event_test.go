@@ -228,7 +228,7 @@ func TestGetAuthenticationContext(t *testing.T) {
 
 			flows := authenticationflow.NewFlows(rootFlow)
 
-			result, err := declarative.GetAuthenticationContext(ctx, flows, mockDeps)
+			result, err := declarative.GetAuthenticationContext(ctx, mockDeps, flows)
 			So(err, ShouldBeNil)
 			So(result.AuthenticationFlow, ShouldNotBeNil)
 			So(result.AuthenticationFlow.Type, ShouldEqual, string(authenticationflow.FlowTypeLogin))
@@ -365,7 +365,7 @@ func TestGetAuthenticationContext(t *testing.T) {
 
 			flows := authenticationflow.NewFlows(rootFlow)
 
-			result, err := declarative.GetAuthenticationContext(ctx, flows, mockDeps)
+			result, err := declarative.GetAuthenticationContext(ctx, mockDeps, flows)
 			So(err, ShouldBeNil)
 			So(result.AuthenticationFlow, ShouldNotBeNil)
 			So(result.AuthenticationFlow.Type, ShouldEqual, string(authenticationflow.FlowTypeSignup))

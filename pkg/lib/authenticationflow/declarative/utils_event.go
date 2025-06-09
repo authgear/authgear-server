@@ -13,7 +13,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 )
 
-func GetAuthenticationContext(ctx context.Context, flows authenticationflow.Flows, deps *authenticationflow.Dependencies) (*event.AuthenticationContext, error) {
+func GetAuthenticationContext(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows) (*event.AuthenticationContext, error) {
 	var authenticationFlow *event.AuthenticationFlowContext
 	var u *model.User
 	var amr []string

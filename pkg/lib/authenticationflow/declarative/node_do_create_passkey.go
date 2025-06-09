@@ -19,12 +19,12 @@ type NodeDoCreatePasskeyOptions struct {
 	AttestationResponse []byte
 }
 
-func NewNodeDoCreatePasskeyReactToResult(ctx context.Context, flows authflow.Flows, deps *authflow.Dependencies, opts NodeDoCreatePasskeyOptions) (authflow.ReactToResult, error) {
+func NewNodeDoCreatePasskeyReactToResult(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, opts NodeDoCreatePasskeyOptions) (authflow.ReactToResult, error) {
 	nodeDoCreateIdentityOpts := NodeDoCreateIdentityOptions{
 		SkipCreate: opts.SkipCreate,
 		Identity:   opts.Identity,
 	}
-	doCreateIdenNode, delayedFunction, err := NewNodeDoCreateIdentity(ctx, flows, deps, nodeDoCreateIdentityOpts)
+	doCreateIdenNode, delayedFunction, err := NewNodeDoCreateIdentity(ctx, deps, flows, nodeDoCreateIdentityOpts)
 	if err != nil {
 		return nil, err
 	}
