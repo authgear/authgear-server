@@ -36,7 +36,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
-//go:generate go tool mockgen -source=dependencies.go -destination=dependencies_mock_test.go -package authenticationflow
+//go:generate go tool mockgen -source=dependencies.go -destination=dependencies_mock_gen.go -package authenticationflow
 
 type IdentityService interface {
 	New(ctx context.Context, userID string, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error)

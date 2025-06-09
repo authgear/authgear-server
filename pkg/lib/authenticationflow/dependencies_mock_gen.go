@@ -10,10 +10,6 @@ import (
 	reflect "reflect"
 	time "time"
 
-	oauthrelyingparty "github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
-	gomock "github.com/golang/mock/gomock"
-	jwt "github.com/lestrrat-go/jwx/v2/jwt"
-
 	event "github.com/authgear/authgear-server/pkg/api/event"
 	model "github.com/authgear/authgear-server/pkg/api/model"
 	accountmigration "github.com/authgear/authgear-server/pkg/lib/accountmigration"
@@ -38,6 +34,9 @@ import (
 	idpsession "github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	accesscontrol "github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	httputil "github.com/authgear/authgear-server/pkg/util/httputil"
+	oauthrelyingparty "github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
+	gomock "github.com/golang/mock/gomock"
+	jwt "github.com/lestrrat-go/jwx/v2/jwt"
 )
 
 // MockIdentityService is a mock of IdentityService interface.
