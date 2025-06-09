@@ -12,7 +12,7 @@ import (
 	"github.com/authgear/authgear-server/e2e/pkg/testrunner"
 )
 
-func TestCreateUserWithPassword(t *testing.T) {
+func TestCreateUser_Password_SendPassword_SetPasswordExpired(t *testing.T) {
 	cmd, err := testrunner.NewEnd2EndCmd(testrunner.NewEnd2EndCmdOptions{
 		TestCase: &testrunner.TestCase{
 			Path: "admin_api/create_user_test.go",
@@ -53,6 +53,136 @@ func TestCreateUserWithPassword(t *testing.T) {
 				"value": userEmail,
 			},
 			"password":           "password",
+			"sendPassword":       true,
+			"setPasswordExpired": true,
+		},
+	})
+	if err != nil {
+		t.Fatalf("%v", err.Error())
+	}
+
+	// Verify password created with expireAfter
+	password, err := getPasswordByEmail(cmd, userEmail)
+	if err != nil {
+		t.Fatalf("%v", err.Error())
+	}
+	if password == nil {
+		t.Fatalf("Password not created")
+	}
+	if password.ExpireAfter == nil {
+		t.Fatalf("Password not created with expire_after")
+	}
+
+	// Verify email sent
+	emailSent, err := verifyEmailInLog("Get Started With Authgear", userEmail)
+	if err != nil {
+		t.Fatalf("%v", err.Error())
+	}
+	if !emailSent {
+		t.Fatalf("Create user email with recipient '%s' not found.", userEmail)
+	}
+}
+
+func TestCreateUser_NullPassword(t *testing.T) {
+	cmd, err := testrunner.NewEnd2EndCmd(testrunner.NewEnd2EndCmdOptions{
+		TestCase: &testrunner.TestCase{
+			Path: "admin_api/create_user_test.go",
+		},
+		Test: t,
+	})
+	if err != nil {
+		t.Fatalf("%v", err.Error())
+	}
+
+	userEmail := fmt.Sprintf("%s@example.com", cmd.AppID)
+
+	_, err = cmd.Client.GraphQLAPI(nil, nil, cmd.AppID, e2eclient.GraphQLAPIRequest{
+		Query: `
+			mutation createUserMutation(
+				$identityDefinition: IdentityDefinitionLoginID!
+				$password: String
+				$sendPassword: Boolean
+				$setPasswordExpired: Boolean
+			) {
+				createUser(
+					input: {
+						definition: { loginID: $identityDefinition },
+						password: $password,
+						sendPassword: $sendPassword,
+						setPasswordExpired: $setPasswordExpired
+					}
+				) {
+					user {
+						id
+					}
+				}
+			}
+		`,
+		Variables: map[string]interface{}{
+			"identityDefinition": map[string]interface{}{
+				"key":   "email",
+				"value": userEmail,
+			},
+			"password":           nil,
+			"sendPassword":       false,
+			"setPasswordExpired": false,
+		},
+	})
+	if err != nil {
+		t.Fatalf("%v", err.Error())
+	}
+
+	// Verify no password is created.
+	password, err := getPasswordByEmail(cmd, userEmail)
+	if err != nil {
+		t.Fatalf("%v", err.Error())
+	}
+	if password != nil {
+		t.Fatalf("Password should not be created")
+	}
+}
+
+func TestCreateUser_EmptyPassword(t *testing.T) {
+	cmd, err := testrunner.NewEnd2EndCmd(testrunner.NewEnd2EndCmdOptions{
+		TestCase: &testrunner.TestCase{
+			Path: "admin_api/create_user_test.go",
+		},
+		Test: t,
+	})
+	if err != nil {
+		t.Fatalf("%v", err.Error())
+	}
+
+	userEmail := fmt.Sprintf("%s@example.com", cmd.AppID)
+
+	_, err = cmd.Client.GraphQLAPI(nil, nil, cmd.AppID, e2eclient.GraphQLAPIRequest{
+		Query: `
+			mutation createUserMutation(
+				$identityDefinition: IdentityDefinitionLoginID!
+				$password: String
+				$sendPassword: Boolean
+				$setPasswordExpired: Boolean
+			) {
+				createUser(
+					input: {
+						definition: { loginID: $identityDefinition },
+						password: $password,
+						sendPassword: $sendPassword,
+						setPasswordExpired: $setPasswordExpired
+					}
+				) {
+					user {
+						id
+					}
+				}
+			}
+		`,
+		Variables: map[string]interface{}{
+			"identityDefinition": map[string]interface{}{
+				"key":   "email",
+				"value": userEmail,
+			},
+			"password":           "",
 			"sendPassword":       true,
 			"setPasswordExpired": true,
 		},
