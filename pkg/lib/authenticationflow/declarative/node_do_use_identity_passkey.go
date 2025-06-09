@@ -28,8 +28,8 @@ type NodeDoUseIdentityPasskeyOptions struct {
 	RequireUpdate     bool
 }
 
-func NewNodeDoUseIdentityPasskey(ctx context.Context, flows authflow.Flows, deps *authflow.Dependencies, opts *NodeDoUseIdentityPasskeyOptions) (authenticationflow.ReactToResult, error) {
-	nodeDoUseIden, delayedFn, err := NewNodeDoUseIdentity(ctx, flows, deps, &NodeDoUseIdentity{
+func NewNodeDoUseIdentityPasskey(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, opts *NodeDoUseIdentityPasskeyOptions) (authenticationflow.ReactToResult, error) {
+	nodeDoUseIden, delayedFn, err := NewNodeDoUseIdentity(ctx, deps, flows, &NodeDoUseIdentity{
 		Identity:     opts.Identity,
 		IdentitySpec: opts.IdentitySpec,
 	})

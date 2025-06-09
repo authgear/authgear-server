@@ -122,7 +122,7 @@ func (n *NodePromptCreatePasskey) ReactTo(ctx context.Context, deps *authflow.De
 			return nil, err
 		}
 
-		return NewNodeDoCreatePasskeyReactToResult(ctx, flows, deps, NodeDoCreatePasskeyOptions{
+		return NewNodeDoCreatePasskeyReactToResult(ctx, deps, flows, NodeDoCreatePasskeyOptions{
 			Identity:            identityInfo,
 			Authenticator:       authenticatorInfo,
 			AttestationResponse: creationResponseBytes,

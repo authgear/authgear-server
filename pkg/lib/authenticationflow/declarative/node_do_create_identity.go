@@ -19,14 +19,14 @@ type NodeDoCreateIdentityOptions struct {
 	IdentitySpec *identity.Spec
 }
 
-func NewNodeDoCreateIdentity(ctx context.Context, flows authflow.Flows, deps *authflow.Dependencies, opts NodeDoCreateIdentityOptions) (*NodeDoCreateIdentity, authflow.DelayedOneTimeFunction, error) {
+func NewNodeDoCreateIdentity(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, opts NodeDoCreateIdentityOptions) (*NodeDoCreateIdentity, authflow.DelayedOneTimeFunction, error) {
 	n := &NodeDoCreateIdentity{
 		SkipCreate:   opts.SkipCreate,
 		Identity:     opts.Identity,
 		IdentitySpec: opts.IdentitySpec,
 	}
 
-	authCtx, err := GetAuthenticationContext(ctx, flows, deps)
+	authCtx, err := GetAuthenticationContext(ctx, deps, flows)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -57,8 +57,8 @@ func NewNodeDoCreateIdentity(ctx context.Context, flows authflow.Flows, deps *au
 	return n, delayedFunction, nil
 }
 
-func NewNodeDoCreateIdentityReactToResult(ctx context.Context, flows authflow.Flows, deps *authflow.Dependencies, opts NodeDoCreateIdentityOptions) (authflow.ReactToResult, error) {
-	node, delayedFunction, err := NewNodeDoCreateIdentity(ctx, flows, deps, opts)
+func NewNodeDoCreateIdentityReactToResult(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, opts NodeDoCreateIdentityOptions) (authflow.ReactToResult, error) {
+	node, delayedFunction, err := NewNodeDoCreateIdentity(ctx, deps, flows, opts)
 	if err != nil {
 		return nil, err
 	}
