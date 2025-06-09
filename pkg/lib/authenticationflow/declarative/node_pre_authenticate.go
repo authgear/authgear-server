@@ -17,8 +17,8 @@ type NodePreAuthenticate struct {
 	Constraints               *eventapi.Constraints `json:"constraints,omitempty"`
 }
 
-func newNodePreAuthenticate(ctx context.Context, flows authenticationflow.Flows, deps *authenticationflow.Dependencies) (*NodePreAuthenticate, authenticationflow.DelayedOneTimeFunction, error) {
-	authCtx, err := GetAuthenticationContext(ctx, flows, deps)
+func newNodePreAuthenticate(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows) (*NodePreAuthenticate, authenticationflow.DelayedOneTimeFunction, error) {
+	authCtx, err := GetAuthenticationContext(ctx, deps, flows)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -51,8 +51,8 @@ func newNodePreAuthenticate(ctx context.Context, flows authenticationflow.Flows,
 
 }
 
-func NewNodePreAuthenticateNodeSimple(ctx context.Context, flows authenticationflow.Flows, deps *authenticationflow.Dependencies) (authenticationflow.ReactToResult, error) {
-	n, delayedFunction, err := newNodePreAuthenticate(ctx, flows, deps)
+func NewNodePreAuthenticateNodeSimple(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows) (authenticationflow.ReactToResult, error) {
+	n, delayedFunction, err := newNodePreAuthenticate(ctx, deps, flows)
 	if err != nil {
 		return nil, err
 	}

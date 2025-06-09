@@ -89,7 +89,7 @@ func (i *IntentSignupFlow) ReactTo(ctx context.Context, deps *authflow.Dependenc
 			UserID:        userID,
 		}), nil
 	case len(flows.Nearest.Nodes) == 2:
-		return NewNodePreAuthenticateNodeSimple(ctx, flows, deps)
+		return NewNodePreAuthenticateNodeSimple(ctx, deps, flows)
 	case len(flows.Nearest.Nodes) == 3:
 		userID, _ := i.userID(flows)
 		if userID == "" {
