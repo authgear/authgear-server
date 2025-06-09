@@ -10,5 +10,6 @@ Read the following documents for detailed study on each competitor
 - [FushionAuth](./04-fushionauth.md)
 - [SuperTokens](./05-supertokens.md)
 - [Zitadel](./06-zitadel.md)
+- [Clerk](./07-clerk.md)
 
 The design draft is at [./10-draft.md](./10-draft.md).
