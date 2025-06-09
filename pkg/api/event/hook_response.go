@@ -2,8 +2,11 @@ package event
 
 import (
 	"context"
+	"fmt"
 	"io"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/util/slice"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
@@ -75,8 +78,19 @@ type HookResponse struct {
 	Constraints *Constraints `json:"constraints,omitempty"`
 }
 
+var supportedAMRContraints = []string{model.AMRMFA, model.AMROTP, model.AMRPWD, model.AMRSMS}
+
 type Constraints struct {
 	AMR []string `json:"amr,omitempty"`
+}
+
+func (c *Constraints) Validate() error {
+	for _, amr := range c.AMR {
+		if !slice.ContainsString(supportedAMRContraints, amr) {
+			return fmt.Errorf("unsupported amr constraint %s", amr)
+		}
+	}
+	return nil
 }
 
 type Mutations struct {
@@ -99,6 +113,12 @@ func ParseHookResponse(ctx context.Context, r io.Reader) (*HookResponse, error) 
 	var resp HookResponse
 	if err := HookResponseSchema.Validator().Parse(ctx, r, &resp); err != nil {
 		return nil, err
+	}
+	if resp.Constraints != nil {
+		err := resp.Constraints.Validate()
+		if err != nil {
+			return nil, err
+		}
 	}
 	return &resp, nil
 }
