@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/util/slice"
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 )
 
@@ -22,34 +22,39 @@ type IntentLoginFlowEnsureContraintsFulfilled struct {
 }
 
 func NewIntentLoginFlowEnsureContraintsFulfilled(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows, flowRef authenticationflow.FlowReference) (*IntentLoginFlowEnsureContraintsFulfilled, error) {
-	authentications := []config.AuthenticationFlowAuthentication{}
-	err := authenticationflow.TraverseFlow(authenticationflow.Traverser{
-		NodeSimple: func(nodeSimple authenticationflow.NodeSimple, w *authenticationflow.Flow) error {
-			if n, ok := nodeSimple.(MilestoneAuthenticateOptions); ok {
-				for _, o := range n.MilestoneAuthenticateOptions() {
-					authentications = append(authentications, o.Authentication)
-				}
+	var oneOfs []*config.AuthenticationFlowLoginFlowOneOf
+
+	addOneOf := func(am config.AuthenticationFlowAuthentication, bpGetter func(*config.AppConfig) (*config.AuthenticationFlowBotProtection, bool)) {
+		oneOf := &config.AuthenticationFlowLoginFlowOneOf{
+			Authentication: am,
+		}
+		if bpGetter != nil {
+			if bp, ok := bpGetter(deps.Config); ok {
+				oneOf.BotProtection = bp
 			}
-			return nil
-		},
-		Intent: func(intent authenticationflow.Intent, w *authenticationflow.Flow) error {
-			if i, ok := intent.(MilestoneAuthenticateOptions); ok {
-				for _, o := range i.MilestoneAuthenticateOptions() {
-					authentications = append(authentications, o.Authentication)
-				}
-			}
-			return nil
-		},
-	}, flows.Root)
-	if err != nil {
-		return nil, err
+		}
+
+		oneOfs = append(oneOfs, oneOf)
 	}
 
-	var oneOfs []*config.AuthenticationFlowLoginFlowOneOf
-	authentications = slice.Deduplicate(authentications)
-	for _, auth := range authentications {
+	for _, authenticatorType := range *deps.Config.Authentication.SecondaryAuthenticators {
+		switch authenticatorType {
+		case model.AuthenticatorTypePassword:
+			addOneOf(config.AuthenticationFlowAuthenticationSecondaryPassword, getBotProtectionRequirementsPassword)
+		case model.AuthenticatorTypeOOBEmail:
+			addOneOf(config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail, getBotProtectionRequirementsOOBOTPEmail)
+		case model.AuthenticatorTypeOOBSMS:
+			addOneOf(config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS, getBotProtectionRequirementsOOBOTPSMS)
+		case model.AuthenticatorTypeTOTP:
+			addOneOf(config.AuthenticationFlowAuthenticationSecondaryTOTP, nil)
+		case model.AuthenticatorTypePasskey:
+			addOneOf(config.AuthenticationFlowAuthenticationPrimaryPasskey, nil)
+		}
+	}
+
+	if !*deps.Config.Authentication.RecoveryCode.Disabled {
 		oneOfs = append(oneOfs, &config.AuthenticationFlowLoginFlowOneOf{
-			Authentication: auth,
+			Authentication: config.AuthenticationFlowAuthenticationRecoveryCode,
 		})
 	}
 
