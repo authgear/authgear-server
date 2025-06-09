@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/util/errorutil"
 )
 
 // ErrIncompatibleInput means the input reactor cannot react to the input.
@@ -94,3 +95,9 @@ var (
 		Status: ErrorBotProtectionVerificationStatusServiceUnavailable,
 	}
 )
+
+func newAuthenticationFlowError(flows Flows, err error) error {
+	return errorutil.WithDetails(err, errorutil.Details{
+		"FlowType": apierrors.APIErrorDetail.Value(flows.Nearest.Intent.(PublicFlow).FlowType()),
+	})
+}

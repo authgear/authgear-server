@@ -6,6 +6,7 @@ import (
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
+	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
@@ -45,6 +46,7 @@ type IntentSignupFlowStepCreateAuthenticator struct {
 
 	Options                          []CreateAuthenticatorOptionInternal `json:"options,omitempty"`
 	ShowUntilAMRConstraintsFulfilled bool                                `json:"show_until_amr_constraints_fulfilled,omitempty"`
+	CannotBeSkipped                  bool                                `json:"cannot_be_skipped,omitempty"`
 }
 
 func NewIntentSignupFlowStepCreateAuthenticator(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, i *IntentSignupFlowStepCreateAuthenticator, originNode authflow.NodeOrIntent) (*IntentSignupFlowStepCreateAuthenticator, error) {
@@ -112,6 +114,9 @@ func (*IntentSignupFlowStepCreateAuthenticator) Kind() string {
 
 func (i *IntentSignupFlowStepCreateAuthenticator) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
 	if len(flows.Nearest.Nodes) == 0 && len(i.Options) == 0 {
+		if i.CannotBeSkipped {
+			return nil, api.ErrNoAuthenticator
+		}
 		// Nothing can be selected, skip this step.
 		return nil, authflow.ErrEOF
 	}
@@ -454,6 +459,8 @@ func (i *IntentSignupFlowStepCreateAuthenticator) newIntentSignupFlowStepCreateA
 	}
 	// The subflow should not check constraints again
 	subintent.ShowUntilAMRConstraintsFulfilled = false
+	// This step cannot be skipped to ensure amr constraints are all fulfilled
+	subintent.CannotBeSkipped = true
 
 	options, err := NewCreateAuthenticationOptions(ctx, deps, flows, step, i.UserID)
 	if err != nil {
@@ -474,6 +481,7 @@ func (i *IntentSignupFlowStepCreateAuthenticator) clone() *IntentSignupFlowStepC
 		IsUpdatingExistingUser           bool
 		Options                          []CreateAuthenticatorOptionInternal
 		ShowUntilAMRConstraintsFulfilled bool
+		CannotBeSkipped                  bool
 	}{
 		FlowReference:                    i.FlowReference,
 		JSONPointer:                      i.JSONPointer,
@@ -482,6 +490,7 @@ func (i *IntentSignupFlowStepCreateAuthenticator) clone() *IntentSignupFlowStepC
 		IsUpdatingExistingUser:           i.IsUpdatingExistingUser,
 		Options:                          i.Options,
 		ShowUntilAMRConstraintsFulfilled: i.ShowUntilAMRConstraintsFulfilled,
+		CannotBeSkipped:                  i.CannotBeSkipped,
 	}
 	cloned := IntentSignupFlowStepCreateAuthenticator(s)
 	return &cloned
