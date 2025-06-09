@@ -62,12 +62,15 @@ func TestCreateUserWithPassword(t *testing.T) {
 	}
 
 	// Verify password created with expireAfter
-	passwordCreated, err := verifyPasswordCreated(cmd, userEmail)
+	password, err := getPasswordByEmail(cmd, userEmail)
 	if err != nil {
 		t.Fatalf("%v", err.Error())
 	}
-	if !passwordCreated {
-		t.Fatalf("Password not created with expireAfter")
+	if password == nil {
+		t.Fatalf("Password not created")
+	}
+	if password.ExpireAfter == nil {
+		t.Fatalf("Password not created with expire_after")
 	}
 
 	// Verify email sent
@@ -80,7 +83,11 @@ func TestCreateUserWithPassword(t *testing.T) {
 	}
 }
 
-func verifyPasswordCreated(cmd *testrunner.End2EndCmd, userEmail string) (bool, error) {
+type CreateUserPassword struct {
+	ExpireAfter *string
+}
+
+func getPasswordByEmail(cmd *testrunner.End2EndCmd, userEmail string) (*CreateUserPassword, error) {
 	rawResult, err := cmd.QuerySQLSelectRaw(fmt.Sprintf(`
 		SELECT expire_after
 		FROM _auth_authenticator
@@ -90,26 +97,28 @@ func verifyPasswordCreated(cmd *testrunner.End2EndCmd, userEmail string) (bool, 
 		AND standard_attributes ->> 'email' = '%s';
 	`, cmd.AppID, userEmail))
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 
 	var rows []interface{}
 	err = json.Unmarshal([]byte(rawResult), &rows)
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 
 	if len(rows) == 0 {
-		return false, nil
+		return nil, nil
 	}
 
 	row := rows[0].(map[string]interface{})
-	expireAfter := row["expire_after"]
-	if expireAfter == nil {
-		return false, fmt.Errorf("Password not created with expireAfter")
+	expireAfter, ok := row["expire_after"].(string)
+
+	out := &CreateUserPassword{}
+	if ok {
+		out.ExpireAfter = &expireAfter
 	}
 
-	return true, nil
+	return out, nil
 }
 
 func verifyEmailInLog(subject string, recipient string) (bool, error) {
