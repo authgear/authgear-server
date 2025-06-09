@@ -89,6 +89,21 @@ func (i *IntentSignupFlow) ReactTo(ctx context.Context, deps *authflow.Dependenc
 			UserID:        userID,
 		}), nil
 	case len(flows.Nearest.Nodes) == 2:
+		return NewNodePreAuthenticateNodeSimple(ctx, flows, deps)
+	case len(flows.Nearest.Nodes) == 3:
+		userID, _ := i.userID(flows)
+		if userID == "" {
+			panic(fmt.Errorf("expected userID to be non empty in IntentSignupFlow"))
+		}
+		i, err := NewIntentSignupFlowEnsureContraintsFulfilled(ctx, deps, flows, &IntentSignupFlowEnsureContraintsFulfilledOptions{
+			UserID:        userID,
+			FlowReference: i.FlowReference,
+		})
+		if err != nil {
+			return nil, err
+		}
+		return authflow.NewSubFlow(i), nil
+	case len(flows.Nearest.Nodes) == 4:
 		userID, createUser := i.userID(flows)
 		n, err := NewNodeDoCreateSession(ctx, deps, flows, &NodeDoCreateSession{
 			UserID:       userID,
