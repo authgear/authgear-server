@@ -73,6 +73,17 @@ func (i *IntentPromoteFlow) ReactTo(ctx context.Context, deps *authflow.Dependen
 			UserID:        i.userID(flows),
 		}), nil
 	case len(flows.Nearest.Nodes) == 2:
+		return NewNodePreAuthenticateNodeSimple(ctx, flows, deps)
+	case len(flows.Nearest.Nodes) == 3:
+		i, err := NewIntentSignupFlowEnsureContraintsFulfilled(ctx, deps, flows, &IntentSignupFlowEnsureContraintsFulfilledOptions{
+			UserID:        i.userID(flows),
+			FlowReference: i.FlowReference,
+		})
+		if err != nil {
+			return nil, err
+		}
+		return authflow.NewSubFlow(i), nil
+	case len(flows.Nearest.Nodes) == 4:
 		n, err := NewNodeDoCreateSession(ctx, deps, flows, &NodeDoCreateSession{
 			UserID:       i.userID(flows),
 			CreateReason: session.CreateReasonPromote,
