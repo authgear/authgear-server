@@ -2,10 +2,10 @@ package declarative_test
 
 import (
 	"context"
-	"errors"
 	"testing"
 	"time"
 
+	"github.com/golang/mock/gomock"
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -13,47 +13,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
-	"github.com/authgear/authgear-server/pkg/lib/authn/user"
-	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 )
-
-// MockUserService is a mock implementation of authenticationflow.UserService
-type MockUserService struct {
-	MockGet func(ctx context.Context, id string, role accesscontrol.Role) (*model.User, error)
-}
-
-func (m *MockUserService) Get(ctx context.Context, id string, role accesscontrol.Role) (*model.User, error) {
-	if m.MockGet != nil {
-		return m.MockGet(ctx, id, role)
-	}
-	return nil, errors.New("Get not implemented")
-}
-
-func (m *MockUserService) GetRaw(ctx context.Context, id string) (*user.User, error) {
-	return nil, errors.New("GetRaw not implemented")
-}
-
-func (m *MockUserService) Create(ctx context.Context, userID string) (*user.User, error) {
-	return nil, errors.New("Create not implemented")
-}
-
-func (m *MockUserService) UpdateLoginTime(ctx context.Context, userID string, t time.Time) error {
-	return errors.New("UpdateLoginTime not implemented")
-}
-
-func (m *MockUserService) UpdateMFAEnrollment(ctx context.Context, userID string, t *time.Time) error {
-	return errors.New("UpdateMFAEnrollment not implemented")
-}
-
-func (m *MockUserService) AfterCreate(
-	ctx context.Context,
-	user *user.User,
-	identities []*identity.Info,
-	authenticators []*authenticator.Info,
-	isAdminAPI bool,
-) error {
-	return errors.New("AfterCreate not implemented")
-}
 
 func TestGetAuthenticationContext(t *testing.T) {
 	Convey("GetAuthenticationContext", t, func() {
@@ -62,15 +22,14 @@ func TestGetAuthenticationContext(t *testing.T) {
 
 			fixedTime := time.Date(2025, time.June, 4, 6, 45, 37, 0, time.UTC)
 
+			userID := "test-user-1"
 			testUser := &model.User{
-				Meta: model.Meta{
-					ID: "testuserid",
-				},
+				Meta: model.Meta{ID: userID},
 			}
 
 			assertedIdentity := &identity.Info{
 				ID:        "test-identity-1",
-				UserID:    "test-user-1",
+				UserID:    userID,
 				CreatedAt: fixedTime,
 				UpdatedAt: fixedTime,
 				Type:      model.IdentityTypeLoginID,
@@ -87,7 +46,7 @@ func TestGetAuthenticationContext(t *testing.T) {
 
 			assertedAuthenticator := &authenticator.Info{
 				ID:        "test-authn-1",
-				UserID:    "test-user-1",
+				UserID:    userID,
 				CreatedAt: fixedTime,
 				UpdatedAt: fixedTime,
 				Type:      model.AuthenticatorTypeOOBEmail,
@@ -100,7 +59,7 @@ func TestGetAuthenticationContext(t *testing.T) {
 			// Add a second authenticator for MFA test
 			assertedAuthenticator2 := &authenticator.Info{
 				ID:        "test-authn-2",
-				UserID:    "test-user-1",
+				UserID:    userID,
 				CreatedAt: fixedTime,
 				UpdatedAt: fixedTime,
 				Type:      model.AuthenticatorTypePassword,
@@ -108,13 +67,19 @@ func TestGetAuthenticationContext(t *testing.T) {
 				Password:  &authenticator.Password{},
 			}
 
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockUserService := authenticationflow.NewMockUserService(ctrl)
+			mockUserService.
+				EXPECT().
+				Get(gomock.Any(), gomock.Eq(userID), gomock.Any()).
+				Return(testUser, nil).
+				AnyTimes()
+
 			// Create a mock dependencies instance
 			mockDeps := &authenticationflow.Dependencies{
-				Users: &MockUserService{
-					MockGet: func(ctx context.Context, id string, role accesscontrol.Role) (*model.User, error) {
-						return testUser, nil
-					},
-				},
+				Users: mockUserService,
 			}
 
 			// Construct Flow directly with the nested structure inlined
@@ -246,9 +211,14 @@ func TestGetAuthenticationContext(t *testing.T) {
 		Convey("in signup flow", func() {
 			fixedTime := time.Date(2025, time.June, 4, 6, 45, 37, 0, time.UTC)
 
+			userID := "test-user-1"
+			user := &model.User{
+				Meta: model.Meta{ID: userID},
+			}
+
 			assertedIdentity := &identity.Info{
 				ID:        "test-identity-1",
-				UserID:    "test-user-1", // UserID might be empty or a temporary ID during signup
+				UserID:    userID,
 				CreatedAt: fixedTime,
 				UpdatedAt: fixedTime,
 				Type:      model.IdentityTypeLoginID,
@@ -265,22 +235,26 @@ func TestGetAuthenticationContext(t *testing.T) {
 
 			assertedAuthenticator := &authenticator.Info{
 				ID:        "test-authn-1",
-				UserID:    "test-user-1", // UserID might be empty or a temporary ID during signup
+				UserID:    userID,
 				CreatedAt: fixedTime,
 				UpdatedAt: fixedTime,
 				Type:      model.AuthenticatorTypePassword,
 				Kind:      authenticator.KindPrimary,
-				// Password authenticator doesn't have specific data in Info struct
 			}
+
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockUserService := authenticationflow.NewMockUserService(ctrl)
+			mockUserService.
+				EXPECT().
+				Get(gomock.Any(), gomock.Eq(userID), gomock.Any()).
+				Return(user, nil).
+				AnyTimes()
 
 			// Create a mock dependencies instance
 			mockDeps := &authenticationflow.Dependencies{
-				Users: &MockUserService{
-					MockGet: func(ctx context.Context, id string, role accesscontrol.Role) (*model.User, error) {
-						// For signup flow, we expect the user not to exist initially
-						return nil, user.ErrUserNotFound
-					},
-				},
+				Users: mockUserService,
 			}
 
 			// Construct Flow directly with the nested structure inlined
@@ -288,10 +262,16 @@ func TestGetAuthenticationContext(t *testing.T) {
 				Intent: &declarative.IntentSignupFlow{
 					FlowReference: authenticationflow.FlowReference{
 						Type: authenticationflow.FlowTypeSignup,
-						Name: "test_signup", // Use a different name for clarity
+						Name: "test_signup",
 					},
 				},
 				Nodes: []authenticationflow.Node{
+					{
+						Type: authenticationflow.NodeTypeSimple,
+						Simple: &declarative.NodeDoCreateUser{
+							UserID: userID,
+						},
+					},
 					{
 						Type: authenticationflow.NodeTypeSubFlow,
 						SubFlow: &authenticationflow.Flow{
@@ -370,7 +350,7 @@ func TestGetAuthenticationContext(t *testing.T) {
 			So(result.AuthenticationFlow, ShouldNotBeNil)
 			So(result.AuthenticationFlow.Type, ShouldEqual, string(authenticationflow.FlowTypeSignup))
 			So(result.AuthenticationFlow.Name, ShouldEqual, "test_signup")
-			So(result.User, ShouldBeNil) // User should be nil in signup flow initially
+			So(result.User, ShouldResemble, user)
 			So(result.AMR, ShouldResemble, []string{"pwd"})
 			So(result.AssertedAuthenticators, ShouldHaveLength, 1)
 			So(result.AssertedAuthenticators[0], ShouldResemble, assertedAuthenticator.ToModel())
