@@ -1,6 +1,6 @@
 @layer components {
   :root {
-    --alternative-icon__font-size: 1.5rem; /* 24 / 16 = 1.5 */
+    --alternative-icon__font-size: 1.125rem; /* 18 / 16 = 1.124 */
     --country-flag-icon__font-size: 1.5rem; /* 24 / 16 = 1.5 */
     --settings-item-icon__font-size: 1.5rem;
   }
@@ -11,6 +11,7 @@
 
   .alternative-icon {
     font-size: var(--alternative-icon__font-size);
+    margin: 0px -1px;
   }
 
   .country-flag-icon {

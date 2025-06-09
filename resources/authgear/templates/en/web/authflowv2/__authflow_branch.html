@@ -21,8 +21,10 @@
         <input type="hidden" name="x_channel" value="{{ .Channel }}">
         <input type="hidden" name="x_action" value="take_branch">
         <button class="secondary-btn w-full flex gap-x-2" type="submit">
-          <span class="material-icons secondary-btn__icon">key_vertical</span>
-          {{ include "v2.component.authflow-branch.default.enter-recovery-code-instead" nil }}
+          <div class="secondary-btn__alternative-option-content--no-badge">
+            <span class="material-icons secondary-btn__icon">key_vertical</span>
+            {{ include "v2.component.authflow-branch.default.enter-recovery-code-instead" nil }}
+          </div>
         </button>
       </form>
     {{- end }}
@@ -38,135 +40,136 @@
     data-controller="turbo-form"
     data-action="{{ if .BotProtectionRequired }}submit->bot-protection#verifyFormSubmit {{end}}submit->turbo-form#submitForm"
   >
-  {{ $.CSRFField }}
-  <input type="hidden" name="x_index" value="{{ .Index }}">
-  <input type="hidden" name="x_channel" value="{{ .Channel }}">
-  <input type="hidden" name="x_action" value="take_branch">
-  {{ if .BotProtectionRequired  }}
-    {{ template "web/authflowv2/__bot_protection_form_input.html" $ }}
-  {{ end }}
-  <button class="secondary-btn w-full flex gap-x-2" type="submit">
-    {{- if eq $.ActionType "create_authenticator" }}
-      {{- if eq .Authentication "primary_password" }}
-        <span class="material-icons secondary-btn__icon">key_vertical</span>
-        {{ include "v2.component.authflow-branch.default.setup-password-instead" nil }}
-      {{- end }}
-      {{- if eq .Authentication "secondary_password" }}
-        <span class="material-icons secondary-btn__icon">key_vertical</span>
-        {{ include "v2.component.authflow-branch.default.setup-secondary-password-instead" nil }}
-      {{- end }}
-      {{- if eq .Authentication "secondary_totp" }}
-        <span class="material-icons secondary-btn__icon">qr_code</span>
-        {{ include "v2.component.authflow-branch.default.setup-totp-instead" nil }}
-      {{- end }}
-      {{- if eq .Authentication "primary_oob_otp_email" }}
-        <span class="material-icons secondary-btn__icon">mail</span>
-        {{- if .VerificationSkippable }}
-          {{ include "v2.component.authflow-branch.default.setup-oob-otp-without-verification" (dict "target" .MaskedClaimValue) }}
-        {{ else }}
-          {{- if eq .OTPForm "code" }}
-            {{ include "v2.component.authflow-branch.default.setup-email-otp-code-instead" nil }}
+    {{ $.CSRFField }}
+    <input type="hidden" name="x_index" value="{{ .Index }}">
+    <input type="hidden" name="x_channel" value="{{ .Channel }}">
+    <input type="hidden" name="x_action" value="take_branch">
+    {{ if .BotProtectionRequired  }}
+      {{ template "web/authflowv2/__bot_protection_form_input.html" $ }}
+    {{ end }}
+    <button class="secondary-btn w-full flex gap-x-2" type="submit">
+      <div class="secondary-btn__alternative-option-content--no-badge">
+        {{- if eq $.ActionType "create_authenticator" }}
+          {{- if eq .Authentication "primary_password" }}
+            <span class="material-icons secondary-btn__icon">key_vertical</span>
+            {{ include "v2.component.authflow-branch.default.setup-password-instead" nil }}
           {{- end }}
-          {{- if eq .OTPForm "link" }}
-            {{ include "v2.component.authflow-branch.default.setup-email-otp-link-instead" nil }}
+          {{- if eq .Authentication "secondary_password" }}
+            <span class="material-icons secondary-btn__icon">key_vertical</span>
+            {{ include "v2.component.authflow-branch.default.setup-secondary-password-instead" nil }}
+          {{- end }}
+          {{- if eq .Authentication "secondary_totp" }}
+            <span class="material-icons secondary-btn__icon">qr_code</span>
+            {{ include "v2.component.authflow-branch.default.setup-totp-instead" nil }}
+          {{- end }}
+          {{- if eq .Authentication "primary_oob_otp_email" }}
+            <span class="material-icons secondary-btn__icon">mail</span>
+            {{- if .VerificationSkippable }}
+              {{ include "v2.component.authflow-branch.default.setup-oob-otp-without-verification" (dict "target" .MaskedClaimValue) }}
+            {{ else }}
+              {{- if eq .OTPForm "code" }}
+                {{ include "v2.component.authflow-branch.default.setup-email-otp-code-instead" nil }}
+              {{- end }}
+              {{- if eq .OTPForm "link" }}
+                {{ include "v2.component.authflow-branch.default.setup-email-otp-link-instead" nil }}
+              {{- end }}
+            {{- end }}
+          {{- end }}
+          {{- if eq .Authentication "secondary_oob_otp_email" }}
+            <span class="material-icons secondary-btn__icon">mail</span>
+            {{- if .VerificationSkippable }}
+              {{ include "v2.component.authflow-branch.default.setup-oob-otp-without-verification" (dict "target" .MaskedClaimValue) }}
+            {{ else }}
+              {{- if eq .OTPForm "code" }}
+                {{ include "v2.component.authflow-branch.default.setup-email-otp-code-instead" nil }}
+              {{- end }}
+              {{- if eq .OTPForm "link" }}
+                {{ include "v2.component.authflow-branch.default.setup-email-otp-link-instead" nil }}
+              {{- end }}
+            {{- end }}
+          {{- end }}
+          {{- if eq .Authentication "primary_oob_otp_sms" }}
+            {{- if .VerificationSkippable }}
+              <span class="material-icons secondary-btn__icon">phone_iphone</span>
+              {{ include "v2.component.authflow-branch.default.setup-oob-otp-without-verification" (dict "target" .MaskedClaimValue) }}
+            {{ else }}
+              {{- if eq .Channel "sms" }}
+                <span class="material-icons secondary-btn__icon">phone_iphone</span>
+                {{ include "v2.component.authflow-branch.default.setup-phone-otp-sms-instead" nil }}
+              {{- end }}
+              {{- if eq .Channel "whatsapp" }}
+                <span class="sso-icon whatsapp-icon secondary-btn__icon"></span>
+                {{ include "v2.component.authflow-branch.default.setup-phone-otp-whatsapp-instead" nil }}
+              {{- end }}
+            {{- end }}
+          {{- end }}
+          {{- if eq .Authentication "secondary_oob_otp_sms" }}
+            {{- if .VerificationSkippable }}
+              <span class="material-icons secondary-btn__icon">phone_iphone</span>
+              {{ include "v2.component.authflow-branch.default.setup-oob-otp-without-verification" (dict "target" .MaskedClaimValue) }}
+            {{ else }}
+              {{- if eq .Channel "sms" }}
+                <span class="material-icons secondary-btn__icon">phone_iphone</span>
+                {{ include "v2.component.authflow-branch.default.setup-phone-otp-sms-instead" nil }}
+              {{- end }}
+              {{- if eq .Channel "whatsapp" }}
+                <span class="sso-icon whatsapp-icon secondary-btn__icon"></span>
+                {{ include "v2.component.authflow-branch.default.setup-phone-otp-whatsapp-instead" nil }}
+              {{- end }}
+            {{- end }}
           {{- end }}
         {{- end }}
-      {{- end }}
-      {{- if eq .Authentication "secondary_oob_otp_email" }}
-        <span class="material-icons secondary-btn__icon">mail</span>
-        {{- if .VerificationSkippable }}
-          {{ include "v2.component.authflow-branch.default.setup-oob-otp-without-verification" (dict "target" .MaskedClaimValue) }}
-        {{ else }}
-          {{- if eq .OTPForm "code" }}
-            {{ include "v2.component.authflow-branch.default.setup-email-otp-code-instead" nil }}
+
+        {{- if eq $.ActionType "authenticate" }}
+          {{- if eq .Authentication "primary_password" }}
+            <span class="material-icons secondary-btn__icon">key_vertical</span>
+            {{ include "v2.component.authflow-branch.default.enter-password-instead" nil }}
           {{- end }}
-          {{- if eq .OTPForm "link" }}
-            {{ include "v2.component.authflow-branch.default.setup-email-otp-link-instead" nil }}
+          {{- if eq .Authentication "secondary_password" }}
+            <span class="material-icons secondary-btn__icon">key_vertical</span>
+            {{ include "v2.component.authflow-branch.default.enter-secondary-password-instead" nil }}
+          {{- end }}
+          {{- if eq .Authentication "primary_passkey" }}
+            <span class="material-icons secondary-btn__icon">passkey</span>
+            {{ include "v2.component.authflow-branch.default.use-passkey-instead" nil }}
+          {{- end }}
+          {{- if eq .Authentication "secondary_totp" }}
+            <span class="material-icons secondary-btn__icon">qr_code</span>
+            {{ include "v2.component.authflow-branch.default.enter-totp-instead" nil }}
+          {{- end }}
+          {{- if ( or (eq .Authentication "primary_oob_otp_email") (eq .Authentication "secondary_oob_otp_email")) }}
+            {{- if eq .OTPForm "code" }}
+            <span class="material-icons secondary-btn__icon">mail</span>
+            {{ include "v2.component.authflow-branch.default.enter-email-otp-code-instead" nil }}
+            {{- end }}
+            {{- if eq .OTPForm "link" }}
+            <span class="material-icons secondary-btn__icon">mail</span>
+            {{ include "v2.component.authflow-branch.default.use-email-otp-link-instead" nil }}
+            {{- end }}
+          {{- end }}
+          {{- if (or (eq .Authentication "primary_oob_otp_sms") (eq .Authentication "secondary_oob_otp_sms")) }}
+            {{- if eq .Channel "sms" }}
+            <span class="material-icons secondary-btn__icon">phone_iphone</span>
+            {{ include "v2.component.authflow-branch.default.enter-phone-otp-sms-instead" nil }}
+            {{- end }}
+            {{- if eq .Channel "whatsapp" }}
+            <span class="sso-icon whatsapp-icon secondary-btn__icon"></span>
+            {{ include "v2.component.authflow-branch.default.enter-phone-otp-whatsapp-instead" nil }}
+            {{- end }}
           {{- end }}
         {{- end }}
-      {{- end }}
-      {{- if eq .Authentication "primary_oob_otp_sms" }}
-        {{- if .VerificationSkippable }}
-          <span class="material-icons secondary-btn__icon">phone_iphone</span>
-          {{ include "v2.component.authflow-branch.default.setup-oob-otp-without-verification" (dict "target" .MaskedClaimValue) }}
-        {{ else }}
+
+        {{- if eq $.ActionType "verify" }}
           {{- if eq .Channel "sms" }}
             <span class="material-icons secondary-btn__icon">phone_iphone</span>
-            {{ include "v2.component.authflow-branch.default.setup-phone-otp-sms-instead" nil }}
+            {{ include "v2.component.authflow-branch.default.enter-phone-otp-sms-instead" nil }}
           {{- end }}
           {{- if eq .Channel "whatsapp" }}
             <span class="sso-icon whatsapp-icon secondary-btn__icon"></span>
-            {{ include "v2.component.authflow-branch.default.setup-phone-otp-whatsapp-instead" nil }}
+            {{ include "v2.component.authflow-branch.default.enter-phone-otp-whatsapp-instead" nil }}
           {{- end }}
         {{- end }}
-      {{- end }}
-      {{- if eq .Authentication "secondary_oob_otp_sms" }}
-        {{- if .VerificationSkippable }}
-          <span class="material-icons secondary-btn__icon">phone_iphone</span>
-          {{ include "v2.component.authflow-branch.default.setup-oob-otp-without-verification" (dict "target" .MaskedClaimValue) }}
-        {{ else }}
-          {{- if eq .Channel "sms" }}
-            <span class="material-icons secondary-btn__icon">phone_iphone</span>
-            {{ include "v2.component.authflow-branch.default.setup-phone-otp-sms-instead" nil }}
-          {{- end }}
-          {{- if eq .Channel "whatsapp" }}
-            <span class="sso-icon whatsapp-icon secondary-btn__icon"></span>
-            {{ include "v2.component.authflow-branch.default.setup-phone-otp-whatsapp-instead" nil }}
-          {{- end }}
-        {{- end }}
-      {{- end }}
-    {{- end }}
-
-    {{- if eq $.ActionType "authenticate" }}
-      {{- if eq .Authentication "primary_password" }}
-        <span class="material-icons secondary-btn__icon">key_vertical</span>
-        {{ include "v2.component.authflow-branch.default.enter-password-instead" nil }}
-      {{- end }}
-      {{- if eq .Authentication "secondary_password" }}
-        <span class="material-icons secondary-btn__icon">key_vertical</span>
-        {{ include "v2.component.authflow-branch.default.enter-secondary-password-instead" nil }}
-      {{- end }}
-      {{- if eq .Authentication "primary_passkey" }}
-        <span class="material-icons secondary-btn__icon">passkey</span>
-        {{ include "v2.component.authflow-branch.default.use-passkey-instead" nil }}
-      {{- end }}
-      {{- if eq .Authentication "secondary_totp" }}
-        <span class="material-icons secondary-btn__icon">qr_code</span>
-        {{ include "v2.component.authflow-branch.default.enter-totp-instead" nil }}
-      {{- end }}
-      {{- if ( or (eq .Authentication "primary_oob_otp_email") (eq .Authentication "secondary_oob_otp_email")) }}
-        {{- if eq .OTPForm "code" }}
-        <span class="material-icons secondary-btn__icon">mail</span>
-        {{ include "v2.component.authflow-branch.default.enter-email-otp-code-instead" nil }}
-        {{- end }}
-        {{- if eq .OTPForm "link" }}
-        <span class="material-icons secondary-btn__icon">mail</span>
-        {{ include "v2.component.authflow-branch.default.use-email-otp-link-instead" nil }}
-        {{- end }}
-      {{- end }}
-      {{- if (or (eq .Authentication "primary_oob_otp_sms") (eq .Authentication "secondary_oob_otp_sms")) }}
-        {{- if eq .Channel "sms" }}
-        <span class="material-icons secondary-btn__icon">phone_iphone</span>
-        {{ include "v2.component.authflow-branch.default.enter-phone-otp-sms-instead" nil }}
-        {{- end }}
-        {{- if eq .Channel "whatsapp" }}
-        <span class="sso-icon whatsapp-icon secondary-btn__icon"></span>
-        {{ include "v2.component.authflow-branch.default.enter-phone-otp-whatsapp-instead" nil }}
-        {{- end }}
-      {{- end }}
-    {{- end }}
-
-    {{- if eq $.ActionType "verify" }}
-      {{- if eq .Channel "sms" }}
-        <span class="material-icons secondary-btn__icon">phone_iphone</span>
-        {{ include "v2.component.authflow-branch.default.enter-phone-otp-sms-instead" nil }}
-      {{- end }}
-      {{- if eq .Channel "whatsapp" }}
-        <span class="sso-icon whatsapp-icon secondary-btn__icon"></span>
-        {{ include "v2.component.authflow-branch.default.enter-phone-otp-whatsapp-instead" nil }}
-      {{- end }}
-    {{- end }}
-
+      </div>
     </button>
   </form>
   {{ end }}

@@ -3,20 +3,18 @@
     --secondary-btn__bg-color: var(--color-surface-primary);
     --secondary-btn__text-color: var(--color-neutral-700);
     --secondary-btn__border-radius: var(--border-radius-rounded-square);
-    --secondary-btn__font-family: var(--typography-label-large__font-family);
-    --secondary-btn__font-size: var(--typography-label-large__font-size);
-    --secondary-btn__line-height: var(--typography-label-large__line-height);
+    --secondary-btn__font-family: var(--typography-title-medium__font-family);
+    --secondary-btn__font-size: var(--typography-title-medium__font-size);
+    --secondary-btn__line-height: var(--typography-title-medium__line-height);
     --secondary-btn__letter-spacing: var(
-      --typography-label-large__letter-spacing
+      --typography-title-medium__letter-spacing
     );
-    --secondary-btn__font-weight: var(--typography-label-large__font-weight);
+    --secondary-btn__font-weight: var(--typography-title-medium__font-weight);
     --secondary-btn__ring-width: 1.5px;
     --secondary-btn__ring-color: var(--color-neutral-100);
-    --secondary-btn__py: var(--secondary-btn__font-size);
-
-    --secondary-btn__px: calc(
-      (var(--secondary-btn__py) * 2 + var(--secondary-btn__line-height)) / 2
-    ); /* = Height / 2 */
+    --secondary-btn__py: 0.5em;
+    --secondary-btn__px: 1.25em;
+    --secondary-btn__min-height: 3.5em;
 
     --secondary-btn__bg-color--hover: var(--color-neutral-100);
     --secondary-btn__text-color--hover: var(--secondary-btn__text-color);
@@ -40,6 +38,7 @@
     @apply text-center;
     @apply flex justify-center items-center;
 
+    min-height: var(--secondary-btn__min-height);
     background-color: var(--secondary-btn__bg-color);
     color: var(--secondary-btn__text-color);
     border-radius: var(--secondary-btn__border-radius);
@@ -68,6 +67,26 @@
         ring-[length:var(--secondary-btn\_\_ring-width--active)]
         ring-[color:var(--secondary-btn\_\_ring-color--active)];
     }
+  }
+
+  .secondary-btn__alternative-option-content {
+    display: grid;
+    gap: 1rem;
+    justify-content: space-between;
+    align-items: center;
+    flex: 1 0 0px;
+  }
+
+  .secondary-btn__alternative-option-content--with-badge {
+    @apply secondary-btn__alternative-option-content;
+    grid-template-areas: "icon title badge";
+    grid-template-columns: 2.875rem auto 2.875rem;
+  }
+
+  .secondary-btn__alternative-option-content--no-badge {
+    @apply secondary-btn__alternative-option-content;
+    grid-template-areas: "icon title placeholder";
+    grid-template-columns: 1rem 1fr 1rem;
   }
 }
 

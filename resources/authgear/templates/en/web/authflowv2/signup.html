@@ -235,7 +235,7 @@
           {{ if eq .login_id_key "email" }}
             <a class="secondary-btn" data-turbo-action="replace"
               href="{{ call $.MakeURL "" "q_login_id_key" .login_id_key "q_login_id_input_type" .login_id_input_type }}">
-              <div class="flex gap-2">
+              <div class="secondary-btn__alternative-option-content--no-badge">
                 <i class="alternative-icon material-icons">mail</i>
                 {{ include "v2.page.signup.default.signup-with-email" nil }}
               </div>
@@ -244,7 +244,7 @@
           {{ if eq .login_id_key "username" }}
             <a class="secondary-btn" data-turbo-action="replace"
               href="{{ call $.MakeURL "" "q_login_id_key" .login_id_key "q_login_id_input_type" .login_id_input_type }}">
-              <div class="flex gap-2">
+              <div class="secondary-btn__alternative-option-content--no-badge">
                 <i class="alternative-icon material-icons">person</i>
                 {{ include "v2.page.signup.default.signup-with-username" nil }}
               </div>
@@ -253,7 +253,7 @@
           {{ if eq .login_id_key "phone" }}
             <a class="secondary-btn" data-turbo-action="replace"
               href="{{ call $.MakeURL "" "q_login_id_key" .login_id_key "q_login_id_input_type" .login_id_input_type }}">
-              <div class="flex gap-2">
+              <div class="secondary-btn__alternative-option-content--no-badge">
                 <i class="alternative-icon material-icons">smartphone</i>
                 {{ include "v2.page.signup.default.signup-with-phone" nil }}
               </div>
@@ -282,12 +282,16 @@
                 data-authgear-event="authgear.button.oauth"
               >
                 {{- $icon_class := printf "%s-icon" .provider_type -}}
-                <div class="flex gap-2">
+                {{ $with_badge := or (eq .provider_status "using_demo_credentials") (eq .provider_status "missing_credentials")}}
+                <div class="
+                  {{ if $with_badge }}secondary-btn__alternative-option-content--with-badge{{ end }}
+                  {{ if not $with_badge }}secondary-btn__alternative-option-content--no-badge{{ end }}
+                  ">
                   <i class="sso-icon {{ $icon_class }}"></i>
                   <span>
                     {{ include (printf "v2.component.oauth-branding.%s.label" .provider_type) nil }}
                   </span>
-                  {{ if or (eq .provider_status "using_demo_credentials") (eq .provider_status "missing_credentials") }}
+                  {{ if $with_badge }}
                     <div class="badge">
                       {{ include "v2.component.oauth-branding-demo-badge.default.label" nil }}
                     </div>
@@ -308,7 +312,7 @@
               value="ldap"
               data-authgear-event="authgear.button.ldap"
             >
-              <div class="flex gap-2">
+              <div class="secondary-btn__alternative-option-content--no-badge">
               <i class="alternative-icon material-icons">person</i>
                 <span>
                   {{ if ($.Translations.HasKey (printf "v2.component.ldap-branding.default.label-%s" .server_name)) }}
@@ -335,7 +339,7 @@
             data-authgear-event="authgear.button.use_passkey"
             data-authflow-passkey-request-target="button"
             disabled>
-            <div class="flex gap-2">
+            <div class="secondary-btn__alternative-option-content--no-badge">
               <i class="alternative-icon material-icons">
                 passkey
               </i>
