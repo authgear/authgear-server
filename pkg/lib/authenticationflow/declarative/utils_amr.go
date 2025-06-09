@@ -64,7 +64,6 @@ func collectAMR(ctx context.Context, deps *authflow.Dependencies, flows authflow
 	return
 }
 
-// TODO(tung): Write a unit test for this
 func findAMRContraints(flows authflow.Flows) ([]string, bool) {
 	var constraints []string
 	found := false
@@ -93,7 +92,7 @@ func findAMRContraints(flows authflow.Flows) ([]string, bool) {
 	return constraints, found
 }
 
-func remainingAMRConstraintsInFlow(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) ([]string, error) {
+func RemainingAMRConstraintsInFlow(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) ([]string, error) {
 	amrContraints, found := findAMRContraints(flows)
 	if !found {
 		return []string{}, nil

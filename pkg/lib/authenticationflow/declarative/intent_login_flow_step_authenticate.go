@@ -127,7 +127,7 @@ func (i *IntentLoginFlowStepAuthenticate) CanReactTo(ctx context.Context, deps *
 	step := i.step(current)
 
 	if i.ShowUntilAMRConstraintsFulfilled {
-		remainingAMRs, err := remainingAMRConstraintsInFlow(ctx, deps, flows)
+		remainingAMRs, err := RemainingAMRConstraintsInFlow(ctx, deps, flows)
 		if err != nil {
 			return nil, err
 		}
@@ -473,7 +473,7 @@ func (i *IntentLoginFlowStepAuthenticate) newIntentLoginFlowStepAuthenticateForA
 	}
 	step := i.step(current)
 	subintent := i.clone()
-	remainingAMRs, err := remainingAMRConstraintsInFlow(ctx, deps, flows)
+	remainingAMRs, err := RemainingAMRConstraintsInFlow(ctx, deps, flows)
 	if err != nil {
 		return nil, err
 	}

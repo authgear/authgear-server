@@ -73,7 +73,7 @@ func (*IntentReauthFlowStepAuthenticate) Kind() string {
 
 func (i *IntentReauthFlowStepAuthenticate) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
 	if i.ShowUntilAMRConstraintsFulfilled {
-		remainingAMRs, err := remainingAMRConstraintsInFlow(ctx, deps, flows)
+		remainingAMRs, err := RemainingAMRConstraintsInFlow(ctx, deps, flows)
 		if err != nil {
 			return nil, err
 		}
@@ -339,7 +339,7 @@ func (i *IntentReauthFlowStepAuthenticate) newIntentReauthFlowStepAuthenticateFo
 	}
 	step := i.step(current)
 	subintent := i.clone()
-	remainingAMRs, err := remainingAMRConstraintsInFlow(ctx, deps, flows)
+	remainingAMRs, err := RemainingAMRConstraintsInFlow(ctx, deps, flows)
 	if err != nil {
 		return nil, err
 	}
