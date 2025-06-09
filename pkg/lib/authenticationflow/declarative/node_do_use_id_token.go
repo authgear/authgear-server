@@ -65,7 +65,7 @@ func NewNodeDoUseIDToken(ctx context.Context, deps *authflow.Dependencies, flows
 
 	n.UserID = userID
 
-	authCtx, err := GetAuthenticationContext(ctx, flows, deps)
+	authCtx, err := GetAuthenticationContext(ctx, deps, flows)
 	if err != nil {
 		return nil, err
 	}

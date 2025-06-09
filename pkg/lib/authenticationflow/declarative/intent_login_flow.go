@@ -64,7 +64,7 @@ func (i *IntentLoginFlow) ReactTo(ctx context.Context, deps *authflow.Dependenci
 			JSONPointer:   i.JSONPointer,
 		}), nil
 	case len(flows.Nearest.Nodes) == 1:
-		return NewNodePreAuthenticateNodeSimple(ctx, flows, deps)
+		return NewNodePreAuthenticateNodeSimple(ctx, deps, flows)
 	case len(flows.Nearest.Nodes) == 2:
 		i, err := NewIntentLoginFlowEnsureContraintsFulfilled(ctx, deps, flows, i.FlowReference)
 		if err != nil {

@@ -73,7 +73,7 @@ func (i *IntentPromoteFlow) ReactTo(ctx context.Context, deps *authflow.Dependen
 			UserID:        i.userID(flows),
 		}), nil
 	case len(flows.Nearest.Nodes) == 2:
-		return NewNodePreAuthenticateNodeSimple(ctx, flows, deps)
+		return NewNodePreAuthenticateNodeSimple(ctx, deps, flows)
 	case len(flows.Nearest.Nodes) == 3:
 		i, err := NewIntentSignupFlowEnsureContraintsFulfilled(ctx, deps, flows, &IntentSignupFlowEnsureContraintsFulfilledOptions{
 			UserID:        i.userID(flows),
