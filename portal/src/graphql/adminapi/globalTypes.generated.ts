@@ -449,7 +449,7 @@ export type CreateSessionPayload = {
 export type CreateUserInput = {
   /** Definition of the identity of new user. */
   definition: IdentityDefinition;
-  /** Password for the user if required. */
+  /** If null, then no password is created. If empty string, generate a password. Otherwise, create the specified password. */
   password?: InputMaybe<Scalars['String']['input']>;
   /** Indicate whether to send the new password to the user. */
   sendPassword?: InputMaybe<Scalars['Boolean']['input']>;

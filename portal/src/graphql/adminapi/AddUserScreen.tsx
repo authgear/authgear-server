@@ -496,11 +496,19 @@ const AddUserScreen: React.VFC = function AddUserScreen() {
         state.selectedLoginIDType
       );
       const identityValue = state[loginIDType];
-      const password =
-        needPassword &&
-        state.passwordCreationType === PasswordCreationType.ManualEntry
-          ? state.password
-          : undefined;
+      let password: string | undefined;
+      if (needPassword) {
+        switch (state.passwordCreationType) {
+          case PasswordCreationType.AutoGenerate:
+            password = "";
+            break;
+          case PasswordCreationType.ManualEntry:
+            password = state.password;
+            break;
+          default:
+            break;
+        }
+      }
       const { sendPassword, setPasswordExpired } = state;
 
       await createUser({

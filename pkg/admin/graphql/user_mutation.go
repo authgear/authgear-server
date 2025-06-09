@@ -13,6 +13,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
+	"github.com/authgear/authgear-server/pkg/lib/facade"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
@@ -28,7 +29,7 @@ var createUserInput = graphql.NewInputObject(graphql.InputObjectConfig{
 		},
 		"password": &graphql.InputObjectFieldConfig{
 			Type:        graphql.String,
-			Description: "Password for the user if required.",
+			Description: "If null, then no password is created. If empty string, generate a password. Otherwise, create the specified password.",
 		},
 		"sendPassword": &graphql.InputObjectFieldConfig{
 			Type:        graphql.Boolean,
@@ -69,15 +70,23 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			password, _ := input["password"].(string)
-			generatePassword := password == ""
+			password_, passwordSpecified := input["password"].(string)
+			var password *string = nil
+			if passwordSpecified {
+				password = &password_
+			}
+
 			sendPassword, _ := input["sendPassword"].(bool)
 			setPasswordExpired, _ := input["setPasswordExpired"].(bool)
 
 			ctx := p.Context
 			gqlCtx := GQLContext(ctx)
 
-			userID, err := gqlCtx.UserFacade.Create(ctx, identityDef, password, generatePassword, sendPassword, setPasswordExpired)
+			userID, err := gqlCtx.UserFacade.Create(ctx, identityDef, facade.CreatePasswordOptions{
+				Password:           password,
+				SendPassword:       sendPassword,
+				SetPasswordExpired: setPasswordExpired,
+			})
 			if err != nil {
 				return nil, err
 			}

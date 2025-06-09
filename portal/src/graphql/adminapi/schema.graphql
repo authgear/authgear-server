@@ -751,7 +751,9 @@ input CreateUserInput {
   """Definition of the identity of new user."""
   definition: IdentityDefinition!
 
-  """Password for the user if required."""
+  """
+  If null, then no password is created. If empty string, generate a password. Otherwise, create the specified password.
+  """
   password: String
 
   """Indicate whether to send the new password to the user."""
