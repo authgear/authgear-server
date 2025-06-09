@@ -10,53 +10,40 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
+func collectAMRFromNode(node authflow.NodeOrIntent, amr []string, usedAuthenticatorIDs, usedRecoveryCodeIDs setutil.Set[string]) []string {
+	if n, ok := node.(MilestoneDidAuthenticate); ok {
+		amr = append(amr, n.MilestoneDidAuthenticate()...)
+		if authInfo, ok := n.MilestoneDidAuthenticateAuthenticator(); ok && authInfo != nil {
+			usedAuthenticatorIDs[authInfo.ID] = struct{}{}
+		}
+	}
+	if n, ok := node.(MilestoneDoCreateAuthenticator); ok {
+		info, ok := n.MilestoneDoCreateAuthenticator()
+		if ok {
+			amr = append(amr, info.AMR()...)
+			usedAuthenticatorIDs[info.ID] = struct{}{}
+		}
+	}
+	if n, ok := node.(MilestoneDidConsumeRecoveryCode); ok {
+		rc := n.MilestoneDidConsumeRecoveryCode()
+		if rc != nil {
+			usedRecoveryCodeIDs[rc.ID] = struct{}{}
+		}
+	}
+	return amr
+}
+
 func collectAMR(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (amr []string, err error) {
 	usedAuthenticatorIDs := setutil.Set[string]{}
 	usedRecoveryCodeIDs := setutil.Set[string]{}
 
 	err = authflow.TraverseFlow(authflow.Traverser{
 		NodeSimple: func(nodeSimple authflow.NodeSimple, w *authflow.Flow) error {
-			if n, ok := nodeSimple.(MilestoneDidAuthenticate); ok {
-				amr = append(amr, n.MilestoneDidAuthenticate()...)
-				if authInfo, ok := n.MilestoneDidAuthenticateAuthenticator(); ok && authInfo != nil {
-					usedAuthenticatorIDs[authInfo.ID] = struct{}{}
-				}
-			}
-			if n, ok := nodeSimple.(MilestoneDoCreateAuthenticator); ok {
-				info, ok := n.MilestoneDoCreateAuthenticator()
-				if ok {
-					amr = append(amr, info.AMR()...)
-					usedAuthenticatorIDs[info.ID] = struct{}{}
-				}
-			}
-			if n, ok := nodeSimple.(MilestoneDidConsumeRecoveryCode); ok {
-				rc := n.MilestoneDidConsumeRecoveryCode()
-				if rc != nil {
-					usedRecoveryCodeIDs[rc.ID] = struct{}{}
-				}
-			}
+			amr = collectAMRFromNode(nodeSimple, amr, usedAuthenticatorIDs, usedRecoveryCodeIDs)
 			return nil
 		},
 		Intent: func(intent authflow.Intent, w *authflow.Flow) error {
-			if i, ok := intent.(MilestoneDidAuthenticate); ok {
-				amr = append(amr, i.MilestoneDidAuthenticate()...)
-				if authInfo, ok := i.MilestoneDidAuthenticateAuthenticator(); ok && authInfo != nil {
-					usedAuthenticatorIDs[authInfo.ID] = struct{}{}
-				}
-			}
-			if i, ok := intent.(MilestoneDoCreateAuthenticator); ok {
-				info, ok := i.MilestoneDoCreateAuthenticator()
-				if ok {
-					amr = append(amr, info.AMR()...)
-					usedAuthenticatorIDs[info.ID] = struct{}{}
-				}
-			}
-			if i, ok := intent.(MilestoneDidConsumeRecoveryCode); ok {
-				rc := i.MilestoneDidConsumeRecoveryCode()
-				if rc != nil {
-					usedRecoveryCodeIDs[rc.ID] = struct{}{}
-				}
-			}
+			amr = collectAMRFromNode(intent, amr, usedAuthenticatorIDs, usedRecoveryCodeIDs)
 			return nil
 		},
 	}, flows.Root)
