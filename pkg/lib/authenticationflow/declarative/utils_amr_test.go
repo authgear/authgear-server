@@ -14,28 +14,28 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 )
 
-// MockMilestoneContraintsProvider implements MilestoneContraintsProvider interface
-type MockMilestoneContraintsProvider struct {
+// MockMilestoneConstraintsProvider implements MilestoneConstraintsProvider interface
+type MockMilestoneConstraintsProvider struct {
 	amr []string
 }
 
-func (m *MockMilestoneContraintsProvider) Kind() string {
-	return "MockMilestoneContraintsProvider"
+func (m *MockMilestoneConstraintsProvider) Kind() string {
+	return "MockMilestoneConstraintsProvider"
 }
 
-func (m *MockMilestoneContraintsProvider) Milestone() {}
+func (m *MockMilestoneConstraintsProvider) Milestone() {}
 
-func (m *MockMilestoneContraintsProvider) MilestoneContraintsProvider() *eventapi.Constraints {
+func (m *MockMilestoneConstraintsProvider) MilestoneConstraintsProvider() *eventapi.Constraints {
 	return &eventapi.Constraints{
 		AMR: m.amr,
 	}
 }
 
-func (m *MockMilestoneContraintsProvider) CanReactTo(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows) (authenticationflow.InputSchema, error) {
+func (m *MockMilestoneConstraintsProvider) CanReactTo(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows) (authenticationflow.InputSchema, error) {
 	return nil, nil
 }
 
-func (m *MockMilestoneContraintsProvider) ReactTo(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows, input authenticationflow.Input) (authenticationflow.ReactToResult, error) {
+func (m *MockMilestoneConstraintsProvider) ReactTo(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows, input authenticationflow.Input) (authenticationflow.ReactToResult, error) {
 	return nil, nil
 }
 
@@ -105,7 +105,7 @@ func TestRemainingAMRConstraintsInFlow(t *testing.T) {
 		Convey("should find remaining AMR constraints when some are fulfilled", func() {
 			// Create a flow with AMR constraints and some fulfilled AMRs
 			rootFlow := &authenticationflow.Flow{
-				Intent: &MockMilestoneContraintsProvider{
+				Intent: &MockMilestoneConstraintsProvider{
 					amr: []string{model.AMRMFA, model.AMROTP, model.AMRPWD},
 				},
 				Nodes: []authenticationflow.Node{
@@ -128,7 +128,7 @@ func TestRemainingAMRConstraintsInFlow(t *testing.T) {
 		Convey("should return empty when all AMR constraints are fulfilled", func() {
 			// Create a flow with AMR constraints and all fulfilled AMRs
 			rootFlow := &authenticationflow.Flow{
-				Intent: &MockMilestoneContraintsProvider{
+				Intent: &MockMilestoneConstraintsProvider{
 					amr: []string{model.AMRMFA, model.AMROTP},
 				},
 				Nodes: []authenticationflow.Node{
@@ -163,7 +163,7 @@ func TestRemainingAMRConstraintsInFlow(t *testing.T) {
 					{
 						Type: authenticationflow.NodeTypeSubFlow,
 						SubFlow: &authenticationflow.Flow{
-							Intent: &MockMilestoneContraintsProvider{
+							Intent: &MockMilestoneConstraintsProvider{
 								amr: []string{model.AMRMFA, model.AMROTP},
 							},
 							Nodes: []authenticationflow.Node{
@@ -189,7 +189,7 @@ func TestRemainingAMRConstraintsInFlow(t *testing.T) {
 		Convey("should gather AMRs from multiple MilestoneDidAuthenticate nodes", func() {
 			// Create a flow with multiple nodes that have fulfilled different AMRs
 			rootFlow := &authenticationflow.Flow{
-				Intent: &MockMilestoneContraintsProvider{
+				Intent: &MockMilestoneConstraintsProvider{
 					amr: []string{model.AMRMFA, model.AMROTP, model.AMRPWD},
 				},
 				Nodes: []authenticationflow.Node{
@@ -219,7 +219,7 @@ func TestRemainingAMRConstraintsInFlow(t *testing.T) {
 		Convey("should fulfill MFA when recovery code and authenticator are used", func() {
 			// Create a flow with AMR constraints and recovery code + authenticator
 			rootFlow := &authenticationflow.Flow{
-				Intent: &MockMilestoneContraintsProvider{
+				Intent: &MockMilestoneConstraintsProvider{
 					amr: []string{model.AMRMFA, model.AMROTP},
 				},
 				Nodes: []authenticationflow.Node{

@@ -95,7 +95,7 @@ func (i *IntentSignupFlow) ReactTo(ctx context.Context, deps *authflow.Dependenc
 		if userID == "" {
 			panic(fmt.Errorf("expected userID to be non empty in IntentSignupFlow"))
 		}
-		i, err := NewIntentSignupFlowEnsureContraintsFulfilled(ctx, deps, flows, &IntentSignupFlowEnsureContraintsFulfilledOptions{
+		i, err := NewIntentSignupFlowEnsureConstraintsFulfilled(ctx, deps, flows, &IntentSignupFlowEnsureConstraintsFulfilledOptions{
 			UserID:        userID,
 			FlowReference: i.FlowReference,
 		})

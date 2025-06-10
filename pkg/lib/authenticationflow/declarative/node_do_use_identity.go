@@ -94,13 +94,13 @@ var _ authflow.InputReactor = &NodeDoUseIdentity{}
 var _ MilestoneDoUseUser = &NodeDoUseIdentity{}
 var _ MilestoneDoUseIdentity = &NodeDoUseIdentity{}
 var _ MilestoneGetIdentitySpecs = &NodeDoUseIdentity{}
-var _ MilestoneContraintsProvider = &NodeDoUseIdentity{}
+var _ MilestoneConstraintsProvider = &NodeDoUseIdentity{}
 
 func (*NodeDoUseIdentity) Kind() string {
 	return "NodeDoUseIdentity"
 }
 
-func (n *NodeDoUseIdentity) MilestoneContraintsProvider() *eventapi.Constraints {
+func (n *NodeDoUseIdentity) MilestoneConstraintsProvider() *eventapi.Constraints {
 	return n.Constraints
 }
 

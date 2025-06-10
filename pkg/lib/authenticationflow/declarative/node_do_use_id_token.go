@@ -30,9 +30,9 @@ var _ authflow.NodeSimple = &NodeDoUseIDToken{}
 var _ authflow.Milestone = &NodeDoUseIDToken{}
 var _ MilestoneDoUseUser = &NodeDoUseIDToken{}
 var _ authflow.InputReactor = &NodeDoUseIDToken{}
-var _ MilestoneContraintsProvider = &NodeDoUseIDToken{}
+var _ MilestoneConstraintsProvider = &NodeDoUseIDToken{}
 
-func (n *NodeDoUseIDToken) MilestoneContraintsProvider() *eventapi.Constraints {
+func (n *NodeDoUseIDToken) MilestoneConstraintsProvider() *eventapi.Constraints {
 	return n.Constraints
 }
 

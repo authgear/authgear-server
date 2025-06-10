@@ -64,14 +64,14 @@ func collectAMR(ctx context.Context, deps *authflow.Dependencies, flows authflow
 	return
 }
 
-func findAMRContraints(flows authflow.Flows) ([]string, bool) {
+func findAMRConstraints(flows authflow.Flows) ([]string, bool) {
 	var constraints []string
 	found := false
 
 	_ = authflow.TraverseFlowIntentFirst(authflow.Traverser{
 		NodeSimple: func(nodeSimple authflow.NodeSimple, w *authflow.Flow) error {
-			if n, ok := nodeSimple.(MilestoneContraintsProvider); ok {
-				if c := n.MilestoneContraintsProvider(); c != nil {
+			if n, ok := nodeSimple.(MilestoneConstraintsProvider); ok {
+				if c := n.MilestoneConstraintsProvider(); c != nil {
 					constraints = c.AMR
 					found = true
 				}
@@ -79,8 +79,8 @@ func findAMRContraints(flows authflow.Flows) ([]string, bool) {
 			return nil
 		},
 		Intent: func(intent authflow.Intent, w *authflow.Flow) error {
-			if i, ok := intent.(MilestoneContraintsProvider); ok {
-				if c := i.MilestoneContraintsProvider(); c != nil {
+			if i, ok := intent.(MilestoneConstraintsProvider); ok {
+				if c := i.MilestoneConstraintsProvider(); c != nil {
 					constraints = c.AMR
 					found = true
 				}
@@ -93,7 +93,7 @@ func findAMRContraints(flows authflow.Flows) ([]string, bool) {
 }
 
 func RemainingAMRConstraintsInFlow(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) ([]string, error) {
-	amrContraints, found := findAMRContraints(flows)
+	amrConstraints, found := findAMRConstraints(flows)
 	if !found {
 		return []string{}, nil
 	}
@@ -101,7 +101,7 @@ func RemainingAMRConstraintsInFlow(ctx context.Context, deps *authflow.Dependenc
 	if err != nil {
 		return nil, err
 	}
-	remainingContrains := remainingAMRConstraints(amrContraints, currentAMRs)
+	remainingContrains := remainingAMRConstraints(amrConstraints, currentAMRs)
 	return remainingContrains, nil
 }
 
@@ -125,7 +125,7 @@ func filterAMROptionsByAMRConstraint[T AMROption](options []T, amrConstraints []
 		return options
 	}
 
-	// If there are other contraints, the user can only choose options that can fulfil the remaining contraints
+	// If there are other constraints, the user can only choose options that can fulfil the remaining constraints
 	var newOptions []T = []T{}
 	for _, option := range options {
 		option := option

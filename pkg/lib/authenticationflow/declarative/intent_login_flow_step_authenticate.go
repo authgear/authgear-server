@@ -479,7 +479,7 @@ func (i *IntentLoginFlowStepAuthenticate) newIntentLoginFlowStepAuthenticateForA
 	}
 	// The subflow should not check constraints again
 	subintent.ShowUntilAMRConstraintsFulfilled = false
-	// To fulfil AMR contraints, device tokens cannot be used
+	// To fulfil AMR constraints, device tokens cannot be used
 	subintent.DeviceTokenEnabled = false
 
 	options, _, err := getAuthenticationOptionsForLogin(ctx, deps, flows, i.UserID, step)

@@ -61,7 +61,7 @@ var _ MilestoneDoUseIdentity = &NodeDoUseIdentityPasskey{}
 var _ MilestoneDidSelectAuthenticator = &NodeDoUseIdentityPasskey{}
 var _ MilestoneDidAuthenticate = &NodeDoUseIdentityPasskey{}
 var _ MilestoneGetIdentitySpecs = &NodeDoUseIdentityPasskey{}
-var _ MilestoneContraintsProvider = &NodeDoUseIdentityPasskey{}
+var _ MilestoneConstraintsProvider = &NodeDoUseIdentityPasskey{}
 
 func (*NodeDoUseIdentityPasskey) Kind() string {
 	return "NodeDoUseIdentityPasskey"

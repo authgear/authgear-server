@@ -78,7 +78,7 @@ type HookResponse struct {
 	Constraints *Constraints `json:"constraints,omitempty"`
 }
 
-var supportedAMRContraints = []string{model.AMRMFA, model.AMROTP, model.AMRPWD, model.AMRSMS}
+var supportedAMRConstraints = []string{model.AMRMFA, model.AMROTP, model.AMRPWD, model.AMRSMS}
 
 type Constraints struct {
 	AMR []string `json:"amr,omitempty"`
@@ -86,7 +86,7 @@ type Constraints struct {
 
 func (c *Constraints) Validate() error {
 	for _, amr := range c.AMR {
-		if !slice.ContainsString(supportedAMRContraints, amr) {
+		if !slice.ContainsString(supportedAMRConstraints, amr) {
 			return fmt.Errorf("unsupported amr constraint %s", amr)
 		}
 	}

@@ -13,22 +13,22 @@ import (
 )
 
 func init() {
-	authflow.RegisterIntent(&IntentSignupFlowEnsureContraintsFulfilled{})
+	authflow.RegisterIntent(&IntentSignupFlowEnsureConstraintsFulfilled{})
 }
 
-type IntentSignupFlowEnsureContraintsFulfilled struct {
+type IntentSignupFlowEnsureConstraintsFulfilled struct {
 	UserID        string                                   `json:"user_id"`
 	FlowObject    *config.AuthenticationFlowSignupFlowStep `json:"flow_object"`
 	FlowReference authenticationflow.FlowReference         `json:"flow_reference,omitempty"`
 	JSONPointer   jsonpointer.T                            `json:"json_pointer,omitempty"`
 }
 
-type IntentSignupFlowEnsureContraintsFulfilledOptions struct {
+type IntentSignupFlowEnsureConstraintsFulfilledOptions struct {
 	UserID        string                           `json:"user_id"`
 	FlowReference authenticationflow.FlowReference `json:"flow_reference,omitempty"`
 }
 
-func NewIntentSignupFlowEnsureContraintsFulfilled(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows, opts *IntentSignupFlowEnsureContraintsFulfilledOptions) (*IntentSignupFlowEnsureContraintsFulfilled, error) {
+func NewIntentSignupFlowEnsureConstraintsFulfilled(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows, opts *IntentSignupFlowEnsureConstraintsFulfilledOptions) (*IntentSignupFlowEnsureConstraintsFulfilled, error) {
 	var oneOfs []*config.AuthenticationFlowSignupFlowOneOf
 	recoveryCodeStep := &config.AuthenticationFlowSignupFlowStep{
 		Type: config.AuthenticationFlowSignupFlowStepTypeViewRecoveryCode,
@@ -73,7 +73,7 @@ func NewIntentSignupFlowEnsureContraintsFulfilled(ctx context.Context, deps *aut
 		ShowUntilAMRConstraintsFulfilled: &trueValue,
 	}
 
-	return &IntentSignupFlowEnsureContraintsFulfilled{
+	return &IntentSignupFlowEnsureConstraintsFulfilled{
 		UserID:        opts.UserID,
 		FlowReference: opts.FlowReference,
 		FlowObject:    flowObject,
@@ -81,15 +81,15 @@ func NewIntentSignupFlowEnsureContraintsFulfilled(ctx context.Context, deps *aut
 	}, nil
 }
 
-var _ authenticationflow.Intent = &IntentSignupFlowEnsureContraintsFulfilled{}
-var _ authenticationflow.Milestone = &IntentSignupFlowEnsureContraintsFulfilled{}
-var _ MilestoneAuthenticationFlowObjectProvider = &IntentSignupFlowEnsureContraintsFulfilled{}
+var _ authenticationflow.Intent = &IntentSignupFlowEnsureConstraintsFulfilled{}
+var _ authenticationflow.Milestone = &IntentSignupFlowEnsureConstraintsFulfilled{}
+var _ MilestoneAuthenticationFlowObjectProvider = &IntentSignupFlowEnsureConstraintsFulfilled{}
 
-func (*IntentSignupFlowEnsureContraintsFulfilled) Kind() string {
-	return "IntentSignupFlowEnsureContraintsFulfilled"
+func (*IntentSignupFlowEnsureConstraintsFulfilled) Kind() string {
+	return "IntentSignupFlowEnsureConstraintsFulfilled"
 }
 
-func (i *IntentSignupFlowEnsureContraintsFulfilled) CanReactTo(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows) (authenticationflow.InputSchema, error) {
+func (i *IntentSignupFlowEnsureConstraintsFulfilled) CanReactTo(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows) (authenticationflow.InputSchema, error) {
 	switch len(flows.Nearest.Nodes) {
 	case 0:
 		return nil, nil
@@ -99,7 +99,7 @@ func (i *IntentSignupFlowEnsureContraintsFulfilled) CanReactTo(ctx context.Conte
 	panic(fmt.Errorf("unexpected number of nodes"))
 }
 
-func (i *IntentSignupFlowEnsureContraintsFulfilled) ReactTo(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows, input authenticationflow.Input) (authenticationflow.ReactToResult, error) {
+func (i *IntentSignupFlowEnsureConstraintsFulfilled) ReactTo(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows, input authenticationflow.Input) (authenticationflow.ReactToResult, error) {
 	stepCreateAuthenticator, err := NewIntentSignupFlowStepCreateAuthenticator(ctx, deps, flows, &IntentSignupFlowStepCreateAuthenticator{
 		FlowReference: i.FlowReference,
 		StepName:      "",
@@ -112,11 +112,11 @@ func (i *IntentSignupFlowEnsureContraintsFulfilled) ReactTo(ctx context.Context,
 	return authflow.NewSubFlow(stepCreateAuthenticator), nil
 }
 
-func (i *IntentSignupFlowEnsureContraintsFulfilled) Milestone() {
+func (i *IntentSignupFlowEnsureConstraintsFulfilled) Milestone() {
 	return
 }
 
 // This is needed so that the child authenticate intents display a correct flow action
-func (i *IntentSignupFlowEnsureContraintsFulfilled) MilestoneAuthenticationFlowObjectProvider() config.AuthenticationFlowObject {
+func (i *IntentSignupFlowEnsureConstraintsFulfilled) MilestoneAuthenticationFlowObjectProvider() config.AuthenticationFlowObject {
 	return i.FlowObject
 }
