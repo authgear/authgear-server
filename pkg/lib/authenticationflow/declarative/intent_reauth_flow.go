@@ -61,7 +61,7 @@ func (i *IntentReauthFlow) ReactTo(ctx context.Context, deps *authflow.Dependenc
 	case len(flows.Nearest.Nodes) == 1:
 		return NewNodePreAuthenticateNodeSimple(ctx, deps, flows)
 	case len(flows.Nearest.Nodes) == 2:
-		i, err := NewIntentReauthFlowEnsureContraintsFulfilled(ctx, deps, flows, i.FlowReference)
+		i, err := NewIntentReauthFlowEnsureConstraintsFulfilled(ctx, deps, flows, i.FlowReference)
 		if err != nil {
 			return nil, err
 		}

@@ -304,9 +304,9 @@ type MilestoneGetIdentitySpecs interface {
 	MilestoneGetIdentitySpecs() []*identity.Spec
 }
 
-type MilestoneContraintsProvider interface {
+type MilestoneConstraintsProvider interface {
 	authflow.Milestone
-	MilestoneContraintsProvider() *event.Constraints
+	MilestoneConstraintsProvider() *event.Constraints
 }
 
 type MilestoneDidConsumeRecoveryCode interface {

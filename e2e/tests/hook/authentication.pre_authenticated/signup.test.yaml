@@ -73,7 +73,7 @@ authgear.yaml:
     hook:
       blocking_handlers:
       - event: authentication.pre_authenticated
-        url: authgeardeno:///deno/contraintsmfa.ts
+        url: authgeardeno:///deno/constraintsmfa.ts
     authentication:
       secondary_authenticators:
         - totp

@@ -66,14 +66,14 @@ func NewNodePreAuthenticateNodeSimple(ctx context.Context, deps *authenticationf
 var _ authenticationflow.NodeSimple = &NodePreAuthenticate{}
 var _ authenticationflow.Milestone = &NodePreAuthenticate{}
 var _ authenticationflow.InputReactor = &NodePreAuthenticate{}
-var _ MilestoneContraintsProvider = &NodePreAuthenticate{}
+var _ MilestoneConstraintsProvider = &NodePreAuthenticate{}
 
 func (*NodePreAuthenticate) Kind() string {
 	return "NodePreAuthenticate"
 }
 
 func (*NodePreAuthenticate) Milestone() {}
-func (n *NodePreAuthenticate) MilestoneContraintsProvider() *eventapi.Constraints {
+func (n *NodePreAuthenticate) MilestoneConstraintsProvider() *eventapi.Constraints {
 	return n.Constraints
 }
 

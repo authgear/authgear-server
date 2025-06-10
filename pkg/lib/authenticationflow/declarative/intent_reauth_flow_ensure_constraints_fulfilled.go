@@ -13,16 +13,16 @@ import (
 )
 
 func init() {
-	authflow.RegisterIntent(&IntentReauthFlowEnsureContraintsFulfilled{})
+	authflow.RegisterIntent(&IntentReauthFlowEnsureConstraintsFulfilled{})
 }
 
-type IntentReauthFlowEnsureContraintsFulfilled struct {
+type IntentReauthFlowEnsureConstraintsFulfilled struct {
 	FlowObject    *config.AuthenticationFlowReauthFlowStep `json:"flow_object"`
 	FlowReference authenticationflow.FlowReference         `json:"flow_reference,omitempty"`
 	JSONPointer   jsonpointer.T                            `json:"json_pointer,omitempty"`
 }
 
-func NewIntentReauthFlowEnsureContraintsFulfilled(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows, flowRef authenticationflow.FlowReference) (*IntentReauthFlowEnsureContraintsFulfilled, error) {
+func NewIntentReauthFlowEnsureConstraintsFulfilled(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows, flowRef authenticationflow.FlowReference) (*IntentReauthFlowEnsureConstraintsFulfilled, error) {
 	var oneOfs []*config.AuthenticationFlowReauthFlowOneOf
 
 	addOneOf := func(am config.AuthenticationFlowAuthentication) {
@@ -56,22 +56,22 @@ func NewIntentReauthFlowEnsureContraintsFulfilled(ctx context.Context, deps *aut
 		ShowUntilAMRConstraintsFulfilled: &trueValue,
 	}
 
-	return &IntentReauthFlowEnsureContraintsFulfilled{
+	return &IntentReauthFlowEnsureConstraintsFulfilled{
 		FlowReference: flowRef,
 		FlowObject:    flowObject,
 		JSONPointer:   jsonpointer.T{},
 	}, nil
 }
 
-var _ authenticationflow.Intent = &IntentReauthFlowEnsureContraintsFulfilled{}
-var _ authenticationflow.Milestone = &IntentReauthFlowEnsureContraintsFulfilled{}
-var _ MilestoneAuthenticationFlowObjectProvider = &IntentReauthFlowEnsureContraintsFulfilled{}
+var _ authenticationflow.Intent = &IntentReauthFlowEnsureConstraintsFulfilled{}
+var _ authenticationflow.Milestone = &IntentReauthFlowEnsureConstraintsFulfilled{}
+var _ MilestoneAuthenticationFlowObjectProvider = &IntentReauthFlowEnsureConstraintsFulfilled{}
 
-func (*IntentReauthFlowEnsureContraintsFulfilled) Kind() string {
-	return "IntentReauthFlowEnsureContraintsFulfilled"
+func (*IntentReauthFlowEnsureConstraintsFulfilled) Kind() string {
+	return "IntentReauthFlowEnsureConstraintsFulfilled"
 }
 
-func (i *IntentReauthFlowEnsureContraintsFulfilled) CanReactTo(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows) (authenticationflow.InputSchema, error) {
+func (i *IntentReauthFlowEnsureConstraintsFulfilled) CanReactTo(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows) (authenticationflow.InputSchema, error) {
 	switch len(flows.Nearest.Nodes) {
 	case 0:
 		return nil, nil
@@ -81,7 +81,7 @@ func (i *IntentReauthFlowEnsureContraintsFulfilled) CanReactTo(ctx context.Conte
 	panic(fmt.Errorf("unexpected number of nodes"))
 }
 
-func (i *IntentReauthFlowEnsureContraintsFulfilled) ReactTo(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows, input authenticationflow.Input) (authenticationflow.ReactToResult, error) {
+func (i *IntentReauthFlowEnsureConstraintsFulfilled) ReactTo(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows, input authenticationflow.Input) (authenticationflow.ReactToResult, error) {
 	stepAuthenticate, err := NewIntentReauthFlowStepAuthenticate(ctx, deps, flows, &IntentReauthFlowStepAuthenticate{
 		FlowReference: i.FlowReference,
 		StepName:      "",
@@ -94,7 +94,7 @@ func (i *IntentReauthFlowEnsureContraintsFulfilled) ReactTo(ctx context.Context,
 	return authflow.NewSubFlow(stepAuthenticate), nil
 }
 
-func (*IntentReauthFlowEnsureContraintsFulfilled) userID(flows authflow.Flows) string {
+func (*IntentReauthFlowEnsureConstraintsFulfilled) userID(flows authflow.Flows) string {
 	userID, err := getUserID(flows)
 	if err != nil {
 		panic(err)
@@ -102,11 +102,11 @@ func (*IntentReauthFlowEnsureContraintsFulfilled) userID(flows authflow.Flows) s
 	return userID
 }
 
-func (i *IntentReauthFlowEnsureContraintsFulfilled) Milestone() {
+func (i *IntentReauthFlowEnsureConstraintsFulfilled) Milestone() {
 	return
 }
 
 // This is needed so that the child authenticate intents display a correct flow action
-func (i *IntentReauthFlowEnsureContraintsFulfilled) MilestoneAuthenticationFlowObjectProvider() config.AuthenticationFlowObject {
+func (i *IntentReauthFlowEnsureConstraintsFulfilled) MilestoneAuthenticationFlowObjectProvider() config.AuthenticationFlowObject {
 	return i.FlowObject
 }
