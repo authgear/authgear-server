@@ -12,6 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/facade"
 	interactionintents "github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/lib/search"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -20,7 +21,7 @@ import (
 )
 
 type UserService interface {
-	CreateByAdmin(ctx context.Context, identitySpec *identity.Spec, password string, generatePassword bool, sendPassword bool, setPasswordExpired bool) (*user.User, error)
+	CreateByAdmin(ctx context.Context, identitySpec *identity.Spec, opts facade.CreatePasswordOptions) (*user.User, error)
 	GetRaw(ctx context.Context, id string) (*user.User, error)
 	Count(ctx context.Context) (uint64, error)
 	QueryPage(ctx context.Context, listOption user.ListOptions, pageArgs graphqlutil.PageArgs) ([]apimodel.PageItemRef, error)
@@ -84,10 +85,10 @@ func (f *UserFacade) SearchPage(
 	})), nil
 }
 
-func (f *UserFacade) Create(ctx context.Context, identityDef model.IdentityDef, password string, generatePassword bool, sendPassword bool, setPasswordExpired bool) (userID string, err error) {
+func (f *UserFacade) Create(ctx context.Context, identityDef model.IdentityDef, opts facade.CreatePasswordOptions) (userID string, err error) {
 	// NOTE: identityDef is assumed to be a login ID since portal only supports login ID
 	loginIDInput := identityDef.(*model.IdentityDefLoginID)
-	loginIDKeyCofig, ok := f.LoginIDConfig.GetKeyConfig(loginIDInput.Key)
+	loginIDKeyConfig, ok := f.LoginIDConfig.GetKeyConfig(loginIDInput.Key)
 	if !ok {
 		return "", api.NewInvariantViolated("InvalidLoginIDKey", "invalid login ID key", nil)
 	}
@@ -96,17 +97,14 @@ func (f *UserFacade) Create(ctx context.Context, identityDef model.IdentityDef, 
 		Type: identityDef.Type(),
 		LoginID: &identity.LoginIDSpec{
 			Key:   loginIDInput.Key,
-			Type:  loginIDKeyCofig.Type,
+			Type:  loginIDKeyConfig.Type,
 			Value: stringutil.NewUserInputString(loginIDInput.Value),
 		},
 	}
 
 	user, err := f.Users.CreateByAdmin(ctx,
 		identitySpec,
-		password,
-		generatePassword,
-		sendPassword,
-		setPasswordExpired,
+		opts,
 	)
 	if err != nil {
 		return "", err

@@ -335,9 +335,12 @@ func (c *Coordinator) createPrimaryAuthenticatorsForAdminAPICreateIdentity(ctx c
 				// We only create the password if the user does not have one already.
 				if len(passwords) == 0 {
 					var passwordSpec *authenticator.Spec
-					generatePassword := false
-					setPasswordExpired := false
-					passwordSpec, err = c.createPasswordAuthenticatorSpec(iden.UserID, password, generatePassword, setPasswordExpired)
+					opts := CreatePasswordOptions{
+						Password:           &password,
+						SendPassword:       false,
+						SetPasswordExpired: false,
+					}
+					passwordSpec, err = c.createPasswordAuthenticatorSpec(iden.UserID, opts)
 					if err != nil {
 						return
 					}
@@ -591,13 +594,13 @@ func (c *Coordinator) AuthenticatorVerifyOneWithSpec(ctx context.Context, userID
 	return
 }
 
-func (c *Coordinator) UserCreatebyAdmin(ctx context.Context,
-	identitySpec *identity.Spec,
-	password string,
-	generatePassword bool,
-	sendPassword bool,
-	setPasswordExpired bool,
-) (*user.User, error) {
+type CreatePasswordOptions struct {
+	Password           *string
+	SendPassword       bool
+	SetPasswordExpired bool
+}
+
+func (c *Coordinator) UserCreatebyAdmin(ctx context.Context, identitySpec *identity.Spec, opts CreatePasswordOptions) (*user.User, error) {
 	// 1. Create user
 	userID := uuid.New()
 	user, err := c.UserCommands.Create(ctx, userID)
@@ -624,7 +627,7 @@ func (c *Coordinator) UserCreatebyAdmin(ctx context.Context,
 	}
 
 	// 3. Create primary authenticators
-	authenticatorInfos, err := c.createPrimaryAuthenticatorsForAdminAPICreateUser(ctx, identityInfo, userID, password, generatePassword, sendPassword, setPasswordExpired)
+	authenticatorInfos, err := c.createPrimaryAuthenticatorsForAdminAPICreateUser(ctx, identityInfo, userID, opts)
 	if err != nil {
 		return nil, err
 	}
@@ -641,7 +644,7 @@ func (c *Coordinator) UserCreatebyAdmin(ctx context.Context,
 	return user, nil
 }
 
-func (c *Coordinator) createPrimaryAuthenticatorsForAdminAPICreateUser(ctx context.Context, identityInfo *identity.Info, userID string, password string, generatePassword bool, sendPassword bool, setPasswordExpired bool) ([]*authenticator.Info, error) {
+func (c *Coordinator) createPrimaryAuthenticatorsForAdminAPICreateUser(ctx context.Context, identityInfo *identity.Info, userID string, opts CreatePasswordOptions) ([]*authenticator.Info, error) {
 	authenticatorTypes := *c.AuthenticationConfig.PrimaryAuthenticators
 	if len(authenticatorTypes) == 0 {
 		return nil, api.InvalidConfiguration.New("identity requires primary authenticator but none is enabled")
@@ -653,7 +656,7 @@ func (c *Coordinator) createPrimaryAuthenticatorsForAdminAPICreateUser(ctx conte
 		switch t {
 		case model.AuthenticatorTypePassword:
 			var err error
-			passwordSpec, err = c.createPasswordAuthenticatorSpec(userID, password, generatePassword, setPasswordExpired)
+			passwordSpec, err = c.createPasswordAuthenticatorSpec(userID, opts)
 			if err != nil {
 				return nil, err
 			}
@@ -691,7 +694,7 @@ func (c *Coordinator) createPrimaryAuthenticatorsForAdminAPICreateUser(ctx conte
 		return nil, api.InvalidConfiguration.New("no primary authenticator can be created for identity")
 	}
 
-	if passwordSpec != nil && sendPassword {
+	if passwordSpec != nil && opts.SendPassword {
 		err := c.SendPassword.Send(ctx, userID, passwordSpec.Password.PlainPassword, translation.MessageTypeSendPasswordToNewUser)
 		if err != nil {
 			return nil, err
@@ -701,19 +704,20 @@ func (c *Coordinator) createPrimaryAuthenticatorsForAdminAPICreateUser(ctx conte
 	return authenticatorInfos, nil
 }
 
-func (c *Coordinator) createPasswordAuthenticatorSpec(userID string, password string, generatePassword bool, setPasswordExpired bool) (*authenticator.Spec, error) {
-	if password == "" && !generatePassword {
+func (c *Coordinator) createPasswordAuthenticatorSpec(userID string, opts CreatePasswordOptions) (*authenticator.Spec, error) {
+	if opts.Password == nil {
 		return nil, nil
 	}
 
 	var expireAfter *time.Time
-	if setPasswordExpired {
+	if opts.SetPasswordExpired {
 		expireAt := c.Clock.NowUTC()
 		expireAfter = &expireAt
 	}
 
+	password := *opts.Password
 	var err error
-	if generatePassword {
+	if password == "" {
 		password, err = c.PasswordGenerator.Generate()
 		if err != nil {
 			return nil, err

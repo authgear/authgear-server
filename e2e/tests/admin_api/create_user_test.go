@@ -12,7 +12,7 @@ import (
 	"github.com/authgear/authgear-server/e2e/pkg/testrunner"
 )
 
-func TestCreateUserWithPassword(t *testing.T) {
+func TestCreateUser_Password_SendPassword_SetPasswordExpired(t *testing.T) {
 	cmd, err := testrunner.NewEnd2EndCmd(testrunner.NewEnd2EndCmdOptions{
 		TestCase: &testrunner.TestCase{
 			Path: "admin_api/create_user_test.go",
@@ -62,12 +62,15 @@ func TestCreateUserWithPassword(t *testing.T) {
 	}
 
 	// Verify password created with expireAfter
-	passwordCreated, err := verifyPasswordCreated(cmd, userEmail)
+	password, err := getPasswordByEmail(cmd, userEmail)
 	if err != nil {
 		t.Fatalf("%v", err.Error())
 	}
-	if !passwordCreated {
-		t.Fatalf("Password not created with expireAfter")
+	if password == nil {
+		t.Fatalf("Password not created")
+	}
+	if password.ExpireAfter == nil {
+		t.Fatalf("Password not created with expire_after")
 	}
 
 	// Verify email sent
@@ -80,7 +83,141 @@ func TestCreateUserWithPassword(t *testing.T) {
 	}
 }
 
-func verifyPasswordCreated(cmd *testrunner.End2EndCmd, userEmail string) (bool, error) {
+func TestCreateUser_NullPassword(t *testing.T) {
+	cmd, err := testrunner.NewEnd2EndCmd(testrunner.NewEnd2EndCmdOptions{
+		TestCase: &testrunner.TestCase{
+			Path: "admin_api/create_user_test.go",
+		},
+		Test: t,
+	})
+	if err != nil {
+		t.Fatalf("%v", err.Error())
+	}
+
+	userEmail := fmt.Sprintf("%s@example.com", cmd.AppID)
+
+	_, err = cmd.Client.GraphQLAPI(nil, nil, cmd.AppID, e2eclient.GraphQLAPIRequest{
+		Query: `
+			mutation createUserMutation(
+				$identityDefinition: IdentityDefinitionLoginID!
+				$password: String
+				$sendPassword: Boolean
+				$setPasswordExpired: Boolean
+			) {
+				createUser(
+					input: {
+						definition: { loginID: $identityDefinition },
+						password: $password,
+						sendPassword: $sendPassword,
+						setPasswordExpired: $setPasswordExpired
+					}
+				) {
+					user {
+						id
+					}
+				}
+			}
+		`,
+		Variables: map[string]interface{}{
+			"identityDefinition": map[string]interface{}{
+				"key":   "email",
+				"value": userEmail,
+			},
+			"password":           nil,
+			"sendPassword":       false,
+			"setPasswordExpired": false,
+		},
+	})
+	if err != nil {
+		t.Fatalf("%v", err.Error())
+	}
+
+	// Verify no password is created.
+	password, err := getPasswordByEmail(cmd, userEmail)
+	if err != nil {
+		t.Fatalf("%v", err.Error())
+	}
+	if password != nil {
+		t.Fatalf("Password should not be created")
+	}
+}
+
+func TestCreateUser_EmptyPassword(t *testing.T) {
+	cmd, err := testrunner.NewEnd2EndCmd(testrunner.NewEnd2EndCmdOptions{
+		TestCase: &testrunner.TestCase{
+			Path: "admin_api/create_user_test.go",
+		},
+		Test: t,
+	})
+	if err != nil {
+		t.Fatalf("%v", err.Error())
+	}
+
+	userEmail := fmt.Sprintf("%s@example.com", cmd.AppID)
+
+	_, err = cmd.Client.GraphQLAPI(nil, nil, cmd.AppID, e2eclient.GraphQLAPIRequest{
+		Query: `
+			mutation createUserMutation(
+				$identityDefinition: IdentityDefinitionLoginID!
+				$password: String
+				$sendPassword: Boolean
+				$setPasswordExpired: Boolean
+			) {
+				createUser(
+					input: {
+						definition: { loginID: $identityDefinition },
+						password: $password,
+						sendPassword: $sendPassword,
+						setPasswordExpired: $setPasswordExpired
+					}
+				) {
+					user {
+						id
+					}
+				}
+			}
+		`,
+		Variables: map[string]interface{}{
+			"identityDefinition": map[string]interface{}{
+				"key":   "email",
+				"value": userEmail,
+			},
+			"password":           "",
+			"sendPassword":       true,
+			"setPasswordExpired": true,
+		},
+	})
+	if err != nil {
+		t.Fatalf("%v", err.Error())
+	}
+
+	// Verify password created with expireAfter
+	password, err := getPasswordByEmail(cmd, userEmail)
+	if err != nil {
+		t.Fatalf("%v", err.Error())
+	}
+	if password == nil {
+		t.Fatalf("Password not created")
+	}
+	if password.ExpireAfter == nil {
+		t.Fatalf("Password not created with expire_after")
+	}
+
+	// Verify email sent
+	emailSent, err := verifyEmailInLog("Get Started With Authgear", userEmail)
+	if err != nil {
+		t.Fatalf("%v", err.Error())
+	}
+	if !emailSent {
+		t.Fatalf("Create user email with recipient '%s' not found.", userEmail)
+	}
+}
+
+type CreateUserPassword struct {
+	ExpireAfter *string
+}
+
+func getPasswordByEmail(cmd *testrunner.End2EndCmd, userEmail string) (*CreateUserPassword, error) {
 	rawResult, err := cmd.QuerySQLSelectRaw(fmt.Sprintf(`
 		SELECT expire_after
 		FROM _auth_authenticator
@@ -90,26 +227,28 @@ func verifyPasswordCreated(cmd *testrunner.End2EndCmd, userEmail string) (bool, 
 		AND standard_attributes ->> 'email' = '%s';
 	`, cmd.AppID, userEmail))
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 
 	var rows []interface{}
 	err = json.Unmarshal([]byte(rawResult), &rows)
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 
 	if len(rows) == 0 {
-		return false, nil
+		return nil, nil
 	}
 
 	row := rows[0].(map[string]interface{})
-	expireAfter := row["expire_after"]
-	if expireAfter == nil {
-		return false, fmt.Errorf("Password not created with expireAfter")
+	expireAfter, ok := row["expire_after"].(string)
+
+	out := &CreateUserPassword{}
+	if ok {
+		out.ExpireAfter = &expireAfter
 	}
 
-	return true, nil
+	return out, nil
 }
 
 func verifyEmailInLog(subject string, recipient string) (bool, error) {

@@ -31,8 +31,8 @@ type UserFacade struct {
 	Coordinator *Coordinator
 }
 
-func (u UserFacade) CreateByAdmin(ctx context.Context, identitySpec *identity.Spec, password string, generatePassword bool, sendPassword bool, setPasswordExpired bool) (*user.User, error) {
-	return u.Coordinator.UserCreatebyAdmin(ctx, identitySpec, password, generatePassword, sendPassword, setPasswordExpired)
+func (u UserFacade) CreateByAdmin(ctx context.Context, identitySpec *identity.Spec, opts CreatePasswordOptions) (*user.User, error) {
+	return u.Coordinator.UserCreatebyAdmin(ctx, identitySpec, opts)
 }
 
 func (u UserFacade) Delete(ctx context.Context, userID string) error {

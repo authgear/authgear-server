@@ -13,6 +13,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	libuser "github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/facade"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
@@ -60,7 +61,7 @@ type UserFacade interface {
 		filterOptions libuser.FilterOptions,
 		sortOption libuser.SortOption,
 		args graphqlutil.PageArgs) ([]apimodel.PageItemRef, *graphqlutil.PageResult, error)
-	Create(ctx context.Context, identityDef model.IdentityDef, password string, generatePassword bool, sendPassword bool, setPasswordExpired bool) (string, error)
+	Create(ctx context.Context, identityDef model.IdentityDef, opts facade.CreatePasswordOptions) (string, error)
 	ResetPassword(ctx context.Context, id string, password string, generatePassword bool, sendPassword bool, changeOnLogin bool) error
 	SetPasswordExpired(ctx context.Context, id string, isExpired bool) error
 	SetDisabled(ctx context.Context, id string, isDisabled bool, reason *string) error
