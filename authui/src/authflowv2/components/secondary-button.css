@@ -83,6 +83,10 @@
     flex: 1 0 0px;
   }
 
+  .secondary-btn__alternative-option-content * {
+    @apply line-clamp-2;
+  }
+
   .secondary-btn__alternative-option-content--with-badge {
     @apply secondary-btn__alternative-option-content;
     grid-template-areas: "icon title badge";
