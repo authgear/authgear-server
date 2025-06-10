@@ -173,6 +173,12 @@
     --typography-label-large__letter-spacing: 0.00625rem;
     --typography-label-large__font-weight: 600;
 
+    --typography-label-large-medium__font-family: inherit;
+    --typography-label-large-medium__font-size: 1rem;
+    --typography-label-large-medium__line-height: 1.25rem;
+    --typography-label-large-medium__letter-spacing: 0rem;
+    --typography-label-large-medium__font-weight: 500;
+
     --typography-label-medium__font-family: inherit;
     --typography-label-medium__font-size: 0.875rem;
     --typography-label-medium__line-height: 1.25rem;
