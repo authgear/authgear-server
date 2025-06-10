@@ -12,6 +12,7 @@ func GenerateSignupFlowConfig(cfg *config.AppConfig) *config.AuthenticationFlowS
 		Name: nameGeneratedFlow,
 		Steps: []*config.AuthenticationFlowSignupFlowStep{
 			generateSignupFlowStepIdentify(cfg),
+			generateSignupFlowStepCreateAuthenticatorForAMRConstraints(cfg),
 		},
 	}
 
@@ -319,6 +320,58 @@ func generateSignupFlowStepCreateAuthenticatorSecondary(cfg *config.AppConfig, i
 	}
 
 	return step, true
+}
+
+func generateSignupFlowStepCreateAuthenticatorForAMRConstraints(cfg *config.AppConfig) *config.AuthenticationFlowSignupFlowStep {
+	var oneOfs []*config.AuthenticationFlowSignupFlowOneOf
+
+	recoveryCodeStep := &config.AuthenticationFlowSignupFlowStep{
+		Type: config.AuthenticationFlowSignupFlowStepTypeViewRecoveryCode,
+	}
+
+	addOneOf := func(am config.AuthenticationFlowAuthentication, bpGetter func(*config.AppConfig) (*config.AuthenticationFlowBotProtection, bool)) {
+
+		oneOf := &config.AuthenticationFlowSignupFlowOneOf{
+			Authentication: am,
+		}
+
+		if bpGetter != nil {
+			if bp, ok := bpGetter(cfg); ok {
+				oneOf.BotProtection = bp
+			}
+		}
+
+		if !*cfg.Authentication.RecoveryCode.Disabled {
+			oneOf.Steps = append(oneOf.Steps, recoveryCodeStep)
+		}
+		oneOfs = append(oneOfs, oneOf)
+	}
+
+	for _, authenticatorType := range *cfg.Authentication.SecondaryAuthenticators {
+		switch authenticatorType {
+		case model.AuthenticatorTypePassword:
+			addOneOf(config.AuthenticationFlowAuthenticationSecondaryPassword, nil)
+		case model.AuthenticatorTypeOOBEmail:
+			addOneOf(config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail, getBotProtectionRequirementsOOBOTPEmail)
+		case model.AuthenticatorTypeOOBSMS:
+			addOneOf(config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS, getBotProtectionRequirementsOOBOTPSMS)
+		case model.AuthenticatorTypeTOTP:
+			addOneOf(config.AuthenticationFlowAuthenticationSecondaryTOTP, nil)
+		case model.AuthenticatorTypePasskey:
+			// TODO(tung): We don't have a step to force user create passkey at the moment
+		}
+	}
+
+	trueValue := true
+
+	step := &config.AuthenticationFlowSignupFlowStep{
+		Name:                             nameFormatStepAuthenticateAMRConstraints,
+		Type:                             config.AuthenticationFlowSignupFlowStepTypeCreateAuthenticator,
+		ShowUntilAMRConstraintsFulfilled: &trueValue,
+		OneOf:                            oneOfs,
+	}
+
+	return step
 }
 
 func generateSignupFlowStepPromptCreatePasskey(cfg *config.AppConfig) (*config.AuthenticationFlowSignupFlowStep, bool) {
