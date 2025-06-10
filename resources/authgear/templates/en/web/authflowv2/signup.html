@@ -229,7 +229,7 @@
     {{ else }}
       <div class="pt-8"></div>
     {{ end }}
-    <section class="flex flex-col gap-4">
+    <section class="flex flex-col gap-3">
       {{ range .IdentityCandidates }}
         {{ if eq .type "login_id" }}{{ if not (eq .login_id_key $.LoginIDKey) }}
           {{ if eq .login_id_key "email" }}
