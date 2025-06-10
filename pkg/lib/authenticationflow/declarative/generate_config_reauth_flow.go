@@ -10,7 +10,17 @@ func GenerateReauthFlowConfig(cfg *config.AppConfig) *config.AuthenticationFlowR
 		Name: nameGeneratedFlow,
 		Steps: []*config.AuthenticationFlowReauthFlowStep{
 			generateReauthFlowStepIdentify(cfg),
-			generateReauthFlowStepAuthenticate(cfg),
+			generateReauthFlowStepAuthenticate(cfg, nameStepReauthenticate, []config.AuthenticationFlowAuthentication{
+				config.AuthenticationFlowAuthenticationPrimaryPassword,
+				config.AuthenticationFlowAuthenticationPrimaryPasskey,
+				config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail,
+				config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS,
+				config.AuthenticationFlowAuthenticationSecondaryPassword,
+				config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail,
+				config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS,
+				config.AuthenticationFlowAuthenticationSecondaryTOTP,
+			}),
+			generateReauthFlowStepAuthenticateForAMRConstraints(cfg),
 		},
 	}
 
@@ -30,13 +40,21 @@ func generateReauthFlowStepIdentify(cfg *config.AppConfig) *config.Authenticatio
 	return step
 }
 
-func generateReauthFlowStepAuthenticate(cfg *config.AppConfig) *config.AuthenticationFlowReauthFlowStep {
+func generateReauthFlowStepAuthenticate(cfg *config.AppConfig, name string, authentications []config.AuthenticationFlowAuthentication) *config.AuthenticationFlowReauthFlowStep {
+	authenticationMap := make(map[config.AuthenticationFlowAuthentication]struct{})
+	for _, a := range authentications {
+		authenticationMap[a] = struct{}{}
+	}
+
 	step := &config.AuthenticationFlowReauthFlowStep{
-		Name: nameStepReauthenticate,
+		Name: name,
 		Type: config.AuthenticationFlowReauthFlowStepTypeAuthenticate,
 	}
 
 	addOneOf := func(authentication config.AuthenticationFlowAuthentication) {
+		if _, ok := authenticationMap[authentication]; !ok {
+			return
+		}
 		oneOf := &config.AuthenticationFlowReauthFlowOneOf{
 			Authentication: authentication,
 		}
@@ -70,6 +88,25 @@ func generateReauthFlowStepAuthenticate(cfg *config.AppConfig) *config.Authentic
 			}
 		}
 	}
+
+	return step
+}
+
+func generateReauthFlowStepAuthenticateForAMRConstraints(cfg *config.AppConfig) *config.AuthenticationFlowReauthFlowStep {
+	allowed := []config.AuthenticationFlowAuthentication{
+		config.AuthenticationFlowAuthenticationPrimaryPasskey,
+		config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail,
+		config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS,
+		config.AuthenticationFlowAuthenticationSecondaryPassword,
+		config.AuthenticationFlowAuthenticationSecondaryTOTP,
+	}
+	step := generateReauthFlowStepAuthenticate(
+		cfg,
+		nameStepReauthenticateAMRConstraints,
+		allowed,
+	)
+	valueTrue := true
+	step.ShowUntilAMRConstraintsFulfilled = &valueTrue
 
 	return step
 }
