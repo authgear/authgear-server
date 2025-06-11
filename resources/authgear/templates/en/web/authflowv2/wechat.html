@@ -24,7 +24,7 @@
 
   <form
     class="screen-actions flex flex-col mt-8"
-    data-controller="click-to-switch"
+    data-controller="wechat-button"
     method="post"
     novalidate
 {{/* It is observed that if this form is submitted with fetch, ASWebAuthenticationSession or WKWebView will result in this error */}}
@@ -32,6 +32,7 @@
 {{/* In WKWebView, this error CANNOT be bypassed by WKNavigationDelegate nor WKURLSchemeHandler */}}
 {{/* The only known way to work around is just not to use fetch */}}
     data-turbo="false"
+    data-action="wechat-button#onSubmit"
   >
   {{ $.CSRFField }}
 
@@ -39,8 +40,8 @@
     href="{{ $.WechatRedirectURI }}"
     class="primary-btn"
     data-turbo-action="replace"
-    data-click-to-switch-target="clickToHide"
-    data-action="click-to-switch#click"
+    data-wechat-button-target="openWechatAnchor"
+    data-action="wechat-button#onClickOpenWechatAnchor"
   >
     {{ include "v2.page.wechat-auth.default.open-app" nil }}
   </a>
@@ -51,7 +52,7 @@
     name="x_action"
     value=""
     data-is-refresh-link="true"
-    data-click-to-switch-target="clickToShow"
+    data-wechat-button-target="proceedButton"
   >
     {{ include "v2.page.wechat-auth.default.proceed" nil }}
   </button>
