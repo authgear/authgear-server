@@ -183,12 +183,19 @@ Occurs right before the account anonymization is scheduled.
 
 Occurs right before any authentication, such as login.
 
+Fields in payload:
+- `authentication_context`: An [`AuthenticationContext`](./event_models.md#authenticationcontext) object.
+
 Example payload:
 
 ```json5
 {
   "payload": {
-    "authentication": {
+    "authentication_context": {
+      "user": null,
+      "asserted_authentications": [],
+      "asserted_identifications": [],
+      "amr": [],
       "authentication_flow": {
         "type": "login",
         "name": "default"
@@ -200,28 +207,18 @@ Example payload:
 
 #### authentication.post_identified
 
-```mermaid
-flowchart TD
- subgraph Signup["Signup / Promote"]
-        signup_create_authenticator["create_authenticator"]
-        signup_identify["identify"]
-  end
-    signup_identify -- "authentication.post_identified" --> signup_create_authenticator
-  subgraph Login["Login / Reauth"]
-        login_authenticate["authenticate"]
-        login_identify["identify"]
-  end
-    login_identify -- "authentication.post_identified" --> login_authenticate 
-```
-
 Occurs right after an identity is identified during authentication, such as login.
+
+Fields in payload:
+- `authentication_context`: An [`AuthenticationContext`](./event_models.md#authenticationcontext) object.
+- `identification`: An [`Identification`](./event_models.md#identification) object. The identification method the user used to pass the identify step.
 
 Example payload:
 
 ```json5
 {
   "payload": {
-    "authentication": {
+    "authentication_context": {
       "authentication_flow": {
         "type": "login",
         "name": "default"
@@ -244,42 +241,48 @@ Example payload:
         "created_at": "2025-05-27T06:32:54.005206Z",
         "updated_at": "2025-05-27T06:32:54.066087Z"
       },
-      "asserted_identities": [
-        { /* The identified identities in the current authentication */
-          "id": "8f84ed75-5c8b-45c1-b657-b0c65ac3affe",
-          "claims": {
-            "email": "user@example.com",
-            "email_verified": true,
-            "family_name": "Authgear",
-            "given_name": "Test",
-            "https://authgear.com/claims/oauth/provider_alias": "google",
-            "https://authgear.com/claims/oauth/provider_type": "google",
-            "https://authgear.com/claims/oauth/subject_id": "1234567",
-            "name": "Test Authgear"
-          },
-          "type": "oauth",
-          "created_at": "2025-05-27T06:32:54.02264Z",
-          "updated_at": "2025-05-27T06:32:54.02264Z"
-        },
+      "asserted_identifications": [
+        { /* The identification methods asserted in the current authentication */
+          "identification": "oauth",
+          "identity": {
+            "id": "8f84ed75-5c8b-45c1-b657-b0c65ac3affe",
+            "claims": {
+              "email": "user@example.com",
+              "email_verified": true,
+              "family_name": "Authgear",
+              "given_name": "Test",
+              "https://authgear.com/claims/oauth/provider_alias": "google",
+              "https://authgear.com/claims/oauth/provider_type": "google",
+              "https://authgear.com/claims/oauth/subject_id": "1234567",
+              "name": "Test Authgear"
+            },
+            "type": "oauth",
+            "created_at": "2025-05-27T06:32:54.02264Z",
+            "updated_at": "2025-05-27T06:32:54.02264Z"
+          }
+        }
       ],
-      "asserted_authenticators": [],
+      "asserted_authentications": [],
       "amr": []
     },
-    "identity": { /* The identified identity */
-      "id": "8f84ed75-5c8b-45c1-b657-b0c65ac3affe",
-      "claims": {
-        "email": "user@example.com",
-        "email_verified": true,
-        "family_name": "Authgear",
-        "given_name": "Test",
-        "https://authgear.com/claims/oauth/provider_alias": "google",
-        "https://authgear.com/claims/oauth/provider_type": "google",
-        "https://authgear.com/claims/oauth/subject_id": "1234567",
-        "name": "Test Authgear"
-      },
-      "type": "oauth",
-      "created_at": "2025-05-27T06:32:54.02264Z",
-      "updated_at": "2025-05-27T06:32:54.02264Z"
+    "identification": {
+      "identification": "oauth",
+      "identity": { /* The identified identity */
+        "id": "8f84ed75-5c8b-45c1-b657-b0c65ac3affe",
+        "claims": {
+          "email": "user@example.com",
+          "email_verified": true,
+          "family_name": "Authgear",
+          "given_name": "Test",
+          "https://authgear.com/claims/oauth/provider_alias": "google",
+          "https://authgear.com/claims/oauth/provider_type": "google",
+          "https://authgear.com/claims/oauth/subject_id": "1234567",
+          "name": "Test Authgear"
+        },
+        "type": "oauth",
+        "created_at": "2025-05-27T06:32:54.02264Z",
+        "updated_at": "2025-05-27T06:32:54.02264Z"
+      }
     }
   }
 }
@@ -287,48 +290,17 @@ Example payload:
 
 #### authentication.pre_authenticated
 
-```mermaid
-flowchart TD
- subgraph Signup["Signup / Promote"]
-        signup_create_authenticator["create_authenticator"]
-        signup_create_authenticator_2fa["create_authenticator"]
-        signup_identify["identify"]
-        signup_adaptive_control[authentication.pre_authenticated]:::blockingEvent
-        signup_contraints@{ shape: diamond, label: "contraints.amr not fulfilled?" }
-        signup_finish["Finish"]
-  end
-    signup_identify --> signup_create_authenticator
-    signup_create_authenticator --> signup_adaptive_control
-    signup_adaptive_control -- "response" --> signup_contraints
-    signup_contraints -- "yes" --> signup_create_authenticator_2fa
-    signup_contraints -- "no" --> signup_finish
-    signup_create_authenticator_2fa --> signup_finish
-  subgraph Login["Login / Reauth"]
-        login_authenticate["authenticate"]
-        login_authenticate_2fa["authenticate"]
-        login_identify["identify"]
-        login_adaptive_control[authentication.pre_authenticated]:::blockingEvent
-        login_contraints@{ shape: diamond, label: "contraints.amr not fulfilled?" }
-        login_finish["Finish"]
-  end
-    login_identify --> login_authenticate
-    login_authenticate --> login_adaptive_control
-    login_adaptive_control -- "response" --> login_contraints
-    login_contraints -- "yes" --> login_authenticate_2fa
-    login_contraints -- "no" --> login_finish
-    login_authenticate_2fa --> login_finish
-    
-  classDef event fill:#dddddd
-```
-
 Occurs right before any authentication completes, such as login.
+
+Fields in payload:
+- `authentication_context`: An [`AuthenticationContext`](./event_models.md#authenticationcontext) object.
 
 Example payload:
 
 ```json5
 {
   "payload": {
-    "authentication": {
+    "authentication_context": {
       "authentication_flow": { 
         "type": "login",
         "name": "default"
@@ -351,32 +323,38 @@ Example payload:
         "created_at": "2025-05-27T06:32:54.005206Z",
         "updated_at": "2025-05-27T06:32:54.066087Z"
       },
-      "asserted_identities": [
-        { /* The identified identities in the current authentication */
-          "id": "8f84ed75-5c8b-45c1-b657-b0c65ac3affe",
-          "claims": {
-            "email": "user@example.com",
-            "email_verified": true,
-            "family_name": "Authgear",
-            "given_name": "Test",
-            "https://authgear.com/claims/oauth/provider_alias": "google",
-            "https://authgear.com/claims/oauth/provider_type": "google",
-            "https://authgear.com/claims/oauth/subject_id": "1234567",
-            "name": "Test Authgear"
-          },
-          "type": "oauth",
-          "created_at": "2025-05-27T06:32:54.02264Z",
-          "updated_at": "2025-05-27T06:32:54.02264Z"
+      "asserted_identifications": [ /* The identification methods asserted in the current authentication */
+        {
+          "identification": "oauth",
+          "identity": {
+            "id": "8f84ed75-5c8b-45c1-b657-b0c65ac3affe",
+            "claims": {
+              "email": "user@example.com",
+              "email_verified": true,
+              "family_name": "Authgear",
+              "given_name": "Test",
+              "https://authgear.com/claims/oauth/provider_alias": "google",
+              "https://authgear.com/claims/oauth/provider_type": "google",
+              "https://authgear.com/claims/oauth/subject_id": "1234567",
+              "name": "Test Authgear"
+            },
+            "type": "oauth",
+            "created_at": "2025-05-27T06:32:54.02264Z",
+            "updated_at": "2025-05-27T06:32:54.02264Z"
+          }
         },
       ],
-      "asserted_authenticators": [ /* Authenticator used during the authentication */
+      "asserted_authentications": [ /* Authentication methods asserted during the authentication */
         {
-          "id": "2a6f9927-c76c-4112-868a-879547239266",
-          "type": "oob_otp_sms",
-          "kind": "primary"
+          "authentication": "primary_oob_otp_sms",
+          "authenticator": {
+            "id": "2a6f9927-c76c-4112-868a-879547239266",
+            "type": "oob_otp_sms",
+            "kind": "primary"
+          }
         }
       ],
-      "amr": []
+      "amr": ["sms", "otp", "x_primary_oob_otp_sms"]
     },
   }
 }
