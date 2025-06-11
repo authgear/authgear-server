@@ -3,13 +3,19 @@
     --secondary-btn__bg-color: var(--color-surface-primary);
     --secondary-btn__text-color: var(--color-neutral-700);
     --secondary-btn__border-radius: var(--border-radius-rounded-square);
-    --secondary-btn__font-family: var(--typography-title-medium__font-family);
-    --secondary-btn__font-size: var(--typography-title-medium__font-size);
-    --secondary-btn__line-height: var(--typography-title-medium__line-height);
-    --secondary-btn__letter-spacing: var(
-      --typography-title-medium__letter-spacing
+    --secondary-btn__font-family: var(
+      --typography-label-large-medium__font-family
     );
-    --secondary-btn__font-weight: var(--typography-title-medium__font-weight);
+    --secondary-btn__font-size: var(--typography-label-large-medium__font-size);
+    --secondary-btn__line-height: var(
+      --typography-label-large-medium__line-height
+    );
+    --secondary-btn__letter-spacing: var(
+      --typography-label-large-medium__letter-spacing
+    );
+    --secondary-btn__font-weight: var(
+      --typography-label-large-medium__font-weight
+    );
     --secondary-btn__ring-width: 1.5px;
     --secondary-btn__ring-color: var(--color-neutral-100);
     --secondary-btn__py: 0.5em;
@@ -75,6 +81,10 @@
     justify-content: space-between;
     align-items: center;
     flex: 1 0 0px;
+  }
+
+  .secondary-btn__alternative-option-content * {
+    @apply line-clamp-2;
   }
 
   .secondary-btn__alternative-option-content--with-badge {
