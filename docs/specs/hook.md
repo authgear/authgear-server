@@ -161,15 +161,25 @@ The following blocking events support mutations:
 The `constraints` property in the response of blocking events can contain the following properties:
 
 - `amr`: An array of Authentication Methods References (AMR) values that are required for the authentication. The supported values are:
-  - `pwd`: Password-based authentication
-  - `otp`: One-time password authentication (TOTP, OOB email, OOB SMS)
-  - `sms`: SMS-based authentication
-  - `mfa`: Multi-factor authentication (multiple authenticators are used)
-  - `x_passkey`: Passkey authentication
+  - `pwd`
+  - `otp`
+  - `sms`
+  - `mfa`
+  - `x_primary_password`
+  - `x_primary_oob_otp_email`
+  - `x_primary_oob_otp_sms`
+  - `x_secondary_password`
+  - `x_secondary_oob_otp_email`
+  - `x_secondary_oob_otp_sms`
+  - `x_secondary_totp`
 
 When multiple values are returned in `amr`, they are in AND condition. For example, for `"amr": ["mfa", "otp"]`, the user must fulfil `mfa` AND `otp` in the authentication flow.
 
-`x_biometric` is not supported in `constraints`.
+Unsupported amr values in `constraints`:
+- `x_biometric`: Biometric is not supported in authentication flow at the moment.
+- `x_primary_passkey`: We do not support enforcing passkey setup in signup flow, so we do not support it as a constraint.
+- `x_recovery_code`: Recovery code should be used as a backup MFA method. So use `mfa` instead.
+- `x_device_token`: We do not support enforcing creation of device token, so we do not support it as a constraint.
 
 The following blocking events support authentication constraints:
 
