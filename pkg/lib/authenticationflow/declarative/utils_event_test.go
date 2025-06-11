@@ -70,7 +70,7 @@ func TestGetAuthenticationContext(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
-			mockUserService := authenticationflow.NewMockUserService(ctrl)
+			mockUserService := NewMockUserService(ctrl)
 			mockUserService.
 				EXPECT().
 				Get(gomock.Any(), gomock.Eq(userID), gomock.Any()).
@@ -245,7 +245,7 @@ func TestGetAuthenticationContext(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
-			mockUserService := authenticationflow.NewMockUserService(ctrl)
+			mockUserService := NewMockUserService(ctrl)
 			mockUserService.
 				EXPECT().
 				Get(gomock.Any(), gomock.Eq(userID), gomock.Any()).
