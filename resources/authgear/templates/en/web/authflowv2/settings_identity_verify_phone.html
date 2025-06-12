@@ -93,19 +93,21 @@
             <input type="hidden" name="x_channel" value="{{ . }}">
 
             <button
-              class="secondary-btn w-full flex gap-x-2"
+              class="secondary-btn w-full"
               type="submit"
               name="x_action"
               value=""
             >
-              {{- if eq . "sms" }}
-                <span class="material-icons secondary-btn__icon">phone_iphone</span>
-                {{ include "v2.page.settings-identity-verify-phone.default.setup-phone-otp-sms-instead" nil }}
-              {{- end }}
-              {{- if eq . "whatsapp" }}
-                <span class="sso-icon whatsapp-icon secondary-btn__icon"></span>
-                {{ include "v2.page.settings-identity-verify-phone.default.setup-phone-otp-whatsapp-instead" nil }}
-              {{- end }}
+              <div class="secondary-btn__alternative-option-content--no-badge">
+                {{- if eq . "sms" }}
+                  <span class="material-icons secondary-btn__icon--material">phone_iphone</span>
+                  {{ include "v2.page.settings-identity-verify-phone.default.setup-phone-otp-sms-instead" nil }}
+                {{- end }}
+                {{- if eq . "whatsapp" }}
+                  <span class="sso-icon whatsapp-icon secondary-btn__icon--sso-icon"></span>
+                  {{ include "v2.page.settings-identity-verify-phone.default.setup-phone-otp-whatsapp-instead" nil }}
+                {{- end }}
+              </div>
             </button>
           </form>
         {{ end }}

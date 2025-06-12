@@ -100,15 +100,17 @@
             <input type="hidden" name="x_channel" value="{{ . }}">
             <input type="hidden" name="x_target" value="{{ $.Target }}">
 
-            <button class="secondary-btn w-full flex gap-x-2" type="submit">
-              {{- if eq . "sms" }}
-                <span class="material-icons secondary-btn__icon">phone_iphone</span>
-                {{ include "v2.page.settings-mfa-enter-oob-otp.default.setup-phone-otp-sms-instead" nil }}
-              {{- end }}
-              {{- if eq . "whatsapp" }}
-                <span class="sso-icon whatsapp-icon secondary-btn__icon"></span>
-                {{ include "v2.page.settings-mfa-enter-oob-otp.default.setup-phone-otp-whatsapp-instead" nil }}
-              {{- end }}
+            <button class="secondary-btn w-full" type="submit">
+              <div class="secondary-btn__alternative-option-content--no-badge">
+                {{- if eq . "sms" }}
+                  <span class="material-icons secondary-btn__icon--material">phone_iphone</span>
+                  {{ include "v2.page.settings-mfa-enter-oob-otp.default.setup-phone-otp-sms-instead" nil }}
+                {{- end }}
+                {{- if eq . "whatsapp" }}
+                  <span class="sso-icon whatsapp-icon secondary-btn__icon--sso-icon"></span>
+                  {{ include "v2.page.settings-mfa-enter-oob-otp.default.setup-phone-otp-whatsapp-instead" nil }}
+                {{- end }}
+              </div>
             </button>
           </form>
         {{ end }}
