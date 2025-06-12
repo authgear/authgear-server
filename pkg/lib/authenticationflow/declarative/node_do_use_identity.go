@@ -23,7 +23,7 @@ type NodeDoUseIdentity struct {
 	Constraints             *eventapi.Constraints `json:"constraints,omitempty"`
 }
 
-func NewNodeDoUseIdentity(ctx context.Context, flows authflow.Flows, deps *authflow.Dependencies, n *NodeDoUseIdentity) (*NodeDoUseIdentity, authflow.DelayedOneTimeFunction, error) {
+func NewNodeDoUseIdentity(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, n *NodeDoUseIdentity) (*NodeDoUseIdentity, authflow.DelayedOneTimeFunction, error) {
 	userID, err := getUserID(flows)
 	if errors.Is(err, ErrNoUserID) {
 		err = nil
@@ -42,9 +42,18 @@ func NewNodeDoUseIdentity(ctx context.Context, flows authflow.Flows, deps *authf
 		}
 	}
 
+	authCtx, err := GetAuthenticationContext(ctx, deps, flows)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// Include the identity of this node
+	authCtx.AddAssertedIdentity(n.Identity.ToModel())
+
 	payload := &blocking.AuthenticationPostIdentifiedBlockingEventPayload{
-		Identity:    n.Identity.ToModel(),
-		Constraints: nil,
+		Identity:       n.Identity.ToModel(),
+		Constraints:    nil,
+		Authentication: *authCtx,
 	}
 	e, err := deps.Events.PrepareBlockingEventWithTx(ctx, payload)
 	if err != nil {
@@ -65,8 +74,8 @@ func NewNodeDoUseIdentity(ctx context.Context, flows authflow.Flows, deps *authf
 
 }
 
-func NewNodeDoUseIdentityReactToResult(ctx context.Context, flows authflow.Flows, deps *authflow.Dependencies, n *NodeDoUseIdentity) (authenticationflow.ReactToResult, error) {
-	_, delayedFunction, err := NewNodeDoUseIdentity(ctx, flows, deps, n)
+func NewNodeDoUseIdentityReactToResult(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, n *NodeDoUseIdentity) (authenticationflow.ReactToResult, error) {
+	_, delayedFunction, err := NewNodeDoUseIdentity(ctx, deps, flows, n)
 	if err != nil {
 		return nil, err
 	}

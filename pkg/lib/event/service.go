@@ -11,6 +11,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/geoip"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/intl"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -240,6 +241,12 @@ func (s *Service) makeContext(ctx context.Context, payload event.Payload) event.
 		}
 	}
 
+	var geoIPCountryCode *string
+	geoipInfo, ok := geoip.IPString(string(s.RemoteIP))
+	if ok && geoipInfo.CountryCode != "" {
+		geoIPCountryCode = &geoipInfo.CountryCode
+	}
+
 	eventCtx := &event.Context{
 		Timestamp:          s.Clock.NowUTC().Unix(),
 		UserID:             userID,
@@ -248,6 +255,7 @@ func (s *Service) makeContext(ctx context.Context, payload event.Payload) event.
 		PreferredLanguages: preferredLanguageTags,
 		Language:           resolvedLanguage,
 		IPAddress:          string(s.RemoteIP),
+		GeoLocationCode:    geoIPCountryCode,
 		UserAgent:          string(s.UserAgentString),
 		AppID:              string(s.AppID),
 		ClientID:           clientID,
