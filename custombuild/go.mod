@@ -1,6 +1,6 @@
 module github.com/authgear/authgear-server/custombuild
 
-go 1.24.2
+go 1.24.4
 
 replace github.com/authgear/authgear-server v0.0.0 => ../
 
