@@ -6,10 +6,11 @@ import (
 	"errors"
 	"time"
 
+	goredis "github.com/redis/go-redis/v9"
+
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
-	goredis "github.com/redis/go-redis/v9"
 )
 
 type Store struct {
