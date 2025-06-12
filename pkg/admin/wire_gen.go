@@ -1068,8 +1068,12 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
-	challengeProvider := &challenge.Provider{
+	challengeStore := &challenge.Store{
 		Redis: appredisHandle,
+		AppID: appID,
+	}
+	challengeProvider := &challenge.Provider{
+		Store: challengeStore,
 		AppID: appID,
 		Clock: clockClock,
 	}
