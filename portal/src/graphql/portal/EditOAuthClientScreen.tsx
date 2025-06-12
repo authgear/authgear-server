@@ -153,28 +153,28 @@ const QuickStartFrameworkList: React.VFC<QuickStartFrameworkListProps> =
               name: renderToString(
                 "EditOAuthClientScreen.quick-start.framework.react"
               ),
-              docLink: "https://docs.authgear.com/tutorials/spa/react",
+              docLink: "https://docs.authgear.com/get-started/single-page-app/react",
             },
             {
               icon: <i className={cn("fab", "fa-vuejs")} />,
               name: renderToString(
                 "EditOAuthClientScreen.quick-start.framework.vue"
               ),
-              docLink: "https://docs.authgear.com/tutorials/spa/vue",
+              docLink: "https://docs.authgear.com/get-started/single-page-app/vue",
             },
             {
               icon: <i className={cn("fab", "fa-angular")} />,
               name: renderToString(
                 "EditOAuthClientScreen.quick-start.framework.angular"
               ),
-              docLink: "https://docs.authgear.com/tutorials/spa/angular",
+              docLink: "https://docs.authgear.com/get-started/single-page-app/angular",
             },
             {
               icon: <i className={cn("fab", "fa-js")} />,
               name: renderToString(
                 "EditOAuthClientScreen.quick-start.framework.other-js"
               ),
-              docLink: "https://docs.authgear.com/get-started/website",
+              docLink: "https://docs.authgear.com/get-started/single-page-app/website",
             },
           ];
         case "traditional_webapp":
@@ -184,7 +184,7 @@ const QuickStartFrameworkList: React.VFC<QuickStartFrameworkListProps> =
               name: renderToString(
                 "EditOAuthClientScreen.quick-start.framework.traditional-webapp"
               ),
-              docLink: "https://docs.authgear.com/get-started/website",
+              docLink: "https://docs.authgear.com/get-started/single-page-app/website",
             },
           ];
         case "native":
@@ -194,21 +194,21 @@ const QuickStartFrameworkList: React.VFC<QuickStartFrameworkListProps> =
               name: renderToString(
                 "EditOAuthClientScreen.quick-start.framework.react-native"
               ),
-              docLink: "https://docs.authgear.com/get-started/react-native",
+              docLink: "https://docs.authgear.com/get-started/native-mobile-app/react-native",
             },
             {
               icon: <i className={cn("fab", "fa-apple")} />,
               name: renderToString(
                 "EditOAuthClientScreen.quick-start.framework.ios"
               ),
-              docLink: "https://docs.authgear.com/get-started/ios",
+              docLink: "https://docs.authgear.com/get-started/native-mobile-app/ios",
             },
             {
               icon: <i className={cn("fab", "fa-android")} />,
               name: renderToString(
                 "EditOAuthClientScreen.quick-start.framework.android"
               ),
-              docLink: "https://docs.authgear.com/get-started/android",
+              docLink: "https://docs.authgear.com/get-started/native-mobile-app/android",
             },
             {
               icon: (
@@ -221,7 +221,7 @@ const QuickStartFrameworkList: React.VFC<QuickStartFrameworkListProps> =
               name: renderToString(
                 "EditOAuthClientScreen.quick-start.framework.flutter"
               ),
-              docLink: "https://docs.authgear.com/get-started/flutter",
+              docLink: "https://docs.authgear.com/get-started/native-mobile-app/flutter",
             },
             {
               icon: (
@@ -234,7 +234,7 @@ const QuickStartFrameworkList: React.VFC<QuickStartFrameworkListProps> =
               name: renderToString(
                 "EditOAuthClientScreen.quick-start.framework.xamarin"
               ),
-              docLink: "https://docs.authgear.com/get-started/xamarin",
+              docLink: "https://docs.authgear.com/get-started/native-mobile-app/xamarin",
             },
           ];
         case "confidential":
@@ -244,7 +244,7 @@ const QuickStartFrameworkList: React.VFC<QuickStartFrameworkListProps> =
               name: renderToString(
                 "EditOAuthClientScreen.quick-start.framework.oidc"
               ),
-              docLink: "https://docs.authgear.com/integrate/oidc-provider",
+              docLink: "https://docs.authgear.com/get-started/oidc-provider",
             },
             {
               icon: (
@@ -254,7 +254,7 @@ const QuickStartFrameworkList: React.VFC<QuickStartFrameworkListProps> =
                 "EditOAuthClientScreen.quick-start.framework.saml"
               ),
               docLink:
-                "https://docs.authgear.com/how-to-guide/single-sign-on/single-sign-on-with-saml",
+                "https://docs.authgear.com/get-started/single-sign-on-with-saml",
             },
           ];
         case "third_party_app":
@@ -264,7 +264,7 @@ const QuickStartFrameworkList: React.VFC<QuickStartFrameworkListProps> =
               name: renderToString(
                 "EditOAuthClientScreen.quick-start.framework.oidc"
               ),
-              docLink: "https://docs.authgear.com/integrate/oidc-provider",
+              docLink: "https://docs.authgear.com/get-started/oidc-provider",
             },
           ];
         default:
