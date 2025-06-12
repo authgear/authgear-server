@@ -86,6 +86,9 @@ func (s *SessionOptions) PartiallyMergeFrom(o *SessionOptions) *SessionOptions {
 		if o.UILocales != "" {
 			out.UILocales = o.UILocales
 		}
+		if o.LoginHint != "" {
+			out.LoginHint = o.LoginHint
+		}
 	}
 	return out
 }
