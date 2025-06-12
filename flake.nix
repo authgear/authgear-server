@@ -15,16 +15,15 @@
       let
         pkgs = import nixpkgs {
           inherit system;
-          # As of 2025-04-10, 1.24.2 is still unavailable on nixpkgs-unstable,
-          # so we need to use overlay to build 1.24.2 ourselves.
+          # Build 1.24.4 ourselves.
           overlays = [
             (final: prev: {
               go = (
                 prev.go.overrideAttrs {
-                  version = "1.24.2";
+                  version = "1.24.4";
                   src = prev.fetchurl {
-                    url = "https://go.dev/dl/go1.24.2.src.tar.gz";
-                    hash = "sha256-ncd/+twW2DehvzLZnGJMtN8GR87nsRnt2eexvMBfLgA=";
+                    url = "https://go.dev/dl/go1.24.4.src.tar.gz";
+                    hash = "sha256-WoaoOjH5+oFJC4xUIKw4T9PZWj5x+6Zlx7P5XR3+8rQ=";
                   };
                 }
               );
@@ -35,7 +34,7 @@
       {
         devShells.default = pkgs.mkShell {
           packages = [
-            # 1.24.2
+            # 1.24.4
             pkgs.go
             # Any nodejs 20 is fine.
             pkgs.nodejs_20
