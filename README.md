@@ -120,9 +120,9 @@ Also, you can take a look at our [example projects repos](https://github.com/org
 
 The Authgear Server project allows developers to set up their own instance of Authgear.
 
-We've provided detailed instructions on how to set up a self-hosted instance of Authgear here: https://docs.authgear.com/deploy-on-your-cloud/local
+We've provided detailed instructions on how to set up a self-hosted instance of Authgear here: https://docs.authgear.com/deployment/local-development/local
 
-[Helm Chart](https://docs.authgear.com/deploy-on-your-cloud/helm) is the recommended way to deploy Authgear on Kubernetes for production usage
+[Helm Chart](https://docs.authgear.com/deployment/production-deployment/helm) is the recommended way to deploy Authgear on Kubernetes for production usage
 
 ## How to contribute
 Please refer to [CONTRIBUTING.md](CONTRIBUTING.md) if you need instructions on contributing to the development of Authgear Server.

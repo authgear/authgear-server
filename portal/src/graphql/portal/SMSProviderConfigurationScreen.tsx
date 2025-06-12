@@ -1112,21 +1112,21 @@ function ProviderSection({
           <FormattedMessage
             id="SMSProviderConfigurationScreen.provider.twilio.description"
             values={{
-              href: "https://docs.authgear.com/how-to-guide/integration/custom-sms-provider/twilio",
+              href: "https://docs.authgear.com/customization/custom-providers/twilio",
             }}
           />
         ) : form.state.providerType === SMSProviderType.Webhook ? (
           <FormattedMessage
             id="SMSProviderConfigurationScreen.provider.webhook.description"
             values={{
-              href: "https://docs.authgear.com/how-to-guide/integration/custom-sms-provider/webhook-custom-script",
+              href: "https://docs.authgear.com/customization/custom-providers/webhook-custom-script",
             }}
           />
         ) : (
           <FormattedMessage
             id="SMSProviderConfigurationScreen.provider.deno.description"
             values={{
-              href: "https://docs.authgear.com/how-to-guide/integration/custom-sms-provider/webhook-custom-script",
+              href: "https://docs.authgear.com/customization/custom-providers/webhook-custom-script",
             }}
           />
         )}
@@ -1523,7 +1523,7 @@ function WebhookForm({
           <FormattedMessage
             id="SMSProviderConfigurationScreen.form.webhook.signatureKey.description"
             values={{
-              href: `https://docs.authgear.com/integrate/events-hooks/webhooks#verifying-signature`,
+              href: `https://docs.authgear.com/customization/events-hooks/webhooks#verifying-signature`,
             }}
           />
         </Text>

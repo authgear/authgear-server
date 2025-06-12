@@ -88,7 +88,7 @@ These control the SSO behavior:
 
 Reference:
 
-- [https://docs.authgear.com/integrate/single-sign-on](https://docs.authgear.com/integrate/single-sign-on)
+- [https://docs.authgear.com/authentication-and-access/single-sign-on](https://docs.authgear.com/authentication-and-access/single-sign-on)
 - https://github.com/authgear/authgear-server/issues/1391
 
 Invalid auth code is not a problem because it is unlikely to happen.
