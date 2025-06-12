@@ -1,5 +1,5 @@
 .sso-icon {
-  @apply w-4 h-4 bg-no-repeat bg-center bg-contain;
+  @apply bg-no-repeat bg-center bg-contain;
 }
 
 .sso-icon.google-icon {

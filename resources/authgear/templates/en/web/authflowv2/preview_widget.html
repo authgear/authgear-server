@@ -105,7 +105,7 @@
                   data-preview-widget-target="branchOptionUsername"
                 >
                   <div class="flex gap-2">
-                    <i class="alternative-icon material-icons">person</i>
+                    <i class="secondary-btn__icon--material material-icons">person</i>
                     {{ include "v2.page.signup.default.signup-with-username" nil }}
                   </div>
                 </a>
@@ -113,8 +113,8 @@
                   data-preview-widget-target="branchOptionPhone"
                   class="secondary-btn w-full"
                 >
-                  <div class="flex gap-2">
-                    <i class="alternative-icon material-icons">smartphone</i>
+                  <div class="secondary-btn__alternative-option-content--no-badge">
+                    <i class="secondary-btn__icon--material material-icons">smartphone</i>
                     {{ include "v2.page.signup.default.signup-with-phone" nil }}
                   </div>
                 </a>
@@ -125,8 +125,8 @@
                     type="button"
                   >
                     {{- $icon_class := printf "%s-icon" $.provider_type -}}
-                    <div class="flex gap-2">
-                      <i class="sso-icon {{ $icon_class }}"></i>
+                    <div class="secondary-btn__alternative-option-content--no-badge">
+                      <i class="sso-icon secondary-btn__icon--sso-icon {{ $icon_class }}"></i>
                       <span>
                         {{ include (printf "v2.component.oauth-branding.%s.label" $.provider_type) nil }}
                       </span>

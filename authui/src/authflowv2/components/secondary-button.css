@@ -100,6 +100,15 @@
   }
 }
 
-.secondary-btn__icon {
-  font-size: calc(1.5 * var(--secondary-btn__font-size)) /* 24 / 16 = 1.5 */;
+.secondary-btn__icon--sso-icon {
+  font-size: 1em;
+  width: 1em;
+  height: 1em;
+}
+
+.secondary-btn__icon--material {
+  font-size: 1.125em;
+  width: 1.125em;
+  height: 1.125em;
+  margin: 0px -0.0625em; /* -1px when font size is 16px */
 }

@@ -212,7 +212,7 @@
             data-turbo-action="replace"
             href="{{ call $.MakeURL "" "q_login_id_input_type" $.NonPhoneLoginIDInputType }}">
             <div class="secondary-btn__alternative-option-content--no-badge">
-              <i class="alternative-icon material-icons">
+              <i class="secondary-btn__icon--material material-icons">
                 {{- if eq $.NonPhoneLoginIDInputType "username" -}}
                   person
                 {{ else }}
@@ -229,7 +229,7 @@
             data-turbo-action="replace"
             href="{{ call $.MakeURL "" "q_login_id_input_type" "phone" }}">
             <div class="secondary-btn__alternative-option-content--no-badge">
-              <i class="alternative-icon material-icons">smartphone</i>
+              <i class="secondary-btn__icon--material material-icons">smartphone</i>
               {{ include "v2.component.button.default.label-continue-with-phone" nil }}
             </div>
           </a>
@@ -262,7 +262,7 @@
                     {{ if $with_badge }}secondary-btn__alternative-option-content--with-badge{{ end }}
                     {{ if not $with_badge }}secondary-btn__alternative-option-content--no-badge{{ end }}
                     ">
-                    <i class="sso-icon {{ $icon_class }}"></i>
+                    <i class="sso-icon secondary-btn__icon--sso-icon {{ $icon_class }}"></i>
                     <span>
                       {{ include (printf "v2.component.oauth-branding.%s.label" .provider_type) nil }}
                     </span>
@@ -288,7 +288,7 @@
                 data-authgear-event="authgear.button.ldap"
               >
                 <div class="secondary-btn__alternative-option-content--no-badge">
-                  <i class="alternative-icon material-icons">person</i>
+                  <i class="secondary-btn__icon--material material-icons">person</i>
                   <span>
                     {{ if ($.Translations.HasKey (printf "v2.component.ldap-branding.default.label-%s" .server_name)) }}
                       {{ include (printf "v2.component.ldap-branding.default.label-%s" .server_name) nil }}
@@ -314,7 +314,7 @@
               data-authflow-passkey-request-target="button"
               disabled>
               <div class="secondary-btn__alternative-option-content--no-badge">
-                <i class="alternative-icon material-icons">
+                <i class="secondary-btn__icon--material material-icons">
                   passkey
                 </i>
                 <span>
