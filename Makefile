@@ -84,7 +84,7 @@ sort-vettedpositions:
 .PHONY: fmt
 fmt:
 	# Ignore generated files, such as wire_gen.go and *_mock_test.go
-	find ./devtools ./pkg ./cmd ./e2e -name '*.go' -not -name 'wire_gen.go' -not -name '*_mock_test.go' | sort | xargs go tool goimports -w -format-only -local github.com/authgear/authgear-server
+	find ./devtools ./pkg ./cmd ./e2e -name '*.go' -not -name '*_gen.go' -not -name '*_mock_test.go' | sort | xargs go tool goimports -w -format-only -local github.com/authgear/authgear-server
 	$(MAKE) sort-translations
 
 .PHONY: binary

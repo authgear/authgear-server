@@ -13,6 +13,7 @@ func init() {
 	binder.BindString(cmdInternalE2ECreateConfigSource.PersistentFlags(), ArgAppID)
 	binder.BindString(cmdInternalE2ECreateConfigSource.PersistentFlags(), ArgConfigSource)
 	binder.BindString(cmdInternalE2ECreateConfigSource.PersistentFlags(), ArgConfigOverride)
+	binder.BindString(cmdInternalE2ECreateConfigSource.PersistentFlags(), ArgConfigSourceExtraFilesDirectory)
 }
 
 var cmdInternalE2ECreateConfigSource = &cobra.Command{
@@ -24,10 +25,11 @@ var cmdInternalE2ECreateConfigSource = &cobra.Command{
 		appID := binder.GetString(cmd, ArgAppID)
 		configSource := binder.GetString(cmd, ArgConfigSource)
 		configOverride := binder.GetString(cmd, ArgConfigOverride)
+		extraFilesDir := binder.GetString(cmd, ArgConfigSourceExtraFilesDirectory)
 
 		instance := e2e.End2End{}
 
-		err := instance.CreateApp(cmd.Context(), appID, configSource, configOverride)
+		err := instance.CreateApp(cmd.Context(), appID, configSource, configOverride, extraFilesDir)
 		if err != nil {
 			return err
 		}

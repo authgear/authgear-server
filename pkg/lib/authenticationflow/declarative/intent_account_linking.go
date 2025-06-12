@@ -142,7 +142,7 @@ func (i *IntentAccountLinking) ReactTo(ctx context.Context, deps *authflow.Depen
 		if err != nil {
 			return nil, err
 		}
-		return NewNodeDoCreateIdentityReactToResult(ctx, deps, NodeDoCreateIdentityOptions{
+		return NewNodeDoCreateIdentityReactToResult(ctx, deps, flows, NodeDoCreateIdentityOptions{
 			SkipCreate:   false,
 			Identity:     info,
 			IdentitySpec: i.IncomingIdentitySpec,

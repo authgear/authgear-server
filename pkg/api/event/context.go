@@ -33,11 +33,12 @@ type Context struct {
 	PreferredLanguages []string        `json:"preferred_languages"`
 	Language           string          `json:"language"`
 
-	OAuth     *OAuthContext `json:"oauth,omitempty"`
-	IPAddress string        `json:"ip_address,omitempty"`
-	UserAgent string        `json:"user_agent,omitempty"`
-	AppID     string        `json:"app_id,omitempty"`
-	ClientID  string        `json:"client_id,omitempty"`
+	OAuth           *OAuthContext `json:"oauth,omitempty"`
+	IPAddress       string        `json:"ip_address,omitempty"`
+	GeoLocationCode *string       `json:"geo_location_code"`
+	UserAgent       string        `json:"user_agent,omitempty"`
+	AppID           string        `json:"app_id,omitempty"`
+	ClientID        string        `json:"client_id,omitempty"`
 }
 
 type OAuthContext struct {

@@ -22,7 +22,7 @@ func NewNodeDoUseIdentityWithUpdate(ctx context.Context, deps *authflow.Dependen
 		return nil, err
 	}
 
-	nodeDoUseIden, delayedFn, err := NewNodeDoUseIdentity(ctx, flows, deps, &NodeDoUseIdentity{
+	nodeDoUseIden, delayedFn, err := NewNodeDoUseIdentity(ctx, deps, flows, &NodeDoUseIdentity{
 		Identity:     newIdentityInfo,
 		IdentitySpec: spec,
 	})

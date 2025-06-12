@@ -106,7 +106,7 @@ func (n *IntentPromoteIdentityLoginID) ReactTo(ctx context.Context, deps *authfl
 					return nil, err
 				}
 
-				reactToResult, err := NewNodeDoCreateIdentityReactToResult(ctx, deps, NodeDoCreateIdentityOptions{
+				reactToResult, err := NewNodeDoCreateIdentityReactToResult(ctx, deps, flows, NodeDoCreateIdentityOptions{
 					SkipCreate:   false,
 					Identity:     info,
 					IdentitySpec: spec,
