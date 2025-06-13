@@ -57,7 +57,7 @@ func (i *IntentVerifyClaim) CanReactTo(ctx context.Context, deps *authflow.Depen
 		if len(channels) == 1 {
 			return nil, nil
 		}
-		flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+		flowRootObject, err := findNearestFlowObjectInFlow(deps, flows, i)
 		if err != nil {
 			return nil, err
 		}

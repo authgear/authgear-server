@@ -31,7 +31,7 @@ func (*IntentReauthFlowSteps) Milestone()            {}
 func (*IntentReauthFlowSteps) MilestoneNestedSteps() {}
 
 func (i *IntentReauthFlowSteps) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
-	current, err := i.currentFlowObject(deps)
+	current, err := i.currentFlowObject(deps, flows)
 	if err != nil {
 		return nil, err
 	}
@@ -45,7 +45,7 @@ func (i *IntentReauthFlowSteps) CanReactTo(ctx context.Context, deps *authflow.D
 }
 
 func (i *IntentReauthFlowSteps) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (authflow.ReactToResult, error) {
-	current, err := i.currentFlowObject(deps)
+	current, err := i.currentFlowObject(deps, flows)
 	if err != nil {
 		return nil, err
 	}
@@ -56,11 +56,11 @@ func (i *IntentReauthFlowSteps) ReactTo(ctx context.Context, deps *authflow.Depe
 
 	switch step.Type {
 	case config.AuthenticationFlowReauthFlowStepTypeIdentify:
-		stepIdentify, err := NewIntentReauthFlowStepIdentify(ctx, deps, &IntentReauthFlowStepIdentify{
+		stepIdentify, err := NewIntentReauthFlowStepIdentify(ctx, deps, flows, &IntentReauthFlowStepIdentify{
 			FlowReference: i.FlowReference,
 			StepName:      step.Name,
 			JSONPointer:   authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
-		})
+		}, i)
 		if err != nil {
 			return nil, err
 		}
@@ -71,7 +71,7 @@ func (i *IntentReauthFlowSteps) ReactTo(ctx context.Context, deps *authflow.Depe
 			StepName:      step.Name,
 			JSONPointer:   authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
 			UserID:        i.userID(flows),
-		})
+		}, i)
 		if err != nil {
 			return nil, err
 		}
@@ -98,8 +98,8 @@ func (*IntentReauthFlowSteps) userID(flows authflow.Flows) string {
 	return userID
 }
 
-func (i *IntentReauthFlowSteps) currentFlowObject(deps *authflow.Dependencies) (config.AuthenticationFlowObject, error) {
-	rootObject, err := flowRootObject(deps, i.FlowReference)
+func (i *IntentReauthFlowSteps) currentFlowObject(deps *authflow.Dependencies, flows authflow.Flows) (config.AuthenticationFlowObject, error) {
+	rootObject, err := findNearestFlowObjectInFlow(deps, flows, i)
 	if err != nil {
 		return nil, err
 	}

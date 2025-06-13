@@ -26,8 +26,8 @@ func (n *NodeDoCreateAuthenticator) Kind() string {
 }
 
 func (n *NodeDoCreateAuthenticator) Milestone() {}
-func (n *NodeDoCreateAuthenticator) MilestoneDoCreateAuthenticator() *authenticator.Info {
-	return n.Authenticator
+func (n *NodeDoCreateAuthenticator) MilestoneDoCreateAuthenticator() (*authenticator.Info, bool) {
+	return n.Authenticator, !n.SkipCreate
 }
 func (n *NodeDoCreateAuthenticator) MilestoneDoCreateAuthenticatorSkipCreate() {
 	n.SkipCreate = true

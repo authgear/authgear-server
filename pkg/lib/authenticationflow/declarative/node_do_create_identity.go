@@ -3,8 +3,7 @@ package declarative
 import (
 	"context"
 
-	eventapi "github.com/authgear/authgear-server/pkg/api/event"
-	blocking "github.com/authgear/authgear-server/pkg/api/event/blocking"
+	"github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 )
@@ -19,62 +18,29 @@ type NodeDoCreateIdentityOptions struct {
 	IdentitySpec *identity.Spec
 }
 
-func NewNodeDoCreateIdentity(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, opts NodeDoCreateIdentityOptions) (*NodeDoCreateIdentity, authflow.DelayedOneTimeFunction, error) {
+func NewNodeDoCreateIdentity(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, opts NodeDoCreateIdentityOptions) (*NodeDoCreateIdentity, error) {
 	n := &NodeDoCreateIdentity{
 		SkipCreate:   opts.SkipCreate,
 		Identity:     opts.Identity,
 		IdentitySpec: opts.IdentitySpec,
 	}
 
-	authCtx, err := GetAuthenticationContext(ctx, deps, flows)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	// Include the identity of this node
-	authCtx.AddAssertedIdentity(n.Identity.ToModel())
-
-	payload := &blocking.AuthenticationPostIdentifiedBlockingEventPayload{
-		Identity:       n.Identity.ToModel(),
-		Constraints:    nil,
-		Authentication: *authCtx,
-	}
-	e, err := deps.Events.PrepareBlockingEventWithTx(ctx, payload)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var delayedFunction authflow.DelayedOneTimeFunction = func(ctx context.Context, deps *authflow.Dependencies) error {
-		err = deps.Events.DispatchEventWithoutTx(ctx, e)
-		if err != nil {
-			return err
-		}
-		n.IsPostIdentifiedInvoked = true
-		n.Constraints = payload.Constraints
-		return nil
-	}
-
-	return n, delayedFunction, nil
+	return n, nil
 }
 
 func NewNodeDoCreateIdentityReactToResult(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, opts NodeDoCreateIdentityOptions) (authflow.ReactToResult, error) {
-	node, delayedFunction, err := NewNodeDoCreateIdentity(ctx, deps, flows, opts)
+	node, err := NewNodeDoCreateIdentity(ctx, deps, flows, opts)
 	if err != nil {
 		return nil, err
 	}
 
-	return &authflow.NodeWithDelayedOneTimeFunction{
-		Node:                   authflow.NewNodeSimple(node),
-		DelayedOneTimeFunction: delayedFunction,
-	}, nil
+	return authflow.NewNodeSimple(node), nil
 }
 
 type NodeDoCreateIdentity struct {
-	SkipCreate              bool                  `json:"skip_create,omitempty"`
-	Identity                *identity.Info        `json:"identity,omitempty"`
-	IdentitySpec            *identity.Spec        `json:"identity_spec,omitempty"`
-	IsPostIdentifiedInvoked bool                  `json:"is_post_identified_invoked"`
-	Constraints             *eventapi.Constraints `json:"constraints,omitempty"`
+	SkipCreate   bool           `json:"skip_create,omitempty"`
+	Identity     *identity.Info `json:"identity,omitempty"`
+	IdentitySpec *identity.Spec `json:"identity_spec,omitempty"`
 }
 
 var _ authflow.NodeSimple = &NodeDoCreateIdentity{}
@@ -102,15 +68,17 @@ func (n *NodeDoCreateIdentity) MilestoneDoCreateIdentityUpdate(newInfo *identity
 	n.Identity = newInfo
 }
 
-func (n *NodeDoCreateIdentity) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
-	if n.IsPostIdentifiedInvoked {
-		return nil, authflow.ErrEOF
-	}
-	return nil, authflow.ErrPauseAndRetryAccept
+func (n *NodeDoCreateIdentity) CanReactTo(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows) (authenticationflow.InputSchema, error) {
+	return nil, nil
 }
 
-func (n *NodeDoCreateIdentity) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (authflow.ReactToResult, error) {
-	return nil, authflow.ErrEOF
+func (n *NodeDoCreateIdentity) ReactTo(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows, input authenticationflow.Input) (authenticationflow.ReactToResult, error) {
+	idmodel := n.Identity.ToModel()
+	return NewNodePostIdentified(ctx, deps, flows, &NodePostIdentifiedOptions{
+		Identity:       &idmodel,
+		IDToken:        nil,
+		Identification: n.Identity.ToIdentification(),
+	})
 }
 
 func (n *NodeDoCreateIdentity) GetEffects(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (effs []authflow.Effect, err error) {

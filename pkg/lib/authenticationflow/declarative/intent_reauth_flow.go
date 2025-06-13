@@ -38,7 +38,7 @@ func (i *IntentReauthFlow) FlowFlowReference() authflow.FlowReference {
 }
 
 func (i *IntentReauthFlow) FlowRootObject(deps *authflow.Dependencies) (config.AuthenticationFlowObject, error) {
-	return flowRootObject(deps, i.FlowReference)
+	return getFlowRootObject(deps, i.FlowReference)
 }
 
 func (i *IntentReauthFlow) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
@@ -59,6 +59,14 @@ func (i *IntentReauthFlow) ReactTo(ctx context.Context, deps *authflow.Dependenc
 			JSONPointer:   i.JSONPointer,
 		}), nil
 	case len(flows.Nearest.Nodes) == 1:
+		return NewNodePreAuthenticateNodeSimple(ctx, deps, flows)
+	case len(flows.Nearest.Nodes) == 2:
+		i, err := NewIntentReauthFlowEnsureConstraintsFulfilled(ctx, deps, flows, i.FlowReference)
+		if err != nil {
+			return nil, err
+		}
+		return authflow.NewSubFlow(i), nil
+	case len(flows.Nearest.Nodes) == 3:
 		n, err := NewNodeDidReauthenticate(ctx, deps, flows, &NodeDidReauthenticate{
 			UserID: i.userID(flows),
 		})

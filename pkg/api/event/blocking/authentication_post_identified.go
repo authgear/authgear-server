@@ -5,6 +5,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 const (
@@ -12,8 +13,10 @@ const (
 )
 
 type AuthenticationPostIdentifiedBlockingEventPayload struct {
-	Identity       model.Identity              `json:"identity"`
-	Authentication event.AuthenticationContext `json:"authentication"`
+	Identity       *model.Identity                         `json:"identity"`
+	IDToken        *string                                 `json:"id_token"`
+	Identification config.AuthenticationFlowIdentification `json:"identification"`
+	Authentication event.AuthenticationContext             `json:"authentication"`
 
 	Constraints *event.Constraints `json:"-"`
 }
@@ -23,7 +26,7 @@ func (e *AuthenticationPostIdentifiedBlockingEventPayload) BlockingEventType() e
 }
 
 func (e *AuthenticationPostIdentifiedBlockingEventPayload) UserID() string {
-	return e.Identity.UserID
+	return e.Authentication.User.ID
 }
 
 func (e *AuthenticationPostIdentifiedBlockingEventPayload) GetTriggeredBy() event.TriggeredByType {

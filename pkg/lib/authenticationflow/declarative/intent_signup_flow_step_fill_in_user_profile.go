@@ -40,7 +40,7 @@ func (i *IntentSignupFlowStepFillInUserProfile) MilestoneSwitchToExistingUser(ct
 
 func (i *IntentSignupFlowStepFillInUserProfile) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
 	if !i.IsUpdatingExistingUser && len(flows.Nearest.Nodes) == 0 {
-		flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+		flowRootObject, err := findNearestFlowObjectInFlow(deps, flows, i)
 		if err != nil {
 			return nil, err
 		}
@@ -64,7 +64,7 @@ func (i *IntentSignupFlowStepFillInUserProfile) CanReactTo(ctx context.Context, 
 func (i *IntentSignupFlowStepFillInUserProfile) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (authflow.ReactToResult, error) {
 	var inputFillInUserProfile inputFillInUserProfile
 	if !i.IsUpdatingExistingUser && authflow.AsInput(input, &inputFillInUserProfile) {
-		rootObject, err := findFlowRootObjectInFlow(deps, flows)
+		rootObject, err := findNearestFlowObjectInFlow(deps, flows, i)
 		if err != nil {
 			return nil, err
 		}
