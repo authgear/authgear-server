@@ -2,17 +2,16 @@ package declarative
 
 import (
 	"context"
-	"sort"
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
-	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/api/event"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
-	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
 func getUserID(flows authflow.Flows) (userID string, err error) {
@@ -48,57 +47,6 @@ func getUserID(flows authflow.Flows) (userID string, err error) {
 	if err != nil {
 		return
 	}
-
-	return
-}
-
-func collectAMR(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (amr []string, err error) {
-	usedAuthenticatorIDs := map[string]struct{}{}
-
-	err = authflow.TraverseFlow(authflow.Traverser{
-		NodeSimple: func(nodeSimple authflow.NodeSimple, w *authflow.Flow) error {
-			if n, ok := nodeSimple.(MilestoneDidAuthenticate); ok {
-				amr = append(amr, n.MilestoneDidAuthenticate()...)
-				if authInfo, ok := n.MilestoneDidAuthenticateAuthenticator(); ok && authInfo != nil {
-					usedAuthenticatorIDs[authInfo.ID] = struct{}{}
-				}
-			}
-			if n, ok := nodeSimple.(MilestoneDoCreateAuthenticator); ok {
-				info := n.MilestoneDoCreateAuthenticator()
-				if info != nil {
-					amr = append(amr, info.AMR()...)
-					usedAuthenticatorIDs[info.ID] = struct{}{}
-				}
-			}
-			return nil
-		},
-		Intent: func(intent authflow.Intent, w *authflow.Flow) error {
-			if i, ok := intent.(MilestoneDidAuthenticate); ok {
-				amr = append(amr, i.MilestoneDidAuthenticate()...)
-				if authInfo, ok := i.MilestoneDidAuthenticateAuthenticator(); ok && authInfo != nil {
-					usedAuthenticatorIDs[authInfo.ID] = struct{}{}
-				}
-			}
-			if i, ok := intent.(MilestoneDoCreateAuthenticator); ok {
-				info := i.MilestoneDoCreateAuthenticator()
-				if info != nil {
-					amr = append(amr, info.AMR()...)
-					usedAuthenticatorIDs[info.ID] = struct{}{}
-				}
-			}
-			return nil
-		},
-	}, flows.Root)
-	if err != nil {
-		return
-	}
-
-	if len(usedAuthenticatorIDs) > 1 {
-		amr = append(amr, model.AMRMFA)
-	}
-
-	amr = slice.Deduplicate(amr)
-	sort.Strings(amr)
 
 	return
 }
@@ -219,7 +167,7 @@ type MilestoneFlowCreateAuthenticator interface {
 
 type MilestoneDoCreateAuthenticator interface {
 	authflow.Milestone
-	MilestoneDoCreateAuthenticator() *authenticator.Info
+	MilestoneDoCreateAuthenticator() (*authenticator.Info, bool)
 	MilestoneDoCreateAuthenticatorSkipCreate()
 	MilestoneDoCreateAuthenticatorUpdate(newInfo *authenticator.Info)
 }
@@ -354,4 +302,19 @@ type MilestoneCheckLoginHint interface {
 type MilestoneGetIdentitySpecs interface {
 	authflow.Milestone
 	MilestoneGetIdentitySpecs() []*identity.Spec
+}
+
+type MilestoneConstraintsProvider interface {
+	authflow.Milestone
+	MilestoneConstraintsProvider() *event.Constraints
+}
+
+type MilestoneDidConsumeRecoveryCode interface {
+	authflow.Milestone
+	MilestoneDidConsumeRecoveryCode() *mfa.RecoveryCode
+}
+
+type MilestoneAuthenticationFlowObjectProvider interface {
+	authflow.Milestone
+	MilestoneAuthenticationFlowObjectProvider() config.AuthenticationFlowObject
 }

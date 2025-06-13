@@ -31,7 +31,7 @@ func (*IntentSignupLoginFlowSteps) Milestone()            {}
 func (*IntentSignupLoginFlowSteps) MilestoneNestedSteps() {}
 
 func (i *IntentSignupLoginFlowSteps) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
-	current, err := i.currentFlowObject(deps)
+	current, err := i.currentFlowObject(deps, flows)
 	if err != nil {
 		return nil, err
 	}
@@ -45,7 +45,7 @@ func (i *IntentSignupLoginFlowSteps) CanReactTo(ctx context.Context, deps *authf
 }
 
 func (i *IntentSignupLoginFlowSteps) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (authflow.ReactToResult, error) {
-	current, err := i.currentFlowObject(deps)
+	current, err := i.currentFlowObject(deps, flows)
 	if err != nil {
 		return nil, err
 	}
@@ -56,11 +56,11 @@ func (i *IntentSignupLoginFlowSteps) ReactTo(ctx context.Context, deps *authflow
 
 	switch step.Type {
 	case config.AuthenticationFlowSignupLoginFlowStepTypeIdentify:
-		stepIdentify, err := NewIntentSignupLoginFlowStepIdentify(ctx, deps, &IntentSignupLoginFlowStepIdentify{
+		stepIdentify, err := NewIntentSignupLoginFlowStepIdentify(ctx, deps, flows, &IntentSignupLoginFlowStepIdentify{
 			FlowReference: i.FlowReference,
 			StepName:      step.Name,
 			JSONPointer:   authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
-		})
+		}, i)
 		if err != nil {
 			return nil, err
 		}
@@ -79,8 +79,8 @@ func (*IntentSignupLoginFlowSteps) steps(o config.AuthenticationFlowObject) []co
 	return steps
 }
 
-func (i *IntentSignupLoginFlowSteps) currentFlowObject(deps *authflow.Dependencies) (config.AuthenticationFlowObject, error) {
-	rootObject, err := flowRootObject(deps, i.FlowReference)
+func (i *IntentSignupLoginFlowSteps) currentFlowObject(deps *authflow.Dependencies, flows authflow.Flows) (config.AuthenticationFlowObject, error) {
+	rootObject, err := findNearestFlowObjectInFlow(deps, flows, i)
 	if err != nil {
 		return nil, err
 	}

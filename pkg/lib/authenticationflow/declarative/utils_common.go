@@ -20,6 +20,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/phone"
+	"github.com/authgear/authgear-server/pkg/util/setutil"
 	"github.com/authgear/authgear-server/pkg/util/stringutil"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
@@ -38,7 +39,7 @@ func authenticatorIsDefault(ctx context.Context, deps *authflow.Dependencies, us
 	return
 }
 
-func flowRootObject(deps *authflow.Dependencies, flowReference authflow.FlowReference) (config.AuthenticationFlowObject, error) {
+func getFlowRootObject(deps *authflow.Dependencies, flowReference authflow.FlowReference) (config.AuthenticationFlowObject, error) {
 	switch flowReference.Type {
 	case authflow.FlowTypeSignup:
 		return flowRootObjectForSignupFlow(deps, flowReference)
@@ -183,19 +184,26 @@ func flowRootObjectForAccountRecoveryFlow(deps *authflow.Dependencies, flowRefer
 	return root, nil
 }
 
-func findFlowRootObjectInFlow(deps *authflow.Dependencies, flows authflow.Flows) (config.AuthenticationFlowObject, error) {
+func findNearestFlowObjectInFlow(deps *authflow.Dependencies, flows authflow.Flows, currentNode authflow.NodeOrIntent) (config.AuthenticationFlowObject, error) {
 	var nearestPublicFlow authflow.PublicFlow
-	_ = authflow.TraverseIntentFromEndToRoot(func(intent authflow.Intent) error {
-		if nearestPublicFlow != nil {
+	var flowObject config.AuthenticationFlowObject
+	_ = authflow.TraverseIntentFromNodeToRoot(func(intent authflow.Intent) error {
+		if nearestPublicFlow != nil || flowObject != nil {
 			return nil
 		}
 		if publicFlow, ok := intent.(authflow.PublicFlow); ok {
 			nearestPublicFlow = publicFlow
 		}
+		if provider, ok := intent.(MilestoneAuthenticationFlowObjectProvider); ok {
+			flowObject = provider.MilestoneAuthenticationFlowObjectProvider()
+		}
 		return nil
-	}, flows.Root)
-	if nearestPublicFlow == nil {
-		panic("failed to find flow root object: no public flow available")
+	}, flows.Root, currentNode)
+	if nearestPublicFlow == nil && flowObject == nil {
+		panic("failed to find flow object: no flow object available")
+	}
+	if flowObject != nil {
+		return flowObject, nil
 	}
 	return nearestPublicFlow.FlowRootObject(deps)
 }
@@ -206,6 +214,17 @@ func getAuthenticationOptionsForLogin(ctx context.Context, deps *authflow.Depend
 	deviceTokenEnabled bool,
 	err error,
 ) {
+
+	assertedAuthn, err := collectAssertedAuthenticators(flows)
+	if err != nil {
+		return nil, false, err
+	}
+
+	assertedAuthenticatorIDs := setutil.NewSetFromSlice(assertedAuthn, func(a *authenticator.Info) string {
+		return a.ID
+	})
+	assertedPrimaryPasswordAuthenticators := authenticator.ApplyFilters(assertedAuthn, authenticator.KeepKind(model.AuthenticatorKindPrimary), authenticator.KeepType(model.AuthenticatorTypePassword))
+
 	options = []AuthenticateOption{}
 
 	identities, err := deps.Identities.ListByUser(ctx, userID)
@@ -217,6 +236,9 @@ func getAuthenticationOptionsForLogin(ctx context.Context, deps *authflow.Depend
 	if err != nil {
 		return nil, false, err
 	}
+	authenticators = authenticator.ApplyFilters(authenticators, authenticator.FilterFunc(func(ai *authenticator.Info) bool {
+		return !assertedAuthenticatorIDs.Has(ai.ID)
+	}))
 
 	secondaryAuthenticators := authenticator.ApplyFilters(authenticators, authenticator.KeepKind(model.AuthenticatorKindSecondary))
 	userRecoveryCodes, err := deps.MFA.ListRecoveryCodes(ctx, userID)
@@ -275,6 +297,10 @@ func getAuthenticationOptionsForLogin(ctx context.Context, deps *authflow.Depend
 	}
 
 	useAuthenticationOptionAddPrimaryPassword := func(options []AuthenticateOption, botProtection *config.AuthenticationFlowBotProtection) []AuthenticateOption {
+		// Do not allow authenticating with primary password multiple times
+		if len(assertedPrimaryPasswordAuthenticators) > 0 {
+			return options
+		}
 		// We always add primary_password even though the end-user does not actually has one.
 		// Showing this branch is necessary to convince the frontend to show a primary password page, where
 		// the end-user can trigger account recovery flow and create a new password.
@@ -409,6 +435,15 @@ func getAuthenticationOptionsForLogin(ctx context.Context, deps *authflow.Depend
 
 // nolint:gocognit
 func getAuthenticationOptionsForReauth(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, userID string, step *config.AuthenticationFlowReauthFlowStep) ([]AuthenticateOption, error) {
+	assertedAuthn, err := collectAssertedAuthenticators(flows)
+	if err != nil {
+		return nil, err
+	}
+
+	assertedAuthenticatorIDs := setutil.NewSetFromSlice(assertedAuthn, func(a *authenticator.Info) string {
+		return a.ID
+	})
+
 	options := []AuthenticateOption{}
 
 	identities, err := deps.Identities.ListByUser(ctx, userID)
@@ -420,6 +455,9 @@ func getAuthenticationOptionsForReauth(ctx context.Context, deps *authflow.Depen
 	if err != nil {
 		return nil, err
 	}
+	authenticators = authenticator.ApplyFilters(authenticators, authenticator.FilterFunc(func(ai *authenticator.Info) bool {
+		return !assertedAuthenticatorIDs.Has(ai.ID)
+	}))
 
 	checkHasAuthenticator := func(kind model.AuthenticatorKind, typ model.AuthenticatorType) bool {
 		as := authenticator.ApplyFilters(

@@ -22,7 +22,7 @@ func NewNodeDoUseIdentityWithUpdate(ctx context.Context, deps *authflow.Dependen
 		return nil, err
 	}
 
-	nodeDoUseIden, delayedFn, err := NewNodeDoUseIdentity(ctx, deps, flows, &NodeDoUseIdentity{
+	nodeDoUseIden, err := NewNodeDoUseIdentity(ctx, deps, flows, &NodeDoUseIdentity{
 		Identity:     newIdentityInfo,
 		IdentitySpec: spec,
 	})
@@ -35,10 +35,7 @@ func NewNodeDoUseIdentityWithUpdate(ctx context.Context, deps *authflow.Dependen
 		OldIdentityInfo:   oldIdentityInfo,
 	}
 
-	return &authflow.NodeWithDelayedOneTimeFunction{
-		Node:                   authflow.NewNodeSimple(n),
-		DelayedOneTimeFunction: delayedFn,
-	}, nil
+	return authflow.NewNodeSimple(n), nil
 }
 
 var _ authflow.NodeSimple = &NodeDoUseIdentityWithUpdate{}

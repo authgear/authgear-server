@@ -90,9 +90,9 @@ func (i *IntentCheckConflictAndCreateIdenity) checkConflictByAccountLinkings(
 	flows authflow.Flows) (conflicts []*AccountLinkingConflict, err error) {
 	switch i.Request.Type {
 	case model.IdentityTypeOAuth:
-		return linkByIncomingOAuthSpec(ctx, deps, flows, i.UserID, i.Request.OAuth, i.JSONPointer)
+		return linkByIncomingOAuthSpec(ctx, deps, flows, i.UserID, i.Request.OAuth, i.JSONPointer, i)
 	case model.IdentityTypeLoginID:
-		return linkByIncomingLoginIDSpec(ctx, deps, flows, i.UserID, i.Request.LoginID, i.JSONPointer)
+		return linkByIncomingLoginIDSpec(ctx, deps, flows, i.UserID, i.Request.LoginID, i.JSONPointer, i)
 	case model.IdentityTypeLDAP:
 		return linkByIncomingLDAPSpec(ctx, deps, flows, i.UserID, i.Request.LDAP, i.JSONPointer)
 	default:

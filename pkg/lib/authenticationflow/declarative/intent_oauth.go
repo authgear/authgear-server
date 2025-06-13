@@ -51,7 +51,7 @@ func (*IntentOAuth) MilestoneFlowUseIdentity(flows authflow.Flows) (MilestoneDoU
 
 func (i *IntentOAuth) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
 	if len(flows.Nearest.Nodes) == 0 {
-		flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+		flowRootObject, err := findNearestFlowObjectInFlow(deps, flows, i)
 		if err != nil {
 			return nil, err
 		}
@@ -72,7 +72,7 @@ func (i *IntentOAuth) CanReactTo(ctx context.Context, deps *authflow.Dependencie
 			deps.SSOOAuthDemoCredentials,
 		)
 
-		isBotProtectionRequired, err := IsBotProtectionRequired(ctx, deps, flows, i.JSONPointer)
+		isBotProtectionRequired, err := IsBotProtectionRequired(ctx, deps, flows, i.JSONPointer, i)
 		if err != nil {
 			return nil, err
 		}
@@ -93,7 +93,7 @@ func (i *IntentOAuth) ReactTo(ctx context.Context, deps *authflow.Dependencies, 
 		var inputOAuth inputTakeOAuthAuthorizationRequest
 		if authflow.AsInput(input, &inputOAuth) {
 			var bpSpecialErr error
-			bpSpecialErr, err := HandleBotProtection(ctx, deps, flows, i.JSONPointer, input)
+			bpSpecialErr, err := HandleBotProtection(ctx, deps, flows, i.JSONPointer, input, i)
 			if err != nil {
 				return nil, err
 			}

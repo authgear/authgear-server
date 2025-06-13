@@ -42,7 +42,7 @@ func (i *IntentPromoteFlow) FlowFlowReference() authflow.FlowReference {
 }
 
 func (i *IntentPromoteFlow) FlowRootObject(deps *authflow.Dependencies) (config.AuthenticationFlowObject, error) {
-	return flowRootObject(deps, i.FlowReference)
+	return getFlowRootObject(deps, i.FlowReference)
 }
 
 func (i *IntentPromoteFlow) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
@@ -73,6 +73,17 @@ func (i *IntentPromoteFlow) ReactTo(ctx context.Context, deps *authflow.Dependen
 			UserID:        i.userID(flows),
 		}), nil
 	case len(flows.Nearest.Nodes) == 2:
+		return NewNodePreAuthenticateNodeSimple(ctx, deps, flows)
+	case len(flows.Nearest.Nodes) == 3:
+		i, err := NewIntentSignupFlowEnsureConstraintsFulfilled(ctx, deps, flows, &IntentSignupFlowEnsureConstraintsFulfilledOptions{
+			UserID:        i.userID(flows),
+			FlowReference: i.FlowReference,
+		})
+		if err != nil {
+			return nil, err
+		}
+		return authflow.NewSubFlow(i), nil
+	case len(flows.Nearest.Nodes) == 4:
 		n, err := NewNodeDoCreateSession(ctx, deps, flows, &NodeDoCreateSession{
 			UserID:       i.userID(flows),
 			CreateReason: session.CreateReasonPromote,

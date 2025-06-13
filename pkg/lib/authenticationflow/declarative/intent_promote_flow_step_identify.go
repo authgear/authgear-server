@@ -83,8 +83,8 @@ func (n *IntentPromoteFlowStepIdentify) IsSkipped() bool {
 var _ authflow.Intent = &IntentPromoteFlowStepIdentify{}
 var _ authflow.DataOutputer = &IntentPromoteFlowStepIdentify{}
 
-func NewIntentPromoteFlowStepIdentify(ctx context.Context, deps *authflow.Dependencies, i *IntentPromoteFlowStepIdentify) (*IntentPromoteFlowStepIdentify, error) {
-	current, err := i.currentFlowObject(deps)
+func NewIntentPromoteFlowStepIdentify(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, i *IntentPromoteFlowStepIdentify, originNode authflow.NodeOrIntent) (*IntentPromoteFlowStepIdentify, error) {
+	current, err := i.currentFlowObject(deps, flows, originNode)
 	if err != nil {
 		return nil, err
 	}
@@ -127,7 +127,7 @@ func (*IntentPromoteFlowStepIdentify) Kind() string {
 func (i *IntentPromoteFlowStepIdentify) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
 	// Let the input to select which identification method to use.
 	if len(flows.Nearest.Nodes) == 0 {
-		flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+		flowRootObject, err := findNearestFlowObjectInFlow(deps, flows, i)
 		if err != nil {
 			return nil, err
 		}
@@ -158,7 +158,7 @@ func (i *IntentPromoteFlowStepIdentify) CanReactTo(ctx context.Context, deps *au
 }
 
 func (i *IntentPromoteFlowStepIdentify) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (authflow.ReactToResult, error) {
-	current, err := i.currentFlowObject(deps)
+	current, err := i.currentFlowObject(deps, flows, i)
 	if err != nil {
 		return nil, err
 	}
@@ -297,8 +297,8 @@ func (*IntentPromoteFlowStepIdentify) identityInfo(flows authflow.Flows) *identi
 	return info
 }
 
-func (i *IntentPromoteFlowStepIdentify) currentFlowObject(deps *authflow.Dependencies) (config.AuthenticationFlowObject, error) {
-	rootObject, err := flowRootObject(deps, i.FlowReference)
+func (i *IntentPromoteFlowStepIdentify) currentFlowObject(deps *authflow.Dependencies, flows authflow.Flows, originNode authflow.NodeOrIntent) (config.AuthenticationFlowObject, error) {
+	rootObject, err := findNearestFlowObjectInFlow(deps, flows, originNode)
 	if err != nil {
 		return nil, err
 	}

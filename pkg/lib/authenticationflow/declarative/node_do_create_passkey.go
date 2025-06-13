@@ -24,7 +24,7 @@ func NewNodeDoCreatePasskeyReactToResult(ctx context.Context, deps *authflow.Dep
 		SkipCreate: opts.SkipCreate,
 		Identity:   opts.Identity,
 	}
-	doCreateIdenNode, delayedFunction, err := NewNodeDoCreateIdentity(ctx, deps, flows, nodeDoCreateIdentityOpts)
+	doCreateIdenNode, err := NewNodeDoCreateIdentity(ctx, deps, flows, nodeDoCreateIdentityOpts)
 	if err != nil {
 		return nil, err
 	}
@@ -35,10 +35,7 @@ func NewNodeDoCreatePasskeyReactToResult(ctx context.Context, deps *authflow.Dep
 		AttestationResponse:  opts.AttestationResponse,
 	}
 
-	return &authflow.NodeWithDelayedOneTimeFunction{
-		Node:                   authflow.NewNodeSimple(node),
-		DelayedOneTimeFunction: delayedFunction,
-	}, nil
+	return authflow.NewNodeSimple(node), nil
 }
 
 type NodeDoCreatePasskey struct {
@@ -63,8 +60,8 @@ func (*NodeDoCreatePasskey) Milestone() {}
 func (n *NodeDoCreatePasskey) MilestoneDoCreateIdentity() *identity.Info {
 	return n.NodeDoCreateIdentity.MilestoneDoCreateIdentity()
 }
-func (n *NodeDoCreatePasskey) MilestoneDoCreateAuthenticator() *authenticator.Info {
-	return n.Authenticator
+func (n *NodeDoCreatePasskey) MilestoneDoCreateAuthenticator() (*authenticator.Info, bool) {
+	return n.Authenticator, !n.SkipCreate
 }
 func (n *NodeDoCreatePasskey) MilestoneDoCreateAuthenticatorSkipCreate() {
 	n.SkipCreate = true

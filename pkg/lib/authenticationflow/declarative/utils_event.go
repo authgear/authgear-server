@@ -7,7 +7,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow"
-	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
@@ -39,12 +38,12 @@ func GetAuthenticationContext(ctx context.Context, deps *authenticationflow.Depe
 		return nil, err
 	}
 
-	assertedAuthenticators, err := collectAssertedAuthenticators(ctx, deps, flows)
+	assertedAuthenticators, err := collectAssertedAuthenticators(flows)
 	if err != nil {
 		return nil, err
 	}
 
-	assertedIdentities, err := collectAssertedIdentities(ctx, deps, flows)
+	assertedIdentities, err := collectAssertedIdentities(flows)
 	if err != nil {
 		return nil, err
 	}
@@ -67,40 +66,7 @@ func GetAuthenticationContext(ctx context.Context, deps *authenticationflow.Depe
 	return authCtx, nil
 }
 
-func collectAssertedAuthenticators(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows) (authenticators []*authenticator.Info, err error) {
-	err = authenticationflow.TraverseFlow(authenticationflow.Traverser{
-		NodeSimple: func(nodeSimple authenticationflow.NodeSimple, w *authenticationflow.Flow) error {
-			if n, ok := nodeSimple.(MilestoneDidAuthenticate); ok {
-				if info, ok := n.MilestoneDidAuthenticateAuthenticator(); ok {
-					authenticators = append(authenticators, info)
-				}
-			}
-			if n, ok := nodeSimple.(MilestoneDoCreateAuthenticator); ok {
-				authenticators = append(authenticators, n.MilestoneDoCreateAuthenticator())
-			}
-			return nil
-		},
-		Intent: func(intent authenticationflow.Intent, w *authenticationflow.Flow) error {
-			if i, ok := intent.(MilestoneDidAuthenticate); ok {
-				if info, ok := i.MilestoneDidAuthenticateAuthenticator(); ok {
-					authenticators = append(authenticators, info)
-				}
-			}
-			if i, ok := intent.(MilestoneDoCreateAuthenticator); ok {
-				authenticators = append(authenticators, i.MilestoneDoCreateAuthenticator())
-			}
-			return nil
-		},
-	}, flows.Root)
-
-	if err != nil {
-		return
-	}
-
-	return
-}
-
-func collectAssertedIdentities(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows) (identities []*identity.Info, err error) {
+func collectAssertedIdentities(flows authenticationflow.Flows) (identities []*identity.Info, err error) {
 	err = authenticationflow.TraverseFlow(authenticationflow.Traverser{
 		NodeSimple: func(nodeSimple authenticationflow.NodeSimple, w *authenticationflow.Flow) error {
 			if n, ok := nodeSimple.(MilestoneDoUseIdentity); ok {
