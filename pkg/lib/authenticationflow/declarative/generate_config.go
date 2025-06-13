@@ -7,10 +7,12 @@ import (
 )
 
 const (
-	nameGeneratedFlow                   = "default"
-	nameFormatStepAuthenticatePrimary   = "authenticate_primary_%s"
-	nameFormatStepAuthenticateSecondary = "authenticate_secondary_%s"
-	nameStepReauthenticate              = "reauthenticate"
+	nameGeneratedFlow                        = "default"
+	nameFormatStepAuthenticatePrimary        = "authenticate_primary_%s"
+	nameFormatStepAuthenticateSecondary      = "authenticate_secondary_%s"
+	nameFormatStepAuthenticateAMRConstraints = "authenticate_amr_constraints"
+	nameStepReauthenticate                   = "reauthenticate"
+	nameStepReauthenticateAMRConstraints     = "reauthenticate_amr_constraints"
 )
 
 // nameStepIdentify returns a name that is unique across flow types.
