@@ -12,10 +12,7 @@ func init() {
 	authflow.RegisterNode(&NodePreInitialize{})
 }
 
-type NodePreInitializeOptions struct {
-}
-
-func NewNodePreInitialize(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, opts *NodePreInitializeOptions) (authflow.ReactToResult, error) {
+func NewNodePreInitialize(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.ReactToResult, error) {
 
 	n := &NodePreInitialize{}
 
