@@ -93,11 +93,6 @@ func (m *SettingsViewModeler) ViewModel(ctx context.Context, userID string) (*Se
 		return nil, err
 	}
 
-	somePrimaryAuthenticatorCanHaveMFA := len(authenticator.ApplyFilters(
-		authenticators,
-		authenticator.KeepPrimaryAuthenticatorCanHaveMFA,
-	)) > 0
-
 	numberOfDeviceTokens, err := m.MFA.CountDeviceTokens(ctx, userID)
 	if err != nil {
 		return nil, err
@@ -123,18 +118,16 @@ func (m *SettingsViewModeler) ViewModel(ctx context.Context, userID string) (*Se
 
 	var latestPrimaryPasskey *authenticator.Info
 
-	if somePrimaryAuthenticatorCanHaveMFA {
-		for _, typ := range *m.Authentication.SecondaryAuthenticators {
-			switch typ {
-			case model.AuthenticatorTypeTOTP:
-				totpAllowed = true
-			case model.AuthenticatorTypeOOBEmail:
-				oobotpEmailAllowed = true
-			case model.AuthenticatorTypeOOBSMS:
-				oobotpSMSAllowed = true
-			case model.AuthenticatorTypePassword:
-				passwordAllowed = true
-			}
+	for _, typ := range *m.Authentication.SecondaryAuthenticators {
+		switch typ {
+		case model.AuthenticatorTypeTOTP:
+			totpAllowed = true
+		case model.AuthenticatorTypeOOBEmail:
+			oobotpEmailAllowed = true
+		case model.AuthenticatorTypeOOBSMS:
+			oobotpSMSAllowed = true
+		case model.AuthenticatorTypePassword:
+			passwordAllowed = true
 		}
 	}
 
@@ -153,17 +146,22 @@ func (m *SettingsViewModeler) ViewModel(ctx context.Context, userID string) (*Se
 				aa := a
 				latestPrimaryPasskey = aa
 			}
+			// Even we find a corresponding authenticator,
+			// If the project didn't turn on that authenticator,
+			// We still consider it does not exist
 		case authenticator.KindSecondary:
 			switch a.Type {
 			case model.AuthenticatorTypeTOTP:
-				hasSecondaryTOTP = true
+				hasSecondaryTOTP = true && totpAllowed
 			case model.AuthenticatorTypeOOBEmail:
-				hasSecondaryOOBOTPEmail = true
+				hasSecondaryOOBOTPEmail = true && oobotpEmailAllowed
 			case model.AuthenticatorTypeOOBSMS:
-				hasSecondaryOOBOTPSMS = true
+				hasSecondaryOOBOTPSMS = true && oobotpSMSAllowed
 			case model.AuthenticatorTypePassword:
-				aa := a
-				secondaryPassword = aa
+				if passwordAllowed {
+					aa := a
+					secondaryPassword = aa
+				}
 			}
 
 		}
@@ -176,20 +174,21 @@ func (m *SettingsViewModeler) ViewModel(ctx context.Context, userID string) (*Se
 		}
 	}
 
+	mfaCreateAllowed := !m.Authentication.SecondaryAuthenticationMode.IsDisabled()
+
 	hasMFA := (hasSecondaryTOTP ||
 		hasSecondaryOOBOTPEmail ||
 		hasSecondaryOOBOTPSMS ||
 		secondaryPassword != nil)
-	showSecondaryTOTP := hasSecondaryTOTP || totpAllowed
-	showSecondaryOOBOTPEmail := hasSecondaryOOBOTPEmail || oobotpEmailAllowed
-	showSecondaryOOBOTPSMS := hasSecondaryOOBOTPSMS || oobotpSMSAllowed
-	showSecondaryPassword := secondaryPassword != nil || passwordAllowed
+	showSecondaryTOTP := hasSecondaryTOTP || (totpAllowed && mfaCreateAllowed)
+	showSecondaryOOBOTPEmail := hasSecondaryOOBOTPEmail || (oobotpEmailAllowed && mfaCreateAllowed)
+	showSecondaryOOBOTPSMS := hasSecondaryOOBOTPSMS || (oobotpSMSAllowed && mfaCreateAllowed)
+	showSecondaryPassword := secondaryPassword != nil || (passwordAllowed && mfaCreateAllowed)
 	showPrimaryPasskey := latestPrimaryPasskey != nil || passkeyAllowed
-	showMFA := !m.Authentication.SecondaryAuthenticationMode.IsDisabled() &&
-		(showSecondaryTOTP ||
-			showSecondaryOOBOTPEmail ||
-			showSecondaryOOBOTPSMS ||
-			showSecondaryPassword)
+	showMFA := (showSecondaryTOTP ||
+		showSecondaryOOBOTPEmail ||
+		showSecondaryOOBOTPSMS ||
+		showSecondaryPassword)
 
 	viewModel := &SettingsViewModel{
 		Zoneinfo: zoneinfo,
