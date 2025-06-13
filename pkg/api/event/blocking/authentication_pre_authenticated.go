@@ -21,10 +21,7 @@ func (e *AuthenticationPreAuthenticatedBlockingEventPayload) BlockingEventType()
 }
 
 func (e *AuthenticationPreAuthenticatedBlockingEventPayload) UserID() string {
-	if e.Authentication.User != nil {
-		return e.Authentication.User.ID
-	}
-	return ""
+	return e.Authentication.User.ID
 }
 
 func (e *AuthenticationPreAuthenticatedBlockingEventPayload) GetTriggeredBy() event.TriggeredByType {
