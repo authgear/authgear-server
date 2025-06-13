@@ -29,7 +29,7 @@ type NodeDoUseIdentityPasskeyOptions struct {
 }
 
 func NewNodeDoUseIdentityPasskey(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, opts *NodeDoUseIdentityPasskeyOptions) (authenticationflow.ReactToResult, error) {
-	nodeDoUseIden, delayedFn, err := NewNodeDoUseIdentity(ctx, deps, flows, &NodeDoUseIdentity{
+	nodeDoUseIden, err := NewNodeDoUseIdentity(ctx, deps, flows, &NodeDoUseIdentity{
 		Identity:     opts.Identity,
 		IdentitySpec: opts.IdentitySpec,
 	})
@@ -46,10 +46,7 @@ func NewNodeDoUseIdentityPasskey(ctx context.Context, deps *authflow.Dependencie
 
 	n.NodeDoUseIdentity = nodeDoUseIden
 
-	return &authenticationflow.NodeWithDelayedOneTimeFunction{
-		Node:                   authenticationflow.NewNodeSimple(n),
-		DelayedOneTimeFunction: delayedFn,
-	}, nil
+	return authenticationflow.NewNodeSimple(n), nil
 }
 
 var _ authflow.NodeSimple = &NodeDoUseIdentityPasskey{}
@@ -61,7 +58,6 @@ var _ MilestoneDoUseIdentity = &NodeDoUseIdentityPasskey{}
 var _ MilestoneDidSelectAuthenticator = &NodeDoUseIdentityPasskey{}
 var _ MilestoneDidAuthenticate = &NodeDoUseIdentityPasskey{}
 var _ MilestoneGetIdentitySpecs = &NodeDoUseIdentityPasskey{}
-var _ MilestoneConstraintsProvider = &NodeDoUseIdentityPasskey{}
 
 func (*NodeDoUseIdentityPasskey) Kind() string {
 	return "NodeDoUseIdentityPasskey"
