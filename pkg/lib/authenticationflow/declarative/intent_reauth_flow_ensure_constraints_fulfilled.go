@@ -6,7 +6,6 @@ import (
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
-	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -23,38 +22,8 @@ type IntentReauthFlowEnsureConstraintsFulfilled struct {
 }
 
 func NewIntentReauthFlowEnsureConstraintsFulfilled(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows, flowRef authenticationflow.FlowReference) (*IntentReauthFlowEnsureConstraintsFulfilled, error) {
-	var oneOfs []*config.AuthenticationFlowReauthFlowOneOf
 
-	addOneOf := func(am config.AuthenticationFlowAuthentication) {
-		oneOf := &config.AuthenticationFlowReauthFlowOneOf{
-			Authentication: am,
-		}
-
-		oneOfs = append(oneOfs, oneOf)
-	}
-
-	for _, authenticatorType := range *deps.Config.Authentication.SecondaryAuthenticators {
-		switch authenticatorType {
-		case model.AuthenticatorTypePassword:
-			addOneOf(config.AuthenticationFlowAuthenticationSecondaryPassword)
-		case model.AuthenticatorTypeOOBEmail:
-			addOneOf(config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail)
-		case model.AuthenticatorTypeOOBSMS:
-			addOneOf(config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS)
-		case model.AuthenticatorTypeTOTP:
-			addOneOf(config.AuthenticationFlowAuthenticationSecondaryTOTP)
-		case model.AuthenticatorTypePasskey:
-			addOneOf(config.AuthenticationFlowAuthenticationPrimaryPasskey)
-		}
-	}
-
-	trueValue := true
-	// Generate a temporary config for this step only
-	flowObject := &config.AuthenticationFlowReauthFlowStep{
-		Type:                             config.AuthenticationFlowReauthFlowStepTypeAuthenticate,
-		OneOf:                            oneOfs,
-		ShowUntilAMRConstraintsFulfilled: &trueValue,
-	}
+	flowObject := generateReauthFlowStepAuthenticateForAMRConstraints(deps.Config)
 
 	return &IntentReauthFlowEnsureConstraintsFulfilled{
 		FlowReference: flowRef,

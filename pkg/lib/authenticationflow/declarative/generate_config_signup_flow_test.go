@@ -14,29 +14,31 @@ import (
 
 func TestGenerateSignupFlowConfig(t *testing.T) {
 	Convey("GenerateSignupFlowConfig", t, func() {
-		test := func(cfgStr string, expected string) {
-			jsonData, err := yaml.YAMLToJSON([]byte(cfgStr))
-			So(err, ShouldBeNil)
+		test := func(name string, cfgStr string, expected string) {
+			Convey(name, func() {
+				jsonData, err := yaml.YAMLToJSON([]byte(cfgStr))
+				So(err, ShouldBeNil)
 
-			var appConfig config.AppConfig
-			decoder := json.NewDecoder(bytes.NewReader(jsonData))
-			err = decoder.Decode(&appConfig)
-			So(err, ShouldBeNil)
+				var appConfig config.AppConfig
+				decoder := json.NewDecoder(bytes.NewReader(jsonData))
+				err = decoder.Decode(&appConfig)
+				So(err, ShouldBeNil)
 
-			config.PopulateDefaultValues(&appConfig)
+				config.PopulateDefaultValues(&appConfig)
 
-			flow := GenerateSignupFlowConfig(&appConfig)
-			flowJSON, err := json.Marshal(flow)
-			So(err, ShouldBeNil)
+				flow := GenerateSignupFlowConfig(&appConfig)
+				flowJSON, err := json.Marshal(flow)
+				So(err, ShouldBeNil)
 
-			expectedJSON, err := yaml.YAMLToJSON([]byte(expected))
-			So(err, ShouldBeNil)
+				expectedJSON, err := yaml.YAMLToJSON([]byte(expected))
+				So(err, ShouldBeNil)
 
-			So(string(flowJSON), ShouldEqualJSON, string(expectedJSON))
+				So(string(flowJSON), ShouldEqualJSON, string(expectedJSON))
+			})
 		}
 
 		// email, password
-		test(`
+		test("test-1", `
 authentication:
   identities:
   - login_id
@@ -60,10 +62,17 @@ steps:
       type: create_authenticator
       one_of:
       - authentication: primary_password
+- name: authenticate_amr_constraints
+  one_of:
+  - authentication: secondary_totp
+    steps:
+    - type: view_recovery_code
+  show_until_amr_constraints_fulfilled: true
+  type: create_authenticator
 `)
 
 		// email, otp
-		test(`
+		test("test-2", `
 authentication:
   identities:
   - login_id
@@ -88,10 +97,17 @@ steps:
       one_of:
       - authentication: primary_oob_otp_email
         target_step: signup_identify
+- name: authenticate_amr_constraints
+  one_of:
+  - authentication: secondary_totp
+    steps:
+    - type: view_recovery_code
+  show_until_amr_constraints_fulfilled: true
+  type: create_authenticator
 `)
 
 		// phone, otp
-		test(`
+		test("test-3", `
 authentication:
   identities:
   - login_id
@@ -116,10 +132,17 @@ steps:
       one_of:
       - authentication: primary_oob_otp_sms
         target_step: signup_identify
+- name: authenticate_amr_constraints
+  one_of:
+  - authentication: secondary_totp
+    steps:
+    - type: view_recovery_code
+  show_until_amr_constraints_fulfilled: true
+  type: create_authenticator
 `)
 
 		// username, password
-		test(`
+		test("test-4", `
 authentication:
   identities:
   - login_id
@@ -141,10 +164,17 @@ steps:
       type: create_authenticator
       one_of:
       - authentication: primary_password
+- name: authenticate_amr_constraints
+  one_of:
+  - authentication: secondary_totp
+    steps:
+    - type: view_recovery_code
+  show_until_amr_constraints_fulfilled: true
+  type: create_authenticator
 `)
 
 		// email,phone, password,otp
-		test(`
+		test("test-5", `
 authentication:
   identities:
   - login_id
@@ -183,10 +213,17 @@ steps:
       - authentication: primary_password
       - authentication: primary_oob_otp_sms
         target_step: signup_identify
+- name: authenticate_amr_constraints
+  one_of:
+  - authentication: secondary_totp
+    steps:
+    - type: view_recovery_code
+  show_until_amr_constraints_fulfilled: true
+  type: create_authenticator
 `)
 
 		// email,password, totp,recovery_code
-		test(`
+		test("test-6", `
 authentication:
   identities:
   - login_id
@@ -219,10 +256,17 @@ steps:
       - authentication: secondary_totp
         steps:
         - type: view_recovery_code
+- name: authenticate_amr_constraints
+  one_of:
+  - authentication: secondary_totp
+    steps:
+    - type: view_recovery_code
+  show_until_amr_constraints_fulfilled: true
+  type: create_authenticator
 `)
 
 		// email,password, phone
-		test(`
+		test("test-7", `
 authentication:
   identities:
   - login_id
@@ -255,10 +299,15 @@ steps:
       type: create_authenticator
       one_of:
       - authentication: secondary_oob_otp_sms
+- name: authenticate_amr_constraints
+  one_of:
+  - authentication: secondary_oob_otp_sms
+  show_until_amr_constraints_fulfilled: true
+  type: create_authenticator
 `)
 
 		// oauth
-		test(`
+		test("test-8", `
 authentication:
   identities:
   - oauth
@@ -274,10 +323,17 @@ steps:
   type: identify
   one_of:
   - identification: oauth
+- name: authenticate_amr_constraints
+  one_of:
+  - authentication: secondary_totp
+    steps:
+    - type: view_recovery_code
+  show_until_amr_constraints_fulfilled: true
+  type: create_authenticator
 `)
 
 		// oauth does not require 2fa.
-		test(`
+		test("test-9", `
 authentication:
   identities:
   - login_id
@@ -318,10 +374,15 @@ steps:
       one_of:
       - authentication: secondary_totp
   - identification: oauth
+- name: authenticate_amr_constraints
+  one_of:
+  - authentication: secondary_totp
+  show_until_amr_constraints_fulfilled: true
+  type: create_authenticator
 `)
 
 		// ldap
-		test(`
+		test("test-10", `
 authentication:
   identities:
   - ldap
@@ -336,9 +397,16 @@ steps:
   type: identify
   one_of:
   - identification: ldap
+- name: authenticate_amr_constraints
+  one_of:
+  - authentication: secondary_totp
+    steps:
+    - type: view_recovery_code
+  show_until_amr_constraints_fulfilled: true
+  type: create_authenticator
 `)
 		// ldap, otp
-		test(`
+		test("test-11", `
 authentication:
   identities:
   - ldap
@@ -363,9 +431,14 @@ steps:
       type: create_authenticator
       one_of:
       - authentication: secondary_oob_otp_sms
+- name: authenticate_amr_constraints
+  one_of:
+  - authentication: secondary_oob_otp_sms
+  show_until_amr_constraints_fulfilled: true
+  type: create_authenticator
 `)
 		// ldap, totp,recovery_code
-		test(`
+		test("test-12", `
 authentication:
   identities:
   - ldap
@@ -390,10 +463,17 @@ steps:
       - authentication: secondary_totp
         steps:
         - type: view_recovery_code
+- name: authenticate_amr_constraints
+  one_of:
+  - authentication: secondary_totp
+    steps:
+    - type: view_recovery_code
+  show_until_amr_constraints_fulfilled: true
+  type: create_authenticator
 `)
 
 		// bot_protection, 3 branches
-		test(`
+		test("test-13", `
 authentication:
   identities:
   - login_id
@@ -504,13 +584,27 @@ steps:
         - type: view_recovery_code
       type: create_authenticator
   type: identify
+- name: authenticate_amr_constraints
+  one_of:
+  - authentication: secondary_oob_otp_email
+    bot_protection:
+      mode: always
+    steps:
+    - type: view_recovery_code
+  - authentication: secondary_oob_otp_sms
+    bot_protection:
+      mode: always
+    steps:
+    - type: view_recovery_code
+  show_until_amr_constraints_fulfilled: true
+  type: create_authenticator
 `)
 		// bot_protection, stricter risk mode overrides
 		// Note
 		// - identify > email      : mode=always
 		// - identify > phone      : mode=always
 		// - identify > username   : mode=never
-		test(`
+		test("test-14", `
 authentication:
   identities:
   - login_id
@@ -578,11 +672,18 @@ steps:
       - authentication: primary_password
       type: create_authenticator
   type: identify
+- name: authenticate_amr_constraints
+  one_of:
+  - authentication: secondary_totp
+    steps:
+    - type: view_recovery_code
+  show_until_amr_constraints_fulfilled: true
+  type: create_authenticator
 `)
 
 		// verification=false, email, otp
 		// The OTP authenticator still requires verification.
-		test(`
+		test("test-15", `
 authentication:
   identities:
   - login_id
@@ -610,11 +711,18 @@ steps:
       one_of:
       - authentication: primary_oob_otp_email
         target_step: signup_identify
+- name: authenticate_amr_constraints
+  one_of:
+  - authentication: secondary_totp
+    steps:
+    - type: view_recovery_code
+  show_until_amr_constraints_fulfilled: true
+  type: create_authenticator
 `)
 
 		// verification=false, phone, otp
 		// The OTP authenticator still requires verification.
-		test(`
+		test("test-16", `
 authentication:
   identities:
   - login_id
@@ -642,6 +750,13 @@ steps:
       one_of:
       - authentication: primary_oob_otp_sms
         target_step: signup_identify
+- name: authenticate_amr_constraints
+  one_of:
+  - authentication: secondary_totp
+    steps:
+    - type: view_recovery_code
+  show_until_amr_constraints_fulfilled: true
+  type: create_authenticator
 `)
 
 	})
