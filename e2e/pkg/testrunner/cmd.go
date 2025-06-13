@@ -109,6 +109,19 @@ func (e *End2EndCmd) ExecuteCreateSession(hook *BeforeHookCreateSession) error {
 	return nil
 }
 
+func (e *End2EndCmd) ExecuteCreateChallenge(hook *BeforeHookCreateChallenge) error {
+	cmd := fmt.Sprintf(
+		"./dist/e2e create-challenge --app-id %s --purpose \"%s\" --token \"%s\"",
+		e.AppID,
+		hook.Purpose,
+		hook.Token,
+	)
+	if _, err := e.execCmd(cmd); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (e *End2EndCmd) QuerySQLSelectRaw(rawSQL string) (jsonArrString string, err error) {
 	cmd := fmt.Sprintf(
 		"./dist/e2e query-sql-select --app-id %s --raw-sql \"%s\"",

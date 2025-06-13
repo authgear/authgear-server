@@ -14,29 +14,31 @@ import (
 
 func TestGenerateLoginFlowConfig(t *testing.T) {
 	Convey("GenerateLoginFlowConfig", t, func() {
-		test := func(cfgStr string, expected string) {
-			jsonData, err := yaml.YAMLToJSON([]byte(cfgStr))
-			So(err, ShouldBeNil)
+		test := func(name string, cfgStr string, expected string) {
+			Convey(name, func() {
+				jsonData, err := yaml.YAMLToJSON([]byte(cfgStr))
+				So(err, ShouldBeNil)
 
-			var appConfig config.AppConfig
-			decoder := json.NewDecoder(bytes.NewReader(jsonData))
-			err = decoder.Decode(&appConfig)
-			So(err, ShouldBeNil)
+				var appConfig config.AppConfig
+				decoder := json.NewDecoder(bytes.NewReader(jsonData))
+				err = decoder.Decode(&appConfig)
+				So(err, ShouldBeNil)
 
-			config.PopulateDefaultValues(&appConfig)
+				config.PopulateDefaultValues(&appConfig)
 
-			flow := GenerateLoginFlowConfig(&appConfig)
-			flowJSON, err := json.Marshal(flow)
-			So(err, ShouldBeNil)
+				flow := GenerateLoginFlowConfig(&appConfig)
+				flowJSON, err := json.Marshal(flow)
+				So(err, ShouldBeNil)
 
-			expectedJSON, err := yaml.YAMLToJSON([]byte(expected))
-			So(err, ShouldBeNil)
+				expectedJSON, err := yaml.YAMLToJSON([]byte(expected))
+				So(err, ShouldBeNil)
 
-			So(string(flowJSON), ShouldEqualJSON, string(expectedJSON))
+				So(string(flowJSON), ShouldEqualJSON, string(expectedJSON))
+			})
 		}
 
 		// email, password
-		test(`
+		test("test-1", `
 authentication:
   identities:
   - login_id
@@ -68,12 +70,18 @@ steps:
           - authentication: device_token
         - type: change_password
           target_step: authenticate_primary_email
+- name: authenticate_amr_constraints
+  type: authenticate
+  show_until_amr_constraints_fulfilled: true
+  one_of:
+  - authentication: secondary_totp
+  - authentication: recovery_code
 - type: check_account_status
 - type: terminate_other_sessions
 `)
 
 		// email, otp
-		test(`
+		test("test-2", `
 authentication:
   identities:
   - login_id
@@ -104,12 +112,18 @@ steps:
           - authentication: secondary_totp
           - authentication: recovery_code
           - authentication: device_token
+- name: authenticate_amr_constraints
+  type: authenticate
+  show_until_amr_constraints_fulfilled: true
+  one_of:
+  - authentication: secondary_totp
+  - authentication: recovery_code
 - type: check_account_status
 - type: terminate_other_sessions
 `)
 
 		// phone, otp
-		test(`
+		test("test-3", `
 authentication:
   identities:
   - login_id
@@ -140,12 +154,18 @@ steps:
           - authentication: secondary_totp
           - authentication: recovery_code
           - authentication: device_token
+- name: authenticate_amr_constraints
+  type: authenticate
+  show_until_amr_constraints_fulfilled: true
+  one_of:
+  - authentication: secondary_totp
+  - authentication: recovery_code
 - type: check_account_status
 - type: terminate_other_sessions
 `)
 
 		// username, password
-		test(`
+		test("test-4", `
 authentication:
   identities:
   - login_id
@@ -177,12 +197,18 @@ steps:
           - authentication: device_token
         - type: change_password
           target_step: authenticate_primary_username
+- name: authenticate_amr_constraints
+  type: authenticate
+  show_until_amr_constraints_fulfilled: true
+  one_of:
+  - authentication: secondary_totp
+  - authentication: recovery_code
 - type: check_account_status
 - type: terminate_other_sessions
 `)
 
 		// email,phone, password,otp
-		test(`
+		test("test-5", `
 authentication:
   identities:
   - login_id
@@ -253,12 +279,18 @@ steps:
           - authentication: secondary_totp
           - authentication: recovery_code
           - authentication: device_token
+- name: authenticate_amr_constraints
+  type: authenticate
+  show_until_amr_constraints_fulfilled: true
+  one_of:
+  - authentication: secondary_totp
+  - authentication: recovery_code
 - type: check_account_status
 - type: terminate_other_sessions
 `)
 
 		// email,password, totp,recovery_code
-		test(`
+		test("test-6", `
 authentication:
   identities:
   - login_id
@@ -292,12 +324,18 @@ steps:
           - authentication: device_token
         - type: change_password
           target_step: authenticate_primary_email
+- name: authenticate_amr_constraints
+  type: authenticate
+  show_until_amr_constraints_fulfilled: true
+  one_of:
+  - authentication: secondary_totp
+  - authentication: recovery_code
 - type: check_account_status
 - type: terminate_other_sessions
 `)
 
 		// Disable device token recovery code.
-		test(`
+		test("test-7", `
 authentication:
   identities:
   - login_id
@@ -331,12 +369,17 @@ steps:
           - authentication: secondary_totp
         - type: change_password
           target_step: authenticate_primary_email
+- name: authenticate_amr_constraints
+  type: authenticate
+  show_until_amr_constraints_fulfilled: true
+  one_of:
+  - authentication: secondary_totp
 - type: check_account_status
 - type: terminate_other_sessions
 `)
 
 		// No password force change
-		test(`
+		test("test-8", `
 authentication:
   identities:
   - login_id
@@ -371,12 +414,18 @@ steps:
           - authentication: device_token
         - type: change_password
           target_step: authenticate_primary_email
+- name: authenticate_amr_constraints
+  type: authenticate
+  show_until_amr_constraints_fulfilled: true
+  one_of:
+  - authentication: secondary_totp
+  - authentication: recovery_code
 - type: check_account_status
 - type: terminate_other_sessions
 `)
 
 		// oauth
-		test(`
+		test("test-9", `
 authentication:
   identities:
   - oauth
@@ -392,12 +441,18 @@ steps:
   type: identify
   one_of:
   - identification: oauth
+- name: authenticate_amr_constraints
+  type: authenticate
+  show_until_amr_constraints_fulfilled: true
+  one_of:
+  - authentication: secondary_totp
+  - authentication: recovery_code
 - type: check_account_status
 - type: terminate_other_sessions
 `)
 
 		// oauth does not require 2fa.
-		test(`
+		test("test-10", `
 authentication:
   identities:
   - login_id
@@ -439,12 +494,17 @@ steps:
         - type: change_password
           target_step: authenticate_primary_email
   - identification: oauth
+- name: authenticate_amr_constraints
+  type: authenticate
+  show_until_amr_constraints_fulfilled: true
+  one_of:
+  - authentication: secondary_totp
 - type: check_account_status
 - type: terminate_other_sessions
 `)
 
 		// ldap, not 2fa
-		test(`
+		test("test-11", `
 authentication:
   identities:
   - ldap
@@ -460,12 +520,18 @@ steps:
   type: identify
   one_of:
   - identification: ldap
+- name: authenticate_amr_constraints
+  type: authenticate
+  show_until_amr_constraints_fulfilled: true
+  one_of:
+  - authentication: secondary_totp
+  - authentication: recovery_code
 - type: check_account_status
 - type: terminate_other_sessions
 `)
 
 		// ldap, default 2fa options
-		test(`
+		test("test-12", `
 authentication:
   identities:
   - ldap
@@ -488,12 +554,18 @@ steps:
       - authentication: secondary_totp
       - authentication: recovery_code
       - authentication: device_token
+- name: authenticate_amr_constraints
+  type: authenticate
+  show_until_amr_constraints_fulfilled: true
+  one_of:
+  - authentication: secondary_totp
+  - authentication: recovery_code
 - type: check_account_status
 - type: terminate_other_sessions
 `)
 
 		// passkey
-		test(`
+		test("test-13", `
 authentication:
   identities:
   - login_id
@@ -529,13 +601,20 @@ steps:
           target_step: authenticate_primary_email
       - authentication: primary_passkey
   - identification: passkey
+- name: authenticate_amr_constraints
+  type: authenticate
+  show_until_amr_constraints_fulfilled: true
+  one_of:
+  - authentication: primary_passkey
+  - authentication: secondary_totp
+  - authentication: recovery_code
 - type: check_account_status
 - type: terminate_other_sessions
 - type: prompt_create_passkey
 `)
 
 		// passkey and oauth and 2fa
-		test(`
+		test("test-14", `
 authentication:
   identities:
   - login_id
@@ -581,12 +660,18 @@ steps:
       - authentication: primary_passkey
   - identification: oauth
   - identification: passkey
+- name: authenticate_amr_constraints
+  type: authenticate
+  show_until_amr_constraints_fulfilled: true
+  one_of:
+  - authentication: primary_passkey
+  - authentication: secondary_totp
 - type: check_account_status
 - type: terminate_other_sessions
 - type: prompt_create_passkey
 `)
 		// bot_protection.requirements.signup_or_login=always
-		test(`
+		test("test-15", `
 authentication:
   identities:
   - login_id
@@ -628,11 +713,17 @@ steps:
           - authentication: device_token
         - type: change_password
           target_step: authenticate_primary_email
+- name: authenticate_amr_constraints
+  type: authenticate
+  show_until_amr_constraints_fulfilled: true
+  one_of:
+  - authentication: secondary_totp
+  - authentication: recovery_code
 - type: check_account_status
 - type: terminate_other_sessions
 `)
 		// bot_protection, all always
-		test(`
+		test("test-16", `
 authentication:
   identities:
   - login_id
@@ -762,6 +853,20 @@ steps:
               mode: never
           - authentication: recovery_code
           - authentication: device_token
+- name: authenticate_amr_constraints
+  type: authenticate
+  show_until_amr_constraints_fulfilled: true
+  one_of:
+  - authentication: secondary_oob_otp_email
+    bot_protection:
+      mode: always
+  - authentication: secondary_oob_otp_sms
+    bot_protection:
+      mode: always
+  - authentication: secondary_password
+    bot_protection:
+      mode: never
+  - authentication: recovery_code
 - type: check_account_status
 - type: terminate_other_sessions
 `)

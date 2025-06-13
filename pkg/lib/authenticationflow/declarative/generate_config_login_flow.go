@@ -15,6 +15,9 @@ func GenerateLoginFlowConfig(cfg *config.AppConfig) *config.AuthenticationFlowLo
 		},
 	}
 
+	// Add a step to handle amr constraints if needed
+	flow.Steps = append(flow.Steps, generateLoginFlowStepAuthenticateForAMRConstraints(cfg))
+
 	// The steps after this step contain side effects.
 	// Therefore, we check account status BEFORE we perform those steps.
 	flow.Steps = append(flow.Steps, generateLoginFlowStepCheckAccountStatus())
@@ -142,7 +145,7 @@ func generateLoginFlowStepIdentifyLDAP(cfg *config.AppConfig) []*config.Authenti
 	}
 
 	// Add authenticate step secondary if necessary
-	if stepAuthenticateSecondary, ok := generateLoginFlowStepAuthenticateSecondary(cfg, oneOf.Identification); ok {
+	if stepAuthenticateSecondary, ok := generateLoginFlowStepAuthenticateSecondaryForIdentification(cfg, oneOf.Identification); ok {
 		oneOf.Steps = append(oneOf.Steps, stepAuthenticateSecondary)
 	}
 
@@ -216,7 +219,7 @@ func generateLoginFlowStepAuthenticatePrimaryPassword(
 	}
 
 	// Add authenticate step secondary if necessary
-	if stepAuthenticateSecondary, ok := generateLoginFlowStepAuthenticateSecondary(cfg, identification); ok {
+	if stepAuthenticateSecondary, ok := generateLoginFlowStepAuthenticateSecondaryForIdentification(cfg, identification); ok {
 		oneOf.Steps = append(oneOf.Steps, stepAuthenticateSecondary)
 	}
 
@@ -252,7 +255,7 @@ func generateLoginFlowStepAuthenticatePrimaryOOBEmail(
 	}
 
 	// Add authenticate step secondary if necessary
-	if stepAuthenticateSecondary, ok := generateLoginFlowStepAuthenticateSecondary(cfg, identification); ok {
+	if stepAuthenticateSecondary, ok := generateLoginFlowStepAuthenticateSecondaryForIdentification(cfg, identification); ok {
 		oneOf.Steps = append(oneOf.Steps, stepAuthenticateSecondary)
 	}
 	if bp, ok := getBotProtectionRequirementsOOBOTPEmail(cfg); ok {
@@ -272,7 +275,7 @@ func generateLoginFlowStepAuthenticatePrimaryOOBSMS(
 	}
 
 	// Add authenticate step secondary if necessary
-	if stepAuthenticateSecondary, ok := generateLoginFlowStepAuthenticateSecondary(cfg, identification); ok {
+	if stepAuthenticateSecondary, ok := generateLoginFlowStepAuthenticateSecondaryForIdentification(cfg, identification); ok {
 		oneOf.Steps = append(oneOf.Steps, stepAuthenticateSecondary)
 	}
 
@@ -282,7 +285,7 @@ func generateLoginFlowStepAuthenticatePrimaryOOBSMS(
 	return oneOf
 }
 
-func generateLoginFlowStepAuthenticateSecondary(cfg *config.AppConfig, identification config.AuthenticationFlowIdentification) (*config.AuthenticationFlowLoginFlowStep, bool) {
+func generateLoginFlowStepAuthenticateSecondaryForIdentification(cfg *config.AppConfig, identification config.AuthenticationFlowIdentification) (*config.AuthenticationFlowLoginFlowStep, bool) {
 	// This step is always present unless secondary authentication is disabled.
 	if cfg.Authentication.SecondaryAuthenticationMode.IsDisabled() {
 		return nil, false
@@ -295,9 +298,14 @@ func generateLoginFlowStepAuthenticateSecondary(cfg *config.AppConfig, identific
 		return nil, false
 	}
 
-	allowedMap := make(map[config.AuthenticationFlowAuthentication]struct{})
-	for _, a := range allowed {
-		allowedMap[a] = struct{}{}
+	// If device token is enabled, add it to oneOf.
+	if !cfg.Authentication.DeviceToken.Disabled {
+		allowed = append(allowed, config.AuthenticationFlowAuthenticationDeviceToken)
+	}
+
+	// If recovery code is enabled, add it to oneOf.
+	if !*cfg.Authentication.RecoveryCode.Disabled {
+		allowed = append(allowed, config.AuthenticationFlowAuthenticationRecoveryCode)
 	}
 
 	// By default this step is optional.
@@ -307,16 +315,51 @@ func generateLoginFlowStepAuthenticateSecondary(cfg *config.AppConfig, identific
 		optional = false
 	}
 
-	step := &config.AuthenticationFlowLoginFlowStep{
-		Name: fmt.Sprintf(nameFormatStepAuthenticateSecondary, identification),
-		Type: config.AuthenticationFlowLoginFlowStepTypeAuthenticate,
-	}
+	step := generateLoginFlowStepAuthenticate(
+		cfg,
+		fmt.Sprintf(nameFormatStepAuthenticateSecondary, identification),
+		allowed,
+	)
 	if optional {
 		step.Optional = &optional
 	}
 
+	return step, true
+}
+
+func generateLoginFlowStepAuthenticateForAMRConstraints(cfg *config.AppConfig) *config.AuthenticationFlowLoginFlowStep {
+	allowed := []config.AuthenticationFlowAuthentication{
+		config.AuthenticationFlowAuthenticationPrimaryPasskey,
+		config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail,
+		config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS,
+		config.AuthenticationFlowAuthenticationSecondaryPassword,
+		config.AuthenticationFlowAuthenticationSecondaryTOTP,
+		config.AuthenticationFlowAuthenticationRecoveryCode,
+	}
+	step := generateLoginFlowStepAuthenticate(
+		cfg,
+		nameFormatStepAuthenticateAMRConstraints,
+		allowed,
+	)
+	valueTrue := true
+	step.ShowUntilAMRConstraintsFulfilled = &valueTrue
+
+	return step
+}
+
+func generateLoginFlowStepAuthenticate(cfg *config.AppConfig, stepName string, authentications []config.AuthenticationFlowAuthentication) *config.AuthenticationFlowLoginFlowStep {
+	authenticationMap := make(map[config.AuthenticationFlowAuthentication]struct{})
+	for _, a := range authentications {
+		authenticationMap[a] = struct{}{}
+	}
+
+	step := &config.AuthenticationFlowLoginFlowStep{
+		Name: stepName,
+		Type: config.AuthenticationFlowLoginFlowStepTypeAuthenticate,
+	}
+
 	addOneOf := func(am config.AuthenticationFlowAuthentication, bpGetter func(*config.AppConfig) (*config.AuthenticationFlowBotProtection, bool)) {
-		if _, ok := allowedMap[am]; ok {
+		if _, ok := authenticationMap[am]; ok {
 			oneOf := &config.AuthenticationFlowLoginFlowOneOf{
 				Authentication: am,
 			}
@@ -330,7 +373,19 @@ func generateLoginFlowStepAuthenticateSecondary(cfg *config.AppConfig, identific
 		}
 	}
 
-	// Add the authentication allowed BOTH in the config, and this identification.
+	// Add the authentication allowed if it is enabled in the config
+	for _, authenticatorType := range *cfg.Authentication.PrimaryAuthenticators {
+		switch authenticatorType {
+		case model.AuthenticatorTypePassword:
+			addOneOf(config.AuthenticationFlowAuthenticationPrimaryPassword, getBotProtectionRequirementsPassword)
+		case model.AuthenticatorTypeOOBEmail:
+			addOneOf(config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail, getBotProtectionRequirementsOOBOTPEmail)
+		case model.AuthenticatorTypeOOBSMS:
+			addOneOf(config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS, getBotProtectionRequirementsOOBOTPSMS)
+		case model.AuthenticatorTypePasskey:
+			addOneOf(config.AuthenticationFlowAuthenticationPrimaryPasskey, nil)
+		}
+	}
 	for _, authenticatorType := range *cfg.Authentication.SecondaryAuthenticators {
 		switch authenticatorType {
 		case model.AuthenticatorTypePassword:
@@ -346,21 +401,19 @@ func generateLoginFlowStepAuthenticateSecondary(cfg *config.AppConfig, identific
 
 	// The order is important here.
 	// If there are other authentication, we want them to appear before recovery code.
-	// If recovery code is enabled, add it to oneOf.
-	if !*cfg.Authentication.RecoveryCode.Disabled {
+	if _, ok := authenticationMap[config.AuthenticationFlowAuthenticationRecoveryCode]; ok && !*cfg.Authentication.RecoveryCode.Disabled {
 		step.OneOf = append(step.OneOf, &config.AuthenticationFlowLoginFlowOneOf{
 			Authentication: config.AuthenticationFlowAuthenticationRecoveryCode,
 		})
 	}
 
-	// If device token is enabled, add it to oneOf.
-	if !cfg.Authentication.DeviceToken.Disabled {
+	if _, ok := authenticationMap[config.AuthenticationFlowAuthenticationDeviceToken]; ok && !cfg.Authentication.DeviceToken.Disabled {
 		step.OneOf = append(step.OneOf, &config.AuthenticationFlowLoginFlowOneOf{
 			Authentication: config.AuthenticationFlowAuthenticationDeviceToken,
 		})
 	}
 
-	return step, true
+	return step
 }
 
 func generateLoginFlowStepCheckAccountStatus() *config.AuthenticationFlowLoginFlowStep {

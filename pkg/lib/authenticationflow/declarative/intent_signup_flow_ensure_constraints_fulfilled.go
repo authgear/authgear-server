@@ -6,7 +6,6 @@ import (
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
-	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -29,49 +28,8 @@ type IntentSignupFlowEnsureConstraintsFulfilledOptions struct {
 }
 
 func NewIntentSignupFlowEnsureConstraintsFulfilled(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows, opts *IntentSignupFlowEnsureConstraintsFulfilledOptions) (*IntentSignupFlowEnsureConstraintsFulfilled, error) {
-	var oneOfs []*config.AuthenticationFlowSignupFlowOneOf
-	recoveryCodeStep := &config.AuthenticationFlowSignupFlowStep{
-		Type: config.AuthenticationFlowSignupFlowStepTypeViewRecoveryCode,
-	}
-
-	addOneOf := func(am config.AuthenticationFlowAuthentication, bpGetter func(*config.AppConfig) (*config.AuthenticationFlowBotProtection, bool)) {
-
-		oneOf := &config.AuthenticationFlowSignupFlowOneOf{
-			Authentication: am,
-		}
-
-		if bpGetter != nil {
-			if bp, ok := bpGetter(deps.Config); ok {
-				oneOf.BotProtection = bp
-			}
-		}
-
-		oneOf.Steps = append(oneOf.Steps, recoveryCodeStep)
-		oneOfs = append(oneOfs, oneOf)
-	}
-
-	for _, authenticatorType := range *deps.Config.Authentication.SecondaryAuthenticators {
-		switch authenticatorType {
-		case model.AuthenticatorTypePassword:
-			addOneOf(config.AuthenticationFlowAuthenticationSecondaryPassword, nil)
-		case model.AuthenticatorTypeOOBEmail:
-			addOneOf(config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail, getBotProtectionRequirementsOOBOTPEmail)
-		case model.AuthenticatorTypeOOBSMS:
-			addOneOf(config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS, getBotProtectionRequirementsOOBOTPSMS)
-		case model.AuthenticatorTypeTOTP:
-			addOneOf(config.AuthenticationFlowAuthenticationSecondaryTOTP, nil)
-		case model.AuthenticatorTypePasskey:
-			// FIXME(tung): We don't have a step to force user create passkey at the moment
-		}
-	}
-
-	trueValue := true
 	// Generate a temporary config for this step only
-	flowObject := &config.AuthenticationFlowSignupFlowStep{
-		Type:                             config.AuthenticationFlowSignupFlowStepTypeCreateAuthenticator,
-		OneOf:                            oneOfs,
-		ShowUntilAMRConstraintsFulfilled: &trueValue,
-	}
+	flowObject := generateSignupFlowStepCreateAuthenticatorForAMRConstraints(deps.Config)
 
 	return &IntentSignupFlowEnsureConstraintsFulfilled{
 		UserID:        opts.UserID,
