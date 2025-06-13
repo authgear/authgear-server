@@ -34,11 +34,15 @@ type Payload interface {
 	FillContext(ctx *Context)
 }
 
+type ApplyHookResponseResult struct {
+	MutationsEverApplied bool
+}
+
 type BlockingPayload interface {
 	Payload
 	BlockingEventType() Type
-	// ApplyMutations applies mutations to itself.
-	ApplyMutations(ctx context.Context, mutations Mutations) bool
+	// ApplyHookResponse applies hook response to itself.
+	ApplyHookResponse(ctx context.Context, response HookResponse) ApplyHookResponseResult
 	// PerformEffects performs the side effects of the mutations.
 	PerformEffects(ctx context.Context, effectCtx MutationsEffectContext) error
 }
@@ -61,16 +65,16 @@ type Event struct {
 	IsNonBlocking bool    `json:"-"`
 }
 
-func (e *Event) ApplyMutations(ctx context.Context, mutations Mutations) bool {
+func (e *Event) ApplyHookResponse(ctx context.Context, response HookResponse) ApplyHookResponseResult {
 	if blockingPayload, ok := e.Payload.(BlockingPayload); ok {
-		applied := blockingPayload.ApplyMutations(ctx, mutations)
-		if applied {
+		result := blockingPayload.ApplyHookResponse(ctx, response)
+		if result.MutationsEverApplied {
 			e.Payload = blockingPayload
-			return true
 		}
+		return result
 	}
 
-	return false
+	return ApplyHookResponseResult{}
 }
 
 func (e *Event) PerformEffects(ctx context.Context, effectCtx MutationsEffectContext) error {

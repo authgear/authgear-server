@@ -16,8 +16,8 @@ func isConfigBotProtectionRequired(authflowCfg *config.AuthenticationFlowBotProt
 	return data != nil
 }
 
-func isNodeBotProtectionRequired(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, oneOfJSONPointer jsonpointer.T) (bool, error) {
-	flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+func isNodeBotProtectionRequired(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, oneOfJSONPointer jsonpointer.T, originNode authflow.NodeOrIntent) (bool, error) {
+	flowRootObject, err := findNearestFlowObjectInFlow(deps, flows, originNode)
 	if err != nil {
 		return false, err
 	}
@@ -34,8 +34,8 @@ func isNodeBotProtectionRequired(ctx context.Context, deps *authflow.Dependencie
 	return isConfigBotProtectionRequired(currentBranch.GetBotProtectionConfig(), deps.Config.BotProtection), nil
 }
 
-func IsBotProtectionRequired(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, oneOfJSONPointer jsonpointer.T) (bool, error) {
-	required, err := isNodeBotProtectionRequired(ctx, deps, flows, oneOfJSONPointer)
+func IsBotProtectionRequired(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, oneOfJSONPointer jsonpointer.T, originNode authflow.NodeOrIntent) (bool, error) {
+	required, err := isNodeBotProtectionRequired(ctx, deps, flows, oneOfJSONPointer, originNode)
 	if err != nil {
 		return false, err
 	}
@@ -61,8 +61,8 @@ func ShouldExistingResultBypassBotProtectionRequirement(ctx context.Context) boo
 	}
 }
 
-func HandleBotProtection(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, oneOfJSONPointer jsonpointer.T, input authflow.Input) (bpSpecialErr error, err error) {
-	bpRequired, err := isNodeBotProtectionRequired(ctx, deps, flows, oneOfJSONPointer)
+func HandleBotProtection(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, oneOfJSONPointer jsonpointer.T, input authflow.Input, originNode authflow.NodeOrIntent) (bpSpecialErr error, err error) {
+	bpRequired, err := isNodeBotProtectionRequired(ctx, deps, flows, oneOfJSONPointer, originNode)
 	if err != nil {
 		return nil, err
 	}

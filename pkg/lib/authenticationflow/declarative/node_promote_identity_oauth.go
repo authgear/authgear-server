@@ -35,7 +35,7 @@ func (*NodePromoteIdentityOAuth) Kind() string {
 }
 
 func (n *NodePromoteIdentityOAuth) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
-	flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+	flowRootObject, err := findNearestFlowObjectInFlow(deps, flows, n)
 	if err != nil {
 		return nil, err
 	}
@@ -86,10 +86,11 @@ func (n *NodePromoteIdentityOAuth) ReactTo(ctx context.Context, deps *authflow.D
 					return nil, err
 				}
 
-				return authflow.NewNodeSimple(&NodeDoCreateIdentity{
+				return NewNodeDoCreateIdentityReactToResult(ctx, deps, flows, NodeDoCreateIdentityOptions{
+					SkipCreate:   false,
 					Identity:     info,
 					IdentitySpec: spec,
-				}), nil
+				})
 			}
 			// general error
 			return nil, err
@@ -130,7 +131,7 @@ func (n *NodePromoteIdentityOAuth) checkConflictByAccountLinkings(
 	spec *identity.Spec) (conflicts []*AccountLinkingConflict, err error) {
 	switch spec.Type {
 	case model.IdentityTypeOAuth:
-		return linkByIncomingOAuthSpec(ctx, deps, flows, n.UserID, NewCreateOAuthIdentityRequest(spec).OAuth, n.JSONPointer)
+		return linkByIncomingOAuthSpec(ctx, deps, flows, n.UserID, NewCreateOAuthIdentityRequest(spec).OAuth, n.JSONPointer, n)
 	default:
 		panic("unexpected spec type")
 	}

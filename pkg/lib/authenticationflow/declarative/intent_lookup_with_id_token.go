@@ -39,7 +39,7 @@ func (n *IntentLookupWithIDToken) MilestoneIdentificationMethod() config.Authent
 }
 
 func (n *IntentLookupWithIDToken) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
-	flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+	flowRootObject, err := findNearestFlowObjectInFlow(deps, flows, n)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +51,7 @@ func (n *IntentLookupWithIDToken) CanReactTo(ctx context.Context, deps *authflow
 }
 
 func (n *IntentLookupWithIDToken) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (authflow.ReactToResult, error) {
-	flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+	flowRootObject, err := findNearestFlowObjectInFlow(deps, flows, n)
 	if err != nil {
 		return nil, err
 	}

@@ -30,8 +30,8 @@ func (n *NodeDoJustInTimeCreateAuthenticator) Milestone() {}
 func (n *NodeDoJustInTimeCreateAuthenticator) MilestoneDidSelectAuthenticator() *authenticator.Info {
 	return n.Authenticator
 }
-func (n *NodeDoJustInTimeCreateAuthenticator) MilestoneDoCreateAuthenticator() *authenticator.Info {
-	return n.Authenticator
+func (n *NodeDoJustInTimeCreateAuthenticator) MilestoneDoCreateAuthenticator() (*authenticator.Info, bool) {
+	return n.Authenticator, !n.SkipCreate
 }
 func (n *NodeDoJustInTimeCreateAuthenticator) MilestoneDoCreateAuthenticatorSkipCreate() {
 	n.SkipCreate = true

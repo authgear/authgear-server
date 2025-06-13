@@ -2,16 +2,16 @@ package declarative
 
 import (
 	"context"
-	"sort"
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
+	"github.com/authgear/authgear-server/pkg/api/event"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
-	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
 func getUserID(flows authflow.Flows) (userID string, err error) {
@@ -47,31 +47,6 @@ func getUserID(flows authflow.Flows) (userID string, err error) {
 	if err != nil {
 		return
 	}
-
-	return
-}
-
-func collectAMR(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (amr []string, err error) {
-	err = authflow.TraverseFlow(authflow.Traverser{
-		NodeSimple: func(nodeSimple authflow.NodeSimple, w *authflow.Flow) error {
-			if n, ok := nodeSimple.(MilestoneDidAuthenticate); ok {
-				amr = append(amr, n.MilestoneDidAuthenticate()...)
-			}
-			return nil
-		},
-		Intent: func(intent authflow.Intent, w *authflow.Flow) error {
-			if i, ok := intent.(MilestoneDidAuthenticate); ok {
-				amr = append(amr, i.MilestoneDidAuthenticate()...)
-			}
-			return nil
-		},
-	}, flows.Root)
-	if err != nil {
-		return
-	}
-
-	amr = slice.Deduplicate(amr)
-	sort.Strings(amr)
 
 	return
 }
@@ -153,6 +128,7 @@ type MilestoneFlowAuthenticate interface {
 type MilestoneDidAuthenticate interface {
 	authflow.Milestone
 	MilestoneDidAuthenticate() (amr []string)
+	MilestoneDidAuthenticateAuthenticator() (*authenticator.Info, bool)
 }
 
 type MilestoneDoCreateSession interface {
@@ -191,7 +167,7 @@ type MilestoneFlowCreateAuthenticator interface {
 
 type MilestoneDoCreateAuthenticator interface {
 	authflow.Milestone
-	MilestoneDoCreateAuthenticator() *authenticator.Info
+	MilestoneDoCreateAuthenticator() (*authenticator.Info, bool)
 	MilestoneDoCreateAuthenticatorSkipCreate()
 	MilestoneDoCreateAuthenticatorUpdate(newInfo *authenticator.Info)
 }
@@ -326,4 +302,19 @@ type MilestoneCheckLoginHint interface {
 type MilestoneGetIdentitySpecs interface {
 	authflow.Milestone
 	MilestoneGetIdentitySpecs() []*identity.Spec
+}
+
+type MilestoneConstraintsProvider interface {
+	authflow.Milestone
+	MilestoneConstraintsProvider() *event.Constraints
+}
+
+type MilestoneDidConsumeRecoveryCode interface {
+	authflow.Milestone
+	MilestoneDidConsumeRecoveryCode() *mfa.RecoveryCode
+}
+
+type MilestoneAuthenticationFlowObjectProvider interface {
+	authflow.Milestone
+	MilestoneAuthenticationFlowObjectProvider() config.AuthenticationFlowObject
 }

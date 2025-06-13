@@ -66,7 +66,8 @@ func Traverse(o config.AuthenticationFlowObject, pointer jsonpointer.T) ([]Trave
 		case len(pointer) == 0:
 			return entries, nil
 		case len(pointer)%2 == 1:
-			return nil, ErrInvalidJSONPointer
+			// Programming error, panic so we have stack trace
+			panic(ErrInvalidJSONPointer)
 		default:
 			fieldName := pointer[0]
 
@@ -91,7 +92,8 @@ func Traverse(o config.AuthenticationFlowObject, pointer jsonpointer.T) ([]Trave
 				break
 			}
 			if !ok {
-				return nil, ErrInvalidJSONPointer
+				// Programming error, panic so we have stack trace
+				panic(ErrInvalidJSONPointer)
 			}
 
 			if index >= len(objects) {

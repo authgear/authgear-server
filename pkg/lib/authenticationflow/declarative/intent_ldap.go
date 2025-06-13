@@ -52,7 +52,7 @@ func (*IntentLDAP) MilestoneFlowUseIdentity(flows authflow.Flows) (MilestoneDoUs
 
 func (i *IntentLDAP) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
 	if len(flows.Nearest.Nodes) == 0 {
-		flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+		flowRootObject, err := findNearestFlowObjectInFlow(deps, flows, i)
 		if err != nil {
 			return nil, err
 		}
@@ -104,12 +104,7 @@ func (i *IntentLDAP) ReactTo(ctx context.Context, deps *authflow.Dependencies, f
 			return nil, err
 		}
 
-		newNode, err := NewNodeDoUseIdentityWithUpdate(ctx, deps, flows, exactMatch, spec)
-		if err != nil {
-			return nil, err
-		}
-
-		return authflow.NewNodeSimple(newNode), nil
+		return NewNodeDoUseIdentityWithUpdate(ctx, deps, flows, exactMatch, spec)
 	}
 	return nil, nil
 }

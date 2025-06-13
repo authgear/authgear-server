@@ -4,6 +4,7 @@ import (
 	"context"
 
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
@@ -20,6 +21,7 @@ var _ authflow.NodeSimple = &NodeDoConsumeRecoveryCode{}
 var _ authflow.Milestone = &NodeDoConsumeRecoveryCode{}
 var _ MilestoneDidAuthenticate = &NodeDoConsumeRecoveryCode{}
 var _ MilestoneDidUseAuthenticationLockoutMethod = &NodeDoConsumeRecoveryCode{}
+var _ MilestoneDidConsumeRecoveryCode = &NodeDoConsumeRecoveryCode{}
 var _ authflow.EffectGetter = &NodeDoConsumeRecoveryCode{}
 
 func (*NodeDoConsumeRecoveryCode) Kind() string {
@@ -28,8 +30,14 @@ func (*NodeDoConsumeRecoveryCode) Kind() string {
 
 func (*NodeDoConsumeRecoveryCode) Milestone()                               {}
 func (*NodeDoConsumeRecoveryCode) MilestoneDidAuthenticate() (amr []string) { return }
+func (*NodeDoConsumeRecoveryCode) MilestoneDidAuthenticateAuthenticator() (*authenticator.Info, bool) {
+	return nil, false
+}
 func (*NodeDoConsumeRecoveryCode) MilestoneDidUseAuthenticationLockoutMethod() (config.AuthenticationLockoutMethod, bool) {
 	return config.AuthenticationLockoutMethodRecoveryCode, true
+}
+func (n *NodeDoConsumeRecoveryCode) MilestoneDidConsumeRecoveryCode() *mfa.RecoveryCode {
+	return n.RecoveryCode
 }
 
 func (n *NodeDoConsumeRecoveryCode) GetEffects(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) ([]authflow.Effect, error) {

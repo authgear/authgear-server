@@ -42,7 +42,7 @@ func (*IntentLoginFlowStepChangePassword) CanReactTo(ctx context.Context, deps *
 }
 
 func (i *IntentLoginFlowStepChangePassword) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (authflow.ReactToResult, error) {
-	current, err := i.currentFlowObject(deps)
+	current, err := i.currentFlowObject(deps, flows)
 	if err != nil {
 		return nil, err
 	}
@@ -86,8 +86,8 @@ func (i *IntentLoginFlowStepChangePassword) ReactTo(ctx context.Context, deps *a
 	}), nil
 }
 
-func (i *IntentLoginFlowStepChangePassword) currentFlowObject(deps *authflow.Dependencies) (config.AuthenticationFlowObject, error) {
-	rootObject, err := flowRootObject(deps, i.FlowReference)
+func (i *IntentLoginFlowStepChangePassword) currentFlowObject(deps *authflow.Dependencies, flows authflow.Flows) (config.AuthenticationFlowObject, error) {
+	rootObject, err := findNearestFlowObjectInFlow(deps, flows, i)
 	if err != nil {
 		return nil, err
 	}

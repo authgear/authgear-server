@@ -49,11 +49,11 @@ func (n *IntentPromoteIdentityLoginID) CanReactTo(ctx context.Context, deps *aut
 	if identified {
 		return nil, authflow.ErrEOF
 	}
-	flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+	flowRootObject, err := findNearestFlowObjectInFlow(deps, flows, n)
 	if err != nil {
 		return nil, err
 	}
-	isBotProtectionRequired, err := IsBotProtectionRequired(ctx, deps, flows, n.JSONPointer)
+	isBotProtectionRequired, err := IsBotProtectionRequired(ctx, deps, flows, n.JSONPointer, n)
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +70,7 @@ func (n *IntentPromoteIdentityLoginID) ReactTo(ctx context.Context, deps *authfl
 	var inputTakeLoginID inputTakeLoginID
 	if authflow.AsInput(input, &inputTakeLoginID) {
 		var bpSpecialErr error
-		bpSpecialErr, err := HandleBotProtection(ctx, deps, flows, n.JSONPointer, input)
+		bpSpecialErr, err := HandleBotProtection(ctx, deps, flows, n.JSONPointer, input, n)
 		if err != nil {
 			return nil, err
 		}
@@ -106,10 +106,16 @@ func (n *IntentPromoteIdentityLoginID) ReactTo(ctx context.Context, deps *authfl
 					return nil, err
 				}
 
-				return authflow.NewNodeSimple(&NodeDoCreateIdentity{
+				reactToResult, err := NewNodeDoCreateIdentityReactToResult(ctx, deps, flows, NodeDoCreateIdentityOptions{
+					SkipCreate:   false,
 					Identity:     info,
 					IdentitySpec: spec,
-				}), bpSpecialErr
+				})
+				if err != nil {
+					return nil, err
+				}
+
+				return reactToResult, bpSpecialErr
 
 			}
 			// general error
@@ -138,7 +144,7 @@ func (n *IntentPromoteIdentityLoginID) checkConflictByAccountLinkings(
 	spec *identity.Spec) (conflicts []*AccountLinkingConflict, err error) {
 	switch spec.Type {
 	case model.IdentityTypeLoginID:
-		return linkByIncomingLoginIDSpec(ctx, deps, flows, n.UserID, NewCreateLoginIDIdentityRequest(spec).LoginID, n.JSONPointer)
+		return linkByIncomingLoginIDSpec(ctx, deps, flows, n.UserID, NewCreateLoginIDIdentityRequest(spec).LoginID, n.JSONPointer, n)
 	default:
 		panic("unexpected spec type")
 	}

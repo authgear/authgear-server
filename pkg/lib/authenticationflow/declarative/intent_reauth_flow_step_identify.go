@@ -24,8 +24,8 @@ type IntentReauthFlowStepIdentify struct {
 var _ authflow.Intent = &IntentReauthFlowStepIdentify{}
 var _ authflow.DataOutputer = &IntentReauthFlowStepIdentify{}
 
-func NewIntentReauthFlowStepIdentify(ctx context.Context, deps *authflow.Dependencies, i *IntentReauthFlowStepIdentify) (*IntentReauthFlowStepIdentify, error) {
-	current, err := i.currentFlowObject(deps)
+func NewIntentReauthFlowStepIdentify(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, i *IntentReauthFlowStepIdentify, originNode authflow.NodeOrIntent) (*IntentReauthFlowStepIdentify, error) {
+	current, err := i.currentFlowObject(deps, flows, originNode)
 	if err != nil {
 		return nil, err
 	}
@@ -60,7 +60,7 @@ func (i *IntentReauthFlowStepIdentify) CanReactTo(ctx context.Context, deps *aut
 		return nil, nil
 	case len(flows.Nearest.Nodes) == 0:
 		// Let the input to select which identification method to use.
-		flowRootObject, err := flowRootObject(deps, i.FlowReference)
+		flowRootObject, err := findNearestFlowObjectInFlow(deps, flows, i)
 		if err != nil {
 			return nil, err
 		}
@@ -81,7 +81,7 @@ func (i *IntentReauthFlowStepIdentify) CanReactTo(ctx context.Context, deps *aut
 }
 
 func (i *IntentReauthFlowStepIdentify) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (authflow.ReactToResult, error) {
-	current, err := i.currentFlowObject(deps)
+	current, err := i.currentFlowObject(deps, flows, i)
 	if err != nil {
 		return nil, err
 	}
@@ -192,8 +192,8 @@ func (i *IntentReauthFlowStepIdentify) jsonPointer(step *config.AuthenticationFl
 	panic(fmt.Errorf("selected identification method is not allowed"))
 }
 
-func (i *IntentReauthFlowStepIdentify) currentFlowObject(deps *authflow.Dependencies) (config.AuthenticationFlowObject, error) {
-	rootObject, err := flowRootObject(deps, i.FlowReference)
+func (i *IntentReauthFlowStepIdentify) currentFlowObject(deps *authflow.Dependencies, flows authflow.Flows, originNode authflow.NodeOrIntent) (config.AuthenticationFlowObject, error) {
+	rootObject, err := findNearestFlowObjectInFlow(deps, flows, originNode)
 	if err != nil {
 		return nil, err
 	}

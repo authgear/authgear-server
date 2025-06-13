@@ -2,12 +2,31 @@ package event
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"io"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
-var HookResponseSchema = validation.NewSimpleSchema(`
+var HookResponseSchema *validation.MultipartSchema
+
+func init() {
+	var supportedAMRConstraints = []string{model.AMRMFA, model.AMROTP, model.AMRPWD, model.AMRSMS}
+	supportedAMRConstraintsJSON, err := json.Marshal(supportedAMRConstraints)
+	if err != nil {
+		panic(err)
+	}
+	HookResponseSchema = validation.NewMultipartSchema("HookResponseSchema")
+	_ = HookResponseSchema.Add("AMRConstraint", fmt.Sprintf(`
+{
+	"type": "string",
+	"enum": %s
+}
+`, string(supportedAMRConstraintsJSON)))
+
+	_ = HookResponseSchema.Add("HookResponseSchema", `
 {
 	"oneOf": [
 		{
@@ -38,6 +57,15 @@ var HookResponseSchema = validation.NewSimpleSchema(`
 							}
 						}
 					}
+				},
+				"constraints": {
+					"type": "object",
+					"properties": {
+						"amr": {
+							"type": "array",
+							"items": { "$ref": "#/$defs/AMRConstraint" }
+						}
+					}
 				}
 			},
 			"required": ["is_allowed"]
@@ -56,11 +84,19 @@ var HookResponseSchema = validation.NewSimpleSchema(`
 }
 `)
 
+	HookResponseSchema.Instantiate()
+}
+
 type HookResponse struct {
-	IsAllowed bool      `json:"is_allowed"`
-	Title     string    `json:"title,omitempty"`
-	Reason    string    `json:"reason,omitempty"`
-	Mutations Mutations `json:"mutations,omitempty"`
+	IsAllowed   bool         `json:"is_allowed"`
+	Title       string       `json:"title,omitempty"`
+	Reason      string       `json:"reason,omitempty"`
+	Mutations   Mutations    `json:"mutations,omitempty"`
+	Constraints *Constraints `json:"constraints,omitempty"`
+}
+
+type Constraints struct {
+	AMR []string `json:"amr,omitempty"`
 }
 
 type Mutations struct {

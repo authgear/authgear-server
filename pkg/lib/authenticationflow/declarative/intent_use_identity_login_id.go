@@ -42,12 +42,12 @@ func (n *IntentUseIdentityLoginID) CanReactTo(ctx context.Context, deps *authflo
 	if identified {
 		return nil, authflow.ErrEOF
 	}
-	flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+	flowRootObject, err := findNearestFlowObjectInFlow(deps, flows, n)
 	if err != nil {
 		return nil, err
 	}
 
-	isBotProtectionRequired, err := IsBotProtectionRequired(ctx, deps, flows, n.JSONPointer)
+	isBotProtectionRequired, err := IsBotProtectionRequired(ctx, deps, flows, n.JSONPointer, n)
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +64,7 @@ func (n *IntentUseIdentityLoginID) ReactTo(ctx context.Context, deps *authflow.D
 	var inputTakeLoginID inputTakeLoginID
 	if authflow.AsInput(input, &inputTakeLoginID) {
 		var bpSpecialErr error
-		bpSpecialErr, err := HandleBotProtection(ctx, deps, flows, n.JSONPointer, input)
+		bpSpecialErr, err := HandleBotProtection(ctx, deps, flows, n.JSONPointer, input, n)
 		if err != nil {
 			return nil, err
 		}
@@ -76,7 +76,7 @@ func (n *IntentUseIdentityLoginID) ReactTo(ctx context.Context, deps *authflow.D
 			return nil, err
 		}
 
-		n, err := NewNodeDoUseIdentity(ctx, flows, &NodeDoUseIdentity{
+		n, err := NewNodeDoUseIdentityReactToResult(ctx, deps, flows, &NodeDoUseIdentity{
 			Identity:     exactMatch,
 			IdentitySpec: spec,
 		})
@@ -84,7 +84,7 @@ func (n *IntentUseIdentityLoginID) ReactTo(ctx context.Context, deps *authflow.D
 			return nil, err
 		}
 
-		return authflow.NewNodeSimple(n), bpSpecialErr
+		return n, bpSpecialErr
 	}
 
 	return nil, authflow.ErrIncompatibleInput

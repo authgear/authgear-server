@@ -53,7 +53,7 @@ func (i *IntentAccountLinking) CanReactTo(ctx context.Context, deps *authflow.De
 
 	switch len(flows.Nearest.Nodes) {
 	case 0: // Ask for identity to link
-		flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+		flowRootObject, err := findNearestFlowObjectInFlow(deps, flows, i)
 		if err != nil {
 			return nil, err
 		}
@@ -142,10 +142,11 @@ func (i *IntentAccountLinking) ReactTo(ctx context.Context, deps *authflow.Depen
 		if err != nil {
 			return nil, err
 		}
-		return authflow.NewNodeSimple(&NodeDoCreateIdentity{
+		return NewNodeDoCreateIdentityReactToResult(ctx, deps, flows, NodeDoCreateIdentityOptions{
+			SkipCreate:   false,
 			Identity:     info,
 			IdentitySpec: i.IncomingIdentitySpec,
-		}), nil
+		})
 	}
 
 	return nil, authflow.ErrIncompatibleInput
