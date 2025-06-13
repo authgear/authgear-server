@@ -24,7 +24,7 @@ func NewNodeDoCreatePasskeyReactToResult(ctx context.Context, deps *authflow.Dep
 		SkipCreate: opts.SkipCreate,
 		Identity:   opts.Identity,
 	}
-	doCreateIdenNode, delayedFunction, err := NewNodeDoCreateIdentity(ctx, deps, flows, nodeDoCreateIdentityOpts)
+	doCreateIdenNode, err := NewNodeDoCreateIdentity(ctx, deps, flows, nodeDoCreateIdentityOpts)
 	if err != nil {
 		return nil, err
 	}
@@ -35,10 +35,7 @@ func NewNodeDoCreatePasskeyReactToResult(ctx context.Context, deps *authflow.Dep
 		AttestationResponse:  opts.AttestationResponse,
 	}
 
-	return &authflow.NodeWithDelayedOneTimeFunction{
-		Node:                   authflow.NewNodeSimple(node),
-		DelayedOneTimeFunction: delayedFunction,
-	}, nil
+	return authflow.NewNodeSimple(node), nil
 }
 
 type NodeDoCreatePasskey struct {
@@ -54,7 +51,6 @@ var _ authflow.InputReactor = &NodeDoCreatePasskey{}
 var _ MilestoneDoCreateIdentity = &NodeDoCreatePasskey{}
 var _ MilestoneDoCreateAuthenticator = &NodeDoCreatePasskey{}
 var _ MilestoneDoCreatePasskey = &NodeDoCreatePasskey{}
-var _ MilestoneConstraintsProvider = &NodeDoCreatePasskey{}
 
 func (n *NodeDoCreatePasskey) Kind() string {
 	return "NodeDoCreatePasskey"
