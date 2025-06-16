@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
@@ -650,9 +649,7 @@ func (s *Service) getFlowAction(ctx context.Context, session *Session, flow *Flo
 	}
 
 	var data Data
-	fmt.Printf("findInputReactorResult.InputReactor %T\n", findInputReactorResult.InputReactor)
 	if dataOutputer, ok := findInputReactorResult.InputReactor.(DataOutputer); ok {
-		fmt.Printf("dataOutputer %T\n", dataOutputer)
 		data, err = dataOutputer.OutputData(ctx, s.Deps, findInputReactorResult.Flows)
 		if err != nil {
 			return nil, err
