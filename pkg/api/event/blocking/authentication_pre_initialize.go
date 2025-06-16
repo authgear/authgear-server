@@ -13,7 +13,8 @@ const (
 type AuthenticationPreInitializeBlockingEventPayload struct {
 	Authentication event.AuthenticationContext `json:"authentication"`
 
-	Constraints *event.Constraints `json:"-"`
+	Constraints               *event.Constraints               `json:"-"`
+	BotProtectionRequirements *event.BotProtectionRequirements `json:"-"`
 }
 
 func (e *AuthenticationPreInitializeBlockingEventPayload) BlockingEventType() event.Type {
@@ -33,6 +34,9 @@ func (e *AuthenticationPreInitializeBlockingEventPayload) FillContext(ctx *event
 func (e *AuthenticationPreInitializeBlockingEventPayload) ApplyHookResponse(ctx context.Context, response event.HookResponse) event.ApplyHookResponseResult {
 	if response.Constraints != nil {
 		e.Constraints = response.Constraints
+	}
+	if response.BotProtection != nil {
+		e.BotProtectionRequirements = response.BotProtection
 	}
 	return event.ApplyHookResponseResult{MutationsEverApplied: false}
 }
