@@ -65,6 +65,7 @@ func (i *IntentOAuth) CanReactTo(ctx context.Context, deps *authflow.Dependencie
 		}
 
 		oauthOptions := NewIdentificationOptionsOAuth(
+			flows,
 			deps.Config.Identity.OAuth,
 			deps.FeatureConfig.Identity.OAuth.Providers,
 			authflowCfg,
