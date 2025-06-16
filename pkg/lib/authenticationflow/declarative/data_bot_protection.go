@@ -1,6 +1,9 @@
 package declarative
 
-import "github.com/authgear/authgear-server/pkg/lib/config"
+import (
+	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
+	"github.com/authgear/authgear-server/pkg/lib/config"
+)
 
 // For identification option, authentication option & create_authenticator option
 
@@ -27,7 +30,7 @@ func NewBotProtectionData(t config.BotProtectionProviderType) *BotProtectionData
 	}
 }
 
-func GetBotProtectionData(authflowCfg *config.AuthenticationFlowBotProtection, appCfg *config.BotProtectionConfig) *BotProtectionData {
+func GetBotProtectionData(flows authflow.Flows, authflowCfg *config.AuthenticationFlowBotProtection, appCfg *config.BotProtectionConfig) *BotProtectionData {
 	if authflowCfg == nil {
 		return nil
 	}
