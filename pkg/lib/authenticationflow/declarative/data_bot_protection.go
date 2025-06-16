@@ -31,18 +31,39 @@ func NewBotProtectionData(t config.BotProtectionProviderType) *BotProtectionData
 }
 
 func GetBotProtectionData(flows authflow.Flows, authflowCfg *config.AuthenticationFlowBotProtection, appCfg *config.BotProtectionConfig) *BotProtectionData {
-	if authflowCfg == nil {
-		return nil
-	}
 	if appCfg == nil || !appCfg.Enabled || appCfg.Provider == nil || appCfg.Provider.Type == "" {
 		return nil
 	}
 
-	switch authflowCfg.Mode {
+	var effectiveMode config.BotProtectionRiskMode
+	if authflowCfg != nil {
+		effectiveMode = authflowCfg.Mode
+	}
+	_ = authflow.TraverseFlowIntentFirst(authflow.Traverser{
+		NodeSimple: func(nodeSimple authflow.NodeSimple, w *authflow.Flow) error {
+			if n, ok := nodeSimple.(MilestoneBotProjectionRequirementsProvider); ok {
+				if c := n.MilestoneBotProjectionRequirementsProvider(); c != nil {
+					effectiveMode = c.Mode
+				}
+			}
+			return nil
+		},
+		Intent: func(intent authflow.Intent, w *authflow.Flow) error {
+			if i, ok := intent.(MilestoneBotProjectionRequirementsProvider); ok {
+				if c := i.MilestoneBotProjectionRequirementsProvider(); c != nil {
+					effectiveMode = c.Mode
+				}
+			}
+			return nil
+		},
+	}, flows.Root)
+
+	switch effectiveMode {
 	case config.BotProtectionRiskModeNever:
-		break
+		return nil
 	case config.BotProtectionRiskModeAlways:
 		return NewBotProtectionData(appCfg.Provider.Type)
+	default:
+		return nil
 	}
-	return nil
 }
