@@ -309,6 +309,8 @@
 /pkg/lib/oauth/scope.go:116:34: requestcontext
 /pkg/lib/oauthrelyingparty/oauthrelyingpartyutil/contextbackground.go:11:52: contextbackground
 /pkg/lib/otelauthgear/nethttp.go:30:10: requestcontext
+/pkg/lib/saml/samlbinding/http_post.go:176:35: requestcontext
+/pkg/lib/saml/samlbinding/http_post.go:207:35: requestcontext
 /pkg/lib/session/middleware.go:48:23: requestcontext
 /pkg/lib/session/middleware.go:57:41: requestcontext
 /pkg/lib/session/middleware.go:61:34: requestcontext
