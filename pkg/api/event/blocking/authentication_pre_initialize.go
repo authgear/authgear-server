@@ -22,7 +22,7 @@ func (e *AuthenticationPreInitializeBlockingEventPayload) BlockingEventType() ev
 }
 
 func (e *AuthenticationPreInitializeBlockingEventPayload) UserID() string {
-	return e.Authentication.User.ID
+	return ""
 }
 
 func (e *AuthenticationPreInitializeBlockingEventPayload) GetTriggeredBy() event.TriggeredByType {
