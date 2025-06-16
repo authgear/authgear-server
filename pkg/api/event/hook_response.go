@@ -7,6 +7,7 @@ import (
 	"io"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
@@ -25,6 +26,13 @@ func init() {
 	"enum": %s
 }
 `, string(supportedAMRConstraintsJSON)))
+
+	_ = HookResponseSchema.Add("BotProtectionRiskMode", `
+{
+	"type": "string",
+	"enum": ["never", "always"]
+}
+`)
 
 	_ = HookResponseSchema.Add("HookResponseSchema", `
 {
@@ -66,6 +74,12 @@ func init() {
 							"items": { "$ref": "#/$defs/AMRConstraint" }
 						}
 					}
+				},
+				"bot_protection": {
+					"type": "object",
+					"properties": {
+						"mode": { "$ref": "#/$defs/BotProtectionRiskMode" }
+					}
 				}
 			},
 			"required": ["is_allowed"]
@@ -88,15 +102,20 @@ func init() {
 }
 
 type HookResponse struct {
-	IsAllowed   bool         `json:"is_allowed"`
-	Title       string       `json:"title,omitempty"`
-	Reason      string       `json:"reason,omitempty"`
-	Mutations   Mutations    `json:"mutations,omitempty"`
-	Constraints *Constraints `json:"constraints,omitempty"`
+	IsAllowed     bool                       `json:"is_allowed"`
+	Title         string                     `json:"title,omitempty"`
+	Reason        string                     `json:"reason,omitempty"`
+	Mutations     Mutations                  `json:"mutations,omitempty"`
+	Constraints   *Constraints               `json:"constraints,omitempty"`
+	BotProtection *BotProtectionRequirements `json:"bot_protection,omitempty"`
 }
 
 type Constraints struct {
 	AMR []string `json:"amr,omitempty"`
+}
+
+type BotProtectionRequirements struct {
+	Mode config.BotProtectionRiskMode `json:"mode,omitempty"`
 }
 
 type Mutations struct {

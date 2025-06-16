@@ -158,6 +158,18 @@ func TestParseHookResponse(t *testing.T) {
 			},
 		})
 
+		pass(`{
+			"is_allowed": true,
+			"bot_protection": {
+				"mode": "always"
+			}
+		}`, &HookResponse{
+			IsAllowed: true,
+			BotProtection: &BotProtectionRequirements{
+				Mode: "always",
+			},
+		})
+
 		fail(`{
 			"is_allowed": true,
 			"constraints": {
