@@ -22,8 +22,10 @@ func NewNodePreInitialize(ctx context.Context, deps *authflow.Dependencies, flow
 	}
 
 	payload := &blocking.AuthenticationPreInitializeBlockingEventPayload{
-		Constraints:    nil,
 		Authentication: *authCtx,
+
+		Constraints:               nil,
+		BotProtectionRequirements: nil,
 	}
 	e, err := deps.Events.PrepareBlockingEventWithTx(ctx, payload)
 	if err != nil {
@@ -37,6 +39,7 @@ func NewNodePreInitialize(ctx context.Context, deps *authflow.Dependencies, flow
 		}
 		n.IsPreInitializeInvoked = true
 		n.Constraints = payload.Constraints
+		n.BotProtectionRequirements = payload.BotProtectionRequirements
 		return nil
 	}
 
@@ -47,14 +50,16 @@ func NewNodePreInitialize(ctx context.Context, deps *authflow.Dependencies, flow
 }
 
 type NodePreInitialize struct {
-	IsPreInitializeInvoked bool                  `json:"is_pre_initialize_invoked"`
-	Constraints            *eventapi.Constraints `json:"constraints,omitempty"`
+	IsPreInitializeInvoked    bool                                `json:"is_pre_initialize_invoked"`
+	Constraints               *eventapi.Constraints               `json:"constraints,omitempty"`
+	BotProtectionRequirements *eventapi.BotProtectionRequirements `json:"bot_protection_requirements,omitempty"`
 }
 
 var _ authflow.NodeSimple = &NodePreInitialize{}
 var _ authflow.InputReactor = &NodePreInitialize{}
 var _ authflow.Milestone = &NodePreInitialize{}
 var _ MilestoneConstraintsProvider = &NodePreInitialize{}
+var _ MilestoneBotProjectionRequirementsProvider = &NodePreInitialize{}
 
 func (*NodePreInitialize) Kind() string {
 	return "NodePreInitialize"
@@ -63,6 +68,9 @@ func (*NodePreInitialize) Kind() string {
 func (n *NodePreInitialize) Milestone() {}
 func (n *NodePreInitialize) MilestoneConstraintsProvider() *eventapi.Constraints {
 	return n.Constraints
+}
+func (n *NodePreInitialize) MilestoneBotProjectionRequirementsProvider() *eventapi.BotProtectionRequirements {
+	return n.BotProtectionRequirements
 }
 
 func (n *NodePreInitialize) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
