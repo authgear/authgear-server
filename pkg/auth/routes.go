@@ -17,16 +17,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
-func newSIWEDynamicCSPMiddleware(deps *deps.RequestProvider) httproute.Middleware {
-	return newDynamicCSPMiddleware(deps, webapp.AllowFrameAncestorsFromEnv(true), webapp.AllowFrameAncestorsFromCustomUI(false))
-}
-
-func newWebPageDynamicCSPMiddleware(deps *deps.RequestProvider) httproute.Middleware {
-	return newDynamicCSPMiddleware(deps, webapp.AllowFrameAncestorsFromEnv(true), webapp.AllowFrameAncestorsFromCustomUI(false))
-}
-
-func newConsentPageDynamicCSPMiddleware(deps *deps.RequestProvider) httproute.Middleware {
-	return newDynamicCSPMiddleware(deps, webapp.AllowFrameAncestorsFromEnv(false), webapp.AllowFrameAncestorsFromCustomUI(true))
+func newProjectRootDynamicCSPMiddleware(deps *deps.RequestProvider) httproute.Middleware {
+	return newDynamicCSPMiddleware(deps, webapp.AllowFrameAncestorsFromEnv(true), webapp.AllowFrameAncestorsFromCustomUI(true))
 }
 
 func newAllSessionMiddleware(deps *deps.RequestProvider) httproute.Middleware {
@@ -49,7 +41,6 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) ht
 		p.RootMiddleware(newPanicMiddleware),
 		p.RootMiddleware(newBodyLimitMiddleware),
 		p.RootMiddleware(newSentryMiddleware),
-		p.RootMiddleware(newNoProjectCSPMiddleware),
 		httproute.MiddlewareFunc(httputil.XContentTypeOptionsNosniff),
 		httproute.MiddlewareFunc(httputil.PermissionsPolicyHeader),
 		httproute.MiddlewareFunc(httputil.XRobotsTag),
@@ -60,9 +51,10 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) ht
 		p.RootMiddleware(newNoProjectCSPMiddleware),
 	)
 
-	rootChain := httproute.Chain(
+	projectRootChain := httproute.Chain(
 		baseChain,
 		MakeWebAppRequestMiddleware(p, configSource, newWebAppRequestMiddleware),
+		p.Middleware(newProjectRootDynamicCSPMiddleware),
 	)
 
 	// This route is intentionally simple.
@@ -74,19 +66,19 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) ht
 	)
 
 	appStaticChain := httproute.Chain(
-		rootChain,
+		projectRootChain,
 		p.Middleware(newCORSMiddleware),
 		p.Middleware(newPublicOriginMiddleware),
 	)
 
 	samlStaticChain := httproute.Chain(
-		rootChain,
+		projectRootChain,
 		p.Middleware(newCORSMiddleware),
 		p.Middleware(newPublicOriginMiddleware),
 	)
 
 	samlAPIChain := httproute.Chain(
-		rootChain,
+		projectRootChain,
 		p.Middleware(newCORSMiddleware),
 		p.Middleware(newPublicOriginMiddleware),
 		newSessionMiddleware(),
@@ -95,14 +87,14 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) ht
 	)
 
 	oauthStaticChain := httproute.Chain(
-		rootChain,
+		projectRootChain,
 		p.Middleware(newCORSMiddleware),
 		p.Middleware(newPublicOriginMiddleware),
 	)
 
 	newOAuthAPIChain := func() httproute.Middleware {
 		return httproute.Chain(
-			rootChain,
+			projectRootChain,
 			p.Middleware(newCORSMiddleware),
 			p.Middleware(newPublicOriginMiddleware),
 			newSessionMiddleware(),
@@ -119,7 +111,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) ht
 	oauthAuthzAPIChain := newOAuthAPIChain()
 
 	apiChain := httproute.Chain(
-		rootChain,
+		projectRootChain,
 		p.Middleware(newCORSMiddleware),
 		p.Middleware(newPublicOriginMiddleware),
 		p.Middleware(newAllSessionMiddleware),
@@ -153,7 +145,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) ht
 	)
 
 	oauthAPIScopedChain := httproute.Chain(
-		rootChain,
+		projectRootChain,
 		p.Middleware(newCORSMiddleware),
 		p.Middleware(newPublicOriginMiddleware),
 		p.Middleware(newAllSessionMiddleware),
@@ -164,7 +156,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) ht
 
 	newWebappChain := func() httproute.Middleware {
 		return httproute.Chain(
-			rootChain,
+			projectRootChain,
 			p.Middleware(newPublicOriginMiddleware),
 			p.Middleware(newPanicWebAppMiddleware),
 			newSessionMiddleware(),
@@ -192,7 +184,6 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) ht
 
 	webappNotFoundChain := httproute.Chain(
 		newWebappChain(),
-		p.Middleware(newWebPageDynamicCSPMiddleware),
 	)
 
 	newWebappPageChain := func() httproute.Middleware {
@@ -203,17 +194,10 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) ht
 			// Turbo no longer requires us to tell the redirected location.
 			// It can now determine redirection from the response.
 			// https://github.com/hotwired/turbo/blob/daabebb0575fffbae1b2582dc458967cd638e899/src/core/drive/visit.ts#L316
-			p.Middleware(newWebPageDynamicCSPMiddleware),
 			p.Middleware(newWebAppWeChatRedirectURIMiddleware),
 		)
 	}
 	webappPageChain := newWebappPageChain()
-	webappSIWEChain := httproute.Chain(
-		webappChain,
-		p.Middleware(newCSRFDebugMiddleware),
-		p.Middleware(newCSRFMiddleware),
-		p.Middleware(newSIWEDynamicCSPMiddleware),
-	)
 	webappAuthEntrypointChain := httproute.Chain(
 		webappPageChain,
 		p.Middleware(newAuthEntryPointMiddleware),
@@ -242,13 +226,6 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) ht
 	webappVerifyBotProtectionChain := httproute.Chain(
 		webappPageChain,
 	)
-	// consent page only accepts idp session
-	webappConsentPageChain := httproute.Chain(
-		newWebappChain(),
-		p.Middleware(newCSRFDebugMiddleware),
-		p.Middleware(newCSRFMiddleware),
-		p.Middleware(newConsentPageDynamicCSPMiddleware),
-	)
 	webappAuthenticatedChain := httproute.Chain(
 		webappPageChain,
 		webapp.RequireAuthenticatedMiddleware{},
@@ -273,13 +250,12 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) ht
 		p.Middleware(newSettingsSubRoutesMiddleware),
 	)
 	webappPagePreviewChain := httproute.Chain(
-		rootChain,
+		projectRootChain,
 		p.Middleware(newPublicOriginMiddleware),
 		p.Middleware(newPanicWebAppMiddleware),
 		httproute.MiddlewareFunc(httputil.NoStore),
 		httproute.MiddlewareFunc(webapp.IntlMiddleware),
 		p.Middleware(newWebAppColorSchemeMiddleware),
-		p.Middleware(newWebPageDynamicCSPMiddleware),
 	)
 
 	appStaticRoute := httproute.Route{Middleware: appStaticChain}
@@ -300,13 +276,11 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) ht
 	webappPageRoute := httproute.Route{Middleware: webappPageChain}
 	webappNotFoundRoute := httproute.Route{Middleware: webappNotFoundChain}
 	webappPromoteRoute := httproute.Route{Middleware: webappPromoteChain}
-	webappSIWERoute := httproute.Route{Middleware: webappSIWEChain}
 	webappAuthEntrypointRoute := httproute.Route{Middleware: webappAuthEntrypointChain}
 	webappRequireAuthEnabledAuthEntrypointRoute := httproute.Route{Middleware: webappRequireAuthEnabledAuthEntrypointChain}
 	webappSelectAccountRoute := httproute.Route{Middleware: webappSelectAccountChain}
 	webappReauthRoute := httproute.Route{Middleware: webappReauthChain}
 	webappVerifyBotProtectionRoute := httproute.Route{Middleware: webappVerifyBotProtectionChain}
-	webappConsentPageRoute := httproute.Route{Middleware: webappConsentPageChain}
 	webappAuthenticatedRoute := httproute.Route{Middleware: webappAuthenticatedChain}
 	webappSuccessPageRoute := httproute.Route{Middleware: webappSuccessPageChain}
 	webappSettingsRoute := httproute.Route{Middleware: webappSettingsChain}
@@ -438,7 +412,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) ht
 	router.Add(webapphandler.ConfigureErrorRoute(webappPageRoute), p.Handler(newWebAppErrorHandler))
 	router.Add(webapphandler.ConfigureForceChangePasswordRoute(webappPageRoute), p.Handler(newWebAppForceChangePasswordHandler))
 	router.Add(webapphandler.ConfigureForceChangeSecondaryPasswordRoute(webappPageRoute), p.Handler(newWebAppForceChangeSecondaryPasswordHandler))
-	router.Add(webapphandler.ConfigureConnectWeb3AccountRoute(webappSIWERoute), p.Handler(newWebAppConnectWeb3AccountHandler))
+	router.Add(webapphandler.ConfigureConnectWeb3AccountRoute(webappPageRoute), p.Handler(newWebAppConnectWeb3AccountHandler))
 	router.Add(webapphandler.ConfigureFeatureDisabledRoute(webappPageRoute), p.Handler(newWebAppFeatureDisabledHandler))
 
 	router.Add(webapphandler.ConfigureForgotPasswordSuccessRoute(webappSuccessPageRoute), p.Handler(newWebAppForgotPasswordSuccessHandler))
@@ -551,7 +525,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) ht
 
 	router.Add(oauthhandler.ConfigureUserInfoRoute(oauthAPIScopedRoute), p.Handler(newOAuthUserInfoHandler))
 
-	router.Add(oauthhandler.ConfigureConsentRoute(webappConsentPageRoute), p.Handler(newOAuthConsentHandler))
+	router.Add(oauthhandler.ConfigureConsentRoute(webappPageRoute), p.Handler(newOAuthConsentHandler))
 
 	router.Add(samlhandler.ConfigureMetadataRoute(samlStaticRoute), p.Handler(newSAMLMetadataHandler))
 	router.Add(samlhandler.ConfigureLoginRoute(samlAPIRoute), p.Handler(newSAMLLoginHandler))

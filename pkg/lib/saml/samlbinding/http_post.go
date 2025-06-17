@@ -8,6 +8,7 @@ import (
 	"github.com/beevik/etree"
 
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 type SAMLBindingHTTPPostParseRequestResult struct {
@@ -96,11 +97,23 @@ type responsePostFormData struct {
 	CallbackURL  string
 	SAMLResponse string
 	RelayState   string
+	CSPNonce     string
 }
 
 const responsePostForm = `
 <html>
-	<body onload="document.getElementById('f').submit();">
+	<head>
+		{{- if $.CSPNonce }}
+		<script nonce="{{ $.CSPNonce }}">
+		{{- else }}
+		<script>
+		{{- end }}
+			window.addEventListener("load", (event) => {
+				document.getElementById('f').submit();
+			})
+		</script>
+	</head>
+	<body>
 		<form method="POST" action="{{.CallbackURL}}" id="f">
 			<input type="hidden" name="SAMLResponse" value="{{.SAMLResponse}}" />
 			<input type="hidden" name="RelayState" value="{{.RelayState}}" />
@@ -116,10 +129,22 @@ type requestPostFormData struct {
 	CallbackURL string
 	SAMLRequest string
 	RelayState  string
+	CSPNonce    string
 }
 
 const requestPostForm = `
 <html>
+	<head>
+		{{- if $.CSPNonce }}
+		<script nonce="{{ $.CSPNonce }}">
+		{{- else }}
+		<script>
+		{{- end }}
+			window.addEventListener("load", (event) => {
+				document.getElementById('f').submit();
+			})
+		</script>
+	</head>
 	<body onload="document.getElementById('f').submit();">
 		<form method="POST" action="{{.CallbackURL}}" id="f">
 			<input type="hidden" name="SAMLRequest" value="{{.SAMLRequest}}" />
@@ -148,10 +173,12 @@ func (*SAMLBindingHTTPPostWriter) WriteResponse(
 
 	encodedResponse := base64.StdEncoding.EncodeToString(responseBuf)
 
+	cspNonce := httputil.GetCSPNonce(r.Context())
 	data := responsePostFormData{
 		CallbackURL:  callbackURL,
 		SAMLResponse: encodedResponse,
 		RelayState:   relayState,
+		CSPNonce:     cspNonce,
 	}
 
 	tpl := template.Must(template.New("").Parse(responsePostForm))
@@ -177,10 +204,12 @@ func (*SAMLBindingHTTPPostWriter) WriteRequest(
 
 	encodedRequest := base64.StdEncoding.EncodeToString(requestBuf)
 
+	cspNonce := httputil.GetCSPNonce(r.Context())
 	data := requestPostFormData{
 		CallbackURL: callbackURL,
 		SAMLRequest: encodedRequest,
 		RelayState:  relayState,
+		CSPNonce:    cspNonce,
 	}
 
 	tpl := template.Must(template.New("").Parse(requestPostForm))
