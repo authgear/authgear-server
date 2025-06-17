@@ -223,11 +223,21 @@ func (s *Sender) sendSMS(ctx context.Context, msgType translation.MessageType, o
 				"phone": phone.Mask(opts.To),
 			}).Error("failed to send SMS")
 
-			otelauthgear.IntCounterAddOne(
-				ctx,
-				otelauthgear.CounterSMSRequestCount,
-				otelauthgear.WithStatusError(),
-			)
+			var smsapiErr *smsapi.SendError
+			if errors.As(err, &smsapiErr) && smsapiErr.APIErrorKind != nil {
+				otelauthgear.IntCounterAddOne(
+					ctx,
+					otelauthgear.CounterSMSRequestCount,
+					otelauthgear.WithStatusError(),
+					otelauthgear.WithAPIErrorReason(smsapiErr.APIErrorKind.Reason),
+				)
+			} else {
+				otelauthgear.IntCounterAddOne(
+					ctx,
+					otelauthgear.CounterSMSRequestCount,
+					otelauthgear.WithStatusError(),
+				)
+			}
 
 			dispatchErr := s.DispatchEventImmediatelyWithTx(ctx, &nonblocking.SMSErrorEventPayload{
 				Description: s.errorToDescription(err),
