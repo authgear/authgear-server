@@ -248,6 +248,8 @@ func handleResponse(gatewayType string, responseBody *ResponseBody, dumpedRespon
 		err.APIErrorKind = &smsapi.ErrKindAuthenticationFailed
 	case "delivery_rejected":
 		err.APIErrorKind = &smsapi.ErrKindDeliveryRejected
+	case "attempted_to_send_otp_template_without_code":
+		err.APIErrorKind = &smsapi.ErrKindAttemptedToSendOTPTemplateWithoutCode
 	}
 	return err
 }
