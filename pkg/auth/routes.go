@@ -18,11 +18,7 @@ import (
 )
 
 func newProjectRootDynamicCSPMiddleware(deps *deps.RequestProvider) httproute.Middleware {
-	return newDynamicCSPMiddleware(deps, webapp.AllowFrameAncestorsFromEnv(true), webapp.AllowFrameAncestorsFromCustomUI(false))
-}
-
-func newConsentPageDynamicCSPMiddleware(deps *deps.RequestProvider) httproute.Middleware {
-	return newDynamicCSPMiddleware(deps, webapp.AllowFrameAncestorsFromEnv(false), webapp.AllowFrameAncestorsFromCustomUI(true))
+	return newDynamicCSPMiddleware(deps, webapp.AllowFrameAncestorsFromEnv(true), webapp.AllowFrameAncestorsFromCustomUI(true))
 }
 
 func newAllSessionMiddleware(deps *deps.RequestProvider) httproute.Middleware {
@@ -230,13 +226,6 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) ht
 	webappVerifyBotProtectionChain := httproute.Chain(
 		webappPageChain,
 	)
-	// consent page only accepts idp session
-	webappConsentPageChain := httproute.Chain(
-		newWebappChain(),
-		p.Middleware(newCSRFDebugMiddleware),
-		p.Middleware(newCSRFMiddleware),
-		p.Middleware(newConsentPageDynamicCSPMiddleware),
-	)
 	webappAuthenticatedChain := httproute.Chain(
 		webappPageChain,
 		webapp.RequireAuthenticatedMiddleware{},
@@ -292,7 +281,6 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) ht
 	webappSelectAccountRoute := httproute.Route{Middleware: webappSelectAccountChain}
 	webappReauthRoute := httproute.Route{Middleware: webappReauthChain}
 	webappVerifyBotProtectionRoute := httproute.Route{Middleware: webappVerifyBotProtectionChain}
-	webappConsentPageRoute := httproute.Route{Middleware: webappConsentPageChain}
 	webappAuthenticatedRoute := httproute.Route{Middleware: webappAuthenticatedChain}
 	webappSuccessPageRoute := httproute.Route{Middleware: webappSuccessPageChain}
 	webappSettingsRoute := httproute.Route{Middleware: webappSettingsChain}
@@ -537,7 +525,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) ht
 
 	router.Add(oauthhandler.ConfigureUserInfoRoute(oauthAPIScopedRoute), p.Handler(newOAuthUserInfoHandler))
 
-	router.Add(oauthhandler.ConfigureConsentRoute(webappConsentPageRoute), p.Handler(newOAuthConsentHandler))
+	router.Add(oauthhandler.ConfigureConsentRoute(webappPageRoute), p.Handler(newOAuthConsentHandler))
 
 	router.Add(samlhandler.ConfigureMetadataRoute(samlStaticRoute), p.Handler(newSAMLMetadataHandler))
 	router.Add(samlhandler.ConfigureLoginRoute(samlAPIRoute), p.Handler(newSAMLLoginHandler))
