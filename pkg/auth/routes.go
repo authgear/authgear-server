@@ -17,10 +17,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
-func newSIWEDynamicCSPMiddleware(deps *deps.RequestProvider) httproute.Middleware {
-	return newDynamicCSPMiddleware(deps, webapp.AllowFrameAncestorsFromEnv(true), webapp.AllowFrameAncestorsFromCustomUI(false))
-}
-
 func newProjectRootDynamicCSPMiddleware(deps *deps.RequestProvider) httproute.Middleware {
 	return newDynamicCSPMiddleware(deps, webapp.AllowFrameAncestorsFromEnv(true), webapp.AllowFrameAncestorsFromCustomUI(false))
 }
@@ -206,12 +202,6 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) ht
 		)
 	}
 	webappPageChain := newWebappPageChain()
-	webappSIWEChain := httproute.Chain(
-		webappChain,
-		p.Middleware(newCSRFDebugMiddleware),
-		p.Middleware(newCSRFMiddleware),
-		p.Middleware(newSIWEDynamicCSPMiddleware),
-	)
 	webappAuthEntrypointChain := httproute.Chain(
 		webappPageChain,
 		p.Middleware(newAuthEntryPointMiddleware),
@@ -297,7 +287,6 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) ht
 	webappPageRoute := httproute.Route{Middleware: webappPageChain}
 	webappNotFoundRoute := httproute.Route{Middleware: webappNotFoundChain}
 	webappPromoteRoute := httproute.Route{Middleware: webappPromoteChain}
-	webappSIWERoute := httproute.Route{Middleware: webappSIWEChain}
 	webappAuthEntrypointRoute := httproute.Route{Middleware: webappAuthEntrypointChain}
 	webappRequireAuthEnabledAuthEntrypointRoute := httproute.Route{Middleware: webappRequireAuthEnabledAuthEntrypointChain}
 	webappSelectAccountRoute := httproute.Route{Middleware: webappSelectAccountChain}
@@ -435,7 +424,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) ht
 	router.Add(webapphandler.ConfigureErrorRoute(webappPageRoute), p.Handler(newWebAppErrorHandler))
 	router.Add(webapphandler.ConfigureForceChangePasswordRoute(webappPageRoute), p.Handler(newWebAppForceChangePasswordHandler))
 	router.Add(webapphandler.ConfigureForceChangeSecondaryPasswordRoute(webappPageRoute), p.Handler(newWebAppForceChangeSecondaryPasswordHandler))
-	router.Add(webapphandler.ConfigureConnectWeb3AccountRoute(webappSIWERoute), p.Handler(newWebAppConnectWeb3AccountHandler))
+	router.Add(webapphandler.ConfigureConnectWeb3AccountRoute(webappPageRoute), p.Handler(newWebAppConnectWeb3AccountHandler))
 	router.Add(webapphandler.ConfigureFeatureDisabledRoute(webappPageRoute), p.Handler(newWebAppFeatureDisabledHandler))
 
 	router.Add(webapphandler.ConfigureForgotPasswordSuccessRoute(webappSuccessPageRoute), p.Handler(newWebAppForgotPasswordSuccessHandler))
