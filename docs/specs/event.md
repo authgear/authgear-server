@@ -53,6 +53,9 @@
       - [identity.oauth.disconnected](#identityoauthdisconnected)
       - [identity.biometric.enabled](#identitybiometricenabled)
       - [identity.biometric.disabled](#identitybiometricdisabled)
+  * [Trigger Points Diagrams](#trigger-points-diagrams)
+    + [Signup](#signup)
+    + [Login](#login)
 
 # Event
 
@@ -358,6 +361,51 @@ Example payload:
     },
   }
 }
+```
+
+##### authentication.pre_authenticated in authentication flow
+
+The trigger time of `authentication.pre_authenticated` is controlled by the step `type: trigger_event`. For example, a typical login flow would look like:
+
+```yaml
+authentication_flows:
+  login_flows:
+    - name: default
+      steps:
+        - type: identify
+          one_of:
+            - identification: username
+        - type: authenticate
+          one_of:
+            - authentication: primary_password
+        - type: trigger_event # Add this step
+          event: authentication.pre_authenticated
+        - type: enforce_constraints_amr
+        - type: check_account_status
+        - type: terminate_other_sessions
+```
+
+This triggers `authentication.pre_authenticated` right after `primary_password` authentication.
+
+Note that `authentication.pre_authenticated` will still be triggered at the end of the flow even if the config does not explicitly trigger this event. This is done in conjunction with `enforce_constraints_amr` to ensure the returned AMR constraints are always respected:
+
+```yaml
+authentication_flows:
+  login_flows:
+    - name: default
+      steps:
+        - type: identify
+          one_of:
+            - identification: username
+        - type: authenticate
+          one_of:
+            - authentication: primary_password
+        - type: check_account_status
+        - type: terminate_other_sessions
+        # These steps are not in the config, but are still triggered implicitly
+        # - type: trigger_event
+        #   event: authentication.pre_authenticated
+        # - type: enforce_constraints_amr
 ```
 
 #### oidc.jwt.pre_create
@@ -924,6 +972,10 @@ Occurs when biometric login is disabled. It will be triggered only when the user
 
 ## Trigger Points Diagrams
 
+The below diagram illustrate events triggered within the *default* authentication flow.
+
+Note that event order could be mutated in customized authentication flow.
+
 **Diagram Legend:**
 
 ```mermaid
@@ -932,9 +984,9 @@ graph LR
     NonBlocking[Non-Blocking Event]:::event
     Process[Steps of the flow]:::processNode
 
-    classDef blockingEvent fill:#ADD8E6
-    classDef event fill:#98FB98
-    classDef processNode fill:#dddddd
+    classDef blockingEvent fill:#ADD8E6,color:#000000
+    classDef event fill:#98FB98,color:#000000
+    classDef processNode fill:#dddddd,color:#000000
 ```
 
 ### Signup
@@ -950,11 +1002,11 @@ flowchart TD
         Identify --> AuthenticationPostIdentified[authentication.post_identified]
         AuthenticationPostIdentified --> Verify[Verify]
         Verify --> CreateAuthenticator[Create Authenticator]
-        CreateAuthenticator --> ViewRecoveryCode[View Recovery Code]
+        CreateAuthenticator --> AuthenticationPreAuthenticated[authentication.pre_authenticated]
+        AuthenticationPreAuthenticated --> CreateAuthenticatorAdaptive["Create Authenticator<br>(Enforce AMR Constraints)"]
+        CreateAuthenticatorAdaptive --> ViewRecoveryCode[View Recovery Code]
         ViewRecoveryCode --> PromptCreatePasskey[Prompt Create Passkey]
-        PromptCreatePasskey --> AuthenticationPreAuthenticated[authentication.pre_authenticated]
-        AuthenticationPreAuthenticated --> CreateAuthenticatorAdaptive["Create Authenticator<br>(Fulfill AMR Constraints)"]
-        CreateAuthenticatorAdaptive --> UserPreCreate[user.pre_create]
+        PromptCreatePasskey --> UserPreCreate[user.pre_create]
         UserPreCreate --> CreateUser[Create User]
         CreateUser --> UserCreated[user.created]
         UserCreated --> FinishSignup([Finish])
@@ -968,9 +1020,9 @@ flowchart TD
 
     FinishSignup --> ExchangeCode
 
-    classDef event fill:#98FB98
-    classDef blockingEvent fill:#ADD8E6
-    classDef processNode fill:#dddddd
+    classDef event fill:#98FB98,color:#000000
+    classDef blockingEvent fill:#ADD8E6,color:#000000
+    classDef processNode fill:#dddddd,color:#000000
     class BotProtectionVerificationFailed,UserCreated event
     class AuthenticationPreInitialize,AuthenticationPostIdentified,AuthenticationPreAuthenticated,UserPreCreate,OIDCJWTPreCreate blockingEvent
     class Start,BotProtection,Identify,Verify,CreateAuthenticator,ViewRecoveryCode,PromptCreatePasskey,CreateAuthenticatorAdaptive,CreateUser,FinishSignup,ExchangeCode,IssueTokens processNode
@@ -994,15 +1046,15 @@ flowchart TD
         AuthenticatePrimary -- "Success" --> AuthenticateSecondary["Authenticate<br>(Secondary Authenticator)"]
         AuthenticatePrimary -- "Failed" --> PrimaryAuthFailed["authentication.primary.password.failed<br>authentication.primary.oob_otp_email.failed<br>authentication.primary.oob_otp_sms.failed"]:::event
 
-        AuthenticateSecondary -- "Success" --> ChangePassword[Change Password]
+        AuthenticateSecondary -- "Success" --> AuthenticationPreAuthenticated[authentication.pre_authenticated]
         AuthenticateSecondary -- "Failed" --> SecondaryAuthFailed["authentication.secondary.password.failed<br>authentication.secondary.totp.failed<br>authentication.secondary.oob_otp_email.failed<br>authentication.secondary.oob_otp_sms.failed<br>authentication.secondary.recovery_code.failed"]:::event
 
+        AuthenticationPreAuthenticated --> AuthenticateAdaptive["Authenticate<br>(Enforce AMR Constraints)"]
+        AuthenticateAdaptive --> ChangePassword[Change Password]
         ChangePassword --> CheckAccountStatus[Check Account Status]
         CheckAccountStatus --> TerminateOtherSessions[Terminate Other Sessions]
         TerminateOtherSessions --> PromptCreatePasskey[Prompt Create Passkey]
-        PromptCreatePasskey --> AuthenticationPreAuthenticated[authentication.pre_authenticated]
-        AuthenticationPreAuthenticated --> AuthenticateAdaptive["Authenticate<br>(Fulfill AMR Constraints)"]
-        AuthenticateAdaptive --> UserAuthenticated[user.authenticated]
+        PromptCreatePasskey --> UserAuthenticated[user.authenticated]
         UserAuthenticated --> FinishLogin([Finish])
     end
 
@@ -1014,9 +1066,9 @@ flowchart TD
 
     FinishLogin --> ExchangeCode
 
-    classDef event fill:#98FB98
-    classDef blockingEvent fill:#ADD8E6
-    classDef processNode fill:#dddddd
+    classDef event fill:#98FB98,color:#000000
+    classDef blockingEvent fill:#ADD8E6,color:#000000
+    classDef processNode fill:#dddddd,color:#000000
     class BotProtectionVerificationFailed,AuthenticationIdentityLoginIDFailed,PrimaryAuthFailed,SecondaryAuthFailed,UserAuthenticated event
     class AuthenticationPreInitialize,AuthenticationPostIdentified,AuthenticationPreAuthenticated,OIDCJWTPreCreate blockingEvent
     class Start,BotProtection,Identify,AuthenticatePrimary,AuthenticateSecondary,ChangePassword,CheckAccountStatus,TerminateOtherSessions,PromptCreatePasskey,AuthenticateAdaptive,ExchangeCode,IssueTokens,FinishLogin processNode
