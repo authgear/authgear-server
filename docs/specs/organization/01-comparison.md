@@ -6,16 +6,19 @@
 > [!IMPORTANT]
 > SuperTokens is not included in this table because it does not natively support organization at all.
 
-| Item                                  | Auth0                                   | Stytch                                                                       | Zitadel                                          | Clerk | Kinde                               |
-| ---                                   | ---                                     | ---                                                                          | ---                                              | ---   | ---                                 |
-| Organization is optional              | Yes                                     | Authentication Type is determined at project creation. Unmodifiable.         | No                                               | Yes   | Yes                                 |
-| Support building GitHub-style service | Yes                                     | Have to emulate with 2 projects                                              | Yes                                              | Yes   | Yes                                 |
-| Different password policies           | Yes                                     | Either Cross-organization or Organization-scoped. Once chosen, no going back | Yes                                              | No    | Paid feature                        |
-| Different MFA policies                | Use post-login action to customize      | Yes                                                                          | Yes                                              | No    | Paid feature                        |
-| IAM                                   | Yes                                     | Yes                                                                          | Yes                                              | No    | No                                  |
-| Invitation                            | Yes. Can return to specific application | Only supported at API level. Can return to specific URL to your backend      | Yes when V2 API is enabled. Cannot return to URL | Yes   | No                                  |
-| Email discovery                       | Yes                                     | Yes                                                                          | No                                               | No    | Yes                                 |
-| Organization switcher                 | No. Session bound to single org         | Provide API for self-implementation                                          | No                                               | Yes   | Provide API for self-implementation |
+| Item                                  | Auth0   | Stytch  | Zitadel | Clerk | Kinde   |
+| ---                                   | ---     | ---     | ---     | ---   | ---     |
+| Organization is optional              | Yes     | Yes[^3] | No      | Yes   | Yes     |
+| Support building GitHub-style service | Yes     | Yes[^2] | Yes     | Yes   | Yes     |
+| Different password policies           | Yes     | Yes[^4] | Yes     | No    | Yes[^1] |
+| Different MFA policies                | Yes[^5] | Yes     | Yes     | No    | Yes[^1] |
+| IAM                                   | Yes     | Yes     | Yes     | No    | No      |
+| Invitation to specific application    | Yes     | No      | No      | Yes   | No      |
+| Email discovery                       | Yes     | Yes     | No      | No    | Yes     |
+| Organization switcher                 | No      | Yes[^6] | No      | Yes   | Yes[^6] |
+
+> [!WARNING]
+> Those "Yes" with footnotes usually mean there is some caveats. Please read the footnotes!
 
 ## Implications
 
@@ -80,3 +83,11 @@ In other competitors where a user belongs to one and only one organization, you 
 
 Only Clerk supports this out-of-box, but given its lack of support of different password policies and different MFA policies,
 it is not very useful.
+
+
+[^1]: Paid feature.
+[^2]: Emulate with 2 projects. 1 Stytch B2B, 1 Stytch Consumer.
+[^3]: Actually In Stytch B2B, organization is mandatory. In Stytch Consumer, organization is unsupported.
+[^4]: Either cross-organization or organization-scoped. Once chosen, no going back.
+[^5]: Use post-login action to customize.
+[^6]: Not a builtin feature. Have to use the API to implement yourselves.
