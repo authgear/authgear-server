@@ -20,7 +20,7 @@
 > [!WARNING]
 > Those "Yes" with footnotes usually mean there is some caveats. Please read the footnotes!
 
-## Implications
+## Observations on each item
 
 ### Sign-in session is bound to a single organization
 
