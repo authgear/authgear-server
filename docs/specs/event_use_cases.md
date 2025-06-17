@@ -266,9 +266,7 @@ By setting `overrides.rate_limit.weight` to 2, it means this attempt of identifi
 
 ### Adaptive MFA with customized Authflow
 
-While adaptive MFA can be implemented with `authentication.pre_authenticated`, you have no control on the step order because the MFA steps must appear after the hook is called, and this is handled automatically by the authentication flow.
-
-If you want full control on the flow, use `authentication.post_identified` instead.
+With customized authentication flow, you are able to control the position of step which handles AMR constraints.
 
 Firstly, define a step to handle Adaptive MFA in the authentifaction flow.
 
@@ -287,18 +285,16 @@ authentication_flows:
                   one_of:
                     - authentication: primary_oob_otp_sms
                       target_step: login_identify
-        - type: authenticate # Add this step
-          show_untill_amr_fulfilled: true
-          one_of:
-            - authentication: secondary_totp
+        - type: enforce_constraints_amr # Add this step
         - type: check_account_status
         - type: terminate_other_sessions
 ```
 
-In the above example, we handle adaptive MFA by adding a `authenticate` step in the flow, with `show_untill_amr_fulfilled` set to `true`.
-The value of `show_untill_amr_fulfilled` is `true`, which means the authenticate step will authenticate the user until `amr` constraints are fufilled in the flow. If no `amr` constraint is set, the step will be skipped.
+In the above example, we handle adaptive MFA by adding a `enforce_constraints_amr` step in the flow.
 
-Then, return the constraints in your `authentication.post_identified` hook:
+The step will enforce AMR constraints by authenticating the user with authentication methods required by the constraints, until all contraints are fulfilled.
+
+And your hook could be defined as below:
 
 ```typescript
 export default async function (
@@ -320,8 +316,34 @@ export default async function (
 }
 ```
 
-Because we only return `contraints.amr` if the user is outside Hong Kong, the user will see the `authenticate` step with an option `secondary_totp` only if he is signing in outside Hong Kong.
-Users in Hong Kong will skip the step and continue to the next step `check_account_status`.
+Since `constraints.amr` is only returned if the user is outside Hong Kong, users signing in from outside Hong Kong will be required to authenticate with an enabled secondary authentication method due to the configured `enforce_constraints_amr` step.
+Users in Hong Kong will skip this step and proceed to `check_account_status`.
+
+The above example only works with `authentication.post_identified`, because `authentication.pre_authenticated` is triggered at the end of flow, which is after your `enforce_constraints_amr` step.
+
+If you prefer using `authentication.pre_authenticated`, add one more step to trigger the event before `enforce_constraints_amr`:
+
+```yaml
+authentication_flows:
+  login_flows:
+    - name: default
+      steps:
+        - name: login_identify
+          type: identify
+          one_of:
+            - identification: phone
+              steps:
+                - name: authenticate_primary_phone
+                  type: authenticate
+                  one_of:
+                    - authentication: primary_oob_otp_sms
+                      target_step: login_identify
+        - type: trigger_event # Add this step
+          event: authentication.pre_authenticated
+        - type: enforce_constraints_amr # Add this step
+        - type: check_account_status
+        - type: terminate_other_sessions
+```
 
 ### Enable bot protection under specific conditions
 
@@ -351,8 +373,8 @@ export default async function (
     return {
       is_allowed: true,
       bot_protection: {
-        mode: "always"
-      }
+        mode: "always",
+      },
     };
   }
   // Else, simply allow the login
