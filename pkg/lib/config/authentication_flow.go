@@ -698,10 +698,14 @@ type AuthenticationFlowObject interface {
 	IsFlowObject()
 }
 
+type AuthenticationFlowStepsObject interface {
+	GetSteps() []AuthenticationFlowObject
+}
+
 type AuthenticationFlowObjectFlowRoot interface {
 	AuthenticationFlowObject
+	AuthenticationFlowStepsObject
 	GetName() string
-	GetSteps() []AuthenticationFlowObject
 }
 
 type AuthenticationFlowType string
@@ -729,7 +733,7 @@ type AuthenticationFlowObjectFlowBranchInfo struct {
 
 type AuthenticationFlowObjectFlowBranch interface {
 	AuthenticationFlowObject
-	GetSteps() []AuthenticationFlowObject
+	AuthenticationFlowStepsObject
 	GetBranchInfo() AuthenticationFlowObjectFlowBranchInfo
 }
 
