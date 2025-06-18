@@ -93,3 +93,21 @@ func collectAssertedIdentities(flows authenticationflow.Flows) (identities []*id
 
 	return
 }
+
+func IsPreAuthenticatedTriggered(flows authenticationflow.Flows) (triggered bool) {
+	_ = authenticationflow.TraverseFlow(authenticationflow.Traverser{
+		NodeSimple: func(nodeSimple authenticationflow.NodeSimple, w *authenticationflow.Flow) error {
+			if _, ok := nodeSimple.(MilestonePreAuthenticated); ok {
+				triggered = true
+			}
+			return nil
+		},
+		Intent: func(intent authenticationflow.Intent, w *authenticationflow.Flow) error {
+			if _, ok := intent.(MilestonePreAuthenticated); ok {
+				triggered = true
+			}
+			return nil
+		},
+	}, flows.Root)
+	return
+}

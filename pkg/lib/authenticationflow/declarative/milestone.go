@@ -323,3 +323,8 @@ type MilestoneAuthenticationFlowObjectProvider interface {
 	authflow.Milestone
 	MilestoneAuthenticationFlowObjectProvider() config.AuthenticationFlowObject
 }
+
+type MilestonePreAuthenticated interface {
+	authflow.Milestone
+	MilestonePreAuthenticated()
+}
