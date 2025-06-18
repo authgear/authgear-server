@@ -35,8 +35,6 @@ type IntentReauthFlowStepAuthenticate struct {
 	StepName      string                 `json:"step_name,omitempty"`
 	UserID        string                 `json:"user_id,omitempty"`
 	Options       []AuthenticateOption   `json:"options"`
-
-	ShowUntilAMRConstraintsFulfilled bool `json:"show_until_amr_constraints_fulfilled,omitempty"`
 }
 
 var _ authflow.Intent = &IntentReauthFlowStepAuthenticate{}
@@ -57,10 +55,6 @@ func NewIntentReauthFlowStepAuthenticate(ctx context.Context, deps *authflow.Dep
 
 	i.Options = options
 
-	if step.IsShowUntilAMRConstraintsFulfilled() {
-		i.ShowUntilAMRConstraintsFulfilled = true
-	}
-
 	return i, nil
 }
 
@@ -72,19 +66,6 @@ func (*IntentReauthFlowStepAuthenticate) Kind() string {
 }
 
 func (i *IntentReauthFlowStepAuthenticate) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
-	if i.ShowUntilAMRConstraintsFulfilled {
-		remainingAMRs, err := RemainingAMRConstraintsInFlow(ctx, deps, flows)
-		if err != nil {
-			return nil, err
-		}
-		// No remaining AMRs, end
-		if len(remainingAMRs) == 0 {
-			return nil, authflow.ErrEOF
-		}
-		// Let ReactTo create sub-authenticate steps
-		return nil, nil
-	}
-
 	authenticationMethodSelected := false
 	mFlowSelect, mFlowSelectFlows, ok := authflow.FindMilestoneInCurrentFlow[MilestoneFlowSelectAuthenticationMethod](flows)
 	if ok {
@@ -140,10 +121,6 @@ func (i *IntentReauthFlowStepAuthenticate) ReactTo(ctx context.Context, deps *au
 		return nil, err
 	}
 	step := i.step(current)
-
-	if i.ShowUntilAMRConstraintsFulfilled {
-		return i.newIntentReauthFlowStepAuthenticateForAMRConstraint(ctx, deps, flows)
-	}
 
 	authenticationMethodSelected := false
 	mFlowSelect, mFlowSelectFlows, ok := authflow.FindMilestoneInCurrentFlow[MilestoneFlowSelectAuthenticationMethod](flows)
@@ -310,48 +287,4 @@ func (i *IntentReauthFlowStepAuthenticate) currentFlowObject(deps *authflow.Depe
 		return nil, err
 	}
 	return current, nil
-}
-
-func (i *IntentReauthFlowStepAuthenticate) clone() *IntentReauthFlowStepAuthenticate {
-	s := struct {
-		FlowReference                    authflow.FlowReference
-		JSONPointer                      jsonpointer.T
-		StepName                         string
-		UserID                           string
-		Options                          []AuthenticateOption
-		ShowUntilAMRConstraintsFulfilled bool
-	}{
-		FlowReference:                    i.FlowReference,
-		JSONPointer:                      i.JSONPointer,
-		StepName:                         i.StepName,
-		UserID:                           i.UserID,
-		Options:                          i.Options,
-		ShowUntilAMRConstraintsFulfilled: i.ShowUntilAMRConstraintsFulfilled,
-	}
-	cloned := IntentReauthFlowStepAuthenticate(s)
-	return &cloned
-}
-
-func (i *IntentReauthFlowStepAuthenticate) newIntentReauthFlowStepAuthenticateForAMRConstraint(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.ReactToResult, error) {
-	current, err := i.currentFlowObject(deps, flows, i)
-	if err != nil {
-		return nil, err
-	}
-	step := i.step(current)
-	subintent := i.clone()
-	remainingAMRs, err := RemainingAMRConstraintsInFlow(ctx, deps, flows)
-	if err != nil {
-		return nil, err
-	}
-	// The subflow should not check constraints again
-	subintent.ShowUntilAMRConstraintsFulfilled = false
-
-	options, err := getAuthenticationOptionsForReauth(ctx, deps, flows, i.UserID, step)
-	if err != nil {
-		return nil, err
-	}
-	// The subflow should only contain options that can fulfill remaining amr
-	newOptions := filterAMROptionsByAMRConstraint(options, remainingAMRs)
-	subintent.Options = newOptions
-	return authflow.NewSubFlow(subintent), nil
 }
