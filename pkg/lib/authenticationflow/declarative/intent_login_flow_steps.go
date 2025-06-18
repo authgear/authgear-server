@@ -58,7 +58,9 @@ func (i *IntentLoginFlowSteps) ReactTo(ctx context.Context, deps *authflow.Depen
 
 	steps := current.GetSteps()
 	if IsLastAuthentication(current, i.NextStepIndex) && !IsPreAuthenticatedTriggered(flows) {
-		return NewNodePreAuthenticateNodeSimple(ctx, deps, flows)
+		return authflow.NewSubFlow(&IntentLoginFlowPreAuthenticated{
+			FlowReference: i.FlowReference,
+		}), nil
 	}
 
 	step := steps[i.NextStepIndex].(*config.AuthenticationFlowLoginFlowStep)
