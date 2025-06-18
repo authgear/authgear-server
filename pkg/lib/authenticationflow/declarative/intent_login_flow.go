@@ -66,7 +66,7 @@ func (i *IntentLoginFlow) ReactTo(ctx context.Context, deps *authflow.Dependenci
 			JSONPointer:   i.JSONPointer,
 		}), nil
 	case len(flows.Nearest.Nodes) == 2:
-		i, err := NewIntentLoginFlowEnsureConstraintsFulfilled(ctx, deps, flows, i.FlowReference)
+		i, err := NewIntentLoginFlowEnforceAMRConstraints(ctx, deps, flows, i.FlowReference)
 		if err != nil {
 			return nil, err
 		}
