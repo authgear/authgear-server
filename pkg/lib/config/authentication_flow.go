@@ -699,6 +699,7 @@ type AuthenticationFlowObject interface {
 }
 
 type AuthenticationFlowStepsObject interface {
+	AuthenticationFlowObject
 	GetSteps() []AuthenticationFlowObject
 }
 
