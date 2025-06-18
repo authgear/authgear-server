@@ -37,6 +37,11 @@ steps:
 name: MFA required by authentication.pre_initialize in login
 authgear.yaml:
   override: |
+    authentication:
+      secondary_authenticators:
+        - totp
+        - oob_otp_sms
+        - oob_otp_email
     hook:
       blocking_handlers:
       - event: authentication.pre_initialize
@@ -54,15 +59,6 @@ authgear.yaml:
                 type: authenticate
                 one_of:
                 - authentication: primary_password
-              - name: authenticate_mfa
-                type: authenticate
-                show_until_amr_constraints_fulfilled: true
-                one_of:
-                - authentication: secondary_totp
-                - authentication: secondary_password
-                - authentication: secondary_oob_otp_email
-                - authentication: secondary_oob_otp_sms
-                - authentication: recovery_code
 extra_files_directory: ./var
 before:
   - type: user_import
@@ -188,15 +184,6 @@ authgear.yaml:
                 type: authenticate
                 one_of:
                 - authentication: primary_password
-              - name: authenticate_mfa
-                type: authenticate
-                show_until_amr_constraints_fulfilled: true
-                one_of:
-                - authentication: secondary_totp
-                - authentication: secondary_password
-                - authentication: secondary_oob_otp_email
-                - authentication: secondary_oob_otp_sms
-                - authentication: recovery_code
 extra_files_directory: ./var
 before:
   - type: user_import
