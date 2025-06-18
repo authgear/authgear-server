@@ -2,7 +2,6 @@ package declarative
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
@@ -13,22 +12,22 @@ import (
 )
 
 func init() {
-	authflow.RegisterIntent(&IntentSignupFlowEnsureConstraintsFulfilled{})
+	authflow.RegisterIntent(&IntentSignupFlowEnforceAMRConstraints{})
 }
 
-type IntentSignupFlowEnsureConstraintsFulfilled struct {
+type IntentSignupFlowEnforceAMRConstraints struct {
 	UserID        string                                   `json:"user_id"`
 	FlowObject    *config.AuthenticationFlowSignupFlowStep `json:"flow_object"`
 	FlowReference authenticationflow.FlowReference         `json:"flow_reference,omitempty"`
 	JSONPointer   jsonpointer.T                            `json:"json_pointer,omitempty"`
 }
 
-type IntentSignupFlowEnsureConstraintsFulfilledOptions struct {
-	UserID        string                           `json:"user_id"`
-	FlowReference authenticationflow.FlowReference `json:"flow_reference,omitempty"`
+type IntentSignupFlowEnforceAMRConstraintsOptions struct {
+	UserID        string
+	FlowReference authenticationflow.FlowReference
 }
 
-func NewIntentSignupFlowEnsureConstraintsFulfilled(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows, opts *IntentSignupFlowEnsureConstraintsFulfilledOptions) (*IntentSignupFlowEnsureConstraintsFulfilled, error) {
+func NewIntentSignupFlowEnforceAMRConstraints(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows, opts *IntentSignupFlowEnforceAMRConstraintsOptions) (*IntentSignupFlowEnforceAMRConstraints, error) {
 	var oneOfs []*config.AuthenticationFlowSignupFlowOneOf
 	recoveryCodeStep := &config.AuthenticationFlowSignupFlowStep{
 		Type: config.AuthenticationFlowSignupFlowStepTypeViewRecoveryCode,
@@ -46,7 +45,10 @@ func NewIntentSignupFlowEnsureConstraintsFulfilled(ctx context.Context, deps *au
 			}
 		}
 
-		oneOf.Steps = append(oneOf.Steps, recoveryCodeStep)
+		if !*deps.Config.Authentication.RecoveryCode.Disabled {
+			oneOf.Steps = append(oneOf.Steps, recoveryCodeStep)
+		}
+
 		oneOfs = append(oneOfs, oneOf)
 	}
 
@@ -65,15 +67,13 @@ func NewIntentSignupFlowEnsureConstraintsFulfilled(ctx context.Context, deps *au
 		}
 	}
 
-	trueValue := true
 	// Generate a temporary config for this step only
 	flowObject := &config.AuthenticationFlowSignupFlowStep{
-		Type:                             config.AuthenticationFlowSignupFlowStepTypeCreateAuthenticator,
-		OneOf:                            oneOfs,
-		ShowUntilAMRConstraintsFulfilled: &trueValue,
+		Type:  config.AuthenticationFlowSignupFlowStepTypeCreateAuthenticator,
+		OneOf: oneOfs,
 	}
 
-	return &IntentSignupFlowEnsureConstraintsFulfilled{
+	return &IntentSignupFlowEnforceAMRConstraints{
 		UserID:        opts.UserID,
 		FlowReference: opts.FlowReference,
 		FlowObject:    flowObject,
@@ -81,42 +81,57 @@ func NewIntentSignupFlowEnsureConstraintsFulfilled(ctx context.Context, deps *au
 	}, nil
 }
 
-var _ authenticationflow.Intent = &IntentSignupFlowEnsureConstraintsFulfilled{}
-var _ authenticationflow.Milestone = &IntentSignupFlowEnsureConstraintsFulfilled{}
-var _ MilestoneAuthenticationFlowObjectProvider = &IntentSignupFlowEnsureConstraintsFulfilled{}
+var _ authenticationflow.Intent = &IntentSignupFlowEnforceAMRConstraints{}
+var _ authenticationflow.Milestone = &IntentSignupFlowEnforceAMRConstraints{}
+var _ MilestoneAuthenticationFlowObjectProvider = &IntentSignupFlowEnforceAMRConstraints{}
 
-func (*IntentSignupFlowEnsureConstraintsFulfilled) Kind() string {
-	return "IntentSignupFlowEnsureConstraintsFulfilled"
+func (*IntentSignupFlowEnforceAMRConstraints) Kind() string {
+	return "IntentSignupFlowEnforceAMRConstraints"
 }
 
-func (i *IntentSignupFlowEnsureConstraintsFulfilled) CanReactTo(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows) (authenticationflow.InputSchema, error) {
-	switch len(flows.Nearest.Nodes) {
-	case 0:
-		return nil, nil
-	case 1:
+func (i *IntentSignupFlowEnforceAMRConstraints) CanReactTo(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows) (authenticationflow.InputSchema, error) {
+	remainingAMRs, err := RemainingAMRConstraintsInFlow(ctx, deps, flows)
+	if err != nil {
+		return nil, err
+	}
+	// No remaining AMRs, end
+	if len(remainingAMRs) == 0 {
 		return nil, authflow.ErrEOF
 	}
-	panic(fmt.Errorf("unexpected number of nodes"))
+	// Let ReactTo create sub-authenticate steps
+	return nil, nil
 }
 
-func (i *IntentSignupFlowEnsureConstraintsFulfilled) ReactTo(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows, input authenticationflow.Input) (authenticationflow.ReactToResult, error) {
+func (i *IntentSignupFlowEnforceAMRConstraints) ReactTo(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows, input authenticationflow.Input) (authenticationflow.ReactToResult, error) {
 	stepCreateAuthenticator, err := NewIntentSignupFlowStepCreateAuthenticator(ctx, deps, flows, &IntentSignupFlowStepCreateAuthenticator{
 		FlowReference: i.FlowReference,
 		StepName:      "",
-		JSONPointer:   i.JSONPointer,
+		JSONPointer:   nil,
 		UserID:        i.UserID,
 	}, i)
 	if err != nil {
 		return nil, err
 	}
+
+	remainingAMRs, err := RemainingAMRConstraintsInFlow(ctx, deps, flows)
+	if err != nil {
+		return nil, err
+	}
+
+	// The subflow should only contain options that can fulfill remaining amr
+	newOptions := filterAMROptionsByAMRConstraint(stepCreateAuthenticator.Options, remainingAMRs)
+	stepCreateAuthenticator.Options = newOptions
+
+	// This step cannot be skipped to ensure amr constraints are all fulfilled
+	stepCreateAuthenticator.CannotBeSkipped = true
 	return authflow.NewSubFlow(stepCreateAuthenticator), nil
 }
 
-func (i *IntentSignupFlowEnsureConstraintsFulfilled) Milestone() {
+func (i *IntentSignupFlowEnforceAMRConstraints) Milestone() {
 	return
 }
 
 // This is needed so that the child authenticate intents display a correct flow action
-func (i *IntentSignupFlowEnsureConstraintsFulfilled) MilestoneAuthenticationFlowObjectProvider() config.AuthenticationFlowObject {
+func (i *IntentSignupFlowEnforceAMRConstraints) MilestoneAuthenticationFlowObjectProvider() config.AuthenticationFlowObject {
 	return i.FlowObject
 }

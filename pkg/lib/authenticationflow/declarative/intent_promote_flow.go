@@ -77,7 +77,7 @@ func (i *IntentPromoteFlow) ReactTo(ctx context.Context, deps *authflow.Dependen
 	case len(flows.Nearest.Nodes) == 3:
 		return NewNodePreAuthenticateNodeSimple(ctx, deps, flows)
 	case len(flows.Nearest.Nodes) == 4:
-		i, err := NewIntentSignupFlowEnsureConstraintsFulfilled(ctx, deps, flows, &IntentSignupFlowEnsureConstraintsFulfilledOptions{
+		i, err := NewIntentSignupFlowEnforceAMRConstraints(ctx, deps, flows, &IntentSignupFlowEnforceAMRConstraintsOptions{
 			UserID:        i.userID(flows),
 			FlowReference: i.FlowReference,
 		})
