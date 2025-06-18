@@ -1007,6 +1007,7 @@
   "v2.error.server": "O servidor encontrou um erro interno.",
   "v2.error.settings-account-conflict": "{IdentityTypeIncoming, select, login_id {Este {LoginIDNameIncoming} já está registado.} oauth {Esta conta {OAuthProviderNameIncoming} já está registada.} other {Esta conta já está registada.}} Por favor utilize outra.",
   "v2.error.settings-token-invalid": "Pode ter premido o botão de retroceder ou há algum problema com os cookies.<br>Tente realizar a ação novamente a partir da aplicação e, se o problema persistir, contacte o administrador.",
+  "v2.error.sms-gateway-attempted-to-send-otp-template-without-code": "Falha na entrega de SMS. Programador: O fornecedor de SMS não suporta o envio deste tipo de mensagem.",
   "v2.error.sms-gateway-authentication-failed": "Falha na entrega de SMS. Desenvolvedor: Por favor verifique as configurações do fornecedor de SMS.",
   "v2.error.sms-gateway-delivery-rejected": "Falha na entrega de SMS. O fornecedor de SMS rejeitou a mensagem. Se o problema persistir, por favor contacte o suporte.",
   "v2.error.sms-gateway-invalid-phone-number": "Por favor insira um número de telefone correto.",
