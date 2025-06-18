@@ -1007,6 +1007,7 @@
   "v2.error.server": "Serwer napotkał wewnętrzny błąd.",
   "v2.error.settings-account-conflict": "{IdentityTypeIncoming, select, login_id {Ten {LoginIDNameIncoming} jest już zarejestrowany.} oauth {To konto {OAuthProviderNameIncoming} jest już zarejestrowane.} other {To konto jest już zarejestrowane.}} Użyj innego.",
   "v2.error.settings-token-invalid": "Możliwe, że nacisnąłeś przycisk powrotu lub występuje problem z ciasteczkami.<br>Spróbuj ponownie wykonać tę czynność z poziomu aplikacji, a jeśli problem będzie się utrzymywał, skontaktuj się z administratorem.",
+  "v2.error.sms-gateway-attempted-to-send-otp-template-without-code": "Dostarczenie SMS nie powiodło się. Deweloper: Dostawca SMS nie obsługuje wysyłania tego typu wiadomości.",
   "v2.error.sms-gateway-authentication-failed": "Dostarczenie SMS nie powiodło się. Deweloper: Sprawdź ustawienia dostawcy SMS.",
   "v2.error.sms-gateway-delivery-rejected": "Dostarczenie SMS nie powiodło się. Dostawca SMS odrzucił wiadomość. Jeśli problem będzie się utrzymywał, skontaktuj się z pomocą techniczną.",
   "v2.error.sms-gateway-invalid-phone-number": "Wprowadź poprawny numer telefonu.",

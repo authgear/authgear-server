@@ -1007,6 +1007,7 @@
   "v2.error.server": "服务器遇到内部错误。",
   "v2.error.settings-account-conflict": "{IdentityTypeIncoming, select, login_id {这个 {LoginIDNameIncoming} 已经注册过了。} oauth {这个 {OAuthProviderNameIncoming} 账户已经注册过了。} other {这个账户已经注册过了。}}请使用另一个。",
   "v2.error.settings-token-invalid": "您可能按了后退按钮,或者是cookie出现了一些问题。<br>请从应用程序重新执行该操作,如果问题仍然存在,请联系管理员。",
+  "v2.error.sms-gateway-attempted-to-send-otp-template-without-code": "短信发送失败。开发者：短信提供商不支持发送此类型的消息。",
   "v2.error.sms-gateway-authentication-failed": "短信发送失败。开发人员:请检查短信提供商设置。",
   "v2.error.sms-gateway-delivery-rejected": "短信发送失败。短信提供商拒绝了该消息。如果问题持续存在,请联系支持。",
   "v2.error.sms-gateway-invalid-phone-number": "请输入正确的电话号码。",

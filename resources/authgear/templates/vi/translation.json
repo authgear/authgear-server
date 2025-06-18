@@ -1007,6 +1007,7 @@
   "v2.error.server": "Máy chủ gặp lỗi nội bộ.",
   "v2.error.settings-account-conflict": "{IdentityTypeIncoming, select, login_id {Mã đăng nhập {LoginIDNameIncoming} này đã được đăng ký.} oauth {Tài khoản {OAuthProviderNameIncoming} này đã được đăng ký.} other {Tài khoản này đã được đăng ký.}} Vui lòng sử dụng một tài khoản khác.",
   "v2.error.settings-token-invalid": "Bạn có thể đã nhấn nút quay lại, hoặc có vấn đề gì đó với cookie.<br>Hãy thử thực hiện hành động đó lại từ ứng dụng, và nếu vấn đề vẫn tiếp tục, vui lòng liên hệ với quản trị viên.",
+  "v2.error.sms-gateway-attempted-to-send-otp-template-without-code": "Gửi SMS thất bại. Nhà phát triển: Nhà cung cấp SMS không hỗ trợ gửi loại tin nhắn này.",
   "v2.error.sms-gateway-authentication-failed": "Gửi SMS thất bại. Nhà phát triển: Vui lòng kiểm tra cài đặt nhà cung cấp SMS.",
   "v2.error.sms-gateway-delivery-rejected": "Gửi SMS thất bại. Nhà cung cấp SMS đã từ chối tin nhắn. Nếu vấn đề vẫn tiếp tục, vui lòng liên hệ với bộ phận hỗ trợ.",
   "v2.error.sms-gateway-invalid-phone-number": "Vui lòng nhập số điện thoại chính xác.",

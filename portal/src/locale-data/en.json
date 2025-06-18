@@ -1649,7 +1649,7 @@
   "SMSProviderConfigurationScreen.testSMS": "Test SMS",
 
   "TestSMSDialog.title": "Test SMS",
-  "TestSMSDialog.description": "Enter a phone number to test the current SMS configuration.",
+  "TestSMSDialog.description": "Enter a phone number to test the current SMS configuration.{br, react} We will send you a one-time password 000000 via SMS.",
   "TestSMSDialog.send": "Send",
   "TestSMSDialog.toast.success": "Test SMS sent successfully!",
   "TestSMSDialog.errors.gateway-invalid-phone-number-error": "Please enter a correct phone number. (Gateway error code: {code})",

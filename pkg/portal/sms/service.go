@@ -2,6 +2,7 @@ package sms
 
 import (
 	"context"
+	"fmt"
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
@@ -26,7 +27,12 @@ type Service struct {
 	Logger        Logger
 }
 
-const SMS_BODY = "[Test] Authgear sms"
+const TEST_OTP = "000000"
+const TEST_APP_NAME = "Test"
+
+func makeTestSMSBody(appName string, code string) string {
+	return fmt.Sprintf("[%s] Your one-time password is %s", appName, code)
+}
 
 func (s *Service) sendByTwilio(
 	ctx context.Context,
@@ -53,7 +59,11 @@ func (s *Service) sendByTwilio(
 	return twilioClient.Send(ctx, smsapi.SendOptions{
 		Sender: sender,
 		To:     to,
-		Body:   SMS_BODY,
+		Body:   makeTestSMSBody(TEST_APP_NAME, TEST_OTP),
+		TemplateVariables: &smsapi.TemplateVariables{
+			AppName: TEST_APP_NAME,
+			Code:    TEST_OTP,
+		},
 	})
 }
 
@@ -79,7 +89,11 @@ func (s *Service) sendByWebhook(
 
 	err = webhook.Call(ctx, url, custom.SendOptions{
 		To:   to,
-		Body: SMS_BODY,
+		Body: makeTestSMSBody(TEST_APP_NAME, TEST_OTP),
+		TemplateVariables: &smsapi.TemplateVariables{
+			AppName: TEST_APP_NAME,
+			Code:    TEST_OTP,
+		},
 	})
 	if err != nil {
 		return err
@@ -102,7 +116,11 @@ func (s *Service) sendByDeno(
 
 	err := deno.Test(ctx, cfg.Script, custom.SendOptions{
 		To:   to,
-		Body: SMS_BODY,
+		Body: makeTestSMSBody(TEST_APP_NAME, TEST_OTP),
+		TemplateVariables: &smsapi.TemplateVariables{
+			AppName: TEST_APP_NAME,
+			Code:    TEST_OTP,
+		},
 	})
 	if err != nil {
 		return err

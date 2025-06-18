@@ -1007,6 +1007,7 @@
   "v2.error.server": "서버에 내부 오류가 발생했습니다.",
   "v2.error.settings-account-conflict": "{IdentityTypeIncoming, select, login_id {이 {LoginIDNameIncoming}은(는) 이미 등록되어 있습니다.} oauth {이 {OAuthProviderNameIncoming} 계정은 이미 등록되어 있습니다.} other {이 계정은 이미 등록되어 있습니다.}} 다른 것을 사용하세요.",
   "v2.error.settings-token-invalid": "뒤로 가기 버튼을 누르셨거나 쿠키와 관련된 문제가 있을 수 있습니다.<br>애플리케이션에서 다시 시도해 보시고, 문제가 지속되면 관리자에게 문의하세요.",
+  "v2.error.sms-gateway-attempted-to-send-otp-template-without-code": "SMS 전송에 실패했습니다. 개발자: SMS 제공업체가 이 유형의 메시지 전송을 지원하지 않습니다.",
   "v2.error.sms-gateway-authentication-failed": "SMS 전송에 실패했습니다. 개발자: SMS 제공업체 설정을 확인하세요.",
   "v2.error.sms-gateway-delivery-rejected": "SMS 전송에 실패했습니다. SMS 제공업체가 메시지를 거부했습니다. 문제가 지속되면 고객 지원에 문의하세요.",
   "v2.error.sms-gateway-invalid-phone-number": "올바른 전화번호를 입력하세요.",

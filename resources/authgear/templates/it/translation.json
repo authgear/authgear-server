@@ -1007,6 +1007,7 @@
   "v2.error.server": "Il server ha riscontrato un errore interno.",
   "v2.error.settings-account-conflict": "{IdentityTypeIncoming, select, login_id {Questo {LoginIDNameIncoming} è già registrato.} oauth {Questo account {OAuthProviderNameIncoming} è già registrato.} other {Questo account è già registrato.}} Utilizza un''altro account.",
   "v2.error.settings-token-invalid": "Potresti aver premuto il pulsante Indietro, o c''è qualche problema con i cookie.<br>Prova a eseguire nuovamente l''azione dall''applicazione e, se il problema persiste, contatta l''amministratore.",
+  "v2.error.sms-gateway-attempted-to-send-otp-template-without-code": "Invio SMS fallito. Sviluppatore: Il provider SMS non supporta l''invio di questo tipo di messaggio.",
   "v2.error.sms-gateway-authentication-failed": "Consegna SMS fallita. Sviluppatore: Controlla le impostazioni del provider SMS.",
   "v2.error.sms-gateway-delivery-rejected": "Consegna SMS fallita. Il provider SMS ha rifiutato il messaggio. Se il problema persiste, contatta l''assistenza.",
   "v2.error.sms-gateway-invalid-phone-number": "Inserisci un numero di telefono corretto.",

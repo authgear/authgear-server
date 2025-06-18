@@ -1007,6 +1007,7 @@
   "v2.error.server": "Server menghadapi ralat dalaman.",
   "v2.error.settings-account-conflict": "{IdentityTypeIncoming, select, login_id {Ini {LoginIDNameIncoming} sudah didaftarkan.} oauth {Akaun {OAuthProviderNameIncoming} ini sudah didaftarkan.} other {Akaun ini sudah didaftarkan.}} Sila gunakan yang lain.",
   "v2.error.settings-token-invalid": "Anda mungkin telah menekan butang kembali, atau terdapat isu dengan kuki.<br>Cuba lakukan tindakan itu semula dari aplikasi, dan jika masalah berterusan sila hubungi pentadbir.",
+  "v2.error.sms-gateway-attempted-to-send-otp-template-without-code": "Penghantaran SMS gagal. Pembangun: Pembekal SMS tidak menyokong penghantaran jenis mesej ini.",
   "v2.error.sms-gateway-authentication-failed": "Penghantaran SMS gagal. Pembangun: Sila semak tetapan penyedia SMS.",
   "v2.error.sms-gateway-delivery-rejected": "Penghantaran SMS gagal. Penyedia SMS menolak mesej. Jika masalah berterusan, sila hubungi sokongan.",
   "v2.error.sms-gateway-invalid-phone-number": "Sila masukkan nombor telefon yang betul.",

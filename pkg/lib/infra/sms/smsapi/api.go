@@ -20,6 +20,7 @@ var ErrKindInvalidPhoneNumber = apierrors.BadRequest.WithReason("SMSGatewayInval
 var ErrKindAuthenticationFailed = apierrors.InternalError.WithReason("SMSGatewayAuthenticationFailed")
 var ErrKindDeliveryRejected = apierrors.InternalError.WithReason("SMSGatewayDeliveryRejected")
 var ErrKindRateLimited = apierrors.TooManyRequest.WithReason("SMSGatewayRateLimited")
+var ErrKindAttemptedToSendOTPTemplateWithoutCode = apierrors.InternalError.WithReason("SMSGatewayAttemptedToSendOTPTemplateWithoutCode")
 
 type TemplateVariables struct {
 	AppName     string `json:"app_name,omitempty"`

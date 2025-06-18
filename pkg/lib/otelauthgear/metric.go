@@ -87,6 +87,9 @@ var AttributeKeyWhatsappAPIType = attribute.Key("whatsapp_api_type")
 // AttributeKeyWhatsappAPIErrorCode defines the attribute.
 var AttributeKeyWhatsappAPIErrorCode = attribute.Key("whatsapp_api_error_code")
 
+// AttributeKeyAPIErrorReason defines the attribute.
+var AttributeKeyAPIErrorReason = attribute.Key("api_error_reason")
+
 // AttributeStatusOK is "status=ok".
 var AttributeStatusOK = AttributeKeyStatus.String("ok")
 
@@ -264,6 +267,10 @@ func WithWhatsappAPIType(apiType config.WhatsappAPIType) MetricOption {
 
 func WithWhatsappAPIErrorCode(code int) MetricOption {
 	return metricOptionAttributeKeyValue{AttributeKeyWhatsappAPIErrorCode.String(fmt.Sprint(code))}
+}
+
+func WithAPIErrorReason(kind string) MetricOption {
+	return metricOptionAttributeKeyValue{AttributeKeyAPIErrorReason.String(kind)}
 }
 
 func WithHTTPStatusCode(code int) MetricOption {

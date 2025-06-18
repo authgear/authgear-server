@@ -1007,6 +1007,7 @@
   "v2.error.server": "サーバーで内部エラーが発生しました。",
   "v2.error.settings-account-conflict": "{IdentityTypeIncoming, select, login_id {この{LoginIDNameIncoming}は既に登録されています。} oauth {この{OAuthProviderNameIncoming}アカウントは既に登録されています。} other {このアカウントは既に登録されています。}}別のものを使用してください。",
   "v2.error.settings-token-invalid": "戻るボタンを押した可能性があるか、クッキーに問題がある可能性があります。<br>アプリケーションから操作を再度行ってください。問題が解決しない場合は、管理者に連絡してください。",
+  "v2.error.sms-gateway-attempted-to-send-otp-template-without-code": "SMS配信に失敗しました。開発者向け：SMSプロバイダーはこのタイプのメッセージの送信をサポートしていません。",
   "v2.error.sms-gateway-authentication-failed": "SMSの配信に失敗しました。開発者: SMSプロバイダーの設定を確認してください。",
   "v2.error.sms-gateway-delivery-rejected": "SMSの配信に失敗しました。SMSプロバイダーがメッセージを拒否しました。問題が続く場合は、サポートにお問い合わせください。",
   "v2.error.sms-gateway-invalid-phone-number": "正しい電話番号を入力してください。",

@@ -1007,6 +1007,7 @@
   "v2.error.server": "Server mengalami kesalahan internal.",
   "v2.error.settings-account-conflict": "{IdentityTypeIncoming, select, login_id {Ini {LoginIDNameIncoming} sudah terdaftar.} oauth {Akun {OAuthProviderNameIncoming} ini sudah terdaftar.} other {Akun ini sudah terdaftar.}} Silakan gunakan yang lain.",
   "v2.error.settings-token-invalid": "Anda mungkin telah menekan tombol kembali, atau ada masalah dengan cookie.<br>Coba lakukan tindakan lagi dari aplikasi, dan jika masalah tetap ada silakan hubungi administrator.",
+  "v2.error.sms-gateway-attempted-to-send-otp-template-without-code": "Pengiriman SMS gagal. Pengembang: Penyedia SMS tidak mendukung pengiriman jenis pesan ini.",
   "v2.error.sms-gateway-authentication-failed": "Pengiriman SMS gagal. Pengembang: Harap periksa pengaturan penyedia SMS.",
   "v2.error.sms-gateway-delivery-rejected": "Pengiriman SMS gagal. Penyedia SMS menolak pesan. Jika masalah berlanjut, harap hubungi dukungan.",
   "v2.error.sms-gateway-invalid-phone-number": "Harap masukkan nomor telepon yang benar.",
