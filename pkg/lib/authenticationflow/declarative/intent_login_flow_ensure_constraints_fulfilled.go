@@ -2,7 +2,6 @@ package declarative
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
@@ -59,12 +58,10 @@ func NewIntentLoginFlowEnsureConstraintsFulfilled(ctx context.Context, deps *aut
 		})
 	}
 
-	trueValue := true
 	// Generate a temporary config for this step only
 	flowObject := &config.AuthenticationFlowLoginFlowStep{
-		Type:                             config.AuthenticationFlowLoginFlowStepTypeAuthenticate,
-		OneOf:                            oneOfs,
-		ShowUntilAMRConstraintsFulfilled: &trueValue,
+		Type:  config.AuthenticationFlowLoginFlowStepTypeAuthenticate,
+		OneOf: oneOfs,
 	}
 
 	return &IntentLoginFlowEnsureConstraintsFulfilled{
@@ -83,25 +80,33 @@ func (*IntentLoginFlowEnsureConstraintsFulfilled) Kind() string {
 }
 
 func (i *IntentLoginFlowEnsureConstraintsFulfilled) CanReactTo(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows) (authenticationflow.InputSchema, error) {
-	switch len(flows.Nearest.Nodes) {
-	case 0:
-		return nil, nil
-	case 1:
+	remainingAMRs, err := RemainingAMRConstraintsInFlow(ctx, deps, flows)
+	if err != nil {
+		return nil, err
+	}
+	// No remaining AMRs, end
+	if len(remainingAMRs) == 0 {
 		return nil, authflow.ErrEOF
 	}
-	panic(fmt.Errorf("unexpected number of nodes"))
+	// Let ReactTo create sub-authenticate steps
+	return nil, nil
 }
 
 func (i *IntentLoginFlowEnsureConstraintsFulfilled) ReactTo(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows, input authenticationflow.Input) (authenticationflow.ReactToResult, error) {
 	stepAuthenticate, err := NewIntentLoginFlowStepAuthenticate(ctx, deps, flows, &IntentLoginFlowStepAuthenticate{
 		FlowReference: i.FlowReference,
 		StepName:      "",
-		JSONPointer:   i.JSONPointer,
+		JSONPointer:   nil,
 		UserID:        i.userID(flows),
 	}, i)
+	remainingAMRs, err := RemainingAMRConstraintsInFlow(ctx, deps, flows)
 	if err != nil {
 		return nil, err
 	}
+
+	// The subflow should only contain options that can fulfill remaining amr
+	newOptions := filterAMROptionsByAMRConstraint(stepAuthenticate.Options, remainingAMRs)
+	stepAuthenticate.Options = newOptions
 	return authflow.NewSubFlow(stepAuthenticate), nil
 }
 
