@@ -22,6 +22,9 @@
         {{ $title = include "v2.page.fatal-error.token-invalid.title" nil }}
       {{ end }}
     {{ end }}
+    {{ if eq .Error.reason "OAuthError" }}
+      {{ $title = include "v2.page.fatal-error.oauth-error.title" nil }}
+    {{ end }}
   {{ end }}
 
   {{ $error_message := include "v2.error.server" nil }}
@@ -40,6 +43,8 @@
       {{ else }}
       {{ $error_message = include "v2.error.web-ui-invalid-session-return" nil }}
       {{ end }}
+    {{ else if eq .Error.reason "OAuthError" }}
+      {{ $error_message = include "v2.error.oauth-error" (dict "error" .Error.info.error "error_description" .Error.info.error_description) }}
     {{ end }}
   {{ end }}
 
