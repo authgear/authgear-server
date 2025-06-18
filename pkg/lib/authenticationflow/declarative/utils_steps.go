@@ -7,6 +7,7 @@ import (
 )
 
 var authenticationStepTypes = []config.AuthenticationFlowStepType{
+	config.AuthenticationFlowStepTypeIdentify,
 	config.AuthenticationFlowStepTypeAuthenticate,
 	config.AuthenticationFlowStepTypeCreateAuthenticator,
 	config.AuthenticationFlowStepTypeVerify,
