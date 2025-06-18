@@ -63,6 +63,31 @@ steps:
 			})
 		})
 
+		Convey("login with oauth", func() {
+			cfgYAML := `
+name: default
+steps:
+- name: login_identify
+  type: identify
+  one_of:
+  - identification: oauth
+`
+
+			var cfg *config.AuthenticationFlowLoginFlow
+			jsonBytes, err := yaml.YAMLToJSON([]byte(cfgYAML))
+			So(err, ShouldBeNil)
+			err = json.Unmarshal(jsonBytes, &cfg)
+			So(err, ShouldBeNil)
+
+			Convey("should return false if identify step exists from skip 0", func() {
+				So(declarative.IsLastAuthentication(cfg, 0), ShouldBeFalse)
+			})
+
+			Convey("should return true if no identify step exists after skipping first step", func() {
+				So(declarative.IsLastAuthentication(cfg, 1), ShouldBeTrue)
+			})
+		})
+
 		Convey("signup", func() {
 			cfgYAML := `
 name: default
