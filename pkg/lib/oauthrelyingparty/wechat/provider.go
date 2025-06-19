@@ -224,7 +224,10 @@ type wechatOAuthErrorResp struct {
 }
 
 func (r *wechatOAuthErrorResp) AsError() error {
-	return fmt.Errorf("wechat: %d: %s", r.ErrorCode, r.ErrorMsg)
+	return &oauthrelyingparty.ErrorResponse{
+		Error_:           fmt.Sprintf("%v", r.ErrorCode),
+		ErrorDescription: r.ErrorMsg,
+	}
 }
 
 type wechatAccessTokenResp map[string]interface{}

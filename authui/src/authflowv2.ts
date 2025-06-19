@@ -35,6 +35,7 @@ import { NewPasswordFieldController } from "./authflowv2/new-password-field";
 import { AlertMessageController } from "./authflowv2/alert-message";
 import { DismissKeyboardOnScrollController } from "./authflowv2/dismissKeyboard";
 import { BodyScrollLockController } from "./authflowv2/bodyScrollLock";
+import { WechatButtonController } from "./authflowv2/wechat-button";
 import { ClickToSwitchController } from "./clickToSwitch";
 import { InlinePreviewController } from "./inline-preview";
 import { PreviewableResourceController } from "./previewable-resource";
@@ -127,6 +128,7 @@ Stimulus.register(
 );
 Stimulus.register("body-scroll-lock", BodyScrollLockController);
 Stimulus.register("click-to-switch", ClickToSwitchController);
+Stimulus.register("wechat-button", WechatButtonController);
 Stimulus.register("inline-preview", InlinePreviewController);
 Stimulus.register("preview-widget", PreviewWidgetController);
 Stimulus.register("previewable-resource", PreviewableResourceController);
