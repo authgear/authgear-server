@@ -15,17 +15,13 @@ func init() {
 }
 
 type NodePostIdentifiedOptions struct {
-	Identity       *model.Identity
-	IDToken        *string
-	Identification model.AuthenticationFlowIdentification
+	Identification model.Identification
 }
 
 func NewNodePostIdentified(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, opts *NodePostIdentifiedOptions) (authflow.ReactToResult, error) {
 
 	n := &NodePostIdentified{
-		Identity:       opts.Identity,
-		IDToken:        opts.IDToken,
-		Identification: opts.Identification,
+		Identification: &opts.Identification,
 	}
 
 	authCtx, err := GetAuthenticationContext(ctx, deps, flows)
@@ -34,9 +30,7 @@ func NewNodePostIdentified(ctx context.Context, deps *authflow.Dependencies, flo
 	}
 
 	payload := &blocking.AuthenticationPostIdentifiedBlockingEventPayload{
-		Identity:       n.Identity,
-		IDToken:        n.IDToken,
-		Identification: model.AuthenticationFlowIdentificationIDToken,
+		Identification: *n.Identification,
 		Authentication: *authCtx,
 
 		Constraints:               nil,
@@ -65,9 +59,7 @@ func NewNodePostIdentified(ctx context.Context, deps *authflow.Dependencies, flo
 }
 
 type NodePostIdentified struct {
-	Identity       *model.Identity                        `json:"identity"`
-	IDToken        *string                                `json:"id_token"`
-	Identification model.AuthenticationFlowIdentification `json:"identification"`
+	Identification *model.Identification `json:"identification"`
 
 	IsPostIdentifiedInvoked   bool                                `json:"is_post_identified_invoked"`
 	Constraints               *eventapi.Constraints               `json:"constraints,omitempty"`
