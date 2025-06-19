@@ -107,6 +107,11 @@ func (tc *TestCase) executeBeforeAll(cmd *End2EndCmd) (err error) {
 			if err != nil {
 				return fmt.Errorf("failed to create session: %w", err)
 			}
+		case BeforeHookTypeCreateChallenge:
+			err = cmd.ExecuteCreateChallenge(beforeHook.CreateChallenge)
+			if err != nil {
+				return fmt.Errorf("failed to create challenge: %w", err)
+			}
 		default:
 			errStr := fmt.Sprintf("unknown before hook type: %s", beforeHook.Type)
 			return errors.New(errStr)

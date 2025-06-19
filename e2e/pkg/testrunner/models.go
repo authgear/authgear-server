@@ -10,6 +10,7 @@ import (
 	"github.com/beevik/etree"
 
 	"github.com/authgear/authgear-server/e2e/pkg/e2eclient"
+	"github.com/authgear/authgear-server/pkg/lib/authn/challenge"
 )
 
 var _ = TestCaseSchema.Add("AuthgearYAMLSource", `
@@ -31,9 +32,10 @@ type AuthgearYAMLSource struct {
 type BeforeHookType string
 
 const (
-	BeforeHookTypeUserImport    BeforeHookType = "user_import"
-	BeforeHookTypeCustomSQL     BeforeHookType = "custom_sql"
-	BeforeHookTypeCreateSession BeforeHookType = "create_session"
+	BeforeHookTypeUserImport      BeforeHookType = "user_import"
+	BeforeHookTypeCustomSQL       BeforeHookType = "custom_sql"
+	BeforeHookTypeCreateSession   BeforeHookType = "create_session"
+	BeforeHookTypeCreateChallenge BeforeHookType = "create_challenge"
 )
 
 var _ = TestCaseSchema.Add("BeforeHookCustomSQL", `
@@ -72,15 +74,40 @@ type BeforeHookCreateSession struct {
 	SelectUserIDSQL string `json:"select_user_id_sql"`
 }
 
+var _ = TestCaseSchema.Add("BeforeHookCreateChallenge", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"token": { "type": "string" },
+		"purpose": {
+			"type": "string",
+			"enum": [
+				"anonymous_request",
+				"biometric_request",
+				"app2app_request"
+			]
+		}
+	},
+	"required": ["token", "purpose"]
+}
+`)
+
+type BeforeHookCreateChallenge struct {
+	Token   string            `json:"token"`
+	Purpose challenge.Purpose `json:"purpose"`
+}
+
 var _ = TestCaseSchema.Add("BeforeHook", `
 {
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
-		"type": { "type": "string", "enum": ["user_import", "custom_sql", "create_session"] },
+		"type": { "type": "string", "enum": ["user_import", "custom_sql", "create_session", "create_challenge"] },
 		"user_import": { "type": "string" },
 		"custom_sql": { "$ref": "#/$defs/BeforeHookCustomSQL" },
-		"create_session": { "$ref": "#/$defs/BeforeHookCreateSession" }
+		"create_session": { "$ref": "#/$defs/BeforeHookCreateSession" },
+		"create_challenge": { "$ref": "#/$defs/BeforeHookCreateChallenge" }
 	},
 	"required": ["type"],
 	"allOf": [
@@ -101,16 +128,23 @@ var _ = TestCaseSchema.Add("BeforeHook", `
 				"then": {
 					"required": ["create_session"]
 				}
+			},
+			{
+				"if": { "properties": { "type": { "const": "create_challenge" } } },
+				"then": {
+					"required": ["create_challenge"]
+				}
 			}
 		]
 }
 `)
 
 type BeforeHook struct {
-	Type          BeforeHookType           `json:"type"`
-	UserImport    string                   `json:"user_import"`
-	CustomSQL     *BeforeHookCustomSQL     `json:"custom_sql"`
-	CreateSession *BeforeHookCreateSession `json:"create_session"`
+	Type            BeforeHookType             `json:"type"`
+	UserImport      string                     `json:"user_import"`
+	CustomSQL       *BeforeHookCustomSQL       `json:"custom_sql"`
+	CreateSession   *BeforeHookCreateSession   `json:"create_session"`
+	CreateChallenge *BeforeHookCreateChallenge `json:"create_challenge"`
 }
 
 var _ = TestCaseSchema.Add("SAMLBinding", `
