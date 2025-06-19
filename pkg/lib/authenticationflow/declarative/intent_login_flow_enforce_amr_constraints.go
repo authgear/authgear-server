@@ -99,6 +99,9 @@ func (i *IntentLoginFlowEnforceAMRConstraints) ReactTo(ctx context.Context, deps
 		JSONPointer:   nil,
 		UserID:        i.userID(flows),
 	}, i)
+	if err != nil {
+		return nil, err
+	}
 	remainingAMRs, err := RemainingAMRConstraintsInFlow(ctx, deps, flows)
 	if err != nil {
 		return nil, err
