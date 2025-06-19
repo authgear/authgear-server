@@ -203,8 +203,13 @@ func TestGetAuthenticationContext(t *testing.T) {
 			So(result.AssertedAuthenticators, ShouldHaveLength, 2)
 			So(result.AssertedAuthenticators, ShouldContain, assertedAuthenticator.ToModel())
 			So(result.AssertedAuthenticators, ShouldContain, assertedAuthenticator2.ToModel())
-			So(result.AssertedIdentities, ShouldHaveLength, 1)
-			So(result.AssertedIdentities[0], ShouldResemble, assertedIdentity.ToModel())
+			So(result.AssertedIdentifications, ShouldHaveLength, 1)
+			idModel := assertedIdentity.ToModel()
+			So(result.AssertedIdentifications[0], ShouldResemble, model.Identification{
+				Identification: assertedIdentity.ToIdentification(),
+				Identity:       &idModel,
+				IDToken:        nil,
+			})
 
 		})
 
@@ -354,8 +359,13 @@ func TestGetAuthenticationContext(t *testing.T) {
 			So(result.AMR, ShouldResemble, []string{"pwd"})
 			So(result.AssertedAuthenticators, ShouldHaveLength, 1)
 			So(result.AssertedAuthenticators[0], ShouldResemble, assertedAuthenticator.ToModel())
-			So(result.AssertedIdentities, ShouldHaveLength, 1)
-			So(result.AssertedIdentities[0], ShouldResemble, assertedIdentity.ToModel())
+			So(result.AssertedIdentifications, ShouldHaveLength, 1)
+			idModel := assertedIdentity.ToModel()
+			So(result.AssertedIdentifications[0], ShouldResemble, model.Identification{
+				Identification: assertedIdentity.ToIdentification(),
+				Identity:       &idModel,
+				IDToken:        nil,
+			})
 
 		})
 	})

@@ -3,6 +3,7 @@ package declarative
 import (
 	"context"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
@@ -59,6 +60,9 @@ func (n *NodeDoCreatePasskey) Kind() string {
 func (*NodeDoCreatePasskey) Milestone() {}
 func (n *NodeDoCreatePasskey) MilestoneDoCreateIdentity() *identity.Info {
 	return n.NodeDoCreateIdentity.MilestoneDoCreateIdentity()
+}
+func (n *NodeDoCreatePasskey) MilestoneDoCreateIdentityIdentification() model.Identification {
+	return n.NodeDoCreateIdentity.MilestoneDoCreateIdentityIdentification()
 }
 func (n *NodeDoCreatePasskey) MilestoneDoCreateAuthenticator() (*authenticator.Info, bool) {
 	return n.Authenticator, !n.SkipCreate

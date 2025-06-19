@@ -157,6 +157,7 @@ type MilestoneFlowAccountLinking interface {
 type MilestoneDoCreateIdentity interface {
 	authflow.Milestone
 	MilestoneDoCreateIdentity() *identity.Info
+	MilestoneDoCreateIdentityIdentification() model.Identification
 	MilestoneDoCreateIdentitySkipCreate()
 	MilestoneDoCreateIdentityUpdate(newInfo *identity.Info)
 }
@@ -191,6 +192,7 @@ type MilestoneFlowUseIdentity interface {
 type MilestoneDoUseIdentity interface {
 	authflow.Milestone
 	MilestoneDoUseIdentity() *identity.Info
+	MilestoneDoUseIdentityIdentification() model.Identification
 }
 
 type MilestoneDoUseAccountRecoveryIdentity interface {
