@@ -29,8 +29,10 @@ func (*NodeDoConsumeRecoveryCode) Kind() string {
 	return "NodeDoConsumeRecoveryCode"
 }
 
-func (*NodeDoConsumeRecoveryCode) Milestone()                               {}
-func (*NodeDoConsumeRecoveryCode) MilestoneDidAuthenticate() (amr []string) { return }
+func (*NodeDoConsumeRecoveryCode) Milestone() {}
+func (*NodeDoConsumeRecoveryCode) MilestoneDidAuthenticate() (amr []string) {
+	return model.AuthenticationFlowAuthenticationRecoveryCode.AMR()
+}
 func (*NodeDoConsumeRecoveryCode) MilestoneDidAuthenticateAuthenticator() (*authenticator.Info, bool) {
 	return nil, false
 }
