@@ -6,6 +6,7 @@ import (
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 	. "github.com/smartystreets/goconvey/convey"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
@@ -31,13 +32,13 @@ var fixtureSignupFlow *config.AuthenticationFlowSignupFlow = &config.Authenticat
 			Type: config.AuthenticationFlowSignupFlowStepTypeCreateAuthenticator,
 			OneOf: []*config.AuthenticationFlowSignupFlowOneOf{
 				{
-					Authentication: config.AuthenticationFlowAuthenticationPrimaryPassword,
+					Authentication: model.AuthenticationFlowAuthenticationPrimaryPassword,
 					Steps: []*config.AuthenticationFlowSignupFlowStep{
 						{
 							Type: config.AuthenticationFlowSignupFlowStepTypeCreateAuthenticator,
 							OneOf: []*config.AuthenticationFlowSignupFlowOneOf{
 								{
-									Authentication: config.AuthenticationFlowAuthenticationSecondaryTOTP,
+									Authentication: model.AuthenticationFlowAuthenticationSecondaryTOTP,
 								},
 							},
 						},
@@ -73,13 +74,13 @@ var fixtureLoginFlow *config.AuthenticationFlowLoginFlow = &config.Authenticatio
 			Type: config.AuthenticationFlowLoginFlowStepTypeAuthenticate,
 			OneOf: []*config.AuthenticationFlowLoginFlowOneOf{
 				{
-					Authentication: config.AuthenticationFlowAuthenticationPrimaryPassword,
+					Authentication: model.AuthenticationFlowAuthenticationPrimaryPassword,
 					Steps: []*config.AuthenticationFlowLoginFlowStep{
 						{
 							Type: config.AuthenticationFlowLoginFlowStepTypeAuthenticate,
 							OneOf: []*config.AuthenticationFlowLoginFlowOneOf{
 								{
-									Authentication: config.AuthenticationFlowAuthenticationSecondaryTOTP,
+									Authentication: model.AuthenticationFlowAuthenticationSecondaryTOTP,
 								},
 							},
 						},
@@ -111,13 +112,13 @@ var fixtureReauthFlow *config.AuthenticationFlowReauthFlow = &config.Authenticat
 			Type: config.AuthenticationFlowReauthFlowStepTypeAuthenticate,
 			OneOf: []*config.AuthenticationFlowReauthFlowOneOf{
 				{
-					Authentication: config.AuthenticationFlowAuthenticationPrimaryPassword,
+					Authentication: model.AuthenticationFlowAuthenticationPrimaryPassword,
 					Steps: []*config.AuthenticationFlowReauthFlowStep{
 						{
 							Type: config.AuthenticationFlowReauthFlowStepTypeAuthenticate,
 							OneOf: []*config.AuthenticationFlowReauthFlowOneOf{
 								{
-									Authentication: config.AuthenticationFlowAuthenticationSecondaryTOTP,
+									Authentication: model.AuthenticationFlowAuthenticationSecondaryTOTP,
 								},
 							},
 						},

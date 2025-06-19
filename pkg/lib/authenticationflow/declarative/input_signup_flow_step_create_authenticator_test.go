@@ -6,6 +6,7 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
@@ -38,36 +39,36 @@ func TestInputSchemaSignupFlowStepCreateAuthenticator(t *testing.T) {
 			BotProtectionCfg:          dummyBotProtectionCfg,
 			Options: []CreateAuthenticatorOption{
 				{
-					Authentication: config.AuthenticationFlowAuthenticationPrimaryPassword,
+					Authentication: model.AuthenticationFlowAuthenticationPrimaryPassword,
 				},
 				{
-					Authentication: config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail,
+					Authentication: model.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail,
 					BotProtection:  dummyBotProtection,
 				},
 				{
-					Authentication: config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS,
+					Authentication: model.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS,
 					Target: &CreateAuthenticatorTarget{
 						MaskedDisplayName:    "test",
 						VerificationRequired: true,
 					},
 				},
 				{
-					Authentication: config.AuthenticationFlowAuthenticationSecondaryPassword,
+					Authentication: model.AuthenticationFlowAuthenticationSecondaryPassword,
 				},
 				{
-					Authentication: config.AuthenticationFlowAuthenticationSecondaryTOTP,
+					Authentication: model.AuthenticationFlowAuthenticationSecondaryTOTP,
 				},
 				{
-					Authentication: config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail,
+					Authentication: model.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail,
 				},
 				{
-					Authentication: config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS,
+					Authentication: model.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS,
 				},
 				{
-					Authentication: config.AuthenticationFlowAuthenticationRecoveryCode,
+					Authentication: model.AuthenticationFlowAuthenticationRecoveryCode,
 				},
 				{
-					Authentication: config.AuthenticationFlowAuthenticationDeviceToken,
+					Authentication: model.AuthenticationFlowAuthenticationDeviceToken,
 				},
 			},
 		}).SchemaBuilder(), `

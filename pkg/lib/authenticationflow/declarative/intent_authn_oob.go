@@ -9,7 +9,6 @@ import (
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 func init() {
@@ -17,12 +16,12 @@ func init() {
 }
 
 type IntentAuthenticationOOB struct {
-	JSONPointer    jsonpointer.T                           `json:"json_pointer,omitempty"`
-	UserID         string                                  `json:"user_id,omitempty"`
-	Purpose        otp.Purpose                             `json:"purpose,omitempty"`
-	Form           otp.Form                                `json:"form,omitempty"`
-	Info           *authenticator.Info                     `json:"info,omitempty"`
-	Authentication config.AuthenticationFlowAuthentication `json:"authentication,omitempty"`
+	JSONPointer    jsonpointer.T                          `json:"json_pointer,omitempty"`
+	UserID         string                                 `json:"user_id,omitempty"`
+	Purpose        otp.Purpose                            `json:"purpose,omitempty"`
+	Form           otp.Form                               `json:"form,omitempty"`
+	Info           *authenticator.Info                    `json:"info,omitempty"`
+	Authentication model.AuthenticationFlowAuthentication `json:"authentication,omitempty"`
 }
 
 var _ authflow.Intent = &IntentAuthenticationOOB{}

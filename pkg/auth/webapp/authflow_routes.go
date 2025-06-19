@@ -164,13 +164,13 @@ func (n *AuthflowNavigator) navigateSignupPromote(ctx context.Context, s *Authfl
 			authentication = option.Authentication
 		}
 		switch authentication {
-		case config.AuthenticationFlowAuthenticationPrimaryPassword:
+		case model.AuthenticationFlowAuthenticationPrimaryPassword:
 			fallthrough
-		case config.AuthenticationFlowAuthenticationSecondaryPassword:
+		case model.AuthenticationFlowAuthenticationSecondaryPassword:
 			s.Advance(AuthflowRouteCreatePassword, result)
-		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
+		case model.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 			fallthrough
-		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
+		case model.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
 			switch data := s.StateTokenFlowResponse.Action.Data.(type) {
 			case declarative.VerifyOOBOTPData:
 				// 1. We do not need to enter the target.
@@ -188,11 +188,11 @@ func (n *AuthflowNavigator) navigateSignupPromote(ctx context.Context, s *Authfl
 			default:
 				panic(fmt.Errorf("unexpected data: %T", s.StateTokenFlowResponse.Action.Data))
 			}
-		case config.AuthenticationFlowAuthenticationSecondaryTOTP:
+		case model.AuthenticationFlowAuthenticationSecondaryTOTP:
 			s.Advance(AuthflowRouteSetupTOTP, result)
-		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
+		case model.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
 			fallthrough
-		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
+		case model.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
 			data := s.StateTokenFlowResponse.Action.Data
 			switch data := data.(type) {
 			case declarative.VerifyOOBOTPData:
@@ -315,13 +315,13 @@ func (n *AuthflowNavigator) navigateLogin(ctx context.Context, s *AuthflowScreen
 		index := *s.Screen.TakenBranchIndex
 		option := options[index]
 		switch option.Authentication {
-		case config.AuthenticationFlowAuthenticationPrimaryPassword:
+		case model.AuthenticationFlowAuthenticationPrimaryPassword:
 			fallthrough
-		case config.AuthenticationFlowAuthenticationSecondaryPassword:
+		case model.AuthenticationFlowAuthenticationSecondaryPassword:
 			s.Advance(AuthflowRouteEnterPassword, result)
-		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
+		case model.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 			fallthrough
-		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
+		case model.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
 			switch data := s.StateTokenFlowResponse.Action.Data.(type) {
 			case declarative.VerifyOOBOTPData:
 				switch data.OTPForm {
@@ -335,11 +335,11 @@ func (n *AuthflowNavigator) navigateLogin(ctx context.Context, s *AuthflowScreen
 			default:
 				panic(fmt.Errorf("unexpected data: %T", s.StateTokenFlowResponse.Action.Data))
 			}
-		case config.AuthenticationFlowAuthenticationSecondaryTOTP:
+		case model.AuthenticationFlowAuthenticationSecondaryTOTP:
 			s.Advance(AuthflowRouteEnterTOTP, result)
-		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
+		case model.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
 			fallthrough
-		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
+		case model.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
 			channel := s.Screen.TakenChannel
 			switch channel {
 			case model.AuthenticatorOOBChannelSMS:
@@ -349,9 +349,9 @@ func (n *AuthflowNavigator) navigateLogin(ctx context.Context, s *AuthflowScreen
 			default:
 				panic(fmt.Errorf("unexpected channel: %v", channel))
 			}
-		case config.AuthenticationFlowAuthenticationRecoveryCode:
+		case model.AuthenticationFlowAuthenticationRecoveryCode:
 			s.Advance(AuthflowRouteEnterRecoveryCode, result)
-		case config.AuthenticationFlowAuthenticationPrimaryPasskey:
+		case model.AuthenticationFlowAuthenticationPrimaryPasskey:
 			s.Advance(AuthflowRouteUsePasskey, result)
 		default:
 			panic(fmt.Errorf("unexpected authentication: %v", option.Authentication))
@@ -378,13 +378,13 @@ func (n *AuthflowNavigator) navigateReauth(ctx context.Context, s *AuthflowScree
 		index := *s.Screen.TakenBranchIndex
 		option := options[index]
 		switch option.Authentication {
-		case config.AuthenticationFlowAuthenticationPrimaryPassword:
+		case model.AuthenticationFlowAuthenticationPrimaryPassword:
 			fallthrough
-		case config.AuthenticationFlowAuthenticationSecondaryPassword:
+		case model.AuthenticationFlowAuthenticationSecondaryPassword:
 			s.Advance(AuthflowRouteEnterPassword, result)
-		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
+		case model.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 			fallthrough
-		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
+		case model.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
 			switch data := s.StateTokenFlowResponse.Action.Data.(type) {
 			case declarative.VerifyOOBOTPData:
 				switch data.OTPForm {
@@ -398,11 +398,11 @@ func (n *AuthflowNavigator) navigateReauth(ctx context.Context, s *AuthflowScree
 			default:
 				panic(fmt.Errorf("unexpected data: %T", s.StateTokenFlowResponse.Action.Data))
 			}
-		case config.AuthenticationFlowAuthenticationSecondaryTOTP:
+		case model.AuthenticationFlowAuthenticationSecondaryTOTP:
 			s.Advance(AuthflowRouteEnterTOTP, result)
-		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
+		case model.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
 			fallthrough
-		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
+		case model.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
 			channel := s.Screen.TakenChannel
 			switch channel {
 			case model.AuthenticatorOOBChannelSMS:
@@ -412,7 +412,7 @@ func (n *AuthflowNavigator) navigateReauth(ctx context.Context, s *AuthflowScree
 			default:
 				panic(fmt.Errorf("unexpected channel: %v", channel))
 			}
-		case config.AuthenticationFlowAuthenticationPrimaryPasskey:
+		case model.AuthenticationFlowAuthenticationPrimaryPasskey:
 			s.Advance(AuthflowRouteUsePasskey, result)
 		default:
 			panic(fmt.Errorf("unexpected authentication: %v", option.Authentication))

@@ -27,7 +27,7 @@ var _ authflow.Data = &CreateAuthenticatorData{}
 func (m CreateAuthenticatorData) Data() {}
 
 type CreateAuthenticatorOptionForOutput struct {
-	Authentication config.AuthenticationFlowAuthentication `json:"authentication"`
+	Authentication model.AuthenticationFlowAuthentication `json:"authentication"`
 
 	BotProtection *BotProtectionData `json:"bot_protection,omitempty"`
 	// OTPForm is specific to OOBOTP.
@@ -43,7 +43,7 @@ type CreateAuthenticatorOptionForOutput struct {
 }
 
 type CreateAuthenticatorOption struct {
-	Authentication config.AuthenticationFlowAuthentication `json:"authentication"`
+	Authentication model.AuthenticationFlowAuthentication `json:"authentication"`
 
 	BotProtection *BotProtectionData `json:"bot_protection,omitempty"`
 	// OTPForm is specific to OOBOTP.
@@ -125,9 +125,9 @@ func NewCreateAuthenticationOptions(
 	oneOf := step.GetSignupFlowOrLoginFlowOneOf()
 	for _, b := range oneOf {
 		switch b.GetAuthentication() {
-		case config.AuthenticationFlowAuthenticationPrimaryPassword:
+		case model.AuthenticationFlowAuthenticationPrimaryPassword:
 			fallthrough
-		case config.AuthenticationFlowAuthenticationSecondaryPassword:
+		case model.AuthenticationFlowAuthenticationSecondaryPassword:
 			options = append(options, CreateAuthenticatorOptionInternal{
 				CreateAuthenticatorOption: CreateAuthenticatorOption{
 					Authentication: b.GetAuthentication(),
@@ -136,12 +136,12 @@ func NewCreateAuthenticationOptions(
 				},
 				AMR: authenticator.AMR(model.AuthenticatorTypePassword),
 			})
-		case config.AuthenticationFlowAuthenticationPrimaryPasskey:
+		case model.AuthenticationFlowAuthenticationPrimaryPasskey:
 			// Cannot create passkey in this step.
 			break
-		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
+		case model.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 			fallthrough
-		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
+		case model.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
 			target, unmaskedTarget, isSkipped, err := makeCreateAuthenticatorTarget(ctx, deps, flows, b, userID)
 			if err != nil {
 				return nil, err
@@ -164,9 +164,9 @@ func NewCreateAuthenticationOptions(
 				UnmaskedTarget: unmaskedTarget,
 				AMR:            authenticator.AMR(model.AuthenticatorTypeOOBEmail),
 			})
-		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
+		case model.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
 			fallthrough
-		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
+		case model.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
 			target, unmaskedTarget, isSkipped, err := makeCreateAuthenticatorTarget(ctx, deps, flows, b, userID)
 			if err != nil {
 				return nil, err
@@ -189,7 +189,7 @@ func NewCreateAuthenticationOptions(
 				UnmaskedTarget: unmaskedTarget,
 				AMR:            authenticator.AMR(model.AuthenticatorTypeOOBSMS),
 			})
-		case config.AuthenticationFlowAuthenticationSecondaryTOTP:
+		case model.AuthenticationFlowAuthenticationSecondaryTOTP:
 			options = append(options, CreateAuthenticatorOptionInternal{
 				CreateAuthenticatorOption: CreateAuthenticatorOption{
 					Authentication: b.GetAuthentication(),
@@ -197,10 +197,10 @@ func NewCreateAuthenticationOptions(
 				},
 				AMR: authenticator.AMR(model.AuthenticatorTypeTOTP),
 			})
-		case config.AuthenticationFlowAuthenticationRecoveryCode:
+		case model.AuthenticationFlowAuthenticationRecoveryCode:
 			// Recovery code is not created in this step.
 			break
-		case config.AuthenticationFlowAuthenticationDeviceToken:
+		case model.AuthenticationFlowAuthenticationDeviceToken:
 			// Device token is irrelevant in this step.
 			break
 		}

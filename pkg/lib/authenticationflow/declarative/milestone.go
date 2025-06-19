@@ -6,6 +6,7 @@ import (
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
 	"github.com/authgear/authgear-server/pkg/api/event"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
@@ -117,7 +118,7 @@ type MilestoneFlowSelectAuthenticationMethod interface {
 
 type MilestoneDidSelectAuthenticationMethod interface {
 	authflow.Milestone
-	MilestoneDidSelectAuthenticationMethod() config.AuthenticationFlowAuthentication
+	MilestoneDidSelectAuthenticationMethod() model.AuthenticationFlowAuthentication
 }
 
 type MilestoneFlowAuthenticate interface {
