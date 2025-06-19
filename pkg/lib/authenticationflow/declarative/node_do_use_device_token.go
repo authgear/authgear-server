@@ -25,7 +25,9 @@ func (*NodeDoUseDeviceToken) Milestone() {}
 func (*NodeDoUseDeviceToken) MilestoneDidSelectAuthenticationMethod() model.AuthenticationFlowAuthentication {
 	return model.AuthenticationFlowAuthenticationDeviceToken
 }
-func (*NodeDoUseDeviceToken) MilestoneDidAuthenticate() (amr []string) { return }
+func (*NodeDoUseDeviceToken) MilestoneDidAuthenticate() (amr []string) {
+	return model.AuthenticationFlowAuthenticationDeviceToken.AMR()
+}
 func (*NodeDoUseDeviceToken) MilestoneDidAuthenticateAuthenticator() (*authenticator.Info, bool) {
 	return nil, false
 }
