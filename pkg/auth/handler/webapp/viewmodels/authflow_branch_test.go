@@ -3,8 +3,9 @@ package viewmodels
 import (
 	"testing"
 
-	"github.com/authgear/authgear-server/pkg/api/model"
 	. "github.com/smartystreets/goconvey/convey"
+
+	"github.com/authgear/authgear-server/pkg/api/model"
 )
 
 func TestAuthflowBranchViewModel(t *testing.T) {
