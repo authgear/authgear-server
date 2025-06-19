@@ -33,9 +33,11 @@ func (n *NodeDoUseIDToken) CanReactTo(ctx context.Context, deps *authenticationf
 
 func (n *NodeDoUseIDToken) ReactTo(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows, input authenticationflow.Input) (authenticationflow.ReactToResult, error) {
 	return NewNodePostIdentified(ctx, deps, flows, &NodePostIdentifiedOptions{
-		Identity:       nil,
-		IDToken:        &n.IDToken,
-		Identification: model.AuthenticationFlowIdentificationIDToken,
+		Identification: model.Identification{
+			Identification: model.AuthenticationFlowIdentificationIDToken,
+			Identity:       nil,
+			IDToken:        &n.IDToken,
+		},
 	})
 }
 
