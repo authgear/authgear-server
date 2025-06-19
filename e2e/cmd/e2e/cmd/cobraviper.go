@@ -93,5 +93,10 @@ var ArgSessionID = &cobraviper.StringArgument{
 
 var ArgToken = &cobraviper.StringArgument{
 	ArgumentName: "token",
-	Usage:        "The token for accessing a session.",
+	Usage:        "A token.",
+}
+
+var ArgPurpose = &cobraviper.StringArgument{
+	ArgumentName: "purpose",
+	Usage:        "The purpose of challenge.",
 }
