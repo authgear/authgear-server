@@ -17,7 +17,7 @@ This document documents the expected use cases of some events.
 ### Advanced Use Cases
 
 - [Applying stricter rate limits for account enumeration according to geo location](#applying-stricter-rate-limits-for-account-enumeration-according-to-geo-location)
-- [Adaptive MFA with customized Authflow](#adaptive-mfa-with-customized-authflow)
+- [Enable bot protection under specific conditions](#enable-bot-protection-under-specific-conditions)
 
 ## Simple Use Cases
 
@@ -264,86 +264,6 @@ By setting `overrides.rate_limit.weight` to 2, it means this attempt of identifi
 
 `weight` can also be lower than 1. When set to `0`, this attempt will never hit rate limit.
 
-### Adaptive MFA with customized Authflow
-
-With customized authentication flow, you are able to control the position of step which handles AMR constraints.
-
-Firstly, define a step to handle Adaptive MFA in the authentifaction flow.
-
-```yaml
-authentication_flows:
-  login_flows:
-    - name: default
-      steps:
-        - name: login_identify
-          type: identify
-          one_of:
-            - identification: phone
-              steps:
-                - name: authenticate_primary_phone
-                  type: authenticate
-                  one_of:
-                    - authentication: primary_oob_otp_sms
-                      target_step: login_identify
-        - type: enforce_constraints_amr # Add this step
-        - type: check_account_status
-        - type: terminate_other_sessions
-```
-
-In the above example, we handle adaptive MFA by adding a `enforce_constraints_amr` step in the flow.
-
-The step will enforce AMR constraints by authenticating the user with authentication methods required by the constraints, until all contraints are fulfilled.
-
-And your hook could be defined as below:
-
-```typescript
-export default async function (
-  e: EventAuthenticationPostIdentified
-): Promise<EventAuthenticationPostIdentifiedResponse> {
-  if (e.context.geo_location_code !== "HK") {
-    return {
-      // Allow the login with a mfa contraint
-      is_allowed: true,
-      contraints: {
-        amr: ["mfa"],
-      },
-    };
-  }
-  // Else, simply allow the login
-  return {
-    is_allowed: true,
-  };
-}
-```
-
-Since `constraints.amr` is only returned if the user is outside Hong Kong, users signing in from outside Hong Kong will be required to authenticate with an enabled secondary authentication method due to the configured `enforce_constraints_amr` step.
-Users in Hong Kong will skip this step and proceed to `check_account_status`.
-
-The above example only works with `authentication.post_identified`, because `authentication.pre_authenticated` is triggered at the end of flow, which is after your `enforce_constraints_amr` step.
-
-If you prefer using `authentication.pre_authenticated`, add one more step to trigger the event before `enforce_constraints_amr`:
-
-```yaml
-authentication_flows:
-  login_flows:
-    - name: default
-      steps:
-        - name: login_identify
-          type: identify
-          one_of:
-            - identification: phone
-              steps:
-                - name: authenticate_primary_phone
-                  type: authenticate
-                  one_of:
-                    - authentication: primary_oob_otp_sms
-                      target_step: login_identify
-        - type: trigger_event # Add this step
-          event: authentication.pre_authenticated
-        - type: enforce_constraints_amr # Add this step
-        - type: check_account_status
-        - type: terminate_other_sessions
-```
 
 ### Enable bot protection under specific conditions
 
