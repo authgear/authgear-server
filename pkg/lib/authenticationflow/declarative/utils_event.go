@@ -32,7 +32,7 @@ func GetAuthenticationContext(ctx context.Context, deps *authenticationflow.Depe
 		}
 	}
 
-	amr, err = collectAMR(ctx, deps, flows)
+	amr, err = CollectAMR(ctx, deps, flows)
 	if err != nil {
 		return nil, err
 	}
