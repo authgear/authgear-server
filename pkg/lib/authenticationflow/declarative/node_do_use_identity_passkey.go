@@ -3,6 +3,7 @@ package declarative
 import (
 	"context"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
@@ -91,6 +92,9 @@ func (n *NodeDoUseIdentityPasskey) MilestoneDoUseUser() string {
 }
 func (n *NodeDoUseIdentityPasskey) MilestoneDoUseIdentity() *identity.Info {
 	return n.NodeDoUseIdentity.MilestoneDoUseIdentity()
+}
+func (n *NodeDoUseIdentityPasskey) MilestoneDoUseIdentityIdentification() model.Identification {
+	return n.NodeDoUseIdentity.MilestoneDoUseIdentityIdentification()
 }
 func (n *NodeDoUseIdentityPasskey) MilestoneDidSelectAuthenticator() *authenticator.Info {
 	return n.Authenticator

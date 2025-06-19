@@ -68,13 +68,8 @@ func (n *NodeDoUseIdentity) CanReactTo(ctx context.Context, deps *authentication
 }
 
 func (n *NodeDoUseIdentity) ReactTo(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows, input authenticationflow.Input) (authenticationflow.ReactToResult, error) {
-	idmodel := n.Identity.ToModel()
 	return NewNodePostIdentified(ctx, deps, flows, &NodePostIdentifiedOptions{
-		Identification: model.Identification{
-			Identification: n.Identity.ToIdentification(),
-			Identity:       &idmodel,
-			IDToken:        nil,
-		},
+		Identification: n.identification(),
 	})
 }
 
@@ -83,7 +78,19 @@ func (n *NodeDoUseIdentity) MilestoneDoUseUser() string {
 	return n.Identity.UserID
 }
 func (n *NodeDoUseIdentity) MilestoneDoUseIdentity() *identity.Info { return n.Identity }
+func (n *NodeDoUseIdentity) MilestoneDoUseIdentityIdentification() model.Identification {
+	return n.identification()
+}
 
 func (n *NodeDoUseIdentity) MilestoneGetIdentitySpecs() []*identity.Spec {
 	return []*identity.Spec{n.IdentitySpec}
+}
+
+func (n *NodeDoUseIdentity) identification() model.Identification {
+	idmodel := n.Identity.ToModel()
+	return model.Identification{
+		Identification: n.Identity.ToIdentification(),
+		Identity:       &idmodel,
+		IDToken:        nil,
+	}
 }

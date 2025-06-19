@@ -42,6 +42,14 @@ func (n *IntentSkipCreationByExistingIdentity) MilestoneFlowCreateIdentity(flows
 func (n *IntentSkipCreationByExistingIdentity) MilestoneDoCreateIdentity() *identity.Info {
 	return n.Identity
 }
+func (n *IntentSkipCreationByExistingIdentity) MilestoneDoCreateIdentityIdentification() model.Identification {
+	idmodel := n.Identity.ToModel()
+	return model.Identification{
+		Identification: n.Identity.ToIdentification(),
+		Identity:       &idmodel,
+		IDToken:        nil,
+	}
+}
 func (n *IntentSkipCreationByExistingIdentity) MilestoneDoCreateIdentitySkipCreate() {
 	// Already skipping
 }

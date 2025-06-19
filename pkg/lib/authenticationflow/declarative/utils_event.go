@@ -7,7 +7,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow"
-	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 )
@@ -43,46 +42,46 @@ func GetAuthenticationContext(ctx context.Context, deps *authenticationflow.Depe
 		return nil, err
 	}
 
-	assertedIdentities, err := collectAssertedIdentities(flows)
+	assertedIdentifications, err := collectAssertedIdentifications(flows)
 	if err != nil {
 		return nil, err
 	}
 
 	authCtx := &event.AuthenticationContext{
-		AuthenticationFlow:     authenticationFlow,
-		User:                   u,
-		AMR:                    amr,
-		AssertedAuthenticators: []model.Authenticator{},
-		AssertedIdentities:     []model.Identity{},
+		AuthenticationFlow:      authenticationFlow,
+		User:                    u,
+		AMR:                     amr,
+		AssertedAuthenticators:  []model.Authenticator{},
+		AssertedIdentifications: []model.Identification{},
 	}
 
 	for _, authn := range assertedAuthenticators {
 		authCtx.AddAssertedAuthenticator(authn.ToModel())
 	}
-	for _, iden := range assertedIdentities {
-		authCtx.AddAssertedIdentity(iden.ToModel())
+	for _, iden := range assertedIdentifications {
+		authCtx.AddAssertedIdentification(iden)
 	}
 
 	return authCtx, nil
 }
 
-func collectAssertedIdentities(flows authenticationflow.Flows) (identities []*identity.Info, err error) {
+func collectAssertedIdentifications(flows authenticationflow.Flows) (identifications []model.Identification, err error) {
 	err = authenticationflow.TraverseFlow(authenticationflow.Traverser{
 		NodeSimple: func(nodeSimple authenticationflow.NodeSimple, w *authenticationflow.Flow) error {
 			if n, ok := nodeSimple.(MilestoneDoUseIdentity); ok {
-				identities = append(identities, n.MilestoneDoUseIdentity())
+				identifications = append(identifications, n.MilestoneDoUseIdentityIdentification())
 			}
 			if n, ok := nodeSimple.(MilestoneDoCreateIdentity); ok {
-				identities = append(identities, n.MilestoneDoCreateIdentity())
+				identifications = append(identifications, n.MilestoneDoCreateIdentityIdentification())
 			}
 			return nil
 		},
 		Intent: func(intent authenticationflow.Intent, w *authenticationflow.Flow) error {
 			if i, ok := intent.(MilestoneDoUseIdentity); ok {
-				identities = append(identities, i.MilestoneDoUseIdentity())
+				identifications = append(identifications, i.MilestoneDoUseIdentityIdentification())
 			}
 			if i, ok := intent.(MilestoneDoCreateIdentity); ok {
-				identities = append(identities, i.MilestoneDoCreateIdentity())
+				identifications = append(identifications, i.MilestoneDoCreateIdentityIdentification())
 			}
 			return nil
 		},
