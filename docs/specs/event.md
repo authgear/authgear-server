@@ -365,7 +365,20 @@ Example payload:
 
 ##### authentication.pre_authenticated in authentication flow
 
-The trigger time of `authentication.pre_authenticated` is controlled by the step `type: trigger_event`. For example, a typical login flow would look like:
+`authentication.pre_authenticated` will be triggered in the following flow types:
+- login
+- signup
+- reauth
+- promote
+
+The `authentication.pre_authenticated` event is triggered when the remaining flow no longer contains any of the following steps:
+
+- `identify`
+- `authenticate`
+- `create_authenticator`
+- `verify`
+
+Take the following login flow as an example:
 
 ```yaml
 authentication_flows:
@@ -378,35 +391,15 @@ authentication_flows:
         - type: authenticate
           one_of:
             - authentication: primary_password
-        - type: trigger_event # Add this step
-          event: authentication.pre_authenticated
-        - type: enforce_constraints_amr
+              steps:
+                - type: change_password
         - type: check_account_status
         - type: terminate_other_sessions
 ```
 
-This triggers `authentication.pre_authenticated` right after `primary_password` authentication.
+`authentication.pre_authenticated` is triggered immediately after the user completes the `authenticate` step, but before the `change_password` step.
 
-Note that `authentication.pre_authenticated` will still be triggered at the end of the flow even if the config does not explicitly trigger this event. This is done in conjunction with `enforce_constraints_amr` to ensure the returned AMR constraints are always respected:
-
-```yaml
-authentication_flows:
-  login_flows:
-    - name: default
-      steps:
-        - type: identify
-          one_of:
-            - identification: username
-        - type: authenticate
-          one_of:
-            - authentication: primary_password
-        - type: check_account_status
-        - type: terminate_other_sessions
-        # These steps are not in the config, but are still triggered implicitly
-        # - type: trigger_event
-        #   event: authentication.pre_authenticated
-        # - type: enforce_constraints_amr
-```
+After `authentication.pre_authenticated` is triggered, `amr` constraints in the hook response will be enforced by additional `authenticate` steps, if needed.
 
 #### oidc.jwt.pre_create
 
