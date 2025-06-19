@@ -71,41 +71,17 @@ func findTOTP(in []*authenticator.Info, kind model.AuthenticatorKind) *authentic
 	return nil
 }
 
-func collectAssertedAuthenticators(flows authenticationflow.Flows) (authenticators []*authenticator.Info, err error) {
-	err = authenticationflow.TraverseFlow(authenticationflow.Traverser{
-		NodeSimple: func(nodeSimple authenticationflow.NodeSimple, w *authenticationflow.Flow) error {
-			if n, ok := nodeSimple.(MilestoneDidAuthenticate); ok {
-				if info, ok := n.MilestoneDidAuthenticateAuthenticator(); ok {
-					authenticators = append(authenticators, info)
-				}
-			}
-			if n, ok := nodeSimple.(MilestoneDoCreateAuthenticator); ok {
-				authn, ok := n.MilestoneDoCreateAuthenticator()
-				if ok {
-					authenticators = append(authenticators, authn)
-				}
-			}
-			return nil
-		},
-		Intent: func(intent authenticationflow.Intent, w *authenticationflow.Flow) error {
-			if i, ok := intent.(MilestoneDidAuthenticate); ok {
-				if info, ok := i.MilestoneDidAuthenticateAuthenticator(); ok {
-					authenticators = append(authenticators, info)
-				}
-			}
-			if i, ok := intent.(MilestoneDoCreateAuthenticator); ok {
-				authn, ok := i.MilestoneDoCreateAuthenticator()
-				if ok {
-					authenticators = append(authenticators, authn)
-				}
-			}
-			return nil
-		},
-	}, flows.Root)
-
+func collectAssertedAuthenticators(flows authenticationflow.Flows) (authenticators []model.Authenticator, err error) {
+	assertedAuthentications, err := collectAssertedAuthentications(flows)
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	return
+	for _, authn := range assertedAuthentications {
+		if authn.Authenticator != nil {
+			authenticators = append(authenticators, *authn.Authenticator)
+		}
+	}
+
+	return authenticators, nil
 }

@@ -130,6 +130,7 @@ type MilestoneDidAuthenticate interface {
 	authflow.Milestone
 	MilestoneDidAuthenticate() (amr []string)
 	MilestoneDidAuthenticateAuthenticator() (*authenticator.Info, bool)
+	MilestoneDidAuthenticateAuthentication() (*model.Authentication, bool)
 }
 
 type MilestoneDoCreateSession interface {
@@ -170,6 +171,7 @@ type MilestoneFlowCreateAuthenticator interface {
 type MilestoneDoCreateAuthenticator interface {
 	authflow.Milestone
 	MilestoneDoCreateAuthenticator() (*authenticator.Info, bool)
+	MilestoneDoCreateAuthenticatorAuthentication() (*model.Authentication, bool)
 	MilestoneDoCreateAuthenticatorSkipCreate()
 	MilestoneDoCreateAuthenticatorUpdate(newInfo *authenticator.Info)
 }

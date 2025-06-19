@@ -70,6 +70,17 @@ func (n *NodeDoCreatePasskey) MilestoneDoCreateAuthenticator() (*authenticator.I
 func (n *NodeDoCreatePasskey) MilestoneDoCreateAuthenticatorSkipCreate() {
 	n.SkipCreate = true
 }
+func (n *NodeDoCreatePasskey) MilestoneDoCreateAuthenticatorAuthentication() (*model.Authentication, bool) {
+	if n.Authenticator == nil || n.SkipCreate {
+		return nil, false
+	}
+	authn := n.Authenticator.ToAuthentication()
+	authnModel := n.Authenticator.ToModel()
+	return &model.Authentication{
+		Authentication: authn,
+		Authenticator:  &authnModel,
+	}, true
+}
 func (n *NodeDoCreatePasskey) MilestoneDoCreateAuthenticatorUpdate(newInfo *authenticator.Info) {
 	panic("NodeDoCreatePasskey does not support update authenticator")
 }
