@@ -45,6 +45,13 @@ func (n *NodeSkipCreationByExistingAuthenticator) MilestoneDoCreateAuthenticator
 func (n *NodeSkipCreationByExistingAuthenticator) MilestoneDoCreateAuthenticatorSkipCreate() {
 	// Already skipping
 }
+func (n *NodeSkipCreationByExistingAuthenticator) MilestoneDoCreateAuthenticatorAuthentication() (*model.Authentication, bool) {
+	authnModel := n.Authenticator.ToModel()
+	return &model.Authentication{
+		Authentication: n.Authentication,
+		Authenticator:  &authnModel,
+	}, true
+}
 func (n *NodeSkipCreationByExistingAuthenticator) MilestoneDoCreateAuthenticatorUpdate(newInfo *authenticator.Info) {
 	n.Authenticator = newInfo
 }

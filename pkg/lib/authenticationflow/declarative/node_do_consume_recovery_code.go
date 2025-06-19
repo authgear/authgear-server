@@ -3,6 +3,7 @@ package declarative
 import (
 	"context"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
@@ -32,6 +33,12 @@ func (*NodeDoConsumeRecoveryCode) Milestone()                               {}
 func (*NodeDoConsumeRecoveryCode) MilestoneDidAuthenticate() (amr []string) { return }
 func (*NodeDoConsumeRecoveryCode) MilestoneDidAuthenticateAuthenticator() (*authenticator.Info, bool) {
 	return nil, false
+}
+func (*NodeDoConsumeRecoveryCode) MilestoneDidAuthenticateAuthentication() (*model.Authentication, bool) {
+	return &model.Authentication{
+		Authentication: model.AuthenticationFlowAuthenticationRecoveryCode,
+		Authenticator:  nil,
+	}, true
 }
 func (*NodeDoConsumeRecoveryCode) MilestoneDidUseAuthenticationLockoutMethod() (config.AuthenticationLockoutMethod, bool) {
 	return config.AuthenticationLockoutMethodRecoveryCode, true

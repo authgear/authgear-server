@@ -21,6 +21,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/phone"
 	"github.com/authgear/authgear-server/pkg/util/setutil"
+	"github.com/authgear/authgear-server/pkg/util/slice"
 	"github.com/authgear/authgear-server/pkg/util/stringutil"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
@@ -220,10 +221,12 @@ func getAuthenticationOptionsForLogin(ctx context.Context, deps *authflow.Depend
 		return nil, false, err
 	}
 
-	assertedAuthenticatorIDs := setutil.NewSetFromSlice(assertedAuthn, func(a *authenticator.Info) string {
+	assertedAuthenticatorIDs := setutil.NewSetFromSlice(assertedAuthn, func(a model.Authenticator) string {
 		return a.ID
 	})
-	assertedPrimaryPasswordAuthenticators := authenticator.ApplyFilters(assertedAuthn, authenticator.KeepKind(model.AuthenticatorKindPrimary), authenticator.KeepType(model.AuthenticatorTypePassword))
+	assertedPrimaryPasswordAuthenticators := slice.Filter(assertedAuthn, func(a model.Authenticator) bool {
+		return a.Kind == authenticator.KindPrimary && a.Type == model.AuthenticatorTypePassword
+	})
 
 	options = []AuthenticateOption{}
 
@@ -442,7 +445,7 @@ func getAuthenticationOptionsForReauth(ctx context.Context, deps *authflow.Depen
 		return nil, err
 	}
 
-	assertedAuthenticatorIDs := setutil.NewSetFromSlice(assertedAuthn, func(a *authenticator.Info) string {
+	assertedAuthenticatorIDs := setutil.NewSetFromSlice(assertedAuthn, func(a model.Authenticator) string {
 		return a.ID
 	})
 

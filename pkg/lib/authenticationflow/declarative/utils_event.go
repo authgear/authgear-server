@@ -37,7 +37,7 @@ func GetAuthenticationContext(ctx context.Context, deps *authenticationflow.Depe
 		return nil, err
 	}
 
-	assertedAuthenticators, err := collectAssertedAuthenticators(flows)
+	assertedAuthentications, err := collectAssertedAuthentications(flows)
 	if err != nil {
 		return nil, err
 	}
@@ -51,12 +51,12 @@ func GetAuthenticationContext(ctx context.Context, deps *authenticationflow.Depe
 		AuthenticationFlow:      authenticationFlow,
 		User:                    u,
 		AMR:                     amr,
-		AssertedAuthenticators:  []model.Authenticator{},
+		AssertedAuthentications: []model.Authentication{},
 		AssertedIdentifications: []model.Identification{},
 	}
 
-	for _, authn := range assertedAuthenticators {
-		authCtx.AddAssertedAuthenticator(authn.ToModel())
+	for _, authn := range assertedAuthentications {
+		authCtx.AddAssertedAuthentication(authn)
 	}
 	for _, iden := range assertedIdentifications {
 		authCtx.AddAssertedIdentification(iden)
@@ -86,6 +86,45 @@ func collectAssertedIdentifications(flows authenticationflow.Flows) (identificat
 			return nil
 		},
 	}, flows.Root)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+func collectAssertedAuthentications(flows authenticationflow.Flows) (authens []model.Authentication, err error) {
+	err = authenticationflow.TraverseFlow(authenticationflow.Traverser{
+		NodeSimple: func(nodeSimple authenticationflow.NodeSimple, w *authenticationflow.Flow) error {
+			if n, ok := nodeSimple.(MilestoneDidAuthenticate); ok {
+				if a, ok := n.MilestoneDidAuthenticateAuthentication(); ok {
+					authens = append(authens, *a)
+				}
+			}
+			if n, ok := nodeSimple.(MilestoneDoCreateAuthenticator); ok {
+				authn, ok := n.MilestoneDoCreateAuthenticatorAuthentication()
+				if ok {
+					authens = append(authens, *authn)
+				}
+			}
+			return nil
+		},
+		Intent: func(intent authenticationflow.Intent, w *authenticationflow.Flow) error {
+			if i, ok := intent.(MilestoneDidAuthenticate); ok {
+				if a, ok := i.MilestoneDidAuthenticateAuthentication(); ok {
+					authens = append(authens, *a)
+				}
+			}
+			if i, ok := intent.(MilestoneDoCreateAuthenticator); ok {
+				authn, ok := i.MilestoneDoCreateAuthenticatorAuthentication()
+				if ok {
+					authens = append(authens, *authn)
+				}
+			}
+			return nil
+		},
+	}, flows.Root)
+
 	if err != nil {
 		return
 	}
