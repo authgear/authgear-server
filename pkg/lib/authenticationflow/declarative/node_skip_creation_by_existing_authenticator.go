@@ -3,9 +3,9 @@ package declarative
 import (
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 func init() {
@@ -13,9 +13,9 @@ func init() {
 }
 
 type NodeSkipCreationByExistingAuthenticator struct {
-	JSONPointer    jsonpointer.T                           `json:"json_pointer,omitempty"`
-	Authenticator  *authenticator.Info                     `json:"authenticator,omitempty"`
-	Authentication config.AuthenticationFlowAuthentication `json:"authentication,omitempty"`
+	JSONPointer    jsonpointer.T                          `json:"json_pointer,omitempty"`
+	Authenticator  *authenticator.Info                    `json:"authenticator,omitempty"`
+	Authentication model.AuthenticationFlowAuthentication `json:"authentication,omitempty"`
 }
 
 var _ authflow.NodeSimple = &NodeSkipCreationByExistingAuthenticator{}
@@ -36,7 +36,7 @@ func (n *NodeSkipCreationByExistingAuthenticator) MilestoneFlowCreateAuthenticat
 func (n *NodeSkipCreationByExistingAuthenticator) MilestoneFlowSelectAuthenticationMethod(flows authflow.Flows) (MilestoneDidSelectAuthenticationMethod, authflow.Flows, bool) {
 	return n, flows, true
 }
-func (n *NodeSkipCreationByExistingAuthenticator) MilestoneDidSelectAuthenticationMethod() config.AuthenticationFlowAuthentication {
+func (n *NodeSkipCreationByExistingAuthenticator) MilestoneDidSelectAuthenticationMethod() model.AuthenticationFlowAuthentication {
 	return n.Authentication
 }
 func (n *NodeSkipCreationByExistingAuthenticator) MilestoneDoCreateAuthenticator() (*authenticator.Info, bool) {

@@ -3,6 +3,7 @@ package webapp
 import (
 	"fmt"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
@@ -30,7 +31,7 @@ func IsAccountRecoveryIdentifyStepBotProtectionRequired(identificationType confi
 	return false, fmt.Errorf("identification type: \"%v\" not found in flow response options: [%v]", identificationType, options)
 }
 
-func IsAuthenticateStepBotProtectionRequired(authenticationType config.AuthenticationFlowAuthentication, f *authflow.FlowResponse) (bool, error) {
+func IsAuthenticateStepBotProtectionRequired(authenticationType model.AuthenticationFlowAuthentication, f *authflow.FlowResponse) (bool, error) {
 	options := GetAuthenticationOptions(f)
 	for _, option := range options {
 		if option.Authentication == authenticationType {
@@ -40,7 +41,7 @@ func IsAuthenticateStepBotProtectionRequired(authenticationType config.Authentic
 	return false, fmt.Errorf("authentication type: \"%v\" not found in flow response options: [%v]", authenticationType, options)
 }
 
-func IsCreateAuthenticatorStepBotProtectionRequired(authenticationType config.AuthenticationFlowAuthentication, f *authflow.FlowResponse) (bool, error) {
+func IsCreateAuthenticatorStepBotProtectionRequired(authenticationType model.AuthenticationFlowAuthentication, f *authflow.FlowResponse) (bool, error) {
 	options := GetCreateAuthenticatorOptions(f)
 	for _, option := range options {
 		if option.Authentication == authenticationType {

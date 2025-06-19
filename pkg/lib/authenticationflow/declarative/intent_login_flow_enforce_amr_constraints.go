@@ -24,7 +24,7 @@ type IntentLoginFlowEnforceAMRConstraints struct {
 func NewIntentLoginFlowEnforceAMRConstraints(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows, flowRef authenticationflow.FlowReference) (*IntentLoginFlowEnforceAMRConstraints, error) {
 	var oneOfs []*config.AuthenticationFlowLoginFlowOneOf
 
-	addOneOf := func(am config.AuthenticationFlowAuthentication, bpGetter func(*config.AppConfig) (*config.AuthenticationFlowBotProtection, bool)) {
+	addOneOf := func(am model.AuthenticationFlowAuthentication, bpGetter func(*config.AppConfig) (*config.AuthenticationFlowBotProtection, bool)) {
 		oneOf := &config.AuthenticationFlowLoginFlowOneOf{
 			Authentication: am,
 		}
@@ -40,21 +40,21 @@ func NewIntentLoginFlowEnforceAMRConstraints(ctx context.Context, deps *authenti
 	for _, authenticatorType := range *deps.Config.Authentication.SecondaryAuthenticators {
 		switch authenticatorType {
 		case model.AuthenticatorTypePassword:
-			addOneOf(config.AuthenticationFlowAuthenticationSecondaryPassword, getBotProtectionRequirementsPassword)
+			addOneOf(model.AuthenticationFlowAuthenticationSecondaryPassword, getBotProtectionRequirementsPassword)
 		case model.AuthenticatorTypeOOBEmail:
-			addOneOf(config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail, getBotProtectionRequirementsOOBOTPEmail)
+			addOneOf(model.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail, getBotProtectionRequirementsOOBOTPEmail)
 		case model.AuthenticatorTypeOOBSMS:
-			addOneOf(config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS, getBotProtectionRequirementsOOBOTPSMS)
+			addOneOf(model.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS, getBotProtectionRequirementsOOBOTPSMS)
 		case model.AuthenticatorTypeTOTP:
-			addOneOf(config.AuthenticationFlowAuthenticationSecondaryTOTP, nil)
+			addOneOf(model.AuthenticationFlowAuthenticationSecondaryTOTP, nil)
 		case model.AuthenticatorTypePasskey:
-			addOneOf(config.AuthenticationFlowAuthenticationPrimaryPasskey, nil)
+			addOneOf(model.AuthenticationFlowAuthenticationPrimaryPasskey, nil)
 		}
 	}
 
 	if !*deps.Config.Authentication.RecoveryCode.Disabled {
 		oneOfs = append(oneOfs, &config.AuthenticationFlowLoginFlowOneOf{
-			Authentication: config.AuthenticationFlowAuthenticationRecoveryCode,
+			Authentication: model.AuthenticationFlowAuthenticationRecoveryCode,
 		})
 	}
 

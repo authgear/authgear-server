@@ -485,24 +485,24 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchLoginAuthenticate(input *Take
 	case declarative.StepAuthenticateData:
 		option := data.Options[input.Index]
 		switch option.Authentication {
-		case config.AuthenticationFlowAuthenticationPrimaryPassword:
+		case model.AuthenticationFlowAuthenticationPrimaryPassword:
 			fallthrough
-		case config.AuthenticationFlowAuthenticationSecondaryPassword:
+		case model.AuthenticationFlowAuthenticationSecondaryPassword:
 			fallthrough
-		case config.AuthenticationFlowAuthenticationSecondaryTOTP:
+		case model.AuthenticationFlowAuthenticationSecondaryTOTP:
 			fallthrough
-		case config.AuthenticationFlowAuthenticationRecoveryCode:
+		case model.AuthenticationFlowAuthenticationRecoveryCode:
 			fallthrough
-		case config.AuthenticationFlowAuthenticationPrimaryPasskey:
+		case model.AuthenticationFlowAuthenticationPrimaryPasskey:
 			// All these can take the branch simply by setting index.
 			return s.takeBranchResultSimple(input, false)
-		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
+		case model.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 			fallthrough
-		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
+		case model.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
 			fallthrough
-		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
+		case model.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
 			fallthrough
-		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
+		case model.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
 			// This branch requires input to take.
 			if input.Channel == "" {
 				input.Channel = option.Channels[0]
@@ -598,22 +598,22 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchReauth(input *TakeBranchInput
 		data := s.StateTokenFlowResponse.Action.Data.(declarative.StepAuthenticateData)
 		option := data.Options[input.Index]
 		switch option.Authentication {
-		case config.AuthenticationFlowAuthenticationPrimaryPassword:
+		case model.AuthenticationFlowAuthenticationPrimaryPassword:
 			fallthrough
-		case config.AuthenticationFlowAuthenticationSecondaryPassword:
+		case model.AuthenticationFlowAuthenticationSecondaryPassword:
 			fallthrough
-		case config.AuthenticationFlowAuthenticationSecondaryTOTP:
+		case model.AuthenticationFlowAuthenticationSecondaryTOTP:
 			fallthrough
-		case config.AuthenticationFlowAuthenticationPrimaryPasskey:
+		case model.AuthenticationFlowAuthenticationPrimaryPasskey:
 			// All these can take the branch simply by setting index.
 			return s.takeBranchResultSimple(input, false)
-		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
+		case model.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 			fallthrough
-		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
+		case model.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
 			fallthrough
-		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
+		case model.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
 			fallthrough
-		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
+		case model.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
 			// This branch requires input to take.
 			if input.Channel == "" {
 				input.Channel = option.Channels[0]
@@ -808,12 +808,12 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchCreateAuthenticator(
 	selectedOption declarative.CreateAuthenticatorOptionForOutput,
 ) TakeBranchResult {
 	switch selectedOption.Authentication {
-	case config.AuthenticationFlowAuthenticationPrimaryPassword:
+	case model.AuthenticationFlowAuthenticationPrimaryPassword:
 		fallthrough
-	case config.AuthenticationFlowAuthenticationSecondaryPassword:
+	case model.AuthenticationFlowAuthenticationSecondaryPassword:
 		// Password branches can be taken by setting index.
 		return s.takeBranchResultSimple(input, false)
-	case config.AuthenticationFlowAuthenticationSecondaryTOTP:
+	case model.AuthenticationFlowAuthenticationSecondaryTOTP:
 		// This branch requires input to take.
 		resultInput := map[string]interface{}{
 			"authentication": "secondary_totp",
@@ -824,15 +824,15 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchCreateAuthenticator(
 				var emptyChannel model.AuthenticatorOOBChannel
 				isContinuation := func(flowResponse *authflow.FlowResponse) bool {
 					return flowResponse.Action.Type == authflow.FlowActionType(expectedActionType) &&
-						flowResponse.Action.Authentication == config.AuthenticationFlowAuthenticationSecondaryTOTP
+						flowResponse.Action.Authentication == model.AuthenticationFlowAuthenticationSecondaryTOTP
 				}
 
 				return s.makeScreenForTakenBranch(flowResponse, resultInput, &input.Index, emptyChannel, isContinuation)
 			},
 		}
-	case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
+	case model.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 		fallthrough
-	case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
+	case model.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
 		if input.Channel == "" {
 			input.Channel = selectedOption.Channels[0]
 		}
@@ -866,9 +866,9 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchCreateAuthenticator(
 			OnRetry: &onFailureHandler,
 		}
 
-	case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
+	case model.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
 		fallthrough
-	case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
+	case model.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
 		if input.Channel == "" {
 			input.Channel = selectedOption.Channels[0]
 		}

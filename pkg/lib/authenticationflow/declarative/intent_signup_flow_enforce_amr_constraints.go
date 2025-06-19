@@ -33,7 +33,7 @@ func NewIntentSignupFlowEnforceAMRConstraints(ctx context.Context, deps *authent
 		Type: config.AuthenticationFlowSignupFlowStepTypeViewRecoveryCode,
 	}
 
-	addOneOf := func(am config.AuthenticationFlowAuthentication, bpGetter func(*config.AppConfig) (*config.AuthenticationFlowBotProtection, bool)) {
+	addOneOf := func(am model.AuthenticationFlowAuthentication, bpGetter func(*config.AppConfig) (*config.AuthenticationFlowBotProtection, bool)) {
 
 		oneOf := &config.AuthenticationFlowSignupFlowOneOf{
 			Authentication: am,
@@ -55,13 +55,13 @@ func NewIntentSignupFlowEnforceAMRConstraints(ctx context.Context, deps *authent
 	for _, authenticatorType := range *deps.Config.Authentication.SecondaryAuthenticators {
 		switch authenticatorType {
 		case model.AuthenticatorTypePassword:
-			addOneOf(config.AuthenticationFlowAuthenticationSecondaryPassword, nil)
+			addOneOf(model.AuthenticationFlowAuthenticationSecondaryPassword, nil)
 		case model.AuthenticatorTypeOOBEmail:
-			addOneOf(config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail, getBotProtectionRequirementsOOBOTPEmail)
+			addOneOf(model.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail, getBotProtectionRequirementsOOBOTPEmail)
 		case model.AuthenticatorTypeOOBSMS:
-			addOneOf(config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS, getBotProtectionRequirementsOOBOTPSMS)
+			addOneOf(model.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS, getBotProtectionRequirementsOOBOTPSMS)
 		case model.AuthenticatorTypeTOTP:
-			addOneOf(config.AuthenticationFlowAuthenticationSecondaryTOTP, nil)
+			addOneOf(model.AuthenticationFlowAuthenticationSecondaryTOTP, nil)
 		case model.AuthenticatorTypePasskey:
 			// FIXME(tung): We don't have a step to force user create passkey at the moment
 		}

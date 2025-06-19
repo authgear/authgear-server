@@ -32,7 +32,7 @@ type inputTakeAccountLinkingIdentification interface {
 }
 
 type inputTakeAuthenticationMethod interface {
-	GetAuthenticationMethod() config.AuthenticationFlowAuthentication
+	GetAuthenticationMethod() model.AuthenticationFlowAuthentication
 }
 
 type inputTakeLoginID interface {

@@ -24,7 +24,7 @@ type IntentReauthFlowEnforceAMRConstraints struct {
 func NewIntentReauthFlowEnforceAMRConstraints(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows, flowRef authenticationflow.FlowReference) (*IntentReauthFlowEnforceAMRConstraints, error) {
 	var oneOfs []*config.AuthenticationFlowReauthFlowOneOf
 
-	addOneOf := func(am config.AuthenticationFlowAuthentication) {
+	addOneOf := func(am model.AuthenticationFlowAuthentication) {
 		oneOf := &config.AuthenticationFlowReauthFlowOneOf{
 			Authentication: am,
 		}
@@ -35,15 +35,15 @@ func NewIntentReauthFlowEnforceAMRConstraints(ctx context.Context, deps *authent
 	for _, authenticatorType := range *deps.Config.Authentication.SecondaryAuthenticators {
 		switch authenticatorType {
 		case model.AuthenticatorTypePassword:
-			addOneOf(config.AuthenticationFlowAuthenticationSecondaryPassword)
+			addOneOf(model.AuthenticationFlowAuthenticationSecondaryPassword)
 		case model.AuthenticatorTypeOOBEmail:
-			addOneOf(config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail)
+			addOneOf(model.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail)
 		case model.AuthenticatorTypeOOBSMS:
-			addOneOf(config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS)
+			addOneOf(model.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS)
 		case model.AuthenticatorTypeTOTP:
-			addOneOf(config.AuthenticationFlowAuthenticationSecondaryTOTP)
+			addOneOf(model.AuthenticationFlowAuthenticationSecondaryTOTP)
 		case model.AuthenticatorTypePasskey:
-			addOneOf(config.AuthenticationFlowAuthenticationPrimaryPasskey)
+			addOneOf(model.AuthenticationFlowAuthenticationPrimaryPasskey)
 		}
 	}
 
