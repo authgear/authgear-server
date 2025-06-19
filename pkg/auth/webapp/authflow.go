@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -38,13 +39,13 @@ func GetAccountRecoveryIdentificationOptions(f *authflow.FlowResponse) []declara
 	return options
 }
 
-func GetMostAppropriateIdentification(ctx context.Context, f *authflow.FlowResponse, loginID string, loginIDInputType string) config.AuthenticationFlowIdentification {
+func GetMostAppropriateIdentification(ctx context.Context, f *authflow.FlowResponse, loginID string, loginIDInputType string) model.AuthenticationFlowIdentification {
 	// If loginIDInputType already tell us the login id type, return the corresponding type
 	switch loginIDInputType {
 	case "email":
-		return config.AuthenticationFlowIdentificationEmail
+		return model.AuthenticationFlowIdentificationEmail
 	case "phone":
-		return config.AuthenticationFlowIdentificationPhone
+		return model.AuthenticationFlowIdentificationPhone
 	}
 
 	// Else, guess the type
@@ -79,31 +80,31 @@ func GetMostAppropriateIdentification(ctx context.Context, f *authflow.FlowRespo
 	isEmailLike := lookLikeAnEmailAddress(loginID)
 
 	options := GetIdentificationOptions(f)
-	var iden config.AuthenticationFlowIdentification
+	var iden model.AuthenticationFlowIdentification
 	for _, o := range options {
 		switch o.Identification {
-		case config.AuthenticationFlowIdentificationEmail:
+		case model.AuthenticationFlowIdentificationEmail:
 			// If it is a email like login id, and there is an email option, it must be email
 			if isEmailLike {
-				iden = config.AuthenticationFlowIdentificationEmail
+				iden = model.AuthenticationFlowIdentificationEmail
 				break
 			}
-		case config.AuthenticationFlowIdentificationPhone:
+		case model.AuthenticationFlowIdentificationPhone:
 			// If it is a phone like login id, and there is an phone option, it must be phone
 			if isPhoneLike {
-				iden = config.AuthenticationFlowIdentificationPhone
+				iden = model.AuthenticationFlowIdentificationPhone
 				break
 			}
-		case config.AuthenticationFlowIdentificationUsername:
+		case model.AuthenticationFlowIdentificationUsername:
 			// The login id is not phone or email, then it can only be username
 			if !isPhoneLike && !isEmailLike {
-				iden = config.AuthenticationFlowIdentificationUsername
+				iden = model.AuthenticationFlowIdentificationUsername
 				break
 			}
 			// If it is like a email or phone, it can be username,
 			// but we should continue the loop to see if there are better options
 			if iden == "" {
-				iden = config.AuthenticationFlowIdentificationUsername
+				iden = model.AuthenticationFlowIdentificationUsername
 			}
 		}
 	}

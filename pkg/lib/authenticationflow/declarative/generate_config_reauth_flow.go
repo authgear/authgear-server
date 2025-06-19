@@ -23,7 +23,7 @@ func generateReauthFlowStepIdentify(cfg *config.AppConfig) *config.Authenticatio
 		Type: config.AuthenticationFlowReauthFlowStepTypeIdentify,
 		OneOf: []*config.AuthenticationFlowReauthFlowOneOf{
 			{
-				Identification: config.AuthenticationFlowIdentificationIDToken,
+				Identification: model.AuthenticationFlowIdentificationIDToken,
 			},
 		},
 	}

@@ -86,7 +86,7 @@ func generateSignupFlowStepIdentifyLoginID(cfg *config.AppConfig, stepName strin
 
 func generateSignupFlowStepIdentifyLoginIDIdentificationEmail(cfg *config.AppConfig, stepName string) *config.AuthenticationFlowSignupFlowOneOf {
 	oneOf := &config.AuthenticationFlowSignupFlowOneOf{
-		Identification: config.AuthenticationFlowIdentificationEmail,
+		Identification: model.AuthenticationFlowIdentificationEmail,
 	}
 
 	// Add verify step if necessary
@@ -117,7 +117,7 @@ func generateSignupFlowStepIdentifyLoginIDIdentificationEmail(cfg *config.AppCon
 
 func generateSignupFlowStepIdentifyLoginIDIdentificationPhone(cfg *config.AppConfig, stepName string) *config.AuthenticationFlowSignupFlowOneOf {
 	oneOf := &config.AuthenticationFlowSignupFlowOneOf{
-		Identification: config.AuthenticationFlowIdentificationPhone,
+		Identification: model.AuthenticationFlowIdentificationPhone,
 	}
 
 	// Add verify step if necessary
@@ -148,7 +148,7 @@ func generateSignupFlowStepIdentifyLoginIDIdentificationPhone(cfg *config.AppCon
 
 func generateSignupFlowStepIdentifyLoginIDIdentificationUsername(cfg *config.AppConfig, stepName string) *config.AuthenticationFlowSignupFlowOneOf {
 	oneOf := &config.AuthenticationFlowSignupFlowOneOf{
-		Identification: config.AuthenticationFlowIdentificationUsername,
+		Identification: model.AuthenticationFlowIdentificationUsername,
 	}
 	// Username cannot be verified.
 
@@ -171,7 +171,7 @@ func generateSignupFlowStepIdentifyOAuth(cfg *config.AppConfig) []*config.Authen
 
 	return []*config.AuthenticationFlowSignupFlowOneOf{
 		{
-			Identification: config.AuthenticationFlowIdentificationOAuth,
+			Identification: model.AuthenticationFlowIdentificationOAuth,
 		},
 	}
 }
@@ -182,7 +182,7 @@ func generateSignupFlowStepIdentifyLDAP(cfg *config.AppConfig) []*config.Authent
 	}
 
 	oneOf := &config.AuthenticationFlowSignupFlowOneOf{
-		Identification: config.AuthenticationFlowIdentificationLDAP,
+		Identification: model.AuthenticationFlowIdentificationLDAP,
 	}
 
 	// Add authenticate step secondary if necessary
@@ -195,7 +195,7 @@ func generateSignupFlowStepIdentifyLDAP(cfg *config.AppConfig) []*config.Authent
 	}
 }
 
-func generateSignupFlowStepCreateAuthenticatorPrimary(cfg *config.AppConfig, identification config.AuthenticationFlowIdentification) (*config.AuthenticationFlowSignupFlowStep, bool) {
+func generateSignupFlowStepCreateAuthenticatorPrimary(cfg *config.AppConfig, identification model.AuthenticationFlowIdentification) (*config.AuthenticationFlowSignupFlowStep, bool) {
 	allowed := identification.PrimaryAuthentications()
 
 	// This identification does not require primary authentication.
@@ -255,7 +255,7 @@ func generateSignupFlowStepCreateAuthenticatorPrimary(cfg *config.AppConfig, ide
 	return step, true
 }
 
-func generateSignupFlowStepCreateAuthenticatorSecondary(cfg *config.AppConfig, identification config.AuthenticationFlowIdentification) (*config.AuthenticationFlowSignupFlowStep, bool) {
+func generateSignupFlowStepCreateAuthenticatorSecondary(cfg *config.AppConfig, identification model.AuthenticationFlowIdentification) (*config.AuthenticationFlowSignupFlowStep, bool) {
 	// Do not need this step if mode is not required.
 	if cfg.Authentication.SecondaryAuthenticationMode != config.SecondaryAuthenticationModeRequired {
 		return nil, false

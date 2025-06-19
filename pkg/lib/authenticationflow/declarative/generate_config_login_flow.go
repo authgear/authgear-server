@@ -68,7 +68,7 @@ func generateLoginFlowStepIdentifyLoginID(cfg *config.AppConfig) []*config.Authe
 			email = true
 
 			oneOf := &config.AuthenticationFlowLoginFlowOneOf{
-				Identification: config.AuthenticationFlowIdentificationEmail,
+				Identification: model.AuthenticationFlowIdentificationEmail,
 			}
 			output = append(output, oneOf)
 
@@ -81,7 +81,7 @@ func generateLoginFlowStepIdentifyLoginID(cfg *config.AppConfig) []*config.Authe
 			phone = true
 
 			oneOf := &config.AuthenticationFlowLoginFlowOneOf{
-				Identification: config.AuthenticationFlowIdentificationPhone,
+				Identification: model.AuthenticationFlowIdentificationPhone,
 			}
 			output = append(output, oneOf)
 
@@ -94,7 +94,7 @@ func generateLoginFlowStepIdentifyLoginID(cfg *config.AppConfig) []*config.Authe
 			username = true
 
 			oneOf := &config.AuthenticationFlowLoginFlowOneOf{
-				Identification: config.AuthenticationFlowIdentificationUsername,
+				Identification: model.AuthenticationFlowIdentificationUsername,
 			}
 			output = append(output, oneOf)
 
@@ -120,7 +120,7 @@ func generateLoginFlowStepIdentifyOAuth(cfg *config.AppConfig) []*config.Authent
 
 	return []*config.AuthenticationFlowLoginFlowOneOf{
 		{
-			Identification: config.AuthenticationFlowIdentificationOAuth,
+			Identification: model.AuthenticationFlowIdentificationOAuth,
 		},
 	}
 }
@@ -128,7 +128,7 @@ func generateLoginFlowStepIdentifyOAuth(cfg *config.AppConfig) []*config.Authent
 func generateLoginFlowStepIdentifyPasskey(cfg *config.AppConfig) []*config.AuthenticationFlowLoginFlowOneOf {
 	return []*config.AuthenticationFlowLoginFlowOneOf{
 		{
-			Identification: config.AuthenticationFlowIdentificationPasskey,
+			Identification: model.AuthenticationFlowIdentificationPasskey,
 		},
 	}
 }
@@ -138,7 +138,7 @@ func generateLoginFlowStepIdentifyLDAP(cfg *config.AppConfig) []*config.Authenti
 		return nil
 	}
 	oneOf := &config.AuthenticationFlowLoginFlowOneOf{
-		Identification: config.AuthenticationFlowIdentificationLDAP,
+		Identification: model.AuthenticationFlowIdentificationLDAP,
 	}
 
 	// Add authenticate step secondary if necessary
@@ -151,7 +151,7 @@ func generateLoginFlowStepIdentifyLDAP(cfg *config.AppConfig) []*config.Authenti
 	}
 }
 
-func generateLoginFlowStepAuthenticatePrimary(cfg *config.AppConfig, identification config.AuthenticationFlowIdentification) (*config.AuthenticationFlowLoginFlowStep, bool) {
+func generateLoginFlowStepAuthenticatePrimary(cfg *config.AppConfig, identification model.AuthenticationFlowIdentification) (*config.AuthenticationFlowLoginFlowStep, bool) {
 	allowed := identification.PrimaryAuthentications()
 
 	// This identification does not require primary authentication.
@@ -209,7 +209,7 @@ func generateLoginFlowStepAuthenticatePrimary(cfg *config.AppConfig, identificat
 func generateLoginFlowStepAuthenticatePrimaryPassword(
 	cfg *config.AppConfig,
 	targetStep string,
-	identification config.AuthenticationFlowIdentification,
+	identification model.AuthenticationFlowIdentification,
 ) *config.AuthenticationFlowLoginFlowOneOf {
 	oneOf := &config.AuthenticationFlowLoginFlowOneOf{
 		Authentication: model.AuthenticationFlowAuthenticationPrimaryPassword,
@@ -234,7 +234,7 @@ func generateLoginFlowStepAuthenticatePrimaryPassword(
 
 func generateLoginFlowStepAuthenticatePrimaryPasskey(
 	cfg *config.AppConfig,
-	identification config.AuthenticationFlowIdentification,
+	identification model.AuthenticationFlowIdentification,
 ) *config.AuthenticationFlowLoginFlowOneOf {
 	oneOf := &config.AuthenticationFlowLoginFlowOneOf{
 		Authentication: model.AuthenticationFlowAuthenticationPrimaryPasskey,
@@ -244,7 +244,7 @@ func generateLoginFlowStepAuthenticatePrimaryPasskey(
 
 func generateLoginFlowStepAuthenticatePrimaryOOBEmail(
 	cfg *config.AppConfig,
-	identification config.AuthenticationFlowIdentification,
+	identification model.AuthenticationFlowIdentification,
 ) *config.AuthenticationFlowLoginFlowOneOf {
 	oneOf := &config.AuthenticationFlowLoginFlowOneOf{
 		Authentication: model.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail,
@@ -263,7 +263,7 @@ func generateLoginFlowStepAuthenticatePrimaryOOBEmail(
 
 func generateLoginFlowStepAuthenticatePrimaryOOBSMS(
 	cfg *config.AppConfig,
-	identification config.AuthenticationFlowIdentification,
+	identification model.AuthenticationFlowIdentification,
 ) *config.AuthenticationFlowLoginFlowOneOf {
 	am := model.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS
 	oneOf := &config.AuthenticationFlowLoginFlowOneOf{
@@ -282,7 +282,7 @@ func generateLoginFlowStepAuthenticatePrimaryOOBSMS(
 	return oneOf
 }
 
-func generateLoginFlowStepAuthenticateSecondary(cfg *config.AppConfig, identification config.AuthenticationFlowIdentification) (*config.AuthenticationFlowLoginFlowStep, bool) {
+func generateLoginFlowStepAuthenticateSecondary(cfg *config.AppConfig, identification model.AuthenticationFlowIdentification) (*config.AuthenticationFlowLoginFlowStep, bool) {
 	// This step is always present unless secondary authentication is disabled.
 	if cfg.Authentication.SecondaryAuthenticationMode.IsDisabled() {
 		return nil, false

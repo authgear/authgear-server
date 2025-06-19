@@ -72,8 +72,8 @@ func (m *AuthflowViewModeler) NewWithAuthflow(
 ) AuthflowViewModel {
 	options := webapp.GetIdentificationOptions(f)
 
-	var firstLoginIDIdentification config.AuthenticationFlowIdentification
-	var firstNonPhoneLoginIDIdentification config.AuthenticationFlowIdentification
+	var firstLoginIDIdentification model.AuthenticationFlowIdentification
+	var firstNonPhoneLoginIDIdentification model.AuthenticationFlowIdentification
 	hasEmail := false
 	hasUsername := false
 	hasPhone := false
@@ -88,37 +88,37 @@ func (m *AuthflowViewModeler) NewWithAuthflow(
 
 	for _, o := range options {
 		switch o.Identification {
-		case config.AuthenticationFlowIdentificationEmail:
+		case model.AuthenticationFlowIdentificationEmail:
 			if firstLoginIDIdentification == "" {
-				firstLoginIDIdentification = config.AuthenticationFlowIdentificationEmail
+				firstLoginIDIdentification = model.AuthenticationFlowIdentificationEmail
 			}
 			if firstNonPhoneLoginIDIdentification == "" {
-				firstNonPhoneLoginIDIdentification = config.AuthenticationFlowIdentificationEmail
+				firstNonPhoneLoginIDIdentification = model.AuthenticationFlowIdentificationEmail
 			}
 			hasEmail = true
 			if o.BotProtection.IsRequired() {
 				bpRequiredEmail = true
 			}
-		case config.AuthenticationFlowIdentificationPhone:
+		case model.AuthenticationFlowIdentificationPhone:
 			if firstLoginIDIdentification == "" {
-				firstLoginIDIdentification = config.AuthenticationFlowIdentificationPhone
+				firstLoginIDIdentification = model.AuthenticationFlowIdentificationPhone
 			}
 			hasPhone = true
 			if o.BotProtection.IsRequired() {
 				bpRequiredPhone = true
 			}
-		case config.AuthenticationFlowIdentificationUsername:
+		case model.AuthenticationFlowIdentificationUsername:
 			if firstLoginIDIdentification == "" {
-				firstLoginIDIdentification = config.AuthenticationFlowIdentificationUsername
+				firstLoginIDIdentification = model.AuthenticationFlowIdentificationUsername
 			}
 			if firstNonPhoneLoginIDIdentification == "" {
-				firstNonPhoneLoginIDIdentification = config.AuthenticationFlowIdentificationUsername
+				firstNonPhoneLoginIDIdentification = model.AuthenticationFlowIdentificationUsername
 			}
 			hasUsername = true
 			if o.BotProtection.IsRequired() {
 				bpRequiredUsername = true
 			}
-		case config.AuthenticationFlowIdentificationPasskey:
+		case model.AuthenticationFlowIdentificationPasskey:
 			passkeyEnabled = true
 			bytes, err := json.Marshal(o.RequestOptions)
 			if err != nil {
@@ -128,7 +128,7 @@ func (m *AuthflowViewModeler) NewWithAuthflow(
 			if o.BotProtection.IsRequired() {
 				bpRequiredPasskey = true
 			}
-		case config.AuthenticationFlowIdentificationOAuth:
+		case model.AuthenticationFlowIdentificationOAuth:
 			if o.BotProtection.IsRequired() {
 				bpRequiredOAuth = true
 			}
@@ -159,7 +159,7 @@ func (m *AuthflowViewModeler) NewWithAuthflow(
 		break
 	default:
 		if firstLoginIDIdentification != "" {
-			if firstLoginIDIdentification == config.AuthenticationFlowIdentificationPhone {
+			if firstLoginIDIdentification == model.AuthenticationFlowIdentificationPhone {
 				loginIDInputType = "phone"
 			} else {
 				loginIDInputType = nonPhoneLoginIDInputType
@@ -261,13 +261,13 @@ func (m *AuthflowViewModeler) NewWithAuthflow(
 	var candidates []map[string]interface{}
 	for _, o := range options {
 		switch o.Identification {
-		case config.AuthenticationFlowIdentificationEmail:
+		case model.AuthenticationFlowIdentificationEmail:
 			candidates = append(candidates, makeLoginIDCandidate(model.LoginIDKeyTypeEmail))
-		case config.AuthenticationFlowIdentificationPhone:
+		case model.AuthenticationFlowIdentificationPhone:
 			candidates = append(candidates, makeLoginIDCandidate(model.LoginIDKeyTypePhone))
-		case config.AuthenticationFlowIdentificationUsername:
+		case model.AuthenticationFlowIdentificationUsername:
 			candidates = append(candidates, makeLoginIDCandidate(model.LoginIDKeyTypeUsername))
-		case config.AuthenticationFlowIdentificationOAuth:
+		case model.AuthenticationFlowIdentificationOAuth:
 			candidate := map[string]interface{}{
 				"type":              string(model.IdentityTypeOAuth),
 				"provider_type":     string(o.ProviderType),
@@ -276,13 +276,13 @@ func (m *AuthflowViewModeler) NewWithAuthflow(
 				"provider_status":   string(o.ProviderStatus),
 			}
 			candidates = append(candidates, candidate)
-		case config.AuthenticationFlowIdentificationLDAP:
+		case model.AuthenticationFlowIdentificationLDAP:
 			candidate := map[string]interface{}{
 				"type":        string(model.IdentityTypeLDAP),
 				"server_name": o.ServerName,
 			}
 			candidates = append(candidates, candidate)
-		case config.AuthenticationFlowIdentificationPasskey:
+		case model.AuthenticationFlowIdentificationPasskey:
 			// Passkey was not handled by candidates.
 			break
 		}
@@ -338,8 +338,8 @@ func (m *AuthflowViewModeler) NewWithAccountRecoveryAuthflow(f *authflow.FlowRes
 
 // nolint: gocognit
 func (m *AuthflowViewModeler) NewWithConfig() AuthflowViewModel {
-	var firstLoginIDIdentification config.AuthenticationFlowIdentification
-	var firstNonPhoneLoginIDIdentification config.AuthenticationFlowIdentification
+	var firstLoginIDIdentification model.AuthenticationFlowIdentification
+	var firstNonPhoneLoginIDIdentification model.AuthenticationFlowIdentification
 	hasEmail := false
 	hasUsername := false
 	hasPhone := false
@@ -350,23 +350,23 @@ func (m *AuthflowViewModeler) NewWithConfig() AuthflowViewModel {
 		switch loginIDKey.Type {
 		case model.LoginIDKeyTypeEmail:
 			if firstLoginIDIdentification == "" {
-				firstLoginIDIdentification = config.AuthenticationFlowIdentificationEmail
+				firstLoginIDIdentification = model.AuthenticationFlowIdentificationEmail
 			}
 			if firstNonPhoneLoginIDIdentification == "" {
-				firstNonPhoneLoginIDIdentification = config.AuthenticationFlowIdentificationEmail
+				firstNonPhoneLoginIDIdentification = model.AuthenticationFlowIdentificationEmail
 			}
 			hasEmail = true
 		case model.LoginIDKeyTypePhone:
 			if firstLoginIDIdentification == "" {
-				firstLoginIDIdentification = config.AuthenticationFlowIdentificationPhone
+				firstLoginIDIdentification = model.AuthenticationFlowIdentificationPhone
 			}
 			hasPhone = true
 		case model.LoginIDKeyTypeUsername:
 			if firstLoginIDIdentification == "" {
-				firstLoginIDIdentification = config.AuthenticationFlowIdentificationUsername
+				firstLoginIDIdentification = model.AuthenticationFlowIdentificationUsername
 			}
 			if firstNonPhoneLoginIDIdentification == "" {
-				firstNonPhoneLoginIDIdentification = config.AuthenticationFlowIdentificationUsername
+				firstNonPhoneLoginIDIdentification = model.AuthenticationFlowIdentificationUsername
 			}
 			hasUsername = true
 		}
@@ -395,7 +395,7 @@ func (m *AuthflowViewModeler) NewWithConfig() AuthflowViewModel {
 
 	loginIDInputType := ""
 	if firstLoginIDIdentification != "" {
-		if firstLoginIDIdentification == config.AuthenticationFlowIdentificationPhone {
+		if firstLoginIDIdentification == model.AuthenticationFlowIdentificationPhone {
 			loginIDInputType = "phone"
 		} else {
 			loginIDInputType = nonPhoneLoginIDInputType

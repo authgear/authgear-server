@@ -20,7 +20,7 @@ var fixtureSignupFlow *config.AuthenticationFlowSignupFlow = &config.Authenticat
 			Type: config.AuthenticationFlowSignupFlowStepTypeIdentify,
 			OneOf: []*config.AuthenticationFlowSignupFlowOneOf{
 				{
-					Identification: config.AuthenticationFlowIdentificationEmail,
+					Identification: model.AuthenticationFlowIdentificationEmail,
 				},
 			},
 		},
@@ -66,7 +66,7 @@ var fixtureLoginFlow *config.AuthenticationFlowLoginFlow = &config.Authenticatio
 			Type: config.AuthenticationFlowLoginFlowStepTypeIdentify,
 			OneOf: []*config.AuthenticationFlowLoginFlowOneOf{
 				{
-					Identification: config.AuthenticationFlowIdentificationEmail,
+					Identification: model.AuthenticationFlowIdentificationEmail,
 				},
 			},
 		},
@@ -98,7 +98,7 @@ var fixtureSignupLoginFlow *config.AuthenticationFlowSignupLoginFlow = &config.A
 			Type: config.AuthenticationFlowSignupLoginFlowStepTypeIdentify,
 			OneOf: []*config.AuthenticationFlowSignupLoginFlowOneOf{
 				{
-					Identification: config.AuthenticationFlowIdentificationEmail,
+					Identification: model.AuthenticationFlowIdentificationEmail,
 				},
 			},
 		},
