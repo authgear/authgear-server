@@ -879,7 +879,7 @@ func isNodeRestored(nodePointer jsonpointer.T, restoreTo jsonpointer.T) bool {
 	return !authflow.JSONPointerSubtract(nodePointer, restoreTo).More()
 }
 
-func makeLoginIDSpec(identification config.AuthenticationFlowIdentification, userInput stringutil.UserInputString) *identity.Spec {
+func makeLoginIDSpec(identification model.AuthenticationFlowIdentification, userInput stringutil.UserInputString) *identity.Spec {
 	spec := &identity.Spec{
 		Type: model.IdentityTypeLoginID,
 		LoginID: &identity.LoginIDSpec{
@@ -887,13 +887,13 @@ func makeLoginIDSpec(identification config.AuthenticationFlowIdentification, use
 		},
 	}
 	switch identification {
-	case config.AuthenticationFlowIdentificationEmail:
+	case model.AuthenticationFlowIdentificationEmail:
 		spec.LoginID.Type = model.LoginIDKeyTypeEmail
 		spec.LoginID.Key = string(spec.LoginID.Type)
-	case config.AuthenticationFlowIdentificationPhone:
+	case model.AuthenticationFlowIdentificationPhone:
 		spec.LoginID.Type = model.LoginIDKeyTypePhone
 		spec.LoginID.Key = string(spec.LoginID.Type)
-	case config.AuthenticationFlowIdentificationUsername:
+	case model.AuthenticationFlowIdentificationUsername:
 		spec.LoginID.Type = model.LoginIDKeyTypeUsername
 		spec.LoginID.Key = string(spec.LoginID.Type)
 	default:

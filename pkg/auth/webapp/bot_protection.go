@@ -8,7 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
-func IsIdentifyStepBotProtectionRequired(identificationType config.AuthenticationFlowIdentification, f *authflow.FlowResponse) (bool, error) {
+func IsIdentifyStepBotProtectionRequired(identificationType model.AuthenticationFlowIdentification, f *authflow.FlowResponse) (bool, error) {
 	options := GetIdentificationOptions(f)
 
 	for _, option := range options {

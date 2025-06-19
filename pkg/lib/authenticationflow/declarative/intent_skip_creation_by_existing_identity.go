@@ -5,9 +5,9 @@ import (
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 func init() {
@@ -15,9 +15,9 @@ func init() {
 }
 
 type IntentSkipCreationByExistingIdentity struct {
-	JSONPointer    jsonpointer.T                           `json:"json_pointer,omitempty"`
-	Identity       *identity.Info                          `json:"identity,omitempty"`
-	Identification config.AuthenticationFlowIdentification `json:"identification,omitempty"`
+	JSONPointer    jsonpointer.T                          `json:"json_pointer,omitempty"`
+	Identity       *identity.Info                         `json:"identity,omitempty"`
+	Identification model.AuthenticationFlowIdentification `json:"identification,omitempty"`
 }
 
 var _ authflow.Intent = &IntentSkipCreationByExistingIdentity{}
@@ -33,7 +33,7 @@ func (*IntentSkipCreationByExistingIdentity) Kind() string {
 	return "IntentSkipCreationByExistingIdentity"
 }
 
-func (n *IntentSkipCreationByExistingIdentity) MilestoneIdentificationMethod() config.AuthenticationFlowIdentification {
+func (n *IntentSkipCreationByExistingIdentity) MilestoneIdentificationMethod() model.AuthenticationFlowIdentification {
 	return n.Identification
 }
 func (n *IntentSkipCreationByExistingIdentity) MilestoneFlowCreateIdentity(flows authflow.Flows) (MilestoneDoCreateIdentity, authflow.Flows, bool) {

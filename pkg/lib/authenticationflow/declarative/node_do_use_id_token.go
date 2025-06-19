@@ -6,10 +6,10 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 func init() {
@@ -35,7 +35,7 @@ func (n *NodeDoUseIDToken) ReactTo(ctx context.Context, deps *authenticationflow
 	return NewNodePostIdentified(ctx, deps, flows, &NodePostIdentifiedOptions{
 		Identity:       nil,
 		IDToken:        &n.IDToken,
-		Identification: config.AuthenticationFlowIdentificationIDToken,
+		Identification: model.AuthenticationFlowIdentificationIDToken,
 	})
 }
 

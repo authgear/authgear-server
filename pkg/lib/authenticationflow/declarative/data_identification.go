@@ -23,7 +23,7 @@ var _ authflow.Data = IdentificationData{}
 func (IdentificationData) Data() {}
 
 type IdentificationOption struct {
-	Identification config.AuthenticationFlowIdentification `json:"identification"`
+	Identification model.AuthenticationFlowIdentification `json:"identification"`
 
 	BotProtection *BotProtectionData `json:"bot_protection,omitempty"`
 	// ProviderType is specific to OAuth.
@@ -42,14 +42,14 @@ type IdentificationOption struct {
 	ServerName string `json:"server_name,omitempty"`
 }
 
-func NewIdentificationOptionIDToken(flows authflow.Flows, i config.AuthenticationFlowIdentification, authflowCfg *config.AuthenticationFlowBotProtection, appCfg *config.BotProtectionConfig) IdentificationOption {
+func NewIdentificationOptionIDToken(flows authflow.Flows, i model.AuthenticationFlowIdentification, authflowCfg *config.AuthenticationFlowBotProtection, appCfg *config.BotProtectionConfig) IdentificationOption {
 	return IdentificationOption{
 		Identification: i,
 		BotProtection:  GetBotProtectionData(flows, authflowCfg, appCfg),
 	}
 }
 
-func NewIdentificationOptionLoginID(flows authflow.Flows, i config.AuthenticationFlowIdentification, authflowCfg *config.AuthenticationFlowBotProtection, appCfg *config.BotProtectionConfig) IdentificationOption {
+func NewIdentificationOptionLoginID(flows authflow.Flows, i model.AuthenticationFlowIdentification, authflowCfg *config.AuthenticationFlowBotProtection, appCfg *config.BotProtectionConfig) IdentificationOption {
 	return IdentificationOption{
 		Identification: i,
 		BotProtection:  GetBotProtectionData(flows, authflowCfg, appCfg),
@@ -63,7 +63,7 @@ func NewIdentificationOptionsOAuth(flows authflow.Flows, oauthConfig *config.OAu
 			status := p.ComputeProviderStatus(demoCredentials)
 
 			output = append(output, IdentificationOption{
-				Identification: config.AuthenticationFlowIdentificationOAuth,
+				Identification: model.AuthenticationFlowIdentificationOAuth,
 				BotProtection:  GetBotProtectionData(flows, authflowCfg, appCfg),
 				ProviderType:   p.AsProviderConfig().Type(),
 				Alias:          p.Alias(),
@@ -77,7 +77,7 @@ func NewIdentificationOptionsOAuth(flows authflow.Flows, oauthConfig *config.OAu
 
 func NewIdentificationOptionPasskey(flows authflow.Flows, requestOptions *model.WebAuthnRequestOptions, authflowCfg *config.AuthenticationFlowBotProtection, appCfg *config.BotProtectionConfig) IdentificationOption {
 	return IdentificationOption{
-		Identification: config.AuthenticationFlowIdentificationPasskey,
+		Identification: model.AuthenticationFlowIdentificationPasskey,
 		BotProtection:  GetBotProtectionData(flows, authflowCfg, appCfg),
 		RequestOptions: requestOptions,
 	}
@@ -87,7 +87,7 @@ func NewIdentificationOptionLDAP(ldapConfig *config.LDAPConfig, authflowCfg *con
 	output := []IdentificationOption{}
 	for _, s := range ldapConfig.Servers {
 		output = append(output, IdentificationOption{
-			Identification: config.AuthenticationFlowIdentificationLDAP,
+			Identification: model.AuthenticationFlowIdentificationLDAP,
 			ServerName:     s.Name,
 			// TODO(DEV-1659): Support bot protection in LDAP
 			// BotProtection:  GetBotProtectionData(authflowCfg, appCfg),

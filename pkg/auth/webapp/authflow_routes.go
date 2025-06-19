@@ -252,15 +252,15 @@ func (n *AuthflowNavigator) navigateStepIdentify(ctx context.Context, s *Authflo
 	switch identification {
 	case "":
 		fallthrough
-	case config.AuthenticationFlowIdentificationIDToken:
+	case model.AuthenticationFlowIdentificationIDToken:
 		fallthrough
-	case config.AuthenticationFlowIdentificationEmail:
+	case model.AuthenticationFlowIdentificationEmail:
 		fallthrough
-	case config.AuthenticationFlowIdentificationPhone:
+	case model.AuthenticationFlowIdentificationPhone:
 		fallthrough
-	case config.AuthenticationFlowIdentificationUsername:
+	case model.AuthenticationFlowIdentificationUsername:
 		fallthrough
-	case config.AuthenticationFlowIdentificationPasskey:
+	case model.AuthenticationFlowIdentificationPasskey:
 		// Redirect to the expected path with x_step set.
 		u := *r.URL
 		u.Path = expectedPath
@@ -270,7 +270,7 @@ func (n *AuthflowNavigator) navigateStepIdentify(ctx context.Context, s *Authflo
 
 		result.NavigationAction = NavigationActionReplace
 		result.RedirectURI = u.String()
-	case config.AuthenticationFlowIdentificationOAuth:
+	case model.AuthenticationFlowIdentificationOAuth:
 		data := s.StateTokenFlowResponse.Action.Data.(declarative.OAuthData)
 
 		switch data.OAuthProviderType {

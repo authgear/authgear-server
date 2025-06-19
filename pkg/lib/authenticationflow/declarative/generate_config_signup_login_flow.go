@@ -42,7 +42,7 @@ func generateSignupLoginFlowStepIdentify(cfg *config.AppConfig) *config.Authenti
 	return step
 }
 
-func newSignupLoginFlowOneOf(i config.AuthenticationFlowIdentification) *config.AuthenticationFlowSignupLoginFlowOneOf {
+func newSignupLoginFlowOneOf(i model.AuthenticationFlowIdentification) *config.AuthenticationFlowSignupLoginFlowOneOf {
 	return &config.AuthenticationFlowSignupLoginFlowOneOf{
 		Identification: i,
 		SignupFlow:     nameGeneratedFlow,
@@ -60,7 +60,7 @@ func generateSignupLoginFlowStepIdentifyLoginID(cfg *config.AppConfig) []*config
 		switch {
 		case keyConfig.Type == model.LoginIDKeyTypeEmail && !email:
 			email = true
-			oneOf := newSignupLoginFlowOneOf(config.AuthenticationFlowIdentificationEmail)
+			oneOf := newSignupLoginFlowOneOf(model.AuthenticationFlowIdentificationEmail)
 			// Add bot protection to identify step if bot_protection.requirements.oob_otp_email is required
 			if bp, ok := getBotProtectionRequirementsOOBOTPEmail(cfg); ok {
 				oneOf.BotProtection = bp
@@ -69,7 +69,7 @@ func generateSignupLoginFlowStepIdentifyLoginID(cfg *config.AppConfig) []*config
 
 		case keyConfig.Type == model.LoginIDKeyTypePhone && !phone:
 			phone = true
-			oneOf := newSignupLoginFlowOneOf(config.AuthenticationFlowIdentificationPhone)
+			oneOf := newSignupLoginFlowOneOf(model.AuthenticationFlowIdentificationPhone)
 			// Add bot protection to identify step if bot_protection.requirements.oob_otp_sms is required
 			if bp, ok := getBotProtectionRequirementsOOBOTPSMS(cfg); ok {
 				oneOf.BotProtection = bp
@@ -78,7 +78,7 @@ func generateSignupLoginFlowStepIdentifyLoginID(cfg *config.AppConfig) []*config
 
 		case keyConfig.Type == model.LoginIDKeyTypeUsername && !username:
 			username = true
-			output = append(output, newSignupLoginFlowOneOf(config.AuthenticationFlowIdentificationUsername))
+			output = append(output, newSignupLoginFlowOneOf(model.AuthenticationFlowIdentificationUsername))
 		}
 	}
 
@@ -101,12 +101,12 @@ func generateSignupLoginFlowStepIdentifyOAuth(cfg *config.AppConfig) []*config.A
 	}
 
 	return []*config.AuthenticationFlowSignupLoginFlowOneOf{
-		newSignupLoginFlowOneOf(config.AuthenticationFlowIdentificationOAuth),
+		newSignupLoginFlowOneOf(model.AuthenticationFlowIdentificationOAuth),
 	}
 }
 
 func generateSignupLoginFlowStepIdentifyPasskey(cfg *config.AppConfig) []*config.AuthenticationFlowSignupLoginFlowOneOf {
-	oneOf := newSignupLoginFlowOneOf(config.AuthenticationFlowIdentificationPasskey)
+	oneOf := newSignupLoginFlowOneOf(model.AuthenticationFlowIdentificationPasskey)
 	// We do not allow signup with a passkey.
 	oneOf.SignupFlow = ""
 
@@ -121,6 +121,6 @@ func generateSignupLoginFlowStepIdentifyLDAP(cfg *config.AppConfig) []*config.Au
 	}
 
 	return []*config.AuthenticationFlowSignupLoginFlowOneOf{
-		newSignupLoginFlowOneOf(config.AuthenticationFlowIdentificationLDAP),
+		newSignupLoginFlowOneOf(model.AuthenticationFlowIdentificationLDAP),
 	}
 }

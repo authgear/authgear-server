@@ -326,15 +326,15 @@ func (n *AuthflowV2Navigator) navigateStepIdentify(ctx context.Context, s *webap
 	switch identification {
 	case "":
 		fallthrough
-	case config.AuthenticationFlowIdentificationIDToken:
+	case model.AuthenticationFlowIdentificationIDToken:
 		fallthrough
-	case config.AuthenticationFlowIdentificationEmail:
+	case model.AuthenticationFlowIdentificationEmail:
 		fallthrough
-	case config.AuthenticationFlowIdentificationPhone:
+	case model.AuthenticationFlowIdentificationPhone:
 		fallthrough
-	case config.AuthenticationFlowIdentificationUsername:
+	case model.AuthenticationFlowIdentificationUsername:
 		fallthrough
-	case config.AuthenticationFlowIdentificationPasskey:
+	case model.AuthenticationFlowIdentificationPasskey:
 		// Redirect to the expected path with x_step set.
 		u := *r.URL
 		// The current authflow state is 1 to 1 mapping with the path.
@@ -349,7 +349,7 @@ func (n *AuthflowV2Navigator) navigateStepIdentify(ctx context.Context, s *webap
 
 		result.NavigationAction = webapp.NavigationActionReplace
 		result.RedirectURI = u.String()
-	case config.AuthenticationFlowIdentificationOAuth:
+	case model.AuthenticationFlowIdentificationOAuth:
 		data := s.StateTokenFlowResponse.Action.Data.(declarative.OAuthData)
 
 		switch data.OAuthProviderType {
@@ -380,7 +380,7 @@ func (n *AuthflowV2Navigator) navigateStepIdentify(ctx context.Context, s *webap
 			result.NavigationAction = webapp.NavigationActionRedirect
 			result.RedirectURI = authorizationURL.String()
 		}
-	case config.AuthenticationFlowIdentificationLDAP:
+	case model.AuthenticationFlowIdentificationLDAP:
 		// Not expected to trigger this case
 		panic(fmt.Errorf("not expected to trigger: %v", identification))
 	default:

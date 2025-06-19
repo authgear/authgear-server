@@ -93,14 +93,14 @@ func NewIntentPromoteFlowStepIdentify(ctx context.Context, deps *authflow.Depend
 	options := []IdentificationOption{}
 	for _, b := range step.OneOf {
 		switch b.Identification {
-		case config.AuthenticationFlowIdentificationEmail:
+		case model.AuthenticationFlowIdentificationEmail:
 			fallthrough
-		case config.AuthenticationFlowIdentificationPhone:
+		case model.AuthenticationFlowIdentificationPhone:
 			fallthrough
-		case config.AuthenticationFlowIdentificationUsername:
+		case model.AuthenticationFlowIdentificationUsername:
 			c := NewIdentificationOptionLoginID(flows, b.Identification, b.BotProtection, deps.Config.BotProtection)
 			options = append(options, c)
-		case config.AuthenticationFlowIdentificationOAuth:
+		case model.AuthenticationFlowIdentificationOAuth:
 			oauthOptions := NewIdentificationOptionsOAuth(
 				flows,
 				deps.Config.Identity.OAuth,
@@ -110,7 +110,7 @@ func NewIntentPromoteFlowStepIdentify(ctx context.Context, deps *authflow.Depend
 				deps.SSOOAuthDemoCredentials,
 			)
 			options = append(options, oauthOptions...)
-		case config.AuthenticationFlowIdentificationPasskey:
+		case model.AuthenticationFlowIdentificationPasskey:
 			// Do not support create passkey in signup because
 			// passkey is not considered as a persistent identifier.
 			break
@@ -181,25 +181,25 @@ func (i *IntentPromoteFlowStepIdentify) ReactTo(ctx context.Context, deps *authf
 			}
 
 			switch identification {
-			case config.AuthenticationFlowIdentificationEmail:
+			case model.AuthenticationFlowIdentificationEmail:
 				fallthrough
-			case config.AuthenticationFlowIdentificationPhone:
+			case model.AuthenticationFlowIdentificationPhone:
 				fallthrough
-			case config.AuthenticationFlowIdentificationUsername:
+			case model.AuthenticationFlowIdentificationUsername:
 				return authflow.NewSubFlow(&IntentPromoteIdentityLoginID{
 					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
 					UserID:         i.UserID,
 					Identification: identification,
 					SyntheticInput: syntheticInput,
 				}), nil
-			case config.AuthenticationFlowIdentificationOAuth:
+			case model.AuthenticationFlowIdentificationOAuth:
 				return authflow.NewSubFlow(&IntentPromoteIdentityOAuth{
 					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
 					UserID:         i.UserID,
 					Identification: identification,
 					SyntheticInput: syntheticInput,
 				}), nil
-			case config.AuthenticationFlowIdentificationPasskey:
+			case model.AuthenticationFlowIdentificationPasskey:
 				// Cannot create passkey in this step.
 				return nil, authflow.ErrIncompatibleInput
 			}
@@ -243,7 +243,7 @@ func (*IntentPromoteFlowStepIdentify) step(o config.AuthenticationFlowObject) *c
 	return step
 }
 
-func (*IntentPromoteFlowStepIdentify) checkIdentificationMethod(deps *authflow.Dependencies, step *config.AuthenticationFlowSignupFlowStep, im config.AuthenticationFlowIdentification) (idx int, err error) {
+func (*IntentPromoteFlowStepIdentify) checkIdentificationMethod(deps *authflow.Dependencies, step *config.AuthenticationFlowSignupFlowStep, im model.AuthenticationFlowIdentification) (idx int, err error) {
 	idx = -1
 
 	for index, branch := range step.OneOf {
@@ -261,7 +261,7 @@ func (*IntentPromoteFlowStepIdentify) checkIdentificationMethod(deps *authflow.D
 	return
 }
 
-func (*IntentPromoteFlowStepIdentify) identificationMethod(flows authflow.Flows) config.AuthenticationFlowIdentification {
+func (*IntentPromoteFlowStepIdentify) identificationMethod(flows authflow.Flows) model.AuthenticationFlowIdentification {
 	m, _, ok := authflow.FindMilestoneInCurrentFlow[MilestoneIdentificationMethod](flows)
 	if !ok {
 		panic(fmt.Errorf("identification method not yet selected"))
@@ -272,7 +272,7 @@ func (*IntentPromoteFlowStepIdentify) identificationMethod(flows authflow.Flows)
 	return im
 }
 
-func (i *IntentPromoteFlowStepIdentify) jsonPointer(step *config.AuthenticationFlowSignupFlowStep, im config.AuthenticationFlowIdentification) jsonpointer.T {
+func (i *IntentPromoteFlowStepIdentify) jsonPointer(step *config.AuthenticationFlowSignupFlowStep, im model.AuthenticationFlowIdentification) jsonpointer.T {
 	for idx, branch := range step.OneOf {
 		branch := branch
 		if branch.Identification == im {

@@ -41,7 +41,7 @@ func InsertBotProtection(formData url.Values, input map[string]interface{}) {
 	input["bot_protection"] = bot_protection
 }
 
-func HandleIdentificationBotProtection(ctx context.Context, identification config.AuthenticationFlowIdentification, flowResp *authflow.FlowResponse, formData url.Values, input map[string]interface{}) (err error) {
+func HandleIdentificationBotProtection(ctx context.Context, identification model.AuthenticationFlowIdentification, flowResp *authflow.FlowResponse, formData url.Values, input map[string]interface{}) (err error) {
 	bpRequired, err := webapp.IsIdentifyStepBotProtectionRequired(identification, flowResp)
 	if err != nil {
 		panic(err)

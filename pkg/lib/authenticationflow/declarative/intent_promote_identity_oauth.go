@@ -5,6 +5,7 @@ import (
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
@@ -14,10 +15,10 @@ func init() {
 }
 
 type IntentPromoteIdentityOAuth struct {
-	JSONPointer    jsonpointer.T                           `json:"json_pointer,omitempty"`
-	UserID         string                                  `json:"user_id,omitempty"`
-	Identification config.AuthenticationFlowIdentification `json:"identification,omitempty"`
-	SyntheticInput *InputStepIdentify                      `json:"synthetic_input,omitempty"`
+	JSONPointer    jsonpointer.T                          `json:"json_pointer,omitempty"`
+	UserID         string                                 `json:"user_id,omitempty"`
+	Identification model.AuthenticationFlowIdentification `json:"identification,omitempty"`
+	SyntheticInput *InputStepIdentify                     `json:"synthetic_input,omitempty"`
 }
 
 var _ authflow.Intent = &IntentPromoteIdentityOAuth{}
@@ -30,7 +31,7 @@ func (*IntentPromoteIdentityOAuth) Kind() string {
 }
 
 func (*IntentPromoteIdentityOAuth) Milestone() {}
-func (i *IntentPromoteIdentityOAuth) MilestoneIdentificationMethod() config.AuthenticationFlowIdentification {
+func (i *IntentPromoteIdentityOAuth) MilestoneIdentificationMethod() model.AuthenticationFlowIdentification {
 	return i.Identification
 }
 func (*IntentPromoteIdentityOAuth) MilestoneFlowCreateIdentity(flows authflow.Flows) (MilestoneDoCreateIdentity, authflow.Flows, bool) {

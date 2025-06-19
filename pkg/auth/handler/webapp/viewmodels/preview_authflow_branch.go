@@ -127,21 +127,21 @@ func (m *InlinePreviewAuthflowBranchViewModeler) generateSignupFlowBranchesIdent
 
 	switch keyType {
 	case model.LoginIDKeyTypeEmail:
-		if branches, ok := m.generateSignupFlowBranchesAuthenticatePrimary(config.AuthenticationFlowIdentificationEmail); ok {
+		if branches, ok := m.generateSignupFlowBranchesAuthenticatePrimary(model.AuthenticationFlowIdentificationEmail); ok {
 			output = append(
 				output,
 				branches...,
 			)
 		}
 	case model.LoginIDKeyTypePhone:
-		if branches, ok := m.generateSignupFlowBranchesAuthenticatePrimary(config.AuthenticationFlowIdentificationPhone); ok {
+		if branches, ok := m.generateSignupFlowBranchesAuthenticatePrimary(model.AuthenticationFlowIdentificationPhone); ok {
 			output = append(
 				output,
 				branches...,
 			)
 		}
 	case model.LoginIDKeyTypeUsername:
-		if branches, ok := m.generateSignupFlowBranchesAuthenticatePrimary(config.AuthenticationFlowIdentificationUsername); ok {
+		if branches, ok := m.generateSignupFlowBranchesAuthenticatePrimary(model.AuthenticationFlowIdentificationUsername); ok {
 			output = append(
 				output,
 				branches...,
@@ -152,7 +152,7 @@ func (m *InlinePreviewAuthflowBranchViewModeler) generateSignupFlowBranchesIdent
 	return output
 }
 
-func (m *InlinePreviewAuthflowBranchViewModeler) generateSignupFlowBranchesAuthenticatePrimary(identification config.AuthenticationFlowIdentification) ([]AuthflowBranch, bool) {
+func (m *InlinePreviewAuthflowBranchViewModeler) generateSignupFlowBranchesAuthenticatePrimary(identification model.AuthenticationFlowIdentification) ([]AuthflowBranch, bool) {
 	allowed := identification.PrimaryAuthentications()
 
 	// This identification does not require primary authentication.
@@ -250,21 +250,21 @@ func (m *InlinePreviewAuthflowBranchViewModeler) generateAuthflowBranchesIdentit
 
 	switch keyType {
 	case model.LoginIDKeyTypeEmail:
-		if branches, ok := m.generateAuthflowBranchesAuthenticatePrimary(config.AuthenticationFlowIdentificationEmail); ok {
+		if branches, ok := m.generateAuthflowBranchesAuthenticatePrimary(model.AuthenticationFlowIdentificationEmail); ok {
 			output = append(
 				output,
 				branches...,
 			)
 		}
 	case model.LoginIDKeyTypePhone:
-		if branches, ok := m.generateAuthflowBranchesAuthenticatePrimary(config.AuthenticationFlowIdentificationPhone); ok {
+		if branches, ok := m.generateAuthflowBranchesAuthenticatePrimary(model.AuthenticationFlowIdentificationPhone); ok {
 			output = append(
 				output,
 				branches...,
 			)
 		}
 	case model.LoginIDKeyTypeUsername:
-		if branches, ok := m.generateAuthflowBranchesAuthenticatePrimary(config.AuthenticationFlowIdentificationUsername); ok {
+		if branches, ok := m.generateAuthflowBranchesAuthenticatePrimary(model.AuthenticationFlowIdentificationUsername); ok {
 			output = append(
 				output,
 				branches...,
@@ -296,21 +296,21 @@ func (m *InlinePreviewAuthflowBranchViewModeler) generateAuthflowBranchesLoginID
 
 	switch keyType {
 	case model.LoginIDKeyTypeEmail:
-		if branches, ok := m.generateAuthflowBranchesAuthenticateSecondary(config.AuthenticationFlowIdentificationEmail); ok {
+		if branches, ok := m.generateAuthflowBranchesAuthenticateSecondary(model.AuthenticationFlowIdentificationEmail); ok {
 			output = append(
 				output,
 				branches...,
 			)
 		}
 	case model.LoginIDKeyTypePhone:
-		if branches, ok := m.generateAuthflowBranchesAuthenticateSecondary(config.AuthenticationFlowIdentificationPhone); ok {
+		if branches, ok := m.generateAuthflowBranchesAuthenticateSecondary(model.AuthenticationFlowIdentificationPhone); ok {
 			output = append(
 				output,
 				branches...,
 			)
 		}
 	case model.LoginIDKeyTypeUsername:
-		if branches, ok := m.generateAuthflowBranchesAuthenticateSecondary(config.AuthenticationFlowIdentificationUsername); ok {
+		if branches, ok := m.generateAuthflowBranchesAuthenticateSecondary(model.AuthenticationFlowIdentificationUsername); ok {
 			output = append(
 				output,
 				branches...,
@@ -321,7 +321,7 @@ func (m *InlinePreviewAuthflowBranchViewModeler) generateAuthflowBranchesLoginID
 	return output
 }
 
-func (m *InlinePreviewAuthflowBranchViewModeler) generateAuthflowBranchesAuthenticatePrimary(identification config.AuthenticationFlowIdentification) ([]AuthflowBranch, bool) {
+func (m *InlinePreviewAuthflowBranchViewModeler) generateAuthflowBranchesAuthenticatePrimary(identification model.AuthenticationFlowIdentification) ([]AuthflowBranch, bool) {
 	allowed := identification.PrimaryAuthentications()
 
 	// This identification does not require primary authentication.
@@ -408,7 +408,7 @@ func (m *InlinePreviewAuthflowBranchViewModeler) generateLoginFlowStepAuthentica
 	}
 }
 
-func (m *InlinePreviewAuthflowBranchViewModeler) generateAuthflowBranchesAuthenticateSecondary(identification config.AuthenticationFlowIdentification) ([]AuthflowBranch, bool) {
+func (m *InlinePreviewAuthflowBranchViewModeler) generateAuthflowBranchesAuthenticateSecondary(identification model.AuthenticationFlowIdentification) ([]AuthflowBranch, bool) {
 	if m.AppConfig.Authentication.SecondaryAuthenticationMode.IsDisabled() {
 		return nil, false
 	}

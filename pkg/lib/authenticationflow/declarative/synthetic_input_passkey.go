@@ -3,14 +3,15 @@ package declarative
 import (
 	"github.com/go-webauthn/webauthn/protocol"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 type SyntheticInputPasskey struct {
-	Identification    config.AuthenticationFlowIdentification `json:"identification,omitempty"`
-	AssertionResponse *protocol.CredentialAssertionResponse   `json:"assertion_response,omitempty"`
-	BotProtection     *InputTakeBotProtectionBody             `json:"bot_protection,omitempty"`
+	Identification    model.AuthenticationFlowIdentification `json:"identification,omitempty"`
+	AssertionResponse *protocol.CredentialAssertionResponse  `json:"assertion_response,omitempty"`
+	BotProtection     *InputTakeBotProtectionBody            `json:"bot_protection,omitempty"`
 }
 
 var _ authflow.Input = &SyntheticInputPasskey{}
@@ -20,7 +21,7 @@ var _ inputTakeBotProtection = &SyntheticInputPasskey{}
 
 func (*SyntheticInputPasskey) Input() {}
 
-func (i *SyntheticInputPasskey) GetIdentificationMethod() config.AuthenticationFlowIdentification {
+func (i *SyntheticInputPasskey) GetIdentificationMethod() model.AuthenticationFlowIdentification {
 	return i.Identification
 }
 
