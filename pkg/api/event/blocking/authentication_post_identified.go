@@ -12,10 +12,8 @@ const (
 )
 
 type AuthenticationPostIdentifiedBlockingEventPayload struct {
-	Identity       *model.Identity                        `json:"identity"`
-	IDToken        *string                                `json:"id_token"`
-	Identification model.AuthenticationFlowIdentification `json:"identification"`
-	Authentication event.AuthenticationContext            `json:"authentication"`
+	Identification model.Identification        `json:"identification"`
+	Authentication event.AuthenticationContext `json:"authentication"`
 
 	Constraints               *event.Constraints               `json:"-"`
 	BotProtectionRequirements *event.BotProtectionRequirements `json:"-"`
