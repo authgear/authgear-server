@@ -46,6 +46,33 @@ func (m AuthenticationFlowAuthentication) AuthenticatorKind() AuthenticatorKind 
 	}
 }
 
+func (a AuthenticationFlowAuthentication) AMR() []string {
+	switch a {
+	case AuthenticationFlowAuthenticationPrimaryPassword:
+		return []string{AMRPWD, AMRXPrimaryPassword}
+	case AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
+		return []string{AMROTP, AMRXPrimaryOOBOTPEmail}
+	case AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
+		return []string{AMROTP, AMRSMS, AMRXPrimaryOOBOTPSMS}
+	case AuthenticationFlowAuthenticationPrimaryPasskey:
+		return []string{AMRXPasskey, AMRXPrimaryPasskey}
+	case AuthenticationFlowAuthenticationSecondaryPassword:
+		return []string{AMRPWD, AMRXSecondaryPassword}
+	case AuthenticationFlowAuthenticationSecondaryTOTP:
+		return []string{AMROTP, AMRXSecondaryTOTP}
+	case AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
+		return []string{AMROTP, AMRXSecondaryOOBOTPEmail}
+	case AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
+		return []string{AMROTP, AMRSMS, AMRXSecondaryOOBOTPSMS}
+	case AuthenticationFlowAuthenticationRecoveryCode:
+		return []string{AMRXRecoveryCode}
+	case AuthenticationFlowAuthenticationDeviceToken:
+		return []string{AMRXDeviceToken}
+	default:
+		panic(fmt.Errorf("unknown authentication: %v", a))
+	}
+}
+
 type Authentication struct {
 	Authentication AuthenticationFlowAuthentication `json:"authentication"`
 	Authenticator  *Authenticator                   `json:"authenticator"`

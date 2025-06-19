@@ -5,7 +5,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
-	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
@@ -134,7 +133,7 @@ func NewCreateAuthenticationOptions(
 					PasswordPolicy: passwordPolicy,
 					BotProtection:  GetBotProtectionData(flows, b.GetBotProtectionConfig(), deps.Config.BotProtection),
 				},
-				AMR: authenticator.AMR(model.AuthenticatorTypePassword),
+				AMR: b.GetAuthentication().AMR(),
 			})
 		case model.AuthenticationFlowAuthenticationPrimaryPasskey:
 			// Cannot create passkey in this step.
@@ -162,7 +161,7 @@ func NewCreateAuthenticationOptions(
 					BotProtection:  GetBotProtectionData(flows, b.GetBotProtectionConfig(), deps.Config.BotProtection),
 				},
 				UnmaskedTarget: unmaskedTarget,
-				AMR:            authenticator.AMR(model.AuthenticatorTypeOOBEmail),
+				AMR:            b.GetAuthentication().AMR(),
 			})
 		case model.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
 			fallthrough
@@ -187,7 +186,7 @@ func NewCreateAuthenticationOptions(
 					BotProtection:  GetBotProtectionData(flows, b.GetBotProtectionConfig(), deps.Config.BotProtection),
 				},
 				UnmaskedTarget: unmaskedTarget,
-				AMR:            authenticator.AMR(model.AuthenticatorTypeOOBSMS),
+				AMR:            b.GetAuthentication().AMR(),
 			})
 		case model.AuthenticationFlowAuthenticationSecondaryTOTP:
 			options = append(options, CreateAuthenticatorOptionInternal{
@@ -195,7 +194,7 @@ func NewCreateAuthenticationOptions(
 					Authentication: b.GetAuthentication(),
 					BotProtection:  GetBotProtectionData(flows, b.GetBotProtectionConfig(), deps.Config.BotProtection),
 				},
-				AMR: authenticator.AMR(model.AuthenticatorTypeTOTP),
+				AMR: b.GetAuthentication().AMR(),
 			})
 		case model.AuthenticationFlowAuthenticationRecoveryCode:
 			// Recovery code is not created in this step.
