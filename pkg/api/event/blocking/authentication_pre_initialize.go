@@ -11,7 +11,7 @@ const (
 )
 
 type AuthenticationPreInitializeBlockingEventPayload struct {
-	Authentication event.AuthenticationContext `json:"authentication"`
+	AuthenticationContext event.AuthenticationContext `json:"authentication_context"`
 
 	Constraints               *event.Constraints               `json:"-"`
 	BotProtectionRequirements *event.BotProtectionRequirements `json:"-"`

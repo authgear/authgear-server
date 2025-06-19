@@ -11,7 +11,7 @@ const (
 )
 
 type AuthenticationPreAuthenticatedBlockingEventPayload struct {
-	Authentication event.AuthenticationContext `json:"authentication"`
+	AuthenticationContext event.AuthenticationContext `json:"authentication_context"`
 
 	Constraints *event.Constraints `json:"-"`
 }
@@ -21,7 +21,7 @@ func (e *AuthenticationPreAuthenticatedBlockingEventPayload) BlockingEventType()
 }
 
 func (e *AuthenticationPreAuthenticatedBlockingEventPayload) UserID() string {
-	return e.Authentication.User.ID
+	return e.AuthenticationContext.User.ID
 }
 
 func (e *AuthenticationPreAuthenticatedBlockingEventPayload) GetTriggeredBy() event.TriggeredByType {

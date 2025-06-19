@@ -24,8 +24,8 @@ func newNodePreAuthenticate(ctx context.Context, deps *authenticationflow.Depend
 	}
 
 	payload := &blocking.AuthenticationPreAuthenticatedBlockingEventPayload{
-		Constraints:    nil,
-		Authentication: *authCtx,
+		Constraints:           nil,
+		AuthenticationContext: *authCtx,
 	}
 	e, err := deps.Events.PrepareBlockingEventWithTx(ctx, payload)
 	if err != nil {
