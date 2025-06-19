@@ -146,6 +146,11 @@ Occurs right before the user creation. User can be created by user signup, user 
 
 - `oauth.state`: OAuth state if the signup is triggered through authorize endpoint with state parameter.
 
+Supported hook responses:
+
+- [is_allowed](./hook.md#blocking-events)
+- [mutations](./hook.md#blocking-event-mutations)
+
 #### user.profile.pre_update
 
 Occurs right before the update of user profile.
@@ -157,6 +162,11 @@ Occurs right before the update of user profile.
   }
 }
 ```
+
+Supported hook responses:
+
+- [is_allowed](./hook.md#blocking-events)
+- [mutations](./hook.md#blocking-event-mutations)
 
 #### user.pre_schedule_deletion
 
@@ -170,6 +180,11 @@ Occurs right before the account deletion is scheduled.
 }
 ```
 
+Supported hook responses:
+
+- [is_allowed](./hook.md#blocking-events)
+- [mutations](./hook.md#blocking-event-mutations)
+
 #### user.pre_schedule_anonymization
 
 Occurs right before the account anonymization is scheduled.
@@ -181,6 +196,11 @@ Occurs right before the account anonymization is scheduled.
   }
 }
 ```
+
+Supported hook responses:
+
+- [is_allowed](./hook.md#blocking-events)
+- [mutations](./hook.md#blocking-event-mutations)
 
 #### authentication.pre_initialize
 
@@ -207,6 +227,12 @@ Example payload:
   }
 }
 ```
+
+Supported hook responses:
+
+- [is_allowed](./hook.md#blocking-events)
+- [constraints](./hook.md#blocking-event-authentication-constraints)
+- [bot_protection](./hook.md#using-blocking-event-with-bot-protection)
 
 #### authentication.post_identified
 
@@ -291,6 +317,13 @@ Example payload:
 }
 ```
 
+Supported hook responses:
+
+- [is_allowed](./hook.md#blocking-events)
+- [constraints](./hook.md#blocking-event-authentication-constraints)
+- [rate_limit](./hook.md#using-blocking-event-with-rate-limits)
+- [bot_protection](./hook.md#using-blocking-event-with-bot-protection)
+
 #### authentication.pre_authenticated
 
 Occurs right before any authentication completes, such as login.
@@ -362,6 +395,11 @@ Example payload:
   }
 }
 ```
+
+Supported hook responses:
+
+- [is_allowed](./hook.md#blocking-events)
+- [constraints](./hook.md#blocking-event-authentication-constraints)
 
 ##### authentication.pre_authenticated in authentication flow
 
