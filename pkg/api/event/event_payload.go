@@ -15,21 +15,39 @@ type AuthenticationFlowContext struct {
 }
 
 type AuthenticationContext struct {
-	AuthenticationFlow     *AuthenticationFlowContext `json:"authentication_flow,omitzero"`
-	User                   *model.User                `json:"user,omitzero"`
-	AssertedIdentities     []model.Identity           `json:"asserted_identities,omitzero"`
-	AssertedAuthenticators []model.Authenticator      `json:"asserted_authenticators,omitzero"`
-	AMR                    []string                   `json:"amr,omitzero"`
+	AuthenticationFlow      *AuthenticationFlowContext `json:"authentication_flow,omitzero"`
+	User                    *model.User                `json:"user,omitzero"`
+	AssertedIdentifications []model.Identification     `json:"asserted_identifications,omitzero"`
+	AssertedAuthenticators  []model.Authenticator      `json:"asserted_authenticators,omitzero"`
+	AMR                     []string                   `json:"amr,omitzero"`
 }
 
-func (c *AuthenticationContext) AddAssertedIdentity(iden model.Identity) bool {
-	for _, existingID := range c.AssertedIdentities {
-		if existingID.ID == iden.ID {
-			return false
+func (c *AuthenticationContext) AddAssertedIdentification(iden model.Identification) bool {
+	if iden.Identity != nil {
+		for _, existingID := range c.AssertedIdentifications {
+			if existingID.Identity == nil {
+				continue
+			}
+			if existingID.Identity.ID == iden.Identity.ID {
+				return false
+			}
 		}
+		c.AssertedIdentifications = append(c.AssertedIdentifications, iden)
+		return true
 	}
-	c.AssertedIdentities = append(c.AssertedIdentities, iden)
-	return true
+	if iden.IDToken != nil {
+		for _, existingID := range c.AssertedIdentifications {
+			if existingID.IDToken == nil {
+				continue
+			}
+			if *existingID.IDToken == *iden.IDToken {
+				return false
+			}
+		}
+		c.AssertedIdentifications = append(c.AssertedIdentifications, iden)
+		return true
+	}
+	return false
 }
 
 func (c *AuthenticationContext) AddAssertedAuthenticator(authn model.Authenticator) bool {
