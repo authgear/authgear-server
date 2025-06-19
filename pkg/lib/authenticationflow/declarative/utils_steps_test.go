@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	. "github.com/smartystreets/goconvey/convey"
 	yaml "sigs.k8s.io/yaml"
+
+	"github.com/authgear/authgear-server/pkg/lib/config"
 
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
 )
