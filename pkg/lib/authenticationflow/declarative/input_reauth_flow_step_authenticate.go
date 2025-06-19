@@ -77,33 +77,33 @@ func (i *InputSchemaReauthFlowStepAuthenticate) SchemaBuilder() validation.Schem
 		}
 
 		switch option.Authentication {
-		case config.AuthenticationFlowAuthenticationPrimaryPassword:
+		case model.AuthenticationFlowAuthenticationPrimaryPassword:
 			requireString("password")
 			setRequiredAndAppendOneOf()
-		case config.AuthenticationFlowAuthenticationPrimaryPasskey:
+		case model.AuthenticationFlowAuthenticationPrimaryPasskey:
 			required = append(required, "assertion_response")
 			b.Properties().Property("assertion_response", passkeyAssertionResponseSchemaBuilder)
 			setRequiredAndAppendOneOf()
 
-		case config.AuthenticationFlowAuthenticationSecondaryPassword:
+		case model.AuthenticationFlowAuthenticationSecondaryPassword:
 			requireString("password")
 			setRequiredAndAppendOneOf()
-		case config.AuthenticationFlowAuthenticationSecondaryTOTP:
+		case model.AuthenticationFlowAuthenticationSecondaryTOTP:
 			requireString("code")
 			setRequiredAndAppendOneOf()
-		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
+		case model.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 			requireIndex()
 			mayRequireChannel()
 			setRequiredAndAppendOneOf()
-		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
+		case model.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
 			requireIndex()
 			mayRequireChannel()
 			setRequiredAndAppendOneOf()
-		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
+		case model.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
 			requireIndex()
 			mayRequireChannel()
 			setRequiredAndAppendOneOf()
-		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
+		case model.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
 			requireIndex()
 			mayRequireChannel()
 			setRequiredAndAppendOneOf()
@@ -132,11 +132,11 @@ func (i *InputSchemaReauthFlowStepAuthenticate) MakeInput(ctx context.Context, r
 }
 
 type InputReauthFlowStepAuthenticate struct {
-	Authentication config.AuthenticationFlowAuthentication `json:"authentication,omitempty"`
-	Password       string                                  `json:"password,omitempty"`
-	Code           string                                  `json:"code,omitempty"`
-	Index          int                                     `json:"index,omitempty"`
-	Channel        model.AuthenticatorOOBChannel           `json:"channel,omitempty"`
+	Authentication model.AuthenticationFlowAuthentication `json:"authentication,omitempty"`
+	Password       string                                 `json:"password,omitempty"`
+	Code           string                                 `json:"code,omitempty"`
+	Index          int                                    `json:"index,omitempty"`
+	Channel        model.AuthenticatorOOBChannel          `json:"channel,omitempty"`
 }
 
 var _ authflow.Input = &InputReauthFlowStepAuthenticate{}
@@ -148,7 +148,7 @@ var _ inputTakeOOBOTPChannel = &InputReauthFlowStepAuthenticate{}
 
 func (*InputReauthFlowStepAuthenticate) Input() {}
 
-func (i *InputReauthFlowStepAuthenticate) GetAuthenticationMethod() config.AuthenticationFlowAuthentication {
+func (i *InputReauthFlowStepAuthenticate) GetAuthenticationMethod() model.AuthenticationFlowAuthentication {
 	return i.Authentication
 }
 

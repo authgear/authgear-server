@@ -3,24 +3,23 @@ package viewmodels
 import (
 	"testing"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	. "github.com/smartystreets/goconvey/convey"
-
-	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 func TestAuthflowBranchViewModel(t *testing.T) {
 	Convey("reorderBranches", t, func() {
 		input := []AuthflowBranch{
 			{
-				Authentication: config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS,
+				Authentication: model.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS,
 				Index:          0,
 			},
 			{
-				Authentication: config.AuthenticationFlowAuthenticationPrimaryPasskey,
+				Authentication: model.AuthenticationFlowAuthenticationPrimaryPasskey,
 				Index:          1,
 			},
 			{
-				Authentication: config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail,
+				Authentication: model.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail,
 				Index:          2,
 			},
 		}
@@ -28,15 +27,15 @@ func TestAuthflowBranchViewModel(t *testing.T) {
 
 		expected := []AuthflowBranch{
 			{
-				Authentication: config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS,
+				Authentication: model.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS,
 				Index:          0,
 			},
 			{
-				Authentication: config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail,
+				Authentication: model.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail,
 				Index:          2,
 			},
 			{
-				Authentication: config.AuthenticationFlowAuthenticationPrimaryPasskey,
+				Authentication: model.AuthenticationFlowAuthenticationPrimaryPasskey,
 				Index:          1,
 			},
 		}

@@ -159,7 +159,7 @@ func generateLoginFlowStepAuthenticatePrimary(cfg *config.AppConfig, identificat
 		return nil, false
 	}
 
-	allowedMap := make(map[config.AuthenticationFlowAuthentication]struct{})
+	allowedMap := make(map[model.AuthenticationFlowAuthentication]struct{})
 	for _, a := range allowed {
 		allowedMap[a] = struct{}{}
 	}
@@ -172,14 +172,14 @@ func generateLoginFlowStepAuthenticatePrimary(cfg *config.AppConfig, identificat
 	for _, authenticatorType := range *cfg.Authentication.PrimaryAuthenticators {
 		switch authenticatorType {
 		case model.AuthenticatorTypePassword:
-			am := config.AuthenticationFlowAuthenticationPrimaryPassword
+			am := model.AuthenticationFlowAuthenticationPrimaryPassword
 			if _, ok := allowedMap[am]; ok {
 				oneOf := generateLoginFlowStepAuthenticatePrimaryPassword(cfg, step.Name, identification)
 				step.OneOf = append(step.OneOf, oneOf)
 			}
 
 		case model.AuthenticatorTypePasskey:
-			am := config.AuthenticationFlowAuthenticationPrimaryPasskey
+			am := model.AuthenticationFlowAuthenticationPrimaryPasskey
 			if _, ok := allowedMap[am]; ok {
 				oneOf := generateLoginFlowStepAuthenticatePrimaryPasskey(cfg, identification)
 				step.OneOf = append(step.OneOf, oneOf)
@@ -188,14 +188,14 @@ func generateLoginFlowStepAuthenticatePrimary(cfg *config.AppConfig, identificat
 			// passkey does not require secondary authentication.
 
 		case model.AuthenticatorTypeOOBEmail:
-			am := config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail
+			am := model.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail
 			if _, ok := allowedMap[am]; ok {
 				oneOf := generateLoginFlowStepAuthenticatePrimaryOOBEmail(cfg, identification)
 				step.OneOf = append(step.OneOf, oneOf)
 			}
 
 		case model.AuthenticatorTypeOOBSMS:
-			am := config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS
+			am := model.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS
 			if _, ok := allowedMap[am]; ok {
 				oneOf := generateLoginFlowStepAuthenticatePrimaryOOBSMS(cfg, identification)
 				step.OneOf = append(step.OneOf, oneOf)
@@ -212,7 +212,7 @@ func generateLoginFlowStepAuthenticatePrimaryPassword(
 	identification config.AuthenticationFlowIdentification,
 ) *config.AuthenticationFlowLoginFlowOneOf {
 	oneOf := &config.AuthenticationFlowLoginFlowOneOf{
-		Authentication: config.AuthenticationFlowAuthenticationPrimaryPassword,
+		Authentication: model.AuthenticationFlowAuthenticationPrimaryPassword,
 	}
 
 	// Add authenticate step secondary if necessary
@@ -237,7 +237,7 @@ func generateLoginFlowStepAuthenticatePrimaryPasskey(
 	identification config.AuthenticationFlowIdentification,
 ) *config.AuthenticationFlowLoginFlowOneOf {
 	oneOf := &config.AuthenticationFlowLoginFlowOneOf{
-		Authentication: config.AuthenticationFlowAuthenticationPrimaryPasskey,
+		Authentication: model.AuthenticationFlowAuthenticationPrimaryPasskey,
 	}
 	return oneOf
 }
@@ -247,7 +247,7 @@ func generateLoginFlowStepAuthenticatePrimaryOOBEmail(
 	identification config.AuthenticationFlowIdentification,
 ) *config.AuthenticationFlowLoginFlowOneOf {
 	oneOf := &config.AuthenticationFlowLoginFlowOneOf{
-		Authentication: config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail,
+		Authentication: model.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail,
 		TargetStep:     nameStepIdentify(config.AuthenticationFlowTypeLogin),
 	}
 
@@ -265,7 +265,7 @@ func generateLoginFlowStepAuthenticatePrimaryOOBSMS(
 	cfg *config.AppConfig,
 	identification config.AuthenticationFlowIdentification,
 ) *config.AuthenticationFlowLoginFlowOneOf {
-	am := config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS
+	am := model.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS
 	oneOf := &config.AuthenticationFlowLoginFlowOneOf{
 		Authentication: am,
 		TargetStep:     nameStepIdentify(config.AuthenticationFlowTypeLogin),
@@ -295,7 +295,7 @@ func generateLoginFlowStepAuthenticateSecondary(cfg *config.AppConfig, identific
 		return nil, false
 	}
 
-	allowedMap := make(map[config.AuthenticationFlowAuthentication]struct{})
+	allowedMap := make(map[model.AuthenticationFlowAuthentication]struct{})
 	for _, a := range allowed {
 		allowedMap[a] = struct{}{}
 	}
@@ -315,7 +315,7 @@ func generateLoginFlowStepAuthenticateSecondary(cfg *config.AppConfig, identific
 		step.Optional = &optional
 	}
 
-	addOneOf := func(am config.AuthenticationFlowAuthentication, bpGetter func(*config.AppConfig) (*config.AuthenticationFlowBotProtection, bool)) {
+	addOneOf := func(am model.AuthenticationFlowAuthentication, bpGetter func(*config.AppConfig) (*config.AuthenticationFlowBotProtection, bool)) {
 		if _, ok := allowedMap[am]; ok {
 			oneOf := &config.AuthenticationFlowLoginFlowOneOf{
 				Authentication: am,
@@ -334,13 +334,13 @@ func generateLoginFlowStepAuthenticateSecondary(cfg *config.AppConfig, identific
 	for _, authenticatorType := range *cfg.Authentication.SecondaryAuthenticators {
 		switch authenticatorType {
 		case model.AuthenticatorTypePassword:
-			addOneOf(config.AuthenticationFlowAuthenticationSecondaryPassword, getBotProtectionRequirementsPassword)
+			addOneOf(model.AuthenticationFlowAuthenticationSecondaryPassword, getBotProtectionRequirementsPassword)
 		case model.AuthenticatorTypeOOBEmail:
-			addOneOf(config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail, getBotProtectionRequirementsOOBOTPEmail)
+			addOneOf(model.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail, getBotProtectionRequirementsOOBOTPEmail)
 		case model.AuthenticatorTypeOOBSMS:
-			addOneOf(config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS, getBotProtectionRequirementsOOBOTPSMS)
+			addOneOf(model.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS, getBotProtectionRequirementsOOBOTPSMS)
 		case model.AuthenticatorTypeTOTP:
-			addOneOf(config.AuthenticationFlowAuthenticationSecondaryTOTP, nil)
+			addOneOf(model.AuthenticationFlowAuthenticationSecondaryTOTP, nil)
 		}
 	}
 
@@ -349,14 +349,14 @@ func generateLoginFlowStepAuthenticateSecondary(cfg *config.AppConfig, identific
 	// If recovery code is enabled, add it to oneOf.
 	if !*cfg.Authentication.RecoveryCode.Disabled {
 		step.OneOf = append(step.OneOf, &config.AuthenticationFlowLoginFlowOneOf{
-			Authentication: config.AuthenticationFlowAuthenticationRecoveryCode,
+			Authentication: model.AuthenticationFlowAuthenticationRecoveryCode,
 		})
 	}
 
 	// If device token is enabled, add it to oneOf.
 	if !cfg.Authentication.DeviceToken.Disabled {
 		step.OneOf = append(step.OneOf, &config.AuthenticationFlowLoginFlowOneOf{
-			Authentication: config.AuthenticationFlowAuthenticationDeviceToken,
+			Authentication: model.AuthenticationFlowAuthenticationDeviceToken,
 		})
 	}
 

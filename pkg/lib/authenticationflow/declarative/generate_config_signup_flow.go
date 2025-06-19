@@ -203,7 +203,7 @@ func generateSignupFlowStepCreateAuthenticatorPrimary(cfg *config.AppConfig, ide
 		return nil, false
 	}
 
-	allowedMap := make(map[config.AuthenticationFlowAuthentication]struct{})
+	allowedMap := make(map[model.AuthenticationFlowAuthentication]struct{})
 	for _, a := range allowed {
 		allowedMap[a] = struct{}{}
 	}
@@ -216,7 +216,7 @@ func generateSignupFlowStepCreateAuthenticatorPrimary(cfg *config.AppConfig, ide
 	for _, authenticatorType := range *cfg.Authentication.PrimaryAuthenticators {
 		switch authenticatorType {
 		case model.AuthenticatorTypePassword:
-			am := config.AuthenticationFlowAuthenticationPrimaryPassword
+			am := model.AuthenticationFlowAuthenticationPrimaryPassword
 			if _, ok := allowedMap[am]; ok {
 				oneOf := &config.AuthenticationFlowSignupFlowOneOf{
 					Authentication: am,
@@ -225,7 +225,7 @@ func generateSignupFlowStepCreateAuthenticatorPrimary(cfg *config.AppConfig, ide
 			}
 
 		case model.AuthenticatorTypeOOBEmail:
-			am := config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail
+			am := model.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail
 			if _, ok := allowedMap[am]; ok {
 				oneOf := &config.AuthenticationFlowSignupFlowOneOf{
 					Authentication: am,
@@ -238,7 +238,7 @@ func generateSignupFlowStepCreateAuthenticatorPrimary(cfg *config.AppConfig, ide
 			}
 
 		case model.AuthenticatorTypeOOBSMS:
-			am := config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS
+			am := model.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS
 			if _, ok := allowedMap[am]; ok {
 				oneOf := &config.AuthenticationFlowSignupFlowOneOf{
 					Authentication: am,
@@ -268,7 +268,7 @@ func generateSignupFlowStepCreateAuthenticatorSecondary(cfg *config.AppConfig, i
 		return nil, false
 	}
 
-	allowedMap := make(map[config.AuthenticationFlowAuthentication]struct{})
+	allowedMap := make(map[model.AuthenticationFlowAuthentication]struct{})
 	for _, a := range allowed {
 		allowedMap[a] = struct{}{}
 	}
@@ -285,7 +285,7 @@ func generateSignupFlowStepCreateAuthenticatorSecondary(cfg *config.AppConfig, i
 		Type: config.AuthenticationFlowSignupFlowStepTypeCreateAuthenticator,
 	}
 
-	addOneOf := func(am config.AuthenticationFlowAuthentication, bpGetter func(*config.AppConfig) (*config.AuthenticationFlowBotProtection, bool)) {
+	addOneOf := func(am model.AuthenticationFlowAuthentication, bpGetter func(*config.AppConfig) (*config.AuthenticationFlowBotProtection, bool)) {
 		if _, ok := allowedMap[am]; ok {
 			oneOf := &config.AuthenticationFlowSignupFlowOneOf{
 				Authentication: am,
@@ -308,13 +308,13 @@ func generateSignupFlowStepCreateAuthenticatorSecondary(cfg *config.AppConfig, i
 	for _, authenticatorType := range *cfg.Authentication.SecondaryAuthenticators {
 		switch authenticatorType {
 		case model.AuthenticatorTypePassword:
-			addOneOf(config.AuthenticationFlowAuthenticationSecondaryPassword, nil)
+			addOneOf(model.AuthenticationFlowAuthenticationSecondaryPassword, nil)
 		case model.AuthenticatorTypeOOBEmail:
-			addOneOf(config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail, getBotProtectionRequirementsOOBOTPEmail)
+			addOneOf(model.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail, getBotProtectionRequirementsOOBOTPEmail)
 		case model.AuthenticatorTypeOOBSMS:
-			addOneOf(config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS, getBotProtectionRequirementsOOBOTPSMS)
+			addOneOf(model.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS, getBotProtectionRequirementsOOBOTPSMS)
 		case model.AuthenticatorTypeTOTP:
-			addOneOf(config.AuthenticationFlowAuthenticationSecondaryTOTP, nil)
+			addOneOf(model.AuthenticationFlowAuthenticationSecondaryTOTP, nil)
 		}
 	}
 

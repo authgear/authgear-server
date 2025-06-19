@@ -8,7 +8,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
@@ -17,9 +16,9 @@ func init() {
 }
 
 type IntentCreateAuthenticatorPassword struct {
-	JSONPointer    jsonpointer.T                           `json:"json_pointer,omitempty"`
-	UserID         string                                  `json:"user_id,omitempty"`
-	Authentication config.AuthenticationFlowAuthentication `json:"authentication,omitempty"`
+	JSONPointer    jsonpointer.T                          `json:"json_pointer,omitempty"`
+	UserID         string                                 `json:"user_id,omitempty"`
+	Authentication model.AuthenticationFlowAuthentication `json:"authentication,omitempty"`
 }
 
 var _ authflow.Intent = &IntentCreateAuthenticatorPassword{}
@@ -40,7 +39,7 @@ func (*IntentCreateAuthenticatorPassword) MilestoneFlowCreateAuthenticator(flows
 func (n *IntentCreateAuthenticatorPassword) MilestoneFlowSelectAuthenticationMethod(flows authflow.Flows) (MilestoneDidSelectAuthenticationMethod, authflow.Flows, bool) {
 	return n, flows, true
 }
-func (n *IntentCreateAuthenticatorPassword) MilestoneDidSelectAuthenticationMethod() config.AuthenticationFlowAuthentication {
+func (n *IntentCreateAuthenticatorPassword) MilestoneDidSelectAuthenticationMethod() model.AuthenticationFlowAuthentication {
 	return n.Authentication
 }
 

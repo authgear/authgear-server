@@ -8,7 +8,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 func init() {
@@ -44,7 +43,7 @@ func (i *IntentLoginFlowStepPromptCreatePasskey) ReactTo(ctx context.Context, de
 	for _, m := range milestones {
 		i := m.MilestoneIdentificationMethod()
 		for _, a := range i.PrimaryAuthentications() {
-			if a == config.AuthenticationFlowAuthenticationPrimaryPasskey {
+			if a == model.AuthenticationFlowAuthenticationPrimaryPasskey {
 				passkeyCanBeUsed = true
 			}
 		}
