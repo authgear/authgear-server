@@ -12,8 +12,8 @@ const (
 )
 
 type AuthenticationPostIdentifiedBlockingEventPayload struct {
-	Identification model.Identification        `json:"identification"`
-	Authentication event.AuthenticationContext `json:"authentication"`
+	Identification        model.Identification        `json:"identification"`
+	AuthenticationContext event.AuthenticationContext `json:"authentication_context"`
 
 	Constraints               *event.Constraints               `json:"-"`
 	BotProtectionRequirements *event.BotProtectionRequirements `json:"-"`
@@ -24,7 +24,7 @@ func (e *AuthenticationPostIdentifiedBlockingEventPayload) BlockingEventType() e
 }
 
 func (e *AuthenticationPostIdentifiedBlockingEventPayload) UserID() string {
-	return e.Authentication.User.ID
+	return e.AuthenticationContext.User.ID
 }
 
 func (e *AuthenticationPostIdentifiedBlockingEventPayload) GetTriggeredBy() event.TriggeredByType {

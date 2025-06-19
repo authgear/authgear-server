@@ -30,8 +30,8 @@ func NewNodePostIdentified(ctx context.Context, deps *authflow.Dependencies, flo
 	}
 
 	payload := &blocking.AuthenticationPostIdentifiedBlockingEventPayload{
-		Identification: *n.Identification,
-		Authentication: *authCtx,
+		Identification:        *n.Identification,
+		AuthenticationContext: *authCtx,
 
 		Constraints:               nil,
 		BotProtectionRequirements: nil,
