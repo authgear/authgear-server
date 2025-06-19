@@ -110,3 +110,11 @@ func (n *NodeDoUseIdentityPasskey) MilestoneGetIdentitySpecs() []*identity.Spec 
 func (n *NodeDoUseIdentityPasskey) MilestoneDidAuthenticateAuthenticator() (*authenticator.Info, bool) {
 	return n.Authenticator, true
 }
+func (n *NodeDoUseIdentityPasskey) MilestoneDidAuthenticateAuthentication() (*model.Authentication, bool) {
+	authn := n.Authenticator.ToAuthentication()
+	authnModel := n.Authenticator.ToModel()
+	return &model.Authentication{
+		Authentication: authn,
+		Authenticator:  &authnModel,
+	}, true
+}

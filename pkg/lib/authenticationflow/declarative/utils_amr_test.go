@@ -19,6 +19,8 @@ type MockMilestoneConstraintsProvider struct {
 	amr []string
 }
 
+var _ declarative.MilestoneConstraintsProvider = &MockMilestoneConstraintsProvider{}
+
 func (m *MockMilestoneConstraintsProvider) Kind() string {
 	return "MockMilestoneConstraintsProvider"
 }
@@ -45,6 +47,8 @@ type MockMilestoneDidAuthenticate struct {
 	authenticatorID string
 }
 
+var _ declarative.MilestoneDidAuthenticate = &MockMilestoneDidAuthenticate{}
+
 func (m *MockMilestoneDidAuthenticate) Kind() string {
 	return "MockMilestoneDidAuthenticate"
 }
@@ -53,6 +57,14 @@ func (m *MockMilestoneDidAuthenticate) Milestone() {}
 
 func (m *MockMilestoneDidAuthenticate) MilestoneDidAuthenticate() []string {
 	return m.amr
+}
+func (m *MockMilestoneDidAuthenticate) MilestoneDidAuthenticateAuthentication() (*model.Authentication, bool) {
+	return &model.Authentication{
+		Authentication: model.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail,
+		Authenticator: &model.Authenticator{
+			Meta: model.Meta{ID: m.authenticatorID},
+		},
+	}, true
 }
 
 func (m *MockMilestoneDidAuthenticate) MilestoneDidAuthenticateAuthenticator() (*authenticator.Info, bool) {
@@ -76,6 +88,8 @@ func (m *MockMilestoneDidAuthenticate) ReactTo(ctx context.Context, deps *authen
 type MockMilestoneDidConsumeRecoveryCode struct {
 	recoveryCodeID string
 }
+
+var _ declarative.MilestoneDidConsumeRecoveryCode = &MockMilestoneDidConsumeRecoveryCode{}
 
 func (m *MockMilestoneDidConsumeRecoveryCode) Kind() string {
 	return "MockMilestoneDidConsumeRecoveryCode"
