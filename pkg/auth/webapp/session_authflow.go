@@ -441,7 +441,7 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchSignupPromote(input *TakeBran
 		return s.takeBranchResultSimple(input, false)
 	case config.AuthenticationFlowStepTypeCreateAuthenticator:
 		data := s.StateTokenFlowResponse.Action.Data.(declarative.CreateAuthenticatorData)
-		return s.takeBranchCreateAuthenticator(input, options, data.Options[input.Index])
+		return s.takeBranchCreateAuthenticator(input, config.AuthenticationFlowStepTypeCreateAuthenticator, options, data.Options[input.Index])
 	case config.AuthenticationFlowStepTypeVerify:
 		// If we ever reach here, this means we have to choose channels.
 		data := s.StateTokenFlowResponse.Action.Data.(declarative.SelectOOBOTPChannelsData)
@@ -575,7 +575,7 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchLogin(input *TakeBranchInput,
 		switch s.StateTokenFlowResponse.Action.Data.(type) {
 		case declarative.CreateAuthenticatorData:
 			data := s.StateTokenFlowResponse.Action.Data.(declarative.CreateAuthenticatorData)
-			return s.takeBranchCreateAuthenticator(input, options, data.Options[input.Index])
+			return s.takeBranchCreateAuthenticator(input, config.AuthenticationFlowStepTypeAuthenticate, options, data.Options[input.Index])
 		case declarative.IntentCreateAuthenticatorTOTPData:
 			return s.takeBranchResultSimple(input, false)
 		case declarative.StepAuthenticateData:
@@ -801,8 +801,13 @@ func (s *AuthflowScreenWithFlowResponse) makeFallbackToSMSFromWhatsappRetryHandl
 	}
 }
 
-func (s *AuthflowScreenWithFlowResponse) takeBranchCreateAuthenticator(input *TakeBranchInput, options *TakeBranchOptions, option declarative.CreateAuthenticatorOptionForOutput) TakeBranchResult {
-	switch option.Authentication {
+func (s *AuthflowScreenWithFlowResponse) takeBranchCreateAuthenticator(
+	input *TakeBranchInput,
+	expectedActionType config.AuthenticationFlowStepType,
+	takeBranchOptions *TakeBranchOptions,
+	selectedOption declarative.CreateAuthenticatorOptionForOutput,
+) TakeBranchResult {
+	switch selectedOption.Authentication {
 	case config.AuthenticationFlowAuthenticationPrimaryPassword:
 		fallthrough
 	case config.AuthenticationFlowAuthenticationSecondaryPassword:
@@ -818,7 +823,7 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchCreateAuthenticator(input *Ta
 			NewAuthflowScreenFull: func(flowResponse *authflow.FlowResponse, retriedForError error) *AuthflowScreenWithFlowResponse {
 				var emptyChannel model.AuthenticatorOOBChannel
 				isContinuation := func(flowResponse *authflow.FlowResponse) bool {
-					return flowResponse.Action.Type == authflow.FlowActionType(config.AuthenticationFlowSignupFlowStepTypeCreateAuthenticator) &&
+					return flowResponse.Action.Type == authflow.FlowActionType(expectedActionType) &&
 						flowResponse.Action.Authentication == config.AuthenticationFlowAuthenticationSecondaryTOTP
 				}
 
@@ -829,26 +834,26 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchCreateAuthenticator(input *Ta
 		fallthrough
 	case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
 		if input.Channel == "" {
-			input.Channel = option.Channels[0]
+			input.Channel = selectedOption.Channels[0]
 		}
 		inputFactory := func(c model.AuthenticatorOOBChannel) map[string]interface{} {
 			return map[string]interface{}{
-				"authentication": option.Authentication,
+				"authentication": selectedOption.Authentication,
 				"channel":        c,
 			}
 		}
 		resultInput := inputFactory(input.Channel)
 		onFailureHandler := s.makeFallbackToSMSFromWhatsappRetryHandler(
 			inputFactory,
-			option.Channels,
-			options.DisableFallbackToSMS,
+			selectedOption.Channels,
+			takeBranchOptions.DisableFallbackToSMS,
 		)
 		return TakeBranchResultInput{
 			Input: resultInput,
 			NewAuthflowScreenFull: func(flowResponse *authflow.FlowResponse, retriedForError error) *AuthflowScreenWithFlowResponse {
 				isContinuation := func(flowResponse *authflow.FlowResponse) bool {
 					return flowResponse.Action.Type == authflow.FlowActionType(config.AuthenticationFlowSignupFlowStepTypeCreateAuthenticator) &&
-						flowResponse.Action.Authentication == option.Authentication
+						flowResponse.Action.Authentication == selectedOption.Authentication
 				}
 				takenChannel := input.Channel
 				if d, ok := flowResponse.Action.Data.(declarative.VerifyOOBOTPData); ok {
@@ -865,13 +870,13 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchCreateAuthenticator(input *Ta
 		fallthrough
 	case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
 		if input.Channel == "" {
-			input.Channel = option.Channels[0]
+			input.Channel = selectedOption.Channels[0]
 		}
 		return s.takeBranchResultSimple(&TakeBranchInput{
 			Index:   input.Index,
 			Channel: input.Channel,
 		}, false)
 	default:
-		panic(fmt.Errorf("unexpected authentication: %v", option.Authentication))
+		panic(fmt.Errorf("unexpected authentication: %v", selectedOption.Authentication))
 	}
 }

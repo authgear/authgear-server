@@ -1,0 +1,97 @@
+package declarative
+
+import (
+	"context"
+
+	eventapi "github.com/authgear/authgear-server/pkg/api/event"
+	blocking "github.com/authgear/authgear-server/pkg/api/event/blocking"
+	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/authenticationflow"
+	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
+	"github.com/authgear/authgear-server/pkg/lib/config"
+)
+
+func init() {
+	authflow.RegisterNode(&NodePostIdentified{})
+}
+
+type NodePostIdentifiedOptions struct {
+	Identity       *model.Identity
+	IDToken        *string
+	Identification config.AuthenticationFlowIdentification
+}
+
+func NewNodePostIdentified(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, opts *NodePostIdentifiedOptions) (authflow.ReactToResult, error) {
+
+	n := &NodePostIdentified{
+		Identity:       opts.Identity,
+		IDToken:        opts.IDToken,
+		Identification: opts.Identification,
+	}
+
+	authCtx, err := GetAuthenticationContext(ctx, deps, flows)
+	if err != nil {
+		return nil, err
+	}
+
+	payload := &blocking.AuthenticationPostIdentifiedBlockingEventPayload{
+		Identity:       nil,
+		IDToken:        n.IDToken,
+		Constraints:    nil,
+		Identification: config.AuthenticationFlowIdentificationIDToken,
+		Authentication: *authCtx,
+	}
+	e, err := deps.Events.PrepareBlockingEventWithTx(ctx, payload)
+	if err != nil {
+		return nil, err
+	}
+
+	var delayedFunction authflow.DelayedOneTimeFunction = func(ctx context.Context, deps *authenticationflow.Dependencies) error {
+		err = deps.Events.DispatchEventWithoutTx(ctx, e)
+		if err != nil {
+			return err
+		}
+		n.IsPostIdentifiedInvoked = true
+		n.Constraints = payload.Constraints
+		return nil
+	}
+
+	return &authflow.NodeWithDelayedOneTimeFunction{
+		Node:                   authflow.NewNodeSimple(n),
+		DelayedOneTimeFunction: delayedFunction,
+	}, nil
+}
+
+type NodePostIdentified struct {
+	Identity       *model.Identity                         `json:"identity"`
+	IDToken        *string                                 `json:"id_token"`
+	Identification config.AuthenticationFlowIdentification `json:"identification"`
+
+	IsPostIdentifiedInvoked bool                  `json:"is_post_identified_invoked"`
+	Constraints             *eventapi.Constraints `json:"constraints,omitempty"`
+}
+
+var _ authflow.NodeSimple = &NodePostIdentified{}
+var _ authflow.InputReactor = &NodePostIdentified{}
+var _ authflow.Milestone = &NodePostIdentified{}
+var _ MilestoneConstraintsProvider = &NodePostIdentified{}
+
+func (*NodePostIdentified) Kind() string {
+	return "NodePostIdentified"
+}
+
+func (n *NodePostIdentified) Milestone() {}
+func (n *NodePostIdentified) MilestoneConstraintsProvider() *eventapi.Constraints {
+	return n.Constraints
+}
+
+func (n *NodePostIdentified) CanReactTo(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows) (authenticationflow.InputSchema, error) {
+	if n.IsPostIdentifiedInvoked {
+		return nil, authflow.ErrEOF
+	}
+	return nil, authflow.ErrPauseAndRetryAccept
+}
+
+func (n *NodePostIdentified) ReactTo(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows, input authenticationflow.Input) (authenticationflow.ReactToResult, error) {
+	return nil, authflow.ErrEOF
+}

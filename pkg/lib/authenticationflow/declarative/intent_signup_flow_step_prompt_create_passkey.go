@@ -41,9 +41,10 @@ func (i *IntentSignupFlowStepPromptCreatePasskey) MilestoneSwitchToExistingUser(
 
 	milestoneDoCreateAuthenticator, _, ok := authflow.FindMilestoneInCurrentFlow[MilestoneDoCreateAuthenticator](flows)
 	if ok {
-		authn := milestoneDoCreateAuthenticator.MilestoneDoCreateAuthenticator()
-		milestoneDoCreateAuthenticator.MilestoneDoCreateAuthenticatorUpdate(authn.UpdateUserID(newUserID))
-
+		authn, ok := milestoneDoCreateAuthenticator.MilestoneDoCreateAuthenticator()
+		if ok {
+			milestoneDoCreateAuthenticator.MilestoneDoCreateAuthenticatorUpdate(authn.UpdateUserID(newUserID))
+		}
 	}
 
 	return nil

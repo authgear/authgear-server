@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/authgear/authgear-server/pkg/api"
+	"github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 )
@@ -18,7 +19,7 @@ type NodeDoUseIdentity struct {
 	IdentitySpec *identity.Spec `json:"identity_spec,omitempty"`
 }
 
-func NewNodeDoUseIdentity(ctx context.Context, flows authflow.Flows, n *NodeDoUseIdentity) (*NodeDoUseIdentity, error) {
+func NewNodeDoUseIdentity(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, n *NodeDoUseIdentity) (*NodeDoUseIdentity, error) {
 	userID, err := getUserID(flows)
 	if errors.Is(err, ErrNoUserID) {
 		err = nil
@@ -38,16 +39,40 @@ func NewNodeDoUseIdentity(ctx context.Context, flows authflow.Flows, n *NodeDoUs
 	}
 
 	return n, nil
+
+}
+
+func NewNodeDoUseIdentityReactToResult(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, n *NodeDoUseIdentity) (authenticationflow.ReactToResult, error) {
+	n, err := NewNodeDoUseIdentity(ctx, deps, flows, n)
+	if err != nil {
+		return nil, err
+	}
+
+	return authenticationflow.NewNodeSimple(n), nil
 }
 
 var _ authflow.NodeSimple = &NodeDoUseIdentity{}
 var _ authflow.Milestone = &NodeDoUseIdentity{}
+var _ authflow.InputReactor = &NodeDoUseIdentity{}
 var _ MilestoneDoUseUser = &NodeDoUseIdentity{}
 var _ MilestoneDoUseIdentity = &NodeDoUseIdentity{}
 var _ MilestoneGetIdentitySpecs = &NodeDoUseIdentity{}
 
 func (*NodeDoUseIdentity) Kind() string {
 	return "NodeDoUseIdentity"
+}
+
+func (n *NodeDoUseIdentity) CanReactTo(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows) (authenticationflow.InputSchema, error) {
+	return nil, nil
+}
+
+func (n *NodeDoUseIdentity) ReactTo(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows, input authenticationflow.Input) (authenticationflow.ReactToResult, error) {
+	idmodel := n.Identity.ToModel()
+	return NewNodePostIdentified(ctx, deps, flows, &NodePostIdentifiedOptions{
+		Identity:       &idmodel,
+		IDToken:        nil,
+		Identification: n.Identity.ToIdentification(),
+	})
 }
 
 func (*NodeDoUseIdentity) Milestone() {}

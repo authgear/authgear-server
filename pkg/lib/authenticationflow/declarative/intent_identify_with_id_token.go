@@ -43,7 +43,7 @@ func (n *IntentIdentifyWithIDToken) CanReactTo(ctx context.Context, deps *authfl
 	if userIdentified {
 		return nil, authflow.ErrEOF
 	}
-	flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+	flowRootObject, err := findNearestFlowObjectInFlow(deps, flows, n)
 	if err != nil {
 		return nil, err
 	}
@@ -61,15 +61,10 @@ func (n *IntentIdentifyWithIDToken) CanReactTo(ctx context.Context, deps *authfl
 }
 
 func (n *IntentIdentifyWithIDToken) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (authflow.ReactToResult, error) {
-	proceed := func(idToken string) (*authflow.Node, error) {
-		n, err := NewNodeDoUseIDToken(ctx, deps, flows, &NodeDoUseIDToken{
+	proceed := func(idToken string) (authflow.ReactToResult, error) {
+		return NewNodeDoUseIDToken(ctx, deps, flows, &NodeDoUseIDToken{
 			IDToken: idToken,
 		})
-		if err != nil {
-			return nil, err
-		}
-
-		return authflow.NewNodeSimple(n), nil
 	}
 
 	switch {

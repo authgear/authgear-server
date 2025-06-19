@@ -61,6 +61,11 @@ var ArgConfigOverride = &cobraviper.StringArgument{
 	Usage:        "Config override",
 }
 
+var ArgConfigSourceExtraFilesDirectory = &cobraviper.StringArgument{
+	ArgumentName: "config-source-extra-files-directory",
+	Usage:        "Config source extra files directory",
+}
+
 var ArgCustomSQL = &cobraviper.StringArgument{
 	ArgumentName: "custom-sql",
 	Usage:        "Filepath to custom sql",
@@ -88,5 +93,10 @@ var ArgSessionID = &cobraviper.StringArgument{
 
 var ArgToken = &cobraviper.StringArgument{
 	ArgumentName: "token",
-	Usage:        "The token for accessing a session.",
+	Usage:        "A token.",
+}
+
+var ArgPurpose = &cobraviper.StringArgument{
+	ArgumentName: "purpose",
+	Usage:        "The purpose of challenge.",
 }

@@ -73,8 +73,12 @@ type FindInputReactorResult struct {
 	InputSchema  InputSchema
 }
 
-func FindInputReactor(ctx context.Context, deps *Dependencies, flows Flows) (*FindInputReactorResult, error) {
-	return FindInputReactorForFlow(ctx, deps, flows)
+func FindInputReactor(ctx context.Context, deps *Dependencies, flows Flows) (reactor *FindInputReactorResult, err error) {
+	reactor, err = FindInputReactorForFlow(ctx, deps, flows)
+	if err != nil {
+		err = newAuthenticationFlowError(flows, err)
+	}
+	return
 }
 
 func FindInputReactorForFlow(ctx context.Context, deps *Dependencies, flows Flows) (*FindInputReactorResult, error) {

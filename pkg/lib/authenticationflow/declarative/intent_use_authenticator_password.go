@@ -51,11 +51,11 @@ func (n *IntentUseAuthenticatorPassword) CanReactTo(ctx context.Context, deps *a
 	if authenticated {
 		return nil, authflow.ErrEOF
 	}
-	flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+	flowRootObject, err := findNearestFlowObjectInFlow(deps, flows, n)
 	if err != nil {
 		return nil, err
 	}
-	isBotProtectionRequired, err := IsBotProtectionRequired(ctx, deps, flows, n.JSONPointer)
+	isBotProtectionRequired, err := IsBotProtectionRequired(ctx, deps, flows, n.JSONPointer, n)
 	if err != nil {
 		return nil, err
 	}
@@ -72,7 +72,7 @@ func (i *IntentUseAuthenticatorPassword) ReactTo(ctx context.Context, deps *auth
 	var inputTakePassword inputTakePassword
 	if authflow.AsInput(input, &inputTakePassword) {
 		var bpSpecialErr error
-		bpSpecialErr, err := HandleBotProtection(ctx, deps, flows, i.JSONPointer, input)
+		bpSpecialErr, err := HandleBotProtection(ctx, deps, flows, i.JSONPointer, input, i)
 		if err != nil {
 			return nil, err
 		}

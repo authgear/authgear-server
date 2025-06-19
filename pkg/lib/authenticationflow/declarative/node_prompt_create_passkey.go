@@ -67,7 +67,7 @@ func (n *NodePromptCreatePasskey) CanReactTo(ctx context.Context, deps *authflow
 		return nil, nil
 	}
 
-	flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+	flowRootObject, err := findNearestFlowObjectInFlow(deps, flows, n)
 	if err != nil {
 		return nil, err
 	}
@@ -122,11 +122,11 @@ func (n *NodePromptCreatePasskey) ReactTo(ctx context.Context, deps *authflow.De
 			return nil, err
 		}
 
-		return authflow.NewNodeSimple(&NodeDoCreatePasskey{
+		return NewNodeDoCreatePasskeyReactToResult(ctx, deps, flows, NodeDoCreatePasskeyOptions{
 			Identity:            identityInfo,
 			Authenticator:       authenticatorInfo,
 			AttestationResponse: creationResponseBytes,
-		}), nil
+		})
 	case inputNodePromptCreatePasskey.IsSkip():
 		return authflow.NewNodeSimple(&NodeSentinel{}), nil
 	default:

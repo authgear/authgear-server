@@ -49,7 +49,7 @@ func (n *IntentCreateAuthenticatorPassword) CanReactTo(ctx context.Context, deps
 	if created {
 		return nil, authflow.ErrEOF
 	}
-	flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+	flowRootObject, err := findNearestFlowObjectInFlow(deps, flows, n)
 	if err != nil {
 		return nil, err
 	}

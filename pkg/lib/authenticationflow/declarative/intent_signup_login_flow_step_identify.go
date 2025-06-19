@@ -33,8 +33,8 @@ type IntentSignupLoginFlowStepIdentify struct {
 var _ authflow.Intent = &IntentSignupLoginFlowStepIdentify{}
 var _ authflow.DataOutputer = &IntentSignupLoginFlowStepIdentify{}
 
-func NewIntentSignupLoginFlowStepIdentify(ctx context.Context, deps *authflow.Dependencies, i *IntentSignupLoginFlowStepIdentify) (*IntentSignupLoginFlowStepIdentify, error) {
-	current, err := i.currentFlowObject(deps)
+func NewIntentSignupLoginFlowStepIdentify(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, i *IntentSignupLoginFlowStepIdentify, originNode authflow.NodeOrIntent) (*IntentSignupLoginFlowStepIdentify, error) {
+	current, err := i.currentFlowObject(deps, flows, originNode)
 	if err != nil {
 		return nil, err
 	}
@@ -91,7 +91,7 @@ func (*IntentSignupLoginFlowStepIdentify) Kind() string {
 func (i *IntentSignupLoginFlowStepIdentify) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
 	// Let the input to select which identification method to use.
 	if len(flows.Nearest.Nodes) == 0 {
-		flowRootObject, err := flowRootObject(deps, i.FlowReference)
+		flowRootObject, err := findNearestFlowObjectInFlow(deps, flows, i)
 		if err != nil {
 			return nil, err
 		}
@@ -109,7 +109,7 @@ func (i *IntentSignupLoginFlowStepIdentify) CanReactTo(ctx context.Context, deps
 }
 
 func (i *IntentSignupLoginFlowStepIdentify) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (authflow.ReactToResult, error) {
-	current, err := i.currentFlowObject(deps)
+	current, err := i.currentFlowObject(deps, flows, i)
 	if err != nil {
 		return nil, err
 	}
@@ -191,7 +191,6 @@ func (i *IntentSignupLoginFlowStepIdentify) checkIdentificationMethod(deps *auth
 	err = authflow.ErrIncompatibleInput
 	return
 }
-
 func (i *IntentSignupLoginFlowStepIdentify) step(o config.AuthenticationFlowObject) *config.AuthenticationFlowSignupLoginFlowStep {
 	step, ok := o.(*config.AuthenticationFlowSignupLoginFlowStep)
 	if !ok {
@@ -201,8 +200,8 @@ func (i *IntentSignupLoginFlowStepIdentify) step(o config.AuthenticationFlowObje
 	return step
 }
 
-func (i *IntentSignupLoginFlowStepIdentify) currentFlowObject(deps *authflow.Dependencies) (config.AuthenticationFlowObject, error) {
-	rootObject, err := flowRootObject(deps, i.FlowReference)
+func (i *IntentSignupLoginFlowStepIdentify) currentFlowObject(deps *authflow.Dependencies, flows authflow.Flows, originNode authflow.NodeOrIntent) (config.AuthenticationFlowObject, error) {
+	rootObject, err := findNearestFlowObjectInFlow(deps, flows, originNode)
 	if err != nil {
 		return nil, err
 	}

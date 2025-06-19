@@ -48,12 +48,12 @@ func (n *IntentUseIdentityPasskey) CanReactTo(ctx context.Context, deps *authflo
 	if identified {
 		return nil, authflow.ErrEOF
 	}
-	flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+	flowRootObject, err := findNearestFlowObjectInFlow(deps, flows, n)
 	if err != nil {
 		return nil, err
 	}
 
-	isBotProtectionRequired, err := IsBotProtectionRequired(ctx, deps, flows, n.JSONPointer)
+	isBotProtectionRequired, err := IsBotProtectionRequired(ctx, deps, flows, n.JSONPointer, n)
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +70,7 @@ func (n *IntentUseIdentityPasskey) ReactTo(ctx context.Context, deps *authflow.D
 	var inputAssertionResponse inputTakePasskeyAssertionResponse
 	if authflow.AsInput(input, &inputAssertionResponse) {
 		var bpSpecialErr error
-		bpSpecialErr, err := HandleBotProtection(ctx, deps, flows, n.JSONPointer, input)
+		bpSpecialErr, err := HandleBotProtection(ctx, deps, flows, n.JSONPointer, input, n)
 		if err != nil {
 			return nil, err
 		}
@@ -123,7 +123,7 @@ func (n *IntentUseIdentityPasskey) ReactTo(ctx context.Context, deps *authflow.D
 			return nil, err
 		}
 
-		n, err := NewNodeDoUseIdentityPasskey(ctx, flows, &NodeDoUseIdentityPasskey{
+		result, err := NewNodeDoUseIdentityPasskey(ctx, deps, flows, &NodeDoUseIdentityPasskeyOptions{
 			AssertionResponse: assertionResponseBytes,
 			Identity:          exactMatch,
 			IdentitySpec:      identitySpec,
@@ -134,7 +134,7 @@ func (n *IntentUseIdentityPasskey) ReactTo(ctx context.Context, deps *authflow.D
 			return nil, err
 		}
 
-		return authflow.NewNodeSimple(n), bpSpecialErr
+		return result, bpSpecialErr
 	}
 
 	return nil, authflow.ErrIncompatibleInput

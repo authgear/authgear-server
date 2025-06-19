@@ -44,11 +44,17 @@ func NewEnd2EndCmd(options NewEnd2EndCmdOptions) (*End2EndCmd, error) {
 		Test:     options.Test,
 	}
 
+	extraFilesDirectory := ""
+	if e.TestCase.ExtraFilesDirectory != "" {
+		extraFilesDirectory = e.resolvePath(e.TestCase.ExtraFilesDirectory)
+	}
+
 	cmd := fmt.Sprintf(
-		"./dist/e2e create-configsource --app-id %s --config-source %s --config-override \"%s\"",
+		"./dist/e2e create-configsource --app-id %s --config-source %s --config-override \"%s\" --config-source-extra-files-directory \"%s\"",
 		e.AppID,
 		e.resolvePath(e.TestCase.AuthgearYAMLSource.Extend),
 		e.TestCase.AuthgearYAMLSource.Override,
+		extraFilesDirectory,
 	)
 	if _, err := e.execCmd(cmd); err != nil {
 		return nil, err
@@ -96,6 +102,19 @@ func (e *End2EndCmd) ExecuteCreateSession(hook *BeforeHookCreateSession) error {
 		hook.SessionID,
 		hook.Token,
 		hook.SelectUserIDSQL,
+	)
+	if _, err := e.execCmd(cmd); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (e *End2EndCmd) ExecuteCreateChallenge(hook *BeforeHookCreateChallenge) error {
+	cmd := fmt.Sprintf(
+		"./dist/e2e create-challenge --app-id %s --purpose \"%s\" --token \"%s\"",
+		e.AppID,
+		hook.Purpose,
+		hook.Token,
 	)
 	if _, err := e.execCmd(cmd); err != nil {
 		return err
