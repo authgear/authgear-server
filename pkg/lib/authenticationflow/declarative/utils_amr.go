@@ -33,7 +33,7 @@ func collectAMRFromNode(node authflow.NodeOrIntent, amr []string, usedAuthentica
 	return amr
 }
 
-func collectAMR(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (amr []string, err error) {
+func CollectAMR(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (amr []string, err error) {
 	usedAuthenticatorIDs := setutil.Set[string]{}
 	usedRecoveryCodeIDs := setutil.Set[string]{}
 
@@ -97,7 +97,7 @@ func RemainingAMRConstraintsInFlow(ctx context.Context, deps *authflow.Dependenc
 	if !found {
 		return []string{}, nil
 	}
-	currentAMRs, err := collectAMR(ctx, deps, flows)
+	currentAMRs, err := CollectAMR(ctx, deps, flows)
 	if err != nil {
 		return nil, err
 	}
