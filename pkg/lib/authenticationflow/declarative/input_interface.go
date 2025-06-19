@@ -14,7 +14,7 @@ type syntheticInputOAuth interface {
 }
 
 type inputTakeIdentificationMethod interface {
-	GetIdentificationMethod() config.AuthenticationFlowIdentification
+	GetIdentificationMethod() model.AuthenticationFlowIdentification
 }
 
 type inputTakeAccountRecoveryIdentificationMethod interface {

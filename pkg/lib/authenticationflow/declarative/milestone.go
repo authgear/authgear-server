@@ -108,7 +108,7 @@ type MilestoneNestedSteps interface {
 
 type MilestoneIdentificationMethod interface {
 	authflow.Milestone
-	MilestoneIdentificationMethod() config.AuthenticationFlowIdentification
+	MilestoneIdentificationMethod() model.AuthenticationFlowIdentification
 }
 
 type MilestoneFlowSelectAuthenticationMethod interface {

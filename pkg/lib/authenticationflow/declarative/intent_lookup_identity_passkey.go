@@ -21,9 +21,9 @@ func init() {
 }
 
 type IntentLookupIdentityPasskey struct {
-	JSONPointer    jsonpointer.T                           `json:"json_pointer,omitempty"`
-	Identification config.AuthenticationFlowIdentification `json:"identification,omitempty"`
-	SyntheticInput *InputStepIdentify                      `json:"synthetic_input,omitempty"`
+	JSONPointer    jsonpointer.T                          `json:"json_pointer,omitempty"`
+	Identification model.AuthenticationFlowIdentification `json:"identification,omitempty"`
+	SyntheticInput *InputStepIdentify                     `json:"synthetic_input,omitempty"`
 }
 
 var _ authflow.Intent = &IntentLookupIdentityPasskey{}
@@ -36,7 +36,7 @@ func (*IntentLookupIdentityPasskey) Kind() string {
 }
 
 func (*IntentLookupIdentityPasskey) Milestone() {}
-func (n *IntentLookupIdentityPasskey) MilestoneIdentificationMethod() config.AuthenticationFlowIdentification {
+func (n *IntentLookupIdentityPasskey) MilestoneIdentificationMethod() model.AuthenticationFlowIdentification {
 	return n.Identification
 }
 

@@ -8,6 +8,7 @@ import (
 
 	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -58,19 +59,19 @@ func (i *InputSchemaStepIdentify) SchemaBuilder() validation.SchemaBuilder {
 		}
 
 		switch option.Identification {
-		case config.AuthenticationFlowIdentificationIDToken:
+		case model.AuthenticationFlowIdentificationIDToken:
 			requireString("id_token")
 			setRequiredAndAppendOneOf()
-		case config.AuthenticationFlowIdentificationEmail:
+		case model.AuthenticationFlowIdentificationEmail:
 			requireString("login_id")
 			setRequiredAndAppendOneOf()
-		case config.AuthenticationFlowIdentificationPhone:
+		case model.AuthenticationFlowIdentificationPhone:
 			requireString("login_id")
 			setRequiredAndAppendOneOf()
-		case config.AuthenticationFlowIdentificationUsername:
+		case model.AuthenticationFlowIdentificationUsername:
 			requireString("login_id")
 			setRequiredAndAppendOneOf()
-		case config.AuthenticationFlowIdentificationOAuth:
+		case model.AuthenticationFlowIdentificationOAuth:
 			// redirect_uri is required.
 			required = append(required, "redirect_uri")
 			b.Properties().Property("redirect_uri", validation.SchemaBuilder{}.Type(validation.TypeString).Format("uri"))
@@ -85,11 +86,11 @@ func (i *InputSchemaStepIdentify) SchemaBuilder() validation.SchemaBuilder {
 				Enum(oauthrelyingparty.ResponseModeFormPost, oauthrelyingparty.ResponseModeQuery))
 
 			setRequiredAndAppendOneOf()
-		case config.AuthenticationFlowIdentificationPasskey:
+		case model.AuthenticationFlowIdentificationPasskey:
 			required = append(required, "assertion_response")
 			b.Properties().Property("assertion_response", passkeyAssertionResponseSchemaBuilder)
 			setRequiredAndAppendOneOf()
-		case config.AuthenticationFlowIdentificationLDAP:
+		case model.AuthenticationFlowIdentificationLDAP:
 			required = append(required, "server_name")
 			b.Properties().
 				Property(
@@ -137,7 +138,7 @@ func (i *InputSchemaStepIdentify) MakeInput(ctx context.Context, rawMessage json
 }
 
 type InputStepIdentify struct {
-	Identification config.AuthenticationFlowIdentification `json:"identification,omitempty"`
+	Identification model.AuthenticationFlowIdentification `json:"identification,omitempty"`
 
 	IDToken string `json:"id_token,omitempty"`
 
@@ -164,7 +165,7 @@ var _ inputTakeLDAP = &InputStepIdentify{}
 
 func (*InputStepIdentify) Input() {}
 
-func (i *InputStepIdentify) GetIdentificationMethod() config.AuthenticationFlowIdentification {
+func (i *InputStepIdentify) GetIdentificationMethod() model.AuthenticationFlowIdentification {
 	return i.Identification
 }
 
