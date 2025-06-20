@@ -245,6 +245,10 @@ once/Dockerfile:
 authgearonce-set-git-tag-name:
 	@./scripts/sh/authgearonce-set-git-tag-name.sh
 
+.PHONY: authgearonce-set-AUTHGEARONCE_LICENSE_SERVER_ENV-by-tag-name
+authgearonce-set-AUTHGEARONCE_LICENSE_SERVER_ENV-by-tag-name:
+	@./scripts/sh/authgearonce-set-AUTHGEARONCE_LICENSE_SERVER_ENV-by-tag-name.sh
+
 .PHONY: authgearonce-binary
 ifeq ($(AUTHGEARONCE_LICENSE_SERVER_ENV), local)
 GO_BUILD_TAGS += authgearonce_license_server_local
