@@ -15,11 +15,11 @@ type AuthenticationFlowContext struct {
 }
 
 type AuthenticationContext struct {
-	AuthenticationFlow      *AuthenticationFlowContext `json:"authentication_flow,omitzero"`
-	User                    *model.User                `json:"user,omitzero"`
-	AssertedIdentifications []model.Identification     `json:"asserted_identifications,omitzero"`
-	AssertedAuthentications []model.Authentication     `json:"asserted_authentications,omitzero"`
-	AMR                     []string                   `json:"amr,omitzero"`
+	AuthenticationFlow      *AuthenticationFlowContext `json:"authentication_flow"`
+	User                    *model.User                `json:"user"`
+	AssertedIdentifications []model.Identification     `json:"asserted_identifications"`
+	AssertedAuthentications []model.Authentication     `json:"asserted_authentications"`
+	AMR                     []string                   `json:"amr"`
 }
 
 func (c *AuthenticationContext) AddAssertedIdentification(iden model.Identification) bool {
