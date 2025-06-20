@@ -171,7 +171,7 @@ func (s *Service) createNewFlowWithSession(ctx context.Context, publicFlow Publi
 	return
 }
 
-func (s *Service) processAcceptResult(ctx context.Context, session *Session, acceptResult *AcceptResult) error {
+func (s *Service) processAcceptResult(ctx context.Context, session *Session, flows Flows, acceptResult *AcceptResult) error {
 	if acceptResult.BotProtectionVerificationResult != nil {
 		session.SetBotProtectionVerificationResult(acceptResult.BotProtectionVerificationResult)
 		updateSessionErr := s.Store.UpdateSession(ctx, session)
@@ -182,7 +182,7 @@ func (s *Service) processAcceptResult(ctx context.Context, session *Session, acc
 	for _, fn := range acceptResult.DelayedOneTimeFunctions {
 		err := fn(ctx, s.Deps)
 		if err != nil {
-			return err
+			return newAuthenticationFlowError(flows, err)
 		}
 	}
 	return nil
@@ -201,8 +201,9 @@ func (s *Service) createNewFlow(ctx context.Context, session *Session, publicFlo
 	var shouldAccept = true
 	for shouldAccept {
 		shouldAccept = false
+		flows := NewFlows(flow)
 		err = s.Database.ReadOnly(ctx, func(ctx context.Context) error {
-			err = Accept(ctx, s.Deps, NewFlows(flow), acceptResult, rawMessage)
+			err = Accept(ctx, s.Deps, flows, acceptResult, rawMessage)
 			isEOF := errors.Is(err, ErrEOF)
 			if err != nil && !isEOF {
 				return err
@@ -216,7 +217,7 @@ func (s *Service) createNewFlow(ctx context.Context, session *Session, publicFlo
 			}
 			return nil
 		})
-		acceptErr := s.processAcceptResult(ctx, session, acceptResult)
+		acceptErr := s.processAcceptResult(ctx, session, flows, acceptResult)
 		if acceptErr != nil {
 			return nil, nil, acceptErr
 		}
@@ -481,14 +482,15 @@ func (s *Service) feedInput(ctx context.Context, session *Session, stateToken st
 	for shouldAccept {
 		shouldAccept = false
 		var acceptResult *AcceptResult = NewAcceptResult()
+		flows := NewFlows(flow)
 		err = s.Database.ReadOnly(ctx, func(ctx context.Context) error {
 			// Apply the run-effects.
-			err = ApplyRunEffects(ctx, s.Deps, NewFlows(flow))
+			err = ApplyRunEffects(ctx, s.Deps, flows)
 			if err != nil {
 				return err
 			}
 
-			err = Accept(ctx, s.Deps, NewFlows(flow), acceptResult, rawMessage)
+			err = Accept(ctx, s.Deps, flows, acceptResult, rawMessage)
 			isEOF := errors.Is(err, ErrEOF)
 			if err != nil && !isEOF {
 				return err
@@ -502,7 +504,7 @@ func (s *Service) feedInput(ctx context.Context, session *Session, stateToken st
 			}
 			return nil
 		})
-		acceptErr := s.processAcceptResult(ctx, session, acceptResult)
+		acceptErr := s.processAcceptResult(ctx, session, flows, acceptResult)
 		if acceptErr != nil {
 			return nil, nil, acceptErr
 		}
@@ -541,14 +543,15 @@ func (s *Service) feedSyntheticInput(ctx context.Context, session *Session, stat
 	for shouldAccept {
 		shouldAccept = false
 		var acceptResult *AcceptResult = NewAcceptResult()
+		flows := NewFlows(flow)
 		err = s.Database.ReadOnly(ctx, func(ctx context.Context) error {
 			// Apply the run-effects.
-			err = ApplyRunEffects(ctx, s.Deps, NewFlows(flow))
+			err = ApplyRunEffects(ctx, s.Deps, flows)
 			if err != nil {
 				return err
 			}
 
-			err = AcceptSyntheticInput(ctx, s.Deps, NewFlows(flow), acceptResult, syntheticInput)
+			err = AcceptSyntheticInput(ctx, s.Deps, flows, acceptResult, syntheticInput)
 			isEOF := errors.Is(err, ErrEOF)
 			if err != nil && !isEOF {
 				return err
@@ -562,7 +565,7 @@ func (s *Service) feedSyntheticInput(ctx context.Context, session *Session, stat
 			}
 			return nil
 		})
-		acceptErr := s.processAcceptResult(ctx, session, acceptResult)
+		acceptErr := s.processAcceptResult(ctx, session, flows, acceptResult)
 		if acceptErr != nil {
 			return nil, nil, acceptErr
 		}

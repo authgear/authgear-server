@@ -54,6 +54,7 @@ steps:
           "reason": "WebHookDisallowed",
           "code": 403,
           "info": {
+            "FlowType": "promote",
             "event_type": "authentication.pre_initialize",
             "reasons": [
               {
