@@ -199,7 +199,7 @@ func TestGetAuthenticationContext(t *testing.T) {
 			So(result.AuthenticationFlow.Type, ShouldEqual, string(authenticationflow.FlowTypeLogin))
 			So(result.AuthenticationFlow.Name, ShouldEqual, "test")
 			So(result.User, ShouldResemble, testUser)
-			So(result.AMR, ShouldResemble, []string{"mfa", "otp", "pwd"})
+			So(result.AMR, ShouldResemble, []string{"mfa", "otp", "pwd", "x_primary_oob_otp_email", "x_primary_password"})
 			So(result.AssertedAuthentications, ShouldHaveLength, 2)
 			So(result.AssertedAuthentications, ShouldContain, model.Authentication{
 				Authentication: model.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail,
@@ -362,7 +362,7 @@ func TestGetAuthenticationContext(t *testing.T) {
 			So(result.AuthenticationFlow.Type, ShouldEqual, string(authenticationflow.FlowTypeSignup))
 			So(result.AuthenticationFlow.Name, ShouldEqual, "test_signup")
 			So(result.User, ShouldResemble, user)
-			So(result.AMR, ShouldResemble, []string{"pwd"})
+			So(result.AMR, ShouldResemble, []string{"pwd", "x_primary_password"})
 			So(result.AssertedAuthentications, ShouldHaveLength, 1)
 			So(result.AssertedAuthentications[0], ShouldResemble, model.Authentication{
 				Authentication: model.AuthenticationFlowAuthenticationPrimaryPassword,
