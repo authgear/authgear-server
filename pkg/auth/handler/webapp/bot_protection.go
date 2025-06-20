@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/url"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -40,7 +41,7 @@ func InsertBotProtection(formData url.Values, input map[string]interface{}) {
 	input["bot_protection"] = bot_protection
 }
 
-func HandleIdentificationBotProtection(ctx context.Context, identification config.AuthenticationFlowIdentification, flowResp *authflow.FlowResponse, formData url.Values, input map[string]interface{}) (err error) {
+func HandleIdentificationBotProtection(ctx context.Context, identification model.AuthenticationFlowIdentification, flowResp *authflow.FlowResponse, formData url.Values, input map[string]interface{}) (err error) {
 	bpRequired, err := webapp.IsIdentifyStepBotProtectionRequired(identification, flowResp)
 	if err != nil {
 		panic(err)
@@ -72,7 +73,7 @@ func HandleAccountRecoveryIdentificationBotProtection(ctx context.Context, ident
 	return
 }
 
-func HandleAuthenticationBotProtection(ctx context.Context, authentication config.AuthenticationFlowAuthentication, flowResp *authflow.FlowResponse, formData url.Values, input map[string]interface{}) (err error) {
+func HandleAuthenticationBotProtection(ctx context.Context, authentication model.AuthenticationFlowAuthentication, flowResp *authflow.FlowResponse, formData url.Values, input map[string]interface{}) (err error) {
 	bpRequired, err := webapp.IsAuthenticateStepBotProtectionRequired(authentication, flowResp)
 	if err != nil {
 		panic(err)
@@ -87,7 +88,7 @@ func HandleAuthenticationBotProtection(ctx context.Context, authentication confi
 	return
 }
 
-func HandleCreateAuthenticatorBotProtection(ctx context.Context, authentication config.AuthenticationFlowAuthentication, flowResp *authflow.FlowResponse, formData url.Values, input map[string]interface{}) (err error) {
+func HandleCreateAuthenticatorBotProtection(ctx context.Context, authentication model.AuthenticationFlowAuthentication, flowResp *authflow.FlowResponse, formData url.Values, input map[string]interface{}) (err error) {
 	bpRequired, err := webapp.IsCreateAuthenticatorStepBotProtectionRequired(authentication, flowResp)
 	if err != nil {
 		panic(err)

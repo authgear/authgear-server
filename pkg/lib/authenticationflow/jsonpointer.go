@@ -37,11 +37,8 @@ func FlowObjectGetName(o config.AuthenticationFlowObject) string {
 }
 
 func FlowObjectGetSteps(o config.AuthenticationFlowObject) ([]config.AuthenticationFlowObject, bool) {
-	if root, ok := o.(config.AuthenticationFlowObjectFlowRoot); ok {
-		return root.GetSteps(), true
-	}
-	if branch, ok := o.(config.AuthenticationFlowObjectFlowBranch); ok {
-		return branch.GetSteps(), true
+	if obj, ok := o.(config.AuthenticationFlowStepsObject); ok {
+		return obj.GetSteps(), true
 	}
 	return nil, false
 }

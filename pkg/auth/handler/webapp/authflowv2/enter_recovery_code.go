@@ -4,10 +4,10 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -49,7 +49,7 @@ type AuthflowV2EnterRecoveryCodeHandler struct {
 
 func NewAuthflowV2EnterRecoveryCodeViewModel(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) AuthflowV2EnterRecoveryCodeViewModel {
 	// Ignore error, bpRequire would be false
-	bpRequired, _ := webapp.IsAuthenticateStepBotProtectionRequired(config.AuthenticationFlowAuthenticationRecoveryCode, screen.StateTokenFlowResponse)
+	bpRequired, _ := webapp.IsAuthenticateStepBotProtectionRequired(model.AuthenticationFlowAuthenticationRecoveryCode, screen.StateTokenFlowResponse)
 
 	return AuthflowV2EnterRecoveryCodeViewModel{
 		IsBotProtectionRequired: bpRequired,
@@ -97,7 +97,7 @@ func (h *AuthflowV2EnterRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r 
 			"request_device_token": requestDeviceToken,
 		}
 
-		err = handlerwebapp.HandleAuthenticationBotProtection(ctx, config.AuthenticationFlowAuthenticationRecoveryCode, screen.StateTokenFlowResponse, r.Form, input)
+		err = handlerwebapp.HandleAuthenticationBotProtection(ctx, model.AuthenticationFlowAuthenticationRecoveryCode, screen.StateTokenFlowResponse, r.Form, input)
 		if err != nil {
 			return err
 		}

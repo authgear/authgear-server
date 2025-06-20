@@ -204,14 +204,14 @@ func (i *IntentAccountLinking) createSyntheticInputOAuthConflict(
 		input.LoginID = conflictedInfo.LoginID.LoginID
 		switch conflictedInfo.LoginID.LoginIDType {
 		case model.LoginIDKeyTypeEmail:
-			input.Identification = config.AuthenticationFlowIdentificationEmail
+			input.Identification = model.AuthenticationFlowIdentificationEmail
 		case model.LoginIDKeyTypePhone:
-			input.Identification = config.AuthenticationFlowIdentificationPhone
+			input.Identification = model.AuthenticationFlowIdentificationPhone
 		case model.LoginIDKeyTypeUsername:
-			input.Identification = config.AuthenticationFlowIdentificationUsername
+			input.Identification = model.AuthenticationFlowIdentificationUsername
 		}
 	case model.IdentityTypeOAuth:
-		input.Identification = config.AuthenticationFlowIdentificationOAuth
+		input.Identification = model.AuthenticationFlowIdentificationOAuth
 		input.Alias = conflictedInfo.OAuth.ProviderAlias
 		input.RedirectURI = milestone.MilestoneUseAccountLinkingIdentificationRedirectURI()
 		input.ResponseMode = milestone.MilestoneUseAccountLinkingIdentificationResponseMode()
@@ -224,7 +224,7 @@ func (i *IntentAccountLinking) createSyntheticInputOAuthConflict(
 
 func (i *IntentAccountLinking) getOptions(deps *authflow.Dependencies) []AccountLinkingIdentificationOptionInternal {
 	return slice.FlatMap(i.Conflicts, func(c *AccountLinkingConflict) []AccountLinkingIdentificationOptionInternal {
-		var identifcation config.AuthenticationFlowIdentification
+		var identifcation model.AuthenticationFlowIdentification
 		var maskedDisplayName string
 		var providerType string
 		var providerAlias string
@@ -241,17 +241,17 @@ func (i *IntentAccountLinking) getOptions(deps *authflow.Dependencies) []Account
 		case model.IdentityTypeLoginID:
 			switch identity.LoginID.LoginIDType {
 			case model.LoginIDKeyTypeEmail:
-				identifcation = config.AuthenticationFlowIdentificationEmail
+				identifcation = model.AuthenticationFlowIdentificationEmail
 				maskedDisplayName = mail.MaskAddress(identity.LoginID.LoginID)
 			case model.LoginIDKeyTypePhone:
-				identifcation = config.AuthenticationFlowIdentificationPhone
+				identifcation = model.AuthenticationFlowIdentificationPhone
 				maskedDisplayName = phone.Mask(identity.LoginID.LoginID)
 			case model.LoginIDKeyTypeUsername:
-				identifcation = config.AuthenticationFlowIdentificationUsername
+				identifcation = model.AuthenticationFlowIdentificationUsername
 				maskedDisplayName = identity.LoginID.LoginID
 			}
 		case model.IdentityTypeOAuth:
-			identifcation = config.AuthenticationFlowIdentificationOAuth
+			identifcation = model.AuthenticationFlowIdentificationOAuth
 			providerType = identity.OAuth.ProviderID.Type
 			maskedDisplayName = identity.OAuth.GetDisplayName()
 			providerAlias = identity.OAuth.ProviderAlias

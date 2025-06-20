@@ -19,6 +19,8 @@ type MockMilestoneConstraintsProvider struct {
 	amr []string
 }
 
+var _ declarative.MilestoneConstraintsProvider = &MockMilestoneConstraintsProvider{}
+
 func (m *MockMilestoneConstraintsProvider) Kind() string {
 	return "MockMilestoneConstraintsProvider"
 }
@@ -39,69 +41,8 @@ func (m *MockMilestoneConstraintsProvider) ReactTo(ctx context.Context, deps *au
 	return nil, nil
 }
 
-// MockMilestoneDidAuthenticate implements MilestoneDidAuthenticate interface
-type MockMilestoneDidAuthenticate struct {
-	amr             []string
-	authenticatorID string
-}
-
-func (m *MockMilestoneDidAuthenticate) Kind() string {
-	return "MockMilestoneDidAuthenticate"
-}
-
-func (m *MockMilestoneDidAuthenticate) Milestone() {}
-
-func (m *MockMilestoneDidAuthenticate) MilestoneDidAuthenticate() []string {
-	return m.amr
-}
-
-func (m *MockMilestoneDidAuthenticate) MilestoneDidAuthenticateAuthenticator() (*authenticator.Info, bool) {
-	if m.authenticatorID == "" {
-		return nil, false
-	}
-	return &authenticator.Info{
-		ID: m.authenticatorID,
-	}, true
-}
-
-func (m *MockMilestoneDidAuthenticate) CanReactTo(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows) (authenticationflow.InputSchema, error) {
-	return nil, nil
-}
-
-func (m *MockMilestoneDidAuthenticate) ReactTo(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows, input authenticationflow.Input) (authenticationflow.ReactToResult, error) {
-	return nil, nil
-}
-
-// MockMilestoneDidConsumeRecoveryCode implements MilestoneDidConsumeRecoveryCode interface
-type MockMilestoneDidConsumeRecoveryCode struct {
-	recoveryCodeID string
-}
-
-func (m *MockMilestoneDidConsumeRecoveryCode) Kind() string {
-	return "MockMilestoneDidConsumeRecoveryCode"
-}
-
-func (m *MockMilestoneDidConsumeRecoveryCode) Milestone() {}
-
-func (m *MockMilestoneDidConsumeRecoveryCode) MilestoneDidConsumeRecoveryCode() *mfa.RecoveryCode {
-	if m.recoveryCodeID == "" {
-		return nil
-	}
-	return &mfa.RecoveryCode{
-		ID: m.recoveryCodeID,
-	}
-}
-
-func (m *MockMilestoneDidConsumeRecoveryCode) CanReactTo(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows) (authenticationflow.InputSchema, error) {
-	return nil, nil
-}
-
-func (m *MockMilestoneDidConsumeRecoveryCode) ReactTo(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows, input authenticationflow.Input) (authenticationflow.ReactToResult, error) {
-	return nil, nil
-}
-
-func TestRemainingAMRConstraintsInFlow(t *testing.T) {
-	Convey("remainingAMRConstraintsInFlow", t, func() {
+func TestAMRUtils(t *testing.T) {
+	Convey("RemainingAMRConstraintsInFlow", t, func() {
 		Convey("should find remaining AMR constraints when some are fulfilled", func() {
 			// Create a flow with AMR constraints and some fulfilled AMRs
 			rootFlow := &authenticationflow.Flow{
@@ -111,9 +52,12 @@ func TestRemainingAMRConstraintsInFlow(t *testing.T) {
 				Nodes: []authenticationflow.Node{
 					{
 						Type: authenticationflow.NodeTypeSimple,
-						Simple: &MockMilestoneDidAuthenticate{
-							amr:             []string{model.AMRPWD},
-							authenticatorID: "auth1",
+						Simple: &declarative.NodeDoUseAuthenticatorSimple{
+							Authenticator: &authenticator.Info{
+								ID:   "auth1",
+								Kind: model.AuthenticatorKindPrimary,
+								Type: model.AuthenticatorTypePassword,
+							},
 						},
 					},
 				},
@@ -123,6 +67,10 @@ func TestRemainingAMRConstraintsInFlow(t *testing.T) {
 			constraints, err := declarative.RemainingAMRConstraintsInFlow(context.Background(), nil, flows)
 			So(err, ShouldBeNil)
 			So(constraints, ShouldResemble, []string{model.AMRMFA, model.AMROTP})
+
+			amr, err := declarative.CollectAMR(context.Background(), nil, flows)
+			So(err, ShouldBeNil)
+			So(amr, ShouldResemble, []string{model.AMRPWD, model.AMRXPrimaryPassword})
 		})
 
 		Convey("should return empty when all AMR constraints are fulfilled", func() {
@@ -134,16 +82,22 @@ func TestRemainingAMRConstraintsInFlow(t *testing.T) {
 				Nodes: []authenticationflow.Node{
 					{
 						Type: authenticationflow.NodeTypeSimple,
-						Simple: &MockMilestoneDidAuthenticate{
-							amr:             []string{model.AMROTP},
-							authenticatorID: "auth1",
+						Simple: &declarative.NodeDoUseAuthenticatorSimple{
+							Authenticator: &authenticator.Info{
+								ID:   "auth1",
+								Kind: model.AuthenticatorKindPrimary,
+								Type: model.AuthenticatorTypeOOBEmail,
+							},
 						},
 					},
 					{
 						Type: authenticationflow.NodeTypeSimple,
-						Simple: &MockMilestoneDidAuthenticate{
-							amr:             []string{model.AMRPWD},
-							authenticatorID: "auth2",
+						Simple: &declarative.NodeDoUseAuthenticatorSimple{
+							Authenticator: &authenticator.Info{
+								ID:   "auth2",
+								Kind: model.AuthenticatorKindPrimary,
+								Type: model.AuthenticatorTypePassword,
+							},
 						},
 					},
 				},
@@ -153,6 +107,10 @@ func TestRemainingAMRConstraintsInFlow(t *testing.T) {
 			constraints, err := declarative.RemainingAMRConstraintsInFlow(context.Background(), nil, flows)
 			So(err, ShouldBeNil)
 			So(constraints, ShouldBeEmpty)
+
+			amr, err := declarative.CollectAMR(context.Background(), nil, flows)
+			So(err, ShouldBeNil)
+			So(amr, ShouldResemble, []string{model.AMRMFA, model.AMROTP, model.AMRPWD, model.AMRXPrimaryOOBOTPEmail, model.AMRXPrimaryPassword})
 		})
 
 		Convey("should find AMR constraints in nested flows", func() {
@@ -169,9 +127,12 @@ func TestRemainingAMRConstraintsInFlow(t *testing.T) {
 							Nodes: []authenticationflow.Node{
 								{
 									Type: authenticationflow.NodeTypeSimple,
-									Simple: &MockMilestoneDidAuthenticate{
-										amr:             []string{model.AMROTP},
-										authenticatorID: "auth1",
+									Simple: &declarative.NodeDoUseAuthenticatorSimple{
+										Authenticator: &authenticator.Info{
+											ID:   "auth1",
+											Kind: model.AuthenticatorKindPrimary,
+											Type: model.AuthenticatorTypeOOBSMS,
+										},
 									},
 								},
 							},
@@ -184,6 +145,10 @@ func TestRemainingAMRConstraintsInFlow(t *testing.T) {
 			constraints, err := declarative.RemainingAMRConstraintsInFlow(context.Background(), nil, flows)
 			So(err, ShouldBeNil)
 			So(constraints, ShouldResemble, []string{model.AMRMFA})
+
+			amr, err := declarative.CollectAMR(context.Background(), nil, flows)
+			So(err, ShouldBeNil)
+			So(amr, ShouldResemble, []string{model.AMROTP, model.AMRSMS, model.AMRXPrimaryOOBOTPSMS})
 		})
 
 		Convey("should gather AMRs from multiple MilestoneDidAuthenticate nodes", func() {
@@ -195,16 +160,22 @@ func TestRemainingAMRConstraintsInFlow(t *testing.T) {
 				Nodes: []authenticationflow.Node{
 					{
 						Type: authenticationflow.NodeTypeSimple,
-						Simple: &MockMilestoneDidAuthenticate{
-							amr:             []string{model.AMRPWD},
-							authenticatorID: "auth1",
+						Simple: &declarative.NodeDoUseAuthenticatorSimple{
+							Authenticator: &authenticator.Info{
+								ID:   "auth1",
+								Kind: model.AuthenticatorKindPrimary,
+								Type: model.AuthenticatorTypePassword,
+							},
 						},
 					},
 					{
 						Type: authenticationflow.NodeTypeSimple,
-						Simple: &MockMilestoneDidAuthenticate{
-							amr:             []string{model.AMROTP},
-							authenticatorID: "auth2",
+						Simple: &declarative.NodeDoUseAuthenticatorSimple{
+							Authenticator: &authenticator.Info{
+								ID:   "auth2",
+								Kind: model.AuthenticatorKindPrimary,
+								Type: model.AuthenticatorTypeOOBEmail,
+							},
 						},
 					},
 				},
@@ -214,6 +185,10 @@ func TestRemainingAMRConstraintsInFlow(t *testing.T) {
 			constraints, err := declarative.RemainingAMRConstraintsInFlow(context.Background(), nil, flows)
 			So(err, ShouldBeNil)
 			So(constraints, ShouldBeEmpty)
+
+			amr, err := declarative.CollectAMR(context.Background(), nil, flows)
+			So(err, ShouldBeNil)
+			So(amr, ShouldResemble, []string{model.AMRMFA, model.AMROTP, model.AMRPWD, model.AMRXPrimaryOOBOTPEmail, model.AMRXPrimaryPassword})
 		})
 
 		Convey("should fulfill MFA when recovery code and authenticator are used", func() {
@@ -225,15 +200,20 @@ func TestRemainingAMRConstraintsInFlow(t *testing.T) {
 				Nodes: []authenticationflow.Node{
 					{
 						Type: authenticationflow.NodeTypeSimple,
-						Simple: &MockMilestoneDidAuthenticate{
-							amr:             []string{model.AMROTP},
-							authenticatorID: "auth1",
+						Simple: &declarative.NodeDoUseAuthenticatorSimple{
+							Authenticator: &authenticator.Info{
+								ID:   "auth1",
+								Kind: model.AuthenticatorKindPrimary,
+								Type: model.AuthenticatorTypeOOBEmail,
+							},
 						},
 					},
 					{
 						Type: authenticationflow.NodeTypeSimple,
-						Simple: &MockMilestoneDidConsumeRecoveryCode{
-							recoveryCodeID: "rc1",
+						Simple: &declarative.NodeDoConsumeRecoveryCode{
+							RecoveryCode: &mfa.RecoveryCode{
+								ID: "rc1",
+							},
 						},
 					},
 				},
@@ -243,6 +223,32 @@ func TestRemainingAMRConstraintsInFlow(t *testing.T) {
 			constraints, err := declarative.RemainingAMRConstraintsInFlow(context.Background(), nil, flows)
 			So(err, ShouldBeNil)
 			So(constraints, ShouldBeEmpty)
+
+			amr, err := declarative.CollectAMR(context.Background(), nil, flows)
+			So(err, ShouldBeNil)
+			So(amr, ShouldResemble, []string{model.AMRMFA, model.AMROTP, model.AMRXPrimaryOOBOTPEmail, model.AMRXRecoveryCode})
+		})
+	})
+
+	Convey("CollectAMR", t, func() {
+		Convey("should include x_device_token amr when device_token used", func() {
+			rootFlow := &authenticationflow.Flow{
+				Intent: &MockMilestoneConstraintsProvider{
+					amr: []string{},
+				},
+				Nodes: []authenticationflow.Node{
+					{
+						Type:   authenticationflow.NodeTypeSimple,
+						Simple: &declarative.NodeDoUseDeviceToken{},
+					},
+				},
+			}
+
+			flows := authenticationflow.NewFlows(rootFlow)
+			amr, err := declarative.CollectAMR(context.Background(), nil, flows)
+			So(err, ShouldBeNil)
+			So(amr, ShouldResemble, []string{model.AMRXDeviceToken})
+
 		})
 	})
 }

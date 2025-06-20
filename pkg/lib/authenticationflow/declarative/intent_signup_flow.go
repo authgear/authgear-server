@@ -75,10 +75,12 @@ func (i *IntentSignupFlow) ReactTo(ctx context.Context, deps *authflow.Dependenc
 
 	switch {
 	case len(flows.Nearest.Nodes) == 0:
+		return NewNodePreInitialize(ctx, deps, flows)
+	case len(flows.Nearest.Nodes) == 1:
 		return authflow.NewNodeSimple(&NodeDoCreateUser{
 			UserID: uuid.New(),
 		}), nil
-	case len(flows.Nearest.Nodes) == 1:
+	case len(flows.Nearest.Nodes) == 2:
 		userID, _ := i.userID(flows)
 		if userID == "" {
 			panic(fmt.Errorf("expected userID to be non empty in IntentSignupFlow"))
@@ -88,22 +90,7 @@ func (i *IntentSignupFlow) ReactTo(ctx context.Context, deps *authflow.Dependenc
 			JSONPointer:   i.JSONPointer,
 			UserID:        userID,
 		}), nil
-	case len(flows.Nearest.Nodes) == 2:
-		return NewNodePreAuthenticateNodeSimple(ctx, deps, flows)
 	case len(flows.Nearest.Nodes) == 3:
-		userID, _ := i.userID(flows)
-		if userID == "" {
-			panic(fmt.Errorf("expected userID to be non empty in IntentSignupFlow"))
-		}
-		i, err := NewIntentSignupFlowEnsureConstraintsFulfilled(ctx, deps, flows, &IntentSignupFlowEnsureConstraintsFulfilledOptions{
-			UserID:        userID,
-			FlowReference: i.FlowReference,
-		})
-		if err != nil {
-			return nil, err
-		}
-		return authflow.NewSubFlow(i), nil
-	case len(flows.Nearest.Nodes) == 4:
 		userID, createUser := i.userID(flows)
 		n, err := NewNodeDoCreateSession(ctx, deps, flows, &NodeDoCreateSession{
 			UserID:       userID,

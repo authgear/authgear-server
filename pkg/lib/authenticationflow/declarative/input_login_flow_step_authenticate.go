@@ -78,37 +78,37 @@ func (i *InputSchemaLoginFlowStepAuthenticate) SchemaBuilder() validation.Schema
 		}
 
 		switch option.Authentication {
-		case config.AuthenticationFlowAuthenticationPrimaryPassword:
+		case model.AuthenticationFlowAuthenticationPrimaryPassword:
 			requireString("password")
 			setRequiredAndAppendOneOf()
-		case config.AuthenticationFlowAuthenticationPrimaryPasskey:
+		case model.AuthenticationFlowAuthenticationPrimaryPasskey:
 			required = append(required, "assertion_response")
 			b.Properties().Property("assertion_response", passkeyAssertionResponseSchemaBuilder)
 			setRequiredAndAppendOneOf()
 
-		case config.AuthenticationFlowAuthenticationSecondaryPassword:
+		case model.AuthenticationFlowAuthenticationSecondaryPassword:
 			requireString("password")
 			setRequiredAndAppendOneOf()
-		case config.AuthenticationFlowAuthenticationSecondaryTOTP:
+		case model.AuthenticationFlowAuthenticationSecondaryTOTP:
 			requireString("code")
 			setRequiredAndAppendOneOf()
-		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
+		case model.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 			requireIndex()
 			mayRequireChannel()
 			setRequiredAndAppendOneOf()
-		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
+		case model.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
 			requireIndex()
 			mayRequireChannel()
 			setRequiredAndAppendOneOf()
-		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
+		case model.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
 			requireIndex()
 			mayRequireChannel()
 			setRequiredAndAppendOneOf()
-		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
+		case model.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
 			requireIndex()
 			mayRequireChannel()
 			setRequiredAndAppendOneOf()
-		case config.AuthenticationFlowAuthenticationRecoveryCode:
+		case model.AuthenticationFlowAuthenticationRecoveryCode:
 			requireString("recovery_code")
 			setRequiredAndAppendOneOf()
 		default:
@@ -143,14 +143,14 @@ func (i *InputSchemaLoginFlowStepAuthenticate) MakeInput(ctx context.Context, ra
 }
 
 type InputLoginFlowStepAuthenticate struct {
-	Authentication     config.AuthenticationFlowAuthentication `json:"authentication,omitempty"`
-	RequestDeviceToken bool                                    `json:"request_device_token,omitempty"`
-	Password           string                                  `json:"password,omitempty"`
-	Code               string                                  `json:"code,omitempty"`
-	RecoveryCode       string                                  `json:"recovery_code,omitempty"`
-	Index              int                                     `json:"index,omitempty"`
-	Channel            model.AuthenticatorOOBChannel           `json:"channel,omitempty"`
-	BotProtection      *InputTakeBotProtectionBody             `json:"bot_protection,omitempty"`
+	Authentication     model.AuthenticationFlowAuthentication `json:"authentication,omitempty"`
+	RequestDeviceToken bool                                   `json:"request_device_token,omitempty"`
+	Password           string                                 `json:"password,omitempty"`
+	Code               string                                 `json:"code,omitempty"`
+	RecoveryCode       string                                 `json:"recovery_code,omitempty"`
+	Index              int                                    `json:"index,omitempty"`
+	Channel            model.AuthenticatorOOBChannel          `json:"channel,omitempty"`
+	BotProtection      *InputTakeBotProtectionBody            `json:"bot_protection,omitempty"`
 }
 
 var _ authflow.Input = &InputLoginFlowStepAuthenticate{}
@@ -165,7 +165,7 @@ var _ inputTakeBotProtection = &InputLoginFlowStepAuthenticate{}
 
 func (*InputLoginFlowStepAuthenticate) Input() {}
 
-func (i *InputLoginFlowStepAuthenticate) GetAuthenticationMethod() config.AuthenticationFlowAuthentication {
+func (i *InputLoginFlowStepAuthenticate) GetAuthenticationMethod() model.AuthenticationFlowAuthentication {
 	return i.Authentication
 }
 

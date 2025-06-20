@@ -4,9 +4,9 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -72,7 +72,7 @@ func (h *AuthflowEnterTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 		requestDeviceToken := r.Form.Get("x_device_token") == "true"
 
 		input := map[string]interface{}{
-			"authentication":       config.AuthenticationFlowAuthenticationSecondaryTOTP,
+			"authentication":       model.AuthenticationFlowAuthenticationSecondaryTOTP,
 			"code":                 code,
 			"request_device_token": requestDeviceToken,
 		}

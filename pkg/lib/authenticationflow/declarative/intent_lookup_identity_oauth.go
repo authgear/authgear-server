@@ -5,6 +5,7 @@ import (
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
@@ -14,9 +15,9 @@ func init() {
 }
 
 type IntentLookupIdentityOAuth struct {
-	JSONPointer    jsonpointer.T                           `json:"json_pointer,omitempty"`
-	Identification config.AuthenticationFlowIdentification `json:"identification,omitempty"`
-	SyntheticInput *InputStepIdentify                      `json:"synthetic_input,omitempty"`
+	JSONPointer    jsonpointer.T                          `json:"json_pointer,omitempty"`
+	Identification model.AuthenticationFlowIdentification `json:"identification,omitempty"`
+	SyntheticInput *InputStepIdentify                     `json:"synthetic_input,omitempty"`
 }
 
 var _ authflow.Intent = &IntentLookupIdentityOAuth{}
@@ -28,7 +29,7 @@ func (*IntentLookupIdentityOAuth) Kind() string {
 }
 
 func (*IntentLookupIdentityOAuth) Milestone() {}
-func (i *IntentLookupIdentityOAuth) MilestoneIdentificationMethod() config.AuthenticationFlowIdentification {
+func (i *IntentLookupIdentityOAuth) MilestoneIdentificationMethod() model.AuthenticationFlowIdentification {
 	return i.Identification
 }
 
@@ -48,6 +49,7 @@ func (i *IntentLookupIdentityOAuth) CanReactTo(ctx context.Context, deps *authfl
 		}
 
 		oauthOptions := NewIdentificationOptionsOAuth(
+			flows,
 			deps.Config.Identity.OAuth,
 			deps.FeatureConfig.Identity.OAuth.Providers,
 			authflowCfg,

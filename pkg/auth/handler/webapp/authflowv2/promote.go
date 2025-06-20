@@ -6,11 +6,11 @@ import (
 
 	"net/url"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
@@ -90,7 +90,7 @@ func (h *AuthflowV2PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 		providerAlias := r.Form.Get("x_provider_alias")
 		authflowViewModel := h.getAuthflowViewModel(s, screen, r)
 		result, err := h.Controller.UseOAuthIdentification(ctx, s, w, r, screen.Screen, providerAlias, authflowViewModel.IdentificationOptions, func(input map[string]interface{}) (result *webapp.Result, err error) {
-			err = handlerwebapp.HandleIdentificationBotProtection(ctx, config.AuthenticationFlowIdentificationOAuth, screen.StateTokenFlowResponse, r.Form, input)
+			err = handlerwebapp.HandleIdentificationBotProtection(ctx, model.AuthenticationFlowIdentificationOAuth, screen.StateTokenFlowResponse, r.Form, input)
 			if err != nil {
 				return nil, err
 			}
@@ -119,7 +119,7 @@ func (h *AuthflowV2PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 			"login_id":       loginID,
 		}
 
-		err = handlerwebapp.HandleIdentificationBotProtection(ctx, config.AuthenticationFlowIdentification(identification), screen.StateTokenFlowResponse, r.Form, input)
+		err = handlerwebapp.HandleIdentificationBotProtection(ctx, model.AuthenticationFlowIdentification(identification), screen.StateTokenFlowResponse, r.Form, input)
 		if err != nil {
 			return err
 		}
