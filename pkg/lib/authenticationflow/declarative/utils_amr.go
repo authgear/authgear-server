@@ -37,6 +37,7 @@ func CollectAMR(ctx context.Context, deps *authflow.Dependencies, flows authflow
 	usedAuthenticatorIDs := setutil.Set[string]{}
 	usedRecoveryCodeIDs := setutil.Set[string]{}
 
+	amr = []string{}
 	err = authflow.TraverseFlow(authflow.Traverser{
 		NodeSimple: func(nodeSimple authflow.NodeSimple, w *authflow.Flow) error {
 			amr = collectAMRFromNode(nodeSimple, amr, usedAuthenticatorIDs, usedRecoveryCodeIDs)
