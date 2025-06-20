@@ -22,7 +22,7 @@ const (
 	AMRXPrimaryOOBOTPSMS     string = "x_primary_oob_otp_sms"
 	AMRXPrimaryPasskey       string = "x_primary_passkey"
 	AMRXSecondaryPassword    string = "x_secondary_password"
-	AMRXSecondaryOOBOTPEmail string = "x_secondary_oob_otp_otp_email"
+	AMRXSecondaryOOBOTPEmail string = "x_secondary_oob_otp_email"
 	AMRXSecondaryOOBOTPSMS   string = "x_secondary_oob_otp_sms"
 	AMRXSecondaryTOTP        string = "x_secondary_totp"
 	AMRXRecoveryCode         string = "x_recovery_code"
