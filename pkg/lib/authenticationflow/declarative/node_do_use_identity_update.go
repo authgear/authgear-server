@@ -3,6 +3,7 @@ package declarative
 import (
 	"context"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 )
@@ -65,6 +66,9 @@ func (n *NodeDoUseIdentityWithUpdate) MilestoneDoUseUser() string {
 
 func (n *NodeDoUseIdentityWithUpdate) MilestoneDoUseIdentity() *identity.Info {
 	return n.NodeDoUseIdentity.MilestoneDoUseIdentity()
+}
+func (n *NodeDoUseIdentityWithUpdate) MilestoneDoUseIdentityIdentification() model.Identification {
+	return n.NodeDoUseIdentity.MilestoneDoUseIdentityIdentification()
 }
 
 func (n *NodeDoUseIdentityWithUpdate) GetEffects(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) ([]authflow.Effect, error) {

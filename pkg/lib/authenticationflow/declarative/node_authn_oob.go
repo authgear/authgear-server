@@ -13,7 +13,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/facade"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
@@ -26,14 +25,14 @@ func init() {
 }
 
 type NodeAuthenticationOOB struct {
-	JSONPointer          jsonpointer.T                           `json:"json_pointer,omitempty"`
-	UserID               string                                  `json:"user_id,omitempty"`
-	Purpose              otp.Purpose                             `json:"purpose,omitempty"`
-	Form                 otp.Form                                `json:"form,omitempty"`
-	Info                 *authenticator.Info                     `json:"info,omitempty"`
-	Channel              model.AuthenticatorOOBChannel           `json:"channel,omitempty"`
-	WebsocketChannelName string                                  `json:"websocket_channel_name,omitempty"`
-	Authentication       config.AuthenticationFlowAuthentication `json:"authentication,omitempty"`
+	JSONPointer          jsonpointer.T                          `json:"json_pointer,omitempty"`
+	UserID               string                                 `json:"user_id,omitempty"`
+	Purpose              otp.Purpose                            `json:"purpose,omitempty"`
+	Form                 otp.Form                               `json:"form,omitempty"`
+	Info                 *authenticator.Info                    `json:"info,omitempty"`
+	Channel              model.AuthenticatorOOBChannel          `json:"channel,omitempty"`
+	WebsocketChannelName string                                 `json:"websocket_channel_name,omitempty"`
+	Authentication       model.AuthenticationFlowAuthentication `json:"authentication,omitempty"`
 }
 
 func NewNodeAuthenticationOOB(n *NodeAuthenticationOOB) *authflow.NodeWithDelayedOneTimeFunction {

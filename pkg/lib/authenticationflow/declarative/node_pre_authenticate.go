@@ -24,8 +24,8 @@ func newNodePreAuthenticate(ctx context.Context, deps *authenticationflow.Depend
 	}
 
 	payload := &blocking.AuthenticationPreAuthenticatedBlockingEventPayload{
-		Constraints:    nil,
-		Authentication: *authCtx,
+		Constraints:           nil,
+		AuthenticationContext: *authCtx,
 	}
 	e, err := deps.Events.PrepareBlockingEventWithTx(ctx, payload)
 	if err != nil {
@@ -67,6 +67,7 @@ var _ authenticationflow.NodeSimple = &NodePreAuthenticate{}
 var _ authenticationflow.Milestone = &NodePreAuthenticate{}
 var _ authenticationflow.InputReactor = &NodePreAuthenticate{}
 var _ MilestoneConstraintsProvider = &NodePreAuthenticate{}
+var _ MilestonePreAuthenticated = &NodePreAuthenticate{}
 
 func (*NodePreAuthenticate) Kind() string {
 	return "NodePreAuthenticate"
@@ -76,6 +77,7 @@ func (*NodePreAuthenticate) Milestone() {}
 func (n *NodePreAuthenticate) MilestoneConstraintsProvider() *eventapi.Constraints {
 	return n.Constraints
 }
+func (*NodePreAuthenticate) MilestonePreAuthenticated() {}
 
 func (n *NodePreAuthenticate) CanReactTo(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows) (authenticationflow.InputSchema, error) {
 	if n.IsPreAuthenticatedInvoked {

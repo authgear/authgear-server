@@ -1,15 +1,16 @@
 package declarative
 
 import (
+	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
 type AccountLinkingIdentificationOption struct {
-	Identifcation     config.AuthenticationFlowIdentification `json:"identification"`
-	MaskedDisplayName string                                  `json:"masked_display_name,omitempty"`
-	Action            config.AccountLinkingAction             `json:"action"`
+	Identifcation     model.AuthenticationFlowIdentification `json:"identification"`
+	MaskedDisplayName string                                 `json:"masked_display_name,omitempty"`
+	Action            config.AccountLinkingAction            `json:"action"`
 
 	// ProviderType is specific to OAuth.
 	ProviderType string `json:"provider_type,omitempty"`

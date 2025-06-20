@@ -5,8 +5,8 @@ import (
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 func init() {
@@ -14,9 +14,9 @@ func init() {
 }
 
 type IntentUseRecoveryCode struct {
-	JSONPointer    jsonpointer.T                           `json:"json_pointer,omitempty"`
-	UserID         string                                  `json:"user_id,omitempty"`
-	Authentication config.AuthenticationFlowAuthentication `json:"authentication,omitempty"`
+	JSONPointer    jsonpointer.T                          `json:"json_pointer,omitempty"`
+	UserID         string                                 `json:"user_id,omitempty"`
+	Authentication model.AuthenticationFlowAuthentication `json:"authentication,omitempty"`
 }
 
 var _ authflow.Intent = &IntentUseRecoveryCode{}
@@ -34,7 +34,7 @@ func (*IntentUseRecoveryCode) Milestone() {}
 func (n *IntentUseRecoveryCode) MilestoneFlowSelectAuthenticationMethod(flows authflow.Flows) (MilestoneDidSelectAuthenticationMethod, authflow.Flows, bool) {
 	return n, flows, true
 }
-func (n *IntentUseRecoveryCode) MilestoneDidSelectAuthenticationMethod() config.AuthenticationFlowAuthentication {
+func (n *IntentUseRecoveryCode) MilestoneDidSelectAuthenticationMethod() model.AuthenticationFlowAuthentication {
 	return n.Authentication
 }
 

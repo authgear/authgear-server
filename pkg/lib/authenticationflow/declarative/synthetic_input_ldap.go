@@ -1,8 +1,8 @@
 package declarative
 
 import (
+	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 type SyntheticInputLDAP struct {
@@ -17,8 +17,8 @@ var _ inputTakeLDAP = &SyntheticInputLDAP{}
 
 func (*SyntheticInputLDAP) Input() {}
 
-func (i *SyntheticInputLDAP) GetIdentificationMethod() config.AuthenticationFlowIdentification {
-	return config.AuthenticationFlowIdentificationLDAP
+func (i *SyntheticInputLDAP) GetIdentificationMethod() model.AuthenticationFlowIdentification {
+	return model.AuthenticationFlowIdentificationLDAP
 }
 
 func (i *SyntheticInputLDAP) GetServerName() string {

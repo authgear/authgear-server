@@ -5,8 +5,8 @@ import (
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/stringutil"
 )
 
@@ -15,8 +15,8 @@ func init() {
 }
 
 type IntentUseIdentityLoginID struct {
-	JSONPointer    jsonpointer.T                           `json:"json_pointer,omitempty"`
-	Identification config.AuthenticationFlowIdentification `json:"identification,omitempty"`
+	JSONPointer    jsonpointer.T                          `json:"json_pointer,omitempty"`
+	Identification model.AuthenticationFlowIdentification `json:"identification,omitempty"`
 }
 
 var _ authflow.Intent = &IntentUseIdentityLoginID{}
@@ -30,7 +30,7 @@ func (*IntentUseIdentityLoginID) Kind() string {
 }
 
 func (*IntentUseIdentityLoginID) Milestone() {}
-func (n *IntentUseIdentityLoginID) MilestoneIdentificationMethod() config.AuthenticationFlowIdentification {
+func (n *IntentUseIdentityLoginID) MilestoneIdentificationMethod() model.AuthenticationFlowIdentification {
 	return n.Identification
 }
 func (*IntentUseIdentityLoginID) MilestoneFlowUseIdentity(flows authflow.Flows) (MilestoneDoUseIdentity, authflow.Flows, bool) {

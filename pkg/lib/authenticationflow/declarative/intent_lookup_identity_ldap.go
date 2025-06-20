@@ -9,6 +9,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
@@ -27,8 +28,8 @@ func (*IntentLookupIdentityLDAP) Kind() string {
 
 func (*IntentLookupIdentityLDAP) Milestone() {}
 
-func (i *IntentLookupIdentityLDAP) MilestoneIdentificationMethod() config.AuthenticationFlowIdentification {
-	return config.AuthenticationFlowIdentificationLDAP
+func (i *IntentLookupIdentityLDAP) MilestoneIdentificationMethod() model.AuthenticationFlowIdentification {
+	return model.AuthenticationFlowIdentificationLDAP
 }
 
 func (i *IntentLookupIdentityLDAP) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {

@@ -14,11 +14,12 @@ All e2e tests related to bot protection.
 
 > Bot protection is supported only in the following step types:
 
-    identify in signup, promote, login, signup_login, and account_recovery.
-    authenticate in login.
-    <!-- TODO: Add signup verify & create_authenticator -->
+    - identify in signup, promote, login, signup_login, and account_recovery.
+    - authenticate in login.
+    - create_authenticator in signup.
+    - verify in signup
 
-Referenced from [Bot Protection Spec](../../../docs/specs/botprobot-protection.md)
+Referenced from [Bot Protection Spec](../../../docs/specs/bot-protection.md)
 
 ## Non-coverage
 - all steps under `promote` flow

@@ -3,7 +3,7 @@ package authn
 import (
 	"fmt"
 
-	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/api/model"
 )
 
 type AuthenticationType string
@@ -26,28 +26,28 @@ const (
 	AuthenticationStageSecondary AuthenticationStage = "secondary"
 )
 
-func AuthenticationStageFromAuthenticationMethod(am config.AuthenticationFlowAuthentication) AuthenticationStage {
+func AuthenticationStageFromAuthenticationMethod(am model.AuthenticationFlowAuthentication) AuthenticationStage {
 	switch am {
-	case config.AuthenticationFlowAuthenticationPrimaryPassword:
+	case model.AuthenticationFlowAuthenticationPrimaryPassword:
 		fallthrough
-	case config.AuthenticationFlowAuthenticationPrimaryPasskey:
+	case model.AuthenticationFlowAuthenticationPrimaryPasskey:
 		fallthrough
-	case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
+	case model.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 		fallthrough
-	case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
+	case model.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
 		return AuthenticationStagePrimary
-	case config.AuthenticationFlowAuthenticationSecondaryPassword:
+	case model.AuthenticationFlowAuthenticationSecondaryPassword:
 		fallthrough
-	case config.AuthenticationFlowAuthenticationSecondaryTOTP:
+	case model.AuthenticationFlowAuthenticationSecondaryTOTP:
 		fallthrough
-	case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
+	case model.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
 		fallthrough
-	case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
+	case model.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
 		fallthrough
-	case config.AuthenticationFlowAuthenticationRecoveryCode:
+	case model.AuthenticationFlowAuthenticationRecoveryCode:
 		// recovery code is considered as secondary
 		fallthrough
-	case config.AuthenticationFlowAuthenticationDeviceToken:
+	case model.AuthenticationFlowAuthenticationDeviceToken:
 		// recovery code is considered as secondary
 		return AuthenticationStageSecondary
 	default:

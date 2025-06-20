@@ -190,13 +190,14 @@ func TestGraphGetAMR(t *testing.T) {
 				&testGraphGetAMRnode{
 					Stage: authn.AuthenticationStagePrimary,
 					Authenticator: &authenticator.Info{
+						Kind: model.AuthenticatorKindPrimary,
 						Type: model.AuthenticatorTypePassword,
 					},
 				},
 			},
 		}
 		amr = graph.GetAMR()
-		So(amr, ShouldResemble, []string{"pwd"})
+		So(amr, ShouldResemble, []string{model.AMRPWD, model.AMRXPrimaryPassword})
 
 		// oob
 		graph = &Graph{
@@ -204,13 +205,14 @@ func TestGraphGetAMR(t *testing.T) {
 				&testGraphGetAMRnode{
 					Stage: authn.AuthenticationStagePrimary,
 					Authenticator: &authenticator.Info{
+						Kind: authenticator.KindPrimary,
 						Type: model.AuthenticatorTypeOOBSMS,
 					},
 				},
 			},
 		}
 		amr = graph.GetAMR()
-		So(amr, ShouldResemble, []string{"otp", "sms"})
+		So(amr, ShouldResemble, []string{model.AMROTP, model.AMRSMS, model.AMRXPrimaryOOBOTPSMS})
 
 		// password + email oob
 		graph = &Graph{
@@ -218,19 +220,21 @@ func TestGraphGetAMR(t *testing.T) {
 				&testGraphGetAMRnode{
 					Stage: authn.AuthenticationStagePrimary,
 					Authenticator: &authenticator.Info{
+						Kind: authenticator.KindPrimary,
 						Type: model.AuthenticatorTypePassword,
 					},
 				},
 				&testGraphGetAMRnode{
 					Stage: authn.AuthenticationStageSecondary,
 					Authenticator: &authenticator.Info{
+						Kind: authenticator.KindSecondary,
 						Type: model.AuthenticatorTypeOOBEmail,
 					},
 				},
 			},
 		}
 		amr = graph.GetAMR()
-		So(amr, ShouldResemble, []string{"mfa", "otp", "pwd"})
+		So(amr, ShouldResemble, []string{model.AMRMFA, model.AMROTP, model.AMRPWD, model.AMRXPrimaryPassword, model.AMRXSecondaryOOBOTPEmail})
 
 		// password + SMS oob
 		graph = &Graph{
@@ -238,19 +242,21 @@ func TestGraphGetAMR(t *testing.T) {
 				&testGraphGetAMRnode{
 					Stage: authn.AuthenticationStagePrimary,
 					Authenticator: &authenticator.Info{
+						Kind: authenticator.KindPrimary,
 						Type: model.AuthenticatorTypePassword,
 					},
 				},
 				&testGraphGetAMRnode{
 					Stage: authn.AuthenticationStageSecondary,
 					Authenticator: &authenticator.Info{
+						Kind: authenticator.KindSecondary,
 						Type: model.AuthenticatorTypeOOBSMS,
 					},
 				},
 			},
 		}
 		amr = graph.GetAMR()
-		So(amr, ShouldResemble, []string{"mfa", "otp", "pwd", "sms"})
+		So(amr, ShouldResemble, []string{model.AMRMFA, model.AMROTP, model.AMRPWD, model.AMRSMS, model.AMRXPrimaryPassword, model.AMRXSecondaryOOBOTPSMS})
 
 		// oauth + totp
 		graph = &Graph{
@@ -258,13 +264,14 @@ func TestGraphGetAMR(t *testing.T) {
 				&testGraphGetAMRnode{
 					Stage: authn.AuthenticationStageSecondary,
 					Authenticator: &authenticator.Info{
+						Kind: authenticator.KindSecondary,
 						Type: model.AuthenticatorTypeTOTP,
 					},
 				},
 			},
 		}
 		amr = graph.GetAMR()
-		So(amr, ShouldResemble, []string{"mfa", "otp"})
+		So(amr, ShouldResemble, []string{model.AMRMFA, model.AMROTP, model.AMRXSecondaryTOTP})
 
 		// biometric
 		graph = &Graph{
@@ -277,7 +284,7 @@ func TestGraphGetAMR(t *testing.T) {
 			},
 		}
 		amr = graph.GetAMR()
-		So(amr, ShouldResemble, []string{"x_biometric"})
+		So(amr, ShouldResemble, []string{model.AMRXBiometric})
 	})
 }
 
