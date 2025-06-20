@@ -41,8 +41,10 @@ func (i *IntentSignupLoginFlow) FlowRootObject(deps *authflow.Dependencies) (con
 }
 
 func (i *IntentSignupLoginFlow) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
-	// This flow should only have 1 node.
-	if len(flows.Nearest.Nodes) == 0 {
+	switch {
+	case len(flows.Nearest.Nodes) == 0:
+		return nil, nil
+	case len(flows.Nearest.Nodes) == 1:
 		return nil, nil
 	}
 	return nil, authflow.ErrEOF
@@ -51,6 +53,8 @@ func (i *IntentSignupLoginFlow) CanReactTo(ctx context.Context, deps *authflow.D
 func (i *IntentSignupLoginFlow) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (authflow.ReactToResult, error) {
 	switch {
 	case len(flows.Nearest.Nodes) == 0:
+		return NewNodePreInitialize(ctx, deps, flows)
+	case len(flows.Nearest.Nodes) == 1:
 		return authflow.NewSubFlow(&IntentSignupLoginFlowSteps{
 			FlowReference: i.FlowReference,
 			JSONPointer:   i.JSONPointer,
