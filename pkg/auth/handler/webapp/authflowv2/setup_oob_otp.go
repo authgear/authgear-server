@@ -10,7 +10,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -58,13 +57,13 @@ func NewAuthflowSetupOOBOTPViewModel(s *webapp.Session, screen *webapp.AuthflowS
 
 	var oobAuthenticatorType model.AuthenticatorType
 	switch option.Authentication {
-	case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
+	case model.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 		oobAuthenticatorType = model.AuthenticatorTypeOOBEmail
-	case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
+	case model.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
 		oobAuthenticatorType = model.AuthenticatorTypeOOBEmail
-	case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
+	case model.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
 		oobAuthenticatorType = model.AuthenticatorTypeOOBSMS
-	case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
+	case model.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
 		oobAuthenticatorType = model.AuthenticatorTypeOOBSMS
 	default:
 		panic(fmt.Errorf("unexpected authentication: %v", option.Authentication))

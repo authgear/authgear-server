@@ -1,6 +1,11 @@
 name: Signup blocked by authentication.post_identified
 authgear.yaml:
   override: |
+    authentication:
+      secondary_authenticators:
+        - totp
+        - oob_otp_sms
+        - oob_otp_email
     hook:
       blocking_handlers:
       - event: authentication.post_identified
@@ -55,6 +60,11 @@ name: MFA required by authentication.post_identified in signup
 extra_files_directory: ./var
 authgear.yaml:
   override: |
+    authentication:
+      secondary_authenticators:
+        - totp
+        - oob_otp_sms
+        - oob_otp_email
     hook:
       blocking_handlers:
       - event: authentication.post_identified
@@ -72,11 +82,6 @@ authgear.yaml:
                 type: create_authenticator
                 one_of:
                 - authentication: primary_password
-              - name: authenticate_mfa
-                type: create_authenticator
-                show_until_amr_constraints_fulfilled: true
-                one_of:
-                - authentication: secondary_totp
 steps:
   - action: "create"
     input: |
@@ -183,6 +188,21 @@ steps:
           "type": "signup",
           "name": "default",
           "action": {
+              "type": "view_recovery_code"
+          }
+        }
+  - action: input
+    input: |
+      {
+        "confirm_recovery_code": true
+      }
+    output:
+      result: |
+        {
+          "state_token": "[[string]]",
+          "type": "signup",
+          "name": "default",
+          "action": {
               "type": "finished"
           }
         }
@@ -191,6 +211,11 @@ name: MFA not required by authentication.post_identified in signup
 extra_files_directory: ./var
 authgear.yaml:
   override: |
+    authentication:
+      secondary_authenticators:
+        - totp
+        - oob_otp_sms
+        - oob_otp_email
     hook:
       blocking_handlers:
       - event: authentication.post_identified
@@ -208,11 +233,6 @@ authgear.yaml:
                 type: create_authenticator
                 one_of:
                 - authentication: primary_password
-              - name: authenticate_mfa
-                type: create_authenticator
-                show_until_amr_constraints_fulfilled: true
-                one_of:
-                - authentication: secondary_totp
 steps:
   - action: "create"
     input: |
@@ -270,5 +290,93 @@ steps:
           "name": "default",
           "action": {
               "type": "finished"
+          }
+        }
+---
+name: MFA required but no enabled authenticators can be created in signup
+extra_files_directory: ./var
+authgear.yaml:
+  override: |
+    authentication:
+      secondary_authenticators:
+      - password
+    hook:
+      blocking_handlers:
+      - event: authentication.post_identified
+        url: authgeardeno:///deno/constraintsmfaotp.ts
+    authentication_flow:
+      signup_flows:
+        - name: default
+          steps:
+          - name: signup_identify
+            type: identify
+            one_of:
+            - identification: username
+              steps:
+              - name: authenticate_primary
+                type: create_authenticator
+                one_of:
+                - authentication: primary_password
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "state_token": "[[string]]",
+          "type": "signup",
+          "name": "default",
+          "action": {
+              "type": "identify",
+              "data": {
+                  "type": "identification_data",
+                  "options": "[[array]]"
+              }
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_login"
+      }
+    output:
+      result: |
+        {
+          "state_token": "[[string]]",
+          "type": "signup",
+          "name": "default",
+          "action": {
+              "type": "create_authenticator",
+              "data": {
+                  "type": "create_authenticator_data",
+                  "options": "[[array]]"
+              }
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "new_password": "e2e_password"
+      }
+    output:
+      error: |
+        {
+          "name": "Invalid",
+          "reason": "InvariantViolated",
+          "message": "no authenticator",
+          "code": 400,
+          "info": {
+            "FlowType": "signup",
+            "cause": {
+              "kind": "NoAuthenticator"
+            }
           }
         }

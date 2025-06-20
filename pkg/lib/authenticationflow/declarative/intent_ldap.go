@@ -6,8 +6,8 @@ import (
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 func init() {
@@ -31,8 +31,8 @@ func (*IntentLDAP) Kind() string {
 
 func (*IntentLDAP) Milestone() {}
 
-func (i *IntentLDAP) MilestoneIdentificationMethod() config.AuthenticationFlowIdentification {
-	return config.AuthenticationFlowIdentificationLDAP
+func (i *IntentLDAP) MilestoneIdentificationMethod() model.AuthenticationFlowIdentification {
+	return model.AuthenticationFlowIdentificationLDAP
 }
 
 func (*IntentLDAP) MilestoneFlowCreateIdentity(flows authflow.Flows) (MilestoneDoCreateIdentity, authflow.Flows, bool) {

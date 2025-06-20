@@ -117,8 +117,7 @@ var _ = Schema.Add("AuthenticationFlowSignupFlowStep", `
 					"one_of": {
 						"type": "array",
 						"items": { "$ref": "#/$defs/AuthenticationFlowSignupFlowAuthenticate" }
-					},
-					"show_until_amr_constraints_fulfilled": { "type": "boolean" }
+					}
 				}
 			}
 		},
@@ -287,7 +286,6 @@ var _ = Schema.Add("AuthenticationFlowLoginFlowStep", `
 				"required": ["one_of"],
 				"properties": {
 					"optional": { "type": "boolean" },
-					"show_until_amr_constraints_fulfilled": { "type": "boolean" },
 					"one_of": {
 						"type": "array",
 						"items": { "$ref": "#/$defs/AuthenticationFlowLoginFlowAuthenticate" }
@@ -698,10 +696,15 @@ type AuthenticationFlowObject interface {
 	IsFlowObject()
 }
 
+type AuthenticationFlowStepsObject interface {
+	AuthenticationFlowObject
+	GetSteps() []AuthenticationFlowObject
+}
+
 type AuthenticationFlowObjectFlowRoot interface {
 	AuthenticationFlowObject
+	AuthenticationFlowStepsObject
 	GetName() string
-	GetSteps() []AuthenticationFlowObject
 }
 
 type AuthenticationFlowType string
@@ -723,128 +726,14 @@ type AuthenticationFlowObjectFlowStep interface {
 }
 
 type AuthenticationFlowObjectFlowBranchInfo struct {
-	Identification AuthenticationFlowIdentification `json:"identification,omitempty"`
-	Authentication AuthenticationFlowAuthentication `json:"authentication,omitempty"`
+	Identification model.AuthenticationFlowIdentification `json:"identification,omitempty"`
+	Authentication model.AuthenticationFlowAuthentication `json:"authentication,omitempty"`
 }
 
 type AuthenticationFlowObjectFlowBranch interface {
 	AuthenticationFlowObject
-	GetSteps() []AuthenticationFlowObject
+	AuthenticationFlowStepsObject
 	GetBranchInfo() AuthenticationFlowObjectFlowBranchInfo
-}
-
-type AuthenticationFlowIdentification string
-
-const (
-	AuthenticationFlowIdentificationEmail    AuthenticationFlowIdentification = "email"
-	AuthenticationFlowIdentificationPhone    AuthenticationFlowIdentification = "phone"
-	AuthenticationFlowIdentificationUsername AuthenticationFlowIdentification = "username"
-	AuthenticationFlowIdentificationOAuth    AuthenticationFlowIdentification = "oauth"
-	AuthenticationFlowIdentificationPasskey  AuthenticationFlowIdentification = "passkey"
-	AuthenticationFlowIdentificationIDToken  AuthenticationFlowIdentification = "id_token"
-	AuthenticationFlowIdentificationLDAP     AuthenticationFlowIdentification = "ldap"
-)
-
-func (m AuthenticationFlowIdentification) PrimaryAuthentications() []AuthenticationFlowAuthentication {
-	switch m {
-	case AuthenticationFlowIdentificationEmail:
-		return []AuthenticationFlowAuthentication{
-			AuthenticationFlowAuthenticationPrimaryPassword,
-			AuthenticationFlowAuthenticationPrimaryOOBOTPEmail,
-			AuthenticationFlowAuthenticationPrimaryPasskey,
-		}
-	case AuthenticationFlowIdentificationPhone:
-		return []AuthenticationFlowAuthentication{
-			AuthenticationFlowAuthenticationPrimaryPassword,
-			AuthenticationFlowAuthenticationPrimaryOOBOTPSMS,
-			AuthenticationFlowAuthenticationPrimaryPasskey,
-		}
-	case AuthenticationFlowIdentificationUsername:
-		return []AuthenticationFlowAuthentication{
-			AuthenticationFlowAuthenticationPrimaryPassword,
-			AuthenticationFlowAuthenticationPrimaryPasskey,
-		}
-	case AuthenticationFlowIdentificationOAuth:
-		// OAuth does not require primary authentication.
-		return nil
-	case AuthenticationFlowIdentificationPasskey:
-		// Passkey does not require primary authentication.
-		return nil
-	case AuthenticationFlowIdentificationLDAP:
-		// LDAP does not require primary authentication.
-		return nil
-	default:
-		panic(fmt.Errorf("unknown identification: %v", m))
-	}
-}
-
-func (m AuthenticationFlowIdentification) SecondaryAuthentications() []AuthenticationFlowAuthentication {
-	all := []AuthenticationFlowAuthentication{
-		AuthenticationFlowAuthenticationSecondaryPassword,
-		AuthenticationFlowAuthenticationSecondaryTOTP,
-		AuthenticationFlowAuthenticationSecondaryOOBOTPEmail,
-		AuthenticationFlowAuthenticationSecondaryOOBOTPSMS,
-	}
-	switch m {
-	case AuthenticationFlowIdentificationEmail:
-		return all
-	case AuthenticationFlowIdentificationPhone:
-		return all
-	case AuthenticationFlowIdentificationUsername:
-		return all
-	case AuthenticationFlowIdentificationOAuth:
-		// OAuth does not require secondary authentication.
-		return nil
-	case AuthenticationFlowIdentificationPasskey:
-		// Passkey does not require secondary authentication.
-		return nil
-	case AuthenticationFlowIdentificationLDAP:
-		return all
-	default:
-		panic(fmt.Errorf("unknown identification: %v", m))
-	}
-}
-
-type AuthenticationFlowAuthentication string
-
-const (
-	AuthenticationFlowAuthenticationPrimaryPassword      AuthenticationFlowAuthentication = "primary_password"
-	AuthenticationFlowAuthenticationPrimaryPasskey       AuthenticationFlowAuthentication = "primary_passkey"
-	AuthenticationFlowAuthenticationPrimaryOOBOTPEmail   AuthenticationFlowAuthentication = "primary_oob_otp_email"
-	AuthenticationFlowAuthenticationPrimaryOOBOTPSMS     AuthenticationFlowAuthentication = "primary_oob_otp_sms"
-	AuthenticationFlowAuthenticationSecondaryPassword    AuthenticationFlowAuthentication = "secondary_password"
-	AuthenticationFlowAuthenticationSecondaryTOTP        AuthenticationFlowAuthentication = "secondary_totp"
-	AuthenticationFlowAuthenticationSecondaryOOBOTPEmail AuthenticationFlowAuthentication = "secondary_oob_otp_email"
-	AuthenticationFlowAuthenticationSecondaryOOBOTPSMS   AuthenticationFlowAuthentication = "secondary_oob_otp_sms"
-	AuthenticationFlowAuthenticationRecoveryCode         AuthenticationFlowAuthentication = "recovery_code"
-	AuthenticationFlowAuthenticationDeviceToken          AuthenticationFlowAuthentication = "device_token"
-)
-
-func (m AuthenticationFlowAuthentication) AuthenticatorKind() model.AuthenticatorKind {
-	switch m {
-	case AuthenticationFlowAuthenticationPrimaryPassword:
-		fallthrough
-	case AuthenticationFlowAuthenticationPrimaryPasskey:
-		fallthrough
-	case AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
-		fallthrough
-	case AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
-		return model.AuthenticatorKindPrimary
-	case AuthenticationFlowAuthenticationSecondaryPassword:
-		fallthrough
-	case AuthenticationFlowAuthenticationSecondaryTOTP:
-		fallthrough
-	case AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
-		fallthrough
-	case AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
-		return model.AuthenticatorKindSecondary
-	case AuthenticationFlowAuthenticationRecoveryCode:
-		panic(fmt.Errorf("%v is not an authenticator", m))
-	case AuthenticationFlowAuthenticationDeviceToken:
-		panic(fmt.Errorf("%v is not an authenticator", m))
-	default:
-		panic(fmt.Errorf("unknown authentication: %v", m))
-	}
 }
 
 type AuthenticationFlowStepType string
@@ -916,8 +805,6 @@ type AuthenticationFlowSignupFlowStep struct {
 	TargetStep string `json:"target_step,omitempty"`
 	// UserProfile is relevant when Type is fill_in_user_profile.
 	UserProfile []*AuthenticationFlowSignupFlowUserProfile `json:"user_profile,omitempty"`
-	// show_until_amr_constraints_fulfilled is relevant when Type is create_authenticator.
-	ShowUntilAMRConstraintsFulfilled *bool `json:"show_until_amr_constraints_fulfilled,omitempty"`
 }
 
 var (
@@ -963,21 +850,14 @@ func (s *AuthenticationFlowSignupFlowStep) GetSignupFlowOrLoginFlowOneOf() []Aut
 	}
 }
 
-func (s *AuthenticationFlowSignupFlowStep) IsShowUntilAMRConstraintsFulfilled() bool {
-	if s.ShowUntilAMRConstraintsFulfilled != nil && *s.ShowUntilAMRConstraintsFulfilled {
-		return true
-	}
-	return false
-}
-
 type AuthenticationFlowSignupFlowOneOf struct {
 	// Identification is specific to identify.
-	Identification AuthenticationFlowIdentification `json:"identification,omitempty"`
+	Identification model.AuthenticationFlowIdentification `json:"identification,omitempty"`
 	// AccountLinking is specific to identify.
 	AccountLinking *AuthenticationFlowAccountLinking `json:"account_linking,omitempty"`
 
 	// Authentication is specific to authenticate.
-	Authentication AuthenticationFlowAuthentication `json:"authentication,omitempty"`
+	Authentication model.AuthenticationFlowAuthentication `json:"authentication,omitempty"`
 	// TargetStep is specific to authenticate.
 	TargetStep string `json:"target_step,omitempty"`
 	// VerificationRequired is specific to OOB.
@@ -1015,7 +895,7 @@ func (f *AuthenticationFlowSignupFlowOneOf) GetBranchInfo() AuthenticationFlowOb
 	}
 }
 
-func (f *AuthenticationFlowSignupFlowOneOf) GetAuthentication() AuthenticationFlowAuthentication {
+func (f *AuthenticationFlowSignupFlowOneOf) GetAuthentication() model.AuthenticationFlowAuthentication {
 	return f.Authentication
 }
 
@@ -1086,9 +966,6 @@ type AuthenticationFlowLoginFlowStep struct {
 
 	// TargetStep is relevant when Type is change_password.
 	TargetStep string `json:"target_step,omitempty"`
-
-	// show_until_amr_constraints_fulfilled is relevant when Type is authenticate.
-	ShowUntilAMRConstraintsFulfilled *bool `json:"show_until_amr_constraints_fulfilled,omitempty"`
 }
 
 var (
@@ -1141,19 +1018,12 @@ func (s *AuthenticationFlowLoginFlowStep) IsOptional() bool {
 	return false
 }
 
-func (s *AuthenticationFlowLoginFlowStep) IsShowUntilAMRConstraintsFulfilled() bool {
-	if s.ShowUntilAMRConstraintsFulfilled != nil && *s.ShowUntilAMRConstraintsFulfilled {
-		return true
-	}
-	return false
-}
-
 type AuthenticationFlowLoginFlowOneOf struct {
 	// Identification is specific to identify.
-	Identification AuthenticationFlowIdentification `json:"identification,omitempty"`
+	Identification model.AuthenticationFlowIdentification `json:"identification,omitempty"`
 
 	// Authentication is specific to authenticate.
-	Authentication AuthenticationFlowAuthentication `json:"authentication,omitempty"`
+	Authentication model.AuthenticationFlowAuthentication `json:"authentication,omitempty"`
 	// TargetStep is specific to authenticate.
 	TargetStep string `json:"target_step,omitempty"`
 
@@ -1192,7 +1062,7 @@ func (f *AuthenticationFlowLoginFlowOneOf) GetBotProtectionConfig() *Authenticat
 	return f.BotProtection
 }
 
-func (f *AuthenticationFlowLoginFlowOneOf) GetAuthentication() AuthenticationFlowAuthentication {
+func (f *AuthenticationFlowLoginFlowOneOf) GetAuthentication() model.AuthenticationFlowAuthentication {
 	return f.Authentication
 }
 
@@ -1258,10 +1128,10 @@ const (
 )
 
 type AuthenticationFlowSignupLoginFlowOneOf struct {
-	Identification AuthenticationFlowIdentification `json:"identification,omitempty"`
-	BotProtection  *AuthenticationFlowBotProtection `json:"bot_protection,omitempty" nullable:"true"`
-	SignupFlow     string                           `json:"signup_flow,omitempty"`
-	LoginFlow      string                           `json:"login_flow,omitempty"`
+	Identification model.AuthenticationFlowIdentification `json:"identification,omitempty"`
+	BotProtection  *AuthenticationFlowBotProtection       `json:"bot_protection,omitempty" nullable:"true"`
+	SignupFlow     string                                 `json:"signup_flow,omitempty"`
+	LoginFlow      string                                 `json:"login_flow,omitempty"`
 }
 
 var (
@@ -1317,9 +1187,6 @@ type AuthenticationFlowReauthFlowStep struct {
 
 	// OneOf is relevant when Type is identify or authenticate.
 	OneOf []*AuthenticationFlowReauthFlowOneOf `json:"one_of,omitempty"`
-
-	// show_until_amr_constraints_fulfilled is relevant when Type is authenticate.
-	ShowUntilAMRConstraintsFulfilled *bool `json:"show_until_amr_constraints_fulfilled,omitempty"`
 }
 
 var _ AuthenticationFlowObjectFlowStep = &AuthenticationFlowReauthFlowStep{}
@@ -1346,22 +1213,15 @@ func (s *AuthenticationFlowReauthFlowStep) GetOneOf() []AuthenticationFlowObject
 	}
 }
 
-func (s *AuthenticationFlowReauthFlowStep) IsShowUntilAMRConstraintsFulfilled() bool {
-	if s.ShowUntilAMRConstraintsFulfilled != nil && *s.ShowUntilAMRConstraintsFulfilled {
-		return true
-	}
-	return false
-}
-
 type AuthenticationFlowReauthFlowOneOf struct {
 	// Identification is specific to identify.
-	Identification AuthenticationFlowIdentification `json:"identification,omitempty"`
+	Identification model.AuthenticationFlowIdentification `json:"identification,omitempty"`
 
 	// BotProtection is specific to authenticate.
 	BotProtection *AuthenticationFlowBotProtection `json:"bot_protection,omitempty" nullable:"true"`
 
 	// Authentication is specific to authenticate.
-	Authentication AuthenticationFlowAuthentication `json:"authentication,omitempty"`
+	Authentication model.AuthenticationFlowAuthentication `json:"authentication,omitempty"`
 
 	// Steps are common.
 	Steps []*AuthenticationFlowReauthFlowStep `json:"steps,omitempty"`
@@ -1534,7 +1394,7 @@ func (f *AuthenticationFlowAccountRecoveryFlowOneOf) GetSteps() []Authentication
 
 func (f *AuthenticationFlowAccountRecoveryFlowOneOf) GetBranchInfo() AuthenticationFlowObjectFlowBranchInfo {
 	return AuthenticationFlowObjectFlowBranchInfo{
-		Identification: AuthenticationFlowIdentification(f.Identification),
+		Identification: model.AuthenticationFlowIdentification(f.Identification),
 	}
 }
 
@@ -1542,15 +1402,15 @@ func (f *AuthenticationFlowAccountRecoveryFlowOneOf) GetBotProtectionConfig() *A
 	return f.BotProtection
 }
 
-type AuthenticationFlowAccountRecoveryIdentification AuthenticationFlowIdentification
+type AuthenticationFlowAccountRecoveryIdentification model.AuthenticationFlowIdentification
 
 const (
-	AuthenticationFlowAccountRecoveryIdentificationEmail = AuthenticationFlowAccountRecoveryIdentification(AuthenticationFlowIdentificationEmail)
-	AuthenticationFlowAccountRecoveryIdentificationPhone = AuthenticationFlowAccountRecoveryIdentification(AuthenticationFlowIdentificationPhone)
+	AuthenticationFlowAccountRecoveryIdentificationEmail = AuthenticationFlowAccountRecoveryIdentification(model.AuthenticationFlowIdentificationEmail)
+	AuthenticationFlowAccountRecoveryIdentificationPhone = AuthenticationFlowAccountRecoveryIdentification(model.AuthenticationFlowIdentificationPhone)
 )
 
-func (i AuthenticationFlowAccountRecoveryIdentification) AuthenticationFlowIdentification() AuthenticationFlowIdentification {
-	return AuthenticationFlowIdentification(i)
+func (i AuthenticationFlowAccountRecoveryIdentification) AuthenticationFlowIdentification() model.AuthenticationFlowIdentification {
+	return model.AuthenticationFlowIdentification(i)
 }
 
 type AuthenticationFlowAccountRecoveryIdentificationOnFailure string
@@ -1591,7 +1451,7 @@ type AuthenticationFlowObjectSignupFlowOrLoginFlowStep interface {
 
 type AuthenticationFlowObjectSignupFlowOrLoginFlowOneOf interface {
 	AuthenticationFlowObjectBotProtectionConfigProvider
-	GetAuthentication() AuthenticationFlowAuthentication
+	GetAuthentication() model.AuthenticationFlowAuthentication
 	IsVerificationRequired() bool
 	GetTargetStepName() string
 }

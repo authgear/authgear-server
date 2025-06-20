@@ -12,7 +12,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 func init() {
@@ -20,10 +19,10 @@ func init() {
 }
 
 type IntentUseAuthenticatorOOBOTP struct {
-	JSONPointer    jsonpointer.T                           `json:"json_pointer,omitempty"`
-	UserID         string                                  `json:"user_id,omitempty"`
-	Authentication config.AuthenticationFlowAuthentication `json:"authentication,omitempty"`
-	Options        []AuthenticateOption                    `json:"options,omitempty"`
+	JSONPointer    jsonpointer.T                          `json:"json_pointer,omitempty"`
+	UserID         string                                 `json:"user_id,omitempty"`
+	Authentication model.AuthenticationFlowAuthentication `json:"authentication,omitempty"`
+	Options        []AuthenticateOption                   `json:"options,omitempty"`
 }
 
 var _ authflow.Intent = &IntentUseAuthenticatorOOBOTP{}
@@ -40,7 +39,7 @@ func (*IntentUseAuthenticatorOOBOTP) Milestone() {}
 func (i *IntentUseAuthenticatorOOBOTP) MilestoneFlowSelectAuthenticationMethod(flows authflow.Flows) (MilestoneDidSelectAuthenticationMethod, authflow.Flows, bool) {
 	return i, flows, true
 }
-func (i *IntentUseAuthenticatorOOBOTP) MilestoneDidSelectAuthenticationMethod() config.AuthenticationFlowAuthentication {
+func (i *IntentUseAuthenticatorOOBOTP) MilestoneDidSelectAuthenticationMethod() model.AuthenticationFlowAuthentication {
 	return i.Authentication
 }
 

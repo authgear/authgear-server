@@ -233,13 +233,13 @@ func (n *AuthflowV2Navigator) navigateSignupPromote(ctx context.Context, s *weba
 	case config.AuthenticationFlowStepTypeCreateAuthenticator:
 		authentication := getTakenBranchCreateAuthenticatorAuthentication(s)
 		switch authentication {
-		case config.AuthenticationFlowAuthenticationPrimaryPassword:
+		case model.AuthenticationFlowAuthenticationPrimaryPassword:
 			fallthrough
-		case config.AuthenticationFlowAuthenticationSecondaryPassword:
+		case model.AuthenticationFlowAuthenticationSecondaryPassword:
 			s.Advance(AuthflowV2RouteCreatePassword, result)
-		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
+		case model.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 			fallthrough
-		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
+		case model.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
 			switch data := s.StateTokenFlowResponse.Action.Data.(type) {
 			case declarative.VerifyOOBOTPData:
 				// 1. We do not need to enter the target.
@@ -257,11 +257,11 @@ func (n *AuthflowV2Navigator) navigateSignupPromote(ctx context.Context, s *weba
 			default:
 				panic(fmt.Errorf("unexpected data: %T", s.StateTokenFlowResponse.Action.Data))
 			}
-		case config.AuthenticationFlowAuthenticationSecondaryTOTP:
+		case model.AuthenticationFlowAuthenticationSecondaryTOTP:
 			s.Advance(AuthflowV2RouteSetupTOTP, result)
-		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
+		case model.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
 			fallthrough
-		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
+		case model.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
 			data := s.StateTokenFlowResponse.Action.Data
 			switch data := data.(type) {
 			case declarative.VerifyOOBOTPData:
@@ -326,15 +326,15 @@ func (n *AuthflowV2Navigator) navigateStepIdentify(ctx context.Context, s *webap
 	switch identification {
 	case "":
 		fallthrough
-	case config.AuthenticationFlowIdentificationIDToken:
+	case model.AuthenticationFlowIdentificationIDToken:
 		fallthrough
-	case config.AuthenticationFlowIdentificationEmail:
+	case model.AuthenticationFlowIdentificationEmail:
 		fallthrough
-	case config.AuthenticationFlowIdentificationPhone:
+	case model.AuthenticationFlowIdentificationPhone:
 		fallthrough
-	case config.AuthenticationFlowIdentificationUsername:
+	case model.AuthenticationFlowIdentificationUsername:
 		fallthrough
-	case config.AuthenticationFlowIdentificationPasskey:
+	case model.AuthenticationFlowIdentificationPasskey:
 		// Redirect to the expected path with x_step set.
 		u := *r.URL
 		// The current authflow state is 1 to 1 mapping with the path.
@@ -349,7 +349,7 @@ func (n *AuthflowV2Navigator) navigateStepIdentify(ctx context.Context, s *webap
 
 		result.NavigationAction = webapp.NavigationActionReplace
 		result.RedirectURI = u.String()
-	case config.AuthenticationFlowIdentificationOAuth:
+	case model.AuthenticationFlowIdentificationOAuth:
 		data := s.StateTokenFlowResponse.Action.Data.(declarative.OAuthData)
 
 		switch data.OAuthProviderType {
@@ -380,7 +380,7 @@ func (n *AuthflowV2Navigator) navigateStepIdentify(ctx context.Context, s *webap
 			result.NavigationAction = webapp.NavigationActionRedirect
 			result.RedirectURI = authorizationURL.String()
 		}
-	case config.AuthenticationFlowIdentificationLDAP:
+	case model.AuthenticationFlowIdentificationLDAP:
 		// Not expected to trigger this case
 		panic(fmt.Errorf("not expected to trigger: %v", identification))
 	default:
@@ -395,19 +395,19 @@ func (n *AuthflowV2Navigator) navigateLoginStepAuthenticate(s *webapp.AuthflowSc
 	case declarative.CreateAuthenticatorData:
 		authentication := getTakenBranchCreateAuthenticatorAuthentication(s)
 		switch authentication {
-		case config.AuthenticationFlowAuthenticationPrimaryPassword:
+		case model.AuthenticationFlowAuthenticationPrimaryPassword:
 			fallthrough
-		case config.AuthenticationFlowAuthenticationSecondaryPassword:
+		case model.AuthenticationFlowAuthenticationSecondaryPassword:
 			s.Advance(AuthflowV2RouteCreatePassword, result)
-		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
+		case model.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 			fallthrough
-		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
+		case model.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
 			s.Advance(AuthflowV2RouteSetupOOBOTP, result)
-		case config.AuthenticationFlowAuthenticationSecondaryTOTP:
+		case model.AuthenticationFlowAuthenticationSecondaryTOTP:
 			s.Advance(AuthflowV2RouteSetupTOTP, result)
-		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
+		case model.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
 			fallthrough
-		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
+		case model.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
 			s.Advance(AuthflowV2RouteSetupOOBOTP, result)
 		default:
 			panic(fmt.Errorf("unexpected authentication: %v", s.StateTokenFlowResponse.Action.Authentication))
@@ -417,20 +417,20 @@ func (n *AuthflowV2Navigator) navigateLoginStepAuthenticate(s *webapp.AuthflowSc
 		index := *s.Screen.TakenBranchIndex
 		option := options[index]
 		switch option.Authentication {
-		case config.AuthenticationFlowAuthenticationPrimaryPassword:
+		case model.AuthenticationFlowAuthenticationPrimaryPassword:
 			fallthrough
-		case config.AuthenticationFlowAuthenticationSecondaryPassword:
+		case model.AuthenticationFlowAuthenticationSecondaryPassword:
 			s.Advance(AuthflowV2RouteEnterPassword, result)
-		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
+		case model.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 			fallthrough
-		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
+		case model.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
 			// Action data type should be VerifyOOBOTPData
 			panic(fmt.Errorf("unexpected data type: %T", s.StateTokenFlowResponse.Action.Data))
-		case config.AuthenticationFlowAuthenticationSecondaryTOTP:
+		case model.AuthenticationFlowAuthenticationSecondaryTOTP:
 			s.Advance(AuthflowV2RouteEnterTOTP, result)
-		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
+		case model.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
 			fallthrough
-		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
+		case model.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
 			channel := s.Screen.TakenChannel
 			switch channel {
 			case model.AuthenticatorOOBChannelSMS:
@@ -440,9 +440,9 @@ func (n *AuthflowV2Navigator) navigateLoginStepAuthenticate(s *webapp.AuthflowSc
 			default:
 				panic(fmt.Errorf("unexpected channel: %v", channel))
 			}
-		case config.AuthenticationFlowAuthenticationRecoveryCode:
+		case model.AuthenticationFlowAuthenticationRecoveryCode:
 			s.Advance(AuthflowV2RouteEnterRecoveryCode, result)
-		case config.AuthenticationFlowAuthenticationPrimaryPasskey:
+		case model.AuthenticationFlowAuthenticationPrimaryPasskey:
 			s.Advance(AuthflowV2RouteUsePasskey, result)
 		default:
 			panic(fmt.Errorf("unexpected authentication: %v", option.Authentication))
@@ -499,13 +499,13 @@ func (n *AuthflowV2Navigator) navigateReauth(ctx context.Context, s *webapp.Auth
 		index := *s.Screen.TakenBranchIndex
 		option := options[index]
 		switch option.Authentication {
-		case config.AuthenticationFlowAuthenticationPrimaryPassword:
+		case model.AuthenticationFlowAuthenticationPrimaryPassword:
 			fallthrough
-		case config.AuthenticationFlowAuthenticationSecondaryPassword:
+		case model.AuthenticationFlowAuthenticationSecondaryPassword:
 			s.Advance(AuthflowV2RouteEnterPassword, result)
-		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
+		case model.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 			fallthrough
-		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
+		case model.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
 			switch data := s.StateTokenFlowResponse.Action.Data.(type) {
 			case declarative.VerifyOOBOTPData:
 				switch data.OTPForm {
@@ -519,11 +519,11 @@ func (n *AuthflowV2Navigator) navigateReauth(ctx context.Context, s *webapp.Auth
 			default:
 				panic(fmt.Errorf("unexpected data: %T", s.StateTokenFlowResponse.Action.Data))
 			}
-		case config.AuthenticationFlowAuthenticationSecondaryTOTP:
+		case model.AuthenticationFlowAuthenticationSecondaryTOTP:
 			s.Advance(AuthflowV2RouteEnterTOTP, result)
-		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
+		case model.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
 			fallthrough
-		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
+		case model.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
 			channel := s.Screen.TakenChannel
 			switch channel {
 			case model.AuthenticatorOOBChannelSMS:
@@ -533,7 +533,7 @@ func (n *AuthflowV2Navigator) navigateReauth(ctx context.Context, s *webapp.Auth
 			default:
 				panic(fmt.Errorf("unexpected channel: %v", channel))
 			}
-		case config.AuthenticationFlowAuthenticationPrimaryPasskey:
+		case model.AuthenticationFlowAuthenticationPrimaryPasskey:
 			s.Advance(AuthflowV2RouteUsePasskey, result)
 		default:
 			panic(fmt.Errorf("unexpected authentication: %v", option.Authentication))

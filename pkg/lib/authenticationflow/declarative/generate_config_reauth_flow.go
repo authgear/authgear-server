@@ -23,7 +23,7 @@ func generateReauthFlowStepIdentify(cfg *config.AppConfig) *config.Authenticatio
 		Type: config.AuthenticationFlowReauthFlowStepTypeIdentify,
 		OneOf: []*config.AuthenticationFlowReauthFlowOneOf{
 			{
-				Identification: config.AuthenticationFlowIdentificationIDToken,
+				Identification: model.AuthenticationFlowIdentificationIDToken,
 			},
 		},
 	}
@@ -36,7 +36,7 @@ func generateReauthFlowStepAuthenticate(cfg *config.AppConfig) *config.Authentic
 		Type: config.AuthenticationFlowReauthFlowStepTypeAuthenticate,
 	}
 
-	addOneOf := func(authentication config.AuthenticationFlowAuthentication) {
+	addOneOf := func(authentication model.AuthenticationFlowAuthentication) {
 		oneOf := &config.AuthenticationFlowReauthFlowOneOf{
 			Authentication: authentication,
 		}
@@ -46,13 +46,13 @@ func generateReauthFlowStepAuthenticate(cfg *config.AppConfig) *config.Authentic
 	for _, authenticatorType := range *cfg.Authentication.PrimaryAuthenticators {
 		switch authenticatorType {
 		case model.AuthenticatorTypePassword:
-			addOneOf(config.AuthenticationFlowAuthenticationPrimaryPassword)
+			addOneOf(model.AuthenticationFlowAuthenticationPrimaryPassword)
 		case model.AuthenticatorTypePasskey:
-			addOneOf(config.AuthenticationFlowAuthenticationPrimaryPasskey)
+			addOneOf(model.AuthenticationFlowAuthenticationPrimaryPasskey)
 		case model.AuthenticatorTypeOOBEmail:
-			addOneOf(config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail)
+			addOneOf(model.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail)
 		case model.AuthenticatorTypeOOBSMS:
-			addOneOf(config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS)
+			addOneOf(model.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS)
 		}
 	}
 
@@ -60,13 +60,13 @@ func generateReauthFlowStepAuthenticate(cfg *config.AppConfig) *config.Authentic
 		for _, authenticatorType := range *cfg.Authentication.SecondaryAuthenticators {
 			switch authenticatorType {
 			case model.AuthenticatorTypePassword:
-				addOneOf(config.AuthenticationFlowAuthenticationSecondaryPassword)
+				addOneOf(model.AuthenticationFlowAuthenticationSecondaryPassword)
 			case model.AuthenticatorTypeOOBEmail:
-				addOneOf(config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail)
+				addOneOf(model.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail)
 			case model.AuthenticatorTypeOOBSMS:
-				addOneOf(config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS)
+				addOneOf(model.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS)
 			case model.AuthenticatorTypeTOTP:
-				addOneOf(config.AuthenticationFlowAuthenticationSecondaryTOTP)
+				addOneOf(model.AuthenticationFlowAuthenticationSecondaryTOTP)
 			}
 		}
 	}

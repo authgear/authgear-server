@@ -431,25 +431,25 @@ func (i *Info) UpdateUserID(newUserID string) *Info {
 	return i
 }
 
-func (i *Info) ToIdentification() config.AuthenticationFlowIdentification {
+func (i *Info) ToIdentification() model.AuthenticationFlowIdentification {
 	switch i.Type {
 	case model.IdentityTypeLoginID:
 		switch i.LoginID.LoginIDType {
 		case model.LoginIDKeyTypeEmail:
-			return config.AuthenticationFlowIdentificationEmail
+			return model.AuthenticationFlowIdentificationEmail
 		case model.LoginIDKeyTypePhone:
-			return config.AuthenticationFlowIdentificationPhone
+			return model.AuthenticationFlowIdentificationPhone
 		case model.LoginIDKeyTypeUsername:
-			return config.AuthenticationFlowIdentificationUsername
+			return model.AuthenticationFlowIdentificationUsername
 		default:
 			panic(fmt.Errorf("identity: unexpected login ID type: %s", i.LoginID.LoginIDType))
 		}
 	case model.IdentityTypeOAuth:
-		return config.AuthenticationFlowIdentificationOAuth
+		return model.AuthenticationFlowIdentificationOAuth
 	case model.IdentityTypePasskey:
-		return config.AuthenticationFlowIdentificationPasskey
+		return model.AuthenticationFlowIdentificationPasskey
 	case model.IdentityTypeLDAP:
-		return config.AuthenticationFlowIdentificationLDAP
+		return model.AuthenticationFlowIdentificationLDAP
 	case model.IdentityTypeAnonymous:
 		fallthrough
 	case model.IdentityTypeBiometric:

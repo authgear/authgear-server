@@ -23,7 +23,7 @@ var _ authflow.Data = IdentificationData{}
 func (IdentificationData) Data() {}
 
 type IdentificationOption struct {
-	Identification config.AuthenticationFlowIdentification `json:"identification"`
+	Identification model.AuthenticationFlowIdentification `json:"identification"`
 
 	BotProtection *BotProtectionData `json:"bot_protection,omitempty"`
 	// ProviderType is specific to OAuth.
@@ -42,29 +42,29 @@ type IdentificationOption struct {
 	ServerName string `json:"server_name,omitempty"`
 }
 
-func NewIdentificationOptionIDToken(i config.AuthenticationFlowIdentification, authflowCfg *config.AuthenticationFlowBotProtection, appCfg *config.BotProtectionConfig) IdentificationOption {
+func NewIdentificationOptionIDToken(flows authflow.Flows, i model.AuthenticationFlowIdentification, authflowCfg *config.AuthenticationFlowBotProtection, appCfg *config.BotProtectionConfig) IdentificationOption {
 	return IdentificationOption{
 		Identification: i,
-		BotProtection:  GetBotProtectionData(authflowCfg, appCfg),
+		BotProtection:  GetBotProtectionData(flows, authflowCfg, appCfg),
 	}
 }
 
-func NewIdentificationOptionLoginID(i config.AuthenticationFlowIdentification, authflowCfg *config.AuthenticationFlowBotProtection, appCfg *config.BotProtectionConfig) IdentificationOption {
+func NewIdentificationOptionLoginID(flows authflow.Flows, i model.AuthenticationFlowIdentification, authflowCfg *config.AuthenticationFlowBotProtection, appCfg *config.BotProtectionConfig) IdentificationOption {
 	return IdentificationOption{
 		Identification: i,
-		BotProtection:  GetBotProtectionData(authflowCfg, appCfg),
+		BotProtection:  GetBotProtectionData(flows, authflowCfg, appCfg),
 	}
 }
 
-func NewIdentificationOptionsOAuth(oauthConfig *config.OAuthSSOConfig, oauthFeatureConfig *config.OAuthSSOProvidersFeatureConfig, authflowCfg *config.AuthenticationFlowBotProtection, appCfg *config.BotProtectionConfig, demoCredentials *config.SSOOAuthDemoCredentials) []IdentificationOption {
+func NewIdentificationOptionsOAuth(flows authflow.Flows, oauthConfig *config.OAuthSSOConfig, oauthFeatureConfig *config.OAuthSSOProvidersFeatureConfig, authflowCfg *config.AuthenticationFlowBotProtection, appCfg *config.BotProtectionConfig, demoCredentials *config.SSOOAuthDemoCredentials) []IdentificationOption {
 	output := []IdentificationOption{}
 	for _, p := range oauthConfig.Providers {
 		if !identity.IsOAuthSSOProviderTypeDisabled(p.AsProviderConfig(), oauthFeatureConfig) {
 			status := p.ComputeProviderStatus(demoCredentials)
 
 			output = append(output, IdentificationOption{
-				Identification: config.AuthenticationFlowIdentificationOAuth,
-				BotProtection:  GetBotProtectionData(authflowCfg, appCfg),
+				Identification: model.AuthenticationFlowIdentificationOAuth,
+				BotProtection:  GetBotProtectionData(flows, authflowCfg, appCfg),
 				ProviderType:   p.AsProviderConfig().Type(),
 				Alias:          p.Alias(),
 				WechatAppType:  wechat.ProviderConfig(p).AppType(),
@@ -75,10 +75,10 @@ func NewIdentificationOptionsOAuth(oauthConfig *config.OAuthSSOConfig, oauthFeat
 	return output
 }
 
-func NewIdentificationOptionPasskey(requestOptions *model.WebAuthnRequestOptions, authflowCfg *config.AuthenticationFlowBotProtection, appCfg *config.BotProtectionConfig) IdentificationOption {
+func NewIdentificationOptionPasskey(flows authflow.Flows, requestOptions *model.WebAuthnRequestOptions, authflowCfg *config.AuthenticationFlowBotProtection, appCfg *config.BotProtectionConfig) IdentificationOption {
 	return IdentificationOption{
-		Identification: config.AuthenticationFlowIdentificationPasskey,
-		BotProtection:  GetBotProtectionData(authflowCfg, appCfg),
+		Identification: model.AuthenticationFlowIdentificationPasskey,
+		BotProtection:  GetBotProtectionData(flows, authflowCfg, appCfg),
 		RequestOptions: requestOptions,
 	}
 }
@@ -87,7 +87,7 @@ func NewIdentificationOptionLDAP(ldapConfig *config.LDAPConfig, authflowCfg *con
 	output := []IdentificationOption{}
 	for _, s := range ldapConfig.Servers {
 		output = append(output, IdentificationOption{
-			Identification: config.AuthenticationFlowIdentificationLDAP,
+			Identification: model.AuthenticationFlowIdentificationLDAP,
 			ServerName:     s.Name,
 			// TODO(DEV-1659): Support bot protection in LDAP
 			// BotProtection:  GetBotProtectionData(authflowCfg, appCfg),

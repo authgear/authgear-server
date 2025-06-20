@@ -1,6 +1,11 @@
 name: Reauth blocked by authentication.post_identified
 authgear.yaml:
   override: |
+    authentication:
+      secondary_authenticators:
+        - totp
+        - oob_otp_sms
+        - oob_otp_email
     hook:
       blocking_handlers:
       - event: authentication.post_identified
@@ -70,6 +75,11 @@ steps:
 name: MFA required by authentication.post_identified in reauth
 authgear.yaml:
   override: |
+    authentication:
+      secondary_authenticators:
+        - totp
+        - oob_otp_sms
+        - oob_otp_email
     hook:
       blocking_handlers:
       - event: authentication.post_identified
@@ -86,11 +96,6 @@ authgear.yaml:
             type: authenticate
             one_of:
             - authentication: primary_password
-          - name: reauthenticate_sms
-            type: authenticate
-            show_until_amr_constraints_fulfilled: true
-            one_of:
-            - authentication: secondary_oob_otp_sms
 extra_files_directory: ./var
 before:
   - type: user_import
@@ -212,6 +217,11 @@ steps:
 name: MFA not required by authentication.post_identified in reauth
 authgear.yaml:
   override: |
+    authentication:
+      secondary_authenticators:
+        - totp
+        - oob_otp_sms
+        - oob_otp_email
     hook:
       blocking_handlers:
       - event: authentication.post_identified
@@ -228,11 +238,6 @@ authgear.yaml:
             type: authenticate
             one_of:
             - authentication: primary_password
-          - name: reauthenticate_sms
-            type: authenticate
-            show_until_amr_constraints_fulfilled: true
-            one_of:
-            - authentication: secondary_oob_otp_sms
 extra_files_directory: ./var
 before:
   - type: user_import

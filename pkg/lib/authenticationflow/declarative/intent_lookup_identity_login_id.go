@@ -9,6 +9,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/stringutil"
@@ -19,9 +20,9 @@ func init() {
 }
 
 type IntentLookupIdentityLoginID struct {
-	JSONPointer    jsonpointer.T                           `json:"json_pointer,omitempty"`
-	Identification config.AuthenticationFlowIdentification `json:"identification,omitempty"`
-	SyntheticInput *InputStepIdentify                      `json:"synthetic_input,omitempty"`
+	JSONPointer    jsonpointer.T                          `json:"json_pointer,omitempty"`
+	Identification model.AuthenticationFlowIdentification `json:"identification,omitempty"`
+	SyntheticInput *InputStepIdentify                     `json:"synthetic_input,omitempty"`
 }
 
 var _ authflow.Intent = &IntentLookupIdentityLoginID{}
@@ -34,7 +35,7 @@ func (*IntentLookupIdentityLoginID) Kind() string {
 }
 
 func (*IntentLookupIdentityLoginID) Milestone() {}
-func (n *IntentLookupIdentityLoginID) MilestoneIdentificationMethod() config.AuthenticationFlowIdentification {
+func (n *IntentLookupIdentityLoginID) MilestoneIdentificationMethod() model.AuthenticationFlowIdentification {
 	return n.Identification
 }
 

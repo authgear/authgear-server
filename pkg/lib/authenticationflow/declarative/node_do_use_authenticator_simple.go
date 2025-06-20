@@ -1,6 +1,7 @@
 package declarative
 
 import (
+	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -33,6 +34,14 @@ func (n *NodeDoUseAuthenticatorSimple) MilestoneDidAuthenticate() (amr []string)
 }
 func (n *NodeDoUseAuthenticatorSimple) MilestoneDidAuthenticateAuthenticator() (*authenticator.Info, bool) {
 	return n.Authenticator, true
+}
+func (n *NodeDoUseAuthenticatorSimple) MilestoneDidAuthenticateAuthentication() (*model.Authentication, bool) {
+	authn := n.Authenticator.ToAuthentication()
+	authnModel := n.Authenticator.ToModel()
+	return &model.Authentication{
+		Authentication: authn,
+		Authenticator:  &authnModel,
+	}, true
 }
 func (n *NodeDoUseAuthenticatorSimple) MilestoneDidUseAuthenticationLockoutMethod() (config.AuthenticationLockoutMethod, bool) {
 	return config.AuthenticationLockoutMethodFromAuthenticatorType(n.Authenticator.Type)
