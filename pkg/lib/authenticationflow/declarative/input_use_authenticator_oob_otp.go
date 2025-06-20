@@ -31,12 +31,28 @@ func (i *InputSchemaUseAuthenticatorOOBOTP) GetFlowRootObject() config.Authentic
 }
 
 func (i *InputSchemaUseAuthenticatorOOBOTP) SchemaBuilder() validation.SchemaBuilder {
-	indice := []int{}
-	b := validation.SchemaBuilder{}.
-		Type(validation.TypeObject)
+	optionSchemaPairs := []struct {
+		index  int
+		schema validation.SchemaBuilder
+	}{}
+
 	for index, option := range i.Options {
 		index := index
 		option := option
+
+		addPair := func() {
+			optionSchema := validation.SchemaBuilder{}
+			if !i.ShouldBypassBotProtection && i.BotProtectionCfg != nil && option.isBotProtectionRequired() {
+				optionSchema = AddBotProtectionToExistingSchemaBuilder(optionSchema, i.BotProtectionCfg)
+			}
+			optionSchemaPairs = append(optionSchemaPairs, struct {
+				index  int
+				schema validation.SchemaBuilder
+			}{
+				index:  index,
+				schema: optionSchema,
+			})
+		}
 
 		switch option.Authentication {
 		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
@@ -46,19 +62,30 @@ func (i *InputSchemaUseAuthenticatorOOBOTP) SchemaBuilder() validation.SchemaBui
 		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
 			fallthrough
 		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
-			indice = append(indice, index)
+			addPair()
 		default:
 			break
 		}
-		if !i.ShouldBypassBotProtection && i.BotProtectionCfg != nil && option.isBotProtectionRequired() {
-			b = AddBotProtectionToExistingSchemaBuilder(b, i.BotProtectionCfg)
-		}
+	}
+
+	b := validation.SchemaBuilder{}.
+		Type(validation.TypeObject)
+	indice := []int{}
+	allOfs := []validation.SchemaBuilder{}
+	for _, pair := range optionSchemaPairs {
+		indice = append(indice, pair.index)
+		if_ := validation.SchemaBuilder{}
+		if_.Properties().Property("index", validation.SchemaBuilder{}.Const(pair.index))
+		ifSchema := validation.SchemaBuilder{}
+		ifSchema.If(if_).Then(pair.schema)
+		allOfs = append(allOfs, ifSchema)
 	}
 
 	b.Properties().Property("index", validation.SchemaBuilder{}.
 		Type(validation.TypeInteger).
 		Enum(slice.Cast[int, interface{}](indice)...),
 	)
+	b.AllOf(allOfs...)
 
 	return b
 }

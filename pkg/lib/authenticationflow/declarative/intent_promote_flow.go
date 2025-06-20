@@ -61,20 +61,22 @@ func (i *IntentPromoteFlow) CanReactTo(ctx context.Context, deps *authflow.Depen
 func (i *IntentPromoteFlow) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (authflow.ReactToResult, error) {
 	switch {
 	case len(flows.Nearest.Nodes) == 0:
+		return NewNodePreInitialize(ctx, deps, flows)
+	case len(flows.Nearest.Nodes) == 1:
 		node, err := NewNodeDoUseAnonymousUser(ctx, deps)
 		if err != nil {
 			return nil, err
 		}
 		return authflow.NewNodeSimple(node), nil
-	case len(flows.Nearest.Nodes) == 1:
+	case len(flows.Nearest.Nodes) == 2:
 		return authflow.NewSubFlow(&IntentPromoteFlowSteps{
 			FlowReference: i.FlowReference,
 			JSONPointer:   i.JSONPointer,
 			UserID:        i.userID(flows),
 		}), nil
-	case len(flows.Nearest.Nodes) == 2:
-		return NewNodePreAuthenticateNodeSimple(ctx, deps, flows)
 	case len(flows.Nearest.Nodes) == 3:
+		return NewNodePreAuthenticateNodeSimple(ctx, deps, flows)
+	case len(flows.Nearest.Nodes) == 4:
 		i, err := NewIntentSignupFlowEnsureConstraintsFulfilled(ctx, deps, flows, &IntentSignupFlowEnsureConstraintsFulfilledOptions{
 			UserID:        i.userID(flows),
 			FlowReference: i.FlowReference,
@@ -83,7 +85,7 @@ func (i *IntentPromoteFlow) ReactTo(ctx context.Context, deps *authflow.Dependen
 			return nil, err
 		}
 		return authflow.NewSubFlow(i), nil
-	case len(flows.Nearest.Nodes) == 4:
+	case len(flows.Nearest.Nodes) == 5:
 		n, err := NewNodeDoCreateSession(ctx, deps, flows, &NodeDoCreateSession{
 			UserID:       i.userID(flows),
 			CreateReason: session.CreateReasonPromote,
