@@ -29,6 +29,8 @@
       {{ $error_reason := index .Error.info.reasons 0 }}
       {{ if $error_reason.title }}
         {{ $title = $error_reason.title }}
+      {{ else }}
+        {{ $title = (include "v2.page.fatal-error.webhook-disallowed.title" (dict "FlowType" .Error.info.FlowType)) }}
       {{ end }}
     {{ end }}
   {{ end }}
@@ -56,7 +58,7 @@
       {{ if $error_reason.reason }}
         {{ $error_message = $error_reason.reason }}
       {{ else }}
-        {{ $error_message = (include "v2.error.webhook-disallowed" nil) }}
+        {{ $error_message = (include "v2.page.fatal-error.webhook-disallowed.description" (dict "FlowType" .Error.info.FlowType)) }}
       {{ end }}
     {{ end }}
   {{ end }}
