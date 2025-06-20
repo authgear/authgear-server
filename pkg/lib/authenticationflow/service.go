@@ -197,11 +197,11 @@ func (s *Service) createNewFlow(ctx context.Context, session *Session, publicFlo
 
 	// Feed an nil input to the flow to let it proceed.
 	var rawMessage json.RawMessage
-	var acceptResult *AcceptResult = NewAcceptResult()
 	var shouldAccept = true
 	for shouldAccept {
 		shouldAccept = false
 		flows := NewFlows(flow)
+		var acceptResult *AcceptResult = NewAcceptResult()
 		err = s.Database.ReadOnly(ctx, func(ctx context.Context) error {
 			err = Accept(ctx, s.Deps, flows, acceptResult, rawMessage)
 			isEOF := errors.Is(err, ErrEOF)
