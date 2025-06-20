@@ -309,6 +309,11 @@ type MilestoneConstraintsProvider interface {
 	MilestoneConstraintsProvider() *event.Constraints
 }
 
+type MilestoneBotProjectionRequirementsProvider interface {
+	authflow.Milestone
+	MilestoneBotProjectionRequirementsProvider() *event.BotProtectionRequirements
+}
+
 type MilestoneDidConsumeRecoveryCode interface {
 	authflow.Milestone
 	MilestoneDidConsumeRecoveryCode() *mfa.RecoveryCode
@@ -317,4 +322,9 @@ type MilestoneDidConsumeRecoveryCode interface {
 type MilestoneAuthenticationFlowObjectProvider interface {
 	authflow.Milestone
 	MilestoneAuthenticationFlowObjectProvider() config.AuthenticationFlowObject
+}
+
+type MilestonePreAuthenticated interface {
+	authflow.Milestone
+	MilestonePreAuthenticated()
 }

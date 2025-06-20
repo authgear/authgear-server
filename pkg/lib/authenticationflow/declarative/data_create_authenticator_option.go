@@ -132,7 +132,7 @@ func NewCreateAuthenticationOptions(
 				CreateAuthenticatorOption: CreateAuthenticatorOption{
 					Authentication: b.GetAuthentication(),
 					PasswordPolicy: passwordPolicy,
-					BotProtection:  GetBotProtectionData(b.GetBotProtectionConfig(), deps.Config.BotProtection),
+					BotProtection:  GetBotProtectionData(flows, b.GetBotProtectionConfig(), deps.Config.BotProtection),
 				},
 				AMR: authenticator.AMR(model.AuthenticatorTypePassword),
 			})
@@ -159,7 +159,7 @@ func NewCreateAuthenticationOptions(
 					OTPForm:        otpForm,
 					Channels:       channels,
 					Target:         target,
-					BotProtection:  GetBotProtectionData(b.GetBotProtectionConfig(), deps.Config.BotProtection),
+					BotProtection:  GetBotProtectionData(flows, b.GetBotProtectionConfig(), deps.Config.BotProtection),
 				},
 				UnmaskedTarget: unmaskedTarget,
 				AMR:            authenticator.AMR(model.AuthenticatorTypeOOBEmail),
@@ -184,7 +184,7 @@ func NewCreateAuthenticationOptions(
 					OTPForm:        otpForm,
 					Channels:       channels,
 					Target:         target,
-					BotProtection:  GetBotProtectionData(b.GetBotProtectionConfig(), deps.Config.BotProtection),
+					BotProtection:  GetBotProtectionData(flows, b.GetBotProtectionConfig(), deps.Config.BotProtection),
 				},
 				UnmaskedTarget: unmaskedTarget,
 				AMR:            authenticator.AMR(model.AuthenticatorTypeOOBSMS),
@@ -193,7 +193,7 @@ func NewCreateAuthenticationOptions(
 			options = append(options, CreateAuthenticatorOptionInternal{
 				CreateAuthenticatorOption: CreateAuthenticatorOption{
 					Authentication: b.GetAuthentication(),
-					BotProtection:  GetBotProtectionData(b.GetBotProtectionConfig(), deps.Config.BotProtection),
+					BotProtection:  GetBotProtectionData(flows, b.GetBotProtectionConfig(), deps.Config.BotProtection),
 				},
 				AMR: authenticator.AMR(model.AuthenticatorTypeTOTP),
 			})

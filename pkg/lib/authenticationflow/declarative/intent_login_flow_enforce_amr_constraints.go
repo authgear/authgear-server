@@ -2,7 +2,6 @@ package declarative
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
@@ -13,16 +12,16 @@ import (
 )
 
 func init() {
-	authflow.RegisterIntent(&IntentLoginFlowEnsureConstraintsFulfilled{})
+	authflow.RegisterIntent(&IntentLoginFlowEnforceAMRConstraints{})
 }
 
-type IntentLoginFlowEnsureConstraintsFulfilled struct {
+type IntentLoginFlowEnforceAMRConstraints struct {
 	FlowObject    *config.AuthenticationFlowLoginFlowStep `json:"flow_object"`
 	FlowReference authenticationflow.FlowReference        `json:"flow_reference,omitempty"`
 	JSONPointer   jsonpointer.T                           `json:"json_pointer,omitempty"`
 }
 
-func NewIntentLoginFlowEnsureConstraintsFulfilled(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows, flowRef authenticationflow.FlowReference) (*IntentLoginFlowEnsureConstraintsFulfilled, error) {
+func NewIntentLoginFlowEnforceAMRConstraints(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows, flowRef authenticationflow.FlowReference) (*IntentLoginFlowEnforceAMRConstraints, error) {
 	var oneOfs []*config.AuthenticationFlowLoginFlowOneOf
 
 	addOneOf := func(am config.AuthenticationFlowAuthentication, bpGetter func(*config.AppConfig) (*config.AuthenticationFlowBotProtection, bool)) {
@@ -59,53 +58,62 @@ func NewIntentLoginFlowEnsureConstraintsFulfilled(ctx context.Context, deps *aut
 		})
 	}
 
-	trueValue := true
 	// Generate a temporary config for this step only
 	flowObject := &config.AuthenticationFlowLoginFlowStep{
-		Type:                             config.AuthenticationFlowLoginFlowStepTypeAuthenticate,
-		OneOf:                            oneOfs,
-		ShowUntilAMRConstraintsFulfilled: &trueValue,
+		Type:  config.AuthenticationFlowLoginFlowStepTypeAuthenticate,
+		OneOf: oneOfs,
 	}
 
-	return &IntentLoginFlowEnsureConstraintsFulfilled{
+	return &IntentLoginFlowEnforceAMRConstraints{
 		FlowReference: flowRef,
 		FlowObject:    flowObject,
 		JSONPointer:   jsonpointer.T{},
 	}, nil
 }
 
-var _ authenticationflow.Intent = &IntentLoginFlowEnsureConstraintsFulfilled{}
-var _ authenticationflow.Milestone = &IntentLoginFlowEnsureConstraintsFulfilled{}
-var _ MilestoneAuthenticationFlowObjectProvider = &IntentLoginFlowEnsureConstraintsFulfilled{}
+var _ authenticationflow.Intent = &IntentLoginFlowEnforceAMRConstraints{}
+var _ authenticationflow.Milestone = &IntentLoginFlowEnforceAMRConstraints{}
+var _ MilestoneAuthenticationFlowObjectProvider = &IntentLoginFlowEnforceAMRConstraints{}
 
-func (*IntentLoginFlowEnsureConstraintsFulfilled) Kind() string {
-	return "IntentLoginFlowEnsureConstraintsFulfilled"
+func (*IntentLoginFlowEnforceAMRConstraints) Kind() string {
+	return "IntentLoginFlowEnforceAMRConstraints"
 }
 
-func (i *IntentLoginFlowEnsureConstraintsFulfilled) CanReactTo(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows) (authenticationflow.InputSchema, error) {
-	switch len(flows.Nearest.Nodes) {
-	case 0:
-		return nil, nil
-	case 1:
+func (i *IntentLoginFlowEnforceAMRConstraints) CanReactTo(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows) (authenticationflow.InputSchema, error) {
+	remainingAMRs, err := RemainingAMRConstraintsInFlow(ctx, deps, flows)
+	if err != nil {
+		return nil, err
+	}
+	// No remaining AMRs, end
+	if len(remainingAMRs) == 0 {
 		return nil, authflow.ErrEOF
 	}
-	panic(fmt.Errorf("unexpected number of nodes"))
+	// Let ReactTo create sub-authenticate steps
+	return nil, nil
 }
 
-func (i *IntentLoginFlowEnsureConstraintsFulfilled) ReactTo(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows, input authenticationflow.Input) (authenticationflow.ReactToResult, error) {
+func (i *IntentLoginFlowEnforceAMRConstraints) ReactTo(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows, input authenticationflow.Input) (authenticationflow.ReactToResult, error) {
 	stepAuthenticate, err := NewIntentLoginFlowStepAuthenticate(ctx, deps, flows, &IntentLoginFlowStepAuthenticate{
 		FlowReference: i.FlowReference,
 		StepName:      "",
-		JSONPointer:   i.JSONPointer,
+		JSONPointer:   nil,
 		UserID:        i.userID(flows),
 	}, i)
 	if err != nil {
 		return nil, err
 	}
+	remainingAMRs, err := RemainingAMRConstraintsInFlow(ctx, deps, flows)
+	if err != nil {
+		return nil, err
+	}
+
+	// The subflow should only contain options that can fulfill remaining amr
+	newOptions := filterAMROptionsByAMRConstraint(stepAuthenticate.Options, remainingAMRs)
+	stepAuthenticate.Options = newOptions
 	return authflow.NewSubFlow(stepAuthenticate), nil
 }
 
-func (*IntentLoginFlowEnsureConstraintsFulfilled) userID(flows authflow.Flows) string {
+func (*IntentLoginFlowEnforceAMRConstraints) userID(flows authflow.Flows) string {
 	userID, err := getUserID(flows)
 	if err != nil {
 		panic(err)
@@ -113,11 +121,11 @@ func (*IntentLoginFlowEnsureConstraintsFulfilled) userID(flows authflow.Flows) s
 	return userID
 }
 
-func (i *IntentLoginFlowEnsureConstraintsFulfilled) Milestone() {
+func (i *IntentLoginFlowEnforceAMRConstraints) Milestone() {
 	return
 }
 
 // This is needed so that the child authenticate intents display a correct flow action
-func (i *IntentLoginFlowEnsureConstraintsFulfilled) MilestoneAuthenticationFlowObjectProvider() config.AuthenticationFlowObject {
+func (i *IntentLoginFlowEnforceAMRConstraints) MilestoneAuthenticationFlowObjectProvider() config.AuthenticationFlowObject {
 	return i.FlowObject
 }

@@ -44,9 +44,8 @@ type IntentSignupFlowStepCreateAuthenticator struct {
 	UserID                 string                 `json:"user_id,omitempty"`
 	IsUpdatingExistingUser bool                   `json:"is_updating_existing_user,omitempty"`
 
-	Options                          []CreateAuthenticatorOptionInternal `json:"options,omitempty"`
-	ShowUntilAMRConstraintsFulfilled bool                                `json:"show_until_amr_constraints_fulfilled,omitempty"`
-	CannotBeSkipped                  bool                                `json:"cannot_be_skipped,omitempty"`
+	Options         []CreateAuthenticatorOptionInternal `json:"options,omitempty"`
+	CannotBeSkipped bool                                `json:"cannot_be_skipped,omitempty"`
 }
 
 func NewIntentSignupFlowStepCreateAuthenticator(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, i *IntentSignupFlowStepCreateAuthenticator, originNode authflow.NodeOrIntent) (*IntentSignupFlowStepCreateAuthenticator, error) {
@@ -60,9 +59,6 @@ func NewIntentSignupFlowStepCreateAuthenticator(ctx context.Context, deps *authf
 		return nil, err
 	}
 	i.Options = options
-	if step.IsShowUntilAMRConstraintsFulfilled() {
-		i.ShowUntilAMRConstraintsFulfilled = true
-	}
 	return i, nil
 }
 
@@ -121,19 +117,6 @@ func (i *IntentSignupFlowStepCreateAuthenticator) CanReactTo(ctx context.Context
 		return nil, authflow.ErrEOF
 	}
 
-	if i.ShowUntilAMRConstraintsFulfilled {
-		remainingAMRs, err := RemainingAMRConstraintsInFlow(ctx, deps, flows)
-		if err != nil {
-			return nil, err
-		}
-		// No remaining AMRs, end
-		if len(remainingAMRs) == 0 {
-			return nil, authflow.ErrEOF
-		}
-		// Let ReactTo create sub-authenticate steps
-		return nil, nil
-	}
-
 	if len(flows.Nearest.Nodes) == 0 && i.IsUpdatingExistingUser {
 		option, _, _, err := i.findSkippableOption(ctx, deps, flows)
 		if err != nil {
@@ -180,9 +163,6 @@ func (i *IntentSignupFlowStepCreateAuthenticator) CanReactTo(ctx context.Context
 }
 
 func (i *IntentSignupFlowStepCreateAuthenticator) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (authflow.ReactToResult, error) {
-	if i.ShowUntilAMRConstraintsFulfilled {
-		return i.newIntentSignupFlowStepCreateAuthenticatorForAMRConstraint(ctx, deps, flows)
-	}
 
 	if len(flows.Nearest.Nodes) == 0 && i.IsUpdatingExistingUser {
 		option, idx, authn, err := i.findSkippableOption(ctx, deps, flows)
@@ -444,54 +424,4 @@ func (i *IntentSignupFlowStepCreateAuthenticator) findAuthenticatorByOption(in [
 		return findTOTP(in, authenticator.KindSecondary)
 	}
 	return nil
-}
-
-func (i *IntentSignupFlowStepCreateAuthenticator) newIntentSignupFlowStepCreateAuthenticatorForAMRConstraint(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.ReactToResult, error) {
-	current, err := i.currentFlowObject(deps, flows, i)
-	if err != nil {
-		return nil, err
-	}
-	step := i.step(current)
-	subintent := i.clone()
-	remainingAMRs, err := RemainingAMRConstraintsInFlow(ctx, deps, flows)
-	if err != nil {
-		return nil, err
-	}
-	// The subflow should not check constraints again
-	subintent.ShowUntilAMRConstraintsFulfilled = false
-	// This step cannot be skipped to ensure amr constraints are all fulfilled
-	subintent.CannotBeSkipped = true
-
-	options, err := NewCreateAuthenticationOptions(ctx, deps, flows, step, i.UserID)
-	if err != nil {
-		return nil, err
-	}
-	// The subflow should only contain options that can fulfill remaining amr
-	newOptions := filterAMROptionsByAMRConstraint(options, remainingAMRs)
-	subintent.Options = newOptions
-	return authflow.NewSubFlow(subintent), nil
-}
-
-func (i *IntentSignupFlowStepCreateAuthenticator) clone() *IntentSignupFlowStepCreateAuthenticator {
-	s := struct {
-		FlowReference                    authflow.FlowReference
-		JSONPointer                      jsonpointer.T
-		StepName                         string
-		UserID                           string
-		IsUpdatingExistingUser           bool
-		Options                          []CreateAuthenticatorOptionInternal
-		ShowUntilAMRConstraintsFulfilled bool
-		CannotBeSkipped                  bool
-	}{
-		FlowReference:                    i.FlowReference,
-		JSONPointer:                      i.JSONPointer,
-		StepName:                         i.StepName,
-		UserID:                           i.UserID,
-		IsUpdatingExistingUser:           i.IsUpdatingExistingUser,
-		Options:                          i.Options,
-		ShowUntilAMRConstraintsFulfilled: i.ShowUntilAMRConstraintsFulfilled,
-		CannotBeSkipped:                  i.CannotBeSkipped,
-	}
-	cloned := IntentSignupFlowStepCreateAuthenticator(s)
-	return &cloned
 }
