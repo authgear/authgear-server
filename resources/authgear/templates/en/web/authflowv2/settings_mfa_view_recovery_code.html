@@ -4,6 +4,7 @@
   {{ template "authflowv2/__navbar.html"
      (dict
         "Title" (translate "v2.page.settings-mfa-view-recovery-code.default.title" nil)
+        "BackHref" (call $.MakeURL "/settings/mfa")
         "Context" .
      )
   }}
