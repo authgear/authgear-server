@@ -1,6 +1,7 @@
 package declarative
 
 import (
+	"context"
 	"encoding/json"
 	"testing"
 
@@ -23,11 +24,19 @@ func TestInputSchemaLoginFlowStepAuthenticate(t *testing.T) {
 {
     "type": "object",
     "properties": {
+        "authentication": {
+            "enum": [
+                []
+            ]
+        },
         "request_device_token": {
             "const": false,
             "type": "boolean"
         }
-    }
+    },
+    "required": [
+        "authentication"
+    ]
 }
 `)
 		})
@@ -39,10 +48,18 @@ func TestInputSchemaLoginFlowStepAuthenticate(t *testing.T) {
 {
     "type": "object",
     "properties": {
+        "authentication": {
+            "enum": [
+                []
+            ]
+        },
         "request_device_token": {
             "type": "boolean"
         }
-    }
+    },
+    "required": [
+        "authentication"
+    ]
 }
 `)
 		})
@@ -1023,6 +1040,26 @@ func TestInputSchemaLoginFlowStepAuthenticate(t *testing.T) {
     ]
 }
 `)
+		})
+
+		Convey("should reject any input when no options", func() {
+			var dummyBotProtectionCfg = &config.BotProtectionConfig{
+				Enabled: true,
+				Provider: &config.BotProtectionProvider{
+					Type: config.BotProtectionProviderTypeCloudflare,
+				},
+			}
+			var input = &InputSchemaLoginFlowStepAuthenticate{
+				BotProtectionCfg: dummyBotProtectionCfg,
+				Options:          []AuthenticateOption{},
+			}
+			inputJson := `
+                {
+                    "authentication": "primary_password"
+                }
+            `
+			_, err := input.MakeInput(context.Background(), json.RawMessage(inputJson))
+			So(err, ShouldBeError, "invalid value:\n/authentication: enum\n  map[actual:primary_password expected:[[]]]")
 		})
 	})
 }

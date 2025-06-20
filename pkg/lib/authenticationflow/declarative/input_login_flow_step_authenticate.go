@@ -121,6 +121,9 @@ func (i *InputSchemaLoginFlowStepAuthenticate) SchemaBuilder() validation.Schema
 
 	if len(oneOf) > 0 {
 		b.OneOf(oneOf...)
+	} else {
+		b.Properties().Property("authentication", validation.SchemaBuilder{}.Enum([]interface{}{}))
+		b.AddRequired("authentication")
 	}
 
 	deviceToken := validation.SchemaBuilder{}.
