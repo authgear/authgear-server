@@ -14,7 +14,20 @@ import (
 var HookResponseSchema *validation.MultipartSchema
 
 func init() {
-	var supportedAMRConstraints = []string{model.AMRMFA, model.AMROTP, model.AMRPWD, model.AMRSMS}
+	var supportedAMRConstraints = []string{
+		model.AMRMFA,
+		model.AMROTP,
+		model.AMRPWD,
+		model.AMRSMS,
+		model.AMRXPrimaryOOBOTPEmail,
+		model.AMRXPrimaryOOBOTPSMS,
+		model.AMRXPrimaryPassword,
+		model.AMRXRecoveryCode,
+		model.AMRXSecondaryOOBOTPEmail,
+		model.AMRXSecondaryOOBOTPSMS,
+		model.AMRXSecondaryPassword,
+		model.AMRXSecondaryTOTP,
+	}
 	supportedAMRConstraintsJSON, err := json.Marshal(supportedAMRConstraints)
 	if err != nil {
 		panic(err)
