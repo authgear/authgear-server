@@ -30,7 +30,7 @@ func NewGlobalStorageRedis(redis *globalredis.Handle) *StorageRedis {
 func (s *StorageRedis) Update(ctx context.Context, key string, period time.Duration, burst int, delta int) (ok bool, timeToAct time.Time, err error) {
 	err = s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
 		result, err := gcra(ctx, conn,
-			key, period, burst, delta,
+			key, period, burst, float64(delta),
 		)
 		if err != nil {
 			return err
