@@ -6,6 +6,7 @@ import (
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
 	"github.com/authgear/authgear-server/pkg/api/event"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
@@ -107,7 +108,7 @@ type MilestoneNestedSteps interface {
 
 type MilestoneIdentificationMethod interface {
 	authflow.Milestone
-	MilestoneIdentificationMethod() config.AuthenticationFlowIdentification
+	MilestoneIdentificationMethod() model.AuthenticationFlowIdentification
 }
 
 type MilestoneFlowSelectAuthenticationMethod interface {
@@ -117,7 +118,7 @@ type MilestoneFlowSelectAuthenticationMethod interface {
 
 type MilestoneDidSelectAuthenticationMethod interface {
 	authflow.Milestone
-	MilestoneDidSelectAuthenticationMethod() config.AuthenticationFlowAuthentication
+	MilestoneDidSelectAuthenticationMethod() model.AuthenticationFlowAuthentication
 }
 
 type MilestoneFlowAuthenticate interface {
@@ -129,6 +130,7 @@ type MilestoneDidAuthenticate interface {
 	authflow.Milestone
 	MilestoneDidAuthenticate() (amr []string)
 	MilestoneDidAuthenticateAuthenticator() (*authenticator.Info, bool)
+	MilestoneDidAuthenticateAuthentication() (*model.Authentication, bool)
 }
 
 type MilestoneDoCreateSession interface {
@@ -156,6 +158,7 @@ type MilestoneFlowAccountLinking interface {
 type MilestoneDoCreateIdentity interface {
 	authflow.Milestone
 	MilestoneDoCreateIdentity() *identity.Info
+	MilestoneDoCreateIdentityIdentification() model.Identification
 	MilestoneDoCreateIdentitySkipCreate()
 	MilestoneDoCreateIdentityUpdate(newInfo *identity.Info)
 }
@@ -168,6 +171,7 @@ type MilestoneFlowCreateAuthenticator interface {
 type MilestoneDoCreateAuthenticator interface {
 	authflow.Milestone
 	MilestoneDoCreateAuthenticator() (*authenticator.Info, bool)
+	MilestoneDoCreateAuthenticatorAuthentication() (*model.Authentication, bool)
 	MilestoneDoCreateAuthenticatorSkipCreate()
 	MilestoneDoCreateAuthenticatorUpdate(newInfo *authenticator.Info)
 }
@@ -190,6 +194,7 @@ type MilestoneFlowUseIdentity interface {
 type MilestoneDoUseIdentity interface {
 	authflow.Milestone
 	MilestoneDoUseIdentity() *identity.Info
+	MilestoneDoUseIdentityIdentification() model.Identification
 }
 
 type MilestoneDoUseAccountRecoveryIdentity interface {

@@ -3,6 +3,7 @@ package declarative
 import (
 	"context"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
@@ -92,6 +93,9 @@ func (n *NodeDoUseIdentityPasskey) MilestoneDoUseUser() string {
 func (n *NodeDoUseIdentityPasskey) MilestoneDoUseIdentity() *identity.Info {
 	return n.NodeDoUseIdentity.MilestoneDoUseIdentity()
 }
+func (n *NodeDoUseIdentityPasskey) MilestoneDoUseIdentityIdentification() model.Identification {
+	return n.NodeDoUseIdentity.MilestoneDoUseIdentityIdentification()
+}
 func (n *NodeDoUseIdentityPasskey) MilestoneDidSelectAuthenticator() *authenticator.Info {
 	return n.Authenticator
 }
@@ -105,4 +109,12 @@ func (n *NodeDoUseIdentityPasskey) MilestoneGetIdentitySpecs() []*identity.Spec 
 
 func (n *NodeDoUseIdentityPasskey) MilestoneDidAuthenticateAuthenticator() (*authenticator.Info, bool) {
 	return n.Authenticator, true
+}
+func (n *NodeDoUseIdentityPasskey) MilestoneDidAuthenticateAuthentication() (*model.Authentication, bool) {
+	authn := n.Authenticator.ToAuthentication()
+	authnModel := n.Authenticator.ToModel()
+	return &model.Authentication{
+		Authentication: authn,
+		Authenticator:  &authnModel,
+	}, true
 }

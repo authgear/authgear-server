@@ -8,7 +8,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 func init() {
@@ -16,17 +15,13 @@ func init() {
 }
 
 type NodePostIdentifiedOptions struct {
-	Identity       *model.Identity
-	IDToken        *string
-	Identification config.AuthenticationFlowIdentification
+	Identification model.Identification
 }
 
 func NewNodePostIdentified(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, opts *NodePostIdentifiedOptions) (authflow.ReactToResult, error) {
 
 	n := &NodePostIdentified{
-		Identity:       opts.Identity,
-		IDToken:        opts.IDToken,
-		Identification: opts.Identification,
+		Identification: &opts.Identification,
 	}
 
 	authCtx, err := GetAuthenticationContext(ctx, deps, flows)
@@ -35,10 +30,8 @@ func NewNodePostIdentified(ctx context.Context, deps *authflow.Dependencies, flo
 	}
 
 	payload := &blocking.AuthenticationPostIdentifiedBlockingEventPayload{
-		Identity:       n.Identity,
-		IDToken:        n.IDToken,
-		Identification: config.AuthenticationFlowIdentificationIDToken,
-		Authentication: *authCtx,
+		Identification:        *n.Identification,
+		AuthenticationContext: *authCtx,
 
 		Constraints:               nil,
 		BotProtectionRequirements: nil,
@@ -66,9 +59,7 @@ func NewNodePostIdentified(ctx context.Context, deps *authflow.Dependencies, flo
 }
 
 type NodePostIdentified struct {
-	Identity       *model.Identity                         `json:"identity"`
-	IDToken        *string                                 `json:"id_token"`
-	Identification config.AuthenticationFlowIdentification `json:"identification"`
+	Identification *model.Identification `json:"identification"`
 
 	IsPostIdentifiedInvoked   bool                                `json:"is_post_identified_invoked"`
 	Constraints               *eventapi.Constraints               `json:"constraints,omitempty"`

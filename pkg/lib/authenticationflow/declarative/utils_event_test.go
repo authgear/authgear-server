@@ -200,11 +200,22 @@ func TestGetAuthenticationContext(t *testing.T) {
 			So(result.AuthenticationFlow.Name, ShouldEqual, "test")
 			So(result.User, ShouldResemble, testUser)
 			So(result.AMR, ShouldResemble, []string{"mfa", "otp", "pwd"})
-			So(result.AssertedAuthenticators, ShouldHaveLength, 2)
-			So(result.AssertedAuthenticators, ShouldContain, assertedAuthenticator.ToModel())
-			So(result.AssertedAuthenticators, ShouldContain, assertedAuthenticator2.ToModel())
-			So(result.AssertedIdentities, ShouldHaveLength, 1)
-			So(result.AssertedIdentities[0], ShouldResemble, assertedIdentity.ToModel())
+			So(result.AssertedAuthentications, ShouldHaveLength, 2)
+			So(result.AssertedAuthentications, ShouldContain, model.Authentication{
+				Authentication: model.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail,
+				Authenticator:  func() *model.Authenticator { a := assertedAuthenticator.ToModel(); return &a }(),
+			})
+			So(result.AssertedAuthentications, ShouldContain, model.Authentication{
+				Authentication: model.AuthenticationFlowAuthenticationPrimaryPassword,
+				Authenticator:  func() *model.Authenticator { a := assertedAuthenticator2.ToModel(); return &a }(),
+			})
+			So(result.AssertedIdentifications, ShouldHaveLength, 1)
+			idModel := assertedIdentity.ToModel()
+			So(result.AssertedIdentifications[0], ShouldResemble, model.Identification{
+				Identification: assertedIdentity.ToIdentification(),
+				Identity:       &idModel,
+				IDToken:        nil,
+			})
 
 		})
 
@@ -352,10 +363,18 @@ func TestGetAuthenticationContext(t *testing.T) {
 			So(result.AuthenticationFlow.Name, ShouldEqual, "test_signup")
 			So(result.User, ShouldResemble, user)
 			So(result.AMR, ShouldResemble, []string{"pwd"})
-			So(result.AssertedAuthenticators, ShouldHaveLength, 1)
-			So(result.AssertedAuthenticators[0], ShouldResemble, assertedAuthenticator.ToModel())
-			So(result.AssertedIdentities, ShouldHaveLength, 1)
-			So(result.AssertedIdentities[0], ShouldResemble, assertedIdentity.ToModel())
+			So(result.AssertedAuthentications, ShouldHaveLength, 1)
+			So(result.AssertedAuthentications[0], ShouldResemble, model.Authentication{
+				Authentication: model.AuthenticationFlowAuthenticationPrimaryPassword,
+				Authenticator:  func() *model.Authenticator { a := assertedAuthenticator.ToModel(); return &a }(),
+			})
+			So(result.AssertedIdentifications, ShouldHaveLength, 1)
+			idModel := assertedIdentity.ToModel()
+			So(result.AssertedIdentifications[0], ShouldResemble, model.Identification{
+				Identification: assertedIdentity.ToIdentification(),
+				Identity:       &idModel,
+				IDToken:        nil,
+			})
 
 		})
 	})

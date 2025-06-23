@@ -5,11 +5,11 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
@@ -43,7 +43,7 @@ func NewAuthflowV2UsePasskeyViewModel(s *webapp.Session, screen *webapp.Authflow
 	}
 
 	// Ignore error, bpRequire would be false
-	bpRequired, _ := webapp.IsAuthenticateStepBotProtectionRequired(config.AuthenticationFlowAuthenticationPrimaryPasskey, screen.StateTokenFlowResponse)
+	bpRequired, _ := webapp.IsAuthenticateStepBotProtectionRequired(model.AuthenticationFlowAuthenticationPrimaryPasskey, screen.StateTokenFlowResponse)
 
 	return &AuthflowV2UsePasskeyViewModel{
 		AutoExecute:               true,
@@ -125,7 +125,7 @@ func (h *AuthflowV2UsePasskeyHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 			"assertion_response": assertionResponseJSON,
 		}
 
-		err = handlerwebapp.HandleAuthenticationBotProtection(ctx, config.AuthenticationFlowAuthenticationPrimaryPasskey, screen.StateTokenFlowResponse, r.Form, input)
+		err = handlerwebapp.HandleAuthenticationBotProtection(ctx, model.AuthenticationFlowAuthenticationPrimaryPasskey, screen.StateTokenFlowResponse, r.Form, input)
 		if err != nil {
 			return err
 		}

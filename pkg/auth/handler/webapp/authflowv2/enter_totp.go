@@ -4,10 +4,10 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -47,7 +47,7 @@ type AuthflowV2EnterTOTPHandler struct {
 
 func NewAuthflowV2EnterTOTPViewModel(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) AuthflowV2EnterTOTPViewModel {
 	// Ignore error, bpRequire would be false
-	bpRequired, _ := webapp.IsAuthenticateStepBotProtectionRequired(config.AuthenticationFlowAuthenticationSecondaryTOTP, screen.StateTokenFlowResponse)
+	bpRequired, _ := webapp.IsAuthenticateStepBotProtectionRequired(model.AuthenticationFlowAuthenticationSecondaryTOTP, screen.StateTokenFlowResponse)
 
 	return AuthflowV2EnterTOTPViewModel{
 		IsBotProtectionRequired: bpRequired,
@@ -102,12 +102,12 @@ func (h *AuthflowV2EnterTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 		requestDeviceToken := r.Form.Get("x_device_token") == "true"
 
 		input := map[string]interface{}{
-			"authentication":       config.AuthenticationFlowAuthenticationSecondaryTOTP,
+			"authentication":       model.AuthenticationFlowAuthenticationSecondaryTOTP,
 			"code":                 code,
 			"request_device_token": requestDeviceToken,
 		}
 
-		err = handlerwebapp.HandleAuthenticationBotProtection(ctx, config.AuthenticationFlowAuthenticationSecondaryTOTP, screen.StateTokenFlowResponse, r.Form, input)
+		err = handlerwebapp.HandleAuthenticationBotProtection(ctx, model.AuthenticationFlowAuthenticationSecondaryTOTP, screen.StateTokenFlowResponse, r.Form, input)
 		if err != nil {
 			return err
 		}

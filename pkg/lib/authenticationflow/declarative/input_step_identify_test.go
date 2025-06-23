@@ -6,6 +6,7 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/wechat"
 )
@@ -35,30 +36,30 @@ func TestInputSchemaStepIdentify(t *testing.T) {
 			BotProtectionCfg: dummyBotProtectionCfg,
 			Options: []IdentificationOption{
 				{
-					Identification: config.AuthenticationFlowIdentificationEmail,
+					Identification: model.AuthenticationFlowIdentificationEmail,
 					BotProtection:  dummyBotProtection,
 				},
 				{
-					Identification: config.AuthenticationFlowIdentificationPhone,
+					Identification: model.AuthenticationFlowIdentificationPhone,
 					BotProtection:  dummyBotProtection,
 				},
 				{
-					Identification: config.AuthenticationFlowIdentificationUsername,
+					Identification: model.AuthenticationFlowIdentificationUsername,
 					BotProtection:  dummyBotProtection,
 				},
 				{
-					Identification: config.AuthenticationFlowIdentificationOAuth,
+					Identification: model.AuthenticationFlowIdentificationOAuth,
 					Alias:          "google",
 					BotProtection:  dummyBotProtection,
 				},
 				{
-					Identification: config.AuthenticationFlowIdentificationOAuth,
+					Identification: model.AuthenticationFlowIdentificationOAuth,
 					Alias:          "wechat_mobile",
 					WechatAppType:  wechat.AppTypeMobile,
 					BotProtection:  dummyBotProtection,
 				},
 				{
-					Identification: config.AuthenticationFlowIdentificationPasskey,
+					Identification: model.AuthenticationFlowIdentificationPasskey,
 					BotProtection:  dummyBotProtection,
 				},
 			},
