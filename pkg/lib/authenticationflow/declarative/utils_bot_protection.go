@@ -11,8 +11,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
-func isConfigBotProtectionRequired(authflowCfg *config.AuthenticationFlowBotProtection, appCfg *config.BotProtectionConfig) bool {
-	data := GetBotProtectionData(authflowCfg, appCfg)
+func isConfigBotProtectionRequired(flows authflow.Flows, authflowCfg *config.AuthenticationFlowBotProtection, appCfg *config.BotProtectionConfig) bool {
+	data := GetBotProtectionData(flows, authflowCfg, appCfg)
 	return data != nil
 }
 
@@ -31,7 +31,7 @@ func isNodeBotProtectionRequired(ctx context.Context, deps *authflow.Dependencie
 		return false, authflow.ErrInvalidJSONPointer
 	}
 
-	return isConfigBotProtectionRequired(currentBranch.GetBotProtectionConfig(), deps.Config.BotProtection), nil
+	return isConfigBotProtectionRequired(flows, currentBranch.GetBotProtectionConfig(), deps.Config.BotProtection), nil
 }
 
 func IsBotProtectionRequired(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, oneOfJSONPointer jsonpointer.T, originNode authflow.NodeOrIntent) (bool, error) {
