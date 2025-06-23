@@ -148,11 +148,10 @@ func NewIntentSignupFlowStepIdentify(ctx context.Context, deps *authflow.Depende
 		case config.AuthenticationFlowIdentificationPhone:
 			fallthrough
 		case config.AuthenticationFlowIdentificationUsername:
-			c := NewIdentificationOptionLoginID(flows, b.Identification, b.BotProtection, deps.Config.BotProtection)
+			c := NewIdentificationOptionLoginID(b.Identification, b.BotProtection, deps.Config.BotProtection)
 			options = append(options, c)
 		case config.AuthenticationFlowIdentificationOAuth:
 			oauthOptions := NewIdentificationOptionsOAuth(
-				flows,
 				deps.Config.Identity.OAuth,
 				deps.FeatureConfig.Identity.OAuth.Providers,
 				b.BotProtection,

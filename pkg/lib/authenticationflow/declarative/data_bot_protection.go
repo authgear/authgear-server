@@ -1,9 +1,6 @@
 package declarative
 
-import (
-	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
-	"github.com/authgear/authgear-server/pkg/lib/config"
-)
+import "github.com/authgear/authgear-server/pkg/lib/config"
 
 // For identification option, authentication option & create_authenticator option
 
@@ -30,40 +27,19 @@ func NewBotProtectionData(t config.BotProtectionProviderType) *BotProtectionData
 	}
 }
 
-func GetBotProtectionData(flows authflow.Flows, authflowCfg *config.AuthenticationFlowBotProtection, appCfg *config.BotProtectionConfig) *BotProtectionData {
+func GetBotProtectionData(authflowCfg *config.AuthenticationFlowBotProtection, appCfg *config.BotProtectionConfig) *BotProtectionData {
+	if authflowCfg == nil {
+		return nil
+	}
 	if appCfg == nil || !appCfg.Enabled || appCfg.Provider == nil || appCfg.Provider.Type == "" {
 		return nil
 	}
 
-	var effectiveMode config.BotProtectionRiskMode
-	if authflowCfg != nil {
-		effectiveMode = authflowCfg.Mode
-	}
-	_ = authflow.TraverseFlowIntentFirst(authflow.Traverser{
-		NodeSimple: func(nodeSimple authflow.NodeSimple, w *authflow.Flow) error {
-			if n, ok := nodeSimple.(MilestoneBotProjectionRequirementsProvider); ok {
-				if c := n.MilestoneBotProjectionRequirementsProvider(); c != nil {
-					effectiveMode = c.Mode
-				}
-			}
-			return nil
-		},
-		Intent: func(intent authflow.Intent, w *authflow.Flow) error {
-			if i, ok := intent.(MilestoneBotProjectionRequirementsProvider); ok {
-				if c := i.MilestoneBotProjectionRequirementsProvider(); c != nil {
-					effectiveMode = c.Mode
-				}
-			}
-			return nil
-		},
-	}, flows.Root)
-
-	switch effectiveMode {
+	switch authflowCfg.Mode {
 	case config.BotProtectionRiskModeNever:
-		return nil
+		break
 	case config.BotProtectionRiskModeAlways:
 		return NewBotProtectionData(appCfg.Provider.Type)
-	default:
-		return nil
 	}
+	return nil
 }

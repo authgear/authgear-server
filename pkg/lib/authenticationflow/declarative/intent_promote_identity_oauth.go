@@ -52,7 +52,6 @@ func (i *IntentPromoteIdentityOAuth) CanReactTo(ctx context.Context, deps *authf
 			authflowCfg = currentBranch.GetBotProtectionConfig()
 		}
 		oauthOptions := NewIdentificationOptionsOAuth(
-			flows,
 			deps.Config.Identity.OAuth,
 			deps.FeatureConfig.Identity.OAuth.Providers,
 			authflowCfg,
