@@ -10,34 +10,65 @@ import (
 
 func TestParseHookResponse(t *testing.T) {
 	ctx := context.Background()
+	s := GetBaseHookResponseSchema()
+	s.Add("TestHookResponse", `
+{
+	"allOf": [
+		{ "$ref": "#/$defs/BaseHookResponseSchema" },
+		{
+			"if": {
+				"properties": {
+					"is_allowed": { "const": true }
+				}
+			},
+			"then": {
+				"type": "object",
+				"additionalProperties": false,
+				"properties": {
+					"is_allowed": {},
+					"mutations": {},
+					"constraints": {},
+					"bot_protection": {},
+					"rate_limit": {}
+				}
+			}
+		}
+	]
+}`)
+	s.Instantiate()
+	RegisterResponseSchemaValidator("event.test", s.PartValidator("TestHookResponse"))
 	Convey("ParseHookResponse", t, func() {
-		pass := func(raw string, expected *HookResponse) {
-			r := strings.NewReader(raw)
-			actual, err := ParseHookResponse(ctx, r)
-			So(err, ShouldBeNil)
-			So(actual, ShouldResemble, expected)
+		pass := func(name string, raw string, expected *HookResponse) {
+			Convey(name, func() {
+				r := strings.NewReader(raw)
+				actual, err := ParseHookResponse(ctx, "event.test", r)
+				So(err, ShouldBeNil)
+				So(actual, ShouldResemble, expected)
+			})
 		}
 
-		fail := func(raw string) {
-			r := strings.NewReader(raw)
-			_, err := ParseHookResponse(ctx, r)
-			So(err, ShouldNotBeNil)
+		fail := func(name string, raw string) {
+			Convey(name, func() {
+				r := strings.NewReader(raw)
+				_, err := ParseHookResponse(ctx, "event.test", r)
+				So(err, ShouldNotBeNil)
+			})
 		}
 
-		pass(`{
+		pass("is_allowed true", `{
 			"is_allowed": true
 		}`, &HookResponse{
 			IsAllowed: true,
 		})
 
-		pass(`{
+		pass("is_allowed true, empty mutations", `{
 			"is_allowed": true,
 			"mutations": {}
 		}`, &HookResponse{
 			IsAllowed: true,
 		})
 
-		pass(`{
+		pass("is_allowed true, empty user mutations", `{
 			"is_allowed": true,
 			"mutations": {
 				"user": {}
@@ -46,7 +77,7 @@ func TestParseHookResponse(t *testing.T) {
 			IsAllowed: true,
 		})
 
-		pass(`{
+		pass("is_allowed true, user mutations with standard and custom attributes", `{
 			"is_allowed": true,
 			"mutations": {
 				"user": {
@@ -72,7 +103,7 @@ func TestParseHookResponse(t *testing.T) {
 			},
 		})
 
-		pass(`{
+		pass("is_allowed true, jwt mutations with payload", `{
 			"is_allowed": true,
 			"mutations": {
 				"jwt": {
@@ -96,13 +127,13 @@ func TestParseHookResponse(t *testing.T) {
 			},
 		})
 
-		pass(`{
+		pass("is_allowed false", `{
 			"is_allowed": false
 		}`, &HookResponse{
 			IsAllowed: false,
 		})
 
-		pass(`{
+		pass("is_allowed false, with title", `{
 			"is_allowed": false,
 			"title": "Title"
 		}`, &HookResponse{
@@ -110,7 +141,7 @@ func TestParseHookResponse(t *testing.T) {
 			Title:     "Title",
 		})
 
-		pass(`{
+		pass("is_allowed false, with title and reason", `{
 			"is_allowed": false,
 			"title": "Title",
 			"reason": "Reason"
@@ -120,7 +151,7 @@ func TestParseHookResponse(t *testing.T) {
 			Reason:    "Reason",
 		})
 
-		pass(`{
+		pass("is_allowed true, with constraints amr", `{
 			"is_allowed": true,
 			"constraints": {
 				"amr": ["pwd", "otp"]
@@ -132,7 +163,7 @@ func TestParseHookResponse(t *testing.T) {
 			},
 		})
 
-		pass(`{
+		pass("is_allowed true, with user mutations and constraints amr", `{
 			"is_allowed": true,
 			"mutations": {
 				"user": {
@@ -158,7 +189,7 @@ func TestParseHookResponse(t *testing.T) {
 			},
 		})
 
-		pass(`{
+		pass("is_allowed true, with bot_protection always", `{
 			"is_allowed": true,
 			"bot_protection": {
 				"mode": "always"
@@ -170,14 +201,26 @@ func TestParseHookResponse(t *testing.T) {
 			},
 		})
 
-		fail(`{
+		pass("is_allowed true, with rate_limit weight", `{
+			"is_allowed": true,
+			"rate_limit": {
+				"weight": 1.5
+			}
+		}`, &HookResponse{
+			IsAllowed: true,
+			RateLimit: &RateLimit{
+				Weight: 1.5,
+			},
+		})
+
+		fail("invalid constraints amr type", `{
 			"is_allowed": true,
 			"constraints": {
 				"amr": "not an array"
 			}
 		}`)
 
-		fail(`{
+		fail("invalid user mutations standard_attributes type", `{
 			"is_allowed": true,
 			"mutations": {
 				"user": {
@@ -187,7 +230,7 @@ func TestParseHookResponse(t *testing.T) {
 			}
 		}`)
 
-		fail(`{
+		fail("is_allowed false, with mutations", `{
 			"is_allowed": false,
 			"mutations": {}
 		}`)
