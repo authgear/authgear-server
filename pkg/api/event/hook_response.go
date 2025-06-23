@@ -11,9 +11,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
-var HookResponseSchema *validation.MultipartSchema
-
-func init() {
+func GetBaseHookResponseSchema() *validation.MultipartSchema {
+	var baseHookResponseSchema *validation.MultipartSchema = validation.NewMultipartSchema("BaseHookResponseSchema")
 	var supportedAMRConstraints = []string{
 		model.AMRMFA,
 		model.AMROTP,
@@ -32,86 +31,135 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-	HookResponseSchema = validation.NewMultipartSchema("HookResponseSchema")
-	_ = HookResponseSchema.Add("AMRConstraint", fmt.Sprintf(`
+	_ = baseHookResponseSchema.Add("AMRConstraint", fmt.Sprintf(`
 {
 	"type": "string",
 	"enum": %s
 }
 `, string(supportedAMRConstraintsJSON)))
 
-	_ = HookResponseSchema.Add("BotProtectionRiskMode", `
+	_ = baseHookResponseSchema.Add("BotProtectionRiskMode", `
 {
 	"type": "string",
 	"enum": ["never", "always"]
 }
 `)
 
-	_ = HookResponseSchema.Add("HookResponseSchema", `
+	_ = baseHookResponseSchema.Add("RateLimit", `
 {
-	"oneOf": [
-		{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"weight": { "type": "number" }
+	}
+}
+`)
+
+	_ = baseHookResponseSchema.Add("BotProtectionRequirements", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"mode": { "$ref": "#/$defs/BotProtectionRiskMode" }
+	}
+}
+`)
+
+	_ = baseHookResponseSchema.Add("Mutations", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"user": {
 			"type": "object",
-			"additionalProperties": false,
 			"properties": {
-				"is_allowed": { "const": true },
-				"mutations": {
-					"type": "object",
-					"properties": {
-						"user": {
-							"type": "object",
-							"properties": {
-								"standard_attributes": {
-									"type": "object"
-								},
-								"custom_attributes": {
-									"type": "object"
-								}
-							}
-						},
-						"jwt": {
-							"type": "object",
-							"properties": {
-								"payload": {
-									"type": "object"
-								}
-							}
-						}
-					}
+				"standard_attributes": {
+					"type": "object"
 				},
-				"constraints": {
-					"type": "object",
-					"properties": {
-						"amr": {
-							"type": "array",
-							"items": { "$ref": "#/$defs/AMRConstraint" }
-						}
-					}
-				},
-				"bot_protection": {
-					"type": "object",
-					"properties": {
-						"mode": { "$ref": "#/$defs/BotProtectionRiskMode" }
-					}
+				"custom_attributes": {
+					"type": "object"
 				}
+			}
+		},
+		"jwt": {
+			"type": "object",
+			"properties": {
+				"payload": {
+					"type": "object"
+				}
+			}
+		}
+	}
+}
+`)
+
+	_ = baseHookResponseSchema.Add("Constraints", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"amr": {
+			"type": "array",
+			"items": { "$ref": "#/$defs/AMRConstraint" }
+		}
+	}
+}
+`)
+
+	_ = baseHookResponseSchema.Add("BaseHookResponseSchema", `
+{
+	"allOf": [
+		{
+			"properties": {
+				"is_allowed": { "type": "boolean" }
 			},
 			"required": ["is_allowed"]
 		},
 		{
-			"type": "object",
-			"additionalProperties": false,
-			"properties": {
-				"is_allowed": { "const": false },
-				"title": { "type": "string" },
-				"reason": { "type": "string" }
+			"if": {
+				"properties": {
+					"is_allowed": { "const": true }
+				}
 			},
-			"required": ["is_allowed"]
+			"then": {
+				"type": "object",
+				"additionalProperties": false,
+				"properties": {
+					"is_allowed": { "const": true },
+					"mutations": { "$ref": "#/$defs/Mutations" },
+					"constraints": { "$ref": "#/$defs/Constraints" },
+					"bot_protection": { "$ref": "#/$defs/BotProtectionRequirements" },
+					"rate_limit": { "$ref": "#/$defs/RateLimit" }
+				}
+			}
+		},
+		{
+			"if": {
+				"properties": {
+					"is_allowed": { "const": false }
+				}
+			},
+			"then": {
+				"type": "object",
+				"additionalProperties": false,
+				"properties": {
+					"is_allowed": { "const": false },
+					"title": { "type": "string" },
+					"reason": { "type": "string" }
+				}
+			}
 		}
 	]
 }
 `)
 
-	HookResponseSchema.Instantiate()
+	return baseHookResponseSchema
+}
+
+var responseSchemaValidators map[Type]*validation.SchemaValidator = map[Type]*validation.SchemaValidator{}
+
+func RegisterResponseSchemaValidator(typ Type, v *validation.SchemaValidator) {
+	responseSchemaValidators[typ] = v
 }
 
 type HookResponse struct {
@@ -121,6 +169,7 @@ type HookResponse struct {
 	Mutations     Mutations                  `json:"mutations,omitempty"`
 	Constraints   *Constraints               `json:"constraints,omitempty"`
 	BotProtection *BotProtectionRequirements `json:"bot_protection,omitempty"`
+	RateLimit     *RateLimit                 `json:"rate_limit,omitempty"`
 }
 
 type Constraints struct {
@@ -129,6 +178,10 @@ type Constraints struct {
 
 type BotProtectionRequirements struct {
 	Mode config.BotProtectionRiskMode `json:"mode,omitempty"`
+}
+
+type RateLimit struct {
+	Weight float64 `json:"weight,omitempty"`
 }
 
 type Mutations struct {
@@ -147,10 +200,16 @@ type JWTMutations struct {
 	Payload map[string]interface{} `json:"payload,omitempty"`
 }
 
-func ParseHookResponse(ctx context.Context, r io.Reader) (*HookResponse, error) {
+func ParseHookResponse(ctx context.Context, eventType Type, r io.Reader) (*HookResponse, error) {
 	var resp HookResponse
-	if err := HookResponseSchema.Validator().Parse(ctx, r, &resp); err != nil {
-		return nil, err
+	if v, ok := responseSchemaValidators[eventType]; ok && v != nil {
+		err := v.Parse(ctx, r, &resp)
+		if err != nil {
+			return nil, err
+		}
+
+		return &resp, nil
+	} else {
+		panic(fmt.Errorf("event %v has no response schema validators", eventType))
 	}
-	return &resp, nil
 }

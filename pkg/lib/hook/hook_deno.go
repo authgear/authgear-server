@@ -99,7 +99,7 @@ func (h *EventDenoHookImpl) DeliverBlockingEvent(ctx context.Context, u *url.URL
 		return nil, err
 	}
 
-	hookResp, err := event.ParseHookResponse(ctx, bytes.NewReader(b))
+	hookResp, err := event.ParseHookResponse(ctx, e.Type, bytes.NewReader(b))
 	if err != nil {
 		apiError := apierrors.AsAPIError(err)
 		err = WebHookInvalidResponse.NewWithInfo("invalid response body", apiError.Info_ReadOnly)
