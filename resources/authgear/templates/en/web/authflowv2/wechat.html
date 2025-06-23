@@ -5,7 +5,7 @@
 {{ if $.IsNativePlatform }}
 {{ if $.WechatRedirectURI }}
 
-<div class="screen-action-layout flex-1-0-auto">
+<div class="flex flex-col gap-y-8 flex-1-0-auto">
   <header class="screen-title-description">
     <h1 class="screen-title">
       {{ include "v2.page.wechat-auth.default.title" nil }}
@@ -23,7 +23,7 @@
   </header>
 
   <form
-    class="screen-actions flex flex-col mt-8"
+    class="flex flex-col"
     data-controller="wechat-button"
     method="post"
     novalidate
@@ -63,7 +63,7 @@
 {{ end }}
 {{ else }}
 
-<div class="screen-action-layout flex-1-0-auto">
+<div class="flex flex-col gap-y-8 flex-1-0-auto">
   <header class="screen-title-description">
     <h1 class="screen-title">
       {{ include "v2.page.wechat-auth.default.title" nil }}
@@ -73,9 +73,9 @@
     </h2>
   </header>
 
-  <footer class="flex flex-col gap-y-4 mt-8">
-    <img class="w-44 place-self-center" src="{{ $.ImageURI }}">
-  </footer>
+  <div class="flex flex-col">
+    <img class="block w-44 h-44 self-center" src="{{ $.ImageURI }}">
+  </div>
 </div>
 
 {{ end }}
