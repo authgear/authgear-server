@@ -82,11 +82,10 @@ func NewIntentLoginFlowStepIdentify(ctx context.Context, deps *authflow.Dependen
 		case config.AuthenticationFlowIdentificationPhone:
 			fallthrough
 		case config.AuthenticationFlowIdentificationUsername:
-			c := NewIdentificationOptionLoginID(flows, b.Identification, b.BotProtection, deps.Config.BotProtection)
+			c := NewIdentificationOptionLoginID(b.Identification, b.BotProtection, deps.Config.BotProtection)
 			options = append(options, c)
 		case config.AuthenticationFlowIdentificationOAuth:
 			oauthOptions := NewIdentificationOptionsOAuth(
-				flows,
 				deps.Config.Identity.OAuth,
 				deps.FeatureConfig.Identity.OAuth.Providers, b.BotProtection, deps.Config.BotProtection,
 				deps.SSOOAuthDemoCredentials,
@@ -97,7 +96,7 @@ func NewIntentLoginFlowStepIdentify(ctx context.Context, deps *authflow.Dependen
 			if err != nil {
 				return nil, err
 			}
-			c := NewIdentificationOptionPasskey(flows, requestOptions, b.BotProtection, deps.Config.BotProtection)
+			c := NewIdentificationOptionPasskey(requestOptions, b.BotProtection, deps.Config.BotProtection)
 			options = append(options, c)
 		case config.AuthenticationFlowIdentificationLDAP:
 			ldapOptions := NewIdentificationOptionLDAP(deps.Config.Identity.LDAP, b.BotProtection, deps.Config.BotProtection)
@@ -107,7 +106,7 @@ func NewIntentLoginFlowStepIdentify(ctx context.Context, deps *authflow.Dependen
 			// ID token is an advanced usage, and it inheritly does not support user interaction.
 			// Thus bot protection is not supported.
 			var botProtection *config.AuthenticationFlowBotProtection = nil
-			c := NewIdentificationOptionIDToken(flows, b.Identification, botProtection, deps.Config.BotProtection)
+			c := NewIdentificationOptionIDToken(b.Identification, botProtection, deps.Config.BotProtection)
 			options = append(options, c)
 		}
 	}

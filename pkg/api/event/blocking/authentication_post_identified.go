@@ -18,8 +18,7 @@ type AuthenticationPostIdentifiedBlockingEventPayload struct {
 	Identification config.AuthenticationFlowIdentification `json:"identification"`
 	Authentication event.AuthenticationContext             `json:"authentication"`
 
-	Constraints               *event.Constraints               `json:"-"`
-	BotProtectionRequirements *event.BotProtectionRequirements `json:"-"`
+	Constraints *event.Constraints `json:"-"`
 }
 
 func (e *AuthenticationPostIdentifiedBlockingEventPayload) BlockingEventType() event.Type {
@@ -39,9 +38,6 @@ func (e *AuthenticationPostIdentifiedBlockingEventPayload) FillContext(ctx *even
 func (e *AuthenticationPostIdentifiedBlockingEventPayload) ApplyHookResponse(ctx context.Context, response event.HookResponse) event.ApplyHookResponseResult {
 	if response.Constraints != nil {
 		e.Constraints = response.Constraints
-	}
-	if response.BotProtection != nil {
-		e.BotProtectionRequirements = response.BotProtection
 	}
 	return event.ApplyHookResponseResult{MutationsEverApplied: false}
 }

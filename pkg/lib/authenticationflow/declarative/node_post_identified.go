@@ -35,13 +35,11 @@ func NewNodePostIdentified(ctx context.Context, deps *authflow.Dependencies, flo
 	}
 
 	payload := &blocking.AuthenticationPostIdentifiedBlockingEventPayload{
-		Identity:       n.Identity,
+		Identity:       nil,
 		IDToken:        n.IDToken,
+		Constraints:    nil,
 		Identification: config.AuthenticationFlowIdentificationIDToken,
 		Authentication: *authCtx,
-
-		Constraints:               nil,
-		BotProtectionRequirements: nil,
 	}
 	e, err := deps.Events.PrepareBlockingEventWithTx(ctx, payload)
 	if err != nil {
@@ -55,7 +53,6 @@ func NewNodePostIdentified(ctx context.Context, deps *authflow.Dependencies, flo
 		}
 		n.IsPostIdentifiedInvoked = true
 		n.Constraints = payload.Constraints
-		n.BotProtectionRequirements = payload.BotProtectionRequirements
 		return nil
 	}
 
@@ -70,16 +67,14 @@ type NodePostIdentified struct {
 	IDToken        *string                                 `json:"id_token"`
 	Identification config.AuthenticationFlowIdentification `json:"identification"`
 
-	IsPostIdentifiedInvoked   bool                                `json:"is_post_identified_invoked"`
-	Constraints               *eventapi.Constraints               `json:"constraints,omitempty"`
-	BotProtectionRequirements *eventapi.BotProtectionRequirements `json:"bot_protection_requirements,omitempty"`
+	IsPostIdentifiedInvoked bool                  `json:"is_post_identified_invoked"`
+	Constraints             *eventapi.Constraints `json:"constraints,omitempty"`
 }
 
 var _ authflow.NodeSimple = &NodePostIdentified{}
 var _ authflow.InputReactor = &NodePostIdentified{}
 var _ authflow.Milestone = &NodePostIdentified{}
 var _ MilestoneConstraintsProvider = &NodePostIdentified{}
-var _ MilestoneBotProjectionRequirementsProvider = &NodePostIdentified{}
 
 func (*NodePostIdentified) Kind() string {
 	return "NodePostIdentified"
@@ -88,9 +83,6 @@ func (*NodePostIdentified) Kind() string {
 func (n *NodePostIdentified) Milestone() {}
 func (n *NodePostIdentified) MilestoneConstraintsProvider() *eventapi.Constraints {
 	return n.Constraints
-}
-func (n *NodePostIdentified) MilestoneBotProjectionRequirementsProvider() *eventapi.BotProtectionRequirements {
-	return n.BotProtectionRequirements
 }
 
 func (n *NodePostIdentified) CanReactTo(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows) (authenticationflow.InputSchema, error) {

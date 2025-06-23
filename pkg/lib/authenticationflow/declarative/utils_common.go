@@ -289,7 +289,7 @@ func getAuthenticationOptionsForLogin(ctx context.Context, deps *authflow.Depend
 
 	useAuthenticationOptionAddRecoveryCodes := func(options []AuthenticateOption, userHasRecoveryCode bool, botProtection *config.AuthenticationFlowBotProtection) []AuthenticateOption {
 		if userHasRecoveryCode {
-			options = append(options, NewAuthenticateOptionRecoveryCode(flows, botProtection,
+			options = append(options, NewAuthenticateOptionRecoveryCode(botProtection,
 				deps.Config.BotProtection))
 		}
 
@@ -305,7 +305,6 @@ func getAuthenticationOptionsForLogin(ctx context.Context, deps *authflow.Depend
 		// Showing this branch is necessary to convince the frontend to show a primary password page, where
 		// the end-user can trigger account recovery flow and create a new password.
 		options = append(options, NewAuthenticateOptionPassword(
-			flows,
 			config.AuthenticationFlowAuthenticationPrimaryPassword,
 			botProtection,
 			deps.Config.BotProtection,
@@ -320,7 +319,6 @@ func getAuthenticationOptionsForLogin(ctx context.Context, deps *authflow.Depend
 
 		if userHasSecondaryPassword {
 			options = append(options, NewAuthenticateOptionPassword(
-				flows,
 				config.AuthenticationFlowAuthenticationSecondaryPassword,
 				botProtection,
 				deps.Config.BotProtection,
@@ -335,7 +333,7 @@ func getAuthenticationOptionsForLogin(ctx context.Context, deps *authflow.Depend
 		// because user can do nothing if user didn't setup a totp
 
 		if userHasTOTP {
-			options = append(options, NewAuthenticateOptionTOTP(flows, botProtection,
+			options = append(options, NewAuthenticateOptionTOTP(botProtection,
 				deps.Config.BotProtection))
 		}
 
@@ -350,7 +348,7 @@ func getAuthenticationOptionsForLogin(ctx context.Context, deps *authflow.Depend
 				return nil, err
 			}
 
-			options = append(options, NewAuthenticateOptionPasskey(flows, requestOptions, botProtection,
+			options = append(options, NewAuthenticateOptionPasskey(requestOptions, botProtection,
 				deps.Config.BotProtection))
 			return options, nil
 		}
@@ -359,7 +357,7 @@ func getAuthenticationOptionsForLogin(ctx context.Context, deps *authflow.Depend
 	}
 
 	useAuthenticationOptionAddPrimaryOOBOTPOfIdentity := func(options []AuthenticateOption, deps *authflow.Dependencies, authentication config.AuthenticationFlowAuthentication, info *identity.Info, botProtection *config.AuthenticationFlowBotProtection) []AuthenticateOption {
-		option, ok := NewAuthenticateOptionOOBOTPFromIdentity(flows, deps.Config.Authenticator.OOB, info, botProtection,
+		option, ok := NewAuthenticateOptionOOBOTPFromIdentity(deps.Config.Authenticator.OOB, info, botProtection,
 			deps.Config.BotProtection)
 		if !ok {
 			return options
@@ -383,7 +381,7 @@ func getAuthenticationOptionsForLogin(ctx context.Context, deps *authflow.Depend
 
 	useAuthenticationOptionAddSecondaryOOBOTP := func(options []AuthenticateOption, deps *authflow.Dependencies, authentication config.AuthenticationFlowAuthentication, infos []*authenticator.Info, botProtection *config.AuthenticationFlowBotProtection) []AuthenticateOption {
 		for _, info := range infos {
-			if option, ok := NewAuthenticateOptionOOBOTPFromAuthenticator(flows, deps.Config.Authenticator.OOB, info, botProtection,
+			if option, ok := NewAuthenticateOptionOOBOTPFromAuthenticator(deps.Config.Authenticator.OOB, info, botProtection,
 				deps.Config.BotProtection); ok {
 				if option.Authentication == authentication {
 					options = append(options, *option)
@@ -476,7 +474,6 @@ func getAuthenticationOptionsForReauth(ctx context.Context, deps *authflow.Depen
 			model.AuthenticatorTypePassword,
 		) {
 			options = append(options, NewAuthenticateOptionPassword(
-				flows,
 				config.AuthenticationFlowAuthenticationPrimaryPassword, botProtection, deps.Config.BotProtection),
 			)
 		}
@@ -489,7 +486,6 @@ func getAuthenticationOptionsForReauth(ctx context.Context, deps *authflow.Depen
 			model.AuthenticatorTypePassword,
 		) {
 			options = append(options, NewAuthenticateOptionPassword(
-				flows,
 				config.AuthenticationFlowAuthenticationSecondaryPassword, botProtection, deps.Config.BotProtection),
 			)
 		}
@@ -501,7 +497,7 @@ func getAuthenticationOptionsForReauth(ctx context.Context, deps *authflow.Depen
 			model.AuthenticatorKindSecondary,
 			model.AuthenticatorTypeTOTP,
 		) {
-			options = append(options, NewAuthenticateOptionTOTP(flows, botProtection, deps.Config.BotProtection))
+			options = append(options, NewAuthenticateOptionTOTP(botProtection, deps.Config.BotProtection))
 		}
 		return options
 	}
@@ -516,7 +512,7 @@ func getAuthenticationOptionsForReauth(ctx context.Context, deps *authflow.Depen
 				return nil, err
 			}
 
-			options = append(options, NewAuthenticateOptionPasskey(flows, requestOptions, botProtection, deps.Config.BotProtection))
+			options = append(options, NewAuthenticateOptionPasskey(requestOptions, botProtection, deps.Config.BotProtection))
 		}
 
 		return options, nil
@@ -524,7 +520,7 @@ func getAuthenticationOptionsForReauth(ctx context.Context, deps *authflow.Depen
 
 	useAuthenticationOptionAddPrimaryOOBOTP := func(options []AuthenticateOption, authentication config.AuthenticationFlowAuthentication, typ model.AuthenticatorType, botProtection *config.AuthenticationFlowBotProtection) []AuthenticateOption {
 		for _, info := range identities {
-			option, ok := NewAuthenticateOptionOOBOTPFromIdentity(flows, deps.Config.Authenticator.OOB, info, botProtection, deps.Config.BotProtection)
+			option, ok := NewAuthenticateOptionOOBOTPFromIdentity(deps.Config.Authenticator.OOB, info, botProtection, deps.Config.BotProtection)
 			if ok && option.Authentication == authentication {
 				options = append(options, *option)
 			}
@@ -539,7 +535,7 @@ func getAuthenticationOptionsForReauth(ctx context.Context, deps *authflow.Depen
 			authenticator.KeepType(typ),
 		)
 		for _, info := range as {
-			option, ok := NewAuthenticateOptionOOBOTPFromAuthenticator(flows, deps.Config.Authenticator.OOB, info, botProtection, deps.Config.BotProtection)
+			option, ok := NewAuthenticateOptionOOBOTPFromAuthenticator(deps.Config.Authenticator.OOB, info, botProtection, deps.Config.BotProtection)
 			if ok && option.Authentication == authentication {
 				options = append(options, *option)
 			}

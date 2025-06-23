@@ -54,21 +54,19 @@ func (i *IntentReauthFlow) CanReactTo(ctx context.Context, deps *authflow.Depend
 func (i *IntentReauthFlow) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (authflow.ReactToResult, error) {
 	switch {
 	case len(flows.Nearest.Nodes) == 0:
-		return NewNodePreInitialize(ctx, deps, flows)
-	case len(flows.Nearest.Nodes) == 1:
 		return authflow.NewSubFlow(&IntentReauthFlowSteps{
 			FlowReference: i.FlowReference,
 			JSONPointer:   i.JSONPointer,
 		}), nil
-	case len(flows.Nearest.Nodes) == 2:
+	case len(flows.Nearest.Nodes) == 1:
 		return NewNodePreAuthenticateNodeSimple(ctx, deps, flows)
-	case len(flows.Nearest.Nodes) == 3:
+	case len(flows.Nearest.Nodes) == 2:
 		i, err := NewIntentReauthFlowEnsureConstraintsFulfilled(ctx, deps, flows, i.FlowReference)
 		if err != nil {
 			return nil, err
 		}
 		return authflow.NewSubFlow(i), nil
-	case len(flows.Nearest.Nodes) == 4:
+	case len(flows.Nearest.Nodes) == 3:
 		n, err := NewNodeDidReauthenticate(ctx, deps, flows, &NodeDidReauthenticate{
 			UserID: i.userID(flows),
 		})
