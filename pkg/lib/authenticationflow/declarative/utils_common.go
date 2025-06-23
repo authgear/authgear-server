@@ -21,6 +21,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/phone"
 	"github.com/authgear/authgear-server/pkg/util/setutil"
+	"github.com/authgear/authgear-server/pkg/util/slice"
 	"github.com/authgear/authgear-server/pkg/util/stringutil"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
@@ -220,10 +221,12 @@ func getAuthenticationOptionsForLogin(ctx context.Context, deps *authflow.Depend
 		return nil, false, err
 	}
 
-	assertedAuthenticatorIDs := setutil.NewSetFromSlice(assertedAuthn, func(a *authenticator.Info) string {
+	assertedAuthenticatorIDs := setutil.NewSetFromSlice(assertedAuthn, func(a model.Authenticator) string {
 		return a.ID
 	})
-	assertedPrimaryPasswordAuthenticators := authenticator.ApplyFilters(assertedAuthn, authenticator.KeepKind(model.AuthenticatorKindPrimary), authenticator.KeepType(model.AuthenticatorTypePassword))
+	assertedPrimaryPasswordAuthenticators := slice.Filter(assertedAuthn, func(a model.Authenticator) bool {
+		return a.Kind == authenticator.KindPrimary && a.Type == model.AuthenticatorTypePassword
+	})
 
 	options = []AuthenticateOption{}
 
@@ -306,7 +309,7 @@ func getAuthenticationOptionsForLogin(ctx context.Context, deps *authflow.Depend
 		// the end-user can trigger account recovery flow and create a new password.
 		options = append(options, NewAuthenticateOptionPassword(
 			flows,
-			config.AuthenticationFlowAuthenticationPrimaryPassword,
+			model.AuthenticationFlowAuthenticationPrimaryPassword,
 			botProtection,
 			deps.Config.BotProtection,
 		),
@@ -321,7 +324,7 @@ func getAuthenticationOptionsForLogin(ctx context.Context, deps *authflow.Depend
 		if userHasSecondaryPassword {
 			options = append(options, NewAuthenticateOptionPassword(
 				flows,
-				config.AuthenticationFlowAuthenticationSecondaryPassword,
+				model.AuthenticationFlowAuthenticationSecondaryPassword,
 				botProtection,
 				deps.Config.BotProtection,
 			))
@@ -358,7 +361,7 @@ func getAuthenticationOptionsForLogin(ctx context.Context, deps *authflow.Depend
 		return options, nil
 	}
 
-	useAuthenticationOptionAddPrimaryOOBOTPOfIdentity := func(options []AuthenticateOption, deps *authflow.Dependencies, authentication config.AuthenticationFlowAuthentication, info *identity.Info, botProtection *config.AuthenticationFlowBotProtection) []AuthenticateOption {
+	useAuthenticationOptionAddPrimaryOOBOTPOfIdentity := func(options []AuthenticateOption, deps *authflow.Dependencies, authentication model.AuthenticationFlowAuthentication, info *identity.Info, botProtection *config.AuthenticationFlowBotProtection) []AuthenticateOption {
 		option, ok := NewAuthenticateOptionOOBOTPFromIdentity(flows, deps.Config.Authenticator.OOB, info, botProtection,
 			deps.Config.BotProtection)
 		if !ok {
@@ -373,7 +376,7 @@ func getAuthenticationOptionsForLogin(ctx context.Context, deps *authflow.Depend
 		return options
 	}
 
-	useAuthenticationOptionAddPrimaryOOBOTPOfAllIdentities := func(options []AuthenticateOption, deps *authflow.Dependencies, authentication config.AuthenticationFlowAuthentication, infos []*identity.Info, botProtection *config.AuthenticationFlowBotProtection) []AuthenticateOption {
+	useAuthenticationOptionAddPrimaryOOBOTPOfAllIdentities := func(options []AuthenticateOption, deps *authflow.Dependencies, authentication model.AuthenticationFlowAuthentication, infos []*identity.Info, botProtection *config.AuthenticationFlowBotProtection) []AuthenticateOption {
 		for _, info := range infos {
 			options = useAuthenticationOptionAddPrimaryOOBOTPOfIdentity(options, deps, authentication, info, botProtection)
 		}
@@ -381,7 +384,7 @@ func getAuthenticationOptionsForLogin(ctx context.Context, deps *authflow.Depend
 		return options
 	}
 
-	useAuthenticationOptionAddSecondaryOOBOTP := func(options []AuthenticateOption, deps *authflow.Dependencies, authentication config.AuthenticationFlowAuthentication, infos []*authenticator.Info, botProtection *config.AuthenticationFlowBotProtection) []AuthenticateOption {
+	useAuthenticationOptionAddSecondaryOOBOTP := func(options []AuthenticateOption, deps *authflow.Dependencies, authentication model.AuthenticationFlowAuthentication, infos []*authenticator.Info, botProtection *config.AuthenticationFlowBotProtection) []AuthenticateOption {
 		for _, info := range infos {
 			if option, ok := NewAuthenticateOptionOOBOTPFromAuthenticator(flows, deps.Config.Authenticator.OOB, info, botProtection,
 				deps.Config.BotProtection); ok {
@@ -395,26 +398,26 @@ func getAuthenticationOptionsForLogin(ctx context.Context, deps *authflow.Depend
 
 	for _, branch := range step.OneOf {
 		switch branch.Authentication {
-		case config.AuthenticationFlowAuthenticationDeviceToken:
+		case model.AuthenticationFlowAuthenticationDeviceToken:
 			if len(secondaryAuthenticators) > 0 {
 				deviceTokenEnabled = true
 			}
-		case config.AuthenticationFlowAuthenticationRecoveryCode:
+		case model.AuthenticationFlowAuthenticationRecoveryCode:
 			options = useAuthenticationOptionAddRecoveryCodes(options, userHasRecoveryCode, branch.BotProtection)
-		case config.AuthenticationFlowAuthenticationPrimaryPassword:
+		case model.AuthenticationFlowAuthenticationPrimaryPassword:
 			options = useAuthenticationOptionAddPrimaryPassword(options, branch.BotProtection)
-		case config.AuthenticationFlowAuthenticationPrimaryPasskey:
+		case model.AuthenticationFlowAuthenticationPrimaryPasskey:
 			options, err = useAuthenticationOptionAddPasskey(options, deps, userHasPasskey, userID, branch.BotProtection)
 			if err != nil {
 				return nil, false, err
 			}
-		case config.AuthenticationFlowAuthenticationSecondaryPassword:
+		case model.AuthenticationFlowAuthenticationSecondaryPassword:
 			options = useAuthenticationOptionAddSecondaryPassword(options, userHasSecondaryPassword, branch.BotProtection)
-		case config.AuthenticationFlowAuthenticationSecondaryTOTP:
+		case model.AuthenticationFlowAuthenticationSecondaryTOTP:
 			options = useAuthenticationOptionAddTOTP(options, userHasTOTP, branch.BotProtection)
-		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
+		case model.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 			fallthrough
-		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
+		case model.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
 			if targetStepName := branch.TargetStep; targetStepName != "" {
 				info, err := findIdentity(targetStepName)
 				if err != nil {
@@ -425,9 +428,9 @@ func getAuthenticationOptionsForLogin(ctx context.Context, deps *authflow.Depend
 			} else {
 				options = useAuthenticationOptionAddPrimaryOOBOTPOfAllIdentities(options, deps, branch.Authentication, identities, branch.BotProtection)
 			}
-		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
+		case model.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
 			fallthrough
-		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
+		case model.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
 			options = useAuthenticationOptionAddSecondaryOOBOTP(options, deps, branch.Authentication, authenticators, branch.BotProtection)
 		}
 	}
@@ -442,7 +445,7 @@ func getAuthenticationOptionsForReauth(ctx context.Context, deps *authflow.Depen
 		return nil, err
 	}
 
-	assertedAuthenticatorIDs := setutil.NewSetFromSlice(assertedAuthn, func(a *authenticator.Info) string {
+	assertedAuthenticatorIDs := setutil.NewSetFromSlice(assertedAuthn, func(a model.Authenticator) string {
 		return a.ID
 	})
 
@@ -477,7 +480,7 @@ func getAuthenticationOptionsForReauth(ctx context.Context, deps *authflow.Depen
 		) {
 			options = append(options, NewAuthenticateOptionPassword(
 				flows,
-				config.AuthenticationFlowAuthenticationPrimaryPassword, botProtection, deps.Config.BotProtection),
+				model.AuthenticationFlowAuthenticationPrimaryPassword, botProtection, deps.Config.BotProtection),
 			)
 		}
 		return options
@@ -490,7 +493,7 @@ func getAuthenticationOptionsForReauth(ctx context.Context, deps *authflow.Depen
 		) {
 			options = append(options, NewAuthenticateOptionPassword(
 				flows,
-				config.AuthenticationFlowAuthenticationSecondaryPassword, botProtection, deps.Config.BotProtection),
+				model.AuthenticationFlowAuthenticationSecondaryPassword, botProtection, deps.Config.BotProtection),
 			)
 		}
 		return options
@@ -522,7 +525,7 @@ func getAuthenticationOptionsForReauth(ctx context.Context, deps *authflow.Depen
 		return options, nil
 	}
 
-	useAuthenticationOptionAddPrimaryOOBOTP := func(options []AuthenticateOption, authentication config.AuthenticationFlowAuthentication, typ model.AuthenticatorType, botProtection *config.AuthenticationFlowBotProtection) []AuthenticateOption {
+	useAuthenticationOptionAddPrimaryOOBOTP := func(options []AuthenticateOption, authentication model.AuthenticationFlowAuthentication, typ model.AuthenticatorType, botProtection *config.AuthenticationFlowBotProtection) []AuthenticateOption {
 		for _, info := range identities {
 			option, ok := NewAuthenticateOptionOOBOTPFromIdentity(flows, deps.Config.Authenticator.OOB, info, botProtection, deps.Config.BotProtection)
 			if ok && option.Authentication == authentication {
@@ -532,7 +535,7 @@ func getAuthenticationOptionsForReauth(ctx context.Context, deps *authflow.Depen
 		return options
 	}
 
-	useAuthenticationOptionAddSecondaryOOBOTP := func(options []AuthenticateOption, authentication config.AuthenticationFlowAuthentication, typ model.AuthenticatorType, botProtection *config.AuthenticationFlowBotProtection) []AuthenticateOption {
+	useAuthenticationOptionAddSecondaryOOBOTP := func(options []AuthenticateOption, authentication model.AuthenticationFlowAuthentication, typ model.AuthenticatorType, botProtection *config.AuthenticationFlowBotProtection) []AuthenticateOption {
 		as := authenticator.ApplyFilters(
 			authenticators,
 			authenticator.KeepKind(model.AuthenticatorKindSecondary),
@@ -549,24 +552,24 @@ func getAuthenticationOptionsForReauth(ctx context.Context, deps *authflow.Depen
 
 	for _, branch := range step.OneOf {
 		switch branch.Authentication {
-		case config.AuthenticationFlowAuthenticationPrimaryPassword:
+		case model.AuthenticationFlowAuthenticationPrimaryPassword:
 			options = useAuthenticationOptionAddPrimaryPassword(options, branch.BotProtection)
-		case config.AuthenticationFlowAuthenticationPrimaryPasskey:
+		case model.AuthenticationFlowAuthenticationPrimaryPasskey:
 			options, err = useAuthenticationOptionAddPasskey(options, branch.BotProtection)
 			if err != nil {
 				return nil, err
 			}
-		case config.AuthenticationFlowAuthenticationSecondaryPassword:
+		case model.AuthenticationFlowAuthenticationSecondaryPassword:
 			options = useAuthenticationOptionAddSecondaryPassword(options, branch.BotProtection)
-		case config.AuthenticationFlowAuthenticationSecondaryTOTP:
+		case model.AuthenticationFlowAuthenticationSecondaryTOTP:
 			options = useAuthenticationOptionAddTOTP(options, branch.BotProtection)
-		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
+		case model.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 			options = useAuthenticationOptionAddPrimaryOOBOTP(options, branch.Authentication, model.AuthenticatorTypeOOBEmail, branch.BotProtection)
-		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
+		case model.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
 			options = useAuthenticationOptionAddPrimaryOOBOTP(options, branch.Authentication, model.AuthenticatorTypeOOBSMS, branch.BotProtection)
-		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
+		case model.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
 			options = useAuthenticationOptionAddSecondaryOOBOTP(options, branch.Authentication, model.AuthenticatorTypeOOBEmail, branch.BotProtection)
-		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
+		case model.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
 			options = useAuthenticationOptionAddSecondaryOOBOTP(options, branch.Authentication, model.AuthenticatorTypeOOBSMS, branch.BotProtection)
 		}
 	}
@@ -806,15 +809,15 @@ func getMaskedOTPTarget(claimName model.ClaimName, claimValue string) string {
 	}
 }
 
-func getOOBAuthenticatorType(authentication config.AuthenticationFlowAuthentication) model.AuthenticatorType {
+func getOOBAuthenticatorType(authentication model.AuthenticationFlowAuthentication) model.AuthenticatorType {
 	switch authentication {
-	case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
+	case model.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 		return model.AuthenticatorTypeOOBEmail
-	case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
+	case model.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
 		return model.AuthenticatorTypeOOBSMS
-	case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
+	case model.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
 		return model.AuthenticatorTypeOOBEmail
-	case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
+	case model.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
 		return model.AuthenticatorTypeOOBSMS
 
 	default:
@@ -822,7 +825,7 @@ func getOOBAuthenticatorType(authentication config.AuthenticationFlowAuthenticat
 	}
 }
 
-func createAuthenticatorSpec(ctx context.Context, deps *authflow.Dependencies, userID string, authentication config.AuthenticationFlowAuthentication, target string) (*authenticator.Spec, error) {
+func createAuthenticatorSpec(ctx context.Context, deps *authflow.Dependencies, userID string, authentication model.AuthenticationFlowAuthentication, target string) (*authenticator.Spec, error) {
 	spec := &authenticator.Spec{
 		UserID: userID,
 		OOBOTP: &authenticator.OOBOTPSpec{},
@@ -831,19 +834,19 @@ func createAuthenticatorSpec(ctx context.Context, deps *authflow.Dependencies, u
 	spec.Type = getOOBAuthenticatorType(authentication)
 
 	switch authentication {
-	case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
+	case model.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 		spec.Kind = model.AuthenticatorKindPrimary
 		spec.OOBOTP.Email = target
 
-	case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
+	case model.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
 		spec.Kind = model.AuthenticatorKindPrimary
 		spec.OOBOTP.Phone = target
 
-	case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
+	case model.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
 		spec.Kind = model.AuthenticatorKindSecondary
 		spec.OOBOTP.Email = target
 
-	case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
+	case model.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
 		spec.Kind = model.AuthenticatorKindSecondary
 		spec.OOBOTP.Phone = target
 
@@ -860,7 +863,7 @@ func createAuthenticatorSpec(ctx context.Context, deps *authflow.Dependencies, u
 	return spec, nil
 }
 
-func createAuthenticator(ctx context.Context, deps *authflow.Dependencies, userID string, authentication config.AuthenticationFlowAuthentication, target string) (*authenticator.Info, error) {
+func createAuthenticator(ctx context.Context, deps *authflow.Dependencies, userID string, authentication model.AuthenticationFlowAuthentication, target string) (*authenticator.Info, error) {
 	spec, err := createAuthenticatorSpec(ctx, deps, userID, authentication, target)
 	if err != nil {
 		return nil, err
@@ -879,7 +882,7 @@ func isNodeRestored(nodePointer jsonpointer.T, restoreTo jsonpointer.T) bool {
 	return !authflow.JSONPointerSubtract(nodePointer, restoreTo).More()
 }
 
-func makeLoginIDSpec(identification config.AuthenticationFlowIdentification, userInput stringutil.UserInputString) *identity.Spec {
+func makeLoginIDSpec(identification model.AuthenticationFlowIdentification, userInput stringutil.UserInputString) *identity.Spec {
 	spec := &identity.Spec{
 		Type: model.IdentityTypeLoginID,
 		LoginID: &identity.LoginIDSpec{
@@ -887,13 +890,13 @@ func makeLoginIDSpec(identification config.AuthenticationFlowIdentification, use
 		},
 	}
 	switch identification {
-	case config.AuthenticationFlowIdentificationEmail:
+	case model.AuthenticationFlowIdentificationEmail:
 		spec.LoginID.Type = model.LoginIDKeyTypeEmail
 		spec.LoginID.Key = string(spec.LoginID.Type)
-	case config.AuthenticationFlowIdentificationPhone:
+	case model.AuthenticationFlowIdentificationPhone:
 		spec.LoginID.Type = model.LoginIDKeyTypePhone
 		spec.LoginID.Key = string(spec.LoginID.Type)
-	case config.AuthenticationFlowIdentificationUsername:
+	case model.AuthenticationFlowIdentificationUsername:
 		spec.LoginID.Type = model.LoginIDKeyTypeUsername
 		spec.LoginID.Key = string(spec.LoginID.Type)
 	default:

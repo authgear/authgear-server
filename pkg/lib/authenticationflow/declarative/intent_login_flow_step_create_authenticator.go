@@ -178,30 +178,30 @@ func (i *IntentLoginFlowStepCreateAuthenticator) ReactTo(ctx context.Context, de
 			}
 
 			switch authentication {
-			case config.AuthenticationFlowAuthenticationPrimaryPassword:
+			case model.AuthenticationFlowAuthenticationPrimaryPassword:
 				fallthrough
-			case config.AuthenticationFlowAuthenticationSecondaryPassword:
+			case model.AuthenticationFlowAuthenticationSecondaryPassword:
 				return authflow.NewSubFlow(&IntentCreateAuthenticatorPassword{
 					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
 					UserID:         i.UserID,
 					Authentication: authentication,
 				}), nil
-			case config.AuthenticationFlowAuthenticationPrimaryPasskey:
+			case model.AuthenticationFlowAuthenticationPrimaryPasskey:
 				// Cannot create passkey in this step.
 				return nil, authflow.ErrIncompatibleInput
-			case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
+			case model.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 				fallthrough
-			case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
+			case model.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
 				fallthrough
-			case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
+			case model.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
 				fallthrough
-			case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
+			case model.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
 				return authflow.NewSubFlow(&IntentCreateAuthenticatorOOBOTP{
 					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
 					UserID:         i.UserID,
 					Authentication: authentication,
 				}), nil
-			case config.AuthenticationFlowAuthenticationSecondaryTOTP:
+			case model.AuthenticationFlowAuthenticationSecondaryTOTP:
 				intent, err := NewIntentCreateAuthenticatorTOTP(ctx, deps, &IntentCreateAuthenticatorTOTP{
 					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
 					UserID:         i.UserID,
@@ -256,7 +256,7 @@ func (*IntentLoginFlowStepCreateAuthenticator) step(o config.AuthenticationFlowO
 	return step
 }
 
-func (i *IntentLoginFlowStepCreateAuthenticator) checkAuthenticationMethod(deps *authflow.Dependencies, step *config.AuthenticationFlowLoginFlowStep, am config.AuthenticationFlowAuthentication) (idx int, err error) {
+func (i *IntentLoginFlowStepCreateAuthenticator) checkAuthenticationMethod(deps *authflow.Dependencies, step *config.AuthenticationFlowLoginFlowStep, am model.AuthenticationFlowAuthentication) (idx int, err error) {
 	idx = -1
 
 	for index, branch := range step.OneOf {
@@ -274,7 +274,7 @@ func (i *IntentLoginFlowStepCreateAuthenticator) checkAuthenticationMethod(deps 
 	return
 }
 
-func (*IntentLoginFlowStepCreateAuthenticator) authenticationMethod(flows authflow.Flows) config.AuthenticationFlowAuthentication {
+func (*IntentLoginFlowStepCreateAuthenticator) authenticationMethod(flows authflow.Flows) model.AuthenticationFlowAuthentication {
 	m, mFlows, ok := authflow.FindMilestoneInCurrentFlow[MilestoneFlowSelectAuthenticationMethod](flows)
 	if !ok {
 		panic(fmt.Errorf("authentication method not yet selected"))
@@ -288,7 +288,7 @@ func (*IntentLoginFlowStepCreateAuthenticator) authenticationMethod(flows authfl
 	return mDidSelect.MilestoneDidSelectAuthenticationMethod()
 }
 
-func (i *IntentLoginFlowStepCreateAuthenticator) jsonPointer(step *config.AuthenticationFlowLoginFlowStep, am config.AuthenticationFlowAuthentication) jsonpointer.T {
+func (i *IntentLoginFlowStepCreateAuthenticator) jsonPointer(step *config.AuthenticationFlowLoginFlowStep, am model.AuthenticationFlowAuthentication) jsonpointer.T {
 	for idx, branch := range step.OneOf {
 		branch := branch
 		if branch.Authentication == am {
@@ -400,21 +400,21 @@ func (i *IntentLoginFlowStepCreateAuthenticator) findSkippableOption(
 func (i *IntentLoginFlowStepCreateAuthenticator) findAuthenticatorByOption(in []*authenticator.Info, option CreateAuthenticatorOptionInternal) *authenticator.Info {
 
 	switch option.Authentication {
-	case config.AuthenticationFlowAuthenticationPrimaryPassword:
+	case model.AuthenticationFlowAuthenticationPrimaryPassword:
 		return findPassword(in, authenticator.KindPrimary)
-	case config.AuthenticationFlowAuthenticationSecondaryPassword:
+	case model.AuthenticationFlowAuthenticationSecondaryPassword:
 		return findPassword(in, authenticator.KindSecondary)
-	case config.AuthenticationFlowAuthenticationPrimaryPasskey:
+	case model.AuthenticationFlowAuthenticationPrimaryPasskey:
 		return findPrimaryPasskey(in, authenticator.KindPrimary)
-	case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
+	case model.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 		return findEmailOOB(in, authenticator.KindPrimary, option.UnmaskedTarget)
-	case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
+	case model.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
 		return findEmailOOB(in, authenticator.KindSecondary, option.UnmaskedTarget)
-	case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
+	case model.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
 		return findSMSOOB(in, authenticator.KindPrimary, option.UnmaskedTarget)
-	case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
+	case model.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
 		return findSMSOOB(in, authenticator.KindSecondary, option.UnmaskedTarget)
-	case config.AuthenticationFlowAuthenticationSecondaryTOTP:
+	case model.AuthenticationFlowAuthenticationSecondaryTOTP:
 		return findTOTP(in, authenticator.KindSecondary)
 	}
 	return nil

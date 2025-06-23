@@ -19,7 +19,7 @@ type InlinePreviewAuthflowBranchViewModeler struct {
 func (m *InlinePreviewAuthflowBranchViewModeler) NewAuthflowBranchViewModelForInlinePreviewEnterPassword() AuthflowBranchViewModel {
 	branches := m.generateAuthflowBranchesIdentityLoginIDs(m.getLoginIDKeyTypes())
 	branches = slice.Filter[AuthflowBranch](branches, func(b AuthflowBranch) bool {
-		return b.Authentication != config.AuthenticationFlowAuthenticationPrimaryPassword
+		return b.Authentication != model.AuthenticationFlowAuthenticationPrimaryPassword
 	})
 	return AuthflowBranchViewModel{
 		FlowType:           authflow.FlowTypeLogin,
@@ -46,7 +46,7 @@ func (m *InlinePreviewAuthflowBranchViewModeler) NewAuthflowBranchViewModelForIn
 func (m *InlinePreviewAuthflowBranchViewModeler) NewAuthflowBranchViewModelForInlinePreviewUsePasskey() AuthflowBranchViewModel {
 	branches := m.generateAuthflowBranchesIdentityLoginIDs(m.getLoginIDKeyTypes())
 	branches = slice.Filter[AuthflowBranch](branches, func(b AuthflowBranch) bool {
-		return b.Authentication != config.AuthenticationFlowAuthenticationPrimaryPasskey
+		return b.Authentication != model.AuthenticationFlowAuthenticationPrimaryPasskey
 	})
 	return AuthflowBranchViewModel{
 		FlowType:           authflow.FlowTypeLogin,
@@ -59,7 +59,7 @@ func (m *InlinePreviewAuthflowBranchViewModeler) NewAuthflowBranchViewModelForIn
 func (m *InlinePreviewAuthflowBranchViewModeler) NewAuthflowBranchViewModelForInlinePreviewEnterTOTP() AuthflowBranchViewModel {
 	branches := m.generateAuthflowBranchesLoginIDAuthenticateSecondaries(m.getLoginIDKeyTypes())
 	branches = slice.Filter[AuthflowBranch](branches, func(b AuthflowBranch) bool {
-		return b.Authentication != config.AuthenticationFlowAuthenticationSecondaryTOTP
+		return b.Authentication != model.AuthenticationFlowAuthenticationSecondaryTOTP
 	})
 	return AuthflowBranchViewModel{
 		FlowType:           authflow.FlowTypeLogin,
@@ -72,7 +72,7 @@ func (m *InlinePreviewAuthflowBranchViewModeler) NewAuthflowBranchViewModelForIn
 func (m *InlinePreviewAuthflowBranchViewModeler) NewAuthflowBranchViewModelForInlinePreviewOOBOTPLink() AuthflowBranchViewModel {
 	branches := m.generateAuthflowBranchesIdentityLoginID(model.LoginIDKeyTypeEmail)
 	branches = slice.Filter[AuthflowBranch](branches, func(b AuthflowBranch) bool {
-		return b.Authentication != config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail
+		return b.Authentication != model.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail
 	})
 	return AuthflowBranchViewModel{
 		FlowType:           authflow.FlowTypeLogin,
@@ -85,7 +85,7 @@ func (m *InlinePreviewAuthflowBranchViewModeler) NewAuthflowBranchViewModelForIn
 func (m *InlinePreviewAuthflowBranchViewModeler) NewAuthflowBranchViewModelForInlinePreviewCreatePassword() AuthflowBranchViewModel {
 	branches := m.generateSignupFlowBranchesIdentityLoginIDs(m.getLoginIDKeyTypes())
 	branches = slice.Filter[AuthflowBranch](branches, func(b AuthflowBranch) bool {
-		return b.Authentication != config.AuthenticationFlowAuthenticationPrimaryPassword
+		return b.Authentication != model.AuthenticationFlowAuthenticationPrimaryPassword
 	})
 	return AuthflowBranchViewModel{
 		FlowType:           authflow.FlowTypeSignup,
@@ -108,7 +108,7 @@ func (m *InlinePreviewAuthflowBranchViewModeler) getLoginIDKeyTypes() []model.Lo
 
 func (m *InlinePreviewAuthflowBranchViewModeler) generateSignupFlowBranchesIdentityLoginIDs(keyTypes []model.LoginIDKeyType) []AuthflowBranch {
 	var output []AuthflowBranch
-	addedMap := make(map[config.AuthenticationFlowAuthentication]struct{})
+	addedMap := make(map[model.AuthenticationFlowAuthentication]struct{})
 	for _, typ := range keyTypes {
 		branches := m.generateSignupFlowBranchesIdentityLoginID(typ)
 		for _, branch := range branches {
@@ -127,21 +127,21 @@ func (m *InlinePreviewAuthflowBranchViewModeler) generateSignupFlowBranchesIdent
 
 	switch keyType {
 	case model.LoginIDKeyTypeEmail:
-		if branches, ok := m.generateSignupFlowBranchesAuthenticatePrimary(config.AuthenticationFlowIdentificationEmail); ok {
+		if branches, ok := m.generateSignupFlowBranchesAuthenticatePrimary(model.AuthenticationFlowIdentificationEmail); ok {
 			output = append(
 				output,
 				branches...,
 			)
 		}
 	case model.LoginIDKeyTypePhone:
-		if branches, ok := m.generateSignupFlowBranchesAuthenticatePrimary(config.AuthenticationFlowIdentificationPhone); ok {
+		if branches, ok := m.generateSignupFlowBranchesAuthenticatePrimary(model.AuthenticationFlowIdentificationPhone); ok {
 			output = append(
 				output,
 				branches...,
 			)
 		}
 	case model.LoginIDKeyTypeUsername:
-		if branches, ok := m.generateSignupFlowBranchesAuthenticatePrimary(config.AuthenticationFlowIdentificationUsername); ok {
+		if branches, ok := m.generateSignupFlowBranchesAuthenticatePrimary(model.AuthenticationFlowIdentificationUsername); ok {
 			output = append(
 				output,
 				branches...,
@@ -152,7 +152,7 @@ func (m *InlinePreviewAuthflowBranchViewModeler) generateSignupFlowBranchesIdent
 	return output
 }
 
-func (m *InlinePreviewAuthflowBranchViewModeler) generateSignupFlowBranchesAuthenticatePrimary(identification config.AuthenticationFlowIdentification) ([]AuthflowBranch, bool) {
+func (m *InlinePreviewAuthflowBranchViewModeler) generateSignupFlowBranchesAuthenticatePrimary(identification model.AuthenticationFlowIdentification) ([]AuthflowBranch, bool) {
 	allowed := identification.PrimaryAuthentications()
 
 	// This identification does not require primary authentication.
@@ -160,7 +160,7 @@ func (m *InlinePreviewAuthflowBranchViewModeler) generateSignupFlowBranchesAuthe
 		return nil, false
 	}
 
-	allowedMap := make(map[config.AuthenticationFlowAuthentication]struct{})
+	allowedMap := make(map[model.AuthenticationFlowAuthentication]struct{})
 	for _, a := range allowed {
 		allowedMap[a] = struct{}{}
 	}
@@ -170,17 +170,17 @@ func (m *InlinePreviewAuthflowBranchViewModeler) generateSignupFlowBranchesAuthe
 	for _, authenticatorType := range *m.AppConfig.Authentication.PrimaryAuthenticators {
 		switch authenticatorType {
 		case model.AuthenticatorTypePassword:
-			am := config.AuthenticationFlowAuthenticationPrimaryPassword
+			am := model.AuthenticationFlowAuthenticationPrimaryPassword
 			if _, ok := allowedMap[am]; ok {
 				output = append(output, m.generateSignupFlowStepAuthenticatePrimaryPassword()...)
 			}
 		case model.AuthenticatorTypeOOBEmail:
-			am := config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail
+			am := model.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail
 			if _, ok := allowedMap[am]; ok {
 				output = append(output, m.generateSignupFlowStepAuthenticatePrimaryOOBOTPEmail()...)
 			}
 		case model.AuthenticatorTypeOOBSMS:
-			am := config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS
+			am := model.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS
 			if _, ok := allowedMap[am]; ok {
 				output = append(output, m.generateSignupFlowStepAuthenticatePrimaryOOBSMS()...)
 			}
@@ -193,7 +193,7 @@ func (m *InlinePreviewAuthflowBranchViewModeler) generateSignupFlowBranchesAuthe
 func (m *InlinePreviewAuthflowBranchViewModeler) generateSignupFlowStepAuthenticatePrimaryPassword() []AuthflowBranch {
 	return []AuthflowBranch{
 		{
-			Authentication:        config.AuthenticationFlowAuthenticationPrimaryPassword,
+			Authentication:        model.AuthenticationFlowAuthenticationPrimaryPassword,
 			VerificationSkippable: true,
 		},
 	}
@@ -202,7 +202,7 @@ func (m *InlinePreviewAuthflowBranchViewModeler) generateSignupFlowStepAuthentic
 func (m *InlinePreviewAuthflowBranchViewModeler) generateSignupFlowStepAuthenticatePrimaryOOBOTPEmail() []AuthflowBranch {
 	return []AuthflowBranch{
 		{
-			Authentication:   config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail,
+			Authentication:   model.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail,
 			Channel:          model.AuthenticatorOOBChannelEmail,
 			MaskedClaimValue: PreviewDummyEmailMasked,
 			OTPForm: func() otp.Form {
@@ -220,7 +220,7 @@ func (m *InlinePreviewAuthflowBranchViewModeler) generateSignupFlowStepAuthentic
 	channel := m.AppConfig.Authenticator.OOB.SMS.PhoneOTPMode.GetDefaultChannel()
 	return []AuthflowBranch{
 		{
-			Authentication:        config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS,
+			Authentication:        model.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS,
 			Channel:               channel,
 			MaskedClaimValue:      PreviewDummyPhoneNumberMasked,
 			OTPForm:               otp.FormCode,
@@ -231,7 +231,7 @@ func (m *InlinePreviewAuthflowBranchViewModeler) generateSignupFlowStepAuthentic
 
 func (m *InlinePreviewAuthflowBranchViewModeler) generateAuthflowBranchesIdentityLoginIDs(keyTypes []model.LoginIDKeyType) []AuthflowBranch {
 	var output []AuthflowBranch
-	addedMap := make(map[config.AuthenticationFlowAuthentication]struct{})
+	addedMap := make(map[model.AuthenticationFlowAuthentication]struct{})
 	for _, typ := range keyTypes {
 		branches := m.generateAuthflowBranchesIdentityLoginID(typ)
 		for _, branch := range branches {
@@ -250,21 +250,21 @@ func (m *InlinePreviewAuthflowBranchViewModeler) generateAuthflowBranchesIdentit
 
 	switch keyType {
 	case model.LoginIDKeyTypeEmail:
-		if branches, ok := m.generateAuthflowBranchesAuthenticatePrimary(config.AuthenticationFlowIdentificationEmail); ok {
+		if branches, ok := m.generateAuthflowBranchesAuthenticatePrimary(model.AuthenticationFlowIdentificationEmail); ok {
 			output = append(
 				output,
 				branches...,
 			)
 		}
 	case model.LoginIDKeyTypePhone:
-		if branches, ok := m.generateAuthflowBranchesAuthenticatePrimary(config.AuthenticationFlowIdentificationPhone); ok {
+		if branches, ok := m.generateAuthflowBranchesAuthenticatePrimary(model.AuthenticationFlowIdentificationPhone); ok {
 			output = append(
 				output,
 				branches...,
 			)
 		}
 	case model.LoginIDKeyTypeUsername:
-		if branches, ok := m.generateAuthflowBranchesAuthenticatePrimary(config.AuthenticationFlowIdentificationUsername); ok {
+		if branches, ok := m.generateAuthflowBranchesAuthenticatePrimary(model.AuthenticationFlowIdentificationUsername); ok {
 			output = append(
 				output,
 				branches...,
@@ -277,7 +277,7 @@ func (m *InlinePreviewAuthflowBranchViewModeler) generateAuthflowBranchesIdentit
 
 func (m *InlinePreviewAuthflowBranchViewModeler) generateAuthflowBranchesLoginIDAuthenticateSecondaries(keyTypes []model.LoginIDKeyType) []AuthflowBranch {
 	var output []AuthflowBranch
-	addedMap := make(map[config.AuthenticationFlowAuthentication]struct{})
+	addedMap := make(map[model.AuthenticationFlowAuthentication]struct{})
 	for _, typ := range keyTypes {
 		branches := m.generateAuthflowBranchesLoginIDAuthenticateSecondary(typ)
 		for _, branch := range branches {
@@ -296,21 +296,21 @@ func (m *InlinePreviewAuthflowBranchViewModeler) generateAuthflowBranchesLoginID
 
 	switch keyType {
 	case model.LoginIDKeyTypeEmail:
-		if branches, ok := m.generateAuthflowBranchesAuthenticateSecondary(config.AuthenticationFlowIdentificationEmail); ok {
+		if branches, ok := m.generateAuthflowBranchesAuthenticateSecondary(model.AuthenticationFlowIdentificationEmail); ok {
 			output = append(
 				output,
 				branches...,
 			)
 		}
 	case model.LoginIDKeyTypePhone:
-		if branches, ok := m.generateAuthflowBranchesAuthenticateSecondary(config.AuthenticationFlowIdentificationPhone); ok {
+		if branches, ok := m.generateAuthflowBranchesAuthenticateSecondary(model.AuthenticationFlowIdentificationPhone); ok {
 			output = append(
 				output,
 				branches...,
 			)
 		}
 	case model.LoginIDKeyTypeUsername:
-		if branches, ok := m.generateAuthflowBranchesAuthenticateSecondary(config.AuthenticationFlowIdentificationUsername); ok {
+		if branches, ok := m.generateAuthflowBranchesAuthenticateSecondary(model.AuthenticationFlowIdentificationUsername); ok {
 			output = append(
 				output,
 				branches...,
@@ -321,7 +321,7 @@ func (m *InlinePreviewAuthflowBranchViewModeler) generateAuthflowBranchesLoginID
 	return output
 }
 
-func (m *InlinePreviewAuthflowBranchViewModeler) generateAuthflowBranchesAuthenticatePrimary(identification config.AuthenticationFlowIdentification) ([]AuthflowBranch, bool) {
+func (m *InlinePreviewAuthflowBranchViewModeler) generateAuthflowBranchesAuthenticatePrimary(identification model.AuthenticationFlowIdentification) ([]AuthflowBranch, bool) {
 	allowed := identification.PrimaryAuthentications()
 
 	// This identification does not require primary authentication.
@@ -329,7 +329,7 @@ func (m *InlinePreviewAuthflowBranchViewModeler) generateAuthflowBranchesAuthent
 		return nil, false
 	}
 
-	allowedMap := make(map[config.AuthenticationFlowAuthentication]struct{})
+	allowedMap := make(map[model.AuthenticationFlowAuthentication]struct{})
 	for _, a := range allowed {
 		allowedMap[a] = struct{}{}
 	}
@@ -339,22 +339,22 @@ func (m *InlinePreviewAuthflowBranchViewModeler) generateAuthflowBranchesAuthent
 	for _, authenticatorType := range *m.AppConfig.Authentication.PrimaryAuthenticators {
 		switch authenticatorType {
 		case model.AuthenticatorTypePassword:
-			am := config.AuthenticationFlowAuthenticationPrimaryPassword
+			am := model.AuthenticationFlowAuthenticationPrimaryPassword
 			if _, ok := allowedMap[am]; ok {
 				output = append(output, m.generateLoginFlowStepAuthenticatePrimaryPassword()...)
 			}
 		case model.AuthenticatorTypePasskey:
-			am := config.AuthenticationFlowAuthenticationPrimaryPasskey
+			am := model.AuthenticationFlowAuthenticationPrimaryPasskey
 			if _, ok := allowedMap[am]; ok {
 				output = append(output, m.generateLoginFlowStepAuthenticatePrimaryPasskey()...)
 			}
 		case model.AuthenticatorTypeOOBEmail:
-			am := config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail
+			am := model.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail
 			if _, ok := allowedMap[am]; ok {
 				output = append(output, m.generateLoginFlowStepAuthenticatePrimaryOOBOTPEmail()...)
 			}
 		case model.AuthenticatorTypeOOBSMS:
-			am := config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS
+			am := model.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS
 			if _, ok := allowedMap[am]; ok {
 				output = append(output, m.generateLoginFlowStepAuthenticatePrimaryOOBSMS()...)
 			}
@@ -367,7 +367,7 @@ func (m *InlinePreviewAuthflowBranchViewModeler) generateAuthflowBranchesAuthent
 func (m *InlinePreviewAuthflowBranchViewModeler) generateLoginFlowStepAuthenticatePrimaryPassword() []AuthflowBranch {
 	return []AuthflowBranch{
 		{
-			Authentication: config.AuthenticationFlowAuthenticationPrimaryPassword,
+			Authentication: model.AuthenticationFlowAuthenticationPrimaryPassword,
 		},
 	}
 }
@@ -375,7 +375,7 @@ func (m *InlinePreviewAuthflowBranchViewModeler) generateLoginFlowStepAuthentica
 func (m *InlinePreviewAuthflowBranchViewModeler) generateLoginFlowStepAuthenticatePrimaryPasskey() []AuthflowBranch {
 	return []AuthflowBranch{
 		{
-			Authentication: config.AuthenticationFlowAuthenticationPrimaryPasskey,
+			Authentication: model.AuthenticationFlowAuthenticationPrimaryPasskey,
 		},
 	}
 }
@@ -383,7 +383,7 @@ func (m *InlinePreviewAuthflowBranchViewModeler) generateLoginFlowStepAuthentica
 func (m *InlinePreviewAuthflowBranchViewModeler) generateLoginFlowStepAuthenticatePrimaryOOBOTPEmail() []AuthflowBranch {
 	return []AuthflowBranch{
 		{
-			Authentication:   config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail,
+			Authentication:   model.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail,
 			Channel:          model.AuthenticatorOOBChannelEmail,
 			MaskedClaimValue: PreviewDummyEmailMasked,
 			OTPForm: func() otp.Form {
@@ -400,7 +400,7 @@ func (m *InlinePreviewAuthflowBranchViewModeler) generateLoginFlowStepAuthentica
 	channel := m.AppConfig.Authenticator.OOB.SMS.PhoneOTPMode.GetDefaultChannel()
 	return []AuthflowBranch{
 		{
-			Authentication:   config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS,
+			Authentication:   model.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS,
 			Channel:          channel,
 			MaskedClaimValue: PreviewDummyPhoneNumberMasked,
 			OTPForm:          otp.FormCode,
@@ -408,7 +408,7 @@ func (m *InlinePreviewAuthflowBranchViewModeler) generateLoginFlowStepAuthentica
 	}
 }
 
-func (m *InlinePreviewAuthflowBranchViewModeler) generateAuthflowBranchesAuthenticateSecondary(identification config.AuthenticationFlowIdentification) ([]AuthflowBranch, bool) {
+func (m *InlinePreviewAuthflowBranchViewModeler) generateAuthflowBranchesAuthenticateSecondary(identification model.AuthenticationFlowIdentification) ([]AuthflowBranch, bool) {
 	if m.AppConfig.Authentication.SecondaryAuthenticationMode.IsDisabled() {
 		return nil, false
 	}
@@ -419,7 +419,7 @@ func (m *InlinePreviewAuthflowBranchViewModeler) generateAuthflowBranchesAuthent
 		return nil, false
 	}
 
-	allowedMap := make(map[config.AuthenticationFlowAuthentication]struct{})
+	allowedMap := make(map[model.AuthenticationFlowAuthentication]struct{})
 	for _, a := range allowed {
 		allowedMap[a] = struct{}{}
 	}
@@ -429,22 +429,22 @@ func (m *InlinePreviewAuthflowBranchViewModeler) generateAuthflowBranchesAuthent
 	for _, authenticatorType := range *m.AppConfig.Authentication.SecondaryAuthenticators {
 		switch authenticatorType {
 		case model.AuthenticatorTypePassword:
-			am := config.AuthenticationFlowAuthenticationSecondaryPassword
+			am := model.AuthenticationFlowAuthenticationSecondaryPassword
 			if _, ok := allowedMap[am]; ok {
 				output = append(output, m.generateLoginFlowStepAuthenticateSecondaryPassword()...)
 			}
 		case model.AuthenticatorTypeOOBEmail:
-			am := config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail
+			am := model.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail
 			if _, ok := allowedMap[am]; ok {
 				output = append(output, m.generateLoginFlowStepAuthenticateSecondaryOOBOTPEmail()...)
 			}
 		case model.AuthenticatorTypeOOBSMS:
-			am := config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS
+			am := model.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS
 			if _, ok := allowedMap[am]; ok {
 				output = append(output, m.generateLoginFlowStepAuthenticateSecondaryOOBSMS()...)
 			}
 		case model.AuthenticatorTypeTOTP:
-			am := config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS
+			am := model.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS
 			if _, ok := allowedMap[am]; ok {
 				output = append(output, m.generateLoginFlowStepAuthenticateSecondaryTOTP()...)
 			}
@@ -461,7 +461,7 @@ func (m *InlinePreviewAuthflowBranchViewModeler) generateAuthflowBranchesAuthent
 func (m *InlinePreviewAuthflowBranchViewModeler) generateLoginFlowStepAuthenticateSecondaryPassword() []AuthflowBranch {
 	return []AuthflowBranch{
 		{
-			Authentication: config.AuthenticationFlowAuthenticationSecondaryPassword,
+			Authentication: model.AuthenticationFlowAuthenticationSecondaryPassword,
 		},
 	}
 }
@@ -469,7 +469,7 @@ func (m *InlinePreviewAuthflowBranchViewModeler) generateLoginFlowStepAuthentica
 func (m *InlinePreviewAuthflowBranchViewModeler) generateLoginFlowStepAuthenticateSecondaryOOBOTPEmail() []AuthflowBranch {
 	return []AuthflowBranch{
 		{
-			Authentication:   config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail,
+			Authentication:   model.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail,
 			Channel:          model.AuthenticatorOOBChannelEmail,
 			MaskedClaimValue: PreviewDummyEmailMasked,
 			OTPForm: func() otp.Form {
@@ -486,7 +486,7 @@ func (m *InlinePreviewAuthflowBranchViewModeler) generateLoginFlowStepAuthentica
 	channel := m.AppConfig.Authenticator.OOB.SMS.PhoneOTPMode.GetDefaultChannel()
 	return []AuthflowBranch{
 		{
-			Authentication:   config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS,
+			Authentication:   model.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS,
 			Channel:          channel,
 			MaskedClaimValue: PreviewDummyPhoneNumberMasked,
 			OTPForm:          otp.FormCode,
@@ -497,7 +497,7 @@ func (m *InlinePreviewAuthflowBranchViewModeler) generateLoginFlowStepAuthentica
 func (m *InlinePreviewAuthflowBranchViewModeler) generateLoginFlowStepAuthenticateSecondaryTOTP() []AuthflowBranch {
 	return []AuthflowBranch{
 		{
-			Authentication: config.AuthenticationFlowAuthenticationSecondaryTOTP,
+			Authentication: model.AuthenticationFlowAuthenticationSecondaryTOTP,
 		},
 	}
 }
@@ -505,7 +505,7 @@ func (m *InlinePreviewAuthflowBranchViewModeler) generateLoginFlowStepAuthentica
 func (m *InlinePreviewAuthflowBranchViewModeler) generateLoginFlowStepAuthenticateSecondaryRecoveryCode() []AuthflowBranch {
 	return []AuthflowBranch{
 		{
-			Authentication: config.AuthenticationFlowAuthenticationRecoveryCode,
+			Authentication: model.AuthenticationFlowAuthenticationRecoveryCode,
 		},
 	}
 }

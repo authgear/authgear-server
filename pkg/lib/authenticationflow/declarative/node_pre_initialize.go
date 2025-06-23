@@ -22,7 +22,7 @@ func NewNodePreInitialize(ctx context.Context, deps *authflow.Dependencies, flow
 	}
 
 	payload := &blocking.AuthenticationPreInitializeBlockingEventPayload{
-		Authentication: *authCtx,
+		AuthenticationContext: *authCtx,
 
 		Constraints:               nil,
 		BotProtectionRequirements: nil,

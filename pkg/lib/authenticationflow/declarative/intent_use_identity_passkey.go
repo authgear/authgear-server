@@ -11,7 +11,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/facade"
 )
 
@@ -20,8 +19,8 @@ func init() {
 }
 
 type IntentUseIdentityPasskey struct {
-	JSONPointer    jsonpointer.T                           `json:"json_pointer,omitempty"`
-	Identification config.AuthenticationFlowIdentification `json:"identification,omitempty"`
+	JSONPointer    jsonpointer.T                          `json:"json_pointer,omitempty"`
+	Identification model.AuthenticationFlowIdentification `json:"identification,omitempty"`
 }
 
 var _ authflow.Intent = &IntentUseIdentityPasskey{}
@@ -35,7 +34,7 @@ func (*IntentUseIdentityPasskey) Kind() string {
 }
 
 func (*IntentUseIdentityPasskey) Milestone() {}
-func (n *IntentUseIdentityPasskey) MilestoneIdentificationMethod() config.AuthenticationFlowIdentification {
+func (n *IntentUseIdentityPasskey) MilestoneIdentificationMethod() model.AuthenticationFlowIdentification {
 	return n.Identification
 }
 

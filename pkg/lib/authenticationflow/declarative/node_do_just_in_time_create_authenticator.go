@@ -3,6 +3,7 @@ package declarative
 import (
 	"context"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 )
@@ -35,6 +36,17 @@ func (n *NodeDoJustInTimeCreateAuthenticator) MilestoneDoCreateAuthenticator() (
 }
 func (n *NodeDoJustInTimeCreateAuthenticator) MilestoneDoCreateAuthenticatorSkipCreate() {
 	n.SkipCreate = true
+}
+func (n *NodeDoJustInTimeCreateAuthenticator) MilestoneDoCreateAuthenticatorAuthentication() (*model.Authentication, bool) {
+	if n.Authenticator == nil || n.SkipCreate {
+		return nil, false
+	}
+	authn := n.Authenticator.ToAuthentication()
+	authnModel := n.Authenticator.ToModel()
+	return &model.Authentication{
+		Authentication: authn,
+		Authenticator:  &authnModel,
+	}, true
 }
 func (n *NodeDoJustInTimeCreateAuthenticator) MilestoneDoCreateAuthenticatorUpdate(newInfo *authenticator.Info) {
 	n.Authenticator = newInfo

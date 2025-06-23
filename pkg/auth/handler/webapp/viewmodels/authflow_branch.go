@@ -8,11 +8,10 @@ import (
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 type AuthflowBranch struct {
-	Authentication        config.AuthenticationFlowAuthentication
+	Authentication        model.AuthenticationFlowAuthentication
 	Index                 int
 	Channel               model.AuthenticatorOOBChannel
 	MaskedClaimValue      string
@@ -73,7 +72,7 @@ func reorderBranches(branches []AuthflowBranch) []AuthflowBranch {
 	result := []AuthflowBranch{}
 	for idx := range branches {
 		b := branches[len(branches)-idx-1]
-		if b.Authentication == config.AuthenticationFlowAuthenticationPrimaryPasskey {
+		if b.Authentication == model.AuthenticationFlowAuthenticationPrimaryPasskey {
 			// Put to the beginning of the reversed slice
 			result = append([]AuthflowBranch{b}, result...)
 		} else {
@@ -124,23 +123,23 @@ func newAuthflowBranchViewModelStepAuthenticate(screen *webapp.AuthflowScreenWit
 
 	for idx, o := range branchData.Options {
 		switch o.Authentication {
-		case config.AuthenticationFlowAuthenticationPrimaryPassword:
+		case model.AuthenticationFlowAuthenticationPrimaryPassword:
 			addIndexBranch(idx, o)
-		case config.AuthenticationFlowAuthenticationPrimaryPasskey:
+		case model.AuthenticationFlowAuthenticationPrimaryPasskey:
 			addIndexBranch(idx, o)
-		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
+		case model.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 			addChannelBranch(idx, o)
-		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
+		case model.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
 			addChannelBranch(idx, o)
-		case config.AuthenticationFlowAuthenticationSecondaryPassword:
+		case model.AuthenticationFlowAuthenticationSecondaryPassword:
 			addIndexBranch(idx, o)
-		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
+		case model.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
 			addChannelBranch(idx, o)
-		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
+		case model.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
 			addChannelBranch(idx, o)
-		case config.AuthenticationFlowAuthenticationSecondaryTOTP:
+		case model.AuthenticationFlowAuthenticationSecondaryTOTP:
 			addIndexBranch(idx, o)
-		case config.AuthenticationFlowAuthenticationRecoveryCode:
+		case model.AuthenticationFlowAuthenticationRecoveryCode:
 			addIndexBranch(idx, o)
 		default:
 			// Ignore other authentications.
@@ -201,23 +200,23 @@ func newAuthflowBranchViewModelStepCreateAuthenticator(screen *webapp.AuthflowSc
 
 	for idx, o := range branchData.Options {
 		switch o.Authentication {
-		case config.AuthenticationFlowAuthenticationPrimaryPassword:
+		case model.AuthenticationFlowAuthenticationPrimaryPassword:
 			addIndexBranch(idx, o)
-		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
+		case model.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 			fallthrough
-		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
+		case model.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
 			fallthrough
-		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
+		case model.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
 			fallthrough
-		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
+		case model.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
 			if o.Target != nil && !o.Target.VerificationRequired {
 				addSkipBranch(idx, o)
 			} else {
 				addChannelBranch(idx, o)
 			}
-		case config.AuthenticationFlowAuthenticationSecondaryTOTP:
+		case model.AuthenticationFlowAuthenticationSecondaryTOTP:
 			fallthrough
-		case config.AuthenticationFlowAuthenticationSecondaryPassword:
+		case model.AuthenticationFlowAuthenticationSecondaryPassword:
 			addIndexBranch(idx, o)
 		default:
 			// Ignore other authentications.

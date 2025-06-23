@@ -3,6 +3,7 @@ package declarative
 import (
 	"context"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
@@ -60,11 +61,25 @@ func (*NodeDoCreatePasskey) Milestone() {}
 func (n *NodeDoCreatePasskey) MilestoneDoCreateIdentity() *identity.Info {
 	return n.NodeDoCreateIdentity.MilestoneDoCreateIdentity()
 }
+func (n *NodeDoCreatePasskey) MilestoneDoCreateIdentityIdentification() model.Identification {
+	return n.NodeDoCreateIdentity.MilestoneDoCreateIdentityIdentification()
+}
 func (n *NodeDoCreatePasskey) MilestoneDoCreateAuthenticator() (*authenticator.Info, bool) {
 	return n.Authenticator, !n.SkipCreate
 }
 func (n *NodeDoCreatePasskey) MilestoneDoCreateAuthenticatorSkipCreate() {
 	n.SkipCreate = true
+}
+func (n *NodeDoCreatePasskey) MilestoneDoCreateAuthenticatorAuthentication() (*model.Authentication, bool) {
+	if n.Authenticator == nil || n.SkipCreate {
+		return nil, false
+	}
+	authn := n.Authenticator.ToAuthentication()
+	authnModel := n.Authenticator.ToModel()
+	return &model.Authentication{
+		Authentication: authn,
+		Authenticator:  &authnModel,
+	}, true
 }
 func (n *NodeDoCreatePasskey) MilestoneDoCreateAuthenticatorUpdate(newInfo *authenticator.Info) {
 	panic("NodeDoCreatePasskey does not support update authenticator")

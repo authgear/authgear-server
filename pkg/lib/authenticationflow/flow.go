@@ -6,6 +6,7 @@ import (
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
@@ -57,10 +58,10 @@ func FlowActionTypeFromStepType(t config.AuthenticationFlowStepType) FlowActionT
 
 // FlowAction is an API object.
 type FlowAction struct {
-	Type           FlowActionType                          `json:"type"`
-	Identification config.AuthenticationFlowIdentification `json:"identification,omitempty"`
-	Authentication config.AuthenticationFlowAuthentication `json:"authentication,omitempty"`
-	Data           Data                                    `json:"data,omitempty"`
+	Type           FlowActionType                         `json:"type"`
+	Identification model.AuthenticationFlowIdentification `json:"identification,omitempty"`
+	Authentication model.AuthenticationFlowAuthentication `json:"authentication,omitempty"`
+	Data           Data                                   `json:"data,omitempty"`
 }
 
 // FlowResponse is an API object.
