@@ -45,7 +45,7 @@ func (i *Info) GetMeta() model.Meta {
 }
 
 func (i *Info) AMR() []string {
-	return AMR(i.Type)
+	return i.ToAuthentication().AMR()
 }
 
 func (i *Info) Equal(that *Info) bool {
@@ -268,21 +268,4 @@ func (i *Info) UpdateUserID(newUserID string) *Info {
 		panic(fmt.Errorf("identity: identity type %v does not support updating user ID", i.Type))
 	}
 	return i
-}
-
-func AMR(authenticatorType model.AuthenticatorType) []string {
-	switch authenticatorType {
-	case model.AuthenticatorTypePassword:
-		return []string{model.AMRPWD}
-	case model.AuthenticatorTypePasskey:
-		return []string{model.AMRXPasskey}
-	case model.AuthenticatorTypeTOTP:
-		return []string{model.AMROTP}
-	case model.AuthenticatorTypeOOBEmail:
-		return []string{model.AMROTP}
-	case model.AuthenticatorTypeOOBSMS:
-		return []string{model.AMROTP, model.AMRSMS}
-	default:
-		panic("authenticator: unknown authenticator type: " + authenticatorType)
-	}
 }

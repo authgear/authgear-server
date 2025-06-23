@@ -28,7 +28,7 @@ type NodeDoCreateSession struct {
 func NewNodeDoCreateSession(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, n *NodeDoCreateSession) (*NodeDoCreateSession, error) {
 	attrs := session.NewAttrs(n.UserID)
 
-	amr, err := collectAMR(ctx, deps, flows)
+	amr, err := CollectAMR(ctx, deps, flows)
 	if err != nil {
 		return nil, err
 	}
