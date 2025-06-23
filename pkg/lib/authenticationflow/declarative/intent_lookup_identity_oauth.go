@@ -48,6 +48,7 @@ func (i *IntentLookupIdentityOAuth) CanReactTo(ctx context.Context, deps *authfl
 		}
 
 		oauthOptions := NewIdentificationOptionsOAuth(
+			flows,
 			deps.Config.Identity.OAuth,
 			deps.FeatureConfig.Identity.OAuth.Providers,
 			authflowCfg,
