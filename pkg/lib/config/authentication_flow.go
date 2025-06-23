@@ -117,8 +117,7 @@ var _ = Schema.Add("AuthenticationFlowSignupFlowStep", `
 					"one_of": {
 						"type": "array",
 						"items": { "$ref": "#/$defs/AuthenticationFlowSignupFlowAuthenticate" }
-					},
-					"show_until_amr_constraints_fulfilled": { "type": "boolean" }
+					}
 				}
 			}
 		},
@@ -287,7 +286,6 @@ var _ = Schema.Add("AuthenticationFlowLoginFlowStep", `
 				"required": ["one_of"],
 				"properties": {
 					"optional": { "type": "boolean" },
-					"show_until_amr_constraints_fulfilled": { "type": "boolean" },
 					"one_of": {
 						"type": "array",
 						"items": { "$ref": "#/$defs/AuthenticationFlowLoginFlowAuthenticate" }
@@ -698,10 +696,15 @@ type AuthenticationFlowObject interface {
 	IsFlowObject()
 }
 
+type AuthenticationFlowStepsObject interface {
+	AuthenticationFlowObject
+	GetSteps() []AuthenticationFlowObject
+}
+
 type AuthenticationFlowObjectFlowRoot interface {
 	AuthenticationFlowObject
+	AuthenticationFlowStepsObject
 	GetName() string
-	GetSteps() []AuthenticationFlowObject
 }
 
 type AuthenticationFlowType string
@@ -729,7 +732,7 @@ type AuthenticationFlowObjectFlowBranchInfo struct {
 
 type AuthenticationFlowObjectFlowBranch interface {
 	AuthenticationFlowObject
-	GetSteps() []AuthenticationFlowObject
+	AuthenticationFlowStepsObject
 	GetBranchInfo() AuthenticationFlowObjectFlowBranchInfo
 }
 
@@ -916,8 +919,6 @@ type AuthenticationFlowSignupFlowStep struct {
 	TargetStep string `json:"target_step,omitempty"`
 	// UserProfile is relevant when Type is fill_in_user_profile.
 	UserProfile []*AuthenticationFlowSignupFlowUserProfile `json:"user_profile,omitempty"`
-	// show_until_amr_constraints_fulfilled is relevant when Type is create_authenticator.
-	ShowUntilAMRConstraintsFulfilled *bool `json:"show_until_amr_constraints_fulfilled,omitempty"`
 }
 
 var (
@@ -961,13 +962,6 @@ func (s *AuthenticationFlowSignupFlowStep) GetSignupFlowOrLoginFlowOneOf() []Aut
 	default:
 		return nil
 	}
-}
-
-func (s *AuthenticationFlowSignupFlowStep) IsShowUntilAMRConstraintsFulfilled() bool {
-	if s.ShowUntilAMRConstraintsFulfilled != nil && *s.ShowUntilAMRConstraintsFulfilled {
-		return true
-	}
-	return false
 }
 
 type AuthenticationFlowSignupFlowOneOf struct {
@@ -1086,9 +1080,6 @@ type AuthenticationFlowLoginFlowStep struct {
 
 	// TargetStep is relevant when Type is change_password.
 	TargetStep string `json:"target_step,omitempty"`
-
-	// show_until_amr_constraints_fulfilled is relevant when Type is authenticate.
-	ShowUntilAMRConstraintsFulfilled *bool `json:"show_until_amr_constraints_fulfilled,omitempty"`
 }
 
 var (
@@ -1136,13 +1127,6 @@ func (s *AuthenticationFlowLoginFlowStep) GetSignupFlowOrLoginFlowOneOf() []Auth
 
 func (s *AuthenticationFlowLoginFlowStep) IsOptional() bool {
 	if s.Optional != nil && *s.Optional {
-		return true
-	}
-	return false
-}
-
-func (s *AuthenticationFlowLoginFlowStep) IsShowUntilAMRConstraintsFulfilled() bool {
-	if s.ShowUntilAMRConstraintsFulfilled != nil && *s.ShowUntilAMRConstraintsFulfilled {
 		return true
 	}
 	return false
@@ -1317,9 +1301,6 @@ type AuthenticationFlowReauthFlowStep struct {
 
 	// OneOf is relevant when Type is identify or authenticate.
 	OneOf []*AuthenticationFlowReauthFlowOneOf `json:"one_of,omitempty"`
-
-	// show_until_amr_constraints_fulfilled is relevant when Type is authenticate.
-	ShowUntilAMRConstraintsFulfilled *bool `json:"show_until_amr_constraints_fulfilled,omitempty"`
 }
 
 var _ AuthenticationFlowObjectFlowStep = &AuthenticationFlowReauthFlowStep{}
@@ -1344,13 +1325,6 @@ func (s *AuthenticationFlowReauthFlowStep) GetOneOf() []AuthenticationFlowObject
 	default:
 		return nil
 	}
-}
-
-func (s *AuthenticationFlowReauthFlowStep) IsShowUntilAMRConstraintsFulfilled() bool {
-	if s.ShowUntilAMRConstraintsFulfilled != nil && *s.ShowUntilAMRConstraintsFulfilled {
-		return true
-	}
-	return false
 }
 
 type AuthenticationFlowReauthFlowOneOf struct {
