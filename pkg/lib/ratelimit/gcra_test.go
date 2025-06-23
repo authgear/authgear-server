@@ -13,7 +13,7 @@ import (
 
 type scheduleEntry struct {
 	time string
-	n    int
+	n    float64
 
 	ok        bool
 	timeToAct int
@@ -166,6 +166,28 @@ func TestGCRA(t *testing.T) {
 				{time: "0s", n: 0, ok: true, timeToAct: -5},
 				{time: "0s", n: 1, ok: true, timeToAct: 0},
 				{time: "0s", n: -1, ok: true, timeToAct: -5},
+			},
+		})
+		test("supports fraction", &schedule{
+			period: "10s",
+			burst:  2,
+			entries: []scheduleEntry{
+				{time: "0s", n: 0, ok: true, timeToAct: -5},
+				{time: "0s", n: 1.5, ok: true, timeToAct: 5},
+				{time: "0s", n: 1.5, ok: false, timeToAct: 5},
+
+				{time: "5s", n: 1.5, ok: true, timeToAct: 12},
+				// At this moment, we have acted n=3 at t=5.
+				// Try with n=1 should be blocked.
+				{time: "5s", n: 1, ok: false, timeToAct: 10},
+
+				// Revert n=1.5
+				{time: "5s", n: -1.5, ok: true, timeToAct: 2},
+
+				// Now act with n=1 should be accepted
+				{time: "5s", n: 1, ok: true, timeToAct: 7},
+				// Try agin with n=1 should be blocked
+				{time: "5s", n: 1, ok: false, timeToAct: 7},
 			},
 		})
 	})
