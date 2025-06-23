@@ -11,6 +11,34 @@ const (
 	UserPreScheduleAnonymization event.Type = "user.pre_schedule_anonymization"
 )
 
+func init() {
+	s := event.GetBaseHookResponseSchema()
+	s.Add("UserPreScheduleAnonymizationHookResponse", `
+{
+	"allOf": [
+		{ "$ref": "#/$defs/BaseHookResponseSchema" },
+		{
+			"if": {
+				"properties": {
+					"is_allowed": { "const": true }
+				}
+			},
+			"then": {
+				"type": "object",
+				"additionalProperties": false,
+				"properties": {
+					"is_allowed": {},
+					"mutations": {}
+				}
+			}
+		}
+	]
+}`)
+
+	s.Instantiate()
+	event.RegisterResponseSchemaValidator(UserPreScheduleAnonymization, s.PartValidator("UserPreScheduleAnonymizationHookResponse"))
+}
+
 type UserPreScheduleAnonymizationBlockingEventPayload struct {
 	UserRef   model.UserRef `json:"-" resolve:"user"`
 	UserModel model.User    `json:"user"`

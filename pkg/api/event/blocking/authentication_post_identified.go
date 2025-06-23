@@ -11,6 +11,36 @@ const (
 	AuthenticationPostIdentified event.Type = "authentication.post_identified"
 )
 
+func init() {
+	s := event.GetBaseHookResponseSchema()
+	s.Add("AuthenticationPostIdentifiedHookResponse", `
+{
+	"allOf": [
+		{ "$ref": "#/$defs/BaseHookResponseSchema" },
+		{
+			"if": {
+				"properties": {
+					"is_allowed": { "const": true }
+				}
+			},
+			"then": {
+				"type": "object",
+				"additionalProperties": false,
+				"properties": {
+					"is_allowed": {},
+					"constraints": {},
+					"bot_protection": {},
+					"rate_limit": {}
+				}
+			}
+		}
+	]
+}`)
+
+	s.Instantiate()
+	event.RegisterResponseSchemaValidator(AuthenticationPostIdentified, s.PartValidator("AuthenticationPostIdentifiedHookResponse"))
+}
+
 type AuthenticationPostIdentifiedBlockingEventPayload struct {
 	Identification        model.Identification        `json:"identification"`
 	AuthenticationContext event.AuthenticationContext `json:"authentication_context"`

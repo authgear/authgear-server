@@ -11,6 +11,34 @@ const (
 	UserPreCreate event.Type = "user.pre_create"
 )
 
+func init() {
+	s := event.GetBaseHookResponseSchema()
+	s.Add("UserPreCreateHookResponse", `
+{
+	"allOf": [
+		{ "$ref": "#/$defs/BaseHookResponseSchema" },
+		{
+			"if": {
+				"properties": {
+					"is_allowed": { "const": true }
+				}
+			},
+			"then": {
+				"type": "object",
+				"additionalProperties": false,
+				"properties": {
+					"is_allowed": {},
+					"mutations": {}
+				}
+			}
+		}
+	]
+}`)
+
+	s.Instantiate()
+	event.RegisterResponseSchemaValidator(UserPreCreate, s.PartValidator("UserPreCreateHookResponse"))
+}
+
 type UserPreCreateBlockingEventPayload struct {
 	UserRef    model.UserRef    `json:"-" resolve:"user"`
 	UserModel  model.User       `json:"user"`

@@ -11,6 +11,34 @@ const (
 	UserProfilePreUpdate event.Type = "user.profile.pre_update"
 )
 
+func init() {
+	s := event.GetBaseHookResponseSchema()
+	s.Add("UserProfilePreUpdateHookResponse", `
+{
+	"allOf": [
+		{ "$ref": "#/$defs/BaseHookResponseSchema" },
+		{
+			"if": {
+				"properties": {
+					"is_allowed": { "const": true }
+				}
+			},
+			"then": {
+				"type": "object",
+				"additionalProperties": false,
+				"properties": {
+					"is_allowed": {},
+					"mutations": {}
+				}
+			}
+		}
+	]
+}`)
+
+	s.Instantiate()
+	event.RegisterResponseSchemaValidator(UserProfilePreUpdate, s.PartValidator("UserProfilePreUpdateHookResponse"))
+}
+
 type UserProfilePreUpdateBlockingEventPayload struct {
 	UserRef   model.UserRef `json:"-" resolve:"user"`
 	UserModel model.User    `json:"user"`

@@ -10,6 +10,35 @@ const (
 	AuthenticationPreInitialize event.Type = "authentication.pre_initialize"
 )
 
+func init() {
+	s := event.GetBaseHookResponseSchema()
+	s.Add("AuthenticationPreInitializeHookResponse", `
+{
+	"allOf": [
+		{ "$ref": "#/$defs/BaseHookResponseSchema" },
+		{
+			"if": {
+				"properties": {
+					"is_allowed": { "const": true }
+				}
+			},
+			"then": {
+				"type": "object",
+				"additionalProperties": false,
+				"properties": {
+					"is_allowed": {},
+					"constraints": {},
+					"bot_protection": {}
+				}
+			}
+		}
+	]
+}`)
+
+	s.Instantiate()
+	event.RegisterResponseSchemaValidator(AuthenticationPreInitialize, s.PartValidator("AuthenticationPreInitializeHookResponse"))
+}
+
 type AuthenticationPreInitializeBlockingEventPayload struct {
 	AuthenticationContext event.AuthenticationContext `json:"authentication_context"`
 
