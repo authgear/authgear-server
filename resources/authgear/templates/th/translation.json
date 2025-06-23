@@ -1420,6 +1420,7 @@
   "v2.page.wechat-auth.default.app-description": "คลิกปุ่มด้านล่างเพื่อดำเนินการเข้าสู่ระบบด้วย WeChat",
   "v2.page.wechat-auth.default.open-app": "เปิดแอป WeChat เพื่อเข้าสู่ระบบ",
   "v2.page.wechat-auth.default.proceed": "ดำเนินการเข้าสู่ระบบด้วย WeChat",
-  "v2.page.wechat-auth.default.qr-code-description": "โปรดสแกนรหัส QR ในแอป WeChat ของคุณเพื่อเข้าสู่ระบบ",
+  "v2.page.wechat-auth.default.qr-code-description": "คลิกปุ่มด้านล่างเพื่อดำเนินการเข้าสู่ระบบ WeChat ต่อ",
+  "v2.page.wechat-auth.default.show-wechat-hosted-qr-code-page": "แสดงรหัส QR ของ WeChat",
   "v2.page.wechat-auth.default.title": "เข้าสู่ระบบด้วย WeChat"
 }

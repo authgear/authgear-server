@@ -1420,6 +1420,7 @@
   "v2.page.wechat-auth.default.app-description": "下のボタンをクリックして WeChat ログインを続行してください",
   "v2.page.wechat-auth.default.open-app": "WeChat アプリを開いてログイン",
   "v2.page.wechat-auth.default.proceed": "WeChat ログインを続行",
-  "v2.page.wechat-auth.default.qr-code-description": "WeChat アプリでQRコードをスキャンしてサインインしてください。",
+  "v2.page.wechat-auth.default.qr-code-description": "下のボタンをクリックしてWeChatログインを続行",
+  "v2.page.wechat-auth.default.show-wechat-hosted-qr-code-page": "WeChat QRコードを表示",
   "v2.page.wechat-auth.default.title": "WeChat でログイン"
 }

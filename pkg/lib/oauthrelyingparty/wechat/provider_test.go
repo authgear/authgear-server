@@ -27,6 +27,6 @@ func TestWechat(t *testing.T) {
 			Prompt: []string{"login"},
 		})
 		So(err, ShouldBeNil)
-		So(u, ShouldEqual, "https://open.weixin.qq.com/connect/oauth2/authorize?appid=client_id&redirect_uri=&response_type=code&scope=snsapi_userinfo&state=state")
+		So(u, ShouldEqual, "https://open.weixin.qq.com/connect/qrconnect?appid=client_id&redirect_uri=&response_type=code&scope=snsapi_login&state=state#wechat_redirect")
 	})
 }

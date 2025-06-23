@@ -7,8 +7,6 @@ import (
 
 	"net/url"
 
-	"github.com/boombuler/barcode/qr"
-
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
@@ -17,7 +15,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/webappoauth"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
-	coreimage "github.com/authgear/authgear-server/pkg/util/image"
 	"github.com/authgear/authgear-server/pkg/util/template"
 	"github.com/authgear/authgear-server/pkg/util/urlutil"
 	"github.com/authgear/authgear-server/pkg/util/wechat"
@@ -35,8 +32,8 @@ func ConfigureAuthflowV2WechatRoute(route httproute.Route) httproute.Route {
 }
 
 type AuthflowWechatViewModel struct {
-	ImageURI          htmltemplate.URL
 	WechatRedirectURI htmltemplate.URL
+	AuthorizationURL  htmltemplate.URL
 }
 
 type AuthflowV2WechatHandlerOAuthStateStore interface {
@@ -80,18 +77,9 @@ func (h *AuthflowV2WechatHandler) GetData(ctx context.Context, w http.ResponseWr
 	}
 	authorizationURL = urlutil.WithQueryParamsAdded(authorizationURL, map[string]string{"state": stateToken})
 
-	img, err := handlerwebapp.CreateQRCodeImage(authorizationURL.String(), 512, 512, qr.M)
-	if err != nil {
-		return nil, err
-	}
-	dataURI, err := coreimage.DataURIFromImage(coreimage.CodecPNG, img)
-	if err != nil {
-		return nil, err
-	}
-
 	screenViewModel := AuthflowWechatViewModel{
 		// nolint: gosec
-		ImageURI: htmltemplate.URL(dataURI),
+		AuthorizationURL: htmltemplate.URL(authorizationURL.String()),
 	}
 	wechatRedirectURI := wechat.GetWeChatRedirectURI(ctx)
 	if wechatRedirectURI != "" {

@@ -1420,6 +1420,7 @@
   "v2.page.wechat-auth.default.app-description": "Klik tombol di bawah untuk melanjutkan Login WeChat",
   "v2.page.wechat-auth.default.open-app": "Buka aplikasi WeChat untuk login",
   "v2.page.wechat-auth.default.proceed": "Lanjutkan login WeChat",
-  "v2.page.wechat-auth.default.qr-code-description": "Silakan pindai kode QR di aplikasi WeChat Anda untuk masuk.",
+  "v2.page.wechat-auth.default.qr-code-description": "Klik tombol di bawah untuk melanjutkan Login WeChat",
+  "v2.page.wechat-auth.default.show-wechat-hosted-qr-code-page": "Tampilkan kode QR WeChat",
   "v2.page.wechat-auth.default.title": "Login dengan WeChat"
 }

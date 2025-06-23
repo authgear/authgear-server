@@ -1117,7 +1117,7 @@
   "v2.page.login.default.title": "Chào mừng",
   "v2.page.no-available-authenticator.default.title": "Yêu cầu 2FA",
   "v2.page.oauth-provider-demo-credential.default.continue-button-label": "Tiếp tục với {provider} (Demo)",
-  "v2.page.oauth-provider-demo-credential.default.description": "Đăng nhập này đang sử dụng khóa phát triển của Authgear. Nó được dùng cho mục đích kiểm thử và không nên sử dụng trong môi trường Sản xuất.\u00a0",
+  "v2.page.oauth-provider-demo-credential.default.description": "Đăng nhập này đang sử dụng khóa phát triển của Authgear. Nó được dùng cho mục đích kiểm thử và không nên sử dụng trong môi trường Sản xuất. ",
   "v2.page.oauth-provider-demo-credential.default.provider-name": "{ OAuthProviderType, select, google {Google} facebook {Facebook} github {GitHub} linkedin {LinkedIn} azureadv2 {Entra ID} azureadb2c {Azure AD B2C} adfs {AD FS} apple {Apple} wechat {WeChat} other {OAuth} }",
   "v2.page.oauth-provider-demo-credential.default.return-button-label": "Quay lại",
   "v2.page.oauth-provider-demo-credential.default.title": "OAuth Demo {provider}",
@@ -1420,6 +1420,7 @@
   "v2.page.wechat-auth.default.app-description": "Nhấp vào nút bên dưới để tiếp tục Đăng nhập WeChat",
   "v2.page.wechat-auth.default.open-app": "Mở ứng dụng WeChat để đăng nhập",
   "v2.page.wechat-auth.default.proceed": "Tiếp tục đăng nhập WeChat",
-  "v2.page.wechat-auth.default.qr-code-description": "Vui lòng quét mã QR trong ứng dụng WeChat của bạn để đăng nhập.",
+  "v2.page.wechat-auth.default.qr-code-description": "Nhấp vào nút bên dưới để tiếp tục đăng nhập WeChat",
+  "v2.page.wechat-auth.default.show-wechat-hosted-qr-code-page": "Hiển thị mã QR WeChat",
   "v2.page.wechat-auth.default.title": "Đăng nhập bằng WeChat"
 }

@@ -1117,7 +1117,7 @@
   "v2.page.login.default.title": "Willkommen",
   "v2.page.no-available-authenticator.default.title": "2FA erforderlich",
   "v2.page.oauth-provider-demo-credential.default.continue-button-label": "Mit {provider} fortfahren (Demo)",
-  "v2.page.oauth-provider-demo-credential.default.description": "Diese Anmeldung verwendet Authgear-Entwicklungsschlüssel. Sie ist für Testzwecke gedacht und sollte nicht in Produktionsumgebungen verwendet werden.\u00a0",
+  "v2.page.oauth-provider-demo-credential.default.description": "Diese Anmeldung verwendet Authgear-Entwicklungsschlüssel. Sie ist für Testzwecke gedacht und sollte nicht in Produktionsumgebungen verwendet werden. ",
   "v2.page.oauth-provider-demo-credential.default.provider-name": "{ OAuthProviderType, select, google {Google} facebook {Facebook} github {GitHub} linkedin {LinkedIn} azureadv2 {Entra ID} azureadb2c {Azure AD B2C} adfs {AD FS} apple {Apple} wechat {WeChat} other {OAuth} }",
   "v2.page.oauth-provider-demo-credential.default.return-button-label": "Zurück",
   "v2.page.oauth-provider-demo-credential.default.title": "{provider} OAuth Demo",
@@ -1420,6 +1420,7 @@
   "v2.page.wechat-auth.default.app-description": "Klicken Sie auf die untenstehende Schaltfläche, um die WeChat-Anmeldung fortzusetzen.",
   "v2.page.wechat-auth.default.open-app": "WeChat-App öffnen, um sich anzumelden",
   "v2.page.wechat-auth.default.proceed": "WeChat-Anmeldung fortsetzen",
-  "v2.page.wechat-auth.default.qr-code-description": "Bitte scannen Sie den QR-Code in Ihrer WeChat-App, um sich anzumelden.",
+  "v2.page.wechat-auth.default.qr-code-description": "Klicken Sie auf die Schaltfläche unten, um mit der WeChat-Anmeldung fortzufahren",
+  "v2.page.wechat-auth.default.show-wechat-hosted-qr-code-page": "WeChat QR-Code anzeigen",
   "v2.page.wechat-auth.default.title": "Mit WeChat anmelden"
 }

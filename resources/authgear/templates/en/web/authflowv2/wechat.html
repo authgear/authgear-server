@@ -73,9 +73,13 @@
     </h2>
   </header>
 
-  <div class="flex flex-col">
-    <img class="block w-44 h-44 self-center" src="{{ $.ImageURI }}">
-  </div>
+  <a
+    href="{{ $.AuthorizationURL }}"
+    class="primary-btn"
+    data-turbo="false"
+  >
+    {{ include "v2.page.wechat-auth.default.show-wechat-hosted-qr-code-page" nil }}
+  </a>
 </div>
 
 {{ end }}
