@@ -1,0 +1,278 @@
+name: Reauth blocked by authentication.pre_initialize
+authgear.yaml:
+  override: |
+    hook:
+      blocking_handlers:
+      - event: authentication.pre_initialize
+        url: authgeardeno:///deno/notallowed.ts
+extra_files_directory: ./var
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "reauth",
+        "name": "default"
+      }
+    output:
+      error: |
+        {
+          "name": "Forbidden",
+          "reason": "WebHookDisallowed",
+          "code": 403,
+          "info": {
+            "FlowType": "reauth",
+            "event_type": "authentication.pre_initialize",
+            "reasons": [
+              {
+                "reason": "",
+                "title": ""
+              }
+            ]
+          }
+        }
+---
+name: MFA required by authentication.pre_initialize in reauth
+authgear.yaml:
+  override: |
+    hook:
+      blocking_handlers:
+      - event: authentication.pre_initialize
+        url: authgeardeno:///deno/constraintsmfa.ts
+    authentication_flow:
+      reauth_flows:
+        - name: default
+          steps:
+          - name: reauth_identify
+            type: identify
+            one_of:
+            - identification: id_token
+          - name: reauthenticate_pw
+            type: authenticate
+            one_of:
+            - authentication: primary_password
+          - name: reauthenticate_sms
+            type: authenticate
+            show_until_amr_constraints_fulfilled: true
+            one_of:
+            - authentication: secondary_oob_otp_sms
+extra_files_directory: ./var
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "reauth",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "state_token": "[[string]]",
+          "type": "reauth",
+          "name": "default",
+          "action": {
+              "type": "identify",
+              "data": {
+                  "type": "identification_data",
+                  "options": "[[array]]"
+              }
+          }
+        }
+
+  - action: query
+    query: |
+      SELECT id
+      FROM _auth_user
+      WHERE app_id = '{{ .AppID }}'
+      AND standard_attributes ->> 'preferred_username' = 'e2e_login';
+    query_output:
+      rows: |
+        [
+          {
+            "id": "[[string]]"
+          }
+        ]
+  - action: input
+    input: |
+      {
+        "identification": "id_token",
+        "id_token": "{{ generateIDToken (index .prev.result.rows 0).id }}"
+      }
+    output:
+      result: |
+        {
+          "state_token": "[[string]]",
+          "type": "reauth",
+          "name": "default",
+          "action": {
+            "type": "authenticate",
+            "data": {
+              "device_token_enabled": false,
+              "options": [
+                {
+                  "authentication": "primary_password"
+                }
+              ],
+              "type": "authentication_data"
+            }
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      result: |
+        {
+          "state_token": "[[string]]",
+          "type": "reauth",
+          "name": "default",
+          "action": {
+            "type": "authenticate",
+            "data": {
+              "options": [
+                {
+                  "authentication": "secondary_oob_otp_sms",
+                  "channels": [
+                    "whatsapp",
+                    "sms"
+                  ],
+                  "masked_display_name": "+8529500****",
+                  "otp_form": "code"
+                }
+              ],
+              "type": "authentication_data"
+            }
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "authentication": "secondary_oob_otp_sms",
+        "channel": "sms",
+        "index": 0
+      }
+
+  - action: input
+    input: |
+      {
+        "code": "111111"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished"
+          }
+        }
+---
+name: MFA not required by authentication.pre_initialize in reauth
+authgear.yaml:
+  override: |
+    hook:
+      blocking_handlers:
+      - event: authentication.pre_initialize
+        url: authgeardeno:///deno/allowed.ts
+    authentication_flow:
+      reauth_flows:
+        - name: default
+          steps:
+          - name: reauth_identify
+            type: identify
+            one_of:
+            - identification: id_token
+          - name: reauthenticate_pw
+            type: authenticate
+            one_of:
+            - authentication: primary_password
+          - name: reauthenticate_sms
+            type: authenticate
+            show_until_amr_constraints_fulfilled: true
+            one_of:
+            - authentication: secondary_oob_otp_sms
+extra_files_directory: ./var
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "reauth",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "state_token": "[[string]]",
+          "type": "reauth",
+          "name": "default",
+          "action": {
+              "type": "identify",
+              "data": {
+                  "type": "identification_data",
+                  "options": "[[array]]"
+              }
+          }
+        }
+  - action: query
+    query: |
+      SELECT id
+      FROM _auth_user
+      WHERE app_id = '{{ .AppID }}'
+      AND standard_attributes ->> 'preferred_username' = 'e2e_login';
+    query_output:
+      rows: |
+        [
+          {
+            "id": "[[string]]"
+          }
+        ]
+  - action: input
+    input: |
+      {
+        "identification": "id_token",
+        "id_token": "{{ generateIDToken (index .prev.result.rows 0).id }}"
+      }
+    output:
+      result: |
+        {
+          "state_token": "[[string]]",
+          "type": "reauth",
+          "name": "default",
+          "action": {
+            "type": "authenticate",
+            "data": {
+              "device_token_enabled": false,
+              "options": [
+                {
+                  "authentication": "primary_password"
+                }
+              ],
+              "type": "authentication_data"
+            }
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished"
+          }
+        }

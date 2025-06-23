@@ -1091,6 +1091,8 @@
   "v2.page.fatal-error.identify-not-found.title": "{LoginIDType,select,email{Email} phone{Nomor Telepon} username{Nama Pengguna} other{Identitas}} Tidak Ditemukan",
   "v2.page.fatal-error.redirecting.title": "Mengalihkan",
   "v2.page.fatal-error.token-invalid.title": "Halaman kedaluwarsa atau tidak valid",
+  "v2.page.fatal-error.webhook-disallowed.description": "Operasi diblokir oleh sistem. Silakan hubungi administrator Anda untuk bantuan.",
+  "v2.page.fatal-error.webhook-disallowed.title": "{FlowType,select,login{Login} reauth{Login} signup{Pendaftaran} promote{Pendaftaran} signup_login{Pendaftaran atau Login} other{Operasi}} tidak diizinkan",
   "v2.page.forgot-password-link-sent.default.description": "Tautan untuk mengatur ulang kata sandi Anda telah dikirim ke {MaskedLoginID}",
   "v2.page.forgot-password-link-sent.default.resend": "Kirim ulang",
   "v2.page.forgot-password-link-sent.default.resent-countdown-label-unit": "Kirim ulang dalam %s",
