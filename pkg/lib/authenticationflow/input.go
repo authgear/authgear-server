@@ -20,6 +20,8 @@ type ReactToResult interface {
 // It must react to the Input produced by its InputSchema.
 // As a special case, CanReactTo can return a nil InputSchema, which means
 // the InputReactor can react to a nil Input.
+// The implementation is allowed to mutate `flows`, for example, in account linking we modify the ancestor nodes.
+// The implementation is also allowed to mutate itself, for example, We update IntentLoginFlowSteps.NextStepIndex.
 type InputReactor interface {
 	CanReactTo(ctx context.Context, deps *Dependencies, flows Flows) (InputSchema, error)
 	ReactTo(ctx context.Context, deps *Dependencies, flows Flows, input Input) (ReactToResult, error)
