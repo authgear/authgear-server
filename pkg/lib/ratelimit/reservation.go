@@ -7,7 +7,7 @@ import (
 type Reservation struct {
 	key                string
 	spec               BucketSpec
-	tokenTaken         int
+	tokenTaken         float64
 	wasCancelPrevented bool
 }
 
