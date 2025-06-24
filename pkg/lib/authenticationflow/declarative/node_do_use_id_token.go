@@ -33,6 +33,8 @@ func (n *NodeDoUseIDToken) CanReactTo(ctx context.Context, deps *authenticationf
 
 func (n *NodeDoUseIDToken) ReactTo(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows, input authenticationflow.Input) (authenticationflow.ReactToResult, error) {
 	return NewNodePostIdentified(ctx, deps, flows, &NodePostIdentifiedOptions{
+		// Identify with id_token does not trigger rate limit
+		RateLimitReservation: nil,
 		Identification: model.Identification{
 			Identification: model.AuthenticationFlowIdentificationIDToken,
 			Identity:       nil,

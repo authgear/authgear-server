@@ -95,7 +95,10 @@ func (n *IntentLookupIdentityPasskey) ReactTo(ctx context.Context, deps *authflo
 			},
 		}
 
-		_, err = findExactOneIdentityInfo(ctx, deps, spec)
+		// This reservation cannot be adjusted by hook,
+		// because signup_login flow does not trigget authentication.post_identified,
+		// so ignore it
+		_, _, err = findExactOneIdentityInfo(ctx, deps, spec)
 		if err != nil {
 			if apierrors.IsKind(err, api.UserNotFound) {
 				// signup

@@ -86,7 +86,7 @@ func (n *IntentUseIdentityPasskey) ReactTo(ctx context.Context, deps *authflow.D
 			},
 		}
 
-		exactMatch, err := findExactOneIdentityInfo(ctx, deps, identitySpec)
+		exactMatch, resv, err := findExactOneIdentityInfo(ctx, deps, identitySpec)
 		if err != nil {
 			return nil, err
 		}
@@ -123,11 +123,12 @@ func (n *IntentUseIdentityPasskey) ReactTo(ctx context.Context, deps *authflow.D
 		}
 
 		result, err := NewNodeDoUseIdentityPasskey(ctx, deps, flows, &NodeDoUseIdentityPasskeyOptions{
-			AssertionResponse: assertionResponseBytes,
-			Identity:          exactMatch,
-			IdentitySpec:      identitySpec,
-			Authenticator:     authenticatorInfo,
-			RequireUpdate:     verifyResult.Passkey,
+			AssertionResponse:    assertionResponseBytes,
+			Identity:             exactMatch,
+			IdentitySpec:         identitySpec,
+			Authenticator:        authenticatorInfo,
+			RequireUpdate:        verifyResult.Passkey,
+			RateLimitReservation: resv,
 		})
 		if err != nil {
 			return nil, err

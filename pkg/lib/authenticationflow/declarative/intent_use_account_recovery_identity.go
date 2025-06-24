@@ -77,7 +77,10 @@ func (n *IntentUseAccountRecoveryIdentity) ReactTo(ctx context.Context, deps *au
 			}
 		case config.AuthenticationFlowAccountRecoveryIdentificationOnFailureError:
 			var err error
-			exactMatch, err = findExactOneIdentityInfo(ctx, deps, spec)
+			// This reservation cannot be adjusted by hook,
+			// because account_recovery flow does not trigget authentication.post_identified,
+			// so ignore it
+			exactMatch, _, err = findExactOneIdentityInfo(ctx, deps, spec)
 			if err != nil {
 				return nil, err
 			}

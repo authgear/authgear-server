@@ -518,6 +518,7 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		RolesAndGroups:     commands,
+		RateLimiter:        limiter,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := p.AuditWriteDatabase

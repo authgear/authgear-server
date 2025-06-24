@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 )
 
 func init() {
@@ -16,8 +17,9 @@ func init() {
 }
 
 type NodeDoUseIdentity struct {
-	Identity     *identity.Info `json:"identity,omitempty"`
-	IdentitySpec *identity.Spec `json:"identity_spec,omitempty"`
+	Identity             *identity.Info         `json:"identity,omitempty"`
+	IdentitySpec         *identity.Spec         `json:"identity_spec,omitempty"`
+	RateLimitReservation *ratelimit.Reservation `json:"rate_limit_reservation"`
 }
 
 func NewNodeDoUseIdentity(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, n *NodeDoUseIdentity) (*NodeDoUseIdentity, error) {
@@ -69,7 +71,8 @@ func (n *NodeDoUseIdentity) CanReactTo(ctx context.Context, deps *authentication
 
 func (n *NodeDoUseIdentity) ReactTo(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows, input authenticationflow.Input) (authenticationflow.ReactToResult, error) {
 	return NewNodePostIdentified(ctx, deps, flows, &NodePostIdentifiedOptions{
-		Identification: n.identification(),
+		RateLimitReservation: n.RateLimitReservation,
+		Identification:       n.identification(),
 	})
 }
 

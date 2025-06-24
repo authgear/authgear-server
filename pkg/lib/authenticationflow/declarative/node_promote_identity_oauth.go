@@ -64,7 +64,7 @@ func (n *NodePromoteIdentityOAuth) ReactTo(ctx context.Context, deps *authflow.D
 			IdentitySpec:   spec,
 		}
 
-		_, err = findExactOneIdentityInfo(ctx, deps, spec)
+		_, resv, err := findExactOneIdentityInfo(ctx, deps, spec)
 		if err != nil {
 			if apierrors.IsKind(err, api.UserNotFound) {
 				conflicts, err := n.checkConflictByAccountLinkings(ctx, deps, flows, spec)
@@ -87,9 +87,10 @@ func (n *NodePromoteIdentityOAuth) ReactTo(ctx context.Context, deps *authflow.D
 				}
 
 				return NewNodeDoCreateIdentityReactToResult(ctx, deps, flows, NodeDoCreateIdentityOptions{
-					SkipCreate:   false,
-					Identity:     info,
-					IdentitySpec: spec,
+					SkipCreate:           false,
+					Identity:             info,
+					IdentitySpec:         spec,
+					RateLimitReservation: resv,
 				})
 			}
 			// general error

@@ -6,6 +6,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 )
 
 func init() {
@@ -17,15 +18,16 @@ type NodeDoUseIdentityWithUpdate struct {
 	OldIdentityInfo *identity.Info `json:"old_identity_info,omitempty"`
 }
 
-func NewNodeDoUseIdentityWithUpdate(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, oldIdentityInfo *identity.Info, spec *identity.Spec) (authflow.ReactToResult, error) {
+func NewNodeDoUseIdentityWithUpdate(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, oldIdentityInfo *identity.Info, spec *identity.Spec, reservation *ratelimit.Reservation) (authflow.ReactToResult, error) {
 	newIdentityInfo, err := deps.Identities.UpdateWithSpec(ctx, oldIdentityInfo, spec, identity.NewIdentityOptions{})
 	if err != nil {
 		return nil, err
 	}
 
 	nodeDoUseIden, err := NewNodeDoUseIdentity(ctx, deps, flows, &NodeDoUseIdentity{
-		Identity:     newIdentityInfo,
-		IdentitySpec: spec,
+		Identity:             newIdentityInfo,
+		IdentitySpec:         spec,
+		RateLimitReservation: reservation,
 	})
 	if err != nil {
 		return nil, err

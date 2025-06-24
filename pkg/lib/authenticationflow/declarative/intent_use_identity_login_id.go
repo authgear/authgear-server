@@ -71,14 +71,15 @@ func (n *IntentUseIdentityLoginID) ReactTo(ctx context.Context, deps *authflow.D
 		loginID := inputTakeLoginID.GetLoginID()
 		spec := makeLoginIDSpec(n.Identification, stringutil.NewUserInputString(loginID))
 
-		exactMatch, err := findExactOneIdentityInfo(ctx, deps, spec)
+		exactMatch, resv, err := findExactOneIdentityInfo(ctx, deps, spec)
 		if err != nil {
 			return nil, err
 		}
 
 		n, err := NewNodeDoUseIdentityReactToResult(ctx, deps, flows, &NodeDoUseIdentity{
-			Identity:     exactMatch,
-			IdentitySpec: spec,
+			Identity:             exactMatch,
+			IdentitySpec:         spec,
+			RateLimitReservation: resv,
 		})
 		if err != nil {
 			return nil, err

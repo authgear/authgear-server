@@ -17,6 +17,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/wechat"
+	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/phone"
@@ -691,7 +692,7 @@ func newIdentityInfo(ctx context.Context, deps *authflow.Dependencies, newUserID
 	return info, nil
 }
 
-func findExactOneIdentityInfo(ctx context.Context, deps *authflow.Dependencies, spec *identity.Spec) (*identity.Info, error) {
+func findExactOneIdentityInfo(ctx context.Context, deps *authflow.Dependencies, spec *identity.Spec) (*identity.Info, *ratelimit.Reservation, error) {
 	bucketSpec := AccountEnumerationPerIPRateLimitBucketSpec(
 		deps.Config.Authentication,
 		string(deps.RemoteIP),
@@ -699,16 +700,16 @@ func findExactOneIdentityInfo(ctx context.Context, deps *authflow.Dependencies, 
 
 	reservation, failedReservation, err := deps.RateLimiter.Reserve(ctx, bucketSpec)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	if err := failedReservation.Error(); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	defer deps.RateLimiter.Cancel(ctx, reservation)
 
 	exactMatch, otherMatches, err := deps.Identities.SearchBySpec(ctx, spec)
 	if err != nil {
-		return nil, err
+		return nil, reservation, err
 	}
 
 	if exactMatch == nil {
@@ -720,10 +721,10 @@ func findExactOneIdentityInfo(ctx context.Context, deps *authflow.Dependencies, 
 			s := otherMatches[0].ToSpec()
 			otherSpec = &s
 		}
-		return nil, identityFillDetails(api.ErrUserNotFound, spec, otherSpec)
+		return nil, reservation, identityFillDetails(api.ErrUserNotFound, spec, otherSpec)
 	}
 
-	return exactMatch, nil
+	return exactMatch, reservation, nil
 }
 
 type HandleOAuthAuthorizationResponseOptions struct {

@@ -81,7 +81,7 @@ func (n *IntentPromoteIdentityLoginID) ReactTo(ctx context.Context, deps *authfl
 			LoginID:        loginID,
 		}
 
-		_, err = findExactOneIdentityInfo(ctx, deps, specForLookup)
+		_, resv, err := findExactOneIdentityInfo(ctx, deps, specForLookup)
 		if err != nil {
 			// promote
 			if apierrors.IsKind(err, api.UserNotFound) {
@@ -106,9 +106,10 @@ func (n *IntentPromoteIdentityLoginID) ReactTo(ctx context.Context, deps *authfl
 				}
 
 				reactToResult, err := NewNodeDoCreateIdentityReactToResult(ctx, deps, flows, NodeDoCreateIdentityOptions{
-					SkipCreate:   false,
-					Identity:     info,
-					IdentitySpec: spec,
+					SkipCreate:           false,
+					Identity:             info,
+					IdentitySpec:         spec,
+					RateLimitReservation: resv,
 				})
 				if err != nil {
 					return nil, err

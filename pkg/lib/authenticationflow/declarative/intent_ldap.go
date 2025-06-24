@@ -99,12 +99,12 @@ func (i *IntentLDAP) ReactTo(ctx context.Context, deps *authflow.Dependencies, f
 		}
 
 		// login
-		exactMatch, err := findExactOneIdentityInfo(ctx, deps, spec)
+		exactMatch, reservation, err := findExactOneIdentityInfo(ctx, deps, spec)
 		if err != nil {
 			return nil, err
 		}
 
-		return NewNodeDoUseIdentityWithUpdate(ctx, deps, flows, exactMatch, spec)
+		return NewNodeDoUseIdentityWithUpdate(ctx, deps, flows, exactMatch, spec, reservation)
 	}
 	return nil, nil
 }

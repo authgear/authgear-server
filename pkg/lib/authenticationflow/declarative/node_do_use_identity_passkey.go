@@ -8,6 +8,7 @@ import (
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 )
 
 func init() {
@@ -22,17 +23,19 @@ type NodeDoUseIdentityPasskey struct {
 }
 
 type NodeDoUseIdentityPasskeyOptions struct {
-	Identity          *identity.Info
-	IdentitySpec      *identity.Spec
-	AssertionResponse []byte
-	Authenticator     *authenticator.Info
-	RequireUpdate     bool
+	Identity             *identity.Info
+	IdentitySpec         *identity.Spec
+	AssertionResponse    []byte
+	Authenticator        *authenticator.Info
+	RequireUpdate        bool
+	RateLimitReservation *ratelimit.Reservation
 }
 
 func NewNodeDoUseIdentityPasskey(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, opts *NodeDoUseIdentityPasskeyOptions) (authenticationflow.ReactToResult, error) {
 	nodeDoUseIden, err := NewNodeDoUseIdentity(ctx, deps, flows, &NodeDoUseIdentity{
-		Identity:     opts.Identity,
-		IdentitySpec: opts.IdentitySpec,
+		Identity:             opts.Identity,
+		IdentitySpec:         opts.IdentitySpec,
+		RateLimitReservation: opts.RateLimitReservation,
 	})
 	if err != nil {
 		return nil, err

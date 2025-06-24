@@ -8,6 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
+	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 )
 
 func init() {
@@ -15,13 +16,15 @@ func init() {
 }
 
 type NodePostIdentifiedOptions struct {
-	Identification model.Identification
+	Identification       model.Identification
+	RateLimitReservation *ratelimit.Reservation
 }
 
 func NewNodePostIdentified(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, opts *NodePostIdentifiedOptions) (authflow.ReactToResult, error) {
 
 	n := &NodePostIdentified{
-		Identification: &opts.Identification,
+		Identification:       &opts.Identification,
+		RateLimitReservation: opts.RateLimitReservation,
 	}
 
 	authCtx, err := GetAuthenticationContext(ctx, deps, flows)
@@ -29,9 +32,15 @@ func NewNodePostIdentified(ctx context.Context, deps *authflow.Dependencies, flo
 		return nil, err
 	}
 
+	reservations := []*ratelimit.Reservation{}
+	if n.RateLimitReservation != nil {
+		reservations = append(reservations, n.RateLimitReservation)
+	}
+
 	payload := &blocking.AuthenticationPostIdentifiedBlockingEventPayload{
 		Identification:        *n.Identification,
 		AuthenticationContext: *authCtx,
+		RateLimitReservations: reservations,
 
 		Constraints:               nil,
 		BotProtectionRequirements: nil,
@@ -59,7 +68,8 @@ func NewNodePostIdentified(ctx context.Context, deps *authflow.Dependencies, flo
 }
 
 type NodePostIdentified struct {
-	Identification *model.Identification `json:"identification"`
+	Identification       *model.Identification  `json:"identification"`
+	RateLimitReservation *ratelimit.Reservation `json:"rate_limit_reservation"`
 
 	IsPostIdentifiedInvoked   bool                                `json:"is_post_identified_invoked"`
 	Constraints               *eventapi.Constraints               `json:"constraints,omitempty"`

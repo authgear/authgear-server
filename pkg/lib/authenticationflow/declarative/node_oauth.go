@@ -91,10 +91,10 @@ func (n *NodeOAuth) reactTo(ctx context.Context, deps *authflow.Dependencies, fl
 	}
 	// Else login
 
-	exactMatch, err := findExactOneIdentityInfo(ctx, deps, spec)
+	exactMatch, resv, err := findExactOneIdentityInfo(ctx, deps, spec)
 	if err != nil {
 		return nil, err
 	}
 
-	return NewNodeDoUseIdentityWithUpdate(ctx, deps, flows, exactMatch, spec)
+	return NewNodeDoUseIdentityWithUpdate(ctx, deps, flows, exactMatch, spec, resv)
 }

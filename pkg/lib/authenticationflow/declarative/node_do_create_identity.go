@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 )
 
 func init() {
@@ -14,16 +15,18 @@ func init() {
 }
 
 type NodeDoCreateIdentityOptions struct {
-	SkipCreate   bool
-	Identity     *identity.Info
-	IdentitySpec *identity.Spec
+	SkipCreate           bool
+	Identity             *identity.Info
+	IdentitySpec         *identity.Spec
+	RateLimitReservation *ratelimit.Reservation
 }
 
 func NewNodeDoCreateIdentity(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, opts NodeDoCreateIdentityOptions) (*NodeDoCreateIdentity, error) {
 	n := &NodeDoCreateIdentity{
-		SkipCreate:   opts.SkipCreate,
-		Identity:     opts.Identity,
-		IdentitySpec: opts.IdentitySpec,
+		SkipCreate:           opts.SkipCreate,
+		Identity:             opts.Identity,
+		IdentitySpec:         opts.IdentitySpec,
+		RateLimitReservation: opts.RateLimitReservation,
 	}
 
 	return n, nil
@@ -39,9 +42,10 @@ func NewNodeDoCreateIdentityReactToResult(ctx context.Context, deps *authflow.De
 }
 
 type NodeDoCreateIdentity struct {
-	SkipCreate   bool           `json:"skip_create,omitempty"`
-	Identity     *identity.Info `json:"identity,omitempty"`
-	IdentitySpec *identity.Spec `json:"identity_spec,omitempty"`
+	SkipCreate           bool                   `json:"skip_create,omitempty"`
+	Identity             *identity.Info         `json:"identity,omitempty"`
+	IdentitySpec         *identity.Spec         `json:"identity_spec,omitempty"`
+	RateLimitReservation *ratelimit.Reservation `json:"rate_limit_reservation,omitempty"`
 }
 
 var _ authflow.NodeSimple = &NodeDoCreateIdentity{}
@@ -78,7 +82,8 @@ func (n *NodeDoCreateIdentity) CanReactTo(ctx context.Context, deps *authenticat
 
 func (n *NodeDoCreateIdentity) ReactTo(ctx context.Context, deps *authenticationflow.Dependencies, flows authenticationflow.Flows, input authenticationflow.Input) (authenticationflow.ReactToResult, error) {
 	return NewNodePostIdentified(ctx, deps, flows, &NodePostIdentifiedOptions{
-		Identification: n.identification(),
+		RateLimitReservation: n.RateLimitReservation,
+		Identification:       n.identification(),
 	})
 }
 
