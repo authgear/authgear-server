@@ -705,7 +705,7 @@ func findExactOneIdentityInfo(ctx context.Context, deps *authflow.Dependencies, 
 	if err := failedReservation.Error(); err != nil {
 		return nil, nil, err
 	}
-	defer deps.RateLimiter.Cancel(ctx, reservation)
+	// defer deps.RateLimiter.Cancel(ctx, reservation)
 
 	exactMatch, otherMatches, err := deps.Identities.SearchBySpec(ctx, spec)
 	if err != nil {
@@ -714,7 +714,7 @@ func findExactOneIdentityInfo(ctx context.Context, deps *authflow.Dependencies, 
 
 	if exactMatch == nil {
 		// Prevent canceling the reservation if exact match is not found.
-		reservation.PreventCancel()
+		// reservation.PreventCancel()
 
 		var otherSpec *identity.Spec
 		if len(otherMatches) > 0 {
