@@ -57,7 +57,13 @@ const CodeEditor: React.VFC<CodeEditorProps> = function CodeEditor(props) {
 
       // We only resolve first-level imports to avoid performance issue
       for (const pkg of parseDependencies(value)) {
-        const path = `inmemory://model/${pkg}`;
+        const encoder = new TextEncoder();
+        const uint8Array = encoder.encode(pkg);
+        const buffer = await window.crypto.subtle.digest("SHA-1", uint8Array);
+        const fileName = Array.from(new Uint8Array(buffer), (byte) =>
+          byte.toString(16).padStart(2, "0")
+        ).join("");
+        const path = `inmemory://model/${fileName}.d.ts`;
         const uri = monaco.Uri.file(path);
 
         if (!monaco.editor.getModel(uri)) {
