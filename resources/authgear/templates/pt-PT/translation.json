@@ -1117,7 +1117,7 @@
   "v2.page.login.default.title": "Bem-vindo",
   "v2.page.no-available-authenticator.default.title": "Autenticação 2FA necessária",
   "v2.page.oauth-provider-demo-credential.default.continue-button-label": "Continuar com {provider} (Demo)",
-  "v2.page.oauth-provider-demo-credential.default.description": "Este início de sessão está a utilizar chaves de desenvolvimento Authgear. É destinado a testes e não deve ser utilizado em ambientes de Produção. ",
+  "v2.page.oauth-provider-demo-credential.default.description": "Este início de sessão está a utilizar chaves de desenvolvimento Authgear. É destinado a testes e não deve ser utilizado em ambientes de Produção.",
   "v2.page.oauth-provider-demo-credential.default.provider-name": "{ OAuthProviderType, select, google {Google} facebook {Facebook} github {GitHub} linkedin {LinkedIn} azureadv2 {Entra ID} azureadb2c {Azure AD B2C} adfs {AD FS} apple {Apple} wechat {WeChat} other {OAuth} }",
   "v2.page.oauth-provider-demo-credential.default.return-button-label": "Voltar",
   "v2.page.oauth-provider-demo-credential.default.title": "Demo OAuth {provider}",

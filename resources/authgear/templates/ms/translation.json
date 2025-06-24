@@ -1117,7 +1117,7 @@
   "v2.page.login.default.title": "Selamat datang",
   "v2.page.no-available-authenticator.default.title": "2FA diperlukan",
   "v2.page.oauth-provider-demo-credential.default.continue-button-label": "Teruskan dengan {provider} (Demo)",
-  "v2.page.oauth-provider-demo-credential.default.description": "Log masuk ini menggunakan kunci pembangunan Authgear. Ia bertujuan untuk pengujian dan tidak sepatutnya digunakan dalam persekitaran Pengeluaran. ",
+  "v2.page.oauth-provider-demo-credential.default.description": "Log masuk ini menggunakan kunci pembangunan Authgear. Ia bertujuan untuk pengujian dan tidak sepatutnya digunakan dalam persekitaran Pengeluaran.",
   "v2.page.oauth-provider-demo-credential.default.provider-name": "{ OAuthProviderType, select, google {Google} facebook {Facebook} github {GitHub} linkedin {LinkedIn} azureadv2 {Entra ID} azureadb2c {Azure AD B2C} adfs {AD FS} apple {Apple} wechat {WeChat} other {OAuth} }",
   "v2.page.oauth-provider-demo-credential.default.return-button-label": "Kembali",
   "v2.page.oauth-provider-demo-credential.default.title": "{provider} OAuth Demo",

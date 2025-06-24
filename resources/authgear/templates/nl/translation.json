@@ -1117,7 +1117,7 @@
   "v2.page.login.default.title": "Welkom",
   "v2.page.no-available-authenticator.default.title": "2FA vereist",
   "v2.page.oauth-provider-demo-credential.default.continue-button-label": "Doorgaan met {provider} (Demo)",
-  "v2.page.oauth-provider-demo-credential.default.description": "Deze login gebruikt Authgear ontwikkelingssleutels. Het is bedoeld voor testen en mag niet worden gebruikt in productieomgevingen. ",
+  "v2.page.oauth-provider-demo-credential.default.description": "Deze login gebruikt Authgear ontwikkelingssleutels. Het is bedoeld voor testen en mag niet worden gebruikt in productieomgevingen.",
   "v2.page.oauth-provider-demo-credential.default.provider-name": "{ OAuthProviderType, select, google {Google} facebook {Facebook} github {GitHub} linkedin {LinkedIn} azureadv2 {Entra ID} azureadb2c {Azure AD B2C} adfs {AD FS} apple {Apple} wechat {WeChat} other {OAuth} }",
   "v2.page.oauth-provider-demo-credential.default.return-button-label": "Terug",
   "v2.page.oauth-provider-demo-credential.default.title": "{provider} OAuth Demo",
