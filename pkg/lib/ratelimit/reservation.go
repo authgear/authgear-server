@@ -7,7 +7,7 @@ import (
 type Reservation struct {
 	Key                string     `json:"key"`
 	Spec               BucketSpec `json:"spec"`
-	TokenTaken         int        `json:"token_taken"`
+	TokenTaken         float64    `json:"token_taken"`
 	WasCancelPrevented bool       `json:"was_cancel_prevented"`
 	IsCancelled        bool       `json:"is_cancelled"`
 }
