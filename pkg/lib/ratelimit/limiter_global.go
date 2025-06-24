@@ -38,12 +38,12 @@ func (l *LimiterGlobal) Reserve(ctx context.Context, spec BucketSpec) (*Reservat
 
 // ReserveN is the general entry point.
 // If you ever need to pass n=0, you should use GetTimeToAct() instead.
-func (l *LimiterGlobal) ReserveN(ctx context.Context, spec BucketSpec, n int) (*Reservation, *FailedReservation, error) {
+func (l *LimiterGlobal) ReserveN(ctx context.Context, spec BucketSpec, n float64) (*Reservation, *FailedReservation, error) {
 	reservation, failedReservation, _, err := l.reserveN(ctx, spec, n)
 	return reservation, failedReservation, err
 }
 
-func (l *LimiterGlobal) reserveN(ctx context.Context, spec BucketSpec, n int) (*Reservation, *FailedReservation, *time.Time, error) {
+func (l *LimiterGlobal) reserveN(ctx context.Context, spec BucketSpec, n float64) (*Reservation, *FailedReservation, *time.Time, error) {
 	key := bucketKeyGlobal(spec)
 
 	if !spec.IsGlobal {
