@@ -17,10 +17,10 @@ var ErrIncompatibleInput = errors.New("incompatible input")
 // This error can only be returned by ReactTo.
 var ErrSameNode = errors.New("same node")
 
-// ErrUpdateNode means the input is reacted to, but instead of producing a new node to be appended,
-// the returned node should replace the node.
+// ErrReplaceNode means the input is reacted to, but instead of producing a new node to be appended,
+// the returned node should replace the latest node.
 // This error can only be returned by ReactTo.
-var ErrUpdateNode = errors.New("update node")
+var ErrReplaceNode = errors.New("replace node")
 
 // ErrNoChange means the input does not cause the flow to change.
 // This error originates from Accept and will be propagated to public API.

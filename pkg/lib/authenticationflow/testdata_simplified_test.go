@@ -193,7 +193,7 @@ func (n *nodeVerifyLoginID) ReactTo(ctx context.Context, deps *Dependencies, flo
 		return NewNodeSimple(&nodeVerifyLoginID{
 			LoginID: n.LoginID,
 			OTP:     "654321",
-		}), ErrUpdateNode
+		}), ErrReplaceNode
 	default:
 		return nil, ErrIncompatibleInput
 	}

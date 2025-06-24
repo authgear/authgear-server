@@ -113,7 +113,7 @@ func accept(ctx context.Context, deps *Dependencies, flows Flows, result *Accept
 		}
 
 		// Handle err == ErrSameNode
-		if errors.Is(err, ErrUpdateNode) {
+		if errors.Is(err, ErrReplaceNode) {
 			err = nil
 			// We still consider the flow has something changes.
 			changed = true

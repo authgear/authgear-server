@@ -120,7 +120,7 @@ func (i *IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode) ReactTo(ctx con
 					if err != nil {
 						return nil, err
 					}
-					return authflow.NewNodeSimple(prevNode), authflow.ErrUpdateNode
+					return authflow.NewNodeSimple(prevNode), authflow.ErrReplaceNode
 				}
 			}
 

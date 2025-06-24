@@ -161,7 +161,7 @@ func (n *NodeAuthenticationOOB) ReactTo(ctx context.Context, deps *authflow.Depe
 			DelayedOneTimeFunction: func(ctx context.Context, deps *authflow.Dependencies) error {
 				return n.SendCode(ctx, deps)
 			},
-		}, authflow.ErrUpdateNode
+		}, authflow.ErrReplaceNode
 	default:
 		return nil, authflow.ErrIncompatibleInput
 	}
