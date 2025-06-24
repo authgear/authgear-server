@@ -104,15 +104,14 @@ func (l *Limiter) AdjustWeight(ctx context.Context, r *Reservation, weight float
 	if r.IsCancelled {
 		return r, nil, nil
 	}
-	// First cancel the applied reservation
-	err := l.doCancel(ctx, r)
-	if err != nil {
-		// Cancel failed, return error
-		return nil, nil, err
+	diff := weight - r.TokenTaken
+	if diff == 0 {
+		// If no difference, do nothing
+		return r, nil, nil
 	}
 
-	// Then re-apply with the new weight
-	reservation, failedReservation, _, err := l.reserveN(ctx, r.Spec, weight)
+	// Apply the difference
+	reservation, failedReservation, _, err := l.reserveN(ctx, r.Spec, diff)
 	return reservation, failedReservation, err
 }
 
