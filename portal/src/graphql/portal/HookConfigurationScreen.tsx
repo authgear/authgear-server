@@ -116,9 +116,9 @@ const BLOCKING_EVENT_NAME_TO_RESPONSE_TYPE_NAME: Record<BlockingEvent, string> =
       "EventAuthenticationPreAuthenticatedHookResponse",
   };
 
-const DENOHOOK_NONBLOCKING_DEFAULT = `import { HookEvent } from "${DENO_TYPES_URL}";
+const DENOHOOK_NONBLOCKING_DEFAULT = `import { HookNonBlockingEvent } from "${DENO_TYPES_URL}";
 
-export default async function(e: HookEvent): Promise<void> {
+export default async function(e: HookNonBlockingEvent): Promise<void> {
   // Write your hook with the help of the type definition.
   //
   // Since this hook will receive all events,
