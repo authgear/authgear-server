@@ -63,7 +63,13 @@ const Type = liboauthrelyingparty.TypeWechat
 var _ oauthrelyingparty.Provider = Wechat{}
 
 const (
-	wechatAuthorizationURL = "https://open.weixin.qq.com/connect/oauth2/authorize"
+	// As of 2025-06-23, WeChat offers 2 ways to integrate.
+	// 1. Use the WeChat hosted QR page.
+	//    Basically you just redirect the user to that page.
+	//    And the user is supposed to scan the QR code there.
+	// 2. Load the WeChat JS library to in our HTML, and use the library to draw a QR code.
+	//    This needs more work so it is not used.
+	wechatQRCodePageURL = "https://open.weixin.qq.com/connect/qrconnect"
 	// nolint: gosec
 	wechatAccessTokenURL = "https://api.weixin.qq.com/sns/oauth2/access_token"
 	wechatUserInfoURL    = "https://api.weixin.qq.com/sns/userinfo"
@@ -104,7 +110,7 @@ func (Wechat) ProviderID(cfg oauthrelyingparty.ProviderConfig) oauthrelyingparty
 	// WeChat does NOT support OIDC.
 	// In the same Weixin Open Platform account, the user UnionID is unique.
 	// The id is scoped to Open Platform account.
-	// https://developers.weixin.qq.com/miniprogram/en/dev/framework/open-ability/union-id.html
+	// https://developers.weixin.qq.com/doc/oplatform/Website_App/WeChat_Login/Authorized_Interface_Calling_UnionID.html
 
 	wechatCfg := ProviderConfig(cfg)
 	account_id := wechatCfg.AccountID()
@@ -118,26 +124,36 @@ func (Wechat) ProviderID(cfg oauthrelyingparty.ProviderConfig) oauthrelyingparty
 }
 
 func (Wechat) scope() []string {
-	// https://developers.weixin.qq.com/doc/offiaccount/OA_Web_Apps/Wechat_webpage_authorization.html
-	return []string{"snsapi_userinfo"}
+	// According to the documentation as of 2025-06-23, the only value of scope is `scope=snsapi_login`.
+	// https://developers.weixin.qq.com/doc/oplatform/Website_App/WeChat_Login/Wechat_Login.html
+	return []string{"snsapi_login"}
 }
 
 func (p Wechat) GetAuthorizationURL(ctx context.Context, deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetAuthorizationURLOptions) (string, error) {
-	return oauthrelyingpartyutil.MakeAuthorizationURL(wechatAuthorizationURL, oauthrelyingpartyutil.AuthorizationURLParams{
-		// ClientID is not used by wechat.
+	withoutFragment := oauthrelyingpartyutil.MakeAuthorizationURL(wechatQRCodePageURL, oauthrelyingpartyutil.AuthorizationURLParams{
+		// The supported query parameters are documented at
+		// https://developers.weixin.qq.com/doc/oplatform/Website_App/WeChat_Login/Wechat_Login.html
+		// As of 2025-06-23, the supported parameters are:
+		// - appid: The appid
+		// - redirect_uri: Any URL of the registered domain is allowed.
+		// - response_type: It must be `code`.
+		// - scope: It must be `snsapi_login`.
+		// - state: OAuth 2.0 state parameter.
+		// - lang: Either `cn` or en`. If not specified, `cn` is assumed.
+
 		ExtraQuery: url.Values{
 			"appid": []string{deps.ProviderConfig.ClientID()},
 		},
 		RedirectURI:  param.RedirectURI,
 		Scope:        p.scope(),
 		ResponseType: oauthrelyingparty.ResponseTypeCode,
-		// ResponseMode is unset.
-		State: param.State,
-		// Prompt is unset.
-		// Wechat doesn't support prompt parameter
-		// https://developers.weixin.qq.com/doc/oplatform/en/Third-party_Platforms/Official_Accounts/official_account_website_authorization.html
-		// Nonce is unset.
-	}.Query()), nil
+		State:        param.State,
+	}.Query())
+
+	// The doc says the fragment is important.
+	// https://developers.weixin.qq.com/doc/oplatform/Website_App/WeChat_Login/Wechat_Login.html
+	withFragment := withoutFragment + "#wechat_redirect"
+	return withFragment, nil
 }
 
 func (Wechat) GetUserProfile(ctx context.Context, deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetUserProfileOptions) (authInfo oauthrelyingparty.UserProfile, err error) {
@@ -180,7 +196,7 @@ func (Wechat) GetUserProfile(ctx context.Context, deps oauthrelyingparty.Depende
 		return
 	}
 
-	// https://developers.weixin.qq.com/doc/offiaccount/User_Management/Get_users_basic_information_UnionID.html
+	// https://developers.weixin.qq.com/doc/oplatform/Website_App/WeChat_Login/Authorized_Interface_Calling_UnionID.html
 	// Here is an example of how the raw profile looks like.
 	// {
 	//     "sex": 0,

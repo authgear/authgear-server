@@ -1420,6 +1420,7 @@
   "v2.page.wechat-auth.default.app-description": "点击下面的按钮继续微信登录",
   "v2.page.wechat-auth.default.open-app": "打开微信应用程序登录",
   "v2.page.wechat-auth.default.proceed": "继续微信登录",
-  "v2.page.wechat-auth.default.qr-code-description": "请在您的微信应用程序中扫描二维码以登录。",
+  "v2.page.wechat-auth.default.qr-code-description": "点击下方按钮继续微信登录",
+  "v2.page.wechat-auth.default.show-wechat-hosted-qr-code-page": "显示微信二维码",
   "v2.page.wechat-auth.default.title": "使用微信登录"
 }

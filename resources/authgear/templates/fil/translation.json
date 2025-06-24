@@ -1117,7 +1117,7 @@
   "v2.page.login.default.title": "Maligayang pagdating",
   "v2.page.no-available-authenticator.default.title": "Kinakailangan ang 2FA",
   "v2.page.oauth-provider-demo-credential.default.continue-button-label": "Magpatuloy gamit ang {provider} (Demo)",
-  "v2.page.oauth-provider-demo-credential.default.description": "Ang pag-login na ito ay gumagamit ng mga development key ng Authgear. Ito ay inilaan para sa pagsusuri at hindi dapat gamitin sa mga Production environment.\u00a0",
+  "v2.page.oauth-provider-demo-credential.default.description": "Ang pag-login na ito ay gumagamit ng mga development key ng Authgear. Ito ay inilaan para sa pagsusuri at hindi dapat gamitin sa mga Production environment.",
   "v2.page.oauth-provider-demo-credential.default.provider-name": "{ OAuthProviderType, select, google {Google} facebook {Facebook} github {GitHub} linkedin {LinkedIn} azureadv2 {Entra ID} azureadb2c {Azure AD B2C} adfs {AD FS} apple {Apple} wechat {WeChat} other {OAuth} }",
   "v2.page.oauth-provider-demo-credential.default.return-button-label": "Bumalik",
   "v2.page.oauth-provider-demo-credential.default.title": "{provider} OAuth Demo",
@@ -1420,6 +1420,7 @@
   "v2.page.wechat-auth.default.app-description": "I-click ang button sa ibaba upang magpatuloy sa WeChat Login",
   "v2.page.wechat-auth.default.open-app": "Buksan ang WeChat app upang mag-login",
   "v2.page.wechat-auth.default.proceed": "Magpatuloy sa WeChat login",
-  "v2.page.wechat-auth.default.qr-code-description": "Mangyaring i-scan ang QR code sa iyong WeChat app upang mag-sign in.",
+  "v2.page.wechat-auth.default.qr-code-description": "I-click ang button sa ibaba upang magpatuloy sa WeChat Login",
+  "v2.page.wechat-auth.default.show-wechat-hosted-qr-code-page": "Ipakita ang WeChat QR code",
   "v2.page.wechat-auth.default.title": "Mag-login gamit ang WeChat"
 }

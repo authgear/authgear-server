@@ -1420,6 +1420,7 @@
   "v2.page.wechat-auth.default.app-description": "點擊以下按鈕以繼續 WeChat 登入",
   "v2.page.wechat-auth.default.open-app": "打開 WeChat 以登入",
   "v2.page.wechat-auth.default.proceed": "繼續 WeChat 登入",
-  "v2.page.wechat-auth.default.qr-code-description": "請在你的 WeChat 內掃描此QR碼",
+  "v2.page.wechat-auth.default.qr-code-description": "點擊下方按鈕繼續微信登錄",
+  "v2.page.wechat-auth.default.show-wechat-hosted-qr-code-page": "顯示微信二維碼",
   "v2.page.wechat-auth.default.title": "使用 WeChat 帳戶登入"
 }

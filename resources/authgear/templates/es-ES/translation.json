@@ -1117,7 +1117,7 @@
   "v2.page.login.default.title": "Bienvenido",
   "v2.page.no-available-authenticator.default.title": "Se requiere 2FA",
   "v2.page.oauth-provider-demo-credential.default.continue-button-label": "Continuar con {provider} (Demo)",
-  "v2.page.oauth-provider-demo-credential.default.description": "Este inicio de sesión está utilizando claves de desarrollo de Authgear. Está destinado para pruebas y no debe utilizarse en entornos de producción.\u00a0",
+  "v2.page.oauth-provider-demo-credential.default.description": "Este inicio de sesión está utilizando claves de desarrollo de Authgear. Está destinado para pruebas y no debe utilizarse en entornos de producción.",
   "v2.page.oauth-provider-demo-credential.default.provider-name": "{ OAuthProviderType, select, google {Google} facebook {Facebook} github {GitHub} linkedin {LinkedIn} azureadv2 {Entra ID} azureadb2c {Azure AD B2C} adfs {AD FS} apple {Apple} wechat {WeChat} other {OAuth} }",
   "v2.page.oauth-provider-demo-credential.default.return-button-label": "Volver",
   "v2.page.oauth-provider-demo-credential.default.title": "Demo OAuth de {provider}",
@@ -1420,6 +1420,7 @@
   "v2.page.wechat-auth.default.app-description": "Haga clic en el botón de abajo para continuar con el inicio de sesión de WeChat",
   "v2.page.wechat-auth.default.open-app": "Abrir la aplicación WeChat para iniciar sesión",
   "v2.page.wechat-auth.default.proceed": "Proceder con el inicio de sesión de WeChat",
-  "v2.page.wechat-auth.default.qr-code-description": "Escanee el código QR en su aplicación WeChat para iniciar sesión.",
+  "v2.page.wechat-auth.default.qr-code-description": "Haz clic en el botón de abajo para continuar con el inicio de sesión de WeChat",
+  "v2.page.wechat-auth.default.show-wechat-hosted-qr-code-page": "Mostrar código QR de WeChat",
   "v2.page.wechat-auth.default.title": "Iniciar sesión con WeChat"
 }
