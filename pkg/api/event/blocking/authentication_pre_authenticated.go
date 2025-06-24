@@ -65,7 +65,12 @@ func (e *AuthenticationPreAuthenticatedBlockingEventPayload) ApplyHookResponse(c
 	return event.ApplyHookResponseResult{MutationsEverApplied: false}
 }
 
-func (e *AuthenticationPreAuthenticatedBlockingEventPayload) PerformEffects(ctx context.Context, effectCtx event.MutationsEffectContext) error {
+func (e *AuthenticationPreAuthenticatedBlockingEventPayload) PerformMutationEffects(ctx context.Context, eventCtx event.Context, effectCtx event.MutationsEffectContext) error {
+	// no-op
+	return nil
+}
+
+func (e *AuthenticationPreAuthenticatedBlockingEventPayload) PerformRateLimitEffects(ctx context.Context, eventCtx event.Context, effectCtx event.RateLimitContext) error {
 	// no-op
 	return nil
 }

@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -12,6 +13,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
+	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
 	"github.com/authgear/authgear-server/pkg/lib/tester"
 	"github.com/authgear/authgear-server/pkg/portal/appsecret"
@@ -87,6 +89,14 @@ func (*NoopRolesAndGroupsService) ResetUserGroup(ctx context.Context, options *r
 	return nil
 }
 
+type PanicRateLimiter struct{}
+
+func (p *PanicRateLimiter) AdjustWeight(ctx context.Context, r *ratelimit.Reservation, weight float64) (*ratelimit.Reservation, *ratelimit.FailedReservation, error) {
+	panic(fmt.Errorf("AdjustWeight unimplemented in portal"))
+}
+
+var _ hook.RateLimiter = &PanicRateLimiter{}
+
 var AuthgearDependencySet = wire.NewSet(
 	wire.FieldsOf(new(*model.App),
 		"Context",
@@ -103,9 +113,12 @@ var AuthgearDependencySet = wire.NewSet(
 	auditdb.DependencySet,
 	audit.DependencySet,
 
+	wire.Struct(new(PanicRateLimiter), "*"),
+
 	hook.DependencySet,
 	wire.Bind(new(hook.ResourceManager), new(*resource.Manager)),
 	wire.Bind(new(hook.StandardAttributesServiceNoEvent), new(*NoopAttributesService)),
 	wire.Bind(new(hook.CustomAttributesServiceNoEvent), new(*NoopAttributesService)),
 	wire.Bind(new(hook.RolesAndGroupsServiceNoEvent), new(*NoopRolesAndGroupsService)),
+	wire.Bind(new(hook.RateLimiter), new(*PanicRateLimiter)),
 )

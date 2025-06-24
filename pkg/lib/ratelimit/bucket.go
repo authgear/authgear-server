@@ -10,13 +10,13 @@ import (
 type BucketName string
 
 type BucketSpec struct {
-	Name      BucketName
-	Arguments []string
-	IsGlobal  bool
+	Name      BucketName `json:"name"`
+	Arguments []string   `json:"arguments"`
+	IsGlobal  bool       `json:"is_global"`
 
-	Enabled bool
-	Period  time.Duration
-	Burst   int
+	Enabled bool          `json:"enabled"`
+	Period  time.Duration `json:"period"`
+	Burst   int           `json:"burst"`
 }
 
 var BucketSpecDisabled = BucketSpec{Enabled: false}

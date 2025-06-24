@@ -70,10 +70,15 @@ func (e *UserPreScheduleAnonymizationBlockingEventPayload) ApplyHookResponse(ctx
 	return event.ApplyHookResponseResult{MutationsEverApplied: mutated}
 }
 
-func (e *UserPreScheduleAnonymizationBlockingEventPayload) PerformEffects(ctx context.Context, effectCtx event.MutationsEffectContext) error {
+func (e *UserPreScheduleAnonymizationBlockingEventPayload) PerformMutationEffects(ctx context.Context, eventCtx event.Context, effectCtx event.MutationsEffectContext) error {
 	userID := e.UserID()
 	userMutations := MakeUserMutations(e.UserModel)
 	return PerformEffectsOnUser(ctx, effectCtx, userID, userMutations)
+}
+
+func (e *UserPreScheduleAnonymizationBlockingEventPayload) PerformRateLimitEffects(ctx context.Context, eventCtx event.Context, effectCtx event.RateLimitContext) error {
+	// no-op
+	return nil
 }
 
 var _ event.BlockingPayload = &UserPreScheduleAnonymizationBlockingEventPayload{}

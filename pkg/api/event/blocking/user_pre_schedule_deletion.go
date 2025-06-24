@@ -70,10 +70,15 @@ func (e *UserPreScheduleDeletionBlockingEventPayload) ApplyHookResponse(ctx cont
 	return event.ApplyHookResponseResult{MutationsEverApplied: mutated}
 }
 
-func (e *UserPreScheduleDeletionBlockingEventPayload) PerformEffects(ctx context.Context, effectCtx event.MutationsEffectContext) error {
+func (e *UserPreScheduleDeletionBlockingEventPayload) PerformMutationEffects(ctx context.Context, eventCtx event.Context, effectCtx event.MutationsEffectContext) error {
 	userID := e.UserID()
 	userMutations := MakeUserMutations(e.UserModel)
 	return PerformEffectsOnUser(ctx, effectCtx, userID, userMutations)
+}
+
+func (e *UserPreScheduleDeletionBlockingEventPayload) PerformRateLimitEffects(ctx context.Context, eventCtx event.Context, effectCtx event.RateLimitContext) error {
+	// no-op
+	return nil
 }
 
 var _ event.BlockingPayload = &UserPreScheduleDeletionBlockingEventPayload{}

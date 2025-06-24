@@ -529,6 +529,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(interaction.RateLimiter), new(*ratelimit.Limiter)),
 		wire.Bind(new(workflow.RateLimiter), new(*ratelimit.Limiter)),
 		wire.Bind(new(authenticationflow.RateLimiter), new(*ratelimit.Limiter)),
+		wire.Bind(new(hook.RateLimiter), new(*ratelimit.Limiter)),
 		wire.Bind(new(accountmanagement.RateLimitMiddlewareRateLimiter), new(*ratelimit.Limiter)),
 		wire.Bind(new(authenticatorservice.RateLimiter), new(*ratelimit.Limiter)),
 		wire.Bind(new(otp.RateLimiter), new(*ratelimit.Limiter)),

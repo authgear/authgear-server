@@ -8,6 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -45,6 +46,10 @@ type EventDenoHook interface {
 	DeliverNonBlockingEvent(ctx context.Context, u *url.URL, e *event.Event) error
 }
 
+type RateLimiter interface {
+	AdjustWeight(ctx context.Context, r *ratelimit.Reservation, weight float64) (*ratelimit.Reservation, *ratelimit.FailedReservation, error)
+}
+
 type Sink struct {
 	Logger             Logger
 	Config             *config.HookConfig
@@ -54,6 +59,7 @@ type Sink struct {
 	StandardAttributes StandardAttributesServiceNoEvent
 	CustomAttributes   CustomAttributesServiceNoEvent
 	RolesAndGroups     RolesAndGroupsServiceNoEvent
+	RateLimiter        RateLimiter
 }
 
 func (s *Sink) ReceiveBlockingEvent(ctx context.Context, e *event.Event) (err error) {
@@ -92,6 +98,7 @@ func (s *Sink) DeliverBlockingEvent(ctx context.Context, e *event.Event) error {
 	totalTimeout := s.Config.SyncTotalTimeout.Duration()
 
 	mutationsEverApplied := false
+	rateLimitEverApplied := false
 	for _, hook := range s.Config.BlockingHandlers {
 		if hook.Event != string(e.Type) {
 			continue
@@ -124,13 +131,25 @@ func (s *Sink) DeliverBlockingEvent(ctx context.Context, e *event.Event) error {
 		if result.MutationsEverApplied {
 			mutationsEverApplied = true
 		}
+		if result.RateLimitEverApplied {
+			rateLimitEverApplied = true
+		}
 	}
 
 	if mutationsEverApplied {
-		err := e.PerformEffects(ctx, event.MutationsEffectContext{
+		err := e.PerformMutationsEffects(ctx, event.MutationsEffectContext{
 			StandardAttributes: s.StandardAttributes,
 			CustomAttributes:   s.CustomAttributes,
 			RolesAndGroups:     s.RolesAndGroups,
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	if rateLimitEverApplied {
+		err := e.PerformRateLimitEffects(ctx, event.RateLimitContext{
+			RateLimiter: s.RateLimiter,
 		})
 		if err != nil {
 			return err

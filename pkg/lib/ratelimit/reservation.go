@@ -5,10 +5,11 @@ import (
 )
 
 type Reservation struct {
-	key                string
-	spec               BucketSpec
-	tokenTaken         int
-	wasCancelPrevented bool
+	Key                string     `json:"key"`
+	Spec               BucketSpec `json:"spec"`
+	TokenTaken         int        `json:"token_taken"`
+	WasCancelPrevented bool       `json:"was_cancel_prevented"`
+	IsCancelled        bool       `json:"is_cancelled"`
 }
 
 // PreventCancel prevents r from being Cancel().
@@ -22,7 +23,7 @@ func (r *Reservation) PreventCancel() {
 	if r == nil {
 		return
 	}
-	r.wasCancelPrevented = true
+	r.WasCancelPrevented = true
 }
 
 type FailedReservation struct {

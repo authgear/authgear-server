@@ -562,6 +562,7 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		RolesAndGroups:     commands,
+		RateLimiter:        limiter,
 	}
 	auditLogger := audit.NewLogger(factory)
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)

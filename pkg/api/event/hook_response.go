@@ -51,7 +51,8 @@ func GetBaseHookResponseSchema() *validation.MultipartSchema {
 	"additionalProperties": false,
 	"properties": {
 		"weight": { "type": "number" }
-	}
+	},
+	"required": ["weight"]
 }
 `)
 
@@ -61,7 +62,8 @@ func GetBaseHookResponseSchema() *validation.MultipartSchema {
 	"additionalProperties": false,
 	"properties": {
 		"mode": { "$ref": "#/$defs/BotProtectionRiskMode" }
-	}
+	},
+	"required": ["mode"]
 }
 `)
 

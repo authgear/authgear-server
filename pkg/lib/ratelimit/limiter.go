@@ -67,8 +67,8 @@ func (l *Limiter) reserveN(ctx context.Context, spec BucketSpec, n int) (*Reserv
 
 	if l.Config.Disabled || !spec.Enabled {
 		return &Reservation{
-			key:  key,
-			spec: spec,
+			Key:  key,
+			Spec: spec,
 		}, nil, nil, nil
 	}
 
@@ -86,9 +86,9 @@ func (l *Limiter) reserveN(ctx context.Context, spec BucketSpec, n int) (*Reserv
 
 	if ok {
 		return &Reservation{
-			key:        key,
-			spec:       spec,
-			tokenTaken: n,
+			Key:        key,
+			Spec:       spec,
+			TokenTaken: n,
 		}, nil, &timeToAct, nil
 	}
 
@@ -99,21 +99,52 @@ func (l *Limiter) reserveN(ctx context.Context, spec BucketSpec, n int) (*Reserv
 	}, &timeToAct, nil
 }
 
+func (l *Limiter) AdjustWeight(ctx context.Context, r *Reservation, weight float64) (*Reservation, *FailedReservation, error) {
+	// If it was cancelled, do nothing
+	if r.IsCancelled {
+		return r, nil, nil
+	}
+	// First cancel the applied reservation
+	err := l.doCancel(ctx, r)
+	if err != nil {
+		// Cancel failed, return error
+		return nil, nil, err
+	}
+
+	// Then re-apply with the new weight
+	// FIXME(tung): Allow float number in reserveN
+	reservation, failedReservation, _, err := l.reserveN(ctx, r.Spec, int(weight))
+	return reservation, failedReservation, err
+}
+
 // Cancel cancels a reservation.
 func (l *Limiter) Cancel(ctx context.Context, r *Reservation) {
-	if r == nil || r.wasCancelPrevented || r.tokenTaken == 0 {
+	if r == nil || r.WasCancelPrevented {
 		return
 	}
 
-	_, _, err := l.Storage.Update(ctx, r.key, r.spec.Period, r.spec.Burst, -r.tokenTaken)
+	err := l.doCancel(ctx, r)
 	if err != nil {
 		// Errors here are non-critical and non-recoverable;
 		// log and continue.
 		l.Logger.WithError(err).
-			WithField("global", r.spec.IsGlobal).
-			WithField("key", r.spec.Key()).
+			WithField("global", r.Spec.IsGlobal).
+			WithField("key", r.Spec.Key()).
 			Warn("failed to cancel reservation")
 	}
+}
+
+func (l *Limiter) doCancel(ctx context.Context, r *Reservation) error {
+	if r.TokenTaken == 0 || r.IsCancelled {
+		// If no token was taken or already cancelled, nothing to do
+		return nil
+	}
+	_, _, err := l.Storage.Update(ctx, r.Key, r.Spec.Period, r.Spec.Burst, -r.TokenTaken)
+	if err != nil {
+		return err
+	}
+	r.IsCancelled = true
+	return nil
 }
 
 func bucketKeyGlobal(spec BucketSpec) string {

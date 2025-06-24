@@ -52,8 +52,8 @@ func (l *LimiterGlobal) reserveN(ctx context.Context, spec BucketSpec, n int) (*
 
 	if !spec.Enabled {
 		return &Reservation{
-			key:  key,
-			spec: spec,
+			Key:  key,
+			Spec: spec,
 		}, nil, nil, nil
 	}
 
@@ -70,9 +70,9 @@ func (l *LimiterGlobal) reserveN(ctx context.Context, spec BucketSpec, n int) (*
 
 	if ok {
 		return &Reservation{
-			spec:       spec,
-			key:        key,
-			tokenTaken: n,
+			Spec:       spec,
+			Key:        key,
+			TokenTaken: n,
 		}, nil, &timeToAct, nil
 	}
 
@@ -85,17 +85,17 @@ func (l *LimiterGlobal) reserveN(ctx context.Context, spec BucketSpec, n int) (*
 
 // Cancel cancels a reservation.
 func (l *LimiterGlobal) Cancel(ctx context.Context, r *Reservation) {
-	if r == nil || r.wasCancelPrevented || r.tokenTaken == 0 {
+	if r == nil || r.WasCancelPrevented || r.TokenTaken == 0 {
 		return
 	}
 
-	_, _, err := l.Storage.Update(ctx, r.key, r.spec.Period, r.spec.Burst, -r.tokenTaken)
+	_, _, err := l.Storage.Update(ctx, r.Key, r.Spec.Period, r.Spec.Burst, -r.TokenTaken)
 	if err != nil {
 		// Errors here are non-critical and non-recoverable;
 		// log and continue.
 		l.Logger.WithError(err).
-			WithField("global", r.spec.IsGlobal).
-			WithField("key", r.spec.Key()).
+			WithField("global", r.Spec.IsGlobal).
+			WithField("key", r.Spec.Key()).
 			Warn("failed to cancel reservation")
 	}
 }

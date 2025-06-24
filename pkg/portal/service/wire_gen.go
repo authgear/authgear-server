@@ -77,6 +77,7 @@ func newHookSink(app *model.App, denoEndpoint config.DenoEndpoint, loggerFactory
 	}
 	noopAttributesService := _wireNoopAttributesServiceValue
 	noopRolesAndGroupsService := _wireNoopRolesAndGroupsServiceValue
+	panicRateLimiter := &PanicRateLimiter{}
 	sink := &hook.Sink{
 		Logger:             logger,
 		Config:             hookConfig,
@@ -86,6 +87,7 @@ func newHookSink(app *model.App, denoEndpoint config.DenoEndpoint, loggerFactory
 		StandardAttributes: noopAttributesService,
 		CustomAttributes:   noopAttributesService,
 		RolesAndGroups:     noopRolesAndGroupsService,
+		RateLimiter:        panicRateLimiter,
 	}
 	return sink
 }

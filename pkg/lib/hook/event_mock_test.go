@@ -157,10 +157,15 @@ func (e *MockBlockingEvent1) ApplyHookResponse(ctx context.Context, response eve
 	return event.ApplyHookResponseResult{MutationsEverApplied: mutated}
 }
 
-func (e *MockBlockingEvent1) PerformEffects(ctx context.Context, effectCtx event.MutationsEffectContext) error {
+func (e *MockBlockingEvent1) PerformMutationEffects(ctx context.Context, eventCtx event.Context, effectCtx event.MutationsEffectContext) error {
 	userID := e.UserID()
 	userMutations := blocking.MakeUserMutations(e.User)
 	return blocking.PerformEffectsOnUser(ctx, effectCtx, userID, userMutations)
+}
+
+func (e *MockBlockingEvent1) PerformRateLimitEffects(ctx context.Context, eventCtx event.Context, effectCtx event.RateLimitContext) error {
+	// no-op
+	return nil
 }
 
 type MockBlockingEvent2 struct {
@@ -182,10 +187,15 @@ func (e *MockBlockingEvent2) ApplyHookResponse(ctx context.Context, response eve
 	return event.ApplyHookResponseResult{MutationsEverApplied: mutated}
 }
 
-func (e *MockBlockingEvent2) PerformEffects(ctx context.Context, effectCtx event.MutationsEffectContext) error {
+func (e *MockBlockingEvent2) PerformMutationEffects(ctx context.Context, eventCtx event.Context, effectCtx event.MutationsEffectContext) error {
 	userID := e.UserID()
 	userMutations := blocking.MakeUserMutations(e.User)
 	return blocking.PerformEffectsOnUser(ctx, effectCtx, userID, userMutations)
+}
+
+func (e *MockBlockingEvent2) PerformRateLimitEffects(ctx context.Context, eventCtx event.Context, effectCtx event.RateLimitContext) error {
+	// no-op
+	return nil
 }
 
 var _ event.NonBlockingPayload = &MockNonBlockingEvent1{}

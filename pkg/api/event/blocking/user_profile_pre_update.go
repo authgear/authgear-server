@@ -71,10 +71,15 @@ func (e *UserProfilePreUpdateBlockingEventPayload) ApplyHookResponse(ctx context
 	return event.ApplyHookResponseResult{MutationsEverApplied: mutated}
 }
 
-func (e *UserProfilePreUpdateBlockingEventPayload) PerformEffects(ctx context.Context, effectCtx event.MutationsEffectContext) error {
+func (e *UserProfilePreUpdateBlockingEventPayload) PerformMutationEffects(ctx context.Context, eventCtx event.Context, effectCtx event.MutationsEffectContext) error {
 	userID := e.UserID()
 	userMutations := MakeUserMutations(e.UserModel)
 	return PerformEffectsOnUser(ctx, effectCtx, userID, userMutations)
+}
+
+func (e *UserProfilePreUpdateBlockingEventPayload) PerformRateLimitEffects(ctx context.Context, eventCtx event.Context, effectCtx event.RateLimitContext) error {
+	// no-op
+	return nil
 }
 
 var _ event.BlockingPayload = &UserProfilePreUpdateBlockingEventPayload{}

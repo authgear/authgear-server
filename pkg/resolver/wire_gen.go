@@ -635,6 +635,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		RolesAndGroups:     commands,
+		RateLimiter:        limiter,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase

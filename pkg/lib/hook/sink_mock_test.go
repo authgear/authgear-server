@@ -10,6 +10,7 @@ import (
 	reflect "reflect"
 
 	event "github.com/authgear/authgear-server/pkg/api/event"
+	ratelimit "github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	rolesgroups "github.com/authgear/authgear-server/pkg/lib/rolesgroups"
 	accesscontrol "github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	gomock "github.com/golang/mock/gomock"
@@ -270,4 +271,43 @@ func (m *MockEventDenoHook) SupportURL(u *url.URL) bool {
 func (mr *MockEventDenoHookMockRecorder) SupportURL(u interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SupportURL", reflect.TypeOf((*MockEventDenoHook)(nil).SupportURL), u)
+}
+
+// MockRateLimiter is a mock of RateLimiter interface.
+type MockRateLimiter struct {
+	ctrl     *gomock.Controller
+	recorder *MockRateLimiterMockRecorder
+}
+
+// MockRateLimiterMockRecorder is the mock recorder for MockRateLimiter.
+type MockRateLimiterMockRecorder struct {
+	mock *MockRateLimiter
+}
+
+// NewMockRateLimiter creates a new mock instance.
+func NewMockRateLimiter(ctrl *gomock.Controller) *MockRateLimiter {
+	mock := &MockRateLimiter{ctrl: ctrl}
+	mock.recorder = &MockRateLimiterMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockRateLimiter) EXPECT() *MockRateLimiterMockRecorder {
+	return m.recorder
+}
+
+// AdjustWeight mocks base method.
+func (m *MockRateLimiter) AdjustWeight(ctx context.Context, r *ratelimit.Reservation, weight float64) (*ratelimit.Reservation, *ratelimit.FailedReservation, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AdjustWeight", ctx, r, weight)
+	ret0, _ := ret[0].(*ratelimit.Reservation)
+	ret1, _ := ret[1].(*ratelimit.FailedReservation)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// AdjustWeight indicates an expected call of AdjustWeight.
+func (mr *MockRateLimiterMockRecorder) AdjustWeight(ctx, r, weight interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AdjustWeight", reflect.TypeOf((*MockRateLimiter)(nil).AdjustWeight), ctx, r, weight)
 }

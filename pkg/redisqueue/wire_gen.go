@@ -475,6 +475,7 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		RolesAndGroups:     commands,
+		RateLimiter:        limiter,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := p.AuditWriteDatabase

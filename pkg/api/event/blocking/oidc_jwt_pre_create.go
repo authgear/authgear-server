@@ -73,7 +73,12 @@ func (e *OIDCJWTPreCreateBlockingEventPayload) ApplyHookResponse(ctx context.Con
 	return event.ApplyHookResponseResult{MutationsEverApplied: mutationsEverApplied}
 }
 
-func (e *OIDCJWTPreCreateBlockingEventPayload) PerformEffects(ctx context.Context, effectCtx event.MutationsEffectContext) error {
+func (e *OIDCJWTPreCreateBlockingEventPayload) PerformMutationEffects(ctx context.Context, eventCtx event.Context, effectCtx event.MutationsEffectContext) error {
+	return nil
+}
+
+func (e *OIDCJWTPreCreateBlockingEventPayload) PerformRateLimitEffects(ctx context.Context, eventCtx event.Context, effectCtx event.RateLimitContext) error {
+	// no-op
 	return nil
 }
 
