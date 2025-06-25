@@ -235,6 +235,13 @@ Supported hook responses:
 - [bot_protection](./hook.md#using-blocking-event-with-bot-protection)
 - [rate_limits](./hook.md#using-blocking-event-with-rate-limits)
 
+`authentication.pre_initialize` will be triggered in the following flow types:
+- login
+- signup
+- reauth
+- promote
+- signup_login
+
 #### authentication.post_identified
 
 Occurs right after an identity is identified during authentication, such as login.
@@ -324,6 +331,12 @@ Supported hook responses:
 - [constraints](./hook.md#blocking-event-authentication-constraints)
 - [bot_protection](./hook.md#using-blocking-event-with-bot-protection)
 - [rate_limits](./hook.md#using-blocking-event-with-rate-limits)
+
+`authentication.post_identified` will be triggered in the following flow types:
+- login
+- signup
+- reauth
+- promote
 
 #### authentication.pre_authenticated
 
