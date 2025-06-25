@@ -220,23 +220,27 @@ The constraints are enforced based on the authentication flow type:
 
 ## Using Blocking Event with Rate Limits
 
-The `rate_limit` property in the response of blocking events can contain the following properties:
+The `rate_limits` property in the response of blocking events can contain keys of any rate limit names. See [the rate limit spec](./rate-limit.md) for list of rate limit names.
 
-- `weight`: A number that determines how much this attempt contributes to the rate limit. The default value is 1. A value of 0 means this attempt will never hit the rate limit.
+In each key, the value could be an object with the following properties:
 
-The rate limit is enforced based on the authentication flow type:
+- `weight`: A number that determines how much the following attempts contributes to the rate limit. The default value is 1. A value of 0 means the following attempts will never hit the rate limit.
 
-The following blocking events support rate limit override:
+The following blocking events support rate_limits in hook response:
 
+- `authentication.pre_initialize`
 - `authentication.post_identified`
+- `authentication.pre_authenticated`
 
 Example response with rate limit override:
 
 ```json
 {
   "is_allowed": true,
-  "rate_limit": {
-    "weight": 2
+  "rate_limits": {
+    "authentication.account_enumeration": {
+      "weight": 2
+    }
   }
 }
 ```

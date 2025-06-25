@@ -16,7 +16,7 @@ This document documents the expected use cases of some events.
 
 ### Advanced Use Cases
 
-- [Applying stricter rate limits for account enumeration according to geo location](#applying-stricter-rate-limits-for-account-enumeration-according-to-geo-location)
+- [Applying stricter rate limits in an authentication flow](#applying-stricter-rate-limits-in-an-authentication-flow)
 - [Enable bot protection under specific conditions](#enable-bot-protection-under-specific-conditions)
 
 ## Simple Use Cases
@@ -219,11 +219,11 @@ export default async function (
 
 ## Advanced Use Cases
 
-### Applying stricter rate limits for account enumeration according to geo location
+### Applying stricter rate limits in an authentication flow
 
-You can use `authentication.post_identified` to apply a stricter rate limit for account enumeration based on geo location.
+You can apply a stricter rate limit in an authentication flow using hooks.
 
-For example, you want to allow 10 attempts of account enumeration per minute in Hong Kong. And 5 attepts per minute in any other places outside Hong Kong.
+For example, you want to allow 5 attempts of account enumeration per minute in Hong Kong. And 10 attepts per minute in any other places outside Hong Kong.
 
 Firstly, you will have the following rate limit config:
 
@@ -243,27 +243,35 @@ Then, you can write the following hook:
 
 ```typescript
 export default async function (
-  e: EventAuthenticationPostIdentified
-): Promise<EventAuthenticationPostIdentifiedResponse> {
+  e: EventAuthenticationPreInitialize
+): Promise<EventAuthenticationPreInitializeResponse> {
   if (e.context.geo_location_code === "HK") {
     return {
       is_allowed: true,
+      rate_limits: {
+        "authentication.account_enumeration": {
+          weight: 2
+        }
+      },
     };
   } else {
     return {
-      is_allowed: true,
-      rate_limit: {
-        weight: 2,
-      },
+      is_allowed: true
     };
   }
 }
 ```
 
-By setting `overrides.rate_limit.weight` to 2, it means this attempt of identification will contribute `2` counts to the rate limit. Therefore, 5 attempts are only allowed in 1 minute. (10 / 2 = 5)
+By setting `"rate_limits.authentication.account_enumeration.weight"` to 2, it means any attempt of account enumeration (Such as identify steps) will contribute `2` attempts to the rate limit. Therefore, 5 attempts are only allowed in 1 minute. (10 / 2 = 5)
 
-`weight` can also be lower than 1. When set to `0`, this attempt will never hit rate limit.
+`authentication.account_enumeration` is the corresponding rate limit name. See the [rate limit spec](./rate-limit.md) for details.
 
+`weight` can also be lower than 1. When set to `0`, the rate limit will never be hit.
+
+
+Note that only rate limits checked after the hook is triggered are affected. For example, setting the `weight` of `authentication.account_enumeration` in an `authentication.post_identified` hook will likely be ineffective. This is because the `authentication.account_enumeration` rate limit is checked during the identify step, which runs before the `authentication.post_identified` hook. However, adjusting the weight for `authentication.password` in the same hook would still be effective, as the user has probably not authenticated with a password yet.
+
+If you want to make sure all rate limits are affected, it is suggested to use the `authentication.pre_initialize` event.
 
 ### Enable bot protection under specific conditions
 

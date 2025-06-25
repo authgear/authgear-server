@@ -233,6 +233,7 @@ Supported hook responses:
 - [is_allowed](./hook.md#blocking-events)
 - [constraints](./hook.md#blocking-event-authentication-constraints)
 - [bot_protection](./hook.md#using-blocking-event-with-bot-protection)
+- [rate_limits](./hook.md#using-blocking-event-with-rate-limits)
 
 #### authentication.post_identified
 
@@ -321,8 +322,8 @@ Supported hook responses:
 
 - [is_allowed](./hook.md#blocking-events)
 - [constraints](./hook.md#blocking-event-authentication-constraints)
-- [rate_limit](./hook.md#using-blocking-event-with-rate-limits)
 - [bot_protection](./hook.md#using-blocking-event-with-bot-protection)
+- [rate_limits](./hook.md#using-blocking-event-with-rate-limits)
 
 #### authentication.pre_authenticated
 
@@ -400,6 +401,7 @@ Supported hook responses:
 
 - [is_allowed](./hook.md#blocking-events)
 - [constraints](./hook.md#blocking-event-authentication-constraints)
+- [rate_limits](./hook.md#using-blocking-event-with-rate-limits)
 
 ##### authentication.pre_authenticated in authentication flow
 
