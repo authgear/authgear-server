@@ -25,6 +25,16 @@ function parseDependencies(source: string): string[] {
     .filter((x) => !!x);
 }
 
+// Convert string like "https://deno.land/std" to a string safe for filename.
+async function generateSafeFilename(pkg: string): Promise<string> {
+  const utf8Bytes = new TextEncoder().encode(pkg);
+  const sha256Bytes = await window.crypto.subtle.digest("SHA-256", utf8Bytes);
+  const fileName = Array.from(new Uint8Array(sha256Bytes), (byte) =>
+    byte.toString(16).padStart(2, "0")
+  ).join("");
+  return fileName;
+}
+
 const CodeEditor: React.VFC<CodeEditorProps> = function CodeEditor(props) {
   const {
     className,
@@ -60,12 +70,7 @@ const CodeEditor: React.VFC<CodeEditorProps> = function CodeEditor(props) {
 
       // We only resolve first-level imports to avoid performance issue
       for (const pkg of parseDependencies(value)) {
-        const encoder = new TextEncoder();
-        const uint8Array = encoder.encode(pkg);
-        const buffer = await window.crypto.subtle.digest("SHA-1", uint8Array);
-        const fileName = Array.from(new Uint8Array(buffer), (byte) =>
-          byte.toString(16).padStart(2, "0")
-        ).join("");
+        const fileName = await generateSafeFilename(pkg);
         const path = `inmemory://model/${fileName}.d.ts`;
         const uri = monaco.Uri.file(path);
 
