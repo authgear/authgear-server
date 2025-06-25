@@ -16,7 +16,7 @@ This document documents the expected use cases of some events.
 
 ### Advanced Use Cases
 
-- [Applying stricter rate limits in an authentication flow](#applying-stricter-rate-limits-in-an-authentication-flow)
+- [Applying stricter rate limits for authentications for a certain IP range](#applying-stricter-rate-limits-for-authentications-for-a-certain-ip-range)
 - [Enable bot protection under specific conditions](#enable-bot-protection-under-specific-conditions)
 
 ## Simple Use Cases
@@ -219,11 +219,11 @@ export default async function (
 
 ## Advanced Use Cases
 
-### Applying stricter rate limits in an authentication flow
+### Applying stricter rate limits for authentications for a certain IP range
 
-You can apply a stricter rate limit in an authentication flow using hooks.
+You can apply a stricter rate limit in an authentication for a certain IP range flow using hooks.
 
-For example, you want to allow 5 attempts of account enumeration per minute in Hong Kong. And 10 attepts per minute in any other places outside Hong Kong.
+For example, you want to limit account enumeration to 5 per minute if the request origins from a data center IP address, and 10 attepts per minute in any other requests.
 
 Firstly, you will have the following rate limit config:
 
@@ -242,21 +242,40 @@ This sets the rate limit of account enumeration to 10/minute.
 Then, you can write the following hook:
 
 ```typescript
+function ipToBinary(ip: string): string {
+  return ip
+    .split(".")
+    .map((octet) => parseInt(octet, 10).toString(2).padStart(8, "0"))
+    .join("");
+}
+
+function cidrToPrefix(cidr: string): string {
+  const [ip, lengthStr] = cidr.split("/");
+  const prefixLength = parseInt(lengthStr, 10);
+  const ipBinary = ipToBinary(ip);
+  return ipBinary.substring(0, prefixLength);
+}
+
 export default async function (
   e: EventAuthenticationPreInitialize
 ): Promise<EventAuthenticationPreInitializeResponse> {
-  if (e.context.geo_location_code === "HK") {
+  const ipBinary = ipToBinary(e.context.ip_address);
+
+  // ip ranges from https://www.gstatic.com/ipranges/cloud.json
+  const dataCenterIPRanges = ["34.125.0.0/16", "34.124.24.0/21"];
+  // 34.125.0.0/16
+  if (dataCenterIPRanges.some((cidr) => ipBinary.startsWith(cidrToPrefix(cidr)))) {
     return {
       is_allowed: true,
       rate_limits: {
         "authentication.account_enumeration": {
-          weight: 2
-        }
+          weight: 2,
+        },
       },
     };
   } else {
     return {
-      is_allowed: true
+      is_allowed: true,
     };
   }
 }
@@ -267,7 +286,6 @@ By setting `"rate_limits.authentication.account_enumeration.weight"` to 2, it me
 `authentication.account_enumeration` is the corresponding rate limit name. See the [rate limit spec](./rate-limit.md) for details.
 
 `weight` can also be lower than 1. When set to `0`, the rate limit will never be hit.
-
 
 Note that only rate limits checked after the hook is triggered are affected. For example, setting the `weight` of `authentication.account_enumeration` in an `authentication.post_identified` hook will likely be ineffective. This is because the `authentication.account_enumeration` rate limit is checked during the identify step, which runs before the `authentication.post_identified` hook. However, adjusting the weight for `authentication.password` in the same hook would still be effective, as the user has probably not authenticated with a password yet.
 
