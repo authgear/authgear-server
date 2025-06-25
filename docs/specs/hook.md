@@ -220,13 +220,13 @@ The constraints are enforced based on the authentication flow type:
 
 ## Using Blocking Event with Rate Limits
 
-The `rate_limits` property in the response of blocking events can contain keys of any rate limit names. See [the rate limit spec](./rate-limit.md) for list of rate limit names.
+The `rate_limits` property in a blocking event response allows you to dynamically override rate limit weights. The value of this property is an object where keys are rate limit names. For a list of available rate limit names, see [the rate limit spec](./rate-limit.md).
 
-In each key, the value could be an object with the following properties:
+Each rate limit key maps to an object with the following property:
 
-- `weight`: A number that determines how much the following attempts contributes to the rate limit. The default value is 1. A value of 0 means the following attempts will never hit the rate limit.
+- `weight`: A number that determines how much subsequent operations contribute to the rate limit. The default value is 1. A value of 0 means that subsequent operations will not contribute to the rate limit.
 
-The following blocking events support rate_limits in hook response:
+The following blocking events support `rate_limits` in the hook response:
 
 - `authentication.pre_initialize`
 - `authentication.post_identified`
@@ -245,11 +245,32 @@ Example response with rate limit override:
 }
 ```
 
+The `rate_limits` property respects the [fallback behavior of rate limits](./rate-limit.md#fallbacks).
+
+For example, overriding `authentication.general` also affects other rate limits that use it as a fallback.
+
+```json
+{
+  "is_allowed": true,
+  "rate_limits": {
+    "authentication.general": {
+      "weight": 2
+    }
+  }
+}
+```
+
+The hook response above also applies the `weight` to `authentication.password`, `authentication.oob_otp.email.validate`, etc., because they use `authentication.general` as a fallback.
+
+At the moment, the following rate limits are supported:
+- `authentication.general`
+- `authentication.account_enumeration`
+
 ### Behavior on multiple hooks on the same event
 
 Technically, it is possible to have multiple hooks configured on a single event.
 
-In this case, hooks are called sequentially according to the order in the config. Only the last non null `rate_limit` returned from the hooks will be effective.
+In this case, hooks are called sequentially according to the order in the config. Only the last non null `rate_limits` returned from the hooks will be effective.
 
 ## Using Blocking Event with Bot Protection
 
