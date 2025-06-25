@@ -34,6 +34,18 @@ const CodeEditor: React.VFC<CodeEditorProps> = function CodeEditor(props) {
     ...rest
   } = props;
 
+  const isWhitelistedPackage = useCallback(
+    (pkg: string) => {
+      return whitelistedPackages.some(
+        (allowedPkg) =>
+          pkg === allowedPkg ||
+          pkg.startsWith(allowedPkg + "@") || // versioned
+          pkg.startsWith(allowedPkg + "/") // latest
+      );
+    },
+    [whitelistedPackages]
+  );
+
   const monacoRef = useRef<Monaco>();
   const resolveImports = useCallback(
     async (value: string | undefined) => {
@@ -44,15 +56,6 @@ const CodeEditor: React.VFC<CodeEditorProps> = function CodeEditor(props) {
       const monaco = monacoRef.current;
       if (!monaco) {
         return;
-      }
-
-      function isWhitelistedPackage(pkg: string): boolean {
-        return whitelistedPackages.some(
-          (allowedPkg) =>
-            pkg === allowedPkg ||
-            pkg.startsWith(allowedPkg + "@") || // versioned
-            pkg.startsWith(allowedPkg + "/") // latest
-        );
       }
 
       // We only resolve first-level imports to avoid performance issue
@@ -69,7 +72,7 @@ const CodeEditor: React.VFC<CodeEditorProps> = function CodeEditor(props) {
         if (!monaco.editor.getModel(uri)) {
           // Here we only use best-effort to import external script using `declare module` due to following limitations:
           // - `monaco-editor` cannot use vscode extensions e.g. "vscode-deno", so cannot use official solution for url imports
-          // -`--moduleResolution: bundle` in Typescript allows `.ts` extension but not yet supported in monaco-editor, thus path alis won't work.
+          // -`--moduleResolution: bundle` in Typescript allows `.ts` extension but not yet supported in monaco-editor, thus path alias won't work.
           const code = isWhitelistedPackage(pkg)
             ? await fetch(pkg).then(async (r) => r.text())
             : "";
@@ -81,7 +84,7 @@ const CodeEditor: React.VFC<CodeEditorProps> = function CodeEditor(props) {
         }
       }
     },
-    [whitelistedPackages]
+    [isWhitelistedPackage]
   );
 
   const handleEditorMount = useCallback<OnMount>(
