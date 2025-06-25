@@ -72,9 +72,14 @@ const CodeEditor: React.VFC<CodeEditorProps> = function CodeEditor(props) {
       for (const pkg of parseDependencies(value)) {
         const fileName = await generateSafeFilename(pkg);
         const path = `inmemory://model/${fileName}.d.ts`;
-        const uri = monaco.Uri.file(path);
 
-        if (!monaco.editor.getModel(uri)) {
+        const extraLibs =
+          monaco.languages.typescript.typescriptDefaults.getExtraLibs();
+        const lib: (typeof extraLibs)[string] | undefined | null =
+          extraLibs[path];
+
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+        if (lib == null) {
           // Here we only use best-effort to import external script using `declare module` due to following limitations:
           // - `monaco-editor` cannot use vscode extensions e.g. "vscode-deno", so cannot use official solution for url imports
           // -`--moduleResolution: bundle` in Typescript allows `.ts` extension but not yet supported in monaco-editor, thus path alias won't work.
@@ -85,7 +90,6 @@ const CodeEditor: React.VFC<CodeEditorProps> = function CodeEditor(props) {
             `declare module '${pkg}'` +
             (code && parseDependencies(code).length === 0 ? `{${code}}` : "");
           monaco.languages.typescript.typescriptDefaults.addExtraLib(dts, path);
-          monaco.editor.createModel(dts, "typescript", uri);
         }
       }
     },
