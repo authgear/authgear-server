@@ -209,3 +209,17 @@ func ApplyHookResponse(user model.User, response event.HookResponse) (out model.
 	out = user
 	return
 }
+
+func init() {
+	s := event.GetBaseHookResponseSchema()
+	s.Add("TestHookResponse", `
+{
+	"allOf": [
+		{ "$ref": "#/$defs/BaseHookResponseSchema" }
+	]
+}`)
+
+	s.Instantiate()
+	event.RegisterResponseSchemaValidator(MockBlockingEventType1, s.PartValidator("TestHookResponse"))
+	event.RegisterResponseSchemaValidator(MockBlockingEventType2, s.PartValidator("TestHookResponse"))
+}
