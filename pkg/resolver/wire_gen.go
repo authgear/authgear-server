@@ -485,6 +485,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		AppID:   appID,
 		Config:  rateLimitsFeatureConfig,
 	}
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	otpService := &otp.Service{
 		Clock:                 clock,
 		AppID:                 appID,
@@ -496,11 +497,15 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		AttemptTracker:        attemptTrackerRedis,
 		Logger:                otpLogger,
 		RateLimiter:           limiter,
+		FeatureConfig:         featureConfig,
+		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
 	rateLimits := service2.RateLimits{
-		IP:          remoteIP,
-		Config:      authenticationConfig,
-		RateLimiter: limiter,
+		IP:            remoteIP,
+		Config:        appConfig,
+		FeatureConfig: featureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+		RateLimiter:   limiter,
 	}
 	authenticationLockoutConfig := authenticationConfig.Lockout
 	lockoutLogger := lockout.NewLogger(factory)
@@ -726,7 +731,9 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		DeviceTokens:  storeDeviceTokenRedis,
 		RecoveryCodes: storeRecoveryCodePQ,
 		Clock:         clock,
-		Config:        authenticationConfig,
+		Config:        appConfig,
+		FeatureConfig: featureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
@@ -738,17 +745,13 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		AppID:  appID,
 		Redis:  handle,
 	}
-	messagingConfig := appConfig.Messaging
-	messagingRateLimitsConfig := messagingConfig.RateLimits
-	messagingFeatureConfig := featureConfig.Messaging
-	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	limits := messaging.Limits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		UsageLimiter:  usageLimiter,
 		RemoteIP:      remoteIP,
-		Config:        messagingRateLimitsConfig,
-		FeatureConfig: messagingFeatureConfig,
+		Config:        appConfig,
+		FeatureConfig: featureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	mailLogger := mail.NewLogger(factory)
@@ -759,6 +762,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		GomailDialer: dialer,
 	}
 	smsLogger := sms.NewLogger(factory)
+	messagingConfig := appConfig.Messaging
 	smsProvider := messagingConfig.Deprecated_SMSProvider
 	smsGatewayConfig := messagingConfig.SMSGateway
 	nexmoCredentials := deps.ProvideNexmoCredentials(secretConfig)
@@ -830,6 +834,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		CloudAPIClient:        cloudAPIClient,
 	}
 	devMode := environmentConfig.DevMode
+	messagingFeatureConfig := featureConfig.Messaging
 	featureTestModeEmailSuppressed := deps.ProvideTestModeEmailSuppressed(testModeFeatureConfig)
 	testModeEmailConfig := testModeConfig.Email
 	featureTestModeSMSSuppressed := deps.ProvideTestModeSMSSuppressed(testModeFeatureConfig)
@@ -1256,6 +1261,7 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Config:  rateLimitsFeatureConfig,
 	}
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -1267,11 +1273,15 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		AttemptTracker:        attemptTrackerRedis,
 		Logger:                otpLogger,
 		RateLimiter:           limiter,
+		FeatureConfig:         featureConfig,
+		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
 	rateLimits := service2.RateLimits{
-		IP:          remoteIP,
-		Config:      authenticationConfig,
-		RateLimiter: limiter,
+		IP:            remoteIP,
+		Config:        appConfig,
+		FeatureConfig: featureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+		RateLimiter:   limiter,
 	}
 	authenticationLockoutConfig := authenticationConfig.Lockout
 	lockoutLogger := lockout.NewLogger(factory)
