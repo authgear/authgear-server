@@ -342,11 +342,11 @@ func (m SetupApp) proceed_QuestionName_EnterDomain_Apex() SetupApp {
 	questionModel := q.Model.(bubbleteautil.SimplePicker)
 	questionModel.Title = fmt.Sprintf(`The following domains will be set up:
 - %v
-    The authentication endpoint
+    The auth endpoint, your user will see it when they login
 - %v
-    The Authgear portal
+    The admin portal, you will login at this domain to configure and manage users
 - %v
-    For logging into the Authgear portal
+    A domain the portal to function. You don't need to access it directly
 
 `, bubbleteautil.StyleForegroundSemanticInfo.Render(domains.Project),
 		bubbleteautil.StyleForegroundSemanticInfo.Render(domains.Portal),
