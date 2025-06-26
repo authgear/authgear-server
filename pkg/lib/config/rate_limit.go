@@ -43,7 +43,7 @@ func (c *RateLimitConfig) SetDefaults() {
 }
 
 func (c *RateLimitConfig) Rate() float64 {
-	if c.Enabled == nil || !*c.Enabled {
+	if !c.IsEnabled() {
 		// Infinite rate if disabled.
 		return math.Inf(1)
 	}
