@@ -307,21 +307,25 @@ func (r RateLimit) ResolveBucketSpecs(
 		return &spec
 	}
 
-	resolvePerUserBucket := func(bucketName BucketName, args ...string) *BucketSpec {
+	resolvePerUserBucket := func(bucketName BucketName, userID string, args ...string) *BucketSpec {
 		confPerUser := r.resolvePerUser(cfg)
-		if confPerUser == nil {
+		if confPerUser == nil || userID == "" {
 			return &BucketSpecDisabled
 		}
-		spec := NewBucketSpec(confPerUser, bucketName, args...)
+		bucketArgs := []string{userID}
+		bucketArgs = append(bucketArgs, args...)
+		spec := NewBucketSpec(confPerUser, bucketName, bucketArgs...)
 		return &spec
 	}
 
-	resolvePerUserPerIPBucket := func(bucketName BucketName, args ...string) *BucketSpec {
+	resolvePerUserPerIPBucket := func(bucketName BucketName, userID string, args ...string) *BucketSpec {
 		confPerUserPerIP := r.resolvePerUserPerIP(cfg)
-		if confPerUserPerIP == nil {
+		if confPerUserPerIP == nil || userID == "" {
 			return &BucketSpecDisabled
 		}
-		spec := NewBucketSpec(confPerUserPerIP, bucketName, args...)
+		bucketArgs := []string{userID}
+		bucketArgs = append(bucketArgs, args...)
+		spec := NewBucketSpec(confPerUserPerIP, bucketName, bucketArgs...)
 		return &spec
 	}
 
@@ -351,7 +355,7 @@ func (r RateLimit) ResolveBucketSpecs(
 			OOBOTPTriggerSMSPerUser,
 			OOBOTPTriggerWhatsappPerUser,
 		)
-		specs = append(specs, resolvePerUserBucket(bucketNamePerUser, opts.Purpose, opts.UserID))
+		specs = append(specs, resolvePerUserBucket(bucketNamePerUser, opts.UserID, opts.Purpose))
 
 	case RateLimitAuthenticationOOBOTPEmailValidate:
 		bucketNamePerIP := selectByChannel(opts.Channel,
@@ -366,7 +370,7 @@ func (r RateLimit) ResolveBucketSpecs(
 			OOBOTPValidateSMSPerUserPerIP,
 			OOBOTPValidateWhatsappPerUserPerIP,
 		)
-		specs = append(specs, resolvePerUserPerIPBucket(bucketNamePerUserPerIP, opts.Purpose, opts.UserID, opts.IPAddress))
+		specs = append(specs, resolvePerUserPerIPBucket(bucketNamePerUserPerIP, opts.UserID, opts.IPAddress, opts.Purpose))
 
 	case RateLimitAuthenticationOOBOTPSMSTrigger:
 		bucketNamePerIP := selectByChannel(opts.Channel,
@@ -381,7 +385,7 @@ func (r RateLimit) ResolveBucketSpecs(
 			OOBOTPTriggerSMSPerUser,
 			OOBOTPTriggerWhatsappPerUser,
 		)
-		specs = append(specs, resolvePerUserBucket(bucketNamePerUser, opts.Purpose, opts.UserID))
+		specs = append(specs, resolvePerUserBucket(bucketNamePerUser, opts.UserID, opts.Purpose))
 
 	case RateLimitAuthenticationOOBOTPSMSValidate:
 		bucketNamePerIP := selectByChannel(opts.Channel,
@@ -396,7 +400,7 @@ func (r RateLimit) ResolveBucketSpecs(
 			OOBOTPValidateSMSPerUserPerIP,
 			OOBOTPValidateWhatsappPerUserPerIP,
 		)
-		specs = append(specs, resolvePerUserPerIPBucket(bucketNamePerUserPerIP, opts.Purpose, opts.UserID, opts.IPAddress))
+		specs = append(specs, resolvePerUserPerIPBucket(bucketNamePerUserPerIP, opts.UserID, opts.IPAddress, opts.Purpose))
 
 	case RateLimitAuthenticationTOTP:
 		specs = append(specs, resolvePerIPBucket(VerifyTOTPPerIP, opts.IPAddress))
