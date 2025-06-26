@@ -513,7 +513,7 @@ func (r RateLimit) ResolveBucketSpecs(
 		specs = append(specs, resolvePerIPBucket(MessagingSMSPerIP, opts.IPAddress))
 		specs = append(specs, resolveGlobalBucket(globalCfg.SMSPerIP, MessagingSMSPerIP, opts.IPAddress))
 		specs = append(specs, resolvePerTargetBucket(MessagingSMSPerTarget, opts.Target))
-		specs = append(specs, resolveGlobalBucket(globalCfg.SMSPerTarget, MessagingSMSPerIP, opts.Target))
+		specs = append(specs, resolveGlobalBucket(globalCfg.SMSPerTarget, MessagingSMSPerTarget, opts.Target))
 
 	case RateLimitMessagingEmail:
 		specs = append(specs, resolveBucket(cfg.Messaging.RateLimits.Email, featureCfg.Messaging.RateLimits.Email, MessagingEmail))
