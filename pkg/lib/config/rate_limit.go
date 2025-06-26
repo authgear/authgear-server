@@ -50,3 +50,10 @@ func (c *RateLimitConfig) Rate() float64 {
 	// request/seconds
 	return float64(c.Burst) / c.Period.Duration().Seconds()
 }
+
+func (c *RateLimitConfig) IsEnabled() bool {
+	if c.Enabled == nil || !*c.Enabled {
+		return false
+	}
+	return true
+}

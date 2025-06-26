@@ -17,9 +17,6 @@ const (
 	VerificationTriggerEmailPerUser    ratelimit.BucketName = "VerificationTriggerEmailPerUser"
 	VerificationTriggerSMSPerUser      ratelimit.BucketName = "VerificationTriggerSMSPerUser"
 	VerificationTriggerWhatsappPerUser ratelimit.BucketName = "VerificationTriggerWhatsappPerUser"
-	VerificationCooldownEmail          ratelimit.BucketName = "VerificationCooldownEmail"
-	VerificationCooldownSMS            ratelimit.BucketName = "VerificationCooldownSMS"
-	VerificationCooldownWhatsapp       ratelimit.BucketName = "VerificationCooldownWhatsapp"
 	VerificationValidateEmailPerIP     ratelimit.BucketName = "VerificationValidateEmailPerIP"
 	VerificationValidateSMSPerIP       ratelimit.BucketName = "VerificationValidateSMSPerIP"
 	VerificationValidateWhatsappPerIP  ratelimit.BucketName = "VerificationValidateWhatsappPerIP"
@@ -75,9 +72,9 @@ func (k kindVerification) RateLimitTriggerPerUser(userID string) ratelimit.Bucke
 func (k kindVerification) RateLimitTriggerCooldown(target string) ratelimit.BucketSpec {
 	return ratelimit.NewCooldownSpec(
 		selectByChannel(k.channel,
-			VerificationCooldownEmail,
-			VerificationCooldownSMS,
-			VerificationCooldownWhatsapp,
+			ratelimit.VerificationCooldownEmail,
+			ratelimit.VerificationCooldownSMS,
+			ratelimit.VerificationCooldownWhatsapp,
 		),
 		selectByChannel(k.channel,
 			k.config.Verification.RateLimits.Email.TriggerCooldown,

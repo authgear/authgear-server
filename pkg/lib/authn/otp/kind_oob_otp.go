@@ -17,9 +17,6 @@ const (
 	OOBOTPTriggerEmailPerUser          ratelimit.BucketName = "OOBOTPTriggerEmailPerUser"
 	OOBOTPTriggerSMSPerUser            ratelimit.BucketName = "OOBOTPTriggerSMSPerUser"
 	OOBOTPTriggerWhatsappPerUser       ratelimit.BucketName = "OOBOTPTriggerWhatsappPerUser"
-	OOBOTPCooldownEmail                ratelimit.BucketName = "OOBOTPCooldownEmail"
-	OOBOTPCooldownSMS                  ratelimit.BucketName = "OOBOTPCooldownSMS"
-	OOBOTPCooldownWhatsapp             ratelimit.BucketName = "OOBOTPCooldownWhatsapp"
 	OOBOTPValidateEmailPerIP           ratelimit.BucketName = "OOBOTPValidateEmailPerIP"
 	OOBOTPValidateSMSPerIP             ratelimit.BucketName = "OOBOTPValidateSMSPerIP"
 	OOBOTPValidateWhatsappPerIP        ratelimit.BucketName = "OOBOTPValidateWhatsappPerIP"
@@ -107,9 +104,9 @@ func (k kindOOBOTP) RateLimitTriggerPerUser(userID string) ratelimit.BucketSpec 
 func (k kindOOBOTP) RateLimitTriggerCooldown(target string) ratelimit.BucketSpec {
 	return ratelimit.NewCooldownSpec(
 		selectByChannel(k.channel,
-			OOBOTPCooldownEmail,
-			OOBOTPCooldownSMS,
-			OOBOTPCooldownWhatsapp,
+			ratelimit.OOBOTPCooldownEmail,
+			ratelimit.OOBOTPCooldownSMS,
+			ratelimit.OOBOTPCooldownWhatsapp,
 		),
 		selectByChannel(k.channel,
 			k.config.Authentication.RateLimits.OOBOTP.Email.TriggerCooldown,
