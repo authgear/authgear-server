@@ -20,6 +20,7 @@ type EdgeSelectIdentityEnd struct {
 	IsAuthentication bool
 }
 
+//nolint:gocognit
 func (e *EdgeSelectIdentityEnd) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, input interface{}) (interaction.Node, error) {
 	bypassRateLimit := false
 	var bypassInput interface{ BypassInteractionIPRateLimit() bool }
