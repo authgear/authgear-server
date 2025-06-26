@@ -237,6 +237,7 @@ type Context struct {
 	Clock               clock.Clock
 	Config              *config.AppConfig
 	FeatureConfig       *config.FeatureConfig
+	RateLimitsEnvConfig *config.RateLimitsEnvironmentConfig
 	OAuthClientResolver OAuthClientResolver
 
 	OfflineGrants                   OfflineGrantStore

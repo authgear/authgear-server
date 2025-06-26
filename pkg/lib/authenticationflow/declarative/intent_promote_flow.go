@@ -11,6 +11,7 @@ import (
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 )
 
@@ -92,15 +93,19 @@ func (i *IntentPromoteFlow) ReactTo(ctx context.Context, deps *authflow.Dependen
 func (i *IntentPromoteFlow) GetEffects(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (effs []authflow.Effect, err error) {
 	return []authflow.Effect{
 		authflow.OnCommitEffect(func(ctx context.Context, deps *authflow.Dependencies) error {
-			isAnonymous := true
 			// Apply rate limit on sign up.
-			spec := SignupPerIPRateLimitBucketSpec(deps.Config.Authentication, isAnonymous, string(deps.RemoteIP))
-			failed, err := deps.RateLimiter.Allow(ctx, spec)
-			if err != nil {
-				return err
-			}
-			if err := failed.Error(); err != nil {
-				return err
+			specs := ratelimit.RateLimitAuthenticationSignupAnonymous.ResolveBucketSpecs(deps.Config, deps.FeatureConfig, deps.RateLimitsEnvConfig, &ratelimit.ResolveBucketSpecOptions{
+				IPAddress: string(deps.RemoteIP),
+			})
+			for _, spec := range specs {
+				spec := *spec
+				failed, err := deps.RateLimiter.Allow(ctx, spec)
+				if err != nil {
+					return err
+				}
+				if err := failed.Error(); err != nil {
+					return err
+				}
 			}
 			return nil
 		}),
