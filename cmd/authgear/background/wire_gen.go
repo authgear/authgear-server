@@ -427,6 +427,7 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 		AppID:   configAppID,
 		Config:  rateLimitsFeatureConfig,
 	}
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 configAppID,
@@ -438,11 +439,15 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 		AttemptTracker:        attemptTrackerRedis,
 		Logger:                otpLogger,
 		RateLimiter:           limiter,
+		FeatureConfig:         featureConfig,
+		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
 	rateLimits := service2.RateLimits{
-		IP:          remoteIP,
-		Config:      authenticationConfig,
-		RateLimiter: limiter,
+		IP:            remoteIP,
+		Config:        appConfig,
+		FeatureConfig: featureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+		RateLimiter:   limiter,
 	}
 	authenticationLockoutConfig := authenticationConfig.Lockout
 	lockoutLogger := lockout.NewLogger(factory)
@@ -673,7 +678,9 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 		DeviceTokens:  storeDeviceTokenRedis,
 		RecoveryCodes: storeRecoveryCodePQ,
 		Clock:         clockClock,
-		Config:        authenticationConfig,
+		Config:        appConfig,
+		FeatureConfig: featureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
@@ -685,17 +692,13 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 		AppID:  configAppID,
 		Redis:  appredisHandle,
 	}
-	messagingConfig := appConfig.Messaging
-	messagingRateLimitsConfig := messagingConfig.RateLimits
-	messagingFeatureConfig := featureConfig.Messaging
-	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	limits := messaging.Limits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		UsageLimiter:  usageLimiter,
 		RemoteIP:      remoteIP,
-		Config:        messagingRateLimitsConfig,
-		FeatureConfig: messagingFeatureConfig,
+		Config:        appConfig,
+		FeatureConfig: featureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	mailLogger := mail.NewLogger(factory)
@@ -706,6 +709,7 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 		GomailDialer: dialer,
 	}
 	smsLogger := sms.NewLogger(factory)
+	messagingConfig := appConfig.Messaging
 	smsProvider := messagingConfig.Deprecated_SMSProvider
 	smsGatewayConfig := messagingConfig.SMSGateway
 	nexmoCredentials := deps.ProvideNexmoCredentials(secretConfig)
@@ -777,6 +781,7 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 		CloudAPIClient:        cloudAPIClient,
 	}
 	devMode := environmentConfig.DevMode
+	messagingFeatureConfig := featureConfig.Messaging
 	featureTestModeEmailSuppressed := deps.ProvideTestModeEmailSuppressed(testModeFeatureConfig)
 	testModeEmailConfig := testModeConfig.Email
 	featureTestModeSMSSuppressed := deps.ProvideTestModeSMSSuppressed(testModeFeatureConfig)

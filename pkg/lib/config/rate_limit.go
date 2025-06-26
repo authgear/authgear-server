@@ -43,10 +43,17 @@ func (c *RateLimitConfig) SetDefaults() {
 }
 
 func (c *RateLimitConfig) Rate() float64 {
-	if c.Enabled == nil || !*c.Enabled {
+	if !c.IsEnabled() {
 		// Infinite rate if disabled.
 		return math.Inf(1)
 	}
 	// request/seconds
 	return float64(c.Burst) / c.Period.Duration().Seconds()
+}
+
+func (c *RateLimitConfig) IsEnabled() bool {
+	if c.Enabled == nil || !*c.Enabled {
+		return false
+	}
+	return true
 }

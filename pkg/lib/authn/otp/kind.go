@@ -14,11 +14,18 @@ type Kind interface {
 	Purpose() Purpose
 	ValidPeriod() time.Duration
 
-	RateLimitTriggerPerIP(ip string) ratelimit.BucketSpec
-	RateLimitTriggerPerUser(userID string) ratelimit.BucketSpec
+	RateLimitTrigger(
+		featureConfig *config.FeatureConfig,
+		envConfig *config.RateLimitsEnvironmentConfig,
+		ip string, userID string,
+	) []*ratelimit.BucketSpec
+	RateLimitValidate(
+		featureConfig *config.FeatureConfig,
+		envConfig *config.RateLimitsEnvironmentConfig,
+		ip string, userID string,
+	) []*ratelimit.BucketSpec
+
 	RateLimitTriggerCooldown(target string) ratelimit.BucketSpec
-	RateLimitValidatePerIP(ip string) ratelimit.BucketSpec
-	RateLimitValidatePerUserPerIP(userID string, ip string) ratelimit.BucketSpec
 	RevocationMaxFailedAttempts() int
 }
 

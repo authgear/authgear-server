@@ -20,6 +20,7 @@ type EdgeSelectIdentityEnd struct {
 	IsAuthentication bool
 }
 
+//nolint:gocognit
 func (e *EdgeSelectIdentityEnd) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, input interface{}) (interaction.Node, error) {
 	bypassRateLimit := false
 	var bypassInput interface{ BypassInteractionIPRateLimit() bool }
@@ -27,20 +28,28 @@ func (e *EdgeSelectIdentityEnd) Instantiate(goCtx context.Context, ctx *interact
 		bypassRateLimit = bypassInput.BypassInteractionIPRateLimit()
 	}
 
-	var reservation *ratelimit.Reservation
+	var reservations []*ratelimit.Reservation
 	if !bypassRateLimit {
-		spec := interaction.AccountEnumerationPerIPRateLimitBucketSpec(ctx.Config.Authentication, string(ctx.RemoteIP))
-		var failedReservation *ratelimit.FailedReservation
-		var err error
-		reservation, failedReservation, err = ctx.RateLimiter.Reserve(goCtx, spec)
-		if err != nil {
-			return nil, err
-		}
-		if err := failedReservation.Error(); err != nil {
-			return nil, err
+		specs := ratelimit.RateLimitAuthenticationAccountEnumeration.ResolveBucketSpecs(ctx.Config, ctx.FeatureConfig, ctx.RateLimitsEnvConfig, &ratelimit.ResolveBucketSpecOptions{
+			IPAddress: string(ctx.RemoteIP),
+		})
+		for _, spec := range specs {
+			spec := *spec
+			resv, failedReservation, err := ctx.RateLimiter.Reserve(goCtx, spec)
+			if err != nil {
+				return nil, err
+			}
+			if err := failedReservation.Error(); err != nil {
+				return nil, err
+			}
+			reservations = append(reservations, resv)
 		}
 	}
-	defer ctx.RateLimiter.Cancel(goCtx, reservation)
+	defer func() {
+		for _, resv := range reservations {
+			ctx.RateLimiter.Cancel(goCtx, resv)
+		}
+	}()
 
 	var otherMatch *identity.Info
 	exactMatch, otherMatches, err := ctx.Identities.SearchBySpec(goCtx, e.IdentitySpec)
@@ -50,8 +59,8 @@ func (e *EdgeSelectIdentityEnd) Instantiate(goCtx context.Context, ctx *interact
 
 	if exactMatch == nil {
 		// Exact match not found; prevent canceling account enumeration rate limit.
-		if reservation != nil {
-			reservation.PreventCancel()
+		for _, resv := range reservations {
+			resv.PreventCancel()
 		}
 
 		// Take the first one as other match.

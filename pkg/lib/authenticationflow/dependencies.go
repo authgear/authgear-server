@@ -243,6 +243,7 @@ type UserFacade interface {
 type Dependencies struct {
 	Config                  *config.AppConfig
 	FeatureConfig           *config.FeatureConfig
+	RateLimitsEnvConfig     *config.RateLimitsEnvironmentConfig
 	SSOOAuthDemoCredentials *config.SSOOAuthDemoCredentials
 
 	Clock      clock.Clock

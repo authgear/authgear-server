@@ -1,6 +1,7 @@
 package otp
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -9,21 +10,6 @@ import (
 )
 
 const PurposeVerification Purpose = "verification"
-
-const (
-	VerificationTriggerEmailPerIP      ratelimit.BucketName = "VerificationTriggerEmailPerIP"
-	VerificationTriggerSMSPerIP        ratelimit.BucketName = "VerificationTriggerSMSPerIP"
-	VerificationTriggerWhatsappPerIP   ratelimit.BucketName = "VerificationTriggerWhatsappPerIP"
-	VerificationTriggerEmailPerUser    ratelimit.BucketName = "VerificationTriggerEmailPerUser"
-	VerificationTriggerSMSPerUser      ratelimit.BucketName = "VerificationTriggerSMSPerUser"
-	VerificationTriggerWhatsappPerUser ratelimit.BucketName = "VerificationTriggerWhatsappPerUser"
-	VerificationCooldownEmail          ratelimit.BucketName = "VerificationCooldownEmail"
-	VerificationCooldownSMS            ratelimit.BucketName = "VerificationCooldownSMS"
-	VerificationCooldownWhatsapp       ratelimit.BucketName = "VerificationCooldownWhatsapp"
-	VerificationValidateEmailPerIP     ratelimit.BucketName = "VerificationValidateEmailPerIP"
-	VerificationValidateSMSPerIP       ratelimit.BucketName = "VerificationValidateSMSPerIP"
-	VerificationValidateWhatsappPerIP  ratelimit.BucketName = "VerificationValidateWhatsappPerIP"
-)
 
 type kindVerification struct {
 	config  *config.AppConfig
@@ -44,40 +30,34 @@ func (k kindVerification) ValidPeriod() time.Duration {
 	return k.config.Verification.CodeValidPeriod.Duration()
 }
 
-func (k kindVerification) RateLimitTriggerPerIP(ip string) ratelimit.BucketSpec {
-	return ratelimit.NewBucketSpec(
-		selectByChannel(k.channel,
-			k.config.Verification.RateLimits.Email.TriggerPerIP,
-			k.config.Verification.RateLimits.SMS.TriggerPerIP,
-			k.config.Verification.RateLimits.SMS.TriggerPerIP,
-		),
-		selectByChannel(k.channel,
-			VerificationTriggerEmailPerIP,
-			VerificationTriggerSMSPerIP,
-			VerificationTriggerWhatsappPerIP,
-		), ip)
-}
-
-func (k kindVerification) RateLimitTriggerPerUser(userID string) ratelimit.BucketSpec {
-	return ratelimit.NewBucketSpec(
-		selectByChannel(k.channel,
-			k.config.Verification.RateLimits.Email.TriggerPerUser,
-			k.config.Verification.RateLimits.SMS.TriggerPerUser,
-			k.config.Verification.RateLimits.SMS.TriggerPerUser,
-		),
-		selectByChannel(k.channel,
-			VerificationTriggerEmailPerUser,
-			VerificationTriggerSMSPerUser,
-			VerificationTriggerWhatsappPerUser,
-		), userID)
+func (k kindVerification) RateLimitTrigger(
+	featureConfig *config.FeatureConfig,
+	envConfig *config.RateLimitsEnvironmentConfig,
+	ip string, userID string,
+) []*ratelimit.BucketSpec {
+	opts := &ratelimit.ResolveBucketSpecOptions{
+		IPAddress: ip,
+		Channel:   k.channel,
+		Purpose:   string(k.Purpose()),
+		UserID:    userID,
+	}
+	switch k.channel {
+	case model.AuthenticatorOOBChannelEmail:
+		return ratelimit.RateLimitVerificationEmailTrigger.ResolveBucketSpecs(k.config, featureConfig, envConfig, opts)
+	case model.AuthenticatorOOBChannelSMS:
+		fallthrough
+	case model.AuthenticatorOOBChannelWhatsapp:
+		return ratelimit.RateLimitVerificationSMSTrigger.ResolveBucketSpecs(k.config, featureConfig, envConfig, opts)
+	}
+	panic(fmt.Errorf("invalid channel: %v", k.channel))
 }
 
 func (k kindVerification) RateLimitTriggerCooldown(target string) ratelimit.BucketSpec {
 	return ratelimit.NewCooldownSpec(
 		selectByChannel(k.channel,
-			VerificationCooldownEmail,
-			VerificationCooldownSMS,
-			VerificationCooldownWhatsapp,
+			ratelimit.VerificationCooldownEmail,
+			ratelimit.VerificationCooldownSMS,
+			ratelimit.VerificationCooldownWhatsapp,
 		),
 		selectByChannel(k.channel,
 			k.config.Verification.RateLimits.Email.TriggerCooldown,
@@ -88,22 +68,26 @@ func (k kindVerification) RateLimitTriggerCooldown(target string) ratelimit.Buck
 	)
 }
 
-func (k kindVerification) RateLimitValidatePerIP(ip string) ratelimit.BucketSpec {
-	return ratelimit.NewBucketSpec(
-		selectByChannel(k.channel,
-			k.config.Verification.RateLimits.Email.ValidatePerIP,
-			k.config.Verification.RateLimits.SMS.ValidatePerIP,
-			k.config.Verification.RateLimits.SMS.ValidatePerIP,
-		),
-		selectByChannel(k.channel,
-			VerificationValidateEmailPerIP,
-			VerificationValidateSMSPerIP,
-			VerificationValidateWhatsappPerIP,
-		), ip)
-}
-
-func (k kindVerification) RateLimitValidatePerUserPerIP(userID string, ip string) ratelimit.BucketSpec {
-	return ratelimit.BucketSpecDisabled
+func (k kindVerification) RateLimitValidate(
+	featureConfig *config.FeatureConfig,
+	envConfig *config.RateLimitsEnvironmentConfig,
+	ip string, userID string,
+) []*ratelimit.BucketSpec {
+	opts := &ratelimit.ResolveBucketSpecOptions{
+		IPAddress: ip,
+		Channel:   k.channel,
+		Purpose:   string(k.Purpose()),
+		UserID:    userID,
+	}
+	switch k.channel {
+	case model.AuthenticatorOOBChannelEmail:
+		return ratelimit.RateLimitVerificationEmailValidate.ResolveBucketSpecs(k.config, featureConfig, envConfig, opts)
+	case model.AuthenticatorOOBChannelSMS:
+		fallthrough
+	case model.AuthenticatorOOBChannelWhatsapp:
+		return ratelimit.RateLimitVerificationSMSValidate.ResolveBucketSpecs(k.config, featureConfig, envConfig, opts)
+	}
+	panic(fmt.Errorf("invalid channel: %v", k.channel))
 }
 
 func (k kindVerification) RevocationMaxFailedAttempts() int {

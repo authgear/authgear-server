@@ -311,6 +311,7 @@ func NewReindexer(pool *db.Pool, databaseCredentials *CmdDBCredential, searchDat
 		AppID:   configAppID,
 		Config:  rateLimitsFeatureConfig,
 	}
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	otpService := &otp.Service{
 		Clock:                 clock,
 		AppID:                 configAppID,
@@ -322,11 +323,15 @@ func NewReindexer(pool *db.Pool, databaseCredentials *CmdDBCredential, searchDat
 		AttemptTracker:        attemptTrackerRedis,
 		Logger:                otpLogger,
 		RateLimiter:           limiter,
+		FeatureConfig:         featureConfig,
+		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
 	rateLimits := service2.RateLimits{
-		IP:          remoteIP,
-		Config:      authenticationConfig,
-		RateLimiter: limiter,
+		IP:            remoteIP,
+		Config:        appConfig,
+		FeatureConfig: featureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+		RateLimiter:   limiter,
 	}
 	authenticationLockoutConfig := authenticationConfig.Lockout
 	lockoutLogger := lockout.NewLogger(factory)

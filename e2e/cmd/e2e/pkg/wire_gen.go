@@ -383,6 +383,7 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		AppID:   appID,
 		Config:  rateLimitsFeatureConfig,
 	}
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -394,11 +395,15 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		AttemptTracker:        attemptTrackerRedis,
 		Logger:                otpLogger,
 		RateLimiter:           limiter,
+		FeatureConfig:         featureConfig,
+		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
 	rateLimits := service2.RateLimits{
-		IP:          remoteIP,
-		Config:      authenticationConfig,
-		RateLimiter: limiter,
+		IP:            remoteIP,
+		Config:        appConfig,
+		FeatureConfig: featureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+		RateLimiter:   limiter,
 	}
 	authenticationLockoutConfig := authenticationConfig.Lockout
 	lockoutLogger := lockout.NewLogger(factory)
@@ -615,7 +620,9 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		DeviceTokens:  storeDeviceTokenRedis,
 		RecoveryCodes: storeRecoveryCodePQ,
 		Clock:         clockClock,
-		Config:        authenticationConfig,
+		Config:        appConfig,
+		FeatureConfig: featureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
@@ -627,17 +634,13 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		AppID:  appID,
 		Redis:  appredisHandle,
 	}
-	messagingConfig := appConfig.Messaging
-	messagingRateLimitsConfig := messagingConfig.RateLimits
-	messagingFeatureConfig := featureConfig.Messaging
-	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	limits := messaging.Limits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		UsageLimiter:  usageLimiter,
 		RemoteIP:      remoteIP,
-		Config:        messagingRateLimitsConfig,
-		FeatureConfig: messagingFeatureConfig,
+		Config:        appConfig,
+		FeatureConfig: featureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	mailLogger := mail.NewLogger(factory)
@@ -648,6 +651,7 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		GomailDialer: dialer,
 	}
 	smsLogger := sms.NewLogger(factory)
+	messagingConfig := appConfig.Messaging
 	smsProvider := messagingConfig.Deprecated_SMSProvider
 	smsGatewayConfig := messagingConfig.SMSGateway
 	nexmoCredentials := deps.ProvideNexmoCredentials(secretConfig)
@@ -719,6 +723,7 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		CloudAPIClient:        cloudAPIClient,
 	}
 	devMode := environmentConfig.DevMode
+	messagingFeatureConfig := featureConfig.Messaging
 	featureTestModeEmailSuppressed := deps.ProvideTestModeEmailSuppressed(testModeFeatureConfig)
 	testModeEmailConfig := testModeConfig.Email
 	featureTestModeSMSSuppressed := deps.ProvideTestModeSMSSuppressed(testModeFeatureConfig)

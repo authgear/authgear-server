@@ -22,7 +22,7 @@ type BucketSpec struct {
 var BucketSpecDisabled = BucketSpec{Enabled: false}
 
 func NewBucketSpec(config *config.RateLimitConfig, name BucketName, args ...string) BucketSpec {
-	enabled := config.Enabled != nil && *config.Enabled
+	enabled := config.IsEnabled()
 	var duration time.Duration
 	if enabled {
 		duration = config.Period.Duration()
