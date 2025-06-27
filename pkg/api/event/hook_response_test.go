@@ -5,6 +5,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -29,7 +30,7 @@ func TestParseHookResponse(t *testing.T) {
 					"mutations": {},
 					"constraints": {},
 					"bot_protection": {},
-					"rate_limit": {}
+					"rate_limits": {}
 				}
 			}
 		}
@@ -201,15 +202,25 @@ func TestParseHookResponse(t *testing.T) {
 			},
 		})
 
-		pass("is_allowed true, with rate_limit weight", `{
+		pass("is_allowed true, with rate_limits", `{
 			"is_allowed": true,
-			"rate_limit": {
-				"weight": 1.5
+			"rate_limits": {
+				"authentication.general": {
+					"weight": 1.5
+				},
+				"authentication.account_enumeration": {
+					"weight": 1.5
+				}
 			}
 		}`, &HookResponse{
 			IsAllowed: true,
-			RateLimit: &RateLimit{
-				Weight: 1.5,
+			RateLimits: map[ratelimit.RateLimit]RateLimitRequirements{
+				ratelimit.RateLimitAuthenticationGeneral: {
+					Weight: 1.5,
+				},
+				ratelimit.RateLimitAuthenticationAccountEnumeration: {
+					Weight: 1.5,
+				},
 			},
 		})
 

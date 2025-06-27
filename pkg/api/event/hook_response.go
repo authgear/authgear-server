@@ -8,6 +8,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
@@ -45,7 +46,18 @@ func GetBaseHookResponseSchema() *validation.MultipartSchema {
 }
 `)
 
-	_ = baseHookResponseSchema.Add("RateLimit", `
+	_ = baseHookResponseSchema.Add("RateLimits", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"authentication.general": { "$ref": "#/$defs/RateLimitRequirements" },
+		"authentication.account_enumeration": { "$ref": "#/$defs/RateLimitRequirements" }
+	}
+}
+`)
+
+	_ = baseHookResponseSchema.Add("RateLimitRequirements", `
 {
 	"type": "object",
 	"additionalProperties": false,
@@ -129,7 +141,7 @@ func GetBaseHookResponseSchema() *validation.MultipartSchema {
 					"mutations": { "$ref": "#/$defs/Mutations" },
 					"constraints": { "$ref": "#/$defs/Constraints" },
 					"bot_protection": { "$ref": "#/$defs/BotProtectionRequirements" },
-					"rate_limit": { "$ref": "#/$defs/RateLimit" }
+					"rate_limits": { "$ref": "#/$defs/RateLimits" }
 				}
 			}
 		},
@@ -169,7 +181,7 @@ type HookResponse struct {
 	Mutations     Mutations                  `json:"mutations,omitempty"`
 	Constraints   *Constraints               `json:"constraints,omitempty"`
 	BotProtection *BotProtectionRequirements `json:"bot_protection,omitempty"`
-	RateLimit     *RateLimit                 `json:"rate_limit,omitempty"`
+	RateLimits    RateLimits                 `json:"rate_limits,omitempty"`
 }
 
 type Constraints struct {
@@ -180,7 +192,9 @@ type BotProtectionRequirements struct {
 	Mode config.BotProtectionRiskMode `json:"mode,omitempty"`
 }
 
-type RateLimit struct {
+type RateLimits map[ratelimit.RateLimit]RateLimitRequirements
+
+type RateLimitRequirements struct {
 	Weight float64 `json:"weight,omitempty"`
 }
 
