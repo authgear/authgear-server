@@ -47,6 +47,15 @@ func TestBlockingHookResponse(t *testing.T) {
 				}
 			}`)
 
+			pass("rate_limits supported", AuthenticationPreInitialize, `{
+				"is_allowed": true,
+				"rate_limits": {
+					"authentication.general": {
+						"weight": 1.5
+					}
+				}
+			}`)
+
 			fail("mutations not supported", AuthenticationPreInitialize, `{
 				"is_allowed": true,
 				"mutations": {}
@@ -99,19 +108,19 @@ func TestBlockingHookResponse(t *testing.T) {
 				}
 			}`)
 
-			fail("bot_protection not supported", AuthenticationPreAuthenticated, `{
-				"is_allowed": true,
-				"bot_protection": {
-					"mode": "always"
-				}
-			}`)
-
-			fail("rate_limits not supported", AuthenticationPreAuthenticated, `{
+			pass("rate_limits supported", AuthenticationPreAuthenticated, `{
 				"is_allowed": true,
 				"rate_limits": {
 					"authentication.general": {
 						"weight": 1.5
 					}
+				}
+			}`)
+
+			fail("bot_protection not supported", AuthenticationPreAuthenticated, `{
+				"is_allowed": true,
+				"bot_protection": {
+					"mode": "always"
 				}
 			}`)
 

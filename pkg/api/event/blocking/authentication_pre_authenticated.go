@@ -27,7 +27,8 @@ func init() {
 				"additionalProperties": false,
 				"properties": {
 					"is_allowed": {},
-					"constraints": {}
+					"constraints": {},
+					"rate_limits": {}
 				}
 			}
 		}
@@ -42,6 +43,7 @@ type AuthenticationPreAuthenticatedBlockingEventPayload struct {
 	AuthenticationContext event.AuthenticationContext `json:"authentication_context"`
 
 	Constraints *event.Constraints `json:"-"`
+	RateLimits  event.RateLimits   `json:"-"`
 }
 
 func (e *AuthenticationPreAuthenticatedBlockingEventPayload) BlockingEventType() event.Type {
@@ -61,6 +63,9 @@ func (e *AuthenticationPreAuthenticatedBlockingEventPayload) FillContext(ctx *ev
 func (e *AuthenticationPreAuthenticatedBlockingEventPayload) ApplyHookResponse(ctx context.Context, response event.HookResponse) event.ApplyHookResponseResult {
 	if response.Constraints != nil {
 		e.Constraints = response.Constraints
+	}
+	if response.RateLimits != nil {
+		e.RateLimits = response.RateLimits
 	}
 	return event.ApplyHookResponseResult{MutationsEverApplied: false}
 }

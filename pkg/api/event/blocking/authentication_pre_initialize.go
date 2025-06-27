@@ -28,7 +28,8 @@ func init() {
 				"properties": {
 					"is_allowed": {},
 					"constraints": {},
-					"bot_protection": {}
+					"bot_protection": {},
+					"rate_limits": {}
 				}
 			}
 		}
@@ -44,6 +45,7 @@ type AuthenticationPreInitializeBlockingEventPayload struct {
 
 	Constraints               *event.Constraints               `json:"-"`
 	BotProtectionRequirements *event.BotProtectionRequirements `json:"-"`
+	RateLimits                event.RateLimits                 `json:"-"`
 }
 
 func (e *AuthenticationPreInitializeBlockingEventPayload) BlockingEventType() event.Type {
@@ -66,6 +68,9 @@ func (e *AuthenticationPreInitializeBlockingEventPayload) ApplyHookResponse(ctx 
 	}
 	if response.BotProtection != nil {
 		e.BotProtectionRequirements = response.BotProtection
+	}
+	if response.RateLimits != nil {
+		e.RateLimits = response.RateLimits
 	}
 	return event.ApplyHookResponseResult{MutationsEverApplied: false}
 }
