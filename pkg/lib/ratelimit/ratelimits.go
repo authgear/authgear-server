@@ -261,7 +261,7 @@ func (r RateLimit) ResolveBucketSpecs(
 		if featureRlCfg != nil && featureRlCfg.Rate() < rlCfg.Rate() {
 			effectiveCfg = featureRlCfg
 		}
-		spec := NewBucketSpec(effectiveCfg, bucketName, args...)
+		spec := NewBucketSpec(r, effectiveCfg, bucketName, args...)
 		return &spec
 	}
 
@@ -270,7 +270,7 @@ func (r RateLimit) ResolveBucketSpecs(
 		if confPerTarget == nil {
 			return &BucketSpecDisabled
 		}
-		spec := NewBucketSpec(confPerTarget, bucketName, args...)
+		spec := NewBucketSpec(r, confPerTarget, bucketName, args...)
 		return &spec
 	}
 
@@ -279,7 +279,7 @@ func (r RateLimit) ResolveBucketSpecs(
 		if confPerIP == nil {
 			return &BucketSpecDisabled
 		}
-		spec := NewBucketSpec(confPerIP, bucketName, args...)
+		spec := NewBucketSpec(r, confPerIP, bucketName, args...)
 		return &spec
 	}
 
@@ -290,7 +290,7 @@ func (r RateLimit) ResolveBucketSpecs(
 		}
 		bucketArgs := []string{userID}
 		bucketArgs = append(bucketArgs, args...)
-		spec := NewBucketSpec(confPerUser, bucketName, bucketArgs...)
+		spec := NewBucketSpec(r, confPerUser, bucketName, bucketArgs...)
 		return &spec
 	}
 
@@ -301,12 +301,12 @@ func (r RateLimit) ResolveBucketSpecs(
 		}
 		bucketArgs := []string{userID}
 		bucketArgs = append(bucketArgs, args...)
-		spec := NewBucketSpec(confPerUserPerIP, bucketName, bucketArgs...)
+		spec := NewBucketSpec(r, confPerUserPerIP, bucketName, bucketArgs...)
 		return &spec
 	}
 
 	resolveGlobalBucket := func(globalEntry config.RateLimitsEnvironmentConfigEntry, bucketName BucketName, args ...string) *BucketSpec {
-		globalLimit := NewGlobalBucketSpec(globalEntry, bucketName, args...)
+		globalLimit := NewGlobalBucketSpec(r, globalEntry, bucketName, args...)
 		return &globalLimit
 	}
 
