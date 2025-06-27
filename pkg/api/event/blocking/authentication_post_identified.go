@@ -47,6 +47,7 @@ type AuthenticationPostIdentifiedBlockingEventPayload struct {
 
 	Constraints               *event.Constraints               `json:"-"`
 	BotProtectionRequirements *event.BotProtectionRequirements `json:"-"`
+	RateLimits                event.RateLimits                 `json:"-"`
 }
 
 func (e *AuthenticationPostIdentifiedBlockingEventPayload) BlockingEventType() event.Type {
@@ -69,6 +70,9 @@ func (e *AuthenticationPostIdentifiedBlockingEventPayload) ApplyHookResponse(ctx
 	}
 	if response.BotProtection != nil {
 		e.BotProtectionRequirements = response.BotProtection
+	}
+	if response.RateLimits != nil {
+		e.RateLimits = response.RateLimits
 	}
 	return event.ApplyHookResponseResult{MutationsEverApplied: false}
 }
