@@ -62,7 +62,7 @@ func GetBaseHookResponseSchema() *validation.MultipartSchema {
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
-		"weight": { "type": "number" }
+		"weight": { "type": "number", "minimum": 0 }
 	}
 }
 `)
