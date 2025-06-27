@@ -498,7 +498,7 @@ func (r RateLimit) ResolveWeight(
 		return defaultWeight
 	}
 
-	var weight float64 = 1
+	var weight float64
 	switch r {
 	case "":
 		// Handle unspecified rate limits
