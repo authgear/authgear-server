@@ -4,14 +4,20 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 )
 
+const rateLimitNameKey = "rate_limit_name"
 const bucketNameKey = "bucket_name"
 
 var RateLimited = apierrors.TooManyRequest.WithReason("RateLimited")
 
-func ErrRateLimited(bucketName BucketName) error {
-	return RateLimited.NewWithInfo("request rate limited", apierrors.Details{
+func ErrRateLimited(rl RateLimit, bucketName BucketName) error {
+	details := apierrors.Details{
 		bucketNameKey: bucketName,
-	})
+	}
+	// Some buckets do not have a rate limit name, so do not add the key if it is empty
+	if rl != "" {
+		details[rateLimitNameKey] = rl
+	}
+	return RateLimited.NewWithInfo("request rate limited", details)
 }
 
 func IsRateLimitErrorWithBucketName(err error, bucketName BucketName) bool {

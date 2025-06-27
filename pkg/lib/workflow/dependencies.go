@@ -168,8 +168,9 @@ type OfflineGrantStore interface {
 }
 
 type Dependencies struct {
-	Config        *config.AppConfig
-	FeatureConfig *config.FeatureConfig
+	Config              *config.AppConfig
+	FeatureConfig       *config.FeatureConfig
+	RateLimitsEnvConfig *config.RateLimitsEnvironmentConfig
 
 	Clock    clock.Clock
 	RemoteIP httputil.RemoteIP

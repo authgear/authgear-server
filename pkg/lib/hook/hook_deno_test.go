@@ -47,7 +47,9 @@ func TestDenoHook(t *testing.T) {
 		}
 
 		Convey("DeliverBlockingEvent", func() {
-			e := &event.Event{}
+			e := &event.Event{
+				Type: MockBlockingEventType1,
+			}
 			u, _ := url.Parse("authgeardeno:///deno/a.ts")
 			resp := &event.HookResponse{
 				IsAllowed: true,

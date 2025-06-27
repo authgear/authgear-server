@@ -340,6 +340,7 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		AppID:   appID,
 		Config:  rateLimitsFeatureConfig,
 	}
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	otpService := &otp.Service{
 		Clock:                 clock,
 		AppID:                 appID,
@@ -351,11 +352,15 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		AttemptTracker:        attemptTrackerRedis,
 		Logger:                otpLogger,
 		RateLimiter:           limiter,
+		FeatureConfig:         featureConfig,
+		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
 	rateLimits := service2.RateLimits{
-		IP:          remoteIP,
-		Config:      authenticationConfig,
-		RateLimiter: limiter,
+		IP:            remoteIP,
+		Config:        appConfig,
+		FeatureConfig: featureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+		RateLimiter:   limiter,
 	}
 	authenticationLockoutConfig := authenticationConfig.Lockout
 	lockoutLogger := lockout.NewLogger(factory)
@@ -572,7 +577,9 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		DeviceTokens:  storeDeviceTokenRedis,
 		RecoveryCodes: storeRecoveryCodePQ,
 		Clock:         clock,
-		Config:        authenticationConfig,
+		Config:        appConfig,
+		FeatureConfig: featureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
@@ -584,17 +591,13 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		AppID:  appID,
 		Redis:  appredisHandle,
 	}
-	messagingConfig := appConfig.Messaging
-	messagingRateLimitsConfig := messagingConfig.RateLimits
-	messagingFeatureConfig := featureConfig.Messaging
-	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	limits := messaging.Limits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		UsageLimiter:  usageLimiter,
 		RemoteIP:      remoteIP,
-		Config:        messagingRateLimitsConfig,
-		FeatureConfig: messagingFeatureConfig,
+		Config:        appConfig,
+		FeatureConfig: featureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	mailLogger := mail.NewLogger(factory)
@@ -605,6 +608,7 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		GomailDialer: dialer,
 	}
 	smsLogger := sms.NewLogger(factory)
+	messagingConfig := appConfig.Messaging
 	smsProvider := messagingConfig.Deprecated_SMSProvider
 	smsGatewayConfig := messagingConfig.SMSGateway
 	nexmoCredentials := deps.ProvideNexmoCredentials(secretConfig)
@@ -676,6 +680,7 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		CloudAPIClient:        cloudAPIClient,
 	}
 	devMode := environmentConfig.DevMode
+	messagingFeatureConfig := featureConfig.Messaging
 	featureTestModeEmailSuppressed := deps.ProvideTestModeEmailSuppressed(testModeFeatureConfig)
 	testModeEmailConfig := testModeConfig.Email
 	featureTestModeSMSSuppressed := deps.ProvideTestModeSMSSuppressed(testModeFeatureConfig)
@@ -1151,6 +1156,7 @@ func newUserExportService(ctx context.Context, p *deps.AppProvider) *userexport.
 		AppID:   appID,
 		Config:  rateLimitsFeatureConfig,
 	}
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -1162,11 +1168,15 @@ func newUserExportService(ctx context.Context, p *deps.AppProvider) *userexport.
 		AttemptTracker:        attemptTrackerRedis,
 		Logger:                otpLogger,
 		RateLimiter:           limiter,
+		FeatureConfig:         featureConfig,
+		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
 	rateLimits := service2.RateLimits{
-		IP:          remoteIP,
-		Config:      authenticationConfig,
-		RateLimiter: limiter,
+		IP:            remoteIP,
+		Config:        appConfig,
+		FeatureConfig: featureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+		RateLimiter:   limiter,
 	}
 	authenticationLockoutConfig := authenticationConfig.Lockout
 	lockoutLogger := lockout.NewLogger(factory)
@@ -1525,6 +1535,7 @@ func newSearchReindexer(ctx context.Context, p *deps.AppProvider) *reindex.Reind
 		AppID:   appID,
 		Config:  rateLimitsFeatureConfig,
 	}
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -1536,11 +1547,15 @@ func newSearchReindexer(ctx context.Context, p *deps.AppProvider) *reindex.Reind
 		AttemptTracker:        attemptTrackerRedis,
 		Logger:                otpLogger,
 		RateLimiter:           limiter,
+		FeatureConfig:         featureConfig,
+		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
 	rateLimits := service2.RateLimits{
-		IP:          remoteIP,
-		Config:      authenticationConfig,
-		RateLimiter: limiter,
+		IP:            remoteIP,
+		Config:        appConfig,
+		FeatureConfig: featureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+		RateLimiter:   limiter,
 	}
 	authenticationLockoutConfig := authenticationConfig.Lockout
 	lockoutLogger := lockout.NewLogger(factory)

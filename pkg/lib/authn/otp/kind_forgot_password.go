@@ -1,6 +1,7 @@
 package otp
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -9,18 +10,6 @@ import (
 )
 
 const PurposeForgotPassword Purpose = "forgot-password"
-
-const (
-	ForgotPasswordTriggerEmailPerIP     ratelimit.BucketName = "ForgotPasswordTriggerEmailPerIP"
-	ForgotPasswordTriggerSMSPerIP       ratelimit.BucketName = "ForgotPasswordTriggerSMSPerIP"
-	ForgotPasswordTriggerWhatsappPerIP  ratelimit.BucketName = "ForgotPasswordTriggerWhatsappPerIP"
-	ForgotPasswordCooldownEmail         ratelimit.BucketName = "ForgotPasswordCooldownEmail"
-	ForgotPasswordCooldownSMS           ratelimit.BucketName = "ForgotPasswordCooldownSMS"
-	ForgotPasswordCooldownWhatsapp      ratelimit.BucketName = "ForgotPasswordCooldownWhatsapp"
-	ForgotPasswordValidateEmailPerIP    ratelimit.BucketName = "ForgotPasswordValidateEmailPerIP"
-	ForgotPasswordValidateSMSPerIP      ratelimit.BucketName = "ForgotPasswordValidateSMSPerIP"
-	ForgotPasswordValidateWhatsappPerIP ratelimit.BucketName = "ForgotPasswordValidateWhatsappPerIP"
-)
 
 type kindForgotPassword struct {
 	config  *config.AppConfig
@@ -57,35 +46,35 @@ func (k kindForgotPassword) ValidPeriod() time.Duration {
 	panic("unknown forgot password otp form")
 }
 
-func (k kindForgotPassword) RateLimitTriggerPerIP(ip string) ratelimit.BucketSpec {
-	return ratelimit.NewBucketSpec(
-		selectByChannel(
-			k.channel,
-			k.config.ForgotPassword.RateLimits.Email.TriggerPerIP,
-			k.config.ForgotPassword.RateLimits.SMS.TriggerPerIP,
-			k.config.ForgotPassword.RateLimits.SMS.TriggerPerIP,
-		),
-		selectByChannel(
-			k.channel,
-			ForgotPasswordTriggerEmailPerIP,
-			ForgotPasswordTriggerSMSPerIP,
-			ForgotPasswordTriggerWhatsappPerIP,
-		),
-		ip,
-	)
-}
-
-func (k kindForgotPassword) RateLimitTriggerPerUser(userID string) ratelimit.BucketSpec {
-	return ratelimit.BucketSpecDisabled
+func (k kindForgotPassword) RateLimitTrigger(
+	featureConfig *config.FeatureConfig,
+	envConfig *config.RateLimitsEnvironmentConfig,
+	ip string, userID string,
+) []*ratelimit.BucketSpec {
+	opts := &ratelimit.ResolveBucketSpecOptions{
+		IPAddress: ip,
+		Channel:   k.channel,
+		Purpose:   string(k.Purpose()),
+		UserID:    userID,
+	}
+	switch k.channel {
+	case model.AuthenticatorOOBChannelEmail:
+		return ratelimit.RateLimitForgotPasswordEmailTrigger.ResolveBucketSpecs(k.config, featureConfig, envConfig, opts)
+	case model.AuthenticatorOOBChannelSMS:
+		fallthrough
+	case model.AuthenticatorOOBChannelWhatsapp:
+		return ratelimit.RateLimitForgotPasswordSMSTrigger.ResolveBucketSpecs(k.config, featureConfig, envConfig, opts)
+	}
+	panic(fmt.Errorf("invalid channel: %v", k.channel))
 }
 
 func (k kindForgotPassword) RateLimitTriggerCooldown(target string) ratelimit.BucketSpec {
 	return ratelimit.NewCooldownSpec(
 		selectByChannel(
 			k.channel,
-			ForgotPasswordCooldownEmail,
-			ForgotPasswordCooldownSMS,
-			ForgotPasswordCooldownWhatsapp,
+			ratelimit.ForgotPasswordCooldownEmail,
+			ratelimit.ForgotPasswordCooldownSMS,
+			ratelimit.ForgotPasswordCooldownWhatsapp,
 		),
 		selectByChannel(
 			k.channel,
@@ -97,26 +86,26 @@ func (k kindForgotPassword) RateLimitTriggerCooldown(target string) ratelimit.Bu
 	)
 }
 
-func (k kindForgotPassword) RateLimitValidatePerIP(ip string) ratelimit.BucketSpec {
-	return ratelimit.NewBucketSpec(
-		selectByChannel(
-			k.channel,
-			k.config.ForgotPassword.RateLimits.Email.ValidatePerIP,
-			k.config.ForgotPassword.RateLimits.SMS.ValidatePerIP,
-			k.config.ForgotPassword.RateLimits.SMS.ValidatePerIP,
-		),
-		selectByChannel(
-			k.channel,
-			ForgotPasswordValidateEmailPerIP,
-			ForgotPasswordValidateSMSPerIP,
-			ForgotPasswordValidateWhatsappPerIP,
-		),
-		ip,
-	)
-}
-
-func (k kindForgotPassword) RateLimitValidatePerUserPerIP(userID string, ip string) ratelimit.BucketSpec {
-	return ratelimit.BucketSpecDisabled
+func (k kindForgotPassword) RateLimitValidate(
+	featureConfig *config.FeatureConfig,
+	envConfig *config.RateLimitsEnvironmentConfig,
+	ip string, userID string,
+) []*ratelimit.BucketSpec {
+	opts := &ratelimit.ResolveBucketSpecOptions{
+		IPAddress: ip,
+		Channel:   k.channel,
+		Purpose:   string(k.Purpose()),
+		UserID:    userID,
+	}
+	switch k.channel {
+	case model.AuthenticatorOOBChannelEmail:
+		return ratelimit.RateLimitForgotPasswordEmailValidate.ResolveBucketSpecs(k.config, featureConfig, envConfig, opts)
+	case model.AuthenticatorOOBChannelSMS:
+		fallthrough
+	case model.AuthenticatorOOBChannelWhatsapp:
+		return ratelimit.RateLimitForgotPasswordSMSValidate.ResolveBucketSpecs(k.config, featureConfig, envConfig, opts)
+	}
+	panic(fmt.Errorf("invalid channel: %v", k.channel))
 }
 
 func (k kindForgotPassword) RevocationMaxFailedAttempts() int {

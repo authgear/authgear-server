@@ -2,7 +2,9 @@ package config
 
 import "time"
 
-var _ = Schema.Add("DurationSeconds", `{ "type": "integer" }`)
+var durationSecondsSchema = `{ "type": "integer" }`
+var _ = Schema.Add("DurationSeconds", durationSecondsSchema)
+var _ = FeatureConfigSchema.Add("DurationSeconds", durationSecondsSchema)
 
 type DurationSeconds int
 
@@ -10,7 +12,9 @@ func (d DurationSeconds) Duration() time.Duration {
 	return time.Duration(d) * time.Second
 }
 
-var _ = Schema.Add("DurationDays", `{ "type": "integer" }`)
+var durationDaysSchema = `{ "type": "integer" }`
+var _ = Schema.Add("DurationDays", durationDaysSchema)
+var _ = FeatureConfigSchema.Add("DurationDays", durationDaysSchema)
 
 type DurationDays int
 
@@ -18,7 +22,9 @@ func (d DurationDays) Duration() time.Duration {
 	return time.Duration(d) * (24 * time.Hour)
 }
 
-var _ = Schema.Add("DurationString", `{ "type": "string", "format": "x_duration_string" }`)
+var durationStringSchema = `{ "type": "string", "format": "x_duration_string" }`
+var _ = Schema.Add("DurationString", durationStringSchema)
+var _ = FeatureConfigSchema.Add("DurationString", durationStringSchema)
 
 type DurationString string
 

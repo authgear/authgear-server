@@ -11,12 +11,43 @@ const (
 	AuthenticationPostIdentified event.Type = "authentication.post_identified"
 )
 
+func init() {
+	s := event.GetBaseHookResponseSchema()
+	s.Add("AuthenticationPostIdentifiedHookResponse", `
+{
+	"allOf": [
+		{ "$ref": "#/$defs/BaseHookResponseSchema" },
+		{
+			"if": {
+				"properties": {
+					"is_allowed": { "const": true }
+				}
+			},
+			"then": {
+				"type": "object",
+				"additionalProperties": false,
+				"properties": {
+					"is_allowed": {},
+					"constraints": {},
+					"bot_protection": {},
+					"rate_limits": {}
+				}
+			}
+		}
+	]
+}`)
+
+	s.Instantiate()
+	event.RegisterResponseSchemaValidator(AuthenticationPostIdentified, s.PartValidator("AuthenticationPostIdentifiedHookResponse"))
+}
+
 type AuthenticationPostIdentifiedBlockingEventPayload struct {
 	Identification        model.Identification        `json:"identification"`
 	AuthenticationContext event.AuthenticationContext `json:"authentication_context"`
 
 	Constraints               *event.Constraints               `json:"-"`
 	BotProtectionRequirements *event.BotProtectionRequirements `json:"-"`
+	RateLimits                event.RateLimits                 `json:"-"`
 }
 
 func (e *AuthenticationPostIdentifiedBlockingEventPayload) BlockingEventType() event.Type {
@@ -39,6 +70,9 @@ func (e *AuthenticationPostIdentifiedBlockingEventPayload) ApplyHookResponse(ctx
 	}
 	if response.BotProtection != nil {
 		e.BotProtectionRequirements = response.BotProtection
+	}
+	if response.RateLimits != nil {
+		e.RateLimits = response.RateLimits
 	}
 	return event.ApplyHookResponseResult{MutationsEverApplied: false}
 }

@@ -8,6 +8,7 @@ import (
 
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
@@ -110,13 +111,18 @@ func (i *IntentSignupFlow) GetEffects(ctx context.Context, deps *authflow.Depend
 	return []authflow.Effect{
 		authflow.OnCommitEffect(func(ctx context.Context, deps *authflow.Dependencies) error {
 			// Apply rate limit on sign up.
-			spec := SignupPerIPRateLimitBucketSpec(deps.Config.Authentication, false, string(deps.RemoteIP))
-			failed, err := deps.RateLimiter.Allow(ctx, spec)
-			if err != nil {
-				return err
-			}
-			if err := failed.Error(); err != nil {
-				return err
+			specs := ratelimit.RateLimitAuthenticationSignup.ResolveBucketSpecs(deps.Config, deps.FeatureConfig, deps.RateLimitsEnvConfig, &ratelimit.ResolveBucketSpecOptions{
+				IPAddress: string(deps.RemoteIP),
+			})
+			for _, spec := range specs {
+				spec := *spec
+				failed, err := deps.RateLimiter.Allow(ctx, spec)
+				if err != nil {
+					return err
+				}
+				if err := failed.Error(); err != nil {
+					return err
+				}
 			}
 			return nil
 		}),

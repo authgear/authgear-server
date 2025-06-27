@@ -77,7 +77,7 @@ func (n *NodeDoCreateUser) GetEffects(goCtx context.Context) ([]interaction.Effe
 				}
 			}
 
-			var reservation *ratelimit.Reservation
+			var reservations []*ratelimit.Reservation
 			if !n.BypassRateLimit {
 				// `graph.GetUserNewIdentities` is used to identify if the
 				// new user is anonymous user.
@@ -85,17 +85,30 @@ func (n *NodeDoCreateUser) GetEffects(goCtx context.Context) ([]interaction.Effe
 				// to ensure all nodes are run.
 
 				// check the rate limit only before running the effects
-				bucket := interaction.SignupPerIPRateLimitBucketSpec(ctx.Config.Authentication, isAnonymous, ip)
-				var failedReservation *ratelimit.FailedReservation
-				reservation, failedReservation, err = ctx.RateLimiter.Reserve(goCtx, bucket)
-				if err != nil {
-					return err
+				rl := ratelimit.RateLimitAuthenticationSignup
+				if isAnonymous {
+					rl = ratelimit.RateLimitAuthenticationSignupAnonymous
 				}
-				if err := failedReservation.Error(); err != nil {
-					return err
+				specs := rl.ResolveBucketSpecs(ctx.Config, ctx.FeatureConfig, ctx.RateLimitsEnvConfig, &ratelimit.ResolveBucketSpecOptions{
+					IPAddress: ip,
+				})
+				for _, spec := range specs {
+					spec := *spec
+					resv, failedReservation, err := ctx.RateLimiter.Reserve(goCtx, spec)
+					if err != nil {
+						return err
+					}
+					if err := failedReservation.Error(); err != nil {
+						return err
+					}
+					reservations = append(reservations, resv)
 				}
 			}
-			defer ctx.RateLimiter.Cancel(goCtx, reservation)
+			defer func() {
+				for _, resv := range reservations {
+					ctx.RateLimiter.Cancel(goCtx, resv)
+				}
+			}()
 
 			// run the effects
 			err = ctx.Users.AfterCreate(goCtx,
@@ -107,8 +120,8 @@ func (n *NodeDoCreateUser) GetEffects(goCtx context.Context) ([]interaction.Effe
 			if err != nil {
 				return err
 			}
-			if reservation != nil {
-				reservation.PreventCancel()
+			for _, resv := range reservations {
+				resv.PreventCancel()
 			}
 
 			return nil
