@@ -1,0 +1,81 @@
+name: Login - password blocked by high rate limit weight
+extra_files_directory: ./var
+authgear.yaml:
+  override: |
+    hook:
+      blocking_handlers:
+      - event: authentication.pre_initialize
+        url: authgeardeno:///deno/ratelimitshighweight.ts
+    authentication:
+      identities:
+      - login_id
+      primary_authenticators:
+      - password
+      rate_limits:
+        password:
+          per_ip:
+            burst: 5
+            enabled: true
+            period: 10s
+    identity:
+      login_id:
+        keys:
+        - type: username
+    authentication_flow:
+      login_flows:
+        - name: default
+          steps:
+          - name: login_identify
+            type: identify
+            one_of:
+            - identification: username
+              steps:
+              - name: authenticate_primary_username
+                one_of:
+                - authentication: primary_password
+                type: authenticate
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "login",
+        "name": "default"
+      }
+  - action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_login"
+      }
+    output:
+      result: |
+        {
+          "state_token": "[[string]]",
+          "type": "login",
+          "name": "default",
+          "action": {
+            "type": "authenticate"
+          }
+        }
+  - action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      error: |
+        {
+          "name": "TooManyRequest",
+          "reason": "RateLimited",
+          "message": "request rate limited",
+          "code": 429,
+          "info": {
+            "FlowType": "login",
+            "bucket_name": "VerifyPasswordPerIP",
+            "rate_limit_name": "authentication.password"
+          }
+        }
