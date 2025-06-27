@@ -4,6 +4,9 @@
 - [Lifecycle of Event Delivery](#lifecycle-of-event-delivery)
 - [Blocking Events](#blocking-events)
   * [Blocking Event Mutations](#blocking-event-mutations)
+  * [Blocking Event Authentication Constraints](#blocking-event-authentication-constraints)
+  * [Using Blocking Event with Rate Limits](#using-blocking-event-with-rate-limits)
+  * [Using Blocking Event with Bot Protection](#using-blocking-event-with-bot-protection)
 - [Non-blocking Events](#non-blocking-events)
   * [Future works of non-blocking events](#future-works-of-non-blocking-events)
 - [Webhook](#webhook)
@@ -70,7 +73,7 @@ To fail the operation, respond with `is_allowed` set to `false`, and a non-empty
 }
 ```
 
-If any hook fails the operation, the operation is failed. The operation fails with error
+If any hook fails the operation, the operation fails with error
 
 ```json
 {
@@ -144,6 +147,161 @@ The payload will only be validated after traversing the Hooks chain.
 Mutations do NOT generate extra events to avoid infinite loop.
 
 Currently, only `standard_attributes`, `custom_attributes`, `roles` and `groups` of the user object are mutable.
+
+The following blocking events support mutations:
+
+- `user.pre_create`
+- `user.profile.pre_update`
+- `user.pre_schedule_deletion`
+- `user.pre_schedule_anonymization`
+- `oidc.jwt.pre_create`
+
+## Blocking Event Authentication Constraints
+
+The `constraints` property in the response of blocking events can contain the following properties:
+
+- `amr`: An array of Authentication Methods References (AMR) values that are required for the authentication. The supported values are:
+  - `pwd`
+  - `otp`
+  - `sms`
+  - `mfa`
+  - `x_primary_password`
+  - `x_primary_oob_otp_email`
+  - `x_primary_oob_otp_sms`
+  - `x_secondary_password`
+  - `x_secondary_oob_otp_email`
+  - `x_secondary_oob_otp_sms`
+  - `x_secondary_totp`
+
+When multiple values are returned in `amr`, they are in AND condition. For example, for `"amr": ["mfa", "otp"]`, the user must fulfil `mfa` AND `otp` in the authentication flow.
+
+Unsupported amr values in `constraints`:
+- `x_biometric`: Biometric is not supported in authentication flow at the moment.
+- `x_primary_passkey`: We do not support enforcing passkey setup in signup flow, so we do not support it as a constraint.
+- `x_recovery_code`: Recovery code should be used as a backup MFA method. So use `mfa` instead.
+- `x_device_token`: We do not support enforcing creation of device token, so we do not support it as a constraint.
+
+The following blocking events support authentication constraints:
+
+- `authentication.pre_initialize`
+- `authentication.post_identified`
+- `authentication.pre_authenticated`
+
+Example response requiring MFA for authentication:
+
+```json
+{
+  "is_allowed": true,
+  "constraints": {
+    "amr": ["mfa"]
+  }
+}
+```
+
+### Behavior on multiple hooks on the same event
+
+Technically, it is possible to have multiple hooks configured on a single event.
+
+In this case, hooks are called sequentially according to the order in the config. Only the last non null `constraints` returned from the hooks will be effective.
+
+
+### Relationship with OIDC ID Token
+
+The generated ID Token is guaranteed to include all values in `constraints.amr` in the `amr` claim of the ID Token.
+
+### Relationship with Authentication Flow
+
+The constraints are enforced based on the authentication flow type:
+
+- Signup / Promote: Enforces setup of corresponding authenticator according to value of `amr`.
+- Login / Reauth: Enforces use of corresponding authenticator according to value of `amr`.
+- Account Recovery: No effect (does not support 2FA)
+
+
+## Using Blocking Event with Rate Limits
+
+The `rate_limits` property in a blocking event response allows you to dynamically override rate limit weights. The value of this property is an object where keys are rate limit names. For a list of available rate limit names, see [the rate limit spec](./rate-limit.md).
+
+Each rate limit key maps to an object with the following property:
+
+- `weight`: A number that determines how much subsequent operations contribute to the rate limit. The default value is 1. A value of 0 means that subsequent operations will not contribute to the rate limit.
+
+The following blocking events support `rate_limits` in the hook response:
+
+- `authentication.pre_initialize`
+- `authentication.post_identified`
+- `authentication.pre_authenticated`
+
+Example response with rate limit override:
+
+```json
+{
+  "is_allowed": true,
+  "rate_limits": {
+    "authentication.account_enumeration": {
+      "weight": 2
+    }
+  }
+}
+```
+
+The `rate_limits` property respects the [fallback behavior of rate limits](./rate-limit.md#fallbacks).
+
+For example, overriding `authentication.general` also affects other rate limits that use it as a fallback.
+
+```json
+{
+  "is_allowed": true,
+  "rate_limits": {
+    "authentication.general": {
+      "weight": 2
+    }
+  }
+}
+```
+
+The hook response above also applies the `weight` to `authentication.password`, `authentication.oob_otp.email.validate`, etc., because they use `authentication.general` as a fallback.
+
+At the moment, the following rate limits are supported:
+- `authentication.general`
+- `authentication.account_enumeration`
+
+### Behavior on multiple hooks on the same event
+
+Technically, it is possible to have multiple hooks configured on a single event.
+
+In this case, hooks are called sequentially according to the order in the config. Only the last non null `rate_limits` returned from the hooks will be effective.
+
+## Using Blocking Event with Bot Protection
+
+The `bot_protection` property in the response of blocking events can contain the following properties:
+
+- `mode`: A string that determines whether bot protection should be enabled for this request. Supported values are "always", "never".
+
+The following blocking events support bot protection overrides:
+
+- `authentication.pre_initialize`
+- `authentication.post_identified`
+
+Example response with bot protection override:
+
+```json
+{
+  "is_allowed": true,
+  "bot_protection": {
+    "mode": "always"
+  }
+}
+```
+
+This overrides the original `mode` of bot_protection in your config. Therefore, bot_protection will be turned on or off based on the returned mode.
+
+### Behavior on multiple hooks on the same event
+
+Technically, it is possible to have multiple hooks configured on a single event.
+
+In this case, hooks are called sequentially according to the order in the config. Only the last non null `bot_protection` returned from the hooks will be effective.
+
 
 # Non-blocking Events
 
