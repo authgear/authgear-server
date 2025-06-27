@@ -30,7 +30,7 @@ func init() {
 					"is_allowed": {},
 					"constraints": {},
 					"bot_protection": {},
-					"rate_limit": {}
+					"rate_limits": {}
 				}
 			}
 		}

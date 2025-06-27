@@ -72,10 +72,12 @@ func TestBlockingHookResponse(t *testing.T) {
 				}
 			}`)
 
-			pass("rate_limit supported", AuthenticationPostIdentified, `{
+			pass("rate_limits supported", AuthenticationPostIdentified, `{
 				"is_allowed": true,
-				"rate_limit": {
-					"weight": 1.5
+				"rate_limits": {
+					"authentication.general": {
+						"weight": 1.5
+					}
 				}
 			}`)
 
@@ -104,10 +106,12 @@ func TestBlockingHookResponse(t *testing.T) {
 				}
 			}`)
 
-			fail("rate_limit not supported", AuthenticationPreAuthenticated, `{
+			fail("rate_limits not supported", AuthenticationPreAuthenticated, `{
 				"is_allowed": true,
-				"rate_limit": {
-					"weight": 1.5
+				"rate_limits": {
+					"authentication.general": {
+						"weight": 1.5
+					}
 				}
 			}`)
 
@@ -147,10 +151,12 @@ func TestBlockingHookResponse(t *testing.T) {
 				}
 			}`)
 
-			fail("rate_limit not supported", OIDCJWTPreCreate, `{
+			fail("rate_limits not supported", OIDCJWTPreCreate, `{
 				"is_allowed": true,
-				"rate_limit": {
-					"weight": 1.5
+				"rate_limits": {
+					"authentication.general": {
+						"weight": 1.5
+					}
 				}
 			}`)
 		})
@@ -183,10 +189,12 @@ func TestBlockingHookResponse(t *testing.T) {
 				}
 			}`)
 
-			fail("rate_limit not supported", UserPreCreate, `{
+			fail("rate_limits not supported", UserPreCreate, `{
 				"is_allowed": true,
-				"rate_limit": {
-					"weight": 1.5
+				"rate_limits": {
+					"authentication.general": {
+						"weight": 1.5
+					}
 				}
 			}`)
 		})
@@ -219,10 +227,12 @@ func TestBlockingHookResponse(t *testing.T) {
 				}
 			}`)
 
-			fail("rate_limit not supported", UserPreScheduleAnonymization, `{
+			fail("rate_limits not supported", UserPreScheduleAnonymization, `{
 				"is_allowed": true,
-				"rate_limit": {
-					"weight": 1.5
+				"rate_limits": {
+					"authentication.general": {
+						"weight": 1.5
+					}
 				}
 			}`)
 		})
@@ -255,10 +265,12 @@ func TestBlockingHookResponse(t *testing.T) {
 				}
 			}`)
 
-			fail("rate_limit not supported", UserPreScheduleDeletion, `{
+			fail("rate_limits not supported", UserPreScheduleDeletion, `{
 				"is_allowed": true,
-				"rate_limit": {
-					"weight": 1.5
+				"rate_limits": {
+					"authentication.general": {
+						"weight": 1.5
+					}
 				}
 			}`)
 		})
@@ -291,10 +303,12 @@ func TestBlockingHookResponse(t *testing.T) {
 				}
 			}`)
 
-			fail("rate_limit not supported", UserProfilePreUpdate, `{
+			fail("rate_limits not supported", UserProfilePreUpdate, `{
 				"is_allowed": true,
-				"rate_limit": {
-					"weight": 1.5
+				"rate_limits": {
+					"authentication.general": {
+						"weight": 1.5
+					}
 				}
 			}`)
 		})
