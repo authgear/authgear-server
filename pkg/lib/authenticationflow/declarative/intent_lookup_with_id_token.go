@@ -9,6 +9,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -19,9 +20,9 @@ func init() {
 }
 
 type IntentLookupWithIDToken struct {
-	JSONPointer    jsonpointer.T                           `json:"json_pointer,omitempty"`
-	Identification config.AuthenticationFlowIdentification `json:"identification,omitempty"`
-	SyntheticInput *InputStepIdentify                      `json:"synthetic_input,omitempty"`
+	JSONPointer    jsonpointer.T                          `json:"json_pointer,omitempty"`
+	Identification model.AuthenticationFlowIdentification `json:"identification,omitempty"`
+	SyntheticInput *InputStepIdentify                     `json:"synthetic_input,omitempty"`
 }
 
 var _ authflow.Intent = &IntentLookupWithIDToken{}
@@ -34,12 +35,12 @@ func (*IntentLookupWithIDToken) Kind() string {
 }
 
 func (*IntentLookupWithIDToken) Milestone() {}
-func (n *IntentLookupWithIDToken) MilestoneIdentificationMethod() config.AuthenticationFlowIdentification {
+func (n *IntentLookupWithIDToken) MilestoneIdentificationMethod() model.AuthenticationFlowIdentification {
 	return n.Identification
 }
 
 func (n *IntentLookupWithIDToken) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
-	flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+	flowRootObject, err := findNearestFlowObjectInFlow(deps, flows, n)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +52,7 @@ func (n *IntentLookupWithIDToken) CanReactTo(ctx context.Context, deps *authflow
 }
 
 func (n *IntentLookupWithIDToken) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (authflow.ReactToResult, error) {
-	flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+	flowRootObject, err := findNearestFlowObjectInFlow(deps, flows, n)
 	if err != nil {
 		return nil, err
 	}

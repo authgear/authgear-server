@@ -5,6 +5,7 @@ import (
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
@@ -14,9 +15,9 @@ func init() {
 }
 
 type IntentOAuth struct {
-	JSONPointer    jsonpointer.T                           `json:"json_pointer,omitempty"`
-	NewUserID      string                                  `json:"new_user_id,omitempty"`
-	Identification config.AuthenticationFlowIdentification `json:"identification,omitempty"`
+	JSONPointer    jsonpointer.T                          `json:"json_pointer,omitempty"`
+	NewUserID      string                                 `json:"new_user_id,omitempty"`
+	Identification model.AuthenticationFlowIdentification `json:"identification,omitempty"`
 }
 
 var _ authflow.Intent = &IntentOAuth{}
@@ -30,7 +31,7 @@ func (*IntentOAuth) Kind() string {
 }
 
 func (*IntentOAuth) Milestone() {}
-func (i *IntentOAuth) MilestoneIdentificationMethod() config.AuthenticationFlowIdentification {
+func (i *IntentOAuth) MilestoneIdentificationMethod() model.AuthenticationFlowIdentification {
 	return i.Identification
 }
 
@@ -51,7 +52,7 @@ func (*IntentOAuth) MilestoneFlowUseIdentity(flows authflow.Flows) (MilestoneDoU
 
 func (i *IntentOAuth) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
 	if len(flows.Nearest.Nodes) == 0 {
-		flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+		flowRootObject, err := findNearestFlowObjectInFlow(deps, flows, i)
 		if err != nil {
 			return nil, err
 		}
@@ -65,6 +66,7 @@ func (i *IntentOAuth) CanReactTo(ctx context.Context, deps *authflow.Dependencie
 		}
 
 		oauthOptions := NewIdentificationOptionsOAuth(
+			flows,
 			deps.Config.Identity.OAuth,
 			deps.FeatureConfig.Identity.OAuth.Providers,
 			authflowCfg,
@@ -72,7 +74,7 @@ func (i *IntentOAuth) CanReactTo(ctx context.Context, deps *authflow.Dependencie
 			deps.SSOOAuthDemoCredentials,
 		)
 
-		isBotProtectionRequired, err := IsBotProtectionRequired(ctx, deps, flows, i.JSONPointer)
+		isBotProtectionRequired, err := IsBotProtectionRequired(ctx, deps, flows, i.JSONPointer, i)
 		if err != nil {
 			return nil, err
 		}
@@ -93,7 +95,7 @@ func (i *IntentOAuth) ReactTo(ctx context.Context, deps *authflow.Dependencies, 
 		var inputOAuth inputTakeOAuthAuthorizationRequest
 		if authflow.AsInput(input, &inputOAuth) {
 			var bpSpecialErr error
-			bpSpecialErr, err := HandleBotProtection(ctx, deps, flows, i.JSONPointer, input)
+			bpSpecialErr, err := HandleBotProtection(ctx, deps, flows, i.JSONPointer, input, i)
 			if err != nil {
 				return nil, err
 			}

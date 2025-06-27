@@ -62,7 +62,7 @@ func (n *NodeVerifyClaim) Kind() string {
 }
 
 func (n *NodeVerifyClaim) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
-	flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+	flowRootObject, err := findNearestFlowObjectInFlow(deps, flows, n)
 	if err != nil {
 		return nil, err
 	}
@@ -139,7 +139,7 @@ func (n *NodeVerifyClaim) ReactTo(ctx context.Context, deps *authflow.Dependenci
 			DelayedOneTimeFunction: func(ctx context.Context, deps *authflow.Dependencies) error {
 				return n.SendCode(ctx, deps)
 			},
-		}, authflow.ErrUpdateNode
+		}, authflow.ErrReplaceNode
 	default:
 		return nil, authflow.ErrIncompatibleInput
 	}

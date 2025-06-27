@@ -45,20 +45,7 @@ func (i *Info) GetMeta() model.Meta {
 }
 
 func (i *Info) AMR() []string {
-	switch i.Type {
-	case model.AuthenticatorTypePassword:
-		return []string{model.AMRPWD}
-	case model.AuthenticatorTypePasskey:
-		return []string{model.AMRXPasskey}
-	case model.AuthenticatorTypeTOTP:
-		return []string{model.AMROTP}
-	case model.AuthenticatorTypeOOBEmail:
-		return []string{model.AMROTP}
-	case model.AuthenticatorTypeOOBSMS:
-		return []string{model.AMROTP, model.AMRSMS}
-	default:
-		panic("authenticator: unknown authenticator type: " + i.Type)
-	}
+	return i.ToAuthentication().AMR()
 }
 
 func (i *Info) Equal(that *Info) bool {
@@ -226,6 +213,42 @@ func (i *Info) ToModel() model.Authenticator {
 		IsDefault: i.IsDefault,
 		Kind:      model.AuthenticatorKind(i.Kind),
 	}
+}
+
+func (i *Info) ToAuthentication() model.AuthenticationFlowAuthentication {
+	var authn model.AuthenticationFlowAuthentication
+	switch i.Kind {
+	case KindPrimary:
+		switch i.Type {
+		case model.AuthenticatorTypePassword:
+			authn = model.AuthenticationFlowAuthenticationPrimaryPassword
+		case model.AuthenticatorTypePasskey:
+			authn = model.AuthenticationFlowAuthenticationPrimaryPasskey
+		case model.AuthenticatorTypeOOBEmail:
+			authn = model.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail
+		case model.AuthenticatorTypeOOBSMS:
+			authn = model.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS
+		default:
+			panic(fmt.Errorf("authenticator: unexpected primary authenticator type: %s", i.Type))
+		}
+	case KindSecondary:
+		switch i.Type {
+		case model.AuthenticatorTypePassword:
+			authn = model.AuthenticationFlowAuthenticationSecondaryPassword
+		case model.AuthenticatorTypeTOTP:
+			authn = model.AuthenticationFlowAuthenticationSecondaryTOTP
+		case model.AuthenticatorTypeOOBEmail:
+			authn = model.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail
+		case model.AuthenticatorTypeOOBSMS:
+			authn = model.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS
+		default:
+			panic(fmt.Errorf("authenticator: unexpected secondary authenticator type: %s", i.Type))
+		}
+	default:
+		panic(fmt.Errorf("authenticator: unexpected authenticator kind: %s", i.Kind))
+	}
+
+	return authn
 }
 
 func (i *Info) UpdateUserID(newUserID string) *Info {

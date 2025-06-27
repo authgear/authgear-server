@@ -57,8 +57,8 @@ func (i *IntentAccountRecoveryFlowStepIdentify) GetJSONPointer() jsonpointer.T {
 var _ authflow.Intent = &IntentAccountRecoveryFlowStepIdentify{}
 var _ authflow.DataOutputer = &IntentAccountRecoveryFlowStepIdentify{}
 
-func NewIntentAccountRecoveryFlowStepIdentify(ctx context.Context, deps *authflow.Dependencies, i *IntentAccountRecoveryFlowStepIdentify) (*IntentAccountRecoveryFlowStepIdentify, error) {
-	current, err := i.currentFlowObject(deps)
+func NewIntentAccountRecoveryFlowStepIdentify(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, i *IntentAccountRecoveryFlowStepIdentify, originNode authflow.NodeOrIntent) (*IntentAccountRecoveryFlowStepIdentify, error) {
+	current, err := i.currentFlowObject(deps, flows, originNode)
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +70,7 @@ func NewIntentAccountRecoveryFlowStepIdentify(ctx context.Context, deps *authflo
 		case config.AuthenticationFlowAccountRecoveryIdentificationEmail:
 			fallthrough
 		case config.AuthenticationFlowAccountRecoveryIdentificationPhone:
-			c := AccountRecoveryIdentificationOption{Identification: b.Identification, BotProtection: GetBotProtectionData(b.GetBotProtectionConfig(), deps.Config.BotProtection)}
+			c := AccountRecoveryIdentificationOption{Identification: b.Identification, BotProtection: GetBotProtectionData(flows, b.GetBotProtectionConfig(), deps.Config.BotProtection)}
 			options = append(options, c)
 		}
 	}
@@ -91,7 +91,7 @@ func (i *IntentAccountRecoveryFlowStepIdentify) CanReactTo(ctx context.Context, 
 			// When restoring the intent, no input is needed
 			return nil, nil
 		}
-		flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+		flowRootObject, err := findNearestFlowObjectInFlow(deps, flows, i)
 		if err != nil {
 			return nil, err
 		}
@@ -118,7 +118,7 @@ func (i *IntentAccountRecoveryFlowStepIdentify) CanReactTo(ctx context.Context, 
 }
 
 func (i *IntentAccountRecoveryFlowStepIdentify) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (authflow.ReactToResult, error) {
-	current, err := i.currentFlowObject(deps)
+	current, err := i.currentFlowObject(deps, flows, i)
 	if err != nil {
 		return nil, err
 	}
@@ -190,8 +190,8 @@ func (*IntentAccountRecoveryFlowStepIdentify) step(o config.AuthenticationFlowOb
 	return step
 }
 
-func (i *IntentAccountRecoveryFlowStepIdentify) currentFlowObject(deps *authflow.Dependencies) (config.AuthenticationFlowObject, error) {
-	rootObject, err := flowRootObject(deps, i.FlowReference)
+func (i *IntentAccountRecoveryFlowStepIdentify) currentFlowObject(deps *authflow.Dependencies, flows authflow.Flows, originNode authflow.NodeOrIntent) (config.AuthenticationFlowObject, error) {
+	rootObject, err := findNearestFlowObjectInFlow(deps, flows, originNode)
 	if err != nil {
 		return nil, err
 	}

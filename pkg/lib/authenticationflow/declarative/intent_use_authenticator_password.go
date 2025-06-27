@@ -9,7 +9,6 @@ import (
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/facade"
 )
 
@@ -18,9 +17,9 @@ func init() {
 }
 
 type IntentUseAuthenticatorPassword struct {
-	JSONPointer    jsonpointer.T                           `json:"json_pointer,omitempty"`
-	UserID         string                                  `json:"user_id,omitempty"`
-	Authentication config.AuthenticationFlowAuthentication `json:"authentication,omitempty"`
+	JSONPointer    jsonpointer.T                          `json:"json_pointer,omitempty"`
+	UserID         string                                 `json:"user_id,omitempty"`
+	Authentication model.AuthenticationFlowAuthentication `json:"authentication,omitempty"`
 }
 
 var _ authflow.Intent = &IntentUseAuthenticatorPassword{}
@@ -38,7 +37,7 @@ func (*IntentUseAuthenticatorPassword) Milestone() {}
 func (n *IntentUseAuthenticatorPassword) MilestoneFlowSelectAuthenticationMethod(flows authflow.Flows) (MilestoneDidSelectAuthenticationMethod, authflow.Flows, bool) {
 	return n, flows, true
 }
-func (n *IntentUseAuthenticatorPassword) MilestoneDidSelectAuthenticationMethod() config.AuthenticationFlowAuthentication {
+func (n *IntentUseAuthenticatorPassword) MilestoneDidSelectAuthenticationMethod() model.AuthenticationFlowAuthentication {
 	return n.Authentication
 }
 
@@ -51,11 +50,11 @@ func (n *IntentUseAuthenticatorPassword) CanReactTo(ctx context.Context, deps *a
 	if authenticated {
 		return nil, authflow.ErrEOF
 	}
-	flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+	flowRootObject, err := findNearestFlowObjectInFlow(deps, flows, n)
 	if err != nil {
 		return nil, err
 	}
-	isBotProtectionRequired, err := IsBotProtectionRequired(ctx, deps, flows, n.JSONPointer)
+	isBotProtectionRequired, err := IsBotProtectionRequired(ctx, deps, flows, n.JSONPointer, n)
 	if err != nil {
 		return nil, err
 	}
@@ -72,7 +71,7 @@ func (i *IntentUseAuthenticatorPassword) ReactTo(ctx context.Context, deps *auth
 	var inputTakePassword inputTakePassword
 	if authflow.AsInput(input, &inputTakePassword) {
 		var bpSpecialErr error
-		bpSpecialErr, err := HandleBotProtection(ctx, deps, flows, i.JSONPointer, input)
+		bpSpecialErr, err := HandleBotProtection(ctx, deps, flows, i.JSONPointer, input, i)
 		if err != nil {
 			return nil, err
 		}

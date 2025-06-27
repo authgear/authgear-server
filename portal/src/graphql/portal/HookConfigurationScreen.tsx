@@ -75,17 +75,50 @@ const CODE_EDITOR_OPTIONS = {
   },
 };
 
-const BLOCKING_EVENT_NAME_TO_TYPE_NAME: Record<string, string | undefined> = {
-  "user.pre_create": "EventUserPreCreate",
-  "user.profile.pre_update": "EventUserProfilePreUpdate",
-  "user.pre_schedule_deletion": "EventUserPreScheduleDeletion",
-  "user.pre_schedule_anonymization": "EventUserPreScheduleAnonymization",
-  "oidc.jwt.pre_create": "EventOIDCJWTPreCreate",
-};
+const BLOCK_EVENT_TYPES = [
+  "user.pre_create",
+  "user.profile.pre_update",
+  "user.pre_schedule_deletion",
+  "user.pre_schedule_anonymization",
+  "oidc.jwt.pre_create",
+  "authentication.pre_initialize",
+  "authentication.post_identified",
+  "authentication.pre_authenticated",
+] as const;
 
-const DENOHOOK_NONBLOCKING_DEFAULT = `import { HookEvent } from "${DENO_TYPES_URL}";
+type BlockingEvent = (typeof BLOCK_EVENT_TYPES)[number];
 
-export default async function(e: HookEvent): Promise<void> {
+const BLOCKING_EVENT_NAME_TO_PAYLOAD_TYPE_NAME: Record<BlockingEvent, string> =
+  {
+    "user.pre_create": "EventUserPreCreate",
+    "user.profile.pre_update": "EventUserProfilePreUpdate",
+    "user.pre_schedule_deletion": "EventUserPreScheduleDeletion",
+    "user.pre_schedule_anonymization": "EventUserPreScheduleAnonymization",
+    "oidc.jwt.pre_create": "EventOIDCJWTPreCreate",
+    "authentication.pre_initialize": "EventAuthenticationPreInitialize",
+    "authentication.post_identified": "EventAuthenticationPostIdentified",
+    "authentication.pre_authenticated": "EventAuthenticationPreAuthenticated",
+  };
+
+const BLOCKING_EVENT_NAME_TO_RESPONSE_TYPE_NAME: Record<BlockingEvent, string> =
+  {
+    "user.pre_create": "EventUserPreCreateHookResponse",
+    "user.profile.pre_update": "EventUserProfilePreUpdateHookResponse",
+    "user.pre_schedule_deletion": "EventUserPreScheduleDeletionHookResponse",
+    "user.pre_schedule_anonymization":
+      "EventUserPreScheduleAnonymizationHookResponse",
+    "oidc.jwt.pre_create": "EventOIDCJWTPreCreateHookResponse",
+    "authentication.pre_initialize":
+      "EventAuthenticationPreInitializeHookResponse",
+    "authentication.post_identified":
+      "EventAuthenticationPostIdentifiedHookResponse",
+    "authentication.pre_authenticated":
+      "EventAuthenticationPreAuthenticatedHookResponse",
+  };
+
+const DENOHOOK_NONBLOCKING_DEFAULT = `import { HookNonBlockingEvent } from "${DENO_TYPES_URL}";
+
+export default async function(e: HookNonBlockingEvent): Promise<void> {
   // Write your hook with the help of the type definition.
   //
   // Since this hook will receive all events,
@@ -104,11 +137,12 @@ export default async function(e: HookEvent): Promise<void> {
 }
 `;
 
-function makeDefaultDenoHookBlockingScript(event: string): string {
-  const typeName = BLOCKING_EVENT_NAME_TO_TYPE_NAME[event] ?? "HookEvent";
-  return `import { ${typeName}, HookResponse } from "${DENO_TYPES_URL}";
+function makeDefaultDenoHookBlockingScript(event: BlockingEvent): string {
+  const payloadTypeName = BLOCKING_EVENT_NAME_TO_PAYLOAD_TYPE_NAME[event];
+  const responseTypeName = BLOCKING_EVENT_NAME_TO_RESPONSE_TYPE_NAME[event];
+  return `import { ${payloadTypeName}, ${responseTypeName} } from "${DENO_TYPES_URL}";
 
-export default async function(e: ${typeName}): Promise<HookResponse> {
+export default async function(e: ${payloadTypeName}): Promise<${responseTypeName}> {
   // Write your hook with the help of the type definition.
   return { is_allowed: true };
 }
@@ -270,7 +304,9 @@ function addMissingResources(state: FormState) {
         state.resources.push({
           path,
           specifier,
-          nullableValue: makeDefaultDenoHookBlockingScript(h.event),
+          nullableValue: makeDefaultDenoHookBlockingScript(
+            h.event as BlockingEvent
+          ),
         });
       }
     }
@@ -291,14 +327,6 @@ function addMissingResources(state: FormState) {
     }
   }
 }
-
-const BLOCK_EVENT_TYPES: string[] = [
-  "user.pre_create",
-  "user.profile.pre_update",
-  "user.pre_schedule_deletion",
-  "user.pre_schedule_anonymization",
-  "oidc.jwt.pre_create",
-];
 
 interface BlockingHandlerItemEditProps {
   index: number;
@@ -404,11 +432,9 @@ const BlockingHandlerItemEdit: React.VFC<BlockingHandlerItemEditProps> =
     const eventOptions = useMemo(() => {
       return BLOCK_EVENT_TYPES.map((t) => ({
         key: t,
-        text: renderToString(
-          "HookConfigurationScreen.blocking-event-type." + t
-        ),
+        text: t,
       }));
-    }, [renderToString]);
+    }, []);
 
     const kindOptions = useMemo(() => {
       return [
@@ -969,7 +995,9 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
             addMissingResources(state);
             for (const r of state.resources) {
               if (r.path === getDenoScriptPathFromURL(item.url)) {
-                r.nullableValue = makeDefaultDenoHookBlockingScript(item.event);
+                r.nullableValue = makeDefaultDenoHookBlockingScript(
+                  item.event as BlockingEvent
+                );
               }
             }
           })

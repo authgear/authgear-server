@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/util/errorutil"
 )
 
 // ErrIncompatibleInput means the input reactor cannot react to the input.
@@ -16,14 +17,18 @@ var ErrIncompatibleInput = errors.New("incompatible input")
 // This error can only be returned by ReactTo.
 var ErrSameNode = errors.New("same node")
 
-// ErrUpdateNode means the input is reacted to, but instead of producing a new node to be appended,
-// the returned node should replace the node.
+// ErrReplaceNode means the input is reacted to, but instead of producing a new node to be appended,
+// the returned node should replace the latest node.
 // This error can only be returned by ReactTo.
-var ErrUpdateNode = errors.New("update node")
+var ErrReplaceNode = errors.New("replace node")
 
 // ErrNoChange means the input does not cause the flow to change.
 // This error originates from Accept and will be propagated to public API.
 var ErrNoChange = errors.New("no change")
+
+// ErrPauseAndRetryAccept means the authflow must pause at this point, process all delayed functions
+// And finally, retry the accept process
+var ErrPauseAndRetryAccept = errors.New("pause and retry")
 
 // ErrEOF means end of flow.
 // This error originates from CanReactTo and will be propagated to public API.
@@ -90,3 +95,9 @@ var (
 		Status: ErrorBotProtectionVerificationStatusServiceUnavailable,
 	}
 )
+
+func newAuthenticationFlowError(flows Flows, err error) error {
+	return errorutil.WithDetails(err, errorutil.Details{
+		"FlowType": apierrors.APIErrorDetail.Value(flows.Nearest.Intent.(PublicFlow).FlowType()),
+	})
+}

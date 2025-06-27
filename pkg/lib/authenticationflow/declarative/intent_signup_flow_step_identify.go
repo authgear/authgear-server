@@ -133,8 +133,8 @@ func (n *IntentSignupFlowStepIdentify) IsSkipped() bool {
 var _ authflow.Intent = &IntentSignupFlowStepIdentify{}
 var _ authflow.DataOutputer = &IntentSignupFlowStepIdentify{}
 
-func NewIntentSignupFlowStepIdentify(ctx context.Context, deps *authflow.Dependencies, i *IntentSignupFlowStepIdentify) (*IntentSignupFlowStepIdentify, error) {
-	current, err := i.currentFlowObject(deps)
+func NewIntentSignupFlowStepIdentify(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, i *IntentSignupFlowStepIdentify, originNode authflow.NodeOrIntent) (*IntentSignupFlowStepIdentify, error) {
+	current, err := i.currentFlowObject(deps, flows, originNode)
 	if err != nil {
 		return nil, err
 	}
@@ -143,15 +143,16 @@ func NewIntentSignupFlowStepIdentify(ctx context.Context, deps *authflow.Depende
 	options := []IdentificationOption{}
 	for _, b := range step.OneOf {
 		switch b.Identification {
-		case config.AuthenticationFlowIdentificationEmail:
+		case model.AuthenticationFlowIdentificationEmail:
 			fallthrough
-		case config.AuthenticationFlowIdentificationPhone:
+		case model.AuthenticationFlowIdentificationPhone:
 			fallthrough
-		case config.AuthenticationFlowIdentificationUsername:
-			c := NewIdentificationOptionLoginID(b.Identification, b.BotProtection, deps.Config.BotProtection)
+		case model.AuthenticationFlowIdentificationUsername:
+			c := NewIdentificationOptionLoginID(flows, b.Identification, b.BotProtection, deps.Config.BotProtection)
 			options = append(options, c)
-		case config.AuthenticationFlowIdentificationOAuth:
+		case model.AuthenticationFlowIdentificationOAuth:
 			oauthOptions := NewIdentificationOptionsOAuth(
+				flows,
 				deps.Config.Identity.OAuth,
 				deps.FeatureConfig.Identity.OAuth.Providers,
 				b.BotProtection,
@@ -159,11 +160,11 @@ func NewIntentSignupFlowStepIdentify(ctx context.Context, deps *authflow.Depende
 				deps.SSOOAuthDemoCredentials,
 			)
 			options = append(options, oauthOptions...)
-		case config.AuthenticationFlowIdentificationPasskey:
+		case model.AuthenticationFlowIdentificationPasskey:
 			// Do not support create passkey in signup because
 			// passkey is not considered as a persistent identifier.
 			break
-		case config.AuthenticationFlowIdentificationLDAP:
+		case model.AuthenticationFlowIdentificationLDAP:
 			ldapOptions := NewIdentificationOptionLDAP(deps.Config.Identity.LDAP, b.BotProtection, deps.Config.BotProtection)
 			options = append(options, ldapOptions...)
 			break
@@ -192,7 +193,7 @@ func (i *IntentSignupFlowStepIdentify) CanReactTo(ctx context.Context, deps *aut
 
 	// Let the input to select which identification method to use.
 	if len(flows.Nearest.Nodes) == 0 {
-		flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+		flowRootObject, err := findNearestFlowObjectInFlow(deps, flows, i)
 		if err != nil {
 			return nil, err
 		}
@@ -237,7 +238,7 @@ func (i *IntentSignupFlowStepIdentify) ReactTo(ctx context.Context, deps *authfl
 		}
 	}
 
-	current, err := i.currentFlowObject(deps)
+	current, err := i.currentFlowObject(deps, flows, i)
 	if err != nil {
 		return nil, err
 	}
@@ -253,26 +254,26 @@ func (i *IntentSignupFlowStepIdentify) ReactTo(ctx context.Context, deps *authfl
 			}
 
 			switch identification {
-			case config.AuthenticationFlowIdentificationEmail:
+			case model.AuthenticationFlowIdentificationEmail:
 				fallthrough
-			case config.AuthenticationFlowIdentificationPhone:
+			case model.AuthenticationFlowIdentificationPhone:
 				fallthrough
-			case config.AuthenticationFlowIdentificationUsername:
+			case model.AuthenticationFlowIdentificationUsername:
 				return authflow.NewSubFlow(&IntentCreateIdentityLoginID{
 					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
 					UserID:         i.UserID,
 					Identification: identification,
 				}), nil
-			case config.AuthenticationFlowIdentificationOAuth:
+			case model.AuthenticationFlowIdentificationOAuth:
 				return authflow.NewSubFlow(&IntentOAuth{
 					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
 					NewUserID:      i.UserID,
 					Identification: identification,
 				}), nil
-			case config.AuthenticationFlowIdentificationPasskey:
+			case model.AuthenticationFlowIdentificationPasskey:
 				// Cannot create passkey in this step.
 				return nil, authflow.ErrIncompatibleInput
-			case config.AuthenticationFlowIdentificationLDAP:
+			case model.AuthenticationFlowIdentificationLDAP:
 				return authflow.NewSubFlow(&IntentLDAP{
 					JSONPointer: authflow.JSONPointerForOneOf(i.JSONPointer, idx),
 					NewUserID:   i.UserID,
@@ -332,7 +333,7 @@ func (*IntentSignupFlowStepIdentify) step(o config.AuthenticationFlowObject) *co
 	return step
 }
 
-func (*IntentSignupFlowStepIdentify) checkIdentificationMethod(deps *authflow.Dependencies, step *config.AuthenticationFlowSignupFlowStep, im config.AuthenticationFlowIdentification) (idx int, err error) {
+func (*IntentSignupFlowStepIdentify) checkIdentificationMethod(deps *authflow.Dependencies, step *config.AuthenticationFlowSignupFlowStep, im model.AuthenticationFlowIdentification) (idx int, err error) {
 	idx = -1
 
 	for index, branch := range step.OneOf {
@@ -350,7 +351,7 @@ func (*IntentSignupFlowStepIdentify) checkIdentificationMethod(deps *authflow.De
 	return
 }
 
-func (*IntentSignupFlowStepIdentify) identificationMethod(flows authflow.Flows) config.AuthenticationFlowIdentification {
+func (*IntentSignupFlowStepIdentify) identificationMethod(flows authflow.Flows) model.AuthenticationFlowIdentification {
 	// A bug is found by this test tests/account_linking/incoming_login_id_create_authenticator_before.test.yaml
 	// Previously, FindMilestone is used instead of FindMilestoneInCurrentFlow.
 	// But we should find the identification selected in THIS flow.
@@ -364,7 +365,7 @@ func (*IntentSignupFlowStepIdentify) identificationMethod(flows authflow.Flows) 
 	return im
 }
 
-func (i *IntentSignupFlowStepIdentify) jsonPointer(step *config.AuthenticationFlowSignupFlowStep, im config.AuthenticationFlowIdentification) jsonpointer.T {
+func (i *IntentSignupFlowStepIdentify) jsonPointer(step *config.AuthenticationFlowSignupFlowStep, im model.AuthenticationFlowIdentification) jsonpointer.T {
 	for idx, branch := range step.OneOf {
 		branch := branch
 		if branch.Identification == im {
@@ -390,8 +391,8 @@ func (*IntentSignupFlowStepIdentify) identityInfo(flows authflow.Flows) *identit
 	return info
 }
 
-func (i *IntentSignupFlowStepIdentify) currentFlowObject(deps *authflow.Dependencies) (config.AuthenticationFlowObject, error) {
-	rootObject, err := flowRootObject(deps, i.FlowReference)
+func (i *IntentSignupFlowStepIdentify) currentFlowObject(deps *authflow.Dependencies, flows authflow.Flows, originNode authflow.NodeOrIntent) (config.AuthenticationFlowObject, error) {
+	rootObject, err := findNearestFlowObjectInFlow(deps, flows, originNode)
 	if err != nil {
 		return nil, err
 	}
@@ -441,7 +442,7 @@ func (i *IntentSignupFlowStepIdentify) reactToExistingIdentity(ctx context.Conte
 	_, _, identityCreated := authflow.FindMilestoneInCurrentFlow[MilestoneFlowCreateIdentity](flows)
 	_, _, nestedStepHandled := authflow.FindMilestoneInCurrentFlow[MilestoneNestedSteps](flows)
 
-	current, err := i.currentFlowObject(deps)
+	current, err := i.currentFlowObject(deps, flows, i)
 	if err != nil {
 		return nil, err
 	}
@@ -505,15 +506,15 @@ func (i *IntentSignupFlowStepIdentify) findIdentityByOption(in []*identity.Info,
 	}
 
 	switch option.Identification {
-	case config.AuthenticationFlowIdentificationEmail:
+	case model.AuthenticationFlowIdentificationEmail:
 		return findLoginID(model.LoginIDKeyTypeEmail)
-	case config.AuthenticationFlowIdentificationPhone:
+	case model.AuthenticationFlowIdentificationPhone:
 		return findLoginID(model.LoginIDKeyTypePhone)
-	case config.AuthenticationFlowIdentificationUsername:
+	case model.AuthenticationFlowIdentificationUsername:
 		return findLoginID(model.LoginIDKeyTypeUsername)
-	case config.AuthenticationFlowIdentificationOAuth:
+	case model.AuthenticationFlowIdentificationOAuth:
 		return findOAuth(option.Alias)
-	case config.AuthenticationFlowIdentificationPasskey:
+	case model.AuthenticationFlowIdentificationPasskey:
 		// Cannot create passkey in this step.
 		return nil
 	}

@@ -1,11 +1,13 @@
 package declarative
 
 import (
+	"context"
 	"encoding/json"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
@@ -23,11 +25,19 @@ func TestInputSchemaLoginFlowStepAuthenticate(t *testing.T) {
 {
     "type": "object",
     "properties": {
+        "authentication": {
+            "enum": [
+                []
+            ]
+        },
         "request_device_token": {
             "const": false,
             "type": "boolean"
         }
-    }
+    },
+    "required": [
+        "authentication"
+    ]
 }
 `)
 		})
@@ -39,10 +49,18 @@ func TestInputSchemaLoginFlowStepAuthenticate(t *testing.T) {
 {
     "type": "object",
     "properties": {
+        "authentication": {
+            "enum": [
+                []
+            ]
+        },
         "request_device_token": {
             "type": "boolean"
         }
-    }
+    },
+    "required": [
+        "authentication"
+    ]
 }
 `)
 		})
@@ -51,34 +69,34 @@ func TestInputSchemaLoginFlowStepAuthenticate(t *testing.T) {
 			test((&InputSchemaLoginFlowStepAuthenticate{
 				Options: []AuthenticateOption{
 					{
-						Authentication: config.AuthenticationFlowAuthenticationPrimaryPassword,
+						Authentication: model.AuthenticationFlowAuthenticationPrimaryPassword,
 					},
 					{
-						Authentication: config.AuthenticationFlowAuthenticationPrimaryPasskey,
+						Authentication: model.AuthenticationFlowAuthenticationPrimaryPasskey,
 					},
 					{
-						Authentication: config.AuthenticationFlowAuthenticationSecondaryPassword,
+						Authentication: model.AuthenticationFlowAuthenticationSecondaryPassword,
 					},
 					{
-						Authentication: config.AuthenticationFlowAuthenticationSecondaryTOTP,
+						Authentication: model.AuthenticationFlowAuthenticationSecondaryTOTP,
 					},
 					{
-						Authentication: config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail,
+						Authentication: model.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail,
 					},
 					{
-						Authentication: config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS,
+						Authentication: model.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS,
 					},
 					{
-						Authentication: config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail,
+						Authentication: model.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail,
 					},
 					{
-						Authentication: config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS,
+						Authentication: model.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS,
 					},
 					{
-						Authentication: config.AuthenticationFlowAuthenticationRecoveryCode,
+						Authentication: model.AuthenticationFlowAuthenticationRecoveryCode,
 					},
 					{
-						Authentication: config.AuthenticationFlowAuthenticationDeviceToken,
+						Authentication: model.AuthenticationFlowAuthenticationDeviceToken,
 					},
 				},
 			}).SchemaBuilder(), `
@@ -290,43 +308,43 @@ func TestInputSchemaLoginFlowStepAuthenticate(t *testing.T) {
 				BotProtectionCfg: dummyBotProtectionCfg,
 				Options: []AuthenticateOption{
 					{
-						Authentication: config.AuthenticationFlowAuthenticationPrimaryPassword,
+						Authentication: model.AuthenticationFlowAuthenticationPrimaryPassword,
 						BotProtection:  dummyBotProtectionData,
 					},
 					{
-						Authentication: config.AuthenticationFlowAuthenticationPrimaryPasskey,
+						Authentication: model.AuthenticationFlowAuthenticationPrimaryPasskey,
 						BotProtection:  dummyBotProtectionData,
 					},
 					{
-						Authentication: config.AuthenticationFlowAuthenticationSecondaryPassword,
+						Authentication: model.AuthenticationFlowAuthenticationSecondaryPassword,
 						BotProtection:  dummyBotProtectionData,
 					},
 					{
-						Authentication: config.AuthenticationFlowAuthenticationSecondaryTOTP,
+						Authentication: model.AuthenticationFlowAuthenticationSecondaryTOTP,
 						BotProtection:  dummyBotProtectionData,
 					},
 					{
-						Authentication: config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail,
+						Authentication: model.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail,
 						BotProtection:  dummyBotProtectionData,
 					},
 					{
-						Authentication: config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS,
+						Authentication: model.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS,
 						BotProtection:  dummyBotProtectionData,
 					},
 					{
-						Authentication: config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail,
+						Authentication: model.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail,
 						BotProtection:  dummyBotProtectionData,
 					},
 					{
-						Authentication: config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS,
+						Authentication: model.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS,
 						BotProtection:  dummyBotProtectionData,
 					},
 					{
-						Authentication: config.AuthenticationFlowAuthenticationRecoveryCode,
+						Authentication: model.AuthenticationFlowAuthenticationRecoveryCode,
 						BotProtection:  dummyBotProtectionData,
 					},
 					{
-						Authentication: config.AuthenticationFlowAuthenticationDeviceToken,
+						Authentication: model.AuthenticationFlowAuthenticationDeviceToken,
 						BotProtection:  dummyBotProtectionData,
 					},
 				},
@@ -683,41 +701,41 @@ func TestInputSchemaLoginFlowStepAuthenticate(t *testing.T) {
 				BotProtectionCfg: dummyBotProtectionCfg,
 				Options: []AuthenticateOption{
 					{
-						Authentication: config.AuthenticationFlowAuthenticationPrimaryPassword,
+						Authentication: model.AuthenticationFlowAuthenticationPrimaryPassword,
 					},
 					{
-						Authentication: config.AuthenticationFlowAuthenticationPrimaryPasskey,
+						Authentication: model.AuthenticationFlowAuthenticationPrimaryPasskey,
 						BotProtection:  dummyBotProtectionData,
 					},
 					{
-						Authentication: config.AuthenticationFlowAuthenticationSecondaryPassword,
+						Authentication: model.AuthenticationFlowAuthenticationSecondaryPassword,
 						BotProtection:  dummyBotProtectionData,
 					},
 					{
-						Authentication: config.AuthenticationFlowAuthenticationSecondaryTOTP,
+						Authentication: model.AuthenticationFlowAuthenticationSecondaryTOTP,
 						BotProtection:  dummyBotProtectionData,
 					},
 					{
-						Authentication: config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail,
+						Authentication: model.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail,
 						BotProtection:  dummyBotProtectionData,
 					},
 					{
-						Authentication: config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS,
+						Authentication: model.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS,
 						BotProtection:  dummyBotProtectionData,
 					},
 					{
-						Authentication: config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail,
+						Authentication: model.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail,
 						BotProtection:  dummyBotProtectionData,
 					},
 					{
-						Authentication: config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS,
+						Authentication: model.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS,
 						BotProtection:  dummyBotProtectionData,
 					},
 					{
-						Authentication: config.AuthenticationFlowAuthenticationRecoveryCode,
+						Authentication: model.AuthenticationFlowAuthenticationRecoveryCode,
 					},
 					{
-						Authentication: config.AuthenticationFlowAuthenticationDeviceToken,
+						Authentication: model.AuthenticationFlowAuthenticationDeviceToken,
 						BotProtection:  dummyBotProtectionData,
 					},
 				},
@@ -1023,6 +1041,26 @@ func TestInputSchemaLoginFlowStepAuthenticate(t *testing.T) {
     ]
 }
 `)
+		})
+
+		Convey("should reject any input when no options", func() {
+			var dummyBotProtectionCfg = &config.BotProtectionConfig{
+				Enabled: true,
+				Provider: &config.BotProtectionProvider{
+					Type: config.BotProtectionProviderTypeCloudflare,
+				},
+			}
+			var input = &InputSchemaLoginFlowStepAuthenticate{
+				BotProtectionCfg: dummyBotProtectionCfg,
+				Options:          []AuthenticateOption{},
+			}
+			inputJson := `
+                {
+                    "authentication": "primary_password"
+                }
+            `
+			_, err := input.MakeInput(context.Background(), json.RawMessage(inputJson))
+			So(err, ShouldBeError, "invalid value:\n/authentication: enum\n  map[actual:primary_password expected:[[]]]")
 		})
 	})
 }

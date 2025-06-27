@@ -6,6 +6,7 @@ import (
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
+	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
@@ -42,6 +43,23 @@ type IntentSignupFlowStepCreateAuthenticator struct {
 	StepName               string                 `json:"step_name,omitempty"`
 	UserID                 string                 `json:"user_id,omitempty"`
 	IsUpdatingExistingUser bool                   `json:"is_updating_existing_user,omitempty"`
+
+	Options         []CreateAuthenticatorOptionInternal `json:"options,omitempty"`
+	CannotBeSkipped bool                                `json:"cannot_be_skipped,omitempty"`
+}
+
+func NewIntentSignupFlowStepCreateAuthenticator(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, i *IntentSignupFlowStepCreateAuthenticator, originNode authflow.NodeOrIntent) (*IntentSignupFlowStepCreateAuthenticator, error) {
+	current, err := i.currentFlowObject(deps, flows, originNode)
+	if err != nil {
+		return nil, err
+	}
+	step := i.step(current)
+	options, err := NewCreateAuthenticationOptions(ctx, deps, flows, step, i.UserID)
+	if err != nil {
+		return nil, err
+	}
+	i.Options = options
+	return i, nil
 }
 
 var _ authflow.TargetStep = &IntentSignupFlowStepCreateAuthenticator{}
@@ -68,15 +86,17 @@ func (i *IntentSignupFlowStepCreateAuthenticator) MilestoneSwitchToExistingUser(
 	if ok {
 		milestone, _, ok := m1.MilestoneFlowCreateAuthenticator(m1Flows)
 		if ok {
-			authn := milestone.MilestoneDoCreateAuthenticator()
-			existing, err := i.findAuthenticatorOfSameType(ctx, deps, authn.Type)
-			if err != nil {
-				return err
-			}
-			if existing != nil {
-				milestone.MilestoneDoCreateAuthenticatorSkipCreate()
-			} else {
-				milestone.MilestoneDoCreateAuthenticatorUpdate(authn.UpdateUserID(newUserID))
+			authn, ok := milestone.MilestoneDoCreateAuthenticator()
+			if ok {
+				existing, err := i.findAuthenticatorOfSameType(ctx, deps, authn.Type)
+				if err != nil {
+					return err
+				}
+				if existing != nil {
+					milestone.MilestoneDoCreateAuthenticatorSkipCreate()
+				} else {
+					milestone.MilestoneDoCreateAuthenticatorUpdate(authn.UpdateUserID(newUserID))
+				}
 			}
 		}
 	}
@@ -89,6 +109,13 @@ func (*IntentSignupFlowStepCreateAuthenticator) Kind() string {
 }
 
 func (i *IntentSignupFlowStepCreateAuthenticator) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
+	if len(flows.Nearest.Nodes) == 0 && len(i.Options) == 0 {
+		if i.CannotBeSkipped {
+			return nil, api.ErrNoAuthenticator
+		}
+		// Nothing can be selected, skip this step.
+		return nil, authflow.ErrEOF
+	}
 
 	if len(flows.Nearest.Nodes) == 0 && i.IsUpdatingExistingUser {
 		option, _, _, err := i.findSkippableOption(ctx, deps, flows)
@@ -101,23 +128,14 @@ func (i *IntentSignupFlowStepCreateAuthenticator) CanReactTo(ctx context.Context
 		}
 	}
 
-	internalOptions, err := i.getInternalOptions(ctx, deps, flows)
-	if err != nil {
-		return nil, err
-	}
-	if len(flows.Nearest.Nodes) == 0 && len(internalOptions) == 0 {
-		// Nothing can be selected, skip this step.
-		return nil, authflow.ErrEOF
-	}
-
 	// Let the input to select which authentication method to use.
 	if len(flows.Nearest.Nodes) == 0 {
-		flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+		flowRootObject, err := findNearestFlowObjectInFlow(deps, flows, i)
 		if err != nil {
 			return nil, err
 		}
 
-		options, err := i.getOptions(ctx, deps, flows)
+		options, err := i.getPublicOptions()
 		if err != nil {
 			return nil, err
 		}
@@ -145,6 +163,7 @@ func (i *IntentSignupFlowStepCreateAuthenticator) CanReactTo(ctx context.Context
 }
 
 func (i *IntentSignupFlowStepCreateAuthenticator) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (authflow.ReactToResult, error) {
+
 	if len(flows.Nearest.Nodes) == 0 && i.IsUpdatingExistingUser {
 		option, idx, authn, err := i.findSkippableOption(ctx, deps, flows)
 		if err != nil {
@@ -155,7 +174,7 @@ func (i *IntentSignupFlowStepCreateAuthenticator) ReactTo(ctx context.Context, d
 		}
 	}
 
-	current, err := i.currentFlowObject(deps)
+	current, err := i.currentFlowObject(deps, flows, i)
 	if err != nil {
 		return nil, err
 	}
@@ -172,30 +191,30 @@ func (i *IntentSignupFlowStepCreateAuthenticator) ReactTo(ctx context.Context, d
 			}
 
 			switch authentication {
-			case config.AuthenticationFlowAuthenticationPrimaryPassword:
+			case model.AuthenticationFlowAuthenticationPrimaryPassword:
 				fallthrough
-			case config.AuthenticationFlowAuthenticationSecondaryPassword:
+			case model.AuthenticationFlowAuthenticationSecondaryPassword:
 				return authflow.NewSubFlow(&IntentCreateAuthenticatorPassword{
 					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
 					UserID:         i.UserID,
 					Authentication: authentication,
 				}), nil
-			case config.AuthenticationFlowAuthenticationPrimaryPasskey:
+			case model.AuthenticationFlowAuthenticationPrimaryPasskey:
 				// Cannot create passkey in this step.
 				return nil, authflow.ErrIncompatibleInput
-			case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
+			case model.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 				fallthrough
-			case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
+			case model.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
 				fallthrough
-			case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
+			case model.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
 				fallthrough
-			case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
+			case model.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
 				return authflow.NewSubFlow(&IntentCreateAuthenticatorOOBOTP{
 					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
 					UserID:         i.UserID,
 					Authentication: authentication,
 				}), nil
-			case config.AuthenticationFlowAuthenticationSecondaryTOTP:
+			case model.AuthenticationFlowAuthenticationSecondaryTOTP:
 				intent, err := NewIntentCreateAuthenticatorTOTP(ctx, deps, &IntentCreateAuthenticatorTOTP{
 					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
 					UserID:         i.UserID,
@@ -228,7 +247,7 @@ func (i *IntentSignupFlowStepCreateAuthenticator) ReactTo(ctx context.Context, d
 }
 
 func (i *IntentSignupFlowStepCreateAuthenticator) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
-	options, err := i.getOptions(ctx, deps, flows)
+	options, err := i.getPublicOptions()
 	if err != nil {
 		return nil, err
 	}
@@ -252,7 +271,7 @@ func (*IntentSignupFlowStepCreateAuthenticator) step(o config.AuthenticationFlow
 	return step
 }
 
-func (i *IntentSignupFlowStepCreateAuthenticator) checkAuthenticationMethod(deps *authflow.Dependencies, step *config.AuthenticationFlowSignupFlowStep, am config.AuthenticationFlowAuthentication) (idx int, err error) {
+func (i *IntentSignupFlowStepCreateAuthenticator) checkAuthenticationMethod(deps *authflow.Dependencies, step *config.AuthenticationFlowSignupFlowStep, am model.AuthenticationFlowAuthentication) (idx int, err error) {
 	idx = -1
 
 	for index, branch := range step.OneOf {
@@ -270,7 +289,7 @@ func (i *IntentSignupFlowStepCreateAuthenticator) checkAuthenticationMethod(deps
 	return
 }
 
-func (*IntentSignupFlowStepCreateAuthenticator) authenticationMethod(flows authflow.Flows) config.AuthenticationFlowAuthentication {
+func (*IntentSignupFlowStepCreateAuthenticator) authenticationMethod(flows authflow.Flows) model.AuthenticationFlowAuthentication {
 	m, mFlows, ok := authflow.FindMilestoneInCurrentFlow[MilestoneFlowSelectAuthenticationMethod](flows)
 	if !ok {
 		panic(fmt.Errorf("authentication method not yet selected"))
@@ -284,7 +303,7 @@ func (*IntentSignupFlowStepCreateAuthenticator) authenticationMethod(flows authf
 	return mDidSelect.MilestoneDidSelectAuthenticationMethod()
 }
 
-func (i *IntentSignupFlowStepCreateAuthenticator) jsonPointer(step *config.AuthenticationFlowSignupFlowStep, am config.AuthenticationFlowAuthentication) jsonpointer.T {
+func (i *IntentSignupFlowStepCreateAuthenticator) jsonPointer(step *config.AuthenticationFlowSignupFlowStep, am model.AuthenticationFlowAuthentication) jsonpointer.T {
 	for idx, branch := range step.OneOf {
 		branch := branch
 		if branch.Authentication == am {
@@ -295,8 +314,8 @@ func (i *IntentSignupFlowStepCreateAuthenticator) jsonPointer(step *config.Authe
 	panic(fmt.Errorf("selected identification method is not allowed"))
 }
 
-func (i *IntentSignupFlowStepCreateAuthenticator) currentFlowObject(deps *authflow.Dependencies) (config.AuthenticationFlowObject, error) {
-	rootObject, err := flowRootObject(deps, i.FlowReference)
+func (i *IntentSignupFlowStepCreateAuthenticator) currentFlowObject(deps *authflow.Dependencies, flows authflow.Flows, originNode authflow.NodeOrIntent) (config.AuthenticationFlowObject, error) {
+	rootObject, err := findNearestFlowObjectInFlow(deps, flows, originNode)
 	if err != nil {
 		return nil, err
 	}
@@ -327,26 +346,8 @@ func (i *IntentSignupFlowStepCreateAuthenticator) findAuthenticatorOfSameType(ct
 	return existing, nil
 }
 
-func (i *IntentSignupFlowStepCreateAuthenticator) getInternalOptions(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) ([]CreateAuthenticatorOptionInternal, error) {
-	current, err := i.currentFlowObject(deps)
-	if err != nil {
-		return nil, err
-	}
-	step := i.step(current)
-	options, err := NewCreateAuthenticationOptions(ctx, deps, flows, step, i.UserID)
-	if err != nil {
-		return nil, err
-	}
-	return options, nil
-}
-
-func (i *IntentSignupFlowStepCreateAuthenticator) getOptions(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) ([]CreateAuthenticatorOption, error) {
-	internalOptions, err := i.getInternalOptions(ctx, deps, flows)
-	if err != nil {
-		return nil, err
-	}
-
-	return slice.Map(internalOptions, func(o CreateAuthenticatorOptionInternal) CreateAuthenticatorOption {
+func (i *IntentSignupFlowStepCreateAuthenticator) getPublicOptions() ([]CreateAuthenticatorOption, error) {
+	return slice.Map(i.Options, func(o CreateAuthenticatorOptionInternal) CreateAuthenticatorOption {
 		return o.CreateAuthenticatorOption
 	}), nil
 }
@@ -363,7 +364,7 @@ func (i *IntentSignupFlowStepCreateAuthenticator) reactToExistingAuthenticator(c
 	_, _, authenticatorCreated := authflow.FindMilestoneInCurrentFlow[MilestoneFlowCreateAuthenticator](flows)
 	_, _, nestedStepsHandled := authflow.FindMilestoneInCurrentFlow[MilestoneNestedSteps](flows)
 
-	current, err := i.currentFlowObject(deps)
+	current, err := i.currentFlowObject(deps, flows, i)
 	if err != nil {
 		return nil, err
 	}
@@ -392,11 +393,7 @@ func (i *IntentSignupFlowStepCreateAuthenticator) findSkippableOption(
 		return nil, -1, nil, err
 	}
 	// For each option, see if any existing identities can be reused
-	options, err := i.getInternalOptions(ctx, deps, flows)
-	if err != nil {
-		return nil, -1, nil, err
-	}
-	for idx, option := range options {
+	for idx, option := range i.Options {
 		option := option
 		existingAuthn := i.findAuthenticatorByOption(userAuthns, option)
 		if existingAuthn != nil {
@@ -409,21 +406,21 @@ func (i *IntentSignupFlowStepCreateAuthenticator) findSkippableOption(
 func (i *IntentSignupFlowStepCreateAuthenticator) findAuthenticatorByOption(in []*authenticator.Info, option CreateAuthenticatorOptionInternal) *authenticator.Info {
 
 	switch option.Authentication {
-	case config.AuthenticationFlowAuthenticationPrimaryPassword:
+	case model.AuthenticationFlowAuthenticationPrimaryPassword:
 		return findPassword(in, authenticator.KindPrimary)
-	case config.AuthenticationFlowAuthenticationSecondaryPassword:
+	case model.AuthenticationFlowAuthenticationSecondaryPassword:
 		return findPassword(in, authenticator.KindSecondary)
-	case config.AuthenticationFlowAuthenticationPrimaryPasskey:
+	case model.AuthenticationFlowAuthenticationPrimaryPasskey:
 		return findPrimaryPasskey(in, authenticator.KindPrimary)
-	case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
+	case model.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 		return findEmailOOB(in, authenticator.KindPrimary, option.UnmaskedTarget)
-	case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
+	case model.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
 		return findEmailOOB(in, authenticator.KindSecondary, option.UnmaskedTarget)
-	case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
+	case model.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
 		return findSMSOOB(in, authenticator.KindPrimary, option.UnmaskedTarget)
-	case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
+	case model.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
 		return findSMSOOB(in, authenticator.KindSecondary, option.UnmaskedTarget)
-	case config.AuthenticationFlowAuthenticationSecondaryTOTP:
+	case model.AuthenticationFlowAuthenticationSecondaryTOTP:
 		return findTOTP(in, authenticator.KindSecondary)
 	}
 	return nil

@@ -37,11 +37,8 @@ func FlowObjectGetName(o config.AuthenticationFlowObject) string {
 }
 
 func FlowObjectGetSteps(o config.AuthenticationFlowObject) ([]config.AuthenticationFlowObject, bool) {
-	if root, ok := o.(config.AuthenticationFlowObjectFlowRoot); ok {
-		return root.GetSteps(), true
-	}
-	if branch, ok := o.(config.AuthenticationFlowObjectFlowBranch); ok {
-		return branch.GetSteps(), true
+	if obj, ok := o.(config.AuthenticationFlowStepsObject); ok {
+		return obj.GetSteps(), true
 	}
 	return nil, false
 }
@@ -66,7 +63,8 @@ func Traverse(o config.AuthenticationFlowObject, pointer jsonpointer.T) ([]Trave
 		case len(pointer) == 0:
 			return entries, nil
 		case len(pointer)%2 == 1:
-			return nil, ErrInvalidJSONPointer
+			// Programming error, panic so we have stack trace
+			panic(ErrInvalidJSONPointer)
 		default:
 			fieldName := pointer[0]
 
@@ -91,7 +89,8 @@ func Traverse(o config.AuthenticationFlowObject, pointer jsonpointer.T) ([]Trave
 				break
 			}
 			if !ok {
-				return nil, ErrInvalidJSONPointer
+				// Programming error, panic so we have stack trace
+				panic(ErrInvalidJSONPointer)
 			}
 
 			if index >= len(objects) {

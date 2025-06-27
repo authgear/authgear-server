@@ -25,6 +25,16 @@ function parseDependencies(source: string): string[] {
     .filter((x) => !!x);
 }
 
+// Convert string like "https://deno.land/std" to a string safe for filename.
+async function generateSafeFilename(pkg: string): Promise<string> {
+  const utf8Bytes = new TextEncoder().encode(pkg);
+  const sha256Bytes = await window.crypto.subtle.digest("SHA-256", utf8Bytes);
+  const fileName = Array.from(new Uint8Array(sha256Bytes), (byte) =>
+    byte.toString(16).padStart(2, "0")
+  ).join("");
+  return fileName;
+}
+
 const CodeEditor: React.VFC<CodeEditorProps> = function CodeEditor(props) {
   const {
     className,
@@ -33,6 +43,18 @@ const CodeEditor: React.VFC<CodeEditorProps> = function CodeEditor(props) {
     onChange,
     ...rest
   } = props;
+
+  const isWhitelistedPackage = useCallback(
+    (pkg: string) => {
+      return whitelistedPackages.some(
+        (allowedPkg) =>
+          pkg === allowedPkg ||
+          pkg.startsWith(allowedPkg + "@") || // versioned
+          pkg.startsWith(allowedPkg + "/") // latest
+      );
+    },
+    [whitelistedPackages]
+  );
 
   const monacoRef = useRef<Monaco>();
   const resolveImports = useCallback(
@@ -46,24 +68,21 @@ const CodeEditor: React.VFC<CodeEditorProps> = function CodeEditor(props) {
         return;
       }
 
-      function isWhitelistedPackage(pkg: string): boolean {
-        return whitelistedPackages.some(
-          (allowedPkg) =>
-            pkg === allowedPkg ||
-            pkg.startsWith(allowedPkg + "@") || // versioned
-            pkg.startsWith(allowedPkg + "/") // latest
-        );
-      }
-
       // We only resolve first-level imports to avoid performance issue
       for (const pkg of parseDependencies(value)) {
-        const path = `inmemory://model/${pkg}`;
-        const uri = monaco.Uri.file(path);
+        const fileName = await generateSafeFilename(pkg);
+        const path = `inmemory://model/${fileName}.d.ts`;
 
-        if (!monaco.editor.getModel(uri)) {
+        const extraLibs =
+          monaco.languages.typescript.typescriptDefaults.getExtraLibs();
+        const lib: (typeof extraLibs)[string] | undefined | null =
+          extraLibs[path];
+
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+        if (lib == null) {
           // Here we only use best-effort to import external script using `declare module` due to following limitations:
           // - `monaco-editor` cannot use vscode extensions e.g. "vscode-deno", so cannot use official solution for url imports
-          // -`--moduleResolution: bundle` in Typescript allows `.ts` extension but not yet supported in monaco-editor, thus path alis won't work.
+          // -`--moduleResolution: bundle` in Typescript allows `.ts` extension but not yet supported in monaco-editor, thus path alias won't work.
           const code = isWhitelistedPackage(pkg)
             ? await fetch(pkg).then(async (r) => r.text())
             : "";
@@ -71,11 +90,10 @@ const CodeEditor: React.VFC<CodeEditorProps> = function CodeEditor(props) {
             `declare module '${pkg}'` +
             (code && parseDependencies(code).length === 0 ? `{${code}}` : "");
           monaco.languages.typescript.typescriptDefaults.addExtraLib(dts, path);
-          monaco.editor.createModel(dts, "typescript", uri);
         }
       }
     },
-    [whitelistedPackages]
+    [isWhitelistedPackage]
   );
 
   const handleEditorMount = useCallback<OnMount>(

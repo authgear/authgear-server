@@ -164,6 +164,7 @@ func (h *AuthenticationFlowV1CreateHandler) makeSessionOptionsFromQuery(urlQuery
 		State:     q.Get("state"),
 		XState:    q.Get("x_state"),
 		UILocales: q.Get("ui_locales"),
+		LoginHint: q.Get("login_hint"),
 	}
 }
 

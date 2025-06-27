@@ -3,6 +3,7 @@ package declarative
 import (
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -39,6 +40,17 @@ func (n *NodeDoUseAuthenticatorPassword) MilestoneDidSelectAuthenticator() *auth
 }
 func (n *NodeDoUseAuthenticatorPassword) MilestoneDidAuthenticate() (amr []string) {
 	return n.Authenticator.AMR()
+}
+func (n *NodeDoUseAuthenticatorPassword) MilestoneDidAuthenticateAuthenticator() (*authenticator.Info, bool) {
+	return n.Authenticator, true
+}
+func (n *NodeDoUseAuthenticatorPassword) MilestoneDidAuthenticateAuthentication() (*model.Authentication, bool) {
+	authn := n.Authenticator.ToAuthentication()
+	authnModel := n.Authenticator.ToModel()
+	return &model.Authentication{
+		Authentication: authn,
+		Authenticator:  &authnModel,
+	}, true
 }
 func (n *NodeDoUseAuthenticatorPassword) MilestoneDidUseAuthenticationLockoutMethod() (config.AuthenticationLockoutMethod, bool) {
 	return config.AuthenticationLockoutMethodFromAuthenticatorType(n.Authenticator.Type)

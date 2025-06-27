@@ -7,6 +7,7 @@ import (
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
 	"github.com/authgear/authgear-server/pkg/api"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
@@ -49,6 +50,9 @@ type IntentLoginFlowStepAuthenticate struct {
 }
 
 var _ authflow.TargetStep = &IntentLoginFlowStepAuthenticate{}
+var _ authflow.Milestone = &IntentLoginFlowStepAuthenticate{}
+
+func (i *IntentLoginFlowStepAuthenticate) Milestone() {}
 
 func (i *IntentLoginFlowStepAuthenticate) GetName() string {
 	return i.StepName
@@ -85,8 +89,8 @@ func (i *IntentLoginFlowStepAuthenticate) GetChangeRequiredPasswordAuthenticator
 var _ authflow.Intent = &IntentLoginFlowStepAuthenticate{}
 var _ authflow.DataOutputer = &IntentLoginFlowStepAuthenticate{}
 
-func NewIntentLoginFlowStepAuthenticate(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, i *IntentLoginFlowStepAuthenticate) (*IntentLoginFlowStepAuthenticate, error) {
-	current, err := i.currentFlowObject(deps)
+func NewIntentLoginFlowStepAuthenticate(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, i *IntentLoginFlowStepAuthenticate, originNode authflow.NodeOrIntent) (*IntentLoginFlowStepAuthenticate, error) {
+	current, err := i.currentFlowObject(deps, flows, originNode)
 	if err != nil {
 		return nil, err
 	}
@@ -99,6 +103,7 @@ func NewIntentLoginFlowStepAuthenticate(ctx context.Context, deps *authflow.Depe
 
 	i.Options = options
 	i.DeviceTokenEnabled = deviceTokenEnabled
+
 	return i, nil
 }
 
@@ -107,11 +112,11 @@ func (*IntentLoginFlowStepAuthenticate) Kind() string {
 }
 
 func (i *IntentLoginFlowStepAuthenticate) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
-	flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+	flowRootObject, err := findNearestFlowObjectInFlow(deps, flows, i)
 	if err != nil {
 		return nil, err
 	}
-	current, err := i.currentFlowObject(deps)
+	current, err := i.currentFlowObject(deps, flows, i)
 	if err != nil {
 		return nil, err
 	}
@@ -135,7 +140,7 @@ func (i *IntentLoginFlowStepAuthenticate) CanReactTo(ctx context.Context, deps *
 
 	_, _, nestedStepsHandled := authflow.FindMilestoneInCurrentFlow[MilestoneNestedSteps](flows)
 
-	createAuthenticatorMilestones := authflow.FindAllMilestones[MilestoneFlowCreateAuthenticator](flows.Root)
+	_, _, authenticatorCreated := authflow.FindMilestoneInCurrentFlow[MilestoneFlowCreateAuthenticator](flows)
 
 	switch {
 	case i.DeviceTokenEnabled && !deviceTokenInspected:
@@ -148,10 +153,20 @@ func (i *IntentLoginFlowStepAuthenticate) CanReactTo(ctx context.Context, deps *
 				return nil, authflow.ErrEOF
 			}
 
-			if len(createAuthenticatorMilestones) > 0 {
+			if authenticatorCreated {
 				// Skip this step if the user has just created authenticator.
 				return nil, authflow.ErrEOF
 			}
+
+			shouldCreateAuthenticator, err := i.canCreateAuthenticator(ctx, step, deps)
+			if err != nil {
+				return nil, err
+			}
+			if shouldCreateAuthenticator {
+				return nil, nil
+			}
+
+			return nil, api.ErrNoAuthenticator
 		}
 
 		shouldBypassBotProtection := ShouldExistingResultBypassBotProtectionRequirement(ctx)
@@ -182,7 +197,7 @@ func (i *IntentLoginFlowStepAuthenticate) CanReactTo(ctx context.Context, deps *
 }
 
 func (i *IntentLoginFlowStepAuthenticate) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (authflow.ReactToResult, error) {
-	current, err := i.currentFlowObject(deps)
+	current, err := i.currentFlowObject(deps, flows, i)
 	if err != nil {
 		return nil, err
 	}
@@ -213,30 +228,30 @@ func (i *IntentLoginFlowStepAuthenticate) ReactTo(ctx context.Context, deps *aut
 		}), nil
 
 	case !authenticationMethodSelected:
+		if len(i.Options) == 0 {
+			shouldCreateAuthenticator, err := i.canCreateAuthenticator(ctx, step, deps)
+			if err != nil {
+				return nil, err
+			}
+
+			if shouldCreateAuthenticator {
+				nextStep := &IntentLoginFlowStepCreateAuthenticator{
+					FlowReference:          i.FlowReference,
+					StepName:               step.Name,
+					JSONPointer:            i.JSONPointer,
+					UserID:                 i.UserID,
+					IsUpdatingExistingUser: true,
+				}
+				return authflow.NewSubFlow(nextStep), nil
+			} else {
+				// Otherwise this step is NON-optional but have no options
+				return nil, api.ErrNoAuthenticator
+			}
+		}
+
 		var inputTakeAuthenticationMethod inputTakeAuthenticationMethod
 		if authflow.AsInput(input, &inputTakeAuthenticationMethod) {
 			authentication := inputTakeAuthenticationMethod.GetAuthenticationMethod()
-
-			if len(i.Options) == 0 {
-				shouldCreateAuthenticator, err := i.canCreateAuthenticator(ctx, step, deps)
-				if err != nil {
-					return nil, err
-				}
-
-				if shouldCreateAuthenticator {
-					nextStep := &IntentLoginFlowStepCreateAuthenticator{
-						FlowReference:          i.FlowReference,
-						StepName:               step.Name,
-						JSONPointer:            i.JSONPointer,
-						UserID:                 i.UserID,
-						IsUpdatingExistingUser: true,
-					}
-					return authflow.NewSubFlow(nextStep), nil
-				} else {
-					// Otherwise this step is NON-optional but have no options
-					return nil, api.ErrNoAuthenticator
-				}
-			}
 
 			idx, err := i.getIndex(step, authentication)
 			if err != nil {
@@ -244,46 +259,46 @@ func (i *IntentLoginFlowStepAuthenticate) ReactTo(ctx context.Context, deps *aut
 			}
 
 			switch authentication {
-			case config.AuthenticationFlowAuthenticationPrimaryPassword:
+			case model.AuthenticationFlowAuthenticationPrimaryPassword:
 				fallthrough
-			case config.AuthenticationFlowAuthenticationSecondaryPassword:
+			case model.AuthenticationFlowAuthenticationSecondaryPassword:
 				return authflow.NewSubFlow(&IntentUseAuthenticatorPassword{
 					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
 					UserID:         i.UserID,
 					Authentication: authentication,
 				}), nil
-			case config.AuthenticationFlowAuthenticationPrimaryPasskey:
+			case model.AuthenticationFlowAuthenticationPrimaryPasskey:
 				return authflow.NewSubFlow(&IntentUseAuthenticatorPasskey{
 					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
 					UserID:         i.UserID,
 					Authentication: authentication,
 				}), nil
-			case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
+			case model.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 				fallthrough
-			case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
+			case model.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
 				fallthrough
-			case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
+			case model.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
 				fallthrough
-			case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
+			case model.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
 				return authflow.NewSubFlow(&IntentUseAuthenticatorOOBOTP{
 					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
 					UserID:         i.UserID,
 					Authentication: authentication,
 					Options:        i.Options,
 				}), nil
-			case config.AuthenticationFlowAuthenticationSecondaryTOTP:
+			case model.AuthenticationFlowAuthenticationSecondaryTOTP:
 				return authflow.NewSubFlow(&IntentUseAuthenticatorTOTP{
 					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
 					UserID:         i.UserID,
 					Authentication: authentication,
 				}), nil
-			case config.AuthenticationFlowAuthenticationRecoveryCode:
+			case model.AuthenticationFlowAuthenticationRecoveryCode:
 				return authflow.NewSubFlow(&IntentUseRecoveryCode{
 					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
 					UserID:         i.UserID,
 					Authentication: authentication,
 				}), nil
-			case config.AuthenticationFlowAuthenticationDeviceToken:
+			case model.AuthenticationFlowAuthenticationDeviceToken:
 				// Device token is handled transparently.
 				return nil, authflow.ErrIncompatibleInput
 			}
@@ -321,7 +336,7 @@ func (i *IntentLoginFlowStepAuthenticate) OutputData(ctx context.Context, deps *
 	}), nil
 }
 
-func (i *IntentLoginFlowStepAuthenticate) getIndex(step *config.AuthenticationFlowLoginFlowStep, am config.AuthenticationFlowAuthentication) (idx int, err error) {
+func (i *IntentLoginFlowStepAuthenticate) getIndex(step *config.AuthenticationFlowLoginFlowStep, am model.AuthenticationFlowAuthentication) (idx int, err error) {
 	idx = -1
 
 	allAllowed := i.getAllAllowed(step)
@@ -343,9 +358,9 @@ func (i *IntentLoginFlowStepAuthenticate) getIndex(step *config.AuthenticationFl
 	return
 }
 
-func (*IntentLoginFlowStepAuthenticate) getAllAllowed(step *config.AuthenticationFlowLoginFlowStep) []config.AuthenticationFlowAuthentication {
+func (*IntentLoginFlowStepAuthenticate) getAllAllowed(step *config.AuthenticationFlowLoginFlowStep) []model.AuthenticationFlowAuthentication {
 	// Make empty slice.
-	allAllowed := []config.AuthenticationFlowAuthentication{}
+	allAllowed := []model.AuthenticationFlowAuthentication{}
 
 	for _, branch := range step.OneOf {
 		branch := branch
@@ -358,7 +373,7 @@ func (*IntentLoginFlowStepAuthenticate) getAllAllowed(step *config.Authenticatio
 func (i *IntentLoginFlowStepAuthenticate) deviceTokenIndex(step *config.AuthenticationFlowLoginFlowStep) int {
 	allAllowed := i.getAllAllowed(step)
 	for idx, am := range allAllowed {
-		if am == config.AuthenticationFlowAuthenticationDeviceToken {
+		if am == model.AuthenticationFlowAuthenticationDeviceToken {
 			return idx
 		}
 	}
@@ -384,8 +399,8 @@ func (i *IntentLoginFlowStepAuthenticate) canCreateAuthenticator(ctx context.Con
 	return false, nil
 }
 
-func (i *IntentLoginFlowStepAuthenticate) currentFlowObject(deps *authflow.Dependencies) (config.AuthenticationFlowObject, error) {
-	rootObject, err := flowRootObject(deps, i.FlowReference)
+func (i *IntentLoginFlowStepAuthenticate) currentFlowObject(deps *authflow.Dependencies, flows authflow.Flows, origin authflow.NodeOrIntent) (config.AuthenticationFlowObject, error) {
+	rootObject, err := findNearestFlowObjectInFlow(deps, flows, origin)
 	if err != nil {
 		return nil, err
 	}
@@ -396,7 +411,7 @@ func (i *IntentLoginFlowStepAuthenticate) currentFlowObject(deps *authflow.Depen
 	return current, nil
 }
 
-func (*IntentLoginFlowStepAuthenticate) step(o config.AuthenticationFlowObject) *config.AuthenticationFlowLoginFlowStep {
+func (i *IntentLoginFlowStepAuthenticate) step(o config.AuthenticationFlowObject) *config.AuthenticationFlowLoginFlowStep {
 	step, ok := o.(*config.AuthenticationFlowLoginFlowStep)
 	if !ok {
 		panic(fmt.Errorf("flow object is %T", o))
@@ -405,7 +420,7 @@ func (*IntentLoginFlowStepAuthenticate) step(o config.AuthenticationFlowObject) 
 	return step
 }
 
-func (*IntentLoginFlowStepAuthenticate) authenticationMethod(flows authflow.Flows) config.AuthenticationFlowAuthentication {
+func (*IntentLoginFlowStepAuthenticate) authenticationMethod(flows authflow.Flows) model.AuthenticationFlowAuthentication {
 	m, mFlows, ok := authflow.FindMilestoneInCurrentFlow[MilestoneFlowSelectAuthenticationMethod](flows)
 	if !ok {
 		panic(fmt.Errorf("authentication method not yet selected"))
@@ -419,7 +434,7 @@ func (*IntentLoginFlowStepAuthenticate) authenticationMethod(flows authflow.Flow
 	return mDidSelect.MilestoneDidSelectAuthenticationMethod()
 }
 
-func (i *IntentLoginFlowStepAuthenticate) jsonPointer(step *config.AuthenticationFlowLoginFlowStep, am config.AuthenticationFlowAuthentication) jsonpointer.T {
+func (i *IntentLoginFlowStepAuthenticate) jsonPointer(step *config.AuthenticationFlowLoginFlowStep, am model.AuthenticationFlowAuthentication) jsonpointer.T {
 	for idx, branch := range step.OneOf {
 		branch := branch
 		if branch.Authentication == am {

@@ -6,6 +6,7 @@ import (
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -38,25 +39,25 @@ func (i *InputSchemaSignupFlowStepCreateAuthenticator) SchemaBuilder() validatio
 		required := []string{"authentication"}
 		b.Properties().Property("authentication", validation.SchemaBuilder{}.Const(option.Authentication))
 		switch option.Authentication {
-		case config.AuthenticationFlowAuthenticationPrimaryPassword:
+		case model.AuthenticationFlowAuthenticationPrimaryPassword:
 			fallthrough
-		case config.AuthenticationFlowAuthenticationSecondaryPassword:
+		case model.AuthenticationFlowAuthenticationSecondaryPassword:
 			// Require new_password
 			required = append(required, "new_password")
 			b.Properties().Property("new_password", validation.SchemaBuilder{}.Type(validation.TypeString))
 			b.Required(required...)
 			oneOf = append(oneOf, b)
-		case config.AuthenticationFlowAuthenticationSecondaryTOTP:
+		case model.AuthenticationFlowAuthenticationSecondaryTOTP:
 			// No other property is required.
 			b.Required(required...)
 			oneOf = append(oneOf, b)
-		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
+		case model.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 			fallthrough
-		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
+		case model.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
 			fallthrough
-		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
+		case model.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
 			fallthrough
-		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
+		case model.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
 			if option.Target == nil {
 				// Then target is required
 				required = append(required, "target")
@@ -67,7 +68,7 @@ func (i *InputSchemaSignupFlowStepCreateAuthenticator) SchemaBuilder() validatio
 				b = AddBotProtectionToExistingSchemaBuilder(b, i.BotProtectionCfg)
 			}
 			oneOf = append(oneOf, b)
-		case config.AuthenticationFlowAuthenticationPrimaryPasskey:
+		case model.AuthenticationFlowAuthenticationPrimaryPasskey:
 			// Cannot create passkey in this step.
 			break
 		default:
@@ -88,9 +89,9 @@ func (i *InputSchemaSignupFlowStepCreateAuthenticator) MakeInput(ctx context.Con
 }
 
 type InputSignupFlowStepCreateAuthenticator struct {
-	Authentication config.AuthenticationFlowAuthentication `json:"authentication,omitempty"`
-	NewPassword    string                                  `json:"new_password,omitempty"`
-	Target         string                                  `json:"target,omitempty"`
+	Authentication model.AuthenticationFlowAuthentication `json:"authentication,omitempty"`
+	NewPassword    string                                 `json:"new_password,omitempty"`
+	Target         string                                 `json:"target,omitempty"`
 
 	BotProtection *InputTakeBotProtectionBody `json:"bot_protection,omitempty"`
 }
@@ -103,7 +104,7 @@ var _ inputTakeBotProtection = &InputSignupFlowStepCreateAuthenticator{}
 
 func (i *InputSignupFlowStepCreateAuthenticator) Input() {}
 
-func (i *InputSignupFlowStepCreateAuthenticator) GetAuthenticationMethod() config.AuthenticationFlowAuthentication {
+func (i *InputSignupFlowStepCreateAuthenticator) GetAuthenticationMethod() model.AuthenticationFlowAuthentication {
 	return i.Authentication
 }
 

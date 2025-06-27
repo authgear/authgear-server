@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -38,7 +39,7 @@ func (i *InputSchemaAccountLinkingIdentification) SchemaBuilder() validation.Sch
 		required := []string{"index"}
 		b.Properties().Property("index", validation.SchemaBuilder{}.Const(index))
 		switch option.Identifcation {
-		case config.AuthenticationFlowIdentificationOAuth:
+		case model.AuthenticationFlowIdentificationOAuth:
 			required = append(required, "redirect_uri")
 			b.Properties().Property("redirect_uri", validation.SchemaBuilder{}.Type(validation.TypeString).Format("uri"))
 			// response_mode is optional.

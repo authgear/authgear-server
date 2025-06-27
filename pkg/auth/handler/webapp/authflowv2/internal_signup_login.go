@@ -8,12 +8,12 @@ import (
 
 	"net/url"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	v2viewmodels "github.com/authgear/authgear-server/pkg/auth/handler/webapp/authflowv2/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/meter"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -138,7 +138,7 @@ func (h *InternalAuthflowV2SignupLoginHandler) ServeHTTP(w http.ResponseWriter, 
 
 		authflowViewModel := h.getAuthflowViewModel(s, screen, r)
 		result, err := h.Controller.UseOAuthIdentification(ctx, s, w, r, screen.Screen, providerAlias, authflowViewModel.IdentificationOptions, func(input map[string]interface{}) (result *webapp.Result, err error) {
-			err = handlerwebapp.HandleIdentificationBotProtection(ctx, config.AuthenticationFlowIdentificationOAuth, screen.StateTokenFlowResponse, r.Form, input)
+			err = handlerwebapp.HandleIdentificationBotProtection(ctx, model.AuthenticationFlowIdentificationOAuth, screen.StateTokenFlowResponse, r.Form, input)
 			if err != nil {
 				return nil, err
 			}
@@ -167,7 +167,7 @@ func (h *InternalAuthflowV2SignupLoginHandler) ServeHTTP(w http.ResponseWriter, 
 			"login_id":       loginID,
 		}
 
-		err = handlerwebapp.HandleIdentificationBotProtection(ctx, config.AuthenticationFlowIdentification(identification), screen.StateTokenFlowResponse, r.Form, input)
+		err = handlerwebapp.HandleIdentificationBotProtection(ctx, model.AuthenticationFlowIdentification(identification), screen.StateTokenFlowResponse, r.Form, input)
 		if err != nil {
 			return err
 		}
@@ -206,7 +206,7 @@ func (h *InternalAuthflowV2SignupLoginHandler) ServeHTTP(w http.ResponseWriter, 
 			"assertion_response": assertionResponseJSON,
 		}
 
-		err = handlerwebapp.HandleIdentificationBotProtection(ctx, config.AuthenticationFlowIdentificationPasskey, screen.StateTokenFlowResponse, r.Form, input)
+		err = handlerwebapp.HandleIdentificationBotProtection(ctx, model.AuthenticationFlowIdentificationPasskey, screen.StateTokenFlowResponse, r.Form, input)
 		if err != nil {
 			return err
 		}

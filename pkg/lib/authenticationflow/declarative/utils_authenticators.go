@@ -2,6 +2,7 @@ package declarative
 
 import (
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 )
 
@@ -68,4 +69,19 @@ func findTOTP(in []*authenticator.Info, kind model.AuthenticatorKind) *authentic
 		}
 	}
 	return nil
+}
+
+func collectAssertedAuthenticators(flows authenticationflow.Flows) (authenticators []model.Authenticator, err error) {
+	assertedAuthentications, err := collectAssertedAuthentications(flows)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, authn := range assertedAuthentications {
+		if authn.Authenticator != nil {
+			authenticators = append(authenticators, *authn.Authenticator)
+		}
+	}
+
+	return authenticators, nil
 }

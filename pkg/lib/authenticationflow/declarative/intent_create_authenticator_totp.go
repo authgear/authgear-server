@@ -11,7 +11,6 @@ import (
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/facade"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/secretcode"
@@ -38,10 +37,10 @@ var _ authflow.Data = IntentCreateAuthenticatorTOTPData{}
 func (m IntentCreateAuthenticatorTOTPData) Data() {}
 
 type IntentCreateAuthenticatorTOTP struct {
-	JSONPointer    jsonpointer.T                           `json:"json_pointer,omitempty"`
-	UserID         string                                  `json:"user_id,omitempty"`
-	Authentication config.AuthenticationFlowAuthentication `json:"authentication,omitempty"`
-	Authenticator  *authenticator.Info                     `json:"authenticator,omitempty"`
+	JSONPointer    jsonpointer.T                          `json:"json_pointer,omitempty"`
+	UserID         string                                 `json:"user_id,omitempty"`
+	Authentication model.AuthenticationFlowAuthentication `json:"authentication,omitempty"`
+	Authenticator  *authenticator.Info                    `json:"authenticator,omitempty"`
 }
 
 var _ authflow.Intent = &IntentCreateAuthenticatorTOTP{}
@@ -94,7 +93,7 @@ func (*IntentCreateAuthenticatorTOTP) MilestoneFlowCreateAuthenticator(flows aut
 func (n *IntentCreateAuthenticatorTOTP) MilestoneFlowSelectAuthenticationMethod(flows authflow.Flows) (MilestoneDidSelectAuthenticationMethod, authflow.Flows, bool) {
 	return n, flows, true
 }
-func (n *IntentCreateAuthenticatorTOTP) MilestoneDidSelectAuthenticationMethod() config.AuthenticationFlowAuthentication {
+func (n *IntentCreateAuthenticatorTOTP) MilestoneDidSelectAuthenticationMethod() model.AuthenticationFlowAuthentication {
 	return n.Authentication
 }
 
@@ -103,7 +102,7 @@ func (n *IntentCreateAuthenticatorTOTP) CanReactTo(ctx context.Context, deps *au
 	if created {
 		return nil, authflow.ErrEOF
 	}
-	flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+	flowRootObject, err := findNearestFlowObjectInFlow(deps, flows, n)
 	if err != nil {
 		return nil, err
 	}
@@ -167,7 +166,7 @@ func (n *IntentCreateAuthenticatorTOTP) OutputData(ctx context.Context, deps *au
 
 func (n *IntentCreateAuthenticatorTOTP) authenticatorKind() model.AuthenticatorKind {
 	switch n.Authentication {
-	case config.AuthenticationFlowAuthenticationSecondaryTOTP:
+	case model.AuthenticationFlowAuthenticationSecondaryTOTP:
 		return model.AuthenticatorKindSecondary
 	default:
 		panic(fmt.Errorf("unexpected authentication method: %v", n.Authentication))

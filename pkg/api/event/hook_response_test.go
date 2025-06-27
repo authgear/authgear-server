@@ -120,6 +120,63 @@ func TestParseHookResponse(t *testing.T) {
 			Reason:    "Reason",
 		})
 
+		pass(`{
+			"is_allowed": true,
+			"constraints": {
+				"amr": ["pwd", "otp"]
+			}
+		}`, &HookResponse{
+			IsAllowed: true,
+			Constraints: &Constraints{
+				AMR: []string{"pwd", "otp"},
+			},
+		})
+
+		pass(`{
+			"is_allowed": true,
+			"mutations": {
+				"user": {
+					"standard_attributes": {
+						"given_name": "johndoe"
+					}
+				}
+			},
+			"constraints": {
+				"amr": ["pwd"]
+			}
+		}`, &HookResponse{
+			IsAllowed: true,
+			Mutations: Mutations{
+				User: UserMutations{
+					StandardAttributes: map[string]interface{}{
+						"given_name": "johndoe",
+					},
+				},
+			},
+			Constraints: &Constraints{
+				AMR: []string{"pwd"},
+			},
+		})
+
+		pass(`{
+			"is_allowed": true,
+			"bot_protection": {
+				"mode": "always"
+			}
+		}`, &HookResponse{
+			IsAllowed: true,
+			BotProtection: &BotProtectionRequirements{
+				Mode: "always",
+			},
+		})
+
+		fail(`{
+			"is_allowed": true,
+			"constraints": {
+				"amr": "not an array"
+			}
+		}`)
+
 		fail(`{
 			"is_allowed": true,
 			"mutations": {

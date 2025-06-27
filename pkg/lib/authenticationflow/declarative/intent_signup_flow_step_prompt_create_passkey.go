@@ -8,7 +8,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 func init() {
@@ -41,9 +40,10 @@ func (i *IntentSignupFlowStepPromptCreatePasskey) MilestoneSwitchToExistingUser(
 
 	milestoneDoCreateAuthenticator, _, ok := authflow.FindMilestoneInCurrentFlow[MilestoneDoCreateAuthenticator](flows)
 	if ok {
-		authn := milestoneDoCreateAuthenticator.MilestoneDoCreateAuthenticator()
-		milestoneDoCreateAuthenticator.MilestoneDoCreateAuthenticatorUpdate(authn.UpdateUserID(newUserID))
-
+		authn, ok := milestoneDoCreateAuthenticator.MilestoneDoCreateAuthenticator()
+		if ok {
+			milestoneDoCreateAuthenticator.MilestoneDoCreateAuthenticatorUpdate(authn.UpdateUserID(newUserID))
+		}
 	}
 
 	return nil
@@ -65,7 +65,7 @@ func (i *IntentSignupFlowStepPromptCreatePasskey) ReactTo(ctx context.Context, d
 	for _, m := range milestones {
 		i := m.MilestoneIdentificationMethod()
 		for _, a := range i.PrimaryAuthentications() {
-			if a == config.AuthenticationFlowAuthenticationPrimaryPasskey {
+			if a == model.AuthenticationFlowAuthenticationPrimaryPasskey {
 				passkeyCanBeUsed = true
 			}
 		}

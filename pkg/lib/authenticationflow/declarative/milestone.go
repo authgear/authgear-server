@@ -2,16 +2,17 @@ package declarative
 
 import (
 	"context"
-	"sort"
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
+	"github.com/authgear/authgear-server/pkg/api/event"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
-	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
 func getUserID(flows authflow.Flows) (userID string, err error) {
@@ -47,31 +48,6 @@ func getUserID(flows authflow.Flows) (userID string, err error) {
 	if err != nil {
 		return
 	}
-
-	return
-}
-
-func collectAMR(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (amr []string, err error) {
-	err = authflow.TraverseFlow(authflow.Traverser{
-		NodeSimple: func(nodeSimple authflow.NodeSimple, w *authflow.Flow) error {
-			if n, ok := nodeSimple.(MilestoneDidAuthenticate); ok {
-				amr = append(amr, n.MilestoneDidAuthenticate()...)
-			}
-			return nil
-		},
-		Intent: func(intent authflow.Intent, w *authflow.Flow) error {
-			if i, ok := intent.(MilestoneDidAuthenticate); ok {
-				amr = append(amr, i.MilestoneDidAuthenticate()...)
-			}
-			return nil
-		},
-	}, flows.Root)
-	if err != nil {
-		return
-	}
-
-	amr = slice.Deduplicate(amr)
-	sort.Strings(amr)
 
 	return
 }
@@ -132,7 +108,7 @@ type MilestoneNestedSteps interface {
 
 type MilestoneIdentificationMethod interface {
 	authflow.Milestone
-	MilestoneIdentificationMethod() config.AuthenticationFlowIdentification
+	MilestoneIdentificationMethod() model.AuthenticationFlowIdentification
 }
 
 type MilestoneFlowSelectAuthenticationMethod interface {
@@ -142,7 +118,7 @@ type MilestoneFlowSelectAuthenticationMethod interface {
 
 type MilestoneDidSelectAuthenticationMethod interface {
 	authflow.Milestone
-	MilestoneDidSelectAuthenticationMethod() config.AuthenticationFlowAuthentication
+	MilestoneDidSelectAuthenticationMethod() model.AuthenticationFlowAuthentication
 }
 
 type MilestoneFlowAuthenticate interface {
@@ -153,6 +129,8 @@ type MilestoneFlowAuthenticate interface {
 type MilestoneDidAuthenticate interface {
 	authflow.Milestone
 	MilestoneDidAuthenticate() (amr []string)
+	MilestoneDidAuthenticateAuthenticator() (*authenticator.Info, bool)
+	MilestoneDidAuthenticateAuthentication() (*model.Authentication, bool)
 }
 
 type MilestoneDoCreateSession interface {
@@ -180,6 +158,7 @@ type MilestoneFlowAccountLinking interface {
 type MilestoneDoCreateIdentity interface {
 	authflow.Milestone
 	MilestoneDoCreateIdentity() *identity.Info
+	MilestoneDoCreateIdentityIdentification() model.Identification
 	MilestoneDoCreateIdentitySkipCreate()
 	MilestoneDoCreateIdentityUpdate(newInfo *identity.Info)
 }
@@ -191,7 +170,8 @@ type MilestoneFlowCreateAuthenticator interface {
 
 type MilestoneDoCreateAuthenticator interface {
 	authflow.Milestone
-	MilestoneDoCreateAuthenticator() *authenticator.Info
+	MilestoneDoCreateAuthenticator() (*authenticator.Info, bool)
+	MilestoneDoCreateAuthenticatorAuthentication() (*model.Authentication, bool)
 	MilestoneDoCreateAuthenticatorSkipCreate()
 	MilestoneDoCreateAuthenticatorUpdate(newInfo *authenticator.Info)
 }
@@ -214,6 +194,7 @@ type MilestoneFlowUseIdentity interface {
 type MilestoneDoUseIdentity interface {
 	authflow.Milestone
 	MilestoneDoUseIdentity() *identity.Info
+	MilestoneDoUseIdentityIdentification() model.Identification
 }
 
 type MilestoneDoUseAccountRecoveryIdentity interface {
@@ -326,4 +307,29 @@ type MilestoneCheckLoginHint interface {
 type MilestoneGetIdentitySpecs interface {
 	authflow.Milestone
 	MilestoneGetIdentitySpecs() []*identity.Spec
+}
+
+type MilestoneConstraintsProvider interface {
+	authflow.Milestone
+	MilestoneConstraintsProvider() *event.Constraints
+}
+
+type MilestoneBotProjectionRequirementsProvider interface {
+	authflow.Milestone
+	MilestoneBotProjectionRequirementsProvider() *event.BotProtectionRequirements
+}
+
+type MilestoneDidConsumeRecoveryCode interface {
+	authflow.Milestone
+	MilestoneDidConsumeRecoveryCode() *mfa.RecoveryCode
+}
+
+type MilestoneAuthenticationFlowObjectProvider interface {
+	authflow.Milestone
+	MilestoneAuthenticationFlowObjectProvider() config.AuthenticationFlowObject
+}
+
+type MilestonePreAuthenticated interface {
+	authflow.Milestone
+	MilestonePreAuthenticated()
 }

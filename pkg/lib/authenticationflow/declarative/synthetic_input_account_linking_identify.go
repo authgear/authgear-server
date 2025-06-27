@@ -1,12 +1,10 @@
 package declarative
 
-import (
-	"github.com/authgear/authgear-server/pkg/lib/config"
-)
+import "github.com/authgear/authgear-server/pkg/api/model"
 
 // This input is for advancing the login flow with the conflicted existing identity
 type SyntheticInputAccountLinkingIdentify struct {
-	Identification config.AuthenticationFlowIdentification
+	Identification model.AuthenticationFlowIdentification
 
 	// For identification=email/phone/username
 	LoginID string
@@ -23,7 +21,7 @@ func (i *SyntheticInputAccountLinkingIdentify) GetLoginID() string {
 }
 
 // GetIdentificationMethod implements inputTakeIdentificationMethod.
-func (i *SyntheticInputAccountLinkingIdentify) GetIdentificationMethod() config.AuthenticationFlowIdentification {
+func (i *SyntheticInputAccountLinkingIdentify) GetIdentificationMethod() model.AuthenticationFlowIdentification {
 	return i.Identification
 }
 

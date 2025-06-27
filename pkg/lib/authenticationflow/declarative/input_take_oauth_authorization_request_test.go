@@ -6,7 +6,7 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
-	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/wechat"
 )
 
@@ -22,11 +22,11 @@ func TestInputSchemaTakeOAuthAuthorizationRequest(t *testing.T) {
 		test(&InputSchemaTakeOAuthAuthorizationRequest{
 			OAuthOptions: []IdentificationOption{
 				{
-					Identification: config.AuthenticationFlowIdentificationOAuth,
+					Identification: model.AuthenticationFlowIdentificationOAuth,
 					Alias:          "google",
 				},
 				{
-					Identification: config.AuthenticationFlowIdentificationOAuth,
+					Identification: model.AuthenticationFlowIdentificationOAuth,
 					Alias:          "wechat_mobile",
 					WechatAppType:  wechat.AppTypeMobile,
 				},

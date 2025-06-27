@@ -35,14 +35,12 @@ func (e *UserProfilePreUpdateBlockingEventPayload) GetTriggeredBy() event.Trigge
 func (e *UserProfilePreUpdateBlockingEventPayload) FillContext(ctx *event.Context) {
 }
 
-func (e *UserProfilePreUpdateBlockingEventPayload) ApplyMutations(ctx context.Context, mutations event.Mutations) bool {
-	user, mutated := ApplyUserMutations(e.UserModel, mutations.User)
+func (e *UserProfilePreUpdateBlockingEventPayload) ApplyHookResponse(ctx context.Context, response event.HookResponse) event.ApplyHookResponseResult {
+	user, mutated := ApplyUserMutations(e.UserModel, response.Mutations.User)
 	if mutated {
 		e.UserModel = user
-		return true
 	}
-
-	return false
+	return event.ApplyHookResponseResult{MutationsEverApplied: mutated}
 }
 
 func (e *UserProfilePreUpdateBlockingEventPayload) PerformEffects(ctx context.Context, effectCtx event.MutationsEffectContext) error {

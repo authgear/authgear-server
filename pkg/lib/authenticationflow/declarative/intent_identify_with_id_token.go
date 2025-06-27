@@ -5,8 +5,8 @@ import (
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 func init() {
@@ -14,9 +14,9 @@ func init() {
 }
 
 type IntentIdentifyWithIDToken struct {
-	JSONPointer      jsonpointer.T                           `json:"json_pointer,omitempty"`
-	Identification   config.AuthenticationFlowIdentification `json:"identification,omitempty"`
-	PrefilledIDToken string                                  `json:"id_token,omitempty"`
+	JSONPointer      jsonpointer.T                          `json:"json_pointer,omitempty"`
+	Identification   model.AuthenticationFlowIdentification `json:"identification,omitempty"`
+	PrefilledIDToken string                                 `json:"id_token,omitempty"`
 }
 
 var _ authflow.Intent = &IntentIdentifyWithIDToken{}
@@ -30,7 +30,7 @@ func (*IntentIdentifyWithIDToken) Kind() string {
 }
 
 func (*IntentIdentifyWithIDToken) Milestone() {}
-func (n *IntentIdentifyWithIDToken) MilestoneIdentificationMethod() config.AuthenticationFlowIdentification {
+func (n *IntentIdentifyWithIDToken) MilestoneIdentificationMethod() model.AuthenticationFlowIdentification {
 	return n.Identification
 }
 func (*IntentIdentifyWithIDToken) MilestoneFlowUseIdentity(flows authflow.Flows) (MilestoneDoUseIdentity, authflow.Flows, bool) {
@@ -43,7 +43,7 @@ func (n *IntentIdentifyWithIDToken) CanReactTo(ctx context.Context, deps *authfl
 	if userIdentified {
 		return nil, authflow.ErrEOF
 	}
-	flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+	flowRootObject, err := findNearestFlowObjectInFlow(deps, flows, n)
 	if err != nil {
 		return nil, err
 	}
@@ -61,15 +61,10 @@ func (n *IntentIdentifyWithIDToken) CanReactTo(ctx context.Context, deps *authfl
 }
 
 func (n *IntentIdentifyWithIDToken) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (authflow.ReactToResult, error) {
-	proceed := func(idToken string) (*authflow.Node, error) {
-		n, err := NewNodeDoUseIDToken(ctx, deps, flows, &NodeDoUseIDToken{
+	proceed := func(idToken string) (authflow.ReactToResult, error) {
+		return NewNodeDoUseIDToken(ctx, deps, flows, &NodeDoUseIDToken{
 			IDToken: idToken,
 		})
-		if err != nil {
-			return nil, err
-		}
-
-		return authflow.NewNodeSimple(n), nil
 	}
 
 	switch {

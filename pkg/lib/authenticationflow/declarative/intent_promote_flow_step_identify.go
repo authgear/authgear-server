@@ -83,8 +83,8 @@ func (n *IntentPromoteFlowStepIdentify) IsSkipped() bool {
 var _ authflow.Intent = &IntentPromoteFlowStepIdentify{}
 var _ authflow.DataOutputer = &IntentPromoteFlowStepIdentify{}
 
-func NewIntentPromoteFlowStepIdentify(ctx context.Context, deps *authflow.Dependencies, i *IntentPromoteFlowStepIdentify) (*IntentPromoteFlowStepIdentify, error) {
-	current, err := i.currentFlowObject(deps)
+func NewIntentPromoteFlowStepIdentify(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, i *IntentPromoteFlowStepIdentify, originNode authflow.NodeOrIntent) (*IntentPromoteFlowStepIdentify, error) {
+	current, err := i.currentFlowObject(deps, flows, originNode)
 	if err != nil {
 		return nil, err
 	}
@@ -93,15 +93,16 @@ func NewIntentPromoteFlowStepIdentify(ctx context.Context, deps *authflow.Depend
 	options := []IdentificationOption{}
 	for _, b := range step.OneOf {
 		switch b.Identification {
-		case config.AuthenticationFlowIdentificationEmail:
+		case model.AuthenticationFlowIdentificationEmail:
 			fallthrough
-		case config.AuthenticationFlowIdentificationPhone:
+		case model.AuthenticationFlowIdentificationPhone:
 			fallthrough
-		case config.AuthenticationFlowIdentificationUsername:
-			c := NewIdentificationOptionLoginID(b.Identification, b.BotProtection, deps.Config.BotProtection)
+		case model.AuthenticationFlowIdentificationUsername:
+			c := NewIdentificationOptionLoginID(flows, b.Identification, b.BotProtection, deps.Config.BotProtection)
 			options = append(options, c)
-		case config.AuthenticationFlowIdentificationOAuth:
+		case model.AuthenticationFlowIdentificationOAuth:
 			oauthOptions := NewIdentificationOptionsOAuth(
+				flows,
 				deps.Config.Identity.OAuth,
 				deps.FeatureConfig.Identity.OAuth.Providers,
 				b.BotProtection,
@@ -109,7 +110,7 @@ func NewIntentPromoteFlowStepIdentify(ctx context.Context, deps *authflow.Depend
 				deps.SSOOAuthDemoCredentials,
 			)
 			options = append(options, oauthOptions...)
-		case config.AuthenticationFlowIdentificationPasskey:
+		case model.AuthenticationFlowIdentificationPasskey:
 			// Do not support create passkey in signup because
 			// passkey is not considered as a persistent identifier.
 			break
@@ -127,7 +128,7 @@ func (*IntentPromoteFlowStepIdentify) Kind() string {
 func (i *IntentPromoteFlowStepIdentify) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
 	// Let the input to select which identification method to use.
 	if len(flows.Nearest.Nodes) == 0 {
-		flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+		flowRootObject, err := findNearestFlowObjectInFlow(deps, flows, i)
 		if err != nil {
 			return nil, err
 		}
@@ -158,7 +159,7 @@ func (i *IntentPromoteFlowStepIdentify) CanReactTo(ctx context.Context, deps *au
 }
 
 func (i *IntentPromoteFlowStepIdentify) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (authflow.ReactToResult, error) {
-	current, err := i.currentFlowObject(deps)
+	current, err := i.currentFlowObject(deps, flows, i)
 	if err != nil {
 		return nil, err
 	}
@@ -180,25 +181,25 @@ func (i *IntentPromoteFlowStepIdentify) ReactTo(ctx context.Context, deps *authf
 			}
 
 			switch identification {
-			case config.AuthenticationFlowIdentificationEmail:
+			case model.AuthenticationFlowIdentificationEmail:
 				fallthrough
-			case config.AuthenticationFlowIdentificationPhone:
+			case model.AuthenticationFlowIdentificationPhone:
 				fallthrough
-			case config.AuthenticationFlowIdentificationUsername:
+			case model.AuthenticationFlowIdentificationUsername:
 				return authflow.NewSubFlow(&IntentPromoteIdentityLoginID{
 					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
 					UserID:         i.UserID,
 					Identification: identification,
 					SyntheticInput: syntheticInput,
 				}), nil
-			case config.AuthenticationFlowIdentificationOAuth:
+			case model.AuthenticationFlowIdentificationOAuth:
 				return authflow.NewSubFlow(&IntentPromoteIdentityOAuth{
 					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
 					UserID:         i.UserID,
 					Identification: identification,
 					SyntheticInput: syntheticInput,
 				}), nil
-			case config.AuthenticationFlowIdentificationPasskey:
+			case model.AuthenticationFlowIdentificationPasskey:
 				// Cannot create passkey in this step.
 				return nil, authflow.ErrIncompatibleInput
 			}
@@ -242,7 +243,7 @@ func (*IntentPromoteFlowStepIdentify) step(o config.AuthenticationFlowObject) *c
 	return step
 }
 
-func (*IntentPromoteFlowStepIdentify) checkIdentificationMethod(deps *authflow.Dependencies, step *config.AuthenticationFlowSignupFlowStep, im config.AuthenticationFlowIdentification) (idx int, err error) {
+func (*IntentPromoteFlowStepIdentify) checkIdentificationMethod(deps *authflow.Dependencies, step *config.AuthenticationFlowSignupFlowStep, im model.AuthenticationFlowIdentification) (idx int, err error) {
 	idx = -1
 
 	for index, branch := range step.OneOf {
@@ -260,7 +261,7 @@ func (*IntentPromoteFlowStepIdentify) checkIdentificationMethod(deps *authflow.D
 	return
 }
 
-func (*IntentPromoteFlowStepIdentify) identificationMethod(flows authflow.Flows) config.AuthenticationFlowIdentification {
+func (*IntentPromoteFlowStepIdentify) identificationMethod(flows authflow.Flows) model.AuthenticationFlowIdentification {
 	m, _, ok := authflow.FindMilestoneInCurrentFlow[MilestoneIdentificationMethod](flows)
 	if !ok {
 		panic(fmt.Errorf("identification method not yet selected"))
@@ -271,7 +272,7 @@ func (*IntentPromoteFlowStepIdentify) identificationMethod(flows authflow.Flows)
 	return im
 }
 
-func (i *IntentPromoteFlowStepIdentify) jsonPointer(step *config.AuthenticationFlowSignupFlowStep, im config.AuthenticationFlowIdentification) jsonpointer.T {
+func (i *IntentPromoteFlowStepIdentify) jsonPointer(step *config.AuthenticationFlowSignupFlowStep, im model.AuthenticationFlowIdentification) jsonpointer.T {
 	for idx, branch := range step.OneOf {
 		branch := branch
 		if branch.Identification == im {
@@ -297,8 +298,8 @@ func (*IntentPromoteFlowStepIdentify) identityInfo(flows authflow.Flows) *identi
 	return info
 }
 
-func (i *IntentPromoteFlowStepIdentify) currentFlowObject(deps *authflow.Dependencies) (config.AuthenticationFlowObject, error) {
-	rootObject, err := flowRootObject(deps, i.FlowReference)
+func (i *IntentPromoteFlowStepIdentify) currentFlowObject(deps *authflow.Dependencies, flows authflow.Flows, originNode authflow.NodeOrIntent) (config.AuthenticationFlowObject, error) {
+	rootObject, err := findNearestFlowObjectInFlow(deps, flows, originNode)
 	if err != nil {
 		return nil, err
 	}
