@@ -186,7 +186,7 @@ func TestGCRA(t *testing.T) {
 
 				// Now act with n=1 should be accepted
 				{time: "5s", n: 1, ok: true, timeToAct: 7},
-				// Try agin with n=1 should be blocked
+				// Try again with n=1 should be blocked
 				{time: "5s", n: 1, ok: false, timeToAct: 7},
 			},
 		})
