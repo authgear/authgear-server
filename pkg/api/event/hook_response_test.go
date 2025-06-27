@@ -5,8 +5,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	. "github.com/smartystreets/goconvey/convey"
+
+	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 )
 
 func TestParseHookResponse(t *testing.T) {

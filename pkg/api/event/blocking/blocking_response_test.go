@@ -5,8 +5,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/authgear/authgear-server/pkg/api/event"
 	. "github.com/smartystreets/goconvey/convey"
+
+	"github.com/authgear/authgear-server/pkg/api/event"
 )
 
 func TestBlockingHookResponse(t *testing.T) {
