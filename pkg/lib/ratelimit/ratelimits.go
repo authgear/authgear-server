@@ -1,6 +1,7 @@
 package ratelimit
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -260,18 +261,6 @@ type ResolveBucketSpecOptions struct {
 	Target    string
 }
 
-func selectByChannel[T any](channel model.AuthenticatorOOBChannel, email T, sms T, whatsapp T) T {
-	switch channel {
-	case model.AuthenticatorOOBChannelEmail:
-		return email
-	case model.AuthenticatorOOBChannelSMS:
-		return sms
-	case model.AuthenticatorOOBChannelWhatsapp:
-		return whatsapp
-	}
-	panic(fmt.Errorf("invalid channel"))
-}
-
 func (r RateLimit) ResolveBucketSpecs(
 	cfg *config.AppConfig,
 	featureCfg *config.FeatureConfig,
@@ -525,4 +514,63 @@ func (r RateLimit) ResolveBucketSpecs(
 	}
 
 	return specs
+}
+
+func (r RateLimit) ResolveWeight(
+	ctx context.Context,
+) float64 {
+	var defaultWeight float64 = 1
+	weights := getRateLimitWeights(ctx)
+	if weights == nil {
+		return defaultWeight
+	}
+	resolveWeight := func(selfWeightKey RateLimit, fallbackKey RateLimit) float64 {
+		if selfWeight, ok := weights[selfWeightKey]; ok {
+			return selfWeight
+		}
+
+		if fallbackKey != "" {
+			if fallbackWeight, ok := weights[fallbackKey]; ok {
+				return fallbackWeight
+			}
+		}
+
+		return defaultWeight
+	}
+
+	var weight float64 = 1
+	switch r {
+	case "":
+		// Handle unspecified rate limits
+		return defaultWeight
+	case RateLimitAuthenticationPassword,
+		RateLimitAuthenticationOOBOTPEmailValidate,
+		RateLimitAuthenticationOOBOTPSMSValidate,
+		RateLimitAuthenticationTOTP,
+		RateLimitAuthenticationRecoveryCode,
+		RateLimitAuthenticationDeviceToken,
+		RateLimitAuthenticationPasskey,
+		RateLimitAuthenticationSIWE:
+		weight = resolveWeight(r, RateLimitAuthenticationGeneral)
+	default:
+		weight = resolveWeight(r, "")
+	}
+
+	if weight < 0 {
+		weight = 0
+	}
+	// Weight can never be < 0
+	return weight
+}
+
+func selectByChannel[T any](channel model.AuthenticatorOOBChannel, email T, sms T, whatsapp T) T {
+	switch channel {
+	case model.AuthenticatorOOBChannelEmail:
+		return email
+	case model.AuthenticatorOOBChannelSMS:
+		return sms
+	case model.AuthenticatorOOBChannelWhatsapp:
+		return whatsapp
+	}
+	panic(fmt.Errorf("invalid channel"))
 }

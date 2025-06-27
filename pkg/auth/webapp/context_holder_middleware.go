@@ -3,6 +3,7 @@ package webapp
 import (
 	"net/http"
 
+	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -25,6 +26,7 @@ func (m *ContextHolderMiddleware) Handle(next http.Handler) http.Handler {
 		var emptyUIParamContext uiparam.T
 		ctx := httputil.WithCSPNonce(r.Context(), "")
 		ctx = uiparam.WithUIParam(ctx, &emptyUIParamContext)
+		ctx = ratelimit.WithRateLimitWeights(ctx)
 		r = r.WithContext(ctx)
 		next.ServeHTTP(w, r)
 	})

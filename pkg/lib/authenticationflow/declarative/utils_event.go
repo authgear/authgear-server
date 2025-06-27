@@ -8,6 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
+	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 )
 
@@ -148,4 +149,16 @@ func IsPreAuthenticatedTriggered(flows authenticationflow.Flows) (triggered bool
 		},
 	}, flows.Root)
 	return
+}
+
+func toRateLimitWeights(eventratelimits event.RateLimits) ratelimit.Weights {
+	if eventratelimits == nil {
+		return nil
+	}
+
+	weights := ratelimit.Weights{}
+	for rl, rlRequirements := range eventratelimits {
+		weights[rl] = rlRequirements.Weight
+	}
+	return weights
 }
