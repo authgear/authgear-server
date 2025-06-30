@@ -3,6 +3,7 @@ package ratelimit
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -108,6 +109,49 @@ func TestRateLimits(t *testing.T) {
 					Enabled:   true,
 					Period:    config.DurationString("4m").Duration(),
 					Burst:     4,
+				}})
+			})
+			Convey("disabled in config should not fallback", func() {
+				cfg, err := config.Parse(ctx, []byte(`
+          id: test
+          http:
+            public_origin: http://test
+          authentication:
+            rate_limits:
+              password:
+                per_ip:
+                  enabled: false
+                per_user_per_ip:
+                  enabled: false
+              general:
+                per_ip:
+                  burst: 3
+                  enabled: true
+                  period: 3m
+                per_user_per_ip:
+                  burst: 4
+                  enabled: true
+                  period: 4m
+        `))
+				So(err, ShouldBeNil)
+				specs := rl.ResolveBucketSpecs(cfg, nil, nil, &ResolveBucketSpecOptions{
+					UserID:    userID,
+					IPAddress: ipAddress,
+				})
+				So(specs, ShouldResemble, []*BucketSpec{{
+					Name:      VerifyPasswordPerIP,
+					Arguments: []string{ipAddress},
+					IsGlobal:  false,
+					Enabled:   false,
+					Period:    time.Duration(0),
+					Burst:     0,
+				}, {
+					Name:      VerifyPasswordPerUserPerIP,
+					Arguments: []string{userID, ipAddress},
+					IsGlobal:  false,
+					Enabled:   false,
+					Period:    time.Duration(0),
+					Burst:     0,
 				}})
 			})
 		})
@@ -253,6 +297,53 @@ func TestRateLimits(t *testing.T) {
 					Burst:     4,
 				}})
 			})
+			Convey("disabled in config should not fallback", func() {
+				cfg, err := config.Parse(ctx, []byte(`
+          id: test
+          http:
+            public_origin: http://test
+          authentication:
+            rate_limits:
+              oob_otp:
+                email:
+                  validate_per_ip:
+                    enabled: false
+                  validate_per_user_per_ip:
+                    enabled: false
+              general:
+                per_ip:
+                  burst: 3
+                  enabled: true
+                  period: 3m
+                per_user_per_ip:
+                  burst: 4
+                  enabled: true
+                  period: 4m
+        `))
+				So(err, ShouldBeNil)
+				specs := rl.ResolveBucketSpecs(cfg, nil, nil, &ResolveBucketSpecOptions{
+					UserID:    userID,
+					IPAddress: ipAddress,
+					Target:    target,
+					Purpose:   purpose,
+					Channel:   model.AuthenticatorOOBChannelEmail,
+				})
+				So(specs, ShouldResemble, []*BucketSpec{{
+					Name:      OOBOTPValidateEmailPerIP,
+					Arguments: []string{purpose, ipAddress},
+					IsGlobal:  false,
+					Enabled:   false,
+					Period:    time.Duration(0),
+					Burst:     0,
+				}, {
+					Name:      OOBOTPValidateEmailPerUserPerIP,
+					Arguments: []string{userID, ipAddress, purpose},
+					IsGlobal:  false,
+					Enabled:   false,
+					Period:    time.Duration(0),
+					Burst:     0,
+				}})
+			})
 		})
 
 		Convey("authentication.oob_otp.sms.trigger", func() {
@@ -396,6 +487,53 @@ func TestRateLimits(t *testing.T) {
 					Burst:     4,
 				}})
 			})
+			Convey("disabled in config should not fallback", func() {
+				cfg, err := config.Parse(ctx, []byte(`
+          id: test
+          http:
+            public_origin: http://test
+          authentication:
+            rate_limits:
+              oob_otp:
+                sms:
+                  validate_per_ip:
+                    enabled: false
+                  validate_per_user_per_ip:
+                    enabled: false
+              general:
+                per_ip:
+                  burst: 3
+                  enabled: true
+                  period: 3m
+                per_user_per_ip:
+                  burst: 4
+                  enabled: true
+                  period: 4m
+        `))
+				So(err, ShouldBeNil)
+				specs := rl.ResolveBucketSpecs(cfg, nil, nil, &ResolveBucketSpecOptions{
+					UserID:    userID,
+					IPAddress: ipAddress,
+					Target:    phone,
+					Purpose:   purpose,
+					Channel:   model.AuthenticatorOOBChannelSMS,
+				})
+				So(specs, ShouldResemble, []*BucketSpec{{
+					Name:      OOBOTPValidateSMSPerIP,
+					Arguments: []string{purpose, ipAddress},
+					IsGlobal:  false,
+					Enabled:   false,
+					Period:    time.Duration(0),
+					Burst:     0,
+				}, {
+					Name:      OOBOTPValidateSMSPerUserPerIP,
+					Arguments: []string{userID, ipAddress, purpose},
+					IsGlobal:  false,
+					Enabled:   false,
+					Period:    time.Duration(0),
+					Burst:     0,
+				}})
+			})
 		})
 
 		Convey("authentication.totp", func() {
@@ -484,6 +622,49 @@ func TestRateLimits(t *testing.T) {
 					Enabled:   true,
 					Period:    config.DurationString("4m").Duration(),
 					Burst:     4,
+				}})
+			})
+			Convey("disabled in config should not fallback", func() {
+				cfg, err := config.Parse(ctx, []byte(`
+          id: test
+          http:
+            public_origin: http://test
+          authentication:
+            rate_limits:
+              totp:
+                per_ip:
+                  enabled: false
+                per_user_per_ip:
+                  enabled: false
+              general:
+                per_ip:
+                  burst: 3
+                  enabled: true
+                  period: 3m
+                per_user_per_ip:
+                  burst: 4
+                  enabled: true
+                  period: 4m
+        `))
+				So(err, ShouldBeNil)
+				specs := rl.ResolveBucketSpecs(cfg, nil, nil, &ResolveBucketSpecOptions{
+					UserID:    userID,
+					IPAddress: ipAddress,
+				})
+				So(specs, ShouldResemble, []*BucketSpec{{
+					Name:      VerifyTOTPPerIP,
+					Arguments: []string{ipAddress},
+					IsGlobal:  false,
+					Enabled:   false,
+					Period:    time.Duration(0),
+					Burst:     0,
+				}, {
+					Name:      VerifyTOTPPerUserPerIP,
+					Arguments: []string{userID, ipAddress},
+					IsGlobal:  false,
+					Enabled:   false,
+					Period:    time.Duration(0),
+					Burst:     0,
 				}})
 			})
 		})
@@ -576,6 +757,49 @@ func TestRateLimits(t *testing.T) {
 					Burst:     4,
 				}})
 			})
+			Convey("disabled in config should not fallback", func() {
+				cfg, err := config.Parse(ctx, []byte(`
+          id: test
+          http:
+            public_origin: http://test
+          authentication:
+            rate_limits:
+              recovery_code:
+                per_ip:
+                  enabled: false
+                per_user_per_ip:
+                  enabled: false
+              general:
+                per_ip:
+                  burst: 3
+                  enabled: true
+                  period: 3m
+                per_user_per_ip:
+                  burst: 4
+                  enabled: true
+                  period: 4m
+        `))
+				So(err, ShouldBeNil)
+				specs := rl.ResolveBucketSpecs(cfg, nil, nil, &ResolveBucketSpecOptions{
+					UserID:    userID,
+					IPAddress: ipAddress,
+				})
+				So(specs, ShouldResemble, []*BucketSpec{{
+					Name:      VerifyRecoveryCodePerIP,
+					Arguments: []string{ipAddress},
+					IsGlobal:  false,
+					Enabled:   false,
+					Period:    time.Duration(0),
+					Burst:     0,
+				}, {
+					Name:      VerifyRecoveryCodePerUserPerIP,
+					Arguments: []string{userID, ipAddress},
+					IsGlobal:  false,
+					Enabled:   false,
+					Period:    time.Duration(0),
+					Burst:     0,
+				}})
+			})
 		})
 
 		Convey("authentication.device_token", func() {
@@ -666,6 +890,49 @@ func TestRateLimits(t *testing.T) {
 					Burst:     4,
 				}})
 			})
+			Convey("disabled in config should not fallback", func() {
+				cfg, err := config.Parse(ctx, []byte(`
+          id: test
+          http:
+            public_origin: http://test
+          authentication:
+            rate_limits:
+              device_token:
+                per_ip:
+                  enabled: false
+                per_user_per_ip:
+                  enabled: false
+              general:
+                per_ip:
+                  burst: 3
+                  enabled: true
+                  period: 3m
+                per_user_per_ip:
+                  burst: 4
+                  enabled: true
+                  period: 4m
+        `))
+				So(err, ShouldBeNil)
+				specs := rl.ResolveBucketSpecs(cfg, nil, nil, &ResolveBucketSpecOptions{
+					UserID:    userID,
+					IPAddress: ipAddress,
+				})
+				So(specs, ShouldResemble, []*BucketSpec{{
+					Name:      VerifyDeviceTokenPerIP,
+					Arguments: []string{ipAddress},
+					IsGlobal:  false,
+					Enabled:   false,
+					Period:    time.Duration(0),
+					Burst:     0,
+				}, {
+					Name:      VerifyDeviceTokenPerUserPerIP,
+					Arguments: []string{userID, ipAddress},
+					IsGlobal:  false,
+					Enabled:   false,
+					Period:    time.Duration(0),
+					Burst:     0,
+				}})
+			})
 		})
 
 		Convey("authentication.passkey", func() {
@@ -728,6 +995,35 @@ func TestRateLimits(t *testing.T) {
 					Burst:     3,
 				}})
 			})
+			Convey("disabled in config should not fallback", func() {
+				cfg, err := config.Parse(ctx, []byte(`
+          id: test
+          http:
+            public_origin: http://test
+          authentication:
+            rate_limits:
+              passkey:
+                per_ip:
+                  enabled: false
+              general:
+                per_ip:
+                  burst: 3
+                  enabled: true
+                  period: 3m
+        `))
+				So(err, ShouldBeNil)
+				specs := rl.ResolveBucketSpecs(cfg, nil, nil, &ResolveBucketSpecOptions{
+					IPAddress: ipAddress,
+				})
+				So(specs, ShouldResemble, []*BucketSpec{{
+					Name:      VerifyPasskeyPerIP,
+					Arguments: []string{ipAddress},
+					IsGlobal:  false,
+					Enabled:   false,
+					Period:    time.Duration(0),
+					Burst:     0,
+				}})
+			})
 		})
 
 		Convey("authentication.siwe", func() {
@@ -788,6 +1084,35 @@ func TestRateLimits(t *testing.T) {
 					Enabled:   true,
 					Period:    config.DurationString("3m").Duration(),
 					Burst:     3,
+				}})
+			})
+			Convey("disabled in config should not fallback", func() {
+				cfg, err := config.Parse(ctx, []byte(`
+          id: test
+          http:
+            public_origin: http://test
+          authentication:
+            rate_limits:
+              siwe:
+                per_ip:
+                  enabled: false
+              general:
+                per_ip:
+                  burst: 3
+                  enabled: true
+                  period: 3m
+        `))
+				So(err, ShouldBeNil)
+				specs := rl.ResolveBucketSpecs(cfg, nil, nil, &ResolveBucketSpecOptions{
+					IPAddress: ipAddress,
+				})
+				So(specs, ShouldResemble, []*BucketSpec{{
+					Name:      VerifySIWEPerIP,
+					Arguments: []string{ipAddress},
+					IsGlobal:  false,
+					Enabled:   false,
+					Period:    time.Duration(0),
+					Burst:     0,
 				}})
 			})
 		})
