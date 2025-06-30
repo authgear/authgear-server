@@ -297,7 +297,7 @@ The Scope of a Resource must satisfy the following requirements:
 
 ### Discussion: (Future work) User / Role / Group and Scope
 
-We see that Auth0 allow Permission (their term for scope) to be associated with User and Role.
+Auth0 allows Permission (their term for Scope) to be associated with User and Role.
 For this to work, the developer **MUST**
 
 - [Enable Role-Based Access Control for APIs](https://auth0.com/docs/get-started/apis/enable-role-based-access-control-for-apis).
@@ -320,55 +320,54 @@ In essence, Auth0 offers
 - APIs are still required to handle `sub` conditionally, by checking whether `sub` ends with `@clients` or not.
 - Work around the constraint that `audience` is once and only once, by allowing the developer to exchange token with another `audience`.
 
-If we were to follow the same, we need to model Resource and Scope as database tables, and introduce relationship between:
+To adopt a similar functionality, I propose:
 
-- User and scope (direct association)
-- Role and scope
-- There is no relationship between Group and scope, as a Group is a collection of Roles.
+- Model Resource and Scope as database tables, so that Role and User can have relationship with Scope.
+- Allow relationship between User and Scope (direct association).
+- Allow relationship between Role and Scope.
+- No relationship between Group and Scope to keep things simple. After all, a Group is just a collection of Roles.
 
-### Discussion: (Future works) About the handling of `access_token` in Resources
+In contrast to Auth0, `resource` **IS NOT** allowed when `grant_type=authorization_code`.
+By disallowing `resource` in `grant_type=authorization_code`,
+the `aud` in the issued `access_token` is always a singleton array containing `https://auth.myapp.com`.
+Thus, `scope` always mean the access of `client_id` to `aud` acting on behalf of `sub`.
 
-> [!NOTE]
-> This section is only relevant when we allow the developer to associate scope to User and role.
+With this constraint, the `access_token` of `grant_type=authorization_code` always look like:
 
-The pain-points are
+```json
+{
+  "iss": "https://auth.myapp.com",
+  "sub": "johndoe",
+  "aud": ["https://auth.myapp.com"],
+  "client_id": "mobileapp",
+  "roles": ["onlinestore:admin"],
+  "scope": "openid offline_access"
+}
+```
 
-1. The `aud` implicitly implies a different interpretation on `sub`.
-2. The `aud` implicitly implies a switching between checking `roles` and checking `scope`.
-3. `roles` and `scope` are of different datatype. (array of string vs a plain string with space-delimited values).
+This `access_token` can be submitted to resources which are programmed to accept `aud=https://auth.myapp.com`, AND read `roles` to determine the access.
 
-In Kinde, it includes `gty` (an array of strings) to indicate the `grant_type` in the request.
-The original use of `gty` seems to originate from Auth0.
-However, Auth0 does not always output `gty`, and it is a string instead of an array of strings.
-See [gty in Auth0](https://auth0.com/docs/secure/tokens/access-tokens/access-token-profiles#:~:text=string%20identifier%3A%20aBv9njtYfwL4xfPZyEwz9m-,gty,-Grant%20type)
+For resources that always validate `aud`, a [RFC8693: OAuth 2.0 Token Exchange](https://datatracker.ietf.org/doc/html/rfc8693) is required to obtain an `access_token` with the intended `aud`.
 
-As far as I know, there is no specification effort on solving this.
+Suppose the `access_token` is submitted to `https://inventory.myapp.com`, which has specially cased to handle `aud=https://auth.myapp.com`. Now `https://inventory.myapp.com` wants to access `https://onlinestore.myapp.com` on behalf of `johndoe`, it needs to perform a Token Exchange.
 
-In `RFC9068` [section-4](https://datatracker.ietf.org/doc/html/rfc9068#name-validating-jwt-access-token),
-the spec says the resource server **MUST** validate `aud`,
-and use its own rules on authorizing the access.
+In this context, the `access_token` with `sub=johndoe` is the `subject_token`.
 
-We either have to write our documentation like this, to teach the developer:
+To perform a Token Exchange, `https://inventory.myapp.com` has to obtain an `access_token` representing itself first. This is essentially the `access_token` obtained with Client Credentials Grant.
 
-> Suppose your resource server is `https://onlinestore.myapp.com`.
->
-> When you receive an access token issued by Authgear,
-> you MUST do the following steps to verify the token:
->
-> 1. Check if it is a JWT in compact form.
-> 2. Check if `iss` is the endpoint of Authgear.
-> 3. Check if the JWT access token is signed by one of the JWK in `jwks_uri`.
-> 4. Check if `aud` includes `https://auth.myapp.com` or `https://onlinestory.myapp.com`.
->   - If `aud` includes `https://auth.myapp.com`, further check `roles` to allow or reject the request.
->   - If `aud` includes `https://onlinestore.myapp.com`, further check `scope` to allow or reject the request.
+The request to `https://auth.myapp.com` to obtain the `actor_token`.
 
-Or, we introduce something like `permissions` from Auth0.
-Personally, I suggest we name this as `sub_scope`, `sub:scope`, or `sub/scope`.
-The name suggests that the value is associated with the `sub`, rather than associated with `client_id`.
+```
+POST /oauth2/token HTTP/1.1
+Content-Type: application/x-www-form-urlencoded
 
----
+grant_type=client_credentials
+client_id=inventory
+client_secret=THE_CLIENT_SECRET
+resource=https://onlinestore.myapp.com
+```
 
-Example of Client Credentials Grant `access_token`
+The `actor_token`:
 
 ```json
 {
@@ -376,41 +375,44 @@ Example of Client Credentials Grant `access_token`
   "sub": "client_id_inventory",
   "aud": ["https://onlinestore.myapp.com"],
   "client_id": "inventory",
-  "scope": "read:orders",
-  "sub/scope": "read:orders"
+  "scope": "read:orders"
 }
 ```
 
----
+The Token Exchange request:
 
-Example of Authorization Code Grant `access_token`
+```
+POST /oauth2/token HTTP/1.1
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=urn:ietf:params:oauth:grant-type:token-exchange
+resource=https://onlinestore.myapp.com
+requested_token_type=urn:ietf:params:oauth:token-type:access_token
+subject_token=SUBJECT_TOKEN
+subject_token_type=urn:ietf:params:oauth:token-type:access_token
+actor_token=ACTOR_TOKEN
+actor_token_type=urn:ietf:params:oauth:token-type:access_token
+```
+
+The exchanged token:
 
 ```json
 {
   "iss": "https://auth.myapp.com",
   "sub": "johndoe",
-  "aud": ["https://onlinestore.myapp.com", "https://auth.myapp.com"],
-  "client_id": "mobileapp",
+  "aud": ["https://onlinestore.myapp.com"],
+  "client_id": "inventory",
   "roles": ["onlinestore:admin"],
-  "scope": "openid offline_access",
-  "sub/scope": "read:orders write:orders list:orders"
+  "scope": "read:orders write:orders list:orders"
 }
 ```
 
----
+Note that
 
-With `sub/scope`, we can write our documentation as follows:
-
-> Suppose your resource server is `https://onlinestore.myapp.com`.
->
-> When you receive an access token issued by Authgear,
-> you MUST do the following steps to verify the token:
->
-> 1. Check if it is a JWT in compact form.
-> 2. Check if `iss` is the endpoint of Authgear.
-> 3. Check if the JWT access token is signed by one of the JWK in `jwks_uri`.
-> 4. Check if `aud` includes `https://onlinestory.myapp.com`.
-> 5. Check if `sub/scope` includes the necessary scope.
+- The `scope` of `subject_token` is `openid offline_access`.
+- The `aud` of `subject_token` is `https://auth.myapp.com`, which is not acceptable by `https://onlinestore.myapp.com`.
+- The `scope` of `actor_token` is `read:orders`, so `https://inventory.myapp.com` does not have admin access on its own.
+- The `scope` of exchanged token is `read:orders write:orders list:orders`. It means that when `https://inventory.myapp.com` acting on behalf of `johndoe`, who is `onlinestore:admin`, has additional `scope` inherit from `sub` (`johndoe`).
 
 ### Discussion: (Future work) Restricting access to Admin API
 
