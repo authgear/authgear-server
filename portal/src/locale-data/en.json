@@ -187,6 +187,7 @@
   "ScreenNav.integrations": "Integrations",
   "ScreenNav.endpoint-direct-access": "Endpoint Direct Access",
   "ScreenNav.saml-certificate": "SAML Certificate",
+  "ScreenNav.edit-config": "Edit Config",
 
   "NavBreadcrumb.label": "Nested navigation",
 
