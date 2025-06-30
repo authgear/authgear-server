@@ -1,13 +1,18 @@
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import ScreenContent from "../../ScreenContent";
 import ScreenTitle from "../../ScreenTitle";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import EditTemplatesWidget, {
   EditTemplatesWidgetSection,
 } from "./EditTemplatesWidget";
+import {
+  Dialog,
+  DialogFooter,
+  IDialogContentProps,
+} from "@fluentui/react/lib/Dialog";
 
 import styles from "./EditConfigurationScreen.module.css";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import FormContainer from "../../FormContainer";
@@ -23,6 +28,8 @@ import {
 } from "../../util/resource";
 import { RESOURCE_AUTHGEAR_YAML } from "../../resources";
 import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";
+import DefaultButton from "../../DefaultButton";
+import PrimaryButton from "../../PrimaryButton";
 
 interface FormModel {
   isLoading: boolean;
@@ -46,9 +53,32 @@ const AUTHGEAR_YAML_RESOURCE_SPECIFIER: ResourceSpecifier = {
 
 const EditConfigurationScreen: React.VFC = function EditConfigurationScreen() {
   const { appID } = useParams() as { appID: string };
+  const navigate = useNavigate();
   const specifiers = [AUTHGEAR_YAML_RESOURCE_SPECIFIER];
   const resourceForm = useResourceForm(appID, specifiers);
   const { refetch } = useAppAndSecretConfigQuery(appID);
+
+  const [isWarningDialogVisible, setWarningDialogVisible] = useState(true);
+
+  const onDismiss = useCallback(() => {
+    setWarningDialogVisible(false);
+  }, []);
+
+  const onCancel = useCallback(() => {
+    navigate(-1);
+  }, [navigate]);
+
+  const dialogContentProps: IDialogContentProps = useMemo(() => {
+    return {
+      title: (
+        <FormattedMessage id="EditConfigurationScreen.warning.title" />
+      ) as unknown as string,
+      subText: (
+        <FormattedMessage id="EditConfigurationScreen.warning.content" />
+      ) as unknown as string,
+      showCloseButton: false,
+    };
+  }, []);
 
   const form: FormModel = useMemo(
     () => ({
@@ -121,6 +151,30 @@ const EditConfigurationScreen: React.VFC = function EditConfigurationScreen() {
 
   return (
     <FormContainer form={form}>
+      <Dialog
+        hidden={!isWarningDialogVisible}
+        dialogContentProps={dialogContentProps}
+        modalProps={{
+          isBlocking: true,
+          styles: {
+            main: { "@media (min-width: 480px)": { maxWidth: "500px" } },
+          },
+        }}
+        onDismiss={onDismiss}
+      >
+        <DialogFooter>
+          <DefaultButton
+            onClick={onCancel}
+            text={<FormattedMessage id="cancel" />}
+          />
+          <PrimaryButton
+            onClick={onDismiss}
+            text={
+              <FormattedMessage id="EditConfigurationScreen.warning.confirm" />
+            }
+          />
+        </DialogFooter>
+      </Dialog>
       <ScreenContent>
         <ScreenTitle className={styles.widget}>
           <FormattedMessage id="EditConfigurationScreen.title" />
