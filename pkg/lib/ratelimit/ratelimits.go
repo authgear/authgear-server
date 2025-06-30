@@ -110,144 +110,100 @@ const (
 )
 
 func (n RateLimit) resolvePerIP(cfg *config.AppConfig, featureCfg *config.FeatureConfig) *config.RateLimitConfig {
-	get := func(c *config.RateLimitConfig, fallback *config.RateLimitConfig, featureConfig *config.RateLimitConfig) *config.RateLimitConfig {
-		effectiveConfig := c
-
-		if !effectiveConfig.IsEnabled() && fallback != nil {
-			effectiveConfig = fallback
-		}
-
-		if featureConfig != nil && featureConfig.Rate() < c.Rate() {
-			effectiveConfig = featureConfig
-		}
-
-		if effectiveConfig != nil && effectiveConfig.IsEnabled() {
-			return effectiveConfig
-		}
-		return nil
-	}
 	switch n {
 	// Authentication
 	case RateLimitAuthenticationGeneral:
-		return get(cfg.Authentication.RateLimits.General.PerIP, nil, nil)
+		return resolveConfig(cfg.Authentication.RateLimits.General.PerIP, nil, nil)
 	case RateLimitAuthenticationPassword:
-		return get(cfg.Authentication.RateLimits.Password.PerIP, cfg.Authentication.RateLimits.General.PerIP, nil)
+		return resolveConfig(cfg.Authentication.RateLimits.Password.PerIP, cfg.Authentication.RateLimits.General.PerIP, nil)
 	case RateLimitAuthenticationOOBOTPEmailTrigger:
-		return get(cfg.Authentication.RateLimits.OOBOTP.Email.TriggerPerIP, nil, nil)
+		return resolveConfig(cfg.Authentication.RateLimits.OOBOTP.Email.TriggerPerIP, nil, nil)
 	case RateLimitAuthenticationOOBOTPEmailValidate:
-		return get(cfg.Authentication.RateLimits.OOBOTP.Email.ValidatePerIP, cfg.Authentication.RateLimits.General.PerIP, nil)
+		return resolveConfig(cfg.Authentication.RateLimits.OOBOTP.Email.ValidatePerIP, cfg.Authentication.RateLimits.General.PerIP, nil)
 	case RateLimitAuthenticationOOBOTPSMSTrigger:
-		return get(cfg.Authentication.RateLimits.OOBOTP.SMS.TriggerPerIP, nil, nil)
+		return resolveConfig(cfg.Authentication.RateLimits.OOBOTP.SMS.TriggerPerIP, nil, nil)
 	case RateLimitAuthenticationOOBOTPSMSValidate:
-		return get(cfg.Authentication.RateLimits.OOBOTP.SMS.ValidatePerIP, cfg.Authentication.RateLimits.General.PerIP, nil)
+		return resolveConfig(cfg.Authentication.RateLimits.OOBOTP.SMS.ValidatePerIP, cfg.Authentication.RateLimits.General.PerIP, nil)
 	case RateLimitAuthenticationTOTP:
-		return get(cfg.Authentication.RateLimits.TOTP.PerIP, cfg.Authentication.RateLimits.General.PerIP, nil)
+		return resolveConfig(cfg.Authentication.RateLimits.TOTP.PerIP, cfg.Authentication.RateLimits.General.PerIP, nil)
 	case RateLimitAuthenticationRecoveryCode:
-		return get(cfg.Authentication.RateLimits.RecoveryCode.PerIP, cfg.Authentication.RateLimits.General.PerIP, nil)
+		return resolveConfig(cfg.Authentication.RateLimits.RecoveryCode.PerIP, cfg.Authentication.RateLimits.General.PerIP, nil)
 	case RateLimitAuthenticationDeviceToken:
-		return get(cfg.Authentication.RateLimits.DeviceToken.PerIP, cfg.Authentication.RateLimits.General.PerIP, nil)
+		return resolveConfig(cfg.Authentication.RateLimits.DeviceToken.PerIP, cfg.Authentication.RateLimits.General.PerIP, nil)
 	case RateLimitAuthenticationPasskey:
-		return get(cfg.Authentication.RateLimits.Passkey.PerIP, cfg.Authentication.RateLimits.General.PerIP, nil)
+		return resolveConfig(cfg.Authentication.RateLimits.Passkey.PerIP, cfg.Authentication.RateLimits.General.PerIP, nil)
 	case RateLimitAuthenticationSIWE:
-		return get(cfg.Authentication.RateLimits.SIWE.PerIP, cfg.Authentication.RateLimits.General.PerIP, nil)
+		return resolveConfig(cfg.Authentication.RateLimits.SIWE.PerIP, cfg.Authentication.RateLimits.General.PerIP, nil)
 	case RateLimitAuthenticationSignup:
-		return get(cfg.Authentication.RateLimits.Signup.PerIP, nil, nil)
+		return resolveConfig(cfg.Authentication.RateLimits.Signup.PerIP, nil, nil)
 	case RateLimitAuthenticationSignupAnonymous:
-		return get(cfg.Authentication.RateLimits.SignupAnonymous.PerIP, nil, nil)
+		return resolveConfig(cfg.Authentication.RateLimits.SignupAnonymous.PerIP, nil, nil)
 	case RateLimitAuthenticationAccountEnumeration:
-		return get(cfg.Authentication.RateLimits.AccountEnumeration.PerIP, nil, nil)
+		return resolveConfig(cfg.Authentication.RateLimits.AccountEnumeration.PerIP, nil, nil)
 
 	// Features
 	case RateLimitVerificationEmailTrigger:
-		return get(cfg.Verification.RateLimits.Email.TriggerPerIP, nil, nil)
+		return resolveConfig(cfg.Verification.RateLimits.Email.TriggerPerIP, nil, nil)
 	case RateLimitVerificationEmailValidate:
-		return get(cfg.Verification.RateLimits.Email.ValidatePerIP, nil, nil)
+		return resolveConfig(cfg.Verification.RateLimits.Email.ValidatePerIP, nil, nil)
 	case RateLimitVerificationSMSTrigger:
-		return get(cfg.Verification.RateLimits.SMS.TriggerPerIP, nil, nil)
+		return resolveConfig(cfg.Verification.RateLimits.SMS.TriggerPerIP, nil, nil)
 	case RateLimitVerificationSMSValidate:
-		return get(cfg.Verification.RateLimits.SMS.ValidatePerIP, nil, nil)
+		return resolveConfig(cfg.Verification.RateLimits.SMS.ValidatePerIP, nil, nil)
 	case RateLimitForgotPasswordEmailTrigger:
-		return get(cfg.ForgotPassword.RateLimits.Email.TriggerPerIP, nil, nil)
+		return resolveConfig(cfg.ForgotPassword.RateLimits.Email.TriggerPerIP, nil, nil)
 	case RateLimitForgotPasswordEmailValidate:
-		return get(cfg.ForgotPassword.RateLimits.Email.ValidatePerIP, nil, nil)
+		return resolveConfig(cfg.ForgotPassword.RateLimits.Email.ValidatePerIP, nil, nil)
 	case RateLimitForgotPasswordSMSTrigger:
-		return get(cfg.ForgotPassword.RateLimits.SMS.TriggerPerIP, nil, nil)
+		return resolveConfig(cfg.ForgotPassword.RateLimits.SMS.TriggerPerIP, nil, nil)
 	case RateLimitForgotPasswordSMSValidate:
-		return get(cfg.ForgotPassword.RateLimits.SMS.ValidatePerIP, nil, nil)
+		return resolveConfig(cfg.ForgotPassword.RateLimits.SMS.ValidatePerIP, nil, nil)
 
 	// Messaging
 	case RateLimitMessagingSMS:
-		return get(cfg.Messaging.RateLimits.SMSPerIP, nil, featureCfg.Messaging.RateLimits.SMSPerIP)
+		return resolveConfig(cfg.Messaging.RateLimits.SMSPerIP, nil, featureCfg.Messaging.RateLimits.SMSPerIP)
 	case RateLimitMessagingEmail:
-		return get(cfg.Messaging.RateLimits.EmailPerIP, nil, featureCfg.Messaging.RateLimits.SMSPerIP)
+		return resolveConfig(cfg.Messaging.RateLimits.EmailPerIP, nil, featureCfg.Messaging.RateLimits.SMSPerIP)
 	}
 	return nil
 }
 
 func (n RateLimit) resolvePerUser(cfg *config.AppConfig) *config.RateLimitConfig {
-	get := func(c *config.RateLimitConfig, fallback *config.RateLimitConfig) *config.RateLimitConfig {
-		if c != nil && c.IsEnabled() {
-			return c
-		}
-		if fallback != nil && fallback.IsEnabled() {
-			return fallback
-		}
-		return nil
-	}
 	switch n {
 	case RateLimitAuthenticationOOBOTPEmailTrigger:
-		return get(cfg.Authentication.RateLimits.OOBOTP.Email.TriggerPerUser, nil)
+		return resolveConfig(cfg.Authentication.RateLimits.OOBOTP.Email.TriggerPerUser, nil, nil)
 	case RateLimitAuthenticationOOBOTPSMSTrigger:
-		return get(cfg.Authentication.RateLimits.OOBOTP.SMS.TriggerPerUser, nil)
+		return resolveConfig(cfg.Authentication.RateLimits.OOBOTP.SMS.TriggerPerUser, nil, nil)
 	}
 	return nil
 }
 
 func (n RateLimit) resolvePerTarget(cfg *config.AppConfig, featureCfg *config.FeatureConfig) *config.RateLimitConfig {
-	get := func(c *config.RateLimitConfig, featureConfig *config.RateLimitConfig) *config.RateLimitConfig {
-		effectiveConfig := c
-		if featureConfig != nil && featureConfig.Rate() < c.Rate() {
-			effectiveConfig = featureConfig
-		}
-		if effectiveConfig != nil && effectiveConfig.IsEnabled() {
-			return effectiveConfig
-		}
-		return nil
-	}
 	switch n {
 	case RateLimitMessagingEmail:
-		return get(cfg.Messaging.RateLimits.EmailPerTarget, featureCfg.Messaging.RateLimits.SMSPerTarget)
+		return resolveConfig(cfg.Messaging.RateLimits.EmailPerTarget, nil, featureCfg.Messaging.RateLimits.SMSPerTarget)
 	case RateLimitMessagingSMS:
-		return get(cfg.Messaging.RateLimits.SMSPerTarget, featureCfg.Messaging.RateLimits.SMSPerTarget)
+		return resolveConfig(cfg.Messaging.RateLimits.SMSPerTarget, nil, featureCfg.Messaging.RateLimits.SMSPerTarget)
 	}
 	return nil
 }
 
 func (n RateLimit) resolvePerUserPerIP(cfg *config.AppConfig) *config.RateLimitConfig {
-	get := func(c *config.RateLimitConfig, fallback *config.RateLimitConfig) *config.RateLimitConfig {
-		if c != nil && c.IsEnabled() {
-			return c
-		}
-		if fallback != nil && fallback.IsEnabled() {
-			return fallback
-		}
-		return nil
-	}
 	switch n {
 	case RateLimitAuthenticationGeneral:
-		return get(cfg.Authentication.RateLimits.General.PerUserPerIP, nil)
+		return resolveConfig(cfg.Authentication.RateLimits.General.PerUserPerIP, nil, nil)
 	case RateLimitAuthenticationPassword:
-		return get(cfg.Authentication.RateLimits.Password.PerUserPerIP, cfg.Authentication.RateLimits.General.PerUserPerIP)
+		return resolveConfig(cfg.Authentication.RateLimits.Password.PerUserPerIP, cfg.Authentication.RateLimits.General.PerUserPerIP, nil)
 	case RateLimitAuthenticationOOBOTPEmailValidate:
-		return get(cfg.Authentication.RateLimits.OOBOTP.Email.ValidatePerUserPerIP, cfg.Authentication.RateLimits.General.PerUserPerIP)
+		return resolveConfig(cfg.Authentication.RateLimits.OOBOTP.Email.ValidatePerUserPerIP, cfg.Authentication.RateLimits.General.PerUserPerIP, nil)
 	case RateLimitAuthenticationOOBOTPSMSValidate:
-		return get(cfg.Authentication.RateLimits.OOBOTP.SMS.ValidatePerUserPerIP, cfg.Authentication.RateLimits.General.PerUserPerIP)
+		return resolveConfig(cfg.Authentication.RateLimits.OOBOTP.SMS.ValidatePerUserPerIP, cfg.Authentication.RateLimits.General.PerUserPerIP, nil)
 	case RateLimitAuthenticationTOTP:
-		return get(cfg.Authentication.RateLimits.TOTP.PerUserPerIP, cfg.Authentication.RateLimits.General.PerUserPerIP)
+		return resolveConfig(cfg.Authentication.RateLimits.TOTP.PerUserPerIP, cfg.Authentication.RateLimits.General.PerUserPerIP, nil)
 	case RateLimitAuthenticationRecoveryCode:
-		return get(cfg.Authentication.RateLimits.RecoveryCode.PerUserPerIP, cfg.Authentication.RateLimits.General.PerUserPerIP)
+		return resolveConfig(cfg.Authentication.RateLimits.RecoveryCode.PerUserPerIP, cfg.Authentication.RateLimits.General.PerUserPerIP, nil)
 	case RateLimitAuthenticationDeviceToken:
-		return get(cfg.Authentication.RateLimits.DeviceToken.PerUserPerIP, cfg.Authentication.RateLimits.General.PerUserPerIP)
+		return resolveConfig(cfg.Authentication.RateLimits.DeviceToken.PerUserPerIP, cfg.Authentication.RateLimits.General.PerUserPerIP, nil)
 	}
 	return nil
 }
@@ -270,6 +226,22 @@ func selectByChannel[T any](channel model.AuthenticatorOOBChannel, email T, sms 
 		return whatsapp
 	}
 	panic(fmt.Errorf("invalid channel"))
+}
+
+func resolveConfig(c *config.RateLimitConfig, fallback *config.RateLimitConfig, featureConfig *config.RateLimitConfig) *config.RateLimitConfig {
+	effectiveConfig := c
+
+	// We check Enabled == nil here so that only unspecified rate limits are fallbacked
+	// If it is enabled or disabled explicitly, fallback is not used
+	if effectiveConfig.Enabled == nil && fallback != nil {
+		effectiveConfig = fallback
+	}
+
+	if featureConfig != nil && featureConfig.Rate() < c.Rate() {
+		effectiveConfig = featureConfig
+	}
+
+	return effectiveConfig
 }
 
 func (r RateLimit) ResolveBucketSpecs(
