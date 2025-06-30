@@ -1342,6 +1342,184 @@ func TestRateLimits(t *testing.T) {
 					},
 				})
 			})
+			Convey("app config enabled, feature config disabled", func() {
+				appCfg, err := config.Parse(ctx, []byte(`
+          id: test
+          http:
+            public_origin: http://test
+          messaging:
+            rate_limits:
+              sms:
+                burst: 10
+                enabled: true
+                period: 1m
+              sms_per_ip:
+                burst: 20
+                enabled: true
+                period: 1m
+              sms_per_target:
+                burst: 30
+                enabled: true
+                period: 1m
+        `))
+				So(err, ShouldBeNil)
+
+				featureCfg := &config.FeatureConfig{Messaging: &config.MessagingFeatureConfig{
+					RateLimits: &config.MessagingRateLimitsFeatureConfig{
+						SMS:          &config.RateLimitConfig{Enabled: boolPtr(false)},
+						SMSPerIP:     &config.RateLimitConfig{Enabled: boolPtr(false)},
+						SMSPerTarget: &config.RateLimitConfig{Enabled: boolPtr(false)},
+					},
+				}}
+
+				envCfg := &config.RateLimitsEnvironmentConfig{
+					SMS:          config.RateLimitsEnvironmentConfigEntry{Enabled: true, Burst: 4, Period: config.DurationString("1m").Duration()},
+					SMSPerIP:     config.RateLimitsEnvironmentConfigEntry{Enabled: true, Burst: 5, Period: config.DurationString("1m").Duration()},
+					SMSPerTarget: config.RateLimitsEnvironmentConfigEntry{Enabled: true, Burst: 6, Period: config.DurationString("1m").Duration()},
+				}
+
+				specs := rl.ResolveBucketSpecs(appCfg, featureCfg, envCfg, &ResolveBucketSpecOptions{
+					IPAddress: ipAddress,
+					Target:    phone,
+				})
+
+				So(specs, ShouldResemble, []*BucketSpec{
+					{
+						Name:      MessagingSMS,
+						Arguments: nil,
+						IsGlobal:  false,
+						Enabled:   true,
+						Period:    config.DurationString("1m").Duration(),
+						Burst:     10,
+					},
+					{
+						Name:      MessagingSMS,
+						Arguments: nil,
+						IsGlobal:  true,
+						Enabled:   true,
+						Period:    config.DurationString("1m").Duration(),
+						Burst:     4,
+					},
+					{
+						Name:      MessagingSMSPerIP,
+						Arguments: []string{ipAddress},
+						IsGlobal:  false,
+						Enabled:   true,
+						Period:    config.DurationString("1m").Duration(),
+						Burst:     20,
+					},
+					{
+						Name:      MessagingSMSPerIP,
+						Arguments: []string{ipAddress},
+						IsGlobal:  true,
+						Enabled:   true,
+						Period:    config.DurationString("1m").Duration(),
+						Burst:     5,
+					},
+					{
+						Name:      MessagingSMSPerTarget,
+						Arguments: []string{phone},
+						IsGlobal:  false,
+						Enabled:   true,
+						Period:    config.DurationString("1m").Duration(),
+						Burst:     30,
+					},
+					{
+						Name:      MessagingSMSPerTarget,
+						Arguments: []string{phone},
+						IsGlobal:  true,
+						Enabled:   true,
+						Period:    config.DurationString("1m").Duration(),
+						Burst:     6,
+					},
+				})
+			})
+			Convey("feature config enabled, app config disabled", func() {
+				appCfg, err := config.Parse(ctx, []byte(`
+          id: test
+          http:
+            public_origin: http://test
+          messaging:
+            rate_limits:
+              sms:
+                enabled: false
+              sms_per_ip:
+                enabled: false
+              sms_per_target:
+                enabled: false
+        `))
+				So(err, ShouldBeNil)
+
+				featureCfg := &config.FeatureConfig{Messaging: &config.MessagingFeatureConfig{
+					RateLimits: &config.MessagingRateLimitsFeatureConfig{
+						SMS:          &config.RateLimitConfig{Enabled: boolPtr(true), Period: "1m", Burst: 1},
+						SMSPerIP:     &config.RateLimitConfig{Enabled: boolPtr(true), Period: "1m", Burst: 2},
+						SMSPerTarget: &config.RateLimitConfig{Enabled: boolPtr(true), Period: "1m", Burst: 3},
+					},
+				}}
+
+				envCfg := &config.RateLimitsEnvironmentConfig{
+					SMS:          config.RateLimitsEnvironmentConfigEntry{Enabled: true, Burst: 4, Period: config.DurationString("1m").Duration()},
+					SMSPerIP:     config.RateLimitsEnvironmentConfigEntry{Enabled: true, Burst: 5, Period: config.DurationString("1m").Duration()},
+					SMSPerTarget: config.RateLimitsEnvironmentConfigEntry{Enabled: true, Burst: 6, Period: config.DurationString("1m").Duration()},
+				}
+
+				specs := rl.ResolveBucketSpecs(appCfg, featureCfg, envCfg, &ResolveBucketSpecOptions{
+					IPAddress: ipAddress,
+					Target:    phone,
+				})
+
+				So(specs, ShouldResemble, []*BucketSpec{
+					{
+						Name:      MessagingSMS,
+						Arguments: nil,
+						IsGlobal:  false,
+						Enabled:   true,
+						Period:    config.DurationString("1m").Duration(),
+						Burst:     1,
+					},
+					{
+						Name:      MessagingSMS,
+						Arguments: nil,
+						IsGlobal:  true,
+						Enabled:   true,
+						Period:    config.DurationString("1m").Duration(),
+						Burst:     4,
+					},
+					{
+						Name:      MessagingSMSPerIP,
+						Arguments: []string{ipAddress},
+						IsGlobal:  false,
+						Enabled:   true,
+						Period:    config.DurationString("1m").Duration(),
+						Burst:     2,
+					},
+					{
+						Name:      MessagingSMSPerIP,
+						Arguments: []string{ipAddress},
+						IsGlobal:  true,
+						Enabled:   true,
+						Period:    config.DurationString("1m").Duration(),
+						Burst:     5,
+					},
+					{
+						Name:      MessagingSMSPerTarget,
+						Arguments: []string{phone},
+						IsGlobal:  false,
+						Enabled:   true,
+						Period:    config.DurationString("1m").Duration(),
+						Burst:     3,
+					},
+					{
+						Name:      MessagingSMSPerTarget,
+						Arguments: []string{phone},
+						IsGlobal:  true,
+						Enabled:   true,
+						Period:    config.DurationString("1m").Duration(),
+						Burst:     6,
+					},
+				})
+			})
 		})
 
 		Convey("messaging.email", func() {
@@ -1521,6 +1699,184 @@ func TestRateLimits(t *testing.T) {
 						Enabled:   true,
 						Period:    config.DurationString("1m").Duration(),
 						Burst:     30,
+					},
+					{
+						Name:      MessagingEmailPerTarget,
+						Arguments: []string{target},
+						IsGlobal:  true,
+						Enabled:   true,
+						Period:    config.DurationString("1m").Duration(),
+						Burst:     6,
+					},
+				})
+			})
+			Convey("app config enabled, feature config disabled", func() {
+				appCfg, err := config.Parse(ctx, []byte(`
+          id: test
+          http:
+            public_origin: http://test
+          messaging:
+            rate_limits:
+              email:
+                burst: 10
+                enabled: true
+                period: 1m
+              email_per_ip:
+                burst: 20
+                enabled: true
+                period: 1m
+              email_per_target:
+                burst: 30
+                enabled: true
+                period: 1m
+        `))
+				So(err, ShouldBeNil)
+
+				featureCfg := &config.FeatureConfig{Messaging: &config.MessagingFeatureConfig{
+					RateLimits: &config.MessagingRateLimitsFeatureConfig{
+						Email:          &config.RateLimitConfig{Enabled: boolPtr(false)},
+						EmailPerIP:     &config.RateLimitConfig{Enabled: boolPtr(false)},
+						EmailPerTarget: &config.RateLimitConfig{Enabled: boolPtr(false)},
+					},
+				}}
+
+				envCfg := &config.RateLimitsEnvironmentConfig{
+					Email:          config.RateLimitsEnvironmentConfigEntry{Enabled: true, Burst: 4, Period: config.DurationString("1m").Duration()},
+					EmailPerIP:     config.RateLimitsEnvironmentConfigEntry{Enabled: true, Burst: 5, Period: config.DurationString("1m").Duration()},
+					EmailPerTarget: config.RateLimitsEnvironmentConfigEntry{Enabled: true, Burst: 6, Period: config.DurationString("1m").Duration()},
+				}
+
+				specs := rl.ResolveBucketSpecs(appCfg, featureCfg, envCfg, &ResolveBucketSpecOptions{
+					IPAddress: ipAddress,
+					Target:    target,
+				})
+
+				So(specs, ShouldResemble, []*BucketSpec{
+					{
+						Name:      MessagingEmail,
+						Arguments: nil,
+						IsGlobal:  false,
+						Enabled:   true,
+						Period:    config.DurationString("1m").Duration(),
+						Burst:     10,
+					},
+					{
+						Name:      MessagingEmail,
+						Arguments: nil,
+						IsGlobal:  true,
+						Enabled:   true,
+						Period:    config.DurationString("1m").Duration(),
+						Burst:     4,
+					},
+					{
+						Name:      MessagingEmailPerIP,
+						Arguments: []string{ipAddress},
+						IsGlobal:  false,
+						Enabled:   true,
+						Period:    config.DurationString("1m").Duration(),
+						Burst:     20,
+					},
+					{
+						Name:      MessagingEmailPerIP,
+						Arguments: []string{ipAddress},
+						IsGlobal:  true,
+						Enabled:   true,
+						Period:    config.DurationString("1m").Duration(),
+						Burst:     5,
+					},
+					{
+						Name:      MessagingEmailPerTarget,
+						Arguments: []string{target},
+						IsGlobal:  false,
+						Enabled:   true,
+						Period:    config.DurationString("1m").Duration(),
+						Burst:     30,
+					},
+					{
+						Name:      MessagingEmailPerTarget,
+						Arguments: []string{target},
+						IsGlobal:  true,
+						Enabled:   true,
+						Period:    config.DurationString("1m").Duration(),
+						Burst:     6,
+					},
+				})
+			})
+			Convey("feature config enabled, app config disabled", func() {
+				appCfg, err := config.Parse(ctx, []byte(`
+          id: test
+          http:
+            public_origin: http://test
+          messaging:
+            rate_limits:
+              email:
+                enabled: false
+              email_per_ip:
+                enabled: false
+              email_per_target:
+                enabled: false
+        `))
+				So(err, ShouldBeNil)
+
+				featureCfg := &config.FeatureConfig{Messaging: &config.MessagingFeatureConfig{
+					RateLimits: &config.MessagingRateLimitsFeatureConfig{
+						Email:          &config.RateLimitConfig{Enabled: boolPtr(true), Period: "1m", Burst: 1},
+						EmailPerIP:     &config.RateLimitConfig{Enabled: boolPtr(true), Period: "1m", Burst: 2},
+						EmailPerTarget: &config.RateLimitConfig{Enabled: boolPtr(true), Period: "1m", Burst: 3},
+					},
+				}}
+
+				envCfg := &config.RateLimitsEnvironmentConfig{
+					Email:          config.RateLimitsEnvironmentConfigEntry{Enabled: true, Burst: 4, Period: config.DurationString("1m").Duration()},
+					EmailPerIP:     config.RateLimitsEnvironmentConfigEntry{Enabled: true, Burst: 5, Period: config.DurationString("1m").Duration()},
+					EmailPerTarget: config.RateLimitsEnvironmentConfigEntry{Enabled: true, Burst: 6, Period: config.DurationString("1m").Duration()},
+				}
+
+				specs := rl.ResolveBucketSpecs(appCfg, featureCfg, envCfg, &ResolveBucketSpecOptions{
+					IPAddress: ipAddress,
+					Target:    target,
+				})
+
+				So(specs, ShouldResemble, []*BucketSpec{
+					{
+						Name:      MessagingEmail,
+						Arguments: nil,
+						IsGlobal:  false,
+						Enabled:   true,
+						Period:    config.DurationString("1m").Duration(),
+						Burst:     1,
+					},
+					{
+						Name:      MessagingEmail,
+						Arguments: nil,
+						IsGlobal:  true,
+						Enabled:   true,
+						Period:    config.DurationString("1m").Duration(),
+						Burst:     4,
+					},
+					{
+						Name:      MessagingEmailPerIP,
+						Arguments: []string{ipAddress},
+						IsGlobal:  false,
+						Enabled:   true,
+						Period:    config.DurationString("1m").Duration(),
+						Burst:     2,
+					},
+					{
+						Name:      MessagingEmailPerIP,
+						Arguments: []string{ipAddress},
+						IsGlobal:  true,
+						Enabled:   true,
+						Period:    config.DurationString("1m").Duration(),
+						Burst:     5,
+					},
+					{
+						Name:      MessagingEmailPerTarget,
+						Arguments: []string{target},
+						IsGlobal:  false,
+						Enabled:   true,
+						Period:    config.DurationString("1m").Duration(),
+						Burst:     3,
 					},
 					{
 						Name:      MessagingEmailPerTarget,
