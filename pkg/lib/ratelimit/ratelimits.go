@@ -174,6 +174,10 @@ func (n RateLimit) resolvePerUser(cfg *config.AppConfig) *config.RateLimitConfig
 		return resolveConfig(cfg.Authentication.RateLimits.OOBOTP.Email.TriggerPerUser, nil, nil)
 	case RateLimitAuthenticationOOBOTPSMSTrigger:
 		return resolveConfig(cfg.Authentication.RateLimits.OOBOTP.SMS.TriggerPerUser, nil, nil)
+	case RateLimitVerificationEmailTrigger:
+		return resolveConfig(cfg.Verification.RateLimits.Email.TriggerPerUser, nil, nil)
+	case RateLimitVerificationSMSTrigger:
+		return resolveConfig(cfg.Verification.RateLimits.SMS.TriggerPerUser, nil, nil)
 	}
 	return nil
 }

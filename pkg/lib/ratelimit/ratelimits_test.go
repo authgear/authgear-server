@@ -877,5 +877,277 @@ func TestRateLimits(t *testing.T) {
 				}})
 			})
 		})
+
+		Convey("verification.email.trigger", func() {
+			rl := RateLimitVerificationEmailTrigger
+			Convey("set in config", func() {
+				cfg, err := config.Parse(ctx, []byte(`
+          id: test
+          http:
+            public_origin: http://test
+          verification:
+            rate_limits:
+              email:
+                trigger_per_ip:
+                  burst: 1
+                  enabled: true
+                  period: 1m
+                trigger_per_user:
+                  burst: 2
+                  enabled: true
+                  period: 2m
+        `))
+				So(err, ShouldBeNil)
+				specs := rl.ResolveBucketSpecs(cfg, nil, nil, &ResolveBucketSpecOptions{
+					UserID:    userID,
+					IPAddress: ipAddress,
+					Channel:   model.AuthenticatorOOBChannelEmail,
+				})
+				So(specs, ShouldResemble, []*BucketSpec{{
+					Name:      VerificationTriggerEmailPerIP,
+					Arguments: []string{ipAddress},
+					IsGlobal:  false,
+					Enabled:   true,
+					Period:    config.DurationString("1m").Duration(),
+					Burst:     1,
+				}, {
+					Name:      VerificationTriggerEmailPerUser,
+					Arguments: []string{userID},
+					IsGlobal:  false,
+					Enabled:   true,
+					Period:    config.DurationString("2m").Duration(),
+					Burst:     2,
+				}})
+			})
+		})
+
+		Convey("verification.email.validate", func() {
+			rl := RateLimitVerificationEmailValidate
+			Convey("set in config", func() {
+				cfg, err := config.Parse(ctx, []byte(`
+          id: test
+          http:
+            public_origin: http://test
+          verification:
+            rate_limits:
+              email:
+                validate_per_ip:
+                  burst: 1
+                  enabled: true
+                  period: 1m
+        `))
+				So(err, ShouldBeNil)
+				specs := rl.ResolveBucketSpecs(cfg, nil, nil, &ResolveBucketSpecOptions{
+					IPAddress: ipAddress,
+					Channel:   model.AuthenticatorOOBChannelEmail,
+				})
+				So(specs, ShouldResemble, []*BucketSpec{{
+					Name:      VerificationValidateEmailPerIP,
+					Arguments: []string{ipAddress},
+					IsGlobal:  false,
+					Enabled:   true,
+					Period:    config.DurationString("1m").Duration(),
+					Burst:     1,
+				}})
+			})
+		})
+
+		Convey("verification.sms.trigger", func() {
+			rl := RateLimitVerificationSMSTrigger
+			Convey("set in config", func() {
+				cfg, err := config.Parse(ctx, []byte(`
+          id: test
+          http:
+            public_origin: http://test
+          verification:
+            rate_limits:
+              sms:
+                trigger_per_ip:
+                  burst: 1
+                  enabled: true
+                  period: 1m
+                trigger_per_user:
+                  burst: 2
+                  enabled: true
+                  period: 2m
+        `))
+				So(err, ShouldBeNil)
+				specs := rl.ResolveBucketSpecs(cfg, nil, nil, &ResolveBucketSpecOptions{
+					UserID:    userID,
+					IPAddress: ipAddress,
+					Channel:   model.AuthenticatorOOBChannelSMS,
+				})
+				So(specs, ShouldResemble, []*BucketSpec{{
+					Name:      VerificationTriggerSMSPerIP,
+					Arguments: []string{ipAddress},
+					IsGlobal:  false,
+					Enabled:   true,
+					Period:    config.DurationString("1m").Duration(),
+					Burst:     1,
+				}, {
+					Name:      VerificationTriggerSMSPerUser,
+					Arguments: []string{userID},
+					IsGlobal:  false,
+					Enabled:   true,
+					Period:    config.DurationString("2m").Duration(),
+					Burst:     2,
+				}})
+			})
+		})
+
+		Convey("verification.sms.validate", func() {
+			rl := RateLimitVerificationSMSValidate
+			Convey("set in config", func() {
+				cfg, err := config.Parse(ctx, []byte(`
+          id: test
+          http:
+            public_origin: http://test
+          verification:
+            rate_limits:
+              sms:
+                validate_per_ip:
+                  burst: 1
+                  enabled: true
+                  period: 1m
+        `))
+				So(err, ShouldBeNil)
+				specs := rl.ResolveBucketSpecs(cfg, nil, nil, &ResolveBucketSpecOptions{
+					IPAddress: ipAddress,
+					Channel:   model.AuthenticatorOOBChannelSMS,
+				})
+				So(specs, ShouldResemble, []*BucketSpec{{
+					Name:      VerificationValidateSMSPerIP,
+					Arguments: []string{ipAddress},
+					IsGlobal:  false,
+					Enabled:   true,
+					Period:    config.DurationString("1m").Duration(),
+					Burst:     1,
+				}})
+			})
+		})
+
+		Convey("forgot_password.email.trigger", func() {
+			rl := RateLimitForgotPasswordEmailTrigger
+			Convey("set in config", func() {
+				cfg, err := config.Parse(ctx, []byte(`
+          id: test
+          http:
+            public_origin: http://test
+          forgot_password:
+            rate_limits:
+              email:
+                trigger_per_ip:
+                  burst: 1
+                  enabled: true
+                  period: 1m
+        `))
+				So(err, ShouldBeNil)
+				specs := rl.ResolveBucketSpecs(cfg, nil, nil, &ResolveBucketSpecOptions{
+					IPAddress: ipAddress,
+					Channel:   model.AuthenticatorOOBChannelEmail,
+				})
+				So(specs, ShouldResemble, []*BucketSpec{{
+					Name:      ForgotPasswordTriggerEmailPerIP,
+					Arguments: []string{ipAddress},
+					IsGlobal:  false,
+					Enabled:   true,
+					Period:    config.DurationString("1m").Duration(),
+					Burst:     1,
+				}})
+			})
+		})
+
+		Convey("forgot_password.email.validate", func() {
+			rl := RateLimitForgotPasswordEmailValidate
+			Convey("set in config", func() {
+				cfg, err := config.Parse(ctx, []byte(`
+          id: test
+          http:
+            public_origin: http://test
+          forgot_password:
+            rate_limits:
+              email:
+                validate_per_ip:
+                  burst: 1
+                  enabled: true
+                  period: 1m
+        `))
+				So(err, ShouldBeNil)
+				specs := rl.ResolveBucketSpecs(cfg, nil, nil, &ResolveBucketSpecOptions{
+					IPAddress: ipAddress,
+					Channel:   model.AuthenticatorOOBChannelEmail,
+				})
+				So(specs, ShouldResemble, []*BucketSpec{{
+					Name:      ForgotPasswordValidateEmailPerIP,
+					Arguments: []string{ipAddress},
+					IsGlobal:  false,
+					Enabled:   true,
+					Period:    config.DurationString("1m").Duration(),
+					Burst:     1,
+				}})
+			})
+		})
+
+		Convey("forgot_password.sms.trigger", func() {
+			rl := RateLimitForgotPasswordSMSTrigger
+			Convey("set in config", func() {
+				cfg, err := config.Parse(ctx, []byte(`
+          id: test
+          http:
+            public_origin: http://test
+          forgot_password:
+            rate_limits:
+              sms:
+                trigger_per_ip:
+                  burst: 1
+                  enabled: true
+                  period: 1m
+        `))
+				So(err, ShouldBeNil)
+				specs := rl.ResolveBucketSpecs(cfg, nil, nil, &ResolveBucketSpecOptions{
+					IPAddress: ipAddress,
+					Channel:   model.AuthenticatorOOBChannelSMS,
+				})
+				So(specs, ShouldResemble, []*BucketSpec{{
+					Name:      ForgotPasswordTriggerSMSPerIP,
+					Arguments: []string{ipAddress},
+					IsGlobal:  false,
+					Enabled:   true,
+					Period:    config.DurationString("1m").Duration(),
+					Burst:     1,
+				}})
+			})
+		})
+
+		Convey("forgot_password.sms.validate", func() {
+			rl := RateLimitForgotPasswordSMSValidate
+			Convey("set in config", func() {
+				cfg, err := config.Parse(ctx, []byte(`
+          id: test
+          http:
+            public_origin: http://test
+          forgot_password:
+            rate_limits:
+              sms:
+                validate_per_ip:
+                  burst: 1
+                  enabled: true
+                  period: 1m
+        `))
+				So(err, ShouldBeNil)
+				specs := rl.ResolveBucketSpecs(cfg, nil, nil, &ResolveBucketSpecOptions{
+					IPAddress: ipAddress,
+					Channel:   model.AuthenticatorOOBChannelSMS,
+				})
+				So(specs, ShouldResemble, []*BucketSpec{{
+					Name:      ForgotPasswordValidateSMSPerIP,
+					Arguments: []string{ipAddress},
+					IsGlobal:  false,
+					Enabled:   true,
+					Period:    config.DurationString("1m").Duration(),
+					Burst:     1,
+				}})
+			})
+		})
 	})
 }
