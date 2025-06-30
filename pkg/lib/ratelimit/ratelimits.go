@@ -163,7 +163,7 @@ func (n RateLimit) resolvePerIP(cfg *config.AppConfig, featureCfg *config.Featur
 	case RateLimitMessagingSMS:
 		return resolveConfig(cfg.Messaging.RateLimits.SMSPerIP, nil, featureCfg.Messaging.RateLimits.SMSPerIP)
 	case RateLimitMessagingEmail:
-		return resolveConfig(cfg.Messaging.RateLimits.EmailPerIP, nil, featureCfg.Messaging.RateLimits.SMSPerIP)
+		return resolveConfig(cfg.Messaging.RateLimits.EmailPerIP, nil, featureCfg.Messaging.RateLimits.EmailPerIP)
 	}
 	return nil
 }
@@ -185,7 +185,7 @@ func (n RateLimit) resolvePerUser(cfg *config.AppConfig) *config.RateLimitConfig
 func (n RateLimit) resolvePerTarget(cfg *config.AppConfig, featureCfg *config.FeatureConfig) *config.RateLimitConfig {
 	switch n {
 	case RateLimitMessagingEmail:
-		return resolveConfig(cfg.Messaging.RateLimits.EmailPerTarget, nil, featureCfg.Messaging.RateLimits.SMSPerTarget)
+		return resolveConfig(cfg.Messaging.RateLimits.EmailPerTarget, nil, featureCfg.Messaging.RateLimits.EmailPerTarget)
 	case RateLimitMessagingSMS:
 		return resolveConfig(cfg.Messaging.RateLimits.SMSPerTarget, nil, featureCfg.Messaging.RateLimits.SMSPerTarget)
 	}
