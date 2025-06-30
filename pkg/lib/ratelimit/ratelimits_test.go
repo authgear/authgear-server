@@ -16,7 +16,7 @@ func boolPtr(b bool) *bool {
 }
 
 func TestRateLimits(t *testing.T) {
-	Convey("RateLimit", t, func() {
+	Convey("RateLimit.ResolveBucketSpecs", t, func() {
 		ctx := context.Background()
 		userID := "testuserid"
 		ipAddress := "1.2.3.4"
@@ -2213,6 +2213,124 @@ func TestRateLimits(t *testing.T) {
 					},
 				})
 			})
+		})
+	})
+
+	Convey("RateLimit.ResolveWeight", t, func() {
+		Convey("should return default weight when no weights are in context", func() {
+			ctx := context.Background()
+			weight := RateLimitAuthenticationPassword.ResolveWeight(ctx)
+			So(weight, ShouldEqual, 1.0)
+		})
+
+		Convey("should return default weight for unnamed rate limit", func() {
+			ctx := WithRateLimitWeights(context.Background())
+			weights := map[RateLimit]float64{
+				RateLimitAuthenticationPassword: 2.0,
+			}
+			SetRateLimitWeights(ctx, weights)
+			var r RateLimit = ""
+			weight := r.ResolveWeight(ctx)
+			So(weight, ShouldEqual, 1.0)
+		})
+
+		Convey("should return specific weight if defined", func() {
+			ctx := WithRateLimitWeights(context.Background())
+			weights := map[RateLimit]float64{
+				RateLimitAuthenticationPassword: 2.0,
+			}
+			SetRateLimitWeights(ctx, weights)
+			weight := RateLimitAuthenticationPassword.ResolveWeight(ctx)
+			So(weight, ShouldEqual, 2.0)
+		})
+
+		Convey("should return fallback weight if specific not defined", func() {
+			ctx := WithRateLimitWeights(context.Background())
+			weights := map[RateLimit]float64{
+				RateLimitAuthenticationGeneral: 3.0,
+			}
+			SetRateLimitWeights(ctx, weights)
+			// RateLimitAuthenticationPassword falls back to RateLimitAuthenticationGeneral
+			weight := RateLimitAuthenticationPassword.ResolveWeight(ctx)
+			So(weight, ShouldEqual, 3.0)
+		})
+
+		Convey("should return specific weight even if fallback is defined", func() {
+			ctx := WithRateLimitWeights(context.Background())
+			weights := map[RateLimit]float64{
+				RateLimitAuthenticationGeneral:  3.0,
+				RateLimitAuthenticationPassword: 2.0,
+			}
+			SetRateLimitWeights(ctx, weights)
+			weight := RateLimitAuthenticationPassword.ResolveWeight(ctx)
+			So(weight, ShouldEqual, 2.0)
+		})
+
+		Convey("should return default weight without specific weight", func() {
+			ctx := WithRateLimitWeights(context.Background())
+			weights := map[RateLimit]float64{
+				RateLimitAuthenticationGeneral: 3.0,
+			}
+			SetRateLimitWeights(ctx, weights)
+			// This one has no fallback
+			weight := RateLimitVerificationEmailTrigger.ResolveWeight(ctx)
+			So(weight, ShouldEqual, 1.0)
+		})
+
+		Convey("should return specific weight for rate limits without fallback", func() {
+			ctx := WithRateLimitWeights(context.Background())
+			weights := map[RateLimit]float64{
+				RateLimitVerificationEmailTrigger: 5.0,
+			}
+			SetRateLimitWeights(ctx, weights)
+			weight := RateLimitVerificationEmailTrigger.ResolveWeight(ctx)
+			So(weight, ShouldEqual, 5.0)
+		})
+
+		Convey("should return 0 for negative weight", func() {
+			ctx := WithRateLimitWeights(context.Background())
+			weights := map[RateLimit]float64{
+				RateLimitAuthenticationPassword: -2.0,
+			}
+			SetRateLimitWeights(ctx, weights)
+			weight := RateLimitAuthenticationPassword.ResolveWeight(ctx)
+			So(weight, ShouldEqual, 0)
+		})
+
+		Convey("should return 0 for negative fallback weight", func() {
+			ctx := WithRateLimitWeights(context.Background())
+			weights := map[RateLimit]float64{
+				RateLimitAuthenticationGeneral: -3.0,
+			}
+			SetRateLimitWeights(ctx, weights)
+			weight := RateLimitAuthenticationPassword.ResolveWeight(ctx)
+			So(weight, ShouldEqual, 0)
+		})
+
+		Convey("should return fallback weight for all applicable rate limits", func() {
+			limitsWithFallback := []RateLimit{
+				RateLimitAuthenticationPassword,
+				RateLimitAuthenticationOOBOTPEmailValidate,
+				RateLimitAuthenticationOOBOTPSMSValidate,
+				RateLimitAuthenticationTOTP,
+				RateLimitAuthenticationRecoveryCode,
+				RateLimitAuthenticationDeviceToken,
+				RateLimitAuthenticationPasskey,
+				RateLimitAuthenticationSIWE,
+			}
+
+			for _, limit := range limitsWithFallback {
+				limit := limit
+				Convey(string(limit), func() {
+					ctx := WithRateLimitWeights(context.Background())
+					weights := map[RateLimit]float64{
+						RateLimitAuthenticationGeneral: 3.0,
+					}
+					SetRateLimitWeights(ctx, weights)
+					weight := limit.ResolveWeight(ctx)
+					So(weight, ShouldEqual, 3.0)
+				})
+			}
 		})
 	})
 }
