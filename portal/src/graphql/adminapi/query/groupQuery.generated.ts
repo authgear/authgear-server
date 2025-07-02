@@ -65,7 +65,7 @@ export const GroupQueryDocument = gql`
  *   },
  * });
  */
-export function useGroupQueryQuery(baseOptions: Apollo.QueryHookOptions<GroupQueryQuery, GroupQueryQueryVariables>) {
+export function useGroupQueryQuery(baseOptions: Apollo.QueryHookOptions<GroupQueryQuery, GroupQueryQueryVariables> & ({ variables: GroupQueryQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
         const options = {...defaultOptions, ...baseOptions}
         return Apollo.useQuery<GroupQueryQuery, GroupQueryQueryVariables>(GroupQueryDocument, options);
       }
@@ -73,8 +73,8 @@ export function useGroupQueryLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<GroupQueryQuery, GroupQueryQueryVariables>(GroupQueryDocument, options);
         }
-export function useGroupQuerySuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GroupQueryQuery, GroupQueryQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
+export function useGroupQuerySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GroupQueryQuery, GroupQueryQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
           return Apollo.useSuspenseQuery<GroupQueryQuery, GroupQueryQueryVariables>(GroupQueryDocument, options);
         }
 export type GroupQueryQueryHookResult = ReturnType<typeof useGroupQueryQuery>;

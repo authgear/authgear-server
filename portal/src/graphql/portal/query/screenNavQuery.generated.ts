@@ -48,7 +48,7 @@ export const ScreenNavQueryDocument = gql`
  *   },
  * });
  */
-export function useScreenNavQueryQuery(baseOptions: Apollo.QueryHookOptions<ScreenNavQueryQuery, ScreenNavQueryQueryVariables>) {
+export function useScreenNavQueryQuery(baseOptions: Apollo.QueryHookOptions<ScreenNavQueryQuery, ScreenNavQueryQueryVariables> & ({ variables: ScreenNavQueryQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
         const options = {...defaultOptions, ...baseOptions}
         return Apollo.useQuery<ScreenNavQueryQuery, ScreenNavQueryQueryVariables>(ScreenNavQueryDocument, options);
       }
@@ -56,8 +56,8 @@ export function useScreenNavQueryLazyQuery(baseOptions?: Apollo.LazyQueryHookOpt
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<ScreenNavQueryQuery, ScreenNavQueryQueryVariables>(ScreenNavQueryDocument, options);
         }
-export function useScreenNavQuerySuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<ScreenNavQueryQuery, ScreenNavQueryQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
+export function useScreenNavQuerySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ScreenNavQueryQuery, ScreenNavQueryQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
           return Apollo.useSuspenseQuery<ScreenNavQueryQuery, ScreenNavQueryQueryVariables>(ScreenNavQueryDocument, options);
         }
 export type ScreenNavQueryQueryHookResult = ReturnType<typeof useScreenNavQueryQuery>;

@@ -51,7 +51,7 @@ export const AuditLogEntryQueryDocument = gql`
  *   },
  * });
  */
-export function useAuditLogEntryQueryQuery(baseOptions: Apollo.QueryHookOptions<AuditLogEntryQueryQuery, AuditLogEntryQueryQueryVariables>) {
+export function useAuditLogEntryQueryQuery(baseOptions: Apollo.QueryHookOptions<AuditLogEntryQueryQuery, AuditLogEntryQueryQueryVariables> & ({ variables: AuditLogEntryQueryQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
         const options = {...defaultOptions, ...baseOptions}
         return Apollo.useQuery<AuditLogEntryQueryQuery, AuditLogEntryQueryQueryVariables>(AuditLogEntryQueryDocument, options);
       }
@@ -59,8 +59,8 @@ export function useAuditLogEntryQueryLazyQuery(baseOptions?: Apollo.LazyQueryHoo
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<AuditLogEntryQueryQuery, AuditLogEntryQueryQueryVariables>(AuditLogEntryQueryDocument, options);
         }
-export function useAuditLogEntryQuerySuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<AuditLogEntryQueryQuery, AuditLogEntryQueryQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
+export function useAuditLogEntryQuerySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<AuditLogEntryQueryQuery, AuditLogEntryQueryQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
           return Apollo.useSuspenseQuery<AuditLogEntryQueryQuery, AuditLogEntryQueryQueryVariables>(AuditLogEntryQueryDocument, options);
         }
 export type AuditLogEntryQueryQueryHookResult = ReturnType<typeof useAuditLogEntryQueryQuery>;

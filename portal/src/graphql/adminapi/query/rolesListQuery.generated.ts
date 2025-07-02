@@ -62,7 +62,7 @@ export const RolesListQueryDocument = gql`
  *   },
  * });
  */
-export function useRolesListQueryQuery(baseOptions: Apollo.QueryHookOptions<RolesListQueryQuery, RolesListQueryQueryVariables>) {
+export function useRolesListQueryQuery(baseOptions: Apollo.QueryHookOptions<RolesListQueryQuery, RolesListQueryQueryVariables> & ({ variables: RolesListQueryQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
         const options = {...defaultOptions, ...baseOptions}
         return Apollo.useQuery<RolesListQueryQuery, RolesListQueryQueryVariables>(RolesListQueryDocument, options);
       }
@@ -70,8 +70,8 @@ export function useRolesListQueryLazyQuery(baseOptions?: Apollo.LazyQueryHookOpt
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<RolesListQueryQuery, RolesListQueryQueryVariables>(RolesListQueryDocument, options);
         }
-export function useRolesListQuerySuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<RolesListQueryQuery, RolesListQueryQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
+export function useRolesListQuerySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<RolesListQueryQuery, RolesListQueryQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
           return Apollo.useSuspenseQuery<RolesListQueryQuery, RolesListQueryQueryVariables>(RolesListQueryDocument, options);
         }
 export type RolesListQueryQueryHookResult = ReturnType<typeof useRolesListQueryQuery>;

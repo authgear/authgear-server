@@ -85,7 +85,7 @@ export const AuditLogListQueryDocument = gql`
  *   },
  * });
  */
-export function useAuditLogListQueryQuery(baseOptions: Apollo.QueryHookOptions<AuditLogListQueryQuery, AuditLogListQueryQueryVariables>) {
+export function useAuditLogListQueryQuery(baseOptions: Apollo.QueryHookOptions<AuditLogListQueryQuery, AuditLogListQueryQueryVariables> & ({ variables: AuditLogListQueryQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
         const options = {...defaultOptions, ...baseOptions}
         return Apollo.useQuery<AuditLogListQueryQuery, AuditLogListQueryQueryVariables>(AuditLogListQueryDocument, options);
       }
@@ -93,8 +93,8 @@ export function useAuditLogListQueryLazyQuery(baseOptions?: Apollo.LazyQueryHook
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<AuditLogListQueryQuery, AuditLogListQueryQueryVariables>(AuditLogListQueryDocument, options);
         }
-export function useAuditLogListQuerySuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<AuditLogListQueryQuery, AuditLogListQueryQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
+export function useAuditLogListQuerySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<AuditLogListQueryQuery, AuditLogListQueryQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
           return Apollo.useSuspenseQuery<AuditLogListQueryQuery, AuditLogListQueryQueryVariables>(AuditLogListQueryDocument, options);
         }
 export type AuditLogListQueryQueryHookResult = ReturnType<typeof useAuditLogListQueryQuery>;

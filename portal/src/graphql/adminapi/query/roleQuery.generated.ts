@@ -65,7 +65,7 @@ export const RoleQueryDocument = gql`
  *   },
  * });
  */
-export function useRoleQueryQuery(baseOptions: Apollo.QueryHookOptions<RoleQueryQuery, RoleQueryQueryVariables>) {
+export function useRoleQueryQuery(baseOptions: Apollo.QueryHookOptions<RoleQueryQuery, RoleQueryQueryVariables> & ({ variables: RoleQueryQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
         const options = {...defaultOptions, ...baseOptions}
         return Apollo.useQuery<RoleQueryQuery, RoleQueryQueryVariables>(RoleQueryDocument, options);
       }
@@ -73,8 +73,8 @@ export function useRoleQueryLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<RoleQueryQuery, RoleQueryQueryVariables>(RoleQueryDocument, options);
         }
-export function useRoleQuerySuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<RoleQueryQuery, RoleQueryQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
+export function useRoleQuerySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<RoleQueryQuery, RoleQueryQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
           return Apollo.useSuspenseQuery<RoleQueryQuery, RoleQueryQueryVariables>(RoleQueryDocument, options);
         }
 export type RoleQueryQueryHookResult = ReturnType<typeof useRoleQueryQuery>;

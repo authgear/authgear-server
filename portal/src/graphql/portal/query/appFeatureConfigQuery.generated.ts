@@ -44,7 +44,7 @@ export const AppFeatureConfigQueryDocument = gql`
  *   },
  * });
  */
-export function useAppFeatureConfigQueryQuery(baseOptions: Apollo.QueryHookOptions<AppFeatureConfigQueryQuery, AppFeatureConfigQueryQueryVariables>) {
+export function useAppFeatureConfigQueryQuery(baseOptions: Apollo.QueryHookOptions<AppFeatureConfigQueryQuery, AppFeatureConfigQueryQueryVariables> & ({ variables: AppFeatureConfigQueryQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
         const options = {...defaultOptions, ...baseOptions}
         return Apollo.useQuery<AppFeatureConfigQueryQuery, AppFeatureConfigQueryQueryVariables>(AppFeatureConfigQueryDocument, options);
       }
@@ -52,8 +52,8 @@ export function useAppFeatureConfigQueryLazyQuery(baseOptions?: Apollo.LazyQuery
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<AppFeatureConfigQueryQuery, AppFeatureConfigQueryQueryVariables>(AppFeatureConfigQueryDocument, options);
         }
-export function useAppFeatureConfigQuerySuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<AppFeatureConfigQueryQuery, AppFeatureConfigQueryQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
+export function useAppFeatureConfigQuerySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<AppFeatureConfigQueryQuery, AppFeatureConfigQueryQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
           return Apollo.useSuspenseQuery<AppFeatureConfigQueryQuery, AppFeatureConfigQueryQueryVariables>(AppFeatureConfigQueryDocument, options);
         }
 export type AppFeatureConfigQueryQueryHookResult = ReturnType<typeof useAppFeatureConfigQueryQuery>;
