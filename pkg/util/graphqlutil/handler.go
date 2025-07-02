@@ -3,6 +3,7 @@
 // Notable changes:
 // - Remove the type Config. You construct Handler directly.
 // - Remove features that we do not use, such as pretty, graphiql, playground.
+// - Remove ContentTypeFormURLEncoded, and its associated handling.
 package graphqlutil
 
 import (
@@ -17,9 +18,8 @@ import (
 )
 
 const (
-	ContentTypeJSON           = "application/json"
-	ContentTypeGraphQL        = "application/graphql"
-	ContentTypeFormURLEncoded = "application/x-www-form-urlencoded"
+	ContentTypeJSON    = "application/json"
+	ContentTypeGraphQL = "application/graphql"
 )
 
 type ResultCallbackFn func(ctx context.Context, params *graphql.Params, result *graphql.Result, responseBody []byte)
@@ -88,17 +88,6 @@ func NewRequestOptions(r *http.Request) *RequestOptions {
 		return &RequestOptions{
 			Query: string(body),
 		}
-	case ContentTypeFormURLEncoded:
-		if err := r.ParseForm(); err != nil {
-			return &RequestOptions{}
-		}
-
-		if reqOpt := getFromForm(r.PostForm); reqOpt != nil {
-			return reqOpt
-		}
-
-		return &RequestOptions{}
-
 	case ContentTypeJSON:
 		fallthrough
 	default:
