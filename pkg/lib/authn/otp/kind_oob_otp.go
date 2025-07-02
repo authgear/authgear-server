@@ -1,6 +1,7 @@
 package otp
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -9,26 +10,6 @@ import (
 )
 
 const PurposeOOBOTP Purpose = "oob-otp"
-
-const (
-	OOBOTPTriggerEmailPerIP            ratelimit.BucketName = "OOBOTPTriggerEmailPerIP"
-	OOBOTPTriggerSMSPerIP              ratelimit.BucketName = "OOBOTPTriggerSMSPerIP"
-	OOBOTPTriggerWhatsappPerIP         ratelimit.BucketName = "OOBOTPTriggerWhatsappPerIP"
-	OOBOTPTriggerEmailPerUser          ratelimit.BucketName = "OOBOTPTriggerEmailPerUser"
-	OOBOTPTriggerSMSPerUser            ratelimit.BucketName = "OOBOTPTriggerSMSPerUser"
-	OOBOTPTriggerWhatsappPerUser       ratelimit.BucketName = "OOBOTPTriggerWhatsappPerUser"
-	OOBOTPCooldownEmail                ratelimit.BucketName = "OOBOTPCooldownEmail"
-	OOBOTPCooldownSMS                  ratelimit.BucketName = "OOBOTPCooldownSMS"
-	OOBOTPCooldownWhatsapp             ratelimit.BucketName = "OOBOTPCooldownWhatsapp"
-	OOBOTPValidateEmailPerIP           ratelimit.BucketName = "OOBOTPValidateEmailPerIP"
-	OOBOTPValidateSMSPerIP             ratelimit.BucketName = "OOBOTPValidateSMSPerIP"
-	OOBOTPValidateWhatsappPerIP        ratelimit.BucketName = "OOBOTPValidateWhatsappPerIP"
-	OOBOTPValidateEmailPerUserPerIP    ratelimit.BucketName = "OOBOTPValidateEmailPerUserPerIP"
-	OOBOTPValidateSMSPerUserPerIP      ratelimit.BucketName = "OOBOTPValidateSMSPerUserPerIP"
-	OOBOTPValidateWhatsappPerUserPerIP ratelimit.BucketName = "OOBOTPValidateWhatsappPerUserPerIP"
-	AuthenticatePerIP                  ratelimit.BucketName = "AuthenticatePerIP"
-	AuthenticatePerUserPerIP           ratelimit.BucketName = "AuthenticatePerUserPerIP"
-)
 
 type kindOOBOTP struct {
 	config  *config.AppConfig
@@ -74,42 +55,34 @@ func (k kindOOBOTP) ValidPeriod() time.Duration {
 	panic("unknown authenticator oob otp form")
 }
 
-func (k kindOOBOTP) RateLimitTriggerPerIP(ip string) ratelimit.BucketSpec {
-	return ratelimit.NewBucketSpec(
-		selectByChannel(k.channel,
-			k.config.Authentication.RateLimits.OOBOTP.Email.TriggerPerIP,
-			k.config.Authentication.RateLimits.OOBOTP.SMS.TriggerPerIP,
-			k.config.Authentication.RateLimits.OOBOTP.SMS.TriggerPerIP,
-		),
-		selectByChannel(k.channel,
-			OOBOTPTriggerEmailPerIP,
-			OOBOTPTriggerSMSPerIP,
-			OOBOTPTriggerWhatsappPerIP,
-		),
-		string(k.purpose), ip)
-}
-
-func (k kindOOBOTP) RateLimitTriggerPerUser(userID string) ratelimit.BucketSpec {
-	return ratelimit.NewBucketSpec(
-		selectByChannel(k.channel,
-			k.config.Authentication.RateLimits.OOBOTP.Email.TriggerPerUser,
-			k.config.Authentication.RateLimits.OOBOTP.SMS.TriggerPerUser,
-			k.config.Authentication.RateLimits.OOBOTP.SMS.TriggerPerUser,
-		),
-		selectByChannel(k.channel,
-			OOBOTPTriggerEmailPerUser,
-			OOBOTPTriggerSMSPerUser,
-			OOBOTPTriggerWhatsappPerUser,
-		),
-		string(k.purpose), userID)
+func (k kindOOBOTP) RateLimitTrigger(
+	featureConfig *config.FeatureConfig,
+	envConfig *config.RateLimitsEnvironmentConfig,
+	ip string, userID string,
+) []*ratelimit.BucketSpec {
+	opts := &ratelimit.ResolveBucketSpecOptions{
+		IPAddress: ip,
+		Channel:   k.channel,
+		Purpose:   string(k.Purpose()),
+		UserID:    userID,
+	}
+	switch k.channel {
+	case model.AuthenticatorOOBChannelEmail:
+		return ratelimit.RateLimitAuthenticationOOBOTPEmailTrigger.ResolveBucketSpecs(k.config, featureConfig, envConfig, opts)
+	case model.AuthenticatorOOBChannelSMS:
+		fallthrough
+	case model.AuthenticatorOOBChannelWhatsapp:
+		return ratelimit.RateLimitAuthenticationOOBOTPSMSTrigger.ResolveBucketSpecs(k.config, featureConfig, envConfig, opts)
+	}
+	panic(fmt.Errorf("invalid channel: %v", k.channel))
 }
 
 func (k kindOOBOTP) RateLimitTriggerCooldown(target string) ratelimit.BucketSpec {
 	return ratelimit.NewCooldownSpec(
 		selectByChannel(k.channel,
-			OOBOTPCooldownEmail,
-			OOBOTPCooldownSMS,
-			OOBOTPCooldownWhatsapp,
+			ratelimit.OOBOTPCooldownEmail,
+			ratelimit.OOBOTPCooldownSMS,
+			ratelimit.OOBOTPCooldownWhatsapp,
 		),
 		selectByChannel(k.channel,
 			k.config.Authentication.RateLimits.OOBOTP.Email.TriggerCooldown,
@@ -120,60 +93,26 @@ func (k kindOOBOTP) RateLimitTriggerCooldown(target string) ratelimit.BucketSpec
 	)
 }
 
-func (k kindOOBOTP) RateLimitValidatePerIP(ip string) ratelimit.BucketSpec {
-	config := selectByChannel(k.channel,
-		k.config.Authentication.RateLimits.OOBOTP.Email.ValidatePerIP,
-		k.config.Authentication.RateLimits.OOBOTP.SMS.ValidatePerIP,
-		k.config.Authentication.RateLimits.OOBOTP.SMS.ValidatePerIP,
-	)
-	if config.Enabled == nil {
-		return ratelimit.NewBucketSpec(
-			k.config.Authentication.RateLimits.General.PerIP,
-			AuthenticatePerIP,
-			// purpose is omitted intentionally.
-			ip,
-		)
+func (k kindOOBOTP) RateLimitValidate(
+	featureConfig *config.FeatureConfig,
+	envConfig *config.RateLimitsEnvironmentConfig,
+	ip string, userID string,
+) []*ratelimit.BucketSpec {
+	opts := &ratelimit.ResolveBucketSpecOptions{
+		IPAddress: ip,
+		Channel:   k.channel,
+		Purpose:   string(k.Purpose()),
+		UserID:    userID,
 	}
-
-	return ratelimit.NewBucketSpec(
-		config,
-		selectByChannel(k.channel,
-			OOBOTPValidateEmailPerIP,
-			OOBOTPValidateSMSPerIP,
-			OOBOTPValidateWhatsappPerIP,
-		),
-		string(k.purpose),
-		ip,
-	)
-}
-
-func (k kindOOBOTP) RateLimitValidatePerUserPerIP(userID string, ip string) ratelimit.BucketSpec {
-	config := selectByChannel(k.channel,
-		k.config.Authentication.RateLimits.OOBOTP.Email.ValidatePerUserPerIP,
-		k.config.Authentication.RateLimits.OOBOTP.SMS.ValidatePerUserPerIP,
-		k.config.Authentication.RateLimits.OOBOTP.SMS.ValidatePerUserPerIP,
-	)
-	if config.Enabled == nil {
-		return ratelimit.NewBucketSpec(
-			k.config.Authentication.RateLimits.General.PerUserPerIP,
-			AuthenticatePerUserPerIP,
-			// purpose is omitted intentionally.
-			userID,
-			ip,
-		)
+	switch k.channel {
+	case model.AuthenticatorOOBChannelEmail:
+		return ratelimit.RateLimitAuthenticationOOBOTPEmailValidate.ResolveBucketSpecs(k.config, featureConfig, envConfig, opts)
+	case model.AuthenticatorOOBChannelSMS:
+		fallthrough
+	case model.AuthenticatorOOBChannelWhatsapp:
+		return ratelimit.RateLimitAuthenticationOOBOTPSMSValidate.ResolveBucketSpecs(k.config, featureConfig, envConfig, opts)
 	}
-
-	return ratelimit.NewBucketSpec(
-		config,
-		selectByChannel(k.channel,
-			OOBOTPValidateEmailPerUserPerIP,
-			OOBOTPValidateSMSPerUserPerIP,
-			OOBOTPValidateWhatsappPerUserPerIP,
-		),
-		string(k.purpose),
-		userID,
-		ip,
-	)
+	panic(fmt.Errorf("invalid channel: %v", k.channel))
 }
 
 func (k kindOOBOTP) RevocationMaxFailedAttempts() int {

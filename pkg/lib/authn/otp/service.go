@@ -73,6 +73,9 @@ type Service struct {
 	AttemptTracker        AttemptTracker
 	Logger                Logger
 	RateLimiter           RateLimiter
+
+	FeatureConfig *config.FeatureConfig
+	EnvConfig     *config.RateLimitsEnvironmentConfig
 }
 
 func (s *Service) getCode(ctx context.Context, purpose Purpose, target string) (*Code, error) {
@@ -140,16 +143,10 @@ func (s *Service) GenerateOTP(ctx context.Context, kind Kind, target string, for
 			return "", err
 		}
 
-		failed, err = s.RateLimiter.Allow(ctx, kind.RateLimitTriggerPerIP(string(s.RemoteIP)))
-		if err != nil {
-			return "", err
-		}
-		if err := failed.Error(); err != nil {
-			return "", err
-		}
-
-		if opts.UserID != "" {
-			failed, err := s.RateLimiter.Allow(ctx, kind.RateLimitTriggerPerUser(opts.UserID))
+		specs := kind.RateLimitTrigger(s.FeatureConfig, s.EnvConfig, string(s.RemoteIP), opts.UserID)
+		for _, spec := range specs {
+			spec := *spec
+			failed, err := s.RateLimiter.Allow(ctx, spec)
 			if err != nil {
 				return "", err
 			}
@@ -202,6 +199,19 @@ func (s *Service) VerifyOTP(ctx context.Context, kind Kind, target string, otp s
 
 	var reservations []*ratelimit.Reservation
 
+	specs := kind.RateLimitValidate(s.FeatureConfig, s.EnvConfig, string(s.RemoteIP), opts.UserID)
+	for _, spec := range specs {
+		spec := *spec
+		resv, failed, err := s.RateLimiter.Reserve(ctx, spec)
+		if err != nil {
+			return err
+		}
+		if err := failed.Error(); err != nil {
+			return err
+		}
+		reservations = append(reservations, resv)
+	}
+
 	isCodeValid := false
 	defer func() {
 		if isCodeValid {
@@ -210,26 +220,6 @@ func (s *Service) VerifyOTP(ctx context.Context, kind Kind, target string, otp s
 			}
 		}
 	}()
-
-	r1, failedR1, err := s.RateLimiter.Reserve(ctx, kind.RateLimitValidatePerIP(string(s.RemoteIP)))
-	if err != nil {
-		return err
-	}
-	if err := failedR1.Error(); err != nil {
-		return err
-	}
-	reservations = append(reservations, r1)
-
-	if opts.UserID != "" {
-		r2, failedR2, err := s.RateLimiter.Reserve(ctx, kind.RateLimitValidatePerUserPerIP(opts.UserID, string(s.RemoteIP)))
-		if err != nil {
-			return err
-		}
-		if err := failedR2.Error(); err != nil {
-			return err
-		}
-		reservations = append(reservations, r2)
-	}
 
 	code, err := s.getCode(ctx, kind.Purpose(), target)
 	if errors.Is(err, ErrCodeNotFound) {

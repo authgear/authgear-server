@@ -17,6 +17,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/wechat"
+	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/phone"
@@ -692,19 +693,28 @@ func newIdentityInfo(ctx context.Context, deps *authflow.Dependencies, newUserID
 }
 
 func findExactOneIdentityInfo(ctx context.Context, deps *authflow.Dependencies, spec *identity.Spec) (*identity.Info, error) {
-	bucketSpec := AccountEnumerationPerIPRateLimitBucketSpec(
-		deps.Config.Authentication,
-		string(deps.RemoteIP),
-	)
 
-	reservation, failedReservation, err := deps.RateLimiter.Reserve(ctx, bucketSpec)
-	if err != nil {
-		return nil, err
+	reservations := []*ratelimit.Reservation{}
+	specs := ratelimit.RateLimitAuthenticationAccountEnumeration.ResolveBucketSpecs(deps.Config, deps.FeatureConfig, deps.RateLimitsEnvConfig, &ratelimit.ResolveBucketSpecOptions{
+		IPAddress: string(deps.RemoteIP),
+	})
+	for _, spec := range specs {
+		spec := *spec
+		resv, failedReservation, err := deps.RateLimiter.Reserve(ctx, spec)
+		if err != nil {
+			return nil, err
+		}
+		if err := failedReservation.Error(); err != nil {
+			return nil, err
+		}
+		reservations = append(reservations, resv)
 	}
-	if err := failedReservation.Error(); err != nil {
-		return nil, err
-	}
-	defer deps.RateLimiter.Cancel(ctx, reservation)
+
+	defer func() {
+		for _, resv := range reservations {
+			deps.RateLimiter.Cancel(ctx, resv)
+		}
+	}()
 
 	exactMatch, otherMatches, err := deps.Identities.SearchBySpec(ctx, spec)
 	if err != nil {
@@ -713,7 +723,9 @@ func findExactOneIdentityInfo(ctx context.Context, deps *authflow.Dependencies, 
 
 	if exactMatch == nil {
 		// Prevent canceling the reservation if exact match is not found.
-		reservation.PreventCancel()
+		for _, resv := range reservations {
+			resv.PreventCancel()
+		}
 
 		var otherSpec *identity.Spec
 		if len(otherMatches) > 0 {

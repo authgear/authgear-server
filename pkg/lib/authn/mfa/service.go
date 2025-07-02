@@ -12,13 +12,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
-const (
-	VerifyDeviceTokenPerUserPerIP  ratelimit.BucketName = "VerifyDeviceTokenPerUserPerIP"
-	VerifyDeviceTokenPerIP         ratelimit.BucketName = "VerifyDeviceTokenPerIP"
-	VerifyRecoveryCodePerUserPerIP ratelimit.BucketName = "VerifyRecoveryCodePerUserPerIP"
-	VerifyRecoveryCodePerIP        ratelimit.BucketName = "VerifyRecoveryCodePerIP"
-)
-
 type StoreDeviceToken interface {
 	Get(ctx context.Context, userID string, token string) (*DeviceToken, error)
 	Create(ctx context.Context, token *DeviceToken) error
@@ -45,7 +38,9 @@ type Service struct {
 	DeviceTokens  StoreDeviceToken
 	RecoveryCodes StoreRecoveryCode
 	Clock         clock.Clock
-	Config        *config.AuthenticationConfig
+	Config        *config.AppConfig
+	FeatureConfig *config.FeatureConfig
+	EnvConfig     *config.RateLimitsEnvironmentConfig
 	RateLimiter   RateLimiter
 	Lockout       Lockout
 }
@@ -56,41 +51,25 @@ func (s *Service) GenerateDeviceToken(ctx context.Context) string {
 
 func (s *Service) reserveRateLimit(
 	ctx context.Context,
-	namePerUserPerIP ratelimit.BucketName,
-	perUserPerIP *config.RateLimitConfig,
-	namePerIP ratelimit.BucketName,
-	perIP *config.RateLimitConfig,
+	rl ratelimit.RateLimit,
 	userID string,
-) (rPerUserPerIP *ratelimit.Reservation, rPerIP *ratelimit.Reservation, err error) {
-	if perUserPerIP.Enabled == nil {
-		perUserPerIP = s.Config.RateLimits.General.PerUserPerIP
-	}
-	if perIP.Enabled == nil {
-		perIP = s.Config.RateLimits.General.PerIP
-	}
-
-	rPerUserPerIP, failedPerUserPerIP, err := s.RateLimiter.Reserve(ctx, ratelimit.NewBucketSpec(
-		perUserPerIP, namePerUserPerIP,
-		userID, string(s.IP),
-	))
-	if err != nil {
-		return
-	}
-	if ratelimitErr := failedPerUserPerIP.Error(); ratelimitErr != nil {
-		err = ratelimitErr
-		return
-	}
-
-	rPerIP, failedPerIP, err := s.RateLimiter.Reserve(ctx, ratelimit.NewBucketSpec(
-		perIP, namePerIP,
-		string(s.IP),
-	))
-	if err != nil {
-		return
-	}
-	if ratelimitErr := failedPerIP.Error(); ratelimitErr != nil {
-		err = ratelimitErr
-		return
+) (reservations []*ratelimit.Reservation, err error) {
+	specs := rl.ResolveBucketSpecs(s.Config, s.FeatureConfig, s.EnvConfig, &ratelimit.ResolveBucketSpecOptions{
+		IPAddress: string(s.IP),
+		UserID:    userID,
+	})
+	for _, spec := range specs {
+		spec := *spec
+		resv, failedResv, resvErr := s.RateLimiter.Reserve(ctx, spec)
+		err = resvErr
+		if err != nil {
+			return
+		}
+		if ratelimitErr := failedResv.Error(); ratelimitErr != nil {
+			err = ratelimitErr
+			return
+		}
+		reservations = append(reservations, resv)
 	}
 
 	return
@@ -101,7 +80,7 @@ func (s *Service) CreateDeviceToken(ctx context.Context, userID string, token st
 		UserID:    userID,
 		Token:     token,
 		CreatedAt: s.Clock.NowUTC(),
-		ExpireAt:  s.Clock.NowUTC().Add(s.Config.DeviceToken.ExpireIn.Duration()),
+		ExpireAt:  s.Clock.NowUTC().Add(s.Config.Authentication.DeviceToken.ExpireIn.Duration()),
 	}
 
 	if err := s.DeviceTokens.Create(ctx, t); err != nil {
@@ -112,25 +91,26 @@ func (s *Service) CreateDeviceToken(ctx context.Context, userID string, token st
 }
 
 func (s *Service) VerifyDeviceToken(ctx context.Context, userID string, token string) error {
-	perUserPerIP, perIP, err := s.reserveRateLimit(
+	resvs, err := s.reserveRateLimit(
 		ctx,
-		VerifyDeviceTokenPerUserPerIP,
-		s.Config.RateLimits.DeviceToken.PerUserPerIP,
-		VerifyDeviceTokenPerIP,
-		s.Config.RateLimits.DeviceToken.PerIP,
+		ratelimit.RateLimitAuthenticationDeviceToken,
 		userID,
 	)
 	if err != nil {
 		return err
 	}
 
-	defer s.RateLimiter.Cancel(ctx, perUserPerIP)
-	defer s.RateLimiter.Cancel(ctx, perIP)
+	defer func() {
+		for _, resv := range resvs {
+			s.RateLimiter.Cancel(ctx, resv)
+		}
+	}()
 
 	_, err = s.DeviceTokens.Get(ctx, userID, token)
 	if errors.Is(err, ErrDeviceTokenNotFound) {
-		perUserPerIP.PreventCancel()
-		perIP.PreventCancel()
+		for _, resv := range resvs {
+			resv.PreventCancel()
+		}
 	}
 	return err
 }
@@ -148,7 +128,7 @@ func (s *Service) CountDeviceTokens(ctx context.Context, userID string) (int, er
 }
 
 func (s *Service) GenerateRecoveryCodes(ctx context.Context) []string {
-	codes := make([]string, s.Config.RecoveryCode.Count)
+	codes := make([]string, s.Config.Authentication.RecoveryCode.Count)
 	for i := range codes {
 		codes[i] = secretcode.RecoveryCode.Generate()
 	}
@@ -184,20 +164,20 @@ func (s *Service) ReplaceRecoveryCodes(ctx context.Context, userID string, codes
 }
 
 func (s *Service) VerifyRecoveryCode(ctx context.Context, userID string, code string) (*RecoveryCode, error) {
-	perUserPerIP, perIP, err := s.reserveRateLimit(
+	resvs, err := s.reserveRateLimit(
 		ctx,
-		VerifyRecoveryCodePerUserPerIP,
-		s.Config.RateLimits.RecoveryCode.PerUserPerIP,
-		VerifyRecoveryCodePerIP,
-		s.Config.RateLimits.RecoveryCode.PerIP,
+		ratelimit.RateLimitAuthenticationRecoveryCode,
 		userID,
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	defer s.RateLimiter.Cancel(ctx, perUserPerIP)
-	defer s.RateLimiter.Cancel(ctx, perIP)
+	defer func() {
+		for _, resv := range resvs {
+			s.RateLimiter.Cancel(ctx, resv)
+		}
+	}()
 
 	err = s.Lockout.Check(ctx, userID)
 	if err != nil {
@@ -211,8 +191,9 @@ func (s *Service) VerifyRecoveryCode(ctx context.Context, userID string, code st
 
 	rc, err := s.RecoveryCodes.Get(ctx, userID, code)
 	if errors.Is(err, ErrRecoveryCodeNotFound) {
-		perUserPerIP.PreventCancel()
-		perIP.PreventCancel()
+		for _, resv := range resvs {
+			resv.PreventCancel()
+		}
 		aerr := s.Lockout.MakeRecoveryCodeAttempt(ctx, userID, 1)
 		if aerr != nil {
 			return nil, aerr

@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
@@ -114,13 +115,18 @@ func (i *IntentSignup) GetEffects(ctx context.Context, deps *workflow.Dependenci
 	return []workflow.Effect{
 		workflow.OnCommitEffect(func(ctx context.Context, deps *workflow.Dependencies) error {
 			// Apply ratelimit on sign up.
-			spec := SignupPerIPRateLimitBucketSpec(deps.Config.Authentication, false, string(deps.RemoteIP))
-			failed, err := deps.RateLimiter.Allow(ctx, spec)
-			if err != nil {
-				return err
-			}
-			if err := failed.Error(); err != nil {
-				return err
+			specs := ratelimit.RateLimitAuthenticationSignup.ResolveBucketSpecs(deps.Config, deps.FeatureConfig, deps.RateLimitsEnvConfig, &ratelimit.ResolveBucketSpecOptions{
+				IPAddress: string(deps.RemoteIP),
+			})
+			for _, spec := range specs {
+				spec := *spec
+				failed, err := deps.RateLimiter.Allow(ctx, spec)
+				if err != nil {
+					return err
+				}
+				if err := failed.Error(); err != nil {
+					return err
+				}
 			}
 			return nil
 		}),
