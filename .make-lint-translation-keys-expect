@@ -1,7 +1,6 @@
 resources/authgear/templates/en/web/authflowv2/__base_page_frame.html:41:12: template translation is forbidden: `page-frame-content`
 resources/authgear/templates/en/web/authflowv2/__bot_protection_dialog.html:5:27: translation key not defined: "dialog-controller-str"
 resources/authgear/templates/en/web/authflowv2/__bot_protection_dialog.html:6:21: translation key not defined: "dialog-content"
-resources/authgear/templates/en/web/authflowv2/__bot_protection_dialog.html:19:14: template translation is forbidden: `dialog-close-btn`
 resources/authgear/templates/en/web/authflowv2/__country_input.html:6:16: invalid translation key: "$labelKey"
 resources/authgear/templates/en/web/authflowv2/__country_input.html:10:21: translation key not defined: "%s %s"
 resources/authgear/templates/en/web/authflowv2/__csrf_error_page_layout.html:29:18: template translation is forbidden: `page-content`
@@ -50,5 +49,5 @@ resources/authgear/templates/en/web/authflowv2/settings_sessions.html:47:29: tra
 resources/authgear/templates/en/web/authflowv2/signup.html:97:26: translation key not defined: "v2.page.signup-login.continue.subtitle-%v"
 resources/authgear/templates/en/web/authflowv2/signup.html:106:26: translation key not defined: "v2.page.signup.continue.subtitle-%v"
 resources/authgear/templates/en/web/authflowv2/signup.html:284:35: translation key not defined: "%s-icon"
-52 errors found
+51 errors found
 exit status 1
