@@ -250,19 +250,16 @@ If the specified group is not found or not included in the [client's allow list]
 
 ### grant_type
 
-- `authorization_code`
-- `refresh_token`
-- `urn:authgear:params:oauth:grant-type:anonymous-request`
-- `urn:authgear:params:oauth:grant-type:biometric-request`
-- `urn:authgear:params:oauth:grant-type:id-token`
-- `urn:authgear:params:oauth:grant-type:authorization_code`
-- `urn:authgear:params:oauth:grant-type:settings-action`
+The following `grant_type` are supported.
 
-`urn:authgear:params:oauth:grant-type:anonymous-request` is for authenticating and issuing tokens directly for anonymous user.
-
-`urn:authgear:params:oauth:grant-type:biometric-request` is for authenticating and issuing tokens directly for users with Biometric identity.
-
-`urn:authgear:params:oauth:grant-type:settings-action` is issued upon completion of a settings action, such as change password.
+- `authorization_code` - [RFC6749 section-4.1](https://datatracker.ietf.org/doc/html/rfc6749#section-4.1)
+- `refresh_token` - [RFC6749 section-6](https://datatracker.ietf.org/doc/html/rfc6749#section-6)
+- `client_credentials` - [RFC6749 section-4.4](https://datatracker.ietf.org/doc/html/rfc6749#section-4.4)
+- `urn:authgear:params:oauth:grant-type:anonymous-request` - authenticating and issuing tokens directly for anonymous user.
+- `urn:authgear:params:oauth:grant-type:biometric-request` - authenticating and issuing tokens directly for users with Biometric identity.
+- `urn:authgear:params:oauth:grant-type:id-token` - for getting an ID token.
+- `urn:authgear:params:oauth:grant-type:authorization_code` - an unimplemented Authentication Flow feature.
+- `urn:authgear:params:oauth:grant-type:settings-action` - for settings action
 
 ### id_token_hint
 
@@ -284,6 +281,14 @@ When the grant type is `urn:authgear:params:oauth:grant-type:biometric-request`,
 This grant type is similar to `authorization_code`, except that it **DOES NOT** support the use of PKCE.
 `authorization_code` by definition is delivered by redirect, thus is subject to interception attack, as described in [RFC 7636](https://datatracker.ietf.org/doc/html/rfc7636).
 `urn:authgear:params:oauth:grant-type:authorization_code`, in contrast, is delivered in traditional HTTP request-response, thus the use of PKCE is redundant, and would add unnecessary friction.
+
+### resource
+
+See [M2M](./m2m.md#changes-in-oauth-20-implementation)
+
+### scope
+
+See [M2M](./m2m.md#changes-in-oauth-20-implementation)
 
 ## Token Response
 
