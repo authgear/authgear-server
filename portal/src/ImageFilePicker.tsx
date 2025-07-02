@@ -13,6 +13,7 @@ import BaseImagePicker from "./components/common/BaseImagePicker";
 export type ImageFileExtension = ".jpeg" | ".png" | ".gif";
 
 export interface ImageFilePickerProps {
+  sizeLimitInBytes: number;
   disabled?: boolean;
   className?: string;
   base64EncodedData?: string;
@@ -26,7 +27,13 @@ export interface ImageFilePickerProps {
 
 const ImageFilePicker: React.VFC<ImageFilePickerProps> =
   function ImageFilePicker(props: ImageFilePickerProps) {
-    const { disabled, className, base64EncodedData, onChange } = props;
+    const {
+      sizeLimitInBytes,
+      disabled,
+      className,
+      base64EncodedData,
+      onChange,
+    } = props;
 
     const hasImage = base64EncodedData != null;
 
@@ -43,6 +50,7 @@ const ImageFilePicker: React.VFC<ImageFilePickerProps> =
 
     return (
       <BaseImagePicker
+        sizeLimitInBytes={sizeLimitInBytes}
         className={cn(className, styles.root)}
         base64EncodedData={base64EncodedData ?? null}
         onChange={onChange}

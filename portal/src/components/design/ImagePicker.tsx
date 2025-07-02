@@ -14,6 +14,7 @@ import { base64EncodedDataToDataURI } from "../../util/uri";
 import styles from "./ImagePicker.module.css";
 
 interface ImagePickerProps {
+  sizeLimitInBytes: number;
   base64EncodedData: string | null;
   onChange: (
     image: {
@@ -25,10 +26,11 @@ interface ImagePickerProps {
 export const ImagePicker: React.VFC<ImagePickerProps> = function ImagePicker(
   props
 ) {
-  const { base64EncodedData, onChange } = props;
+  const { sizeLimitInBytes, base64EncodedData, onChange } = props;
   const { themes } = useSystemConfig();
   return (
     <BaseImagePicker
+      sizeLimitInBytes={sizeLimitInBytes}
       className={cn("flex", "items-center", "gap-x-6")}
       base64EncodedData={base64EncodedData}
       onChange={onChange}

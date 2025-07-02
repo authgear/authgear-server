@@ -237,6 +237,7 @@ const FaviconConfiguration: React.VFC<FaviconConfigurationProps> =
       <ConfigurationGroup labelKey="DesignScreen.configuration.favicon.label">
         <ConfigurationDescription labelKey="DesignScreen.configuration.favicon.description" />
         <ImagePicker
+          sizeLimitInBytes={100 * 1000}
           base64EncodedData={designForm.state.faviconBase64EncodedData}
           onChange={designForm.setFavicon}
         />
@@ -345,6 +346,7 @@ const BackgroundConfiguration: React.VFC<BackgroundConfigurationProps> =
           <>
             <Configuration labelKey="DesignScreen.configuration.background.image.label.light">
               <ImagePicker
+                sizeLimitInBytes={500 * 1000}
                 base64EncodedData={
                   designForm.state.backgroundImageBase64EncodedData
                 }
@@ -357,6 +359,7 @@ const BackgroundConfiguration: React.VFC<BackgroundConfigurationProps> =
           <>
             <Configuration labelKey="DesignScreen.configuration.background.image.label.dark">
               <ImagePicker
+                sizeLimitInBytes={500 * 1000}
                 base64EncodedData={
                   designForm.state.backgroundImageDarkBase64EncodedData
                 }
