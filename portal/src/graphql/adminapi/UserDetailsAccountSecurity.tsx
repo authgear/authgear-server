@@ -346,6 +346,7 @@ function constructSecondaryAuthenticatorList(
 }
 
 function constructPrimaryAuthenticatorLists(
+  config: PortalAPIAppConfig["authentication"],
   identities: Identity[],
   authenticators: Authenticator[],
   locale: string
@@ -354,6 +355,8 @@ function constructPrimaryAuthenticatorLists(
   const passwordAuthenticatorList: PasswordAuthenticatorData[] = [];
   const oobOtpEmailAuthenticatorList: OOBOTPAuthenticatorData[] = [];
   const oobOtpSMSAuthenticatorList: OOBOTPAuthenticatorData[] = [];
+  const isPrimaryPasswordEnabled =
+    config?.primary_authenticators?.includes("password") ?? false;
 
   const filteredAuthenticators = authenticators.filter(
     (a) => a.kind === AuthenticatorKind.Primary
@@ -400,12 +403,14 @@ function constructPrimaryAuthenticatorLists(
     password: passwordAuthenticatorList,
     oobOtpEmail: oobOtpEmailAuthenticatorList,
     oobOtpSMS: oobOtpSMSAuthenticatorList,
-    hasVisibleList: [
-      passkeyIdentityList,
-      passwordAuthenticatorList,
-      oobOtpEmailAuthenticatorList,
-      oobOtpSMSAuthenticatorList,
-    ].some((list) => list.length > 0),
+    isPrimaryPasswordEnabled,
+    hasVisibleList:
+      [
+        passkeyIdentityList,
+        passwordAuthenticatorList,
+        oobOtpEmailAuthenticatorList,
+        oobOtpSMSAuthenticatorList,
+      ].some((list) => list.length > 0) || isPrimaryPasswordEnabled,
   };
 }
 
@@ -778,11 +783,12 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
 
     const primaryAuthenticatorLists = useMemo(() => {
       return constructPrimaryAuthenticatorLists(
+        authenticationConfig,
         identities,
         authenticators,
         locale
       );
-    }, [locale, identities, authenticators]);
+    }, [authenticationConfig, locale, identities, authenticators]);
 
     const secondaryAuthenticatorLists = useMemo(() => {
       return constructSecondaryAuthenticatorList(
@@ -1114,6 +1120,10 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
       );
     }, [cancelMFAGracePeriodConfirmationDialog.show]);
 
+    const addPrimaryPassword = useCallback(() => {
+      navigate("./add-password");
+    }, [navigate]);
+
     return (
       <div className={styles.root}>
         <RemoveConfirmationDialog
@@ -1138,13 +1148,37 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
         />
         {primaryAuthenticatorLists.hasVisibleList ? (
           <div className={styles.authenticatorContainer}>
-            <Text
-              as="h2"
-              variant="medium"
-              className={cn(styles.header, styles.authenticatorKindHeader)}
+            <div
+              className={cn(
+                "flex justify-between",
+                styles.authenticatorKindHeader
+              )}
             >
-              <FormattedMessage id="UserDetails.account-security.primary" />
-            </Text>
+              <Text as="h2" variant="medium" className={cn(styles.header)}>
+                <FormattedMessage id="UserDetails.account-security.primary" />
+              </Text>
+              {primaryAuthenticatorLists.password.length === 0 ? (
+                <PrimaryButton
+                  iconProps={{ iconName: "CirclePlus" }}
+                  styles={{
+                    menuIcon: { paddingLeft: "3px" },
+                    icon: { paddingRight: "3px" },
+                  }}
+                  text={
+                    <FormattedMessage id="UserDetails.account-security.primary.password.add" />
+                  }
+                  onClick={addPrimaryPassword}
+                />
+              ) : null}
+            </div>
+            {primaryAuthenticatorLists.password.length === 0 &&
+            primaryAuthenticatorLists.isPrimaryPasswordEnabled ? (
+              <>
+                <Text as="h3" className={cn(styles.authenticatorEmpty)}>
+                  <FormattedMessage id="UserDetails.account-security.primary.password.empty" />
+                </Text>
+              </>
+            ) : null}
             {primaryAuthenticatorLists.password.length > 0 ? (
               <List
                 className={cn(
