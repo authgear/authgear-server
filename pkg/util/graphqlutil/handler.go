@@ -9,6 +9,7 @@ package graphqlutil
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"net/url"
@@ -21,6 +22,9 @@ const (
 	ContentTypeJSON    = "application/json"
 	ContentTypeGraphQL = "application/graphql"
 )
+
+var ErrMethodMustBePost = errors.New("http method must be POST")
+var ErrBodyMustBeNonNil = errors.New("http request body must be non-nil")
 
 type ResultCallbackFn func(ctx context.Context, params *graphql.Params, result *graphql.Result, responseBody []byte)
 
@@ -42,36 +46,43 @@ type requestOptionsCompatibility struct {
 	OperationName string `json:"operationName" url:"operationName" schema:"operationName"`
 }
 
-func getFromForm(values url.Values) *RequestOptions {
+func getFromForm(values url.Values) (*RequestOptions, error) {
 	query := values.Get("query")
 	if query != "" {
 		// get variables map
 		variables := make(map[string]interface{}, len(values))
 		variablesStr := values.Get("variables")
-		json.Unmarshal([]byte(variablesStr), &variables)
+		err := json.Unmarshal([]byte(variablesStr), &variables)
+		if err != nil {
+			return nil, err
+		}
 
 		return &RequestOptions{
 			Query:         query,
 			Variables:     variables,
 			OperationName: values.Get("operationName"),
-		}
+		}, nil
 	}
 
-	return nil
+	return nil, nil
 }
 
 // RequestOptions Parses a http.Request into GraphQL request options struct
-func NewRequestOptions(r *http.Request) *RequestOptions {
-	if reqOpt := getFromForm(r.URL.Query()); reqOpt != nil {
-		return reqOpt
+func NewRequestOptions(r *http.Request) (*RequestOptions, error) {
+	optionsFromURLQuery, err := getFromForm(r.URL.Query())
+	if err != nil {
+		return nil, err
+	}
+	if optionsFromURLQuery != nil {
+		return optionsFromURLQuery, nil
 	}
 
 	if r.Method != http.MethodPost {
-		return &RequestOptions{}
+		return nil, ErrMethodMustBePost
 	}
 
 	if r.Body == nil {
-		return &RequestOptions{}
+		return nil, ErrBodyMustBeNonNil
 	}
 
 	// TODO: improve Content-Type handling
@@ -83,28 +94,34 @@ func NewRequestOptions(r *http.Request) *RequestOptions {
 	case ContentTypeGraphQL:
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
-			return &RequestOptions{}
+			return nil, err
 		}
 		return &RequestOptions{
 			Query: string(body),
-		}
+		}, nil
 	case ContentTypeJSON:
 		fallthrough
 	default:
 		var opts RequestOptions
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
-			return &opts
+			return nil, err
 		}
 		err = json.Unmarshal(body, &opts)
 		if err != nil {
 			// Probably `variables` was sent as a string instead of an object.
 			// So, we try to be polite and try to parse that as a JSON string
 			var optsCompatible requestOptionsCompatibility
-			json.Unmarshal(body, &optsCompatible)
-			json.Unmarshal([]byte(optsCompatible.Variables), &opts.Variables)
+			err = json.Unmarshal(body, &optsCompatible)
+			if err != nil {
+				return nil, err
+			}
+			err = json.Unmarshal([]byte(optsCompatible.Variables), &opts.Variables)
+			if err != nil {
+				return nil, err
+			}
 		}
-		return &opts
+		return &opts, nil
 	}
 }
 
@@ -112,7 +129,14 @@ func NewRequestOptions(r *http.Request) *RequestOptions {
 // user-provided context.
 func (h *Handler) ContextHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	// get query
-	opts := NewRequestOptions(r)
+	opts, err := NewRequestOptions(r)
+
+	if err != nil {
+		// Use panic to handle the error.
+		// The mounted middleware should take care of handling the error,
+		// including writing the response and logging the error.
+		panic(err)
+	}
 
 	// execute graphql query
 	params := graphql.Params{
