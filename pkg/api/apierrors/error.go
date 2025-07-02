@@ -3,6 +3,7 @@ package apierrors
 import (
 	"encoding/json"
 	"errors"
+	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/util/copyutil"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
@@ -156,6 +157,11 @@ func AsAPIError(err error) *APIError {
 	details := errorutil.CollectDetails(err, nil)
 	info := errorutil.FilterDetails(details, APIErrorDetail)
 
+	var maxBytesError *http.MaxBytesError
+	if errors.As(err, &maxBytesError) {
+		return newRequestBodyTooLarge(maxBytesError)
+	}
+
 	var jsonSyntaxError *json.SyntaxError
 	if errors.As(err, &jsonSyntaxError) {
 		return newInvalidJSON(jsonSyntaxError)
@@ -236,5 +242,14 @@ func newInvalidJSON(err *json.SyntaxError) *APIError {
 		Info_ReadOnly: map[string]interface{}{
 			"byte_offset": err.Offset,
 		},
+	}
+}
+
+func newRequestBodyTooLarge(err *http.MaxBytesError) *APIError {
+	return &APIError{
+		Kind:          Kind{Name: RequestEntityTooLarge, Reason: "RequestEntityTooLarge"},
+		Message:       err.Error(),
+		Code:          RequestEntityTooLarge.HTTPStatus(),
+		Info_ReadOnly: map[string]interface{}{},
 	}
 }

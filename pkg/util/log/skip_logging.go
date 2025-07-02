@@ -74,6 +74,13 @@ func IgnoreError(err error) (ignore bool) {
 		ignore = true
 	}
 
+	// http.MaxBytesReader will *http.MaxBytesError when the body is too large.
+	// We do not want to log this.
+	var maxBytesError *http.MaxBytesError
+	if errors.As(err, &maxBytesError) {
+		ignore = true
+	}
+
 	// json.Unmarshal returns a SyntaxError if the JSON can't be parsed.
 	// https://pkg.go.dev/encoding/json#SyntaxError
 	var jsonSyntaxError *json.SyntaxError
