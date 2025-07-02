@@ -27,7 +27,8 @@ export function useGenerateTesterTokenMutation(appID: string): {
       });
 
       if (result.errors != null && result.errors.length > 0) {
-        throw result.errors[0];
+        // eslint-disable-next-line @typescript-eslint/only-throw-error
+        throw result.errors;
       }
 
       return result.data!.generateTesterToken.token;
