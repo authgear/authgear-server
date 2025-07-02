@@ -50,7 +50,7 @@ The ID token looks like:
   "iss": "https://auth.myapp.com",
   "sub": "johndoe",
   "aud": ["mobileapp"],
-  "roles": ["onlinestore:admin"],
+  "https://authgear.com/claims/user/roles": ["onlinestore:admin"],
   "scope": "openid offline_access profile email"
 }
 ```
@@ -68,7 +68,7 @@ The `access_token` in the previous authentication of `johndoe` looks like
   "sub": "johndoe",
   "aud": ["https://auth.myapp.com"],
   "client_id": "mobileapp",
-  "roles": ["onlinestore:admin"],
+  "https://authgear.com/claims/user/roles": ["onlinestore:admin"],
   "scope": "openid offline_access"
 }
 ```
@@ -340,7 +340,7 @@ With this constraint, the `access_token` of `grant_type=authorization_code` alwa
   "sub": "johndoe",
   "aud": ["https://auth.myapp.com"],
   "client_id": "mobileapp",
-  "roles": ["onlinestore:admin"],
+  "https://authgear.com/claims/user/roles": ["onlinestore:admin"],
   "scope": "openid offline_access"
 }
 ```
@@ -402,7 +402,7 @@ The exchanged token:
   "sub": "johndoe",
   "aud": ["https://onlinestore.myapp.com"],
   "client_id": "inventory",
-  "roles": ["onlinestore:admin"],
+  "https://authgear.com/claims/user/roles": ["onlinestore:admin"],
   "scope": "read:orders write:orders list:orders"
 }
 ```
