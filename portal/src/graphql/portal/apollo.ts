@@ -78,9 +78,11 @@ export function createClient(options: {
   onLogout: () => void;
 }): ApolloClient<NormalizedCacheObject> {
   const { cache } = options;
+  // @ts-expect-error
+  const fetch: typeof window.fetch = authgear.fetch.bind(authgear);
   const httpLink = new HttpLink({
     uri: "/api/graphql",
-    fetch: authgear.fetch.bind(authgear),
+    fetch,
   });
 
   return new ApolloClient({

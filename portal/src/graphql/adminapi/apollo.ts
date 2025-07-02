@@ -10,9 +10,12 @@ export function makeClient(
   graphqlOpaqueAppID: string,
   onLogout: () => void
 ): ApolloClient<unknown> {
+  // @ts-expect-error
+  const fetch: typeof window.fetch = authgear.fetch.bind(authgear);
+
   const httpLink = new HttpLink({
     uri: makeGraphQLEndpoint(graphqlOpaqueAppID),
-    fetch: authgear.fetch.bind(authgear),
+    fetch,
   });
   const logoutLink = createLogoutLink(() => {
     onLogout();

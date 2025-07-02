@@ -117,12 +117,7 @@ const AnalyticsSignupConversionChart: React.VFC<AnalyticsSignupConversionChartPr
 
     return (
       <div className={styles.chartContainer}>
-        <Pie
-          data={data}
-          options={options}
-          // @ts-expect-error
-          plugins={[ChartDataLabels]}
-        />
+        <Pie data={data} options={options} plugins={[ChartDataLabels]} />
         {noDataAvailable ? (
           <div className={styles.noDataAvailableLabel}>
             <Text variant="medium">
