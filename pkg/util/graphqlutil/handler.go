@@ -137,8 +137,3 @@ func (h *Handler) ContextHandler(ctx context.Context, w http.ResponseWriter, r *
 		h.ResultCallbackFn(ctx, &params, result, buff)
 	}
 }
-
-// ServeHTTP provides an entrypoint into executing graphQL queries.
-func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	h.ContextHandler(r.Context(), w, r)
-}
