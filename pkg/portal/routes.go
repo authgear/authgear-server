@@ -3,10 +3,9 @@ package portal
 import (
 	"net/http"
 
-	graphqlhandler "github.com/graphql-go/handler"
-
 	"github.com/authgear/authgear-server/pkg/portal/deps"
 	"github.com/authgear/authgear-server/pkg/portal/transport"
+	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
@@ -40,8 +39,8 @@ func NewRouter(p *deps.RootProvider) http.Handler {
 		securityMiddleware,
 		httproute.MiddlewareFunc(httputil.NoStore),
 		httproute.MiddlewareFunc(httputil.CheckContentType([]string{
-			graphqlhandler.ContentTypeJSON,
-			graphqlhandler.ContentTypeGraphQL,
+			graphqlutil.ContentTypeJSON,
+			graphqlutil.ContentTypeGraphQL,
 		})),
 	)
 	adminAPIChain := httproute.Chain(
