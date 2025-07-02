@@ -108,7 +108,10 @@ export class FormatDateRelativeController extends Controller {
       const hasRel = intlRelativeTimeFormatIsSupported();
       let relativeBase = DateTime.now();
       if (this.relativeBaseValue) {
-        relativeBase = DateTime.fromISO(this.relativeBaseValue);
+        const parsed = DateTime.fromISO(this.relativeBaseValue);
+        if (parsed.isValid) {
+          relativeBase = parsed;
+        }
       }
 
       for (let i = 0; i < dateSpans.length; i++) {
