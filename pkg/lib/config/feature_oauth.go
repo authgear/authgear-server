@@ -20,7 +20,15 @@ func (c *OAuthFeatureConfig) Merge(layer *FeatureConfig) MergeableFeatureConfig 
 	if layer.OAuth == nil {
 		return c
 	}
-	return layer.OAuth
+
+	var merged *OAuthFeatureConfig = c
+	if merged == nil {
+		merged = &OAuthFeatureConfig{}
+	}
+
+	merged.Client = merged.Client.Merge(layer.OAuth.Client)
+
+	return merged
 }
 
 var _ = FeatureConfigSchema.Add("OAuthClientFeatureConfig", `
@@ -37,10 +45,10 @@ var _ = FeatureConfigSchema.Add("OAuthClientFeatureConfig", `
 `)
 
 type OAuthClientFeatureConfig struct {
-	Maximum         *int `json:"maximum,omitempty"`
-	SoftMaximum     *int `json:"soft_maximum,omitempty"`
-	CustomUIEnabled bool `json:"custom_ui_enabled,omitempty"`
-	App2AppEnabled  bool `json:"app2app_enabled,omitempty"`
+	Maximum         *int  `json:"maximum,omitempty"`
+	SoftMaximum     *int  `json:"soft_maximum,omitempty"`
+	CustomUIEnabled *bool `json:"custom_ui_enabled,omitempty"`
+	App2AppEnabled  *bool `json:"app2app_enabled,omitempty"`
 }
 
 func (c *OAuthClientFeatureConfig) SetDefaults() {
@@ -51,4 +59,37 @@ func (c *OAuthClientFeatureConfig) SetDefaults() {
 	if c.SoftMaximum == nil {
 		c.SoftMaximum = newInt(99)
 	}
+
+	if c.CustomUIEnabled == nil {
+		c.CustomUIEnabled = newBool(false)
+	}
+
+	if c.App2AppEnabled == nil {
+		c.App2AppEnabled = newBool(false)
+	}
+}
+
+func (c *OAuthClientFeatureConfig) Merge(layer *OAuthClientFeatureConfig) *OAuthClientFeatureConfig {
+	if c == nil && layer == nil {
+		return nil
+	}
+	if c == nil {
+		return layer
+	}
+	if layer == nil {
+		return c
+	}
+	if layer.Maximum != nil {
+		c.Maximum = layer.Maximum
+	}
+	if layer.SoftMaximum != nil {
+		c.SoftMaximum = layer.SoftMaximum
+	}
+	if layer.App2AppEnabled != nil {
+		c.App2AppEnabled = layer.App2AppEnabled
+	}
+	if layer.CustomUIEnabled != nil {
+		c.CustomUIEnabled = layer.CustomUIEnabled
+	}
+	return c
 }

@@ -12,6 +12,9 @@ configs:
       client:
         maximum: 2
         soft_maximum: 20
+  - oauth:
+      client:
+        custom_ui_enabled: true
   - collaborator:
       maximum: 3
       soft_maximum: 30
@@ -53,6 +56,8 @@ result:
     client:
       maximum: 2
       soft_maximum: 20
+      custom_ui_enabled: true
+      app2app_enabled: false
   collaborator:
     maximum: 3
     soft_maximum: 30
