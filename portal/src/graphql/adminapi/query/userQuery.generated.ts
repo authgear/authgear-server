@@ -170,7 +170,7 @@ export const UserQueryDocument = gql`
  *   },
  * });
  */
-export function useUserQueryQuery(baseOptions: Apollo.QueryHookOptions<UserQueryQuery, UserQueryQueryVariables>) {
+export function useUserQueryQuery(baseOptions: Apollo.QueryHookOptions<UserQueryQuery, UserQueryQueryVariables> & ({ variables: UserQueryQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
         const options = {...defaultOptions, ...baseOptions}
         return Apollo.useQuery<UserQueryQuery, UserQueryQueryVariables>(UserQueryDocument, options);
       }
@@ -178,8 +178,8 @@ export function useUserQueryLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<UserQueryQuery, UserQueryQueryVariables>(UserQueryDocument, options);
         }
-export function useUserQuerySuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<UserQueryQuery, UserQueryQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
+export function useUserQuerySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<UserQueryQuery, UserQueryQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
           return Apollo.useSuspenseQuery<UserQueryQuery, UserQueryQueryVariables>(UserQueryDocument, options);
         }
 export type UserQueryQueryHookResult = ReturnType<typeof useUserQueryQuery>;

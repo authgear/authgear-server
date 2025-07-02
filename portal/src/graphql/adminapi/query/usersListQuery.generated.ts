@@ -107,7 +107,7 @@ export const UsersListQueryDocument = gql`
  *   },
  * });
  */
-export function useUsersListQueryQuery(baseOptions: Apollo.QueryHookOptions<UsersListQueryQuery, UsersListQueryQueryVariables>) {
+export function useUsersListQueryQuery(baseOptions: Apollo.QueryHookOptions<UsersListQueryQuery, UsersListQueryQueryVariables> & ({ variables: UsersListQueryQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
         const options = {...defaultOptions, ...baseOptions}
         return Apollo.useQuery<UsersListQueryQuery, UsersListQueryQueryVariables>(UsersListQueryDocument, options);
       }
@@ -115,8 +115,8 @@ export function useUsersListQueryLazyQuery(baseOptions?: Apollo.LazyQueryHookOpt
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<UsersListQueryQuery, UsersListQueryQueryVariables>(UsersListQueryDocument, options);
         }
-export function useUsersListQuerySuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<UsersListQueryQuery, UsersListQueryQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
+export function useUsersListQuerySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<UsersListQueryQuery, UsersListQueryQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
           return Apollo.useSuspenseQuery<UsersListQueryQuery, UsersListQueryQueryVariables>(UsersListQueryDocument, options);
         }
 export type UsersListQueryQueryHookResult = ReturnType<typeof useUsersListQueryQuery>;

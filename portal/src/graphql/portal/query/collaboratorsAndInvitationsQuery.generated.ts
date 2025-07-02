@@ -57,7 +57,7 @@ export const CollaboratorsAndInvitationsQueryDocument = gql`
  *   },
  * });
  */
-export function useCollaboratorsAndInvitationsQueryQuery(baseOptions: Apollo.QueryHookOptions<CollaboratorsAndInvitationsQueryQuery, CollaboratorsAndInvitationsQueryQueryVariables>) {
+export function useCollaboratorsAndInvitationsQueryQuery(baseOptions: Apollo.QueryHookOptions<CollaboratorsAndInvitationsQueryQuery, CollaboratorsAndInvitationsQueryQueryVariables> & ({ variables: CollaboratorsAndInvitationsQueryQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
         const options = {...defaultOptions, ...baseOptions}
         return Apollo.useQuery<CollaboratorsAndInvitationsQueryQuery, CollaboratorsAndInvitationsQueryQueryVariables>(CollaboratorsAndInvitationsQueryDocument, options);
       }
@@ -65,8 +65,8 @@ export function useCollaboratorsAndInvitationsQueryLazyQuery(baseOptions?: Apoll
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<CollaboratorsAndInvitationsQueryQuery, CollaboratorsAndInvitationsQueryQueryVariables>(CollaboratorsAndInvitationsQueryDocument, options);
         }
-export function useCollaboratorsAndInvitationsQuerySuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<CollaboratorsAndInvitationsQueryQuery, CollaboratorsAndInvitationsQueryQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
+export function useCollaboratorsAndInvitationsQuerySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CollaboratorsAndInvitationsQueryQuery, CollaboratorsAndInvitationsQueryQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
           return Apollo.useSuspenseQuery<CollaboratorsAndInvitationsQueryQuery, CollaboratorsAndInvitationsQueryQueryVariables>(CollaboratorsAndInvitationsQueryDocument, options);
         }
 export type CollaboratorsAndInvitationsQueryQueryHookResult = ReturnType<typeof useCollaboratorsAndInvitationsQueryQuery>;
