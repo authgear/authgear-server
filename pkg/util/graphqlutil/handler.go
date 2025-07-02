@@ -153,9 +153,15 @@ func (h *Handler) ContextHandler(ctx context.Context, w http.ResponseWriter, r *
 
 	var buff []byte
 	w.WriteHeader(http.StatusOK)
-	buff, _ = json.Marshal(result)
+	buff, err = json.Marshal(result)
+	if err != nil {
+		panic(err)
+	}
 
-	w.Write(buff)
+	_, err = w.Write(buff)
+	if err != nil {
+		panic(err)
+	}
 
 	if h.ResultCallbackFn != nil {
 		h.ResultCallbackFn(ctx, &params, result, buff)
