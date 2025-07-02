@@ -59,7 +59,7 @@ func TestTranslateBcryptError(t *testing.T) {
 				Reason: "InvalidBcryptHash",
 			},
 			Code:          400,
-			Message:       "crypto/bcrypt: cost 100 is outside allowed range (4,31)",
+			Message:       "crypto/bcrypt: cost 100 is outside allowed inclusive range 4..31",
 			Info_ReadOnly: make(map[string]interface{}),
 		})
 		test(fmt.Errorf("something else"), &apierrors.APIError{
