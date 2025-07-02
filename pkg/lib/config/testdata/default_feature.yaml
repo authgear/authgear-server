@@ -58,6 +58,8 @@ oauth:
   client:
     maximum: 99
     soft_maximum: 99
+    custom_ui_enabled: false
+    app2app_enabled: false
 hook:
   blocking_handler:
     maximum: 99

@@ -1275,7 +1275,7 @@ func (h *TokenHandler) handleApp2AppRequest(
 		)
 	}
 
-	if !feature.Client.App2AppEnabled {
+	if !*feature.Client.App2AppEnabled {
 		return nil, protocol.NewError(
 			"invalid_request",
 			"app2app disabled",

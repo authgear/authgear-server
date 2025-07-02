@@ -400,7 +400,7 @@ func (d AuthgearYAMLDescriptor) validateBasedOnFeatureConfig(appConfig *config.A
 			).EmitErrorMessage("password history is disallowed")
 		}
 	}
-	if !fc.OAuth.Client.CustomUIEnabled {
+	if !*fc.OAuth.Client.CustomUIEnabled {
 		for i, oauthClient := range appConfig.OAuth.Clients {
 			if oauthClient.CustomUIURI != "" {
 				validationCtx.Child(
