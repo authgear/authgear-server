@@ -299,18 +299,25 @@ export function EditSAMLCertificateForm({
 }
 function CertificateActiveStatus({ isLoading }: { isLoading: boolean }) {
   return (
-    <div className="w-fit relative">
-      <Text className={cn("text-status-green", isLoading ? "invisible" : null)}>
+    <div className="w-fit relative text-status-green">
+      <Text
+        styles={{
+          root: {
+            color: "inherit",
+            visibility: isLoading ? "hidden" : undefined,
+          },
+        }}
+      >
         <FormattedMessage id="EditSAMLCertificateForm.certificates.column.status.active" />
       </Text>
-      <Spinner
+      <div
         className={cn(
           "absolute top-0 left-0 bottom-0 right-0",
           isLoading ? null : "hidden"
         )}
-        size={SpinnerSize.xSmall}
-        ariaLive="assertive"
-      />
+      >
+        <Spinner size={SpinnerSize.xSmall} ariaLive="assertive" />
+      </div>
     </div>
   );
 }
