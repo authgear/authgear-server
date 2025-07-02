@@ -34,7 +34,7 @@ else
 	tat = tonumber(tat)
 end
 
-local increment = emission_interval * n
+local increment = math.ceil(emission_interval * n)
 local new_tat = math.max(tat, now_timestamp) + increment
 local dvt = emission_interval * tolerance
 

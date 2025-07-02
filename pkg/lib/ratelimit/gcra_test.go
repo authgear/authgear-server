@@ -188,6 +188,9 @@ func TestGCRA(t *testing.T) {
 				{time: "5s", n: 1, ok: true, timeToAct: 7},
 				// Try again with n=1 should be blocked
 				{time: "5s", n: 1, ok: false, timeToAct: 7},
+
+				// Ensure fractions timestamps are ok
+				{time: "10s", n: 1.23456, ok: true, timeToAct: 14},
 			},
 		})
 	})
