@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo } from "react";
 import { Text } from "../../../components/project-wizard/Text";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import { PrimaryButton } from "../../../components/v2/Button/PrimaryButton/PrimaryButton";
@@ -9,8 +9,6 @@ import { FormField } from "../../../components/v2/FormField/FormField";
 import { ProjectWizardBackButton } from "../../../components/project-wizard/ProjectWizardBackButton";
 import {
   ImageInput,
-  ImageInputError,
-  ImageInputErrorCode,
   ImageValue,
 } from "../../../components/v2/ImageInput/ImageInput";
 import { produce } from "immer";
@@ -24,12 +22,8 @@ export function Step3(): React.ReactElement {
   const capture = useCapture();
   const { form } = useFormContainerBaseContext<ProjectWizardFormModel>();
 
-  const [imageFieldError, setImageFieldError] =
-    useState<React.ReactNode | null>(null);
-
   const handleImageChange = useCallback(
     (imageValue: ImageValue | null) => {
-      setImageFieldError(null);
       form.setState((prev) =>
         produce(prev, (draft) => {
           draft.logo = imageValue;
@@ -39,23 +33,6 @@ export function Step3(): React.ReactElement {
     },
     [form]
   );
-
-  const handleImageError = useCallback((err: ImageInputError) => {
-    switch (err.code) {
-      case ImageInputErrorCode.FILE_TOO_LARGE:
-        setImageFieldError(<FormattedMessage id="errors.image-too-large" />);
-        break;
-
-      default:
-        setImageFieldError(
-          <FormattedMessage
-            id="errors.unknown"
-            values={{ message: String(err.internalError ?? "") }}
-          />
-        );
-        break;
-    }
-  }, []);
 
   const handleColorChange = useMemo(() => {
     const fnFactory = (stateKey: "buttonAndLinkColor" | "buttonLabelColor") => {
@@ -106,13 +83,11 @@ export function Step3(): React.ReactElement {
           label={
             <FormattedMessage id="ProjectWizardScreen.step3.fields.logo.label" />
           }
-          error={imageFieldError}
         >
           <ImageInput
             sizeLimitInBytes={100 * 1000}
             value={form.state.logo}
             onValueChange={handleImageChange}
-            onError={handleImageError}
             onClickUpload={useCallback(() => {
               capture("projectWizard.clicked-upload");
             }, [capture])}

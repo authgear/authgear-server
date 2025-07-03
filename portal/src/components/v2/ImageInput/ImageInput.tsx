@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef } from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 import cn from "classnames";
 import styles from "./ImageInput.module.css";
 
@@ -25,32 +25,17 @@ export interface ImageInputProps {
   value: ImageValue | null;
   onClickUpload?: () => void;
   onValueChange?: (value: ImageValue | null) => void;
-  onError?: (error: ImageInputError) => void;
 }
 
-export enum ImageInputErrorCode {
-  UNKNOWN = "UNKNOWN",
-  FILE_TOO_LARGE = "FILE_TOO_LARGE",
-}
-
-export class ImageInputError extends Error {
-  code: ImageInputErrorCode;
-  internalError?: unknown;
-
-  constructor(code: ImageInputErrorCode, internalError?: unknown) {
-    super(`image input error: ${code}`);
-    this.code = code;
-    this.internalError = internalError;
-  }
-}
+type ImageInputError = "size" | "load";
 
 export function ImageInput({
   value,
   sizeLimitInBytes,
-  onError,
   onClickUpload,
   onValueChange,
 }: ImageInputProps): React.ReactElement {
+  const [error, setError] = useState<ImageInputError | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleUpload = useCallback(() => {
@@ -71,15 +56,16 @@ export function ImageInput({
 
       const file = el.files[0];
       if (file.size > sizeLimitInBytes) {
-        onError?.(new ImageInputError(ImageInputErrorCode.FILE_TOO_LARGE));
+        setError("size");
         return;
       }
       fileToImageValue(file)
         .then((value) => {
+          setError(null);
           onValueChange?.(value);
         })
         .catch((e) => {
-          onError?.(new ImageInputError(ImageInputErrorCode.UNKNOWN, e));
+          setError("load");
           console.error("unexpected error in image input:", e);
         })
         .finally(() => {
@@ -87,7 +73,7 @@ export function ImageInput({
           el.value = "";
         });
     },
-    [onError, onValueChange, sizeLimitInBytes]
+    [onValueChange, sizeLimitInBytes]
   );
 
   const valuesrc = useMemo(() => {
@@ -152,6 +138,20 @@ export function ImageInput({
         accept="image/png, image/jpeg, image/gif"
         onChange={handleFileChange}
       />
+      {error != null ? (
+        <Text
+          className={styles.imageInput__errorMessage}
+          as="p"
+          size={"1"}
+          weight={"regular"}
+        >
+          {error === "size" ? (
+            <FormattedMessage id="errors.image-too-large" />
+          ) : (
+            <FormattedMessage id="errors.input-file-image-load" />
+          )}
+        </Text>
+      ) : null}
     </div>
   );
 }

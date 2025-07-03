@@ -1,10 +1,15 @@
 .imageInput {
-  @apply grid justify-start grid-flow-col gap-4;
+  @apply grid gap-4;
+  grid-template-areas:
+    "image control"
+    "error error";
+  grid-template-rows: auto;
   grid-template-columns: auto 1fr;
 }
 
 .imageInput__rightColumn {
   @apply overflow-hidden flex flex-col gap-2 items-start;
+  grid-area: control;
 }
 
 .imageInput__hint {
@@ -13,6 +18,7 @@
 }
 
 .imageInput__imageContainer {
+  grid-area: image;
   width: 7.25rem;
   height: 7.25rem;
   border: 1px solid var(--gray-a4);
@@ -44,4 +50,9 @@
 
 .imageInput__buttonContainer {
   @apply grid grid-flow-col gap-2 items-end;
+}
+
+.imageInput__errorMessage {
+  grid-area: error;
+  color: var(--red-11);
 }

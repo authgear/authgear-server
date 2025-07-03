@@ -12,7 +12,6 @@ const meta = {
   argTypes: {
     value: { table: { disable: true } },
     onValueChange: { table: { disable: true } },
-    onError: { table: { disable: true } },
   },
   render: (args) => {
     return <Demo {...args} />;
