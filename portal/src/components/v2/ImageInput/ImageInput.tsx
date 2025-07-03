@@ -27,7 +27,7 @@ export interface ImageInputProps {
   onValueChange?: (value: ImageValue | null) => void;
 }
 
-type ImageInputError = "size" | "load";
+type ImageInputError = "size" | "load" | "media_type";
 
 export function ImageInput({
   value,
@@ -57,9 +57,19 @@ export function ImageInput({
       const file = el.files[0];
       if (file.size > sizeLimitInBytes) {
         setError("size");
+        // Reset the input so the same file can be selected again
+        el.value = "";
         return;
       }
-      fileToImageValue(file)
+      const extension = mediaTypeToExtension(file.type);
+      if (extension == null) {
+        setError("media_type");
+        // Reset the input so the same file can be selected again
+        el.value = "";
+        return;
+      }
+
+      fileToImageValue(file, extension)
         .then((value) => {
           setError(null);
           onValueChange?.(value);
@@ -147,6 +157,8 @@ export function ImageInput({
         >
           {error === "size" ? (
             <FormattedMessage id="errors.image-too-large" />
+          ) : error === "media_type" ? (
+            <FormattedMessage id="errors.input-file-media-type" />
           ) : (
             <FormattedMessage id="errors.input-file-image-load" />
           )}
@@ -156,7 +168,7 @@ export function ImageInput({
   );
 }
 
-function mediaTypeToExtension(mime: string): ImageFileExtension {
+function mediaTypeToExtension(mime: string): ImageFileExtension | null {
   switch (mime) {
     case "image/png":
       return ".png";
@@ -165,15 +177,14 @@ function mediaTypeToExtension(mime: string): ImageFileExtension {
     case "image/gif":
       return ".gif";
     default:
-      throw new Error(`unsupported media type: ${mime}`);
+      return null;
   }
 }
 
-async function fileToImageValue(file: File) {
+async function fileToImageValue(file: File, extension: ImageFileExtension) {
   return new Promise<ImageValue>((resolve, reject) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
-    const extension = mediaTypeToExtension(file.type);
     reader.onload = () =>
       resolve({
         base64EncodedData: dataURIToBase64EncodedData(reader.result as string),

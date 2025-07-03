@@ -14,7 +14,7 @@ import DefaultButton from "../../DefaultButton";
 
 export type ImageFileExtension = ".jpeg" | ".png" | ".gif";
 
-function mediaTypeToExtension(mime: string): ImageFileExtension {
+function mediaTypeToExtension(mime: string): ImageFileExtension | null {
   switch (mime) {
     case "image/png":
       return ".png";
@@ -23,17 +23,8 @@ function mediaTypeToExtension(mime: string): ImageFileExtension {
     case "image/gif":
       return ".gif";
     default:
-      throw new Error(`unsupported media type: ${mime}`);
+      return null;
   }
-}
-
-function formatSize(size: number): string {
-  if (size < 1e3) {
-    return `${size} B`;
-  } else if (size >= 1e3 && size < 1e6) {
-    return `${(size / 1e3).toFixed(0)} KB`;
-  }
-  return `${(size / 1e6).toFixed(0)} MB`;
 }
 
 interface BaseImagePickerProps {
@@ -51,11 +42,15 @@ interface BaseImagePickerProps {
     clearImage: () => void;
   }) => React.ReactNode | null;
 }
+
+type BaseImagePickerError = "size" | "load" | "media_type";
+
 const BaseImagePicker: React.VFC<BaseImagePickerProps> =
   function BaseImagePicker(props) {
     const { renderToString } = useContext(Context);
     const { sizeLimitInBytes, className, base64EncodedData, onChange } = props;
-    const [isSizeLimitErrorDialogHidden, setIsSizeLimitErrorDialogHidden] =
+    const [error, setError] = useState<BaseImagePickerError | null>(null);
+    const [isErrorDialogHidden, setIsErrorDialogHidden] =
       useState<boolean>(true);
     const inputRef = useRef<HTMLInputElement | null>(null);
 
@@ -72,7 +67,8 @@ const BaseImagePicker: React.VFC<BaseImagePickerProps> =
           const file = target.files?.[0];
           if (file != null) {
             if (file.size > sizeLimitInBytes) {
-              setIsSizeLimitErrorDialogHidden(false);
+              setError("size");
+              setIsErrorDialogHidden(false);
               // See Note 1
               if (inputRef.current) {
                 inputRef.current.value = "";
@@ -81,14 +77,33 @@ const BaseImagePicker: React.VFC<BaseImagePickerProps> =
             }
 
             const extension = mediaTypeToExtension(file.type);
+            if (extension == null) {
+              setError("media_type");
+              setIsErrorDialogHidden(false);
+              // See Note 1
+              if (inputRef.current) {
+                inputRef.current.value = "";
+              }
+              return;
+            }
             const reader = new FileReader();
-            reader.addEventListener("load", function () {
+            reader.addEventListener("error", () => {
+              setError("load");
+              setIsErrorDialogHidden(false);
+              // See Note 1
+              if (inputRef.current) {
+                inputRef.current.value = "";
+              }
+            });
+            reader.addEventListener("load", () => {
               const result = reader.result;
               if (typeof result === "string") {
                 onChange({
                   base64EncodedData: dataURIToBase64EncodedData(result),
                   extension,
                 });
+                setError(null);
+                setIsErrorDialogHidden(true);
                 // See Note 1
                 if (inputRef.current) {
                   inputRef.current.value = "";
@@ -114,22 +129,27 @@ const BaseImagePicker: React.VFC<BaseImagePickerProps> =
     }, [onChange]);
 
     const onDialogDismiss = useCallback(() => {
-      setIsSizeLimitErrorDialogHidden(true);
+      // Do not setError(null) to avoid flicking when the dialog is being dismissed.
+      setIsErrorDialogHidden(true);
     }, []);
 
     const onRetry = useCallback(() => {
-      setIsSizeLimitErrorDialogHidden(true);
+      // Do not setError(null) to avoid flicking when the dialog is being dismissed.
+      setIsErrorDialogHidden(true);
       inputRef.current?.click();
     }, []);
 
     const dialogContentProps = useMemo(() => {
       return {
-        title: renderToString("BaseImagePicker.size-dialog.title"),
-        subText: renderToString("BaseImagePicker.size-dialog.description", {
-          size: formatSize(sizeLimitInBytes),
-        }),
+        title: renderToString("BaseImagePicker.error-dialog.title"),
+        subText:
+          error === "size"
+            ? renderToString("errors.image-too-large")
+            : error === "media_type"
+            ? renderToString("errors.input-file-media-type")
+            : renderToString("errors.input-file-image-load"),
       };
-    }, [renderToString, sizeLimitInBytes]);
+    }, [error, renderToString]);
 
     return (
       <div className={className}>
@@ -145,7 +165,7 @@ const BaseImagePicker: React.VFC<BaseImagePickerProps> =
           onChange={onInputChange}
         />
         <Dialog
-          hidden={isSizeLimitErrorDialogHidden}
+          hidden={isErrorDialogHidden}
           onDismiss={onDialogDismiss}
           dialogContentProps={dialogContentProps}
         >
@@ -153,13 +173,13 @@ const BaseImagePicker: React.VFC<BaseImagePickerProps> =
             <PrimaryButton
               onClick={onRetry}
               text={renderToString(
-                "BaseImagePicker.size-dialog.button-retry-label"
+                "BaseImagePicker.error-dialog.button-retry-label"
               )}
             />
             <DefaultButton
               onClick={onDialogDismiss}
               text={renderToString(
-                "BaseImagePicker.size-dialog.button-cancel-label"
+                "BaseImagePicker.error-dialog.button-cancel-label"
               )}
             />
           </DialogFooter>
