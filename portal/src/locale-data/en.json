@@ -138,6 +138,7 @@
   "errors.authenticator.not-found": "Authenticator not found",
   "errors.image-too-large": "The image size is too large. Please upload a image that is within the size limit.",
   "errors.input-file-image-load": "There is a problem in loading the image you selected. You may retry, or select another one.",
+  "errors.input-file-media-type": "The file you selected is not of supported type. Please select another one.",
 
   "warnings.free-plan": "To avoid spam content, free plans are limited to send 5 SMS and Whatsapp messsage by default. To be eligible for 100 free SMS/Whatsapp per mo, please complete {ExternalLink, react, href{https://go.authgear.com/portal-support} children{the application form}}.",
 
@@ -1083,10 +1084,9 @@
   "DesignScreen.action.try": "Try",
   "DesignScreen.action.try.disabledHint": "Save changes to try the design",
 
-  "BaseImagePicker.size-dialog.title": "The file you select is too large",
-  "BaseImagePicker.size-dialog.description": "Please select a file with size less than {size}",
-  "BaseImagePicker.size-dialog.button-retry-label": "Select again",
-  "BaseImagePicker.size-dialog.button-cancel-label": "Cancel",
+  "BaseImagePicker.error-dialog.title": "There is an issue with your selected file",
+  "BaseImagePicker.error-dialog.button-retry-label": "Select again",
+  "BaseImagePicker.error-dialog.button-cancel-label": "Cancel",
 
   "UISettingsScreen.title": "Design",
   "UISettingsScreen.description": "Authgear comes with some simple styling for your login and signup page. You can customize the look and feel here.",
