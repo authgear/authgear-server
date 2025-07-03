@@ -11,6 +11,34 @@ const (
 	OIDCJWTPreCreate event.Type = "oidc.jwt.pre_create"
 )
 
+func init() {
+	s := event.GetBaseHookResponseSchema()
+	s.Add("OIDCJWTPreCreateHookResponse", `
+{
+	"allOf": [
+		{ "$ref": "#/$defs/BaseHookResponseSchema" },
+		{
+			"if": {
+				"properties": {
+					"is_allowed": { "const": true }
+				}
+			},
+			"then": {
+				"type": "object",
+				"additionalProperties": false,
+				"properties": {
+					"is_allowed": {},
+					"mutations": {}
+				}
+			}
+		}
+	]
+}`)
+
+	s.Instantiate()
+	event.RegisterResponseSchemaValidator(OIDCJWTPreCreate, s.PartValidator("OIDCJWTPreCreateHookResponse"))
+}
+
 type OIDCJWT struct {
 	Payload map[string]interface{} `json:"payload"`
 }

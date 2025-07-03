@@ -34,7 +34,7 @@ else
 	tat = tonumber(tat)
 end
 
-local increment = emission_interval * n
+local increment = math.ceil(emission_interval * n)
 local new_tat = math.max(tat, now_timestamp) + increment
 local dvt = emission_interval * tolerance
 
@@ -55,7 +55,7 @@ type gcraResult struct {
 	TimeToAct    time.Time
 }
 
-func gcra(ctx context.Context, conn redis.Redis_6_0_Cmdable, key string, period time.Duration, burst int, n int) (*gcraResult, error) {
+func gcra(ctx context.Context, conn redis.Redis_6_0_Cmdable, key string, period time.Duration, burst int, n float64) (*gcraResult, error) {
 	result, err := gcraLuaScript.Run(ctx, conn,
 		[]string{key},
 		period.Milliseconds(), burst, n,

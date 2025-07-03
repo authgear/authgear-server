@@ -11,6 +11,34 @@ const (
 	UserPreScheduleDeletion event.Type = "user.pre_schedule_deletion"
 )
 
+func init() {
+	s := event.GetBaseHookResponseSchema()
+	s.Add("UserPreScheduleDeletionHookResponse", `
+{
+	"allOf": [
+		{ "$ref": "#/$defs/BaseHookResponseSchema" },
+		{
+			"if": {
+				"properties": {
+					"is_allowed": { "const": true }
+				}
+			},
+			"then": {
+				"type": "object",
+				"additionalProperties": false,
+				"properties": {
+					"is_allowed": {},
+					"mutations": {}
+				}
+			}
+		}
+	]
+}`)
+
+	s.Instantiate()
+	event.RegisterResponseSchemaValidator(UserPreScheduleDeletion, s.PartValidator("UserPreScheduleDeletionHookResponse"))
+}
+
 type UserPreScheduleDeletionBlockingEventPayload struct {
 	UserRef   model.UserRef `json:"-" resolve:"user"`
 	UserModel model.User    `json:"user"`

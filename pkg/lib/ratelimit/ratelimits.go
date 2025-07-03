@@ -1,6 +1,7 @@
 package ratelimit
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -220,34 +221,6 @@ type ResolveBucketSpecOptions struct {
 	Target    string
 }
 
-func selectByChannel[T any](channel model.AuthenticatorOOBChannel, email T, sms T, whatsapp T) T {
-	switch channel {
-	case model.AuthenticatorOOBChannelEmail:
-		return email
-	case model.AuthenticatorOOBChannelSMS:
-		return sms
-	case model.AuthenticatorOOBChannelWhatsapp:
-		return whatsapp
-	}
-	panic(fmt.Errorf("invalid channel"))
-}
-
-func resolveConfig(c *config.RateLimitConfig, fallback *config.RateLimitConfig, featureConfig *config.RateLimitConfig) *config.RateLimitConfig {
-	effectiveConfig := c
-
-	// We check Enabled == nil here so that only unspecified rate limits are fallbacked
-	// If it is enabled or disabled explicitly, fallback is not used
-	if effectiveConfig.Enabled == nil && fallback != nil {
-		effectiveConfig = fallback
-	}
-
-	if featureConfig != nil && featureConfig.Rate() < c.Rate() {
-		effectiveConfig = featureConfig
-	}
-
-	return effectiveConfig
-}
-
 func (r RateLimit) ResolveBucketSpecs(
 	cfg *config.AppConfig,
 	featureCfg *config.FeatureConfig,
@@ -261,7 +234,7 @@ func (r RateLimit) ResolveBucketSpecs(
 		if featureRlCfg != nil && featureRlCfg.Rate() < rlCfg.Rate() {
 			effectiveCfg = featureRlCfg
 		}
-		spec := NewBucketSpec(effectiveCfg, bucketName, args...)
+		spec := NewBucketSpec(r, effectiveCfg, bucketName, args...)
 		return &spec
 	}
 
@@ -270,7 +243,7 @@ func (r RateLimit) ResolveBucketSpecs(
 		if confPerTarget == nil {
 			return &BucketSpecDisabled
 		}
-		spec := NewBucketSpec(confPerTarget, bucketName, args...)
+		spec := NewBucketSpec(r, confPerTarget, bucketName, args...)
 		return &spec
 	}
 
@@ -279,7 +252,7 @@ func (r RateLimit) ResolveBucketSpecs(
 		if confPerIP == nil {
 			return &BucketSpecDisabled
 		}
-		spec := NewBucketSpec(confPerIP, bucketName, args...)
+		spec := NewBucketSpec(r, confPerIP, bucketName, args...)
 		return &spec
 	}
 
@@ -290,7 +263,7 @@ func (r RateLimit) ResolveBucketSpecs(
 		}
 		bucketArgs := []string{userID}
 		bucketArgs = append(bucketArgs, args...)
-		spec := NewBucketSpec(confPerUser, bucketName, bucketArgs...)
+		spec := NewBucketSpec(r, confPerUser, bucketName, bucketArgs...)
 		return &spec
 	}
 
@@ -301,12 +274,12 @@ func (r RateLimit) ResolveBucketSpecs(
 		}
 		bucketArgs := []string{userID}
 		bucketArgs = append(bucketArgs, args...)
-		spec := NewBucketSpec(confPerUserPerIP, bucketName, bucketArgs...)
+		spec := NewBucketSpec(r, confPerUserPerIP, bucketName, bucketArgs...)
 		return &spec
 	}
 
 	resolveGlobalBucket := func(globalEntry config.RateLimitsEnvironmentConfigEntry, bucketName BucketName, args ...string) *BucketSpec {
-		globalLimit := NewGlobalBucketSpec(globalEntry, bucketName, args...)
+		globalLimit := NewGlobalBucketSpec(r, globalEntry, bucketName, args...)
 		return &globalLimit
 	}
 
@@ -501,4 +474,79 @@ func (r RateLimit) ResolveBucketSpecs(
 	}
 
 	return specs
+}
+
+func (r RateLimit) ResolveWeight(
+	ctx context.Context,
+) float64 {
+	var defaultWeight float64 = 1
+	weights := getRateLimitWeights(ctx)
+	if weights == nil {
+		return defaultWeight
+	}
+	resolveWeight := func(selfWeightKey RateLimit, fallbackKey RateLimit) float64 {
+		if selfWeight, ok := weights[selfWeightKey]; ok {
+			return selfWeight
+		}
+
+		if fallbackKey != "" {
+			if fallbackWeight, ok := weights[fallbackKey]; ok {
+				return fallbackWeight
+			}
+		}
+
+		return defaultWeight
+	}
+
+	var weight float64
+	switch r {
+	case "":
+		// Handle unspecified rate limits
+		return defaultWeight
+	case RateLimitAuthenticationPassword,
+		RateLimitAuthenticationOOBOTPEmailValidate,
+		RateLimitAuthenticationOOBOTPSMSValidate,
+		RateLimitAuthenticationTOTP,
+		RateLimitAuthenticationRecoveryCode,
+		RateLimitAuthenticationDeviceToken,
+		RateLimitAuthenticationPasskey,
+		RateLimitAuthenticationSIWE:
+		weight = resolveWeight(r, RateLimitAuthenticationGeneral)
+	default:
+		weight = resolveWeight(r, "")
+	}
+
+	if weight < 0 {
+		weight = 0
+	}
+	// Weight can never be < 0
+	return weight
+}
+
+func selectByChannel[T any](channel model.AuthenticatorOOBChannel, email T, sms T, whatsapp T) T {
+	switch channel {
+	case model.AuthenticatorOOBChannelEmail:
+		return email
+	case model.AuthenticatorOOBChannelSMS:
+		return sms
+	case model.AuthenticatorOOBChannelWhatsapp:
+		return whatsapp
+	}
+	panic(fmt.Errorf("invalid channel"))
+}
+
+func resolveConfig(c *config.RateLimitConfig, fallback *config.RateLimitConfig, featureConfig *config.RateLimitConfig) *config.RateLimitConfig {
+	effectiveConfig := c
+
+	// We check Enabled == nil here so that only unspecified rate limits are fallbacked
+	// If it is enabled or disabled explicitly, fallback is not used
+	if effectiveConfig.Enabled == nil && fallback != nil {
+		effectiveConfig = fallback
+	}
+
+	if featureConfig != nil && featureConfig.Rate() < c.Rate() {
+		effectiveConfig = featureConfig
+	}
+
+	return effectiveConfig
 }

@@ -10,11 +10,42 @@ const (
 	AuthenticationPreInitialize event.Type = "authentication.pre_initialize"
 )
 
+func init() {
+	s := event.GetBaseHookResponseSchema()
+	s.Add("AuthenticationPreInitializeHookResponse", `
+{
+	"allOf": [
+		{ "$ref": "#/$defs/BaseHookResponseSchema" },
+		{
+			"if": {
+				"properties": {
+					"is_allowed": { "const": true }
+				}
+			},
+			"then": {
+				"type": "object",
+				"additionalProperties": false,
+				"properties": {
+					"is_allowed": {},
+					"constraints": {},
+					"bot_protection": {},
+					"rate_limits": {}
+				}
+			}
+		}
+	]
+}`)
+
+	s.Instantiate()
+	event.RegisterResponseSchemaValidator(AuthenticationPreInitialize, s.PartValidator("AuthenticationPreInitializeHookResponse"))
+}
+
 type AuthenticationPreInitializeBlockingEventPayload struct {
 	AuthenticationContext event.AuthenticationContext `json:"authentication_context"`
 
 	Constraints               *event.Constraints               `json:"-"`
 	BotProtectionRequirements *event.BotProtectionRequirements `json:"-"`
+	RateLimits                event.RateLimits                 `json:"-"`
 }
 
 func (e *AuthenticationPreInitializeBlockingEventPayload) BlockingEventType() event.Type {
@@ -37,6 +68,9 @@ func (e *AuthenticationPreInitializeBlockingEventPayload) ApplyHookResponse(ctx 
 	}
 	if response.BotProtection != nil {
 		e.BotProtectionRequirements = response.BotProtection
+	}
+	if response.RateLimits != nil {
+		e.RateLimits = response.RateLimits
 	}
 	return event.ApplyHookResponseResult{MutationsEverApplied: false}
 }

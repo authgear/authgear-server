@@ -16,7 +16,7 @@ func boolPtr(b bool) *bool {
 }
 
 func TestRateLimits(t *testing.T) {
-	Convey("RateLimit", t, func() {
+	Convey("RateLimit.ResolveBucketSpecs", t, func() {
 		ctx := context.Background()
 		userID := "testuserid"
 		ipAddress := "1.2.3.4"
@@ -57,6 +57,7 @@ func TestRateLimits(t *testing.T) {
 					IPAddress: ipAddress,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
+					RateLimit: rl,
 					Name:      VerifyPasswordPerIP,
 					Arguments: []string{ipAddress},
 					IsGlobal:  false,
@@ -64,6 +65,7 @@ func TestRateLimits(t *testing.T) {
 					Period:    config.DurationString("1m").Duration(),
 					Burst:     1,
 				}, {
+					RateLimit: rl,
 					Name:      VerifyPasswordPerUserPerIP,
 					Arguments: []string{userID, ipAddress},
 					IsGlobal:  false,
@@ -96,6 +98,7 @@ func TestRateLimits(t *testing.T) {
 					IPAddress: ipAddress,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
+					RateLimit: rl,
 					Name:      VerifyPasswordPerIP,
 					Arguments: []string{ipAddress},
 					IsGlobal:  false,
@@ -103,6 +106,7 @@ func TestRateLimits(t *testing.T) {
 					Period:    config.DurationString("3m").Duration(),
 					Burst:     3,
 				}, {
+					RateLimit: rl,
 					Name:      VerifyPasswordPerUserPerIP,
 					Arguments: []string{userID, ipAddress},
 					IsGlobal:  false,
@@ -139,6 +143,7 @@ func TestRateLimits(t *testing.T) {
 					IPAddress: ipAddress,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
+					RateLimit: rl,
 					Name:      VerifyPasswordPerIP,
 					Arguments: []string{ipAddress},
 					IsGlobal:  false,
@@ -146,6 +151,7 @@ func TestRateLimits(t *testing.T) {
 					Period:    time.Duration(0),
 					Burst:     0,
 				}, {
+					RateLimit: rl,
 					Name:      VerifyPasswordPerUserPerIP,
 					Arguments: []string{userID, ipAddress},
 					IsGlobal:  false,
@@ -185,6 +191,7 @@ func TestRateLimits(t *testing.T) {
 					Channel:   model.AuthenticatorOOBChannelEmail,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
+					RateLimit: rl,
 					Name:      OOBOTPTriggerEmailPerIP,
 					Arguments: []string{purpose, ipAddress},
 					IsGlobal:  false,
@@ -192,6 +199,7 @@ func TestRateLimits(t *testing.T) {
 					Period:    config.DurationString("1m").Duration(),
 					Burst:     1,
 				}, {
+					RateLimit: rl,
 					Name:      OOBOTPTriggerEmailPerUser,
 					Arguments: []string{userID, purpose},
 					IsGlobal:  false,
@@ -240,6 +248,7 @@ func TestRateLimits(t *testing.T) {
 					Channel:   model.AuthenticatorOOBChannelEmail,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
+					RateLimit: rl,
 					Name:      OOBOTPValidateEmailPerIP,
 					Arguments: []string{purpose, ipAddress},
 					IsGlobal:  false,
@@ -247,6 +256,7 @@ func TestRateLimits(t *testing.T) {
 					Period:    config.DurationString("1m").Duration(),
 					Burst:     1,
 				}, {
+					RateLimit: rl,
 					Name:      OOBOTPValidateEmailPerUserPerIP,
 					Arguments: []string{userID, ipAddress, purpose},
 					IsGlobal:  false,
@@ -282,6 +292,7 @@ func TestRateLimits(t *testing.T) {
 					Channel:   model.AuthenticatorOOBChannelEmail,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
+					RateLimit: rl,
 					Name:      OOBOTPValidateEmailPerIP,
 					Arguments: []string{purpose, ipAddress},
 					IsGlobal:  false,
@@ -289,6 +300,7 @@ func TestRateLimits(t *testing.T) {
 					Period:    config.DurationString("3m").Duration(),
 					Burst:     3,
 				}, {
+					RateLimit: rl,
 					Name:      OOBOTPValidateEmailPerUserPerIP,
 					Arguments: []string{userID, ipAddress, purpose},
 					IsGlobal:  false,
@@ -329,6 +341,7 @@ func TestRateLimits(t *testing.T) {
 					Channel:   model.AuthenticatorOOBChannelEmail,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
+					RateLimit: rl,
 					Name:      OOBOTPValidateEmailPerIP,
 					Arguments: []string{purpose, ipAddress},
 					IsGlobal:  false,
@@ -336,6 +349,7 @@ func TestRateLimits(t *testing.T) {
 					Period:    time.Duration(0),
 					Burst:     0,
 				}, {
+					RateLimit: rl,
 					Name:      OOBOTPValidateEmailPerUserPerIP,
 					Arguments: []string{userID, ipAddress, purpose},
 					IsGlobal:  false,
@@ -375,6 +389,7 @@ func TestRateLimits(t *testing.T) {
 					Channel:   model.AuthenticatorOOBChannelSMS,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
+					RateLimit: rl,
 					Name:      OOBOTPTriggerSMSPerIP,
 					Arguments: []string{purpose, ipAddress},
 					IsGlobal:  false,
@@ -382,6 +397,7 @@ func TestRateLimits(t *testing.T) {
 					Period:    config.DurationString("1m").Duration(),
 					Burst:     1,
 				}, {
+					RateLimit: rl,
 					Name:      OOBOTPTriggerSMSPerUser,
 					Arguments: []string{userID, purpose},
 					IsGlobal:  false,
@@ -430,6 +446,7 @@ func TestRateLimits(t *testing.T) {
 					Channel:   model.AuthenticatorOOBChannelSMS,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
+					RateLimit: rl,
 					Name:      OOBOTPValidateSMSPerIP,
 					Arguments: []string{purpose, ipAddress},
 					IsGlobal:  false,
@@ -437,6 +454,7 @@ func TestRateLimits(t *testing.T) {
 					Period:    config.DurationString("1m").Duration(),
 					Burst:     1,
 				}, {
+					RateLimit: rl,
 					Name:      OOBOTPValidateSMSPerUserPerIP,
 					Arguments: []string{userID, ipAddress, purpose},
 					IsGlobal:  false,
@@ -472,6 +490,7 @@ func TestRateLimits(t *testing.T) {
 					Channel:   model.AuthenticatorOOBChannelSMS,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
+					RateLimit: rl,
 					Name:      OOBOTPValidateSMSPerIP,
 					Arguments: []string{purpose, ipAddress},
 					IsGlobal:  false,
@@ -479,6 +498,7 @@ func TestRateLimits(t *testing.T) {
 					Period:    config.DurationString("3m").Duration(),
 					Burst:     3,
 				}, {
+					RateLimit: rl,
 					Name:      OOBOTPValidateSMSPerUserPerIP,
 					Arguments: []string{userID, ipAddress, purpose},
 					IsGlobal:  false,
@@ -519,6 +539,7 @@ func TestRateLimits(t *testing.T) {
 					Channel:   model.AuthenticatorOOBChannelSMS,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
+					RateLimit: rl,
 					Name:      OOBOTPValidateSMSPerIP,
 					Arguments: []string{purpose, ipAddress},
 					IsGlobal:  false,
@@ -526,6 +547,7 @@ func TestRateLimits(t *testing.T) {
 					Period:    time.Duration(0),
 					Burst:     0,
 				}, {
+					RateLimit: rl,
 					Name:      OOBOTPValidateSMSPerUserPerIP,
 					Arguments: []string{userID, ipAddress, purpose},
 					IsGlobal:  false,
@@ -570,6 +592,7 @@ func TestRateLimits(t *testing.T) {
 					IPAddress: ipAddress,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
+					RateLimit: rl,
 					Name:      VerifyTOTPPerIP,
 					Arguments: []string{ipAddress},
 					IsGlobal:  false,
@@ -577,6 +600,7 @@ func TestRateLimits(t *testing.T) {
 					Period:    config.DurationString("1m").Duration(),
 					Burst:     1,
 				}, {
+					RateLimit: rl,
 					Name:      VerifyTOTPPerUserPerIP,
 					Arguments: []string{userID, ipAddress},
 					IsGlobal:  false,
@@ -609,6 +633,7 @@ func TestRateLimits(t *testing.T) {
 					IPAddress: ipAddress,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
+					RateLimit: rl,
 					Name:      VerifyTOTPPerIP,
 					Arguments: []string{ipAddress},
 					IsGlobal:  false,
@@ -616,6 +641,7 @@ func TestRateLimits(t *testing.T) {
 					Period:    config.DurationString("3m").Duration(),
 					Burst:     3,
 				}, {
+					RateLimit: rl,
 					Name:      VerifyTOTPPerUserPerIP,
 					Arguments: []string{userID, ipAddress},
 					IsGlobal:  false,
@@ -652,6 +678,7 @@ func TestRateLimits(t *testing.T) {
 					IPAddress: ipAddress,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
+					RateLimit: rl,
 					Name:      VerifyTOTPPerIP,
 					Arguments: []string{ipAddress},
 					IsGlobal:  false,
@@ -659,6 +686,7 @@ func TestRateLimits(t *testing.T) {
 					Period:    time.Duration(0),
 					Burst:     0,
 				}, {
+					RateLimit: rl,
 					Name:      VerifyTOTPPerUserPerIP,
 					Arguments: []string{userID, ipAddress},
 					IsGlobal:  false,
@@ -703,6 +731,7 @@ func TestRateLimits(t *testing.T) {
 					IPAddress: ipAddress,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
+					RateLimit: rl,
 					Name:      VerifyRecoveryCodePerIP,
 					Arguments: []string{ipAddress},
 					IsGlobal:  false,
@@ -710,6 +739,7 @@ func TestRateLimits(t *testing.T) {
 					Period:    config.DurationString("1m").Duration(),
 					Burst:     1,
 				}, {
+					RateLimit: rl,
 					Name:      VerifyRecoveryCodePerUserPerIP,
 					Arguments: []string{userID, ipAddress},
 					IsGlobal:  false,
@@ -742,6 +772,7 @@ func TestRateLimits(t *testing.T) {
 					IPAddress: ipAddress,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
+					RateLimit: rl,
 					Name:      VerifyRecoveryCodePerIP,
 					Arguments: []string{ipAddress},
 					IsGlobal:  false,
@@ -749,6 +780,7 @@ func TestRateLimits(t *testing.T) {
 					Period:    config.DurationString("3m").Duration(),
 					Burst:     3,
 				}, {
+					RateLimit: rl,
 					Name:      VerifyRecoveryCodePerUserPerIP,
 					Arguments: []string{userID, ipAddress},
 					IsGlobal:  false,
@@ -785,6 +817,7 @@ func TestRateLimits(t *testing.T) {
 					IPAddress: ipAddress,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
+					RateLimit: rl,
 					Name:      VerifyRecoveryCodePerIP,
 					Arguments: []string{ipAddress},
 					IsGlobal:  false,
@@ -792,6 +825,7 @@ func TestRateLimits(t *testing.T) {
 					Period:    time.Duration(0),
 					Burst:     0,
 				}, {
+					RateLimit: rl,
 					Name:      VerifyRecoveryCodePerUserPerIP,
 					Arguments: []string{userID, ipAddress},
 					IsGlobal:  false,
@@ -836,6 +870,7 @@ func TestRateLimits(t *testing.T) {
 					IPAddress: ipAddress,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
+					RateLimit: rl,
 					Name:      VerifyDeviceTokenPerIP,
 					Arguments: []string{ipAddress},
 					IsGlobal:  false,
@@ -843,6 +878,7 @@ func TestRateLimits(t *testing.T) {
 					Period:    config.DurationString("1m").Duration(),
 					Burst:     1,
 				}, {
+					RateLimit: rl,
 					Name:      VerifyDeviceTokenPerUserPerIP,
 					Arguments: []string{userID, ipAddress},
 					IsGlobal:  false,
@@ -875,6 +911,7 @@ func TestRateLimits(t *testing.T) {
 					IPAddress: ipAddress,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
+					RateLimit: rl,
 					Name:      VerifyDeviceTokenPerIP,
 					Arguments: []string{ipAddress},
 					IsGlobal:  false,
@@ -882,6 +919,7 @@ func TestRateLimits(t *testing.T) {
 					Period:    config.DurationString("3m").Duration(),
 					Burst:     3,
 				}, {
+					RateLimit: rl,
 					Name:      VerifyDeviceTokenPerUserPerIP,
 					Arguments: []string{userID, ipAddress},
 					IsGlobal:  false,
@@ -918,6 +956,7 @@ func TestRateLimits(t *testing.T) {
 					IPAddress: ipAddress,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
+					RateLimit: rl,
 					Name:      VerifyDeviceTokenPerIP,
 					Arguments: []string{ipAddress},
 					IsGlobal:  false,
@@ -925,6 +964,7 @@ func TestRateLimits(t *testing.T) {
 					Period:    time.Duration(0),
 					Burst:     0,
 				}, {
+					RateLimit: rl,
 					Name:      VerifyDeviceTokenPerUserPerIP,
 					Arguments: []string{userID, ipAddress},
 					IsGlobal:  false,
@@ -960,6 +1000,7 @@ func TestRateLimits(t *testing.T) {
 					IPAddress: ipAddress,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
+					RateLimit: rl,
 					Name:      VerifyPasskeyPerIP,
 					Arguments: []string{ipAddress},
 					IsGlobal:  false,
@@ -987,6 +1028,7 @@ func TestRateLimits(t *testing.T) {
 					IPAddress: ipAddress,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
+					RateLimit: rl,
 					Name:      VerifyPasskeyPerIP,
 					Arguments: []string{ipAddress},
 					IsGlobal:  false,
@@ -1016,6 +1058,7 @@ func TestRateLimits(t *testing.T) {
 					IPAddress: ipAddress,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
+					RateLimit: rl,
 					Name:      VerifyPasskeyPerIP,
 					Arguments: []string{ipAddress},
 					IsGlobal:  false,
@@ -1051,6 +1094,7 @@ func TestRateLimits(t *testing.T) {
 					IPAddress: ipAddress,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
+					RateLimit: rl,
 					Name:      VerifySIWEPerIP,
 					Arguments: []string{ipAddress},
 					IsGlobal:  false,
@@ -1078,6 +1122,7 @@ func TestRateLimits(t *testing.T) {
 					IPAddress: ipAddress,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
+					RateLimit: rl,
 					Name:      VerifySIWEPerIP,
 					Arguments: []string{ipAddress},
 					IsGlobal:  false,
@@ -1107,6 +1152,7 @@ func TestRateLimits(t *testing.T) {
 					IPAddress: ipAddress,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
+					RateLimit: rl,
 					Name:      VerifySIWEPerIP,
 					Arguments: []string{ipAddress},
 					IsGlobal:  false,
@@ -1137,6 +1183,7 @@ func TestRateLimits(t *testing.T) {
 					IPAddress: ipAddress,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
+					RateLimit: rl,
 					Name:      SignupPerIP,
 					Arguments: []string{ipAddress},
 					IsGlobal:  false,
@@ -1167,6 +1214,7 @@ func TestRateLimits(t *testing.T) {
 					IPAddress: ipAddress,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
+					RateLimit: rl,
 					Name:      SignupAnonymousPerIP,
 					Arguments: []string{ipAddress},
 					IsGlobal:  false,
@@ -1197,6 +1245,7 @@ func TestRateLimits(t *testing.T) {
 					IPAddress: ipAddress,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
+					RateLimit: rl,
 					Name:      AccountEnumerationPerIP,
 					Arguments: []string{ipAddress},
 					IsGlobal:  false,
@@ -1233,6 +1282,7 @@ func TestRateLimits(t *testing.T) {
 					Channel:   model.AuthenticatorOOBChannelEmail,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
+					RateLimit: rl,
 					Name:      VerificationTriggerEmailPerIP,
 					Arguments: []string{ipAddress},
 					IsGlobal:  false,
@@ -1240,6 +1290,7 @@ func TestRateLimits(t *testing.T) {
 					Period:    config.DurationString("1m").Duration(),
 					Burst:     1,
 				}, {
+					RateLimit: rl,
 					Name:      VerificationTriggerEmailPerUser,
 					Arguments: []string{userID},
 					IsGlobal:  false,
@@ -1271,6 +1322,7 @@ func TestRateLimits(t *testing.T) {
 					Channel:   model.AuthenticatorOOBChannelEmail,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
+					RateLimit: rl,
 					Name:      VerificationValidateEmailPerIP,
 					Arguments: []string{ipAddress},
 					IsGlobal:  false,
@@ -1307,6 +1359,7 @@ func TestRateLimits(t *testing.T) {
 					Channel:   model.AuthenticatorOOBChannelSMS,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
+					RateLimit: rl,
 					Name:      VerificationTriggerSMSPerIP,
 					Arguments: []string{ipAddress},
 					IsGlobal:  false,
@@ -1314,6 +1367,7 @@ func TestRateLimits(t *testing.T) {
 					Period:    config.DurationString("1m").Duration(),
 					Burst:     1,
 				}, {
+					RateLimit: rl,
 					Name:      VerificationTriggerSMSPerUser,
 					Arguments: []string{userID},
 					IsGlobal:  false,
@@ -1345,6 +1399,7 @@ func TestRateLimits(t *testing.T) {
 					Channel:   model.AuthenticatorOOBChannelSMS,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
+					RateLimit: rl,
 					Name:      VerificationValidateSMSPerIP,
 					Arguments: []string{ipAddress},
 					IsGlobal:  false,
@@ -1376,6 +1431,7 @@ func TestRateLimits(t *testing.T) {
 					Channel:   model.AuthenticatorOOBChannelEmail,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
+					RateLimit: rl,
 					Name:      ForgotPasswordTriggerEmailPerIP,
 					Arguments: []string{ipAddress},
 					IsGlobal:  false,
@@ -1407,6 +1463,7 @@ func TestRateLimits(t *testing.T) {
 					Channel:   model.AuthenticatorOOBChannelEmail,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
+					RateLimit: rl,
 					Name:      ForgotPasswordValidateEmailPerIP,
 					Arguments: []string{ipAddress},
 					IsGlobal:  false,
@@ -1438,6 +1495,7 @@ func TestRateLimits(t *testing.T) {
 					Channel:   model.AuthenticatorOOBChannelSMS,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
+					RateLimit: rl,
 					Name:      ForgotPasswordTriggerSMSPerIP,
 					Arguments: []string{ipAddress},
 					IsGlobal:  false,
@@ -1469,6 +1527,7 @@ func TestRateLimits(t *testing.T) {
 					Channel:   model.AuthenticatorOOBChannelSMS,
 				})
 				So(specs, ShouldResemble, []*BucketSpec{{
+					RateLimit: rl,
 					Name:      ForgotPasswordValidateSMSPerIP,
 					Arguments: []string{ipAddress},
 					IsGlobal:  false,
@@ -1525,6 +1584,7 @@ func TestRateLimits(t *testing.T) {
 
 				So(specs, ShouldResemble, []*BucketSpec{
 					{
+						RateLimit: rl,
 						Name:      MessagingSMS,
 						Arguments: nil,
 						IsGlobal:  false,
@@ -1533,6 +1593,7 @@ func TestRateLimits(t *testing.T) {
 						Burst:     1,
 					},
 					{
+						RateLimit: rl,
 						Name:      MessagingSMS,
 						Arguments: nil,
 						IsGlobal:  true,
@@ -1541,6 +1602,7 @@ func TestRateLimits(t *testing.T) {
 						Burst:     4,
 					},
 					{
+						RateLimit: rl,
 						Name:      MessagingSMSPerIP,
 						Arguments: []string{ipAddress},
 						IsGlobal:  false,
@@ -1549,6 +1611,7 @@ func TestRateLimits(t *testing.T) {
 						Burst:     2,
 					},
 					{
+						RateLimit: rl,
 						Name:      MessagingSMSPerIP,
 						Arguments: []string{ipAddress},
 						IsGlobal:  true,
@@ -1557,6 +1620,7 @@ func TestRateLimits(t *testing.T) {
 						Burst:     5,
 					},
 					{
+						RateLimit: rl,
 						Name:      MessagingSMSPerTarget,
 						Arguments: []string{phone},
 						IsGlobal:  false,
@@ -1565,6 +1629,7 @@ func TestRateLimits(t *testing.T) {
 						Burst:     3,
 					},
 					{
+						RateLimit: rl,
 						Name:      MessagingSMSPerTarget,
 						Arguments: []string{phone},
 						IsGlobal:  true,
@@ -1618,6 +1683,7 @@ func TestRateLimits(t *testing.T) {
 
 				So(specs, ShouldResemble, []*BucketSpec{
 					{
+						RateLimit: rl,
 						Name:      MessagingSMS,
 						Arguments: nil,
 						IsGlobal:  false,
@@ -1626,6 +1692,7 @@ func TestRateLimits(t *testing.T) {
 						Burst:     10,
 					},
 					{
+						RateLimit: rl,
 						Name:      MessagingSMS,
 						Arguments: nil,
 						IsGlobal:  true,
@@ -1634,6 +1701,7 @@ func TestRateLimits(t *testing.T) {
 						Burst:     4,
 					},
 					{
+						RateLimit: rl,
 						Name:      MessagingSMSPerIP,
 						Arguments: []string{ipAddress},
 						IsGlobal:  false,
@@ -1642,6 +1710,7 @@ func TestRateLimits(t *testing.T) {
 						Burst:     20,
 					},
 					{
+						RateLimit: rl,
 						Name:      MessagingSMSPerIP,
 						Arguments: []string{ipAddress},
 						IsGlobal:  true,
@@ -1650,6 +1719,7 @@ func TestRateLimits(t *testing.T) {
 						Burst:     5,
 					},
 					{
+						RateLimit: rl,
 						Name:      MessagingSMSPerTarget,
 						Arguments: []string{phone},
 						IsGlobal:  false,
@@ -1658,6 +1728,7 @@ func TestRateLimits(t *testing.T) {
 						Burst:     30,
 					},
 					{
+						RateLimit: rl,
 						Name:      MessagingSMSPerTarget,
 						Arguments: []string{phone},
 						IsGlobal:  true,
@@ -1710,6 +1781,7 @@ func TestRateLimits(t *testing.T) {
 
 				So(specs, ShouldResemble, []*BucketSpec{
 					{
+						RateLimit: rl,
 						Name:      MessagingSMS,
 						Arguments: nil,
 						IsGlobal:  false,
@@ -1718,6 +1790,7 @@ func TestRateLimits(t *testing.T) {
 						Burst:     10,
 					},
 					{
+						RateLimit: rl,
 						Name:      MessagingSMS,
 						Arguments: nil,
 						IsGlobal:  true,
@@ -1726,6 +1799,7 @@ func TestRateLimits(t *testing.T) {
 						Burst:     4,
 					},
 					{
+						RateLimit: rl,
 						Name:      MessagingSMSPerIP,
 						Arguments: []string{ipAddress},
 						IsGlobal:  false,
@@ -1734,6 +1808,7 @@ func TestRateLimits(t *testing.T) {
 						Burst:     20,
 					},
 					{
+						RateLimit: rl,
 						Name:      MessagingSMSPerIP,
 						Arguments: []string{ipAddress},
 						IsGlobal:  true,
@@ -1742,6 +1817,7 @@ func TestRateLimits(t *testing.T) {
 						Burst:     5,
 					},
 					{
+						RateLimit: rl,
 						Name:      MessagingSMSPerTarget,
 						Arguments: []string{phone},
 						IsGlobal:  false,
@@ -1750,6 +1826,7 @@ func TestRateLimits(t *testing.T) {
 						Burst:     30,
 					},
 					{
+						RateLimit: rl,
 						Name:      MessagingSMSPerTarget,
 						Arguments: []string{phone},
 						IsGlobal:  true,
@@ -1796,6 +1873,7 @@ func TestRateLimits(t *testing.T) {
 
 				So(specs, ShouldResemble, []*BucketSpec{
 					{
+						RateLimit: rl,
 						Name:      MessagingSMS,
 						Arguments: nil,
 						IsGlobal:  false,
@@ -1804,6 +1882,7 @@ func TestRateLimits(t *testing.T) {
 						Burst:     1,
 					},
 					{
+						RateLimit: rl,
 						Name:      MessagingSMS,
 						Arguments: nil,
 						IsGlobal:  true,
@@ -1812,6 +1891,7 @@ func TestRateLimits(t *testing.T) {
 						Burst:     4,
 					},
 					{
+						RateLimit: rl,
 						Name:      MessagingSMSPerIP,
 						Arguments: []string{ipAddress},
 						IsGlobal:  false,
@@ -1820,6 +1900,7 @@ func TestRateLimits(t *testing.T) {
 						Burst:     2,
 					},
 					{
+						RateLimit: rl,
 						Name:      MessagingSMSPerIP,
 						Arguments: []string{ipAddress},
 						IsGlobal:  true,
@@ -1828,6 +1909,7 @@ func TestRateLimits(t *testing.T) {
 						Burst:     5,
 					},
 					{
+						RateLimit: rl,
 						Name:      MessagingSMSPerTarget,
 						Arguments: []string{phone},
 						IsGlobal:  false,
@@ -1836,6 +1918,7 @@ func TestRateLimits(t *testing.T) {
 						Burst:     3,
 					},
 					{
+						RateLimit: rl,
 						Name:      MessagingSMSPerTarget,
 						Arguments: []string{phone},
 						IsGlobal:  true,
@@ -1893,6 +1976,7 @@ func TestRateLimits(t *testing.T) {
 
 				So(specs, ShouldResemble, []*BucketSpec{
 					{
+						RateLimit: rl,
 						Name:      MessagingEmail,
 						Arguments: nil,
 						IsGlobal:  false,
@@ -1901,6 +1985,7 @@ func TestRateLimits(t *testing.T) {
 						Burst:     1,
 					},
 					{
+						RateLimit: rl,
 						Name:      MessagingEmail,
 						Arguments: nil,
 						IsGlobal:  true,
@@ -1909,6 +1994,7 @@ func TestRateLimits(t *testing.T) {
 						Burst:     4,
 					},
 					{
+						RateLimit: rl,
 						Name:      MessagingEmailPerIP,
 						Arguments: []string{ipAddress},
 						IsGlobal:  false,
@@ -1917,6 +2003,7 @@ func TestRateLimits(t *testing.T) {
 						Burst:     2,
 					},
 					{
+						RateLimit: rl,
 						Name:      MessagingEmailPerIP,
 						Arguments: []string{ipAddress},
 						IsGlobal:  true,
@@ -1925,6 +2012,7 @@ func TestRateLimits(t *testing.T) {
 						Burst:     5,
 					},
 					{
+						RateLimit: rl,
 						Name:      MessagingEmailPerTarget,
 						Arguments: []string{target},
 						IsGlobal:  false,
@@ -1933,6 +2021,7 @@ func TestRateLimits(t *testing.T) {
 						Burst:     3,
 					},
 					{
+						RateLimit: rl,
 						Name:      MessagingEmailPerTarget,
 						Arguments: []string{target},
 						IsGlobal:  true,
@@ -1986,6 +2075,7 @@ func TestRateLimits(t *testing.T) {
 
 				So(specs, ShouldResemble, []*BucketSpec{
 					{
+						RateLimit: rl,
 						Name:      MessagingEmail,
 						Arguments: nil,
 						IsGlobal:  false,
@@ -1994,6 +2084,7 @@ func TestRateLimits(t *testing.T) {
 						Burst:     10,
 					},
 					{
+						RateLimit: rl,
 						Name:      MessagingEmail,
 						Arguments: nil,
 						IsGlobal:  true,
@@ -2002,6 +2093,7 @@ func TestRateLimits(t *testing.T) {
 						Burst:     4,
 					},
 					{
+						RateLimit: rl,
 						Name:      MessagingEmailPerIP,
 						Arguments: []string{ipAddress},
 						IsGlobal:  false,
@@ -2010,6 +2102,7 @@ func TestRateLimits(t *testing.T) {
 						Burst:     20,
 					},
 					{
+						RateLimit: rl,
 						Name:      MessagingEmailPerIP,
 						Arguments: []string{ipAddress},
 						IsGlobal:  true,
@@ -2018,6 +2111,7 @@ func TestRateLimits(t *testing.T) {
 						Burst:     5,
 					},
 					{
+						RateLimit: rl,
 						Name:      MessagingEmailPerTarget,
 						Arguments: []string{target},
 						IsGlobal:  false,
@@ -2026,6 +2120,7 @@ func TestRateLimits(t *testing.T) {
 						Burst:     30,
 					},
 					{
+						RateLimit: rl,
 						Name:      MessagingEmailPerTarget,
 						Arguments: []string{target},
 						IsGlobal:  true,
@@ -2078,6 +2173,7 @@ func TestRateLimits(t *testing.T) {
 
 				So(specs, ShouldResemble, []*BucketSpec{
 					{
+						RateLimit: rl,
 						Name:      MessagingEmail,
 						Arguments: nil,
 						IsGlobal:  false,
@@ -2086,6 +2182,7 @@ func TestRateLimits(t *testing.T) {
 						Burst:     10,
 					},
 					{
+						RateLimit: rl,
 						Name:      MessagingEmail,
 						Arguments: nil,
 						IsGlobal:  true,
@@ -2094,6 +2191,7 @@ func TestRateLimits(t *testing.T) {
 						Burst:     4,
 					},
 					{
+						RateLimit: rl,
 						Name:      MessagingEmailPerIP,
 						Arguments: []string{ipAddress},
 						IsGlobal:  false,
@@ -2102,6 +2200,7 @@ func TestRateLimits(t *testing.T) {
 						Burst:     20,
 					},
 					{
+						RateLimit: rl,
 						Name:      MessagingEmailPerIP,
 						Arguments: []string{ipAddress},
 						IsGlobal:  true,
@@ -2110,6 +2209,7 @@ func TestRateLimits(t *testing.T) {
 						Burst:     5,
 					},
 					{
+						RateLimit: rl,
 						Name:      MessagingEmailPerTarget,
 						Arguments: []string{target},
 						IsGlobal:  false,
@@ -2118,6 +2218,7 @@ func TestRateLimits(t *testing.T) {
 						Burst:     30,
 					},
 					{
+						RateLimit: rl,
 						Name:      MessagingEmailPerTarget,
 						Arguments: []string{target},
 						IsGlobal:  true,
@@ -2164,6 +2265,7 @@ func TestRateLimits(t *testing.T) {
 
 				So(specs, ShouldResemble, []*BucketSpec{
 					{
+						RateLimit: rl,
 						Name:      MessagingEmail,
 						Arguments: nil,
 						IsGlobal:  false,
@@ -2172,6 +2274,7 @@ func TestRateLimits(t *testing.T) {
 						Burst:     1,
 					},
 					{
+						RateLimit: rl,
 						Name:      MessagingEmail,
 						Arguments: nil,
 						IsGlobal:  true,
@@ -2180,6 +2283,7 @@ func TestRateLimits(t *testing.T) {
 						Burst:     4,
 					},
 					{
+						RateLimit: rl,
 						Name:      MessagingEmailPerIP,
 						Arguments: []string{ipAddress},
 						IsGlobal:  false,
@@ -2188,6 +2292,7 @@ func TestRateLimits(t *testing.T) {
 						Burst:     2,
 					},
 					{
+						RateLimit: rl,
 						Name:      MessagingEmailPerIP,
 						Arguments: []string{ipAddress},
 						IsGlobal:  true,
@@ -2196,6 +2301,7 @@ func TestRateLimits(t *testing.T) {
 						Burst:     5,
 					},
 					{
+						RateLimit: rl,
 						Name:      MessagingEmailPerTarget,
 						Arguments: []string{target},
 						IsGlobal:  false,
@@ -2204,6 +2310,7 @@ func TestRateLimits(t *testing.T) {
 						Burst:     3,
 					},
 					{
+						RateLimit: rl,
 						Name:      MessagingEmailPerTarget,
 						Arguments: []string{target},
 						IsGlobal:  true,
@@ -2213,6 +2320,124 @@ func TestRateLimits(t *testing.T) {
 					},
 				})
 			})
+		})
+	})
+
+	Convey("RateLimit.ResolveWeight", t, func() {
+		Convey("should return default weight when no weights are in context", func() {
+			ctx := context.Background()
+			weight := RateLimitAuthenticationPassword.ResolveWeight(ctx)
+			So(weight, ShouldEqual, 1.0)
+		})
+
+		Convey("should return default weight for unnamed rate limit", func() {
+			ctx := WithRateLimitWeights(context.Background())
+			weights := map[RateLimit]float64{
+				RateLimitAuthenticationPassword: 2.0,
+			}
+			SetRateLimitWeights(ctx, weights)
+			var r RateLimit = ""
+			weight := r.ResolveWeight(ctx)
+			So(weight, ShouldEqual, 1.0)
+		})
+
+		Convey("should return specific weight if defined", func() {
+			ctx := WithRateLimitWeights(context.Background())
+			weights := map[RateLimit]float64{
+				RateLimitAuthenticationPassword: 2.0,
+			}
+			SetRateLimitWeights(ctx, weights)
+			weight := RateLimitAuthenticationPassword.ResolveWeight(ctx)
+			So(weight, ShouldEqual, 2.0)
+		})
+
+		Convey("should return fallback weight if specific not defined", func() {
+			ctx := WithRateLimitWeights(context.Background())
+			weights := map[RateLimit]float64{
+				RateLimitAuthenticationGeneral: 3.0,
+			}
+			SetRateLimitWeights(ctx, weights)
+			// RateLimitAuthenticationPassword falls back to RateLimitAuthenticationGeneral
+			weight := RateLimitAuthenticationPassword.ResolveWeight(ctx)
+			So(weight, ShouldEqual, 3.0)
+		})
+
+		Convey("should return specific weight even if fallback is defined", func() {
+			ctx := WithRateLimitWeights(context.Background())
+			weights := map[RateLimit]float64{
+				RateLimitAuthenticationGeneral:  3.0,
+				RateLimitAuthenticationPassword: 2.0,
+			}
+			SetRateLimitWeights(ctx, weights)
+			weight := RateLimitAuthenticationPassword.ResolveWeight(ctx)
+			So(weight, ShouldEqual, 2.0)
+		})
+
+		Convey("should return default weight without specific weight", func() {
+			ctx := WithRateLimitWeights(context.Background())
+			weights := map[RateLimit]float64{
+				RateLimitAuthenticationGeneral: 3.0,
+			}
+			SetRateLimitWeights(ctx, weights)
+			// This one has no fallback
+			weight := RateLimitVerificationEmailTrigger.ResolveWeight(ctx)
+			So(weight, ShouldEqual, 1.0)
+		})
+
+		Convey("should return specific weight for rate limits without fallback", func() {
+			ctx := WithRateLimitWeights(context.Background())
+			weights := map[RateLimit]float64{
+				RateLimitVerificationEmailTrigger: 5.0,
+			}
+			SetRateLimitWeights(ctx, weights)
+			weight := RateLimitVerificationEmailTrigger.ResolveWeight(ctx)
+			So(weight, ShouldEqual, 5.0)
+		})
+
+		Convey("should return 0 for negative weight", func() {
+			ctx := WithRateLimitWeights(context.Background())
+			weights := map[RateLimit]float64{
+				RateLimitAuthenticationPassword: -2.0,
+			}
+			SetRateLimitWeights(ctx, weights)
+			weight := RateLimitAuthenticationPassword.ResolveWeight(ctx)
+			So(weight, ShouldEqual, 0)
+		})
+
+		Convey("should return 0 for negative fallback weight", func() {
+			ctx := WithRateLimitWeights(context.Background())
+			weights := map[RateLimit]float64{
+				RateLimitAuthenticationGeneral: -3.0,
+			}
+			SetRateLimitWeights(ctx, weights)
+			weight := RateLimitAuthenticationPassword.ResolveWeight(ctx)
+			So(weight, ShouldEqual, 0)
+		})
+
+		Convey("should return fallback weight for all applicable rate limits", func() {
+			limitsWithFallback := []RateLimit{
+				RateLimitAuthenticationPassword,
+				RateLimitAuthenticationOOBOTPEmailValidate,
+				RateLimitAuthenticationOOBOTPSMSValidate,
+				RateLimitAuthenticationTOTP,
+				RateLimitAuthenticationRecoveryCode,
+				RateLimitAuthenticationDeviceToken,
+				RateLimitAuthenticationPasskey,
+				RateLimitAuthenticationSIWE,
+			}
+
+			for _, limit := range limitsWithFallback {
+				limit := limit
+				Convey(string(limit), func() {
+					ctx := WithRateLimitWeights(context.Background())
+					weights := map[RateLimit]float64{
+						RateLimitAuthenticationGeneral: 3.0,
+					}
+					SetRateLimitWeights(ctx, weights)
+					weight := limit.ResolveWeight(ctx)
+					So(weight, ShouldEqual, 3.0)
+				})
+			}
 		})
 	})
 }

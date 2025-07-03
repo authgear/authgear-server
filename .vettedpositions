@@ -253,7 +253,7 @@
 /pkg/auth/handler/webapp/wechat_auth.go:101:27: requestcontext
 /pkg/auth/handler/webapp/wechat_callback.go:62:27: requestcontext
 /pkg/auth/handler/webapp/whatsapp_otp.go:129:27: requestcontext
-/pkg/auth/webapp/context_holder_middleware.go:26:32: requestcontext
+/pkg/auth/webapp/context_holder_middleware.go:27:32: requestcontext
 /pkg/auth/webapp/intl_middleware.go:12:41: requestcontext
 /pkg/auth/webapp/require_authenticated_middleware.go:14:10: requestcontext
 /pkg/auth/webapp/session_middleware.go:58:10: requestcontext
