@@ -647,6 +647,7 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
             <FormattedMessage id="UISettingsScreen.favicon-description" />
           </WidgetDescription>
           <ImageFilePicker
+            sizeLimitInBytes={100 * 1000}
             base64EncodedData={getValueIgnoreEmptyString(RESOURCE_FAVICON)}
             onChange={getOnChangeImage(RESOURCE_FAVICON)}
           />

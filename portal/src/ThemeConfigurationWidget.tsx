@@ -416,6 +416,7 @@ const ThemeConfigurationWidget: React.VFC<ThemeConfigurationWidgetProps> =
                 <FormattedMessage id="ThemeConfigurationWidget.app-logo-description" />
               </Text>
               <ImageFilePicker
+                sizeLimitInBytes={100 * 1000}
                 disabled={disabled}
                 base64EncodedData={appLogoValue}
                 onChange={onChangeAppLogo}

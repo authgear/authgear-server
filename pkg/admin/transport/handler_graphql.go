@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	gographql "github.com/graphql-go/graphql"
-	"github.com/graphql-go/handler"
 
 	"github.com/authgear/authgear-server/pkg/admin/graphql"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
@@ -48,17 +47,14 @@ func (h *GraphQLHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	err := h.AppDatabase.WithTx(ctx, func(ctx context.Context) error {
 		doRollback := false
-		graphqlHandler := handler.New(&handler.Config{
-			Schema:     graphql.Schema,
-			Pretty:     false,
-			GraphiQL:   false,
-			Playground: false,
+		graphqlHandler := &graphqlutil.Handler{
+			Schema: graphql.Schema,
 			ResultCallbackFn: func(ctx context.Context, params *gographql.Params, result *gographql.Result, responseBody []byte) {
 				if result.HasErrors() {
 					doRollback = true
 				}
 			},
-		})
+		}
 
 		ctx = graphql.WithContext(ctx, h.GraphQLContext)
 		graphqlHandler.ContextHandler(ctx, rw, r)

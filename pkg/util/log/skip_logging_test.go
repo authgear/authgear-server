@@ -61,6 +61,14 @@ func TestSkipLogging(t *testing.T) {
 			So(myhook.IsSkipped, ShouldBeTrue)
 		})
 
+		Convey("Ignore http.MaxBytesError", func() {
+			err := &http.MaxBytesError{
+				Limit: 1,
+			}
+			logger.WithError(err).Error("error")
+			So(myhook.IsSkipped, ShouldBeTrue)
+		})
+
 		Convey("Ignore pg.Error.Code 57014", func() {
 			err := &pq.Error{
 				Code: "57014",

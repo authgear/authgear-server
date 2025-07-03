@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
 	"testing"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
@@ -118,6 +119,21 @@ func TestAPIError(t *testing.T) {
 				},
 			})
 		})
+
+		Convey("recognize http.MaxBytesError", func() {
+			err := &http.MaxBytesError{
+				Limit: 1,
+			}
+
+			apiErr := apierrors.AsAPIError(err)
+			So(apiErr, ShouldResemble, &apierrors.APIError{
+				Kind:          apierrors.Kind{Name: apierrors.RequestEntityTooLarge, Reason: "RequestEntityTooLarge"},
+				Message:       "http: request body too large",
+				Code:          413,
+				Info_ReadOnly: map[string]interface{}{},
+			})
+		})
+
 		Convey("recognize JSON syntax error - case 1", func() {
 			var unimportant interface{}
 			err := json.Unmarshal([]byte(`{"a":}`), &unimportant)

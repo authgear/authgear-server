@@ -3,12 +3,11 @@ package admin
 import (
 	"net/http"
 
-	graphqlhandler "github.com/graphql-go/handler"
-
 	"github.com/authgear/authgear-server/pkg/admin/transport"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
+	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
@@ -47,8 +46,8 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource, au
 		// so they are ordered just before the handler, to make sure
 		// the middlewares above always write their headers.
 		httproute.MiddlewareFunc(httputil.CheckContentType([]string{
-			graphqlhandler.ContentTypeJSON,
-			graphqlhandler.ContentTypeGraphQL,
+			graphqlutil.ContentTypeJSON,
+			graphqlutil.ContentTypeGraphQL,
 		})),
 	)
 

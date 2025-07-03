@@ -12,7 +12,6 @@ const meta = {
   argTypes: {
     value: { table: { disable: true } },
     onValueChange: { table: { disable: true } },
-    onError: { table: { disable: true } },
   },
   render: (args) => {
     return <Demo {...args} />;
@@ -33,5 +32,7 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
-  args: {},
+  args: {
+    sizeLimitInBytes: 100 * 1000,
+  },
 };

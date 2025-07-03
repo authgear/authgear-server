@@ -2,7 +2,7 @@
 /cmd/authgear/main.go:49:9: contextbackground
 /cmd/once/main.go:19:9: contextbackground
 /cmd/portal/main.go:43:9: contextbackground
-/pkg/admin/transport/handler_graphql.go:48:9: requestcontext
+/pkg/admin/transport/handler_graphql.go:47:9: requestcontext
 /pkg/admin/transport/handler_user_export_create.go:55:9: requestcontext
 /pkg/admin/transport/handler_user_export_get.go:37:9: requestcontext
 /pkg/admin/transport/handler_user_import_create.go:28:9: requestcontext
@@ -324,7 +324,7 @@
 /pkg/portal/transport/admin_api_handler.go:70:45: requestcontext
 /pkg/portal/transport/admin_api_handler.go:77:44: requestcontext
 /pkg/portal/transport/admin_api_handler.go:97:39: requestcontext
-/pkg/portal/transport/graphql_handler.go:45:29: requestcontext
+/pkg/portal/transport/graphql_handler.go:41:29: requestcontext
 /pkg/portal/transport/stripe_webhook_handler.go:82:47: requestcontext
 /pkg/portal/transport/stripe_webhook_handler.go:85:4: requestcontext
 /pkg/portal/transport/stripe_webhook_handler.go:91:4: requestcontext

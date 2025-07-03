@@ -112,7 +112,7 @@
   "errors.password-policy.password-reused": "Password cannot be reused, please check password policies below",
   "errors.password-policy.containing-excluded-keywords": "Password contains excluded keywords, please check password policies below",
   "errors.password-policy.unknown": "Password is invalid; please check password policies",
-  "errors.resource-too-large": "The {resourceType, select, favicon{favicon } app_logo{app logo } app_logo_dark{app logo } app_background_image{background image } other{}}file size is too large. Please upload a JPG, PNG or GIF file smaller than {maxSize} KB.",
+  "errors.resource-too-large": "The request is too big, try upload the images one at a time",
   "errors.webhook.disallowed": "Operation is disallowed by one of your hook. Raw info: {code, react, children{{info}}}",
   "errors.webhook.timeout": "Operation is disallowed because the hook delivery resulted in a timeout. Make sure your hooks return a valid response in reasonable time.",
   "errors.webhook.invalid-response": "Operation is disallowed because one of your hook returned an invalid response. See {DocLink, react, href{https://docs.authgear.com/customization/events-hooks} children{the documentation}} for details.",
@@ -137,6 +137,7 @@
   "errors.groups.key.duplicated": "This key is already used, please use a different key",
   "errors.authenticator.not-found": "Authenticator not found",
   "errors.image-too-large": "The image size is too large. Please upload a image that is within the size limit.",
+  "errors.input-file-image-load": "There is a problem in loading the image you selected. You may retry, or select another one.",
 
   "warnings.free-plan": "To avoid spam content, free plans are limited to send 5 SMS and Whatsapp messsage by default. To be eligible for 100 free SMS/Whatsapp per mo, please complete {ExternalLink, react, href{https://go.authgear.com/portal-support} children{the application form}}.",
 
@@ -1033,7 +1034,7 @@
   "DesignScreen.configuration.card.label": "Card",
   "DesignScreen.configuration.card.alignment.label": "Alignment",
   "DesignScreen.configuration.background.label": "Background",
-  "DesignScreen.configuration.background.description": "Upload a PNG, JPEG or GIF image smaller than 1 MB",
+  "DesignScreen.configuration.background.description": "Upload a PNG, JPEG or GIF image smaller than 500 KB",
   "DesignScreen.configuration.background.color.label.light": "Background color - light mode",
   "DesignScreen.configuration.background.color.label.dark": "Background color - dark mode",
   "DesignScreen.configuration.background.image.label.light": "Image - light mode",
@@ -1081,6 +1082,11 @@
   "DesignScreen.preview.pages.title.Error": "Error page",
   "DesignScreen.action.try": "Try",
   "DesignScreen.action.try.disabledHint": "Save changes to try the design",
+
+  "BaseImagePicker.size-dialog.title": "The file you select is too large",
+  "BaseImagePicker.size-dialog.description": "Please select a file with size less than {size}",
+  "BaseImagePicker.size-dialog.button-retry-label": "Select again",
+  "BaseImagePicker.size-dialog.button-cancel-label": "Cancel",
 
   "UISettingsScreen.title": "Design",
   "UISettingsScreen.description": "Authgear comes with some simple styling for your login and signup page. You can customize the look and feel here.",
