@@ -87,7 +87,11 @@
           {{ if (eq .details.format "phone") }}
             <span>{{ include "v2.error.phone-number-format" nil }}</span>
           {{ else if (eq .details.format "email") }}
-            <span>{{ include "v2.error.invalid-email" nil }}</span>
+            {{ if (eq .details.reason "BlockPlusSign" ) }}
+              <span>{{ include "v2.error.invalid-email-requirement-not-met" nil }}</span>
+            {{ else }}
+              <span>{{ include "v2.error.invalid-email" nil }}</span>
+            {{ end }}
           {{ else if (eq .details.format "username") }}
             <span>{{ include "v2.error.invalid-username" nil }}</span>
           {{ else if (eq .details.format "x_totp_code") }}
