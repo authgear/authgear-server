@@ -40,7 +40,12 @@
     </div>
 
     <div>
+    {{ $hasOAuthCandidate := false }}
     {{ range .IdentityCandidates }}
+
+    {{ if eq .type "oauth" }}
+      {{ $hasOAuthCandidate = true }}
+    {{ end }}
 
     {{ if eq .type "login_id" }}
 
@@ -100,9 +105,8 @@
     {{ end }}
     {{ end}}
 
-    {{ $url := call $.MakeURL "/settings/identity/oauth" }}
-
-    <a href="{{$url}}" class="contents">
+    {{ if $hasOAuthCandidate }}
+    <a href="{{ call $.MakeURL "/settings/identity/oauth" }}" class="contents">
       {{ template "authflowv2/__settings_item.html"
         (dict
           "Label" ( include "v2.page.settings.default.social-accounts-button-label" nil )
@@ -111,6 +115,8 @@
         )
       }}
     </a>
+    {{ end }}
+
     </div>
   </div>
 
@@ -128,8 +134,7 @@
     <div>
       {{ range $.Authenticators }}
         {{ if and (eq .Type "password") (eq .Kind "primary") }}
-          {{ $url = call $.MakeURL "/settings/change_password" }}
-          <a href="{{$url}}" class="contents">
+          <a href="{{ call $.MakeURL "/settings/change_password" }}" class="contents">
             {{ template "authflowv2/__settings_item.html"
               (dict
                 "Label" ( include "v2.page.settings.default.password-button-label" nil )
@@ -142,8 +147,7 @@
       {{ end }}
 
       {{ if $.ShowPrimaryPasskey }}
-        {{ $url = call $.MakeURL "/settings/passkey" }}
-        <a href="{{$url}}" class="contents">
+        <a href="{{ call $.MakeURL "/settings/passkey" }}" class="contents">
           {{ template "authflowv2/__settings_item.html"
             (dict
               "Label" ( include "v2.page.settings.default.passkey-button-label" nil )
@@ -155,8 +159,7 @@
       {{ end }}
 
       {{ if $.ShowMFA }}
-        {{ $url = call $.MakeURL "/settings/mfa" }}
-        <a href="{{$url}}" class="contents">
+        <a href="{{ call $.MakeURL "/settings/mfa" }}" class="contents">
           {{ template "authflowv2/__settings_item.html"
             (dict
               "Label" ( include "v2.page.settings.default.mfa-button-label" nil )
@@ -168,8 +171,7 @@
       {{ end }}
 
       {{ if $.ShowBiometric }}
-        {{ $url = call $.MakeURL "/settings/biometric" }}
-        <a href="{{$url}}" class="contents">
+        <a href="{{ call $.MakeURL "/settings/biometric" }}" class="contents">
           {{ template "authflowv2/__settings_item.html"
             (dict
               "Label" ( include "v2.page.settings.default.biometric-login-button-label" nil )
@@ -180,8 +182,7 @@
         </a>
       {{ end }}
 
-      {{ $url = call $.MakeURL "/settings/sessions" }}
-      <a href="{{$url}}" class="contents">
+      <a href="{{ call $.MakeURL "/settings/sessions" }}" class="contents">
         {{ template "authflowv2/__settings_item.html"
           (dict
             "Label" ( include "v2.page.settings.default.signed-in-devices-button-label" nil )
@@ -198,8 +199,7 @@
       {{ end }}
 
       {{ if $show_advanced_settings_button }}
-        {{ $url = call $.MakeURL "/settings/advanced_settings" }}
-        <a href="{{$url}}" class="contents">
+        <a href="{{ call $.MakeURL "/settings/advanced_settings" }}" class="contents">
           {{ template "authflowv2/__settings_item.html"
             (dict
               "Label" ( include "v2.page.settings.default.advanced-settings-button-label" nil )
