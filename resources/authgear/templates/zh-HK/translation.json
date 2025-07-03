@@ -959,6 +959,7 @@
   "v2.error.identify-not-found": "指定的{LoginIDType,select,email{電子郵件} phone{電話} username{用戶名} other{身份}}在此帳戶中找不到。",
   "v2.error.invalid-credentials": "{AuthenticationType, select, password{密碼不正確} totp{驗證器應用程式／裝置所顯示的6位碼不正確} oob_otp_sms {一次性密碼不正確} oob_otp_email{無效的憑証} recovery_code {10位的備用碼不正確} passkey {此通行密匙不屬於此帳戶} other {無效的憑証}}",
   "v2.error.invalid-email": "請在電郵地址中包含“@”符號。",
+  "v2.error.invalid-email-requirement-not-met": "無效的電子郵件地址。輸入的電子郵件地址不符合要求。",
   "v2.error.invalid-passkey-or-not-supported": "您的裝置不支援通行密匙或通行密匙無效。請選擇其他驗證方法。",
   "v2.error.invalid-username": "你所輸入的用戶名稱格式不正確。請嘗試使用一個只含英數字(a-z, A-Z, and 0-9)的用戶名稱",
   "v2.error.invalid-web3-network": "請以 {chainID, select, _1{Ethereum Mainnet} _5{Ethereum Goerli} _137{Polygon Mainnet} _80001{Polygon Mumbai} other{}} 的密碼貨幣錢包來登入",
