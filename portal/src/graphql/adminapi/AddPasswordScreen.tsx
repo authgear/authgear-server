@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { FormattedMessage } from "@oursky/react-messageformat";
 
+import { useResetPasswordMutation } from "./mutations/resetPasswordMutation";
 import NavBreadcrumb from "../../NavBreadcrumb";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
@@ -9,26 +10,17 @@ import { useAppAndSecretConfigQuery } from "../portal/query/appAndSecretConfigQu
 import { PortalAPIAppConfig } from "../../types";
 import { SimpleFormModel, useSimpleForm } from "../../hook/useSimpleForm";
 import ScreenContent from "../../ScreenContent";
-import styles from "./ChangePasswordScreen.module.css";
+import styles from "./AddPasswordScreen.module.css";
 import { validatePassword } from "../../error/password";
 import { useUserQuery } from "./query/userQuery";
 import { FormContainerBase } from "../../FormContainerBase";
 import ErrorDialog from "../../error/ErrorDialog";
 import { ErrorParseRule, makeReasonErrorParseRule } from "../../error/parse";
-import { ResetPasswordForm } from "../../components/users/ResetPasswordForm";
-import { useResetPasswordMutation } from "./mutations/resetPasswordMutation";
-
-enum PasswordCreationType {
-  ManualEntry = "manual_entry",
-  AutoGenerate = "auto_generate",
-}
-
-interface FormState {
-  newPassword: string;
-  passwordCreationType: PasswordCreationType;
-  sendPassword: boolean;
-  setPasswordExpired: boolean;
-}
+import {
+  FormState,
+  PasswordCreationType,
+  ResetPasswordForm,
+} from "../../components/users/ResetPasswordForm";
 
 const defaultState: FormState = {
   newPassword: "",
@@ -43,7 +35,7 @@ interface ResetPasswordContentProps {
   firstEmail: string | null;
 }
 
-const ChangePasswordContent: React.VFC<ResetPasswordContentProps> = function (
+const AddPasswordContent: React.VFC<ResetPasswordContentProps> = function (
   props
 ) {
   const { appConfig, form, firstEmail } = props;
@@ -56,7 +48,7 @@ const ChangePasswordContent: React.VFC<ResetPasswordContentProps> = function (
         to: `~/users/${userID}/details`,
         label: <FormattedMessage id="UserDetailsScreen.title" />,
       },
-      { to: ".", label: <FormattedMessage id="ChangePasswordScreen.title" /> },
+      { to: ".", label: <FormattedMessage id="AddPasswordScreen.title" /> },
     ];
   }, [userID]);
 
@@ -65,7 +57,7 @@ const ChangePasswordContent: React.VFC<ResetPasswordContentProps> = function (
       <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
       <ResetPasswordForm
         className={styles.widget}
-        submitMessageID="ChangePasswordScreen.change"
+        submitMessageID="AddPasswordScreen.add"
         form={form}
         appConfig={appConfig}
         firstEmail={firstEmail}
@@ -74,7 +66,7 @@ const ChangePasswordContent: React.VFC<ResetPasswordContentProps> = function (
   );
 };
 
-const ChangePasswordScreen: React.VFC = function ChangePasswordScreen() {
+const AddPasswordScreen: React.VFC = function AddPasswordScreen() {
   const { appID } = useParams() as { appID: string };
   const { userID } = useParams() as { userID: string };
 
@@ -124,7 +116,7 @@ const ChangePasswordScreen: React.VFC = function ChangePasswordScreen() {
     return [
       makeReasonErrorParseRule(
         "SendPasswordNoTarget",
-        "ChangePasswordScreen.error.send-password-no-target"
+        "AddPasswordScreen.error.send-password-no-target"
       ),
     ];
   }, []);
@@ -186,7 +178,7 @@ const ChangePasswordScreen: React.VFC = function ChangePasswordScreen() {
 
   return (
     <FormContainerBase form={form} canSave={canSave}>
-      <ChangePasswordContent
+      <AddPasswordContent
         form={form}
         appConfig={effectiveAppConfig}
         firstEmail={firstEmail}
@@ -196,4 +188,4 @@ const ChangePasswordScreen: React.VFC = function ChangePasswordScreen() {
   );
 };
 
-export default ChangePasswordScreen;
+export default AddPasswordScreen;
