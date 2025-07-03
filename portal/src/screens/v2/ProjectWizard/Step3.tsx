@@ -11,6 +11,7 @@ import {
   ImageInput,
   ImageInputError,
   ImageInputErrorCode,
+  ImageInputErrorUnsupportedMIMEType,
   ImageValue,
 } from "../../../components/v2/ImageInput/ImageInput";
 import { produce } from "immer";
@@ -44,6 +45,16 @@ export function Step3(): React.ReactElement {
     switch (err.code) {
       case ImageInputErrorCode.FILE_TOO_LARGE:
         setImageFieldError(<FormattedMessage id="errors.image-too-large" />);
+        break;
+      case ImageInputErrorCode.UNSUPPORTED_MIME_TYPE:
+        setImageFieldError(
+          <FormattedMessage
+            id="errors.unsupported-mime-type"
+            values={{
+              mimeType: (err as ImageInputErrorUnsupportedMIMEType).mime,
+            }}
+          />
+        );
         break;
 
       default:

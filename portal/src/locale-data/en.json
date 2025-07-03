@@ -137,6 +137,7 @@
   "errors.groups.key.duplicated": "This key is already used, please use a different key",
   "errors.authenticator.not-found": "Authenticator not found",
   "errors.image-too-large": "The image size is too large. Please upload a image that is within the size limit.",
+  "errors.unsupported-mime-type": "Unsupported media type: {mimeType}",
 
   "warnings.free-plan": "To avoid spam content, free plans are limited to send 5 SMS and Whatsapp messsage by default. To be eligible for 100 free SMS/Whatsapp per mo, please complete {ExternalLink, react, href{https://go.authgear.com/portal-support} children{the application form}}.",
 

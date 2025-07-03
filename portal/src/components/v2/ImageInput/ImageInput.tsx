@@ -32,6 +32,7 @@ export interface ImageInputProps {
 export enum ImageInputErrorCode {
   UNKNOWN = "UNKNOWN",
   FILE_TOO_LARGE = "FILE_TOO_LARGE",
+  UNSUPPORTED_MIME_TYPE = "UNSUPPORTED_MIME_TYPE",
 }
 
 export class ImageInputError extends Error {
@@ -42,6 +43,16 @@ export class ImageInputError extends Error {
     super(`image input error: ${code}`);
     this.code = code;
     this.internalError = internalError;
+  }
+}
+
+export class ImageInputErrorUnsupportedMIMEType extends ImageInputError {
+  code!: ImageInputErrorCode.UNSUPPORTED_MIME_TYPE;
+  mime: string;
+
+  constructor(mime: string) {
+    super(ImageInputErrorCode.UNSUPPORTED_MIME_TYPE);
+    this.mime = mime;
   }
 }
 
@@ -80,7 +91,11 @@ export function ImageInput({
           onValueChange?.(value);
         })
         .catch((e) => {
-          onError?.(new ImageInputError(ImageInputErrorCode.UNKNOWN, e));
+          if (e instanceof ImageInputError) {
+            onError?.(e);
+          } else {
+            onError?.(new ImageInputError(ImageInputErrorCode.UNKNOWN, e));
+          }
           console.error("unexpected error in image input:", e);
         })
         .finally(() => {
@@ -166,7 +181,7 @@ function mediaTypeToExtension(mime: string): ImageFileExtension {
     case "image/gif":
       return ".gif";
     default:
-      throw new Error(`unsupported media type: ${mime}`);
+      throw new ImageInputErrorUnsupportedMIMEType(mime);
   }
 }
 
