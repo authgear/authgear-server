@@ -47,6 +47,9 @@ const UsernameScreen = lazy(
 const ChangePasswordScreen = lazy(
   async () => import("./graphql/adminapi/ChangePasswordScreen")
 );
+const AddPasswordScreen = lazy(
+  async () => import("./graphql/adminapi/AddPasswordScreen")
+);
 const EditPictureScreen = lazy(
   async () => import("./graphql/adminapi/EditPictureScreen")
 );
@@ -471,6 +474,14 @@ const AppRoot: React.VFC = function AppRoot() {
                     element={
                       <Suspense fallback={<ShowLoading />}>
                         <ChangePasswordScreen />
+                      </Suspense>
+                    }
+                  />
+                  <Route
+                    path="add-password"
+                    element={
+                      <Suspense fallback={<ShowLoading />}>
+                        <AddPasswordScreen />
                       </Suspense>
                     }
                   />

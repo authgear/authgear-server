@@ -404,13 +404,12 @@ function constructPrimaryAuthenticatorLists(
     oobOtpEmail: oobOtpEmailAuthenticatorList,
     oobOtpSMS: oobOtpSMSAuthenticatorList,
     isPrimaryPasswordEnabled,
-    hasVisibleList:
-      [
-        passkeyIdentityList,
-        passwordAuthenticatorList,
-        oobOtpEmailAuthenticatorList,
-        oobOtpSMSAuthenticatorList,
-      ].some((list) => list.length > 0) || isPrimaryPasswordEnabled,
+    hasVisibleList: [
+      passkeyIdentityList,
+      passwordAuthenticatorList,
+      oobOtpEmailAuthenticatorList,
+      oobOtpSMSAuthenticatorList,
+    ].some((list) => list.length > 0),
   };
 }
 
@@ -1146,7 +1145,8 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
           }
           onDismiss={dismissConfirmationDialog}
         />
-        {primaryAuthenticatorLists.hasVisibleList ? (
+        {primaryAuthenticatorLists.hasVisibleList ||
+        primaryAuthenticatorLists.isPrimaryPasswordEnabled ? (
           <div className={styles.authenticatorContainer}>
             <div
               className={cn(
@@ -1171,8 +1171,7 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
                 />
               ) : null}
             </div>
-            {primaryAuthenticatorLists.password.length === 0 &&
-            primaryAuthenticatorLists.isPrimaryPasswordEnabled ? (
+            {!primaryAuthenticatorLists.hasVisibleList ? (
               <>
                 <Text as="h3" className={cn(styles.authenticatorEmpty)}>
                   <FormattedMessage id="UserDetails.account-security.primary.password.empty" />
