@@ -149,7 +149,7 @@ export function ImageInput({
         ref={inputRef}
         className="hidden"
         type="file"
-        accept="image/*"
+        accept="image/png, image/jpeg, image/gif"
         onChange={handleFileChange}
       />
     </div>
