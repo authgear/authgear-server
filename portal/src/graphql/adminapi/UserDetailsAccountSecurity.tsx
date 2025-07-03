@@ -1174,7 +1174,7 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
             {!primaryAuthenticatorLists.hasVisibleList ? (
               <>
                 <Text as="h3" className={cn(styles.authenticatorEmpty)}>
-                  <FormattedMessage id="UserDetails.account-security.primary.password.empty" />
+                  <FormattedMessage id="UserDetails.account-security.primary.empty" />
                 </Text>
               </>
             ) : null}
