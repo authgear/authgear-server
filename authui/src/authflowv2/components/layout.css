@@ -17,6 +17,8 @@
     @apply relative;
     @apply flex flex-col flex-1-0-auto;
     @apply items-center justify-start;
+    /* padding */
+    @apply tablet:px-16 desktop:px-60;
   }
 
   .layout--common::before {
@@ -24,8 +26,6 @@
     @apply -z-10;
     @apply absolute top-0 left-0 right-0 bottom-0;
     @apply pointer-events-none;
-    /* padding */
-    @apply tablet:px-16 desktop:px-60;
   }
 
   .layout--default {
