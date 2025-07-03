@@ -109,6 +109,7 @@ export function Step3(): React.ReactElement {
           error={imageFieldError}
         >
           <ImageInput
+            sizeLimitInBytes={100 * 1000}
             value={form.state.logo}
             onValueChange={handleImageChange}
             onError={handleImageError}

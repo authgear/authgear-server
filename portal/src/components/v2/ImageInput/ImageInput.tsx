@@ -21,8 +21,7 @@ export interface ImageValue {
 }
 
 export interface ImageInputProps {
-  sizeLimitKB?: number;
-
+  sizeLimitInBytes: number;
   value: ImageValue | null;
   onClickUpload?: () => void;
   onValueChange?: (value: ImageValue | null) => void;
@@ -47,7 +46,7 @@ export class ImageInputError extends Error {
 
 export function ImageInput({
   value,
-  sizeLimitKB = 100,
+  sizeLimitInBytes,
   onError,
   onClickUpload,
   onValueChange,
@@ -71,7 +70,7 @@ export function ImageInput({
       }
 
       const file = el.files[0];
-      if (file.size / 1024 > sizeLimitKB) {
+      if (file.size > sizeLimitInBytes) {
         onError?.(new ImageInputError(ImageInputErrorCode.FILE_TOO_LARGE));
         return;
       }
@@ -88,7 +87,7 @@ export function ImageInput({
           el.value = "";
         });
     },
-    [onError, onValueChange, sizeLimitKB]
+    [onError, onValueChange, sizeLimitInBytes]
   );
 
   const valuesrc = useMemo(() => {
