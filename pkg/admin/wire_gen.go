@@ -452,6 +452,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Config:  rateLimitsFeatureConfig,
 	}
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -463,11 +464,15 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		AttemptTracker:        attemptTrackerRedis,
 		Logger:                otpLogger,
 		RateLimiter:           limiter,
+		FeatureConfig:         featureConfig,
+		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
 	rateLimits := service2.RateLimits{
-		IP:          remoteIP,
-		Config:      authenticationConfig,
-		RateLimiter: limiter,
+		IP:            remoteIP,
+		Config:        appConfig,
+		FeatureConfig: featureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+		RateLimiter:   limiter,
 	}
 	authenticationLockoutConfig := authenticationConfig.Lockout
 	lockoutLogger := lockout.NewLogger(factory)
@@ -727,7 +732,9 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		DeviceTokens:  storeDeviceTokenRedis,
 		RecoveryCodes: storeRecoveryCodePQ,
 		Clock:         clockClock,
-		Config:        authenticationConfig,
+		Config:        appConfig,
+		FeatureConfig: featureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
@@ -739,17 +746,13 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		AppID:  appID,
 		Redis:  appredisHandle,
 	}
-	messagingConfig := appConfig.Messaging
-	messagingRateLimitsConfig := messagingConfig.RateLimits
-	messagingFeatureConfig := featureConfig.Messaging
-	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	limits := messaging.Limits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		UsageLimiter:  usageLimiter,
 		RemoteIP:      remoteIP,
-		Config:        messagingRateLimitsConfig,
-		FeatureConfig: messagingFeatureConfig,
+		Config:        appConfig,
+		FeatureConfig: featureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	mailLogger := mail.NewLogger(factory)
@@ -760,6 +763,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		GomailDialer: dialer,
 	}
 	smsLogger := sms.NewLogger(factory)
+	messagingConfig := appConfig.Messaging
 	smsProvider := messagingConfig.Deprecated_SMSProvider
 	smsGatewayConfig := messagingConfig.SMSGateway
 	nexmoCredentials := deps.ProvideNexmoCredentials(secretConfig)
@@ -831,6 +835,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		CloudAPIClient:        cloudAPIClient,
 	}
 	devMode := environmentConfig.DevMode
+	messagingFeatureConfig := featureConfig.Messaging
 	featureTestModeEmailSuppressed := deps.ProvideTestModeEmailSuppressed(testModeFeatureConfig)
 	testModeEmailConfig := testModeConfig.Email
 	featureTestModeSMSSuppressed := deps.ProvideTestModeSMSSuppressed(testModeFeatureConfig)
@@ -1068,8 +1073,12 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
-	challengeProvider := &challenge.Provider{
+	challengeStore := &challenge.Store{
 		Redis: appredisHandle,
+		AppID: appID,
+	}
+	challengeProvider := &challenge.Provider{
+		Store: challengeStore,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -1094,6 +1103,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                           clockClock,
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
+		RateLimitsEnvConfig:             rateLimitsEnvironmentConfig,
 		OAuthClientResolver:             oauthclientResolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
@@ -1706,6 +1716,7 @@ func newUserExportCreateHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Config:  rateLimitsFeatureConfig,
 	}
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -1717,11 +1728,15 @@ func newUserExportCreateHandler(p *deps.RequestProvider) http.Handler {
 		AttemptTracker:        attemptTrackerRedis,
 		Logger:                otpLogger,
 		RateLimiter:           ratelimitLimiter,
+		FeatureConfig:         featureConfig,
+		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
 	rateLimits := service2.RateLimits{
-		IP:          remoteIP,
-		Config:      authenticationConfig,
-		RateLimiter: ratelimitLimiter,
+		IP:            remoteIP,
+		Config:        appConfig,
+		FeatureConfig: featureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+		RateLimiter:   ratelimitLimiter,
 	}
 	authenticationLockoutConfig := authenticationConfig.Lockout
 	lockoutLogger := lockout.NewLogger(factory)

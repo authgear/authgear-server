@@ -184,6 +184,7 @@ func (i *Info) ToModel() model.Identity {
 	return model.Identity{
 		Meta:   i.GetMeta(),
 		Type:   string(i.Type),
+		UserID: i.UserID,
 		Claims: claims,
 	}
 }
@@ -428,4 +429,34 @@ func (i *Info) UpdateUserID(newUserID string) *Info {
 		panic(fmt.Errorf("identity: identity type %v does not support updating user ID", i.Type))
 	}
 	return i
+}
+
+func (i *Info) ToIdentification() model.AuthenticationFlowIdentification {
+	switch i.Type {
+	case model.IdentityTypeLoginID:
+		switch i.LoginID.LoginIDType {
+		case model.LoginIDKeyTypeEmail:
+			return model.AuthenticationFlowIdentificationEmail
+		case model.LoginIDKeyTypePhone:
+			return model.AuthenticationFlowIdentificationPhone
+		case model.LoginIDKeyTypeUsername:
+			return model.AuthenticationFlowIdentificationUsername
+		default:
+			panic(fmt.Errorf("identity: unexpected login ID type: %s", i.LoginID.LoginIDType))
+		}
+	case model.IdentityTypeOAuth:
+		return model.AuthenticationFlowIdentificationOAuth
+	case model.IdentityTypePasskey:
+		return model.AuthenticationFlowIdentificationPasskey
+	case model.IdentityTypeLDAP:
+		return model.AuthenticationFlowIdentificationLDAP
+	case model.IdentityTypeAnonymous:
+		fallthrough
+	case model.IdentityTypeBiometric:
+		fallthrough
+	case model.IdentityTypeSIWE:
+		fallthrough
+	default:
+		panic(fmt.Errorf("identity: identity type %v has not corresponding identification value", i.Type))
+	}
 }

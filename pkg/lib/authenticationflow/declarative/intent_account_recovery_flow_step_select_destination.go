@@ -57,8 +57,9 @@ func NewIntentAccountRecoveryFlowStepSelectDestination(
 	deps *authflow.Dependencies,
 	flows authflow.Flows,
 	i *IntentAccountRecoveryFlowStepSelectDestination,
+	originNode authflow.NodeOrIntent,
 ) (*IntentAccountRecoveryFlowStepSelectDestination, error) {
-	current, err := i.currentFlowObject(deps)
+	current, err := i.currentFlowObject(deps, flows, originNode)
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +94,7 @@ func (*IntentAccountRecoveryFlowStepSelectDestination) Kind() string {
 func (i *IntentAccountRecoveryFlowStepSelectDestination) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
 	switch len(flows.Nearest.Nodes) {
 	case 0:
-		flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+		flowRootObject, err := findNearestFlowObjectInFlow(deps, flows, i)
 		if err != nil {
 			return nil, err
 		}
@@ -136,8 +137,8 @@ func (*IntentAccountRecoveryFlowStepSelectDestination) step(o config.Authenticat
 	return step
 }
 
-func (i *IntentAccountRecoveryFlowStepSelectDestination) currentFlowObject(deps *authflow.Dependencies) (config.AuthenticationFlowObject, error) {
-	rootObject, err := flowRootObject(deps, i.FlowReference)
+func (i *IntentAccountRecoveryFlowStepSelectDestination) currentFlowObject(deps *authflow.Dependencies, flows authflow.Flows, originNode authflow.NodeOrIntent) (config.AuthenticationFlowObject, error) {
+	rootObject, err := findNearestFlowObjectInFlow(deps, flows, originNode)
 	if err != nil {
 		return nil, err
 	}

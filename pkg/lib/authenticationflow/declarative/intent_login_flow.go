@@ -43,7 +43,7 @@ func (i *IntentLoginFlow) FlowFlowReference() authflow.FlowReference {
 }
 
 func (i *IntentLoginFlow) FlowRootObject(deps *authflow.Dependencies) (config.AuthenticationFlowObject, error) {
-	return flowRootObject(deps, i.FlowReference)
+	return getFlowRootObject(deps, i.FlowReference)
 }
 
 func (*IntentLoginFlow) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
@@ -59,11 +59,13 @@ func (*IntentLoginFlow) CanReactTo(ctx context.Context, deps *authflow.Dependenc
 func (i *IntentLoginFlow) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (authflow.ReactToResult, error) {
 	switch {
 	case len(flows.Nearest.Nodes) == 0:
+		return NewNodePreInitialize(ctx, deps, flows)
+	case len(flows.Nearest.Nodes) == 1:
 		return authflow.NewSubFlow(&IntentLoginFlowSteps{
 			FlowReference: i.FlowReference,
 			JSONPointer:   i.JSONPointer,
 		}), nil
-	case len(flows.Nearest.Nodes) == 1:
+	case len(flows.Nearest.Nodes) == 2:
 		userID, err := i.userID(flows)
 		if err != nil {
 			return nil, err

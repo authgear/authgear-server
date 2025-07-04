@@ -118,6 +118,8 @@ type RateLimiter interface {
 type EventService interface {
 	DispatchEventOnCommit(ctx context.Context, payload event.Payload) error
 	DispatchEventImmediately(ctx context.Context, payload event.NonBlockingPayload) error
+	DispatchEventWithoutTx(ctx context.Context, e *event.Event) error
+	PrepareBlockingEventWithTx(ctx context.Context, payload event.BlockingPayload) (*event.Event, error)
 }
 
 type UserService interface {
@@ -241,6 +243,7 @@ type UserFacade interface {
 type Dependencies struct {
 	Config                  *config.AppConfig
 	FeatureConfig           *config.FeatureConfig
+	RateLimitsEnvConfig     *config.RateLimitsEnvironmentConfig
 	SSOOAuthDemoCredentials *config.SSOOAuthDemoCredentials
 
 	Clock      clock.Clock

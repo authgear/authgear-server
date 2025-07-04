@@ -26,28 +26,28 @@
           )
       }}
     {{ else }}
-    <form action='{{ call $.MakeURLWithBackURL "/settings/mfa/totp" }}' method="post" novalidate>
-      {{ $.CSRFField }}
-      <button
-        class="w-full"
-        type="submit"
-        name="x_action"
-        value="create_totp"
-      >
-        {{ template "authflowv2/__settings_item.html"
-          (dict
-            "Label" (translate "v2.page.settings-mfa.default.secondary-totp-label" nil)
-            "WithArrow" true
-            "MaterialIconName" "phone_iphone"
-            "SupplementaryNote" (include "__settings_mfa_item_status.html"
-              (dict
-                "IsActive" $.IsActive
+      <form action='{{ call $.MakeURLWithBackURL "/settings/mfa/totp" }}' method="post" novalidate>
+        {{ $.CSRFField }}
+        <button
+          class="w-full"
+          type="submit"
+          name="x_action"
+          value="create_totp"
+        >
+          {{ template "authflowv2/__settings_item.html"
+            (dict
+              "Label" (translate "v2.page.settings-mfa.default.secondary-totp-label" nil)
+              "WithArrow" true
+              "MaterialIconName" "phone_iphone"
+              "SupplementaryNote" (include "__settings_mfa_item_status.html"
+                (dict
+                  "IsActive" $.IsActive
+                )
               )
             )
-          )
-        }}
-      </button>
-    </form>
+          }}
+        </button>
+      </form>
     {{ end }}
   {{ end }}
 

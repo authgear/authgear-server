@@ -7,6 +7,7 @@ import (
 
 	"strconv"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
@@ -39,7 +40,7 @@ func ConfigureAuthflowV2AccountLinkingRoute(route httproute.Route) httproute.Rou
 }
 
 type AuthflowV2AccountLinkingOption struct {
-	Identification    config.AuthenticationFlowIdentification
+	Identification    model.AuthenticationFlowIdentification
 	MaskedDisplayName string
 	ProviderType      string
 	ProviderStatus    config.OAuthProviderStatus
@@ -121,15 +122,15 @@ func (h *AuthflowV2AccountLinkingHandler) ServeHTTP(w http.ResponseWriter, r *ht
 
 		var input map[string]interface{}
 		switch option.Identifcation {
-		case config.AuthenticationFlowIdentificationEmail:
+		case model.AuthenticationFlowIdentificationEmail:
 			fallthrough
-		case config.AuthenticationFlowIdentificationPhone:
+		case model.AuthenticationFlowIdentificationPhone:
 			fallthrough
-		case config.AuthenticationFlowIdentificationUsername:
+		case model.AuthenticationFlowIdentificationUsername:
 			input = map[string]interface{}{
 				"index": index,
 			}
-		case config.AuthenticationFlowIdentificationOAuth:
+		case model.AuthenticationFlowIdentificationOAuth:
 			providerAlias := option.Alias
 			screenViewModel := NewAuthflowV2AccountLinkingViewModel(s, screen)
 			redirectURI, err := h.Controller.GetAccountLinkingSSOCallbackURL(providerAlias, screenViewModel.Data)
@@ -140,7 +141,7 @@ func (h *AuthflowV2AccountLinkingHandler) ServeHTTP(w http.ResponseWriter, r *ht
 				"index":        index,
 				"redirect_uri": redirectURI,
 			}
-		case config.AuthenticationFlowIdentificationLDAP:
+		case model.AuthenticationFlowIdentificationLDAP:
 			// TODO(DEV-1672): Support Account Linking for LDAP
 			panic(fmt.Errorf("To be implemented identifcation option %v", option.Identifcation))
 		default:

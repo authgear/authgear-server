@@ -11,6 +11,34 @@ const (
 	OIDCJWTPreCreate event.Type = "oidc.jwt.pre_create"
 )
 
+func init() {
+	s := event.GetBaseHookResponseSchema()
+	s.Add("OIDCJWTPreCreateHookResponse", `
+{
+	"allOf": [
+		{ "$ref": "#/$defs/BaseHookResponseSchema" },
+		{
+			"if": {
+				"properties": {
+					"is_allowed": { "const": true }
+				}
+			},
+			"then": {
+				"type": "object",
+				"additionalProperties": false,
+				"properties": {
+					"is_allowed": {},
+					"mutations": {}
+				}
+			}
+		}
+	]
+}`)
+
+	s.Instantiate()
+	event.RegisterResponseSchemaValidator(OIDCJWTPreCreate, s.PartValidator("OIDCJWTPreCreateHookResponse"))
+}
+
 type OIDCJWT struct {
 	Payload map[string]interface{} `json:"payload"`
 }
@@ -36,13 +64,13 @@ func (e *OIDCJWTPreCreateBlockingEventPayload) GetTriggeredBy() event.TriggeredB
 
 func (e *OIDCJWTPreCreateBlockingEventPayload) FillContext(ctx *event.Context) {}
 
-func (e *OIDCJWTPreCreateBlockingEventPayload) ApplyMutations(ctx context.Context, mutations event.Mutations) bool {
-	if mutations.JWT.Payload != nil {
-		e.JWT.Payload = mutations.JWT.Payload
-		return true
+func (e *OIDCJWTPreCreateBlockingEventPayload) ApplyHookResponse(ctx context.Context, response event.HookResponse) event.ApplyHookResponseResult {
+	mutationsEverApplied := false
+	if response.Mutations.JWT.Payload != nil {
+		e.JWT.Payload = response.Mutations.JWT.Payload
+		mutationsEverApplied = true
 	}
-
-	return false
+	return event.ApplyHookResponseResult{MutationsEverApplied: mutationsEverApplied}
 }
 
 func (e *OIDCJWTPreCreateBlockingEventPayload) PerformEffects(ctx context.Context, effectCtx event.MutationsEffectContext) error {

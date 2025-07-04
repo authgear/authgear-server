@@ -14,7 +14,7 @@ type syntheticInputOAuth interface {
 }
 
 type inputTakeIdentificationMethod interface {
-	GetIdentificationMethod() config.AuthenticationFlowIdentification
+	GetIdentificationMethod() model.AuthenticationFlowIdentification
 }
 
 type inputTakeAccountRecoveryIdentificationMethod interface {
@@ -32,7 +32,7 @@ type inputTakeAccountLinkingIdentification interface {
 }
 
 type inputTakeAuthenticationMethod interface {
-	GetAuthenticationMethod() config.AuthenticationFlowAuthentication
+	GetAuthenticationMethod() model.AuthenticationFlowAuthentication
 }
 
 type inputTakeLoginID interface {

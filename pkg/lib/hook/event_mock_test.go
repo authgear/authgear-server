@@ -149,14 +149,12 @@ func (e *MockBlockingEvent1) BlockingEventType() event.Type {
 func (e *MockBlockingEvent1) FillContext(ctx *event.Context) {
 }
 
-func (e *MockBlockingEvent1) ApplyMutations(ctx context.Context, mutations event.Mutations) bool {
-	user, mutated := ApplyMutations(e.User, mutations)
+func (e *MockBlockingEvent1) ApplyHookResponse(ctx context.Context, response event.HookResponse) event.ApplyHookResponseResult {
+	user, mutated := ApplyHookResponse(e.User, response)
 	if mutated {
 		e.User = user
-		return true
 	}
-
-	return false
+	return event.ApplyHookResponseResult{MutationsEverApplied: mutated}
 }
 
 func (e *MockBlockingEvent1) PerformEffects(ctx context.Context, effectCtx event.MutationsEffectContext) error {
@@ -176,14 +174,12 @@ func (e *MockBlockingEvent2) BlockingEventType() event.Type {
 func (e *MockBlockingEvent2) FillContext(ctx *event.Context) {
 }
 
-func (e *MockBlockingEvent2) ApplyMutations(ctx context.Context, mutations event.Mutations) bool {
-	user, mutated := ApplyMutations(e.User, mutations)
+func (e *MockBlockingEvent2) ApplyHookResponse(ctx context.Context, response event.HookResponse) event.ApplyHookResponseResult {
+	user, mutated := ApplyHookResponse(e.User, response)
 	if mutated {
 		e.User = user
-		return true
 	}
-
-	return false
+	return event.ApplyHookResponseResult{MutationsEverApplied: mutated}
 }
 
 func (e *MockBlockingEvent2) PerformEffects(ctx context.Context, effectCtx event.MutationsEffectContext) error {
@@ -200,16 +196,30 @@ var _ event.NonBlockingPayload = &MockNonBlockingEvent4{}
 var _ event.BlockingPayload = &MockBlockingEvent1{}
 var _ event.BlockingPayload = &MockBlockingEvent2{}
 
-func ApplyMutations(user model.User, mutations event.Mutations) (out model.User, mutated bool) {
-	if mutations.User.StandardAttributes != nil {
-		user.StandardAttributes = mutations.User.StandardAttributes
+func ApplyHookResponse(user model.User, response event.HookResponse) (out model.User, mutated bool) {
+	if response.Mutations.User.StandardAttributes != nil {
+		user.StandardAttributes = response.Mutations.User.StandardAttributes
 		mutated = true
 	}
-	if mutations.User.CustomAttributes != nil {
-		user.CustomAttributes = mutations.User.CustomAttributes
+	if response.Mutations.User.CustomAttributes != nil {
+		user.CustomAttributes = response.Mutations.User.CustomAttributes
 		mutated = true
 	}
 
 	out = user
 	return
+}
+
+func init() {
+	s := event.GetBaseHookResponseSchema()
+	s.Add("TestHookResponse", `
+{
+	"allOf": [
+		{ "$ref": "#/$defs/BaseHookResponseSchema" }
+	]
+}`)
+
+	s.Instantiate()
+	event.RegisterResponseSchemaValidator(MockBlockingEventType1, s.PartValidator("TestHookResponse"))
+	event.RegisterResponseSchemaValidator(MockBlockingEventType2, s.PartValidator("TestHookResponse"))
 }

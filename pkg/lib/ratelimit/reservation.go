@@ -7,7 +7,7 @@ import (
 type Reservation struct {
 	key                string
 	spec               BucketSpec
-	tokenTaken         int
+	tokenTaken         float64
 	wasCancelPrevented bool
 }
 
@@ -35,7 +35,7 @@ func (r *FailedReservation) Error() error {
 	if r == nil {
 		return nil
 	}
-	return ErrRateLimited(r.spec.Name)
+	return ErrRateLimited(r.spec.RateLimit, r.spec.Name)
 }
 
 func (r *FailedReservation) GetTimeToAct() time.Time {

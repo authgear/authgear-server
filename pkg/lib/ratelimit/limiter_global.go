@@ -13,7 +13,7 @@ type LimiterGlobal struct {
 
 // GetTimeToAct allows you to check what is the earliest time you can retry.
 func (l *LimiterGlobal) GetTimeToAct(ctx context.Context, spec BucketSpec) (*time.Time, error) {
-	_, _, timeToAct, err := l.reserveN(ctx, spec, 0)
+	_, _, timeToAct, err := l.doReserveN(ctx, spec, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -31,19 +31,21 @@ func (l *LimiterGlobal) Allow(ctx context.Context, spec BucketSpec) (*FailedRese
 	return failedReservation, err
 }
 
-// Reserve is a shortcut of ReserveN(1).
+// Reserve is reserveN(weight).
+// weight default is 1, but it can be modified by user.
 func (l *LimiterGlobal) Reserve(ctx context.Context, spec BucketSpec) (*Reservation, *FailedReservation, error) {
-	return l.ReserveN(ctx, spec, 1)
+	weight := spec.RateLimit.ResolveWeight(ctx)
+	return l.reserveN(ctx, spec, weight)
 }
 
-// ReserveN is the general entry point.
+// reserveN is the general entry point.
 // If you ever need to pass n=0, you should use GetTimeToAct() instead.
-func (l *LimiterGlobal) ReserveN(ctx context.Context, spec BucketSpec, n int) (*Reservation, *FailedReservation, error) {
-	reservation, failedReservation, _, err := l.reserveN(ctx, spec, n)
+func (l *LimiterGlobal) reserveN(ctx context.Context, spec BucketSpec, n float64) (*Reservation, *FailedReservation, error) {
+	reservation, failedReservation, _, err := l.doReserveN(ctx, spec, n)
 	return reservation, failedReservation, err
 }
 
-func (l *LimiterGlobal) reserveN(ctx context.Context, spec BucketSpec, n int) (*Reservation, *FailedReservation, *time.Time, error) {
+func (l *LimiterGlobal) doReserveN(ctx context.Context, spec BucketSpec, n float64) (*Reservation, *FailedReservation, *time.Time, error) {
 	key := bucketKeyGlobal(spec)
 
 	if !spec.IsGlobal {

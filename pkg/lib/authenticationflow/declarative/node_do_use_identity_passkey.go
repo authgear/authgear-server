@@ -2,9 +2,9 @@ package declarative
 
 import (
 	"context"
-	"errors"
 
-	"github.com/authgear/authgear-server/pkg/api"
+	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
@@ -15,38 +15,45 @@ func init() {
 }
 
 type NodeDoUseIdentityPasskey struct {
+	*NodeDoUseIdentity
 	AssertionResponse []byte              `json:"assertion_response,omitempty"`
-	Identity          *identity.Info      `json:"identity,omitempty"`
-	IdentitySpec      *identity.Spec      `json:"identity_spec,omitempty"`
 	Authenticator     *authenticator.Info `json:"authenticator,omitempty"`
 	RequireUpdate     bool                `json:"require_update,omitempty"`
 }
 
-func NewNodeDoUseIdentityPasskey(ctx context.Context, flows authflow.Flows, n *NodeDoUseIdentityPasskey) (*NodeDoUseIdentityPasskey, error) {
-	userID, err := getUserID(flows)
-	if errors.Is(err, ErrNoUserID) {
-		err = nil
-	}
+type NodeDoUseIdentityPasskeyOptions struct {
+	Identity          *identity.Info
+	IdentitySpec      *identity.Spec
+	AssertionResponse []byte
+	Authenticator     *authenticator.Info
+	RequireUpdate     bool
+}
+
+func NewNodeDoUseIdentityPasskey(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, opts *NodeDoUseIdentityPasskeyOptions) (authenticationflow.ReactToResult, error) {
+	nodeDoUseIden, err := NewNodeDoUseIdentity(ctx, deps, flows, &NodeDoUseIdentity{
+		Identity:     opts.Identity,
+		IdentitySpec: opts.IdentitySpec,
+	})
 	if err != nil {
 		return nil, err
 	}
 
-	if userID != "" && userID != n.Identity.UserID {
-		return nil, ErrDifferentUserID
+	n := &NodeDoUseIdentityPasskey{
+		NodeDoUseIdentity: nodeDoUseIden,
+		AssertionResponse: opts.AssertionResponse,
+		Authenticator:     opts.Authenticator,
+		RequireUpdate:     opts.RequireUpdate,
 	}
 
-	if userIDHint := authflow.GetUserIDHint(ctx); userIDHint != "" {
-		if userIDHint != n.Identity.UserID {
-			return nil, api.ErrMismatchedUser
-		}
-	}
+	n.NodeDoUseIdentity = nodeDoUseIden
 
-	return n, nil
+	return authenticationflow.NewNodeSimple(n), nil
 }
 
 var _ authflow.NodeSimple = &NodeDoUseIdentityPasskey{}
 var _ authflow.EffectGetter = &NodeDoUseIdentityPasskey{}
 var _ authflow.Milestone = &NodeDoUseIdentityPasskey{}
+var _ authflow.InputReactor = &NodeDoUseIdentityPasskey{}
 var _ MilestoneDoUseUser = &NodeDoUseIdentityPasskey{}
 var _ MilestoneDoUseIdentity = &NodeDoUseIdentityPasskey{}
 var _ MilestoneDidSelectAuthenticator = &NodeDoUseIdentityPasskey{}
@@ -55,6 +62,14 @@ var _ MilestoneGetIdentitySpecs = &NodeDoUseIdentityPasskey{}
 
 func (*NodeDoUseIdentityPasskey) Kind() string {
 	return "NodeDoUseIdentityPasskey"
+}
+
+func (n *NodeDoUseIdentityPasskey) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authenticationflow.Flows) (authenticationflow.InputSchema, error) {
+	return n.NodeDoUseIdentity.CanReactTo(ctx, deps, flows)
+}
+
+func (n *NodeDoUseIdentityPasskey) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authenticationflow.Input) (authenticationflow.ReactToResult, error) {
+	return n.NodeDoUseIdentity.ReactTo(ctx, deps, flows, input)
 }
 
 func (n *NodeDoUseIdentityPasskey) GetEffects(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) ([]authflow.Effect, error) {
@@ -75,7 +90,12 @@ func (*NodeDoUseIdentityPasskey) Milestone() {}
 func (n *NodeDoUseIdentityPasskey) MilestoneDoUseUser() string {
 	return n.Identity.UserID
 }
-func (n *NodeDoUseIdentityPasskey) MilestoneDoUseIdentity() *identity.Info { return n.Identity }
+func (n *NodeDoUseIdentityPasskey) MilestoneDoUseIdentity() *identity.Info {
+	return n.NodeDoUseIdentity.MilestoneDoUseIdentity()
+}
+func (n *NodeDoUseIdentityPasskey) MilestoneDoUseIdentityIdentification() model.Identification {
+	return n.NodeDoUseIdentity.MilestoneDoUseIdentityIdentification()
+}
 func (n *NodeDoUseIdentityPasskey) MilestoneDidSelectAuthenticator() *authenticator.Info {
 	return n.Authenticator
 }
@@ -84,5 +104,17 @@ func (n *NodeDoUseIdentityPasskey) MilestoneDidAuthenticate() (amr []string) {
 }
 
 func (n *NodeDoUseIdentityPasskey) MilestoneGetIdentitySpecs() []*identity.Spec {
-	return []*identity.Spec{n.IdentitySpec}
+	return n.NodeDoUseIdentity.MilestoneGetIdentitySpecs()
+}
+
+func (n *NodeDoUseIdentityPasskey) MilestoneDidAuthenticateAuthenticator() (*authenticator.Info, bool) {
+	return n.Authenticator, true
+}
+func (n *NodeDoUseIdentityPasskey) MilestoneDidAuthenticateAuthentication() (*model.Authentication, bool) {
+	authn := n.Authenticator.ToAuthentication()
+	authnModel := n.Authenticator.ToModel()
+	return &model.Authentication{
+		Authentication: authn,
+		Authenticator:  &authnModel,
+	}, true
 }

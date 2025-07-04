@@ -11,6 +11,34 @@ const (
 	UserPreScheduleAnonymization event.Type = "user.pre_schedule_anonymization"
 )
 
+func init() {
+	s := event.GetBaseHookResponseSchema()
+	s.Add("UserPreScheduleAnonymizationHookResponse", `
+{
+	"allOf": [
+		{ "$ref": "#/$defs/BaseHookResponseSchema" },
+		{
+			"if": {
+				"properties": {
+					"is_allowed": { "const": true }
+				}
+			},
+			"then": {
+				"type": "object",
+				"additionalProperties": false,
+				"properties": {
+					"is_allowed": {},
+					"mutations": {}
+				}
+			}
+		}
+	]
+}`)
+
+	s.Instantiate()
+	event.RegisterResponseSchemaValidator(UserPreScheduleAnonymization, s.PartValidator("UserPreScheduleAnonymizationHookResponse"))
+}
+
 type UserPreScheduleAnonymizationBlockingEventPayload struct {
 	UserRef   model.UserRef `json:"-" resolve:"user"`
 	UserModel model.User    `json:"user"`
@@ -34,14 +62,12 @@ func (e *UserPreScheduleAnonymizationBlockingEventPayload) GetTriggeredBy() even
 
 func (e *UserPreScheduleAnonymizationBlockingEventPayload) FillContext(ctx *event.Context) {}
 
-func (e *UserPreScheduleAnonymizationBlockingEventPayload) ApplyMutations(ctx context.Context, mutations event.Mutations) bool {
-	user, mutated := ApplyUserMutations(e.UserModel, mutations.User)
+func (e *UserPreScheduleAnonymizationBlockingEventPayload) ApplyHookResponse(ctx context.Context, response event.HookResponse) event.ApplyHookResponseResult {
+	user, mutated := ApplyUserMutations(e.UserModel, response.Mutations.User)
 	if mutated {
 		e.UserModel = user
-		return true
 	}
-
-	return false
+	return event.ApplyHookResponseResult{MutationsEverApplied: mutated}
 }
 
 func (e *UserPreScheduleAnonymizationBlockingEventPayload) PerformEffects(ctx context.Context, effectCtx event.MutationsEffectContext) error {

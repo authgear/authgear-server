@@ -11,6 +11,7 @@ type BucketName string
 
 type BucketSpec struct {
 	Name      BucketName
+	RateLimit RateLimit
 	Arguments []string
 	IsGlobal  bool
 
@@ -21,8 +22,8 @@ type BucketSpec struct {
 
 var BucketSpecDisabled = BucketSpec{Enabled: false}
 
-func NewBucketSpec(config *config.RateLimitConfig, name BucketName, args ...string) BucketSpec {
-	enabled := config.Enabled != nil && *config.Enabled
+func NewBucketSpec(rl RateLimit, config *config.RateLimitConfig, name BucketName, args ...string) BucketSpec {
+	enabled := config.IsEnabled()
 	var duration time.Duration
 	if enabled {
 		duration = config.Period.Duration()
@@ -30,6 +31,7 @@ func NewBucketSpec(config *config.RateLimitConfig, name BucketName, args ...stri
 
 	return BucketSpec{
 		Name:      name,
+		RateLimit: rl,
 		Arguments: args,
 
 		Enabled: enabled,
@@ -48,9 +50,10 @@ func NewCooldownSpec(name BucketName, period time.Duration, args ...string) Buck
 	}
 }
 
-func NewGlobalBucketSpec(e config.RateLimitsEnvironmentConfigEntry, name BucketName, args ...string) BucketSpec {
+func NewGlobalBucketSpec(rl RateLimit, e config.RateLimitsEnvironmentConfigEntry, name BucketName, args ...string) BucketSpec {
 	return BucketSpec{
 		Name:      name,
+		RateLimit: rl,
 		Arguments: args,
 		IsGlobal:  true,
 

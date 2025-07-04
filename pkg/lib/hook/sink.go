@@ -120,9 +120,8 @@ func (s *Sink) DeliverBlockingEvent(ctx context.Context, e *event.Event) error {
 			)
 		}
 
-		var applied bool
-		applied = e.ApplyMutations(ctx, resp.Mutations)
-		if applied {
+		result := e.ApplyHookResponse(ctx, *resp)
+		if result.MutationsEverApplied {
 			mutationsEverApplied = true
 		}
 	}

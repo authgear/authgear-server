@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
+	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
@@ -14,7 +15,7 @@ import (
 )
 
 type AuthenticateOptionForOutput struct {
-	Authentication config.AuthenticationFlowAuthentication `json:"authentication"`
+	Authentication model.AuthenticationFlowAuthentication `json:"authentication"`
 
 	BotProtection *BotProtectionData `json:"bot_protection,omitempty"`
 	// OTPForm is specific to OOBOTP.
@@ -29,7 +30,7 @@ type AuthenticateOptionForOutput struct {
 }
 
 type AuthenticateOption struct {
-	Authentication config.AuthenticationFlowAuthentication `json:"authentication"`
+	Authentication model.AuthenticationFlowAuthentication `json:"authentication"`
 
 	BotProtection *BotProtectionData `json:"bot_protection,omitempty"`
 	// OTPForm is specific to OOBOTP.
@@ -45,6 +46,14 @@ type AuthenticateOption struct {
 	AuthenticatorID string `json:"authenticator_id,omitempty"`
 
 	IdentityID string `json:"identity_id,omitempty"`
+
+	AMR []string `json:"amr,omitempty"`
+}
+
+var _ AMROption = AuthenticateOption{}
+
+func (o AuthenticateOption) GetAMR() []string {
+	return o.AMR
 }
 
 func (o *AuthenticateOption) ToOutput(ctx context.Context) AuthenticateOptionForOutput {
@@ -72,41 +81,45 @@ func (o *AuthenticateOption) isBotProtectionRequired() bool {
 	return false
 }
 
-func NewAuthenticateOptionRecoveryCode(authflowBotProtectionCfg *config.AuthenticationFlowBotProtection, appBotProtectionConfig *config.BotProtectionConfig) AuthenticateOption {
+func NewAuthenticateOptionRecoveryCode(flows authflow.Flows, authflowBotProtectionCfg *config.AuthenticationFlowBotProtection, appBotProtectionConfig *config.BotProtectionConfig) AuthenticateOption {
 	return AuthenticateOption{
-		Authentication: config.AuthenticationFlowAuthenticationRecoveryCode,
-		BotProtection:  GetBotProtectionData(authflowBotProtectionCfg, appBotProtectionConfig),
+		Authentication: model.AuthenticationFlowAuthenticationRecoveryCode,
+		BotProtection:  GetBotProtectionData(flows, authflowBotProtectionCfg, appBotProtectionConfig),
+		AMR:            model.AuthenticationFlowAuthenticationRecoveryCode.AMR(),
 	}
 }
 
-func NewAuthenticateOptionPassword(am config.AuthenticationFlowAuthentication, authflowBotProtectionCfg *config.AuthenticationFlowBotProtection, appBotProtectionConfig *config.BotProtectionConfig) AuthenticateOption {
+func NewAuthenticateOptionPassword(flows authflow.Flows, am model.AuthenticationFlowAuthentication, authflowBotProtectionCfg *config.AuthenticationFlowBotProtection, appBotProtectionConfig *config.BotProtectionConfig) AuthenticateOption {
 	return AuthenticateOption{
 		Authentication: am,
-		BotProtection:  GetBotProtectionData(authflowBotProtectionCfg, appBotProtectionConfig),
+		BotProtection:  GetBotProtectionData(flows, authflowBotProtectionCfg, appBotProtectionConfig),
+		AMR:            am.AMR(),
 	}
 }
 
-func NewAuthenticateOptionPasskey(requestOptions *model.WebAuthnRequestOptions, authflowBotProtectionCfg *config.AuthenticationFlowBotProtection, appBotProtectionConfig *config.BotProtectionConfig) AuthenticateOption {
+func NewAuthenticateOptionPasskey(flows authflow.Flows, requestOptions *model.WebAuthnRequestOptions, authflowBotProtectionCfg *config.AuthenticationFlowBotProtection, appBotProtectionConfig *config.BotProtectionConfig) AuthenticateOption {
 	return AuthenticateOption{
-		Authentication: config.AuthenticationFlowAuthenticationPrimaryPasskey,
+		Authentication: model.AuthenticationFlowAuthenticationPrimaryPasskey,
 		RequestOptions: requestOptions,
-		BotProtection:  GetBotProtectionData(authflowBotProtectionCfg, appBotProtectionConfig),
+		BotProtection:  GetBotProtectionData(flows, authflowBotProtectionCfg, appBotProtectionConfig),
+		AMR:            model.AuthenticationFlowAuthenticationPrimaryPasskey.AMR(),
 	}
 }
 
-func NewAuthenticateOptionTOTP(authflowBotProtectionCfg *config.AuthenticationFlowBotProtection, appBotProtectionConfig *config.BotProtectionConfig) AuthenticateOption {
+func NewAuthenticateOptionTOTP(flows authflow.Flows, authflowBotProtectionCfg *config.AuthenticationFlowBotProtection, appBotProtectionConfig *config.BotProtectionConfig) AuthenticateOption {
 	return AuthenticateOption{
-		Authentication: config.AuthenticationFlowAuthenticationSecondaryTOTP,
-		BotProtection:  GetBotProtectionData(authflowBotProtectionCfg, appBotProtectionConfig),
+		Authentication: model.AuthenticationFlowAuthenticationSecondaryTOTP,
+		BotProtection:  GetBotProtectionData(flows, authflowBotProtectionCfg, appBotProtectionConfig),
+		AMR:            model.AuthenticationFlowAuthenticationSecondaryTOTP.AMR(),
 	}
 }
 
-func NewAuthenticateOptionOOBOTPFromAuthenticator(oobConfig *config.AuthenticatorOOBConfig, i *authenticator.Info, authflowBotProtectionCfg *config.AuthenticationFlowBotProtection, appBotProtectionConfig *config.BotProtectionConfig) (*AuthenticateOption, bool) {
+func NewAuthenticateOptionOOBOTPFromAuthenticator(flows authflow.Flows, oobConfig *config.AuthenticatorOOBConfig, i *authenticator.Info, authflowBotProtectionCfg *config.AuthenticationFlowBotProtection, appBotProtectionConfig *config.BotProtectionConfig) (*AuthenticateOption, bool) {
 	am := AuthenticationFromAuthenticator(i)
 	switch am {
-	case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
+	case model.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 		fallthrough
-	case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
+	case model.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
 		purpose := otp.PurposeOOBOTP
 		channels := getChannels(model.ClaimEmail, oobConfig)
 		otpForm := getOTPForm(purpose, model.ClaimEmail, oobConfig.Email)
@@ -116,11 +129,12 @@ func NewAuthenticateOptionOOBOTPFromAuthenticator(oobConfig *config.Authenticato
 			Channels:          channels,
 			MaskedDisplayName: mail.MaskAddress(i.OOBOTP.Email),
 			AuthenticatorID:   i.ID,
-			BotProtection:     GetBotProtectionData(authflowBotProtectionCfg, appBotProtectionConfig),
+			BotProtection:     GetBotProtectionData(flows, authflowBotProtectionCfg, appBotProtectionConfig),
+			AMR:               am.AMR(),
 		}, true
-	case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
+	case model.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
 		fallthrough
-	case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
+	case model.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
 		purpose := otp.PurposeOOBOTP
 		channels := getChannels(model.ClaimPhoneNumber, oobConfig)
 		otpForm := getOTPForm(purpose, model.ClaimPhoneNumber, oobConfig.Email)
@@ -130,14 +144,15 @@ func NewAuthenticateOptionOOBOTPFromAuthenticator(oobConfig *config.Authenticato
 			Channels:          channels,
 			MaskedDisplayName: phone.Mask(i.OOBOTP.Phone),
 			AuthenticatorID:   i.ID,
-			BotProtection:     GetBotProtectionData(authflowBotProtectionCfg, appBotProtectionConfig),
+			BotProtection:     GetBotProtectionData(flows, authflowBotProtectionCfg, appBotProtectionConfig),
+			AMR:               am.AMR(),
 		}, true
 	default:
 		return nil, false
 	}
 }
 
-func NewAuthenticateOptionOOBOTPFromIdentity(oobConfig *config.AuthenticatorOOBConfig, i *identity.Info, authflowBotProtectionCfg *config.AuthenticationFlowBotProtection, appBotProtectionConfig *config.BotProtectionConfig) (*AuthenticateOption, bool) {
+func NewAuthenticateOptionOOBOTPFromIdentity(flows authflow.Flows, oobConfig *config.AuthenticatorOOBConfig, i *identity.Info, authflowBotProtectionCfg *config.AuthenticationFlowBotProtection, appBotProtectionConfig *config.BotProtectionConfig) (*AuthenticateOption, bool) {
 	switch i.Type {
 	case model.IdentityTypeLoginID:
 		switch i.LoginID.LoginIDType {
@@ -146,24 +161,26 @@ func NewAuthenticateOptionOOBOTPFromIdentity(oobConfig *config.AuthenticatorOOBC
 			channels := getChannels(model.ClaimEmail, oobConfig)
 			otpForm := getOTPForm(purpose, model.ClaimEmail, oobConfig.Email)
 			return &AuthenticateOption{
-				Authentication:    config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail,
+				Authentication:    model.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail,
 				OTPForm:           otpForm,
 				Channels:          channels,
 				MaskedDisplayName: mail.MaskAddress(i.LoginID.LoginID),
 				IdentityID:        i.ID,
-				BotProtection:     GetBotProtectionData(authflowBotProtectionCfg, appBotProtectionConfig),
+				BotProtection:     GetBotProtectionData(flows, authflowBotProtectionCfg, appBotProtectionConfig),
+				AMR:               model.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail.AMR(),
 			}, true
 		case model.LoginIDKeyTypePhone:
 			purpose := otp.PurposeOOBOTP
 			channels := getChannels(model.ClaimPhoneNumber, oobConfig)
 			otpForm := getOTPForm(purpose, model.ClaimPhoneNumber, oobConfig.Email)
 			return &AuthenticateOption{
-				Authentication:    config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS,
+				Authentication:    model.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS,
 				OTPForm:           otpForm,
 				Channels:          channels,
 				MaskedDisplayName: phone.Mask(i.LoginID.LoginID),
 				IdentityID:        i.ID,
-				BotProtection:     GetBotProtectionData(authflowBotProtectionCfg, appBotProtectionConfig),
+				BotProtection:     GetBotProtectionData(flows, authflowBotProtectionCfg, appBotProtectionConfig),
+				AMR:               model.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS.AMR(),
 			}, true
 		default:
 			return nil, false
@@ -173,36 +190,36 @@ func NewAuthenticateOptionOOBOTPFromIdentity(oobConfig *config.AuthenticatorOOBC
 	}
 }
 
-func AuthenticationFromAuthenticator(i *authenticator.Info) config.AuthenticationFlowAuthentication {
+func AuthenticationFromAuthenticator(i *authenticator.Info) model.AuthenticationFlowAuthentication {
 	switch i.Kind {
 	case model.AuthenticatorKindPrimary:
 		switch i.Type {
 		case model.AuthenticatorTypePassword:
-			return config.AuthenticationFlowAuthenticationPrimaryPassword
+			return model.AuthenticationFlowAuthenticationPrimaryPassword
 		case model.AuthenticatorTypePasskey:
-			return config.AuthenticationFlowAuthenticationPrimaryPasskey
+			return model.AuthenticationFlowAuthenticationPrimaryPasskey
 		case model.AuthenticatorTypeOOBEmail:
-			return config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail
+			return model.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail
 		case model.AuthenticatorTypeOOBSMS:
-			return config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS
+			return model.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS
 		}
 	case model.AuthenticatorKindSecondary:
 		switch i.Type {
 		case model.AuthenticatorTypePassword:
-			return config.AuthenticationFlowAuthenticationSecondaryPassword
+			return model.AuthenticationFlowAuthenticationSecondaryPassword
 		case model.AuthenticatorTypeOOBEmail:
-			return config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail
+			return model.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail
 		case model.AuthenticatorTypeOOBSMS:
-			return config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS
+			return model.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS
 		case model.AuthenticatorTypeTOTP:
-			return config.AuthenticationFlowAuthenticationSecondaryTOTP
+			return model.AuthenticationFlowAuthenticationSecondaryTOTP
 		}
 	}
 
 	panic(fmt.Errorf("unknown authentication method: %v %v", i.Kind, i.Type))
 }
 
-func KeepAuthenticationMethod(ams ...config.AuthenticationFlowAuthentication) authenticator.Filter {
+func KeepAuthenticationMethod(ams ...model.AuthenticationFlowAuthentication) authenticator.Filter {
 	return authenticator.FilterFunc(func(ai *authenticator.Info) bool {
 		am := AuthenticationFromAuthenticator(ai)
 		for _, t := range ams {

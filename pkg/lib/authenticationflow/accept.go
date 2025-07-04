@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/botprotection"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -63,10 +62,12 @@ func accept(ctx context.Context, deps *Dependencies, flows Flows, result *Accept
 	}()
 
 	loopCount := 0
+
+	var nextNodeType string
 	for {
 		loopCount += 1
 		if loopCount > MAX_LOOP {
-			panic(fmt.Errorf("number of loops reached limit"))
+			panic(fmt.Errorf("number of loops reached limit. next node is %s", nextNodeType))
 		}
 		var findInputReactorResult *FindInputReactorResult
 		findInputReactorResult, err = FindInputReactor(ctx, deps, flows)
@@ -112,7 +113,7 @@ func accept(ctx context.Context, deps *Dependencies, flows Flows, result *Accept
 		}
 
 		// Handle err == ErrSameNode
-		if errors.Is(err, ErrUpdateNode) {
+		if errors.Is(err, ErrReplaceNode) {
 			err = nil
 			// We still consider the flow has something changes.
 			changed = true
@@ -178,9 +179,7 @@ func accept(ctx context.Context, deps *Dependencies, flows Flows, result *Accept
 
 		// Handle other error.
 		if err != nil {
-			err = errorutil.WithDetails(err, errorutil.Details{
-				"FlowType": apierrors.APIErrorDetail.Value(flows.Nearest.Intent.(PublicFlow).FlowType()),
-			})
+			err = newAuthenticationFlowError(flows, err)
 
 			return
 		}
@@ -196,6 +195,16 @@ func accept(ctx context.Context, deps *Dependencies, flows Flows, result *Accept
 		default:
 			panic(fmt.Errorf("failed to append node: uxepected type of ReactToResult %t", reactToResult))
 		}
+		switch nextNode.Type {
+		case NodeTypeSimple:
+			nextNodeType = fmt.Sprintf("%T", nextNode.Simple)
+		case NodeTypeSubFlow:
+			nextNodeType = fmt.Sprintf("%T", nextNode.SubFlow.Intent)
+		default:
+			nextNodeType = "unknown"
+		}
+		// Uncomment this line when you need to debug authflow
+		// fmt.Println("The next node is", nextNodeType)
 		err = appendNode(ctx, deps, findInputReactorResult.Flows, nextNode)
 		if err != nil {
 			return

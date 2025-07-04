@@ -35,8 +35,12 @@ type IntentSignupFlowStepViewRecoveryCode struct {
 	RecoveryCodes []string `json:"recovery_codes,omitempty"`
 }
 
-func NewIntentSignupFlowStepViewRecoveryCode(ctx context.Context, deps *authflow.Dependencies, i *IntentSignupFlowStepViewRecoveryCode) *IntentSignupFlowStepViewRecoveryCode {
-	i.RecoveryCodes = deps.MFA.GenerateRecoveryCodes(ctx)
+func NewIntentSignupFlowStepViewRecoveryCode(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, i *IntentSignupFlowStepViewRecoveryCode) *IntentSignupFlowStepViewRecoveryCode {
+	milestones := authflow.FindAllMilestones[MilestoneDoReplaceRecoveryCode](flows.Root)
+	// We only generate recovery codes if it is not done yet in the flow
+	if len(milestones) == 0 {
+		i.RecoveryCodes = deps.MFA.GenerateRecoveryCodes(ctx)
+	}
 	return i
 }
 
@@ -63,8 +67,13 @@ func (*IntentSignupFlowStepViewRecoveryCode) Kind() string {
 }
 
 func (i *IntentSignupFlowStepViewRecoveryCode) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
+	if len(i.RecoveryCodes) == 0 {
+		// Nothing to view, end
+		return nil, authflow.ErrEOF
+	}
+
 	if !i.IsUpdatingExistingUser && len(flows.Nearest.Nodes) == 0 {
-		flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+		flowRootObject, err := findNearestFlowObjectInFlow(deps, flows, i)
 		if err != nil {
 			return nil, err
 		}

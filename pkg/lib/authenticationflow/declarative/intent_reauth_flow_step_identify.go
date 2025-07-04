@@ -6,6 +6,7 @@ import (
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
@@ -24,8 +25,8 @@ type IntentReauthFlowStepIdentify struct {
 var _ authflow.Intent = &IntentReauthFlowStepIdentify{}
 var _ authflow.DataOutputer = &IntentReauthFlowStepIdentify{}
 
-func NewIntentReauthFlowStepIdentify(ctx context.Context, deps *authflow.Dependencies, i *IntentReauthFlowStepIdentify) (*IntentReauthFlowStepIdentify, error) {
-	current, err := i.currentFlowObject(deps)
+func NewIntentReauthFlowStepIdentify(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, i *IntentReauthFlowStepIdentify, originNode authflow.NodeOrIntent) (*IntentReauthFlowStepIdentify, error) {
+	current, err := i.currentFlowObject(deps, flows, originNode)
 	if err != nil {
 		return nil, err
 	}
@@ -34,10 +35,10 @@ func NewIntentReauthFlowStepIdentify(ctx context.Context, deps *authflow.Depende
 	options := []IdentificationOption{}
 	for _, b := range step.OneOf {
 		switch b.Identification {
-		case config.AuthenticationFlowIdentificationIDToken:
+		case model.AuthenticationFlowIdentificationIDToken:
 			// Reauth flow identify step has no user interaction. It's called by our own backend to identify user. Thus, no bot protection is needed.
 			var botProtection *config.AuthenticationFlowBotProtection = nil
-			c := NewIdentificationOptionIDToken(b.Identification, botProtection, deps.Config.BotProtection)
+			c := NewIdentificationOptionIDToken(flows, b.Identification, botProtection, deps.Config.BotProtection)
 			options = append(options, c)
 		}
 	}
@@ -60,7 +61,7 @@ func (i *IntentReauthFlowStepIdentify) CanReactTo(ctx context.Context, deps *aut
 		return nil, nil
 	case len(flows.Nearest.Nodes) == 0:
 		// Let the input to select which identification method to use.
-		flowRootObject, err := flowRootObject(deps, i.FlowReference)
+		flowRootObject, err := findNearestFlowObjectInFlow(deps, flows, i)
 		if err != nil {
 			return nil, err
 		}
@@ -81,7 +82,7 @@ func (i *IntentReauthFlowStepIdentify) CanReactTo(ctx context.Context, deps *aut
 }
 
 func (i *IntentReauthFlowStepIdentify) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (authflow.ReactToResult, error) {
-	current, err := i.currentFlowObject(deps)
+	current, err := i.currentFlowObject(deps, flows, i)
 	if err != nil {
 		return nil, err
 	}
@@ -92,14 +93,14 @@ func (i *IntentReauthFlowStepIdentify) ReactTo(ctx context.Context, deps *authfl
 
 	switch {
 	case len(flows.Nearest.Nodes) == 0 && authflow.GetIDToken(ctx) != "":
-		identification := config.AuthenticationFlowIdentificationIDToken
+		identification := model.AuthenticationFlowIdentificationIDToken
 		idx, err := i.checkIdentificationMethod(deps, step, identification)
 		if err != nil {
 			return nil, err
 		}
 
 		switch identification {
-		case config.AuthenticationFlowIdentificationIDToken:
+		case model.AuthenticationFlowIdentificationIDToken:
 			return authflow.NewSubFlow(&IntentIdentifyWithIDToken{
 				JSONPointer:      authflow.JSONPointerForOneOf(i.JSONPointer, idx),
 				Identification:   identification,
@@ -116,7 +117,7 @@ func (i *IntentReauthFlowStepIdentify) ReactTo(ctx context.Context, deps *authfl
 			}
 
 			switch identification {
-			case config.AuthenticationFlowIdentificationIDToken:
+			case model.AuthenticationFlowIdentificationIDToken:
 				return authflow.NewSubFlow(&IntentIdentifyWithIDToken{
 					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
 					Identification: identification,
@@ -152,7 +153,7 @@ func (*IntentReauthFlowStepIdentify) step(o config.AuthenticationFlowObject) *co
 	return step
 }
 
-func (*IntentReauthFlowStepIdentify) checkIdentificationMethod(deps *authflow.Dependencies, step *config.AuthenticationFlowReauthFlowStep, im config.AuthenticationFlowIdentification) (idx int, err error) {
+func (*IntentReauthFlowStepIdentify) checkIdentificationMethod(deps *authflow.Dependencies, step *config.AuthenticationFlowReauthFlowStep, im model.AuthenticationFlowIdentification) (idx int, err error) {
 	idx = -1
 
 	for index, branch := range step.OneOf {
@@ -170,7 +171,7 @@ func (*IntentReauthFlowStepIdentify) checkIdentificationMethod(deps *authflow.De
 	return
 }
 
-func (*IntentReauthFlowStepIdentify) identificationMethod(flows authflow.Flows) config.AuthenticationFlowIdentification {
+func (*IntentReauthFlowStepIdentify) identificationMethod(flows authflow.Flows) model.AuthenticationFlowIdentification {
 	m, _, ok := authflow.FindMilestoneInCurrentFlow[MilestoneIdentificationMethod](flows)
 	if !ok {
 		panic(fmt.Errorf("identification method not yet selected"))
@@ -181,7 +182,7 @@ func (*IntentReauthFlowStepIdentify) identificationMethod(flows authflow.Flows) 
 	return im
 }
 
-func (i *IntentReauthFlowStepIdentify) jsonPointer(step *config.AuthenticationFlowReauthFlowStep, im config.AuthenticationFlowIdentification) jsonpointer.T {
+func (i *IntentReauthFlowStepIdentify) jsonPointer(step *config.AuthenticationFlowReauthFlowStep, im model.AuthenticationFlowIdentification) jsonpointer.T {
 	for idx, branch := range step.OneOf {
 		branch := branch
 		if branch.Identification == im {
@@ -192,8 +193,8 @@ func (i *IntentReauthFlowStepIdentify) jsonPointer(step *config.AuthenticationFl
 	panic(fmt.Errorf("selected identification method is not allowed"))
 }
 
-func (i *IntentReauthFlowStepIdentify) currentFlowObject(deps *authflow.Dependencies) (config.AuthenticationFlowObject, error) {
-	rootObject, err := flowRootObject(deps, i.FlowReference)
+func (i *IntentReauthFlowStepIdentify) currentFlowObject(deps *authflow.Dependencies, flows authflow.Flows, originNode authflow.NodeOrIntent) (config.AuthenticationFlowObject, error) {
+	rootObject, err := findNearestFlowObjectInFlow(deps, flows, originNode)
 	if err != nil {
 		return nil, err
 	}

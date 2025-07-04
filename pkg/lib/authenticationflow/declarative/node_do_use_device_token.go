@@ -1,8 +1,9 @@
 package declarative
 
 import (
+	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
-	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 )
 
 func init() {
@@ -21,7 +22,18 @@ func (*NodeDoUseDeviceToken) Kind() string {
 }
 
 func (*NodeDoUseDeviceToken) Milestone() {}
-func (*NodeDoUseDeviceToken) MilestoneDidSelectAuthenticationMethod() config.AuthenticationFlowAuthentication {
-	return config.AuthenticationFlowAuthenticationDeviceToken
+func (*NodeDoUseDeviceToken) MilestoneDidSelectAuthenticationMethod() model.AuthenticationFlowAuthentication {
+	return model.AuthenticationFlowAuthenticationDeviceToken
 }
-func (*NodeDoUseDeviceToken) MilestoneDidAuthenticate() (amr []string) { return }
+func (*NodeDoUseDeviceToken) MilestoneDidAuthenticate() (amr []string) {
+	return model.AuthenticationFlowAuthenticationDeviceToken.AMR()
+}
+func (*NodeDoUseDeviceToken) MilestoneDidAuthenticateAuthenticator() (*authenticator.Info, bool) {
+	return nil, false
+}
+func (*NodeDoUseDeviceToken) MilestoneDidAuthenticateAuthentication() (*model.Authentication, bool) {
+	return &model.Authentication{
+		Authentication: model.AuthenticationFlowAuthenticationDeviceToken,
+		Authenticator:  nil,
+	}, true
+}

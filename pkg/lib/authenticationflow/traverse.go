@@ -80,6 +80,11 @@ type NodeOrIntent interface {
 type IntentTraverser = func(intent Intent) error
 
 func TraverseIntentFromEndToRoot(t IntentTraverser, w *Flow) error {
+	lastNode := findLastNodeInFlow(w)
+	return TraverseIntentFromNodeToRoot(t, w, lastNode)
+}
+
+func TraverseIntentFromNodeToRoot(t IntentTraverser, w *Flow, startingNode NodeOrIntent) error {
 	// First, construct a node to parent mapping
 	parentMap := map[NodeOrIntent]Intent{}
 	var traverse func(w *Flow)
@@ -99,25 +104,7 @@ func TraverseIntentFromEndToRoot(t IntentTraverser, w *Flow) error {
 	}
 	traverse(w)
 
-	var findLastNodeInFlow func(w *Flow) NodeOrIntent
-	findLastNodeInFlow = func(w *Flow) NodeOrIntent {
-		// 1. Special case, no nodes.
-		if len(w.Nodes) == 0 {
-			return w.Intent
-		}
-
-		// 2. At least one node
-		var lastNode *Node = &w.Nodes[len(w.Nodes)-1]
-		switch lastNode.Type {
-		case NodeTypeSimple:
-			return lastNode.Simple
-		case NodeTypeSubFlow:
-			return findLastNodeInFlow(lastNode.SubFlow)
-		}
-		panic(errors.New("unreachable"))
-	}
-
-	lastNode := findLastNodeInFlow(w)
+	lastNode := startingNode
 	if lastNode, ok := lastNode.(Intent); ok && lastNode != nil {
 		err := t(lastNode)
 		if err != nil {
@@ -138,4 +125,21 @@ func TraverseIntentFromEndToRoot(t IntentTraverser, w *Flow) error {
 		return nil
 	}
 	return recursivelyTraverseParent(lastNode)
+}
+
+func findLastNodeInFlow(w *Flow) NodeOrIntent {
+	// 1. Special case, no nodes.
+	if len(w.Nodes) == 0 {
+		return w.Intent
+	}
+
+	// 2. At least one node
+	var lastNode *Node = &w.Nodes[len(w.Nodes)-1]
+	switch lastNode.Type {
+	case NodeTypeSimple:
+		return lastNode.Simple
+	case NodeTypeSubFlow:
+		return findLastNodeInFlow(lastNode.SubFlow)
+	}
+	panic(errors.New("unreachable"))
 }

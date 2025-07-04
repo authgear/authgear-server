@@ -2,9 +2,8 @@ package declarative
 
 import (
 	"context"
-	"errors"
 
-	"github.com/authgear/authgear-server/pkg/api"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 )
@@ -14,45 +13,36 @@ func init() {
 }
 
 type NodeDoUseIdentityWithUpdate struct {
+	*NodeDoUseIdentity
 	OldIdentityInfo *identity.Info `json:"old_identity_info,omitempty"`
-	NewIdentityInfo *identity.Info `json:"new_identity_info,omitempty"`
-	NewIdentitySpec *identity.Spec `json:"new_identity_spec,omitempty"`
 }
 
-func NewNodeDoUseIdentityWithUpdate(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, oldIdentityInfo *identity.Info, spec *identity.Spec) (*NodeDoUseIdentityWithUpdate, error) {
-	userID, err := getUserID(flows)
-	if errors.Is(err, ErrNoUserID) {
-		err = nil
-	}
-	if err != nil {
-		return nil, err
-	}
-
-	if userID != "" && userID != oldIdentityInfo.UserID {
-		return nil, ErrDifferentUserID
-	}
-
-	if userIDHint := authflow.GetUserIDHint(ctx); userIDHint != "" {
-		if userIDHint != oldIdentityInfo.UserID {
-			return nil, api.ErrMismatchedUser
-		}
-	}
-
+func NewNodeDoUseIdentityWithUpdate(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, oldIdentityInfo *identity.Info, spec *identity.Spec) (authflow.ReactToResult, error) {
 	newIdentityInfo, err := deps.Identities.UpdateWithSpec(ctx, oldIdentityInfo, spec, identity.NewIdentityOptions{})
 	if err != nil {
 		return nil, err
 	}
 
-	return &NodeDoUseIdentityWithUpdate{
-		OldIdentityInfo: oldIdentityInfo,
-		NewIdentityInfo: newIdentityInfo,
-		NewIdentitySpec: spec,
-	}, nil
+	nodeDoUseIden, err := NewNodeDoUseIdentity(ctx, deps, flows, &NodeDoUseIdentity{
+		Identity:     newIdentityInfo,
+		IdentitySpec: spec,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	n := &NodeDoUseIdentityWithUpdate{
+		NodeDoUseIdentity: nodeDoUseIden,
+		OldIdentityInfo:   oldIdentityInfo,
+	}
+
+	return authflow.NewNodeSimple(n), nil
 }
 
 var _ authflow.NodeSimple = &NodeDoUseIdentityWithUpdate{}
 var _ authflow.EffectGetter = &NodeDoUseIdentityWithUpdate{}
 var _ authflow.Milestone = &NodeDoUseIdentityWithUpdate{}
+var _ authflow.InputReactor = &NodeDoUseIdentityWithUpdate{}
 var _ MilestoneDoUseUser = &NodeDoUseIdentityWithUpdate{}
 var _ MilestoneDoUseIdentity = &NodeDoUseIdentityWithUpdate{}
 var _ MilestoneGetIdentitySpecs = &NodeDoUseIdentityWithUpdate{}
@@ -61,23 +51,34 @@ func (*NodeDoUseIdentityWithUpdate) Kind() string {
 	return "NodeDoUseIdentityWithUpdate"
 }
 
+func (n *NodeDoUseIdentityWithUpdate) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
+	return n.NodeDoUseIdentity.CanReactTo(ctx, deps, flows)
+}
+
+func (n *NodeDoUseIdentityWithUpdate) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (authflow.ReactToResult, error) {
+	return n.NodeDoUseIdentity.ReactTo(ctx, deps, flows, input)
+}
+
 func (*NodeDoUseIdentityWithUpdate) Milestone() {}
 func (n *NodeDoUseIdentityWithUpdate) MilestoneDoUseUser() string {
-	return n.NewIdentityInfo.UserID
+	return n.NodeDoUseIdentity.Identity.UserID
 }
 
 func (n *NodeDoUseIdentityWithUpdate) MilestoneDoUseIdentity() *identity.Info {
-	return n.NewIdentityInfo
+	return n.NodeDoUseIdentity.MilestoneDoUseIdentity()
+}
+func (n *NodeDoUseIdentityWithUpdate) MilestoneDoUseIdentityIdentification() model.Identification {
+	return n.NodeDoUseIdentity.MilestoneDoUseIdentityIdentification()
 }
 
 func (n *NodeDoUseIdentityWithUpdate) GetEffects(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) ([]authflow.Effect, error) {
 	return []authflow.Effect{
 		authflow.RunEffect(func(ctx context.Context, deps *authflow.Dependencies) error {
-			return deps.Identities.Update(ctx, n.OldIdentityInfo, n.NewIdentityInfo)
+			return deps.Identities.Update(ctx, n.OldIdentityInfo, n.NodeDoUseIdentity.Identity)
 		}),
 	}, nil
 }
 
 func (n *NodeDoUseIdentityWithUpdate) MilestoneGetIdentitySpecs() []*identity.Spec {
-	return []*identity.Spec{n.NewIdentitySpec}
+	return n.NodeDoUseIdentity.MilestoneGetIdentitySpecs()
 }

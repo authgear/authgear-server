@@ -1,0 +1,32 @@
+name: signup_login blocked by authentication.pre_initialize
+authgear.yaml:
+  override: |
+    hook:
+      blocking_handlers:
+      - event: authentication.pre_initialize
+        url: authgeardeno:///deno/notallowed.ts
+extra_files_directory: ./var
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "signup_login",
+        "name": "default"
+      }
+    output:
+      error: |
+        {
+          "name": "Forbidden",
+          "reason": "WebHookDisallowed",
+          "code": 403,
+          "info": {
+            "FlowType": "signup_login",
+            "event_type": "authentication.pre_initialize",
+            "reasons": [
+              {
+                "reason": "",
+                "title": ""
+              }
+            ]
+          }
+        }
