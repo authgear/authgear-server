@@ -107,6 +107,15 @@ function getFormatErrorMessage(cause: FormatErrorCause): ParsedAPIError | null {
       messageID: "errors.validation.format.email-name-addr",
     };
   }
+
+  if (
+    cause.details.format === "email" &&
+    cause.details.reason === "BlockPlusSign"
+  ) {
+    return {
+      messageID: "errors.validation.format.email.block-plus-sign",
+    };
+  }
   return null;
 }
 

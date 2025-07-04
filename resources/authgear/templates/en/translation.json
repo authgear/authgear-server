@@ -959,6 +959,7 @@
   "v2.error.identify-not-found": "The specified {LoginIDType,select,email{Email} phone{Phone} username{Username} other{Identity}} not found in this account.",
   "v2.error.invalid-credentials": "{AuthenticationType, select, password{Incorrect password} totp{Incorrect 6-digit code from the authenticator app / device} oob_otp_sms {Credentials are incorrect} oob_otp_email{Credentials are incorrect} recovery_code {Incorrect recovery code} passkey {This passkey is no longer associated with this account} other {Invalid credentials}}.",
   "v2.error.invalid-email": "Please include '@' in the email address.",
+  "v2.error.invalid-email-requirement-not-met": "Invalid email address. The email address entered does not meet the requirement.",
   "v2.error.invalid-passkey-or-not-supported": "Passkey is not supported in this device, or invalid passkey. Please select another authentication method.",
   "v2.error.invalid-username": "The username you entered is not in a correct format. Please try using a username consisting of alphanumeric characters (a-z, A-Z, and 0-9) only.",
   "v2.error.invalid-web3-network": "Please sign up with {chainID, select, _1{Ethereum Mainnet} _5{Ethereum Goerli} _137{Polygon Mainnet} _80001{Polygon Mumbai} other{}} network.",
