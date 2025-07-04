@@ -136,6 +136,7 @@ import {
   RedMessageBar_RemindConfigureSMSProviderInNonSMSProviderScreen,
   RedMessageBar_RemindConfigureSMTPInNonSMTPConfigurationScreen,
 } from "../../RedMessageBar";
+import Tooltip from "../../Tooltip";
 
 function splitByNewline(text: string): string[] {
   return text
@@ -3855,7 +3856,14 @@ function PasskeySection({
         <Toggle
           inlineLabel={true}
           label={
-            <FormattedMessage id="LoginMethodConfigurationScreen.passkey.showDoNotAskAgain" />
+            <span className="flex items-center">
+              <FormattedMessage id="LoginMethodConfigurationScreen.passkey.showDoNotAskAgain" />
+              <Tooltip
+                tooltipMessageId={
+                  "LoginMethodConfigurationScreen.passkey.showDoNotAskAgain.tooltip"
+                }
+              />
+            </span>
           }
           checked={passkeyShowDoNotAskAgain}
           onChange={onChangePasskeyShowDoNotAskAgain}
