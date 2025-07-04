@@ -1,7 +1,7 @@
 - [User Model](#user-model)
   * [User](#user)
   * [Identity](#identity)
-    + [Identity Claims](#identity-claims)
+    + [Identity Attributes](#identity-attributes)
     + [OAuth Identity](#oauth-identity)
     + [WebAuthn Identity](#webauthn-identity)
     + [Anonymous Identity](#anonymous-identity)
@@ -55,7 +55,11 @@
 
 ## User
 
-A user has many identities. A user has many authenticators.
+A user has an unqiue user ID.
+
+A user has many identities.
+
+A user has many authenticators.
 
 ## Identity
 

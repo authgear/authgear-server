@@ -35,6 +35,7 @@
   * [type: signup; action.type: view_recovery_code](#type-signup-actiontype-view_recovery_code)
   * [type: signup; action.type: prompt_create_passkey](#type-signup-actiontype-prompt_create_passkey)
   * [type: login; action.type: identify](#type-login-actiontype-identify)
+    + [identification: id_token](#identification-id_token)
   * [type: login; action.type: authenticate](#type-login-actiontype-authenticate)
     + [Bot protection](#bot-protection-2)
     + [authentication: primary_password](#authentication-primary_password-1)
@@ -1297,6 +1298,25 @@ Pass `creation_options` to `main` and then pass this input
 ## type: login; action.type: identify
 
 See [type: signup; action.type: identify](#type-signup-actiontype-identify). They are the same except that `type` is `login`.
+
+### identification: id_token
+
+The presence of this means you can sign in with an ID Token.
+
+```json
+{
+  "identification": "id_token"
+}
+```
+
+The corresponding input is
+
+```json
+{
+  "identification": "id_token",
+  "id_token": "<ID_TOKEN>"
+}
+```
 
 ## type: login; action.type: authenticate
 
