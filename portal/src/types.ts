@@ -510,6 +510,7 @@ export interface UIConfig {
   default_redirect_uri?: string;
   default_post_logout_redirect_uri?: string;
   forgot_password?: UIForgotPasswordConfig;
+  allow_opt_out_passkey_upsell?: boolean;
 }
 
 export interface UIForgotPasswordConfig {
