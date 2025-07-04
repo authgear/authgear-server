@@ -30,7 +30,7 @@ type store interface {
 	UpdateAccountStatus(ctx context.Context, userID string, status AccountStatus) error
 	UpdateStandardAttributes(ctx context.Context, userID string, stdAttrs map[string]interface{}) error
 	UpdateCustomAttributes(ctx context.Context, userID string, customAttrs map[string]interface{}) error
-	UpdateSkipPasskeyCreation(ctx context.Context, userID string, skip bool) error
+	UpdateOptOutPasskeyUpsell(ctx context.Context, userID string, optout bool) error
 	Delete(ctx context.Context, userID string) error
 	Anonymize(ctx context.Context, userID string) error
 }
@@ -44,7 +44,7 @@ type Store struct {
 
 var _ store = &Store{}
 
-const keySkipPasskeyCreation = "skip_passkey_creation"
+const keyOptOutPasskeyUpsell = "opt_out_passkey_upsell"
 
 func (s *Store) Create(ctx context.Context, u *User) (err error) {
 	stdAttrs := u.StandardAttributes
@@ -209,10 +209,10 @@ func (s *Store) scan(scn db.Scanner) (*User, error) {
 			return nil, err
 		}
 	}
-	if v, ok := metadata[keySkipPasskeyCreation].(bool); ok {
-		u.SkipPasskeyCreation = v
+	if v, ok := metadata[keyOptOutPasskeyUpsell].(bool); ok {
+		u.OptOutPasskeyUpsell = v
 	} else {
-		u.SkipPasskeyCreation = false
+		u.OptOutPasskeyUpsell = false
 	}
 
 	if u.StandardAttributes == nil {
@@ -496,12 +496,12 @@ func (s *Store) UpdateLastIndexedAt(ctx context.Context, userIDs []string, at ti
 	return nil
 }
 
-func (s *Store) UpdateSkipPasskeyCreation(ctx context.Context, userID string, skip bool) error {
+func (s *Store) UpdateOptOutPasskeyUpsell(ctx context.Context, userID string, optout bool) error {
 	now := s.Clock.NowUTC()
 
 	builder := s.SQLBuilder.
 		Update(s.SQLBuilder.TableName("_auth_user")).
-		Set("metadata", sq.Expr("jsonb_set(metadata, '{%s}', ?::jsonb, true)", keySkipPasskeyCreation, skip)).
+		Set("metadata", sq.Expr("jsonb_set(metadata, '{%s}', ?::jsonb, true)", keyOptOutPasskeyUpsell, optout)).
 		Set("updated_at", now).
 		Where("id = ?", userID)
 	_, err := s.SQLExecutor.ExecWith(ctx, builder)
