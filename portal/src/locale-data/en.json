@@ -2000,6 +2000,7 @@
   "LoginMethodConfigurationScreen.passkey.title": "Passkey",
   "LoginMethodConfigurationScreen.passkey.enable": "Enable passkey support for compatible devices. {DocLink, react, href{https://docs.authgear.com/authentication-and-access/authentication/passkeys} children{Learn more about passkey}}",
   "LoginMethodConfigurationScreen.passkey.showDoNotAskAgain": "Show \"Don''t ask me again\" option on the passkey upsell screen",
+  "LoginMethodConfigurationScreen.passkey.showDoNotAskAgain.tooltip": "Allow users to opt out of future passkey reminders on the upsell screen. Once opted out, users must go to Settings to register a passkey.",
 
   "LoginMethodConfigurationScreen.login-method.title.passwordless-email": "Email + Passwordless",
   "LoginMethodConfigurationScreen.login-method.description.passwordless-email": "Sign in with Email OTP",
