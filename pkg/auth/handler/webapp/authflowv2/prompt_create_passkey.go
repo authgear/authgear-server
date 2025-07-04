@@ -26,6 +26,7 @@ func ConfigureAuthflowV2PromptCreatePasskeyRoute(route httproute.Route) httprout
 
 type AuthflowV2PromptCreatePasskeyViewModel struct {
 	CreationOptionsJSON string
+	AllowDoNotAskAgain  bool
 }
 
 type AuthflowV2PromptCreatePasskeyHandler struct {
@@ -49,6 +50,7 @@ func (h *AuthflowV2PromptCreatePasskeyHandler) GetData(w http.ResponseWriter, r 
 
 	screenViewModel := AuthflowV2PromptCreatePasskeyViewModel{
 		CreationOptionsJSON: creationOptionsJSON,
+		AllowDoNotAskAgain:  screenData.AllowDoNotAskAgain,
 	}
 	viewmodels.Embed(data, screenViewModel)
 
@@ -83,6 +85,20 @@ func (h *AuthflowV2PromptCreatePasskeyHandler) ServeHTTP(w http.ResponseWriter, 
 	handlers.PostAction("skip", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		input := map[string]interface{}{
 			"skip": true,
+		}
+
+		result, err := h.Controller.AdvanceWithInput(ctx, r, s, screen, input, nil)
+		if err != nil {
+			return err
+		}
+
+		result.WriteResponse(w, r)
+		return nil
+	})
+	handlers.PostAction("skip_and_do_not_ask_again", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+		input := map[string]interface{}{
+			"skip":             true,
+			"do_not_ask_again": true,
 		}
 
 		result, err := h.Controller.AdvanceWithInput(ctx, r, s, screen, input, nil)
