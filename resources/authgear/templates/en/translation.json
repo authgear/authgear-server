@@ -1139,6 +1139,7 @@
   "v2.page.preview.default.title": "This is a preview",
   "v2.page.prompt-create-passkey.default.description": "With Passkeys you can now use your fingerprint, face, or screen lock to verify it''s really you.",
   "v2.page.prompt-create-passkey.default.skip": "Not now",
+  "v2.page.prompt-create-passkey.default.do-not-ask-again": "Don''t ask me again",
   "v2.page.prompt-create-passkey.default.title": "Simplify your sign-in",
   "v2.page.reset-password-success.default.description": "Your password successfully updated!<br>You can now log in using the new password.",
   "v2.page.reset-password-success.default.title": "Password updated",

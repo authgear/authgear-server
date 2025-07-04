@@ -128,6 +128,7 @@ type UserService interface {
 	Create(ctx context.Context, userID string) (*user.User, error)
 	UpdateLoginTime(ctx context.Context, userID string, t time.Time) error
 	UpdateMFAEnrollment(ctx context.Context, userID string, t *time.Time) error
+	UpdateOptOutPasskeyUpsell(ctx context.Context, userID string, optout bool) error
 	AfterCreate(
 		ctx context.Context,
 		user *user.User,
