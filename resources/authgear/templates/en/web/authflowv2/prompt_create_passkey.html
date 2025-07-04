@@ -32,40 +32,59 @@
         >
         {{ include "v2.component.button.default.label-continue" nil }}
       </button>
-      <form
-        class="contents"
-        method="post"
-        novalidate
-        data-controller="turbo-form"
-        data-action="submit->turbo-form#submitForm"
-      >
-        {{ $.CSRFField }}
         {{ if .AllowDoNotAskAgain }}
-          <button
-            class="secondary-btn w-full"
-            type="submit"
-            name="x_action"
-            value="skip"
-            >
-            {{ include "v2.page.prompt-create-passkey.default.skip" nil }}
-          </button>
-          <button
-            class="label-btn w-full"
-            type="submit"
-            name="x_action"
-            value="skip_and_do_not_ask_again"
-            >
-            {{ include "v2.page.prompt-create-passkey.default.do-not-ask-again" nil }}
-          </button>
+          <form
+            class="contents"
+            method="post"
+            novalidate
+            data-controller="turbo-form"
+            data-action="submit->turbo-form#submitForm"
+          >
+            {{ $.CSRFField }}
+            <button
+              class="secondary-btn w-full"
+              type="submit"
+              name="x_action"
+              value="skip"
+              >
+              {{ include "v2.page.prompt-create-passkey.default.skip" nil }}
+            </button>
+          </form>
+          <form
+            class="contents"
+            method="post"
+            novalidate
+            data-controller="turbo-form"
+            data-action="submit->turbo-form#submitForm"
+          >
+            {{ $.CSRFField }}
+            <button
+              class="label-btn w-full"
+              type="submit"
+              name="x_action"
+              value="skip_and_do_not_ask_again"
+              >
+              {{ include "v2.page.prompt-create-passkey.default.do-not-ask-again" nil }}
+            </button>
+          </form>
         {{ else }}
-          <button
-            class="label-btn w-full"
-            type="submit"
-            name="x_action"
-            value="skip"
-            >
-            {{ include "v2.page.prompt-create-passkey.default.skip" nil }}
-          </button>
+          <form
+            class="contents"
+            method="post"
+            novalidate
+            data-controller="turbo-form"
+            data-action="submit->turbo-form#submitForm"
+          >
+            {{ $.CSRFField }}
+            <button
+              class="label-btn w-full"
+              type="submit"
+              name="x_action"
+              value="skip"
+              >
+              {{ include "v2.page.prompt-create-passkey.default.skip" nil }}
+            </button>
+          </form>
         {{ end }}
       </form>
     </footer>
