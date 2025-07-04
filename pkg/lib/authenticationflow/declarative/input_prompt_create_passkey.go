@@ -12,9 +12,23 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
-var InputSchemaPromptCreatePasskeySchemaBuilder validation.SchemaBuilder
+type InputSchemaPromptCreatePasskey struct {
+	JSONPointer        jsonpointer.T
+	FlowRootObject     config.AuthenticationFlowObject
+	AllowDoNotAskAgain bool
+}
 
-func init() {
+var _ authflow.InputSchema = &InputSchemaPromptCreatePasskey{}
+
+func (i *InputSchemaPromptCreatePasskey) GetJSONPointer() jsonpointer.T {
+	return i.JSONPointer
+}
+
+func (i *InputSchemaPromptCreatePasskey) GetFlowRootObject() config.AuthenticationFlowObject {
+	return i.FlowRootObject
+}
+
+func (i *InputSchemaPromptCreatePasskey) SchemaBuilder() validation.SchemaBuilder {
 	attestation := validation.SchemaBuilder{}.
 		Type(validation.TypeObject)
 
@@ -41,30 +55,12 @@ func init() {
 	oneOfSkip := validation.SchemaBuilder{}.Type(validation.TypeObject)
 	oneOfSkip.Required("skip")
 	oneOfSkip.Properties().Property("skip", validation.SchemaBuilder{}.Type(validation.TypeBoolean))
-
+	if i.AllowDoNotAskAgain {
+		oneOfSkip.Properties().Property("do_not_ask_again", validation.SchemaBuilder{}.Type(validation.TypeBoolean))
+	}
 	root := validation.SchemaBuilder{}.Type(validation.TypeObject)
 	root.OneOf(oneOfAttestation, oneOfSkip)
-
-	InputSchemaPromptCreatePasskeySchemaBuilder = root
-}
-
-type InputSchemaPromptCreatePasskey struct {
-	JSONPointer    jsonpointer.T
-	FlowRootObject config.AuthenticationFlowObject
-}
-
-var _ authflow.InputSchema = &InputSchemaPromptCreatePasskey{}
-
-func (i *InputSchemaPromptCreatePasskey) GetJSONPointer() jsonpointer.T {
-	return i.JSONPointer
-}
-
-func (i *InputSchemaPromptCreatePasskey) GetFlowRootObject() config.AuthenticationFlowObject {
-	return i.FlowRootObject
-}
-
-func (*InputSchemaPromptCreatePasskey) SchemaBuilder() validation.SchemaBuilder {
-	return InputSchemaPromptCreatePasskeySchemaBuilder
+	return root
 }
 
 func (i *InputSchemaPromptCreatePasskey) MakeInput(ctx context.Context, rawMessage json.RawMessage) (authflow.Input, error) {
@@ -78,6 +74,7 @@ func (i *InputSchemaPromptCreatePasskey) MakeInput(ctx context.Context, rawMessa
 
 type InputPromptCreatePasskey struct {
 	Skip             bool                                 `json:"skip,omitempty"`
+	DoNotAskAgain    bool                                 `json:"do_not_ask_again,omitempty"`
 	CreationResponse *protocol.CredentialCreationResponse `json:"creation_response,omitempty"`
 }
 
@@ -88,6 +85,10 @@ func (*InputPromptCreatePasskey) Input() {}
 
 func (i *InputPromptCreatePasskey) IsSkip() bool {
 	return i.Skip
+}
+
+func (i *InputPromptCreatePasskey) IsDoNotAskAgain() bool {
+	return i.DoNotAskAgain
 }
 
 func (i *InputPromptCreatePasskey) IsCreationResponse() bool {

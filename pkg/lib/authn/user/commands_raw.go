@@ -57,6 +57,10 @@ func (c *RawCommands) UpdateAccountStatus(ctx context.Context, userID string, ac
 	return c.Store.UpdateAccountStatus(ctx, userID, accountStatus)
 }
 
+func (c *RawCommands) UpdateOptOutPasskeyUpsell(ctx context.Context, userID string, optout bool) error {
+	return c.Store.UpdateOptOutPasskeyUpsell(ctx, userID, optout)
+}
+
 func (c *RawCommands) Delete(ctx context.Context, userID string) error {
 	return c.Store.Delete(ctx, userID)
 }
