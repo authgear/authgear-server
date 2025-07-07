@@ -44,6 +44,7 @@ type Store struct {
 
 var _ store = &Store{}
 
+//nolint:gosec
 const keyOptOutPasskeyUpsell = "opt_out_passkey_upsell"
 
 func (s *Store) Create(ctx context.Context, u *User) (err error) {
