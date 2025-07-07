@@ -952,6 +952,7 @@
   "v2.error.disabled-user-title": "Tài khoản không khả dụng",
   "v2.error.duplicated-authenticator": "{AuthenticatorType, select, oob_otp_sms{Bạn đã thiết lập số điện thoại này để xác thực. Có lẽ bạn muốn thiết lập một số điện thoại khác?} oob_otp_email{Bạn đã thiết lập địa chỉ email này để xác thực. Có lẽ bạn muốn thiết lập một địa chỉ email khác?} other{Bạn đã thiết lập bộ xác thực này. Có lẽ bạn muốn thiết lập một cái khác?}}",
   "v2.error.email-not-allowed": "Địa chỉ email bạn nhập không được phép. Vui lòng liên hệ với bộ phận hỗ trợ khách hàng nếu bạn nghĩ rằng địa chỉ email này nên hợp lệ.",
+  "v2.error.email-plus-sign-not-allowed": "Địa chỉ email không hợp lệ, không cho phép sử dụng dấu cộng (+).",
   "v2.error.email-required": "Vui lòng nhập địa chỉ email của bạn.",
   "v2.error.email-required-github": "Vui lòng thêm \"Email công khai\" vào hồ sơ GitHub của bạn. Quản lý hồ sơ của bạn tại đây: <a class=\"link\" target=\"_blank\" href=\"https://github.com/settings/profile\">https://github.com/settings/profile</a>",
   "v2.error.error-account-not-found-login-id-name": "{ LoginIDType, select, email {email} phone {số điện thoại} username {tên người dùng} other {{ LoginIDKey, select, email {email} phone {số điện thoại} username {tên người dùng} other {định danh} }} }",

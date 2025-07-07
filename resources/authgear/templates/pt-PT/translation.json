@@ -952,6 +952,7 @@
   "v2.error.disabled-user-title": "Conta Indisponível",
   "v2.error.duplicated-authenticator": "{AuthenticatorType, select, oob_otp_sms{Você já configurou este número de telefone para autenticação. Talvez você queira configurar outro número de telefone?} oob_otp_email{Você já configurou este endereço de email para autenticação. Talvez você queira configurar outro endereço de email?} other{Você já configurou este autenticador. Talvez você queira configurar outro?}}",
   "v2.error.email-not-allowed": "O endereço de email que você inseriu não é permitido. Entre em contato com o suporte ao cliente se você achar que o endereço de email deve ser válido.",
+  "v2.error.email-plus-sign-not-allowed": "Endereço de email inválido, o sinal de mais (+) não é permitido.",
   "v2.error.email-required": "Por favor, insira seu endereço de email.",
   "v2.error.email-required-github": "Adicione um \"Email Público\" ao seu perfil do GitHub. Gerencie seu perfil aqui: <a class=\"link\" target=\"_blank\" href=\"https://github.com/settings/profile\">https://github.com/settings/profile</a>",
   "v2.error.error-account-not-found-login-id-name": "{ LoginIDType, select, email {email} phone {número de telefone} username {nome de usuário} other {{ LoginIDKey, select, email {email} phone {número de telefone} username {nome de usuário} other {identidade} }} }",

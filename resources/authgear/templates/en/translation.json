@@ -952,6 +952,7 @@
   "v2.error.disabled-user-title": "Account Unavailable",
   "v2.error.duplicated-authenticator": "{AuthenticatorType, select, oob_otp_sms{You have already set up this phone number for authentication. Maybe you want to set up another phone number?} oob_otp_email{You have already set up this email address for authentication. Maybe you want to set up another email address?} other{You have already set up this authenticator. Maybe want to set up another one?}}",
   "v2.error.email-not-allowed": "The email address you entered is disallowed. Please contact the customer support if you think the email address should be valid.",
+  "v2.error.email-plus-sign-not-allowed": "Invalid email address, plus sign (+) is not allowed.",
   "v2.error.email-required": "Please enter your email address.",
   "v2.error.email-required-github": "Please add a \"Public Email\" to your GitHub profile. Manage your profile here: <a class=\"link\" target=\"_blank\" href=\"https://github.com/settings/profile\">https://github.com/settings/profile</a>",
   "v2.error.error-account-not-found-login-id-name": "{ LoginIDType, select, email {email} phone {phone number} username {username} other {{ LoginIDKey, select, email {email} phone {phone number} username {username} other {identity} }} }",

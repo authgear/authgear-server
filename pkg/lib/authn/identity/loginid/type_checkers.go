@@ -184,7 +184,7 @@ func (c *EmailChecker) Validate(ctx context.Context, validationCtx *validation.C
 
 	if *c.Config.BlockPlusSign {
 		if strings.Contains(local, "+") {
-			validationCtx.EmitError("format", map[string]interface{}{"format": "email"})
+			validationCtx.EmitError("blocked", map[string]interface{}{"reason": "BlockPlusSign"})
 			return
 		}
 	}

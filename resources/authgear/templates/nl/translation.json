@@ -952,6 +952,7 @@
   "v2.error.disabled-user-title": "Account niet beschikbaar",
   "v2.error.duplicated-authenticator": "{AuthenticatorType, select, oob_otp_sms{U heeft dit telefoonnummer al ingesteld voor authenticatie. Wilt u misschien een ander telefoonnummer instellen?} oob_otp_email{U heeft dit e-mailadres al ingesteld voor authenticatie. Wilt u misschien een ander e-mailadres instellen?} other{U heeft deze authenticator al ingesteld. Wilt u misschien een andere instellen?}}",
   "v2.error.email-not-allowed": "Het e-mailadres dat u heeft ingevoerd, is niet toegestaan. Neem contact op met de klantenservice als u denkt dat het e-mailadres geldig zou moeten zijn.",
+  "v2.error.email-plus-sign-not-allowed": "Ongeldig e-mailadres, plusteken (+) is niet toegestaan.",
   "v2.error.email-required": "Voer uw e-mailadres in.",
   "v2.error.email-required-github": "Voeg een \"Openbaar e-mailadres\" toe aan uw GitHub-profiel. Beheer uw profiel hier: <a class=\"link\" target=\"_blank\" href=\"https://github.com/settings/profile\">https://github.com/settings/profile</a>",
   "v2.error.error-account-not-found-login-id-name": "{ LoginIDType, select, email {e-mail} phone {telefoonnummer} username {gebruikersnaam} other {{ LoginIDKey, select, email {e-mail} phone {telefoonnummer} username {gebruikersnaam} other {identiteit} }} }",

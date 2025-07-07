@@ -1,6 +1,10 @@
 import { ApolloError, ServerError } from "@apollo/client";
 import { APIError, isAPIError } from "./error";
-import { FormatErrorCause, ValidationFailedErrorInfoCause } from "./validation";
+import {
+  BlockedErrorCause,
+  FormatErrorCause,
+  ValidationFailedErrorInfoCause,
+} from "./validation";
 import { Values } from "@oursky/react-messageformat";
 import { APIPasswordPolicyViolatedError } from "./password";
 import { APIResourceTooLargeError } from "./resources";
@@ -110,6 +114,17 @@ function getFormatErrorMessage(cause: FormatErrorCause): ParsedAPIError | null {
   return null;
 }
 
+function getBlockedErrorMessage(
+  cause: BlockedErrorCause
+): ParsedAPIError | null {
+  if (cause.details.reason === "BlockPlusSign") {
+    return {
+      messageID: "errors.validation.blocked.block-plus-sign",
+    };
+  }
+  return null;
+}
+
 function parseCause(cause: ValidationFailedErrorInfoCause): ParsedAPIError {
   if (cause.kind === "general") {
     return { message: cause.details.msg };
@@ -122,7 +137,9 @@ function parseCause(cause: ValidationFailedErrorInfoCause): ParsedAPIError {
     case "format":
       specificErrorMessage = getFormatErrorMessage(cause);
       break;
-
+    case "blocked":
+      specificErrorMessage = getBlockedErrorMessage(cause);
+      break;
     default:
       break;
   }

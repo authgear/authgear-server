@@ -952,6 +952,7 @@
   "v2.error.disabled-user-title": "Akaun Tidak Tersedia",
   "v2.error.duplicated-authenticator": "{AuthenticatorType, select, oob_otp_sms{Anda telah menyediakan nombor telefon ini untuk pengesahan. Mungkin anda mahu menyediakan nombor telefon lain?} oob_otp_email{Anda telah menyediakan alamat e-mel ini untuk pengesahan. Mungkin anda mahu menyediakan alamat e-mel lain?} other{Anda telah menyediakan pengesah ini. Mungkin anda mahu menyediakan yang lain?}}",
   "v2.error.email-not-allowed": "Alamat e-mel yang anda masukkan tidak dibenarkan. Sila hubungi sokongan pelanggan jika anda fikir alamat e-mel tersebut harus sah.",
+  "v2.error.email-plus-sign-not-allowed": "Alamat e-mel tidak sah, tanda tambah (+) tidak dibenarkan.",
   "v2.error.email-required": "Sila masukkan alamat emel anda.",
   "v2.error.email-required-github": "Sila tambah \"Alamat E-mel Awam\" ke profil GitHub anda. Urus profil anda di sini: <a class=\"link\" target=\"_blank\" href=\"https://github.com/settings/profile\">https://github.com/settings/profile</a>",
   "v2.error.error-account-not-found-login-id-name": "{ LoginIDType, select, email {emel} phone {nombor telefon} username {nama pengguna} other {{ LoginIDKey, select, email {emel} phone {nombor telefon} username {nama pengguna} other {identiti} }} }",
