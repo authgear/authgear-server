@@ -71,8 +71,8 @@ func TestLoginIDTypeCheckers(t *testing.T) {
 		Convey("block plus sign", func() {
 			cases := []Case{
 				{"Faseng@Example.com", ""},
-				{"Faseng+Chima@example.com", "invalid login ID:\n/login_id: format\n  map[format:email reason:BlockPlusSign]"},
-				{`"faseng@cat+123"@example.com`, "invalid login ID:\n/login_id: format\n  map[format:email reason:BlockPlusSign]"},
+				{"Faseng+Chima@example.com", "invalid login ID:\n/login_id: blocked\n  map[reason:BlockPlusSign]"},
+				{`"faseng@cat+123"@example.com`, "invalid login ID:\n/login_id: blocked\n  map[reason:BlockPlusSign]"},
 			}
 
 			checker := &EmailChecker{
