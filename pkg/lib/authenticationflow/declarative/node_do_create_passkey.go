@@ -21,9 +21,11 @@ type NodeDoCreatePasskeyOptions struct {
 }
 
 func NewNodeDoCreatePasskeyReactToResult(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, opts NodeDoCreatePasskeyOptions) (authflow.ReactToResult, error) {
+	spec := opts.Identity.ToSpec()
 	nodeDoCreateIdentityOpts := NodeDoCreateIdentityOptions{
-		SkipCreate: opts.SkipCreate,
-		Identity:   opts.Identity,
+		SkipCreate:   opts.SkipCreate,
+		Identity:     opts.Identity,
+		IdentitySpec: &spec,
 	}
 	doCreateIdenNode, err := NewNodeDoCreateIdentity(ctx, deps, flows, nodeDoCreateIdentityOpts)
 	if err != nil {
