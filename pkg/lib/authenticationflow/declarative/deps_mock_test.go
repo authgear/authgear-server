@@ -126,3 +126,17 @@ func (mr *MockUserServiceMockRecorder) UpdateMFAEnrollment(ctx, userID, t interf
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateMFAEnrollment", reflect.TypeOf((*MockUserService)(nil).UpdateMFAEnrollment), ctx, userID, t)
 }
+
+// UpdateOptOutPasskeyUpsell mocks base method.
+func (m *MockUserService) UpdateOptOutPasskeyUpsell(ctx context.Context, userID string, optout bool) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateOptOutPasskeyUpsell", ctx, userID, optout)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateOptOutPasskeyUpsell indicates an expected call of UpdateOptOutPasskeyUpsell.
+func (mr *MockUserServiceMockRecorder) UpdateOptOutPasskeyUpsell(ctx, userID, optout interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateOptOutPasskeyUpsell", reflect.TypeOf((*MockUserService)(nil).UpdateOptOutPasskeyUpsell), ctx, userID, optout)
+}
