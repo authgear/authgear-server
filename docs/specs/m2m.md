@@ -421,6 +421,13 @@ In Auth0, `RFC6749 section-4.4` is also used to create an `access_token` that ca
 We can implement the same for our Admin API.
 Specifically, we need to introduce an artificial Resource with URI `https://auth.myapp.com/_api/admin`, and define a comprehensive list of scopes that restrict access to the different Resources within the Admin API.
 
+### Discussion: (Future work) Rich Authorization Requests
+
+[RFC9396](https://datatracker.ietf.org/doc/html/rfc9396) introduces `authorization_details`,
+which is an enhancement over `scope` and `resource` to specify authorization details in a structured way in form of JSON.
+
+This is supported by Auth0 as an addon. See https://auth0.com/docs/get-started/apis/configure-rich-authorization-requests
+
 ## Changes in data models
 
 In order to be forward-compatible with [User / Role / Group and Scope](#discussion-future-work-user-role-group-and-scope), Resource and Scope will be stored in the database, while Client is still stored in project configuration.
