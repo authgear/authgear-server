@@ -952,6 +952,7 @@
   "v2.error.disabled-user-title": "계정 사용 불가",
   "v2.error.duplicated-authenticator": "{AuthenticatorType, select, oob_otp_sms{이 전화번호는 이미 인증 방법으로 설정되어 있습니다. 다른 전화번호를 설정하시겠습니까?} oob_otp_email{이 이메일 주소는 이미 인증 방법으로 설정되어 있습니다. 다른 이메일 주소를 설정하시겠습니까?} other{이 인증 방법은 이미 설정되어 있습니다. 다른 인증 방법을 설정하시겠습니까?}}",
   "v2.error.email-not-allowed": "입력하신 이메일 주소는 허용되지 않습니다. 이메일 주소가 유효해야 한다고 생각되면 고객 지원에 문의해 주세요.",
+  "v2.error.email-plus-sign-not-allowed": "유효하지 않은 이메일 주소, 더하기 기호(+)는 허용되지 않습니다.",
   "v2.error.email-required": "이메일 주소를 입력해 주세요.",
   "v2.error.email-required-github": "GitHub 프로필에 \"Public Email\"을 추가해 주세요. 프로필 관리: <a class=\"link\" target=\"_blank\" href=\"https://github.com/settings/profile\">https://github.com/settings/profile</a>",
   "v2.error.error-account-not-found-login-id-name": "{ LoginIDType, select, email {이메일} phone {전화번호} username {사용자명} other {{ LoginIDKey, select, email {이메일} phone {전화번호} username {사용자명} other {계정} }} }",

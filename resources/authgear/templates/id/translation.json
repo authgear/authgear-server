@@ -952,6 +952,7 @@
   "v2.error.disabled-user-title": "Akun Tidak Tersedia",
   "v2.error.duplicated-authenticator": "{AuthenticatorType, select, oob_otp_sms{Anda sudah mengatur nomor telepon ini untuk autentikasi. Mungkin Anda ingin mengatur nomor telepon lain?} oob_otp_email{Anda sudah mengatur alamat email ini untuk autentikasi. Mungkin Anda ingin mengatur alamat email lain?} other{Anda sudah mengatur authenticator ini. Mungkin Anda ingin mengatur yang lain?}}",
   "v2.error.email-not-allowed": "Alamat email yang Anda masukkan tidak diizinkan. Silakan hubungi dukungan pelanggan jika Anda pikir alamat email tersebut valid.",
+  "v2.error.email-plus-sign-not-allowed": "Alamat email tidak valid, tanda plus (+) tidak diperbolehkan.",
   "v2.error.email-required": "Silakan masukkan alamat email Anda.",
   "v2.error.email-required-github": "Silakan tambahkan \"Alamat Email Publik\" ke profil GitHub Anda. Kelola profil Anda di sini: <a class=\"link\" target=\"_blank\" href=\"https://github.com/settings/profile\">https://github.com/settings/profile</a>",
   "v2.error.error-account-not-found-login-id-name": "{ LoginIDType, select, email {email} phone {nomor telepon} username {nama pengguna} other {{ LoginIDKey, select, email {email} phone {nomor telepon} username {nama pengguna} other {identitas} }} }",

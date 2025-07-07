@@ -952,6 +952,7 @@
   "v2.error.disabled-user-title": "帳號不可用",
   "v2.error.duplicated-authenticator": "{AuthenticatorType, select, oob_otp_sms{你已設置該電話號碼作驗證用途。或許你想設置另一個電話號碼?} oob_otp_email{你已設置該電郵地址作驗證用途。或許你想設置另一個電郵地址?} other{你已設置該驗證器。或許你想設置新的一個?}}",
   "v2.error.email-not-allowed": "你所輸入的電郵地址被禁用。如你認為該電郵地址應為有效，請聯絡客戶服務",
+  "v2.error.email-plus-sign-not-allowed": "無效的電子郵件地址，不允許使用加號 (+)。",
   "v2.error.email-required": "請輸入電郵地址",
   "v2.error.email-required-github": "請為你的GitHub個人檔案設定一個\"Public Email\"。前住管理你的GitHub個人檔案：<a class=\"link\" target=\"_blank\" href=\"https://github.com/settings/profile\">https://github.com/settings/profile</a>",
   "v2.error.error-account-not-found-login-id-name": "{ LoginIDType, select, email {電郵} phone {電話號碼} username {使用者名稱} other {{ LoginIDKey, select, email {電郵} phone {電話號碼} username {使用者名稱} other {身份資料} }} }",

@@ -952,6 +952,7 @@
   "v2.error.disabled-user-title": "บัญชีไม่พร้อมใช้งาน",
   "v2.error.duplicated-authenticator": "{AuthenticatorType, select, oob_otp_sms{คุณได้ตั้งค่าหมายเลขโทรศัพท์นี้สำหรับการรับรองความถูกต้องแล้ว บางทีคุณอาจต้องการตั้งค่าหมายเลขโทรศัพท์อื่น?} oob_otp_email{คุณได้ตั้งค่าที่อยู่อีเมลนี้สำหรับการรับรองความถูกต้องแล้ว บางทีคุณอาจต้องการตั้งค่าที่อยู่อีเมลอื่น?} other{คุณได้ตั้งค่าตัวรับรองความถูกต้องนี้แล้ว บางทีคุณอาจต้องการตั้งค่าอื่นแทน?}}",
   "v2.error.email-not-allowed": "ที่อยู่อีเมลที่คุณป้อนไม่ได้รับอนุญาต โปรดติดต่อฝ่ายสนับสนุนลูกค้าหากคุณคิดว่าที่อยู่อีเมลนั้นควรจะถูกต้อง",
+  "v2.error.email-plus-sign-not-allowed": "อีเมลไม่ถูกต้อง ไม่อนุญาตให้ใช้เครื่องหมายบวก (+)",
   "v2.error.email-required": "โปรดป้อนที่อยู่อีเมลของคุณ",
   "v2.error.email-required-github": "โปรดเพิ่ม \"อีเมลสาธารณะ\" ในโปรไฟล์ GitHub ของคุณ จัดการโปรไฟล์ของคุณที่นี่: <a class=\"link\" target=\"_blank\" href=\"https://github.com/settings/profile\">https://github.com/settings/profile</a>",
   "v2.error.error-account-not-found-login-id-name": "{ LoginIDType, select, email {อีเมล} phone {หมายเลขโทรศัพท์} username {ชื่อผู้ใช้} other {{ LoginIDKey, select, email {อีเมล} phone {หมายเลขโทรศัพท์} username {ชื่อผู้ใช้} other {ข้อมูลตัวตน} }} }",

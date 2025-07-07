@@ -952,6 +952,7 @@
   "v2.error.disabled-user-title": "Account Hindi Magagamit",
   "v2.error.duplicated-authenticator": "{AuthenticatorType, select, oob_otp_sms{Mayroon ka nang nai-set up na numero ng telepono para sa authentication. Baka gusto mong mag-set up ng ibang numero ng telepono?} oob_otp_email{Mayroon ka nang nai-set up na email address para sa authentication. Baka gusto mong mag-set up ng ibang email address?} other{Mayroon ka nang nai-set up na authenticator. Baka gusto mong mag-set up ng isa pang authenticator?}}",
   "v2.error.email-not-allowed": "Ang email address na iyong ipinasok ay hindi pinapayagan. Mangyaring makipag-ugnayan sa customer support kung sa tingin mo ay dapat na valid ang email address.",
+  "v2.error.email-plus-sign-not-allowed": "Hindi wastong email address, hindi pinapayagan ang plus sign (+).",
   "v2.error.email-required": "Mangyaring ipasok ang iyong email address.",
   "v2.error.email-required-github": "Mangyaring magdagdag ng \"Public Email\" sa iyong GitHub profile. Pamahalaan ang iyong profile dito: <a class=\"link\" target=\"_blank\" href=\"https://github.com/settings/profile\">https://github.com/settings/profile</a>",
   "v2.error.error-account-not-found-login-id-name": "{ LoginIDType, select, email {email} phone {numero ng telepono} username {username} other {{ LoginIDKey, select, email {email} phone {numero ng telepono} username {username} other {pagkakakilanlan} }} }",
