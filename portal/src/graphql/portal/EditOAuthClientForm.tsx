@@ -17,6 +17,7 @@ import TextFieldWithCopyButton from "../../TextFieldWithCopyButton";
 import { useParams } from "react-router-dom";
 import TextField from "../../TextField";
 import TextFieldWithButton from "../../TextFieldWithButton";
+import { Accordion } from "../../components/common/Accordion";
 
 const MASKED_SECRET = "***************";
 
@@ -484,25 +485,29 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
             description={redirectURIsDescription}
           />
           {showPostLogoutRedirectURIsSettings ? (
-            <FormTextFieldList
-              parentJSONPointer={parentJSONPointer}
-              fieldName="post_logout_redirect_uris"
-              list={clientConfig.post_logout_redirect_uris ?? []}
-              onListItemAdd={onPostLogoutRedirectUrisChange}
-              onListItemChange={onPostLogoutRedirectUrisChange}
-              onListItemDelete={onPostLogoutRedirectUrisChange}
-              addButtonLabelMessageID="EditOAuthClientForm.add-uri"
-              label={
-                <Label>
-                  <FormattedMessage id="EditOAuthClientForm.post-logout-redirect-uris.label" />
-                </Label>
-              }
-              description={renderToString(
-                clientConfig.x_application_type === "spa"
-                  ? "EditOAuthClientForm.post-logout-redirect-uris.spa.description"
-                  : "EditOAuthClientForm.post-logout-redirect-uris.description"
-              )}
-            />
+            <Accordion
+              text={<FormattedMessage id="EditOAuthClientForm.more-options" />}
+            >
+              <FormTextFieldList
+                parentJSONPointer={parentJSONPointer}
+                fieldName="post_logout_redirect_uris"
+                list={clientConfig.post_logout_redirect_uris ?? []}
+                onListItemAdd={onPostLogoutRedirectUrisChange}
+                onListItemChange={onPostLogoutRedirectUrisChange}
+                onListItemDelete={onPostLogoutRedirectUrisChange}
+                addButtonLabelMessageID="EditOAuthClientForm.add-uri"
+                label={
+                  <Label>
+                    <FormattedMessage id="EditOAuthClientForm.post-logout-redirect-uris.label" />
+                  </Label>
+                }
+                description={renderToString(
+                  clientConfig.x_application_type === "spa"
+                    ? "EditOAuthClientForm.post-logout-redirect-uris.spa.description"
+                    : "EditOAuthClientForm.post-logout-redirect-uris.description"
+                )}
+              />
+            </Accordion>
           ) : null}
         </Widget>
 
