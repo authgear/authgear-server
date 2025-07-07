@@ -959,7 +959,6 @@
   "v2.error.identify-not-found": "指定された{LoginIDType,select,email{メールアドレス} phone{電話番号} username{ユーザー名} other{ID}}はこのアカウントに存在しません。",
   "v2.error.invalid-credentials": "{AuthenticationType, select, password{パスワードが正しくありません} totp{認証アプリ/デバイスの6桁コードが正しくありません} oob_otp_sms {認証情報が正しくありません} oob_otp_email{認証情報が正しくありません} recovery_code {回復コードが正しくありません} passkey {このPasskeyはこのアカウントに関連付けられていません} other {無効な認証情報}}。",
   "v2.error.invalid-email": "メールアドレスに「@」を含めてください。",
-  "v2.error.invalid-email-requirement-not-met": "無効なメールアドレスです。入力されたメールアドレスは要件を満たしていません。",
   "v2.error.invalid-passkey-or-not-supported": "このデバイスではPasskeyがサポートされていないか、無効です。他の認証方法を選択してください。",
   "v2.error.invalid-username": "入力されたユーザー名の形式が正しくありません。英数字(a-z、A-Z、0-9)のみを使用してください。",
   "v2.error.invalid-web3-network": "{chainID, select, _1{Ethereum Mainnet} _5{Ethereum Goerli} _137{Polygon Mainnet} _80001{Polygon Mumbai} other{}}ネットワークで登録してください。",

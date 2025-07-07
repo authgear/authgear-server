@@ -959,7 +959,6 @@
   "v2.error.identify-not-found": "Die angegebene {LoginIDType,select,email{E-Mail} phone{Telefonnummer} username{Benutzername} other{Identität}} wurde in diesem Konto nicht gefunden.",
   "v2.error.invalid-credentials": "{AuthenticationType, select, password{Falsches Passwort} totp{Falscher 6-stelliger Code aus der Authentifizierungs-App / vom Gerät} oob_otp_sms {Anmeldedaten sind falsch} oob_otp_email{Anmeldedaten sind falsch} recovery_code {Falscher Wiederherstellungscode} passkey {Dieser Passkey ist nicht mehr mit diesem Konto verknüpft} other {Ungültige Anmeldedaten}}.",
   "v2.error.invalid-email": "Bitte fügen Sie '@' in die E-Mail-Adresse ein.",
-  "v2.error.invalid-email-requirement-not-met": "Ungültige E-Mail-Adresse. Die eingegebene E-Mail-Adresse erfüllt nicht die Anforderung.",
   "v2.error.invalid-passkey-or-not-supported": "Passkey wird auf diesem Gerät nicht unterstützt oder ist ungültig. Bitte wählen Sie eine andere Authentifizierungsmethode.",
   "v2.error.invalid-username": "Der von Ihnen eingegebene Benutzername hat nicht das richtige Format. Bitte verwenden Sie einen Benutzernamen, der nur aus alphanumerischen Zeichen (a-z, A-Z und 0-9) besteht.",
   "v2.error.invalid-web3-network": "Bitte registrieren Sie sich mit dem {chainID, select, _1{Ethereum Mainnet} _5{Ethereum Goerli} _137{Polygon Mainnet} _80001{Polygon Mumbai} other{}} Netzwerk.",

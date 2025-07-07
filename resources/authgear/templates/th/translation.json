@@ -959,7 +959,6 @@
   "v2.error.identify-not-found": "ไม่พบ{LoginIDType,select,email{อีเมล} phone{หมายเลขโทรศัพท์} username{ชื่อผู้ใช้} other{ข้อมูลประจำตัว}}ที่ระบุในบัญชีนี้",
   "v2.error.invalid-credentials": "{AuthenticationType, select, password{รหัสผ่านไม่ถูกต้อง} totp{รหัส 6 หลักจากแอปพลิเคชันหรืออุปกรณ์ตัวรับรองความถูกต้องไม่ถูกต้อง} oob_otp_sms {ข้อมูลรับรองความถูกต้องไม่ถูกต้อง} oob_otp_email{ข้อมูลรับรองความถูกต้องไม่ถูกต้อง} recovery_code {รหัสกู้คืนไม่ถูกต้อง} passkey {Passkey นี้ไม่ได้เชื่อมโยงกับบัญชีนี้อีกต่อไป} other {ข้อมูลรับรองความถูกต้องไม่ถูกต้อง}}.",
   "v2.error.invalid-email": "โปรดใส่อีเมลที่มี '@'",
-  "v2.error.invalid-email-requirement-not-met": "อีเมลไม่ถูกต้อง ที่อยู่อีเมลที่ป้อนไม่ตรงตามข้อกำหนด",
   "v2.error.invalid-passkey-or-not-supported": "Passkey ไม่รองรับในอุปกรณ์นี้ หรือ Passkey ไม่ถูกต้อง โปรดเลือกวิธีการตรวจสอบสิทธิ์อื่น",
   "v2.error.invalid-username": "ชื่อผู้ใช้ที่คุณป้อนไม่อยู่ในรูปแบบที่ถูกต้อง โปรดลองใช้ชื่อผู้ใช้ที่ประกอบด้วยตัวอักษรและตัวเลขเท่านั้น (a-z, A-Z และ 0-9)",
   "v2.error.invalid-web3-network": "โปรดลงทะเบียนด้วย {chainID, select, _1{Ethereum Mainnet} _5{Ethereum Goerli} _137{Polygon Mainnet} _80001{Polygon Mumbai} other{}} เครือข่าย",

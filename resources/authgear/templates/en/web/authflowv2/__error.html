@@ -115,7 +115,7 @@
           {{ else if (eq .details.reason "PhoneNumberCountryCodeAllowlist") }}
             <span>{{ include "v2.error.phone-number-not-allowed" nil }}</span>
           {{ else if (eq .details.reason "BlockPlusSign" )}}
-            <span>{{ include "v2.error.invalid-email-requirement-not-met" nil }}</span>
+            <span>{{ include "v2.error.email-plus-sign-not-allowed" nil }}</span>
           {{ else }}
             <span>{{ .details.reason }}</span>
           {{ end }}

@@ -959,7 +959,6 @@
   "v2.error.identify-not-found": "De opgegeven {LoginIDType,select,email{E-mail} phone{Telefoonnummer} username{Gebruikersnaam} other{Identiteit}} is niet gevonden in deze account.",
   "v2.error.invalid-credentials": "{AuthenticationType, select, password{Onjuist wachtwoord} totp{Onjuiste 6-cijferige code van de authenticator-app / -apparaat} oob_otp_sms {Inloggegevens zijn onjuist} oob_otp_email{Inloggegevens zijn onjuist} recovery_code {Onjuiste herstelcode} passkey {Deze Passkey is niet langer gekoppeld aan dit account} other {Ongeldige inloggegevens}}.",
   "v2.error.invalid-email": "Voeg '@' toe in het e-mailadres.",
-  "v2.error.invalid-email-requirement-not-met": "Ongeldig e-mailadres. Het ingevoerde e-mailadres voldoet niet aan de vereiste.",
   "v2.error.invalid-passkey-or-not-supported": "Passkey wordt niet ondersteund op dit apparaat, of is ongeldig. Selecteer een andere authenticatiemethode.",
   "v2.error.invalid-username": "De gebruikersnaam die u heeft ingevoerd, heeft niet het juiste formaat. Gebruik alleen alfanumerieke tekens (a-z, A-Z en 0-9).",
   "v2.error.invalid-web3-network": "Meld u aan met het {chainID, select, _1{Ethereum Mainnet} _5{Ethereum Goerli} _137{Polygon Mainnet} _80001{Polygon Mumbai} other{}} netwerk.",

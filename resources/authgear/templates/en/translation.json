@@ -998,6 +998,7 @@
   "v2.error.phone-number-format": "Incorrect phone number format.",
   "v2.error.phone-number-not-allowed": "Phone number is from an unsupported region.",
   "v2.error.phone-number-required": "Please enter your phone number.",
+  "v2.error.email-plus-sign-not-allowed": "Invalid email address, plus sign (+) is not allowed.",
   "v2.error.rate-limited": "Please wait for a moment before retrying.",
   "v2.error.recovery-code-format": "The recovery code you entered is not in a correct format. Please make ensure it is a 10-letter code.",
   "v2.error.recovery-code-required": "Please enter any unused 10-letter recovery code you stored previously.",

@@ -959,7 +959,6 @@
   "v2.error.identify-not-found": "{LoginIDType,select,email{Email} phone{Nomor Telepon} username{Nama Pengguna} other{Identitas}} yang ditentukan tidak ditemukan dalam akun ini.",
   "v2.error.invalid-credentials": "{AuthenticationType, select, password{Kata sandi salah} totp{Kode 6 digit dari aplikasi / perangkat authenticator salah} oob_otp_sms {Kredensial salah} oob_otp_email{Kredensial salah} recovery_code {Kode pemulihan salah} passkey {Passkey ini tidak lagi terkait dengan akun ini} other {Kredensial tidak valid}}.",
   "v2.error.invalid-email": "Harap sertakan '@' dalam alamat email.",
-  "v2.error.invalid-email-requirement-not-met": "Alamat email tidak valid. Alamat email yang dimasukkan tidak memenuhi persyaratan.",
   "v2.error.invalid-passkey-or-not-supported": "Passkey tidak didukung di perangkat ini, atau passkey tidak valid. Silakan pilih metode autentikasi lain.",
   "v2.error.invalid-username": "Nama pengguna yang Anda masukkan tidak dalam format yang benar. Silakan coba menggunakan nama pengguna yang terdiri dari karakter alfanumerik (a-z, A-Z, dan 0-9) saja.",
   "v2.error.invalid-web3-network": "Silakan mendaftar dengan jaringan {chainID, select, _1{Ethereum Mainnet} _5{Ethereum Goerli} _137{Polygon Mainnet} _80001{Polygon Mumbai} other{}}.",

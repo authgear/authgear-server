@@ -959,7 +959,6 @@
   "v2.error.identify-not-found": "Ang tinukoy na {LoginIDType,select,email{Email} phone{Telepono} username{Username} other{Pagkakakilanlan}} ay hindi natagpuan sa account na ito.",
   "v2.error.invalid-credentials": "{AuthenticationType, select, password{Maling password} totp{Maling 6-digit code mula sa authenticator app / device} oob_otp_sms {Maling mga kredensyal} oob_otp_email{Maling mga kredensyal} recovery_code {Maling recovery code} passkey {Ang passkey na ito ay hindi na nauugnay sa account na ito} other {Maling mga kredensyal}}.",
   "v2.error.invalid-email": "Mangyaring isama ang '@' sa email address.",
-  "v2.error.invalid-email-requirement-not-met": "Hindi wastong email address. Ang email address na inilagay ay hindi nakakatugon sa kinakailangan.",
   "v2.error.invalid-passkey-or-not-supported": "Hindi sinusuportahan ang Passkey sa device na ito, o di-balido ang passkey. Mangyaring pumili ng ibang paraan ng pagpapatunay.",
   "v2.error.invalid-username": "Ang username na iyong ipinasok ay hindi nasa tamang format. Mangyaring subukang gumamit ng username na binubuo lamang ng alphanumeric na mga character (a-z, A-Z, at 0-9).",
   "v2.error.invalid-web3-network": "Mangyaring mag-sign up gamit ang {chainID, select, _1{Ethereum Mainnet} _5{Ethereum Goerli} _137{Polygon Mainnet} _80001{Polygon Mumbai} other{}} network.",

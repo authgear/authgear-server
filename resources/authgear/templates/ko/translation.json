@@ -959,7 +959,6 @@
   "v2.error.identify-not-found": "지정된 {LoginIDType,select,email{이메일} phone{전화번호} username{사용자 이름} other{ID}}가 이 계정에서 찾을 수 없습니다.",
   "v2.error.invalid-credentials": "{AuthenticationType, select, password{비밀번호가 잘못되었습니다} totp{인증 앱/기기의 6자리 코드가 잘못되었습니다} oob_otp_sms {자격 증명이 잘못되었습니다} oob_otp_email{자격 증명이 잘못되었습니다} recovery_code {복구 코드가 잘못되었습니다} passkey {이 Passkey가 더 이상 이 계정과 연결되어 있지 않습니다} other {자격 증명이 잘못되었습니다}}.",
   "v2.error.invalid-email": "이메일 주소에 '@'를 포함해 주세요.",
-  "v2.error.invalid-email-requirement-not-met": "잘못된 이메일 주소입니다. 입력한 이메일 주소가 요구 사항을 충족하지 않습니다.",
   "v2.error.invalid-passkey-or-not-supported": "Passkey가 이 장치에서 지원되지 않거나 잘못된 Passkey입니다. 다른 인증 방법을 선택해 주세요.",
   "v2.error.invalid-username": "입력하신 사용자 이름이 올바른 형식이 아닙니다. 영숫자(a-z, A-Z, 0-9)로만 구성된 사용자 이름을 사용해 주세요.",
   "v2.error.invalid-web3-network": "{chainID, select, _1{이더리움 메인넷} _5{이더리움 고를리} _137{폴리곤 메인넷} _80001{폴리곤 뭄바이} other{}} 네트워크로 가입해 주세요.",

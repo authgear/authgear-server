@@ -959,7 +959,6 @@
   "v2.error.identify-not-found": "在此帐户中找不到指定的{LoginIDType,select,email{电子邮件} phone{电话} username{用户名} other{身份}}。",
   "v2.error.invalid-credentials": "{AuthenticationType, select, password{密码不正确} totp{来自认证器应用程序/设备的 6 位数代码不正确} oob_otp_sms {凭据不正确} oob_otp_email{凭据不正确} recovery_code {恢复代码不正确} passkey {此 Passkey 不再与此帐户关联} other {无效的凭据}}。",
   "v2.error.invalid-email": "请在电子邮件地址中包含''@''。",
-  "v2.error.invalid-email-requirement-not-met": "无效的电子邮件地址。输入的电子邮件地址不符合要求。",
   "v2.error.invalid-passkey-or-not-supported": "此设备不支持 Passkey，或 Passkey 无效。请选择其他身份验证方式。",
   "v2.error.invalid-username": "您输入的用户名格式不正确。请尝试使用仅包含字母和数字(a-z、A-Z和0-9)的用户名。",
   "v2.error.invalid-web3-network": "请使用{chainID, select, _1{以太坊主网} _5{以太坊Goerli} _137{Polygon主网} _80001{Polygon Mumbai} other{}}网络注册。",
