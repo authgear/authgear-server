@@ -1,0 +1,21 @@
+.accordionRoot {
+  @apply block;
+}
+
+.accordionToggle {
+  @apply w-auto;
+  @apply text-theme-primary;
+}
+
+.accordionToggleText {
+  @apply flex items-center;
+  @apply py-1.5;
+}
+
+.accordionContent {
+  @apply block;
+}
+
+.accordionContent--hide {
+  @apply hidden;
+}
