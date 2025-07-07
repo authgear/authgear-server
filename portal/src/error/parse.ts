@@ -1,6 +1,10 @@
 import { ApolloError, ServerError } from "@apollo/client";
 import { APIError, isAPIError } from "./error";
-import { FormatErrorCause, ValidationFailedErrorInfoCause } from "./validation";
+import {
+  BlockedErrorCause,
+  FormatErrorCause,
+  ValidationFailedErrorInfoCause,
+} from "./validation";
 import { Values } from "@oursky/react-messageformat";
 import { APIPasswordPolicyViolatedError } from "./password";
 import { APIResourceTooLargeError } from "./resources";
@@ -107,13 +111,15 @@ function getFormatErrorMessage(cause: FormatErrorCause): ParsedAPIError | null {
       messageID: "errors.validation.format.email-name-addr",
     };
   }
+  return null;
+}
 
-  if (
-    cause.details.format === "email" &&
-    cause.details.reason === "BlockPlusSign"
-  ) {
+function getBlockedErrorMessage(
+  cause: BlockedErrorCause
+): ParsedAPIError | null {
+  if (cause.details.reason === "BlockPlusSign") {
     return {
-      messageID: "errors.validation.format.email.block-plus-sign",
+      messageID: "errors.validation.blocked.block-plus-sign",
     };
   }
   return null;
@@ -131,7 +137,9 @@ function parseCause(cause: ValidationFailedErrorInfoCause): ParsedAPIError {
     case "format":
       specificErrorMessage = getFormatErrorMessage(cause);
       break;
-
+    case "blocked":
+      specificErrorMessage = getBlockedErrorMessage(cause);
+      break;
     default:
       break;
   }
