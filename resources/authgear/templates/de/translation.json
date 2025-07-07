@@ -1138,6 +1138,7 @@
   "v2.page.preview.default.no-login-methods": "Keine Anmeldemethoden ausgewählt.",
   "v2.page.preview.default.title": "Dies ist eine Vorschau",
   "v2.page.prompt-create-passkey.default.description": "Mit Passkeys können Sie jetzt Ihren Fingerabdruck, Ihr Gesicht oder Ihren Bildschirmschutz verwenden, um zu überprüfen, dass Sie es wirklich sind.",
+  "v2.page.prompt-create-passkey.default.do-not-ask-again": "Nicht erneut nachfragen",
   "v2.page.prompt-create-passkey.default.skip": "Nicht jetzt",
   "v2.page.prompt-create-passkey.default.title": "Vereinfachen Sie Ihre Anmeldung",
   "v2.page.reset-password-success.default.description": "Ihr Passwort wurde erfolgreich aktualisiert!<br>Sie können sich jetzt mit dem neuen Passwort anmelden.",

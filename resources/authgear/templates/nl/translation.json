@@ -1138,6 +1138,7 @@
   "v2.page.preview.default.no-login-methods": "Geen inlogmethoden geselecteerd.",
   "v2.page.preview.default.title": "Dit is een voorbeeld",
   "v2.page.prompt-create-passkey.default.description": "Met Passkeys kun je nu je vingerafdruk, gezicht of schermvergrendeling gebruiken om te verifiëren dat het echt jij bent.",
+  "v2.page.prompt-create-passkey.default.do-not-ask-again": "Vraag me niet opnieuw",
   "v2.page.prompt-create-passkey.default.skip": "Niet nu",
   "v2.page.prompt-create-passkey.default.title": "Vereenvoudig je inloggen",
   "v2.page.reset-password-success.default.description": "Je wachtwoord is succesvol bijgewerkt!<br>Je kunt nu inloggen met het nieuwe wachtwoord.",

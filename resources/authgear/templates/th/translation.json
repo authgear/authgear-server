@@ -1138,6 +1138,7 @@
   "v2.page.preview.default.no-login-methods": "ไม่ได้เลือกวิธีการเข้าสู่ระบบ",
   "v2.page.preview.default.title": "นี่คือตัวอย่าง",
   "v2.page.prompt-create-passkey.default.description": "ด้วย Passkeys คุณสามารถใช้ลายนิ้วมือ ใบหน้า หรือหน้าจอล็อกเพื่อยืนยันว่าเป็นคุณจริง",
+  "v2.page.prompt-create-passkey.default.do-not-ask-again": "อย่าถามฉันอีก",
   "v2.page.prompt-create-passkey.default.skip": "ไม่ใช่ตอนนี้",
   "v2.page.prompt-create-passkey.default.title": "ทำให้การเข้าสู่ระบบง่ายขึ้น",
   "v2.page.reset-password-success.default.description": "คุณอัปเดตรหัสผ่านของคุณเรียบร้อยแล้ว!<br>คุณสามารถเข้าสู่ระบบโดยใช้รหัสผ่านใหม่",

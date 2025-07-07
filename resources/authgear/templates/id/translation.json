@@ -1138,6 +1138,7 @@
   "v2.page.preview.default.no-login-methods": "Tidak ada metode login yang dipilih.",
   "v2.page.preview.default.title": "Ini adalah pratinjau",
   "v2.page.prompt-create-passkey.default.description": "Dengan Passkey, Anda kini dapat menggunakan sidik jari, wajah, atau kunci layar untuk memverifikasi bahwa itu benar-benar Anda.",
+  "v2.page.prompt-create-passkey.default.do-not-ask-again": "Jangan tanyakan lagi",
   "v2.page.prompt-create-passkey.default.skip": "Tidak sekarang",
   "v2.page.prompt-create-passkey.default.title": "Permudah login Anda",
   "v2.page.reset-password-success.default.description": "Kata sandi Anda berhasil diperbarui!<br>Anda sekarang dapat login menggunakan kata sandi baru.",

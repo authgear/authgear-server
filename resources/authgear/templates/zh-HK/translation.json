@@ -1138,6 +1138,7 @@
   "v2.page.preview.default.no-login-methods": "未選擇登入方式。",
   "v2.page.preview.default.title": "這是預覽",
   "v2.page.prompt-create-passkey.default.description": "透過通行密匙，您現在可以使用指紋、臉孔或螢幕解鎖機制來驗證您的身份。",
+  "v2.page.prompt-create-passkey.default.do-not-ask-again": "不要再詢問我",
   "v2.page.prompt-create-passkey.default.skip": "現在不要",
   "v2.page.prompt-create-passkey.default.title": "簡化您的登入",
   "v2.page.reset-password-success.default.description": "您已成功更新密碼，請以新密碼登入。",

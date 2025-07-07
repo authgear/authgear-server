@@ -1138,6 +1138,7 @@
   "v2.page.preview.default.no-login-methods": "선택된 로그인 방법이 없습니다.",
   "v2.page.preview.default.title": "이것은 미리보기입니다",
   "v2.page.prompt-create-passkey.default.description": "Passkey를 사용하면 지문, 얼굴 또는 화면 잠금을 사용하여 본인 확인을 할 수 있습니다.",
+  "v2.page.prompt-create-passkey.default.do-not-ask-again": "다시 묻지 않기",
   "v2.page.prompt-create-passkey.default.skip": "나중에",
   "v2.page.prompt-create-passkey.default.title": "로그인을 간소화하세요",
   "v2.page.reset-password-success.default.description": "비밀번호가 성공적으로 업데이트되었습니다!<br>새 비밀번호로 로그인할 수 있습니다.",

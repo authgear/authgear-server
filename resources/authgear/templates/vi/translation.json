@@ -1138,6 +1138,7 @@
   "v2.page.preview.default.no-login-methods": "Không có phương thức đăng nhập nào được chọn.",
   "v2.page.preview.default.title": "Đây là bản xem trước",
   "v2.page.prompt-create-passkey.default.description": "Với Passkeys, bạn có thể sử dụng vân tay, khuôn mặt hoặc khóa màn hình của mình để xác minh rằng đó thực sự là bạn.",
+  "v2.page.prompt-create-passkey.default.do-not-ask-again": "Đừng hỏi tôi lần nữa",
   "v2.page.prompt-create-passkey.default.skip": "Không phải bây giờ",
   "v2.page.prompt-create-passkey.default.title": "Đơn giản hóa việc đăng nhập của bạn",
   "v2.page.reset-password-success.default.description": "Mật khẩu của bạn đã được cập nhật thành công!<br>Bây giờ bạn có thể đăng nhập bằng mật khẩu mới.",

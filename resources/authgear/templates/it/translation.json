@@ -1138,6 +1138,7 @@
   "v2.page.preview.default.no-login-methods": "Nessun metodo di accesso selezionato.",
   "v2.page.preview.default.title": "Questa è un''anteprima",
   "v2.page.prompt-create-passkey.default.description": "Con i Passkey ora puoi utilizzare la tua impronta digitale, il viso o il blocco dello schermo per verificare che sei davvero tu.",
+  "v2.page.prompt-create-passkey.default.do-not-ask-again": "Non chiedermelo più",
   "v2.page.prompt-create-passkey.default.skip": "Non ora",
   "v2.page.prompt-create-passkey.default.title": "Semplifica il tuo accesso",
   "v2.page.reset-password-success.default.description": "La tua password è stata aggiornata con successo!<br>Ora puoi accedere utilizzando la nuova password.",

@@ -1138,6 +1138,7 @@
   "v2.page.preview.default.no-login-methods": "Nie wybrano metod logowania.",
   "v2.page.preview.default.title": "To jest podgląd",
   "v2.page.prompt-create-passkey.default.description": "Dzięki Passkeys możesz teraz używać odcisku palca, twarzy lub blokady ekranu, aby potwierdzić, że to naprawdę Ty.",
+  "v2.page.prompt-create-passkey.default.do-not-ask-again": "Nie pytaj mnie ponownie",
   "v2.page.prompt-create-passkey.default.skip": "Nie teraz",
   "v2.page.prompt-create-passkey.default.title": "Uproszczenie logowania",
   "v2.page.reset-password-success.default.description": "Twoje hasło zostało pomyślnie zaktualizowane!<br>Możesz teraz zalogować się, używając nowego hasła.",

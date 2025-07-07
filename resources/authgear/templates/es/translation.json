@@ -1138,6 +1138,7 @@
   "v2.page.preview.default.no-login-methods": "No se han seleccionado métodos de inicio de sesión.",
   "v2.page.preview.default.title": "Esta es una vista previa",
   "v2.page.prompt-create-passkey.default.description": "Con Passkey ahora puede usar su huella digital, rostro o bloqueo de pantalla para verificar que realmente es usted.",
+  "v2.page.prompt-create-passkey.default.do-not-ask-again": "No volver a preguntar",
   "v2.page.prompt-create-passkey.default.skip": "Ahora no",
   "v2.page.prompt-create-passkey.default.title": "Simplifica tu inicio de sesión",
   "v2.page.reset-password-success.default.description": "¡Su contraseña se actualizó correctamente!<br>Ahora puede iniciar sesión con la nueva contraseña.",

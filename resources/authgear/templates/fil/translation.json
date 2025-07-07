@@ -1138,6 +1138,7 @@
   "v2.page.preview.default.no-login-methods": "Walang napiling mga paraan ng pag-login.",
   "v2.page.preview.default.title": "Ito ay isang preview",
   "v2.page.prompt-create-passkey.default.description": "Gamit ang Passkeys, maaari mo nang gamitin ang iyong fingerprint, mukha, o screen lock upang i-verify na ikaw talaga ito.",
+  "v2.page.prompt-create-passkey.default.do-not-ask-again": "Huwag na akong tanungin muli",
   "v2.page.prompt-create-passkey.default.skip": "Hindi ngayon",
   "v2.page.prompt-create-passkey.default.title": "Padaliin ang pag-sign in",
   "v2.page.reset-password-success.default.description": "Matagumpay na na-update ang iyong password!<br>Maaari mo na ngayong mag-login gamit ang bagong password.",

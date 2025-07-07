@@ -1138,6 +1138,7 @@
   "v2.page.preview.default.no-login-methods": "ログイン方法が選択されていません。",
   "v2.page.preview.default.title": "これはプレビューです",
   "v2.page.prompt-create-passkey.default.description": "Passkeyを使えば、指紋、顔認証、画面ロックで本人確認できます。",
+  "v2.page.prompt-create-passkey.default.do-not-ask-again": "二度と尋ねないでください",
   "v2.page.prompt-create-passkey.default.skip": "後で",
   "v2.page.prompt-create-passkey.default.title": "ログインを簡単に",
   "v2.page.reset-password-success.default.description": "パスワードを正常に更新しました!<br>新しいパスワードでログインできます。",
