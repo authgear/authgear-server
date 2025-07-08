@@ -211,3 +211,21 @@
     --alignment-content: center; /* center / start / end */
   }
 }
+
+@layer utilities {
+  .typography-headline-small {
+    font-family: var(--typography-headline-small__font-family);
+    font-size: var(--typography-headline-small__font-size);
+    line-height: var(--typography-headline-small__line-height);
+    letter-spacing: var(--typography-headline-small__letter-spacing);
+    font-weight: var(--typography-headline-small__font-weight);
+  }
+
+  .typography-body-large {
+    font-family: var(--typography-body-large__font-family);
+    font-size: var(--typography-body-large__font-size);
+    line-height: var(--typography-body-large__line-height);
+    letter-spacing: var(--typography-body-large__letter-spacing);
+    font-weight: var(--typography-body-large__font-weight);
+  }
+}
