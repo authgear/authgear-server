@@ -256,7 +256,8 @@ export class PhoneInputController extends Controller {
 
   // phoneInputTarget -> countrySelect AND inputTarget.
   handleNumberInput(event: Event): void {
-    const target = event.target;
+    // Use event.currentTarget because this listener is supposed to attach to a HTMLInputElement.
+    const target = event.currentTarget;
     if (target instanceof HTMLInputElement) {
       const value = target.value;
       const [maybeCountry, _remainings] = this.decomposeValue(value);
@@ -264,6 +265,8 @@ export class PhoneInputController extends Controller {
         this.setCountrySelectValue(maybeCountry);
       }
       this.updateValue();
+    } else {
+      throw new Error("expected event.currentTarget to be a HTMLInputElement");
     }
   }
 
