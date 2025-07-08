@@ -1,7 +1,7 @@
 import { Controller } from "@hotwired/stimulus";
 
 function updateMeterDescription(
-  currentMeter: HTMLElement,
+  currentMeter: Element,
   currentMeterDescription: HTMLElement
 ) {
   const ariaValueNow = currentMeter.getAttribute("aria-valuenow");
@@ -38,8 +38,6 @@ export class PasswordStrengthMeterController extends Controller {
 
   update() {
     const element = this.element;
-    if (element instanceof HTMLElement) {
-      updateMeterDescription(element, this.currentMeterDescriptionTarget);
-    }
+    updateMeterDescription(element, this.currentMeterDescriptionTarget);
   }
 }
