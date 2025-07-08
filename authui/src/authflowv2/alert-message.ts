@@ -1,6 +1,7 @@
 import { Controller } from "@hotwired/stimulus";
 
 export function handleAxiosError(e: unknown) {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
   const err = e as any;
   if (err.response != null) {
     setErrorMessage("data-server-error-message");
@@ -33,6 +34,7 @@ export class AlertMessageController extends Controller {
 
   updateMessage = (e: Event) => {
     const errorMessage = this.element.getAttribute(
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
       (e as CustomEvent).detail.id
     );
     if (errorMessage != null) {

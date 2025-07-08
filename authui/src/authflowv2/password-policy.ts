@@ -158,8 +158,12 @@ export class PasswordPolicyController extends Controller {
     const violatedPolicies: PasswordPolicyName[] = [];
     // eslint-disable-next-line sonarjs/cognitive-complexity,complexity
     this.policyTargets.forEach((e) => {
-      switch (e.getAttribute("data-password-policy-name")) {
-        case PasswordPolicyName.Strength:
+      const name = e.getAttribute("data-password-policy-name");
+      if (name == null) {
+        return;
+      }
+      switch (name) {
+        case PasswordPolicyName.Strength as string:
           if (this.hasCurrentMeterTarget) {
             const result = checkPasswordStrength(
               value,
@@ -171,42 +175,42 @@ export class PasswordPolicyController extends Controller {
             }
           }
           break;
-        case PasswordPolicyName.Length: {
+        case PasswordPolicyName.Length as string: {
           const result = checkPasswordLength(value, e);
           if (result.isViolated) {
             violatedPolicies.push(result.policy);
           }
           break;
         }
-        case PasswordPolicyName.Uppercase: {
+        case PasswordPolicyName.Uppercase as string: {
           const result = checkPasswordUppercase(value, e);
           if (result.isViolated) {
             violatedPolicies.push(result.policy);
           }
           break;
         }
-        case PasswordPolicyName.Lowercase: {
+        case PasswordPolicyName.Lowercase as string: {
           const result = checkPasswordLowercase(value, e);
           if (result.isViolated) {
             violatedPolicies.push(result.policy);
           }
           break;
         }
-        case PasswordPolicyName.Alphabet: {
+        case PasswordPolicyName.Alphabet as string: {
           const result = checkPasswordAlphabet(value, e);
           if (result.isViolated) {
             violatedPolicies.push(result.policy);
           }
           break;
         }
-        case PasswordPolicyName.Digit: {
+        case PasswordPolicyName.Digit as string: {
           const result = checkPasswordDigit(value, e);
           if (result.isViolated) {
             violatedPolicies.push(result.policy);
           }
           break;
         }
-        case PasswordPolicyName.Symbol: {
+        case PasswordPolicyName.Symbol as string: {
           const result = checkPasswordSymbol(value, e);
           if (result.isViolated) {
             violatedPolicies.push(result.policy);

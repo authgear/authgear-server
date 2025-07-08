@@ -176,6 +176,7 @@ export class PhoneInputController extends Controller {
       this.countrySelectTarget,
       "custom-select"
     );
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
     return ctr as CustomSelectController | null;
   }
 
@@ -209,6 +210,7 @@ export class PhoneInputController extends Controller {
       combinedValue = "";
     } else if (countryValue != null) {
       combinedValue = `+${getCountryCallingCode(
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
         countryValue as CountryCode
       )}${rawValue}`;
     }
@@ -254,13 +256,15 @@ export class PhoneInputController extends Controller {
 
   // phoneInputTarget -> countrySelect AND inputTarget.
   handleNumberInput(event: Event): void {
-    const target = event.target as HTMLInputElement;
-    const value = target.value;
-    const [maybeCountry, _remainings] = this.decomposeValue(value);
-    if (maybeCountry) {
-      this.setCountrySelectValue(maybeCountry);
+    const target = event.target;
+    if (target instanceof HTMLInputElement) {
+      const value = target.value;
+      const [maybeCountry, _remainings] = this.decomposeValue(value);
+      if (maybeCountry) {
+        this.setCountrySelectValue(maybeCountry);
+      }
+      this.updateValue();
     }
-    this.updateValue();
   }
 
   // countrySelect -> inputTarget.
@@ -268,7 +272,6 @@ export class PhoneInputController extends Controller {
     this.updateValue();
   }
 
-  // eslint-disable-next-line sonarjs/cognitive-complexity
   private async initPhoneCode() {
     const countryListSources = [
       compileDefaultCountryList,
@@ -298,12 +301,12 @@ export class PhoneInputController extends Controller {
         // 4. Select the first one if countryCode is empty.
 
         const geoIPCountryCode: CountryCode | null =
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
           (document
             .querySelector("meta[name=x-geoip-country-code]")
             ?.getAttribute("content") as CountryCode | undefined) ?? null;
 
         let countryCode: CountryCode | null = null;
-        // eslint-disable-next-line no-useless-assignment
         let inputValue: string = this.phoneInputTarget.value;
 
         if (this.inputTarget.value !== "") {

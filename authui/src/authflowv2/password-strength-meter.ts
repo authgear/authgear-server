@@ -37,9 +37,9 @@ export class PasswordStrengthMeterController extends Controller {
   }
 
   update() {
-    updateMeterDescription(
-      this.element as HTMLElement,
-      this.currentMeterDescriptionTarget
-    );
+    const element = this.element;
+    if (element instanceof HTMLElement) {
+      updateMeterDescription(element, this.currentMeterDescriptionTarget);
+    }
   }
 }

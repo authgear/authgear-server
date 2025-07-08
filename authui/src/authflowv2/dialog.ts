@@ -75,7 +75,10 @@ export class DialogController extends Controller {
       return;
     }
     this.element.classList.add("open");
-    (document.activeElement as HTMLElement | null)?.blur();
+    const activeElement = document.activeElement;
+    if (activeElement instanceof HTMLElement) {
+      activeElement.blur();
+    }
   };
 
   private closeFromEvent = (e: Event) => {
@@ -98,19 +101,20 @@ export class DialogController extends Controller {
   }
 
   openStart = (e: Event) => {
-    const isVisibilityEvent =
-      (e as TransitionEvent).propertyName === "visibility";
-    if (isVisibilityEvent && this.isOpened) {
-      dispatchDialogOpenStart(this.element.id);
+    if (e instanceof TransitionEvent) {
+      const isVisibilityEvent = e.propertyName === "visibility";
+      if (isVisibilityEvent && this.isOpened) {
+        dispatchDialogOpenStart(this.element.id);
+      }
     }
   };
 
   closeEnd = (e: Event) => {
-    const isVisibilityEvent =
-      (e as TransitionEvent).propertyName === "visibility";
-
-    if (isVisibilityEvent && this.isClosed) {
-      dispatchDialogCloseEnd(this.element.id);
+    if (e instanceof TransitionEvent) {
+      const isVisibilityEvent = e.propertyName === "visibility";
+      if (isVisibilityEvent && this.isClosed) {
+        dispatchDialogCloseEnd(this.element.id);
+      }
     }
   };
 

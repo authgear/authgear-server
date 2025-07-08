@@ -73,8 +73,10 @@ export class OtpInputController extends Controller {
   };
 
   handleInput = (event: Event): void => {
-    const input = event.target as HTMLInputElement;
-    this._setValue(input.value);
+    const input = event.target;
+    if (input instanceof HTMLInputElement) {
+      this._setValue(input.value);
+    }
   };
 
   handlePaste = (event: ClipboardEvent): void => {
@@ -86,9 +88,11 @@ export class OtpInputController extends Controller {
   };
 
   handleFocus = (event: FocusEvent): void => {
-    const input = event.target as HTMLInputElement;
-    input.setSelectionRange(input.value.length, input.value.length);
-    this.render();
+    const input = event.target;
+    if (input instanceof HTMLInputElement) {
+      input.setSelectionRange(input.value.length, input.value.length);
+      this.render();
+    }
   };
 
   handleBlur = (): void => {

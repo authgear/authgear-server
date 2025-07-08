@@ -208,12 +208,14 @@ export class FormatInputDateController extends Controller {
       return;
     }
 
-    const dateSpan = this.element as HTMLSpanElement;
-    const rfc3339 = this.dateValue;
-    if (rfc3339 !== "") {
-      const jsDate = new Date(rfc3339);
-      if (!isNaN(jsDate.getTime())) {
-        dateSpan.textContent = new Intl.DateTimeFormat().format(jsDate);
+    const dateSpan = this.element;
+    if (dateSpan instanceof HTMLSpanElement) {
+      const rfc3339 = this.dateValue;
+      if (rfc3339 !== "") {
+        const jsDate = new Date(rfc3339);
+        if (!isNaN(jsDate.getTime())) {
+          dateSpan.textContent = new Intl.DateTimeFormat().format(jsDate);
+        }
       }
     }
   }
