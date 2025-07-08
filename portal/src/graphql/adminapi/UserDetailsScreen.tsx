@@ -134,6 +134,7 @@ function makeCustomAttributesState(
     if (unknownValue == null) {
       state[c.pointer] = "";
     } else {
+      // eslint-disable-next-line @typescript-eslint/no-base-to-string
       state[c.pointer] = String(unknownValue);
     }
 
@@ -141,6 +142,7 @@ function makeCustomAttributesState(
       if (unknownValue == null) {
         state["phone_number" + c.pointer] = "";
       } else {
+        // eslint-disable-next-line @typescript-eslint/no-base-to-string
         state["phone_number" + c.pointer] = String(unknownValue);
       }
     }

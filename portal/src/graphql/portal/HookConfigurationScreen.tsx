@@ -1074,7 +1074,6 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
       [navigate, state.secret]
     );
 
-    // eslint-disable-next-line no-useless-assignment
     const { copyButtonProps, Feedback } = useCopyFeedback({
       textToCopy: state.secret ?? "",
     });
