@@ -230,7 +230,7 @@ function constructFormState(
       secrets.botProtectionProviderSecret?.secretKey ?? null;
     if (providerConfigs[providerType].originalSecretKey != null) {
       providerConfigs[providerType].editingSecretKey =
-        providerConfigs[providerType].originalSecretKey ?? "";
+        providerConfigs[providerType].originalSecretKey;
     }
   }
 

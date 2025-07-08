@@ -43,6 +43,7 @@ const TextField: React.VFC<TextFieldProps> = function TextField(
     },
     stylesProp
   );
+  // @ts-expect-error
   return <FluentUITextField styles={styles} {...rest} />;
 };
 

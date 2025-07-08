@@ -11,15 +11,8 @@ export function validateBorderRadius(
     case "rounded-full":
       return [];
     case "rounded": {
-      const parsed = /^(?<num>[\d.]+)(?<unit>\w{0,})$/.exec(
-        borderRadius.radius
-      );
-      if (
-        // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
-        parsed == null ||
-        parsed.groups == null ||
-        isNaN(Number(parsed.groups["num"]))
-      ) {
+      const parsed = /^([\d.]+)(\w{0,})$/.exec(borderRadius.radius);
+      if (parsed == null || parsed.length < 3 || isNaN(Number(parsed[1]))) {
         return [
           {
             location: location,
@@ -27,10 +20,10 @@ export function validateBorderRadius(
           },
         ];
       }
-      const num = Number(parsed.groups["num"]);
+      const num = Number(parsed[1]);
       if (
-        !["", "px", "em", "rem"].includes(parsed.groups["unit"]) ||
-        (num !== 0 && parsed.groups["unit"] === "")
+        !["", "px", "em", "rem"].includes(parsed[2]) ||
+        (num !== 0 && parsed[2] === "")
       ) {
         return [
           {

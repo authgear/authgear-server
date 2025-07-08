@@ -170,7 +170,7 @@ function EditPictureScreenContent(props: EditPictureScreenContentProps) {
   const picture = user.standardAttributes.picture;
   const pictureIsSet = picture != null && picture !== "";
 
-  const defaultState = useMemo(() => {
+  const defaultState = useMemo<FormState>(() => {
     return {
       picture,
     };
