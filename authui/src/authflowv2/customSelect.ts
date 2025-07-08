@@ -212,8 +212,9 @@ export class CustomSelectController extends Controller {
   }
 
   handleSelect(event: MouseEvent) {
-    const item = event.target;
-    if (item instanceof HTMLLIElement) {
+    // event.currentTarget is used because we want to access the element's dataset
+    const item = event.currentTarget;
+    if (item instanceof HTMLElement) {
       const value = item.dataset.value;
       this._selectValue(value);
     }
@@ -259,6 +260,7 @@ export class CustomSelectController extends Controller {
   };
 
   handleClickOutside = (event: MouseEvent) => {
+    // event.target is used because the event listener is registered on document.
     if (event.target instanceof Node) {
       if (!this.element.contains(event.target)) {
         this.close();
