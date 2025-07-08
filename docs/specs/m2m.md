@@ -17,16 +17,14 @@ It is assumed that the reader has read the above RFCs, or at least have an idea 
 
 ## Use-cases
 
-This section is an overview of how each use-case relevant to M2M looks like.
+This section lists out how each use-case looks like.
 
 To begin the story, let us assume we have
 
 - A company owning the domain `myapp.com`.
-- The Authentication and Authorization server `https://auth.myapp.com`.
-- A pre-registered client with `client_id=mobileapp`.
-- A pre-registered client with `client_id=inventory`.
-- An existing User with ID `johndoe`.
-  - `johndoe` is of Role `onlinestore:admin`.
+- Authgear is `https://auth.myapp.com`.
+- A public client with `client_id=mobileapp`.
+- A confidential client with `client_id=inventory`.
 - A Resource `https://onlinestore.myapp.com` with the following Scopes:
   - `read:orders`
   - `write:orders`
@@ -44,8 +42,11 @@ To begin the story, let us assume we have
   - `read:orders` of `https://inventory.myapp.com`.
   - `write:orders` of `https://inventory.myapp.com`.
   - `delete:orders` of `https://inventory.myapp.com`.
+- An existing User with ID `johndoe`.
+  - `johndoe` is of Role `onlinestore:admin`.
+  - `johndoe` is assigned `read:orders` of `https://inventory.myapp.com`.
 
-### Use-cases: Authentication of end-user, and RBAC authorization of end-user
+### Use-cases: Sign in `johndoe` in `mobileapp` without `resource`
 
 The mobile app `mobileapp` utilizes `OIDC-Core`, which in turn is based on `RFC6749 section-4.1` to authenticate end-users.
 When `johndoe` signs in, `mobileapp` will perform `OIDC-Core` and receive an ID token.
@@ -79,16 +80,10 @@ The `access_token` in the previous authentication of `johndoe` looks like
 }
 ```
 
-You should notice that the `aud` is different.
-For ID token, the `aud` is `mobileapp`.
-For the access token, the `aud` is `https://auth.myapp.com`.
-The access token can be used to access `https://auth.myapp.com/oauth2/userinfo`,
-thus it follows logically that `aud` is `https://auth.myapp.com`.
+- The `aud` of this `access_token` does not include `https://onlinestore.myapp.com`.
+- The `scope` of this `access_token` does not include `read:orders write:orders list:orders`.
 
-The mobile app `mobileapp` allows the authenticated user to manage online store orders.
-This means the `access_token` will be sent to `https://onlinestore.myapp.com`.
-
-At `https://onlinestore.myapp.com`, it validates `access_token` with these rules:
+Before the introduction of Resource and Scope, `https://onlinestore.myapp.com` has to be programmed specifically to accept this `access_token`:
 
 - Check if `access_token` is a JWT.
 - Check if `iss` is `https://auth.myapp.com`.
@@ -97,7 +92,59 @@ At `https://onlinestore.myapp.com`, it validates `access_token` with these rules
 - DO NOT check `aud` is `https://onlinestore.myapp.com`. Instead, check if it includes `https://auth.myapp.com`.
 - Check if `roles` includes `onlinestore:admin`.
 
-### Use-cases: Authentication of client, and OAuth 2.0 scope-based authorization of client
+### Use-cases: Sign in `johndoe` in `mobileapp` with single `resource`
+
+Suppose
+
+- `mobileapp` is associated with `https://onlinestore.myapp.com`, and all the scopes of it.
+- During the Authorization Code Grant, `resource=https://onlinestore.myapp.com`.
+
+This `access_token` is obtained:
+
+```json
+{
+  "iss": "https://auth.myapp.com",
+  "sub": "johndoe",
+  "aud": ["https://auth.myapp.com", "https://onlinestore.myapp.com"],
+  "client_id": "mobileapp",
+  "https://authgear.com/claims/user/roles": ["onlinestore:admin"],
+  "scope": "openid offline_access read:orders write:orders list:orders"
+}
+```
+
+The Resource `https://onlinestore.myapp.com` can now validate the `access_token` with these rules:
+
+- Check if `access_token` is a JWT.
+- Check if `iss` is `https://auth.myapp.com`.
+- Fetch `jwks_uri` from `https://auth.myapp.com/.well-known/openid-configuration`.
+- Verify if the `access_token` is signed by one of the JWK in `jwks_uri`.
+- Check `aud` includes `https:/onlinestore.myapp.com`.
+- Check `scope` includes the necessary scopes.
+
+### Use-cases: Sign in `johndoe` in `mobileapp` with multiple `resource`
+
+Suppose
+
+- `mobileapp` is associated with `https://onlinestore.myapp.com`, and all the scopes of it.
+- `mobileapp` is associated with `https://inventory.myapp.com`, and all the scopes of it.
+- During the Authorization Code Grant, `resource=https://onlinestore.myapp.com&resource=https://inventory.myapp.com`.
+
+This `access_token` is obtained:
+
+```json
+{
+  "iss": "https://auth.myapp.com",
+  "sub": "johndoe",
+  "aud": ["https://auth.myapp.com", "https://onlinestore.myapp.com", "https://inventory.myapp.com"],
+  "client_id": "mobileapp",
+  "https://authgear.com/claims/user/roles": ["onlinestore:admin"],
+  "scope": "openid offline_access read:orders"
+}
+```
+
+Note that the `access_token` is downscoped. See [this for details](#discussion-resource-scope-client-and-downscoping)
+
+### Use-cases: M2M of `inventory` to `https://onlinestore.myapp.com`
 
 In `https://inventory.myapp.com`, there is a daemon process that needs access to `https://onlinestore.myapp.com`.
 In particular, it needs to `read:orders`.
@@ -120,9 +167,8 @@ scope=read:orders
 
 - Check if `grant_type` is supported, and it is `client_credentials`.
 - Authenticate the client by checking `client_id` and `client_secret`.
-- Validate `resource` appear exactly once, and it refers to an existing Resource.
-- Validate `scope` and check if it refers to the valid values as defined in `resource`.
-- Determine whether `client_id` is authorized to access `scope` of `resource`, using its prior knowledge.
+- Validate `resource` refers to an existing Resource, and the Resource is associated with `client_id`.
+- Validate `scope` and check if it refers to the valid values as defined in `resource`, and is associated with `client_id`.
 
 `https://auth.myapp.com` will return an `access_token` like this:
 
@@ -138,18 +184,18 @@ scope=read:orders
 
 If you compare this `access_token` to the `access_token` of the end-user, you will notice:
 
-|             | Description        | `access_token` of end-user                                     | `access_token` of client                                                             |
-| ---         | ---                | ---                                                            | ---                                                                                  |
-| `iss`       | Same               |                                                                |                                                                                      |
-| `sub`       | Different          | The user ID (`johndoe`)                                        | The string concatenation of `client_id_` and the `client_id` (`client_id_inventory`) |
-| `aud`       | Different          | The authentication server (`https://auth.myapp.com`)           | The `resource` parameter (`https://onlinestore.myapp.com`)                           |
-| `client_id` | Different          | The client acting on behalf of an end-user (`mobileapp`)       | The client acting on behalf of itself (`inventory`)                                  |
-| `scope`     | Different          | The access of the `client_id` to `aud` on `sub`. See Remarks 1 | The access of the `client_id` to `aud`. See Remarks 2                                |
-| `roles`     | Present and Absent | The roles of `sub`                                             | Absent because Role-based access control (RBAC) does not apply to clients            |
+|             | Description                      | `access_token` of end-user                                     | `access_token` of client                                                             |
+| ---         | ---                              | ---                                                            | ---                                                                                  |
+| `iss`       | Same value                       |                                                                |                                                                                      |
+| `sub`       | Different value                  | The user ID (`johndoe`)                                        | The string concatenation of `client_id_` and the `client_id` (`client_id_inventory`) |
+| `aud`       | The target audience of the token | The authentication server plus `resource`                      | The `resource` parameter (`https://onlinestore.myapp.com`)                           |
+| `client_id` | Different value                  | The client acting on behalf of an end-user (`mobileapp`)       | The client acting on behalf of itself (`inventory`)                                  |
+| `scope`     | Same meaning                     | The access of the `client_id` to `aud` on `sub`. See Remarks 1 | The access of the `client_id` to `aud` on behalf of `sub`. See Remarks 2             |
+| `roles`     | Present and Absent               | The roles of `sub`                                             | Absent because Role-based access control (RBAC) does not apply to clients            |
 
 Remarks
 
-1. It means that `mobileapp` (`client_id`) has access to the ID token (`openid`), the `refresh_token` (`offline_access`), the information returned by the UserInfo endpoint (`profile email`) of `johndoe` (`sub`).
+1. It means that `mobileapp` (`client_id`) has access to the ID token (`openid`), the `refresh_token` (`offline_access`), the information returned by the UserInfo endpoint (`profile email`) of `johndoe` (`sub`), plus all `scopes` granted by the `sub` (`johndoe`).
 2. It means that `inventory` (`client_id`) has access to `https://onlinestore.myapp.com` (`aud`) limited to `read:orders` (`scope`).
 
 At `https://onlinestore.myapp.com`, it validates this `access_token` with these rules:
@@ -159,25 +205,22 @@ At `https://onlinestore.myapp.com`, it validates this `access_token` with these 
 - Fetch `jwks_uri` from `https://auth.myapp.com/.well-known/openid-configuration`.
 - Verify if the `access_token` is signed by one of the JWK in `jwks_uri`.
 - Check if `aud` is `https://onlinestore.myapp.com`.
-- Check if `scope` is sufficient to access the Resource the `access_token` is trying to access.
+- Check if `scope` is sufficient.
 
 ### Use-cases: Handling of `access_token` in Resources
 
-If we combine handling of `access_token` of end-user, and `access_token` of client, we end up with these rules:
+With the introduction of Resource, Scope, and their association with Client and User,
+
+the handling of `access_token` is now consistent at the Resource.
+
+The Resource **SHOULD** process the `access_token` with these rules:
 
 - Check if `access_token` is a JWT.
 - Check if `iss` is `https://auth.myapp.com`.
 - Fetch `jwks_uri` from `https://auth.myapp.com/.well-known/openid-configuration`.
 - Verify if the `access_token` is signed by one of the JWK in `jwks_uri`.
-- Check `aud`
-  - If `aud` includes `https://auth.myapp.com`, then use RBAC to authorize the access.
-    - This means checking whether `roles` is sufficient.
-  - If `aud` includes `https://onlinestore.myapp.com`, then use `scope` to authorize the access.
-    - This means checking whether `scope` is sufficient.
-
-Now we see clearly that when `RFC6749 section-4.4` is introduced to the system,
-Additional handling has to be added to the Resources.
-We also see that the subtle difference in `aud` has a great impact on the interpretation of the `access_token`.
+- Check `aud` includes `https://onlinestore.myapp.com`.
+- Check `scope` is sufficient.
 
 ## Discussions
 
