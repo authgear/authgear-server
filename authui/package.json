@@ -29,7 +29,7 @@
   "devDependencies": {
     "@jest/globals": "^30.0.4",
     "@oursky/eslint-plugin": "^17.0.0",
-    "@oursky/stylelint-oursky": "^5.1.0",
+    "@oursky/stylelint-oursky": "^6.0.0",
     "@types/cloudflare-turnstile": "^0.2.2",
     "@types/grecaptcha": "3.0.9",
     "@types/luxon": "^3.6.2",
@@ -45,7 +45,7 @@
     "node-html-parser": "^6.1.13",
     "postcss": "8.4.31",
     "prettier": "2.8.8",
-    "stylelint": "^16.14.1",
+    "stylelint": "^16.21.1",
     "tailwindcss": "3.3.5",
     "ts-jest": "^29.4.0",
     "typescript": "^5.8.3",

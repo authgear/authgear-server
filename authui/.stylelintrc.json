@@ -11,6 +11,13 @@
     "no-duplicate-selectors": null,
     "font-family-no-missing-generic-family-keyword": null,
     "media-query-no-invalid": null,
+    "color-function-notation": "modern",
+    "at-rule-no-deprecated": [
+      true,
+      {
+        "ignoreAtRules": ["apply"]
+      }
+    ],
     "at-rule-no-unknown": [
       true,
       {
