@@ -58,7 +58,13 @@ The ID token looks like:
   "sub": "johndoe",
   "aud": ["mobileapp"],
   "https://authgear.com/claims/user/roles": ["onlinestore:admin"],
-  "scope": "openid offline_access profile email"
+  "scope": "openid offline_access profile email",
+  "https://authgear.com/claims/scope_by_aud": [
+    {
+      "aud": "mobileapp",
+      "scope": "openid offline_access profile email"
+    }
+  ]
 }
 ```
 
@@ -76,12 +82,18 @@ The `access_token` in the previous authentication of `johndoe` looks like
   "aud": ["https://auth.myapp.com"],
   "client_id": "mobileapp",
   "https://authgear.com/claims/user/roles": ["onlinestore:admin"],
-  "scope": "openid offline_access"
+  "scope": "openid offline_access",
+  "https://authgear.com/claims/scope_by_aud": [
+    {
+      "aud": "mobileapp",
+      "scope": "openid offline_access"
+    }
+  ]
 }
 ```
 
 - The `aud` of this `access_token` does not include `https://onlinestore.myapp.com`.
-- The `scope` of this `access_token` does not include `read:orders write:orders list:orders`.
+- The `scope` of this `access_token` does not include `read:orders write:orders delete:orders`.
 
 Before the introduction of Resource and Scope, `https://onlinestore.myapp.com` has to be programmed specifically to accept this `access_token`:
 
@@ -108,7 +120,17 @@ This `access_token` is obtained:
   "aud": ["https://auth.myapp.com", "https://onlinestore.myapp.com"],
   "client_id": "mobileapp",
   "https://authgear.com/claims/user/roles": ["onlinestore:admin"],
-  "scope": "openid offline_access read:orders write:orders list:orders"
+  "scope": "openid offline_access read:orders write:orders delete:orders",
+  "https://authgear.com/claims/scope_by_aud": [
+    {
+      "aud": "https://auth.myapp.com",
+      "scope": "openid offline_access"
+    },
+    {
+      "aud": "https://onlinestore.myapp.com",
+      "scope": "read:orders write:orders delete:orders"
+    }
+  ]
 }
 ```
 
@@ -138,7 +160,21 @@ This `access_token` is obtained:
   "aud": ["https://auth.myapp.com", "https://onlinestore.myapp.com", "https://inventory.myapp.com"],
   "client_id": "mobileapp",
   "https://authgear.com/claims/user/roles": ["onlinestore:admin"],
-  "scope": "openid offline_access read:orders"
+  "scope": "openid offline_access read:orders",
+  "https://authgear.com/claims/scope_by_aud": [
+    {
+      "aud": "https://auth.myapp.com",
+      "scope": "openid offline_access"
+    },
+    {
+      "aud": "https://onlinestore.myapp.com",
+      "scope": "read:orders write:orders delete:orders"
+    },
+    {
+      "aud": "https://inventory.myapp.com",
+      "scope": "read:orders"
+    }
+  ]
 }
 ```
 
@@ -178,7 +214,13 @@ scope=read:orders
   "sub": "client_id_inventory",
   "aud": ["https://onlinestore.myapp.com"],
   "client_id": "inventory",
-  "scope": "read:orders"
+  "scope": "read:orders",
+  "https://authgear.com/claims/scope_by_aud": [
+    {
+      "aud": "http://onlinestore.myapp.com",
+      "scope": "read:orders"
+    }
+  ]
 }
 ```
 
@@ -313,7 +355,17 @@ If the developer wants to obtain an `access_token` of `johndoe` like the followi
   "aud": ["https://auth.myapp.com", "https://onlinestore.myapp.com"],
   "client_id": "mobileapp",
   "https://authgear.com/claims/user/roles": ["onlinestore:admin"],
-  "scope": "openid offline_access profile email read:orders write:orders delete:orders"
+  "scope": "openid offline_access profile email read:orders write:orders delete:orders",
+  "https://authgear.com/claims/scope_by_aud": [
+    {
+      "aud": "https://auth.myapp.com",
+      "scope": "openid offline_access profile email"
+    },
+    {
+      "aud": "https://onlinestore.myapp.com",
+      "scope": "read:orders write:orders delete:orders"
+    }
+  ]
 }
 ```
 
@@ -354,12 +406,27 @@ Instead, the resulting `access_token` will be "downscoped" (downscope is a term 
   "aud": ["https://auth.myapp.com", "https://onlinestore.myapp.com", "https://inventory.myapp.com"],
   "client_id": "mobileapp",
   "https://authgear.com/claims/user/roles": ["onlinestore:admin"],
-  "scope": "openid offline_access profile email read:orders"
+  "scope": "openid offline_access profile email read:orders",
+  "https://authgear.com/claims/scope_by_aud": [
+    {
+      "aud": "https://auth.myapp.com",
+      "scope": "openid offline_access"
+    },
+    {
+      "aud": "https://onlinestore.myapp.com",
+      "scope": "read:orders write:orders delete:orders"
+    },
+    {
+      "aud": "https://inventory.myapp.com",
+      "scope": "read:orders"
+    }
+  ]
 }
 ```
 
 If downscoping is unwanted, the developer **MUST**:
 
+- Read `https://authgear.com/claims/scope_by_aud` instead. It is a JSON array of objects. Each object has `aud` and `scope`, which is the `scope` of `client_id` to `aud` on behalf of `sub`.
 - Use unique scope, for example, prepend the Resource URI before the scope, like [what Google does](https://developers.google.com/identity/protocols/oauth2/scopes).
 - Do not mix `resource` that could lead to downscoping. Instead, use Token Exchange to obtain non-ambiguous `access_token`. Or simply use one `access_token` per `resource`.
 
@@ -371,7 +438,13 @@ If downscoping is unwanted, the developer **MUST**:
   "sub": "client_id_inventory",
   "aud": ["https://onlinestore.myapp.com"],
   "client_id": "inventory",
-  "scope": "read:orders write:orders"
+  "scope": "read:orders write:orders",
+  "https://authgear.com/claims/scope_by_aud": [
+    {
+      "aud": "https://onlinestore.myapp.com",
+      "scope": "read:orders write:orders",
+    }
+  ]
 }
 ```
 
@@ -385,7 +458,13 @@ The above `access_token` can `read:orders` **AND** `write:orders` on `https://on
   "sub": "client_id_inventory",
   "aud": ["https://inventory.myapp.com"],
   "client_id": "inventory",
-  "scope": "read:orders"
+  "scope": "read:orders",
+  "https://authgear.com/claims/scope_by_aud": [
+    {
+      "aud": "https://inventory.myapp.com",
+      "scope": "read:orders",
+    }
+  ]
 }
 ```
 
@@ -399,11 +478,22 @@ The above `access_token` can `read:orders` on `https://inventory.myapp.com`.
   "sub": "client_id_inventory",
   "aud": ["https://onlinestore.myapp.com", "https://inventory.myapp.com"],
   "client_id": "inventory",
-  "scope": "read:orders"
+  "scope": "read:orders",
+  "https://authgear.com/claims/scope_by_aud": [
+    {
+      "aud": "https://onlinestore.myapp.com",
+      "scope": "read:orders write:orders",
+    },
+    {
+      "aud": "https://inventory.myapp.com",
+      "scope": "read:orders",
+    }
+  ]
 }
 ```
 
 The above `access_token` is downscoped to `read:orders`.
+The developer **MUST** read `https://authgear.com/claims/scope_by_aud` to get the `scope` by `aud`.
 
 ### Discussion: Resource, Scope, Client, consent
 
@@ -663,7 +753,7 @@ The exchanged token:
   "aud": ["https://onlinestore.myapp.com"],
   "client_id": "inventory",
   "https://authgear.com/claims/user/roles": ["onlinestore:admin"],
-  "scope": "read:orders write:orders list:orders"
+  "scope": "read:orders write:orders delete:orders"
 }
 ```
 
@@ -672,7 +762,7 @@ Note that
 - The `scope` of `subject_token` is `openid offline_access`.
 - The `aud` of `subject_token` is `https://auth.myapp.com`, which is not acceptable by `https://onlinestore.myapp.com`.
 - The `scope` of `actor_token` is `read:orders`, so `https://inventory.myapp.com` does not have admin access on its own.
-- The `scope` of exchanged token is `read:orders write:orders list:orders`. It means that when `https://inventory.myapp.com` acting on behalf of `johndoe`, who is `onlinestore:admin`, has additional `scope` inherit from `sub` (`johndoe`).
+- The `scope` of exchanged token is `read:orders write:orders delete:orders`. It means that when `https://inventory.myapp.com` acting on behalf of `johndoe`, who is `onlinestore:admin`, has additional `scope` inherit from `sub` (`johndoe`).
 
 ### Discussion: (Auth0) Rich Authorization Requests
 
