@@ -40,7 +40,7 @@
     @apply fixed inset-0;
     @apply w-screen h-screen;
     @apply flex;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: rgb(0 0 0 / 0.5);
 
     /* if you change these, change `dialog.ts` too */
     visibility: hidden;
