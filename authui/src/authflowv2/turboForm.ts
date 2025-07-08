@@ -31,7 +31,7 @@ export class TurboFormController extends Controller {
     e.preventDefault();
     const form = e.currentTarget;
     if (!(form instanceof HTMLFormElement)) {
-      return;
+      throw new Error("expected event.currentTarget to be a HTMLFormElement");
     }
 
     if (form.querySelector('[data-turbo="false"]')) {
@@ -47,6 +47,8 @@ export class TurboFormController extends Controller {
     formData.forEach((value, name) => {
       if (typeof value === "string") {
         params.set(name, value);
+      } else {
+        console.error("ignoring non-string value: ", name);
       }
     });
     let loadingButton: HTMLButtonElement | null = null;
