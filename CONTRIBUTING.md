@@ -508,6 +508,47 @@ In case you need to switch to sessionType=cookie, you
 - Use `AUTHGEAR_WEB_SDK_SESSION_TYPE=cookie` in your .env
 - Access the portal at port 8001 or 8011
 
+## Switch to Database config source
+
+1. In your `.env` set these values:
+
+```
+CONFIG_SOURCE_TYPE=database
+CUSTOM_RESOURCE_DIRECTORY=./hack/custom-resources
+```
+
+2. Create a row in `_portal_config_source`:
+
+```sql
+INSERT INTO "public"."_portal_config_source"("id","app_id","created_at","updated_at","data","plan_name")
+VALUES
+('00000000-0000-0000-0000-000000000000','accounts',NOW(),NOW(),'{{ YOUR_DATA }}','free');
+```
+
+Note the `data` column should be obtained by running the following command:
+```
+go run ./cmd/portal internal configsource pack -i ./var
+```
+
+3. Create rows in `_portal_domain`:
+
+```sql
+INSERT INTO "public"."_portal_domain"("id","app_id","created_at","domain","apex_domain","verification_nonce","is_custom")
+VALUES
+(E'accounts.portal.localhost',E'accounts',NOW(),E'accounts.portal.localhost',E'accounts.portal.localhost',E'-',TRUE),
+(E'localhost',E'accounts',NOW(),E'localhost',E'localhost',E'-',FALSE);
+```
+
+4. Create a free plan
+
+```sql
+INSERT INTO "public"."_portal_plan"("id","name","feature_config","created_at","updated_at")
+VALUES
+(E'free',E'free',E'{}',NOW(),NOW());
+```
+
+Restart your server, then it should be running with database config source.
+
 # Storybooks
 
 
