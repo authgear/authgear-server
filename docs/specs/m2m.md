@@ -688,7 +688,18 @@ In Auth0, `RFC6749 section-4.4` is also used to create an `access_token` that ca
 We can implement the same for our Admin API.
 Specifically, we need to introduce an artificial Resource with URI `https://auth.myapp.com/_api/admin`, and define a comprehensive list of scopes that restrict access to the different Resources within the Admin API.
 
-## Changes in data models
+## MVP
+
+In the MVP, we are going to implement M2M only.
+This means
+
+- The table `__auth_oauth_authorization_resource` **IS NOT** added.
+- The `resource` parameter in the Authorization endpoint **IS NOT** implemented.
+- The grant_type `client_credentials` **IS** supported in the Token endpoint.
+- The `resource` parameter and `scope` parameter **ARE** supported when `grant_type=client_credentials`.
+- The relevant CRUD of Resource, Scope, and Client **ARE** supported.
+
+### Changes in data models
 
 Here are the schema of the changes:
 
@@ -760,7 +771,7 @@ CREATE TABLE _auth_oauth_authorization_resource (
 CREATE UNIQUE INDEX _auth_oauth_authorization_resource_unique ON _auth_oauth_authorization_resource USING btree (app_id, client_id, user_id, resource_id, scope_id);
 ```
 
-## Changes in Admin API
+### Changes in Admin API
 
 The changes are mainly the CRUD of Resources and Scopes.
 
@@ -930,12 +941,12 @@ type RemoveScopeFromClientIDPayload {
 }
 ```
 
-## Changes in OAuth 2.0 implementation
+### Changes in OAuth 2.0 implementation
 
 This section describes the protocol-level changes.
 You do not need to read this if you are not interested.
 
-### The request
+#### The request
 
 Per `RFC6749 section-4.4`, the request is sent to the Token endpoint.
 
@@ -956,7 +967,7 @@ scope=scopea+scopeb+scopec
 - `resource`: (Required) The `resource` parameter defined by `RFC8707`. It must appear once and only once.
 - `scope`: (Optional) The `scope` parameter defined by `RFC6749 section-4.4`. It is optional. When it is present, validation is done to ensure it is valid with respect to `resource`.
 
-### The successful response
+#### The successful response
 
 ```json
 {
@@ -972,7 +983,7 @@ scope=scopea+scopeb+scopec
 - `expires_in`: The lifetime in seconds of `access_token`. It follows the configuration of the client.
 - `scope`: The effective scope. It always appear even the original request does not specify `scope`. When the original request does not specify `scope`, the value is all scopes granted to the client.
 
-### The access token
+#### The access token
 
 Header
 ```json
@@ -1013,20 +1024,20 @@ Payload
 > [!NOTE]
 > The value of the `sub` is a string concatenation to mitigate the risk mentioned in https://datatracker.ietf.org/doc/html/rfc9068#section-5
 
-### The error response
+#### The error response
 
 - `invalid_grant`: When `grant_type` is invalid. Actually if the grant_type is, for example, `refresh_token`, the entire different flow is run.
 - `invalid_client`: When `client_id` is invalid, or `client_secret` is invalid.
 - `invalid_resource`: When `resource` is invalid, or it is not granted to `client_id`.
 - `invalid_scope`: When `scope` is invalid with respect to the combination of `client_id` and `resource`. That is, the requested scope of `resource` is not granted to `client_id`.
 
-## Changes in SDKs
+### Changes in SDKs
 
 There is no changes in SDKs.
 The changes are in the Token endpoint,
 which are supposed to be integrated by the developer using HTTP directly.
 
-## Changes in Documentation
+### Changes in Documentation
 
 We will have the following documentation changes:
 
