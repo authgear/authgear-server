@@ -18,8 +18,8 @@
 }
 
 .ToastRoot {
-  box-shadow: hsl(206deg, 22%, 7%, 0.35) 0px 10px 38px -10px,
-    hsl(206deg, 22%, 7%, 0.2) 0px 10px 20px -15px;
+  box-shadow: hsl(206deg 22% 7% / 0.35) 0px 10px 38px -10px,
+    hsl(206deg 22% 7% / 0.2) 0px 10px 20px -15px;
   display: block;
 }
 .ToastRoot[data-state="open"] {

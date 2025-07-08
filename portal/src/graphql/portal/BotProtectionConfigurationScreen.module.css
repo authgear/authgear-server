@@ -55,8 +55,8 @@
 
   /* ref https://res-1.cdn.office.net/files/fabric-cdn-prod_20230815.002/office-ui-fabric-core/11.1.0/css/fabric.css */
   /* .ms-depth-4 */
-  box-shadow: 0 1.6px 3.6px 0 rgba(0, 0, 0, 0.13),
-    0 0.3px 0.9px 0 rgba(0, 0, 0, 0.11);
+  box-shadow: 0 1.6px 3.6px 0 rgb(0 0 0 / 0.13),
+    0 0.3px 0.9px 0 rgb(0 0 0 / 0.11);
 }
 
 .providerCard:disabled {

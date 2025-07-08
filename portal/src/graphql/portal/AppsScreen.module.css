@@ -47,5 +47,6 @@
   margin-bottom: 20px;
   font-size: 22px;
   /* Deprecated but safari does not support "overflow-wrap: break-word;" */
+  /* stylelint-disable-next-line declaration-property-value-keyword-no-deprecated */
   word-break: break-word;
 }
