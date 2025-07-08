@@ -365,20 +365,20 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	userAgentString := deps.ProvideUserAgentString(request)
-	writeHandle := auditdb.NewWriteHandle(pool, databaseEnvironmentConfig, auditDatabaseCredentials, logFactory)
 	auditService := &service.AuditService{
-		RemoteIP:          remoteIP,
-		UserAgentString:   userAgentString,
-		Request:           request,
-		Apps:              appService,
-		Authgear:          authgearConfig,
-		DenoEndpoint:      denoEndpoint,
-		GlobalSQLBuilder:  sqlBuilder,
-		GlobalSQLExecutor: sqlExecutor,
-		GlobalDatabase:    handle,
-		AuditDatabase:     writeHandle,
-		Clock:             clockClock,
-		LoggerFactory:     logFactory,
+		RemoteIP:                  remoteIP,
+		UserAgentString:           userAgentString,
+		Request:                   request,
+		Apps:                      appService,
+		Authgear:                  authgearConfig,
+		Database:                  pool,
+		DatabaseEnvironmentConfig: databaseEnvironmentConfig,
+		DenoEndpoint:              denoEndpoint,
+		GlobalSQLBuilder:          sqlBuilder,
+		GlobalSQLExecutor:         sqlExecutor,
+		GlobalDatabase:            handle,
+		Clock:                     clockClock,
+		LoggerFactory:             logFactory,
 	}
 	posthogCredentials := ProvidePosthogCredential(analyticConfig)
 	posthogHTTPClient := analytic.NewPosthogHTTPClient()
