@@ -1,4 +1,4 @@
-name: Login and skip passkey upsell
+name: Login and skip passkey upselling
 authgear.yaml:
   override: |
     authentication:
@@ -9,7 +9,7 @@ authgear.yaml:
       - password
       - passkey
     ui:
-      allow_opt_out_passkey_upsell: true
+      passkey_upselling_opt_out_enabled: true
 before:
   - type: user_import
     user_import: users.json

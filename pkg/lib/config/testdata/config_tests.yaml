@@ -1367,11 +1367,11 @@ config:
           validation_method: isPossibleNumber
 
 ---
-name: ui-allow-opt-out-passkey-upsell
+name: ui-allow-opt-out-passkey-upselling
 error: null
 config:
   id: test
   http:
     public_origin: http://test
   ui:
-    allow_opt_out_passkey_upsell: true
+    passkey_upselling_opt_out_enabled: true

@@ -30,7 +30,7 @@ type store interface {
 	UpdateAccountStatus(ctx context.Context, userID string, status AccountStatus) error
 	UpdateStandardAttributes(ctx context.Context, userID string, stdAttrs map[string]interface{}) error
 	UpdateCustomAttributes(ctx context.Context, userID string, customAttrs map[string]interface{}) error
-	UpdateOptOutPasskeyUpsell(ctx context.Context, userID string, optout bool) error
+	UpdateOptOutPasskeyUpselling(ctx context.Context, userID string, optout bool) error
 	Delete(ctx context.Context, userID string) error
 	Anonymize(ctx context.Context, userID string) error
 }
@@ -45,7 +45,7 @@ type Store struct {
 var _ store = &Store{}
 
 //nolint:gosec
-const keyOptOutPasskeyUpsell = "opt_out_passkey_upsell"
+const keyOptOutPasskeyUpselling = "opt_out_passkey_upselling"
 
 func (s *Store) Create(ctx context.Context, u *User) (err error) {
 	stdAttrs := u.StandardAttributes
@@ -210,7 +210,7 @@ func (s *Store) scan(scn db.Scanner) (*User, error) {
 			return nil, err
 		}
 	}
-	if v, ok := metadata[keyOptOutPasskeyUpsell].(bool); ok {
+	if v, ok := metadata[keyOptOutPasskeyUpselling].(bool); ok {
 		u.OptOutPasskeyUpsell = v
 	} else {
 		u.OptOutPasskeyUpsell = false
@@ -497,13 +497,13 @@ func (s *Store) UpdateLastIndexedAt(ctx context.Context, userIDs []string, at ti
 	return nil
 }
 
-func (s *Store) UpdateOptOutPasskeyUpsell(ctx context.Context, userID string, optout bool) error {
+func (s *Store) UpdateOptOutPasskeyUpselling(ctx context.Context, userID string, optout bool) error {
 	now := s.Clock.NowUTC()
 
 	builder := s.SQLBuilder.
 		Update(s.SQLBuilder.TableName("_auth_user")).
 		Set("metadata", sq.Expr(
-			fmt.Sprintf("jsonb_set(coalesce(metadata, '{}'::jsonb), '{%s}', ?::jsonb, true)", keyOptOutPasskeyUpsell),
+			fmt.Sprintf("jsonb_set(coalesce(metadata, '{}'::jsonb), '{%s}', ?::jsonb, true)", keyOptOutPasskeyUpselling),
 			optout,
 		)).
 		Set("updated_at", now).

@@ -20,7 +20,7 @@ func (*NodeOptOutPasskeyUpsell) Kind() string {
 func (n *NodeOptOutPasskeyUpsell) GetEffects(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) ([]authflow.Effect, error) {
 	return []authflow.Effect{
 		authflow.RunEffect(func(ctx context.Context, deps *authflow.Dependencies) error {
-			return deps.Users.UpdateOptOutPasskeyUpsell(ctx, n.UserID, true)
+			return deps.Users.UpdateOptOutPasskeyUpselling(ctx, n.UserID, true)
 		}),
 	}, nil
 }

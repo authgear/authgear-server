@@ -1083,7 +1083,8 @@ function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
     forgotPasswordLinkValidPeriodSeconds,
     forgotPasswordCodeValidPeriodSeconds,
     passkeyChecked: passkeyIndex != null && passkeyIndex >= 0,
-    passkeyShowDoNotAskAgain: config.ui?.allow_opt_out_passkey_upsell ?? false,
+    passkeyShowDoNotAskAgain:
+      config.ui?.passkey_upselling_opt_out_enabled ?? false,
     combineSignupLoginFlowChecked:
       config.ui?.signup_login_flow_enabled ?? false,
     lockout: {
@@ -1403,7 +1404,7 @@ function constructConfig(
     config.ui.signup_login_flow_enabled =
       currentState.combineSignupLoginFlowChecked;
 
-    config.ui.allow_opt_out_passkey_upsell =
+    config.ui.passkey_upselling_opt_out_enabled =
       currentState.passkeyShowDoNotAskAgain;
 
     clearEmptyObject(config);

@@ -68,8 +68,8 @@ func (n *NodePromptCreatePasskey) CanReactTo(ctx context.Context, deps *authflow
 		return nil, authflow.ErrEOF
 	}
 
-	// Don't ask for input if user opted out from passkey upsell
-	if deps.Config.UI.AllowOptOutPasskeyUpsell {
+	// Don't ask for input if user opted out from passkey upselling
+	if deps.Config.UI.PasskeyUpsellingOptOutEnabled {
 		user, err := deps.Users.GetRaw(ctx, n.UserID)
 		if err != nil {
 			return nil, err
@@ -87,7 +87,7 @@ func (n *NodePromptCreatePasskey) CanReactTo(ctx context.Context, deps *authflow
 	return &InputSchemaPromptCreatePasskey{
 		JSONPointer:        n.JSONPointer,
 		FlowRootObject:     flowRootObject,
-		AllowDoNotAskAgain: deps.Config.UI.AllowOptOutPasskeyUpsell,
+		AllowDoNotAskAgain: deps.Config.UI.PasskeyUpsellingOptOutEnabled,
 	}, nil
 }
 
@@ -150,7 +150,7 @@ func (n *NodePromptCreatePasskey) ReactTo(ctx context.Context, deps *authflow.De
 func (n *NodePromptCreatePasskey) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
 	return NewNodePromptCreatePasskeyData(NodePromptCreatePasskeyData{
 		CreationOptions:    n.CreationOptions,
-		AllowDoNotAskAgain: deps.Config.UI.AllowOptOutPasskeyUpsell,
+		AllowDoNotAskAgain: deps.Config.UI.PasskeyUpsellingOptOutEnabled,
 	}), nil
 }
 
