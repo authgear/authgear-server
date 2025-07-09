@@ -503,7 +503,7 @@ In case you need to switch to sessionType=cookie, you
 
 ```
 CONFIG_SOURCE_TYPE=database
-CUSTOM_RESOURCE_DIRECTORY=./hack/custom-resources
+CUSTOM_RESOURCE_DIRECTORY=./var
 ```
 
 2. Create a row in `_portal_config_source`:
