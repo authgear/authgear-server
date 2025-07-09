@@ -62,7 +62,7 @@
   --gray-a12: #ffffffee;
 
   --gray-contrast: #ffffff;
-  --gray-surface: rgba(0, 0, 0, 0.05);
+  --gray-surface: rgb(0 0 0 / 0.05);
   --gray-indicator: #6f6f6f;
   --gray-track: #6f6f6f;
 }

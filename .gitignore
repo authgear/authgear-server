@@ -29,6 +29,7 @@ docker-compose-build-cache/
 node_modules/
 .eslintcache
 .stylelintcache
+*.tsbuildinfo
 
 # compiled static files
 resources/authgear/templates/en/web/**/__generated_asset.html

@@ -8,5 +8,6 @@ describe("generateLabel", () => {
     expect(generateLabel("foobar")).toEqual("Foobar");
     expect(generateLabel("a_to_b")).toEqual("A to B");
     expect(generateLabel("a_b_c_d")).toEqual("A B C D");
+    expect(generateLabel("a_b_🙂_d")).toEqual("A B 🙂 D");
   });
 });

@@ -67,6 +67,7 @@ export function parseRawError(error: unknown): APIError[] {
     errors.push({
       reason: "Unknown",
       errorName: "Unknown",
+      // eslint-disable-next-line @typescript-eslint/no-base-to-string
       message: String(error),
     });
   }

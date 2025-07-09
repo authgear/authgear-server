@@ -32,6 +32,7 @@ tls-key.pem
 **/.vscode
 **/.eslintcache
 **/.stylelintcache
+**/*.tsbuildinfo
 
 # Ignore generated credentials from google-github-actions/auth
 # See https://github.com/google-github-actions/auth?tab=readme-ov-file#prerequisites

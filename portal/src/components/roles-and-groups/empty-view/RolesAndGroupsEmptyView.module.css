@@ -5,9 +5,9 @@
 
 .icon {
   @apply grid;
-  /* stylelint-disable-next-line number-leading-zero */
+  /* stylelint-disable-next-line number-leading-zero,declaration-property-value-no-unknown */
   grid-template-rows: theme(spacing.16);
-  /* stylelint-disable-next-line number-leading-zero */
+  /* stylelint-disable-next-line number-leading-zero,declaration-property-value-no-unknown */
   grid-template-columns: theme(spacing.16);
 }
 

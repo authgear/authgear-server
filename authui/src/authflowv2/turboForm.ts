@@ -1,6 +1,6 @@
 import { visit, cache } from "@hotwired/turbo";
 import { Controller } from "@hotwired/stimulus";
-import axios, { Method } from "axios";
+import axios from "axios";
 import { progressEventHandler } from "../loading";
 import { LoadingController } from "./loading";
 import { handleAxiosError } from "./alert-message";
@@ -29,7 +29,10 @@ export class TurboFormController extends Controller {
   // eslint-disable-next-line complexity
   async submitForm(e: Event) {
     e.preventDefault();
-    const form = e.currentTarget as HTMLFormElement;
+    const form = e.currentTarget;
+    if (!(form instanceof HTMLFormElement)) {
+      throw new Error("expected event.currentTarget to be a HTMLFormElement");
+    }
 
     if (form.querySelector('[data-turbo="false"]')) {
       return;
@@ -42,13 +45,18 @@ export class TurboFormController extends Controller {
 
     const params = new URLSearchParams();
     formData.forEach((value, name) => {
-      params.set(name, value as string);
+      if (typeof value === "string") {
+        params.set(name, value);
+      } else {
+        console.error("ignoring non-string value: ", name);
+      }
     });
     let loadingButton: HTMLButtonElement | null = null;
     // FormData does not include any submit button's data:
     // include them manually, since we have at most one submit button per form.
     const submitButtons = form.querySelectorAll('button[type="submit"]');
     for (let i = 0; i < submitButtons.length; i++) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
       const button = submitButtons[i] as HTMLButtonElement;
       params.set(button.name, button.value);
       loadingButton = button;
@@ -58,12 +66,14 @@ export class TurboFormController extends Controller {
         `button[type="submit"][form="${form.id}"]`
       );
       if (el) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
         const button = el as HTMLButtonElement;
         params.set(button.name, button.value);
         loadingButton = button;
       }
     }
     const loadingController: LoadingController | null =
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
       this.application.getControllerForElementAndIdentifier(
         document.body,
         "loading"
@@ -72,7 +82,7 @@ export class TurboFormController extends Controller {
       loadingController?.startLoading(loadingButton) ?? {};
     try {
       const resp = await axios(form.action, {
-        method: form.method as Method,
+        method: form.method,
         headers: {
           "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
           "X-Authgear-XHR": "true",

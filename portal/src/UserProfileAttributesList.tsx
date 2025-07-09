@@ -116,8 +116,8 @@ function atMost(
   return undefined;
 }
 
-function makeUpdate<T extends UserProfileAttributesListItem>(
-  prevItems: T[],
+function makeUpdate(
+  prevItems: UserProfileAttributesListItem[],
   index: number,
   key: keyof UserProfileAttributesAccessControl,
   newValue: AccessControlLevelString

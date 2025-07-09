@@ -27,7 +27,7 @@ export function getThemeTargetSelector(theme: Theme): ThemeTargetSelector {
   }
 }
 
-export function selectByTheme<T>(option: { [t in Theme]: T }, theme: Theme): T {
+export function selectByTheme<T>(option: Record<Theme, T>, theme: Theme): T {
   return option[theme];
 }
 

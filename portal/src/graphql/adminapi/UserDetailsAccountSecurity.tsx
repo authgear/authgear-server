@@ -131,17 +131,17 @@ interface Add2FAMenuItem extends IContextualMenuItem {
 
 const LABEL_PLACEHOLDER = "---";
 
-const primaryAuthenticatorTypeLocaleKeyMap: {
-  [key in AuthenticatorType]?: string;
-} = {
+const primaryAuthenticatorTypeLocaleKeyMap: Partial<
+  Record<AuthenticatorType, string>
+> = {
   PASSWORD: "AuthenticatorType.primary.password",
   OOB_OTP_EMAIL: "AuthenticatorType.primary.oob-otp-email",
   OOB_OTP_SMS: "AuthenticatorType.primary.oob-otp-phone",
 };
 
-const secondaryAuthenticatorTypeLocaleKeyMap: {
-  [key in AuthenticatorType]?: string;
-} = {
+const secondaryAuthenticatorTypeLocaleKeyMap: Partial<
+  Record<AuthenticatorType, string>
+> = {
   PASSWORD: "AuthenticatorType.secondary.password",
   TOTP: "AuthenticatorType.secondary.totp",
   OOB_OTP_EMAIL: "AuthenticatorType.secondary.oob-otp-email",

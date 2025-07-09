@@ -73,7 +73,19 @@ export default [
           ],
         },
       ],
+      // We have some places to Boolean(b1 operator b2) to work around react/jsx-* rule
+      // So allow it.
+      "@typescript-eslint/no-unnecessary-type-conversion": "off",
       "@typescript-eslint/no-unsafe-enum-comparison": "off",
+      // If this is turned on, we have over 300 errors. So it is turned off.
+      "@typescript-eslint/no-unsafe-type-assertion": "off",
+      // We have many places using default for the exhaustive checking. So allow it.
+      "@typescript-eslint/switch-exhaustiveness-check": [
+        "error",
+        {
+          considerDefaultExhaustiveForUnions: true,
+        },
+      ],
       "@typescript-eslint/use-unknown-in-catch-callback-variable": "off",
       "@typescript-eslint/no-floating-promises": "off",
       "@typescript-eslint/no-misused-promises": [

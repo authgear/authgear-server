@@ -36,7 +36,11 @@ function titlecase(word: string, index: number, length: number): string {
   }
 
   if (shouldCapitalize) {
-    const chars = [...lowercase];
+    const chars = [];
+    // Use for-of loop to correctly handle UTF-16 surrogate pairs.
+    for (const ch of lowercase) {
+      chars.push(ch);
+    }
     chars[0] = chars[0].toUpperCase();
     return chars.join("");
   }

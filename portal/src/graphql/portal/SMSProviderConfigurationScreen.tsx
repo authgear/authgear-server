@@ -1453,7 +1453,6 @@ function WebhookForm({
     [form]
   );
 
-  // eslint-disable-next-line no-useless-assignment
   const { copyButtonProps, Feedback: CopyFeedbackComponent } = useCopyFeedback({
     textToCopy: form.state.webhookSecretKey ?? "",
   });

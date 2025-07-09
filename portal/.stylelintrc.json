@@ -9,10 +9,17 @@
       }
     ],
     "oursky/flex": null,
+    "color-function-notation": "modern",
     "selector-pseudo-class-no-unknown": [
       true,
       {
         "ignorePseudoClasses": ["global"]
+      }
+    ],
+    "at-rule-no-deprecated": [
+      true,
+      {
+        "ignoreAtRules": ["apply"]
       }
     ],
     "at-rule-no-unknown": [

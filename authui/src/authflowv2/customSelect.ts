@@ -212,11 +212,12 @@ export class CustomSelectController extends Controller {
   }
 
   handleSelect(event: MouseEvent) {
-    const item = event.target as HTMLLIElement | undefined;
-    if (!item) return;
-
-    const value = item.dataset.value;
-    this._selectValue(value);
+    // event.currentTarget is used because we want to access the element's dataset
+    const item = event.currentTarget;
+    if (item instanceof HTMLElement) {
+      const value = item.dataset.value;
+      this._selectValue(value);
+    }
   }
 
   // eslint-disable-next-line complexity
@@ -259,8 +260,11 @@ export class CustomSelectController extends Controller {
   };
 
   handleClickOutside = (event: MouseEvent) => {
-    if (!this.element.contains(event.target as Node)) {
-      this.close();
+    // event.target is used because the event listener is registered on document.
+    if (event.target instanceof Node) {
+      if (!this.element.contains(event.target)) {
+        this.close();
+      }
     }
   };
 
@@ -320,24 +324,21 @@ export class CustomSelectController extends Controller {
       (this.hasSearchTarget ? this.searchTarget.offsetHeight : 0);
 
     let scrollPosition: number | undefined;
-
-    switch (true) {
-      case container.firstElementChild === item:
-        scrollPosition = 0;
-        break;
-      case container.lastElementChild === item:
-        scrollPosition = container.scrollHeight;
-        break;
-      case itemPosition < container.scrollTop + padding - containerPadding:
-        scrollPosition = itemPosition - padding;
-        break;
-      case itemPosition + item.offsetHeight + padding >
-        container.scrollTop + container.offsetHeight - containerPadding:
-        scrollPosition =
-          itemPosition + item.offsetHeight + padding - container.offsetHeight;
-        break;
-      default:
-        break;
+    if (container.firstElementChild === item) {
+      scrollPosition = 0;
+    } else if (container.lastElementChild === item) {
+      scrollPosition = container.scrollHeight;
+    } else if (
+      itemPosition <
+      container.scrollTop + padding - containerPadding
+    ) {
+      scrollPosition = itemPosition - padding;
+    } else if (
+      itemPosition + item.offsetHeight + padding >
+      container.scrollTop + container.offsetHeight - containerPadding
+    ) {
+      scrollPosition =
+        itemPosition + item.offsetHeight + padding - container.offsetHeight;
     }
 
     if (scrollPosition !== undefined) {

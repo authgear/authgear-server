@@ -106,7 +106,7 @@ const IdentityForm: React.VFC<IdentityFormProps> = function IdentityForm(
     rawUser,
     loginIDType,
     title,
-    // eslint-disable-next-line no-useless-assignment
+
     loginIDField: LoginIDField,
     onReset,
   } = props;

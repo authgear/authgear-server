@@ -208,7 +208,7 @@ export class FormatInputDateController extends Controller {
       return;
     }
 
-    const dateSpan = this.element as HTMLSpanElement;
+    const dateSpan = this.element;
     const rfc3339 = this.dateValue;
     if (rfc3339 !== "") {
       const jsDate = new Date(rfc3339);

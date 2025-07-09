@@ -73,8 +73,13 @@ export class OtpInputController extends Controller {
   };
 
   handleInput = (event: Event): void => {
-    const input = event.target as HTMLInputElement;
-    this._setValue(input.value);
+    // Use event.currentTarget because this listener is supposed to attach to HTMLInputElement.
+    const input = event.currentTarget;
+    if (input instanceof HTMLInputElement) {
+      this._setValue(input.value);
+    } else {
+      throw new Error("expected event.currentTarget to be HTMLInputElement");
+    }
   };
 
   handlePaste = (event: ClipboardEvent): void => {
@@ -86,9 +91,14 @@ export class OtpInputController extends Controller {
   };
 
   handleFocus = (event: FocusEvent): void => {
-    const input = event.target as HTMLInputElement;
-    input.setSelectionRange(input.value.length, input.value.length);
-    this.render();
+    // Use event.currentTarget because this listener is supposed to attach to HTMLInputElement.
+    const input = event.currentTarget;
+    if (input instanceof HTMLInputElement) {
+      input.setSelectionRange(input.value.length, input.value.length);
+      this.render();
+    } else {
+      throw new Error("expected event.currentTarget to be HTMLInputElement");
+    }
   };
 
   handleBlur = (): void => {
