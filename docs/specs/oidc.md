@@ -88,6 +88,8 @@ Refresh token is not used.
 - `https://authgear.com/scopes/full-access`: Full access scope allows access to privileged user operations. Only [first-party public clients](#first-party-public-clients) can request this scope.
 - `https://authgear.com/scopes/full-userinfo`: Returns the complete userinfo in the id_token or through the userinfo endpoint.
 
+When `scope` is unspecified, `scope` has no default values.
+
 ### response_type
 
 - `none`: Nothing is included in the authentication response.
