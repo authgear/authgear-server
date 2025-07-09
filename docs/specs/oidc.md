@@ -231,7 +231,8 @@ Present only if authorized scopes contain `offline_access`.
 
 ### scope
 
-It is always absent.
+It is always present.
+It is the actual scope granted to the client on `aud` on behalf of `sub`.
 
 ## The metadata endpoint
 

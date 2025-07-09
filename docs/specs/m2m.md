@@ -1071,7 +1071,7 @@ scope=scopea+scopeb+scopec
 - `access_token`: a JWT access token conforming to `RFC9068`.
 - `token_type`: The only value is `bearer` at the moment.
 - `expires_in`: The lifetime in seconds of `access_token`. It follows the configuration of the client.
-- `scope`: The effective scope. It always appear even the original request does not specify `scope`. When the original request does not specify `scope`, the value is all scopes granted to the client.
+- `scope`: Per `RFC6749 section3.3`, it is the actual scope granted to the client. Before, M2M, it never appears in the Token Response. After the introduction of M2M, it always appear, even if the actual scope is the same as the requested scope. When the original request does not specify `scope`, the value is all scopes granted to the client. Note that `scope` also appears when `grant_type=authorization_code`.
 
 #### The access token
 
