@@ -21,6 +21,7 @@
     * [Configure Authgear](#configure-authgear)
     * [Start with the profile ldap](#start-with-the-profile-ldap)
   * [Switching between sessionType=refresh\_token and sessionType=cookie](#switching-between-sessiontyperefresh_token-and-sessiontypecookie)
+  * [Switch to Database config source](#switch-to-database-config-source)
 * [Storybooks](#storybooks)
 
 # Contributing guide
@@ -199,11 +200,6 @@ use flake
    go run ./cmd/portal database migrate up
    ```
 
-3. Create the project in the database
-
-   ```sh
-   go run ./cmd/portal internal configsource create ./var
-   ```
 
 ## Set up MinIO
 
@@ -512,15 +508,8 @@ CUSTOM_RESOURCE_DIRECTORY=./hack/custom-resources
 
 2. Create a row in `_portal_config_source`:
 
-```sql
-INSERT INTO "public"."_portal_config_source"("id","app_id","created_at","updated_at","data","plan_name")
-VALUES
-('00000000-0000-0000-0000-000000000000','accounts',NOW(),NOW(),'{{ YOUR_DATA }}','free');
-```
-
-Note the `data` column should be obtained by running the following command:
-```
-go run ./cmd/portal internal configsource pack -i ./var
+```sh
+go run ./cmd/portal internal configsource create ./var
 ```
 
 3. Create domains for `accounts`:
@@ -535,6 +524,8 @@ go run ./cmd/portal internal domain create-custom accounts --apex-domain="localh
 ```
 
 4. Create a free plan
+
+This is needed if you want to create new projects.
 
 ```sql
 INSERT INTO "public"."_portal_plan"("id","name","feature_config","created_at","updated_at")
