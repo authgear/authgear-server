@@ -1,6 +1,6 @@
 -- +migrate Up
 
-ALTER TABLE _auth_user ADD COLUMN metadata jsonb NOT NULL DEFAULT '{}'::jsonb;
+ALTER TABLE _auth_user ADD COLUMN metadata jsonb NULL;
 
 -- +migrate Down
 

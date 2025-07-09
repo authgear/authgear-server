@@ -503,7 +503,7 @@ func (s *Store) UpdateOptOutPasskeyUpsell(ctx context.Context, userID string, op
 	builder := s.SQLBuilder.
 		Update(s.SQLBuilder.TableName("_auth_user")).
 		Set("metadata", sq.Expr(
-			fmt.Sprintf("jsonb_set(metadata, '{%s}', ?::jsonb, true)", keyOptOutPasskeyUpsell),
+			fmt.Sprintf("jsonb_set(coalesce(metadata, '{}'::jsonb), '{%s}', ?::jsonb, true)", keyOptOutPasskeyUpsell),
 			optout,
 		)).
 		Set("updated_at", now).
