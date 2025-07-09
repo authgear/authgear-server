@@ -2,6 +2,12 @@
 
 This document is [./00-index.md](./00-index.md)
 
+For an introduction to Organization and their use-cases, read
+
+- https://auth0.com/docs/get-started/architecture-scenarios/multiple-organization-architecture
+- https://auth0.com/docs/get-started/architecture-scenarios/multiple-organization-architecture/single-identity-provider-organizations
+- https://auth0.com/docs/get-started/architecture-scenarios/multiple-organization-architecture/multiple-idp-orgs
+
 For a quick comparison of competitors, read [./01-comparison.md](./01-comparison.md)
 
 Read the following documents for detailed study on each competitor
