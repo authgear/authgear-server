@@ -29,46 +29,21 @@ data-light-theme-enabled="{{ $.LightThemeEnabled }}">
 <!-- Stale page is still available for navigating back -->
 <meta name="turbo-cache-control" content="no-preview">
 
-{{ template "__generated_asset.html" . }}
+{{ template "authflowv2/__generated_asset.html" . }}
 
 </head>
 
-<body
-class="page"
-data-controller="prevent-double-tap modal simple-modal xhr-submit-form"
-data-action="dblclick->prevent-double-tap#action">
-
-{{ template "__message_bar.html" . }}
-<div id="loading-progress-bar"></div>
-{{ template "__tutorial.html" . }}
-<div class="max-w-360 m-auto">
-<div class="grid grid-cols-6 tablet:grid-cols-12 desktop:grid-cols-12 gap-x-4 auto-rows-auto mx-4 tablet:mx-4 desktop:mx-6 mb-8">
-<div class="col-start-1 col-span-6 tablet:col-start-4 tablet:col-span-6 desktop:col-start-5 desktop:col-span-4">
-<div class="page-header">
-
-<div class="banner-wrapper">
-<div class="banner-frame">
-<img class="banner" src="{{ call $.GeneratedStaticAssetURL "app_logo.png" }}">
-</div>
-</div>
-
-</div>
-</div>
-<div class="col-start-1 col-span-6 tablet:col-start-4 tablet:col-span-6 desktop:col-start-5 desktop:col-span-4 twc-container-vertical">
-<div class="primary-txt pane twc-container-vertical pt-8 pb-5 px-6 tablet:px-8 desktop:px-8">
-
-<h2 class="primary-txt text-center m-0 text-xl font-bold">
-{{ template "error-app-not-found" (dict "host" $.HTTPHost) }}
-</h2>
-<a class="as-btn not-a btn primary-btn my-5" href="https://authgear.com" data-turbo="false">
-{{ template "error-app-not-found-action" }}
-</a>
-
-{{ template "__watermark.html" . }}
-</div>
-</div>
-</div>
-</div>
-{{ template "__modal.html" }}
+<body class="flex flex-col items-center text-center p-8">
+  <img
+    class="object-contain w-47 mb-16"
+    src="{{ call $.GeneratedStaticAssetURL "ag_brand_logo.svg" }}"
+  />
+  <i class="material-icons text-[3rem] text-[var(--color-primary-theme-primary)] mb-4">warning</i>
+  <h1 class="typography-headline-small mb-2 text-[var(--color-neutral-700)]">{{ include "v2.page.app-not-found.default.title" nil }}</h1>
+  <p class="typography-body-large mb-8 text-[var(--color-neutral-400)]">{{ include "v2.page.app-not-found.detault.description" nil }}</p>
+  <div class="w-64 grid grid-flow-row gap-4">
+    <a href="https://www.authgear.com/" class="primary-btn w-full">{{ include "v2.page.app-not-found.detault.go-to-homepage" nil }}</a>
+    <a href="https://github.com/orgs/authgear/discussions/categories/get-help" class="label-btn w-full">{{ include "v2.page.app-not-found.detault.contact-support" nil }}</a>
+  </div>
 </body>
 </html>
