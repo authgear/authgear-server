@@ -205,13 +205,6 @@ use flake
    go run ./cmd/portal internal configsource create ./var
    ```
 
-3. Add domain
-
-   ```sh
-   go run ./cmd/portal internal domain create-default --default-domain-suffix ".localhost"
-   go run ./cmd/portal internal domain create-custom accounts --apex-domain="accounts.portal.localhost" --domain="accounts.portal.localhost"
-   ```
-
 ## Set up MinIO
 
 ```sh
@@ -530,13 +523,15 @@ Note the `data` column should be obtained by running the following command:
 go run ./cmd/portal internal configsource pack -i ./var
 ```
 
-3. Create rows in `_portal_domain`:
+3. Create domains for `accounts`:
 
-```sql
-INSERT INTO "public"."_portal_domain"("id","app_id","created_at","domain","apex_domain","verification_nonce","is_custom")
-VALUES
-(E'accounts.portal.localhost',E'accounts',NOW(),E'accounts.portal.localhost',E'accounts.portal.localhost',E'-',TRUE),
-(E'localhost',E'accounts',NOW(),E'localhost',E'localhost',E'-',FALSE);
+```sh
+# This allows portal to access the admin api with accounts.localhost
+go run ./cmd/portal internal domain create-default --default-domain-suffix ".localhost"
+# This allows using accounts.portal.localhost:3100
+go run ./cmd/portal internal domain create-custom accounts --apex-domain="accounts.portal.localhost" --domain="accounts.portal.localhost"
+# This allows using localhost:3100
+go run ./cmd/portal internal domain create-custom accounts --apex-domain="localhost" --domain="localhost"
 ```
 
 4. Create a free plan
