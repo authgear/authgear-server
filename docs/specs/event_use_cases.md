@@ -30,7 +30,7 @@ For example, if you want to allow only users in Hong Kong to use your app:
 ```typescript
 export default async function (
   e: EventAuthenticationPostIdentified
-): Promise<EventAuthenticationPostIdentifiedResponse> {
+): Promise<EventAuthenticationPostIdentifiedHookResponse> {
   if (e.context.geo_location_code === "HK") {
     return {
       is_allowed: true,
@@ -52,16 +52,18 @@ For example, if you want to allow only users with role `sales` to access the app
 ```typescript
 export default async function (
   e: EventAuthenticationPostIdentified
-): Promise<EventAuthenticationPostIdentifiedResponse> {
+): Promise<EventAuthenticationPostIdentifiedHookResponse> {
   if (
     e.context.client_id === "c8da9b322e1f494e" &&
-    ["login", "signup"].contains(e.context.authentication_flow?.type)
+    e.payload.authentication_context?.authentication_flow?.type != null &&
+    ["login", "signup"].includes(e.payload.authentication_context?.authentication_flow?.type)
   ) {
-    if (e.user.roles.contains("sales")) {
+    const user = e.payload.authentication_context.user
+    if (user?.roles?.includes("sales")) {
       return {
         is_allowed: true,
       };
-    } else if (e.user.custom_attributes.can_access_crm === "true") {
+    } else if (user?.custom_attributes?.can_access_crm === "true") {
       // Alternatively, use custom_attributes to determine if the user is allowed to access the app
       return {
         is_allowed: true,
@@ -88,12 +90,12 @@ For example, if you want to enforce 2FA in the app `hr-system` with client ID `c
 ```typescript
 export default async function (
   e: EventAuthenticationPostIdentified
-): Promise<EventAuthenticationPostIdentifiedResponse> {
+): Promise<EventAuthenticationPostIdentifiedHookResponse> {
   if (
     e.context.client_id === "c8da9b322e1f494e" &&
-    e.context.authentication_flow?.type === "login"
+    e.payload.authentication_context.authentication_flow?.type === "login"
   ) {
-    if (e.context.authentication_flow.name !== "2fa_required_login") {
+    if (e.payload.authentication_context.authentication_flow?.name !== "2fa_required_login") {
       return {
         is_allowed: false,
       };
@@ -119,8 +121,9 @@ For example, you only want user with email domain `@authgear.com` to be able to 
 ```typescript
 export default async function (
   e: EventAuthenticationPostIdentified
-): Promise<EventAuthenticationPostIdentifiedResponse> {
-  if (e.identity.claims?.email?.endsWith("@authgear.com")) {
+): Promise<EventAuthenticationPostIdentifiedHookResponse> {
+  const email = e.payload.identification.identity?.claims?.email
+  if (typeof email === "string" && email.endsWith("@authgear.com")) {
     return {
       is_allowed: true,
     };
@@ -141,7 +144,7 @@ For example, if your business only operate during weekdays, therefore you do not
 ```typescript
 export default async function (
   e: EventAuthenticationPostIdentified
-): Promise<EventAuthenticationPostIdentifiedResponse> {
+): Promise<EventAuthenticationPostIdentifiedHookResponse> {
   const today = new Date();
   // 0 is sunday, and 6 is saturday
   if (today.getDay() === 0 || today.getDay() === 6) {
@@ -166,12 +169,12 @@ For example, you consider logins from outside `HK` is at a higher risk, therefor
 ```typescript
 export default async function (
   e: EventAuthenticationPreAuthenticated
-): Promise<EventAuthenticationPreAuthenticatedResponse> {
+): Promise<EventAuthenticationPreAuthenticatedHookResponse> {
   if (e.context.geo_location_code !== "HK") {
     return {
       // Allow the login with a mfa contraint
       is_allowed: true,
-      contraints: {
+      constraints: {
         amr: ["mfa"],
       },
     };
@@ -183,7 +186,7 @@ export default async function (
 }
 ```
 
-If `contraints.amr` with value `["mfa"]` is returned in the response, depending on where the authentication is triggered, the following behavior applies:
+If `constraints.amr` with value `["mfa"]` is returned in the response, depending on where the authentication is triggered, the following behavior applies:
 
 - Authentication Flow / Auth UI:
   - Signup / Promote: If the user does not have any secondary authenticator setup during the flow, a step will be added at the end of the flow to force user to setup an secondary authenticator. Available authenticators are the enabled authenticators of the project.
@@ -205,8 +208,8 @@ For example, if you want to block users who did not use `mfa` (multi-factor auth
 ```typescript
 export default async function (
   e: EventAuthenticationPreAuthenticated
-): Promise<EventAuthenticationPreAuthenticatedResponse> {
-  if (!e.amr.includes("mfa")) {
+): Promise<EventAuthenticationPreAuthenticatedHookResponse> {
+  if (!e.payload.authentication_context.amr?.includes("mfa")) {
     return {
       is_allowed: false,
     };
@@ -258,7 +261,14 @@ function cidrToPrefix(cidr: string): string {
 
 export default async function (
   e: EventAuthenticationPreInitialize
-): Promise<EventAuthenticationPreInitializeResponse> {
+): Promise<EventAuthenticationPreInitializeHookResponse> {
+  if (e.context.ip_address == null) {
+    // ip unknown, block it.
+    return {
+      is_allowed: false,
+    };
+  }
+
   const ipBinary = ipToBinary(e.context.ip_address);
 
   // ip ranges from https://www.gstatic.com/ipranges/cloud.json
@@ -314,7 +324,7 @@ Then, return `bot_protection.mode` in your `authentication.pre_initialize` hook:
 ```typescript
 export default async function (
   e: EventAuthenticationPreInitialize
-): Promise<EventAuthenticationPreInitializeResponse> {
+): Promise<EventAuthenticationPreInitializeHookResponse> {
   if (e.context.geo_location_code !== "HK") {
     return {
       is_allowed: true,
