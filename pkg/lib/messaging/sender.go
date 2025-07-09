@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
 
 	"github.com/sirupsen/logrus"
 	"gopkg.in/gomail.v2"
@@ -217,6 +218,10 @@ func (s *Sender) sendSMS(ctx context.Context, msgType translation.MessageType, o
 	sendInTx := func(ctx context.Context) error {
 		err = s.SMSSender.Send(ctx, client, *opts)
 		if err != nil {
+			// For some unknown reason, the logs handled by logger are not observed.
+			// Let's log to stderr directly.
+			fmt.Fprintf(os.Stderr, "FAILED TO SEND SMS: (%T) (%#v) %v\n", err, err, err)
+
 			// Log the send error immediately.
 			// TODO: Handle expected errors https://linear.app/authgear/issue/DEV-1139
 			s.Logger.WithError(err).WithFields(logrus.Fields{
