@@ -11,18 +11,28 @@ type Commands struct {
 }
 
 func (c *Commands) CreateResource(ctx context.Context, options *NewResourceOptions) (*model.Resource, error) {
-	// TODO: implement
-	return nil, nil
+	resource := c.Store.NewResource(options)
+	err := c.Store.CreateResource(ctx, resource)
+	if err != nil {
+		return nil, err
+	}
+	return resource.ToModel(), nil
 }
 
 func (c *Commands) UpdateResource(ctx context.Context, options *UpdateResourceOptions) (*model.Resource, error) {
-	// TODO: implement
-	return nil, nil
+	err := c.Store.UpdateResource(ctx, options)
+	if err != nil {
+		return nil, err
+	}
+	resource, err := c.Store.GetResourceByID(ctx, options.ID)
+	if err != nil {
+		return nil, err
+	}
+	return resource.ToModel(), nil
 }
 
 func (c *Commands) DeleteResource(ctx context.Context, id string) error {
-	// TODO: implement
-	return nil
+	return c.Store.DeleteResource(ctx, id)
 }
 
 func (c *Commands) CreateScope(ctx context.Context, options *NewScopeOptions) (*model.Scope, error) {

@@ -11,8 +11,11 @@ type Queries struct {
 }
 
 func (q *Queries) GetResource(ctx context.Context, id string) (*model.Resource, error) {
-	// TODO: implement
-	return nil, nil
+	resource, err := q.Store.GetResourceByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return resource.ToModel(), nil
 }
 
 func (q *Queries) ListResources(ctx context.Context) ([]*model.Resource, error) {
