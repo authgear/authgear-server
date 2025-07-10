@@ -577,6 +577,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Store: resourcescopeStore,
 	}
 	resourceLoader := loader.NewResourceLoader(resourcescopeQueries)
+	scopeLoader := loader.NewScopeLoader(resourcescopeQueries)
 	searchConfig := appConfig.Search
 	elasticsearchServiceLogger := elasticsearch.NewElasticsearchServiceLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
@@ -1304,6 +1305,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Groups:                groupLoader,
 		AuditLogs:             auditLogLoader,
 		Resources:             resourceLoader,
+		Scopes:                scopeLoader,
 		UserFacade:            facadeUserFacade,
 		RolesGroupsFacade:     rolesGroupsFacade,
 		AuditLogFacade:        auditLogFacade,
