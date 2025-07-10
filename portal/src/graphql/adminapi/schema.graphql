@@ -702,6 +702,21 @@ type CreateIdentityPayload {
 }
 
 """"""
+input CreateResourceInput {
+  """The optional name of the resource."""
+  name: String
+
+  """The URI of the resource."""
+  uri: String!
+}
+
+""""""
+type CreateResourcePayload {
+  """"""
+  resource: Resource!
+}
+
+""""""
 input CreateRoleInput {
   """The optional description of the role."""
   description: String
@@ -822,6 +837,18 @@ input DeleteIdentityInput {
 type DeleteIdentityPayload {
   """"""
   user: User!
+}
+
+""""""
+input DeleteResourceInput {
+  """The ID of the resource."""
+  id: ID!
+}
+
+""""""
+type DeleteResourcePayload {
+  """"""
+  ok: Boolean
 }
 
 """"""
@@ -1040,6 +1067,9 @@ type Mutation {
   """Create new identity for user"""
   createIdentity(input: CreateIdentityInput!): CreateIdentityPayload!
 
+  """Create a new resource."""
+  createResource(input: CreateResourceInput!): CreateResourcePayload!
+
   """Create a new role."""
   createRole(input: CreateRoleInput!): CreateRolePayload!
 
@@ -1062,6 +1092,9 @@ type Mutation {
 
   """Delete identity of user"""
   deleteIdentity(input: DeleteIdentityInput!): DeleteIdentityPayload!
+
+  """Delete a resource."""
+  deleteResource(input: DeleteResourceInput!): DeleteResourcePayload!
 
   """
   Delete an existing role. The associations between the role with other groups and other users will also be deleted.
@@ -1136,6 +1169,9 @@ type Mutation {
 
   """Update an existing identity of user"""
   updateIdentity(input: UpdateIdentityInput!): UpdateIdentityPayload!
+
+  """Update an existing resource."""
+  updateResource(input: UpdateResourceInput!): UpdateResourcePayload!
 
   """Update an existing role."""
   updateRole(input: UpdateRoleInput!): UpdateRolePayload!
@@ -1323,6 +1359,24 @@ input ResetPasswordInput {
 type ResetPasswordPayload {
   """"""
   user: User!
+}
+
+"""Authgear resource"""
+type Resource implements Entity & Node {
+  """The creation time of entity"""
+  createdAt: DateTime!
+
+  """The ID of an object"""
+  id: ID!
+
+  """The optional name of the resource."""
+  name: String
+
+  """The update time of entity"""
+  updatedAt: DateTime!
+
+  """The URI of the resource."""
+  uri: String!
 }
 
 """"""
@@ -1646,6 +1700,23 @@ type UpdateIdentityPayload {
 
   """"""
   user: User!
+}
+
+""""""
+input UpdateResourceInput {
+  """The ID of the resource."""
+  id: ID!
+
+  """
+  The new name of the resource. Pass null if you do not need to update the name. Pass an empty string to remove the name.
+  """
+  name: String
+}
+
+""""""
+type UpdateResourcePayload {
+  """"""
+  resource: Resource!
 }
 
 """"""
