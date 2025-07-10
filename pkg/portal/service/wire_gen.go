@@ -11,6 +11,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -19,23 +20,24 @@ import (
 
 // Injectors from wire.go:
 
-func newAuditSink(app *model.App, auditDatabase *auditdb.WriteHandle, loggerFactory *log.Factory) *audit.Sink {
+func newAuditSink(app *model.App, pool *db.Pool, cfg *config.DatabaseEnvironmentConfig, loggerFactory *log.Factory) *audit.Sink {
 	logger := audit.NewLogger(loggerFactory)
 	appContext := app.Context
-	config := appContext.Config
-	secretConfig := config.SecretConfig
+	configConfig := appContext.Config
+	secretConfig := configConfig.SecretConfig
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	appConfig := config.AppConfig
+	writeHandle := auditdb.NewWriteHandle(pool, cfg, auditDatabaseCredentials, loggerFactory)
+	appConfig := configConfig.AppConfig
 	appID := appConfig.ID
 	sqlBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(auditDatabase)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(writeHandle)
 	writeStore := &audit.WriteStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
 	sink := &audit.Sink{
 		Logger:   logger,
-		Database: auditDatabase,
+		Database: writeHandle,
 		Store:    writeStore,
 	}
 	return sink

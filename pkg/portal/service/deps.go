@@ -97,6 +97,7 @@ var AuthgearDependencySet = wire.NewSet(
 	),
 	wire.Value(&NoopAttributesService{}),
 	wire.Value(&NoopRolesAndGroupsService{}),
+	auditdb.NewWriteHandle,
 
 	deps.ConfigDeps,
 	clock.DependencySet,

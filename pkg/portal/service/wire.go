@@ -9,12 +9,17 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/audit"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
-	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
-func newAuditSink(app *model.App, auditDatabase *auditdb.WriteHandle, loggerFactory *log.Factory) *audit.Sink {
+func newAuditSink(
+	app *model.App,
+	pool *db.Pool,
+	cfg *config.DatabaseEnvironmentConfig,
+	loggerFactory *log.Factory,
+) *audit.Sink {
 	panic(wire.Build(AuthgearDependencySet))
 }
 

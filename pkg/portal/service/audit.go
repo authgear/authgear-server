@@ -8,7 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	libevent "github.com/authgear/authgear-server/pkg/lib/event"
-	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
@@ -34,22 +34,20 @@ type AuditService struct {
 	Apps     AuditServiceAppService
 	Authgear *portalconfig.AuthgearConfig
 
+	Database                  *db.Pool
+	DatabaseEnvironmentConfig *config.DatabaseEnvironmentConfig
+
 	DenoEndpoint config.DenoEndpoint
 
 	GlobalSQLBuilder  *globaldb.SQLBuilder
 	GlobalSQLExecutor *globaldb.SQLExecutor
 	GlobalDatabase    *globaldb.Handle
 
-	AuditDatabase *auditdb.WriteHandle
-
 	Clock         clock.Clock
 	LoggerFactory *log.Factory
 }
 
 func (s *AuditService) Log(ctx context.Context, app *model.App, payload event.NonBlockingPayload) (err error) {
-	if s.AuditDatabase == nil {
-		return
-	}
 
 	authgearApp, err := s.Apps.Get(ctx, s.Authgear.AppID)
 	if err != nil {
@@ -67,7 +65,7 @@ func (s *AuditService) Log(ctx context.Context, app *model.App, payload event.No
 	// AuditSink is app specific.
 	// The records MUST have correct app_id.
 	// We have construct audit sink with the target app.
-	auditSink := newAuditSink(app, s.AuditDatabase, loggerFactory)
+	auditSink := newAuditSink(app, s.Database, s.DatabaseEnvironmentConfig, loggerFactory)
 	// The portal uses its Authgear to deliver hooks.
 	// We have construct hook sink with the Authgear app.
 	hookSink := newHookSink(authgearApp, s.DenoEndpoint, loggerFactory)

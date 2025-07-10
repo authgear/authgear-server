@@ -21,6 +21,7 @@
     * [Configure Authgear](#configure-authgear)
     * [Start with the profile ldap](#start-with-the-profile-ldap)
   * [Switching between sessionType=refresh\_token and sessionType=cookie](#switching-between-sessiontyperefresh_token-and-sessiontypecookie)
+  * [Switch to Database config source](#switch-to-database-config-source)
 * [Storybooks](#storybooks)
 
 # Contributing guide
@@ -199,18 +200,6 @@ use flake
    go run ./cmd/portal database migrate up
    ```
 
-3. Create the project in the database
-
-   ```sh
-   go run ./cmd/portal internal configsource create ./var
-   ```
-
-3. Add domain
-
-   ```sh
-   go run ./cmd/portal internal domain create-default --default-domain-suffix ".localhost"
-   go run ./cmd/portal internal domain create-custom accounts --apex-domain="accounts.portal.localhost" --domain="accounts.portal.localhost"
-   ```
 
 ## Set up MinIO
 
@@ -507,6 +496,44 @@ In case you need to switch to sessionType=cookie, you
 
 - Use `AUTHGEAR_WEB_SDK_SESSION_TYPE=cookie` in your .env
 - Access the portal at port 8001 or 8011
+
+## Switch to Database config source
+
+1. In your `.env` set these values:
+
+```
+CONFIG_SOURCE_TYPE=database
+CUSTOM_RESOURCE_DIRECTORY=./var
+```
+
+2. Create a row in `_portal_config_source`:
+
+```sh
+go run ./cmd/portal internal configsource create ./var
+```
+
+3. Create domains for `accounts`:
+
+```sh
+# This allows portal to access the admin api with accounts.localhost
+go run ./cmd/portal internal domain create-default --default-domain-suffix ".localhost"
+# This allows using accounts.portal.localhost:3100
+go run ./cmd/portal internal domain create-custom accounts --apex-domain="accounts.portal.localhost" --domain="accounts.portal.localhost"
+# This allows using localhost:3100
+go run ./cmd/portal internal domain create-custom accounts --apex-domain="localhost" --domain="localhost"
+```
+
+4. Create a free plan
+
+This is needed if you want to create new projects.
+
+```sql
+INSERT INTO "public"."_portal_plan"("id","name","feature_config","created_at","updated_at")
+VALUES
+(E'free',E'free',E'{}',NOW(),NOW());
+```
+
+Restart your server, then it should be running with database config source.
 
 # Storybooks
 
