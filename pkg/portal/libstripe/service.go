@@ -114,6 +114,9 @@ func (s *Service) CreateCheckoutSession(ctx context.Context, appID string, custo
 		Mode:               stripe.String(string(stripe.CheckoutSessionModeSetup)),
 		PaymentMethodTypes: []*string{stripe.String(string(stripe.PaymentMethodTypeCard))},
 		CustomerCreation:   stripe.String(string(stripe.CheckoutSessionCustomerCreationAlways)),
+		// Collect billing address for tax.
+		// See https://docs.stripe.com/tax/customer-locations#supported-formats
+		BillingAddressCollection: stripe.String(string(stripe.CheckoutSessionBillingAddressCollectionRequired)),
 	}
 
 	if customerEmail != "" {
