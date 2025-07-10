@@ -19,6 +19,7 @@ type ResourceScopeCommands interface {
 type ResourceScopeQueries interface {
 	GetResource(ctx context.Context, id string) (*model.Resource, error)
 	GetScope(ctx context.Context, id string) (*model.Scope, error)
+	ListScopes(ctx context.Context, resourceID string) ([]*model.Scope, error)
 }
 
 type ResourceScopeFacade struct {
@@ -56,4 +57,8 @@ func (f *ResourceScopeFacade) DeleteScope(ctx context.Context, id string) error 
 
 func (f *ResourceScopeFacade) GetScope(ctx context.Context, id string) (*model.Scope, error) {
 	return f.ResourceScopeQueries.GetScope(ctx, id)
+}
+
+func (f *ResourceScopeFacade) ListScopes(ctx context.Context, resourceID string) ([]*model.Scope, error) {
+	return f.ResourceScopeQueries.ListScopes(ctx, resourceID)
 }

@@ -1411,6 +1411,9 @@ type Resource implements Entity & Node {
   """The optional name of the resource."""
   name: String
 
+  """The list of scopes for this resource."""
+  scopes(after: String, before: String, clientID: String, first: Int, last: Int, searchKeyword: String): ScopeConnection
+
   """The update time of entity"""
   updatedAt: DateTime!
 
@@ -1530,6 +1533,27 @@ type Scope implements Entity & Node {
 
   """The update time of entity"""
   updatedAt: DateTime!
+}
+
+"""A connection to a list of items."""
+type ScopeConnection {
+  """Information to aid in pagination."""
+  edges: [ScopeEdge]
+
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """Total number of nodes in the connection."""
+  totalCount: Int
+}
+
+"""An edge in a connection"""
+type ScopeEdge {
+  """ cursor for use in pagination"""
+  cursor: String!
+
+  """The item at the end of the edge"""
+  node: Scope
 }
 
 """"""

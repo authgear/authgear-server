@@ -143,6 +143,11 @@ func (s *Store) GetManyScopes(ctx context.Context, ids []string) ([]*Scope, erro
 	return s.queryScopes(ctx, q)
 }
 
+func (s *Store) ListScopes(ctx context.Context, resourceID string) ([]*Scope, error) {
+	q := s.selectScopeQuery().Where("resource_id = ?", resourceID)
+	return s.queryScopes(ctx, q)
+}
+
 func (s *Store) queryScopes(ctx context.Context, q db.SelectBuilder) ([]*Scope, error) {
 	rows, err := s.SQLExecutor.QueryWith(ctx, q)
 	if err != nil {
