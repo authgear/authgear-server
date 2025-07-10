@@ -54,6 +54,10 @@ type ResourceLoader interface {
 	graphqlutil.DataLoaderInterface
 }
 
+type ScopeLoader interface {
+	graphqlutil.DataLoaderInterface
+}
+
 type AuditLogFacade interface {
 	QueryPage(ctx context.Context, opts audit.QueryPageOptions, pageArgs graphqlutil.PageArgs) ([]apimodel.PageItemRef, *graphqlutil.PageResult, error)
 }
@@ -199,6 +203,10 @@ type ResourceScopeFacade interface {
 	UpdateResource(ctx context.Context, options *resourcescope.UpdateResourceOptions) (*apimodel.Resource, error)
 	DeleteResource(ctx context.Context, id string) error
 	GetResource(ctx context.Context, id string) (*apimodel.Resource, error)
+	CreateScope(ctx context.Context, options *resourcescope.NewScopeOptions) (*apimodel.Scope, error)
+	UpdateScope(ctx context.Context, options *resourcescope.UpdateScopeOptions) (*apimodel.Scope, error)
+	DeleteScope(ctx context.Context, id string) error
+	GetScope(ctx context.Context, id string) (*apimodel.Scope, error)
 }
 
 type Logger struct{ *log.Logger }
@@ -219,6 +227,7 @@ type Context struct {
 	Groups         GroupLoader
 	AuditLogs      AuditLogLoader
 	Resources      ResourceLoader
+	Scopes         ScopeLoader
 
 	UserFacade          UserFacade
 	RolesGroupsFacade   RolesGroupsFacade
