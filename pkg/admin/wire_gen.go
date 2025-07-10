@@ -74,6 +74,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
 	"github.com/authgear/authgear-server/pkg/lib/presign"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
+	"github.com/authgear/authgear-server/pkg/lib/resourcescope"
 	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
 	"github.com/authgear/authgear-server/pkg/lib/search"
 	"github.com/authgear/authgear-server/pkg/lib/search/pgsearch"
@@ -1275,6 +1276,21 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		IDPSessions:   idpsessionProvider,
 		OfflineGrants: oauthOfflineGrantService,
 	}
+	resourcescopeStore := &resourcescope.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	resourcescopeCommands := &resourcescope.Commands{
+		Store: resourcescopeStore,
+	}
+	resourcescopeQueries := &resourcescope.Queries{
+		Store: resourcescopeStore,
+	}
+	resourceScopeFacade := &facade2.ResourceScopeFacade{
+		ResourceScopeCommands: resourcescopeCommands,
+		ResourceScopeQueries:  resourcescopeQueries,
+	}
 	graphqlContext := &graphql.Context{
 		GQLLogger:             logger,
 		Config:                appConfig,
@@ -1300,6 +1316,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		OTPCode:               otpService,
 		ForgotPassword:        forgotpasswordService,
 		Events:                eventService,
+		ResourceScopeFacade:   resourceScopeFacade,
 	}
 	graphQLHandler := &transport.GraphQLHandler{
 		GraphQLContext: graphqlContext,
