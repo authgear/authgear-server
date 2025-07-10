@@ -36,16 +36,26 @@ func (c *Commands) DeleteResource(ctx context.Context, id string) error {
 }
 
 func (c *Commands) CreateScope(ctx context.Context, options *NewScopeOptions) (*model.Scope, error) {
-	// TODO: implement
-	return nil, nil
+	scope := c.Store.NewScope(options)
+	err := c.Store.CreateScope(ctx, scope)
+	if err != nil {
+		return nil, err
+	}
+	return scope.ToModel(), nil
 }
 
 func (c *Commands) UpdateScope(ctx context.Context, options *UpdateScopeOptions) (*model.Scope, error) {
-	// TODO: implement
-	return nil, nil
+	err := c.Store.UpdateScope(ctx, options)
+	if err != nil {
+		return nil, err
+	}
+	scope, err := c.Store.GetScopeByID(ctx, options.ID)
+	if err != nil {
+		return nil, err
+	}
+	return scope.ToModel(), nil
 }
 
 func (c *Commands) DeleteScope(ctx context.Context, id string) error {
-	// TODO: implement
-	return nil
+	return c.Store.DeleteScope(ctx, id)
 }
