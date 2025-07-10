@@ -19,6 +19,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/otelutil"
 	"github.com/authgear/authgear-server/pkg/util/panicutil"
 	"github.com/authgear/authgear-server/pkg/util/setutil"
 )
@@ -425,7 +426,7 @@ func (h *LoginHandler) startSSOFlow(
 	if err != nil {
 		return nil, err
 	}
-	otelauthgear.IntCounterAddOne(
+	otelutil.IntCounterAddOne(
 		ctx,
 		otelauthgear.CounterSAMLSessionCreationCount,
 	)

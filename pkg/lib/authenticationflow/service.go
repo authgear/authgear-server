@@ -13,6 +13,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oauthsession"
 	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
 	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/otelutil"
 )
 
 //go:generate go tool mockgen -source=service.go -destination=service_mock_test.go -package authenticationflow
@@ -98,7 +99,7 @@ func (s *Service) CreateNewFlow(ctx context.Context, publicFlow PublicFlow, sess
 		return
 	}
 
-	otelauthgear.IntCounterAddOne(
+	otelutil.IntCounterAddOne(
 		ctx,
 		otelauthgear.CounterAuthflowSessionCreationCount,
 	)

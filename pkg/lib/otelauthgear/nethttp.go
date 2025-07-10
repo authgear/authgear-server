@@ -82,12 +82,12 @@ func (m *HTTPInstrumentationMiddleware) Handle(next http.Handler) http.Handler {
 				// By default, we do not include server.address because it depends on
 				// external input like X-Forwarded-Host, Host
 				// If we include server.address, then the attacker can trigger cardinality limits.
-				options := []MetricOption{
+				options := []otelutil.MetricOption{
 					metricOptionAttributeKeyValue{statusCodeAttr},
 				}
 
 				seconds := requestDuration.Seconds()
-				Float64HistogramRecord(ctx, HTTPServerRequestDurationHistogram, seconds, options...)
+				otelutil.Float64HistogramRecord(ctx, HTTPServerRequestDurationHistogram, seconds, options...)
 			}
 
 			// Re-throw the panic.

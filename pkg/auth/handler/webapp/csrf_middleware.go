@@ -18,6 +18,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/jwkutil"
 	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/otelutil"
 )
 
 type CSRFMiddlewareLogger struct{ *log.Logger }
@@ -74,7 +75,7 @@ func (m *CSRFMiddleware) Handle(next http.Handler) http.Handler {
 		gorillaCSRF := csrf.Protect(key, options...)
 		h := gorillaCSRF(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// When we reach here, the CSRF protection is successful.
-			otelauthgear.IntCounterAddOne(
+			otelutil.IntCounterAddOne(
 				r.Context(),
 				otelauthgear.CounterCSRFRequestCount,
 				otelauthgear.WithStatusOk(),
@@ -86,7 +87,7 @@ func (m *CSRFMiddleware) Handle(next http.Handler) http.Handler {
 }
 
 func (m *CSRFMiddleware) unauthorizedHandler(w http.ResponseWriter, r *http.Request) {
-	otelauthgear.IntCounterAddOne(
+	otelutil.IntCounterAddOne(
 		r.Context(),
 		otelauthgear.CounterCSRFRequestCount,
 		otelauthgear.WithStatusError(),

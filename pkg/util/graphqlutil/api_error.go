@@ -50,7 +50,9 @@ func (a APIErrorExtension) ExecutionDidStart(ctx context.Context) (context.Conte
 				// 		it just use a generic error message.
 				//     	For some panics, string concatenation leads to the compiler
 				//		infers a string enum type, and therefore cannot be logged here.
+				err = errorutil.ForceLogging(err)
 				logger.
+					WithContext(ctx).
 					WithError(err).
 					WithField("path", gqlError.Path).
 					WithField("stack", errorutil.Callers(10000)).
