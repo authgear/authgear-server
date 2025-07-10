@@ -143,12 +143,13 @@ var _ = registerMutationField(
 
 			ctx := p.Context
 			gqlCtx := GQLContext(ctx)
-			scope, err := gqlCtx.ResourceScopeFacade.UpdateScope(ctx, options)
+
+			originalScope, err := gqlCtx.ResourceScopeFacade.GetScope(ctx, scopeID)
 			if err != nil {
 				return nil, err
 			}
 
-			originalScope, err := gqlCtx.ResourceScopeFacade.GetScope(ctx, scopeID)
+			scope, err := gqlCtx.ResourceScopeFacade.UpdateScope(ctx, options)
 			if err != nil {
 				return nil, err
 			}
@@ -209,12 +210,13 @@ var _ = registerMutationField(
 
 			ctx := p.Context
 			gqlCtx := GQLContext(ctx)
-			err := gqlCtx.ResourceScopeFacade.DeleteScope(ctx, scopeID)
+
+			scope, err := gqlCtx.ResourceScopeFacade.GetScope(ctx, scopeID)
 			if err != nil {
 				return nil, err
 			}
 
-			scope, err := gqlCtx.ResourceScopeFacade.GetScope(ctx, scopeID)
+			err = gqlCtx.ResourceScopeFacade.DeleteScope(ctx, scopeID)
 			if err != nil {
 				return nil, err
 			}

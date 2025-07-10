@@ -132,12 +132,12 @@ var _ = registerMutationField(
 
 			ctx := p.Context
 			gqlCtx := GQLContext(ctx)
-			resource, err := gqlCtx.ResourceScopeFacade.UpdateResource(ctx, options)
+			originalResource, err := gqlCtx.ResourceScopeFacade.GetResource(ctx, resourceID)
 			if err != nil {
 				return nil, err
 			}
 
-			originalResource, err := gqlCtx.ResourceScopeFacade.GetResource(ctx, resourceID)
+			resource, err := gqlCtx.ResourceScopeFacade.UpdateResource(ctx, options)
 			if err != nil {
 				return nil, err
 			}
@@ -198,12 +198,13 @@ var _ = registerMutationField(
 
 			ctx := p.Context
 			gqlCtx := GQLContext(ctx)
-			err := gqlCtx.ResourceScopeFacade.DeleteResource(ctx, resourceID)
+
+			resource, err := gqlCtx.ResourceScopeFacade.GetResource(ctx, resourceID)
 			if err != nil {
 				return nil, err
 			}
 
-			resource, err := gqlCtx.ResourceScopeFacade.GetResource(ctx, resourceID)
+			err = gqlCtx.ResourceScopeFacade.DeleteResource(ctx, resourceID)
 			if err != nil {
 				return nil, err
 			}
