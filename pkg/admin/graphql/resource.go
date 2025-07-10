@@ -37,7 +37,7 @@ var nodeResource = node(
 	}),
 	&model.Resource{},
 	func(ctx context.Context, gqlCtx *Context, id string) (interface{}, error) {
-		return gqlCtx.ResourceScopeFacade.GetResource(ctx, id)
+		return gqlCtx.Resources.Load(ctx, id).Value, nil
 	},
 )
 

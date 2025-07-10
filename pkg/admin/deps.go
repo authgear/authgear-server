@@ -86,6 +86,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(graphql.AuditLogLoader), new(*loader.AuditLogLoader)),
 	wire.Bind(new(graphql.RoleLoader), new(*loader.RoleLoader)),
 	wire.Bind(new(graphql.GroupLoader), new(*loader.GroupLoader)),
+	wire.Bind(new(graphql.ResourceLoader), new(*loader.ResourceLoader)),
 	wire.Bind(new(graphql.UserFacade), new(*facade.UserFacade)),
 	wire.Bind(new(graphql.RolesGroupsFacade), new(*facade.RolesGroupsFacade)),
 	wire.Bind(new(graphql.ResourceScopeFacade), new(*facade.ResourceScopeFacade)),

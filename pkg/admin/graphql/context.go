@@ -50,6 +50,10 @@ type AuditLogLoader interface {
 	graphqlutil.DataLoaderInterface
 }
 
+type ResourceLoader interface {
+	graphqlutil.DataLoaderInterface
+}
+
 type AuditLogFacade interface {
 	QueryPage(ctx context.Context, opts audit.QueryPageOptions, pageArgs graphqlutil.PageArgs) ([]apimodel.PageItemRef, *graphqlutil.PageResult, error)
 }
@@ -214,6 +218,7 @@ type Context struct {
 	Roles          RoleLoader
 	Groups         GroupLoader
 	AuditLogs      AuditLogLoader
+	Resources      ResourceLoader
 
 	UserFacade          UserFacade
 	RolesGroupsFacade   RolesGroupsFacade
