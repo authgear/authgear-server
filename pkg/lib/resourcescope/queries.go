@@ -18,6 +18,20 @@ func (q *Queries) GetResource(ctx context.Context, id string) (*model.Resource, 
 	return resource.ToModel(), nil
 }
 
+func (q *Queries) GetManyResources(ctx context.Context, ids []string) ([]*model.Resource, error) {
+	resources, err := q.Store.GetManyResources(ctx, ids)
+	if err != nil {
+		return nil, err
+	}
+
+	resourceModels := make([]*model.Resource, len(resources))
+	for i, r := range resources {
+		resourceModels[i] = r.ToModel()
+	}
+
+	return resourceModels, nil
+}
+
 func (q *Queries) ListResources(ctx context.Context) ([]*model.Resource, error) {
 	// TODO: implement
 	return nil, nil

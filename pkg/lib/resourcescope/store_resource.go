@@ -132,6 +132,30 @@ func (s *Store) GetResourceByID(ctx context.Context, id string) (*Resource, erro
 	return r, nil
 }
 
+func (s *Store) GetManyResources(ctx context.Context, ids []string) ([]*Resource, error) {
+	q := s.selectResourceQuery().Where("id = ANY (?)", pq.Array(ids))
+	return s.queryResources(ctx, q)
+}
+
+func (s *Store) queryResources(ctx context.Context, q db.SelectBuilder) ([]*Resource, error) {
+	rows, err := s.SQLExecutor.QueryWith(ctx, q)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var resources []*Resource
+	for rows.Next() {
+		r, err := s.scanResource(rows)
+		if err != nil {
+			return nil, err
+		}
+		resources = append(resources, r)
+	}
+
+	return resources, nil
+}
+
 func (s *Store) selectResourceQuery() db.SelectBuilder {
 	return s.SQLBuilder.
 		Select(

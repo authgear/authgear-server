@@ -54,6 +54,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(loader.AuthenticatorLoaderAuthenticatorService), new(*authenticatorservice.Service)),
 	wire.Bind(new(loader.RoleLoaderRoles), new(*rolesgroups.Queries)),
 	wire.Bind(new(loader.GroupLoaderGroups), new(*rolesgroups.Queries)),
+	wire.Bind(new(loader.ResourceLoaderResources), new(*resourcescope.Queries)),
 	wire.Bind(new(loader.AuditLogQuery), new(*audit.Query)),
 
 	facade.DependencySet,
