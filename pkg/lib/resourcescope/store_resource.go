@@ -8,6 +8,7 @@ import (
 	"github.com/lib/pq"
 
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 	"github.com/google/uuid"
 )
 
@@ -135,6 +136,62 @@ func (s *Store) GetResourceByID(ctx context.Context, id string) (*Resource, erro
 func (s *Store) GetManyResources(ctx context.Context, ids []string) ([]*Resource, error) {
 	q := s.selectResourceQuery().Where("id = ANY (?)", pq.Array(ids))
 	return s.queryResources(ctx, q)
+}
+
+type storeListResourceResult struct {
+	Items      []*Resource
+	Offset     uint64
+	TotalCount uint64
+}
+
+func (s *Store) ListResources(ctx context.Context, options *ListResourcesOptions, pageArgs graphqlutil.PageArgs) (*storeListResourceResult, error) {
+	q := s.selectResourceQuery().
+		OrderBy("uri ASC")
+	q = s.applyListResourcesOptions(q, options)
+
+	q, offset, err := db.ApplyPageArgs(q, pageArgs)
+	if err != nil {
+		return nil, err
+	}
+
+	resources, err := s.queryResources(ctx, q)
+	if err != nil {
+		return nil, err
+	}
+
+	totalCount, err := s.countResources(ctx, options)
+	if err != nil {
+		return nil, err
+	}
+
+	return &storeListResourceResult{
+		Items:      resources,
+		Offset:     offset,
+		TotalCount: totalCount,
+	}, nil
+}
+
+func (s *Store) countResources(ctx context.Context, options *ListResourcesOptions) (uint64, error) {
+	q := s.SQLBuilder.Select("COUNT(*)").From(s.SQLBuilder.TableName("_auth_resource"))
+	q = s.applyListResourcesOptions(q, options)
+
+	var count uint64
+	row, err := s.SQLExecutor.QueryRowWith(ctx, q)
+	if err != nil {
+		return 0, err
+	}
+	if err := row.Scan(&count); err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
+func (s *Store) applyListResourcesOptions(q db.SelectBuilder, options *ListResourcesOptions) db.SelectBuilder {
+	if options != nil && options.SearchKeyword != "" {
+		q = q.Where("(uri ILIKE ('%' || ? || '%') OR name ILIKE ('%' || ? || '%'))", options.SearchKeyword, options.SearchKeyword)
+	}
+	// TODO(tung): Implement ClientID filtering if/when resources are associated with clients
+	return q
 }
 
 func (s *Store) queryResources(ctx context.Context, q db.SelectBuilder) ([]*Resource, error) {

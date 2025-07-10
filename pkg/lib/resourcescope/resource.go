@@ -16,6 +16,11 @@ type UpdateResourceOptions struct {
 	NewName *string
 }
 
+type ListResourcesOptions struct {
+	SearchKeyword string
+	ClientID      string
+}
+
 type Resource struct {
 	ID        string
 	CreatedAt time.Time
@@ -34,4 +39,10 @@ func (r *Resource) ToModel() *model.Resource {
 		URI:  r.URI,
 		Name: r.Name,
 	}
+}
+
+type ListResourceResult struct {
+	Items      []*model.Resource
+	Offset     uint64
+	TotalCount uint64
 }

@@ -1280,6 +1280,9 @@ type Query {
     ids: [ID!]!
   ): [Node]!
 
+  """All resources"""
+  resources(after: String, before: String, clientID: String, first: Int, last: Int, searchKeyword: String): ResourceConnection
+
   """All roles"""
   roles(after: String, before: String, excludedIDs: [ID!], first: Int, last: Int, searchKeyword: String): RoleConnection
 
@@ -1419,6 +1422,27 @@ type Resource implements Entity & Node {
 
   """The URI of the resource."""
   uri: String!
+}
+
+"""A connection to a list of items."""
+type ResourceConnection {
+  """Information to aid in pagination."""
+  edges: [ResourceEdge]
+
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """Total number of nodes in the connection."""
+  totalCount: Int
+}
+
+"""An edge in a connection"""
+type ResourceEdge {
+  """ cursor for use in pagination"""
+  cursor: String!
+
+  """The item at the end of the edge"""
+  node: Resource
 }
 
 """"""

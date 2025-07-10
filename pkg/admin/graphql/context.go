@@ -208,6 +208,7 @@ type ResourceScopeFacade interface {
 	DeleteScope(ctx context.Context, id string) error
 	GetScope(ctx context.Context, id string) (*apimodel.Scope, error)
 	ListScopes(ctx context.Context, resourceID string) ([]*apimodel.Scope, error)
+	ListResources(ctx context.Context, options *resourcescope.ListResourcesOptions, pageArgs graphqlutil.PageArgs) ([]apimodel.PageItemRef, *graphqlutil.PageResult, error)
 }
 
 type Logger struct{ *log.Logger }

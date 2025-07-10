@@ -4,7 +4,9 @@ import (
 	"context"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/resourcescope"
+	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
 type ResourceScopeCommands interface {
@@ -20,6 +22,7 @@ type ResourceScopeQueries interface {
 	GetResource(ctx context.Context, id string) (*model.Resource, error)
 	GetScope(ctx context.Context, id string) (*model.Scope, error)
 	ListScopes(ctx context.Context, resourceID string) ([]*model.Scope, error)
+	ListResources(ctx context.Context, options *resourcescope.ListResourcesOptions, pageArgs graphqlutil.PageArgs) (*resourcescope.ListResourceResult, error)
 }
 
 type ResourceScopeFacade struct {
@@ -61,4 +64,26 @@ func (f *ResourceScopeFacade) GetScope(ctx context.Context, id string) (*model.S
 
 func (f *ResourceScopeFacade) ListScopes(ctx context.Context, resourceID string) ([]*model.Scope, error) {
 	return f.ResourceScopeQueries.ListScopes(ctx, resourceID)
+}
+
+func (f *ResourceScopeFacade) ListResources(ctx context.Context, options *resourcescope.ListResourcesOptions, pageArgs graphqlutil.PageArgs) ([]model.PageItemRef, *graphqlutil.PageResult, error) {
+	result, err := f.ResourceScopeQueries.ListResources(ctx, options, pageArgs)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	refs := make([]model.PageItemRef, len(result.Items))
+	for i, r := range result.Items {
+		i_uint64 := uint64(i)
+		pageKey := db.PageKey{Offset: result.Offset + i_uint64}
+		cursor, err := pageKey.ToPageCursor()
+		if err != nil {
+			return nil, nil, err
+		}
+		refs[i] = model.PageItemRef{ID: r.ID, Cursor: cursor}
+	}
+
+	return refs, graphqlutil.NewPageResult(pageArgs, len(refs), graphqlutil.NewLazy(func() (interface{}, error) {
+		return result.TotalCount, nil
+	})), nil
 }

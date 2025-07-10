@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
 type Queries struct {
@@ -32,9 +33,22 @@ func (q *Queries) GetManyResources(ctx context.Context, ids []string) ([]*model.
 	return resourceModels, nil
 }
 
-func (q *Queries) ListResources(ctx context.Context) ([]*model.Resource, error) {
-	// TODO: implement
-	return nil, nil
+func (q *Queries) ListResources(ctx context.Context, options *ListResourcesOptions, pageArgs graphqlutil.PageArgs) (*ListResourceResult, error) {
+	storeResult, err := q.Store.ListResources(ctx, options, pageArgs)
+	if err != nil {
+		return nil, err
+	}
+
+	modelItems := make([]*model.Resource, len(storeResult.Items))
+	for i, r := range storeResult.Items {
+		modelItems[i] = r.ToModel()
+	}
+
+	return &ListResourceResult{
+		Items:      modelItems,
+		Offset:     storeResult.Offset,
+		TotalCount: storeResult.TotalCount,
+	}, nil
 }
 
 func (q *Queries) GetScope(ctx context.Context, id string) (*model.Scope, error) {
