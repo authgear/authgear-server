@@ -1081,7 +1081,7 @@ scope=scopea+scopeb+scopec
 }
 ```
 
-- `access_token`: a JWT access token conforming to `RFC9068`.
+- `access_token`: A JWT access token conforming to `RFC9068` if `issue_jwt_access_token=true`, otherwise an opaque access token. Note that an opaque access token is not very useful because Authgear does not support [RFC7662 Token Introspection](https://datatracker.ietf.org/doc/html/rfc7662). The developer **SHOULD** turn on `issue_jwt_access_token`.
 - `token_type`: The only value is `bearer` at the moment.
 - `expires_in`: The lifetime in seconds of `access_token`. It follows the configuration of the client.
 - `scope`: Per `RFC6749 section3.3`, it is the actual scope granted to the client. Before, M2M, it never appears in the Token Response. After the introduction of M2M, it always appear, even if the actual scope is the same as the requested scope. When the original request does not specify `scope`, the value is all scopes granted to the client. Note that `scope` also appears when `grant_type=authorization_code`.
