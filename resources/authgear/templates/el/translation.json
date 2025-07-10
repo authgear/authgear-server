@@ -1141,6 +1141,7 @@
   "v2.page.preview.default.no-login-methods": "Δεν έχουν επιλεγεί μέθοδοι σύνδεσης.",
   "v2.page.preview.default.title": "Αυτή είναι μια προεπισκόπηση",
   "v2.page.prompt-create-passkey.default.description": "Με τα Passkeys μπορείτε τώρα να χρησιμοποιήσετε το δακτυλικό σας αποτύπωμα, το πρόσωπό σας ή την οθόνη κλειδώματος για να επιβεβαιώσετε ότι είστε εσείς.",
+  "v2.page.prompt-create-passkey.default.do-not-ask-again": "Μην με ρωτήσεις ξανά",
   "v2.page.prompt-create-passkey.default.skip": "Όχι τώρα",
   "v2.page.prompt-create-passkey.default.title": "Απλοποιήστε τη σύνδεσή σας",
   "v2.page.reset-password-success.default.description": "Ο κωδικός πρόσβασής σας ενημερώθηκε με επιτυχία!<br>Μπορείτε τώρα να συνδεθείτε χρησιμοποιώντας τον νέο κωδικό πρόσβασης.",

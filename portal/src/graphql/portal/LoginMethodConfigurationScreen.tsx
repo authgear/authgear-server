@@ -136,6 +136,7 @@ import {
   RedMessageBar_RemindConfigureSMSProviderInNonSMSProviderScreen,
   RedMessageBar_RemindConfigureSMTPInNonSMTPConfigurationScreen,
 } from "../../RedMessageBar";
+import Tooltip from "../../Tooltip";
 
 function splitByNewline(text: string): string[] {
   return text
@@ -484,6 +485,7 @@ interface ConfigFormState {
   authenticatorValidPeriods: AuthenticatorValidPeriods;
   authenticatorPasswordConfig: AuthenticatorPasswordConfig;
   passkeyChecked: boolean;
+  passkeyShowDoNotAskAgain: boolean;
   combineSignupLoginFlowChecked: boolean;
   lockout: LockoutFormState;
 
@@ -1081,6 +1083,8 @@ function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
     forgotPasswordLinkValidPeriodSeconds,
     forgotPasswordCodeValidPeriodSeconds,
     passkeyChecked: passkeyIndex != null && passkeyIndex >= 0,
+    passkeyShowDoNotAskAgain:
+      config.ui?.passkey_upselling_opt_out_enabled ?? false,
     combineSignupLoginFlowChecked:
       config.ui?.signup_login_flow_enabled ?? false,
     lockout: {
@@ -1400,6 +1404,9 @@ function constructConfig(
     config.ui.signup_login_flow_enabled =
       currentState.combineSignupLoginFlowChecked;
 
+    config.ui.passkey_upselling_opt_out_enabled =
+      currentState.passkeyShowDoNotAskAgain;
+
     clearEmptyObject(config);
   });
 }
@@ -1676,12 +1683,10 @@ interface LoginMethodChooserProps {
   loginMethod: LoginMethod;
   showFreePlanWarning: boolean;
   phoneLoginIDDisabled: boolean;
-  passkeyChecked: boolean;
   displayCombineSignupLoginFlowToggle: boolean;
   combineSignupLoginFlowChecked: boolean;
   appID: string;
   onChangeLoginMethod: (loginMethod: LoginMethod) => void;
-  onChangePasskeyChecked?: IToggleProps["onChange"];
   onChangeCombineSignupLoginFlowCheckedChecked?: IToggleProps["onChange"];
 }
 
@@ -1692,8 +1697,6 @@ function LoginMethodChooser(props: LoginMethodChooserProps) {
     phoneLoginIDDisabled,
     appID,
     onChangeLoginMethod,
-    passkeyChecked,
-    onChangePasskeyChecked,
     displayCombineSignupLoginFlowToggle,
     combineSignupLoginFlowChecked,
     onChangeCombineSignupLoginFlowCheckedChecked,
@@ -1848,18 +1851,7 @@ function LoginMethodChooser(props: LoginMethodChooserProps) {
           onChange={onChangeCombineSignupLoginFlowCheckedChecked}
         />
       ) : null}
-      {loginMethod === "oauth" ? (
-        <LinkToOAuth appID={appID} />
-      ) : (
-        <Toggle
-          inlineLabel={true}
-          label={
-            <FormattedMessage id="LoginMethodConfigurationScreen.passkey.title" />
-          }
-          checked={passkeyChecked}
-          onChange={onChangePasskeyChecked}
-        />
-      )}
+      {loginMethod === "oauth" ? <LinkToOAuth appID={appID} /> : null}
       {showFreePlanWarning ? (
         <BlueMessageBar>
           <FormattedMessage id="warnings.free-plan" />
@@ -3226,6 +3218,7 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
       resetPasswordWithEmailBy,
       resetPasswordWithPhoneBy,
       passkeyChecked,
+      passkeyShowDoNotAskAgain,
       combineSignupLoginFlowChecked,
 
       verificationClaims,
@@ -3379,6 +3372,20 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
       [setState]
     );
 
+    const onChangePasskeyShowDoNotAskAgain = useCallback(
+      (_e, checked) => {
+        if (checked == null) {
+          return;
+        }
+        setState((prev) =>
+          produce(prev, (prev) => {
+            prev.passkeyShowDoNotAskAgain = checked;
+          })
+        );
+      },
+      [setState]
+    );
+
     const onChangeCombineSignupLoginFlowChecked = useCallback(
       (_e, checked) => {
         if (checked == null) {
@@ -3498,8 +3505,6 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
             showFreePlanWarning={showFreePlanWarning}
             loginMethod={loginMethod}
             phoneLoginIDDisabled={phoneLoginIDDisabled}
-            passkeyChecked={passkeyChecked}
-            onChangePasskeyChecked={onChangePasskeyChecked}
             displayCombineSignupLoginFlowToggle={
               uiImplementation === "authflowv2"
             }
@@ -3513,6 +3518,14 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
           {/* Pivot is intentionally uncontrolled */}
           {/* It is because it is troublesome to keep track of the selected key */}
           {/* And making it controlled does not bring any benefits */}
+          <HorizontalDivider className={styles.separator} />
+          <PasskeySection
+            className={styles.widget}
+            passkeyChecked={passkeyChecked}
+            onChangePasskeyChecked={onChangePasskeyChecked}
+            passkeyShowDoNotAskAgain={passkeyShowDoNotAskAgain}
+            onChangePasskeyShowDoNotAskAgain={onChangePasskeyShowDoNotAskAgain}
+          />
           <HorizontalDivider className={styles.separator} />
           <Pivot
             className={styles.widget}
@@ -3811,5 +3824,52 @@ function SectionTitle({ children }: { children: React.ReactChild }) {
     >
       {children}
     </Text>
+  );
+}
+
+function PasskeySection({
+  className,
+  passkeyChecked,
+  onChangePasskeyChecked,
+  passkeyShowDoNotAskAgain,
+  onChangePasskeyShowDoNotAskAgain,
+}: {
+  className?: string;
+  passkeyChecked: boolean;
+  passkeyShowDoNotAskAgain: boolean;
+  onChangePasskeyChecked?: IToggleProps["onChange"];
+  onChangePasskeyShowDoNotAskAgain?: IToggleProps["onChange"];
+}) {
+  return (
+    <section className={className}>
+      <WidgetTitle className="mb-3">
+        <FormattedMessage id="LoginMethodConfigurationScreen.passkey.title" />
+      </WidgetTitle>
+      <div className="grid grid-flow-row auto-rows-[44px] items-center">
+        <Toggle
+          inlineLabel={true}
+          label={
+            <FormattedMessage id="LoginMethodConfigurationScreen.passkey.enable" />
+          }
+          checked={passkeyChecked}
+          onChange={onChangePasskeyChecked}
+        />
+        <Toggle
+          inlineLabel={true}
+          label={
+            <span className="flex items-center">
+              <FormattedMessage id="LoginMethodConfigurationScreen.passkey.showDoNotAskAgain" />
+              <Tooltip
+                tooltipMessageId={
+                  "LoginMethodConfigurationScreen.passkey.showDoNotAskAgain.tooltip"
+                }
+              />
+            </span>
+          }
+          checked={passkeyShowDoNotAskAgain}
+          onChange={onChangePasskeyShowDoNotAskAgain}
+        />
+      </div>
+    </section>
   );
 }

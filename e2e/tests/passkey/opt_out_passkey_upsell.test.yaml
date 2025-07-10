@@ -1,0 +1,114 @@
+name: Login and skip passkey upselling
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+      - login_id
+      - passkey
+      primary_authenticators:
+      - password
+      - passkey
+    ui:
+      passkey_upselling_opt_out_enabled: true
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "login",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "state_token": "[[string]]"
+        }
+
+  - action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_login"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "prompt_create_passkey",
+            "data": {
+              "allow_do_not_ask_again": true
+            }
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "skip": true,
+        "do_not_ask_again": true
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished"
+          }
+        }
+
+  # Login again, this time should not prompt for passkey creation
+  - action: "create"
+    input: |
+      {
+        "type": "login",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "state_token": "[[string]]"
+        }
+
+  - action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_login"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      # Finish without asking for passkey creation
+      result: |
+        {
+          "action": {
+            "type": "finished"
+          }
+        }

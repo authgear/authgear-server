@@ -1141,6 +1141,7 @@
   "v2.page.preview.default.no-login-methods": "未选择登录方式。",
   "v2.page.preview.default.title": "这是预览",
   "v2.page.prompt-create-passkey.default.description": "使用Passkey，您现在可以使用指纹、面部或屏幕锁定来验证确实是您本人。",
+  "v2.page.prompt-create-passkey.default.do-not-ask-again": "不再询问我",
   "v2.page.prompt-create-passkey.default.skip": "现在不",
   "v2.page.prompt-create-passkey.default.title": "简化您的登录",
   "v2.page.reset-password-success.default.description": "您的密码已成功更新!<br>您现在可以使用新密码登录。",

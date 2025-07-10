@@ -30,6 +30,7 @@ type store interface {
 	UpdateAccountStatus(ctx context.Context, userID string, status AccountStatus) error
 	UpdateStandardAttributes(ctx context.Context, userID string, stdAttrs map[string]interface{}) error
 	UpdateCustomAttributes(ctx context.Context, userID string, customAttrs map[string]interface{}) error
+	UpdateOptOutPasskeyUpselling(ctx context.Context, userID string, optout bool) error
 	Delete(ctx context.Context, userID string) error
 	Anonymize(ctx context.Context, userID string) error
 }
@@ -40,6 +41,11 @@ type Store struct {
 	Clock       clock.Clock
 	AppID       config.AppID
 }
+
+var _ store = &Store{}
+
+//nolint:gosec
+const keyOptOutPasskeyUpselling = "opt_out_passkey_upselling"
 
 func (s *Store) Create(ctx context.Context, u *User) (err error) {
 	stdAttrs := u.StandardAttributes
@@ -126,6 +132,7 @@ func (s *Store) selectQuery(alias string) db.SelectBuilder {
 				"require_reindex_after",
 				"standard_attributes",
 				"custom_attributes",
+				"metadata",
 				"mfa_grace_period_end_at",
 			).
 			From(s.SQLBuilder.TableName("_auth_user"))
@@ -150,6 +157,7 @@ func (s *Store) selectQuery(alias string) db.SelectBuilder {
 			fieldWithAlias("require_reindex_after"),
 			fieldWithAlias("standard_attributes"),
 			fieldWithAlias("custom_attributes"),
+			fieldWithAlias("metadata"),
 			fieldWithAlias("mfa_grace_period_end_at"),
 		).
 		From(s.SQLBuilder.TableName("_auth_user"), alias)
@@ -159,6 +167,7 @@ func (s *Store) scan(scn db.Scanner) (*User, error) {
 	u := &User{}
 	var stdAttrsBytes []byte
 	var customAttrsBytes []byte
+	var metadataBytes []byte
 	var isDeactivated sql.NullBool
 
 	if err := scn.Scan(
@@ -177,6 +186,7 @@ func (s *Store) scan(scn db.Scanner) (*User, error) {
 		&u.RequireReindexAfter,
 		&stdAttrsBytes,
 		&customAttrsBytes,
+		&metadataBytes,
 		&u.MFAGracePeriodtEndAt,
 	); err != nil {
 		return nil, err
@@ -192,6 +202,18 @@ func (s *Store) scan(scn db.Scanner) (*User, error) {
 		if err := json.Unmarshal(customAttrsBytes, &u.CustomAttributes); err != nil {
 			return nil, err
 		}
+	}
+
+	var metadata map[string]interface{}
+	if len(metadataBytes) > 0 {
+		if err := json.Unmarshal(metadataBytes, &metadata); err != nil {
+			return nil, err
+		}
+	}
+	if v, ok := metadata[keyOptOutPasskeyUpselling].(bool); ok {
+		u.OptOutPasskeyUpsell = v
+	} else {
+		u.OptOutPasskeyUpsell = false
 	}
 
 	if u.StandardAttributes == nil {
@@ -473,4 +495,19 @@ func (s *Store) UpdateLastIndexedAt(ctx context.Context, userIDs []string, at ti
 	}
 
 	return nil
+}
+
+func (s *Store) UpdateOptOutPasskeyUpselling(ctx context.Context, userID string, optout bool) error {
+	now := s.Clock.NowUTC()
+
+	builder := s.SQLBuilder.
+		Update(s.SQLBuilder.TableName("_auth_user")).
+		Set("metadata", sq.Expr(
+			fmt.Sprintf("jsonb_set(coalesce(metadata, '{}'::jsonb), '{%s}', ?::jsonb, true)", keyOptOutPasskeyUpselling),
+			optout,
+		)).
+		Set("updated_at", now).
+		Where("id = ?", userID)
+	_, err := s.SQLExecutor.ExecWith(ctx, builder)
+	return err
 }

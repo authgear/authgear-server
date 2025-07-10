@@ -19,7 +19,8 @@ func init() {
 
 type NodePromptCreatePasskeyData struct {
 	TypedData
-	CreationOptions *model.WebAuthnCreationOptions `json:"creation_options,omitempty"`
+	CreationOptions    *model.WebAuthnCreationOptions `json:"creation_options,omitempty"`
+	AllowDoNotAskAgain bool                           `json:"allow_do_not_ask_again,omitempty"`
 }
 
 func NewNodePromptCreatePasskeyData(d NodePromptCreatePasskeyData) NodePromptCreatePasskeyData {
@@ -64,7 +65,18 @@ func (n *NodePromptCreatePasskey) CanReactTo(ctx context.Context, deps *authflow
 
 	if n.isAlreadyPrompted(flows) {
 		// Don't ask for input if already prompted once
-		return nil, nil
+		return nil, authflow.ErrEOF
+	}
+
+	// Don't ask for input if user opted out from passkey upselling
+	if deps.Config.UI.PasskeyUpsellingOptOutEnabled {
+		user, err := deps.Users.GetRaw(ctx, n.UserID)
+		if err != nil {
+			return nil, err
+		}
+		if user.OptOutPasskeyUpsell {
+			return nil, authflow.ErrEOF
+		}
 	}
 
 	flowRootObject, err := findNearestFlowObjectInFlow(deps, flows, n)
@@ -73,16 +85,13 @@ func (n *NodePromptCreatePasskey) CanReactTo(ctx context.Context, deps *authflow
 	}
 
 	return &InputSchemaPromptCreatePasskey{
-		JSONPointer:    n.JSONPointer,
-		FlowRootObject: flowRootObject,
+		JSONPointer:        n.JSONPointer,
+		FlowRootObject:     flowRootObject,
+		AllowDoNotAskAgain: deps.Config.UI.PasskeyUpsellingOptOutEnabled,
 	}, nil
 }
 
 func (n *NodePromptCreatePasskey) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (authflow.ReactToResult, error) {
-	if n.isAlreadyPrompted(flows) {
-		return authflow.NewNodeSimple(&NodeSentinel{}), nil
-	}
-
 	var inputNodePromptCreatePasskey inputNodePromptCreatePasskey
 	if !authflow.AsInput(input, &inputNodePromptCreatePasskey) {
 		return nil, authflow.ErrIncompatibleInput
@@ -128,7 +137,11 @@ func (n *NodePromptCreatePasskey) ReactTo(ctx context.Context, deps *authflow.De
 			AttestationResponse: creationResponseBytes,
 		})
 	case inputNodePromptCreatePasskey.IsSkip():
-		return authflow.NewNodeSimple(&NodeSentinel{}), nil
+		if inputNodePromptCreatePasskey.IsDoNotAskAgain() {
+			return authflow.NewNodeSimple(&NodeOptOutPasskeyUpsell{UserID: n.UserID}), nil
+		} else {
+			return authflow.NewNodeSimple(&NodeSentinel{}), nil
+		}
 	default:
 		return nil, authflow.ErrIncompatibleInput
 	}
@@ -136,7 +149,8 @@ func (n *NodePromptCreatePasskey) ReactTo(ctx context.Context, deps *authflow.De
 
 func (n *NodePromptCreatePasskey) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
 	return NewNodePromptCreatePasskeyData(NodePromptCreatePasskeyData{
-		CreationOptions: n.CreationOptions,
+		CreationOptions:    n.CreationOptions,
+		AllowDoNotAskAgain: deps.Config.UI.PasskeyUpsellingOptOutEnabled,
 	}), nil
 }
 

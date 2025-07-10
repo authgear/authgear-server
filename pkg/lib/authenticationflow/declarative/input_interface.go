@@ -136,6 +136,7 @@ type inputTakeRecoveryCode interface {
 
 type inputNodePromptCreatePasskey interface {
 	IsSkip() bool
+	IsDoNotAskAgain() bool
 	IsCreationResponse() bool
 	GetCreationResponse() *protocol.CredentialCreationResponse
 }

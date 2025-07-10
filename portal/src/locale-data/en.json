@@ -1999,6 +1999,11 @@
 
   "LoginMethodConfigurationScreen.title": "Login Methods",
 
+  "LoginMethodConfigurationScreen.passkey.title": "Passkey",
+  "LoginMethodConfigurationScreen.passkey.enable": "Enable passkey support for compatible devices. {DocLink, react, href{https://docs.authgear.com/authentication-and-access/authentication/passkeys} children{Learn more about passkey}}",
+  "LoginMethodConfigurationScreen.passkey.showDoNotAskAgain": "Show \"Don''t ask me again\" option on the passkey upsell screen",
+  "LoginMethodConfigurationScreen.passkey.showDoNotAskAgain.tooltip": "Allow users to opt out of future passkey reminders on the upsell screen. Once opted out, users must go to Settings to register a passkey.",
+
   "LoginMethodConfigurationScreen.login-method.title.passwordless-email": "Email + Passwordless",
   "LoginMethodConfigurationScreen.login-method.description.passwordless-email": "Sign in with Email OTP",
   "LoginMethodConfigurationScreen.login-method.title.passwordless-phone": "Mobile + Passwordless",
@@ -2104,7 +2109,6 @@
   "LoginMethodConfigurationScreen.second-level.passwordless.description": "One-time password (OTP)",
   "LoginMethodConfigurationScreen.second-level.password.title": "Enter password",
   "LoginMethodConfigurationScreen.second-level.password.description": "Enter password to authenticate",
-  "LoginMethodConfigurationScreen.passkey.title": "Enable passkey support for compatible devices. {DocLink, react, href{https://docs.authgear.com/authentication-and-access/authentication/passkeys} children{Learn more about passkey}}",
   "LoginMethodConfigurationScreen.combineLoginSignup.title": "Automatically signup a new user if a login ID is not found during login",
 
   "EditConfigurationScreen.title": "Edit Project Configurations",

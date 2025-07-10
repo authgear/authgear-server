@@ -1141,6 +1141,7 @@
   "v2.page.preview.default.no-login-methods": "Tiada kaedah log masuk dipilih.",
   "v2.page.preview.default.title": "Ini adalah pratonton",
   "v2.page.prompt-create-passkey.default.description": "Dengan Passkeys, anda kini boleh menggunakan cap jari, wajah, atau kunci skrin anda untuk mengesahkan ia benar-benar anda.",
+  "v2.page.prompt-create-passkey.default.do-not-ask-again": "Jangan tanya saya lagi",
   "v2.page.prompt-create-passkey.default.skip": "Bukan sekarang",
   "v2.page.prompt-create-passkey.default.title": "Mudahkan log masuk anda",
   "v2.page.reset-password-success.default.description": "Kata laluan anda berjaya dikemas kini!<br>Anda kini boleh log masuk menggunakan kata laluan baru.",

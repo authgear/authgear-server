@@ -1141,6 +1141,7 @@
   "v2.page.preview.default.no-login-methods": "Aucune méthode de connexion sélectionnée.",
   "v2.page.preview.default.title": "Ceci est un aperçu",
   "v2.page.prompt-create-passkey.default.description": "Avec les Passkeys, vous pouvez désormais utiliser votre empreinte digitale, votre visage ou votre verrouillage d''écran pour vérifier que c''est bien vous.",
+  "v2.page.prompt-create-passkey.default.do-not-ask-again": "Ne plus me demander",
   "v2.page.prompt-create-passkey.default.skip": "Pas maintenant",
   "v2.page.prompt-create-passkey.default.title": "Simplifiez votre connexion",
   "v2.page.reset-password-success.default.description": "Votre mot de passe a été mis à jour avec succès !<br>Vous pouvez maintenant vous connecter avec le nouveau mot de passe.",

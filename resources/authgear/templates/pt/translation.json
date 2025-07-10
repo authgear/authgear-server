@@ -1141,6 +1141,7 @@
   "v2.page.preview.default.no-login-methods": "Nenhum método de login selecionado.",
   "v2.page.preview.default.title": "Esta é uma pré-visualização",
   "v2.page.prompt-create-passkey.default.description": "Com Passkeys, você agora pode usar sua impressão digital, rosto ou bloqueio de tela para verificar se é realmente você.",
+  "v2.page.prompt-create-passkey.default.do-not-ask-again": "Não me pergunte novamente",
   "v2.page.prompt-create-passkey.default.skip": "Não agora",
   "v2.page.prompt-create-passkey.default.title": "Simplifique seu login",
   "v2.page.reset-password-success.default.description": "Sua senha foi atualizada com sucesso!<br>Agora você pode fazer login usando a nova senha.",

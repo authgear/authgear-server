@@ -259,6 +259,7 @@ type User struct {
 	LastIndexedAt        *time.Time
 	RequireReindexAfter  *time.Time
 	MFAGracePeriodtEndAt *time.Time
+	OptOutPasskeyUpsell  bool
 }
 
 func (u *User) GetMeta() model.Meta {
