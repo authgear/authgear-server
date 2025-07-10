@@ -568,6 +568,15 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Store:    readStore,
 	}
 	auditLogLoader := loader.NewAuditLogLoader(query, readHandle)
+	resourcescopeStore := &resourcescope.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	resourcescopeQueries := &resourcescope.Queries{
+		Store: resourcescopeStore,
+	}
+	resourceLoader := loader.NewResourceLoader(resourcescopeQueries)
 	searchConfig := appConfig.Search
 	elasticsearchServiceLogger := elasticsearch.NewElasticsearchServiceLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
@@ -1276,15 +1285,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		IDPSessions:   idpsessionProvider,
 		OfflineGrants: oauthOfflineGrantService,
 	}
-	resourcescopeStore := &resourcescope.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
 	resourcescopeCommands := &resourcescope.Commands{
-		Store: resourcescopeStore,
-	}
-	resourcescopeQueries := &resourcescope.Queries{
 		Store: resourcescopeStore,
 	}
 	resourceScopeFacade := &facade2.ResourceScopeFacade{
@@ -1302,6 +1303,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Roles:                 roleLoader,
 		Groups:                groupLoader,
 		AuditLogs:             auditLogLoader,
+		Resources:             resourceLoader,
 		UserFacade:            facadeUserFacade,
 		RolesGroupsFacade:     rolesGroupsFacade,
 		AuditLogFacade:        auditLogFacade,
