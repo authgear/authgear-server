@@ -2,7 +2,6 @@ package otelauthgear
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
@@ -178,15 +177,6 @@ var CounterCSRFRequestCount = otelutil.MustInt64Counter(
 	metric.WithUnit("{request}"),
 )
 
-// CounterContextCanceledCount is a temporary metric to debug context canceled issue.
-// It has no labels.
-var CounterContextCanceledCount = otelutil.MustInt64Counter(
-	meter,
-	"authgear.context_canceled.count",
-	metric.WithDescription("The number of context canceled error encountered"),
-	metric.WithUnit("{error}"),
-)
-
 // CounterNonBlockingWebhookCount has the following labels:
 // - AttributeKeyStatus
 var CounterNonBlockingWebhookCount = otelutil.MustInt64Counter(
@@ -272,13 +262,4 @@ func SetProjectID(ctx context.Context, projectID string) {
 func SetClientID(ctx context.Context, clientID string) {
 	labeler, _ := otelhttp.LabelerFromContext(ctx)
 	labeler.Add(attributeKeyClientID.String(clientID))
-}
-
-func TrackContextCanceled(ctx context.Context, err error) {
-	if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
-		otelutil.IntCounterAddOne(
-			ctx,
-			CounterContextCanceledCount,
-		)
-	}
 }

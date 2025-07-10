@@ -42,9 +42,6 @@ func (m *RequestMiddleware) Handle(next http.Handler) http.Handler {
 				http.Error(w, configsource.ErrAppNotFound.Error(), http.StatusNotFound)
 			} else {
 				err = errorutil.ForceLogging(err)
-
-				otelauthgear.TrackContextCanceled(r.Context(), err)
-
 				// Our logging mechanism is not context-aware.
 				// We explicitly attach context here because it was the position we observed the log.
 				logger.WithContext(r.Context()).WithError(err).Error("failed to resolve config")
