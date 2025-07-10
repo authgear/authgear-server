@@ -48,6 +48,11 @@ var _ = registerMutationField(
 			input := p.Args["input"].(map[string]interface{})
 
 			resourceID := input["resourceID"].(string)
+			resourceNodeID := relay.FromGlobalID(resourceID)
+			if resourceNodeID == nil || resourceNodeID.Type != typeResource {
+				return nil, ErrInvalidResourceID
+			}
+			decodedResourceID := resourceNodeID.ID
 			scopeStr := input["scope"].(string)
 
 			var description *string
@@ -56,7 +61,7 @@ var _ = registerMutationField(
 			}
 
 			options := &resourcescope.NewScopeOptions{
-				ResourceID:  resourceID,
+				ResourceID:  decodedResourceID,
 				Scope:       scopeStr,
 				Description: description,
 			}
