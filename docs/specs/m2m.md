@@ -814,7 +814,7 @@ CREATE TABLE _auth_resource (
   updated_at timestamp without time zone NOT NULL,
   uri text NOT NULL,
   name text,
-  data jsonb
+  metadata jsonb
 );
 -- Each project has its own set of Resources. The URI must be unique within a project.
 CREATE UNIQUE INDEX _auth_resource_uri_unique ON _auth_resource USING btree (app_id, uri);
@@ -830,7 +830,7 @@ CREATE TABLE _auth_resource_scope (
   resource_id text NOT NULL REFERENCES _auth_resource(id),
   scope text NOT NULL,
   description text,
-  data jsonb
+  metadata jsonb
 );
 -- Each Resource has its own set of Scopes. The scope must be unique within a Resource.
 CREATE UNIQUE INDEX _auth_resource_scope_unique ON _auth_resource_scope USING btree (app_id, resource_id, scope);
