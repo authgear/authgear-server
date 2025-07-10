@@ -545,6 +545,19 @@ The application `thirdpartyclient` requests:
 
 Allowing the end-user to allow a subset of the requested scope **IS NOT** supported.
 
+### Discussion: Signify the intention of granting all scopes to a client
+
+In Auth0, even you have granted all existing Permissions to a client,
+when a new permission is added to an API,
+the newly added permission **IS NOT** automatically granted to the client.
+You have to go through all clients and grant the newly added permission for each client.
+
+If this becomes tedious, we can introduce a new boolean column `all_scopes_are_granted` in `_auth_client_resource`.
+When this column is NULL or false, the source of truth of granted scopes is `_auth_client_resource_scope`.
+When this column is true, all of the scopes of the resource is automatically granted to the client.
+
+Since this is a new column, we can introduce this in the future, no need to include this in the MVP.
+
 ### Discussion: (Auth0) General facts on Auth0 M2M
 
 In Auth0 M2M authentication and authorization, the following concepts must be known first:
