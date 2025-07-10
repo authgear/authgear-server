@@ -43,7 +43,7 @@ func (m *RequestMiddleware) Handle(next http.Handler) http.Handler {
 			} else {
 				err = errorutil.ForceLogging(err)
 
-				otelauthgear.TrackContextCanceled(r.Context(), err, r, bool(m.RootProvider.EnvironmentConfig.TrustProxy))
+				otelauthgear.TrackContextCanceled(r.Context(), err)
 
 				// Our logging mechanism is not context-aware.
 				// We explicitly attach context here because it was the position we observed the log.
