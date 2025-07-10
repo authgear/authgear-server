@@ -10,4 +10,5 @@ var DependencySet = wire.NewSet(
 	NewGroupLoader,
 	NewAuditLogLoader,
 	NewResourceLoader,
+	NewScopeLoader,
 )

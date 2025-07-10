@@ -55,6 +55,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(loader.RoleLoaderRoles), new(*rolesgroups.Queries)),
 	wire.Bind(new(loader.GroupLoaderGroups), new(*rolesgroups.Queries)),
 	wire.Bind(new(loader.ResourceLoaderResources), new(*resourcescope.Queries)),
+	wire.Bind(new(loader.ScopeLoaderScopes), new(*resourcescope.Queries)),
 	wire.Bind(new(loader.AuditLogQuery), new(*audit.Query)),
 
 	facade.DependencySet,
@@ -87,6 +88,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(graphql.RoleLoader), new(*loader.RoleLoader)),
 	wire.Bind(new(graphql.GroupLoader), new(*loader.GroupLoader)),
 	wire.Bind(new(graphql.ResourceLoader), new(*loader.ResourceLoader)),
+	wire.Bind(new(graphql.ScopeLoader), new(*loader.ScopeLoader)),
 	wire.Bind(new(graphql.UserFacade), new(*facade.UserFacade)),
 	wire.Bind(new(graphql.RolesGroupsFacade), new(*facade.RolesGroupsFacade)),
 	wire.Bind(new(graphql.ResourceScopeFacade), new(*facade.ResourceScopeFacade)),

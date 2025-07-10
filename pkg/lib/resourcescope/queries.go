@@ -49,3 +49,17 @@ func (q *Queries) ListScopes(ctx context.Context, resourceID string) ([]*model.S
 	// TODO: implement
 	return nil, nil
 }
+
+func (q *Queries) GetManyScopes(ctx context.Context, ids []string) ([]*model.Scope, error) {
+	scopes, err := q.Store.GetManyScopes(ctx, ids)
+	if err != nil {
+		return nil, err
+	}
+
+	scopeModels := make([]*model.Scope, len(scopes))
+	for i, s := range scopes {
+		scopeModels[i] = s.ToModel()
+	}
+
+	return scopeModels, nil
+}

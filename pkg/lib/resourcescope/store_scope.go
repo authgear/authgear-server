@@ -138,6 +138,30 @@ func (s *Store) DeleteScope(ctx context.Context, id string) error {
 	return nil
 }
 
+func (s *Store) GetManyScopes(ctx context.Context, ids []string) ([]*Scope, error) {
+	q := s.selectScopeQuery().Where("id = ANY (?)", pq.Array(ids))
+	return s.queryScopes(ctx, q)
+}
+
+func (s *Store) queryScopes(ctx context.Context, q db.SelectBuilder) ([]*Scope, error) {
+	rows, err := s.SQLExecutor.QueryWith(ctx, q)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var scopes []*Scope
+	for rows.Next() {
+		sc, err := s.scanScope(rows)
+		if err != nil {
+			return nil, err
+		}
+		scopes = append(scopes, sc)
+	}
+
+	return scopes, nil
+}
+
 func (s *Store) selectScopeQuery() db.SelectBuilder {
 	return s.SQLBuilder.
 		Select(
