@@ -1,6 +1,7 @@
 package graphql
 
 import (
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	relay "github.com/authgear/authgear-server/pkg/graphqlgo/relay"
 	"github.com/authgear/authgear-server/pkg/lib/resourcescope"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
@@ -73,6 +74,13 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
+			err = gqlCtx.Events.DispatchEventOnCommit(ctx, &nonblocking.AdminAPIMutationCreateScopeExecutedEventPayload{
+				Scope: *scope,
+			})
+			if err != nil {
+				return nil, err
+			}
+
 			return graphqlutil.NewLazyValue(map[string]interface{}{
 				"scope": scope,
 			}).Value, nil
@@ -140,6 +148,19 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
+			originalScope, err := gqlCtx.ResourceScopeFacade.GetScope(ctx, scopeID)
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.Events.DispatchEventOnCommit(ctx, &nonblocking.AdminAPIMutationUpdateScopeExecutedEventPayload{
+				OriginalScope: *originalScope,
+				NewScope:      *scope,
+			})
+			if err != nil {
+				return nil, err
+			}
+
 			return graphqlutil.NewLazyValue(map[string]interface{}{
 				"scope": scope,
 			}).Value, nil
@@ -189,6 +210,18 @@ var _ = registerMutationField(
 			ctx := p.Context
 			gqlCtx := GQLContext(ctx)
 			err := gqlCtx.ResourceScopeFacade.DeleteScope(ctx, scopeID)
+			if err != nil {
+				return nil, err
+			}
+
+			scope, err := gqlCtx.ResourceScopeFacade.GetScope(ctx, scopeID)
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.Events.DispatchEventOnCommit(ctx, &nonblocking.AdminAPIMutationDeleteScopeExecutedEventPayload{
+				Scope: *scope,
+			})
 			if err != nil {
 				return nil, err
 			}
