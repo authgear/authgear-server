@@ -1,6 +1,7 @@
 package graphql
 
 import (
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	relay "github.com/authgear/authgear-server/pkg/graphqlgo/relay"
 	"github.com/authgear/authgear-server/pkg/lib/resourcescope"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
@@ -58,6 +59,13 @@ var _ = registerMutationField(
 			ctx := p.Context
 			gqlCtx := GQLContext(ctx)
 			resource, err := gqlCtx.ResourceScopeFacade.CreateResource(ctx, options)
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.Events.DispatchEventOnCommit(ctx, &nonblocking.AdminAPIMutationCreateResourceExecutedEventPayload{
+				Resource: *resource,
+			})
 			if err != nil {
 				return nil, err
 			}
@@ -129,6 +137,19 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
+			originalResource, err := gqlCtx.ResourceScopeFacade.GetResource(ctx, resourceID)
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.Events.DispatchEventOnCommit(ctx, &nonblocking.AdminAPIMutationUpdateResourceExecutedEventPayload{
+				OriginalResource: *originalResource,
+				NewResource:      *resource,
+			})
+			if err != nil {
+				return nil, err
+			}
+
 			return graphqlutil.NewLazyValue(map[string]interface{}{
 				"resource": resource,
 			}).Value, nil
@@ -178,6 +199,18 @@ var _ = registerMutationField(
 			ctx := p.Context
 			gqlCtx := GQLContext(ctx)
 			err := gqlCtx.ResourceScopeFacade.DeleteResource(ctx, resourceID)
+			if err != nil {
+				return nil, err
+			}
+
+			resource, err := gqlCtx.ResourceScopeFacade.GetResource(ctx, resourceID)
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.Events.DispatchEventOnCommit(ctx, &nonblocking.AdminAPIMutationDeleteResourceExecutedEventPayload{
+				Resource: *resource,
+			})
 			if err != nil {
 				return nil, err
 			}
