@@ -12,6 +12,7 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.27.0"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/otelutil"
 )
 
 // Suppose you have a task to add a new metric, what should you do?
@@ -93,42 +94,49 @@ var AttributeStatusOK = AttributeKeyStatus.String("ok")
 // AttributeStatusError is "status=error".
 var AttributeStatusError = AttributeKeyStatus.String("error")
 
-var CounterOAuthSessionCreationCount = mustInt64Counter(
+var CounterOAuthSessionCreationCount = otelutil.MustInt64Counter(
+	meter,
 	"authgear.oauth_session.creation.count",
 	metric.WithDescription("The number of creation of OAuth session"),
 	metric.WithUnit("{session}"),
 )
 
-var CounterSAMLSessionCreationCount = mustInt64Counter(
+var CounterSAMLSessionCreationCount = otelutil.MustInt64Counter(
+	meter,
 	"authgear.saml_session.creation.count",
 	metric.WithDescription("The number of creation of SAML session"),
 	metric.WithUnit("{session}"),
 )
 
-var CounterAuthflowSessionCreationCount = mustInt64Counter(
+var CounterAuthflowSessionCreationCount = otelutil.MustInt64Counter(
+	meter,
 	"authgear.authflow_session.creation.count",
 	metric.WithDescription("The number of creation of Authflow session"),
 	metric.WithUnit("{session}"),
 )
 
-var CounterWebSessionCreationCount = mustInt64Counter(
+var CounterWebSessionCreationCount = otelutil.MustInt64Counter(
+	meter,
 	"authgear.web_session.creation.count",
 	metric.WithDescription("The number of creation of Web session"),
 	metric.WithUnit("{session}"),
 )
 
-var CounterOAuthAuthorizationCodeCreationCount = mustInt64Counter(
+var CounterOAuthAuthorizationCodeCreationCount = otelutil.MustInt64Counter(
+	meter,
 	"authgear.oauth_authorization_code.creation.count",
 	metric.WithDescription("The number of creation of OAuth authorization code"),
 	metric.WithUnit("{code}"),
 )
-var CounterOAuthAuthorizationCodeConsumptionCount = mustInt64Counter(
+var CounterOAuthAuthorizationCodeConsumptionCount = otelutil.MustInt64Counter(
+	meter,
 	"authgear.oauth_authorization_code.consumption.count",
 	metric.WithDescription("The number of consumption of OAuth authorization code"),
 	metric.WithUnit("{code}"),
 )
 
-var CounterOAuthAccessTokenRefreshCount = mustInt64Counter(
+var CounterOAuthAccessTokenRefreshCount = otelutil.MustInt64Counter(
+	meter,
 	"authgear.oauth_access_token.refresh.count",
 	metric.WithDescription("The number of access token obtained via a refresh token"),
 	metric.WithUnit("{token}"),
@@ -136,7 +144,8 @@ var CounterOAuthAccessTokenRefreshCount = mustInt64Counter(
 
 // CounterEmailRequestCount has the following labels:
 // - AttributeKeyStatus
-var CounterEmailRequestCount = mustInt64Counter(
+var CounterEmailRequestCount = otelutil.MustInt64Counter(
+	meter,
 	"authgear.email.request.count",
 	metric.WithDescription("The number of email request"),
 	metric.WithUnit("{request}"),
@@ -144,7 +153,8 @@ var CounterEmailRequestCount = mustInt64Counter(
 
 // CounterSMSRequestCount has the following labels:
 // - AttributeKeyStatus
-var CounterSMSRequestCount = mustInt64Counter(
+var CounterSMSRequestCount = otelutil.MustInt64Counter(
+	meter,
 	"authgear.sms.request.count",
 	metric.WithDescription("The number of SMS request"),
 	metric.WithUnit("{request}"),
@@ -152,7 +162,8 @@ var CounterSMSRequestCount = mustInt64Counter(
 
 // CounterWhatsappRequestCount has the following labels:
 // - AttributeKeyStatus
-var CounterWhatsappRequestCount = mustInt64Counter(
+var CounterWhatsappRequestCount = otelutil.MustInt64Counter(
+	meter,
 	"authgear.whatsapp.request.count",
 	metric.WithDescription("The number of Whatsapp request"),
 	metric.WithUnit("{request}"),
@@ -160,7 +171,8 @@ var CounterWhatsappRequestCount = mustInt64Counter(
 
 // CounterCSRFRequestCount has the following labels:
 // - AttributeKeyStatus
-var CounterCSRFRequestCount = mustInt64Counter(
+var CounterCSRFRequestCount = otelutil.MustInt64Counter(
+	meter,
 	"authgear.csrf.request.count",
 	metric.WithDescription("The number of HTTP request with CSRF protection"),
 	metric.WithUnit("{request}"),
@@ -168,7 +180,8 @@ var CounterCSRFRequestCount = mustInt64Counter(
 
 // CounterContextCanceledCount is a temporary metric to debug context canceled issue.
 // It has no labels.
-var CounterContextCanceledCount = mustInt64Counter(
+var CounterContextCanceledCount = otelutil.MustInt64Counter(
+	meter,
 	"authgear.context_canceled.count",
 	metric.WithDescription("The number of context canceled error encountered"),
 	metric.WithUnit("{error}"),
@@ -176,7 +189,8 @@ var CounterContextCanceledCount = mustInt64Counter(
 
 // CounterNonBlockingWebhookCount has the following labels:
 // - AttributeKeyStatus
-var CounterNonBlockingWebhookCount = mustInt64Counter(
+var CounterNonBlockingWebhookCount = otelutil.MustInt64Counter(
+	meter,
 	"authgear.webhook.non_blocking.count",
 	metric.WithDescription("The number of non blocking webhook"),
 	metric.WithUnit("{request}"),
@@ -184,14 +198,16 @@ var CounterNonBlockingWebhookCount = mustInt64Counter(
 
 // CounterBlockingWebhookCount has the following labels:
 // - AttributeKeyStatus
-var CounterBlockingWebhookCount = mustInt64Counter(
+var CounterBlockingWebhookCount = otelutil.MustInt64Counter(
+	meter,
 	"authgear.webhook.blocking.count",
 	metric.WithDescription("The number of blocking webhook"),
 	metric.WithUnit("{request}"),
 )
 
 // HTTPServerRequestDurationHistogram is https://opentelemetry.io/docs/specs/semconv/http/http-metrics/#metric-httpserverrequestduration
-var HTTPServerRequestDurationHistogram = mustFloat64Histogram(
+var HTTPServerRequestDurationHistogram = otelutil.MustFloat64Histogram(
+	meter,
 	semconv.HTTPServerRequestDurationName,
 	metric.WithDescription(semconv.HTTPServerRequestDurationDescription),
 	metric.WithUnit(semconv.HTTPServerRequestDurationUnit),
@@ -216,60 +232,35 @@ var HTTPServerRequestDurationHistogram = mustFloat64Histogram(
 	),
 )
 
-func mustInt64Counter(name string, options ...metric.Int64CounterOption) metric.Int64Counter {
-	counter, err := meter.Int64Counter(name, options...)
-	if err != nil {
-		panic(err)
-	}
-	return counter
-}
-
-func mustFloat64Histogram(name string, options ...metric.Float64HistogramOption) metric.Float64Histogram {
-	histogram, err := meter.Float64Histogram(name, options...)
-	if err != nil {
-		panic(err)
-	}
-	return histogram
-}
-
-// IntCounter is metric.Int64Counter or metric.Int64UpDownCounter
-type IntCounter interface {
-	Add(ctx context.Context, incr int64, options ...metric.AddOption)
-}
-
-type MetricOption interface {
-	toOtelMetricOption() metric.MeasurementOption
-}
-
 type metricOptionAttributeKeyValue struct {
 	attribute.KeyValue
 }
 
-func (o metricOptionAttributeKeyValue) toOtelMetricOption() metric.MeasurementOption {
+func (o metricOptionAttributeKeyValue) ToOtelMetricOption() metric.MeasurementOption {
 	return metric.WithAttributes(o.KeyValue)
 }
 
-func WithStatusOk() MetricOption {
+func WithStatusOk() otelutil.MetricOption {
 	return metricOptionAttributeKeyValue{AttributeStatusOK}
 }
 
-func WithStatusError() MetricOption {
+func WithStatusError() otelutil.MetricOption {
 	return metricOptionAttributeKeyValue{AttributeStatusError}
 }
 
-func WithWhatsappAPIType(apiType config.WhatsappAPIType) MetricOption {
+func WithWhatsappAPIType(apiType config.WhatsappAPIType) otelutil.MetricOption {
 	return metricOptionAttributeKeyValue{AttributeKeyWhatsappAPIType.String(string(apiType))}
 }
 
-func WithWhatsappAPIErrorCode(code int) MetricOption {
+func WithWhatsappAPIErrorCode(code int) otelutil.MetricOption {
 	return metricOptionAttributeKeyValue{AttributeKeyWhatsappAPIErrorCode.String(fmt.Sprint(code))}
 }
 
-func WithAPIErrorReason(kind string) MetricOption {
+func WithAPIErrorReason(kind string) otelutil.MetricOption {
 	return metricOptionAttributeKeyValue{AttributeKeyAPIErrorReason.String(kind)}
 }
 
-func WithHTTPStatusCode(code int) MetricOption {
+func WithHTTPStatusCode(code int) otelutil.MetricOption {
 	return metricOptionAttributeKeyValue{semconv.HTTPResponseStatusCodeKey.Int(code)}
 }
 
@@ -283,46 +274,9 @@ func SetClientID(ctx context.Context, clientID string) {
 	labeler.Add(attributeKeyClientID.String(clientID))
 }
 
-// IntCounterAddOne prepares necessary attributes and calls Add with incr=1.
-// It is intentionally that this does not accept metric.AddOption.
-// If this accepts metric.AddOption, then you can pass in arbitrary metric.WithAttributes.
-// Those attributes MAY NOT be the attributes defined in this package, and could contain
-// unexpected end user data.
-func IntCounterAddOne(ctx context.Context, counter IntCounter, inOptions ...MetricOption) {
-	var finalOptions []metric.AddOption
-
-	labeler, _ := otelhttp.LabelerFromContext(ctx)
-	labelerAttrs := labeler.Get()
-	for _, labelerAttr := range labelerAttrs {
-		finalOptions = append(finalOptions, metric.WithAttributes(labelerAttr))
-	}
-
-	for _, o := range inOptions {
-		finalOptions = append(finalOptions, o.toOtelMetricOption())
-	}
-
-	counter.Add(ctx, 1, finalOptions...)
-}
-
-func Float64HistogramRecord(ctx context.Context, histogram metric.Float64Histogram, val float64, inOptions ...MetricOption) {
-	var finalOptions []metric.RecordOption
-
-	labeler, _ := otelhttp.LabelerFromContext(ctx)
-	labelerAttrs := labeler.Get()
-	for _, labelerAttr := range labelerAttrs {
-		finalOptions = append(finalOptions, metric.WithAttributes(labelerAttr))
-	}
-
-	for _, o := range inOptions {
-		finalOptions = append(finalOptions, o.toOtelMetricOption())
-	}
-
-	histogram.Record(ctx, val, finalOptions...)
-}
-
 func TrackContextCanceled(ctx context.Context, err error) {
 	if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
-		IntCounterAddOne(
+		otelutil.IntCounterAddOne(
 			ctx,
 			CounterContextCanceledCount,
 		)

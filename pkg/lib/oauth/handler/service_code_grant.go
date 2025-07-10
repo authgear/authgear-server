@@ -10,6 +10,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/otelutil"
 )
 
 type CodeGrantService struct {
@@ -55,7 +56,7 @@ func (s *CodeGrantService) CreateCodeGrant(ctx context.Context, opts *CreateCode
 	if err != nil {
 		return "", nil, err
 	}
-	otelauthgear.IntCounterAddOne(
+	otelutil.IntCounterAddOne(
 		ctx,
 		otelauthgear.CounterOAuthAuthorizationCodeCreationCount,
 	)

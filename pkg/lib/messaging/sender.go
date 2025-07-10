@@ -21,6 +21,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/otelutil"
 	"github.com/authgear/authgear-server/pkg/util/phone"
 )
 
@@ -104,7 +105,7 @@ func (s *Sender) SendEmailInNewGoroutine(ctx context.Context, msgType translatio
 				"email": mail.MaskAddress(opts.Recipient),
 			}).Error("failed to send email")
 
-			otelauthgear.IntCounterAddOne(
+			otelutil.IntCounterAddOne(
 				ctx,
 				otelauthgear.CounterEmailRequestCount,
 				otelauthgear.WithStatusError(),
@@ -119,7 +120,7 @@ func (s *Sender) SendEmailInNewGoroutine(ctx context.Context, msgType translatio
 			return err
 		}
 
-		otelauthgear.IntCounterAddOne(
+		otelutil.IntCounterAddOne(
 			ctx,
 			otelauthgear.CounterEmailRequestCount,
 			otelauthgear.WithStatusOk(),
@@ -225,14 +226,14 @@ func (s *Sender) sendSMS(ctx context.Context, msgType translation.MessageType, o
 
 			var smsapiErr *smsapi.SendError
 			if errors.As(err, &smsapiErr) && smsapiErr.APIErrorKind != nil {
-				otelauthgear.IntCounterAddOne(
+				otelutil.IntCounterAddOne(
 					ctx,
 					otelauthgear.CounterSMSRequestCount,
 					otelauthgear.WithStatusError(),
 					otelauthgear.WithAPIErrorReason(smsapiErr.APIErrorKind.Reason),
 				)
 			} else {
-				otelauthgear.IntCounterAddOne(
+				otelutil.IntCounterAddOne(
 					ctx,
 					otelauthgear.CounterSMSRequestCount,
 					otelauthgear.WithStatusError(),
@@ -267,7 +268,7 @@ func (s *Sender) sendSMS(ctx context.Context, msgType translation.MessageType, o
 		}
 	}
 
-	otelauthgear.IntCounterAddOne(
+	otelutil.IntCounterAddOne(
 		ctx,
 		otelauthgear.CounterSMSRequestCount,
 		otelauthgear.WithStatusOk(),
@@ -350,7 +351,7 @@ func (s *Sender) SendWhatsappImmediately(ctx context.Context, msgType translatio
 			"phone": phone.Mask(opts.To),
 		}).Error("failed to send Whatsapp")
 
-		metricOptions := []otelauthgear.MetricOption{otelauthgear.WithStatusError()}
+		metricOptions := []otelutil.MetricOption{otelauthgear.WithStatusError()}
 		var apiErr *whatsapp.WhatsappAPIError
 		if ok := errors.As(err, &apiErr); ok {
 			metricOptions = append(metricOptions, otelauthgear.WithWhatsappAPIType(apiErr.APIType))
@@ -361,7 +362,7 @@ func (s *Sender) SendWhatsappImmediately(ctx context.Context, msgType translatio
 			}
 		}
 
-		otelauthgear.IntCounterAddOne(
+		otelutil.IntCounterAddOne(
 			ctx,
 			otelauthgear.CounterWhatsappRequestCount,
 			metricOptions...,
@@ -377,7 +378,7 @@ func (s *Sender) SendWhatsappImmediately(ctx context.Context, msgType translatio
 		return err
 	}
 
-	otelauthgear.IntCounterAddOne(
+	otelutil.IntCounterAddOne(
 		ctx,
 		otelauthgear.CounterWhatsappRequestCount,
 		otelauthgear.WithStatusOk(),

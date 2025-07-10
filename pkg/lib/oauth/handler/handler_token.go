@@ -44,6 +44,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/jwkutil"
 	"github.com/authgear/authgear-server/pkg/util/jwtutil"
 	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/otelutil"
 	"github.com/authgear/authgear-server/pkg/util/pkce"
 	"github.com/authgear/authgear-server/pkg/util/slice"
 )
@@ -579,7 +580,7 @@ func (h *TokenHandler) IssueTokensForAuthorizationCode(
 		h.Logger.WithError(err).Error("failed to invalidate code grant")
 	}
 
-	otelauthgear.IntCounterAddOne(
+	otelutil.IntCounterAddOne(
 		ctx,
 		otelauthgear.CounterOAuthAuthorizationCodeConsumptionCount,
 	)
@@ -627,7 +628,7 @@ func (h *TokenHandler) handleRefreshToken(
 		return nil, err
 	}
 
-	otelauthgear.IntCounterAddOne(
+	otelutil.IntCounterAddOne(
 		ctx,
 		otelauthgear.CounterOAuthAccessTokenRefreshCount,
 	)

@@ -16,6 +16,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/crypto"
 	"github.com/authgear/authgear-server/pkg/util/jwkutil"
 	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/otelutil"
 )
 
 type WebHookLogger struct{ *log.Logger }
@@ -70,13 +71,13 @@ func (h *WebHookImpl) PerformWithResponse(
 
 	resp, err = performRequest(client, request)
 	if err != nil {
-		otelauthgear.IntCounterAddOne(
+		otelutil.IntCounterAddOne(
 			ctx,
 			otelauthgear.CounterBlockingWebhookCount,
 			otelauthgear.WithStatusError(),
 		)
 	} else {
-		otelauthgear.IntCounterAddOne(
+		otelutil.IntCounterAddOne(
 			ctx,
 			otelauthgear.CounterBlockingWebhookCount,
 			otelauthgear.WithStatusOk(),
@@ -93,14 +94,14 @@ func (h *WebHookImpl) PerformNoResponse(
 	go func() {
 		resp, err := performRequest(client, request)
 		if err != nil {
-			otelauthgear.IntCounterAddOne(
+			otelutil.IntCounterAddOne(
 				ctx,
 				otelauthgear.CounterNonBlockingWebhookCount,
 				otelauthgear.WithStatusError(),
 			)
 			h.Logger.WithError(err).Error("failed to dispatch nonblocking webhook")
 		} else {
-			otelauthgear.IntCounterAddOne(
+			otelutil.IntCounterAddOne(
 				ctx,
 				otelauthgear.CounterNonBlockingWebhookCount,
 				otelauthgear.WithStatusOk(),
