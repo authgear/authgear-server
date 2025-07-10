@@ -13,7 +13,6 @@ type NewResourceOptions struct {
 
 type UpdateResourceOptions struct {
 	ID      string
-	NewURI  *string
 	NewName *string
 }
 

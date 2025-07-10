@@ -17,6 +17,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
+	"github.com/authgear/authgear-server/pkg/lib/resourcescope"
 	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/sessionlisting"
@@ -189,6 +190,13 @@ type EventService interface {
 	DispatchEventOnCommit(ctx context.Context, payload event.Payload) error
 }
 
+type ResourceScopeFacade interface {
+	CreateResource(ctx context.Context, options *resourcescope.NewResourceOptions) (*apimodel.Resource, error)
+	UpdateResource(ctx context.Context, options *resourcescope.UpdateResourceOptions) (*apimodel.Resource, error)
+	DeleteResource(ctx context.Context, id string) error
+	GetResource(ctx context.Context, id string) (*apimodel.Resource, error)
+}
+
 type Logger struct{ *log.Logger }
 
 func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("admin-graphql")} }
@@ -221,6 +229,7 @@ type Context struct {
 	OTPCode             OTPCodeService
 	ForgotPassword      ForgotPasswordService
 	Events              EventService
+	ResourceScopeFacade ResourceScopeFacade
 }
 
 func (c *Context) Logger() *log.Logger {
