@@ -16,6 +16,8 @@ type ResourceScopeCommands interface {
 	CreateScope(ctx context.Context, options *resourcescope.NewScopeOptions) (*model.Scope, error)
 	UpdateScope(ctx context.Context, options *resourcescope.UpdateScopeOptions) (*model.Scope, error)
 	DeleteScope(ctx context.Context, id string) error
+	AddResourceToClientID(ctx context.Context, resourceURI string, clientID string) error
+	RemoveResourceFromClientID(ctx context.Context, resourceURI string, clientID string) error
 }
 
 type ResourceScopeQueries interface {
@@ -23,6 +25,7 @@ type ResourceScopeQueries interface {
 	GetScope(ctx context.Context, id string) (*model.Scope, error)
 	ListScopes(ctx context.Context, resourceID string) ([]*model.Scope, error)
 	ListResources(ctx context.Context, options *resourcescope.ListResourcesOptions, pageArgs graphqlutil.PageArgs) (*resourcescope.ListResourceResult, error)
+	GetResourceByURI(ctx context.Context, uri string) (*model.Resource, error)
 }
 
 type ResourceScopeFacade struct {
@@ -86,4 +89,16 @@ func (f *ResourceScopeFacade) ListResources(ctx context.Context, options *resour
 	return refs, graphqlutil.NewPageResult(pageArgs, len(refs), graphqlutil.NewLazy(func() (interface{}, error) {
 		return result.TotalCount, nil
 	})), nil
+}
+
+func (f *ResourceScopeFacade) AddResourceToClientID(ctx context.Context, resourceURI string, clientID string) error {
+	return f.ResourceScopeCommands.AddResourceToClientID(ctx, resourceURI, clientID)
+}
+
+func (f *ResourceScopeFacade) RemoveResourceFromClientID(ctx context.Context, resourceURI string, clientID string) error {
+	return f.ResourceScopeCommands.RemoveResourceFromClientID(ctx, resourceURI, clientID)
+}
+
+func (f *ResourceScopeFacade) GetResourceByURI(ctx context.Context, uri string) (*model.Resource, error) {
+	return f.ResourceScopeQueries.GetResourceByURI(ctx, uri)
 }

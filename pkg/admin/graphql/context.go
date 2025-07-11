@@ -203,12 +203,15 @@ type ResourceScopeFacade interface {
 	UpdateResource(ctx context.Context, options *resourcescope.UpdateResourceOptions) (*apimodel.Resource, error)
 	DeleteResource(ctx context.Context, id string) error
 	GetResource(ctx context.Context, id string) (*apimodel.Resource, error)
+	GetResourceByURI(ctx context.Context, uri string) (*apimodel.Resource, error)
 	CreateScope(ctx context.Context, options *resourcescope.NewScopeOptions) (*apimodel.Scope, error)
 	UpdateScope(ctx context.Context, options *resourcescope.UpdateScopeOptions) (*apimodel.Scope, error)
 	DeleteScope(ctx context.Context, id string) error
 	GetScope(ctx context.Context, id string) (*apimodel.Scope, error)
 	ListScopes(ctx context.Context, resourceID string) ([]*apimodel.Scope, error)
 	ListResources(ctx context.Context, options *resourcescope.ListResourcesOptions, pageArgs graphqlutil.PageArgs) ([]apimodel.PageItemRef, *graphqlutil.PageResult, error)
+	AddResourceToClientID(ctx context.Context, resourceID, clientID string) error
+	RemoveResourceFromClientID(ctx context.Context, resourceID, clientID string) error
 }
 
 type Logger struct{ *log.Logger }

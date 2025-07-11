@@ -86,3 +86,11 @@ func (q *Queries) GetManyScopes(ctx context.Context, ids []string) ([]*model.Sco
 
 	return scopeModels, nil
 }
+
+func (q *Queries) GetResourceByURI(ctx context.Context, uri string) (*model.Resource, error) {
+	resource, err := q.Store.GetResourceByURI(ctx, uri)
+	if err != nil {
+		return nil, err
+	}
+	return resource.ToModel(), nil
+}

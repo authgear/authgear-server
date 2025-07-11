@@ -139,6 +139,18 @@ func (s *Store) GetManyResources(ctx context.Context, ids []string) ([]*Resource
 	return s.queryResources(ctx, q)
 }
 
+func (s *Store) GetResourceByURI(ctx context.Context, uri string) (*Resource, error) {
+	q := s.selectResourceQuery().Where("uri = ?", uri)
+	resources, err := s.queryResources(ctx, q)
+	if err != nil {
+		return nil, err
+	}
+	if len(resources) == 0 {
+		return nil, ErrResourceNotFound
+	}
+	return resources[0], nil
+}
+
 type storeListResourceResult struct {
 	Items      []*Resource
 	Offset     uint64

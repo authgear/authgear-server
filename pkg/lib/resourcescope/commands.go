@@ -35,6 +35,16 @@ func (c *Commands) DeleteResource(ctx context.Context, id string) error {
 	return c.Store.DeleteResource(ctx, id)
 }
 
+func (c *Commands) AddResourceToClientID(ctx context.Context, resourceURI, clientID string) error {
+	// TODO: Implement resource-clientID association by resource URI
+	return nil
+}
+
+func (c *Commands) RemoveResourceFromClientID(ctx context.Context, resourceURI, clientID string) error {
+	// TODO: Implement resource-clientID disassociation by resource URI
+	return nil
+}
+
 func (c *Commands) CreateScope(ctx context.Context, options *NewScopeOptions) (*model.Scope, error) {
 	scope := c.Store.NewScope(options)
 	err := c.Store.CreateScope(ctx, scope)
