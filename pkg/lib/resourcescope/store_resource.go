@@ -175,6 +175,20 @@ func (s *Store) GetManyResources(ctx context.Context, ids []string) ([]*Resource
 	return s.queryResources(ctx, q)
 }
 
+func (s *Store) GetClientResource(ctx context.Context, clientID, resourceID string) (*Resource, error) {
+	q := s.selectResourceQuery("r").
+		Join(s.SQLBuilder.TableName("_auth_client_resource"), "acr", "acr.resource_id = r.id").
+		Where("r.id = ? AND acr.client_id = ?", resourceID, clientID)
+	resources, err := s.queryResources(ctx, q)
+	if err != nil {
+		return nil, err
+	}
+	if len(resources) == 0 {
+		return nil, ErrResourceNotFound
+	}
+	return resources[0], nil
+}
+
 type storeListResourceResult struct {
 	Items      []*Resource
 	Offset     uint64
