@@ -48,6 +48,16 @@ func (c *Commands) GetResourceByURI(ctx context.Context, uri string) (*model.Res
 	return resource.ToModel(), nil
 }
 
+func (c *Commands) AddResourceToClientID(ctx context.Context, resourceURI, clientID string) error {
+	// TODO: Implement resource-clientID association by resource URI
+	return nil
+}
+
+func (c *Commands) RemoveResourceFromClientID(ctx context.Context, resourceURI, clientID string) error {
+	// TODO: Implement resource-clientID disassociation by resource URI
+	return nil
+}
+
 func (c *Commands) CreateScope(ctx context.Context, options *NewScopeOptions) (*model.Scope, error) {
 	err := ValidateScope(ctx, options.Scope)
 	if err != nil {
