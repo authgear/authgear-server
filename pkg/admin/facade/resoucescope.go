@@ -74,7 +74,7 @@ func (f *ResourceScopeFacade) ListResources(ctx context.Context, options *resour
 
 	refs := make([]model.PageItemRef, len(result.Items))
 	for i, r := range result.Items {
-		i_uint64 := uint64(i)
+		i_uint64 := uint64(i) // #nosec G115
 		pageKey := db.PageKey{Offset: result.Offset + i_uint64}
 		cursor, err := pageKey.ToPageCursor()
 		if err != nil {
