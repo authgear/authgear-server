@@ -36,6 +36,19 @@ func (c *Commands) UpdateResource(ctx context.Context, options *UpdateResourceOp
 }
 
 func (c *Commands) DeleteResource(ctx context.Context, id string) error {
+	// Delete all client-resource associations
+	if err := c.Store.DeleteAllClientResourceAssociations(ctx, id); err != nil {
+		return err
+	}
+	// Delete all client-scope associations for all scopes of this resource
+	if err := c.Store.DeleteAllClientScopeAssociationsByResourceID(ctx, id); err != nil {
+		return err
+	}
+	// Delete all resource-scopes
+	if err := c.Store.DeleteAllResourceScopes(ctx, id); err != nil {
+		return err
+	}
+	// Delete the resource itself
 	return c.Store.DeleteResource(ctx, id)
 }
 
@@ -58,6 +71,11 @@ func (c *Commands) RemoveResourceFromClientID(ctx context.Context, resourceURI, 
 	if err != nil {
 		return err
 	}
+	// Remove all client-scope associations for all scopes of this resource for this client
+	if err := c.Store.DeleteClientScopeAssociationsByResourceID(ctx, clientID, resource.ID); err != nil {
+		return err
+	}
+	// Remove the client-resource association
 	return c.Store.RemoveResourceFromClientID(ctx, resource.ID, clientID)
 }
 
@@ -83,17 +101,12 @@ func (c *Commands) UpdateScope(ctx context.Context, options *UpdateScopeOptions)
 }
 
 func (c *Commands) DeleteScope(ctx context.Context, id string) error {
-	return c.Store.DeleteScope(ctx, id)
-}
-
-func (c *Commands) checkResourceAssociatedToClient(ctx context.Context, resourceID, clientID string) error {
-	_, err := c.Store.GetClientResource(ctx, clientID, resourceID)
-	if errors.Is(err, ErrResourceNotFound) {
-		return ErrResourceNotAssociatedWithClient
-	} else if err != nil {
+	// Remove all client-scope associations for this scope
+	if err := c.Store.DeleteAllClientScopeAssociationsByScopeID(ctx, id); err != nil {
 		return err
 	}
-	return nil
+	// Delete the scope itself
+	return c.Store.DeleteScope(ctx, id)
 }
 
 func (c *Commands) AddScopesToClientID(ctx context.Context, resourceURI, clientID string, scopes []string) ([]*model.Scope, error) {
@@ -218,4 +231,14 @@ func (c *Commands) ReplaceScopesOfClientID(ctx context.Context, resourceURI, cli
 		result = append(result, s.ToModel())
 	}
 	return result, nil
+}
+
+func (c *Commands) checkResourceAssociatedToClient(ctx context.Context, resourceID, clientID string) error {
+	_, err := c.Store.GetClientResource(ctx, clientID, resourceID)
+	if errors.Is(err, ErrResourceNotFound) {
+		return ErrResourceNotAssociatedWithClient
+	} else if err != nil {
+		return err
+	}
+	return nil
 }
