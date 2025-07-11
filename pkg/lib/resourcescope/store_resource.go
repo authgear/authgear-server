@@ -7,9 +7,10 @@ import (
 
 	"github.com/lib/pq"
 
+	"github.com/google/uuid"
+
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
-	"github.com/google/uuid"
 )
 
 func (s *Store) NewResource(options *NewResourceOptions) *Resource {

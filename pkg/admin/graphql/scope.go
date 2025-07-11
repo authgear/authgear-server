@@ -3,10 +3,11 @@ package graphql
 import (
 	"context"
 
+	"github.com/graphql-go/graphql"
+
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
-	"github.com/graphql-go/graphql"
 )
 
 const typeScope = "Scope"

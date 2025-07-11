@@ -1,11 +1,12 @@
 package graphql
 
 import (
+	"github.com/graphql-go/graphql"
+
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	relay "github.com/authgear/authgear-server/pkg/graphqlgo/relay"
 	"github.com/authgear/authgear-server/pkg/lib/resourcescope"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
-	"github.com/graphql-go/graphql"
 )
 
 var createResourceInput = graphql.NewInputObject(graphql.InputObjectConfig{

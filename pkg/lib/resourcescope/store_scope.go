@@ -7,8 +7,9 @@ import (
 
 	"github.com/lib/pq"
 
-	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/google/uuid"
+
+	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 )
 
 func (s *Store) NewScope(options *NewScopeOptions) *Scope {
