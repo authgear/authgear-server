@@ -1,6 +1,9 @@
 package graphql
 
-import "github.com/graphql-go/graphql"
+import (
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
+	"github.com/graphql-go/graphql"
+)
 
 var addScopesToClientIDInput = graphql.NewInputObject(graphql.InputObjectConfig{
 	Name: "AddScopesToClientIDInput",
@@ -53,6 +56,15 @@ var _ = registerMutationField(
 			ctx := p.Context
 			gqlCtx := GQLContext(ctx)
 			finalscopes, err := gqlCtx.ResourceScopeFacade.AddScopesToClientID(ctx, resourceURI, clientID, scopes)
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.Events.DispatchEventOnCommit(ctx, &nonblocking.AdminAPIMutationAddScopesToClientIDExecutedEventPayload{
+				ResourceURI: resourceURI,
+				ClientID:    clientID,
+				Scopes:      finalscopes,
+			})
 			if err != nil {
 				return nil, err
 			}
@@ -119,6 +131,15 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
+			err = gqlCtx.Events.DispatchEventOnCommit(ctx, &nonblocking.AdminAPIMutationRemoveScopesFromClientIDExecutedEventPayload{
+				ResourceURI: resourceURI,
+				ClientID:    clientID,
+				Scopes:      finalscopes,
+			})
+			if err != nil {
+				return nil, err
+			}
+
 			return map[string]interface{}{
 				"scopes": finalscopes,
 			}, nil
@@ -176,6 +197,15 @@ var _ = registerMutationField(
 			ctx := p.Context
 			gqlCtx := GQLContext(ctx)
 			finalscopes, err := gqlCtx.ResourceScopeFacade.ReplaceScopesOfClientID(ctx, resourceURI, clientID, scopes)
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.Events.DispatchEventOnCommit(ctx, &nonblocking.AdminAPIMutationReplaceScopesOfClientIDExecutedEventPayload{
+				ResourceURI: resourceURI,
+				ClientID:    clientID,
+				Scopes:      finalscopes,
+			})
 			if err != nil {
 				return nil, err
 			}
