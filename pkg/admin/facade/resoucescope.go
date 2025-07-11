@@ -16,6 +16,8 @@ type ResourceScopeCommands interface {
 	CreateScope(ctx context.Context, options *resourcescope.NewScopeOptions) (*model.Scope, error)
 	UpdateScope(ctx context.Context, options *resourcescope.UpdateScopeOptions) (*model.Scope, error)
 	DeleteScope(ctx context.Context, resourceURI string, scope string) error
+	AddResourceToClientID(ctx context.Context, resourceURI string, clientID string) error
+	RemoveResourceFromClientID(ctx context.Context, resourceURI string, clientID string) error
 }
 
 type ResourceScopeQueries interface {
@@ -86,4 +88,12 @@ func (f *ResourceScopeFacade) ListResources(ctx context.Context, options *resour
 	return refs, graphqlutil.NewPageResult(pageArgs, len(refs), graphqlutil.NewLazy(func() (interface{}, error) {
 		return result.TotalCount, nil
 	})), nil
+}
+
+func (f *ResourceScopeFacade) AddResourceToClientID(ctx context.Context, resourceURI string, clientID string) error {
+	return f.ResourceScopeCommands.AddResourceToClientID(ctx, resourceURI, clientID)
+}
+
+func (f *ResourceScopeFacade) RemoveResourceFromClientID(ctx context.Context, resourceURI string, clientID string) error {
+	return f.ResourceScopeCommands.RemoveResourceFromClientID(ctx, resourceURI, clientID)
 }
