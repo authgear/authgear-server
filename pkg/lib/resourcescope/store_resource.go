@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	databaseutil "github.com/authgear/authgear-server/pkg/util/databaseutil"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
@@ -44,11 +45,8 @@ func (s *Store) CreateResource(ctx context.Context, r *Resource) error {
 
 	_, err := s.SQLExecutor.ExecWith(ctx, q)
 	if err != nil {
-		var pqError *pq.Error
-		if errors.As(err, &pqError) {
-			if pqError.Code == "23505" {
-				return ErrResourceDuplicateURI
-			}
+		if databaseutil.IsDuplicateKeyError(err) {
+			return ErrResourceDuplicateURI
 		}
 		return err
 	}
@@ -73,11 +71,8 @@ func (s *Store) UpdateResource(ctx context.Context, options *UpdateResourceOptio
 
 	result, err := s.SQLExecutor.ExecWith(ctx, q)
 	if err != nil {
-		var pqError *pq.Error
-		if errors.As(err, &pqError) {
-			if pqError.Code == "23505" {
-				return ErrResourceDuplicateURI
-			}
+		if databaseutil.IsDuplicateKeyError(err) {
+			return ErrResourceDuplicateURI
 		}
 		return err
 	}
@@ -288,16 +283,11 @@ func (s *Store) AddResourceToClientID(ctx context.Context, resourceID, clientID 
 	q := s.SQLBuilder.
 		Insert(s.SQLBuilder.TableName("_auth_client_resource")).
 		Columns("id", "created_at", "updated_at", "client_id", "resource_id").
-		Values(uuid.NewString(), now, now, clientID, resourceID)
+		Values(uuid.NewString(), now, now, clientID, resourceID).
+		Suffix("ON CONFLICT DO NOTHING")
+
 	_, err := s.SQLExecutor.ExecWith(ctx, q)
 	if err != nil {
-		var pqError *pq.Error
-		if errors.As(err, &pqError) {
-			if pqError.Code == "23505" {
-				// Already associated, treat as success
-				return nil
-			}
-		}
 		return err
 	}
 	return nil
