@@ -234,7 +234,7 @@ func (s *Store) applyListResourcesOptions(q db.SelectBuilder, authResourceAlias 
 		q = q.Join(
 			s.SQLBuilder.TableName("_auth_client_resource"),
 			"acr",
-			"acr.resource_id = r.id",
+			fmt.Sprintf("acr.resource_id = %s.id", authResourceAlias),
 		)
 		q = q.Where("acr.client_id = ?", options.ClientID)
 	}
