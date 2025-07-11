@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	databaseutil "github.com/authgear/authgear-server/pkg/util/databaseutil"
 )
 
 func (s *Store) NewScope(resource *Resource, options *NewScopeOptions) *Scope {
@@ -46,11 +47,8 @@ func (s *Store) CreateScope(ctx context.Context, scope *Scope) error {
 
 	_, err := s.SQLExecutor.ExecWith(ctx, q)
 	if err != nil {
-		var pqError *pq.Error
-		if errors.As(err, &pqError) {
-			if pqError.Code == "23505" {
-				return ErrScopeDuplicate
-			}
+		if databaseutil.IsDuplicateKeyError(err) {
+			return ErrScopeDuplicate
 		}
 		return err
 	}
@@ -80,11 +78,8 @@ func (s *Store) UpdateScope(ctx context.Context, options *UpdateScopeOptions) er
 
 	result, err := s.SQLExecutor.ExecWith(ctx, q)
 	if err != nil {
-		var pqError *pq.Error
-		if errors.As(err, &pqError) {
-			if pqError.Code == "23505" {
-				return ErrScopeDuplicate
-			}
+		if databaseutil.IsDuplicateKeyError(err) {
+			return ErrScopeDuplicate
 		}
 		return err
 	}
