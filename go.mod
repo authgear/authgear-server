@@ -13,7 +13,7 @@ require (
 	// The client should have equal or less minor version.
 	github.com/elastic/go-elasticsearch/v7 v7.17.10
 	github.com/felixge/httpsnoop v1.0.4
-	github.com/getsentry/sentry-go v0.34.0
+	github.com/getsentry/sentry-go v0.34.1
 	github.com/go-redsync/redsync/v4 v4.13.0
 	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.6.0
@@ -87,6 +87,7 @@ require (
 	github.com/charmbracelet/bubbletea v1.3.5
 	github.com/charmbracelet/lipgloss v1.1.0
 	github.com/coder/websocket v1.8.13
+	github.com/getsentry/sentry-go/slog v0.34.1
 	github.com/go-gsm/charset v1.0.0
 	github.com/go-ldap/ldap/v3 v3.4.11
 	github.com/goaux/decowriter v1.0.0

@@ -55,7 +55,8 @@ require (
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/fsnotify/fsnotify v1.8.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.7.0 // indirect
-	github.com/getsentry/sentry-go v0.34.0 // indirect
+	github.com/getsentry/sentry-go v0.34.1 // indirect
+	github.com/getsentry/sentry-go/slog v0.34.1 // indirect
 	github.com/go-asn1-ber/asn1-ber v1.5.8-0.20250403174932-29230038a667 // indirect
 	github.com/go-gorp/gorp/v3 v3.1.0 // indirect
 	github.com/go-gsm/charset v1.0.0 // indirect
@@ -142,6 +143,9 @@ require (
 	github.com/rubenv/sql-migrate v1.8.0 // indirect
 	github.com/russellhaering/goxmldsig v1.5.0 // indirect
 	github.com/sagikazarmark/locafero v0.7.0 // indirect
+	github.com/samber/lo v1.51.0 // indirect
+	github.com/samber/slog-common v0.19.0 // indirect
+	github.com/samber/slog-multi v1.4.1 // indirect
 	github.com/segmentio/asm v1.2.0 // indirect
 	github.com/sergi/go-diff v1.2.0 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
