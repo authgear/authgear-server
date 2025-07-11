@@ -29,6 +29,21 @@ type AddGroupToUsersPayload {
 }
 
 """"""
+input AddResourceToClientIDInput {
+  """The client ID to associate."""
+  clientID: String!
+
+  """The URI of the resource."""
+  resourceURI: String!
+}
+
+""""""
+type AddResourceToClientIDPayload {
+  """"""
+  resource: Resource!
+}
+
+""""""
 input AddRoleToGroupsInput {
   """The list of group keys."""
   groupKeys: [String!]!
@@ -1094,6 +1109,9 @@ type Mutation {
   """Add the group to the users."""
   addGroupToUsers(input: AddGroupToUsersInput!): AddGroupToUsersPayload!
 
+  """Associate a resource with a clientID."""
+  addResourceToClientID(input: AddResourceToClientIDInput!): AddResourceToClientIDPayload!
+
   """Add the role to the groups."""
   addRoleToGroups(input: AddRoleToGroupsInput!): AddRoleToGroupsPayload!
 
@@ -1172,6 +1190,9 @@ type Mutation {
 
   """Revoke user grace period for MFA enrollment"""
   removeMFAGracePeriod(input: removeMFAGracePeriodInput!): removeMFAGracePeriodPayload!
+
+  """Disassociate a resource from a clientID."""
+  removeResourceFromClientID(input: RemoveResourceFromClientIDInput!): RemoveResourceFromClientIDPayload!
 
   """Remove the role from the groups."""
   removeRoleFromGroups(input: RemoveRoleFromGroupsInput!): RemoveRoleFromGroupsPayload!
@@ -1339,6 +1360,21 @@ input RemoveGroupFromUsersInput {
 type RemoveGroupToUsersPayload {
   """"""
   group: Group!
+}
+
+""""""
+input RemoveResourceFromClientIDInput {
+  """The client ID to disassociate."""
+  clientID: String!
+
+  """The URI of the resource."""
+  resourceURI: String!
+}
+
+""""""
+type RemoveResourceFromClientIDPayload {
+  """"""
+  resource: Resource!
 }
 
 """"""
