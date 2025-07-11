@@ -291,3 +291,41 @@ func (s *Store) scanScope(scanner db.Scanner) (*Scope, error) {
 
 	return sc, nil
 }
+
+func (s *Store) GetScopeByResourceIDAndScope(ctx context.Context, resourceID, scope string) (*Scope, error) {
+	q := s.selectScopeQuery("s").Where("s.resource_id = ? AND s.scope = ?", resourceID, scope)
+	scopes, err := s.queryScopes(ctx, q)
+	if err != nil {
+		return nil, err
+	}
+	if len(scopes) == 0 {
+		return nil, ErrScopeNotFound
+	}
+	return scopes[0], nil
+}
+
+func (s *Store) AddScopeToClientID(ctx context.Context, resourceID, scopeID, clientID string) error {
+	now := s.Clock.NowUTC()
+	q := s.SQLBuilder.
+		Insert(s.SQLBuilder.TableName("_auth_client_resource_scope")).
+		Columns("id", "created_at", "updated_at", "client_id", "resource_id", "scope_id").
+		Values(uuid.NewString(), now, now, clientID, resourceID, scopeID).
+		Suffix("ON CONFLICT DO NOTHING")
+	_, err := s.SQLExecutor.ExecWith(ctx, q)
+	return err
+}
+
+func (s *Store) RemoveScopeFromClientID(ctx context.Context, scopeID, clientID string) error {
+	q := s.SQLBuilder.
+		Delete(s.SQLBuilder.TableName("_auth_client_resource_scope")).
+		Where("client_id = ? AND scope_id = ?", clientID, scopeID)
+	_, err := s.SQLExecutor.ExecWith(ctx, q)
+	return err
+}
+
+func (s *Store) ListClientScopesByResourceID(ctx context.Context, resourceID, clientID string) ([]*Scope, error) {
+	q := s.selectScopeQuery("s").
+		Join(s.SQLBuilder.TableName("_auth_client_resource_scope"), "acrs", "acrs.scope_id = s.id").
+		Where("s.resource_id = ? AND acrs.client_id = ?", resourceID, clientID)
+	return s.queryScopes(ctx, q)
+}
