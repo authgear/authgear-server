@@ -10,6 +10,7 @@ import (
 	"strings"
 	"syscall"
 	"testing"
+	"time"
 
 	"github.com/lib/pq"
 	slogmulti "github.com/samber/slog-multi"
@@ -184,6 +185,50 @@ func TestIgnoreError(t *testing.T) {
 		Convey("should handle wrapped errors", func() {
 			wrappedCanceled := fmt.Errorf("wrapped: %w", context.Canceled)
 			So(IgnoreError(wrappedCanceled), ShouldBeTrue)
+		})
+	})
+}
+
+func TestIsLoggingSkipped(t *testing.T) {
+	timeZero := time.Time{}
+	Convey("IsLoggingSkipped", t, func() {
+		Convey("should return false for record without skip attribute", func() {
+			record := slog.NewRecord(timeZero, slog.LevelInfo, "test message", 0)
+			So(IsLoggingSkipped(record), ShouldBeFalse)
+		})
+
+		Convey("should return true for record with skip attribute set to true", func() {
+			record := slog.NewRecord(timeZero, slog.LevelInfo, "test message", 0)
+			record.AddAttrs(slog.Bool(AttrKeySkipLogging, true))
+			So(IsLoggingSkipped(record), ShouldBeTrue)
+		})
+
+		Convey("should return false for record with skip attribute set to false", func() {
+			record := slog.NewRecord(timeZero, slog.LevelInfo, "test message", 0)
+			record.AddAttrs(slog.Bool(AttrKeySkipLogging, false))
+			So(IsLoggingSkipped(record), ShouldBeFalse)
+		})
+
+		Convey("should return false for record with skip attribute of wrong type", func() {
+			record := slog.NewRecord(timeZero, slog.LevelInfo, "test message", 0)
+			record.AddAttrs(slog.String(AttrKeySkipLogging, "true"))
+			So(IsLoggingSkipped(record), ShouldBeFalse)
+		})
+
+		Convey("should return false for record with skip attribute as int", func() {
+			record := slog.NewRecord(timeZero, slog.LevelInfo, "test message", 0)
+			record.AddAttrs(slog.Int(AttrKeySkipLogging, 1))
+			So(IsLoggingSkipped(record), ShouldBeFalse)
+		})
+
+		Convey("should handle record with multiple attributes", func() {
+			record := slog.NewRecord(timeZero, slog.LevelInfo, "test message", 0)
+			record.AddAttrs(
+				slog.String("other", "value"),
+				slog.Bool(AttrKeySkipLogging, true),
+				slog.Int("number", 42),
+			)
+			So(IsLoggingSkipped(record), ShouldBeTrue)
 		})
 	})
 }

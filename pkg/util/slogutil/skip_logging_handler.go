@@ -141,3 +141,17 @@ func IgnoreError(err error) (ignore bool) {
 
 	return
 }
+
+func IsLoggingSkipped(record slog.Record) bool {
+	skipped := false
+	record.Attrs(func(attr slog.Attr) bool {
+		if attr.Key == AttrKeySkipLogging {
+			if attr.Value.Kind() == slog.KindBool {
+				skipped = attr.Value.Bool()
+				return false
+			}
+		}
+		return true
+	})
+	return skipped
+}
