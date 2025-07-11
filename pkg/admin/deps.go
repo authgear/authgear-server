@@ -28,6 +28,7 @@ import (
 	oauthhandler "github.com/authgear/authgear-server/pkg/lib/oauth/handler"
 	"github.com/authgear/authgear-server/pkg/lib/oauthclient"
 	"github.com/authgear/authgear-server/pkg/lib/presign"
+	"github.com/authgear/authgear-server/pkg/lib/resourcescope"
 	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
 	"github.com/authgear/authgear-server/pkg/lib/search"
 	"github.com/authgear/authgear-server/pkg/lib/session"
@@ -53,12 +54,16 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(loader.AuthenticatorLoaderAuthenticatorService), new(*authenticatorservice.Service)),
 	wire.Bind(new(loader.RoleLoaderRoles), new(*rolesgroups.Queries)),
 	wire.Bind(new(loader.GroupLoaderGroups), new(*rolesgroups.Queries)),
+	wire.Bind(new(loader.ResourceLoaderResources), new(*resourcescope.Queries)),
+	wire.Bind(new(loader.ScopeLoaderScopes), new(*resourcescope.Queries)),
 	wire.Bind(new(loader.AuditLogQuery), new(*audit.Query)),
 
 	facade.DependencySet,
 	wire.Bind(new(facade.UserService), new(*libfacade.UserFacade)),
 	wire.Bind(new(facade.RolesGroupsCommands), new(*rolesgroups.Commands)),
 	wire.Bind(new(facade.RolesGroupsQueries), new(*rolesgroups.Queries)),
+	wire.Bind(new(facade.ResourceScopeCommands), new(*resourcescope.Commands)),
+	wire.Bind(new(facade.ResourceScopeQueries), new(*resourcescope.Queries)),
 	wire.Bind(new(facade.IdentityService), new(*libfacade.IdentityFacade)),
 	wire.Bind(new(facade.UserSearchService), new(*search.Service)),
 	wire.Bind(new(facade.AuthenticatorService), new(*authenticatorservice.Service)),
@@ -82,8 +87,11 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(graphql.AuditLogLoader), new(*loader.AuditLogLoader)),
 	wire.Bind(new(graphql.RoleLoader), new(*loader.RoleLoader)),
 	wire.Bind(new(graphql.GroupLoader), new(*loader.GroupLoader)),
+	wire.Bind(new(graphql.ResourceLoader), new(*loader.ResourceLoader)),
+	wire.Bind(new(graphql.ScopeLoader), new(*loader.ScopeLoader)),
 	wire.Bind(new(graphql.UserFacade), new(*facade.UserFacade)),
 	wire.Bind(new(graphql.RolesGroupsFacade), new(*facade.RolesGroupsFacade)),
+	wire.Bind(new(graphql.ResourceScopeFacade), new(*facade.ResourceScopeFacade)),
 	wire.Bind(new(graphql.IdentityFacade), new(*facade.IdentityFacade)),
 	wire.Bind(new(graphql.AuthenticatorFacade), new(*facade.AuthenticatorFacade)),
 	wire.Bind(new(graphql.VerificationFacade), new(*facade.VerificationFacade)),
