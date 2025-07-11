@@ -74,6 +74,24 @@ type AddRoleToUsersPayload {
 }
 
 """"""
+input AddScopesToClientIDInput {
+  """The client ID."""
+  clientID: String!
+
+  """The URI of the resource."""
+  resourceURI: String!
+
+  """The list of scopes to add."""
+  scopes: [String!]!
+}
+
+""""""
+type AddScopesToClientIDPayload {
+  """"""
+  scopes: [Scope!]!
+}
+
+""""""
 input AddUserToGroupsInput {
   """The list of group keys."""
   groupKeys: [String!]
@@ -1118,6 +1136,9 @@ type Mutation {
   """Add the role to the users."""
   addRoleToUsers(input: AddRoleToUsersInput!): AddRoleToUsersPayload!
 
+  """Associate multiple scopes with a clientID."""
+  addScopesToClientID(input: AddScopesToClientIDInput!): AddScopesToClientIDPayload!
+
   """Add the user to the groups."""
   addUserToGroups(input: AddUserToGroupsInput!): AddUserToGroupsPayload!
 
@@ -1200,11 +1221,17 @@ type Mutation {
   """Remove the role to the users."""
   removeRoleFromUsers(input: RemoveRoleFromUsersInput!): RemoveRoleFromUsersPayload!
 
+  """Disassociate multiple scopes from a clientID."""
+  removeScopesFromClientID(input: RemoveScopesFromClientIDInput!): RemoveScopesFromClientIDPayload!
+
   """Remove the user from the groups."""
   removeUserFromGroups(input: RemoveUserFromGroupsInput!): RemoveUserFromGroupsPayload!
 
   """Remove the user from the roles."""
   removeUserFromRoles(input: RemoveUserFromRolesInput!): RemoveUserFromRolesPayload!
+
+  """Replace the set of scopes associated with a clientID."""
+  replaceScopesOfClientID(input: ReplaceScopesOfClientIDInput!): ReplaceScopesOfClientIDPayload!
 
   """Reset password of user"""
   resetPassword(input: ResetPasswordInput!): ResetPasswordPayload!
@@ -1408,6 +1435,24 @@ type RemoveRoleFromUsersPayload {
 }
 
 """"""
+input RemoveScopesFromClientIDInput {
+  """The client ID."""
+  clientID: String!
+
+  """The URI of the resource."""
+  resourceURI: String!
+
+  """The list of scopes to remove."""
+  scopes: [String!]!
+}
+
+""""""
+type RemoveScopesFromClientIDPayload {
+  """"""
+  scopes: [Scope!]!
+}
+
+""""""
 input RemoveUserFromGroupsInput {
   """The list of group keys."""
   groupKeys: [String!]
@@ -1435,6 +1480,24 @@ input RemoveUserFromRolesInput {
 type RemoveUserFromRolesPayload {
   """"""
   user: User!
+}
+
+""""""
+input ReplaceScopesOfClientIDInput {
+  """The client ID."""
+  clientID: String!
+
+  """The URI of the resource."""
+  resourceURI: String!
+
+  """The new list of scopes."""
+  scopes: [String!]!
+}
+
+""""""
+type ReplaceScopesOfClientIDPayload {
+  """"""
+  scopes: [Scope!]!
 }
 
 """"""
