@@ -34,6 +34,7 @@ import (
 	_ "github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/wechat"
 	"github.com/authgear/authgear-server/pkg/util/debug"
 	"github.com/authgear/authgear-server/pkg/util/otelutil"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
 func main() {
@@ -47,6 +48,8 @@ func main() {
 	}
 
 	ctx := context.Background()
+	ctx = slogutil.Setup(ctx)
+
 	ctx, shutdown, err := otelutil.SetupOTelSDKGlobally(ctx)
 	if err != nil {
 		log.Fatalf("failed to setup otel: %v", err)

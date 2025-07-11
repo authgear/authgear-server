@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/util/backgroundjob"
 	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
 type Controller struct {
@@ -18,6 +19,8 @@ func (c *Controller) Start(ctx context.Context) {
 	if err != nil {
 		golog.Fatalf("failed to load config: %v", err)
 	}
+
+	ctx = slogutil.Setup(ctx)
 
 	ctx, p, err := deps.NewBackgroundProvider(
 		ctx,
