@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 
 	"github.com/lib/pq"
 
@@ -11,6 +12,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	databaseutil "github.com/authgear/authgear-server/pkg/util/databaseutil"
+	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
 func (s *Store) NewScope(resource *Resource, options *NewScopeOptions) *Scope {
@@ -97,7 +99,7 @@ func (s *Store) UpdateScope(ctx context.Context, options *UpdateScopeOptions) er
 }
 
 func (s *Store) GetScopeByID(ctx context.Context, id string) (*Scope, error) {
-	q := s.selectScopeQuery().Where("id = ?", id)
+	q := s.selectScopeQuery("s").Where("s.id = ?", id)
 
 	row, err := s.SQLExecutor.QueryRowWith(ctx, q)
 	if err != nil {
@@ -145,13 +147,78 @@ func (s *Store) DeleteScope(ctx context.Context, resourceURI string, scope strin
 }
 
 func (s *Store) GetManyScopes(ctx context.Context, ids []string) ([]*Scope, error) {
-	q := s.selectScopeQuery().Where("id = ANY (?)", pq.Array(ids))
+	q := s.selectScopeQuery("s").Where("s.id = ANY (?)", pq.Array(ids))
 	return s.queryScopes(ctx, q)
 }
 
-func (s *Store) ListScopes(ctx context.Context, resourceID string) ([]*Scope, error) {
-	q := s.selectScopeQuery().Where("resource_id = ?", resourceID)
-	return s.queryScopes(ctx, q)
+type storeListScopeResult struct {
+	Items      []*Scope
+	Offset     uint64
+	TotalCount uint64
+}
+
+func (s *Store) ListScopes(ctx context.Context, resourceID string, options *ListScopeOptions, pageArgs graphqlutil.PageArgs) (*storeListScopeResult, error) {
+	q := s.selectScopeQuery("s").Where("s.resource_id = ?", resourceID)
+	q = s.applyListScopesOptions(q, "s", options)
+	q = q.OrderBy("s.scope ASC")
+
+	q, offset, err := db.ApplyPageArgs(q, pageArgs)
+	if err != nil {
+		return nil, err
+	}
+
+	scopes, err := s.queryScopes(ctx, q)
+	if err != nil {
+		return nil, err
+	}
+
+	totalCount, err := s.countScopes(ctx, resourceID, options)
+	if err != nil {
+		return nil, err
+	}
+
+	return &storeListScopeResult{
+		Items:      scopes,
+		Offset:     offset,
+		TotalCount: totalCount,
+	}, nil
+}
+
+func (s *Store) countScopes(ctx context.Context, resourceID string, options *ListScopeOptions) (uint64, error) {
+	q := s.SQLBuilder.Select("COUNT(*)").From(s.SQLBuilder.TableName("_auth_resource_scope"), "s")
+	q = q.Where("s.resource_id = ?", resourceID)
+	q = s.applyListScopesOptions(q, "s", options)
+
+	var count uint64
+	row, err := s.SQLExecutor.QueryRowWith(ctx, q)
+	if err != nil {
+		return 0, err
+	}
+	if err := row.Scan(&count); err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
+func (s *Store) applyListScopesOptions(q db.SelectBuilder, alias string, options *ListScopeOptions) db.SelectBuilder {
+	if options == nil {
+		return q
+	}
+	if options.SearchKeyword != "" {
+		q = q.Where(fmt.Sprintf("(%s.scope ILIKE ('%%' || ? || '%%') OR %s.description ILIKE ('%%' || ? || '%%'))", alias, alias),
+			options.SearchKeyword,
+			options.SearchKeyword,
+		)
+	}
+	if options.ClientID != "" {
+		q = q.Join(
+			s.SQLBuilder.TableName("_auth_client_resource_scope"),
+			"acrs",
+			fmt.Sprintf("acrs.scope_id = %s.id", alias),
+		)
+		q = q.Where("acrs.client_id = ?", options.ClientID)
+	}
+	return q
 }
 
 func (s *Store) GetScope(ctx context.Context, resourceURI string, scope string) (*Scope, error) {
@@ -160,7 +227,7 @@ func (s *Store) GetScope(ctx context.Context, resourceURI string, scope string) 
 		return nil, err
 	}
 
-	q := s.selectScopeQuery().Where("resource_id = ? AND scope = ?", resource.ID, scope)
+	q := s.selectScopeQuery("s").Where("s.resource_id = ? AND s.scope = ?", resource.ID, scope)
 	row, err := s.SQLExecutor.QueryRowWith(ctx, q)
 	if err != nil {
 		return nil, err
@@ -191,17 +258,20 @@ func (s *Store) queryScopes(ctx context.Context, q db.SelectBuilder) ([]*Scope, 
 	return scopes, nil
 }
 
-func (s *Store) selectScopeQuery() db.SelectBuilder {
+func (s *Store) selectScopeQuery(alias string) db.SelectBuilder {
+	aliasedColumn := func(col string) string {
+		return alias + "." + col
+	}
 	return s.SQLBuilder.
 		Select(
-			"id",
-			"created_at",
-			"updated_at",
-			"resource_id",
-			"scope",
-			"description",
+			aliasedColumn("id"),
+			aliasedColumn("created_at"),
+			aliasedColumn("updated_at"),
+			aliasedColumn("resource_id"),
+			aliasedColumn("scope"),
+			aliasedColumn("description"),
 		).
-		From(s.SQLBuilder.TableName("_auth_resource_scope"))
+		From(s.SQLBuilder.TableName("_auth_resource_scope"), alias)
 }
 
 func (s *Store) scanScope(scanner db.Scanner) (*Scope, error) {
