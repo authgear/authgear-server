@@ -941,8 +941,8 @@ type Mutation {
 
   addResourceToClientID(input: AddResourceToClientIDInput!): AddResourceToClientIDPayload!
   removeResourceFromClientID(input: RemoveResourceFromClientIDInput!): RemoveResourceFromClientIDPayload!
-  addScopeToClientID(input: AddScopeToClientIDInput!): AddScopeToClientIDPayload!
-  removeScopeFromClientID(input: RemoveScopeFromClientIDInput!): RemoveScopeFromClientIDPayload!
+  addScopesToClientID(input: AddScopesToClientIDInput!): AddScopesToClientIDPayload!
+  removeScopesFromClientID(input: RemoveScopesFromClientIDInput!): RemoveScopesFromClientIDPayload!
   replaceScopesOfClientID(input: ReplaceScopesOfClientIDInput!): ReplaceScopesOfClientIDPayload!
 }
 
@@ -1065,23 +1065,23 @@ type RemoveResourceFromClientIDPayload {
   resource: Resource!
 }
 
-input AddScopeToClientIDInput {
+input AddScopesToClientIDInput {
   resourceURI: String!
   scopes: [String!]!
   clientID: String!
 }
 
-type AddScopeToClientIDPayload {
+type AddScopesToClientIDPayload {
   scopes: [Scope!]!
 }
 
-input RemoveScopeFromClientIDInput {
+input RemoveScopesFromClientIDInput {
   resourceURI: String!
   scopes: [String!]!
   clientID: String!
 }
 
-type RemoveScopeFromClientIDPayload {
+type RemoveScopesFromClientIDPayload {
   scopes: [Scope!]!
 }
 
