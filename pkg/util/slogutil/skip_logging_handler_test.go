@@ -41,67 +41,76 @@ func TestNewSkipLoggingMiddleware(t *testing.T) {
 			So(w.String(), ShouldEqual, "level=INFO msg=\"test message\"\n")
 		})
 
-		Convey("error logging should be skipped based on error type", func() {
-			testCases := []struct {
-				name     string
-				err      error
-				expected string
-			}{
-				{
-					name:     "context.Canceled should be skipped",
-					err:      context.Canceled,
-					expected: "level=ERROR msg=\"test message\" error=\"context canceled\" __authgear_skip_logging=true\n",
-				},
-				{
-					name:     "context.DeadlineExceeded should be skipped",
-					err:      context.DeadlineExceeded,
-					expected: "level=ERROR msg=\"test message\" error=\"context deadline exceeded\" __authgear_skip_logging=true\n",
-				},
-				{
-					name:     "http.ErrAbortHandler should be skipped",
-					err:      http.ErrAbortHandler,
-					expected: "level=ERROR msg=\"test message\" error=\"net/http: abort Handler\" __authgear_skip_logging=true\n",
-				},
-				{
-					name:     "http.MaxBytesError should be skipped",
-					err:      &http.MaxBytesError{Limit: 100},
-					expected: "level=ERROR msg=\"test message\" error=\"http: request body too large\" __authgear_skip_logging=true\n",
-				},
-				{
-					name:     "json.SyntaxError should be skipped",
-					err:      &json.SyntaxError{},
-					expected: "level=ERROR msg=\"test message\" error=\"\" __authgear_skip_logging=true\n",
-				},
-				{
-					name:     "pq.Error with query_canceled should be skipped",
-					err:      &pq.Error{Code: "57014"},
-					expected: "level=ERROR msg=\"test message\" error=\"pq: \" __authgear_skip_logging=true\n",
-				},
-				{
-					name:     "sql.ErrTxDone should be skipped",
-					err:      sql.ErrTxDone,
-					expected: "level=ERROR msg=\"test message\" error=\"sql: transaction has already been committed or rolled back\" __authgear_skip_logging=true\n",
-				},
-				{
-					name:     "LoggingSkippable with skip=true should be skipped",
-					err:      mockLoggingSkippable{skip: true},
-					expected: "level=ERROR msg=\"test message\" error=\"mock error\" __authgear_skip_logging=true\n",
-				},
-				{
-					name:     "LoggingSkippable with skip=false should not be skipped",
-					err:      mockLoggingSkippable{skip: false},
-					expected: "level=ERROR msg=\"test message\" error=\"mock error\"\n",
-				},
-				{
-					name:     "regular error should not be skipped",
-					err:      fmt.Errorf("regular error"),
-					expected: "level=ERROR msg=\"test message\" error=\"regular error\"\n",
-				},
-			}
+		testCases := []struct {
+			name     string
+			err      error
+			expected string
+		}{
+			{
+				name:     "context.Canceled should be skipped",
+				err:      context.Canceled,
+				expected: "level=ERROR msg=\"test message\" error=\"context canceled\" __authgear_skip_logging=true\n",
+			},
+			{
+				name:     "context.DeadlineExceeded should be skipped",
+				err:      context.DeadlineExceeded,
+				expected: "level=ERROR msg=\"test message\" error=\"context deadline exceeded\" __authgear_skip_logging=true\n",
+			},
+			{
+				name:     "http.ErrAbortHandler should be skipped",
+				err:      http.ErrAbortHandler,
+				expected: "level=ERROR msg=\"test message\" error=\"net/http: abort Handler\" __authgear_skip_logging=true\n",
+			},
+			{
+				name:     "http.MaxBytesError should be skipped",
+				err:      &http.MaxBytesError{Limit: 100},
+				expected: "level=ERROR msg=\"test message\" error=\"http: request body too large\" __authgear_skip_logging=true\n",
+			},
+			{
+				name:     "json.SyntaxError should be skipped",
+				err:      &json.SyntaxError{},
+				expected: "level=ERROR msg=\"test message\" error=\"\" __authgear_skip_logging=true\n",
+			},
+			{
+				name:     "pq.Error with query_canceled should be skipped",
+				err:      &pq.Error{Code: "57014"},
+				expected: "level=ERROR msg=\"test message\" error=\"pq: \" __authgear_skip_logging=true\n",
+			},
+			{
+				name:     "sql.ErrTxDone should be skipped",
+				err:      sql.ErrTxDone,
+				expected: "level=ERROR msg=\"test message\" error=\"sql: transaction has already been committed or rolled back\" __authgear_skip_logging=true\n",
+			},
+			{
+				name:     "LoggingSkippable with skip=true should be skipped",
+				err:      mockLoggingSkippable{skip: true},
+				expected: "level=ERROR msg=\"test message\" error=\"mock error\" __authgear_skip_logging=true\n",
+			},
+			{
+				name:     "LoggingSkippable with skip=false should not be skipped",
+				err:      mockLoggingSkippable{skip: false},
+				expected: "level=ERROR msg=\"test message\" error=\"mock error\"\n",
+			},
+			{
+				name:     "regular error should not be skipped",
+				err:      fmt.Errorf("regular error"),
+				expected: "level=ERROR msg=\"test message\" error=\"regular error\"\n",
+			},
+		}
 
+		Convey("error logging should be skipped when Err() is used", func() {
 			for _, tc := range testCases {
 				Convey(tc.name, func() {
 					logger.Error("test message", Err(tc.err))
+					So(w.String(), ShouldEqual, tc.expected)
+				})
+			}
+		})
+
+		Convey("error logging should be skipped when WithErr() is used", func() {
+			for _, tc := range testCases {
+				Convey(tc.name, func() {
+					WithErr(logger, tc.err).Error("test message")
 					So(w.String(), ShouldEqual, tc.expected)
 				})
 			}

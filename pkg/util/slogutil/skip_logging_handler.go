@@ -20,7 +20,8 @@ type LoggingSkippable interface{ SkipLogging() bool }
 const AttrKeySkipLogging = "__authgear_skip_logging"
 
 type SkipLoggingHandler struct {
-	Next slog.Handler
+	SkipByWithAttrs bool
+	Next            slog.Handler
 }
 
 var _ slog.Handler = SkipLoggingHandler{}
@@ -41,18 +42,22 @@ func (s SkipLoggingHandler) Enabled(ctx context.Context, level slog.Level) bool 
 func (s SkipLoggingHandler) Handle(ctx context.Context, record slog.Record) error {
 	shouldSkip := false
 
-	record.Attrs(func(attr slog.Attr) bool {
-		if attr.Key == AttrKeyError {
-			if err, ok := attr.Value.Any().(error); ok {
-				if IgnoreError(err) {
-					shouldSkip = true
+	if s.SkipByWithAttrs {
+		shouldSkip = true
+	} else {
+		record.Attrs(func(attr slog.Attr) bool {
+			if attr.Key == AttrKeyError {
+				if err, ok := attr.Value.Any().(error); ok {
+					if IgnoreError(err) {
+						shouldSkip = true
+					}
 				}
+				// We have found the key, we can stop the iteration.
+				return false
 			}
-			// We have found the key, we can stop the iteration.
-			return false
-		}
-		return true
-	})
+			return true
+		})
+	}
 
 	// We always call the next handler.
 	// The way we skip handler is to add an attribute for downstream handler to read.
@@ -65,8 +70,19 @@ func (s SkipLoggingHandler) Handle(ctx context.Context, record slog.Record) erro
 }
 
 func (s SkipLoggingHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
+	shouldSkip := false
+	for _, attr := range attrs {
+		if err, ok := attr.Value.Any().(error); ok {
+			if IgnoreError(err) {
+				shouldSkip = true
+				break
+			}
+		}
+	}
+
 	return SkipLoggingHandler{
-		Next: s.Next.WithAttrs(attrs),
+		SkipByWithAttrs: shouldSkip,
+		Next:            s.Next.WithAttrs(attrs),
 	}
 }
 
