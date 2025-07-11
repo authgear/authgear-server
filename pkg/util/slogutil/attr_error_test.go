@@ -14,9 +14,7 @@ import (
 func TestAttrError(t *testing.T) {
 	Convey("AttrError", t, func() {
 		var w strings.Builder
-		logger := slog.New(slog.NewTextHandler(&w, &slog.HandlerOptions{
-			Level: slog.LevelDebug,
-		}))
+		logger := slog.New(NewHandlerForTesting(&w))
 
 		ctx := context.Background()
 
@@ -24,13 +22,13 @@ func TestAttrError(t *testing.T) {
 			err := fmt.Errorf("some error")
 			WithErr(logger, err).ErrorContext(ctx, "testing")
 
-			So(strings.Contains(w.String(), `error="some error"`), ShouldBeTrue)
+			So(w.String(), ShouldEqual, "level=ERROR msg=testing error=\"some error\"\n")
 		})
 
 		Convey("log the attr error even it is nil", func() {
 			WithErr(logger, nil).ErrorContext(ctx, "testing")
 
-			So(strings.Contains(w.String(), `error=<nil>`), ShouldBeTrue)
+			So(w.String(), ShouldEqual, "level=ERROR msg=testing error=<nil>\n")
 		})
 
 		Convey("log the attr error when the error is wrapped", func() {
@@ -38,14 +36,14 @@ func TestAttrError(t *testing.T) {
 			err = fmt.Errorf("wrap error: %w", err)
 
 			WithErr(logger, err).ErrorContext(ctx, "testing")
-			So(strings.Contains(w.String(), `error="wrap error: base error"`), ShouldBeTrue)
+			So(w.String(), ShouldEqual, "level=ERROR msg=testing error=\"wrap error: base error\"\n")
 		})
 
 		Convey("log the attr error when the error is chained", func() {
 			err := errors.Join(fmt.Errorf("error a"), fmt.Errorf("error b"))
 
 			WithErr(logger, err).ErrorContext(ctx, "testing")
-			So(strings.Contains(w.String(), "error=\"error a\\nerror b\""), ShouldBeTrue)
+			So(w.String(), ShouldEqual, "level=ERROR msg=testing error=\"error a\\nerror b\"\n")
 		})
 	})
 }
