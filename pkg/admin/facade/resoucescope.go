@@ -18,6 +18,9 @@ type ResourceScopeCommands interface {
 	DeleteScope(ctx context.Context, id string) error
 	AddResourceToClientID(ctx context.Context, resourceURI string, clientID string) error
 	RemoveResourceFromClientID(ctx context.Context, resourceURI string, clientID string) error
+	AddScopesToClientID(ctx context.Context, resourceURI, clientID string, scopes []string) ([]*model.Scope, error)
+	RemoveScopesFromClientID(ctx context.Context, resourceURI, clientID string, scopes []string) ([]*model.Scope, error)
+	ReplaceScopesOfClientID(ctx context.Context, resourceURI, clientID string, scopes []string) ([]*model.Scope, error)
 }
 
 type ResourceScopeQueries interface {
@@ -118,18 +121,15 @@ func (f *ResourceScopeFacade) RemoveResourceFromClientID(ctx context.Context, re
 }
 
 func (f *ResourceScopeFacade) AddScopesToClientID(ctx context.Context, resourceURI, clientID string, scopes []string) ([]*model.Scope, error) {
-	// TODO: implement AddScopesToClientID
-	return nil, nil
+	return f.ResourceScopeCommands.AddScopesToClientID(ctx, resourceURI, clientID, scopes)
 }
 
 func (f *ResourceScopeFacade) RemoveScopesFromClientID(ctx context.Context, resourceURI, clientID string, scopes []string) ([]*model.Scope, error) {
-	// TODO: implement RemoveScopesFromClientID
-	return nil, nil
+	return f.ResourceScopeCommands.RemoveScopesFromClientID(ctx, resourceURI, clientID, scopes)
 }
 
 func (f *ResourceScopeFacade) ReplaceScopesOfClientID(ctx context.Context, resourceURI, clientID string, scopes []string) ([]*model.Scope, error) {
-	// TODO: implement ReplaceScopesOfClientID
-	return nil, nil
+	return f.ResourceScopeCommands.ReplaceScopesOfClientID(ctx, resourceURI, clientID, scopes)
 }
 
 func (f *ResourceScopeFacade) GetResourceByURI(ctx context.Context, uri string) (*model.Resource, error) {
