@@ -943,6 +943,7 @@ type Mutation {
   removeResourceFromClientID(input: RemoveResourceFromClientIDInput!): RemoveResourceFromClientIDPayload!
   addScopeToClientID(input: AddScopeToClientIDInput!): AddScopeToClientIDPayload!
   removeScopeFromClientID(input: RemoveScopeFromClientIDInput!): RemoveScopeFromClientIDPayload!
+  replaceScopesOfClientID(input: ReplaceScopesOfClientIDInput!): ReplaceScopesOfClientIDPayload!
 }
 
 type Resource implements Entity & Node {
@@ -1066,22 +1067,32 @@ type RemoveResourceFromClientIDPayload {
 
 input AddScopeToClientIDInput {
   resourceURI: String!
-  scope: String!
+  scopes: [String!]!
   clientID: String!
 }
 
 type AddScopeToClientIDPayload {
-  scope: Scope!
+  scopes: [Scope!]!
 }
 
 input RemoveScopeFromClientIDInput {
   resourceURI: String!
-  scope: String!
+  scopes: [String!]!
   clientID: String!
 }
 
 type RemoveScopeFromClientIDPayload {
-  scope: Scope!
+  scopes: [Scope!]!
+}
+
+input ReplaceScopesOfClientIDInput {
+  resourceURI: String!
+  clientID: String!
+  scopes: [String!]!
+}
+
+type ReplaceScopesOfClientIDPayload {
+  scopes: [Scope!]!
 }
 ```
 
