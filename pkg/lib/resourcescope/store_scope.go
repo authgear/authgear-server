@@ -329,3 +329,35 @@ func (s *Store) ListClientScopesByResourceID(ctx context.Context, resourceID, cl
 		Where("s.resource_id = ? AND acrs.client_id = ?", resourceID, clientID)
 	return s.queryScopes(ctx, q)
 }
+
+func (s *Store) DeleteAllClientResourceAssociations(ctx context.Context, resourceID string) error {
+	q := s.SQLBuilder.Delete(s.SQLBuilder.TableName("_auth_client_resource")).Where("resource_id = ?", resourceID)
+	_, err := s.SQLExecutor.ExecWith(ctx, q)
+	return err
+}
+
+func (s *Store) DeleteAllClientScopeAssociationsByResourceID(ctx context.Context, resourceID string) error {
+	q := s.SQLBuilder.Delete(s.SQLBuilder.TableName("_auth_client_resource_scope")).
+		Where("resource_id = ?", resourceID)
+	_, err := s.SQLExecutor.ExecWith(ctx, q)
+	return err
+}
+
+func (s *Store) DeleteAllResourceScopes(ctx context.Context, resourceID string) error {
+	q := s.SQLBuilder.Delete(s.SQLBuilder.TableName("_auth_resource_scope")).Where("resource_id = ?", resourceID)
+	_, err := s.SQLExecutor.ExecWith(ctx, q)
+	return err
+}
+
+func (s *Store) DeleteAllClientScopeAssociationsByScopeID(ctx context.Context, scopeID string) error {
+	q := s.SQLBuilder.Delete(s.SQLBuilder.TableName("_auth_client_resource_scope")).Where("scope_id = ?", scopeID)
+	_, err := s.SQLExecutor.ExecWith(ctx, q)
+	return err
+}
+
+func (s *Store) DeleteClientScopeAssociationsByResourceID(ctx context.Context, clientID, resourceID string) error {
+	q := s.SQLBuilder.Delete(s.SQLBuilder.TableName("_auth_client_resource_scope")).
+		Where("client_id = ? AND resource_id = ?", clientID, resourceID)
+	_, err := s.SQLExecutor.ExecWith(ctx, q)
+	return err
+}
