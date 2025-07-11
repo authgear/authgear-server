@@ -9,3 +9,5 @@ var ErrResourceDuplicateURI = apierrors.BadRequest.WithReason("ResourceDuplicate
 
 var ErrScopeNotFound = apierrors.NotFound.WithReason("ScopeNotFound").New("scope not found")
 var ErrScopeDuplicate = apierrors.BadRequest.WithReason("ScopeDuplicate").New("duplicate scope")
+
+var ErrClientNotFound = apierrors.NotFound.WithReason("ClientNotFound").New("client not found")
