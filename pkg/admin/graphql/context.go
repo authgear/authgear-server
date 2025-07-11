@@ -208,6 +208,8 @@ type ResourceScopeFacade interface {
 	GetScope(ctx context.Context, resourceURI string, scope string) (*apimodel.Scope, error)
 	ListScopes(ctx context.Context, resourceID string) ([]*apimodel.Scope, error)
 	ListResources(ctx context.Context, options *resourcescope.ListResourcesOptions, pageArgs graphqlutil.PageArgs) ([]apimodel.PageItemRef, *graphqlutil.PageResult, error)
+	AddResourceToClientID(ctx context.Context, resourceID, clientID string) error
+	RemoveResourceFromClientID(ctx context.Context, resourceID, clientID string) error
 }
 
 type Context struct {
