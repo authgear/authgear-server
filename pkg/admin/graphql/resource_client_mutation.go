@@ -3,6 +3,7 @@ package graphql
 import (
 	"github.com/graphql-go/graphql"
 
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
@@ -56,6 +57,15 @@ var _ = registerMutationField(
 			if err != nil {
 				return nil, err
 			}
+
+			err = gqlCtx.Events.DispatchEventOnCommit(ctx, &nonblocking.AdminAPIMutationAddResourceToClientIDExecutedEventPayload{
+				Resource: *resource,
+				ClientID: clientID,
+			})
+			if err != nil {
+				return nil, err
+			}
+
 			return graphqlutil.NewLazyValue(map[string]interface{}{
 				"resource": resource,
 			}).Value, nil
@@ -113,6 +123,15 @@ var _ = registerMutationField(
 			if err != nil {
 				return nil, err
 			}
+
+			err = gqlCtx.Events.DispatchEventOnCommit(ctx, &nonblocking.AdminAPIMutationRemoveResourceFromClientIDExecutedEventPayload{
+				Resource: *resource,
+				ClientID: clientID,
+			})
+			if err != nil {
+				return nil, err
+			}
+
 			return graphqlutil.NewLazyValue(map[string]interface{}{
 				"resource": resource,
 			}).Value, nil
