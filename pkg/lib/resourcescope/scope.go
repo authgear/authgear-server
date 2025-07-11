@@ -22,6 +22,11 @@ type UpdateScopeOptions struct {
 	NewDesc     *string
 }
 
+type ListScopeOptions struct {
+	SearchKeyword string
+	ClientID      string
+}
+
 type Scope struct {
 	ID          string
 	CreatedAt   time.Time
@@ -62,4 +67,10 @@ func ValidateScope(ctx context.Context, scope string) error {
 	}
 
 	return validationCtx.Error("invalid scope")
+}
+
+type ListScopeResult struct {
+	Items      []*model.Scope
+	Offset     uint64
+	TotalCount uint64
 }
