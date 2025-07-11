@@ -111,27 +111,6 @@ func (s *Store) DeleteResource(ctx context.Context, id string) error {
 	return nil
 }
 
-func (s *Store) DeleteResourceByURI(ctx context.Context, uri string) error {
-	q := s.SQLBuilder.Delete(s.SQLBuilder.TableName("_auth_resource")).
-		Where("uri = ?", uri)
-
-	result, err := s.SQLExecutor.ExecWith(ctx, q)
-	if err != nil {
-		return err
-	}
-
-	count, err := result.RowsAffected()
-	if err != nil {
-		return err
-	}
-
-	if count != 1 {
-		return ErrResourceNotFound
-	}
-
-	return nil
-}
-
 func (s *Store) GetResourceByID(ctx context.Context, id string) (*Resource, error) {
 	q := s.selectResourceQuery("r").Where("r.id = ?", id)
 

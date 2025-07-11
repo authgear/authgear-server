@@ -41,7 +41,24 @@ func (c *Commands) UpdateResource(ctx context.Context, options *UpdateResourceOp
 }
 
 func (c *Commands) DeleteResourceByURI(ctx context.Context, uri string) error {
-	return c.Store.DeleteResourceByURI(ctx, uri)
+	resource, err := c.Store.GetResourceByURI(ctx, uri)
+	if err != nil {
+		return err
+	}
+	// Delete all client-resource associations
+	if err := c.Store.DeleteAllClientResourceAssociations(ctx, resource.ID); err != nil {
+		return err
+	}
+	// Delete all client-scope associations for all scopes of this resource
+	if err := c.Store.DeleteAllClientScopeAssociationsByResourceID(ctx, resource.ID); err != nil {
+		return err
+	}
+	// Delete all resource-scopes
+	if err := c.Store.DeleteAllResourceScopes(ctx, resource.ID); err != nil {
+		return err
+	}
+	// Delete the resource itself
+	return c.Store.DeleteResource(ctx, resource.ID)
 }
 
 func (c *Commands) GetResourceByURI(ctx context.Context, uri string) (*model.Resource, error) {
@@ -71,6 +88,11 @@ func (c *Commands) RemoveResourceFromClientID(ctx context.Context, resourceURI, 
 	if err != nil {
 		return err
 	}
+	// Remove all client-scope associations for all scopes of this resource for this client
+	if err := c.Store.DeleteClientScopeAssociationsByResourceID(ctx, clientID, resource.ID); err != nil {
+		return err
+	}
+	// Remove the client-resource association
 	return c.Store.RemoveResourceFromClientID(ctx, resource.ID, clientID)
 }
 
@@ -104,6 +126,14 @@ func (c *Commands) UpdateScope(ctx context.Context, options *UpdateScopeOptions)
 }
 
 func (c *Commands) DeleteScope(ctx context.Context, resourceURI string, scope string) error {
+	s, err := c.Store.GetScopeByResourceIDAndScope(ctx, resourceURI, scope)
+	if err != nil {
+		return err
+	}
+	// Remove all client-scope associations for this scope
+	if err := c.Store.DeleteAllClientScopeAssociationsByScopeID(ctx, s.ID); err != nil {
+		return err
+	}
 	return c.Store.DeleteScope(ctx, resourceURI, scope)
 }
 
