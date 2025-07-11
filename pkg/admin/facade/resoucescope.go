@@ -117,6 +117,21 @@ func (f *ResourceScopeFacade) RemoveResourceFromClientID(ctx context.Context, re
 	return f.ResourceScopeCommands.RemoveResourceFromClientID(ctx, resourceURI, clientID)
 }
 
+func (f *ResourceScopeFacade) AddScopesToClientID(ctx context.Context, resourceURI, clientID string, scopes []string) ([]*model.Scope, error) {
+	// TODO: implement AddScopesToClientID
+	return nil, nil
+}
+
+func (f *ResourceScopeFacade) RemoveScopesFromClientID(ctx context.Context, resourceURI, clientID string, scopes []string) ([]*model.Scope, error) {
+	// TODO: implement RemoveScopesFromClientID
+	return nil, nil
+}
+
+func (f *ResourceScopeFacade) ReplaceScopesOfClientID(ctx context.Context, resourceURI, clientID string, scopes []string) ([]*model.Scope, error) {
+	// TODO: implement ReplaceScopesOfClientID
+	return nil, nil
+}
+
 func (f *ResourceScopeFacade) GetResourceByURI(ctx context.Context, uri string) (*model.Resource, error) {
 	return f.ResourceScopeQueries.GetResourceByURI(ctx, uri)
 }
