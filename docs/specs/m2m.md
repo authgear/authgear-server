@@ -1047,7 +1047,7 @@ type DeleteScopePayload {
 }
 
 input AddResourceToClientIDInput {
-  resourceID: ID!
+  resourceURI: String!
   clientID: String!
 }
 
@@ -1056,7 +1056,7 @@ type AddResourceToClientIDPayload {
 }
 
 input RemoveResourceFromClientIDInput {
-  resourceID: ID!
+  resourceURI: String!
   clientID: String!
 }
 
@@ -1065,7 +1065,8 @@ type RemoveResourceFromClientIDPayload {
 }
 
 input AddScopeToClientIDInput {
-  scopeID: ID!
+  resourceURI: String!
+  scope: String!
   clientID: String!
 }
 
@@ -1074,7 +1075,8 @@ type AddScopeToClientIDPayload {
 }
 
 input RemoveScopeFromClientIDInput {
-  scopeID: ID!
+  resourceURI: String!
+  scope: String!
   clientID: String!
 }
 
