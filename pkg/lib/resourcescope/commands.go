@@ -4,10 +4,13 @@ import (
 	"context"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 type Commands struct {
 	Store *Store
+
+	OAuthConfig *config.OAuthConfig
 }
 
 func (c *Commands) CreateResource(ctx context.Context, options *NewResourceOptions) (*model.Resource, error) {
@@ -49,13 +52,25 @@ func (c *Commands) GetResourceByURI(ctx context.Context, uri string) (*model.Res
 }
 
 func (c *Commands) AddResourceToClientID(ctx context.Context, resourceURI, clientID string) error {
-	// TODO: Implement resource-clientID association by resource URI
-	return nil
+	if _, found := c.OAuthConfig.GetClient(clientID); !found {
+		return ErrClientNotFound
+	}
+	resource, err := c.Store.GetResourceByURI(ctx, resourceURI)
+	if err != nil {
+		return err
+	}
+	return c.Store.AddResourceToClientID(ctx, resource.ID, clientID)
 }
 
 func (c *Commands) RemoveResourceFromClientID(ctx context.Context, resourceURI, clientID string) error {
-	// TODO: Implement resource-clientID disassociation by resource URI
-	return nil
+	if _, found := c.OAuthConfig.GetClient(clientID); !found {
+		return ErrClientNotFound
+	}
+	resource, err := c.Store.GetResourceByURI(ctx, resourceURI)
+	if err != nil {
+		return err
+	}
+	return c.Store.RemoveResourceFromClientID(ctx, resource.ID, clientID)
 }
 
 func (c *Commands) CreateScope(ctx context.Context, options *NewScopeOptions) (*model.Scope, error) {

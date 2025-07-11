@@ -282,3 +282,34 @@ func (s *Store) scanResource(scanner db.Scanner) (*Resource, error) {
 
 	return r, nil
 }
+
+func (s *Store) AddResourceToClientID(ctx context.Context, resourceID, clientID string) error {
+	now := s.Clock.NowUTC()
+	q := s.SQLBuilder.
+		Insert(s.SQLBuilder.TableName("_auth_client_resource")).
+		Columns("id", "created_at", "updated_at", "client_id", "resource_id").
+		Values(uuid.NewString(), now, now, clientID, resourceID)
+	_, err := s.SQLExecutor.ExecWith(ctx, q)
+	if err != nil {
+		var pqError *pq.Error
+		if errors.As(err, &pqError) {
+			if pqError.Code == "23505" {
+				// Already associated, treat as success
+				return nil
+			}
+		}
+		return err
+	}
+	return nil
+}
+
+func (s *Store) RemoveResourceFromClientID(ctx context.Context, resourceID, clientID string) error {
+	q := s.SQLBuilder.
+		Delete(s.SQLBuilder.TableName("_auth_client_resource")).
+		Where("client_id = ? AND resource_id = ?", clientID, resourceID)
+	_, err := s.SQLExecutor.ExecWith(ctx, q)
+	if err != nil {
+		return err
+	}
+	return nil
+}
