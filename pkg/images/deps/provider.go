@@ -30,18 +30,20 @@ type RootProvider struct {
 }
 
 func NewRootProvider(
+	ctx context.Context,
 	envConfig imagesconfig.EnvironmentConfig,
 	objectStoreConfig *imagesconfig.ObjectStoreConfig,
-) (*RootProvider, error) {
+) (context.Context, *RootProvider, error) {
 	logLevel, err := log.ParseLevel(string(envConfig.LogLevel))
 	if err != nil {
-		return nil, err
+		return ctx, nil, err
 	}
 
 	sentryHub, err := sentry.NewHub(string(envConfig.SentryDSN))
 	if err != nil {
-		return nil, err
+		return ctx, nil, err
 	}
+	ctx = getsentry.SetHubOnContext(ctx, sentryHub)
 
 	loggerFactory := log.NewFactory(
 		logLevel,
@@ -55,7 +57,7 @@ func NewRootProvider(
 	// But it is not harmful not to close this.
 	vipsDaemon := vipsutil.OpenDaemon(runtime.NumCPU())
 
-	return &RootProvider{
+	return ctx, &RootProvider{
 		EnvironmentConfig: envConfig,
 		ObjectStoreConfig: objectStoreConfig,
 		LoggerFactory:     loggerFactory,

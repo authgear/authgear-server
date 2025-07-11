@@ -26,7 +26,7 @@ func (c *Controller) Start(ctx context.Context) {
 		golog.Fatalf("failed to load server config: %v", err)
 	}
 
-	p, err := deps.NewRootProvider(*cfg.EnvironmentConfig, cfg.ObjectStore)
+	ctx, p, err := deps.NewRootProvider(ctx, *cfg.EnvironmentConfig, cfg.ObjectStore)
 	if err != nil {
 		golog.Fatalf("failed to initialize dependencies: %v", err)
 	}

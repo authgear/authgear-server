@@ -31,7 +31,7 @@ func (c *Controller) Start(ctx context.Context) {
 		golog.Fatalf("failed to load server config: %v", err)
 	}
 
-	p, err := deps.NewRootProvider(
+	ctx, p, err := deps.NewRootProvider(
 		ctx,
 		cfg.EnvironmentConfig,
 		cfg.ConfigSource,

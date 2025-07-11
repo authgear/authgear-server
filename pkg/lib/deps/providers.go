@@ -40,18 +40,19 @@ func NewRootProvider(
 	cfg *config.EnvironmentConfig,
 	configSourceConfig *configsource.Config,
 	customResourceDirectory string,
-) (*RootProvider, error) {
+) (context.Context, *RootProvider, error) {
 	var p RootProvider
 
 	logLevel, err := log.ParseLevel(cfg.LogLevel)
 	if err != nil {
-		return nil, err
+		return ctx, nil, err
 	}
 
 	sentryHub, err := sentry.NewHub(string(cfg.SentryDSN))
 	if err != nil {
-		return nil, err
+		return ctx, nil, err
 	}
+	ctx = getsentry.SetHubOnContext(ctx, sentryHub)
 
 	loggerFactory := log.NewFactory(
 		logLevel,
@@ -65,7 +66,7 @@ func NewRootProvider(
 
 	embeddedResources, err := web.NewDefaultGlobalEmbeddedResourceManager()
 	if err != nil {
-		return nil, err
+		return ctx, nil, err
 	}
 
 	p = RootProvider{
@@ -84,7 +85,7 @@ func NewRootProvider(
 		}),
 		EmbeddedResources: embeddedResources,
 	}
-	return &p, nil
+	return ctx, &p, nil
 }
 
 func (p *RootProvider) NewAppProvider(ctx context.Context, appCtx *config.AppContext) *AppProvider {
@@ -245,18 +246,19 @@ func NewBackgroundProvider(
 	cfg *config.EnvironmentConfig,
 	configSourceConfig *configsource.Config,
 	customResourceDirectory string,
-) (*BackgroundProvider, error) {
+) (context.Context, *BackgroundProvider, error) {
 	var p BackgroundProvider
 
 	logLevel, err := log.ParseLevel(cfg.LogLevel)
 	if err != nil {
-		return nil, err
+		return ctx, nil, err
 	}
 
 	sentryHub, err := sentry.NewHub(string(cfg.SentryDSN))
 	if err != nil {
-		return nil, err
+		return ctx, nil, err
 	}
+	ctx = getsentry.SetHubOnContext(ctx, sentryHub)
 
 	loggerFactory := log.NewFactory(
 		logLevel,
@@ -270,7 +272,7 @@ func NewBackgroundProvider(
 
 	embeddedResources, err := web.NewDefaultGlobalEmbeddedResourceManager()
 	if err != nil {
-		return nil, err
+		return ctx, nil, err
 	}
 
 	p = BackgroundProvider{
@@ -290,5 +292,5 @@ func NewBackgroundProvider(
 		EmbeddedResources: embeddedResources,
 	}
 
-	return &p, nil
+	return ctx, &p, nil
 }

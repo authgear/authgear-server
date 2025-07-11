@@ -19,7 +19,7 @@ func (c *Controller) Start(ctx context.Context) {
 		golog.Fatalf("failed to load config: %v", err)
 	}
 
-	p, err := deps.NewBackgroundProvider(
+	ctx, p, err := deps.NewBackgroundProvider(
 		ctx,
 		cfg.EnvironmentConfig,
 		cfg.ConfigSource,

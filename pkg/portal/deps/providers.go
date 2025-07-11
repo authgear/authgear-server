@@ -1,6 +1,7 @@
 package deps
 
 import (
+	"context"
 	"net/http"
 
 	getsentry "github.com/getsentry/sentry-go"
@@ -49,6 +50,7 @@ type RootProvider struct {
 }
 
 func NewRootProvider(
+	ctx context.Context,
 	cfg *config.EnvironmentConfig,
 	customResourceDirectory string,
 	appCustomResourceDirectory string,
@@ -68,16 +70,17 @@ func NewRootProvider(
 	googleTagManagerConfig *portalconfig.GoogleTagManagerConfig,
 	portalFrontendSentryConfig *portalconfig.PortalFrontendSentryConfig,
 	portalFeatures *portalconfig.PortalFeaturesConfig,
-) (*RootProvider, error) {
+) (context.Context, *RootProvider, error) {
 	logLevel, err := log.ParseLevel(cfg.LogLevel)
 	if err != nil {
-		return nil, err
+		return ctx, nil, err
 	}
 
 	sentryHub, err := sentry.NewHub(string(cfg.SentryDSN))
 	if err != nil {
-		return nil, err
+		return ctx, nil, err
 	}
+	ctx = getsentry.SetHubOnContext(ctx, sentryHub)
 
 	loggerFactory := log.NewFactory(
 		logLevel,
@@ -89,7 +92,7 @@ func NewRootProvider(
 
 	filesystemCache := httputil.NewFilesystemCache()
 
-	return &RootProvider{
+	return ctx, &RootProvider{
 		EnvironmentConfig:          cfg,
 		ConfigSourceConfig:         configSourceConfig,
 		AuthgearConfig:             authgearConfig,
