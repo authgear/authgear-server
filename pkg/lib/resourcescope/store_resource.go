@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 
 	"github.com/lib/pq"
 
@@ -111,7 +112,7 @@ func (s *Store) DeleteResource(ctx context.Context, id string) error {
 }
 
 func (s *Store) GetResourceByID(ctx context.Context, id string) (*Resource, error) {
-	q := s.selectResourceQuery().Where("id = ?", id)
+	q := s.selectResourceQuery("r").Where("r.id = ?", id)
 
 	row, err := s.SQLExecutor.QueryRowWith(ctx, q)
 	if err != nil {
@@ -130,12 +131,12 @@ func (s *Store) GetResourceByID(ctx context.Context, id string) (*Resource, erro
 }
 
 func (s *Store) GetManyResources(ctx context.Context, ids []string) ([]*Resource, error) {
-	q := s.selectResourceQuery().Where("id = ANY (?)", pq.Array(ids))
+	q := s.selectResourceQuery("r").Where("r.id = ANY (?)", pq.Array(ids))
 	return s.queryResources(ctx, q)
 }
 
 func (s *Store) GetResourceByURI(ctx context.Context, uri string) (*Resource, error) {
-	q := s.selectResourceQuery().Where("uri = ?", uri)
+	q := s.selectResourceQuery("r").Where("r.uri = ?", uri)
 	resources, err := s.queryResources(ctx, q)
 	if err != nil {
 		return nil, err
@@ -153,9 +154,9 @@ type storeListResourceResult struct {
 }
 
 func (s *Store) ListResources(ctx context.Context, options *ListResourcesOptions, pageArgs graphqlutil.PageArgs) (*storeListResourceResult, error) {
-	q := s.selectResourceQuery().
-		OrderBy("uri ASC")
-	q = s.applyListResourcesOptions(q, options)
+	q := s.selectResourceQuery("r").
+		OrderBy("r.uri ASC")
+	q = s.applyListResourcesOptions(q, "r", options)
 
 	q, offset, err := db.ApplyPageArgs(q, pageArgs)
 	if err != nil {
@@ -180,8 +181,8 @@ func (s *Store) ListResources(ctx context.Context, options *ListResourcesOptions
 }
 
 func (s *Store) countResources(ctx context.Context, options *ListResourcesOptions) (uint64, error) {
-	q := s.SQLBuilder.Select("COUNT(*)").From(s.SQLBuilder.TableName("_auth_resource"))
-	q = s.applyListResourcesOptions(q, options)
+	q := s.SQLBuilder.Select("COUNT(*)").From(s.SQLBuilder.TableName("_auth_resource"), "r")
+	q = s.applyListResourcesOptions(q, "r", options)
 
 	var count uint64
 	row, err := s.SQLExecutor.QueryRowWith(ctx, q)
@@ -194,11 +195,21 @@ func (s *Store) countResources(ctx context.Context, options *ListResourcesOption
 	return count, nil
 }
 
-func (s *Store) applyListResourcesOptions(q db.SelectBuilder, options *ListResourcesOptions) db.SelectBuilder {
-	if options != nil && options.SearchKeyword != "" {
-		q = q.Where("(uri ILIKE ('%' || ? || '%') OR name ILIKE ('%' || ? || '%'))", options.SearchKeyword, options.SearchKeyword)
+func (s *Store) applyListResourcesOptions(q db.SelectBuilder, authResourceAlias string, options *ListResourcesOptions) db.SelectBuilder {
+	if options.SearchKeyword != "" {
+		q = q.Where(fmt.Sprintf("(%s.uri ILIKE ('%%' || ? || '%%') OR %s.name ILIKE ('%%' || ? || '%%'))", authResourceAlias, authResourceAlias),
+			options.SearchKeyword,
+			options.SearchKeyword,
+		)
 	}
-	// TODO(tung): Implement ClientID filtering if/when resources are associated with clients
+	if options.ClientID != "" {
+		q = q.Join(
+			s.SQLBuilder.TableName("_auth_client_resource"),
+			"acr",
+			"acr.resource_id = r.id",
+		)
+		q = q.Where("acr.client_id = ?", options.ClientID)
+	}
 	return q
 }
 
@@ -221,16 +232,19 @@ func (s *Store) queryResources(ctx context.Context, q db.SelectBuilder) ([]*Reso
 	return resources, nil
 }
 
-func (s *Store) selectResourceQuery() db.SelectBuilder {
+func (s *Store) selectResourceQuery(alias string) db.SelectBuilder {
+	aliasedColumn := func(col string) string {
+		return fmt.Sprintf("%s.%s", alias, col)
+	}
 	return s.SQLBuilder.
 		Select(
-			"id",
-			"created_at",
-			"updated_at",
-			"uri",
-			"name",
+			aliasedColumn("id"),
+			aliasedColumn("created_at"),
+			aliasedColumn("updated_at"),
+			aliasedColumn("uri"),
+			aliasedColumn("name"),
 		).
-		From(s.SQLBuilder.TableName("_auth_resource"))
+		From(s.SQLBuilder.TableName("_auth_resource"), alias)
 }
 
 func (s *Store) scanResource(scanner db.Scanner) (*Resource, error) {
