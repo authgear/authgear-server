@@ -105,3 +105,118 @@ func (c *Commands) UpdateScope(ctx context.Context, options *UpdateScopeOptions)
 func (c *Commands) DeleteScope(ctx context.Context, resourceURI string, scope string) error {
 	return c.Store.DeleteScope(ctx, resourceURI, scope)
 }
+
+func (c *Commands) AddScopesToClientID(ctx context.Context, resourceURI, clientID string, scopes []string) ([]*model.Scope, error) {
+	if _, found := c.OAuthConfig.GetClient(clientID); !found {
+		return nil, ErrClientNotFound
+	}
+	resource, err := c.Store.GetResourceByURI(ctx, resourceURI)
+	if err != nil {
+		return nil, err
+	}
+	for _, scopeStr := range scopes {
+		scope, err := c.Store.GetScopeByResourceIDAndScope(ctx, resource.ID, scopeStr)
+		if err != nil {
+			return nil, err
+		}
+		err = c.Store.AddScopeToClientID(ctx, resource.ID, scope.ID, clientID)
+		if err != nil {
+			return nil, err
+		}
+	}
+	finalScopes, err := c.Store.ListClientScopesByResourceID(ctx, resource.ID, clientID)
+	if err != nil {
+		return nil, err
+	}
+	var result []*model.Scope
+	for _, s := range finalScopes {
+		result = append(result, s.ToModel())
+	}
+	return result, nil
+}
+
+func (c *Commands) RemoveScopesFromClientID(ctx context.Context, resourceURI, clientID string, scopes []string) ([]*model.Scope, error) {
+	if _, found := c.OAuthConfig.GetClient(clientID); !found {
+		return nil, ErrClientNotFound
+	}
+	resource, err := c.Store.GetResourceByURI(ctx, resourceURI)
+	if err != nil {
+		return nil, err
+	}
+	for _, scopeStr := range scopes {
+		scope, err := c.Store.GetScopeByResourceIDAndScope(ctx, resource.ID, scopeStr)
+		if err != nil {
+			return nil, err
+		}
+		err = c.Store.RemoveScopeFromClientID(ctx, scope.ID, clientID)
+		if err != nil {
+			return nil, err
+		}
+	}
+	finalScopes, err := c.Store.ListClientScopesByResourceID(ctx, resource.ID, clientID)
+	if err != nil {
+		return nil, err
+	}
+	var result []*model.Scope
+	for _, s := range finalScopes {
+		result = append(result, s.ToModel())
+	}
+	return result, nil
+}
+
+func (c *Commands) ReplaceScopesOfClientID(ctx context.Context, resourceURI, clientID string, scopes []string) ([]*model.Scope, error) {
+	if _, found := c.OAuthConfig.GetClient(clientID); !found {
+		return nil, ErrClientNotFound
+	}
+	resource, err := c.Store.GetResourceByURI(ctx, resourceURI)
+	if err != nil {
+		return nil, err
+	}
+	// Get all current scopes for this resource and client
+	currentScopes, err := c.Store.ListClientScopesByResourceID(ctx, resource.ID, clientID)
+	if err != nil {
+		return nil, err
+	}
+	currentSet := make(map[string]*Scope)
+	for _, s := range currentScopes {
+		s := s
+		currentSet[s.Scope] = s
+	}
+	// Build desired set
+	desiredSet := make(map[string]struct{})
+	for _, scopeStr := range scopes {
+		desiredSet[scopeStr] = struct{}{}
+	}
+	// Add missing scopes
+	for _, scopeStr := range scopes {
+		if _, ok := currentSet[scopeStr]; !ok {
+			scope, err := c.Store.GetScopeByResourceIDAndScope(ctx, resource.ID, scopeStr)
+			if err != nil {
+				return nil, err
+			}
+			err = c.Store.AddScopeToClientID(ctx, resource.ID, scope.ID, clientID)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+	// Remove extra scopes
+	for scopeStr, s := range currentSet {
+		if _, ok := desiredSet[scopeStr]; !ok {
+			err := c.Store.RemoveScopeFromClientID(ctx, s.ID, clientID)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+	// Return the final set
+	finalScopes, err := c.Store.ListClientScopesByResourceID(ctx, resource.ID, clientID)
+	if err != nil {
+		return nil, err
+	}
+	var result []*model.Scope
+	for _, s := range finalScopes {
+		result = append(result, s.ToModel())
+	}
+	return result, nil
+}
