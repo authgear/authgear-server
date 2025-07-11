@@ -2,6 +2,7 @@ package resourcescope
 
 import (
 	"context"
+	"errors"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -106,12 +107,25 @@ func (c *Commands) DeleteScope(ctx context.Context, resourceURI string, scope st
 	return c.Store.DeleteScope(ctx, resourceURI, scope)
 }
 
+func (c *Commands) checkResourceAssociatedToClient(ctx context.Context, resourceID, clientID string) error {
+	_, err := c.Store.GetClientResource(ctx, clientID, resourceID)
+	if errors.Is(err, ErrResourceNotFound) {
+		return ErrResourceNotAssociatedWithClient
+	} else if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (c *Commands) AddScopesToClientID(ctx context.Context, resourceURI, clientID string, scopes []string) ([]*model.Scope, error) {
 	if _, found := c.OAuthConfig.GetClient(clientID); !found {
 		return nil, ErrClientNotFound
 	}
 	resource, err := c.Store.GetResourceByURI(ctx, resourceURI)
 	if err != nil {
+		return nil, err
+	}
+	if err := c.checkResourceAssociatedToClient(ctx, resource.ID, clientID); err != nil {
 		return nil, err
 	}
 	for _, scopeStr := range scopes {
@@ -143,6 +157,9 @@ func (c *Commands) RemoveScopesFromClientID(ctx context.Context, resourceURI, cl
 	if err != nil {
 		return nil, err
 	}
+	if err := c.checkResourceAssociatedToClient(ctx, resource.ID, clientID); err != nil {
+		return nil, err
+	}
 	for _, scopeStr := range scopes {
 		scope, err := c.Store.GetScopeByResourceIDAndScope(ctx, resource.ID, scopeStr)
 		if err != nil {
@@ -170,6 +187,9 @@ func (c *Commands) ReplaceScopesOfClientID(ctx context.Context, resourceURI, cli
 	}
 	resource, err := c.Store.GetResourceByURI(ctx, resourceURI)
 	if err != nil {
+		return nil, err
+	}
+	if err := c.checkResourceAssociatedToClient(ctx, resource.ID, clientID); err != nil {
 		return nil, err
 	}
 	// Get all current scopes for this resource and client
