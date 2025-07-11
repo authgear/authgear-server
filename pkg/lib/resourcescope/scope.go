@@ -18,6 +18,11 @@ type UpdateScopeOptions struct {
 	NewDesc  *string
 }
 
+type ListScopeOptions struct {
+	SearchKeyword string
+	ClientID      string
+}
+
 type Scope struct {
 	ID          string
 	CreatedAt   time.Time
@@ -38,4 +43,10 @@ func (s *Scope) ToModel() *model.Scope {
 		Scope:       s.Scope,
 		Description: s.Description,
 	}
+}
+
+type ListScopeResult struct {
+	Items      []*model.Scope
+	Offset     uint64
+	TotalCount uint64
 }
