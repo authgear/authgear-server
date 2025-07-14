@@ -1,0 +1,86 @@
+name: Replace Scopes Of Client
+before:
+  - type: custom_sql
+    custom_sql:
+      path: fixtures.sql
+steps:
+  - action: adminapi_query
+    adminapi_request:
+      query: |
+        mutation ReplaceScopesOfClientID {
+          replaceScopesOfClientID(input: {
+            clientID: "portal",
+            resourceURI: "https://fixtureresource/2",
+            scopes: ["fixturescope3"]
+          }) {
+            scopes {
+              id
+              scope
+              description
+            }
+          }
+        }
+      variables: "{}"
+    adminapi_output:
+      result: |
+        {
+          "data": {
+            "replaceScopesOfClientID": {
+              "scopes": [
+                { "id": "[[string]]", "scope": "fixturescope3", "description": "Fixture Scope 3" }
+              ]
+            }
+          },
+          "errors": null
+        }
+  - action: adminapi_query
+    adminapi_request:
+      query: |
+        query ScopesByClient {
+          resources(clientID: "portal") {
+            edges {
+              node {
+                id
+                uri
+                scopes(clientID: "portal") {
+                  edges {
+                    node {
+                      id
+                      scope
+                      description
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      variables: "{}"
+    adminapi_output:
+      result: |
+        {
+          "data": {
+            "resources": {
+              "edges": [
+                {
+                  "node": {
+                    "id": "[[string]]",
+                    "uri": "https://fixtureresource/2",
+                    "scopes": {
+                      "edges": [
+                        {
+                          "node": {
+                            "id": "[[string]]",
+                            "scope": "fixturescope3",
+                            "description": "Fixture Scope 3"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "errors": null
+        } 

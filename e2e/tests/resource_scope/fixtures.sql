@@ -110,3 +110,30 @@ INSERT INTO _auth_resource_scope (
   'Fixture Scope 3',
   '{}'
 );
+
+-- Associate both scopes with the client 'portal' for resource 2
+INSERT INTO _auth_client_resource_scope (
+  "id",
+  "app_id",
+  "created_at",
+  "updated_at",
+  "client_id",
+  "resource_id",
+  "scope_id"
+) VALUES (
+  '{{ .AppID }}-fixture-client-resource-scope-02',
+  '{{ .AppID }}',
+  NOW(),
+  NOW(),
+  'portal',
+  '{{ .AppID }}-fixture-resource-02',
+  '{{ .AppID }}-fixture-scope-02'
+), (
+  '{{ .AppID }}-fixture-client-resource-scope-03',
+  '{{ .AppID }}',
+  NOW(),
+  NOW(),
+  'portal',
+  '{{ .AppID }}-fixture-resource-02',
+  '{{ .AppID }}-fixture-scope-03'
+);
