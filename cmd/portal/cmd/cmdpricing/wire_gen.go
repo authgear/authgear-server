@@ -20,11 +20,10 @@ import (
 // Injectors from wire.go:
 
 func NewStripeService(pool *db.Pool, databaseCredentials *config.DatabaseCredentials, stripeConfig *config2.StripeConfig, hub *sentry.Hub) *StripeService {
-	factory := cobrasentry.NewLoggerFactory(hub)
-	logger := NewLogger(factory)
-	api := NewClientAPI(stripeConfig, logger)
+	api := NewClientAPI(stripeConfig)
 	globalDatabaseCredentialsEnvironmentConfig := NewGlobalDatabaseCredentials(databaseCredentials)
 	databaseEnvironmentConfig := config.NewDefaultDatabaseEnvironmentConfig()
+	factory := cobrasentry.NewLoggerFactory(hub)
 	handle := globaldb.NewHandle(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
 	sqlBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
 	sqlExecutor := globaldb.NewSQLExecutor(handle)
@@ -40,7 +39,6 @@ func NewStripeService(pool *db.Pool, databaseCredentials *config.DatabaseCredent
 		SQLExecutor: sqlExecutor,
 		Store:       store,
 		Clock:       clock,
-		Logger:      logger,
 	}
 	return stripeService
 }

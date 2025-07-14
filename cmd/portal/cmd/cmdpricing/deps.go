@@ -24,7 +24,6 @@ var DependencySet = wire.NewSet(
 	globaldb.DependencySet,
 	clock.DependencySet,
 	NewClientAPI,
-	NewLogger,
 	wire.Struct(new(configsource.Store), "*"),
 	wire.Struct(new(StripeService), "*"),
 )

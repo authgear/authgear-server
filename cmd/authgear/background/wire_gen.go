@@ -181,7 +181,7 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 	}
 	remoteIP := ProvideRemoteIP()
 	userAgentString := ProvideUserAgentString()
-	logger := event.NewLogger(factory)
+	eventLogger := event.NewLogger(factory)
 	localizationConfig := appConfig.Localization
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
@@ -644,7 +644,7 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(configAppID, remoteIP, userAgentString, logger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	eventService := event.NewService(configAppID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
 	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
