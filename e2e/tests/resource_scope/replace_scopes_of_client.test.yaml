@@ -2,7 +2,7 @@ name: Replace Scopes Of Client
 before:
   - type: custom_sql
     custom_sql:
-      path: fixtures.sql
+      path: preassigned_client_scope_fixtures.sql
 steps:
   - action: adminapi_query
     adminapi_request:
@@ -11,7 +11,7 @@ steps:
           replaceScopesOfClientID(input: {
             clientID: "portal",
             resourceURI: "https://fixtureresource/2",
-            scopes: ["fixturescope3"]
+            scopes: ["resource2_scope2"]
           }) {
             scopes {
               id
@@ -27,7 +27,7 @@ steps:
           "data": {
             "replaceScopesOfClientID": {
               "scopes": [
-                { "id": "[[string]]", "scope": "fixturescope3", "description": "Fixture Scope 3" }
+                { "id": "[[string]]", "scope": "resource2_scope2", "description": "Resource 2 Scope 2" }
               ]
             }
           },
@@ -71,8 +71,8 @@ steps:
                         {
                           "node": {
                             "id": "[[string]]",
-                            "scope": "fixturescope3",
-                            "description": "Fixture Scope 3"
+                            "scope": "resource2_scope2",
+                            "description": "Resource 2 Scope 2"
                           }
                         }
                       ]

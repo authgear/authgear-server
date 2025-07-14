@@ -2,7 +2,7 @@ name: Add Scopes To Client
 before:
   - type: custom_sql
     custom_sql:
-      path: fixtures.sql
+      path: client_scope_fixtures.sql
 steps:
   - action: adminapi_query
     adminapi_request:
@@ -11,7 +11,7 @@ steps:
           addScopesToClientID(input: {
             clientID: "portal",
             resourceURI: "https://fixtureresource/2",
-            scopes: ["fixturescope2"]
+            scopes: ["resource2_scope1"]
           }) {
             scopes {
               id
@@ -29,8 +29,8 @@ steps:
               "scopes": [
                 {
                   "id": "[[string]]",
-                  "scope": "fixturescope2",
-                  "description": "Fixture Scope 2"
+                  "scope": "resource2_scope1",
+                  "description": "Resource 2 Scope 1"
                 }
               ]
             }
@@ -75,8 +75,8 @@ steps:
                         {
                           "node": {
                             "id": "[[string]]",
-                            "scope": "fixturescope2",
-                            "description": "Fixture Scope 2"
+                            "scope": "resource2_scope1",
+                            "description": "Resource 2 Scope 1"
                           }
                         }
                       ]
@@ -93,7 +93,7 @@ name: Add Scopes To Client - Rejected if resource is not associated
 before:
   - type: custom_sql
     custom_sql:
-      path: fixtures.sql
+      path: client_scope_fixtures.sql
 steps:
   - action: adminapi_query
     adminapi_request:
@@ -102,7 +102,7 @@ steps:
           addScopesToClientID(input: {
             clientID: "e2e",
             resourceURI: "https://fixtureresource/2",
-            scopes: ["fixturescope2"]
+            scopes: ["resource2_scope1"]
           }) {
             scopes {
               id

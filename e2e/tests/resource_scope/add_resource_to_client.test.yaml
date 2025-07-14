@@ -2,7 +2,7 @@ name: Add Resource To Client
 before:
   - type: custom_sql
     custom_sql:
-      path: fixtures.sql
+      path: simple_fixtures.sql
 steps:
   - action: adminapi_query
     adminapi_request:
