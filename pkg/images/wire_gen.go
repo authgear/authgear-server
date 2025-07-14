@@ -89,8 +89,6 @@ func newGetHandler(p *deps.RequestProvider) http.Handler {
 		HTTPClient: imagesCloudStorageServiceHTTPClient,
 		Storage:    imagesCloudStorageServiceStorage,
 	}
-	factory := rootProvider.LoggerFactory
-	getHandlerLogger := handler.NewGetHandlerLogger(factory)
 	environmentConfig := &rootProvider.EnvironmentConfig
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	request := p.Request
@@ -100,7 +98,6 @@ func newGetHandler(p *deps.RequestProvider) http.Handler {
 	daemon := rootProvider.VipsDaemon
 	getHandler := &handler.GetHandler{
 		DirectorMaker: imagesCloudStorageService,
-		Logger:        getHandlerLogger,
 		ImagesCDNHost: imagesCDNHost,
 		HTTPHost:      httpHost,
 		HTTPProto:     httpProto,
@@ -117,7 +114,6 @@ func newPostHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	rootProvider := appProvider.RootProvider
 	factory := rootProvider.LoggerFactory
-	postHandlerLogger := handler.NewPostHandlerLogger(factory)
 	jsonResponseWriterLogger := httputil.NewJSONResponseWriterLogger(factory)
 	jsonResponseWriter := &httputil.JSONResponseWriter{
 		Logger: jsonResponseWriterLogger,
@@ -155,7 +151,6 @@ func newPostHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	postHandler := &handler.PostHandler{
-		Logger:                         postHandlerLogger,
 		JSON:                           jsonResponseWriter,
 		PostHandlerCloudStorageService: imagesCloudStorageService,
 		PresignProvider:                provider,
