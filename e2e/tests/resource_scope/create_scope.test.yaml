@@ -36,3 +36,39 @@ steps:
           },
           "errors": null
         }
+---
+name: Create Scope - Nonexistent Resource
+before:
+  - type: custom_sql
+    custom_sql:
+      path: simple_fixtures.sql
+steps:
+  - action: adminapi_query
+    adminapi_request:
+      query: |
+        mutation MyMutation {
+          createScope(input: {
+            resourceID: "{{ nodeID "Resource" "nonexistent-resource-id" }}",
+            scope: "shouldfail",
+            description: "Should fail"
+          }) {
+            scope {
+              id
+              scope
+              description
+            }
+          }
+        }
+      variables: "{}"
+    adminapi_output:
+      result: |
+        {
+          "data": null,
+          "errors": [
+            {
+              "extensions": {
+                "reason": "ResourceNotFound"
+              }
+            }
+          ]
+        }

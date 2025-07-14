@@ -88,13 +88,12 @@ var _ = registerMutationField(
 			}
 
 			options := &resourcescope.NewScopeOptions{
-				ResourceURI: resourceURI,
 				Scope:       resourcescope.NewScope(ctx, scopeStr),
 				Description: description,
 			}
 
 			gqlCtx := GQLContext(ctx)
-			scope, err := gqlCtx.ResourceScopeFacade.CreateScope(ctx, options)
+			scope, err := gqlCtx.ResourceScopeFacade.CreateScope(ctx, resourceURI, options)
 			if err != nil {
 				return nil, err
 			}
