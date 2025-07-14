@@ -1,8 +1,9 @@
 package graphql
 
 import (
-	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/graphql-go/graphql"
+
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 )
 
 var addScopesToClientIDInput = graphql.NewInputObject(graphql.InputObjectConfig{
