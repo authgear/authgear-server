@@ -22,7 +22,6 @@ func NewScope(ctx context.Context, str string) newScope {
 }
 
 type NewScopeOptions struct {
-	ResourceURI string
 	Scope       newScope
 	Description *string
 }

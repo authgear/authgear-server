@@ -90,8 +90,8 @@ func (c *Commands) RemoveResourceFromClientID(ctx context.Context, resourceURI, 
 	return c.Store.RemoveResourceFromClientID(ctx, resource.ID, clientID)
 }
 
-func (c *Commands) CreateScope(ctx context.Context, options *NewScopeOptions) (*model.Scope, error) {
-	resource, err := c.Store.GetResourceByURI(ctx, options.ResourceURI)
+func (c *Commands) CreateScope(ctx context.Context, resourceURI string, options *NewScopeOptions) (*model.Scope, error) {
+	resource, err := c.Store.GetResourceByURI(ctx, resourceURI)
 	if err != nil {
 		return nil, err
 	}

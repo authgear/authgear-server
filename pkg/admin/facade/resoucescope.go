@@ -13,7 +13,7 @@ type ResourceScopeCommands interface {
 	CreateResource(ctx context.Context, options *resourcescope.NewResourceOptions) (*model.Resource, error)
 	UpdateResource(ctx context.Context, options *resourcescope.UpdateResourceOptions) (*model.Resource, error)
 	DeleteResourceByURI(ctx context.Context, uri string) error
-	CreateScope(ctx context.Context, options *resourcescope.NewScopeOptions) (*model.Scope, error)
+	CreateScope(ctx context.Context, resourceURI string, options *resourcescope.NewScopeOptions) (*model.Scope, error)
 	UpdateScope(ctx context.Context, options *resourcescope.UpdateScopeOptions) (*model.Scope, error)
 	DeleteScope(ctx context.Context, resourceURI string, scope string) error
 	AddResourceToClientID(ctx context.Context, resourceURI string, clientID string) error
@@ -51,8 +51,8 @@ func (f *ResourceScopeFacade) GetResourceByURI(ctx context.Context, uri string) 
 	return f.ResourceScopeQueries.GetResourceByURI(ctx, uri)
 }
 
-func (f *ResourceScopeFacade) CreateScope(ctx context.Context, options *resourcescope.NewScopeOptions) (*model.Scope, error) {
-	return f.ResourceScopeCommands.CreateScope(ctx, options)
+func (f *ResourceScopeFacade) CreateScope(ctx context.Context, resourceURI string, options *resourcescope.NewScopeOptions) (*model.Scope, error) {
+	return f.ResourceScopeCommands.CreateScope(ctx, resourceURI, options)
 }
 
 func (f *ResourceScopeFacade) UpdateScope(ctx context.Context, options *resourcescope.UpdateScopeOptions) (*model.Scope, error) {

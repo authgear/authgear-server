@@ -203,7 +203,7 @@ type ResourceScopeFacade interface {
 	UpdateResource(ctx context.Context, options *resourcescope.UpdateResourceOptions) (*apimodel.Resource, error)
 	DeleteResourceByURI(ctx context.Context, uri string) error
 	GetResourceByURI(ctx context.Context, uri string) (*apimodel.Resource, error)
-	CreateScope(ctx context.Context, options *resourcescope.NewScopeOptions) (*apimodel.Scope, error)
+	CreateScope(ctx context.Context, resourceURI string, options *resourcescope.NewScopeOptions) (*apimodel.Scope, error)
 	UpdateScope(ctx context.Context, options *resourcescope.UpdateScopeOptions) (*apimodel.Scope, error)
 	DeleteScope(ctx context.Context, resourceURI string, scope string) error
 	GetScope(ctx context.Context, resourceURI string, scope string) (*apimodel.Scope, error)
