@@ -92,12 +92,10 @@ func newHealthzHandler(p *deps.RootProvider, w http.ResponseWriter, r *http.Requ
 	redisEnvironmentConfig := &environmentConfig.RedisConfig
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(redisPool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig, factory)
-	handlerLogger := healthz.NewHandlerLogger(factory)
 	handler := &healthz.Handler{
 		GlobalDatabase: handle,
 		GlobalExecutor: sqlExecutor,
 		GlobalRedis:    globalredisHandle,
-		Logger:         handlerLogger,
 	}
 	return handler
 }
@@ -586,7 +584,6 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		UserInfoService: userInfoService,
 		Clock:           clock,
 	}
-	eventLogger := event.NewLogger(factory)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
@@ -650,13 +647,11 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		IdentityService: serviceService,
 		RolesGroups:     rolesgroupsStore,
 	}
-	elasticsearchServiceLogger := elasticsearch.NewElasticsearchServiceLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	elasticsearchService := &elasticsearch.Service{
 		Clock:           clock,
 		Database:        appdbHandle,
-		Logger:          elasticsearchServiceLogger,
 		AppID:           appID,
 		Client:          client,
 		Users:           userQueries,
@@ -695,7 +690,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, eventLogger, appdbHandle, clock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	eventService := event.NewService(appID, remoteIP, userAgentString, appdbHandle, clock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
 		AppID: appID,

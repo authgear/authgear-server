@@ -34,8 +34,8 @@ func NewReindexerLogger(lf *log.Factory) *ReindexerLogger {
 }
 
 type ElasticsearchReindexer interface {
-	ReindexUser(user *model.SearchUserSource) error
-	DeleteUser(userID string) error
+	ReindexUser(ctx context.Context, user *model.SearchUserSource) error
+	DeleteUser(ctx context.Context, userID string) error
 }
 
 type PostgresqlReindexer interface {
@@ -175,7 +175,7 @@ func (s *Reindexer) EnqueueReindexUserTask(ctx context.Context, userID string) e
 func (s *Reindexer) reindexUser(ctx context.Context, source *model.SearchUserSource) error {
 	switch s.SearchConfig.GetImplementation() {
 	case config.SearchImplementationElasticsearch:
-		return s.ElasticsearchReindexer.ReindexUser(source)
+		return s.ElasticsearchReindexer.ReindexUser(ctx, source)
 	case config.SearchImplementationPostgresql:
 		return s.PostgresqlReindexer.ReindexUser(ctx, source)
 	case config.SearchImplementationNone:
@@ -189,7 +189,7 @@ func (s *Reindexer) reindexUser(ctx context.Context, source *model.SearchUserSou
 func (s *Reindexer) deleteUser(ctx context.Context, userID string) error {
 	switch s.SearchConfig.GetImplementation() {
 	case config.SearchImplementationElasticsearch:
-		return s.ElasticsearchReindexer.DeleteUser(userID)
+		return s.ElasticsearchReindexer.DeleteUser(ctx, userID)
 	case config.SearchImplementationPostgresql:
 		return s.PostgresqlReindexer.DeleteUser(ctx, userID)
 	case config.SearchImplementationNone:

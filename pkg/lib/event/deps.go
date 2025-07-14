@@ -13,7 +13,6 @@ import (
 )
 
 var DependencySet = wire.NewSet(
-	NewLogger,
 	NewService,
 	NewStoreImpl,
 	wire.Struct(new(ResolverImpl), "*"),
@@ -25,7 +24,6 @@ func NewService(
 	appID config.AppID,
 	remoteIP httputil.RemoteIP,
 	userAgentString httputil.UserAgentString,
-	logger Logger,
 	database Database,
 	clock clock.Clock,
 	localization *config.LocalizationConfig,
@@ -40,7 +38,6 @@ func NewService(
 		AppID:           appID,
 		RemoteIP:        remoteIP,
 		UserAgentString: userAgentString,
-		Logger:          logger,
 		Database:        database,
 		Clock:           clock,
 		Localization:    localization,

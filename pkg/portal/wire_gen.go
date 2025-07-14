@@ -114,12 +114,10 @@ func newHealthzHandler(p *deps.RequestProvider) http.Handler {
 	redisEnvironmentConfig := &environmentConfig.RedisConfig
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(redisPool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig, factory)
-	handlerLogger := healthz.NewHandlerLogger(factory)
 	handler := &healthz.Handler{
 		GlobalDatabase: handle,
 		GlobalExecutor: sqlExecutor,
 		GlobalRedis:    globalredisHandle,
-		Logger:         handlerLogger,
 	}
 	return handler
 }

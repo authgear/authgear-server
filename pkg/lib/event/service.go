@@ -14,7 +14,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/geoip"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/intl"
-	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
 //go:generate go tool mockgen -source=service.go -destination=service_mock_test.go -package event
@@ -36,15 +36,12 @@ type Resolver interface {
 	Resolve(ctx context.Context, anything interface{}) (err error)
 }
 
-type Logger struct{ *log.Logger }
-
-func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("event")} }
+var EventLogger = slogutil.NewLogger("event")
 
 type Service struct {
 	AppID           config.AppID
 	RemoteIP        httputil.RemoteIP
 	UserAgentString httputil.UserAgentString
-	Logger          Logger
 	Database        Database
 	Clock           clock.Clock
 	Localization    *config.LocalizationConfig
@@ -105,6 +102,7 @@ func (s *Service) DispatchEventOnCommit(ctx context.Context, payload event.Paylo
 
 // DispatchEventImmediately dispatches the event immediately.
 func (s *Service) DispatchEventImmediately(ctx context.Context, payload event.NonBlockingPayload) (err error) {
+	logger := EventLogger.GetLogger(ctx)
 	// Resolve refs once here
 	// If the event is about entity deletion,
 	// then it is not possible to resolve the entity in DidRollbackTx.
@@ -121,7 +119,7 @@ func (s *Service) DispatchEventImmediately(ctx context.Context, payload event.No
 	for _, sink := range s.Sinks {
 		err = sink.ReceiveNonBlockingEvent(ctx, e)
 		if err != nil {
-			s.Logger.WithError(err).Error("failed to dispatch nonblocking error event")
+			logger.WithError(err).Error(ctx, "failed to dispatch nonblocking error event")
 		}
 	}
 
@@ -178,6 +176,8 @@ func (s *Service) WillCommitTx(ctx context.Context) (err error) {
 }
 
 func (s *Service) DidCommitTx(ctx context.Context) {
+	logger := EventLogger.GetLogger(ctx)
+
 	// To avoid triggering the events multiple times
 	// reset s.NonBlockingEvents when we start processing the events
 	nonBlockingEvents := s.NonBlockingEvents
@@ -187,7 +187,7 @@ func (s *Service) DidCommitTx(ctx context.Context) {
 		for _, sink := range s.Sinks {
 			err := sink.ReceiveNonBlockingEvent(ctx, e)
 			if err != nil {
-				s.Logger.WithError(err).Error("failed to dispatch nonblocking event")
+				logger.WithError(err).Error(ctx, "failed to dispatch nonblocking event")
 			}
 		}
 	}

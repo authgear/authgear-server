@@ -6,10 +6,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log/slog"
 
 	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
-	"github.com/sirupsen/logrus"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	identityservice "github.com/authgear/authgear-server/pkg/lib/authn/identity/service"
@@ -21,23 +21,18 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
-	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
 type UserQueries interface {
 	Get(ctx context.Context, userID string, role accesscontrol.Role) (*model.User, error)
 }
 
-type ElasticsearchServiceLogger struct{ *log.Logger }
-
-func NewElasticsearchServiceLogger(lf *log.Factory) *ElasticsearchServiceLogger {
-	return &ElasticsearchServiceLogger{lf.New("elasticsearch-service")}
-}
+var ElasticsearchServiceLogger = slogutil.NewLogger("elasticsearch-service")
 
 type Service struct {
 	Clock           clock.Clock
 	Database        *appdb.Handle
-	Logger          *ElasticsearchServiceLogger
 	AppID           config.AppID
 	Client          *elasticsearch.Client
 	Users           UserQueries
@@ -132,13 +127,14 @@ func (s *Service) QueryUser(
 	}, nil
 }
 
-func (s *Service) ReindexUser(user *model.SearchUserSource) error {
+func (s *Service) ReindexUser(ctx context.Context, user *model.SearchUserSource) error {
+	logger := ElasticsearchServiceLogger.GetLogger(ctx)
 
 	documentID := fmt.Sprintf("%s:%s", user.AppID, user.ID)
-	s.Logger.WithFields(logrus.Fields{
-		"app_id":  user.AppID,
-		"user_id": user.ID,
-	}).Info("reindexing user")
+	logger.Info(ctx, "reindexing user",
+		slog.String("app_id", user.AppID),
+		slog.String("user_id", user.ID),
+	)
 
 	var res *esapi.Response
 
@@ -168,12 +164,13 @@ func (s *Service) ReindexUser(user *model.SearchUserSource) error {
 	return nil
 }
 
-func (s *Service) DeleteUser(userID string) error {
+func (s *Service) DeleteUser(ctx context.Context, userID string) error {
+	logger := ElasticsearchServiceLogger.GetLogger(ctx)
 	appID := s.AppID
-	s.Logger.WithFields(logrus.Fields{
-		"app_id":  appID,
-		"user_id": userID,
-	}).Info("removing user from index")
+	logger.Info(ctx, "removing user from index",
+		slog.String("app_id", string(appID)),
+		slog.String("user_id", userID),
+	)
 
 	documentID := fmt.Sprintf("%s:%s", appID, userID)
 

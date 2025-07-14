@@ -10,26 +10,23 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/globalredis"
-	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
-type HandlerLogger struct{ *log.Logger }
-
-func NewHandlerLogger(lf *log.Factory) HandlerLogger {
-	return HandlerLogger{lf.New("healthz")}
-}
+var HealthzLogger = slogutil.NewLogger("healthz")
 
 type Handler struct {
 	GlobalDatabase *globaldb.Handle
 	GlobalExecutor *globaldb.SQLExecutor
 	GlobalRedis    *globalredis.Handle
-	Logger         HandlerLogger
 }
 
 func (h *Handler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
-	err := h.CheckHealth(r.Context())
+	ctx := r.Context()
+	logger := HealthzLogger.GetLogger(ctx)
+	err := h.CheckHealth(ctx)
 	if err != nil {
-		h.Logger.WithError(err).Errorf("health check failed")
+		logger.WithError(err).Error(ctx, "health check failed")
 		http.Error(rw, "Service Unavailable", http.StatusServiceUnavailable)
 		return
 	}
@@ -43,6 +40,8 @@ func (h *Handler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) CheckHealth(ctx context.Context) (err error) {
 	err = h.GlobalDatabase.ReadOnly(ctx, func(ctx context.Context) error {
+		logger := HealthzLogger.GetLogger(ctx)
+
 		var fortyTwo int
 		row, err := h.GlobalExecutor.QueryRowWith(ctx, sq.Select("42"))
 		if err != nil {
@@ -53,7 +52,7 @@ func (h *Handler) CheckHealth(ctx context.Context) (err error) {
 			return err
 		}
 
-		h.Logger.Debugf("global database connection healthz passed")
+		logger.Debug(ctx, "global database connection healthz passed")
 		return nil
 	})
 	if err != nil {
@@ -61,11 +60,13 @@ func (h *Handler) CheckHealth(ctx context.Context) (err error) {
 	}
 
 	err = h.GlobalRedis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
+		logger := HealthzLogger.GetLogger(ctx)
+
 		_, err := conn.Ping(ctx).Result()
 		if err != nil {
 			return err
 		}
-		h.Logger.Debugf("global redis connection healthz passed")
+		logger.Debug(ctx, "global redis connection healthz passed")
 		return nil
 	})
 	if err != nil {
