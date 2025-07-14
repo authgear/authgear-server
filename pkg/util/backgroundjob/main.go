@@ -2,18 +2,22 @@ package backgroundjob
 
 import (
 	"context"
+	"log/slog"
 	"os"
 	"os/signal"
 	"sync"
 	"syscall"
 	"time"
 
-	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
+
+var logger = slogutil.NewLogger("background")
 
 // Main takes a list of runners and start them.
 // Upon receiving SIGINT or SIGTERM, stop them gracefully.
-func Main(ctx context.Context, logger *log.Logger, runners []*Runner) {
+func Main(ctx context.Context, runners []*Runner) {
+	logger := logger.GetLogger(ctx)
 	var waitGroup sync.WaitGroup
 	shutdown := make(chan struct{})
 
@@ -34,7 +38,7 @@ func Main(ctx context.Context, logger *log.Logger, runners []*Runner) {
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 
 	sig := <-sigChan
-	logger.Infof("received signal %s, shutting down...", sig.String())
+	logger.Info(ctx, "received signal, shutting down...", slog.String("signal", sig.String()))
 
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()

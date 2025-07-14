@@ -2,7 +2,7 @@ package server
 
 import (
 	"context"
-	golog "log"
+	"log/slog"
 
 	"github.com/authgear/authgear-server/pkg/admin"
 	"github.com/authgear/authgear-server/pkg/auth"
@@ -10,25 +10,28 @@ import (
 	infraredisqueue "github.com/authgear/authgear-server/pkg/lib/infra/redisqueue"
 	"github.com/authgear/authgear-server/pkg/redisqueue"
 	"github.com/authgear/authgear-server/pkg/resolver"
-	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/pprofutil"
 	"github.com/authgear/authgear-server/pkg/util/server"
 	"github.com/authgear/authgear-server/pkg/util/signalutil"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 	"github.com/authgear/authgear-server/pkg/version"
 )
+
+var logger = slogutil.NewLogger("server")
 
 type Controller struct {
 	ServeMain     bool
 	ServeResolver bool
 	ServeAdmin    bool
-
-	logger *log.Logger
 }
 
 func (c *Controller) Start(ctx context.Context) {
+	logger := logger.GetLogger(ctx)
+
 	cfg, err := LoadConfigFromEnv()
 	if err != nil {
-		golog.Fatalf("failed to load server config: %v", err)
+		logger.WithError(err).Error(ctx, "failed to load server config")
+		panic(err)
 	}
 
 	ctx, p, err := deps.NewRootProvider(
@@ -38,21 +41,20 @@ func (c *Controller) Start(ctx context.Context) {
 		cfg.CustomResourceDirectory,
 	)
 	if err != nil {
-		golog.Fatalf("failed to setup server: %v", err)
+		logger.WithError(err).Error(ctx, "failed to setup server")
+		panic(err)
 	}
 
-	// From now, we should use c.logger to log.
-	c.logger = p.LoggerFactory.New("server")
-
-	c.logger.Infof("authgear (version %s)", version.Version)
+	logger.Info(ctx, "authgear version", slog.String("version", version.Version))
 	if cfg.DevMode {
-		c.logger.Warn("development mode is ON - do not use in production")
+		logger.Warn(ctx, "development mode is ON - do not use in production")
 	}
 
 	configSrcController := newConfigSourceController(p)
 	err = configSrcController.Open(ctx)
 	if err != nil {
-		c.logger.WithError(err).Fatal("cannot open configuration")
+		logger.WithError(err).Error(ctx, "cannot open configuration")
+		panic(err)
 	}
 	defer configSrcController.Close()
 
@@ -61,7 +63,8 @@ func (c *Controller) Start(ctx context.Context) {
 	if c.ServeMain {
 		u, err := server.ParseListenAddress(cfg.MainListenAddr)
 		if err != nil {
-			c.logger.WithError(err).Fatal("failed to parse main server listen address")
+			logger.WithError(err).Error(ctx, "failed to parse main server listen address")
+			panic(err)
 		}
 
 		spec := &server.Spec{
@@ -84,7 +87,8 @@ func (c *Controller) Start(ctx context.Context) {
 		// Set up internal server.
 		u, err = server.ParseListenAddress(cfg.MainInteralListenAddr)
 		if err != nil {
-			c.logger.WithError(err).Fatal("failed to parse main server internal listen address")
+			logger.WithError(err).Error(ctx, "failed to parse main server internal listen address")
+			panic(err)
 		}
 		specs = append(specs, server.NewSpec(ctx, &server.Spec{
 			Name:          "authgear-main-internal",
@@ -105,7 +109,8 @@ func (c *Controller) Start(ctx context.Context) {
 	if c.ServeResolver {
 		u, err := server.ParseListenAddress(cfg.ResolverListenAddr)
 		if err != nil {
-			c.logger.WithError(err).Fatal("failed to parse resolver server listen address")
+			logger.WithError(err).Error(ctx, "failed to parse resolver server listen address")
+			panic(err)
 		}
 
 		specs = append(specs, server.NewSpec(ctx, &server.Spec{
@@ -120,7 +125,8 @@ func (c *Controller) Start(ctx context.Context) {
 		// Set up internal server.
 		u, err = server.ParseListenAddress(cfg.ResolverInternalListenAddr)
 		if err != nil {
-			c.logger.WithError(err).Fatal("failed to parse resolver internal server listen address")
+			logger.WithError(err).Error(ctx, "failed to parse resolver internal server listen address")
+			panic(err)
 		}
 
 		specs = append(specs, server.NewSpec(ctx, &server.Spec{
@@ -133,7 +139,8 @@ func (c *Controller) Start(ctx context.Context) {
 	if c.ServeAdmin {
 		u, err := server.ParseListenAddress(cfg.AdminListenAddr)
 		if err != nil {
-			c.logger.WithError(err).Fatal("failed to parse admin API server listen address")
+			logger.WithError(err).Error(ctx, "failed to parse admin API server listen address")
+			panic(err)
 		}
 
 		specs = append(specs, server.NewSpec(ctx, &server.Spec{
@@ -148,7 +155,8 @@ func (c *Controller) Start(ctx context.Context) {
 
 		u, err = server.ParseListenAddress(cfg.AdminInternalListenAddr)
 		if err != nil {
-			c.logger.WithError(err).Fatal("failed to parse admin API internal server listen address")
+			logger.WithError(err).Error(ctx, "failed to parse admin API internal server listen address")
+			panic(err)
 		}
 
 		specs = append(specs, server.NewSpec(ctx, &server.Spec{
@@ -176,5 +184,5 @@ func (c *Controller) Start(ctx context.Context) {
 		))
 	}
 
-	signalutil.Start(ctx, c.logger, specs...)
+	signalutil.Start(ctx, specs...)
 }

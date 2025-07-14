@@ -2,22 +2,23 @@ package background
 
 import (
 	"context"
-	golog "log"
 
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/util/backgroundjob"
-	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
-type Controller struct {
-	logger *log.Logger
-}
+var logger = slogutil.NewLogger("background")
+
+type Controller struct{}
 
 func (c *Controller) Start(ctx context.Context) {
+	logger := logger.GetLogger(ctx)
+
 	cfg, err := LoadConfigFromEnv()
 	if err != nil {
-		golog.Fatalf("failed to load config: %v", err)
+		logger.WithError(err).Error(ctx, "failed to load config")
+		panic(err)
 	}
 
 	ctx = slogutil.Setup(ctx)
@@ -29,16 +30,15 @@ func (c *Controller) Start(ctx context.Context) {
 		cfg.CustomResourceDirectory,
 	)
 	if err != nil {
-		golog.Fatalf("failed to setup server: %v", err)
+		logger.WithError(err).Error(ctx, "failed to setup server")
+		panic(err)
 	}
-
-	// From now, we should use c.logger to log.
-	c.logger = p.LoggerFactory.New("background")
 
 	configSrcController := newConfigSourceController(p)
 	err = configSrcController.Open(ctx)
 	if err != nil {
-		c.logger.WithError(err).Fatal("cannot open configuration")
+		logger.WithError(err).Error(ctx, "cannot open configuration")
+		panic(err)
 	}
 	defer configSrcController.Close()
 
@@ -46,5 +46,5 @@ func (c *Controller) Start(ctx context.Context) {
 		newAccountDeletionRunner(ctx, p, configSrcController),
 		newAccountAnonymizationRunner(ctx, p, configSrcController),
 	}
-	backgroundjob.Main(ctx, c.logger, runners)
+	backgroundjob.Main(ctx, runners)
 }

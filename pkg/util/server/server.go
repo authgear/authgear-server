@@ -3,12 +3,15 @@ package server
 import (
 	"context"
 	"errors"
+	"log/slog"
 	"net"
 	"net/http"
 	"time"
 
-	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
+
+var logger = slogutil.NewLogger("server")
 
 type Spec struct {
 	Name          string
@@ -37,21 +40,23 @@ func (spec *Spec) DisplayName() string {
 	return spec.Name
 }
 
-func (spec *Spec) Start(_ context.Context, logger *log.Logger) {
+func (spec *Spec) Start(ctx context.Context) {
+	logger := logger.GetLogger(ctx)
 	var err error
 	if spec.HTTPS {
-		logger.Infof("starting %v on https://%v", spec.Name, spec.ListenAddress)
+		logger.Info(ctx, "starting on https", slog.String("name", spec.Name), slog.String("listen_address", spec.ListenAddress))
 		err = spec.server.ListenAndServeTLS(spec.CertFilePath, spec.KeyFilePath)
 	} else {
-		logger.Infof("starting %v on http://%v", spec.Name, spec.ListenAddress)
+		logger.Info(ctx, "starting on http", slog.String("name", spec.Name), slog.String("listen_address", spec.ListenAddress))
 		err = spec.server.ListenAndServe()
 	}
 
 	if err != nil && !errors.Is(err, http.ErrServerClosed) {
-		logger.WithError(err).Fatalf("failed to start %v", spec.Name)
+		logger.WithError(err).Error(ctx, "failed to start", slog.String("name", spec.Name))
+		panic(err)
 	}
 }
 
-func (spec *Spec) Stop(ctx context.Context, logger *log.Logger) error {
+func (spec *Spec) Stop(ctx context.Context) error {
 	return spec.server.Shutdown(ctx)
 }

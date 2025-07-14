@@ -20,12 +20,12 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/util/backoff"
 	"github.com/authgear/authgear-server/pkg/util/clock"
-	"github.com/authgear/authgear-server/pkg/util/errorutil"
-	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/panicutil"
 	"github.com/authgear/authgear-server/pkg/util/signalutil"
 	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
+
+var logger = slogutil.NewLogger("redisqueue")
 
 // timeout is a reasonble number that does not block too long,
 // and does not poll redis too frequently.
@@ -45,7 +45,6 @@ type Consumer struct {
 	configSourceController *configsource.Controller
 	taskProcessor          TaskProcessor
 	redis                  *globalredis.Handle
-	logger                 *log.Logger
 
 	dequeueBackoff *backoff.Counter
 	limitBucket    ratelimit.BucketSpec
@@ -76,7 +75,6 @@ func NewConsumer(ctx context.Context, queueName string, rateLimitConfig config.R
 		configSourceController: configSourceController,
 		taskProcessor:          taskProcessor,
 		redis:                  redis,
-		logger:                 rootProvider.LoggerFactory.New("redis-queue-consumer"),
 		dequeueBackoff: &backoff.Counter{
 			Interval:    time.Millisecond * 500,
 			MaxInterval: time.Second * 10,
@@ -99,14 +97,15 @@ func (c *Consumer) DisplayName() string {
 // Start starts draining the queue and blocks indefinitely.
 // It should be called with go.
 func (c *Consumer) Start0(ctx context.Context) {
+	logger := logger.GetLogger(ctx)
 loop:
 	for {
 		select {
 		case <-c.shutdown:
-			c.logger.Infof("shutdown gracefully")
+			logger.Info(ctx, "shutdown gracefully")
 			break loop
 		case <-c.shutdownCtx.Done():
-			c.logger.Infof("shutdown context timeout")
+			logger.Info(ctx, "shutdown context timeout")
 			break loop
 		default:
 			c.work(ctx)
@@ -115,7 +114,7 @@ loop:
 	close(c.shutdownDone)
 }
 
-func (c *Consumer) Start(ctx context.Context, _ *log.Logger) {
+func (c *Consumer) Start(ctx context.Context) {
 	c.Start0(ctx)
 }
 
@@ -125,7 +124,7 @@ func (c *Consumer) Stop0(ctx context.Context) {
 	<-c.shutdownDone
 }
 
-func (c *Consumer) Stop(ctx context.Context, _ *log.Logger) error {
+func (c *Consumer) Stop(ctx context.Context) error {
 	c.Stop0(ctx)
 	return nil
 }
@@ -216,18 +215,19 @@ func (c *Consumer) process(
 }
 
 func (c *Consumer) work(ctx context.Context) {
+	logger := logger.GetLogger(ctx)
+	logger = logger.With(
+		slog.String("queue_name", c.QueueName),
+		slog.String("bucket_key", c.limitBucket.Key()),
+	)
 	defer func() {
 		if r := recover(); r != nil {
-			c.logger.WithFields(map[string]interface{}{
-				"queue_name": c.QueueName,
-				"error":      r,
-				"stack":      errorutil.Callers(8),
-			}).Error("panic occurred when running task")
+			logger.WithRecover(r).Error(ctx, "panic occurred when running task")
 		}
 	}()
 
 	if backoff := c.dequeueBackoff.BackoffDuration(); backoff != 0 {
-		c.logger.WithField("delay", backoff).Info("backoff from dequeue")
+		logger.Info(ctx, "backoff from dequeue", slog.Duration("delay", backoff))
 		select {
 		case <-c.shutdown:
 			return
@@ -267,7 +267,7 @@ func (c *Consumer) work(ctx context.Context) {
 		var err error
 		reservation, failedReservation, err = c.limiter.Reserve(ctx, c.limitBucket)
 		if err != nil {
-			c.logger.WithError(err).Error("failed to check rate limit")
+			logger.WithError(err).Error(ctx, "failed to check rate limit")
 			c.dequeueBackoff.Increment()
 			return
 		}
@@ -278,10 +278,9 @@ func (c *Consumer) work(ctx context.Context) {
 		}
 
 		// Otherwise, we are rate limited.
-		c.logger.
-			WithField("tat", failedReservation.GetTimeToAct()).
-			WithField("bucket_key", c.limitBucket.Key()).
-			Info("task rate limited")
+		logger.Info(ctx, "task rate limited",
+			slog.Time("tat", failedReservation.GetTimeToAct()),
+		)
 		select {
 		case <-c.shutdown:
 			return
@@ -294,21 +293,17 @@ func (c *Consumer) work(ctx context.Context) {
 	if errors.Is(err, errNoTask) {
 		// There is actually no task.
 		// Cancel the reservation
-		c.logger.
-			WithField("bucket_key", c.limitBucket.Key()).
-			// This is Debug instead of Info because it prints periodically.
-			Debug("cancel reservation due to no task")
+		// This is Debug instead of Info because it prints periodically.
+		logger.Debug(ctx, "cancel reservation due to no task")
 		c.limiter.Cancel(ctx, reservation)
 		return
 	} else if err != nil {
-		c.logger.WithError(err).Error("failed to dequeue task")
+		logger.WithError(err).Error(ctx, "failed to dequeue task")
 		c.dequeueBackoff.Increment()
 		return
 	}
 
-	c.logger.
-		WithField("bucket_key", c.limitBucket.Key()).
-		Info("consume reservation")
+	logger.Info(ctx, "consume reservation")
 
 	// Reset backoff when we can dequeue.
 	c.dequeueBackoff.Reset()
@@ -316,11 +311,7 @@ func (c *Consumer) work(ctx context.Context) {
 	output, err := execute()
 
 	if err != nil {
-		c.logger.WithFields(map[string]interface{}{
-			"queue_name": c.QueueName,
-			"error":      err,
-			"stack":      errorutil.Callers(8),
-		}).Error("failed to process task")
+		logger.WithError(err).Error(ctx, "failed to process task")
 		task.Error = apierrors.AsAPIError(err)
 	}
 	task.Status = redisqueue.TaskStatusCompleted
@@ -330,7 +321,7 @@ func (c *Consumer) work(ctx context.Context) {
 
 	taskBytes, err := json.Marshal(task)
 	if err != nil {
-		c.logger.WithError(err).Error("failed to marshal task")
+		logger.WithError(err).Error(ctx, "failed to marshal task")
 		return
 	}
 
@@ -338,7 +329,7 @@ func (c *Consumer) work(ctx context.Context) {
 		key := task.RedisKey()
 		_, err := conn.Set(ctx, key, taskBytes, redisqueue.TTL).Result()
 		if err != nil {
-			c.logger.WithError(err).Error("failed to save task output")
+			logger.WithError(err).Error(ctx, "failed to save task output")
 			return err
 		}
 		return nil

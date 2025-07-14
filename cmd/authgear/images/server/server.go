@@ -2,45 +2,49 @@ package server
 
 import (
 	"context"
-	golog "log"
+	"log/slog"
 
 	"github.com/authgear/authgear-server/pkg/images"
 	"github.com/authgear/authgear-server/pkg/images/deps"
-	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/pprofutil"
 	"github.com/authgear/authgear-server/pkg/util/server"
 	"github.com/authgear/authgear-server/pkg/util/signalutil"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 	"github.com/authgear/authgear-server/pkg/util/vipsutil"
 	"github.com/authgear/authgear-server/pkg/version"
 )
 
-type Controller struct {
-	logger *log.Logger
-}
+var logger = slogutil.NewLogger("authgear-images")
+
+type Controller struct{}
 
 func (c *Controller) Start(ctx context.Context) {
+	logger := logger.GetLogger(ctx)
+
 	vipsutil.LibvipsInit()
 
 	cfg, err := LoadConfigFromEnv()
 	if err != nil {
-		golog.Fatalf("failed to load server config: %v", err)
+		logger.WithError(err).Error(ctx, "failed to load server config")
+		panic(err)
 	}
 
 	ctx, p, err := deps.NewRootProvider(ctx, *cfg.EnvironmentConfig, cfg.ObjectStore)
 	if err != nil {
-		golog.Fatalf("failed to initialize dependencies: %v", err)
+		logger.WithError(err).Error(ctx, "failed to initialize dependencies")
+		panic(err)
 	}
 
 	configSrcController := newConfigSourceController(p)
 	err = configSrcController.Open(ctx)
 	if err != nil {
-		c.logger.WithError(err).Fatal("cannot open configuration")
+		logger.WithError(err).Error(ctx, "cannot open configuration")
+		panic(err)
 	}
 	defer configSrcController.Close()
 
 	// From now, we should use c.logger to log.
-	c.logger = p.LoggerFactory.New("authgear-images")
-	c.logger.Infof("authgear (version %s)", version.Version)
+	logger.Info(ctx, "authgear version", slog.String("version", version.Version))
 
 	var specs []signalutil.Daemon
 	specs = append(specs, server.NewSpec(ctx, &server.Spec{
@@ -53,5 +57,5 @@ func (c *Controller) Start(ctx context.Context) {
 		ListenAddress: cfg.InternalListenAddr,
 		Handler:       pprofutil.NewServeMux(),
 	}))
-	signalutil.Start(ctx, c.logger, specs...)
+	signalutil.Start(ctx, specs...)
 }
