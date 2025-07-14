@@ -19,6 +19,7 @@ import (
 	"github.com/beevik/etree"
 
 	authflowclient "github.com/authgear/authgear-server/e2e/pkg/e2eclient"
+	"github.com/authgear/authgear-server/pkg/graphqlgo/relay"
 	"github.com/authgear/authgear-server/pkg/util/secretcode"
 )
 
@@ -390,17 +391,25 @@ func (tc *TestCase) executeStep(
 			return nil, state, false
 		}
 
-		var variables map[string]interface{}
+		var variables map[string]interface{} = map[string]interface{}{}
 		if step.AdminAPIRequest.Variables != "" {
-			err := json.Unmarshal([]byte(step.AdminAPIRequest.Variables), &variables)
+			renderedVariables, ok := renderTemplateString(t, cmd, prevSteps, step.AdminAPIRequest.Variables)
+			if !ok {
+				t.Errorf("failed to render adminapi_request.variables")
+			}
+			err := json.Unmarshal([]byte(renderedVariables), &variables)
 			if err != nil {
 				t.Errorf("failed to unmarshal adminapi_request.variables: %v", err)
 				return nil, state, false
 			}
 		}
 
+		renderedQuery, ok := renderTemplateString(t, cmd, prevSteps, step.AdminAPIRequest.Query)
+		if !ok {
+			t.Errorf("failed to render adminapi_request.query")
+		}
 		resp, err := cmd.Client.GraphQLAPI(nil, nil, cmd.AppID, authflowclient.GraphQLAPIRequest{
-			Query:     step.AdminAPIRequest.Query,
+			Query:     renderedQuery,
 			Variables: variables,
 		})
 		if err != nil {
@@ -467,6 +476,7 @@ func execTemplate(cmd *End2EndCmd, prevSteps []StepResult, content string) (stri
 	}
 
 	data := make(map[string]any)
+	data["AppID"] = cmd.AppID
 
 	// Add prev result to data
 	if len(prevSteps) > 0 {
@@ -529,6 +539,9 @@ func makeTemplateFuncMap(cmd *End2EndCmd) texttemplate.FuncMap {
 			panic(err)
 		}
 		return idToken
+	}
+	templateFuncMap["nodeID"] = func(nodeType string, uuid string) string {
+		return relay.ToGlobalID(nodeType, uuid)
 	}
 
 	return templateFuncMap
