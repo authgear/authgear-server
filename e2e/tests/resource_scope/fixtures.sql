@@ -90,3 +90,23 @@ INSERT INTO _auth_resource_scope (
   'Fixture Scope 2',
   '{}'
 );
+
+INSERT INTO _auth_resource_scope (
+  "id",
+  "app_id",
+  "created_at",
+  "updated_at",
+  "resource_id",
+  "scope",
+  "description",
+  "metadata"
+) VALUES (
+  '{{ .AppID }}-fixture-scope-03',
+  '{{ .AppID }}',
+  NOW(),
+  NOW(),
+  '{{ .AppID }}-fixture-resource-02',
+  'fixturescope3',
+  'Fixture Scope 3',
+  '{}'
+);
