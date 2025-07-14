@@ -216,16 +216,14 @@ var (
 
 func NewPosthogIntegration(pool *db.Pool, databaseCredentials *config.DatabaseCredentials, auditDatabaseCredentials *config.AuditDatabaseCredentials, redisPool *redis.Pool, credentials *config.AnalyticRedisCredentials, posthogCredentials *analytic.PosthogCredentials) *analytic.PosthogIntegration {
 	posthogHTTPClient := analytic.NewPosthogHTTPClient()
-	factory := NewLoggerFactory()
-	posthogLogger := analytic.NewPosthogLogger(factory)
 	posthogService := analytic.PosthogService{
 		PosthogCredentials: posthogCredentials,
 		HTTPClient:         posthogHTTPClient,
-		Logger:             posthogLogger,
 	}
 	clockClock := _wireSystemClockValue
 	globalDatabaseCredentialsEnvironmentConfig := NewGlobalDatabaseCredentials(databaseCredentials)
 	databaseEnvironmentConfig := config.NewDefaultDatabaseEnvironmentConfig()
+	factory := NewLoggerFactory()
 	handle := globaldb.NewHandle(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
 	sqlBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
 	sqlExecutor := globaldb.NewSQLExecutor(handle)
@@ -254,7 +252,6 @@ func NewPosthogIntegration(pool *db.Pool, databaseCredentials *config.DatabaseCr
 		AppDBHandle:        appdbHandle,
 		AppDBStore:         appDBStore,
 		HTTPClient:         posthogHTTPClient,
-		Logger:             posthogLogger,
 		ReadCounterStore:   readStoreRedis,
 	}
 	return posthogIntegration

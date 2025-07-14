@@ -13,7 +13,6 @@ import (
 	adminauthz "github.com/authgear/authgear-server/pkg/lib/admin/authz"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
-	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
 func TestMiddleware(t *testing.T) {
@@ -24,9 +23,6 @@ func TestMiddleware(t *testing.T) {
 
 		Convey("no auth", func() {
 			m := adminauthz.Middleware{
-				Logger: adminauthz.Logger{
-					log.Null,
-				},
 				Auth: config.AdminAPIAuthNone,
 			}
 
@@ -52,9 +48,6 @@ func TestMiddleware(t *testing.T) {
 			_ = set.AddKey(jwkKey)
 
 			m := adminauthz.Middleware{
-				Logger: adminauthz.Logger{
-					log.Null,
-				},
 				Auth:  config.AdminAPIAuthJWT,
 				AppID: "app-id",
 				AuthKey: &config.AdminAPIAuthKey{
@@ -93,9 +86,6 @@ func TestMiddleware(t *testing.T) {
 			_ = set.AddKey(jwkKey)
 
 			m := adminauthz.Middleware{
-				Logger: adminauthz.Logger{
-					log.Null,
-				},
 				Auth:  config.AdminAPIAuthJWT,
 				AppID: "app-id",
 				AuthKey: &config.AdminAPIAuthKey{

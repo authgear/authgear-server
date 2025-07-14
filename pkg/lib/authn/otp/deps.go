@@ -11,5 +11,4 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(CodeStore), new(*CodeStoreRedis)),
 	wire.Bind(new(LookupStore), new(*LookupStoreRedis)),
 	wire.Bind(new(AttemptTracker), new(*AttemptTrackerRedis)),
-	NewLogger,
 )

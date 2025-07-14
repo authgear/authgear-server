@@ -6,7 +6,6 @@ import (
 
 var DependencySet = wire.NewSet(
 	wire.Struct(new(Provider), "*"),
-	NewProviderLogger,
 	NewCloudflareClient,
 	NewRecaptchaV2Client,
 )

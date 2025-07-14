@@ -53,10 +53,8 @@ func NewRandSource() Rand {
 }
 
 var DependencySet = wire.NewSet(
-	NewLogger,
 	wire.Struct(new(Provider), "*"),
 	wire.Struct(new(Store), "*"),
-	NewHousekeeperLogger,
 	wire.Struct(new(Housekeeper), "*"),
 	ProvideChecker,
 	wire.Struct(new(HistoryStore), "*"),

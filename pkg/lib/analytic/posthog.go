@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"time"
@@ -17,7 +18,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
-	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 	"github.com/authgear/authgear-server/pkg/util/timeutil"
 )
 
@@ -26,11 +27,7 @@ type PosthogCredentials struct {
 	APIKey   string
 }
 
-type PosthogLogger struct{ *log.Logger }
-
-func NewPosthogLogger(lf *log.Factory) PosthogLogger {
-	return PosthogLogger{lf.New("posthog-integration")}
-}
+var PosthogLogger = slogutil.NewLogger("posthog-integration")
 
 type PosthogHTTPClient struct {
 	*http.Client
@@ -51,7 +48,6 @@ type PosthogIntegration struct {
 	AppDBHandle        *appdb.Handle
 	AppDBStore         *AppDBStore
 	HTTPClient         PosthogHTTPClient
-	Logger             PosthogLogger
 	ReadCounterStore   ReadCounterStore
 }
 
@@ -65,6 +61,7 @@ type PosthogGroup struct {
 }
 
 func (p *PosthogIntegration) SetGroupProperties(ctx context.Context) error {
+	logger := PosthogLogger.GetLogger(ctx)
 	now := p.Clock.NowUTC()
 
 	appIDs, err := p.getAppIDs(ctx)
@@ -81,14 +78,14 @@ func (p *PosthogIntegration) SetGroupProperties(ctx context.Context) error {
 
 		groups = append(groups, g)
 
-		p.Logger.
-			WithField("project_id", appID).
-			WithField("mau", g.MAU).
-			WithField("user_count", g.UserCount).
-			WithField("collaborator_count", g.CollaboratorCount).
-			WithField("application_count", g.ApplicationCount).
-			WithField("project_plan", g.ProjectPlan).
-			Info("prepared group")
+		logger.With(
+			slog.String("project_id", appID),
+			slog.Int("mau", g.MAU),
+			slog.Int("user_count", g.UserCount),
+			slog.Int("collaborator_count", g.CollaboratorCount),
+			slog.Int("application_count", g.ApplicationCount),
+			slog.String("project_plan", g.ProjectPlan),
+		).Info(ctx, "prepared group")
 	}
 
 	events, err := p.makeEventsFromGroups(groups)
@@ -290,7 +287,6 @@ type PosthogBatchRequest struct {
 type PosthogService struct {
 	PosthogCredentials *PosthogCredentials
 	HTTPClient         PosthogHTTPClient
-	Logger             PosthogLogger
 }
 
 func (p *PosthogService) endpoint() (*url.URL, error) {
@@ -305,6 +301,8 @@ func (p *PosthogService) endpoint() (*url.URL, error) {
 }
 
 func (p *PosthogService) Batch(ctx context.Context, events []json.RawMessage) error {
+	logger := PosthogLogger.GetLogger(ctx)
+
 	u, err := p.endpoint()
 	if err != nil {
 		return err
@@ -329,7 +327,7 @@ func (p *PosthogService) Batch(ctx context.Context, events []json.RawMessage) er
 
 	for _, chunk := range chunks {
 		if len(chunk) <= 0 {
-			p.Logger.WithField("batch_size", len(chunk)).Info("skipped an empty batch")
+			logger.Info(ctx, "skipped an empty batch", slog.Int("batch_size", len(chunk)))
 			continue
 		}
 
@@ -365,7 +363,7 @@ func (p *PosthogService) Batch(ctx context.Context, events []json.RawMessage) er
 			return fmt.Errorf("failed to upload to posthog: %v", string(respBody))
 		}
 
-		p.Logger.WithField("batch_size", len(chunk)).Info("uploaded a batch to posthog")
+		logger.Info(ctx, "uploaded a batch to posthog", slog.Int("batch_size", len(chunk)))
 	}
 
 	return nil

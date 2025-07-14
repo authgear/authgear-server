@@ -2,6 +2,7 @@ package authz
 
 import (
 	"fmt"
+	"log/slog"
 	"net/http"
 	"regexp"
 	"time"
@@ -11,7 +12,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
-	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
 var authzHeader = regexp.MustCompile("^Bearer (.*)$")
@@ -24,14 +25,9 @@ func (c jwtClock) Now() time.Time {
 	return c.Clock.NowUTC()
 }
 
-type Logger struct{ *log.Logger }
-
-func NewLogger(lf *log.Factory) Logger {
-	return Logger{lf.New("admin-api-authz")}
-}
+var MiddlewareLogger = slogutil.NewLogger("admin-api-authz")
 
 type Middleware struct {
-	Logger  Logger
 	Auth    config.AdminAPIAuth
 	AppID   config.AppID
 	AuthKey *config.AdminAPIAuthKey
@@ -40,6 +36,8 @@ type Middleware struct {
 
 func (m *Middleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		logger := MiddlewareLogger.GetLogger(ctx)
 		authorized := false
 		switch m.Auth {
 		case config.AdminAPIAuthNone:
@@ -56,16 +54,12 @@ func (m *Middleware) Handle(next http.Handler) http.Handler {
 
 			match := authzHeader.FindStringSubmatch(r.Header.Get("Authorization"))
 			if len(match) != 2 {
-				m.Logger.
-					WithField("header", r.Header.Get("Authorization")).
-					Debug("invalid authz header")
+				logger.Debug(ctx, "invalid authz header", slog.String("header", r.Header.Get("Authorization")))
 				break
 			}
 			token, err := jwt.ParseString(match[1], jwt.WithKeySet(keySet), jwt.WithValidate(false))
 			if err != nil {
-				m.Logger.
-					WithError(err).
-					Debug("invalid token")
+				logger.WithError(err).Debug(ctx, "invalid token")
 				break
 			}
 
@@ -74,19 +68,16 @@ func (m *Middleware) Handle(next http.Handler) http.Handler {
 				jwt.WithAudience(string(m.AppID)),
 			)
 			if err != nil {
-				m.Logger.
-					WithError(err).
-					Debug("invalid token")
+				logger.WithError(err).Debug(ctx, "invalid token")
 				break
 			}
 
 			authorized = true
 
-			requestCtx := r.Context()
 			auditCtx, ok := token.Get(JWTKeyAuditContext)
 			if ok {
-				newCtx := WithAdminAuthzAudit(requestCtx, auditCtx)
-				r = r.WithContext(newCtx)
+				ctx = WithAdminAuthzAudit(ctx, auditCtx)
+				r = r.WithContext(ctx)
 			}
 		}
 

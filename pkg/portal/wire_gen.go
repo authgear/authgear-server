@@ -381,11 +381,9 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	posthogCredentials := ProvidePosthogCredential(analyticConfig)
 	posthogHTTPClient := analytic.NewPosthogHTTPClient()
-	posthogLogger := analytic.NewPosthogLogger(logFactory)
 	posthogService := &analytic.PosthogService{
 		PosthogCredentials: posthogCredentials,
 		HTTPClient:         posthogHTTPClient,
-		Logger:             posthogLogger,
 	}
 	onboardService := &service.OnboardService{
 		HTTPClient:     httpClient,

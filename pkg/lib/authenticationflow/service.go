@@ -12,8 +12,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oauthsession"
 	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
-	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/otelutil"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
 //go:generate go tool mockgen -source=service.go -destination=service_mock_test.go -package authenticationflow
@@ -39,11 +39,7 @@ func (o *ServiceOutput) ToFlowResponse() FlowResponse {
 	}
 }
 
-type ServiceLogger struct{ *log.Logger }
-
-func NewServiceLogger(lf *log.Factory) ServiceLogger {
-	return ServiceLogger{lf.New("authenticationflow-service")}
-}
+var ServiceLogger = slogutil.NewLogger("authenticationflow-service")
 
 type Store interface {
 	CreateSession(ctx context.Context, session *Session) error
@@ -76,7 +72,6 @@ type OAuthSessionStore interface {
 
 type Service struct {
 	Deps                *Dependencies
-	Logger              ServiceLogger
 	Store               Store
 	Database            ServiceDatabase
 	UIConfig            *config.UIConfig

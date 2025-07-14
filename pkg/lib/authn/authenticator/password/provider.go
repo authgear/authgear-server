@@ -3,26 +3,24 @@ package password
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"sort"
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
-	"github.com/authgear/authgear-server/pkg/util/log"
 	pwd "github.com/authgear/authgear-server/pkg/util/password"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
-type Logger struct{ *log.Logger }
-
-func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("password")} }
+var ProviderLogger = slogutil.NewLogger("password")
 
 type Provider struct {
 	Store           *Store
 	Config          *config.AuthenticatorPasswordConfig
 	Clock           clock.Clock
-	Logger          Logger
 	PasswordHistory *HistoryStore
 	PasswordChecker *Checker
 	Expiry          *Expiry
@@ -137,6 +135,7 @@ func (p *Provider) Create(ctx context.Context, a *authenticator.Password) error 
 }
 
 func (p *Provider) Authenticate(ctx context.Context, a *authenticator.Password, password string) (verifyResult *VerifyResult, err error) {
+	logger := ProviderLogger.GetLogger(ctx)
 	verifyResult = &VerifyResult{}
 	err = pwd.Compare([]byte(password), a.PasswordHash)
 	if err != nil {
@@ -145,16 +144,14 @@ func (p *Provider) Authenticate(ctx context.Context, a *authenticator.Password, 
 
 	migrated, err := pwd.TryMigrate([]byte(password), &a.PasswordHash)
 	if err != nil {
-		p.Logger.WithError(err).WithField("authenticator_id", a.ID).
-			Warn("Failed to migrate password")
+		logger.WithError(err).Warn(ctx, "Failed to migrate password", slog.String("authenticator_id", a.ID))
 		return
 	}
 
 	if migrated {
 		err = p.Store.UpdatePasswordHash(ctx, a)
 		if err != nil {
-			p.Logger.WithError(err).WithField("authenticator_id", a.ID).
-				Warn("Failed to save migrated password")
+			logger.WithError(err).Warn(ctx, "Failed to save migrated password", slog.String("authenticator_id", a.ID))
 			return
 		}
 	}

@@ -10,6 +10,4 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(Service), "*"),
 	wire.Struct(new(AccountMigrationWebHook), "*"),
 	wire.Struct(new(AccountMigrationDenoHook), "*"),
-	NewWebhookMiddlewareLogger,
-	NewDenoMiddlewareLogger,
 )

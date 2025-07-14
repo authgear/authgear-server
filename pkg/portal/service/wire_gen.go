@@ -21,7 +21,6 @@ import (
 // Injectors from wire.go:
 
 func newAuditSink(app *model.App, pool *db.Pool, cfg *config.DatabaseEnvironmentConfig, loggerFactory *log.Factory) *audit.Sink {
-	logger := audit.NewLogger(loggerFactory)
 	appContext := app.Context
 	configConfig := appContext.Config
 	secretConfig := configConfig.SecretConfig
@@ -36,7 +35,6 @@ func newAuditSink(app *model.App, pool *db.Pool, cfg *config.DatabaseEnvironment
 		SQLExecutor: writeSQLExecutor,
 	}
 	sink := &audit.Sink{
-		Logger:   logger,
 		Database: writeHandle,
 		Store:    writeStore,
 	}

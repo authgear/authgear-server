@@ -9,22 +9,18 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
-	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
-type WebhookMiddlewareLogger struct{ *log.Logger }
-
-func NewWebhookMiddlewareLogger(lf *log.Factory) WebhookMiddlewareLogger {
-	return WebhookMiddlewareLogger{lf.New("account-migration-webhook")}
-}
+var WebhookMiddlewareLogger = slogutil.NewLogger("account-migration-webhook")
 
 type AccountMigrationWebHook struct {
 	hook.WebHook
 	Client HookHTTPClient
-	Logger WebhookMiddlewareLogger
 }
 
 func (h *AccountMigrationWebHook) Call(ctx context.Context, u *url.URL, hookReq *HookRequest) (*HookResponse, error) {
+	logger := WebhookMiddlewareLogger.GetLogger(ctx)
 	req, err := h.PrepareRequest(ctx, u, hookReq)
 	if err != nil {
 		return nil, err
@@ -38,7 +34,7 @@ func (h *AccountMigrationWebHook) Call(ctx context.Context, u *url.URL, hookReq 
 	}()
 
 	if err != nil {
-		h.Logger.WithError(err).Error("failed to call webhook")
+		logger.WithError(err).Error(ctx, "failed to call webhook")
 		return nil, err
 	}
 
