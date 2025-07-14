@@ -32,3 +32,44 @@ steps:
     query_output:
       rows: |
         [] 
+---
+name: Delete Scope - Cascade Client Scope Associations
+before:
+  - type: custom_sql
+    custom_sql:
+      path: preassigned_client_scope_fixtures.sql
+steps:
+  - action: adminapi_query
+    adminapi_request:
+      query: |
+        {{ $scopeID := (printf "%s-resource2_scope1" .AppID) }}
+        mutation DeleteScope {
+          deleteScope(input: {
+            id: "{{ nodeID "Scope" $scopeID }}"
+          }) {
+            ok
+          }
+        }
+      variables: "{}"
+    adminapi_output:
+      result: |
+        {
+          "data": {
+            "deleteScope": {
+              "ok": true
+            }
+          },
+          "errors": null
+        }
+  - action: query
+    query: |
+      SELECT * FROM _auth_resource_scope WHERE id = '{{ .AppID }}-resource2_scope1'
+    query_output:
+      rows: |
+        []
+  - action: query
+    query: |
+      SELECT * FROM _auth_client_resource_scope WHERE scope_id = '{{ .AppID }}-resource2_scope1'
+    query_output:
+      rows: |
+        [] 

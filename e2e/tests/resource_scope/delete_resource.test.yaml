@@ -32,3 +32,50 @@ steps:
     query_output:
       rows: |
         [] 
+---
+name: Delete Resource - Cascade Client Associations
+before:
+  - type: custom_sql
+    custom_sql:
+      path: preassigned_client_scope_fixtures.sql
+steps:
+  - action: adminapi_query
+    adminapi_request:
+      query: |
+        {{ $resourceID := (printf "%s-fixture-resource-02" .AppID) }}
+        mutation DeleteResource {
+          deleteResource(input: {
+            id: "{{ nodeID "Resource" $resourceID }}"
+          }) {
+            ok
+          }
+        }
+      variables: "{}"
+    adminapi_output:
+      result: |
+        {
+          "data": {
+            "deleteResource": {
+              "ok": true
+            }
+          },
+          "errors": null
+        }
+  - action: query
+    query: |
+      SELECT * FROM _auth_resource WHERE id = '{{ .AppID }}-fixture-resource-02'
+    query_output:
+      rows: |
+        []
+  - action: query
+    query: |
+      SELECT * FROM _auth_client_resource WHERE resource_id = '{{ .AppID }}-fixture-resource-02'
+    query_output:
+      rows: |
+        []
+  - action: query
+    query: |
+      SELECT * FROM _auth_client_resource_scope WHERE resource_id = '{{ .AppID }}-fixture-resource-02'
+    query_output:
+      rows: |
+        []
