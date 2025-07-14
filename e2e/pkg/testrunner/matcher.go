@@ -113,23 +113,30 @@ func matchArray(path string, data []interface{}, schemaValue interface{}) (viola
 		return []MatchViolation{unknownSchemaTypeViolation(path, schemaValue)}
 	}
 
-	for i, item := range data {
-		var itemType interface{}
-		if schemaArray[0] == "[[arrayof]]" {
-			itemType = schemaArray[1]
-		} else {
-			itemType = schemaArray[i]
+	if len(schemaArray) == 0 {
+		// Match empty array
+		for i := range data {
+			violations = append(violations, typeMismatchViolation(fmt.Sprintf("%s/%d", path, i), "[[undefined]]", data[i]))
+		}
+	} else {
+		for i, item := range data {
+			var itemType interface{}
+			if schemaArray[0] == "[[arrayof]]" {
+				itemType = schemaArray[1]
+			} else {
+				itemType = schemaArray[i]
+			}
+
+			violations = append(violations, matchValue(fmt.Sprintf("%s/%d", path, i), item, itemType)...)
 		}
 
-		violations = append(violations, matchValue(fmt.Sprintf("%s/%d", path, i), item, itemType)...)
-	}
-
-	if len(data) != len(schemaArray) && schemaArray[0] != "[[arrayof]]" {
-		for i := len(schemaArray); i < len(data); i++ {
-			violations = append(violations, matchValue(fmt.Sprintf("%s/%d", path, i), data[i], schemaArray[len(schemaArray)-1])...)
-		}
-		for i := len(data); i < len(schemaArray); i++ {
-			violations = append(violations, missingFieldViolation(fmt.Sprintf("%s/%d", path, i), schemaArray[i]))
+		if len(data) != len(schemaArray) && schemaArray[0] != "[[arrayof]]" {
+			for i := len(schemaArray); i < len(data); i++ {
+				violations = append(violations, matchValue(fmt.Sprintf("%s/%d", path, i), data[i], schemaArray[len(schemaArray)-1])...)
+			}
+			for i := len(data); i < len(schemaArray); i++ {
+				violations = append(violations, missingFieldViolation(fmt.Sprintf("%s/%d", path, i), schemaArray[i]))
+			}
 		}
 	}
 

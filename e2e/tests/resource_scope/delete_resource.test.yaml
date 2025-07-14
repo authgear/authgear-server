@@ -1,0 +1,34 @@
+name: Delete Resource
+before:
+  - type: custom_sql
+    custom_sql:
+      path: fixtures.sql
+steps:
+  - action: adminapi_query
+    adminapi_request:
+      query: |
+        {{ $resourceID := (printf "%s-fixture-resource-01" .AppID) }}
+        mutation DeleteResource {
+          deleteResource(input: {
+            id: "{{ nodeID "Resource" $resourceID }}"
+          }) {
+            ok
+          }
+        }
+      variables: "{}"
+    adminapi_output:
+      result: |
+        {
+          "data": {
+            "deleteResource": {
+              "ok": true
+            }
+          },
+          "errors": null
+        }
+  - action: query
+    query: |
+      SELECT * FROM _auth_resource WHERE id = '{{ .AppID }}-fixture-resource-01'
+    query_output:
+      rows: |
+        [] 

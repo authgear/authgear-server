@@ -1,0 +1,34 @@
+name: Delete Scope
+before:
+  - type: custom_sql
+    custom_sql:
+      path: fixtures.sql
+steps:
+  - action: adminapi_query
+    adminapi_request:
+      query: |
+        {{ $scopeID := (printf "%s-fixture-scope-01" .AppID) }}
+        mutation DeleteScope {
+          deleteScope(input: {
+            id: "{{ nodeID "Scope" $scopeID }}"
+          }) {
+            ok
+          }
+        }
+      variables: "{}"
+    adminapi_output:
+      result: |
+        {
+          "data": {
+            "deleteScope": {
+              "ok": true
+            }
+          },
+          "errors": null
+        }
+  - action: query
+    query: |
+      SELECT * FROM _auth_resource_scope WHERE id = '{{ .AppID }}-fixture-scope-01'
+    query_output:
+      rows: |
+        [] 
