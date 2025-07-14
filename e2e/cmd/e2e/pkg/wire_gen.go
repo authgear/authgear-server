@@ -607,14 +607,12 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
-	messagingLogger := messaging.NewLogger(factory)
 	usageLimiter := &usage.Limiter{
 		Clock: clockClock,
 		AppID: appID,
 		Redis: appredisHandle,
 	}
 	limits := messaging.Limits{
-		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		UsageLimiter:  usageLimiter,
 		RemoteIP:      remoteIP,
@@ -708,7 +706,6 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 	featureTestModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
 	testModeWhatsappConfig := testModeConfig.Whatsapp
 	messagingSender := &messaging.Sender{
-		Logger:                            messagingLogger,
 		Limits:                            limits,
 		Events:                            eventService,
 		MailSender:                        sender,

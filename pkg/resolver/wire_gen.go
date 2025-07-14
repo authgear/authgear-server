@@ -716,14 +716,12 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
-	messagingLogger := messaging.NewLogger(factory)
 	usageLimiter := &usage.Limiter{
 		Clock: clock,
 		AppID: appID,
 		Redis: handle,
 	}
 	limits := messaging.Limits{
-		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		UsageLimiter:  usageLimiter,
 		RemoteIP:      remoteIP,
@@ -817,7 +815,6 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	featureTestModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
 	testModeWhatsappConfig := testModeConfig.Whatsapp
 	messagingSender := &messaging.Sender{
-		Logger:                            messagingLogger,
 		Limits:                            limits,
 		Events:                            eventService,
 		MailSender:                        sender,

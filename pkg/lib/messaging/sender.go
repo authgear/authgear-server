@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 
-	"github.com/sirupsen/logrus"
 	"gopkg.in/gomail.v2"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
@@ -20,16 +20,12 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/whatsapp"
 	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
-	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/otelutil"
 	"github.com/authgear/authgear-server/pkg/util/phone"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
-type Logger struct{ *log.Logger }
-
-func NewLogger(lf *log.Factory) Logger {
-	return Logger{lf.New("messaging")}
-}
+var SenderLogger = slogutil.NewLogger("messaging")
 
 type EventService interface {
 	DispatchEventImmediately(ctx context.Context, payload event.NonBlockingPayload) error
@@ -50,7 +46,6 @@ type WhatsappSender interface {
 }
 
 type Sender struct {
-	Logger         Logger
 	Limits         Limits
 	Events         EventService
 	MailSender     MailSender
@@ -98,12 +93,13 @@ func (s *Sender) SendEmailInNewGoroutine(ctx context.Context, msgType translatio
 	}
 
 	sendInTx := func(ctx context.Context) error {
+		logger := SenderLogger.GetLogger(ctx)
 		err := s.MailSender.Send(message)
 		if err != nil {
 			// Log the send error immediately.
-			s.Logger.WithError(err).WithFields(logrus.Fields{
-				"email": mail.MaskAddress(opts.Recipient),
-			}).Error("failed to send email")
+			logger.WithError(err).With(
+				slog.String("email", mail.MaskAddress(opts.Recipient)),
+			).Error(ctx, "failed to send email")
 
 			otelutil.IntCounterAddOne(
 				ctx,
@@ -115,7 +111,7 @@ func (s *Sender) SendEmailInNewGoroutine(ctx context.Context, msgType translatio
 				Description: s.errorToDescription(err),
 			})
 			if dispatchErr != nil {
-				s.Logger.WithError(dispatchErr).Errorf("failed to emit %v event", nonblocking.EmailError)
+				logger.WithError(dispatchErr).Error(ctx, "failed to emit event", slog.String("event", string(nonblocking.EmailError)))
 			}
 			return err
 		}
@@ -132,7 +128,7 @@ func (s *Sender) SendEmailInNewGoroutine(ctx context.Context, msgType translatio
 			Type:      string(msgType),
 		})
 		if dispatchErr != nil {
-			s.Logger.WithError(dispatchErr).Errorf("failed to emit %v event", nonblocking.EmailSent)
+			logger.WithError(dispatchErr).Error(ctx, "failed to emit event", slog.String("event", string(nonblocking.EmailSent)))
 		}
 		return nil
 	}
@@ -151,14 +147,16 @@ func (s *Sender) SendEmailInNewGoroutine(ctx context.Context, msgType translatio
 }
 
 func (s *Sender) testModeSendEmail(ctx context.Context, msgType translation.MessageType, opts *mail.SendOptions) error {
-	s.Logger.
-		WithField("message_type", string(msgType)).
-		WithField("recipient", opts.Recipient).
-		WithField("body", opts.TextBody).
-		WithField("sender", opts.Sender).
-		WithField("subject", opts.Subject).
-		WithField("reply_to", opts.ReplyTo).
-		Info("email is suppressed by test mode")
+	logger := SenderLogger.GetLogger(ctx)
+
+	logger.With(
+		slog.String("message_type", string(msgType)),
+		slog.String("recipient", opts.Recipient),
+		slog.String("body", opts.TextBody),
+		slog.String("sender", opts.Sender),
+		slog.String("subject", opts.Subject),
+		slog.String("reply_to", opts.ReplyTo),
+	).Info(ctx, "email is suppressed by test mode")
 
 	desc := fmt.Sprintf("email (%v) to %v is suppressed by test mode.", msgType, opts.Recipient)
 	return s.DispatchEventImmediatelyWithTx(ctx, &nonblocking.EmailSuppressedEventPayload{
@@ -167,14 +165,16 @@ func (s *Sender) testModeSendEmail(ctx context.Context, msgType translation.Mess
 }
 
 func (s *Sender) devModeSendEmail(ctx context.Context, msgType translation.MessageType, opts *mail.SendOptions) error {
-	s.Logger.
-		WithField("message_type", string(msgType)).
-		WithField("recipient", opts.Recipient).
-		WithField("body", opts.TextBody).
-		WithField("sender", opts.Sender).
-		WithField("subject", opts.Subject).
-		WithField("reply_to", opts.ReplyTo).
-		Info("email is suppressed by development mode")
+	logger := SenderLogger.GetLogger(ctx)
+
+	logger.With(
+		slog.String("message_type", string(msgType)),
+		slog.String("recipient", opts.Recipient),
+		slog.String("body", opts.TextBody),
+		slog.String("sender", opts.Sender),
+		slog.String("subject", opts.Subject),
+		slog.String("reply_to", opts.ReplyTo),
+	).Info(ctx, "email is suppressed by development mode")
 
 	desc := fmt.Sprintf("email (%v) to %v is suppressed by development mode", msgType, opts.Recipient)
 	return s.DispatchEventImmediatelyWithTx(ctx, &nonblocking.EmailSuppressedEventPayload{
@@ -191,6 +191,8 @@ func (s *Sender) SendSMSImmediately(ctx context.Context, msgType translation.Mes
 }
 
 func (s *Sender) sendSMS(ctx context.Context, msgType translation.MessageType, opts *sms.SendOptions, isAsync bool) error {
+	logger := SenderLogger.GetLogger(ctx)
+
 	err := s.Limits.checkSMS(ctx, opts.To)
 	if err != nil {
 		return err
@@ -216,13 +218,15 @@ func (s *Sender) sendSMS(ctx context.Context, msgType translation.MessageType, o
 	}
 
 	sendInTx := func(ctx context.Context) error {
+		logger := SenderLogger.GetLogger(ctx)
+
 		err = s.SMSSender.Send(ctx, client, *opts)
 		if err != nil {
 			// Log the send error immediately.
 			// TODO: Handle expected errors https://linear.app/authgear/issue/DEV-1139
-			s.Logger.WithError(err).WithFields(logrus.Fields{
-				"phone": phone.Mask(opts.To),
-			}).Error("failed to send SMS")
+			logger.WithError(err).With(
+				slog.String("phone", phone.Mask(opts.To)),
+			).Error(ctx, "failed to send SMS")
 
 			var smsapiErr *smsapi.SendError
 			if errors.As(err, &smsapiErr) && smsapiErr.APIErrorKind != nil {
@@ -244,7 +248,7 @@ func (s *Sender) sendSMS(ctx context.Context, msgType translation.MessageType, o
 				Description: s.errorToDescription(err),
 			})
 			if dispatchErr != nil {
-				s.Logger.WithError(dispatchErr).Errorf("failed to emit %v event", nonblocking.SMSError)
+				logger.WithError(dispatchErr).Error(ctx, "failed to emit event", slog.String("event", string(nonblocking.SMSError)))
 			}
 			return err
 		}
@@ -281,23 +285,24 @@ func (s *Sender) sendSMS(ctx context.Context, msgType translation.MessageType, o
 		IsNotCountedInUsage: *s.MessagingFeatureConfig.SMSUsageCountDisabled,
 	})
 	if dispatchErr != nil {
-		s.Logger.WithError(dispatchErr).Errorf("failed to emit %v event", nonblocking.SMSSent)
+		logger.WithError(dispatchErr).Error(ctx, "failed to emit event", slog.String("event", string(nonblocking.SMSSent)))
 	}
 
 	return nil
 }
 
 func (s *Sender) testModeSendSMS(ctx context.Context, msgType translation.MessageType, opts *sms.SendOptions) error {
-	s.Logger.
-		WithField("message_type", string(msgType)).
-		WithField("recipient", opts.To).
-		WithField("sender", opts.Sender).
-		WithField("body", opts.Body).
-		WithField("app_id", opts.AppID).
-		WithField("template_name", opts.TemplateName).
-		WithField("language_tag", opts.LanguageTag).
-		WithField("template_variables", opts.TemplateVariables).
-		Info("SMS is suppressed in test mode")
+	logger := SenderLogger.GetLogger(ctx)
+	logger.With(
+		slog.String("message_type", string(msgType)),
+		slog.String("recipient", opts.To),
+		slog.String("sender", opts.Sender),
+		slog.String("body", opts.Body),
+		slog.String("app_id", opts.AppID),
+		slog.String("template_name", opts.TemplateName),
+		slog.String("language_tag", opts.LanguageTag),
+		slog.Any("template_variables", opts.TemplateVariables),
+	).Info(ctx, "SMS is suppressed in test mode")
 
 	desc := fmt.Sprintf("SMS (%v) to %v is suppressed by test mode.", msgType, opts.To)
 	return s.DispatchEventImmediatelyWithTx(ctx, &nonblocking.SMSSuppressedEventPayload{
@@ -306,16 +311,17 @@ func (s *Sender) testModeSendSMS(ctx context.Context, msgType translation.Messag
 }
 
 func (s *Sender) devModeSendSMS(ctx context.Context, msgType translation.MessageType, opts *sms.SendOptions) error {
-	s.Logger.
-		WithField("message_type", string(msgType)).
-		WithField("recipient", opts.To).
-		WithField("sender", opts.Sender).
-		WithField("body", opts.Body).
-		WithField("app_id", opts.AppID).
-		WithField("template_name", opts.TemplateName).
-		WithField("language_tag", opts.LanguageTag).
-		WithField("template_variables", opts.TemplateVariables).
-		Info("SMS is suppressed in development mode")
+	logger := SenderLogger.GetLogger(ctx)
+	logger.With(
+		slog.String("message_type", string(msgType)),
+		slog.String("recipient", opts.To),
+		slog.String("sender", opts.Sender),
+		slog.String("body", opts.Body),
+		slog.String("app_id", opts.AppID),
+		slog.String("template_name", opts.TemplateName),
+		slog.String("language_tag", opts.LanguageTag),
+		slog.Any("template_variables", opts.TemplateVariables),
+	).Info(ctx, "SMS is suppressed in development mode")
 
 	desc := fmt.Sprintf("SMS (%v) to %v is suppressed by development mode.", msgType, opts.To)
 	return s.DispatchEventImmediatelyWithTx(ctx, &nonblocking.SMSSuppressedEventPayload{
@@ -324,6 +330,7 @@ func (s *Sender) devModeSendSMS(ctx context.Context, msgType translation.Message
 }
 
 func (s *Sender) SendWhatsappImmediately(ctx context.Context, msgType translation.MessageType, opts *whatsapp.SendAuthenticationOTPOptions) error {
+	logger := SenderLogger.GetLogger(ctx)
 	err := s.Limits.checkWhatsapp(ctx, opts.To)
 	if err != nil {
 		return err
@@ -347,9 +354,9 @@ func (s *Sender) SendWhatsappImmediately(ctx context.Context, msgType translatio
 	err = s.sendWhatsapp(ctx, opts)
 	if err != nil {
 		// Log the send error immediately.
-		s.Logger.WithError(err).WithFields(logrus.Fields{
-			"phone": phone.Mask(opts.To),
-		}).Error("failed to send Whatsapp")
+		logger.WithError(err).With(
+			slog.String("phone", phone.Mask(opts.To)),
+		).Error(ctx, "failed to send Whatsapp")
 
 		metricOptions := []otelutil.MetricOption{otelauthgear.WithStatusError()}
 		var apiErr *whatsapp.WhatsappAPIError
@@ -372,7 +379,7 @@ func (s *Sender) SendWhatsappImmediately(ctx context.Context, msgType translatio
 			Description: s.errorToDescription(err),
 		})
 		if dispatchErr != nil {
-			s.Logger.WithError(dispatchErr).Errorf("failed to emit %v event", nonblocking.WhatsappError)
+			logger.WithError(dispatchErr).Error(ctx, "failed to emit event", slog.String("event", string(nonblocking.WhatsappError)))
 		}
 
 		return err
@@ -390,7 +397,7 @@ func (s *Sender) SendWhatsappImmediately(ctx context.Context, msgType translatio
 		IsNotCountedInUsage: *s.MessagingFeatureConfig.WhatsappUsageCountDisabled,
 	})
 	if dispatchErr != nil {
-		s.Logger.WithError(dispatchErr).Errorf("failed to emit %v event", nonblocking.WhatsappSent)
+		logger.WithError(dispatchErr).Error(ctx, "failed to emit %v event", slog.String("event", string(nonblocking.WhatsappSent)))
 	}
 
 	return nil
@@ -406,12 +413,13 @@ func (s *Sender) sendWhatsapp(ctx context.Context, opts *whatsapp.SendAuthentica
 }
 
 func (s *Sender) testModeSendWhatsapp(ctx context.Context, msgType translation.MessageType, opts *whatsapp.SendAuthenticationOTPOptions) error {
-	entry := s.Logger.
-		WithField("message_type", string(msgType)).
-		WithField("recipient", opts.To).
-		WithField("otp", opts.OTP)
+	logger := SenderLogger.GetLogger(ctx)
+	logger.With(
+		slog.String("message_type", string(msgType)),
+		slog.String("recipient", opts.To),
+		slog.String("otp", opts.OTP),
+	).Info(ctx, "Whatsapp is suppressed in test mode")
 
-	entry.Info("Whatsapp is suppressed in test mode")
 	desc := fmt.Sprintf("Whatsapp (%v) to %v is suppressed by test mode.", msgType, opts.To)
 	return s.DispatchEventImmediatelyWithTx(ctx, &nonblocking.WhatsappSuppressedEventPayload{
 		Description: desc,
@@ -419,12 +427,13 @@ func (s *Sender) testModeSendWhatsapp(ctx context.Context, msgType translation.M
 }
 
 func (s *Sender) devModeSendWhatsapp(ctx context.Context, msgType translation.MessageType, opts *whatsapp.SendAuthenticationOTPOptions) error {
-	entry := s.Logger.
-		WithField("message_type", string(msgType)).
-		WithField("recipient", opts.To).
-		WithField("otp", opts.OTP)
+	logger := SenderLogger.GetLogger(ctx)
+	logger.With(
+		slog.String("message_type", string(msgType)),
+		slog.String("recipient", opts.To),
+		slog.String("otp", opts.OTP),
+	).Info(ctx, "Whatsapp is suppressed in development mode")
 
-	entry.Info("Whatsapp is suppressed in development mode")
 	desc := fmt.Sprintf("Whatsapp (%v) to %v is suppressed by development mode.", msgType, opts.To)
 	return s.DispatchEventImmediatelyWithTx(ctx, &nonblocking.WhatsappSuppressedEventPayload{
 		Description: desc,
