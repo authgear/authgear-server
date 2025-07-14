@@ -11,12 +11,14 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/backgroundjob"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
-func NewRunner(ctx context.Context, loggerFactory *log.Factory, runnableFactory backgroundjob.RunnableFactory) *backgroundjob.Runner {
+var RunnerLogger = slogutil.NewLogger("account-anonymization-runner")
+
+func NewRunner(ctx context.Context, runnableFactory backgroundjob.RunnableFactory) *backgroundjob.Runner {
 	return backgroundjob.NewRunner(
 		ctx,
-		loggerFactory.New("account-anonymization-runner"),
 		runnableFactory,
 	)
 }
@@ -45,6 +47,5 @@ var RunnableDependencySet = wire.NewSet(
 	globaldb.DependencySet,
 	wire.Struct(new(Store), "*"),
 	wire.Struct(new(Runnable), "*"),
-	NewRunnableLogger,
 	wire.Bind(new(backgroundjob.Runnable), new(*Runnable)),
 )

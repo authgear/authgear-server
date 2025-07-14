@@ -27,12 +27,10 @@ func newRunnable(pool *db.Pool, globalDBCredentials *config.GlobalDatabaseCreden
 		SQLExecutor: sqlExecutor,
 		Clock:       clock2,
 	}
-	runnableLogger := NewRunnableLogger(logFactory)
 	runnable := &Runnable{
 		Store:              store,
 		AppContextResolver: appContextResolver,
 		UserServiceFactory: userServiceFactory,
-		Logger:             runnableLogger,
 	}
 	return runnable
 }

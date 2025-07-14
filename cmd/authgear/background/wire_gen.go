@@ -119,32 +119,32 @@ var (
 )
 
 func newAccountAnonymizationRunner(ctx context.Context, p *deps.BackgroundProvider, ctrl *configsource.Controller) *backgroundjob.Runner {
-	factory := p.LoggerFactory
 	pool := p.DatabasePool
 	environmentConfig := p.EnvironmentConfig
 	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
 	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
+	factory := p.LoggerFactory
 	clockClock := _wireSystemClockValue
 	accountAnonymizationServiceFactory := &AccountAnonymizationServiceFactory{
 		BackgroundProvider: p,
 	}
 	runnableFactory := accountanonymization.NewRunnableFactory(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory, clockClock, ctrl, accountAnonymizationServiceFactory)
-	runner := accountanonymization.NewRunner(ctx, factory, runnableFactory)
+	runner := accountanonymization.NewRunner(ctx, runnableFactory)
 	return runner
 }
 
 func newAccountDeletionRunner(ctx context.Context, p *deps.BackgroundProvider, ctrl *configsource.Controller) *backgroundjob.Runner {
-	factory := p.LoggerFactory
 	pool := p.DatabasePool
 	environmentConfig := p.EnvironmentConfig
 	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
 	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
+	factory := p.LoggerFactory
 	clockClock := _wireSystemClockValue
 	accountDeletionServiceFactory := &AccountDeletionServiceFactory{
 		BackgroundProvider: p,
 	}
 	runnableFactory := accountdeletion.NewRunnableFactory(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory, clockClock, ctrl, accountDeletionServiceFactory)
-	runner := accountdeletion.NewRunner(ctx, factory, runnableFactory)
+	runner := accountdeletion.NewRunner(ctx, runnableFactory)
 	return runner
 }
 

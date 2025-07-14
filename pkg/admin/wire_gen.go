@@ -1006,7 +1006,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
-	forgotpasswordLogger := forgotpassword.NewLogger(factory)
 	sender2 := forgotpassword.Sender{
 		AppConfg:    appConfig,
 		Identities:  serviceService,
@@ -1014,7 +1013,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Translation: translationService,
 	}
 	forgotpasswordService := &forgotpassword.Service{
-		Logger:         forgotpasswordLogger,
 		Config:         appConfig,
 		FeatureConfig:  featureConfig,
 		Identities:     serviceService,

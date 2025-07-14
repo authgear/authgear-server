@@ -25,7 +25,7 @@ func Main(ctx context.Context, runners []*Runner) {
 		// Capture
 		runner := runner
 
-		go runner.Start()
+		go runner.Start(ctx)
 		waitGroup.Add(1)
 		go func() {
 			defer waitGroup.Done()
