@@ -46,7 +46,7 @@ steps:
               node {
                 id
                 uri
-                scopes {
+                scopes(clientID: "portal") {
                   edges {
                     node {
                       id
