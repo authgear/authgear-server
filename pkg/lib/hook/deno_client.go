@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"time"
@@ -11,9 +12,12 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
 //go:generate go tool mockgen -source=deno_client.go -destination=deno_client_mock_test.go -package hook
+
+var DenoClientLogger = slogutil.NewLogger("deno-client")
 
 type DenoClient interface {
 	Run(ctx context.Context, script string, input interface{}) (out interface{}, err error)
@@ -23,11 +27,10 @@ type SyncDenoClient interface {
 	DenoClient
 }
 
-func NewSyncDenoClient(endpoint config.DenoEndpoint, c *config.HookConfig, logger Logger) SyncDenoClient {
+func NewSyncDenoClient(endpoint config.DenoEndpoint, c *config.HookConfig) SyncDenoClient {
 	return &DenoClientImpl{
 		Endpoint:   string(endpoint),
 		HTTPClient: httputil.NewExternalClient(c.SyncTimeout.Duration()),
-		Logger:     logger,
 	}
 }
 
@@ -35,21 +38,21 @@ type AsyncDenoClient interface {
 	DenoClient
 }
 
-func NewAsyncDenoClient(endpoint config.DenoEndpoint, logger Logger) AsyncDenoClient {
+func NewAsyncDenoClient(endpoint config.DenoEndpoint) AsyncDenoClient {
 	return &DenoClientImpl{
 		Endpoint:   string(endpoint),
 		HTTPClient: httputil.NewExternalClient(60 * time.Second),
-		Logger:     logger,
 	}
 }
 
 type DenoClientImpl struct {
 	Endpoint   string
 	HTTPClient *http.Client
-	Logger     Logger
 }
 
 func (c *DenoClientImpl) Run(ctx context.Context, snippet string, input interface{}) (interface{}, error) {
+	logger := DenoClientLogger.GetLogger(ctx)
+
 	u, err := url.JoinPath(c.Endpoint, "/run")
 	if err != nil {
 		return nil, err
@@ -88,12 +91,12 @@ func (c *DenoClientImpl) Run(ctx context.Context, snippet string, input interfac
 		return nil, err
 	}
 
-	c.Logger.WithFields(map[string]interface{}{
-		"error":  runResponse.Error,
-		"output": runResponse.Output,
-		"stdout": runResponse.Stdout,
-		"stderr": runResponse.Stderr,
-	}).Info("run deno script")
+	logger.With(
+		slog.String("response_error", runResponse.Error),
+		slog.Any("output", runResponse.Output),
+		slog.Any("stdout", runResponse.Stdout),
+		slog.Any("stderr", runResponse.Stderr),
+	).Info(ctx, "run deno script")
 
 	if runResponse.Error != "" {
 		return nil, DenoRunError.NewWithInfo(runResponse.Error, apierrors.Details{

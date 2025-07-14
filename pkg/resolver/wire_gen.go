@@ -592,12 +592,9 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	resolverImpl := &event.ResolverImpl{
 		Users: userQueries,
 	}
-	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
-	webHookLogger := hook.NewWebHookLogger(factory)
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	webHookImpl := hook.WebHookImpl{
-		Logger: webHookLogger,
 		Secret: webhookKeyMaterials,
 	}
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
@@ -607,14 +604,12 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		SyncHTTP:    syncHTTPClient,
 		AsyncHTTP:   asyncHTTPClient,
 	}
-	denoHookLogger := hook.NewDenoHookLogger(factory)
 	denoHook := hook.DenoHook{
 		ResourceManager: manager,
-		Logger:          denoHookLogger,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
 	eventDenoHookImpl := &hook.EventDenoHookImpl{
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
@@ -624,7 +619,6 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Store: rolesgroupsStore,
 	}
 	sink := &hook.Sink{
-		Logger:             hookLogger,
 		Config:             hookConfig,
 		Clock:              clock,
 		EventWebHook:       eventWebHookImpl,
@@ -765,16 +759,14 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	smsGatewayEnvironmentCustomSMSProviderConfig := smsGatewayEnvironmentConfig.Custom
 	hookDenoHook := &hook.DenoHook{
 		ResourceManager: manager,
-		Logger:          denoHookLogger,
 	}
 	smsHookTimeout := custom.NewSMSHookTimeout(customSMSProviderConfig)
-	hookDenoClient := custom.NewHookDenoClient(denoEndpoint, hookLogger, smsHookTimeout)
+	hookDenoClient := custom.NewHookDenoClient(denoEndpoint, smsHookTimeout)
 	smsDenoHook := custom.SMSDenoHook{
 		DenoHook: hookDenoHook,
 		Client:   hookDenoClient,
 	}
 	hookWebHookImpl := &hook.WebHookImpl{
-		Logger: webHookLogger,
 		Secret: webhookKeyMaterials,
 	}
 	hookHTTPClient := custom.NewHookHTTPClient(smsHookTimeout)

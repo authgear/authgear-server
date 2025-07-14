@@ -11,14 +11,12 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/clock"
-	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
 //go:generate go tool mockgen -source=sink.go -destination=sink_mock_test.go -package hook
 
-type Logger struct{ *log.Logger }
-
-func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("hook-sink")} }
+var SinkLogger = slogutil.NewLogger("hook-sink")
 
 type StandardAttributesServiceNoEvent interface {
 	UpdateStandardAttributes(ctx context.Context, role accesscontrol.Role, userID string, stdAttrs map[string]interface{}) error
@@ -46,7 +44,6 @@ type EventDenoHook interface {
 }
 
 type Sink struct {
-	Logger             Logger
 	Config             *config.HookConfig
 	Clock              clock.Clock
 	EventWebHook       EventWebHook
@@ -141,6 +138,7 @@ func (s *Sink) DeliverBlockingEvent(ctx context.Context, e *event.Event) error {
 }
 
 func (s *Sink) DeliverNonBlockingEvent(ctx context.Context, e *event.Event) error {
+	logger := SinkLogger.GetLogger(ctx)
 	if !e.IsNonBlocking {
 		return nil
 	}
@@ -165,7 +163,7 @@ func (s *Sink) DeliverNonBlockingEvent(ctx context.Context, e *event.Event) erro
 
 		errToIgnore := s.deliverNonBlockingEvent(ctx, hook, e)
 		if errToIgnore != nil {
-			s.Logger.WithError(errToIgnore).Error("failed to dispatch non blocking event")
+			logger.WithError(errToIgnore).Error(ctx, "failed to dispatch non blocking event")
 		}
 	}
 

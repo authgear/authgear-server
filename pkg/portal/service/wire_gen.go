@@ -42,17 +42,14 @@ func newAuditSink(app *model.App, pool *db.Pool, cfg *config.DatabaseEnvironment
 }
 
 func newHookSink(app *model.App, denoEndpoint config.DenoEndpoint, loggerFactory *log.Factory) *hook.Sink {
-	logger := hook.NewLogger(loggerFactory)
 	appContext := app.Context
 	configConfig := appContext.Config
 	appConfig := configConfig.AppConfig
 	hookConfig := appConfig.Hook
 	clock := _wireSystemClockValue
-	webHookLogger := hook.NewWebHookLogger(loggerFactory)
 	secretConfig := configConfig.SecretConfig
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	webHookImpl := hook.WebHookImpl{
-		Logger: webHookLogger,
 		Secret: webhookKeyMaterials,
 	}
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
@@ -63,13 +60,11 @@ func newHookSink(app *model.App, denoEndpoint config.DenoEndpoint, loggerFactory
 		AsyncHTTP:   asyncHTTPClient,
 	}
 	manager := appContext.Resources
-	denoHookLogger := hook.NewDenoHookLogger(loggerFactory)
 	denoHook := hook.DenoHook{
 		ResourceManager: manager,
-		Logger:          denoHookLogger,
 	}
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, logger)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, logger)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
 	eventDenoHookImpl := &hook.EventDenoHookImpl{
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
@@ -78,7 +73,6 @@ func newHookSink(app *model.App, denoEndpoint config.DenoEndpoint, loggerFactory
 	noopAttributesService := _wireNoopAttributesServiceValue
 	noopRolesAndGroupsService := _wireNoopRolesAndGroupsServiceValue
 	sink := &hook.Sink{
-		Logger:             logger,
 		Config:             hookConfig,
 		Clock:              clock,
 		EventWebHook:       eventWebHookImpl,

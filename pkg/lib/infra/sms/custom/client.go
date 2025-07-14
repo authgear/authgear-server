@@ -15,7 +15,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms/smsapi"
 	utilhttputil "github.com/authgear/authgear-server/pkg/util/httputil"
-	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
 type SMSHookTimeout struct {
@@ -52,12 +51,11 @@ type HookDenoClientImpl struct {
 	hook.DenoClient
 }
 
-func NewHookDenoClient(endpoint config.DenoEndpoint, logger hook.Logger, timeout SMSHookTimeout) HookDenoClient {
+func NewHookDenoClient(endpoint config.DenoEndpoint, timeout SMSHookTimeout) HookDenoClient {
 	return HookDenoClientImpl{
 		&hook.DenoClientImpl{
 			Endpoint:   string(endpoint),
 			HTTPClient: utilhttputil.NewExternalClient(timeout.Timeout),
-			Logger:     logger,
 		},
 	}
 }
@@ -114,10 +112,9 @@ func (w *SMSWebHook) Call(ctx context.Context, u *url.URL, payload SendOptions) 
 	return handleResponse("webhook", responseBody, dumpedResponse)
 }
 
-func NewSMSDenoHookForTest(lf *log.Factory, denoEndpoint config.DenoEndpoint, smsCfg *config.CustomSMSProviderConfig) *SMSDenoHook {
+func NewSMSDenoHookForTest(denoEndpoint config.DenoEndpoint, smsCfg *config.CustomSMSProviderConfig) *SMSDenoHook {
 	timeout := NewSMSHookTimeout(smsCfg)
-	logger := hook.NewLogger(lf)
-	client := NewHookDenoClient(denoEndpoint, logger, timeout)
+	client := NewHookDenoClient(denoEndpoint, timeout)
 	// DenoHook is not needed because it can only be used for Test()
 	return &SMSDenoHook{
 		Client: client,

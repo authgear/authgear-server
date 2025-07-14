@@ -12,7 +12,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/config/plan"
 	"github.com/authgear/authgear-server/pkg/lib/healthz"
-	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
@@ -249,8 +248,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Store:          storeImpl,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	hookLogger := hook.NewLogger(logFactory)
-	denoClientImpl := ProvideDenoClient(denoEndpoint, hookLogger)
+	denoClientImpl := ProvideDenoClient(denoEndpoint)
 	managerFactory := &factory.ManagerFactory{
 		Logger:            managerFactoryLogger,
 		AppBaseResources:  appBaseResources,
@@ -311,9 +309,8 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	collaboratorInvitationLoader := loader.NewCollaboratorInvitationLoader(collaboratorService, authzService)
 	smsLogger := sms.NewLogger(logFactory)
 	smsService := &sms.Service{
-		LoggerFactory: logFactory,
-		DenoEndpoint:  denoEndpoint,
-		Logger:        smsLogger,
+		DenoEndpoint: denoEndpoint,
+		Logger:       smsLogger,
 	}
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(environmentConfig)
 	readHandle := auditdb.NewReadHandle(pool, databaseEnvironmentConfig, auditDatabaseCredentials, logFactory)
