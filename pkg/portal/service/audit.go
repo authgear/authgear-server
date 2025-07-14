@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api/event"
@@ -20,6 +21,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/intl"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/sentry"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
 type AuditServiceAppService interface {
@@ -54,6 +56,7 @@ func (s *AuditService) Log(ctx context.Context, app *model.App, payload event.No
 		return
 	}
 
+	// Legacy logging setup
 	cfg := app.Context.Config
 	loggerFactory := s.LoggerFactory.ReplaceHooks(
 		log.NewDefaultMaskLogHook(),
@@ -61,6 +64,12 @@ func (s *AuditService) Log(ctx context.Context, app *model.App, payload event.No
 		sentry.NewLogHookFromContext(ctx),
 	)
 	loggerFactory.DefaultFields["app"] = cfg.AppConfig.ID
+
+	// Modern logging setup
+	ctx = slogutil.AddMaskPatterns(ctx, config.NewMaskPatternFromSecretConfig(cfg.SecretConfig))
+	logger := slogutil.GetContextLogger(ctx)
+	logger = logger.With(slog.String("app", string(cfg.AppConfig.ID)))
+	ctx = slogutil.SetContextLogger(ctx, logger)
 
 	// AuditSink is app specific.
 	// The records MUST have correct app_id.

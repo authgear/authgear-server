@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"time"
 
 	goredis "github.com/redis/go-redis/v9"
@@ -23,6 +24,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/panicutil"
 	"github.com/authgear/authgear-server/pkg/util/signalutil"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
 // timeout is a reasonble number that does not block too long,
@@ -178,8 +180,16 @@ func (c *Consumer) dequeue(ctx context.Context) (taskExecutor, *redisqueue.Task,
 
 	var executor taskExecutor = func() (output json.RawMessage, err error) {
 		err = c.configSourceController.ResolveContext(ctx, appID, func(ctx context.Context, appCtx *config.AppContext) error {
-			appProvider = c.rootProvider.NewAppProvider(ctx, appCtx)
+			ctx, appProvider = c.rootProvider.NewAppProvider(ctx, appCtx)
+
+			// Legacy logging setup
 			appProvider.LoggerFactory.DefaultFields["task_id"] = task.ID
+
+			// Modern logging setup
+			logger := slogutil.GetContextLogger(ctx)
+			logger = logger.With(slog.String("task_id", task.ID))
+			ctx = slogutil.SetContextLogger(ctx, logger)
+
 			output, err = c.process(ctx, &task, appProvider)
 			return err
 		})

@@ -30,7 +30,8 @@ func (m *RequestMiddleware) Handle(next http.Handler) http.Handler {
 		err := m.ConfigSource.ProvideContext(r.Context(), r, func(ctx context.Context, appCtx *config.AppContext) error {
 			r = r.WithContext(ctx)
 
-			ap := m.RootProvider.NewAppProvider(r.Context(), appCtx)
+			ctx, ap := m.RootProvider.NewAppProvider(r.Context(), appCtx)
+			r = r.WithContext(ctx)
 			r = r.WithContext(WithAppProvider(r.Context(), ap))
 
 			otelauthgear.SetProjectID(r.Context(), string(appCtx.Config.AppConfig.ID))

@@ -2,6 +2,7 @@ package deps
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
 
 	getsentry "github.com/getsentry/sentry-go"
@@ -21,6 +22,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 	"github.com/authgear/authgear-server/pkg/util/sentry"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
 type RootProvider struct {
@@ -88,8 +90,10 @@ func NewRootProvider(
 	return ctx, &p, nil
 }
 
-func (p *RootProvider) NewAppProvider(ctx context.Context, appCtx *config.AppContext) *AppProvider {
+func (p *RootProvider) NewAppProvider(ctx context.Context, appCtx *config.AppContext) (context.Context, *AppProvider) {
 	cfg := appCtx.Config
+
+	// Legacy logging setup
 	loggerFactory := p.LoggerFactory.ReplaceHooks(
 		log.NewDefaultMaskLogHook(),
 		config.NewSecretMaskLogHook(cfg.SecretConfig),
@@ -99,6 +103,13 @@ func (p *RootProvider) NewAppProvider(ctx context.Context, appCtx *config.AppCon
 		sentry.NewLogHookFromContextOrFallback(ctx, p.SentryHub),
 	)
 	loggerFactory.DefaultFields["app"] = cfg.AppConfig.ID
+
+	// Modern logging setup
+	ctx = slogutil.AddMaskPatterns(ctx, config.NewMaskPatternFromSecretConfig(cfg.SecretConfig))
+	logger := slogutil.GetContextLogger(ctx)
+	logger = logger.With(slog.String("app", string(cfg.AppConfig.ID)))
+	ctx = slogutil.SetContextLogger(ctx, logger)
+
 	appDatabase := appdb.NewHandle(
 		p.DatabasePool,
 		&p.EnvironmentConfig.DatabaseConfig,
@@ -161,7 +172,7 @@ func (p *RootProvider) NewAppProvider(ctx context.Context, appCtx *config.AppCon
 		AnalyticRedis:      analyticRedis,
 		AppContext:         appCtx,
 	}
-	return provider
+	return ctx, provider
 }
 
 func (p *RootProvider) RootHandler(factory func(*RootProvider, http.ResponseWriter, *http.Request, context.Context) http.Handler) http.Handler {

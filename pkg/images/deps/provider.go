@@ -2,6 +2,7 @@ package deps
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
 	"runtime"
 
@@ -16,6 +17,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 	"github.com/authgear/authgear-server/pkg/util/sentry"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 	"github.com/authgear/authgear-server/pkg/util/vipsutil"
 )
 
@@ -73,20 +75,29 @@ func NewRootProvider(
 	}, nil
 }
 
-func (p *RootProvider) NewAppProvider(ctx context.Context, appCtx *config.AppContext) *AppProvider {
+func (p *RootProvider) NewAppProvider(ctx context.Context, appCtx *config.AppContext) (context.Context, *AppProvider) {
 	cfg := appCtx.Config
+
+	// Legacy logging setup
 	loggerFactory := p.LoggerFactory.ReplaceHooks(
 		log.NewDefaultMaskLogHook(),
 		config.NewSecretMaskLogHook(cfg.SecretConfig),
 		sentry.NewLogHookFromContext(ctx),
 	)
 	loggerFactory.DefaultFields["app"] = cfg.AppConfig.ID
+
+	// Modern logging setup
+	ctx = slogutil.AddMaskPatterns(ctx, config.NewMaskPatternFromSecretConfig(cfg.SecretConfig))
+	logger := slogutil.GetContextLogger(ctx)
+	logger = logger.With(slog.String("app", string(cfg.AppConfig.ID)))
+	ctx = slogutil.SetContextLogger(ctx, logger)
+
 	provider := &AppProvider{
 		RootProvider:  p,
 		Config:        cfg,
 		LoggerFactory: loggerFactory,
 	}
-	return provider
+	return ctx, provider
 }
 
 func (p *RootProvider) RootMiddleware(factory func(*RootProvider) httproute.Middleware) httproute.Middleware {
