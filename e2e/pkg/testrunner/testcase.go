@@ -144,7 +144,7 @@ func (tc *TestCase) executeStep(
 		flowResponse, flowErr = client.CreateFlow(input)
 
 		if step.Output != nil {
-			ok := validateOutput(t, step, flowResponse, flowErr)
+			ok := validateAuthflowOutput(t, step, flowResponse, flowErr)
 			if !ok {
 				return nil, state, false
 			}
@@ -370,7 +370,7 @@ func (tc *TestCase) executeStep(
 		flowResponse, flowErr = client.InputFlow(nil, nil, state, input)
 
 		if step.Output != nil {
-			ok := validateOutput(t, step, flowResponse, flowErr)
+			ok := validateAuthflowOutput(t, step, flowResponse, flowErr)
 			if !ok {
 				return nil, state, false
 			}
@@ -403,6 +403,18 @@ func (tc *TestCase) executeStep(
 			Query:     step.AdminAPIRequest.Query,
 			Variables: variables,
 		})
+		if err != nil {
+			t.Errorf("failed to make adminapi request: %v", err)
+			return nil, state, false
+		}
+
+		if step.AdminAPIOutput != nil {
+			ok := validateAdminAPIOutput(t, step.AdminAPIOutput, resp)
+			if !ok {
+				return nil, state, false
+			}
+		}
+
 		result = &StepResult{
 			Result: resp,
 			Error:  err,
@@ -522,11 +534,11 @@ func makeTemplateFuncMap(cmd *End2EndCmd) texttemplate.FuncMap {
 	return templateFuncMap
 }
 
-func validateOutput(t *testing.T, step Step, flowResponse *authflowclient.FlowResponse, flowErr error) (ok bool) {
+func validateAuthflowOutput(t *testing.T, step Step, flowResponse *authflowclient.FlowResponse, flowErr error) (ok bool) {
 	flowResponseJson, _ := json.MarshalIndent(flowResponse, "", "  ")
 	flowErrJson, _ := json.MarshalIndent(flowErr, "", "  ")
 
-	errorViolations, resultViolations, err := MatchOutput(*step.Output, flowResponse, flowErr)
+	errorViolations, resultViolations, err := MatchAuthflowOutput(*step.Output, flowResponse, flowErr)
 	if err != nil {
 		t.Errorf("failed to match output in '%s': %v\n", step.Name, err)
 		t.Errorf("  result: %s\n", flowResponseJson)
@@ -849,6 +861,28 @@ func validateOAuthExchangeCodeOutput(t *testing.T, step Step, output *authflowcl
 			t.Errorf("  | %s: %s. Expected %s, got %s", violation.Path, violation.Message, violation.Expected, violation.Actual)
 		}
 		t.Errorf("  result: %v\n", string(outputJSON))
+		return false
+	}
+
+	return true
+}
+
+func validateAdminAPIOutput(t *testing.T, expected *AdminAPIOutput, resp *authflowclient.GraphQLResponse) (ok bool) {
+	respJSON, _ := json.MarshalIndent(resp, "", "  ")
+
+	violations, err := MatchAdminAPIOutput(*expected, resp)
+	if err != nil {
+		t.Errorf("failed to match adminapi_output: %v\n", err)
+		t.Errorf("  result: %s\n", respJSON)
+		return false
+	}
+
+	if len(violations) > 0 {
+		t.Errorf("adminapi_output mismatch:\n")
+		for _, violation := range violations {
+			t.Errorf("  | %s: %s. Expected %s, got %s", violation.Path, violation.Message, violation.Expected, violation.Actual)
+		}
+		t.Errorf("  result: %s\n", respJSON)
 		return false
 	}
 

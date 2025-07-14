@@ -173,6 +173,16 @@ var _ = TestCaseSchema.Add("AdminAPIRequest", `
 }
 `)
 
+var _ = TestCaseSchema.Add("AdminAPIOutput", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"result": { "type": "string" }
+	}
+}
+`)
+
 var _ = TestCaseSchema.Add("Step", `
 {
 	"type": "object",
@@ -213,7 +223,8 @@ var _ = TestCaseSchema.Add("Step", `
 		"http_output": { "$ref": "#/$defs/HTTPOutput" },
 		"oauth_exchange_code_code_verifier": { "type": "string" },
 		"oauth_exchange_code_redirect_uri": { "type": "string" },
-		"adminapi_request": { "$ref": "#/$defs/AdminAPIRequest" }
+		"adminapi_request": { "$ref": "#/$defs/AdminAPIRequest" },
+		"adminapi_output": { "$ref": "#/$defs/AdminAPIOutput" }
 	},
 	"allOf": [
         {
@@ -367,6 +378,7 @@ type Step struct {
 
 	// `action` == "adminapi_query"
 	AdminAPIRequest *AdminAPIRequest `json:"adminapi_request"`
+	AdminAPIOutput  *AdminAPIOutput  `json:"adminapi_output"`
 }
 
 type StepAction string
@@ -483,6 +495,11 @@ var _ = TestCaseSchema.Add("Output", `
 type Output struct {
 	Result string `json:"result"`
 	Error  string `json:"error"`
+}
+
+// AdminAPIOutput is used for adminapi_query output validation
+type AdminAPIOutput struct {
+	Result string `json:"result"`
 }
 
 var _ = TestCaseSchema.Add("StepResult", `
