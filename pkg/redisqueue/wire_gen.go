@@ -324,12 +324,9 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		AppID: appID,
 		Clock: clock,
 	}
-	factory := p.LoggerFactory
-	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := ratelimit.NewAppStorageRedis(appredisHandle)
 	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		AppID:   appID,
 		Config:  rateLimitsFeatureConfig,
@@ -478,9 +475,7 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	sinkLogger := reindex.NewSinkLogger(factory)
 	searchConfig := appConfig.Search
-	reindexerLogger := reindex.NewReindexerLogger(factory)
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clock)
 	sourceProvider := &reindex.SourceProvider{
 		AppID:           appID,
@@ -517,7 +512,6 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		SearchConfig:           searchConfig,
 		Clock:                  clock,
 		Database:               handle,
-		Logger:                 reindexerLogger,
 		UserStore:              store,
 		Producer:               userReindexProducer,
 		SourceProvider:         sourceProvider,
@@ -525,7 +519,6 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		PostgresqlReindexer:    pgsearchService,
 	}
 	reindexSink := &reindex.Sink{
-		Logger:    sinkLogger,
 		Reindexer: reindexer,
 		Database:  handle,
 	}
@@ -577,6 +570,7 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		FeatureConfig: featureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
+	factory := p.LoggerFactory
 	mailLogger := mail.NewLogger(factory)
 	smtpServerCredentials := deps.ProvideSMTPServerCredentials(secretConfig)
 	dialer := mail.NewGomailDialer(smtpServerCredentials)
@@ -710,12 +704,10 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	storeRedis := &idpsession.StoreRedis{
-		Redis:  appredisHandle,
-		AppID:  appID,
-		Clock:  clock,
-		Logger: storeRedisLogger,
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clock,
 	}
 	sessionConfig := appConfig.Session
 	httpConfig := appConfig.HTTP
@@ -727,11 +719,9 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		Cookies:   cookieManager,
 		CookieDef: cookieDef,
 	}
-	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
 		Redis:       appredisHandle,
 		AppID:       appID,
-		Logger:      redisLogger,
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clock,
@@ -745,12 +735,10 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		Store: eventStoreRedis,
 	}
 	analyticredisHandle := p.AnalyticRedis
-	meterStoreRedisLogger := meter.NewStoreRedisLogger(factory)
 	writeStoreRedis := &meter.WriteStoreRedis{
-		Redis:  analyticredisHandle,
-		AppID:  appID,
-		Clock:  clock,
-		Logger: meterStoreRedisLogger,
+		Redis: analyticredisHandle,
+		AppID: appID,
+		Clock: clock,
 	}
 	meterService := &meter.Service{
 		Counter: writeStoreRedis,
@@ -844,7 +832,6 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 	authenticatorFacade := &facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
-	userimportLogger := userimport.NewLogger(factory)
 	userImportService := &userimport.UserImportService{
 		AppDatabase:          handle,
 		LoginIDConfig:        loginIDConfig,
@@ -857,7 +844,6 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		CustomAttributes:     customattrsServiceNoEvent,
 		RolesGroupsCommands:  commands,
 		SearchReindexService: reindexer,
-		Logger:               userimportLogger,
 	}
 	return userImportService
 }
@@ -1117,12 +1103,9 @@ func newUserExportService(ctx context.Context, p *deps.AppProvider) *userexport.
 		AppID: appID,
 		Clock: clockClock,
 	}
-	factory := p.LoggerFactory
-	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := ratelimit.NewAppStorageRedis(appredisHandle)
 	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		AppID:   appID,
 		Config:  rateLimitsFeatureConfig,
@@ -1220,7 +1203,6 @@ func newUserExportService(ctx context.Context, p *deps.AppProvider) *userexport.
 		CustomAttributes:   customattrsServiceNoEvent,
 		RolesAndGroups:     queries,
 	}
-	userexportLogger := userexport.NewLogger(factory)
 	httpClient := userexport.NewHTTPClient()
 	userExportObjectStoreConfig := environmentConfig.UserExportObjectStore
 	userExportCloudStorage := userexport.NewCloudStorage(userExportObjectStoreConfig, clockClock)
@@ -1228,7 +1210,6 @@ func newUserExportService(ctx context.Context, p *deps.AppProvider) *userexport.
 		AppDatabase:  handle,
 		Config:       userProfileConfig,
 		UserQueries:  userQueries,
-		Logger:       userexportLogger,
 		HTTPOrigin:   httpOrigin,
 		HTTPClient:   httpClient,
 		CloudStorage: userExportCloudStorage,
@@ -1245,8 +1226,6 @@ func newSearchReindexer(ctx context.Context, p *deps.AppProvider) *reindex.Reind
 	searchConfig := appConfig.Search
 	clockClock := _wireSystemClockValue
 	handle := p.AppDatabase
-	factory := p.LoggerFactory
-	reindexerLogger := reindex.NewReindexerLogger(factory)
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
@@ -1489,11 +1468,9 @@ func newSearchReindexer(ctx context.Context, p *deps.AppProvider) *reindex.Reind
 		AppID: appID,
 		Clock: clockClock,
 	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := ratelimit.NewAppStorageRedis(appredisHandle)
 	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		AppID:   appID,
 		Config:  rateLimitsFeatureConfig,
@@ -1627,7 +1604,6 @@ func newSearchReindexer(ctx context.Context, p *deps.AppProvider) *reindex.Reind
 		SearchConfig:           searchConfig,
 		Clock:                  clockClock,
 		Database:               handle,
-		Logger:                 reindexerLogger,
 		UserStore:              store,
 		Producer:               userReindexProducer,
 		SourceProvider:         sourceProvider,

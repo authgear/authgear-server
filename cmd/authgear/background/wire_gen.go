@@ -412,11 +412,9 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 		AppID: configAppID,
 		Clock: clockClock,
 	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := ratelimit.NewAppStorageRedis(appredisHandle)
 	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		AppID:   configAppID,
 		Config:  rateLimitsFeatureConfig,
@@ -565,9 +563,7 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	sinkLogger := reindex.NewSinkLogger(factory)
 	searchConfig := appConfig.Search
-	reindexerLogger := reindex.NewReindexerLogger(factory)
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	sourceProvider := &reindex.SourceProvider{
 		AppID:           configAppID,
@@ -604,7 +600,6 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 		SearchConfig:           searchConfig,
 		Clock:                  clockClock,
 		Database:               handle,
-		Logger:                 reindexerLogger,
 		UserStore:              store,
 		Producer:               userReindexProducer,
 		SourceProvider:         sourceProvider,
@@ -612,7 +607,6 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 		PostgresqlReindexer:    pgsearchService,
 	}
 	reindexSink := &reindex.Sink{
-		Logger:    sinkLogger,
 		Reindexer: reindexer,
 		Database:  handle,
 	}
@@ -797,12 +791,10 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	storeRedis := &idpsession.StoreRedis{
-		Redis:  appredisHandle,
-		AppID:  configAppID,
-		Clock:  clockClock,
-		Logger: storeRedisLogger,
+		Redis: appredisHandle,
+		AppID: configAppID,
+		Clock: clockClock,
 	}
 	sessionConfig := appConfig.Session
 	httpConfig := appConfig.HTTP
@@ -814,11 +806,9 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 		Cookies:   cookieManager,
 		CookieDef: cookieDef,
 	}
-	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
 		Redis:       appredisHandle,
 		AppID:       configAppID,
-		Logger:      redisLogger,
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
@@ -833,12 +823,10 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 	}
 	analyticRedisCredentials := deps.ProvideAnalyticRedisCredentials(secretConfig)
 	analyticredisHandle := analyticredis.NewHandle(redisPool, redisEnvironmentConfig, analyticRedisCredentials, factory)
-	meterStoreRedisLogger := meter.NewStoreRedisLogger(factory)
 	writeStoreRedis := &meter.WriteStoreRedis{
-		Redis:  analyticredisHandle,
-		AppID:  configAppID,
-		Clock:  clockClock,
-		Logger: meterStoreRedisLogger,
+		Redis: analyticredisHandle,
+		AppID: configAppID,
+		Clock: clockClock,
 	}
 	meterService := &meter.Service{
 		Counter: writeStoreRedis,

@@ -312,11 +312,9 @@ func NewReindexer(pool *db.Pool, databaseCredentials *CmdDBCredential, appID Cmd
 		AppID: configAppID,
 		Clock: clock,
 	}
-	logger := ratelimit.NewLogger(factory)
 	storageRedis := ratelimit.NewAppStorageRedis(appredisHandle)
 	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
-		Logger:  logger,
 		Storage: storageRedis,
 		AppID:   configAppID,
 		Config:  rateLimitsFeatureConfig,

@@ -431,12 +431,9 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	factory := appProvider.LoggerFactory
-	logger := ratelimit.NewLogger(factory)
 	storageRedis := ratelimit.NewAppStorageRedis(appredisHandle)
 	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
-		Logger:  logger,
 		Storage: storageRedis,
 		AppID:   appID,
 		Config:  rateLimitsFeatureConfig,
@@ -637,8 +634,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	sinkLogger := reindex.NewSinkLogger(factory)
-	reindexerLogger := reindex.NewReindexerLogger(factory)
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	sourceProvider := &reindex.SourceProvider{
 		AppID:           appID,
@@ -652,7 +647,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		SearchConfig:           searchConfig,
 		Clock:                  clockClock,
 		Database:               handle,
-		Logger:                 reindexerLogger,
 		UserStore:              store,
 		Producer:               userReindexProducer,
 		SourceProvider:         sourceProvider,
@@ -660,7 +654,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		PostgresqlReindexer:    pgsearchService,
 	}
 	reindexSink := &reindex.Sink{
-		Logger:    sinkLogger,
 		Reindexer: reindexer,
 		Database:  handle,
 	}
@@ -726,11 +719,12 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		FeatureConfig: featureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
-	mailLogger := mail.NewLogger(factory)
+	factory := appProvider.LoggerFactory
+	logger := mail.NewLogger(factory)
 	smtpServerCredentials := deps.ProvideSMTPServerCredentials(secretConfig)
 	dialer := mail.NewGomailDialer(smtpServerCredentials)
 	sender := &mail.Sender{
-		Logger:       mailLogger,
+		Logger:       logger,
 		GomailDialer: dialer,
 	}
 	smsLogger := sms.NewLogger(factory)
@@ -845,12 +839,10 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	storeRedis := &idpsession.StoreRedis{
-		Redis:  appredisHandle,
-		AppID:  appID,
-		Clock:  clockClock,
-		Logger: storeRedisLogger,
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
 	}
 	sessionConfig := appConfig.Session
 	httpConfig := appConfig.HTTP
@@ -862,11 +854,9 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Cookies:   cookieManager,
 		CookieDef: cookieDef,
 	}
-	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
 		Redis:       appredisHandle,
 		AppID:       appID,
-		Logger:      redisLogger,
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
@@ -879,12 +869,10 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Store: eventStoreRedis,
 	}
 	analyticredisHandle := appProvider.AnalyticRedis
-	meterStoreRedisLogger := meter.NewStoreRedisLogger(factory)
 	writeStoreRedis := &meter.WriteStoreRedis{
-		Redis:  analyticredisHandle,
-		AppID:  appID,
-		Clock:  clockClock,
-		Logger: meterStoreRedisLogger,
+		Redis: analyticredisHandle,
+		AppID: appID,
+		Clock: clockClock,
 	}
 	meterService := &meter.Service{
 		Counter: writeStoreRedis,
@@ -1663,11 +1651,9 @@ func newUserExportCreateHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	logger := ratelimit.NewLogger(factory)
 	storageRedis := ratelimit.NewAppStorageRedis(handle)
 	rateLimitsFeatureConfig := featureConfig.RateLimits
 	ratelimitLimiter := &ratelimit.Limiter{
-		Logger:  logger,
 		Storage: storageRedis,
 		AppID:   appID,
 		Config:  rateLimitsFeatureConfig,
@@ -1765,13 +1751,11 @@ func newUserExportCreateHandler(p *deps.RequestProvider) http.Handler {
 		CustomAttributes:   customattrsServiceNoEvent,
 		RolesAndGroups:     queries,
 	}
-	userexportLogger := userexport.NewLogger(factory)
 	httpClient := userexport.NewHTTPClient()
 	userExportService := &userexport.UserExportService{
 		AppDatabase:  appdbHandle,
 		Config:       userProfileConfig,
 		UserQueries:  userQueries,
-		Logger:       userexportLogger,
 		HTTPOrigin:   httpOrigin,
 		HTTPClient:   httpClient,
 		CloudStorage: userExportCloudStorage,

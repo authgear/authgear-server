@@ -152,13 +152,10 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	appID := appConfig.ID
 	handle := appProvider.Redis
 	clock := _wireSystemClockValue
-	factory := appProvider.LoggerFactory
-	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	storeRedis := &idpsession.StoreRedis{
-		Redis:  handle,
-		AppID:  appID,
-		Clock:  clock,
-		Logger: storeRedisLogger,
+		Redis: handle,
+		AppID: appID,
+		Clock: clock,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
 		Redis: handle,
@@ -168,12 +165,10 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Store: eventStoreRedis,
 	}
 	analyticredisHandle := appProvider.AnalyticRedis
-	meterStoreRedisLogger := meter.NewStoreRedisLogger(factory)
 	writeStoreRedis := &meter.WriteStoreRedis{
-		Redis:  analyticredisHandle,
-		AppID:  appID,
-		Clock:  clock,
-		Logger: meterStoreRedisLogger,
+		Redis: analyticredisHandle,
+		AppID: appID,
+		Clock: clock,
 	}
 	meterService := &meter.Service{
 		Counter: writeStoreRedis,
@@ -211,11 +206,9 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	logger := redis.NewLogger(factory)
 	store := &redis.Store{
 		Redis:       handle,
 		AppID:       appID,
-		Logger:      logger,
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clock,
@@ -469,11 +462,9 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		AppID: appID,
 		Clock: clock,
 	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := ratelimit.NewAppStorageRedis(handle)
 	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		AppID:   appID,
 		Config:  rateLimitsFeatureConfig,
@@ -636,9 +627,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	sinkLogger := reindex.NewSinkLogger(factory)
 	searchConfig := appConfig.Search
-	reindexerLogger := reindex.NewReindexerLogger(factory)
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clock)
 	sourceProvider := &reindex.SourceProvider{
 		AppID:           appID,
@@ -675,7 +664,6 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		SearchConfig:           searchConfig,
 		Clock:                  clock,
 		Database:               appdbHandle,
-		Logger:                 reindexerLogger,
 		UserStore:              userStore,
 		Producer:               userReindexProducer,
 		SourceProvider:         sourceProvider,
@@ -683,7 +671,6 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		PostgresqlReindexer:    pgsearchService,
 	}
 	reindexSink := &reindex.Sink{
-		Logger:    sinkLogger,
 		Reindexer: reindexer,
 		Database:  appdbHandle,
 	}
@@ -729,11 +716,12 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		FeatureConfig: featureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
-	mailLogger := mail.NewLogger(factory)
+	factory := appProvider.LoggerFactory
+	logger := mail.NewLogger(factory)
 	smtpServerCredentials := deps.ProvideSMTPServerCredentials(secretConfig)
 	dialer := mail.NewGomailDialer(smtpServerCredentials)
 	sender := &mail.Sender{
-		Logger:       mailLogger,
+		Logger:       logger,
 		GomailDialer: dialer,
 	}
 	smsLogger := sms.NewLogger(factory)
@@ -951,7 +939,6 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Clock:               clock,
 		OfflineGrantService: oauthOfflineGrantService,
 	}
-	middlewareLogger := session.NewMiddlewareLogger(factory)
 	sessionMiddleware := &session.Middleware{
 		SessionCookie:              cookieDef,
 		Cookies:                    cookieManager,
@@ -960,7 +947,6 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		AccessEvents:               eventProvider,
 		Users:                      userQueries,
 		Database:                   appdbHandle,
-		Logger:                     middlewareLogger,
 		MeterService:               meterService,
 	}
 	return sessionMiddleware
@@ -1223,11 +1209,9 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	logger := ratelimit.NewLogger(factory)
 	storageRedis := ratelimit.NewAppStorageRedis(appredisHandle)
 	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
-		Logger:  logger,
 		Storage: storageRedis,
 		AppID:   appID,
 		Config:  rateLimitsFeatureConfig,

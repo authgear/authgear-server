@@ -3,23 +3,19 @@ package ratelimit
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
-type Logger struct{ *log.Logger }
-
-func NewLogger(lf *log.Factory) Logger {
-	return Logger{lf.New("rate-limit")}
-}
+var LimiterLogger = slogutil.NewLogger("rate-limit")
 
 // Limiter implements rate limiting using a simple token bucket algorithm.
 // Consumers take token from a bucket every operation, and tokens are refilled
 // periodically.
 type Limiter struct {
-	Logger  Logger
 	Storage Storage
 	AppID   config.AppID
 	Config  *config.RateLimitsFeatureConfig
@@ -60,6 +56,7 @@ func (l *Limiter) reserveN(ctx context.Context, spec BucketSpec, n float64) (*Re
 }
 
 func (l *Limiter) doReserveN(ctx context.Context, spec BucketSpec, n float64) (*Reservation, *FailedReservation, *time.Time, error) {
+	logger := LimiterLogger.GetLogger(ctx)
 	var key string
 	if spec.IsGlobal {
 		key = bucketKeyGlobal(spec)
@@ -79,12 +76,12 @@ func (l *Limiter) doReserveN(ctx context.Context, spec BucketSpec, n float64) (*
 		return nil, nil, nil, err
 	}
 
-	l.Logger.
-		WithField("global", spec.IsGlobal).
-		WithField("key", key).
-		WithField("ok", ok).
-		WithField("timeToAct", timeToAct).
-		Debug("check rate limit")
+	logger.Debug(ctx, "check rate limit",
+		slog.Bool("global", spec.IsGlobal),
+		slog.String("key", key),
+		slog.Bool("ok", ok),
+		slog.Time("timeToAct", timeToAct),
+	)
 
 	if ok {
 		return &Reservation{
@@ -103,6 +100,7 @@ func (l *Limiter) doReserveN(ctx context.Context, spec BucketSpec, n float64) (*
 
 // Cancel cancels a reservation.
 func (l *Limiter) Cancel(ctx context.Context, r *Reservation) {
+	logger := LimiterLogger.GetLogger(ctx)
 	if r == nil || r.wasCancelPrevented || r.tokenTaken == 0 {
 		return
 	}
@@ -111,10 +109,10 @@ func (l *Limiter) Cancel(ctx context.Context, r *Reservation) {
 	if err != nil {
 		// Errors here are non-critical and non-recoverable;
 		// log and continue.
-		l.Logger.WithError(err).
-			WithField("global", r.spec.IsGlobal).
-			WithField("key", r.spec.Key()).
-			Warn("failed to cancel reservation")
+		logger.WithError(err).Warn(ctx, "failed to cancel reservation",
+			slog.Bool("global", r.spec.IsGlobal),
+			slog.String("key", r.spec.Key()),
+		)
 	}
 }
 

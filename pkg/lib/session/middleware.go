@@ -9,7 +9,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
-	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
 var ErrInvalidSession = errors.New("provided session is invalid")
@@ -20,12 +19,6 @@ type Resolver interface {
 
 type IDPSessionResolver Resolver
 type AccessTokenSessionResolver Resolver
-
-type MiddlewareLogger struct{ *log.Logger }
-
-func NewMiddlewareLogger(lf *log.Factory) MiddlewareLogger {
-	return MiddlewareLogger{lf.New("session-middleware")}
-}
 
 type MeterService interface {
 	TrackActiveUser(ctx context.Context, userID string) error
@@ -39,7 +32,6 @@ type Middleware struct {
 	AccessEvents               *access.EventProvider
 	Users                      UserQuery
 	Database                   *appdb.Handle
-	Logger                     MiddlewareLogger
 	MeterService               MeterService
 }
 

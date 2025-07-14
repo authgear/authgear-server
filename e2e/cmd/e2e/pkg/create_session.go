@@ -79,10 +79,9 @@ func (c *End2End) CreateSession(
 	switch sessionType {
 	case session.TypeIdentityProvider:
 		idpSessionStore := &idpsession.StoreRedis{
-			Redis:  redis,
-			AppID:  config.AppID(appID),
-			Clock:  clk,
-			Logger: idpsession.NewStoreRedisLogger(lf),
+			Redis: redis,
+			AppID: config.AppID(appID),
+			Clock: clk,
 		}
 		expiry, err := time.Parse(time.RFC3339, "2160-01-02T15:04:05Z") // Not important
 		if err != nil {

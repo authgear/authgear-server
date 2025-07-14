@@ -367,12 +367,9 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	factory := p.LoggerFactory
-	logger := ratelimit.NewLogger(factory)
 	storageRedis := ratelimit.NewAppStorageRedis(appredisHandle)
 	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
-		Logger:  logger,
 		Storage: storageRedis,
 		AppID:   appID,
 		Config:  rateLimitsFeatureConfig,
@@ -521,9 +518,7 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	sinkLogger := reindex.NewSinkLogger(factory)
 	searchConfig := appConfig.Search
-	reindexerLogger := reindex.NewReindexerLogger(factory)
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	sourceProvider := &reindex.SourceProvider{
 		AppID:           appID,
@@ -560,7 +555,6 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		SearchConfig:           searchConfig,
 		Clock:                  clockClock,
 		Database:               handle,
-		Logger:                 reindexerLogger,
 		UserStore:              store,
 		Producer:               userReindexProducer,
 		SourceProvider:         sourceProvider,
@@ -568,7 +562,6 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		PostgresqlReindexer:    pgsearchService,
 	}
 	reindexSink := &reindex.Sink{
-		Logger:    sinkLogger,
 		Reindexer: reindexer,
 		Database:  handle,
 	}
@@ -620,11 +613,12 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		FeatureConfig: featureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
-	mailLogger := mail.NewLogger(factory)
+	factory := p.LoggerFactory
+	logger := mail.NewLogger(factory)
 	smtpServerCredentials := deps.ProvideSMTPServerCredentials(secretConfig)
 	dialer := mail.NewGomailDialer(smtpServerCredentials)
 	sender := &mail.Sender{
-		Logger:       mailLogger,
+		Logger:       logger,
 		GomailDialer: dialer,
 	}
 	smsLogger := sms.NewLogger(factory)
@@ -753,12 +747,10 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	storeRedis := &idpsession.StoreRedis{
-		Redis:  appredisHandle,
-		AppID:  appID,
-		Clock:  clockClock,
-		Logger: storeRedisLogger,
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
 	}
 	sessionConfig := appConfig.Session
 	httpConfig := appConfig.HTTP
@@ -770,11 +762,9 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		Cookies:   cookieManager,
 		CookieDef: cookieDef,
 	}
-	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
 		Redis:       appredisHandle,
 		AppID:       appID,
-		Logger:      redisLogger,
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
@@ -788,12 +778,10 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		Store: eventStoreRedis,
 	}
 	analyticredisHandle := p.AnalyticRedis
-	meterStoreRedisLogger := meter.NewStoreRedisLogger(factory)
 	writeStoreRedis := &meter.WriteStoreRedis{
-		Redis:  analyticredisHandle,
-		AppID:  appID,
-		Clock:  clockClock,
-		Logger: meterStoreRedisLogger,
+		Redis: analyticredisHandle,
+		AppID: appID,
+		Clock: clockClock,
 	}
 	meterService := &meter.Service{
 		Counter: writeStoreRedis,
@@ -887,7 +875,6 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 	authenticatorFacade := &facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
-	userimportLogger := userimport.NewLogger(factory)
 	userImportService := &userimport.UserImportService{
 		AppDatabase:          handle,
 		LoginIDConfig:        loginIDConfig,
@@ -900,7 +887,6 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		CustomAttributes:     customattrsServiceNoEvent,
 		RolesGroupsCommands:  commands,
 		SearchReindexService: reindexer,
-		Logger:               userimportLogger,
 	}
 	return userImportService
 }

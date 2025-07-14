@@ -5,30 +5,25 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"sort"
 	"time"
 
 	goredis "github.com/redis/go-redis/v9"
-	"github.com/sirupsen/logrus"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 	"github.com/authgear/authgear-server/pkg/util/clock"
-	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
-type StoreRedisLogger struct{ *log.Logger }
-
-func NewStoreRedisLogger(lf *log.Factory) StoreRedisLogger {
-	return StoreRedisLogger{lf.New("redis-session-store")}
-}
+var StoreRedisLogger = slogutil.NewLogger("redis-session-store")
 
 type StoreRedis struct {
-	Redis  *appredis.Handle
-	AppID  config.AppID
-	Clock  clock.Clock
-	Logger StoreRedisLogger
+	Redis *appredis.Handle
+	AppID config.AppID
+	Clock clock.Clock
 }
 
 func (s *StoreRedis) Create(ctx context.Context, sess *IDPSession, expireAt time.Time) (err error) {
@@ -144,6 +139,7 @@ func (s *StoreRedis) Get(ctx context.Context, id string) (*IDPSession, error) {
 }
 
 func (s *StoreRedis) Delete(ctx context.Context, session *IDPSession) (err error) {
+	logger := StoreRedisLogger.GetLogger(ctx)
 	key := sessionKey(s.AppID, session.ID)
 	listKey := sessionListKey(s.AppID, session.Attrs.UserID)
 
@@ -152,10 +148,9 @@ func (s *StoreRedis) Delete(ctx context.Context, session *IDPSession) (err error
 		if err == nil {
 			_, err = conn.HDel(ctx, listKey, key).Result()
 			if err != nil {
-				s.Logger.
-					WithError(err).
-					WithField("redis_key", listKey).
-					Error("failed to update session list")
+				logger.WithError(err).Error(ctx, "failed to update session list",
+					slog.String("redis_key", listKey),
+				)
 				// ignore non-critical errors
 				err = nil
 			}
@@ -179,6 +174,7 @@ func (s *StoreRedis) CleanUpForDeletingUserID(ctx context.Context, userID string
 
 //nolint:gocognit
 func (s *StoreRedis) List(ctx context.Context, userID string) (sessions []*IDPSession, err error) {
+	logger := StoreRedisLogger.GetLogger(ctx)
 	now := s.Clock.NowUTC()
 	listKey := sessionListKey(s.AppID, userID)
 
@@ -194,10 +190,10 @@ func (s *StoreRedis) List(ctx context.Context, userID string) (sessions []*IDPSe
 			var expired bool
 			if err != nil {
 				err = nil
-				s.Logger.
-					WithError(err).
-					WithFields(logrus.Fields{"key": key, "expiry": expiry}).
-					Error("invalid expiry value")
+				logger.WithError(err).Error(ctx, "invalid expiry value",
+					slog.String("key", key),
+					slog.String("expiry", expiry),
+				)
 				// treat invalid value as expired
 				expired = true
 			} else {
@@ -216,10 +212,9 @@ func (s *StoreRedis) List(ctx context.Context, userID string) (sessions []*IDPSe
 			} else {
 				session, err = s.Unmarshal(sessionJSON)
 				if err != nil {
-					s.Logger.
-						WithError(err).
-						WithFields(logrus.Fields{"key": key}).
-						Error("invalid JSON value")
+					logger.WithError(err).Error(ctx, "invalid JSON value",
+						slog.String("key", key),
+					)
 					err = nil
 				}
 			}
@@ -231,10 +226,9 @@ func (s *StoreRedis) List(ctx context.Context, userID string) (sessions []*IDPSe
 					_, err = conn.HDel(ctx, listKey, key).Result()
 					if err != nil {
 						// ignore non-critical error
-						s.Logger.
-							WithError(err).
-							WithFields(logrus.Fields{"key": listKey}).
-							Error("failed to update session list")
+						logger.WithError(err).Error(ctx, "failed to update session list",
+							slog.String("key", listKey),
+						)
 						err = nil
 					}
 				}

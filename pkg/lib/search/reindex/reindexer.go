@@ -5,8 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-
-	"github.com/sirupsen/logrus"
+	"log/slog"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
@@ -14,7 +13,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redisqueue"
 	"github.com/authgear/authgear-server/pkg/util/clock"
-	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
 type ReindexRequest struct {
@@ -27,11 +26,7 @@ type ReindexResult struct {
 	ErrorMessage string `json:"error_message,omitempty"`
 }
 
-type ReindexerLogger struct{ *log.Logger }
-
-func NewReindexerLogger(lf *log.Factory) *ReindexerLogger {
-	return &ReindexerLogger{lf.New("search-reindexer")}
-}
+var ReindexerLogger = slogutil.NewLogger("search-reindexer")
 
 type ElasticsearchReindexer interface {
 	ReindexUser(ctx context.Context, user *model.SearchUserSource) error
@@ -53,7 +48,6 @@ type Reindexer struct {
 	SearchConfig *config.SearchConfig
 	Clock        clock.Clock
 	Database     *appdb.Handle
-	Logger       *ReindexerLogger
 	UserStore    *user.Store
 	Producer     UserReindexCreateProducer
 
@@ -90,10 +84,11 @@ func (s *Reindexer) getSourceWithAction(ctx context.Context, userID string) (*mo
 }
 
 func (s *Reindexer) ExecReindexUser(ctx context.Context, request ReindexRequest) (result ReindexResult) {
+	logger := ReindexerLogger.GetLogger(ctx)
 	failure := func(err error) ReindexResult {
-		s.Logger.WithFields(map[string]interface{}{"user_id": request.UserID}).
-			WithError(err).
-			Error("unknown error on reindexing user")
+		logger.WithError(err).Error(ctx, "unknown error on reindexing user",
+			slog.String("user_id", request.UserID),
+		)
 		return ReindexResult{
 			UserID:       request.UserID,
 			IsSuccess:    false,
@@ -138,10 +133,10 @@ func (s *Reindexer) ExecReindexUser(ctx context.Context, request ReindexRequest)
 		}
 
 	case actionSkip:
-		s.Logger.WithFields(logrus.Fields{
-			"app_id":  s.AppID,
-			"user_id": request.UserID,
-		}).Info("skipping reindexing user because it is already up to date")
+		logger.Info(ctx, "skipping reindexing user because it is already up to date",
+			slog.String("app_id", string(s.AppID)),
+			slog.String("user_id", request.UserID),
+		)
 	default:
 		panic(fmt.Errorf("search: unknown action %s", actionToExec))
 	}

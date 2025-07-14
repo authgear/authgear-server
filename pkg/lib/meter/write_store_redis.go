@@ -9,7 +9,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/analyticredis"
 	"github.com/authgear/authgear-server/pkg/util/clock"
-	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/timeutil"
 )
 
@@ -20,17 +19,10 @@ const (
 	PageTypeLogin  PageType = "login"
 )
 
-type StoreRedisLogger struct{ *log.Logger }
-
-func NewStoreRedisLogger(lf *log.Factory) StoreRedisLogger {
-	return StoreRedisLogger{lf.New("redis-analytic-store")}
-}
-
 type WriteStoreRedis struct {
-	Redis  *analyticredis.Handle
-	AppID  config.AppID
-	Clock  clock.Clock
-	Logger StoreRedisLogger
+	Redis *analyticredis.Handle
+	AppID config.AppID
+	Clock clock.Clock
 }
 
 func (s *WriteStoreRedis) TrackActiveUser(ctx context.Context, userID string) (err error) {

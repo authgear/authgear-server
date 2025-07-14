@@ -3,11 +3,15 @@ package ratelimit
 import (
 	"context"
 	"errors"
+	"log/slog"
 	"time"
+
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
+var LimiterGlobalLogger = slogutil.NewLogger("limiter-global")
+
 type LimiterGlobal struct {
-	Logger  Logger
 	Storage Storage
 }
 
@@ -46,6 +50,7 @@ func (l *LimiterGlobal) reserveN(ctx context.Context, spec BucketSpec, n float64
 }
 
 func (l *LimiterGlobal) doReserveN(ctx context.Context, spec BucketSpec, n float64) (*Reservation, *FailedReservation, *time.Time, error) {
+	logger := LimiterGlobalLogger.GetLogger(ctx)
 	key := bucketKeyGlobal(spec)
 
 	if !spec.IsGlobal {
@@ -64,11 +69,11 @@ func (l *LimiterGlobal) doReserveN(ctx context.Context, spec BucketSpec, n float
 		return nil, nil, nil, nil
 	}
 
-	l.Logger.
-		WithField("key", spec.Key()).
-		WithField("ok", ok).
-		WithField("timeToAct", timeToAct).
-		Debug("check global rate limit")
+	logger.With(
+		slog.String("key", spec.Key()),
+		slog.Bool("ok", ok),
+		slog.Time("timeToAct", timeToAct),
+	).Debug(ctx, "check global rate limit")
 
 	if ok {
 		return &Reservation{
@@ -87,6 +92,8 @@ func (l *LimiterGlobal) doReserveN(ctx context.Context, spec BucketSpec, n float
 
 // Cancel cancels a reservation.
 func (l *LimiterGlobal) Cancel(ctx context.Context, r *Reservation) {
+	logger := LimiterGlobalLogger.GetLogger(ctx)
+
 	if r == nil || r.wasCancelPrevented || r.tokenTaken == 0 {
 		return
 	}
@@ -95,9 +102,9 @@ func (l *LimiterGlobal) Cancel(ctx context.Context, r *Reservation) {
 	if err != nil {
 		// Errors here are non-critical and non-recoverable;
 		// log and continue.
-		l.Logger.WithError(err).
-			WithField("global", r.spec.IsGlobal).
-			WithField("key", r.spec.Key()).
-			Warn("failed to cancel reservation")
+		logger.WithError(err).With(
+			slog.Bool("global", r.spec.IsGlobal),
+			slog.String("key", r.spec.Key()),
+		).Warn(ctx, "failed to cancel reservation")
 	}
 }
