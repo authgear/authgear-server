@@ -2,13 +2,9 @@ package graphqlutil
 
 import (
 	"context"
-
-	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
-type GraphQLContext interface {
-	Logger() *log.Logger
-}
+type GraphQLContext interface{}
 
 type contextKeyType struct{}
 

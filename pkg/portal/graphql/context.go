@@ -20,7 +20,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/portal/smtp"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
-	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
 type UserLoader interface {
@@ -180,13 +179,8 @@ type AuditService interface {
 	Log(ctx context.Context, app *model.App, payload event.NonBlockingPayload) error
 }
 
-type Logger struct{ *log.Logger }
-
-func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("portal-graphql")} }
-
 type Context struct {
-	Request   *http.Request
-	GQLLogger Logger
+	Request *http.Request
 
 	GlobalDatabase *globaldb.Handle
 
@@ -212,10 +206,6 @@ type Context struct {
 	DenoService          DenoService
 	AuditService         AuditService
 	OnboardService       OnboardService
-}
-
-func (c *Context) Logger() *log.Logger {
-	return c.GQLLogger.Logger
 }
 
 func WithContext(ctx context.Context, gqlContext *Context) context.Context {

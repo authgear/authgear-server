@@ -2,13 +2,17 @@ package graphqlutil
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/graphql-go/graphql"
 	"github.com/graphql-go/graphql/gqlerrors"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
+
+var logger = slogutil.NewLogger("graphqlutil")
 
 type APIErrorExtension struct{}
 
@@ -30,7 +34,7 @@ func (a APIErrorExtension) ValidationDidStart(ctx context.Context) (context.Cont
 
 func (a APIErrorExtension) ExecutionDidStart(ctx context.Context) (context.Context, graphql.ExecutionFinishFunc) {
 	return ctx, func(result *graphql.Result) {
-		logger := GQLContext(ctx).Logger()
+		logger := logger.GetLogger(ctx)
 		for i, gqlError := range result.Errors {
 			err := originalError(gqlError)
 
@@ -51,12 +55,9 @@ func (a APIErrorExtension) ExecutionDidStart(ctx context.Context) (context.Conte
 				//     	For some panics, string concatenation leads to the compiler
 				//		infers a string enum type, and therefore cannot be logged here.
 				err = errorutil.ForceLogging(err)
-				logger.
-					WithContext(ctx).
-					WithError(err).
-					WithField("path", gqlError.Path).
-					WithField("stack", errorutil.Callers(10000)).
-					Error("unexpected error when executing GraphQL query")
+				logger.WithError(err).With(
+					slog.Any("path", gqlError.Path),
+				).Error(ctx, "unexpected error when executing GraphQL query")
 				result.Errors[i] = gqlerrors.NewFormattedError("unexpected error")
 				continue
 			}

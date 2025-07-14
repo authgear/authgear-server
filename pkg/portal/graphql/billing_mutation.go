@@ -13,7 +13,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/portal/service"
 	"github.com/authgear/authgear-server/pkg/portal/session"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
+
+var billingMutationLogger = slogutil.NewLogger("graphql-billing-mutation")
 
 var createCheckoutSessionInput = graphql.NewInputObject(graphql.InputObjectConfig{
 	Name: "CreateCheckoutSessionInput",
@@ -642,9 +645,11 @@ var _ = registerMutationField(
 				return nil, apierrors.NewInvalid("subscription not found or the subscription doesn't have payment error")
 			}
 
+			logger := billingMutationLogger.GetLogger(ctx)
+
 			err = gqlCtx.StripeService.CancelSubscriptionImmediately(ctx, subscription.ID)
 			if err != nil {
-				gqlCtx.Logger().WithError(err).Error("failed to cancel subscription")
+				logger.WithError(err).Error(ctx, "failed to cancel subscription")
 				return nil, apierrors.NewInternalError("failed to cancel subscription")
 			}
 
@@ -656,7 +661,7 @@ var _ = registerMutationField(
 			// we set it to expiry first to avoid ui inconsistent before the webhook come
 			err = gqlCtx.SubscriptionService.MarkCheckoutExpired(ctx, appID, *customerID)
 			if err != nil {
-				gqlCtx.Logger().WithError(err).Error("failed to update checkout session status")
+				logger.WithError(err).Error(ctx, "failed to update checkout session status")
 				return nil, apierrors.NewInternalError("failed to update checkout session status")
 			}
 

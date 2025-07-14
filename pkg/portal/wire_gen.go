@@ -128,12 +128,11 @@ func newHealthzHandler(p *deps.RequestProvider) http.Handler {
 func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	request := p.Request
 	rootProvider := p.RootProvider
-	logFactory := rootProvider.LoggerFactory
-	logger := graphql.NewLogger(logFactory)
 	pool := rootProvider.Database
 	environmentConfig := rootProvider.EnvironmentConfig
 	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
 	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
+	logFactory := rootProvider.LoggerFactory
 	handle := globaldb.NewHandle(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, logFactory)
 	trustProxy := environmentConfig.TrustProxy
 	authgearConfig := rootProvider.AuthgearConfig
@@ -187,7 +186,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	appServiceLogger := service.NewAppServiceLogger(logFactory)
 	httpClient := service.NewHTTPClient()
 	mailConfig := rootProvider.MailConfig
-	smtpLogger := smtp.NewLogger(logFactory)
+	logger := smtp.NewLogger(logFactory)
 	devMode := environmentConfig.DevMode
 	mailLogger := mail.NewLogger(logFactory)
 	smtpConfig := rootProvider.SMTPConfig
@@ -198,7 +197,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		GomailDialer: dialer,
 	}
 	smtpService := &smtp.Service{
-		Logger:     smtpLogger,
+		Logger:     logger,
 		DevMode:    devMode,
 		MailSender: sender,
 	}
@@ -396,7 +395,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	context := &graphql.Context{
 		Request:                 request,
-		GQLLogger:               logger,
 		GlobalDatabase:          handle,
 		TrustProxy:              trustProxy,
 		Users:                   userLoader,

@@ -187,8 +187,6 @@ func newUIParamMiddleware(p *deps.RequestProvider) httproute.Middleware {
 
 func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
-	factory := appProvider.LoggerFactory
-	logger := graphql.NewLogger(factory)
 	appContext := appProvider.AppContext
 	configConfig := appContext.Config
 	appConfig := configConfig.AppConfig
@@ -371,7 +369,8 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticatorConfig := appConfig.Authenticator
 	authenticatorPasswordConfig := authenticatorConfig.Password
-	passwordLogger := password.NewLogger(factory)
+	factory := appProvider.LoggerFactory
+	logger := password.NewLogger(factory)
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
 		SQLBuilder:  sqlBuilderApp,
@@ -390,7 +389,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
 		Clock:           clockClock,
-		Logger:          passwordLogger,
+		Logger:          logger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
 		Expiry:          expiry,
@@ -1278,7 +1277,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		OfflineGrants: oauthOfflineGrantService,
 	}
 	graphqlContext := &graphql.Context{
-		GQLLogger:             logger,
 		Config:                appConfig,
 		OAuthConfig:           oAuthConfig,
 		AdminAPIFeatureConfig: adminAPIFeatureConfig,
