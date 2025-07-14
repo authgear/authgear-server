@@ -84,7 +84,6 @@ func newCORSMiddleware(p *deps.RequestProvider) httproute.Middleware {
 
 func newContextHolderMiddleware(p *deps.RootProvider) httproute.Middleware {
 	panic(wire.Build(
-		deps.RootDependencySet,
 		webapp.RootMiddlewareDependencySet,
 		wire.Bind(new(httproute.Middleware), new(*webapp.ContextHolderMiddleware)),
 	))
