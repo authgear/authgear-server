@@ -1339,14 +1339,12 @@ func newPresignImagesUploadHandler(p *deps.RequestProvider) http.Handler {
 		Clock:  clockClock,
 		Host:   httpHost,
 	}
-	presignImagesUploadHandlerLogger := transport.NewPresignImagesUploadHandlerLogger(factory)
 	presignImagesUploadHandler := &transport.PresignImagesUploadHandler{
 		JSON:            jsonResponseWriter,
 		HTTPProto:       httpProto,
 		HTTPHost:        httpHost,
 		AppID:           appID,
 		PresignProvider: provider,
-		Logger:          presignImagesUploadHandlerLogger,
 	}
 	return presignImagesUploadHandler
 }
