@@ -132,6 +132,8 @@ func (tc *TestCase) executeStep(
 	var flowResponse *authflowclient.FlowResponse
 	var flowErr error
 
+	nextState = state
+
 	switch step.Action {
 	case StepActionCreate:
 		input, ok := prepareInput(t, cmd, prevSteps, step.Input)
@@ -148,7 +150,6 @@ func (tc *TestCase) executeStep(
 			}
 		}
 
-		nextState = state
 		if flowResponse != nil {
 			nextState = flowResponse.StateToken
 		}
@@ -170,7 +171,6 @@ func (tc *TestCase) executeStep(
 			t.Errorf("failed to generate TOTP code in '%s': %v\n", step.Name, err)
 			return
 		}
-		nextState = state
 
 		result = &StepResult{
 			Result: map[string]interface{}{
@@ -197,8 +197,6 @@ func (tc *TestCase) executeStep(
 			t.Errorf("failed to parse final URL in '%s': %v\n", step.Name, err)
 			return
 		}
-
-		nextState = state
 
 		result = &StepResult{
 			Result: map[string]interface{}{
@@ -234,7 +232,6 @@ func (tc *TestCase) executeStep(
 			}
 		}
 
-		nextState = state
 	case StepActionHTTPRequest:
 		var outputOk bool = true
 		var httpResult interface{} = nil
@@ -379,7 +376,6 @@ func (tc *TestCase) executeStep(
 			}
 		}
 
-		nextState = state
 		if flowResponse != nil {
 			nextState = flowResponse.StateToken
 		}
@@ -387,6 +383,29 @@ func (tc *TestCase) executeStep(
 		result = &StepResult{
 			Result: flowResponse,
 			Error:  flowErr,
+		}
+	case StepActionAdminAPIQuery:
+		if step.AdminAPIRequest == nil {
+			t.Errorf("adminapi_request must be provided for adminapi_query step")
+			return nil, state, false
+		}
+
+		var variables map[string]interface{}
+		if step.AdminAPIRequest.Variables != "" {
+			err := json.Unmarshal([]byte(step.AdminAPIRequest.Variables), &variables)
+			if err != nil {
+				t.Errorf("failed to unmarshal adminapi_request.variables: %v", err)
+				return nil, state, false
+			}
+		}
+
+		resp, err := cmd.Client.GraphQLAPI(nil, nil, cmd.AppID, authflowclient.GraphQLAPIRequest{
+			Query:     step.AdminAPIRequest.Query,
+			Variables: variables,
+		})
+		result = &StepResult{
+			Result: resp,
+			Error:  err,
 		}
 	default:
 		t.Errorf("unknown action in '%s': %s", step.Name, step.Action)

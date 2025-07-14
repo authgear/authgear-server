@@ -158,8 +158,8 @@ var _ = TestCaseSchema.Add("SAMLBinding", `
 `)
 
 type AdminAPIRequest struct {
-	Query     string                 `json:"query"`
-	Variables map[string]interface{} `json:"variables"`
+	Query     string `json:"query"`
+	Variables string `json:"variables"`
 }
 
 var _ = TestCaseSchema.Add("AdminAPIRequest", `
