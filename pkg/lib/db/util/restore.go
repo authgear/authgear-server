@@ -10,7 +10,10 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
+
+var RestorerLogger = slogutil.NewLogger("restorer")
 
 type Restorer struct {
 	ConnectionInfo db.ConnectionInfo
@@ -22,7 +25,6 @@ type Restorer struct {
 	dbHandle    *db.HookHandle
 	sqlExecutor *db.SQLExecutor
 	sqlBuilder  *db.SQLBuilder
-	logger      *log.Logger
 }
 
 func NewRestorer(
@@ -35,7 +37,6 @@ func NewRestorer(
 	loggerFactory := log.NewFactory(
 		log.LevelDebug,
 	)
-	logger := loggerFactory.New("restorer")
 	pool := db.NewPool()
 	handle := db.NewHookHandle(
 		pool,
@@ -60,28 +61,29 @@ func NewRestorer(
 		dbHandle:    handle,
 		sqlExecutor: sqlExecutor,
 		sqlBuilder:  &sqlBuilder,
-		logger:      logger,
 	}
 }
 
 func (r *Restorer) Restore(ctx context.Context) error {
+	logger := RestorerLogger.GetLogger(ctx)
 	inputPathAbs, err := filepath.Abs(r.InputDir)
 	if err != nil {
 		panic(err)
 	}
-	r.logger.Info(fmt.Sprintf("Restoring from %s", inputPathAbs))
+	logger.Info(ctx, fmt.Sprintf("Restoring from %s", inputPathAbs))
 
 	return r.dbHandle.WithTx(ctx, func(ctx context.Context) error {
+		logger := RestorerLogger.GetLogger(ctx)
 		for _, tableName := range r.TableNames {
 			inputFile := filepath.Join(inputPathAbs, fmt.Sprintf("%s.csv", tableName))
 			f, err := os.Open(inputFile)
 			if err != nil {
-				r.logger.Warn(fmt.Sprintf("Restoration of %s skipped: failed to open %s", tableName, inputFile))
+				logger.Warn(ctx, fmt.Sprintf("Restoration of %s skipped: failed to open %s", tableName, inputFile))
 				continue
 			}
 			defer f.Close()
 
-			r.logger.Info(fmt.Sprintf("Restoring %s", tableName))
+			logger.Info(ctx, fmt.Sprintf("Restoring %s", tableName))
 			csvReader := csv.NewReader(f)
 			records, err := csvReader.ReadAll()
 			if err != nil {
@@ -89,7 +91,7 @@ func (r *Restorer) Restore(ctx context.Context) error {
 			}
 			columns, data, err := r.convertToDatabaseData(records)
 			if err != nil {
-				r.logger.WithError(err).Error(fmt.Sprintf("Error on restoring %s from %s", tableName, inputFile))
+				logger.WithError(err).Error(ctx, fmt.Sprintf("Error on restoring %s from %s", tableName, inputFile))
 				return err
 			}
 			for _, row := range data {

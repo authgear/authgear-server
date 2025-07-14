@@ -13,7 +13,10 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
+
+var DumperLogger = slogutil.NewLogger("dumper")
 
 type Dumper struct {
 	ConnectionInfo db.ConnectionInfo
@@ -25,7 +28,6 @@ type Dumper struct {
 	dbHandle    *db.HookHandle
 	sqlExecutor *db.SQLExecutor
 	sqlBuilder  *db.SQLBuilder
-	logger      *log.Logger
 }
 
 func NewDumper(
@@ -38,7 +40,6 @@ func NewDumper(
 	loggerFactory := log.NewFactory(
 		log.LevelDebug,
 	)
-	logger := loggerFactory.New("dumper")
 	pool := db.NewPool()
 	handle := db.NewHookHandle(
 		pool,
@@ -63,16 +64,17 @@ func NewDumper(
 		dbHandle:    handle,
 		sqlExecutor: sqlExecutor,
 		sqlBuilder:  &sqlBuilder,
-		logger:      logger,
 	}
 }
 
 func (d *Dumper) Dump(ctx context.Context) error {
+	logger := DumperLogger.GetLogger(ctx)
+
 	outputPathAbs, err := filepath.Abs(d.OutputDir)
 	if err != nil {
 		panic(err)
 	}
-	d.logger.Info(fmt.Sprintf("Dumping to %s", outputPathAbs))
+	logger.Info(ctx, fmt.Sprintf("Dumping to %s", outputPathAbs))
 
 	err = os.MkdirAll(outputPathAbs, 0755)
 	if err != nil {
@@ -80,9 +82,10 @@ func (d *Dumper) Dump(ctx context.Context) error {
 	}
 
 	return d.dbHandle.ReadOnly(ctx, func(ctx context.Context) error {
+		logger := DumperLogger.GetLogger(ctx)
 		for _, tableName := range d.TableNames {
 			filePath := filepath.Join(d.OutputDir, fmt.Sprintf("%s.csv", tableName))
-			d.logger.Info(fmt.Sprintf("Dumping %s to %s", tableName, filePath))
+			logger.Info(ctx, fmt.Sprintf("Dumping %s to %s", tableName, filePath))
 			columns, rows, err := d.queryTable(ctx, tableName)
 			if err != nil {
 				return err
