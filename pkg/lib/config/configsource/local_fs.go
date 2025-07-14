@@ -2,6 +2,7 @@ package configsource
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
 	"os"
 	"path"
@@ -12,20 +13,15 @@ import (
 	"gopkg.in/fsnotify.v1"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/resource"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
 const LocalFSPlanName = "local-fs"
 
-type LocalFSLogger struct{ *log.Logger }
-
-func NewLocalFSLogger(lf *log.Factory) LocalFSLogger {
-	return LocalFSLogger{lf.New("configsource-local-fs")}
-}
+var LocalFSLogger = slogutil.NewLogger("configsource-local-fs")
 
 type LocalFS struct {
-	Logger        LocalFSLogger
 	BaseResources *resource.Manager
 	Config        *Config
 
@@ -100,6 +96,7 @@ func (s *LocalFS) Close() error {
 }
 
 func (s *LocalFS) watch(ctx context.Context, done <-chan struct{}) {
+	logger := LocalFSLogger.GetLogger(ctx)
 	for {
 		select {
 		case event, ok := <-s.watcher.Events:
@@ -109,21 +106,16 @@ func (s *LocalFS) watch(ctx context.Context, done <-chan struct{}) {
 			if event.Op&fsnotify.Write != fsnotify.Write {
 				break
 			}
-			s.Logger.
-				WithField("file", event.Name).
-				Info("change detected, reloading...")
+			logger.Info(ctx, "change detected, reloading...", slog.String("file", event.Name))
 			if err := s.reload(ctx); err != nil {
-				s.Logger.
-					WithError(err).
-					WithField("file", event.Name).
-					Error("reload failed")
+				logger.WithError(err).Error(ctx, "reload failed", slog.String("file", event.Name))
 			}
 
 		case err, ok := <-s.watcher.Errors:
 			if !ok {
 				return
 			}
-			s.Logger.WithError(err).Fatal("Watcher failed")
+			logger.WithError(err).Error(ctx, "Watcher failed")
 
 		case <-done:
 			return
@@ -169,11 +161,10 @@ func (s *LocalFS) ResolveContext(ctx context.Context, _appID string, fn func(con
 }
 
 func (s *LocalFS) ReloadApp(ctx context.Context, appID string) {
+	logger := LocalFSLogger.GetLogger(ctx)
 	// In single mode, appID is ignored.
 	err := s.reload(ctx)
 	if err != nil {
-		s.Logger.
-			WithError(err).
-			Error("reload failed")
+		logger.WithError(err).Error(ctx, "reload failed")
 	}
 }
