@@ -12,7 +12,7 @@ import (
 	oauthhandler "github.com/authgear/authgear-server/pkg/lib/oauth/handler"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
-	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
@@ -67,14 +67,9 @@ type PromotionCodeIssuer interface {
 	) (code string, codeObj *anonymous.PromotionCode, err error)
 }
 
-type AnonymousUserPromotionCodeAPIHandlerLogger struct{ *log.Logger }
-
-func NewAnonymousUserPromotionCodeAPILogger(lf *log.Factory) AnonymousUserPromotionCodeAPIHandlerLogger {
-	return AnonymousUserPromotionCodeAPIHandlerLogger{lf.New("handler-anonymous-user-promotion-code")}
-}
+var AnonymousUserPromotionCodeAPIHandlerLogger = slogutil.NewLogger("handler-anonymous-user-promotion-code")
 
 type AnonymousUserPromotionCodeAPIHandler struct {
-	Logger         AnonymousUserPromotionCodeAPIHandlerLogger
 	Database       *appdb.Handle
 	JSON           JSONResponseWriter
 	PromotionCodes PromotionCodeIssuer
@@ -89,6 +84,8 @@ func (h *AnonymousUserPromotionCodeAPIHandler) ServeHTTP(resp http.ResponseWrite
 	}
 
 	ctx := req.Context()
+	logger := AnonymousUserPromotionCodeAPIHandlerLogger.GetLogger(ctx)
+
 	result := &AnonymousUserPromotionCodeResponse{}
 	err = h.Database.WithTx(ctx, func(ctx context.Context) error {
 		code, codeObj, err := h.PromotionCodes.IssuePromotionCode(
@@ -109,7 +106,7 @@ func (h *AnonymousUserPromotionCodeAPIHandler) ServeHTTP(resp http.ResponseWrite
 		h.JSON.WriteResponse(resp, &api.Response{Result: result})
 	} else {
 		if !apierrors.IsAPIError(err) {
-			h.Logger.WithError(err).Error("anonymous user promotion code handler failed")
+			logger.WithError(err).Error(ctx, "anonymous user promotion code handler failed")
 		}
 		h.JSON.WriteResponse(resp, &api.Response{Error: err})
 	}

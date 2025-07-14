@@ -10,7 +10,7 @@ import (
 	oauthhandler "github.com/authgear/authgear-server/pkg/lib/oauth/handler"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
-	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
@@ -77,14 +77,9 @@ type JSONResponseWriter interface {
 	WriteResponse(rw http.ResponseWriter, resp *api.Response)
 }
 
-type AnonymousUserSignupAPIHandlerLogger struct{ *log.Logger }
-
-func NewAnonymousUserSignupAPIHandlerLogger(lf *log.Factory) AnonymousUserSignupAPIHandlerLogger {
-	return AnonymousUserSignupAPIHandlerLogger{lf.New("handler-anonymous-user-signup")}
-}
+var AnonymousUserSignupAPIHandlerLogger = slogutil.NewLogger("handler-anonymous-user-signup")
 
 type AnonymousUserSignupAPIHandler struct {
-	Logger               AnonymousUserSignupAPIHandlerLogger
 	Database             *appdb.Handle
 	JSON                 JSONResponseWriter
 	AnonymousUserHandler AnonymousUserHandler
@@ -99,6 +94,8 @@ func (h *AnonymousUserSignupAPIHandler) ServeHTTP(resp http.ResponseWriter, req 
 	}
 
 	ctx := req.Context()
+	logger := AnonymousUserSignupAPIHandlerLogger.GetLogger(ctx)
+
 	var result *oauthhandler.SignupAnonymousUserResult
 	err = h.Database.WithTx(ctx, func(ctx context.Context) error {
 		result, err = h.AnonymousUserHandler.SignupAnonymousUser(
@@ -124,7 +121,7 @@ func (h *AnonymousUserSignupAPIHandler) ServeHTTP(resp http.ResponseWriter, req 
 		}
 	} else {
 		if !apierrors.IsAPIError(err) {
-			h.Logger.WithError(err).Error("anonymous user signup handler failed")
+			logger.WithError(err).Error(ctx, "anonymous user signup handler failed")
 		}
 		h.JSON.WriteResponse(resp, &api.Response{Error: err})
 	}
