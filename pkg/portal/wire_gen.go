@@ -538,13 +538,10 @@ func newAdminAPIHandler(p *deps.RequestProvider) http.Handler {
 		Configs:       configService,
 		Collaborators: collaboratorService,
 	}
-	logFactory := rootProvider.LoggerFactory
-	adminAPILogger := transport.NewAdminAPILogger(logFactory)
 	adminAPIHandler := &transport.AdminAPIHandler{
 		Database: handle,
 		Authz:    authzService,
 		AdminAPI: adminAPIService,
-		Logger:   adminAPILogger,
 	}
 	return adminAPIHandler
 }
@@ -606,8 +603,6 @@ func newStripeWebhookHandler(p *deps.RequestProvider) http.Handler {
 		StripeConfig:      stripeConfig,
 		Endpoints:         endpointsProvider,
 	}
-	logFactory := rootProvider.LoggerFactory
-	stripeWebhookLogger := transport.NewStripeWebhookLogger(logFactory)
 	configsourceStore := &configsource.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -628,7 +623,6 @@ func newStripeWebhookHandler(p *deps.RequestProvider) http.Handler {
 	}
 	stripeWebhookHandler := &transport.StripeWebhookHandler{
 		StripeService: libstripeService,
-		Logger:        stripeWebhookLogger,
 		Subscriptions: subscriptionService,
 		Database:      handle,
 	}

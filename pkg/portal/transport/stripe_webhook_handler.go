@@ -3,6 +3,7 @@ package transport
 import (
 	"context"
 	"errors"
+	"log/slog"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
@@ -10,18 +11,14 @@ import (
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/portal/service"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
-	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
 func ConfigureStripeWebhookRoute(route httproute.Route) httproute.Route {
 	return route.WithMethods("POST").WithPathPattern("/api/subscription/webhook/stripe")
 }
 
-type StripeWebhookLogger struct{ *log.Logger }
-
-func NewStripeWebhookLogger(lf *log.Factory) StripeWebhookLogger {
-	return StripeWebhookLogger{lf.New("stripe-webhook")}
-}
+var StripeWebhookLogger = slogutil.NewLogger("stripe-webhook")
 
 type StripeService interface {
 	ConstructEvent(ctx context.Context, r *http.Request) (libstripe.Event, error)
@@ -44,12 +41,14 @@ type SubscriptionService interface {
 
 type StripeWebhookHandler struct {
 	StripeService StripeService
-	Logger        StripeWebhookLogger
 	Subscriptions SubscriptionService
 	Database      *globaldb.Handle
 }
 
 func (h *StripeWebhookHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	logger := StripeWebhookLogger.GetLogger(ctx)
 	var err error
 	defer func() {
 		if errors.Is(err, libstripe.ErrUnknownEvent) {
@@ -61,46 +60,44 @@ func (h *StripeWebhookHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 			return
 		}
 		if err != nil {
-			h.Logger.WithError(err).Errorf("failed to handle stripe webhook")
+			logger.WithError(err).Error(ctx, "failed to handle stripe webhook")
 			http.Error(w, "failed to handle stripe webhook", http.StatusBadRequest)
 			return
 		}
 		w.WriteHeader(http.StatusOK)
 	}()
 
-	ctx := r.Context()
 	event, err := h.StripeService.ConstructEvent(ctx, r)
 	if err != nil {
 		return
 	}
 
-	h.Logger.
-		WithField("event_type", event.EventType()).
-		Info("stripe webhook event received")
+	logger.Info(ctx, "stripe webhook event received", slog.String("event_type", string(event.EventType())))
 
 	switch event.EventType() {
 	case libstripe.EventTypeCheckoutSessionCompleted:
-		err = h.handleCheckoutSessionCompletedEvent(r.Context(), event.(*libstripe.CheckoutSessionCompletedEvent))
+		err = h.handleCheckoutSessionCompletedEvent(ctx, event.(*libstripe.CheckoutSessionCompletedEvent))
 	case libstripe.EventTypeCustomerSubscriptionCreated:
 		err = h.handleCustomerSubscriptionEvent(
-			r.Context(),
+			ctx,
 			event.(*libstripe.CustomerSubscriptionCreatedEvent).CustomerSubscriptionEvent,
 		)
 	case libstripe.EventTypeCustomerSubscriptionUpdated:
 		// FIXME(subscription): handle update subscription
 		err = h.handleCustomerSubscriptionEvent(
-			r.Context(),
+			ctx,
 			event.(*libstripe.CustomerSubscriptionUpdatedEvent).CustomerSubscriptionEvent,
 		)
 	case libstripe.EventTypeCustomerSubscriptionDeleted:
 		err = h.handleCustomerSubscriptionDeletedEvent(
-			r.Context(),
+			ctx,
 			event.(*libstripe.CustomerSubscriptionDeletedEvent).CustomerSubscriptionEvent,
 		)
 	}
 }
 
 func (h *StripeWebhookHandler) handleCheckoutSessionCompletedEvent(ctx context.Context, event *libstripe.CheckoutSessionCompletedEvent) error {
+	logger := StripeWebhookLogger.GetLogger(ctx)
 	// Update _portal_subscription_checkout set state=completed, stripe_customer_id
 	err := h.Subscriptions.MarkCheckoutCompleted(
 		ctx,
@@ -112,10 +109,9 @@ func (h *StripeWebhookHandler) handleCheckoutSessionCompletedEvent(ctx context.C
 		if errors.Is(err, service.ErrSubscriptionCheckoutNotFound) {
 			// The checkout is not found or the checkout is already subscribed
 			// Tolerate it.
-			h.Logger.
-				WithField("app_id", event.AppID).
-				WithField("stripe_checkout_session_id", event.StripeCheckoutSessionID).
-				Info("the subscription checkout does not exists or the status is subscribed already")
+			logger.Info(ctx, "the subscription checkout does not exists or the status is subscribed already",
+				slog.String("app_id", event.AppID),
+				slog.String("stripe_checkout_session_id", event.StripeCheckoutSessionID))
 			return nil
 		}
 		return err
@@ -136,19 +132,17 @@ func (h *StripeWebhookHandler) handleCheckoutSessionCompletedEvent(ctx context.C
 		if errors.Is(err, libstripe.ErrCustomerAlreadySubscribed) {
 			// The customer has subscriptions already
 			// Tolerate it
-			h.Logger.
-				WithField("app_id", event.AppID).
-				WithField("stripe_checkout_session_id", event.StripeCheckoutSessionID).
-				Info("customer already subscribed")
+			logger.Info(ctx, "customer already subscribed",
+				slog.String("app_id", event.AppID),
+				slog.String("stripe_checkout_session_id", event.StripeCheckoutSessionID))
 			return nil
 		}
 		if errors.Is(err, libstripe.ErrAppAlreadySubscribed) {
 			// The app has stripe subscription already
 			// Tolerate it
-			h.Logger.
-				WithField("app_id", event.AppID).
-				WithField("stripe_checkout_session_id", event.StripeCheckoutSessionID).
-				Warn("app already has stripe subscription")
+			logger.Warn(ctx, "app already has stripe subscription",
+				slog.String("app_id", event.AppID),
+				slog.String("stripe_checkout_session_id", event.StripeCheckoutSessionID))
 			return nil
 		}
 		return err
@@ -158,6 +152,7 @@ func (h *StripeWebhookHandler) handleCheckoutSessionCompletedEvent(ctx context.C
 }
 
 func (h *StripeWebhookHandler) handleCustomerSubscriptionEvent(ctx context.Context, event *libstripe.CustomerSubscriptionEvent) error {
+	logger := StripeWebhookLogger.GetLogger(ctx)
 	// Here is a complete list of subscription status and our corresponding action.
 	// incomplete -> ignore
 	// incomplete_expired -> set checkout to cancelled.
@@ -175,14 +170,14 @@ func (h *StripeWebhookHandler) handleCustomerSubscriptionEvent(ctx context.Conte
 		return h.handleIncompleteExpiredSubscriptionEvent(ctx, event)
 	}
 
-	h.Logger.
-		WithField("stripe_subscription_id", event.StripeSubscriptionID).
-		WithField("stripe_subscription_status", event.StripeSubscriptionStatus).
-		Info("unhandled subscription status")
+	logger.Info(ctx, "unhandled subscription status",
+		slog.String("stripe_subscription_id", event.StripeSubscriptionID),
+		slog.String("stripe_subscription_status", string(event.StripeSubscriptionStatus)))
 	return nil
 }
 
 func (h *StripeWebhookHandler) handleIncompleteExpiredSubscriptionEvent(ctx context.Context, event *libstripe.CustomerSubscriptionEvent) error {
+	logger := StripeWebhookLogger.GetLogger(ctx)
 	err := h.Subscriptions.MarkCheckoutExpired(
 		ctx,
 		event.AppID,
@@ -195,16 +190,16 @@ func (h *StripeWebhookHandler) handleIncompleteExpiredSubscriptionEvent(ctx cont
 		// The checkout session doesn't exist
 		// It may happen if the subscription is created via Stripe portal
 		// Tolerate it.
-		h.Logger.
-			WithField("app_id", event.AppID).
-			WithField("stripe_subscription_id", event.StripeSubscriptionID).
-			Info("the subscription checkout does not exist for incomplete_expired")
+		logger.Info(ctx, "the subscription checkout does not exist for incomplete_expired",
+			slog.String("app_id", event.AppID),
+			slog.String("stripe_subscription_id", event.StripeSubscriptionID))
 		return nil
 	}
 	return nil
 }
 
 func (h *StripeWebhookHandler) handleActiveSubscriptionEvent(ctx context.Context, event *libstripe.CustomerSubscriptionEvent) error {
+	logger := StripeWebhookLogger.GetLogger(ctx)
 	err := h.Database.WithTx(ctx, func(ctx context.Context) error {
 		// Mark checkout session as subscribed
 		err := h.Subscriptions.MarkCheckoutSubscribed0(
@@ -218,10 +213,9 @@ func (h *StripeWebhookHandler) handleActiveSubscriptionEvent(ctx context.Context
 			}
 			// The checkout is not found or the checkout is already subscribed
 			// Tolerate it.
-			h.Logger.
-				WithField("app_id", event.AppID).
-				WithField("stripe_subscription_id", event.StripeSubscriptionID).
-				Info("the subscription checkout does not exists or the status is subscribed already")
+			logger.Info(ctx, "the subscription checkout does not exists or the status is subscribed already",
+				slog.String("app_id", event.AppID),
+				slog.String("stripe_subscription_id", event.StripeSubscriptionID))
 			// Fallthrough here so subscription will be upserted.
 		}
 
@@ -236,10 +230,9 @@ func (h *StripeWebhookHandler) handleActiveSubscriptionEvent(ctx context.Context
 		if err != nil {
 			return err
 		}
-		h.Logger.
-			WithField("app_id", event.AppID).
-			WithField("plan_name", event.PlanName).
-			Info("updated app plan")
+		logger.Info(ctx, "updated app plan",
+			slog.String("app_id", event.AppID),
+			slog.String("plan_name", event.PlanName))
 
 		return nil
 	})
@@ -247,13 +240,13 @@ func (h *StripeWebhookHandler) handleActiveSubscriptionEvent(ctx context.Context
 }
 
 func (h *StripeWebhookHandler) handleCustomerSubscriptionDeletedEvent(ctx context.Context, event *libstripe.CustomerSubscriptionEvent) error {
+	logger := StripeWebhookLogger.GetLogger(ctx)
 	if !event.IsSubscriptionCanceled() {
 		// The status should be cancelled in the `customer.subscription.deleted` event
 		// In case it is not, log it as warning and ignore it
-		h.Logger.
-			WithField("stripe_subscription_id", event.StripeSubscriptionID).
-			WithField("stripe_subscription_status", event.StripeSubscriptionStatus).
-			Warn("unexpected subscription status, it should be cancelled")
+		logger.Warn(ctx, "unexpected subscription status, it should be cancelled",
+			slog.String("stripe_subscription_id", event.StripeSubscriptionID),
+			slog.String("stripe_subscription_status", string(event.StripeSubscriptionStatus)))
 		return nil
 	}
 
@@ -271,10 +264,9 @@ func (h *StripeWebhookHandler) handleCustomerSubscriptionDeletedEvent(ctx contex
 			// The checkout session doesn't exist
 			// It may happen if the subscription is created via Stripe portal
 			// Tolerate it.
-			h.Logger.
-				WithField("app_id", event.AppID).
-				WithField("stripe_subscription_id", event.StripeSubscriptionID).
-				Info("the subscription checkout does not exist for cancellation")
+			logger.Info(ctx, "the subscription checkout does not exist for cancellation",
+				slog.String("app_id", event.AppID),
+				slog.String("stripe_subscription_id", event.StripeSubscriptionID))
 		}
 
 		sub, err := h.Subscriptions.GetSubscription0(ctx, event.AppID)
@@ -282,10 +274,9 @@ func (h *StripeWebhookHandler) handleCustomerSubscriptionDeletedEvent(ctx contex
 			if errors.Is(err, service.ErrSubscriptionNotFound) {
 				// Subscription doesn't exist in the db.
 				// Ignore the event.
-				h.Logger.
-					WithField("app_id", event.AppID).
-					WithField("stripe_subscription_id", event.StripeSubscriptionID).
-					Warn("the subscription does not exist for cancellation")
+				logger.Warn(ctx, "the subscription does not exist for cancellation",
+					slog.String("app_id", event.AppID),
+					slog.String("stripe_subscription_id", event.StripeSubscriptionID))
 				return nil
 			}
 			return err
@@ -295,10 +286,9 @@ func (h *StripeWebhookHandler) handleCustomerSubscriptionDeletedEvent(ctx contex
 			// The cancelled subscription id doesn't match the one in the db.
 			// It may happen if the subscription is managed in Stripe portal manually.
 			// Ignore the event.
-			h.Logger.
-				WithField("app_id", event.AppID).
-				WithField("stripe_subscription_id", event.StripeSubscriptionID).
-				Warn("the subscription id doesn't match the one in the db for cancellation")
+			logger.Warn(ctx, "the subscription id doesn't match the one in the db for cancellation",
+				slog.String("app_id", event.AppID),
+				slog.String("stripe_subscription_id", event.StripeSubscriptionID))
 			return nil
 		}
 
@@ -311,9 +301,7 @@ func (h *StripeWebhookHandler) handleCustomerSubscriptionDeletedEvent(ctx contex
 		if err != nil {
 			return err
 		}
-		h.Logger.
-			WithField("app_id", event.AppID).
-			Info("cancelled app plan")
+		logger.Info(ctx, "cancelled app plan", slog.String("app_id", event.AppID))
 
 		return nil
 	})
