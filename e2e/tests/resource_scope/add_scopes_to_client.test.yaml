@@ -87,4 +87,40 @@ steps:
             }
           },
           "errors": null
-        } 
+        }
+---
+name: Add Scopes To Client - Rejected if resource is not associated
+before:
+  - type: custom_sql
+    custom_sql:
+      path: fixtures.sql
+steps:
+  - action: adminapi_query
+    adminapi_request:
+      query: |
+        mutation AddScopesToClientID {
+          addScopesToClientID(input: {
+            clientID: "e2e",
+            resourceURI: "https://fixtureresource/2",
+            scopes: ["fixturescope2"]
+          }) {
+            scopes {
+              id
+              scope
+              description
+            }
+          }
+        }
+      variables: "{}"
+    adminapi_output:
+      result: |
+        {
+          "data": null,
+          "errors": [
+            {
+              "extensions": {
+                "reason": "ResourceNotAssociatedWithClient"
+              }
+            }
+          ]
+        }
