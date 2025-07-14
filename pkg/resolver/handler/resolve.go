@@ -8,7 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/userinfo"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
-	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
 func ConfigureResolveRoute(route httproute.Route) []httproute.Route {
@@ -25,11 +25,7 @@ type Database interface {
 	ReadOnly(ctx context.Context, do func(ctx context.Context) error) error
 }
 
-type ResolveHandlerLogger struct{ *log.Logger }
-
-func NewResolveHandlerLogger(lf *log.Factory) ResolveHandlerLogger {
-	return ResolveHandlerLogger{lf.New("resolve-handler")}
-}
+var ResolveHandlerLogger = slogutil.NewLogger("resolve-handler")
 
 type UserInfoService interface {
 	GetUserInfoGreatest(ctx context.Context, userID string) (*userinfo.UserInfo, error)
@@ -37,7 +33,6 @@ type UserInfoService interface {
 
 type ResolveHandler struct {
 	Database        Database
-	Logger          ResolveHandlerLogger
 	UserInfoService UserInfoService
 }
 
@@ -49,9 +44,10 @@ func (h *ResolveHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ResolveHandler) Handle(ctx context.Context, rw http.ResponseWriter, r *http.Request) (err error) {
+	logger := ResolveHandlerLogger.GetLogger(ctx)
 	info, err := h.resolve(ctx, r)
 	if err != nil {
-		h.Logger.WithError(err).Error("failed to resolve user")
+		logger.WithError(err).Error(ctx, "failed to resolve user")
 
 		http.Error(rw, "internal error", http.StatusInternalServerError)
 		return

@@ -949,8 +949,6 @@ var (
 func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	handle := appProvider.AppDatabase
-	factory := appProvider.LoggerFactory
-	resolveHandlerLogger := handler.NewResolveHandlerLogger(factory)
 	appredisHandle := appProvider.Redis
 	appContext := appProvider.AppContext
 	config := appContext.Config
@@ -1306,7 +1304,6 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 	}
 	resolveHandler := &handler.ResolveHandler{
 		Database:        handle,
-		Logger:          resolveHandlerLogger,
 		UserInfoService: userInfoService,
 	}
 	return resolveHandler
