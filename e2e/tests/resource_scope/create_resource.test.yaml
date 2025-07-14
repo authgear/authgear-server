@@ -1,0 +1,32 @@
+name: Create Resource
+steps:
+  - action: adminapi_query
+    adminapi_request:
+      query: |
+        mutation MyMutation {
+          createResource(input: {
+            uri: "https://testresource1",
+            name: "Test resource"
+          }) {
+            resource {
+              id
+              name
+              uri
+            }
+          }
+        }
+      variables: "{}"
+    adminapi_output:
+      result: |
+        {
+          "data": {
+            "createResource": {
+              "resource": {
+                "id": "[[string]]",
+                "name": "Test resource",
+                "uri": "https://testresource1"
+              }
+            }
+          },
+          "errors": null
+        }
