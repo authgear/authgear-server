@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"reflect"
 	"strings"
@@ -43,10 +44,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/jwkutil"
 	"github.com/authgear/authgear-server/pkg/util/jwtutil"
-	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/otelutil"
 	"github.com/authgear/authgear-server/pkg/util/pkce"
 	"github.com/authgear/authgear-server/pkg/util/slice"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
 //go:generate go tool mockgen -source=handler_token.go -destination=handler_token_mock_test.go -package handler_test
@@ -89,11 +90,7 @@ type ChallengeProvider interface {
 	Consume(ctx context.Context, token string) (*challenge.Purpose, error)
 }
 
-type TokenHandlerLogger struct{ *log.Logger }
-
-func NewTokenHandlerLogger(lf *log.Factory) TokenHandlerLogger {
-	return TokenHandlerLogger{lf.New("oauth-token")}
-}
+var TokenHandlerLogger = slogutil.NewLogger("oauth-token")
 
 type TokenHandlerCodeGrantStore interface {
 	GetCodeGrant(ctx context.Context, codeHash string) (*oauth.CodeGrant, error)
@@ -194,7 +191,6 @@ type TokenHandler struct {
 	OAuthFeatureConfig     *config.OAuthFeatureConfig
 	IdentityFeatureConfig  *config.IdentityFeatureConfig
 	OAuthClientCredentials *config.OAuthClientCredentials
-	Logger                 TokenHandlerLogger
 
 	Authorizations                  AuthorizationService
 	CodeGrants                      TokenHandlerCodeGrantStore
@@ -221,6 +217,7 @@ type TokenHandler struct {
 }
 
 func (h *TokenHandler) Handle(ctx context.Context, rw http.ResponseWriter, req *http.Request, r protocol.TokenRequest) httputil.Result {
+	logger := TokenHandlerLogger.GetLogger(ctx)
 	ctx, client := resolveClient(ctx, h.ClientResolver, r.ClientID())
 	if client == nil {
 		return tokenResultError{
@@ -236,7 +233,7 @@ func (h *TokenHandler) Handle(ctx context.Context, rw http.ResponseWriter, req *
 			resultErr.StatusCode = oauthError.StatusCode
 			resultErr.Response = oauthError.Response
 		} else {
-			h.Logger.WithError(err).Error("authz handler failed")
+			logger.WithError(err).Error(ctx, "authz handler failed")
 			resultErr.Response = protocol.NewErrorResponse("server_error", "internal server error")
 			resultErr.InternalError = true
 		}
@@ -359,20 +356,22 @@ func (h *TokenHandler) validateRequest(r protocol.TokenRequest, client *config.O
 var errInvalidAuthzCode = protocol.NewError("invalid_grant", "invalid authorization code")
 
 func (h *TokenHandler) app2appVerifyAndConsumeChallenge(ctx context.Context, jwt string) (*app2app.Request, error) {
+	logger := TokenHandlerLogger.GetLogger(ctx)
 	app2appToken, err := h.App2App.ParseTokenUnverified(jwt)
 	if err != nil {
-		h.Logger.WithError(err).Debugln("invalid app2app jwt payload")
+		logger.WithError(err).Debug(ctx, "invalid app2app jwt payload")
 		return nil, protocol.NewError("invalid_request", "invalid app2app jwt payload")
 	}
 	purpose, err := h.Challenges.Consume(ctx, app2appToken.Challenge)
 	if err != nil || *purpose != challenge.PurposeApp2AppRequest {
-		h.Logger.WithError(err).Debugln("invalid app2app jwt challenge")
+		logger.WithError(err).Debug(ctx, "invalid app2app jwt challenge")
 		return nil, protocol.NewError("invalid_request", "invalid app2app jwt challenge")
 	}
 	return app2appToken, nil
 }
 
 func (h *TokenHandler) app2appGetDeviceKeyJWKVerified(ctx context.Context, jwt string) (jwk.Key, error) {
+	logger := TokenHandlerLogger.GetLogger(ctx)
 	app2appToken, err := h.app2appVerifyAndConsumeChallenge(ctx, jwt)
 	if err != nil {
 		return nil, err
@@ -380,7 +379,7 @@ func (h *TokenHandler) app2appGetDeviceKeyJWKVerified(ctx context.Context, jwt s
 	key := app2appToken.Key
 	_, err = h.App2App.ParseToken(jwt, key)
 	if err != nil {
-		h.Logger.WithError(err).Debugln("invalid app2app jwt signature")
+		logger.WithError(err).Debug(ctx, "invalid app2app jwt signature")
 		return nil, protocol.NewError("invalid_request", "invalid app2app jwt signature")
 	}
 	return key, nil
@@ -492,6 +491,7 @@ func (h *TokenHandler) IssueTokensForAuthorizationCode(
 	client *config.OAuthClientConfig,
 	r protocol.TokenRequest,
 ) (protocol.TokenResponse, error) {
+	logger := TokenHandlerLogger.GetLogger(ctx)
 	deviceInfo, err := r.DeviceInfo()
 	if err != nil {
 		return nil, protocol.NewError("invalid_request", err.Error())
@@ -577,7 +577,7 @@ func (h *TokenHandler) IssueTokensForAuthorizationCode(
 
 	err = h.CodeGrants.DeleteCodeGrant(ctx, codeGrant)
 	if err != nil {
-		h.Logger.WithError(err).Error("failed to invalidate code grant")
+		logger.WithError(err).Error(ctx, "failed to invalidate code grant")
 	}
 
 	otelutil.IntCounterAddOne(
@@ -1031,6 +1031,7 @@ func (h *TokenHandler) handleBiometricSetup(
 	client *config.OAuthClientConfig,
 	r protocol.TokenRequest,
 ) (httputil.Result, error) {
+	logger := TokenHandlerLogger.GetLogger(ctx)
 	s := session.GetSession(ctx)
 	if s == nil {
 		return nil, protocol.NewErrorStatusCode("invalid_grant", "biometric setup requires authenticated user", http.StatusUnauthorized)
@@ -1049,12 +1050,12 @@ func (h *TokenHandler) handleBiometricSetup(
 			JWT: r.JWT(),
 		})
 		if len(edges) != 0 {
-			h.Logger.WithFields(map[string]interface{}{
-				"cliend_id": client.ClientID,
-				"edges": strings.Join(slice.Map(edges, func(edge interaction.Edge) string {
+			logger.With(
+				slog.String("client_id", client.ClientID),
+				slog.String("edges", strings.Join(slice.Map(edges, func(edge interaction.Edge) string {
 					return reflect.TypeOf(edge).String()
-				}), ","),
-			}).Error("interaction not completed for biometric setup")
+				}), ",")),
+			).Error(ctx, "interaction not completed for biometric setup")
 			return nil, errors.New("interaction not completed for biometric setup")
 		} else if err != nil {
 			return nil, err
@@ -1090,6 +1091,7 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 	client *config.OAuthClientConfig,
 	r protocol.TokenRequest,
 ) (httputil.Result, error) {
+	logger := TokenHandlerLogger.GetLogger(ctx)
 	deviceInfo, err := r.DeviceInfo()
 	if err != nil {
 		return nil, protocol.NewError("invalid_request", err.Error())
@@ -1112,12 +1114,12 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 			JWT: r.JWT(),
 		})
 		if len(edges) != 0 {
-			h.Logger.WithFields(map[string]interface{}{
-				"cliend_id": client.ClientID,
-				"edges": strings.Join(slice.Map(edges, func(edge interaction.Edge) string {
+			logger.With(
+				slog.String("client_id", client.ClientID),
+				slog.String("edges", strings.Join(slice.Map(edges, func(edge interaction.Edge) string {
 					return reflect.TypeOf(edge).String()
-				}), ","),
-			}).Error("interaction not completed for biometric authenticate")
+				}), ",")),
+			).Error(ctx, "interaction not completed for biometric authenticate")
 			return nil, errors.New("interaction not completed for biometric authenticate")
 		} else if err != nil {
 			return nil, err
@@ -1269,6 +1271,7 @@ func (h *TokenHandler) handleApp2AppRequest(
 	feature *config.OAuthFeatureConfig,
 	r protocol.TokenRequest,
 ) (httputil.Result, error) {
+	logger := TokenHandlerLogger.GetLogger(ctx)
 	if !client.App2appEnabled {
 		return nil, protocol.NewError(
 			"unauthorized_client",
@@ -1329,7 +1332,7 @@ func (h *TokenHandler) handleApp2AppRequest(
 	}
 	_, err = h.App2App.ParseToken(app2appjwt, parsedKey)
 	if err != nil {
-		h.Logger.WithError(err).Debugln("invalid app2app jwt signature")
+		logger.WithError(err).Debug(ctx, "invalid app2app jwt signature")
 		return nil, protocol.NewError("invalid_request", "invalid app2app jwt signature")
 	}
 
@@ -1852,6 +1855,7 @@ func (h *TokenHandler) IssueTokensForSettingsActionCode(
 	client *config.OAuthClientConfig,
 	r protocol.TokenRequest,
 ) (protocol.TokenResponse, error) {
+	logger := TokenHandlerLogger.GetLogger(ctx)
 	codeHash := oauth.HashToken(r.Code())
 	settingsActionGrant, err := h.SettingsActionGrantStore.GetSettingsActionGrant(ctx, codeHash)
 	if errors.Is(err, oauth.ErrGrantNotFound) {
@@ -1915,7 +1919,7 @@ func (h *TokenHandler) IssueTokensForSettingsActionCode(
 
 	err = h.SettingsActionGrantStore.DeleteSettingsActionGrant(ctx, settingsActionGrant)
 	if err != nil {
-		h.Logger.WithError(err).Error("failed to invalidate settings action grant")
+		logger.WithError(err).Error(ctx, "failed to invalidate settings action grant")
 	}
 
 	return protocol.TokenResponse{}, nil

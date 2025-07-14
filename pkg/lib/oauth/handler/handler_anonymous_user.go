@@ -23,7 +23,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/duration"
-	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
 var ErrUnauthenticated = apierrors.NewUnauthorized("authentication required")
@@ -42,12 +41,6 @@ func (i *anonymousSignupWithoutKeyInput) GetPromotionCode() string {
 }
 
 var _ nodes.InputUseIdentityAnonymous = &anonymousSignupWithoutKeyInput{}
-
-type AnonymousUserHandlerLogger struct{ *log.Logger }
-
-func NewAnonymousUserHandlerLogger(lf *log.Factory) AnonymousUserHandlerLogger {
-	return AnonymousUserHandlerLogger{lf.New("oauth-anonymous-user")}
-}
 
 type UserProvider interface {
 	Get(ctx context.Context, id string, role accesscontrol.Role) (*model.User, error)
@@ -73,7 +66,6 @@ type SignupAnonymousUserResult struct {
 type AnonymousUserHandler struct {
 	AppID       config.AppID
 	OAuthConfig *config.OAuthConfig
-	Logger      AnonymousUserHandlerLogger
 
 	Graphs              GraphService
 	Authorizations      AuthorizationService

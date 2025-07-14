@@ -10,7 +10,6 @@ import (
 
 	gomock "github.com/golang/mock/gomock"
 	"github.com/lestrrat-go/jwx/v2/jwt"
-	"github.com/sirupsen/logrus"
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -55,7 +54,6 @@ func TestTokenHandler(t *testing.T) {
 			OAuthFeatureConfig:     &config.OAuthFeatureConfig{},
 			IdentityFeatureConfig:  &config.IdentityFeatureConfig{},
 			OAuthClientCredentials: &config.OAuthClientCredentials{},
-			Logger:                 handler.TokenHandlerLogger{logrus.NewEntry(logrus.New())},
 			Clock:                  clock,
 			RemoteIP:               "1.2.3.4",
 			UserAgentString:        "UA",
