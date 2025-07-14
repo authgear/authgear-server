@@ -3,6 +3,7 @@ package cmdusage
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"strings"
 	"time"
 
@@ -17,6 +18,7 @@ import (
 	libusage "github.com/authgear/authgear-server/pkg/lib/usage"
 	"github.com/authgear/authgear-server/pkg/util/cobrasentry"
 	"github.com/authgear/authgear-server/pkg/util/periodical"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
 var cmdUsage = &cobra.Command{
@@ -45,13 +47,15 @@ var typeList = strings.Join([]string{
 	string(libusage.RecordTypeWhatsappSent),
 }, "|")
 
+var logger = slogutil.NewLogger("cmd-portal-usage")
+
 var cmdUsageCollectCount = &cobra.Command{
 	Use:   fmt.Sprintf("collect-count [%s] [period]", typeList),
 	Short: "Collect usage count record",
 	Args:  cobra.ExactArgs(2),
 	RunE: cobrasentry.RunEWrap(portalcmd.GetBinder, func(ctx context.Context, cmd *cobra.Command, args []string) (err error) {
 		hub := cobrasentry.GetHub(ctx)
-		logger := cobrasentry.NewLoggerFactory(hub).New("cmd-portal-usage")
+		logger := logger.GetLogger(ctx)
 
 		binder := portalcmd.GetBinder()
 		dbURL, err := binder.GetRequiredString(cmd, portalcmd.ArgDatabaseURL)
@@ -134,14 +138,14 @@ var cmdUsageCollectCount = &cobra.Command{
 			return fmt.Errorf("invalid arguments; record type: %s; period: %s", recordType, period)
 		}
 
-		logger.Info("Start collecting usage records")
+		logger.Info(ctx, "start collecting usage records")
 
 		updatedCount, err := collectorFunc(ctx, date)
 		if err != nil {
 			return err
 		}
 
-		logger.Infof("Number of records have been updated: %d", updatedCount)
+		logger.Info(ctx, "number of records have been updated", slog.Int("update_count", updatedCount))
 
 		return nil
 	}),
