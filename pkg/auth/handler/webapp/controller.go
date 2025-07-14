@@ -19,7 +19,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/tester"
 	"github.com/authgear/authgear-server/pkg/lib/webappoauth"
 	"github.com/authgear/authgear-server/pkg/util/clock"
-	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
 type PageService interface {
@@ -83,14 +82,12 @@ type ControllerDeps struct {
 }
 
 type ControllerFactory struct {
-	LoggerFactory *log.Factory
 	ControllerDeps
 }
 
 func (f *ControllerFactory) New(r *http.Request, rw http.ResponseWriter) (*Controller, error) {
 	path := r.URL.Path
 	ctrl := &Controller{
-		Log:            f.LoggerFactory.New(path),
 		ControllerDeps: f.ControllerDeps,
 
 		path:         path,
@@ -108,7 +105,6 @@ func (f *ControllerFactory) New(r *http.Request, rw http.ResponseWriter) (*Contr
 }
 
 type Controller struct {
-	Log *log.Logger
 	ControllerDeps
 
 	path     string

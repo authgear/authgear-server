@@ -3,13 +3,12 @@ package webapp
 import (
 	"encoding/base64"
 	"fmt"
+	"log/slog"
 	"net/http"
-
 	"strings"
 
 	"github.com/gorilla/csrf"
 	"github.com/gorilla/securecookie"
-	"github.com/sirupsen/logrus"
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	webapp "github.com/authgear/authgear-server/pkg/auth/webapp"
@@ -17,15 +16,11 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/jwkutil"
-	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/otelutil"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
-type CSRFMiddlewareLogger struct{ *log.Logger }
-
-func NewCSRFMiddlewareLogger(lf *log.Factory) CSRFMiddlewareLogger {
-	return CSRFMiddlewareLogger{lf.New("webapp-csrf-middleware")}
-}
+var CSRFMiddlewareLogger = slogutil.NewLogger("webapp-csrf-middleware")
 
 type CSRFMiddlewareUIImplementationService interface {
 	GetUIImplementation() config.UIImplementation
@@ -35,7 +30,6 @@ type CSRFMiddleware struct {
 	Secret                  *config.CSRFKeyMaterials
 	TrustProxy              config.TrustProxy
 	Cookies                 CookieManager
-	Logger                  CSRFMiddlewareLogger
 	BaseViewModel           *viewmodels.BaseViewModeler
 	Renderer                Renderer
 	UIImplementationService CSRFMiddlewareUIImplementationService
@@ -87,8 +81,9 @@ func (m *CSRFMiddleware) Handle(next http.Handler) http.Handler {
 }
 
 func (m *CSRFMiddleware) unauthorizedHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	otelutil.IntCounterAddOne(
-		r.Context(),
+		ctx,
 		otelauthgear.CounterCSRFRequestCount,
 		otelauthgear.WithStatusError(),
 	)
@@ -151,16 +146,17 @@ func (m *CSRFMiddleware) unauthorizedHandler(w http.ResponseWriter, r *http.Requ
 		}
 	}
 
-	m.Logger.WithFields(logrus.Fields{
-		"hasOmitCookie":           hasOmitCookie,
-		"hasNoneCookie":           hasNoneCookie,
-		"hasLaxCookie":            hasLaxCookie,
-		"hasStrictCookie":         hasStrictCookie,
-		"csrfCookieSizeInBytes":   csrfCookieSizeInBytes,
-		"maskedCsrfCookieContent": maskedCsrfCookieContent,
-		"securecookieError":       securecookieError,
-		"csrfFailureReason":       csrfFailureReason,
-	}).Errorf("CSRF Forbidden: %v", csrfFailureReason)
+	logger := CSRFMiddlewareLogger.GetLogger(ctx)
+	logger.With(
+		slog.Bool("hasOmitCookie", hasOmitCookie),
+		slog.Bool("hasNoneCookie", hasNoneCookie),
+		slog.Bool("hasLaxCookie", hasLaxCookie),
+		slog.Bool("hasStrictCookie", hasStrictCookie),
+		slog.Int("csrfCookieSizeInBytes", csrfCookieSizeInBytes),
+		slog.String("maskedCsrfCookieContent", maskedCsrfCookieContent),
+		slog.String("securecookieError", securecookieError),
+		slog.Any("csrfFailureReason", csrfFailureReason),
+	).Error(ctx, "CSRF Forbidden")
 
 	uiImpl := m.UIImplementationService.GetUIImplementation()
 

@@ -13,21 +13,17 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(FormPrefiller), "*"),
 	wire.Bind(new(Renderer), new(*ResponseRenderer)),
 	wire.Struct(new(ErrorRenderer), "*"),
-	NewErrorRendererLogger,
 
 	wire.Struct(new(ControllerDeps), "*"),
 	wire.Struct(new(ControllerFactory), "*"),
 
 	wire.Struct(new(AuthflowController), "*"),
-	NewAuthflowControllerLogger,
 
 	NewPublisher,
 	wire.Struct(new(GlobalSessionServiceFactory), "*"),
 
-	NewPanicMiddlewareLogger,
 	wire.Struct(new(PanicMiddleware), "*"),
 
-	NewCSRFMiddlewareLogger,
 	wire.Struct(new(CSRFMiddleware), "*"),
 	wire.Struct(new(CSRFErrorInstructionHandler), "*"),
 
