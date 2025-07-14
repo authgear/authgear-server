@@ -685,12 +685,10 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 		Lockout:       mfaLockout,
 	}
 	messagingLogger := messaging.NewLogger(factory)
-	usageLogger := usage.NewLogger(factory)
 	usageLimiter := &usage.Limiter{
-		Logger: usageLogger,
-		Clock:  clockClock,
-		AppID:  configAppID,
-		Redis:  appredisHandle,
+		Clock: clockClock,
+		AppID: configAppID,
+		Redis: appredisHandle,
 	}
 	limits := messaging.Limits{
 		Logger:        messagingLogger,

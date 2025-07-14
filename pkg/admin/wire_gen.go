@@ -739,12 +739,10 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Lockout:       mfaLockout,
 	}
 	messagingLogger := messaging.NewLogger(factory)
-	usageLogger := usage.NewLogger(factory)
 	usageLimiter := &usage.Limiter{
-		Logger: usageLogger,
-		Clock:  clockClock,
-		AppID:  appID,
-		Redis:  appredisHandle,
+		Clock: clockClock,
+		AppID: appID,
+		Redis: appredisHandle,
 	}
 	limits := messaging.Limits{
 		Logger:        messagingLogger,
@@ -1371,12 +1369,10 @@ func newUserImportCreateHandler(p *deps.RequestProvider) http.Handler {
 	adminAPIFeatureConfig := featureConfig.AdminAPI
 	handle := appProvider.Redis
 	userImportProducer := redisqueue.NewUserImportProducer(handle, clockClock)
-	logger := usage.NewLogger(factory)
 	limiter := &usage.Limiter{
-		Logger: logger,
-		Clock:  clockClock,
-		AppID:  appID,
-		Redis:  handle,
+		Clock: clockClock,
+		AppID: appID,
+		Redis: handle,
 	}
 	storeRedis := &userimport.StoreRedis{
 		AppID: appID,
@@ -1413,12 +1409,10 @@ func newUserImportGetHandler(p *deps.RequestProvider) http.Handler {
 	adminAPIFeatureConfig := featureConfig.AdminAPI
 	handle := appProvider.Redis
 	userImportProducer := redisqueue.NewUserImportProducer(handle, clockClock)
-	logger := usage.NewLogger(factory)
 	limiter := &usage.Limiter{
-		Logger: logger,
-		Clock:  clockClock,
-		AppID:  appID,
-		Redis:  handle,
+		Clock: clockClock,
+		AppID: appID,
+		Redis: handle,
 	}
 	storeRedis := &userimport.StoreRedis{
 		AppID: appID,
@@ -1456,12 +1450,10 @@ func newUserExportCreateHandler(p *deps.RequestProvider) http.Handler {
 	handle := appProvider.Redis
 	clockClock := _wireSystemClockValue
 	userExportProducer := redisqueue.NewUserExportProducer(handle, clockClock)
-	logger := usage.NewLogger(factory)
 	limiter := &usage.Limiter{
-		Logger: logger,
-		Clock:  clockClock,
-		AppID:  appID,
-		Redis:  handle,
+		Clock: clockClock,
+		AppID: appID,
+		Redis: handle,
 	}
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
@@ -1639,7 +1631,7 @@ func newUserExportCreateHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticatorConfig := appConfig.Authenticator
 	authenticatorPasswordConfig := authenticatorConfig.Password
-	passwordLogger := password.NewLogger(factory)
+	logger := password.NewLogger(factory)
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
 		SQLBuilder:  sqlBuilderApp,
@@ -1658,7 +1650,7 @@ func newUserExportCreateHandler(p *deps.RequestProvider) http.Handler {
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
 		Clock:           clockClock,
-		Logger:          passwordLogger,
+		Logger:          logger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
 		Expiry:          expiry,

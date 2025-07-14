@@ -738,12 +738,10 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Lockout:       mfaLockout,
 	}
 	messagingLogger := messaging.NewLogger(factory)
-	usageLogger := usage.NewLogger(factory)
 	usageLimiter := &usage.Limiter{
-		Logger: usageLogger,
-		Clock:  clock,
-		AppID:  appID,
-		Redis:  handle,
+		Clock: clock,
+		AppID: appID,
+		Redis: handle,
 	}
 	limits := messaging.Limits{
 		Logger:        messagingLogger,

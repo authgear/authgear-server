@@ -584,12 +584,10 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		Lockout:       mfaLockout,
 	}
 	messagingLogger := messaging.NewLogger(factory)
-	usageLogger := usage.NewLogger(factory)
 	usageLimiter := &usage.Limiter{
-		Logger: usageLogger,
-		Clock:  clock,
-		AppID:  appID,
-		Redis:  appredisHandle,
+		Clock: clock,
+		AppID: appID,
+		Redis: appredisHandle,
 	}
 	limits := messaging.Limits{
 		Logger:        messagingLogger,
