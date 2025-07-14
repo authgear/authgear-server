@@ -1,0 +1,38 @@
+name: Create Scope
+before:
+  - type: custom_sql
+    custom_sql:
+      path: fixtures.sql
+steps:
+  - action: adminapi_query
+    adminapi_request:
+      query: |
+        {{ $resourceID := (printf "%s-fixture-resource-01" .AppID) }}
+        mutation MyMutation {
+          createScope(input: {
+            resourceID: "{{ nodeID "Resource" $resourceID }}",
+            scope: "testscope",
+            description: "Test scope"
+          }) {
+            scope {
+              id
+              scope
+              description
+            }
+          }
+        }
+      variables: "{}"
+    adminapi_output:
+      result: |
+        {
+          "data": {
+            "createScope": {
+              "scope": {
+                "description": "Test scope",
+                "id": "[[string]]",
+                "scope": "testscope"
+              }
+            }
+          },
+          "errors": null
+        }
