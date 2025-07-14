@@ -492,7 +492,7 @@ type GraphQLAPIRequest struct {
 }
 
 type GraphQLResponse struct {
-	Data   interface{} `json:"data"`
+	Data   json.RawMessage `json:"data"`
 	Errors []struct {
 		Extensions struct {
 			Reason string `json:"reason"`
