@@ -1,0 +1,69 @@
+name: Add Resource To Client
+before:
+  - type: custom_sql
+    custom_sql:
+      path: fixtures.sql
+steps:
+  - action: adminapi_query
+    adminapi_request:
+      query: |
+        mutation AddResourceToClientID {
+          addResourceToClientID(input: {
+            clientID: "portal",
+            resourceURI: "https://fixtureresource/1"
+          }) {
+            resource {
+              id
+              name
+              uri
+            }
+          }
+        }
+      variables: "{}"
+    adminapi_output:
+      result: |
+        {
+          "data": {
+            "addResourceToClientID": {
+              "resource": {
+                "id": "[[string]]",
+                "name": "Fixture Resource 1",
+                "uri": "https://fixtureresource/1"
+              }
+            }
+          },
+          "errors": null
+        }
+  - action: adminapi_query
+    adminapi_request:
+      query: |
+        query ResourcesByClient {
+          resources(clientID: "portal") {
+            edges {
+              node {
+                id
+                name
+                uri
+              }
+            }
+          }
+        }
+      variables: "{}"
+    adminapi_output:
+      result: |
+        {
+          "data": {
+            "resources": {
+              "edges": [
+                {
+                  "node": {
+                    "id": "[[string]]",
+                    "name": "Fixture Resource 1",
+                    "uri": "https://fixtureresource/1"
+                  }
+                }
+              ]
+            }
+          },
+          "errors": null
+        } 
