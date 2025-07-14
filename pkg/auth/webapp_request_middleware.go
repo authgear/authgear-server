@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"errors"
+	"log/slog"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
@@ -13,6 +14,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
@@ -20,6 +22,8 @@ var TemplateWebAppNotFoundHTML = template.RegisterHTML(
 	"web/app_not_found.html",
 	web.ComponentsHTML...,
 )
+
+var WebAppRequestMiddlewareLogger = slogutil.NewLogger("request")
 
 // WebAppRequestMiddleware is placed at /pkg/auth because it depends on /pkg/auth/handler/webapp/viewmodels
 // So it CANNOT be replaced at /pkg/auth/webapp.
@@ -33,24 +37,22 @@ type WebAppRequestMiddleware struct {
 }
 
 func (m *WebAppRequestMiddleware) Handle(next http.Handler) http.Handler {
-	logger := m.RootProvider.LoggerFactory.New("request")
-
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		logger.WithFields(map[string]interface{}{
-			"request.host":                    r.Host,
-			"request.url":                     r.URL.String(),
-			"request.header.host":             r.Header.Get("Host"),
-			"request.header.x-forwarded-host": r.Header.Get("X-Forwarded-Host"),
-			"request.header.x-original-host":  r.Header.Get("X-Original-Host"),
-		}).Debug("serving request")
-		err := m.ConfigSource.ProvideContext(r.Context(), r, func(ctx context.Context, appCtx *config.AppContext) error {
-			r = r.WithContext(ctx)
+		ctx := r.Context()
+		logger := WebAppRequestMiddlewareLogger.GetLogger(ctx)
+		logger.Debug(ctx, "serving request",
+			slog.String("request_host", r.Host),
+			slog.String("request_url", r.URL.String()),
+			slog.String("request_header_host", r.Header.Get("Host")),
+			slog.String("request_header_x_forwarded_host", r.Header.Get("X-Forwarded-Host")),
+			slog.String("request_header_x_original_host", r.Header.Get("X-Original-Host")),
+		)
+		err := m.ConfigSource.ProvideContext(ctx, r, func(ctx context.Context, appCtx *config.AppContext) error {
+			ctx, ap := m.RootProvider.NewAppProvider(ctx, appCtx)
+			ctx = deps.WithAppProvider(ctx, ap)
+			otelauthgear.SetProjectID(ctx, string(appCtx.Config.AppConfig.ID))
 
-			ctx, ap := m.RootProvider.NewAppProvider(r.Context(), appCtx)
 			r = r.WithContext(ctx)
-			r = r.WithContext(deps.WithAppProvider(r.Context(), ap))
-
-			otelauthgear.SetProjectID(r.Context(), string(appCtx.Config.AppConfig.ID))
 			next.ServeHTTP(w, r)
 			return nil
 		})
@@ -64,9 +66,7 @@ func (m *WebAppRequestMiddleware) Handle(next http.Handler) http.Handler {
 				m.TemplateEngine.RenderStatus(w, r, http.StatusNotFound, TemplateWebAppNotFoundHTML, data)
 			} else {
 				err = errorutil.ForceLogging(err)
-				// Our logging mechanism is not context-aware.
-				// We explicitly attach context here because it was the position we observed the log.
-				logger.WithContext(r.Context()).WithError(err).Error("failed to resolve config")
+				logger.WithError(err).Error(ctx, "failed to resolve config")
 				http.Error(w, "internal server error", http.StatusInternalServerError)
 			}
 			return
