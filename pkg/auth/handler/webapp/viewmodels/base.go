@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	htmltemplate "html/template"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"strings"
@@ -22,17 +23,13 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/geoip"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/intl"
-	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/slice"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 	"github.com/authgear/authgear-server/pkg/util/template"
 	"github.com/authgear/authgear-server/pkg/util/wechat"
 )
 
-type BaseLogger struct{ *log.Logger }
-
-func NewBaseLogger(lf *log.Factory) BaseLogger {
-	return BaseLogger{lf.New("webapp")}
-}
+var BaseLogger = slogutil.NewLogger("webapp")
 
 type TranslationService interface {
 	HasKey(ctx context.Context, key string) (bool, error)
@@ -197,7 +194,6 @@ type BaseViewModeler struct {
 	AuthUISentryDSN                   config.AuthUISentryDSN
 	AuthUIWindowMessageAllowedOrigins config.AuthUIWindowMessageAllowedOrigins
 	OAuthClientResolver               WebappOAuthClientResolver
-	Logger                            BaseLogger
 }
 
 func (m *BaseViewModeler) ViewModelForAuthFlow(r *http.Request, rw http.ResponseWriter) BaseViewModel {
@@ -215,8 +211,9 @@ func (m *BaseViewModeler) ViewModelForInlinePreviewAuthFlow(r *http.Request, rw 
 // nolint: gocognit
 func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) BaseViewModel {
 	ctx := r.Context()
+	logger := BaseLogger.GetLogger(ctx)
 	now := m.Clock.NowUTC().Unix()
-	uiParam := uiparam.GetUIParam(r.Context())
+	uiParam := uiparam.GetUIParam(ctx)
 	clientID := uiParam.ClientID
 	client := m.OAuthClientResolver.ResolveClient(clientID)
 	clientURI := webapp.ResolveClientURI(client, m.AuthUI)
@@ -231,9 +228,9 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 		}
 	}
 
-	cspNonce := httputil.GetCSPNonce(r.Context())
+	cspNonce := httputil.GetCSPNonce(ctx)
 
-	preferredLanguageTags := intl.GetPreferredLanguageTags(r.Context())
+	preferredLanguageTags := intl.GetPreferredLanguageTags(ctx)
 	_, resolvedLanguageTagTag := intl.Resolve(preferredLanguageTags, string(m.DefaultLanguageTag), []string(m.SupportedLanguageTags))
 	resolvedLanguageTag := resolvedLanguageTagTag.String()
 
@@ -285,13 +282,13 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 
 	hasXStep := r.URL.Query().Has(webapp.AuthflowQueryKey)
 	model := BaseViewModel{
-		ColorScheme: webapp.GetColorScheme(r.Context()),
+		ColorScheme: webapp.GetColorScheme(ctx),
 		RequestURI:  r.URL.RequestURI(),
 		HasXStep:    hasXStep,
 		CSPNonce:    cspNonce,
 		CSRFField:   csrf.TemplateField(r),
 		Translations: &TranslationsCompatImpl{
-			Context:            r.Context(),
+			Context:            ctx,
 			TranslationService: m.Translations,
 		},
 		HasAppSpecificAsset: func(id string) bool {
@@ -303,7 +300,7 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 		// {{ $a, $b := call $.StaticAssetURL "foobar" }}
 		// is NOT supported at all.
 		StaticAssetURL: func(id string) (url string) {
-			url, _ = m.StaticAssets.StaticAssetURL(r.Context(), id)
+			url, _ = m.StaticAssets.StaticAssetURL(ctx, id)
 			return
 		},
 		GeneratedStaticAssetURL: func(id string) (url string) {
@@ -372,7 +369,7 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 		}(),
 		LogUnknownError: func(err map[string]interface{}) string {
 			if err != nil {
-				m.Logger.WithFields(err).Errorf("unknown error: %v", err)
+				logger.Error(ctx, "unknown error", slog.Any("any_error", err))
 			}
 
 			return ""
@@ -380,12 +377,12 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 		IsSettingsAction: settingsaction.GetSettingsActionID(r) != "",
 	}
 
-	if errorState, ok := m.ErrorService.PopError(r.Context(), rw, r); ok {
+	if errorState, ok := m.ErrorService.PopError(ctx, rw, r); ok {
 		model.SetFormJSON(errorState.Form)
 		model.SetError(errorState.Error)
 	}
 
-	if s := webapp.GetSession(r.Context()); s != nil {
+	if s := webapp.GetSession(ctx); s != nil {
 		for _, step := range s.Steps {
 			if path := step.Kind.Path(); path == "" {
 				continue
@@ -398,7 +395,7 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 	if platform == "" {
 		// if platform is not provided from the query and form
 		// check it from cookie
-		platform = wechat.GetPlatform(r.Context())
+		platform = wechat.GetPlatform(ctx)
 	}
 	model.IsNativePlatform = (platform == "ios" ||
 		platform == "android")
