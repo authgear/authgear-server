@@ -10,7 +10,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
-	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
 func ConfigureUserInfoRoute(route httproute.Route) httproute.Route {
@@ -23,18 +23,13 @@ type ProtocolUserInfoProvider interface {
 	GetUserInfo(ctx context.Context, userID string, clientLike *oauth.ClientLike) (map[string]interface{}, error)
 }
 
-type UserInfoHandlerLogger struct{ *log.Logger }
-
-func NewUserInfoHandlerLogger(lf *log.Factory) UserInfoHandlerLogger {
-	return UserInfoHandlerLogger{lf.New("handler-user-info")}
-}
+var UserInfoHandlerLogger = slogutil.NewLogger("handler-user-info")
 
 type OAuthClientResolver interface {
 	ResolveClient(clientID string) *config.OAuthClientConfig
 }
 
 type UserInfoHandler struct {
-	Logger              UserInfoHandlerLogger
 	Database            *appdb.Handle
 	UserInfoProvider    ProtocolUserInfoProvider
 	OAuth               *config.OAuthConfig
@@ -42,16 +37,18 @@ type UserInfoHandler struct {
 }
 
 func (h *UserInfoHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
-	s := session.GetSession(r.Context())
+	ctx := r.Context()
+	s := session.GetSession(ctx)
 	clientLike := oauth.SessionClientLike(s, h.OAuthClientResolver)
 	var userInfo map[string]interface{}
-	err := h.Database.WithTx(r.Context(), func(ctx context.Context) (err error) {
+	err := h.Database.WithTx(ctx, func(ctx context.Context) (err error) {
 		userInfo, err = h.UserInfoProvider.GetUserInfo(ctx, s.GetAuthenticationInfo().UserID, clientLike)
 		return
 	})
 
 	if err != nil {
-		h.Logger.WithError(err).Error("oidc userinfo handler failed")
+		logger := UserInfoHandlerLogger.GetLogger(ctx)
+		logger.WithError(err).Error(ctx, "oidc userinfo handler failed")
 		http.Error(rw, "Internal Server Error", 500)
 		return
 	}

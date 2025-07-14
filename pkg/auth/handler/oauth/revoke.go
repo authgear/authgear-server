@@ -7,7 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
-	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
 func ConfigureRevokeRoute(route httproute.Route) httproute.Route {
@@ -16,18 +16,13 @@ func ConfigureRevokeRoute(route httproute.Route) httproute.Route {
 		WithPathPattern("/oauth2/revoke")
 }
 
-type RevokeHandlerLogger struct{ *log.Logger }
-
-func NewRevokeHandlerLogger(lf *log.Factory) RevokeHandlerLogger {
-	return RevokeHandlerLogger{lf.New("handler-revoke")}
-}
+var RevokeHandlerLogger = slogutil.NewLogger("handler-revoke")
 
 type ProtocolRevokeHandler interface {
 	Handle(ctx context.Context, r protocol.RevokeRequest) error
 }
 
 type RevokeHandler struct {
-	Logger        RevokeHandlerLogger
 	Database      *appdb.Handle
 	RevokeHandler ProtocolRevokeHandler
 }
@@ -44,12 +39,14 @@ func (h *RevokeHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		req[name] = values[0]
 	}
 
-	err = h.Database.WithTx(r.Context(), func(ctx context.Context) error {
+	ctx := r.Context()
+	err = h.Database.WithTx(ctx, func(ctx context.Context) error {
 		return h.RevokeHandler.Handle(ctx, req)
 	})
 
 	if err != nil {
-		h.Logger.WithError(err).Error("oauth revoke handler failed")
+		logger := RevokeHandlerLogger.GetLogger(ctx)
+		logger.WithError(err).Error(ctx, "oauth revoke handler failed")
 		http.Error(rw, "Internal Server Error", 500)
 	}
 }

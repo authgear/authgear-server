@@ -7,7 +7,7 @@ import (
 	"github.com/lestrrat-go/jwx/v2/jwk"
 
 	"github.com/authgear/authgear-server/pkg/util/httproute"
-	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
 func ConfigureJWKSRoute(route httproute.Route) httproute.Route {
@@ -20,21 +20,18 @@ type JWSSource interface {
 	GetPublicKeySet() (jwk.Set, error)
 }
 
-type JWKSHandlerLogger struct{ *log.Logger }
-
-func NewJWKSHandlerLogger(lf *log.Factory) JWKSHandlerLogger {
-	return JWKSHandlerLogger{lf.New("handler-jwks")}
-}
+var JWKSHandlerLogger = slogutil.NewLogger("handler-jwks")
 
 type JWKSHandler struct {
-	Logger JWKSHandlerLogger
-	JWKS   JWSSource
+	JWKS JWSSource
 }
 
 func (h *JWKSHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	logger := JWKSHandlerLogger.GetLogger(ctx)
 	jwks, err := h.JWKS.GetPublicKeySet()
 	if err != nil {
-		h.Logger.WithError(err).Error("failed to extract public keys")
+		logger.WithError(err).Error(r.Context(), "failed to extract public keys")
 		http.Error(rw, "internal server error", 500)
 		return
 	}
@@ -44,7 +41,7 @@ func (h *JWKSHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	encoder := json.NewEncoder(rw)
 	err = encoder.Encode(jwks)
 	if err != nil {
-		h.Logger.WithError(err).Error("failed to encode public keys")
+		logger.WithError(err).Error(ctx, "failed to encode public keys")
 		http.Error(rw, "internal server error", 500)
 		return
 	}
