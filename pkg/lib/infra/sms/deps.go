@@ -7,7 +7,6 @@ import (
 )
 
 var DependencySet = wire.NewSet(
-	NewLogger,
 	custom.NewSMSHookTimeout,
 	custom.NewHookHTTPClient,
 	custom.NewHookDenoClient,

@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
-	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
@@ -34,9 +33,6 @@ func NewRestorer(
 	appIDs []string,
 	tableNames []string,
 ) *Restorer {
-	loggerFactory := log.NewFactory(
-		log.LevelDebug,
-	)
 	pool := db.NewPool()
 	handle := db.NewHookHandle(
 		pool,
@@ -47,7 +43,6 @@ func NewRestorer(
 			MaxConnectionLifetime: 1800 * time.Second,
 			IdleConnectionTimeout: 300 * time.Second,
 		},
-		loggerFactory,
 	)
 	sqlExecutor := &db.SQLExecutor{}
 	sqlBuilder := db.NewSQLBuilder(databaseSchema)

@@ -32,7 +32,6 @@ func newWebAppRequestMiddleware(w http.ResponseWriter, r *http.Request, p *deps.
 
 func newPanicMiddleware(p *deps.RootProvider) httproute.Middleware {
 	panic(wire.Build(
-		deps.RootDependencySet,
 		middleware.DependencySet,
 		wire.Bind(new(httproute.Middleware), new(*middleware.PanicMiddleware)),
 	))

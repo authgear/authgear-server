@@ -64,7 +64,7 @@ func NewRootProvider(
 
 	dbPool := db.NewPool()
 	redisPool := redis.NewPool()
-	redisHub := redis.NewHub(ctx, redisPool, loggerFactory)
+	redisHub := redis.NewHub(ctx, redisPool)
 
 	embeddedResources, err := web.NewDefaultGlobalEmbeddedResourceManager()
 	if err != nil {
@@ -114,7 +114,6 @@ func (p *RootProvider) NewAppProvider(ctx context.Context, appCtx *config.AppCon
 		p.DatabasePool,
 		&p.EnvironmentConfig.DatabaseConfig,
 		cfg.SecretConfig.LookupData(config.DatabaseCredentialsKey).(*config.DatabaseCredentials),
-		loggerFactory,
 	)
 	var searchDatabaseCredentials *config.SearchDatabaseCredentials
 	if s := cfg.SecretConfig.LookupData(config.SearchDatabaseCredentialsKey); s != nil {
@@ -124,7 +123,6 @@ func (p *RootProvider) NewAppProvider(ctx context.Context, appCtx *config.AppCon
 		p.DatabasePool,
 		&p.EnvironmentConfig.DatabaseConfig,
 		searchDatabaseCredentials,
-		loggerFactory,
 	)
 	var auditDatabaseCredentials *config.AuditDatabaseCredentials
 	if a := cfg.SecretConfig.LookupData(config.AuditDatabaseCredentialsKey); a != nil {
@@ -134,20 +132,17 @@ func (p *RootProvider) NewAppProvider(ctx context.Context, appCtx *config.AppCon
 		p.DatabasePool,
 		&p.EnvironmentConfig.DatabaseConfig,
 		auditDatabaseCredentials,
-		loggerFactory,
 	)
 	auditWriteDatabase := auditdb.NewWriteHandle(
 		p.DatabasePool,
 		&p.EnvironmentConfig.DatabaseConfig,
 		auditDatabaseCredentials,
-		loggerFactory,
 	)
 	redis := appredis.NewHandle(
 		p.RedisPool,
 		p.RedisHub,
 		&p.EnvironmentConfig.RedisConfig,
 		cfg.SecretConfig.LookupData(config.RedisCredentialsKey).(*config.RedisCredentials),
-		loggerFactory,
 	)
 
 	var analyticRedisCredentials *config.AnalyticRedisCredentials
@@ -158,7 +153,6 @@ func (p *RootProvider) NewAppProvider(ctx context.Context, appCtx *config.AppCon
 		p.RedisPool,
 		&p.EnvironmentConfig.RedisConfig,
 		analyticRedisCredentials,
-		loggerFactory,
 	)
 
 	provider := &AppProvider{
@@ -279,7 +273,7 @@ func NewBackgroundProvider(
 
 	dbPool := db.NewPool()
 	redisPool := redis.NewPool()
-	redisHub := redis.NewHub(ctx, redisPool, loggerFactory)
+	redisHub := redis.NewHub(ctx, redisPool)
 
 	embeddedResources, err := web.NewDefaultGlobalEmbeddedResourceManager()
 	if err != nil {

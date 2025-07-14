@@ -49,8 +49,7 @@ func NewAppLister(pool *db.Pool, databaseCredentials *CmdDBCredential) *AppListe
 	environmentConfig := NewEnvConfig(databaseCredentials)
 	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
 	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	factory := NewLoggerFactory()
-	handle := globaldb.NewHandle(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
+	handle := globaldb.NewHandle(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig)
 	sqlBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
 	sqlExecutor := globaldb.NewSQLExecutor(handle)
 	store := &configsource.Store{
@@ -71,8 +70,7 @@ func NewReindexer(pool *db.Pool, databaseCredentials *CmdDBCredential, appID Cmd
 	config := NewEmptyConfig(pool, databaseCredentials, appID)
 	secretConfig := config.SecretConfig
 	configDatabaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	factory := NewLoggerFactory()
-	handle := appdb.NewHandle(pool, databaseEnvironmentConfig, configDatabaseCredentials, factory)
+	handle := appdb.NewHandle(pool, databaseEnvironmentConfig, configDatabaseCredentials)
 	appConfig := config.AppConfig
 	configAppID := appConfig.ID
 	sqlBuilderApp := appdb.NewSQLBuilderApp(configDatabaseCredentials, configAppID)

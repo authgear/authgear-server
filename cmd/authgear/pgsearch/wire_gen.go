@@ -52,10 +52,9 @@ func NewReindexer(pool *db.Pool, databaseCredentials *CmdDBCredential, searchDat
 	config := NewEmptyConfig(pool, databaseCredentials, searchDatabaseCredentials, appID)
 	secretConfig := config.SecretConfig
 	configDatabaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	factory := NewLoggerFactory()
-	handle := appdb.NewHandle(pool, databaseEnvironmentConfig, configDatabaseCredentials, factory)
+	handle := appdb.NewHandle(pool, databaseEnvironmentConfig, configDatabaseCredentials)
 	configSearchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
-	searchdbHandle := searchdb.NewHandle(pool, databaseEnvironmentConfig, configSearchDatabaseCredentials, factory)
+	searchdbHandle := searchdb.NewHandle(pool, databaseEnvironmentConfig, configSearchDatabaseCredentials)
 	appConfig := config.AppConfig
 	configAppID := appConfig.ID
 	sqlBuilderApp := appdb.NewSQLBuilderApp(configDatabaseCredentials, configAppID)

@@ -25,7 +25,7 @@ func newAuditSink(app *model.App, pool *db.Pool, cfg *config.DatabaseEnvironment
 	configConfig := appContext.Config
 	secretConfig := configConfig.SecretConfig
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	writeHandle := auditdb.NewWriteHandle(pool, cfg, auditDatabaseCredentials, loggerFactory)
+	writeHandle := auditdb.NewWriteHandle(pool, cfg, auditDatabaseCredentials)
 	appConfig := configConfig.AppConfig
 	appID := appConfig.ID
 	sqlBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)

@@ -5,7 +5,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
-	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
 var DependencySet = wire.NewSet(
@@ -71,7 +70,6 @@ func NewHandle(
 	pool *db.Pool,
 	cfg *config.DatabaseEnvironmentConfig,
 	credentials *config.DatabaseCredentials,
-	lf *log.Factory,
 ) *Handle {
 	info := db.ConnectionInfo{
 		Purpose:     db.ConnectionPurposeApp,
@@ -84,6 +82,6 @@ func NewHandle(
 		IdleConnectionTimeout: cfg.ConnMaxIdleTimeSeconds.Duration(),
 	}
 	return &Handle{
-		db.NewHookHandle(pool, info, opts, lf),
+		db.NewHookHandle(pool, info, opts),
 	}
 }

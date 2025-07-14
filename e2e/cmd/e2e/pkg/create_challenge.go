@@ -9,7 +9,6 @@ import (
 	infraredis "github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 	"github.com/authgear/authgear-server/pkg/util/clock"
-	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
 func (c *End2End) CreateChallenge(
@@ -21,10 +20,9 @@ func (c *End2End) CreateChallenge(
 	if err != nil {
 		return err
 	}
-	lf := log.NewFactory(log.LevelInfo)
 
 	redisPool := infraredis.NewPool()
-	redisHub := infraredis.NewHub(ctx, redisPool, lf)
+	redisHub := infraredis.NewHub(ctx, redisPool)
 	redis := appredis.NewHandle(
 		redisPool,
 		redisHub,
@@ -32,7 +30,6 @@ func (c *End2End) CreateChallenge(
 		&config.RedisCredentials{
 			RedisURL: cfg.GlobalRedis.RedisURL,
 		},
-		lf,
 	)
 	store := &challenge.Store{
 		AppID: config.AppID(appID),

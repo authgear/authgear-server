@@ -24,7 +24,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/filepathutil"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
-	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 	"github.com/authgear/authgear-server/pkg/util/slogutil"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
@@ -68,14 +67,12 @@ func NewDatabaseHandleFactory(
 	pool *db.Pool,
 	credentials *config.GlobalDatabaseCredentialsEnvironmentConfig,
 	cfg *config.DatabaseEnvironmentConfig,
-	lf *log.Factory,
 ) DatabaseHandleFactory {
 	factory := func() *globaldb.Handle {
 		return globaldb.NewHandle(
 			pool,
 			credentials,
 			cfg,
-			lf,
 		)
 	}
 	return factory

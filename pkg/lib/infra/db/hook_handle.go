@@ -4,10 +4,11 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log/slog"
 
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
-	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/otelutil/oteldatabasesql"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
@@ -71,7 +72,6 @@ type HookHandle struct {
 	Pool              Pool_
 	ConnectionInfo    ConnectionInfo
 	ConnectionOptions ConnectionOptions
-	Logger            *log.Logger
 }
 
 func mustGetTxLike(ctx context.Context) txLike {
@@ -80,12 +80,13 @@ func mustGetTxLike(ctx context.Context) txLike {
 
 var _ Handle = (*HookHandle)(nil)
 
-func NewHookHandle(pool Pool_, info ConnectionInfo, opts ConnectionOptions, lf *log.Factory) *HookHandle {
+var HookHandleLogger = slogutil.NewLogger("db-handle")
+
+func NewHookHandle(pool Pool_, info ConnectionInfo, opts ConnectionOptions) *HookHandle {
 	return &HookHandle{
 		Pool:              pool,
 		ConnectionInfo:    info,
 		ConnectionOptions: opts,
-		Logger:            lf.New("db-handle"),
 	}
 }
 
@@ -121,8 +122,11 @@ func (h *HookHandle) WithTx(ctx_original context.Context, do func(ctx context.Co
 	}()
 
 	id := uuid.New()
-	logger := h.Logger.WithField("debug_id", id)
-	db, err := h.openDB()
+	logger := slogutil.GetContextLogger(ctx_hooks)
+	logger = logger.With(slog.String("debug_id", id))
+	ctx_hooks = slogutil.SetContextLogger(ctx_hooks, logger)
+
+	db, err := h.openDB(ctx_hooks)
 	if err != nil {
 		return
 	}
@@ -133,7 +137,7 @@ func (h *HookHandle) WithTx(ctx_original context.Context, do func(ctx context.Co
 	}
 	defer conn.Close()
 
-	tx, err := beginTx(ctx_hooks, logger, conn)
+	tx, err := beginTx(ctx_hooks, conn)
 	if err != nil {
 		return
 	}
@@ -144,12 +148,12 @@ func (h *HookHandle) WithTx(ctx_original context.Context, do func(ctx context.Co
 
 	defer func() {
 		if r := recover(); r != nil {
-			_ = rollbackTx(logger, tx)
+			_ = rollbackTx(ctx_hooks_tx, tx)
 			panic(r)
 		} else if err != nil {
-			_ = rollbackTx(logger, tx)
+			_ = rollbackTx(ctx_hooks_tx, tx)
 		} else {
-			err = commitTx(ctx_hooks_tx, logger, tx, mustContextGetHooks(ctx_hooks_tx).Hooks)
+			err = commitTx(ctx_hooks_tx, tx, mustContextGetHooks(ctx_hooks_tx).Hooks)
 			if err == nil {
 				shouldRunDidCommitHooks = true
 			}
@@ -173,8 +177,11 @@ func (h *HookHandle) ReadOnly(ctx_original context.Context, do func(ctx context.
 	}()
 
 	id := uuid.New()
-	logger := h.Logger.WithField("debug_id", id)
-	db, err := h.openDB()
+	logger := slogutil.GetContextLogger(ctx_hooks)
+	logger = logger.With(slog.String("debug_id", id))
+	ctx_hooks = slogutil.SetContextLogger(ctx_hooks, logger)
+
+	db, err := h.openDB(ctx_hooks)
 	if err != nil {
 		return
 	}
@@ -185,7 +192,7 @@ func (h *HookHandle) ReadOnly(ctx_original context.Context, do func(ctx context.
 	}
 	defer conn.Close()
 
-	tx, err := beginTx(ctx_hooks, logger, conn)
+	tx, err := beginTx(ctx_hooks, conn)
 	if err != nil {
 		return
 	}
@@ -196,12 +203,12 @@ func (h *HookHandle) ReadOnly(ctx_original context.Context, do func(ctx context.
 
 	defer func() {
 		if r := recover(); r != nil {
-			_ = rollbackTx(logger, tx)
+			_ = rollbackTx(ctx_hooks_tx, tx)
 			panic(r)
 		} else if err != nil {
-			_ = rollbackTx(logger, tx)
+			_ = rollbackTx(ctx_hooks_tx, tx)
 		} else {
-			err = rollbackTx(logger, tx)
+			err = rollbackTx(ctx_hooks_tx, tx)
 			if err == nil {
 				shouldRunDidCommitHooks = true
 			}
@@ -214,8 +221,14 @@ func (h *HookHandle) ReadOnly(ctx_original context.Context, do func(ctx context.
 
 func (h *HookHandle) WithPrepareStatementsHandle(ctx context.Context, do func(ctx context.Context, handle PreparedStatementsHandle) error) (err error) {
 	id := uuid.New()
-	logger := h.Logger.WithField("debug_id", id)
-	db, err := h.openDB()
+	{
+		logger := slogutil.GetContextLogger(ctx)
+		logger = logger.With(slog.String("debug_id", id))
+		ctx = slogutil.SetContextLogger(ctx, logger)
+	}
+	logger := HookHandleLogger.GetLogger(ctx)
+
+	db, err := h.openDB(ctx)
 	if err != nil {
 		return
 	}
@@ -225,14 +238,13 @@ func (h *HookHandle) WithPrepareStatementsHandle(ctx context.Context, do func(ct
 		err = fmt.Errorf("hook-handle: failed to acquire connection: %w", err)
 		return
 	}
-	logger.Debug("acquire connection")
+	logger.Debug(ctx, "acquire connection")
 
 	preparedStatementsHandle := &preparedStatementsHandle{
-		logger:           logger,
 		conn:             conn,
 		cachedStatements: make(map[string]*sql.Stmt),
 	}
-	defer preparedStatementsHandle.Close()
+	defer preparedStatementsHandle.Close(ctx)
 
 	ctx = withPreparedStatementsHandle(ctx, preparedStatementsHandle)
 
@@ -245,7 +257,9 @@ func (*HookHandle) IsInTx(ctx context.Context) bool {
 	return isInTx
 }
 
-func beginTx(ctx context.Context, logger *log.Logger, conn oteldatabasesql.Conn_) (*sql.Tx, error) {
+func beginTx(ctx context.Context, conn oteldatabasesql.Conn_) (*sql.Tx, error) {
+	logger := HookHandleLogger.GetLogger(ctx)
+
 	// Pass a nil TxOptions to use default isolation level.
 	var txOptions *sql.TxOptions
 	tx, err := conn.BeginTx(ctx, txOptions)
@@ -253,11 +267,13 @@ func beginTx(ctx context.Context, logger *log.Logger, conn oteldatabasesql.Conn_
 		return nil, fmt.Errorf("hook-handle: failed to begin transaction: %w", err)
 	}
 
-	logger.Debug("begin")
+	logger.Debug(ctx, "begin")
 	return tx, nil
 }
 
-func commitTx(ctx context.Context, logger *log.Logger, tx *sql.Tx, hooks []TransactionHook) error {
+func commitTx(ctx context.Context, tx *sql.Tx, hooks []TransactionHook) error {
+	logger := HookHandleLogger.GetLogger(ctx)
+
 	for _, hook := range hooks {
 		err := hook.WillCommitTx(ctx)
 		if err != nil {
@@ -272,28 +288,31 @@ func commitTx(ctx context.Context, logger *log.Logger, tx *sql.Tx, hooks []Trans
 	if err != nil {
 		return fmt.Errorf("hook-handle: failed to commit transaction: %w", err)
 	}
-	logger.Debug("commit")
+	logger.Debug(ctx, "commit")
 	return nil
 }
 
-func rollbackTx(logger *log.Logger, tx *sql.Tx) error {
+func rollbackTx(ctx context.Context, tx *sql.Tx) error {
+	logger := HookHandleLogger.GetLogger(ctx)
+
 	err := tx.Rollback()
 	if err != nil {
 		return fmt.Errorf("hook-handle: failed to rollback transaction: %w", err)
 	}
-	logger.Debug("rollback")
+	logger.Debug(ctx, "rollback")
 
 	return nil
 }
 
-func (h *HookHandle) openDB() (oteldatabasesql.ConnPool_, error) {
-	h.Logger.WithFields(map[string]interface{}{
-		"purpose":                    h.ConnectionInfo.Purpose,
-		"max_open_conns":             h.ConnectionOptions.MaxOpenConnection,
-		"max_idle_conns":             h.ConnectionOptions.MaxIdleConnection,
-		"conn_max_lifetime_seconds":  h.ConnectionOptions.MaxConnectionLifetime.Seconds(),
-		"conn_max_idle_time_seconds": h.ConnectionOptions.IdleConnectionTimeout.Seconds(),
-	}).Debug("open database")
+func (h *HookHandle) openDB(ctx context.Context) (oteldatabasesql.ConnPool_, error) {
+	logger := HookHandleLogger.GetLogger(ctx)
+	logger.Debug(ctx, "open database",
+		slog.String("purpose", string(h.ConnectionInfo.Purpose)),
+		slog.Int("max_open_conns", h.ConnectionOptions.MaxOpenConnection),
+		slog.Int("max_idle_conns", h.ConnectionOptions.MaxIdleConnection),
+		slog.Duration("conn_max_lifetime_seconds", h.ConnectionOptions.MaxConnectionLifetime),
+		slog.Duration("conn_max_idle_time_seconds", h.ConnectionOptions.IdleConnectionTimeout),
+	)
 
 	db, err := h.Pool.Open(h.ConnectionInfo, h.ConnectionOptions)
 	if err != nil {

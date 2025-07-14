@@ -8,19 +8,13 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
-	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/panicutil"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
-type PanicMiddlewareLogger struct{ *log.Logger }
+var PanicMiddlewareLogger = slogutil.NewLogger("panic-middleware")
 
-func NewPanicMiddlewareLogger(lf *log.Factory) PanicMiddlewareLogger {
-	return PanicMiddlewareLogger{lf.New("panic-middleware")}
-}
-
-type PanicMiddleware struct {
-	Logger PanicMiddlewareLogger
-}
+type PanicMiddleware struct{}
 
 func (m *PanicMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -44,7 +38,9 @@ func (m *PanicMiddleware) Handle(next http.Handler) http.Handler {
 		defer func() {
 			if err := recover(); err != nil {
 				e := panicutil.MakeError(err)
-				m.Logger.WithError(e).Error("panic occurred")
+				ctx := r.Context()
+				logger := PanicMiddlewareLogger.GetLogger(ctx)
+				logger.WithError(e).Error(ctx, "panic occurred")
 
 				// Write the error as JSON.
 				if !written {

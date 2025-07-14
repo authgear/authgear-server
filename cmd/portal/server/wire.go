@@ -23,7 +23,6 @@ func newConfigSourceController(p *deps.RootProvider) *configsource.Controller {
 		wire.FieldsOf(new(*deps.RootProvider),
 			"EnvironmentConfig",
 			"ConfigSourceConfig",
-			"LoggerFactory",
 			"AppBaseResources",
 			"Database",
 		),

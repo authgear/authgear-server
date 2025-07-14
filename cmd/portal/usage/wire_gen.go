@@ -15,7 +15,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/analyticredis"
 	"github.com/authgear/authgear-server/pkg/lib/meter"
 	"github.com/authgear/authgear-server/pkg/lib/usage"
-	"github.com/authgear/authgear-server/pkg/util/cobrasentry"
 	"github.com/getsentry/sentry-go"
 )
 
@@ -24,8 +23,7 @@ import (
 func NewCountCollector(pool *db.Pool, databaseCredentials *config.DatabaseCredentials, auditDatabaseCredentials *config.AuditDatabaseCredentials, redisPool *redis.Pool, credentials *config.AnalyticRedisCredentials, hub *sentry.Hub) *usage.CountCollector {
 	globalDatabaseCredentialsEnvironmentConfig := NewGlobalDatabaseCredentials(databaseCredentials)
 	databaseEnvironmentConfig := config.NewDefaultDatabaseEnvironmentConfig()
-	factory := cobrasentry.NewLoggerFactory(hub)
-	handle := globaldb.NewHandle(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
+	handle := globaldb.NewHandle(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig)
 	sqlBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
 	sqlExecutor := globaldb.NewSQLExecutor(handle)
 	globalDBStore := &usage.GlobalDBStore{
@@ -33,11 +31,11 @@ func NewCountCollector(pool *db.Pool, databaseCredentials *config.DatabaseCreden
 		SQLExecutor: sqlExecutor,
 	}
 	redisEnvironmentConfig := config.NewDefaultRedisEnvironmentConfig()
-	analyticredisHandle := analyticredis.NewHandle(redisPool, redisEnvironmentConfig, credentials, factory)
+	analyticredisHandle := analyticredis.NewHandle(redisPool, redisEnvironmentConfig, credentials)
 	readStoreRedis := &meter.ReadStoreRedis{
 		Redis: analyticredisHandle,
 	}
-	readHandle := auditdb.NewReadHandle(pool, databaseEnvironmentConfig, auditDatabaseCredentials, factory)
+	readHandle := auditdb.NewReadHandle(pool, databaseEnvironmentConfig, auditDatabaseCredentials)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials)
 	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
 	auditDBReadStore := &meter.AuditDBReadStore{

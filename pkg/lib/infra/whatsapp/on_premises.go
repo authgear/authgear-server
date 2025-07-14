@@ -14,17 +14,12 @@ import (
 	nethttputil "net/http/httputil"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
-type WhatsappOnPremisesClientLogger struct{ *log.Logger }
-
-func NewWhatsappOnPremisesClientLogger(lf *log.Factory) WhatsappOnPremisesClientLogger {
-	return WhatsappOnPremisesClientLogger{lf.New("whatsapp-on-premises-client")}
-}
+var WhatsappOnPremisesClientLogger = slogutil.NewLogger("whatsapp-on-premises-client")
 
 type OnPremisesClient struct {
-	Logger      WhatsappOnPremisesClientLogger
 	HTTPClient  HTTPClient
 	Endpoint    *url.URL
 	Credentials *config.WhatsappOnPremisesCredentials
@@ -32,7 +27,6 @@ type OnPremisesClient struct {
 }
 
 func NewWhatsappOnPremisesClient(
-	lf *log.Factory,
 	credentials *config.WhatsappOnPremisesCredentials,
 	tokenStore *TokenStore,
 	httpClient HTTPClient,
@@ -45,7 +39,6 @@ func NewWhatsappOnPremisesClient(
 		panic(err)
 	}
 	return &OnPremisesClient{
-		Logger:      WhatsappOnPremisesClientLogger{lf.New("whatsapp-on-premises-client")},
 		HTTPClient:  httpClient,
 		Endpoint:    endpoint,
 		Credentials: credentials,
@@ -155,13 +148,14 @@ func (c *OnPremisesClient) sendTemplate(
 
 	dumpedResponse, dumpResponseErr := nethttputil.DumpResponse(resp, true)
 	if dumpResponseErr != nil {
-		c.Logger.WithError(dumpResponseErr).Warn("failed to dump response")
+		logger := WhatsappOnPremisesClientLogger.GetLogger(ctx)
+		logger.WithError(dumpResponseErr).Warn(ctx, "failed to dump response")
 	} else {
 		whatsappAPIErr.DumpedResponse = dumpedResponse
 	}
 	// The dump error is not part of the api error, ignore it
 
-	errResp, err := c.tryParseErrorResponse(resp)
+	errResp, err := c.tryParseErrorResponse(ctx, resp)
 	if err != nil {
 		return errors.Join(err, whatsappAPIErr)
 	} else {
@@ -184,7 +178,7 @@ func (c *OnPremisesClient) sendTemplate(
 	return whatsappAPIErr
 }
 
-func (c *OnPremisesClient) tryParseErrorResponse(resp *http.Response) (*WhatsappOnPremisesAPIErrorResponse, error) {
+func (c *OnPremisesClient) tryParseErrorResponse(ctx context.Context, resp *http.Response) (*WhatsappOnPremisesAPIErrorResponse, error) {
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		// If we failed to read the response body, it is an error
@@ -196,7 +190,8 @@ func (c *OnPremisesClient) tryParseErrorResponse(resp *http.Response) (*Whatsapp
 	// The api could return other errors in format we don't understand, so non-nil parseErr is expected.
 	// Just return nil in this case.
 	if parseErr != nil {
-		c.Logger.WithError(parseErr).Warn("failed to parse error response")
+		logger := WhatsappOnPremisesClientLogger.GetLogger(ctx)
+		logger.WithError(parseErr).Warn(ctx, "failed to parse error response")
 		return nil, nil
 	}
 	return &errResp, nil
@@ -230,7 +225,7 @@ func (c *OnPremisesClient) login(ctx context.Context) (*onPremisesUserToken, err
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		// It was observed that when status code is 401, the body is empty.
 		// Thus parse error should be ignored.
-		errResp, parseErr := c.tryParseErrorResponse(resp)
+		errResp, parseErr := c.tryParseErrorResponse(ctx, resp)
 		if parseErr == nil {
 			whatsappAPIErr.OnPremisesResponse = errResp
 		}

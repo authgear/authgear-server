@@ -31,8 +31,7 @@ func newConfigSourceController(p *deps.RootProvider) *configsource.Controller {
 	planStoreFactory := configsource.NewPlanStoreStoreFactory(sqlBuilder)
 	pool := p.Database
 	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	factory := p.LoggerFactory
-	databaseHandleFactory := configsource.NewDatabaseHandleFactory(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
+	databaseHandleFactory := configsource.NewDatabaseHandleFactory(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig)
 	resolveAppIDType := configsource.NewResolveAppIDTypeDomain()
 	database := &configsource.Database{
 		BaseResources:            manager,

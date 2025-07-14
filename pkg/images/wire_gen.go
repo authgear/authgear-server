@@ -25,11 +25,7 @@ import (
 // Injectors from wire.go:
 
 func newPanicMiddleware(p *deps.RootProvider) httproute.Middleware {
-	factory := p.LoggerFactory
-	panicMiddlewareLogger := middleware.NewPanicMiddlewareLogger(factory)
-	panicMiddleware := &middleware.PanicMiddleware{
-		Logger: panicMiddlewareLogger,
-	}
+	panicMiddleware := &middleware.PanicMiddleware{}
 	return panicMiddleware
 }
 
@@ -69,11 +65,8 @@ func newCORSMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		SAMLConfig:         samlConfig,
 		CORSAllowedOrigins: corsAllowedOrigins,
 	}
-	factory := rootProvider.LoggerFactory
-	corsMiddlewareLogger := middleware.NewCORSMiddlewareLogger(factory)
 	corsMiddleware := &middleware.CORSMiddleware{
 		Matcher: corsMatcher,
-		Logger:  corsMiddlewareLogger,
 	}
 	return corsMiddleware
 }
@@ -141,7 +134,7 @@ func newPostHandler(p *deps.RequestProvider) http.Handler {
 	pool := rootProvider.DatabasePool
 	databaseEnvironmentConfig := environmentConfig.DatabaseConfig
 	databaseCredentials := deps2.ProvideDatabaseCredentials(secretConfig)
-	handle := appdb.NewHandle(pool, databaseEnvironmentConfig, databaseCredentials, factory)
+	handle := appdb.NewHandle(pool, databaseEnvironmentConfig, databaseCredentials)
 	appConfig := config.AppConfig
 	appID := appConfig.ID
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)

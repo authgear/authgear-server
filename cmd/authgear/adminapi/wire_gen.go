@@ -19,8 +19,7 @@ import (
 
 func NewInvoker(pool *db.Pool, credentials *config.GlobalDatabaseCredentialsEnvironmentConfig) *Invoker {
 	databaseEnvironmentConfig := config.NewDefaultDatabaseEnvironmentConfig()
-	factory := NewLoggerFactory()
-	handle := globaldb.NewHandle(pool, credentials, databaseEnvironmentConfig, factory)
+	handle := globaldb.NewHandle(pool, credentials, databaseEnvironmentConfig)
 	sqlBuilder := globaldb.NewSQLBuilder(credentials)
 	sqlExecutor := globaldb.NewSQLExecutor(handle)
 	store := &configsource.Store{

@@ -95,8 +95,7 @@ func newConfigSourceController(p *deps.BackgroundProvider) *configsource.Control
 	planStoreFactory := configsource.NewPlanStoreStoreFactory(sqlBuilder)
 	pool := p.DatabasePool
 	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	factory := p.LoggerFactory
-	databaseHandleFactory := configsource.NewDatabaseHandleFactory(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
+	databaseHandleFactory := configsource.NewDatabaseHandleFactory(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig)
 	resolveAppIDType := configsource.NewResolveAppIDTypeDomain()
 	database := &configsource.Database{
 		BaseResources:            manager,
@@ -155,8 +154,7 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 	configConfig := appContext.Config
 	secretConfig := configConfig.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	factory := p.LoggerFactory
-	handle := appdb.NewHandle(pool, databaseEnvironmentConfig, databaseCredentials, factory)
+	handle := appdb.NewHandle(pool, databaseEnvironmentConfig, databaseCredentials)
 	appConfig := configConfig.AppConfig
 	configAppID := appConfig.ID
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, configAppID)
@@ -248,7 +246,7 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 	hub := p.RedisHub
 	redisEnvironmentConfig := &environmentConfig.RedisConfig
 	redisCredentials := deps.ProvideRedisCredentials(secretConfig)
-	appredisHandle := appredis.NewHandle(redisPool, hub, redisEnvironmentConfig, redisCredentials, factory)
+	appredisHandle := appredis.NewHandle(redisPool, hub, redisEnvironmentConfig, redisCredentials)
 	store2 := &passkey2.Store{
 		Redis: appredisHandle,
 		AppID: configAppID,
@@ -548,7 +546,7 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 		RolesAndGroups:     commands,
 	}
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	writeHandle := auditdb.NewWriteHandle(pool, databaseEnvironmentConfig, auditDatabaseCredentials, factory)
+	writeHandle := auditdb.NewWriteHandle(pool, databaseEnvironmentConfig, auditDatabaseCredentials)
 	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, configAppID)
 	writeSQLExecutor := auditdb.NewWriteSQLExecutor(writeHandle)
 	writeStore := &audit.WriteStore{
@@ -583,7 +581,7 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 	appID2 := &appConfig.ID
 	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
 	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
-	searchdbHandle := searchdb.NewHandle(pool, databaseEnvironmentConfig, searchDatabaseCredentials, factory)
+	searchdbHandle := searchdb.NewHandle(pool, databaseEnvironmentConfig, searchDatabaseCredentials)
 	searchdbSQLExecutor := searchdb.NewSQLExecutor(searchdbHandle)
 	pgsearchStore := pgsearch.NewStore(configAppID, searchdbSQLBuilder, searchdbSQLExecutor)
 	pgsearchService := &pgsearch.Service{
@@ -668,14 +666,11 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 		FeatureConfig: featureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
-	mailLogger := mail.NewLogger(factory)
 	smtpServerCredentials := deps.ProvideSMTPServerCredentials(secretConfig)
 	dialer := mail.NewGomailDialer(smtpServerCredentials)
 	sender := &mail.Sender{
-		Logger:       mailLogger,
 		GomailDialer: dialer,
 	}
-	smsLogger := sms.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	smsProvider := messagingConfig.Deprecated_SMSProvider
 	smsGatewayConfig := messagingConfig.SMSGateway
@@ -721,10 +716,8 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 		SMSWebHook:                                 smsWebHook,
 	}
 	smsSender := &sms.Sender{
-		Logger:         smsLogger,
 		ClientResolver: clientResolver,
 	}
-	serviceLogger := whatsapp.NewServiceLogger(factory)
 	whatsappConfig := messagingConfig.Whatsapp
 	globalWhatsappAPIType := environmentConfig.WhatsappAPIType
 	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
@@ -734,11 +727,10 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 		Clock: clockClock,
 	}
 	httpClient := whatsapp.NewHTTPClient()
-	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(factory, whatsappOnPremisesCredentials, tokenStore, httpClient)
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappOnPremisesCredentials, tokenStore, httpClient)
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient)
 	whatsappService := &whatsapp.Service{
-		Logger:                serviceLogger,
 		WhatsappConfig:        whatsappConfig,
 		LocalizationConfig:    localizationConfig,
 		GlobalWhatsappAPIType: globalWhatsappAPIType,
@@ -818,7 +810,7 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 		Store: eventStoreRedis,
 	}
 	analyticRedisCredentials := deps.ProvideAnalyticRedisCredentials(secretConfig)
-	analyticredisHandle := analyticredis.NewHandle(redisPool, redisEnvironmentConfig, analyticRedisCredentials, factory)
+	analyticredisHandle := analyticredis.NewHandle(redisPool, redisEnvironmentConfig, analyticRedisCredentials)
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: configAppID,

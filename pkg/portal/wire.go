@@ -19,7 +19,6 @@ import (
 
 func newPanicMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	panic(wire.Build(
-		deps.DependencySet,
 		middleware.DependencySet,
 		wire.Bind(new(httproute.Middleware), new(*middleware.PanicMiddleware)),
 	))

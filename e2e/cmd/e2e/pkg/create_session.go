@@ -13,7 +13,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/util/clock"
-	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
 func (c *End2End) CreateSession(
@@ -62,10 +61,8 @@ func (c *End2End) CreateSession(
 		return fmt.Errorf("Cannot determine user ID because SQL returned invalid result.")
 	}
 
-	lf := log.NewFactory(log.LevelInfo)
-
 	redisPool := infraredis.NewPool()
-	redisHub := infraredis.NewHub(ctx, redisPool, lf)
+	redisHub := infraredis.NewHub(ctx, redisPool)
 	redis := appredis.NewHandle(
 		redisPool,
 		redisHub,
@@ -73,7 +70,6 @@ func (c *End2End) CreateSession(
 		&config.RedisCredentials{
 			RedisURL: cfg.GlobalRedis.RedisURL,
 		},
-		lf,
 	)
 	clk := clock.NewSystemClock()
 	switch sessionType {

@@ -9,7 +9,6 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 	. "github.com/smartystreets/goconvey/convey"
 
-	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/otelutil/oteldatabasesql"
 )
 
@@ -109,8 +108,7 @@ func TestHookHandle(t *testing.T) {
 		pool := NewMockPool_(ctrl)
 
 		hookHandle := &HookHandle{
-			Pool:   pool,
-			Logger: log.Null,
+			Pool: pool,
 		}
 
 		// Construct a real connection pool of size 1.

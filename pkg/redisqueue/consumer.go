@@ -65,7 +65,6 @@ func NewConsumer(ctx context.Context, queueName string, rateLimitConfig config.R
 		rootProvider.RedisPool,
 		&rootProvider.EnvironmentConfig.RedisConfig,
 		&rootProvider.EnvironmentConfig.GlobalRedis,
-		rootProvider.LoggerFactory,
 	)
 
 	return &Consumer{
