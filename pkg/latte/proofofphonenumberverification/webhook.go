@@ -9,22 +9,18 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
-	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
-type WebhookMiddlewareLogger struct{ *log.Logger }
-
-func NewWebhookMiddlewareLogger(lf *log.Factory) WebhookMiddlewareLogger {
-	return WebhookMiddlewareLogger{lf.New("proof-of-phone-number-verification-webhook")}
-}
+var ProofOfPhoneNumberVerificationWebHookLogger = slogutil.NewLogger("proof-of-phone-number-verification-webhook")
 
 type ProofOfPhoneNumberVerificationWebHook struct {
 	hook.WebHook
 	Client HookHTTPClient
-	Logger WebhookMiddlewareLogger
 }
 
 func (h *ProofOfPhoneNumberVerificationWebHook) Call(ctx context.Context, u *url.URL, hookReq *HookRequest) (*HookResponse, error) {
+	logger := ProofOfPhoneNumberVerificationWebHookLogger.GetLogger(ctx)
 	req, err := h.PrepareRequest(ctx, u, hookReq)
 	if err != nil {
 		return nil, err
@@ -38,7 +34,7 @@ func (h *ProofOfPhoneNumberVerificationWebHook) Call(ctx context.Context, u *url
 	}()
 
 	if err != nil {
-		h.Logger.WithError(err).Error("failed to call webhook")
+		logger.WithError(err).Error(ctx, "failed to call webhook")
 		return nil, err
 	}
 
