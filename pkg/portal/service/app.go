@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/url"
 	"path"
 	"regexp"
@@ -33,9 +34,9 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/duration"
 	"github.com/authgear/authgear-server/pkg/util/intl"
-	"github.com/authgear/authgear-server/pkg/util/log"
 	corerand "github.com/authgear/authgear-server/pkg/util/rand"
 	"github.com/authgear/authgear-server/pkg/util/resource"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
@@ -71,11 +72,7 @@ type AppPlanService interface {
 	GetDefaultPlan(ctx context.Context) (*plan.Plan, error)
 }
 
-type AppServiceLogger struct{ *log.Logger }
-
-func NewAppServiceLogger(lf *log.Factory) AppServiceLogger {
-	return AppServiceLogger{lf.New("app-service")}
-}
+var AppServiceLogger = slogutil.NewLogger("app-service")
 
 type AppResourceManagerFactory interface {
 	NewManagerWithNewAppFS(appFs resource.Fs) *appresource.Manager
@@ -109,7 +106,6 @@ type AppConfigSourceStore interface {
 }
 
 type AppService struct {
-	Logger      AppServiceLogger
 	SQLBuilder  *globaldb.SQLBuilder
 	SQLExecutor *globaldb.SQLExecutor
 
@@ -386,14 +382,12 @@ func (s *AppService) GenerateTesterToken(
 
 // Create calls other services that acquires connection themselves, and acquires connection.
 func (s *AppService) Create(ctx context.Context, userID string, id string) (*model.App, error) {
+	logger := AppServiceLogger.GetLogger(ctx)
 	if err := s.validateAppID(ctx, id); err != nil {
 		return nil, err
 	}
 
-	s.Logger.
-		WithField("user_id", userID).
-		WithField("app_id", id).
-		Info("creating app")
+	logger.Info(ctx, "creating app", slog.String("user_id", userID), slog.String("app_id", id))
 
 	appHost, err := s.DefaultDomains.GetLatestAppHost(id)
 	if err != nil {
@@ -413,7 +407,7 @@ func (s *AppService) Create(ctx context.Context, userID string, id string) (*mod
 		err = s.AppConfigs.Create(ctx, createAppOpts)
 		if err != nil {
 			// TODO(portal): cleanup orphaned resources created from failed app creation
-			s.Logger.WithError(err).WithField("app_id", id).Error("failed to create app")
+			logger.WithError(err).Error(ctx, "failed to create app", slog.String("app_id", id))
 			return err
 		}
 
@@ -468,7 +462,8 @@ func (s *AppService) UpdateResources(ctx context.Context, app *model.App, update
 			return err
 		}
 		if smtpUpdate != nil {
-			s.Logger.WithField("source_app_id", app.ID).Info("detected SMTP secret update")
+			logger := AppServiceLogger.GetLogger(ctx)
+			logger.Info(ctx, "detected SMTP secret update", slog.String("source_app_id", app.ID))
 			appIDsToPropagate, err := s.getAllAppIDsExcept(ctx, app.ID)
 			if err != nil {
 				return err
@@ -481,7 +476,7 @@ func (s *AppService) UpdateResources(ctx context.Context, app *model.App, update
 					return err
 				}
 
-				s.Logger.WithField("source_app_id", app.ID).WithField("target_app_id", theApp.ID).Info("propagate STMP secret update")
+				logger.Info(ctx, "propagate STMP secret update", slog.String("source_app_id", app.ID), slog.String("target_app_id", theApp.ID))
 				funcs = append(funcs, applyUpdatesToGivenApp(theApp, theUpdates))
 			}
 		}

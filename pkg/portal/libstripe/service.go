@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"time"
@@ -23,23 +24,25 @@ import (
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/duration"
-	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/redisutil"
 	"github.com/authgear/authgear-server/pkg/util/setutil"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 	"github.com/authgear/authgear-server/pkg/util/timeutil"
 )
 
 const RedisCacheKeySubscriptionPlans = "cache:portal:subscription-plans"
 
-type Logger struct{ *log.Logger }
+var ServiceLogger = slogutil.NewLogger("stripe")
 
-func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("stripe")} }
-
-func NewClientAPI(stripeConfig *portalconfig.StripeConfig, logger Logger) *client.API {
+func NewClientAPI(stripeConfig *portalconfig.StripeConfig) *client.API {
 	clientAPI := &client.API{}
 	clientAPI.Init(stripeConfig.SecretKey, &stripe.Backends{
 		API: stripe.GetBackendWithConfig(stripe.APIBackend, &stripe.BackendConfig{
-			LeveledLogger: logger,
+			// The interface does not accept context.
+			// Thus we can only ask it to suppress logging by using stripe.LevelNull.
+			LeveledLogger: &stripe.LeveledLogger{
+				Level: stripe.LevelNull,
+			},
 		}),
 	})
 	return clientAPI
@@ -60,7 +63,6 @@ type EndpointsProvider interface {
 
 type Service struct {
 	ClientAPI         *client.API
-	Logger            Logger
 	Plans             PlanService
 	GlobalRedisHandle *globalredis.Handle
 	Cache             Cache
@@ -154,7 +156,8 @@ func (s *Service) FetchCheckoutSession(ctx context.Context, checkoutSessionID st
 	return NewCheckoutSession(checkoutSession), nil
 }
 
-func (s *Service) ConstructEvent(r *http.Request) (Event, error) {
+func (s *Service) ConstructEvent(ctx context.Context, r *http.Request) (Event, error) {
+	logger := ServiceLogger.GetLogger(ctx)
 	payload, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		return nil, err
@@ -168,7 +171,7 @@ func (s *Service) ConstructEvent(r *http.Request) (Event, error) {
 
 	event, err := s.constructEvent(&stripeEvent)
 	if errors.Is(err, ErrUnknownEvent) {
-		s.Logger.WithField("payload", string(payload)).Info("unhandled event")
+		logger.Info(ctx, "unhandled event", slog.String("payload", string(payload)))
 	}
 	return event, err
 }

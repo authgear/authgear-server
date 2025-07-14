@@ -12,7 +12,6 @@ import (
 )
 
 var DependencySet = wire.NewSet(
-	NewLogger,
 	wire.Struct(new(Service), "*"),
 )
 

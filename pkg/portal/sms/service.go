@@ -12,18 +12,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms/smsapi"
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms/twilio"
 	"github.com/authgear/authgear-server/pkg/portal/model"
-	"github.com/authgear/authgear-server/pkg/util/log"
 )
-
-type Logger struct{ *log.Logger }
-
-func NewLogger(lf *log.Factory) Logger {
-	return Logger{lf.New("portal-sms")}
-}
 
 type Service struct {
 	DenoEndpoint config.DenoEndpoint
-	Logger       Logger
 }
 
 const TEST_OTP = "000000"

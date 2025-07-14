@@ -5,6 +5,5 @@ import (
 )
 
 var DependencySet = wire.NewSet(
-	NewManagerFactoryLogger,
 	wire.Struct(new(ManagerFactory), "*"),
 )

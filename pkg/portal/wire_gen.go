@@ -135,18 +135,13 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	appConfig := rootProvider.AppConfig
-	logFactory := rootProvider.LoggerFactory
-	configServiceLogger := service.NewConfigServiceLogger(logFactory)
 	domainImplementationType := rootProvider.DomainImplementation
 	kubernetesConfig := rootProvider.KubernetesConfig
-	kubernetesLogger := service.NewKubernetesLogger(logFactory)
 	kubernetes := &service.Kubernetes{
 		KubernetesConfig: kubernetesConfig,
 		AppConfig:        appConfig,
-		Logger:           kubernetesLogger,
 	}
 	configService := &service.ConfigService{
-		Logger:               configServiceLogger,
 		AppConfig:            appConfig,
 		Controller:           controller,
 		ConfigSource:         configSource,
@@ -174,10 +169,8 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		AuthzAdder:     adder,
 		DefaultDomains: defaultDomainService,
 	}
-	appServiceLogger := service.NewAppServiceLogger(logFactory)
 	httpClient := service.NewHTTPClient()
 	mailConfig := rootProvider.MailConfig
-	logger := smtp.NewLogger(logFactory)
 	devMode := environmentConfig.DevMode
 	smtpConfig := rootProvider.SMTPConfig
 	smtpServerCredentials := deps.ProvideSMTPServerCredentials(smtpConfig)
@@ -186,7 +179,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		GomailDialer: dialer,
 	}
 	smtpService := &smtp.Service{
-		Logger:     logger,
 		DevMode:    devMode,
 		MailSender: sender,
 	}
@@ -227,7 +219,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Configs:       configService,
 		Collaborators: collaboratorService,
 	}
-	managerFactoryLogger := factory.NewManagerFactoryLogger(logFactory)
 	appBaseResources := deps.ProvideAppBaseResources(rootProvider)
 	storeImpl := &tutorial.StoreImpl{
 		SQLBuilder:  sqlBuilder,
@@ -240,7 +231,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	denoEndpoint := environmentConfig.DenoEndpoint
 	denoClientImpl := ProvideDenoClient(denoEndpoint)
 	managerFactory := &factory.ManagerFactory{
-		Logger:            managerFactoryLogger,
 		AppBaseResources:  appBaseResources,
 		Tutorials:         tutorialService,
 		DenoClient:        denoClientImpl,
@@ -274,7 +264,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	appService := &service.AppService{
-		Logger:                   appServiceLogger,
 		SQLBuilder:               sqlBuilder,
 		SQLExecutor:              sqlExecutor,
 		GlobalDatabase:           handle,
@@ -297,10 +286,8 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	domainLoader := loader.NewDomainLoader(domainService, authzService)
 	collaboratorLoader := loader.NewCollaboratorLoader(collaboratorService, authzService)
 	collaboratorInvitationLoader := loader.NewCollaboratorInvitationLoader(collaboratorService, authzService)
-	smsLogger := sms.NewLogger(logFactory)
 	smsService := &sms.Service{
 		DenoEndpoint: denoEndpoint,
-		Logger:       smsLogger,
 	}
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(environmentConfig)
 	readHandle := auditdb.NewReadHandle(pool, databaseEnvironmentConfig, auditDatabaseCredentials)
@@ -318,12 +305,10 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		AnalyticConfig: analyticConfig,
 	}
 	stripeConfig := rootProvider.StripeConfig
-	libstripeLogger := libstripe.NewLogger(logFactory)
-	api := libstripe.NewClientAPI(stripeConfig, libstripeLogger)
+	api := libstripe.NewClientAPI(stripeConfig)
 	stripeCache := libstripe.NewStripeCache()
 	libstripeService := &libstripe.Service{
 		ClientAPI:         api,
-		Logger:            libstripeLogger,
 		Plans:             planService,
 		GlobalRedisHandle: globalredisHandle,
 		Cache:             stripeCache,
@@ -351,6 +336,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	userAgentString := deps.ProvideUserAgentString(request)
+	logFactory := rootProvider.LoggerFactory
 	auditService := &service.AuditService{
 		RemoteIP:                  remoteIP,
 		UserAgentString:           userAgentString,
@@ -456,21 +442,16 @@ func newAdminAPIHandler(p *deps.RequestProvider) http.Handler {
 	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
 	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
 	handle := globaldb.NewHandle(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig)
-	logFactory := rootProvider.LoggerFactory
-	configServiceLogger := service.NewConfigServiceLogger(logFactory)
 	appConfig := rootProvider.AppConfig
 	controller := rootProvider.ConfigSourceController
 	configSource := deps.ProvideConfigSource(controller)
 	domainImplementationType := rootProvider.DomainImplementation
 	kubernetesConfig := rootProvider.KubernetesConfig
-	kubernetesLogger := service.NewKubernetesLogger(logFactory)
 	kubernetes := &service.Kubernetes{
 		KubernetesConfig: kubernetesConfig,
 		AppConfig:        appConfig,
-		Logger:           kubernetesLogger,
 	}
 	configService := &service.ConfigService{
-		Logger:               configServiceLogger,
 		AppConfig:            appConfig,
 		Controller:           controller,
 		ConfigSource:         configSource,
@@ -482,7 +463,6 @@ func newAdminAPIHandler(p *deps.RequestProvider) http.Handler {
 	sqlExecutor := globaldb.NewSQLExecutor(handle)
 	httpClient := service.NewHTTPClient()
 	mailConfig := rootProvider.MailConfig
-	logger := smtp.NewLogger(logFactory)
 	devMode := environmentConfig.DevMode
 	smtpConfig := rootProvider.SMTPConfig
 	smtpServerCredentials := deps.ProvideSMTPServerCredentials(smtpConfig)
@@ -491,7 +471,6 @@ func newAdminAPIHandler(p *deps.RequestProvider) http.Handler {
 		GomailDialer: dialer,
 	}
 	smtpService := &smtp.Service{
-		Logger:     logger,
 		DevMode:    devMode,
 		MailSender: sender,
 	}
@@ -559,6 +538,7 @@ func newAdminAPIHandler(p *deps.RequestProvider) http.Handler {
 		Configs:       configService,
 		Collaborators: collaboratorService,
 	}
+	logFactory := rootProvider.LoggerFactory
 	adminAPILogger := transport.NewAdminAPILogger(logFactory)
 	adminAPIHandler := &transport.AdminAPIHandler{
 		Database: handle,
@@ -581,9 +561,7 @@ func newStaticAssetsHandler(p *deps.RequestProvider) http.Handler {
 func newStripeWebhookHandler(p *deps.RequestProvider) http.Handler {
 	rootProvider := p.RootProvider
 	stripeConfig := rootProvider.StripeConfig
-	logFactory := rootProvider.LoggerFactory
-	logger := libstripe.NewLogger(logFactory)
-	api := libstripe.NewClientAPI(stripeConfig, logger)
+	api := libstripe.NewClientAPI(stripeConfig)
 	pool := rootProvider.Database
 	environmentConfig := rootProvider.EnvironmentConfig
 	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
@@ -621,7 +599,6 @@ func newStripeWebhookHandler(p *deps.RequestProvider) http.Handler {
 	}
 	libstripeService := &libstripe.Service{
 		ClientAPI:         api,
-		Logger:            logger,
 		Plans:             planService,
 		GlobalRedisHandle: globalredisHandle,
 		Cache:             stripeCache,
@@ -629,6 +606,7 @@ func newStripeWebhookHandler(p *deps.RequestProvider) http.Handler {
 		StripeConfig:      stripeConfig,
 		Endpoints:         endpointsProvider,
 	}
+	logFactory := rootProvider.LoggerFactory
 	stripeWebhookLogger := transport.NewStripeWebhookLogger(logFactory)
 	configsourceStore := &configsource.Store{
 		SQLBuilder:  sqlBuilder,

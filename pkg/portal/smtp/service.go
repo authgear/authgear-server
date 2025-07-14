@@ -4,13 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 
 	"gopkg.in/gomail.v2"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/portal/model"
-	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
 type SendTestEmailOptions struct {
@@ -27,27 +28,22 @@ type MailSender interface {
 	Send(*gomail.Message) error
 }
 
-type Logger struct{ *log.Logger }
-
-func NewLogger(lf *log.Factory) Logger {
-	return Logger{lf.New("smtp")}
-}
+var ServiceLogger = slogutil.NewLogger("smtp")
 
 type Service struct {
-	Logger     Logger
 	DevMode    config.DevMode
 	MailSender MailSender
 }
 
 func (s *Service) SendRealEmail(ctx context.Context, opts mail.SendOptions) (err error) {
 	if s.DevMode {
-		s.Logger.
-			WithField("recipient", opts.Recipient).
-			WithField("body", opts.TextBody).
-			WithField("sender", opts.Sender).
-			WithField("subject", opts.Subject).
-			WithField("reply_to", opts.ReplyTo).
-			Warn("skip sending email in development mode")
+		logger := ServiceLogger.GetLogger(ctx)
+		logger.Warn(ctx, "skip sending email in development mode",
+			slog.String("recipient", opts.Recipient),
+			slog.String("body", opts.TextBody),
+			slog.String("sender", opts.Sender),
+			slog.String("subject", opts.Subject),
+			slog.String("reply_to", opts.ReplyTo))
 		return
 	}
 

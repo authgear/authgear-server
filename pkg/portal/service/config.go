@@ -14,7 +14,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
-	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
@@ -31,12 +30,6 @@ type IngressTemplateData struct {
 	TLSSecretName string
 }
 
-type ConfigServiceLogger struct{ *log.Logger }
-
-func NewConfigServiceLogger(lf *log.Factory) ConfigServiceLogger {
-	return ConfigServiceLogger{lf.New("config-service")}
-}
-
 type CreateAppOptions struct {
 	AppID     string
 	Resources map[string][]byte
@@ -44,7 +37,6 @@ type CreateAppOptions struct {
 }
 
 type ConfigService struct {
-	Logger               ConfigServiceLogger
 	AppConfig            *portalconfig.AppConfig
 	Controller           *configsource.Controller
 	ConfigSource         *configsource.ConfigSource

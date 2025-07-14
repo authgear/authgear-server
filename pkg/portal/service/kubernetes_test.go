@@ -25,7 +25,6 @@ import (
 
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
 	"github.com/authgear/authgear-server/pkg/portal/service"
-	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
 func newKubernetesWithDynamicClient(ingressTemplatePath string) (*service.Kubernetes, error) {
@@ -87,7 +86,6 @@ func newKubernetesWithResources(namespace string, objects []runtime.Object, cert
 		Client:            fake.NewSimpleClientset(objects...),
 		CertManagerClient: fakedcertmanager.NewSimpleClientset(certs...),
 		Namespace:         namespace,
-		Logger:            service.KubernetesLogger{log.Null},
 	}, nil
 }
 

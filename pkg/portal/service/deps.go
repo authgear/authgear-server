@@ -49,9 +49,6 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(UsageService), "*"),
 	wire.Struct(new(AuditService), "*"),
 	wire.Struct(new(OnboardService), "*"),
-	NewConfigServiceLogger,
-	NewAppServiceLogger,
-	NewKubernetesLogger,
 
 	wire.Bind(new(AppAuthzService), new(*AuthzService)),
 	wire.Bind(new(AppConfigService), new(*ConfigService)),

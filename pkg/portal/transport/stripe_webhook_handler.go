@@ -24,7 +24,7 @@ func NewStripeWebhookLogger(lf *log.Factory) StripeWebhookLogger {
 }
 
 type StripeService interface {
-	ConstructEvent(r *http.Request) (libstripe.Event, error)
+	ConstructEvent(ctx context.Context, r *http.Request) (libstripe.Event, error)
 	CreateSubscriptionIfNotExists(ctx context.Context, stripeCheckoutSessionID string, subscriptionPlans []*model.SubscriptionPlan) error
 	FetchSubscriptionPlans(ctx context.Context) (subscriptionPlans []*model.SubscriptionPlan, err error)
 }
@@ -68,7 +68,8 @@ func (h *StripeWebhookHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		w.WriteHeader(http.StatusOK)
 	}()
 
-	event, err := h.StripeService.ConstructEvent(r)
+	ctx := r.Context()
+	event, err := h.StripeService.ConstructEvent(ctx, r)
 	if err != nil {
 		return
 	}
