@@ -1,0 +1,37 @@
+name: Update Scope
+before:
+  - type: custom_sql
+    custom_sql:
+      path: fixtures.sql
+steps:
+  - action: adminapi_query
+    adminapi_request:
+      query: |
+        {{ $scopeID := (printf "%s-fixture-scope-01" .AppID) }}
+        mutation UpdateScope {
+          updateScope(input: {
+            id: "{{ nodeID "Scope" $scopeID }}",
+            description: "Updated Scope Description"
+          }) {
+            scope {
+              id
+              scope
+              description
+            }
+          }
+        }
+      variables: "{}"
+    adminapi_output:
+      result: |
+        {
+          "data": {
+            "updateScope": {
+              "scope": {
+                "id": "[[string]]",
+                "scope": "fixturescope1",
+                "description": "Updated Scope Description"
+              }
+            }
+          },
+          "errors": null
+        } 

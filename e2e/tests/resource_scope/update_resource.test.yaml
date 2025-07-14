@@ -1,0 +1,37 @@
+name: Update Resource
+before:
+  - type: custom_sql
+    custom_sql:
+      path: fixtures.sql
+steps:
+  - action: adminapi_query
+    adminapi_request:
+      query: |
+        {{ $resourceID := (printf "%s-fixture-resource-01" .AppID) }}
+        mutation UpdateResource {
+          updateResource(input: {
+            id: "{{ nodeID "Resource" $resourceID }}",
+            name: "Updated Resource Name"
+          }) {
+            resource {
+              id
+              name
+              uri
+            }
+          }
+        }
+      variables: "{}"
+    adminapi_output:
+      result: |
+        {
+          "data": {
+            "updateResource": {
+              "resource": {
+                "id": "[[string]]",
+                "name": "Updated Resource Name",
+                "uri": "https://fixtureresource/1"
+              }
+            }
+          },
+          "errors": null
+        } 
