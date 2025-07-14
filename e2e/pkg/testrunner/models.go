@@ -157,6 +157,22 @@ var _ = TestCaseSchema.Add("SAMLBinding", `
 }
 `)
 
+type AdminAPIRequest struct {
+	Query     string                 `json:"query"`
+	Variables map[string]interface{} `json:"variables"`
+}
+
+var _ = TestCaseSchema.Add("AdminAPIRequest", `
+{
+    "type": "object",
+    "properties": {
+        "query": { "type": "string" },
+        "variables": { "type": "string" }
+    },
+    "required": ["query", "variables"]
+}
+`)
+
 var _ = TestCaseSchema.Add("Step", `
 {
 	"type": "object",
@@ -172,7 +188,8 @@ var _ = TestCaseSchema.Add("Step", `
 			"saml_request",
 			"http_request",
 			"oauth_setup",
-			"oauth_exchange_code"
+			"oauth_exchange_code",
+			"adminapi_query"
 		]},
 		"input": { "type": "string" },
 		"to": { "type": "string" },
@@ -195,7 +212,8 @@ var _ = TestCaseSchema.Add("Step", `
 		"http_request_session_cookie": { "$ref": "#/$defs/SessionCookie" },
 		"http_output": { "$ref": "#/$defs/HTTPOutput" },
 		"oauth_exchange_code_code_verifier": { "type": "string" },
-		"oauth_exchange_code_redirect_uri": { "type": "string" }
+		"oauth_exchange_code_redirect_uri": { "type": "string" },
+		"adminapi_request": { "$ref": "#/$defs/AdminAPIRequest" }
 	},
 	"allOf": [
         {
@@ -288,6 +306,18 @@ var _ = TestCaseSchema.Add("Step", `
 							"oauth_exchange_code_redirect_uri"
 						]
 					}
+				},
+				{
+					"if": {
+						"properties": {
+							"action": { "const": "adminapi_query" }
+						}
+					},
+					"then": {
+						"required": [
+							"adminapi_request"
+						]
+					}
 				}
     ]
 }
@@ -334,6 +364,9 @@ type Step struct {
 	// `action` == "oauth_exchange_code"
 	OAuthExchangeCodeCodeVerifier string `json:"oauth_exchange_code_code_verifier"`
 	OAuthExchangeCodeRedirectURI  string `json:"oauth_exchange_code_redirect_uri"`
+
+	// `action` == "adminapi_query"
+	AdminAPIRequest *AdminAPIRequest `json:"adminapi_request"`
 }
 
 type StepAction string
@@ -348,6 +381,7 @@ const (
 	StepActionHTTPRequest       StepAction = "http_request"
 	StepActionOAuthSetup        StepAction = "oauth_setup"
 	StepActionOAuthExchangeCode StepAction = "oauth_exchange_code"
+	StepActionAdminAPIQuery     StepAction = "adminapi_query"
 )
 
 var _ = TestCaseSchema.Add("SessionCookie", `
