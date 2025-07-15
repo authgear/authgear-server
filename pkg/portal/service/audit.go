@@ -20,7 +20,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/intl"
 	"github.com/authgear/authgear-server/pkg/util/log"
-	"github.com/authgear/authgear-server/pkg/util/sentry"
 	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
@@ -60,8 +59,6 @@ func (s *AuditService) Log(ctx context.Context, app *model.App, payload event.No
 	cfg := app.Context.Config
 	loggerFactory := s.LoggerFactory.ReplaceHooks(
 		log.NewDefaultMaskLogHook(),
-		config.NewSecretMaskLogHook(cfg.SecretConfig),
-		sentry.NewLogHookFromContext(ctx),
 	)
 	loggerFactory.DefaultFields["app"] = cfg.AppConfig.ID
 

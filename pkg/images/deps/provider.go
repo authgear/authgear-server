@@ -50,7 +50,6 @@ func NewRootProvider(
 	loggerFactory := log.NewFactory(
 		logLevel,
 		log.NewDefaultMaskLogHook(),
-		sentry.NewLogHookFromHub(sentryHub),
 	)
 
 	dbPool := db.NewPool()
@@ -81,8 +80,6 @@ func (p *RootProvider) NewAppProvider(ctx context.Context, appCtx *config.AppCon
 	// Legacy logging setup
 	loggerFactory := p.LoggerFactory.ReplaceHooks(
 		log.NewDefaultMaskLogHook(),
-		config.NewSecretMaskLogHook(cfg.SecretConfig),
-		sentry.NewLogHookFromContext(ctx),
 	)
 	loggerFactory.DefaultFields["app"] = cfg.AppConfig.ID
 

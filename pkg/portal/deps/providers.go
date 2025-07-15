@@ -85,7 +85,6 @@ func NewRootProvider(
 	loggerFactory := log.NewFactory(
 		logLevel,
 		log.NewDefaultMaskLogHook(),
-		sentry.NewLogHookFromHub(sentryHub),
 	)
 
 	redisPool := redis.NewPool()
