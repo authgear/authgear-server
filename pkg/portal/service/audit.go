@@ -19,7 +19,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/geoip"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/intl"
-	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
@@ -44,8 +43,7 @@ type AuditService struct {
 	GlobalSQLExecutor *globaldb.SQLExecutor
 	GlobalDatabase    *globaldb.Handle
 
-	Clock         clock.Clock
-	LoggerFactory *log.Factory
+	Clock clock.Clock
 }
 
 func (s *AuditService) Log(ctx context.Context, app *model.App, payload event.NonBlockingPayload) (err error) {
@@ -57,10 +55,6 @@ func (s *AuditService) Log(ctx context.Context, app *model.App, payload event.No
 
 	// Legacy logging setup
 	cfg := app.Context.Config
-	loggerFactory := s.LoggerFactory.ReplaceHooks(
-		log.NewDefaultMaskLogHook(),
-	)
-	loggerFactory.DefaultFields["app"] = cfg.AppConfig.ID
 
 	// Modern logging setup
 	ctx = slogutil.AddMaskPatterns(ctx, config.NewMaskPatternFromSecretConfig(cfg.SecretConfig))

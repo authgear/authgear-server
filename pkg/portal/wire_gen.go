@@ -336,7 +336,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	userAgentString := deps.ProvideUserAgentString(request)
-	logFactory := rootProvider.LoggerFactory
 	auditService := &service.AuditService{
 		RemoteIP:                  remoteIP,
 		UserAgentString:           userAgentString,
@@ -350,7 +349,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		GlobalSQLExecutor:         sqlExecutor,
 		GlobalDatabase:            handle,
 		Clock:                     clockClock,
-		LoggerFactory:             logFactory,
 	}
 	posthogCredentials := ProvidePosthogCredential(analyticConfig)
 	posthogHTTPClient := analytic.NewPosthogHTTPClient()
