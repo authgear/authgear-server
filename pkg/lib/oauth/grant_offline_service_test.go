@@ -5,11 +5,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/golang/mock/gomock"
+	. "github.com/smartystreets/goconvey/convey"
+
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/util/clock"
-	"github.com/golang/mock/gomock"
-	. "github.com/smartystreets/goconvey/convey"
 )
 
 func newBool(b bool) *bool {
