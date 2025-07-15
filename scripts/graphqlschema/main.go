@@ -12,7 +12,6 @@ import (
 	admingraphql "github.com/authgear/authgear-server/pkg/admin/graphql"
 	portalgraphql "github.com/authgear/authgear-server/pkg/portal/graphql"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
-	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
 func main() {
@@ -39,7 +38,7 @@ func main() {
 	}
 
 	ctx := context.Background()
-	ctx = graphqlutil.WithContext(ctx, &GQLContext{logger: log.Null})
+	ctx = graphqlutil.WithContext(ctx, &GQLContext{})
 	params := gographql.Params{
 		Schema:        *schema,
 		RequestString: string(query),
@@ -52,10 +51,6 @@ func main() {
 	}
 }
 
-type GQLContext struct {
-	logger *log.Logger
-}
+type GQLContext struct{}
 
-func (c *GQLContext) Logger() *log.Logger {
-	return c.logger
-}
+var _ graphqlutil.GraphQLContext = (*GQLContext)(nil)
