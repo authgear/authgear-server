@@ -8,7 +8,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
-	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/pubsub"
 )
 
@@ -28,7 +27,6 @@ type WorkflowWebsocketOriginMatcher interface {
 
 type WorkflowWebsocketHandler struct {
 	Events        WorkflowWebsocketEventStore
-	LoggerFactory *log.Factory
 	RedisHandle   *appredis.Handle
 	OriginMatcher WorkflowWebsocketOriginMatcher
 }
@@ -43,7 +41,6 @@ func (h *WorkflowWebsocketHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 	handler := &pubsub.HTTPHandler{
 		RedisHub:      h.RedisHandle,
 		Delegate:      h,
-		LoggerFactory: h.LoggerFactory,
 		OriginMatcher: matcher,
 	}
 

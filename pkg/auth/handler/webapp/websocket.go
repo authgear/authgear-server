@@ -11,7 +11,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
-	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/pubsub"
 )
 
@@ -22,17 +21,15 @@ func ConfigureWebsocketRoute(route httproute.Route) httproute.Route {
 }
 
 type WebsocketHandler struct {
-	AppID         config.AppID
-	LoggerFactory *log.Factory
-	RedisHandle   *appredis.Handle
-	Publisher     *Publisher
+	AppID       config.AppID
+	RedisHandle *appredis.Handle
+	Publisher   *Publisher
 }
 
 func (h *WebsocketHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	handler := &pubsub.HTTPHandler{
-		RedisHub:      h.RedisHandle,
-		Delegate:      h,
-		LoggerFactory: h.LoggerFactory,
+		RedisHub: h.RedisHandle,
+		Delegate: h,
 		// Let the library to do CORS checking, which by default does not allow CORS.
 		// This websocket endpoint is intended for same-origin use only.
 		OriginMatcher: nil,

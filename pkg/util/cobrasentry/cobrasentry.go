@@ -2,15 +2,16 @@ package cobrasentry
 
 import (
 	"context"
+	"log/slog"
 	"time"
 
 	"github.com/getsentry/sentry-go"
 	"github.com/spf13/cobra"
 
 	"github.com/authgear/authgear-server/pkg/util/cobraviper"
-	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/panicutil"
 	sentryutil "github.com/authgear/authgear-server/pkg/util/sentry"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
 var ArgSentryDSN = &cobraviper.StringArgument{
@@ -23,6 +24,8 @@ type BinderGetter func() *cobraviper.Binder
 
 type InputRunEFunc func(ctx context.Context, cmd *cobra.Command, args []string) error
 type OutputRunEFunc func(cmd *cobra.Command, args []string) error
+
+var CobrasentryLogger = slogutil.NewLogger("cobra-sentry")
 
 var RunEWrap = func(binderGetter BinderGetter, do InputRunEFunc) OutputRunEFunc {
 	return func(cmd *cobra.Command, args []string) (err error) {
@@ -40,18 +43,16 @@ var RunEWrap = func(binderGetter BinderGetter, do InputRunEFunc) OutputRunEFunc 
 		}
 
 		ctx = WithHub(ctx, sentryHub)
-		loggerFactory := NewLoggerFactory(sentryHub)
-		logger := loggerFactory.New("cobra-sentry").
-			WithField("cmd_name", cmd.Name()).
-			WithField("cmd_short", cmd.Short)
+		logger := CobrasentryLogger.GetLogger(ctx).With(
+			slog.String("cmd_name", cmd.Name()),
+			slog.String("cmd_short", cmd.Short),
+		)
 
 		defer func() {
 			e := recover()
 			if e != nil {
 				err = panicutil.MakeError(e)
-				logger.WithError(err).
-					WithField("stack", errorutil.Callers(10000)).
-					Error("panic occurred")
+				logger.WithError(err).Error(ctx, "panic occurred")
 			}
 			if sentryHub != nil {
 				sentryHub.Flush(2 * time.Second)
@@ -60,7 +61,7 @@ var RunEWrap = func(binderGetter BinderGetter, do InputRunEFunc) OutputRunEFunc 
 
 		err = do(ctx, cmd, args)
 		if err != nil {
-			logger.WithError(err).Error("command exit")
+			logger.WithError(err).Error(ctx, "command exit")
 		}
 		return err
 	}

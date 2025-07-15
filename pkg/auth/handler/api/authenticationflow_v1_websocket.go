@@ -8,7 +8,6 @@ import (
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
-	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/pubsub"
 )
 
@@ -25,7 +24,6 @@ type AuthenticationFlowV1WebsocketOriginMatcher interface {
 }
 
 type AuthenticationFlowV1WebsocketHandler struct {
-	LoggerFactory *log.Factory
 	RedisHandle   *appredis.Handle
 	OriginMatcher AuthenticationFlowV1WebsocketOriginMatcher
 	Events        AuthenticationFlowV1WebsocketEventStore
@@ -41,7 +39,6 @@ func (h *AuthenticationFlowV1WebsocketHandler) ServeHTTP(w http.ResponseWriter, 
 	handler := &pubsub.HTTPHandler{
 		RedisHub:      h.RedisHandle,
 		Delegate:      h,
-		LoggerFactory: h.LoggerFactory,
 		OriginMatcher: matcher,
 	}
 
