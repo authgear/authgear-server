@@ -7,7 +7,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/util/copyutil"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
-	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/slogutil"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
@@ -50,7 +49,6 @@ type APIError struct {
 
 var _ error = (*APIError)(nil)
 var _ errorutil.Detailer = (*APIError)(nil)
-var _ log.LoggingSkippable = (*APIError)(nil)
 var _ slogutil.LoggingSkippable = (*APIError)(nil)
 
 func (e *APIError) Error() string {
