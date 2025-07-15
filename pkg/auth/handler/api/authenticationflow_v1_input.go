@@ -11,7 +11,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
-	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
@@ -58,10 +57,9 @@ type AuthenticationFlowV1NonRestfulInputRequest struct {
 }
 
 type AuthenticationFlowV1InputHandler struct {
-	LoggerFactory *log.Factory
-	RedisHandle   *appredis.Handle
-	Cookies       AuthenticationFlowV1CookieManager
-	Workflows     AuthenticationFlowV1WorkflowService
+	RedisHandle *appredis.Handle
+	Cookies     AuthenticationFlowV1CookieManager
+	Workflows   AuthenticationFlowV1WorkflowService
 }
 
 func (h *AuthenticationFlowV1InputHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {

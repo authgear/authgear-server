@@ -17,7 +17,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
-	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/slice"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
@@ -69,7 +68,6 @@ type AuthenticationFlowV1UIInfoResolver interface {
 }
 
 type AuthenticationFlowV1CreateHandler struct {
-	LoggerFactory  *log.Factory
 	RedisHandle    *appredis.Handle
 	Cookies        AuthenticationFlowV1CookieManager
 	Workflows      AuthenticationFlowV1WorkflowService

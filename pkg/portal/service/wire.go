@@ -11,18 +11,16 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/portal/model"
-	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
 func newAuditSink(
 	app *model.App,
 	pool *db.Pool,
 	cfg *config.DatabaseEnvironmentConfig,
-	loggerFactory *log.Factory,
 ) *audit.Sink {
 	panic(wire.Build(AuthgearDependencySet))
 }
 
-func newHookSink(app *model.App, denoEndpoint config.DenoEndpoint, loggerFactory *log.Factory) *hook.Sink {
+func newHookSink(app *model.App, denoEndpoint config.DenoEndpoint) *hook.Sink {
 	panic(wire.Build(AuthgearDependencySet))
 }

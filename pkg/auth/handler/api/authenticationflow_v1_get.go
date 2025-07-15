@@ -8,7 +8,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
-	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
@@ -31,9 +30,8 @@ var AuthenticationFlowV1NonRestfulGetRequestSchema = validation.NewSimpleSchema(
 `)
 
 type AuthenticationFlowV1GetHandler struct {
-	LoggerFactory *log.Factory
-	RedisHandle   *appredis.Handle
-	Workflows     AuthenticationFlowV1WorkflowService
+	RedisHandle *appredis.Handle
+	Workflows   AuthenticationFlowV1WorkflowService
 }
 
 func (h *AuthenticationFlowV1GetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {

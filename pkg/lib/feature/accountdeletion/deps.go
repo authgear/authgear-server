@@ -10,7 +10,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/util/backgroundjob"
 	"github.com/authgear/authgear-server/pkg/util/clock"
-	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
@@ -27,13 +26,12 @@ func NewRunnableFactory(
 	pool *db.Pool,
 	globalDBCredentials *config.GlobalDatabaseCredentialsEnvironmentConfig,
 	databaseCfg *config.DatabaseEnvironmentConfig,
-	logFactory *log.Factory,
 	clock clock.Clock,
 	appContextResolver AppContextResolver,
 	userServiceFactory UserServiceFactory,
 ) backgroundjob.RunnableFactory {
 	factory := func() backgroundjob.Runnable {
-		return newRunnable(pool, globalDBCredentials, databaseCfg, logFactory, clock, appContextResolver, userServiceFactory)
+		return newRunnable(pool, globalDBCredentials, databaseCfg, clock, appContextResolver, userServiceFactory)
 	}
 	return factory
 }

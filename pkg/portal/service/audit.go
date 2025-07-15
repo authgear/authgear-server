@@ -74,10 +74,10 @@ func (s *AuditService) Log(ctx context.Context, app *model.App, payload event.No
 	// AuditSink is app specific.
 	// The records MUST have correct app_id.
 	// We have construct audit sink with the target app.
-	auditSink := newAuditSink(app, s.Database, s.DatabaseEnvironmentConfig, loggerFactory)
+	auditSink := newAuditSink(app, s.Database, s.DatabaseEnvironmentConfig)
 	// The portal uses its Authgear to deliver hooks.
 	// We have construct hook sink with the Authgear app.
-	hookSink := newHookSink(authgearApp, s.DenoEndpoint, loggerFactory)
+	hookSink := newHookSink(authgearApp, s.DenoEndpoint)
 
 	// Use the target app ID.
 	e, err := s.resolveNonBlockingEvent(ctx, app.ID, payload)
