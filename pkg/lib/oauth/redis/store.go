@@ -286,7 +286,7 @@ func (s *Store) CreateOfflineGrant(ctx context.Context, grant *oauth.OfflineGran
 }
 
 // UpdateOfflineGrantLastAccess updates the last access event for an offline grant
-func (s *Store) UpdateOfflineGrantLastAccess(ctx context.Context, grantID string, accessEvent access.Event, expireAt time.Time) (*oauth.OfflineGrant, error) {
+func (s *Store) UpdateOfflineGrantLastAccess(ctx context.Context, grantID string, refreshTokenHash string, accessEvent access.Event, expireAt time.Time) (*oauth.OfflineGrant, error) {
 	mutexName := offlineGrantMutexName(string(s.AppID), grantID)
 	mutex := s.Redis.NewMutex(mutexName)
 	err := mutex.LockContext(ctx)
@@ -303,6 +303,21 @@ func (s *Store) UpdateOfflineGrantLastAccess(ctx context.Context, grantID string
 	}
 
 	grant.AccessInfo.LastAccess = accessEvent
+	// If the refresh token actually used is known, update the individual access info
+	if refreshTokenHash != "" {
+		for i := range grant.RefreshTokens {
+			token := grant.RefreshTokens[i]
+			if token.MatchHash(refreshTokenHash) && token.AccessInfo != nil {
+				if token.AccessInfo == nil {
+					// Handle nil for backward compatibility
+					tokenAccessInfo := grant.AccessInfo
+					token.AccessInfo = &tokenAccessInfo
+				}
+				token.AccessInfo.LastAccess = accessEvent
+			}
+			grant.RefreshTokens[i] = token
+		}
+	}
 
 	err = s.updateOfflineGrant(ctx, grant, expireAt)
 	if err != nil {
