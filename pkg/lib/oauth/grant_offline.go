@@ -21,6 +21,9 @@ type OfflineGrantRefreshToken struct {
 	Scopes          []string  `json:"scopes"`
 	AuthorizationID string    `json:"authz_id"`
 	DPoPJKT         string    `json:"dpop_jkt"`
+	// AccessInfo was added on 15/07/2025
+	// Refresh token created before the day has nil AccessInfo
+	AccessInfo *access.Info `json:"access_info"`
 }
 
 type OfflineGrant struct {
@@ -60,6 +63,7 @@ type OfflineGrant struct {
 	// ExpireAtForResolvedSession is a transient field that tells when the session will exire at, computed now.
 	// Note that ExpireAtForResolvedSession will keep changing if idle timeout is enabled.
 	// This is NOT supposed to be stored, hence it is json-ignored.
+	// TODO(tung): Revisit the logic of setting this field
 	ExpireAtForResolvedSession time.Time `json:"-"`
 }
 
@@ -235,8 +239,7 @@ func (g *OfflineGrant) ToSession(refreshTokenHash string) (*OfflineGrantSession,
 	}
 
 	for _, token := range g.RefreshTokens {
-		isHashEqual := subtle.ConstantTimeCompare([]byte(refreshTokenHash), []byte(token.TokenHash)) == 1
-		if isHashEqual && result == nil {
+		if token.MatchHash(refreshTokenHash) && result == nil {
 			result = &OfflineGrantSession{
 				OfflineGrant:    g,
 				CreatedAt:       token.CreatedAt,
@@ -263,7 +266,7 @@ func (g *OfflineGrant) MatchHash(refreshTokenHash string) bool {
 	}
 
 	for _, token := range g.RefreshTokens {
-		if subtle.ConstantTimeCompare([]byte(refreshTokenHash), []byte(token.TokenHash)) == 1 {
+		if token.MatchHash(refreshTokenHash) {
 			result = true
 		}
 	}
@@ -410,4 +413,8 @@ func (g *OfflineGrant) IsOnlyUsedInClientIDs(clientIDs []string) bool {
 
 func (s *OfflineGrant) GetParticipatedSAMLServiceProviderIDsSet() setutil.Set[string] {
 	return setutil.NewSetFromSlice(s.ParticipatedSAMLServiceProviderIDs, setutil.Identity)
+}
+
+func (t *OfflineGrantRefreshToken) MatchHash(anotherHash string) bool {
+	return subtle.ConstantTimeCompare([]byte(anotherHash), []byte(t.TokenHash)) == 1
 }

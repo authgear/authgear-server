@@ -43,8 +43,8 @@ type CreateNewRefreshTokenResult struct {
 // 1. set grant.AccessInfo.LastAccess to new accessEvent (inside UpdateOfflineGrantLastAccess)
 // 2. call RecordAccess
 // 3. call TrackActiveUser
-func (s *OfflineGrantService) AccessOfflineGrant(ctx context.Context, grantID string, accessEvent *access.Event, expireAt time.Time) (*OfflineGrant, error) {
-	grant, err := s.OfflineGrants.UpdateOfflineGrantLastAccess(ctx, grantID, *accessEvent, expireAt)
+func (s *OfflineGrantService) AccessOfflineGrant(ctx context.Context, grantID string, refreshTokenHash string, accessEvent *access.Event, expireAt time.Time) (*OfflineGrant, error) {
+	grant, err := s.OfflineGrants.UpdateOfflineGrantLastAccess(ctx, grantID, refreshTokenHash, *accessEvent, expireAt)
 	if err != nil {
 		return nil, err
 	}

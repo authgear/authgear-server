@@ -126,7 +126,7 @@ type TokenHandlerAppSessionTokenStore interface {
 }
 
 type TokenHandlerOfflineGrantService interface {
-	AccessOfflineGrant(ctx context.Context, id string, accessEvent *access.Event, expireAt time.Time) (*oauth.OfflineGrant, error)
+	AccessOfflineGrant(ctx context.Context, id string, refreshTokenHash string, accessEvent *access.Event, expireAt time.Time) (*oauth.OfflineGrant, error)
 	GetOfflineGrant(ctx context.Context, id string) (*oauth.OfflineGrant, error)
 }
 
@@ -617,7 +617,7 @@ func (h *TokenHandler) handleRefreshToken(
 		return nil, protocol.NewError("invalid_request", "client id doesn't match the refresh token")
 	}
 
-	_, err = h.OfflineGrantService.AccessOfflineGrant(ctx, offlineGrant.ID, &accessEvent, offlineGrant.ExpireAtForResolvedSession)
+	_, err = h.OfflineGrantService.AccessOfflineGrant(ctx, offlineGrant.ID, refreshTokenHash, &accessEvent, offlineGrant.ExpireAtForResolvedSession)
 	if err != nil {
 		return nil, err
 	}
