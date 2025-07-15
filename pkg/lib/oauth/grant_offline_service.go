@@ -12,6 +12,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
+//go:generate go tool mockgen -source=grant_offline_service.go -destination=grant_offline_service_mock_test.go -package oauth
+
 type ServiceIDPSessionProvider interface {
 	Get(ctx context.Context, id string) (*idpsession.IDPSession, error)
 	CheckSessionExpired(session *idpsession.IDPSession) (expired bool)
