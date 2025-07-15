@@ -3,6 +3,7 @@ package slogutil
 import (
 	"context"
 	"log/slog"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -45,6 +46,17 @@ func TestNewStackTraceMiddleware(t *testing.T) {
 			logger.ErrorContext(ctx, "testing")
 
 			So(strings.Contains(w.String(), "group.stack="), ShouldBeTrue)
+		})
+
+		Convey("attrs are not duplicated", func() {
+			logger.ErrorContext(ctx, "testing", slog.String("foobar", "42"))
+
+			So(strings.Contains(w.String(), "stack="), ShouldBeTrue)
+			So(strings.Contains(w.String(), "foobar=42"), ShouldBeTrue)
+
+			re := regexp.MustCompile("foobar=42")
+			matches := re.FindAllString(w.String(), -1)
+			So(len(matches), ShouldEqual, 1)
 		})
 	})
 }

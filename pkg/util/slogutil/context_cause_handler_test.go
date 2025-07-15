@@ -44,6 +44,12 @@ func TestNewContextCauseMiddleware(t *testing.T) {
 			So(w.String(), ShouldEqual, "level=INFO msg=testing context_cause=\"the cause\"\n")
 		})
 
+		Convey("does not duplicate attrs", func() {
+			logger.Info("testing", slog.String("foobar", "42"))
+
+			So(w.String(), ShouldEqual, "level=INFO msg=testing foobar=42 context_cause=<context-err-is-nil>\n")
+		})
+
 		// Cannot test WithDeadline and and WithTimeout because we have no access to the clock
 		// used by the package context.
 	})
