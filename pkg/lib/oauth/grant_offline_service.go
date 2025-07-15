@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 type ServiceIDPSessionProvider interface {
@@ -24,6 +25,9 @@ type OfflineGrantServiceMeterService interface {
 }
 
 type OfflineGrantService struct {
+	RemoteIP        httputil.RemoteIP
+	UserAgentString httputil.UserAgentString
+
 	OAuthConfig    *config.OAuthConfig
 	Clock          clock.Clock
 	IDPSessions    ServiceIDPSessionProvider
@@ -146,11 +150,20 @@ func (s *OfflineGrantService) CreateNewRefreshToken(
 	if err != nil {
 		return nil, nil, err
 	}
+	now := s.Clock.NowUTC()
+	accessEvent := access.NewEvent(now, s.RemoteIP, s.UserAgentString)
+
+	accessInfo := access.Info{
+		InitialAccess: accessEvent,
+		LastAccess:    accessEvent,
+	}
+
 	newToken := GenerateToken()
 	newTokenHash := HashToken(newToken)
 	newGrant, err := s.OfflineGrants.AddOfflineGrantRefreshToken(
 		ctx,
 		grant.ID,
+		accessInfo,
 		expiry,
 		newTokenHash,
 		clientID,

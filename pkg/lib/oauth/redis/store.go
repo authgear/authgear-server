@@ -471,6 +471,7 @@ func (s *Store) AddOfflineGrantSAMLServiceProviderParticipant(
 func (s *Store) AddOfflineGrantRefreshToken(
 	ctx context.Context,
 	grantID string,
+	accessInfo access.Info,
 	expireAt time.Time,
 	tokenHash string,
 	clientID string,
@@ -494,6 +495,7 @@ func (s *Store) AddOfflineGrantRefreshToken(
 	}
 
 	now := s.Clock.NowUTC()
+
 	newRefreshToken := oauth.OfflineGrantRefreshToken{
 		TokenHash:       tokenHash,
 		ClientID:        clientID,
@@ -501,6 +503,7 @@ func (s *Store) AddOfflineGrantRefreshToken(
 		Scopes:          scopes,
 		AuthorizationID: authorizationID,
 		DPoPJKT:         dpopJKT,
+		AccessInfo:      &accessInfo,
 	}
 
 	grant.RefreshTokens = append(grant.RefreshTokens, newRefreshToken)

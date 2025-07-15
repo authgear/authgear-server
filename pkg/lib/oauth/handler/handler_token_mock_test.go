@@ -588,18 +588,18 @@ func (m *MockTokenHandlerOfflineGrantService) EXPECT() *MockTokenHandlerOfflineG
 }
 
 // AccessOfflineGrant mocks base method.
-func (m *MockTokenHandlerOfflineGrantService) AccessOfflineGrant(ctx context.Context, id string, accessEvent *access.Event, expireAt time.Time) (*oauth.OfflineGrant, error) {
+func (m *MockTokenHandlerOfflineGrantService) AccessOfflineGrant(ctx context.Context, id, refreshTokenHash string, accessEvent *access.Event, expireAt time.Time) (*oauth.OfflineGrant, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AccessOfflineGrant", ctx, id, accessEvent, expireAt)
+	ret := m.ctrl.Call(m, "AccessOfflineGrant", ctx, id, refreshTokenHash, accessEvent, expireAt)
 	ret0, _ := ret[0].(*oauth.OfflineGrant)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // AccessOfflineGrant indicates an expected call of AccessOfflineGrant.
-func (mr *MockTokenHandlerOfflineGrantServiceMockRecorder) AccessOfflineGrant(ctx, id, accessEvent, expireAt interface{}) *gomock.Call {
+func (mr *MockTokenHandlerOfflineGrantServiceMockRecorder) AccessOfflineGrant(ctx, id, refreshTokenHash, accessEvent, expireAt interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AccessOfflineGrant", reflect.TypeOf((*MockTokenHandlerOfflineGrantService)(nil).AccessOfflineGrant), ctx, id, accessEvent, expireAt)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AccessOfflineGrant", reflect.TypeOf((*MockTokenHandlerOfflineGrantService)(nil).AccessOfflineGrant), ctx, id, refreshTokenHash, accessEvent, expireAt)
 }
 
 // GetOfflineGrant mocks base method.

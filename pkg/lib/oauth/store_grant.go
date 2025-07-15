@@ -40,6 +40,7 @@ type OfflineGrantStore interface {
 	AddOfflineGrantRefreshToken(
 		ctx context.Context,
 		grantID string,
+		accessInfo access.Info,
 		expireAt time.Time,
 		tokenHash string,
 		clientID string,
