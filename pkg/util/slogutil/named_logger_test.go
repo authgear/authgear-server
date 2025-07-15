@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -156,6 +157,25 @@ level=INFO msg=logger_ logger=service.a derived=true
 			So(w.String(), ShouldEqual, `level=INFO msg="service a" app=myapp logger=service.a
 level=INFO msg="service b" app=myapp logger=service.b
 `)
+		})
+	})
+
+	Convey("NamedLogger handles PC correctly", t, func() {
+		ctx := context.Background()
+		var w strings.Builder
+		rootLogger := slog.New(NewHandlerForTestingWithSource(&w))
+		ctx = SetContextLogger(ctx, rootLogger)
+
+		logger := NewLogger("logger")
+
+		Convey("source is correct", func() {
+			logger := logger.GetLogger(ctx)
+
+			logger.Info(ctx, "testing")
+
+			re := regexp.MustCompile("source=.*pkg/util/slogutil/named_logger_test.go:")
+			matches := re.FindAllString(w.String(), -1)
+			So(len(matches), ShouldEqual, 1)
 		})
 	})
 }

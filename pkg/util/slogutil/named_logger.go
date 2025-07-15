@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"runtime"
+	"time"
 
 	"github.com/authgear/authgear-server/pkg/util/panicutil"
 )
@@ -56,19 +58,37 @@ type NamedLogger struct {
 }
 
 func (l NamedLogger) Debug(ctx context.Context, msg string, attrs ...slog.Attr) {
-	l.logger.DebugContext(ctx, msg, attrsToAnys(attrs)...)
+	l.log(ctx, slog.LevelDebug, msg, attrs...)
 }
 
 func (l NamedLogger) Error(ctx context.Context, msg string, attrs ...slog.Attr) {
-	l.logger.ErrorContext(ctx, msg, attrsToAnys(attrs)...)
+	l.log(ctx, slog.LevelError, msg, attrs...)
 }
 
 func (l NamedLogger) Info(ctx context.Context, msg string, attrs ...slog.Attr) {
-	l.logger.InfoContext(ctx, msg, attrsToAnys(attrs)...)
+	l.log(ctx, slog.LevelInfo, msg, attrs...)
 }
 
 func (l NamedLogger) Warn(ctx context.Context, msg string, attrs ...slog.Attr) {
-	l.logger.WarnContext(ctx, msg, attrsToAnys(attrs)...)
+	l.log(ctx, slog.LevelWarn, msg, attrs...)
+}
+
+func (l NamedLogger) log(ctx context.Context, level slog.Level, msg string, attrs ...slog.Attr) {
+	// This implementation is borrowed from https://pkg.go.dev/log/slog#example-package-Wrapping
+	// That example teaches us how to implement a wrapping logger with correct PC.
+
+	if !l.logger.Enabled(ctx, level) {
+		return
+	}
+
+	var pcs [1]uintptr
+	// skip [runtime.Callers, this function, this function's caller]
+	runtime.Callers(3, pcs[:])
+	pc := pcs[0]
+
+	record := slog.NewRecord(time.Now(), level, msg, pc)
+	record.AddAttrs(attrs...)
+	_ = l.logger.Handler().Handle(ctx, record)
 }
 
 // With is like slog.Logger.With, except that it takes slog.Attr only.
@@ -99,11 +119,3 @@ func (l NamedLogger) WithRecover(r any) NamedLogger {
 // WithGroup is intentionally omitted because it is intended for
 // passing a *slog.Logger instance to a third party library.
 // We do not have that use case at the moment.
-
-func attrsToAnys(attrs []slog.Attr) []any {
-	anys := make([]any, len(attrs))
-	for idx, attr := range attrs {
-		anys[idx] = attr
-	}
-	return anys
-}
