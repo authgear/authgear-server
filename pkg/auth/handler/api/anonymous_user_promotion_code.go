@@ -71,19 +71,18 @@ var AnonymousUserPromotionCodeAPIHandlerLogger = slogutil.NewLogger("handler-ano
 
 type AnonymousUserPromotionCodeAPIHandler struct {
 	Database       *appdb.Handle
-	JSON           JSONResponseWriter
 	PromotionCodes PromotionCodeIssuer
 }
 
 func (h *AnonymousUserPromotionCodeAPIHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
+	ctx := req.Context()
 	var payload AnonymousUserPromotionCodeRequest
 	err := httputil.BindJSONBody(req, resp, AnonymousUserPromotionCodeAPIRequestSchema.Validator(), &payload)
 	if err != nil {
-		h.JSON.WriteResponse(resp, &api.Response{Error: err})
+		httputil.WriteJSONResponse(ctx, resp, &api.Response{Error: err})
 		return
 	}
 
-	ctx := req.Context()
 	logger := AnonymousUserPromotionCodeAPIHandlerLogger.GetLogger(ctx)
 
 	result := &AnonymousUserPromotionCodeResponse{}
@@ -103,11 +102,11 @@ func (h *AnonymousUserPromotionCodeAPIHandler) ServeHTTP(resp http.ResponseWrite
 	})
 
 	if err == nil {
-		h.JSON.WriteResponse(resp, &api.Response{Result: result})
+		httputil.WriteJSONResponse(ctx, resp, &api.Response{Result: result})
 	} else {
 		if !apierrors.IsAPIError(err) {
 			logger.WithError(err).Error(ctx, "anonymous user promotion code handler failed")
 		}
-		h.JSON.WriteResponse(resp, &api.Response{Error: err})
+		httputil.WriteJSONResponse(ctx, resp, &api.Response{Error: err})
 	}
 }

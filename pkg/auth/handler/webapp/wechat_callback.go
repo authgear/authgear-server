@@ -11,13 +11,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/webappoauth"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 const WechatActionCallback = "callback"
-
-type JSONResponseWriter interface {
-	WriteResponse(rw http.ResponseWriter, resp *api.Response)
-}
 
 func ConfigureWechatCallbackRoute(route httproute.Route) httproute.Route {
 	return route.
@@ -49,7 +46,6 @@ type WechatCallbackHandlerOAuthStateStore interface {
 type WechatCallbackHandler struct {
 	ControllerFactory ControllerFactory
 	BaseViewModel     *viewmodels.BaseViewModeler
-	JSON              JSONResponseWriter
 	OAuthStateStore   WechatCallbackHandlerOAuthStateStore
 }
 
@@ -127,9 +123,9 @@ func (h *WechatCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		baseViewModel := h.BaseViewModel.ViewModel(r, w)
 		if baseViewModel.IsNativePlatform {
 			if err == nil {
-				h.JSON.WriteResponse(w, &api.Response{Result: "OK"})
+				httputil.WriteJSONResponse(ctx, w, &api.Response{Result: "OK"})
 			} else {
-				h.JSON.WriteResponse(w, &api.Response{Error: err})
+				httputil.WriteJSONResponse(ctx, w, &api.Response{Error: err})
 			}
 			return nil
 		}

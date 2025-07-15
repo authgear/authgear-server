@@ -18,7 +18,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/presign"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
-	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"net/http"
 )
 
@@ -104,14 +103,9 @@ var (
 )
 
 func newPostHandler(p *deps.RequestProvider) http.Handler {
+	imagesCloudStorageServiceHTTPClient := service.NewImagesCloudStorageServiceHTTPClient()
 	appProvider := p.AppProvider
 	rootProvider := appProvider.RootProvider
-	factory := rootProvider.LoggerFactory
-	jsonResponseWriterLogger := httputil.NewJSONResponseWriterLogger(factory)
-	jsonResponseWriter := &httputil.JSONResponseWriter{
-		Logger: jsonResponseWriterLogger,
-	}
-	imagesCloudStorageServiceHTTPClient := service.NewImagesCloudStorageServiceHTTPClient()
 	objectStoreConfig := rootProvider.ObjectStoreConfig
 	clockClock := _wireSystemClockValue
 	imagesCloudStorageServiceStorage := deps.NewCloudStorage(objectStoreConfig, clockClock)
@@ -144,7 +138,6 @@ func newPostHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	postHandler := &handler.PostHandler{
-		JSON:                           jsonResponseWriter,
 		PostHandlerCloudStorageService: imagesCloudStorageService,
 		PresignProvider:                provider,
 		Database:                       handle,

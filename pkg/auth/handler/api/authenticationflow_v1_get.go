@@ -33,20 +33,19 @@ var AuthenticationFlowV1NonRestfulGetRequestSchema = validation.NewSimpleSchema(
 type AuthenticationFlowV1GetHandler struct {
 	LoggerFactory *log.Factory
 	RedisHandle   *appredis.Handle
-	JSON          JSONResponseWriter
 	Workflows     AuthenticationFlowV1WorkflowService
 }
 
 func (h *AuthenticationFlowV1GetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var err error
 	var request AuthenticationFlowV1NonRestfulGetRequest
+	ctx := r.Context()
 	err = httputil.BindJSONBody(r, w, AuthenticationFlowV1NonRestfulGetRequestSchema.Validator(), &request)
 	if err != nil {
-		h.JSON.WriteResponse(w, &api.Response{Error: err})
+		httputil.WriteJSONResponse(ctx, w, &api.Response{Error: err})
 		return
 	}
 
-	ctx := r.Context()
 	stateToken := request.StateToken
 	h.get(ctx, w, r, stateToken)
 }
@@ -54,10 +53,10 @@ func (h *AuthenticationFlowV1GetHandler) ServeHTTP(w http.ResponseWriter, r *htt
 func (h *AuthenticationFlowV1GetHandler) get(ctx context.Context, w http.ResponseWriter, r *http.Request, stateToken string) {
 	output, err := h.Workflows.Get(ctx, stateToken)
 	if err != nil {
-		h.JSON.WriteResponse(w, &api.Response{Error: err})
+		httputil.WriteJSONResponse(ctx, w, &api.Response{Error: err})
 		return
 	}
 
 	result := output.ToFlowResponse()
-	h.JSON.WriteResponse(w, &api.Response{Result: result})
+	httputil.WriteJSONResponse(ctx, w, &api.Response{Result: result})
 }

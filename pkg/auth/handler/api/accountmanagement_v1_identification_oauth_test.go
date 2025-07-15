@@ -11,7 +11,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/accountmanagement"
 	sessiontest "github.com/authgear/authgear-server/pkg/lib/session/test"
-	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 func TestAccountManagementV1IdentificationOAuthHandlerRequestValidation(t *testing.T) {
@@ -19,10 +18,8 @@ func TestAccountManagementV1IdentificationOAuthHandlerRequestValidation(t *testi
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		jsonResponseWriter := httputil.JSONResponseWriter{}
 		svc := NewMockAccountManagementV1IdentificationOAuthHandlerService(ctrl)
 		h := AccountManagementV1IdentificationOAuthHandler{
-			JSON:    &jsonResponseWriter,
 			Service: svc,
 		}
 

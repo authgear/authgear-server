@@ -11,6 +11,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/redisqueue"
 	"github.com/authgear/authgear-server/pkg/lib/userexport"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 func ConfigureUserExportGetRoute(route httproute.Route) httproute.Route {
@@ -28,7 +29,6 @@ type UserExportGetProducer interface {
 
 type UserExportGetHandler struct {
 	AppID        config.AppID
-	JSON         JSONResponseWriter
 	UserExports  UserExportGetProducer
 	CloudStorage UserExportGetHandlerCloudStorage
 }
@@ -37,7 +37,7 @@ func (h *UserExportGetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	ctx := r.Context()
 	err := h.handle(ctx, w, r)
 	if err != nil {
-		h.JSON.WriteResponse(w, &api.Response{Error: err})
+		httputil.WriteJSONResponse(ctx, w, &api.Response{Error: err})
 		return
 	}
 }
@@ -72,7 +72,7 @@ func (h *UserExportGetHandler) handle(ctx context.Context, w http.ResponseWriter
 		response.DownloadUrl = downloadUrl.String()
 	}
 
-	h.JSON.WriteResponse(w, &api.Response{
+	httputil.WriteJSONResponse(ctx, w, &api.Response{
 		Result: response,
 	})
 	return nil

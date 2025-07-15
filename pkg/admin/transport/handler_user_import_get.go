@@ -8,6 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/userimport"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 func ConfigureUserImportGetRoute(route httproute.Route) httproute.Route {
@@ -21,7 +22,6 @@ type UserImportJobGetter interface {
 
 type UserImportGetHandler struct {
 	AppID       config.AppID
-	JSON        JSONResponseWriter
 	UserImports UserImportJobGetter
 }
 
@@ -29,7 +29,7 @@ func (h *UserImportGetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	ctx := r.Context()
 	err := h.handle(ctx, w, r)
 	if err != nil {
-		h.JSON.WriteResponse(w, &api.Response{Error: err})
+		httputil.WriteJSONResponse(ctx, w, &api.Response{Error: err})
 		return
 	}
 }
@@ -42,7 +42,7 @@ func (h *UserImportGetHandler) handle(ctx context.Context, w http.ResponseWriter
 		return err
 	}
 
-	h.JSON.WriteResponse(w, &api.Response{
+	httputil.WriteJSONResponse(ctx, w, &api.Response{
 		Result: resp,
 	})
 	return nil

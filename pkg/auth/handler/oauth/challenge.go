@@ -62,10 +62,6 @@ type ChallengeProvider interface {
 	Create(ctx context.Context, purpose challenge.Purpose) (*challenge.Challenge, error)
 }
 
-type JSONResponseWriter interface {
-	WriteResponse(rw http.ResponseWriter, resp *api.Response)
-}
-
 /*
 @Operation POST /challenge - Obtain new challenge
 
@@ -85,19 +81,19 @@ type JSONResponseWriter interface {
 type ChallengeHandler struct {
 	Database   *appdb.Handle
 	Challenges ChallengeProvider
-	JSON       JSONResponseWriter
 }
 
 func (h *ChallengeHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	var result *ChallengeResponse
-	err := h.Database.WithTx(req.Context(), func(ctx context.Context) (err error) {
+	ctx := req.Context()
+	err := h.Database.WithTx(ctx, func(ctx context.Context) (err error) {
 		result, err = h.Handle(ctx, resp, req)
 		return err
 	})
 	if err == nil {
-		h.JSON.WriteResponse(resp, &api.Response{Result: result})
+		httputil.WriteJSONResponse(ctx, resp, &api.Response{Result: result})
 	} else {
-		h.JSON.WriteResponse(resp, &api.Response{Error: err})
+		httputil.WriteJSONResponse(ctx, resp, &api.Response{Error: err})
 	}
 }
 

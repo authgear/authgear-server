@@ -73,27 +73,22 @@ type AnonymousUserSignupAPIRequest struct {
 	RefreshToken string                      `json:"refresh_token"`
 }
 
-type JSONResponseWriter interface {
-	WriteResponse(rw http.ResponseWriter, resp *api.Response)
-}
-
 var AnonymousUserSignupAPIHandlerLogger = slogutil.NewLogger("handler-anonymous-user-signup")
 
 type AnonymousUserSignupAPIHandler struct {
 	Database             *appdb.Handle
-	JSON                 JSONResponseWriter
 	AnonymousUserHandler AnonymousUserHandler
 }
 
 func (h *AnonymousUserSignupAPIHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
+	ctx := req.Context()
 	var payload AnonymousUserSignupAPIRequest
 	err := httputil.BindJSONBody(req, resp, AnonymousUserSignupAPIRequestSchema.Validator(), &payload)
 	if err != nil {
-		h.JSON.WriteResponse(resp, &api.Response{Error: err})
+		httputil.WriteJSONResponse(ctx, resp, &api.Response{Error: err})
 		return
 	}
 
-	ctx := req.Context()
 	logger := AnonymousUserSignupAPIHandlerLogger.GetLogger(ctx)
 
 	var result *oauthhandler.SignupAnonymousUserResult
@@ -114,15 +109,15 @@ func (h *AnonymousUserSignupAPIHandler) ServeHTTP(resp http.ResponseWriter, req 
 			for _, cookie := range result.Cookies {
 				httputil.UpdateCookie(resp, cookie)
 			}
-			h.JSON.WriteResponse(resp, &api.Response{Result: struct{}{}})
+			httputil.WriteJSONResponse(ctx, resp, &api.Response{Result: struct{}{}})
 		} else {
 			// refresh token
-			h.JSON.WriteResponse(resp, &api.Response{Result: result.TokenResponse})
+			httputil.WriteJSONResponse(ctx, resp, &api.Response{Result: result.TokenResponse})
 		}
 	} else {
 		if !apierrors.IsAPIError(err) {
 			logger.WithError(err).Error(ctx, "anonymous user signup handler failed")
 		}
-		h.JSON.WriteResponse(resp, &api.Response{Error: err})
+		httputil.WriteJSONResponse(ctx, resp, &api.Response{Error: err})
 	}
 }

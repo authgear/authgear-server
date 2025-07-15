@@ -1258,13 +1258,8 @@ var (
 )
 
 func newPresignImagesUploadHandler(p *deps.RequestProvider) http.Handler {
-	appProvider := p.AppProvider
-	factory := appProvider.LoggerFactory
-	jsonResponseWriterLogger := httputil.NewJSONResponseWriterLogger(factory)
-	jsonResponseWriter := &httputil.JSONResponseWriter{
-		Logger: jsonResponseWriterLogger,
-	}
 	request := p.Request
+	appProvider := p.AppProvider
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
@@ -1283,7 +1278,6 @@ func newPresignImagesUploadHandler(p *deps.RequestProvider) http.Handler {
 		Host:   httpHost,
 	}
 	presignImagesUploadHandler := &transport.PresignImagesUploadHandler{
-		JSON:            jsonResponseWriter,
 		HTTPProto:       httpProto,
 		HTTPHost:        httpHost,
 		AppID:           appID,
@@ -1294,11 +1288,6 @@ func newPresignImagesUploadHandler(p *deps.RequestProvider) http.Handler {
 
 func newUserImportCreateHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
-	factory := appProvider.LoggerFactory
-	jsonResponseWriterLogger := httputil.NewJSONResponseWriterLogger(factory)
-	jsonResponseWriter := &httputil.JSONResponseWriter{
-		Logger: jsonResponseWriterLogger,
-	}
 	appContext := appProvider.AppContext
 	configConfig := appContext.Config
 	appConfig := configConfig.AppConfig
@@ -1326,7 +1315,6 @@ func newUserImportCreateHandler(p *deps.RequestProvider) http.Handler {
 		Store:                 storeRedis,
 	}
 	userImportCreateHandler := &transport.UserImportCreateHandler{
-		JSON:        jsonResponseWriter,
 		UserImports: jobManager,
 	}
 	return userImportCreateHandler
@@ -1338,11 +1326,6 @@ func newUserImportGetHandler(p *deps.RequestProvider) http.Handler {
 	configConfig := appContext.Config
 	appConfig := configConfig.AppConfig
 	appID := appConfig.ID
-	factory := appProvider.LoggerFactory
-	jsonResponseWriterLogger := httputil.NewJSONResponseWriterLogger(factory)
-	jsonResponseWriter := &httputil.JSONResponseWriter{
-		Logger: jsonResponseWriterLogger,
-	}
 	clockClock := _wireSystemClockValue
 	featureConfig := configConfig.FeatureConfig
 	adminAPIFeatureConfig := featureConfig.AdminAPI
@@ -1367,7 +1350,6 @@ func newUserImportGetHandler(p *deps.RequestProvider) http.Handler {
 	}
 	userImportGetHandler := &transport.UserImportGetHandler{
 		AppID:       appID,
-		JSON:        jsonResponseWriter,
 		UserImports: jobManager,
 	}
 	return userImportGetHandler
@@ -1381,11 +1363,6 @@ func newUserExportCreateHandler(p *deps.RequestProvider) http.Handler {
 	appID := appConfig.ID
 	featureConfig := configConfig.FeatureConfig
 	adminAPIFeatureConfig := featureConfig.AdminAPI
-	factory := appProvider.LoggerFactory
-	jsonResponseWriterLogger := httputil.NewJSONResponseWriterLogger(factory)
-	jsonResponseWriter := &httputil.JSONResponseWriter{
-		Logger: jsonResponseWriterLogger,
-	}
 	handle := appProvider.Redis
 	clockClock := _wireSystemClockValue
 	userExportProducer := redisqueue.NewUserExportProducer(handle, clockClock)
@@ -1750,7 +1727,6 @@ func newUserExportCreateHandler(p *deps.RequestProvider) http.Handler {
 	userExportCreateHandler := &transport.UserExportCreateHandler{
 		AppID:                 appID,
 		AdminAPIFeatureConfig: adminAPIFeatureConfig,
-		JSON:                  jsonResponseWriter,
 		Producer:              userExportProducer,
 		UsageLimiter:          limiter,
 		CloudStorage:          userExportCloudStorage,
@@ -1765,11 +1741,6 @@ func newUserExportGetHandler(p *deps.RequestProvider) http.Handler {
 	configConfig := appContext.Config
 	appConfig := configConfig.AppConfig
 	appID := appConfig.ID
-	factory := appProvider.LoggerFactory
-	jsonResponseWriterLogger := httputil.NewJSONResponseWriterLogger(factory)
-	jsonResponseWriter := &httputil.JSONResponseWriter{
-		Logger: jsonResponseWriterLogger,
-	}
 	handle := appProvider.Redis
 	clockClock := _wireSystemClockValue
 	userExportProducer := redisqueue.NewUserExportProducer(handle, clockClock)
@@ -1779,7 +1750,6 @@ func newUserExportGetHandler(p *deps.RequestProvider) http.Handler {
 	userExportCloudStorage := userexport.NewCloudStorage(userExportObjectStoreConfig, clockClock)
 	userExportGetHandler := &transport.UserExportGetHandler{
 		AppID:        appID,
-		JSON:         jsonResponseWriter,
 		UserExports:  userExportProducer,
 		CloudStorage: userExportCloudStorage,
 	}

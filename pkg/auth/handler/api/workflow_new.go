@@ -73,7 +73,6 @@ type WorkflowNewUIInfoResolver interface {
 }
 
 type WorkflowNewHandler struct {
-	JSON           JSONResponseWriter
 	Cookies        WorkflowNewCookieManager
 	Workflows      WorkflowNewWorkflowService
 	OAuthSessions  WorkflowNewOAuthSessionService
@@ -81,18 +80,18 @@ type WorkflowNewHandler struct {
 }
 
 func (h *WorkflowNewHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	var err error
 	var request WorkflowNewRequest
 	err = httputil.BindJSONBody(r, w, WorkflowNewRequestSchema.Validator(), &request)
 	if err != nil {
-		h.JSON.WriteResponse(w, &api.Response{Error: err})
+		httputil.WriteJSONResponse(ctx, w, &api.Response{Error: err})
 		return
 	}
 
-	ctx := r.Context()
 	output, err := h.handle(ctx, w, r, request)
 	if err != nil {
-		h.JSON.WriteResponse(w, &api.Response{Error: err})
+		httputil.WriteJSONResponse(ctx, w, &api.Response{Error: err})
 		return
 	}
 
@@ -100,7 +99,7 @@ func (h *WorkflowNewHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		Action:   output.Action,
 		Workflow: output.WorkflowOutput,
 	}
-	h.JSON.WriteResponse(w, &api.Response{Result: result})
+	httputil.WriteJSONResponse(ctx, w, &api.Response{Result: result})
 }
 
 func (h *WorkflowNewHandler) handle(ctx context.Context, w http.ResponseWriter, r *http.Request, request WorkflowNewRequest) (*workflow.ServiceOutput, error) {
