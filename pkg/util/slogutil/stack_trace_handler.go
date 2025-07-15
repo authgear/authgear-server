@@ -30,19 +30,11 @@ func (s StackTraceHandler) Enabled(context.Context, slog.Level) bool {
 
 func (s StackTraceHandler) Handle(ctx context.Context, record slog.Record) error {
 	if record.Level >= slog.LevelError {
-		attrs := []slog.Attr{
-			{
-				Key:   "stack",
-				Value: slog.StringValue(strings.Join(errorutil.Callers(10000), "\n")),
-			},
-		}
-		record.Attrs(func(attr slog.Attr) bool {
-			attrs = append(attrs, attr)
-			return true
-		})
-
 		record = record.Clone()
-		record.AddAttrs(attrs...)
+		record.AddAttrs(slog.Attr{
+			Key:   "stack",
+			Value: slog.StringValue(strings.Join(errorutil.Callers(10000), "\n")),
+		})
 	}
 
 	return s.Next.Handle(ctx, record)

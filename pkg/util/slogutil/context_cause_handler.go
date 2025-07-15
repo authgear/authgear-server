@@ -44,18 +44,11 @@ func (s ContextCauseHandler) Handle(ctx context.Context, record slog.Record) err
 		}
 	}
 
-	attrs := []slog.Attr{
-		{
-			Key:   "context_cause",
-			Value: slog.StringValue(attrValue),
-		},
-	}
-	record.Attrs(func(attr slog.Attr) bool {
-		attrs = append(attrs, attr)
-		return true
-	})
 	record = record.Clone()
-	record.AddAttrs(attrs...)
+	record.AddAttrs(slog.Attr{
+		Key:   "context_cause",
+		Value: slog.StringValue(attrValue),
+	})
 
 	return s.Next.Handle(ctx, record)
 }
