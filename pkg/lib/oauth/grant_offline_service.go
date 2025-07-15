@@ -110,7 +110,10 @@ func (s *OfflineGrantService) ComputeOfflineGrantExpiry(session *OfflineGrant) (
 		return
 	}
 
-	expiry = s.computeOfflineGrantExpiryWithClient(session, clientConfig)
+	expiry = s.computeRefreshTokenExpiryWithClient(expirableRefreshToken{
+		CreatedAt:    session.CreatedAt,
+		LastAccessAt: session.AccessInfo.LastAccess.Timestamp,
+	}, clientConfig)
 	return
 }
 
@@ -127,10 +130,15 @@ func (s *OfflineGrantService) CheckSessionExpired(session *OfflineGrant) (bool, 
 	return offlineGrantExpired, expiry, nil
 }
 
-func (s *OfflineGrantService) computeOfflineGrantExpiryWithClient(session *OfflineGrant, cfg *config.OAuthClientConfig) (expiry time.Time) {
-	expiry = session.CreatedAt.Add(cfg.RefreshTokenLifetime.Duration())
+type expirableRefreshToken struct {
+	CreatedAt    time.Time
+	LastAccessAt time.Time
+}
+
+func (s *OfflineGrantService) computeRefreshTokenExpiryWithClient(token expirableRefreshToken, cfg *config.OAuthClientConfig) (expiry time.Time) {
+	expiry = token.CreatedAt.Add(cfg.RefreshTokenLifetime.Duration())
 	if *cfg.RefreshTokenIdleTimeoutEnabled {
-		idleExpiry := session.AccessInfo.LastAccess.Timestamp.Add(cfg.RefreshTokenIdleTimeout.Duration())
+		idleExpiry := token.LastAccessAt.Add(cfg.RefreshTokenIdleTimeout.Duration())
 		if idleExpiry.Before(expiry) {
 			expiry = idleExpiry
 		}
@@ -174,6 +182,13 @@ func (s *OfflineGrantService) CreateNewRefreshToken(
 	if err != nil {
 		return nil, nil, err
 	}
+
+	// Housekeep the OfflineGrant to ensure the size of the object will not increase indefinitely
+	newGrant, err = s.housekeepOfflineGrant(ctx, newGrant)
+	if err != nil {
+		return nil, nil, err
+	}
+
 	result := &CreateNewRefreshTokenResult{
 		Token:     newToken,
 		TokenHash: newTokenHash,
@@ -200,4 +215,53 @@ func (s *OfflineGrantService) AddSAMLServiceProviderParticipant(
 		return nil, err
 	}
 	return newGrant, nil
+}
+
+func (s *OfflineGrantService) housekeepOfflineGrant(ctx context.Context, grant *OfflineGrant) (*OfflineGrant, error) {
+	now := s.Clock.NowUTC()
+
+	// Remove expired refresh tokens
+	tokenHashesToRemove := []string{}
+	for idx, token := range grant.RefreshTokens {
+		if idx == 0 {
+			// Never remove the root token
+			continue
+		}
+		var lastAccess time.Time
+		// For backward compatibility
+		if token.AccessInfo == nil {
+			lastAccess = grant.AccessInfo.InitialAccess.Timestamp
+		} else {
+			lastAccess = token.AccessInfo.LastAccess.Timestamp
+		}
+
+		clientConfig := s.ClientResolver.ResolveClient(token.ClientID)
+		if clientConfig == nil {
+			// The client was removed, remove the refresh token
+			tokenHashesToRemove = append(tokenHashesToRemove, token.TokenHash)
+			continue
+		}
+
+		expiry := s.computeRefreshTokenExpiryWithClient(expirableRefreshToken{
+			CreatedAt:    token.CreatedAt,
+			LastAccessAt: lastAccess,
+		}, clientConfig)
+
+		if now.After(expiry) {
+			tokenHashesToRemove = append(tokenHashesToRemove, token.TokenHash)
+			continue
+		}
+	}
+
+	expiry, err := s.ComputeOfflineGrantExpiry(grant)
+	if err != nil {
+		return nil, err
+	}
+
+	newGrant, err := s.OfflineGrants.RemoveOfflineGrantRefreshTokens(ctx, grant.ID, tokenHashesToRemove, expiry)
+	if err != nil {
+		return nil, err
+	}
+
+	return newGrant, err
 }
