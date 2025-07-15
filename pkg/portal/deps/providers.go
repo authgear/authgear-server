@@ -15,7 +15,6 @@ import (
 	portalresource "github.com/authgear/authgear-server/pkg/portal/resource"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
-	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 	"github.com/authgear/authgear-server/pkg/util/sentry"
 )
@@ -38,7 +37,6 @@ type RootProvider struct {
 	GoogleTagManagerConfig     *portalconfig.GoogleTagManagerConfig
 	PortalFrontendSentryConfig *portalconfig.PortalFrontendSentryConfig
 	PortalFeaturesConfig       *portalconfig.PortalFeaturesConfig
-	LoggerFactory              *log.Factory
 	SentryHub                  *getsentry.Hub
 
 	Database               *db.Pool
@@ -71,21 +69,11 @@ func NewRootProvider(
 	portalFrontendSentryConfig *portalconfig.PortalFrontendSentryConfig,
 	portalFeatures *portalconfig.PortalFeaturesConfig,
 ) (context.Context, *RootProvider, error) {
-	logLevel, err := log.ParseLevel(cfg.LogLevel)
-	if err != nil {
-		return ctx, nil, err
-	}
-
 	sentryHub, err := sentry.NewHub(string(cfg.SentryDSN))
 	if err != nil {
 		return ctx, nil, err
 	}
 	ctx = getsentry.SetHubOnContext(ctx, sentryHub)
-
-	loggerFactory := log.NewFactory(
-		logLevel,
-		log.NewDefaultMaskLogHook(),
-	)
 
 	redisPool := redis.NewPool()
 
@@ -109,7 +97,6 @@ func NewRootProvider(
 		GoogleTagManagerConfig:     googleTagManagerConfig,
 		PortalFrontendSentryConfig: portalFrontendSentryConfig,
 		PortalFeaturesConfig:       portalFeatures,
-		LoggerFactory:              loggerFactory,
 		SentryHub:                  sentryHub,
 		Database:                   db.NewPool(),
 		RedisPool:                  redisPool,

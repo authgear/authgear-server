@@ -19,17 +19,12 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
-	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
 type CmdAppID string
 type CmdDBCredential config.DatabaseCredentials
-
-func NewLoggerFactory() *log.Factory {
-	return log.NewFactory(log.LevelInfo)
-}
 
 func NewEmptyConfig(
 	pool *db.Pool,
@@ -112,7 +107,6 @@ var DependencySet = wire.NewSet(
 	NewNilRedis,
 	NewEnvConfig,
 	NewNilRequest,
-	NewLoggerFactory,
 	NewEmptyConfig,
 	NewReindexedTimestamps,
 	globaldb.DependencySet,

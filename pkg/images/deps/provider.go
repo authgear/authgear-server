@@ -14,7 +14,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
-	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 	"github.com/authgear/authgear-server/pkg/util/sentry"
 	"github.com/authgear/authgear-server/pkg/util/slogutil"
@@ -24,7 +23,6 @@ import (
 type RootProvider struct {
 	EnvironmentConfig imagesconfig.EnvironmentConfig
 	ObjectStoreConfig *imagesconfig.ObjectStoreConfig
-	LoggerFactory     *log.Factory
 	SentryHub         *getsentry.Hub
 	DatabasePool      *db.Pool
 	VipsDaemon        *vipsutil.Daemon
@@ -36,21 +34,11 @@ func NewRootProvider(
 	envConfig imagesconfig.EnvironmentConfig,
 	objectStoreConfig *imagesconfig.ObjectStoreConfig,
 ) (context.Context, *RootProvider, error) {
-	logLevel, err := log.ParseLevel(string(envConfig.LogLevel))
-	if err != nil {
-		return ctx, nil, err
-	}
-
 	sentryHub, err := sentry.NewHub(string(envConfig.SentryDSN))
 	if err != nil {
 		return ctx, nil, err
 	}
 	ctx = getsentry.SetHubOnContext(ctx, sentryHub)
-
-	loggerFactory := log.NewFactory(
-		logLevel,
-		log.NewDefaultMaskLogHook(),
-	)
 
 	dbPool := db.NewPool()
 
@@ -61,7 +49,6 @@ func NewRootProvider(
 	return ctx, &RootProvider{
 		EnvironmentConfig: envConfig,
 		ObjectStoreConfig: objectStoreConfig,
-		LoggerFactory:     loggerFactory,
 		SentryHub:         sentryHub,
 		DatabasePool:      dbPool,
 		VipsDaemon:        vipsDaemon,
@@ -77,12 +64,6 @@ func NewRootProvider(
 func (p *RootProvider) NewAppProvider(ctx context.Context, appCtx *config.AppContext) (context.Context, *AppProvider) {
 	cfg := appCtx.Config
 
-	// Legacy logging setup
-	loggerFactory := p.LoggerFactory.ReplaceHooks(
-		log.NewDefaultMaskLogHook(),
-	)
-	loggerFactory.DefaultFields["app"] = cfg.AppConfig.ID
-
 	// Modern logging setup
 	ctx = slogutil.AddMaskPatterns(ctx, config.NewMaskPatternFromSecretConfig(cfg.SecretConfig))
 	logger := slogutil.GetContextLogger(ctx)
@@ -90,9 +71,8 @@ func (p *RootProvider) NewAppProvider(ctx context.Context, appCtx *config.AppCon
 	ctx = slogutil.SetContextLogger(ctx, logger)
 
 	provider := &AppProvider{
-		RootProvider:  p,
-		Config:        cfg,
-		LoggerFactory: loggerFactory,
+		RootProvider: p,
+		Config:       cfg,
 	}
 	return ctx, provider
 }
@@ -122,8 +102,7 @@ func (p *RootProvider) Handler(f func(*RequestProvider) http.Handler) http.Handl
 
 type AppProvider struct {
 	*RootProvider
-	Config        *config.Config
-	LoggerFactory *log.Factory
+	Config *config.Config
 }
 
 func (p *AppProvider) NewRequestProvider(r *http.Request) *RequestProvider {

@@ -81,7 +81,6 @@ var AppRootDeps = wire.NewSet(
 	rootDeps,
 	wire.FieldsOf(new(*AppProvider),
 		"RootProvider",
-		"LoggerFactory",
 		"AppDatabase",
 		"SearchDatabase",
 		"AuditReadDatabase",
@@ -109,7 +108,6 @@ var AppRootDeps = wire.NewSet(
 var RootDependencySet = wire.NewSet(
 	rootDeps,
 	wire.FieldsOf(new(*RootProvider),
-		"LoggerFactory",
 		"SentryHub",
 		"BaseResources",
 	),
@@ -179,7 +177,6 @@ var BackgroundDependencySet = wire.NewSet(
 	wire.FieldsOf(new(*BackgroundProvider),
 		"EnvironmentConfig",
 		"ConfigSourceConfig",
-		"LoggerFactory",
 		"SentryHub",
 		"DatabasePool",
 		"RedisPool",

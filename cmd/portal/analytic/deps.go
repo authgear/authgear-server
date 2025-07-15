@@ -9,14 +9,9 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/analyticredis"
 	"github.com/authgear/authgear-server/pkg/lib/meter"
 	"github.com/authgear/authgear-server/pkg/util/clock"
-	"github.com/authgear/authgear-server/pkg/util/log"
 
 	"github.com/google/wire"
 )
-
-func NewLoggerFactory() *log.Factory {
-	return log.NewFactory(log.LevelInfo)
-}
 
 func NewGlobalDatabaseCredentials(dbCredentials *config.DatabaseCredentials) *config.GlobalDatabaseCredentialsEnvironmentConfig {
 	return &config.GlobalDatabaseCredentialsEnvironmentConfig{
@@ -26,7 +21,6 @@ func NewGlobalDatabaseCredentials(dbCredentials *config.DatabaseCredentials) *co
 }
 
 var DependencySet = wire.NewSet(
-	NewLoggerFactory,
 	clock.DependencySet,
 	config.NewDefaultDatabaseEnvironmentConfig,
 	NewGlobalDatabaseCredentials,

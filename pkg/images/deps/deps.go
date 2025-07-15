@@ -64,7 +64,6 @@ var RootDependencySet = wire.NewSet(
 	wire.FieldsOf(new(*RootProvider),
 		"EnvironmentConfig",
 		"ObjectStoreConfig",
-		"LoggerFactory",
 		"SentryHub",
 		"VipsDaemon",
 		"DatabasePool",

@@ -19,7 +19,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
-	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 	"github.com/authgear/authgear-server/pkg/util/sentry"
 	"github.com/authgear/authgear-server/pkg/util/slogutil"
@@ -28,7 +27,6 @@ import (
 type RootProvider struct {
 	EnvironmentConfig  *config.EnvironmentConfig
 	ConfigSourceConfig *configsource.Config
-	LoggerFactory      *log.Factory
 	SentryHub          *getsentry.Hub
 	DatabasePool       *db.Pool
 	RedisPool          *redis.Pool
@@ -45,21 +43,11 @@ func NewRootProvider(
 ) (context.Context, *RootProvider, error) {
 	var p RootProvider
 
-	logLevel, err := log.ParseLevel(cfg.LogLevel)
-	if err != nil {
-		return ctx, nil, err
-	}
-
 	sentryHub, err := sentry.NewHub(string(cfg.SentryDSN))
 	if err != nil {
 		return ctx, nil, err
 	}
 	ctx = getsentry.SetHubOnContext(ctx, sentryHub)
-
-	loggerFactory := log.NewFactory(
-		logLevel,
-		log.NewDefaultMaskLogHook(),
-	)
 
 	dbPool := db.NewPool()
 	redisPool := redis.NewPool()
@@ -73,7 +61,6 @@ func NewRootProvider(
 	p = RootProvider{
 		EnvironmentConfig:  cfg,
 		ConfigSourceConfig: configSourceConfig,
-		LoggerFactory:      loggerFactory,
 		SentryHub:          sentryHub,
 		DatabasePool:       dbPool,
 		RedisPool:          redisPool,
@@ -91,12 +78,6 @@ func NewRootProvider(
 
 func (p *RootProvider) NewAppProvider(ctx context.Context, appCtx *config.AppContext) (context.Context, *AppProvider) {
 	cfg := appCtx.Config
-
-	// Legacy logging setup
-	loggerFactory := p.LoggerFactory.ReplaceHooks(
-		log.NewDefaultMaskLogHook(),
-	)
-	loggerFactory.DefaultFields["app"] = cfg.AppConfig.ID
 
 	// Modern logging setup
 	ctx = slogutil.AddMaskPatterns(ctx, config.NewMaskPatternFromSecretConfig(cfg.SecretConfig))
@@ -151,7 +132,6 @@ func (p *RootProvider) NewAppProvider(ctx context.Context, appCtx *config.AppCon
 
 	provider := &AppProvider{
 		RootProvider:       p,
-		LoggerFactory:      loggerFactory,
 		AppDatabase:        appDatabase,
 		SearchDatabase:     searchDatabase,
 		AuditReadDatabase:  auditReadDatabase,
@@ -203,7 +183,6 @@ func (p *RootProvider) Middleware(factory func(*RequestProvider) httproute.Middl
 type AppProvider struct {
 	*RootProvider
 
-	LoggerFactory      *log.Factory
 	AppDatabase        *appdb.Handle
 	SearchDatabase     *searchdb.Handle
 	AuditReadDatabase  *auditdb.ReadHandle
@@ -231,7 +210,6 @@ type RequestProvider struct {
 type BackgroundProvider struct {
 	EnvironmentConfig  *config.EnvironmentConfig
 	ConfigSourceConfig *configsource.Config
-	LoggerFactory      *log.Factory
 	SentryHub          *getsentry.Hub
 	DatabasePool       *db.Pool
 	RedisPool          *redis.Pool
@@ -248,21 +226,11 @@ func NewBackgroundProvider(
 ) (context.Context, *BackgroundProvider, error) {
 	var p BackgroundProvider
 
-	logLevel, err := log.ParseLevel(cfg.LogLevel)
-	if err != nil {
-		return ctx, nil, err
-	}
-
 	sentryHub, err := sentry.NewHub(string(cfg.SentryDSN))
 	if err != nil {
 		return ctx, nil, err
 	}
 	ctx = getsentry.SetHubOnContext(ctx, sentryHub)
-
-	loggerFactory := log.NewFactory(
-		logLevel,
-		log.NewDefaultMaskLogHook(),
-	)
 
 	dbPool := db.NewPool()
 	redisPool := redis.NewPool()
@@ -276,7 +244,6 @@ func NewBackgroundProvider(
 	p = BackgroundProvider{
 		EnvironmentConfig:  cfg,
 		ConfigSourceConfig: configSourceConfig,
-		LoggerFactory:      loggerFactory,
 		SentryHub:          sentryHub,
 		DatabasePool:       dbPool,
 		RedisPool:          redisPool,

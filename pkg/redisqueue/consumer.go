@@ -179,9 +179,6 @@ func (c *Consumer) dequeue(ctx context.Context) (taskExecutor, *redisqueue.Task,
 		err = c.configSourceController.ResolveContext(ctx, appID, func(ctx context.Context, appCtx *config.AppContext) error {
 			ctx, appProvider = c.rootProvider.NewAppProvider(ctx, appCtx)
 
-			// Legacy logging setup
-			appProvider.LoggerFactory.DefaultFields["task_id"] = task.ID
-
 			// Modern logging setup
 			logger := slogutil.GetContextLogger(ctx)
 			logger = logger.With(slog.String("task_id", task.ID))

@@ -8,12 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/portal/lib/plan"
 	"github.com/authgear/authgear-server/pkg/util/clock"
-	"github.com/authgear/authgear-server/pkg/util/log"
 )
-
-func NewLoggerFactory() *log.Factory {
-	return log.NewFactory(log.LevelInfo)
-}
 
 func NewGlobalDatabaseCredentials(dbCredentials *config.DatabaseCredentials) *config.GlobalDatabaseCredentialsEnvironmentConfig {
 	return &config.GlobalDatabaseCredentialsEnvironmentConfig{
@@ -23,7 +18,6 @@ func NewGlobalDatabaseCredentials(dbCredentials *config.DatabaseCredentials) *co
 }
 
 var DependencySet = wire.NewSet(
-	NewLoggerFactory,
 	config.NewDefaultDatabaseEnvironmentConfig,
 	NewGlobalDatabaseCredentials,
 	globaldb.DependencySet,
