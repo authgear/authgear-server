@@ -63,7 +63,8 @@ type OfflineGrant struct {
 	// ExpireAtForResolvedSession is a transient field that tells when the session will exire at, computed now.
 	// Note that ExpireAtForResolvedSession will keep changing if idle timeout is enabled.
 	// This is NOT supposed to be stored, hence it is json-ignored.
-	// TODO(tung): Revisit the logic of setting this field
+	// This field is always the expiry of the OfflineGrant, but not the expiry of any of the children refresh tokens
+	// Exipry of children refresh tokens could be shorter due to diffrent last access time
 	ExpireAtForResolvedSession time.Time `json:"-"`
 }
 
