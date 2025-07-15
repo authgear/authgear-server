@@ -33,7 +33,6 @@ require (
 	github.com/pquerna/otp v1.5.0
 	github.com/redis/go-redis/v9 v9.11.0
 	github.com/rubenv/sql-migrate v1.8.0
-	github.com/sirupsen/logrus v1.9.3
 	github.com/skygeario/go-confusable-homoglyphs v0.0.0-20191212061114-e2b2a60df110
 	github.com/smartystreets/goconvey v1.8.1
 	github.com/spf13/afero v1.14.0
