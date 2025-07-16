@@ -152,7 +152,6 @@ func (c *AuthflowController) HandleStartOfFlow(
 	flowType authflow.FlowType,
 	handlers *AuthflowControllerHandlers,
 	input interface{}) {
-	logger := AuthflowControllerLogger.GetLogger(ctx)
 	if handled := c.handleInlinePreviewIfNecessary(ctx, w, r, handlers); handled {
 		return
 	}
@@ -164,7 +163,6 @@ func (c *AuthflowController) HandleStartOfFlow(
 
 	s, err := c.getOrCreateWebSession(ctx, w, r, opts)
 	if err != nil {
-		logger.WithError(err).Error(ctx, "failed to get or create web session")
 		c.renderError(ctx, w, r, err)
 		return
 	}
@@ -182,7 +180,6 @@ func (c *AuthflowController) HandleStartOfFlow(
 				c.renderError(ctx, w, r, err)
 				return
 			} else if err != nil {
-				logger.WithError(err).Error(ctx, "failed to create screen")
 				c.renderError(ctx, w, r, err)
 				return
 			}
@@ -194,7 +191,6 @@ func (c *AuthflowController) HandleStartOfFlow(
 			return
 		}
 
-		logger.WithError(err).Error(ctx, "failed to get screen")
 		c.renderError(ctx, w, r, err)
 		return
 	}
@@ -213,21 +209,16 @@ func (c *AuthflowController) isWebSessionNotFoundOrCompletedError(err error) boo
 }
 
 func (c *AuthflowController) HandleOAuthCallback(ctx context.Context, w http.ResponseWriter, r *http.Request, callbackResponse AuthflowOAuthCallbackResponse) {
-	logger := AuthflowControllerLogger.GetLogger(ctx)
 	state := callbackResponse.State
 
 	s, err := c.Sessions.Get(ctx, state.WebSessionID)
 	if err != nil {
-		if !c.isWebSessionNotFoundOrCompletedError(err) {
-			logger.WithError(err).Error(ctx, "failed to get web session")
-		}
 		c.renderError(ctx, w, r, err)
 		return
 	}
 
 	screen, err := c.GetScreen(ctx, s, state.XStep)
 	if err != nil {
-		logger.WithError(err).Error(ctx, "failed to get screen")
 		c.renderError(ctx, w, r, err)
 		return
 	}
@@ -259,8 +250,6 @@ func (c *AuthflowController) HandleResumeOfFlow(
 	input map[string]interface{},
 	errorHandler *AuthflowControllerErrorHandler,
 ) {
-	logger := AuthflowControllerLogger.GetLogger(ctx)
-
 	handleError := func(err error) {
 		if errorHandler != nil {
 			err = (*errorHandler)(ctx, w, r, err)
@@ -277,14 +266,12 @@ func (c *AuthflowController) HandleResumeOfFlow(
 
 	s, err := c.getOrCreateWebSession(ctx, w, r, opts)
 	if err != nil {
-		logger.WithError(err).Error(ctx, "failed to get or create web session")
 		handleError(err)
 		return
 	}
 
 	output, err := c.feedInput(ctx, "", input)
 	if err != nil {
-		logger.WithError(err).Error(ctx, "failed to resume flow")
 		handleError(err)
 		return
 	}
@@ -294,7 +281,6 @@ func (c *AuthflowController) HandleResumeOfFlow(
 		handleError(err)
 		return
 	} else if err != nil {
-		logger.WithError(err).Error(ctx, "failed to create screen")
 		handleError(err)
 		return
 	}
@@ -310,8 +296,6 @@ func (c *AuthflowController) HandleResumeOfFlow(
 }
 
 func (c *AuthflowController) HandleStep(ctx context.Context, w http.ResponseWriter, r *http.Request, handlers *AuthflowControllerHandlers) {
-	logger := AuthflowControllerLogger.GetLogger(ctx)
-
 	if handled := c.handleInlinePreviewIfNecessary(ctx, w, r, handlers); handled {
 		return
 	}
@@ -323,16 +307,12 @@ func (c *AuthflowController) HandleStep(ctx context.Context, w http.ResponseWrit
 
 	s, err := c.getWebSession(ctx)
 	if err != nil {
-		if !c.isWebSessionNotFoundOrCompletedError(err) {
-			logger.WithError(err).Error(ctx, "failed to get web session")
-		}
 		c.renderError(ctx, w, r, err)
 		return
 	}
 
 	screen, err := c.GetScreen(ctx, s, GetXStepFromQuery(r))
 	if err != nil {
-		logger.WithError(err).Error(ctx, "failed to get screen")
 		c.renderError(ctx, w, r, err)
 		return
 	}
@@ -348,8 +328,6 @@ func (c *AuthflowController) HandleStep(ctx context.Context, w http.ResponseWrit
 }
 
 func (c *AuthflowController) HandleWithoutScreen(ctx context.Context, w http.ResponseWriter, r *http.Request, handlers *AuthflowControllerHandlers) {
-	logger := AuthflowControllerLogger.GetLogger(ctx)
-
 	if handled := c.handleInlinePreviewIfNecessary(ctx, w, r, handlers); handled {
 		return
 	}
@@ -357,9 +335,6 @@ func (c *AuthflowController) HandleWithoutScreen(ctx context.Context, w http.Res
 	var session *webapp.Session
 	s, err := c.getWebSession(ctx)
 	if err != nil {
-		if !c.isWebSessionNotFoundOrCompletedError(err) {
-			logger.WithError(err).Error(ctx, "failed to get web session")
-		}
 		c.renderError(ctx, w, r, err)
 		return
 	} else {
@@ -380,11 +355,8 @@ func (c *AuthflowController) HandleWithoutSession(ctx context.Context, w http.Re
 }
 
 func (c *AuthflowController) handleInlinePreviewIfNecessary(ctx context.Context, w http.ResponseWriter, r *http.Request, handlers *AuthflowControllerHandlers) bool {
-	logger := AuthflowControllerLogger.GetLogger(ctx)
-
 	if webapp.IsInlinePreviewPageRequest(r) && handlers.InlinePreviewHandler != nil {
 		if err := handlers.InlinePreviewHandler(ctx, w, r); err != nil {
-			logger.WithError(err).Error(ctx, "failed to handle inline preview")
 			c.renderError(ctx, w, r, err)
 		}
 		return true
