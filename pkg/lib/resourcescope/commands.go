@@ -11,8 +11,13 @@ type Commands struct {
 }
 
 func (c *Commands) CreateResource(ctx context.Context, options *NewResourceOptions) (*model.Resource, error) {
+	err := ValidateResourceURI(ctx, options.URI)
+	if err != nil {
+		return nil, err
+	}
+
 	resource := c.Store.NewResource(options)
-	err := c.Store.CreateResource(ctx, resource)
+	err = c.Store.CreateResource(ctx, resource)
 	if err != nil {
 		return nil, err
 	}

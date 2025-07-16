@@ -1,9 +1,11 @@
 package resourcescope
 
 import (
+	"context"
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 type NewResourceOptions struct {
@@ -45,4 +47,17 @@ type ListResourceResult struct {
 	Items      []*model.Resource
 	Offset     uint64
 	TotalCount uint64
+}
+
+var uriSchema = validation.NewSimpleSchema(`
+	{
+		"type": "string",
+		"minLength": 1,
+		"maxLength": 100,
+		"format": "x_resource_uri"
+	}
+`)
+
+func ValidateResourceURI(ctx context.Context, uri string) error {
+	return uriSchema.Validator().ValidateValue(ctx, uri)
 }
