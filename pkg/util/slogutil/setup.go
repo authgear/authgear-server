@@ -18,7 +18,7 @@ func MakeLogger(strLevel string) *slog.Logger {
 	sink := slogmulti.Fanout(
 		NewSentryHandler(),
 		NewStderrHandler(strLevel),
-		TraceContextCanceledHandler{},
+		OtelMetricHandler{},
 	)
 	handler := pipe.Handler(sink)
 	logger := slog.New(handler)
