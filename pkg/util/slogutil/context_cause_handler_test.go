@@ -19,6 +19,12 @@ func TestNewContextCauseMiddleware(t *testing.T) {
 		ctx := context.Background()
 		_ = ctx
 
+		Convey("respect wrapped handler Enabled()", func() {
+			logger.Debug("testing")
+
+			So(w.String(), ShouldEqual, "")
+		})
+
 		Convey("In slog, context is never nil", func() {
 			logger.Info("testing")
 

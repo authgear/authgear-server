@@ -64,7 +64,10 @@ func (s *SkipLoggingHandler) Handle(ctx context.Context, record slog.Record) err
 		record.AddAttrs(slog.Bool(AttrKeySkipLogging, true))
 	}
 
-	return s.Next.Handle(ctx, record)
+	if s.Next.Enabled(ctx, record.Level) {
+		return s.Next.Handle(ctx, record)
+	}
+	return nil
 }
 
 func (s *SkipLoggingHandler) WithAttrs(attrs []slog.Attr) slog.Handler {

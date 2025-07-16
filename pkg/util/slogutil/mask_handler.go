@@ -155,7 +155,10 @@ func (h *MaskHandler) Handle(ctx context.Context, record slog.Record) error {
 	record = slog.NewRecord(record.Time, record.Level, record.Message, record.PC)
 	record.AddAttrs(attrs...)
 
-	return h.Next.Handle(ctx, record)
+	if h.Next.Enabled(ctx, record.Level) {
+		return h.Next.Handle(ctx, record)
+	}
+	return nil
 }
 
 func (h *MaskHandler) WithAttrs(attrs []slog.Attr) slog.Handler {

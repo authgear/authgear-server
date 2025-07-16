@@ -36,6 +36,11 @@ func TestNewSkipLoggingMiddleware(t *testing.T) {
 		var w strings.Builder
 		logger := slog.New(slogmulti.Pipe(NewSkipLoggingMiddleware()).Handler(NewHandlerForTesting(slog.LevelInfo, &w)))
 
+		Convey("respect wrapped handler Enabled()", func() {
+			logger.Debug("testing")
+			So(w.String(), ShouldEqual, "")
+		})
+
 		Convey("normal logging should pass through", func() {
 			logger.Info("test message")
 			So(w.String(), ShouldEqual, "level=INFO msg=\"test message\"\n")

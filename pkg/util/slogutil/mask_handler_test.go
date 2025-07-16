@@ -264,6 +264,15 @@ func TestMaskHandler_Handle(t *testing.T) {
 			Next:    NewHandlerForTesting(slog.LevelInfo, &w),
 		}
 
+		Convey("should respect wrapped handler Enabled()", func() {
+			ctx := context.Background()
+			record := slog.NewRecord(time.Now(), slog.LevelDebug, "test message", 0)
+
+			err := handler.Handle(ctx, record)
+			So(err, ShouldBeNil)
+			So(w.String(), ShouldEqual, "")
+		})
+
 		Convey("should mask attributes in log record", func() {
 			ctx := context.Background()
 			record := slog.NewRecord(time.Now(), slog.LevelInfo, "test message", 0)
@@ -382,6 +391,11 @@ func TestNewMaskMiddleware(t *testing.T) {
 		}
 
 		logger := slog.New(slogmulti.Pipe(NewMaskMiddleware(options)).Handler(NewHandlerForTesting(slog.LevelInfo, &w)))
+
+		Convey("should respect wrapped handler Enabled()", func() {
+			logger.Debug("test message", slog.String("data", "secret value"))
+			So(w.String(), ShouldContainSubstring, "")
+		})
 
 		Convey("should create working middleware", func() {
 			logger.Info("test message", slog.String("data", "secret value"))
