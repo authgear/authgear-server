@@ -288,6 +288,8 @@ func (h *TokenHandler) doHandle(
 		return h.handleIDToken(ctx, rw, req, client, r)
 	case oauth.SettingsActionGrantType:
 		return h.handleSettingsActionCode(ctx, client, r)
+	case oauth.ClientCredentialsGrantType:
+		return h.handleClientCredentials(ctx, client, r)
 	default:
 		panic("oauth: unexpected grant type")
 	}
@@ -1923,4 +1925,13 @@ func (h *TokenHandler) IssueTokensForSettingsActionCode(
 	}
 
 	return protocol.TokenResponse{}, nil
+}
+
+func (h *TokenHandler) handleClientCredentials(
+	ctx context.Context,
+	client *config.OAuthClientConfig,
+	r protocol.TokenRequest,
+) (httputil.Result, error) {
+	// TODO: Implement client_credentials grant handling
+	return nil, protocol.NewError("unsupported_grant_type", "client_credentials grant type not implemented yet")
 }
