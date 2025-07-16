@@ -23,11 +23,9 @@ pkg/admin/graphql/identity_mutation.go cannot import github.com/authgear/authgea
 pkg/admin/graphql/nodes.go cannot import github.com/authgear/authgear-server/pkg/graphqlgo/relay
 pkg/admin/graphql/query.go cannot import github.com/authgear/authgear-server/pkg/graphqlgo/relay
 pkg/admin/graphql/resource.go cannot import github.com/authgear/authgear-server/pkg/graphqlgo/relay
-pkg/admin/graphql/resource_mutation.go cannot import github.com/authgear/authgear-server/pkg/graphqlgo/relay
 pkg/admin/graphql/role.go cannot import github.com/authgear/authgear-server/pkg/graphqlgo/relay
 pkg/admin/graphql/role_mutation.go cannot import github.com/authgear/authgear-server/pkg/graphqlgo/relay
 pkg/admin/graphql/role_user_mutation.go cannot import github.com/authgear/authgear-server/pkg/graphqlgo/relay
-pkg/admin/graphql/scope_mutation.go cannot import github.com/authgear/authgear-server/pkg/graphqlgo/relay
 pkg/admin/graphql/session_mutation.go cannot import github.com/authgear/authgear-server/pkg/graphqlgo/relay
 pkg/admin/graphql/user.go cannot import github.com/authgear/authgear-server/pkg/graphqlgo/relay
 pkg/admin/graphql/user_mutation.go cannot import github.com/authgear/authgear-server/pkg/graphqlgo/relay
