@@ -46,11 +46,29 @@ type CreateNewRefreshTokenResult struct {
 }
 
 // AccessOfflineGrant accesses oauth offline grant with 3 targeted side effects
-// 1. set grant.AccessInfo.LastAccess to new accessEvent (inside UpdateOfflineGrantLastAccess)
+// 1. set grant.AccessInfo.LastAccess to new accessEvent
 // 2. call RecordAccess
 // 3. call TrackActiveUser
 func (s *OfflineGrantService) AccessOfflineGrant(ctx context.Context, grantID string, refreshTokenHash string, accessEvent *access.Event, expireAt time.Time) (*OfflineGrant, error) {
-	grant, err := s.OfflineGrants.UpdateOfflineGrantLastAccess(ctx, grantID, refreshTokenHash, *accessEvent, expireAt)
+	grant, err := s.OfflineGrants.UpdateOfflineGrantWithMutator(ctx, grantID, expireAt, func(grant *OfflineGrant) *OfflineGrant {
+		grant.AccessInfo.LastAccess = *accessEvent
+		// If the refresh token actually used is known, update the individual access info
+		if refreshTokenHash != "" {
+			for i := range grant.RefreshTokens {
+				token := grant.RefreshTokens[i]
+				if token.MatchHash(refreshTokenHash) {
+					if token.AccessInfo == nil {
+						// Handle nil for backward compatibility
+						tokenAccessInfo := grant.AccessInfo
+						token.AccessInfo = &tokenAccessInfo
+					}
+					token.AccessInfo.LastAccess = *accessEvent
+				}
+				grant.RefreshTokens[i] = token
+			}
+		}
+		return grant
+	})
 	if err != nil {
 		return nil, err
 	}
