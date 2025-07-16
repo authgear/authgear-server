@@ -241,7 +241,8 @@ func TestOfflineGrantService(t *testing.T) {
 			}
 
 			ctx := context.Background()
-			tenMinsAgo := mockClock.NowUTC().Add(-10 * time.Minute) // 10 minutes ago, not expired
+			oneDayAgo := mockClock.NowUTC().Add(-1 * time.Hour * 24)
+			tenMinsAgo := mockClock.NowUTC().Add(-10 * time.Minute)
 			now := mockClock.NowUTC()
 
 			rootToken := OfflineGrantRefreshToken{
@@ -250,6 +251,9 @@ func TestOfflineGrantService(t *testing.T) {
 				CreatedAt:  tenMinsAgo,
 				AccessInfo: nil,
 			}
+			// This token should not be removed because it was created 10 minutes ago,
+			// and the idle timeout is 10minutes + 1 seconds.
+			// CreatedAt should be used as the last access time so it is not expired yet.
 			validToken := OfflineGrantRefreshToken{
 				TokenHash:  "valid",
 				ClientID:   "testclient",
@@ -260,7 +264,7 @@ func TestOfflineGrantService(t *testing.T) {
 				ID:              "grant-id",
 				InitialClientID: "testclient",
 				CreatedAt:       now,
-				AccessInfo:      access.Info{InitialAccess: access.Event{Timestamp: tenMinsAgo}, LastAccess: access.Event{Timestamp: tenMinsAgo}},
+				AccessInfo:      access.Info{InitialAccess: access.Event{Timestamp: oneDayAgo}, LastAccess: access.Event{Timestamp: tenMinsAgo}},
 				RefreshTokens:   []OfflineGrantRefreshToken{rootToken, validToken},
 			}
 

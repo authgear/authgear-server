@@ -232,7 +232,7 @@ func (s *OfflineGrantService) housekeepOfflineGrant(ctx context.Context, grant *
 		var lastAccess time.Time
 		// For backward compatibility
 		if token.AccessInfo == nil {
-			lastAccess = grant.AccessInfo.InitialAccess.Timestamp
+			lastAccess = token.CreatedAt
 		} else {
 			lastAccess = token.AccessInfo.LastAccess.Timestamp
 		}
