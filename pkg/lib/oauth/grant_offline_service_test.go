@@ -9,6 +9,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
@@ -290,6 +291,161 @@ func TestOfflineGrantService(t *testing.T) {
 			_, _, err := svc.CreateNewRefreshToken(ctx, grant, "testclient", []string{"openid"}, "authz-id", "")
 
 			So(err, ShouldBeNil)
+		})
+	})
+
+	Convey("AccessOfflineGrant", t, func() {
+		createMockedUpdateOfflineGrantWithMutator := func(grant *OfflineGrant) func(ctx context.Context, grantID string, expireAt time.Time, mutator func(*OfflineGrant) *OfflineGrant) (*OfflineGrant, error) {
+			return func(ctx context.Context, grantID string, expireAt time.Time, mutator func(*OfflineGrant) *OfflineGrant) (*OfflineGrant, error) {
+				// run mutator on a copy
+				grantCopy := *grant
+				grantCopy.RefreshTokens = make([]OfflineGrantRefreshToken, len(grant.RefreshTokens))
+				copy(grantCopy.RefreshTokens, grant.RefreshTokens)
+				result := mutator(&grantCopy)
+				return result, nil
+			}
+		}
+		Convey("updates last access and calls side effects", func() {
+
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockIDPSessionProvider := NewMockServiceIDPSessionProvider(ctrl)
+			mockAccessEventProvider := NewMockOfflineGrantServiceAccessEventProvider(ctrl)
+			mockMeterService := NewMockOfflineGrantServiceMeterService(ctrl)
+			mockOfflineGrantStore := NewMockOfflineGrantStore(ctrl)
+			mockClock := clock.NewMockClockAt("2020-01-01T00:00:00Z")
+
+			svc := &OfflineGrantService{
+				IDPSessions:   mockIDPSessionProvider,
+				AccessEvents:  mockAccessEventProvider,
+				MeterService:  mockMeterService,
+				OfflineGrants: mockOfflineGrantStore,
+				Clock:         mockClock,
+			}
+
+			ctx := context.Background()
+			now := mockClock.NowUTC()
+			userID := "user-id"
+			previousAccessEvent := access.NewEvent(now.Add(-1*time.Hour), "1.2.3.4", "UA")
+			accessEvent := access.NewEvent(now, "1.2.3.4", "UA")
+			tokenHash := "token-hash"
+
+			grant := &OfflineGrant{
+				ID:              "grant-id",
+				InitialClientID: "testclient",
+				CreatedAt:       now,
+				Attrs:           session.Attrs{UserID: userID},
+				AccessInfo:      access.Info{InitialAccess: previousAccessEvent, LastAccess: previousAccessEvent},
+				RefreshTokens: []OfflineGrantRefreshToken{
+					{
+						TokenHash:  tokenHash,
+						ClientID:   "testclient",
+						CreatedAt:  now,
+						AccessInfo: &access.Info{InitialAccess: previousAccessEvent, LastAccess: previousAccessEvent},
+					},
+					{
+						TokenHash:  "another-token-hash",
+						ClientID:   "testclient",
+						CreatedAt:  now,
+						AccessInfo: &access.Info{InitialAccess: previousAccessEvent, LastAccess: previousAccessEvent},
+					},
+				},
+				ExpireAtForResolvedSession: now.Add(1 * time.Hour),
+			}
+
+			// Mock UpdateOfflineGrantWithMutator to run the mutator and return the result
+			mockOfflineGrantStore.EXPECT().
+				UpdateOfflineGrantWithMutator(gomock.Any(), "grant-id", grant.ExpireAtForResolvedSession, gomock.Any()).
+				DoAndReturn(createMockedUpdateOfflineGrantWithMutator(grant))
+
+			mockAccessEventProvider.EXPECT().
+				RecordAccess(gomock.Any(), "grant-id", grant.ExpireAtForResolvedSession, &accessEvent).
+				Return(nil)
+
+			mockMeterService.EXPECT().
+				TrackActiveUser(gomock.Any(), userID).
+				Return(nil)
+
+			updatedGrant, err := svc.AccessOfflineGrant(ctx, "grant-id", tokenHash, &accessEvent, grant.ExpireAtForResolvedSession)
+
+			So(err, ShouldBeNil)
+			// AccessInfo of the OfflineGrant should be updated
+			So(updatedGrant.AccessInfo.LastAccess, ShouldResemble, accessEvent)
+			// AccessInfo of the used refresh token should be updated
+			So(updatedGrant.RefreshTokens[0].AccessInfo.LastAccess, ShouldResemble, accessEvent)
+			// AccessInfo of the unused refresh token should not be updated
+			So(updatedGrant.RefreshTokens[1].AccessInfo.LastAccess, ShouldResemble, previousAccessEvent)
+		})
+
+		Convey("updates legacy token with nil AccessInfo (backward compatibility)", func() {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockIDPSessionProvider := NewMockServiceIDPSessionProvider(ctrl)
+			mockAccessEventProvider := NewMockOfflineGrantServiceAccessEventProvider(ctrl)
+			mockMeterService := NewMockOfflineGrantServiceMeterService(ctrl)
+			mockOfflineGrantStore := NewMockOfflineGrantStore(ctrl)
+			mockClock := clock.NewMockClockAt("2020-01-01T00:00:00Z")
+
+			svc := &OfflineGrantService{
+				IDPSessions:   mockIDPSessionProvider,
+				AccessEvents:  mockAccessEventProvider,
+				MeterService:  mockMeterService,
+				OfflineGrants: mockOfflineGrantStore,
+				Clock:         mockClock,
+			}
+
+			ctx := context.Background()
+			now := mockClock.NowUTC()
+			userID := "user-id"
+			previousAccessEvent := access.NewEvent(now.Add(-1*time.Hour), "1.2.3.4", "UA")
+			accessEvent := access.NewEvent(now, "1.2.3.4", "UA")
+			legacyTokenHash := "legacy-token-hash"
+
+			grant := &OfflineGrant{
+				ID:              "grant-id",
+				InitialClientID: "testclient",
+				CreatedAt:       now,
+				Attrs:           session.Attrs{UserID: userID},
+				AccessInfo:      access.Info{InitialAccess: previousAccessEvent, LastAccess: previousAccessEvent},
+				RefreshTokens: []OfflineGrantRefreshToken{
+					{
+						TokenHash:  legacyTokenHash,
+						ClientID:   "testclient",
+						CreatedAt:  now,
+						AccessInfo: nil, // legacy/old token
+					},
+					{
+						TokenHash:  "other-token-hash",
+						ClientID:   "testclient",
+						CreatedAt:  now,
+						AccessInfo: &access.Info{InitialAccess: previousAccessEvent, LastAccess: previousAccessEvent},
+					},
+				},
+				ExpireAtForResolvedSession: now.Add(1 * time.Hour),
+			}
+
+			mockOfflineGrantStore.EXPECT().
+				UpdateOfflineGrantWithMutator(gomock.Any(), "grant-id", grant.ExpireAtForResolvedSession, gomock.Any()).
+				DoAndReturn(createMockedUpdateOfflineGrantWithMutator(grant))
+
+			mockAccessEventProvider.EXPECT().
+				RecordAccess(gomock.Any(), "grant-id", grant.ExpireAtForResolvedSession, &accessEvent).
+				Return(nil)
+
+			mockMeterService.EXPECT().
+				TrackActiveUser(gomock.Any(), userID).
+				Return(nil)
+
+			updatedGrant, err := svc.AccessOfflineGrant(ctx, "grant-id", legacyTokenHash, &accessEvent, grant.ExpireAtForResolvedSession)
+
+			So(err, ShouldBeNil)
+			// The legacy token's AccessInfo should now be non-nil and LastAccess should be updated
+			So(updatedGrant.RefreshTokens[0].AccessInfo, ShouldNotBeNil)
+			So(updatedGrant.RefreshTokens[0].AccessInfo.LastAccess, ShouldResemble, accessEvent)
+			// The other token should remain unchanged
+			So(updatedGrant.RefreshTokens[1].AccessInfo.LastAccess, ShouldResemble, previousAccessEvent)
 		})
 	})
 }
