@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	htmltemplate "html/template"
-	"log/slog"
 	"net/http"
 	"net/url"
 	"strings"
@@ -24,12 +23,9 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/intl"
 	"github.com/authgear/authgear-server/pkg/util/slice"
-	"github.com/authgear/authgear-server/pkg/util/slogutil"
 	"github.com/authgear/authgear-server/pkg/util/template"
 	"github.com/authgear/authgear-server/pkg/util/wechat"
 )
-
-var BaseLogger = slogutil.NewLogger("webapp")
 
 type TranslationService interface {
 	HasKey(ctx context.Context, key string) (bool, error)
@@ -111,7 +107,6 @@ type BaseViewModel struct {
 	InlinePreview bool
 
 	ShouldFocusInput bool
-	LogUnknownError  func(err map[string]interface{}) string
 
 	BotProtectionEnabled          bool
 	BotProtectionProviderType     string
@@ -211,7 +206,6 @@ func (m *BaseViewModeler) ViewModelForInlinePreviewAuthFlow(r *http.Request, rw 
 // nolint: gocognit
 func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) BaseViewModel {
 	ctx := r.Context()
-	logger := BaseLogger.GetLogger(ctx)
 	now := m.Clock.NowUTC().Unix()
 	uiParam := uiparam.GetUIParam(ctx)
 	clientID := uiParam.ClientID
@@ -367,13 +361,6 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 			})
 			return strings.Join(processedAllowedOrgins, ",")
 		}(),
-		LogUnknownError: func(err map[string]interface{}) string {
-			if err != nil {
-				logger.Error(ctx, "unknown error", slog.Any("any_error", err))
-			}
-
-			return ""
-		},
 		IsSettingsAction: settingsaction.GetSettingsActionID(r) != "",
 	}
 
@@ -501,9 +488,6 @@ func (m *NoProjectBaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWr
 			})
 			return strings.Join(processedAllowedOrgins, ",")
 		}(),
-		LogUnknownError: func(err map[string]interface{}) string {
-			return ""
-		},
 		IsSettingsAction:  false,
 		IsNativePlatform:  false,
 		Platform:          "",

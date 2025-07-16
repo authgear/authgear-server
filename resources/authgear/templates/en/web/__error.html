@@ -241,7 +241,7 @@ $display_error = true }} {{ if eq .Error.reason "PasswordPolicyViolated" }}
         {{ end }}
     {{ else }}
     <li>
-      {{ template "error-unknown" }}{{ call $.LogUnknownError .Error }}
+      {{ template "error-unknown" }}
     </li>
     {{ end }} {{ end }}
   </ul>
