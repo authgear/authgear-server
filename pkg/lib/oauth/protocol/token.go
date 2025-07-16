@@ -29,6 +29,7 @@ func (r TokenRequest) SubjectToken() string        { return r["subject_token"] }
 func (r TokenRequest) ActorTokenType() string      { return r["actor_token_type"] }
 func (r TokenRequest) ActorToken() string          { return r["actor_token"] }
 func (r TokenRequest) DeviceSecret() string        { return r["device_secret"] }
+func (r TokenRequest) Resource() string            { return r["resource"] }
 
 func (r TokenResponse) AccessToken(v string)     { r["access_token"] = v }
 func (r TokenResponse) TokenType(v string)       { r["token_type"] = v }
