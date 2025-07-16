@@ -1154,7 +1154,15 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
                 <FormattedMessage id="HookConfigurationScreen.edit-hook.label" />
               </WidgetTitle>
               <WidgetDescription>
-                <FormattedMessage id="HookConfigurationScreen.edit-hook.description" />
+                <FormattedMessage
+                  id="HookConfigurationScreen.edit-hook.description"
+                  values={{
+                    docHref:
+                      codeEditorState.eventKind === "blocking"
+                        ? "https://docs.authgear.com/customization/events-hooks/blocking-events"
+                        : "https://docs.authgear.com/customization/events-hooks/non-blocking-events",
+                  }}
+                />
               </WidgetDescription>
               <CodeEditor
                 className={styles.codeEditor}
