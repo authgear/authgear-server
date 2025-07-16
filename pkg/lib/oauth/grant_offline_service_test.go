@@ -443,6 +443,7 @@ func TestOfflineGrantService(t *testing.T) {
 			So(err, ShouldBeNil)
 			// The legacy token's AccessInfo should now be non-nil and LastAccess should be updated
 			So(updatedGrant.RefreshTokens[0].AccessInfo, ShouldNotBeNil)
+			So(updatedGrant.RefreshTokens[0].AccessInfo.InitialAccess, ShouldResemble, previousAccessEvent)
 			So(updatedGrant.RefreshTokens[0].AccessInfo.LastAccess, ShouldResemble, accessEvent)
 			// The other token should remain unchanged
 			So(updatedGrant.RefreshTokens[1].AccessInfo.LastAccess, ShouldResemble, previousAccessEvent)
