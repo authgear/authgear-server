@@ -9,18 +9,27 @@ import (
 )
 
 func MakeLogger(strLevel string) *slog.Logger {
-	pipe := slogmulti.Pipe(
+	// This is the main logging pipeline.
+	// It includes the middleware to rich the record,
+	// and handle sensitive information.
+	mainPipeline := slogmulti.Pipe(
 		NewStackTraceMiddleware(),
 		NewContextCauseMiddleware(),
 		NewSkipLoggingMiddleware(),
 		NewMaskMiddleware(NewDefaultMaskHandlerOptions()),
-	)
-	sink := slogmulti.Fanout(
+	).Handler(slogmulti.Fanout(
 		NewSentryHandler(),
 		NewStderrHandler(strLevel),
+	))
+
+	// The actual handler is a fanout to
+	// - a handler that converts error to metric whenever appropriate.
+	// - the main handler.
+	handler := slogmulti.Fanout(
 		OtelMetricHandler{},
+		mainPipeline,
 	)
-	handler := pipe.Handler(sink)
+
 	logger := slog.New(handler)
 	return logger
 }
