@@ -7,10 +7,10 @@ steps:
   - action: adminapi_query
     adminapi_request:
       query: |
-        {{ $scopeID := (printf "%s-fixture-scope-01" .AppID) }}
         mutation DeleteScope {
           deleteScope(input: {
-            id: "{{ nodeID "Scope" $scopeID }}"
+            resourceURI: "https://fixtureresource/1",
+            scope: "fixturescope1",
           }) {
             ok
           }
@@ -42,10 +42,10 @@ steps:
   - action: adminapi_query
     adminapi_request:
       query: |
-        {{ $scopeID := (printf "%s-resource2_scope1" .AppID) }}
         mutation DeleteScope {
           deleteScope(input: {
-            id: "{{ nodeID "Scope" $scopeID }}"
+            resourceURI: "https://fixtureresource/2",
+            scope: "resource2_scope1"
           }) {
             ok
           }

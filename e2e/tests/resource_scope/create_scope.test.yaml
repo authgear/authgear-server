@@ -7,10 +7,9 @@ steps:
   - action: adminapi_query
     adminapi_request:
       query: |
-        {{ $resourceID := (printf "%s-fixture-resource-01" .AppID) }}
         mutation MyMutation {
           createScope(input: {
-            resourceID: "{{ nodeID "Resource" $resourceID }}",
+            resourceURI: "https://fixtureresource/1",
             scope: "testscope",
             description: "Test scope"
           }) {
@@ -48,7 +47,7 @@ steps:
       query: |
         mutation MyMutation {
           createScope(input: {
-            resourceID: "{{ nodeID "Resource" "nonexistent-resource-id" }}",
+            resourceURI: "https://fixtureresource/nonexistentresource",
             scope: "shouldfail",
             description: "Should fail"
           }) {
