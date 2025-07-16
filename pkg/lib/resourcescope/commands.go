@@ -49,6 +49,10 @@ func (c *Commands) GetResourceByURI(ctx context.Context, uri string) (*model.Res
 }
 
 func (c *Commands) CreateScope(ctx context.Context, options *NewScopeOptions) (*model.Scope, error) {
+	err := ValidateScope(ctx, options.Scope)
+	if err != nil {
+		return nil, err
+	}
 	resource, err := c.Store.GetResourceByURI(ctx, options.ResourceURI)
 	if err != nil {
 		return nil, err
