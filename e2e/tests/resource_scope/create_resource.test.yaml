@@ -30,3 +30,34 @@ steps:
           },
           "errors": null
         }
+---
+name: Create Resource rejected by invalid uri
+steps:
+  - action: adminapi_query
+    adminapi_request:
+      query: |
+        mutation MyMutation {
+          createResource(input: {
+            uri: "customscheme://host",
+            name: "Test resource"
+          }) {
+            resource {
+              id
+              name
+              uri
+            }
+          }
+        }
+      variables: "{}"
+    adminapi_output:
+      result: |
+        {
+          "data": null,
+          "errors": [
+            {
+              "extensions": {
+                "reason": "ValidationFailed"
+              }
+            }
+          ]
+        }

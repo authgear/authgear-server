@@ -71,3 +71,75 @@ steps:
             }
           ]
         }
+---
+name: Create Scope - Reserved Scope
+before:
+  - type: custom_sql
+    custom_sql:
+      path: simple_fixtures.sql
+steps:
+  - action: adminapi_query
+    adminapi_request:
+      query: |
+        mutation MyMutation {
+          createScope(input: {
+            resourceURI: "https://fixtureresource/1",
+            scope: "openid",
+            description: "Should fail"
+          }) {
+            scope {
+              id
+              scope
+              description
+            }
+          }
+        }
+      variables: "{}"
+    adminapi_output:
+      result: |
+        {
+          "data": null,
+          "errors": [
+            {
+              "extensions": {
+                "reason": "ValidationFailed"
+              }
+            }
+          ]
+        }
+---
+name: Create Scope - Invalid Scope With Space
+before:
+  - type: custom_sql
+    custom_sql:
+      path: simple_fixtures.sql
+steps:
+  - action: adminapi_query
+    adminapi_request:
+      query: |
+        mutation MyMutation {
+          createScope(input: {
+            resourceURI: "https://fixtureresource/1",
+            scope: "scope with space",
+            description: "Should fail"
+          }) {
+            scope {
+              id
+              scope
+              description
+            }
+          }
+        }
+      variables: "{}"
+    adminapi_output:
+      result: |
+        {
+          "data": null,
+          "errors": [
+            {
+              "extensions": {
+                "reason": "ValidationFailed"
+              }
+            }
+          ]
+        }
