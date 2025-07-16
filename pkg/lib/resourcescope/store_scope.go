@@ -80,9 +80,6 @@ func (s *Store) UpdateScope(ctx context.Context, options *UpdateScopeOptions) er
 
 	result, err := s.SQLExecutor.ExecWith(ctx, q)
 	if err != nil {
-		if databaseutil.IsDuplicateKeyError(err) {
-			return ErrScopeDuplicate
-		}
 		return err
 	}
 
