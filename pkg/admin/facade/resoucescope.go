@@ -12,14 +12,14 @@ import (
 type ResourceScopeCommands interface {
 	CreateResource(ctx context.Context, options *resourcescope.NewResourceOptions) (*model.Resource, error)
 	UpdateResource(ctx context.Context, options *resourcescope.UpdateResourceOptions) (*model.Resource, error)
-	DeleteResource(ctx context.Context, id string) error
+	DeleteResourceByURI(ctx context.Context, uri string) error
 	CreateScope(ctx context.Context, options *resourcescope.NewScopeOptions) (*model.Scope, error)
 	UpdateScope(ctx context.Context, options *resourcescope.UpdateScopeOptions) (*model.Scope, error)
 	DeleteScope(ctx context.Context, id string) error
 }
 
 type ResourceScopeQueries interface {
-	GetResource(ctx context.Context, id string) (*model.Resource, error)
+	GetResourceByURI(ctx context.Context, uri string) (*model.Resource, error)
 	GetScope(ctx context.Context, id string) (*model.Scope, error)
 	ListScopes(ctx context.Context, resourceID string) ([]*model.Scope, error)
 	ListResources(ctx context.Context, options *resourcescope.ListResourcesOptions, pageArgs graphqlutil.PageArgs) (*resourcescope.ListResourceResult, error)
@@ -38,12 +38,12 @@ func (f *ResourceScopeFacade) UpdateResource(ctx context.Context, options *resou
 	return f.ResourceScopeCommands.UpdateResource(ctx, options)
 }
 
-func (f *ResourceScopeFacade) DeleteResource(ctx context.Context, id string) error {
-	return f.ResourceScopeCommands.DeleteResource(ctx, id)
+func (f *ResourceScopeFacade) DeleteResourceByURI(ctx context.Context, uri string) error {
+	return f.ResourceScopeCommands.DeleteResourceByURI(ctx, uri)
 }
 
-func (f *ResourceScopeFacade) GetResource(ctx context.Context, id string) (*model.Resource, error) {
-	return f.ResourceScopeQueries.GetResource(ctx, id)
+func (f *ResourceScopeFacade) GetResourceByURI(ctx context.Context, uri string) (*model.Resource, error) {
+	return f.ResourceScopeQueries.GetResourceByURI(ctx, uri)
 }
 
 func (f *ResourceScopeFacade) CreateScope(ctx context.Context, options *resourcescope.NewScopeOptions) (*model.Scope, error) {

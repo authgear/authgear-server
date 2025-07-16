@@ -4,7 +4,6 @@ import (
 	"github.com/graphql-go/graphql"
 
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
-	relay "github.com/authgear/authgear-server/pkg/graphqlgo/relay"
 	"github.com/authgear/authgear-server/pkg/lib/resourcescope"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
@@ -81,9 +80,9 @@ var _ = registerMutationField(
 var updateResourceInput = graphql.NewInputObject(graphql.InputObjectConfig{
 	Name: "UpdateResourceInput",
 	Fields: graphql.InputObjectConfigFieldMap{
-		"id": &graphql.InputObjectFieldConfig{
-			Type:        graphql.NewNonNull(graphql.ID),
-			Description: "The ID of the resource.",
+		"resourceURI": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewNonNull(graphql.String),
+			Description: "The URI of the resource.",
 		},
 		"name": &graphql.InputObjectFieldConfig{
 			Type:        graphql.String,
@@ -114,12 +113,7 @@ var _ = registerMutationField(
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 			input := p.Args["input"].(map[string]interface{})
 
-			resourceNodeID := input["id"].(string)
-			resolvedNodeID := relay.FromGlobalID(resourceNodeID)
-			if resolvedNodeID == nil || resolvedNodeID.Type != typeResource {
-				return nil, ErrInvalidResourceID
-			}
-			resourceID := resolvedNodeID.ID
+			resourceURI := input["resourceURI"].(string)
 
 			var newName *string
 			if str, ok := input["name"].(string); ok {
@@ -127,13 +121,13 @@ var _ = registerMutationField(
 			}
 
 			options := &resourcescope.UpdateResourceOptions{
-				ID:      resourceID,
-				NewName: newName,
+				ResourceURI: resourceURI,
+				NewName:     newName,
 			}
 
 			ctx := p.Context
 			gqlCtx := GQLContext(ctx)
-			originalResource, err := gqlCtx.ResourceScopeFacade.GetResource(ctx, resourceID)
+			originalResource, err := gqlCtx.ResourceScopeFacade.GetResourceByURI(ctx, resourceURI)
 			if err != nil {
 				return nil, err
 			}
@@ -161,9 +155,9 @@ var _ = registerMutationField(
 var deleteResourceInput = graphql.NewInputObject(graphql.InputObjectConfig{
 	Name: "DeleteResourceInput",
 	Fields: graphql.InputObjectConfigFieldMap{
-		"id": &graphql.InputObjectFieldConfig{
-			Type:        graphql.NewNonNull(graphql.ID),
-			Description: "The ID of the resource.",
+		"resourceURI": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewNonNull(graphql.String),
+			Description: "The URI of the resource.",
 		},
 	},
 })
@@ -190,22 +184,17 @@ var _ = registerMutationField(
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 			input := p.Args["input"].(map[string]interface{})
 
-			resourceNodeID := input["id"].(string)
-			resolvedNodeID := relay.FromGlobalID(resourceNodeID)
-			if resolvedNodeID == nil || resolvedNodeID.Type != typeResource {
-				return nil, ErrInvalidResourceID
-			}
-			resourceID := resolvedNodeID.ID
+			resourceURI := input["resourceURI"].(string)
 
 			ctx := p.Context
 			gqlCtx := GQLContext(ctx)
 
-			resource, err := gqlCtx.ResourceScopeFacade.GetResource(ctx, resourceID)
+			resource, err := gqlCtx.ResourceScopeFacade.GetResourceByURI(ctx, resourceURI)
 			if err != nil {
 				return nil, err
 			}
 
-			err = gqlCtx.ResourceScopeFacade.DeleteResource(ctx, resourceID)
+			err = gqlCtx.ResourceScopeFacade.DeleteResourceByURI(ctx, resourceURI)
 			if err != nil {
 				return nil, err
 			}

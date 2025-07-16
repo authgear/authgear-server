@@ -11,8 +11,16 @@ type Queries struct {
 	Store *Store
 }
 
-func (q *Queries) GetResource(ctx context.Context, id string) (*model.Resource, error) {
+func (q *Queries) GetResourceByID(ctx context.Context, id string) (*model.Resource, error) {
 	resource, err := q.Store.GetResourceByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return resource.ToModel(), nil
+}
+
+func (q *Queries) GetResourceByURI(ctx context.Context, uri string) (*model.Resource, error) {
+	resource, err := q.Store.GetResourceByURI(ctx, uri)
 	if err != nil {
 		return nil, err
 	}

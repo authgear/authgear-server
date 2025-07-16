@@ -24,15 +24,23 @@ func (c *Commands) UpdateResource(ctx context.Context, options *UpdateResourceOp
 	if err != nil {
 		return nil, err
 	}
-	resource, err := c.Store.GetResourceByID(ctx, options.ID)
+	resource, err := c.Store.GetResourceByURI(ctx, options.ResourceURI)
 	if err != nil {
 		return nil, err
 	}
 	return resource.ToModel(), nil
 }
 
-func (c *Commands) DeleteResource(ctx context.Context, id string) error {
-	return c.Store.DeleteResource(ctx, id)
+func (c *Commands) DeleteResourceByURI(ctx context.Context, uri string) error {
+	return c.Store.DeleteResourceByURI(ctx, uri)
+}
+
+func (c *Commands) GetResourceByURI(ctx context.Context, uri string) (*model.Resource, error) {
+	resource, err := c.Store.GetResourceByURI(ctx, uri)
+	if err != nil {
+		return nil, err
+	}
+	return resource.ToModel(), nil
 }
 
 func (c *Commands) CreateScope(ctx context.Context, options *NewScopeOptions) (*model.Scope, error) {

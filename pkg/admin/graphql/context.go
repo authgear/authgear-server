@@ -201,8 +201,8 @@ type EventService interface {
 type ResourceScopeFacade interface {
 	CreateResource(ctx context.Context, options *resourcescope.NewResourceOptions) (*apimodel.Resource, error)
 	UpdateResource(ctx context.Context, options *resourcescope.UpdateResourceOptions) (*apimodel.Resource, error)
-	DeleteResource(ctx context.Context, id string) error
-	GetResource(ctx context.Context, id string) (*apimodel.Resource, error)
+	DeleteResourceByURI(ctx context.Context, uri string) error
+	GetResourceByURI(ctx context.Context, uri string) (*apimodel.Resource, error)
 	CreateScope(ctx context.Context, options *resourcescope.NewScopeOptions) (*apimodel.Scope, error)
 	UpdateScope(ctx context.Context, options *resourcescope.UpdateScopeOptions) (*apimodel.Scope, error)
 	DeleteScope(ctx context.Context, id string) error

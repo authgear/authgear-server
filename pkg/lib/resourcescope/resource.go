@@ -12,8 +12,8 @@ type NewResourceOptions struct {
 }
 
 type UpdateResourceOptions struct {
-	ID      string
-	NewName *string
+	ResourceURI string
+	NewName     *string
 }
 
 type ListResourcesOptions struct {
