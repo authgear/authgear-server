@@ -545,23 +545,8 @@ func (h *TokenHandler) IssueTokensForAuthorizationCode(
 	// verify client secret
 	needClientSecret := client.IsConfidential()
 	if needClientSecret {
-		if r.ClientSecret() == "" {
-			return nil, protocol.NewError("invalid_request", "invalid client secret")
-		}
-		credentialsItem, ok := h.OAuthClientCredentials.Lookup(client.ClientID)
-		if !ok {
-			return nil, protocol.NewError("invalid_request", "client secret is not supported for the client")
-		}
-
-		pass := false
-		keys, _ := jwkutil.ExtractOctetKeys(credentialsItem.Set)
-		for _, clientSecret := range keys {
-			if subtle.ConstantTimeCompare([]byte(r.ClientSecret()), clientSecret) == 1 {
-				pass = true
-			}
-		}
-		if !pass {
-			return nil, protocol.NewError("invalid_request", "invalid client secret")
+		if err := h.validateClientSecret(client, r.ClientSecret()); err != nil {
+			return nil, err
 		}
 	}
 
@@ -1916,6 +1901,7 @@ func (h *TokenHandler) IssueTokensForSettingsActionCode(
 		if r.ClientSecret() == "" {
 			return nil, protocol.NewError("invalid_request", "invalid client secret")
 		}
+
 		credentialsItem, ok := h.OAuthClientCredentials.Lookup(client.ClientID)
 		if !ok {
 			return nil, protocol.NewError("invalid_request", "client secret is not supported for the client")
@@ -1946,6 +1932,41 @@ func (h *TokenHandler) handleClientCredentials(
 	client *config.OAuthClientConfig,
 	r protocol.TokenRequest,
 ) (httputil.Result, error) {
-	// TODO: Implement client_credentials grant handling
+	if err := h.validateClientSecret(client, r.ClientSecret()); err != nil {
+		return nil, err
+	}
+
+	// TODO: Validate resource
+	if r.Resource() == "" {
+		return nil, protocol.NewError("invalid_request", "resource is required")
+	}
+
+	// TODO: Validate scopes
+
+	// TODO: Implement the rest of the client_credentials logic
 	return nil, protocol.NewError("unsupported_grant_type", "client_credentials grant type not implemented yet")
+}
+
+func (h *TokenHandler) validateClientSecret(client *config.OAuthClientConfig, clientSecret string) error {
+	if clientSecret == "" {
+		return protocol.NewError("invalid_request", "invalid client secret")
+	}
+
+	credentialsItem, ok := h.OAuthClientCredentials.Lookup(client.ClientID)
+	if !ok {
+		return protocol.NewError("invalid_request", "client secret is not supported for the client")
+	}
+
+	pass := false
+	keys, _ := jwkutil.ExtractOctetKeys(credentialsItem.Set)
+	for _, secret := range keys {
+		if subtle.ConstantTimeCompare([]byte(clientSecret), secret) == 1 {
+			pass = true
+		}
+	}
+	if !pass {
+		return protocol.NewError("invalid_request", "invalid client secret")
+	}
+
+	return nil
 }
