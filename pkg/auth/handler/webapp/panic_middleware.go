@@ -2,6 +2,7 @@ package webapp
 
 import (
 	"fmt"
+	"log/slog"
 	"net/http"
 
 	"net/url"
@@ -58,6 +59,7 @@ func (m *PanicMiddleware) Handle(next http.Handler) http.Handler {
 			if e := recover(); e != nil {
 				ctx := r.Context()
 				logger := PanicMiddlewareLogger.GetLogger(ctx)
+				logger = logger.With(slog.Bool("written", written))
 				err := panicutil.MakeError(e)
 
 				logger.WithError(err).Error(ctx, "panic occurred")
@@ -65,6 +67,7 @@ func (m *PanicMiddleware) Handle(next http.Handler) http.Handler {
 				apiError := apierrors.AsAPIError(err)
 				cookie, cookieErr := m.ErrorService.SetRecoverableError(ctx, r, apiError)
 				if cookieErr != nil {
+					logger.WithError(cookieErr).Error(ctx, "failed to store error")
 					panic(cookieErr)
 				}
 				uiImpl := m.UIImplementationService.GetUIImplementation()

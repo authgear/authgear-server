@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"encoding/json"
+	"log/slog"
 	"net/http"
 
 	"github.com/felixge/httpsnoop"
@@ -40,6 +41,7 @@ func (m *PanicMiddleware) Handle(next http.Handler) http.Handler {
 				e := panicutil.MakeError(err)
 				ctx := r.Context()
 				logger := PanicMiddlewareLogger.GetLogger(ctx)
+				logger = logger.With(slog.Bool("written", written))
 				logger.WithError(e).Error(ctx, "panic occurred")
 
 				// Write the error as JSON.
