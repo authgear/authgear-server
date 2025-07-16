@@ -72,9 +72,6 @@ func (s *Store) UpdateResource(ctx context.Context, options *UpdateResourceOptio
 
 	result, err := s.SQLExecutor.ExecWith(ctx, q)
 	if err != nil {
-		if databaseutil.IsDuplicateKeyError(err) {
-			return ErrResourceDuplicateURI
-		}
 		return err
 	}
 
