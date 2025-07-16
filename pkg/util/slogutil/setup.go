@@ -26,7 +26,7 @@ func MakeLogger(strLevel string) *slog.Logger {
 	// - a handler that converts error to metric whenever appropriate.
 	// - the main handler.
 	handler := slogmulti.Fanout(
-		OtelMetricHandler{},
+		NewOtelMetricHandler(),
 		mainPipeline,
 	)
 

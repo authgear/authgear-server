@@ -91,6 +91,7 @@ require (
 	github.com/go-ldap/ldap/v3 v3.4.11
 	github.com/goaux/decowriter v1.0.0
 	github.com/iawaknahc/gogenwrapper v0.0.0-20250315204045-eb8ab595ac5c
+	github.com/jba/slog v0.2.0
 	github.com/kr/pretty v0.3.1
 	github.com/mattn/go-sqlite3 v1.14.28
 	github.com/minio/minio-go/v7 v7.0.94
