@@ -449,5 +449,35 @@ func TestMaskHandlerIntegration(t *testing.T) {
 			logger.Error("auth error", slog.Any("error", err))
 			So(w.String(), ShouldContainSubstring, "error=\"authentication failed with token: ********\"")
 		})
+
+		Convey("should mask data attached with With()", func() {
+			jwt := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+			sessionToken := "12345678-1234-1234-1234-123456789012.AbCdEfGhIjKlMnOpQrStUvWxYz"
+
+			logger.With(
+				slog.String("jwt", jwt),
+				slog.String("session", sessionToken),
+				slog.String("user", "john.doe"),
+			).Info("authentication")
+
+			So(w.String(), ShouldContainSubstring, "jwt=********")
+			So(w.String(), ShouldContainSubstring, "session=********")
+			So(w.String(), ShouldContainSubstring, "user=john.doe")
+		})
+
+		Convey("should mask data nested in group", func() {
+			jwt := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+			sessionToken := "12345678-1234-1234-1234-123456789012.AbCdEfGhIjKlMnOpQrStUvWxYz"
+
+			logger.WithGroup("g").With(
+				slog.String("jwt", jwt),
+				slog.String("session", sessionToken),
+				slog.String("user", "john.doe"),
+			).Info("authentication")
+
+			So(w.String(), ShouldContainSubstring, "g.jwt=********")
+			So(w.String(), ShouldContainSubstring, "g.session=********")
+			So(w.String(), ShouldContainSubstring, "g.user=john.doe")
+		})
 	})
 }
