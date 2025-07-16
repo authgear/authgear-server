@@ -4,7 +4,6 @@ import (
 	"github.com/graphql-go/graphql"
 
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
-	relay "github.com/authgear/authgear-server/pkg/graphqlgo/relay"
 	"github.com/authgear/authgear-server/pkg/lib/resourcescope"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
@@ -12,9 +11,9 @@ import (
 var createScopeInput = graphql.NewInputObject(graphql.InputObjectConfig{
 	Name: "CreateScopeInput",
 	Fields: graphql.InputObjectConfigFieldMap{
-		"resourceID": &graphql.InputObjectFieldConfig{
-			Type:        graphql.NewNonNull(graphql.ID),
-			Description: "The ID of the resource.",
+		"resourceURI": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewNonNull(graphql.String),
+			Description: "The URI of the resource.",
 		},
 		"scope": &graphql.InputObjectFieldConfig{
 			Type:        graphql.NewNonNull(graphql.String),
@@ -49,12 +48,7 @@ var _ = registerMutationField(
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 			input := p.Args["input"].(map[string]interface{})
 
-			resourceID := input["resourceID"].(string)
-			resourceNodeID := relay.FromGlobalID(resourceID)
-			if resourceNodeID == nil || resourceNodeID.Type != typeResource {
-				return nil, ErrInvalidResourceID
-			}
-			decodedResourceID := resourceNodeID.ID
+			resourceURI := input["resourceURI"].(string)
 			scopeStr := input["scope"].(string)
 
 			var description *string
@@ -63,7 +57,7 @@ var _ = registerMutationField(
 			}
 
 			options := &resourcescope.NewScopeOptions{
-				ResourceID:  decodedResourceID,
+				ResourceURI: resourceURI,
 				Scope:       scopeStr,
 				Description: description,
 			}
@@ -92,9 +86,13 @@ var _ = registerMutationField(
 var updateScopeInput = graphql.NewInputObject(graphql.InputObjectConfig{
 	Name: "UpdateScopeInput",
 	Fields: graphql.InputObjectConfigFieldMap{
-		"id": &graphql.InputObjectFieldConfig{
-			Type:        graphql.NewNonNull(graphql.ID),
-			Description: "The ID of the scope.",
+		"resourceURI": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewNonNull(graphql.String),
+			Description: "The URI of the resource.",
+		},
+		"scope": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewNonNull(graphql.String),
+			Description: "The scope string.",
 		},
 		"description": &graphql.InputObjectFieldConfig{
 			Type:        graphql.String,
@@ -125,12 +123,8 @@ var _ = registerMutationField(
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 			input := p.Args["input"].(map[string]interface{})
 
-			scopeNodeID := input["id"].(string)
-			resolvedNodeID := relay.FromGlobalID(scopeNodeID)
-			if resolvedNodeID == nil || resolvedNodeID.Type != typeScope {
-				return nil, ErrInvalidScopeID
-			}
-			scopeID := resolvedNodeID.ID
+			resourceURI := input["resourceURI"].(string)
+			scopeStr := input["scope"].(string)
 
 			var newDescription *string
 			if str, ok := input["description"].(string); ok {
@@ -138,14 +132,15 @@ var _ = registerMutationField(
 			}
 
 			options := &resourcescope.UpdateScopeOptions{
-				ID:      scopeID,
-				NewDesc: newDescription,
+				ResourceURI: resourceURI,
+				Scope:       scopeStr,
+				NewDesc:     newDescription,
 			}
 
 			ctx := p.Context
 			gqlCtx := GQLContext(ctx)
 
-			originalScope, err := gqlCtx.ResourceScopeFacade.GetScope(ctx, scopeID)
+			originalScope, err := gqlCtx.ResourceScopeFacade.GetScope(ctx, resourceURI, scopeStr)
 			if err != nil {
 				return nil, err
 			}
@@ -173,9 +168,13 @@ var _ = registerMutationField(
 var deleteScopeInput = graphql.NewInputObject(graphql.InputObjectConfig{
 	Name: "DeleteScopeInput",
 	Fields: graphql.InputObjectConfigFieldMap{
-		"id": &graphql.InputObjectFieldConfig{
-			Type:        graphql.NewNonNull(graphql.ID),
-			Description: "The ID of the scope.",
+		"resourceURI": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewNonNull(graphql.String),
+			Description: "The URI of the resource.",
+		},
+		"scope": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewNonNull(graphql.String),
+			Description: "The scope string.",
 		},
 	},
 })
@@ -202,22 +201,18 @@ var _ = registerMutationField(
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 			input := p.Args["input"].(map[string]interface{})
 
-			scopeNodeID := input["id"].(string)
-			resolvedNodeID := relay.FromGlobalID(scopeNodeID)
-			if resolvedNodeID == nil || resolvedNodeID.Type != typeScope {
-				return nil, ErrInvalidScopeID
-			}
-			scopeID := resolvedNodeID.ID
+			resourceURI := input["resourceURI"].(string)
+			scopeStr := input["scope"].(string)
 
 			ctx := p.Context
 			gqlCtx := GQLContext(ctx)
 
-			scope, err := gqlCtx.ResourceScopeFacade.GetScope(ctx, scopeID)
+			scope, err := gqlCtx.ResourceScopeFacade.GetScope(ctx, resourceURI, scopeStr)
 			if err != nil {
 				return nil, err
 			}
 
-			err = gqlCtx.ResourceScopeFacade.DeleteScope(ctx, scopeID)
+			err = gqlCtx.ResourceScopeFacade.DeleteScope(ctx, resourceURI, scopeStr)
 			if err != nil {
 				return nil, err
 			}

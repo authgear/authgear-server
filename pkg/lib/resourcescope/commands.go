@@ -44,8 +44,12 @@ func (c *Commands) GetResourceByURI(ctx context.Context, uri string) (*model.Res
 }
 
 func (c *Commands) CreateScope(ctx context.Context, options *NewScopeOptions) (*model.Scope, error) {
-	scope := c.Store.NewScope(options)
-	err := c.Store.CreateScope(ctx, scope)
+	resource, err := c.Store.GetResourceByURI(ctx, options.ResourceURI)
+	if err != nil {
+		return nil, err
+	}
+	scope := c.Store.NewScope(resource, options)
+	err = c.Store.CreateScope(ctx, scope)
 	if err != nil {
 		return nil, err
 	}
@@ -57,13 +61,13 @@ func (c *Commands) UpdateScope(ctx context.Context, options *UpdateScopeOptions)
 	if err != nil {
 		return nil, err
 	}
-	scope, err := c.Store.GetScopeByID(ctx, options.ID)
+	scope, err := c.Store.GetScope(ctx, options.ResourceURI, options.Scope)
 	if err != nil {
 		return nil, err
 	}
 	return scope.ToModel(), nil
 }
 
-func (c *Commands) DeleteScope(ctx context.Context, id string) error {
-	return c.Store.DeleteScope(ctx, id)
+func (c *Commands) DeleteScope(ctx context.Context, resourceURI string, scope string) error {
+	return c.Store.DeleteScope(ctx, resourceURI, scope)
 }

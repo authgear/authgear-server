@@ -7,15 +7,15 @@ import (
 )
 
 type NewScopeOptions struct {
-	ResourceID  string
+	ResourceURI string
 	Scope       string
 	Description *string
 }
 
 type UpdateScopeOptions struct {
-	ID       string
-	NewScope *string
-	NewDesc  *string
+	ResourceURI string
+	Scope       string
+	NewDesc     *string
 }
 
 type Scope struct {

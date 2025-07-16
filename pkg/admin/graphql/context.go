@@ -205,8 +205,8 @@ type ResourceScopeFacade interface {
 	GetResourceByURI(ctx context.Context, uri string) (*apimodel.Resource, error)
 	CreateScope(ctx context.Context, options *resourcescope.NewScopeOptions) (*apimodel.Scope, error)
 	UpdateScope(ctx context.Context, options *resourcescope.UpdateScopeOptions) (*apimodel.Scope, error)
-	DeleteScope(ctx context.Context, id string) error
-	GetScope(ctx context.Context, id string) (*apimodel.Scope, error)
+	DeleteScope(ctx context.Context, resourceURI string, scope string) error
+	GetScope(ctx context.Context, resourceURI string, scope string) (*apimodel.Scope, error)
 	ListScopes(ctx context.Context, resourceID string) ([]*apimodel.Scope, error)
 	ListResources(ctx context.Context, options *resourcescope.ListResourcesOptions, pageArgs graphqlutil.PageArgs) ([]apimodel.PageItemRef, *graphqlutil.PageResult, error)
 }

@@ -59,12 +59,12 @@ func (q *Queries) ListResources(ctx context.Context, options *ListResourcesOptio
 	}, nil
 }
 
-func (q *Queries) GetScope(ctx context.Context, id string) (*model.Scope, error) {
-	scope, err := q.Store.GetScopeByID(ctx, id)
+func (q *Queries) GetScope(ctx context.Context, resourceURI string, scope string) (*model.Scope, error) {
+	sc, err := q.Store.GetScope(ctx, resourceURI, scope)
 	if err != nil {
 		return nil, err
 	}
-	return scope.ToModel(), nil
+	return sc.ToModel(), nil
 }
 
 func (q *Queries) ListScopes(ctx context.Context, resourceID string) ([]*model.Scope, error) {

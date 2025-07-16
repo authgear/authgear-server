@@ -15,12 +15,12 @@ type ResourceScopeCommands interface {
 	DeleteResourceByURI(ctx context.Context, uri string) error
 	CreateScope(ctx context.Context, options *resourcescope.NewScopeOptions) (*model.Scope, error)
 	UpdateScope(ctx context.Context, options *resourcescope.UpdateScopeOptions) (*model.Scope, error)
-	DeleteScope(ctx context.Context, id string) error
+	DeleteScope(ctx context.Context, resourceURI string, scope string) error
 }
 
 type ResourceScopeQueries interface {
 	GetResourceByURI(ctx context.Context, uri string) (*model.Resource, error)
-	GetScope(ctx context.Context, id string) (*model.Scope, error)
+	GetScope(ctx context.Context, resourceURI string, scope string) (*model.Scope, error)
 	ListScopes(ctx context.Context, resourceID string) ([]*model.Scope, error)
 	ListResources(ctx context.Context, options *resourcescope.ListResourcesOptions, pageArgs graphqlutil.PageArgs) (*resourcescope.ListResourceResult, error)
 }
@@ -54,12 +54,12 @@ func (f *ResourceScopeFacade) UpdateScope(ctx context.Context, options *resource
 	return f.ResourceScopeCommands.UpdateScope(ctx, options)
 }
 
-func (f *ResourceScopeFacade) DeleteScope(ctx context.Context, id string) error {
-	return f.ResourceScopeCommands.DeleteScope(ctx, id)
+func (f *ResourceScopeFacade) DeleteScope(ctx context.Context, resourceURI string, scope string) error {
+	return f.ResourceScopeCommands.DeleteScope(ctx, resourceURI, scope)
 }
 
-func (f *ResourceScopeFacade) GetScope(ctx context.Context, id string) (*model.Scope, error) {
-	return f.ResourceScopeQueries.GetScope(ctx, id)
+func (f *ResourceScopeFacade) GetScope(ctx context.Context, resourceURI string, scope string) (*model.Scope, error) {
+	return f.ResourceScopeQueries.GetScope(ctx, resourceURI, scope)
 }
 
 func (f *ResourceScopeFacade) ListScopes(ctx context.Context, resourceID string) ([]*model.Scope, error) {

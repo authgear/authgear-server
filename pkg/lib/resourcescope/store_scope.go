@@ -12,13 +12,13 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 )
 
-func (s *Store) NewScope(options *NewScopeOptions) *Scope {
+func (s *Store) NewScope(resource *Resource, options *NewScopeOptions) *Scope {
 	now := s.Clock.NowUTC()
 	return &Scope{
 		ID:          uuid.NewString(),
 		CreatedAt:   now,
 		UpdatedAt:   now,
-		ResourceID:  options.ResourceID,
+		ResourceID:  resource.URI,
 		Scope:       options.Scope,
 		Description: options.Description,
 	}
@@ -61,9 +61,14 @@ func (s *Store) CreateScope(ctx context.Context, scope *Scope) error {
 func (s *Store) UpdateScope(ctx context.Context, options *UpdateScopeOptions) error {
 	now := s.Clock.NowUTC()
 
+	resource, err := s.GetResourceByURI(ctx, options.ResourceURI)
+	if err != nil {
+		return err
+	}
+
 	q := s.SQLBuilder.Update(s.SQLBuilder.TableName("_auth_resource_scope")).
 		Set("updated_at", now).
-		Where("id = ?", options.ID)
+		Where("resource_id = ? AND scope = ?", resource.ID, options.Scope)
 
 	if options.NewDesc != nil {
 		if *options.NewDesc == "" {
@@ -118,9 +123,14 @@ func (s *Store) GetScopeByID(ctx context.Context, id string) (*Scope, error) {
 	return sc, nil
 }
 
-func (s *Store) DeleteScope(ctx context.Context, id string) error {
+func (s *Store) DeleteScope(ctx context.Context, resourceURI string, scope string) error {
+	resource, err := s.GetResourceByURI(ctx, resourceURI)
+	if err != nil {
+		return err
+	}
+
 	q := s.SQLBuilder.Delete(s.SQLBuilder.TableName("_auth_resource_scope")).
-		Where("id = ?", id)
+		Where("resource_id = ? AND scope = ?", resource.ID, scope)
 
 	result, err := s.SQLExecutor.ExecWith(ctx, q)
 	if err != nil {
@@ -147,6 +157,24 @@ func (s *Store) GetManyScopes(ctx context.Context, ids []string) ([]*Scope, erro
 func (s *Store) ListScopes(ctx context.Context, resourceID string) ([]*Scope, error) {
 	q := s.selectScopeQuery().Where("resource_id = ?", resourceID)
 	return s.queryScopes(ctx, q)
+}
+
+func (s *Store) GetScope(ctx context.Context, resourceURI string, scope string) (*Scope, error) {
+	resource, err := s.GetResourceByURI(ctx, resourceURI)
+	if err != nil {
+		return nil, err
+	}
+
+	q := s.selectScopeQuery().Where("resource_id = ? AND scope = ?", resource.ID, scope)
+	row, err := s.SQLExecutor.QueryRowWith(ctx, q)
+	if err != nil {
+		return nil, err
+	}
+	sc, err := s.scanScope(row)
+	if err != nil {
+		return nil, err
+	}
+	return sc, nil
 }
 
 func (s *Store) queryScopes(ctx context.Context, q db.SelectBuilder) ([]*Scope, error) {
