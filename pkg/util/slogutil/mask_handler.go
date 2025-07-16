@@ -121,23 +121,23 @@ type MaskHandler struct {
 	Next    slog.Handler
 }
 
-var _ slog.Handler = MaskHandler{}
+var _ slog.Handler = (*MaskHandler)(nil)
 
 func NewMaskMiddleware(options MaskHandlerOptions) slogmulti.Middleware {
 	return func(next slog.Handler) slog.Handler {
-		return MaskHandler{
+		return &MaskHandler{
 			Options: options,
 			Next:    next,
 		}
 	}
 }
 
-func (h MaskHandler) Enabled(context.Context, slog.Level) bool {
+func (h *MaskHandler) Enabled(context.Context, slog.Level) bool {
 	// Masking is always enabled.
 	return true
 }
 
-func (h MaskHandler) Handle(ctx context.Context, record slog.Record) error {
+func (h *MaskHandler) Handle(ctx context.Context, record slog.Record) error {
 	patterns := slices.Clone(h.Options.MaskPatterns)
 	patternsFromContext := GetMaskPatterns(ctx)
 	patterns = append(patterns, patternsFromContext...)
@@ -158,15 +158,15 @@ func (h MaskHandler) Handle(ctx context.Context, record slog.Record) error {
 	return h.Next.Handle(ctx, record)
 }
 
-func (h MaskHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
-	return MaskHandler{
+func (h *MaskHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
+	return &MaskHandler{
 		Options: h.Options,
 		Next:    h.Next.WithAttrs(attrs),
 	}
 }
 
-func (h MaskHandler) WithGroup(name string) slog.Handler {
-	return MaskHandler{
+func (h *MaskHandler) WithGroup(name string) slog.Handler {
+	return &MaskHandler{
 		Options: h.Options,
 		Next:    h.Next.WithGroup(name),
 	}

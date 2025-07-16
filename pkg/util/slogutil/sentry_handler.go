@@ -13,32 +13,32 @@ type SentryHandler struct {
 	Next slog.Handler
 }
 
-var _ slog.Handler = SentryHandler{}
+var _ slog.Handler = (*SentryHandler)(nil)
 
-func (h SentryHandler) Enabled(ctx context.Context, level slog.Level) bool {
+func (h *SentryHandler) Enabled(ctx context.Context, level slog.Level) bool {
 	return h.Next.Enabled(ctx, level)
 }
 
-func (h SentryHandler) Handle(ctx context.Context, record slog.Record) error {
+func (h *SentryHandler) Handle(ctx context.Context, record slog.Record) error {
 	if IsLoggingSkipped(record) {
 		return nil
 	}
 	return h.Next.Handle(ctx, record)
 }
 
-func (h SentryHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
-	return SentryHandler{
+func (h *SentryHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
+	return &SentryHandler{
 		Next: h.Next.WithAttrs(attrs),
 	}
 }
 
-func (h SentryHandler) WithGroup(name string) slog.Handler {
-	return SentryHandler{
+func (h *SentryHandler) WithGroup(name string) slog.Handler {
+	return &SentryHandler{
 		Next: h.Next.WithGroup(name),
 	}
 }
 
-func NewSentryHandler() SentryHandler {
+func NewSentryHandler() *SentryHandler {
 	// The context here is not important.
 	// If you read the source, the ctx is used to construct sentry.Logger.
 	// We do not use sentry.Logger.
@@ -57,7 +57,7 @@ func NewSentryHandler() SentryHandler {
 		// Hub: nil,
 	}
 	sentryslogHandler := options.NewSentryHandler(noctx)
-	return SentryHandler{
+	return &SentryHandler{
 		Next: sentryslogHandler,
 	}
 }

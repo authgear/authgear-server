@@ -239,7 +239,7 @@ func TestNewDefaultMaskHandlerOptions(t *testing.T) {
 
 func TestMaskHandler_Enabled(t *testing.T) {
 	Convey("MaskHandler.Enabled", t, func() {
-		handler := MaskHandler{}
+		handler := &MaskHandler{}
 
 		Convey("should always return true", func() {
 			So(handler.Enabled(context.Background(), slog.LevelDebug), ShouldBeTrue)
@@ -259,7 +259,7 @@ func TestMaskHandler_Handle(t *testing.T) {
 			},
 			Mask: "***",
 		}
-		handler := MaskHandler{
+		handler := &MaskHandler{
 			Options: options,
 			Next:    NewHandlerForTesting(&w),
 		}
@@ -329,7 +329,7 @@ func TestMaskHandler_WithAttrs(t *testing.T) {
 			},
 			Mask: "***",
 		}
-		handler := MaskHandler{
+		handler := &MaskHandler{
 			Options: options,
 			Next:    NewHandlerForTesting(&w),
 		}
@@ -339,7 +339,7 @@ func TestMaskHandler_WithAttrs(t *testing.T) {
 			newHandler := handler.WithAttrs(attrs)
 
 			// Should be a MaskHandler
-			maskHandler, ok := newHandler.(MaskHandler)
+			maskHandler, ok := newHandler.(*MaskHandler)
 			So(ok, ShouldBeTrue)
 			So(maskHandler.Options.Mask, ShouldEqual, "***")
 		})
@@ -355,7 +355,7 @@ func TestMaskHandler_WithGroup(t *testing.T) {
 			},
 			Mask: "***",
 		}
-		handler := MaskHandler{
+		handler := &MaskHandler{
 			Options: options,
 			Next:    NewHandlerForTesting(&w),
 		}
@@ -364,7 +364,7 @@ func TestMaskHandler_WithGroup(t *testing.T) {
 			newHandler := handler.WithGroup("group")
 
 			// Should be a MaskHandler
-			maskHandler, ok := newHandler.(MaskHandler)
+			maskHandler, ok := newHandler.(*MaskHandler)
 			So(ok, ShouldBeTrue)
 			So(maskHandler.Options.Mask, ShouldEqual, "***")
 		})

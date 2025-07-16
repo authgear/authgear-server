@@ -22,22 +22,22 @@ type SkipLoggingHandler struct {
 	Next            slog.Handler
 }
 
-var _ slog.Handler = SkipLoggingHandler{}
+var _ slog.Handler = (*SkipLoggingHandler)(nil)
 
 func NewSkipLoggingMiddleware() slogmulti.Middleware {
 	return func(next slog.Handler) slog.Handler {
-		return SkipLoggingHandler{
+		return &SkipLoggingHandler{
 			Next: next,
 		}
 	}
 }
 
-func (s SkipLoggingHandler) Enabled(ctx context.Context, level slog.Level) bool {
+func (s *SkipLoggingHandler) Enabled(ctx context.Context, level slog.Level) bool {
 	// We want this handler to always run.
 	return true
 }
 
-func (s SkipLoggingHandler) Handle(ctx context.Context, record slog.Record) error {
+func (s *SkipLoggingHandler) Handle(ctx context.Context, record slog.Record) error {
 	shouldSkip := false
 
 	if s.SkipByWithAttrs {
@@ -67,8 +67,8 @@ func (s SkipLoggingHandler) Handle(ctx context.Context, record slog.Record) erro
 	return s.Next.Handle(ctx, record)
 }
 
-func (s SkipLoggingHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
-	shouldSkip := false
+func (s *SkipLoggingHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
+	shouldSkip := s.SkipByWithAttrs
 	for _, attr := range attrs {
 		if err, ok := attr.Value.Any().(error); ok {
 			if IgnoreError(err) {
@@ -78,15 +78,16 @@ func (s SkipLoggingHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
 		}
 	}
 
-	return SkipLoggingHandler{
+	return &SkipLoggingHandler{
 		SkipByWithAttrs: shouldSkip,
 		Next:            s.Next.WithAttrs(attrs),
 	}
 }
 
-func (s SkipLoggingHandler) WithGroup(name string) slog.Handler {
-	return SkipLoggingHandler{
-		Next: s.Next.WithGroup(name),
+func (s *SkipLoggingHandler) WithGroup(name string) slog.Handler {
+	return &SkipLoggingHandler{
+		SkipByWithAttrs: s.SkipByWithAttrs,
+		Next:            s.Next.WithGroup(name),
 	}
 }
 

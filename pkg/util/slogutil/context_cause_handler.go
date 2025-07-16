@@ -11,21 +11,21 @@ type ContextCauseHandler struct {
 	Next slog.Handler
 }
 
-var _ slog.Handler = ContextCauseHandler{}
+var _ slog.Handler = (*ContextCauseHandler)(nil)
 
 func NewContextCauseMiddleware() slogmulti.Middleware {
 	return func(next slog.Handler) slog.Handler {
-		return ContextCauseHandler{
+		return &ContextCauseHandler{
 			Next: next,
 		}
 	}
 }
 
-func (s ContextCauseHandler) Enabled(context.Context, slog.Level) bool {
+func (s *ContextCauseHandler) Enabled(context.Context, slog.Level) bool {
 	return true
 }
 
-func (s ContextCauseHandler) Handle(ctx context.Context, record slog.Record) error {
+func (s *ContextCauseHandler) Handle(ctx context.Context, record slog.Record) error {
 	attrValue := ""
 
 	if ctx == nil {
@@ -53,14 +53,14 @@ func (s ContextCauseHandler) Handle(ctx context.Context, record slog.Record) err
 	return s.Next.Handle(ctx, record)
 }
 
-func (s ContextCauseHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
-	return ContextCauseHandler{
+func (s *ContextCauseHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
+	return &ContextCauseHandler{
 		Next: s.Next.WithAttrs(attrs),
 	}
 }
 
-func (s ContextCauseHandler) WithGroup(name string) slog.Handler {
-	return ContextCauseHandler{
+func (s *ContextCauseHandler) WithGroup(name string) slog.Handler {
+	return &ContextCauseHandler{
 		Next: s.Next.WithGroup(name),
 	}
 }

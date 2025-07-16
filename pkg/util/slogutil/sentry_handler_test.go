@@ -16,7 +16,7 @@ func TestSentryHandler(t *testing.T) {
 		var w strings.Builder
 		logger := slog.New(slogmulti.Pipe(
 			NewSkipLoggingMiddleware(),
-		).Handler(SentryHandler{
+		).Handler(&SentryHandler{
 			Next: NewHandlerForTesting(&w),
 		}))
 
