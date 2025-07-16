@@ -72,6 +72,11 @@ func (s *TokenService) IssueOfflineGrant(
 	now := s.Clock.NowUTC()
 	accessEvent := access.NewEvent(now, s.RemoteIP, s.UserAgentString)
 
+	accessInfo := access.Info{
+		InitialAccess: accessEvent,
+		LastAccess:    accessEvent,
+	}
+
 	refreshToken := &oauth.OfflineGrantRefreshToken{
 		TokenHash:       tokenHash,
 		ClientID:        client.ClientID,
@@ -79,6 +84,7 @@ func (s *TokenService) IssueOfflineGrant(
 		Scopes:          opts.Scopes,
 		AuthorizationID: opts.AuthorizationID,
 		DPoPJKT:         opts.DPoPJKT,
+		AccessInfo:      &accessInfo,
 	}
 
 	offlineGrant = &oauth.OfflineGrant{
@@ -92,11 +98,8 @@ func (s *TokenService) IssueOfflineGrant(
 		CreatedAt:       now,
 		AuthenticatedAt: opts.AuthenticationInfo.AuthenticatedAt,
 
-		Attrs: *session.NewAttrsFromAuthenticationInfo(opts.AuthenticationInfo),
-		AccessInfo: access.Info{
-			InitialAccess: accessEvent,
-			LastAccess:    accessEvent,
-		},
+		Attrs:      *session.NewAttrsFromAuthenticationInfo(opts.AuthenticationInfo),
+		AccessInfo: accessInfo,
 
 		DeviceInfo:              opts.DeviceInfo,
 		SSOEnabled:              opts.SSOEnabled,

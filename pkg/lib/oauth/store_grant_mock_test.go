@@ -169,18 +169,18 @@ func (m *MockOfflineGrantStore) EXPECT() *MockOfflineGrantStoreMockRecorder {
 }
 
 // AddOfflineGrantRefreshToken mocks base method.
-func (m *MockOfflineGrantStore) AddOfflineGrantRefreshToken(ctx context.Context, grantID string, expireAt time.Time, tokenHash, clientID string, scopes []string, authorizationID, dpopJKT string) (*OfflineGrant, error) {
+func (m *MockOfflineGrantStore) AddOfflineGrantRefreshToken(ctx context.Context, grantID string, accessInfo access.Info, expireAt time.Time, tokenHash, clientID string, scopes []string, authorizationID, dpopJKT string) (*OfflineGrant, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AddOfflineGrantRefreshToken", ctx, grantID, expireAt, tokenHash, clientID, scopes, authorizationID, dpopJKT)
+	ret := m.ctrl.Call(m, "AddOfflineGrantRefreshToken", ctx, grantID, accessInfo, expireAt, tokenHash, clientID, scopes, authorizationID, dpopJKT)
 	ret0, _ := ret[0].(*OfflineGrant)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // AddOfflineGrantRefreshToken indicates an expected call of AddOfflineGrantRefreshToken.
-func (mr *MockOfflineGrantStoreMockRecorder) AddOfflineGrantRefreshToken(ctx, grantID, expireAt, tokenHash, clientID, scopes, authorizationID, dpopJKT interface{}) *gomock.Call {
+func (mr *MockOfflineGrantStoreMockRecorder) AddOfflineGrantRefreshToken(ctx, grantID, accessInfo, expireAt, tokenHash, clientID, scopes, authorizationID, dpopJKT interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddOfflineGrantRefreshToken", reflect.TypeOf((*MockOfflineGrantStore)(nil).AddOfflineGrantRefreshToken), ctx, grantID, expireAt, tokenHash, clientID, scopes, authorizationID, dpopJKT)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddOfflineGrantRefreshToken", reflect.TypeOf((*MockOfflineGrantStore)(nil).AddOfflineGrantRefreshToken), ctx, grantID, accessInfo, expireAt, tokenHash, clientID, scopes, authorizationID, dpopJKT)
 }
 
 // AddOfflineGrantSAMLServiceProviderParticipant mocks base method.
@@ -360,19 +360,19 @@ func (mr *MockOfflineGrantStoreMockRecorder) UpdateOfflineGrantDeviceSecretHash(
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateOfflineGrantDeviceSecretHash", reflect.TypeOf((*MockOfflineGrantStore)(nil).UpdateOfflineGrantDeviceSecretHash), ctx, grantID, newDeviceSecretHash, dpopJKT, expireAt)
 }
 
-// UpdateOfflineGrantLastAccess mocks base method.
-func (m *MockOfflineGrantStore) UpdateOfflineGrantLastAccess(ctx context.Context, id string, accessEvent access.Event, expireAt time.Time) (*OfflineGrant, error) {
+// UpdateOfflineGrantWithMutator mocks base method.
+func (m *MockOfflineGrantStore) UpdateOfflineGrantWithMutator(ctx context.Context, grantID string, expireAt time.Time, mutator func(*OfflineGrant) *OfflineGrant) (*OfflineGrant, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateOfflineGrantLastAccess", ctx, id, accessEvent, expireAt)
+	ret := m.ctrl.Call(m, "UpdateOfflineGrantWithMutator", ctx, grantID, expireAt, mutator)
 	ret0, _ := ret[0].(*OfflineGrant)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// UpdateOfflineGrantLastAccess indicates an expected call of UpdateOfflineGrantLastAccess.
-func (mr *MockOfflineGrantStoreMockRecorder) UpdateOfflineGrantLastAccess(ctx, id, accessEvent, expireAt interface{}) *gomock.Call {
+// UpdateOfflineGrantWithMutator indicates an expected call of UpdateOfflineGrantWithMutator.
+func (mr *MockOfflineGrantStoreMockRecorder) UpdateOfflineGrantWithMutator(ctx, grantID, expireAt, mutator interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateOfflineGrantLastAccess", reflect.TypeOf((*MockOfflineGrantStore)(nil).UpdateOfflineGrantLastAccess), ctx, id, accessEvent, expireAt)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateOfflineGrantWithMutator", reflect.TypeOf((*MockOfflineGrantStore)(nil).UpdateOfflineGrantWithMutator), ctx, grantID, expireAt, mutator)
 }
 
 // MockAccessGrantStore is a mock of AccessGrantStore interface.

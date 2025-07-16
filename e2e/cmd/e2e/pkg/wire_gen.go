@@ -860,13 +860,15 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		TesterEndpoints: endpointsEndpoints,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig:    oAuthConfig,
-		Clock:          clockClock,
-		IDPSessions:    idpsessionProvider,
-		ClientResolver: oauthclientResolver,
-		AccessEvents:   eventProvider,
-		MeterService:   meterService,
-		OfflineGrants:  redisStore,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		OAuthConfig:     oAuthConfig,
+		Clock:           clockClock,
+		IDPSessions:     idpsessionProvider,
+		ClientResolver:  oauthclientResolver,
+		AccessEvents:    eventProvider,
+		MeterService:    meterService,
+		OfflineGrants:   redisStore,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,

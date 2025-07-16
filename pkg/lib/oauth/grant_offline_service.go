@@ -9,7 +9,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
+
+//go:generate go tool mockgen -source=grant_offline_service.go -destination=grant_offline_service_mock_test.go -package oauth
 
 type ServiceIDPSessionProvider interface {
 	Get(ctx context.Context, id string) (*idpsession.IDPSession, error)
@@ -24,6 +27,9 @@ type OfflineGrantServiceMeterService interface {
 }
 
 type OfflineGrantService struct {
+	RemoteIP        httputil.RemoteIP
+	UserAgentString httputil.UserAgentString
+
 	OAuthConfig    *config.OAuthConfig
 	Clock          clock.Clock
 	IDPSessions    ServiceIDPSessionProvider
@@ -40,11 +46,29 @@ type CreateNewRefreshTokenResult struct {
 }
 
 // AccessOfflineGrant accesses oauth offline grant with 3 targeted side effects
-// 1. set grant.AccessInfo.LastAccess to new accessEvent (inside UpdateOfflineGrantLastAccess)
+// 1. set grant.AccessInfo.LastAccess to new accessEvent
 // 2. call RecordAccess
 // 3. call TrackActiveUser
-func (s *OfflineGrantService) AccessOfflineGrant(ctx context.Context, grantID string, accessEvent *access.Event, expireAt time.Time) (*OfflineGrant, error) {
-	grant, err := s.OfflineGrants.UpdateOfflineGrantLastAccess(ctx, grantID, *accessEvent, expireAt)
+func (s *OfflineGrantService) AccessOfflineGrant(ctx context.Context, grantID string, refreshTokenHash string, accessEvent *access.Event, expireAt time.Time) (*OfflineGrant, error) {
+	grant, err := s.OfflineGrants.UpdateOfflineGrantWithMutator(ctx, grantID, expireAt, func(grant *OfflineGrant) *OfflineGrant {
+		grant.AccessInfo.LastAccess = *accessEvent
+		// If the refresh token actually used is known, update the individual access info
+		if refreshTokenHash != "" {
+			for i := range grant.RefreshTokens {
+				token := grant.RefreshTokens[i]
+				if token.MatchHash(refreshTokenHash) {
+					if token.AccessInfo == nil {
+						// Handle nil for backward compatibility
+						tokenAccessInfo := grant.AccessInfo
+						token.AccessInfo = &tokenAccessInfo
+					}
+					token.AccessInfo.LastAccess = *accessEvent
+				}
+				grant.RefreshTokens[i] = token
+			}
+		}
+		return grant
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -106,7 +130,10 @@ func (s *OfflineGrantService) ComputeOfflineGrantExpiry(session *OfflineGrant) (
 		return
 	}
 
-	expiry = s.computeOfflineGrantExpiryWithClient(session, clientConfig)
+	expiry = s.computeRefreshTokenExpiryWithClient(expirableRefreshToken{
+		CreatedAt:    session.CreatedAt,
+		LastAccessAt: session.AccessInfo.LastAccess.Timestamp,
+	}, clientConfig)
 	return
 }
 
@@ -123,10 +150,15 @@ func (s *OfflineGrantService) CheckSessionExpired(session *OfflineGrant) (bool, 
 	return offlineGrantExpired, expiry, nil
 }
 
-func (s *OfflineGrantService) computeOfflineGrantExpiryWithClient(session *OfflineGrant, cfg *config.OAuthClientConfig) (expiry time.Time) {
-	expiry = session.CreatedAt.Add(cfg.RefreshTokenLifetime.Duration())
+type expirableRefreshToken struct {
+	CreatedAt    time.Time
+	LastAccessAt time.Time
+}
+
+func (s *OfflineGrantService) computeRefreshTokenExpiryWithClient(token expirableRefreshToken, cfg *config.OAuthClientConfig) (expiry time.Time) {
+	expiry = token.CreatedAt.Add(cfg.RefreshTokenLifetime.Duration())
 	if *cfg.RefreshTokenIdleTimeoutEnabled {
-		idleExpiry := session.AccessInfo.LastAccess.Timestamp.Add(cfg.RefreshTokenIdleTimeout.Duration())
+		idleExpiry := token.LastAccessAt.Add(cfg.RefreshTokenIdleTimeout.Duration())
 		if idleExpiry.Before(expiry) {
 			expiry = idleExpiry
 		}
@@ -146,11 +178,20 @@ func (s *OfflineGrantService) CreateNewRefreshToken(
 	if err != nil {
 		return nil, nil, err
 	}
+	now := s.Clock.NowUTC()
+	accessEvent := access.NewEvent(now, s.RemoteIP, s.UserAgentString)
+
+	accessInfo := access.Info{
+		InitialAccess: accessEvent,
+		LastAccess:    accessEvent,
+	}
+
 	newToken := GenerateToken()
 	newTokenHash := HashToken(newToken)
 	newGrant, err := s.OfflineGrants.AddOfflineGrantRefreshToken(
 		ctx,
 		grant.ID,
+		accessInfo,
 		expiry,
 		newTokenHash,
 		clientID,
@@ -161,6 +202,13 @@ func (s *OfflineGrantService) CreateNewRefreshToken(
 	if err != nil {
 		return nil, nil, err
 	}
+
+	// Housekeep the OfflineGrant to ensure the size of the object will not increase indefinitely
+	newGrant, err = s.housekeepOfflineGrant(ctx, newGrant)
+	if err != nil {
+		return nil, nil, err
+	}
+
 	result := &CreateNewRefreshTokenResult{
 		Token:     newToken,
 		TokenHash: newTokenHash,
@@ -187,4 +235,53 @@ func (s *OfflineGrantService) AddSAMLServiceProviderParticipant(
 		return nil, err
 	}
 	return newGrant, nil
+}
+
+func (s *OfflineGrantService) housekeepOfflineGrant(ctx context.Context, grant *OfflineGrant) (*OfflineGrant, error) {
+	now := s.Clock.NowUTC()
+
+	// Remove expired refresh tokens
+	tokenHashesToRemove := []string{}
+	for idx, token := range grant.RefreshTokens {
+		if idx == 0 {
+			// Never remove the root token
+			continue
+		}
+		var lastAccess time.Time
+		// For backward compatibility
+		if token.AccessInfo == nil {
+			lastAccess = token.CreatedAt
+		} else {
+			lastAccess = token.AccessInfo.LastAccess.Timestamp
+		}
+
+		clientConfig := s.ClientResolver.ResolveClient(token.ClientID)
+		if clientConfig == nil {
+			// The client was removed, remove the refresh token
+			tokenHashesToRemove = append(tokenHashesToRemove, token.TokenHash)
+			continue
+		}
+
+		expiry := s.computeRefreshTokenExpiryWithClient(expirableRefreshToken{
+			CreatedAt:    token.CreatedAt,
+			LastAccessAt: lastAccess,
+		}, clientConfig)
+
+		if now.After(expiry) {
+			tokenHashesToRemove = append(tokenHashesToRemove, token.TokenHash)
+			continue
+		}
+	}
+
+	expiry, err := s.ComputeOfflineGrantExpiry(grant)
+	if err != nil {
+		return nil, err
+	}
+
+	newGrant, err := s.OfflineGrants.RemoveOfflineGrantRefreshTokens(ctx, grant.ID, tokenHashesToRemove, expiry)
+	if err != nil {
+		return nil, err
+	}
+
+	return newGrant, err
 }

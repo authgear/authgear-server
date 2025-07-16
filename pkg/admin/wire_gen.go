@@ -957,13 +957,15 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		TesterEndpoints: endpointsEndpoints,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig:    oAuthConfig,
-		Clock:          clockClock,
-		IDPSessions:    idpsessionProvider,
-		ClientResolver: oauthclientResolver,
-		AccessEvents:   eventProvider,
-		MeterService:   meterService,
-		OfflineGrants:  redisStore,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		OAuthConfig:     oAuthConfig,
+		Clock:           clockClock,
+		IDPSessions:     idpsessionProvider,
+		ClientResolver:  oauthclientResolver,
+		AccessEvents:    eventProvider,
+		MeterService:    meterService,
+		OfflineGrants:   redisStore,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -1197,13 +1199,15 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Events:             eventService,
 	}
 	oauthOfflineGrantService := &oauth2.OfflineGrantService{
-		OAuthConfig:    oAuthConfig,
-		Clock:          clockClock,
-		IDPSessions:    idpsessionProvider,
-		ClientResolver: oauthclientResolver,
-		AccessEvents:   eventProvider,
-		MeterService:   meterService,
-		OfflineGrants:  redisStore,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		OAuthConfig:     oAuthConfig,
+		Clock:           clockClock,
+		IDPSessions:     idpsessionProvider,
+		ClientResolver:  oauthclientResolver,
+		AccessEvents:    eventProvider,
+		MeterService:    meterService,
+		OfflineGrants:   redisStore,
 	}
 	authorizationService := &oauth2.AuthorizationService{
 		AppID:               appID,

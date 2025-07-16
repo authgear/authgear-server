@@ -285,8 +285,7 @@ func (s *Store) CreateOfflineGrant(ctx context.Context, grant *oauth.OfflineGran
 	return nil
 }
 
-// UpdateOfflineGrantLastAccess updates the last access event for an offline grant
-func (s *Store) UpdateOfflineGrantLastAccess(ctx context.Context, grantID string, accessEvent access.Event, expireAt time.Time) (*oauth.OfflineGrant, error) {
+func (s *Store) UpdateOfflineGrantWithMutator(ctx context.Context, grantID string, expireAt time.Time, mutator func(*oauth.OfflineGrant) *oauth.OfflineGrant) (*oauth.OfflineGrant, error) {
 	mutexName := offlineGrantMutexName(string(s.AppID), grantID)
 	mutex := s.Redis.NewMutex(mutexName)
 	err := mutex.LockContext(ctx)
@@ -302,7 +301,7 @@ func (s *Store) UpdateOfflineGrantLastAccess(ctx context.Context, grantID string
 		return nil, err
 	}
 
-	grant.AccessInfo.LastAccess = accessEvent
+	grant = mutator(grant)
 
 	err = s.updateOfflineGrant(ctx, grant, expireAt)
 	if err != nil {
@@ -456,6 +455,7 @@ func (s *Store) AddOfflineGrantSAMLServiceProviderParticipant(
 func (s *Store) AddOfflineGrantRefreshToken(
 	ctx context.Context,
 	grantID string,
+	accessInfo access.Info,
 	expireAt time.Time,
 	tokenHash string,
 	clientID string,
@@ -479,6 +479,7 @@ func (s *Store) AddOfflineGrantRefreshToken(
 	}
 
 	now := s.Clock.NowUTC()
+
 	newRefreshToken := oauth.OfflineGrantRefreshToken{
 		TokenHash:       tokenHash,
 		ClientID:        clientID,
@@ -486,6 +487,7 @@ func (s *Store) AddOfflineGrantRefreshToken(
 		Scopes:          scopes,
 		AuthorizationID: authorizationID,
 		DPoPJKT:         dpopJKT,
+		AccessInfo:      &accessInfo,
 	}
 
 	grant.RefreshTokens = append(grant.RefreshTokens, newRefreshToken)

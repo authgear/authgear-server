@@ -104,7 +104,7 @@ func TestTokenHandler(t *testing.T) {
 				idTokenIssuer.EXPECT().IssueIDToken(gomock.Any(), gomock.Any()).Return("id-token", nil)
 				tokenService.EXPECT().IssueAccessGrant(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 				event := access.NewEvent(clock.NowUTC(), "1.2.3.4", "UA")
-				offlineGrantService.EXPECT().AccessOfflineGrant(gomock.Any(), "offline-grant-id", &event, offlineGrant.ExpireAtForResolvedSession).Return(offlineGrant, nil)
+				offlineGrantService.EXPECT().AccessOfflineGrant(gomock.Any(), "offline-grant-id", refreshTokenHash, &event, offlineGrant.ExpireAtForResolvedSession).Return(offlineGrant, nil)
 				offlineGrants.EXPECT().UpdateOfflineGrantDeviceInfo(gomock.Any(), "offline-grant-id", gomock.Any(), offlineGrant.ExpireAtForResolvedSession).Return(offlineGrant, nil)
 				ctx := context.Background()
 				res := handle(ctx, req, r)

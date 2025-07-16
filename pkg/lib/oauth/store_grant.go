@@ -26,7 +26,7 @@ type OfflineGrantStore interface {
 	CreateOfflineGrant(ctx context.Context, offlineGrant *OfflineGrant) error
 	DeleteOfflineGrant(ctx context.Context, g *OfflineGrant) error
 
-	UpdateOfflineGrantLastAccess(ctx context.Context, id string, accessEvent access.Event, expireAt time.Time) (*OfflineGrant, error)
+	UpdateOfflineGrantWithMutator(ctx context.Context, grantID string, expireAt time.Time, mutator func(*OfflineGrant) *OfflineGrant) (*OfflineGrant, error)
 	UpdateOfflineGrantDeviceInfo(ctx context.Context, id string, deviceInfo map[string]interface{}, expireAt time.Time) (*OfflineGrant, error)
 	UpdateOfflineGrantAuthenticatedAt(ctx context.Context, id string, authenticatedAt time.Time, expireAt time.Time) (*OfflineGrant, error)
 	UpdateOfflineGrantApp2AppDeviceKey(ctx context.Context, id string, newKey string, expireAt time.Time) (*OfflineGrant, error)
@@ -40,6 +40,7 @@ type OfflineGrantStore interface {
 	AddOfflineGrantRefreshToken(
 		ctx context.Context,
 		grantID string,
+		accessInfo access.Info,
 		expireAt time.Time,
 		tokenHash string,
 		clientID string,
