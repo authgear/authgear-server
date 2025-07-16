@@ -12,6 +12,7 @@ CREATE TABLE _auth_resource (
 CREATE UNIQUE INDEX _auth_resource_uri_unique ON _auth_resource USING btree (app_id, uri);
 CREATE INDEX _auth_resource_uri_typeahead ON _auth_resource USING btree (app_id, uri text_pattern_ops);
 CREATE INDEX _auth_resource_name_typeahead ON _auth_resource USING btree (app_id, name text_pattern_ops);
+CREATE INDEX _auth_resource_app_id_created_at ON _auth_resource USING btree (app_id, created_at);
 
 CREATE TABLE _auth_resource_scope (
   id text PRIMARY KEY,
@@ -25,6 +26,7 @@ CREATE TABLE _auth_resource_scope (
 );
 CREATE UNIQUE INDEX _auth_resource_scope_unique ON _auth_resource_scope USING btree (app_id, resource_id, scope);
 CREATE INDEX _auth_resource_scope_scope_typeahead ON _auth_resource_scope USING btree (app_id, resource_id, scope text_pattern_ops);
+CREATE INDEX _auth_resource_scope_app_id_resource_id_created_at ON _auth_resource_scope USING btree (app_id, resource_id, created_at);
 
 CREATE TABLE _auth_client_resource (
   id text PRIMARY KEY,
@@ -53,9 +55,11 @@ DROP INDEX IF EXISTS _auth_client_resource_scope_unique;
 DROP TABLE IF EXISTS _auth_client_resource_scope;
 DROP INDEX IF EXISTS _auth_client_resource_unique;
 DROP TABLE IF EXISTS _auth_client_resource;
+DROP INDEX IF EXISTS _auth_resource_scope_app_id_resource_id_created_at;
 DROP INDEX IF EXISTS _auth_resource_scope_scope_typeahead;
 DROP INDEX IF EXISTS _auth_resource_scope_unique;
 DROP TABLE IF EXISTS _auth_resource_scope;
+DROP INDEX IF EXISTS _auth_resource_app_id_created_at;
 DROP INDEX IF EXISTS _auth_resource_name_typeahead;
 DROP INDEX IF EXISTS _auth_resource_uri_typeahead;
 DROP INDEX IF EXISTS _auth_resource_uri_unique;
