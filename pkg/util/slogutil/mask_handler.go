@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"slices"
 
+	"github.com/jba/slog/withsupport"
 	slogmulti "github.com/samber/slog-multi"
 
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
@@ -117,8 +118,9 @@ func NewDefaultMaskHandlerOptions() MaskHandlerOptions {
 }
 
 type MaskHandler struct {
-	Options MaskHandlerOptions
-	Next    slog.Handler
+	groupOrAttrs *withsupport.GroupOrAttrs
+	Options      MaskHandlerOptions
+	Next         slog.Handler
 }
 
 var _ slog.Handler = (*MaskHandler)(nil)
@@ -147,11 +149,21 @@ func (h *MaskHandler) Handle(ctx context.Context, record slog.Record) error {
 		Mask:         h.Options.Mask,
 	}
 
+	// Gather a full list of attrs.
 	attrs := []slog.Attr{}
-	record.Attrs(func(a slog.Attr) bool {
-		attrs = append(attrs, options.maskAttr(ctx, a))
+
+	// Gather from captured With calls.
+	attrs = append(attrs, LinearizeGroupOrAttrs(h.groupOrAttrs)...)
+	// Gather from the record itself.
+	record.Attrs(func(attr slog.Attr) bool {
+		attrs = append(attrs, attr)
 		return true
 	})
+
+	for idx, attr := range attrs {
+		attrs[idx] = options.maskAttr(ctx, attr)
+	}
+
 	record = slog.NewRecord(record.Time, record.Level, record.Message, record.PC)
 	record.AddAttrs(attrs...)
 
@@ -162,15 +174,21 @@ func (h *MaskHandler) Handle(ctx context.Context, record slog.Record) error {
 }
 
 func (h *MaskHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
+	// MaskHandler must capture the attrs in order to do masking.
+	// So the call IS NOT forwarded to h.Next here.
 	return &MaskHandler{
-		Options: h.Options,
-		Next:    h.Next.WithAttrs(attrs),
+		groupOrAttrs: h.groupOrAttrs.WithAttrs(attrs),
+		Options:      h.Options,
+		Next:         h.Next,
 	}
 }
 
 func (h *MaskHandler) WithGroup(name string) slog.Handler {
+	// MaskHandler must capture the group in order to do masking.
+	// So the call IS NOT forwarded to h.Next here.
 	return &MaskHandler{
-		Options: h.Options,
-		Next:    h.Next.WithGroup(name),
+		groupOrAttrs: h.groupOrAttrs.WithGroup(name),
+		Options:      h.Options,
+		Next:         h.Next,
 	}
 }
