@@ -7,6 +7,7 @@ import (
 const (
 	AuthorizationCodeGrantType = "authorization_code"
 	RefreshTokenGrantType      = "refresh_token"
+	ClientCredentialsGrantType = "client_credentials"
 	// nolint:gosec
 	TokenExchangeGrantType = "urn:ietf:params:oauth:grant-type:token-exchange"
 
@@ -51,6 +52,10 @@ func GetAllowedGrantTypes(c *config.OAuthClientConfig) []string {
 			allowed = append(allowed, g)
 			seen[g] = struct{}{}
 		}
+	}
+
+	if c.ApplicationType.IsClientCredentialsFlowAllowed() {
+		allowed = append(allowed, ClientCredentialsGrantType)
 	}
 
 	return allowed
