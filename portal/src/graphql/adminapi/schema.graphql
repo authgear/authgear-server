@@ -757,8 +757,8 @@ input CreateScopeInput {
   """The optional description of the scope."""
   description: String
 
-  """The ID of the resource."""
-  resourceID: ID!
+  """The URI of the resource."""
+  resourceURI: String!
 
   """The scope string."""
   scope: String!
@@ -877,8 +877,8 @@ type DeleteIdentityPayload {
 
 """"""
 input DeleteResourceInput {
-  """The ID of the resource."""
-  id: ID!
+  """The URI of the resource."""
+  resourceURI: String!
 }
 
 """"""
@@ -901,8 +901,11 @@ type DeleteRolePayload {
 
 """"""
 input DeleteScopeInput {
-  """The ID of the scope."""
-  id: ID!
+  """The URI of the resource."""
+  resourceURI: String!
+
+  """The scope string."""
+  scope: String!
 }
 
 """"""
@@ -1827,13 +1830,13 @@ type UpdateIdentityPayload {
 
 """"""
 input UpdateResourceInput {
-  """The ID of the resource."""
-  id: ID!
-
   """
   The new name of the resource. Pass null if you do not need to update the name. Pass an empty string to remove the name.
   """
   name: String
+
+  """The URI of the resource."""
+  resourceURI: String!
 }
 
 """"""
@@ -1876,8 +1879,11 @@ input UpdateScopeInput {
   """
   description: String
 
-  """The ID of the scope."""
-  id: ID!
+  """The URI of the resource."""
+  resourceURI: String!
+
+  """The scope string."""
+  scope: String!
 }
 
 """"""

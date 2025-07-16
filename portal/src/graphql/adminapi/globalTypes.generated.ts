@@ -450,8 +450,8 @@ export type CreateRolePayload = {
 export type CreateScopeInput = {
   /** The optional description of the scope. */
   description?: InputMaybe<Scalars['String']['input']>;
-  /** The ID of the resource. */
-  resourceID: Scalars['ID']['input'];
+  /** The URI of the resource. */
+  resourceURI: Scalars['String']['input'];
   /** The scope string. */
   scope: Scalars['String']['input'];
 };
@@ -535,8 +535,8 @@ export type DeleteIdentityPayload = {
 };
 
 export type DeleteResourceInput = {
-  /** The ID of the resource. */
-  id: Scalars['ID']['input'];
+  /** The URI of the resource. */
+  resourceURI: Scalars['String']['input'];
 };
 
 export type DeleteResourcePayload = {
@@ -555,8 +555,10 @@ export type DeleteRolePayload = {
 };
 
 export type DeleteScopeInput = {
-  /** The ID of the scope. */
-  id: Scalars['ID']['input'];
+  /** The URI of the resource. */
+  resourceURI: Scalars['String']['input'];
+  /** The scope string. */
+  scope: Scalars['String']['input'];
 };
 
 export type DeleteScopePayload = {
@@ -1625,10 +1627,10 @@ export type UpdateIdentityPayload = {
 };
 
 export type UpdateResourceInput = {
-  /** The ID of the resource. */
-  id: Scalars['ID']['input'];
   /** The new name of the resource. Pass null if you do not need to update the name. Pass an empty string to remove the name. */
   name?: InputMaybe<Scalars['String']['input']>;
+  /** The URI of the resource. */
+  resourceURI: Scalars['String']['input'];
 };
 
 export type UpdateResourcePayload = {
@@ -1655,8 +1657,10 @@ export type UpdateRolePayload = {
 export type UpdateScopeInput = {
   /** The new description of the scope. Pass null if you do not need to update the description. Pass an empty string to remove the description. */
   description?: InputMaybe<Scalars['String']['input']>;
-  /** The ID of the scope. */
-  id: Scalars['ID']['input'];
+  /** The URI of the resource. */
+  resourceURI: Scalars['String']['input'];
+  /** The scope string. */
+  scope: Scalars['String']['input'];
 };
 
 export type UpdateScopePayload = {
