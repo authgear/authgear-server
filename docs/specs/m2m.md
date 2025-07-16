@@ -1002,7 +1002,7 @@ type CreateResourcePayload {
 }
 
 input UpdateResourceInput {
-  id: ID!
+  resourceURI: String!
   """The new name"""
   name: String
 }
@@ -1012,7 +1012,7 @@ type UpdateResourcePayload {
 }
 
 input DeleteResourceInput {
-  id: ID!
+  resourceURI: String!
 }
 
 type DeleteResourcePayload {
@@ -1020,7 +1020,7 @@ type DeleteResourcePayload {
 }
 
 input CreateScopeInput {
-  resourceID: ID!
+  resourceURI: String!
   scope: String!
   description: String
 }
@@ -1030,7 +1030,8 @@ type CreateScopePayload {
 }
 
 input UpdateScopeInput {
-  id: ID!
+  resourceURI: String!
+  scope: String!
   """The new description"""
   description: String
 }
@@ -1040,7 +1041,8 @@ type UpdateScopePayload {
 }
 
 input DeleteScopeInput {
-  id: ID!
+  resourceURI: String!
+  scope: String!
 }
 
 type DeleteScopePayload {
