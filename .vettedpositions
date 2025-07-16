@@ -59,10 +59,10 @@
 /pkg/auth/handler/webapp/auth_entry_point_middleware.go:31:31: requestcontext
 /pkg/auth/handler/webapp/auth_entry_point_middleware.go:32:35: requestcontext
 /pkg/auth/handler/webapp/authflow_change_password.go:96:26: requestcontext
-/pkg/auth/handler/webapp/authflow_controller.go:1025:30: requestcontext
-/pkg/auth/handler/webapp/authflow_controller.go:1030:24: requestcontext
-/pkg/auth/handler/webapp/authflow_controller.go:1038:19: requestcontext
-/pkg/auth/handler/webapp/authflow_controller.go:1046:18: requestcontext
+/pkg/auth/handler/webapp/authflow_controller.go:997:30: requestcontext
+/pkg/auth/handler/webapp/authflow_controller.go:1002:24: requestcontext
+/pkg/auth/handler/webapp/authflow_controller.go:1010:19: requestcontext
+/pkg/auth/handler/webapp/authflow_controller.go:1018:18: requestcontext
 /pkg/auth/handler/webapp/authflow_create_password.go:132:26: requestcontext
 /pkg/auth/handler/webapp/authflow_enter_oob_otp.go:156:26: requestcontext
 /pkg/auth/handler/webapp/authflow_enter_password.go:139:26: requestcontext
@@ -191,7 +191,7 @@
 /pkg/auth/handler/webapp/login_link_otp.go:121:27: requestcontext
 /pkg/auth/handler/webapp/logout.go:71:27: requestcontext
 /pkg/auth/handler/webapp/noproject_sso_callback.go:38:9: requestcontext
-/pkg/auth/handler/webapp/panic_middleware.go:59:12: requestcontext
+/pkg/auth/handler/webapp/panic_middleware.go:60:12: requestcontext
 /pkg/auth/handler/webapp/passkey_creation_options.go:35:9: requestcontext
 /pkg/auth/handler/webapp/passkey_request_options.go:36:9: requestcontext
 /pkg/auth/handler/webapp/promote.go:98:27: requestcontext
@@ -254,8 +254,8 @@
 /pkg/auth/handler/webapp/verify_identity.go:161:27: requestcontext
 /pkg/auth/handler/webapp/verify_identity_success.go:42:27: requestcontext
 /pkg/auth/handler/webapp/verify_login_link.go:92:27: requestcontext
-/pkg/auth/handler/webapp/viewmodels/base.go:213:9: requestcontext
-/pkg/auth/handler/webapp/viewmodels/base.go:429:9: requestcontext
+/pkg/auth/handler/webapp/viewmodels/base.go:208:9: requestcontext
+/pkg/auth/handler/webapp/viewmodels/base.go:416:9: requestcontext
 /pkg/auth/handler/webapp/websocket.go:42:25: requestcontext
 /pkg/auth/handler/webapp/websocket.go:53:25: requestcontext
 /pkg/auth/handler/webapp/websocket.go:77:30: requestcontext
@@ -297,7 +297,7 @@
 /pkg/lib/deps/providers.go:155:36: requestcontext
 /pkg/lib/dpop/middleware.go:45:35: requestcontext
 /pkg/lib/healthz/healthz.go:25:9: requestcontext
-/pkg/lib/infra/middleware/panic.go:41:12: requestcontext
+/pkg/lib/infra/middleware/panic.go:42:12: requestcontext
 /pkg/lib/infra/middleware/sentry.go:21:47: requestcontext
 /pkg/lib/oauth/response_mode.go:122:40: requestcontext
 /pkg/lib/oauth/response_mode.go:149:40: requestcontext
