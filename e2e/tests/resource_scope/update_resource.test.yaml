@@ -7,10 +7,9 @@ steps:
   - action: adminapi_query
     adminapi_request:
       query: |
-        {{ $resourceID := (printf "%s-fixture-resource-01" .AppID) }}
         mutation UpdateResource {
           updateResource(input: {
-            id: "{{ nodeID "Resource" $resourceID }}",
+            resourceURI: "https://fixtureresource/1",
             name: "Updated Resource Name"
           }) {
             resource {

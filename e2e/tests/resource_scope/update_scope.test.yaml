@@ -7,10 +7,10 @@ steps:
   - action: adminapi_query
     adminapi_request:
       query: |
-        {{ $scopeID := (printf "%s-fixture-scope-01" .AppID) }}
         mutation UpdateScope {
           updateScope(input: {
-            id: "{{ nodeID "Scope" $scopeID }}",
+            resourceURI: "https://fixtureresource/1",
+            scope: "fixturescope1",
             description: "Updated Scope Description"
           }) {
             scope {

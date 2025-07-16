@@ -7,10 +7,9 @@ steps:
   - action: adminapi_query
     adminapi_request:
       query: |
-        {{ $resourceID := (printf "%s-fixture-resource-01" .AppID) }}
         mutation DeleteResource {
           deleteResource(input: {
-            id: "{{ nodeID "Resource" $resourceID }}"
+            resourceURI: "https://fixtureresource/1"
           }) {
             ok
           }
@@ -45,7 +44,7 @@ steps:
         {{ $resourceID := (printf "%s-fixture-resource-02" .AppID) }}
         mutation DeleteResource {
           deleteResource(input: {
-            id: "{{ nodeID "Resource" $resourceID }}"
+            resourceURI: "https://fixtureresource/2"
           }) {
             ok
           }
