@@ -14,7 +14,7 @@ import (
 func TestNewContextCauseMiddleware(t *testing.T) {
 	Convey("NewContextCauseMiddleware", t, func() {
 		var w strings.Builder
-		logger := slog.New(slogmulti.Pipe(NewContextCauseMiddleware()).Handler(NewHandlerForTesting(&w)))
+		logger := slog.New(slogmulti.Pipe(NewContextCauseMiddleware()).Handler(NewHandlerForTesting(slog.LevelInfo, &w)))
 
 		ctx := context.Background()
 		_ = ctx

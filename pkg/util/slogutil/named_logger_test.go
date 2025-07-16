@@ -17,7 +17,7 @@ func TestNamedLogger(t *testing.T) {
 	Convey("NamedLogger", t, func() {
 		ctx := context.Background()
 		var w strings.Builder
-		rootLogger := slog.New(NewHandlerForTesting(&w))
+		rootLogger := slog.New(NewHandlerForTesting(slog.LevelDebug, &w))
 		ctx = SetContextLogger(ctx, rootLogger)
 
 		serviceALogger := NewLogger("service.a")
@@ -163,7 +163,7 @@ level=INFO msg="service b" app=myapp logger=service.b
 	Convey("NamedLogger handles PC correctly", t, func() {
 		ctx := context.Background()
 		var w strings.Builder
-		rootLogger := slog.New(NewHandlerForTestingWithSource(&w))
+		rootLogger := slog.New(NewHandlerForTestingWithSource(slog.LevelInfo, &w))
 		ctx = SetContextLogger(ctx, rootLogger)
 
 		logger := NewLogger("logger")

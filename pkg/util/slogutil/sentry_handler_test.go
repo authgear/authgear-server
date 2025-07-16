@@ -17,7 +17,7 @@ func TestSentryHandler(t *testing.T) {
 		logger := slog.New(slogmulti.Pipe(
 			NewSkipLoggingMiddleware(),
 		).Handler(&SentryHandler{
-			Next: NewHandlerForTesting(&w),
+			Next: NewHandlerForTesting(slog.LevelInfo, &w),
 		}))
 
 		Convey("should handle normal log records", func() {

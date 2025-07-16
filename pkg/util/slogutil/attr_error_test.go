@@ -14,7 +14,7 @@ import (
 func TestAttrError(t *testing.T) {
 	Convey("AttrError", t, func() {
 		var w strings.Builder
-		logger := slog.New(NewHandlerForTesting(&w))
+		logger := slog.New(NewHandlerForTesting(slog.LevelError, &w))
 
 		ctx := context.Background()
 

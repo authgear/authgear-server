@@ -261,7 +261,7 @@ func TestMaskHandler_Handle(t *testing.T) {
 		}
 		handler := &MaskHandler{
 			Options: options,
-			Next:    NewHandlerForTesting(&w),
+			Next:    NewHandlerForTesting(slog.LevelInfo, &w),
 		}
 
 		Convey("should mask attributes in log record", func() {
@@ -331,7 +331,7 @@ func TestMaskHandler_WithAttrs(t *testing.T) {
 		}
 		handler := &MaskHandler{
 			Options: options,
-			Next:    NewHandlerForTesting(&w),
+			Next:    NewHandlerForTesting(slog.LevelInfo, &w),
 		}
 
 		Convey("should return new handler with attributes", func() {
@@ -357,7 +357,7 @@ func TestMaskHandler_WithGroup(t *testing.T) {
 		}
 		handler := &MaskHandler{
 			Options: options,
-			Next:    NewHandlerForTesting(&w),
+			Next:    NewHandlerForTesting(slog.LevelInfo, &w),
 		}
 
 		Convey("should return new handler with group", func() {
@@ -381,7 +381,7 @@ func TestNewMaskMiddleware(t *testing.T) {
 			Mask: "***",
 		}
 
-		logger := slog.New(slogmulti.Pipe(NewMaskMiddleware(options)).Handler(NewHandlerForTesting(&w)))
+		logger := slog.New(slogmulti.Pipe(NewMaskMiddleware(options)).Handler(NewHandlerForTesting(slog.LevelInfo, &w)))
 
 		Convey("should create working middleware", func() {
 			logger.Info("test message", slog.String("data", "secret value"))
@@ -413,7 +413,7 @@ func TestNewMaskMiddleware(t *testing.T) {
 func TestMaskHandlerIntegration(t *testing.T) {
 	Convey("MaskHandler Integration", t, func() {
 		var w strings.Builder
-		logger := slog.New(slogmulti.Pipe(NewMaskMiddleware(NewDefaultMaskHandlerOptions())).Handler(NewHandlerForTesting(&w)))
+		logger := slog.New(slogmulti.Pipe(NewMaskMiddleware(NewDefaultMaskHandlerOptions())).Handler(NewHandlerForTesting(slog.LevelInfo, &w)))
 
 		Convey("should mask real-world sensitive data", func() {
 			jwt := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"

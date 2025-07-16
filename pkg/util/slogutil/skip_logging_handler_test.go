@@ -34,7 +34,7 @@ func (m mockLoggingSkippable) Error() string {
 func TestNewSkipLoggingMiddleware(t *testing.T) {
 	Convey("NewSkipLoggingMiddleware", t, func() {
 		var w strings.Builder
-		logger := slog.New(slogmulti.Pipe(NewSkipLoggingMiddleware()).Handler(NewHandlerForTesting(&w)))
+		logger := slog.New(slogmulti.Pipe(NewSkipLoggingMiddleware()).Handler(NewHandlerForTesting(slog.LevelInfo, &w)))
 
 		Convey("normal logging should pass through", func() {
 			logger.Info("test message")

@@ -37,7 +37,10 @@ func (s *StackTraceHandler) Handle(ctx context.Context, record slog.Record) erro
 		})
 	}
 
-	return s.Next.Handle(ctx, record)
+	if s.Next.Enabled(ctx, record.Level) {
+		return s.Next.Handle(ctx, record)
+	}
+	return nil
 }
 
 func (s *StackTraceHandler) WithAttrs(attrs []slog.Attr) slog.Handler {

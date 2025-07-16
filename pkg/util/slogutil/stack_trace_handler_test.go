@@ -14,9 +14,15 @@ import (
 func TestNewStackTraceMiddleware(t *testing.T) {
 	Convey("NewHandleInlineMiddleware", t, func() {
 		var w strings.Builder
-		logger := slog.New(slogmulti.Pipe(NewStackTraceMiddleware()).Handler(NewHandlerForTesting(&w)))
+		logger := slog.New(slogmulti.Pipe(NewStackTraceMiddleware()).Handler(NewHandlerForTesting(slog.LevelWarn, &w)))
 
 		ctx := context.Background()
+
+		Convey("respects wrapped handler Enabled()", func() {
+			logger.DebugContext(ctx, "should not log this")
+
+			So(w.String(), ShouldEqual, "")
+		})
 
 		Convey("does not include stack trace when level < error", func() {
 			logger.WarnContext(ctx, "testing")

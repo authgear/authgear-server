@@ -6,11 +6,10 @@ import (
 )
 
 // NewHandlerForTesting is a wrapper around slog.NewTextHandler.
-// It sets level to Debug, and removes the time key.
-func NewHandlerForTesting(w io.Writer) slog.Handler {
+// It removes the time key.
+func NewHandlerForTesting(level slog.Leveler, w io.Writer) slog.Handler {
 	return slog.NewTextHandler(w, &slog.HandlerOptions{
-		// For testing purpose, log everything.
-		Level: slog.LevelDebug,
+		Level: level,
 		ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
 			// For testing purpose, omit the time key.
 			if a.Key == slog.TimeKey {
@@ -21,10 +20,9 @@ func NewHandlerForTesting(w io.Writer) slog.Handler {
 	})
 }
 
-func NewHandlerForTestingWithSource(w io.Writer) slog.Handler {
+func NewHandlerForTestingWithSource(level slog.Leveler, w io.Writer) slog.Handler {
 	return slog.NewTextHandler(w, &slog.HandlerOptions{
-		// For testing purpose, log everything.
-		Level: slog.LevelDebug,
+		Level: level,
 		ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
 			// For testing purpose, omit the time key.
 			if a.Key == slog.TimeKey {
