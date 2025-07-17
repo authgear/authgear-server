@@ -166,6 +166,8 @@ func (e *AccessTokenEncoding) EncodeClientAccessToken(ctx context.Context, optio
 
 	claims := jwt.New()
 
+	// sub
+	_ = claims.Set(jwt.JwtIDKey, HashToken(options.OriginalToken))
 	// iss
 	_ = claims.Set(jwt.IssuerKey, e.IDTokenIssuer.Iss())
 	// aud
@@ -175,9 +177,11 @@ func (e *AccessTokenEncoding) EncodeClientAccessToken(ctx context.Context, optio
 	// exp
 	_ = claims.Set(jwt.ExpirationKey, options.ExpireAt.Unix())
 	// client_id
-	_ = claims.Set("client_id", fmt.Sprint("client_id_%s", options.ClientConfig.ClientID))
+	_ = claims.Set("client_id", options.ClientConfig.ClientID)
 	// scope
 	_ = claims.Set("scope", options.Scope)
+	// sub
+	_ = claims.Set("sub", fmt.Sprintf("client_id_%s", options.ClientConfig.ClientID))
 
 	jwk, _ := e.Secrets.Set.Key(0)
 
