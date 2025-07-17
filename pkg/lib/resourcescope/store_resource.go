@@ -173,7 +173,7 @@ type storeListResourceResult struct {
 
 func (s *Store) ListResources(ctx context.Context, options *ListResourcesOptions, pageArgs graphqlutil.PageArgs) (*storeListResourceResult, error) {
 	q := s.selectResourceQuery("r").
-		OrderBy("r.uri ASC")
+		OrderBy("r.created_at DESC")
 	q = s.applyListResourcesOptions(q, "r", options)
 
 	q, offset, err := db.ApplyPageArgs(q, pageArgs)
