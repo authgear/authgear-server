@@ -1953,6 +1953,9 @@ func (h *TokenHandler) handleClientCredentials(
 		if errors.Is(err, resourcescope.ErrResourceNotFound) {
 			return nil, protocol.NewError("invalid_request", "resource not found")
 		}
+		if errors.Is(err, resourcescope.ErrResourceNotAssociatedWithClient) {
+			return nil, protocol.NewError("invalid_request", "resource is not associated with the client")
+		}
 		return nil, err
 	}
 
