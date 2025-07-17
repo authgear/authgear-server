@@ -6,6 +6,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/lib/resourcescope"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
+	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 var createResourceInput = graphql.NewInputObject(graphql.InputObjectConfig{
@@ -31,6 +32,20 @@ var createResourcePayload = graphql.NewObject(graphql.ObjectConfig{
 	},
 })
 
+var createResourceSchema = validation.NewSimpleSchema(`
+	{
+		"type": "object",
+		"properties": {
+			"uri": {
+				"type": "string",
+				"format": "x_resource_uri",
+				"minLength": 1,
+				"maxLength": 100
+			}
+		}
+	}
+`)
+
 var _ = registerMutationField(
 	"createResource",
 	&graphql.Field{
@@ -42,7 +57,13 @@ var _ = registerMutationField(
 			},
 		},
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			ctx := p.Context
 			input := p.Args["input"].(map[string]interface{})
+
+			err := createResourceSchema.Validator().ValidateValue(ctx, input)
+			if err != nil {
+				return nil, err
+			}
 
 			uri := input["uri"].(string)
 
@@ -56,7 +77,6 @@ var _ = registerMutationField(
 				Name: name,
 			}
 
-			ctx := p.Context
 			gqlCtx := GQLContext(ctx)
 			resource, err := gqlCtx.ResourceScopeFacade.CreateResource(ctx, options)
 			if err != nil {
