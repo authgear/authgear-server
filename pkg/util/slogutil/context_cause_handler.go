@@ -26,29 +26,23 @@ func (s *ContextCauseHandler) Enabled(context.Context, slog.Level) bool {
 }
 
 func (s *ContextCauseHandler) Handle(ctx context.Context, record slog.Record) error {
-	attrValue := ""
-
-	if ctx == nil {
-		attrValue = "<context-is-nil>"
-	} else {
-		ctxErr := ctx.Err()
-		if ctxErr == nil {
-			attrValue = "<context-err-is-nil>"
-		} else {
-			cause := context.Cause(ctx)
-			if cause == nil {
-				attrValue = "<context-cause-is-nil>"
-			} else {
-				attrValue = cause.Error()
-			}
+	if ctx != nil {
+		// If you read the documentation of https://pkg.go.dev/context#Cause
+		// You will see
+		//
+		// - If ctx is not ended, Cause() return nil
+		// - If ctx is ended without a cause, it returns ctx.Err()
+		// - If ctx is ended with CancelCauseFunc(err), it returns err.
+		//
+		// We are only interested the cause of the end of the context, thus calling Cause() is enough.
+		if cause := context.Cause(ctx); cause != nil {
+			record = record.Clone()
+			record.AddAttrs(slog.Attr{
+				Key:   "context_cause",
+				Value: slog.StringValue(cause.Error()),
+			})
 		}
 	}
-
-	record = record.Clone()
-	record.AddAttrs(slog.Attr{
-		Key:   "context_cause",
-		Value: slog.StringValue(attrValue),
-	})
 
 	if s.Next.Enabled(ctx, record.Level) {
 		return s.Next.Handle(ctx, record)
