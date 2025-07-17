@@ -22,7 +22,7 @@ func (s *Store) NewScope(resource *Resource, options *NewScopeOptions) *Scope {
 		CreatedAt:   now,
 		UpdatedAt:   now,
 		ResourceID:  resource.URI,
-		Scope:       options.Scope,
+		Scope:       options.Scope.Value,
 		Description: options.Description,
 	}
 }
