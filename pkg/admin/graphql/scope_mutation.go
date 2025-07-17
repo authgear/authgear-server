@@ -89,7 +89,7 @@ var _ = registerMutationField(
 
 			options := &resourcescope.NewScopeOptions{
 				ResourceURI: resourceURI,
-				Scope:       scopeStr,
+				Scope:       resourcescope.NewScope(ctx, scopeStr),
 				Description: description,
 			}
 

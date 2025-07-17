@@ -73,7 +73,7 @@ var _ = registerMutationField(
 			}
 
 			options := &resourcescope.NewResourceOptions{
-				URI:  uri,
+				URI:  resourcescope.NewResourceURI(ctx, uri),
 				Name: name,
 			}
 
