@@ -371,7 +371,7 @@ func TestTokenHandler(t *testing.T) {
 				err := json.Unmarshal(resp.Body.Bytes(), &body)
 				So(err, ShouldBeNil)
 				So(body["error"], ShouldEqual, "invalid_request")
-				So(body["error_description"], ShouldEqual, "resource not found")
+				So(body["error_description"], ShouldEqual, "resource not found: https://api.example.com/resource")
 			})
 
 			Convey("request for resource not associated with client", func() {
