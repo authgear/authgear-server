@@ -116,19 +116,34 @@ func (m *MockAccessTokenIssuer) EXPECT() *MockAccessTokenIssuerMockRecorder {
 	return m.recorder
 }
 
-// EncodeAccessToken mocks base method.
-func (m *MockAccessTokenIssuer) EncodeAccessToken(ctx context.Context, options oauth.EncodeUserAccessTokenOptions) (string, error) {
+// EncodeClientAccessToken mocks base method.
+func (m *MockAccessTokenIssuer) EncodeClientAccessToken(ctx context.Context, options oauth.EncodeClientAccessTokenOptions) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "EncodeAccessToken", ctx, options)
+	ret := m.ctrl.Call(m, "EncodeClientAccessToken", ctx, options)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// EncodeAccessToken indicates an expected call of EncodeAccessToken.
-func (mr *MockAccessTokenIssuerMockRecorder) EncodeAccessToken(ctx, options interface{}) *gomock.Call {
+// EncodeClientAccessToken indicates an expected call of EncodeClientAccessToken.
+func (mr *MockAccessTokenIssuerMockRecorder) EncodeClientAccessToken(ctx, options interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EncodeAccessToken", reflect.TypeOf((*MockAccessTokenIssuer)(nil).EncodeAccessToken), ctx, options)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EncodeClientAccessToken", reflect.TypeOf((*MockAccessTokenIssuer)(nil).EncodeClientAccessToken), ctx, options)
+}
+
+// EncodeUserAccessToken mocks base method.
+func (m *MockAccessTokenIssuer) EncodeUserAccessToken(ctx context.Context, options oauth.EncodeUserAccessTokenOptions) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "EncodeUserAccessToken", ctx, options)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// EncodeUserAccessToken indicates an expected call of EncodeUserAccessToken.
+func (mr *MockAccessTokenIssuerMockRecorder) EncodeUserAccessToken(ctx, options interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EncodeUserAccessToken", reflect.TypeOf((*MockAccessTokenIssuer)(nil).EncodeUserAccessToken), ctx, options)
 }
 
 // MockEventService is a mock of EventService interface.
@@ -653,6 +668,20 @@ func (m *MockTokenHandlerTokenService) IssueAccessGrant(ctx context.Context, opt
 func (mr *MockTokenHandlerTokenServiceMockRecorder) IssueAccessGrant(ctx, options, resp interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IssueAccessGrant", reflect.TypeOf((*MockTokenHandlerTokenService)(nil).IssueAccessGrant), ctx, options, resp)
+}
+
+// IssueClientCredentialsAccessToken mocks base method.
+func (m *MockTokenHandlerTokenService) IssueClientCredentialsAccessToken(ctx context.Context, options handler.ClientCredentialsAccessTokenOptions, resp protocol.TokenResponse) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IssueClientCredentialsAccessToken", ctx, options, resp)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// IssueClientCredentialsAccessToken indicates an expected call of IssueClientCredentialsAccessToken.
+func (mr *MockTokenHandlerTokenServiceMockRecorder) IssueClientCredentialsAccessToken(ctx, options, resp interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IssueClientCredentialsAccessToken", reflect.TypeOf((*MockTokenHandlerTokenService)(nil).IssueClientCredentialsAccessToken), ctx, options, resp)
 }
 
 // IssueDeviceSecret mocks base method.

@@ -5,10 +5,12 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
 	gomock "github.com/golang/mock/gomock"
+	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/lestrrat-go/jwx/v2/jwt"
 	. "github.com/smartystreets/goconvey/convey"
 
@@ -16,6 +18,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/handler"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
+	"github.com/authgear/authgear-server/pkg/lib/resourcescope"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -43,6 +46,7 @@ func TestTokenHandler(t *testing.T) {
 		tokenService := NewMockTokenHandlerTokenService(ctrl)
 
 		offlineGrantService := NewMockTokenHandlerOfflineGrantService(ctrl)
+		clientResourceScopeService := NewMockTokenHandlerClientResourceScopeService(ctrl)
 
 		clock := clock.NewMockClockAt("2020-02-01T00:00:00Z")
 
@@ -65,6 +69,7 @@ func TestTokenHandler(t *testing.T) {
 			OfflineGrantService:             offlineGrantService,
 			IDTokenIssuer:                   idTokenIssuer,
 			PreAuthenticatedURLTokenService: preAuthenticatedURLService,
+			ClientResourceScopeService:      clientResourceScopeService,
 		}
 
 		handle := func(ctx context.Context, req *http.Request, r protocol.TokenRequest) *httptest.ResponseRecorder {
@@ -218,6 +223,176 @@ func TestTokenHandler(t *testing.T) {
 			So(body["id_token"], ShouldEqual, expectedNewIdToken)
 			So(body["issued_token_type"], ShouldEqual, "urn:authgear:params:oauth:token-type:pre-authenticated-url-token")
 			So(body["token_type"], ShouldEqual, expectedPreAuthenticatedURLTokenType)
+		})
+
+		Convey("client_credentials flow", func() {
+			clientID := "client-cred-client"
+			resourceURI := "https://api.example.com/resource"
+			resourceID := "resource-id-1"
+			allowedScopes := []*resourcescope.Scope{
+				{ID: "scope-id-1", ResourceID: resourceID, Scope: "read"},
+				{ID: "scope-id-2", ResourceID: resourceID, Scope: "write"},
+			}
+			clientResolver.ClientConfig = &config.OAuthClientConfig{
+				ClientID:            clientID,
+				ApplicationType:     config.OAuthClientApplicationTypeConfidential,
+				AccessTokenLifetime: config.DurationSeconds(3600),
+				IssueJWTAccessToken: true,
+			}
+
+			// Mock the client secret for the client
+			key, err := jwk.FromRaw([]byte("supersecret"))
+			if err != nil {
+				t.Fatalf("failed to create jwk: %v", err)
+			}
+			keySet := jwk.NewSet()
+			_ = keySet.AddKey(key)
+			h.OAuthClientCredentials = &config.OAuthClientCredentials{
+				Items: []config.OAuthClientCredentialsItem{
+					{
+						ClientID:                     clientID,
+						OAuthClientCredentialsKeySet: config.OAuthClientCredentialsKeySet{Set: keySet},
+					},
+				},
+			}
+
+			resource := &resourcescope.Resource{
+				ID:  resourceID,
+				URI: resourceURI,
+			}
+			Convey("success", func() {
+				clientResourceScopeService.EXPECT().GetClientResourceByURI(gomock.Any(), clientID, resourceURI).Return(resource, nil)
+				clientResourceScopeService.EXPECT().GetClientResourceScopes(gomock.Any(), clientID, resourceID).Return(allowedScopes, nil)
+
+				accessToken := "access-token-123"
+				tokenService.EXPECT().IssueClientCredentialsAccessToken(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(
+					func(ctx context.Context, opts handler.ClientCredentialsAccessTokenOptions, resp protocol.TokenResponse) error {
+						resp.AccessToken(accessToken)
+						resp.TokenType("Bearer")
+						resp.ExpiresIn(3600)
+						resp.Scope("read write")
+						return nil
+					},
+				)
+
+				req, _ := http.NewRequest("POST", "/token", nil)
+				r := protocol.TokenRequest{
+					"grant_type":    "client_credentials",
+					"client_id":     clientID,
+					"client_secret": "supersecret",
+					"resource":      resourceURI,
+				}
+				ctx := context.Background()
+				resp := handle(ctx, req, r)
+
+				So(resp.Result().StatusCode, ShouldEqual, 200)
+				var body map[string]interface{}
+				err := json.Unmarshal(resp.Body.Bytes(), &body)
+				So(err, ShouldBeNil)
+				So(body["access_token"], ShouldEqual, accessToken)
+				So(body["token_type"], ShouldEqual, "Bearer")
+				So(body["expires_in"], ShouldEqual, 3600)
+				So(body["scope"], ShouldEqual, "read write")
+			})
+
+			Convey("request for subset of scopes", func() {
+				clientResourceScopeService.EXPECT().GetClientResourceByURI(gomock.Any(), clientID, resourceURI).Return(resource, nil)
+				clientResourceScopeService.EXPECT().GetClientResourceScopes(gomock.Any(), clientID, resourceID).Return(allowedScopes, nil)
+
+				accessToken := "access-token-123"
+				tokenService.EXPECT().IssueClientCredentialsAccessToken(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(
+					func(ctx context.Context, opts handler.ClientCredentialsAccessTokenOptions, resp protocol.TokenResponse) error {
+						resp.AccessToken(accessToken)
+						resp.TokenType("Bearer")
+						resp.ExpiresIn(3600)
+						resp.Scope(strings.Join(opts.Scopes, " "))
+						return nil
+					},
+				)
+
+				req, _ := http.NewRequest("POST", "/token", nil)
+				r := protocol.TokenRequest{
+					"grant_type":    "client_credentials",
+					"client_id":     clientID,
+					"client_secret": "supersecret",
+					"resource":      resourceURI,
+					"scope":         "read",
+				}
+				ctx := context.Background()
+				resp := handle(ctx, req, r)
+
+				So(resp.Result().StatusCode, ShouldEqual, 200)
+				var body map[string]interface{}
+				err := json.Unmarshal(resp.Body.Bytes(), &body)
+				So(err, ShouldBeNil)
+				So(body["access_token"], ShouldEqual, accessToken)
+				So(body["token_type"], ShouldEqual, "Bearer")
+				So(body["expires_in"], ShouldEqual, 3600)
+				So(body["scope"], ShouldEqual, "read")
+			})
+
+			Convey("request for invalid scopes", func() {
+				clientResourceScopeService.EXPECT().GetClientResourceByURI(gomock.Any(), clientID, resourceURI).Return(resource, nil)
+				clientResourceScopeService.EXPECT().GetClientResourceScopes(gomock.Any(), clientID, resourceID).Return(allowedScopes, nil)
+
+				req, _ := http.NewRequest("POST", "/token", nil)
+				r := protocol.TokenRequest{
+					"grant_type":    "client_credentials",
+					"client_id":     clientID,
+					"client_secret": "supersecret",
+					"resource":      resourceURI,
+					"scope":         "admin",
+				}
+				ctx := context.Background()
+				resp := handle(ctx, req, r)
+
+				So(resp.Result().StatusCode, ShouldEqual, 400)
+				var body map[string]interface{}
+				err := json.Unmarshal(resp.Body.Bytes(), &body)
+				So(err, ShouldBeNil)
+				So(body["error"], ShouldEqual, "invalid_scope")
+			})
+
+			Convey("request for invalid resource", func() {
+				clientResourceScopeService.EXPECT().GetClientResourceByURI(gomock.Any(), clientID, resourceURI).Return(nil, resourcescope.ErrResourceNotFound)
+
+				req, _ := http.NewRequest("POST", "/token", nil)
+				r := protocol.TokenRequest{
+					"grant_type":    "client_credentials",
+					"client_id":     clientID,
+					"client_secret": "supersecret",
+					"resource":      resourceURI,
+				}
+				ctx := context.Background()
+				resp := handle(ctx, req, r)
+
+				So(resp.Result().StatusCode, ShouldEqual, 400)
+				var body map[string]interface{}
+				err := json.Unmarshal(resp.Body.Bytes(), &body)
+				So(err, ShouldBeNil)
+				So(body["error"], ShouldEqual, "invalid_request")
+				So(body["error_description"], ShouldEqual, "resource not found")
+			})
+
+			Convey("resource uri prefixed with public origin is blocked", func() {
+				issuerResourceURI := origin + "/some-resource"
+				req, _ := http.NewRequest("POST", "/token", nil)
+				r := protocol.TokenRequest{
+					"grant_type":    "client_credentials",
+					"client_id":     clientID,
+					"client_secret": "supersecret",
+					"resource":      issuerResourceURI,
+				}
+				ctx := context.Background()
+				resp := handle(ctx, req, r)
+
+				So(resp.Result().StatusCode, ShouldEqual, 400)
+				var body map[string]interface{}
+				err := json.Unmarshal(resp.Body.Bytes(), &body)
+				So(err, ShouldBeNil)
+				So(body["error"], ShouldEqual, "invalid_request")
+				So(body["error_description"], ShouldEqual, "invalid resource uri")
+			})
 		})
 	})
 }
