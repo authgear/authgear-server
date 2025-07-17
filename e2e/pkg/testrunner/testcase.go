@@ -256,7 +256,7 @@ func (tc *TestCase) executeStep(
 					httpResult = NewResultHTTPResponse(r)
 				}
 				if step.HTTPOutput != nil {
-					outputOk = validateHTTPOutput(t, step.HTTPOutput, r)
+					outputOk = validateHTTPOutput(t, step, step.HTTPOutput, r)
 				}
 				return nil
 			})
@@ -794,7 +794,7 @@ func validateHTTPResponseStatus(t *testing.T, expectedStatus int, response *http
 	return true
 }
 
-func validateHTTPOutput(t *testing.T, httpOutput *HTTPOutput, response *http.Response) (ok bool) {
+func validateHTTPOutput(t *testing.T, step Step, httpOutput *HTTPOutput, response *http.Response) (ok bool) {
 	ok = true
 	if response == nil {
 		t.Errorf("expected http response but got nil")
@@ -820,6 +820,37 @@ func validateHTTPOutput(t *testing.T, httpOutput *HTTPOutput, response *http.Res
 			response,
 		)
 		if !statusOk {
+			ok = false
+		}
+	}
+	if httpOutput.JSONBody != nil {
+		body, err := io.ReadAll(response.Body)
+		if err != nil {
+			t.Errorf("failed to read response body: %v", err)
+			ok = false
+			return
+		}
+		var bodyIntf interface{}
+		err = json.Unmarshal(body, &bodyIntf)
+		if err != nil {
+			t.Errorf("failed to parse response body as json: %v", err)
+			t.Errorf("  result: %s\n", string(body))
+			ok = false
+			return
+		}
+		bodyJson, _ := json.MarshalIndent(bodyIntf, "", "  ")
+		violations, err := MatchJSON(string(body), *httpOutput.JSONBody)
+		if err != nil {
+			t.Errorf("failed to match output in '%s': %v\n", step.Name, err)
+			t.Errorf("  result: %s\n", bodyJson)
+			ok = false
+		}
+		if len(violations) > 0 {
+			t.Errorf("result output mismatch in '%s':\n", step.Name)
+			for _, violation := range violations {
+				t.Errorf("  | %s: %s. Expected %s, got %s", violation.Path, violation.Message, violation.Expected, violation.Actual)
+			}
+			t.Errorf("  result: %s\n", bodyJson)
 			ok = false
 		}
 	}
