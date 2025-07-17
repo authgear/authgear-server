@@ -35,6 +35,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
+	"github.com/authgear/authgear-server/pkg/lib/resourcescope"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
@@ -183,6 +184,11 @@ func (s SimpleSessionLike) SessionType() session.Type {
 	return s.GrantSessionKind.SessionType()
 }
 
+type TokenHandlerClientResourceScopeService interface {
+	GetClientResourceByURI(ctx context.Context, clientID string, uri string) (*resourcescope.Resource, error)
+	GetClientResourceScopes(ctx context.Context, clientID string, resourceID string) ([]*resourcescope.Scope, error)
+}
+
 type TokenHandler struct {
 	AppID                  config.AppID
 	AppDomains             config.AppDomains
@@ -200,6 +206,7 @@ type TokenHandler struct {
 	AppSessionTokens                TokenHandlerAppSessionTokenStore
 	OfflineGrantService             TokenHandlerOfflineGrantService
 	PreAuthenticatedURLTokenService PreAuthenticatedURLTokenService
+	ClientResourceScopeService      TokenHandlerClientResourceScopeService
 	Graphs                          GraphService
 	IDTokenIssuer                   IDTokenIssuer
 	Clock                           clock.Clock
@@ -758,7 +765,7 @@ func (h *TokenHandler) handlePreAuthenticatedURLToken(
 		if !offlineGrant.HasAllScopes(offlineGrant.InitialClientID, requestedScopes) {
 			return nil, protocol.NewError("invalid_scope", "requesting extra scopes is not allowed")
 		}
-		err = oauth.ValidateScopes(client, requestedScopes)
+		err = oauth.ValidateScopesByClientConfig(client, requestedScopes)
 		if err != nil {
 			return nil, err
 		}
@@ -1141,7 +1148,7 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 	scopes := []string{"openid", oauth.OfflineAccess, oauth.FullAccessScope}
 	requestedScopes := r.Scope()
 	if len(requestedScopes) > 0 {
-		err := oauth.ValidateScopes(client, requestedScopes)
+		err := oauth.ValidateScopesByClientConfig(client, requestedScopes)
 		if err != nil {
 			return nil, err
 		}
@@ -1922,12 +1929,25 @@ func (h *TokenHandler) handleClientCredentials(
 		return nil, err
 	}
 
-	// TODO: Validate resource
 	if r.Resource() == "" {
 		return nil, protocol.NewError("invalid_request", "resource is required")
 	}
+	resource, err := h.ClientResourceScopeService.GetClientResourceByURI(ctx, client.ClientID, r.Resource())
+	if err != nil {
+		return nil, err
+	}
 
-	// TODO: Validate scopes
+	// scope is optional
+	if len(r.Scope()) > 0 {
+		allowedScopes, err := h.ClientResourceScopeService.GetClientResourceScopes(ctx, client.ClientID, resource.ID)
+		if err != nil {
+			return nil, err
+		}
+		allowedScopeStrs := slice.Map(allowedScopes, func(s *resourcescope.Scope) string { return s.Scope })
+		if err := oauth.ValidateScopes(r.Scope(), allowedScopeStrs); err != nil {
+			return nil, err
+		}
+	}
 
 	// TODO: Implement the rest of the client_credentials logic
 	return nil, protocol.NewError("unsupported_grant_type", "client_credentials grant type not implemented yet")
