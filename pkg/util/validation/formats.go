@@ -617,6 +617,19 @@ func (FormatResourceURI) CheckFormat(ctx context.Context, value interface{}) err
 		return err
 	}
 
+	// Opaque is set if the uri is not start with scheme://
+	if u.Opaque != "" {
+		return fmt.Errorf("resource URI must start with https://")
+	}
+
+	if u.User != nil {
+		return fmt.Errorf("resource URI must not have user info")
+	}
+
+	if u.Host == "" {
+		return fmt.Errorf("resource URI must have non-empty host")
+	}
+
 	switch u.Scheme {
 	case "https":
 		if u.RawQuery != "" {
