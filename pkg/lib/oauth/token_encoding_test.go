@@ -180,7 +180,7 @@ func TestClientAccessToken(t *testing.T) {
 		scope := "read write"
 		createdAt := now
 		expireAt := now.Add(client.AccessTokenLifetime.Duration())
-		originalToken := "opaque-token"
+		originalToken := "opaque-token" // #nosec G101
 
 		options := EncodeClientAccessTokenOptions{
 			OriginalToken: originalToken,
