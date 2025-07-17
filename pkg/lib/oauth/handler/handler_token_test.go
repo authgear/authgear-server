@@ -374,6 +374,27 @@ func TestTokenHandler(t *testing.T) {
 				So(body["error_description"], ShouldEqual, "resource not found")
 			})
 
+			Convey("request for resource not associated with client", func() {
+				clientResourceScopeService.EXPECT().GetClientResourceByURI(gomock.Any(), clientID, resourceURI).Return(resource, resourcescope.ErrResourceNotAssociatedWithClient)
+
+				req, _ := http.NewRequest("POST", "/token", nil)
+				r := protocol.TokenRequest{
+					"grant_type":    "client_credentials",
+					"client_id":     clientID,
+					"client_secret": "supersecret",
+					"resource":      resourceURI,
+				}
+				ctx := context.Background()
+				resp := handle(ctx, req, r)
+
+				So(resp.Result().StatusCode, ShouldEqual, 400)
+				var body map[string]interface{}
+				err := json.Unmarshal(resp.Body.Bytes(), &body)
+				So(err, ShouldBeNil)
+				So(body["error"], ShouldEqual, "invalid_request")
+				So(body["error_description"], ShouldEqual, "resource is not associated with the client")
+			})
+
 			Convey("resource uri prefixed with public origin is blocked", func() {
 				issuerResourceURI := origin + "/some-resource"
 				req, _ := http.NewRequest("POST", "/token", nil)
