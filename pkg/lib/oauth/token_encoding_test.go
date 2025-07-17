@@ -101,7 +101,7 @@ func TestAccessToken(t *testing.T) {
 		mockIdentityService.EXPECT().ListIdentitiesThatHaveStandardAttributes(gomock.Any(), "user-id").Return(nil, nil)
 
 		ctx := context.Background()
-		options := EncodeAccessTokenOptions{
+		options := EncodeUserAccessTokenOptions{
 			OriginalToken: "token",
 			ClientConfig:  client,
 			ClientLike:    clientLike,
