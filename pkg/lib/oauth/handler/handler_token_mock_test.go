@@ -117,7 +117,7 @@ func (m *MockAccessTokenIssuer) EXPECT() *MockAccessTokenIssuerMockRecorder {
 }
 
 // EncodeAccessToken mocks base method.
-func (m *MockAccessTokenIssuer) EncodeAccessToken(ctx context.Context, options oauth.EncodeAccessTokenOptions) (string, error) {
+func (m *MockAccessTokenIssuer) EncodeAccessToken(ctx context.Context, options oauth.EncodeUserAccessTokenOptions) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "EncodeAccessToken", ctx, options)
 	ret0, _ := ret[0].(string)
