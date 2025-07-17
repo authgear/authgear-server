@@ -93,6 +93,8 @@ require (
 	github.com/iawaknahc/gogenwrapper v0.0.0-20250315204045-eb8ab595ac5c
 	github.com/jba/slog v0.2.0
 	github.com/kr/pretty v0.3.1
+	github.com/lmittmann/tint v1.1.2
+	github.com/mattn/go-isatty v0.0.20
 	github.com/mattn/go-sqlite3 v1.14.28
 	github.com/minio/minio-go/v7 v7.0.94
 	github.com/rivo/uniseg v0.4.7
@@ -145,7 +147,6 @@ require (
 	github.com/klauspost/cpuid/v2 v2.2.10 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
-	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-localereader v0.0.1 // indirect
 	github.com/mattn/go-runewidth v0.0.16 // indirect
 	github.com/minio/crc64nvme v1.0.1 // indirect
