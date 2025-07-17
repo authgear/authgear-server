@@ -67,7 +67,7 @@ func (m *PanicMiddleware) Handle(next http.Handler) http.Handler {
 				apiError := apierrors.AsAPIError(err)
 				cookie, cookieErr := m.ErrorService.SetRecoverableError(ctx, r, apiError)
 				if cookieErr != nil {
-					logger.WithError(cookieErr).Error(ctx, "failed to store error")
+					cookieErr = fmt.Errorf("failed to store error: %w", cookieErr)
 					panic(cookieErr)
 				}
 				uiImpl := m.UIImplementationService.GetUIImplementation()

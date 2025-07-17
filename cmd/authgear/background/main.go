@@ -2,22 +2,20 @@ package background
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/util/backgroundjob"
 	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
-var logger = slogutil.NewLogger("background")
-
 type Controller struct{}
 
 func (c *Controller) Start(ctx context.Context) {
-	logger := logger.GetLogger(ctx)
 
 	cfg, err := LoadConfigFromEnv()
 	if err != nil {
-		logger.WithError(err).Error(ctx, "failed to load config")
+		err = fmt.Errorf("failed to load config: %w", err)
 		panic(err)
 	}
 
@@ -30,14 +28,14 @@ func (c *Controller) Start(ctx context.Context) {
 		cfg.CustomResourceDirectory,
 	)
 	if err != nil {
-		logger.WithError(err).Error(ctx, "failed to setup server")
+		err = fmt.Errorf("failed to setup server: %w", err)
 		panic(err)
 	}
 
 	configSrcController := newConfigSourceController(p)
 	err = configSrcController.Open(ctx)
 	if err != nil {
-		logger.WithError(err).Error(ctx, "cannot open configuration")
+		err = fmt.Errorf("cannot open configuration: %w", err)
 		panic(err)
 	}
 	defer configSrcController.Close()

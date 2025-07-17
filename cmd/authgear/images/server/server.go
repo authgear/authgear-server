@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 
 	"github.com/authgear/authgear-server/pkg/images"
@@ -25,20 +26,20 @@ func (c *Controller) Start(ctx context.Context) {
 
 	cfg, err := LoadConfigFromEnv()
 	if err != nil {
-		logger.WithError(err).Error(ctx, "failed to load server config")
+		err = fmt.Errorf("failed to load server config: %w", err)
 		panic(err)
 	}
 
 	ctx, p, err := deps.NewRootProvider(ctx, *cfg.EnvironmentConfig, cfg.ObjectStore)
 	if err != nil {
-		logger.WithError(err).Error(ctx, "failed to initialize dependencies")
+		err = fmt.Errorf("failed to initialize dependencies: %w", err)
 		panic(err)
 	}
 
 	configSrcController := newConfigSourceController(p)
 	err = configSrcController.Open(ctx)
 	if err != nil {
-		logger.WithError(err).Error(ctx, "cannot open configuration")
+		err = fmt.Errorf("cannot open configuration: %w", err)
 		panic(err)
 	}
 	defer configSrcController.Close()

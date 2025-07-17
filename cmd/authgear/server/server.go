@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 
 	"github.com/authgear/authgear-server/pkg/admin"
@@ -30,7 +31,7 @@ func (c *Controller) Start(ctx context.Context) {
 
 	cfg, err := LoadConfigFromEnv()
 	if err != nil {
-		logger.WithError(err).Error(ctx, "failed to load server config")
+		err = fmt.Errorf("failed to load server config: %w", err)
 		panic(err)
 	}
 
@@ -41,7 +42,7 @@ func (c *Controller) Start(ctx context.Context) {
 		cfg.CustomResourceDirectory,
 	)
 	if err != nil {
-		logger.WithError(err).Error(ctx, "failed to setup server")
+		err = fmt.Errorf("failed to setup server: %w", err)
 		panic(err)
 	}
 
@@ -53,7 +54,7 @@ func (c *Controller) Start(ctx context.Context) {
 	configSrcController := newConfigSourceController(p)
 	err = configSrcController.Open(ctx)
 	if err != nil {
-		logger.WithError(err).Error(ctx, "cannot open configuration")
+		err = fmt.Errorf("cannot open configuration: %w", err)
 		panic(err)
 	}
 	defer configSrcController.Close()
@@ -63,7 +64,7 @@ func (c *Controller) Start(ctx context.Context) {
 	if c.ServeMain {
 		u, err := server.ParseListenAddress(cfg.MainListenAddr)
 		if err != nil {
-			logger.WithError(err).Error(ctx, "failed to parse main server listen address")
+			err = fmt.Errorf("failed to parse main server listen address: %w", err)
 			panic(err)
 		}
 
@@ -87,7 +88,7 @@ func (c *Controller) Start(ctx context.Context) {
 		// Set up internal server.
 		u, err = server.ParseListenAddress(cfg.MainInteralListenAddr)
 		if err != nil {
-			logger.WithError(err).Error(ctx, "failed to parse main server internal listen address")
+			err = fmt.Errorf("failed to parse main server internal listen address: %w", err)
 			panic(err)
 		}
 		specs = append(specs, server.NewSpec(ctx, &server.Spec{
@@ -109,7 +110,7 @@ func (c *Controller) Start(ctx context.Context) {
 	if c.ServeResolver {
 		u, err := server.ParseListenAddress(cfg.ResolverListenAddr)
 		if err != nil {
-			logger.WithError(err).Error(ctx, "failed to parse resolver server listen address")
+			err = fmt.Errorf("failed to parse resolver server listen address: %w", err)
 			panic(err)
 		}
 
@@ -125,7 +126,7 @@ func (c *Controller) Start(ctx context.Context) {
 		// Set up internal server.
 		u, err = server.ParseListenAddress(cfg.ResolverInternalListenAddr)
 		if err != nil {
-			logger.WithError(err).Error(ctx, "failed to parse resolver internal server listen address")
+			err = fmt.Errorf("failed to parse resolver internal server listen address: %w", err)
 			panic(err)
 		}
 
@@ -139,7 +140,7 @@ func (c *Controller) Start(ctx context.Context) {
 	if c.ServeAdmin {
 		u, err := server.ParseListenAddress(cfg.AdminListenAddr)
 		if err != nil {
-			logger.WithError(err).Error(ctx, "failed to parse admin API server listen address")
+			err = fmt.Errorf("failed to parse admin API server listen address: %w", err)
 			panic(err)
 		}
 
@@ -155,7 +156,7 @@ func (c *Controller) Start(ctx context.Context) {
 
 		u, err = server.ParseListenAddress(cfg.AdminInternalListenAddr)
 		if err != nil {
-			logger.WithError(err).Error(ctx, "failed to parse admin API internal server listen address")
+			err = fmt.Errorf("failed to parse admin API internal server listen address: %w", err)
 			panic(err)
 		}
 

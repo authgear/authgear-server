@@ -1,6 +1,7 @@
 package webapp
 
 import (
+	"fmt"
 	"log/slog"
 	"net/http"
 	"net/url"
@@ -24,7 +25,7 @@ func (m *PublicOriginMiddleware) Handle(next http.Handler) http.Handler {
 
 		publicOrigin, err := url.Parse(m.Config.PublicOrigin)
 		if err != nil {
-			logger.WithError(err).Error(ctx, "failed to parse public origin")
+			err = fmt.Errorf("failed to parse public origin: %w", err)
 			panic(err)
 		}
 
