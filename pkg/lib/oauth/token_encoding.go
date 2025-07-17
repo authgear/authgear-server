@@ -51,7 +51,7 @@ type AccessTokenEncoding struct {
 	Identities    AccessTokenEncodingIdentityService
 }
 
-type EncodeAccessTokenOptions struct {
+type EncodeUserAccessTokenOptions struct {
 	OriginalToken      string
 	ClientConfig       *config.OAuthClientConfig
 	ClientLike         *ClientLike
@@ -59,7 +59,16 @@ type EncodeAccessTokenOptions struct {
 	AuthenticationInfo authenticationinfo.T
 }
 
-func (e *AccessTokenEncoding) EncodeAccessToken(ctx context.Context, options EncodeAccessTokenOptions) (string, error) {
+type EncodeClientAccessTokenOptions struct {
+	OriginalToken string
+	ClientConfig  *config.OAuthClientConfig
+	ResourceURI   string
+	Scope         string
+	CreatedAt     time.Time
+	ExpireAt      time.Time
+}
+
+func (e *AccessTokenEncoding) EncodeUserAccessToken(ctx context.Context, options EncodeUserAccessTokenOptions) (string, error) {
 	if !options.ClientConfig.IssueJWTAccessToken {
 		return options.OriginalToken, nil
 	}
@@ -134,6 +143,39 @@ func (e *AccessTokenEncoding) EncodeAccessToken(ctx context.Context, options Enc
 	if err != nil {
 		return "", err
 	}
+
+	jwk, _ := e.Secrets.Set.Key(0)
+
+	hdr := jws.NewHeaders()
+	_ = hdr.Set("typ", "at+jwt")
+
+	signed, err := jwtutil.SignWithHeader(claims, hdr, jwa.RS256, jwk)
+	if err != nil {
+		return "", err
+	}
+
+	return string(signed), nil
+}
+
+func (e *AccessTokenEncoding) EncodeClientAccessToken(ctx context.Context, options EncodeClientAccessTokenOptions) (string, error) {
+	if !options.ClientConfig.IssueJWTAccessToken {
+		return options.OriginalToken, nil
+	}
+
+	claims := jwt.New()
+
+	// iss
+	_ = claims.Set(jwt.IssuerKey, e.IDTokenIssuer.Iss())
+	// aud
+	_ = claims.Set(jwt.AudienceKey, options.ResourceURI)
+	// iat
+	_ = claims.Set(jwt.IssuedAtKey, options.CreatedAt.Unix())
+	// exp
+	_ = claims.Set(jwt.ExpirationKey, options.ExpireAt.Unix())
+	// client_id
+	_ = claims.Set("client_id", fmt.Sprint("client_id_%s", options.ClientConfig.ClientID))
+	// scope
+	_ = claims.Set("scope", options.Scope)
 
 	jwk, _ := e.Secrets.Set.Key(0)
 
