@@ -93,6 +93,7 @@ func TestAccessToken(t *testing.T) {
 			CreatedAt: now,
 			ExpireAt:  now.Add(client.AccessTokenLifetime.Duration()),
 			TokenHash: "token-hash",
+			Scopes:    []string{"openid", "email"},
 		}
 
 		mockEventService.EXPECT().DispatchEventOnCommit(gomock.Any(), gomock.Any()).Return(nil)
@@ -112,7 +113,7 @@ func TestAccessToken(t *testing.T) {
 				// AuthenticatedAt
 			},
 		}
-		accessToken, err := encoding.EncodeAccessToken(ctx, options)
+		accessToken, err := encoding.EncodeUserAccessToken(ctx, options)
 		So(err, ShouldBeNil)
 
 		_, _, err = encoding.DecodeAccessToken(accessToken)
@@ -127,12 +128,14 @@ func TestAccessToken(t *testing.T) {
 
 		clientID, _ := decodedToken.Get("client_id")
 		idKey, _ := decodedToken.Get(jwt.JwtIDKey)
+		scope, _ := decodedToken.Get("scope")
 
 		So(decodedToken.Issuer(), ShouldEqual, "http://test1.authgear.com")
 		So(decodedToken.Audience(), ShouldResemble, []string{"http://test1.authgear.com"})
 		So(decodedToken.IssuedAt(), ShouldEqual, accessGrant.CreatedAt)
 		So(decodedToken.Expiration(), ShouldEqual, accessGrant.ExpireAt)
 		So(clientID, ShouldEqual, "client-id")
+		So(scope, ShouldEqual, "openid email")
 		So(idKey, ShouldEqual, "token-hash")
 	})
 }
