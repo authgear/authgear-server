@@ -85,6 +85,8 @@ func (e *AccessTokenEncoding) EncodeUserAccessToken(ctx context.Context, options
 	_ = claims.Set(jwt.ExpirationKey, options.AccessGrant.ExpireAt.Unix())
 	// client_id
 	_ = claims.Set("client_id", options.ClientConfig.ClientID)
+	// scope
+	_ = claims.Set("scope", strings.Join(options.AccessGrant.Scopes, " "))
 
 	// auth_time
 	_ = claims.Set(string(model.ClaimAuthTime), options.AuthenticationInfo.AuthenticatedAt.Unix())
