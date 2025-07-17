@@ -21,7 +21,7 @@ func (s *Store) NewResource(options *NewResourceOptions) *Resource {
 		ID:        uuid.NewString(),
 		CreatedAt: now,
 		UpdatedAt: now,
-		URI:       options.URI,
+		URI:       options.URI.Value,
 		Name:      options.Name,
 	}
 }
