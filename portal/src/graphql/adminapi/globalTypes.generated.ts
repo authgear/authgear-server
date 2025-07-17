@@ -135,14 +135,18 @@ export enum AuditLogActivityType {
   AdminApiMutationCreateAuthenticatorExecuted = 'ADMIN_API_MUTATION_CREATE_AUTHENTICATOR_EXECUTED',
   AdminApiMutationCreateGroupExecuted = 'ADMIN_API_MUTATION_CREATE_GROUP_EXECUTED',
   AdminApiMutationCreateIdentityExecuted = 'ADMIN_API_MUTATION_CREATE_IDENTITY_EXECUTED',
+  AdminApiMutationCreateResourceExecuted = 'ADMIN_API_MUTATION_CREATE_RESOURCE_EXECUTED',
   AdminApiMutationCreateRoleExecuted = 'ADMIN_API_MUTATION_CREATE_ROLE_EXECUTED',
+  AdminApiMutationCreateScopeExecuted = 'ADMIN_API_MUTATION_CREATE_SCOPE_EXECUTED',
   AdminApiMutationCreateSessionExecuted = 'ADMIN_API_MUTATION_CREATE_SESSION_EXECUTED',
   AdminApiMutationCreateUserExecuted = 'ADMIN_API_MUTATION_CREATE_USER_EXECUTED',
   AdminApiMutationDeleteAuthenticatorExecuted = 'ADMIN_API_MUTATION_DELETE_AUTHENTICATOR_EXECUTED',
   AdminApiMutationDeleteAuthorizationExecuted = 'ADMIN_API_MUTATION_DELETE_AUTHORIZATION_EXECUTED',
   AdminApiMutationDeleteGroupExecuted = 'ADMIN_API_MUTATION_DELETE_GROUP_EXECUTED',
   AdminApiMutationDeleteIdentityExecuted = 'ADMIN_API_MUTATION_DELETE_IDENTITY_EXECUTED',
+  AdminApiMutationDeleteResourceExecuted = 'ADMIN_API_MUTATION_DELETE_RESOURCE_EXECUTED',
   AdminApiMutationDeleteRoleExecuted = 'ADMIN_API_MUTATION_DELETE_ROLE_EXECUTED',
+  AdminApiMutationDeleteScopeExecuted = 'ADMIN_API_MUTATION_DELETE_SCOPE_EXECUTED',
   AdminApiMutationDeleteUserExecuted = 'ADMIN_API_MUTATION_DELETE_USER_EXECUTED',
   AdminApiMutationGenerateOobOtpCodeExecuted = 'ADMIN_API_MUTATION_GENERATE_OOB_OTP_CODE_EXECUTED',
   AdminApiMutationRemoveGroupFromRolesExecuted = 'ADMIN_API_MUTATION_REMOVE_GROUP_FROM_ROLES_EXECUTED',
@@ -164,7 +168,9 @@ export enum AuditLogActivityType {
   AdminApiMutationUnscheduleAccountDeletionExecuted = 'ADMIN_API_MUTATION_UNSCHEDULE_ACCOUNT_DELETION_EXECUTED',
   AdminApiMutationUpdateGroupExecuted = 'ADMIN_API_MUTATION_UPDATE_GROUP_EXECUTED',
   AdminApiMutationUpdateIdentityExecuted = 'ADMIN_API_MUTATION_UPDATE_IDENTITY_EXECUTED',
+  AdminApiMutationUpdateResourceExecuted = 'ADMIN_API_MUTATION_UPDATE_RESOURCE_EXECUTED',
   AdminApiMutationUpdateRoleExecuted = 'ADMIN_API_MUTATION_UPDATE_ROLE_EXECUTED',
+  AdminApiMutationUpdateScopeExecuted = 'ADMIN_API_MUTATION_UPDATE_SCOPE_EXECUTED',
   AdminApiMutationUpdateUserExecuted = 'ADMIN_API_MUTATION_UPDATE_USER_EXECUTED',
   AuthenticationIdentityAnonymousFailed = 'AUTHENTICATION_IDENTITY_ANONYMOUS_FAILED',
   AuthenticationIdentityBiometricFailed = 'AUTHENTICATION_IDENTITY_BIOMETRIC_FAILED',
@@ -415,6 +421,18 @@ export type CreateIdentityPayload = {
   user: User;
 };
 
+export type CreateResourceInput = {
+  /** The optional name of the resource. */
+  name?: InputMaybe<Scalars['String']['input']>;
+  /** The URI of the resource. */
+  uri: Scalars['String']['input'];
+};
+
+export type CreateResourcePayload = {
+  __typename?: 'CreateResourcePayload';
+  resource: Resource;
+};
+
 export type CreateRoleInput = {
   /** The optional description of the role. */
   description?: InputMaybe<Scalars['String']['input']>;
@@ -427,6 +445,20 @@ export type CreateRoleInput = {
 export type CreateRolePayload = {
   __typename?: 'CreateRolePayload';
   role: Role;
+};
+
+export type CreateScopeInput = {
+  /** The optional description of the scope. */
+  description?: InputMaybe<Scalars['String']['input']>;
+  /** The URI of the resource. */
+  resourceURI: Scalars['String']['input'];
+  /** The scope string. */
+  scope: Scalars['String']['input'];
+};
+
+export type CreateScopePayload = {
+  __typename?: 'CreateScopePayload';
+  scope: Scope;
 };
 
 export type CreateSessionInput = {
@@ -502,6 +534,16 @@ export type DeleteIdentityPayload = {
   user: User;
 };
 
+export type DeleteResourceInput = {
+  /** The URI of the resource. */
+  resourceURI: Scalars['String']['input'];
+};
+
+export type DeleteResourcePayload = {
+  __typename?: 'DeleteResourcePayload';
+  ok?: Maybe<Scalars['Boolean']['output']>;
+};
+
 export type DeleteRoleInput = {
   /** The ID of the role. */
   id: Scalars['ID']['input'];
@@ -509,6 +551,18 @@ export type DeleteRoleInput = {
 
 export type DeleteRolePayload = {
   __typename?: 'DeleteRolePayload';
+  ok?: Maybe<Scalars['Boolean']['output']>;
+};
+
+export type DeleteScopeInput = {
+  /** The URI of the resource. */
+  resourceURI: Scalars['String']['input'];
+  /** The scope string. */
+  scope: Scalars['String']['input'];
+};
+
+export type DeleteScopePayload = {
+  __typename?: 'DeleteScopePayload';
   ok?: Maybe<Scalars['Boolean']['output']>;
 };
 
@@ -684,8 +738,12 @@ export type Mutation = {
   createGroup: CreateGroupPayload;
   /** Create new identity for user */
   createIdentity: CreateIdentityPayload;
+  /** Create a new resource. */
+  createResource: CreateResourcePayload;
   /** Create a new role. */
   createRole: CreateRolePayload;
+  /** Create a new scope. */
+  createScope: CreateScopePayload;
   /** Create a session of a given user */
   createSession: CreateSessionPayload;
   /** Create new user */
@@ -698,8 +756,12 @@ export type Mutation = {
   deleteGroup: DeleteGroupPayload;
   /** Delete identity of user */
   deleteIdentity: DeleteIdentityPayload;
+  /** Delete a resource. */
+  deleteResource: DeleteResourcePayload;
   /** Delete an existing role. The associations between the role with other groups and other users will also be deleted. */
   deleteRole: DeleteRolePayload;
+  /** Delete a scope. */
+  deleteScope: DeleteScopePayload;
   /** Delete specified user */
   deleteUser: DeleteUserPayload;
   /** Generate OOB OTP code for user */
@@ -746,8 +808,12 @@ export type Mutation = {
   updateGroup: UpdateGroupPayload;
   /** Update an existing identity of user */
   updateIdentity: UpdateIdentityPayload;
+  /** Update an existing resource. */
+  updateResource: UpdateResourcePayload;
   /** Update an existing role. */
   updateRole: UpdateRolePayload;
+  /** Update an existing scope. */
+  updateScope: UpdateScopePayload;
   /** Update user */
   updateUser: UpdateUserPayload;
 };
@@ -803,8 +869,18 @@ export type MutationCreateIdentityArgs = {
 };
 
 
+export type MutationCreateResourceArgs = {
+  input: CreateResourceInput;
+};
+
+
 export type MutationCreateRoleArgs = {
   input: CreateRoleInput;
+};
+
+
+export type MutationCreateScopeArgs = {
+  input: CreateScopeInput;
 };
 
 
@@ -838,8 +914,18 @@ export type MutationDeleteIdentityArgs = {
 };
 
 
+export type MutationDeleteResourceArgs = {
+  input: DeleteResourceInput;
+};
+
+
 export type MutationDeleteRoleArgs = {
   input: DeleteRoleInput;
+};
+
+
+export type MutationDeleteScopeArgs = {
+  input: DeleteScopeInput;
 };
 
 
@@ -958,8 +1044,18 @@ export type MutationUpdateIdentityArgs = {
 };
 
 
+export type MutationUpdateResourceArgs = {
+  input: UpdateResourceInput;
+};
+
+
 export type MutationUpdateRoleArgs = {
   input: UpdateRoleInput;
+};
+
+
+export type MutationUpdateScopeArgs = {
+  input: UpdateScopeInput;
 };
 
 
@@ -1007,6 +1103,8 @@ export type Query = {
   node?: Maybe<Node>;
   /** Lookup nodes by a list of IDs. */
   nodes: Array<Maybe<Node>>;
+  /** All resources */
+  resources?: Maybe<ResourceConnection>;
   /** All roles */
   roles?: Maybe<RoleConnection>;
   /** All users */
@@ -1064,6 +1162,16 @@ export type QueryNodeArgs = {
 
 export type QueryNodesArgs = {
   ids: Array<Scalars['ID']['input']>;
+};
+
+
+export type QueryResourcesArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  clientID?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
+  searchKeyword?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -1177,6 +1285,54 @@ export type ResetPasswordPayload = {
   user: User;
 };
 
+/** Authgear resource */
+export type Resource = Entity & Node & {
+  __typename?: 'Resource';
+  /** The creation time of entity */
+  createdAt: Scalars['DateTime']['output'];
+  /** The ID of an object */
+  id: Scalars['ID']['output'];
+  /** The optional name of the resource. */
+  name?: Maybe<Scalars['String']['output']>;
+  /** The list of scopes for this resource. */
+  scopes?: Maybe<ScopeConnection>;
+  /** The update time of entity */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The URI of the resource. */
+  uri: Scalars['String']['output'];
+};
+
+
+/** Authgear resource */
+export type ResourceScopesArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  clientID?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
+  searchKeyword?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** A connection to a list of items. */
+export type ResourceConnection = {
+  __typename?: 'ResourceConnection';
+  /** Information to aid in pagination. */
+  edges?: Maybe<Array<Maybe<ResourceEdge>>>;
+  /** Information to aid in pagination. */
+  pageInfo: PageInfo;
+  /** Total number of nodes in the connection. */
+  totalCount?: Maybe<Scalars['Int']['output']>;
+};
+
+/** An edge in a connection */
+export type ResourceEdge = {
+  __typename?: 'ResourceEdge';
+  /**  cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node?: Maybe<Resource>;
+};
+
 export type RevokeAllSessionsInput = {
   /** Target user ID. */
   userID: Scalars['ID']['input'];
@@ -1274,6 +1430,41 @@ export type ScheduleAccountDeletionInput = {
 export type ScheduleAccountDeletionPayload = {
   __typename?: 'ScheduleAccountDeletionPayload';
   user: User;
+};
+
+/** Authgear scope */
+export type Scope = Entity & Node & {
+  __typename?: 'Scope';
+  /** The creation time of entity */
+  createdAt: Scalars['DateTime']['output'];
+  /** The optional description of the scope. */
+  description?: Maybe<Scalars['String']['output']>;
+  /** The ID of an object */
+  id: Scalars['ID']['output'];
+  /** The scope string. */
+  scope: Scalars['String']['output'];
+  /** The update time of entity */
+  updatedAt: Scalars['DateTime']['output'];
+};
+
+/** A connection to a list of items. */
+export type ScopeConnection = {
+  __typename?: 'ScopeConnection';
+  /** Information to aid in pagination. */
+  edges?: Maybe<Array<Maybe<ScopeEdge>>>;
+  /** Information to aid in pagination. */
+  pageInfo: PageInfo;
+  /** Total number of nodes in the connection. */
+  totalCount?: Maybe<Scalars['Int']['output']>;
+};
+
+/** An edge in a connection */
+export type ScopeEdge = {
+  __typename?: 'ScopeEdge';
+  /**  cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node?: Maybe<Scope>;
 };
 
 export type SendResetPasswordMessageInput = {
@@ -1435,6 +1626,18 @@ export type UpdateIdentityPayload = {
   user: User;
 };
 
+export type UpdateResourceInput = {
+  /** The new name of the resource. Pass null if you do not need to update the name. Pass an empty string to remove the name. */
+  name?: InputMaybe<Scalars['String']['input']>;
+  /** The URI of the resource. */
+  resourceURI: Scalars['String']['input'];
+};
+
+export type UpdateResourcePayload = {
+  __typename?: 'UpdateResourcePayload';
+  resource: Resource;
+};
+
 export type UpdateRoleInput = {
   /** The new description of the role. Pass null if you do not need to update the description. Pass an empty string to remove the description. */
   description?: InputMaybe<Scalars['String']['input']>;
@@ -1449,6 +1652,20 @@ export type UpdateRoleInput = {
 export type UpdateRolePayload = {
   __typename?: 'UpdateRolePayload';
   role: Role;
+};
+
+export type UpdateScopeInput = {
+  /** The new description of the scope. Pass null if you do not need to update the description. Pass an empty string to remove the description. */
+  description?: InputMaybe<Scalars['String']['input']>;
+  /** The URI of the resource. */
+  resourceURI: Scalars['String']['input'];
+  /** The scope string. */
+  scope: Scalars['String']['input'];
+};
+
+export type UpdateScopePayload = {
+  __typename?: 'UpdateScopePayload';
+  scope: Scope;
 };
 
 export type UpdateUserInput = {
