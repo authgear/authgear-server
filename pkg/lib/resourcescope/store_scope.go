@@ -21,7 +21,7 @@ func (s *Store) NewScope(resource *Resource, options *NewScopeOptions) *Scope {
 		ID:          uuid.NewString(),
 		CreatedAt:   now,
 		UpdatedAt:   now,
-		ResourceID:  resource.URI,
+		ResourceID:  resource.ID,
 		Scope:       options.Scope.Value,
 		Description: options.Description,
 	}
