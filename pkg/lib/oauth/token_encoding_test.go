@@ -139,3 +139,82 @@ func TestAccessToken(t *testing.T) {
 		So(idKey, ShouldEqual, "token-hash")
 	})
 }
+
+func TestClientAccessToken(t *testing.T) {
+	Convey("EncodeClientAccessToken", t, func() {
+		now := time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)
+
+		jwkSet, err := jwk.Parse([]byte(PrivateKeyPEM), jwk.WithPEM(true))
+		So(err, ShouldBeNil)
+		jwkKey, _ := jwkSet.Key(0)
+		_ = jwkKey.Set(jwk.KeyIDKey, uuid.New())
+		_ = jwkKey.Set(jwk.AlgorithmKey, "RS256")
+
+		secrets := &config.OAuthKeyMaterials{
+			Set: jwkSet,
+		}
+
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+		mockIDTokenIssuer := NewMockIDTokenIssuer(mockCtrl)
+		mockIDTokenIssuer.EXPECT().Iss().Return("http://test1.authgear.com")
+
+		encoding := &AccessTokenEncoding{
+			Secrets:       secrets,
+			Clock:         clock.NewMockClockAtTime(now),
+			IDTokenIssuer: mockIDTokenIssuer,
+			BaseURL: &endpoints.Endpoints{
+				OAuthEndpoints: &endpoints.OAuthEndpoints{
+					HTTPHost:  "test1.authgear.com",
+					HTTPProto: "http",
+				},
+			},
+		}
+
+		client := &config.OAuthClientConfig{
+			IssueJWTAccessToken: true,
+			ClientID:            "client-id",
+			AccessTokenLifetime: 3600,
+		}
+		resourceURI := "https://api.example.com/"
+		scope := "read write"
+		createdAt := now
+		expireAt := now.Add(client.AccessTokenLifetime.Duration())
+		originalToken := "opaque-token"
+
+		options := EncodeClientAccessTokenOptions{
+			OriginalToken: originalToken,
+			ClientConfig:  client,
+			ResourceURI:   resourceURI,
+			Scope:         scope,
+			CreatedAt:     createdAt,
+			ExpireAt:      expireAt,
+		}
+
+		accessToken, err := encoding.EncodeClientAccessToken(context.Background(), options)
+		So(err, ShouldBeNil)
+
+		// Peek token payload
+		keys, err := jwk.PublicSetOf(encoding.Secrets.Set)
+		So(err, ShouldBeNil)
+
+		decodedToken, err := jwt.ParseString(accessToken, jwt.WithKeySet(keys), jwt.WithValidate(false))
+		So(err, ShouldBeNil)
+
+		clientID, _ := decodedToken.Get("client_id")
+		scopeClaim, _ := decodedToken.Get("scope")
+		sub, _ := decodedToken.Get("sub")
+		aud := decodedToken.Audience()
+		iss := decodedToken.Issuer()
+		iat := decodedToken.IssuedAt()
+		exp := decodedToken.Expiration()
+
+		So(clientID, ShouldEqual, "client-id")
+		So(scopeClaim, ShouldEqual, scope)
+		So(sub, ShouldEqual, "client_id_client-id")
+		So(aud, ShouldResemble, []string{resourceURI})
+		So(iss, ShouldEqual, "http://test1.authgear.com")
+		So(iat, ShouldEqual, createdAt)
+		So(exp, ShouldEqual, expireAt)
+	})
+}
