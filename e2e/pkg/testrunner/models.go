@@ -437,7 +437,8 @@ var _ = TestCaseSchema.Add("HTTPOutput", `
 	"properties": {
 		"http_status": { "type": "integer" },
 		"redirect_path": { "type": "string" },
-		"saml_element": { "$ref": "#/$defs/OuputSAMLElement" }
+		"saml_element": { "$ref": "#/$defs/OuputSAMLElement" },
+		"json_body": { "type": "string" }
 	}
 }
 `)
@@ -446,6 +447,7 @@ type HTTPOutput struct {
 	HTTPStatus   *float64          `json:"http_status"`
 	RedirectPath *string           `json:"redirect_path"`
 	SAMLElement  *OuputSAMLElement `json:"saml_element"`
+	JSONBody     *string           `json:"json_body"`
 }
 
 var _ = TestCaseSchema.Add("OuputSAMLElement", `
