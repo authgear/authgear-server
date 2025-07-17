@@ -57,27 +57,6 @@ level=INFO msg=info logger=service.a attr=info
 			So(w.String(), ShouldEqual, "level=ERROR msg=error logger=service.a error=\"something went wrong\"\n")
 		})
 
-		Convey("logging panics with WithRecover()", func() {
-			f := func() {
-				panic(fmt.Errorf("it is a panic"))
-			}
-
-			g := func() {
-				logger := serviceALogger.GetLogger(ctx)
-
-				defer func() {
-					if r := recover(); r != nil {
-						logger.WithRecover(r).Error(ctx, "recovered")
-					}
-				}()
-
-				f()
-			}
-
-			g()
-			So(w.String(), ShouldEqual, "level=ERROR msg=recovered logger=service.a error=\"it is a panic\"\n")
-		})
-
 		Convey("derive logger with With()", func() {
 			logger := serviceALogger.GetLogger(ctx)
 

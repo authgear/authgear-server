@@ -6,8 +6,6 @@ import (
 	"log/slog"
 	"runtime"
 	"time"
-
-	"github.com/authgear/authgear-server/pkg/util/panicutil"
 )
 
 var noopLogger = slog.New(slog.DiscardHandler)
@@ -109,11 +107,6 @@ func (l NamedLogger) With(attrs ...slog.Attr) NamedLogger {
 // WithError is a shorthand for With(Err(err)).
 func (l NamedLogger) WithError(err error) NamedLogger {
 	return l.With(Err(err))
-}
-
-// WithRecover is a shorthand for WithError(panicutil.MakeError(r)).
-func (l NamedLogger) WithRecover(r any) NamedLogger {
-	return l.WithError(panicutil.MakeError(r))
 }
 
 // WithGroup is intentionally omitted because it is intended for

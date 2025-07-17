@@ -217,7 +217,8 @@ func (c *Consumer) work(ctx context.Context) {
 	)
 	defer func() {
 		if r := recover(); r != nil {
-			logger.WithRecover(r).Error(ctx, "panic occurred when running task")
+			err := panicutil.MakeError(r)
+			logger.WithError(err).Error(ctx, "panic occurred when running task")
 		}
 	}()
 
