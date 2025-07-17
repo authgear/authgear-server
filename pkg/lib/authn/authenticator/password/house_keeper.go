@@ -18,32 +18,26 @@ import (
 	"context"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
-type HousekeeperLogger struct {
-	*log.Logger
-}
-
-func NewHousekeeperLogger(lf *log.Factory) HousekeeperLogger {
-	return HousekeeperLogger{lf.New("password-housekeeper")}
-}
+var HousekeeperLogger = slogutil.NewLogger("password-housekeeper")
 
 type Housekeeper struct {
 	Store  *HistoryStore
-	Logger HousekeeperLogger
 	Config *config.AuthenticatorPasswordConfig
 }
 
 func (p *Housekeeper) Housekeep(ctx context.Context, authID string) (err error) {
+	logger := HousekeeperLogger.GetLogger(ctx)
 	if !p.Config.Policy.IsEnabled() {
 		return
 	}
 
-	p.Logger.Debug("remove password history")
+	logger.Debug(ctx, "remove password history")
 	err = p.Store.RemovePasswordHistory(ctx, authID, p.Config.Policy.HistorySize, p.Config.Policy.HistoryDays)
 	if err != nil {
-		p.Logger.WithError(err).Error("unable to housekeep password history")
+		logger.WithError(err).Error(ctx, "unable to housekeep password history")
 	}
 
 	return

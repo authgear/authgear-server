@@ -24,7 +24,7 @@ func (c *End2End) ImportUsers(ctx context.Context, appID string, jsonPath string
 		Watch: false,
 	}
 
-	p, err := deps.NewRootProvider(
+	ctx, p, err := deps.NewRootProvider(
 		ctx,
 		cfg.EnvironmentConfig,
 		cfg.ConfigSource,
@@ -43,7 +43,7 @@ func (c *End2End) ImportUsers(ctx context.Context, appID string, jsonPath string
 
 	return configSrcController.ResolveContext(ctx, appID, func(ctx context.Context, appCtx *config.AppContext) error {
 
-		appProvider := p.NewAppProvider(ctx, appCtx)
+		ctx, appProvider := p.NewAppProvider(ctx, appCtx)
 
 		userImport := newUserImport(appProvider)
 

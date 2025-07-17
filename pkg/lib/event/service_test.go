@@ -13,7 +13,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/util/clock"
-	"github.com/authgear/authgear-server/pkg/util/log"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -30,14 +29,12 @@ func TestServiceDispatchEvent(t *testing.T) {
 		resolver := NewMockResolver(ctrl)
 		fallbackLanguage := "en"
 		supportedLanguages := []string{"en"}
-		logger := Logger{log.Null}
 		localization := &config.LocalizationConfig{
 			FallbackLanguage:   &fallbackLanguage,
 			SupportedLanguages: supportedLanguages,
 		}
 
 		service := &Service{
-			Logger:       logger,
 			Database:     database,
 			Clock:        clock,
 			Localization: localization,

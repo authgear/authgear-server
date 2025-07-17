@@ -13,6 +13,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/usage"
 	"github.com/authgear/authgear-server/pkg/lib/userexport"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 func ConfigureUserExportCreateRoute(route httproute.Route) httproute.Route {
@@ -44,7 +45,6 @@ type UserExportUsageLimiter interface {
 type UserExportCreateHandler struct {
 	AppID                 config.AppID
 	AdminAPIFeatureConfig *config.AdminAPIFeatureConfig
-	JSON                  JSONResponseWriter
 	Producer              UserExportCreateProducer
 	UsageLimiter          UserExportUsageLimiter
 	CloudStorage          UserExportCreateHandlerCloudStorage
@@ -55,7 +55,7 @@ func (h *UserExportCreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 	ctx := r.Context()
 	err := h.handle(ctx, w, r)
 	if err != nil {
-		h.JSON.WriteResponse(w, &api.Response{Error: err})
+		httputil.WriteJSONResponse(ctx, w, &api.Response{Error: err})
 		return
 	}
 }
@@ -95,7 +95,7 @@ func (h *UserExportCreateHandler) handle(ctx context.Context, w http.ResponseWri
 		return err
 	}
 
-	h.JSON.WriteResponse(w, &api.Response{
+	httputil.WriteJSONResponse(ctx, w, &api.Response{
 		Result: response,
 	})
 	return nil

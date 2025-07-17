@@ -25,15 +25,14 @@ import (
 func NewUserWeeklyReport(pool *db.Pool, databaseCredentials *config.DatabaseCredentials) *analytic.UserWeeklyReport {
 	globalDatabaseCredentialsEnvironmentConfig := NewGlobalDatabaseCredentials(databaseCredentials)
 	databaseEnvironmentConfig := config.NewDefaultDatabaseEnvironmentConfig()
-	factory := NewLoggerFactory()
-	handle := globaldb.NewHandle(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
+	handle := globaldb.NewHandle(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig)
 	sqlBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
 	sqlExecutor := globaldb.NewSQLExecutor(handle)
 	globalDBStore := &analytic.GlobalDBStore{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	appdbHandle := appdb.NewHandle(pool, databaseEnvironmentConfig, databaseCredentials, factory)
+	appdbHandle := appdb.NewHandle(pool, databaseEnvironmentConfig, databaseCredentials)
 	appdbSQLBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	appdbSQLExecutor := appdb.NewSQLExecutor(appdbHandle)
 	appDBStore := &analytic.AppDBStore{
@@ -52,15 +51,14 @@ func NewUserWeeklyReport(pool *db.Pool, databaseCredentials *config.DatabaseCred
 func NewProjectHourlyReport(pool *db.Pool, databaseCredentials *config.DatabaseCredentials, auditDatabaseCredentials *config.AuditDatabaseCredentials) *analytic.ProjectHourlyReport {
 	globalDatabaseCredentialsEnvironmentConfig := NewGlobalDatabaseCredentials(databaseCredentials)
 	databaseEnvironmentConfig := config.NewDefaultDatabaseEnvironmentConfig()
-	factory := NewLoggerFactory()
-	handle := globaldb.NewHandle(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
+	handle := globaldb.NewHandle(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig)
 	sqlBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
 	sqlExecutor := globaldb.NewSQLExecutor(handle)
 	globalDBStore := &analytic.GlobalDBStore{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	appdbHandle := appdb.NewHandle(pool, databaseEnvironmentConfig, databaseCredentials, factory)
+	appdbHandle := appdb.NewHandle(pool, databaseEnvironmentConfig, databaseCredentials)
 	appdbSQLBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	appdbSQLExecutor := appdb.NewSQLExecutor(appdbHandle)
 	appDBStore := &analytic.AppDBStore{
@@ -79,22 +77,21 @@ func NewProjectHourlyReport(pool *db.Pool, databaseCredentials *config.DatabaseC
 func NewProjectWeeklyReport(pool *db.Pool, databaseCredentials *config.DatabaseCredentials, auditDatabaseCredentials *config.AuditDatabaseCredentials) *analytic.ProjectWeeklyReport {
 	globalDatabaseCredentialsEnvironmentConfig := NewGlobalDatabaseCredentials(databaseCredentials)
 	databaseEnvironmentConfig := config.NewDefaultDatabaseEnvironmentConfig()
-	factory := NewLoggerFactory()
-	handle := globaldb.NewHandle(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
+	handle := globaldb.NewHandle(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig)
 	sqlBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
 	sqlExecutor := globaldb.NewSQLExecutor(handle)
 	globalDBStore := &analytic.GlobalDBStore{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	appdbHandle := appdb.NewHandle(pool, databaseEnvironmentConfig, databaseCredentials, factory)
+	appdbHandle := appdb.NewHandle(pool, databaseEnvironmentConfig, databaseCredentials)
 	appdbSQLBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	appdbSQLExecutor := appdb.NewSQLExecutor(appdbHandle)
 	appDBStore := &analytic.AppDBStore{
 		SQLBuilder:  appdbSQLBuilder,
 		SQLExecutor: appdbSQLExecutor,
 	}
-	readHandle := auditdb.NewReadHandle(pool, databaseEnvironmentConfig, auditDatabaseCredentials, factory)
+	readHandle := auditdb.NewReadHandle(pool, databaseEnvironmentConfig, auditDatabaseCredentials)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials)
 	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
 	auditDBReadStore := &meter.AuditDBReadStore{
@@ -120,15 +117,14 @@ func NewProjectWeeklyReport(pool *db.Pool, databaseCredentials *config.DatabaseC
 func NewProjectMonthlyReport(pool *db.Pool, databaseCredentials *config.DatabaseCredentials, auditDatabaseCredentials *config.AuditDatabaseCredentials) *analytic.ProjectMonthlyReport {
 	globalDatabaseCredentialsEnvironmentConfig := NewGlobalDatabaseCredentials(databaseCredentials)
 	databaseEnvironmentConfig := config.NewDefaultDatabaseEnvironmentConfig()
-	factory := NewLoggerFactory()
-	handle := globaldb.NewHandle(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
+	handle := globaldb.NewHandle(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig)
 	sqlBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
 	sqlExecutor := globaldb.NewSQLExecutor(handle)
 	globalDBStore := &analytic.GlobalDBStore{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	readHandle := auditdb.NewReadHandle(pool, databaseEnvironmentConfig, auditDatabaseCredentials, factory)
+	readHandle := auditdb.NewReadHandle(pool, databaseEnvironmentConfig, auditDatabaseCredentials)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials)
 	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
 	auditDBReadStore := &analytic.AuditDBReadStore{
@@ -147,29 +143,28 @@ func NewProjectMonthlyReport(pool *db.Pool, databaseCredentials *config.Database
 func NewCountCollector(pool *db.Pool, databaseCredentials *config.DatabaseCredentials, auditDatabaseCredentials *config.AuditDatabaseCredentials, redisPool *redis.Pool, credentials *config.AnalyticRedisCredentials) *analytic.CountCollector {
 	globalDatabaseCredentialsEnvironmentConfig := NewGlobalDatabaseCredentials(databaseCredentials)
 	databaseEnvironmentConfig := config.NewDefaultDatabaseEnvironmentConfig()
-	factory := NewLoggerFactory()
-	handle := globaldb.NewHandle(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
+	handle := globaldb.NewHandle(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig)
 	sqlBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
 	sqlExecutor := globaldb.NewSQLExecutor(handle)
 	globalDBStore := &analytic.GlobalDBStore{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	appdbHandle := appdb.NewHandle(pool, databaseEnvironmentConfig, databaseCredentials, factory)
+	appdbHandle := appdb.NewHandle(pool, databaseEnvironmentConfig, databaseCredentials)
 	appdbSQLBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	appdbSQLExecutor := appdb.NewSQLExecutor(appdbHandle)
 	appDBStore := &analytic.AppDBStore{
 		SQLBuilder:  appdbSQLBuilder,
 		SQLExecutor: appdbSQLExecutor,
 	}
-	readHandle := auditdb.NewReadHandle(pool, databaseEnvironmentConfig, auditDatabaseCredentials, factory)
+	readHandle := auditdb.NewReadHandle(pool, databaseEnvironmentConfig, auditDatabaseCredentials)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials)
 	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
 	auditDBReadStore := &analytic.AuditDBReadStore{
 		SQLBuilder:  auditdbSQLBuilder,
 		SQLExecutor: readSQLExecutor,
 	}
-	writeHandle := auditdb.NewWriteHandle(pool, databaseEnvironmentConfig, auditDatabaseCredentials, factory)
+	writeHandle := auditdb.NewWriteHandle(pool, databaseEnvironmentConfig, auditDatabaseCredentials)
 	meterAuditDBReadStore := &meter.AuditDBReadStore{
 		SQLBuilder:  auditdbSQLBuilder,
 		SQLExecutor: readSQLExecutor,
@@ -180,7 +175,7 @@ func NewCountCollector(pool *db.Pool, databaseCredentials *config.DatabaseCreden
 		SQLExecutor: writeSQLExecutor,
 	}
 	redisEnvironmentConfig := config.NewDefaultRedisEnvironmentConfig()
-	analyticredisHandle := analyticredis.NewHandle(redisPool, redisEnvironmentConfig, credentials, factory)
+	analyticredisHandle := analyticredis.NewHandle(redisPool, redisEnvironmentConfig, credentials)
 	readStoreRedis := &meter.ReadStoreRedis{
 		Redis: analyticredisHandle,
 	}
@@ -216,24 +211,21 @@ var (
 
 func NewPosthogIntegration(pool *db.Pool, databaseCredentials *config.DatabaseCredentials, auditDatabaseCredentials *config.AuditDatabaseCredentials, redisPool *redis.Pool, credentials *config.AnalyticRedisCredentials, posthogCredentials *analytic.PosthogCredentials) *analytic.PosthogIntegration {
 	posthogHTTPClient := analytic.NewPosthogHTTPClient()
-	factory := NewLoggerFactory()
-	posthogLogger := analytic.NewPosthogLogger(factory)
 	posthogService := analytic.PosthogService{
 		PosthogCredentials: posthogCredentials,
 		HTTPClient:         posthogHTTPClient,
-		Logger:             posthogLogger,
 	}
 	clockClock := _wireSystemClockValue
 	globalDatabaseCredentialsEnvironmentConfig := NewGlobalDatabaseCredentials(databaseCredentials)
 	databaseEnvironmentConfig := config.NewDefaultDatabaseEnvironmentConfig()
-	handle := globaldb.NewHandle(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
+	handle := globaldb.NewHandle(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig)
 	sqlBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
 	sqlExecutor := globaldb.NewSQLExecutor(handle)
 	globalDBStore := &analytic.GlobalDBStore{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	appdbHandle := appdb.NewHandle(pool, databaseEnvironmentConfig, databaseCredentials, factory)
+	appdbHandle := appdb.NewHandle(pool, databaseEnvironmentConfig, databaseCredentials)
 	appdbSQLBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	appdbSQLExecutor := appdb.NewSQLExecutor(appdbHandle)
 	appDBStore := &analytic.AppDBStore{
@@ -241,7 +233,7 @@ func NewPosthogIntegration(pool *db.Pool, databaseCredentials *config.DatabaseCr
 		SQLExecutor: appdbSQLExecutor,
 	}
 	redisEnvironmentConfig := config.NewDefaultRedisEnvironmentConfig()
-	analyticredisHandle := analyticredis.NewHandle(redisPool, redisEnvironmentConfig, credentials, factory)
+	analyticredisHandle := analyticredis.NewHandle(redisPool, redisEnvironmentConfig, credentials)
 	readStoreRedis := &meter.ReadStoreRedis{
 		Redis: analyticredisHandle,
 	}
@@ -254,7 +246,6 @@ func NewPosthogIntegration(pool *db.Pool, databaseCredentials *config.DatabaseCr
 		AppDBHandle:        appdbHandle,
 		AppDBStore:         appDBStore,
 		HTTPClient:         posthogHTTPClient,
-		Logger:             posthogLogger,
 		ReadCounterStore:   readStoreRedis,
 	}
 	return posthogIntegration

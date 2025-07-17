@@ -1,4 +1,4 @@
-package log
+package slogutil
 
 import (
 	"regexp"
@@ -34,5 +34,8 @@ func NewPlainMaskPattern(s string) PlainMaskPattern {
 }
 
 func (p PlainMaskPattern) Mask(s string, mask string) string {
+	if p.Pattern == "" {
+		return s
+	}
 	return strings.ReplaceAll(s, p.Pattern, mask)
 }

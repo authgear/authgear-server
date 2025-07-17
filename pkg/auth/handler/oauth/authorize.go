@@ -9,7 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
-	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
 func ConfigureAuthorizeRoute(route httproute.Route) httproute.Route {
@@ -18,11 +18,7 @@ func ConfigureAuthorizeRoute(route httproute.Route) httproute.Route {
 		WithPathPattern("/oauth2/authorize")
 }
 
-type AuthorizeHandlerLogger struct{ *log.Logger }
-
-func NewAuthorizeHandlerLogger(lf *log.Factory) AuthorizeHandlerLogger {
-	return AuthorizeHandlerLogger{lf.New("handler-authz")}
-}
+var AuthorizeHandlerLogger = slogutil.NewLogger("handler-authz")
 
 type ProtocolAuthorizeHandler interface {
 	Handle(ctx context.Context, r protocol.AuthorizationRequest) httputil.Result
@@ -31,7 +27,6 @@ type ProtocolAuthorizeHandler interface {
 var errAuthzInternalError = errors.New("internal error")
 
 type AuthorizeHandler struct {
-	Logger       AuthorizeHandlerLogger
 	Database     *appdb.Handle
 	AuthzHandler ProtocolAuthorizeHandler
 }
@@ -60,7 +55,8 @@ func (h *AuthorizeHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	if err == nil || errors.Is(err, errAuthzInternalError) {
 		result.WriteResponse(rw, r)
 	} else {
-		h.Logger.WithError(err).Error("oauth authz handler failed")
+		logger := AuthorizeHandlerLogger.GetLogger(r.Context())
+		logger.WithError(err).Error(r.Context(), "oauth authz handler failed")
 		http.Error(rw, "Internal Server Error", 500)
 	}
 }

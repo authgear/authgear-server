@@ -26,7 +26,6 @@ type WorkflowGetCookieManager interface {
 }
 
 type WorkflowGetHandler struct {
-	JSON      JSONResponseWriter
 	Workflows WorkflowGetWorkflowService
 	Cookies   WorkflowGetCookieManager
 }
@@ -40,7 +39,7 @@ func (h *WorkflowGetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	output, err := h.Workflows.Get(ctx, workflowID, instanceID, userAgentID)
 	if err != nil {
-		h.JSON.WriteResponse(w, &api.Response{Error: err})
+		httputil.WriteJSONResponse(ctx, w, &api.Response{Error: err})
 		return
 	}
 
@@ -48,5 +47,5 @@ func (h *WorkflowGetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		Action:   output.Action,
 		Workflow: output.WorkflowOutput,
 	}
-	h.JSON.WriteResponse(w, &api.Response{Result: result})
+	httputil.WriteJSONResponse(ctx, w, &api.Response{Result: result})
 }

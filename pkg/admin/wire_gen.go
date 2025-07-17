@@ -100,11 +100,7 @@ import (
 // Injectors from wire.go:
 
 func newPanicMiddleware(p *deps.RootProvider) httproute.Middleware {
-	factory := p.LoggerFactory
-	panicMiddlewareLogger := middleware.NewPanicMiddlewareLogger(factory)
-	panicMiddleware := &middleware.PanicMiddleware{
-		Logger: panicMiddlewareLogger,
-	}
+	panicMiddleware := &middleware.PanicMiddleware{}
 	return panicMiddleware
 }
 
@@ -113,19 +109,16 @@ func newHealthzHandler(p *deps.RootProvider, w http.ResponseWriter, r *http.Requ
 	environmentConfig := p.EnvironmentConfig
 	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
 	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	factory := p.LoggerFactory
-	handle := globaldb.NewHandle(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
+	handle := globaldb.NewHandle(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig)
 	sqlExecutor := globaldb.NewSQLExecutor(handle)
 	redisPool := p.RedisPool
 	redisEnvironmentConfig := &environmentConfig.RedisConfig
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(redisPool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig, factory)
-	handlerLogger := healthz.NewHandlerLogger(factory)
+	globalredisHandle := globalredis.NewHandle(redisPool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	handler := &healthz.Handler{
 		GlobalDatabase: handle,
 		GlobalExecutor: sqlExecutor,
 		GlobalRedis:    globalredisHandle,
-		Logger:         handlerLogger,
 	}
 	return handler
 }
@@ -157,8 +150,6 @@ func newOtelMiddleware(p *deps.RootProvider) httproute.Middleware {
 
 func newAuthorizationMiddleware(p *deps.RequestProvider, auth config.AdminAPIAuth) httproute.Middleware {
 	appProvider := p.AppProvider
-	factory := appProvider.LoggerFactory
-	logger := authz.NewLogger(factory)
 	appContext := appProvider.AppContext
 	configConfig := appContext.Config
 	appConfig := configConfig.AppConfig
@@ -167,7 +158,6 @@ func newAuthorizationMiddleware(p *deps.RequestProvider, auth config.AdminAPIAut
 	adminAPIAuthKey := deps.ProvideAdminAPIAuthKeyMaterials(secretConfig)
 	clock := _wireSystemClockValue
 	authzMiddleware := &authz.Middleware{
-		Logger:  logger,
 		Auth:    auth,
 		AppID:   appID,
 		AuthKey: adminAPIAuthKey,
@@ -187,8 +177,6 @@ func newUIParamMiddleware(p *deps.RequestProvider) httproute.Middleware {
 
 func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
-	factory := appProvider.LoggerFactory
-	logger := graphql.NewLogger(factory)
 	appContext := appProvider.AppContext
 	configConfig := appContext.Config
 	appConfig := configConfig.AppConfig
@@ -371,7 +359,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticatorConfig := appConfig.Authenticator
 	authenticatorPasswordConfig := authenticatorConfig.Password
-	passwordLogger := password.NewLogger(factory)
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
 		SQLBuilder:  sqlBuilderApp,
@@ -380,17 +367,14 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFeatureConfig := featureConfig.Authenticator
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, authenticatorFeatureConfig, historyStore)
 	expiry := password.ProvideExpiry(authenticatorPasswordConfig, clockClock)
-	housekeeperLogger := password.NewHousekeeperLogger(factory)
 	housekeeper := &password.Housekeeper{
 		Store:  historyStore,
-		Logger: housekeeperLogger,
 		Config: authenticatorPasswordConfig,
 	}
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
 		Clock:           clockClock,
-		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
 		Expiry:          expiry,
@@ -442,12 +426,9 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	otpLogger := otp.NewLogger(factory)
-	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := ratelimit.NewAppStorageRedis(appredisHandle)
 	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		AppID:   appID,
 		Config:  rateLimitsFeatureConfig,
@@ -462,7 +443,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore:             codeStoreRedis,
 		LookupStore:           lookupStoreRedis,
 		AttemptTracker:        attemptTrackerRedis,
-		Logger:                otpLogger,
 		RateLimiter:           limiter,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
@@ -475,13 +455,11 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:   limiter,
 	}
 	authenticationLockoutConfig := authenticationConfig.Lockout
-	lockoutLogger := lockout.NewLogger(factory)
 	lockoutStorageRedis := &lockout.StorageRedis{
 		AppID: appID,
 		Redis: appredisHandle,
 	}
 	lockoutService := &lockout.Service{
-		Logger:  lockoutLogger,
 		Storage: lockoutStorageRedis,
 	}
 	serviceLockout := service2.Lockout{
@@ -568,13 +546,11 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	auditLogLoader := loader.NewAuditLogLoader(query, readHandle)
 	searchConfig := appConfig.Search
-	elasticsearchServiceLogger := elasticsearch.NewElasticsearchServiceLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	elasticsearchService := &elasticsearch.Service{
 		Clock:           clockClock,
 		Database:        handle,
-		Logger:          elasticsearchServiceLogger,
 		AppID:           appID,
 		Client:          client,
 		Users:           userQueries,
@@ -603,18 +579,14 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
-	eventLogger := event.NewLogger(factory)
 	appdbSQLBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(appdbSQLBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
 		Users: userQueries,
 	}
-	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
-	webHookLogger := hook.NewWebHookLogger(factory)
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	webHookImpl := hook.WebHookImpl{
-		Logger: webHookLogger,
 		Secret: webhookKeyMaterials,
 	}
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
@@ -624,14 +596,12 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		SyncHTTP:    syncHTTPClient,
 		AsyncHTTP:   asyncHTTPClient,
 	}
-	denoHookLogger := hook.NewDenoHookLogger(factory)
 	denoHook := hook.DenoHook{
 		ResourceManager: manager,
-		Logger:          denoHookLogger,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
 	eventDenoHookImpl := &hook.EventDenoHookImpl{
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
@@ -641,7 +611,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Store: rolesgroupsStore,
 	}
 	sink := &hook.Sink{
-		Logger:             hookLogger,
 		Config:             hookConfig,
 		Clock:              clockClock,
 		EventWebHook:       eventWebHookImpl,
@@ -650,7 +619,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		CustomAttributes:   customattrsServiceNoEvent,
 		RolesAndGroups:     commands,
 	}
-	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
 	writeSQLExecutor := auditdb.NewWriteSQLExecutor(writeHandle)
 	writeStore := &audit.WriteStore{
@@ -658,12 +626,9 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
-		Logger:   auditLogger,
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	sinkLogger := reindex.NewSinkLogger(factory)
-	reindexerLogger := reindex.NewReindexerLogger(factory)
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	sourceProvider := &reindex.SourceProvider{
 		AppID:           appID,
@@ -677,7 +642,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		SearchConfig:           searchConfig,
 		Clock:                  clockClock,
 		Database:               handle,
-		Logger:                 reindexerLogger,
 		UserStore:              store,
 		Producer:               userReindexProducer,
 		SourceProvider:         sourceProvider,
@@ -685,7 +649,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		PostgresqlReindexer:    pgsearchService,
 	}
 	reindexSink := &reindex.Sink{
-		Logger:    sinkLogger,
 		Reindexer: reindexer,
 		Database:  handle,
 	}
@@ -698,7 +661,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	eventService := event.NewService(appID, remoteIP, userAgentString, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
 	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -738,16 +701,12 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
-	messagingLogger := messaging.NewLogger(factory)
-	usageLogger := usage.NewLogger(factory)
 	usageLimiter := &usage.Limiter{
-		Logger: usageLogger,
-		Clock:  clockClock,
-		AppID:  appID,
-		Redis:  appredisHandle,
+		Clock: clockClock,
+		AppID: appID,
+		Redis: appredisHandle,
 	}
 	limits := messaging.Limits{
-		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		UsageLimiter:  usageLimiter,
 		RemoteIP:      remoteIP,
@@ -755,14 +714,11 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		FeatureConfig: featureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
-	mailLogger := mail.NewLogger(factory)
 	smtpServerCredentials := deps.ProvideSMTPServerCredentials(secretConfig)
 	dialer := mail.NewGomailDialer(smtpServerCredentials)
 	sender := &mail.Sender{
-		Logger:       mailLogger,
 		GomailDialer: dialer,
 	}
-	smsLogger := sms.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	smsProvider := messagingConfig.Deprecated_SMSProvider
 	smsGatewayConfig := messagingConfig.SMSGateway
@@ -778,16 +734,14 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	smsGatewayEnvironmentCustomSMSProviderConfig := smsGatewayEnvironmentConfig.Custom
 	hookDenoHook := &hook.DenoHook{
 		ResourceManager: manager,
-		Logger:          denoHookLogger,
 	}
 	smsHookTimeout := custom.NewSMSHookTimeout(customSMSProviderConfig)
-	hookDenoClient := custom.NewHookDenoClient(denoEndpoint, hookLogger, smsHookTimeout)
+	hookDenoClient := custom.NewHookDenoClient(denoEndpoint, smsHookTimeout)
 	smsDenoHook := custom.SMSDenoHook{
 		DenoHook: hookDenoHook,
 		Client:   hookDenoClient,
 	}
 	hookWebHookImpl := &hook.WebHookImpl{
-		Logger: webHookLogger,
 		Secret: webhookKeyMaterials,
 	}
 	hookHTTPClient := custom.NewHookHTTPClient(smsHookTimeout)
@@ -810,10 +764,8 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		SMSWebHook:                                 smsWebHook,
 	}
 	smsSender := &sms.Sender{
-		Logger:         smsLogger,
 		ClientResolver: clientResolver,
 	}
-	serviceLogger := whatsapp.NewServiceLogger(factory)
 	whatsappConfig := messagingConfig.Whatsapp
 	globalWhatsappAPIType := environmentConfig.WhatsappAPIType
 	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
@@ -823,11 +775,10 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	httpClient := whatsapp.NewHTTPClient()
-	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(factory, whatsappOnPremisesCredentials, tokenStore, httpClient)
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappOnPremisesCredentials, tokenStore, httpClient)
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient)
 	whatsappService := &whatsapp.Service{
-		Logger:                serviceLogger,
 		WhatsappConfig:        whatsappConfig,
 		LocalizationConfig:    localizationConfig,
 		GlobalWhatsappAPIType: globalWhatsappAPIType,
@@ -843,7 +794,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	featureTestModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
 	testModeWhatsappConfig := testModeConfig.Whatsapp
 	messagingSender := &messaging.Sender{
-		Logger:                            messagingLogger,
 		Limits:                            limits,
 		Events:                            eventService,
 		MailSender:                        sender,
@@ -877,12 +827,10 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	storeRedis := &idpsession.StoreRedis{
-		Redis:  appredisHandle,
-		AppID:  appID,
-		Clock:  clockClock,
-		Logger: storeRedisLogger,
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
 	}
 	sessionConfig := appConfig.Session
 	httpConfig := appConfig.HTTP
@@ -894,11 +842,9 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Cookies:   cookieManager,
 		CookieDef: cookieDef,
 	}
-	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
 		Redis:       appredisHandle,
 		AppID:       appID,
-		Logger:      redisLogger,
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
@@ -911,12 +857,10 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Store: eventStoreRedis,
 	}
 	analyticredisHandle := appProvider.AnalyticRedis
-	meterStoreRedisLogger := meter.NewStoreRedisLogger(factory)
 	writeStoreRedis := &meter.WriteStoreRedis{
-		Redis:  analyticredisHandle,
-		AppID:  appID,
-		Clock:  clockClock,
-		Logger: meterStoreRedisLogger,
+		Redis: analyticredisHandle,
+		AppID: appID,
+		Clock: clockClock,
 	}
 	meterService := &meter.Service{
 		Counter: writeStoreRedis,
@@ -1008,7 +952,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		UserProvider: userProvider,
 		Coordinator:  coordinator,
 	}
-	interactionLogger := interaction.NewLogger(factory)
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
@@ -1044,14 +987,13 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	pool := rootProvider.RedisPool
 	redisEnvironmentConfig := &environmentConfig.RedisConfig
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig, factory)
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	webappoauthStore := &webappoauth.Store{
 		Redis: globalredisHandle,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
-	forgotpasswordLogger := forgotpassword.NewLogger(factory)
 	sender2 := forgotpassword.Sender{
 		AppConfg:    appConfig,
 		Identities:  serviceService,
@@ -1059,7 +1001,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Translation: translationService,
 	}
 	forgotpasswordService := &forgotpassword.Service{
-		Logger:         forgotpasswordLogger,
 		Config:         appConfig,
 		FeatureConfig:  featureConfig,
 		Identities:     serviceService,
@@ -1143,7 +1084,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 	}
 	interactionService := &interaction.Service{
-		Logger:  interactionLogger,
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
@@ -1280,7 +1220,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		OfflineGrants: oauthOfflineGrantService,
 	}
 	graphqlContext := &graphql.Context{
-		GQLLogger:             logger,
 		Config:                appConfig,
 		OAuthConfig:           oAuthConfig,
 		AdminAPIFeatureConfig: adminAPIFeatureConfig,
@@ -1319,13 +1258,8 @@ var (
 )
 
 func newPresignImagesUploadHandler(p *deps.RequestProvider) http.Handler {
-	appProvider := p.AppProvider
-	factory := appProvider.LoggerFactory
-	jsonResponseWriterLogger := httputil.NewJSONResponseWriterLogger(factory)
-	jsonResponseWriter := &httputil.JSONResponseWriter{
-		Logger: jsonResponseWriterLogger,
-	}
 	request := p.Request
+	appProvider := p.AppProvider
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
@@ -1343,25 +1277,17 @@ func newPresignImagesUploadHandler(p *deps.RequestProvider) http.Handler {
 		Clock:  clockClock,
 		Host:   httpHost,
 	}
-	presignImagesUploadHandlerLogger := transport.NewPresignImagesUploadHandlerLogger(factory)
 	presignImagesUploadHandler := &transport.PresignImagesUploadHandler{
-		JSON:            jsonResponseWriter,
 		HTTPProto:       httpProto,
 		HTTPHost:        httpHost,
 		AppID:           appID,
 		PresignProvider: provider,
-		Logger:          presignImagesUploadHandlerLogger,
 	}
 	return presignImagesUploadHandler
 }
 
 func newUserImportCreateHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
-	factory := appProvider.LoggerFactory
-	jsonResponseWriterLogger := httputil.NewJSONResponseWriterLogger(factory)
-	jsonResponseWriter := &httputil.JSONResponseWriter{
-		Logger: jsonResponseWriterLogger,
-	}
 	appContext := appProvider.AppContext
 	configConfig := appContext.Config
 	appConfig := configConfig.AppConfig
@@ -1371,12 +1297,10 @@ func newUserImportCreateHandler(p *deps.RequestProvider) http.Handler {
 	adminAPIFeatureConfig := featureConfig.AdminAPI
 	handle := appProvider.Redis
 	userImportProducer := redisqueue.NewUserImportProducer(handle, clockClock)
-	logger := usage.NewLogger(factory)
 	limiter := &usage.Limiter{
-		Logger: logger,
-		Clock:  clockClock,
-		AppID:  appID,
-		Redis:  handle,
+		Clock: clockClock,
+		AppID: appID,
+		Redis: handle,
 	}
 	storeRedis := &userimport.StoreRedis{
 		AppID: appID,
@@ -1391,7 +1315,6 @@ func newUserImportCreateHandler(p *deps.RequestProvider) http.Handler {
 		Store:                 storeRedis,
 	}
 	userImportCreateHandler := &transport.UserImportCreateHandler{
-		JSON:        jsonResponseWriter,
 		UserImports: jobManager,
 	}
 	return userImportCreateHandler
@@ -1403,22 +1326,15 @@ func newUserImportGetHandler(p *deps.RequestProvider) http.Handler {
 	configConfig := appContext.Config
 	appConfig := configConfig.AppConfig
 	appID := appConfig.ID
-	factory := appProvider.LoggerFactory
-	jsonResponseWriterLogger := httputil.NewJSONResponseWriterLogger(factory)
-	jsonResponseWriter := &httputil.JSONResponseWriter{
-		Logger: jsonResponseWriterLogger,
-	}
 	clockClock := _wireSystemClockValue
 	featureConfig := configConfig.FeatureConfig
 	adminAPIFeatureConfig := featureConfig.AdminAPI
 	handle := appProvider.Redis
 	userImportProducer := redisqueue.NewUserImportProducer(handle, clockClock)
-	logger := usage.NewLogger(factory)
 	limiter := &usage.Limiter{
-		Logger: logger,
-		Clock:  clockClock,
-		AppID:  appID,
-		Redis:  handle,
+		Clock: clockClock,
+		AppID: appID,
+		Redis: handle,
 	}
 	storeRedis := &userimport.StoreRedis{
 		AppID: appID,
@@ -1434,7 +1350,6 @@ func newUserImportGetHandler(p *deps.RequestProvider) http.Handler {
 	}
 	userImportGetHandler := &transport.UserImportGetHandler{
 		AppID:       appID,
-		JSON:        jsonResponseWriter,
 		UserImports: jobManager,
 	}
 	return userImportGetHandler
@@ -1448,20 +1363,13 @@ func newUserExportCreateHandler(p *deps.RequestProvider) http.Handler {
 	appID := appConfig.ID
 	featureConfig := configConfig.FeatureConfig
 	adminAPIFeatureConfig := featureConfig.AdminAPI
-	factory := appProvider.LoggerFactory
-	jsonResponseWriterLogger := httputil.NewJSONResponseWriterLogger(factory)
-	jsonResponseWriter := &httputil.JSONResponseWriter{
-		Logger: jsonResponseWriterLogger,
-	}
 	handle := appProvider.Redis
 	clockClock := _wireSystemClockValue
 	userExportProducer := redisqueue.NewUserExportProducer(handle, clockClock)
-	logger := usage.NewLogger(factory)
 	limiter := &usage.Limiter{
-		Logger: logger,
-		Clock:  clockClock,
-		AppID:  appID,
-		Redis:  handle,
+		Clock: clockClock,
+		AppID: appID,
+		Redis: handle,
 	}
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
@@ -1639,7 +1547,6 @@ func newUserExportCreateHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticatorConfig := appConfig.Authenticator
 	authenticatorPasswordConfig := authenticatorConfig.Password
-	passwordLogger := password.NewLogger(factory)
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
 		SQLBuilder:  sqlBuilderApp,
@@ -1648,17 +1555,14 @@ func newUserExportCreateHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFeatureConfig := featureConfig.Authenticator
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, authenticatorFeatureConfig, historyStore)
 	expiry := password.ProvideExpiry(authenticatorPasswordConfig, clockClock)
-	housekeeperLogger := password.NewHousekeeperLogger(factory)
 	housekeeper := &password.Housekeeper{
 		Store:  historyStore,
-		Logger: housekeeperLogger,
 		Config: authenticatorPasswordConfig,
 	}
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
 		Clock:           clockClock,
-		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
 		Expiry:          expiry,
@@ -1710,12 +1614,9 @@ func newUserExportCreateHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	otpLogger := otp.NewLogger(factory)
-	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := ratelimit.NewAppStorageRedis(handle)
 	rateLimitsFeatureConfig := featureConfig.RateLimits
 	ratelimitLimiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		AppID:   appID,
 		Config:  rateLimitsFeatureConfig,
@@ -1730,7 +1631,6 @@ func newUserExportCreateHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore:             codeStoreRedis,
 		LookupStore:           lookupStoreRedis,
 		AttemptTracker:        attemptTrackerRedis,
-		Logger:                otpLogger,
 		RateLimiter:           ratelimitLimiter,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
@@ -1743,13 +1643,11 @@ func newUserExportCreateHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:   ratelimitLimiter,
 	}
 	authenticationLockoutConfig := authenticationConfig.Lockout
-	lockoutLogger := lockout.NewLogger(factory)
 	lockoutStorageRedis := &lockout.StorageRedis{
 		AppID: appID,
 		Redis: handle,
 	}
 	lockoutService := &lockout.Service{
-		Logger:  lockoutLogger,
 		Storage: lockoutStorageRedis,
 	}
 	serviceLockout := service2.Lockout{
@@ -1816,13 +1714,11 @@ func newUserExportCreateHandler(p *deps.RequestProvider) http.Handler {
 		CustomAttributes:   customattrsServiceNoEvent,
 		RolesAndGroups:     queries,
 	}
-	userexportLogger := userexport.NewLogger(factory)
 	httpClient := userexport.NewHTTPClient()
 	userExportService := &userexport.UserExportService{
 		AppDatabase:  appdbHandle,
 		Config:       userProfileConfig,
 		UserQueries:  userQueries,
-		Logger:       userexportLogger,
 		HTTPOrigin:   httpOrigin,
 		HTTPClient:   httpClient,
 		CloudStorage: userExportCloudStorage,
@@ -1831,7 +1727,6 @@ func newUserExportCreateHandler(p *deps.RequestProvider) http.Handler {
 	userExportCreateHandler := &transport.UserExportCreateHandler{
 		AppID:                 appID,
 		AdminAPIFeatureConfig: adminAPIFeatureConfig,
-		JSON:                  jsonResponseWriter,
 		Producer:              userExportProducer,
 		UsageLimiter:          limiter,
 		CloudStorage:          userExportCloudStorage,
@@ -1846,11 +1741,6 @@ func newUserExportGetHandler(p *deps.RequestProvider) http.Handler {
 	configConfig := appContext.Config
 	appConfig := configConfig.AppConfig
 	appID := appConfig.ID
-	factory := appProvider.LoggerFactory
-	jsonResponseWriterLogger := httputil.NewJSONResponseWriterLogger(factory)
-	jsonResponseWriter := &httputil.JSONResponseWriter{
-		Logger: jsonResponseWriterLogger,
-	}
 	handle := appProvider.Redis
 	clockClock := _wireSystemClockValue
 	userExportProducer := redisqueue.NewUserExportProducer(handle, clockClock)
@@ -1860,7 +1750,6 @@ func newUserExportGetHandler(p *deps.RequestProvider) http.Handler {
 	userExportCloudStorage := userexport.NewCloudStorage(userExportObjectStoreConfig, clockClock)
 	userExportGetHandler := &transport.UserExportGetHandler{
 		AppID:        appID,
-		JSON:         jsonResponseWriter,
 		UserExports:  userExportProducer,
 		CloudStorage: userExportCloudStorage,
 	}

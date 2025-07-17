@@ -5,15 +5,12 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
-	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
-type SinkLogger struct{ *log.Logger }
-
-func NewSinkLogger(lf *log.Factory) SinkLogger { return SinkLogger{lf.New("search-reindex-sink")} }
+var SinkLogger = slogutil.NewLogger("search-reindex-sink")
 
 type Sink struct {
-	Logger    SinkLogger
 	Reindexer *Reindexer
 	Database  *appdb.Handle
 }
@@ -23,6 +20,7 @@ func (s *Sink) ReceiveBlockingEvent(ctx context.Context, e *event.Event) error {
 }
 
 func (s *Sink) ReceiveNonBlockingEvent(ctx context.Context, e *event.Event) error {
+	logger := SinkLogger.GetLogger(ctx)
 	payload := e.Payload.(event.NonBlockingPayload)
 	reindexRequiredUserIDs := []string{}
 	reindexRequiredUserIDs = append(reindexRequiredUserIDs, payload.RequireReindexUserIDs()...)
@@ -38,7 +36,7 @@ func (s *Sink) ReceiveNonBlockingEvent(ctx context.Context, e *event.Event) erro
 		for _, userID := range reindexRequiredUserIDs {
 			err := s.Reindexer.EnqueueReindexUserTask(ctx, userID)
 			if err != nil {
-				s.Logger.WithError(err).Error("failed to enqueue reindex user task")
+				logger.WithError(err).Error(ctx, "failed to enqueue reindex user task")
 				return err
 			}
 		}

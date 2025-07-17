@@ -75,15 +75,11 @@ import (
 
 func newConfigSourceController(p *deps.RootProvider) *configsource.Controller {
 	config := p.ConfigSourceConfig
-	factory := p.LoggerFactory
-	localFSLogger := configsource.NewLocalFSLogger(factory)
 	manager := p.BaseResources
 	localFS := &configsource.LocalFS{
-		Logger:        localFSLogger,
 		BaseResources: manager,
 		Config:        config,
 	}
-	databaseLogger := configsource.NewDatabaseLogger(factory)
 	environmentConfig := p.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	clock := _wireSystemClockValue
@@ -93,10 +89,9 @@ func newConfigSourceController(p *deps.RootProvider) *configsource.Controller {
 	planStoreFactory := configsource.NewPlanStoreStoreFactory(sqlBuilder)
 	pool := p.DatabasePool
 	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	databaseHandleFactory := configsource.NewDatabaseHandleFactory(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
+	databaseHandleFactory := configsource.NewDatabaseHandleFactory(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig)
 	resolveAppIDType := configsource.NewResolveAppIDTypeDomain()
 	database := &configsource.Database{
-		Logger:                   databaseLogger,
 		BaseResources:            manager,
 		TrustProxy:               trustProxy,
 		Config:                   config,
@@ -126,8 +121,6 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 	appID := appConfig.ID
 	remoteIP := ProvideEnd2EndRemoteIP()
 	userAgentString := ProvideEnd2EndUserAgentString()
-	factory := p.LoggerFactory
-	logger := event.NewLogger(factory)
 	clockClock := _wireSystemClockValue
 	localizationConfig := appConfig.Localization
 	secretConfig := config.SecretConfig
@@ -303,7 +296,6 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 	}
 	authenticatorConfig := appConfig.Authenticator
 	authenticatorPasswordConfig := authenticatorConfig.Password
-	passwordLogger := password.NewLogger(factory)
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
 		SQLBuilder:  sqlBuilderApp,
@@ -312,17 +304,14 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 	authenticatorFeatureConfig := featureConfig.Authenticator
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, authenticatorFeatureConfig, historyStore)
 	expiry := password.ProvideExpiry(authenticatorPasswordConfig, clockClock)
-	housekeeperLogger := password.NewHousekeeperLogger(factory)
 	housekeeper := &password.Housekeeper{
 		Store:  historyStore,
-		Logger: housekeeperLogger,
 		Config: authenticatorPasswordConfig,
 	}
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
 		Clock:           clockClock,
-		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
 		Expiry:          expiry,
@@ -373,12 +362,9 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	otpLogger := otp.NewLogger(factory)
-	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := ratelimit.NewAppStorageRedis(appredisHandle)
 	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		AppID:   appID,
 		Config:  rateLimitsFeatureConfig,
@@ -393,7 +379,6 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		CodeStore:             codeStoreRedis,
 		LookupStore:           lookupStoreRedis,
 		AttemptTracker:        attemptTrackerRedis,
-		Logger:                otpLogger,
 		RateLimiter:           limiter,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
@@ -406,13 +391,11 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		RateLimiter:   limiter,
 	}
 	authenticationLockoutConfig := authenticationConfig.Lockout
-	lockoutLogger := lockout.NewLogger(factory)
 	lockoutStorageRedis := &lockout.StorageRedis{
 		AppID: appID,
 		Redis: appredisHandle,
 	}
 	lockoutService := &lockout.Service{
-		Logger:  lockoutLogger,
 		Storage: lockoutStorageRedis,
 	}
 	serviceLockout := service2.Lockout{
@@ -483,12 +466,9 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 	resolverImpl := &event.ResolverImpl{
 		Users: userQueries,
 	}
-	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
-	webHookLogger := hook.NewWebHookLogger(factory)
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	webHookImpl := hook.WebHookImpl{
-		Logger: webHookLogger,
 		Secret: webhookKeyMaterials,
 	}
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
@@ -498,14 +478,12 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		SyncHTTP:    syncHTTPClient,
 		AsyncHTTP:   asyncHTTPClient,
 	}
-	denoHookLogger := hook.NewDenoHookLogger(factory)
 	denoHook := hook.DenoHook{
 		ResourceManager: manager,
-		Logger:          denoHookLogger,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
 	eventDenoHookImpl := &hook.EventDenoHookImpl{
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
@@ -515,7 +493,6 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		Store: rolesgroupsStore,
 	}
 	sink := &hook.Sink{
-		Logger:             hookLogger,
 		Config:             hookConfig,
 		Clock:              clockClock,
 		EventWebHook:       eventWebHookImpl,
@@ -524,7 +501,6 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		CustomAttributes:   customattrsServiceNoEvent,
 		RolesAndGroups:     commands,
 	}
-	auditLogger := audit.NewLogger(factory)
 	writeHandle := p.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
@@ -534,13 +510,10 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
-		Logger:   auditLogger,
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	sinkLogger := reindex.NewSinkLogger(factory)
 	searchConfig := appConfig.Search
-	reindexerLogger := reindex.NewReindexerLogger(factory)
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	sourceProvider := &reindex.SourceProvider{
 		AppID:           appID,
@@ -549,13 +522,11 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		IdentityService: serviceService,
 		RolesGroups:     rolesgroupsStore,
 	}
-	elasticsearchServiceLogger := elasticsearch.NewElasticsearchServiceLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	elasticsearchService := &elasticsearch.Service{
 		Clock:           clockClock,
 		Database:        handle,
-		Logger:          elasticsearchServiceLogger,
 		AppID:           appID,
 		Client:          client,
 		Users:           userQueries,
@@ -579,7 +550,6 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		SearchConfig:           searchConfig,
 		Clock:                  clockClock,
 		Database:               handle,
-		Logger:                 reindexerLogger,
 		UserStore:              store,
 		Producer:               userReindexProducer,
 		SourceProvider:         sourceProvider,
@@ -587,7 +557,6 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		PostgresqlReindexer:    pgsearchService,
 	}
 	reindexSink := &reindex.Sink{
-		Logger:    sinkLogger,
 		Reindexer: reindexer,
 		Database:  handle,
 	}
@@ -600,7 +569,7 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, logger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	eventService := event.NewService(appID, remoteIP, userAgentString, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -626,16 +595,12 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
-	messagingLogger := messaging.NewLogger(factory)
-	usageLogger := usage.NewLogger(factory)
 	usageLimiter := &usage.Limiter{
-		Logger: usageLogger,
-		Clock:  clockClock,
-		AppID:  appID,
-		Redis:  appredisHandle,
+		Clock: clockClock,
+		AppID: appID,
+		Redis: appredisHandle,
 	}
 	limits := messaging.Limits{
-		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		UsageLimiter:  usageLimiter,
 		RemoteIP:      remoteIP,
@@ -643,14 +608,11 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		FeatureConfig: featureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
-	mailLogger := mail.NewLogger(factory)
 	smtpServerCredentials := deps.ProvideSMTPServerCredentials(secretConfig)
 	dialer := mail.NewGomailDialer(smtpServerCredentials)
 	sender := &mail.Sender{
-		Logger:       mailLogger,
 		GomailDialer: dialer,
 	}
-	smsLogger := sms.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	smsProvider := messagingConfig.Deprecated_SMSProvider
 	smsGatewayConfig := messagingConfig.SMSGateway
@@ -666,16 +628,14 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 	smsGatewayEnvironmentCustomSMSProviderConfig := smsGatewayEnvironmentConfig.Custom
 	hookDenoHook := &hook.DenoHook{
 		ResourceManager: manager,
-		Logger:          denoHookLogger,
 	}
 	smsHookTimeout := custom.NewSMSHookTimeout(customSMSProviderConfig)
-	hookDenoClient := custom.NewHookDenoClient(denoEndpoint, hookLogger, smsHookTimeout)
+	hookDenoClient := custom.NewHookDenoClient(denoEndpoint, smsHookTimeout)
 	smsDenoHook := custom.SMSDenoHook{
 		DenoHook: hookDenoHook,
 		Client:   hookDenoClient,
 	}
 	hookWebHookImpl := &hook.WebHookImpl{
-		Logger: webHookLogger,
 		Secret: webhookKeyMaterials,
 	}
 	hookHTTPClient := custom.NewHookHTTPClient(smsHookTimeout)
@@ -698,10 +658,8 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		SMSWebHook:                                 smsWebHook,
 	}
 	smsSender := &sms.Sender{
-		Logger:         smsLogger,
 		ClientResolver: clientResolver,
 	}
-	serviceLogger := whatsapp.NewServiceLogger(factory)
 	whatsappConfig := messagingConfig.Whatsapp
 	globalWhatsappAPIType := environmentConfig.WhatsappAPIType
 	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
@@ -711,11 +669,10 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		Clock: clockClock,
 	}
 	httpClient := whatsapp.NewHTTPClient()
-	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(factory, whatsappOnPremisesCredentials, tokenStore, httpClient)
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappOnPremisesCredentials, tokenStore, httpClient)
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient)
 	whatsappService := &whatsapp.Service{
-		Logger:                serviceLogger,
 		WhatsappConfig:        whatsappConfig,
 		LocalizationConfig:    localizationConfig,
 		GlobalWhatsappAPIType: globalWhatsappAPIType,
@@ -731,7 +688,6 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 	featureTestModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
 	testModeWhatsappConfig := testModeConfig.Whatsapp
 	messagingSender := &messaging.Sender{
-		Logger:                            messagingLogger,
 		Limits:                            limits,
 		Events:                            eventService,
 		MailSender:                        sender,
@@ -779,12 +735,10 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	storeRedis := &idpsession.StoreRedis{
-		Redis:  appredisHandle,
-		AppID:  appID,
-		Clock:  clockClock,
-		Logger: storeRedisLogger,
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
 	}
 	sessionConfig := appConfig.Session
 	httpConfig := appConfig.HTTP
@@ -796,11 +750,9 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		Cookies:   cookieManager,
 		CookieDef: cookieDef,
 	}
-	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
 		Redis:       appredisHandle,
 		AppID:       appID,
-		Logger:      redisLogger,
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
@@ -814,12 +766,10 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		Store: eventStoreRedis,
 	}
 	analyticredisHandle := p.AnalyticRedis
-	meterStoreRedisLogger := meter.NewStoreRedisLogger(factory)
 	writeStoreRedis := &meter.WriteStoreRedis{
-		Redis:  analyticredisHandle,
-		AppID:  appID,
-		Clock:  clockClock,
-		Logger: meterStoreRedisLogger,
+		Redis: analyticredisHandle,
+		AppID: appID,
+		Clock: clockClock,
 	}
 	meterService := &meter.Service{
 		Counter: writeStoreRedis,
@@ -913,7 +863,6 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 	authenticatorFacade := &facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
-	userimportLogger := userimport.NewLogger(factory)
 	userImportService := &userimport.UserImportService{
 		AppDatabase:          handle,
 		LoginIDConfig:        loginIDConfig,
@@ -926,7 +875,6 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		CustomAttributes:     customattrsServiceNoEvent,
 		RolesGroupsCommands:  commands,
 		SearchReindexService: reindexer,
-		Logger:               userimportLogger,
 	}
 	return userImportService
 }

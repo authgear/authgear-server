@@ -29,8 +29,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/webappoauth"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
-	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/setutil"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
 //go:generate go tool mockgen -source=authflow_controller.go -destination=authflow_controller_mock_test.go -package webapp
@@ -103,11 +103,7 @@ type AuthflowNavigator interface {
 	NavigateOAuthProviderDemoCredentialPage(screen *webapp.AuthflowScreen, r *http.Request) *webapp.Result
 }
 
-type AuthflowControllerLogger struct{ *log.Logger }
-
-func NewAuthflowControllerLogger(lf *log.Factory) AuthflowControllerLogger {
-	return AuthflowControllerLogger{lf.New("authflow_controller")}
-}
+var AuthflowControllerLogger = slogutil.NewLogger("authflow_controller")
 
 func GetXStepFromQuery(r *http.Request) string {
 	xStep := r.URL.Query().Get(webapp.AuthflowQueryKey)
@@ -125,7 +121,6 @@ type AuthflowEndpoints interface {
 }
 
 type AuthflowController struct {
-	Logger                  AuthflowControllerLogger
 	TesterEndpointsProvider tester.EndpointsProvider
 	TrustProxy              config.TrustProxy
 	Clock                   clock.Clock
@@ -168,7 +163,6 @@ func (c *AuthflowController) HandleStartOfFlow(
 
 	s, err := c.getOrCreateWebSession(ctx, w, r, opts)
 	if err != nil {
-		c.Logger.WithError(err).Errorf("failed to get or create web session")
 		c.renderError(ctx, w, r, err)
 		return
 	}
@@ -186,7 +180,6 @@ func (c *AuthflowController) HandleStartOfFlow(
 				c.renderError(ctx, w, r, err)
 				return
 			} else if err != nil {
-				c.Logger.WithError(err).Errorf("failed to create screen")
 				c.renderError(ctx, w, r, err)
 				return
 			}
@@ -198,7 +191,6 @@ func (c *AuthflowController) HandleStartOfFlow(
 			return
 		}
 
-		c.Logger.WithError(err).Errorf("failed to get screen")
 		c.renderError(ctx, w, r, err)
 		return
 	}
@@ -221,16 +213,12 @@ func (c *AuthflowController) HandleOAuthCallback(ctx context.Context, w http.Res
 
 	s, err := c.Sessions.Get(ctx, state.WebSessionID)
 	if err != nil {
-		if !c.isWebSessionNotFoundOrCompletedError(err) {
-			c.Logger.WithError(err).Errorf("failed to get web session")
-		}
 		c.renderError(ctx, w, r, err)
 		return
 	}
 
 	screen, err := c.GetScreen(ctx, s, state.XStep)
 	if err != nil {
-		c.Logger.WithError(err).Errorf("failed to get screen")
 		c.renderError(ctx, w, r, err)
 		return
 	}
@@ -262,7 +250,6 @@ func (c *AuthflowController) HandleResumeOfFlow(
 	input map[string]interface{},
 	errorHandler *AuthflowControllerErrorHandler,
 ) {
-
 	handleError := func(err error) {
 		if errorHandler != nil {
 			err = (*errorHandler)(ctx, w, r, err)
@@ -279,14 +266,12 @@ func (c *AuthflowController) HandleResumeOfFlow(
 
 	s, err := c.getOrCreateWebSession(ctx, w, r, opts)
 	if err != nil {
-		c.Logger.WithError(err).Errorf("failed to get or create web session")
 		handleError(err)
 		return
 	}
 
 	output, err := c.feedInput(ctx, "", input)
 	if err != nil {
-		c.Logger.WithError(err).Errorf("failed to resume flow")
 		handleError(err)
 		return
 	}
@@ -296,7 +281,6 @@ func (c *AuthflowController) HandleResumeOfFlow(
 		handleError(err)
 		return
 	} else if err != nil {
-		c.Logger.WithError(err).Errorf("failed to create screen")
 		handleError(err)
 		return
 	}
@@ -323,16 +307,12 @@ func (c *AuthflowController) HandleStep(ctx context.Context, w http.ResponseWrit
 
 	s, err := c.getWebSession(ctx)
 	if err != nil {
-		if !c.isWebSessionNotFoundOrCompletedError(err) {
-			c.Logger.WithError(err).Errorf("failed to get web session")
-		}
 		c.renderError(ctx, w, r, err)
 		return
 	}
 
 	screen, err := c.GetScreen(ctx, s, GetXStepFromQuery(r))
 	if err != nil {
-		c.Logger.WithError(err).Errorf("failed to get screen")
 		c.renderError(ctx, w, r, err)
 		return
 	}
@@ -355,9 +335,6 @@ func (c *AuthflowController) HandleWithoutScreen(ctx context.Context, w http.Res
 	var session *webapp.Session
 	s, err := c.getWebSession(ctx)
 	if err != nil {
-		if !c.isWebSessionNotFoundOrCompletedError(err) {
-			c.Logger.WithError(err).Errorf("failed to get web session")
-		}
 		c.renderError(ctx, w, r, err)
 		return
 	} else {
@@ -380,7 +357,6 @@ func (c *AuthflowController) HandleWithoutSession(ctx context.Context, w http.Re
 func (c *AuthflowController) handleInlinePreviewIfNecessary(ctx context.Context, w http.ResponseWriter, r *http.Request, handlers *AuthflowControllerHandlers) bool {
 	if webapp.IsInlinePreviewPageRequest(r) && handlers.InlinePreviewHandler != nil {
 		if err := handlers.InlinePreviewHandler(ctx, w, r); err != nil {
-			c.Logger.WithError(err).Errorf("failed to handle inline preview")
 			c.renderError(ctx, w, r, err)
 		}
 		return true
@@ -1110,6 +1086,7 @@ func (c *AuthflowController) renderError(ctx context.Context, w http.ResponseWri
 }
 
 func (c *AuthflowController) checkPath(ctx context.Context, w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+	logger := AuthflowControllerLogger.GetLogger(ctx)
 	if screen.Screen != nil && screen.Screen.SkipPathCheck {
 		return nil
 	}
@@ -1132,7 +1109,7 @@ func (c *AuthflowController) checkPath(ctx context.Context, w http.ResponseWrite
 	if u.Path != r.URL.Path {
 		// We do not know what causes the mismatch.
 		// Maybe x_step was tempered.
-		c.Logger.Warningln("path mismatch")
+		logger.Warn(ctx, "path mismatch")
 		return webapp.ErrInvalidSession
 	}
 

@@ -54,7 +54,6 @@ type AccountManagementV1IdentificationHandlerService interface {
 }
 
 type AccountManagementV1IdentificationHandler struct {
-	JSON    JSONResponseWriter
 	Service AccountManagementV1IdentificationHandlerService
 }
 
@@ -62,11 +61,11 @@ func (h *AccountManagementV1IdentificationHandler) ServeHTTP(w http.ResponseWrit
 	var err error
 	var request AccountManagementV1IdentificationRequest
 	err = httputil.BindJSONBody(r, w, AccountManagementV1IdentificationSchema.Validator(), &request)
+	ctx := r.Context()
 	if err != nil {
-		h.JSON.WriteResponse(w, &api.Response{Error: err})
+		httputil.WriteJSONResponse(ctx, w, &api.Response{Error: err})
 		return
 	}
-	ctx := r.Context()
 	h.handle(ctx, w, r, request)
 }
 
@@ -83,9 +82,9 @@ func (h *AccountManagementV1IdentificationHandler) handle(ctx context.Context, w
 		IncludeStateAuthorizationURLAndBindStateToToken: includeAndBindState,
 	})
 	if err != nil {
-		h.JSON.WriteResponse(w, &api.Response{Error: err})
+		httputil.WriteJSONResponse(ctx, w, &api.Response{Error: err})
 		return
 	}
 
-	h.JSON.WriteResponse(w, &api.Response{Result: output})
+	httputil.WriteJSONResponse(ctx, w, &api.Response{Result: output})
 }

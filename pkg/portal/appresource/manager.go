@@ -21,7 +21,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/saml"
 	"github.com/authgear/authgear-server/pkg/util/checksum"
 	"github.com/authgear/authgear-server/pkg/util/clock"
-	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
@@ -42,7 +41,6 @@ type DomainService interface {
 }
 
 type Manager struct {
-	Logger                *log.Logger
 	AppResourceManager    *resource.Manager
 	AppFS                 resource.Fs
 	AppFeatureConfig      *config.FeatureConfig

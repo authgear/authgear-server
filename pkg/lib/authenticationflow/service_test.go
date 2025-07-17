@@ -15,7 +15,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/uiparam"
-	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
@@ -36,14 +35,12 @@ func TestService(t *testing.T) {
 		deps := &Dependencies{
 			HTTPRequest: httpReq,
 		}
-		logger := ServiceLogger{log.Null}
 		database := &db.MockHandle{}
 		store := NewMockStore(ctrl)
 		uiInfoResolver := NewMockServiceUIInfoResolver(ctrl)
 
 		service := &Service{
 			Deps:           deps,
-			Logger:         logger,
 			Store:          store,
 			Database:       database,
 			UIInfoResolver: uiInfoResolver,
@@ -370,7 +367,6 @@ func TestServiceContext(t *testing.T) {
 		deps := &Dependencies{
 			HTTPRequest: httpReq,
 		}
-		logger := ServiceLogger{log.Null}
 		database := &db.MockHandle{}
 		uiConfig := &config.UIConfig{AuthenticationFlow: &config.UIAuthenticationFlowConfig{}}
 		store := NewMockStore(ctrl)
@@ -379,7 +375,6 @@ func TestServiceContext(t *testing.T) {
 
 		service := &Service{
 			Deps:                deps,
-			Logger:              logger,
 			Store:               store,
 			Database:            database,
 			UIConfig:            uiConfig,

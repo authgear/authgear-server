@@ -12,6 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 func ConfigurePasskeyCreationOptionsRoute(route httproute.Route) httproute.Route {
@@ -27,20 +28,20 @@ type PasskeyCreationOptionsService interface {
 type PasskeyCreationOptionsHandler struct {
 	Page     PageService
 	Database *appdb.Handle
-	JSON     JSONResponseWriter
 	Passkey  PasskeyCreationOptionsService
 }
 
 func (h *PasskeyCreationOptionsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	var err error
 	defer func() {
 		if err != nil {
-			h.JSON.WriteResponse(w, &api.Response{Error: err})
+			httputil.WriteJSONResponse(ctx, w, &api.Response{Error: err})
 		}
 	}()
 
 	var creationOptions *model.WebAuthnCreationOptions
-	err = h.Database.ReadOnly(r.Context(), func(ctx context.Context) error {
+	err = h.Database.ReadOnly(ctx, func(ctx context.Context) error {
 		webSession := webapp.GetSession(ctx)
 		if webSession != nil {
 			err := h.Page.PeekUncommittedChanges(ctx, webSession, func(graph *interaction.Graph) error {
@@ -75,7 +76,7 @@ func (h *PasskeyCreationOptionsHandler) ServeHTTP(w http.ResponseWriter, r *http
 		return
 	}
 
-	h.JSON.WriteResponse(w, &api.Response{
+	httputil.WriteJSONResponse(ctx, w, &api.Response{
 		Result: creationOptions,
 	})
 }

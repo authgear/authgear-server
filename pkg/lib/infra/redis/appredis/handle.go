@@ -5,7 +5,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
-	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
 type Handle struct {
@@ -14,7 +13,7 @@ type Handle struct {
 	hub *redis.Hub
 }
 
-func NewHandle(pool *redis.Pool, hub *redis.Hub, cfg *config.RedisEnvironmentConfig, credentials *config.RedisCredentials, lf *log.Factory) *Handle {
+func NewHandle(pool *redis.Pool, hub *redis.Hub, cfg *config.RedisEnvironmentConfig, credentials *config.RedisCredentials) *Handle {
 	return &Handle{
 		Handle: redis.NewHandle(
 			pool,
@@ -25,7 +24,6 @@ func NewHandle(pool *redis.Pool, hub *redis.Hub, cfg *config.RedisEnvironmentCon
 				IdleConnectionTimeout: &cfg.IdleConnectionTimeout,
 				MaxConnectionLifetime: &cfg.MaxConnectionLifetime,
 			},
-			lf.New("appredis-handle"),
 		),
 		hub: hub,
 	}

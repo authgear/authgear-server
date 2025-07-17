@@ -2,21 +2,12 @@ package middleware
 
 import (
 	"net/http"
-
-	"github.com/authgear/authgear-server/pkg/util/log"
 )
-
-type CORSMiddlewareLogger struct{ *log.Logger }
-
-func NewCORSMiddlewareLogger(lf *log.Factory) CORSMiddlewareLogger {
-	return CORSMiddlewareLogger{lf.New("cors-middleware")}
-}
 
 // CORSMiddleware provides CORS headers by matching request origin with the configured allowed origins
 // The allowed origins are provided through app config and environment variable
 type CORSMiddleware struct {
 	Matcher *CORSMatcher
-	Logger  CORSMiddlewareLogger
 }
 
 func (m *CORSMiddleware) Handle(next http.Handler) http.Handler {

@@ -13,7 +13,7 @@ require (
 	// The client should have equal or less minor version.
 	github.com/elastic/go-elasticsearch/v7 v7.17.10
 	github.com/felixge/httpsnoop v1.0.4
-	github.com/getsentry/sentry-go v0.34.0
+	github.com/getsentry/sentry-go v0.34.1
 	github.com/go-redsync/redsync/v4 v4.13.0
 	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.6.0
@@ -33,7 +33,6 @@ require (
 	github.com/pquerna/otp v1.5.0
 	github.com/redis/go-redis/v9 v9.11.0
 	github.com/rubenv/sql-migrate v1.8.0
-	github.com/sirupsen/logrus v1.9.3
 	github.com/skygeario/go-confusable-homoglyphs v0.0.0-20191212061114-e2b2a60df110
 	github.com/smartystreets/goconvey v1.8.1
 	github.com/spf13/afero v1.14.0
@@ -87,15 +86,18 @@ require (
 	github.com/charmbracelet/bubbletea v1.3.5
 	github.com/charmbracelet/lipgloss v1.1.0
 	github.com/coder/websocket v1.8.13
+	github.com/getsentry/sentry-go/slog v0.34.1
 	github.com/go-gsm/charset v1.0.0
 	github.com/go-ldap/ldap/v3 v3.4.11
 	github.com/goaux/decowriter v1.0.0
 	github.com/iawaknahc/gogenwrapper v0.0.0-20250315204045-eb8ab595ac5c
+	github.com/jba/slog v0.2.0
 	github.com/kr/pretty v0.3.1
 	github.com/mattn/go-sqlite3 v1.14.28
 	github.com/minio/minio-go/v7 v7.0.94
 	github.com/rivo/uniseg v0.4.7
 	github.com/russellhaering/goxmldsig v1.5.0
+	github.com/samber/slog-multi v1.4.1
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.62.0
 	go.opentelemetry.io/otel v1.37.0
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp v1.37.0
@@ -156,6 +158,8 @@ require (
 	github.com/planetscale/vtprotobuf v0.6.1-0.20240319094008-0393e58bdf10 // indirect
 	github.com/rogpeppe/go-internal v1.13.1 // indirect
 	github.com/rs/xid v1.6.0 // indirect
+	github.com/samber/lo v1.51.0 // indirect
+	github.com/samber/slog-common v0.19.0 // indirect
 	github.com/spiffe/go-spiffe/v2 v2.5.0 // indirect
 	github.com/tinylib/msgp v1.3.0 // indirect
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect

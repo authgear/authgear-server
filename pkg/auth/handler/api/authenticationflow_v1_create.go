@@ -17,7 +17,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
-	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/slice"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
@@ -69,9 +68,7 @@ type AuthenticationFlowV1UIInfoResolver interface {
 }
 
 type AuthenticationFlowV1CreateHandler struct {
-	LoggerFactory  *log.Factory
 	RedisHandle    *appredis.Handle
-	JSON           JSONResponseWriter
 	Cookies        AuthenticationFlowV1CookieManager
 	Workflows      AuthenticationFlowV1WorkflowService
 	OAuthSessions  AuthenticationFlowV1OAuthSessionService
@@ -81,20 +78,20 @@ type AuthenticationFlowV1CreateHandler struct {
 func (h *AuthenticationFlowV1CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var err error
 	var request AuthenticationFlowV1NonRestfulCreateRequest
+	ctx := r.Context()
 	err = httputil.BindJSONBody(r, w, AuthenticationFlowV1NonRestfulCreateRequestSchema.Validator(), &request)
 	if err != nil {
-		h.JSON.WriteResponse(w, &api.Response{Error: err})
+		httputil.WriteJSONResponse(ctx, w, &api.Response{Error: err})
 		return
 	}
 
-	ctx := r.Context()
 	h.create(ctx, w, r, request)
 }
 
 func (h *AuthenticationFlowV1CreateHandler) create(ctx context.Context, w http.ResponseWriter, r *http.Request, request AuthenticationFlowV1NonRestfulCreateRequest) {
 	output, err := h.create0(ctx, w, r, request)
 	if err != nil {
-		h.JSON.WriteResponse(w, &api.Response{Error: err})
+		httputil.WriteJSONResponse(ctx, w, &api.Response{Error: err})
 		return
 	}
 
@@ -106,10 +103,10 @@ func (h *AuthenticationFlowV1CreateHandler) create(ctx context.Context, w http.R
 			apiResp, apiRespErr := prepareErrorResponse(ctx, h.Workflows, stateToken, err)
 			if apiRespErr != nil {
 				// failed to get the workflow when preparing the error response
-				h.JSON.WriteResponse(w, &api.Response{Error: apiRespErr})
+				httputil.WriteJSONResponse(ctx, w, &api.Response{Error: apiRespErr})
 				return
 			}
-			h.JSON.WriteResponse(w, apiResp)
+			httputil.WriteJSONResponse(ctx, w, apiResp)
 			return
 		}
 	}
@@ -119,7 +116,7 @@ func (h *AuthenticationFlowV1CreateHandler) create(ctx context.Context, w http.R
 	}
 
 	result := output.ToFlowResponse()
-	h.JSON.WriteResponse(w, &api.Response{Result: result})
+	httputil.WriteJSONResponse(ctx, w, &api.Response{Result: result})
 }
 
 func (h *AuthenticationFlowV1CreateHandler) create0(ctx context.Context, w http.ResponseWriter, r *http.Request, request AuthenticationFlowV1NonRestfulCreateRequest) (*authflow.ServiceOutput, error) {

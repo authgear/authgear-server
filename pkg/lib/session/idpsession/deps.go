@@ -7,7 +7,6 @@ import (
 )
 
 var DependencySet = wire.NewSet(
-	NewStoreRedisLogger,
 	wire.Struct(new(StoreRedis), "*"),
 	wire.Bind(new(Store), new(*StoreRedis)),
 

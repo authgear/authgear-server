@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -18,7 +19,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
-	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 	"github.com/authgear/authgear-server/pkg/util/stringutil"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
@@ -99,16 +100,12 @@ type UserImportService struct {
 	CustomAttributes     CustomAttributesService
 	RolesGroupsCommands  RolesGroupsCommands
 	SearchReindexService SearchReindexService
-	Logger               Logger
 }
 
-type Logger struct{ *log.Logger }
-
-func NewLogger(lf *log.Factory) Logger {
-	return Logger{lf.New("user-import")}
-}
+var UserImportLogger = slogutil.NewLogger("user-import")
 
 func (s *UserImportService) ImportRecords(ctx context.Context, request *Request) *Result {
+	logger := UserImportLogger.GetLogger(ctx)
 	total := len(request.Records)
 	result := &Result{
 		Summary: &Summary{
@@ -128,7 +125,7 @@ func (s *UserImportService) ImportRecords(ctx context.Context, request *Request)
 		return nil
 	})
 	if err != nil {
-		s.Logger.WithError(err).Error("encountered unexpected error in using prepared statement handle")
+		logger.WithError(err).Error(ctx, "encountered unexpected error in using prepared statement handle")
 	}
 
 	return result
@@ -143,6 +140,7 @@ func (s *UserImportService) importRecordInConn(
 	total int,
 	result *Result,
 ) {
+	logger := UserImportLogger.GetLogger(ctx)
 	detail := Detail{
 		Index: idx,
 		// Assume the outcome is failed.
@@ -176,11 +174,11 @@ func (s *UserImportService) importRecordInConn(
 		detail.Record = record
 	}
 
-	s.Logger.Infof("processed record (%v/%v): %v", idx+1, total, detail.Outcome)
+	logger.Info(ctx, "processed record", slog.Int("index", idx+1), slog.Int("total", total), slog.String("outcome", string(detail.Outcome)))
 
 	if err != nil {
 		if !apierrors.IsAPIError(err) {
-			s.Logger.WithError(err).Error(err.Error())
+			logger.WithError(err).Error(ctx, err.Error())
 		}
 		detail.Errors = []*apierrors.APIError{apierrors.AsAPIError(err)}
 	}
@@ -204,7 +202,7 @@ func (s *UserImportService) importRecordInConn(
 		// Do it after the transaction has committed to ensure the user can be queried
 		err = s.SearchReindexService.EnqueueReindexUserTask(ctx, detail.UserID)
 		if err != nil {
-			s.Logger.WithError(err).Error("failed to enqueue reindex user task")
+			logger.WithError(err).Error(ctx, "failed to enqueue reindex user task")
 		}
 	}
 }

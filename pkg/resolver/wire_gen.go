@@ -85,29 +85,22 @@ func newHealthzHandler(p *deps.RootProvider, w http.ResponseWriter, r *http.Requ
 	environmentConfig := p.EnvironmentConfig
 	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
 	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	factory := p.LoggerFactory
-	handle := globaldb.NewHandle(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
+	handle := globaldb.NewHandle(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig)
 	sqlExecutor := globaldb.NewSQLExecutor(handle)
 	redisPool := p.RedisPool
 	redisEnvironmentConfig := &environmentConfig.RedisConfig
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(redisPool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig, factory)
-	handlerLogger := healthz.NewHandlerLogger(factory)
+	globalredisHandle := globalredis.NewHandle(redisPool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	handler := &healthz.Handler{
 		GlobalDatabase: handle,
 		GlobalExecutor: sqlExecutor,
 		GlobalRedis:    globalredisHandle,
-		Logger:         handlerLogger,
 	}
 	return handler
 }
 
 func newPanicMiddleware(p *deps.RootProvider) httproute.Middleware {
-	factory := p.LoggerFactory
-	panicMiddlewareLogger := middleware.NewPanicMiddlewareLogger(factory)
-	panicMiddleware := &middleware.PanicMiddleware{
-		Logger: panicMiddlewareLogger,
-	}
+	panicMiddleware := &middleware.PanicMiddleware{}
 	return panicMiddleware
 }
 
@@ -154,13 +147,10 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	appID := appConfig.ID
 	handle := appProvider.Redis
 	clock := _wireSystemClockValue
-	factory := appProvider.LoggerFactory
-	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	storeRedis := &idpsession.StoreRedis{
-		Redis:  handle,
-		AppID:  appID,
-		Clock:  clock,
-		Logger: storeRedisLogger,
+		Redis: handle,
+		AppID: appID,
+		Clock: clock,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
 		Redis: handle,
@@ -170,12 +160,10 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Store: eventStoreRedis,
 	}
 	analyticredisHandle := appProvider.AnalyticRedis
-	meterStoreRedisLogger := meter.NewStoreRedisLogger(factory)
 	writeStoreRedis := &meter.WriteStoreRedis{
-		Redis:  analyticredisHandle,
-		AppID:  appID,
-		Clock:  clock,
-		Logger: meterStoreRedisLogger,
+		Redis: analyticredisHandle,
+		AppID: appID,
+		Clock: clock,
 	}
 	meterService := &meter.Service{
 		Counter: writeStoreRedis,
@@ -213,11 +201,9 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	logger := redis.NewLogger(factory)
 	store := &redis.Store{
 		Redis:       handle,
 		AppID:       appID,
-		Logger:      logger,
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clock,
@@ -405,7 +391,6 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	}
 	authenticatorConfig := appConfig.Authenticator
 	authenticatorPasswordConfig := authenticatorConfig.Password
-	passwordLogger := password.NewLogger(factory)
 	historyStore := &password.HistoryStore{
 		Clock:       clock,
 		SQLBuilder:  sqlBuilderApp,
@@ -414,17 +399,14 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	authenticatorFeatureConfig := featureConfig.Authenticator
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, authenticatorFeatureConfig, historyStore)
 	expiry := password.ProvideExpiry(authenticatorPasswordConfig, clock)
-	housekeeperLogger := password.NewHousekeeperLogger(factory)
 	housekeeper := &password.Housekeeper{
 		Store:  historyStore,
-		Logger: housekeeperLogger,
 		Config: authenticatorPasswordConfig,
 	}
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
 		Clock:           clock,
-		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
 		Expiry:          expiry,
@@ -475,12 +457,9 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		AppID: appID,
 		Clock: clock,
 	}
-	otpLogger := otp.NewLogger(factory)
-	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := ratelimit.NewAppStorageRedis(handle)
 	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		AppID:   appID,
 		Config:  rateLimitsFeatureConfig,
@@ -495,7 +474,6 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		CodeStore:             codeStoreRedis,
 		LookupStore:           lookupStoreRedis,
 		AttemptTracker:        attemptTrackerRedis,
-		Logger:                otpLogger,
 		RateLimiter:           limiter,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
@@ -508,13 +486,11 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		RateLimiter:   limiter,
 	}
 	authenticationLockoutConfig := authenticationConfig.Lockout
-	lockoutLogger := lockout.NewLogger(factory)
 	lockoutStorageRedis := &lockout.StorageRedis{
 		AppID: appID,
 		Redis: handle,
 	}
 	lockoutService := &lockout.Service{
-		Logger:  lockoutLogger,
 		Storage: lockoutStorageRedis,
 	}
 	serviceLockout := service2.Lockout{
@@ -594,18 +570,14 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		UserInfoService: userInfoService,
 		Clock:           clock,
 	}
-	eventLogger := event.NewLogger(factory)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
 		Users: userQueries,
 	}
-	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
-	webHookLogger := hook.NewWebHookLogger(factory)
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	webHookImpl := hook.WebHookImpl{
-		Logger: webHookLogger,
 		Secret: webhookKeyMaterials,
 	}
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
@@ -615,14 +587,12 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		SyncHTTP:    syncHTTPClient,
 		AsyncHTTP:   asyncHTTPClient,
 	}
-	denoHookLogger := hook.NewDenoHookLogger(factory)
 	denoHook := hook.DenoHook{
 		ResourceManager: manager,
-		Logger:          denoHookLogger,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
 	eventDenoHookImpl := &hook.EventDenoHookImpl{
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
@@ -632,7 +602,6 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Store: rolesgroupsStore,
 	}
 	sink := &hook.Sink{
-		Logger:             hookLogger,
 		Config:             hookConfig,
 		Clock:              clock,
 		EventWebHook:       eventWebHookImpl,
@@ -641,7 +610,6 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		CustomAttributes:   customattrsServiceNoEvent,
 		RolesAndGroups:     commands,
 	}
-	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
@@ -651,13 +619,10 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
-		Logger:   auditLogger,
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	sinkLogger := reindex.NewSinkLogger(factory)
 	searchConfig := appConfig.Search
-	reindexerLogger := reindex.NewReindexerLogger(factory)
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clock)
 	sourceProvider := &reindex.SourceProvider{
 		AppID:           appID,
@@ -666,13 +631,11 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		IdentityService: serviceService,
 		RolesGroups:     rolesgroupsStore,
 	}
-	elasticsearchServiceLogger := elasticsearch.NewElasticsearchServiceLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	elasticsearchService := &elasticsearch.Service{
 		Clock:           clock,
 		Database:        appdbHandle,
-		Logger:          elasticsearchServiceLogger,
 		AppID:           appID,
 		Client:          client,
 		Users:           userQueries,
@@ -696,7 +659,6 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		SearchConfig:           searchConfig,
 		Clock:                  clock,
 		Database:               appdbHandle,
-		Logger:                 reindexerLogger,
 		UserStore:              userStore,
 		Producer:               userReindexProducer,
 		SourceProvider:         sourceProvider,
@@ -704,14 +666,13 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		PostgresqlReindexer:    pgsearchService,
 	}
 	reindexSink := &reindex.Sink{
-		Logger:    sinkLogger,
 		Reindexer: reindexer,
 		Database:  appdbHandle,
 	}
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, eventLogger, appdbHandle, clock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	eventService := event.NewService(appID, remoteIP, userAgentString, appdbHandle, clock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
 		AppID: appID,
@@ -737,16 +698,12 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
-	messagingLogger := messaging.NewLogger(factory)
-	usageLogger := usage.NewLogger(factory)
 	usageLimiter := &usage.Limiter{
-		Logger: usageLogger,
-		Clock:  clock,
-		AppID:  appID,
-		Redis:  handle,
+		Clock: clock,
+		AppID: appID,
+		Redis: handle,
 	}
 	limits := messaging.Limits{
-		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		UsageLimiter:  usageLimiter,
 		RemoteIP:      remoteIP,
@@ -754,14 +711,11 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		FeatureConfig: featureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
-	mailLogger := mail.NewLogger(factory)
 	smtpServerCredentials := deps.ProvideSMTPServerCredentials(secretConfig)
 	dialer := mail.NewGomailDialer(smtpServerCredentials)
 	sender := &mail.Sender{
-		Logger:       mailLogger,
 		GomailDialer: dialer,
 	}
-	smsLogger := sms.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	smsProvider := messagingConfig.Deprecated_SMSProvider
 	smsGatewayConfig := messagingConfig.SMSGateway
@@ -777,16 +731,14 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	smsGatewayEnvironmentCustomSMSProviderConfig := smsGatewayEnvironmentConfig.Custom
 	hookDenoHook := &hook.DenoHook{
 		ResourceManager: manager,
-		Logger:          denoHookLogger,
 	}
 	smsHookTimeout := custom.NewSMSHookTimeout(customSMSProviderConfig)
-	hookDenoClient := custom.NewHookDenoClient(denoEndpoint, hookLogger, smsHookTimeout)
+	hookDenoClient := custom.NewHookDenoClient(denoEndpoint, smsHookTimeout)
 	smsDenoHook := custom.SMSDenoHook{
 		DenoHook: hookDenoHook,
 		Client:   hookDenoClient,
 	}
 	hookWebHookImpl := &hook.WebHookImpl{
-		Logger: webHookLogger,
 		Secret: webhookKeyMaterials,
 	}
 	hookHTTPClient := custom.NewHookHTTPClient(smsHookTimeout)
@@ -809,10 +761,8 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		SMSWebHook:                                 smsWebHook,
 	}
 	smsSender := &sms.Sender{
-		Logger:         smsLogger,
 		ClientResolver: clientResolver,
 	}
-	serviceLogger := whatsapp.NewServiceLogger(factory)
 	whatsappConfig := messagingConfig.Whatsapp
 	globalWhatsappAPIType := environmentConfig.WhatsappAPIType
 	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
@@ -822,11 +772,10 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Clock: clock,
 	}
 	httpClient := whatsapp.NewHTTPClient()
-	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(factory, whatsappOnPremisesCredentials, tokenStore, httpClient)
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappOnPremisesCredentials, tokenStore, httpClient)
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient)
 	whatsappService := &whatsapp.Service{
-		Logger:                serviceLogger,
 		WhatsappConfig:        whatsappConfig,
 		LocalizationConfig:    localizationConfig,
 		GlobalWhatsappAPIType: globalWhatsappAPIType,
@@ -842,7 +791,6 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	featureTestModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
 	testModeWhatsappConfig := testModeConfig.Whatsapp
 	messagingSender := &messaging.Sender{
-		Logger:                            messagingLogger,
 		Limits:                            limits,
 		Events:                            eventService,
 		MailSender:                        sender,
@@ -979,7 +927,6 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Clock:               clock,
 		OfflineGrantService: oauthOfflineGrantService,
 	}
-	middlewareLogger := session.NewMiddlewareLogger(factory)
 	sessionMiddleware := &session.Middleware{
 		SessionCookie:              cookieDef,
 		Cookies:                    cookieManager,
@@ -988,7 +935,6 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		AccessEvents:               eventProvider,
 		Users:                      userQueries,
 		Database:                   appdbHandle,
-		Logger:                     middlewareLogger,
 		MeterService:               meterService,
 	}
 	return sessionMiddleware
@@ -1003,8 +949,6 @@ var (
 func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	handle := appProvider.AppDatabase
-	factory := appProvider.LoggerFactory
-	resolveHandlerLogger := handler.NewResolveHandlerLogger(factory)
 	appredisHandle := appProvider.Redis
 	appContext := appProvider.AppContext
 	config := appContext.Config
@@ -1184,7 +1128,6 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticatorConfig := appConfig.Authenticator
 	authenticatorPasswordConfig := authenticatorConfig.Password
-	logger := password.NewLogger(factory)
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
 		SQLBuilder:  sqlBuilderApp,
@@ -1193,17 +1136,14 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFeatureConfig := featureConfig.Authenticator
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, authenticatorFeatureConfig, historyStore)
 	expiry := password.ProvideExpiry(authenticatorPasswordConfig, clockClock)
-	housekeeperLogger := password.NewHousekeeperLogger(factory)
 	housekeeper := &password.Housekeeper{
 		Store:  historyStore,
-		Logger: housekeeperLogger,
 		Config: authenticatorPasswordConfig,
 	}
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
 		Clock:           clockClock,
-		Logger:          logger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
 		Expiry:          expiry,
@@ -1255,12 +1195,9 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	otpLogger := otp.NewLogger(factory)
-	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := ratelimit.NewAppStorageRedis(appredisHandle)
 	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		AppID:   appID,
 		Config:  rateLimitsFeatureConfig,
@@ -1275,7 +1212,6 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore:             codeStoreRedis,
 		LookupStore:           lookupStoreRedis,
 		AttemptTracker:        attemptTrackerRedis,
-		Logger:                otpLogger,
 		RateLimiter:           limiter,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
@@ -1288,13 +1224,11 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:   limiter,
 	}
 	authenticationLockoutConfig := authenticationConfig.Lockout
-	lockoutLogger := lockout.NewLogger(factory)
 	lockoutStorageRedis := &lockout.StorageRedis{
 		AppID: appID,
 		Redis: appredisHandle,
 	}
 	lockoutService := &lockout.Service{
-		Logger:  lockoutLogger,
 		Storage: lockoutStorageRedis,
 	}
 	serviceLockout := service2.Lockout{
@@ -1370,7 +1304,6 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 	}
 	resolveHandler := &handler.ResolveHandler{
 		Database:        handle,
-		Logger:          resolveHandlerLogger,
 		UserInfoService: userInfoService,
 	}
 	return resolveHandler

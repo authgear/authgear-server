@@ -3,22 +3,19 @@ package usage
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"time"
+
+	goredis "github.com/redis/go-redis/v9"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 	"github.com/authgear/authgear-server/pkg/util/clock"
-	"github.com/authgear/authgear-server/pkg/util/log"
-
-	goredis "github.com/redis/go-redis/v9"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
-type Logger struct{ *log.Logger }
-
-func NewLogger(lf *log.Factory) Logger {
-	return Logger{lf.New("usage-limit")}
-}
+var logger = slogutil.NewLogger("usage-limit")
 
 type LimitName string
 
@@ -67,10 +64,9 @@ func reserve(ctx context.Context, conn redis.Redis_6_0_Cmdable, key string, n in
 }
 
 type Limiter struct {
-	Logger Logger
-	Clock  clock.Clock
-	AppID  config.AppID
-	Redis  *appredis.Handle
+	Clock clock.Clock
+	AppID config.AppID
+	Redis *appredis.Handle
 }
 
 func (l *Limiter) getResetTime(c *config.UsageLimitConfig) time.Time {
@@ -82,6 +78,7 @@ func (l *Limiter) Reserve(ctx context.Context, name LimitName, config *config.Us
 }
 
 func (l *Limiter) ReserveN(ctx context.Context, name LimitName, n int, config *config.UsageLimitConfig) (*Reservation, error) {
+	logger := logger.GetLogger(ctx)
 	enabled := config.IsEnabled()
 	if !enabled {
 		return &Reservation{taken: 0, name: name, config: config}, nil
@@ -101,11 +98,11 @@ func (l *Limiter) ReserveN(ctx context.Context, name LimitName, n int, config *c
 		return nil, err
 	}
 
-	l.Logger.
-		WithField("key", key).
-		WithField("tokens", tokens).
-		WithField("pass", pass).
-		Debug("check usage limit")
+	logger.With(
+		slog.String("key", key),
+		slog.Int64("tokens", tokens),
+		slog.Bool("pass", pass),
+	).Debug(ctx, "check usage limit")
 
 	if !pass {
 		return nil, ErrUsageLimitExceeded(name)
@@ -115,6 +112,7 @@ func (l *Limiter) ReserveN(ctx context.Context, name LimitName, n int, config *c
 }
 
 func (l *Limiter) Cancel(ctx context.Context, r *Reservation) {
+	logger := logger.GetLogger(ctx)
 	if r == nil || r.taken == 0 {
 		return
 	}
@@ -137,9 +135,7 @@ func (l *Limiter) Cancel(ctx context.Context, r *Reservation) {
 	if err != nil {
 		// Errors here are non-critical and non-recoverable;
 		// log and continue.
-		l.Logger.WithError(err).
-			WithField("key", key).
-			Warn("failed to cancel reservation")
+		logger.WithError(err).With(slog.String("key", key)).Warn(ctx, "failed to cancel reservation")
 	}
 
 	r.taken = 0

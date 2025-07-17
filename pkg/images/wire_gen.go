@@ -18,18 +18,13 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/presign"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
-	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"net/http"
 )
 
 // Injectors from wire.go:
 
 func newPanicMiddleware(p *deps.RootProvider) httproute.Middleware {
-	factory := p.LoggerFactory
-	panicMiddlewareLogger := middleware.NewPanicMiddlewareLogger(factory)
-	panicMiddleware := &middleware.PanicMiddleware{
-		Logger: panicMiddlewareLogger,
-	}
+	panicMiddleware := &middleware.PanicMiddleware{}
 	return panicMiddleware
 }
 
@@ -69,11 +64,8 @@ func newCORSMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		SAMLConfig:         samlConfig,
 		CORSAllowedOrigins: corsAllowedOrigins,
 	}
-	factory := rootProvider.LoggerFactory
-	corsMiddlewareLogger := middleware.NewCORSMiddlewareLogger(factory)
 	corsMiddleware := &middleware.CORSMiddleware{
 		Matcher: corsMatcher,
-		Logger:  corsMiddlewareLogger,
 	}
 	return corsMiddleware
 }
@@ -89,8 +81,6 @@ func newGetHandler(p *deps.RequestProvider) http.Handler {
 		HTTPClient: imagesCloudStorageServiceHTTPClient,
 		Storage:    imagesCloudStorageServiceStorage,
 	}
-	factory := rootProvider.LoggerFactory
-	getHandlerLogger := handler.NewGetHandlerLogger(factory)
 	environmentConfig := &rootProvider.EnvironmentConfig
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	request := p.Request
@@ -100,7 +90,6 @@ func newGetHandler(p *deps.RequestProvider) http.Handler {
 	daemon := rootProvider.VipsDaemon
 	getHandler := &handler.GetHandler{
 		DirectorMaker: imagesCloudStorageService,
-		Logger:        getHandlerLogger,
 		ImagesCDNHost: imagesCDNHost,
 		HTTPHost:      httpHost,
 		HTTPProto:     httpProto,
@@ -114,15 +103,9 @@ var (
 )
 
 func newPostHandler(p *deps.RequestProvider) http.Handler {
+	imagesCloudStorageServiceHTTPClient := service.NewImagesCloudStorageServiceHTTPClient()
 	appProvider := p.AppProvider
 	rootProvider := appProvider.RootProvider
-	factory := rootProvider.LoggerFactory
-	postHandlerLogger := handler.NewPostHandlerLogger(factory)
-	jsonResponseWriterLogger := httputil.NewJSONResponseWriterLogger(factory)
-	jsonResponseWriter := &httputil.JSONResponseWriter{
-		Logger: jsonResponseWriterLogger,
-	}
-	imagesCloudStorageServiceHTTPClient := service.NewImagesCloudStorageServiceHTTPClient()
 	objectStoreConfig := rootProvider.ObjectStoreConfig
 	clockClock := _wireSystemClockValue
 	imagesCloudStorageServiceStorage := deps.NewCloudStorage(objectStoreConfig, clockClock)
@@ -145,7 +128,7 @@ func newPostHandler(p *deps.RequestProvider) http.Handler {
 	pool := rootProvider.DatabasePool
 	databaseEnvironmentConfig := environmentConfig.DatabaseConfig
 	databaseCredentials := deps2.ProvideDatabaseCredentials(secretConfig)
-	handle := appdb.NewHandle(pool, databaseEnvironmentConfig, databaseCredentials, factory)
+	handle := appdb.NewHandle(pool, databaseEnvironmentConfig, databaseCredentials)
 	appConfig := config.AppConfig
 	appID := appConfig.ID
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
@@ -155,8 +138,6 @@ func newPostHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	postHandler := &handler.PostHandler{
-		Logger:                         postHandlerLogger,
-		JSON:                           jsonResponseWriter,
 		PostHandlerCloudStorageService: imagesCloudStorageService,
 		PresignProvider:                provider,
 		Database:                       handle,

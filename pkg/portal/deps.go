@@ -41,11 +41,10 @@ func ProvideEmptyAppID() config.AppID {
 	return config.AppID("")
 }
 
-func ProvideDenoClient(endpoint config.DenoEndpoint, logger hook.Logger) *hook.DenoClientImpl {
+func ProvideDenoClient(endpoint config.DenoEndpoint) *hook.DenoClientImpl {
 	return &hook.DenoClientImpl{
 		Endpoint:   string(endpoint),
 		HTTPClient: httputil.NewExternalClient(5 * time.Second),
-		Logger:     logger,
 	}
 }
 
@@ -61,7 +60,6 @@ func ProvidePosthogCredential(analyticConfig *config.AnalyticConfig) *analytic.P
 
 var denoDependencySet = wire.NewSet(
 	ProvideDenoClient,
-	hook.NewLogger,
 )
 
 var DependencySet = wire.NewSet(

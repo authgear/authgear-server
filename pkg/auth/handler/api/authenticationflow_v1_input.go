@@ -11,7 +11,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
-	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
@@ -58,23 +57,21 @@ type AuthenticationFlowV1NonRestfulInputRequest struct {
 }
 
 type AuthenticationFlowV1InputHandler struct {
-	LoggerFactory *log.Factory
-	RedisHandle   *appredis.Handle
-	JSON          JSONResponseWriter
-	Cookies       AuthenticationFlowV1CookieManager
-	Workflows     AuthenticationFlowV1WorkflowService
+	RedisHandle *appredis.Handle
+	Cookies     AuthenticationFlowV1CookieManager
+	Workflows   AuthenticationFlowV1WorkflowService
 }
 
 func (h *AuthenticationFlowV1InputHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var err error
 	var request AuthenticationFlowV1NonRestfulInputRequest
+	ctx := r.Context()
 	err = httputil.BindJSONBody(r, w, AuthenticationFlowV1NonRestfulInputRequestSchema.Validator(), &request)
 	if err != nil {
-		h.JSON.WriteResponse(w, &api.Response{Error: err})
+		httputil.WriteJSONResponse(ctx, w, &api.Response{Error: err})
 		return
 	}
 
-	ctx := r.Context()
 	if request.Input != nil {
 		h.input(ctx, w, r, request)
 	} else {
@@ -90,10 +87,10 @@ func (h *AuthenticationFlowV1InputHandler) input(ctx context.Context, w http.Res
 		apiResp, apiRespErr := prepareErrorResponse(ctx, h.Workflows, stateToken, err)
 		if apiRespErr != nil {
 			// failed to get the workflow when preparing the error response
-			h.JSON.WriteResponse(w, &api.Response{Error: apiRespErr})
+			httputil.WriteJSONResponse(ctx, w, &api.Response{Error: apiRespErr})
 			return
 		}
-		h.JSON.WriteResponse(w, apiResp)
+		httputil.WriteJSONResponse(ctx, w, apiResp)
 		return
 	}
 
@@ -102,7 +99,7 @@ func (h *AuthenticationFlowV1InputHandler) input(ctx context.Context, w http.Res
 	}
 
 	result := output.ToFlowResponse()
-	h.JSON.WriteResponse(w, &api.Response{Result: result})
+	httputil.WriteJSONResponse(ctx, w, &api.Response{Result: result})
 }
 
 func (h *AuthenticationFlowV1InputHandler) input0(
@@ -128,10 +125,10 @@ func (h *AuthenticationFlowV1InputHandler) batchInput(ctx context.Context, w htt
 		apiResp, apiRespErr := prepareErrorResponse(ctx, h.Workflows, stateToken, err)
 		if apiRespErr != nil {
 			// failed to get the workflow when preparing the error response
-			h.JSON.WriteResponse(w, &api.Response{Error: apiRespErr})
+			httputil.WriteJSONResponse(ctx, w, &api.Response{Error: apiRespErr})
 			return
 		}
-		h.JSON.WriteResponse(w, apiResp)
+		httputil.WriteJSONResponse(ctx, w, apiResp)
 		return
 	}
 
@@ -140,5 +137,5 @@ func (h *AuthenticationFlowV1InputHandler) batchInput(ctx context.Context, w htt
 	}
 
 	result := output.ToFlowResponse()
-	h.JSON.WriteResponse(w, &api.Response{Result: result})
+	httputil.WriteJSONResponse(ctx, w, &api.Response{Result: result})
 }

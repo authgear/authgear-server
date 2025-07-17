@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"net/url"
 
@@ -16,8 +17,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
-	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/setutil"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
 type UIInfoResolver interface {
@@ -43,14 +44,9 @@ type CookiesGetter interface {
 	GetCookies() []*http.Cookie
 }
 
-type ServiceLogger struct{ *log.Logger }
-
-func NewServiceLogger(lf *log.Factory) ServiceLogger {
-	return ServiceLogger{lf.New("webapp-service")}
-}
+var ServiceLogger = slogutil.NewLogger("webapp-service")
 
 type Service2 struct {
-	Logger               ServiceLogger
 	Request              *http.Request
 	Sessions             SessionStore
 	SessionCookie        SessionCookieDef
@@ -439,9 +435,11 @@ func (s *Service2) afterPost(
 	isFinished bool,
 	isNewGraph bool,
 ) error {
+	logger := ServiceLogger.GetLogger(ctx)
+
 	if isFinished {
 		// The graph finished. Apply its effect permanently.
-		s.Logger.Debugf("interaction: commit graph")
+		logger.Debug(ctx, "interaction: commit graph")
 		interactionErr = s.Graph.Run(ctx, interaction.ContextValues{
 			WebSessionID:   session.ID,
 			OAuthSessionID: session.OAuthSessionID,
@@ -454,7 +452,7 @@ func (s *Service2) afterPost(
 	// Populate cookies.
 	if interactionErr != nil {
 		if !apierrors.IsAPIError(interactionErr) {
-			s.Logger.WithError(interactionErr).Error("interaction error")
+			logger.WithError(interactionErr).Error(ctx, "interaction error")
 		}
 		errCookie, err := s.ErrorService.SetRecoverableError(ctx, s.Request, apierrors.AsAPIError(interactionErr))
 		if err != nil {
@@ -511,7 +509,7 @@ func (s *Service2) afterPost(
 			result.NavigationAction = NavigationActionReplace
 		}
 	}
-	s.Logger.Debugf("interaction: redirect to %s", result.RedirectURI)
+	logger.Debug(ctx, "interaction: redirect to redirect_uri", slog.String("redirect_uri", result.RedirectURI))
 
 	// Collect extras
 	session.Extra = collectExtras(graph.CurrentNode())

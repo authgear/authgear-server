@@ -5,17 +5,19 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log/slog"
 
-	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/otelutil/oteldatabasesql"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
+
+var preparedStatementsHandleLogger = slogutil.NewLogger("prepared-statements-handle")
 
 type preparedStatementsHandleContextKeyType struct{}
 
 var preparedStatementsHandleContextKey = preparedStatementsHandleContextKeyType{}
 
 type preparedStatementsHandle struct {
-	logger           *log.Logger
 	conn             oteldatabasesql.Conn_
 	cachedStatements map[string]*sql.Stmt
 }
@@ -42,12 +44,14 @@ func getStmtPreparer(ctx context.Context) (stmtPreparer, bool) {
 }
 
 func (h *preparedStatementsHandle) PrepareContext(ctx context.Context, query string) (*sql.Stmt, error) {
+	logger := preparedStatementsHandleLogger.GetLogger(ctx)
+
 	stmt, ok := h.cachedStatements[query]
 	if ok {
-		h.logger.
-			WithField("conn", fmt.Sprintf("%p", h.conn)).
-			WithField("stmt", fmt.Sprintf("%p", stmt)).
-			Debug("prepared statement cache hit")
+		logger.Debug(ctx, "prepared statement cache hit",
+			slog.String("conn", fmt.Sprintf("%p", h.conn)),
+			slog.String("stmt", fmt.Sprintf("%p", stmt)),
+		)
 		return stmt, nil
 	}
 
@@ -56,17 +60,18 @@ func (h *preparedStatementsHandle) PrepareContext(ctx context.Context, query str
 		return nil, err
 	}
 	h.cachedStatements[query] = stmt
-	h.logger.
-		WithField("conn", fmt.Sprintf("%p", h.conn)).
-		WithField("stmt", fmt.Sprintf("%p", stmt)).
-		Debug("prepared statement cache miss")
+	logger.Debug(ctx, "prepared statement cache miss",
+		slog.String("conn", fmt.Sprintf("%p", h.conn)),
+		slog.String("stmt", fmt.Sprintf("%p", stmt)),
+	)
 	return stmt, nil
 }
 
-func (h *preparedStatementsHandle) Close() error {
-	h.logger.
-		WithField("conn", fmt.Sprintf("%p", h.conn)).
-		Debug("start closing prepared statement handle")
+func (h *preparedStatementsHandle) Close(ctx context.Context) error {
+	logger := preparedStatementsHandleLogger.GetLogger(ctx)
+	logger.Debug(ctx, "start closing prepared statement handle",
+		slog.String("conn", fmt.Sprintf("%p", h.conn)),
+	)
 
 	var err error
 	for _, stmt := range h.cachedStatements {
@@ -77,10 +82,9 @@ func (h *preparedStatementsHandle) Close() error {
 	closeErr := h.conn.Close()
 	err = errors.Join(err, closeErr)
 
-	h.logger.
-		WithError(err).
-		WithField("conn", fmt.Sprintf("%p", h.conn)).
-		Debug("end closing prepared statement handle")
+	logger.WithError(err).Debug(ctx, "end closing prepared statement handle",
+		slog.String("conn", fmt.Sprintf("%p", h.conn)),
+	)
 
 	return err
 }
@@ -96,7 +100,7 @@ func (h *preparedStatementsHandle) WithTx(ctx_original context.Context, do func(
 		}
 	}()
 
-	tx, err := beginTx(ctx_hooks, h.logger, h.conn)
+	tx, err := beginTx(ctx_hooks, h.conn)
 	if err != nil {
 		return
 	}
@@ -107,12 +111,12 @@ func (h *preparedStatementsHandle) WithTx(ctx_original context.Context, do func(
 
 	defer func() {
 		if r := recover(); r != nil {
-			_ = rollbackTx(h.logger, tx)
+			_ = rollbackTx(ctx_hooks_tx, tx)
 			panic(r)
 		} else if err != nil {
-			_ = rollbackTx(h.logger, tx)
+			_ = rollbackTx(ctx_hooks_tx, tx)
 		} else {
-			err = commitTx(ctx_hooks_tx, h.logger, tx, mustContextGetHooks(ctx_hooks_tx).Hooks)
+			err = commitTx(ctx_hooks_tx, tx, mustContextGetHooks(ctx_hooks_tx).Hooks)
 			if err == nil {
 				shouldRunDidCommitHooks = true
 			}

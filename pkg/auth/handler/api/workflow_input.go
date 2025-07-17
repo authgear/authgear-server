@@ -51,7 +51,6 @@ type WorkflowInputCookieManager interface {
 }
 
 type WorkflowInputHandler struct {
-	JSON      JSONResponseWriter
 	Workflows WorkflowInputWorkflowService
 	Cookies   WorkflowNewCookieManager
 }
@@ -66,7 +65,7 @@ func (h *WorkflowInputHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 
 	err = httputil.BindJSONBody(r, w, WorkflowInputRequestSchema.Validator(), &request)
 	if err != nil {
-		h.JSON.WriteResponse(w, &api.Response{Error: err})
+		httputil.WriteJSONResponse(ctx, w, &api.Response{Error: err})
 		return
 	}
 
@@ -77,10 +76,10 @@ func (h *WorkflowInputHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		apiResp, apiRespErr := h.prepareErrorResponse(ctx, workflowID, instanceID, userAgentID, err)
 		if apiRespErr != nil {
 			// failed to get the workflow when preparing the error response
-			h.JSON.WriteResponse(w, &api.Response{Error: apiRespErr})
+			httputil.WriteJSONResponse(ctx, w, &api.Response{Error: apiRespErr})
 			return
 		}
-		h.JSON.WriteResponse(w, apiResp)
+		httputil.WriteJSONResponse(ctx, w, apiResp)
 		return
 	}
 
@@ -92,7 +91,7 @@ func (h *WorkflowInputHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		Action:   output.Action,
 		Workflow: output.WorkflowOutput,
 	}
-	h.JSON.WriteResponse(w, &api.Response{Result: result})
+	httputil.WriteJSONResponse(ctx, w, &api.Response{Result: result})
 }
 
 func (h *WorkflowInputHandler) handle(

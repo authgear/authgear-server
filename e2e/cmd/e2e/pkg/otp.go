@@ -21,7 +21,7 @@ func (c *End2End) GetLinkOTPCode(ctx context.Context, appID string, claimName st
 		Watch: false,
 	}
 
-	p, err := deps.NewRootProvider(
+	ctx, p, err := deps.NewRootProvider(
 		ctx,
 		cfg.EnvironmentConfig,
 		cfg.ConfigSource,
@@ -41,7 +41,7 @@ func (c *End2End) GetLinkOTPCode(ctx context.Context, appID string, claimName st
 	var otpCode string
 
 	err = configSrcController.ResolveContext(ctx, appID, func(ctx context.Context, appCtx *config.AppContext) error {
-		appProvider := p.NewAppProvider(ctx, appCtx)
+		ctx, appProvider := p.NewAppProvider(ctx, appCtx)
 
 		loginIDService := newLoginIDSerivce(appProvider)
 

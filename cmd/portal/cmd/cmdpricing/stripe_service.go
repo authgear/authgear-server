@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log/slog"
 	"strconv"
 	"time"
 
@@ -21,20 +22,22 @@ import (
 	"github.com/authgear/authgear-server/pkg/portal/libstripe"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/util/clock"
-	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/periodical"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 	"github.com/authgear/authgear-server/pkg/util/timeutil"
 )
 
-type Logger struct{ *log.Logger }
+var logger = slogutil.NewLogger("stripe")
 
-func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("stripe")} }
-
-func NewClientAPI(stripeConfig *portalconfig.StripeConfig, logger Logger) *client.API {
+func NewClientAPI(stripeConfig *portalconfig.StripeConfig) *client.API {
 	clientAPI := &client.API{}
 	clientAPI.Init(stripeConfig.SecretKey, &stripe.Backends{
 		API: stripe.GetBackendWithConfig(stripe.APIBackend, &stripe.BackendConfig{
-			LeveledLogger: logger,
+			// The interface does not accept context.
+			// Thus we can only ask it to suppress logging by using stripe.LevelNull.
+			LeveledLogger: &stripe.LeveledLogger{
+				Level: stripe.LevelNull,
+			},
 		}),
 	})
 	return clientAPI
@@ -87,7 +90,6 @@ type StripeService struct {
 	SQLExecutor *globaldb.SQLExecutor
 	Store       *configsource.Store
 	Clock       clock.Clock
-	Logger      Logger
 }
 
 func (s *StripeService) ListAppIDs(ctx context.Context) (appIDs []string, err error) {
@@ -353,22 +355,25 @@ func (s *StripeService) uploadMonthlyUsageRecordToSubscriptionItem(
 
 	// We encounter this error
 	// {"status":400,"message":"Cannot create the usage record with this timestamp because timestamps must be after the subscription's last invoice period (or current period start time).","param":"timestamp","request_id":"redacted","type":"invalid_request_error"}
-	fields := map[string]interface{}{
-		"app_id":               appID,
-		"current_period_start": currentPeriodStart.Format(time.RFC3339),
-		"current_period_end":   currentPeriodEnd.Format(time.RFC3339),
-	}
+	logger := logger.GetLogger(ctx)
+	logger = logger.With(
+		slog.String("app_id", appID),
+		slog.Time("current_period_start", currentPeriodStart),
+		slog.Time("current_period_end", currentPeriodEnd),
+	)
 	if subscription.LatestInvoice != nil {
-		fields["latest_invoice_period_start"] = time.Unix(
-			subscription.LatestInvoice.PeriodStart,
-			0,
-		).UTC().Format(time.RFC3339)
-		fields["latest_invoice_period_end"] = time.Unix(
-			subscription.LatestInvoice.PeriodEnd,
-			0,
-		).UTC().Format(time.RFC3339)
+		logger = logger.With(
+			slog.Time("latest_invoice_period_start", time.Unix(
+				subscription.LatestInvoice.PeriodStart,
+				0,
+			).UTC()),
+			slog.Time("latest_invoice_period_end", time.Unix(
+				subscription.LatestInvoice.PeriodEnd,
+				0,
+			).UTC()),
+		)
 	}
-	s.Logger.WithFields(fields).Infof("subscription timestamps")
+	logger.Info(ctx, "subscription timestamps")
 
 	_, err = s.ClientAPI.UsageRecords.New(&stripe.UsageRecordParams{
 		SubscriptionItem: stripe.String(si.ID),
@@ -421,11 +426,13 @@ Loop:
 }
 
 func (s *StripeService) uploadUsage(ctx context.Context, appID string) (err error) {
+	logger := logger.GetLogger(ctx)
+
 	midnight := timeutil.TruncateToDate(s.Clock.NowUTC())
 
 	stripeSubscriptionID, err := s.getStripeSubscriptionID(ctx, appID)
 	if errors.Is(err, sql.ErrNoRows) {
-		s.Logger.Infof("%v: skip upload usage due to no subscription", appID)
+		logger.Info(ctx, "skip upload usage due to no subscription", slog.String("app_id", appID))
 		err = nil
 		return
 	}
@@ -517,9 +524,10 @@ func (s *StripeService) uploadUsage(ctx context.Context, appID string) (err erro
 }
 
 func (s *StripeService) UploadUsage(ctx context.Context, appID string) (err error) {
+	logger := logger.GetLogger(ctx)
 	err = s.uploadUsage(ctx, appID)
 	if err != nil {
-		s.Logger.WithError(err).Errorf("failed to upload usage for %v", appID)
+		logger.WithError(err).Error(ctx, "failed to upload usage", slog.String("app_id", appID))
 	}
 	return
 }

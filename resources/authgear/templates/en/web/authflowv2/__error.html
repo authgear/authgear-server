@@ -282,7 +282,7 @@
     {{ else if eq .Error.reason "OAuthError" }}
       <span>{{ include "v2.error.oauth-error" (dict "error" .Error.info.error "error_description" .Error.info.error_description) }}</span>
     {{ else }}
-      <span>{{ include "v2.error.unknown" nil }}{{ call $.LogUnknownError .Error }}</span>
+      <span>{{ include "v2.error.unknown" nil }}</span>
     {{ end }}
   {{- end -}}
 {{- end -}}

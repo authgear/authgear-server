@@ -22,10 +22,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/duration"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
-	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/otelutil"
 	"github.com/authgear/authgear-server/pkg/util/pkce"
 	"github.com/authgear/authgear-server/pkg/util/slice"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
 //go:generate go tool mockgen -source=handler_authz.go -destination=handler_authz_mock_test.go -package handler_test
@@ -110,11 +110,7 @@ type AuthorizationService interface {
 	) (*oauth.Authorization, error)
 }
 
-type AuthorizationHandlerLogger struct{ *log.Logger }
-
-func NewAuthorizationHandlerLogger(lf *log.Factory) AuthorizationHandlerLogger {
-	return AuthorizationHandlerLogger{lf.New("oauth-authz")}
-}
+var AuthorizationHandlerLogger = slogutil.NewLogger("oauth-authz")
 
 type AuthorizationHandler struct {
 	AppID                 config.AppID
@@ -124,7 +120,6 @@ type AuthorizationHandler struct {
 	HTTPProto             httputil.HTTPProto
 	HTTPOrigin            httputil.HTTPOrigin
 	AppDomains            config.AppDomains
-	Logger                AuthorizationHandlerLogger
 
 	UIURLBuilder                    UIURLBuilder
 	UIInfoResolver                  UIInfoResolver
@@ -143,6 +138,7 @@ type AuthorizationHandler struct {
 }
 
 func (h *AuthorizationHandler) Handle(ctx context.Context, r protocol.AuthorizationRequest) httputil.Result {
+	logger := AuthorizationHandlerLogger.GetLogger(ctx)
 	ctx, client := resolveClient(ctx, h.ClientResolver, r.ClientID())
 	if client == nil {
 		return authorizationResultError{
@@ -174,7 +170,7 @@ func (h *AuthorizationHandler) Handle(ctx context.Context, r protocol.Authorizat
 		if errors.As(err, &oauthError) {
 			resultErr.Response = oauthError.Response
 		} else {
-			h.Logger.WithError(err).Error("authz handler failed")
+			logger.WithError(err).Error(ctx, "authz handler failed")
 			resultErr.Response = protocol.NewErrorResponse("server_error", "internal server error")
 			resultErr.InternalError = true
 		}
@@ -199,6 +195,7 @@ func (h *AuthorizationHandler) HandleConsentWithUserConsent(ctx context.Context,
 }
 
 func (h *AuthorizationHandler) HandleConsentWithUserCancel(ctx context.Context, req *http.Request) httputil.Result {
+	logger := AuthorizationHandlerLogger.GetLogger(ctx)
 	ctx, consentRequest, err := h.prepareConsentRequest(ctx, req)
 	if err != nil {
 		var oauthError *protocol.OAuthProtocolError
@@ -207,7 +204,7 @@ func (h *AuthorizationHandler) HandleConsentWithUserCancel(ctx context.Context, 
 		if errors.As(err, &oauthError) {
 			resultErr = h.prepareConsentErrInvalidOAuthResponse(ctx, req, *oauthError)
 		} else {
-			h.Logger.WithError(err).Error("authz handler failed")
+			logger.WithError(err).Error(ctx, "authz handler failed")
 			resultErr = authorizationResultError{
 				// Don't redirect for those unexpected errors
 				// e.g. oauth session expire or invalid client_id, redirect_uri
@@ -228,11 +225,11 @@ func (h *AuthorizationHandler) HandleConsentWithUserCancel(ctx context.Context, 
 	// don't block the user in case of failure
 	err = h.OAuthSessionService.Delete(ctx, oauthSessionEntry.ID)
 	if err != nil {
-		h.Logger.WithError(err).Error("failed to consume oauth session")
+		logger.WithError(err).Error(ctx, "failed to consume oauth session")
 	}
 	err = h.AuthenticationInfoService.Delete(ctx, authInfoEntry.ID)
 	if err != nil {
-		h.Logger.WithError(err).Error("failed to consume authentication info")
+		logger.WithError(err).Error(ctx, "failed to consume authentication info")
 	}
 
 	resultErr := authorizationResultError{
@@ -254,6 +251,7 @@ type ConsentRequired struct {
 }
 
 func (h *AuthorizationHandler) doHandleConsent(ctx context.Context, req *http.Request, withUserConsent bool) (httputil.Result, *ConsentRequired) {
+	logger := AuthorizationHandlerLogger.GetLogger(ctx)
 	ctx, consentRequest, err := h.prepareConsentRequest(ctx, req)
 	if err != nil {
 		var oauthError *protocol.OAuthProtocolError
@@ -262,7 +260,7 @@ func (h *AuthorizationHandler) doHandleConsent(ctx context.Context, req *http.Re
 		if errors.As(err, &oauthError) {
 			resultErr = h.prepareConsentErrInvalidOAuthResponse(ctx, req, *oauthError)
 		} else {
-			h.Logger.WithError(err).Error("authz handler failed")
+			logger.WithError(err).Error(ctx, "authz handler failed")
 			resultErr = authorizationResultError{
 				// Don't redirect for those unexpected errors
 				// e.g. oauth session expire or invalid client_id, redirect_uri
@@ -300,7 +298,7 @@ func (h *AuthorizationHandler) doHandleConsent(ctx context.Context, req *http.Re
 		if errors.As(err, &oauthError) {
 			resultErr.Response = oauthError.Response
 		} else {
-			h.Logger.WithError(err).Error("authz handler failed")
+			logger.WithError(err).Error(ctx, "authz handler failed")
 			resultErr.Response = protocol.NewErrorResponse("server_error", "internal server error")
 			resultErr.InternalError = true
 		}
@@ -314,11 +312,11 @@ func (h *AuthorizationHandler) doHandleConsent(ctx context.Context, req *http.Re
 		// don't block the user in case of failure
 		err = h.OAuthSessionService.Delete(ctx, consentRequest.OAuthSessionEntry.ID)
 		if err != nil {
-			h.Logger.WithError(err).Error("failed to consume oauth session")
+			logger.WithError(err).Error(ctx, "failed to consume oauth session")
 		}
 		err = h.AuthenticationInfoService.Delete(ctx, consentRequest.AuthInfoEntry.ID)
 		if err != nil {
-			h.Logger.WithError(err).Error("failed to consume authentication info")
+			logger.WithError(err).Error(ctx, "failed to consume authentication info")
 		}
 	}
 

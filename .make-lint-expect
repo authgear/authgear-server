@@ -1,6 +1,6 @@
 pkg/api/apierrors/error.go cannot import github.com/authgear/authgear-server/pkg/util/validation
 pkg/api/apierrors/error_test.go cannot import github.com/authgear/authgear-server/pkg/util/errorutil
-pkg/api/apierrors/skip_logging_test.go cannot import github.com/authgear/authgear-server/pkg/util/log
+pkg/api/apierrors/skip_logging_test.go cannot import github.com/authgear/authgear-server/pkg/util/slogutil
 pkg/api/apierrors/tags.go cannot import github.com/authgear/authgear-server/pkg/util/errorutil
 pkg/api/event/blocking/util.go cannot import github.com/authgear/authgear-server/pkg/util/accesscontrol
 pkg/api/event/event.go cannot import github.com/authgear/authgear-server/pkg/util/accesscontrol

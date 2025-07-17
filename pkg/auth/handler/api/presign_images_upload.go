@@ -13,7 +13,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
-	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
@@ -35,14 +35,10 @@ type PresignImagesUploadResponse struct {
 	UploadURL string `json:"upload_url"`
 }
 
-type PresignImagesUploadHandlerLogger struct{ *log.Logger }
+var PresignImagesUploadHandlerLogger = slogutil.NewLogger("api-presign-images-upload")
 
 type TurboResponseWriter interface {
 	WriteResponse(rw http.ResponseWriter, req *http.Request, resp *api.Response)
-}
-
-func NewPresignImagesUploadHandlerLogger(lf *log.Factory) PresignImagesUploadHandlerLogger {
-	return PresignImagesUploadHandlerLogger{lf.New("api-presign-images-upload")}
 }
 
 type PresignImagesUploadHandler struct {
@@ -52,11 +48,11 @@ type PresignImagesUploadHandler struct {
 	AppID           config.AppID
 	RateLimiter     RateLimiter
 	PresignProvider PresignProvider
-	Logger          PresignImagesUploadHandlerLogger
 }
 
 func (h *PresignImagesUploadHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
+	logger := PresignImagesUploadHandlerLogger.GetLogger(ctx)
 	userID := session.GetUserID(ctx)
 	failed, err := h.RateLimiter.Allow(ctx, PresignImageUploadRequestBucketSpec(*userID))
 	if err != nil {
@@ -74,7 +70,7 @@ func (h *PresignImagesUploadHandler) ServeHTTP(resp http.ResponseWriter, req *ht
 	}
 	encodedData, err := images.EncodeFileMetaData(metadata)
 	if err != nil {
-		h.Logger.WithError(err).Error("failed to encode metadata")
+		logger.WithError(err).Error(ctx, "failed to encode metadata")
 		h.Turbo.WriteResponse(resp, req, &api.Response{Error: err})
 		return
 	}

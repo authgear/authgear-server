@@ -1,6 +1,7 @@
 package deps
 
 import (
+	"context"
 	"net/http"
 
 	getsentry "github.com/getsentry/sentry-go"
@@ -14,7 +15,6 @@ import (
 	portalresource "github.com/authgear/authgear-server/pkg/portal/resource"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
-	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 	"github.com/authgear/authgear-server/pkg/util/sentry"
 )
@@ -37,7 +37,6 @@ type RootProvider struct {
 	GoogleTagManagerConfig     *portalconfig.GoogleTagManagerConfig
 	PortalFrontendSentryConfig *portalconfig.PortalFrontendSentryConfig
 	PortalFeaturesConfig       *portalconfig.PortalFeaturesConfig
-	LoggerFactory              *log.Factory
 	SentryHub                  *getsentry.Hub
 
 	Database               *db.Pool
@@ -49,6 +48,7 @@ type RootProvider struct {
 }
 
 func NewRootProvider(
+	ctx context.Context,
 	cfg *config.EnvironmentConfig,
 	customResourceDirectory string,
 	appCustomResourceDirectory string,
@@ -68,28 +68,18 @@ func NewRootProvider(
 	googleTagManagerConfig *portalconfig.GoogleTagManagerConfig,
 	portalFrontendSentryConfig *portalconfig.PortalFrontendSentryConfig,
 	portalFeatures *portalconfig.PortalFeaturesConfig,
-) (*RootProvider, error) {
-	logLevel, err := log.ParseLevel(cfg.LogLevel)
-	if err != nil {
-		return nil, err
-	}
-
+) (context.Context, *RootProvider, error) {
 	sentryHub, err := sentry.NewHub(string(cfg.SentryDSN))
 	if err != nil {
-		return nil, err
+		return ctx, nil, err
 	}
-
-	loggerFactory := log.NewFactory(
-		logLevel,
-		log.NewDefaultMaskLogHook(),
-		sentry.NewLogHookFromHub(sentryHub),
-	)
+	ctx = getsentry.SetHubOnContext(ctx, sentryHub)
 
 	redisPool := redis.NewPool()
 
 	filesystemCache := httputil.NewFilesystemCache()
 
-	return &RootProvider{
+	return ctx, &RootProvider{
 		EnvironmentConfig:          cfg,
 		ConfigSourceConfig:         configSourceConfig,
 		AuthgearConfig:             authgearConfig,
@@ -107,7 +97,6 @@ func NewRootProvider(
 		GoogleTagManagerConfig:     googleTagManagerConfig,
 		PortalFrontendSentryConfig: portalFrontendSentryConfig,
 		PortalFeaturesConfig:       portalFeatures,
-		LoggerFactory:              loggerFactory,
 		SentryHub:                  sentryHub,
 		Database:                   db.NewPool(),
 		RedisPool:                  redisPool,

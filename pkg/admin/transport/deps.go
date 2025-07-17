@@ -12,5 +12,4 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(UserImportGetHandler), "*"),
 	wire.Struct(new(UserExportCreateHandler), "*"),
 	wire.Struct(new(UserExportGetHandler), "*"),
-	NewPresignImagesUploadHandlerLogger,
 )

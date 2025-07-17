@@ -52,10 +52,9 @@ func NewReindexer(pool *db.Pool, databaseCredentials *CmdDBCredential, searchDat
 	config := NewEmptyConfig(pool, databaseCredentials, searchDatabaseCredentials, appID)
 	secretConfig := config.SecretConfig
 	configDatabaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	factory := NewLoggerFactory()
-	handle := appdb.NewHandle(pool, databaseEnvironmentConfig, configDatabaseCredentials, factory)
+	handle := appdb.NewHandle(pool, databaseEnvironmentConfig, configDatabaseCredentials)
 	configSearchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
-	searchdbHandle := searchdb.NewHandle(pool, databaseEnvironmentConfig, configSearchDatabaseCredentials, factory)
+	searchdbHandle := searchdb.NewHandle(pool, databaseEnvironmentConfig, configSearchDatabaseCredentials)
 	appConfig := config.AppConfig
 	configAppID := appConfig.ID
 	sqlBuilderApp := appdb.NewSQLBuilderApp(configDatabaseCredentials, configAppID)
@@ -230,7 +229,6 @@ func NewReindexer(pool *db.Pool, databaseCredentials *CmdDBCredential, searchDat
 	}
 	authenticatorConfig := appConfig.Authenticator
 	authenticatorPasswordConfig := authenticatorConfig.Password
-	logger := password.NewLogger(factory)
 	historyStore := &password.HistoryStore{
 		Clock:       clock,
 		SQLBuilder:  sqlBuilderApp,
@@ -239,17 +237,14 @@ func NewReindexer(pool *db.Pool, databaseCredentials *CmdDBCredential, searchDat
 	authenticatorFeatureConfig := featureConfig.Authenticator
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, authenticatorFeatureConfig, historyStore)
 	expiry := password.ProvideExpiry(authenticatorPasswordConfig, clock)
-	housekeeperLogger := password.NewHousekeeperLogger(factory)
 	housekeeper := &password.Housekeeper{
 		Store:  historyStore,
-		Logger: housekeeperLogger,
 		Config: authenticatorPasswordConfig,
 	}
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
 		Clock:           clock,
-		Logger:          logger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
 		Expiry:          expiry,
@@ -301,12 +296,9 @@ func NewReindexer(pool *db.Pool, databaseCredentials *CmdDBCredential, searchDat
 		AppID: configAppID,
 		Clock: clock,
 	}
-	otpLogger := otp.NewLogger(factory)
-	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := ratelimit.NewAppStorageRedis(appredisHandle)
 	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		AppID:   configAppID,
 		Config:  rateLimitsFeatureConfig,
@@ -321,7 +313,6 @@ func NewReindexer(pool *db.Pool, databaseCredentials *CmdDBCredential, searchDat
 		CodeStore:             codeStoreRedis,
 		LookupStore:           lookupStoreRedis,
 		AttemptTracker:        attemptTrackerRedis,
-		Logger:                otpLogger,
 		RateLimiter:           limiter,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
@@ -334,13 +325,11 @@ func NewReindexer(pool *db.Pool, databaseCredentials *CmdDBCredential, searchDat
 		RateLimiter:   limiter,
 	}
 	authenticationLockoutConfig := authenticationConfig.Lockout
-	lockoutLogger := lockout.NewLogger(factory)
 	lockoutStorageRedis := &lockout.StorageRedis{
 		AppID: configAppID,
 		Redis: appredisHandle,
 	}
 	lockoutService := &lockout.Service{
-		Logger:  lockoutLogger,
 		Storage: lockoutStorageRedis,
 	}
 	serviceLockout := service2.Lockout{

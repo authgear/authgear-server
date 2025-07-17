@@ -2,25 +2,30 @@ package signalutil
 
 import (
 	"context"
+	"log/slog"
 	"os"
 	"os/signal"
 	"sync"
 	"syscall"
 	"time"
 
-	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
+
+var logger = slogutil.NewLogger("signalutil")
 
 // Daemon is something that runs indefinitely.
 type Daemon interface {
 	DisplayName() string
 	// Start blocks.
-	Start(ctx context.Context, logger *log.Logger)
+	Start(ctx context.Context)
 	// Stop stops.
-	Stop(ctx context.Context, logger *log.Logger) error
+	Stop(ctx context.Context) error
 }
 
-func Start(ctx context.Context, logger *log.Logger, daemons ...Daemon) {
+func Start(ctx context.Context, daemons ...Daemon) {
+	logger := logger.GetLogger(ctx)
+
 	startCtx, cancel := context.WithCancel(ctx)
 	var stopCtx context.Context
 	waitGroup := new(sync.WaitGroup)
@@ -29,17 +34,17 @@ func Start(ctx context.Context, logger *log.Logger, daemons ...Daemon) {
 	for _, daemon := range daemons {
 		daemon := daemon
 
-		go daemon.Start(startCtx, logger)
+		go daemon.Start(startCtx)
 		waitGroup.Add(1)
 		go func() {
 			defer waitGroup.Done()
 
 			<-shutdown
 
-			logger.Infof("stopping %v...", daemon.DisplayName())
-			err := daemon.Stop(stopCtx, logger)
+			logger.Info(ctx, "stopping ...", slog.String("display_name", daemon.DisplayName()))
+			err := daemon.Stop(stopCtx)
 			if err != nil {
-				logger.WithError(err).Errorf("failed to stop gracefully %v", daemon.DisplayName())
+				logger.WithError(err).Error(ctx, "failed to stop gracefully", slog.String("display_name", daemon.DisplayName()))
 			}
 		}()
 	}
@@ -48,7 +53,7 @@ func Start(ctx context.Context, logger *log.Logger, daemons ...Daemon) {
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 
 	sig := <-sigChan
-	logger.Infof("received signal %s, shutting down...", sig.String())
+	logger.Info(ctx, "received signal, shutting down...", slog.String("signal", sig.String()))
 
 	// Cancel the context we pass to Start() first.
 	// This causes the daemon that respects context to stop blocking and proceed to shutdown.

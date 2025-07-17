@@ -6,17 +6,9 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/intl"
-	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
-type ServiceLogger struct{ *log.Logger }
-
-func NewServiceLogger(lf *log.Factory) ServiceLogger {
-	return ServiceLogger{lf.New("whatsapp-service")}
-}
-
 type Service struct {
-	Logger                ServiceLogger
 	WhatsappConfig        *config.WhatsappConfig
 	LocalizationConfig    *config.LocalizationConfig
 	GlobalWhatsappAPIType config.GlobalWhatsappAPIType

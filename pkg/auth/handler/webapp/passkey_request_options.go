@@ -11,6 +11,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 func ConfigurePasskeyRequestOptionsRoute(route httproute.Route) httproute.Route {
@@ -28,15 +29,15 @@ type PasskeyRequestOptionsService interface {
 type PasskeyRequestOptionsHandler struct {
 	Page     PageService
 	Database *appdb.Handle
-	JSON     JSONResponseWriter
 	Passkey  PasskeyRequestOptionsService
 }
 
 func (h *PasskeyRequestOptionsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	var err error
 	defer func() {
 		if err != nil {
-			h.JSON.WriteResponse(w, &api.Response{Error: err})
+			httputil.WriteJSONResponse(ctx, w, &api.Response{Error: err})
 		}
 	}()
 
@@ -49,7 +50,7 @@ func (h *PasskeyRequestOptionsHandler) ServeHTTP(w http.ResponseWriter, r *http.
 	allowCredentials := r.FormValue("allow_credentials") == "true"
 
 	var requestOptions *model.WebAuthnRequestOptions
-	err = h.Database.ReadOnly(r.Context(), func(ctx context.Context) error {
+	err = h.Database.ReadOnly(ctx, func(ctx context.Context) error {
 		if conditional {
 			requestOptions, err = h.Passkey.MakeConditionalRequestOptions(ctx)
 			if err != nil {
@@ -91,7 +92,7 @@ func (h *PasskeyRequestOptionsHandler) ServeHTTP(w http.ResponseWriter, r *http.
 		return
 	}
 
-	h.JSON.WriteResponse(w, &api.Response{
+	httputil.WriteJSONResponse(ctx, w, &api.Response{
 		Result: requestOptions,
 	})
 }

@@ -5,6 +5,5 @@ import (
 )
 
 var DependencySet = wire.NewSet(
-	NewResolveHandlerLogger,
 	wire.Struct(new(ResolveHandler), "*"),
 )

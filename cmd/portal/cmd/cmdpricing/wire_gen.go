@@ -13,19 +13,16 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	config2 "github.com/authgear/authgear-server/pkg/portal/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
-	"github.com/authgear/authgear-server/pkg/util/cobrasentry"
 	"github.com/getsentry/sentry-go"
 )
 
 // Injectors from wire.go:
 
 func NewStripeService(pool *db.Pool, databaseCredentials *config.DatabaseCredentials, stripeConfig *config2.StripeConfig, hub *sentry.Hub) *StripeService {
-	factory := cobrasentry.NewLoggerFactory(hub)
-	logger := NewLogger(factory)
-	api := NewClientAPI(stripeConfig, logger)
+	api := NewClientAPI(stripeConfig)
 	globalDatabaseCredentialsEnvironmentConfig := NewGlobalDatabaseCredentials(databaseCredentials)
 	databaseEnvironmentConfig := config.NewDefaultDatabaseEnvironmentConfig()
-	handle := globaldb.NewHandle(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
+	handle := globaldb.NewHandle(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig)
 	sqlBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
 	sqlExecutor := globaldb.NewSQLExecutor(handle)
 	store := &configsource.Store{
@@ -40,7 +37,6 @@ func NewStripeService(pool *db.Pool, databaseCredentials *config.DatabaseCredent
 		SQLExecutor: sqlExecutor,
 		Store:       store,
 		Clock:       clock,
-		Logger:      logger,
 	}
 	return stripeService
 }

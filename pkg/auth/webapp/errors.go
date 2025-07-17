@@ -4,7 +4,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 )
 
-var WebUIInvalidSession = apierrors.Invalid.WithReason("WebUIInvalidSession")
+var WebUIInvalidSession = apierrors.Invalid.WithReason("WebUIInvalidSession").SkipLoggingToExternalService()
 var WebUISessionCompleted = apierrors.Invalid.WithReason("WebUISessionCompleted").SkipLoggingToExternalService()
 
 var ErrInvalidSession = WebUIInvalidSession.New("session expired or invalid")

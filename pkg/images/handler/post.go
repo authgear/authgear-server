@@ -9,7 +9,7 @@ import (
 	"mime"
 	"mime/multipart"
 	"net/http"
-	"net/http/httputil"
+	gohttputil "net/http/httputil"
 	"net/url"
 	"strconv"
 
@@ -20,17 +20,14 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
-	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
 func ConfigurePostRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("POST", "OPTIONS").
 		WithPathPattern("/_images/:appid/:objectid")
-}
-
-type JSONResponseWriter interface {
-	WriteResponse(rw http.ResponseWriter, resp *api.Response)
 }
 
 type PresignProvider interface {
@@ -41,19 +38,13 @@ type ImagesStore interface {
 	Create(ctx context.Context, file *images.File) error
 }
 
-type PostHandlerLogger struct{ *log.Logger }
-
-func NewPostHandlerLogger(lf *log.Factory) PostHandlerLogger {
-	return PostHandlerLogger{lf.New("post-handler")}
-}
+var PostHandlerLogger = slogutil.NewLogger("post-handler")
 
 type PostHandlerCloudStorageService interface {
 	PresignPutRequest(ctx context.Context, r *imagesservice.PresignUploadRequest) (*imagesservice.PresignUploadResponse, error)
 }
 
 type PostHandler struct {
-	Logger                         PostHandlerLogger
-	JSON                           JSONResponseWriter
 	PostHandlerCloudStorageService PostHandlerCloudStorageService
 	PresignProvider                PresignProvider
 	Database                       *appdb.Handle
@@ -65,13 +56,14 @@ type PostHandler struct {
 func (h *PostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var err error
 	ctx := r.Context()
+	logger := PostHandlerLogger.GetLogger(ctx)
 
 	defer func() {
 		if err != nil {
 			if !apierrors.IsAPIError(err) {
-				h.Logger.WithError(err).Error("failed to upload image")
+				logger.WithError(err).Error(ctx, "failed to upload image")
 			}
-			h.JSON.WriteResponse(w, &api.Response{Error: err})
+			httputil.WriteJSONResponse(ctx, w, &api.Response{Error: err})
 		}
 	}()
 
@@ -106,7 +98,7 @@ func (h *PostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	defer func() {
 		if err := form.RemoveAll(); err != nil {
-			h.Logger.WithError(err).Error("failed to run form remove all")
+			logger.WithError(err).Error(ctx, "failed to run form remove all")
 		}
 	}()
 
@@ -193,7 +185,7 @@ func (h *PostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		err := saveImagesFileRecord(ctx)
 		if err != nil {
-			h.Logger.WithError(err).Error("failed to save image file record")
+			logger.WithError(err).Error(ctx, "failed to save image file record")
 			return err
 		}
 
@@ -213,7 +205,7 @@ func (h *PostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return nil
 	}
 
-	reverseProxy := &httputil.ReverseProxy{
+	reverseProxy := &gohttputil.ReverseProxy{
 		Director:       director,
 		ModifyResponse: modifyResponse,
 	}

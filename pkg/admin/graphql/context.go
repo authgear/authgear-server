@@ -22,7 +22,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/sessionlisting"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
-	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
 type UserLoader interface {
@@ -189,13 +188,7 @@ type EventService interface {
 	DispatchEventOnCommit(ctx context.Context, payload event.Payload) error
 }
 
-type Logger struct{ *log.Logger }
-
-func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("admin-graphql")} }
-
 type Context struct {
-	GQLLogger Logger
-
 	Config                *config.AppConfig
 	OAuthConfig           *config.OAuthConfig
 	AdminAPIFeatureConfig *config.AdminAPIFeatureConfig
@@ -221,10 +214,6 @@ type Context struct {
 	OTPCode             OTPCodeService
 	ForgotPassword      ForgotPasswordService
 	Events              EventService
-}
-
-func (c *Context) Logger() *log.Logger {
-	return c.GQLLogger.Logger
 }
 
 func WithContext(ctx context.Context, gqlContext *Context) context.Context {

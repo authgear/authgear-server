@@ -20,14 +20,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
-	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
-type Logger struct{ *log.Logger }
-
-func NewLogger(lf *log.Factory) Logger {
-	return Logger{lf.New("forgot-password")}
-}
+var ForgotPasswordLogger = slogutil.NewLogger("forgot-password")
 
 type EventService interface {
 	DispatchEventOnCommit(ctx context.Context, payload event.Payload) error
@@ -61,7 +57,6 @@ type OTPSender interface {
 }
 
 type Service struct {
-	Logger        Logger
 	Config        *config.AppConfig
 	FeatureConfig *config.FeatureConfig
 
@@ -513,6 +508,8 @@ type SetPasswordOptions struct {
 // SetPassword ensures the user identified by userID has the specified password.
 // It perform necessary mutation to make this happens.
 func (s *Service) setPassword(ctx context.Context, options *SetPasswordOptions) (err error) {
+	logger := ForgotPasswordLogger.GetLogger(ctx)
+
 	ais, err := s.getPrimaryPasswordList(ctx, options.UserID)
 	if err != nil {
 		return
@@ -520,7 +517,7 @@ func (s *Service) setPassword(ctx context.Context, options *SetPasswordOptions) 
 
 	// The normal case: the user has 1 primary password
 	if len(ais) == 1 {
-		s.Logger.Debugf("resetting password")
+		logger.Debug(ctx, "resetting password")
 		// The user has 1 password. Reset it.
 		var changed bool
 		var ai *authenticator.Info

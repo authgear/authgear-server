@@ -18,10 +18,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
-	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/otelutil"
 	"github.com/authgear/authgear-server/pkg/util/panicutil"
 	"github.com/authgear/authgear-server/pkg/util/setutil"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
 func ConfigureLoginRoute(route httproute.Route) httproute.Route {
@@ -30,11 +30,7 @@ func ConfigureLoginRoute(route httproute.Route) httproute.Route {
 		WithPathPattern("/saml2/login/:service_provider_id")
 }
 
-type LoginHandlerLogger struct{ *log.Logger }
-
-func NewLoginHandlerLogger(lf *log.Factory) *LoginHandlerLogger {
-	return &LoginHandlerLogger{lf.New("saml-login-handler")}
-}
+var LoginHandlerLogger = slogutil.NewLogger("saml-login-handler")
 
 type loginResult interface {
 	loginResult()
@@ -59,7 +55,6 @@ var _ loginResult = &loginResultSAMLResponse{}
 func (l *loginResultSAMLResponse) loginResult() {}
 
 type LoginHandler struct {
-	Logger             *LoginHandlerLogger
 	Clock              clock.Clock
 	Database           *appdb.Handle
 	SAMLConfig         *config.SAMLConfig
@@ -448,10 +443,12 @@ func (h *LoginHandler) handleError(
 	relayState string,
 	err error,
 ) {
+	ctx := r.Context()
+	logger := LoginHandlerLogger.GetLogger(ctx)
 	now := h.Clock.NowUTC()
 	var samlErrResult *SAMLErrorResult
 	if errors.As(err, &samlErrResult) {
-		h.Logger.WithError(samlErrResult.Cause).Warnln("saml login failed with expected error")
+		logger.WithError(samlErrResult.Cause).Warn(r.Context(), "saml login failed with expected error")
 		err = h.BindingHTTPPostWriter.WriteResponse(rw, r,
 			callbackURL,
 			samlErrResult.Response.Element(),
@@ -461,7 +458,7 @@ func (h *LoginHandler) handleError(
 			panic(err)
 		}
 	} else {
-		h.Logger.WithError(err).Error("unexpected error")
+		logger.WithError(err).Error(r.Context(), "unexpected error")
 		err = h.BindingHTTPPostWriter.WriteResponse(rw, r,
 			callbackURL,
 			samlprotocol.NewUnexpectedServerErrorResponse(now, h.SAMLService.IdpEntityID()).Element(),

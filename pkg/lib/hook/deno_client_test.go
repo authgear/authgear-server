@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/sirupsen/logrus"
 	. "github.com/smartystreets/goconvey/convey"
 	"gopkg.in/h2non/gock.v1"
 )
@@ -20,7 +19,6 @@ func TestDenoClient(t *testing.T) {
 		denoClient := &DenoClientImpl{
 			Endpoint:   endpoint,
 			HTTPClient: httpClient,
-			Logger:     Logger{logrus.New().WithFields(logrus.Fields{})},
 		}
 
 		Convey("Run", func() {

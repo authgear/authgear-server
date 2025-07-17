@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api/event"
@@ -18,8 +19,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/geoip"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/intl"
-	"github.com/authgear/authgear-server/pkg/util/log"
-	"github.com/authgear/authgear-server/pkg/util/sentry"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
 type AuditServiceAppService interface {
@@ -43,8 +43,7 @@ type AuditService struct {
 	GlobalSQLExecutor *globaldb.SQLExecutor
 	GlobalDatabase    *globaldb.Handle
 
-	Clock         clock.Clock
-	LoggerFactory *log.Factory
+	Clock clock.Clock
 }
 
 func (s *AuditService) Log(ctx context.Context, app *model.App, payload event.NonBlockingPayload) (err error) {
@@ -54,21 +53,22 @@ func (s *AuditService) Log(ctx context.Context, app *model.App, payload event.No
 		return
 	}
 
+	// Legacy logging setup
 	cfg := app.Context.Config
-	loggerFactory := s.LoggerFactory.ReplaceHooks(
-		log.NewDefaultMaskLogHook(),
-		config.NewSecretMaskLogHook(cfg.SecretConfig),
-		sentry.NewLogHookFromContext(ctx),
-	)
-	loggerFactory.DefaultFields["app"] = cfg.AppConfig.ID
+
+	// Modern logging setup
+	ctx = slogutil.AddMaskPatterns(ctx, config.NewMaskPatternFromSecretConfig(cfg.SecretConfig))
+	logger := slogutil.GetContextLogger(ctx)
+	logger = logger.With(slog.String("app", string(cfg.AppConfig.ID)))
+	ctx = slogutil.SetContextLogger(ctx, logger)
 
 	// AuditSink is app specific.
 	// The records MUST have correct app_id.
 	// We have construct audit sink with the target app.
-	auditSink := newAuditSink(app, s.Database, s.DatabaseEnvironmentConfig, loggerFactory)
+	auditSink := newAuditSink(app, s.Database, s.DatabaseEnvironmentConfig)
 	// The portal uses its Authgear to deliver hooks.
 	// We have construct hook sink with the Authgear app.
-	hookSink := newHookSink(authgearApp, s.DenoEndpoint, loggerFactory)
+	hookSink := newHookSink(authgearApp, s.DenoEndpoint)
 
 	// Use the target app ID.
 	e, err := s.resolveNonBlockingEvent(ctx, app.ID, payload)

@@ -7,7 +7,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
 var ErrNoAvailableSMTPConfiguration = apierrors.InternalError.WithReason("NoAvailableSMTPConfiguration").New("no available SMTP configuration")
@@ -21,12 +20,7 @@ type SendOptions struct {
 	HTMLBody  string
 }
 
-type Logger struct{ *log.Logger }
-
-func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("mail-sender")} }
-
 type Sender struct {
-	Logger       Logger
 	GomailDialer *gomail.Dialer
 }
 

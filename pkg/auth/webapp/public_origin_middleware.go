@@ -1,31 +1,31 @@
 package webapp
 
 import (
+	"fmt"
+	"log/slog"
 	"net/http"
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
-	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
-type PublicOriginMiddlewareLogger struct{ *log.Logger }
-
-func NewPublicOriginMiddlewareLogger(lf *log.Factory) PublicOriginMiddlewareLogger {
-	return PublicOriginMiddlewareLogger{lf.New("public-origin-middleware")}
-}
+var PublicOriginMiddlewareLogger = slogutil.NewLogger("public-origin-middleware")
 
 type PublicOriginMiddleware struct {
 	Config     *config.HTTPConfig
 	TrustProxy config.TrustProxy
-	Logger     PublicOriginMiddlewareLogger
 }
 
 func (m *PublicOriginMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		logger := PublicOriginMiddlewareLogger.GetLogger(ctx)
+
 		publicOrigin, err := url.Parse(m.Config.PublicOrigin)
 		if err != nil {
-			m.Logger.WithError(err).Error("failed to parse public origin")
+			err = fmt.Errorf("failed to parse public origin: %w", err)
 			panic(err)
 		}
 
@@ -41,7 +41,7 @@ func (m *PublicOriginMiddleware) Handle(next http.Handler) http.Handler {
 		newURL.Scheme = publicOrigin.Scheme
 		newURL.Host = publicOrigin.Host
 
-		m.Logger.WithField("new_url", newURL).Info("redirect to the configured public origin")
+		logger.Info(ctx, "redirect to the configured public origin", slog.String("new_url", newURL.String()))
 		http.Redirect(w, r, newURL.String(), http.StatusTemporaryRedirect)
 	})
 }

@@ -22,7 +22,6 @@ var DependencySet = wire.NewSet(
 	NewCloudStorage,
 	NewHTTPClient,
 	wire.Struct(new(UserExportService), "*"),
-	NewLogger,
 )
 
 func NewCloudStorage(objectStoreConfig *config.UserExportObjectStoreConfig, c clock.Clock) UserExportCloudStorage {

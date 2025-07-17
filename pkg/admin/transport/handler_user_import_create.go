@@ -20,7 +20,6 @@ type UserImportJobEnqueuer interface {
 }
 
 type UserImportCreateHandler struct {
-	JSON        JSONResponseWriter
 	UserImports UserImportJobEnqueuer
 }
 
@@ -28,7 +27,7 @@ func (h *UserImportCreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 	ctx := r.Context()
 	err := h.handle(ctx, w, r)
 	if err != nil {
-		h.JSON.WriteResponse(w, &api.Response{Error: err})
+		httputil.WriteJSONResponse(ctx, w, &api.Response{Error: err})
 		return
 	}
 }
@@ -45,7 +44,7 @@ func (h *UserImportCreateHandler) handle(ctx context.Context, w http.ResponseWri
 		return err
 	}
 
-	h.JSON.WriteResponse(w, &api.Response{
+	httputil.WriteJSONResponse(ctx, w, &api.Response{
 		Result: resp,
 	})
 	return nil

@@ -2,18 +2,16 @@ package audit
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
-	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
-type Logger struct{ *log.Logger }
-
-func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("audit-sink")} }
+var SinkLogger = slogutil.NewLogger("audit-sink")
 
 type Sink struct {
-	Logger   Logger
 	Database *auditdb.WriteHandle
 	Store    *WriteStore
 }
@@ -24,6 +22,7 @@ func (s *Sink) ReceiveBlockingEvent(ctx context.Context, e *event.Event) (err er
 }
 
 func (s *Sink) ReceiveNonBlockingEvent(ctx context.Context, e *event.Event) (err error) {
+	logger := SinkLogger.GetLogger(ctx)
 	// Skip events that are not for audit.
 	payload := e.Payload.(event.NonBlockingPayload)
 	if !payload.ForAudit() {
@@ -31,15 +30,11 @@ func (s *Sink) ReceiveNonBlockingEvent(ctx context.Context, e *event.Event) (err
 	}
 
 	if s.Database == nil {
-		s.Logger.WithFields(map[string]interface{}{
-			"event": e,
-		}).Debug("skip persisting event")
+		logger.Debug(ctx, "skip persisting event", slog.Any("event", e))
 		return
 	}
 
-	s.Logger.WithFields(map[string]interface{}{
-		"event": e,
-	}).Debug("persisting event")
+	logger.Debug(ctx, "persisting event", slog.Any("event", e))
 
 	err = s.Database.WithTx(ctx, func(ctx context.Context) error {
 		logEntry, err := NewLog(e)

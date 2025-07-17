@@ -10,19 +10,11 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
-	"github.com/authgear/authgear-server/pkg/util/log"
 )
-
-type DenoMiddlewareLogger struct{ *log.Logger }
-
-func NewDenoMiddlewareLogger(lf *log.Factory) DenoMiddlewareLogger {
-	return DenoMiddlewareLogger{lf.New("account-migration-deno")}
-}
 
 type AccountMigrationDenoHook struct {
 	hook.DenoHook
 	Client HookDenoClient
-	Logger DenoMiddlewareLogger
 }
 
 func (h *AccountMigrationDenoHook) Call(ctx context.Context, u *url.URL, hookReq *HookRequest) (*HookResponse, error) {
@@ -52,12 +44,11 @@ type HookDenoClient struct {
 	hook.DenoClient
 }
 
-func NewHookDenoClient(endpoint config.DenoEndpoint, logger hook.Logger, cfg *config.AccountMigrationHookConfig) HookDenoClient {
+func NewHookDenoClient(endpoint config.DenoEndpoint, cfg *config.AccountMigrationHookConfig) HookDenoClient {
 	return HookDenoClient{
 		&hook.DenoClientImpl{
 			Endpoint:   string(endpoint),
 			HTTPClient: httputil.NewExternalClient(cfg.Timeout.Duration()),
-			Logger:     logger,
 		},
 	}
 }

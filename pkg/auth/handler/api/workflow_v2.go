@@ -193,7 +193,6 @@ type WorkflowV2UIInfoResolver interface {
 }
 
 type WorkflowV2Handler struct {
-	JSON           JSONResponseWriter
 	Cookies        WorkflowV2CookieManager
 	Workflows      WorkflowV2WorkflowService
 	OAuthSessions  WorkflowV2OAuthSessionService
@@ -203,13 +202,13 @@ type WorkflowV2Handler struct {
 func (h *WorkflowV2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var err error
 	var request WorkflowV2Request
+	ctx := r.Context()
 	err = httputil.BindJSONBody(r, w, WorkflowV2RequestSchema.Validator(), &request)
 	if err != nil {
-		h.JSON.WriteResponse(w, &api.Response{Error: err})
+		httputil.WriteJSONResponse(ctx, w, &api.Response{Error: err})
 		return
 	}
 
-	ctx := r.Context()
 	switch request.Action {
 	case WorkflowV2ActionCreate:
 		h.handleActionCreate(ctx, w, r, request)
@@ -229,7 +228,7 @@ func (h *WorkflowV2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (h *WorkflowV2Handler) handleActionCreate(ctx context.Context, w http.ResponseWriter, r *http.Request, request WorkflowV2Request) {
 	output, err := h.create(ctx, w, r, request)
 	if err != nil {
-		h.JSON.WriteResponse(w, &api.Response{Error: err})
+		httputil.WriteJSONResponse(ctx, w, &api.Response{Error: err})
 		return
 	}
 
@@ -243,10 +242,10 @@ func (h *WorkflowV2Handler) handleActionCreate(ctx context.Context, w http.Respo
 			apiResp, apiRespErr := h.prepareErrorResponse(ctx, workflowID, instanceID, userAgentID, err)
 			if apiRespErr != nil {
 				// failed to get the workflow when preparing the error response
-				h.JSON.WriteResponse(w, &api.Response{Error: apiRespErr})
+				httputil.WriteJSONResponse(ctx, w, &api.Response{Error: apiRespErr})
 				return
 			}
-			h.JSON.WriteResponse(w, apiResp)
+			httputil.WriteJSONResponse(ctx, w, apiResp)
 			return
 		}
 	}
@@ -259,7 +258,7 @@ func (h *WorkflowV2Handler) handleActionCreate(ctx context.Context, w http.Respo
 		Action:   output.Action,
 		Workflow: output.WorkflowOutput,
 	}
-	h.JSON.WriteResponse(w, &api.Response{Result: result})
+	httputil.WriteJSONResponse(ctx, w, &api.Response{Result: result})
 }
 
 func (h *WorkflowV2Handler) handleActionInput(ctx context.Context, w http.ResponseWriter, r *http.Request, request WorkflowV2Request) {
@@ -272,10 +271,10 @@ func (h *WorkflowV2Handler) handleActionInput(ctx context.Context, w http.Respon
 		apiResp, apiRespErr := h.prepareErrorResponse(ctx, workflowID, instanceID, userAgentID, err)
 		if apiRespErr != nil {
 			// failed to get the workflow when preparing the error response
-			h.JSON.WriteResponse(w, &api.Response{Error: apiRespErr})
+			httputil.WriteJSONResponse(ctx, w, &api.Response{Error: apiRespErr})
 			return
 		}
-		h.JSON.WriteResponse(w, apiResp)
+		httputil.WriteJSONResponse(ctx, w, apiResp)
 		return
 	}
 
@@ -287,7 +286,7 @@ func (h *WorkflowV2Handler) handleActionInput(ctx context.Context, w http.Respon
 		Action:   output.Action,
 		Workflow: output.WorkflowOutput,
 	}
-	h.JSON.WriteResponse(w, &api.Response{Result: result})
+	httputil.WriteJSONResponse(ctx, w, &api.Response{Result: result})
 }
 
 func (h *WorkflowV2Handler) handleActionBatchInput(ctx context.Context, w http.ResponseWriter, r *http.Request, request WorkflowV2Request) {
@@ -300,10 +299,10 @@ func (h *WorkflowV2Handler) handleActionBatchInput(ctx context.Context, w http.R
 		apiResp, apiRespErr := h.prepareErrorResponse(ctx, workflowID, instanceID, userAgentID, err)
 		if apiRespErr != nil {
 			// failed to get the workflow when preparing the error response
-			h.JSON.WriteResponse(w, &api.Response{Error: apiRespErr})
+			httputil.WriteJSONResponse(ctx, w, &api.Response{Error: apiRespErr})
 			return
 		}
-		h.JSON.WriteResponse(w, apiResp)
+		httputil.WriteJSONResponse(ctx, w, apiResp)
 		return
 	}
 
@@ -315,7 +314,7 @@ func (h *WorkflowV2Handler) handleActionBatchInput(ctx context.Context, w http.R
 		Action:   output.Action,
 		Workflow: output.WorkflowOutput,
 	}
-	h.JSON.WriteResponse(w, &api.Response{Result: result})
+	httputil.WriteJSONResponse(ctx, w, &api.Response{Result: result})
 }
 
 func (h *WorkflowV2Handler) handleActionGet(ctx context.Context, w http.ResponseWriter, r *http.Request, request WorkflowV2Request) {
@@ -325,7 +324,7 @@ func (h *WorkflowV2Handler) handleActionGet(ctx context.Context, w http.Response
 
 	output, err := h.Workflows.Get(ctx, workflowID, instanceID, userAgentID)
 	if err != nil {
-		h.JSON.WriteResponse(w, &api.Response{Error: err})
+		httputil.WriteJSONResponse(ctx, w, &api.Response{Error: err})
 		return
 	}
 
@@ -333,7 +332,7 @@ func (h *WorkflowV2Handler) handleActionGet(ctx context.Context, w http.Response
 		Action:   output.Action,
 		Workflow: output.WorkflowOutput,
 	}
-	h.JSON.WriteResponse(w, &api.Response{Result: result})
+	httputil.WriteJSONResponse(ctx, w, &api.Response{Result: result})
 }
 
 func (h *WorkflowV2Handler) create(ctx context.Context, w http.ResponseWriter, r *http.Request, request WorkflowV2Request) (*workflow.ServiceOutput, error) {

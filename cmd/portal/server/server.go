@@ -2,28 +2,33 @@ package server
 
 import (
 	"context"
-	golog "log"
+	"fmt"
+	"log/slog"
 
 	"github.com/authgear/authgear-server/pkg/portal"
 	"github.com/authgear/authgear-server/pkg/portal/deps"
-	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/pprofutil"
 	"github.com/authgear/authgear-server/pkg/util/server"
 	"github.com/authgear/authgear-server/pkg/util/signalutil"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 	"github.com/authgear/authgear-server/pkg/version"
 )
 
-type Controller struct {
-	logger *log.Logger
-}
+var logger = slogutil.NewLogger("authgear-portal")
+
+type Controller struct{}
 
 func (c *Controller) Start(ctx context.Context) {
+	logger := logger.GetLogger(ctx)
+
 	cfg, err := LoadConfigFromEnv()
 	if err != nil {
-		golog.Fatalf("failed to load server config: %s", err)
+		err = fmt.Errorf("failed to load server config: %w", err)
+		panic(err)
 	}
 
-	p, err := deps.NewRootProvider(
+	ctx, p, err := deps.NewRootProvider(
+		ctx,
 		cfg.EnvironmentConfig,
 		cfg.CustomResourceDirectory,
 		cfg.App.CustomResourceDirectory,
@@ -46,21 +51,20 @@ func (c *Controller) Start(ctx context.Context) {
 	)
 
 	if err != nil {
-		golog.Fatalf("failed to setup server: %s", err)
+		err = fmt.Errorf("failed to setup server: %w", err)
+		panic(err)
 	}
 
-	// From now, we should use c.logger to log.
-	c.logger = p.LoggerFactory.New("authgear-portal")
-
-	c.logger.Infof("authgear-portal (version %s)", version.Version)
+	logger.Info(ctx, "authgear-portal version", slog.String("version", version.Version))
 	if cfg.DevMode {
-		c.logger.Warn("development mode is ON - do not use in production")
+		logger.Warn(ctx, "development mode is ON - do not use in production")
 	}
 
 	configSrcController := newConfigSourceController(p)
 	err = configSrcController.Open(ctx)
 	if err != nil {
-		c.logger.WithError(err).Fatal("cannot open configuration")
+		err = fmt.Errorf("cannot open configuration: %w", err)
+		panic(err)
 	}
 	defer configSrcController.Close()
 
@@ -77,5 +81,5 @@ func (c *Controller) Start(ctx context.Context) {
 		ListenAddress: cfg.PortalInternalListenAddr,
 		Handler:       pprofutil.NewServeMux(),
 	}))
-	signalutil.Start(ctx, c.logger, specs...)
+	signalutil.Start(ctx, specs...)
 }

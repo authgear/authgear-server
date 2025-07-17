@@ -17,15 +17,11 @@ import (
 
 func newConfigSourceController(p *deps.RootProvider) *configsource.Controller {
 	config := p.ConfigSourceConfig
-	factory := p.LoggerFactory
-	localFSLogger := configsource.NewLocalFSLogger(factory)
 	manager := p.BaseResources
 	localFS := &configsource.LocalFS{
-		Logger:        localFSLogger,
 		BaseResources: manager,
 		Config:        config,
 	}
-	databaseLogger := configsource.NewDatabaseLogger(factory)
 	environmentConfig := p.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	clock := _wireSystemClockValue
@@ -35,10 +31,9 @@ func newConfigSourceController(p *deps.RootProvider) *configsource.Controller {
 	planStoreFactory := configsource.NewPlanStoreStoreFactory(sqlBuilder)
 	pool := p.DatabasePool
 	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	databaseHandleFactory := configsource.NewDatabaseHandleFactory(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
+	databaseHandleFactory := configsource.NewDatabaseHandleFactory(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig)
 	resolveAppIDType := configsource.NewResolveAppIDTypeDomain()
 	database := &configsource.Database{
-		Logger:                   databaseLogger,
 		BaseResources:            manager,
 		TrustProxy:               trustProxy,
 		Config:                   config,

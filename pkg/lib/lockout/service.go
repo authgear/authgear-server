@@ -2,22 +2,20 @@ package lockout
 
 import (
 	"context"
+	"log/slog"
 
-	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
-type Logger struct{ *log.Logger }
-
-func NewLogger(lf *log.Factory) Logger {
-	return Logger{lf.New("lockout")}
-}
+var ServiceLogger = slogutil.NewLogger("lockout")
 
 type Service struct {
-	Logger  Logger
 	Storage Storage
 }
 
 func (s *Service) MakeAttempts(ctx context.Context, spec LockoutSpec, contributor string, attempts int) (result *MakeAttemptResult, err error) {
+	logger := ServiceLogger.GetLogger(ctx)
+
 	if !spec.Enabled {
 		return &MakeAttemptResult{
 			spec:        spec,
@@ -25,16 +23,19 @@ func (s *Service) MakeAttempts(ctx context.Context, spec LockoutSpec, contributo
 		}, nil
 	}
 
-	logger := s.Logger.
-		WithField("key", spec.Key())
+	logger = logger.With(
+		slog.String("key", spec.Key()),
+	)
 
 	isSuccess, lockedUntil, err := s.Storage.Update(ctx, spec, contributor, attempts)
 	if err != nil {
 		return nil, err
 	}
+
 	if lockedUntil != nil {
-		logger = logger.
-			WithField("lockedUntil", *lockedUntil)
+		logger = logger.With(
+			slog.Time("lockedUntil", *lockedUntil),
+		)
 	}
 
 	result = &MakeAttemptResult{
@@ -43,11 +44,11 @@ func (s *Service) MakeAttempts(ctx context.Context, spec LockoutSpec, contributo
 	}
 
 	if !isSuccess {
-		logger.Debug("make attempt failed")
+		logger.Debug(ctx, "make attempt failed")
 		return result, result.ErrorIfLocked()
 	}
 
-	logger.Debug("make attempt success")
+	logger.Debug(ctx, "make attempt success")
 
 	return result, nil
 }

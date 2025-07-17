@@ -15,13 +15,11 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
 	"github.com/authgear/authgear-server/pkg/util/crypto"
 	"github.com/authgear/authgear-server/pkg/util/jwkutil"
-	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/otelutil"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
-type WebHookLogger struct{ *log.Logger }
-
-func NewWebHookLogger(lf *log.Factory) WebHookLogger { return WebHookLogger{lf.New("webhook")} }
+var WebHookLogger = slogutil.NewLogger("webhook")
 
 type WebHook interface {
 	SupportURL(u *url.URL) bool
@@ -31,7 +29,6 @@ type WebHook interface {
 }
 
 type WebHookImpl struct {
-	Logger WebHookLogger
 	Secret *config.WebhookKeyMaterials
 }
 
@@ -90,6 +87,7 @@ func (h *WebHookImpl) PerformNoResponse(
 	ctx context.Context,
 	client *http.Client,
 	request *http.Request) error {
+	logger := WebHookLogger.GetLogger(ctx)
 
 	go func() {
 		resp, err := performRequest(client, request)
@@ -99,7 +97,7 @@ func (h *WebHookImpl) PerformNoResponse(
 				otelauthgear.CounterNonBlockingWebhookCount,
 				otelauthgear.WithStatusError(),
 			)
-			h.Logger.WithError(err).Error("failed to dispatch nonblocking webhook")
+			logger.WithError(err).Error(ctx, "failed to dispatch nonblocking webhook")
 		} else {
 			otelutil.IntCounterAddOne(
 				ctx,

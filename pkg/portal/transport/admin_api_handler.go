@@ -2,6 +2,7 @@ package transport
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
 	"net/http/httputil"
 
@@ -11,7 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/portal/service"
 	"github.com/authgear/authgear-server/pkg/portal/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
-	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
 func ConfigureAdminAPIRoute(route httproute.Route) httproute.Route {
@@ -26,23 +27,21 @@ type AdminAPIService interface {
 	Director(ctx context.Context, appID string, p string, userID string, usage service.Usage) (func(*http.Request), error)
 }
 
-type AdminAPILogger struct{ *log.Logger }
-
-func NewAdminAPILogger(lf *log.Factory) AdminAPILogger {
-	return AdminAPILogger{lf.New("admin-api-proxy")}
-}
+var AdminAPILogger = slogutil.NewLogger("admin-api-proxy")
 
 type AdminAPIHandler struct {
 	Database *globaldb.Handle
 	Authz    AdminAPIAuthzService
 	AdminAPI AdminAPIService
-	Logger   AdminAPILogger
 }
 
 func (h *AdminAPIHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	logger := AdminAPILogger.GetLogger(ctx)
 	resolved := relay.FromGlobalID(httproute.GetParam(r, "appid"))
 	if resolved == nil || resolved.Type != "App" {
-		h.Logger.Debugf("invalid app ID: %v", resolved)
+		logger.Debug(ctx, "invalid app ID", slog.Any("resolved", resolved))
 		http.Error(w, "invalid app ID", http.StatusBadRequest)
 		return
 	}
@@ -55,9 +54,9 @@ func (h *AdminAPIHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// The access control checking is done when some query is executed with method POST.
 	if r.Method == "GET" {
 		emptyActorUserID := ""
-		director, err := h.AdminAPI.Director(r.Context(), appID, p, emptyActorUserID, service.UsageProxy)
+		director, err := h.AdminAPI.Director(ctx, appID, p, emptyActorUserID, service.UsageProxy)
 		if err != nil {
-			h.Logger.WithError(err).Errorf("failed to proxy admin API request")
+			logger.WithError(err).Error(ctx, "failed to proxy admin API request")
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -67,16 +66,16 @@ func (h *AdminAPIHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sessionInfo := session.GetValidSessionInfo(r.Context())
+	sessionInfo := session.GetValidSessionInfo(ctx)
 	if sessionInfo == nil {
-		h.Logger.Debugf("access to admin API requires authenticated user")
+		logger.Debug(ctx, "access to admin API requires authenticated user")
 		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return
 	}
 
-	appIDs, err := h.Authz.ListAuthorizedApps(r.Context(), sessionInfo.UserID)
+	appIDs, err := h.Authz.ListAuthorizedApps(ctx, sessionInfo.UserID)
 	if err != nil {
-		h.Logger.WithError(err).Errorf("failed to list authorized apps")
+		logger.WithError(err).Error(ctx, "failed to list authorized apps")
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -89,14 +88,14 @@ func (h *AdminAPIHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	if !found {
-		h.Logger.Debugf("authenticated user does not have access to the app")
+		logger.Debug(ctx, "authenticated user does not have access to the app")
 		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return
 	}
 
-	director, err := h.AdminAPI.Director(r.Context(), appID, p, sessionInfo.UserID, service.UsageProxy)
+	director, err := h.AdminAPI.Director(ctx, appID, p, sessionInfo.UserID, service.UsageProxy)
 	if err != nil {
-		h.Logger.WithError(err).Errorf("failed to proxy admin API request")
+		logger.WithError(err).Error(ctx, "failed to proxy admin API request")
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

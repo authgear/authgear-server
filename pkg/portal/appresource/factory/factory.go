@@ -8,18 +8,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/portal/deps"
 	portalservice "github.com/authgear/authgear-server/pkg/portal/service"
 	"github.com/authgear/authgear-server/pkg/util/clock"
-	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
-type ManagerFactoryLogger struct{ *log.Logger }
-
-func NewManagerFactoryLogger(lf *log.Factory) ManagerFactoryLogger {
-	return ManagerFactoryLogger{lf.New("appresource-manager")}
-}
-
 type ManagerFactory struct {
-	Logger            ManagerFactoryLogger
 	AppBaseResources  deps.AppBaseResources
 	Tutorials         *tutorial.Service
 	DenoClient        *hook.DenoClientImpl
@@ -30,7 +22,6 @@ type ManagerFactory struct {
 
 func (f *ManagerFactory) NewManagerWithAppContext(appContext *config.AppContext) *appresource.Manager {
 	return &appresource.Manager{
-		Logger:                f.Logger.Logger,
 		AppResourceManager:    appContext.Resources,
 		AppFS:                 appContext.AppFs,
 		AppFeatureConfig:      appContext.Config.FeatureConfig,
@@ -46,7 +37,6 @@ func (f *ManagerFactory) NewManagerWithAppContext(appContext *config.AppContext)
 func (f *ManagerFactory) NewManagerWithNewAppFS(appFs resource.Fs) *appresource.Manager {
 	resMgr := (*resource.Manager)(f.AppBaseResources).Overlay(appFs)
 	return &appresource.Manager{
-		Logger:             f.Logger.Logger,
 		AppResourceManager: resMgr,
 		AppFS:              appFs,
 		// The newly generated config should not violate any app plan

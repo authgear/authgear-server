@@ -17,19 +17,14 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/util/clock"
-	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
-type Logger struct{ *log.Logger }
-
-func NewLogger(lf *log.Factory) Logger {
-	return Logger{lf.New("oauth-store")}
-}
+var OAuthStoreLogger = slogutil.NewLogger("oauth-store")
 
 type Store struct {
 	Redis       *appredis.Handle
 	AppID       config.AppID
-	Logger      Logger
 	SQLBuilder  *appdb.SQLBuilderApp
 	SQLExecutor *appdb.SQLExecutor
 	Clock       clock.Clock
@@ -574,6 +569,7 @@ func (s *Store) updateOfflineGrant(ctx context.Context, grant *oauth.OfflineGran
 }
 
 func (s *Store) DeleteOfflineGrant(ctx context.Context, grant *oauth.OfflineGrant) error {
+	logger := OAuthStoreLogger.GetLogger(ctx)
 	err := s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
 		err := s.del(ctx, conn, offlineGrantKey(grant.AppID, grant.ID))
 		if err != nil {
@@ -582,7 +578,7 @@ func (s *Store) DeleteOfflineGrant(ctx context.Context, grant *oauth.OfflineGran
 		_, err = conn.HDel(ctx, offlineGrantListKey(grant.AppID, grant.Attrs.UserID), grant.ID).Result()
 		if err != nil {
 			// Ignore err
-			s.Logger.WithError(err).Error("failed to update session list")
+			logger.WithError(err).Error(ctx, "failed to update session list")
 		}
 
 		return nil
@@ -595,6 +591,7 @@ func (s *Store) DeleteOfflineGrant(ctx context.Context, grant *oauth.OfflineGran
 }
 
 func (s *Store) ListOfflineGrants(ctx context.Context, userID string) ([]*oauth.OfflineGrant, error) {
+	logger := OAuthStoreLogger.GetLogger(ctx)
 	listKey := offlineGrantListKey(string(s.AppID), userID)
 
 	var grants []*oauth.OfflineGrant
@@ -610,7 +607,7 @@ func (s *Store) ListOfflineGrants(ctx context.Context, userID string) ([]*oauth.
 			if errors.Is(err, oauth.ErrGrantNotFound) {
 				_, err = conn.HDel(ctx, listKey, id).Result()
 				if err != nil {
-					s.Logger.WithError(err).Error("failed to update session list")
+					logger.WithError(err).Error(ctx, "failed to update session list")
 				}
 			} else if err != nil {
 				return err

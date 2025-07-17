@@ -18,7 +18,6 @@ var configSourceConfigDependencySet = wire.NewSet(
 	clock.DependencySet,
 	wire.FieldsOf(new(*deps.RootProvider),
 		"EnvironmentConfig",
-		"LoggerFactory",
 		"DatabasePool",
 		"BaseResources",
 	),

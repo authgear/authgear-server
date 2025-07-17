@@ -60,20 +60,20 @@ type AppSessionTokenIssuer interface {
 
 type AppSessionTokenHandler struct {
 	Database         *appdb.Handle
-	JSON             JSONResponseWriter
 	AppSessionTokens AppSessionTokenIssuer
 }
 
 func (h *AppSessionTokenHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	var result *AppSessionTokenResponse
-	err := h.Database.WithTx(req.Context(), func(ctx context.Context) (err error) {
+	ctx := req.Context()
+	err := h.Database.WithTx(ctx, func(ctx context.Context) (err error) {
 		result, err = h.Handle(ctx, resp, req)
 		return err
 	})
 	if err == nil {
-		h.JSON.WriteResponse(resp, &api.Response{Result: result})
+		httputil.WriteJSONResponse(ctx, resp, &api.Response{Result: result})
 	} else {
-		h.JSON.WriteResponse(resp, &api.Response{Error: err})
+		httputil.WriteJSONResponse(ctx, resp, &api.Response{Error: err})
 	}
 }
 

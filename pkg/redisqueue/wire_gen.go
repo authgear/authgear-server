@@ -83,8 +83,6 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 	appID := appConfig.ID
 	remoteIP := deps.ProvideRedisQueueRemoteIP()
 	userAgentString := deps.ProvideRedisQueueUserAgentString()
-	factory := p.LoggerFactory
-	logger := event.NewLogger(factory)
 	clock := _wireSystemClockValue
 	localizationConfig := appConfig.Localization
 	secretConfig := config.SecretConfig
@@ -260,7 +258,6 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 	}
 	authenticatorConfig := appConfig.Authenticator
 	authenticatorPasswordConfig := authenticatorConfig.Password
-	passwordLogger := password.NewLogger(factory)
 	historyStore := &password.HistoryStore{
 		Clock:       clock,
 		SQLBuilder:  sqlBuilderApp,
@@ -269,17 +266,14 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 	authenticatorFeatureConfig := featureConfig.Authenticator
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, authenticatorFeatureConfig, historyStore)
 	expiry := password.ProvideExpiry(authenticatorPasswordConfig, clock)
-	housekeeperLogger := password.NewHousekeeperLogger(factory)
 	housekeeper := &password.Housekeeper{
 		Store:  historyStore,
-		Logger: housekeeperLogger,
 		Config: authenticatorPasswordConfig,
 	}
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
 		Clock:           clock,
-		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
 		Expiry:          expiry,
@@ -330,12 +324,9 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		AppID: appID,
 		Clock: clock,
 	}
-	otpLogger := otp.NewLogger(factory)
-	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := ratelimit.NewAppStorageRedis(appredisHandle)
 	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		AppID:   appID,
 		Config:  rateLimitsFeatureConfig,
@@ -350,7 +341,6 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		CodeStore:             codeStoreRedis,
 		LookupStore:           lookupStoreRedis,
 		AttemptTracker:        attemptTrackerRedis,
-		Logger:                otpLogger,
 		RateLimiter:           limiter,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
@@ -363,13 +353,11 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		RateLimiter:   limiter,
 	}
 	authenticationLockoutConfig := authenticationConfig.Lockout
-	lockoutLogger := lockout.NewLogger(factory)
 	lockoutStorageRedis := &lockout.StorageRedis{
 		AppID: appID,
 		Redis: appredisHandle,
 	}
 	lockoutService := &lockout.Service{
-		Logger:  lockoutLogger,
 		Storage: lockoutStorageRedis,
 	}
 	serviceLockout := service2.Lockout{
@@ -440,12 +428,9 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 	resolverImpl := &event.ResolverImpl{
 		Users: userQueries,
 	}
-	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
-	webHookLogger := hook.NewWebHookLogger(factory)
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	webHookImpl := hook.WebHookImpl{
-		Logger: webHookLogger,
 		Secret: webhookKeyMaterials,
 	}
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
@@ -455,14 +440,12 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		SyncHTTP:    syncHTTPClient,
 		AsyncHTTP:   asyncHTTPClient,
 	}
-	denoHookLogger := hook.NewDenoHookLogger(factory)
 	denoHook := hook.DenoHook{
 		ResourceManager: manager,
-		Logger:          denoHookLogger,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
 	eventDenoHookImpl := &hook.EventDenoHookImpl{
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
@@ -472,7 +455,6 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		Store: rolesgroupsStore,
 	}
 	sink := &hook.Sink{
-		Logger:             hookLogger,
 		Config:             hookConfig,
 		Clock:              clock,
 		EventWebHook:       eventWebHookImpl,
@@ -481,7 +463,6 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		CustomAttributes:   customattrsServiceNoEvent,
 		RolesAndGroups:     commands,
 	}
-	auditLogger := audit.NewLogger(factory)
 	writeHandle := p.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
@@ -491,13 +472,10 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
-		Logger:   auditLogger,
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	sinkLogger := reindex.NewSinkLogger(factory)
 	searchConfig := appConfig.Search
-	reindexerLogger := reindex.NewReindexerLogger(factory)
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clock)
 	sourceProvider := &reindex.SourceProvider{
 		AppID:           appID,
@@ -506,13 +484,11 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		IdentityService: serviceService,
 		RolesGroups:     rolesgroupsStore,
 	}
-	elasticsearchServiceLogger := elasticsearch.NewElasticsearchServiceLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	elasticsearchService := &elasticsearch.Service{
 		Clock:           clock,
 		Database:        handle,
-		Logger:          elasticsearchServiceLogger,
 		AppID:           appID,
 		Client:          client,
 		Users:           userQueries,
@@ -536,7 +512,6 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		SearchConfig:           searchConfig,
 		Clock:                  clock,
 		Database:               handle,
-		Logger:                 reindexerLogger,
 		UserStore:              store,
 		Producer:               userReindexProducer,
 		SourceProvider:         sourceProvider,
@@ -544,7 +519,6 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		PostgresqlReindexer:    pgsearchService,
 	}
 	reindexSink := &reindex.Sink{
-		Logger:    sinkLogger,
 		Reindexer: reindexer,
 		Database:  handle,
 	}
@@ -557,7 +531,7 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, logger, handle, clock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	eventService := event.NewService(appID, remoteIP, userAgentString, handle, clock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -583,16 +557,12 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
-	messagingLogger := messaging.NewLogger(factory)
-	usageLogger := usage.NewLogger(factory)
 	usageLimiter := &usage.Limiter{
-		Logger: usageLogger,
-		Clock:  clock,
-		AppID:  appID,
-		Redis:  appredisHandle,
+		Clock: clock,
+		AppID: appID,
+		Redis: appredisHandle,
 	}
 	limits := messaging.Limits{
-		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		UsageLimiter:  usageLimiter,
 		RemoteIP:      remoteIP,
@@ -600,14 +570,11 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		FeatureConfig: featureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
-	mailLogger := mail.NewLogger(factory)
 	smtpServerCredentials := deps.ProvideSMTPServerCredentials(secretConfig)
 	dialer := mail.NewGomailDialer(smtpServerCredentials)
 	sender := &mail.Sender{
-		Logger:       mailLogger,
 		GomailDialer: dialer,
 	}
-	smsLogger := sms.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	smsProvider := messagingConfig.Deprecated_SMSProvider
 	smsGatewayConfig := messagingConfig.SMSGateway
@@ -623,16 +590,14 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 	smsGatewayEnvironmentCustomSMSProviderConfig := smsGatewayEnvironmentConfig.Custom
 	hookDenoHook := &hook.DenoHook{
 		ResourceManager: manager,
-		Logger:          denoHookLogger,
 	}
 	smsHookTimeout := custom.NewSMSHookTimeout(customSMSProviderConfig)
-	hookDenoClient := custom.NewHookDenoClient(denoEndpoint, hookLogger, smsHookTimeout)
+	hookDenoClient := custom.NewHookDenoClient(denoEndpoint, smsHookTimeout)
 	smsDenoHook := custom.SMSDenoHook{
 		DenoHook: hookDenoHook,
 		Client:   hookDenoClient,
 	}
 	hookWebHookImpl := &hook.WebHookImpl{
-		Logger: webHookLogger,
 		Secret: webhookKeyMaterials,
 	}
 	hookHTTPClient := custom.NewHookHTTPClient(smsHookTimeout)
@@ -655,10 +620,8 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		SMSWebHook:                                 smsWebHook,
 	}
 	smsSender := &sms.Sender{
-		Logger:         smsLogger,
 		ClientResolver: clientResolver,
 	}
-	serviceLogger := whatsapp.NewServiceLogger(factory)
 	whatsappConfig := messagingConfig.Whatsapp
 	globalWhatsappAPIType := environmentConfig.WhatsappAPIType
 	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
@@ -668,11 +631,10 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		Clock: clock,
 	}
 	httpClient := whatsapp.NewHTTPClient()
-	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(factory, whatsappOnPremisesCredentials, tokenStore, httpClient)
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappOnPremisesCredentials, tokenStore, httpClient)
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient)
 	whatsappService := &whatsapp.Service{
-		Logger:                serviceLogger,
 		WhatsappConfig:        whatsappConfig,
 		LocalizationConfig:    localizationConfig,
 		GlobalWhatsappAPIType: globalWhatsappAPIType,
@@ -688,7 +650,6 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 	featureTestModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
 	testModeWhatsappConfig := testModeConfig.Whatsapp
 	messagingSender := &messaging.Sender{
-		Logger:                            messagingLogger,
 		Limits:                            limits,
 		Events:                            eventService,
 		MailSender:                        sender,
@@ -736,12 +697,10 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	storeRedis := &idpsession.StoreRedis{
-		Redis:  appredisHandle,
-		AppID:  appID,
-		Clock:  clock,
-		Logger: storeRedisLogger,
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clock,
 	}
 	sessionConfig := appConfig.Session
 	httpConfig := appConfig.HTTP
@@ -753,11 +712,9 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		Cookies:   cookieManager,
 		CookieDef: cookieDef,
 	}
-	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
 		Redis:       appredisHandle,
 		AppID:       appID,
-		Logger:      redisLogger,
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clock,
@@ -771,12 +728,10 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		Store: eventStoreRedis,
 	}
 	analyticredisHandle := p.AnalyticRedis
-	meterStoreRedisLogger := meter.NewStoreRedisLogger(factory)
 	writeStoreRedis := &meter.WriteStoreRedis{
-		Redis:  analyticredisHandle,
-		AppID:  appID,
-		Clock:  clock,
-		Logger: meterStoreRedisLogger,
+		Redis: analyticredisHandle,
+		AppID: appID,
+		Clock: clock,
 	}
 	meterService := &meter.Service{
 		Counter: writeStoreRedis,
@@ -870,7 +825,6 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 	authenticatorFacade := &facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
-	userimportLogger := userimport.NewLogger(factory)
 	userImportService := &userimport.UserImportService{
 		AppDatabase:          handle,
 		LoginIDConfig:        loginIDConfig,
@@ -883,7 +837,6 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		CustomAttributes:     customattrsServiceNoEvent,
 		RolesGroupsCommands:  commands,
 		SearchReindexService: reindexer,
-		Logger:               userimportLogger,
 	}
 	return userImportService
 }
@@ -1076,8 +1029,6 @@ func newUserExportService(ctx context.Context, p *deps.AppProvider) *userexport.
 	}
 	authenticatorConfig := appConfig.Authenticator
 	authenticatorPasswordConfig := authenticatorConfig.Password
-	factory := p.LoggerFactory
-	logger := password.NewLogger(factory)
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
 		SQLBuilder:  sqlBuilderApp,
@@ -1086,17 +1037,14 @@ func newUserExportService(ctx context.Context, p *deps.AppProvider) *userexport.
 	authenticatorFeatureConfig := featureConfig.Authenticator
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, authenticatorFeatureConfig, historyStore)
 	expiry := password.ProvideExpiry(authenticatorPasswordConfig, clockClock)
-	housekeeperLogger := password.NewHousekeeperLogger(factory)
 	housekeeper := &password.Housekeeper{
 		Store:  historyStore,
-		Logger: housekeeperLogger,
 		Config: authenticatorPasswordConfig,
 	}
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
 		Clock:           clockClock,
-		Logger:          logger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
 		Expiry:          expiry,
@@ -1148,12 +1096,9 @@ func newUserExportService(ctx context.Context, p *deps.AppProvider) *userexport.
 		AppID: appID,
 		Clock: clockClock,
 	}
-	otpLogger := otp.NewLogger(factory)
-	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := ratelimit.NewAppStorageRedis(appredisHandle)
 	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		AppID:   appID,
 		Config:  rateLimitsFeatureConfig,
@@ -1168,7 +1113,6 @@ func newUserExportService(ctx context.Context, p *deps.AppProvider) *userexport.
 		CodeStore:             codeStoreRedis,
 		LookupStore:           lookupStoreRedis,
 		AttemptTracker:        attemptTrackerRedis,
-		Logger:                otpLogger,
 		RateLimiter:           limiter,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
@@ -1181,13 +1125,11 @@ func newUserExportService(ctx context.Context, p *deps.AppProvider) *userexport.
 		RateLimiter:   limiter,
 	}
 	authenticationLockoutConfig := authenticationConfig.Lockout
-	lockoutLogger := lockout.NewLogger(factory)
 	lockoutStorageRedis := &lockout.StorageRedis{
 		AppID: appID,
 		Redis: appredisHandle,
 	}
 	lockoutService := &lockout.Service{
-		Logger:  lockoutLogger,
 		Storage: lockoutStorageRedis,
 	}
 	serviceLockout := service2.Lockout{
@@ -1254,7 +1196,6 @@ func newUserExportService(ctx context.Context, p *deps.AppProvider) *userexport.
 		CustomAttributes:   customattrsServiceNoEvent,
 		RolesAndGroups:     queries,
 	}
-	userexportLogger := userexport.NewLogger(factory)
 	httpClient := userexport.NewHTTPClient()
 	userExportObjectStoreConfig := environmentConfig.UserExportObjectStore
 	userExportCloudStorage := userexport.NewCloudStorage(userExportObjectStoreConfig, clockClock)
@@ -1262,7 +1203,6 @@ func newUserExportService(ctx context.Context, p *deps.AppProvider) *userexport.
 		AppDatabase:  handle,
 		Config:       userProfileConfig,
 		UserQueries:  userQueries,
-		Logger:       userexportLogger,
 		HTTPOrigin:   httpOrigin,
 		HTTPClient:   httpClient,
 		CloudStorage: userExportCloudStorage,
@@ -1279,8 +1219,6 @@ func newSearchReindexer(ctx context.Context, p *deps.AppProvider) *reindex.Reind
 	searchConfig := appConfig.Search
 	clockClock := _wireSystemClockValue
 	handle := p.AppDatabase
-	factory := p.LoggerFactory
-	reindexerLogger := reindex.NewReindexerLogger(factory)
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
@@ -1456,7 +1394,6 @@ func newSearchReindexer(ctx context.Context, p *deps.AppProvider) *reindex.Reind
 	}
 	authenticatorConfig := appConfig.Authenticator
 	authenticatorPasswordConfig := authenticatorConfig.Password
-	logger := password.NewLogger(factory)
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
 		SQLBuilder:  sqlBuilderApp,
@@ -1465,17 +1402,14 @@ func newSearchReindexer(ctx context.Context, p *deps.AppProvider) *reindex.Reind
 	authenticatorFeatureConfig := featureConfig.Authenticator
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, authenticatorFeatureConfig, historyStore)
 	expiry := password.ProvideExpiry(authenticatorPasswordConfig, clockClock)
-	housekeeperLogger := password.NewHousekeeperLogger(factory)
 	housekeeper := &password.Housekeeper{
 		Store:  historyStore,
-		Logger: housekeeperLogger,
 		Config: authenticatorPasswordConfig,
 	}
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
 		Clock:           clockClock,
-		Logger:          logger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
 		Expiry:          expiry,
@@ -1527,12 +1461,9 @@ func newSearchReindexer(ctx context.Context, p *deps.AppProvider) *reindex.Reind
 		AppID: appID,
 		Clock: clockClock,
 	}
-	otpLogger := otp.NewLogger(factory)
-	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := ratelimit.NewAppStorageRedis(appredisHandle)
 	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		AppID:   appID,
 		Config:  rateLimitsFeatureConfig,
@@ -1547,7 +1478,6 @@ func newSearchReindexer(ctx context.Context, p *deps.AppProvider) *reindex.Reind
 		CodeStore:             codeStoreRedis,
 		LookupStore:           lookupStoreRedis,
 		AttemptTracker:        attemptTrackerRedis,
-		Logger:                otpLogger,
 		RateLimiter:           limiter,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
@@ -1560,13 +1490,11 @@ func newSearchReindexer(ctx context.Context, p *deps.AppProvider) *reindex.Reind
 		RateLimiter:   limiter,
 	}
 	authenticationLockoutConfig := authenticationConfig.Lockout
-	lockoutLogger := lockout.NewLogger(factory)
 	lockoutStorageRedis := &lockout.StorageRedis{
 		AppID: appID,
 		Redis: appredisHandle,
 	}
 	lockoutService := &lockout.Service{
-		Logger:  lockoutLogger,
 		Storage: lockoutStorageRedis,
 	}
 	serviceLockout := service2.Lockout{
@@ -1641,13 +1569,11 @@ func newSearchReindexer(ctx context.Context, p *deps.AppProvider) *reindex.Reind
 		IdentityService: serviceService,
 		RolesGroups:     rolesgroupsStore,
 	}
-	elasticsearchServiceLogger := elasticsearch.NewElasticsearchServiceLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	elasticsearchService := &elasticsearch.Service{
 		Clock:           clockClock,
 		Database:        handle,
-		Logger:          elasticsearchServiceLogger,
 		AppID:           appID,
 		Client:          client,
 		Users:           userQueries,
@@ -1671,7 +1597,6 @@ func newSearchReindexer(ctx context.Context, p *deps.AppProvider) *reindex.Reind
 		SearchConfig:           searchConfig,
 		Clock:                  clockClock,
 		Database:               handle,
-		Logger:                 reindexerLogger,
 		UserStore:              store,
 		Producer:               userReindexProducer,
 		SourceProvider:         sourceProvider,

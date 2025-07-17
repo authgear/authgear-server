@@ -35,7 +35,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/usage"
 	"github.com/authgear/authgear-server/pkg/lib/userexport"
 	"github.com/authgear/authgear-server/pkg/lib/userimport"
-	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 var DependencySet = wire.NewSet(
@@ -101,7 +100,6 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(service.InteractionGraphService), new(*interaction.Service)),
 
 	transport.DependencySet,
-	wire.Bind(new(transport.JSONResponseWriter), new(*httputil.JSONResponseWriter)),
 	wire.Bind(new(transport.PresignProvider), new(*presign.Provider)),
 	wire.Bind(new(transport.UserImportJobEnqueuer), new(*userimport.JobManager)),
 	wire.Bind(new(transport.UserImportJobGetter), new(*userimport.JobManager)),

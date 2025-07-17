@@ -15,18 +15,16 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/util/clock"
-	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
 // Injectors from wire.go:
 
-func newAuditSink(app *model.App, pool *db.Pool, cfg *config.DatabaseEnvironmentConfig, loggerFactory *log.Factory) *audit.Sink {
-	logger := audit.NewLogger(loggerFactory)
+func newAuditSink(app *model.App, pool *db.Pool, cfg *config.DatabaseEnvironmentConfig) *audit.Sink {
 	appContext := app.Context
 	configConfig := appContext.Config
 	secretConfig := configConfig.SecretConfig
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	writeHandle := auditdb.NewWriteHandle(pool, cfg, auditDatabaseCredentials, loggerFactory)
+	writeHandle := auditdb.NewWriteHandle(pool, cfg, auditDatabaseCredentials)
 	appConfig := configConfig.AppConfig
 	appID := appConfig.ID
 	sqlBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
@@ -36,25 +34,21 @@ func newAuditSink(app *model.App, pool *db.Pool, cfg *config.DatabaseEnvironment
 		SQLExecutor: writeSQLExecutor,
 	}
 	sink := &audit.Sink{
-		Logger:   logger,
 		Database: writeHandle,
 		Store:    writeStore,
 	}
 	return sink
 }
 
-func newHookSink(app *model.App, denoEndpoint config.DenoEndpoint, loggerFactory *log.Factory) *hook.Sink {
-	logger := hook.NewLogger(loggerFactory)
+func newHookSink(app *model.App, denoEndpoint config.DenoEndpoint) *hook.Sink {
 	appContext := app.Context
 	configConfig := appContext.Config
 	appConfig := configConfig.AppConfig
 	hookConfig := appConfig.Hook
 	clock := _wireSystemClockValue
-	webHookLogger := hook.NewWebHookLogger(loggerFactory)
 	secretConfig := configConfig.SecretConfig
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	webHookImpl := hook.WebHookImpl{
-		Logger: webHookLogger,
 		Secret: webhookKeyMaterials,
 	}
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
@@ -65,13 +59,11 @@ func newHookSink(app *model.App, denoEndpoint config.DenoEndpoint, loggerFactory
 		AsyncHTTP:   asyncHTTPClient,
 	}
 	manager := appContext.Resources
-	denoHookLogger := hook.NewDenoHookLogger(loggerFactory)
 	denoHook := hook.DenoHook{
 		ResourceManager: manager,
-		Logger:          denoHookLogger,
 	}
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, logger)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, logger)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
 	eventDenoHookImpl := &hook.EventDenoHookImpl{
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
@@ -80,7 +72,6 @@ func newHookSink(app *model.App, denoEndpoint config.DenoEndpoint, loggerFactory
 	noopAttributesService := _wireNoopAttributesServiceValue
 	noopRolesAndGroupsService := _wireNoopRolesAndGroupsServiceValue
 	sink := &hook.Sink{
-		Logger:             logger,
 		Config:             hookConfig,
 		Clock:              clock,
 		EventWebHook:       eventWebHookImpl,

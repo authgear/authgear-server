@@ -11,7 +11,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
-	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
 type GenerateOptions struct {
@@ -57,9 +57,7 @@ type RateLimiter interface {
 	Cancel(ctx context.Context, r *ratelimit.Reservation)
 }
 
-type Logger struct{ *log.Logger }
-
-func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("otp")} }
+var ServiceLogger = slogutil.NewLogger("otp")
 
 type Service struct {
 	Clock clock.Clock
@@ -71,7 +69,6 @@ type Service struct {
 	CodeStore             CodeStore
 	LookupStore           LookupStore
 	AttemptTracker        AttemptTracker
-	Logger                Logger
 	RateLimiter           RateLimiter
 
 	FeatureConfig *config.FeatureConfig
@@ -116,6 +113,7 @@ func (s *Service) handleFailedAttemptsRevocation(ctx context.Context, kind Kind,
 }
 
 func (s *Service) checkFailedAttemptsRevocation(ctx context.Context, kind Kind, target string) error {
+	logger := ServiceLogger.GetLogger(ctx)
 	failedAttempts, err := s.AttemptTracker.GetFailedAttempts(ctx, kind, target)
 	if err != nil {
 		return err
@@ -125,7 +123,7 @@ func (s *Service) checkFailedAttemptsRevocation(ctx context.Context, kind Kind, 
 	if maxFailedAttempts != 0 && failedAttempts >= maxFailedAttempts {
 		err = s.deleteCode(ctx, kind, target)
 		if err != nil {
-			s.Logger.WithError(err).Warn("failed to revoke OTP")
+			logger.WithError(err).Warn(ctx, "failed to revoke OTP")
 		}
 		return ErrTooManyAttempts
 	}
@@ -134,6 +132,8 @@ func (s *Service) checkFailedAttemptsRevocation(ctx context.Context, kind Kind, 
 }
 
 func (s *Service) GenerateOTP(ctx context.Context, kind Kind, target string, form Form, opts *GenerateOptions) (string, error) {
+	logger := ServiceLogger.GetLogger(ctx)
+
 	if !opts.SkipRateLimits {
 		failed, err := s.RateLimiter.Allow(ctx, kind.RateLimitTriggerCooldown(target))
 		if err != nil {
@@ -186,13 +186,15 @@ func (s *Service) GenerateOTP(ctx context.Context, kind Kind, target string, for
 
 	if err := s.AttemptTracker.ResetFailedAttempts(ctx, kind, target); err != nil {
 		// non-critical error; log and continue
-		s.Logger.WithError(err).Warn("failed to reset failed attempts counter")
+		logger.WithError(err).Warn(ctx, "failed to reset failed attempts counter")
 	}
 
 	return code.Code, nil
 }
 
 func (s *Service) VerifyOTP(ctx context.Context, kind Kind, target string, otp string, opts *VerifyOptions) error {
+	logger := ServiceLogger.GetLogger(ctx)
+
 	if err := s.checkFailedAttemptsRevocation(ctx, kind, target); err != nil {
 		return err
 	}
@@ -246,7 +248,7 @@ func (s *Service) VerifyOTP(ctx context.Context, kind Kind, target string, otp s
 			return ferr
 		} else if ferr != nil {
 			// log the error, and return original error
-			s.Logger.WithError(ferr).Warn("failed to handle failed attempts")
+			logger.WithError(ferr).Warn(ctx, "failed to handle failed attempts")
 		}
 		return ErrInvalidCode
 	}

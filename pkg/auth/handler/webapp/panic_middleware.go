@@ -2,6 +2,7 @@ package webapp
 
 import (
 	"fmt"
+	"log/slog"
 	"net/http"
 
 	"net/url"
@@ -12,16 +13,12 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/panicutil"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
-type PanicMiddlewareLogger struct{ *log.Logger }
-
-func NewPanicMiddlewareLogger(lf *log.Factory) PanicMiddlewareLogger {
-	return PanicMiddlewareLogger{lf.New("webapp-panic-middleware")}
-}
+var PanicMiddlewareLogger = slogutil.NewLogger("webapp-panic-middleware")
 
 type PanicMiddlewareEndpointsProvider interface {
 	ErrorEndpointURL() *url.URL
@@ -33,7 +30,6 @@ type PanicMiddlewareUIImplementationService interface {
 
 type PanicMiddleware struct {
 	ErrorService            *webapp.ErrorService
-	Logger                  PanicMiddlewareLogger
 	BaseViewModel           *viewmodels.BaseViewModeler
 	Renderer                Renderer
 	Endpoints               PanicMiddlewareEndpointsProvider
@@ -61,12 +57,17 @@ func (m *PanicMiddleware) Handle(next http.Handler) http.Handler {
 
 		defer func() {
 			if e := recover(); e != nil {
+				ctx := r.Context()
+				logger := PanicMiddlewareLogger.GetLogger(ctx)
+				logger = logger.With(slog.Bool("written", written))
 				err := panicutil.MakeError(e)
-				m.Logger.WithError(err).Error("panic occurred")
+
+				logger.WithError(err).Error(ctx, "panic occurred")
 
 				apiError := apierrors.AsAPIError(err)
-				cookie, cookieErr := m.ErrorService.SetRecoverableError(r.Context(), r, apiError)
+				cookie, cookieErr := m.ErrorService.SetRecoverableError(ctx, r, apiError)
 				if cookieErr != nil {
+					cookieErr = fmt.Errorf("failed to store error: %w", cookieErr)
 					panic(cookieErr)
 				}
 				uiImpl := m.UIImplementationService.GetUIImplementation()

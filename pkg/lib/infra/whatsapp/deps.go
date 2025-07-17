@@ -20,7 +20,6 @@ func NewHTTPClient() HTTPClient {
 }
 
 var DependencySet = wire.NewSet(
-	NewServiceLogger,
 	NewHTTPClient,
 	NewWhatsappOnPremisesClient,
 	NewWhatsappCloudAPIClient,

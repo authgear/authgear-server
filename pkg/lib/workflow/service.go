@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
-	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
 //go:generate go tool mockgen -source=service.go -destination=service_mock_test.go -package workflow
@@ -33,12 +32,6 @@ type ServiceOutput struct {
 	Cookies        []*http.Cookie
 }
 
-type ServiceLogger struct{ *log.Logger }
-
-func NewServiceLogger(lf *log.Factory) ServiceLogger {
-	return ServiceLogger{lf.New("workflow-service")}
-}
-
 type Store interface {
 	CreateSession(ctx context.Context, session *Session) error
 	GetSession(ctx context.Context, workflowID string) (*Session, error)
@@ -60,7 +53,6 @@ type ServiceUIInfoResolver interface {
 
 type Service struct {
 	Deps           *Dependencies
-	Logger         ServiceLogger
 	Store          Store
 	Database       ServiceDatabase
 	UIInfoResolver ServiceUIInfoResolver

@@ -12,13 +12,12 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/util/backgroundjob"
 	"github.com/authgear/authgear-server/pkg/util/clock"
-	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
 // Injectors from wire.go:
 
-func newRunnable(pool *db.Pool, globalDBCredentials *config.GlobalDatabaseCredentialsEnvironmentConfig, databaseCfg *config.DatabaseEnvironmentConfig, logFactory *log.Factory, clock2 clock.Clock, appContextResolver AppContextResolver, userServiceFactory UserServiceFactory) backgroundjob.Runnable {
-	handle := globaldb.NewHandle(pool, globalDBCredentials, databaseCfg, logFactory)
+func newRunnable(pool *db.Pool, globalDBCredentials *config.GlobalDatabaseCredentialsEnvironmentConfig, databaseCfg *config.DatabaseEnvironmentConfig, clock2 clock.Clock, appContextResolver AppContextResolver, userServiceFactory UserServiceFactory) backgroundjob.Runnable {
+	handle := globaldb.NewHandle(pool, globalDBCredentials, databaseCfg)
 	sqlBuilder := globaldb.NewSQLBuilder(globalDBCredentials)
 	sqlExecutor := globaldb.NewSQLExecutor(handle)
 	store := &Store{
@@ -27,12 +26,10 @@ func newRunnable(pool *db.Pool, globalDBCredentials *config.GlobalDatabaseCreden
 		SQLExecutor: sqlExecutor,
 		Clock:       clock2,
 	}
-	runnableLogger := NewRunnableLogger(logFactory)
 	runnable := &Runnable{
 		Store:              store,
 		AppContextResolver: appContextResolver,
 		UserServiceFactory: userServiceFactory,
-		Logger:             runnableLogger,
 	}
 	return runnable
 }

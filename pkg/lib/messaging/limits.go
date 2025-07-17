@@ -31,7 +31,6 @@ type RateLimiter interface {
 }
 
 type Limits struct {
-	Logger       Logger
 	RateLimiter  RateLimiter
 	UsageLimiter UsageLimiter
 	RemoteIP     httputil.RemoteIP

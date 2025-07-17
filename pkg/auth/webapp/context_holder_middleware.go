@@ -6,18 +6,12 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
-	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
-type ContextHolderMiddlewareLogger struct{ *log.Logger }
+var ContextHolderMiddlewareLogger = slogutil.NewLogger("webapp-context-holder-middleware")
 
-func NewContextHolderMiddlewareLogger(lf *log.Factory) ContextHolderMiddlewareLogger {
-	return ContextHolderMiddlewareLogger{lf.New("webapp-context-holder-middleware")}
-}
-
-type ContextHolderMiddleware struct {
-	Logger ContextHolderMiddlewareLogger
-}
+type ContextHolderMiddleware struct{}
 
 func (m *ContextHolderMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

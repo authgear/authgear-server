@@ -2,6 +2,7 @@ package deps
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
 	"runtime"
 
@@ -13,16 +14,15 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
-	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 	"github.com/authgear/authgear-server/pkg/util/sentry"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 	"github.com/authgear/authgear-server/pkg/util/vipsutil"
 )
 
 type RootProvider struct {
 	EnvironmentConfig imagesconfig.EnvironmentConfig
 	ObjectStoreConfig *imagesconfig.ObjectStoreConfig
-	LoggerFactory     *log.Factory
 	SentryHub         *getsentry.Hub
 	DatabasePool      *db.Pool
 	VipsDaemon        *vipsutil.Daemon
@@ -30,24 +30,15 @@ type RootProvider struct {
 }
 
 func NewRootProvider(
+	ctx context.Context,
 	envConfig imagesconfig.EnvironmentConfig,
 	objectStoreConfig *imagesconfig.ObjectStoreConfig,
-) (*RootProvider, error) {
-	logLevel, err := log.ParseLevel(string(envConfig.LogLevel))
-	if err != nil {
-		return nil, err
-	}
-
+) (context.Context, *RootProvider, error) {
 	sentryHub, err := sentry.NewHub(string(envConfig.SentryDSN))
 	if err != nil {
-		return nil, err
+		return ctx, nil, err
 	}
-
-	loggerFactory := log.NewFactory(
-		logLevel,
-		log.NewDefaultMaskLogHook(),
-		sentry.NewLogHookFromHub(sentryHub),
-	)
+	ctx = getsentry.SetHubOnContext(ctx, sentryHub)
 
 	dbPool := db.NewPool()
 
@@ -55,10 +46,9 @@ func NewRootProvider(
 	// But it is not harmful not to close this.
 	vipsDaemon := vipsutil.OpenDaemon(runtime.NumCPU())
 
-	return &RootProvider{
+	return ctx, &RootProvider{
 		EnvironmentConfig: envConfig,
 		ObjectStoreConfig: objectStoreConfig,
-		LoggerFactory:     loggerFactory,
 		SentryHub:         sentryHub,
 		DatabasePool:      dbPool,
 		VipsDaemon:        vipsDaemon,
@@ -71,20 +61,20 @@ func NewRootProvider(
 	}, nil
 }
 
-func (p *RootProvider) NewAppProvider(ctx context.Context, appCtx *config.AppContext) *AppProvider {
+func (p *RootProvider) NewAppProvider(ctx context.Context, appCtx *config.AppContext) (context.Context, *AppProvider) {
 	cfg := appCtx.Config
-	loggerFactory := p.LoggerFactory.ReplaceHooks(
-		log.NewDefaultMaskLogHook(),
-		config.NewSecretMaskLogHook(cfg.SecretConfig),
-		sentry.NewLogHookFromContext(ctx),
-	)
-	loggerFactory.DefaultFields["app"] = cfg.AppConfig.ID
+
+	// Modern logging setup
+	ctx = slogutil.AddMaskPatterns(ctx, config.NewMaskPatternFromSecretConfig(cfg.SecretConfig))
+	logger := slogutil.GetContextLogger(ctx)
+	logger = logger.With(slog.String("app", string(cfg.AppConfig.ID)))
+	ctx = slogutil.SetContextLogger(ctx, logger)
+
 	provider := &AppProvider{
-		RootProvider:  p,
-		Config:        cfg,
-		LoggerFactory: loggerFactory,
+		RootProvider: p,
+		Config:       cfg,
 	}
-	return provider
+	return ctx, provider
 }
 
 func (p *RootProvider) RootMiddleware(factory func(*RootProvider) httproute.Middleware) httproute.Middleware {
@@ -112,8 +102,7 @@ func (p *RootProvider) Handler(f func(*RequestProvider) http.Handler) http.Handl
 
 type AppProvider struct {
 	*RootProvider
-	Config        *config.Config
-	LoggerFactory *log.Factory
+	Config *config.Config
 }
 
 func (p *AppProvider) NewRequestProvider(r *http.Request) *RequestProvider {

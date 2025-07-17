@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"log/slog"
 	"net"
 	"net/http"
 	"sync"
@@ -23,8 +24,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/filepathutil"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
-	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/resource"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
@@ -41,11 +42,7 @@ type DatabaseSource struct {
 	UpdatedAt time.Time
 }
 
-type DatabaseLogger struct{ *log.Logger }
-
-func NewDatabaseLogger(lf *log.Factory) DatabaseLogger {
-	return DatabaseLogger{lf.New("configsource-database")}
-}
+var DatabaseLogger = slogutil.NewLogger("configsource-database")
 
 type ResolveAppIDType string
 
@@ -70,14 +67,12 @@ func NewDatabaseHandleFactory(
 	pool *db.Pool,
 	credentials *config.GlobalDatabaseCredentialsEnvironmentConfig,
 	cfg *config.DatabaseEnvironmentConfig,
-	lf *log.Factory,
 ) DatabaseHandleFactory {
 	factory := func() *globaldb.Handle {
 		return globaldb.NewHandle(
 			pool,
 			credentials,
 			cfg,
-			lf,
 		)
 	}
 	return factory
@@ -104,7 +99,6 @@ func NewPlanStoreStoreFactory(
 }
 
 type Database struct {
-	Logger                   DatabaseLogger
 	BaseResources            *resource.Manager
 	TrustProxy               config.TrustProxy
 	Config                   *Config
@@ -141,22 +135,24 @@ func (d *Database) Open(ctx context.Context) error {
 		PGChannelDomainChange,
 		PGChannelPlanChange,
 	}, done, func(channel string, extra string) {
+		logger := DatabaseLogger.GetLogger(ctx)
 		switch channel {
 		case PGChannelConfigSourceChange:
-			d.invalidateApp(extra)
+			d.invalidateApp(ctx, extra)
 		case PGChannelDomainChange:
-			d.invalidateHost(extra)
+			d.invalidateHost(ctx, extra)
 			d.invalidateAppByDomain(ctx, extra)
 		case PGChannelPlanChange:
-			d.invalidateAllApp()
+			d.invalidateAllApp(ctx)
 		default:
 			// unknown notification channel, just skip it
-			d.Logger.WithField("channel", channel).Info("unknown notification channel")
+			logger.Info(ctx, "unknown notification channel", slog.String("channel", channel))
 		}
 	}, func(e error) {
-		d.Logger.WithError(e).Error("error on listening pgsql")
+		logger := DatabaseLogger.GetLogger(ctx)
+		logger.WithError(e).Error(ctx, "error on listening pgsql")
 	})
-	go d.cleanupCache(done)
+	go d.cleanupCache(ctx, done)
 
 	return nil
 }
@@ -206,7 +202,8 @@ func (d *Database) resolveAppIDByDomain(ctx context.Context, r *http.Request) (s
 	dbHandle := d.DatabaseHandleFactory()
 	store := d.ConfigSourceStoreFactory(dbHandle)
 	err := dbHandle.WithTx(ctx, func(ctx context.Context) error {
-		d.Logger.WithField("host", host).Debug("resolve appid from db")
+		logger := DatabaseLogger.GetLogger(ctx)
+		logger.Debug(ctx, "resolve appid from db", slog.String("host", host))
 		aid, err := store.GetAppIDByDomain(ctx, host)
 		if err != nil {
 			return err
@@ -238,7 +235,7 @@ func (d *Database) ResolveContext(ctx context.Context, appID string, fn func(con
 }
 
 func (d *Database) ReloadApp(ctx context.Context, appID string) {
-	d.invalidateApp(appID)
+	d.invalidateApp(ctx, appID)
 }
 
 func (d *Database) CreateDatabaseSource(ctx context.Context, appID string, resources map[string][]byte, planName string) error {
@@ -306,22 +303,25 @@ func (d *Database) UpdateDatabaseSource(ctx context.Context, appID string, updat
 	})
 }
 
-func (d *Database) invalidateHost(domain string) {
+func (d *Database) invalidateHost(ctx context.Context, domain string) {
+	logger := DatabaseLogger.GetLogger(ctx)
 	d.hostMap.Delete(domain)
-	d.Logger.WithField("domain", domain).Info("invalidated cached host")
+	logger.Info(ctx, "invalidated cached host", slog.String("domain", domain))
 }
 
-func (d *Database) invalidateApp(appID string) {
+func (d *Database) invalidateApp(ctx context.Context, appID string) {
+	logger := DatabaseLogger.GetLogger(ctx)
 	d.appMap.Delete(appID)
-	d.Logger.WithField("app_id", appID).Info("invalidated cached config")
+	logger.Info(ctx, "invalidated cached config", slog.String("app_id", appID))
 }
 
-func (d *Database) invalidateAllApp() {
+func (d *Database) invalidateAllApp(ctx context.Context) {
+	logger := DatabaseLogger.GetLogger(ctx)
 	d.appMap.Range(func(key, value any) bool {
 		d.appMap.Delete(key)
 		return true
 	})
-	d.Logger.Info("invalidated all cached config")
+	logger.Info(ctx, "invalidated all cached config")
 }
 
 func (d *Database) invalidateAppByDomain(ctx context.Context, domain string) {
@@ -332,17 +332,18 @@ func (d *Database) invalidateAppByDomain(ctx context.Context, domain string) {
 		if err != nil {
 			return err
 		}
-		d.invalidateApp(aid)
+		d.invalidateApp(ctx, aid)
 		return nil
 	})
 	if err != nil {
-		d.Logger.WithError(err).
-			WithField("domain", domain).
-			Errorln("failed to invalidate app cache by domain")
+		logger := DatabaseLogger.GetLogger(ctx)
+		logger.WithError(err).Error(ctx, "failed to invalidate app cache by domain",
+			slog.String("domain", domain),
+		)
 	}
 }
 
-func (d *Database) cleanupCache(done <-chan struct{}) {
+func (d *Database) cleanupCache(ctx context.Context, done <-chan struct{}) {
 	for {
 		select {
 		case <-done:
@@ -360,7 +361,8 @@ func (d *Database) cleanupCache(done <-chan struct{}) {
 				return true
 			})
 			if numDel > 0 {
-				d.Logger.WithField("deleted", numDel).Info("cleaned cached app configs")
+				logger := DatabaseLogger.GetLogger(ctx)
+				logger.Info(ctx, "cleaned cached app configs", slog.Int("deleted", numDel))
 			}
 		}
 	}
@@ -434,7 +436,8 @@ func (a *dbApp) doLoad(ctx context.Context, d *Database) (*config.AppContext, er
 	store := d.ConfigSourceStoreFactory(dbHandle)
 	planStore := d.PlanStoreFactory(dbHandle)
 	err := dbHandle.WithTx(ctx, func(ctx context.Context) error {
-		d.Logger.WithField("app_id", a.appID).Info("load app config from db")
+		logger := DatabaseLogger.GetLogger(ctx)
+		logger.Info(ctx, "load app config from db", slog.String("app_id", a.appID))
 		data, err := store.GetDatabaseSourceByAppID(ctx, a.appID)
 		if err != nil {
 			return err

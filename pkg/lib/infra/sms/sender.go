@@ -4,15 +4,9 @@ import (
 	"context"
 
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms/smsapi"
-	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
-type Logger struct{ *log.Logger }
-
-func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("sms-sender")} }
-
 type Sender struct {
-	Logger         Logger
 	ClientResolver *ClientResolver
 }
 

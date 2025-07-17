@@ -146,7 +146,6 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handleroauth.ProtocolUserInfoProvider), new(*oidc.IDTokenIssuer)),
 	wire.Bind(new(handleroauth.JWSSource), new(*oidc.IDTokenIssuer)),
 	wire.Bind(new(handleroauth.ChallengeProvider), new(*challenge.Provider)),
-	wire.Bind(new(handleroauth.JSONResponseWriter), new(*httputil.JSONResponseWriter)),
 	wire.Bind(new(handleroauth.AppSessionTokenIssuer), new(*oauthhandler.TokenHandler)),
 	wire.Bind(new(handleroauth.Renderer), new(*handlerwebapp.ResponseRenderer)),
 	wire.Bind(new(handleroauth.ProtocolIdentityService), new(*identityservice.Service)),
@@ -158,7 +157,6 @@ var DependencySet = wire.NewSet(
 	handlersaml.DependencySet,
 
 	handlerapi.DependencySet,
-	wire.Bind(new(handlerapi.JSONResponseWriter), new(*httputil.JSONResponseWriter)),
 	wire.Bind(new(handlerapi.TurboResponseWriter), new(*handlerwebapp.ResponseWriter)),
 	wire.Bind(new(handlerapi.AnonymousUserHandler), new(*oauthhandler.AnonymousUserHandler)),
 	wire.Bind(new(handlerapi.PromotionCodeIssuer), new(*oauthhandler.AnonymousUserHandler)),
@@ -217,7 +215,6 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handlerwebapp.PageService), new(*webapp.Service2)),
 	wire.Bind(new(handlerwebapp.ResourceManager), new(*resource.Manager)),
 	wire.Bind(new(handlerwebapp.GlobalEmbeddedResourceManager), new(*web.GlobalEmbeddedResourceManager)),
-	wire.Bind(new(handlerwebapp.JSONResponseWriter), new(*httputil.JSONResponseWriter)),
 	wire.Bind(new(handlerwebapp.FlashMessage), new(*httputil.FlashMessage)),
 	wire.Bind(new(handlerwebapp.SelectAccountIdentityService), new(*identityservice.Service)),
 	wire.Bind(new(handlerwebapp.SelectAccountUserService), new(*user.Queries)),
@@ -249,9 +246,6 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handlerwebapp.ErrorRendererAuthflowV2Navigator), new(*handlerwebappauthflowv2.AuthflowV2Navigator)),
 
 	api.DependencySet,
-	wire.Bind(new(api.JSONResponseWriter), new(*httputil.JSONResponseWriter)),
-	wire.Bind(new(authenticationflow.JSONResponseWriter), new(*httputil.JSONResponseWriter)),
-	wire.Bind(new(accountmanagement.RateLimitMiddlewareJSONResponseWriter), new(*httputil.JSONResponseWriter)),
 	wire.Bind(new(accountmanagement.UIInfoResolver), new(*authenticationinfo.UIService)),
 
 	wire.Bind(new(handlerwebapp.PanicMiddlewareUIImplementationService), new(*web.UIImplementationService)),
@@ -354,7 +348,6 @@ var RequestMiddlewareDependencySet = wire.NewSet(
 	wire.Value(template.DefaultLanguageTag(intl.BuiltinBaseLanguage)),
 	wire.Value(template.SupportedLanguageTags([]string{intl.BuiltinBaseLanguage})),
 
-	viewmodelswebapp.NewBaseLogger,
 	wire.Struct(new(viewmodelswebapp.BaseViewModeler), "*"),
 
 	wire.Bind(new(template.ResourceManager), new(*resource.Manager)),

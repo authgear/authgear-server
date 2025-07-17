@@ -9,17 +9,14 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/event"
-	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/resource"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
-type DenoHookLogger struct{ *log.Logger }
-
-func NewDenoHookLogger(lf *log.Factory) DenoHookLogger { return DenoHookLogger{lf.New("deno-hook")} }
+var DenoHookLogger = slogutil.NewLogger("deno-hook")
 
 type DenoHook struct {
 	ResourceManager ResourceManager
-	Logger          DenoHookLogger
 }
 
 func (h *DenoHook) SupportURL(u *url.URL) bool {
@@ -53,6 +50,7 @@ func (h *DenoHook) RunSync(ctx context.Context, client DenoClient, u *url.URL, i
 }
 
 func (h *DenoHook) RunAsync(ctx context.Context, client DenoClient, u *url.URL, input interface{}) (err error) {
+	logger := DenoHookLogger.GetLogger(ctx)
 	// Remove cancel from the the context.
 	// This is because the hook may finish after the current request finishes.
 	ctx = context.WithoutCancel(ctx)
@@ -66,7 +64,7 @@ func (h *DenoHook) RunAsync(ctx context.Context, client DenoClient, u *url.URL, 
 	go func() {
 		_, err := client.Run(ctx, string(script), input)
 		if err != nil {
-			h.Logger.WithError(err).Error("failed to run deno script")
+			logger.WithError(err).Error(ctx, "failed to run deno script")
 			return
 		}
 		return

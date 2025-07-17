@@ -16,13 +16,11 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
 	"github.com/authgear/authgear-server/pkg/lib/presign"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
-	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/vipsutil"
 )
 
 func newPanicMiddleware(p *deps.RootProvider) httproute.Middleware {
 	panic(wire.Build(
-		deps.RootDependencySet,
 		middleware.DependencySet,
 		wire.Bind(new(httproute.Middleware), new(*middleware.PanicMiddleware)),
 	))
@@ -67,7 +65,6 @@ func newPostHandler(p *deps.RequestProvider) http.Handler {
 		deps.DependencySet,
 		handler.DependencySet,
 		images.DependencySet,
-		wire.Bind(new(handler.JSONResponseWriter), new(*httputil.JSONResponseWriter)),
 		wire.Bind(new(handler.PresignProvider), new(*presign.Provider)),
 		wire.Bind(new(handler.ImagesStore), new(*images.Store)),
 		wire.Bind(new(handler.PostHandlerCloudStorageService), new(*imagesservice.ImagesCloudStorageService)),

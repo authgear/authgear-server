@@ -14,7 +14,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
-	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
@@ -30,11 +30,7 @@ func ConfigureConsentRoute(route httproute.Route) httproute.Route {
 		WithPathPattern("/oauth2/consent")
 }
 
-type ConsentHandlerLogger struct{ *log.Logger }
-
-func NewConsentHandlerLogger(lf *log.Factory) ConsentHandlerLogger {
-	return ConsentHandlerLogger{lf.New("handler-from-webapp")}
-}
+var ConsentHandlerLogger = slogutil.NewLogger("handler-from-webapp")
 
 type ProtocolConsentHandler interface {
 	HandleConsentWithoutUserConsent(ctx context.Context, req *http.Request) (httputil.Result, *oauthhandler.ConsentRequired)
@@ -60,7 +56,6 @@ type ConsentViewModel struct {
 }
 
 type ConsentHandler struct {
-	Logger        ConsentHandlerLogger
 	Database      *appdb.Handle
 	Handler       ProtocolConsentHandler
 	BaseViewModel *viewmodels.BaseViewModeler
@@ -127,7 +122,8 @@ func (h *ConsentHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	if err == nil || errors.Is(err, errAuthzInternalError) {
 		result.WriteResponse(rw, r)
 	} else {
-		h.Logger.WithError(err).Error("")
+		logger := ConsentHandlerLogger.GetLogger(r.Context())
+		logger.WithError(err).Error(r.Context(), "oauth consent handler failed")
 		http.Error(rw, "Internal Server Error", 500)
 	}
 }

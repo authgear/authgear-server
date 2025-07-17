@@ -5,7 +5,7 @@ import (
 	"errors"
 
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
-	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
 var ErrGraphNotFound = errors.New("invalid graph or graph not found")
@@ -17,12 +17,9 @@ type Store interface {
 	DeleteGraph(ctx context.Context, graph *Graph) error
 }
 
-type Logger struct{ *log.Logger }
-
-func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("interaction")} }
+var ServiceLogger = slogutil.NewLogger("interaction")
 
 type Service struct {
-	Logger  Logger
 	Context *Context
 	Store   Store
 }
@@ -71,6 +68,7 @@ func (s *Service) Get(ctx context.Context, instanceID string) (*Graph, error) {
 }
 
 func (s *Service) DryRun(ctx context.Context, contextValues ContextValues, fn func(ctx context.Context, interactionCtx *Context) (*Graph, error)) (err error) {
+	logger := ServiceLogger.GetLogger(ctx)
 	interactionCtx, err := s.Context.initialize(ctx)
 	if err != nil {
 		return
@@ -79,7 +77,7 @@ func (s *Service) DryRun(ctx context.Context, contextValues ContextValues, fn fu
 	defer func() {
 		rbErr := interactionCtx.rollback(ctx)
 		if rbErr != nil {
-			s.Logger.WithError(rbErr).Error("cannot rollback")
+			logger.WithError(rbErr).Error(ctx, "cannot rollback")
 			err = errorutil.WithSecondaryError(err, rbErr)
 		}
 	}()
@@ -101,6 +99,7 @@ func (s *Service) DryRun(ctx context.Context, contextValues ContextValues, fn fu
 }
 
 func (s *Service) Run(ctx context.Context, contextValues ContextValues, graph *Graph) (err error) {
+	logger := ServiceLogger.GetLogger(ctx)
 	interactionCtx, err := s.Context.initialize(ctx)
 	if err != nil {
 		return
@@ -110,7 +109,7 @@ func (s *Service) Run(ctx context.Context, contextValues ContextValues, graph *G
 		if r := recover(); r != nil {
 			rbErr := interactionCtx.rollback(ctx)
 			if rbErr != nil {
-				s.Logger.WithError(rbErr).Error("cannot rollback")
+				logger.WithError(rbErr).Error(ctx, "cannot rollback")
 			}
 			panic(r)
 		} else if err == nil {
@@ -118,7 +117,7 @@ func (s *Service) Run(ctx context.Context, contextValues ContextValues, graph *G
 		} else {
 			rbErr := interactionCtx.rollback(ctx)
 			if rbErr != nil {
-				s.Logger.WithError(rbErr).Error("cannot rollback")
+				logger.WithError(rbErr).Error(ctx, "cannot rollback")
 				err = errorutil.WithSecondaryError(err, rbErr)
 			}
 		}

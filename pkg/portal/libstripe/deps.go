@@ -17,7 +17,6 @@ func NewStripeCache() *StripeCache {
 }
 
 var DependencySet = wire.NewSet(
-	NewLogger,
 	NewClientAPI,
 	NewStripeCache,
 	wire.Struct(new(Service), "*"),

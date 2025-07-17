@@ -9,14 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
-	"github.com/authgear/authgear-server/pkg/util/log"
 )
-
-type ProviderLogger struct{ *log.Logger }
-
-func NewProviderLogger(lf *log.Factory) ProviderLogger {
-	return ProviderLogger{lf.New("botprotection")}
-}
 
 type EventService interface {
 	DispatchEventImmediately(ctx context.Context, payload event.NonBlockingPayload) error
@@ -25,7 +18,6 @@ type EventService interface {
 type Provider struct {
 	RemoteIP          httputil.RemoteIP
 	Config            *config.BotProtectionConfig
-	Logger            ProviderLogger
 	CloudflareClient  *CloudflareClient
 	RecaptchaV2Client *RecaptchaV2Client
 	Events            EventService

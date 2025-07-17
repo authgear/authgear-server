@@ -17,9 +17,9 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
-	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/panicutil"
 	"github.com/authgear/authgear-server/pkg/util/setutil"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
 func ConfigureLogoutRoute(route httproute.Route) httproute.Route {
@@ -28,11 +28,7 @@ func ConfigureLogoutRoute(route httproute.Route) httproute.Route {
 		WithPathPattern("/saml2/logout/:service_provider_id")
 }
 
-type LogoutHandlerLogger struct{ *log.Logger }
-
-func NewLogoutHandlerLogger(lf *log.Factory) *LogoutHandlerLogger {
-	return &LogoutHandlerLogger{lf.New("saml-logout-handler")}
-}
+var LogoutHandlerLogger = slogutil.NewLogger("saml-logout-handler")
 
 type logoutResult interface {
 	logoutResult()
@@ -56,7 +52,6 @@ type logoutRemainingSPsResult struct {
 func (*logoutRemainingSPsResult) logoutResult() {}
 
 type LogoutHandler struct {
-	Logger                *LogoutHandlerLogger
 	Clock                 clock.Clock
 	Database              *appdb.Handle
 	SAMLConfig            *config.SAMLConfig
@@ -150,6 +145,7 @@ func (h *LogoutHandler) doLogoutRemainingSPs(
 	r *http.Request,
 	result *logoutRemainingSPsResult,
 ) {
+	logger := LogoutHandlerLogger.GetLogger(ctx)
 	var err error
 	sloSession := result.sloSession
 	for _, spID := range result.sloSession.Entry.PendingLogoutServiceProviderIDs {
@@ -164,7 +160,7 @@ func (h *LogoutHandler) doLogoutRemainingSPs(
 			if err != nil {
 				// For some reason it failed
 				// Skip this SP and send request to the next one
-				h.Logger.WithError(err).Error("failed to send logout request")
+				logger.WithError(err).Error(ctx, "failed to send logout request")
 				sloSession.Entry.IsPartialLogout = true
 				err = h.SAMLSLOSessionService.Save(ctx, sloSession)
 				if err != nil {
@@ -614,14 +610,16 @@ func (h *LogoutHandler) handleError(
 	relayState string,
 	err error,
 ) {
+	ctx := r.Context()
+	logger := LogoutHandlerLogger.GetLogger(ctx)
 	now := h.Clock.NowUTC()
 	var samlErrResult *SAMLErrorResult
 	var response samlprotocol.Respondable
 	if errors.As(err, &samlErrResult) {
-		h.Logger.WithError(samlErrResult.Cause).Warnln("saml logout failed with expected error")
+		logger.WithError(samlErrResult.Cause).Warn(r.Context(), "saml logout failed with expected error")
 		response = samlErrResult.Response
 	} else {
-		h.Logger.WithError(err).Error("unexpected error")
+		logger.WithError(err).Error(r.Context(), "unexpected error")
 		response = samlprotocol.NewUnexpectedServerErrorResponse(now, h.SAMLService.IdpEntityID())
 	}
 	h.writeResponse(rw, r, response.Element(), responseBinding, callbackURL, relayState)

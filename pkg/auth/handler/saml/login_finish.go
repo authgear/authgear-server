@@ -8,8 +8,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlsession"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
-	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/panicutil"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
 func ConfigureLoginFinishRoute(route httproute.Route) httproute.Route {
@@ -18,14 +18,9 @@ func ConfigureLoginFinishRoute(route httproute.Route) httproute.Route {
 		WithPathPattern("/saml2/login_finish")
 }
 
-type LoginFinishHandlerLogger struct{ *log.Logger }
-
-func NewLoginFinishHandlerLogger(lf *log.Factory) *LoginFinishHandlerLogger {
-	return &LoginFinishHandlerLogger{lf.New("saml-login-finish-handler")}
-}
+var LoginFinishHandlerLogger = slogutil.NewLogger("saml-login-finish-handler")
 
 type LoginFinishHandler struct {
-	Logger                     *LoginFinishHandlerLogger
 	Clock                      clock.Clock
 	SAMLService                HandlerSAMLService
 	SAMLSessionService         SAMLSessionService
@@ -39,10 +34,11 @@ type LoginFinishHandler struct {
 
 func (h *LoginFinishHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	logger := LoginFinishHandlerLogger.GetLogger(ctx)
 
 	authInfoID, ok := h.AuthenticationInfoResolver.GetAuthenticationInfoID(r)
 	if !ok {
-		h.Logger.Warningln("authentication info id is missing")
+		logger.Warn(ctx, "authentication info id is missing")
 		// Maybe the user visited the page directly, tell him not to do so.
 		http.Error(rw, "invoking this endpoint directly is not supported", http.StatusBadRequest)
 		return
@@ -100,10 +96,12 @@ func (h *LoginFinishHandler) handleError(
 	samlSession *samlsession.SAMLSession,
 	err error,
 ) {
+	ctx := r.Context()
+	logger := LoginFinishHandlerLogger.GetLogger(ctx)
 	now := h.Clock.NowUTC()
 	var samlErrResult *SAMLErrorResult
 	if errors.As(err, &samlErrResult) {
-		h.Logger.WithError(samlErrResult.Cause).Warnln("saml login failed with expected error")
+		logger.WithError(samlErrResult.Cause).Warn(r.Context(), "saml login failed with expected error")
 		err = h.BindingHTTPPostWriter.WriteResponse(rw, r,
 			samlSession.Entry.CallbackURL,
 			samlErrResult.Response.Element(),
@@ -113,7 +111,7 @@ func (h *LoginFinishHandler) handleError(
 			panic(err)
 		}
 	} else {
-		h.Logger.WithError(err).Error("unexpected error")
+		logger.WithError(err).Error(r.Context(), "unexpected error")
 		err = h.BindingHTTPPostWriter.WriteResponse(rw, r,
 			samlSession.Entry.CallbackURL,
 			samlprotocol.NewUnexpectedServerErrorResponse(now, h.SAMLService.IdpEntityID()).Element(),

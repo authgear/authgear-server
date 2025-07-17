@@ -5,6 +5,7 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"os"
@@ -18,8 +19,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/redisqueue"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
-	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/secretcode"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
@@ -42,18 +43,13 @@ type UserExportService struct {
 	AppDatabase  *appdb.Handle
 	Config       *config.UserProfileConfig
 	UserQueries  UserQueries
-	Logger       Logger
 	HTTPOrigin   httputil.HTTPOrigin
 	HTTPClient   HTTPClient
 	CloudStorage UserExportCloudStorage
 	Clock        clock.Clock
 }
 
-type Logger struct{ *log.Logger }
-
-func NewLogger(lf *log.Factory) Logger {
-	return Logger{lf.New("user-export")}
-}
+var UserExportLogger = slogutil.NewLogger("user-export")
 
 func mapGet[T string | bool | map[string]interface{}](m map[string]interface{}, key string) T {
 	value, _ := m[key].(T)
@@ -185,9 +181,11 @@ func (s *UserExportService) convertDBUserToRecord(user *user.UserForExport) (rec
 }
 
 func (s *UserExportService) ExportRecords(ctx context.Context, request *Request, task *redisqueue.Task) (outputFilename string, err error) {
+	logger := UserExportLogger.GetLogger(ctx)
+
 	defer func() {
 		if err != nil {
-			s.Logger.WithError(err).Error("export failed")
+			logger.WithError(err).Error(ctx, "export failed")
 		}
 	}()
 
@@ -217,9 +215,10 @@ func (s *UserExportService) ExportRecords(ctx context.Context, request *Request,
 }
 
 func (s *UserExportService) ExportToNDJson(ctx context.Context, tmpResult *os.File, request *Request, task *redisqueue.Task) (err error) {
+	logger := UserExportLogger.GetLogger(ctx)
 	var offset uint64 = uint64(0)
 	for {
-		s.Logger.Infof("Export ndjson user page offset %v", offset)
+		logger.Info(ctx, "Export ndjson user page offset", slog.Uint64("offset", offset))
 		var page []*user.UserForExport = nil
 
 		err = s.AppDatabase.WithTx(ctx, func(ctx context.Context) (e error) {
@@ -235,7 +234,7 @@ func (s *UserExportService) ExportToNDJson(ctx context.Context, tmpResult *os.Fi
 			return err
 		}
 
-		s.Logger.Infof("Found number of users: %v", len(page))
+		logger.Info(ctx, "Found number of users", slog.Int("count", len(page)))
 
 		for _, user := range page {
 			var record *Record
@@ -274,6 +273,7 @@ func (s *UserExportService) ExportToNDJson(ctx context.Context, tmpResult *os.Fi
 
 //nolint:gocognit
 func (s *UserExportService) ExportToCSV(ctx context.Context, tmpResult *os.File, request *Request, task *redisqueue.Task) (err error) {
+	logger := UserExportLogger.GetLogger(ctx)
 	csvWriter := csv.NewWriter(tmpResult)
 
 	var exportFields []*FieldPointer
@@ -304,7 +304,7 @@ func (s *UserExportService) ExportToCSV(ctx context.Context, tmpResult *os.File,
 
 	var offset uint64 = uint64(0)
 	for {
-		s.Logger.Infof("Export csv user page offset %v", offset)
+		logger.Info(ctx, "Export csv user page offset", slog.Uint64("offset", offset))
 		var page []*user.UserForExport = nil
 
 		err = s.AppDatabase.WithTx(ctx, func(ctx context.Context) (e error) {
@@ -320,7 +320,7 @@ func (s *UserExportService) ExportToCSV(ctx context.Context, tmpResult *os.File,
 			return err
 		}
 
-		s.Logger.Infof("Found number of users: %v", len(page))
+		logger.Info(ctx, "Found number of users", slog.Int("count", len(page)))
 
 		for _, user := range page {
 			record, err := s.convertDBUserToRecord(user)

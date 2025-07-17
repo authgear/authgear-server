@@ -13,7 +13,7 @@ import (
 	imagesconfig "github.com/authgear/authgear-server/pkg/images/config"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	utilhttputil "github.com/authgear/authgear-server/pkg/util/httputil"
-	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 	"github.com/authgear/authgear-server/pkg/util/vipsutil"
 )
 
@@ -33,11 +33,7 @@ func ExtractKey(r *http.Request) string {
 	)
 }
 
-type GetHandlerLogger struct{ *log.Logger }
-
-func NewGetHandlerLogger(lf *log.Factory) GetHandlerLogger {
-	return GetHandlerLogger{lf.New("get-handler")}
-}
+var GetHandlerLogger = slogutil.NewLogger("get-handler")
 
 type VipsDaemon interface {
 	Process(i vipsutil.Input) (*vipsutil.Output, error)
@@ -67,7 +63,6 @@ type DirectorMaker interface {
 
 type GetHandler struct {
 	DirectorMaker DirectorMaker
-	Logger        GetHandlerLogger
 	ImagesCDNHost imagesconfig.ImagesCDNHost
 	HTTPHost      utilhttputil.HTTPHost
 	HTTPProto     utilhttputil.HTTPProto
@@ -96,7 +91,9 @@ func (h *GetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	reverseProxy := httputil.ReverseProxy{
 		Director: director,
 		ErrorHandler: func(w http.ResponseWriter, r *http.Request, err error) {
-			h.Logger.WithError(err).Errorf("reverse proxy error")
+			ctx := r.Context()
+			logger := GetHandlerLogger.GetLogger(ctx)
+			logger.WithError(err).Error(ctx, "reverse proxy error")
 			w.WriteHeader(http.StatusBadGateway)
 		},
 		ModifyResponse: func(resp *http.Response) error {

@@ -2,42 +2,45 @@ package redis
 
 import (
 	"context"
+	"log/slog"
 	"time"
 
 	"github.com/go-redsync/redsync/v4"
 	goredis "github.com/redis/go-redis/v9"
 
-	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
+
+var HandleLogger = slogutil.NewLogger("redis-handle")
 
 type Handle struct {
 	pool *Pool
 
 	ConnectionOptions ConnectionOptions
-	logger            *log.Logger
 }
 
-func NewHandle(pool *Pool, connectionOptions ConnectionOptions, logger *log.Logger) *Handle {
+func NewHandle(pool *Pool, connectionOptions ConnectionOptions) *Handle {
 	return &Handle{
 		pool:              pool,
 		ConnectionOptions: connectionOptions,
-		logger:            logger,
 	}
 }
 
 func (h *Handle) WithConnContext(ctx context.Context, do func(ctx context.Context, conn Redis_6_0_Cmdable) error) error {
-	h.logger.WithFields(map[string]interface{}{
-		"max_open_connection":             *h.ConnectionOptions.MaxOpenConnection,
-		"max_idle_connection":             *h.ConnectionOptions.MaxIdleConnection,
-		"idle_connection_timeout_seconds": *h.ConnectionOptions.IdleConnectionTimeout,
-		"max_connection_lifetime_seconds": *h.ConnectionOptions.MaxConnectionLifetime,
-	}).Debug("open redis connection")
+	logger := HandleLogger.GetLogger(ctx)
+
+	logger.With(
+		slog.Int("max_open_connection", *h.ConnectionOptions.MaxOpenConnection),
+		slog.Int("max_idle_connection", *h.ConnectionOptions.MaxIdleConnection),
+		slog.Duration("idle_connection_timeout_seconds", h.ConnectionOptions.IdleConnectionTimeout.Duration()),
+		slog.Duration("max_connection_lifetime_seconds", h.ConnectionOptions.MaxConnectionLifetime.Duration()),
+	).Debug(ctx, "open redis connection")
 
 	conn := h.Client().Conn()
 	defer func() {
 		err := conn.Close()
 		if err != nil {
-			h.logger.WithError(err).Error("failed to close connection")
+			logger.WithError(err).Error(ctx, "failed to close connection")
 		}
 	}()
 

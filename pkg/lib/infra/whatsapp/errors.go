@@ -7,7 +7,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
 var ErrInvalidWhatsappUser = apierrors.BadRequest.
@@ -56,7 +56,7 @@ func (e *WhatsappAPIError) Error() string {
 	return fmt.Sprintf("whatsapp api error: %s", string(jsonText))
 }
 
-var _ log.LoggingSkippable = &WhatsappAPIError{}
+var _ slogutil.LoggingSkippable = &WhatsappAPIError{}
 
 func (e *WhatsappAPIError) SkipLogging() bool {
 	switch e.HTTPStatusCode {

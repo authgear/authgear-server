@@ -2,13 +2,14 @@ package pubsub
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
 	"time"
 
 	"github.com/coder/websocket"
 	"github.com/redis/go-redis/v9"
 
-	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
 type RedisHub interface {
@@ -34,21 +35,22 @@ const (
 	WebsocketWriteTimeout = 10 * time.Second
 )
 
+var PubSubHTTPHandlerLogger = slogutil.NewLogger("pubsub-http-handler")
+
 // HTTPHandler receives incoming websocket messages and delegates them to the delegate.
 // For each websocket connection, a redis pubsub connection is established.
 // Every message from the redis pubsub connection is forwarded to the websocket connection verbatim.
 type HTTPHandler struct {
 	RedisHub      RedisHub
 	Delegate      Delegate
-	LoggerFactory *log.Factory
 	OriginMatcher WebsocketOriginMatcher
 }
 
 //nolint:gocognit
 func (h *HTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	logger := h.LoggerFactory.New("pubsub-http-handler")
-
 	rootCtx, cancel := context.WithCancel(r.Context())
+	logger := PubSubHTTPHandlerLogger.GetLogger(rootCtx)
+
 	doneChan := make(chan struct{}, 2)
 	errChan := make(chan error, 2)
 
@@ -56,7 +58,7 @@ func (h *HTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		doneChan <- struct{}{}
 		doneChan <- struct{}{}
 		cancel()
-		logger.Debug("canceled root context")
+		logger.Debug(rootCtx, "canceled root context")
 	}()
 
 	insecureSkipVerify := false
@@ -81,33 +83,33 @@ func (h *HTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		InsecureSkipVerify: insecureSkipVerify,
 	})
 	if err != nil {
-		logger.WithError(err).Debug("failed to accept websocket connection")
+		logger.WithError(err).Debug(rootCtx, "failed to accept websocket connection")
 		return
 	}
 
 	channelName, err := h.Delegate.Accept(r)
 	if err != nil {
-		logger.WithError(err).Debug("reject websocket connection")
+		logger.WithError(err).Debug(rootCtx, "reject websocket connection")
 		wsConn.Close(websocket.StatusNormalClosure, "connection rejected")
 		return
 	}
 
 	defer wsConn.Close(websocket.StatusInternalError, "connection closed")
 
-	logger = logger.WithField("channel", channelName)
+	logger = logger.With(slog.String("channel", channelName))
 
 	go func() {
 		msgChan, cancel := h.RedisHub.Subscribe(channelName)
 
 		err := h.Delegate.OnRedisSubscribe(r)
 		if err != nil {
-			logger.WithError(err).Debug("failed to call on redis subscribe")
+			logger.WithError(err).Debug(rootCtx, "failed to call on redis subscribe")
 			return
 		}
 
 		defer func() {
 			cancel()
-			logger.Debug("redis goroutine is tearing down")
+			logger.Debug(rootCtx, "redis goroutine is tearing down")
 		}()
 
 		for {
@@ -132,7 +134,7 @@ func (h *HTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	go func() {
 		defer func() {
-			logger.Debug("websocket goroutine is tearing down")
+			logger.Debug(rootCtx, "websocket goroutine is tearing down")
 		}()
 
 		for {
@@ -154,5 +156,5 @@ func (h *HTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	err = <-errChan
-	logger.WithError(err).Debug("closing websocket connection due to error")
+	logger.WithError(err).Debug(rootCtx, "closing websocket connection due to error")
 }

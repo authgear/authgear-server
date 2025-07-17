@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
-	"github.com/sirupsen/logrus"
 	. "github.com/smartystreets/goconvey/convey"
 	"gopkg.in/h2non/gock.v1"
 
@@ -28,7 +27,6 @@ func TestGetHandler(t *testing.T) {
 		router := httproute.NewRouter()
 		h := GetHandler{
 			DirectorMaker: directorMaker,
-			Logger:        GetHandlerLogger{logrus.NewEntry(logrus.New())},
 			VipsDaemon:    vipsDaemon,
 		}
 		router.Add(ConfigureGetRoute(httproute.Route{}), &h)

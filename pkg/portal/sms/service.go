@@ -12,19 +12,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms/smsapi"
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms/twilio"
 	"github.com/authgear/authgear-server/pkg/portal/model"
-	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
-type Logger struct{ *log.Logger }
-
-func NewLogger(lf *log.Factory) Logger {
-	return Logger{lf.New("portal-sms")}
-}
-
 type Service struct {
-	LoggerFactory *log.Factory
-	DenoEndpoint  config.DenoEndpoint
-	Logger        Logger
+	DenoEndpoint config.DenoEndpoint
 }
 
 const TEST_OTP = "000000"
@@ -74,7 +65,6 @@ func (s *Service) sendByWebhook(
 	cfg model.SMSProviderConfigurationWebhookInput,
 ) error {
 	webHookImpl := &hook.WebHookImpl{
-		Logger: hook.NewWebHookLogger(s.LoggerFactory),
 		Secret: secret,
 	}
 	webhook := custom.NewSMSWebHook(webHookImpl, &config.CustomSMSProviderConfig{
@@ -108,7 +98,7 @@ func (s *Service) sendByDeno(
 	cfg model.SMSProviderConfigurationDenoInput,
 ) error {
 
-	deno := custom.NewSMSDenoHookForTest(s.LoggerFactory, s.DenoEndpoint, &config.CustomSMSProviderConfig{
+	deno := custom.NewSMSDenoHookForTest(s.DenoEndpoint, &config.CustomSMSProviderConfig{
 		// URL is not important here, we execute the script with a string
 		URL:     "",
 		Timeout: (*config.DurationSeconds)(cfg.Timeout),

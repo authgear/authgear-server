@@ -8,6 +8,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
@@ -17,8 +18,7 @@ var TemplateTurboErrorHTML = template.RegisterHTML(
 )
 
 type ResponseWriter struct {
-	JSONResponseWriter JSONResponseWriter
-	Renderer           Renderer
+	Renderer Renderer
 }
 
 func (w *ResponseWriter) WriteResponse(rw http.ResponseWriter, req *http.Request, resp *api.Response) {
@@ -30,7 +30,7 @@ func (w *ResponseWriter) WriteResponse(rw http.ResponseWriter, req *http.Request
 		return
 	}
 
-	w.JSONResponseWriter.WriteResponse(rw, resp)
+	httputil.WriteJSONResponse(req.Context(), rw, resp)
 }
 
 func (w *ResponseWriter) PrepareData(err error) map[string]interface{} {

@@ -27,20 +27,16 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(SuccessPageMiddleware), "*"),
 	wire.Struct(new(TutorialMiddleware), "*"),
 	wire.Struct(new(DynamicCSPMiddleware), "*"),
-	NewContextHolderMiddlewareLogger,
 	wire.Struct(new(ContextHolderMiddleware), "*"),
 
-	NewPublicOriginMiddlewareLogger,
 	wire.Struct(new(PublicOriginMiddleware), "*"),
 
-	NewServiceLogger,
 	wire.Struct(new(SessionStoreRedis), "*"),
 	wire.Bind(new(SessionStore), new(*SessionStoreRedis)),
 	wire.Struct(new(Service2), "*"),
 )
 
 var RootMiddlewareDependencySet = wire.NewSet(
-	NewContextHolderMiddlewareLogger,
 	wire.Struct(new(NoProjectCSPMiddleware), "*"),
 	wire.Struct(new(ContextHolderMiddleware), "*"),
 )

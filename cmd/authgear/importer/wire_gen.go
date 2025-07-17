@@ -16,8 +16,7 @@ import (
 
 func NewImporter(pool *db.Pool, databaseCredentials *config.DatabaseCredentials, appID config.AppID, loginIDEmailConfig *config.LoginIDEmailConfig) *Importer {
 	databaseEnvironmentConfig := config.NewDefaultDatabaseEnvironmentConfig()
-	factory := NewLoggerFactory()
-	handle := appdb.NewHandle(pool, databaseEnvironmentConfig, databaseCredentials, factory)
+	handle := appdb.NewHandle(pool, databaseEnvironmentConfig, databaseCredentials)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	sqlExecutor := appdb.NewSQLExecutor(handle)
 	importer := &Importer{

@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/panicutil"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
 const DefaultAfterDuration = 5 * time.Minute
@@ -16,8 +16,9 @@ type Runnable interface {
 
 type RunnableFactory func() Runnable
 
+var RunnerLogger = slogutil.NewLogger("backgroundjob-runner")
+
 type Runner struct {
-	logger          *log.Logger
 	runnableFactory RunnableFactory
 	afterDuration   time.Duration
 	// shutdown is for breaking the loop.
@@ -42,9 +43,8 @@ func (o afterDurationOption) apply(runner *Runner) {
 	runner.afterDuration = time.Duration(o)
 }
 
-func NewRunner(ctx context.Context, logger *log.Logger, runnableFactory RunnableFactory, opts ...RunnerOption) *Runner {
+func NewRunner(ctx context.Context, runnableFactory RunnableFactory, opts ...RunnerOption) *Runner {
 	runner := &Runner{
-		logger:          logger,
 		runnableFactory: runnableFactory,
 		afterDuration:   DefaultAfterDuration,
 		shutdown:        make(chan struct{}),
@@ -57,18 +57,19 @@ func NewRunner(ctx context.Context, logger *log.Logger, runnableFactory Runnable
 	return runner
 }
 
-func (r *Runner) Start() {
-	r.runRunnable()
+func (r *Runner) Start(ctx context.Context) {
+	logger := RunnerLogger.GetLogger(ctx)
+	r.runRunnable(ctx)
 loop:
 	for {
 		select {
 		case <-time.After(r.afterDuration):
-			r.runRunnable()
+			r.runRunnable(ctx)
 		case <-r.shutdown:
-			r.logger.Infof("shutdown gracefully")
+			logger.Info(ctx, "shutdown gracefully")
 			break loop
 		case <-r.shutdownCtx.Done():
-			r.logger.Infof("context timeout")
+			logger.Info(ctx, "context timeout")
 			break loop
 		}
 	}
@@ -81,16 +82,17 @@ func (r *Runner) Stop(ctx context.Context) {
 	<-r.shutdownDone
 }
 
-func (r *Runner) runRunnable() {
+func (r *Runner) runRunnable(ctx context.Context) {
+	logger := RunnerLogger.GetLogger(ctx)
 	defer func() {
 		if anyValue := recover(); anyValue != nil {
 			err := panicutil.MakeError(anyValue)
-			r.logger.WithError(err).Error("panic occurred")
+			logger.WithError(err).Error(ctx, "panic occurred")
 		}
 	}()
 
 	err := r.runnableFactory().Run(r.shutdownCtx)
 	if err != nil {
-		r.logger.WithError(err).Errorf("runnable ended with error")
+		logger.WithError(err).Error(ctx, "runnable ended with error")
 	}
 }

@@ -2,11 +2,12 @@ package redis
 
 import (
 	"context"
+	"log/slog"
 	"sync/atomic"
 
 	"github.com/redis/go-redis/v9"
 
-	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
 type SubscriberID struct {
@@ -49,7 +50,6 @@ type PubSub struct {
 	ConnKey           string
 	SupervisorMailbox chan interface{}
 
-	Logger     *log.Logger
 	PubSub     *redis.PubSub
 	Subscriber map[string][]Subscriber
 	// Mailbox handles 3 messages.
@@ -62,13 +62,12 @@ type PubSub struct {
 // NewPubSub creates a running PubSub actor.
 //
 //nolint:gocognit
-func NewPubSub(ctx context.Context, logger *log.Logger, client *redis.Client, connKey string, supervisorMailbox chan interface{}) *PubSub {
+func NewPubSub(ctx context.Context, client *redis.Client, connKey string, supervisorMailbox chan interface{}) *PubSub {
 	redisPubSub := client.Subscribe(ctx)
 	mailbox := make(chan interface{})
 	pubsub := &PubSub{
 		ConnKey:           connKey,
 		SupervisorMailbox: supervisorMailbox,
-		Logger:            logger,
 		PubSub:            redisPubSub,
 		Subscriber:        make(map[string][]Subscriber),
 		Mailbox:           mailbox,
@@ -82,16 +81,17 @@ func NewPubSub(ctx context.Context, logger *log.Logger, client *redis.Client, co
 				// The mailbox is closed. This actor is dying.
 				if !ok {
 					// Close all subscriber channels
+					logger := RedisHubLogger.GetLogger(ctx)
 					for channelName, subscribers := range pubsub.Subscriber {
 						for _, sub := range subscribers {
-							pubsub.Logger.Debugf("closing channel ID: %v", sub.SubscriberID)
+							logger.Debug(ctx, "closing channel ID", slog.Int64("subscriber_id", sub.SubscriberID))
 							close(sub.MessageChannel)
 						}
 						delete(pubsub.Subscriber, channelName)
 					}
 					err := pubsub.PubSub.Close()
 					if err != nil {
-						pubsub.Logger.WithError(err).Errorf("failed to clean up all")
+						logger.WithError(err).Error(ctx, "failed to clean up all")
 					}
 					// Exit this actor.
 					return
@@ -111,10 +111,11 @@ func NewPubSub(ctx context.Context, logger *log.Logger, client *redis.Client, co
 
 					// Subscribe if it is the first subscriber.
 					if len(pubsub.Subscriber[n.ChannelName]) == 1 {
-						pubsub.Logger.Debugf("subscribe because the first subscriber is joining")
+						logger := RedisHubLogger.GetLogger(ctx)
+						logger.Debug(ctx, "subscribe because the first subscriber is joining")
 						err := pubsub.PubSub.Subscribe(ctx, n.ChannelName)
 						if err != nil {
-							pubsub.Logger.WithError(err).Errorf("failed to subscribe: %v", n.ChannelName)
+							logger.WithError(err).Error(ctx, "failed to subscribe", slog.String("channel_name", n.ChannelName))
 							pubsub.SupervisorMailbox <- HubMessagePubSubDead{
 								ConnKey: pubsub.ConnKey,
 							}
@@ -133,7 +134,8 @@ func NewPubSub(ctx context.Context, logger *log.Logger, client *redis.Client, co
 					}
 					if idx != -1 {
 						sub := subscribers[idx]
-						pubsub.Logger.Debugf("closing channel ID: %v", sub.SubscriberID)
+						logger := RedisHubLogger.GetLogger(ctx)
+						logger.Debug(ctx, "closing channel ID", slog.Int64("subscriber_id", sub.SubscriberID))
 						close(sub.MessageChannel)
 					}
 
@@ -143,10 +145,11 @@ func NewPubSub(ctx context.Context, logger *log.Logger, client *redis.Client, co
 
 					// Unsubscribe if subscriber is the last one subscribing the channelName.
 					if numRemaining == 0 {
-						pubsub.Logger.Debugf("unsubscribe because the last subscriber is leaving")
+						logger := RedisHubLogger.GetLogger(ctx)
+						logger.Debug(ctx, "unsubscribe because the last subscriber is leaving")
 						err := pubsub.PubSub.Unsubscribe(ctx, n.ChannelName)
 						if err != nil {
-							pubsub.Logger.WithError(err).Errorf("failed to unsubscribe: %v", n.ChannelName)
+							logger.WithError(err).Error(ctx, "failed to unsubscribe", slog.String("channel_name", n.ChannelName))
 						}
 					}
 				}
@@ -165,7 +168,8 @@ func NewPubSub(ctx context.Context, logger *log.Logger, client *redis.Client, co
 					case s.MessageChannel <- n:
 						break
 					default:
-						pubsub.Logger.Debugf("dropped message to subscriber ID: %v", s.SubscriberID)
+						logger := RedisHubLogger.GetLogger(ctx)
+						logger.Debug(ctx, "dropped message to subscriber ID", slog.Int64("subscriber_id", s.SubscriberID))
 					}
 				}
 			}
@@ -194,7 +198,6 @@ type HubMessagePubSubCancel struct {
 // Hub aims to multiplex multiple subscription to Redis PubSub channel over a single connection.
 type Hub struct {
 	Pool         *Pool
-	Logger       *log.Logger
 	SubscriberID *SubscriberID
 	PubSub       map[string]*PubSub
 	// Mailbox handles 3 messages.
@@ -205,12 +208,13 @@ type Hub struct {
 	// 3. HubMessagePubSubDead
 }
 
-func NewHub(ctx context.Context, pool *Pool, lf *log.Factory) *Hub {
+var RedisHubLogger = slogutil.NewLogger("redis-hub")
+
+func NewHub(ctx context.Context, pool *Pool) *Hub {
 	mailbox := make(chan interface{})
 	h := &Hub{
 		Pool:         pool,
 		SubscriberID: &SubscriberID{},
-		Logger:       lf.New("redis-hub"),
 		PubSub:       make(map[string]*PubSub),
 		Mailbox:      mailbox,
 	}
@@ -225,7 +229,6 @@ func NewHub(ctx context.Context, pool *Pool, lf *log.Factory) *Hub {
 					client := h.Pool.Client(n.ConnectionOptions)
 					pubsub = NewPubSub(
 						ctx,
-						h.Logger,
 						client,
 						connKey,
 						mailbox,

@@ -3,6 +3,7 @@ package cmdpricing
 import (
 	"context"
 	"fmt"
+	"log/slog"
 
 	"github.com/spf13/cobra"
 	"github.com/stripe/stripe-go/v72"
@@ -16,7 +17,9 @@ import (
 var Dollar int64 = 100
 var Cent int64 = 1
 
-func createPlanProduct(api *client.API, logger Logger, planName string, planDisplayName string, price int64) error {
+func createPlanProduct(ctx context.Context, api *client.API, planName string, planDisplayName string, price int64) error {
+	logger := logger.GetLogger(ctx)
+
 	params := &stripe.PriceParams{
 		Currency:    stripe.String(string(stripe.CurrencyUSD)),
 		UnitAmount:  stripe.Int64(price),
@@ -47,14 +50,13 @@ func createPlanProduct(api *client.API, logger Logger, planName string, planDisp
 		return err
 	}
 
-	logger.
-		WithField("name", planDisplayName).
-		WithField("product_id", result.Product.ID).
-		Info("Created product")
+	logger.Info(ctx, "created product", slog.String("name", planDisplayName), slog.String("product_id", result.Product.ID))
 	return nil
 }
 
-func createSMSProduct(api *client.API, logger Logger, displayName, itemType string, smsRegion string, perUnitPrice int64) error {
+func createSMSProduct(ctx context.Context, api *client.API, displayName, itemType string, smsRegion string, perUnitPrice int64) error {
+	logger := logger.GetLogger(ctx)
+
 	params := &stripe.PriceParams{
 		Currency:    stripe.String(string(stripe.CurrencyUSD)),
 		TaxBehavior: stripe.String(string(stripe.PriceTaxBehaviorInclusive)),
@@ -95,14 +97,13 @@ func createSMSProduct(api *client.API, logger Logger, displayName, itemType stri
 		return err
 	}
 
-	logger.
-		WithField("name", displayName).
-		WithField("product_id", result.Product.ID).
-		Info("Created product")
+	logger.Info(ctx, "created product", slog.String("name", displayName), slog.String("product_id", result.Product.ID))
 	return nil
 }
 
-func createWhatsappProduct(api *client.API, logger Logger, displayName, itemType string, whatsappRegion string, perUnitPrice int64) error {
+func createWhatsappProduct(ctx context.Context, api *client.API, displayName, itemType string, whatsappRegion string, perUnitPrice int64) error {
+	logger := logger.GetLogger(ctx)
+
 	params := &stripe.PriceParams{
 		Currency:    stripe.String(string(stripe.CurrencyUSD)),
 		TaxBehavior: stripe.String(string(stripe.PriceTaxBehaviorInclusive)),
@@ -143,14 +144,12 @@ func createWhatsappProduct(api *client.API, logger Logger, displayName, itemType
 		return err
 	}
 
-	logger.
-		WithField("name", displayName).
-		WithField("product_id", result.Product.ID).
-		Info("Created product")
+	logger.Info(ctx, "created product", slog.String("name", displayName), slog.String("product_id", result.Product.ID))
 	return nil
 }
 
-func createMAUProduct(api *client.API, logger Logger, displayName, planName string, perGroupPrice, groupUnit, freeQuantity int64) error {
+func createMAUProduct(ctx context.Context, api *client.API, displayName, planName string, perGroupPrice, groupUnit, freeQuantity int64) error {
+	logger := logger.GetLogger(ctx)
 	params := &stripe.PriceParams{
 		Params: stripe.Params{
 			Metadata: map[string]string{
@@ -194,10 +193,7 @@ func createMAUProduct(api *client.API, logger Logger, displayName, planName stri
 		return err
 	}
 
-	logger.
-		WithField("name", displayName).
-		WithField("product_id", result.Product.ID).
-		Info("Created product")
+	logger.Info(ctx, "created product", slog.String("name", displayName), slog.String("product_id", result.Product.ID))
 	return nil
 }
 
@@ -215,13 +211,9 @@ var cmdPricingCreateStripePlans2025 = &cobra.Command{
 			SecretKey: stripeSecretKey,
 		}
 
-		hub := cobrasentry.GetHub(ctx)
-		factory := cobrasentry.NewLoggerFactory(hub)
-		logger := NewLogger(factory)
+		api := NewClientAPI(stripeConfig)
 
-		api := NewClientAPI(stripeConfig, logger)
-
-		err = createPlanProduct(api, logger,
+		err = createPlanProduct(ctx, api,
 			"developers2025", "Developers (2025)",
 			50*Dollar,
 		)
@@ -229,7 +221,7 @@ var cmdPricingCreateStripePlans2025 = &cobra.Command{
 			return err
 		}
 
-		err = createPlanProduct(api, logger,
+		err = createPlanProduct(ctx, api,
 			"business2025", "Business (2025)",
 			500*Dollar,
 		)
@@ -237,7 +229,7 @@ var cmdPricingCreateStripePlans2025 = &cobra.Command{
 			return err
 		}
 
-		err = createSMSProduct(api, logger,
+		err = createSMSProduct(ctx, api,
 			"SMS usage (North America) (2025)",
 			"sms-north-america",
 			"north-america",
@@ -247,7 +239,7 @@ var cmdPricingCreateStripePlans2025 = &cobra.Command{
 			return err
 		}
 
-		err = createSMSProduct(api, logger,
+		err = createSMSProduct(ctx, api,
 			"SMS usage (Other regions) (2025)",
 			"sms-other-region",
 			"other-regions",
@@ -257,7 +249,7 @@ var cmdPricingCreateStripePlans2025 = &cobra.Command{
 			return err
 		}
 
-		err = createWhatsappProduct(api, logger,
+		err = createWhatsappProduct(ctx, api,
 			"Whatsapp Usage (North America) (2025)",
 			"whatsapp-north-america",
 			"north-america",
@@ -267,7 +259,7 @@ var cmdPricingCreateStripePlans2025 = &cobra.Command{
 			return err
 		}
 
-		err = createWhatsappProduct(api, logger,
+		err = createWhatsappProduct(ctx, api,
 			"Whatsapp Usage (Other regions) (2025)",
 			"whatsapp-other-region",
 			"other-regions",
@@ -277,7 +269,7 @@ var cmdPricingCreateStripePlans2025 = &cobra.Command{
 			return err
 		}
 
-		err = createMAUProduct(api, logger,
+		err = createMAUProduct(ctx, api,
 			"Business Plan Additional MAU (2025)",
 			"business2025",
 			50*Dollar, 5000,

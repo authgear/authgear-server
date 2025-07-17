@@ -11,10 +11,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
-type RateLimitMiddlewareJSONResponseWriter interface {
-	WriteResponse(rw http.ResponseWriter, resp *api.Response)
-}
-
 type RateLimitMiddlewareRateLimiter interface {
 	Allow(ctx context.Context, spec ratelimit.BucketSpec) (*ratelimit.FailedReservation, error)
 }
@@ -22,7 +18,6 @@ type RateLimitMiddlewareRateLimiter interface {
 type RateLimitMiddleware struct {
 	RateLimiter RateLimitMiddlewareRateLimiter
 	RemoteIP    httputil.RemoteIP
-	JSON        RateLimitMiddlewareJSONResponseWriter
 }
 
 const (
@@ -44,7 +39,7 @@ func (m *RateLimitMiddleware) Handle(next http.Handler) http.Handler {
 		if err != nil {
 			panic(err)
 		} else if ratelimitErr := failed.Error(); ratelimitErr != nil && ratelimit.IsRateLimitErrorWithBucketName(err, spec.Name) {
-			m.JSON.WriteResponse(w, &api.Response{
+			httputil.WriteJSONResponse(ctx, w, &api.Response{
 				Error: apierrors.NewTooManyRequest("Reach Rate Limit"),
 			})
 		} else {
