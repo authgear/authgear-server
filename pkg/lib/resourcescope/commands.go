@@ -15,13 +15,8 @@ type Commands struct {
 }
 
 func (c *Commands) CreateResource(ctx context.Context, options *NewResourceOptions) (*model.Resource, error) {
-	err := ValidateResourceURI(ctx, options.URI)
-	if err != nil {
-		return nil, err
-	}
-
 	resource := c.Store.NewResource(options)
-	err = c.Store.CreateResource(ctx, resource)
+	err := c.Store.CreateResource(ctx, resource)
 	if err != nil {
 		return nil, err
 	}
@@ -97,10 +92,6 @@ func (c *Commands) RemoveResourceFromClientID(ctx context.Context, resourceURI, 
 }
 
 func (c *Commands) CreateScope(ctx context.Context, options *NewScopeOptions) (*model.Scope, error) {
-	err := ValidateScope(ctx, options.Scope)
-	if err != nil {
-		return nil, err
-	}
 	resource, err := c.Store.GetResourceByURI(ctx, options.ResourceURI)
 	if err != nil {
 		return nil, err
