@@ -361,6 +361,13 @@ func (h *TokenHandler) validateRequest(r protocol.TokenRequest, client *config.O
 		// The validation logics can be different depends on requested_token_type
 		// Do the validation in methods for each requested_token_type
 		break
+	case oauth.ClientCredentialsGrantType:
+		if r.Resource() == "" {
+			return protocol.NewError("invalid_request", "resource is required")
+		}
+		if r.ClientSecret() == "" {
+			return protocol.NewError("invalid_request", "client secret is required")
+		}
 	default:
 		return protocol.NewError("unsupported_grant_type", "grant type is not supported")
 	}
@@ -1979,10 +1986,6 @@ func (h *TokenHandler) handleClientCredentials(
 }
 
 func (h *TokenHandler) validateClientSecret(client *config.OAuthClientConfig, clientSecret string) error {
-	if clientSecret == "" {
-		return protocol.NewError("invalid_request", "invalid client secret")
-	}
-
 	credentialsItem, ok := h.OAuthClientCredentials.Lookup(client.ClientID)
 	if !ok {
 		return protocol.NewError("invalid_request", "client secret is not supported for the client")
