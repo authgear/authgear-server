@@ -1951,7 +1951,7 @@ func (h *TokenHandler) handleClientCredentials(
 	resource, err := h.ClientResourceScopeService.GetClientResourceByURI(ctx, client.ClientID, r.Resource())
 	if err != nil {
 		if errors.Is(err, resourcescope.ErrResourceNotFound) {
-			return nil, protocol.NewError("invalid_request", "resource not found")
+			return nil, protocol.NewError("invalid_request", "resource not found: "+r.Resource())
 		}
 		if errors.Is(err, resourcescope.ErrResourceNotAssociatedWithClient) {
 			return nil, protocol.NewError("invalid_request", "resource is not associated with the client")
