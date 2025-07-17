@@ -34,5 +34,15 @@ func TestValidateResourceURI(t *testing.T) {
 		Convey("https scheme with path should be valid", func() {
 			So(ValidateResourceURI(ctx, "https://host/path"), ShouldBeNil)
 		})
+		Convey("query should be rejected", func() {
+			So(ValidateResourceURI(ctx, "https://host/path?query=1"), ShouldBeError, `invalid value:
+<root>: format
+  map[error:resource URI must not have query format:x_resource_uri]`)
+		})
+		Convey("fragment should be rejected", func() {
+			So(ValidateResourceURI(ctx, "https://host/path#fragment"), ShouldBeError, `invalid value:
+<root>: format
+  map[error:resource URI must not have fragment format:x_resource_uri]`)
+		})
 	})
 }

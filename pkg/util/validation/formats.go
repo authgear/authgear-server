@@ -619,6 +619,13 @@ func (FormatResourceURI) CheckFormat(ctx context.Context, value interface{}) err
 
 	switch u.Scheme {
 	case "https":
+		if u.RawQuery != "" {
+			return fmt.Errorf("resource URI must not have query")
+		}
+		// url.Parse set Fragment, but we also check RawFragment here to ensure nothing is missed
+		if u.Fragment != "" || u.RawFragment != "" {
+			return fmt.Errorf("resource URI must not have fragment")
+		}
 		return FormatURI{}.CheckFormat(ctx, value)
 	default:
 		return fmt.Errorf("invalid scheme: %v", u.Scheme)
