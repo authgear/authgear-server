@@ -71,7 +71,8 @@ type IDTokenIssuer interface {
 }
 
 type AccessTokenIssuer interface {
-	EncodeAccessToken(ctx context.Context, options oauth.EncodeAccessTokenOptions) (string, error)
+	EncodeUserAccessToken(ctx context.Context, options oauth.EncodeUserAccessTokenOptions) (string, error)
+	EncodeClientAccessToken(ctx context.Context, options oauth.EncodeClientAccessTokenOptions) (string, error)
 }
 
 type EventService interface {
@@ -150,6 +151,11 @@ type TokenHandlerTokenService interface {
 		resp protocol.TokenResponse,
 	) (offlineGrant *oauth.OfflineGrant, tokenHash string, err error)
 	IssueDeviceSecret(ctx context.Context, resp protocol.TokenResponse) (deviceSecretHash string)
+	IssueClientCredentialsAccessToken(
+		ctx context.Context,
+		options ClientCredentialsAccessTokenOptions,
+		resp protocol.TokenResponse,
+	) error
 }
 
 var _ TokenHandlerTokenService = &TokenService{}
@@ -1951,20 +1957,33 @@ func (h *TokenHandler) handleClientCredentials(
 		return nil, err
 	}
 
+	var scopes []string
+	allowedScopes, err := h.ClientResourceScopeService.GetClientResourceScopes(ctx, client.ClientID, resource.ID)
+	if err != nil {
+		return nil, err
+	}
+	allowedScopeStrs := slice.Map(allowedScopes, func(s *resourcescope.Scope) string { return s.Scope })
 	// scope is optional
 	if len(r.Scope()) > 0 {
-		allowedScopes, err := h.ClientResourceScopeService.GetClientResourceScopes(ctx, client.ClientID, resource.ID)
-		if err != nil {
-			return nil, err
-		}
-		allowedScopeStrs := slice.Map(allowedScopes, func(s *resourcescope.Scope) string { return s.Scope })
 		if err := oauth.ValidateScopes(r.Scope(), allowedScopeStrs); err != nil {
 			return nil, err
 		}
+		scopes = r.Scope()
+	} else {
+		scopes = allowedScopeStrs
 	}
 
-	// TODO: Implement the rest of the client_credentials logic
-	return nil, protocol.NewError("unsupported_grant_type", "client_credentials grant type not implemented yet")
+	resp := protocol.TokenResponse{}
+	err = h.TokenService.IssueClientCredentialsAccessToken(ctx, ClientCredentialsAccessTokenOptions{
+		ResourceURI:  resource.URI,
+		Scopes:       scopes,
+		ClientConfig: client,
+		Resource:     resource,
+	}, resp)
+	if err != nil {
+		return nil, err
+	}
+	return tokenResultOK{Response: resp}, nil
 }
 
 func (h *TokenHandler) validateClientSecret(client *config.OAuthClientConfig, clientSecret string) error {
