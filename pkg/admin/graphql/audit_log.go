@@ -206,6 +206,18 @@ var auditLogActivityType = graphql.NewEnum(graphql.EnumConfig{
 		"ADMIN_API_MUTATION_CREATE_AUTHENTICATOR_EXECUTED": &graphql.EnumValueConfig{
 			Value: "admin_api.mutation.create_authenticator.executed",
 		},
+		"ADMIN_API_MUTATION_CREATE_GROUP_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.mutation.create_group.executed",
+		},
+		"ADMIN_API_MUTATION_CREATE_ROLE_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.mutation.create_role.executed",
+		},
+		"ADMIN_API_MUTATION_CREATE_RESOURCE_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.mutation.create_resource.executed",
+		},
+		"ADMIN_API_MUTATION_CREATE_SCOPE_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.mutation.create_scope.executed",
+		},
 		"ADMIN_API_MUTATION_DELETE_AUTHENTICATOR_EXECUTED": &graphql.EnumValueConfig{
 			Value: "admin_api.mutation.delete_authenticator.executed",
 		},
@@ -217,6 +229,18 @@ var auditLogActivityType = graphql.NewEnum(graphql.EnumConfig{
 		},
 		"ADMIN_API_MUTATION_DELETE_USER_EXECUTED": &graphql.EnumValueConfig{
 			Value: "admin_api.mutation.delete_user.executed",
+		},
+		"ADMIN_API_MUTATION_DELETE_GROUP_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.mutation.delete_group.executed",
+		},
+		"ADMIN_API_MUTATION_DELETE_ROLE_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.mutation.delete_role.executed",
+		},
+		"ADMIN_API_MUTATION_DELETE_RESOURCE_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.mutation.delete_resource.executed",
+		},
+		"ADMIN_API_MUTATION_DELETE_SCOPE_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.mutation.delete_scope.executed",
 		},
 		"ADMIN_API_MUTATION_GENERATE_OOB_OTP_CODE_EXECUTED": &graphql.EnumValueConfig{
 			Value: "admin_api.mutation.generate_oob_otp_code.executed",
@@ -263,6 +287,12 @@ var auditLogActivityType = graphql.NewEnum(graphql.EnumConfig{
 		"ADMIN_API_MUTATION_UPDATE_GROUP_EXECUTED": &graphql.EnumValueConfig{
 			Value: "admin_api.mutation.update_group.executed",
 		},
+		"ADMIN_API_MUTATION_UPDATE_RESOURCE_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.mutation.update_resource.executed",
+		},
+		"ADMIN_API_MUTATION_UPDATE_SCOPE_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.mutation.update_scope.executed",
+		},
 		"ADMIN_API_MUTATION_ADD_GROUP_TO_ROLES_EXECUTED": &graphql.EnumValueConfig{
 			Value: "admin_api.mutation.add_group_to_roles.executed",
 		},
@@ -298,18 +328,6 @@ var auditLogActivityType = graphql.NewEnum(graphql.EnumConfig{
 		},
 		"ADMIN_API_MUTATION_REMOVE_USER_FROM_ROLES_EXECUTED": &graphql.EnumValueConfig{
 			Value: "admin_api.mutation.remove_user_from_roles.executed",
-		},
-		"ADMIN_API_MUTATION_DELETE_GROUP_EXECUTED": &graphql.EnumValueConfig{
-			Value: "admin_api.mutation.delete_group.executed",
-		},
-		"ADMIN_API_MUTATION_DELETE_ROLE_EXECUTED": &graphql.EnumValueConfig{
-			Value: "admin_api.mutation.delete_role.executed",
-		},
-		"ADMIN_API_MUTATION_CREATE_GROUP_EXECUTED": &graphql.EnumValueConfig{
-			Value: "admin_api.mutation.create_group.executed",
-		},
-		"ADMIN_API_MUTATION_CREATE_ROLE_EXECUTED": &graphql.EnumValueConfig{
-			Value: "admin_api.mutation.create_role.executed",
 		},
 		"ADMIN_API_MUTATION_SET_PASSWORD_EXPIRED_EXECUTED": &graphql.EnumValueConfig{
 			Value: "admin_api.mutation.set_password_expired.executed",
