@@ -81,6 +81,7 @@ INSERT INTO _auth_client_resource (
   '{{ .AppID }}-fixture-resource-02'
 );
 
+
 -- Associate both scopes with the client 'e2econfidential' for resource 2
 INSERT INTO _auth_client_resource_scope (
   "id",
@@ -106,4 +107,48 @@ INSERT INTO _auth_client_resource_scope (
   'e2econfidential',
   '{{ .AppID }}-fixture-resource-02',
   '{{ .AppID }}-resource2_scope2'
-); 
+);
+
+-- Associate the resource with the client 'e2em2mclient'
+INSERT INTO _auth_client_resource (
+  "id",
+  "app_id",
+  "created_at",
+  "updated_at",
+  "client_id",
+  "resource_id"
+) VALUES (
+  '{{ uuidv4 }}',
+  '{{ .AppID }}',
+  NOW(),
+  NOW(),
+  'e2em2mclient',
+  '{{ .AppID }}-fixture-resource-02'
+);
+
+-- Associate both scopes with the client 'e2em2mclient' for resource 2
+INSERT INTO _auth_client_resource_scope (
+  "id",
+  "app_id",
+  "created_at",
+  "updated_at",
+  "client_id",
+  "resource_id",
+  "scope_id"
+) VALUES (
+  '{{ uuidv4 }}',
+  '{{ .AppID }}',
+  NOW(),
+  NOW(),
+  'e2em2mclient',
+  '{{ .AppID }}-fixture-resource-02',
+  '{{ .AppID }}-resource2_scope1'
+), (
+  '{{ uuidv4 }}',
+  '{{ .AppID }}',
+  NOW(),
+  NOW(),
+  'e2em2mclient',
+  '{{ .AppID }}-fixture-resource-02',
+  '{{ .AppID }}-resource2_scope2'
+);
