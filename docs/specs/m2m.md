@@ -965,7 +965,7 @@ type Scope implements Entity & Node {
   id: ID!
   createdAt: DateTime!
   updatedAt: DateTime!
-  resource: Resource!
+  resourceID: ID!
   scope: String!
   description: String
 }
