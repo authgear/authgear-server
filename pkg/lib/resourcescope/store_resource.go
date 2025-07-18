@@ -160,7 +160,7 @@ func (s *Store) GetClientResource(ctx context.Context, clientID, resourceID stri
 		return nil, err
 	}
 	if len(resources) == 0 {
-		return nil, ErrResourceNotFound
+		return nil, ErrResourceNotAssociatedWithClient
 	}
 	return resources[0], nil
 }
