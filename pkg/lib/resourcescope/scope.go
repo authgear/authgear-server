@@ -2,17 +2,28 @@ package resourcescope
 
 import (
 	"context"
-	"regexp"
+	"fmt"
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
-	"github.com/authgear/authgear-server/pkg/lib/oauth"
-	"github.com/authgear/authgear-server/pkg/util/validation"
 )
+
+type newScope struct {
+	Value string
+}
+
+func NewScope(ctx context.Context, str string) newScope {
+	err := FormatScopeToken{}.CheckFormat(ctx, str)
+	if err != nil {
+		// This is a programming error because you should always validate the user input before calling NewScope
+		panic(fmt.Errorf("invalid scope"))
+	}
+	return newScope{Value: str}
+}
 
 type NewScopeOptions struct {
 	ResourceURI string
-	Scope       string
+	Scope       newScope
 	Description *string
 }
 
@@ -20,6 +31,11 @@ type UpdateScopeOptions struct {
 	ResourceURI string
 	Scope       string
 	NewDesc     *string
+}
+
+type ListScopeOptions struct {
+	SearchKeyword string
+	ClientID      string
 }
 
 type Scope struct {
@@ -44,22 +60,8 @@ func (s *Scope) ToModel() *model.Scope {
 	}
 }
 
-func ValidateScope(ctx context.Context, scope string) error {
-	blacklist := oauth.AllowedScopes
-
-	validationCtx := &validation.Context{}
-
-	// See https://datatracker.ietf.org/doc/html/rfc6749#section-3.3
-	tokenRe := regexp.MustCompile(`^[\x21\x23-\x5B\x5D-\x7E]+$`)
-	if !tokenRe.MatchString(scope) {
-		validationCtx.EmitError("format", map[string]interface{}{"error": "invalid scope", "scope": scope})
-	}
-
-	for _, blacklisted := range blacklist {
-		if blacklisted == scope {
-			validationCtx.EmitError("blocked", map[string]interface{}{"reason": "ReservedScope", "scope": scope})
-		}
-	}
-
-	return validationCtx.Error("invalid scope")
+type ListScopeResult struct {
+	Items      []*model.Scope
+	Offset     uint64
+	TotalCount uint64
 }

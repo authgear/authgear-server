@@ -16,12 +16,17 @@ type ResourceScopeCommands interface {
 	CreateScope(ctx context.Context, options *resourcescope.NewScopeOptions) (*model.Scope, error)
 	UpdateScope(ctx context.Context, options *resourcescope.UpdateScopeOptions) (*model.Scope, error)
 	DeleteScope(ctx context.Context, resourceURI string, scope string) error
+	AddResourceToClientID(ctx context.Context, resourceURI string, clientID string) error
+	RemoveResourceFromClientID(ctx context.Context, resourceURI string, clientID string) error
+	AddScopesToClientID(ctx context.Context, resourceURI, clientID string, scopes []string) ([]*model.Scope, error)
+	RemoveScopesFromClientID(ctx context.Context, resourceURI, clientID string, scopes []string) ([]*model.Scope, error)
+	ReplaceScopesOfClientID(ctx context.Context, resourceURI, clientID string, scopes []string) ([]*model.Scope, error)
 }
 
 type ResourceScopeQueries interface {
 	GetResourceByURI(ctx context.Context, uri string) (*model.Resource, error)
 	GetScope(ctx context.Context, resourceURI string, scope string) (*model.Scope, error)
-	ListScopes(ctx context.Context, resourceID string) ([]*model.Scope, error)
+	ListScopes(ctx context.Context, resourceID string, options *resourcescope.ListScopeOptions, pageArgs graphqlutil.PageArgs) (*resourcescope.ListScopeResult, error)
 	ListResources(ctx context.Context, options *resourcescope.ListResourcesOptions, pageArgs graphqlutil.PageArgs) (*resourcescope.ListResourceResult, error)
 }
 
@@ -62,8 +67,26 @@ func (f *ResourceScopeFacade) GetScope(ctx context.Context, resourceURI string, 
 	return f.ResourceScopeQueries.GetScope(ctx, resourceURI, scope)
 }
 
-func (f *ResourceScopeFacade) ListScopes(ctx context.Context, resourceID string) ([]*model.Scope, error) {
-	return f.ResourceScopeQueries.ListScopes(ctx, resourceID)
+func (f *ResourceScopeFacade) ListScopes(ctx context.Context, resourceID string, options *resourcescope.ListScopeOptions, pageArgs graphqlutil.PageArgs) ([]model.PageItemRef, *graphqlutil.PageResult, error) {
+	result, err := f.ResourceScopeQueries.ListScopes(ctx, resourceID, options, pageArgs)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	refs := make([]model.PageItemRef, len(result.Items))
+	for i, s := range result.Items {
+		i_uint64 := uint64(i) // #nosec G115
+		pageKey := db.PageKey{Offset: result.Offset + i_uint64}
+		cursor, err := pageKey.ToPageCursor()
+		if err != nil {
+			return nil, nil, err
+		}
+		refs[i] = model.PageItemRef{ID: s.ID, Cursor: cursor}
+	}
+
+	return refs, graphqlutil.NewPageResult(pageArgs, len(refs), graphqlutil.NewLazy(func() (interface{}, error) {
+		return result.TotalCount, nil
+	})), nil
 }
 
 func (f *ResourceScopeFacade) ListResources(ctx context.Context, options *resourcescope.ListResourcesOptions, pageArgs graphqlutil.PageArgs) ([]model.PageItemRef, *graphqlutil.PageResult, error) {
@@ -86,4 +109,24 @@ func (f *ResourceScopeFacade) ListResources(ctx context.Context, options *resour
 	return refs, graphqlutil.NewPageResult(pageArgs, len(refs), graphqlutil.NewLazy(func() (interface{}, error) {
 		return result.TotalCount, nil
 	})), nil
+}
+
+func (f *ResourceScopeFacade) AddResourceToClientID(ctx context.Context, resourceURI string, clientID string) error {
+	return f.ResourceScopeCommands.AddResourceToClientID(ctx, resourceURI, clientID)
+}
+
+func (f *ResourceScopeFacade) RemoveResourceFromClientID(ctx context.Context, resourceURI string, clientID string) error {
+	return f.ResourceScopeCommands.RemoveResourceFromClientID(ctx, resourceURI, clientID)
+}
+
+func (f *ResourceScopeFacade) AddScopesToClientID(ctx context.Context, resourceURI, clientID string, scopes []string) ([]*model.Scope, error) {
+	return f.ResourceScopeCommands.AddScopesToClientID(ctx, resourceURI, clientID, scopes)
+}
+
+func (f *ResourceScopeFacade) RemoveScopesFromClientID(ctx context.Context, resourceURI, clientID string, scopes []string) ([]*model.Scope, error) {
+	return f.ResourceScopeCommands.RemoveScopesFromClientID(ctx, resourceURI, clientID, scopes)
+}
+
+func (f *ResourceScopeFacade) ReplaceScopesOfClientID(ctx context.Context, resourceURI, clientID string, scopes []string) ([]*model.Scope, error) {
+	return f.ResourceScopeCommands.ReplaceScopesOfClientID(ctx, resourceURI, clientID, scopes)
 }

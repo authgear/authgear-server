@@ -67,18 +67,22 @@ func (q *Queries) GetScope(ctx context.Context, resourceURI string, scope string
 	return sc.ToModel(), nil
 }
 
-func (q *Queries) ListScopes(ctx context.Context, resourceID string) ([]*model.Scope, error) {
-	scopes, err := q.Store.ListScopes(ctx, resourceID)
+func (q *Queries) ListScopes(ctx context.Context, resourceID string, options *ListScopeOptions, pageArgs graphqlutil.PageArgs) (*ListScopeResult, error) {
+	storeResult, err := q.Store.ListScopes(ctx, resourceID, options, pageArgs)
 	if err != nil {
 		return nil, err
 	}
 
-	scopeModels := make([]*model.Scope, len(scopes))
-	for i, s := range scopes {
-		scopeModels[i] = s.ToModel()
+	modelItems := make([]*model.Scope, len(storeResult.Items))
+	for i, s := range storeResult.Items {
+		modelItems[i] = s.ToModel()
 	}
 
-	return scopeModels, nil
+	return &ListScopeResult{
+		Items:      modelItems,
+		Offset:     storeResult.Offset,
+		TotalCount: storeResult.TotalCount,
+	}, nil
 }
 
 func (q *Queries) GetManyScopes(ctx context.Context, ids []string) ([]*model.Scope, error) {
