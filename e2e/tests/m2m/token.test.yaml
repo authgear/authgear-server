@@ -7,10 +7,11 @@ steps:
   - action: http_request
     http_request_method: POST
     http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/token
-    http_request_headers:
-      Content-Type: application/x-www-form-urlencoded
-    http_request_body: |
-      grant_type=client_credentials&client_id=e2econfidential&client_secret=e2esecret&resource=https%3A%2F%2Ffixtureresource%2F2&
+    http_request_form_urlencoded_body:
+      grant_type: client_credentials
+      client_id: e2econfidential
+      client_secret: e2esecret
+      resource: https://fixtureresource/2
     http_output:
       http_status: 200
       json_body: |
@@ -30,10 +31,12 @@ steps:
   - action: http_request
     http_request_method: POST
     http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/token
-    http_request_headers:
-      Content-Type: application/x-www-form-urlencoded
-    http_request_body: |
-      scope=resource2_scope1&grant_type=client_credentials&client_id=e2econfidential&client_secret=e2esecret&resource=https%3A%2F%2Ffixtureresource%2F2&
+    http_request_form_urlencoded_body:
+      scope: resource2_scope1
+      grant_type: client_credentials
+      client_id: e2econfidential
+      client_secret: e2esecret
+      resource: https://fixtureresource/2
     http_output:
       http_status: 200
       json_body: |
@@ -53,10 +56,12 @@ steps:
   - action: http_request
     http_request_method: POST
     http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/token
-    http_request_headers:
-      Content-Type: application/x-www-form-urlencoded
-    http_request_body: |
-      scope=openid&grant_type=client_credentials&client_id=e2econfidential&client_secret=e2esecret&resource=https%3A%2F%2Ffixtureresource%2F2&
+    http_request_form_urlencoded_body:
+      scope: openid
+      grant_type: client_credentials
+      client_id: e2econfidential
+      client_secret: e2esecret
+      resource: https://fixtureresource/2
     http_output:
       http_status: 400
       json_body: |
@@ -73,10 +78,11 @@ steps:
   - action: http_request
     http_request_method: POST
     http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/token
-    http_request_headers:
-      Content-Type: application/x-www-form-urlencoded
-    http_request_body: |
-      grant_type=client_credentials&client_id=e2econfidential&client_secret=e2esecret&resource=https%3A%2F%2Ffixtureresource%2F1&
+    http_request_form_urlencoded_body:
+      grant_type: client_credentials
+      client_id: e2econfidential
+      client_secret: e2esecret
+      resource: https://fixtureresource/1
     http_output:
       http_status: 400
       json_body: |
@@ -94,10 +100,11 @@ steps:
   - action: http_request
     http_request_method: POST
     http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/token
-    http_request_headers:
-      Content-Type: application/x-www-form-urlencoded
-    http_request_body: |
-      grant_type=client_credentials&client_id=e2em2mclient&client_secret=e2esecret&resource=https%3A%2F%2Ffixtureresource%2F2&
+    http_request_form_urlencoded_body:
+      grant_type: client_credentials
+      client_id: e2em2mclient
+      client_secret: e2esecret
+      resource: https://fixtureresource/2
     http_output:
       http_status: 200
       json_body: |

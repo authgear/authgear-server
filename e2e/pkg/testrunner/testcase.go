@@ -236,7 +236,7 @@ func (tc *TestCase) executeStep(
 	case StepActionHTTPRequest:
 		var outputOk bool = true
 		var httpResult interface{} = nil
-		url, ok := renderTemplateString(t, cmd, prevSteps, step.HTTPRequestURL)
+		requesturl, ok := renderTemplateString(t, cmd, prevSteps, step.HTTPRequestURL)
 		if !ok {
 			return nil, state, false
 		}
@@ -246,11 +246,26 @@ func (tc *TestCase) executeStep(
 				step.HTTPRequestSessionCookie.IDPSessionToken,
 			)
 		}
+		var headers = step.HTTPRequestHeaders
+		if headers == nil {
+			headers = map[string]string{}
+		}
+		body := ""
+		if step.HTTPRequestBody != "" {
+			body = step.HTTPRequestBody
+		} else if step.HTTPRequestFormURLEncodedBody != nil {
+			headers["Content-Type"] = "application/x-www-form-urlencoded"
+			values := url.Values{}
+			for k, v := range step.HTTPRequestFormURLEncodedBody {
+				values.Add(k, v)
+			}
+			body = values.Encode()
+		}
 		err := client.MakeHTTPRequest(
 			step.HTTPRequestMethod,
-			url,
-			step.HTTPRequestHeaders,
-			step.HTTPRequestBody,
+			requesturl,
+			headers,
+			body,
 			func(r *http.Response) error {
 				if r != nil {
 					httpResult = NewResultHTTPResponse(r)
