@@ -60,7 +60,6 @@ func init() {
 	jsonschemaformat.DefaultChecker["x_re2_regex"] = FormatRe2Regex{}
 	jsonschemaformat.DefaultChecker["x_role_group_key"] = rolesgroupsutil.FormatKey{}
 	jsonschemaformat.DefaultChecker["x_x509_certificate_pem"] = FormatX509CertPem{}
-	jsonschemaformat.DefaultChecker["x_resource_uri"] = FormatResourceURI{}
 }
 
 // FormatEmail checks if input is an email address.
@@ -599,34 +598,6 @@ func (FormatHookURI) CheckFormat(ctx context.Context, value interface{}) error {
 		p := u.EscapedPath()
 
 		return FormatAbsolutePath{}.CheckFormat(ctx, p)
-	default:
-		return fmt.Errorf("invalid scheme: %v", u.Scheme)
-	}
-}
-
-type FormatResourceURI struct{}
-
-func (FormatResourceURI) CheckFormat(ctx context.Context, value interface{}) error {
-	str, ok := value.(string)
-	if !ok {
-		return nil
-	}
-
-	u, err := url.Parse(str)
-	if err != nil {
-		return err
-	}
-
-	switch u.Scheme {
-	case "https":
-		if u.RawQuery != "" {
-			return fmt.Errorf("resource URI must not have query")
-		}
-		// url.Parse set Fragment, but we also check RawFragment here to ensure nothing is missed
-		if u.Fragment != "" || u.RawFragment != "" {
-			return fmt.Errorf("resource URI must not have fragment")
-		}
-		return FormatURI{}.CheckFormat(ctx, value)
 	default:
 		return fmt.Errorf("invalid scheme: %v", u.Scheme)
 	}

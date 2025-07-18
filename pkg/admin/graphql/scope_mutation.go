@@ -4,9 +4,34 @@ import (
 	"github.com/graphql-go/graphql"
 
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
+	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/resourcescope"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
+	"github.com/authgear/authgear-server/pkg/util/validation"
 )
+
+var createScopeSchema *validation.SimpleSchema
+
+func init() {
+	createScopeSchemaBuilder := validation.SchemaBuilder{}
+	createScopeSchemaBuilder.Properties().Property("scope", (func() validation.SchemaBuilder {
+		scopeBuilder := validation.SchemaBuilder{}
+		scopeBuilder.Type(validation.TypeString).Format("x_scope_token")
+		scopeBuilder.MinLength(1)
+		scopeBuilder.MaxLength(100)
+		scopeBuilder.Not((func() validation.SchemaBuilder {
+			notBuilder := validation.SchemaBuilder{}
+			scopesIntf := make([]interface{}, len(oauth.AllowedScopes))
+			for i, s := range oauth.AllowedScopes {
+				scopesIntf[i] = s
+			}
+			notBuilder.Enum(scopesIntf...)
+			return notBuilder
+		})())
+		return scopeBuilder
+	})())
+	createScopeSchema = createScopeSchemaBuilder.ToSimpleSchema()
+}
 
 var createScopeInput = graphql.NewInputObject(graphql.InputObjectConfig{
 	Name: "CreateScopeInput",
@@ -46,7 +71,13 @@ var _ = registerMutationField(
 			},
 		},
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			ctx := p.Context
 			input := p.Args["input"].(map[string]interface{})
+
+			err := createScopeSchema.Validator().ValidateValue(ctx, input)
+			if err != nil {
+				return nil, err
+			}
 
 			resourceURI := input["resourceURI"].(string)
 			scopeStr := input["scope"].(string)
@@ -57,14 +88,12 @@ var _ = registerMutationField(
 			}
 
 			options := &resourcescope.NewScopeOptions{
-				ResourceURI: resourceURI,
-				Scope:       scopeStr,
+				Scope:       resourcescope.NewScope(ctx, scopeStr),
 				Description: description,
 			}
 
-			ctx := p.Context
 			gqlCtx := GQLContext(ctx)
-			scope, err := gqlCtx.ResourceScopeFacade.CreateScope(ctx, options)
+			scope, err := gqlCtx.ResourceScopeFacade.CreateScope(ctx, resourceURI, options)
 			if err != nil {
 				return nil, err
 			}
