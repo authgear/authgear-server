@@ -45,7 +45,14 @@ func MatchJSON(jsonStr string, schema string) ([]MatchViolation, error) {
 	return violations, nil
 }
 
-func matchMap(path string, data, schema map[string]interface{}) (violations []MatchViolation) {
+func matchMap(path string, data interface{}, schema map[string]interface{}) (violations []MatchViolation) {
+	dataMap, ok := data.(map[string]interface{})
+	if !ok {
+		if ok {
+			violations = append(violations, typeMismatchViolation(path, "[[object]]", data))
+		}
+		return
+	}
 	for key, schemaValue := range schema {
 		if key == "[[...rest]]" {
 			continue
@@ -55,7 +62,7 @@ func matchMap(path string, data, schema map[string]interface{}) (violations []Ma
 			continue
 		}
 
-		dataValue, ok := data[key]
+		dataValue, ok := dataMap[key]
 		if schemaValue == "[[never]]" {
 			if ok {
 				violations = append(violations, typeMismatchViolation(path+"/"+key, "[[never]]", dataValue))
@@ -76,9 +83,9 @@ func matchMap(path string, data, schema map[string]interface{}) (violations []Ma
 		// Allow extra fields by default
 		restSchemaValue = "[[ignore]]"
 	}
-	for dataKey := range data {
+	for dataKey := range dataMap {
 		if _, ok := schema[dataKey]; !ok {
-			violations = append(violations, matchValue(path+"/"+dataKey, data[dataKey], restSchemaValue)...)
+			violations = append(violations, matchValue(path+"/"+dataKey, dataMap[dataKey], restSchemaValue)...)
 		}
 	}
 
@@ -90,7 +97,7 @@ func matchValue(path string, dataValue, schemaValue interface{}) (violations []M
 	case string:
 		violations = append(violations, matchScalar(path, dataValue, schemaValue)...)
 	case map[string]interface{}:
-		violations = append(violations, matchMap(path, dataValue.(map[string]interface{}), schemaValue)...)
+		violations = append(violations, matchMap(path, dataValue, schemaValue)...)
 	case []interface{}:
 		violations = append(violations, matchArray(path, dataValue.([]interface{}), schemaValue)...)
 	default:
@@ -108,19 +115,21 @@ func matchArray(path string, data []interface{}, schemaValue interface{}) (viola
 
 	for i, item := range data {
 		var itemType interface{}
-		if schemaArray[0] == "[[arrayof]]" {
+		if len(schemaArray) > 0 && schemaArray[0] == "[[arrayof]]" {
 			itemType = schemaArray[1]
 		} else {
-			itemType = schemaArray[i]
+			if i > len(schemaArray)-1 {
+				violations = append(violations, typeMismatchViolation(fmt.Sprintf("%s/%d", path, i), "[[undefined]]", data[i]))
+				continue
+			} else {
+				itemType = schemaArray[i]
+			}
 		}
 
 		violations = append(violations, matchValue(fmt.Sprintf("%s/%d", path, i), item, itemType)...)
 	}
 
 	if len(data) != len(schemaArray) && schemaArray[0] != "[[arrayof]]" {
-		for i := len(schemaArray); i < len(data); i++ {
-			violations = append(violations, matchValue(fmt.Sprintf("%s/%d", path, i), data[i], schemaArray[len(schemaArray)-1])...)
-		}
 		for i := len(data); i < len(schemaArray); i++ {
 			violations = append(violations, missingFieldViolation(fmt.Sprintf("%s/%d", path, i), schemaArray[i]))
 		}

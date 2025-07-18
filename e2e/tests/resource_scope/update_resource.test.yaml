@@ -1,0 +1,36 @@
+name: Update Resource
+before:
+  - type: custom_sql
+    custom_sql:
+      path: simple_fixtures.sql
+steps:
+  - action: adminapi_query
+    adminapi_request:
+      query: |
+        mutation UpdateResource {
+          updateResource(input: {
+            resourceURI: "https://fixtureresource/1",
+            name: "Updated Resource Name"
+          }) {
+            resource {
+              id
+              name
+              uri
+            }
+          }
+        }
+      variables: "{}"
+    adminapi_output:
+      result: |
+        {
+          "data": {
+            "updateResource": {
+              "resource": {
+                "id": "[[string]]",
+                "name": "Updated Resource Name",
+                "uri": "https://fixtureresource/1"
+              }
+            }
+          },
+          "errors": null
+        } 

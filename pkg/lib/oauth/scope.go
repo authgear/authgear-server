@@ -2,6 +2,7 @@ package oauth
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -170,8 +171,8 @@ func ContainsAllScopes(scopes []string, shouldContainsScopes []string) bool {
 	return true
 }
 
-func IsScopeAllowed(scope string) bool {
-	for _, s := range AllowedScopes {
+func IsScopeAllowed(scope string, allowedScopes []string) bool {
+	for _, s := range allowedScopes {
 		if s == scope {
 			return true
 		}
@@ -210,7 +211,16 @@ func ScopeAllowsClaim(scope string, claimName string) bool {
 	}
 }
 
-func ValidateScopes(client *config.OAuthClientConfig, scopes []string) error {
+func ValidateScopes(scopes []string, allowedScopes []string) error {
+	for _, s := range scopes {
+		if !IsScopeAllowed(s, allowedScopes) {
+			return protocol.NewError("invalid_scope", fmt.Sprintf("specified scope is not allowed: %s", s))
+		}
+	}
+	return nil
+}
+
+func ValidateScopesByClientConfig(client *config.OAuthClientConfig, scopes []string) error {
 	allowOfflineAccess := false
 	for _, grantType := range GetAllowedGrantTypes(client) {
 		if grantType == RefreshTokenGrantType {
@@ -220,10 +230,10 @@ func ValidateScopes(client *config.OAuthClientConfig, scopes []string) error {
 	}
 	hasOIDC := false
 	hasDeviceSSO := false
+	if err := ValidateScopes(scopes, AllowedScopes); err != nil {
+		return err
+	}
 	for _, s := range scopes {
-		if !IsScopeAllowed(s) {
-			return protocol.NewError("invalid_scope", "specified scope is not allowed")
-		}
 		if s == OfflineAccess && !allowOfflineAccess {
 			return protocol.NewError("invalid_scope", "offline access is not allowed for this client")
 		}

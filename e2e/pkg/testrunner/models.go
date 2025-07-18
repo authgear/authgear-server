@@ -157,6 +157,32 @@ var _ = TestCaseSchema.Add("SAMLBinding", `
 }
 `)
 
+type AdminAPIRequest struct {
+	Query     string `json:"query"`
+	Variables string `json:"variables"`
+}
+
+var _ = TestCaseSchema.Add("AdminAPIRequest", `
+{
+    "type": "object",
+    "properties": {
+        "query": { "type": "string" },
+        "variables": { "type": "string" }
+    },
+    "required": ["query", "variables"]
+}
+`)
+
+var _ = TestCaseSchema.Add("AdminAPIOutput", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"result": { "type": "string" }
+	}
+}
+`)
+
 var _ = TestCaseSchema.Add("Step", `
 {
 	"type": "object",
@@ -172,7 +198,8 @@ var _ = TestCaseSchema.Add("Step", `
 			"saml_request",
 			"http_request",
 			"oauth_setup",
-			"oauth_exchange_code"
+			"oauth_exchange_code",
+			"adminapi_query"
 		]},
 		"input": { "type": "string" },
 		"to": { "type": "string" },
@@ -192,10 +219,13 @@ var _ = TestCaseSchema.Add("Step", `
 		"http_request_url": { "type": "string" },
 		"http_request_headers": { "type": "object" },
 		"http_request_body": { "type": "string" },
+		"http_request_form_urlencoded_body": { "type": "object" },
 		"http_request_session_cookie": { "$ref": "#/$defs/SessionCookie" },
 		"http_output": { "$ref": "#/$defs/HTTPOutput" },
 		"oauth_exchange_code_code_verifier": { "type": "string" },
-		"oauth_exchange_code_redirect_uri": { "type": "string" }
+		"oauth_exchange_code_redirect_uri": { "type": "string" },
+		"adminapi_request": { "$ref": "#/$defs/AdminAPIRequest" },
+		"adminapi_output": { "$ref": "#/$defs/AdminAPIOutput" }
 	},
 	"allOf": [
         {
@@ -288,6 +318,18 @@ var _ = TestCaseSchema.Add("Step", `
 							"oauth_exchange_code_redirect_uri"
 						]
 					}
+				},
+				{
+					"if": {
+						"properties": {
+							"action": { "const": "adminapi_query" }
+						}
+					},
+					"then": {
+						"required": [
+							"adminapi_request"
+						]
+					}
 				}
     ]
 }
@@ -324,16 +366,21 @@ type Step struct {
 	SAMLOutput               *SAMLOutput           `json:"saml_output"`
 
 	// `action` == "http_request"
-	HTTPRequestMethod        string            `json:"http_request_method"`
-	HTTPRequestURL           string            `json:"http_request_url"`
-	HTTPRequestHeaders       map[string]string `json:"http_request_headers"`
-	HTTPRequestBody          string            `json:"http_request_body"`
-	HTTPRequestSessionCookie *SessionCookie    `json:"http_request_session_cookie"`
-	HTTPOutput               *HTTPOutput       `json:"http_output"`
+	HTTPRequestMethod             string            `json:"http_request_method"`
+	HTTPRequestURL                string            `json:"http_request_url"`
+	HTTPRequestHeaders            map[string]string `json:"http_request_headers"`
+	HTTPRequestBody               string            `json:"http_request_body"`
+	HTTPRequestFormURLEncodedBody map[string]string `json:"http_request_form_urlencoded_body"`
+	HTTPRequestSessionCookie      *SessionCookie    `json:"http_request_session_cookie"`
+	HTTPOutput                    *HTTPOutput       `json:"http_output"`
 
 	// `action` == "oauth_exchange_code"
 	OAuthExchangeCodeCodeVerifier string `json:"oauth_exchange_code_code_verifier"`
 	OAuthExchangeCodeRedirectURI  string `json:"oauth_exchange_code_redirect_uri"`
+
+	// `action` == "adminapi_query"
+	AdminAPIRequest *AdminAPIRequest `json:"adminapi_request"`
+	AdminAPIOutput  *AdminAPIOutput  `json:"adminapi_output"`
 }
 
 type StepAction string
@@ -348,6 +395,7 @@ const (
 	StepActionHTTPRequest       StepAction = "http_request"
 	StepActionOAuthSetup        StepAction = "oauth_setup"
 	StepActionOAuthExchangeCode StepAction = "oauth_exchange_code"
+	StepActionAdminAPIQuery     StepAction = "adminapi_query"
 )
 
 var _ = TestCaseSchema.Add("SessionCookie", `
@@ -391,7 +439,8 @@ var _ = TestCaseSchema.Add("HTTPOutput", `
 	"properties": {
 		"http_status": { "type": "integer" },
 		"redirect_path": { "type": "string" },
-		"saml_element": { "$ref": "#/$defs/OuputSAMLElement" }
+		"saml_element": { "$ref": "#/$defs/OuputSAMLElement" },
+		"json_body": { "type": "string" }
 	}
 }
 `)
@@ -400,6 +449,7 @@ type HTTPOutput struct {
 	HTTPStatus   *float64          `json:"http_status"`
 	RedirectPath *string           `json:"redirect_path"`
 	SAMLElement  *OuputSAMLElement `json:"saml_element"`
+	JSONBody     *string           `json:"json_body"`
 }
 
 var _ = TestCaseSchema.Add("OuputSAMLElement", `
@@ -449,6 +499,11 @@ var _ = TestCaseSchema.Add("Output", `
 type Output struct {
 	Result string `json:"result"`
 	Error  string `json:"error"`
+}
+
+// AdminAPIOutput is used for adminapi_query output validation
+type AdminAPIOutput struct {
+	Result string `json:"result"`
 }
 
 var _ = TestCaseSchema.Add("StepResult", `

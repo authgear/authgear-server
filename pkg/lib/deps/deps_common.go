@@ -387,6 +387,7 @@ var CommonDependencySet = wire.NewSet(
 
 	wire.NewSet(
 		resourcescope.DependencySet,
+		wire.Bind(new(handler.TokenHandlerClientResourceScopeService), new(*resourcescope.ClientResourceScopeService)),
 	),
 
 	wire.NewSet(

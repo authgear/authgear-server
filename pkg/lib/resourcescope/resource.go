@@ -2,14 +2,27 @@ package resourcescope
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
-	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
+type newResourceURI struct {
+	Value string
+}
+
+func NewResourceURI(ctx context.Context, str string) newResourceURI {
+	err := FormatResourceURI{}.CheckFormat(ctx, str)
+	if err != nil {
+		// This is a programming error because you should always validate the user input before calling NewResourceURI
+		panic(fmt.Errorf("invalid resource uri"))
+	}
+	return newResourceURI{Value: str}
+}
+
 type NewResourceOptions struct {
-	URI  string
+	URI  newResourceURI
 	Name *string
 }
 
@@ -47,17 +60,4 @@ type ListResourceResult struct {
 	Items      []*model.Resource
 	Offset     uint64
 	TotalCount uint64
-}
-
-var uriSchema = validation.NewSimpleSchema(`
-	{
-		"type": "string",
-		"minLength": 1,
-		"maxLength": 100,
-		"format": "x_resource_uri"
-	}
-`)
-
-func ValidateResourceURI(ctx context.Context, uri string) error {
-	return uriSchema.Validator().ValidateValue(ctx, uri)
 }
