@@ -116,7 +116,7 @@ func (c *Commands) UpdateScope(ctx context.Context, options *UpdateScopeOptions)
 }
 
 func (c *Commands) DeleteScope(ctx context.Context, resourceURI string, scope string) error {
-	s, err := c.Store.GetScopeByResourceIDAndScope(ctx, resourceURI, scope)
+	s, err := c.Store.GetScope(ctx, resourceURI, scope)
 	if err != nil {
 		return err
 	}
@@ -146,15 +146,20 @@ func (c *Commands) AddScopesToClientID(ctx context.Context, resourceURI, clientI
 	if err := c.checkResourceAssociatedToClient(ctx, resource.ID, clientID); err != nil {
 		return nil, err
 	}
+	scopeMap, err := c.Store.GetScopesByResourceIDAndScopes(ctx, resource.ID, scopes)
+	if err != nil {
+		return nil, err
+	}
+	scopeIDs := []string{}
 	for _, scopeStr := range scopes {
-		scope, err := c.Store.GetScopeByResourceIDAndScope(ctx, resource.ID, scopeStr)
-		if err != nil {
-			return nil, err
+		sc, ok := scopeMap[scopeStr]
+		if !ok {
+			return nil, ErrScopeNotFound
 		}
-		err = c.Store.AddScopeToClientID(ctx, resource.ID, scope.ID, clientID)
-		if err != nil {
-			return nil, err
-		}
+		scopeIDs = append(scopeIDs, sc.ID)
+	}
+	if err := c.Store.AddScopesToClientID(ctx, resource.ID, scopeIDs, clientID); err != nil {
+		return nil, err
 	}
 	finalScopes, err := c.Store.ListClientScopesByResourceID(ctx, resource.ID, clientID)
 	if err != nil {
@@ -178,15 +183,20 @@ func (c *Commands) RemoveScopesFromClientID(ctx context.Context, resourceURI, cl
 	if err := c.checkResourceAssociatedToClient(ctx, resource.ID, clientID); err != nil {
 		return nil, err
 	}
+	scopeMap, err := c.Store.GetScopesByResourceIDAndScopes(ctx, resource.ID, scopes)
+	if err != nil {
+		return nil, err
+	}
+	scopeIDs := []string{}
 	for _, scopeStr := range scopes {
-		scope, err := c.Store.GetScopeByResourceIDAndScope(ctx, resource.ID, scopeStr)
-		if err != nil {
-			return nil, err
+		sc, ok := scopeMap[scopeStr]
+		if !ok {
+			return nil, ErrScopeNotFound
 		}
-		err = c.Store.RemoveScopeFromClientID(ctx, scope.ID, clientID)
-		if err != nil {
-			return nil, err
-		}
+		scopeIDs = append(scopeIDs, sc.ID)
+	}
+	if err := c.Store.RemoveScopesFromClientID(ctx, scopeIDs, clientID); err != nil {
+		return nil, err
 	}
 	finalScopes, err := c.Store.ListClientScopesByResourceID(ctx, resource.ID, clientID)
 	if err != nil {
@@ -225,26 +235,36 @@ func (c *Commands) ReplaceScopesOfClientID(ctx context.Context, resourceURI, cli
 	for _, scopeStr := range scopes {
 		desiredSet[scopeStr] = struct{}{}
 	}
+	desiredScopeMap, err := c.Store.GetScopesByResourceIDAndScopes(ctx, resource.ID, scopes)
+	if err != nil {
+		return nil, err
+	}
 	// Add missing scopes
+	toAddIDs := []string{}
 	for _, scopeStr := range scopes {
 		if _, ok := currentSet[scopeStr]; !ok {
-			scope, err := c.Store.GetScopeByResourceIDAndScope(ctx, resource.ID, scopeStr)
-			if err != nil {
-				return nil, err
+			sc, ok := desiredScopeMap[scopeStr]
+			if !ok {
+				return nil, ErrScopeNotFound
 			}
-			err = c.Store.AddScopeToClientID(ctx, resource.ID, scope.ID, clientID)
-			if err != nil {
-				return nil, err
-			}
+			toAddIDs = append(toAddIDs, sc.ID)
+		}
+	}
+	if len(toAddIDs) > 0 {
+		if err := c.Store.AddScopesToClientID(ctx, resource.ID, toAddIDs, clientID); err != nil {
+			return nil, err
 		}
 	}
 	// Remove extra scopes
+	toRemoveIDs := []string{}
 	for scopeStr, s := range currentSet {
 		if _, ok := desiredSet[scopeStr]; !ok {
-			err := c.Store.RemoveScopeFromClientID(ctx, s.ID, clientID)
-			if err != nil {
-				return nil, err
-			}
+			toRemoveIDs = append(toRemoveIDs, s.ID)
+		}
+	}
+	if len(toRemoveIDs) > 0 {
+		if err := c.Store.RemoveScopesFromClientID(ctx, toRemoveIDs, clientID); err != nil {
+			return nil, err
 		}
 	}
 	// Return the final set
