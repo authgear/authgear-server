@@ -418,7 +418,13 @@ func (tc *TestCase) executeStep(
 		}
 
 		if step.AdminAPIOutput != nil {
-			ok := validateAdminAPIOutput(t, step.AdminAPIOutput, resp)
+			renderedResult, ok := renderTemplateString(t, cmd, prevSteps, step.AdminAPIOutput.Result)
+			if !ok {
+				t.Errorf("failed to render adminapi_output.result")
+			}
+			expectedOutput := *step.AdminAPIOutput
+			expectedOutput.Result = renderedResult
+			ok = validateAdminAPIOutput(t, &expectedOutput, resp)
 			if !ok {
 				return nil, state, false
 			}

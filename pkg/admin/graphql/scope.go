@@ -7,6 +7,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
+	relay "github.com/authgear/authgear-server/pkg/graphqlgo/relay"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
@@ -26,6 +27,14 @@ var nodeScope = node(
 			"id":        entityIDField(typeScope),
 			"createdAt": entityCreatedAtField(nil),
 			"updatedAt": entityUpdatedAtField(nil),
+			"resourceID": &graphql.Field{
+				Type: graphql.NewNonNull(graphql.ID),
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					source := p.Source.(*model.Scope)
+					return relay.ToGlobalID(typeResource, source.ResourceID), nil
+				},
+				Description: "The resource ID.",
+			},
 			"scope": &graphql.Field{
 				Type:        graphql.NewNonNull(graphql.String),
 				Description: "The scope string.",

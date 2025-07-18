@@ -1547,6 +1547,8 @@ export type Scope = Entity & Node & {
   description?: Maybe<Scalars['String']['output']>;
   /** The ID of an object */
   id: Scalars['ID']['output'];
+  /** The resource ID. */
+  resourceID: Scalars['ID']['output'];
   /** The scope string. */
   scope: Scalars['String']['output'];
   /** The update time of entity */
