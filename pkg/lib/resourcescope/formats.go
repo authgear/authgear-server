@@ -11,6 +11,11 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
+func init() {
+	jsonschemaformat.DefaultChecker["x_resource_uri"] = FormatResourceURI{}
+	jsonschemaformat.DefaultChecker["x_scope_token"] = FormatScopeToken{}
+}
+
 type FormatResourceURI struct{}
 
 func (FormatResourceURI) CheckFormat(ctx context.Context, value interface{}) error {
@@ -66,9 +71,4 @@ func (FormatScopeToken) CheckFormat(ctx context.Context, value interface{}) erro
 	}
 
 	return nil
-}
-
-func init() {
-	jsonschemaformat.DefaultChecker["x_resource_uri"] = FormatResourceURI{}
-	jsonschemaformat.DefaultChecker["x_scope_token"] = FormatScopeToken{}
 }
