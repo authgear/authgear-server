@@ -2,7 +2,6 @@ package resourcescope
 
 import (
 	"context"
-	"errors"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -130,9 +129,7 @@ func (c *Commands) DeleteScope(ctx context.Context, resourceURI string, scope st
 
 func (c *Commands) checkResourceAssociatedToClient(ctx context.Context, resourceID, clientID string) error {
 	_, err := c.Store.GetClientResource(ctx, clientID, resourceID)
-	if errors.Is(err, ErrResourceNotFound) {
-		return ErrResourceNotAssociatedWithClient
-	} else if err != nil {
+	if err != nil {
 		return err
 	}
 	return nil
