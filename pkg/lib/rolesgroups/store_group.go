@@ -8,6 +8,7 @@ import (
 	"github.com/lib/pq"
 
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	databaseutil "github.com/authgear/authgear-server/pkg/util/databaseutil"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
@@ -46,13 +47,8 @@ func (s *Store) CreateGroup(ctx context.Context, r *Group) error {
 
 	_, err := s.SQLExecutor.ExecWith(ctx, q)
 	if err != nil {
-		var pqError *pq.Error
-		if errors.As(err, &pqError) {
-			// https://www.postgresql.org/docs/13/errcodes-appendix.html
-			// 23505 is unique_violation
-			if pqError.Code == "23505" {
-				err = ErrGroupDuplicateKey
-			}
+		if databaseutil.IsDuplicateKeyError(err) {
+			return ErrGroupDuplicateKey
 		}
 		return err
 	}
@@ -89,13 +85,8 @@ func (s *Store) UpdateGroup(ctx context.Context, options *UpdateGroupOptions) er
 
 	result, err := s.SQLExecutor.ExecWith(ctx, q)
 	if err != nil {
-		var pqError *pq.Error
-		if errors.As(err, &pqError) {
-			// https://www.postgresql.org/docs/13/errcodes-appendix.html
-			// 23505 is unique_violation
-			if pqError.Code == "23505" {
-				err = ErrGroupDuplicateKey
-			}
+		if databaseutil.IsDuplicateKeyError(err) {
+			return ErrGroupDuplicateKey
 		}
 		return err
 	}
