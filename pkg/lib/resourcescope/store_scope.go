@@ -289,33 +289,36 @@ func (s *Store) scanScope(scanner db.Scanner) (*Scope, error) {
 	return sc, nil
 }
 
-func (s *Store) GetScopeByResourceIDAndScope(ctx context.Context, resourceID, scope string) (*Scope, error) {
-	q := s.selectScopeQuery("s").Where("s.resource_id = ? AND s.scope = ?", resourceID, scope)
-	scopes, err := s.queryScopes(ctx, q)
+func (s *Store) GetScopesByResourceIDAndScopes(ctx context.Context, resourceID string, scopes []string) (map[string]*Scope, error) {
+	q := s.selectScopeQuery("s").Where("s.resource_id = ? AND s.scope = ANY (?)", resourceID, pq.Array(scopes))
+	results, err := s.queryScopes(ctx, q)
 	if err != nil {
 		return nil, err
 	}
-	if len(scopes) == 0 {
-		return nil, ErrScopeNotFound
+	m := map[string]*Scope{}
+	for _, sc := range results {
+		m[sc.Scope] = sc
 	}
-	return scopes[0], nil
+	return m, nil
 }
 
-func (s *Store) AddScopeToClientID(ctx context.Context, resourceID, scopeID, clientID string) error {
+func (s *Store) AddScopesToClientID(ctx context.Context, resourceID string, scopeIDs []string, clientID string) error {
 	now := s.Clock.NowUTC()
 	q := s.SQLBuilder.
 		Insert(s.SQLBuilder.TableName("_auth_client_resource_scope")).
-		Columns("id", "created_at", "updated_at", "client_id", "resource_id", "scope_id").
-		Values(uuid.NewString(), now, now, clientID, resourceID, scopeID).
-		Suffix("ON CONFLICT DO NOTHING")
+		Columns("id", "created_at", "updated_at", "client_id", "resource_id", "scope_id")
+	for _, scopeID := range scopeIDs {
+		q = q.Values(uuid.NewString(), now, now, clientID, resourceID, scopeID)
+	}
+	q = q.Suffix("ON CONFLICT DO NOTHING")
 	_, err := s.SQLExecutor.ExecWith(ctx, q)
 	return err
 }
 
-func (s *Store) RemoveScopeFromClientID(ctx context.Context, scopeID, clientID string) error {
+func (s *Store) RemoveScopesFromClientID(ctx context.Context, scopeIDs []string, clientID string) error {
 	q := s.SQLBuilder.
 		Delete(s.SQLBuilder.TableName("_auth_client_resource_scope")).
-		Where("client_id = ? AND scope_id = ?", clientID, scopeID)
+		Where("client_id = ? AND scope_id = ANY (?)", clientID, pq.Array(scopeIDs))
 	_, err := s.SQLExecutor.ExecWith(ctx, q)
 	return err
 }
