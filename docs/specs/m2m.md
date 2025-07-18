@@ -28,6 +28,7 @@
   - [(Authgear) Proposed Token Exchange behavior](#discussion-authgear-proposed-token-exchange-behavior)
   - [(Auth0) Rich Authorization Requests](#discussion-auth0-rich-authorization-requests)
   - [(Future work) Restricting access to Admin API](#discussion-future-work-restricting-access-to-admin-api)
+    - [Built-in Resource Precedence and Shadowing](#built-in-resource-precedence-and-shadowing)
 - [MVP](#mvp)
   - [Changes in data models](#changes-in-data-models)
   - [Changes in Admin API](#changes-in-admin-api)
@@ -829,6 +830,17 @@ In Auth0, `RFC6749 section-4.4` is also used to create an `access_token` that ca
 
 We can implement the same for our Admin API.
 Specifically, we need to introduce an artificial Resource with URI `https://auth.myapp.com/_api/admin`, and define a comprehensive list of scopes that restrict access to the different Resources within the Admin API.
+
+#### Built-in Resource Precedence and Shadowing
+
+To support Admin API authorization with M2M, Authgear will introduce a built-in resource representing the Admin API (e.g., with URI `https://auth.myapp.com/_api/admin`). These built-in resources are not stored in the `_auth_resource` table, as their URIs may depend on the Authgear deployment and public endpoint can change at any time.
+
+- **Precedence:** Built-in resources always take precedence over user-defined resources in the `_auth_resource` table.
+- **Shadowing:** If a user attempts to create a resource in `_auth_resource` with a URI that conflicts with a built-in resource, the built-in resource will shadow the user-defined one. Any access control, authorization, or lookup for a resource URI that matches a built-in will always resolve to the built-in resource, regardless of the presence of a user-defined resource with the same URI.
+- **Rationale:** This ensures that critical system APIs (such as the Admin API) are always protected and managed according to Authgear's internal rules, and cannot be overridden or interfered with by user configuration.
+
+> **Example:**
+> If Authgear defines a built-in resource with URI `https://auth.myapp.com/_api/admin`, and a user creates a resource with the same URI in the portal, all authorization checks for `https://auth.myapp.com/_api/admin` will use the built-in resource. The user-defined resource is effectively ignored (shadowed) for that URI.
 
 ## MVP
 
