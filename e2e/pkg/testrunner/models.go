@@ -219,6 +219,7 @@ var _ = TestCaseSchema.Add("Step", `
 		"http_request_url": { "type": "string" },
 		"http_request_headers": { "type": "object" },
 		"http_request_body": { "type": "string" },
+		"http_request_form_urlencoded_body": { "type": "object" },
 		"http_request_session_cookie": { "$ref": "#/$defs/SessionCookie" },
 		"http_output": { "$ref": "#/$defs/HTTPOutput" },
 		"oauth_exchange_code_code_verifier": { "type": "string" },
@@ -365,12 +366,13 @@ type Step struct {
 	SAMLOutput               *SAMLOutput           `json:"saml_output"`
 
 	// `action` == "http_request"
-	HTTPRequestMethod        string            `json:"http_request_method"`
-	HTTPRequestURL           string            `json:"http_request_url"`
-	HTTPRequestHeaders       map[string]string `json:"http_request_headers"`
-	HTTPRequestBody          string            `json:"http_request_body"`
-	HTTPRequestSessionCookie *SessionCookie    `json:"http_request_session_cookie"`
-	HTTPOutput               *HTTPOutput       `json:"http_output"`
+	HTTPRequestMethod             string            `json:"http_request_method"`
+	HTTPRequestURL                string            `json:"http_request_url"`
+	HTTPRequestHeaders            map[string]string `json:"http_request_headers"`
+	HTTPRequestBody               string            `json:"http_request_body"`
+	HTTPRequestFormURLEncodedBody map[string]string `json:"http_request_form_urlencoded_body"`
+	HTTPRequestSessionCookie      *SessionCookie    `json:"http_request_session_cookie"`
+	HTTPOutput                    *HTTPOutput       `json:"http_output"`
 
 	// `action` == "oauth_exchange_code"
 	OAuthExchangeCodeCodeVerifier string `json:"oauth_exchange_code_code_verifier"`
