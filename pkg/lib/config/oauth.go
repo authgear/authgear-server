@@ -31,6 +31,7 @@ const (
 	OAuthClientApplicationTypeNative         OAuthClientApplicationType = "native"
 	OAuthClientApplicationTypeConfidential   OAuthClientApplicationType = "confidential"
 	OAuthClientApplicationTypeThirdPartyApp  OAuthClientApplicationType = "third_party_app"
+	OAuthClientApplicationTypeM2M            OAuthClientApplicationType = "m2m"
 	OAuthClientApplicationTypeUnspecified    OAuthClientApplicationType = ""
 )
 
@@ -46,6 +47,8 @@ func (t OAuthClientApplicationType) IsThirdParty() bool {
 		return false
 	case OAuthClientApplicationTypeThirdPartyApp:
 		return true
+	case OAuthClientApplicationTypeM2M:
+		return false
 	default:
 		return false
 	}
@@ -67,6 +70,8 @@ func (t OAuthClientApplicationType) IsConfidential() bool {
 		return true
 	case OAuthClientApplicationTypeThirdPartyApp:
 		return true
+	case OAuthClientApplicationTypeM2M:
+		return true
 	default:
 		return false
 	}
@@ -84,6 +89,8 @@ func (t OAuthClientApplicationType) IsClientCredentialsFlowAllowed() bool {
 		return true
 	case OAuthClientApplicationTypeThirdPartyApp:
 		return false
+	case OAuthClientApplicationTypeM2M:
+		return true
 	default:
 		return false
 	}
@@ -105,6 +112,8 @@ func (t OAuthClientApplicationType) HasFullAccessScope() bool {
 		return false
 	case OAuthClientApplicationTypeThirdPartyApp:
 		return false
+	case OAuthClientApplicationTypeM2M:
+		return false
 	default:
 		return true
 	}
@@ -122,6 +131,8 @@ func (t OAuthClientApplicationType) PIIAllowedInIDToken() bool {
 		return true
 	case OAuthClientApplicationTypeThirdPartyApp:
 		return true
+	case OAuthClientApplicationTypeM2M:
+		return false
 	default:
 		return false
 	}
@@ -136,7 +147,7 @@ var _ = Schema.Add("OAuthClientConfig", `
 		"client_uri": { "type": "string", "format": "uri" },
 		"client_name": { "type": "string", "minLength": 1 },
 		"name": { "type": "string" },
-		"x_application_type": { "type": "string", "enum": ["spa", "traditional_webapp", "native", "confidential", "third_party_app"] },
+		"x_application_type": { "type": "string", "enum": ["spa", "traditional_webapp", "native", "confidential", "third_party_app", "m2m"] },
 		"x_max_concurrent_session": { "type": "integer", "enum": [0, 1] },
 		"redirect_uris": {
 			"type": "array",
@@ -334,5 +345,11 @@ func (c *OAuthClientConfig) SetDefaults() {
 	}
 	if c.RefreshTokenIdleTimeout == 0 {
 		c.RefreshTokenIdleTimeout = DefaultRefreshTokenIdleTimeout
+	}
+
+	switch c.ApplicationType {
+	case OAuthClientApplicationTypeM2M:
+		// m2m client can only issue jwt access token
+		c.IssueJWTAccessToken = true
 	}
 }

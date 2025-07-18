@@ -35,28 +35,33 @@ var whitelistedGrantTypes = []string{
 }
 
 func GetAllowedGrantTypes(c *config.OAuthClientConfig) []string {
-	seen := make(map[string]struct{})
+	switch c.ApplicationType {
+	case config.OAuthClientApplicationTypeM2M:
+		return []string{ClientCredentialsGrantType}
+	default:
+		seen := make(map[string]struct{})
 
-	var allowed []string
-	for _, g := range c.GrantTypes_do_not_use_directly {
-		_, ok := seen[g]
-		if !ok {
-			allowed = append(allowed, g)
-			seen[g] = struct{}{}
+		var allowed []string
+		for _, g := range c.GrantTypes_do_not_use_directly {
+			_, ok := seen[g]
+			if !ok {
+				allowed = append(allowed, g)
+				seen[g] = struct{}{}
+			}
 		}
-	}
 
-	for _, g := range whitelistedGrantTypes {
-		_, ok := seen[g]
-		if !ok {
-			allowed = append(allowed, g)
-			seen[g] = struct{}{}
+		for _, g := range whitelistedGrantTypes {
+			_, ok := seen[g]
+			if !ok {
+				allowed = append(allowed, g)
+				seen[g] = struct{}{}
+			}
 		}
-	}
 
-	if c.ApplicationType.IsClientCredentialsFlowAllowed() {
-		allowed = append(allowed, ClientCredentialsGrantType)
-	}
+		if c.ApplicationType.IsClientCredentialsFlowAllowed() {
+			allowed = append(allowed, ClientCredentialsGrantType)
+		}
 
-	return allowed
+		return allowed
+	}
 }
