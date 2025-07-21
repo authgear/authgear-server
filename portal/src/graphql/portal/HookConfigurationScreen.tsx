@@ -116,6 +116,59 @@ const BLOCKING_EVENT_NAME_TO_RESPONSE_TYPE_NAME: Record<BlockingEvent, string> =
       "EventAuthenticationPreAuthenticatedHookResponse",
   };
 
+const BLOCKING_HOOK_EXAMPLES: Record<BlockingEvent, string> = {
+  "user.pre_create": ``,
+  "user.profile.pre_update": ``,
+  "user.pre_schedule_deletion": ``,
+  "user.pre_schedule_anonymization": ``,
+  "oidc.jwt.pre_create": ``,
+  "authentication.pre_initialize": `
+// This event is triggered right before any authentication, such as login. 
+//
+// For example, if your business only operate during weekdays, therefore you do not want any user login during weekends:
+// 
+// const today = new Date();
+// // 0 is sunday, and 6 is saturday
+// if (today.getDay() === 0 || today.getDay() === 6) {
+//   return {
+//     is_allowed: false,
+//   };
+// }
+// return {
+//   is_allowed: true,
+// };`,
+  "authentication.post_identified": `
+// This event is triggered after the identification step during signup/login.
+// For example, block login based on email address:
+//
+// const email = e.payload.identification.identity?.claims?.email
+// if (typeof email === "string" && email.endsWith("@authgear.com")) {
+//   return {
+//     is_allowed: true,
+//   };
+// }
+// return {
+//   is_allowed: false,
+//   reason: "Email address not allowed"
+// };`,
+  "authentication.pre_authenticated": `
+// This event is triggered right before any authentication completes, such as login. 
+//
+// For example, logins from outside \`HK\` are considered at a higher risk, 
+// and MFA is enforced.
+// if (e.context.geo_location_code !== "HK") {
+//   return {
+//     is_allowed: true,
+//     constraints:{
+//       amr: ["mfa"]
+//     }
+//   };
+// }
+// return {
+//   is_allowed: true,
+// };`,
+};
+
 const DENOHOOK_NONBLOCKING_DEFAULT = `import { HookNonBlockingEvent } from "${DENO_TYPES_URL}";
 
 export default async function(e: HookNonBlockingEvent): Promise<void> {
@@ -140,10 +193,12 @@ export default async function(e: HookNonBlockingEvent): Promise<void> {
 function makeDefaultDenoHookBlockingScript(event: BlockingEvent): string {
   const payloadTypeName = BLOCKING_EVENT_NAME_TO_PAYLOAD_TYPE_NAME[event];
   const responseTypeName = BLOCKING_EVENT_NAME_TO_RESPONSE_TYPE_NAME[event];
+  const exampleCode = BLOCKING_HOOK_EXAMPLES[event];
   return `import { ${payloadTypeName}, ${responseTypeName} } from "${DENO_TYPES_URL}";
 
 export default async function(e: ${payloadTypeName}): Promise<${responseTypeName}> {
   // Write your hook with the help of the type definition.
+${exampleCode.replace(/^/gm, "  ")}
   return { is_allowed: true };
 }
 `;

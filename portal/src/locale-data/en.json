@@ -1256,7 +1256,7 @@
   "HookConfigurationScreen.change-event.description": "Changing the event will overwrite your script. Are you sure to change?",
   "HookConfigurationScreen.change-event.label": "Change Event",
   "HookConfigurationScreen.edit-hook.label": "Edit Script",
-  "HookConfigurationScreen.edit-hook.description": "Refer to the documentation to learn how to write the script. See the {DocLink, react, href{{docHref}} children{Event List}} for the full list of events.",
+  "HookConfigurationScreen.edit-hook.description": "Refer to the documentation to learn how to write the script. See the {DocLink, react, href{{docHref}} children{event reference in documentation}} for the full list of events.",
   "HookConfigurationScreen.blocking-events": "Blocking Events",
   "HookConfigurationScreen.blocking-events.description": "Blocking Events allow your hooks to check and abort operations in different scenarios. {br, react} {DocLink, react, href{https://docs.authgear.com/customization/events-hooks/blocking-events} children{Learn more about blocking events}}.",
   "HookConfigurationScreen.blocking-handlers.label": "Blocking Hooks",
