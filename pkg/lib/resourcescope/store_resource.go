@@ -18,11 +18,11 @@ import (
 func (s *Store) NewResource(options *NewResourceOptions) *Resource {
 	now := s.Clock.NowUTC()
 	return &Resource{
-		ID:        uuid.NewString(),
-		CreatedAt: now,
-		UpdatedAt: now,
-		URI:       options.URI.Value,
-		Name:      options.Name,
+		ID:          uuid.NewString(),
+		CreatedAt:   now,
+		UpdatedAt:   now,
+		ResourceURI: options.URI.Value,
+		Name:        options.Name,
 	}
 }
 
@@ -40,7 +40,7 @@ func (s *Store) CreateResource(ctx context.Context, r *Resource) error {
 			r.ID,
 			r.CreatedAt,
 			r.UpdatedAt,
-			r.URI,
+			r.ResourceURI,
 			r.Name,
 		)
 
@@ -272,7 +272,7 @@ func (s *Store) scanResource(scanner db.Scanner) (*Resource, error) {
 		&r.ID,
 		&r.CreatedAt,
 		&r.UpdatedAt,
-		&r.URI,
+		&r.ResourceURI,
 		&r.Name,
 	)
 	if err != nil {
