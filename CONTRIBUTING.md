@@ -23,6 +23,9 @@
   * [Switching between sessionType=refresh\_token and sessionType=cookie](#switching-between-sessiontyperefresh_token-and-sessiontypecookie)
   * [Switch to Database config source](#switch-to-database-config-source)
 * [Storybooks](#storybooks)
+* [Agentic coding](#agentic-coding)
+  * [Always prompts](#always-prompts)
+  * [Manual prompts](#manual-prompts)
 
 # Contributing guide
 
@@ -541,3 +544,37 @@ Restart your server, then it should be running with database config source.
 |        |                                                                                                                                                                                                     |
 | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Portal | [<img src="https://github.com/authgear/authgear-server/actions/workflows/chromatic.yaml/badge.svg?branch=ui-review-pending" />](https://ui-review-pending--67d2b9f5a864651d3793fe7e.chromatic.com/) |
+
+# Agentic coding
+
+We are trying out agentic coding workflow in this repository.
+
+There are 2 types of reusable prompts:
+
+- Always
+- Manual
+
+## Always prompts
+
+The Always reusable prompts live in ./.cursor/.rules/
+
+These rules have the following frontmatter at the beginning of the file
+
+```
+---
+alwaysApply: true
+---
+```
+
+When you add a new rule, you need to update ./CLAUDE.md to include that rule.
+
+## Manual prompts
+
+Another type of reusable prompts is Manual.
+
+They have to be explicitly referenced by you.
+They live in ./.claude/commands/
+
+In Claude Code, they are custom slash commands, and you use them as such.
+
+In Cursor, you need to reference them with `@`.
