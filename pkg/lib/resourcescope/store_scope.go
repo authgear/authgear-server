@@ -303,6 +303,9 @@ func (s *Store) GetScopesByResourceIDAndScopes(ctx context.Context, resourceID s
 }
 
 func (s *Store) AddScopesToClientID(ctx context.Context, resourceID string, scopeIDs []string, clientID string) error {
+	if len(scopeIDs) == 0 {
+		return nil
+	}
 	now := s.Clock.NowUTC()
 	q := s.SQLBuilder.
 		Insert(s.SQLBuilder.TableName("_auth_client_resource_scope")).
@@ -316,6 +319,9 @@ func (s *Store) AddScopesToClientID(ctx context.Context, resourceID string, scop
 }
 
 func (s *Store) RemoveScopesFromClientID(ctx context.Context, scopeIDs []string, clientID string) error {
+	if len(scopeIDs) == 0 {
+		return nil
+	}
 	q := s.SQLBuilder.
 		Delete(s.SQLBuilder.TableName("_auth_client_resource_scope")).
 		Where("client_id = ? AND scope_id = ANY (?)", clientID, pq.Array(scopeIDs))
