@@ -28,7 +28,7 @@ var nodeResource = node(
 			"id":        entityIDField(typeResource),
 			"createdAt": entityCreatedAtField(nil),
 			"updatedAt": entityUpdatedAtField(nil),
-			"uri": &graphql.Field{
+			"resourceURI": &graphql.Field{
 				Type:        graphql.NewNonNull(graphql.String),
 				Description: "The URI of the resource.",
 			},
