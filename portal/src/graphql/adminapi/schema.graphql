@@ -776,7 +776,7 @@ input CreateResourceInput {
   name: String
 
   """The URI of the resource."""
-  uri: String!
+  resourceURI: String!
 }
 
 """"""
@@ -1552,14 +1552,14 @@ type Resource implements Entity & Node {
   """The optional name of the resource."""
   name: String
 
+  """The URI of the resource."""
+  resourceURI: String!
+
   """The list of scopes for this resource."""
   scopes(after: String, before: String, clientID: String, first: Int, last: Int, searchKeyword: String): ScopeConnection
 
   """The update time of entity"""
   updatedAt: DateTime!
-
-  """The URI of the resource."""
-  uri: String!
 }
 
 """A connection to a list of items."""

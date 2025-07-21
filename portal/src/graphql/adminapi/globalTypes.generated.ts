@@ -457,7 +457,7 @@ export type CreateResourceInput = {
   /** The optional name of the resource. */
   name?: InputMaybe<Scalars['String']['input']>;
   /** The URI of the resource. */
-  uri: Scalars['String']['input'];
+  resourceURI: Scalars['String']['input'];
 };
 
 export type CreateResourcePayload = {
@@ -1401,12 +1401,12 @@ export type Resource = Entity & Node & {
   id: Scalars['ID']['output'];
   /** The optional name of the resource. */
   name?: Maybe<Scalars['String']['output']>;
+  /** The URI of the resource. */
+  resourceURI: Scalars['String']['output'];
   /** The list of scopes for this resource. */
   scopes?: Maybe<ScopeConnection>;
   /** The update time of entity */
   updatedAt: Scalars['DateTime']['output'];
-  /** The URI of the resource. */
-  uri: Scalars['String']['output'];
 };
 
 
