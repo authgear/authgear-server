@@ -12,7 +12,7 @@ import (
 var createResourceInput = graphql.NewInputObject(graphql.InputObjectConfig{
 	Name: "CreateResourceInput",
 	Fields: graphql.InputObjectConfigFieldMap{
-		"uri": &graphql.InputObjectFieldConfig{
+		"resourceURI": &graphql.InputObjectFieldConfig{
 			Type:        graphql.NewNonNull(graphql.String),
 			Description: "The URI of the resource.",
 		},
@@ -36,7 +36,7 @@ var createResourceSchema = validation.NewSimpleSchema(`
 	{
 		"type": "object",
 		"properties": {
-			"uri": {
+			"resourceURI": {
 				"type": "string",
 				"format": "x_resource_uri",
 				"minLength": 1,
@@ -65,7 +65,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			uri := input["uri"].(string)
+			resourceURI := input["resourceURI"].(string)
 
 			var name *string
 			if str, ok := input["name"].(string); ok && str != "" {
@@ -73,7 +73,7 @@ var _ = registerMutationField(
 			}
 
 			options := &resourcescope.NewResourceOptions{
-				URI:  resourcescope.NewResourceURI(ctx, uri),
+				URI:  resourcescope.NewResourceURI(ctx, resourceURI),
 				Name: name,
 			}
 
