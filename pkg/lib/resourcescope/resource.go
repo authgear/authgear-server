@@ -37,11 +37,11 @@ type ListResourcesOptions struct {
 }
 
 type Resource struct {
-	ID        string
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	URI       string
-	Name      *string
+	ID          string
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+	ResourceURI string
+	Name        *string
 }
 
 func (r *Resource) ToModel() *model.Resource {
@@ -51,8 +51,8 @@ func (r *Resource) ToModel() *model.Resource {
 			CreatedAt: r.CreatedAt,
 			UpdatedAt: r.UpdatedAt,
 		},
-		URI:  r.URI,
-		Name: r.Name,
+		ResourceURI: r.ResourceURI,
+		Name:        r.Name,
 	}
 }
 
