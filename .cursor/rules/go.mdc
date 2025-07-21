@@ -1,0 +1,8 @@
+---
+alwaysApply: true
+---
+
+# Coding guidelines on Go code
+
+- Use `github.com/smartystreets/goconvey` to write unit tests.
+- If you make changes to code that have tests, you always run `go test` to verify your changes do not break anything.
