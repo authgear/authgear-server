@@ -937,7 +937,7 @@ The following GraphQL schema snippet describe the changes to the Admin API Graph
 type Query {
   """If clientID is null, then all resources are returned in a paginated fashion."""
   """If clientID is specified, then all resources associated with the clientID are returned in a paginated fashion."""
-  """If searchKeyword is non-null, a prefix search of uri or name is performed."""
+  """If searchKeyword is non-null, a prefix search of resourceURI or name is performed."""
   """If both clientID and searchKeyword are specified, they are AND-ed."""
   resources(clientID: String, searchKeyword: String, after: String, before: String, first: Int, last: Int): ResourceConnection
 }
@@ -962,7 +962,7 @@ type Resource implements Entity & Node {
   id: ID!
   createdAt: DateTime!
   updatedAt: DateTime!
-  uri: String!
+  resourceURI: String!
   name: String
   """If clientID is null, then all scopes of this Resource is returned."""
   """If clientID is specified, then only scopes that are associated with clientID is returned."""
@@ -1005,7 +1005,7 @@ type ScopeConnection {
 }
 
 input CreateResourceInput {
-  uri: String!
+  resourceURI: String!
   name: String
 }
 
