@@ -108,14 +108,14 @@ steps:
             }
           ]
         }
-  - name: "Authgear scopes should be blocked"
+  - name: "https://authgear.com scopes should be blocked"
     action: admin_api_graphql
     admin_api_request:
       query: |
         mutation MyMutation {
           createScope(input: {
             resourceURI: "https://fixtureresource/1",
-            scope: "https://authgear.com/scopes/full-access",
+            scope: "https://authgear.com/somescope",
             description: "Should fail"
           }) {
             scope {
