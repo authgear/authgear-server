@@ -387,7 +387,7 @@ func (tc *TestCase) executeStep(
 		}
 	case StepActionAdminAPIQuery:
 		if step.AdminAPIRequest == nil {
-			t.Errorf("adminapi_request must be provided for adminapi_query step")
+			t.Errorf("adminapi_request must be provided for admin_api_query step")
 			return nil, state, false
 		}
 

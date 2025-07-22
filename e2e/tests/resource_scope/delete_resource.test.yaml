@@ -4,7 +4,7 @@ before:
     custom_sql:
       path: simple_fixtures.sql
 steps:
-  - action: adminapi_query
+  - action: admin_api_query
     adminapi_request:
       query: |
         mutation DeleteResource {
@@ -38,7 +38,7 @@ before:
     custom_sql:
       path: preassigned_client_scope_fixtures.sql
 steps:
-  - action: adminapi_query
+  - action: admin_api_query
     adminapi_request:
       query: |
         {{ $resourceID := (printf "%s-fixture-resource-02" .AppID) }}
