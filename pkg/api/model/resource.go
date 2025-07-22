@@ -2,8 +2,8 @@ package model
 
 type Resource struct {
 	Meta
-	URI  string  `json:"uri"`
-	Name *string `json:"name,omitzero"`
+	ResourceURI string  `json:"resourceURI"`
+	Name        *string `json:"name,omitzero"`
 }
 
 type Scope struct {

@@ -52,6 +52,18 @@ export type AddGroupToUsersPayload = {
   group: Group;
 };
 
+export type AddResourceToClientIdInput = {
+  /** The client ID to associate. */
+  clientID: Scalars['String']['input'];
+  /** The URI of the resource. */
+  resourceURI: Scalars['String']['input'];
+};
+
+export type AddResourceToClientIdPayload = {
+  __typename?: 'AddResourceToClientIDPayload';
+  resource: Resource;
+};
+
 export type AddRoleToGroupsInput = {
   /** The list of group keys. */
   groupKeys: Array<Scalars['String']['input']>;
@@ -74,6 +86,20 @@ export type AddRoleToUsersInput = {
 export type AddRoleToUsersPayload = {
   __typename?: 'AddRoleToUsersPayload';
   role: Role;
+};
+
+export type AddScopesToClientIdInput = {
+  /** The client ID. */
+  clientID: Scalars['String']['input'];
+  /** The URI of the resource. */
+  resourceURI: Scalars['String']['input'];
+  /** The list of scopes to add. */
+  scopes: Array<Scalars['String']['input']>;
+};
+
+export type AddScopesToClientIdPayload = {
+  __typename?: 'AddScopesToClientIDPayload';
+  scopes: Array<Scope>;
 };
 
 export type AddUserToGroupsInput = {
@@ -127,8 +153,10 @@ export type AuditLog = Node & {
 export enum AuditLogActivityType {
   AdminApiMutationAddGroupToRolesExecuted = 'ADMIN_API_MUTATION_ADD_GROUP_TO_ROLES_EXECUTED',
   AdminApiMutationAddGroupToUsersExecuted = 'ADMIN_API_MUTATION_ADD_GROUP_TO_USERS_EXECUTED',
+  AdminApiMutationAddResourceToClientidExecuted = 'ADMIN_API_MUTATION_ADD_RESOURCE_TO_CLIENTID_EXECUTED',
   AdminApiMutationAddRoleToGroupsExecuted = 'ADMIN_API_MUTATION_ADD_ROLE_TO_GROUPS_EXECUTED',
   AdminApiMutationAddRoleToUsersExecuted = 'ADMIN_API_MUTATION_ADD_ROLE_TO_USERS_EXECUTED',
+  AdminApiMutationAddScopesToClientidExecuted = 'ADMIN_API_MUTATION_ADD_SCOPES_TO_CLIENTID_EXECUTED',
   AdminApiMutationAddUserToGroupsExecuted = 'ADMIN_API_MUTATION_ADD_USER_TO_GROUPS_EXECUTED',
   AdminApiMutationAddUserToRolesExecuted = 'ADMIN_API_MUTATION_ADD_USER_TO_ROLES_EXECUTED',
   AdminApiMutationAnonymizeUserExecuted = 'ADMIN_API_MUTATION_ANONYMIZE_USER_EXECUTED',
@@ -151,10 +179,13 @@ export enum AuditLogActivityType {
   AdminApiMutationGenerateOobOtpCodeExecuted = 'ADMIN_API_MUTATION_GENERATE_OOB_OTP_CODE_EXECUTED',
   AdminApiMutationRemoveGroupFromRolesExecuted = 'ADMIN_API_MUTATION_REMOVE_GROUP_FROM_ROLES_EXECUTED',
   AdminApiMutationRemoveGroupFromUsersExecuted = 'ADMIN_API_MUTATION_REMOVE_GROUP_FROM_USERS_EXECUTED',
+  AdminApiMutationRemoveResourceFromClientidExecuted = 'ADMIN_API_MUTATION_REMOVE_RESOURCE_FROM_CLIENTID_EXECUTED',
   AdminApiMutationRemoveRoleFromGroupsExecuted = 'ADMIN_API_MUTATION_REMOVE_ROLE_FROM_GROUPS_EXECUTED',
   AdminApiMutationRemoveRoleFromUsersExecuted = 'ADMIN_API_MUTATION_REMOVE_ROLE_FROM_USERS_EXECUTED',
+  AdminApiMutationRemoveScopesFromClientidExecuted = 'ADMIN_API_MUTATION_REMOVE_SCOPES_FROM_CLIENTID_EXECUTED',
   AdminApiMutationRemoveUserFromGroupsExecuted = 'ADMIN_API_MUTATION_REMOVE_USER_FROM_GROUPS_EXECUTED',
   AdminApiMutationRemoveUserFromRolesExecuted = 'ADMIN_API_MUTATION_REMOVE_USER_FROM_ROLES_EXECUTED',
+  AdminApiMutationReplaceScopesOfClientidExecuted = 'ADMIN_API_MUTATION_REPLACE_SCOPES_OF_CLIENTID_EXECUTED',
   AdminApiMutationResetPasswordExecuted = 'ADMIN_API_MUTATION_RESET_PASSWORD_EXECUTED',
   AdminApiMutationRevokeAllSessionsExecuted = 'ADMIN_API_MUTATION_REVOKE_ALL_SESSIONS_EXECUTED',
   AdminApiMutationRevokeSessionExecuted = 'ADMIN_API_MUTATION_REVOKE_SESSION_EXECUTED',
@@ -426,7 +457,7 @@ export type CreateResourceInput = {
   /** The optional name of the resource. */
   name?: InputMaybe<Scalars['String']['input']>;
   /** The URI of the resource. */
-  uri: Scalars['String']['input'];
+  resourceURI: Scalars['String']['input'];
 };
 
 export type CreateResourcePayload = {
@@ -723,10 +754,14 @@ export type Mutation = {
   addGroupToRoles: AddGroupToRolesPayload;
   /** Add the group to the users. */
   addGroupToUsers: AddGroupToUsersPayload;
+  /** Associate a resource with a clientID. */
+  addResourceToClientID: AddResourceToClientIdPayload;
   /** Add the role to the groups. */
   addRoleToGroups: AddRoleToGroupsPayload;
   /** Add the role to the users. */
   addRoleToUsers: AddRoleToUsersPayload;
+  /** Associate multiple scopes with a clientID. */
+  addScopesToClientID: AddScopesToClientIdPayload;
   /** Add the user to the groups. */
   addUserToGroups: AddUserToGroupsPayload;
   /** Add the user to the roles. */
@@ -773,14 +808,20 @@ export type Mutation = {
   removeGroupFromUsers: RemoveGroupToUsersPayload;
   /** Revoke user grace period for MFA enrollment */
   removeMFAGracePeriod: RemoveMfaGracePeriodPayload;
+  /** Disassociate a resource from a clientID. */
+  removeResourceFromClientID: RemoveResourceFromClientIdPayload;
   /** Remove the role from the groups. */
   removeRoleFromGroups: RemoveRoleFromGroupsPayload;
   /** Remove the role to the users. */
   removeRoleFromUsers: RemoveRoleFromUsersPayload;
+  /** Disassociate multiple scopes from a clientID. */
+  removeScopesFromClientID: RemoveScopesFromClientIdPayload;
   /** Remove the user from the groups. */
   removeUserFromGroups: RemoveUserFromGroupsPayload;
   /** Remove the user from the roles. */
   removeUserFromRoles: RemoveUserFromRolesPayload;
+  /** Replace the set of scopes associated with a clientID. */
+  replaceScopesOfClientID: ReplaceScopesOfClientIdPayload;
   /** Reset password of user */
   resetPassword: ResetPasswordPayload;
   /** Revoke all sessions of user */
@@ -830,6 +871,11 @@ export type MutationAddGroupToUsersArgs = {
 };
 
 
+export type MutationAddResourceToClientIdArgs = {
+  input: AddResourceToClientIdInput;
+};
+
+
 export type MutationAddRoleToGroupsArgs = {
   input: AddRoleToGroupsInput;
 };
@@ -837,6 +883,11 @@ export type MutationAddRoleToGroupsArgs = {
 
 export type MutationAddRoleToUsersArgs = {
   input: AddRoleToUsersInput;
+};
+
+
+export type MutationAddScopesToClientIdArgs = {
+  input: AddScopesToClientIdInput;
 };
 
 
@@ -955,6 +1006,11 @@ export type MutationRemoveMfaGracePeriodArgs = {
 };
 
 
+export type MutationRemoveResourceFromClientIdArgs = {
+  input: RemoveResourceFromClientIdInput;
+};
+
+
 export type MutationRemoveRoleFromGroupsArgs = {
   input: RemoveRoleFromGroupsInput;
 };
@@ -965,6 +1021,11 @@ export type MutationRemoveRoleFromUsersArgs = {
 };
 
 
+export type MutationRemoveScopesFromClientIdArgs = {
+  input: RemoveScopesFromClientIdInput;
+};
+
+
 export type MutationRemoveUserFromGroupsArgs = {
   input: RemoveUserFromGroupsInput;
 };
@@ -972,6 +1033,11 @@ export type MutationRemoveUserFromGroupsArgs = {
 
 export type MutationRemoveUserFromRolesArgs = {
   input: RemoveUserFromRolesInput;
+};
+
+
+export type MutationReplaceScopesOfClientIdArgs = {
+  input: ReplaceScopesOfClientIdInput;
 };
 
 
@@ -1222,6 +1288,18 @@ export type RemoveGroupToUsersPayload = {
   group: Group;
 };
 
+export type RemoveResourceFromClientIdInput = {
+  /** The client ID to disassociate. */
+  clientID: Scalars['String']['input'];
+  /** The URI of the resource. */
+  resourceURI: Scalars['String']['input'];
+};
+
+export type RemoveResourceFromClientIdPayload = {
+  __typename?: 'RemoveResourceFromClientIDPayload';
+  resource: Resource;
+};
+
 export type RemoveRoleFromGroupsInput = {
   /** The list of group keys. */
   groupKeys: Array<Scalars['String']['input']>;
@@ -1246,6 +1324,20 @@ export type RemoveRoleFromUsersPayload = {
   role: Role;
 };
 
+export type RemoveScopesFromClientIdInput = {
+  /** The client ID. */
+  clientID: Scalars['String']['input'];
+  /** The URI of the resource. */
+  resourceURI: Scalars['String']['input'];
+  /** The list of scopes to remove. */
+  scopes: Array<Scalars['String']['input']>;
+};
+
+export type RemoveScopesFromClientIdPayload = {
+  __typename?: 'RemoveScopesFromClientIDPayload';
+  scopes: Array<Scope>;
+};
+
 export type RemoveUserFromGroupsInput = {
   /** The list of group keys. */
   groupKeys?: InputMaybe<Array<Scalars['String']['input']>>;
@@ -1268,6 +1360,20 @@ export type RemoveUserFromRolesInput = {
 export type RemoveUserFromRolesPayload = {
   __typename?: 'RemoveUserFromRolesPayload';
   user: User;
+};
+
+export type ReplaceScopesOfClientIdInput = {
+  /** The client ID. */
+  clientID: Scalars['String']['input'];
+  /** The URI of the resource. */
+  resourceURI: Scalars['String']['input'];
+  /** The new list of scopes. */
+  scopes: Array<Scalars['String']['input']>;
+};
+
+export type ReplaceScopesOfClientIdPayload = {
+  __typename?: 'ReplaceScopesOfClientIDPayload';
+  scopes: Array<Scope>;
 };
 
 export type ResetPasswordInput = {
@@ -1295,12 +1401,12 @@ export type Resource = Entity & Node & {
   id: Scalars['ID']['output'];
   /** The optional name of the resource. */
   name?: Maybe<Scalars['String']['output']>;
+  /** The URI of the resource. */
+  resourceURI: Scalars['String']['output'];
   /** The list of scopes for this resource. */
   scopes?: Maybe<ScopeConnection>;
   /** The update time of entity */
   updatedAt: Scalars['DateTime']['output'];
-  /** The URI of the resource. */
-  uri: Scalars['String']['output'];
 };
 
 
