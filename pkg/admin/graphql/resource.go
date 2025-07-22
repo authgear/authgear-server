@@ -8,6 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	relay "github.com/authgear/authgear-server/pkg/graphqlgo/relay"
+	"github.com/authgear/authgear-server/pkg/lib/resourcescope"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
@@ -27,7 +28,7 @@ var nodeResource = node(
 			"id":        entityIDField(typeResource),
 			"createdAt": entityCreatedAtField(nil),
 			"updatedAt": entityUpdatedAtField(nil),
-			"uri": &graphql.Field{
+			"resourceURI": &graphql.Field{
 				Type:        graphql.NewNonNull(graphql.String),
 				Description: "The URI of the resource.",
 			},
@@ -56,19 +57,25 @@ func init() {
 			ctx := p.Context
 			gqlCtx := GQLContext(ctx)
 
-			// TODO(tung): Support client ID & searchKeyword filter
-			scopes, err := gqlCtx.ResourceScopeFacade.ListScopes(ctx, source.ID)
+			clientID, _ := p.Args["clientID"].(string)
+			searchKeyword, _ := p.Args["searchKeyword"].(string)
+			pageArgs := graphqlutil.NewPageArgs(relay.NewConnectionArguments(p.Args))
+			options := &resourcescope.ListScopeOptions{
+				SearchKeyword: searchKeyword,
+				ClientID:      clientID,
+			}
+			refs, result, err := gqlCtx.ResourceScopeFacade.ListScopes(ctx, source.ID, options, pageArgs)
 			if err != nil {
 				return nil, err
 			}
-
-			scopeIfaces := make([]interface{}, len(scopes))
-			for i, s := range scopes {
-				scopeIfaces[i] = s
+			var lazyItems []graphqlutil.LazyItem
+			for _, ref := range refs {
+				lazyItems = append(lazyItems, graphqlutil.LazyItem{
+					Lazy:   gqlCtx.Scopes.Load(ctx, ref.ID),
+					Cursor: graphqlutil.Cursor(ref.Cursor),
+				})
 			}
-
-			args := relay.NewConnectionArguments(p.Args)
-			return graphqlutil.NewConnectionFromArray(scopeIfaces, args), nil
+			return graphqlutil.NewConnectionFromResult(lazyItems, result)
 		},
 	})
 }
