@@ -14,6 +14,7 @@ CREATE TABLE _auth_organization (
   updated_at timestamp without time zone NOT NULL,
   slug text NOT NULL,
   name text NOT NULL,
+  config JSONB NOT NULL
 )
 
 -- Each slug is unique within the project.
@@ -43,10 +44,11 @@ CREATE INDEX _auth_user_organization_organization ON _auth_user_organization USI
 
 ## Organization-specific configuration
 
-Organization-specific configuration **IS NOT** stored in `_auth_organization`.
-They are stored in `authgear.yaml` in the parent project.
+Organization-specific configuration **IS** stored in `_auth_organization`.
 
-An example looks like
+Here is an example
+
+The project `authgear.yaml`:
 
 ```
 authentication:
@@ -90,53 +92,61 @@ verification:
     phone_number:
       enabled: true
       required: true
-
-organizations:
-- organization_id: xxx
-  organization_specific:
-    authentication:
-      identities:
-      # Allow Federated login only
-      - oauth
-      # Change MFA to required.
-      secondary_authentication_mode: required
-    identity:
-      oauth:
-        providers:
-        # Enable the Federated Login OAuth provider.
-        - alias: azureadv2
-          disabled: false
-    authenticator:
-      password:
-        policy:
-          min_length: 12
-          uppercase_required: true
-          lowercase_required: true
-          digit_required: true
-          symbol_required: true
-        expiry:
-          force_change:
-            enabled: true
-            # Force change password every 30 days.
-            duration_since_last_update: 720h
-      sms:
-        # Allow SMS OTP only. No Whatsapp.
-        phone_otp_mode: sms
-      account_deletion:
-        # Disallow self-serve account deletion.
-        scheduled_by_end_user_enabled: false
-      forgot_password:
-        # Disallow forgot password.
-        # Must contact admin.
-        enabled: false
-      verification:
-        claims:
-          # The email may be fake. So verification is meaningless.
-          email:
-            enabled: false
-            required: false
 ```
 
-> [!WARNING]
+TODO: List out the exhaustive organization-specific configuration.
+
+The organization `authgear.organization.yaml`:
+```
+organization:
+
+  email_domains:
+    allowed_domains:
+    - mycompany.com
+    auto_membership_domains:
+    - mycompany.com
+
+  authentication:
+    identities:
+    - oauth
+    secondary_authentication_mode: required
+
+  identity:
+    oauth:
+      providers:
+      # Enable the Federated Login OAuth provider.
+      - alias: azureadv2
+        disabled: false
+
+  authenticator:
+    password:
+      policy:
+        min_length: 12
+        uppercase_required: true
+        lowercase_required: true
+        digit_required: true
+        symbol_required: true
+      expiry:
+        force_change:
+          enabled: true
+          # Force change password every 30 days.
+          duration_since_last_update: 720h
+    sms:
+      phone_otp_mode: sms
+
+  account_deletion:
+    scheduled_by_end_user_enabled: false
+
+  forgot_password:
+    enabled: false
+
+  verification:
+    claims:
+      email:
+        enabled: false
+        required: false
+```
+
+> [!NOTE]
 > Only the above listed configuration are organization-specific.
 > Other configuration are inherited to the organization.
