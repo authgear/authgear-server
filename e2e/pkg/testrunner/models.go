@@ -223,7 +223,7 @@ var _ = TestCaseSchema.Add("Step", `
 		"http_output": { "$ref": "#/$defs/HTTPOutput" },
 		"oauth_exchange_code_code_verifier": { "type": "string" },
 		"oauth_exchange_code_redirect_uri": { "type": "string" },
-		"adminapi_request": { "$ref": "#/$defs/AdminAPIRequest" },
+		"admin_api_request": { "$ref": "#/$defs/AdminAPIRequest" },
 		"adminapi_output": { "$ref": "#/$defs/AdminAPIOutput" }
 	},
 	"allOf": [
@@ -326,7 +326,7 @@ var _ = TestCaseSchema.Add("Step", `
 					},
 					"then": {
 						"required": [
-							"adminapi_request"
+							"admin_api_request"
 						]
 					}
 				}
@@ -377,7 +377,7 @@ type Step struct {
 	OAuthExchangeCodeRedirectURI  string `json:"oauth_exchange_code_redirect_uri"`
 
 	// `action` == "admin_api_query"
-	AdminAPIRequest *AdminAPIRequest `json:"adminapi_request"`
+	AdminAPIRequest *AdminAPIRequest `json:"admin_api_request"`
 	AdminAPIOutput  *AdminAPIOutput  `json:"adminapi_output"`
 }
 

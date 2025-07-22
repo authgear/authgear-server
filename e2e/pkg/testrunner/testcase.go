@@ -387,7 +387,7 @@ func (tc *TestCase) executeStep(
 		}
 	case StepActionAdminAPIQuery:
 		if step.AdminAPIRequest == nil {
-			t.Errorf("adminapi_request must be provided for admin_api_query step")
+			t.Errorf("admin_api_request must be provided for admin_api_query step")
 			return nil, state, false
 		}
 
@@ -395,18 +395,18 @@ func (tc *TestCase) executeStep(
 		if step.AdminAPIRequest.Variables != "" {
 			renderedVariables, ok := renderTemplateString(t, cmd, prevSteps, step.AdminAPIRequest.Variables)
 			if !ok {
-				t.Errorf("failed to render adminapi_request.variables")
+				t.Errorf("failed to render admin_api_request.variables")
 			}
 			err := json.Unmarshal([]byte(renderedVariables), &variables)
 			if err != nil {
-				t.Errorf("failed to unmarshal adminapi_request.variables: %v", err)
+				t.Errorf("failed to unmarshal admin_api_request.variables: %v", err)
 				return nil, state, false
 			}
 		}
 
 		renderedQuery, ok := renderTemplateString(t, cmd, prevSteps, step.AdminAPIRequest.Query)
 		if !ok {
-			t.Errorf("failed to render adminapi_request.query")
+			t.Errorf("failed to render admin_api_request.query")
 		}
 		resp, err := cmd.Client.GraphQLAPI(nil, nil, cmd.AppID, authflowclient.GraphQLAPIRequest{
 			Query:     renderedQuery,

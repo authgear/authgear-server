@@ -5,7 +5,7 @@ before:
       path: client_scope_fixtures.sql
 steps:
   - action: admin_api_query
-    adminapi_request:
+    admin_api_request:
       query: |
         mutation AddScopesToClientID {
           addScopesToClientID(input: {
@@ -38,7 +38,7 @@ steps:
           "errors": null
         }
   - action: admin_api_query
-    adminapi_request:
+    admin_api_request:
       query: |
         query ScopesByClient {
           resources(clientID: "portal") {
@@ -96,7 +96,7 @@ before:
       path: client_scope_fixtures.sql
 steps:
   - action: admin_api_query
-    adminapi_request:
+    admin_api_request:
       query: |
         mutation AddScopesToClientID {
           addScopesToClientID(input: {
