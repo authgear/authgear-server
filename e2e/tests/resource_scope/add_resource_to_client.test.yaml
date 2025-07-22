@@ -137,3 +137,71 @@ steps:
           },
           "errors": null
         }
+---
+name: Add the same resource twice
+before:
+  - type: custom_sql
+    custom_sql:
+      path: simple_fixtures.sql
+steps:
+  - action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation AddResourceToClientID {
+          addResourceToClientID(input: {
+            clientID: "portal",
+            resourceURI: "https://fixtureresource/1"
+          }) {
+            resource {
+              id
+              name
+              resourceURI
+            }
+          }
+        }
+      variables: "{}"
+    adminapi_output:
+      result: |
+        {
+          "data": {
+            "addResourceToClientID": {
+              "resource": {
+                "id": "[[string]]",
+                "name": "Fixture Resource 1",
+                "resourceURI": "https://fixtureresource/1"
+              }
+            }
+          },
+          "errors": null
+        }
+  - name: Adding the same resource again should still be success
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation AddResourceToClientID {
+          addResourceToClientID(input: {
+            clientID: "portal",
+            resourceURI: "https://fixtureresource/1"
+          }) {
+            resource {
+              id
+              name
+              resourceURI
+            }
+          }
+        }
+      variables: "{}"
+    adminapi_output:
+      result: |
+        {
+          "data": {
+            "addResourceToClientID": {
+              "resource": {
+                "id": "[[string]]",
+                "name": "Fixture Resource 1",
+                "resourceURI": "https://fixtureresource/1"
+              }
+            }
+          },
+          "errors": null
+        }
