@@ -38,7 +38,7 @@ func (h *TokenHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 
 	req := protocol.TokenRequest{}
 	for name, values := range r.Form {
-		req[name] = values[0]
+		req[name] = values
 	}
 
 	var result httputil.Result
