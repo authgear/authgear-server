@@ -885,13 +885,13 @@ func validateAdminAPIOutput(t *testing.T, expected *AdminAPIOutput, resp *authfl
 
 	violations, err := MatchAdminAPIOutput(*expected, resp)
 	if err != nil {
-		t.Errorf("failed to match adminapi_output: %v\n", err)
+		t.Errorf("failed to match admin_api_output: %v\n", err)
 		t.Errorf("  result: %s\n", respJSON)
 		return false
 	}
 
 	if len(violations) > 0 {
-		t.Errorf("adminapi_output mismatch:\n")
+		t.Errorf("admin_api_output mismatch:\n")
 		for _, violation := range violations {
 			t.Errorf("  | %s: %s. Expected %s, got %s", violation.Path, violation.Message, violation.Expected, violation.Actual)
 		}

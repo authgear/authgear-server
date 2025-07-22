@@ -224,7 +224,7 @@ var _ = TestCaseSchema.Add("Step", `
 		"oauth_exchange_code_code_verifier": { "type": "string" },
 		"oauth_exchange_code_redirect_uri": { "type": "string" },
 		"admin_api_request": { "$ref": "#/$defs/AdminAPIRequest" },
-		"adminapi_output": { "$ref": "#/$defs/AdminAPIOutput" }
+		"admin_api_output": { "$ref": "#/$defs/AdminAPIOutput" }
 	},
 	"allOf": [
         {
@@ -378,7 +378,7 @@ type Step struct {
 
 	// `action` == "admin_api_graphql"
 	AdminAPIRequest *AdminAPIRequest `json:"admin_api_request"`
-	AdminAPIOutput  *AdminAPIOutput  `json:"adminapi_output"`
+	AdminAPIOutput  *AdminAPIOutput  `json:"admin_api_output"`
 }
 
 type StepAction string
