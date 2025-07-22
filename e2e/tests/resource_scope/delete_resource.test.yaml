@@ -41,7 +41,6 @@ steps:
   - action: admin_api_graphql
     admin_api_request:
       query: |
-        {{ $resourceID := (printf "%s-fixture-resource-02" .AppID) }}
         mutation DeleteResource {
           deleteResource(input: {
             resourceURI: "https://fixtureresource/2"
@@ -78,3 +77,29 @@ steps:
     query_output:
       rows: |
         []
+---
+name: Delete Non-Existing Resource
+steps:
+  - action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation DeleteResource {
+          deleteResource(input: {
+            resourceURI: "https://nonexistingresource/1"
+          }) {
+            ok
+          }
+        }
+      variables: "{}"
+    adminapi_output:
+      result: |
+        {
+          "data": null,
+          "errors": [
+            {
+              "extensions": {
+                "reason": "ResourceNotFound"
+              }
+            }
+          ]
+        }
