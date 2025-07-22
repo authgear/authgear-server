@@ -191,6 +191,7 @@
   "ScreenNav.endpoint-direct-access": "Endpoint Direct Access",
   "ScreenNav.saml-certificate": "SAML Certificate",
   "ScreenNav.edit-config": "Edit Config",
+  "ScreenNav.api-resources": "API Resources",
 
   "NavBreadcrumb.label": "Nested navigation",
 
@@ -2126,6 +2127,9 @@
   "EditConfigurationScreen.warning.title": "Warning!",
   "EditConfigurationScreen.warning.content": "This page allows users to directly edit the Authgear project configuration in the Portal, but it is not recommended. Direct modifications to the config may cause incompatibilities that could lead to service downtime.{br, react}{br, react}If you decide to proceed with directly editing the configuration, first copy the content for backup. This helps restore normal operation if errors occur.",
   "EditConfigurationScreen.warning.confirm": "I understand the risks of this operation",
+
+  "APIResourcesScreen.title": "API Resources",
+  "APIResourcesScreen.description": "Set up API resources for authorized applications.",
 
   "LoginIDKeyType.email": "Email address",
   "LoginIDKeyType.phone": "Phone number",
