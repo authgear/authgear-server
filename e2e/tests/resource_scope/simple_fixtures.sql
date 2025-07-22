@@ -35,3 +35,21 @@ INSERT INTO _auth_resource_scope (
   'Fixture Scope 1',
   '{}'
 );
+
+INSERT INTO _auth_resource (
+  "id",
+  "app_id",
+  "created_at",
+  "updated_at",
+  "uri",
+  "name",
+  "metadata"
+) VALUES (
+  '{{ .AppID }}-fixture-resource-02',
+  '{{ .AppID }}',
+  NOW(),
+  NOW(),
+  'https://fixtureresource/2',
+  'Fixture Resource 2',
+  '{}'
+);

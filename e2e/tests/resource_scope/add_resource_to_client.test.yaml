@@ -15,7 +15,7 @@ steps:
             resource {
               id
               name
-              uri
+              resourceURI
             }
           }
         }
@@ -28,7 +28,7 @@ steps:
               "resource": {
                 "id": "[[string]]",
                 "name": "Fixture Resource 1",
-                "uri": "https://fixtureresource/1"
+                "resourceURI": "https://fixtureresource/1"
               }
             }
           },
@@ -43,7 +43,7 @@ steps:
               node {
                 id
                 name
-                uri
+                resourceURI
               }
             }
           }
@@ -59,7 +59,7 @@ steps:
                   "node": {
                     "id": "[[string]]",
                     "name": "Fixture Resource 1",
-                    "uri": "https://fixtureresource/1"
+                    "resourceURI": "https://fixtureresource/1"
                   }
                 }
               ]
@@ -67,3 +67,73 @@ steps:
           },
           "errors": null
         } 
+  - action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation AddResourceToClientID {
+          addResourceToClientID(input: {
+            clientID: "portal",
+            resourceURI: "https://fixtureresource/2"
+          }) {
+            resource {
+              id
+              name
+              resourceURI
+            }
+          }
+        }
+      variables: "{}"
+    adminapi_output:
+      result: |
+        {
+          "data": {
+            "addResourceToClientID": {
+              "resource": {
+                "id": "[[string]]",
+                "name": "Fixture Resource 2",
+                "resourceURI": "https://fixtureresource/2"
+              }
+            }
+          },
+          "errors": null
+        }
+  - action: admin_api_graphql
+    admin_api_request:
+      query: |
+        query ResourcesByClient {
+          resources(clientID: "portal") {
+            edges {
+              node {
+                id
+                name
+                resourceURI
+              }
+            }
+          }
+        }
+      variables: "{}"
+    adminapi_output:
+      result: |
+        {
+          "data": {
+            "resources": {
+              "edges": [
+                {
+                  "node": {
+                    "id": "[[string]]",
+                    "name": "Fixture Resource 1",
+                    "resourceURI": "https://fixtureresource/1"
+                  }
+                },
+                {
+                  "node": {
+                    "id": "[[string]]",
+                    "name": "Fixture Resource 2",
+                    "resourceURI": "https://fixtureresource/2"
+                  }
+                }
+              ]
+            }
+          },
+          "errors": null
+        }
