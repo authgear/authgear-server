@@ -72,4 +72,94 @@ steps:
       SELECT * FROM _auth_client_resource_scope WHERE scope_id = '{{ .AppID }}-resource2_scope1'
     query_output:
       rows: |
-        [] 
+        []
+---
+name: Delete Non-Existing Scope
+before:
+  - type: custom_sql
+    custom_sql:
+      path: simple_fixtures.sql
+steps:
+  - action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation DeleteScope {
+          deleteScope(input: {
+            resourceURI: "https://fixtureresource/1",
+            scope: "non-existing-scope",
+          }) {
+            ok
+          }
+        }
+      variables: "{}"
+    adminapi_output:
+      result: |
+        {
+          "data": null,
+          "errors": [
+            {
+              "extensions": {
+                "reason": "ScopeNotFound"
+              }
+            }
+          ]
+        }
+---
+name: Delete Same Scope Twice
+before:
+  - type: custom_sql
+    custom_sql:
+      path: simple_fixtures.sql
+steps:
+  - action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation DeleteScope {
+          deleteScope(input: {
+            resourceURI: "https://fixtureresource/1",
+            scope: "fixturescope1",
+          }) {
+            ok
+          }
+        }
+      variables: "{}"
+    adminapi_output:
+      result: |
+        {
+          "data": {
+            "deleteScope": {
+              "ok": true
+            }
+          },
+          "errors": null
+        }
+  - action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation DeleteScope {
+          deleteScope(input: {
+            resourceURI: "https://fixtureresource/1",
+            scope: "fixturescope1",
+          }) {
+            ok
+          }
+        }
+      variables: "{}"
+    adminapi_output:
+      result: |
+        {
+          "data": null,
+          "errors": [
+            {
+              "extensions": {
+                "reason": "ScopeNotFound"
+              }
+            }
+          ]
+        }
+  - action: query
+    query: |
+      SELECT * FROM _auth_resource_scope WHERE id = '{{ .AppID }}-fixture-scope-01'
+    query_output:
+      rows: |
+        []
