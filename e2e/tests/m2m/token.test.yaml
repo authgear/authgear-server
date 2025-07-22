@@ -81,6 +81,6 @@ steps:
       http_status: 400
       json_body: |
         {
-          "error": "invalid_request",
+          "error": "invalid_target",
           "error_description": "resource is not associated with the client"
         }
