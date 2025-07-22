@@ -41,7 +41,7 @@ steps:
             edges {
               node {
                 id
-                uri
+                resourceURI
                 scopes(clientID: "portal") {
                   edges {
                     node {
@@ -65,7 +65,7 @@ steps:
                 {
                   "node": {
                     "id": "[[string]]",
-                    "uri": "https://fixtureresource/2",
+                    "resourceURI": "https://fixtureresource/2",
                     "scopes": {
                       "edges": [
                         {
