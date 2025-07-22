@@ -1231,7 +1231,8 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		OfflineGrants: oauthOfflineGrantService,
 	}
 	resourcescopeCommands := &resourcescope.Commands{
-		Store: resourcescopeStore,
+		Store:       resourcescopeStore,
+		OAuthConfig: oAuthConfig,
 	}
 	resourceScopeFacade := &facade2.ResourceScopeFacade{
 		ResourceScopeCommands: resourcescopeCommands,

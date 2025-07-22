@@ -4,23 +4,25 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 
 	"github.com/lib/pq"
 
 	"github.com/google/uuid"
 
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	databaseutil "github.com/authgear/authgear-server/pkg/util/databaseutil"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
 func (s *Store) NewResource(options *NewResourceOptions) *Resource {
 	now := s.Clock.NowUTC()
 	return &Resource{
-		ID:        uuid.NewString(),
-		CreatedAt: now,
-		UpdatedAt: now,
-		URI:       options.URI,
-		Name:      options.Name,
+		ID:          uuid.NewString(),
+		CreatedAt:   now,
+		UpdatedAt:   now,
+		ResourceURI: options.URI.Value,
+		Name:        options.Name,
 	}
 }
 
@@ -38,17 +40,14 @@ func (s *Store) CreateResource(ctx context.Context, r *Resource) error {
 			r.ID,
 			r.CreatedAt,
 			r.UpdatedAt,
-			r.URI,
+			r.ResourceURI,
 			r.Name,
 		)
 
 	_, err := s.SQLExecutor.ExecWith(ctx, q)
 	if err != nil {
-		var pqError *pq.Error
-		if errors.As(err, &pqError) {
-			if pqError.Code == "23505" {
-				return ErrResourceDuplicateURI
-			}
+		if databaseutil.IsDuplicateKeyError(err) {
+			return ErrResourceDuplicateURI
 		}
 		return err
 	}
@@ -73,12 +72,6 @@ func (s *Store) UpdateResource(ctx context.Context, options *UpdateResourceOptio
 
 	result, err := s.SQLExecutor.ExecWith(ctx, q)
 	if err != nil {
-		var pqError *pq.Error
-		if errors.As(err, &pqError) {
-			if pqError.Code == "23505" {
-				return ErrResourceDuplicateURI
-			}
-		}
 		return err
 	}
 
@@ -115,29 +108,8 @@ func (s *Store) DeleteResource(ctx context.Context, id string) error {
 	return nil
 }
 
-func (s *Store) DeleteResourceByURI(ctx context.Context, uri string) error {
-	q := s.SQLBuilder.Delete(s.SQLBuilder.TableName("_auth_resource")).
-		Where("uri = ?", uri)
-
-	result, err := s.SQLExecutor.ExecWith(ctx, q)
-	if err != nil {
-		return err
-	}
-
-	count, err := result.RowsAffected()
-	if err != nil {
-		return err
-	}
-
-	if count != 1 {
-		return ErrResourceNotFound
-	}
-
-	return nil
-}
-
 func (s *Store) GetResourceByID(ctx context.Context, id string) (*Resource, error) {
-	q := s.selectResourceQuery().Where("id = ?", id)
+	q := s.selectResourceQuery("r").Where("r.id = ?", id)
 
 	row, err := s.SQLExecutor.QueryRowWith(ctx, q)
 	if err != nil {
@@ -156,7 +128,7 @@ func (s *Store) GetResourceByID(ctx context.Context, id string) (*Resource, erro
 }
 
 func (s *Store) GetResourceByURI(ctx context.Context, uri string) (*Resource, error) {
-	q := s.selectResourceQuery().Where("uri = ?", uri)
+	q := s.selectResourceQuery("r").Where("r.uri = ?", uri)
 
 	row, err := s.SQLExecutor.QueryRowWith(ctx, q)
 	if err != nil {
@@ -175,8 +147,22 @@ func (s *Store) GetResourceByURI(ctx context.Context, uri string) (*Resource, er
 }
 
 func (s *Store) GetManyResources(ctx context.Context, ids []string) ([]*Resource, error) {
-	q := s.selectResourceQuery().Where("id = ANY (?)", pq.Array(ids))
+	q := s.selectResourceQuery("r").Where("r.id = ANY (?)", pq.Array(ids))
 	return s.queryResources(ctx, q)
+}
+
+func (s *Store) GetClientResource(ctx context.Context, clientID, resourceID string) (*Resource, error) {
+	q := s.selectResourceQuery("r").
+		Join(s.SQLBuilder.TableName("_auth_client_resource"), "acr", "acr.resource_id = r.id").
+		Where("r.id = ? AND acr.client_id = ?", resourceID, clientID)
+	resources, err := s.queryResources(ctx, q)
+	if err != nil {
+		return nil, err
+	}
+	if len(resources) == 0 {
+		return nil, ErrResourceNotAssociatedWithClient
+	}
+	return resources[0], nil
 }
 
 type storeListResourceResult struct {
@@ -186,9 +172,9 @@ type storeListResourceResult struct {
 }
 
 func (s *Store) ListResources(ctx context.Context, options *ListResourcesOptions, pageArgs graphqlutil.PageArgs) (*storeListResourceResult, error) {
-	q := s.selectResourceQuery().
-		OrderBy("uri ASC")
-	q = s.applyListResourcesOptions(q, options)
+	q := s.selectResourceQuery("r").
+		OrderBy("r.created_at DESC")
+	q = s.applyListResourcesOptions(q, "r", options)
 
 	q, offset, err := db.ApplyPageArgs(q, pageArgs)
 	if err != nil {
@@ -213,8 +199,8 @@ func (s *Store) ListResources(ctx context.Context, options *ListResourcesOptions
 }
 
 func (s *Store) countResources(ctx context.Context, options *ListResourcesOptions) (uint64, error) {
-	q := s.SQLBuilder.Select("COUNT(*)").From(s.SQLBuilder.TableName("_auth_resource"))
-	q = s.applyListResourcesOptions(q, options)
+	q := s.SQLBuilder.Select("COUNT(*)").From(s.SQLBuilder.TableName("_auth_resource"), "r")
+	q = s.applyListResourcesOptions(q, "r", options)
 
 	var count uint64
 	row, err := s.SQLExecutor.QueryRowWith(ctx, q)
@@ -227,11 +213,21 @@ func (s *Store) countResources(ctx context.Context, options *ListResourcesOption
 	return count, nil
 }
 
-func (s *Store) applyListResourcesOptions(q db.SelectBuilder, options *ListResourcesOptions) db.SelectBuilder {
-	if options != nil && options.SearchKeyword != "" {
-		q = q.Where("(uri ILIKE ('%' || ? || '%') OR name ILIKE ('%' || ? || '%'))", options.SearchKeyword, options.SearchKeyword)
+func (s *Store) applyListResourcesOptions(q db.SelectBuilder, authResourceAlias string, options *ListResourcesOptions) db.SelectBuilder {
+	if options.SearchKeyword != "" {
+		q = q.Where(fmt.Sprintf("(%s.uri ILIKE ('%%' || ? || '%%') OR %s.name ILIKE ('%%' || ? || '%%'))", authResourceAlias, authResourceAlias),
+			options.SearchKeyword,
+			options.SearchKeyword,
+		)
 	}
-	// TODO(tung): Implement ClientID filtering if/when resources are associated with clients
+	if options.ClientID != "" {
+		q = q.Join(
+			s.SQLBuilder.TableName("_auth_client_resource"),
+			"acr",
+			fmt.Sprintf("acr.resource_id = %s.id", authResourceAlias),
+		)
+		q = q.Where("acr.client_id = ?", options.ClientID)
+	}
 	return q
 }
 
@@ -254,16 +250,19 @@ func (s *Store) queryResources(ctx context.Context, q db.SelectBuilder) ([]*Reso
 	return resources, nil
 }
 
-func (s *Store) selectResourceQuery() db.SelectBuilder {
+func (s *Store) selectResourceQuery(alias string) db.SelectBuilder {
+	aliasedColumn := func(col string) string {
+		return fmt.Sprintf("%s.%s", alias, col)
+	}
 	return s.SQLBuilder.
 		Select(
-			"id",
-			"created_at",
-			"updated_at",
-			"uri",
-			"name",
+			aliasedColumn("id"),
+			aliasedColumn("created_at"),
+			aliasedColumn("updated_at"),
+			aliasedColumn("uri"),
+			aliasedColumn("name"),
 		).
-		From(s.SQLBuilder.TableName("_auth_resource"))
+		From(s.SQLBuilder.TableName("_auth_resource"), alias)
 }
 
 func (s *Store) scanResource(scanner db.Scanner) (*Resource, error) {
@@ -273,7 +272,7 @@ func (s *Store) scanResource(scanner db.Scanner) (*Resource, error) {
 		&r.ID,
 		&r.CreatedAt,
 		&r.UpdatedAt,
-		&r.URI,
+		&r.ResourceURI,
 		&r.Name,
 	)
 	if err != nil {
@@ -281,4 +280,30 @@ func (s *Store) scanResource(scanner db.Scanner) (*Resource, error) {
 	}
 
 	return r, nil
+}
+
+func (s *Store) AddResourceToClientID(ctx context.Context, resourceID, clientID string) error {
+	now := s.Clock.NowUTC()
+	q := s.SQLBuilder.
+		Insert(s.SQLBuilder.TableName("_auth_client_resource")).
+		Columns("id", "created_at", "updated_at", "client_id", "resource_id").
+		Values(uuid.NewString(), now, now, clientID, resourceID).
+		Suffix("ON CONFLICT DO NOTHING")
+
+	_, err := s.SQLExecutor.ExecWith(ctx, q)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *Store) RemoveResourceFromClientID(ctx context.Context, resourceID, clientID string) error {
+	q := s.SQLBuilder.
+		Delete(s.SQLBuilder.TableName("_auth_client_resource")).
+		Where("client_id = ? AND resource_id = ?", clientID, resourceID)
+	_, err := s.SQLExecutor.ExecWith(ctx, q)
+	if err != nil {
+		return err
+	}
+	return nil
 }
