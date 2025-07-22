@@ -4,32 +4,35 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/util/deviceinfo"
 )
 
-type TokenRequest map[string]string
+type TokenRequest url.Values
 type TokenResponse map[string]interface{}
 
 // OAuth 2.0
 
-func (r TokenRequest) GrantType() string           { return r["grant_type"] }
-func (r TokenRequest) Code() string                { return r["code"] }
-func (r TokenRequest) RedirectURI() string         { return r["redirect_uri"] }
-func (r TokenRequest) ClientID() string            { return r["client_id"] }
-func (r TokenRequest) RefreshToken() string        { return r["refresh_token"] }
-func (r TokenRequest) JWT() string                 { return r["jwt"] }
-func (r TokenRequest) App2AppDeviceKeyJWT() string { return r["x_app2app_device_key_jwt"] }
-func (r TokenRequest) ClientSecret() string        { return r["client_secret"] }
-func (r TokenRequest) Scope() []string             { return parseSpaceDelimitedString(r["scope"]) }
-func (r TokenRequest) RequestedTokenType() string  { return r["requested_token_type"] }
-func (r TokenRequest) Audience() string            { return r["audience"] }
-func (r TokenRequest) SubjectTokenType() string    { return r["subject_token_type"] }
-func (r TokenRequest) SubjectToken() string        { return r["subject_token"] }
-func (r TokenRequest) ActorTokenType() string      { return r["actor_token_type"] }
-func (r TokenRequest) ActorToken() string          { return r["actor_token"] }
-func (r TokenRequest) DeviceSecret() string        { return r["device_secret"] }
-func (r TokenRequest) Resource() string            { return r["resource"] }
+func (r TokenRequest) GrantType() string    { return url.Values(r).Get("grant_type") }
+func (r TokenRequest) Code() string         { return url.Values(r).Get("code") }
+func (r TokenRequest) RedirectURI() string  { return url.Values(r).Get("redirect_uri") }
+func (r TokenRequest) ClientID() string     { return url.Values(r).Get("client_id") }
+func (r TokenRequest) RefreshToken() string { return url.Values(r).Get("refresh_token") }
+func (r TokenRequest) JWT() string          { return url.Values(r).Get("jwt") }
+func (r TokenRequest) App2AppDeviceKeyJWT() string {
+	return url.Values(r).Get("x_app2app_device_key_jwt")
+}
+func (r TokenRequest) ClientSecret() string       { return url.Values(r).Get("client_secret") }
+func (r TokenRequest) Scope() []string            { return parseSpaceDelimitedString(url.Values(r).Get("scope")) }
+func (r TokenRequest) RequestedTokenType() string { return url.Values(r).Get("requested_token_type") }
+func (r TokenRequest) Audience() string           { return url.Values(r).Get("audience") }
+func (r TokenRequest) SubjectTokenType() string   { return url.Values(r).Get("subject_token_type") }
+func (r TokenRequest) SubjectToken() string       { return url.Values(r).Get("subject_token") }
+func (r TokenRequest) ActorTokenType() string     { return url.Values(r).Get("actor_token_type") }
+func (r TokenRequest) ActorToken() string         { return url.Values(r).Get("actor_token") }
+func (r TokenRequest) DeviceSecret() string       { return url.Values(r).Get("device_secret") }
+func (r TokenRequest) Resource() string           { return url.Values(r).Get("resource") }
 
 func (r TokenResponse) AccessToken(v string)     { r["access_token"] = v }
 func (r TokenResponse) TokenType(v string)       { r["token_type"] = v }
@@ -45,13 +48,13 @@ func (r TokenResponse) IDToken(v string) { r["id_token"] = v }
 
 // PKCE extension
 
-func (r TokenRequest) CodeVerifier() string        { return r["code_verifier"] }
-func (r TokenRequest) CodeChallenge() string       { return r["code_challenge"] }
-func (r TokenRequest) CodeChallengeMethod() string { return r["code_challenge_method"] }
+func (r TokenRequest) CodeVerifier() string        { return url.Values(r).Get("code_verifier") }
+func (r TokenRequest) CodeChallenge() string       { return url.Values(r).Get("code_challenge") }
+func (r TokenRequest) CodeChallengeMethod() string { return url.Values(r).Get("code_challenge_method") }
 
 // Proprietary
 func (r TokenRequest) DeviceInfo() (map[string]interface{}, error) {
-	encoded := r["x_device_info"]
+	encoded := url.Values(r).Get("x_device_info")
 	if encoded == "" {
 		return nil, nil
 	}

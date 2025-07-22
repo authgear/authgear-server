@@ -89,9 +89,9 @@ func TestTokenHandler(t *testing.T) {
 					},
 				}
 				r := protocol.TokenRequest{}
-				r["grant_type"] = "refresh_token"
-				r["client_id"] = "app-id"
-				r["refresh_token"] = "asdf"
+				r["grant_type"] = []string{"refresh_token"}
+				r["client_id"] = []string{"app-id"}
+				r["refresh_token"] = []string{"asdf"}
 				refreshTokenHash := "hash1"
 				offlineGrant := &oauth.OfflineGrant{
 					ID:              "offline-grant-id",
@@ -200,14 +200,14 @@ func TestTokenHandler(t *testing.T) {
 			})
 
 			request := protocol.TokenRequest{
-				"client_id":            clientID1,
-				"grant_type":           "urn:ietf:params:oauth:grant-type:token-exchange",
-				"requested_token_type": "urn:authgear:params:oauth:token-type:pre-authenticated-url-token",
-				"audience":             "http://accounts.example.com",
-				"subject_token_type":   "urn:ietf:params:oauth:token-type:id_token",
-				"subject_token":        testIdToken,
-				"actor_token_type":     "urn:x-oath:params:oauth:token-type:device-secret",
-				"actor_token":          testDeviceSecret,
+				"client_id":            []string{clientID1},
+				"grant_type":           []string{"urn:ietf:params:oauth:grant-type:token-exchange"},
+				"requested_token_type": []string{"urn:authgear:params:oauth:token-type:pre-authenticated-url-token"},
+				"audience":             []string{"http://accounts.example.com"},
+				"subject_token_type":   []string{"urn:ietf:params:oauth:token-type:id_token"},
+				"subject_token":        []string{testIdToken},
+				"actor_token_type":     []string{"urn:x-oath:params:oauth:token-type:device-secret"},
+				"actor_token":          []string{testDeviceSecret},
 			}
 			ctx := context.Background()
 			resp := handle(ctx, req, request)
@@ -277,10 +277,10 @@ func TestTokenHandler(t *testing.T) {
 
 				req, _ := http.NewRequest("POST", "/token", nil)
 				r := protocol.TokenRequest{
-					"grant_type":    "client_credentials",
-					"client_id":     clientID,
-					"client_secret": "supersecret",
-					"resource":      resourceURI,
+					"grant_type":    []string{"client_credentials"},
+					"client_id":     []string{clientID},
+					"client_secret": []string{"supersecret"},
+					"resource":      []string{resourceURI},
 				}
 				ctx := context.Background()
 				resp := handle(ctx, req, r)
@@ -312,11 +312,11 @@ func TestTokenHandler(t *testing.T) {
 
 				req, _ := http.NewRequest("POST", "/token", nil)
 				r := protocol.TokenRequest{
-					"grant_type":    "client_credentials",
-					"client_id":     clientID,
-					"client_secret": "supersecret",
-					"resource":      resourceURI,
-					"scope":         "read",
+					"grant_type":    []string{"client_credentials"},
+					"client_id":     []string{clientID},
+					"client_secret": []string{"supersecret"},
+					"resource":      []string{resourceURI},
+					"scope":         []string{"read"},
 				}
 				ctx := context.Background()
 				resp := handle(ctx, req, r)
@@ -337,11 +337,11 @@ func TestTokenHandler(t *testing.T) {
 
 				req, _ := http.NewRequest("POST", "/token", nil)
 				r := protocol.TokenRequest{
-					"grant_type":    "client_credentials",
-					"client_id":     clientID,
-					"client_secret": "supersecret",
-					"resource":      resourceURI,
-					"scope":         "admin",
+					"grant_type":    []string{"client_credentials"},
+					"client_id":     []string{clientID},
+					"client_secret": []string{"supersecret"},
+					"resource":      []string{resourceURI},
+					"scope":         []string{"admin"},
 				}
 				ctx := context.Background()
 				resp := handle(ctx, req, r)
@@ -358,10 +358,10 @@ func TestTokenHandler(t *testing.T) {
 
 				req, _ := http.NewRequest("POST", "/token", nil)
 				r := protocol.TokenRequest{
-					"grant_type":    "client_credentials",
-					"client_id":     clientID,
-					"client_secret": "supersecret",
-					"resource":      resourceURI,
+					"grant_type":    []string{"client_credentials"},
+					"client_id":     []string{clientID},
+					"client_secret": []string{"supersecret"},
+					"resource":      []string{resourceURI},
 				}
 				ctx := context.Background()
 				resp := handle(ctx, req, r)
@@ -379,10 +379,10 @@ func TestTokenHandler(t *testing.T) {
 
 				req, _ := http.NewRequest("POST", "/token", nil)
 				r := protocol.TokenRequest{
-					"grant_type":    "client_credentials",
-					"client_id":     clientID,
-					"client_secret": "supersecret",
-					"resource":      resourceURI,
+					"grant_type":    []string{"client_credentials"},
+					"client_id":     []string{clientID},
+					"client_secret": []string{"supersecret"},
+					"resource":      []string{resourceURI},
 				}
 				ctx := context.Background()
 				resp := handle(ctx, req, r)
@@ -399,10 +399,10 @@ func TestTokenHandler(t *testing.T) {
 				issuerResourceURI := origin + "/some-resource"
 				req, _ := http.NewRequest("POST", "/token", nil)
 				r := protocol.TokenRequest{
-					"grant_type":    "client_credentials",
-					"client_id":     clientID,
-					"client_secret": "supersecret",
-					"resource":      issuerResourceURI,
+					"grant_type":    []string{"client_credentials"},
+					"client_id":     []string{clientID},
+					"client_secret": []string{"supersecret"},
+					"resource":      []string{issuerResourceURI},
 				}
 				ctx := context.Background()
 				resp := handle(ctx, req, r)
