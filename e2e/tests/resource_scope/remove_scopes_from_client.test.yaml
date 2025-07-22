@@ -4,7 +4,7 @@ before:
     custom_sql:
       path: preassigned_client_scope_fixtures.sql
 steps:
-  - action: admin_api_query
+  - action: admin_api_graphql
     admin_api_request:
       query: |
         mutation RemoveScopesFromClientID {
@@ -33,7 +33,7 @@ steps:
           },
           "errors": null
         }
-  - action: admin_api_query
+  - action: admin_api_graphql
     admin_api_request:
       query: |
         query ScopesByClient {
@@ -91,7 +91,7 @@ before:
     custom_sql:
       path: client_scope_fixtures.sql
 steps:
-  - action: admin_api_query
+  - action: admin_api_graphql
     admin_api_request:
       query: |
         mutation RemoveScopesFromClientID {
