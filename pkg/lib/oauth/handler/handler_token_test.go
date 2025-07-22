@@ -257,8 +257,8 @@ func TestTokenHandler(t *testing.T) {
 			}
 
 			resource := &resourcescope.Resource{
-				ID:  resourceID,
-				URI: resourceURI,
+				ID:          resourceID,
+				ResourceURI: resourceURI,
 			}
 			Convey("success", func() {
 				clientResourceScopeService.EXPECT().GetClientResourceByURI(gomock.Any(), clientID, resourceURI).Return(resource, nil)

@@ -1991,7 +1991,7 @@ func (h *TokenHandler) handleClientCredentials(
 
 	resp := protocol.TokenResponse{}
 	err = h.TokenService.IssueClientCredentialsAccessToken(ctx, ClientCredentialsAccessTokenOptions{
-		ResourceURI:  resource.URI,
+		ResourceURI:  resource.ResourceURI,
 		Scopes:       scopes,
 		ClientConfig: client,
 		Resource:     resource,
