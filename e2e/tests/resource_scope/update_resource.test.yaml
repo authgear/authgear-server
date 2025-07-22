@@ -20,7 +20,7 @@ steps:
           }
         }
       variables: "{}"
-    adminapi_output:
+    admin_api_output:
       result: |
         {
           "data": {
