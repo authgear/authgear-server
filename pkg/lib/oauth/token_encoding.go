@@ -166,7 +166,7 @@ func (e *AccessTokenEncoding) EncodeClientAccessToken(ctx context.Context, optio
 
 	claims := jwt.New()
 
-	// sub
+	// jti
 	_ = claims.Set(jwt.JwtIDKey, HashToken(options.OriginalToken))
 	// iss
 	_ = claims.Set(jwt.IssuerKey, e.IDTokenIssuer.Iss())
