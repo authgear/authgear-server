@@ -81,6 +81,30 @@ organizations:
     - skymakers.co.uk
 ```
 
+When the sign in is
+
+- Email First
+- The email address identifies a User who is member of more than 1 Organizations.
+- The Organizations have different password policies / different MFA policies.
+
+In competitors like Auth0, they ask at the end of the sign in on which Organization to sign in to.
+Depending on the chosen Organization, the sign in flow may have extra steps to run.
+
+For example, if password was used, and the password does not fulfill the requirements of Organization `a`,
+then Authgear should force the end-user to update the password.
+
+Since we do not store password, we need to store the facts about the password instead.
+For example, does the password has lowercase character? Does the password match N recent history entries?
+After the Organization is chosen, the final password policies / MFA policies are now known.
+
+In Auth0, they do not suffer this problem because they validate the password during sign-in.
+The requirement enforcement is done in sign up and password change only.
+See https://auth0.com/docs/authenticate/database-connections/password-strength#change-your-policy
+
+It may be tempting to move the select-organization step right after the User is identified.
+But doing that before the User is authenticated may leak information.
+So it should not be done.
+
 ## Use-case 4: Invitation
 
 https://openid.net/specs/openid-connect-core-1_0.html#ThirdPartyInitiatedLogin MUST BE implemented first.
