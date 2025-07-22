@@ -199,7 +199,7 @@ var _ = TestCaseSchema.Add("Step", `
 			"http_request",
 			"oauth_setup",
 			"oauth_exchange_code",
-			"admin_api_query"
+			"admin_api_graphql"
 		]},
 		"input": { "type": "string" },
 		"to": { "type": "string" },
@@ -321,7 +321,7 @@ var _ = TestCaseSchema.Add("Step", `
 				{
 					"if": {
 						"properties": {
-							"action": { "const": "admin_api_query" }
+							"action": { "const": "admin_api_graphql" }
 						}
 					},
 					"then": {
@@ -376,7 +376,7 @@ type Step struct {
 	OAuthExchangeCodeCodeVerifier string `json:"oauth_exchange_code_code_verifier"`
 	OAuthExchangeCodeRedirectURI  string `json:"oauth_exchange_code_redirect_uri"`
 
-	// `action` == "admin_api_query"
+	// `action` == "admin_api_graphql"
 	AdminAPIRequest *AdminAPIRequest `json:"admin_api_request"`
 	AdminAPIOutput  *AdminAPIOutput  `json:"adminapi_output"`
 }
@@ -393,7 +393,7 @@ const (
 	StepActionHTTPRequest       StepAction = "http_request"
 	StepActionOAuthSetup        StepAction = "oauth_setup"
 	StepActionOAuthExchangeCode StepAction = "oauth_exchange_code"
-	StepActionAdminAPIQuery     StepAction = "admin_api_query"
+	StepActionAdminAPIQuery     StepAction = "admin_api_graphql"
 )
 
 var _ = TestCaseSchema.Add("SessionCookie", `
@@ -497,7 +497,7 @@ type Output struct {
 	Error  string `json:"error"`
 }
 
-// AdminAPIOutput is used for admin_api_query output validation
+// AdminAPIOutput is used for admin_api_graphql output validation
 type AdminAPIOutput struct {
 	Result string `json:"result"`
 }

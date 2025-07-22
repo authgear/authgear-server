@@ -4,7 +4,7 @@ before:
     custom_sql:
       path: simple_fixtures.sql
 steps:
-  - action: admin_api_query
+  - action: admin_api_graphql
     admin_api_request:
       query: |
         mutation MyMutation {
@@ -42,7 +42,7 @@ before:
     custom_sql:
       path: simple_fixtures.sql
 steps:
-  - action: admin_api_query
+  - action: admin_api_graphql
     admin_api_request:
       query: |
         mutation MyMutation {
@@ -78,7 +78,7 @@ before:
     custom_sql:
       path: simple_fixtures.sql
 steps:
-  - action: admin_api_query
+  - action: admin_api_graphql
     admin_api_request:
       query: |
         mutation MyMutation {
@@ -114,7 +114,7 @@ before:
     custom_sql:
       path: simple_fixtures.sql
 steps:
-  - action: admin_api_query
+  - action: admin_api_graphql
     admin_api_request:
       query: |
         mutation MyMutation {

@@ -1,6 +1,6 @@
 name: Create Resource
 steps:
-  - action: admin_api_query
+  - action: admin_api_graphql
     admin_api_request:
       query: |
         mutation MyMutation {
@@ -33,7 +33,7 @@ steps:
 ---
 name: Create Resource rejected by invalid uri
 steps:
-  - action: admin_api_query
+  - action: admin_api_graphql
     admin_api_request:
       query: |
         mutation MyMutation {
