@@ -370,8 +370,8 @@ func TestTokenHandler(t *testing.T) {
 				var body map[string]interface{}
 				err := json.Unmarshal(resp.Body.Bytes(), &body)
 				So(err, ShouldBeNil)
-				So(body["error"], ShouldEqual, "invalid_request")
-				So(body["error_description"], ShouldEqual, "resource not found: https://api.example.com/resource")
+				So(body["error"], ShouldEqual, "invalid_target")
+				So(body["error_description"], ShouldEqual, "resource not found")
 			})
 
 			Convey("request for resource not associated with client", func() {
@@ -391,8 +391,8 @@ func TestTokenHandler(t *testing.T) {
 				var body map[string]interface{}
 				err := json.Unmarshal(resp.Body.Bytes(), &body)
 				So(err, ShouldBeNil)
-				So(body["error"], ShouldEqual, "invalid_request")
-				So(body["error_description"], ShouldEqual, "resource is not associated with the client")
+				So(body["error"], ShouldEqual, "invalid_target")
+				So(body["error_description"], ShouldEqual, "client is not associated with the resource")
 			})
 
 			Convey("resource uri prefixed with public origin is blocked", func() {
@@ -411,8 +411,8 @@ func TestTokenHandler(t *testing.T) {
 				var body map[string]interface{}
 				err := json.Unmarshal(resp.Body.Bytes(), &body)
 				So(err, ShouldBeNil)
-				So(body["error"], ShouldEqual, "invalid_request")
-				So(body["error_description"], ShouldEqual, "invalid resource uri")
+				So(body["error"], ShouldEqual, "invalid_target")
+				So(body["error_description"], ShouldEqual, "resource URI must not be a prefixed by authgear endpoint")
 			})
 		})
 	})

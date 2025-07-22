@@ -1943,18 +1943,18 @@ func (h *TokenHandler) handleClientCredentials(
 	}
 
 	if r.Resource() == "" {
-		return nil, protocol.NewError("invalid_request", "resource is required")
+		return nil, protocol.NewError("invalid_target", "resource is required")
 	}
 	if strings.HasPrefix(r.Resource(), h.IDTokenIssuer.Iss()) {
-		return nil, protocol.NewError("invalid_request", "invalid resource uri")
+		return nil, protocol.NewError("invalid_target", "resource URI must not be a prefixed by authgear endpoint")
 	}
 	resource, err := h.ClientResourceScopeService.GetClientResourceByURI(ctx, client.ClientID, r.Resource())
 	if err != nil {
 		if errors.Is(err, resourcescope.ErrResourceNotFound) {
-			return nil, protocol.NewError("invalid_request", "resource not found: "+r.Resource())
+			return nil, protocol.NewError("invalid_target", "resource not found")
 		}
 		if errors.Is(err, resourcescope.ErrResourceNotAssociatedWithClient) {
-			return nil, protocol.NewError("invalid_request", "resource is not associated with the client")
+			return nil, protocol.NewError("invalid_target", "client is not associated with the resource")
 		}
 		return nil, err
 	}
