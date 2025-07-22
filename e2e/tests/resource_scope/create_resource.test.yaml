@@ -1,7 +1,7 @@
 name: Create Resource
 steps:
   - action: admin_api_query
-    adminapi_request:
+    admin_api_request:
       query: |
         mutation MyMutation {
           createResource(input: {
@@ -34,7 +34,7 @@ steps:
 name: Create Resource rejected by invalid uri
 steps:
   - action: admin_api_query
-    adminapi_request:
+    admin_api_request:
       query: |
         mutation MyMutation {
           createResource(input: {
