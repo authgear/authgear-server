@@ -4,7 +4,7 @@ before:
     custom_sql:
       path: client_scope_fixtures.sql
 steps:
-  - action: adminapi_query
+  - action: admin_api_query
     adminapi_request:
       query: |
         mutation AddScopesToClientID {
@@ -37,7 +37,7 @@ steps:
           },
           "errors": null
         }
-  - action: adminapi_query
+  - action: admin_api_query
     adminapi_request:
       query: |
         query ScopesByClient {
@@ -95,7 +95,7 @@ before:
     custom_sql:
       path: client_scope_fixtures.sql
 steps:
-  - action: adminapi_query
+  - action: admin_api_query
     adminapi_request:
       query: |
         mutation AddScopesToClientID {
