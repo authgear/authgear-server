@@ -5,7 +5,7 @@ before:
       path: simple_fixtures.sql
 steps:
   - action: admin_api_query
-    adminapi_request:
+    admin_api_request:
       query: |
         mutation DeleteScope {
           deleteScope(input: {
@@ -40,7 +40,7 @@ before:
       path: preassigned_client_scope_fixtures.sql
 steps:
   - action: admin_api_query
-    adminapi_request:
+    admin_api_request:
       query: |
         mutation DeleteScope {
           deleteScope(input: {
