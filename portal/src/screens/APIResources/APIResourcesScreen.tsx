@@ -4,6 +4,7 @@ import ScreenTitle from "../../ScreenTitle";
 import ScreenDescription from "../../ScreenDescription";
 import ScreenContentHeader from "../../ScreenContentHeader";
 import { FormattedMessage } from "@oursky/react-messageformat";
+import { ResourceListEmptyView } from "../../components/api-resources/ResourceListEmptyView";
 
 const APIResourcesScreen: React.VFC = function APIResourcesScreen() {
   return (
@@ -20,6 +21,9 @@ const APIResourcesScreen: React.VFC = function APIResourcesScreen() {
           </ScreenDescription>
         }
       />
+      <div className="col-span-full p-8">
+        <ResourceListEmptyView />
+      </div>
     </ScreenContent>
   );
 };

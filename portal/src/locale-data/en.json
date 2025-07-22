@@ -256,6 +256,10 @@
   "GroupsEmptyView.description": "Create groups to represent the types of users that access your applications. Users in a group inherit the same set of roles.",
   "GroupsEmptyView.button.text": "Create Group",
 
+  "ResourceListEmptyView.title": "No API Resources yet",
+  "ResourceListEmptyView.description": "Create API Resources for authorized applications",
+  "ResourceListEmptyView.create-resource": "Create API Resource",
+
   "AddRoleScreen.title": "Create Role",
   "AddRoleScreen.roleKey.title": "Role Key",
   "AddRoleScreen.roleKey.description": "The Role Key will be included in the UserInfo and JWT token of the user. e.g. app_a_admin.",
