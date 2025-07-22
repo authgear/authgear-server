@@ -78,13 +78,44 @@ before:
     custom_sql:
       path: simple_fixtures.sql
 steps:
-  - action: admin_api_graphql
+  - name: "oidc scopes should be blocked"
+    action: admin_api_graphql
     admin_api_request:
       query: |
         mutation MyMutation {
           createScope(input: {
             resourceURI: "https://fixtureresource/1",
             scope: "openid",
+            description: "Should fail"
+          }) {
+            scope {
+              id
+              scope
+              description
+            }
+          }
+        }
+      variables: "{}"
+    adminapi_output:
+      result: |
+        {
+          "data": null,
+          "errors": [
+            {
+              "extensions": {
+                "reason": "ValidationFailed"
+              }
+            }
+          ]
+        }
+  - name: "Authgear scopes should be blocked"
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation MyMutation {
+          createScope(input: {
+            resourceURI: "https://fixtureresource/1",
+            scope: "https://authgear.com/scopes/full-access",
             description: "Should fail"
           }) {
             scope {
