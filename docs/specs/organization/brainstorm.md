@@ -298,6 +298,7 @@ If we wanted to support this, here are some potential problems we need to consid
    In what case, is the reporting undesirable?
    One of the case the reporting is undesirable is that the two organizations have different organization-specific settings on password policy and MFA.
    It seems that it is inappropriate to report information if the user only went through a less restrictive authentication process.
+   However, in Email First, the user is prompted to choose which Organization to sign in to, so the user is already told which organization he is a member of.
 
 2. What are the alternatives if we do not support organization switcher natively?
    Once signed in, the developer gets the `sub`, they can then use the Admin API to query the membership of the user to build the switcher themselves.
@@ -310,19 +311,16 @@ If we wanted to support this, here are some potential problems we need to consid
       // organization is the organization the user originally signed in to.
       // The application backend uses this field to determine what active organization is.
       "organization": {
-        "id": "org_123",
         "slug": "org1",
         "name": "Org 1"
       },
       // All organizations the user is member of.
       "organizations": [
         {
-          "id": "org_123",
           "slug": "org1",
           "name": "Org 1"
         },
         {
-          "id": "org_456",
           "slug": "org2",
           "name": "Org 2"
         }
@@ -333,5 +331,7 @@ If we wanted to support this, here are some potential problems we need to consid
    Since the ID token has the active organization stored, to switch organization, the user MUST sign in again.
    Require the user to sign in again eliminate a bunch of problems, like how to handle different password policies, different MFA requirements.
 
-4. The idea of computing the most strict password policies / MFA requirements, and then determine which a sign-in is needed it also very to document.
+4. The idea of computing the most strict password policies / MFA requirements, and then determine which a sign-in is needed it also very hard to document.
    If it is hard to document, then it is probably that the developer will have a hard time using it.
+
+5. GitHub allows the user to be member of multiple organizations. During sign-in, the user is not prompted to select an organization. If one of the organization the user belongs to require 2FA, then the user is required to have 2FA. Even Auth0 cannot model this use-case without resorting to Auth0 post-login actions.
