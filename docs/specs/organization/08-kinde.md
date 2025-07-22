@@ -34,7 +34,7 @@
 
 By using the paid feature https://docs.kinde.com/authenticate/manage-authentication/organization-auth-experience/
 
-### Usecase 2: IAM
+### Usecase 2: User Isolation by Organization
 
 Not supported. Email addresses are globally unique.
 

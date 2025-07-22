@@ -62,7 +62,7 @@ https://zitadel.com/docs/guides/integrate/onboarding/b2b#invite-team-members (Th
 
 This is trivial in Zitadel because each organization has its own settings.
 
-### Usecase 3: IAM
+### Usecase 3: User Isolation by Organization
 
 This is trivial in Zitadel because each user belongs to one and only one organization.
 

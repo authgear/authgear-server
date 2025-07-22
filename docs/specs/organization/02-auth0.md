@@ -62,11 +62,11 @@ To fulfil this usecase, FormX does
   Restrict the email domain of organization `greatmall` to `@greatmall.com`.
   Turn on auto-membership.
 
-### Usecase 2: IAM
+### Usecase 2: User Isolation by Organization
 
-Most cloud providers offer IAM to allow their customers to manage IAM users within their account.
+Most cloud providers offer User Isolation by Organization to allow their customers to manage User Isolation by Organization users within their account.
 
-In FormX, GreatMall also wants IAM.
+In FormX, GreatMall also wants User Isolation by Organization.
 Since in Auth0, connection is already a isolated user pool. This requirement is automatically fuifilled.
 
 ### Usecase 3: Enable MFA for some organization
