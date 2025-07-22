@@ -109,9 +109,9 @@ Read https://stytch.com/docs/b2b/guides/passwords/overview
 In short, you have to choose between "Cross-organization Password" and "Organization-Scoped Password".
 This settings can only be changed when the project has no members.
 
-### Usecase 3: IAM
+### Usecase 3: User Isolation by Organization
 
-In Stytch, a member belongs to one and only one organization, so IAM is supported out-of-the-box.
+In Stytch, a member belongs to one and only one organization, so User Isolation by Organization is supported out-of-the-box.
 
 ### Usecase 4: Enable MFA for some organization
 

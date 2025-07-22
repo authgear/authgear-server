@@ -12,7 +12,7 @@
 | Support building GitHub-style service | Yes     | Yes[^2] | Yes     | Yes   | Yes     |
 | Different password policies           | Yes     | Yes[^4] | Yes     | No    | Yes[^1] |
 | Different MFA policies                | Yes[^5] | Yes     | Yes     | No    | Yes[^1] |
-| IAM                                   | Yes     | Yes     | Yes     | No    | No      |
+| User Isolation by Organization        | Yes     | Yes     | Yes     | No    | No      |
 | Invitation to specific application    | Yes     | No      | No      | Yes   | No      |
 | Email discovery                       | Yes     | Yes     | No      | No    | Yes     |
 | Organization switcher                 | No      | Yes[^6] | No      | Yes   | Yes[^6] |
@@ -49,9 +49,9 @@ Notably, Clerk does not support this.
 
 In Kinde, these are paid features.
 
-### IAM
+### User Isolation by Organization
 
-In all competitors, the IAM use case is trivial to implement.
+In all competitors, User Isolation by Organization is trivial to implement.
 We should consider that in our design.
 
 Notably, Clerk and Kinde do not support this.

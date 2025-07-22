@@ -30,10 +30,10 @@ At least I did not see it in the dashboard.
 Checking the API documentation does not reveal something similar.
 See https://clerk.com/docs/references/backend/organization/update-organization
 
-### Usecase 2: IAM
+### Usecase 2: User Isolation by Organization
 
 Not possible. It is because email address has to be globally unique.
-It is not possible to create an IAM user that shares the same address with a user in the global user pool.
+It is not possible to create an organization user that shares the same address with a user in the global user pool.
 
 ### Usecase 3: Different MFA policies
 

@@ -7,7 +7,7 @@ See https://supertokens.com/docs/authentication/enterprise/introduction
 Due to the nature of multi-tenancy, the following use cases are supported out-of-the box
 
 - Different password policies
-- IAM
+- User Isolation by Organization
 - Different MFA policies
 
 Advanced use cases like the following have to be built-by-yourselves.
