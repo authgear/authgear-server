@@ -4,7 +4,7 @@ before:
     custom_sql:
       path: simple_fixtures.sql
 steps:
-  - action: adminapi_query
+  - action: admin_api_query
     adminapi_request:
       query: |
         mutation AddResourceToClientID {
@@ -34,7 +34,7 @@ steps:
           },
           "errors": null
         }
-  - action: adminapi_query
+  - action: admin_api_query
     adminapi_request:
       query: |
         query ResourcesByClient {
