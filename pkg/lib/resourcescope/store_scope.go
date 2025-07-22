@@ -226,6 +226,9 @@ func (s *Store) GetResourceScope(ctx context.Context, resourceID string, scope s
 	}
 	sc, err := s.scanScope(row)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrScopeNotFound
+		}
 		return nil, err
 	}
 	return sc, nil
