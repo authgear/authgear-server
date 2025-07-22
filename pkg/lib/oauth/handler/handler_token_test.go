@@ -351,6 +351,7 @@ func TestTokenHandler(t *testing.T) {
 				err := json.Unmarshal(resp.Body.Bytes(), &body)
 				So(err, ShouldBeNil)
 				So(body["error"], ShouldEqual, "invalid_scope")
+				So(body["error_description"], ShouldEqual, "specified scope is not allowed: admin")
 			})
 
 			Convey("request for invalid resource", func() {
