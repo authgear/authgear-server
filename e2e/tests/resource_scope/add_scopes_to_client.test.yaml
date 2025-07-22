@@ -21,7 +21,7 @@ steps:
           }
         }
       variables: "{}"
-    adminapi_output:
+    admin_api_output:
       result: |
         {
           "data": {
@@ -60,7 +60,7 @@ steps:
           }
         }
       variables: "{}"
-    adminapi_output:
+    admin_api_output:
       result: |
         {
           "data": {
@@ -112,7 +112,7 @@ steps:
           }
         }
       variables: "{}"
-    adminapi_output:
+    admin_api_output:
       result: |
         {
           "data": null,
@@ -148,7 +148,7 @@ steps:
           }
         }
       variables: "{}"
-    adminapi_output:
+    admin_api_output:
       result: |
         {
           "data": {
@@ -181,7 +181,7 @@ steps:
           }
         }
       variables: "{}"
-    adminapi_output:
+    admin_api_output:
       result: |
         {
           "data": {
@@ -220,7 +220,7 @@ steps:
           }
         }
       variables: "{}"
-    adminapi_output:
+    admin_api_output:
       result: |
         {
           "data": {
