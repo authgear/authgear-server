@@ -290,6 +290,21 @@ var auditLogActivityType = graphql.NewEnum(graphql.EnumConfig{
 		"ADMIN_API_MUTATION_UPDATE_SCOPE_EXECUTED": &graphql.EnumValueConfig{
 			Value: "admin_api.mutation.update_scope.executed",
 		},
+		"ADMIN_API_MUTATION_ADD_RESOURCE_TO_CLIENTID_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.mutation.add_resource_to_clientid.executed",
+		},
+		"ADMIN_API_MUTATION_REMOVE_RESOURCE_FROM_CLIENTID_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.mutation.remove_resource_from_clientid.executed",
+		},
+		"ADMIN_API_MUTATION_ADD_SCOPES_TO_CLIENTID_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.mutation.add_scopes_to_clientid.executed",
+		},
+		"ADMIN_API_MUTATION_REMOVE_SCOPES_FROM_CLIENTID_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.mutation.remove_scopes_from_clientid.executed",
+		},
+		"ADMIN_API_MUTATION_REPLACE_SCOPES_OF_CLIENTID_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.mutation.replace_scopes_of_clientid.executed",
+		},
 		"ADMIN_API_MUTATION_ADD_GROUP_TO_ROLES_EXECUTED": &graphql.EnumValueConfig{
 			Value: "admin_api.mutation.add_group_to_roles.executed",
 		},
