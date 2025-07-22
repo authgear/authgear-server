@@ -363,10 +363,10 @@ func (h *TokenHandler) validateRequest(r protocol.TokenRequest, client *config.O
 		break
 	case oauth.ClientCredentialsGrantType:
 		if r.Resource() == "" {
-			return protocol.NewError("invalid_request", "resource is required")
+			return protocol.NewError("invalid_target", "resource is required")
 		}
 		if r.ClientSecret() == "" {
-			return protocol.NewError("invalid_request", "client secret is required")
+			return protocol.NewError("invalid_client", "client secret is required")
 		}
 	default:
 		return protocol.NewError("unsupported_grant_type", "grant type is not supported")
