@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/url"
 	"regexp"
+	"strings"
 
 	jsonschemaformat "github.com/iawaknahc/jsonschema/pkg/jsonschema/format"
 
@@ -68,6 +69,10 @@ func (FormatScopeToken) CheckFormat(ctx context.Context, value interface{}) erro
 	tokenRe := regexp.MustCompile(`^[\x21\x23-\x5B\x5D-\x7E]+$`)
 	if !tokenRe.MatchString(scope) {
 		return fmt.Errorf("invalid scope-token: forbidden character")
+	}
+
+	if strings.HasPrefix(scope, "https://authgear.com") {
+		return fmt.Errorf("scope not allowed")
 	}
 
 	return nil
