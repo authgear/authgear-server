@@ -45,7 +45,7 @@ steps:
             edges {
               node {
                 id
-                uri
+                resourceURI
                 scopes(clientID: "portal") {
                   edges {
                     node {
@@ -69,7 +69,7 @@ steps:
                 {
                   "node": {
                     "id": "[[string]]",
-                    "uri": "https://fixtureresource/2",
+                    "resourceURI": "https://fixtureresource/2",
                     "scopes": {
                       "edges": [
                         {
@@ -123,4 +123,128 @@ steps:
               }
             }
           ]
+        }
+---
+name: Add Scopes To Client - Adding same scope twice is success
+before:
+  - type: custom_sql
+    custom_sql:
+      path: client_scope_fixtures.sql
+steps:
+  - action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation AddScopesToClientID {
+          addScopesToClientID(input: {
+            clientID: "portal",
+            resourceURI: "https://fixtureresource/2",
+            scopes: ["resource2_scope1"]
+          }) {
+            scopes {
+              id
+              scope
+              description
+            }
+          }
+        }
+      variables: "{}"
+    adminapi_output:
+      result: |
+        {
+          "data": {
+            "addScopesToClientID": {
+              "scopes": [
+                {
+                  "id": "[[string]]",
+                  "scope": "resource2_scope1",
+                  "description": "Resource 2 Scope 1"
+                }
+              ]
+            }
+          },
+          "errors": null
+        }
+  - action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation AddScopesToClientID {
+          addScopesToClientID(input: {
+            clientID: "portal",
+            resourceURI: "https://fixtureresource/2",
+            scopes: ["resource2_scope1"]
+          }) {
+            scopes {
+              id
+              scope
+              description
+            }
+          }
+        }
+      variables: "{}"
+    adminapi_output:
+      result: |
+        {
+          "data": {
+            "addScopesToClientID": {
+              "scopes": [
+                {
+                  "id": "[[string]]",
+                  "scope": "resource2_scope1",
+                  "description": "Resource 2 Scope 1"
+                }
+              ]
+            }
+          },
+          "errors": null
+        }
+  - action: admin_api_graphql
+    admin_api_request:
+      query: |
+        query ScopesByClient {
+          resources(clientID: "portal") {
+            edges {
+              node {
+                id
+                resourceURI
+                scopes(clientID: "portal") {
+                  edges {
+                    node {
+                      id
+                      scope
+                      description
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      variables: "{}"
+    adminapi_output:
+      result: |
+        {
+          "data": {
+            "resources": {
+              "edges": [
+                {
+                  "node": {
+                    "id": "[[string]]",
+                    "resourceURI": "https://fixtureresource/2",
+                    "scopes": {
+                      "edges": [
+                        {
+                          "node": {
+                            "id": "[[string]]",
+                            "scope": "resource2_scope1",
+                            "description": "Resource 2 Scope 1"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "errors": null
         }
