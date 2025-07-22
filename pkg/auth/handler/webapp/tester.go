@@ -190,9 +190,9 @@ func (h *TesterHandler) doCodeExchange(ctx context.Context, code string, stateb6
 	}
 	client := h.OAuthClientResolver.ResolveClient(tester.ClientIDTester)
 	tokenRequest := protocol.TokenRequest{}
-	tokenRequest["code"] = code
-	tokenRequest["code_verifier"] = testerToken.PKCEVerifier.CodeVerifier
-	tokenRequest["redirect_uri"] = h.TesterEndpointsProvider.TesterURL().String()
+	tokenRequest["code"] = []string{code}
+	tokenRequest["code_verifier"] = []string{testerToken.PKCEVerifier.CodeVerifier}
+	tokenRequest["redirect_uri"] = []string{h.TesterEndpointsProvider.TesterURL().String()}
 
 	tokenResp, err := h.TesterTokenIssuer.IssueTokensForAuthorizationCode(
 		ctx,
