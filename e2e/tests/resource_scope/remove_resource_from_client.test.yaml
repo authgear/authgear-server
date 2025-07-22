@@ -15,7 +15,7 @@ steps:
             resource {
               id
               name
-              uri
+              resourceURI
             }
           }
         }
@@ -28,7 +28,7 @@ steps:
               "resource": {
                 "id": "[[string]]",
                 "name": "Fixture Resource 2",
-                "uri": "https://fixtureresource/2"
+                "resourceURI": "https://fixtureresource/2"
               }
             }
           },
@@ -43,7 +43,7 @@ steps:
               node {
                 id
                 name
-                uri
+                resourceURI
               }
             }
           }

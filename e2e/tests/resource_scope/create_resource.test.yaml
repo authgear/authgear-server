@@ -5,13 +5,13 @@ steps:
       query: |
         mutation MyMutation {
           createResource(input: {
-            uri: "https://testresource1",
+            resourceURI: "https://testresource1",
             name: "Test resource"
           }) {
             resource {
               id
               name
-              uri
+              resourceURI
             }
           }
         }
@@ -24,27 +24,27 @@ steps:
               "resource": {
                 "id": "[[string]]",
                 "name": "Test resource",
-                "uri": "https://testresource1"
+                "resourceURI": "https://testresource1"
               }
             }
           },
           "errors": null
         }
 ---
-name: Create Resource rejected by invalid uri
+name: Create Resource rejected by invalid resourceURI
 steps:
   - action: admin_api_graphql
     admin_api_request:
       query: |
         mutation MyMutation {
           createResource(input: {
-            uri: "customscheme://host",
+            resourceURI: "customscheme://host",
             name: "Test resource"
           }) {
             resource {
               id
               name
-              uri
+              resourceURI
             }
           }
         }
