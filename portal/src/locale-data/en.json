@@ -260,6 +260,10 @@
   "ResourceListEmptyView.description": "Create API Resources for authorized applications",
   "CreateResourceButton.label": "Create API Resource",
 
+  "DeleteResourceDialog.title": "Remove API Resource",
+  "DeleteResourceDialog.description": "Are you sure you want to remove \"{resourceURI}\"?",
+  "DeleteResourceDialog.button.confirm": "Remove",
+
   "ResourceList.columns.name": "Name",
   "ResourceList.columns.identifier": "Identifier",
 

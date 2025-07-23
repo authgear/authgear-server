@@ -7,14 +7,23 @@ import ScreenContentHeader from "../../ScreenContentHeader";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import { ResourceList } from "../../components/api-resources/ResourceList";
 import { useResourcesQueryQuery } from "../../graphql/adminapi/query/resourcesQuery.generated";
+import { useDeleteResourceMutation } from "../../graphql/adminapi/mutations/deleteResourceMutation.generated";
 import ShowError from "../../ShowError";
+import { Resource } from "../../graphql/adminapi/globalTypes.generated";
 import { PaginationProps } from "../../PaginationWidget";
 import { CreateResourceButton } from "../../components/api-resources/CreateResourceButton";
+import {
+  DeleteResourceDialog,
+  DeleteResourceDialogData,
+} from "../../components/api-resources/DeleteResourceDialog";
 
 const PAGE_SIZE = 20;
 
 const APIResourcesScreen: React.VFC = function APIResourcesScreen() {
   const [offset, setOffset] = useState(0);
+  const [deleteDialogData, setDeleteDialogData] =
+    useState<DeleteResourceDialogData | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const { data, loading, error, refetch } = useResourcesQueryQuery({
     variables: {
@@ -27,6 +36,42 @@ const APIResourcesScreen: React.VFC = function APIResourcesScreen() {
       }, [offset]),
     },
   });
+
+  const [deleteResource] = useDeleteResourceMutation();
+
+  const onConfirmDelete = useCallback(
+    async (data: DeleteResourceDialogData) => {
+      setIsDeleting(true);
+      try {
+        await deleteResource({
+          variables: {
+            input: {
+              resourceURI: data.resourceURI,
+            },
+          },
+        });
+        setDeleteDialogData(null);
+        await refetch();
+      } finally {
+        setIsDeleting(false);
+      }
+    },
+    [deleteResource, refetch, setIsDeleting, setDeleteDialogData]
+  );
+
+  const onDismissDeleteDialog = useCallback(() => {
+    setDeleteDialogData(null);
+  }, [setDeleteDialogData]);
+
+  const onDelete = useCallback(
+    (resource: Resource) => {
+      setDeleteDialogData({
+        resourceURI: resource.resourceURI,
+        resourceName: resource.name ?? null,
+      });
+    },
+    [setDeleteDialogData]
+  );
 
   const resources =
     data?.resources?.edges
@@ -51,33 +96,50 @@ const APIResourcesScreen: React.VFC = function APIResourcesScreen() {
   }
 
   return (
-    <ScreenContent className="flex-1" layout="list">
-      <ScreenContentHeader
-        title={
-          <ScreenTitle>
-            <FormattedMessage id="APIResourcesScreen.title" />
-          </ScreenTitle>
-        }
-        description={
-          <ScreenDescription>
-            <FormattedMessage id="APIResourcesScreen.description" />
-          </ScreenDescription>
-        }
-        suffix={
-          resources.length !== 0 ? (
-            <CreateResourceButton onClick={() => {}} className="self-start" />
-          ) : null
-        }
-      />
-      <div className="col-span-full flex flex-col">
-        <ResourceList
-          className="flex-1"
-          resources={resources}
-          loading={loading}
-          pagination={pagination}
+    <>
+      <ScreenContent className="flex-1" layout="list">
+        <ScreenContentHeader
+          title={
+            <ScreenTitle>
+              <FormattedMessage id="APIResourcesScreen.title" />
+            </ScreenTitle>
+          }
+          description={
+            <ScreenDescription>
+              <FormattedMessage id="APIResourcesScreen.description" />
+            </ScreenDescription>
+          }
+          suffix={
+            resources.length !== 0 ? (
+              <CreateResourceButton
+                onClick={() => {
+                  // TODO
+                }}
+                className="self-start"
+              />
+            ) : null
+          }
         />
-      </div>
-    </ScreenContent>
+        <div className="col-span-full flex flex-col">
+          <ResourceList
+            className="flex-1"
+            resources={resources}
+            loading={loading}
+            pagination={pagination}
+            onDelete={onDelete}
+            onEdit={() => {
+              // TODO
+            }}
+          />
+        </div>
+      </ScreenContent>
+      <DeleteResourceDialog
+        data={deleteDialogData}
+        isLoading={isDeleting}
+        onConfirm={onConfirmDelete}
+        onDismiss={onDismissDeleteDialog}
+      />
+    </>
   );
 };
 
