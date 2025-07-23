@@ -1,329 +1,347 @@
 # Use case
 
-Use-case-driven design begins here.
+This document outlines a list of use cases.
+Each use case may contribute to the design of Organization.
 
-## Use-case 1: Different password policies and Use-case 3: Enable MFA for some organization
+## Use case 1: How to enable Organization?
 
-This use-case can be generalized to **Organization-specific settings**.
-Specifically, organization-specific settings **override** the project settings.
+I am a developer who just signed up portal.authgear.com, ready to create my first project.
 
-For organization-specific settings, we can store them in a new directory in the project filesystem, like `/orgs/{org-id}/templates`.
+### Use case 1.1: Organization must be enabled during project creation
 
-For organization-specific login settings, this is more complicated. We want to
-
-- Allow the developer to add an organization-specific OAuth provider.
-  - Does this really have to be organization-specific? That is, can we also list it in the original OAuth provider list?
-  - Maybe we can just add a new field `orgs` to OAuth provider config, which is a list of org-id.
-  - When `orgs` is absent, the behavior is backwards compatible, the OAuth provider can be used project-wise.
-  - When `orgs` is specified, the OAuth provider can only be used in the specific organizations.
-  - This design allows organization to share common OAuth provider config. (Question: is this common?)
-- Federated Login.
-  This means the project simply delegates to another Identity Provider to do the login.
-  The key point is, the end-user NEVER see the UI of Authgear.
-  - We have an ad-hoc support for a Federated Login experience via the poorly authentication parameter `x_oauth_provider_alias`.
-  - TODO: Formally document `x_oauth_provider_alias`.
-  - Add something this to support Federated Login natively.
-    ```yaml
-    authentication:
-      federated_login:
-        # When this is enabled, authentication.identities are ignored.
-        enabled: true
-        # Use the configured OAuth provider `adfs` to do Federated Login.
-        oauth:
-          alias: adfs
-    ```
-  - When `x_oauth_provider_alias` agrees with `authentication.federated_login`, the behavior is unchanged, otherwise, the authentication is rejected with an OAuth error.
-- Allow organization-specific MFA settings.
-  - This implies we need to introduce a new section in `authgear.yaml` to contain organization-specific settings.
-  - But this DOES NOT mean duplicate the whole `authgear.yaml` under organization-specific settings.
-  - We need to think carefully and decide how the config should look like.
-  - For settings that can be organization-specific, do we make it look like its project-specific counterpart?
-    ```yaml
-    authentication:
-      secondary_authentication_mode: if_exists
-      secondary_authentication_grace_period:
-        enabled: true
-        end_at: "2025-06-30T00:00:00Z"
-      secondary_authenticators:
-      - totp
-
-    organizations:
-    - organization_id: org_123
-      organization_specific:
-        # This "authentication" is different from the project "authentication"
-        # In particular, it only supports these 3 fields.
-        # Specifying other fields IS AN ERROR.
-        authentication:
-          secondary_authentication_mode: required
-          secondary_authentication_grace_period:
-            enabled: false
-          secondary_authenticators:
-          - oob_otp_sms
-    ```
-
-## Use-case 5: Email discovery
-
-This use-case requires the introduction of email domain settings. See below.
-
-```yaml
-organizations:
-- organization_id: org_123
-  email_domains:
-  # When allowed_domains is defined, then its member must have at least one identity with identity attributes `email` matching one of the listed domain.
-    allowed_domains:
-    - oursky.com
-    - skymakers.co.uk
-    - anothercompany.com
-  # This list MUST be a subset of allowed_domains. This is enforced by config validation.
-  # A newly signed up user whose identity with identity attributes `email` matching one of the listed domain becomes a member of the organization.
-    auto_membership_domains:
-    - oursky.com
-    - skymakers.co.uk
-```
-
-When the sign in is
-
-- Email First
-- The email address identifies a User who is member of more than 1 Organizations.
-- The Organizations have different password policies / different MFA policies.
-
-In competitors like Auth0, they ask at the end of the sign in on which Organization to sign in to.
-Depending on the chosen Organization, the sign in flow may have extra steps to run.
-
-For example, if password was used, and the password does not fulfill the requirements of Organization `a`,
-then Authgear should force the end-user to update the password.
-
-Since we do not store password, we need to store the facts about the password instead.
-For example, does the password has lowercase character? Does the password match N recent history entries?
-After the Organization is chosen, the final password policies / MFA policies are now known.
-
-In Auth0, they do not suffer this problem because they validate the password during sign-in.
-The requirement enforcement is done in sign up and password change only.
-See https://auth0.com/docs/authenticate/database-connections/password-strength#change-your-policy
-
-It may be tempting to move the select-organization step right after the User is identified.
-But doing that before the User is authenticated may leak information.
-So it should not be done.
-
-## Use-case 4: Invitation
-
-https://openid.net/specs/openid-connect-core-1_0.html#ThirdPartyInitiatedLogin MUST BE implemented first.
-
-```mermaid
-sequenceDiagram
-    PortalAdmin ->> Portal: Invite user@example.com to myspa
-    Portal ->> Portal: Check if myspa has initiate_login_uri configured
-    Portal ->> Portal: myspa has initiate_login_uri=https://myspa.com/login
-    Portal ->> user@example.com: Send invitation email
-    user@example.com ->> myspa.com: Click the link and visit https://myspa.com/login
-    myspa.com ->> myspa.com: Call startAuthentication() with query parameters
-    myspa.com ->> user@example.com: Redirect to https://myproject.authgear.cloud/oauth2/authorize
-    user@example.com ->> myproject.authgear.cloud: Follow redirect
-    myproject.authgear.cloud ->> myproject.authgear.cloud: Authenticate the end-user
-    myproject.authgear.cloud ->> myproject.authgear.cloud: Process the query and run the organization joining logic
-    myproject.authgear.cloud ->> user@example.com: Redirect back to redirect_uri
-    user@example.com ->> myspa.com: Follow redirect
-    myspa.com ->> user@example.com: Display authenticated contents
-```
-
-The URL must be an HTTPS URL so most likely it is relevant to a web client application.
-
-Suppose the project `myapp` has set up `auth.myapp.com` as the custom domain of Authgear.
-Its website `www.myapp.com`, is using a web app client application to integrate with Authgear.
-To enable invitation, the developer MUST configure `initiate_login_uri` in this web app client application.
-An example value of `initiate_login_uri` would be `https://www.myapp.com/login`.
-When the end-user lands on `https://www.myapp.com/login`, the web app should initiate the Authgear SDK for Web.
-Invoke `startAuthentication()` if the end-user has not authenticated yet.
-
-If `myapp` is sophisticated enough to have Universal Link setup, then the following is possible.
-
-`myapp` also has an iOS app and Android app, with Universal Link setup to handle `https://www.myapp.com/login`.
-When the end-user click the invitation link in the email, the corresponding app will be opened.
-The app is responsible for handling the Universal link, and invoke a suitable SDK method to go through invitation-initiated login.
+During the project creation, the first question I am asked is to choose whether Organization is enabled or not.
 
 > [!NOTE]
-> This implies supporting Universal link to invitation requires changes in the SDK!
+> Stytch is a competitor doing this.
+> When you create a new project at Stytch, they ask you whether you want Consumer Authentication or B2B Authentication.
 
-## Use-case 2: User Isolation by Organization
 
-Support for User Isolation by Organization is currently missing in Authgear.
+### Use case 1.2: Organization is opt-in at anytime
 
-Let us first review what are the currently supported identities.
-
-### Login ID
-
-- Login ID is global to the project.
-- This means `johndoe@gmail.com` can only exist once in a project.
-
-### OAuth
-
-- The uniqueness of an OAuth Identity depends on the type of the OAuth Provider.
-- For example, in Google Login, the Google user (`@gmail.com`) can only exist once in a project because Google returns the same `sub` regardless of the value of the `client_id`.
-- For example, in Sign in with Apple, the uniqueness depends on the value of `team_id`.
-  This means if the developer sets up 2 Sign in with Apple with different team IDs,
-  the same Apple ID `johndoe@gmail.com` signs in through the 2 Sign in with Apple are considered as 2 different identities.
-
----
-
-The next question is, what changes must be made to the data model to support User Isolation by Organization.
-
-To perform the analysis, we take the story from https://auth0.com/docs/get-started/architecture-scenarios/multiple-organization-architecture
-
-### The case of Sally
-
-MetaHexa is a bank having their own Identity Provider (say Microsoft Entra ID).
-Sally, an employee of MetaHexa, signs in via Microsoft Entra ID.
-The work email address of Sally is `sally@metahexa.com`.
-`sally@metahexa.com` corresponds to a User with ID `sally-metahexa-com` who is a member of organization `metahexca`.
-
-The personal email address of Sally is `sally@gmail.com`.
-`sally@gmail.com` corresponds to a User with ID `sally-gmailcom`.
-This User may or may not belong to any organization, it does not matter much.
-
-When Sally does her work, she signs in `sally@metahexa.com` via Microsoft Entra ID.
-
-When Sally manages her personal stuff, she signs in `sally@gmail.com`.
-
-### The case of Pat
-
-Pat works for Hoekstra and Gupta Smith as part-time.
-Both Hoekstra and Gupta Smith does not own their Identity Provider.
-But **we assume these 2 companies have their own email domains, and their employees have a email address with that email domain**.
-
-Under this assumption, Pat has the following email addresses:
-
-- `pat@hoekstra.com`, corresponds to User with ID `pat-hoekstra-com`, a member of organization `hoekstra`.
-- `pat@guptasmith.com`, corresponds to User with ID `pat-gupta-smith-com`, a member of organization `guptasmith`.
-- `pat@gmail.com`, corresponds to User with ID `pat-gmail-com`.
-
-### The case of Sumana
-
-Sumana is an employee of AdventureZ, and a freelancer for Rocky High.
-
-Under the story's settings, she has the following email addresses:
-
-- `sumana@adventurez.com`, corresponds to User with ID `sumana-adventurez-com`, a member of both organization `adventurez` and organization `rockyhigh`.
-
-### Observation: Organization must own their email domain
-
-As long as an organization owns their email domain,
-our existing tables like `_auth_identity_login_id`, `_auth_identity_oauth`, and `_auth_user` **DO NOT** need to be organization-aware.
-
-In practice, the organization should configure its email domain settings to control who can be a member of it.
-
-In this story, the settings should look like
-
-```yaml
-organizations:
-
-# MetaHexa is a bank.
-# Therefore it requires all members to have email @metahexa.com
-# Additionally, MetaHexa is configured to use Microsoft Entra ID as Federated Login,
-# Thus effectively all members must sign in with Microsoft Entra ID.
-- organization_id: metahexa
-  email_domains:
-    allowed_domains:
-    - metahexa.com
-    auto_membership_domains:
-    - metahexa.com
-
-# Hoekstra does not require all members to have email @hoekstra.com
-# Though if a user with verified @hoekstra.com signs up, the user becomes member of it automatically.
-# Hoekstra does not own its Identity Provider though.
-# It allows Login ID Identity.
-- organization_id: hoekstra
-  email_domains:
-    auto_membership_domains:
-    - hoekstra.com
-
-# Gupta Smith has a similar setup with Hoekstra.
-- organization_id: guptasmith
-  email_domains:
-    auto_membership_domains:
-    - guptasmith.com
-
-# AdventureZ has a similar setup with Hoekstra.
-- organization_id: adventurez
-  email_domains:
-    auto_membership_domains:
-    - adventurez.com
-
-# AdventureZ has a similar setup with Hoekstra.
-- organization_id: rockyhigh
-  email_domains:
-    auto_membership_domains:
-    - rockyhigh.com
-```
-
-What is impossible if we do not make any data model changes?
-
-It is impossible to have `sally@gmail.com` to join organization `orga` and organization `orgb` simultaneously while requiring `sally@gmail.com` in `orga` has a **DIFFERENT** User ID than `sally@gmail.com` in `orgb`.
-
-In my wild guess, this is not a problem in practice because
-
-- The organizations most of the time have their own email domain.
-- For organizations that allow any end-user to join, the end-user should be the same User. Think of GitHub.
-
-### Observation: No need to introduce User Isolation by Organization at data model level
-
-User and Organization forms N-to-M relationship.
-There is no restriction to impose that a particular User must belong to one and only one Organization.
-
-The membership is primarily controlled by setting a correct email domain settings on the Organization.
-
-Since membership is controlled by email domain,
-**it is very important to forbid the member to add / update / remove email**
+During the project creation, Organization is not mentioned at all.
 
 > [!NOTE]
-> If an Organization has email domain settings,
-> does it make sense to forbid any identity creation / removal / update by end-user?
+> Auth0 follows this style.
+> There is no a single switch to turn the project to fully Organizational.
+> Instead, the developer has to read through the docs,
+> and makes the project configuration to enable Organization.
 
-## Use-case 6: Organization switcher
+### Use case 1: Design decision
 
-Auth0 does not support this natively, not sure if they have a reason.
+Prefer [Use case 1.2](#use-case-12-organization-is-opt-in-at-anytime)
 
-If we wanted to support this, here are some potential problems we need to consider:
+> [!IMPORTANT]
+> I tend to keep the project creation simple.
+> At the end of the project creation,
+> we can add a link to redirect the developer to enable Organization if
+> that is what he is looking for.
 
-1. Do we report all or some of the organizations the user is member of?
-   For example, if the user `johndoe@companya.com` is signing in,
-   do we also report he is a member of another organization `companyb`?
-   In what case, is the reporting undesirable?
-   One of the case the reporting is undesirable is that the two organizations have different organization-specific settings on password policy and MFA.
-   It seems that it is inappropriate to report information if the user only went through a less restrictive authentication process.
-   However, in Email First, the user is prompted to choose which Organization to sign in to, so the user is already told which organization he is a member of.
+## Use case 2: Can an end-user exist without being a member of an Organization?
 
-2. What are the alternatives if we do not support organization switcher natively?
-   Once signed in, the developer gets the `sub`, they can then use the Admin API to query the membership of the user to build the switcher themselves.
-   A counter-argument of this approach is that if organization switcher is something most developers want, it should be provided natively.
+### Use case 2.1: No, every end-user must be a member of an Organization
 
-3. If we supported organization switcher, how do we represent it in the ID token?
-   One way is the following.
-   ```json5
-   {
-      // organization is the organization the user originally signed in to.
-      // The application backend uses this field to determine what active organization is.
-      "organization": {
-        "slug": "org1",
-        "name": "Org 1"
-      },
-      // All organizations the user is member of.
-      "organizations": [
-        {
-          "slug": "org1",
-          "name": "Org 1"
-        },
-        {
-          "slug": "org2",
-          "name": "Org 2"
-        }
-      ]
-   }
-   ```
-   The application backend checks the `organization.slug` claim to do its own authorization logic.
-   Since the ID token has the active organization stored, to switch organization, the user MUST sign in again.
-   Require the user to sign in again eliminate a bunch of problems, like how to handle different password policies, different MFA requirements.
+> [!NOTE]
+> Stytch B2B Authentication follows this style.
+> Under Stytch B2B Authentication, all end-user must be a member of an Organization.
 
-4. The idea of computing the most strict password policies / MFA requirements, and then determine which a sign-in is needed it also very hard to document.
-   If it is hard to document, then it is probably that the developer will have a hard time using it.
+It follows naturally that **End-users can create Organization in a self-serve fashion**.
 
-5. GitHub allows the user to be member of multiple organizations. During sign-in, the user is not prompted to select an organization. If one of the organization the user belongs to require 2FA, then the user is required to have 2FA. Even Auth0 cannot model this use-case without resorting to Auth0 post-login actions.
+For example, this is how this works in Stytch B2B Authentication.
+
+When `louischan@oursky.com` signs up,
+and there is no Organization claiming the `oursky.com` domain,
+`louischan@oursky.com` is forced to create an Organization for `oursky.com`.
+He will become the admin of the created Organization.
+
+### Use case 2.2: No. But Organization needs approval.
+
+Basically this is the same as the previous use case.
+But the created Organization is not approved.
+The project admin has to approve the Organization creation.
+
+The end-user would just see `Your organization is being reviewed. Please come back later`.
+
+> [!NOTE]
+> Actually I doubt the usefulness of this use case.
+> Stytch B2B Authentication is clearly designed for developers who are developing SaaS.
+> In that approval is not needed.
+> Just like you do not need approval in project creation.
+
+### Use case 2.3: Yes, end-user can belong to no Organizations.
+
+When an end-user signs up via the project sign up URL `https://auth.myproject.com/signup`.
+He ends up with a User without belonging to any Organizations.
+
+Given that the signed-in Organization is reported in the ID token,
+the developer detect this situation, and do whatever he wants.
+He can
+
+- Allow the end-user to continue using the app, as long as the business requirements allow.
+- Force the end-user to create an Organization. The developer would use the Admin API to create Organization and add the end-user as member.
+
+Or, if the end-user signs up with an email address,
+which happens to be an auto-membership domain of an Organization,
+then the end-user becomes member of that Organization.
+
+> [!NOTE]
+> Auth0 follows this style.
+> Organizations can only be created at Dashboard or via the Management API.
+> See https://auth0.com/docs/manage-users/organizations/configure-organizations/create-organizations
+
+### Use case 2: Design decision
+
+Prefer [Use case 2.3](#use-case-23-yes-end-user-can-belong-to-no-organizations)
+
+Use case 2.3 is easier to implement,
+and it matches our existing behavior more closely.
+
+The advantage of supporting Use case 2.1 is that the developer can have a zero-code solution,
+if he is building SaaS.
+
+Supporting Use case 2.1 and Use case 2.2 requires us to support creating Organization in Auth UI,
+which requires non-trivial amount of effort.
+
+### Use case 3: What are common between User and Member?
+
+To discuss this, we first need to know what a User owns
+
+- `disabled`, `disabled_reason`, `is_deactivated`
+- `standard_attributes` and `custom_attributes`
+- `delete_at`
+- `is_anonymized`, `anonymize_at` and `anonymized_at`
+- `mfa_grace_period`
+
+### Use case 3.1: Disable a Member in an Organization
+
+Instead of disabling the User, making he unable to sign in at all,
+it may be favorable to only disable the Member to sign in to an Organization.
+The User can still sign in other Organizations.
+
+### Use case 3.2: Member-specific Standard Attributes and Custom Attributes
+
+Suppose the project has a custom attribute `job_title`.
+It is likely that the end-user will have different `job_title` in different Organizations.
+
+Instead of defining how User-specific and Member-specific Standard Attributes and Custom Attributes,
+it is better make Member-specific Standard Attributes and Custom Attributes a feature to be turned on.
+This feature is project-wise.
+
+When Member-specific Standard Attributes and Custom Attributes are turned on:
+
+- Standard Attributes are populated when the User becomes a Member.
+  - The `email` attribute is populated if the Organization does not define a list of allowed domains.
+  - If the Organization defines a list of allowed domains, and the User has a verified email in one of the allowed domain, the `email` is also populated.
+  - Other Standard Attributes are copied from the User.
+- Custom Attributes **ARE NOT** populated. The developer has to update Custom Attributes themselves.
+
+> [!WARNING]
+> There may be a few caveats, but I can think of one at the moment.
+> The blocking hook mutations mutate User, not Member.
+> It is confusing that it sometimes mutates User, sometimes mutates Member, depending on the feature is turned on.
+
+### Use case 3.3: Scheduled removal of Member from Organization
+
+Suppose Users and Organizations are used to model employees and their companies.
+
+When an employee resigns, usually they will not leave the company immediately (unless they got fired).
+So it is nice to have scheduled removal of Member from Organization.
+
+### Use case 3.4: Anonymization
+
+Anonymization in User is a way to keep the User ID while removing all identities and authenticators.
+
+As long as we **NEVER expose Member ID**, we do not need Anonymization in Member at all.
+
+Simply deleting the Member is enough.
+In case the User rejoins, create a new Member.
+
+### Use case 3.5: MFA grace period
+
+Given that we adopt the Member model,
+the User share the same set of authenticators across all Organizations he is a member of.
+
+It really depends on whether Organizations are allowed to have different MFA grace period settings.
+
+Personally I do not see a need for that.
+
+### Use case 3: Design Decision
+
+As explained in Use case 3.4 and Use case 3.5, they are dropped.
+
+Use case 3.3 is nice-to-have, it is not a blocker.
+
+Use case 3.1 is relatively easy to implement, but in MVP, but I think it is not a must for MVP.
+
+If Use case 3.2 is unavailable, a workaround is possible if it is acceptable to have multiple Users.
+
+For example, instead of having
+
+```
+Organization (org_id=oursky)
+  Oursky (@oursky.com)
+
+Organization (org_id=yoursky)
+  Yoursky (@yoursky.com)
+
+User (user_id=louischan)
+  Google Workspace (louischan@oursky.com)
+  Google Workspace (louischan@yoursky.com)
+
+Member (user_id=louischan, org_id=oursky)
+  Name: Louis Chan
+  email: louischan@oursky.com
+  job_title: Software Engineer
+
+Member (user_id=louischan, org_id=yoursky)
+  Name: Louis Chan
+  email: louischan@yoursky.com
+  job_title: Software Consultant
+```
+
+We can have multiple Users.
+
+```
+Organization (org_id=oursky)
+  Oursky (@oursky.com)
+
+Organization (org_id=yoursky)
+  Yoursky (@yoursky.com)
+
+User (user_id=louischanoursky)
+  Google Workspace (louischan@oursky.com)
+  Name: Louis Chan
+  email: louischan@oursky.com
+  job_title: Software Engineer
+
+User (user_id=louischanyoursky)
+  Google Workspace (louischan@yoursky.com)
+  Name: Louis Chan
+  email: louischan@yoursky.com
+  job_title: Software Consultant
+
+Member (user_id=louischanoursky, org_id=oursky)
+
+Member (user_id=louischanyoursky, org_id=yoursky)
+```
+
+## Use case 4: How can a User becomes Member of Organization?
+
+### Use case 4.1: Add a User as a Member of Organization via Admin API
+
+This is the simplest case.
+No invitation is involved.
+The Organization domain settings **IS RESPECTED**.
+
+### Use case 4.2: Direct invitation URL
+
+This invitation URL is intended for a single email address only.
+
+The lifetime of the invitation URL is configurable.
+The default is 3 days.
+
+This use case comes in 3 flavors:
+
+1. An OIDC client application is selected **AND** the OIDC client application must implement `initiate_login_uri`.
+2. No client application is selected.
+3. A SAML client application is selected **AND** the SAML client application must support IdP-initiated SSO.
+
+> [!WARNING]
+> Flavor 1 requires us to implement https://openid.net/specs/openid-connect-core-1_0.html#ThirdPartyInitiatedLogin first
+
+> [!WARNING]
+> Flavor 3 requires us to implement SAML IdP-initiated SSO first.
+> See https://groups.oasis-open.org/higherlogic/ws/public/download/56782/sstc-saml-profiles-errata-2.0-wd-07.pdf Section 4.1.3 and section 4.1.3.5 for details.
+
+In Flavor 1, when the URL is visited, Authgear redirects to `initiate_login_uri` with `iss` and `login_hint`.
+The client application uses Authgear SDK to `authenticate()`, passing `login_hint` down the flow.
+
+The `login_hint` encapsulates:
+
+- The Organization, so a Organization-specific Auth UI is shown
+- The intended email address, so authenticated as another email is forbidden.
+- A one-time use invitation code.
+
+If the authentication is successful, the User becomes Member of the Organization.
+
+In Flavor 2, when the URL Is visited, the end-user is shown a Organization-specific Auth UI.
+Similar to Flavor 1, the invitation is one-time and email address is checked.
+The end-user is shown a page `You are now member of Organization. You may close this page now.`.
+
+In Flavor 3, it is the same as Flavor 2, except that at the end,
+The end-user is redirected to the SAML SP ASC URL with the SAML Response.
+
+> [!NOTE]
+> In Direct Invitation URL, no approval is required.
+> This is different from what Ben told me initially.
+
+### Use case 4.3: Public Invitation URL
+
+Public Invitation URL does not have intended email address.
+
+The lifetime of Public Invitation URL can be:
+
+- Never expire. An Organization can at most have 1 Public Invitation URL that never expire.
+- Expire in a specific duration, expressed in days. An Organization can at most have 10 Public Invitation URL that expires.
+
+The number of use of Public Invitation URL can be:
+
+- One-time use. That is, the URL expires after a successful use.
+- N time use, where N is configurable number at the time of creation.
+- Unlimited.
+
+The lifetime and the number of use work independently of each other.
+Public Invitation URL expires whichever the condition becomes true first.
+
+Public Invitation URL by default does not make the User a Member of the Organization.
+Instead, the User must be approved first.
+Public Invitation URL can be configured to skip approval.
+
+Otherwise, Public Invitation URL is similar to Direct Invitation URL.
+
+### Use case 4.4: Auto-membership
+
+When the end-user signs up or signs in via a URL with Organization pre-determined by the developer:
+
+- The Organization is known at the beginning.
+- The Login Methods of the Organization is shown.
+- Suppose the end-user authenticates with `johndoe@example.com`, but `@example.com` is not an auto-membership domain, an error is shown.
+- Otherwise the User becomes a Member.
+
+When the end-user signs up or signs in via the project-specific URL:
+
+- The Login Methods is shown. They may be a superset of that of an Organization.
+- Suppose the end-user authenticates with `johndoe@example.com`.
+- For each Organization, if `example.com` is an auto-membership domain, the User becomes Member.
+- The end-user is shown a list of Organizations he is Member of.
+
+> [!IMPORTANT]
+> The number of organizations can be large.
+> We need to store the auto-membership domain in a way that allow fast lookup.
+
+> [!NOTE]
+> The list of auto-membership domain is independent of Login ID email domain allowlist and blocklist.
+> That is, if the domain blocked by the Login ID email domain allowlist or blocklist,
+> The sign up is blocked before auto-membership has a chance to take effect.
+
+> [!NOTE]
+> Auto-membership only works one way.
+> It does not do auto-remove membership.
+
+The auto-membership domains are stored in the following database table.
+
+```
+CREATE TABLE _auth_organization_auto_membership_domain (
+  id PRIMARY KEY text,
+  app_id NOT NULL text,
+  org_id NOT NULL text,
+  created_at NOT NULL timestamp,
+  updated_at NOT NULL timestamp,
+  domain NOT NULL text
+)
+CREATE UNIQUE INDEX _auth_organization_auto_membership_domain_uniq _auth_organization_auto_membership_domain (org_id, domain)
+```
+
+### Use Case 4: Design Decision
+
+> [!NOTE]
+> Fung suggests that we target Use case 4.1 and Use case 4.4 for MVP
