@@ -324,7 +324,7 @@ func (h *TokenHandler) validateRequest(r protocol.TokenRequest, client *config.O
 		}
 		if client.IsConfidential() {
 			if r.ClientSecret() == "" {
-				return protocol.NewError("invalid_request", "client secret is required")
+				return protocol.NewError("invalid_client", "client secret is required")
 			}
 		}
 	case oauth.RefreshTokenGrantType:
@@ -1905,7 +1905,7 @@ func (h *TokenHandler) IssueTokensForSettingsActionCode(
 	needClientSecret := client.IsConfidential()
 	if needClientSecret {
 		if r.ClientSecret() == "" {
-			return nil, protocol.NewError("invalid_request", "invalid client secret")
+			return nil, protocol.NewError("invalid_client", "invalid client secret")
 		}
 
 		credentialsItem, ok := h.OAuthClientCredentials.Lookup(client.ClientID)
