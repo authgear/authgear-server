@@ -1,6 +1,6 @@
 .container {
   @apply flex flex-col items-center text-center;
-  @apply py-6;
+  @apply py-14;
 }
 
 .title {

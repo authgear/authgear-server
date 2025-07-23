@@ -260,6 +260,9 @@
   "ResourceListEmptyView.description": "Create API Resources for authorized applications",
   "ResourceListEmptyView.create-resource": "Create API Resource",
 
+  "ResourceList.columns.name": "Name",
+  "ResourceList.columns.identifier": "Identifier",
+
   "AddRoleScreen.title": "Create Role",
   "AddRoleScreen.roleKey.title": "Role Key",
   "AddRoleScreen.roleKey.description": "The Role Key will be included in the UserInfo and JWT token of the user. e.g. app_a_admin.",
