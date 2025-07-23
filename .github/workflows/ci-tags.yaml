@@ -17,7 +17,7 @@ jobs:
     secrets: inherit
     uses: ./.github/workflows/run-builds.yaml
     with:
-      push-image: true
+      push_image: true
   release:
     if: ${{ github.repository == 'authgear/authgear-server' }}
     needs: builds

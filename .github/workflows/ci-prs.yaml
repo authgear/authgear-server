@@ -20,4 +20,4 @@ jobs:
     needs: checks
     uses: ./.github/workflows/run-builds.yaml
     with:
-      amd64-build-only: true
+      amd64_build_only: true

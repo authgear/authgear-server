@@ -1,14 +1,20 @@
 name: Build custom image
+description: "Build custom image and upload to GCP"
 inputs:
   dockerfile:
+    description: "The path to Dockerfile"
     required: true
   image_name:
+    description: "The full image name"
     required: true
   gcp_project_id:
+    description: "Forwarded input to google-github-actions-auth"
     required: true
   gcp_workload_identity_provider:
+    description: "Forwarded input to google-github-actions-auth"
     required: true
   docker_repo:
+    description: "Forwarded input to google-github-actions-setup-gcloud"
     required: false
 runs:
   using: "composite"
