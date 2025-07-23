@@ -11,8 +11,6 @@ jobs:
     runs-on: ubuntu-24.04
     outputs:
       image_digest: ${{ steps.build_image.outputs.image_digest }}
-    env:
-      PUSH_IMAGE: "${{ github.repository == 'authgear/authgear-server' && 'true' || 'false' }}"
     steps:
     - uses: actions/checkout@v4
     - id: build_image
@@ -20,18 +18,16 @@ jobs:
       with:
         dockerfile: ./once/Dockerfile
         image_name: quay.io/theauthgear/authgear-once
-        push_image: "${{ env.PUSH_IMAGE }}"
+        push_image: 'true'
         build_arch: amd64
         docker_registry: quay.io
-        docker_username: "${{ env.PUSH_IMAGE == 'true' && secrets.QUAY_USERNAME || '' }}"
-        docker_password: "${{ env.PUSH_IMAGE == 'true' && secrets.QUAY_ROBOT_TOKEN || '' }}"
+        docker_username: "${{ secrets.QUAY_USERNAME }}"
+        docker_password: "${{ secrets.QUAY_ROBOT_TOKEN }}"
   once-image-arm64:
     if: ${{ github.repository == 'authgear/authgear-server' }}
     runs-on: ubuntu-24.04-arm
     outputs:
       image_digest: ${{ steps.build_image.outputs.image_digest }}
-    env:
-      PUSH_IMAGE: "${{ github.repository == 'authgear/authgear-server' && 'true' || 'false' }}"
     steps:
     - uses: actions/checkout@v4
     - id: build_image
@@ -39,18 +35,17 @@ jobs:
       with:
         dockerfile: ./once/Dockerfile
         image_name: quay.io/theauthgear/authgear-once
-        push_image: "${{ env.PUSH_IMAGE }}"
+        push_image: 'true'
         build_arch: arm64
         docker_registry: quay.io
-        docker_username: "${{ env.PUSH_IMAGE == 'true' && secrets.QUAY_USERNAME || '' }}"
-        docker_password: "${{ env.PUSH_IMAGE == 'true' && secrets.QUAY_ROBOT_TOKEN || '' }}"
+        docker_username: "${{ secrets.QUAY_USERNAME }}"
+        docker_password: "${{ secrets.QUAY_ROBOT_TOKEN }}"
   once-image:
     if: ${{ github.repository == 'authgear/authgear-server'  }}
     runs-on: ubuntu-24.04
     needs: ["once-image-amd64", "once-image-arm64"]
     env:
       IMAGE_NAME: quay.io/theauthgear/authgear-once
-      PUSH_IMAGE: "${{ github.repository == 'authgear/authgear-server' && 'true' || 'false' }}"
       SOURCE_DIGESTS: ${{ format('{0} {1}', needs.once-image-amd64.outputs.image_digest, needs.once-image-arm64.outputs.image_digest) }}
     steps:
     - uses: actions/checkout@v4
@@ -63,7 +58,6 @@ jobs:
         make authgearonce-set-git-tag-name >> "$GITHUB_ENV"
         tail -n 1 "$GITHUB_ENV"
     - name: docker login
-      if: ${{ github.repository == 'authgear/authgear-server' }}
       env:
         DOCKER_USERNAME: ${{ secrets.QUAY_USERNAME }}
         DOCKER_PASSWORD: ${{ secrets.QUAY_ROBOT_TOKEN }}
