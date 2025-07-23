@@ -171,7 +171,7 @@ var _ = Schema.Add("OAuthClientConfig", `
 		"x_pre_authenticated_url_enabled": { "type": "boolean" },
 		"x_pre_authenticated_url_allowed_origins": { "type": "array", "items": { "type": "string", "format": "http_origin" } }
 	},
-	"required": ["name", "client_id", "redirect_uris"],
+	"required": ["name", "client_id"],
 	"allOf": [
 		{
 			"if": {
@@ -200,6 +200,25 @@ var _ = Schema.Add("OAuthClientConfig", `
 			},
 			"then": {
 				"required": ["client_name"]
+			}
+		},
+		{
+			"if": {
+				"properties": {
+					"x_application_type": {
+						"enum": [
+							"spa",
+							"traditional_webapp",
+							"native",
+							"confidential",
+							"third_party_app"
+						]
+					}
+				},
+				"required": ["x_application_type"]
+			},
+			"then": {
+				"required": ["redirect_uris"]
 			}
 		}
 	]

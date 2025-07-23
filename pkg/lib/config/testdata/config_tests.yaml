@@ -1375,3 +1375,16 @@ config:
     public_origin: http://test
   ui:
     passkey_upselling_opt_out_enabled: true
+
+---
+name: oauth-m2m-client-no-redirect-uris
+error: null
+config:
+  id: test
+  http:
+    public_origin: http://test
+  oauth:
+    clients:
+      - name: Test Client
+        client_id: test-client
+        x_application_type: m2m
