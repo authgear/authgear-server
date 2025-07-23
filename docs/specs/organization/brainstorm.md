@@ -216,7 +216,8 @@ In this story, the settings should look like
 ```yaml
 organizations:
 
-# MetaHexa requires all members to have email @metahexa.com
+# MetaHexa is a bank.
+# Therefore it requires all members to have email @metahexa.com
 # Additionally, MetaHexa is configured to use Microsoft Entra ID as Federated Login,
 # Thus effectively all members must sign in with Microsoft Entra ID.
 - organization_id: metahexa
@@ -226,39 +227,30 @@ organizations:
     auto_membership_domains:
     - metahexa.com
 
-# Hoekstra requires all member to have email @hoekstra.com
+# Hoekstra does not require all members to have email @hoekstra.com
+# Though if a user with verified @hoekstra.com signs up, the user becomes member of it automatically.
 # Hoekstra does not own its Identity Provider though.
 # It allows Login ID Identity.
 - organization_id: hoekstra
   email_domains:
-    allowed_domains:
-    - hoekstra.com
     auto_membership_domains:
     - hoekstra.com
 
 # Gupta Smith has a similar setup with Hoekstra.
 - organization_id: guptasmith
   email_domains:
-    allowed_domains:
-    - guptasmith.com
     auto_membership_domains:
     - guptasmith.com
 
 # AdventureZ has a similar setup with Hoekstra.
 - organization_id: adventurez
   email_domains:
-    allowed_domains:
-    - adventurez.com
     auto_membership_domains:
     - adventurez.com
 
-# Rocky High is a bit different.
-# It also allows freelancer from AdventureZ to join the organization.
+# AdventureZ has a similar setup with Hoekstra.
 - organization_id: rockyhigh
   email_domains:
-    allowed_domains:
-    - rockyhigh.com
-    - adventurez.com
     auto_membership_domains:
     - rockyhigh.com
 ```
