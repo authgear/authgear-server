@@ -1,10 +1,13 @@
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo, useContext } from "react";
 import ScreenContent from "../../ScreenContent";
 import { encodeOffsetToCursor } from "../../util/pagination";
 import ScreenTitle from "../../ScreenTitle";
 import ScreenDescription from "../../ScreenDescription";
 import ScreenContentHeader from "../../ScreenContentHeader";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import {
+  FormattedMessage,
+  Context as MessageContext,
+} from "@oursky/react-messageformat";
 import { ResourceList } from "../../components/api-resources/ResourceList";
 import { useResourcesQueryQuery } from "../../graphql/adminapi/query/resourcesQuery.generated";
 import { useDeleteResourceMutation } from "../../graphql/adminapi/mutations/deleteResourceMutation.generated";
@@ -16,15 +19,26 @@ import {
   DeleteResourceDialog,
   DeleteResourceDialogData,
 } from "../../components/api-resources/DeleteResourceDialog";
+import { SearchBox } from "@fluentui/react";
 
 const PAGE_SIZE = 20;
 
 const APIResourcesScreen: React.VFC = function APIResourcesScreen() {
   const [offset, setOffset] = useState(0);
+  const [searchQuery, setSearchQuery] = useState("");
   const [deleteDialogData, setDeleteDialogData] =
     useState<DeleteResourceDialogData | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  const { renderToString } = useContext(MessageContext);
+
+  const onSearchQueryChange = useCallback(
+    (_, newValue) => {
+      setOffset(0); // Reset offset to 0 on search query change
+      setSearchQuery(newValue ?? "");
+    },
+    [setOffset, setSearchQuery]
+  );
   const { data, loading, error, refetch } = useResourcesQueryQuery({
     variables: {
       first: PAGE_SIZE,
@@ -34,6 +48,7 @@ const APIResourcesScreen: React.VFC = function APIResourcesScreen() {
         }
         return encodeOffsetToCursor(offset - 1);
       }, [offset]),
+      searchKeyword: searchQuery === "" ? undefined : searchQuery,
     },
   });
 
@@ -73,12 +88,15 @@ const APIResourcesScreen: React.VFC = function APIResourcesScreen() {
     [setDeleteDialogData]
   );
 
-  const resources =
-    data?.resources?.edges
-      ?.map((edge) => edge?.node)
-      .filter(
-        (resource): resource is NonNullable<typeof resource> => !!resource
-      ) ?? [];
+  const resources = useMemo(() => {
+    return (
+      data?.resources?.edges
+        ?.map((edge) => edge?.node)
+        .filter(
+          (resource): resource is NonNullable<typeof resource> => !!resource
+        ) ?? []
+    );
+  }, [data]);
 
   const onChangeOffset = useCallback((offset: number) => {
     setOffset(offset);
@@ -121,6 +139,13 @@ const APIResourcesScreen: React.VFC = function APIResourcesScreen() {
           }
         />
         <div className="col-span-full flex flex-col">
+          <SearchBox
+            className="mb-4"
+            styles={{ root: { width: 300 } }}
+            onChange={onSearchQueryChange}
+            value={searchQuery}
+            placeholder={renderToString("search")}
+          />
           <ResourceList
             className="flex-1"
             resources={resources}
