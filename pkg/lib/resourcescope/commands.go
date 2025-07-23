@@ -90,8 +90,8 @@ func (c *Commands) RemoveResourceFromClientID(ctx context.Context, resourceURI, 
 	return c.Store.RemoveResourceFromClientID(ctx, resource.ID, clientID)
 }
 
-func (c *Commands) CreateScope(ctx context.Context, options *NewScopeOptions) (*model.Scope, error) {
-	resource, err := c.Store.GetResourceByURI(ctx, options.ResourceURI)
+func (c *Commands) CreateScope(ctx context.Context, resourceURI string, options *NewScopeOptions) (*model.Scope, error) {
+	resource, err := c.Store.GetResourceByURI(ctx, resourceURI)
 	if err != nil {
 		return nil, err
 	}
@@ -104,11 +104,15 @@ func (c *Commands) CreateScope(ctx context.Context, options *NewScopeOptions) (*
 }
 
 func (c *Commands) UpdateScope(ctx context.Context, options *UpdateScopeOptions) (*model.Scope, error) {
-	err := c.Store.UpdateScope(ctx, options)
+	resource, err := c.Store.GetResourceByURI(ctx, options.ResourceURI)
 	if err != nil {
 		return nil, err
 	}
-	scope, err := c.Store.GetScope(ctx, options.ResourceURI, options.Scope)
+	err = c.Store.UpdateScope(ctx, options)
+	if err != nil {
+		return nil, err
+	}
+	scope, err := c.Store.GetResourceScope(ctx, resource.ID, options.Scope)
 	if err != nil {
 		return nil, err
 	}
@@ -116,7 +120,11 @@ func (c *Commands) UpdateScope(ctx context.Context, options *UpdateScopeOptions)
 }
 
 func (c *Commands) DeleteScope(ctx context.Context, resourceURI string, scope string) error {
-	s, err := c.Store.GetScope(ctx, resourceURI, scope)
+	resource, err := c.Store.GetResourceByURI(ctx, resourceURI)
+	if err != nil {
+		return err
+	}
+	s, err := c.Store.GetResourceScope(ctx, resource.ID, scope)
 	if err != nil {
 		return err
 	}

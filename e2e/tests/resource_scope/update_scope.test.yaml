@@ -1,0 +1,37 @@
+name: Update Scope
+before:
+  - type: custom_sql
+    custom_sql:
+      path: simple_fixtures.sql
+steps:
+  - action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation UpdateScope {
+          updateScope(input: {
+            resourceURI: "https://fixtureresource/1",
+            scope: "fixturescope1",
+            description: "Updated Scope Description"
+          }) {
+            scope {
+              id
+              scope
+              description
+            }
+          }
+        }
+      variables: "{}"
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "updateScope": {
+              "scope": {
+                "id": "[[string]]",
+                "scope": "fixturescope1",
+                "description": "Updated Scope Description"
+              }
+            }
+          },
+          "errors": null
+        } 

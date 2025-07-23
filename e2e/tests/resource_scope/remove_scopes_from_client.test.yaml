@@ -1,0 +1,238 @@
+name: Remove Scopes From Client
+before:
+  - type: custom_sql
+    custom_sql:
+      path: preassigned_client_scope_fixtures.sql
+steps:
+  - action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation RemoveScopesFromClientID {
+          removeScopesFromClientID(input: {
+            clientID: "portal",
+            resourceURI: "https://fixtureresource/2",
+            scopes: ["resource2_scope1"]
+          }) {
+            scopes {
+              id
+              scope
+              description
+            }
+          }
+        }
+      variables: "{}"
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "removeScopesFromClientID": {
+              "scopes": [
+                { "id": "[[string]]", "scope": "resource2_scope2", "description": "Resource 2 Scope 2" }
+              ]
+            }
+          },
+          "errors": null
+        }
+  - action: admin_api_graphql
+    admin_api_request:
+      query: |
+        query ScopesByClient {
+          resources(clientID: "portal") {
+            edges {
+              node {
+                id
+                resourceURI
+                scopes(clientID: "portal") {
+                  edges {
+                    node {
+                      id
+                      scope
+                      description
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      variables: "{}"
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "resources": {
+              "edges": [
+                {
+                  "node": {
+                    "id": "[[string]]",
+                    "resourceURI": "https://fixtureresource/2",
+                    "scopes": {
+                      "edges": [
+                        {
+                          "node": {
+                            "id": "[[string]]",
+                            "scope": "resource2_scope2",
+                            "description": "Resource 2 Scope 2"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "errors": null
+        } 
+---
+name: Remove Scopes From Client - Rejected if resource is not associated
+before:
+  - type: custom_sql
+    custom_sql:
+      path: client_scope_fixtures.sql
+steps:
+  - action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation RemoveScopesFromClientID {
+          removeScopesFromClientID(input: {
+            clientID: "e2e",
+            resourceURI: "https://fixtureresource/2",
+            scopes: ["resource2_scope1"]
+          }) {
+            scopes {
+              id
+              scope
+              description
+            }
+          }
+        }
+      variables: "{}"
+    admin_api_output:
+      result: |
+        {
+          "data": null,
+          "errors": [
+            {
+              "extensions": {
+                "reason": "ResourceNotAssociatedWithClient"
+              }
+            }
+          ]
+        } 
+---
+name: Remove Scopes From Client - Success if remove the same scope twice
+before:
+  - type: custom_sql
+    custom_sql:
+      path: preassigned_client_scope_fixtures.sql
+steps:
+  - action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation RemoveScopesFromClientID {
+          removeScopesFromClientID(input: {
+            clientID: "portal",
+            resourceURI: "https://fixtureresource/2",
+            scopes: ["resource2_scope1"]
+          }) {
+            scopes {
+              id
+              scope
+              description
+            }
+          }
+        }
+      variables: "{}"
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "removeScopesFromClientID": {
+              "scopes": [
+                { "id": "[[string]]", "scope": "resource2_scope2", "description": "Resource 2 Scope 2" }
+              ]
+            }
+          },
+          "errors": null
+        }
+  - action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation RemoveScopesFromClientID {
+          removeScopesFromClientID(input: {
+            clientID: "portal",
+            resourceURI: "https://fixtureresource/2",
+            scopes: ["resource2_scope1"]
+          }) {
+            scopes {
+              id
+              scope
+              description
+            }
+          }
+        }
+      variables: "{}"
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "removeScopesFromClientID": {
+              "scopes": [
+                { "id": "[[string]]", "scope": "resource2_scope2", "description": "Resource 2 Scope 2" }
+              ]
+            }
+          },
+          "errors": null
+        }
+  - action: admin_api_graphql
+    admin_api_request:
+      query: |
+        query ScopesByClient {
+          resources(clientID: "portal") {
+            edges {
+              node {
+                id
+                resourceURI
+                scopes(clientID: "portal") {
+                  edges {
+                    node {
+                      id
+                      scope
+                      description
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      variables: "{}"
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "resources": {
+              "edges": [
+                {
+                  "node": {
+                    "id": "[[string]]",
+                    "resourceURI": "https://fixtureresource/2",
+                    "scopes": {
+                      "edges": [
+                        {
+                          "node": {
+                            "id": "[[string]]",
+                            "scope": "resource2_scope2",
+                            "description": "Resource 2 Scope 2"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "errors": null
+        }

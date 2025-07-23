@@ -8,7 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 )
 
-func MatchOutput(output Output, flowResult *authflowclient.FlowResponse, flowError error) (resultViolations []MatchViolation, errorViolations []MatchViolation, err error) {
+func MatchAuthflowOutput(output Output, flowResult *authflowclient.FlowResponse, flowError error) (resultViolations []MatchViolation, errorViolations []MatchViolation, err error) {
 	if output.Result != "" {
 		if flowResult == nil {
 			return nil, nil, fmt.Errorf("expected flow result, got nil")
@@ -43,4 +43,21 @@ func MatchOutput(output Output, flowResult *authflowclient.FlowResponse, flowErr
 	}
 
 	return errorViolations, resultViolations, nil
+}
+
+func MatchAdminAPIOutput(output AdminAPIOutput, resp *authflowclient.GraphQLResponse) (violations []MatchViolation, err error) {
+	if output.Result != "" {
+		if resp == nil {
+			return nil, fmt.Errorf("expected admin api result, got nil")
+		}
+		respJSON, err := json.Marshal(resp)
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal admin api result: %w", err)
+		}
+		violations, err = MatchJSON(string(respJSON), output.Result)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return violations, nil
 }

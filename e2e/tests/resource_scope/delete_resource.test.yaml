@@ -1,0 +1,105 @@
+name: Delete Resource
+before:
+  - type: custom_sql
+    custom_sql:
+      path: simple_fixtures.sql
+steps:
+  - action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation DeleteResource {
+          deleteResource(input: {
+            resourceURI: "https://fixtureresource/1"
+          }) {
+            ok
+          }
+        }
+      variables: "{}"
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "deleteResource": {
+              "ok": true
+            }
+          },
+          "errors": null
+        }
+  - action: query
+    query: |
+      SELECT * FROM _auth_resource WHERE id = '{{ .AppID }}-fixture-resource-01'
+    query_output:
+      rows: |
+        [] 
+---
+name: Delete Resource - Cascade Client Associations
+before:
+  - type: custom_sql
+    custom_sql:
+      path: preassigned_client_scope_fixtures.sql
+steps:
+  - action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation DeleteResource {
+          deleteResource(input: {
+            resourceURI: "https://fixtureresource/2"
+          }) {
+            ok
+          }
+        }
+      variables: "{}"
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "deleteResource": {
+              "ok": true
+            }
+          },
+          "errors": null
+        }
+  - action: query
+    query: |
+      SELECT * FROM _auth_resource WHERE id = '{{ .AppID }}-fixture-resource-02'
+    query_output:
+      rows: |
+        []
+  - action: query
+    query: |
+      SELECT * FROM _auth_client_resource WHERE resource_id = '{{ .AppID }}-fixture-resource-02'
+    query_output:
+      rows: |
+        []
+  - action: query
+    query: |
+      SELECT * FROM _auth_client_resource_scope WHERE resource_id = '{{ .AppID }}-fixture-resource-02'
+    query_output:
+      rows: |
+        []
+---
+name: Delete Non-Existing Resource
+steps:
+  - action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation DeleteResource {
+          deleteResource(input: {
+            resourceURI: "https://nonexistingresource/1"
+          }) {
+            ok
+          }
+        }
+      variables: "{}"
+    admin_api_output:
+      result: |
+        {
+          "data": null,
+          "errors": [
+            {
+              "extensions": {
+                "reason": "ResourceNotFound"
+              }
+            }
+          ]
+        }
