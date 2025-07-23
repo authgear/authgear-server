@@ -1,4 +1,4 @@
-# Brainstorming on the technical design of supporting organization in Authgear
+# Use case
 
 Use-case-driven design begins here.
 

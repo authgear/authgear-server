@@ -21,4 +21,4 @@ Read the following documents for detailed study on each competitor
 - [Clerk](./07-clerk.md)
 - [Kinde](./08-kinde.md)
 
-The design draft is at [./10-draft.md](./10-draft.md).
+The document describing use-cases is at [./10-use-case.md](./10-use-case.md)
