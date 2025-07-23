@@ -2142,6 +2142,8 @@
   "APIResourcesScreen.title": "API Resources",
   "APIResourcesScreen.description": "Set up API resources for authorized applications.",
 
+  "CreateAPIResourceScreen.title": "Create API Resource",
+
   "LoginIDKeyType.email": "Email address",
   "LoginIDKeyType.phone": "Phone number",
   "LoginIDKeyType.username": "Username",
