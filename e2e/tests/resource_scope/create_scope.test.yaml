@@ -15,6 +15,7 @@ steps:
           }) {
             scope {
               id
+              resourceID
               scope
               description
             }
@@ -23,12 +24,14 @@ steps:
       variables: "{}"
     admin_api_output:
       result: |
+        {{ $resourceID := (printf  "%s-fixture-resource-01" .AppID) }}
         {
           "data": {
             "createScope": {
               "scope": {
                 "description": "Test scope",
                 "id": "[[string]]",
+                "resourceID": "{{ nodeID "Resource" $resourceID }}",
                 "scope": "testscope"
               }
             }

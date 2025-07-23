@@ -136,6 +136,23 @@ oauth:
     response_types:
     - none
     x_max_concurrent_session: 1
+  - access_token_lifetime_seconds: 1800
+    client_id: e2econfidential
+    client_name: Confidential app
+    grant_types:
+    - authorization_code
+    - refresh_token
+    name: Confidential app
+    redirect_uris:
+    - http://localhost
+    refresh_token_idle_timeout_enabled: true
+    refresh_token_idle_timeout_seconds: 2592000
+    refresh_token_lifetime_seconds: 31449600
+    response_types:
+    - code
+    - none
+    x_application_type: confidential
+    issue_jwt_access_token: true
 test_mode:
   sms:
     enabled: true

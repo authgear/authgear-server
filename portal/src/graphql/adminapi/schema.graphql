@@ -1687,6 +1687,9 @@ type Scope implements Entity & Node {
   """The ID of an object"""
   id: ID!
 
+  """The resource ID."""
+  resourceID: ID!
+
   """The scope string."""
   scope: String!
 

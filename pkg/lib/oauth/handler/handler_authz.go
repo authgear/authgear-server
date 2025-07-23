@@ -407,7 +407,7 @@ func (h *AuthorizationHandler) doHandle(
 		return h.doHandlePreAuthenticatedURL(ctx, redirectURI, client, r)
 	}
 
-	err := oauth.ValidateScopes(client, r.Scope())
+	err := oauth.ValidateScopesByClientConfig(client, r.Scope())
 	if err != nil {
 		return nil, err
 	}
@@ -761,7 +761,7 @@ func (h *AuthorizationHandler) doHandleConsentRequest(
 		return nil, err
 	}
 
-	err := oauth.ValidateScopes(
+	err := oauth.ValidateScopesByClientConfig(
 		opts.ConsentRequest.Client,
 		opts.ConsentRequest.OAuthSessionEntry.T.AuthorizationRequest.Scope(),
 	)
