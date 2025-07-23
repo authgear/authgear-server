@@ -218,19 +218,17 @@ func (s *Store) applyListScopesOptions(q db.SelectBuilder, alias string, options
 	return q
 }
 
-func (s *Store) GetScope(ctx context.Context, resourceURI string, scope string) (*Scope, error) {
-	resource, err := s.GetResourceByURI(ctx, resourceURI)
-	if err != nil {
-		return nil, err
-	}
-
-	q := s.selectScopeQuery("s").Where("s.resource_id = ? AND s.scope = ?", resource.ID, scope)
+func (s *Store) GetResourceScope(ctx context.Context, resourceID string, scope string) (*Scope, error) {
+	q := s.selectScopeQuery("s").Where("s.resource_id = ? AND s.scope = ?", resourceID, scope)
 	row, err := s.SQLExecutor.QueryRowWith(ctx, q)
 	if err != nil {
 		return nil, err
 	}
 	sc, err := s.scanScope(row)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrScopeNotFound
+		}
 		return nil, err
 	}
 	return sc, nil

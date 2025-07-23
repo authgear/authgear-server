@@ -60,7 +60,11 @@ func (q *Queries) ListResources(ctx context.Context, options *ListResourcesOptio
 }
 
 func (q *Queries) GetScope(ctx context.Context, resourceURI string, scope string) (*model.Scope, error) {
-	sc, err := q.Store.GetScope(ctx, resourceURI, scope)
+	resource, err := q.Store.GetResourceByURI(ctx, resourceURI)
+	if err != nil {
+		return nil, err
+	}
+	sc, err := q.Store.GetResourceScope(ctx, resource.ID, scope)
 	if err != nil {
 		return nil, err
 	}

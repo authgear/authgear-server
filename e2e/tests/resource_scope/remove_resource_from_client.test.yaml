@@ -1,0 +1,153 @@
+name: Remove Resource From Client
+before:
+  - type: custom_sql
+    custom_sql:
+      path: preassigned_client_scope_fixtures.sql
+steps:
+  - action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation RemoveResourceFromClientID {
+          removeResourceFromClientID(input: {
+            clientID: "portal",
+            resourceURI: "https://fixtureresource/2"
+          }) {
+            resource {
+              id
+              name
+              resourceURI
+            }
+          }
+        }
+      variables: "{}"
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "removeResourceFromClientID": {
+              "resource": {
+                "id": "[[string]]",
+                "name": "Fixture Resource 2",
+                "resourceURI": "https://fixtureresource/2"
+              }
+            }
+          },
+          "errors": null
+        }
+  - action: admin_api_graphql
+    admin_api_request:
+      query: |
+        query ResourcesByClient {
+          resources(clientID: "portal") {
+            edges {
+              node {
+                id
+                name
+                resourceURI
+              }
+            }
+          }
+        }
+      variables: "{}"
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "resources": {
+              "edges": []
+            }
+          },
+          "errors": null
+        } 
+---
+name: Remove Resource From Client twice is ok
+before:
+  - type: custom_sql
+    custom_sql:
+      path: preassigned_client_scope_fixtures.sql
+steps:
+  - action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation RemoveResourceFromClientID {
+          removeResourceFromClientID(input: {
+            clientID: "portal",
+            resourceURI: "https://fixtureresource/2"
+          }) {
+            resource {
+              id
+              name
+              resourceURI
+            }
+          }
+        }
+      variables: "{}"
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "removeResourceFromClientID": {
+              "resource": {
+                "id": "[[string]]",
+                "name": "Fixture Resource 2",
+                "resourceURI": "https://fixtureresource/2"
+              }
+            }
+          },
+          "errors": null
+        }
+  - action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation RemoveResourceFromClientID {
+          removeResourceFromClientID(input: {
+            clientID: "portal",
+            resourceURI: "https://fixtureresource/2"
+          }) {
+            resource {
+              id
+              name
+              resourceURI
+            }
+          }
+        }
+      variables: "{}"
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "removeResourceFromClientID": {
+              "resource": {
+                "id": "[[string]]",
+                "name": "Fixture Resource 2",
+                "resourceURI": "https://fixtureresource/2"
+              }
+            }
+          },
+          "errors": null
+        }
+  - action: admin_api_graphql
+    admin_api_request:
+      query: |
+        query ResourcesByClient {
+          resources(clientID: "portal") {
+            edges {
+              node {
+                id
+                name
+                resourceURI
+              }
+            }
+          }
+        }
+      variables: "{}"
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "resources": {
+              "edges": []
+            }
+          },
+          "errors": null
+        }
