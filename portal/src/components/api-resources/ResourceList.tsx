@@ -7,6 +7,7 @@ import {
   IColumn,
   ShimmeredDetailsList,
   SelectionMode,
+  IDetailsRowProps,
 } from "@fluentui/react";
 import { Context } from "@oursky/react-messageformat";
 import PaginationWidget, { PaginationProps } from "../../PaginationWidget";
@@ -88,6 +89,7 @@ export const ResourceList: React.VFC<ResourceListProps> = function ResourceList(
           columns={columns}
           layoutMode={DetailsListLayoutMode.justified}
           selectionMode={SelectionMode.none}
+          onRenderRow={rowRenderer}
         />
       </div>
       <PaginationWidget className={styles.paginator} {...pagination} />
@@ -132,4 +134,17 @@ function ActionButtonsColumn({
       />
     </div>
   );
+}
+
+function rowRenderer(
+  props?: IDetailsRowProps,
+  defaultRender?: (props?: IDetailsRowProps) => JSX.Element | null
+) {
+  if (props == null) {
+    return defaultRender?.(props) ?? null;
+  }
+  props.styles = {
+    cell: { display: "flex", alignItems: "center" },
+  };
+  return defaultRender?.(props) ?? null;
 }
