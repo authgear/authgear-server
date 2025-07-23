@@ -82,5 +82,5 @@ steps:
       json_body: |
         {
           "error": "invalid_target",
-          "error_description": "resource is not associated with the client"
+          "error_description": "client is not associated with the resource"
         }
