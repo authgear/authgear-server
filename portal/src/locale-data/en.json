@@ -258,7 +258,7 @@
 
   "ResourceListEmptyView.title": "No API Resources yet",
   "ResourceListEmptyView.description": "Create API Resources for authorized applications",
-  "ResourceListEmptyView.create-resource": "Create API Resource",
+  "CreateResourceButton.label": "Create API Resource",
 
   "ResourceList.columns.name": "Name",
   "ResourceList.columns.identifier": "Identifier",

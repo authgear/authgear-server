@@ -9,6 +9,7 @@ import { ResourceList } from "../../components/api-resources/ResourceList";
 import { useResourcesQueryQuery } from "../../graphql/adminapi/query/resourcesQuery.generated";
 import ShowError from "../../ShowError";
 import { PaginationProps } from "../../PaginationWidget";
+import { CreateResourceButton } from "../../components/api-resources/CreateResourceButton";
 
 const PAGE_SIZE = 20;
 
@@ -61,6 +62,11 @@ const APIResourcesScreen: React.VFC = function APIResourcesScreen() {
           <ScreenDescription>
             <FormattedMessage id="APIResourcesScreen.description" />
           </ScreenDescription>
+        }
+        suffix={
+          resources.length !== 0 ? (
+            <CreateResourceButton onClick={() => {}} className="self-start" />
+          ) : null
         }
       />
       <div className="col-span-full flex flex-col">
