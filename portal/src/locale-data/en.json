@@ -2143,6 +2143,12 @@
 
   "CreateAPIResourceScreen.title": "Create API Resource",
 
+  "ResourceForm.name.label": "Name",
+  "ResourceForm.resourceURI.label": "Identifier",
+  "ResourceForm.name.description": "A human friendly name for display in the portal.",
+  "ResourceForm.resourceURI.description": "An identifier of the resource. It need not be a publicly available URI. Authgear will not access the URI at all.\nThe value appears as the \"aud\" (audience) claim in the access token.",
+  "ResourceForm.resourceURI.placeholder": "A URI starts with \"https://\"",
+
   "LoginIDKeyType.email": "Email address",
   "LoginIDKeyType.phone": "Phone number",
   "LoginIDKeyType.username": "Username",
