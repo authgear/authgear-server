@@ -130,12 +130,7 @@ const APIResourcesScreen: React.VFC = function APIResourcesScreen() {
           }
           suffix={
             resources.length !== 0 ? (
-              <CreateResourceButton
-                onClick={() => {
-                  // TODO
-                }}
-                className="self-start"
-              />
+              <CreateResourceButton className="self-start" />
             ) : null
           }
         />
