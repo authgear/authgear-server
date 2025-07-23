@@ -71,7 +71,7 @@ export const ResourceList: React.VFC<ResourceListProps> = function ResourceList(
     [onDelete, onEdit, renderToString]
   );
 
-  if (resources.length === 0) {
+  if (resources.length === 0 && !loading) {
     return <ResourceListEmptyView />;
   }
 
