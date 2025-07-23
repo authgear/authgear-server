@@ -1,21 +1,30 @@
 name: Build image
+description: "Build image"
 inputs:
   dockerfile:
+    description: "The path to Dockerfile"
     required: true
   image_name:
+    description: "The full image name"
     required: true
   push_image:
+    description: "Either 'true' or 'false'"
     required: true
   build_arch:
+    description: "Either 'amd64' or 'arm64'"
     required: true
   docker_registry:
+    description: "The Docker registry to login to. Required when push_image is 'true'."
     required: false
   docker_username:
+    description: "The username to login the Docker registry. Required when push_image is 'true'."
     required: false
   docker_password:
+    description: "The password to login the Docker registry. Required when push_image is 'true'."
     required: false
 outputs:
   image_digest:
+    description: "Something that you can use in `docker buildx imagetools create`"
     value: ${{ steps.build_image.outputs.image_digest }}
 runs:
   using: "composite"

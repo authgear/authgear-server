@@ -2,8 +2,10 @@ name: "Set GIT_TAG_NAME environment variable"
 description: "Set GIT_TAG_NAME environment variable"
 inputs:
   github_ref_type:
+    description: "You pass github.ref_type"
     required: true
   github_ref_name:
+    description: "You pass github.ref_name"
     required: true
 runs:
   using: "composite"
