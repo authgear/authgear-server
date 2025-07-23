@@ -72,6 +72,23 @@ func (t OAuthClientApplicationType) IsConfidential() bool {
 	}
 }
 
+func (t OAuthClientApplicationType) IsClientCredentialsFlowAllowed() bool {
+	switch t {
+	case OAuthClientApplicationTypeSPA:
+		return false
+	case OAuthClientApplicationTypeTraditionalWeb:
+		return false
+	case OAuthClientApplicationTypeNative:
+		return false
+	case OAuthClientApplicationTypeConfidential:
+		return true
+	case OAuthClientApplicationTypeThirdPartyApp:
+		return false
+	default:
+		return false
+	}
+}
+
 func (t OAuthClientApplicationType) IsPublic() bool {
 	return !t.IsConfidential()
 }

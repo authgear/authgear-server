@@ -35,6 +35,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
+	"github.com/authgear/authgear-server/pkg/lib/resourcescope"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
@@ -70,7 +71,8 @@ type IDTokenIssuer interface {
 }
 
 type AccessTokenIssuer interface {
-	EncodeAccessToken(ctx context.Context, options oauth.EncodeAccessTokenOptions) (string, error)
+	EncodeUserAccessToken(ctx context.Context, options oauth.EncodeUserAccessTokenOptions) (string, error)
+	EncodeClientAccessToken(ctx context.Context, options oauth.EncodeClientAccessTokenOptions) (string, error)
 }
 
 type EventService interface {
@@ -149,6 +151,11 @@ type TokenHandlerTokenService interface {
 		resp protocol.TokenResponse,
 	) (offlineGrant *oauth.OfflineGrant, tokenHash string, err error)
 	IssueDeviceSecret(ctx context.Context, resp protocol.TokenResponse) (deviceSecretHash string)
+	IssueClientCredentialsAccessToken(
+		ctx context.Context,
+		options ClientCredentialsAccessTokenOptions,
+		resp protocol.TokenResponse,
+	) error
 }
 
 var _ TokenHandlerTokenService = &TokenService{}
@@ -183,6 +190,11 @@ func (s SimpleSessionLike) SessionType() session.Type {
 	return s.GrantSessionKind.SessionType()
 }
 
+type TokenHandlerClientResourceScopeService interface {
+	GetClientResourceByURI(ctx context.Context, clientID string, uri string) (*resourcescope.Resource, error)
+	GetClientResourceScopes(ctx context.Context, clientID string, resourceID string) ([]*resourcescope.Scope, error)
+}
+
 type TokenHandler struct {
 	AppID                  config.AppID
 	AppDomains             config.AppDomains
@@ -200,6 +212,7 @@ type TokenHandler struct {
 	AppSessionTokens                TokenHandlerAppSessionTokenStore
 	OfflineGrantService             TokenHandlerOfflineGrantService
 	PreAuthenticatedURLTokenService PreAuthenticatedURLTokenService
+	ClientResourceScopeService      TokenHandlerClientResourceScopeService
 	Graphs                          GraphService
 	IDTokenIssuer                   IDTokenIssuer
 	Clock                           clock.Clock
@@ -288,6 +301,8 @@ func (h *TokenHandler) doHandle(
 		return h.handleIDToken(ctx, rw, req, client, r)
 	case oauth.SettingsActionGrantType:
 		return h.handleSettingsActionCode(ctx, client, r)
+	case oauth.ClientCredentialsGrantType:
+		return h.handleClientCredentials(ctx, client, r)
 	default:
 		panic("oauth: unexpected grant type")
 	}
@@ -309,7 +324,7 @@ func (h *TokenHandler) validateRequest(r protocol.TokenRequest, client *config.O
 		}
 		if client.IsConfidential() {
 			if r.ClientSecret() == "" {
-				return protocol.NewError("invalid_request", "client secret is required")
+				return protocol.NewError("invalid_client", "client secret is required")
 			}
 		}
 	case oauth.RefreshTokenGrantType:
@@ -346,6 +361,13 @@ func (h *TokenHandler) validateRequest(r protocol.TokenRequest, client *config.O
 		// The validation logics can be different depends on requested_token_type
 		// Do the validation in methods for each requested_token_type
 		break
+	case oauth.ClientCredentialsGrantType:
+		if r.Resource() == "" {
+			return protocol.NewError("invalid_target", "resource is required")
+		}
+		if r.ClientSecret() == "" {
+			return protocol.NewError("invalid_client", "client secret is required")
+		}
 	default:
 		return protocol.NewError("unsupported_grant_type", "grant type is not supported")
 	}
@@ -543,23 +565,8 @@ func (h *TokenHandler) IssueTokensForAuthorizationCode(
 	// verify client secret
 	needClientSecret := client.IsConfidential()
 	if needClientSecret {
-		if r.ClientSecret() == "" {
-			return nil, protocol.NewError("invalid_request", "invalid client secret")
-		}
-		credentialsItem, ok := h.OAuthClientCredentials.Lookup(client.ClientID)
-		if !ok {
-			return nil, protocol.NewError("invalid_request", "client secret is not supported for the client")
-		}
-
-		pass := false
-		keys, _ := jwkutil.ExtractOctetKeys(credentialsItem.Set)
-		for _, clientSecret := range keys {
-			if subtle.ConstantTimeCompare([]byte(r.ClientSecret()), clientSecret) == 1 {
-				pass = true
-			}
-		}
-		if !pass {
-			return nil, protocol.NewError("invalid_request", "invalid client secret")
+		if err := h.validateClientSecret(client, r.ClientSecret()); err != nil {
+			return nil, err
 		}
 	}
 
@@ -771,7 +778,7 @@ func (h *TokenHandler) handlePreAuthenticatedURLToken(
 		if !offlineGrant.HasAllScopes(offlineGrant.InitialClientID, requestedScopes) {
 			return nil, protocol.NewError("invalid_scope", "requesting extra scopes is not allowed")
 		}
-		err = oauth.ValidateScopes(client, requestedScopes)
+		err = oauth.ValidateScopesByClientConfig(client, requestedScopes)
 		if err != nil {
 			return nil, err
 		}
@@ -1154,7 +1161,7 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 	scopes := []string{"openid", oauth.OfflineAccess, oauth.FullAccessScope}
 	requestedScopes := r.Scope()
 	if len(requestedScopes) > 0 {
-		err := oauth.ValidateScopes(client, requestedScopes)
+		err := oauth.ValidateScopesByClientConfig(client, requestedScopes)
 		if err != nil {
 			return nil, err
 		}
@@ -1912,8 +1919,9 @@ func (h *TokenHandler) IssueTokensForSettingsActionCode(
 	needClientSecret := client.IsConfidential()
 	if needClientSecret {
 		if r.ClientSecret() == "" {
-			return nil, protocol.NewError("invalid_request", "invalid client secret")
+			return nil, protocol.NewError("invalid_client", "invalid client secret")
 		}
+
 		credentialsItem, ok := h.OAuthClientCredentials.Lookup(client.ClientID)
 		if !ok {
 			return nil, protocol.NewError("invalid_request", "client secret is not supported for the client")
@@ -1937,4 +1945,79 @@ func (h *TokenHandler) IssueTokensForSettingsActionCode(
 	}
 
 	return protocol.TokenResponse{}, nil
+}
+
+func (h *TokenHandler) handleClientCredentials(
+	ctx context.Context,
+	client *config.OAuthClientConfig,
+	r protocol.TokenRequest,
+) (httputil.Result, error) {
+	if err := h.validateClientSecret(client, r.ClientSecret()); err != nil {
+		return nil, err
+	}
+
+	if r.Resource() == "" {
+		return nil, protocol.NewError("invalid_target", "resource is required")
+	}
+	if strings.HasPrefix(r.Resource(), h.IDTokenIssuer.Iss()) {
+		return nil, protocol.NewError("invalid_target", "resource URI must not be a prefixed by authgear endpoint")
+	}
+	resource, err := h.ClientResourceScopeService.GetClientResourceByURI(ctx, client.ClientID, r.Resource())
+	if err != nil {
+		if errors.Is(err, resourcescope.ErrResourceNotFound) {
+			return nil, protocol.NewError("invalid_target", "resource not found")
+		}
+		if errors.Is(err, resourcescope.ErrResourceNotAssociatedWithClient) {
+			return nil, protocol.NewError("invalid_target", "client is not associated with the resource")
+		}
+		return nil, err
+	}
+
+	var scopes []string
+	allowedScopes, err := h.ClientResourceScopeService.GetClientResourceScopes(ctx, client.ClientID, resource.ID)
+	if err != nil {
+		return nil, err
+	}
+	allowedScopeStrs := slice.Map(allowedScopes, func(s *resourcescope.Scope) string { return s.Scope })
+	// scope is optional
+	if len(r.Scope()) > 0 {
+		if err := oauth.ValidateScopes(r.Scope(), allowedScopeStrs); err != nil {
+			return nil, err
+		}
+		scopes = r.Scope()
+	} else {
+		scopes = allowedScopeStrs
+	}
+
+	resp := protocol.TokenResponse{}
+	err = h.TokenService.IssueClientCredentialsAccessToken(ctx, ClientCredentialsAccessTokenOptions{
+		ResourceURI:  resource.ResourceURI,
+		Scopes:       scopes,
+		ClientConfig: client,
+		Resource:     resource,
+	}, resp)
+	if err != nil {
+		return nil, err
+	}
+	return tokenResultOK{Response: resp}, nil
+}
+
+func (h *TokenHandler) validateClientSecret(client *config.OAuthClientConfig, clientSecret string) error {
+	credentialsItem, ok := h.OAuthClientCredentials.Lookup(client.ClientID)
+	if !ok {
+		return protocol.NewError("invalid_request", "client secret is not supported for the client")
+	}
+
+	pass := false
+	keys, _ := jwkutil.ExtractOctetKeys(credentialsItem.Set)
+	for _, secret := range keys {
+		if subtle.ConstantTimeCompare([]byte(clientSecret), secret) == 1 {
+			pass = true
+		}
+	}
+	if !pass {
+		return protocol.NewError("invalid_request", "invalid client secret")
+	}
+
+	return nil
 }
