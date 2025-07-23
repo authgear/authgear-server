@@ -9,7 +9,16 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
+// As of 2025-07-23, this is a reserved number.
+// See https://www.ofca.gov.hk/filemanager/ofca/en/content_311/no_plan.pdf
+//
+// In case you update "github.com/nyaruka/phonenumbers", and found that
+// RESERVED_NUMBER became assigned (not reserved),
+// you need to find another number that is marked as "** Reserved 預留" in the PDF.
+const RESERVED_NUMBER = "+85253530000"
+
 func TestParsePhoneNumberWithUserInput(t *testing.T) {
+
 	Convey("ParsePhoneNumberWithUserInput", t, func() {
 		Convey("Good Hong Kong number", func() {
 			good := "+85223456789"
@@ -126,10 +135,8 @@ func TestParsePhoneNumberWithUserInput(t *testing.T) {
 			So(parsed.Alpha2, ShouldEqual, []string{"HK"})
 		})
 
-		Convey("phone number that are relatively new", func() {
-			relativelyNew := "+85253580001"
-
-			parsed, err := ParsePhoneNumberWithUserInput(relativelyNew)
+		Convey("reserved number is not valid", func() {
+			parsed, err := ParsePhoneNumberWithUserInput(RESERVED_NUMBER)
 			So(err, ShouldBeNil)
 			So(parsed.IsPossibleNumber, ShouldBeTrue)
 			So(parsed.IsValidNumber, ShouldBeFalse)
@@ -212,8 +219,8 @@ func TestRequire_IsPossibleNumber_IsValidNumber_UserInputInE164(t *testing.T) {
 
 		// good
 		test("+85298765432", "")
-		// relatively new number is not IsValidNumber.
-		test("+85253580001", "invalid phone number")
+		// Reserved number is not IsValidNumber.
+		test(RESERVED_NUMBER, "invalid phone number")
 		// Not In E164
 		test(" +85298765432", "not in E.164 format")
 	})
