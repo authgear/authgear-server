@@ -25,7 +25,11 @@ export const ResourceListEmptyView: React.VFC =
         >
           <FormattedMessage id="ResourceListEmptyView.description" />
         </Text>
-        <CreateResourceButton onClick={() => {}} />
+        <CreateResourceButton
+          onClick={() => {
+            // TODO
+          }}
+        />
       </div>
     );
   };
