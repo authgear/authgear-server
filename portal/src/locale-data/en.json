@@ -2147,8 +2147,9 @@
   "ResourceForm.name.label": "Name",
   "ResourceForm.resourceURI.label": "Identifier",
   "ResourceForm.name.description": "A human friendly name for display in the portal.",
-  "ResourceForm.resourceURI.description": "An identifier of the resource. It need not be a publicly available URI. Authgear will not access the URI at all.{br, react}The value appears as the {code, react, children{aud} class{inline}} (audience) claim in the access token.",
+  "ResourceForm.resourceURI.description": "An identifier of the resource. It need not be a publicly available URI. Authgear will not access the URI at all.{br, react}The value appears as the {code, react, children{aud} class{inline-code}} (audience) claim in the access token.",
   "ResourceForm.resourceURI.placeholder": "A URI starts with \"https://\"",
+  "ResourceForm.resourceURI.tooltip": "For example, use {code, react, children{https://api.myapp.com/v1} class{inline-code}} to represent your publicly available API server, or use {code, react, children{https://myapp.com/mcp} class{inline-code}} to represent a MCP server serving with stdio.",
 
   "LoginIDKeyType.email": "Email address",
   "LoginIDKeyType.phone": "Phone number",
