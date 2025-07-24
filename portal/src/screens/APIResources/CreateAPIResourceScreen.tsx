@@ -16,6 +16,8 @@ import {
 } from "../../ErrorMessageBar";
 import { useCreateResourceMutationMutation } from "../../graphql/adminapi/mutations/createResourceMutation.generated";
 import { makeReasonErrorParseRule } from "../../error/parse";
+import { useNavigate, useParams } from "react-router-dom";
+import { Resource } from "../../graphql/adminapi/globalTypes.generated";
 
 const defaultState: ResourceFormState = {
   name: "",
@@ -31,12 +33,14 @@ const errorRules = [
 
 const CreateAPIResourceScreen: React.VFC = function CreateAPIResourceScreen() {
   const [createResource] = useCreateResourceMutationMutation();
+  const navigate = useNavigate();
+  const { appID } = useParams<{ appID: string }>();
 
-  const form = useSimpleForm<ResourceFormState>({
+  const form = useSimpleForm<ResourceFormState, Resource>({
     defaultState,
     submit: async (s) => {
       const state = sanitizeFormState(s);
-      await createResource({
+      const result = await createResource({
         variables: {
           input: {
             name: state.name,
@@ -44,14 +48,24 @@ const CreateAPIResourceScreen: React.VFC = function CreateAPIResourceScreen() {
           },
         },
       });
+      if (result.data == null) {
+        throw new Error("unexpected null data");
+      }
+      return result.data.createResource.resource;
     },
     stateMode:
       "ConstantInitialStateAndResetCurrentStatetoInitialStateAfterSave",
   });
 
   useEffect(() => {
-    // TODO: Go to edit screen
-  }, [form.isSubmitted]);
+    if (form.submissionResult?.id && appID) {
+      navigate(
+        `/project/${appID}/api-resources/${encodeURIComponent(
+          form.submissionResult.id
+        )}`
+      );
+    }
+  }, [form.isSubmitted, navigate, form.submissionResult, appID]);
 
   return (
     <ErrorMessageBarContextProvider>
