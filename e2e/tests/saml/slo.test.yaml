@@ -410,9 +410,8 @@ steps:
   - action: "http_request"
     http_request_method: POST
     http_request_url: "http://127.0.0.1:4000/logout"
-    http_request_headers:
-      "Content-Type": "application/x-www-form-urlencoded"
-    http_request_body: "x_action=logout"
+    http_request_form_urlencoded_body:
+      x_action: logout
     http_request_session_cookie:
       idp_session_id: e2e-idp-session-1
       idp_session_token: e2eidpsessiontoken1
