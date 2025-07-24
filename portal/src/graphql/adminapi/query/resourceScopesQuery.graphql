@@ -1,0 +1,19 @@
+query ResourceScopesQuery($id: ID!) {
+  node(id: $id) {
+    ... on Resource {
+      id
+      resourceURI
+      scopes(first: 1000) {
+        edges {
+          node {
+            id
+            scope
+            description
+            createdAt
+            updatedAt
+          }
+        }
+      }
+    }
+  }
+}
