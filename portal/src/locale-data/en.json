@@ -260,9 +260,8 @@
   "ResourceListEmptyView.description": "Create API Resources for authorized applications",
   "CreateResourceButton.label": "Create API Resource",
 
-  "DeleteResourceDialog.title": "Remove API Resource",
-  "DeleteResourceDialog.description": "Are you sure you want to remove \"{resourceURI}\"?",
-  "DeleteResourceDialog.button.confirm": "Remove",
+  "DeleteResourceDialog.title": "Delete API Resource",
+  "DeleteResourceDialog.description": "This action will permanently delete {b, react, children{{name}}} and cannot be undone. Are you sure you want to proceed?",
 
   "ResourceList.columns.name": "Name",
   "ResourceList.columns.identifier": "Identifier",

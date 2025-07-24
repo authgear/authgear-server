@@ -34,11 +34,6 @@ export const DeleteResourceDialog: React.VFC<DeleteResourceDialogProps> =
     // Keep the latest non-null data, because the dialog has transition animation before dismiss.
     // During the transition, we still need the data. However, the parent may already changed the props.
     const snapshot = useSnapshotData(data);
-    const title = renderToString("DeleteResourceDialog.title");
-    const subText = renderToString("DeleteResourceDialog.description", {
-      resourceURI: snapshot?.resourceURI ?? "Unknown",
-    });
-    const buttonText = renderToString("DeleteResourceDialog.button.confirm");
 
     const onPressConfirm = useCallback(() => {
       if (isLoading || isHidden) {
@@ -49,8 +44,15 @@ export const DeleteResourceDialog: React.VFC<DeleteResourceDialogProps> =
 
     const dialogStyles = { main: { minHeight: 0 } };
     const dialogContentProps: IDialogContentProps = {
-      title,
-      subText,
+      title: renderToString("DeleteResourceDialog.title"),
+      subText: (
+        <FormattedMessage
+          id="DeleteResourceDialog.description"
+          values={{
+            name: snapshot?.resourceName ?? snapshot?.resourceURI ?? "Unknown",
+          }}
+        />
+      ) as unknown as string,
     };
 
     const onDialogDismiss = useCallback(() => {
@@ -80,7 +82,7 @@ export const DeleteResourceDialog: React.VFC<DeleteResourceDialogProps> =
               theme={themes.destructive}
               disabled={isLoading}
               onClick={onPressConfirm}
-              text={buttonText}
+              text={<FormattedMessage id="delete" />}
             />
             <DefaultButton
               onClick={onDialogDismiss}
