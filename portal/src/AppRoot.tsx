@@ -194,13 +194,13 @@ const EditConfigurationScreen = lazy(
   async () => import("./graphql/portal/EditConfigurationScreen")
 );
 const APIResourcesScreen = lazy(
-  async () => import("./screens/APIResources/APIResourcesScreen")
+  async () => import("./screens/api-resources/APIResourcesScreen")
 );
 const CreateAPIResourceScreen = lazy(
-  async () => import("./screens/APIResources/CreateAPIResourceScreen")
+  async () => import("./screens/api-resources/CreateAPIResourceScreen")
 );
 const APIResourceDetailsScreen = lazy(
-  async () => import("./screens/APIResources/APIResourceDetailsScreen")
+  async () => import("./screens/api-resources/APIResourceDetailsScreen")
 );
 
 const AppRoot: React.VFC = function AppRoot() {
