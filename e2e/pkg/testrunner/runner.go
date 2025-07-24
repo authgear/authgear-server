@@ -72,7 +72,7 @@ func (tr *TestRunner) loadFromPath(path string) ([]TestCase, error) {
 
 		data, err := os.ReadFile(path)
 		if err != nil {
-			t.Errorf("failed to read file %s: %v", path, err)
+			t.Fatalf("failed to read file %s: %v", path, err)
 		}
 
 		documents := bytes.SplitN(data, []byte("\n---"), -1)
@@ -83,21 +83,18 @@ func (tr *TestRunner) loadFromPath(path string) ([]TestCase, error) {
 
 			jsonData, err := yaml.YAMLToJSON(testcaseRaw)
 			if err != nil {
-				t.Errorf("failed to convert yaml to json at %s#%d%v", relativePath, i+1, err)
-				continue
+				t.Fatalf("failed to convert yaml to json at %s#%d%v", relativePath, i+1, err)
 			}
 			ctx := context.Background()
 			var invalidSchemaMessage = fmt.Sprintf("invalid schema at %s#%d", relativePath, i+1)
 			err = TestCaseSchema.Validator().ValidateWithMessage(ctx, bytes.NewReader(jsonData), invalidSchemaMessage)
 			if err != nil {
-				t.Errorf("%v", err.Error())
-				continue
+				t.Fatalf("%v", err.Error())
 			}
 
 			err = json.Unmarshal(jsonData, &testCase)
 			if err != nil {
-				t.Errorf("%v", err.Error())
-				continue
+				t.Fatalf("%v", err.Error())
 			}
 
 			testCase.Path = relativePath

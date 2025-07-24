@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"strings"
 
 	"github.com/lestrrat-go/jwx/v2/jwk"
 
@@ -13,6 +14,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/dpop"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
+	"github.com/authgear/authgear-server/pkg/lib/resourcescope"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -40,6 +42,13 @@ type IssueOfflineGrantRefreshTokenOptions struct {
 	Scopes          []string
 	AuthorizationID string
 	DPoPJKT         string
+}
+
+type ClientCredentialsAccessTokenOptions struct {
+	ResourceURI  string
+	Scopes       []string
+	ClientConfig *config.OAuthClientConfig
+	Resource     *resourcescope.Resource
 }
 
 type TokenService struct {
@@ -248,4 +257,30 @@ func (s *TokenService) IssueDeviceSecret(ctx context.Context, resp protocol.Toke
 	deviceSecretHash = oauth.HashToken(deviceSecret)
 	resp.DeviceSecret(deviceSecret)
 	return deviceSecretHash
+}
+
+func (s *TokenService) IssueClientCredentialsAccessToken(ctx context.Context, options ClientCredentialsAccessTokenOptions, resp protocol.TokenResponse) error {
+	token := s.GenerateToken()
+	now := s.Clock.NowUTC()
+	expireAt := now.Add(options.ClientConfig.AccessTokenLifetime.Duration())
+
+	scope := strings.Join(options.Scopes, " ")
+	encodedToken, err := s.AccessTokenIssuer.EncodeClientAccessToken(ctx, oauth.EncodeClientAccessTokenOptions{
+		OriginalToken: token,
+		ClientConfig:  options.ClientConfig,
+		ResourceURI:   options.ResourceURI,
+		Scope:         scope,
+		CreatedAt:     now,
+		ExpireAt:      expireAt,
+	})
+	if err != nil {
+		return err
+	}
+
+	resp.TokenType("Bearer")
+	resp.AccessToken(encodedToken)
+	resp.ExpiresIn(int(options.ClientConfig.AccessTokenLifetime.Duration().Seconds()))
+	resp.Scope(scope)
+
+	return nil
 }

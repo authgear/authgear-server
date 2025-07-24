@@ -46,6 +46,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/ldap"
+	"github.com/authgear/authgear-server/pkg/lib/resourcescope"
 	"github.com/authgear/authgear-server/pkg/lib/saml"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlbinding"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlsession"
@@ -382,6 +383,11 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(hook.RolesAndGroupsServiceNoEvent), new(*rolesgroups.Commands)),
 		wire.Bind(new(user.RolesAndGroupsService), new(*rolesgroups.Queries)),
 		wire.Bind(new(userimport.RolesGroupsCommands), new(*rolesgroups.Commands)),
+	),
+
+	wire.NewSet(
+		resourcescope.DependencySet,
+		wire.Bind(new(handler.TokenHandlerClientResourceScopeService), new(*resourcescope.ClientResourceScopeService)),
 	),
 
 	wire.NewSet(
