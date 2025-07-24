@@ -77,6 +77,7 @@ const CreateAPIResourceScreen: React.VFC = function CreateAPIResourceScreen() {
       <FormContainerBase form={form} errorRules={errorRules}>
         <ResourceForm
           className="col-span-8 tablet:col-span-full"
+          mode="create"
           state={form.state}
           setState={form.setState}
         />
