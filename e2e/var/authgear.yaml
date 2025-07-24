@@ -153,6 +153,11 @@ oauth:
     - none
     x_application_type: confidential
     issue_jwt_access_token: true
+  - access_token_lifetime_seconds: 1800
+    client_id: e2em2mclient
+    name: M2M app
+    x_application_type: m2m
+    issue_jwt_access_token: true
 test_mode:
   sms:
     enabled: true
