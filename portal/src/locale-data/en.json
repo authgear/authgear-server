@@ -136,6 +136,7 @@
   "errors.groups.key.validation.format": "Invalid group key. Only English alphabets, digits, colons \":\", and underscores \"_\" are accepted, and the first character must be an alphabet.",
   "errors.roles.key.duplicated": "This key is already used, please use a different key",
   "errors.groups.key.duplicated": "This key is already used, please use a different key",
+  "errors.resources.duplicateURI": "This Identifier is already used, please use a different one.",
   "errors.authenticator.not-found": "Authenticator not found",
   "errors.image-too-large": "The image size is too large. Please upload a image that is within the size limit.",
   "errors.input-file-image-load": "There is a problem in loading the image you selected. You may retry, or select another one.",
