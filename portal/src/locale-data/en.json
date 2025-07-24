@@ -2145,6 +2145,11 @@
 
   "CreateAPIResourceScreen.title": "Create API Resource",
 
+  "APIResourceDetailsScreen.tab.details": "Details",
+  "APIResourceDetailsScreen.tab.scopes": "Scopes",
+  "APIResourceDetailsScreen.tab.applications": "Applications",
+  "APIResourceDetailsScreen.tab.test": "Test",
+
   "ResourceForm.name.label": "Name",
   "ResourceForm.resourceURI.label": "Identifier",
   "ResourceForm.name.description": "A human friendly name for display in the portal.",
