@@ -199,6 +199,9 @@ const APIResourcesScreen = lazy(
 const CreateAPIResourceScreen = lazy(
   async () => import("./screens/APIResources/CreateAPIResourceScreen")
 );
+const APIResourceDetailsScreen = lazy(
+  async () => import("./screens/APIResources/APIResourceDetailsScreen")
+);
 
 const AppRoot: React.VFC = function AppRoot() {
   const { appID } = useParams() as { appID: string };
@@ -542,6 +545,14 @@ const AppRoot: React.VFC = function AppRoot() {
               element={
                 <Suspense fallback={<ShowLoading />}>
                   <CreateAPIResourceScreen />
+                </Suspense>
+              }
+            />
+            <Route
+              path=":resourceID"
+              element={
+                <Suspense fallback={<ShowLoading />}>
+                  <APIResourceDetailsScreen />
                 </Suspense>
               }
             />
