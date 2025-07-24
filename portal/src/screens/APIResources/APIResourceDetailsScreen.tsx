@@ -2,6 +2,9 @@ import React from "react";
 import { useParams } from "react-router-dom";
 import { useResourceQueryQuery } from "../../graphql/adminapi/query/resourceQuery.generated";
 import { useLoadableView } from "../../hook/useLoadableView";
+import { FormattedMessage } from "@oursky/react-messageformat";
+import APIResourceScreenLayout from "../../components/api-resources/APIResourceScreenLayout";
+import { Resource } from "../../graphql/adminapi/globalTypes.generated";
 
 const APIResourceDetailsScreen: React.VFC =
   function APIResourceDetailsScreen() {
@@ -22,14 +25,27 @@ const APIResourceDetailsScreen: React.VFC =
       render: ([query]) => {
         const { data } = query;
         const resource =
-          data?.node && data.node.__typename === "Resource" ? data.node : null;
+          data?.node && data.node.__typename === "Resource"
+            ? (data.node as Resource)
+            : null;
         if (!resource) {
           return null;
         }
         return (
-          <div>
+          <APIResourceScreenLayout
+            breadcrumbItems={[
+              {
+                to: "~/api-resources",
+                label: <FormattedMessage id="ScreenNav.api-resources" />,
+              },
+              {
+                to: "",
+                label: resource.name ?? resource.resourceURI,
+              },
+            ]}
+          >
             <div>{resource.name}</div>
-          </div>
+          </APIResourceScreenLayout>
         );
       },
     });

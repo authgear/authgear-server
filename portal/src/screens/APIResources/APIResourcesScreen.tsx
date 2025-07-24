@@ -1,9 +1,6 @@
 import React, { useState, useCallback, useMemo, useContext } from "react";
-import ScreenContent from "../../ScreenContent";
 import { encodeOffsetToCursor } from "../../util/pagination";
-import ScreenTitle from "../../ScreenTitle";
 import ScreenDescription from "../../ScreenDescription";
-import ScreenContentHeader from "../../ScreenContentHeader";
 import {
   FormattedMessage,
   Context as MessageContext,
@@ -21,6 +18,7 @@ import {
 } from "../../components/api-resources/DeleteResourceDialog";
 import { SearchBox } from "@fluentui/react";
 import { useNavigate, useParams } from "react-router-dom";
+import APIResourceScreenLayout from "../../components/api-resources/APIResourceScreenLayout";
 
 const PAGE_SIZE = 10;
 
@@ -128,24 +126,24 @@ const APIResourcesScreen: React.VFC = function APIResourcesScreen() {
 
   return (
     <>
-      <ScreenContent className="flex-1" layout="list">
-        <ScreenContentHeader
-          title={
-            <ScreenTitle>
-              <FormattedMessage id="APIResourcesScreen.title" />
-            </ScreenTitle>
-          }
-          description={
-            <ScreenDescription>
-              <FormattedMessage id="APIResourcesScreen.description" />
-            </ScreenDescription>
-          }
-          suffix={
-            resources.length !== 0 ? (
-              <CreateResourceButton className="self-start" />
-            ) : null
-          }
-        />
+      <APIResourceScreenLayout
+        breadcrumbItems={[
+          {
+            to: "",
+            label: <FormattedMessage id="APIResourcesScreen.title" />,
+          },
+        ]}
+        headerDescription={
+          <ScreenDescription>
+            <FormattedMessage id="APIResourcesScreen.description" />
+          </ScreenDescription>
+        }
+        headerSuffix={
+          resources.length !== 0 ? (
+            <CreateResourceButton className="self-start" />
+          ) : null
+        }
+      >
         <div className="col-span-full flex flex-col">
           <SearchBox
             className="mb-4"
@@ -163,7 +161,7 @@ const APIResourcesScreen: React.VFC = function APIResourcesScreen() {
             onEdit={onEdit}
           />
         </div>
-      </ScreenContent>
+      </APIResourceScreenLayout>
       <DeleteResourceDialog
         data={deleteDialogData}
         isLoading={isDeleting}
