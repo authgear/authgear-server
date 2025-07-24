@@ -8,6 +8,8 @@ import { useFormTopErrors } from "../../form";
 import { useErrorMessageBarContext } from "../../ErrorMessageBar";
 import { useLoading } from "../../hook/loading";
 import PrimaryButton from "../../PrimaryButton";
+import Tooltip from "../../Tooltip";
+import { Label } from "@fluentui/react";
 
 export interface ResourceFormState {
   name: string;
@@ -68,8 +70,21 @@ export const ResourceForm: React.VFC<ResourceFormProps> =
             onChange={handleNameChange}
           />
           <FormTextField
-            required={true}
-            label={renderToString("ResourceForm.resourceURI.label")}
+            // eslint-disable-next-line react/no-unstable-nested-components
+            onRenderLabel={() => {
+              return (
+                <span className="flex">
+                  <Label required={true}>
+                    {<FormattedMessage id="ResourceForm.resourceURI.label" />}
+                  </Label>
+                  <Tooltip
+                    isHidden={false}
+                    className="-ml-3"
+                    tooltipMessageId="ResourceForm.resourceURI.tooltip"
+                  />
+                </span>
+              );
+            }}
             description={
               (
                 <FormattedMessage id="ResourceForm.resourceURI.description" />
