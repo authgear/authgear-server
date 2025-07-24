@@ -59,7 +59,7 @@ func init() {
 
 			clientID, _ := p.Args["clientID"].(string)
 			searchKeyword, _ := p.Args["searchKeyword"].(string)
-			pageArgs := graphqlutil.NewPageArgs(relay.NewConnectionArguments(p.Args))
+			pageArgs := graphqlutil.NewPageArgsWithMaxPageSize(relay.NewConnectionArguments(p.Args), 1000)
 			options := &resourcescope.ListScopeOptions{
 				SearchKeyword: searchKeyword,
 				ClientID:      clientID,
