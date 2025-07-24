@@ -4,7 +4,7 @@ import (
 	relay "github.com/authgear/authgear-server/pkg/graphqlgo/relay"
 )
 
-const MaxPageSize uint64 = 100
+const DEFAULT_MAX_PAGE_SIZE uint64 = 100
 
 type Cursor string
 
@@ -15,7 +15,7 @@ type PageArgs struct {
 	Last   *uint64
 }
 
-func NewPageArgs(args relay.ConnectionArguments) PageArgs {
+func NewPageArgsWithMaxPageSize(args relay.ConnectionArguments, maxPageSize uint64) PageArgs {
 	pageArgs := PageArgs{
 		Before: Cursor(args.Before),
 		After:  Cursor(args.After),
@@ -24,26 +24,30 @@ func NewPageArgs(args relay.ConnectionArguments) PageArgs {
 	var first, last *uint64
 	if args.First >= 0 {
 		value := uint64(args.First)
-		if value > MaxPageSize {
-			value = MaxPageSize
+		if value > maxPageSize {
+			value = maxPageSize
 		}
 		first = &value
 	}
 	if args.Last >= 0 {
 		value := uint64(args.Last)
-		if value > MaxPageSize {
-			value = MaxPageSize
+		if value > maxPageSize {
+			value = maxPageSize
 		}
 		last = &value
 	}
 	if first == nil && last == nil {
-		value := MaxPageSize
+		value := maxPageSize
 		first = &value
 	}
 
 	pageArgs.First = first
 	pageArgs.Last = last
 	return pageArgs
+}
+
+func NewPageArgs(args relay.ConnectionArguments) PageArgs {
+	return NewPageArgsWithMaxPageSize(args, DEFAULT_MAX_PAGE_SIZE)
 }
 
 type PageResult struct {
