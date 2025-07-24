@@ -1,0 +1,10 @@
+code.inline {
+  @apply inline-block;
+  background-color: #d8e6fd;
+  color: #201f1e;
+  font-size: inherit;
+  line-height: inherit;
+  letter-spacing: inherit;
+  @apply px-1;
+  @apply rounded;
+}

@@ -1,7 +1,7 @@
 import React, { useContext, useCallback, useEffect } from "react";
 import FormTextField from "../../FormTextField";
 import styles from "./ResourceForm.module.css";
-import { Context } from "@oursky/react-messageformat";
+import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import cn from "classnames";
 import { useFormContainerBaseContext } from "../../FormContainerBase";
 import { useFormTopErrors } from "../../form";
@@ -70,7 +70,11 @@ export const ResourceForm: React.VFC<ResourceFormProps> =
           <FormTextField
             required={true}
             label={renderToString("ResourceForm.resourceURI.label")}
-            description={renderToString("ResourceForm.resourceURI.description")}
+            description={
+              (
+                <FormattedMessage id="ResourceForm.resourceURI.description" />
+              ) as unknown as string
+            }
             fieldName="resourceURI"
             parentJSONPointer=""
             type="text"
