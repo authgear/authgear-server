@@ -8,7 +8,7 @@ import {
 } from "@oursky/react-messageformat";
 import APIResourceScreenLayout from "../../components/api-resources/APIResourceScreenLayout";
 import { Resource } from "../../graphql/adminapi/globalTypes.generated";
-import { Pivot, PivotItem } from "@fluentui/react";
+import { Pivot, PivotItem, Text } from "@fluentui/react";
 import { usePivotNavigation } from "../../hook/usePivot";
 import { useUpdateResourceMutationMutation } from "../../graphql/adminapi/mutations/updateResourceMutation.generated";
 import { useSimpleForm } from "../../hook/useSimpleForm";
@@ -18,6 +18,8 @@ import {
   ResourceFormState,
   sanitizeFormState,
 } from "../../components/api-resources/ResourceForm";
+import WidgetTitle from "../../WidgetTitle";
+import { CreateScopeForm } from "../../components/api-resources/CreateScopeForm";
 
 function APIResourceDetailsTab({ resource }: { resource: Resource }) {
   const [updateResource] = useUpdateResourceMutationMutation();
@@ -49,18 +51,41 @@ function APIResourceDetailsTab({ resource }: { resource: Resource }) {
   });
   return (
     <FormContainerBase form={form}>
-      <ResourceForm
-        className="justify-self-stretch"
-        mode="edit"
-        state={form.state}
-        setState={form.setState}
-      />
+      <div className="justify-self-stretch py-5 max-w-180">
+        <WidgetTitle className="mb-4">
+          <FormattedMessage id="APIResourceDetailsScreen.tab.details" />
+        </WidgetTitle>
+        <ResourceForm mode="edit" state={form.state} setState={form.setState} />
+      </div>
     </FormContainerBase>
   );
 }
 
 function APIResourceScopesTab() {
-  return <div>TODO</div>;
+  // TODO
+  const form = useSimpleForm<any, any>({
+    defaultState: {},
+    submit: async () => Promise<void>,
+    stateMode: "UpdateInitialStateWithUseEffect",
+  });
+
+  return (
+    <FormContainerBase form={form}>
+      <div className="py-5 grid grid-flow-row gap-2">
+        <header>
+          <WidgetTitle className="mb-2">
+            <FormattedMessage id="APIResourceDetailsScreen.tab.scopes" />
+          </WidgetTitle>
+          <Text>
+            <FormattedMessage id="APIResourceDetailsScreen.scopes.description" />
+          </Text>
+        </header>
+        <div>
+          <CreateScopeForm />
+        </div>
+      </div>
+    </FormContainerBase>
+  );
 }
 
 function APIResourceApplicationsTab() {
@@ -80,7 +105,7 @@ function APIResourceDetailsContent({ resource }: { resource: Resource }) {
   ]);
   const { renderToString } = useContext(MessageContext);
   return (
-    <div className="py-6 grid content-start grid-flow-row col-span-8 tablet:col-span-full">
+    <div className="py-6 grid content-start grid-flow-row col-span-full">
       <Pivot selectedKey={selectedKey} onLinkClick={onLinkClick}>
         <PivotItem
           headerText={renderToString("APIResourceDetailsScreen.tab.details")}
