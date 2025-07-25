@@ -2157,6 +2157,9 @@
   "CreateScopeForm.scope.placeholder": "read:orders",
   "CreateScopeForm.description.placeholder": "e.g. Fetch order details",
 
+  "ScopeList.columns.scope": "Scope",
+  "ScopeList.columns.description": "Description",
+
   "ResourceForm.name.label": "Name",
   "ResourceForm.resourceURI.label": "Identifier",
   "ResourceForm.name.description": "A human friendly name for display in the portal.",

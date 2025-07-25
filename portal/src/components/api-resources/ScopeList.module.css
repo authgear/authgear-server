@@ -1,0 +1,12 @@
+.listRoot {
+  @apply flex flex-col min-h-0 overflow-hidden;
+}
+
+.listWrapper {
+  @apply flex-1 overflow-y-auto h-0 max-h-full;
+}
+
+.paginator {
+  @apply px-3 py-4;
+  @apply self-end;
+}
