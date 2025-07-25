@@ -201,7 +201,7 @@ function APIResourceScopesTab({ resource }: { resource: Resource }) {
             <FormattedMessage id="APIResourceDetailsScreen.scopes.description" />
           </Text>
         </header>
-        <div className="flex-1 flex flex-col space-y-8">
+        <div className="flex-1 flex flex-col space-y-4">
           <div className="flex items-end justify-between flex-wrap gap-4">
             <CreateScopeForm
               className="flex-1-0-auto min-w-40"
