@@ -28,13 +28,16 @@ export function usePivotNavigation<K extends string = string>(
   const changeHashKeepSearchParam = useCallback(
     (hash: string, options?: { replace?: boolean }) => {
       const queryStr = searchParams.toString();
-      if (queryStr !== "") {
-        navigate(`?${queryStr}#${hash}`, options);
-      } else {
-        navigate(`#${hash}`, options);
-      }
+      navigate(
+        {
+          search: queryStr,
+          hash: hash,
+          pathname: location.pathname,
+        },
+        options
+      );
     },
-    [navigate, searchParams]
+    [location.pathname, navigate, searchParams]
   );
 
   useEffect(() => {
