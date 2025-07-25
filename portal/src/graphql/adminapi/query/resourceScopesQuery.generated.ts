@@ -4,20 +4,23 @@ import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type ResourceScopesQueryQueryVariables = Types.Exact<{
-  id: Types.Scalars['ID']['input'];
+  resourceID: Types.Scalars['ID']['input'];
+  first?: Types.InputMaybe<Types.Scalars['Int']['input']>;
+  after?: Types.InputMaybe<Types.Scalars['String']['input']>;
+  searchKeyword?: Types.InputMaybe<Types.Scalars['String']['input']>;
 }>;
 
 
-export type ResourceScopesQueryQuery = { __typename?: 'Query', node?: { __typename?: 'AuditLog' } | { __typename?: 'Authenticator' } | { __typename?: 'Authorization' } | { __typename?: 'Group' } | { __typename?: 'Identity' } | { __typename?: 'Resource', id: string, resourceURI: string, scopes?: { __typename?: 'ScopeConnection', edges?: Array<{ __typename?: 'ScopeEdge', node?: { __typename?: 'Scope', id: string, scope: string, description?: string | null, createdAt: any, updatedAt: any } | null } | null> | null } | null } | { __typename?: 'Role' } | { __typename?: 'Scope' } | { __typename?: 'Session' } | { __typename?: 'User' } | null };
+export type ResourceScopesQueryQuery = { __typename?: 'Query', node?: { __typename?: 'AuditLog' } | { __typename?: 'Authenticator' } | { __typename?: 'Authorization' } | { __typename?: 'Group' } | { __typename?: 'Identity' } | { __typename?: 'Resource', id: string, resourceURI: string, scopes?: { __typename?: 'ScopeConnection', totalCount?: number | null, edges?: Array<{ __typename?: 'ScopeEdge', node?: { __typename?: 'Scope', id: string, scope: string, description?: string | null, createdAt: any, updatedAt: any } | null } | null> | null, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean } } | null } | { __typename?: 'Role' } | { __typename?: 'Scope' } | { __typename?: 'Session' } | { __typename?: 'User' } | null };
 
 
 export const ResourceScopesQueryDocument = gql`
-    query ResourceScopesQuery($id: ID!) {
-  node(id: $id) {
+    query ResourceScopesQuery($resourceID: ID!, $first: Int, $after: String, $searchKeyword: String) {
+  node(id: $resourceID) {
     ... on Resource {
       id
       resourceURI
-      scopes(first: 1000) {
+      scopes(first: $first, after: $after, searchKeyword: $searchKeyword) {
         edges {
           node {
             id
@@ -27,6 +30,11 @@ export const ResourceScopesQueryDocument = gql`
             updatedAt
           }
         }
+        pageInfo {
+          endCursor
+          hasNextPage
+        }
+        totalCount
       }
     }
   }
@@ -45,7 +53,10 @@ export const ResourceScopesQueryDocument = gql`
  * @example
  * const { data, loading, error } = useResourceScopesQueryQuery({
  *   variables: {
- *      id: // value for 'id'
+ *      resourceID: // value for 'resourceID'
+ *      first: // value for 'first'
+ *      after: // value for 'after'
+ *      searchKeyword: // value for 'searchKeyword'
  *   },
  * });
  */
