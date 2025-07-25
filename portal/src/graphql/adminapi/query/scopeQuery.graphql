@@ -1,0 +1,12 @@
+query ScopeQuery($id: ID!) {
+  node(id: $id) {
+    ... on Scope {
+      id
+      scope
+      description
+      resourceID
+      createdAt
+      updatedAt
+    }
+  }
+}
