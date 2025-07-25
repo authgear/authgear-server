@@ -50,6 +50,7 @@ const APIResourcesScreen: React.VFC = function APIResourcesScreen() {
       }, [offset]),
       searchKeyword: searchQuery === "" ? undefined : searchQuery,
     },
+    fetchPolicy: "network-only",
   });
 
   const [deleteResource] = useDeleteResourceMutation();
