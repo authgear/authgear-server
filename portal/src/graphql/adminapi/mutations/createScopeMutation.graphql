@@ -1,0 +1,12 @@
+mutation CreateScopeMutation($input: CreateScopeInput!) {
+  createScope(input: $input) {
+    scope {
+      id
+      scope
+      description
+      resourceID
+      createdAt
+      updatedAt
+    }
+  }
+}
