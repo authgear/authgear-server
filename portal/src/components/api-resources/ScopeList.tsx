@@ -1,4 +1,4 @@
-import React, { useContext, useCallback } from "react";
+import React, { useContext, useCallback, useMemo } from "react";
 import cn from "classnames";
 import { Scope } from "../../graphql/adminapi/globalTypes.generated";
 import {
@@ -7,6 +7,7 @@ import {
   ShimmeredDetailsList,
   SelectionMode,
   IDetailsRowProps,
+  Text,
 } from "@fluentui/react";
 import { Context } from "@oursky/react-messageformat";
 import PaginationWidget, { PaginationProps } from "../../PaginationWidget";
@@ -58,54 +59,62 @@ function ActionButtonsColumn({
   );
 }
 
-function getScopeListColumns(
-  onEdit: (scope: Scope) => void,
-  onDelete: (scope: Scope) => void,
-  renderToString: (id: string) => string
-): IColumn[] {
-  return [
-    {
-      key: "scope",
-      name: renderToString("ScopeList.columns.scope"),
-      minWidth: 200,
-      maxWidth: 400,
-      isResizable: true,
-      fieldName: "scope",
-    },
-    {
-      key: "description",
-      name: renderToString("ScopeList.columns.description"),
-      minWidth: 200,
-      isResizable: true,
-      fieldName: "description",
-    },
-    {
-      key: "actions",
-      name: "",
-      minWidth: 100,
-      maxWidth: 100,
-      isResizable: false,
-      onRender: (item?: Scope, _0?: number, _1?: IColumn) => {
-        if (item == null) {
-          return null;
-        }
-        return (
-          <ActionButtonsColumn
-            scope={item}
-            onDelete={onDelete}
-            onEdit={onEdit}
-          />
-        );
-      },
-    },
-  ];
-}
-
 export const ScopeList: React.VFC<ScopeListProps> = function ScopeList(props) {
   const { className, scopes, loading, pagination, onEdit, onDelete } = props;
   const { renderToString } = useContext(Context);
 
-  const columns = getScopeListColumns(onEdit, onDelete, renderToString);
+  const onRenderActions = useCallback(
+    (item?: Scope, _0?: number, _1?: IColumn) => {
+      if (item == null) {
+        return null;
+      }
+      return (
+        <ActionButtonsColumn scope={item} onDelete={onDelete} onEdit={onEdit} />
+      );
+    },
+    [onEdit, onDelete]
+  );
+
+  const onRenderScope = useCallback((item?: Scope) => {
+    if (item == null) {
+      return null;
+    }
+    return (
+      <div className="py-0.5 px-1 bg-[#F3F2F1] rounded">
+        <Text variant="smallPlus">{item.scope}</Text>
+      </div>
+    );
+  }, []);
+
+  const columns = useMemo(
+    (): IColumn[] => [
+      {
+        key: "scope",
+        name: renderToString("ScopeList.columns.scope"),
+        minWidth: 200,
+        maxWidth: 400,
+        isResizable: true,
+        fieldName: "scope",
+        onRender: onRenderScope,
+      },
+      {
+        key: "description",
+        name: renderToString("ScopeList.columns.description"),
+        minWidth: 200,
+        isResizable: true,
+        fieldName: "description",
+      },
+      {
+        key: "actions",
+        name: "",
+        minWidth: 100,
+        maxWidth: 100,
+        isResizable: false,
+        onRender: onRenderActions,
+      },
+    ],
+    [onRenderScope, onRenderActions, renderToString]
+  );
 
   return (
     <div className={cn(className, styles.listRoot)}>
