@@ -1,5 +1,5 @@
 .root {
-  @apply py-6 space-y-12;
+  @apply space-y-12;
 }
 
 .formFields {

@@ -2148,6 +2148,13 @@
   "APIResourceDetailsScreen.tab.scopes": "Scopes",
   "APIResourceDetailsScreen.tab.applications": "Applications",
   "APIResourceDetailsScreen.tab.test": "Test",
+  "APIResourceDetailsScreen.scopes.description": "Define the scopes (permissions) used by this resource.",
+
+  "CreateScopeForm.scope.label": "Scope",
+  "CreateScopeForm.description.label": "Description",
+  "CreateScopeForm.add.button": "Add Scope",
+  "CreateScopeForm.scope.placeholder": "read:orders",
+  "CreateScopeForm.description.placeholder": "e.g. Fetch order details",
 
   "ResourceForm.name.label": "Name",
   "ResourceForm.resourceURI.label": "Identifier",
