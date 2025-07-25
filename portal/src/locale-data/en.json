@@ -2159,6 +2159,9 @@
   "ScopeList.columns.scope": "Scope",
   "ScopeList.columns.description": "Description",
 
+  "DeleteScopeDialog.title": "Delete Scope",
+  "DeleteScopeDialog.description": "This action will permanently delete the scope \"{scope}\" and cannot be undone. Are you sure you want to proceed?",
+
   "ResourceForm.name.label": "Name",
   "ResourceForm.resourceURI.label": "Identifier",
   "ResourceForm.name.description": "A human friendly name for display in the portal.",
