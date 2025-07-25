@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { useResourceQueryQuery } from "../../graphql/adminapi/query/resourceQuery.generated";
 import { useLoadableView } from "../../hook/useLoadableView";
@@ -7,7 +7,7 @@ import {
   Context as MessageContext,
 } from "@oursky/react-messageformat";
 import APIResourceScreenLayout from "../../components/api-resources/APIResourceScreenLayout";
-import { Resource } from "../../graphql/adminapi/globalTypes.generated";
+import { Resource, Scope } from "../../graphql/adminapi/globalTypes.generated";
 import { Pivot, PivotItem, Text } from "@fluentui/react";
 import { usePivotNavigation } from "../../hook/usePivot";
 import { useUpdateResourceMutationMutation } from "../../graphql/adminapi/mutations/updateResourceMutation.generated";
@@ -25,6 +25,13 @@ import {
   sanitizeCreateScopeFormState,
 } from "../../components/api-resources/CreateScopeForm";
 import { useCreateScopeMutationMutation } from "../../graphql/adminapi/mutations/createScopeMutation.generated";
+import {
+  useResourceScopesQueryQuery,
+  ResourceScopesQueryDocument,
+} from "../../graphql/adminapi/query/resourceScopesQuery.generated";
+import { ScopeList } from "../../components/api-resources/ScopeList";
+import { encodeOffsetToCursor } from "../../util/pagination";
+import ShowError from "../../ShowError";
 
 function APIResourceDetailsTab({ resource }: { resource: Resource }) {
   const [updateResource] = useUpdateResourceMutationMutation();
@@ -68,7 +75,6 @@ function APIResourceDetailsTab({ resource }: { resource: Resource }) {
 
 function APIResourceScopesTab({ resource }: { resource: Resource }) {
   const [createScope] = useCreateScopeMutationMutation();
-
   const [initialState] = useState<CreateScopeFormState>({
     scope: "",
     description: "",
@@ -85,15 +91,55 @@ function APIResourceScopesTab({ resource }: { resource: Resource }) {
             description: sanitized.description,
           },
         },
+        awaitRefetchQueries: true,
+        refetchQueries: [ResourceScopesQueryDocument],
       });
     },
     stateMode:
       "ConstantInitialStateAndResetCurrentStatetoInitialStateAfterSave",
   });
 
+  const [offset, setOffset] = useState(0);
+  const pageSize = 10;
+
+  const { data, loading, error, refetch } = useResourceScopesQueryQuery({
+    variables: {
+      resourceID: resource.id,
+      first: pageSize,
+      after: offset === 0 ? undefined : encodeOffsetToCursor(offset),
+    },
+  });
+
+  const scopes = useMemo(() => {
+    return data?.node && data.node.__typename === "Resource"
+      ? data.node.scopes?.edges
+          ?.map((edge) => edge?.node)
+          .filter((n): n is Scope => !!n) ?? []
+      : [];
+  }, [data]);
+
+  const totalCount = useMemo(() => {
+    return data?.node && data.node.__typename === "Resource"
+      ? data.node.scopes?.totalCount ?? 0
+      : 0;
+  }, [data]);
+
+  const pagination = useMemo(() => {
+    return {
+      offset,
+      pageSize,
+      totalCount,
+      onChangeOffset: setOffset,
+    };
+  }, [offset, pageSize, totalCount, setOffset]);
+
+  if (error != null) {
+    return <ShowError error={error} onRetry={refetch} />;
+  }
+
   return (
     <FormContainerBase form={form}>
-      <div className="py-5 grid grid-flow-row gap-2">
+      <div className="pt-5 flex-1 flex flex-col space-y-2">
         <header>
           <WidgetTitle className="mb-2">
             <FormattedMessage id="APIResourceDetailsScreen.tab.scopes" />
@@ -102,8 +148,18 @@ function APIResourceScopesTab({ resource }: { resource: Resource }) {
             <FormattedMessage id="APIResourceDetailsScreen.scopes.description" />
           </Text>
         </header>
-        <div>
+        <div className="flex-1 flex flex-col space-y-8">
           <CreateScopeForm state={form.state} setState={form.setState} />
+          {scopes.length > 0 ? (
+            <ScopeList
+              className="flex-1 min-h-0"
+              scopes={scopes}
+              loading={loading}
+              pagination={pagination}
+              onEdit={() => {}}
+              onDelete={() => {}}
+            />
+          ) : null}
         </div>
       </div>
     </FormContainerBase>
@@ -127,7 +183,7 @@ function APIResourceDetailsContent({ resource }: { resource: Resource }) {
   ]);
   const { renderToString } = useContext(MessageContext);
   return (
-    <div className="py-6 grid content-start grid-flow-row col-span-full">
+    <div className="pt-6 flex flex-col col-span-full">
       <Pivot selectedKey={selectedKey} onLinkClick={onLinkClick}>
         <PivotItem
           headerText={renderToString("APIResourceDetailsScreen.tab.details")}
