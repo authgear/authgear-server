@@ -1,4 +1,4 @@
-import React, { useContext, useState, useMemo } from "react";
+import React, { useContext, useState, useMemo, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { useResourceQueryQuery } from "../../graphql/adminapi/query/resourceQuery.generated";
 import { useLoadableView } from "../../hook/useLoadableView";
@@ -32,6 +32,11 @@ import {
 import { ScopeList } from "../../components/api-resources/ScopeList";
 import { encodeOffsetToCursor } from "../../util/pagination";
 import ShowError from "../../ShowError";
+import {
+  DeleteScopeDialog,
+  DeleteScopeDialogData,
+} from "../../components/api-resources/DeleteScopeDialog";
+import { useDeleteScopeMutationMutation } from "../../graphql/adminapi/mutations/deleteScopeMutation.generated";
 
 function APIResourceDetailsTab({ resource }: { resource: Resource }) {
   const [updateResource] = useUpdateResourceMutationMutation();
@@ -75,6 +80,7 @@ function APIResourceDetailsTab({ resource }: { resource: Resource }) {
 
 function APIResourceScopesTab({ resource }: { resource: Resource }) {
   const [createScope] = useCreateScopeMutationMutation();
+  const [deleteScope] = useDeleteScopeMutationMutation();
   const [initialState] = useState<CreateScopeFormState>({
     scope: "",
     description: "",
@@ -101,6 +107,9 @@ function APIResourceScopesTab({ resource }: { resource: Resource }) {
 
   const [offset, setOffset] = useState(0);
   const [searchKeyword, setSearchKeyword] = useState("");
+  const [deleteDialogData, setDeleteDialogData] =
+    useState<DeleteScopeDialogData | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const pageSize = 10;
 
   const { renderToString } = useContext(MessageContext);
@@ -145,6 +154,38 @@ function APIResourceScopesTab({ resource }: { resource: Resource }) {
     };
   }, [offset, pageSize, totalCount, setOffset]);
 
+  const onDelete = useCallback((scope: Scope) => {
+    setDeleteDialogData({
+      scope: scope.scope,
+      description: scope.description ?? null,
+    });
+  }, []);
+
+  const onConfirmDelete = useCallback(
+    async (data: DeleteScopeDialogData) => {
+      setIsDeleting(true);
+      try {
+        await deleteScope({
+          variables: {
+            input: {
+              resourceURI: resource.resourceURI,
+              scope: data.scope,
+            },
+          },
+        });
+        setDeleteDialogData(null);
+        await refetch();
+      } finally {
+        setIsDeleting(false);
+      }
+    },
+    [deleteScope, refetch, resource.resourceURI]
+  );
+
+  const onDismissDeleteDialog = useCallback(() => {
+    setDeleteDialogData(null);
+  }, []);
+
   if (error != null) {
     return <ShowError error={error} onRetry={refetch} />;
   }
@@ -181,11 +222,17 @@ function APIResourceScopesTab({ resource }: { resource: Resource }) {
               loading={loading}
               pagination={pagination}
               onEdit={() => {}}
-              onDelete={() => {}}
+              onDelete={onDelete}
             />
           ) : null}
         </div>
       </div>
+      <DeleteScopeDialog
+        data={deleteDialogData}
+        isLoading={isDeleting}
+        onConfirm={onConfirmDelete}
+        onDismiss={onDismissDeleteDialog}
+      />
     </FormContainerBase>
   );
 }
