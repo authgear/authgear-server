@@ -345,3 +345,28 @@ CREATE UNIQUE INDEX _auth_organization_auto_membership_domain_uniq _auth_organiz
 
 > [!NOTE]
 > Fung suggests that we target Use case 4.1 and Use case 4.4 for MVP
+
+## Use case 5: How to dissociate a User from an Organization?
+
+### Use case 5.1: Remove a User from Member of Organization via Admin API
+
+This is trivial.
+
+### Use case 5.2: A User can leave an Organization in the settings page
+
+This is a rabbit hole because there could be many use cases that
+the developer may allow a User to leave an Organization.
+
+Let me name a few here.
+
+- Members in an Organization could have Roles. Depending on the Roles a Member has, he may or may not leave as he wishes.
+- The developer simply do not want Members to leave in a self-serve way.
+- The developer allows Members to leave freely.
+
+> [!NOTE]
+> Auth0 support removing members from organizations via the dashboard or the Management API.
+> See https://auth0.com/docs/manage-users/organizations/configure-organizations/remove-members
+
+### Use case 5: Design Decision
+
+We implement Use case 5.1 for MVP.
