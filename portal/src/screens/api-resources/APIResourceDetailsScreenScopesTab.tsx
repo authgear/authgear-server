@@ -172,14 +172,20 @@ export function APIResourceDetailsScreenScopesTab({
           </Text>
         </header>
         <div className="flex-1 flex flex-col space-y-4">
-          <div className="flex items-end justify-between flex-wrap gap-4">
+          <div className="flex items-start justify-between gap-x-4 tablet:flex-col tablet:items-stretch">
             <CreateScopeForm
               className="flex-1-0-auto min-w-40"
               state={form.state}
               setState={form.setState}
             />
             <SearchBox
-              className="w-65"
+              styles={{
+                root: {
+                  marginTop: 30,
+                  width: 260,
+                  "@media (max-width: 1080px)": { marginTop: 0 },
+                },
+              }}
               placeholder={renderToString("search")}
               value={searchKeyword}
               onChange={onSearchKeywordChange}

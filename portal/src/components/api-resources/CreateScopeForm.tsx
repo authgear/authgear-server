@@ -1,4 +1,5 @@
 import React, { useEffect, useContext, useCallback } from "react";
+import cn from "classnames";
 import { useLoading } from "../../hook/loading";
 import { useFormContainerBaseContext } from "../../FormContainerBase";
 import { useErrorMessageBarContext } from "../../ErrorMessageBar";
@@ -55,7 +56,7 @@ export const CreateScopeForm: React.VFC<CreateScopeFormProps> =
     return (
       <form
         onSubmit={onSubmit}
-        className={"flex items-end max-w-200 gap-x-4 " + (className ?? "")}
+        className={cn("flex items-start max-w-200 gap-x-4 h-22", className)}
       >
         <FormTextField
           className="flex-1"
@@ -81,7 +82,7 @@ export const CreateScopeForm: React.VFC<CreateScopeFormProps> =
           )}
         />
         <PrimaryButton
-          className="flex-none"
+          className="flex-none mt-[30px]"
           type="submit"
           text={renderToString("CreateScopeForm.add.button")}
           iconProps={{ iconName: "Add" }}
