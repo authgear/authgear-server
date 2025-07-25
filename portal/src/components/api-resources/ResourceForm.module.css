@@ -1,0 +1,7 @@
+.root {
+  @apply py-6 space-y-12;
+}
+
+.formFields {
+  @apply grid grid-flow-row gap-4 grid-cols-1 content-start;
+}

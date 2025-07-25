@@ -136,6 +136,7 @@
   "errors.groups.key.validation.format": "Invalid group key. Only English alphabets, digits, colons \":\", and underscores \"_\" are accepted, and the first character must be an alphabet.",
   "errors.roles.key.duplicated": "This key is already used, please use a different key",
   "errors.groups.key.duplicated": "This key is already used, please use a different key",
+  "errors.resources.duplicateURI": "This Identifier is already used, please use a different one.",
   "errors.authenticator.not-found": "Authenticator not found",
   "errors.image-too-large": "The image size is too large. Please upload a image that is within the size limit.",
   "errors.input-file-image-load": "There is a problem in loading the image you selected. You may retry, or select another one.",
@@ -191,6 +192,7 @@
   "ScreenNav.endpoint-direct-access": "Endpoint Direct Access",
   "ScreenNav.saml-certificate": "SAML Certificate",
   "ScreenNav.edit-config": "Edit Config",
+  "ScreenNav.api-resources": "API Resources",
 
   "NavBreadcrumb.label": "Nested navigation",
 
@@ -254,6 +256,16 @@
   "GroupsEmptyView.title": "You don't have any groups yet.",
   "GroupsEmptyView.description": "Create groups to represent the types of users that access your applications. Users in a group inherit the same set of roles.",
   "GroupsEmptyView.button.text": "Create Group",
+
+  "ResourceListEmptyView.title": "No API Resources yet",
+  "ResourceListEmptyView.description": "Create API Resources for authorized applications",
+  "CreateResourceButton.label": "Create API Resource",
+
+  "DeleteResourceDialog.title": "Delete API Resource",
+  "DeleteResourceDialog.description": "This action will permanently delete {b, react, children{{name}}} and cannot be undone. Are you sure you want to proceed?",
+
+  "ResourceList.columns.name": "Name",
+  "ResourceList.columns.identifier": "Identifier",
 
   "AddRoleScreen.title": "Create Role",
   "AddRoleScreen.roleKey.title": "Role Key",
@@ -2126,6 +2138,23 @@
   "EditConfigurationScreen.warning.title": "Warning!",
   "EditConfigurationScreen.warning.content": "This page allows users to directly edit the Authgear project configuration in the Portal, but it is not recommended. Direct modifications to the config may cause incompatibilities that could lead to service downtime.{br, react}{br, react}If you decide to proceed with directly editing the configuration, first copy the content for backup. This helps restore normal operation if errors occur.",
   "EditConfigurationScreen.warning.confirm": "I understand the risks of this operation",
+
+  "APIResourcesScreen.title": "API Resources",
+  "APIResourcesScreen.description": "Set up API resources for authorized applications.",
+
+  "CreateAPIResourceScreen.title": "Create API Resource",
+
+  "APIResourceDetailsScreen.tab.details": "Details",
+  "APIResourceDetailsScreen.tab.scopes": "Scopes",
+  "APIResourceDetailsScreen.tab.applications": "Applications",
+  "APIResourceDetailsScreen.tab.test": "Test",
+
+  "ResourceForm.name.label": "Name",
+  "ResourceForm.resourceURI.label": "Identifier",
+  "ResourceForm.name.description": "A human friendly name for display in the portal.",
+  "ResourceForm.resourceURI.description": "An identifier of the resource. It need not be a publicly available URI. Authgear will not access the URI at all.{br, react}The value appears as the {code, react, children{aud} class{inline-code}} (audience) claim in the access token.",
+  "ResourceForm.resourceURI.placeholder": "A URI starts with \"https://\"",
+  "ResourceForm.resourceURI.tooltip": "For example, use {code, react, children{https://api.myapp.com/v1} class{inline-code}} to represent your publicly available API server, or use {code, react, children{https://myapp.com/mcp} class{inline-code}} to represent a MCP server serving with stdio.",
 
   "LoginIDKeyType.email": "Email address",
   "LoginIDKeyType.phone": "Phone number",

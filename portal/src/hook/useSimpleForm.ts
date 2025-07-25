@@ -7,7 +7,7 @@ export interface SimpleFormModel<State, Result = unknown> {
   isDirty: boolean;
   isUpdating: boolean;
   isSubmitted: boolean;
-  submissionResult: Result;
+  submissionResult: Result | undefined;
   state: State;
   setState: (fn: (state: State) => State) => void;
   reset: () => void;

@@ -1,0 +1,5 @@
+mutation deleteResource($input: DeleteResourceInput!) {
+  deleteResource(input: $input) {
+    ok
+  }
+}
