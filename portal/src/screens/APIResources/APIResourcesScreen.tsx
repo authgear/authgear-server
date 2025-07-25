@@ -21,7 +21,7 @@ import {
 } from "../../components/api-resources/DeleteResourceDialog";
 import { SearchBox } from "@fluentui/react";
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 10;
 
 const APIResourcesScreen: React.VFC = function APIResourcesScreen() {
   const [offset, setOffset] = useState(0);
