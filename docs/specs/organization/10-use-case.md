@@ -228,9 +228,8 @@ Member (user_id=louischanyoursky, org_id=yoursky)
 
 ### Use case 4.1: Add a User as a Member of Organization via Admin API
 
-This is the simplest case.
-No invitation is involved.
-The Organization domain settings **IS RESPECTED**.
+This is trivial.
+Things like Login ID email domain allowlist and blocklist **ARE NOT** considered.
 
 ### Use case 4.2: Direct invitation URL
 
@@ -370,3 +369,53 @@ Let me name a few here.
 ### Use case 5: Design Decision
 
 We implement Use case 5.1 for MVP.
+
+## Use case 6: How do we maintain the validity of the membership?
+
+In Use case 4, we discussed the ways that a User can become Member of Organization.
+
+In this use case, we discuss how do we maintain the validity of the membership.
+
+When we read through Use case 4, we know that if a User has an allowed email address,
+then the User is entitled to be a Member of an Organization.
+
+In other words, as long as the User owns the email address, the User can be a Member.
+
+It implies that updating the email address or removing the email address may not be desirable.
+
+### Use case 6.1: Disallow Member to add, remove, or update Identities
+
+> [!NOTE]
+> In Stytch B2B Authentication, it is forbidden to add, remove, or update own email address.
+
+When a User is a Member of an Organization,
+the User is not allowed to add, remove, or update the following Identities:
+
+- Email Login ID Identity
+- Phone Login ID Identity
+- Username Login ID Identity
+- OAuth Identity
+- LDAP Identity
+
+The following Identities can still be added and removed:
+
+- Biometric Identity
+- Passkey Identity
+
+#### Use case 6.1.1: Organization with Federated Login
+
+Federated Login in this context means the end-user **MUST** sign in a particular Identity associated with the external Identity Provider.
+
+- The end-user is not expected to add Identities. Federated Login means the end-user must sign in via the external Identity Provider. Adding Identities (and thus adding more login methods) are not useful at all.
+- The end-user is not expected to update Identities. As long as the subject ID stays the same, Standard Attributes `email`, `phone_number` and `preferred_username` are updated automatically on login. The end-user need not update them manually.
+- The end-user is not expected to delete Identities. In normal case, the User has only one Identity, which cannot be deleted anyway.
+
+#### Use case 6.1.2: Organization with auto-membership
+
+Since auto-membership works one way, allowing the user to update or remove Identities may contradict with the result of auto-membership.
+
+Adding Identities generally does not contradict with auto-membership though.
+
+### Use case 6: Design Decision
+
+We implement User case 6.1 for MVP.
