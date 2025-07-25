@@ -60,9 +60,10 @@ steps:
   - action: "http_request"
     http_request_method: POST
     http_request_url: "http://127.0.0.1:4000/login"
-    http_request_headers:
-      "Content-Type": "application/x-www-form-urlencoded"
-    http_request_body: "x_login_id_input_type=text&x_login_id=samltest01&x_action=login_id"
+    http_request_form_urlencoded_body:
+      x_login_id_input_type: text
+      x_login_id: samltest01
+      x_action: login_id
     http_output:
       http_status: 200
       saml_element:
@@ -240,9 +241,10 @@ steps:
   - action: "http_request"
     http_request_method: POST
     http_request_url: "http://127.0.0.1:4000/login"
-    http_request_headers:
-      "Content-Type": "application/x-www-form-urlencoded"
-    http_request_body: "x_login_id_input_type=text&x_login_id=samltest01&x_action=login_id"
+    http_request_form_urlencoded_body:
+      x_login_id_input_type: text
+      x_login_id: samltest01
+      x_action: login_id
     http_output:
       http_status: 200
       saml_element:

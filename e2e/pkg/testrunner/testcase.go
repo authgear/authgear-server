@@ -19,6 +19,7 @@ import (
 	"github.com/beevik/etree"
 
 	authflowclient "github.com/authgear/authgear-server/e2e/pkg/e2eclient"
+	"github.com/authgear/authgear-server/pkg/graphqlgo/relay"
 	"github.com/authgear/authgear-server/pkg/util/secretcode"
 )
 
@@ -132,6 +133,8 @@ func (tc *TestCase) executeStep(
 	var flowResponse *authflowclient.FlowResponse
 	var flowErr error
 
+	nextState = state
+
 	switch step.Action {
 	case StepActionCreate:
 		input, ok := prepareInput(t, cmd, prevSteps, step.Input)
@@ -142,13 +145,12 @@ func (tc *TestCase) executeStep(
 		flowResponse, flowErr = client.CreateFlow(input)
 
 		if step.Output != nil {
-			ok := validateOutput(t, step, flowResponse, flowErr)
+			ok := validateAuthflowOutput(t, step, flowResponse, flowErr)
 			if !ok {
 				return nil, state, false
 			}
 		}
 
-		nextState = state
 		if flowResponse != nil {
 			nextState = flowResponse.StateToken
 		}
@@ -170,7 +172,6 @@ func (tc *TestCase) executeStep(
 			t.Errorf("failed to generate TOTP code in '%s': %v\n", step.Name, err)
 			return
 		}
-		nextState = state
 
 		result = &StepResult{
 			Result: map[string]interface{}{
@@ -197,8 +198,6 @@ func (tc *TestCase) executeStep(
 			t.Errorf("failed to parse final URL in '%s': %v\n", step.Name, err)
 			return
 		}
-
-		nextState = state
 
 		result = &StepResult{
 			Result: map[string]interface{}{
@@ -234,11 +233,10 @@ func (tc *TestCase) executeStep(
 			}
 		}
 
-		nextState = state
 	case StepActionHTTPRequest:
 		var outputOk bool = true
 		var httpResult interface{} = nil
-		url, ok := renderTemplateString(t, cmd, prevSteps, step.HTTPRequestURL)
+		requesturl, ok := renderTemplateString(t, cmd, prevSteps, step.HTTPRequestURL)
 		if !ok {
 			return nil, state, false
 		}
@@ -248,17 +246,32 @@ func (tc *TestCase) executeStep(
 				step.HTTPRequestSessionCookie.IDPSessionToken,
 			)
 		}
+		var headers = step.HTTPRequestHeaders
+		if headers == nil {
+			headers = map[string]string{}
+		}
+		body := ""
+		if step.HTTPRequestBody != "" {
+			body = step.HTTPRequestBody
+		} else if step.HTTPRequestFormURLEncodedBody != nil {
+			headers["Content-Type"] = "application/x-www-form-urlencoded"
+			values := url.Values{}
+			for k, v := range step.HTTPRequestFormURLEncodedBody {
+				values.Add(k, v)
+			}
+			body = values.Encode()
+		}
 		err := client.MakeHTTPRequest(
 			step.HTTPRequestMethod,
-			url,
-			step.HTTPRequestHeaders,
-			step.HTTPRequestBody,
+			requesturl,
+			headers,
+			body,
 			func(r *http.Response) error {
 				if r != nil {
 					httpResult = NewResultHTTPResponse(r)
 				}
 				if step.HTTPOutput != nil {
-					outputOk = validateHTTPOutput(t, step.HTTPOutput, r)
+					outputOk = validateHTTPOutput(t, step, step.HTTPOutput, r)
 				}
 				return nil
 			})
@@ -373,13 +386,12 @@ func (tc *TestCase) executeStep(
 		flowResponse, flowErr = client.InputFlow(nil, nil, state, input)
 
 		if step.Output != nil {
-			ok := validateOutput(t, step, flowResponse, flowErr)
+			ok := validateAuthflowOutput(t, step, flowResponse, flowErr)
 			if !ok {
 				return nil, state, false
 			}
 		}
 
-		nextState = state
 		if flowResponse != nil {
 			nextState = flowResponse.StateToken
 		}
@@ -387,6 +399,55 @@ func (tc *TestCase) executeStep(
 		result = &StepResult{
 			Result: flowResponse,
 			Error:  flowErr,
+		}
+	case StepActionAdminAPIQuery:
+		if step.AdminAPIRequest == nil {
+			t.Errorf("admin_api_request must be provided for admin_api_graphql step")
+			return nil, state, false
+		}
+
+		var variables map[string]interface{} = map[string]interface{}{}
+		if step.AdminAPIRequest.Variables != "" {
+			renderedVariables, ok := renderTemplateString(t, cmd, prevSteps, step.AdminAPIRequest.Variables)
+			if !ok {
+				t.Errorf("failed to render admin_api_request.variables")
+			}
+			err := json.Unmarshal([]byte(renderedVariables), &variables)
+			if err != nil {
+				t.Errorf("failed to unmarshal admin_api_request.variables: %v", err)
+				return nil, state, false
+			}
+		}
+
+		renderedQuery, ok := renderTemplateString(t, cmd, prevSteps, step.AdminAPIRequest.Query)
+		if !ok {
+			t.Errorf("failed to render admin_api_request.query")
+		}
+		resp, err := cmd.Client.GraphQLAPI(nil, nil, cmd.AppID, authflowclient.GraphQLAPIRequest{
+			Query:     renderedQuery,
+			Variables: variables,
+		})
+		if err != nil {
+			t.Errorf("failed to make adminapi request: %v", err)
+			return nil, state, false
+		}
+
+		if step.AdminAPIOutput != nil {
+			renderedResult, ok := renderTemplateString(t, cmd, prevSteps, step.AdminAPIOutput.Result)
+			if !ok {
+				t.Errorf("failed to render adminapi_output.result")
+			}
+			expectedOutput := *step.AdminAPIOutput
+			expectedOutput.Result = renderedResult
+			ok = validateAdminAPIOutput(t, &expectedOutput, resp)
+			if !ok {
+				return nil, state, false
+			}
+		}
+
+		result = &StepResult{
+			Result: resp,
+			Error:  err,
 		}
 	default:
 		t.Errorf("unknown action in '%s': %s", step.Name, step.Action)
@@ -436,6 +497,7 @@ func execTemplate(cmd *End2EndCmd, prevSteps []StepResult, content string) (stri
 	}
 
 	data := make(map[string]any)
+	data["AppID"] = cmd.AppID
 
 	// Add prev result to data
 	if len(prevSteps) > 0 {
@@ -499,15 +561,18 @@ func makeTemplateFuncMap(cmd *End2EndCmd) texttemplate.FuncMap {
 		}
 		return idToken
 	}
+	templateFuncMap["nodeID"] = func(nodeType string, uuid string) string {
+		return relay.ToGlobalID(nodeType, uuid)
+	}
 
 	return templateFuncMap
 }
 
-func validateOutput(t *testing.T, step Step, flowResponse *authflowclient.FlowResponse, flowErr error) (ok bool) {
+func validateAuthflowOutput(t *testing.T, step Step, flowResponse *authflowclient.FlowResponse, flowErr error) (ok bool) {
 	flowResponseJson, _ := json.MarshalIndent(flowResponse, "", "  ")
 	flowErrJson, _ := json.MarshalIndent(flowErr, "", "  ")
 
-	errorViolations, resultViolations, err := MatchOutput(*step.Output, flowResponse, flowErr)
+	errorViolations, resultViolations, err := MatchAuthflowOutput(*step.Output, flowResponse, flowErr)
 	if err != nil {
 		t.Errorf("failed to match output in '%s': %v\n", step.Name, err)
 		t.Errorf("  result: %s\n", flowResponseJson)
@@ -750,7 +815,7 @@ func validateHTTPResponseStatus(t *testing.T, expectedStatus int, response *http
 	return true
 }
 
-func validateHTTPOutput(t *testing.T, httpOutput *HTTPOutput, response *http.Response) (ok bool) {
+func validateHTTPOutput(t *testing.T, step Step, httpOutput *HTTPOutput, response *http.Response) (ok bool) {
 	ok = true
 	if response == nil {
 		t.Errorf("expected http response but got nil")
@@ -776,6 +841,37 @@ func validateHTTPOutput(t *testing.T, httpOutput *HTTPOutput, response *http.Res
 			response,
 		)
 		if !statusOk {
+			ok = false
+		}
+	}
+	if httpOutput.JSONBody != nil {
+		body, err := io.ReadAll(response.Body)
+		if err != nil {
+			t.Errorf("failed to read response body: %v", err)
+			ok = false
+			return
+		}
+		var bodyIntf interface{}
+		err = json.Unmarshal(body, &bodyIntf)
+		if err != nil {
+			t.Errorf("failed to parse response body as json: %v", err)
+			t.Errorf("  result: %s\n", string(body))
+			ok = false
+			return
+		}
+		bodyJson, _ := json.MarshalIndent(bodyIntf, "", "  ")
+		violations, err := MatchJSON(string(body), *httpOutput.JSONBody)
+		if err != nil {
+			t.Errorf("failed to match output in '%s': %v\n", step.Name, err)
+			t.Errorf("  result: %s\n", bodyJson)
+			ok = false
+		}
+		if len(violations) > 0 {
+			t.Errorf("result output mismatch in '%s':\n", step.Name)
+			for _, violation := range violations {
+				t.Errorf("  | %s: %s. Expected %s, got %s", violation.Path, violation.Message, violation.Expected, violation.Actual)
+			}
+			t.Errorf("  result: %s\n", bodyJson)
 			ok = false
 		}
 	}
@@ -830,6 +926,28 @@ func validateOAuthExchangeCodeOutput(t *testing.T, step Step, output *authflowcl
 			t.Errorf("  | %s: %s. Expected %s, got %s", violation.Path, violation.Message, violation.Expected, violation.Actual)
 		}
 		t.Errorf("  result: %v\n", string(outputJSON))
+		return false
+	}
+
+	return true
+}
+
+func validateAdminAPIOutput(t *testing.T, expected *AdminAPIOutput, resp *authflowclient.GraphQLResponse) (ok bool) {
+	respJSON, _ := json.MarshalIndent(resp, "", "  ")
+
+	violations, err := MatchAdminAPIOutput(*expected, resp)
+	if err != nil {
+		t.Errorf("failed to match admin_api_output: %v\n", err)
+		t.Errorf("  result: %s\n", respJSON)
+		return false
+	}
+
+	if len(violations) > 0 {
+		t.Errorf("admin_api_output mismatch:\n")
+		for _, violation := range violations {
+			t.Errorf("  | %s: %s. Expected %s, got %s", violation.Path, violation.Message, violation.Expected, violation.Actual)
+		}
+		t.Errorf("  result: %s\n", respJSON)
 		return false
 	}
 

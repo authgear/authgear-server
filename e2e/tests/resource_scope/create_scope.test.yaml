@@ -1,0 +1,179 @@
+name: Create Scope
+before:
+  - type: custom_sql
+    custom_sql:
+      path: simple_fixtures.sql
+steps:
+  - action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation MyMutation {
+          createScope(input: {
+            resourceURI: "https://fixtureresource/1",
+            scope: "testscope",
+            description: "Test scope"
+          }) {
+            scope {
+              id
+              resourceID
+              scope
+              description
+            }
+          }
+        }
+      variables: "{}"
+    admin_api_output:
+      result: |
+        {{ $resourceID := (printf  "%s-fixture-resource-01" .AppID) }}
+        {
+          "data": {
+            "createScope": {
+              "scope": {
+                "description": "Test scope",
+                "id": "[[string]]",
+                "resourceID": "{{ nodeID "Resource" $resourceID }}",
+                "scope": "testscope"
+              }
+            }
+          },
+          "errors": null
+        }
+---
+name: Create Scope - Nonexistent Resource
+before:
+  - type: custom_sql
+    custom_sql:
+      path: simple_fixtures.sql
+steps:
+  - action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation MyMutation {
+          createScope(input: {
+            resourceURI: "https://fixtureresource/nonexistentresource",
+            scope: "shouldfail",
+            description: "Should fail"
+          }) {
+            scope {
+              id
+              scope
+              description
+            }
+          }
+        }
+      variables: "{}"
+    admin_api_output:
+      result: |
+        {
+          "data": null,
+          "errors": [
+            {
+              "extensions": {
+                "reason": "ResourceNotFound"
+              }
+            }
+          ]
+        }
+---
+name: Create Scope - Reserved Scope
+before:
+  - type: custom_sql
+    custom_sql:
+      path: simple_fixtures.sql
+steps:
+  - name: "oidc scopes should be blocked"
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation MyMutation {
+          createScope(input: {
+            resourceURI: "https://fixtureresource/1",
+            scope: "openid",
+            description: "Should fail"
+          }) {
+            scope {
+              id
+              scope
+              description
+            }
+          }
+        }
+      variables: "{}"
+    admin_api_output:
+      result: |
+        {
+          "data": null,
+          "errors": [
+            {
+              "extensions": {
+                "reason": "ValidationFailed"
+              }
+            }
+          ]
+        }
+  - name: "https://authgear.com scopes should be blocked"
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation MyMutation {
+          createScope(input: {
+            resourceURI: "https://fixtureresource/1",
+            scope: "https://authgear.com/somescope",
+            description: "Should fail"
+          }) {
+            scope {
+              id
+              scope
+              description
+            }
+          }
+        }
+      variables: "{}"
+    admin_api_output:
+      result: |
+        {
+          "data": null,
+          "errors": [
+            {
+              "extensions": {
+                "reason": "ValidationFailed"
+              }
+            }
+          ]
+        }
+---
+name: Create Scope - Invalid Scope With Space
+before:
+  - type: custom_sql
+    custom_sql:
+      path: simple_fixtures.sql
+steps:
+  - action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation MyMutation {
+          createScope(input: {
+            resourceURI: "https://fixtureresource/1",
+            scope: "scope with space",
+            description: "Should fail"
+          }) {
+            scope {
+              id
+              scope
+              description
+            }
+          }
+        }
+      variables: "{}"
+    admin_api_output:
+      result: |
+        {
+          "data": null,
+          "errors": [
+            {
+              "extensions": {
+                "reason": "ValidationFailed"
+              }
+            }
+          ]
+        }

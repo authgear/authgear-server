@@ -1,0 +1,5 @@
+mutation DeleteScopeMutation($input: DeleteScopeInput!) {
+  deleteScope(input: $input) {
+    ok
+  }
+}

@@ -199,6 +199,29 @@ func TestMatchJSON(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "Array: len(data) > len(schema)",
+			jsonStr: `{
+				"testarray": [1, 2, 3]
+			}`,
+			schema: `{
+				"testarray": [1]
+			}`,
+			expected: []MatchViolation{
+				{
+					Path:     "/testarray/1",
+					Message:  "type mismatch",
+					Expected: "[[undefined]]",
+					Actual:   "[[number]]",
+				},
+				{
+					Path:     "/testarray/2",
+					Message:  "type mismatch",
+					Expected: "[[undefined]]",
+					Actual:   "[[number]]",
+				},
+			},
+		},
 	}
 
 	for _, tc := range testCases {

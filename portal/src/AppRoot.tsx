@@ -193,6 +193,18 @@ const CookieLifetimeConfigurationScreen = lazy(
 const EditConfigurationScreen = lazy(
   async () => import("./graphql/portal/EditConfigurationScreen")
 );
+const APIResourcesScreen = lazy(
+  async () => import("./screens/api-resources/APIResourcesScreen")
+);
+const CreateAPIResourceScreen = lazy(
+  async () => import("./screens/api-resources/CreateAPIResourceScreen")
+);
+const APIResourceDetailsScreen = lazy(
+  async () => import("./screens/api-resources/APIResourceDetailsScreen")
+);
+const EditScopeScreen = React.lazy(
+  async () => import("./screens/api-resources/EditScopeScreen")
+);
 
 const AppRoot: React.VFC = function AppRoot() {
   const { appID } = useParams() as { appID: string };
@@ -520,6 +532,41 @@ const AppRoot: React.VFC = function AppRoot() {
                 </Route>
               </Route>
             </Route>
+          </Route>
+
+          <Route path="api-resources">
+            <Route
+              index={true}
+              element={
+                <Suspense fallback={<ShowLoading />}>
+                  <APIResourcesScreen />
+                </Suspense>
+              }
+            />
+            <Route
+              path="create"
+              element={
+                <Suspense fallback={<ShowLoading />}>
+                  <CreateAPIResourceScreen />
+                </Suspense>
+              }
+            />
+            <Route
+              path=":resourceID"
+              element={
+                <Suspense fallback={<ShowLoading />}>
+                  <APIResourceDetailsScreen />
+                </Suspense>
+              }
+            />
+            <Route
+              path=":resourceID/scopes/:scopeID"
+              element={
+                <Suspense fallback={<ShowLoading />}>
+                  <EditScopeScreen />
+                </Suspense>
+              }
+            />
           </Route>
 
           <Route path="branding">
