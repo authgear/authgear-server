@@ -228,9 +228,8 @@ Member (user_id=louischanyoursky, org_id=yoursky)
 
 ### Use case 4.1: Add a User as a Member of Organization via Admin API
 
-This is the simplest case.
-No invitation is involved.
-The Organization domain settings **IS RESPECTED**.
+This is trivial.
+Things like Login ID email domain allowlist and blocklist **ARE NOT** considered.
 
 ### Use case 4.2: Direct invitation URL
 
@@ -370,3 +369,33 @@ Let me name a few here.
 ### Use case 5: Design Decision
 
 We implement Use case 5.1 for MVP.
+
+## Use case 6: How do we maintain the validity of the membership?
+
+In Use case 4, we discussed the ways that a User can become Member of Organization.
+
+In this use case, we discuss how do we maintain the validity of the membership.
+
+When we read through Use case 4, we know that if a User has an allowed email address,
+then the User is entitled to be a Member of an Organization.
+
+In other words, as long as the User owns the email address, the User can be a Member.
+
+It implies that updating the email address or removing the email address may not be desirable.
+
+### Use case 6.1: Disallow User to add, remove, or update Identities
+
+> [!NOTE]
+> In Stytch B2B Authentication, it is forbidden to add, remove, or update own email address.
+
+When a User is a member of an Organization,
+the User is not allowed to add, remove, or update the following Identities.
+
+- Login ID Identity including email, phone number, and username.
+- OAuth Identity
+- LDAP Identity
+
+The following Identities can still be added and removed:
+
+- Biometric Identity
+- Passkey Identity
