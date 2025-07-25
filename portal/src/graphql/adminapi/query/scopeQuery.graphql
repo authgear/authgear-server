@@ -1,5 +1,6 @@
 query ScopeQuery($id: ID!) {
   node(id: $id) {
+    __typename
     ... on Scope {
       id
       scope

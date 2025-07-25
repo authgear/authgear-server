@@ -2151,6 +2151,11 @@
   "APIResourceDetailsScreen.tab.test": "Test",
   "APIResourceDetailsScreen.scopes.description": "Define the scopes (permissions) used by this resource.",
 
+  "EditScopeScreen.title": "Edit Scope",
+
+  "ScopeForm.scope.label": "Scope",
+  "ScopeForm.description.label": "Description",
+
   "CreateScopeForm.scope.label": "Scope",
   "CreateScopeForm.description.label": "Description",
   "CreateScopeForm.add.button": "Add Scope",
