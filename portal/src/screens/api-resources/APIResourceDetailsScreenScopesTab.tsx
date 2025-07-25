@@ -26,7 +26,7 @@ import {
   DeleteScopeDialogData,
 } from "../../components/api-resources/DeleteScopeDialog";
 import { SearchBox, Text } from "@fluentui/react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { usePaginatedSearchParams } from "../../hook/usePaginatedSearchParams";
 
 export function APIResourceDetailsScreenScopesTab({
@@ -69,6 +69,7 @@ export function APIResourceDetailsScreenScopesTab({
 
   const { renderToString } = useContext(MessageContext);
   const navigate = useNavigate();
+  const location = useLocation();
   const { appID } = useParams<{ appID: string }>();
 
   const onSearchKeywordChange = useMemo(
@@ -145,15 +146,17 @@ export function APIResourceDetailsScreenScopesTab({
 
   const onEdit = useCallback(
     (scope: Scope) => {
-      navigate(
-        `/project/${encodeURIComponent(
+      navigate({
+        pathname: `/project/${encodeURIComponent(
           appID ?? ""
         )}/api-resources/${encodeURIComponent(
           resource.id
-        )}/scopes/${encodeURIComponent(scope.id)}`
-      );
+        )}/scopes/${encodeURIComponent(scope.id)}`,
+        hash: location.hash,
+        search: location.search,
+      });
     },
-    [navigate, appID, resource.id]
+    [navigate, appID, resource.id, location]
   );
 
   if (error != null) {

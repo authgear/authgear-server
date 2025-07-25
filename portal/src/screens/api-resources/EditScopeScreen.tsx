@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import {
   ScopeForm,
@@ -29,6 +29,7 @@ function EditScopeScreenContent({
   }>();
   const navigate = useNavigate();
   const [updateScope] = useUpdateScopeMutationMutation();
+  const location = useLocation();
 
   const initialState: ScopeFormState = useMemo(
     () => ({
@@ -62,11 +63,16 @@ function EditScopeScreenContent({
 
   useEffect(() => {
     if (form.isSubmitted && appID && resourceID) {
-      navigate(
-        `/project/${appID}/api-resources/${encodeURIComponent(resourceID)}`
-      );
+      navigate({
+        pathname: `/project/${appID}/api-resources/${encodeURIComponent(
+          resourceID
+        )}`,
+        hash: location.hash,
+        search: location.search,
+      });
     }
-  }, [form.isSubmitted, navigate, appID, resourceID]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.isSubmitted]);
 
   return (
     <APIResourceScreenLayout
