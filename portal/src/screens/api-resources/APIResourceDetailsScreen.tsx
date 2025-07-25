@@ -8,7 +8,7 @@ import {
 } from "@oursky/react-messageformat";
 import APIResourceScreenLayout from "../../components/api-resources/APIResourceScreenLayout";
 import { Resource, Scope } from "../../graphql/adminapi/globalTypes.generated";
-import { Pivot, PivotItem, Text } from "@fluentui/react";
+import { Pivot, PivotItem, SearchBox, Text } from "@fluentui/react";
 import { usePivotNavigation } from "../../hook/usePivot";
 import { useUpdateResourceMutationMutation } from "../../graphql/adminapi/mutations/updateResourceMutation.generated";
 import { useSimpleForm } from "../../hook/useSimpleForm";
@@ -100,13 +100,25 @@ function APIResourceScopesTab({ resource }: { resource: Resource }) {
   });
 
   const [offset, setOffset] = useState(0);
+  const [searchKeyword, setSearchKeyword] = useState("");
   const pageSize = 10;
+
+  const { renderToString } = useContext(MessageContext);
+
+  const onSearchKeywordChange = useMemo(
+    () => (_: any, newValue?: string) => {
+      setOffset(0);
+      setSearchKeyword(newValue ?? "");
+    },
+    []
+  );
 
   const { data, loading, error, refetch } = useResourceScopesQueryQuery({
     variables: {
       resourceID: resource.id,
       first: pageSize,
       after: offset === 0 ? undefined : encodeOffsetToCursor(offset),
+      searchKeyword: searchKeyword === "" ? undefined : searchKeyword,
     },
   });
 
@@ -149,7 +161,19 @@ function APIResourceScopesTab({ resource }: { resource: Resource }) {
           </Text>
         </header>
         <div className="flex-1 flex flex-col space-y-8">
-          <CreateScopeForm state={form.state} setState={form.setState} />
+          <div className="flex items-end justify-between flex-wrap gap-4">
+            <CreateScopeForm
+              className="flex-1-0-auto min-w-40"
+              state={form.state}
+              setState={form.setState}
+            />
+            <SearchBox
+              className="w-65"
+              placeholder={renderToString("search")}
+              value={searchKeyword}
+              onChange={onSearchKeywordChange}
+            />
+          </div>
           {scopes.length > 0 ? (
             <ScopeList
               className="flex-1 min-h-0"
