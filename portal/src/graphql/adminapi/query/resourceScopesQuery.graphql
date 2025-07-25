@@ -1,9 +1,14 @@
-query ResourceScopesQuery($id: ID!) {
-  node(id: $id) {
+query ResourceScopesQuery(
+  $resourceID: ID!
+  $first: Int
+  $after: String
+  $searchKeyword: String
+) {
+  node(id: $resourceID) {
     ... on Resource {
       id
       resourceURI
-      scopes(first: 1000) {
+      scopes(first: $first, after: $after, searchKeyword: $searchKeyword) {
         edges {
           node {
             id
@@ -13,6 +18,11 @@ query ResourceScopesQuery($id: ID!) {
             updatedAt
           }
         }
+        pageInfo {
+          endCursor
+          hasNextPage
+        }
+        totalCount
       }
     }
   }
