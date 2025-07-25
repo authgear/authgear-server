@@ -27,6 +27,7 @@ import {
 } from "../../components/api-resources/DeleteScopeDialog";
 import { SearchBox, Text } from "@fluentui/react";
 import { useNavigate, useParams } from "react-router-dom";
+import { usePaginatedSearchParams } from "../../hook/usePaginatedSearchParams";
 
 export function APIResourceDetailsScreenScopesTab({
   resource,
@@ -59,8 +60,8 @@ export function APIResourceDetailsScreenScopesTab({
       "ConstantInitialStateAndResetCurrentStatetoInitialStateAfterSave",
   });
 
-  const [offset, setOffset] = useState(0);
-  const [searchKeyword, setSearchKeyword] = useState("");
+  const { offset, setOffset, searchKeyword, setSearchKeyword } =
+    usePaginatedSearchParams();
   const [deleteDialogData, setDeleteDialogData] =
     useState<DeleteScopeDialogData | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -75,7 +76,7 @@ export function APIResourceDetailsScreenScopesTab({
       setOffset(0);
       setSearchKeyword(newValue ?? "");
     },
-    []
+    [setOffset, setSearchKeyword]
   );
 
   const { data, loading, error, refetch } = useResourceScopesQueryQuery({
