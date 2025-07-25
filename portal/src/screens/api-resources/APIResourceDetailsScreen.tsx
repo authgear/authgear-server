@@ -19,7 +19,12 @@ import {
   sanitizeFormState,
 } from "../../components/api-resources/ResourceForm";
 import WidgetTitle from "../../WidgetTitle";
-import { CreateScopeForm } from "../../components/api-resources/CreateScopeForm";
+import {
+  CreateScopeForm,
+  CreateScopeFormState,
+  sanitizeCreateScopeFormState,
+} from "../../components/api-resources/CreateScopeForm";
+import { useCreateScopeMutationMutation } from "../../graphql/adminapi/mutations/createScopeMutation.generated";
 
 function APIResourceDetailsTab({ resource }: { resource: Resource }) {
   const [updateResource] = useUpdateResourceMutationMutation();
@@ -61,12 +66,29 @@ function APIResourceDetailsTab({ resource }: { resource: Resource }) {
   );
 }
 
-function APIResourceScopesTab() {
-  // TODO
-  const form = useSimpleForm<any, any>({
-    defaultState: {},
-    submit: async () => Promise<void>,
-    stateMode: "UpdateInitialStateWithUseEffect",
+function APIResourceScopesTab({ resource }: { resource: Resource }) {
+  const [createScope] = useCreateScopeMutationMutation();
+
+  const [initialState] = useState<CreateScopeFormState>({
+    scope: "",
+    description: "",
+  });
+  const form = useSimpleForm<CreateScopeFormState, any>({
+    defaultState: initialState,
+    submit: async (state) => {
+      const sanitized = sanitizeCreateScopeFormState(state);
+      await createScope({
+        variables: {
+          input: {
+            resourceURI: resource.resourceURI,
+            scope: sanitized.scope,
+            description: sanitized.description,
+          },
+        },
+      });
+    },
+    stateMode:
+      "ConstantInitialStateAndResetCurrentStatetoInitialStateAfterSave",
   });
 
   return (
@@ -81,7 +103,7 @@ function APIResourceScopesTab() {
           </Text>
         </header>
         <div>
-          <CreateScopeForm />
+          <CreateScopeForm state={form.state} setState={form.setState} />
         </div>
       </div>
     </FormContainerBase>
@@ -129,7 +151,9 @@ function APIResourceDetailsContent({ resource }: { resource: Resource }) {
       {selectedKey === "details" ? (
         <APIResourceDetailsTab resource={resource} />
       ) : null}
-      {selectedKey === "scopes" ? <APIResourceScopesTab /> : null}
+      {selectedKey === "scopes" ? (
+        <APIResourceScopesTab resource={resource} />
+      ) : null}
       {selectedKey === "applications" ? <APIResourceApplicationsTab /> : null}
       {selectedKey === "test" ? <APIResourceTestTab /> : null}
     </div>
