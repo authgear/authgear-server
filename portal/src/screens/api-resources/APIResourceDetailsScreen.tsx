@@ -1,5 +1,5 @@
 import React, { useContext, useState, useMemo, useCallback } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useResourceQueryQuery } from "../../graphql/adminapi/query/resourceQuery.generated";
 import { useLoadableView } from "../../hook/useLoadableView";
 import {
@@ -113,6 +113,8 @@ function APIResourceScopesTab({ resource }: { resource: Resource }) {
   const pageSize = 10;
 
   const { renderToString } = useContext(MessageContext);
+  const navigate = useNavigate();
+  const { appID } = useParams<{ appID: string }>();
 
   const onSearchKeywordChange = useMemo(
     () => (_: any, newValue?: string) => {
@@ -120,6 +122,19 @@ function APIResourceScopesTab({ resource }: { resource: Resource }) {
       setSearchKeyword(newValue ?? "");
     },
     []
+  );
+
+  const onEdit = useCallback(
+    (scope: Scope) => {
+      navigate(
+        `/project/${encodeURIComponent(
+          appID ?? ""
+        )}/api-resources/${encodeURIComponent(
+          resource.id
+        )}/scopes/${encodeURIComponent(scope.id)}`
+      );
+    },
+    [navigate, appID, resource.id]
   );
 
   const { data, loading, error, refetch } = useResourceScopesQueryQuery({
@@ -221,7 +236,7 @@ function APIResourceScopesTab({ resource }: { resource: Resource }) {
               scopes={scopes}
               loading={loading}
               pagination={pagination}
-              onEdit={() => {}}
+              onEdit={onEdit}
               onDelete={onDelete}
             />
           ) : null}
