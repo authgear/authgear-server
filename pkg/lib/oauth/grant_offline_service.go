@@ -40,11 +40,6 @@ type OfflineGrantService struct {
 	OfflineGrants OfflineGrantStore
 }
 
-type CreateNewRefreshTokenResult struct {
-	Token     string
-	TokenHash string
-}
-
 // AccessOfflineGrant accesses oauth offline grant with 3 targeted side effects
 // 1. set grant.AccessInfo.LastAccess to new accessEvent
 // 2. call RecordAccess
@@ -166,15 +161,25 @@ func (s *OfflineGrantService) computeRefreshTokenExpiryWithClient(token expirabl
 	return
 }
 
+type CreateNewRefreshTokenOptions struct {
+	OfflineGrant                   *OfflineGrant
+	ClientID                       string
+	Scopes                         []string
+	AuthorizationID                string
+	DPoPJKT                        string
+	ShortLivedRefreshTokenExpireAt *time.Time
+}
+
+type CreateNewRefreshTokenResult struct {
+	Token     string
+	TokenHash string
+}
+
 func (s *OfflineGrantService) CreateNewRefreshToken(
 	ctx context.Context,
-	grant *OfflineGrant,
-	clientID string,
-	scopes []string,
-	authorizationID string,
-	dpopJKT string,
+	options CreateNewRefreshTokenOptions,
 ) (*CreateNewRefreshTokenResult, *OfflineGrant, error) {
-	expiry, err := s.ComputeOfflineGrantExpiry(grant)
+	expiry, err := s.ComputeOfflineGrantExpiry(options.OfflineGrant)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -190,14 +195,17 @@ func (s *OfflineGrantService) CreateNewRefreshToken(
 	newTokenHash := HashToken(newToken)
 	newGrant, err := s.OfflineGrants.AddOfflineGrantRefreshToken(
 		ctx,
-		grant.ID,
-		accessInfo,
-		expiry,
-		newTokenHash,
-		clientID,
-		scopes,
-		authorizationID,
-		dpopJKT,
+		AddOfflineGrantRefreshTokenOptions{
+			OfflineGrantID:                 options.OfflineGrant.ID,
+			AccessInfo:                     accessInfo,
+			OfflineGrantExpireAt:           expiry,
+			ShortLivedRefreshTokenExpireAt: options.ShortLivedRefreshTokenExpireAt,
+			TokenHash:                      newTokenHash,
+			ClientID:                       options.ClientID,
+			Scopes:                         options.Scopes,
+			AuthorizationID:                options.AuthorizationID,
+			DPoPJKT:                        options.DPoPJKT,
+		},
 	)
 	if err != nil {
 		return nil, nil, err
@@ -247,6 +255,23 @@ func (s *OfflineGrantService) housekeepOfflineGrant(ctx context.Context, grant *
 			// Never remove the root token
 			continue
 		}
+
+		// If the token is short-lived.
+		if token.ExpireAt != nil {
+			if now.After(*token.ExpireAt) {
+				tokenHashesToRemove = append(tokenHashesToRemove, token.TokenHash)
+				continue
+			}
+		}
+
+		// If the client was removed, remove the refresh token.
+		clientConfig := s.ClientResolver.ResolveClient(token.ClientID)
+		if clientConfig == nil {
+			tokenHashesToRemove = append(tokenHashesToRemove, token.TokenHash)
+			continue
+		}
+
+		// Otherwise, use last access to determine expiry.
 		var lastAccess time.Time
 		// For backward compatibility
 		if token.AccessInfo == nil {
@@ -254,19 +279,10 @@ func (s *OfflineGrantService) housekeepOfflineGrant(ctx context.Context, grant *
 		} else {
 			lastAccess = token.AccessInfo.LastAccess.Timestamp
 		}
-
-		clientConfig := s.ClientResolver.ResolveClient(token.ClientID)
-		if clientConfig == nil {
-			// The client was removed, remove the refresh token
-			tokenHashesToRemove = append(tokenHashesToRemove, token.TokenHash)
-			continue
-		}
-
 		expiry := s.computeRefreshTokenExpiryWithClient(expirableRefreshToken{
 			CreatedAt:    token.CreatedAt,
 			LastAccessAt: lastAccess,
 		}, clientConfig)
-
 		if now.After(expiry) {
 			tokenHashesToRemove = append(tokenHashesToRemove, token.TokenHash)
 			continue

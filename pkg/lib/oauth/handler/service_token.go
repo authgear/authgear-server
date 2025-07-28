@@ -156,9 +156,13 @@ func (s *TokenService) IssueRefreshTokenForOfflineGrant(
 		return nil, "", err
 	}
 
-	newRefreshTokenResult, newOfflineGrant, err := s.OfflineGrantService.CreateNewRefreshToken(
-		ctx, offlineGrant, client.ClientID, opts.Scopes, opts.AuthorizationID, opts.DPoPJKT,
-	)
+	newRefreshTokenResult, newOfflineGrant, err := s.OfflineGrantService.CreateNewRefreshToken(ctx, oauth.CreateNewRefreshTokenOptions{
+		OfflineGrant:    offlineGrant,
+		ClientID:        client.ClientID,
+		Scopes:          opts.Scopes,
+		AuthorizationID: opts.AuthorizationID,
+		DPoPJKT:         opts.DPoPJKT,
+	})
 	if err != nil {
 		return nil, "", err
 	}

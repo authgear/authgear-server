@@ -9,7 +9,6 @@ import (
 	reflect "reflect"
 	time "time"
 
-	access "github.com/authgear/authgear-server/pkg/lib/session/access"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -169,18 +168,18 @@ func (m *MockOfflineGrantStore) EXPECT() *MockOfflineGrantStoreMockRecorder {
 }
 
 // AddOfflineGrantRefreshToken mocks base method.
-func (m *MockOfflineGrantStore) AddOfflineGrantRefreshToken(ctx context.Context, grantID string, accessInfo access.Info, expireAt time.Time, tokenHash, clientID string, scopes []string, authorizationID, dpopJKT string) (*OfflineGrant, error) {
+func (m *MockOfflineGrantStore) AddOfflineGrantRefreshToken(ctx context.Context, options AddOfflineGrantRefreshTokenOptions) (*OfflineGrant, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AddOfflineGrantRefreshToken", ctx, grantID, accessInfo, expireAt, tokenHash, clientID, scopes, authorizationID, dpopJKT)
+	ret := m.ctrl.Call(m, "AddOfflineGrantRefreshToken", ctx, options)
 	ret0, _ := ret[0].(*OfflineGrant)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // AddOfflineGrantRefreshToken indicates an expected call of AddOfflineGrantRefreshToken.
-func (mr *MockOfflineGrantStoreMockRecorder) AddOfflineGrantRefreshToken(ctx, grantID, accessInfo, expireAt, tokenHash, clientID, scopes, authorizationID, dpopJKT interface{}) *gomock.Call {
+func (mr *MockOfflineGrantStoreMockRecorder) AddOfflineGrantRefreshToken(ctx, options interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddOfflineGrantRefreshToken", reflect.TypeOf((*MockOfflineGrantStore)(nil).AddOfflineGrantRefreshToken), ctx, grantID, accessInfo, expireAt, tokenHash, clientID, scopes, authorizationID, dpopJKT)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddOfflineGrantRefreshToken", reflect.TypeOf((*MockOfflineGrantStore)(nil).AddOfflineGrantRefreshToken), ctx, options)
 }
 
 // AddOfflineGrantSAMLServiceProviderParticipant mocks base method.

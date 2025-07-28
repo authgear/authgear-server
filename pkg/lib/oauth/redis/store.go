@@ -15,7 +15,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
-	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
@@ -449,16 +448,9 @@ func (s *Store) AddOfflineGrantSAMLServiceProviderParticipant(
 
 func (s *Store) AddOfflineGrantRefreshToken(
 	ctx context.Context,
-	grantID string,
-	accessInfo access.Info,
-	expireAt time.Time,
-	tokenHash string,
-	clientID string,
-	scopes []string,
-	authorizationID string,
-	dpopJKT string,
+	options oauth.AddOfflineGrantRefreshTokenOptions,
 ) (*oauth.OfflineGrant, error) {
-	mutexName := offlineGrantMutexName(string(s.AppID), grantID)
+	mutexName := offlineGrantMutexName(string(s.AppID), options.OfflineGrantID)
 	mutex := s.Redis.NewMutex(mutexName)
 	err := mutex.LockContext(ctx)
 	if err != nil {
@@ -468,7 +460,7 @@ func (s *Store) AddOfflineGrantRefreshToken(
 		_, _ = mutex.UnlockContext(ctx)
 	}()
 
-	grant, err := s.GetOfflineGrantWithoutExpireAt(ctx, grantID)
+	grant, err := s.GetOfflineGrantWithoutExpireAt(ctx, options.OfflineGrantID)
 	if err != nil {
 		return nil, err
 	}
@@ -476,17 +468,18 @@ func (s *Store) AddOfflineGrantRefreshToken(
 	now := s.Clock.NowUTC()
 
 	newRefreshToken := oauth.OfflineGrantRefreshToken{
-		TokenHash:       tokenHash,
-		ClientID:        clientID,
+		TokenHash:       options.TokenHash,
+		ClientID:        options.ClientID,
 		CreatedAt:       now,
-		Scopes:          scopes,
-		AuthorizationID: authorizationID,
-		DPoPJKT:         dpopJKT,
-		AccessInfo:      &accessInfo,
+		Scopes:          options.Scopes,
+		AuthorizationID: options.AuthorizationID,
+		DPoPJKT:         options.DPoPJKT,
+		AccessInfo:      &options.AccessInfo,
+		ExpireAt:        options.ShortLivedRefreshTokenExpireAt,
 	}
 
 	grant.RefreshTokens = append(grant.RefreshTokens, newRefreshToken)
-	err = s.updateOfflineGrant(ctx, grant, expireAt)
+	err = s.updateOfflineGrant(ctx, grant, options.OfflineGrantExpireAt)
 	if err != nil {
 		return nil, err
 	}

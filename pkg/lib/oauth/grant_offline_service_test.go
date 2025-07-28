@@ -102,14 +102,14 @@ func TestOfflineGrantService(t *testing.T) {
 
 			// AddOfflineGrantRefreshToken should add a new token
 			mockOfflineGrantStore.EXPECT().
-				AddOfflineGrantRefreshToken(gomock.Any(), "grant-id", gomock.Any(), gomock.Any(), gomock.Any(), "testclient", gomock.Any(), gomock.Any(), gomock.Any()).
-				DoAndReturn(func(ctx context.Context, grantID string, accessInfo access.Info, expireAt time.Time, tokenHash, clientID string, scopes []string, authorizationID, dpopJKT string) (*OfflineGrant, error) {
+				AddOfflineGrantRefreshToken(gomock.Any(), gomock.Any()).
+				DoAndReturn(func(ctx context.Context, options AddOfflineGrantRefreshTokenOptions) (*OfflineGrant, error) {
 					newToken := OfflineGrantRefreshToken{
 						TokenHash:  "newtoken",
 						ClientID:   "testclient",
 						CreatedAt:  mockClock.NowUTC(),
 						Scopes:     []string{"openid"},
-						AccessInfo: &accessInfo,
+						AccessInfo: &options.AccessInfo,
 					}
 					grant.RefreshTokens = append(grant.RefreshTokens, newToken)
 					return grant, nil
@@ -124,7 +124,13 @@ func TestOfflineGrantService(t *testing.T) {
 				RemoveOfflineGrantRefreshTokens(gomock.Any(), "grant-id", gomock.Eq(expectedHashes), gomock.Any()).
 				Return(grant, nil)
 
-			_, _, err := svc.CreateNewRefreshToken(ctx, grant, "testclient", []string{"openid"}, "authz-id", "")
+			_, _, err := svc.CreateNewRefreshToken(ctx, CreateNewRefreshTokenOptions{
+				OfflineGrant:    grant,
+				ClientID:        "testclient",
+				Scopes:          []string{"openid"},
+				AuthorizationID: "authz-id",
+				DPoPJKT:         "",
+			})
 
 			So(err, ShouldBeNil)
 
@@ -191,14 +197,14 @@ func TestOfflineGrantService(t *testing.T) {
 			}
 
 			mockOfflineGrantStore.EXPECT().
-				AddOfflineGrantRefreshToken(gomock.Any(), "grant-id", gomock.Any(), gomock.Any(), gomock.Any(), "testclient", gomock.Any(), gomock.Any(), gomock.Any()).
-				DoAndReturn(func(ctx context.Context, grantID string, accessInfo access.Info, expireAt time.Time, tokenHash, clientID string, scopes []string, authorizationID, dpopJKT string) (*OfflineGrant, error) {
+				AddOfflineGrantRefreshToken(gomock.Any(), gomock.Any()).
+				DoAndReturn(func(ctx context.Context, options AddOfflineGrantRefreshTokenOptions) (*OfflineGrant, error) {
 					newToken := OfflineGrantRefreshToken{
 						TokenHash:  "newtoken",
 						ClientID:   "testclient",
 						CreatedAt:  mockClock.NowUTC(),
 						Scopes:     []string{"openid"},
-						AccessInfo: &accessInfo,
+						AccessInfo: &options.AccessInfo,
 					}
 					grant.RefreshTokens = append(grant.RefreshTokens, newToken)
 					return grant, nil
@@ -209,7 +215,13 @@ func TestOfflineGrantService(t *testing.T) {
 				RemoveOfflineGrantRefreshTokens(gomock.Any(), "grant-id", gomock.Eq(expectedHashes), gomock.Any()).
 				Return(grant, nil)
 
-			_, _, err := svc.CreateNewRefreshToken(ctx, grant, "testclient", []string{"openid"}, "authz-id", "")
+			_, _, err := svc.CreateNewRefreshToken(ctx, CreateNewRefreshTokenOptions{
+				OfflineGrant:    grant,
+				ClientID:        "testclient",
+				Scopes:          []string{"openid"},
+				AuthorizationID: "authz-id",
+				DPoPJKT:         "",
+			})
 
 			So(err, ShouldBeNil)
 		})
@@ -270,14 +282,14 @@ func TestOfflineGrantService(t *testing.T) {
 			}
 
 			mockOfflineGrantStore.EXPECT().
-				AddOfflineGrantRefreshToken(gomock.Any(), "grant-id", gomock.Any(), gomock.Any(), gomock.Any(), "testclient", gomock.Any(), gomock.Any(), gomock.Any()).
-				DoAndReturn(func(ctx context.Context, grantID string, accessInfo access.Info, expireAt time.Time, tokenHash, clientID string, scopes []string, authorizationID, dpopJKT string) (*OfflineGrant, error) {
+				AddOfflineGrantRefreshToken(gomock.Any(), gomock.Any()).
+				DoAndReturn(func(ctx context.Context, options AddOfflineGrantRefreshTokenOptions) (*OfflineGrant, error) {
 					newToken := OfflineGrantRefreshToken{
 						TokenHash:  "newtoken",
 						ClientID:   "testclient",
 						CreatedAt:  mockClock.NowUTC(),
 						Scopes:     []string{"openid"},
-						AccessInfo: &accessInfo,
+						AccessInfo: &options.AccessInfo,
 					}
 					grant.RefreshTokens = append(grant.RefreshTokens, newToken)
 					return grant, nil
@@ -288,7 +300,13 @@ func TestOfflineGrantService(t *testing.T) {
 				RemoveOfflineGrantRefreshTokens(gomock.Any(), "grant-id", gomock.Eq([]string{}), gomock.Any()).
 				Return(grant, nil)
 
-			_, _, err := svc.CreateNewRefreshToken(ctx, grant, "testclient", []string{"openid"}, "authz-id", "")
+			_, _, err := svc.CreateNewRefreshToken(ctx, CreateNewRefreshTokenOptions{
+				OfflineGrant:    grant,
+				ClientID:        "testclient",
+				Scopes:          []string{"openid"},
+				AuthorizationID: "authz-id",
+				DPoPJKT:         "",
+			})
 
 			So(err, ShouldBeNil)
 		})
@@ -370,14 +388,14 @@ func TestOfflineGrantService(t *testing.T) {
 			}
 
 			mockOfflineGrantStore.EXPECT().
-				AddOfflineGrantRefreshToken(gomock.Any(), "grant-id", gomock.Any(), gomock.Any(), gomock.Any(), "testclient", gomock.Any(), gomock.Any(), gomock.Any()).
-				DoAndReturn(func(ctx context.Context, grantID string, accessInfo access.Info, expireAt time.Time, tokenHash, clientID string, scopes []string, authorizationID, dpopJKT string) (*OfflineGrant, error) {
+				AddOfflineGrantRefreshToken(gomock.Any(), gomock.Any()).
+				DoAndReturn(func(ctx context.Context, options AddOfflineGrantRefreshTokenOptions) (*OfflineGrant, error) {
 					newToken := OfflineGrantRefreshToken{
 						TokenHash:  "newtoken",
 						ClientID:   "testclient",
 						CreatedAt:  mockClock.NowUTC(),
 						Scopes:     []string{"openid"},
-						AccessInfo: &accessInfo,
+						AccessInfo: &options.AccessInfo,
 					}
 					grant.RefreshTokens = append(grant.RefreshTokens, newToken)
 					return grant, nil
@@ -389,7 +407,13 @@ func TestOfflineGrantService(t *testing.T) {
 				RemoveOfflineGrantRefreshTokens(gomock.Any(), "grant-id", gomock.Eq(expectedHashes), gomock.Any()).
 				Return(grant, nil)
 
-			_, _, err := svc.CreateNewRefreshToken(ctx, grant, "testclient", []string{"openid"}, "authz-id", "")
+			_, _, err := svc.CreateNewRefreshToken(ctx, CreateNewRefreshTokenOptions{
+				OfflineGrant:    grant,
+				ClientID:        "testclient",
+				Scopes:          []string{"openid"},
+				AuthorizationID: "authz-id",
+				DPoPJKT:         "",
+			})
 
 			So(err, ShouldBeNil)
 
@@ -500,14 +524,14 @@ func TestOfflineGrantService(t *testing.T) {
 			}
 
 			mockOfflineGrantStore.EXPECT().
-				AddOfflineGrantRefreshToken(gomock.Any(), "grant-id", gomock.Any(), gomock.Any(), gomock.Any(), "testclient", gomock.Any(), gomock.Any(), gomock.Any()).
-				DoAndReturn(func(ctx context.Context, grantID string, accessInfo access.Info, expireAt time.Time, tokenHash, clientID string, scopes []string, authorizationID, dpopJKT string) (*OfflineGrant, error) {
+				AddOfflineGrantRefreshToken(gomock.Any(), gomock.Any()).
+				DoAndReturn(func(ctx context.Context, options AddOfflineGrantRefreshTokenOptions) (*OfflineGrant, error) {
 					newToken := OfflineGrantRefreshToken{
 						TokenHash:  "newtoken",
 						ClientID:   "testclient",
 						CreatedAt:  mockClock.NowUTC(),
 						Scopes:     []string{"openid"},
-						AccessInfo: &accessInfo,
+						AccessInfo: &options.AccessInfo,
 					}
 					grant.RefreshTokens = append(grant.RefreshTokens, newToken)
 					return grant, nil
@@ -519,7 +543,181 @@ func TestOfflineGrantService(t *testing.T) {
 				RemoveOfflineGrantRefreshTokens(gomock.Any(), "grant-id", gomock.Eq(expectedHashes), gomock.Any()).
 				Return(grant, nil)
 
-			_, _, err := svc.CreateNewRefreshToken(ctx, grant, "testclient", []string{"openid"}, "authz-id", "")
+			_, _, err := svc.CreateNewRefreshToken(ctx, CreateNewRefreshTokenOptions{
+				OfflineGrant:    grant,
+				ClientID:        "testclient",
+				Scopes:          []string{"openid"},
+				AuthorizationID: "authz-id",
+				DPoPJKT:         "",
+			})
+
+			So(err, ShouldBeNil)
+
+		})
+
+		Convey("short-lived refresh token will be removed", func() {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockIDPSessionProvider := NewMockServiceIDPSessionProvider(ctrl)
+			mockAccessEventProvider := NewMockOfflineGrantServiceAccessEventProvider(ctrl)
+			mockMeterService := NewMockOfflineGrantServiceMeterService(ctrl)
+			mockOfflineGrantStore := NewMockOfflineGrantStore(ctrl)
+
+			mockClock := clock.NewMockClockAt("2020-09-01T00:00:00Z")
+
+			testClientCfg := &config.OAuthClientConfig{
+				ClientID:                       "testclient",
+				RefreshTokenLifetime:           365 * 24 * 60 * 60, // 1 year
+				RefreshTokenIdleTimeoutEnabled: newBool(true),
+				RefreshTokenIdleTimeout:        30 * 24 * 60 * 60, // 30 day
+			}
+			testResolver := &staticClientResolver{Config: testClientCfg}
+
+			svc := &OfflineGrantService{
+				IDPSessions:    mockIDPSessionProvider,
+				AccessEvents:   mockAccessEventProvider,
+				MeterService:   mockMeterService,
+				OfflineGrants:  mockOfflineGrantStore,
+				Clock:          mockClock,
+				ClientResolver: testResolver,
+			}
+
+			ctx := context.Background()
+
+			now := mockClock.NowUTC()
+			twoMinutesLater := clock.NewMockClockAt("2020-09-01T00:02:00Z").Time
+			threeMinutesAgo := clock.NewMockClockAt("2020-08-31T23:57:00Z").Time
+			fiveMinutesAgo := clock.NewMockClockAt("2020-08-31T23:55:00Z").Time
+			tenMinutesAgo := clock.NewMockClockAt("2020-08-31T23:50:00Z").Time
+			tenDaysAgo := clock.NewMockClockAt("2020-08-21T00:00:00Z").Time
+			threeMonthsAgo := clock.NewMockClockAt("2020-06-01T00:00:00Z").Time
+			fourMonthsAgo := clock.NewMockClockAt("2020-05-01T00:00:00Z").Time
+			sixMonthsAgo := clock.NewMockClockAt("2020-03-01T00:00:00Z").Time
+
+			grant := &OfflineGrant{
+				ID:              "grant-id",
+				InitialClientID: "testclient",
+				CreatedAt:       sixMonthsAgo,
+				AccessInfo: access.Info{
+					InitialAccess: access.Event{
+						Timestamp: sixMonthsAgo,
+					},
+					LastAccess: access.Event{
+						Timestamp: now,
+					},
+				},
+				RefreshTokens: []OfflineGrantRefreshToken{
+					{
+						TokenHash: "root",
+						ClientID:  "testclient",
+						CreatedAt: sixMonthsAgo,
+						AccessInfo: &access.Info{
+							InitialAccess: access.Event{
+								Timestamp: sixMonthsAgo,
+							},
+							LastAccess: access.Event{
+								Timestamp: now,
+							},
+						},
+					},
+					{
+						TokenHash: "four-months-ago",
+						ClientID:  "testclient",
+						CreatedAt: fourMonthsAgo,
+						AccessInfo: &access.Info{
+							InitialAccess: access.Event{
+								Timestamp: fourMonthsAgo,
+							},
+							LastAccess: access.Event{
+								Timestamp: fourMonthsAgo,
+							},
+						},
+					},
+					{
+						TokenHash: "three-months-ago",
+						ClientID:  "testclient",
+						CreatedAt: threeMonthsAgo,
+						AccessInfo: &access.Info{
+							InitialAccess: access.Event{
+								Timestamp: threeMonthsAgo,
+							},
+							LastAccess: access.Event{
+								Timestamp: threeMonthsAgo,
+							},
+						},
+					},
+					{
+						TokenHash: "ten-days-ago",
+						ClientID:  "testclient",
+						CreatedAt: tenDaysAgo,
+						AccessInfo: &access.Info{
+							InitialAccess: access.Event{
+								Timestamp: tenDaysAgo,
+							},
+							LastAccess: access.Event{
+								Timestamp: tenDaysAgo,
+							},
+						},
+					},
+					{
+						TokenHash: "short-lived-ten-minutes-ago",
+						ClientID:  "testclient",
+						CreatedAt: tenMinutesAgo,
+						AccessInfo: &access.Info{
+							InitialAccess: access.Event{
+								Timestamp: tenMinutesAgo,
+							},
+							LastAccess: access.Event{
+								Timestamp: tenMinutesAgo,
+							},
+						},
+						ExpireAt: &fiveMinutesAgo,
+					},
+					{
+						TokenHash: "short-lived-three-minutes-ago",
+						ClientID:  "testclient",
+						CreatedAt: threeMinutesAgo,
+						AccessInfo: &access.Info{
+							InitialAccess: access.Event{
+								Timestamp: threeMinutesAgo,
+							},
+							LastAccess: access.Event{
+								Timestamp: threeMinutesAgo,
+							},
+						},
+						ExpireAt: &twoMinutesLater,
+					},
+				},
+			}
+
+			mockOfflineGrantStore.EXPECT().
+				AddOfflineGrantRefreshToken(gomock.Any(), gomock.Any()).
+				DoAndReturn(func(ctx context.Context, options AddOfflineGrantRefreshTokenOptions) (*OfflineGrant, error) {
+					newToken := OfflineGrantRefreshToken{
+						TokenHash:  "newtoken",
+						ClientID:   "testclient",
+						CreatedAt:  mockClock.NowUTC(),
+						Scopes:     []string{"openid"},
+						AccessInfo: &options.AccessInfo,
+					}
+					grant.RefreshTokens = append(grant.RefreshTokens, newToken)
+					return grant, nil
+				})
+
+			expectedHashes := []string{"four-months-ago", "three-months-ago", "short-lived-ten-minutes-ago"}
+
+			mockOfflineGrantStore.EXPECT().
+				RemoveOfflineGrantRefreshTokens(gomock.Any(), "grant-id", gomock.Eq(expectedHashes), gomock.Any()).
+				Return(grant, nil)
+
+			_, _, err := svc.CreateNewRefreshToken(ctx, CreateNewRefreshTokenOptions{
+				OfflineGrant:    grant,
+				ClientID:        "testclient",
+				Scopes:          []string{"openid"},
+				AuthorizationID: "authz-id",
+				DPoPJKT:         "",
+			})
 
 			So(err, ShouldBeNil)
 
