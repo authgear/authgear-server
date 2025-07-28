@@ -1540,6 +1540,9 @@ type ResetPasswordPayload {
 
 """Authgear resource"""
 type Resource implements Entity & Node {
+  """The list of client IDs associated with this Resource."""
+  clientIDs: [String!]!
+
   """The creation time of entity"""
   createdAt: DateTime!
 

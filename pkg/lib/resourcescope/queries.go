@@ -102,3 +102,7 @@ func (q *Queries) GetManyScopes(ctx context.Context, ids []string) ([]*model.Sco
 
 	return scopeModels, nil
 }
+
+func (q *Queries) ListClientIDsByResourceID(ctx context.Context, resourceID string) ([]string, error) {
+	return q.Store.ListClientIDsByResourceID(ctx, resourceID)
+}
