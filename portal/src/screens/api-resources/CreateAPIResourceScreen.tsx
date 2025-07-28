@@ -10,7 +10,6 @@ import { FormContainerBase } from "../../FormContainerBase";
 import { useCreateResourceMutationMutation } from "../../graphql/adminapi/mutations/createResourceMutation.generated";
 import { makeReasonErrorParseRule } from "../../error/parse";
 import { useNavigate, useParams } from "react-router-dom";
-import { Resource } from "../../graphql/adminapi/globalTypes.generated";
 import APIResourceScreenLayout from "../../components/api-resources/APIResourceScreenLayout";
 
 const defaultState: ResourceFormState = {
@@ -30,7 +29,7 @@ const CreateAPIResourceScreen: React.VFC = function CreateAPIResourceScreen() {
   const navigate = useNavigate();
   const { appID } = useParams<{ appID: string }>();
 
-  const form = useSimpleForm<ResourceFormState, Resource>({
+  const form = useSimpleForm<ResourceFormState, string>({
     defaultState,
     submit: async (s) => {
       const state = sanitizeFormState(s);
@@ -45,17 +44,17 @@ const CreateAPIResourceScreen: React.VFC = function CreateAPIResourceScreen() {
       if (result.data == null) {
         throw new Error("unexpected null data");
       }
-      return result.data.createResource.resource;
+      return result.data.createResource.resource.id;
     },
     stateMode:
       "ConstantInitialStateAndResetCurrentStatetoInitialStateAfterSave",
   });
 
   useEffect(() => {
-    if (form.submissionResult?.id && appID) {
+    if (form.submissionResult && appID) {
       navigate(
         `/project/${appID}/api-resources/${encodeURIComponent(
-          form.submissionResult.id
+          form.submissionResult
         )}`
       );
     }

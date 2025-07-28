@@ -557,6 +557,7 @@ export const applicationTypes = [
   "native",
   "confidential",
   "third_party_app",
+  "m2m",
 ] as const;
 export type ApplicationType = (typeof applicationTypes)[number];
 
