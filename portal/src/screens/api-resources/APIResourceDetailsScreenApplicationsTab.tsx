@@ -1,7 +1,10 @@
-import React, { useMemo, useCallback } from "react";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import React, { useMemo, useCallback, useState, useContext } from "react";
+import {
+  Context as MessageContext,
+  FormattedMessage,
+} from "@oursky/react-messageformat";
 import WidgetTitle from "../../WidgetTitle";
-import { Text } from "@fluentui/react";
+import { SearchBox, Text } from "@fluentui/react";
 import { Resource } from "../../graphql/adminapi/globalTypes.generated";
 import { useAddResourceToClientIdMutation } from "../../graphql/adminapi/mutations/addResourceToClientID.generated";
 import { useRemoveResourceFromClientIdMutation } from "../../graphql/adminapi/mutations/removeResourceFromClientID.generated";
@@ -29,7 +32,10 @@ export function APIResourceDetailsScreenApplicationsTab({
   const [addResource] = useAddResourceToClientIdMutation();
   const [removeResource] = useRemoveResourceFromClientIdMutation();
   const { setErrors } = useErrorMessageBarContext();
+  const { renderToString } = useContext(MessageContext);
+
   const isLoading = appConfigQuery.isLoading;
+  const [searchKeyword, setSearchKeyword] = useState("");
 
   const applications = useMemo((): ApplicationListItem[] => {
     return (
@@ -50,6 +56,25 @@ export function APIResourceDetailsScreenApplicationsTab({
         })) ?? []
     );
   }, [appConfigQuery.effectiveAppConfig?.oauth?.clients, resource.clientIDs]);
+
+  const filteredApplications = useMemo(() => {
+    if (!searchKeyword) {
+      return applications;
+    }
+    return applications.filter((app) =>
+      app.name.toLowerCase().includes(searchKeyword.toLowerCase())
+    );
+  }, [applications, searchKeyword]);
+
+  const onSearchQueryChange = useCallback(
+    (
+      _event: React.ChangeEvent<HTMLInputElement> | undefined,
+      newValue: string | undefined
+    ) => {
+      setSearchKeyword(newValue ?? "");
+    },
+    []
+  );
 
   const onToggleAuthorized = useCallback(
     async (item: ApplicationListItem, checked: boolean) => {
@@ -121,7 +146,7 @@ export function APIResourceDetailsScreenApplicationsTab({
   }
 
   return (
-    <div className="pt-5 flex-1 flex flex-col space-y-2">
+    <div className="pt-5 flex-1 flex flex-col space-y-4">
       <header>
         <WidgetTitle className="mb-2">
           <FormattedMessage id="APIResourceDetailsScreen.tab.applications" />
@@ -130,9 +155,15 @@ export function APIResourceDetailsScreenApplicationsTab({
           <FormattedMessage id="APIResourceDetailsScreen.applications.description" />
         </Text>
       </header>
+      <SearchBox
+        onChange={onSearchQueryChange}
+        styles={{ root: { width: 300 } }}
+        value={searchKeyword}
+        placeholder={renderToString("search")}
+      />
       <div className="flex-1 flex flex-col max-w-180">
         <ApplicationList
-          applications={applications}
+          applications={filteredApplications}
           className="flex-1 min-h-0"
           loading={isLoading}
           onToggleAuthorized={onToggleAuthorized}
