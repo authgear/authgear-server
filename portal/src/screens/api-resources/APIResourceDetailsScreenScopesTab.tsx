@@ -28,6 +28,7 @@ import {
 import { SearchBox, Text } from "@fluentui/react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { usePaginatedSearchParams } from "../../hook/usePaginatedSearchParams";
+import { useDebounced } from "../../hook/useDebounced";
 
 export function APIResourceDetailsScreenScopesTab({
   resource,
@@ -67,6 +68,8 @@ export function APIResourceDetailsScreenScopesTab({
   const [isDeleting, setIsDeleting] = useState(false);
   const pageSize = 10;
 
+  const [debouncedSearchKeyword] = useDebounced(searchKeyword, 300);
+
   const { renderToString } = useContext(MessageContext);
   const navigate = useNavigate();
   const location = useLocation();
@@ -85,7 +88,8 @@ export function APIResourceDetailsScreenScopesTab({
       resourceID: resource.id,
       first: pageSize,
       after: offset === 0 ? undefined : encodeOffsetToCursor(offset),
-      searchKeyword: searchKeyword === "" ? undefined : searchKeyword,
+      searchKeyword:
+        debouncedSearchKeyword === "" ? undefined : debouncedSearchKeyword,
     },
   });
 
