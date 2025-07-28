@@ -1,8 +1,5 @@
 import React, { useEffect } from "react";
-import ScreenContent from "../../ScreenContent";
-import ScreenContentHeader from "../../ScreenContentHeader";
 import { FormattedMessage } from "@oursky/react-messageformat";
-import NavBreadcrumb from "../../NavBreadcrumb";
 import {
   ResourceForm,
   ResourceFormState,
@@ -10,14 +7,11 @@ import {
 } from "../../components/api-resources/ResourceForm";
 import { useSimpleForm } from "../../hook/useSimpleForm";
 import { FormContainerBase } from "../../FormContainerBase";
-import {
-  ErrorMessageBar,
-  ErrorMessageBarContextProvider,
-} from "../../ErrorMessageBar";
 import { useCreateResourceMutationMutation } from "../../graphql/adminapi/mutations/createResourceMutation.generated";
 import { makeReasonErrorParseRule } from "../../error/parse";
 import { useNavigate, useParams } from "react-router-dom";
 import { Resource } from "../../graphql/adminapi/globalTypes.generated";
+import APIResourceScreenLayout from "../../components/api-resources/APIResourceScreenLayout";
 
 const defaultState: ResourceFormState = {
   name: "",
@@ -68,38 +62,27 @@ const CreateAPIResourceScreen: React.VFC = function CreateAPIResourceScreen() {
   }, [form.isSubmitted, navigate, form.submissionResult, appID]);
 
   return (
-    <ErrorMessageBarContextProvider>
-      <div className="flex-1 flex flex-col">
-        <ErrorMessageBar />
-        <ScreenContent className="flex-1" layout="list">
-          <ScreenContentHeader
-            title={
-              <NavBreadcrumb
-                items={[
-                  {
-                    to: "~/api-resources",
-                    label: <FormattedMessage id="APIResourcesScreen.title" />,
-                  },
-                  {
-                    to: "",
-                    label: (
-                      <FormattedMessage id="CreateAPIResourceScreen.title" />
-                    ),
-                  },
-                ]}
-              />
-            }
-          />
-          <FormContainerBase form={form} errorRules={errorRules}>
-            <ResourceForm
-              className="col-span-8 tablet:col-span-full"
-              state={form.state}
-              setState={form.setState}
-            />
-          </FormContainerBase>
-        </ScreenContent>
-      </div>
-    </ErrorMessageBarContextProvider>
+    <APIResourceScreenLayout
+      breadcrumbItems={[
+        {
+          to: "~/api-resources",
+          label: <FormattedMessage id="ScreenNav.api-resources" />,
+        },
+        {
+          to: "",
+          label: <FormattedMessage id="CreateAPIResourceScreen.title" />,
+        },
+      ]}
+    >
+      <FormContainerBase form={form} errorRules={errorRules}>
+        <ResourceForm
+          className="col-span-8 tablet:col-span-full"
+          mode="create"
+          state={form.state}
+          setState={form.setState}
+        />
+      </FormContainerBase>
+    </APIResourceScreenLayout>
   );
 };
 

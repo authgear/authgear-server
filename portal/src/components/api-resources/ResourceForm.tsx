@@ -10,6 +10,7 @@ import { useLoading } from "../../hook/loading";
 import PrimaryButton from "../../PrimaryButton";
 import Tooltip from "../../Tooltip";
 import { Label } from "@fluentui/react";
+import TextFieldWithCopyButton from "../../TextFieldWithCopyButton";
 
 export interface ResourceFormState {
   name: string;
@@ -18,6 +19,7 @@ export interface ResourceFormState {
 
 export interface ResourceFormProps {
   className?: string;
+  mode: "create" | "edit";
   state: ResourceFormState;
   setState: (fn: (state: ResourceFormState) => ResourceFormState) => void;
 }
@@ -36,7 +38,7 @@ function isFormIncomplete(state: ResourceFormState): boolean {
 }
 
 export const ResourceForm: React.VFC<ResourceFormProps> =
-  function ResourceForm({ className, state, setState }) {
+  function ResourceForm({ className, state, setState, mode }) {
     const { renderToString } = useContext(Context);
     const handleNameChange = useCallback(
       (_e, value) => setState((s) => ({ ...s, name: value ?? "" })),
@@ -56,6 +58,21 @@ export const ResourceForm: React.VFC<ResourceFormProps> =
       setErrors(errors);
     }, [errors, setErrors]);
 
+    const onRenderResourceURILabel = useCallback(() => {
+      return (
+        <span className="flex">
+          <Label required={true}>
+            {<FormattedMessage id="ResourceForm.resourceURI.label" />}
+          </Label>
+          <Tooltip
+            isHidden={false}
+            className="-ml-3"
+            tooltipMessageId="ResourceForm.resourceURI.tooltip"
+          />
+        </span>
+      );
+    }, []);
+
     return (
       <form className={cn(styles.root, className)} onSubmit={onSubmit}>
         <div className={styles.formFields}>
@@ -69,38 +86,37 @@ export const ResourceForm: React.VFC<ResourceFormProps> =
             value={state.name}
             onChange={handleNameChange}
           />
-          <FormTextField
-            // eslint-disable-next-line react/no-unstable-nested-components
-            onRenderLabel={() => {
-              return (
-                <span className="flex">
-                  <Label required={true}>
-                    {<FormattedMessage id="ResourceForm.resourceURI.label" />}
-                  </Label>
-                  <Tooltip
-                    isHidden={false}
-                    className="-ml-3"
-                    tooltipMessageId="ResourceForm.resourceURI.tooltip"
-                  />
-                </span>
-              );
-            }}
-            description={
-              (
-                <FormattedMessage id="ResourceForm.resourceURI.description" />
-              ) as unknown as string
-            }
-            fieldName="resourceURI"
-            parentJSONPointer=""
-            type="text"
-            value={state.resourceURI}
-            onChange={handleResourceURIChange}
-            placeholder={renderToString("ResourceForm.resourceURI.placeholder")}
-          />
+          {mode === "edit" ? (
+            <TextFieldWithCopyButton
+              label={renderToString("ResourceForm.resourceURI.label")}
+              value={state.resourceURI}
+              readOnly={true}
+              type="text"
+            />
+          ) : (
+            <FormTextField
+              onRenderLabel={onRenderResourceURILabel}
+              description={
+                (
+                  <FormattedMessage id="ResourceForm.resourceURI.description" />
+                ) as unknown as string
+              }
+              fieldName="resourceURI"
+              parentJSONPointer=""
+              type="text"
+              value={state.resourceURI}
+              onChange={handleResourceURIChange}
+              placeholder={renderToString(
+                "ResourceForm.resourceURI.placeholder"
+              )}
+            />
+          )}
         </div>
         <PrimaryButton
           type="submit"
-          text={renderToString("create")}
+          text={
+            mode === "edit" ? renderToString("save") : renderToString("create")
+          }
           disabled={!canSave || !isFormIncomplete(state)}
         />
       </form>
