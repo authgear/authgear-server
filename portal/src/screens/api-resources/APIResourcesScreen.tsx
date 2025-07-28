@@ -19,15 +19,18 @@ import {
 import { SearchBox } from "@fluentui/react";
 import { useNavigate, useParams } from "react-router-dom";
 import APIResourceScreenLayout from "../../components/api-resources/APIResourceScreenLayout";
+import { useDebounced } from "../../hook/useDebounced";
 
 const PAGE_SIZE = 10;
 
 const APIResourcesScreen: React.VFC = function APIResourcesScreen() {
   const [offset, setOffset] = useState(0);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchKeyword, setSearchKeyword] = useState("");
   const [deleteDialogData, setDeleteDialogData] =
     useState<DeleteResourceDialogData | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  const [debouncedSearchKeyword] = useDebounced(searchKeyword, 300);
 
   const { renderToString } = useContext(MessageContext);
   const navigate = useNavigate();
@@ -36,9 +39,9 @@ const APIResourcesScreen: React.VFC = function APIResourcesScreen() {
   const onSearchQueryChange = useCallback(
     (_, newValue) => {
       setOffset(0); // Reset offset to 0 on search query change
-      setSearchQuery(newValue ?? "");
+      setSearchKeyword(newValue ?? "");
     },
-    [setOffset, setSearchQuery]
+    [setOffset, setSearchKeyword]
   );
   const { data, loading, error, refetch } = useResourcesQueryQuery({
     variables: {
@@ -49,7 +52,8 @@ const APIResourcesScreen: React.VFC = function APIResourcesScreen() {
         }
         return encodeOffsetToCursor(offset - 1);
       }, [offset]),
-      searchKeyword: searchQuery === "" ? undefined : searchQuery,
+      searchKeyword:
+        debouncedSearchKeyword === "" ? undefined : debouncedSearchKeyword,
     },
     fetchPolicy: "network-only",
   });
@@ -149,7 +153,7 @@ const APIResourcesScreen: React.VFC = function APIResourcesScreen() {
             className="mb-4"
             styles={{ root: { width: 300 } }}
             onChange={onSearchQueryChange}
-            value={searchQuery}
+            value={searchKeyword}
             placeholder={renderToString("search")}
           />
           <ResourceList
