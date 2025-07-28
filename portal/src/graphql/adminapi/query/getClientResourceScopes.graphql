@@ -1,0 +1,27 @@
+query GetClientResourceScopes(
+  $resourceID: ID!
+  $clientID: String!
+  $first: Int
+) {
+  node(id: $resourceID) {
+    ... on Resource {
+      id
+      name
+      resourceURI
+      scopes(clientID: $clientID, first: $first) {
+        edges {
+          node {
+            id
+            scope
+            resourceID
+            description
+            createdAt
+            updatedAt
+          }
+        }
+      }
+      createdAt
+      updatedAt
+    }
+  }
+}
