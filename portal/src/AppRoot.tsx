@@ -205,6 +205,9 @@ const APIResourceDetailsScreen = lazy(
 const EditScopeScreen = React.lazy(
   async () => import("./screens/api-resources/EditScopeScreen")
 );
+const EditApplicationScopesScreen = lazy(
+  async () => import("./screens/api-resources/EditApplicationScopesScreen")
+);
 
 const AppRoot: React.VFC = function AppRoot() {
   const { appID } = useParams() as { appID: string };
@@ -564,6 +567,14 @@ const AppRoot: React.VFC = function AppRoot() {
               element={
                 <Suspense fallback={<ShowLoading />}>
                   <EditScopeScreen />
+                </Suspense>
+              }
+            />
+            <Route
+              path=":resourceID/applications/:clientID/scopes"
+              element={
+                <Suspense fallback={<ShowLoading />}>
+                  <EditApplicationScopesScreen />
                 </Suspense>
               }
             />
