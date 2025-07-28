@@ -21,6 +21,7 @@ import {
 } from "../../graphql/adminapi/query/resourceQuery.generated";
 import { parseRawError } from "../../error/parse";
 import { useErrorMessageBarContext } from "../../ErrorMessageBar";
+import { useSystemConfig } from "../../context/SystemConfigContext";
 
 export function APIResourceDetailsScreenApplicationsTab({
   resource,
@@ -33,6 +34,7 @@ export function APIResourceDetailsScreenApplicationsTab({
   const [removeResource] = useRemoveResourceFromClientIdMutation();
   const { setErrors } = useErrorMessageBarContext();
   const { renderToString } = useContext(MessageContext);
+  const { themes } = useSystemConfig();
 
   const isLoading = appConfigQuery.isLoading;
   const [searchKeyword, setSearchKeyword] = useState("");
@@ -145,30 +147,49 @@ export function APIResourceDetailsScreenApplicationsTab({
     return <ShowError error={appConfigQuery.loadError} />;
   }
 
+  const isEmpty = applications.length === 0 && !isLoading;
+
   return (
     <div className="pt-5 flex-1 flex flex-col space-y-4">
-      <header>
-        <WidgetTitle className="mb-2">
+      <header className="space-y-2">
+        <WidgetTitle>
           <FormattedMessage id="APIResourceDetailsScreen.tab.applications" />
         </WidgetTitle>
-        <Text>
+        <Text block={true}>
           <FormattedMessage id="APIResourceDetailsScreen.applications.description" />
         </Text>
+        {isEmpty ? (
+          <Text
+            styles={{ root: { color: themes.main.palette.neutralTertiary } }}
+          >
+            <FormattedMessage
+              id="APIResourceDetailsScreen.applications.empty"
+              values={{
+                to: `/project/${appID}/configuration/apps`,
+              }}
+            />
+          </Text>
+        ) : null}
       </header>
-      <SearchBox
-        onChange={onSearchQueryChange}
-        styles={{ root: { width: 300 } }}
-        value={searchKeyword}
-        placeholder={renderToString("search")}
-      />
-      <div className="flex-1 flex flex-col max-w-180">
-        <ApplicationList
-          applications={filteredApplications}
-          className="flex-1 min-h-0"
-          loading={isLoading}
-          onToggleAuthorized={onToggleAuthorized}
-        />
-      </div>
+
+      {isEmpty ? null : (
+        <>
+          <SearchBox
+            onChange={onSearchQueryChange}
+            styles={{ root: { width: 300 } }}
+            value={searchKeyword}
+            placeholder={renderToString("search")}
+          />
+          <div className="flex-1 flex flex-col max-w-180">
+            <ApplicationList
+              applications={filteredApplications}
+              className="flex-1 min-h-0"
+              loading={isLoading}
+              onToggleAuthorized={onToggleAuthorized}
+            />
+          </div>
+        </>
+      )}
     </div>
   );
 }
