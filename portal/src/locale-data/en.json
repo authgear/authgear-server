@@ -2150,6 +2150,10 @@
   "APIResourceDetailsScreen.tab.applications": "Applications",
   "APIResourceDetailsScreen.tab.test": "Test",
   "APIResourceDetailsScreen.scopes.description": "Define the scopes (permissions) used by this resource.",
+  "APIResourceDetailsScreen.applications.description": "Authorize applications to request access tokens for this resource.",
+
+  "ApplicationList.columns.application": "Application",
+  "ApplicationList.columns.authorized": "Authorized",
 
   "EditScopeScreen.title": "Edit Scope",
 
