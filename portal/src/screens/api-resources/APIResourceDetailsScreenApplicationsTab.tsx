@@ -1,8 +1,10 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useCallback } from "react";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import WidgetTitle from "../../WidgetTitle";
 import { Text } from "@fluentui/react";
 import { Resource } from "../../graphql/adminapi/globalTypes.generated";
+import { useAddResourceToClientIdMutation } from "../../graphql/adminapi/mutations/addResourceToClientID.generated";
+import { useRemoveResourceFromClientIdMutation } from "../../graphql/adminapi/mutations/removeResourceFromClientID.generated";
 import {
   ApplicationList,
   ApplicationListItem,
@@ -10,26 +12,109 @@ import {
 import { useAppAndSecretConfigQuery } from "../../graphql/portal/query/appAndSecretConfigQuery";
 import { useParams } from "react-router-dom";
 import ShowError from "../../ShowError";
+import {
+  ResourceQueryDocument,
+  ResourceQueryQuery,
+} from "../../graphql/adminapi/query/resourceQuery.generated";
+import { parseRawError } from "../../error/parse";
+import { useErrorMessageBarContext } from "../../ErrorMessageBar";
 
-export function APIResourceDetailsScreenApplicationsTab({}: {
+export function APIResourceDetailsScreenApplicationsTab({
+  resource,
+}: {
   resource: Resource;
 }): JSX.Element {
   const { appID } = useParams() as { appID: string };
   const appConfigQuery = useAppAndSecretConfigQuery(appID);
-
+  const [addResource] = useAddResourceToClientIdMutation();
+  const [removeResource] = useRemoveResourceFromClientIdMutation();
+  const { setErrors } = useErrorMessageBarContext();
   const isLoading = appConfigQuery.isLoading;
 
   const applications = useMemo((): ApplicationListItem[] => {
     return (
-      appConfigQuery.effectiveAppConfig?.oauth?.clients?.map(
-        (clientConfig) => ({
-          clientID: clientConfig.client_id,
-          authorized: true,
-          name: clientConfig.name ?? clientConfig.client_name ?? "",
+      appConfigQuery.effectiveAppConfig?.oauth?.clients
+        ?.filter((clientConfig) => {
+          switch (clientConfig.x_application_type) {
+            case "m2m":
+            case "confidential":
+              return true;
+            default:
+              return false;
+          }
         })
-      ) ?? []
+        .map((clientConfig) => ({
+          clientID: clientConfig.client_id,
+          authorized: resource.clientIDs.includes(clientConfig.client_id),
+          name: clientConfig.name ?? clientConfig.client_name ?? "",
+        })) ?? []
     );
-  }, [appConfigQuery.effectiveAppConfig?.oauth?.clients]);
+  }, [appConfigQuery.effectiveAppConfig?.oauth?.clients, resource.clientIDs]);
+
+  const onToggleAuthorized = useCallback(
+    async (item: ApplicationListItem, checked: boolean) => {
+      try {
+        if (checked) {
+          const newResource = {
+            ...resource,
+            clientIDs: [...resource.clientIDs, item.clientID],
+          };
+          await addResource({
+            variables: {
+              clientID: item.clientID,
+              resourceURI: resource.resourceURI,
+            },
+            refetchQueries: [ResourceQueryDocument],
+            awaitRefetchQueries: true,
+            optimisticResponse: {
+              addResourceToClientID: {
+                resource: newResource,
+              },
+            },
+            update: (cache) => {
+              // optimistic update
+              cache.writeQuery<ResourceQueryQuery>({
+                query: ResourceQueryDocument,
+                variables: { id: resource.id },
+                data: { node: newResource },
+              });
+            },
+          });
+        } else {
+          const newResource = {
+            ...resource,
+            clientIDs: resource.clientIDs.filter(
+              (clientID) => clientID !== item.clientID
+            ),
+          };
+          await removeResource({
+            variables: {
+              clientID: item.clientID,
+              resourceURI: resource.resourceURI,
+            },
+            refetchQueries: [ResourceQueryDocument],
+            awaitRefetchQueries: true,
+            optimisticResponse: {
+              removeResourceFromClientID: {
+                resource: newResource,
+              },
+            },
+            update: (cache) => {
+              // optimistic update
+              cache.writeQuery<ResourceQueryQuery>({
+                query: ResourceQueryDocument,
+                variables: { id: resource.id },
+                data: { node: newResource },
+              });
+            },
+          });
+        }
+      } catch (e: unknown) {
+        setErrors(parseRawError(e));
+      }
+    },
+    [resource, addResource, removeResource, setErrors]
+  );
 
   if (appConfigQuery.loadError) {
     return <ShowError error={appConfigQuery.loadError} />;
@@ -50,6 +135,7 @@ export function APIResourceDetailsScreenApplicationsTab({}: {
           applications={applications}
           className="flex-1 min-h-0"
           loading={isLoading}
+          onToggleAuthorized={onToggleAuthorized}
         />
       </div>
     </div>

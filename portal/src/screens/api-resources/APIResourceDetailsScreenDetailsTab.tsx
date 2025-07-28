@@ -23,7 +23,7 @@ export function APIResourceDetailsScreenDetailsTab({
     resourceURI: resource.resourceURI,
   });
 
-  const form = useSimpleForm<ResourceFormState, Resource>({
+  const form = useSimpleForm<ResourceFormState, null>({
     defaultState: initialState,
     submit: async (s) => {
       const state = sanitizeFormState(s);
@@ -39,7 +39,7 @@ export function APIResourceDetailsScreenDetailsTab({
         throw new Error("unexpected null data");
       }
       setInitialState(state);
-      return result.data.updateResource.resource;
+      return null;
     },
     stateMode: "UpdateInitialStateWithUseEffect",
   });

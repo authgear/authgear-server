@@ -1,10 +1,10 @@
 query ResourceQuery($id: ID!) {
   node(id: $id) {
-    __typename
     ... on Resource {
       id
       name
       resourceURI
+      clientIDs
       createdAt
       updatedAt
     }
