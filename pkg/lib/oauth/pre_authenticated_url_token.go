@@ -34,10 +34,6 @@ type PreAuthenticatedURLTokenOfflineGrantService interface {
 	GetOfflineGrant(ctx context.Context, id string) (*OfflineGrant, error)
 	CreateNewRefreshToken(
 		ctx context.Context,
-		grant *OfflineGrant,
-		clientID string,
-		scopes []string,
-		authorizationID string,
-		dpopJKT string,
+		options CreateNewRefreshTokenOptions,
 	) (*CreateNewRefreshTokenResult, *OfflineGrant, error)
 }

@@ -124,7 +124,13 @@ func TestOfflineGrantService(t *testing.T) {
 				RemoveOfflineGrantRefreshTokens(gomock.Any(), "grant-id", gomock.Eq(expectedHashes), gomock.Any()).
 				Return(grant, nil)
 
-			_, _, err := svc.CreateNewRefreshToken(ctx, grant, "testclient", []string{"openid"}, "authz-id", "")
+			_, _, err := svc.CreateNewRefreshToken(ctx, CreateNewRefreshTokenOptions{
+				OfflineGrant:    grant,
+				ClientID:        "testclient",
+				Scopes:          []string{"openid"},
+				AuthorizationID: "authz-id",
+				DPoPJKT:         "",
+			})
 
 			So(err, ShouldBeNil)
 
@@ -209,7 +215,13 @@ func TestOfflineGrantService(t *testing.T) {
 				RemoveOfflineGrantRefreshTokens(gomock.Any(), "grant-id", gomock.Eq(expectedHashes), gomock.Any()).
 				Return(grant, nil)
 
-			_, _, err := svc.CreateNewRefreshToken(ctx, grant, "testclient", []string{"openid"}, "authz-id", "")
+			_, _, err := svc.CreateNewRefreshToken(ctx, CreateNewRefreshTokenOptions{
+				OfflineGrant:    grant,
+				ClientID:        "testclient",
+				Scopes:          []string{"openid"},
+				AuthorizationID: "authz-id",
+				DPoPJKT:         "",
+			})
 
 			So(err, ShouldBeNil)
 		})
@@ -288,7 +300,13 @@ func TestOfflineGrantService(t *testing.T) {
 				RemoveOfflineGrantRefreshTokens(gomock.Any(), "grant-id", gomock.Eq([]string{}), gomock.Any()).
 				Return(grant, nil)
 
-			_, _, err := svc.CreateNewRefreshToken(ctx, grant, "testclient", []string{"openid"}, "authz-id", "")
+			_, _, err := svc.CreateNewRefreshToken(ctx, CreateNewRefreshTokenOptions{
+				OfflineGrant:    grant,
+				ClientID:        "testclient",
+				Scopes:          []string{"openid"},
+				AuthorizationID: "authz-id",
+				DPoPJKT:         "",
+			})
 
 			So(err, ShouldBeNil)
 		})
@@ -389,7 +407,13 @@ func TestOfflineGrantService(t *testing.T) {
 				RemoveOfflineGrantRefreshTokens(gomock.Any(), "grant-id", gomock.Eq(expectedHashes), gomock.Any()).
 				Return(grant, nil)
 
-			_, _, err := svc.CreateNewRefreshToken(ctx, grant, "testclient", []string{"openid"}, "authz-id", "")
+			_, _, err := svc.CreateNewRefreshToken(ctx, CreateNewRefreshTokenOptions{
+				OfflineGrant:    grant,
+				ClientID:        "testclient",
+				Scopes:          []string{"openid"},
+				AuthorizationID: "authz-id",
+				DPoPJKT:         "",
+			})
 
 			So(err, ShouldBeNil)
 
@@ -519,7 +543,13 @@ func TestOfflineGrantService(t *testing.T) {
 				RemoveOfflineGrantRefreshTokens(gomock.Any(), "grant-id", gomock.Eq(expectedHashes), gomock.Any()).
 				Return(grant, nil)
 
-			_, _, err := svc.CreateNewRefreshToken(ctx, grant, "testclient", []string{"openid"}, "authz-id", "")
+			_, _, err := svc.CreateNewRefreshToken(ctx, CreateNewRefreshTokenOptions{
+				OfflineGrant:    grant,
+				ClientID:        "testclient",
+				Scopes:          []string{"openid"},
+				AuthorizationID: "authz-id",
+				DPoPJKT:         "",
+			})
 
 			So(err, ShouldBeNil)
 

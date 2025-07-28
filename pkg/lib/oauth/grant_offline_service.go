@@ -40,11 +40,6 @@ type OfflineGrantService struct {
 	OfflineGrants OfflineGrantStore
 }
 
-type CreateNewRefreshTokenResult struct {
-	Token     string
-	TokenHash string
-}
-
 // AccessOfflineGrant accesses oauth offline grant with 3 targeted side effects
 // 1. set grant.AccessInfo.LastAccess to new accessEvent
 // 2. call RecordAccess
@@ -166,15 +161,24 @@ func (s *OfflineGrantService) computeRefreshTokenExpiryWithClient(token expirabl
 	return
 }
 
+type CreateNewRefreshTokenOptions struct {
+	OfflineGrant    *OfflineGrant
+	ClientID        string
+	Scopes          []string
+	AuthorizationID string
+	DPoPJKT         string
+}
+
+type CreateNewRefreshTokenResult struct {
+	Token     string
+	TokenHash string
+}
+
 func (s *OfflineGrantService) CreateNewRefreshToken(
 	ctx context.Context,
-	grant *OfflineGrant,
-	clientID string,
-	scopes []string,
-	authorizationID string,
-	dpopJKT string,
+	options CreateNewRefreshTokenOptions,
 ) (*CreateNewRefreshTokenResult, *OfflineGrant, error) {
-	expiry, err := s.ComputeOfflineGrantExpiry(grant)
+	expiry, err := s.ComputeOfflineGrantExpiry(options.OfflineGrant)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -190,14 +194,14 @@ func (s *OfflineGrantService) CreateNewRefreshToken(
 	newTokenHash := HashToken(newToken)
 	newGrant, err := s.OfflineGrants.AddOfflineGrantRefreshToken(
 		ctx,
-		grant.ID,
+		options.OfflineGrant.ID,
 		accessInfo,
 		expiry,
 		newTokenHash,
-		clientID,
-		scopes,
-		authorizationID,
-		dpopJKT,
+		options.ClientID,
+		options.Scopes,
+		options.AuthorizationID,
+		options.DPoPJKT,
 	)
 	if err != nil {
 		return nil, nil, err
