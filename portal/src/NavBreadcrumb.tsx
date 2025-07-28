@@ -10,7 +10,7 @@ export interface BreadcrumbItem {
 }
 
 export interface Props {
-  className: string;
+  className?: string;
   items: BreadcrumbItem[];
 }
 

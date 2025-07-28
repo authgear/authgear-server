@@ -20,6 +20,7 @@ import {
   DeleteResourceDialogData,
 } from "../../components/api-resources/DeleteResourceDialog";
 import { SearchBox } from "@fluentui/react";
+import { useNavigate, useParams } from "react-router-dom";
 
 const PAGE_SIZE = 10;
 
@@ -31,6 +32,8 @@ const APIResourcesScreen: React.VFC = function APIResourcesScreen() {
   const [isDeleting, setIsDeleting] = useState(false);
 
   const { renderToString } = useContext(MessageContext);
+  const navigate = useNavigate();
+  const { appID } = useParams<{ appID: string }>();
 
   const onSearchQueryChange = useCallback(
     (_, newValue) => {
@@ -89,6 +92,15 @@ const APIResourcesScreen: React.VFC = function APIResourcesScreen() {
     [setDeleteDialogData]
   );
 
+  const onEdit = useCallback(
+    (resource) => {
+      navigate(
+        `/project/${appID}/api-resources/${encodeURIComponent(resource.id)}`
+      );
+    },
+    [navigate, appID]
+  );
+
   const resources = useMemo(() => {
     return (
       data?.resources?.edges
@@ -130,12 +142,7 @@ const APIResourcesScreen: React.VFC = function APIResourcesScreen() {
           }
           suffix={
             resources.length !== 0 ? (
-              <CreateResourceButton
-                onClick={() => {
-                  // TODO
-                }}
-                className="self-start"
-              />
+              <CreateResourceButton className="self-start" />
             ) : null
           }
         />
@@ -153,9 +160,7 @@ const APIResourcesScreen: React.VFC = function APIResourcesScreen() {
             loading={loading}
             pagination={pagination}
             onDelete={onDelete}
-            onEdit={() => {
-              // TODO
-            }}
+            onEdit={onEdit}
           />
         </div>
       </ScreenContent>

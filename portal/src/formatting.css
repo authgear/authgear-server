@@ -1,0 +1,11 @@
+code.inline-code {
+  @apply inline;
+  background-color: #d8e6fd;
+  color: #201f1e;
+  font-size: inherit;
+  line-height: inherit;
+  letter-spacing: inherit;
+  @apply px-1 py-0.5;
+  @apply rounded;
+  @apply box-decoration-clone;
+}
