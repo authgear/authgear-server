@@ -18,7 +18,7 @@ import {
 import { SortDirection } from "./globalTypes.generated";
 import { formatDatetime } from "../../util/formatDatetime";
 import { extractRawID } from "../../util/graphql";
-import useDelayedValue from "../../hook/useDelayedValue";
+import { useDebounced } from "../../hook/useDebounced";
 
 import styles from "./AuditLogList.module.css";
 import { useParams } from "react-router-dom";
@@ -85,7 +85,7 @@ const AuditLogList: React.VFC<AuditLogListProps> = function AuditLogList(
 
   const { appID } = useParams() as { appID: string };
 
-  const loading = useDelayedValue(rawLoading, 500);
+  const [loading] = useDebounced(rawLoading, 500);
 
   const { renderToString, locale } = useContext(Context);
 
