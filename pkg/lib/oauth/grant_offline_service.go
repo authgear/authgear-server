@@ -194,14 +194,16 @@ func (s *OfflineGrantService) CreateNewRefreshToken(
 	newTokenHash := HashToken(newToken)
 	newGrant, err := s.OfflineGrants.AddOfflineGrantRefreshToken(
 		ctx,
-		options.OfflineGrant.ID,
-		accessInfo,
-		expiry,
-		newTokenHash,
-		options.ClientID,
-		options.Scopes,
-		options.AuthorizationID,
-		options.DPoPJKT,
+		AddOfflineGrantRefreshTokenOptions{
+			OfflineGrantID:       options.OfflineGrant.ID,
+			AccessInfo:           accessInfo,
+			OfflineGrantExpireAt: expiry,
+			TokenHash:            newTokenHash,
+			ClientID:             options.ClientID,
+			Scopes:               options.Scopes,
+			AuthorizationID:      options.AuthorizationID,
+			DPoPJKT:              options.DPoPJKT,
+		},
 	)
 	if err != nil {
 		return nil, nil, err

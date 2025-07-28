@@ -21,6 +21,17 @@ type SettingsActionGrantStore interface {
 	DeleteSettingsActionGrant(ctx context.Context, g *SettingsActionGrant) error
 }
 
+type AddOfflineGrantRefreshTokenOptions struct {
+	OfflineGrantID       string
+	AccessInfo           access.Info
+	OfflineGrantExpireAt time.Time
+	TokenHash            string
+	ClientID             string
+	Scopes               []string
+	AuthorizationID      string
+	DPoPJKT              string
+}
+
 type OfflineGrantStore interface {
 	GetOfflineGrantWithoutExpireAt(ctx context.Context, id string) (*OfflineGrant, error)
 	CreateOfflineGrant(ctx context.Context, offlineGrant *OfflineGrant) error
@@ -39,14 +50,7 @@ type OfflineGrantStore interface {
 	RemoveOfflineGrantRefreshTokens(ctx context.Context, grantID string, tokenHashes []string, expireAt time.Time) (*OfflineGrant, error)
 	AddOfflineGrantRefreshToken(
 		ctx context.Context,
-		grantID string,
-		accessInfo access.Info,
-		expireAt time.Time,
-		tokenHash string,
-		clientID string,
-		scopes []string,
-		authorizationID string,
-		dpopJKT string,
+		options AddOfflineGrantRefreshTokenOptions,
 	) (*OfflineGrant, error)
 	AddOfflineGrantSAMLServiceProviderParticipant(
 		ctx context.Context,
