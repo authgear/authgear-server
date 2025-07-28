@@ -277,6 +277,7 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
           "EditOAuthClientForm.redirect-uris.description.confidential",
         third_party_app:
           "EditOAuthClientForm.redirect-uris.description.third-party-app",
+        m2m: "EditOAuthClientForm.redirect-uris.description.m2m",
       };
       const messageID = clientConfig.x_application_type
         ? messageIdMap[clientConfig.x_application_type]
