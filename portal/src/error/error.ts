@@ -84,6 +84,11 @@ export interface APIGroupDuplicateKeyError {
   reason: "GroupDuplicateKey";
 }
 
+export interface APIResourceDuplicateURIError {
+  errorName: string;
+  reason: "ResourceDuplicateURI";
+}
+
 export interface APISendPasswordNoTargetError {
   errorName: string;
   reason: "SendPasswordNoTarget";
@@ -154,6 +159,7 @@ export type APIError = { message?: string } & (
   | APIAuthenticatorNotFoundError
   | APISMSGatewayError
   | APISMTPTestFailedError
+  | APIResourceDuplicateURIError
 );
 
 export function isAPIError(value: unknown): value is APIError {
