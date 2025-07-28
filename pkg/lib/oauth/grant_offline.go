@@ -21,9 +21,13 @@ type OfflineGrantRefreshToken struct {
 	Scopes          []string  `json:"scopes"`
 	AuthorizationID string    `json:"authz_id"`
 	DPoPJKT         string    `json:"dpop_jkt"`
-	// AccessInfo was added on 15/07/2025
+	// AccessInfo was added on 2025-07-15
 	// Refresh token created before the day has nil AccessInfo
 	AccessInfo *access.Info `json:"access_info"`
+	// ExpireAt was added on 2025-07-28
+	// Refresh token created before the day has nil ExpireAt.
+	// Only short-lived pre-authenticated URL refresh token created after the day has non-nil ExpireAt.
+	ExpireAt *time.Time `json:"expire_at"`
 }
 
 type OfflineGrant struct {

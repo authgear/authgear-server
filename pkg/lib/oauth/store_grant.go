@@ -22,14 +22,15 @@ type SettingsActionGrantStore interface {
 }
 
 type AddOfflineGrantRefreshTokenOptions struct {
-	OfflineGrantID       string
-	AccessInfo           access.Info
-	OfflineGrantExpireAt time.Time
-	TokenHash            string
-	ClientID             string
-	Scopes               []string
-	AuthorizationID      string
-	DPoPJKT              string
+	OfflineGrantID                 string
+	AccessInfo                     access.Info
+	OfflineGrantExpireAt           time.Time
+	ShortLivedRefreshTokenExpireAt *time.Time
+	TokenHash                      string
+	ClientID                       string
+	Scopes                         []string
+	AuthorizationID                string
+	DPoPJKT                        string
 }
 
 type OfflineGrantStore interface {

@@ -475,6 +475,7 @@ func (s *Store) AddOfflineGrantRefreshToken(
 		AuthorizationID: options.AuthorizationID,
 		DPoPJKT:         options.DPoPJKT,
 		AccessInfo:      &options.AccessInfo,
+		ExpireAt:        options.ShortLivedRefreshTokenExpireAt,
 	}
 
 	grant.RefreshTokens = append(grant.RefreshTokens, newRefreshToken)

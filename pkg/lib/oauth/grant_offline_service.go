@@ -162,11 +162,12 @@ func (s *OfflineGrantService) computeRefreshTokenExpiryWithClient(token expirabl
 }
 
 type CreateNewRefreshTokenOptions struct {
-	OfflineGrant    *OfflineGrant
-	ClientID        string
-	Scopes          []string
-	AuthorizationID string
-	DPoPJKT         string
+	OfflineGrant                   *OfflineGrant
+	ClientID                       string
+	Scopes                         []string
+	AuthorizationID                string
+	DPoPJKT                        string
+	ShortLivedRefreshTokenExpireAt *time.Time
 }
 
 type CreateNewRefreshTokenResult struct {
@@ -195,14 +196,15 @@ func (s *OfflineGrantService) CreateNewRefreshToken(
 	newGrant, err := s.OfflineGrants.AddOfflineGrantRefreshToken(
 		ctx,
 		AddOfflineGrantRefreshTokenOptions{
-			OfflineGrantID:       options.OfflineGrant.ID,
-			AccessInfo:           accessInfo,
-			OfflineGrantExpireAt: expiry,
-			TokenHash:            newTokenHash,
-			ClientID:             options.ClientID,
-			Scopes:               options.Scopes,
-			AuthorizationID:      options.AuthorizationID,
-			DPoPJKT:              options.DPoPJKT,
+			OfflineGrantID:                 options.OfflineGrant.ID,
+			AccessInfo:                     accessInfo,
+			OfflineGrantExpireAt:           expiry,
+			ShortLivedRefreshTokenExpireAt: options.ShortLivedRefreshTokenExpireAt,
+			TokenHash:                      newTokenHash,
+			ClientID:                       options.ClientID,
+			Scopes:                         options.Scopes,
+			AuthorizationID:                options.AuthorizationID,
+			DPoPJKT:                        options.DPoPJKT,
 		},
 	)
 	if err != nil {
@@ -253,6 +255,23 @@ func (s *OfflineGrantService) housekeepOfflineGrant(ctx context.Context, grant *
 			// Never remove the root token
 			continue
 		}
+
+		// If the token is short-lived.
+		if token.ExpireAt != nil {
+			if now.After(*token.ExpireAt) {
+				tokenHashesToRemove = append(tokenHashesToRemove, token.TokenHash)
+				continue
+			}
+		}
+
+		// If the client was removed, remove the refresh token.
+		clientConfig := s.ClientResolver.ResolveClient(token.ClientID)
+		if clientConfig == nil {
+			tokenHashesToRemove = append(tokenHashesToRemove, token.TokenHash)
+			continue
+		}
+
+		// Otherwise, use last access to determine expiry.
 		var lastAccess time.Time
 		// For backward compatibility
 		if token.AccessInfo == nil {
@@ -260,19 +279,10 @@ func (s *OfflineGrantService) housekeepOfflineGrant(ctx context.Context, grant *
 		} else {
 			lastAccess = token.AccessInfo.LastAccess.Timestamp
 		}
-
-		clientConfig := s.ClientResolver.ResolveClient(token.ClientID)
-		if clientConfig == nil {
-			// The client was removed, remove the refresh token
-			tokenHashesToRemove = append(tokenHashesToRemove, token.TokenHash)
-			continue
-		}
-
 		expiry := s.computeRefreshTokenExpiryWithClient(expirableRefreshToken{
 			CreatedAt:    token.CreatedAt,
 			LastAccessAt: lastAccess,
 		}, clientConfig)
-
 		if now.After(expiry) {
 			tokenHashesToRemove = append(tokenHashesToRemove, token.TokenHash)
 			continue

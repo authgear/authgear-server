@@ -87,12 +87,16 @@ func (s *PreAuthenticatedURLTokenServiceImpl) ExchangeForAccessToken(
 	// DPoP is not important here, because the refresh token is not exposed
 	dpopJKT := ""
 
+	now := s.Clock.NowUTC()
+	shortLivedRefreshTokenExpireAt := now.Add(client.AccessTokenLifetime.Duration())
+
 	newRefreshTokenResult, newOfflineGrant, err := s.OfflineGrantService.CreateNewRefreshToken(ctx, oauth.CreateNewRefreshTokenOptions{
-		OfflineGrant:    offlineGrant,
-		ClientID:        tokenModel.ClientID,
-		Scopes:          tokenModel.Scopes,
-		AuthorizationID: tokenModel.AuthorizationID,
-		DPoPJKT:         dpopJKT,
+		OfflineGrant:                   offlineGrant,
+		ClientID:                       tokenModel.ClientID,
+		Scopes:                         tokenModel.Scopes,
+		AuthorizationID:                tokenModel.AuthorizationID,
+		DPoPJKT:                        dpopJKT,
+		ShortLivedRefreshTokenExpireAt: &shortLivedRefreshTokenExpireAt,
 	})
 	if err != nil {
 		return "", err
