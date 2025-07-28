@@ -193,6 +193,9 @@ const CookieLifetimeConfigurationScreen = lazy(
 const EditConfigurationScreen = lazy(
   async () => import("./graphql/portal/EditConfigurationScreen")
 );
+const APIResourcesScreen = lazy(
+  async () => import("./screens/APIResources/APIResourcesScreen")
+);
 
 const AppRoot: React.VFC = function AppRoot() {
   const { appID } = useParams() as { appID: string };
@@ -520,6 +523,17 @@ const AppRoot: React.VFC = function AppRoot() {
                 </Route>
               </Route>
             </Route>
+          </Route>
+
+          <Route path="api-resources">
+            <Route
+              index={true}
+              element={
+                <Suspense fallback={<ShowLoading />}>
+                  <APIResourcesScreen />
+                </Suspense>
+              }
+            />
           </Route>
 
           <Route path="branding">
