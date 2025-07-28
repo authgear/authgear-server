@@ -15,9 +15,12 @@ import styles from "./ResourceList.module.css";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import ActionButton from "../../ActionButton";
 
+interface ResourceListItem
+  extends Pick<Resource, "id" | "name" | "resourceURI"> {}
+
 interface ResourceListProps {
   className?: string;
-  resources: Resource[];
+  resources: ResourceListItem[];
   loading: boolean;
   pagination: PaginationProps;
   onEdit: (resource: Resource) => void;
