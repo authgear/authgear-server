@@ -1,0 +1,19 @@
+query GetResourcesByClientID($clientID: String!, $first: Int, $after: String) {
+  resources(clientID: $clientID, first: $first, after: $after) {
+    edges {
+      cursor
+      node {
+        id
+        name
+        resourceURI
+      }
+    }
+    pageInfo {
+      endCursor
+      hasNextPage
+      hasPreviousPage
+      startCursor
+    }
+    totalCount
+  }
+}

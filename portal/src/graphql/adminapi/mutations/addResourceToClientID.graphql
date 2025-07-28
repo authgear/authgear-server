@@ -1,0 +1,11 @@
+mutation AddResourceToClientID($clientID: String!, $resourceURI: String!) {
+  addResourceToClientID(
+    input: { clientID: $clientID, resourceURI: $resourceURI }
+  ) {
+    resource {
+      id
+      resourceURI
+      name
+    }
+  }
+}
