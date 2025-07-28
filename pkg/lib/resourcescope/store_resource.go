@@ -307,3 +307,26 @@ func (s *Store) RemoveResourceFromClientID(ctx context.Context, resourceID, clie
 	}
 	return nil
 }
+
+func (s *Store) ListClientIDsByResourceID(ctx context.Context, resourceID string) ([]string, error) {
+	q := s.SQLBuilder.Select("client_id").
+		From(s.SQLBuilder.TableName("_auth_client_resource")).
+		Where("resource_id = ?", resourceID)
+
+	rows, err := s.SQLExecutor.QueryWith(ctx, q)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var clientIDs []string
+	for rows.Next() {
+		var clientID string
+		if err := rows.Scan(&clientID); err != nil {
+			return nil, err
+		}
+		clientIDs = append(clientIDs, clientID)
+	}
+
+	return clientIDs, nil
+}

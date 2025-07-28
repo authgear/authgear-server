@@ -28,6 +28,7 @@ type ResourceScopeQueries interface {
 	GetScope(ctx context.Context, resourceURI string, scope string) (*model.Scope, error)
 	ListScopes(ctx context.Context, resourceID string, options *resourcescope.ListScopeOptions, pageArgs graphqlutil.PageArgs) (*resourcescope.ListScopeResult, error)
 	ListResources(ctx context.Context, options *resourcescope.ListResourcesOptions, pageArgs graphqlutil.PageArgs) (*resourcescope.ListResourceResult, error)
+	ListClientIDsByResourceID(ctx context.Context, resourceID string) ([]string, error)
 }
 
 type ResourceScopeFacade struct {
@@ -129,4 +130,8 @@ func (f *ResourceScopeFacade) RemoveScopesFromClientID(ctx context.Context, reso
 
 func (f *ResourceScopeFacade) ReplaceScopesOfClientID(ctx context.Context, resourceURI, clientID string, scopes []string) ([]*model.Scope, error) {
 	return f.ResourceScopeCommands.ReplaceScopesOfClientID(ctx, resourceURI, clientID, scopes)
+}
+
+func (f *ResourceScopeFacade) ListClientIDsByResourceID(ctx context.Context, resourceID string) ([]string, error) {
+	return f.ResourceScopeQueries.ListClientIDsByResourceID(ctx, resourceID)
 }

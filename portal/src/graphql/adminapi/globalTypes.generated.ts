@@ -1395,6 +1395,8 @@ export type ResetPasswordPayload = {
 /** Authgear resource */
 export type Resource = Entity & Node & {
   __typename?: 'Resource';
+  /** The list of client IDs associated with this Resource. */
+  clientIDs: Array<Scalars['String']['output']>;
   /** The creation time of entity */
   createdAt: Scalars['DateTime']['output'];
   /** The ID of an object */

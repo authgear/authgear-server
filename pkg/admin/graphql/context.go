@@ -213,6 +213,7 @@ type ResourceScopeFacade interface {
 	AddScopesToClientID(ctx context.Context, resourceURI, clientID string, scopes []string) ([]*apimodel.Scope, error)
 	RemoveScopesFromClientID(ctx context.Context, resourceURI, clientID string, scopes []string) ([]*apimodel.Scope, error)
 	ReplaceScopesOfClientID(ctx context.Context, resourceURI, clientID string, scopes []string) ([]*apimodel.Scope, error)
+	ListClientIDsByResourceID(ctx context.Context, resourceID string) ([]string, error)
 }
 
 type Context struct {
