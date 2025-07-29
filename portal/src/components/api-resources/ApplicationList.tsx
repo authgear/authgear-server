@@ -20,13 +20,24 @@ interface ApplicationListProps {
   className?: string;
   applications: ApplicationListItem[];
   loading: boolean;
+  disabledToggleClientIDs: string[];
   onToggleAuthorized: (item: ApplicationListItem, checked: boolean) => void;
 }
 
 export const ApplicationList: React.VFC<ApplicationListProps> =
   function ApplicationList(props) {
-    const { className, applications, loading, onToggleAuthorized } = props;
+    const {
+      className,
+      applications,
+      loading,
+      onToggleAuthorized,
+      disabledToggleClientIDs,
+    } = props;
     const { renderToString } = useContext(MessageContext);
+
+    const disabledToggleClientIDsSet = useMemo(() => {
+      return new Set(disabledToggleClientIDs);
+    }, [disabledToggleClientIDs]);
 
     const onRenderAuthorized = useCallback(
       (item?: ApplicationListItem) => {
@@ -37,10 +48,11 @@ export const ApplicationList: React.VFC<ApplicationListProps> =
           <AuthorizedToggle
             item={item}
             onToggleAuthorized={onToggleAuthorized}
+            disabled={disabledToggleClientIDsSet.has(item.clientID)}
           />
         );
       },
-      [onToggleAuthorized]
+      [disabledToggleClientIDsSet, onToggleAuthorized]
     );
 
     const columns = useMemo(
@@ -84,10 +96,11 @@ export const ApplicationList: React.VFC<ApplicationListProps> =
 interface AuthorizedToggleProps {
   item: ApplicationListItem;
   onToggleAuthorized: (item: ApplicationListItem, checked: boolean) => void;
+  disabled: boolean;
 }
 
 function AuthorizedToggle(props: AuthorizedToggleProps) {
-  const { item, onToggleAuthorized } = props;
+  const { item, onToggleAuthorized, disabled } = props;
   const onChange = useCallback(
     (_?: React.MouseEvent<HTMLElement>, checked?: boolean) => {
       if (checked == null) {
@@ -97,5 +110,7 @@ function AuthorizedToggle(props: AuthorizedToggleProps) {
     },
     [item, onToggleAuthorized]
   );
-  return <Toggle checked={item.authorized} onChange={onChange} />;
+  return (
+    <Toggle checked={item.authorized} onChange={onChange} disabled={disabled} />
+  );
 }
