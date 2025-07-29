@@ -8,6 +8,7 @@ query ResourceScopesQuery(
     ... on Resource {
       id
       resourceURI
+      name
       scopes(first: $first, after: $after, searchKeyword: $searchKeyword) {
         edges {
           node {

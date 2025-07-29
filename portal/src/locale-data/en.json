@@ -2156,6 +2156,7 @@
 
   "ApplicationList.columns.application": "Application",
   "ApplicationList.columns.authorized": "Authorized",
+  "ApplicationList.columns.manageScopes": "Manage Scopes",
 
   "EditScopeScreen.title": "Edit Scope",
 
