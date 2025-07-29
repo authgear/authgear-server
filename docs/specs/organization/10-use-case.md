@@ -419,3 +419,78 @@ Adding Identities generally does not contradict with auto-membership though.
 ### Use case 6: Design Decision
 
 We implement User case 6.1 for MVP.
+
+## Use case 7: UI/UX of Organizational signup and login
+
+### Use case 7.1: Organizational signup and login in OIDC
+
+In Auth0, depending on the selected "Login Experience", the developer can further configure "Login Flow"
+
+- Login Experience - Individuals
+- Login Experience - Business Users
+  - Login Flow - Prompt for Credentials
+  - Login Flow - Prompt for Organization
+  - Login Flow - No Prompt
+- Login Experience - Both
+  - Login Flow - Prompt for Credentials
+  - Login Flow - No Prompt
+
+> [!NOTE]
+> "Login Flow - No Prompt" means the developer has to specify the Organization in the authentication request.
+
+If we try to encode the 2 enums into 1 enum, we have:
+
+| enum                                                                                        | Auth0 equivalent                                                         | Description                                                                                                                                                                                              |
+| ---                                                                                         | ---                                                                      | ---                                                                                                                                                                                                      |
+| `x_organization_behavior=only_non_member`                                                   | Login Experience - Individuals                                           | This is the default value because it is back compatible with the pre-organization era. No prompts on Organization. The end-user signs in without Organization.                                           |
+| `x_organization_behavior=only_member:prompt_end_user_for_organization_last`                 | Login Experience - Business Users + Login Flow - Prompt for Credentials  | For signups, it is expected that the signed up User will be made Members of some Organizations via auto-membership, otherwise the end-user will be shown an error screen as a dead end.                  |
+| `x_organization_behavior=only_member:prompt_end_user_for_organization_first`                | Login Experience - Business Users + Login Flow - Prompt for Organization | The end-user is expected to know the Organization slug. Like Auth0, if the end-user enters an invalid Organization slug, an error is shown immediately.                                                  |
+| `x_organization_behavior=only_member:developer_specified_organization`                      | Login Experience - Business Users + Login Flow - No Prompt               | The developer **MUST** specifies which organization to sign in. It is an OAuth Error or SAML error if organization is unspecified by the developer.                                                      |
+| `x_organization_behavior=either_member_or_non_member:prompt_end_user_for_organization_last` | Login Experience - Both + Login Flow - Prompt for Credentials            | The end-user is prompted to select "No Organization" and the Organizations he is a member of. The "No Organization" option always exist.                                                                 |
+| `x_organization_behavior=either_member_or_non_member:developer_specified_organization`      | Login Experience - Both + Login Flow - No Prompt                         | The developer **OPTIONALLY** specifies which organization to sign in. If unspecified, it behaves the same as `x_organization_behavior=either_member_or_non_member:prompt_end_user_for_organization_last` |
+
+In Auth0, the query parameter `organization` can be used by the developer to specify the Organization.
+See https://auth0.com/docs/manage-users/organizations/using-tokens#authenticate-users-through-an-organization
+I propose we support an equivalent with a different name `x_org_slug`.
+It starts with `x_` like all existing proprietary query parameters like `x_sso_enabled`.
+And it has `_slug` in it, it is clear to the developer that they should provide an Organization slug.
+
+When Organization is not known at the beginning, Organization-specific configuration **IS NOT** applied.
+This implies the authentication **COULD** be invalidated by the choice of Organization.
+
+For example, the end-user signs in with Email Login ID and password, select an Organization with Federated Login enabled.
+Then the end-user has to restart the authentication from the beginning.
+
+For example, the end-user signs in with Email Login ID and password, select an Organization that requires MFA.
+In this particular case, it makes more sense to only require the end-user to do MFA only, rather than restarting the authentication from the beginning.
+
+For example, the end-user signs in with Email Login ID and password, select an Organization that has a strict password policy that the current password does not meet.
+In this particular case, the end-user has to change the password in order to complete the login.
+
+`prompt_end_user_for_organization_last`, in many ways, does not work well as Authentication Flow.
+
+> [!IMPORTANT]
+> Need discussion on how to fit `prompt_end_user_for_organization_last` with Authentication Flow.
+>
+> 1. How do we model `prompt_end_user_for_organization_last`? As a new step in authflow?
+> 2. Once organization is known, the generated authflow may change. Do we compute a diff between the executed authflow with the newly generated authflow? If yes, do we execute the diff?
+
+### Use case 7.2: Organizational signup and login in SAML
+
+In Auth0, to provide developer-provided organization, a query parameter `organization` can be added to the SAML Login URL.
+See https://auth0.com/docs/authenticate/single-sign-on/outbound-single-sign-on/configure-auth0-saml-identity-provider#configure-saml-sso-on-the-service-provider
+
+Alternatively, we can make use of `<Extensions>`, as specified in Section 3.2.1 in https://groups.oasis-open.org/higherlogic/ws/public/download/56776/sstc-saml-core-errata-2.0-wd-07.pdf
+to allow specify the intended Organization slug in `<AuthnRequest>`.
+
+For consistency, I propose we support query parameter `x_org_slug` in the SAML Login URL, like what we support in Use case 7.1.
+
+### Use case 7: Design Decision
+
+For MVP, we can implement parts of Use case 7.1:
+
+- `x_organization_behavior=only_non_member`
+- `x_organization_behavior=only_member:prompt_end_user_for_organization_first`
+- `x_organization_behavior=only_member:developer_specified_organization`
+
+Other variants requires `prompt_end_user_for_organization_last` to be sorted out first.
