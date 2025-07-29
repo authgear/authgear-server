@@ -1,8 +1,8 @@
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useMemo, useCallback } from "react";
 import { useSimpleForm } from "../../hook/useSimpleForm";
-import { FormContainerBase } from "../../FormContainerBase";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import {
+  GetClientResourceScopesDocument,
   GetClientResourceScopesQuery,
   useGetClientResourceScopesQuery,
 } from "../../graphql/adminapi/query/getClientResourceScopes.generated";
@@ -10,6 +10,7 @@ import {
   useResourceScopesQueryQuery,
   ResourceScopesQueryQuery,
 } from "../../graphql/adminapi/query/resourceScopesQuery.generated";
+import { useReplaceScopesOfClientIdMutation } from "../../graphql/adminapi/mutations/replaceScopesOfClientID.generated";
 import { useParams } from "react-router-dom";
 import {
   EditApplicationScopesList,
@@ -19,6 +20,7 @@ import APIResourceScreenLayout from "../../components/api-resources/APIResourceS
 import { OAuthClientConfig } from "../../types";
 import { useAppAndSecretConfigQuery } from "../../graphql/portal/query/appAndSecretConfigQuery";
 import { useLoadableView } from "../../hook/useLoadableView";
+import FormContainer from "../../FormContainer";
 
 const pageSize = 1000;
 
@@ -35,11 +37,18 @@ function EditApplicationScopesScreenContent({
   resourceScopesQueryData: ResourceScopesQueryQuery;
   clientResourceScopesQueryData: GetClientResourceScopesQuery;
 }) {
+  const [replaceScopesOfClientIdMutation] =
+    useReplaceScopesOfClientIdMutation();
+
   const resource =
     resourceScopesQueryData.node &&
     resourceScopesQueryData.node.__typename === "Resource"
       ? resourceScopesQueryData.node
       : null;
+
+  if (resource == null) {
+    throw new Error("unexpected type of node");
+  }
 
   const remoteClientScopes = useMemo(() => {
     return clientResourceScopesQueryData.node?.__typename === "Resource"
@@ -49,13 +58,25 @@ function EditApplicationScopesScreenContent({
       : undefined;
   }, [clientResourceScopesQueryData]);
 
-  const [initialState] = useState<FormState>({
-    assignedScopes: remoteClientScopes ?? [],
-  });
+  const initialState = useMemo(
+    () => ({
+      assignedScopes: remoteClientScopes ?? [],
+    }),
+    [remoteClientScopes]
+  );
+
   const form = useSimpleForm<FormState>({
     defaultState: initialState,
     submit: async () => {
-      // TODO
+      await replaceScopesOfClientIdMutation({
+        variables: {
+          clientID: clientConfig.client_id,
+          resourceURI: resource.resourceURI,
+          scopes: form.state.assignedScopes,
+        },
+        awaitRefetchQueries: true,
+        refetchQueries: [GetClientResourceScopesDocument],
+      });
     },
     stateMode: "UpdateInitialStateWithUseEffect",
   });
@@ -67,38 +88,39 @@ function EditApplicationScopesScreenContent({
 
   const scopes = useMemo((): EditApplicationScopesListItem[] => {
     const allScopes =
-      resourceScopesQueryData.node &&
-      resourceScopesQueryData.node.__typename === "Resource"
-        ? resourceScopesQueryData.node.scopes?.edges
-            ?.map((edge) => edge?.node)
-            .filter((n) => !!n) ?? []
-        : [];
+      resource.scopes?.edges?.map((edge) => edge?.node).filter((n) => !!n) ??
+      [];
     return allScopes.map((scope) => ({
       scope: scope.scope,
       isAssigned: assignedScopes.has(scope.scope),
     }));
-  }, [assignedScopes, resourceScopesQueryData.node]);
+  }, [assignedScopes, resource]);
 
   return (
-    <APIResourceScreenLayout
-      breadcrumbItems={[
-        {
-          to: "~/api-resources",
-          label: <FormattedMessage id="ScreenNav.api-resources" />,
-        },
-        {
-          to: `~/api-resources/${resource?.id}`,
-          label: resource?.name ?? resource?.resourceURI ?? "",
-        },
-        {
-          to: ``,
-          label: clientConfig.name ?? clientConfig.client_name,
-        },
-      ]}
+    <FormContainer
+      form={form}
+      className="flex-1-0-auto flex flex-col"
+      stickyFooterComponent={true}
+      showDiscardButton={true}
     >
-      <FormContainerBase form={form}>
+      <APIResourceScreenLayout
+        breadcrumbItems={[
+          {
+            to: "~/api-resources",
+            label: <FormattedMessage id="ScreenNav.api-resources" />,
+          },
+          {
+            to: `~/api-resources/${resource.id}#applications`,
+            label: resource.name ?? resource.resourceURI,
+          },
+          {
+            to: ``,
+            label: clientConfig.name ?? clientConfig.client_name,
+          },
+        ]}
+      >
         <EditApplicationScopesList
-          className="flex-1 min-h-0 col-span-full"
+          className="flex-1-0-auto col-span-full"
           scopes={scopes}
           onToggleAssignedScopes={useCallback(
             (
@@ -125,8 +147,8 @@ function EditApplicationScopesScreenContent({
             [form]
           )}
         />
-      </FormContainerBase>
-    </APIResourceScreenLayout>
+      </APIResourceScreenLayout>
+    </FormContainer>
   );
 }
 
