@@ -36,6 +36,17 @@ var nodeResource = node(
 				Type:        graphql.String,
 				Description: "The optional name of the resource.",
 			},
+			"clientIDs": &graphql.Field{
+				Type:        graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(graphql.String))),
+				Description: "The list of client IDs associated with this Resource.",
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					resource := p.Source.(*model.Resource)
+					ctx := p.Context
+					gqlCtx := GQLContext(ctx)
+
+					return gqlCtx.ResourceClients.Load(ctx, resource.ID).Value, nil
+				},
+			},
 		},
 	}),
 	&model.Resource{},

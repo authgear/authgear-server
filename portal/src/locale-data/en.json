@@ -856,6 +856,7 @@
   "EditOAuthClientForm.redirect-uris.description.confidential": "After users are authenticated, users will be redirected to these URIs. This should be a page in your application.",
   "EditOAuthClientForm.redirect-uris.description.third-party-app": "After users are authenticated, users will be redirected to these URIs. This should be a page in your application.",
   "EditOAuthClientForm.redirect-uris.description.unspecified": "After users are authenticated, users will be redirected to these URIs. This should be a page in your application.",
+  "EditOAuthClientForm.redirect-uris.description.m2m": "",
   "EditOAuthClientForm.post-logout-redirect-uris.label": "Post Logout Redirect URIs",
   "EditOAuthClientForm.post-logout-redirect-uris.description": "Users will be redirected to these paths after they have logged out. The URIs must be whitelisted here.",
   "EditOAuthClientForm.post-logout-redirect-uris.spa.description": "Post Logout Redirect URIs are not needed for the web SDK @authgear/web >= 2.0.0. In the old version SDK, users will be redirected to these paths after they have logged out. The URIs must be whitelisted here.",
@@ -2150,6 +2151,11 @@
   "APIResourceDetailsScreen.tab.applications": "Applications",
   "APIResourceDetailsScreen.tab.test": "Test",
   "APIResourceDetailsScreen.scopes.description": "Define the scopes (permissions) used by this resource.",
+  "APIResourceDetailsScreen.applications.description": "Authorize applications to request access tokens for this resource.",
+  "APIResourceDetailsScreen.applications.empty": "No M2M or OIDC application yet. Create one in the {ReactRouterLink, react, to{{to}} children{Applications}} section to proceed.",
+
+  "ApplicationList.columns.application": "Application",
+  "ApplicationList.columns.authorized": "Authorized",
 
   "EditScopeScreen.title": "Edit Scope",
 

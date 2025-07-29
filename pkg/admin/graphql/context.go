@@ -53,6 +53,10 @@ type ResourceLoader interface {
 	graphqlutil.DataLoaderInterface
 }
 
+type ResourceClientLoader interface {
+	graphqlutil.DataLoaderInterface
+}
+
 type ScopeLoader interface {
 	graphqlutil.DataLoaderInterface
 }
@@ -220,14 +224,15 @@ type Context struct {
 	OAuthConfig           *config.OAuthConfig
 	AdminAPIFeatureConfig *config.AdminAPIFeatureConfig
 
-	Users          UserLoader
-	Identities     IdentityLoader
-	Authenticators AuthenticatorLoader
-	Roles          RoleLoader
-	Groups         GroupLoader
-	AuditLogs      AuditLogLoader
-	Resources      ResourceLoader
-	Scopes         ScopeLoader
+	Users           UserLoader
+	Identities      IdentityLoader
+	Authenticators  AuthenticatorLoader
+	Roles           RoleLoader
+	Groups          GroupLoader
+	AuditLogs       AuditLogLoader
+	Resources       ResourceLoader
+	ResourceClients ResourceClientLoader
+	Scopes          ScopeLoader
 
 	UserFacade          UserFacade
 	RolesGroupsFacade   RolesGroupsFacade
