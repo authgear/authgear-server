@@ -1,0 +1,18 @@
+mutation ReplaceScopesOfClientID(
+  $clientID: String!
+  $resourceURI: String!
+  $scopes: [String!]!
+) {
+  replaceScopesOfClientID(
+    input: { clientID: $clientID, resourceURI: $resourceURI, scopes: $scopes }
+  ) {
+    scopes {
+      id
+      scope
+      resourceID
+      description
+      createdAt
+      updatedAt
+    }
+  }
+}
