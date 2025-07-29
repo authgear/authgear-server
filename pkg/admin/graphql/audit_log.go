@@ -20,6 +20,9 @@ var auditLogActivityType = graphql.NewEnum(graphql.EnumConfig{
 		"USER_AUTHENTICATED": &graphql.EnumValueConfig{
 			Value: "user.authenticated",
 		},
+		"USER_REAUTHENTICATED": &graphql.EnumValueConfig{
+			Value: "user.reauthenticated",
+		},
 		"USER_PROFILE_UPDATED": &graphql.EnumValueConfig{
 			Value: "user.profile.updated",
 		},

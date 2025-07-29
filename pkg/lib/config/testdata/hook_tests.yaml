@@ -61,7 +61,7 @@ name: invalid-non-blocking-event
 error: |-
   invalid value:
   /events/0: enum
-    map[actual:after_user_create expected:[* user.created user.authenticated user.profile.updated user.disabled user.reenabled user.anonymous.promoted user.deletion_scheduled user.deletion_unscheduled user.deleted user.anonymization_scheduled user.anonymization_unscheduled user.anonymized identity.email.added identity.email.removed identity.email.updated identity.phone.added identity.phone.removed identity.phone.updated identity.username.added identity.username.removed identity.username.updated identity.oauth.connected identity.oauth.disconnected identity.biometric.enabled identity.biometric.disabled]]
+    map[actual:after_user_create expected:[* user.created user.authenticated user.reauthenticated user.profile.updated user.disabled user.reenabled user.anonymous.promoted user.deletion_scheduled user.deletion_unscheduled user.deleted user.anonymization_scheduled user.anonymization_unscheduled user.anonymized identity.email.added identity.email.removed identity.email.updated identity.phone.added identity.phone.removed identity.phone.updated identity.username.added identity.username.removed identity.username.updated identity.oauth.connected identity.oauth.disconnected identity.biometric.enabled identity.biometric.disabled]]
 value:
   events: ["after_user_create"]
   url: "https://example.com/callback"

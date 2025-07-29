@@ -225,6 +225,7 @@ export enum AuditLogActivityType {
   UserDeletionUnscheduled = 'USER_DELETION_UNSCHEDULED',
   UserDisabled = 'USER_DISABLED',
   UserProfileUpdated = 'USER_PROFILE_UPDATED',
+  UserReauthenticated = 'USER_REAUTHENTICATED',
   UserReenabled = 'USER_REENABLED',
   UserSessionTerminated = 'USER_SESSION_TERMINATED',
   UserSignedOut = 'USER_SIGNED_OUT',

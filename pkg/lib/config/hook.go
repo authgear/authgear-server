@@ -69,6 +69,7 @@ var _ = Schema.Add("NonBlockingHookHandlersConfig", `
 					"*",
 					"user.created",
 					"user.authenticated",
+					"user.reauthenticated",
 					"user.profile.updated",
 					"user.disabled",
 					"user.reenabled",
