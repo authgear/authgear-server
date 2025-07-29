@@ -91,6 +91,14 @@ func (i *IntentLoginFlow) GetEffects(ctx context.Context, deps *authflow.Depende
 			if err != nil {
 				return err
 			}
+			now := deps.Clock.NowUTC()
+			return deps.Users.UpdateLoginTime(ctx, userID, now)
+		}),
+		authflow.OnCommitEffect(func(ctx context.Context, deps *authflow.Dependencies) error {
+			userID, err := i.userID(flows)
+			if err != nil {
+				return err
+			}
 			usedMethods, err := collectAuthenticationLockoutMethod(ctx, deps, flows)
 			if err != nil {
 				return err

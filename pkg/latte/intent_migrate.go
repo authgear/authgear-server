@@ -122,6 +122,11 @@ func (i *IntentMigrate) GetEffects(ctx context.Context, deps *workflow.Dependenc
 			return nil
 		}),
 		workflow.OnCommitEffect(func(ctx context.Context, deps *workflow.Dependencies) error {
+			userID := i.userID(workflows.Nearest)
+			now := deps.Clock.NowUTC()
+			return deps.Users.UpdateLoginTime(ctx, userID, now)
+		}),
+		workflow.OnCommitEffect(func(ctx context.Context, deps *workflow.Dependencies) error {
 			var identities []*identity.Info
 			identityWorkflows := workflow.FindSubWorkflows[NewIdentityGetter](workflows.Nearest)
 			for _, subWorkflow := range identityWorkflows {
