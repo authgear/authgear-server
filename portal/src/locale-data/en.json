@@ -2171,6 +2171,11 @@
   "ScopeList.columns.scope": "Scope",
   "ScopeList.columns.description": "Description",
 
+  "EditApplicationScopesList.columns.scope": "Authorized Scope",
+  "EditApplicationScopesList.select": "Select",
+  "EditApplicationScopesList.buttons.all": "All",
+  "EditApplicationScopesList.buttons.none": "None",
+
   "DeleteScopeDialog.title": "Delete Scope",
   "DeleteScopeDialog.description": "This action will permanently delete the scope \"{scope}\" and cannot be undone. Are you sure you want to proceed?",
 

@@ -1,0 +1,7 @@
+.listRoot {
+  @apply flex flex-col min-h-0 overflow-hidden pt-6;
+}
+
+.listWrapper {
+  @apply flex-1 min-h-0 overflow-y-auto;
+}

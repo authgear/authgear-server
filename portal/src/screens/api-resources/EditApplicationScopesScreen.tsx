@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import { useSimpleForm } from "../../hook/useSimpleForm";
 import { FormContainerBase } from "../../FormContainerBase";
 import { FormattedMessage } from "@oursky/react-messageformat";
@@ -97,7 +97,34 @@ function EditApplicationScopesScreenContent({
       ]}
     >
       <FormContainerBase form={form}>
-        <EditApplicationScopesList className="flex-1 min-h-0" scopes={scopes} />
+        <EditApplicationScopesList
+          className="flex-1 min-h-0 col-span-full"
+          scopes={scopes}
+          onToggleAssignedScopes={useCallback(
+            (
+              updatedScopes: EditApplicationScopesListItem[],
+              isAssigned: boolean
+            ) => {
+              form.setState((state) => {
+                const currentAssignedScopes = state.assignedScopes;
+                const newSet = new Set(currentAssignedScopes);
+
+                updatedScopes.forEach((scopeItem) => {
+                  if (isAssigned) {
+                    newSet.add(scopeItem.scope);
+                  } else {
+                    newSet.delete(scopeItem.scope);
+                  }
+                });
+
+                return {
+                  assignedScopes: Array.from(newSet),
+                };
+              });
+            },
+            [form]
+          )}
+        />
       </FormContainerBase>
     </APIResourceScreenLayout>
   );
