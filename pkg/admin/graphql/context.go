@@ -53,6 +53,10 @@ type ResourceLoader interface {
 	graphqlutil.DataLoaderInterface
 }
 
+type ResourceClientLoader interface {
+	graphqlutil.DataLoaderInterface
+}
+
 type ScopeLoader interface {
 	graphqlutil.DataLoaderInterface
 }
@@ -213,7 +217,6 @@ type ResourceScopeFacade interface {
 	AddScopesToClientID(ctx context.Context, resourceURI, clientID string, scopes []string) ([]*apimodel.Scope, error)
 	RemoveScopesFromClientID(ctx context.Context, resourceURI, clientID string, scopes []string) ([]*apimodel.Scope, error)
 	ReplaceScopesOfClientID(ctx context.Context, resourceURI, clientID string, scopes []string) ([]*apimodel.Scope, error)
-	ListClientIDsByResourceID(ctx context.Context, resourceID string) ([]string, error)
 }
 
 type Context struct {
@@ -221,14 +224,15 @@ type Context struct {
 	OAuthConfig           *config.OAuthConfig
 	AdminAPIFeatureConfig *config.AdminAPIFeatureConfig
 
-	Users          UserLoader
-	Identities     IdentityLoader
-	Authenticators AuthenticatorLoader
-	Roles          RoleLoader
-	Groups         GroupLoader
-	AuditLogs      AuditLogLoader
-	Resources      ResourceLoader
-	Scopes         ScopeLoader
+	Users           UserLoader
+	Identities      IdentityLoader
+	Authenticators  AuthenticatorLoader
+	Roles           RoleLoader
+	Groups          GroupLoader
+	AuditLogs       AuditLogLoader
+	Resources       ResourceLoader
+	ResourceClients ResourceClientLoader
+	Scopes          ScopeLoader
 
 	UserFacade          UserFacade
 	RolesGroupsFacade   RolesGroupsFacade

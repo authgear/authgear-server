@@ -44,11 +44,7 @@ var nodeResource = node(
 					ctx := p.Context
 					gqlCtx := GQLContext(ctx)
 
-					clientIDs, err := gqlCtx.ResourceScopeFacade.ListClientIDsByResourceID(ctx, resource.ID)
-					if err != nil {
-						return nil, err
-					}
-					return clientIDs, nil
+					return gqlCtx.ResourceClients.Load(ctx, resource.ID).Value, nil
 				},
 			},
 		},
