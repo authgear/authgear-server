@@ -117,6 +117,11 @@ func (i *IntentLogin) ReactTo(ctx context.Context, deps *workflow.Dependencies, 
 func (i *IntentLogin) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (effs []workflow.Effect, err error) {
 	return []workflow.Effect{
 		workflow.OnCommitEffect(func(ctx context.Context, deps *workflow.Dependencies) error {
+			userID := i.userID()
+			now := deps.Clock.NowUTC()
+			return deps.Users.UpdateLoginTime(ctx, userID, now)
+		}),
+		workflow.OnCommitEffect(func(ctx context.Context, deps *workflow.Dependencies) error {
 			createSession, workflow := workflow.MustFindSubWorkflow[*IntentEnsureSession](workflows.Nearest)
 			session := createSession.GetSession(workflow)
 			if session == nil {
