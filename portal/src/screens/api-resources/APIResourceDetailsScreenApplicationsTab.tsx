@@ -13,7 +13,7 @@ import {
   ApplicationListItem,
 } from "../../components/api-resources/ApplicationList";
 import { useAppAndSecretConfigQuery } from "../../graphql/portal/query/appAndSecretConfigQuery";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import ShowError from "../../ShowError";
 import {
   ResourceQueryDocument,
@@ -79,6 +79,17 @@ export function APIResourceDetailsScreenApplicationsTab({
       setSearchKeyword(newValue ?? "");
     },
     []
+  );
+
+  const navigate = useNavigate();
+
+  const onManageScopes = useCallback(
+    (item: ApplicationListItem) => {
+      navigate(
+        `/project/${appID}/api-resources/${resource.id}/applications/${item.clientID}/scopes`
+      );
+    },
+    [appID, navigate, resource.id]
   );
 
   const onToggleAuthorized = useCallback(
@@ -194,6 +205,7 @@ export function APIResourceDetailsScreenApplicationsTab({
               className="flex-1 min-h-0"
               loading={isLoading}
               onToggleAuthorized={onToggleAuthorized}
+              onManageScopes={onManageScopes}
               disabledToggleClientIDs={disabledToggleClientIDs}
             />
           </div>
