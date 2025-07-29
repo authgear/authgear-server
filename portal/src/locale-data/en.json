@@ -2154,9 +2154,16 @@
   "APIResourceDetailsScreen.tab.scopes": "Scopes",
   "APIResourceDetailsScreen.tab.applications": "Applications",
   "APIResourceDetailsScreen.tab.test": "Test",
+
+  "APIResourceDetailsScreen.authorizedApplications": "Authorized applications",
+  "APIResourceDetailsScreen.selectApplication": "Select an application",
+  "APIResourceDetailsScreen.selectApplication.empty": "No authorized applications yet.",
+
   "APIResourceDetailsScreen.scopes.description": "Define the scopes (permissions) used by this resource.",
   "APIResourceDetailsScreen.applications.description": "Authorize applications to request access tokens for this resource.",
   "APIResourceDetailsScreen.applications.empty": "No M2M or OIDC application yet. Create one in the {ReactRouterLink, react, to{{to}} children{Applications}} section to proceed.",
+
+  "APIResourceDetailsScreen.test.description": "Get an access token for your application to test the resource.",
 
   "ApplicationList.columns.application": "Application",
   "ApplicationList.columns.authorized": "Authorized",
