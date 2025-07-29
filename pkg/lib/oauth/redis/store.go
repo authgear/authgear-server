@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"sort"
 	"time"
 
@@ -568,6 +569,15 @@ func (s *Store) DeleteOfflineGrant(ctx context.Context, grant *oauth.OfflineGran
 		if err != nil {
 			return err
 		}
+
+		// TODO(slog): Before we have fine-grained logging, use WithSkipLogging().Error() to force logging to stderr.
+		logger.WithSkipLogging().Error(ctx,
+			"delete offline grant",
+			slog.String("offline_grant_id", grant.ID),
+			slog.String("offline_grant_initial_client_id", grant.InitialClientID),
+			slog.String("user_id", grant.Attrs.UserID),
+		)
+
 		_, err = conn.HDel(ctx, offlineGrantListKey(grant.AppID, grant.Attrs.UserID), grant.ID).Result()
 		if err != nil {
 			// Ignore err
