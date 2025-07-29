@@ -109,6 +109,10 @@ func (l NamedLogger) WithError(err error) NamedLogger {
 	return l.With(Err(err))
 }
 
+func (l NamedLogger) WithSkipLogging() NamedLogger {
+	return l.With(SkipLogging())
+}
+
 // WithGroup is intentionally omitted because it is intended for
 // passing a *slog.Logger instance to a third party library.
 // We do not have that use case at the moment.
