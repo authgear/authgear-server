@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"errors"
+	"os"
+	"syscall"
 
 	"github.com/lib/pq"
 )
@@ -15,6 +17,8 @@ type MetricErrorName string
 const (
 	MetricErrorNameContextCanceled         MetricErrorName = "context.canceled"
 	MetricErrorNameContextDeadlineExceeded MetricErrorName = "context.deadline_exceeded"
+	MetricErrorNameOSErrDeadlineExceeded   MetricErrorName = "os.err_deadline_exceeded"
+	MetricErrorNameSyscallECONNRESET       MetricErrorName = "syscall.ECONNRESET"
 	MetricErrorNamePQ57014                 MetricErrorName = "pq.57014"
 	MetricErrorNameSQLTxDone               MetricErrorName = "sql.tx_done"
 	MetricErrorNameSQLDriverBadConn        MetricErrorName = "sql.driver.bad_conn"
@@ -45,6 +49,14 @@ func GetMetricErrorName(err error) (MetricErrorName, bool) {
 		return MetricErrorNameSQLTxDone, true
 	case errors.Is(err, driver.ErrBadConn):
 		return MetricErrorNameSQLDriverBadConn, true
+	case errors.Is(err, os.ErrDeadlineExceeded):
+		return MetricErrorNameOSErrDeadlineExceeded, true
+	// There are ECONNRESET, ECONNREFUSED, and ECONNABORTED.
+	// ECONNREFUSED may indicate a configuration problem that should be logged.
+	// ECONNRESET is about connection disconnected unexpectedly.
+	// We did not see ECONNABORTED so keep logging it.
+	case errors.Is(err, syscall.ECONNRESET):
+		return MetricErrorNameSyscallECONNRESET, true
 	}
 
 	return "", false

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"os"
 	"strings"
 	"syscall"
 	"testing"
@@ -177,6 +178,16 @@ func TestIgnoreError(t *testing.T) {
 		Convey("should return false for syscall.ECONNREFUSED", func() {
 			err := syscall.ECONNREFUSED
 			So(IgnoreError(err), ShouldBeFalse)
+		})
+
+		Convey("should return true for syscall.ECONNRESET", func() {
+			err := syscall.ECONNRESET
+			So(IgnoreError(err), ShouldBeTrue)
+		})
+
+		Convey("should return true for os.ErrDeadlineExceeded", func() {
+			err := os.ErrDeadlineExceeded
+			So(IgnoreError(err), ShouldBeTrue)
 		})
 
 		Convey("should return true for sql.ErrTxDone", func() {

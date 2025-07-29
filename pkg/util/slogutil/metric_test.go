@@ -6,6 +6,8 @@ import (
 	"database/sql/driver"
 	"errors"
 	"fmt"
+	"os"
+	"syscall"
 	"testing"
 
 	"github.com/lib/pq"
@@ -52,6 +54,30 @@ func TestGetMetricErrorName(t *testing.T) {
 		Convey("should not match pq.Error with different code", func() {
 			pqErr := &pq.Error{Code: "23505"}
 			name, ok := GetMetricErrorName(pqErr)
+			So(ok, ShouldBeFalse)
+			So(name, ShouldEqual, MetricErrorName(""))
+		})
+
+		Convey("should return os.err_deadline_exceeded for os.ErrDeadlineExceeded", func() {
+			err := os.ErrDeadlineExceeded
+			name, ok := GetMetricErrorName(err)
+
+			So(err, ShouldBeError, "i/o timeout") // This serves as a documentation of what os.ErrDeadlineExceeded is
+
+			So(ok, ShouldBeTrue)
+			So(name, ShouldEqual, MetricErrorNameOSErrDeadlineExceeded)
+		})
+
+		Convey("should return syscall.ECONNRESET for syscall.ECONNRESET", func() {
+			err := syscall.ECONNRESET
+			name, ok := GetMetricErrorName(err)
+			So(ok, ShouldBeTrue)
+			So(name, ShouldEqual, MetricErrorNameSyscallECONNRESET)
+		})
+
+		Convey("should return false for other syscall errors", func() {
+			err := syscall.ECONNREFUSED
+			name, ok := GetMetricErrorName(err)
 			So(ok, ShouldBeFalse)
 			So(name, ShouldEqual, MetricErrorName(""))
 		})
