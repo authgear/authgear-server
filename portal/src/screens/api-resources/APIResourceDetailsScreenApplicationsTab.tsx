@@ -35,6 +35,9 @@ export function APIResourceDetailsScreenApplicationsTab({
   const { setErrors } = useErrorMessageBarContext();
   const { renderToString } = useContext(MessageContext);
   const { themes } = useSystemConfig();
+  const [disabledToggleClientIDs, setDisabledToggleClientIDs] = useState<
+    string[]
+  >([]);
 
   const isLoading = appConfigQuery.isLoading;
   const [searchKeyword, setSearchKeyword] = useState("");
@@ -81,6 +84,7 @@ export function APIResourceDetailsScreenApplicationsTab({
   const onToggleAuthorized = useCallback(
     async (item: ApplicationListItem, checked: boolean) => {
       try {
+        setDisabledToggleClientIDs((prev) => [...prev, item.clientID]);
         if (checked) {
           const newResource = {
             ...resource,
@@ -138,6 +142,10 @@ export function APIResourceDetailsScreenApplicationsTab({
         }
       } catch (e: unknown) {
         setErrors(parseRawError(e));
+      } finally {
+        setDisabledToggleClientIDs((prev) =>
+          prev.filter((clientID) => clientID !== item.clientID)
+        );
       }
     },
     [resource, addResource, removeResource, setErrors]
@@ -186,6 +194,7 @@ export function APIResourceDetailsScreenApplicationsTab({
               className="flex-1 min-h-0"
               loading={isLoading}
               onToggleAuthorized={onToggleAuthorized}
+              disabledToggleClientIDs={disabledToggleClientIDs}
             />
           </div>
         </>
