@@ -167,6 +167,7 @@ const EditApplicationScopesScreen: React.VFC =
         resourceID: resourceID!,
         first: pageSize,
       },
+      fetchPolicy: "network-only",
     });
 
     const clientScopesQuery = useGetClientResourceScopesQuery({
@@ -175,6 +176,7 @@ const EditApplicationScopesScreen: React.VFC =
         resourceID: resourceID!,
         first: pageSize,
       },
+      fetchPolicy: "network-only",
     });
 
     const scopesQueryLoadable = {
