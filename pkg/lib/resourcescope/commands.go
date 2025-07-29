@@ -82,10 +82,6 @@ func (c *Commands) RemoveResourceFromClientID(ctx context.Context, resourceURI, 
 	if err != nil {
 		return err
 	}
-	// Remove all client-scope associations for all scopes of this resource for this client
-	if err := c.Store.DeleteClientScopeAssociationsByResourceID(ctx, clientID, resource.ID); err != nil {
-		return err
-	}
 	// Remove the client-resource association
 	return c.Store.RemoveResourceFromClientID(ctx, resource.ID, clientID)
 }
