@@ -54,7 +54,9 @@ function APIResourceDetailsContent({ resource }: { resource: Resource }) {
       {selectedKey === "applications" ? (
         <APIResourceDetailsScreenApplicationsTab resource={resource} />
       ) : null}
-      {selectedKey === "test" ? <APIResourceDetailsScreenTestTab /> : null}
+      {selectedKey === "test" ? (
+        <APIResourceDetailsScreenTestTab resource={resource} />
+      ) : null}
     </div>
   );
 }
