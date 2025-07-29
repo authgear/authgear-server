@@ -10,7 +10,7 @@ import styles from "./GroupsScreen.module.css";
 import { encodeOffsetToCursor } from "../../util/pagination";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { useParams } from "react-router-dom";
-import useDelayedValue from "../../hook/useDelayedValue";
+import { useDebounced } from "../../hook/useDebounced";
 import { RoleAndGroupsLayout } from "../../RoleAndGroupsLayout";
 import { GroupsEmptyView } from "../../components/roles-and-groups/empty-view/GroupsEmptyView";
 import { ReactRouterLinkComponent } from "../../ReactRouterLink";
@@ -27,7 +27,7 @@ const GroupsScreen: React.VFC = function GroupsScreen() {
   const { appID } = useParams<{ appID: string }>();
 
   const isSearch = searchKeyword !== "";
-  const debouncedSearchKey = useDelayedValue(searchKeyword, 500);
+  const [debouncedSearchKey] = useDebounced(searchKeyword, 500);
 
   const [offset, setOffset] = useState(0);
   // after: is exclusive so if we pass it "offset:0",

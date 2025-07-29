@@ -1,0 +1,29 @@
+query ResourceScopesQuery(
+  $resourceID: ID!
+  $first: Int
+  $after: String
+  $searchKeyword: String
+) {
+  node(id: $resourceID) {
+    ... on Resource {
+      id
+      resourceURI
+      scopes(first: $first, after: $after, searchKeyword: $searchKeyword) {
+        edges {
+          node {
+            id
+            scope
+            description
+            createdAt
+            updatedAt
+          }
+        }
+        pageInfo {
+          endCursor
+          hasNextPage
+        }
+        totalCount
+      }
+    }
+  }
+}

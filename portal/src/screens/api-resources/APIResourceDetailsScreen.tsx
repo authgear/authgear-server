@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext } from "react";
 import { useParams } from "react-router-dom";
 import { useResourceQueryQuery } from "../../graphql/adminapi/query/resourceQuery.generated";
 import { useLoadableView } from "../../hook/useLoadableView";
@@ -10,66 +10,10 @@ import APIResourceScreenLayout from "../../components/api-resources/APIResourceS
 import { Resource } from "../../graphql/adminapi/globalTypes.generated";
 import { Pivot, PivotItem } from "@fluentui/react";
 import { usePivotNavigation } from "../../hook/usePivot";
-import { useUpdateResourceMutationMutation } from "../../graphql/adminapi/mutations/updateResourceMutation.generated";
-import { useSimpleForm } from "../../hook/useSimpleForm";
-import { FormContainerBase } from "../../FormContainerBase";
-import {
-  ResourceForm,
-  ResourceFormState,
-  sanitizeFormState,
-} from "../../components/api-resources/ResourceForm";
-
-function APIResourceDetailsTab({ resource }: { resource: Resource }) {
-  const [updateResource] = useUpdateResourceMutationMutation();
-
-  const [initialState, setInitialState] = useState<ResourceFormState>({
-    name: resource.name ?? "",
-    resourceURI: resource.resourceURI,
-  });
-
-  const form = useSimpleForm<ResourceFormState, Resource>({
-    defaultState: initialState,
-    submit: async (s) => {
-      const state = sanitizeFormState(s);
-      const result = await updateResource({
-        variables: {
-          input: {
-            name: state.name,
-            resourceURI: state.resourceURI,
-          },
-        },
-      });
-      if (result.data == null) {
-        throw new Error("unexpected null data");
-      }
-      setInitialState(state);
-      return result.data.updateResource.resource;
-    },
-    stateMode: "UpdateInitialStateWithUseEffect",
-  });
-  return (
-    <FormContainerBase form={form}>
-      <ResourceForm
-        className="justify-self-stretch"
-        mode="edit"
-        state={form.state}
-        setState={form.setState}
-      />
-    </FormContainerBase>
-  );
-}
-
-function APIResourceScopesTab() {
-  return <div>TODO</div>;
-}
-
-function APIResourceApplicationsTab() {
-  return <div>TODO</div>;
-}
-
-function APIResourceTestTab() {
-  return <div>TODO</div>;
-}
+import { APIResourceDetailsScreenDetailsTab } from "./APIResourceDetailsScreenDetailsTab";
+import { APIResourceDetailsScreenScopesTab } from "./APIResourceDetailsScreenScopesTab";
+import { APIResourceDetailsScreenApplicationsTab } from "./APIResourceDetailsScreenApplicationsTab";
+import { APIResourceDetailsScreenTestTab } from "./APIResourceDetailsScreenTestTab";
 
 function APIResourceDetailsContent({ resource }: { resource: Resource }) {
   const { selectedKey, onLinkClick } = usePivotNavigation([
@@ -80,7 +24,7 @@ function APIResourceDetailsContent({ resource }: { resource: Resource }) {
   ]);
   const { renderToString } = useContext(MessageContext);
   return (
-    <div className="py-6 grid content-start grid-flow-row col-span-8 tablet:col-span-full">
+    <div className="pt-6 flex flex-col col-span-full">
       <Pivot selectedKey={selectedKey} onLinkClick={onLinkClick}>
         <PivotItem
           headerText={renderToString("APIResourceDetailsScreen.tab.details")}
@@ -102,11 +46,15 @@ function APIResourceDetailsContent({ resource }: { resource: Resource }) {
         />
       </Pivot>
       {selectedKey === "details" ? (
-        <APIResourceDetailsTab resource={resource} />
+        <APIResourceDetailsScreenDetailsTab resource={resource} />
       ) : null}
-      {selectedKey === "scopes" ? <APIResourceScopesTab /> : null}
-      {selectedKey === "applications" ? <APIResourceApplicationsTab /> : null}
-      {selectedKey === "test" ? <APIResourceTestTab /> : null}
+      {selectedKey === "scopes" ? (
+        <APIResourceDetailsScreenScopesTab resource={resource} />
+      ) : null}
+      {selectedKey === "applications" ? (
+        <APIResourceDetailsScreenApplicationsTab />
+      ) : null}
+      {selectedKey === "test" ? <APIResourceDetailsScreenTestTab /> : null}
     </div>
   );
 }

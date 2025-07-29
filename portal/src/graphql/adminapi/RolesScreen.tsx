@@ -11,7 +11,7 @@ import { encodeOffsetToCursor } from "../../util/pagination";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { useParams } from "react-router-dom";
 import RolesList from "../../components/roles-and-groups/list/RolesList";
-import useDelayedValue from "../../hook/useDelayedValue";
+import { useDebounced } from "../../hook/useDebounced";
 import { RoleAndGroupsLayout } from "../../RoleAndGroupsLayout";
 import { RolesEmptyView } from "../../components/roles-and-groups/empty-view/RolesEmptyView";
 import { ReactRouterLinkComponent } from "../../ReactRouterLink";
@@ -27,7 +27,7 @@ const RolesScreen: React.VFC = function RolesScreen() {
   const { appID } = useParams<{ appID: string }>();
 
   const isSearch = searchKeyword !== "";
-  const debouncedSearchKey = useDelayedValue(searchKeyword, 500);
+  const [debouncedSearchKey] = useDebounced(searchKeyword, 500);
 
   const [offset, setOffset] = useState(0);
   // after: is exclusive so if we pass it "offset:0",
