@@ -36,12 +36,9 @@ const RolesScreen: React.VFC = function RolesScreen() {
   const cursor = useMemo(() => {
     if (isSearch) {
       // Search always query all rows.
-      return null;
+      return undefined;
     }
-    if (offset === 0) {
-      return null;
-    }
-    return encodeOffsetToCursor(offset - 1);
+    return encodeOffsetToCursor(offset);
   }, [isSearch, offset]);
 
   const onChangeOffset = useCallback((offset) => {

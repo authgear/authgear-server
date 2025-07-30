@@ -82,7 +82,7 @@ export function APIResourceDetailsScreenScopesTab({
     variables: {
       resourceID: resource.id,
       first: pageSize,
-      after: offset === 0 ? undefined : encodeOffsetToCursor(offset - 1),
+      after: encodeOffsetToCursor(offset),
       searchKeyword:
         debouncedSearchKeyword === "" ? undefined : debouncedSearchKeyword,
     },
