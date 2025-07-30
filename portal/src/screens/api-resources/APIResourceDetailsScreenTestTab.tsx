@@ -30,13 +30,11 @@ import { LocationState } from "./APIResourceDetailsScreen";
 import { useSearchParamsState } from "../../hook/useSearchParamsState";
 import { useErrorMessageBarContext } from "../../ErrorMessageBar";
 import { parseRawError } from "../../error/parse";
-
-enum ExampleCodeTabKey {
-  CURL = "CURL",
-  Python = "Python",
-  Go = "Go",
-  NodeJS = "NodeJS",
-}
+import { useCopyFeedback } from "../../hook/useCopyFeedback";
+import {
+  ExampleCodeVariant,
+  useExampleCode,
+} from "../../components/api-resources/useExampleCode";
 
 export function APIResourceDetailsScreenTestTab({
   resource,
@@ -74,9 +72,8 @@ function APIResourceDetailsScreenTestTabContent({
   );
   const [isGenerating, setIsGenerating] = useState(false);
   const [accessToken, setAccessToken] = useState<string | null>(null);
-  const [selectedPivotKey, setSelectedPivotKey] = useState<ExampleCodeTabKey>(
-    ExampleCodeTabKey.CURL
-  );
+  const [selectedCodeVariant, setSelectedCodeVariant] =
+    useState<ExampleCodeVariant>(ExampleCodeVariant.CURL);
 
   const selectedClient = useMemo(() => {
     return effectiveAppConfig.oauth?.clients?.find(
@@ -128,7 +125,7 @@ function APIResourceDetailsScreenTestTabContent({
 
   const handlePivotClick = useCallback((item?: PivotItem) => {
     if (item?.props.itemKey) {
-      setSelectedPivotKey(item.props.itemKey as ExampleCodeTabKey);
+      setSelectedCodeVariant(item.props.itemKey as ExampleCodeVariant);
     }
   }, []);
 
@@ -182,6 +179,24 @@ function APIResourceDetailsScreenTestTabContent({
     tokenEndpoint,
     setErrors,
   ]);
+
+  const exampleCode = useExampleCode({
+    variant: selectedCodeVariant,
+    tokenEndpoint,
+    resourceURI: resource.resourceURI,
+    clientSecret: selectedClientSecret,
+    clientID: selectedClientId,
+  });
+
+  const { copyButtonProps: copyTokenButtonProps, Feedback: CopyTokenFeedback } =
+    useCopyFeedback({
+      textToCopy: accessToken ?? "",
+    });
+
+  const { copyButtonProps: copyCodeButtonProps, Feedback: CopyCodeFeedback } =
+    useCopyFeedback({
+      textToCopy: exampleCode,
+    });
 
   return (
     <div className="pt-5 flex-1 flex flex-col space-y-4">
@@ -240,9 +255,12 @@ function APIResourceDetailsScreenTestTabContent({
                   disabled={isGenerating}
                 />
                 <DefaultButton
+                  {...copyTokenButtonProps}
                   text={<FormattedMessage id="copy" />}
                   disabled={accessToken == null}
+                  iconProps={undefined}
                 />
+                <CopyTokenFeedback />
               </div>
             </section>
             <HorizontalDivider />
@@ -252,42 +270,47 @@ function APIResourceDetailsScreenTestTabContent({
               </WidgetTitle>
               <Pivot
                 className="mt-2"
-                selectedKey={selectedPivotKey}
+                selectedKey={selectedCodeVariant}
                 onLinkClick={handlePivotClick}
               >
                 <PivotItem
                   headerText={renderToString(
                     "APIResourceDetailsScreen.test.pivot.curl.headerText"
                   )}
-                  itemKey={ExampleCodeTabKey.CURL}
+                  itemKey={ExampleCodeVariant.CURL}
                 />
                 <PivotItem
                   headerText={renderToString(
                     "APIResourceDetailsScreen.test.pivot.python.headerText"
                   )}
-                  itemKey={ExampleCodeTabKey.Python}
+                  itemKey={ExampleCodeVariant.Python}
                 />
                 <PivotItem
                   headerText={renderToString(
                     "APIResourceDetailsScreen.test.pivot.go.headerText"
                   )}
-                  itemKey={ExampleCodeTabKey.Go}
+                  itemKey={ExampleCodeVariant.Go}
                 />
                 <PivotItem
                   headerText={renderToString(
                     "APIResourceDetailsScreen.test.pivot.nodejs.headerText"
                   )}
-                  itemKey={ExampleCodeTabKey.NodeJS}
+                  itemKey={ExampleCodeVariant.NodeJS}
                 />
               </Pivot>
-              <CodeField className="mt-4">{"TODO: Example code"}</CodeField>
+              <CodeField className="mt-4">{exampleCode}</CodeField>
               <div className="mt-4 flex space-x-4">
                 <PrimaryButton
                   text={<FormattedMessage id="reveal" />}
                   onClick={revealSecrets}
                   disabled={selectedClientSecret != null}
                 />
-                <DefaultButton text={<FormattedMessage id="copy" />} />
+                <DefaultButton
+                  {...copyCodeButtonProps}
+                  text={<FormattedMessage id="copy" />}
+                  iconProps={undefined}
+                />
+                <CopyCodeFeedback />
               </div>
             </section>
           </>
