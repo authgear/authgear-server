@@ -2143,6 +2143,10 @@
   "APIResourcesScreen.title": "API Resources",
   "APIResourcesScreen.description": "Set up API resources for authorized applications.",
 
+  "UnauthorizeApplicationDialog.title": "Unauthorize Application",
+  "UnauthorizeApplicationDialog.description": "By unauthorizing this application, it will lose access to all assigned resources and scopes.",
+  "UnauthorizeApplicationDialog.unauthorize": "Unauthorized",
+
   "CreateAPIResourceScreen.title": "Create API Resource",
 
   "APIResourceDetailsScreen.tab.details": "Details",
