@@ -14,7 +14,7 @@ import authgear, {
   AuthenticateResult,
   ConfigureOptions,
 } from "@authgear/web";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, createPath } from "react-router-dom";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 import { useViewerQuery } from "./query/viewerQuery";
@@ -107,7 +107,7 @@ export async function startReauthentication<S>(
   navigate: ReturnType<typeof useNavigate>,
   state?: S
 ): Promise<void> {
-  const originalPath = `${window.location.pathname}${window.location.search}`;
+  const originalPath = createPath(window.location);
 
   await authgear.refreshIDToken();
   // If the user cannot reauthenticate, we perform a internal-redirect

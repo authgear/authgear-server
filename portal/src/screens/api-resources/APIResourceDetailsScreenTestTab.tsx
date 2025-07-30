@@ -14,12 +14,13 @@ import {
   PivotItem,
 } from "@fluentui/react";
 import { Resource } from "../../graphql/adminapi/globalTypes.generated";
-import { useParams } from "react-router-dom";
-import { useAppAndSecretConfigQuery } from "../../graphql/portal/query/appAndSecretConfigQuery";
-import { useLoadableView } from "../../hook/useLoadableView";
-import { PortalAPIAppConfig } from "../../types";
+import { useNavigate } from "react-router-dom";
+import { useEndpoints } from "../../hook/useEndpoints";
+import { PortalAPIAppConfig, PortalAPISecretConfig } from "../../types";
 import HorizontalDivider from "../../HorizontalDivider";
 import { CodeField } from "../../components/common/CodeField";
+import { startReauthentication } from "../../graphql/portal/Authenticated";
+import { LocationState } from "./APIResourceDetailsScreen";
 
 enum ExampleCodeTabKey {
   CURL = "CURL",
@@ -30,33 +31,33 @@ enum ExampleCodeTabKey {
 
 export function APIResourceDetailsScreenTestTab({
   resource,
+  effectiveAppConfig,
+  secretConfig,
 }: {
   resource: Resource;
+  effectiveAppConfig: PortalAPIAppConfig;
+  secretConfig: PortalAPISecretConfig | null;
 }): React.ReactElement | null {
-  const { appID } = useParams() as { appID: string };
-  const appConfigQuery = useAppAndSecretConfigQuery(appID);
-
-  return useLoadableView({
-    loadables: [appConfigQuery] as const,
-    render: ([{ effectiveAppConfig }]) => {
-      return (
-        <APIResourceDetailsScreenTestTabContent
-          resource={resource}
-          appConfig={effectiveAppConfig!}
-        />
-      );
-    },
-  });
+  return (
+    <APIResourceDetailsScreenTestTabContent
+      resource={resource}
+      effectiveAppConfig={effectiveAppConfig}
+      secretConfig={secretConfig}
+    />
+  );
 }
 
 function APIResourceDetailsScreenTestTabContent({
   resource,
-  appConfig,
+  effectiveAppConfig,
+  secretConfig,
 }: {
   resource: Resource;
-  appConfig: PortalAPIAppConfig;
+  effectiveAppConfig: PortalAPIAppConfig;
+  secretConfig: PortalAPISecretConfig | null;
 }) {
   const { renderToString } = useContext(MessageContext);
+  const navigate = useNavigate();
 
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
   const [accessToken, _setAccessToken] = useState<string | null>(null);
@@ -64,10 +65,27 @@ function APIResourceDetailsScreenTestTabContent({
     ExampleCodeTabKey.CURL
   );
 
+  const selectedClientSecret = useMemo((): string | null => {
+    if (!secretConfig || !selectedClientId) {
+      return null;
+    }
+    const secret = secretConfig.oauthClientSecrets?.find(
+      (secret) => secret.clientID === selectedClientId
+    );
+    if (secret?.keys != null && secret.keys.length > 0 && secret.keys[0].key) {
+      return secret.keys[0].key;
+    }
+    return null;
+  }, [secretConfig, selectedClientId]);
+
+  const { token: _tokenEndpoint } = useEndpoints(
+    effectiveAppConfig.http?.public_origin ?? ""
+  );
+
   const authorizedApplicationsOptions = useMemo(() => {
     const authorizedClientIDs = new Set(resource.clientIDs);
     return (
-      appConfig.oauth?.clients
+      effectiveAppConfig.oauth?.clients
         ?.filter((clientConfig) => {
           return authorizedClientIDs.has(clientConfig.client_id);
         })
@@ -76,7 +94,7 @@ function APIResourceDetailsScreenTestTabContent({
           text: clientConfig.name ?? clientConfig.client_name ?? "",
         })) ?? []
     );
-  }, [appConfig.oauth?.clients, resource.clientIDs]);
+  }, [effectiveAppConfig.oauth?.clients, resource.clientIDs]);
 
   const handleDropdownChange = useCallback(
     (_: unknown, option?: IDropdownOption) => {
@@ -90,6 +108,23 @@ function APIResourceDetailsScreenTestTabContent({
       setSelectedPivotKey(item.props.itemKey as ExampleCodeTabKey);
     }
   }, []);
+
+  const revealSecrets = useCallback(() => {
+    startReauthentication<LocationState>(navigate, {
+      isClientSecretRevealed: true,
+    }).catch((e) => {
+      // Normally there should not be any error.
+      console.error(e);
+    });
+  }, [navigate]);
+
+  const onGenerate = useCallback(() => {
+    if (selectedClientSecret == null) {
+      revealSecrets();
+    } else {
+      // TODO
+    }
+  }, [selectedClientSecret, revealSecrets]);
 
   return (
     <div className="pt-5 flex-1 flex flex-col space-y-4">
@@ -144,6 +179,7 @@ function APIResourceDetailsScreenTestTabContent({
                   text={
                     <FormattedMessage id="APIResourceDetailsScreen.test.generateButton.text" />
                   }
+                  onClick={onGenerate}
                 />
                 <DefaultButton
                   text={<FormattedMessage id="copy" />}
@@ -187,8 +223,14 @@ function APIResourceDetailsScreenTestTabContent({
                 />
               </Pivot>
               <CodeField className="mt-4">{"TODO: Example code"}</CodeField>
-              <div className="mt-4">
-                <PrimaryButton text={<FormattedMessage id="reveal" />} />
+              <div className="mt-4 flex space-x-4">
+                {selectedClientSecret == null ? (
+                  <PrimaryButton
+                    text={<FormattedMessage id="reveal" />}
+                    onClick={revealSecrets}
+                  />
+                ) : null}
+                <DefaultButton text={<FormattedMessage id="copy" />} />
               </div>
             </section>
           </>
