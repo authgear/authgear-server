@@ -551,7 +551,7 @@ Occurs after user signed up or signed in.
 }
 ```
 
-#### user.authenticated
+#### user.reauthenticated
 
 Occurs after user reauthenticated.
 
