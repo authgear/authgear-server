@@ -224,12 +224,11 @@ function APIResourceDetailsScreenTestTabContent({
               </Pivot>
               <CodeField className="mt-4">{"TODO: Example code"}</CodeField>
               <div className="mt-4 flex space-x-4">
-                {selectedClientSecret == null ? (
-                  <PrimaryButton
-                    text={<FormattedMessage id="reveal" />}
-                    onClick={revealSecrets}
-                  />
-                ) : null}
+                <PrimaryButton
+                  text={<FormattedMessage id="reveal" />}
+                  onClick={revealSecrets}
+                  disabled={selectedClientSecret != null}
+                />
                 <DefaultButton text={<FormattedMessage id="copy" />} />
               </div>
             </section>
