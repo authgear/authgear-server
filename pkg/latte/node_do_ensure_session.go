@@ -38,10 +38,6 @@ func (n *NodeDoEnsureSession) GetEffects(ctx context.Context, deps *workflow.Dep
 			return deps.AuthenticationInfos.Save(ctx, n.AuthenticationInfoEntry)
 		}),
 		workflow.OnCommitEffect(func(ctx context.Context, deps *workflow.Dependencies) error {
-			now := deps.Clock.NowUTC()
-			return deps.Users.UpdateLoginTime(ctx, n.UserID, now)
-		}),
-		workflow.OnCommitEffect(func(ctx context.Context, deps *workflow.Dependencies) error {
 			if n.SessionToCreate == nil {
 				return nil
 			}

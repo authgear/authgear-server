@@ -122,6 +122,16 @@ func TestNewSkipLoggingMiddleware(t *testing.T) {
 			}
 		})
 
+		Convey("error logging should be skipped when WithSkipLogging is used", func() {
+			logger.With(SkipLogging()).Error("test message")
+			// It may seem incorrect to have 2 __authgear_skip_logging here.
+			// This is the result of the trivial implementation of WithAttrs.
+			// In WithAttrs, we forward the call to both groupOrAttrs and the underlying handler.
+			// The underlying handler (TextHandler in this case) implements WithAttrs by including the attrs when it prints.
+			// On the other hand, we always include __authgear_skip_logging in the record's attrs so that IsLoggingSkipped(record) works.
+			So(w.String(), ShouldEqual, "level=ERROR msg=\"test message\" __authgear_skip_logging=true __authgear_skip_logging=true\n")
+		})
+
 		Convey("ForceLogging should override skip behavior", func() {
 			forcedErr := errorutil.ForceLogging(context.Canceled)
 			logger.Error("test message", Err(forcedErr))

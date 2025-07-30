@@ -102,10 +102,6 @@ func (n *NodeDoCreateSession) GetEffects(ctx context.Context, deps *authflow.Dep
 			return deps.AuthenticationInfos.Save(ctx, n.AuthenticationInfoEntry)
 		}),
 		authflow.OnCommitEffect(func(ctx context.Context, deps *authflow.Dependencies) error {
-			now := deps.Clock.NowUTC()
-			return deps.Users.UpdateLoginTime(ctx, n.UserID, now)
-		}),
-		authflow.OnCommitEffect(func(ctx context.Context, deps *authflow.Dependencies) error {
 			if n.Session == nil {
 				return nil
 			}

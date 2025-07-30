@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/jba/slog/withsupport"
 	slogmulti "github.com/samber/slog-multi"
 
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
@@ -18,8 +19,8 @@ type LoggingSkippable interface{ SkipLogging() bool }
 const AttrKeySkipLogging = "__authgear_skip_logging"
 
 type SkipLoggingHandler struct {
-	SkipByWithAttrs bool
-	Next            slog.Handler
+	groupOrAttrs *withsupport.GroupOrAttrs
+	Next         slog.Handler
 }
 
 var _ slog.Handler = (*SkipLoggingHandler)(nil)
@@ -40,28 +41,50 @@ func (s *SkipLoggingHandler) Enabled(ctx context.Context, level slog.Level) bool
 func (s *SkipLoggingHandler) Handle(ctx context.Context, record slog.Record) error {
 	shouldSkip := false
 
-	if s.SkipByWithAttrs {
-		shouldSkip = true
-	} else {
-		record.Attrs(func(attr slog.Attr) bool {
-			if attr.Key == AttrKeyError {
-				if err, ok := attr.Value.Any().(error); ok {
-					if IgnoreError(err) {
-						shouldSkip = true
-					}
+	visitAttr := func(attr slog.Attr) {
+		if attr.Key == AttrKeySkipLogging {
+			if attr.Value.Kind() == slog.KindBool {
+				if attr.Value.Bool() {
+					shouldSkip = true
 				}
-				// We have found the key, we can stop the iteration.
-				return false
 			}
-			return true
-		})
+		}
+		if attr.Key == AttrKeyError {
+			if err, ok := attr.Value.Any().(error); ok {
+				if IgnoreError(err) {
+					shouldSkip = true
+				}
+			}
+		}
 	}
+
+	s.groupOrAttrs.Apply(func(groups []string, attr slog.Attr) {
+		visitAttr(attr)
+	})
+
+	record.Attrs(func(attr slog.Attr) bool {
+		visitAttr(attr)
+		return true
+	})
 
 	// We always call the next handler.
 	// The way we skip handler is to add an attribute for downstream handler to read.
 	if shouldSkip {
-		record = record.Clone()
-		record.AddAttrs(slog.Bool(AttrKeySkipLogging, true))
+		// Clone the record without attrs.
+		clonedWithoutAttrs := slog.NewRecord(record.Time, record.Level, record.Message, record.PC)
+
+		// Loop through the original attrs and add them to cloned.
+		record.Attrs(func(attr slog.Attr) bool {
+			if attr.Key != AttrKeySkipLogging {
+				clonedWithoutAttrs.AddAttrs(attr)
+			}
+			return true
+		})
+
+		// Always write the skip_logging attr.
+		clonedWithoutAttrs.AddAttrs(slog.Bool(AttrKeySkipLogging, true))
+
+		record = clonedWithoutAttrs
 	}
 
 	if s.Next.Enabled(ctx, record.Level) {
@@ -71,26 +94,16 @@ func (s *SkipLoggingHandler) Handle(ctx context.Context, record slog.Record) err
 }
 
 func (s *SkipLoggingHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
-	shouldSkip := s.SkipByWithAttrs
-	for _, attr := range attrs {
-		if err, ok := attr.Value.Any().(error); ok {
-			if IgnoreError(err) {
-				shouldSkip = true
-				break
-			}
-		}
-	}
-
 	return &SkipLoggingHandler{
-		SkipByWithAttrs: shouldSkip,
-		Next:            s.Next.WithAttrs(attrs),
+		Next:         s.Next.WithAttrs(attrs),
+		groupOrAttrs: s.groupOrAttrs.WithAttrs(attrs),
 	}
 }
 
 func (s *SkipLoggingHandler) WithGroup(name string) slog.Handler {
 	return &SkipLoggingHandler{
-		SkipByWithAttrs: s.SkipByWithAttrs,
-		Next:            s.Next.WithGroup(name),
+		Next:         s.Next.WithGroup(name),
+		groupOrAttrs: s.groupOrAttrs.WithGroup(name),
 	}
 }
 
@@ -135,6 +148,10 @@ func IgnoreError(err error) (ignore bool) {
 	}
 
 	return
+}
+
+func SkipLogging() slog.Attr {
+	return slog.Bool(AttrKeySkipLogging, true)
 }
 
 func IsLoggingSkipped(record slog.Record) bool {

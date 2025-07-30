@@ -1426,6 +1426,7 @@
   "AuditLogActivityType.IDENTITY_USERNAME_UPDATED": "Username updated",
   "AuditLogActivityType.USER_ANONYMOUS_PROMOTED": "Anonymous user promoted",
   "AuditLogActivityType.USER_AUTHENTICATED": "Logged in",
+  "AuditLogActivityType.USER_REAUTHENTICATED": "Reauthenticated",
   "AuditLogActivityType.USER_CREATED": "Signed up",
   "AuditLogActivityType.USER_PROFILE_UPDATED": "Profile updated",
   "AuditLogActivityType.USER_DISABLED": "User disabled",

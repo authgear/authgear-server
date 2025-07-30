@@ -17,6 +17,7 @@
       - [user.created](#usercreated)
       - [user.profile.updated](#userprofileupdated)
       - [user.authenticated](#userauthenticated)
+      - [user.reauthenticated](#userreauthenticated)
       - [user.signed_out](#usersigned_out)
       - [user.session.terminated](#usersessionterminated)
       - [user.anonymous.promoted](#useranonymouspromoted)
@@ -482,6 +483,7 @@ Use this event to add custom fields to the JWT access token.
 - [user.created](#usercreated)
 - [user.profile.updated](#userprofileupdated)
 - [user.authenticated](#userauthenticated)
+- [user.reauthenticated](#userreauthenticated)
 - [user.signed_out](#usersigned-out)
 - [user.session.terminated](#usersessionterminated)
 - [user.anonymous.promoted](#useranonymouspromoted)
@@ -538,7 +540,20 @@ Occurs when the user profile is updated.
 
 #### user.authenticated
 
-Occurs after user logged in.
+Occurs after user signed up or signed in.
+
+```json5
+{
+  "payload": {
+    "user": { /* ... */ },
+    "session": { /* ... */ }
+  }
+}
+```
+
+#### user.reauthenticated
+
+Occurs after user reauthenticated.
 
 ```json5
 {

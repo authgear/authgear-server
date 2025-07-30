@@ -1556,6 +1556,20 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 						return nil, err
 					}
 				}
+
+				// Dispatch user.reauthenticated
+				err = h.Events.DispatchEventOnCommit(ctx, &nonblocking.UserReauthenticatedEventPayload{
+					UserRef: model.UserRef{
+						Meta: model.Meta{
+							ID: info.UserID,
+						},
+					},
+					Session:  *offlineGrant.ToAPIModel(),
+					AdminAPI: false,
+				})
+				if err != nil {
+					return nil, err
+				}
 			}
 		}
 	}

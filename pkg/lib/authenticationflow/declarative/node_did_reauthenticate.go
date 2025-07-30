@@ -68,10 +68,6 @@ func (n *NodeDidReauthenticate) GetEffects(ctx context.Context, deps *authflow.D
 			return deps.AuthenticationInfos.Save(ctx, n.AuthenticationInfoEntry)
 		}),
 		authflow.OnCommitEffect(func(ctx context.Context, deps *authflow.Dependencies) error {
-			now := deps.Clock.NowUTC()
-			return deps.Users.UpdateLoginTime(ctx, n.UserID, now)
-		}),
-		authflow.OnCommitEffect(func(ctx context.Context, deps *authflow.Dependencies) error {
 			s := session.GetSession(ctx)
 			if idp, ok := s.(*idpsession.IDPSession); ok && idp.GetUserID() == n.UserID {
 				err = deps.IDPSessions.Reauthenticate(ctx, idp.ID, n.AuthenticationInfoEntry.T.AMR)

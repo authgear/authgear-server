@@ -129,6 +129,15 @@ func (i *IntentSignupFlow) GetEffects(ctx context.Context, deps *authflow.Depend
 		authflow.OnCommitEffect(func(ctx context.Context, deps *authflow.Dependencies) error {
 			userID, createUser := i.userID(flows)
 			if !createUser {
+				return nil
+			}
+
+			now := deps.Clock.NowUTC()
+			return deps.Users.UpdateLoginTime(ctx, userID, now)
+		}),
+		authflow.OnCommitEffect(func(ctx context.Context, deps *authflow.Dependencies) error {
+			userID, createUser := i.userID(flows)
+			if !createUser {
 				// The creation is skipped for some reason, such as entered account linking flow
 				return nil
 			}
