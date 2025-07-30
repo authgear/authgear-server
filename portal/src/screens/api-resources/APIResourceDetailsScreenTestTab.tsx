@@ -21,6 +21,7 @@ import HorizontalDivider from "../../HorizontalDivider";
 import { CodeField } from "../../components/common/CodeField";
 import { startReauthentication } from "../../graphql/portal/Authenticated";
 import { LocationState } from "./APIResourceDetailsScreen";
+import { useSearchParamsState } from "../../hook/useSearchParamsState";
 
 enum ExampleCodeTabKey {
   CURL = "CURL",
@@ -59,24 +60,33 @@ function APIResourceDetailsScreenTestTabContent({
   const { renderToString } = useContext(MessageContext);
   const navigate = useNavigate();
 
-  const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
+  const [selectedClientId, setSelectedClientId] = useSearchParamsState<string>(
+    "client",
+    ""
+  );
   const [accessToken, _setAccessToken] = useState<string | null>(null);
   const [selectedPivotKey, setSelectedPivotKey] = useState<ExampleCodeTabKey>(
     ExampleCodeTabKey.CURL
   );
 
+  const selectedClient = useMemo(() => {
+    return effectiveAppConfig.oauth?.clients?.find(
+      (client) => client.client_id === selectedClientId
+    );
+  }, [effectiveAppConfig, selectedClientId]);
+
   const selectedClientSecret = useMemo((): string | null => {
-    if (!secretConfig || !selectedClientId) {
+    if (!secretConfig || !selectedClient?.client_id) {
       return null;
     }
     const secret = secretConfig.oauthClientSecrets?.find(
-      (secret) => secret.clientID === selectedClientId
+      (secret) => secret.clientID === selectedClient.client_id
     );
     if (secret?.keys != null && secret.keys.length > 0 && secret.keys[0].key) {
       return secret.keys[0].key;
     }
     return null;
-  }, [secretConfig, selectedClientId]);
+  }, [secretConfig, selectedClient]);
 
   const { token: _tokenEndpoint } = useEndpoints(
     effectiveAppConfig.http?.public_origin ?? ""
@@ -100,7 +110,7 @@ function APIResourceDetailsScreenTestTabContent({
     (_: unknown, option?: IDropdownOption) => {
       setSelectedClientId(String(option?.key ?? ""));
     },
-    []
+    [setSelectedClientId]
   );
 
   const handlePivotClick = useCallback((item?: PivotItem) => {
@@ -152,10 +162,10 @@ function APIResourceDetailsScreenTestTabContent({
           }
           options={authorizedApplicationsOptions}
           disabled={authorizedApplicationsOptions.length === 0}
-          selectedKey={selectedClientId}
+          selectedKey={selectedClient?.client_id}
           onChange={handleDropdownChange}
         />
-        {selectedClientId !== null ? (
+        {selectedClient != null ? (
           <>
             <HorizontalDivider />
             <section>
