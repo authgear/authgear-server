@@ -1,4 +1,10 @@
-import React, { useContext, useMemo, useState, useCallback } from "react";
+import React, {
+  useContext,
+  useMemo,
+  useState,
+  useCallback,
+  useEffect,
+} from "react";
 import PrimaryButton from "../../PrimaryButton";
 import DefaultButton from "../../DefaultButton";
 import {
@@ -22,6 +28,8 @@ import { CodeField } from "../../components/common/CodeField";
 import { startReauthentication } from "../../graphql/portal/Authenticated";
 import { LocationState } from "./APIResourceDetailsScreen";
 import { useSearchParamsState } from "../../hook/useSearchParamsState";
+import { useErrorMessageBarContext } from "../../ErrorMessageBar";
+import { parseRawError } from "../../error/parse";
 
 enum ExampleCodeTabKey {
   CURL = "CURL",
@@ -59,12 +67,13 @@ function APIResourceDetailsScreenTestTabContent({
 }) {
   const { renderToString } = useContext(MessageContext);
   const navigate = useNavigate();
-
+  const { setErrors } = useErrorMessageBarContext();
   const [selectedClientId, setSelectedClientId] = useSearchParamsState<string>(
     "client",
     ""
   );
-  const [accessToken, _setAccessToken] = useState<string | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [accessToken, setAccessToken] = useState<string | null>(null);
   const [selectedPivotKey, setSelectedPivotKey] = useState<ExampleCodeTabKey>(
     ExampleCodeTabKey.CURL
   );
@@ -74,6 +83,10 @@ function APIResourceDetailsScreenTestTabContent({
       (client) => client.client_id === selectedClientId
     );
   }, [effectiveAppConfig, selectedClientId]);
+
+  useEffect(() => {
+    setAccessToken(null);
+  }, [selectedClient]);
 
   const selectedClientSecret = useMemo((): string | null => {
     if (!secretConfig || !selectedClient?.client_id) {
@@ -88,7 +101,7 @@ function APIResourceDetailsScreenTestTabContent({
     return null;
   }, [secretConfig, selectedClient]);
 
-  const { token: _tokenEndpoint } = useEndpoints(
+  const { token: tokenEndpoint } = useEndpoints(
     effectiveAppConfig.http?.public_origin ?? ""
   );
 
@@ -128,13 +141,47 @@ function APIResourceDetailsScreenTestTabContent({
     });
   }, [navigate]);
 
-  const onGenerate = useCallback(() => {
+  const onGenerate = useCallback(async () => {
     if (selectedClientSecret == null) {
       revealSecrets();
     } else {
-      // TODO
+      const body = new URLSearchParams();
+      body.append("client_id", selectedClientId);
+      body.append("grant_type", "client_credentials");
+      body.append("resource", resource.resourceURI);
+      body.append("client_secret", selectedClientSecret);
+      setIsGenerating(true);
+      try {
+        const response = await fetch(tokenEndpoint, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: body.toString(),
+        });
+
+        if (!response.ok) {
+          throw new Error(`invalid response status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        setAccessToken(data.access_token);
+      } catch (error) {
+        console.error("Error generating access token:", error);
+        setErrors(parseRawError(error));
+        setAccessToken(null);
+      } finally {
+        setIsGenerating(false);
+      }
     }
-  }, [selectedClientSecret, revealSecrets]);
+  }, [
+    selectedClientSecret,
+    revealSecrets,
+    selectedClientId,
+    resource.resourceURI,
+    tokenEndpoint,
+    setErrors,
+  ]);
 
   return (
     <div className="pt-5 flex-1 flex flex-col space-y-4">
@@ -190,6 +237,7 @@ function APIResourceDetailsScreenTestTabContent({
                     <FormattedMessage id="APIResourceDetailsScreen.test.generateButton.text" />
                   }
                   onClick={onGenerate}
+                  disabled={isGenerating}
                 />
                 <DefaultButton
                   text={<FormattedMessage id="copy" />}
