@@ -117,7 +117,6 @@ steps:
 
 ---
 name: M2M - client_credentials flow with unassigned resource
-focus: true
 before:
   - type: custom_sql
     custom_sql:
