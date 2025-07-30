@@ -575,6 +575,7 @@ func (s *Store) DeleteOfflineGrant(ctx context.Context, grant *oauth.OfflineGran
 			"delete offline grant",
 			slog.String("offline_grant_id", grant.ID),
 			slog.String("offline_grant_initial_client_id", grant.InitialClientID),
+			slog.Time("offline_grant_created_at", grant.CreatedAt),
 			slog.String("user_id", grant.Attrs.UserID),
 		)
 
