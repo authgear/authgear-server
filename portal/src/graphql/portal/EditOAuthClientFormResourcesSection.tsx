@@ -7,17 +7,26 @@ import {
   FormattedMessage,
 } from "@oursky/react-messageformat";
 import { SearchBox } from "@fluentui/react/lib/SearchBox";
-import { useResourcesQueryQuery } from "../adminapi/query/resourcesQuery.generated";
+import {
+  useResourcesQueryQuery,
+  ResourcesQueryDocument,
+} from "../adminapi/query/resourcesQuery.generated";
 import {
   ApplicationResourcesList,
   ApplicationResourceListItem,
 } from "../../components/api-resources/ApplicationResourcesList";
+import { UnauthorizeApplicationDialog } from "../../components/api-resources/UnauthorizeApplicationDialog";
 import { OAuthClientConfig } from "../../types";
-
 import { encodeOffsetToCursor } from "../../util/pagination";
 import { PaginationProps } from "../../PaginationWidget";
 import { useDebounced } from "../../hook/useDebounced";
 import ShowError from "../../ShowError";
+import { useAddResourceToClientIdMutation } from "../adminapi/mutations/addResourceToClientID.generated";
+import { useRemoveResourceFromClientIdMutation } from "../adminapi/mutations/removeResourceFromClientID.generated";
+import { parseRawError } from "../../error/parse";
+import { produce } from "immer";
+import { useErrorState } from "../../hook/error";
+import { Resource } from "../adminapi/globalTypes.generated";
 
 const PAGE_SIZE = 10;
 
@@ -26,9 +35,16 @@ export const EditOAuthClientFormResourcesSection: React.FC<{
   client: OAuthClientConfig;
 }> = ({ className, client }) => {
   const { renderToString } = useContext(MessageContext);
+  const [_, setError] = useErrorState();
   const [searchKeyword, setSearchKeyword] = useState("");
   const [offset, setOffset] = useState(0);
+  const [resourceToUnauthorize, setResourceToUnauthorize] =
+    useState<Resource | null>(null);
+
   const [debouncedSearchKeyword] = useDebounced(searchKeyword, 300);
+  const [disabledToggleClientIDs, setDisabledToggleClientIDs] = useState<
+    string[]
+  >([]);
   const handleSearchChange = useCallback(
     (_event?: React.ChangeEvent<HTMLInputElement>, newValue?: string): void => {
       setSearchKeyword(newValue ?? "");
@@ -37,6 +53,9 @@ export const EditOAuthClientFormResourcesSection: React.FC<{
     [setSearchKeyword, setOffset]
   );
 
+  const [addResource] = useAddResourceToClientIdMutation();
+  const [removeResource] = useRemoveResourceFromClientIdMutation();
+
   const { data, loading, error, refetch } = useResourcesQueryQuery({
     variables: {
       first: PAGE_SIZE,
@@ -44,7 +63,7 @@ export const EditOAuthClientFormResourcesSection: React.FC<{
       searchKeyword:
         debouncedSearchKeyword === "" ? undefined : debouncedSearchKeyword,
     },
-    fetchPolicy: "network-only",
+    fetchPolicy: "cache-and-network",
   });
 
   const resourceListData: ApplicationResourceListItem[] = useMemo(() => {
@@ -63,11 +82,130 @@ export const EditOAuthClientFormResourcesSection: React.FC<{
     });
   }, [client.client_id, data?.resources?.edges]);
 
+  const handleCloseUnauthorizeDialog = useCallback(() => {
+    setResourceToUnauthorize(null);
+  }, []);
+
+  const handleConfirmUnauthorize = useCallback(async () => {
+    if (!resourceToUnauthorize) {
+      return;
+    }
+    const clientId = client.client_id;
+    const resourceUri = resourceToUnauthorize.resourceURI;
+
+    const newResource = produce(resourceToUnauthorize, (draft) => {
+      const newClientIds = draft.clientIDs;
+      newClientIds.push(clientId);
+      draft.clientIDs = newClientIds;
+      return draft;
+    });
+
+    setDisabledToggleClientIDs((prev) => [...prev, resourceToUnauthorize.id]);
+    setError(null);
+
+    try {
+      await removeResource({
+        variables: {
+          clientID: clientId,
+          resourceURI: resourceUri,
+        },
+        refetchQueries: [ResourcesQueryDocument],
+        awaitRefetchQueries: true,
+        optimisticResponse: {
+          removeResourceFromClientID: {
+            resource: newResource,
+          },
+        },
+        update: (cache) => {
+          cache.modify<Resource>({
+            id: cache.identify(resourceToUnauthorize),
+            fields: {
+              clientIDs: () => {
+                return newResource.clientIDs;
+              },
+            },
+          });
+        },
+      });
+    } catch (e) {
+      setError(parseRawError(e));
+    } finally {
+      setDisabledToggleClientIDs((prev) =>
+        prev.filter((id) => id !== resourceToUnauthorize.id)
+      );
+      handleCloseUnauthorizeDialog();
+    }
+  }, [
+    resourceToUnauthorize,
+    client.client_id,
+    removeResource,
+    setError,
+    handleCloseUnauthorizeDialog,
+    setDisabledToggleClientIDs,
+  ]);
+
   const handleToggleAuthorization = useCallback(
-    (_item: ApplicationResourceListItem, _isAuthorized: boolean) => {
-      // TODO: Implement mutation to update authorization status
+    async (item: ApplicationResourceListItem, isAuthorized: boolean) => {
+      const clientId = client.client_id;
+      const resourceUri = item.resourceURI;
+      try {
+        const resourceNode = data?.resources?.edges?.find(
+          (edge) => edge?.node?.id === item.id
+        )?.node;
+        if (resourceNode == null) {
+          throw new Error("unexpected: cannot find the origin resource node");
+        }
+
+        setDisabledToggleClientIDs((prev) => [...prev, item.id]);
+        setError(null);
+        if (!isAuthorized) {
+          setResourceToUnauthorize(resourceNode);
+        } else {
+          const newResource = produce(resourceNode, (draft) => {
+            const newClientIds = draft.clientIDs;
+            newClientIds.push(clientId);
+            draft.clientIDs = newClientIds;
+            return draft;
+          });
+          await addResource({
+            variables: {
+              clientID: clientId,
+              resourceURI: resourceUri,
+            },
+            refetchQueries: [ResourcesQueryDocument],
+            awaitRefetchQueries: true,
+            optimisticResponse: {
+              addResourceToClientID: {
+                resource: newResource,
+              },
+            },
+            update: (cache) => {
+              cache.modify<Resource>({
+                id: cache.identify(resourceNode),
+                fields: {
+                  clientIDs: () => {
+                    return newResource.clientIDs;
+                  },
+                },
+              });
+            },
+          });
+        }
+      } catch (e) {
+        setError(parseRawError(e));
+      } finally {
+        setDisabledToggleClientIDs((prev) =>
+          prev.filter((id) => id !== item.id)
+        );
+      }
     },
-    []
+    [
+      client.client_id,
+      data?.resources?.edges,
+      setError,
+      addResource,
+      setDisabledToggleClientIDs,
+    ]
   );
 
   const onChangeOffset = useCallback((newOffset: number) => {
@@ -102,6 +240,17 @@ export const EditOAuthClientFormResourcesSection: React.FC<{
         loading={loading}
         pagination={pagination}
         onToggleAuthorization={handleToggleAuthorization}
+        disabledToggleClientIDs={disabledToggleClientIDs}
+      />
+      <UnauthorizeApplicationDialog
+        data={
+          resourceToUnauthorize
+            ? { applicationName: client.client_name ?? client.name ?? "" }
+            : null
+        }
+        onDismiss={handleCloseUnauthorizeDialog}
+        onConfirm={handleConfirmUnauthorize}
+        onDismissed={handleCloseUnauthorizeDialog}
       />
     </section>
   );
