@@ -99,7 +99,8 @@ function APIResourceDetailsScreenTestTabContent({
   }, [secretConfig, selectedClient]);
 
   const { token: tokenEndpoint } = useEndpoints(
-    effectiveAppConfig.http?.public_origin ?? ""
+    effectiveAppConfig.http?.public_origin ?? "",
+    selectedClient?.x_application_type
   );
 
   const authorizedApplicationsOptions = useMemo(() => {
