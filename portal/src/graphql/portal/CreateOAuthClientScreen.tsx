@@ -91,6 +91,9 @@ function constructConfig(
         draft.client_name = draft.name;
         draft.redirect_uris = ["http://localhost/after-authentication"];
         draft.post_logout_redirect_uris = undefined;
+      } else if (draft.x_application_type === "m2m") {
+        draft.redirect_uris = undefined;
+        draft.post_logout_redirect_uris = undefined;
       }
       config.oauth.clients.push(draft);
       clearEmptyObject(config);
@@ -104,9 +107,13 @@ function constructSecretUpdateInstruction(
   _secrets: PortalAPISecretConfig,
   currentState: FormState
 ): PortalAPISecretConfigUpdateInstruction | undefined {
+  const clientTypesWithSecret: OAuthClientConfig["x_application_type"][] = [
+    "confidential",
+    "third_party_app",
+    "m2m",
+  ];
   if (
-    currentState.newClient.x_application_type === "confidential" ||
-    currentState.newClient.x_application_type === "third_party_app"
+    clientTypesWithSecret.includes(currentState.newClient.x_application_type)
   ) {
     return {
       oauthClientSecrets: {
@@ -235,6 +242,15 @@ const CreateOAuthClientContent: React.VFC<CreateOAuthClientContentProps> =
         //  ),
         //  disabled: true,
         //},
+        {
+          key: "m2m",
+          text: renderToString("oauth-client.application-type.m2m"),
+          onRenderLabel: onRenderLabel(
+            renderToString(
+              "CreateOAuthClientScreen.application-type.description.m2m"
+            )
+          ),
+        },
       ];
     }, [renderToString, onRenderLabel]);
 
@@ -245,6 +261,9 @@ const CreateOAuthClientContent: React.VFC<CreateOAuthClientContentProps> =
           switch (option.key) {
             case "spa":
             case "native":
+              issueJwtAccessToken = true;
+              break;
+            case "m2m":
               issueJwtAccessToken = true;
               break;
             default:
