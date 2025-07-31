@@ -194,9 +194,6 @@
   "ScreenNav.edit-config": "Edit Config",
   "ScreenNav.api-resources": "API Resources",
 
-  "ApplicationResourcesList.columns.resources": "Resources",
-  "ApplicationResourcesList.columns.authorized": "Authorized",
-
   "NavBreadcrumb.label": "Nested navigation",
 
   "AppsScreen.title": "Select Project",
@@ -2183,6 +2180,10 @@
   "ApplicationList.columns.application": "Application",
   "ApplicationList.columns.authorized": "Authorized",
   "ApplicationList.columns.manageScopes": "Manage Scopes",
+
+  "ApplicationResourcesList.columns.resources": "Resources",
+  "ApplicationResourcesList.columns.authorized": "Authorized",
+  "ApplicationResourcesList.columns.manageScopes": "Manage Scopes",
 
   "EditScopeScreen.title": "Edit Scope",
 

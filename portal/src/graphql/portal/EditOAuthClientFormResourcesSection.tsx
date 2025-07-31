@@ -1,4 +1,5 @@
 import React, { useContext, useState, useCallback, useMemo } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import cn from "classnames";
 import styles from "./EditOAuthClientFormResourcesSection.module.css";
 import WidgetTitle from "../../WidgetTitle";
@@ -45,6 +46,19 @@ export const EditOAuthClientFormResourcesSection: React.FC<{
   const [disabledToggleClientIDs, setDisabledToggleClientIDs] = useState<
     string[]
   >([]);
+
+  const navigate = useNavigate();
+  const { appID } = useParams<{ appID: string }>();
+
+  const onManageScopes = useCallback(
+    (item: ApplicationResourceListItem) => {
+      navigate(
+        `/project/${appID}/configuration/apps/${client.client_id}/edit/resource/${item.id}/scopes`
+      );
+    },
+    [navigate, appID, client.client_id]
+  );
+
   const handleSearchChange = useCallback(
     (_event?: React.ChangeEvent<HTMLInputElement>, newValue?: string): void => {
       setSearchKeyword(newValue ?? "");
@@ -241,6 +255,7 @@ export const EditOAuthClientFormResourcesSection: React.FC<{
         pagination={pagination}
         onToggleAuthorization={handleToggleAuthorization}
         disabledToggleClientIDs={disabledToggleClientIDs}
+        onManageScopes={onManageScopes}
       />
       <UnauthorizeApplicationDialog
         data={

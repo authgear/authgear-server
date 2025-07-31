@@ -208,6 +208,10 @@ const EditScopeScreen = React.lazy(
 const EditApplicationScopesScreen = lazy(
   async () => import("./screens/api-resources/EditApplicationScopesScreen")
 );
+const EditOAuthClientResourceScopeScreen = lazy(
+  async () =>
+    import("./screens/api-resources/EditOAuthClientResourceScopeScreen")
+);
 
 const AppRoot: React.VFC = function AppRoot() {
   const { appID } = useParams() as { appID: string };
@@ -739,6 +743,14 @@ const AppRoot: React.VFC = function AppRoot() {
                   element={
                     <Suspense fallback={<ShowLoading />}>
                       <EditOAuthClientScreen />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="edit/resource/:resourceID/scopes"
+                  element={
+                    <Suspense fallback={<ShowLoading />}>
+                      <EditOAuthClientResourceScopeScreen />
                     </Suspense>
                   }
                 />
