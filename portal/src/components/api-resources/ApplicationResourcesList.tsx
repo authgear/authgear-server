@@ -27,6 +27,7 @@ interface ApplicationResourcesListProps {
     item: ApplicationResourceListItem,
     isAuthorized: boolean
   ) => void;
+  disabledToggleClientIDs?: string[];
 }
 
 export const ApplicationResourcesList: React.FC<ApplicationResourcesListProps> =
@@ -43,10 +44,11 @@ export const ApplicationResourcesList: React.FC<ApplicationResourcesListProps> =
             onChange={(_: unknown, checked: boolean | undefined) => {
               onToggleAuthorization(item, checked ?? false);
             }}
+            disabled={props.disabledToggleClientIDs?.includes(item.id)}
           />
         );
       },
-      [onToggleAuthorization]
+      [onToggleAuthorization, props.disabledToggleClientIDs]
     );
 
     const columns: IColumn[] = useMemo(
