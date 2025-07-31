@@ -471,7 +471,7 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
           <FormTextFieldList
             parentJSONPointer={parentJSONPointer}
             fieldName="redirect_uris"
-            list={clientConfig.redirect_uris}
+            list={clientConfig.redirect_uris ?? []}
             onListItemAdd={onRedirectUrisChange}
             onListItemChange={onRedirectUrisChange}
             onListItemDelete={onRedirectUrisChange}

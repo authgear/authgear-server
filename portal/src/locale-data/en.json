@@ -821,6 +821,7 @@
   "CreateOAuthClientScreen.application-type.description.native": "Mobile and desktop apps, e.g. iOS, Android, Electron",
   "CreateOAuthClientScreen.application-type.description.confidential": "Allow user to login with Authgear to access any other OIDC or SAML compatible application. e.g. Wordpress, Figma, Salesforce",
   "CreateOAuthClientScreen.application-type.description.third-party-app": "Legacy. Please create a new OIDC Client Application instead.",
+  "CreateOAuthClientScreen.application-type.description.m2m": "Backend servers or loT devices",
 
   "EditOAuthClientScreen.client-not-found": "Client ID {clientID} is not found",
   "EditOAuthClientScreen.quick-start-screen.title": "All set! Here are the guides to help your integration.",
@@ -962,6 +963,7 @@
   "oauth-client.application-type.native": "Native App",
   "oauth-client.application-type.confidential": "OIDC/SAML Client Application",
   "oauth-client.application-type.third-party-app": "OIDC Client Application (Legacy)",
+  "oauth-client.application-type.m2m": "Machine-to-Machine",
 
   "CustomDomainListScreen.title": "Custom Domains",
   "CustomDomainListScreen.desc": "You can add a custom domain so that users will login via, for example, “identity.yourdomain.com”. In this case, a session cookie of domain “yourdomain.com” is set so that your websites can share the session cookies under “*.yourdomain.com” for better customers experiences.",
