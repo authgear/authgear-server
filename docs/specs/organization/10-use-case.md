@@ -494,3 +494,178 @@ For MVP, we can implement parts of Use case 7.1:
 - `x_organization_behavior=only_member:developer_specified_organization`
 
 Other variants requires `prompt_end_user_for_organization_last` to be sorted out first.
+
+## Use case 8: Developer-facing Authentication Output
+
+This use case discusses various developer-facing Authentication Output.
+
+### Use case 8.1: `org_slug` in ID Token and JWT Access Token
+
+> [!NOTE]
+> Auth0 by default includes `org_id` in ID token.
+> It also offers a tenant-wise configuration to include `org_name` in ID token.
+> See https://auth0.com/docs/manage-users/organizations/using-tokens#authenticate-users-through-an-organization and
+> https://auth0.com/docs/manage-users/organizations/configure-organizations/use-org-name-authentication-api
+
+When authentication is done via OIDC (The is the most common case), the developer wants to know which Organization the Member has signed in.
+
+Organization has a developer-provided unique slug across the Project.
+We include the Organization slug in the ID token instead of the generated ID of the Organization.
+
+This is an example of ID token:
+```json
+{
+  "iss": "https://auth.myapp.com",
+  "aud": ["mobileapp"],
+  "sub": "johndoe",
+  "scope": "openid offline_access",
+  "org_slug": "myorg"
+}
+```
+
+This ID token implies:
+
+- The User `johndoe` is a Member of `myorg`.
+- The User `johndoe` signed in `myorg`.
+
+> [!NOTE]
+> This proposal is different from what Fung proposed in Linear.
+
+### Use case 8.2: `member_orgs` in UserInfo
+
+> [!NOTE]
+> Auth0 does not support this out-of-the-box.
+> The developer is expected to make use of the Management API to find out what Organizations the User is Member of.
+
+We first need to answer this question:
+
+> Is it appropriate to disclose what Organization the User is Member of,
+> given that the User may be a Member of an Organization that has a more strict password policy, MFA requirement, or Federated Login.
+
+Actually this question also applies to `prompt_end_user_for_organization_last` in Use case 7.1.
+If we agree that it is appropriate to have Use case 7.1, then the answer to this question is "Yes, it is appropriate to disclose such information, as long as the User is identified and authenticated".
+
+Another potential problem is that the User could be a Member of many Organizations.
+
+> [!IMPORTANT]
+> Should we limit the maximum number of Organizations a User can be a member of? Is 100 a reasonable hard limit?
+
+This use case could be essential for implementing Organization Switcher.
+
+In the Organization Switcher we commonly see in online services,
+the following information are shown
+
+- A display name of the Organization. This is different from the Organization Slug.
+- An icon of the Organization, if the Organization has one.
+- The Organization Slug, either as a standalone string, or be interpolated as a URL.
+
+So the developer wants information like
+
+```json
+[
+  {
+    "org_display_name": "Oursky",
+    "org_slug": "oursky",
+    "org_icon_url": "https://oursky.com/favicon.png"
+  },
+  {
+    "org_display_name": "FormX",
+    "org_slug": "formx",
+    "org_icon_url": "https://formx.ai/favicon.png"
+  }
+]
+```
+
+Given that this information is not bound to session (unlike Use case 8.1), maybe we should include this information in UserInfo instead.
+Not including this information in tokens can ensure the size of the tokens is small, and does not grow proportional to the number of Members.
+Access Token is usually included in HTTP header, and HTTP headers commonly has a practical size limit of 4000 bytes to 8000 bytes.
+
+The final proposal is to include `member_orgs` in UserInfo.
+
+Here is an example:
+
+```json
+{
+  "sub": "johndoe",
+  "member_orgs": [
+    {
+      "org_display_name": "Oursky",
+      "org_slug": "oursky",
+      "org_icon_url": "https://oursky.com/favicon.png"
+    },
+    {
+      "org_display_name": "FormX",
+      "org_slug": "formx",
+      "org_icon_url": "https://formx.ai/favicon.png"
+    }
+  ],
+  "email": "louischan@oursky.com"
+}
+```
+
+### Use case 8.3: Authentication Output in client applications using cookies
+
+When the client application uses cookies (Likely the applications are SSR),
+the developer resolve the cookie into a number of headers with the resolve endpoint. This feature is specified in [../api-resolver.md](../api-resolver.md)
+
+Similar to Use case 8.1, we need to report to the developer which Organization the User has signed in to.
+
+I propose we add this new header:
+
+> x-authgear-session-org-slug
+>
+> If this header is absent, the User did not signed in to an Organization.
+> If this header is present, the value indicates the slug of the Organization the User signed in to.
+>
+> Example:
+> x-authgear-session-org-slug: myorg
+
+To support a similar use case like Use case 8.2,
+it is **not recommended** to use the cookie to impersonate the end-user to access the UserInfo endpoint directly.
+
+Instead, the client application (which should be a backend service) is recommended to query the Members of the User via the Admin API.
+
+### Use case 8.4: Authentication Output in SAML
+
+The below XML snippet lists out a list of possible places we can put the Organization the User signed in to.
+
+```
+<Assertion>
+  <AuthnStatement>
+    ...
+    <AuthnContext>
+      <AuthnContextClassRef></AuthnContextClassRef>        <!-- Optional -->
+      <AuthnContextDecl></AuthnContextDecl>                <!-- Optional -->
+      <AuthnContextDeclRef></AuthnContextDeclRef>          <!-- Optional -->
+      <AuthenticatingAuthority></AuthenticatingAuthority>  <!-- Zero or More -->
+    </AuthnContext>
+  </AuthnStatement>
+  <AttributeStatement>
+    ...
+  </AttributeStatement>
+</Assertion>
+```
+
+- `AuthnContextClassRef`: Example values include `urn:oasis:names:tc:SAML:2.0:ac:classes:Password`. Irrelevant.
+- `AuthnContextDecl` and `AuthnContextDeclRef`: A document of `<AuthnContext>` or a URI to it. Irrelevant.
+- `AuthenticatingAuthority`: Example values include `https://sso.company.com`. Irrelevant.
+
+So the remaining candidate is `AttributeStatement`.
+The official description of it is:
+
+> The <AttributeStatement> element describes a statement by the SAML authority asserting that the
+> assertion subject is associated with the specified attributes.
+
+However, the signed Organization is associated with the particular SAML AuthnRequest, not associated with the subject in general.
+
+> [!NOTE]
+> Discuss how to report signed in Organization in SAML Assertion.
+
+Similar to Use case 8.3, the SAML SP is recommended to query the Members of the User via the Admin API.
+
+### Use case 8: Design Decision
+
+For MVP, implement
+- Use case 8.1
+- Use case 8.2
+- Use case 8.3
