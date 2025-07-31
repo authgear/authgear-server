@@ -8,7 +8,6 @@ import (
 	"github.com/graphql-go/graphql/gqlerrors"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
-	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
@@ -54,7 +53,6 @@ func (a APIErrorExtension) ExecutionDidStart(ctx context.Context) (context.Conte
 				// 		it just use a generic error message.
 				//     	For some panics, string concatenation leads to the compiler
 				//		infers a string enum type, and therefore cannot be logged here.
-				err = errorutil.ForceLogging(err)
 				logger.WithError(err).With(
 					slog.Any("path", gqlError.Path),
 				).Error(ctx, "unexpected error when executing GraphQL query")

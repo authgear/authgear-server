@@ -12,7 +12,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
 	"github.com/authgear/authgear-server/pkg/lib/web"
-	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/slogutil"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -65,7 +64,6 @@ func (m *WebAppRequestMiddleware) Handle(next http.Handler) http.Handler {
 				viewmodels.Embed(data, baseViewModel)
 				m.TemplateEngine.RenderStatus(w, r, http.StatusNotFound, TemplateWebAppNotFoundHTML, data)
 			} else {
-				err = errorutil.ForceLogging(err)
 				logger.WithError(err).Error(ctx, "failed to resolve config")
 				http.Error(w, "internal server error", http.StatusInternalServerError)
 			}

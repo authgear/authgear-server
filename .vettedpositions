@@ -277,9 +277,9 @@
 /pkg/auth/webapp/wechat_redirect_uri_middleware.go:59:31: requestcontext
 /pkg/auth/webapp/wechat_redirect_uri_middleware.go:115:39: requestcontext
 /pkg/auth/webapp/x_color_scheme.go:74:27: requestcontext
-/pkg/auth/webapp_request_middleware.go:41:10: requestcontext
+/pkg/auth/webapp_request_middleware.go:40:10: requestcontext
 /pkg/images/deps/context.go:23:10: requestcontext
-/pkg/images/deps/middleware_request.go:25:10: requestcontext
+/pkg/images/deps/middleware_request.go:24:10: requestcontext
 /pkg/images/handler/get.go:94:11: requestcontext
 /pkg/images/handler/post.go:58:9: requestcontext
 /pkg/lib/accountmanagement/rate_limit_middleware.go:36:10: requestcontext
@@ -292,7 +292,7 @@
 /pkg/lib/config/contextbackground.go:11:52: contextbackground
 /pkg/lib/deps/context.go:23:10: requestcontext
 /pkg/lib/deps/contextbackground.go:10:28: contextbackground
-/pkg/lib/deps/middleware_request.go:25:10: requestcontext
+/pkg/lib/deps/middleware_request.go:24:10: requestcontext
 /pkg/lib/deps/providers.go:148:25: requestcontext
 /pkg/lib/deps/providers.go:155:36: requestcontext
 /pkg/lib/dpop/middleware.go:45:35: requestcontext
