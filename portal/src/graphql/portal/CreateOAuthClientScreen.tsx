@@ -286,10 +286,28 @@ const CreateOAuthClientContent: React.VFC<CreateOAuthClientContentProps> =
       save()
         .then(
           () => {
+            const applicationTypesWithQuickStart: OAuthClientConfig["x_application_type"][] =
+              [
+                "confidential",
+                "native",
+                "spa",
+                "third_party_app",
+                "traditional_webapp",
+              ];
+            const nextPath = `/project/${appID}/configuration/apps/${encodeURIComponent(
+              clientId
+            )}/edit`;
+            const searchParams = new URLSearchParams();
+            if (
+              applicationTypesWithQuickStart.includes(client.x_application_type)
+            ) {
+              searchParams.set("quickstart", "true");
+            }
             navigate(
-              `/project/${appID}/configuration/apps/${encodeURIComponent(
-                clientId
-              )}/edit?quickstart=true`,
+              {
+                pathname: nextPath,
+                search: searchParams.toString(),
+              },
               {
                 replace: true,
               }
@@ -298,7 +316,7 @@ const CreateOAuthClientContent: React.VFC<CreateOAuthClientContentProps> =
           () => {}
         )
         .catch(() => {});
-    }, [navigate, appID, clientId, save]);
+    }, [save, appID, clientId, client.x_application_type, navigate]);
 
     const parentJSONPointer = /\/oauth\/clients\/\d+/;
 
