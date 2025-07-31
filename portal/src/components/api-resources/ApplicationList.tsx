@@ -9,6 +9,8 @@ import {
 import { Context as MessageContext } from "@oursky/react-messageformat";
 import styles from "./ApplicationList.module.css";
 import Toggle from "../../Toggle";
+import ActionButton from "../../ActionButton";
+import { useSystemConfig } from "../../context/SystemConfigContext";
 
 export interface ApplicationListItem {
   clientID: string;
@@ -22,6 +24,7 @@ interface ApplicationListProps {
   loading: boolean;
   disabledToggleClientIDs: string[];
   onToggleAuthorized: (item: ApplicationListItem, checked: boolean) => void;
+  onManageScopes: (item: ApplicationListItem) => void;
 }
 
 export const ApplicationList: React.VFC<ApplicationListProps> =
@@ -31,9 +34,11 @@ export const ApplicationList: React.VFC<ApplicationListProps> =
       applications,
       loading,
       onToggleAuthorized,
+      onManageScopes,
       disabledToggleClientIDs,
     } = props;
     const { renderToString } = useContext(MessageContext);
+    const { themes } = useSystemConfig();
 
     const disabledToggleClientIDsSet = useMemo(() => {
       return new Set(disabledToggleClientIDs);
@@ -74,8 +79,44 @@ export const ApplicationList: React.VFC<ApplicationListProps> =
           fieldName: "authorized",
           onRender: onRenderAuthorized,
         },
+        {
+          key: "actions",
+          name: "",
+          minWidth: 100,
+          maxWidth: 100,
+          isResizable: false,
+          // eslint-disable-next-line react/no-unstable-nested-components
+          onRender: (item?: ApplicationListItem) => {
+            if (
+              !item?.authorized ||
+              disabledToggleClientIDsSet.has(item.clientID)
+            ) {
+              return null;
+            }
+            const handleClick = () => {
+              onManageScopes(item);
+            };
+            return (
+              <ActionButton
+                text={renderToString("ApplicationList.columns.manageScopes")}
+                styles={{
+                  label: { fontWeight: 600 },
+                  root: { height: "auto" },
+                }}
+                theme={themes.actionButton}
+                onClick={handleClick}
+              />
+            );
+          },
+        },
       ],
-      [onRenderAuthorized, renderToString]
+      [
+        renderToString,
+        onRenderAuthorized,
+        disabledToggleClientIDsSet,
+        themes.actionButton,
+        onManageScopes,
+      ]
     );
 
     return (

@@ -1,5 +1,10 @@
 import React, { useEffect, useMemo } from "react";
-import { useParams, useNavigate, useLocation } from "react-router-dom";
+import {
+  useParams,
+  useNavigate,
+  useLocation,
+  createPath,
+} from "react-router-dom";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import {
   ScopeForm,
@@ -39,6 +44,14 @@ function EditScopeScreenContent({
     [scope]
   );
 
+  const backURL = createPath({
+    pathname: `/project/${appID}/api-resources/${encodeURIComponent(
+      resourceID ?? ""
+    )}`,
+    hash: location.hash,
+    search: location.search,
+  });
+
   const form = useSimpleForm<ScopeFormState, Scope>({
     defaultState: initialState,
     submit: async (s) => {
@@ -62,14 +75,8 @@ function EditScopeScreenContent({
   });
 
   useEffect(() => {
-    if (form.isSubmitted && appID && resourceID) {
-      navigate({
-        pathname: `/project/${appID}/api-resources/${encodeURIComponent(
-          resourceID
-        )}`,
-        hash: location.hash,
-        search: location.search,
-      });
+    if (form.isSubmitted) {
+      navigate(backURL);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form.isSubmitted]);
@@ -82,7 +89,7 @@ function EditScopeScreenContent({
           label: <FormattedMessage id="ScreenNav.api-resources" />,
         },
         {
-          to: `~/api-resources/${resourceID}`,
+          to: backURL,
           label: resource.name ?? resource.resourceURI,
         },
         {

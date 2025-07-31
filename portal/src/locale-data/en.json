@@ -2144,6 +2144,10 @@
   "APIResourcesScreen.title": "API Resources",
   "APIResourcesScreen.description": "Set up API resources for authorized applications.",
 
+  "UnauthorizeApplicationDialog.title": "Unauthorize Application",
+  "UnauthorizeApplicationDialog.description": "By unauthorizing this application, it will lose access to all assigned resources and scopes.",
+  "UnauthorizeApplicationDialog.unauthorize": "Unauthorized",
+
   "CreateAPIResourceScreen.title": "Create API Resource",
 
   "APIResourceDetailsScreen.tab.details": "Details",
@@ -2156,6 +2160,7 @@
 
   "ApplicationList.columns.application": "Application",
   "ApplicationList.columns.authorized": "Authorized",
+  "ApplicationList.columns.manageScopes": "Manage Scopes",
 
   "EditScopeScreen.title": "Edit Scope",
 
@@ -2170,6 +2175,11 @@
 
   "ScopeList.columns.scope": "Scope",
   "ScopeList.columns.description": "Description",
+
+  "EditApplicationScopesList.columns.scope": "Authorized Scope",
+  "EditApplicationScopesList.select": "Select",
+  "EditApplicationScopesList.buttons.all": "All",
+  "EditApplicationScopesList.buttons.none": "None",
 
   "DeleteScopeDialog.title": "Delete Scope",
   "DeleteScopeDialog.description": "This action will permanently delete the scope \"{scope}\" and cannot be undone. Are you sure you want to proceed?",

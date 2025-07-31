@@ -46,12 +46,7 @@ const APIResourcesScreen: React.VFC = function APIResourcesScreen() {
   const { data, loading, error, refetch } = useResourcesQueryQuery({
     variables: {
       first: PAGE_SIZE,
-      after: useMemo(() => {
-        if (offset === 0) {
-          return undefined;
-        }
-        return encodeOffsetToCursor(offset - 1);
-      }, [offset]),
+      after: encodeOffsetToCursor(offset),
       searchKeyword:
         debouncedSearchKeyword === "" ? undefined : debouncedSearchKeyword,
     },

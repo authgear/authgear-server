@@ -12,8 +12,9 @@ import {
   ApplicationList,
   ApplicationListItem,
 } from "../../components/api-resources/ApplicationList";
+import { UnauthorizeApplicationDialog } from "../../components/api-resources/UnauthorizeApplicationDialog";
 import { useAppAndSecretConfigQuery } from "../../graphql/portal/query/appAndSecretConfigQuery";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import ShowError from "../../ShowError";
 import {
   ResourceQueryDocument,
@@ -38,6 +39,9 @@ export function APIResourceDetailsScreenApplicationsTab({
   const [disabledToggleClientIDs, setDisabledToggleClientIDs] = useState<
     string[]
   >([]);
+
+  const [applicationToUnauthorize, setApplicationToUnauthorize] =
+    useState<ApplicationListItem | null>(null);
 
   const isLoading = appConfigQuery.isLoading;
   const [searchKeyword, setSearchKeyword] = useState("");
@@ -81,65 +85,115 @@ export function APIResourceDetailsScreenApplicationsTab({
     []
   );
 
+  const navigate = useNavigate();
+
+  const onManageScopes = useCallback(
+    (item: ApplicationListItem) => {
+      navigate(
+        `/project/${appID}/api-resources/${resource.id}/applications/${item.clientID}/scopes`
+      );
+    },
+    [appID, navigate, resource.id]
+  );
+
+  const handleOpenUnauthorizeDialog = useCallback(
+    (item: ApplicationListItem) => {
+      setApplicationToUnauthorize(item);
+    },
+    []
+  );
+
+  const handleCloseUnauthorizeDialog = useCallback(() => {
+    setApplicationToUnauthorize(null);
+  }, []);
+
+  const handleConfirmUnauthorize = useCallback(async () => {
+    if (!applicationToUnauthorize) {
+      return;
+    }
+    try {
+      setDisabledToggleClientIDs((prev) => [
+        ...prev,
+        applicationToUnauthorize.clientID,
+      ]);
+
+      const newResource = {
+        ...resource,
+        clientIDs: resource.clientIDs.filter(
+          (clientID) => clientID !== applicationToUnauthorize.clientID
+        ),
+      };
+
+      await removeResource({
+        variables: {
+          clientID: applicationToUnauthorize.clientID,
+          resourceURI: resource.resourceURI,
+        },
+        refetchQueries: [ResourceQueryDocument],
+        awaitRefetchQueries: true,
+        optimisticResponse: {
+          removeResourceFromClientID: {
+            resource: newResource,
+          },
+        },
+        update: (cache) => {
+          cache.writeQuery<ResourceQueryQuery>({
+            query: ResourceQueryDocument,
+            variables: { id: resource.id },
+            data: { node: newResource },
+          });
+        },
+      });
+    } catch (e: unknown) {
+      setErrors(parseRawError(e));
+    } finally {
+      setDisabledToggleClientIDs((prev) =>
+        prev.filter(
+          (clientID) => clientID !== applicationToUnauthorize.clientID
+        )
+      );
+      handleCloseUnauthorizeDialog();
+    }
+  }, [
+    applicationToUnauthorize,
+    resource,
+    removeResource,
+    setErrors,
+    handleCloseUnauthorizeDialog,
+  ]);
+
   const onToggleAuthorized = useCallback(
     async (item: ApplicationListItem, checked: boolean) => {
+      if (!checked) {
+        handleOpenUnauthorizeDialog(item);
+        return;
+      }
       try {
         setDisabledToggleClientIDs((prev) => [...prev, item.clientID]);
-        if (checked) {
-          const newResource = {
-            ...resource,
-            clientIDs: [...resource.clientIDs, item.clientID],
-          };
-          await addResource({
-            variables: {
-              clientID: item.clientID,
-              resourceURI: resource.resourceURI,
+        const newResource = {
+          ...resource,
+          clientIDs: [...resource.clientIDs, item.clientID],
+        };
+        await addResource({
+          variables: {
+            clientID: item.clientID,
+            resourceURI: resource.resourceURI,
+          },
+          refetchQueries: [ResourceQueryDocument],
+          awaitRefetchQueries: true,
+          optimisticResponse: {
+            addResourceToClientID: {
+              resource: newResource,
             },
-            refetchQueries: [ResourceQueryDocument],
-            awaitRefetchQueries: true,
-            optimisticResponse: {
-              addResourceToClientID: {
-                resource: newResource,
-              },
-            },
-            update: (cache) => {
-              // optimistic update
-              cache.writeQuery<ResourceQueryQuery>({
-                query: ResourceQueryDocument,
-                variables: { id: resource.id },
-                data: { node: newResource },
-              });
-            },
-          });
-        } else {
-          const newResource = {
-            ...resource,
-            clientIDs: resource.clientIDs.filter(
-              (clientID) => clientID !== item.clientID
-            ),
-          };
-          await removeResource({
-            variables: {
-              clientID: item.clientID,
-              resourceURI: resource.resourceURI,
-            },
-            refetchQueries: [ResourceQueryDocument],
-            awaitRefetchQueries: true,
-            optimisticResponse: {
-              removeResourceFromClientID: {
-                resource: newResource,
-              },
-            },
-            update: (cache) => {
-              // optimistic update
-              cache.writeQuery<ResourceQueryQuery>({
-                query: ResourceQueryDocument,
-                variables: { id: resource.id },
-                data: { node: newResource },
-              });
-            },
-          });
-        }
+          },
+          update: (cache) => {
+            cache.writeQuery<ResourceQueryQuery>({
+              query: ResourceQueryDocument,
+              variables: { id: resource.id },
+              data: { node: newResource },
+            });
+          },
+        });
       } catch (e: unknown) {
         setErrors(parseRawError(e));
       } finally {
@@ -148,7 +202,7 @@ export function APIResourceDetailsScreenApplicationsTab({
         );
       }
     },
-    [resource, addResource, removeResource, setErrors]
+    [resource, addResource, setErrors, handleOpenUnauthorizeDialog]
   );
 
   if (appConfigQuery.loadError) {
@@ -194,11 +248,23 @@ export function APIResourceDetailsScreenApplicationsTab({
               className="flex-1 min-h-0"
               loading={isLoading}
               onToggleAuthorized={onToggleAuthorized}
+              onManageScopes={onManageScopes}
               disabledToggleClientIDs={disabledToggleClientIDs}
             />
           </div>
         </>
       )}
+      <UnauthorizeApplicationDialog
+        data={
+          applicationToUnauthorize
+            ? { applicationName: applicationToUnauthorize.name }
+            : null
+        }
+        onDismiss={handleCloseUnauthorizeDialog}
+        onConfirm={handleConfirmUnauthorize}
+        isLoading={isLoading}
+        onDismissed={handleCloseUnauthorizeDialog}
+      />
     </div>
   );
 }

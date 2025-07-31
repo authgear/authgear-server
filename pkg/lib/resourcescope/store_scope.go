@@ -358,10 +358,3 @@ func (s *Store) DeleteAllClientScopeAssociationsByScopeID(ctx context.Context, s
 	_, err := s.SQLExecutor.ExecWith(ctx, q)
 	return err
 }
-
-func (s *Store) DeleteClientScopeAssociationsByResourceID(ctx context.Context, clientID, resourceID string) error {
-	q := s.SQLBuilder.Delete(s.SQLBuilder.TableName("_auth_client_resource_scope")).
-		Where("client_id = ? AND resource_id = ?", clientID, resourceID)
-	_, err := s.SQLExecutor.ExecWith(ctx, q)
-	return err
-}
