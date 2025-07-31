@@ -669,3 +669,42 @@ For MVP, implement
 - Use case 8.1
 - Use case 8.2
 - Use case 8.3
+
+## Use case 9: What information does an Organization contain?
+
+TODO
+
+- Slug
+- Display Name
+- Icon URL
+- Metadata (How to expose this? Are metadata exposed to all Members without Restrictions?)
+
+## Use case 10: What Organization-specific configurations are available?
+
+TODO
+
+- Organization-specific login methods
+- Organization-specific password polices
+- Organization-specific MFA configuration
+- Organization-specific session lifetime configuration (Override the configuration of client application, or take more strict one from both)
+- Organization-specific UI theming (To what extend?)
+
+## Use case 11: Email discovery
+
+TODO
+
+This feature is relevant only when Login ID is in use.
+
+## Use case 12: Federated Login
+
+TODO
+
+This feature is query parameter `x_provider_alias` implicitly provided for a particular Organization.
+
+## Use case 13: Built-in Organization Switching
+
+TODO
+
+## Use case 14: UX of the settings page
+
+TODO
