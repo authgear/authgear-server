@@ -11,7 +11,7 @@ export type ResourcesQueryQueryVariables = Types.Exact<{
 }>;
 
 
-export type ResourcesQueryQuery = { __typename?: 'Query', resources?: { __typename?: 'ResourceConnection', totalCount?: number | null, edges?: Array<{ __typename?: 'ResourceEdge', cursor: string, node?: { __typename?: 'Resource', id: string, name?: string | null, resourceURI: string, createdAt: any, updatedAt: any } | null } | null> | null, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } | null };
+export type ResourcesQueryQuery = { __typename?: 'Query', resources?: { __typename?: 'ResourceConnection', totalCount?: number | null, edges?: Array<{ __typename?: 'ResourceEdge', cursor: string, node?: { __typename?: 'Resource', id: string, name?: string | null, clientIDs: Array<string>, resourceURI: string, createdAt: any, updatedAt: any } | null } | null> | null, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } | null };
 
 
 export const ResourcesQueryDocument = gql`
@@ -26,6 +26,7 @@ export const ResourcesQueryDocument = gql`
       node {
         id
         name
+        clientIDs
         resourceURI
         createdAt
         updatedAt
