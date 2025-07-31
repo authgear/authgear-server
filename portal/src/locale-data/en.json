@@ -194,6 +194,9 @@
   "ScreenNav.edit-config": "Edit Config",
   "ScreenNav.api-resources": "API Resources",
 
+  "ApplicationResourcesList.columns.resources": "Resources",
+  "ApplicationResourcesList.columns.authorized": "Authorized",
+
   "NavBreadcrumb.label": "Nested navigation",
 
   "AppsScreen.title": "Select Project",
@@ -903,6 +906,8 @@
   "EditOAuthClientForm.app2app.migration.description": "App2App login requires a refresh token generated after App2App login enabled. Enable Migration mode will allow old refresh tokens to participate in app2app login. This mode is less secure and not recommended.",
   "EditOAuthClientForm.app2app.uris.description": "Setup universal link for iOS and app links for Android in {ReactRouterLink, react, to{#uris} children{Authorized Redirect URIs} preserveDefault{true}} to handle the App2App requests",
   "EditOAuthClientForm.more-options": "More options",
+  "EditOAuthClientForm.resources.title": "Resources",
+
   "EditOAuthClientScreen.tabs.settings": "Settings",
   "EditOAuthClientScreen.tabs.saml2": "SAML 2.0",
 

@@ -20,6 +20,8 @@ import { useParams } from "react-router-dom";
 import TextField from "../../TextField";
 import TextFieldWithButton from "../../TextFieldWithButton";
 import { Accordion } from "../../components/common/Accordion";
+import { EditOAuthClientFormResourcesSection } from "./EditOAuthClientFormResourcesSection";
+import HorizontalDivider from "../../HorizontalDivider";
 
 const MASKED_SECRET = "***************";
 
@@ -444,6 +446,8 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
     const showURIsSection =
       redirectURIsDescription != null || showPostLogoutRedirectURIsSettings;
 
+    const showResourcesSection = clientConfig.x_application_type === "m2m";
+
     return (
       <>
         <Widget className={className}>
@@ -759,6 +763,15 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
               <FormattedMessage id="EditOAuthClientForm.app2app.uris.description" />
             </HelpText>
           </Widget>
+        ) : null}
+        {showResourcesSection ? (
+          <>
+            <HorizontalDivider />
+            <EditOAuthClientFormResourcesSection
+              className={className}
+              client={clientConfig}
+            />
+          </>
         ) : null}
       </>
     );
