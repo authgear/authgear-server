@@ -19,13 +19,12 @@ interface UnauthorizeApplicationDialogProps {
   data: UnauthorizeApplicationDialogData | null;
   onDismiss: () => void;
   onConfirm: (data: UnauthorizeApplicationDialogData) => void;
-  isLoading: boolean;
   onDismissed?: () => void;
 }
 
 export const UnauthorizeApplicationDialog: React.VFC<UnauthorizeApplicationDialogProps> =
   function UnauthorizeApplicationDialog(props) {
-    const { onDismiss, onConfirm, isLoading, onDismissed, data } = props;
+    const { onDismiss, onConfirm, onDismissed, data } = props;
     const isHidden = data === null;
     const { renderToString } = useContext(Context);
     const { themes } = useSystemConfig();
@@ -35,11 +34,11 @@ export const UnauthorizeApplicationDialog: React.VFC<UnauthorizeApplicationDialo
     const snapshot = useSnapshotData(data);
 
     const onPressConfirm = useCallback(() => {
-      if (isLoading || isHidden) {
+      if (isHidden) {
         return;
       }
       onConfirm(data);
-    }, [isLoading, isHidden, onConfirm, data]);
+    }, [isHidden, onConfirm, data]);
 
     const dialogStyles = { main: { minHeight: 0 } };
     const dialogContentProps: IDialogContentProps = {
@@ -79,7 +78,6 @@ export const UnauthorizeApplicationDialog: React.VFC<UnauthorizeApplicationDialo
           <DialogFooter>
             <PrimaryButton
               theme={themes.destructive}
-              disabled={isLoading}
               onClick={onPressConfirm}
               text={
                 <FormattedMessage id="UnauthorizeApplicationDialog.unauthorize" />
@@ -87,7 +85,6 @@ export const UnauthorizeApplicationDialog: React.VFC<UnauthorizeApplicationDialo
             />
             <DefaultButton
               onClick={onDialogDismiss}
-              disabled={isLoading}
               text={<FormattedMessage id="cancel" />}
             />
           </DialogFooter>

@@ -1,5 +1,5 @@
-import React, { useContext } from "react";
-import { useParams } from "react-router-dom";
+import React, { useContext, useState } from "react";
+import { useLocation, useParams } from "react-router-dom";
 import { useResourceQueryQuery } from "../../graphql/adminapi/query/resourceQuery.generated";
 import { useLoadableView } from "../../hook/useLoadableView";
 import {
@@ -14,8 +14,34 @@ import { APIResourceDetailsScreenDetailsTab } from "./APIResourceDetailsScreenDe
 import { APIResourceDetailsScreenScopesTab } from "./APIResourceDetailsScreenScopesTab";
 import { APIResourceDetailsScreenApplicationsTab } from "./APIResourceDetailsScreenApplicationsTab";
 import { APIResourceDetailsScreenTestTab } from "./APIResourceDetailsScreenTestTab";
+import { useLocationEffect } from "../../hook/useLocationEffect";
+import { useAppSecretVisitToken } from "../../graphql/portal/mutations/generateAppSecretVisitTokenMutation";
+import { useAppAndSecretConfigQuery } from "../../graphql/portal/query/appAndSecretConfigQuery";
+import { AppSecretKey } from "../../graphql/portal/globalTypes.generated";
+import { PortalAPIAppConfig, PortalAPISecretConfig } from "../../types";
 
-function APIResourceDetailsContent({ resource }: { resource: Resource }) {
+export interface LocationState {
+  isClientSecretRevealed: boolean;
+}
+
+const SECRETS = [AppSecretKey.OauthClientSecrets];
+function isLocationState(raw: unknown): raw is LocationState {
+  return (
+    raw != null &&
+    typeof raw === "object" &&
+    (raw as Partial<LocationState>).isClientSecretRevealed != null
+  );
+}
+
+function APIResourceDetailsContent({
+  resource,
+  effectiveAppConfig,
+  secretConfig,
+}: {
+  resource: Resource;
+  effectiveAppConfig: PortalAPIAppConfig;
+  secretConfig: PortalAPISecretConfig | null;
+}) {
   const { selectedKey, onLinkClick } = usePivotNavigation([
     "details",
     "scopes",
@@ -52,19 +78,56 @@ function APIResourceDetailsContent({ resource }: { resource: Resource }) {
         <APIResourceDetailsScreenScopesTab resource={resource} />
       ) : null}
       {selectedKey === "applications" ? (
-        <APIResourceDetailsScreenApplicationsTab resource={resource} />
+        <APIResourceDetailsScreenApplicationsTab
+          resource={resource}
+          effectiveAppConfig={effectiveAppConfig}
+        />
       ) : null}
-      {selectedKey === "test" ? <APIResourceDetailsScreenTestTab /> : null}
+      {selectedKey === "test" ? (
+        <APIResourceDetailsScreenTestTab
+          resource={resource}
+          effectiveAppConfig={effectiveAppConfig}
+          secretConfig={secretConfig}
+        />
+      ) : null}
     </div>
   );
 }
 
 const APIResourceDetailsScreen: React.VFC =
   function APIResourceDetailsScreen() {
-    const { resourceID } = useParams<{ resourceID: string }>();
+    const { appID, resourceID } = useParams<{
+      resourceID: string;
+      appID: string;
+    }>();
     const { data, loading, error, refetch } = useResourceQueryQuery({
       variables: { id: resourceID! },
     });
+    const location = useLocation();
+    const [shouldRefreshToken] = useState<boolean>(() => {
+      const { state } = location;
+      if (isLocationState(state) && state.isClientSecretRevealed) {
+        return true;
+      }
+      return false;
+    });
+    useLocationEffect<LocationState>(() => {
+      // Pop the location state if exist
+    });
+    const appSecretTokenQuery = useAppSecretVisitToken(
+      appID!,
+      SECRETS,
+      shouldRefreshToken
+    );
+    const appConfigQuery = useAppAndSecretConfigQuery(
+      appID!,
+      appSecretTokenQuery.token
+    );
+    const appSecretTokenLoadable = {
+      isLoading: appSecretTokenQuery.loading,
+      reload: appSecretTokenQuery.retry,
+      loadError: appSecretTokenQuery.error,
+    };
 
     return useLoadableView({
       loadables: [
@@ -74,9 +137,11 @@ const APIResourceDetailsScreen: React.VFC =
           reload: refetch,
           data: data,
         },
-      ],
-      render: ([query]) => {
-        const { data } = query;
+        appConfigQuery,
+        appSecretTokenLoadable,
+      ] as const,
+      render: ([resourceQuery, configQuery]) => {
+        const { data } = resourceQuery;
         const resource =
           data?.node && data.node.__typename === "Resource" ? data.node : null;
         if (!resource) {
@@ -95,7 +160,11 @@ const APIResourceDetailsScreen: React.VFC =
               },
             ]}
           >
-            <APIResourceDetailsContent resource={resource} />
+            <APIResourceDetailsContent
+              resource={resource}
+              effectiveAppConfig={configQuery.effectiveAppConfig!}
+              secretConfig={configQuery.secretConfig}
+            />
           </APIResourceScreenLayout>
         );
       },

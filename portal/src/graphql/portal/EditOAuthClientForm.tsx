@@ -3,6 +3,8 @@ import { produce } from "immer";
 import { Label, Text, useTheme } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
+import { useEndpoints } from "../../hook/useEndpoints";
+
 import Widget from "../../Widget";
 import WidgetTitle from "../../WidgetTitle";
 import WidgetDescription from "../../WidgetDescription";
@@ -375,42 +377,38 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
       [clientConfig.x_application_type]
     );
 
-    const endpoints = useMemo(() => {
-      const list: {
-        labelMessageID: string;
-        endpoint: string;
-      }[] = showEndpointsSection
-        ? [
-            {
-              labelMessageID:
-                "EditOAuthClientForm.openid-configuration-endpoint.label",
-              endpoint: `${publicOrigin}/.well-known/openid-configuration`,
-            },
-            {
-              labelMessageID:
-                "EditOAuthClientForm.authorization-endpoint.label",
-              endpoint: `${publicOrigin}/oauth2/authorize`,
-            },
-            {
-              labelMessageID: "EditOAuthClientForm.token-endpoint.label",
-              endpoint: `${publicOrigin}/oauth2/token`,
-            },
-            {
-              labelMessageID: "EditOAuthClientForm.userinfo-endpoint.label",
-              endpoint: `${publicOrigin}/oauth2/userinfo`,
-            },
-            {
-              labelMessageID: "EditOAuthClientForm.end-session-endpoint.label",
-              endpoint: `${publicOrigin}/oauth2/end_session`,
-            },
-            {
-              labelMessageID: "EditOAuthClientForm.jwks-uri.label",
-              endpoint: `${publicOrigin}/oauth2/jwks`,
-            },
-          ]
-        : [];
-      return list;
-    }, [showEndpointsSection, publicOrigin]);
+    const endpoints = useEndpoints(publicOrigin);
+
+    const endpointsWithLabelIDs = useMemo(
+      () => [
+        {
+          endpoint: endpoints.openidConfiguration,
+          labelMessageID:
+            "EditOAuthClientForm.openid-configuration-endpoint.label",
+        },
+        {
+          endpoint: endpoints.authorize,
+          labelMessageID: "EditOAuthClientForm.authorization-endpoint.label",
+        },
+        {
+          endpoint: endpoints.token,
+          labelMessageID: "EditOAuthClientForm.token-endpoint.label",
+        },
+        {
+          endpoint: endpoints.userinfo,
+          labelMessageID: "EditOAuthClientForm.userinfo-endpoint.label",
+        },
+        {
+          endpoint: endpoints.endSession,
+          labelMessageID: "EditOAuthClientForm.end-session-endpoint.label",
+        },
+        {
+          endpoint: endpoints.jwksUri,
+          labelMessageID: "EditOAuthClientForm.jwks-uri.label",
+        },
+      ],
+      [endpoints]
+    );
 
     return (
       <>
@@ -574,11 +572,11 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
             <WidgetTitle>
               <FormattedMessage id="EditOAuthClientForm.endpoints.title" />
             </WidgetTitle>
-            {endpoints.map((item, i) => (
+            {endpointsWithLabelIDs.map((e) => (
               <TextFieldWithCopyButton
-                key={i}
-                label={renderToString(item.labelMessageID)}
-                value={item.endpoint}
+                key={e.labelMessageID}
+                label={renderToString(e.labelMessageID)}
+                value={e.endpoint}
                 readOnly={true}
               />
             ))}

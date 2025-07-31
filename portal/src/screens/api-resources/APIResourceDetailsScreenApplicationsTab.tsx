@@ -13,9 +13,7 @@ import {
   ApplicationListItem,
 } from "../../components/api-resources/ApplicationList";
 import { UnauthorizeApplicationDialog } from "../../components/api-resources/UnauthorizeApplicationDialog";
-import { useAppAndSecretConfigQuery } from "../../graphql/portal/query/appAndSecretConfigQuery";
 import { useParams, useNavigate } from "react-router-dom";
-import ShowError from "../../ShowError";
 import {
   ResourceQueryDocument,
   ResourceQueryQuery,
@@ -23,14 +21,16 @@ import {
 import { parseRawError } from "../../error/parse";
 import { useErrorMessageBarContext } from "../../ErrorMessageBar";
 import { useSystemConfig } from "../../context/SystemConfigContext";
+import { PortalAPIAppConfig } from "../../types";
 
 export function APIResourceDetailsScreenApplicationsTab({
   resource,
+  effectiveAppConfig,
 }: {
   resource: Resource;
+  effectiveAppConfig: PortalAPIAppConfig;
 }): JSX.Element {
   const { appID } = useParams() as { appID: string };
-  const appConfigQuery = useAppAndSecretConfigQuery(appID);
   const [addResource] = useAddResourceToClientIdMutation();
   const [removeResource] = useRemoveResourceFromClientIdMutation();
   const { setErrors } = useErrorMessageBarContext();
@@ -43,12 +43,11 @@ export function APIResourceDetailsScreenApplicationsTab({
   const [applicationToUnauthorize, setApplicationToUnauthorize] =
     useState<ApplicationListItem | null>(null);
 
-  const isLoading = appConfigQuery.isLoading;
   const [searchKeyword, setSearchKeyword] = useState("");
 
   const applications = useMemo((): ApplicationListItem[] => {
     return (
-      appConfigQuery.effectiveAppConfig?.oauth?.clients
+      effectiveAppConfig.oauth?.clients
         ?.filter((clientConfig) => {
           switch (clientConfig.x_application_type) {
             case "m2m":
@@ -64,7 +63,7 @@ export function APIResourceDetailsScreenApplicationsTab({
           name: clientConfig.name ?? clientConfig.client_name ?? "",
         })) ?? []
     );
-  }, [appConfigQuery.effectiveAppConfig?.oauth?.clients, resource.clientIDs]);
+  }, [effectiveAppConfig.oauth?.clients, resource.clientIDs]);
 
   const filteredApplications = useMemo(() => {
     if (!searchKeyword) {
@@ -205,11 +204,7 @@ export function APIResourceDetailsScreenApplicationsTab({
     [resource, addResource, setErrors, handleOpenUnauthorizeDialog]
   );
 
-  if (appConfigQuery.loadError) {
-    return <ShowError error={appConfigQuery.loadError} />;
-  }
-
-  const isEmpty = applications.length === 0 && !isLoading;
+  const isEmpty = applications.length === 0;
 
   return (
     <div className="pt-5 flex-1 flex flex-col space-y-4">
@@ -246,7 +241,7 @@ export function APIResourceDetailsScreenApplicationsTab({
             <ApplicationList
               applications={filteredApplications}
               className="flex-1 min-h-0"
-              loading={isLoading}
+              loading={false} // The app config query should always be completed
               onToggleAuthorized={onToggleAuthorized}
               onManageScopes={onManageScopes}
               disabledToggleClientIDs={disabledToggleClientIDs}
@@ -262,7 +257,6 @@ export function APIResourceDetailsScreenApplicationsTab({
         }
         onDismiss={handleCloseUnauthorizeDialog}
         onConfirm={handleConfirmUnauthorize}
-        isLoading={isLoading}
         onDismissed={handleCloseUnauthorizeDialog}
       />
     </div>
