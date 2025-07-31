@@ -9,7 +9,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
-	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
@@ -44,7 +43,6 @@ func (m *RequestMiddleware) Handle(next http.Handler) http.Handler {
 			if errors.Is(err, configsource.ErrAppNotFound) {
 				http.Error(w, configsource.ErrAppNotFound.Error(), http.StatusNotFound)
 			} else {
-				err = errorutil.ForceLogging(err)
 				logger.WithError(err).Error(ctx, "failed to resolve config")
 				http.Error(w, "internal server error", http.StatusInternalServerError)
 			}
