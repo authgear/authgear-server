@@ -51,6 +51,7 @@ import {
 } from "../../components/applications/OAuthClientSAMLForm";
 import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";
 import iconSaml from "../../images/saml-logo.svg";
+import { usePivotNavigation } from "../../hook/usePivot";
 
 interface LocationState {
   isClientSecretRevealed: boolean;
@@ -829,14 +830,31 @@ function FormContainerContent({
   app2appEnabled: boolean;
   refetchAppAndSecretConfig: () => void;
 }) {
-  const [formTab, setFormTab] = useState<FormTab>(FormTab.SETTINGS);
+  const { state } = form;
+  const { selectedKey: formTab, onChangeKey: setFormTab } = usePivotNavigation(
+    useMemo(() => {
+      const client =
+        state.editedClient ??
+        state.clients.find((c) => c.client_id === clientID);
+      switch (client?.x_application_type) {
+        case "m2m":
+          return [FormTab.SETTINGS, FormTab.APIResources];
+        case "confidential":
+          return [FormTab.SETTINGS, FormTab.SAML2];
+        default:
+          return [FormTab.SETTINGS];
+      }
+    }, [clientID, state.clients, state.editedClient]),
+    undefined,
+    "tab"
+  );
 
   const contextValue = useMemo<FormTabContextType>(
     () => ({
       formTab,
       setFormTab: setFormTab,
     }),
-    [formTab]
+    [formTab, setFormTab]
   );
 
   return (
