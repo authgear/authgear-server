@@ -1,76 +1,3 @@
-- [OIDC](#oidc)
-  * [OAuth 2 and OIDC Conformance](#oauth-2-and-oidc-conformance)
-  * [Client Metadata](#client-metadata)
-    + [Standard Client Metadata](#standard-client-metadata)
-    + [Custom Client Metadata](#custom-client-metadata)
-      - [Generic RP Client Metadata example](#generic-rp-client-metadata-example)
-      - [Native application Client Metadata example](#native-application-client-metadata-example)
-      - [Web application sharing the same root domain Client Metadata example](#web-application-sharing-the-same-root-domain-client-metadata-example)
-      - [Silent Authentication Client Metadata example](#silent-authentication-client-metadata-example)
-  * [Authentication Request](#authentication-request)
-    + [scope](#scope)
-    + [response_type](#response_type)
-    + [prompt](#prompt)
-    + [max_age](#max_age)
-    + [id_token_hint](#id_token_hint)
-    + [login_hint](#login_hint)
-    + [acr_values](#acr_values)
-    + [code_challenge_method](#code_challenge_method)
-    + [nonce](#nonce)
-    + [x_page](#x_page)
-    + [x_settings_action](#x_settings_action)
-    + [x_authentication_flow_group](#x_authentication_flow_group)
-  * [Token Request](#token-request)
-    + [grant_type](#grant_type)
-    + [id_token_hint](#id_token_hint-1)
-    + [jwt](#jwt)
-    + [`urn:authgear:params:oauth:grant-type:authorization_code`](#urnauthgearparamsoauthgrant-typeauthorization_code)
-  * [Token Response](#token-response)
-    + [token_type](#token_type)
-    + [refresh_token](#refresh_token)
-    + [scope](#scope-1)
-  * [The metadata endpoint](#the-metadata-endpoint)
-    + [authorization_endpoint](#authorization_endpoint)
-    + [token_endpoint](#token_endpoint)
-    + [userinfo_endpoint](#userinfo_endpoint)
-    + [revocation_endpoint](#revocation_endpoint)
-    + [jwks_uri](#jwks_uri)
-    + [scopes_supported](#scopes_supported)
-    + [response_types_supported](#response_types_supported)
-    + [grant_types_supported](#grant_types_supported)
-    + [subject_types_supported](#subject_types_supported)
-    + [id_token_signing_alg_values_supported](#id_token_signing_alg_values_supported)
-    + [claims_supported](#claims_supported)
-    + [code_challenge_methods_supported](#code_challenge_methods_supported)
-  * [ID Token](#id-token)
-    + [`amr`](#amr)
-    + [`auth_time`](#auth_time)
-    + [`https://authgear.com/user/can_reauthenticate`](#httpsauthgearcomusercan_reauthenticate)
-    + [`https://authgear.com/user/is_anonymous`](#httpsauthgearcomuseris_anonymous)
-    + [`https://authgear.com/user/is_verified`](#httpsauthgearcomuseris_verified)
-  * [External application acting as RP while Authgear acting as OP](#external-application-acting-as-rp-while-authgear-acting-as-op)
-  * [Authgear acting as authentication server with native application](#authgear-acting-as-authentication-server-with-native-application)
-  * [Authgear acting as authentication server with web application](#authgear-acting-as-authentication-server-with-web-application)
-  * [Voluntary reauthentication](#voluntary-reauthentication)
-  * [Silent Authentication](#silent-authentication)
-    + [Comparison with cookie sharing approach](#comparison-with-cookie-sharing-approach)
-    + [Details of Silent Authentication](#details-of-silent-authentication)
-  * [Clients](#clients)
-    + [Rationale of limitations](#rationale-of-limitations)
-    + [First-party clients](#first-party-clients)
-    + [First-party public clients](#first-party-public-clients)
-    + [First-party confidential clients](#first-party-confidential-clients)
-    + [Third-Party clients](#third-party-clients)
-    + [Confidential clients](#confidential-clients)
-    + [Consent Screen](#consent-screen)
-    + [Authorized Apps page](#authorized-apps-page)
-    + [App Session Token](#app-session-token)
-    + [Settings Action](#settings-action)
-  * [How to construct authentication request to achieve different scenarios](#how-to-construct-authentication-request-to-achieve-different-scenarios)
-    + [The user has NOT signed in yet in my mobile app. I want to authenticate any user.](#the-user-has-not-signed-in-yet-in-my-mobile-app-i-want-to-authenticate-any-user)
-    + [The user has NOT signed in yet in my mobile app. I want to authenticate any user. Possibly reuse any previous signed in sessions.](#the-user-has-not-signed-in-yet-in-my-mobile-app-i-want-to-authenticate-any-user-possibly-reuse-any-previous-signed-in-sessions)
-    + [The user has signed in. I want to reauthenticate the user before they can perform sensitive operation.](#the-user-has-signed-in-i-want-to-reauthenticate-the-user-before-they-can-perform-sensitive-operation)
-
 # OIDC
 
 Authgear acts as OpenID Provider (OP).
@@ -161,6 +88,8 @@ Refresh token is not used.
 - `https://authgear.com/scopes/full-access`: Full access scope allows access to privileged user operations. Only [first-party public clients](#first-party-public-clients) can request this scope.
 - `https://authgear.com/scopes/full-userinfo`: Returns the complete userinfo in the id_token or through the userinfo endpoint.
 
+When `scope` is unspecified, `scope` has no default values.
+
 ### response_type
 
 - `none`: Nothing is included in the authentication response.
@@ -250,19 +179,16 @@ If the specified group is not found or not included in the [client's allow list]
 
 ### grant_type
 
-- `authorization_code`
-- `refresh_token`
-- `urn:authgear:params:oauth:grant-type:anonymous-request`
-- `urn:authgear:params:oauth:grant-type:biometric-request`
-- `urn:authgear:params:oauth:grant-type:id-token`
-- `urn:authgear:params:oauth:grant-type:authorization_code`
-- `urn:authgear:params:oauth:grant-type:settings-action`
+The following `grant_type` are supported.
 
-`urn:authgear:params:oauth:grant-type:anonymous-request` is for authenticating and issuing tokens directly for anonymous user.
-
-`urn:authgear:params:oauth:grant-type:biometric-request` is for authenticating and issuing tokens directly for users with Biometric identity.
-
-`urn:authgear:params:oauth:grant-type:settings-action` is issued upon completion of a settings action, such as change password.
+- `authorization_code` - [RFC6749 section-4.1](https://datatracker.ietf.org/doc/html/rfc6749#section-4.1)
+- `refresh_token` - [RFC6749 section-6](https://datatracker.ietf.org/doc/html/rfc6749#section-6)
+- `client_credentials` - [RFC6749 section-4.4](https://datatracker.ietf.org/doc/html/rfc6749#section-4.4)
+- `urn:authgear:params:oauth:grant-type:anonymous-request` - authenticating and issuing tokens directly for anonymous user.
+- `urn:authgear:params:oauth:grant-type:biometric-request` - authenticating and issuing tokens directly for users with Biometric identity.
+- `urn:authgear:params:oauth:grant-type:id-token` - for getting an ID token.
+- `urn:authgear:params:oauth:grant-type:authorization_code` - an unimplemented Authentication Flow feature.
+- `urn:authgear:params:oauth:grant-type:settings-action` - for settings action
 
 ### id_token_hint
 
@@ -285,6 +211,14 @@ This grant type is similar to `authorization_code`, except that it **DOES NOT** 
 `authorization_code` by definition is delivered by redirect, thus is subject to interception attack, as described in [RFC 7636](https://datatracker.ietf.org/doc/html/rfc7636).
 `urn:authgear:params:oauth:grant-type:authorization_code`, in contrast, is delivered in traditional HTTP request-response, thus the use of PKCE is redundant, and would add unnecessary friction.
 
+### resource
+
+See [M2M](./m2m.md#changes-in-oauth-20-implementation)
+
+### scope
+
+See [M2M](./m2m.md#changes-in-oauth-20-implementation)
+
 ## Token Response
 
 ### token_type
@@ -297,7 +231,8 @@ Present only if authorized scopes contain `offline_access`.
 
 ### scope
 
-It is always absent.
+It is always present.
+It is the actual scope granted to the client on `aud` on behalf of `sub`.
 
 ## The metadata endpoint
 
