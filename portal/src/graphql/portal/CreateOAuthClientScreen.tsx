@@ -77,11 +77,13 @@ function constructConfig(
           draft.post_logout_redirect_uris = ["http://localhost/after-logout"];
           draft.grant_types = ["authorization_code", "refresh_token"];
           draft.response_types = ["code", "none"];
+          draft.issue_jwt_access_token = true;
           break;
         case "native":
           draft.redirect_uris = ["com.example.myapp://host/path"];
           draft.grant_types = ["authorization_code", "refresh_token"];
           draft.response_types = ["code", "none"];
+          draft.issue_jwt_access_token = true;
           break;
         case "confidential":
         case "third_party_app":
@@ -89,6 +91,7 @@ function constructConfig(
           draft.redirect_uris = ["http://localhost/after-authentication"];
           draft.grant_types = ["authorization_code", "refresh_token"];
           draft.response_types = ["code", "none"];
+          draft.issue_jwt_access_token = true;
           break;
         case "m2m":
           draft.issue_jwt_access_token = true;
