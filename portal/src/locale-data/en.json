@@ -821,6 +821,7 @@
   "CreateOAuthClientScreen.application-type.description.native": "Mobile and desktop apps, e.g. iOS, Android, Electron",
   "CreateOAuthClientScreen.application-type.description.confidential": "Allow user to login with Authgear to access any other OIDC or SAML compatible application. e.g. Wordpress, Figma, Salesforce",
   "CreateOAuthClientScreen.application-type.description.third-party-app": "Legacy. Please create a new OIDC Client Application instead.",
+  "CreateOAuthClientScreen.application-type.description.m2m": "Backend servers or loT devices",
 
   "EditOAuthClientScreen.client-not-found": "Client ID {clientID} is not found",
   "EditOAuthClientScreen.quick-start-screen.title": "All set! Here are the guides to help your integration.",
@@ -856,7 +857,6 @@
   "EditOAuthClientForm.redirect-uris.description.confidential": "After users are authenticated, users will be redirected to these URIs. This should be a page in your application.",
   "EditOAuthClientForm.redirect-uris.description.third-party-app": "After users are authenticated, users will be redirected to these URIs. This should be a page in your application.",
   "EditOAuthClientForm.redirect-uris.description.unspecified": "After users are authenticated, users will be redirected to these URIs. This should be a page in your application.",
-  "EditOAuthClientForm.redirect-uris.description.m2m": "",
   "EditOAuthClientForm.post-logout-redirect-uris.label": "Post Logout Redirect URIs",
   "EditOAuthClientForm.post-logout-redirect-uris.description": "Users will be redirected to these paths after they have logged out. The URIs must be whitelisted here.",
   "EditOAuthClientForm.post-logout-redirect-uris.spa.description": "Post Logout Redirect URIs are not needed for the web SDK @authgear/web >= 2.0.0. In the old version SDK, users will be redirected to these paths after they have logged out. The URIs must be whitelisted here.",
@@ -885,6 +885,7 @@
   "EditOAuthClientForm.access-token.title": "Access Token",
   "EditOAuthClientForm.access-token.label": "Access Token Lifetime (seconds)",
   "EditOAuthClientForm.access-token.description": "How frequent the access token should be refreshed. This will affect the timeliness of the information held in the JWT token.",
+  "EditOAuthClientForm.access-token.description.m2m": "How frequent the access token should be requested again. This will affect the timeliness of the infromation held in the JWT token.",
   "EditOAuthClientForm.issue-jwt-access-token.label": "Issue JWT as access token",
   "EditOAuthClientForm.endpoints.title": "Endpoints",
   "EditOAuthClientForm.authorization-endpoint.label": "Authorization Endpoint",
@@ -902,6 +903,8 @@
   "EditOAuthClientForm.app2app.migration.description": "App2App login requires a refresh token generated after App2App login enabled. Enable Migration mode will allow old refresh tokens to participate in app2app login. This mode is less secure and not recommended.",
   "EditOAuthClientForm.app2app.uris.description": "Setup universal link for iOS and app links for Android in {ReactRouterLink, react, to{#uris} children{Authorized Redirect URIs} preserveDefault{true}} to handle the App2App requests",
   "EditOAuthClientForm.more-options": "More options",
+  "EditOAuthClientForm.resources.title": "Resources",
+
   "EditOAuthClientScreen.tabs.settings": "Settings",
   "EditOAuthClientScreen.tabs.saml2": "SAML 2.0",
 
@@ -962,6 +965,7 @@
   "oauth-client.application-type.native": "Native App",
   "oauth-client.application-type.confidential": "OIDC/SAML Client Application",
   "oauth-client.application-type.third-party-app": "OIDC Client Application (Legacy)",
+  "oauth-client.application-type.m2m": "Machine-to-Machine",
 
   "CustomDomainListScreen.title": "Custom Domains",
   "CustomDomainListScreen.desc": "You can add a custom domain so that users will login via, for example, “identity.yourdomain.com”. In this case, a session cookie of domain “yourdomain.com” is set so that your websites can share the session cookies under “*.yourdomain.com” for better customers experiences.",
@@ -2144,9 +2148,9 @@
   "APIResourcesScreen.title": "API Resources",
   "APIResourcesScreen.description": "Set up API resources for authorized applications.",
 
-  "UnauthorizeApplicationDialog.title": "Unauthorize Application",
-  "UnauthorizeApplicationDialog.description": "By unauthorizing this application, it will lose access to all assigned resources and scopes.",
-  "UnauthorizeApplicationDialog.unauthorize": "Unauthorized",
+  "UnauthorizeApplicationDialog.title": "Revoke Application Access",
+  "UnauthorizeApplicationDialog.description": "This will revoke the application's access to all assigned resources and scopes. You can reauthorize it anytime from the integrations settings.",
+  "UnauthorizeApplicationDialog.unauthorize": "Revoke",
 
   "CreateAPIResourceScreen.title": "Create API Resource",
 
@@ -2177,6 +2181,10 @@
   "ApplicationList.columns.application": "Application",
   "ApplicationList.columns.authorized": "Authorized",
   "ApplicationList.columns.manageScopes": "Manage Scopes",
+
+  "ApplicationResourcesList.columns.resources": "Resources",
+  "ApplicationResourcesList.columns.authorized": "Authorized",
+  "ApplicationResourcesList.columns.manageScopes": "Manage Scopes",
 
   "EditScopeScreen.title": "Edit Scope",
 

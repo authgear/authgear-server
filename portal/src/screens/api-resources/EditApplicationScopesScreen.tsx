@@ -21,6 +21,7 @@ import { OAuthClientConfig } from "../../types";
 import { useAppAndSecretConfigQuery } from "../../graphql/portal/query/appAndSecretConfigQuery";
 import { useLoadableView } from "../../hook/useLoadableView";
 import FormContainer from "../../FormContainer";
+import { BreadcrumbItem } from "../../NavBreadcrumb";
 
 const pageSize = 1000;
 
@@ -28,15 +29,17 @@ interface FormState {
   assignedScopes: string[];
 }
 
-function EditApplicationScopesScreenContent({
+export function EditApplicationScopesScreenContent({
   clientConfig,
   resourceScopesQueryData,
   clientResourceScopesQueryData,
+  breadcrumbItems,
 }: {
   clientConfig: OAuthClientConfig;
   resourceScopesQueryData: ResourceScopesQueryQuery;
   clientResourceScopesQueryData: GetClientResourceScopesQuery;
-}) {
+  breadcrumbItems: BreadcrumbItem[];
+}): React.ReactElement {
   const [replaceScopesOfClientIdMutation] =
     useReplaceScopesOfClientIdMutation();
 
@@ -103,22 +106,7 @@ function EditApplicationScopesScreenContent({
       stickyFooterComponent={true}
       showDiscardButton={true}
     >
-      <APIResourceScreenLayout
-        breadcrumbItems={[
-          {
-            to: "~/api-resources",
-            label: <FormattedMessage id="ScreenNav.api-resources" />,
-          },
-          {
-            to: `~/api-resources/${resource.id}#applications`,
-            label: resource.name ?? resource.resourceURI,
-          },
-          {
-            to: ``,
-            label: clientConfig.name ?? clientConfig.client_name,
-          },
-        ]}
-      >
+      <APIResourceScreenLayout breadcrumbItems={breadcrumbItems}>
         <EditApplicationScopesList
           className="flex-1-0-auto col-span-full"
           scopes={scopes}
@@ -207,8 +195,14 @@ const EditApplicationScopesScreen: React.VFC =
         const client = effectiveAppConfig?.oauth?.clients?.find(
           (c) => c.client_id === clientID
         );
+        const resource =
+          scopesQueryData?.node &&
+          scopesQueryData.node.__typename === "Resource"
+            ? scopesQueryData.node
+            : null;
         if (
           client == null ||
+          resource == null ||
           scopesQueryData == null ||
           clientScopesQueryData == null
         ) {
@@ -220,6 +214,20 @@ const EditApplicationScopesScreen: React.VFC =
             clientConfig={client}
             resourceScopesQueryData={scopesQueryData}
             clientResourceScopesQueryData={clientScopesQueryData}
+            breadcrumbItems={[
+              {
+                to: "~/api-resources",
+                label: <FormattedMessage id="ScreenNav.api-resources" />,
+              },
+              {
+                to: `~/api-resources/${resource.id}#applications`,
+                label: resource.name ?? resource.resourceURI,
+              },
+              {
+                to: ``,
+                label: client.name ?? client.client_name,
+              },
+            ]}
           />
         );
       },

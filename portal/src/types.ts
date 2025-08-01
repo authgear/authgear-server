@@ -569,7 +569,7 @@ export interface OAuthClientConfig {
   client_name?: string;
   x_application_type?: ApplicationType;
   x_max_concurrent_session?: number;
-  redirect_uris: string[];
+  redirect_uris?: string[];
   grant_types?: string[];
   response_types?: string[];
   post_logout_redirect_uris?: string[];
