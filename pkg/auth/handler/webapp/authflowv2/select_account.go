@@ -186,6 +186,7 @@ func (h *AuthflowV2SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *htt
 		// Write authentication info cookie
 		if session != nil {
 			info := session.CreateNewAuthenticationInfoByThisSession()
+			info.ShouldFireAuthenticatedEventWhenIssueOfflineGrant = true
 			entry := authenticationinfo.NewEntry(info, oauthSessionID, samlSessionID)
 			err := h.AuthenticationInfoService.Save(ctx, entry)
 			if err != nil {
