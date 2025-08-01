@@ -252,6 +252,7 @@ If the specified group is not found or not included in the [client's allow list]
 
 - `authorization_code`
 - `refresh_token`
+- `client_credentials`
 - `urn:authgear:params:oauth:grant-type:anonymous-request`
 - `urn:authgear:params:oauth:grant-type:biometric-request`
 - `urn:authgear:params:oauth:grant-type:id-token`
