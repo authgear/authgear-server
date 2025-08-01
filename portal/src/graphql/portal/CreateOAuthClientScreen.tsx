@@ -48,16 +48,8 @@ function constructFormState(
   return {
     clients: config.oauth?.clients ?? [],
     newClient: {
-      name: undefined,
       x_application_type: "spa",
       client_id: genRandomHexadecimalString(),
-      redirect_uris: [],
-      grant_types: ["authorization_code", "refresh_token"],
-      response_types: ["code", "none"],
-      access_token_lifetime_seconds: undefined,
-      refresh_token_lifetime_seconds: undefined,
-      post_logout_redirect_uris: undefined,
-      issue_jwt_access_token: true,
     },
   };
 }
@@ -75,25 +67,32 @@ function constructConfig(
       config.oauth ??= {};
       config.oauth.clients = currentState.clients;
       const draft = createDraft(currentState.newClient);
-      if (
-        draft.x_application_type === "spa" ||
-        draft.x_application_type === "traditional_webapp"
-      ) {
-        draft.redirect_uris = ["http://localhost/after-authentication"];
-        draft.post_logout_redirect_uris = ["http://localhost/after-logout"];
-      } else if (draft.x_application_type === "native") {
-        draft.redirect_uris = ["com.example.myapp://host/path"];
-        draft.post_logout_redirect_uris = undefined;
-      } else if (
-        draft.x_application_type === "confidential" ||
-        draft.x_application_type === "third_party_app"
-      ) {
-        draft.client_name = draft.name;
-        draft.redirect_uris = ["http://localhost/after-authentication"];
-        draft.post_logout_redirect_uris = undefined;
-      } else if (draft.x_application_type === "m2m") {
-        draft.redirect_uris = undefined;
-        draft.post_logout_redirect_uris = undefined;
+      if (draft.x_application_type == null) {
+        throw new Error("unexpected null x_application_type");
+      }
+      switch (draft.x_application_type) {
+        case "spa":
+        case "traditional_webapp":
+          draft.redirect_uris = ["http://localhost/after-authentication"];
+          draft.post_logout_redirect_uris = ["http://localhost/after-logout"];
+          draft.grant_types = ["authorization_code", "refresh_token"];
+          draft.response_types = ["code", "none"];
+          break;
+        case "native":
+          draft.redirect_uris = ["com.example.myapp://host/path"];
+          draft.grant_types = ["authorization_code", "refresh_token"];
+          draft.response_types = ["code", "none"];
+          break;
+        case "confidential":
+        case "third_party_app":
+          draft.client_name = draft.name;
+          draft.redirect_uris = ["http://localhost/after-authentication"];
+          draft.grant_types = ["authorization_code", "refresh_token"];
+          draft.response_types = ["code", "none"];
+          break;
+        case "m2m":
+          draft.issue_jwt_access_token = true;
+          break;
       }
       config.oauth.clients.push(draft);
       clearEmptyObject(config);
