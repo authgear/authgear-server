@@ -1143,7 +1143,7 @@ scope=scopea+scopeb+scopec
   "access_token": "A_JWT",
   "token_type": "bearer",
   "expires_in": 3600,
-  "scope": "scopea+scopeb+scopec"
+  "scope": "scopea scopeb scopec"
 }
 ```
 
