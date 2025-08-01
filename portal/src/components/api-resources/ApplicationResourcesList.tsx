@@ -5,13 +5,15 @@ import {
   ShimmeredDetailsList,
   SelectionMode,
   DetailsListLayoutMode,
+  Text,
 } from "@fluentui/react";
 import Toggle from "../../Toggle";
-import { Context } from "@oursky/react-messageformat";
+import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import PaginationWidget, { PaginationProps } from "../../PaginationWidget";
 import styles from "./ApplicationResourcesList.module.css";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import ActionButton from "../../ActionButton";
+import { useAppContext } from "../../context/AppContext";
 
 export interface ApplicationResourceListItem {
   id: string;
@@ -43,6 +45,7 @@ export const ApplicationResourcesList: React.FC<ApplicationResourcesListProps> =
       onToggleAuthorization,
       onManageScopes,
     } = props;
+    const { appNodeID } = useAppContext();
     const { renderToString } = useContext(Context);
     const { themes } = useSystemConfig();
 
@@ -118,18 +121,37 @@ export const ApplicationResourcesList: React.FC<ApplicationResourcesListProps> =
       ]
     );
 
+    const isEmpty = !loading && resources.length === 0;
+
     return (
       <div className={cn(className, styles.listRoot)}>
-        <div data-is-scrollable="true" className={styles.listWrapper}>
-          <ShimmeredDetailsList
-            items={resources}
-            enableShimmer={loading}
-            columns={columns}
-            layoutMode={DetailsListLayoutMode.justified}
-            selectionMode={SelectionMode.none}
-          />
-        </div>
-        <PaginationWidget className={styles.paginator} {...pagination} />
+        {!isEmpty ? (
+          <>
+            <div data-is-scrollable="true" className={styles.listWrapper}>
+              <ShimmeredDetailsList
+                items={resources}
+                enableShimmer={loading}
+                columns={columns}
+                layoutMode={DetailsListLayoutMode.justified}
+                selectionMode={SelectionMode.none}
+              />
+            </div>
+            <PaginationWidget className={styles.paginator} {...pagination} />
+          </>
+        ) : null}
+
+        {isEmpty ? (
+          <Text
+            styles={{ root: { color: themes.main.palette.neutralTertiary } }}
+          >
+            <FormattedMessage
+              id="ApplicationResourcesList.empty"
+              values={{
+                to: `/project/${appNodeID}/api-resources`,
+              }}
+            />
+          </Text>
+        ) : null}
       </div>
     );
   };
