@@ -343,9 +343,24 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
       [clientConfig.x_application_type]
     );
 
+    const customUISupported = useMemo(
+      () =>
+        (
+          [
+            "spa",
+            "native",
+            "confidential",
+            "third_party_app",
+            "traditional_webapp",
+            undefined,
+          ] as OAuthClientConfig["x_application_type"][]
+        ).includes(clientConfig.x_application_type),
+      [clientConfig.x_application_type]
+    );
+
     const showCustomUISettings = useMemo(
-      () => customUIEnabled,
-      [customUIEnabled]
+      () => customUIEnabled && customUISupported,
+      [customUIEnabled, customUISupported]
     );
 
     const showClientSecret = useMemo(
