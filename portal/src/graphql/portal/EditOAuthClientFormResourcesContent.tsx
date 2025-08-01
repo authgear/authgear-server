@@ -1,7 +1,7 @@
 import React, { useContext, useState, useCallback, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import cn from "classnames";
-import styles from "./EditOAuthClientFormResourcesSection.module.css";
+import styles from "./EditOAuthClientFormResourcesContent.module.css";
 import WidgetTitle from "../../WidgetTitle";
 import {
   Context as MessageContext,
@@ -31,7 +31,7 @@ import { Resource } from "../adminapi/globalTypes.generated";
 
 const PAGE_SIZE = 10;
 
-export const EditOAuthClientFormResourcesSection: React.FC<{
+export const EditOAuthClientFormResourcesContent: React.FC<{
   className?: string;
   client: OAuthClientConfig;
 }> = ({ className, client }) => {

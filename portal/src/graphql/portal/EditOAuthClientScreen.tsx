@@ -22,6 +22,7 @@ import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 import EditOAuthClientForm from "./EditOAuthClientForm";
+import { EditOAuthClientFormResourcesContent } from "./EditOAuthClientFormResourcesContent";
 import {
   ApplicationType,
   OAuthClientConfig,
@@ -339,6 +340,7 @@ interface EditOAuthClientContentProps {
 enum FormTab {
   SETTINGS = "settings",
   SAML2 = "saml2",
+  APIResources = "api-resources",
 }
 
 const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
@@ -422,6 +424,14 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
               headerText={renderToString("EditOAuthClientScreen.tabs.saml2")}
             />
           ) : null}
+          {client.x_application_type === "m2m" ? (
+            <PivotItem
+              itemKey={FormTab.APIResources}
+              headerText={renderToString(
+                "EditOAuthClientScreen.tabs.api-resources"
+              )}
+            />
+          ) : null}
         </Pivot>
         {formTab === FormTab.SETTINGS ? (
           <OAuthClientSettingsForm
@@ -433,7 +443,8 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
             onClientConfigChange={onClientConfigChange}
             onRevealSecret={onRevealSecret}
           />
-        ) : (
+        ) : null}
+        {formTab === FormTab.SAML2 ? (
           <OAuthClientSAML2Content
             clientID={client.client_id}
             samlIdpEntityID={samlIdpEntityID}
@@ -445,7 +456,13 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
               onGeneratedNewIdpSigningCertificate
             }
           />
-        )}
+        ) : null}
+        {formTab === FormTab.APIResources ? (
+          <EditOAuthClientFormResourcesContent
+            className={cn(styles["widget--wide"])}
+            client={client}
+          />
+        ) : null}
       </ScreenContent>
     );
   };
