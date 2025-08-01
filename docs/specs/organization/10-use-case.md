@@ -444,7 +444,7 @@ If we try to encode the 2 enums into 1 enum, we have:
 | ---                                                                                         | ---                                                                      | ---                                                                                                                                                                                                      |
 | `x_organization_behavior=only_non_member`                                                   | Login Experience - Individuals                                           | This is the default value because it is back compatible with the pre-organization era. No prompts on Organization. The end-user signs in without Organization.                                           |
 | `x_organization_behavior=only_member:prompt_end_user_for_organization_last`                 | Login Experience - Business Users + Login Flow - Prompt for Credentials  | For signups, it is expected that the signed up User will be made Members of some Organizations via auto-membership, otherwise the end-user will be shown an error screen as a dead end.                  |
-| `x_organization_behavior=only_member:prompt_end_user_for_organization_first`                | Login Experience - Business Users + Login Flow - Prompt for Organization | The end-user is expected to know the Organization slug. Like Auth0, if the end-user enters an invalid Organization slug, an error is shown immediately.                                                  |
+| `x_organization_behavior=only_member:prompt_end_user_for_organization_first`                | Login Experience - Business Users + Login Flow - Prompt for Organization | The end-user is expected to know the Organization Slug. Like Auth0, if the end-user enters an invalid Organization Slug, an error is shown immediately.                                                  |
 | `x_organization_behavior=only_member:developer_specified_organization`                      | Login Experience - Business Users + Login Flow - No Prompt               | The developer **MUST** specifies which organization to sign in. It is an OAuth Error or SAML error if organization is unspecified by the developer.                                                      |
 | `x_organization_behavior=either_member_or_non_member:prompt_end_user_for_organization_last` | Login Experience - Both + Login Flow - Prompt for Credentials            | The end-user is prompted to select "No Organization" and the Organizations he is a member of. The "No Organization" option always exist.                                                                 |
 | `x_organization_behavior=either_member_or_non_member:developer_specified_organization`      | Login Experience - Both + Login Flow - No Prompt                         | The developer **OPTIONALLY** specifies which organization to sign in. If unspecified, it behaves the same as `x_organization_behavior=either_member_or_non_member:prompt_end_user_for_organization_last` |
@@ -453,7 +453,7 @@ In Auth0, the query parameter `organization` can be used by the developer to spe
 See https://auth0.com/docs/manage-users/organizations/using-tokens#authenticate-users-through-an-organization
 I propose we support an equivalent with a different name `x_org_slug`.
 It starts with `x_` like all existing proprietary query parameters like `x_sso_enabled`.
-And it has `_slug` in it, it is clear to the developer that they should provide an Organization slug.
+And it has `_slug` in it, it is clear to the developer that they should provide an Organization Slug.
 
 When Organization is not known at the beginning, Organization-specific configuration **IS NOT** applied.
 This implies the authentication **COULD** be invalidated by the choice of Organization.
@@ -481,7 +481,7 @@ In Auth0, to provide developer-provided organization, a query parameter `organiz
 See https://auth0.com/docs/authenticate/single-sign-on/outbound-single-sign-on/configure-auth0-saml-identity-provider#configure-saml-sso-on-the-service-provider
 
 Alternatively, we can make use of `<Extensions>`, as specified in Section 3.2.1 in https://groups.oasis-open.org/higherlogic/ws/public/download/56776/sstc-saml-core-errata-2.0-wd-07.pdf
-to allow specify the intended Organization slug in `<AuthnRequest>`.
+to allow specify the intended Organization Slug in `<AuthnRequest>`.
 
 For consistency, I propose we support query parameter `x_org_slug` in the SAML Login URL, like what we support in Use case 7.1.
 
@@ -509,8 +509,8 @@ This use case discusses various developer-facing Authentication Output.
 
 When authentication is done via OIDC (The is the most common case), the developer wants to know which Organization the Member has signed in.
 
-Organization has a developer-provided unique slug across the Project.
-We include the Organization slug in the ID token instead of the generated ID of the Organization.
+Organization has a developer-provided unique Slug across the Project.
+We include the Organization Slug in the ID token instead of the generated ID of the Organization.
 
 This is an example of ID token:
 ```json
@@ -615,7 +615,7 @@ I propose we add this new header:
 > x-authgear-session-org-slug
 >
 > If this header is absent, the User did not signed in to an Organization.
-> If this header is present, the value indicates the slug of the Organization the User signed in to.
+> If this header is present, the value indicates the Organization Slug the User signed in to.
 >
 > Example:
 > x-authgear-session-org-slug: myorg
@@ -672,12 +672,70 @@ For MVP, implement
 
 ## Use case 9: What information does an Organization contain?
 
-TODO
+> [!NOTE]
+> In Auth0, an Organization contains:
+> - Name - An unique identifier that can be updated.
+> - Display Name - A name that will be displayed to end users.
+> - Logo URL - An external URL to an image. Does not support upload image. (Tenant Logo works like this as well.)
+> - Primary Color - Change the color of CTAs.
+> - Page background color - Change the page background color.
+> - Metadata - Advanced feature hidden behind a UI toggle.
+>
+> The metadata is not exposed by default in anyway.
+> It is expected to include it by post-login action, like in
+> https://community.auth0.com/t/add-organization-metadata-in-token/90610
 
-- Slug
-- Display Name
-- Icon URL
-- Metadata (How to expose this? Are metadata exposed to all Members without Restrictions?)
+> [!NOTE]
+> In Fung's proposal, the customizable UI items are:
+> - Logo
+> - Primary color
+> - Page background color
+
+### Use case 9.1: Organization Slug
+
+- Organization is identified by `slug` within a Project.
+- Organization Slug is required and cannot be empty.
+- An Organization Slug, as the name suggests, appears in a URL.
+- Only unreserved characters defined in [RFC3986 Section 2.3](https://datatracker.ietf.org/doc/html/rfc3986#section-2.3) can be used as Organization Slug.
+- This regex describes the syntax of Organization Slug: `[-a-zA-Z0-9._~]+`.
+- Organization Slug cannot be updated.
+
+### Use case 9.2: Organization Name
+
+- Organization can have an optional name.
+- Organization Name will be displayed to end-users.
+- Organization Name is not localizable.
+
+### Use case 9.3: Create a new Organization
+
+When create a new Organization in the portal, the developer is required to fill in:
+- Organization Slug
+- Organization Name (Even it is optional).
+
+### Use case 9.4: Custom theme in Organization
+
+> [!WARNING]
+> This section mentions implementation details.
+> It is expected that you do not understand some of the terms used here.
+
+A new Organization Layer in resource filesystem is introduced to support custom theme.
+
+The following information is stored in the layer:
+
+- Organization Logo
+- Organization Primary color
+- Organization Page Background Color
+
+> [!WARNING]
+> What happen if the Project defines Page Background Image while an Organization defines Page Background Color?
+
+### Use case 9: Design Decision
+
+For MVP, implement
+
+- Use case 9.1
+- Use case 9.2
+- Use case 9.3
 
 ## Use case 10: What Organization-specific configurations are available?
 
