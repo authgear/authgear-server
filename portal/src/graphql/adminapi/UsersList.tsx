@@ -31,7 +31,7 @@ import { extractRawID } from "../../util/graphql";
 import { formatDatetime } from "../../util/formatDatetime";
 
 import styles from "./UsersList.module.css";
-import useDelayedValue from "../../hook/useDelayedValue";
+import { useDebounced } from "../../hook/useDebounced";
 import TextCell from "../../components/roles-and-groups/list/common/TextCell";
 import ActionButtonCell from "../../components/roles-and-groups/list/common/ActionButtonCell";
 import BaseCell from "../../components/roles-and-groups/list/common/BaseCell";
@@ -167,7 +167,7 @@ const UsersList: React.VFC<UsersListProps> = function UsersList(props) {
   } = props;
   const edges = props.users?.edges;
 
-  const loading = useDelayedValue(rawLoading, 500);
+  const [loading] = useDebounced(rawLoading, 500);
 
   const { renderToString, locale } = useContext(Context);
   const { appID } = useParams() as { appID: string };

@@ -470,9 +470,22 @@ function OAuthClientSettingsForm({
   onRevealSecret,
 }: OAuthClientSettingsFormProps): React.ReactElement {
   const theme = useTheme();
+  const hideQuickStart = useMemo(
+    () =>
+      (["m2m"] as OAuthClientConfig["x_application_type"][]).includes(
+        client.x_application_type
+      ),
+    [client.x_application_type]
+  );
   return (
     <>
-      <div className={cn(styles.widget, styles.widgetColumn)}>
+      <div
+        className={cn(
+          styles.widget,
+          styles.widgetColumn,
+          hideQuickStart ? styles["widget--wide"] : null
+        )}
+      >
         <EditOAuthClientForm
           publicOrigin={state.publicOrigin}
           clientConfig={client}
@@ -483,32 +496,34 @@ function OAuthClientSettingsForm({
           onRevealSecret={onRevealSecret}
         />
       </div>
-      <div className={styles.quickStartColumn}>
-        <Widget>
-          <div className={styles.quickStartWidget}>
-            <Text className={styles.quickStartWidgetTitle}>
-              <Icon
-                className={styles.quickStartWidgetTitleIcon}
-                styles={{ root: { color: theme.palette.themePrimary } }}
-                iconName="Lightbulb"
+      {!hideQuickStart ? (
+        <div className={styles.quickStartColumn}>
+          <Widget>
+            <div className={styles.quickStartWidget}>
+              <Text className={styles.quickStartWidgetTitle}>
+                <Icon
+                  className={styles.quickStartWidgetTitleIcon}
+                  styles={{ root: { color: theme.palette.themePrimary } }}
+                  iconName="Lightbulb"
+                />
+                <FormattedMessage id="EditOAuthClientScreen.quick-start-widget.title" />
+              </Text>
+              <Text>
+                <FormattedMessage
+                  id="EditOAuthClientScreen.quick-start-widget.question"
+                  values={{
+                    applicationType: client.x_application_type ?? "",
+                  }}
+                />
+              </Text>
+              <QuickStartFrameworkList
+                applicationType={client.x_application_type}
+                showOpenTutorialLabelWhenHover={false}
               />
-              <FormattedMessage id="EditOAuthClientScreen.quick-start-widget.title" />
-            </Text>
-            <Text>
-              <FormattedMessage
-                id="EditOAuthClientScreen.quick-start-widget.question"
-                values={{
-                  applicationType: client.x_application_type ?? "",
-                }}
-              />
-            </Text>
-            <QuickStartFrameworkList
-              applicationType={client.x_application_type}
-              showOpenTutorialLabelWhenHover={false}
-            />
-          </div>
-        </Widget>
-      </div>
+            </div>
+          </Widget>
+        </div>
+      ) : null}
     </>
   );
 }

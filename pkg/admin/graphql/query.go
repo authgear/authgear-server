@@ -13,6 +13,7 @@ import (
 	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/audit"
 	libuser "github.com/authgear/authgear-server/pkg/lib/authn/user"
+	"github.com/authgear/authgear-server/pkg/lib/resourcescope"
 	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 	"github.com/authgear/authgear-server/pkg/util/slice"
@@ -340,6 +341,47 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 				for _, ref := range refs {
 					lazyItems = append(lazyItems, graphqlutil.LazyItem{
 						Lazy:   gqlCtx.AuditLogs.Load(ctx, ref.ID),
+						Cursor: graphqlutil.Cursor(ref.Cursor),
+					})
+				}
+
+				return graphqlutil.NewConnectionFromResult(lazyItems, result)
+			},
+		},
+		"resources": &graphql.Field{
+			Description: "All resources",
+			Type:        connResource.ConnectionType,
+			Args: relay.NewConnectionArgs(graphql.FieldConfigArgument{
+				"searchKeyword": &graphql.ArgumentConfig{
+					Type: graphql.String,
+				},
+				"clientID": &graphql.ArgumentConfig{
+					Type: graphql.String,
+				},
+			}),
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				ctx := p.Context
+				gqlCtx := GQLContext(ctx)
+
+				pageArgs := graphqlutil.NewPageArgs(relay.NewConnectionArguments(p.Args))
+
+				searchKeyword, _ := p.Args["searchKeyword"].(string)
+				clientID, _ := p.Args["clientID"].(string)
+
+				options := &resourcescope.ListResourcesOptions{
+					SearchKeyword: searchKeyword,
+					ClientID:      clientID,
+				}
+
+				refs, result, err := gqlCtx.ResourceScopeFacade.ListResources(ctx, options, pageArgs)
+				if err != nil {
+					return nil, err
+				}
+
+				var lazyItems []graphqlutil.LazyItem
+				for _, ref := range refs {
+					lazyItems = append(lazyItems, graphqlutil.LazyItem{
+						Lazy:   gqlCtx.Resources.Load(ctx, ref.ID),
 						Cursor: graphqlutil.Cursor(ref.Cursor),
 					})
 				}

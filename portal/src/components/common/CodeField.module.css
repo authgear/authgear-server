@@ -2,5 +2,6 @@
   @apply block;
   @apply px-2 py-2;
   @apply bg-neutral-light;
-  @apply whitespace-pre;
+  @apply whitespace-pre-wrap;
+  overflow-wrap: break-word;
 }

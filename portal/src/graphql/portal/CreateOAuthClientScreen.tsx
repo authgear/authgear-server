@@ -48,16 +48,8 @@ function constructFormState(
   return {
     clients: config.oauth?.clients ?? [],
     newClient: {
-      name: undefined,
       x_application_type: "spa",
       client_id: genRandomHexadecimalString(),
-      redirect_uris: [],
-      grant_types: ["authorization_code", "refresh_token"],
-      response_types: ["code", "none"],
-      access_token_lifetime_seconds: undefined,
-      refresh_token_lifetime_seconds: undefined,
-      post_logout_redirect_uris: undefined,
-      issue_jwt_access_token: true,
     },
   };
 }
@@ -75,22 +67,35 @@ function constructConfig(
       config.oauth ??= {};
       config.oauth.clients = currentState.clients;
       const draft = createDraft(currentState.newClient);
-      if (
-        draft.x_application_type === "spa" ||
-        draft.x_application_type === "traditional_webapp"
-      ) {
-        draft.redirect_uris = ["http://localhost/after-authentication"];
-        draft.post_logout_redirect_uris = ["http://localhost/after-logout"];
-      } else if (draft.x_application_type === "native") {
-        draft.redirect_uris = ["com.example.myapp://host/path"];
-        draft.post_logout_redirect_uris = undefined;
-      } else if (
-        draft.x_application_type === "confidential" ||
-        draft.x_application_type === "third_party_app"
-      ) {
-        draft.client_name = draft.name;
-        draft.redirect_uris = ["http://localhost/after-authentication"];
-        draft.post_logout_redirect_uris = undefined;
+      if (draft.x_application_type == null) {
+        throw new Error("unexpected null x_application_type");
+      }
+      switch (draft.x_application_type) {
+        case "spa":
+        case "traditional_webapp":
+          draft.redirect_uris = ["http://localhost/after-authentication"];
+          draft.post_logout_redirect_uris = ["http://localhost/after-logout"];
+          draft.grant_types = ["authorization_code", "refresh_token"];
+          draft.response_types = ["code", "none"];
+          draft.issue_jwt_access_token = true;
+          break;
+        case "native":
+          draft.redirect_uris = ["com.example.myapp://host/path"];
+          draft.grant_types = ["authorization_code", "refresh_token"];
+          draft.response_types = ["code", "none"];
+          draft.issue_jwt_access_token = true;
+          break;
+        case "confidential":
+        case "third_party_app":
+          draft.client_name = draft.name;
+          draft.redirect_uris = ["http://localhost/after-authentication"];
+          draft.grant_types = ["authorization_code", "refresh_token"];
+          draft.response_types = ["code", "none"];
+          draft.issue_jwt_access_token = true;
+          break;
+        case "m2m":
+          draft.issue_jwt_access_token = true;
+          break;
       }
       config.oauth.clients.push(draft);
       clearEmptyObject(config);
@@ -104,9 +109,13 @@ function constructSecretUpdateInstruction(
   _secrets: PortalAPISecretConfig,
   currentState: FormState
 ): PortalAPISecretConfigUpdateInstruction | undefined {
+  const clientTypesWithSecret: OAuthClientConfig["x_application_type"][] = [
+    "confidential",
+    "third_party_app",
+    "m2m",
+  ];
   if (
-    currentState.newClient.x_application_type === "confidential" ||
-    currentState.newClient.x_application_type === "third_party_app"
+    clientTypesWithSecret.includes(currentState.newClient.x_application_type)
   ) {
     return {
       oauthClientSecrets: {
@@ -235,6 +244,15 @@ const CreateOAuthClientContent: React.VFC<CreateOAuthClientContentProps> =
         //  ),
         //  disabled: true,
         //},
+        {
+          key: "m2m",
+          text: renderToString("oauth-client.application-type.m2m"),
+          onRenderLabel: onRenderLabel(
+            renderToString(
+              "CreateOAuthClientScreen.application-type.description.m2m"
+            )
+          ),
+        },
       ];
     }, [renderToString, onRenderLabel]);
 
@@ -245,6 +263,9 @@ const CreateOAuthClientContent: React.VFC<CreateOAuthClientContentProps> =
           switch (option.key) {
             case "spa":
             case "native":
+              issueJwtAccessToken = true;
+              break;
+            case "m2m":
               issueJwtAccessToken = true;
               break;
             default:
@@ -267,10 +288,28 @@ const CreateOAuthClientContent: React.VFC<CreateOAuthClientContentProps> =
       save()
         .then(
           () => {
+            const applicationTypesWithQuickStart: OAuthClientConfig["x_application_type"][] =
+              [
+                "confidential",
+                "native",
+                "spa",
+                "third_party_app",
+                "traditional_webapp",
+              ];
+            const nextPath = `/project/${appID}/configuration/apps/${encodeURIComponent(
+              clientId
+            )}/edit`;
+            const searchParams = new URLSearchParams();
+            if (
+              applicationTypesWithQuickStart.includes(client.x_application_type)
+            ) {
+              searchParams.set("quickstart", "true");
+            }
             navigate(
-              `/project/${appID}/configuration/apps/${encodeURIComponent(
-                clientId
-              )}/edit?quickstart=true`,
+              {
+                pathname: nextPath,
+                search: searchParams.toString(),
+              },
               {
                 replace: true,
               }
@@ -279,7 +318,7 @@ const CreateOAuthClientContent: React.VFC<CreateOAuthClientContentProps> =
           () => {}
         )
         .catch(() => {});
-    }, [navigate, appID, clientId, save]);
+    }, [save, appID, clientId, client.x_application_type, navigate]);
 
     const parentJSONPointer = /\/oauth\/clients\/\d+/;
 

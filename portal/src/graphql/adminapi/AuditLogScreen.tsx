@@ -331,10 +331,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
   }, []);
 
   const cursor = useMemo(() => {
-    if (offset === 0) {
-      return null;
-    }
-    return encodeOffsetToCursor(offset - 1);
+    return encodeOffsetToCursor(offset);
   }, [offset]);
 
   const onChangeOffset = useCallback((offset) => {

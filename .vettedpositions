@@ -302,7 +302,7 @@
 /pkg/lib/oauth/response_mode.go:122:40: requestcontext
 /pkg/lib/oauth/response_mode.go:149:40: requestcontext
 /pkg/lib/oauth/response_mode.go:161:40: requestcontext
-/pkg/lib/oauth/scope.go:116:34: requestcontext
+/pkg/lib/oauth/scope.go:117:34: requestcontext
 /pkg/lib/oauthrelyingparty/oauthrelyingpartyutil/contextbackground.go:11:52: contextbackground
 /pkg/lib/otelauthgear/nethttp.go:30:10: requestcontext
 /pkg/lib/saml/samlbinding/http_post.go:176:35: requestcontext
