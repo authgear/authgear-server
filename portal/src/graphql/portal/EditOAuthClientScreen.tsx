@@ -417,32 +417,37 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
     }
 
     return (
-      <ScreenContent>
-        <EditOAuthClientNavBreadcrumb clientName={client.name ?? ""} />
-        <Pivot
-          className={styles.widget}
-          selectedKey={formTab}
-          onLinkClick={onFormTabChange}
-        >
-          <PivotItem
-            itemKey={FormTab.SETTINGS}
-            headerText={renderToString("EditOAuthClientScreen.tabs.settings")}
-          />
-          {client.x_application_type === "confidential" ? (
+      <ScreenContent
+        className="flex-1-0-auto"
+        layout={formTab === FormTab.APIResources ? "list" : "auto-rows"}
+      >
+        <header className={cn(styles.widget, "space-y-5")}>
+          <EditOAuthClientNavBreadcrumb clientName={client.name ?? ""} />
+          <Pivot
+            className={styles.widget}
+            selectedKey={formTab}
+            onLinkClick={onFormTabChange}
+          >
             <PivotItem
-              itemKey={FormTab.SAML2}
-              headerText={renderToString("EditOAuthClientScreen.tabs.saml2")}
+              itemKey={FormTab.SETTINGS}
+              headerText={renderToString("EditOAuthClientScreen.tabs.settings")}
             />
-          ) : null}
-          {client.x_application_type === "m2m" ? (
-            <PivotItem
-              itemKey={FormTab.APIResources}
-              headerText={renderToString(
-                "EditOAuthClientScreen.tabs.api-resources"
-              )}
-            />
-          ) : null}
-        </Pivot>
+            {client.x_application_type === "confidential" ? (
+              <PivotItem
+                itemKey={FormTab.SAML2}
+                headerText={renderToString("EditOAuthClientScreen.tabs.saml2")}
+              />
+            ) : null}
+            {client.x_application_type === "m2m" ? (
+              <PivotItem
+                itemKey={FormTab.APIResources}
+                headerText={renderToString(
+                  "EditOAuthClientScreen.tabs.api-resources"
+                )}
+              />
+            ) : null}
+          </Pivot>
+        </header>
         {formTab === FormTab.SETTINGS ? (
           <OAuthClientSettingsForm
             client={client}
@@ -837,6 +842,7 @@ function FormContainerContent({
   return (
     <FormTabContext.Provider value={contextValue}>
       <FormContainer
+        className="flex-1-0-auto flex flex-col"
         form={form}
         stickyFooterComponent={true}
         showDiscardButton={true}
