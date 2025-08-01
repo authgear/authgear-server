@@ -17,6 +17,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
+	"github.com/authgear/authgear-server/pkg/lib/resourcescope"
 	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/sessionlisting"
@@ -45,6 +46,18 @@ type GroupLoader interface {
 }
 
 type AuditLogLoader interface {
+	graphqlutil.DataLoaderInterface
+}
+
+type ResourceLoader interface {
+	graphqlutil.DataLoaderInterface
+}
+
+type ResourceClientLoader interface {
+	graphqlutil.DataLoaderInterface
+}
+
+type ScopeLoader interface {
 	graphqlutil.DataLoaderInterface
 }
 
@@ -188,17 +201,38 @@ type EventService interface {
 	DispatchEventOnCommit(ctx context.Context, payload event.Payload) error
 }
 
+type ResourceScopeFacade interface {
+	CreateResource(ctx context.Context, options *resourcescope.NewResourceOptions) (*apimodel.Resource, error)
+	UpdateResource(ctx context.Context, options *resourcescope.UpdateResourceOptions) (*apimodel.Resource, error)
+	DeleteResourceByURI(ctx context.Context, uri string) error
+	GetResourceByURI(ctx context.Context, uri string) (*apimodel.Resource, error)
+	CreateScope(ctx context.Context, resourceURI string, options *resourcescope.NewScopeOptions) (*apimodel.Scope, error)
+	UpdateScope(ctx context.Context, options *resourcescope.UpdateScopeOptions) (*apimodel.Scope, error)
+	DeleteScope(ctx context.Context, resourceURI string, scope string) error
+	GetScope(ctx context.Context, resourceURI string, scope string) (*apimodel.Scope, error)
+	ListScopes(ctx context.Context, resourceID string, options *resourcescope.ListScopeOptions, pageArgs graphqlutil.PageArgs) ([]apimodel.PageItemRef, *graphqlutil.PageResult, error)
+	ListResources(ctx context.Context, options *resourcescope.ListResourcesOptions, pageArgs graphqlutil.PageArgs) ([]apimodel.PageItemRef, *graphqlutil.PageResult, error)
+	AddResourceToClientID(ctx context.Context, resourceID, clientID string) error
+	RemoveResourceFromClientID(ctx context.Context, resourceID, clientID string) error
+	AddScopesToClientID(ctx context.Context, resourceURI, clientID string, scopes []string) ([]*apimodel.Scope, error)
+	RemoveScopesFromClientID(ctx context.Context, resourceURI, clientID string, scopes []string) ([]*apimodel.Scope, error)
+	ReplaceScopesOfClientID(ctx context.Context, resourceURI, clientID string, scopes []string) ([]*apimodel.Scope, error)
+}
+
 type Context struct {
 	Config                *config.AppConfig
 	OAuthConfig           *config.OAuthConfig
 	AdminAPIFeatureConfig *config.AdminAPIFeatureConfig
 
-	Users          UserLoader
-	Identities     IdentityLoader
-	Authenticators AuthenticatorLoader
-	Roles          RoleLoader
-	Groups         GroupLoader
-	AuditLogs      AuditLogLoader
+	Users           UserLoader
+	Identities      IdentityLoader
+	Authenticators  AuthenticatorLoader
+	Roles           RoleLoader
+	Groups          GroupLoader
+	AuditLogs       AuditLogLoader
+	Resources       ResourceLoader
+	ResourceClients ResourceClientLoader
+	Scopes          ScopeLoader
 
 	UserFacade          UserFacade
 	RolesGroupsFacade   RolesGroupsFacade
@@ -214,6 +248,7 @@ type Context struct {
 	OTPCode             OTPCodeService
 	ForgotPassword      ForgotPasswordService
 	Events              EventService
+	ResourceScopeFacade ResourceScopeFacade
 }
 
 func WithContext(ctx context.Context, gqlContext *Context) context.Context {

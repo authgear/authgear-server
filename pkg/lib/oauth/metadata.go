@@ -14,7 +14,7 @@ func (p *MetadataProvider) PopulateMetadata(meta map[string]interface{}) {
 	meta["token_endpoint"] = p.Endpoints.TokenEndpointURL().String()
 	meta["response_types_supported"] = []string{"code", "urn:authgear:params:oauth:response-type:settings-action", "none"}
 	meta["response_modes_supported"] = []string{"query", "fragment", "form_post"}
-	meta["grant_types_supported"] = []string{"authorization_code", "refresh_token"}
+	meta["grant_types_supported"] = []string{"authorization_code", "refresh_token", "client_credentials"}
 	meta["code_challenge_methods_supported"] = []string{pkce.CodeChallengeMethodS256}
 	meta["revocation_endpoint"] = p.Endpoints.RevokeEndpointURL().String()
 	// The default is client_secret_basic if this key is omitted.

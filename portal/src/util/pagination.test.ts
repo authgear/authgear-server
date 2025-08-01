@@ -145,6 +145,10 @@ describe("getPaginationRenderData", () => {
 
 describe("encodeOffsetToCursor", () => {
   it("encode with URL encoding without padding", () => {
-    expect(encodeOffsetToCursor(0)).toEqual("b2Zmc2V0OjA");
+    expect(encodeOffsetToCursor(1)).toEqual("b2Zmc2V0OjA");
+  });
+
+  it("undefined if offset is 0", () => {
+    expect(encodeOffsetToCursor(0)).toEqual(undefined);
   });
 });

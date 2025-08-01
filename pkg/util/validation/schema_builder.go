@@ -114,6 +114,11 @@ func (b SchemaBuilder) MinLength(minLength int) SchemaBuilder {
 	return b
 }
 
+func (b SchemaBuilder) MaxLength(maxLength int) SchemaBuilder {
+	b["maxLength"] = maxLength
+	return b
+}
+
 func (b SchemaBuilder) MinimumInt64(minimum int64) SchemaBuilder {
 	b["minimum"] = minimum
 	return b
@@ -156,6 +161,11 @@ func (b SchemaBuilder) OneOf(builders ...SchemaBuilder) SchemaBuilder {
 
 func (b SchemaBuilder) AllOf(builders ...SchemaBuilder) SchemaBuilder {
 	b["allOf"] = builders
+	return b
+}
+
+func (b SchemaBuilder) Not(builder SchemaBuilder) SchemaBuilder {
+	b["not"] = builder
 	return b
 }
 

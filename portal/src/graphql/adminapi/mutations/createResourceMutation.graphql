@@ -1,0 +1,11 @@
+mutation CreateResourceMutation($input: CreateResourceInput!) {
+  createResource(input: $input) {
+    resource {
+      id
+      name
+      resourceURI
+      createdAt
+      updatedAt
+    }
+  }
+}

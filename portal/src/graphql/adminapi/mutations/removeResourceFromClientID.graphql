@@ -1,0 +1,11 @@
+mutation RemoveResourceFromClientID($clientID: String!, $resourceURI: String!) {
+  removeResourceFromClientID(
+    input: { clientID: $clientID, resourceURI: $resourceURI }
+  ) {
+    resource {
+      id
+      resourceURI
+      name
+    }
+  }
+}

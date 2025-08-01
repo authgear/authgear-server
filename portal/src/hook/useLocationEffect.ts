@@ -6,15 +6,16 @@ import { useLocation, useNavigate } from "react-router-dom";
 export function useLocationEffect<S>(
   effectFunction: (state: S) => void
 ): S | undefined | null {
-  const { state } = useLocation();
+  const location = useLocation();
+  const { state } = location;
   const navigate = useNavigate();
   useEffect(() => {
     if (state != null) {
       effectFunction(state as any);
-      navigate("", {
+      navigate(location, {
         replace: true,
       });
     }
-  }, [effectFunction, navigate, state]);
+  }, [effectFunction, navigate, location, state]);
   return state as any;
 }

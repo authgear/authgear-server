@@ -1,0 +1,4 @@
+.resourcesSection {
+  @apply grid grid-flow-row gap-4;
+  grid-template-rows: auto auto 1fr;
+}

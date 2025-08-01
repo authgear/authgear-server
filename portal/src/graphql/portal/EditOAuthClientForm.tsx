@@ -3,6 +3,8 @@ import { produce } from "immer";
 import { Label, Text, useTheme } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
+import { useEndpoints } from "../../hook/useEndpoints";
+
 import Widget from "../../Widget";
 import WidgetTitle from "../../WidgetTitle";
 import WidgetDescription from "../../WidgetDescription";
@@ -39,6 +41,7 @@ export function getApplicationTypeMessageID(key?: string): string {
     native: "oauth-client.application-type.native",
     confidential: "oauth-client.application-type.confidential",
     third_party_app: "oauth-client.application-type.third-party-app",
+    m2m: "oauth-client.application-type.m2m",
   };
   return key && messageIDMap[key]
     ? messageIDMap[key]
@@ -268,7 +271,7 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
     }, [clientConfig.x_application_type, renderToString]);
 
     const redirectURIsDescription = useMemo(() => {
-      const messageIdMap: Record<ApplicationType, string> = {
+      const messageIdMap: Record<ApplicationType, string | undefined> = {
         spa: "EditOAuthClientForm.redirect-uris.description.spa",
         traditional_webapp:
           "EditOAuthClientForm.redirect-uris.description.traditional-webapp",
@@ -277,11 +280,12 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
           "EditOAuthClientForm.redirect-uris.description.confidential",
         third_party_app:
           "EditOAuthClientForm.redirect-uris.description.third-party-app",
+        m2m: undefined,
       };
       const messageID = clientConfig.x_application_type
         ? messageIdMap[clientConfig.x_application_type]
         : "EditOAuthClientForm.redirect-uris.description.unspecified";
-      return renderToString(messageID);
+      return messageID ? renderToString(messageID) : undefined;
     }, [clientConfig.x_application_type, renderToString]);
 
     const showPostLogoutRedirectURIsSettings = useMemo(
@@ -302,13 +306,30 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
       [clientConfig.x_application_type]
     );
 
-    const showTokenSettings = useMemo(
+    const showRefreshTokenSettings = useMemo(
       () =>
         !clientConfig.x_application_type ||
         clientConfig.x_application_type === "spa" ||
         clientConfig.x_application_type === "native" ||
         clientConfig.x_application_type === "confidential" ||
         clientConfig.x_application_type === "third_party_app",
+      [clientConfig.x_application_type]
+    );
+
+    const showAccessTokenSettings = useMemo(() => {
+      if (showRefreshTokenSettings) {
+        return true;
+      }
+      return (["m2m"] as OAuthClientConfig["x_application_type"][]).includes(
+        clientConfig.x_application_type
+      );
+    }, [clientConfig.x_application_type, showRefreshTokenSettings]);
+
+    const alwaysIssueJWTAccessToken = useMemo(
+      () =>
+        (["m2m"] as OAuthClientConfig["x_application_type"][]).includes(
+          clientConfig.x_application_type
+        ),
       [clientConfig.x_application_type]
     );
 
@@ -320,15 +341,35 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
       [clientConfig.x_application_type]
     );
 
+    const customUISupported = useMemo(
+      () =>
+        (
+          [
+            "spa",
+            "native",
+            "confidential",
+            "third_party_app",
+            "traditional_webapp",
+            undefined,
+          ] as OAuthClientConfig["x_application_type"][]
+        ).includes(clientConfig.x_application_type),
+      [clientConfig.x_application_type]
+    );
+
     const showCustomUISettings = useMemo(
-      () => customUIEnabled,
-      [customUIEnabled]
+      () => customUIEnabled && customUISupported,
+      [customUIEnabled, customUISupported]
     );
 
     const showClientSecret = useMemo(
       () =>
-        clientConfig.x_application_type === "confidential" ||
-        clientConfig.x_application_type === "third_party_app",
+        (
+          [
+            "confidential",
+            "third_party_app",
+            "m2m",
+          ] as OAuthClientConfig["x_application_type"][]
+        ).includes(clientConfig.x_application_type),
       [clientConfig.x_application_type]
     );
 
@@ -369,47 +410,54 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
 
     const showEndpointsSection = useMemo(
       () =>
-        clientConfig.x_application_type === "confidential" ||
-        clientConfig.x_application_type === "third_party_app",
+        (
+          [
+            "confidential",
+            "third_party_app",
+            "m2m",
+          ] as OAuthClientConfig["x_application_type"][]
+        ).includes(clientConfig.x_application_type),
       [clientConfig.x_application_type]
     );
 
-    const endpoints = useMemo(() => {
-      const list: {
-        labelMessageID: string;
-        endpoint: string;
-      }[] = showEndpointsSection
-        ? [
-            {
-              labelMessageID:
-                "EditOAuthClientForm.openid-configuration-endpoint.label",
-              endpoint: `${publicOrigin}/.well-known/openid-configuration`,
-            },
-            {
-              labelMessageID:
-                "EditOAuthClientForm.authorization-endpoint.label",
-              endpoint: `${publicOrigin}/oauth2/authorize`,
-            },
-            {
-              labelMessageID: "EditOAuthClientForm.token-endpoint.label",
-              endpoint: `${publicOrigin}/oauth2/token`,
-            },
-            {
-              labelMessageID: "EditOAuthClientForm.userinfo-endpoint.label",
-              endpoint: `${publicOrigin}/oauth2/userinfo`,
-            },
-            {
-              labelMessageID: "EditOAuthClientForm.end-session-endpoint.label",
-              endpoint: `${publicOrigin}/oauth2/end_session`,
-            },
-            {
-              labelMessageID: "EditOAuthClientForm.jwks-uri.label",
-              endpoint: `${publicOrigin}/oauth2/jwks`,
-            },
-          ]
-        : [];
-      return list;
-    }, [showEndpointsSection, publicOrigin]);
+    const endpoints = useEndpoints(
+      publicOrigin,
+      clientConfig.x_application_type
+    );
+
+    const endpointsWithLabelIDs = useMemo(
+      () => [
+        {
+          endpoint: endpoints.openidConfiguration,
+          labelMessageID:
+            "EditOAuthClientForm.openid-configuration-endpoint.label",
+        },
+        {
+          endpoint: endpoints.authorize,
+          labelMessageID: "EditOAuthClientForm.authorization-endpoint.label",
+        },
+        {
+          endpoint: endpoints.token,
+          labelMessageID: "EditOAuthClientForm.token-endpoint.label",
+        },
+        {
+          endpoint: endpoints.userinfo,
+          labelMessageID: "EditOAuthClientForm.userinfo-endpoint.label",
+        },
+        {
+          endpoint: endpoints.endSession,
+          labelMessageID: "EditOAuthClientForm.end-session-endpoint.label",
+        },
+        {
+          endpoint: endpoints.jwksUri,
+          labelMessageID: "EditOAuthClientForm.jwks-uri.label",
+        },
+      ],
+      [endpoints]
+    );
+
+    const showURIsSection =
+      redirectURIsDescription != null || showPostLogoutRedirectURIsSettings;
 
     return (
       <>
@@ -465,51 +513,59 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
           />
         </Widget>
 
-        <Widget className={className}>
-          <WidgetTitle id="uris">
-            <FormattedMessage id="EditOAuthClientForm.uris.title" />
-          </WidgetTitle>
-          <FormTextFieldList
-            parentJSONPointer={parentJSONPointer}
-            fieldName="redirect_uris"
-            list={clientConfig.redirect_uris}
-            onListItemAdd={onRedirectUrisChange}
-            onListItemChange={onRedirectUrisChange}
-            onListItemDelete={onRedirectUrisChange}
-            addButtonLabelMessageID="EditOAuthClientForm.add-uri"
-            label={
-              <Label>
-                <FormattedMessage id="EditOAuthClientForm.redirect-uris.label" />
-              </Label>
-            }
-            description={redirectURIsDescription}
-          />
-          {showPostLogoutRedirectURIsSettings ? (
-            <Accordion
-              text={<FormattedMessage id="EditOAuthClientForm.more-options" />}
-            >
-              <FormTextFieldList
-                parentJSONPointer={parentJSONPointer}
-                fieldName="post_logout_redirect_uris"
-                list={clientConfig.post_logout_redirect_uris ?? []}
-                onListItemAdd={onPostLogoutRedirectUrisChange}
-                onListItemChange={onPostLogoutRedirectUrisChange}
-                onListItemDelete={onPostLogoutRedirectUrisChange}
-                addButtonLabelMessageID="EditOAuthClientForm.add-uri"
-                label={
-                  <Label>
-                    <FormattedMessage id="EditOAuthClientForm.post-logout-redirect-uris.label" />
-                  </Label>
+        {showURIsSection ? (
+          <Widget className={className}>
+            {redirectURIsDescription != null ? (
+              <>
+                <WidgetTitle id="uris">
+                  <FormattedMessage id="EditOAuthClientForm.uris.title" />
+                </WidgetTitle>
+                <FormTextFieldList
+                  parentJSONPointer={parentJSONPointer}
+                  fieldName="redirect_uris"
+                  list={clientConfig.redirect_uris ?? []}
+                  onListItemAdd={onRedirectUrisChange}
+                  onListItemChange={onRedirectUrisChange}
+                  onListItemDelete={onRedirectUrisChange}
+                  addButtonLabelMessageID="EditOAuthClientForm.add-uri"
+                  label={
+                    <Label>
+                      <FormattedMessage id="EditOAuthClientForm.redirect-uris.label" />
+                    </Label>
+                  }
+                  description={redirectURIsDescription}
+                />
+              </>
+            ) : null}
+            {showPostLogoutRedirectURIsSettings ? (
+              <Accordion
+                text={
+                  <FormattedMessage id="EditOAuthClientForm.more-options" />
                 }
-                description={renderToString(
-                  clientConfig.x_application_type === "spa"
-                    ? "EditOAuthClientForm.post-logout-redirect-uris.spa.description"
-                    : "EditOAuthClientForm.post-logout-redirect-uris.description"
-                )}
-              />
-            </Accordion>
-          ) : null}
-        </Widget>
+              >
+                <FormTextFieldList
+                  parentJSONPointer={parentJSONPointer}
+                  fieldName="post_logout_redirect_uris"
+                  list={clientConfig.post_logout_redirect_uris ?? []}
+                  onListItemAdd={onPostLogoutRedirectUrisChange}
+                  onListItemChange={onPostLogoutRedirectUrisChange}
+                  onListItemDelete={onPostLogoutRedirectUrisChange}
+                  addButtonLabelMessageID="EditOAuthClientForm.add-uri"
+                  label={
+                    <Label>
+                      <FormattedMessage id="EditOAuthClientForm.post-logout-redirect-uris.label" />
+                    </Label>
+                  }
+                  description={renderToString(
+                    clientConfig.x_application_type === "spa"
+                      ? "EditOAuthClientForm.post-logout-redirect-uris.spa.description"
+                      : "EditOAuthClientForm.post-logout-redirect-uris.description"
+                  )}
+                />
+              </Accordion>
+            ) : null}
+          </Widget>
+        ) : null}
 
         {showConsentScreenSettings ? (
           <Widget className={className}>
@@ -573,18 +629,20 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
             <WidgetTitle>
               <FormattedMessage id="EditOAuthClientForm.endpoints.title" />
             </WidgetTitle>
-            {endpoints.map((item, i) => (
-              <TextFieldWithCopyButton
-                key={i}
-                label={renderToString(item.labelMessageID)}
-                value={item.endpoint}
-                readOnly={true}
-              />
-            ))}
+            {endpointsWithLabelIDs.map((e) => {
+              return e.endpoint ? (
+                <TextFieldWithCopyButton
+                  key={e.labelMessageID}
+                  label={renderToString(e.labelMessageID)}
+                  value={e.endpoint}
+                  readOnly={true}
+                />
+              ) : null;
+            })}
           </Widget>
         ) : null}
 
-        {showTokenSettings ? (
+        {showRefreshTokenSettings ? (
           <Widget className={className}>
             <WidgetTitle>
               <FormattedMessage id="EditOAuthClientForm.refresh-token.title" />
@@ -642,7 +700,7 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
             />
           </Widget>
         ) : null}
-        {showTokenSettings ? (
+        {showAccessTokenSettings ? (
           <Widget className={className}>
             <WidgetTitle>
               <FormattedMessage id="EditOAuthClientForm.access-token.title" />
@@ -652,7 +710,9 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
               fieldName="access_token_lifetime_seconds"
               label={renderToString("EditOAuthClientForm.access-token.label")}
               description={renderToString(
-                "EditOAuthClientForm.access-token.description"
+                clientConfig.x_application_type === "m2m"
+                  ? "EditOAuthClientForm.access-token.description.m2m"
+                  : "EditOAuthClientForm.access-token.description"
               )}
               value={
                 clientConfig.access_token_lifetime_seconds?.toFixed(0) ?? ""
@@ -661,6 +721,7 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
             />
             <Toggle
               checked={clientConfig.issue_jwt_access_token}
+              disabled={alwaysIssueJWTAccessToken}
               onChange={onIssueJWTAccessTokenChange}
               label={renderToString(
                 "EditOAuthClientForm.issue-jwt-access-token.label"

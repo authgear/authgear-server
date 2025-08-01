@@ -110,9 +110,15 @@ export function getPaginationRenderData(
   };
 }
 
-export function encodeOffsetToCursor(offset: number): string {
+export function encodeOffsetToCursor(offset: number): string | undefined {
+  if (offset <= 0) {
+    return undefined;
+  }
+  // cursor is exclusive so if we pass it "offset:0",
+  // The first item is excluded.
+  // Therefore we have adjust it by -1.
   // eslint-disable-next-line @typescript-eslint/no-deprecated
-  return btoa("offset:" + String(offset))
+  return btoa("offset:" + String(offset - 1))
     .replace(/\+/g, "-")
     .replace(/\//g, "_")
     .replace(/=/g, "");

@@ -8,6 +8,7 @@ import (
 	"github.com/lib/pq"
 
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	databaseutil "github.com/authgear/authgear-server/pkg/util/databaseutil"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
@@ -46,13 +47,8 @@ func (s *Store) CreateRole(ctx context.Context, r *Role) error {
 
 	_, err := s.SQLExecutor.ExecWith(ctx, q)
 	if err != nil {
-		var pqError *pq.Error
-		if errors.As(err, &pqError) {
-			// https://www.postgresql.org/docs/13/errcodes-appendix.html
-			// 23505 is unique_violation
-			if pqError.Code == "23505" {
-				err = ErrRoleDuplicateKey
-			}
+		if databaseutil.IsDuplicateKeyError(err) {
+			return ErrRoleDuplicateKey
 		}
 		return err
 	}
@@ -89,13 +85,8 @@ func (s *Store) UpdateRole(ctx context.Context, options *UpdateRoleOptions) erro
 
 	result, err := s.SQLExecutor.ExecWith(ctx, q)
 	if err != nil {
-		var pqError *pq.Error
-		if errors.As(err, &pqError) {
-			// https://www.postgresql.org/docs/13/errcodes-appendix.html
-			// 23505 is unique_violation
-			if pqError.Code == "23505" {
-				err = ErrRoleDuplicateKey
-			}
+		if databaseutil.IsDuplicateKeyError(err) {
+			return ErrRoleDuplicateKey
 		}
 		return err
 	}

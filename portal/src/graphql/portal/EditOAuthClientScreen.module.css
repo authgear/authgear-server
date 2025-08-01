@@ -4,6 +4,11 @@
   @apply tablet:col-span-full;
 }
 
+.widget--wide {
+  grid-column: 1 / span 8;
+  @apply tablet:col-span-full;
+}
+
 .widgetColumn {
   display: flex;
   flex-direction: column;
