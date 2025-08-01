@@ -343,6 +343,13 @@ enum FormTab {
   APIResources = "api-resources",
 }
 
+interface FormTabContextType {
+  formTab: FormTab;
+  setFormTab: (tab: FormTab) => void;
+}
+
+const FormTabContext = React.createContext<FormTabContextType>(undefined!);
+
 const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
   function EditOAuthClientContent(props) {
     const {
@@ -357,7 +364,7 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
     } = props;
     const { renderToString } = useContext(Context);
 
-    const [formTab, setFormTab] = useState<FormTab>(FormTab.SETTINGS);
+    const { formTab, setFormTab } = useContext(FormTabContext);
 
     const navigate = useNavigate();
 
@@ -370,13 +377,16 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
         : undefined;
     }, [client, state.clientSecretMap]);
 
-    const onFormTabChange = useCallback((item?: PivotItem) => {
-      if (item == null) {
-        return;
-      }
-      const { itemKey } = item.props;
-      setFormTab(itemKey as FormTab);
-    }, []);
+    const onFormTabChange = useCallback(
+      (item?: PivotItem) => {
+        if (item == null) {
+          return;
+        }
+        const { itemKey } = item.props;
+        setFormTab(itemKey as FormTab);
+      },
+      [setFormTab]
+    );
 
     const onClientConfigChange = useCallback(
       (editedClient: OAuthClientConfig) => {
@@ -782,24 +792,69 @@ const EditOAuthClientScreen1: React.VFC<{
   }
 
   return (
-    <FormContainer
+    <FormContainerContent
       form={form}
-      stickyFooterComponent={true}
-      showDiscardButton={true}
-    >
-      <EditOAuthClientContent
-        form={form}
-        rawAppConfig={rawAppConfig}
-        clientID={clientID}
-        samlIdpEntityID={samlIdpEntityID ?? ""}
-        samlIdpSigningCertificates={samlIdPSigningCertificates}
-        customUIEnabled={customUIEnabled}
-        app2appEnabled={app2appEnabled}
-        onGeneratedNewIdpSigningCertificate={refetchAppAndSecretConfig}
-      />
-    </FormContainer>
+      rawAppConfig={rawAppConfig}
+      clientID={clientID}
+      samlIdpEntityID={samlIdpEntityID}
+      samlIdpSigningCertificates={samlIdPSigningCertificates}
+      customUIEnabled={customUIEnabled}
+      app2appEnabled={app2appEnabled}
+      refetchAppAndSecretConfig={refetchAppAndSecretConfig}
+    />
   );
 };
+
+function FormContainerContent({
+  form,
+  rawAppConfig,
+  clientID,
+  samlIdpEntityID,
+  samlIdpSigningCertificates,
+  customUIEnabled,
+  app2appEnabled,
+  refetchAppAndSecretConfig,
+}: {
+  form: AppSecretConfigFormModel<FormState>;
+  rawAppConfig: PortalAPIAppConfig;
+  clientID: string;
+  samlIdpEntityID: string | null | undefined;
+  samlIdpSigningCertificates: SAMLIdpSigningCertificate[];
+  customUIEnabled: boolean;
+  app2appEnabled: boolean;
+  refetchAppAndSecretConfig: () => void;
+}) {
+  const [formTab, setFormTab] = useState<FormTab>(FormTab.SETTINGS);
+
+  const contextValue = useMemo<FormTabContextType>(
+    () => ({
+      formTab,
+      setFormTab: setFormTab,
+    }),
+    [formTab]
+  );
+
+  return (
+    <FormTabContext.Provider value={contextValue}>
+      <FormContainer
+        form={form}
+        stickyFooterComponent={true}
+        showDiscardButton={true}
+      >
+        <EditOAuthClientContent
+          form={form}
+          rawAppConfig={rawAppConfig}
+          clientID={clientID}
+          samlIdpEntityID={samlIdpEntityID ?? ""}
+          samlIdpSigningCertificates={samlIdpSigningCertificates}
+          customUIEnabled={customUIEnabled}
+          app2appEnabled={app2appEnabled}
+          onGeneratedNewIdpSigningCertificate={refetchAppAndSecretConfig}
+        />
+      </FormContainer>
+    </FormTabContext.Provider>
+  );
+}
 
 const SECRETS = [AppSecretKey.OauthClientSecrets];
 
