@@ -840,6 +840,7 @@ function FormContainerContent({
         form={form}
         stickyFooterComponent={true}
         showDiscardButton={true}
+        hideFooterComponent={formTab === FormTab.APIResources}
       >
         <EditOAuthClientContent
           form={form}
