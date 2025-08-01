@@ -739,13 +739,38 @@ For MVP, implement
 
 ## Use case 10: What Organization-specific configurations are available?
 
-TODO
+### Use case 10.1: authgear.organization.yaml
 
-- Organization-specific login methods
-- Organization-specific password polices
-- Organization-specific MFA configuration
-- Organization-specific session lifetime configuration (Override the configuration of client application, or take more strict one from both)
-- Organization-specific UI theming (To what extend?)
+> [!WARNING]
+> The customizable Organization-specific configuration is meant to be complete,
+> but how these configuration is stored is subject to discussion.
+
+The following fields from `authgear.yaml` are Organization-specific:
+
+- `authentication.identities` - Organization-specific identification methods.
+- `authentication.primary_authenticators` - Organization-specific primary authenticators.
+- `authentication.secondary_authenticators` - Organization-specific secondary authenticators.
+- `authentication.secondary_authentication_mode` - Organization-specific MFA requirement.
+- `identity.ldap` - Organization-specific LDAP servers.
+- `identity.login_id.keys.key` - Only a list of keys is allowed. It is intended that the available keys are defined at Project level.
+- `identity.oauth.providers` - Organization specific OAuth Providers.
+- `authenticator.password.policy` and `authenticator.password.force_change` - Organization specific password policy.
+- `authenticator.password.expiry` - Organization specific password expiry.
+- `authenticator.oob_otp.sms.phone_otp_mode` - Organization specific OTP mode (Whatsapp, SMS)
+- `authenticator.oob_otp.email.email_otp_mode` - Organization specific email OTP mode (Code, Login Link)
+
+### Use case 10.2: The storage of Organization-specific configurations
+
+> [!WARNING]
+> This section mentions implementation details.
+> It is expected that you do not understand some of the terms used here.
+
+All Organization data are stored in the Organization table.
+In particular, Use case 9.4 and Use case 10.1 are stored in resource filesystem style.
+
+### Use case 10: Design Decision
+
+The use case is an essential building block of Organization, so it must be implemented.
 
 ## Use case 11: Email discovery
 
