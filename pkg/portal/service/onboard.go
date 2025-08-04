@@ -3,14 +3,12 @@ package service
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 
 	"github.com/graphql-go/graphql"
 
 	relay "github.com/authgear/authgear-server/pkg/graphqlgo/relay"
-	"github.com/authgear/authgear-server/pkg/lib/analytic"
 
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
 	"github.com/authgear/authgear-server/pkg/portal/model"
@@ -98,7 +96,7 @@ func (s *OnboardService) SubmitOnboardEntry(ctx context.Context, entry model.Onb
 		return fmt.Errorf("failed to marshal survey entry event: %w", err)
 	}
 	err = s.PosthogService.Batch(ctx, []json.RawMessage{eventBytes})
-	if err != nil && !errors.Is(err, analytic.ErrMissingPosthogCredential) {
+	if err != nil {
 		return fmt.Errorf("failed to send survey entry event: %w", err)
 	}
 

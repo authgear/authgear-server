@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -305,7 +306,12 @@ func (p *PosthogService) Batch(ctx context.Context, events []json.RawMessage) er
 
 	u, err := p.endpoint()
 	if err != nil {
-		return err
+		if errors.Is(err, ErrMissingPosthogCredential) {
+			logger.Warn(ctx, "sending posthog event skipped: missing posthog credential")
+			return nil
+		} else {
+			return err
+		}
 	}
 	u.Path = "/batch"
 
