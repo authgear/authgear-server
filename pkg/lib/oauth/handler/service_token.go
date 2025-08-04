@@ -8,6 +8,7 @@ import (
 
 	"github.com/lestrrat-go/jwx/v2/jwk"
 
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -66,6 +67,7 @@ type TokenService struct {
 	GenerateToken       TokenGenerator
 	Clock               clock.Clock
 	Users               TokenHandlerUserFacade
+	Events              EventService
 
 	AccessGrantService oauth.AccessGrantService
 }
@@ -285,6 +287,13 @@ func (s *TokenService) IssueClientCredentialsAccessToken(ctx context.Context, op
 	resp.AccessToken(encodedToken)
 	resp.ExpiresIn(int(options.ClientConfig.AccessTokenLifetime.Duration().Seconds()))
 	resp.Scope(scope)
+
+	err = s.Events.DispatchEventOnCommit(ctx, &nonblocking.M2MTokenCreatedEventPayload{
+		ClientID: options.ClientConfig.ClientID,
+	})
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
