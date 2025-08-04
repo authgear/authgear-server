@@ -485,6 +485,96 @@ to allow specify the intended Organization Slug in `<AuthnRequest>`.
 
 For consistency, I propose we support query parameter `x_org_slug` in the SAML Login URL, like what we support in Use case 7.1.
 
+### Use case 7.3: Home Realm Discovery
+
+The discussion cannot begin unless we have a clear definition of what Home Realm Discovery.
+
+> [!IMPORTANT]
+> This feature is called Email Domain Discovery in Fung's proposal.
+> However, competitors like Auth0 and Kinde calls it Home Realm Discovery,
+> and the mechanism of how this works is quite different.
+
+> [!IMPORTANT]
+> This is the definition of Home Realm Discovery.
+>
+> The following conditions must hold:
+>
+> - The developer does not specify `x_org_slug`.
+> - The URL does not include an Organization Slug.
+> - The end-user lands on the signup / login page of Auth UI.
+> - The end-user is shown an email input field.
+> - The end-user enters an email address.
+> - The system **DOES NOT** authenticate the end-user, and redirects the end-user to an external Identity Provider.
+
+#### Use case 7.3.1: Auth0 Home Realm Discovery
+
+The official documentation is at https://auth0.com/docs/authenticate/login/auth0-universal-login/identifier-first
+
+This is how it is set up:
+
+- Create an Organization
+- Add an Enterprise Connection to the Organization, such as Microsoft Entra ID.
+- In the Enterprise Connection, configure a domain that will redirect any Users with that domain to this connection.
+
+This is how it works:
+
+- The end-user lands on the Universal Login page.
+- The end-user enters an email in the input field.
+- If the domain of the email matches the domain of the Enterprise Connection, the user is redirected to the Enterprise Connection to sign in.
+
+This is how it **DOES NOT WORK**:
+
+- https://community.auth0.com/t/hrd-redirect-affecting-all-organizations-with-same-email-domain-expected-behavior-or-misconfiguration/138495
+
+#### Use case 7.3.2: Stytch Discovery Email OTP
+
+> [!NOTE]
+> Stytch does not support Home Realm Discovery natively.
+> We, however, discuss it here
+> because readers may wonder what it is as the feature is called "Discovery Flow".
+
+In Stytch, it supports either [Discovery Flow](https://stytch.com/docs/b2b/guides/ui-components/discovery-flow) or [Organization Flow](https://stytch.com/docs/b2b/guides/ui-components/organization-flow)
+
+Discovery Flow means the end-user lands on a generic signup / login page, authenticates themselves, and select Organization in the last step.
+
+Organization Flow means the end-user lands on Organization-specific page, authenticates themselves to that Organization directly.
+
+#### Use case 7.3.3: Kinde Home Realm Discovery
+
+The official documentation is at https://docs.kinde.com/authenticate/enterprise-connections/home-realm-discovery/
+
+Some sensible restrictions imposed by Kinde:
+
+- When you configure a Microsoft Entra ID connection, you can set up a Home Realm domain for it.
+- All Home Realm domains must be unique. They cannot repeat in different connections.
+
+Some magical default behaviors by Kinde:
+
+- If all Enterprise connections has Home Realm domain configured, then the authentication page shows a email input field only. The end-user is expected to enter an email manually, and then based on the email, be redirected to a corresponding Identity Provider.
+
+#### Use case 7.3.4: How do we shape Home Realm Discovery in Authgear
+
+1. From use case 7.3.1 and use case 7.3.3, we realize that Home Realm Domain is associated with a Connection, rather than an Organization.
+2. From use case 7.3.3, we realize that Home Realm Domains are unique across connections, not across Organizations.
+3. Home Realm Discovery conflicts with `developer_specified_organization`. `developer_specified_organization` has a high precedence.
+4. Home Realm Discovery conflicts with `prompt_end_user_for_organization_first`. `prompt_end_user_for_organization_first` has a high precedence.
+5. When Home Realm Discovery is enabled, the email field is always shown, even Email Login ID is disabled.
+
+However, we do not have Connection in Authgear, so the closest design we can make is **associate a Home Realm Domain with an Organization**.
+
+This is how it works
+
+- The developer enables Home Realm Discovery in the project configuration. This is required because we need to know whether we have to always show the email input field in the general authentication page.
+- The developer creates an Organization.
+- The developer associates a Home Realm Domain with the Organization. This information has to be stored in a database table for fast lookup. The Home Realm Domain **MUST** associate with an OAuth Provider in the Organization-specific configuration.
+- The end-user lands on the general authentication page.
+- The end-user enters an email address.
+- If the email address matches one of the Home Realm Domains,
+  - Then the end-user is redirected to the Organization-specific OAuth Provider.
+  - Else if Email Login ID is enabled,
+    - Then the end-user proceeds to sign up with Email Login ID.
+    - Else an error is shown. This implies Home Realm Discovery is inherently prone to account enumeration.
+
 ### Use case 7: Design Decision
 
 For MVP, we can implement parts of Use case 7.1:
@@ -772,22 +862,16 @@ In particular, Use case 9.4 and Use case 10.1 are stored in resource filesystem 
 
 The use case is an essential building block of Organization, so it must be implemented.
 
-## Use case 11: Email discovery
-
-TODO
-
-This feature is relevant only when Login ID is in use.
-
-## Use case 12: Federated Login
+## Use case 11: Federated Login
 
 TODO
 
 This feature is query parameter `x_provider_alias` implicitly provided for a particular Organization.
 
-## Use case 13: Built-in Organization Switching
+## Use case 12: Built-in Organization Switching
 
 TODO
 
-## Use case 14: UX of the settings page
+## Use case 13: UX of the settings page
 
 TODO

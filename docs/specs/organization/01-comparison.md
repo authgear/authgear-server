@@ -14,7 +14,7 @@
 | Different MFA policies                | Yes[^5] | Yes     | Yes     | No    | Yes[^1] |
 | User Isolation by Organization        | Yes     | Yes     | Yes     | No    | No      |
 | Invitation to specific application    | Yes     | No      | No      | Yes   | No      |
-| Email discovery                       | Yes     | Yes     | No      | No    | Yes     |
+| Email discovery                       | Yes     | No      | No      | No    | Yes     |
 | Organization switcher                 | No      | Yes[^6] | No      | Yes   | Yes[^6] |
 
 > [!WARNING]
