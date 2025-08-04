@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	M2MTokenCreated event.Type = "m2m.token.created"
+	M2MTokenCreated event.Type = "m2m.token.created" // #nosec G101
 )
 
 type M2MTokenCreatedEventPayload struct {
