@@ -146,6 +146,9 @@ var auditLogActivityType = graphql.NewEnum(graphql.EnumConfig{
 		"IDENTITY_BIOMETRIC_DISABLED": &graphql.EnumValueConfig{
 			Value: "identity.biometric.disabled",
 		},
+		"M2M_TOKEN_CREATED": &graphql.EnumValueConfig{
+			Value: "m2m.token.created",
+		},
 		// "PASSWORD_PRIMARY_RESET": &graphql.EnumValueConfig{
 		// 	Value: "password.primary.reset",
 		// },

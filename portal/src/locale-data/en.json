@@ -1533,6 +1533,7 @@
   "AuditLogActivityType.PROJECT_DOMAIN_CREATED": "Project: Domain created",
   "AuditLogActivityType.PROJECT_DOMAIN_DELETED": "Project: Domain deleted",
   "AuditLogActivityType.PROJECT_DOMAIN_VERIFIED": "Project: Domain verified",
+  "AuditLogActivityType.M2M_TOKEN_CREATED": "M2M Token Created",
 
   "FeatureConfig.disabled": "The grayed out features are not available for your project plan. {ReactRouterLink, react, to{{planPagePath}} children{Upgrade your project plan} target{_blank}}.",
   "FeatureConfig.custom-domain.disabled": "Custom domains are not available for your project plan. {ReactRouterLink, react, to{{planPagePath}} children{Upgrade your project plan}}.",
