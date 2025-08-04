@@ -46,10 +46,11 @@ type IssueOfflineGrantRefreshTokenOptions struct {
 }
 
 type ClientCredentialsAccessTokenOptions struct {
-	ResourceURI  string
-	Scopes       []string
-	ClientConfig *config.OAuthClientConfig
-	Resource     *resourcescope.Resource
+	ResourceURI        string
+	Scopes             []string
+	ClientConfig       *config.OAuthClientConfig
+	MaskedClientSecret string
+	Resource           *resourcescope.Resource
 }
 
 type TokenService struct {
@@ -289,7 +290,8 @@ func (s *TokenService) IssueClientCredentialsAccessToken(ctx context.Context, op
 	resp.Scope(scope)
 
 	err = s.Events.DispatchEventOnCommit(ctx, &nonblocking.M2MTokenCreatedEventPayload{
-		ClientID: options.ClientConfig.ClientID,
+		ClientID:     options.ClientConfig.ClientID,
+		ClientSecret: options.MaskedClientSecret,
 	})
 	if err != nil {
 		return err

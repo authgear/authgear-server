@@ -9,7 +9,8 @@ const (
 )
 
 type M2MTokenCreatedEventPayload struct {
-	ClientID string `json:"client_id"`
+	ClientID     string `json:"client_id"`
+	ClientSecret string `json:"client_secret"`
 }
 
 func (e *M2MTokenCreatedEventPayload) UserID() string {
