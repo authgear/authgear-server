@@ -22,6 +22,7 @@ import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 import EditOAuthClientForm from "./EditOAuthClientForm";
+import { EditOAuthClientFormResourcesContent } from "./EditOAuthClientFormResourcesContent";
 import {
   ApplicationType,
   OAuthClientConfig,
@@ -50,6 +51,7 @@ import {
 } from "../../components/applications/OAuthClientSAMLForm";
 import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";
 import iconSaml from "../../images/saml-logo.svg";
+import { usePivotNavigation } from "../../hook/usePivot";
 
 interface LocationState {
   isClientSecretRevealed: boolean;
@@ -339,7 +341,15 @@ interface EditOAuthClientContentProps {
 enum FormTab {
   SETTINGS = "settings",
   SAML2 = "saml2",
+  APIResources = "api-resources",
 }
+
+interface FormTabContextType {
+  formTab: FormTab;
+  setFormTab: (tab: FormTab) => void;
+}
+
+const FormTabContext = React.createContext<FormTabContextType>(undefined!);
 
 const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
   function EditOAuthClientContent(props) {
@@ -355,7 +365,7 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
     } = props;
     const { renderToString } = useContext(Context);
 
-    const [formTab, setFormTab] = useState<FormTab>(FormTab.SETTINGS);
+    const { formTab, setFormTab } = useContext(FormTabContext);
 
     const navigate = useNavigate();
 
@@ -368,13 +378,16 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
         : undefined;
     }, [client, state.clientSecretMap]);
 
-    const onFormTabChange = useCallback((item?: PivotItem) => {
-      if (item == null) {
-        return;
-      }
-      const { itemKey } = item.props;
-      setFormTab(itemKey as FormTab);
-    }, []);
+    const onFormTabChange = useCallback(
+      (item?: PivotItem) => {
+        if (item == null) {
+          return;
+        }
+        const { itemKey } = item.props;
+        setFormTab(itemKey as FormTab);
+      },
+      [setFormTab]
+    );
 
     const onClientConfigChange = useCallback(
       (editedClient: OAuthClientConfig) => {
@@ -405,24 +418,37 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
     }
 
     return (
-      <ScreenContent>
-        <EditOAuthClientNavBreadcrumb clientName={client.name ?? ""} />
-        <Pivot
-          className={styles.widget}
-          selectedKey={formTab}
-          onLinkClick={onFormTabChange}
-        >
-          <PivotItem
-            itemKey={FormTab.SETTINGS}
-            headerText={renderToString("EditOAuthClientScreen.tabs.settings")}
-          />
-          {client.x_application_type === "confidential" ? (
+      <ScreenContent
+        className="flex-1-0-auto"
+        layout={formTab === FormTab.APIResources ? "list" : "auto-rows"}
+      >
+        <header className={cn(styles.widget, "space-y-5")}>
+          <EditOAuthClientNavBreadcrumb clientName={client.name ?? ""} />
+          <Pivot
+            className={styles.widget}
+            selectedKey={formTab}
+            onLinkClick={onFormTabChange}
+          >
             <PivotItem
-              itemKey={FormTab.SAML2}
-              headerText={renderToString("EditOAuthClientScreen.tabs.saml2")}
+              itemKey={FormTab.SETTINGS}
+              headerText={renderToString("EditOAuthClientScreen.tabs.settings")}
             />
-          ) : null}
-        </Pivot>
+            {client.x_application_type === "confidential" ? (
+              <PivotItem
+                itemKey={FormTab.SAML2}
+                headerText={renderToString("EditOAuthClientScreen.tabs.saml2")}
+              />
+            ) : null}
+            {client.x_application_type === "m2m" ? (
+              <PivotItem
+                itemKey={FormTab.APIResources}
+                headerText={renderToString(
+                  "EditOAuthClientScreen.tabs.api-resources"
+                )}
+              />
+            ) : null}
+          </Pivot>
+        </header>
         {formTab === FormTab.SETTINGS ? (
           <OAuthClientSettingsForm
             client={client}
@@ -433,7 +459,8 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
             onClientConfigChange={onClientConfigChange}
             onRevealSecret={onRevealSecret}
           />
-        ) : (
+        ) : null}
+        {formTab === FormTab.SAML2 ? (
           <OAuthClientSAML2Content
             clientID={client.client_id}
             samlIdpEntityID={samlIdpEntityID}
@@ -445,7 +472,13 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
               onGeneratedNewIdpSigningCertificate
             }
           />
-        )}
+        ) : null}
+        {formTab === FormTab.APIResources ? (
+          <EditOAuthClientFormResourcesContent
+            className={cn(styles["widget--wide"])}
+            client={client}
+          />
+        ) : null}
       </ScreenContent>
     );
   };
@@ -765,24 +798,88 @@ const EditOAuthClientScreen1: React.VFC<{
   }
 
   return (
-    <FormContainer
+    <FormContainerContent
       form={form}
-      stickyFooterComponent={true}
-      showDiscardButton={true}
-    >
-      <EditOAuthClientContent
-        form={form}
-        rawAppConfig={rawAppConfig}
-        clientID={clientID}
-        samlIdpEntityID={samlIdpEntityID ?? ""}
-        samlIdpSigningCertificates={samlIdPSigningCertificates}
-        customUIEnabled={customUIEnabled}
-        app2appEnabled={app2appEnabled}
-        onGeneratedNewIdpSigningCertificate={refetchAppAndSecretConfig}
-      />
-    </FormContainer>
+      rawAppConfig={rawAppConfig}
+      clientID={clientID}
+      samlIdpEntityID={samlIdpEntityID}
+      samlIdpSigningCertificates={samlIdPSigningCertificates}
+      customUIEnabled={customUIEnabled}
+      app2appEnabled={app2appEnabled}
+      refetchAppAndSecretConfig={refetchAppAndSecretConfig}
+    />
   );
 };
+
+function FormContainerContent({
+  form,
+  rawAppConfig,
+  clientID,
+  samlIdpEntityID,
+  samlIdpSigningCertificates,
+  customUIEnabled,
+  app2appEnabled,
+  refetchAppAndSecretConfig,
+}: {
+  form: AppSecretConfigFormModel<FormState>;
+  rawAppConfig: PortalAPIAppConfig;
+  clientID: string;
+  samlIdpEntityID: string | null | undefined;
+  samlIdpSigningCertificates: SAMLIdpSigningCertificate[];
+  customUIEnabled: boolean;
+  app2appEnabled: boolean;
+  refetchAppAndSecretConfig: () => void;
+}) {
+  const { state } = form;
+  const { selectedKey: formTab, onChangeKey: setFormTab } = usePivotNavigation(
+    useMemo(() => {
+      const client =
+        state.editedClient ??
+        state.clients.find((c) => c.client_id === clientID);
+      switch (client?.x_application_type) {
+        case "m2m":
+          return [FormTab.SETTINGS, FormTab.APIResources];
+        case "confidential":
+          return [FormTab.SETTINGS, FormTab.SAML2];
+        default:
+          return [FormTab.SETTINGS];
+      }
+    }, [clientID, state.clients, state.editedClient]),
+    undefined,
+    "tab"
+  );
+
+  const contextValue = useMemo<FormTabContextType>(
+    () => ({
+      formTab,
+      setFormTab: setFormTab,
+    }),
+    [formTab, setFormTab]
+  );
+
+  return (
+    <FormTabContext.Provider value={contextValue}>
+      <FormContainer
+        className="flex-1-0-auto flex flex-col"
+        form={form}
+        stickyFooterComponent={true}
+        showDiscardButton={true}
+        hideFooterComponent={formTab === FormTab.APIResources}
+      >
+        <EditOAuthClientContent
+          form={form}
+          rawAppConfig={rawAppConfig}
+          clientID={clientID}
+          samlIdpEntityID={samlIdpEntityID ?? ""}
+          samlIdpSigningCertificates={samlIdpSigningCertificates}
+          customUIEnabled={customUIEnabled}
+          app2appEnabled={app2appEnabled}
+          onGeneratedNewIdpSigningCertificate={refetchAppAndSecretConfig}
+        />
+      </FormContainer>
+    </FormTabContext.Provider>
+  );
+}
 
 const SECRETS = [AppSecretKey.OauthClientSecrets];
 

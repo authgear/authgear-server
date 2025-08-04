@@ -89,7 +89,7 @@ const EditOAuthClientResourceScopeScreen: React.VFC =
                 label: <FormattedMessage id="ScreenNav.client-applications" />,
               },
               {
-                to: `~/configuration/apps/${client.client_id}`,
+                to: `~/configuration/apps/${client.client_id}/edit?tab=api-resources`,
                 label: client.name ?? client.client_name,
               },
               {

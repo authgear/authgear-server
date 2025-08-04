@@ -907,6 +907,7 @@
 
   "EditOAuthClientScreen.tabs.settings": "Settings",
   "EditOAuthClientScreen.tabs.saml2": "SAML 2.0",
+  "EditOAuthClientScreen.tabs.api-resources": "API Resources",
 
   "OAuthClientSAMLForm.title": "SAML Settings",
   "OAuthClientSAMLForm.metadataUpload.description": "Upload the Service Provider Metadata (XML) to fill the form below automatically",
@@ -2185,6 +2186,7 @@
   "ApplicationResourcesList.columns.resources": "Resources",
   "ApplicationResourcesList.columns.authorized": "Authorized",
   "ApplicationResourcesList.columns.manageScopes": "Manage Scopes",
+  "ApplicationResourcesList.empty": "No API Resources yet. To assign an API Resource to this application, please first create one in the {ReactRouterLink, react, to{{to}} children{API Resources}} section.",
 
   "EditScopeScreen.title": "Edit Scope",
 
@@ -2204,6 +2206,7 @@
   "EditApplicationScopesList.select": "Select",
   "EditApplicationScopesList.buttons.all": "All",
   "EditApplicationScopesList.buttons.none": "None",
+  "EditApplicationScopesList.empty": "This API Resource has no scopes yet. Please add at least one scope to make it assignable.",
 
   "DeleteScopeDialog.title": "Delete Scope",
   "DeleteScopeDialog.description": "This action will permanently delete the scope \"{scope}\" and cannot be undone. Are you sure you want to proceed?",

@@ -52,6 +52,7 @@ export const EditApplicationScopesList: React.VFC<EditApplicationScopesListProps
     const { className, scopes, onToggleAssignedScopes } = props;
     const { renderToString } = useContext(Context);
     const [searchKeyword, setSearchKeyword] = useState("");
+    const { themes } = useSystemConfig();
 
     const handleSearchChange = useCallback((_: unknown, newValue?: string) => {
       setSearchKeyword(newValue ?? "");
@@ -149,6 +150,13 @@ export const EditApplicationScopesList: React.VFC<EditApplicationScopesListProps
             layoutMode={DetailsListLayoutMode.justified}
             selectionMode={SelectionMode.none}
           />
+          {filteredScopes.length === 0 ? (
+            <Text
+              styles={{ root: { color: themes.main.palette.neutralTertiary } }}
+            >
+              <FormattedMessage id="EditApplicationScopesList.empty" />
+            </Text>
+          ) : null}
         </div>
       </div>
     );
