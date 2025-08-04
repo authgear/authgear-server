@@ -388,6 +388,10 @@ It implies that updating the email address or removing the email address may not
 > [!NOTE]
 > In Stytch B2B Authentication, it is forbidden to add, remove, or update own email address.
 
+> [!NOTE]
+> In Kinde, Users with Enterprise Identities cannot have other identities.
+> See https://docs.kinde.com/authenticate/enterprise-connections/about-enterprise-connections/#how-identities-are-handled-in-enterprise-connections
+
 When a User is a Member of an Organization,
 the User is not allowed to add, remove, or update the following Identities:
 
@@ -404,7 +408,7 @@ The following Identities can still be added and removed:
 
 #### Use case 6.1.1: Organization with Federated Login
 
-Federated Login in this context means the end-user **MUST** sign in a particular Identity associated with the external Identity Provider.
+Refer to Use case 11 to learn what Federated Login is.
 
 - The end-user is not expected to add Identities. Federated Login means the end-user must sign in via the external Identity Provider. Adding Identities (and thus adding more login methods) are not useful at all.
 - The end-user is not expected to update Identities. As long as the subject ID stays the same, Standard Attributes `email`, `phone_number` and `preferred_username` are updated automatically on login. The end-user need not update them manually.
@@ -864,9 +868,49 @@ The use case is an essential building block of Organization, so it must be imple
 
 ## Use case 11: Federated Login
 
-TODO
+> [!WARNING]
+> The term "Federated Login" is not a common term for this feature.
+> For example, if you search `competitor name` + "Federated Login",
+> you will likely find unrelated results.
+>
+> It seems like we are misusing a very common term for a specific feature.
 
-This feature is query parameter `x_provider_alias` implicitly provided for a particular Organization.
+According to Fung's proposal, "Federated Login" is about:
+
+- Configure an Organization-specific OAuth Provider. This is covered in Use case 10 already.
+- If the Organization has one and only one applicable Identity Provider (OAuth or SAML), the end-user is redirected to it without seeing the Auth UI. This is just a QoL improvement of the Auth UI, and can be implemented independently of Organizations.
+
+> [!NOTE]
+> Auth0 does not support this feature out-of-the-box.
+> The best you can do is to provide the `connection` parameter in the authorization endpoint.
+> See https://auth0.com/docs/api/authentication/login/enterprise-saml-and-others#remarks
+> That does not always work because you need to know in advance what Organization the end-user is going to sign in to.
+
+### Use case 11.1: Federated Login in OIDC
+
+We already support a proprietary authorization endpoint parameter named `x_provider_alias`.
+If it is provided, then Auth UI will be skipped, the end-user will be redirected to that OAuth Provider directly.
+
+We can support Federated Login in OIDC like this:
+
+- When the Organization has specific configuration, and it has only one OAuth Provider, the default value of `x_provider_alias` is the alias of that OAuth Provider.
+- If `x_provider_alias` is specified in the authentication request, it is respected.
+
+So if the developer does not want the end-user to see the Auth UI,
+they configure one and only one Organization-specific OAuth Provider.
+
+This also means Federated Login is **implicit**.
+By configuring one and only one Organization-specific OAuth Provider, Federated Login is enabled for the Organization.
+
+### Use case 11.2: Federated Login in SAML
+
+Since this is a feature of Auth UI, no special support is needed.
+
+We may need to consider support `x_provider_alias` in the SAML Login URL.
+
+### Use case 11: Design Decision
+
+Implement Use case 11.1 for MVP.
 
 ## Use case 12: Built-in Organization Switching
 
