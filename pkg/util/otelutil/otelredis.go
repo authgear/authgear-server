@@ -10,7 +10,7 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
-	"go.opentelemetry.io/otel/semconv/v1.27.0"
+	"go.opentelemetry.io/otel/semconv/v1.28.0"
 )
 
 const otelredisMetricName = "github.com/redis/go-redis/extra/redisotel"

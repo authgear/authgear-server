@@ -7,7 +7,7 @@ import (
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/semconv/v1.27.0"
+	"go.opentelemetry.io/otel/semconv/v1.34.0"
 )
 
 // The following attributes are not supported because we do not know the actual protocol between

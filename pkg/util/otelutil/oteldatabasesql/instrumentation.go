@@ -14,7 +14,7 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
-	"go.opentelemetry.io/otel/semconv/v1.30.0"
+	"go.opentelemetry.io/otel/semconv/v1.31.0"
 
 	"github.com/authgear/authgear-server/pkg/util/databasesqlwrapper"
 	"github.com/authgear/authgear-server/pkg/util/debug"

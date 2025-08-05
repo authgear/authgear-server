@@ -14,7 +14,7 @@ import (
 	"go.opentelemetry.io/otel/propagation"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	sdkresource "go.opentelemetry.io/otel/sdk/resource"
-	"go.opentelemetry.io/otel/semconv/v1.27.0"
+	"go.opentelemetry.io/otel/semconv/v1.34.0"
 
 	"github.com/authgear/authgear-server/pkg/version"
 )
