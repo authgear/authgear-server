@@ -10,7 +10,8 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
-	"go.opentelemetry.io/otel/semconv/v1.27.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.34.0"
+	dbconv "go.opentelemetry.io/otel/semconv/v1.34.0/dbconv"
 )
 
 const otelredisMetricName = "github.com/redis/go-redis/extra/redisotel"
@@ -31,7 +32,7 @@ func OtelRedisInstrumentMetrics(client *redis.Client) error {
 	options := client.Options()
 
 	baseAttrs := []attribute.KeyValue{
-		semconv.DBSystemKey.String("redis"),
+		semconv.DBSystemNameRedis,
 		semconv.DBNamespaceKey.String(strconv.Itoa(options.DB)),
 	}
 
@@ -43,40 +44,40 @@ func OtelRedisInstrumentMetrics(client *redis.Client) error {
 	}
 
 	idleMax, err := meter.Int64ObservableUpDownCounter(
-		semconv.DBClientConnectionIdleMaxName,
-		metric.WithDescription(semconv.DBClientConnectionIdleMaxDescription),
+		(dbconv.ClientConnectionIdleMax{}).Name(),
+		metric.WithDescription((dbconv.ClientConnectionIdleMax{}).Description()),
 	)
 	if err != nil {
 		return err
 	}
 
 	idleMin, err := meter.Int64ObservableUpDownCounter(
-		semconv.DBClientConnectionIdleMinName,
-		metric.WithDescription(semconv.DBClientConnectionIdleMinDescription),
+		(dbconv.ClientConnectionIdleMin{}).Name(),
+		metric.WithDescription((dbconv.ClientConnectionIdleMin{}).Description()),
 	)
 	if err != nil {
 		return err
 	}
 
 	connsMax, err := meter.Int64ObservableUpDownCounter(
-		semconv.DBClientConnectionMaxName,
-		metric.WithDescription(semconv.DBClientConnectionMaxDescription),
+		(dbconv.ClientConnectionMax{}).Name(),
+		metric.WithDescription((dbconv.ClientConnectionMax{}).Description()),
 	)
 	if err != nil {
 		return err
 	}
 
 	usage, err := meter.Int64ObservableUpDownCounter(
-		semconv.DBClientConnectionCountName,
-		metric.WithDescription(semconv.DBClientConnectionCountDescription),
+		(dbconv.ClientConnectionCount{}).Name(),
+		metric.WithDescription((dbconv.ClientConnectionCount{}).Description()),
 	)
 	if err != nil {
 		return err
 	}
 
 	timeouts, err := meter.Int64ObservableCounter(
-		semconv.DBClientConnectionsTimeoutsName,
-		metric.WithDescription(semconv.DBClientConnectionsTimeoutsDescription),
+		(dbconv.ClientConnectionTimeouts{}).Name(),
+		metric.WithDescription((dbconv.ClientConnectionTimeouts{}).Description()),
 	)
 	if err != nil {
 		return err
@@ -125,19 +126,51 @@ func OtelRedisInstrumentMetrics(client *redis.Client) error {
 		return err
 	}
 
-	createTime, err := meter.Float64Histogram(
-		semconv.DBClientConnectionCreateTimeName,
-		metric.WithDescription(semconv.DBClientConnectionCreateTimeDescription),
-		metric.WithUnit("s"),
+	createTime, err := dbconv.NewClientConnectionCreateTime(
+		meter,
+		// The spec does not specify an explicit boundary.
+		// We borrow the boundary from http request.
+		metric.WithExplicitBucketBoundaries(
+			0.005,
+			0.01,
+			0.025,
+			0.05,
+			0.075,
+			0.1,
+			0.25,
+			0.5,
+			0.75,
+			1,
+			2.5,
+			5,
+			7.5,
+			10,
+		),
 	)
 	if err != nil {
 		return err
 	}
 
-	useTime, err := meter.Float64Histogram(
-		semconv.DBClientConnectionUseTimeName,
-		metric.WithDescription(semconv.DBClientConnectionUseTimeDescription),
-		metric.WithUnit("s"),
+	useTime, err := dbconv.NewClientConnectionUseTime(
+		meter,
+		// The spec does not specify an explicit boundary.
+		// We borrow the boundary from http request.
+		metric.WithExplicitBucketBoundaries(
+			0.005,
+			0.01,
+			0.025,
+			0.05,
+			0.075,
+			0.1,
+			0.25,
+			0.5,
+			0.75,
+			1,
+			2.5,
+			5,
+			7.5,
+			10,
+		),
 	)
 	if err != nil {
 		return err
@@ -153,8 +186,8 @@ func OtelRedisInstrumentMetrics(client *redis.Client) error {
 }
 
 type otelRedisMetricsHook struct {
-	createTime metric.Float64Histogram
-	useTime    metric.Float64Histogram
+	createTime dbconv.ClientConnectionCreateTime
+	useTime    dbconv.ClientConnectionUseTime
 	baseAttrs  []attribute.KeyValue
 }
 
@@ -169,7 +202,7 @@ func (h *otelRedisMetricsHook) DialHook(hook redis.DialHook) redis.DialHook {
 		attrs := append([]attribute.KeyValue(nil), h.baseAttrs...)
 		attrs = append(attrs, statusAttr(err))
 
-		h.createTime.Record(ctx, seconds(dur), metric.WithAttributes(attrs...))
+		h.createTime.Inst().Record(ctx, seconds(dur), metric.WithAttributes(attrs...))
 		return conn, err
 	}
 }
@@ -185,7 +218,7 @@ func (h *otelRedisMetricsHook) ProcessHook(hook redis.ProcessHook) redis.Process
 		attrs = append(attrs, semconv.DBOperationName(cmd.FullName()))
 		attrs = append(attrs, statusAttr(err))
 
-		h.useTime.Record(ctx, seconds(dur), metric.WithAttributes(attrs...))
+		h.useTime.Inst().Record(ctx, seconds(dur), metric.WithAttributes(attrs...))
 		return err
 	}
 }
@@ -202,7 +235,7 @@ func (h *otelRedisMetricsHook) ProcessPipelineHook(
 		attrs = append(attrs, attribute.String("type", "pipeline"))
 		attrs = append(attrs, statusAttr(err))
 
-		h.useTime.Record(ctx, seconds(dur), metric.WithAttributes(attrs...))
+		h.useTime.Inst().Record(ctx, seconds(dur), metric.WithAttributes(attrs...))
 		return err
 	}
 }

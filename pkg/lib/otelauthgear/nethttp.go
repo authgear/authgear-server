@@ -6,7 +6,7 @@ import (
 
 	"github.com/felixge/httpsnoop"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
-	"go.opentelemetry.io/otel/semconv/v1.27.0"
+	"go.opentelemetry.io/otel/semconv/v1.34.0"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -87,7 +87,7 @@ func (m *HTTPInstrumentationMiddleware) Handle(next http.Handler) http.Handler {
 				}
 
 				seconds := requestDuration.Seconds()
-				otelutil.Float64HistogramRecord(ctx, HTTPServerRequestDurationHistogram, seconds, options...)
+				otelutil.Float64HistogramRecord(ctx, HTTPServerRequestDurationHistogram.Inst(), seconds, options...)
 			}
 
 			// Re-throw the panic.

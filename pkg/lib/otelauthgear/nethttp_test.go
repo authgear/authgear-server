@@ -12,6 +12,7 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/metric/embedded"
+	httpconv "go.opentelemetry.io/otel/semconv/v1.34.0/httpconv"
 
 	"github.com/authgear/authgear-server/pkg/util/otelutil"
 )
@@ -61,7 +62,9 @@ func TestHTTPInstrumentationMiddleware(t *testing.T) {
 		mock := &mockFloat64Histogram{}
 
 		original := HTTPServerRequestDurationHistogram
-		HTTPServerRequestDurationHistogram = mock
+		HTTPServerRequestDurationHistogram = httpconv.ServerRequestDuration{
+			Float64Histogram: mock,
+		}
 		defer func() {
 			HTTPServerRequestDurationHistogram = original
 		}()

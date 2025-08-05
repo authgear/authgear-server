@@ -8,7 +8,8 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
-	semconv "go.opentelemetry.io/otel/semconv/v1.27.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.34.0"
+	httpconv "go.opentelemetry.io/otel/semconv/v1.34.0/httpconv"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/otelutil"
@@ -196,11 +197,8 @@ var CounterBlockingWebhookCount = otelutil.MustInt64Counter(
 )
 
 // HTTPServerRequestDurationHistogram is https://opentelemetry.io/docs/specs/semconv/http/http-metrics/#metric-httpserverrequestduration
-var HTTPServerRequestDurationHistogram = otelutil.MustFloat64Histogram(
+var HTTPServerRequestDurationHistogram, _ = httpconv.NewServerRequestDuration(
 	meter,
-	semconv.HTTPServerRequestDurationName,
-	metric.WithDescription(semconv.HTTPServerRequestDurationDescription),
-	metric.WithUnit(semconv.HTTPServerRequestDurationUnit),
 	// The spec says we SHOULD define explicit boundaries.
 	// https://opentelemetry.io/docs/specs/semconv/http/http-metrics/#metric-httpserverrequestduration
 	// In fact, if we do not, the default boundary is not suitable for request duration scale.

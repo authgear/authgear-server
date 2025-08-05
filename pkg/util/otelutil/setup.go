@@ -7,13 +7,14 @@ import (
 	"os"
 	"strings"
 
+	instrumentationruntime "go.opentelemetry.io/contrib/instrumentation/runtime"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp"
 	"go.opentelemetry.io/otel/exporters/stdout/stdoutmetric"
 	"go.opentelemetry.io/otel/propagation"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	sdkresource "go.opentelemetry.io/otel/sdk/resource"
-	"go.opentelemetry.io/otel/semconv/v1.27.0"
+	"go.opentelemetry.io/otel/semconv/v1.34.0"
 
 	"github.com/authgear/authgear-server/pkg/version"
 )
@@ -32,6 +33,11 @@ const envvar_OTEL_PROPAGATORS = "OTEL_PROPAGATORS"
 // The returned context contains a *sdkresource.Resource.
 // The returned context contains a *otelhttp.Labeler.
 func SetupOTelSDKGlobally(ctx context.Context) (outCtx context.Context, shutdown func(context.Context) error, err error) {
+	// Force producing the deprecated metrics.
+	// See https://pkg.go.dev/go.opentelemetry.io/contrib/instrumentation/runtime@v0.62.0#pkg-overview
+	// We have to do this because the number of GC count is only available in the deprecated metrics.
+	os.Setenv("OTEL_GO_X_DEPRECATED_RUNTIME_METRICS", "true")
+
 	var shutdownFuncs []func(context.Context) error
 
 	shutdown = func(ctx context.Context) error {
@@ -73,6 +79,16 @@ func SetupOTelSDKGlobally(ctx context.Context) (outCtx context.Context, shutdown
 	shutdownFuncs = append(shutdownFuncs, meterProvider.Shutdown)
 	// set the global meter provider.
 	otel.SetMeterProvider(meterProvider)
+
+	// Start go runtime metrics collection.
+	// Refer to https://pkg.go.dev/go.opentelemetry.io/contrib/instrumentation/runtime@v0.62.0#pkg-overview
+	// for a list of metrics it collects.
+	err = instrumentationruntime.Start(
+		instrumentationruntime.WithMinimumReadMemStatsInterval(instrumentationruntime.DefaultMinimumReadMemStatsInterval),
+	)
+	if err != nil {
+		return
+	}
 
 	return
 }
@@ -165,9 +181,18 @@ func newMeterProvider(ctx context.Context, res *sdkresource.Resource) (*sdkmetri
 		return nil, err
 	}
 	for _, exporter := range exporters {
-		// Use PeriodicReader becauses it supports configuration via environment variables.
+		// Use PeriodicReader because it supports configuration via environment variables.
 		// See https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/#periodic-exporting-metricreader
-		reader := sdkmetric.NewPeriodicReader(exporter)
+		reader := sdkmetric.NewPeriodicReader(
+			exporter,
+			// The example says that we can optionally set up a Producer to track the latency of goroutine.
+			// See https://pkg.go.dev/go.opentelemetry.io/contrib/instrumentation/runtime@v0.62.0#example-package
+			// The histogram is `go.schedule.duration`.
+			// However, the histogram has no explicit boundary set,
+			// so it can consume a lot of memory.
+			// Therefore, this feature is commented out.
+			// sdkmetric.WithProducer(instrumentationruntime.NewProducer()),
+		)
 		options = append(options, sdkmetric.WithReader(reader))
 	}
 
