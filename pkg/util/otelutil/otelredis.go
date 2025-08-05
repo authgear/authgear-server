@@ -10,7 +10,7 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
-	"go.opentelemetry.io/otel/semconv/v1.28.0"
+	"go.opentelemetry.io/otel/semconv/v1.31.0"
 )
 
 const otelredisMetricName = "github.com/redis/go-redis/extra/redisotel"
@@ -31,7 +31,7 @@ func OtelRedisInstrumentMetrics(client *redis.Client) error {
 	options := client.Options()
 
 	baseAttrs := []attribute.KeyValue{
-		semconv.DBSystemKey.String("redis"),
+		semconv.DBSystemNameRedis,
 		semconv.DBNamespaceKey.String(strconv.Itoa(options.DB)),
 	}
 
@@ -75,8 +75,8 @@ func OtelRedisInstrumentMetrics(client *redis.Client) error {
 	}
 
 	timeouts, err := meter.Int64ObservableCounter(
-		semconv.DBClientConnectionsTimeoutsName,
-		metric.WithDescription(semconv.DBClientConnectionsTimeoutsDescription),
+		semconv.DBClientConnectionTimeoutsName,
+		metric.WithDescription(semconv.DBClientConnectionTimeoutsDescription),
 	)
 	if err != nil {
 		return err
