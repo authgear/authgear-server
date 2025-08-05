@@ -904,6 +904,11 @@
   "EditOAuthClientForm.app2app.uris.description": "Setup universal link for iOS and app links for Android in {ReactRouterLink, react, to{#uris} children{Authorized Redirect URIs} preserveDefault{true}} to handle the App2App requests",
   "EditOAuthClientForm.more-options": "More options",
   "EditOAuthClientForm.resources.title": "Resources",
+  "EditOAuthClientForm.quick-start.m2m.title": "Machine-to-Machine",
+  "EditOAuthClientForm.quick-start.m2m.description": "Backend servers or IoT devices",
+  "EditOAuthClientForm.quick-start.m2m.step1.title": "Obtain an access token by calling the token endpoint",
+  "EditOAuthClientForm.quick-start.m2m.step1.select-api-resource": "Select the API Resource",
+  "EditOAuthClientForm.quick-start.m2m.step1.select-api-resource.placeholder": "Select API Resource",
 
   "EditOAuthClientScreen.tabs.settings": "Settings",
   "EditOAuthClientScreen.tabs.saml2": "SAML 2.0",

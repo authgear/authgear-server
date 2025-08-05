@@ -422,11 +422,7 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
     return (
       <ScreenContent
         className="flex-1-0-auto"
-        layout={
-          formTab === FormTab.API_RESOURCES || formTab === FormTab.QUICK_START
-            ? "list"
-            : "auto-rows"
-        }
+        layout={formTab === FormTab.API_RESOURCES ? "list" : "auto-rows"}
       >
         <header className={cn(styles.widget, "space-y-5")}>
           <EditOAuthClientNavBreadcrumb clientName={client.name ?? ""} />
@@ -465,7 +461,8 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
         </header>
         {formTab === FormTab.QUICK_START ? (
           <EditOAuthClientFormQuickStartContent
-            className={cn(styles["widget--wide"])}
+            className={cn(styles.widget, styles["widget--wide"])}
+            client={client}
           />
         ) : null}
         {formTab === FormTab.SETTINGS ? (

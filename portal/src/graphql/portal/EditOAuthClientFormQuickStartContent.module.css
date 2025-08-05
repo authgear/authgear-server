@@ -1,0 +1,7 @@
+.quickStartStep__header {
+  @apply flex flex-row items-center space-x-4;
+}
+
+.quickStartStep__childrenContainer {
+  @apply pl-10 mt-2;
+}
