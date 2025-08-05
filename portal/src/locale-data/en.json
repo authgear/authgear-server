@@ -911,6 +911,8 @@
   "EditOAuthClientForm.quick-start.m2m.step1.select-api-resource.placeholder": "Select API Resource",
   "EditOAuthClientForm.quick-start.m2m.step1.select-api-resource.empty.placeholder": "No API resource yet.",
   "EditOAuthClientForm.quick-start.m2m.step1.no-api-resource-yet": "You haven''t authorized any API resources yet. Go to the {ReactRouterLink, react, to{{href}} children{API Resource}} to select and authorize one or more.",
+  "EditOAuthClientForm.quick-start.m2m.step2.title": "Use the access token to access the API resources",
+  "EditOAuthClientForm.quick-start.m2m.step2.description": "Put the bearer token in Authorization header.",
   "EditOAuthClientForm.quick-start.m2m.pivot.curl.headerText": "CURL",
   "EditOAuthClientForm.quick-start.m2m.pivot.go.headerText": "Go",
   "EditOAuthClientForm.quick-start.m2m.pivot.nodejs.headerText": "NodeJS",

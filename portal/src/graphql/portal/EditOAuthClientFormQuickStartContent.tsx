@@ -227,6 +227,18 @@ function EditOAuthClientFormQuickStartContentLoaded(
           </div>
         ) : null}
       </QuickStartStep>
+      <QuickStartStep
+        className="mt-6"
+        stepNumber="2"
+        title={
+          <FormattedMessage id="EditOAuthClientForm.quick-start.m2m.step2.title" />
+        }
+      >
+        <Text as="p" block={true}>
+          <FormattedMessage id="EditOAuthClientForm.quick-start.m2m.step2.description" />
+        </Text>
+        <CodeField className="mt-1">{`Authorization: Bearer <token>`}</CodeField>
+      </QuickStartStep>
     </div>
   );
 }
