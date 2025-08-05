@@ -10,7 +10,8 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
-	"go.opentelemetry.io/otel/semconv/v1.31.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.34.0"
+	dbconv "go.opentelemetry.io/otel/semconv/v1.34.0/dbconv"
 )
 
 const otelredisMetricName = "github.com/redis/go-redis/extra/redisotel"
@@ -43,40 +44,40 @@ func OtelRedisInstrumentMetrics(client *redis.Client) error {
 	}
 
 	idleMax, err := meter.Int64ObservableUpDownCounter(
-		semconv.DBClientConnectionIdleMaxName,
-		metric.WithDescription(semconv.DBClientConnectionIdleMaxDescription),
+		(dbconv.ClientConnectionIdleMax{}).Name(),
+		metric.WithDescription((dbconv.ClientConnectionIdleMax{}).Description()),
 	)
 	if err != nil {
 		return err
 	}
 
 	idleMin, err := meter.Int64ObservableUpDownCounter(
-		semconv.DBClientConnectionIdleMinName,
-		metric.WithDescription(semconv.DBClientConnectionIdleMinDescription),
+		(dbconv.ClientConnectionIdleMin{}).Name(),
+		metric.WithDescription((dbconv.ClientConnectionIdleMin{}).Description()),
 	)
 	if err != nil {
 		return err
 	}
 
 	connsMax, err := meter.Int64ObservableUpDownCounter(
-		semconv.DBClientConnectionMaxName,
-		metric.WithDescription(semconv.DBClientConnectionMaxDescription),
+		(dbconv.ClientConnectionMax{}).Name(),
+		metric.WithDescription((dbconv.ClientConnectionMax{}).Description()),
 	)
 	if err != nil {
 		return err
 	}
 
 	usage, err := meter.Int64ObservableUpDownCounter(
-		semconv.DBClientConnectionCountName,
-		metric.WithDescription(semconv.DBClientConnectionCountDescription),
+		(dbconv.ClientConnectionCount{}).Name(),
+		metric.WithDescription((dbconv.ClientConnectionCount{}).Description()),
 	)
 	if err != nil {
 		return err
 	}
 
 	timeouts, err := meter.Int64ObservableCounter(
-		semconv.DBClientConnectionTimeoutsName,
-		metric.WithDescription(semconv.DBClientConnectionTimeoutsDescription),
+		(dbconv.ClientConnectionTimeouts{}).Name(),
+		metric.WithDescription((dbconv.ClientConnectionTimeouts{}).Description()),
 	)
 	if err != nil {
 		return err
@@ -126,8 +127,8 @@ func OtelRedisInstrumentMetrics(client *redis.Client) error {
 	}
 
 	createTime, err := meter.Float64Histogram(
-		semconv.DBClientConnectionCreateTimeName,
-		metric.WithDescription(semconv.DBClientConnectionCreateTimeDescription),
+		(dbconv.ClientConnectionCreateTime{}).Name(),
+		metric.WithDescription((dbconv.ClientConnectionCreateTime{}).Description()),
 		metric.WithUnit("s"),
 	)
 	if err != nil {
@@ -135,8 +136,8 @@ func OtelRedisInstrumentMetrics(client *redis.Client) error {
 	}
 
 	useTime, err := meter.Float64Histogram(
-		semconv.DBClientConnectionUseTimeName,
-		metric.WithDescription(semconv.DBClientConnectionUseTimeDescription),
+		(dbconv.ClientConnectionUseTime{}).Name(),
+		metric.WithDescription((dbconv.ClientConnectionUseTime{}).Description()),
 		metric.WithUnit("s"),
 	)
 	if err != nil {
