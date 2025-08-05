@@ -156,8 +156,7 @@ func (p *PosthogIntegration) preparePosthogGroup(ctx context.Context, appID stri
 
 	var m2mTokenCreatedCount int
 	err = p.AuditDBReadHandle.WithTx(ctx, func(ctx context.Context) error {
-		rangeTo := now
-		rangeFrom := now.AddDate(0, 0, -30)
+		rangeFrom, rangeTo := timeutil.Last30Days(now)
 		count, err := p.MeterAuditDBReadStore.GetCountByActivityType(ctx, appID, "m2m.token.created", &rangeFrom, &rangeTo)
 		if err != nil {
 			return err
