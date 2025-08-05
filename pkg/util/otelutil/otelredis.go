@@ -126,19 +126,15 @@ func OtelRedisInstrumentMetrics(client *redis.Client) error {
 		return err
 	}
 
-	createTime, err := meter.Float64Histogram(
-		(dbconv.ClientConnectionCreateTime{}).Name(),
-		metric.WithDescription((dbconv.ClientConnectionCreateTime{}).Description()),
-		metric.WithUnit("s"),
+	createTime, err := dbconv.NewClientConnectionCreateTime(
+		meter,
 	)
 	if err != nil {
 		return err
 	}
 
-	useTime, err := meter.Float64Histogram(
-		(dbconv.ClientConnectionUseTime{}).Name(),
-		metric.WithDescription((dbconv.ClientConnectionUseTime{}).Description()),
-		metric.WithUnit("s"),
+	useTime, err := dbconv.NewClientConnectionUseTime(
+		meter,
 	)
 	if err != nil {
 		return err
@@ -154,8 +150,8 @@ func OtelRedisInstrumentMetrics(client *redis.Client) error {
 }
 
 type otelRedisMetricsHook struct {
-	createTime metric.Float64Histogram
-	useTime    metric.Float64Histogram
+	createTime dbconv.ClientConnectionCreateTime
+	useTime    dbconv.ClientConnectionUseTime
 	baseAttrs  []attribute.KeyValue
 }
 
@@ -170,7 +166,7 @@ func (h *otelRedisMetricsHook) DialHook(hook redis.DialHook) redis.DialHook {
 		attrs := append([]attribute.KeyValue(nil), h.baseAttrs...)
 		attrs = append(attrs, statusAttr(err))
 
-		h.createTime.Record(ctx, seconds(dur), metric.WithAttributes(attrs...))
+		h.createTime.Inst().Record(ctx, seconds(dur), metric.WithAttributes(attrs...))
 		return conn, err
 	}
 }
@@ -186,7 +182,7 @@ func (h *otelRedisMetricsHook) ProcessHook(hook redis.ProcessHook) redis.Process
 		attrs = append(attrs, semconv.DBOperationName(cmd.FullName()))
 		attrs = append(attrs, statusAttr(err))
 
-		h.useTime.Record(ctx, seconds(dur), metric.WithAttributes(attrs...))
+		h.useTime.Inst().Record(ctx, seconds(dur), metric.WithAttributes(attrs...))
 		return err
 	}
 }
@@ -203,7 +199,7 @@ func (h *otelRedisMetricsHook) ProcessPipelineHook(
 		attrs = append(attrs, attribute.String("type", "pipeline"))
 		attrs = append(attrs, statusAttr(err))
 
-		h.useTime.Record(ctx, seconds(dur), metric.WithAttributes(attrs...))
+		h.useTime.Inst().Record(ctx, seconds(dur), metric.WithAttributes(attrs...))
 		return err
 	}
 }
