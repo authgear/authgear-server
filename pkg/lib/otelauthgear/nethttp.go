@@ -87,7 +87,7 @@ func (m *HTTPInstrumentationMiddleware) Handle(next http.Handler) http.Handler {
 				}
 
 				seconds := requestDuration.Seconds()
-				otelutil.Float64HistogramRecord(ctx, HTTPServerRequestDurationHistogram, seconds, options...)
+				otelutil.Float64HistogramRecord(ctx, HTTPServerRequestDurationHistogram.Inst(), seconds, options...)
 			}
 
 			// Re-throw the panic.
