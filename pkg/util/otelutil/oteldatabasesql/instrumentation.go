@@ -14,21 +14,14 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
-	"go.opentelemetry.io/otel/semconv/v1.31.0"
+	"go.opentelemetry.io/otel/semconv/v1.34.0"
+	dbconv "go.opentelemetry.io/otel/semconv/v1.34.0/dbconv"
 
 	"github.com/authgear/authgear-server/pkg/util/databasesqlwrapper"
 	"github.com/authgear/authgear-server/pkg/util/debug"
 )
 
 var meter = otel.Meter("github.com/authgear/authgear-server/pkg/util/otelutil/oteldatabasesql")
-
-func mustFloat64Histogram(name string, options ...metric.Float64HistogramOption) metric.Float64Histogram {
-	histogram, err := meter.Float64Histogram(name, options...)
-	if err != nil {
-		panic(err)
-	}
-	return histogram
-}
 
 func mustInt64ObservableGauge(name string, options ...metric.Int64ObservableGaugeOption) metric.Int64ObservableGauge {
 	counter, err := meter.Int64ObservableGauge(name, options...)
@@ -40,30 +33,28 @@ func mustInt64ObservableGauge(name string, options ...metric.Int64ObservableGaug
 
 // DBClientConnectionCount is https://opentelemetry.io/docs/specs/semconv/database/database-metrics/#metric-dbclientconnectioncount
 var DBClientConnectionCount = mustInt64ObservableGauge(
-	semconv.DBClientConnectionCountName,
-	metric.WithDescription(semconv.DBClientConnectionCountDescription),
-	metric.WithUnit(semconv.DBClientConnectionCountUnit),
+	(dbconv.ClientConnectionCount{}).Name(),
+	metric.WithDescription((dbconv.ClientConnectionCount{}).Description()),
+	metric.WithUnit((dbconv.ClientConnectionCount{}).Unit()),
 )
 
 // DBClientConnectionIdleMax is https://opentelemetry.io/docs/specs/semconv/database/database-metrics/#metric-dbclientconnectionidlemax
 var DBClientConnectionIdleMax = mustInt64ObservableGauge(
-	semconv.DBClientConnectionIdleMaxName,
-	metric.WithDescription(semconv.DBClientConnectionIdleMaxDescription),
-	metric.WithUnit(semconv.DBClientConnectionIdleMaxUnit),
+	(dbconv.ClientConnectionIdleMax{}).Name(),
+	metric.WithDescription((dbconv.ClientConnectionIdleMax{}).Description()),
+	metric.WithUnit((dbconv.ClientConnectionIdleMax{}).Unit()),
 )
 
 // DBClientConnectionMax is https://opentelemetry.io/docs/specs/semconv/database/database-metrics/#metric-dbclientconnectionmax
 var DBClientConnectionMax = mustInt64ObservableGauge(
-	semconv.DBClientConnectionMaxName,
-	metric.WithDescription(semconv.DBClientConnectionMaxDescription),
-	metric.WithUnit(semconv.DBClientConnectionMaxUnit),
+	(dbconv.ClientConnectionMax{}).Name(),
+	metric.WithDescription((dbconv.ClientConnectionMax{}).Description()),
+	metric.WithUnit((dbconv.ClientConnectionMax{}).Unit()),
 )
 
 // DBClientConnectionCreateTimeHistogram is https://opentelemetry.io/docs/specs/semconv/database/database-metrics/#metric-dbclientconnectioncreate_time
-var DBClientConnectionCreateTimeHistogram = mustFloat64Histogram(
-	semconv.DBClientConnectionCreateTimeName,
-	metric.WithDescription(semconv.DBClientConnectionCreateTimeDescription),
-	metric.WithUnit(semconv.DBClientConnectionCreateTimeUnit),
+var DBClientConnectionCreateTimeHistogram, _ = dbconv.NewClientConnectionCreateTime(
+	meter,
 	// The spec does not specify an explicit boundary.
 	// We borrow the boundary from http request.
 	metric.WithExplicitBucketBoundaries(
@@ -85,10 +76,8 @@ var DBClientConnectionCreateTimeHistogram = mustFloat64Histogram(
 )
 
 // DBClientConnectionWaitTimeHistogram is https://opentelemetry.io/docs/specs/semconv/database/database-metrics/#metric-dbclientconnectionwait_time
-var DBClientConnectionWaitTimeHistogram = mustFloat64Histogram(
-	semconv.DBClientConnectionWaitTimeName,
-	metric.WithDescription(semconv.DBClientConnectionWaitTimeDescription),
-	metric.WithUnit(semconv.DBClientConnectionWaitTimeUnit),
+var DBClientConnectionWaitTimeHistogram, _ = dbconv.NewClientConnectionWaitTime(
+	meter,
 	// The spec does not specify an explicit boundary.
 	// We borrow the boundary from http request.
 	metric.WithExplicitBucketBoundaries(
@@ -110,10 +99,8 @@ var DBClientConnectionWaitTimeHistogram = mustFloat64Histogram(
 )
 
 // DBClientConnectionUseTimeHistogram is https://opentelemetry.io/docs/specs/semconv/database/database-metrics/#metric-dbclientconnectionuse_time
-var DBClientConnectionUseTimeHistogram = mustFloat64Histogram(
-	semconv.DBClientConnectionUseTimeName,
-	metric.WithDescription(semconv.DBClientConnectionUseTimeDescription),
-	metric.WithUnit(semconv.DBClientConnectionUseTimeUnit),
+var DBClientConnectionUseTimeHistogram, _ = dbconv.NewClientConnectionUseTime(
+	meter,
 	// The spec does not specify an explicit boundary.
 	// We borrow the boundary from http request.
 	metric.WithExplicitBucketBoundaries(
@@ -135,10 +122,8 @@ var DBClientConnectionUseTimeHistogram = mustFloat64Histogram(
 )
 
 // DBClientOperationDurationHistogram is https://opentelemetry.io/docs/specs/semconv/database/database-metrics/#metric-dbclientoperationduration
-var DBClientOperationDurationHistogram = mustFloat64Histogram(
-	semconv.DBClientOperationDurationName,
-	metric.WithDescription(semconv.DBClientOperationDurationDescription),
-	metric.WithUnit(semconv.DBClientOperationDurationUnit),
+var DBClientOperationDurationHistogram, _ = dbconv.NewClientOperationDuration(
+	meter,
 	metric.WithExplicitBucketBoundaries(
 		0.001,
 		0.005,
@@ -182,7 +167,7 @@ func (c *Conn) Close() error {
 	defer func() {
 		elapsed := time.Since(c.startTime)
 		seconds := elapsed.Seconds()
-		DBClientConnectionUseTimeHistogram.Record(
+		DBClientConnectionUseTimeHistogram.Inst().Record(
 			c.ctx,
 			seconds,
 			metric.WithAttributes(c.commonAttrs...),
@@ -219,7 +204,7 @@ func (p *ConnPool) Conn(ctx context.Context) (Conn_, error) {
 	defer func() {
 		elapsed := time.Since(startTime)
 		seconds := elapsed.Seconds()
-		DBClientConnectionWaitTimeHistogram.Record(
+		DBClientConnectionWaitTimeHistogram.Inst().Record(
 			ctx,
 			seconds,
 			metric.WithAttributes(p.commonAttrs...),
@@ -295,7 +280,7 @@ func Open(opts OpenOptions) (ConnPool_, error) {
 	case "postgres":
 		commonAttrs = append(commonAttrs, semconv.DBSystemNamePostgreSQL)
 	case "sqlite3":
-		commonAttrs = append(commonAttrs, semconv.DBSystemNameSqlite)
+		commonAttrs = append(commonAttrs, semconv.DBSystemNameSQLite)
 	default:
 		panic(fmt.Errorf("unknown driver: %v", opts.DriverName))
 	}
@@ -319,7 +304,7 @@ func Open(opts OpenOptions) (ConnPool_, error) {
 					defer func() {
 						elapsed := time.Since(startTime)
 						seconds := elapsed.Seconds()
-						DBClientConnectionCreateTimeHistogram.Record(
+						DBClientConnectionCreateTimeHistogram.Inst().Record(
 							ctx,
 							seconds,
 							metric.WithAttributes(commonAttrs...),
@@ -354,7 +339,7 @@ func Open(opts OpenOptions) (ConnPool_, error) {
 					defer func() {
 						elapsed := time.Since(startTime)
 						seconds := elapsed.Seconds()
-						DBClientConnectionCreateTimeHistogram.Record(
+						DBClientConnectionCreateTimeHistogram.Inst().Record(
 							ctx,
 							seconds,
 							metric.WithAttributes(commonAttrs...),
@@ -391,7 +376,7 @@ func Open(opts OpenOptions) (ConnPool_, error) {
 					defer func() {
 						elapsed := time.Since(startTime)
 						seconds := elapsed.Seconds()
-						DBClientOperationDurationHistogram.Record(
+						DBClientOperationDurationHistogram.Inst().Record(
 							ctx,
 							seconds,
 							metric.WithAttributes(commonAttrs...),
@@ -413,7 +398,7 @@ func Open(opts OpenOptions) (ConnPool_, error) {
 					defer func() {
 						elapsed := time.Since(startTime)
 						seconds := elapsed.Seconds()
-						DBClientOperationDurationHistogram.Record(
+						DBClientOperationDurationHistogram.Inst().Record(
 							ctx,
 							seconds,
 							metric.WithAttributes(commonAttrs...),
@@ -435,7 +420,7 @@ func Open(opts OpenOptions) (ConnPool_, error) {
 					defer func() {
 						elapsed := time.Since(startTime)
 						seconds := elapsed.Seconds()
-						DBClientOperationDurationHistogram.Record(
+						DBClientOperationDurationHistogram.Inst().Record(
 							ctx,
 							seconds,
 							metric.WithAttributes(commonAttrs...),
@@ -457,7 +442,7 @@ func Open(opts OpenOptions) (ConnPool_, error) {
 					defer func() {
 						elapsed := time.Since(startTime)
 						seconds := elapsed.Seconds()
-						DBClientOperationDurationHistogram.Record(
+						DBClientOperationDurationHistogram.Inst().Record(
 							ctx,
 							seconds,
 							metric.WithAttributes(commonAttrs...),
@@ -479,7 +464,7 @@ func Open(opts OpenOptions) (ConnPool_, error) {
 					defer func() {
 						elapsed := time.Since(startTime)
 						seconds := elapsed.Seconds()
-						DBClientOperationDurationHistogram.Record(
+						DBClientOperationDurationHistogram.Inst().Record(
 							ctx,
 							seconds,
 							metric.WithAttributes(commonAttrs...),
@@ -501,7 +486,7 @@ func Open(opts OpenOptions) (ConnPool_, error) {
 					defer func() {
 						elapsed := time.Since(startTime)
 						seconds := elapsed.Seconds()
-						DBClientOperationDurationHistogram.Record(
+						DBClientOperationDurationHistogram.Inst().Record(
 							ctx,
 							seconds,
 							metric.WithAttributes(commonAttrs...),
@@ -523,7 +508,7 @@ func Open(opts OpenOptions) (ConnPool_, error) {
 					defer func() {
 						elapsed := time.Since(startTime)
 						seconds := elapsed.Seconds()
-						DBClientOperationDurationHistogram.Record(
+						DBClientOperationDurationHistogram.Inst().Record(
 							ctx,
 							seconds,
 							metric.WithAttributes(commonAttrs...),
@@ -545,7 +530,7 @@ func Open(opts OpenOptions) (ConnPool_, error) {
 					defer func() {
 						elapsed := time.Since(startTime)
 						seconds := elapsed.Seconds()
-						DBClientOperationDurationHistogram.Record(
+						DBClientOperationDurationHistogram.Inst().Record(
 							ctx,
 							seconds,
 							metric.WithAttributes(commonAttrs...),
@@ -572,7 +557,7 @@ func Open(opts OpenOptions) (ConnPool_, error) {
 					defer func() {
 						elapsed := time.Since(startTime)
 						seconds := elapsed.Seconds()
-						DBClientOperationDurationHistogram.Record(
+						DBClientOperationDurationHistogram.Inst().Record(
 							ctx,
 							seconds,
 							metric.WithAttributes(commonAttrs...),
@@ -594,7 +579,7 @@ func Open(opts OpenOptions) (ConnPool_, error) {
 					defer func() {
 						elapsed := time.Since(startTime)
 						seconds := elapsed.Seconds()
-						DBClientOperationDurationHistogram.Record(
+						DBClientOperationDurationHistogram.Inst().Record(
 							ctx,
 							seconds,
 							metric.WithAttributes(commonAttrs...),
@@ -616,7 +601,7 @@ func Open(opts OpenOptions) (ConnPool_, error) {
 					defer func() {
 						elapsed := time.Since(startTime)
 						seconds := elapsed.Seconds()
-						DBClientOperationDurationHistogram.Record(
+						DBClientOperationDurationHistogram.Inst().Record(
 							ctx,
 							seconds,
 							metric.WithAttributes(commonAttrs...),
@@ -638,7 +623,7 @@ func Open(opts OpenOptions) (ConnPool_, error) {
 					defer func() {
 						elapsed := time.Since(startTime)
 						seconds := elapsed.Seconds()
-						DBClientOperationDurationHistogram.Record(
+						DBClientOperationDurationHistogram.Inst().Record(
 							ctx,
 							seconds,
 							metric.WithAttributes(commonAttrs...),
@@ -665,7 +650,7 @@ func Open(opts OpenOptions) (ConnPool_, error) {
 					defer func() {
 						elapsed := time.Since(startTime)
 						seconds := elapsed.Seconds()
-						DBClientOperationDurationHistogram.Record(
+						DBClientOperationDurationHistogram.Inst().Record(
 							ctx,
 							seconds,
 							metric.WithAttributes(commonAttrs...),
@@ -683,7 +668,7 @@ func Open(opts OpenOptions) (ConnPool_, error) {
 					defer func() {
 						elapsed := time.Since(startTime)
 						seconds := elapsed.Seconds()
-						DBClientOperationDurationHistogram.Record(
+						DBClientOperationDurationHistogram.Inst().Record(
 							ctx,
 							seconds,
 							metric.WithAttributes(commonAttrs...),
