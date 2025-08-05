@@ -644,9 +644,9 @@ Another potential problem is that the User could be a Member of many Organizatio
 > [!IMPORTANT]
 > Should we limit the maximum number of Organizations a User can be a member of? Is 100 a reasonable hard limit?
 
-This use case could be essential for implementing Organization Switcher.
+This use case could be essential for implementing Organization Switching.
 
-In the Organization Switcher we commonly see in online services,
+In Organization Switching we commonly see in online services,
 the following information are shown
 
 - A display name of the Organization. This is different from the Organization Slug.
@@ -914,7 +914,93 @@ Implement Use case 11.1 for MVP.
 
 ## Use case 12: Built-in Organization Switching
 
-TODO
+Before we discuss Organization Switching,
+we first have to acknowledge that all competitors associate a Session with at most 1 Organization.
+
+For example, in Use case 7.1, regardless of `x_organization_behavior`,
+the User signs in to 1 Organization, or no Organization.
+
+For example, in Use case 8.1, `org_slug` is a string, not an array of strings.
+
+### Use case 12.1: Organization Switching in OIDC
+
+> [!WARNING]
+> This use case requires Use case 8.2.
+
+Among of the competitors,
+only Stytch provides enough support for the developer to implement Organization Switching.
+It support Organization Switching by [Exchange Session](https://stytch.com/docs/b2b/sdks/session-management/exchange-session#exchange-session)
+
+> From the developer's point of view, what do they expect to see in the Session list of a User?
+
+- User A signs in Organization A via Client A: See Session A in the listing, # Sessions = 1
+- User A switches to Organization B in Session A: See Session A in the listing, # Sessions = 1
+
+**The developer expects to revoke Session A to make User A completely signs out of Client A.**
+
+> From the developer's point of view, do they expect to see `user.authenticated` fire again when switching Organizations?
+
+My gut feeling is No.
+
+> From the end-user's point of view, do they expect to be authenticated again if switching to an Organization that has equivalent configuration?
+
+No.
+
+> From the end-user's point of view, do they expect to be authenticated again if switching to an Organization that has Federated Login?
+
+Yes, if the end-user has not done that Federated Login within the same Session before.
+
+> From the end-user's point of view, do they expect to be authenticated again if switching back to an Organization that has no Federated Login?
+
+No.
+
+> From the end-user's point of view, do they expect to be authenticated again if switching back to the Organization that has Federated Login?
+
+No, since they have done that already.
+
+> From the end-user's point of view, do they expect to be authenticated again if switching to an Organization that requires MFA?
+
+Yes, they expect MFA.
+
+> From the end-user's point of view, do they expect to be authenticated again if switching back to another Organization, and then switching to the Organization that requires MFA?
+
+No, since they have done that already.
+
+---
+
+The following desirable behaviors can be derived from the above Q&A.
+
+- The end-user may expect no user interaction is involved if switching to an already authenticated Organization. This implies a Session should remember what Organizations the User has authenticated to.
+- The developer may expect 2 conflicting behaviors regarding MFA
+  - Behavior 1: Organizations have disjoint sets of secondary authenticators. The developer **DOES NOT** care about the actual method. As long as the end-user has done MFA once, the end-user will not be prompted again for MFA when switching Organizations.
+  - Behavior 2: Organizations have disjoint sets of secondary authenticators. The developer **DOES** care about the actual method. The end-user **MUST** have the allowed MFA method done in order to switch to the Organization.
+- If the switching involves additional authentication, it has to be done through the authentication endpoint.
+- To indicate an existing Session, we can follow how we implemented reauthentication. We provide `id_token_hint` which embeds `sid` (Session ID).
+- The developer has no idea whether the switching can result in additional authentication. Therefore, the developer expects a single entrypoint. It implies Organization switching always begins in the authentication endpoint. If no authentication is needed, the authentication endpoint can issue authorization code and redirect immediately.
+- Since it always begins with the authentication endpoint and ends with an authorization code, the frontend can treat it like an ordinary authentication.
+- Like reauthentication, no new Session is created. Instead, refresh token and access token are issued like they always do.
+
+The following table summarizes the behavior in the authentication endpoint.
+
+| Scenario                                                             | `login_hint`                                    | `id_token_hint` | `max_age`   | `prompt`                           | `x_org_slug`      |
+| ---                                                                  | ---                                             | ---             | ---         | ---                                | ---               |
+| Signup / Login                                                       |                                                 |                 |             | `prompt=login`                     |                   |
+| Login with a specific email                                          | Specify the email address (not implemented yet) |                 |             | `prompt=login`                     |                   |
+| Signup / Login with developer-provided Organization Slug             |                                                 |                 |             | `prompt=login`                     | `x_org_slug=SLUG` |
+| Reauthenticate                                                       |                                                 | Must specify    | `max_age=0` | `max_age=0` implies `prompt=login` |                   |
+| Organization switching with least user interaction                   |                                                 | Must specify    |             |                                    | `x_org_slug=SLUG` |
+| (Subject to discussion) Organization switching with reauthentication |                                                 | Must specify    | `max_age=0` | `max_age=0` implies `prompt=login` | `x_org_slug=SLUG` |
+
+### Use case 12.2: Organization Switching in SAML
+
+In SAML, only a SAML assertion is returned to the SP.
+The bearer of the SAML assertion **CANNOT** access Use case 8.2.
+
+Therefore, Organization Switching is **IMPOSSIBLE** in SAML.
+
+### Use case 12: Design Decision
+
+I think this is an advanced use case that is optional in the MVP.
 
 ## Use case 13: UX of the settings page
 
