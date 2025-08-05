@@ -56,13 +56,13 @@ type PosthogIntegration struct {
 }
 
 type PosthogGroup struct {
-	ProjectID              string
-	MAU                    int
-	UserCount              int
-	CollaboratorCount      int
-	ApplicationCount       int
-	MonthlyM2MTokenCreated int
-	ProjectPlan            string
+	ProjectID                 string
+	MAU                       int
+	UserCount                 int
+	CollaboratorCount         int
+	ApplicationCount          int
+	M2MTokenCreatedLast30Days int
+	ProjectPlan               string
 }
 
 func (p *PosthogIntegration) SetGroupProperties(ctx context.Context) error {
@@ -89,7 +89,7 @@ func (p *PosthogIntegration) SetGroupProperties(ctx context.Context) error {
 			slog.Int("user_count", g.UserCount),
 			slog.Int("collaborator_count", g.CollaboratorCount),
 			slog.Int("application_count", g.ApplicationCount),
-			slog.Int("monthly_m2m_token_created", g.MonthlyM2MTokenCreated),
+			slog.Int("m2m_token_created_last_30d", g.M2MTokenCreatedLast30Days),
 			slog.String("project_plan", g.ProjectPlan),
 		).Info(ctx, "prepared group")
 	}
@@ -223,13 +223,13 @@ func (p *PosthogIntegration) preparePosthogGroup(ctx context.Context, appID stri
 	}
 
 	g := &PosthogGroup{
-		ProjectID:              appID,
-		MAU:                    mau,
-		UserCount:              userCount,
-		CollaboratorCount:      collaboratorCount,
-		ApplicationCount:       applicationCount,
-		MonthlyM2MTokenCreated: m2mTokenCreatedCount,
-		ProjectPlan:            appConfigSource.PlanName,
+		ProjectID:                 appID,
+		MAU:                       mau,
+		UserCount:                 userCount,
+		CollaboratorCount:         collaboratorCount,
+		ApplicationCount:          applicationCount,
+		M2MTokenCreatedLast30Days: m2mTokenCreatedCount,
+		ProjectPlan:               appConfigSource.PlanName,
 	}
 
 	return g, nil
@@ -244,7 +244,7 @@ func (p *PosthogIntegration) makeEventsFromGroups(groups []*PosthogGroup) ([]jso
 			"user_count":                g.UserCount,
 			"collaborator_count":        g.CollaboratorCount,
 			"application_count":         g.ApplicationCount,
-			"monthly_m2m_token_created": g.MonthlyM2MTokenCreated,
+			"monthly_m2m_token_created": g.M2MTokenCreatedLast30Days,
 		}
 		if g.ProjectPlan != "" {
 			group_set["project_plan"] = g.ProjectPlan
