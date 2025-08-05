@@ -128,6 +128,24 @@ func OtelRedisInstrumentMetrics(client *redis.Client) error {
 
 	createTime, err := dbconv.NewClientConnectionCreateTime(
 		meter,
+		// The spec does not specify an explicit boundary.
+		// We borrow the boundary from http request.
+		metric.WithExplicitBucketBoundaries(
+			0.005,
+			0.01,
+			0.025,
+			0.05,
+			0.075,
+			0.1,
+			0.25,
+			0.5,
+			0.75,
+			1,
+			2.5,
+			5,
+			7.5,
+			10,
+		),
 	)
 	if err != nil {
 		return err
@@ -135,6 +153,24 @@ func OtelRedisInstrumentMetrics(client *redis.Client) error {
 
 	useTime, err := dbconv.NewClientConnectionUseTime(
 		meter,
+		// The spec does not specify an explicit boundary.
+		// We borrow the boundary from http request.
+		metric.WithExplicitBucketBoundaries(
+			0.005,
+			0.01,
+			0.025,
+			0.05,
+			0.075,
+			0.1,
+			0.25,
+			0.5,
+			0.75,
+			1,
+			2.5,
+			5,
+			7.5,
+			10,
+		),
 	)
 	if err != nil {
 		return err
