@@ -54,7 +54,7 @@ import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";
 import iconSaml from "../../images/saml-logo.svg";
 import { usePivotNavigation } from "../../hook/usePivot";
 
-interface LocationState {
+export interface LocationState {
   isClientSecretRevealed: boolean;
 }
 
@@ -463,6 +463,8 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
           <EditOAuthClientFormQuickStartContent
             className={cn(styles.widget, styles["widget--wide"])}
             client={client}
+            appConfig={rawAppConfig}
+            clientSecret={!!clientSecret ? clientSecret : null}
           />
         ) : null}
         {formTab === FormTab.SETTINGS ? (

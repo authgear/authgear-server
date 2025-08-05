@@ -909,6 +909,12 @@
   "EditOAuthClientForm.quick-start.m2m.step1.title": "Obtain an access token by calling the token endpoint",
   "EditOAuthClientForm.quick-start.m2m.step1.select-api-resource": "Select the API Resource",
   "EditOAuthClientForm.quick-start.m2m.step1.select-api-resource.placeholder": "Select API Resource",
+  "EditOAuthClientForm.quick-start.m2m.step1.select-api-resource.empty.placeholder": "No API resource yet.",
+  "EditOAuthClientForm.quick-start.m2m.step1.no-api-resource-yet": "You haven''t authorized any API resources yet. Go to the {ReactRouterLink, react, to{{href}} children{API Resource}} to select and authorize one or more.",
+  "EditOAuthClientForm.quick-start.m2m.pivot.curl.headerText": "CURL",
+  "EditOAuthClientForm.quick-start.m2m.pivot.go.headerText": "Go",
+  "EditOAuthClientForm.quick-start.m2m.pivot.nodejs.headerText": "NodeJS",
+  "EditOAuthClientForm.quick-start.m2m.pivot.python.headerText": "Python",
 
   "EditOAuthClientScreen.tabs.settings": "Settings",
   "EditOAuthClientScreen.tabs.saml2": "SAML 2.0",
