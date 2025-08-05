@@ -908,6 +908,7 @@
   "EditOAuthClientScreen.tabs.settings": "Settings",
   "EditOAuthClientScreen.tabs.saml2": "SAML 2.0",
   "EditOAuthClientScreen.tabs.api-resources": "API Resources",
+  "EditOAuthClientScreen.tabs.quick-start": "Quick Start",
 
   "OAuthClientSAMLForm.title": "SAML Settings",
   "OAuthClientSAMLForm.metadataUpload.description": "Upload the Service Provider Metadata (XML) to fill the form below automatically",

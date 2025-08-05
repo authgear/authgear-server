@@ -23,6 +23,7 @@ import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 import EditOAuthClientForm from "./EditOAuthClientForm";
 import { EditOAuthClientFormResourcesContent } from "./EditOAuthClientFormResourcesContent";
+import { EditOAuthClientFormQuickStartContent } from "./EditOAuthClientFormQuickStartContent";
 import {
   ApplicationType,
   OAuthClientConfig,
@@ -341,7 +342,8 @@ interface EditOAuthClientContentProps {
 enum FormTab {
   SETTINGS = "settings",
   SAML2 = "saml2",
-  APIResources = "api-resources",
+  API_RESOURCES = "api-resources",
+  QUICK_START = "quick-start",
 }
 
 interface FormTabContextType {
@@ -420,7 +422,11 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
     return (
       <ScreenContent
         className="flex-1-0-auto"
-        layout={formTab === FormTab.APIResources ? "list" : "auto-rows"}
+        layout={
+          formTab === FormTab.API_RESOURCES || formTab === FormTab.QUICK_START
+            ? "list"
+            : "auto-rows"
+        }
       >
         <header className={cn(styles.widget, "space-y-5")}>
           <EditOAuthClientNavBreadcrumb clientName={client.name ?? ""} />
@@ -429,6 +435,14 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
             selectedKey={formTab}
             onLinkClick={onFormTabChange}
           >
+            {client.x_application_type === "m2m" ? (
+              <PivotItem
+                itemKey={FormTab.QUICK_START}
+                headerText={renderToString(
+                  "EditOAuthClientScreen.tabs.quick-start"
+                )}
+              />
+            ) : null}
             <PivotItem
               itemKey={FormTab.SETTINGS}
               headerText={renderToString("EditOAuthClientScreen.tabs.settings")}
@@ -441,7 +455,7 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
             ) : null}
             {client.x_application_type === "m2m" ? (
               <PivotItem
-                itemKey={FormTab.APIResources}
+                itemKey={FormTab.API_RESOURCES}
                 headerText={renderToString(
                   "EditOAuthClientScreen.tabs.api-resources"
                 )}
@@ -449,6 +463,11 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
             ) : null}
           </Pivot>
         </header>
+        {formTab === FormTab.QUICK_START ? (
+          <EditOAuthClientFormQuickStartContent
+            className={cn(styles["widget--wide"])}
+          />
+        ) : null}
         {formTab === FormTab.SETTINGS ? (
           <OAuthClientSettingsForm
             client={client}
@@ -473,7 +492,7 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
             }
           />
         ) : null}
-        {formTab === FormTab.APIResources ? (
+        {formTab === FormTab.API_RESOURCES ? (
           <EditOAuthClientFormResourcesContent
             className={cn(styles["widget--wide"])}
             client={client}
@@ -838,7 +857,7 @@ function FormContainerContent({
         state.clients.find((c) => c.client_id === clientID);
       switch (client?.x_application_type) {
         case "m2m":
-          return [FormTab.SETTINGS, FormTab.APIResources];
+          return [FormTab.QUICK_START, FormTab.SETTINGS, FormTab.API_RESOURCES];
         case "confidential":
           return [FormTab.SETTINGS, FormTab.SAML2];
         default:
@@ -857,6 +876,17 @@ function FormContainerContent({
     [formTab, setFormTab]
   );
 
+  const hideFooter = (() => {
+    switch (formTab) {
+      case FormTab.API_RESOURCES:
+        return true;
+      case FormTab.QUICK_START:
+        return true;
+      default:
+        return false;
+    }
+  })();
+
   return (
     <FormTabContext.Provider value={contextValue}>
       <FormContainer
@@ -864,7 +894,7 @@ function FormContainerContent({
         form={form}
         stickyFooterComponent={true}
         showDiscardButton={true}
-        hideFooterComponent={formTab === FormTab.APIResources}
+        hideFooterComponent={hideFooter}
       >
         <EditOAuthClientContent
           form={form}
