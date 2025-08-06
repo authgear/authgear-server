@@ -474,7 +474,7 @@ In this particular case, the end-user has to change the password in order to com
 `prompt_end_user_for_organization_last`, in many ways, does not work well as Authentication Flow.
 
 > [!IMPORTANT]
-> Need discussion on how to fit `prompt_end_user_for_organization_last` with Authentication Flow.
+> Discussion point: How to fit `prompt_end_user_for_organization_last` with Authentication Flow?
 >
 > 1. How do we model `prompt_end_user_for_organization_last`? As a new step in authflow?
 > 2. Once organization is known, the generated authflow may change. Do we compute a diff between the executed authflow with the newly generated authflow? If yes, do we execute the diff?
@@ -752,8 +752,8 @@ The official description of it is:
 
 However, the signed Organization is associated with the particular SAML AuthnRequest, not associated with the subject in general.
 
-> [!NOTE]
-> Discuss how to report signed in Organization in SAML Assertion.
+> [!IMPORTANT]
+> Discussion point: How to report signed in Organization in SAML Assertion?
 
 Similar to Use case 8.3, the SAML SP is recommended to query the Members of the User via the Admin API.
 
@@ -835,9 +835,11 @@ For MVP, implement
 
 ### Use case 10.1: authgear.organization.yaml
 
-> [!WARNING]
+> [!IMPORTANT]
+> Discussion point: What is the actual shape of the configuration?
+>
 > The customizable Organization-specific configuration is meant to be complete,
-> but how these configuration is stored is subject to discussion.
+> but the actual shape is subject to discussion.
 
 The following fields from `authgear.yaml` are Organization-specific:
 
@@ -990,6 +992,9 @@ The following table summarizes the behavior in the authentication endpoint.
 | Reauthenticate                                                       |                                                 | Must specify    | `max_age=0` | `max_age=0` implies `prompt=login` |                   |
 | Organization switching with least user interaction                   |                                                 | Must specify    |             |                                    | `x_org_slug=SLUG` |
 | (Subject to discussion) Organization switching with reauthentication |                                                 | Must specify    | `max_age=0` | `max_age=0` implies `prompt=login` | `x_org_slug=SLUG` |
+
+> [!IMPORTANT]
+> Discussion point: Do we support Organization switching with reauthentication? How do we do it?
 
 ### Use case 12.2: Organization Switching in SAML
 
