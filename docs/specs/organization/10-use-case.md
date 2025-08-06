@@ -101,7 +101,7 @@ if he is building SaaS.
 Supporting Use case 2.1 and Use case 2.2 requires us to support creating Organization in Auth UI,
 which requires non-trivial amount of effort.
 
-### Use case 3: What are common between User and Member?
+## Use case 3: What are common between User and Member?
 
 To discuss this, we first need to know what a User owns
 
