@@ -237,16 +237,25 @@ func NewPosthogIntegration(pool *db.Pool, databaseCredentials *config.DatabaseCr
 	readStoreRedis := &meter.ReadStoreRedis{
 		Redis: analyticredisHandle,
 	}
+	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials)
+	readHandle := auditdb.NewReadHandle(pool, databaseEnvironmentConfig, auditDatabaseCredentials)
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	auditDBReadStore := &meter.AuditDBReadStore{
+		SQLBuilder:  auditdbSQLBuilder,
+		SQLExecutor: readSQLExecutor,
+	}
 	posthogIntegration := &analytic.PosthogIntegration{
-		PosthogService:     posthogService,
-		PosthogCredentials: posthogCredentials,
-		Clock:              clockClock,
-		GlobalHandle:       handle,
-		GlobalDBStore:      globalDBStore,
-		AppDBHandle:        appdbHandle,
-		AppDBStore:         appDBStore,
-		HTTPClient:         posthogHTTPClient,
-		ReadCounterStore:   readStoreRedis,
+		PosthogService:        posthogService,
+		PosthogCredentials:    posthogCredentials,
+		Clock:                 clockClock,
+		GlobalHandle:          handle,
+		GlobalDBStore:         globalDBStore,
+		AppDBHandle:           appdbHandle,
+		AppDBStore:            appDBStore,
+		HTTPClient:            posthogHTTPClient,
+		ReadCounterStore:      readStoreRedis,
+		MeterAuditDBReadStore: auditDBReadStore,
+		AuditDBReadHandle:     readHandle,
 	}
 	return posthogIntegration
 }

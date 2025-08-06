@@ -632,3 +632,34 @@ func (c *OAuthClientCredentialsKeySet) SensitiveStrings() []string {
 	keys, _ := jwkutil.ExtractOctetKeys(c.Set)
 	return slice.ToStringSlice(keys)
 }
+
+func (c *OAuthClientCredentialsKeySet) Keys() []OAuthClientCredentialsOctetKey {
+	keys, _ := jwkutil.ExtractOctetKeys(c.Set)
+	result := []OAuthClientCredentialsOctetKey{}
+	for _, k := range keys {
+		key := k
+		result = append(result, OAuthClientCredentialsOctetKey{
+			Key: key,
+		})
+	}
+	return result
+}
+
+type OAuthClientCredentialsOctetKey struct {
+	Key []byte
+}
+
+func (k *OAuthClientCredentialsOctetKey) Mask() string {
+	s := string(k.Key)
+	l := len(s)
+	if l <= 1 {
+		return "******"
+	}
+
+	if l < 8 {
+		half := l / 2
+		return s[:half] + "******"
+	}
+
+	return s[:4] + "******"
+}

@@ -37,3 +37,71 @@ func TestOAuthClientCredentialsItemMarshalUnmarshalJSON(t *testing.T) {
 		So(item.SensitiveStrings(), ShouldResemble, []string{"secret1"})
 	})
 }
+
+func TestOAuthClientCredentialsOctetKey_Mask(t *testing.T) {
+	Convey("OAuthClientCredentialsOctetKey.Mask", t, func() {
+		testCases := []struct {
+			name     string
+			key      []byte
+			expected string
+		}{
+			{
+				name:     "empty string",
+				key:      []byte(""),
+				expected: "******",
+			},
+			{
+				name:     "1 character string",
+				key:      []byte("a"),
+				expected: "******",
+			},
+			{
+				name:     "2 character string",
+				key:      []byte("ab"),
+				expected: "a******",
+			},
+			{
+				name:     "3 character string",
+				key:      []byte("abc"),
+				expected: "a******",
+			},
+			{
+				name:     "4 character string",
+				key:      []byte("abcd"),
+				expected: "ab******",
+			},
+			{
+				name:     "5 character string",
+				key:      []byte("abcde"),
+				expected: "ab******",
+			},
+			{
+				name:     "6 character string",
+				key:      []byte("abcdef"),
+				expected: "abc******",
+			},
+			{
+				name:     "7 character string",
+				key:      []byte("abcdefg"),
+				expected: "abc******",
+			},
+			{
+				name:     "8 character string",
+				key:      []byte("abcdefgh"),
+				expected: "abcd******",
+			},
+			{
+				name:     "long string",
+				key:      []byte("thisisalongkeythatneedstobemasked"),
+				expected: "this******",
+			},
+		}
+
+		for _, tc := range testCases {
+			Convey(tc.name, func() {
+				k := config.OAuthClientCredentialsOctetKey{Key: tc.key}
+				So(k.Mask(), ShouldEqual, tc.expected)
+			})
+		}
+	})
+}

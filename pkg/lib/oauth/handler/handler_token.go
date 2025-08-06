@@ -565,7 +565,7 @@ func (h *TokenHandler) IssueTokensForAuthorizationCode(
 	// verify client secret
 	needClientSecret := client.IsConfidential()
 	if needClientSecret {
-		if err := h.validateClientSecret(client, r.ClientSecret()); err != nil {
+		if _, err := h.validateClientSecret(client, r.ClientSecret()); err != nil {
 			return nil, err
 		}
 	}
@@ -1952,7 +1952,9 @@ func (h *TokenHandler) handleClientCredentials(
 	client *config.OAuthClientConfig,
 	r protocol.TokenRequest,
 ) (httputil.Result, error) {
-	if err := h.validateClientSecret(client, r.ClientSecret()); err != nil {
+	var maskedSecret string
+	var err error
+	if maskedSecret, err = h.validateClientSecret(client, r.ClientSecret()); err != nil {
 		return nil, err
 	}
 
@@ -1991,10 +1993,11 @@ func (h *TokenHandler) handleClientCredentials(
 
 	resp := protocol.TokenResponse{}
 	err = h.TokenService.IssueClientCredentialsAccessToken(ctx, ClientCredentialsAccessTokenOptions{
-		ResourceURI:  resource.ResourceURI,
-		Scopes:       scopes,
-		ClientConfig: client,
-		Resource:     resource,
+		ResourceURI:        resource.ResourceURI,
+		Scopes:             scopes,
+		ClientConfig:       client,
+		MaskedClientSecret: maskedSecret,
+		Resource:           resource,
 	}, resp)
 	if err != nil {
 		return nil, err
@@ -2002,22 +2005,22 @@ func (h *TokenHandler) handleClientCredentials(
 	return tokenResultOK{Response: resp}, nil
 }
 
-func (h *TokenHandler) validateClientSecret(client *config.OAuthClientConfig, clientSecret string) error {
+func (h *TokenHandler) validateClientSecret(client *config.OAuthClientConfig, clientSecret string) (maskedSecret string, err error) {
 	credentialsItem, ok := h.OAuthClientCredentials.Lookup(client.ClientID)
 	if !ok {
-		return protocol.NewError("invalid_request", "client secret is not supported for the client")
+		return "", protocol.NewError("invalid_request", "client secret is not supported for the client")
 	}
 
-	pass := false
-	keys, _ := jwkutil.ExtractOctetKeys(credentialsItem.Set)
+	keys := credentialsItem.Keys()
 	for _, secret := range keys {
-		if subtle.ConstantTimeCompare([]byte(clientSecret), secret) == 1 {
-			pass = true
+		if subtle.ConstantTimeCompare([]byte(clientSecret), secret.Key) == 1 {
+			maskedSecret = secret.Mask()
+			break
 		}
 	}
-	if !pass {
-		return protocol.NewError("invalid_request", "invalid client secret")
+	if maskedSecret == "" {
+		return "", protocol.NewError("invalid_request", "invalid client secret")
 	}
 
-	return nil
+	return maskedSecret, nil
 }

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -15,6 +16,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -41,23 +43,26 @@ func NewPosthogHTTPClient() PosthogHTTPClient {
 
 type PosthogIntegration struct {
 	PosthogService
-	PosthogCredentials *PosthogCredentials
-	Clock              clock.Clock
-	GlobalHandle       *globaldb.Handle
-	GlobalDBStore      *GlobalDBStore
-	AppDBHandle        *appdb.Handle
-	AppDBStore         *AppDBStore
-	HTTPClient         PosthogHTTPClient
-	ReadCounterStore   ReadCounterStore
+	PosthogCredentials    *PosthogCredentials
+	Clock                 clock.Clock
+	GlobalHandle          *globaldb.Handle
+	GlobalDBStore         *GlobalDBStore
+	AppDBHandle           *appdb.Handle
+	AppDBStore            *AppDBStore
+	HTTPClient            PosthogHTTPClient
+	ReadCounterStore      ReadCounterStore
+	MeterAuditDBReadStore MeterAuditDBReadStore
+	AuditDBReadHandle     *auditdb.ReadHandle
 }
 
 type PosthogGroup struct {
-	ProjectID         string
-	MAU               int
-	UserCount         int
-	CollaboratorCount int
-	ApplicationCount  int
-	ProjectPlan       string
+	ProjectID                 string
+	MAU                       int
+	UserCount                 int
+	CollaboratorCount         int
+	ApplicationCount          int
+	M2MTokenCreatedLast30Days int
+	ProjectPlan               string
 }
 
 func (p *PosthogIntegration) SetGroupProperties(ctx context.Context) error {
@@ -84,6 +89,7 @@ func (p *PosthogIntegration) SetGroupProperties(ctx context.Context) error {
 			slog.Int("user_count", g.UserCount),
 			slog.Int("collaborator_count", g.CollaboratorCount),
 			slog.Int("application_count", g.ApplicationCount),
+			slog.Int("m2m_token_created_last_30d", g.M2MTokenCreatedLast30Days),
 			slog.String("project_plan", g.ProjectPlan),
 		).Info(ctx, "prepared group")
 	}
@@ -148,6 +154,20 @@ func (p *PosthogIntegration) preparePosthogGroup(ctx context.Context, appID stri
 		return nil, err
 	}
 
+	var m2mTokenCreatedCount int
+	err = p.AuditDBReadHandle.WithTx(ctx, func(ctx context.Context) error {
+		rangeFrom, rangeTo := timeutil.Last30Days(now)
+		count, err := p.MeterAuditDBReadStore.GetCountByActivityType(ctx, appID, "m2m.token.created", &rangeFrom, &rangeTo)
+		if err != nil {
+			return err
+		}
+		m2mTokenCreatedCount = count
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
 	var userCount int
 	err = p.AppDBHandle.WithTx(ctx, func(ctx context.Context) error {
 		count, err := p.AppDBStore.GetUserCountBeforeTime(ctx, appID, &now)
@@ -203,12 +223,13 @@ func (p *PosthogIntegration) preparePosthogGroup(ctx context.Context, appID stri
 	}
 
 	g := &PosthogGroup{
-		ProjectID:         appID,
-		MAU:               mau,
-		UserCount:         userCount,
-		CollaboratorCount: collaboratorCount,
-		ApplicationCount:  applicationCount,
-		ProjectPlan:       appConfigSource.PlanName,
+		ProjectID:                 appID,
+		MAU:                       mau,
+		UserCount:                 userCount,
+		CollaboratorCount:         collaboratorCount,
+		ApplicationCount:          applicationCount,
+		M2MTokenCreatedLast30Days: m2mTokenCreatedCount,
+		ProjectPlan:               appConfigSource.PlanName,
 	}
 
 	return g, nil
@@ -219,10 +240,11 @@ func (p *PosthogIntegration) makeEventsFromGroups(groups []*PosthogGroup) ([]jso
 
 	for _, g := range groups {
 		group_set := map[string]interface{}{
-			"mau":                g.MAU,
-			"user_count":         g.UserCount,
-			"collaborator_count": g.CollaboratorCount,
-			"application_count":  g.ApplicationCount,
+			"mau":                       g.MAU,
+			"user_count":                g.UserCount,
+			"collaborator_count":        g.CollaboratorCount,
+			"application_count":         g.ApplicationCount,
+			"monthly_m2m_token_created": g.M2MTokenCreatedLast30Days,
 		}
 		if g.ProjectPlan != "" {
 			group_set["project_plan"] = g.ProjectPlan
@@ -305,7 +327,12 @@ func (p *PosthogService) Batch(ctx context.Context, events []json.RawMessage) er
 
 	u, err := p.endpoint()
 	if err != nil {
-		return err
+		if errors.Is(err, ErrMissingPosthogCredential) {
+			logger.Warn(ctx, "sending posthog event skipped: missing posthog credential")
+			return nil
+		} else {
+			return err
+		}
 	}
 	u.Path = "/batch"
 

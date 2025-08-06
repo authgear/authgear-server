@@ -415,6 +415,9 @@ enum AuditLogActivityType {
   IDENTITY_USERNAME_UPDATED
 
   """"""
+  M2M_TOKEN_CREATED
+
+  """"""
   PROJECT_APP_SECRET_VIEWED
 
   """"""
