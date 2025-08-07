@@ -229,7 +229,6 @@ Member (user_id=louischanyoursky, org_id=yoursky)
 ### Use case 4.1: Add a User as a Member of Organization via Admin API
 
 This is trivial.
-Things like Login ID email domain allowlist and blocklist **ARE NOT** considered.
 
 ### Use case 4.2: Direct invitation URL
 
@@ -326,6 +325,12 @@ When the end-user signs up or signs in via the project-specific URL:
 > Auto-membership only works one way.
 > It does not do auto-remove membership.
 
+> [!NOTE]
+> In some very sensitive software like 1Password,
+> Auto-membership requires approval.
+> This could be an Organization-specific configuration,
+> and be handled like Use case 4.3.
+
 The auto-membership domains are stored in the following database table.
 
 ```
@@ -386,6 +391,16 @@ It implies that updating the email address or removing the email address may not
 ### Use case 6.1: Disallow Member to add, remove, or update Identities
 
 > [!NOTE]
+> TODO
+> 2025-08-06: Tung asked how does Account Linking interact with this use case.
+> I need to think about that.
+
+> [!NOTE]
+> TODO
+> 2025-08-06: Ben mentioned that if the developer's application is GitHub-style, it is weird to disallow adding, removing, or updating emails.
+> I need further study on that.
+
+> [!NOTE]
 > In Stytch B2B Authentication, it is forbidden to add, remove, or update own email address.
 
 > [!NOTE]
@@ -443,6 +458,13 @@ In Auth0, depending on the selected "Login Experience", the developer can furthe
 > "Login Flow - No Prompt" means the developer has to specify the Organization in the authentication request.
 
 If we try to encode the 2 enums into 1 enum, we have:
+
+> [!NOTE]
+> TODO
+> 2025-08-06: Tung confused that `prompt_end_user_for_organization_first` means
+> we construct a list for the end-user to choose,
+> while it means prompting the end-user to enter Organization Slug.
+> I need a rename is needed.
 
 | enum                                                                                        | Auth0 equivalent                                                         | Description                                                                                                                                                                                              |
 | ---                                                                                         | ---                                                                      | ---                                                                                                                                                                                                      |
@@ -558,6 +580,23 @@ Some magical default behaviors by Kinde:
 
 #### Use case 7.3.4: How do we shape Home Realm Discovery in Authgear
 
+> [!NOTE]
+> TODO
+> 2025-08-06: Ben challenged that
+>
+> - What exactly is Home Realm Discovery in Authgear?
+> - It can exist without Organization.
+>
+> He listed a number of use cases in logins:
+>
+> 1. Google Workspace is the sole IdP.
+> 2. Any @oursky.com can login.
+> 3. Enter email, pass email OTP, show which Organization to sign in (Stytch-style).
+> 4. Enter email, primary authenticate, show which Organization to sign in (Auth0-style).
+> 5. (Variant of 4) Enter email, redirect to the sole external OAuth Provider.
+>
+> I need to think deeper what HRD is, and what use cases does it fulfill.
+
 1. From use case 7.3.1 and use case 7.3.3, we realize that Home Realm Domain is associated with a Connection, rather than an Organization.
 2. From use case 7.3.3, we realize that Home Realm Domains are unique across connections, not across Organizations.
 3. Home Realm Discovery conflicts with `developer_specified_organization`. `developer_specified_organization` has a high precedence.
@@ -574,7 +613,7 @@ This is how it works
 - The end-user lands on the general authentication page.
 - The end-user enters an email address.
 - If the email address matches one of the Home Realm Domains,
-  - Then the end-user is redirected to the Organization-specific OAuth Provider.
+  - Then the end-user is redirected to the Organization-specific authentication page.
   - Else if Email Login ID is enabled,
     - Then the end-user proceeds to sign up with Email Login ID.
     - Else an error is shown. This implies Home Realm Discovery is inherently prone to account enumeration.
@@ -594,6 +633,12 @@ Other variants requires `prompt_end_user_for_organization_last` to be sorted out
 This use case discusses various developer-facing Authentication Output.
 
 ### Use case 8.1: `org_slug` in ID Token and JWT Access Token
+
+> [!NOTE]
+> TODO
+> 2025-08-06: Tung suggested that we should either:
+> - Rename `org_slug` to `x_org_slug` to stay consistent with the query parameter.
+> - Rename `org_slug` to URL-style, to stay consistent with the rest of our custom claims.
 
 > [!NOTE]
 > Auth0 by default includes `org_id` in ID token.
@@ -635,6 +680,16 @@ We first need to answer this question:
 
 > Is it appropriate to disclose what Organization the User is Member of,
 > given that the User may be a Member of an Organization that has a more strict password policy, MFA requirement, or Federated Login.
+
+> [!NOTE]
+> TODO
+> 2025-08-06: Tung disagreed with my answer to this question.
+> He said it is inappropriate to disclose `member_orgs` via UserInfo endpoint,
+> as it is accessible by the authorized client,
+> while the Auth UI is accessible by the end-user only.
+>
+> Maybe First Party client (which has full-access) has access.
+> We need to introduce an Authgear scope for Third Party client.
 
 Actually this question also applies to `prompt_end_user_for_organization_last` in Use case 7.1.
 If we agree that it is appropriate to have Use case 7.1, then the answer to this question is "Yes, it is appropriate to disclose such information, as long as the User is identified and authenticated".
@@ -720,6 +775,13 @@ it is **not recommended** to use the cookie to impersonate the end-user to acces
 Instead, the client application (which should be a backend service) is recommended to query the Members of the User via the Admin API.
 
 ### Use case 8.4: Authentication Output in SAML
+
+> [!NOTE]
+> TODO
+> 2025-08-07: Tung said that I should study other specified values of NameID.
+> He said there may exist a NameID that allow encoding of Organization.
+> He also said the existing feature of attribute mapping maps OIDC claims to AttributeStatement,
+> so maybe we just by default map `org_slug` there.
 
 The below XML snippet lists out a list of possible places we can put the Organization the User signed in to.
 
@@ -940,6 +1002,12 @@ It support Organization Switching by [Exchange Session](https://stytch.com/docs/
 
 **The developer expects to revoke Session A to make User A completely signs out of Client A.**
 
+> [!NOTE]
+> TODO
+> 2025-08-06: Tung raised a question.
+> Can an admin of Organization A terminates a Session of a Member,
+> but the Session actually is for Organization B?
+
 > From the developer's point of view, do they expect to see `user.authenticated` fire again when switching Organizations?
 
 My gut feeling is No.
@@ -1009,4 +1077,14 @@ I think this is an advanced use case that is optional in the MVP.
 
 ## Use case 13: UX of the settings page
 
-TODO
+> [!NOTE]
+> TODO
+> 2025-08-06: Ben mentioned the Settings page for Organization would be a caveat.
+
+## Use case 14: Do we have Member ID?
+
+> [!NOTE]
+> TODO
+> This is something I missed in the original draft.
+> There is no public facing Member ID.
+> We do not expose Member ID in any API.
