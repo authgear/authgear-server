@@ -5,7 +5,11 @@ var _ = Schema.Add("OAuthConfig", `
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
-		"clients": { "type": "array", "items": { "$ref": "#/$defs/OAuthClientConfig" } }
+		"clients": {
+			"type": "array",
+			"items": { "$ref": "#/$defs/OAuthClientConfig" },
+			"maxItems": 50
+		}
 	}
 }
 `)
