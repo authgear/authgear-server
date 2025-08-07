@@ -82,7 +82,7 @@
 
 {{ define "__settings_action_item_connect.html" }}
 {{ if not .Verified }}
-  <form method="post" novalidate data-turbo="false">
+  <form method="post" novalidate>
     {{ .CSRFField }}
     <input type="hidden" name="x_provider_alias" value="{{ .ProviderAlias }}">
     <button

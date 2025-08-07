@@ -1,5 +1,5 @@
 import "cropperjs/dist/cropper.min.css";
-import { start } from "@hotwired/turbo";
+import * as Turbo from "@hotwired/turbo";
 import { Application } from "@hotwired/stimulus";
 import axios from "axios";
 import { init as SentryInit, browserTracingIntegration } from "@sentry/browser";
@@ -77,7 +77,15 @@ if (sentryDSN != null && sentryDSN !== "") {
     },
   });
 }
-start();
+
+// Disable the builtin form submission of Turbo.
+// See ./authflowv2/turboForm.ts for details.
+//
+// So data-turbo=false is no longer needed on <form>.
+//
+// Note that data-turbo=false on <a> is still effective.
+Turbo.setFormMode("off");
+Turbo.start();
 
 const Stimulus = Application.start();
 
