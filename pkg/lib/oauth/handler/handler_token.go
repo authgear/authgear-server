@@ -1940,7 +1940,9 @@ func (h *TokenHandler) IssueTokensForSettingsActionCode(
 	}
 
 	if err := h.checkRateLimits(ctx, ratelimit.RateLimitOAuthTokenGeneral, ratelimit.ResolveBucketSpecOptions{
-		UserID: "", // We don't know the user id
+		// Note(tung): We don't know the user id in settings action
+		// Maybe not important for now because it is only for settings page use
+		UserID: "",
 	}); err != nil {
 		return nil, err
 	}
@@ -2012,9 +2014,14 @@ func (h *TokenHandler) handleClientCredentials(
 	client *config.OAuthClientConfig,
 	r protocol.TokenRequest,
 ) (httputil.Result, error) {
-	if err := h.checkRateLimits(ctx, ratelimit.RateLimitOAuthTokenGeneral, ratelimit.ResolveBucketSpecOptions{
+	ratelimitOpts := ratelimit.ResolveBucketSpecOptions{
+		UserID:   "", // No user participate in this flow
 		ClientID: client.ClientID,
-	}); err != nil {
+	}
+	if err := h.checkRateLimits(ctx, ratelimit.RateLimitOAuthTokenGeneral, ratelimitOpts); err != nil {
+		return nil, err
+	}
+	if err := h.checkRateLimits(ctx, ratelimit.RateLimitOAuthTokenClientCredentials, ratelimitOpts); err != nil {
 		return nil, err
 	}
 
