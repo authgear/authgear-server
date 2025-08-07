@@ -103,6 +103,15 @@ export function useProvideError(error: unknown): void {
   }, [id, addError, removeError, error]);
 }
 
+export function useErrorState(): [
+  err: unknown,
+  setErr: React.Dispatch<unknown>
+] {
+  const [err, setErr] = useState<unknown>(undefined);
+  useProvideError(err);
+  return [err, setErr];
+}
+
 export function useConsumeError(): unknown {
   const { error } = useContext(ErrorContext);
   return error;

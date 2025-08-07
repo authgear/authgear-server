@@ -15,4 +15,5 @@
 
 .autoRows {
   @apply grid-cols-[repeat(12,_80px)] auto-rows-auto tablet:grid-cols-12;
+  @apply content-start;
 }

@@ -2,19 +2,21 @@ import { useCallback, useEffect } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { IPivotItemProps } from "@fluentui/react";
 
-function isHashValid<K extends string>(
+function isKeyValid<K extends string>(
   validItemKeys: K[],
-  hash: string
-): hash is K {
-  return validItemKeys.includes(hash as K);
+  key: string
+): key is K {
+  return validItemKeys.includes(key as K);
 }
 
 export function usePivotNavigation<K extends string = string>(
   validItemKeys: K[],
-  onSwitchTab?: () => void
+  onSwitchTab?: () => void,
+  searchParamKey?: string
 ): {
   selectedKey: K;
   onLinkClick: (item?: { props: IPivotItemProps }) => void;
+  onChangeKey: (key: K) => void;
 } {
   if (validItemKeys.length <= 0) {
     throw new Error("validItemKey must be non-empty");
@@ -22,46 +24,61 @@ export function usePivotNavigation<K extends string = string>(
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
-  const hash = location.hash.slice(1);
   const initialSelectedKey = validItemKeys[0];
 
-  const changeHashKeepSearchParam = useCallback(
-    (hash: string, options?: { replace?: boolean }) => {
-      const queryStr = searchParams.toString();
-      if (queryStr !== "") {
-        navigate(`?${queryStr}#${hash}`, options);
+  const currentTabKey =
+    (searchParamKey
+      ? searchParams.get(searchParamKey)
+      : location.hash.slice(1)) ?? initialSelectedKey;
+
+  const changeTabKey = useCallback(
+    (newKey: string) => {
+      const newSearchParams = new URLSearchParams(searchParams);
+      let newHash = location.hash;
+      if (searchParamKey == null) {
+        // Using hash
+        newHash = newKey;
       } else {
-        navigate(`#${hash}`, options);
+        newSearchParams.set(searchParamKey, newKey);
       }
+      // NOTE: avoid adding extra entry to history stack
+      // NOTE: avoid changing other query string
+      const queryStr = newSearchParams.toString();
+      navigate(
+        {
+          search: queryStr,
+          hash: newHash,
+          pathname: location.pathname,
+        },
+        { replace: true }
+      );
     },
-    [navigate, searchParams]
+    [location.hash, location.pathname, navigate, searchParamKey, searchParams]
   );
 
   useEffect(() => {
-    if (!isHashValid(validItemKeys, hash)) {
-      // NOTE: avoid adding extra entry to history stack
-      // NOTE: avoid changing query string
-      changeHashKeepSearchParam(initialSelectedKey, { replace: true });
+    if (!isKeyValid(validItemKeys, currentTabKey)) {
+      changeTabKey(initialSelectedKey);
     }
-  }, [validItemKeys, hash, initialSelectedKey, changeHashKeepSearchParam]);
+  }, [validItemKeys, currentTabKey, initialSelectedKey, changeTabKey]);
 
   const onLinkClick = useCallback(
     (item?: { props: IPivotItemProps }) => {
       const itemKey = item?.props.itemKey;
       if (typeof itemKey === "string") {
-        if (itemKey !== hash) {
+        if (itemKey !== currentTabKey) {
           onSwitchTab?.();
           // NOTE: avoid changing query string
-          changeHashKeepSearchParam(itemKey);
+          changeTabKey(itemKey);
         }
       }
     },
-    [hash, onSwitchTab, changeHashKeepSearchParam]
+    [currentTabKey, onSwitchTab, changeTabKey]
   );
 
-  const selectedKey = isHashValid(validItemKeys, hash)
-    ? hash
+  const selectedKey = isKeyValid(validItemKeys, currentTabKey)
+    ? currentTabKey
     : initialSelectedKey;
 
-  return { selectedKey, onLinkClick };
+  return { selectedKey, onLinkClick, onChangeKey: changeTabKey };
 }

@@ -55,7 +55,7 @@ func (s *AccessGrantService) IssueAccessGrant(
 	}
 
 	clientLike := ClientClientLike(options.ClientConfig, options.Scopes)
-	at, err := s.AccessTokenIssuer.EncodeAccessToken(ctx, EncodeAccessTokenOptions{
+	at, err := s.AccessTokenIssuer.EncodeUserAccessToken(ctx, EncodeUserAccessTokenOptions{
 		OriginalToken:      token,
 		ClientConfig:       options.ClientConfig,
 		ClientLike:         clientLike,

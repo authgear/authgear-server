@@ -1,5 +1,8 @@
 .root {
   @apply col-span-full;
-  @apply grid;
-  @apply space-y-4;
+  @apply flex;
+}
+
+.header {
+  @apply space-y-4 flex-1;
 }

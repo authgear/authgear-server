@@ -29,6 +29,21 @@ type AddGroupToUsersPayload {
 }
 
 """"""
+input AddResourceToClientIDInput {
+  """The client ID to associate."""
+  clientID: String!
+
+  """The URI of the resource."""
+  resourceURI: String!
+}
+
+""""""
+type AddResourceToClientIDPayload {
+  """"""
+  resource: Resource!
+}
+
+""""""
 input AddRoleToGroupsInput {
   """The list of group keys."""
   groupKeys: [String!]!
@@ -56,6 +71,24 @@ input AddRoleToUsersInput {
 type AddRoleToUsersPayload {
   """"""
   role: Role!
+}
+
+""""""
+input AddScopesToClientIDInput {
+  """The client ID."""
+  clientID: String!
+
+  """The URI of the resource."""
+  resourceURI: String!
+
+  """The list of scopes to add."""
+  scopes: [String!]!
+}
+
+""""""
+type AddScopesToClientIDPayload {
+  """"""
+  scopes: [Scope!]!
 }
 
 """"""
@@ -136,10 +169,16 @@ enum AuditLogActivityType {
   ADMIN_API_MUTATION_ADD_GROUP_TO_USERS_EXECUTED
 
   """"""
+  ADMIN_API_MUTATION_ADD_RESOURCE_TO_CLIENTID_EXECUTED
+
+  """"""
   ADMIN_API_MUTATION_ADD_ROLE_TO_GROUPS_EXECUTED
 
   """"""
   ADMIN_API_MUTATION_ADD_ROLE_TO_USERS_EXECUTED
+
+  """"""
+  ADMIN_API_MUTATION_ADD_SCOPES_TO_CLIENTID_EXECUTED
 
   """"""
   ADMIN_API_MUTATION_ADD_USER_TO_GROUPS_EXECUTED
@@ -160,7 +199,13 @@ enum AuditLogActivityType {
   ADMIN_API_MUTATION_CREATE_IDENTITY_EXECUTED
 
   """"""
+  ADMIN_API_MUTATION_CREATE_RESOURCE_EXECUTED
+
+  """"""
   ADMIN_API_MUTATION_CREATE_ROLE_EXECUTED
+
+  """"""
+  ADMIN_API_MUTATION_CREATE_SCOPE_EXECUTED
 
   """"""
   ADMIN_API_MUTATION_CREATE_SESSION_EXECUTED
@@ -181,7 +226,13 @@ enum AuditLogActivityType {
   ADMIN_API_MUTATION_DELETE_IDENTITY_EXECUTED
 
   """"""
+  ADMIN_API_MUTATION_DELETE_RESOURCE_EXECUTED
+
+  """"""
   ADMIN_API_MUTATION_DELETE_ROLE_EXECUTED
+
+  """"""
+  ADMIN_API_MUTATION_DELETE_SCOPE_EXECUTED
 
   """"""
   ADMIN_API_MUTATION_DELETE_USER_EXECUTED
@@ -196,16 +247,25 @@ enum AuditLogActivityType {
   ADMIN_API_MUTATION_REMOVE_GROUP_FROM_USERS_EXECUTED
 
   """"""
+  ADMIN_API_MUTATION_REMOVE_RESOURCE_FROM_CLIENTID_EXECUTED
+
+  """"""
   ADMIN_API_MUTATION_REMOVE_ROLE_FROM_GROUPS_EXECUTED
 
   """"""
   ADMIN_API_MUTATION_REMOVE_ROLE_FROM_USERS_EXECUTED
 
   """"""
+  ADMIN_API_MUTATION_REMOVE_SCOPES_FROM_CLIENTID_EXECUTED
+
+  """"""
   ADMIN_API_MUTATION_REMOVE_USER_FROM_GROUPS_EXECUTED
 
   """"""
   ADMIN_API_MUTATION_REMOVE_USER_FROM_ROLES_EXECUTED
+
+  """"""
+  ADMIN_API_MUTATION_REPLACE_SCOPES_OF_CLIENTID_EXECUTED
 
   """"""
   ADMIN_API_MUTATION_RESET_PASSWORD_EXECUTED
@@ -247,7 +307,13 @@ enum AuditLogActivityType {
   ADMIN_API_MUTATION_UPDATE_IDENTITY_EXECUTED
 
   """"""
+  ADMIN_API_MUTATION_UPDATE_RESOURCE_EXECUTED
+
+  """"""
   ADMIN_API_MUTATION_UPDATE_ROLE_EXECUTED
+
+  """"""
+  ADMIN_API_MUTATION_UPDATE_SCOPE_EXECUTED
 
   """"""
   ADMIN_API_MUTATION_UPDATE_USER_EXECUTED
@@ -347,6 +413,9 @@ enum AuditLogActivityType {
 
   """"""
   IDENTITY_USERNAME_UPDATED
+
+  """"""
+  M2M_TOKEN_CREATED
 
   """"""
   PROJECT_APP_SECRET_VIEWED
@@ -705,6 +774,21 @@ type CreateIdentityPayload {
 }
 
 """"""
+input CreateResourceInput {
+  """The optional name of the resource."""
+  name: String
+
+  """The URI of the resource."""
+  resourceURI: String!
+}
+
+""""""
+type CreateResourcePayload {
+  """"""
+  resource: Resource!
+}
+
+""""""
 input CreateRoleInput {
   """The optional description of the role."""
   description: String
@@ -720,6 +804,24 @@ input CreateRoleInput {
 type CreateRolePayload {
   """"""
   role: Role!
+}
+
+""""""
+input CreateScopeInput {
+  """The optional description of the scope."""
+  description: String
+
+  """The URI of the resource."""
+  resourceURI: String!
+
+  """The scope string."""
+  scope: String!
+}
+
+""""""
+type CreateScopePayload {
+  """"""
+  scope: Scope!
 }
 
 """"""
@@ -828,6 +930,18 @@ type DeleteIdentityPayload {
 }
 
 """"""
+input DeleteResourceInput {
+  """The URI of the resource."""
+  resourceURI: String!
+}
+
+""""""
+type DeleteResourcePayload {
+  """"""
+  ok: Boolean
+}
+
+""""""
 input DeleteRoleInput {
   """The ID of the role."""
   id: ID!
@@ -835,6 +949,21 @@ input DeleteRoleInput {
 
 """"""
 type DeleteRolePayload {
+  """"""
+  ok: Boolean
+}
+
+""""""
+input DeleteScopeInput {
+  """The URI of the resource."""
+  resourceURI: String!
+
+  """The scope string."""
+  scope: String!
+}
+
+""""""
+type DeleteScopePayload {
   """"""
   ok: Boolean
 }
@@ -1019,11 +1148,17 @@ type Mutation {
   """Add the group to the users."""
   addGroupToUsers(input: AddGroupToUsersInput!): AddGroupToUsersPayload!
 
+  """Associate a resource with a clientID."""
+  addResourceToClientID(input: AddResourceToClientIDInput!): AddResourceToClientIDPayload!
+
   """Add the role to the groups."""
   addRoleToGroups(input: AddRoleToGroupsInput!): AddRoleToGroupsPayload!
 
   """Add the role to the users."""
   addRoleToUsers(input: AddRoleToUsersInput!): AddRoleToUsersPayload!
+
+  """Associate multiple scopes with a clientID."""
+  addScopesToClientID(input: AddScopesToClientIDInput!): AddScopesToClientIDPayload!
 
   """Add the user to the groups."""
   addUserToGroups(input: AddUserToGroupsInput!): AddUserToGroupsPayload!
@@ -1043,8 +1178,14 @@ type Mutation {
   """Create new identity for user"""
   createIdentity(input: CreateIdentityInput!): CreateIdentityPayload!
 
+  """Create a new resource."""
+  createResource(input: CreateResourceInput!): CreateResourcePayload!
+
   """Create a new role."""
   createRole(input: CreateRoleInput!): CreateRolePayload!
+
+  """Create a new scope."""
+  createScope(input: CreateScopeInput!): CreateScopePayload!
 
   """Create a session of a given user"""
   createSession(input: CreateSessionInput!): CreateSessionPayload!
@@ -1066,10 +1207,16 @@ type Mutation {
   """Delete identity of user"""
   deleteIdentity(input: DeleteIdentityInput!): DeleteIdentityPayload!
 
+  """Delete a resource."""
+  deleteResource(input: DeleteResourceInput!): DeleteResourcePayload!
+
   """
   Delete an existing role. The associations between the role with other groups and other users will also be deleted.
   """
   deleteRole(input: DeleteRoleInput!): DeleteRolePayload!
+
+  """Delete a scope."""
+  deleteScope(input: DeleteScopeInput!): DeleteScopePayload!
 
   """Delete specified user"""
   deleteUser(input: DeleteUserInput!): DeleteUserPayload!
@@ -1086,17 +1233,26 @@ type Mutation {
   """Revoke user grace period for MFA enrollment"""
   removeMFAGracePeriod(input: removeMFAGracePeriodInput!): removeMFAGracePeriodPayload!
 
+  """Disassociate a resource from a clientID."""
+  removeResourceFromClientID(input: RemoveResourceFromClientIDInput!): RemoveResourceFromClientIDPayload!
+
   """Remove the role from the groups."""
   removeRoleFromGroups(input: RemoveRoleFromGroupsInput!): RemoveRoleFromGroupsPayload!
 
   """Remove the role to the users."""
   removeRoleFromUsers(input: RemoveRoleFromUsersInput!): RemoveRoleFromUsersPayload!
 
+  """Disassociate multiple scopes from a clientID."""
+  removeScopesFromClientID(input: RemoveScopesFromClientIDInput!): RemoveScopesFromClientIDPayload!
+
   """Remove the user from the groups."""
   removeUserFromGroups(input: RemoveUserFromGroupsInput!): RemoveUserFromGroupsPayload!
 
   """Remove the user from the roles."""
   removeUserFromRoles(input: RemoveUserFromRolesInput!): RemoveUserFromRolesPayload!
+
+  """Replace the set of scopes associated with a clientID."""
+  replaceScopesOfClientID(input: ReplaceScopesOfClientIDInput!): ReplaceScopesOfClientIDPayload!
 
   """Reset password of user"""
   resetPassword(input: ResetPasswordInput!): ResetPasswordPayload!
@@ -1140,8 +1296,14 @@ type Mutation {
   """Update an existing identity of user"""
   updateIdentity(input: UpdateIdentityInput!): UpdateIdentityPayload!
 
+  """Update an existing resource."""
+  updateResource(input: UpdateResourceInput!): UpdateResourcePayload!
+
   """Update an existing role."""
   updateRole(input: UpdateRoleInput!): UpdateRolePayload!
+
+  """Update an existing scope."""
+  updateScope(input: UpdateScopeInput!): UpdateScopePayload!
 
   """Update user"""
   updateUser(input: UpdateUserInput!): UpdateUserPayload!
@@ -1208,6 +1370,9 @@ type Query {
     ids: [ID!]!
   ): [Node]!
 
+  """All resources"""
+  resources(after: String, before: String, clientID: String, first: Int, last: Int, searchKeyword: String): ResourceConnection
+
   """All roles"""
   roles(after: String, before: String, excludedIDs: [ID!], first: Int, last: Int, searchKeyword: String): RoleConnection
 
@@ -1246,6 +1411,21 @@ type RemoveGroupToUsersPayload {
 }
 
 """"""
+input RemoveResourceFromClientIDInput {
+  """The client ID to disassociate."""
+  clientID: String!
+
+  """The URI of the resource."""
+  resourceURI: String!
+}
+
+""""""
+type RemoveResourceFromClientIDPayload {
+  """"""
+  resource: Resource!
+}
+
+""""""
 input RemoveRoleFromGroupsInput {
   """The list of group keys."""
   groupKeys: [String!]!
@@ -1273,6 +1453,24 @@ input RemoveRoleFromUsersInput {
 type RemoveRoleFromUsersPayload {
   """"""
   role: Role!
+}
+
+""""""
+input RemoveScopesFromClientIDInput {
+  """The client ID."""
+  clientID: String!
+
+  """The URI of the resource."""
+  resourceURI: String!
+
+  """The list of scopes to remove."""
+  scopes: [String!]!
+}
+
+""""""
+type RemoveScopesFromClientIDPayload {
+  """"""
+  scopes: [Scope!]!
 }
 
 """"""
@@ -1306,6 +1504,24 @@ type RemoveUserFromRolesPayload {
 }
 
 """"""
+input ReplaceScopesOfClientIDInput {
+  """The client ID."""
+  clientID: String!
+
+  """The URI of the resource."""
+  resourceURI: String!
+
+  """The new list of scopes."""
+  scopes: [String!]!
+}
+
+""""""
+type ReplaceScopesOfClientIDPayload {
+  """"""
+  scopes: [Scope!]!
+}
+
+""""""
 input ResetPasswordInput {
   """New password."""
   password: String
@@ -1326,6 +1542,51 @@ input ResetPasswordInput {
 type ResetPasswordPayload {
   """"""
   user: User!
+}
+
+"""Authgear resource"""
+type Resource implements Entity & Node {
+  """The list of client IDs associated with this Resource."""
+  clientIDs: [String!]!
+
+  """The creation time of entity"""
+  createdAt: DateTime!
+
+  """The ID of an object"""
+  id: ID!
+
+  """The optional name of the resource."""
+  name: String
+
+  """The URI of the resource."""
+  resourceURI: String!
+
+  """The list of scopes for this resource."""
+  scopes(after: String, before: String, clientID: String, first: Int, last: Int, searchKeyword: String): ScopeConnection
+
+  """The update time of entity"""
+  updatedAt: DateTime!
+}
+
+"""A connection to a list of items."""
+type ResourceConnection {
+  """Information to aid in pagination."""
+  edges: [ResourceEdge]
+
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """Total number of nodes in the connection."""
+  totalCount: Int
+}
+
+"""An edge in a connection"""
+type ResourceEdge {
+  """ cursor for use in pagination"""
+  cursor: String!
+
+  """The item at the end of the edge"""
+  node: Resource
 }
 
 """"""
@@ -1422,6 +1683,48 @@ input ScheduleAccountDeletionInput {
 type ScheduleAccountDeletionPayload {
   """"""
   user: User!
+}
+
+"""Authgear scope"""
+type Scope implements Entity & Node {
+  """The creation time of entity"""
+  createdAt: DateTime!
+
+  """The optional description of the scope."""
+  description: String
+
+  """The ID of an object"""
+  id: ID!
+
+  """The resource ID."""
+  resourceID: ID!
+
+  """The scope string."""
+  scope: String!
+
+  """The update time of entity"""
+  updatedAt: DateTime!
+}
+
+"""A connection to a list of items."""
+type ScopeConnection {
+  """Information to aid in pagination."""
+  edges: [ScopeEdge]
+
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """Total number of nodes in the connection."""
+  totalCount: Int
+}
+
+"""An edge in a connection"""
+type ScopeEdge {
+  """ cursor for use in pagination"""
+  cursor: String!
+
+  """The item at the end of the edge"""
+  node: Scope
 }
 
 """"""
@@ -1652,6 +1955,23 @@ type UpdateIdentityPayload {
 }
 
 """"""
+input UpdateResourceInput {
+  """
+  The new name of the resource. Pass null if you do not need to update the name. Pass an empty string to remove the name.
+  """
+  name: String
+
+  """The URI of the resource."""
+  resourceURI: String!
+}
+
+""""""
+type UpdateResourcePayload {
+  """"""
+  resource: Resource!
+}
+
+""""""
 input UpdateRoleInput {
   """
   The new description of the role. Pass null if you do not need to update the description. Pass an empty string to remove the description.
@@ -1676,6 +1996,26 @@ input UpdateRoleInput {
 type UpdateRolePayload {
   """"""
   role: Role!
+}
+
+""""""
+input UpdateScopeInput {
+  """
+  The new description of the scope. Pass null if you do not need to update the description. Pass an empty string to remove the description.
+  """
+  description: String
+
+  """The URI of the resource."""
+  resourceURI: String!
+
+  """The scope string."""
+  scope: String!
+}
+
+""""""
+type UpdateScopePayload {
+  """"""
+  scope: Scope!
 }
 
 """"""

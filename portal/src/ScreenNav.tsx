@@ -243,6 +243,11 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
         url: `/project/${appID}/configuration/apps`,
       },
       {
+        type: "link" as const,
+        textKey: "ScreenNav.api-resources",
+        url: `/project/${appID}/api-resources`,
+      },
+      {
         type: "group" as const,
         textKey: "ScreenNav.branding",
         urlPrefix: `/project/${appID}/branding`,

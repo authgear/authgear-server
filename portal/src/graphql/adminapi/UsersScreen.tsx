@@ -16,7 +16,7 @@ import {
 } from "./query/usersListQuery.generated";
 import { UserSortBy, SortDirection } from "./globalTypes.generated";
 import ShowError from "../../ShowError";
-import useDelayedValue from "../../hook/useDelayedValue";
+import { useDebounced } from "../../hook/useDebounced";
 
 import styles from "./UsersScreen.module.css";
 import PrimaryButton from "../../PrimaryButton";
@@ -53,7 +53,7 @@ function useRemoteData(options: {
     filters.role != null ||
     filters.group != null;
 
-  const debouncedSearchKey = useDelayedValue(filters.searchKeyword, 500);
+  const [debouncedSearchKey] = useDebounced(filters.searchKeyword, 500);
 
   const filterGroupKeys = useMemo(() => {
     return filters.group == null ? undefined : [filters.group.group.key];
@@ -66,12 +66,9 @@ function useRemoteData(options: {
   const cursor = useMemo(() => {
     if (isSearch) {
       // Search always query all rows.
-      return null;
+      return undefined;
     }
-    if (offset === 0) {
-      return null;
-    }
-    return encodeOffsetToCursor(offset - 1);
+    return encodeOffsetToCursor(offset);
   }, [isSearch, offset]);
 
   const {

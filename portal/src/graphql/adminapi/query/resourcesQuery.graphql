@@ -1,0 +1,32 @@
+query resourcesQuery(
+  $first: Int
+  $after: String
+  $clientID: String
+  $searchKeyword: String
+) {
+  resources(
+    first: $first
+    after: $after
+    clientID: $clientID
+    searchKeyword: $searchKeyword
+  ) {
+    edges {
+      node {
+        id
+        name
+        clientIDs
+        resourceURI
+        createdAt
+        updatedAt
+      }
+      cursor
+    }
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+      startCursor
+      endCursor
+    }
+    totalCount
+  }
+}

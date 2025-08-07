@@ -4,15 +4,18 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"strings"
 
 	"github.com/lestrrat-go/jwx/v2/jwk"
 
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/dpop"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
+	"github.com/authgear/authgear-server/pkg/lib/resourcescope"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -42,6 +45,14 @@ type IssueOfflineGrantRefreshTokenOptions struct {
 	DPoPJKT         string
 }
 
+type ClientCredentialsAccessTokenOptions struct {
+	ResourceURI        string
+	Scopes             []string
+	ClientConfig       *config.OAuthClientConfig
+	MaskedClientSecret string
+	Resource           *resourcescope.Resource
+}
+
 type TokenService struct {
 	RemoteIP        httputil.RemoteIP
 	UserAgentString httputil.UserAgentString
@@ -57,6 +68,7 @@ type TokenService struct {
 	GenerateToken       TokenGenerator
 	Clock               clock.Clock
 	Users               TokenHandlerUserFacade
+	Events              EventService
 
 	AccessGrantService oauth.AccessGrantService
 }
@@ -252,4 +264,38 @@ func (s *TokenService) IssueDeviceSecret(ctx context.Context, resp protocol.Toke
 	deviceSecretHash = oauth.HashToken(deviceSecret)
 	resp.DeviceSecret(deviceSecret)
 	return deviceSecretHash
+}
+
+func (s *TokenService) IssueClientCredentialsAccessToken(ctx context.Context, options ClientCredentialsAccessTokenOptions, resp protocol.TokenResponse) error {
+	token := s.GenerateToken()
+	now := s.Clock.NowUTC()
+	expireAt := now.Add(options.ClientConfig.AccessTokenLifetime.Duration())
+
+	scope := strings.Join(options.Scopes, " ")
+	encodedToken, err := s.AccessTokenIssuer.EncodeClientAccessToken(ctx, oauth.EncodeClientAccessTokenOptions{
+		OriginalToken: token,
+		ClientConfig:  options.ClientConfig,
+		ResourceURI:   options.ResourceURI,
+		Scope:         scope,
+		CreatedAt:     now,
+		ExpireAt:      expireAt,
+	})
+	if err != nil {
+		return err
+	}
+
+	resp.TokenType("Bearer")
+	resp.AccessToken(encodedToken)
+	resp.ExpiresIn(int(options.ClientConfig.AccessTokenLifetime.Duration().Seconds()))
+	resp.Scope(scope)
+
+	err = s.Events.DispatchEventOnCommit(ctx, &nonblocking.M2MTokenCreatedEventPayload{
+		ClientID:     options.ClientConfig.ClientID,
+		ClientSecret: options.MaskedClientSecret,
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

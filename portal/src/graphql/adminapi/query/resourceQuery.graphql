@@ -1,0 +1,12 @@
+query ResourceQuery($id: ID!) {
+  node(id: $id) {
+    ... on Resource {
+      id
+      name
+      resourceURI
+      clientIDs
+      createdAt
+      updatedAt
+    }
+  }
+}

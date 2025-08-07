@@ -74,6 +74,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
 	"github.com/authgear/authgear-server/pkg/lib/presign"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
+	"github.com/authgear/authgear-server/pkg/lib/resourcescope"
 	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
 	"github.com/authgear/authgear-server/pkg/lib/search"
 	"github.com/authgear/authgear-server/pkg/lib/search/pgsearch"
@@ -545,6 +546,17 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Store:    readStore,
 	}
 	auditLogLoader := loader.NewAuditLogLoader(query, readHandle)
+	resourcescopeStore := &resourcescope.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	resourcescopeQueries := &resourcescope.Queries{
+		Store: resourcescopeStore,
+	}
+	resourceLoader := loader.NewResourceLoader(resourcescopeQueries)
+	resourceClientLoader := loader.NewResourceClientLoader(resourcescopeQueries)
+	scopeLoader := loader.NewScopeLoader(resourcescopeQueries)
 	searchConfig := appConfig.Search
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -1204,6 +1216,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		GenerateToken:       tokenGenerator,
 		Clock:               clockClock,
 		Users:               userQueries,
+		Events:              eventService,
 		AccessGrantService:  accessGrantService,
 	}
 	oAuthFacade := &facade2.OAuthFacade{
@@ -1219,6 +1232,14 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		IDPSessions:   idpsessionProvider,
 		OfflineGrants: oauthOfflineGrantService,
 	}
+	resourcescopeCommands := &resourcescope.Commands{
+		Store:       resourcescopeStore,
+		OAuthConfig: oAuthConfig,
+	}
+	resourceScopeFacade := &facade2.ResourceScopeFacade{
+		ResourceScopeCommands: resourcescopeCommands,
+		ResourceScopeQueries:  resourcescopeQueries,
+	}
 	graphqlContext := &graphql.Context{
 		Config:                appConfig,
 		OAuthConfig:           oAuthConfig,
@@ -1229,6 +1250,9 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Roles:                 roleLoader,
 		Groups:                groupLoader,
 		AuditLogs:             auditLogLoader,
+		Resources:             resourceLoader,
+		ResourceClients:       resourceClientLoader,
+		Scopes:                scopeLoader,
 		UserFacade:            facadeUserFacade,
 		RolesGroupsFacade:     rolesGroupsFacade,
 		AuditLogFacade:        auditLogFacade,
@@ -1243,6 +1267,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		OTPCode:               otpService,
 		ForgotPassword:        forgotpasswordService,
 		Events:                eventService,
+		ResourceScopeFacade:   resourceScopeFacade,
 	}
 	graphQLHandler := &transport.GraphQLHandler{
 		GraphQLContext: graphqlContext,

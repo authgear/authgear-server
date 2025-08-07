@@ -93,6 +93,7 @@ func TestAccessToken(t *testing.T) {
 			CreatedAt: now,
 			ExpireAt:  now.Add(client.AccessTokenLifetime.Duration()),
 			TokenHash: "token-hash",
+			Scopes:    []string{"openid", "email"},
 		}
 
 		mockEventService.EXPECT().DispatchEventOnCommit(gomock.Any(), gomock.Any()).Return(nil)
@@ -101,7 +102,7 @@ func TestAccessToken(t *testing.T) {
 		mockIdentityService.EXPECT().ListIdentitiesThatHaveStandardAttributes(gomock.Any(), "user-id").Return(nil, nil)
 
 		ctx := context.Background()
-		options := EncodeAccessTokenOptions{
+		options := EncodeUserAccessTokenOptions{
 			OriginalToken: "token",
 			ClientConfig:  client,
 			ClientLike:    clientLike,
@@ -112,7 +113,7 @@ func TestAccessToken(t *testing.T) {
 				// AuthenticatedAt
 			},
 		}
-		accessToken, err := encoding.EncodeAccessToken(ctx, options)
+		accessToken, err := encoding.EncodeUserAccessToken(ctx, options)
 		So(err, ShouldBeNil)
 
 		_, _, err = encoding.DecodeAccessToken(accessToken)
@@ -127,12 +128,93 @@ func TestAccessToken(t *testing.T) {
 
 		clientID, _ := decodedToken.Get("client_id")
 		idKey, _ := decodedToken.Get(jwt.JwtIDKey)
+		scope, _ := decodedToken.Get("scope")
 
 		So(decodedToken.Issuer(), ShouldEqual, "http://test1.authgear.com")
 		So(decodedToken.Audience(), ShouldResemble, []string{"http://test1.authgear.com"})
 		So(decodedToken.IssuedAt(), ShouldEqual, accessGrant.CreatedAt)
 		So(decodedToken.Expiration(), ShouldEqual, accessGrant.ExpireAt)
 		So(clientID, ShouldEqual, "client-id")
+		So(scope, ShouldEqual, "openid email")
 		So(idKey, ShouldEqual, "token-hash")
+	})
+}
+
+func TestClientAccessToken(t *testing.T) {
+	Convey("EncodeClientAccessToken", t, func() {
+		now := time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)
+
+		jwkSet, err := jwk.Parse([]byte(PrivateKeyPEM), jwk.WithPEM(true))
+		So(err, ShouldBeNil)
+		jwkKey, _ := jwkSet.Key(0)
+		_ = jwkKey.Set(jwk.KeyIDKey, uuid.New())
+		_ = jwkKey.Set(jwk.AlgorithmKey, "RS256")
+
+		secrets := &config.OAuthKeyMaterials{
+			Set: jwkSet,
+		}
+
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+		mockIDTokenIssuer := NewMockIDTokenIssuer(mockCtrl)
+		mockIDTokenIssuer.EXPECT().Iss().Return("http://test1.authgear.com")
+
+		encoding := &AccessTokenEncoding{
+			Secrets:       secrets,
+			Clock:         clock.NewMockClockAtTime(now),
+			IDTokenIssuer: mockIDTokenIssuer,
+			BaseURL: &endpoints.Endpoints{
+				OAuthEndpoints: &endpoints.OAuthEndpoints{
+					HTTPHost:  "test1.authgear.com",
+					HTTPProto: "http",
+				},
+			},
+		}
+
+		client := &config.OAuthClientConfig{
+			IssueJWTAccessToken: true,
+			ClientID:            "client-id",
+			AccessTokenLifetime: 3600,
+		}
+		resourceURI := "https://api.example.com/"
+		scope := "read write"
+		createdAt := now
+		expireAt := now.Add(client.AccessTokenLifetime.Duration())
+		originalToken := "opaque-token" // #nosec G101
+
+		options := EncodeClientAccessTokenOptions{
+			OriginalToken: originalToken,
+			ClientConfig:  client,
+			ResourceURI:   resourceURI,
+			Scope:         scope,
+			CreatedAt:     createdAt,
+			ExpireAt:      expireAt,
+		}
+
+		accessToken, err := encoding.EncodeClientAccessToken(context.Background(), options)
+		So(err, ShouldBeNil)
+
+		// Peek token payload
+		keys, err := jwk.PublicSetOf(encoding.Secrets.Set)
+		So(err, ShouldBeNil)
+
+		decodedToken, err := jwt.ParseString(accessToken, jwt.WithKeySet(keys), jwt.WithValidate(false))
+		So(err, ShouldBeNil)
+
+		clientID, _ := decodedToken.Get("client_id")
+		scopeClaim, _ := decodedToken.Get("scope")
+		sub, _ := decodedToken.Get("sub")
+		aud := decodedToken.Audience()
+		iss := decodedToken.Issuer()
+		iat := decodedToken.IssuedAt()
+		exp := decodedToken.Expiration()
+
+		So(clientID, ShouldEqual, "client-id")
+		So(scopeClaim, ShouldEqual, scope)
+		So(sub, ShouldEqual, "client_id_client-id")
+		So(aud, ShouldResemble, []string{resourceURI})
+		So(iss, ShouldEqual, "http://test1.authgear.com")
+		So(iat, ShouldEqual, createdAt)
+		So(exp, ShouldEqual, expireAt)
 	})
 }

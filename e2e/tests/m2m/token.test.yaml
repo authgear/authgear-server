@@ -1,0 +1,140 @@
+name: M2M - client_credentials flow
+before:
+  - type: custom_sql
+    custom_sql:
+      path: preassigned_client_scope_fixtures.sql
+steps:
+  - action: http_request
+    http_request_method: POST
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/token
+    http_request_form_urlencoded_body:
+      grant_type: client_credentials
+      client_id: e2econfidential
+      client_secret: e2esecret
+      resource: https://fixtureresource/2
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "access_token": "[[string]]",
+          "token_type": "Bearer",
+          "expires_in": 1800,
+          "scope": "resource2_scope1 resource2_scope2"
+        }
+---
+name: M2M - client_credentials flow with scope
+before:
+  - type: custom_sql
+    custom_sql:
+      path: preassigned_client_scope_fixtures.sql
+steps:
+  - action: http_request
+    http_request_method: POST
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/token
+    http_request_form_urlencoded_body:
+      scope: resource2_scope1
+      grant_type: client_credentials
+      client_id: e2econfidential
+      client_secret: e2esecret
+      resource: https://fixtureresource/2
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "access_token": "[[string]]",
+          "token_type": "Bearer",
+          "expires_in": 1800,
+          "scope": "resource2_scope1"
+        }
+---
+name: M2M - client_credentials flow with invalid scope
+before:
+  - type: custom_sql
+    custom_sql:
+      path: preassigned_client_scope_fixtures.sql
+steps:
+  - action: http_request
+    http_request_method: POST
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/token
+    http_request_form_urlencoded_body:
+      scope: openid
+      grant_type: client_credentials
+      client_id: e2econfidential
+      client_secret: e2esecret
+      resource: https://fixtureresource/2
+    http_output:
+      http_status: 400
+      json_body: |
+        {
+          "error": "invalid_scope"
+        }
+---
+name: M2M - client_credentials flow with unassociated resource
+before:
+  - type: custom_sql
+    custom_sql:
+      path: preassigned_client_scope_fixtures.sql
+steps:
+  - action: http_request
+    http_request_method: POST
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/token
+    http_request_form_urlencoded_body:
+      grant_type: client_credentials
+      client_id: e2econfidential
+      client_secret: e2esecret
+      resource: https://fixtureresource/1
+    http_output:
+      http_status: 400
+      json_body: |
+        {
+          "error": "invalid_target",
+          "error_description": "client is not associated with the resource"
+        }
+---
+name: M2M - client_credentials flow with m2m client
+before:
+  - type: custom_sql
+    custom_sql:
+      path: preassigned_client_scope_fixtures.sql
+steps:
+  - action: http_request
+    http_request_method: POST
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/token
+    http_request_form_urlencoded_body:
+      grant_type: client_credentials
+      client_id: e2em2mclient
+      client_secret: e2esecret
+      resource: https://fixtureresource/2
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "access_token": "[[string]]",
+          "token_type": "Bearer",
+          "expires_in": 1800,
+          "scope": "resource2_scope1 resource2_scope2"
+        }
+
+---
+name: M2M - client_credentials flow with unassigned resource
+before:
+  - type: custom_sql
+    custom_sql:
+      path: unassigned_client_fixture.sql
+steps:
+  - action: http_request
+    http_request_method: POST
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/token
+    http_request_form_urlencoded_body:
+      grant_type: client_credentials
+      client_id: e2em2mclient
+      client_secret: e2esecret
+      resource: https://r/1
+      scope: R1:S1
+    http_output:
+      http_status: 400
+      json_body: |
+        {
+          "error": "invalid_target",
+          "error_description": "client is not associated with the resource"
+        }

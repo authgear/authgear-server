@@ -1,0 +1,12 @@
+.container {
+  @apply flex flex-col items-center text-center;
+  @apply py-14;
+}
+
+.title {
+  @apply mb-2;
+}
+
+.description {
+  @apply mb-4;
+}

@@ -85,7 +85,7 @@ export const FormProvider: React.VFC<FormProviderProps> = (props) => {
   }, [error]);
 
   const value = useMemo(
-    () => ({
+    (): FormContext => ({
       loading,
       fieldErrors,
       topErrors,

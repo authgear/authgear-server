@@ -136,6 +136,7 @@
   "errors.groups.key.validation.format": "Invalid group key. Only English alphabets, digits, colons \":\", and underscores \"_\" are accepted, and the first character must be an alphabet.",
   "errors.roles.key.duplicated": "This key is already used, please use a different key",
   "errors.groups.key.duplicated": "This key is already used, please use a different key",
+  "errors.resources.duplicateURI": "This Identifier is already used, please use a different one.",
   "errors.authenticator.not-found": "Authenticator not found",
   "errors.image-too-large": "The image size is too large. Please upload a image that is within the size limit.",
   "errors.input-file-image-load": "There is a problem in loading the image you selected. You may retry, or select another one.",
@@ -191,6 +192,7 @@
   "ScreenNav.endpoint-direct-access": "Endpoint Direct Access",
   "ScreenNav.saml-certificate": "SAML Certificate",
   "ScreenNav.edit-config": "Edit Config",
+  "ScreenNav.api-resources": "API Resources",
 
   "NavBreadcrumb.label": "Nested navigation",
 
@@ -254,6 +256,16 @@
   "GroupsEmptyView.title": "You don't have any groups yet.",
   "GroupsEmptyView.description": "Create groups to represent the types of users that access your applications. Users in a group inherit the same set of roles.",
   "GroupsEmptyView.button.text": "Create Group",
+
+  "ResourceListEmptyView.title": "No API Resources yet",
+  "ResourceListEmptyView.description": "Create API Resources for authorized applications",
+  "CreateResourceButton.label": "Create API Resource",
+
+  "DeleteResourceDialog.title": "Delete API Resource",
+  "DeleteResourceDialog.description": "This action will permanently delete {b, react, children{{name}}} and cannot be undone. Are you sure you want to proceed?",
+
+  "ResourceList.columns.name": "Name",
+  "ResourceList.columns.identifier": "Identifier",
 
   "AddRoleScreen.title": "Create Role",
   "AddRoleScreen.roleKey.title": "Role Key",
@@ -809,6 +821,7 @@
   "CreateOAuthClientScreen.application-type.description.native": "Mobile and desktop apps, e.g. iOS, Android, Electron",
   "CreateOAuthClientScreen.application-type.description.confidential": "Allow user to login with Authgear to access any other OIDC or SAML compatible application. e.g. Wordpress, Figma, Salesforce",
   "CreateOAuthClientScreen.application-type.description.third-party-app": "Legacy. Please create a new OIDC Client Application instead.",
+  "CreateOAuthClientScreen.application-type.description.m2m": "Backend servers or loT devices",
 
   "EditOAuthClientScreen.client-not-found": "Client ID {clientID} is not found",
   "EditOAuthClientScreen.quick-start-screen.title": "All set! Here are the guides to help your integration.",
@@ -872,6 +885,7 @@
   "EditOAuthClientForm.access-token.title": "Access Token",
   "EditOAuthClientForm.access-token.label": "Access Token Lifetime (seconds)",
   "EditOAuthClientForm.access-token.description": "How frequent the access token should be refreshed. This will affect the timeliness of the information held in the JWT token.",
+  "EditOAuthClientForm.access-token.description.m2m": "How frequent the access token should be requested again. This will affect the timeliness of the infromation held in the JWT token.",
   "EditOAuthClientForm.issue-jwt-access-token.label": "Issue JWT as access token",
   "EditOAuthClientForm.endpoints.title": "Endpoints",
   "EditOAuthClientForm.authorization-endpoint.label": "Authorization Endpoint",
@@ -889,8 +903,25 @@
   "EditOAuthClientForm.app2app.migration.description": "App2App login requires a refresh token generated after App2App login enabled. Enable Migration mode will allow old refresh tokens to participate in app2app login. This mode is less secure and not recommended.",
   "EditOAuthClientForm.app2app.uris.description": "Setup universal link for iOS and app links for Android in {ReactRouterLink, react, to{#uris} children{Authorized Redirect URIs} preserveDefault{true}} to handle the App2App requests",
   "EditOAuthClientForm.more-options": "More options",
+  "EditOAuthClientForm.resources.title": "Resources",
+  "EditOAuthClientForm.quick-start.m2m.title": "Machine-to-Machine",
+  "EditOAuthClientForm.quick-start.m2m.description": "Backend servers or IoT devices",
+  "EditOAuthClientForm.quick-start.m2m.step1.title": "Obtain an access token by calling the token endpoint",
+  "EditOAuthClientForm.quick-start.m2m.step1.select-api-resource": "Select the API Resource",
+  "EditOAuthClientForm.quick-start.m2m.step1.select-api-resource.placeholder": "Select API Resource",
+  "EditOAuthClientForm.quick-start.m2m.step1.select-api-resource.empty.placeholder": "No API resource yet.",
+  "EditOAuthClientForm.quick-start.m2m.step1.no-api-resource-yet": "You haven''t authorized any API resources yet. Go to the {ReactRouterLink, react, to{{href}} children{API Resource}} to select and authorize one or more.",
+  "EditOAuthClientForm.quick-start.m2m.step2.title": "Use the access token to access the API resources",
+  "EditOAuthClientForm.quick-start.m2m.step2.description": "Put the bearer token in Authorization header.",
+  "EditOAuthClientForm.quick-start.m2m.pivot.curl.headerText": "CURL",
+  "EditOAuthClientForm.quick-start.m2m.pivot.go.headerText": "Go",
+  "EditOAuthClientForm.quick-start.m2m.pivot.nodejs.headerText": "NodeJS",
+  "EditOAuthClientForm.quick-start.m2m.pivot.python.headerText": "Python",
+
   "EditOAuthClientScreen.tabs.settings": "Settings",
   "EditOAuthClientScreen.tabs.saml2": "SAML 2.0",
+  "EditOAuthClientScreen.tabs.api-resources": "API Resources",
+  "EditOAuthClientScreen.tabs.quick-start": "Quick Start",
 
   "OAuthClientSAMLForm.title": "SAML Settings",
   "OAuthClientSAMLForm.metadataUpload.description": "Upload the Service Provider Metadata (XML) to fill the form below automatically",
@@ -949,6 +980,7 @@
   "oauth-client.application-type.native": "Native App",
   "oauth-client.application-type.confidential": "OIDC/SAML Client Application",
   "oauth-client.application-type.third-party-app": "OIDC Client Application (Legacy)",
+  "oauth-client.application-type.m2m": "Machine-to-Machine",
 
   "CustomDomainListScreen.title": "Custom Domains",
   "CustomDomainListScreen.desc": "You can add a custom domain so that users will login via, for example, “identity.yourdomain.com”. In this case, a session cookie of domain “yourdomain.com” is set so that your websites can share the session cookies under “*.yourdomain.com” for better customers experiences.",
@@ -1491,6 +1523,17 @@
   "AuditLogActivityType.ADMIN_API_MUTATION_UPDATE_GROUP_EXECUTED": "Admin API Mutation: Update group",
   "AuditLogActivityType.ADMIN_API_MUTATION_UPDATE_ROLE_EXECUTED": "Admin API Mutation: Update role",
   "AuditLogActivityType.ADMIN_API_MUTATION_SET_PASSWORD_EXPIRED_EXECUTED": "Admin API Mutation: Mark password as expired",
+  "AuditLogActivityType.ADMIN_API_MUTATION_CREATE_RESOURCE_EXECUTED": "Admin API Mutation: Create resource",
+  "AuditLogActivityType.ADMIN_API_MUTATION_UPDATE_RESOURCE_EXECUTED": "Admin API Mutation: Update resource",
+  "AuditLogActivityType.ADMIN_API_MUTATION_DELETE_RESOURCE_EXECUTED": "Admin API Mutation: Delete resource",
+  "AuditLogActivityType.ADMIN_API_MUTATION_CREATE_SCOPE_EXECUTED": "Admin API Mutation: Create scope",
+  "AuditLogActivityType.ADMIN_API_MUTATION_UPDATE_SCOPE_EXECUTED": "Admin API Mutation: Update scope",
+  "AuditLogActivityType.ADMIN_API_MUTATION_DELETE_SCOPE_EXECUTED": "Admin API Mutation: Delete scope",
+  "AuditLogActivityType.ADMIN_API_MUTATION_ADD_RESOURCE_TO_CLIENTID_EXECUTED": "Admin API Mutation: Add resource to client",
+  "AuditLogActivityType.ADMIN_API_MUTATION_REMOVE_RESOURCE_FROM_CLIENTID_EXECUTED": "Admin API Mutation: Remove resource from client",
+  "AuditLogActivityType.ADMIN_API_MUTATION_ADD_SCOPES_TO_CLIENTID_EXECUTED": "Admin API Mutation: Add scopes to client",
+  "AuditLogActivityType.ADMIN_API_MUTATION_REMOVE_SCOPES_FROM_CLIENTID_EXECUTED": "Admin API Mutation: Remove scopes from client",
+  "AuditLogActivityType.ADMIN_API_MUTATION_REPLACE_SCOPES_OF_CLIENTID_EXECUTED": "Admin API Mutation: Replace scopes of client",
   "AuditLogActivityType.PROJECT_APP_UPDATED": "Project: Configuration updated",
   "AuditLogActivityType.PROJECT_APP_SECRET_VIEWED": "Project: Secret viewed",
   "AuditLogActivityType.PROJECT_BILLING_CHECKOUT_CREATED": "Project: Billing checkout crreated",
@@ -1504,6 +1547,7 @@
   "AuditLogActivityType.PROJECT_DOMAIN_CREATED": "Project: Domain created",
   "AuditLogActivityType.PROJECT_DOMAIN_DELETED": "Project: Domain deleted",
   "AuditLogActivityType.PROJECT_DOMAIN_VERIFIED": "Project: Domain verified",
+  "AuditLogActivityType.M2M_TOKEN_CREATED": "M2M Token Created",
 
   "FeatureConfig.disabled": "The grayed out features are not available for your project plan. {ReactRouterLink, react, to{{planPagePath}} children{Upgrade your project plan} target{_blank}}.",
   "FeatureConfig.custom-domain.disabled": "Custom domains are not available for your project plan. {ReactRouterLink, react, to{{planPagePath}} children{Upgrade your project plan}}.",
@@ -2116,6 +2160,78 @@
   "EditConfigurationScreen.warning.title": "Warning!",
   "EditConfigurationScreen.warning.content": "This page allows users to directly edit the Authgear project configuration in the Portal, but it is not recommended. Direct modifications to the config may cause incompatibilities that could lead to service downtime.{br, react}{br, react}If you decide to proceed with directly editing the configuration, first copy the content for backup. This helps restore normal operation if errors occur.",
   "EditConfigurationScreen.warning.confirm": "I understand the risks of this operation",
+
+  "APIResourcesScreen.title": "API Resources",
+  "APIResourcesScreen.description": "Set up API resources for authorized applications.",
+
+  "UnauthorizeApplicationDialog.title": "Revoke Application Access",
+  "UnauthorizeApplicationDialog.description": "This will revoke the application's access to all assigned resources and scopes. You can reauthorize it anytime from the integrations settings.",
+  "UnauthorizeApplicationDialog.unauthorize": "Revoke",
+
+  "CreateAPIResourceScreen.title": "Create API Resource",
+
+  "APIResourceDetailsScreen.tab.details": "Details",
+  "APIResourceDetailsScreen.tab.scopes": "Scopes",
+  "APIResourceDetailsScreen.tab.applications": "Applications",
+  "APIResourceDetailsScreen.tab.test": "Test",
+
+  "APIResourceDetailsScreen.test.authorizedApplications": "Authorized applications",
+  "APIResourceDetailsScreen.test.selectApplication": "Select an application",
+  "APIResourceDetailsScreen.test.selectApplication.empty": "No authorized applications yet.",
+  "APIResourceDetailsScreen.test.accessToken.title": "Access token",
+  "APIResourceDetailsScreen.test.accessToken.description": "Use this token to call the Resource",
+  "APIResourceDetailsScreen.test.accessToken.placeholder": "Press “Generate” to get the token.",
+  "APIResourceDetailsScreen.test.generateButton.text": "Generate",
+  "APIResourceDetailsScreen.test.pivot.curl.headerText": "CURL",
+  "APIResourceDetailsScreen.test.pivot.go.headerText": "Go",
+  "APIResourceDetailsScreen.test.pivot.nodejs.headerText": "NodeJS",
+  "APIResourceDetailsScreen.test.pivot.python.headerText": "Python",
+  "APIResourceDetailsScreen.test.requestToken.title": "Request token from Test Application",
+
+  "APIResourceDetailsScreen.scopes.description": "Define the scopes (permissions) used by this resource.",
+  "APIResourceDetailsScreen.applications.description": "Authorize applications to request access tokens for this resource.",
+  "APIResourceDetailsScreen.applications.empty": "No M2M or OIDC application yet. Create one in the {ReactRouterLink, react, to{{to}} children{Applications}} section to proceed.",
+
+  "APIResourceDetailsScreen.test.description": "Get an access token for your application to test the resource.",
+
+  "ApplicationList.columns.application": "Application",
+  "ApplicationList.columns.authorized": "Authorized",
+  "ApplicationList.columns.manageScopes": "Manage Scopes",
+
+  "ApplicationResourcesList.columns.resources": "Resources",
+  "ApplicationResourcesList.columns.authorized": "Authorized",
+  "ApplicationResourcesList.columns.manageScopes": "Manage Scopes",
+  "ApplicationResourcesList.empty": "No API Resources yet. To assign an API Resource to this application, please first create one in the {ReactRouterLink, react, to{{to}} children{API Resources}} section.",
+
+  "EditScopeScreen.title": "Edit Scope",
+
+  "ScopeForm.scope.label": "Scope",
+  "ScopeForm.description.label": "Description",
+
+  "CreateScopeForm.scope.label": "Scope",
+  "CreateScopeForm.description.label": "Description",
+  "CreateScopeForm.add.button": "Add Scope",
+  "CreateScopeForm.scope.placeholder": "read:orders",
+  "CreateScopeForm.description.placeholder": "e.g. Fetch order details",
+
+  "ScopeList.columns.scope": "Scope",
+  "ScopeList.columns.description": "Description",
+
+  "EditApplicationScopesList.columns.scope": "Authorized Scope",
+  "EditApplicationScopesList.select": "Select",
+  "EditApplicationScopesList.buttons.all": "All",
+  "EditApplicationScopesList.buttons.none": "None",
+  "EditApplicationScopesList.empty": "This API Resource has no scopes yet. Please add at least one scope to make it assignable.",
+
+  "DeleteScopeDialog.title": "Delete Scope",
+  "DeleteScopeDialog.description": "This action will permanently delete the scope \"{scope}\" and cannot be undone. Are you sure you want to proceed?",
+
+  "ResourceForm.name.label": "Name",
+  "ResourceForm.resourceURI.label": "Identifier",
+  "ResourceForm.name.description": "A human friendly name for display in the portal.",
+  "ResourceForm.resourceURI.description": "An identifier of the resource. It need not be a publicly available URI. Authgear will not access the URI at all.{br, react}The value appears as the {code, react, children{aud} class{inline-code}} (audience) claim in the access token.",
+  "ResourceForm.resourceURI.placeholder": "A URI starts with \"https://\"",
+  "ResourceForm.resourceURI.tooltip": "For example, use {code, react, children{https://api.myapp.com/v1} class{inline-code}} to represent your publicly available API server, or use {code, react, children{https://myapp.com/mcp/my-mcp} class{inline-code}} to represent a MCP server serving with stdio.",
 
   "LoginIDKeyType.email": "Email address",
   "LoginIDKeyType.phone": "Phone number",

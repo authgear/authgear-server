@@ -1,0 +1,63 @@
+name: Create Resource
+steps:
+  - action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation MyMutation {
+          createResource(input: {
+            resourceURI: "https://testresource1",
+            name: "Test resource"
+          }) {
+            resource {
+              id
+              name
+              resourceURI
+            }
+          }
+        }
+      variables: "{}"
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "createResource": {
+              "resource": {
+                "id": "[[string]]",
+                "name": "Test resource",
+                "resourceURI": "https://testresource1"
+              }
+            }
+          },
+          "errors": null
+        }
+---
+name: Create Resource rejected by invalid resourceURI
+steps:
+  - action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation MyMutation {
+          createResource(input: {
+            resourceURI: "customscheme://host",
+            name: "Test resource"
+          }) {
+            resource {
+              id
+              name
+              resourceURI
+            }
+          }
+        }
+      variables: "{}"
+    admin_api_output:
+      result: |
+        {
+          "data": null,
+          "errors": [
+            {
+              "extensions": {
+                "reason": "ValidationFailed"
+              }
+            }
+          ]
+        }
