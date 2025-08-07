@@ -14,7 +14,10 @@ import {
 } from "../../components/api-resources/CreateScopeForm";
 import { useCreateScopeMutationMutation } from "../../graphql/adminapi/mutations/createScopeMutation.generated";
 import { useDeleteScopeMutationMutation } from "../../graphql/adminapi/mutations/deleteScopeMutation.generated";
-import { useResourceScopesQueryQuery } from "../../graphql/adminapi/query/resourceScopesQuery.generated";
+import {
+  ResourceScopesQueryDocument,
+  useResourceScopesQueryQuery,
+} from "../../graphql/adminapi/query/resourceScopesQuery.generated";
 import { ScopeList } from "../../components/api-resources/ScopeList";
 import { encodeOffsetToCursor } from "../../util/pagination";
 import ShowError from "../../ShowError";
@@ -50,6 +53,8 @@ export function APIResourceDetailsScreenScopesTab({
             description: sanitized.description,
           },
         },
+        refetchQueries: [ResourceScopesQueryDocument],
+        awaitRefetchQueries: true,
       });
     },
     stateMode:
@@ -86,7 +91,7 @@ export function APIResourceDetailsScreenScopesTab({
       searchKeyword:
         debouncedSearchKeyword === "" ? undefined : debouncedSearchKeyword,
     },
-    fetchPolicy: "network-only",
+    fetchPolicy: "cache-and-network",
   });
 
   const scopes = useMemo(() => {
