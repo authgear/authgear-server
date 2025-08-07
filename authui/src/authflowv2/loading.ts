@@ -1,9 +1,35 @@
 import { Controller } from "@hotwired/stimulus";
-import { disableAllButtons } from "../loading";
 
 interface LoadingHandle {
   onError: () => void;
   onFinally: () => void;
+}
+
+function disableAllButtons(): () => void {
+  const buttons = document.querySelectorAll("button");
+  const original: [HTMLButtonElement, boolean][] = [];
+  for (let i = 0; i < buttons.length; i++) {
+    const button = buttons[i];
+    const disabled = button.disabled;
+    const state: [HTMLButtonElement, boolean] = [button, disabled];
+    button.disabled = true;
+    original.push(state);
+  }
+
+  return () => {
+    for (let i = 0; i < original.length; i++) {
+      const [button, disabled] = original[i];
+      button.disabled = disabled;
+    }
+  };
+}
+
+function makeAllButtonPointerEventsNone() {
+  const buttons = document.querySelectorAll("button");
+  for (let i = 0; i < buttons.length; i++) {
+    const button = buttons[i];
+    button.classList.add("pointer-events-none");
+  }
 }
 
 export class LoadingController extends Controller {
@@ -16,7 +42,27 @@ export class LoadingController extends Controller {
     this.revert = null;
   };
 
-  startLoading(e: HTMLElement | null): LoadingHandle {
+  onSubmit = (e: SubmitEvent) => {
+    // We do not call preventDefault() nor stopPropgation() here.
+    // We want the browser to submit the form.
+    // We just want to make the buttons no longer react to pointer events.
+
+    const form = e.target;
+    if (form instanceof HTMLFormElement) {
+      const turboFormController =
+        this.application.getControllerForElementAndIdentifier(
+          form,
+          "turbo-form"
+        );
+      // Detect if the form is controlled by turbo-form.
+      // We only step in if the form is NOT controlled by turbo-form.
+      if (turboFormController == null) {
+        makeAllButtonPointerEventsNone();
+      }
+    }
+  };
+
+  startTurboFormSubmission(e: HTMLElement | null): LoadingHandle {
     this.revert = disableAllButtons();
     e?.setAttribute("data-loading", "true");
 
@@ -34,9 +80,11 @@ export class LoadingController extends Controller {
 
   connect() {
     document.addEventListener("turbo:before-cache", this.beforeCache);
+    document.addEventListener("submit", this.onSubmit);
   }
 
   disconnect() {
     document.removeEventListener("turbo:before-cache", this.beforeCache);
+    document.removeEventListener("submit", this.onSubmit);
   }
 }
