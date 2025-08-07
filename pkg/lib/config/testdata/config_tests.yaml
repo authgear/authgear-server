@@ -1388,3 +1388,20 @@ config:
       - name: Test Client
         client_id: test-client
         x_application_type: m2m
+
+---
+name: oauth-m2m-client-access-token-lifetime-exceeds-max
+error: |-
+  invalid configuration:
+  /oauth/clients/0/access_token_lifetime_seconds: maximum
+    map[actual:3e+06 maximum:2.4192e+06]
+config:
+  id: test
+  http:
+    public_origin: http://test
+  oauth:
+    clients:
+      - name: Test Client M2M
+        client_id: test-client-m2m
+        x_application_type: m2m
+        access_token_lifetime_seconds: 3000000
