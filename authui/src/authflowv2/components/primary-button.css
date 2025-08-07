@@ -75,7 +75,8 @@
         ring-[color:var(--primary-btn\_\_ring-color--active)];
     }
 
-    &:disabled {
+    &:disabled,
+    &[data-disabled] {
       background-color: var(--primary-btn__bg-color--disabled);
       color: var(--primary-btn__text-color--disabled);
       @apply ring-inset
