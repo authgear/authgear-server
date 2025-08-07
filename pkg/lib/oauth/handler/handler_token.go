@@ -35,6 +35,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
+	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/resourcescope"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
@@ -128,6 +129,10 @@ type TokenHandlerAppSessionTokenStore interface {
 type TokenHandlerOfflineGrantService interface {
 	AccessOfflineGrant(ctx context.Context, id string, refreshTokenHash string, accessEvent *access.Event, expireAt time.Time) (*oauth.OfflineGrant, error)
 	GetOfflineGrant(ctx context.Context, id string) (*oauth.OfflineGrant, error)
+}
+
+type TokenHandlerRateLimiter interface {
+	Allow(ctx context.Context, spec ratelimit.BucketSpec) (*ratelimit.FailedReservation, error)
 }
 
 type TokenHandlerTokenService interface {
@@ -224,6 +229,7 @@ type TokenHandler struct {
 	CodeGrantService                CodeGrantService
 	ClientResolver                  OAuthClientResolver
 	UIInfoResolver                  UIInfoResolver
+	RateLimiter                     TokenHandlerRateLimiter
 
 	RemoteIP        httputil.RemoteIP
 	UserAgentString httputil.UserAgentString
@@ -577,6 +583,12 @@ func (h *TokenHandler) IssueTokensForAuthorizationCode(
 		return nil, err
 	}
 
+	if err := h.checkRateLimits(ctx, ratelimit.RateLimitOAuthTokenGeneral, ratelimit.ResolveBucketSpecOptions{
+		UserID: authz.UserID,
+	}); err != nil {
+		return nil, err
+	}
+
 	resp, err := h.doIssueTokensForAuthorizationCode(ctx, client, codeGrant, authz, deviceInfo, r.App2AppDeviceKeyJWT())
 	if err != nil {
 		return nil, err
@@ -607,6 +619,12 @@ func (h *TokenHandler) handleRefreshToken(
 
 	authz, offlineGrant, refreshTokenHash, err := h.TokenService.ParseRefreshToken(ctx, r.RefreshToken())
 	if err != nil {
+		return nil, err
+	}
+
+	if err := h.checkRateLimits(ctx, ratelimit.RateLimitOAuthTokenGeneral, ratelimit.ResolveBucketSpecOptions{
+		UserID: offlineGrant.GetUserID(),
+	}); err != nil {
 		return nil, err
 	}
 
@@ -763,6 +781,12 @@ func (h *TokenHandler) handlePreAuthenticatedURLToken(
 		offlineGrant = session
 		isAllowed = offlineGrant.HasAllScopes(offlineGrant.InitialClientID, []string{oauth.PreAuthenticatedURLScope})
 		scopes = offlineGrant.GetScopes(offlineGrant.InitialClientID)
+
+		if err := h.checkRateLimits(ctx, ratelimit.RateLimitOAuthTokenGeneral, ratelimit.ResolveBucketSpecOptions{
+			UserID: offlineGrant.GetUserID(),
+		}); err != nil {
+			return nil, err
+		}
 	}
 	if !isAllowed {
 		return nil, protocol.NewError("insufficient_scope", "pre-authenticated url is not allowed for this session")
@@ -905,6 +929,12 @@ func (h *TokenHandler) handleAnonymousRequest(
 		return nil, err
 	}
 
+	if err := h.checkRateLimits(ctx, ratelimit.RateLimitOAuthTokenGeneral, ratelimit.ResolveBucketSpecOptions{
+		UserID: graph.MustGetUserID(),
+	}); err != nil {
+		return nil, err
+	}
+
 	info := authenticationinfo.T{
 		UserID:          graph.MustGetUserID(),
 		AuthenticatedAt: h.Clock.NowUTC(),
@@ -1044,6 +1074,12 @@ func (h *TokenHandler) handleBiometricSetup(
 		return nil, protocol.NewErrorStatusCode("invalid_grant", "biometric setup requires authenticated user", http.StatusUnauthorized)
 	}
 
+	if err := h.checkRateLimits(ctx, ratelimit.RateLimitOAuthTokenGeneral, ratelimit.ResolveBucketSpecOptions{
+		UserID: s.GetAuthenticationInfo().UserID,
+	}); err != nil {
+		return nil, err
+	}
+
 	var graph *interaction.Graph
 	err := h.Graphs.DryRun(ctx, interaction.ContextValues{}, func(ctx context.Context, interactionCtx *interaction.Context) (*interaction.Graph, error) {
 		var err error
@@ -1141,6 +1177,12 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 	} else if errors.Is(err, api.ErrInvalidCredentials) {
 		return nil, protocol.NewError("invalid_grant", api.InvalidCredentials.Reason)
 	} else if err != nil {
+		return nil, err
+	}
+
+	if err := h.checkRateLimits(ctx, ratelimit.RateLimitOAuthTokenGeneral, ratelimit.ResolveBucketSpecOptions{
+		UserID: graph.MustGetUserID(),
+	}); err != nil {
 		return nil, err
 	}
 
@@ -1303,6 +1345,12 @@ func (h *TokenHandler) handleApp2AppRequest(
 		return nil, err
 	}
 
+	if err := h.checkRateLimits(ctx, ratelimit.RateLimitOAuthTokenGeneral, ratelimit.ResolveBucketSpecOptions{
+		UserID: originalOfflineGrant.GetUserID(),
+	}); err != nil {
+		return nil, err
+	}
+
 	offlineGrantSession, ok := originalOfflineGrant.ToSession(refreshTokenHash)
 	if !ok {
 		return nil, ErrInvalidRefreshToken
@@ -1410,6 +1458,12 @@ func (h *TokenHandler) handleIDToken(
 	s := session.GetSession(ctx)
 	if s == nil {
 		return nil, protocol.NewErrorStatusCode("invalid_grant", "valid session is required", http.StatusUnauthorized)
+	}
+
+	if err := h.checkRateLimits(ctx, ratelimit.RateLimitOAuthTokenGeneral, ratelimit.ResolveBucketSpecOptions{
+		UserID: s.GetAuthenticationInfo().UserID,
+	}); err != nil {
+		return nil, err
 	}
 
 	resp := protocol.TokenResponse{}
@@ -1885,6 +1939,12 @@ func (h *TokenHandler) IssueTokensForSettingsActionCode(
 		return nil, err
 	}
 
+	if err := h.checkRateLimits(ctx, ratelimit.RateLimitOAuthTokenGeneral, ratelimit.ResolveBucketSpecOptions{
+		UserID: "", // We don't know the user id
+	}); err != nil {
+		return nil, err
+	}
+
 	// Restore uiparam
 	uiInfo, _, err := h.UIInfoResolver.ResolveForAuthorizationEndpoint(ctx, client, settingsActionGrant.AuthorizationRequest)
 	if err != nil {
@@ -1952,6 +2012,12 @@ func (h *TokenHandler) handleClientCredentials(
 	client *config.OAuthClientConfig,
 	r protocol.TokenRequest,
 ) (httputil.Result, error) {
+	if err := h.checkRateLimits(ctx, ratelimit.RateLimitOAuthTokenGeneral, ratelimit.ResolveBucketSpecOptions{
+		ClientID: client.ClientID,
+	}); err != nil {
+		return nil, err
+	}
+
 	var maskedSecret string
 	var err error
 	if maskedSecret, err = h.validateClientSecret(client, r.ClientSecret()); err != nil {
@@ -2023,4 +2089,19 @@ func (h *TokenHandler) validateClientSecret(client *config.OAuthClientConfig, cl
 	}
 
 	return maskedSecret, nil
+}
+
+func (h *TokenHandler) checkRateLimits(ctx context.Context, rl ratelimit.RateLimit, opts ratelimit.ResolveBucketSpecOptions) error {
+	specs := rl.ResolveBucketSpecs(nil, nil, nil, &opts)
+	for _, spec := range specs {
+		spec := *spec
+		failedReservation, err := h.RateLimiter.Allow(ctx, spec)
+		if err != nil {
+			return err
+		}
+		if err := failedReservation.Error(); err != nil {
+			return err
+		}
+	}
+	return nil
 }
