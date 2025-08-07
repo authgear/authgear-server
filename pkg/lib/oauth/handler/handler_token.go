@@ -252,7 +252,7 @@ func (h *TokenHandler) Handle(ctx context.Context, rw http.ResponseWriter, req *
 			resultErr.StatusCode = oauthError.StatusCode
 			resultErr.Response = oauthError.Response
 		} else {
-			logger.WithError(err).Error(ctx, "authz handler failed")
+			logger.WithError(err).Error(ctx, "token handler failed")
 			resultErr.Response = protocol.NewErrorResponse("server_error", "internal server error")
 			resultErr.InternalError = true
 		}
@@ -2102,15 +2102,21 @@ func (h *TokenHandler) checkRateLimits(ctx context.Context, rl ratelimit.RateLim
 	finalOpts := opts
 	finalOpts.IPAddress = string(h.RemoteIP)
 	specs := rl.ResolveBucketSpecs(nil, nil, nil, &finalOpts)
+	var err error
 	for _, spec := range specs {
 		spec := *spec
-		failedReservation, err := h.RateLimiter.Allow(ctx, spec)
-		if err != nil {
-			return err
+		failedReservation, allowErr := h.RateLimiter.Allow(ctx, spec)
+		if allowErr != nil {
+			err = allowErr
+			break
 		}
-		if err := failedReservation.Error(); err != nil {
-			return err
+		if resvErr := failedReservation.Error(); resvErr != nil {
+			err = resvErr
+			break
 		}
+	}
+	if err != nil && apierrors.IsKind(err, ratelimit.RateLimited) {
+		return protocol.NewErrorStatusCode("x_rate_limited", "rate limit exceeded, please try again later.", http.StatusTooManyRequests)
 	}
 	return nil
 }

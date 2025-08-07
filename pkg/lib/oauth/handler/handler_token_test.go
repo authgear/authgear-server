@@ -133,6 +133,43 @@ func TestTokenHandler(t *testing.T) {
 				res := handle(ctx, req, r)
 				So(res.Result().StatusCode, ShouldEqual, 200)
 			})
+			Convey("rate limited", func() {
+				req, _ := http.NewRequest("POST", "/token", nil)
+				clientResolver.ClientConfig = &config.OAuthClientConfig{
+					ClientID: "app-id",
+				}
+				r := protocol.TokenRequest{}
+				r["grant_type"] = []string{"refresh_token"}
+				r["client_id"] = []string{"app-id"}
+				r["refresh_token"] = []string{"asdf"}
+				refreshTokenHash := "hash1"
+				offlineGrant := &oauth.OfflineGrant{
+					ID:    "offline-grant-id",
+					Attrs: *session.NewAttrs("user-id"),
+				}
+
+				tokenService.EXPECT().ParseRefreshToken(gomock.Any(), "asdf").Return(&oauth.Authorization{}, offlineGrant, refreshTokenHash, nil)
+
+				spec := ratelimit.BucketSpec{
+					Name:      ratelimit.OAuthTokenPerIP,
+					RateLimit: ratelimit.RateLimitOAuthTokenGeneral,
+					Arguments: []string{"1.2.3.4"},
+					Period:    time.Minute,
+					Burst:     120,
+					Enabled:   true,
+				}
+				rateLimiter.EXPECT().Allow(gomock.Any(), spec).Return(ratelimit.NewFailedReservation(spec), nil)
+
+				ctx := context.Background()
+				res := handle(ctx, req, r)
+				So(res.Result().StatusCode, ShouldEqual, 429)
+
+				var body map[string]interface{}
+				err := json.Unmarshal(res.Body.Bytes(), &body)
+				So(err, ShouldBeNil)
+				So(body["error"], ShouldEqual, "x_rate_limited")
+				So(body["error_description"], ShouldEqual, "rate limit exceeded, please try again later.")
+			})
 		})
 
 		Convey("token exchange: pre-authenticated-url-token", func() {

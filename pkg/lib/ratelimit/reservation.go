@@ -44,3 +44,10 @@ func (r *FailedReservation) GetTimeToAct() time.Time {
 	}
 	return r.timeToAct
 }
+
+// For test case only
+func NewFailedReservation(spec BucketSpec) *FailedReservation {
+	return &FailedReservation{
+		spec: spec,
+	}
+}
