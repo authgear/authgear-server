@@ -71,7 +71,7 @@ export class TurboFormController extends Controller {
         "loading"
       ) as LoadingController | null;
     const { onError: onLoadingError, onFinally: onLoadingFinally } =
-      loadingController?.startLoading(loadingButton) ?? {};
+      loadingController?.startTurboFormSubmission(loadingButton) ?? {};
     try {
       const resp = await axios(form.action, {
         method: form.method,
