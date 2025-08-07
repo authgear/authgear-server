@@ -2099,7 +2099,9 @@ func (h *TokenHandler) validateClientSecret(client *config.OAuthClientConfig, cl
 }
 
 func (h *TokenHandler) checkRateLimits(ctx context.Context, rl ratelimit.RateLimit, opts ratelimit.ResolveBucketSpecOptions) error {
-	specs := rl.ResolveBucketSpecs(nil, nil, nil, &opts)
+	finalOpts := opts
+	finalOpts.IPAddress = string(h.RemoteIP)
+	specs := rl.ResolveBucketSpecs(nil, nil, nil, &finalOpts)
 	for _, spec := range specs {
 		spec := *spec
 		failedReservation, err := h.RateLimiter.Allow(ctx, spec)
