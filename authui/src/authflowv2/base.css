@@ -15,7 +15,8 @@
     appearance: none;
   }
 
-  button:disabled {
+  button:disabled,
+  button[data-disabled] {
     cursor: not-allowed;
   }
 

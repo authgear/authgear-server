@@ -28,6 +28,12 @@ function makeAllButtonPointerEventsNone() {
   const buttons = document.querySelectorAll("button");
   for (let i = 0; i < buttons.length; i++) {
     const button = buttons[i];
+    // We cannot simply use button.disabled = true because
+    // in the event handler of "submit", disabling a button will cause it
+    // to be excluded from the form body.
+    //
+    // Therefore, we can only change our stylesheet to apply disabled style to [data-disabled] as well.
+    button.setAttribute("data-disabled", "true");
     button.classList.add("pointer-events-none");
   }
 }

@@ -70,7 +70,8 @@
       ring-[color:var(--input\_\_ring-color--focus)];
   }
 
-  &:disabled {
+  &:disabled,
+  &[data-disabled] {
     background-color: var(--input__bg-color--disabled);
     color: var(--input__text-color--disabled);
   }
