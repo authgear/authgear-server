@@ -822,6 +822,7 @@
   "CreateOAuthClientScreen.application-type.description.confidential": "Allow user to login with Authgear to access any other OIDC or SAML compatible application. e.g. Wordpress, Figma, Salesforce",
   "CreateOAuthClientScreen.application-type.description.third-party-app": "Legacy. Please create a new OIDC Client Application instead.",
   "CreateOAuthClientScreen.application-type.description.m2m": "Backend servers or loT devices",
+  "CreateOAuthClientScreen.application-type.description.m2m.disabled": "Backend servers or loT devices. {ReactRouterLink, react, to{{href}} children{Create an API resource}} before creating M2M applications.",
   "CreateOAuthClientScreen.authorize-resource.description": "At least one authorized API Resource is required. Please select an API resource that will be used by this application.",
 
   "EditOAuthClientScreen.client-not-found": "Client ID {clientID} is not found",
