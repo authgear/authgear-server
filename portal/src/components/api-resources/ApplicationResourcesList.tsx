@@ -32,7 +32,7 @@ interface ApplicationResourcesListProps {
     isAuthorized: boolean
   ) => void;
   disabledToggleClientIDs?: string[];
-  onManageScopes: (item: ApplicationResourceListItem) => void;
+  onManageScopes?: (item: ApplicationResourceListItem) => void;
 }
 
 export const ApplicationResourcesList: React.FC<ApplicationResourcesListProps> =
@@ -65,54 +65,57 @@ export const ApplicationResourcesList: React.FC<ApplicationResourcesListProps> =
     );
 
     const columns: IColumn[] = useMemo(
-      () => [
-        {
-          key: "resources",
-          name: renderToString("ApplicationResourcesList.columns.resources"),
-          minWidth: 200,
-          maxWidth: 400,
-          isResizable: true,
-          onRender: (item: ApplicationResourceListItem) => {
-            return item.name || item.resourceURI;
+      () =>
+        [
+          {
+            key: "resources",
+            name: renderToString("ApplicationResourcesList.columns.resources"),
+            minWidth: 200,
+            maxWidth: 400,
+            isResizable: true,
+            onRender: (item: ApplicationResourceListItem) => {
+              return item.name || item.resourceURI;
+            },
           },
-        },
-        {
-          key: "authorized",
-          name: renderToString("ApplicationResourcesList.columns.authorized"),
-          minWidth: 150,
-          isResizable: true,
-          onRender: renderAuthorizedToggle,
-        },
-        {
-          key: "actions",
-          name: "",
-          minWidth: 100,
-          maxWidth: 100,
-          isResizable: false,
-          // eslint-disable-next-line react/no-unstable-nested-components
-          onRender: (item: ApplicationResourceListItem) => {
-            if (!item.isAuthorized) {
-              return null;
-            }
-            const handleClick = () => {
-              onManageScopes(item);
-            };
-            return (
-              <ActionButton
-                text={renderToString(
-                  "ApplicationResourcesList.columns.manageScopes"
-                )}
-                styles={{
-                  label: { fontWeight: 600 },
-                  root: { height: "auto" },
-                }}
-                theme={themes.actionButton}
-                onClick={handleClick}
-              />
-            );
+          {
+            key: "authorized",
+            name: renderToString("ApplicationResourcesList.columns.authorized"),
+            minWidth: 150,
+            isResizable: true,
+            onRender: renderAuthorizedToggle,
           },
-        },
-      ],
+          onManageScopes
+            ? {
+                key: "actions",
+                name: "",
+                minWidth: 100,
+                maxWidth: 100,
+                isResizable: false,
+                // eslint-disable-next-line react/no-unstable-nested-components
+                onRender: (item: ApplicationResourceListItem) => {
+                  if (!item.isAuthorized) {
+                    return null;
+                  }
+                  const handleClick = () => {
+                    onManageScopes(item);
+                  };
+                  return (
+                    <ActionButton
+                      text={renderToString(
+                        "ApplicationResourcesList.columns.manageScopes"
+                      )}
+                      styles={{
+                        label: { fontWeight: 600 },
+                        root: { height: "auto" },
+                      }}
+                      theme={themes.actionButton}
+                      onClick={handleClick}
+                    />
+                  );
+                },
+              }
+            : null,
+        ].filter((it) => !!it),
       [
         renderToString,
         renderAuthorizedToggle,
