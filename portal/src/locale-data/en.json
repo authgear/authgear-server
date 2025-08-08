@@ -906,8 +906,8 @@
   "EditOAuthClientForm.app2app.uris.description": "Setup universal link for iOS and app links for Android in {ReactRouterLink, react, to{#uris} children{Authorized Redirect URIs} preserveDefault{true}} to handle the App2App requests",
   "EditOAuthClientForm.more-options": "More options",
   "EditOAuthClientForm.resources.title": "Resources",
-  "EditOAuthClientForm.quick-start.m2m.title": "Machine-to-Machine",
-  "EditOAuthClientForm.quick-start.m2m.description": "Backend servers or IoT devices",
+  "EditOAuthClientForm.quick-start.m2m.title": "Machine-to-Machine Application",
+  "EditOAuthClientForm.quick-start.m2m.description": "A program running on backend servers or IoT devices that call an API resources where there is no user interaction. Learn more in {DocLink, react, href{https://docs.authgear.com/get-started/m2m-applications} children{the documentation}}.",
   "EditOAuthClientForm.quick-start.m2m.step1.title": "Obtain an access token by calling the token endpoint",
   "EditOAuthClientForm.quick-start.m2m.step1.select-api-resource": "Select the API Resource",
   "EditOAuthClientForm.quick-start.m2m.step1.select-api-resource.placeholder": "Select API Resource",
@@ -2164,7 +2164,7 @@
   "EditConfigurationScreen.warning.confirm": "I understand the risks of this operation",
 
   "APIResourcesScreen.title": "API Resources",
-  "APIResourcesScreen.description": "Set up API resources for authorized applications.",
+  "APIResourcesScreen.description": "Set up API resources for authorized applications. Learn more in {DocLink, react, href{https://docs.authgear.com/get-started/m2m-applications} children{the documentation}}.",
 
   "UnauthorizeApplicationDialog.title": "Revoke Application Access",
   "UnauthorizeApplicationDialog.description": "This will revoke the application's access to all assigned resources and scopes. You can reauthorize it anytime from the integrations settings.",
