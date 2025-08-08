@@ -15,15 +15,14 @@
       let
         pkgs = import nixpkgs {
           inherit system;
-          # Build 1.24.4 ourselves.
           overlays = [
             (final: prev: {
               go = (
                 prev.go.overrideAttrs {
-                  version = "1.24.4";
+                  version = "1.24.6";
                   src = prev.fetchurl {
-                    url = "https://go.dev/dl/go1.24.4.src.tar.gz";
-                    hash = "sha256-WoaoOjH5+oFJC4xUIKw4T9PZWj5x+6Zlx7P5XR3+8rQ=";
+                    url = "https://go.dev/dl/go1.24.6.src.tar.gz";
+                    hash = "sha256-4ctVgqq1iGaLwEwH3hhogHD2uMmyqvNh+CHhm9R8/b0=";
                   };
                 }
               );
@@ -34,7 +33,6 @@
       {
         devShells.default = pkgs.mkShell {
           packages = [
-            # 1.24.4
             pkgs.go
             # Any nodejs 20 is fine.
             pkgs.nodejs_20
