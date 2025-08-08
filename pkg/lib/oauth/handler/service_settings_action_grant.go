@@ -20,6 +20,7 @@ type SettingsActionGrantService struct {
 type CreateSettingsActionGrantOptions struct {
 	RedirectURI          string
 	AuthorizationRequest protocol.AuthorizationRequest
+	UserID               string
 }
 
 func (s *SettingsActionGrantService) CreateSettingsActionGrant(ctx context.Context, opts *CreateSettingsActionGrantOptions) (code string, grant *oauth.SettingsActionGrant, err error) {
@@ -27,7 +28,8 @@ func (s *SettingsActionGrantService) CreateSettingsActionGrant(ctx context.Conte
 	codeHash := oauth.HashToken(code)
 
 	settingsActionGrant := &oauth.SettingsActionGrant{
-		AppID: string(s.AppID),
+		AppID:  string(s.AppID),
+		UserID: opts.UserID,
 
 		CreatedAt: s.Clock.NowUTC(),
 		ExpireAt:  s.Clock.NowUTC().Add(SettingsActionGrantValidDuration),

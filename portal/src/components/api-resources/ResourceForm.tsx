@@ -25,9 +25,11 @@ export interface ResourceFormProps {
 }
 
 export function sanitizeFormState(state: ResourceFormState): ResourceFormState {
+  const resourceURI = state.resourceURI.trim();
+
   return {
     name: state.name.trim(),
-    resourceURI: state.resourceURI.trim(),
+    resourceURI: resourceURI ? `https://${resourceURI}` : "",
   };
 }
 
@@ -41,11 +43,16 @@ export const ResourceForm: React.VFC<ResourceFormProps> =
   function ResourceForm({ className, state, setState, mode }) {
     const { renderToString } = useContext(Context);
     const handleNameChange = useCallback(
-      (_e, value) => setState((s) => ({ ...s, name: value ?? "" })),
+      (_e, value?: string) => setState((s) => ({ ...s, name: value ?? "" })),
       [setState]
     );
     const handleResourceURIChange = useCallback(
-      (_e, value) => setState((s) => ({ ...s, resourceURI: value ?? "" })),
+      (_e, value?: string) =>
+        setState((s) => {
+          let resourceURI = value ?? "";
+          resourceURI = resourceURI.replace(/^(\s*)https:\/\//, "");
+          return { ...s, resourceURI: resourceURI };
+        }),
       [setState]
     );
     const { onSubmit, canSave, isUpdating } = useFormContainerBaseContext();
@@ -104,11 +111,9 @@ export const ResourceForm: React.VFC<ResourceFormProps> =
               fieldName="resourceURI"
               parentJSONPointer=""
               type="text"
+              prefix="https://"
               value={state.resourceURI}
               onChange={handleResourceURIChange}
-              placeholder={renderToString(
-                "ResourceForm.resourceURI.placeholder"
-              )}
             />
           )}
         </div>

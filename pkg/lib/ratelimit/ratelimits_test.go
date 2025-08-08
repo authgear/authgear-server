@@ -23,6 +23,7 @@ func TestRateLimits(t *testing.T) {
 		target := "test@example.com"
 		phone := "+1555000123"
 		purpose := "testpurpose"
+		clientID := "testclient"
 		Convey("authentication.password", func() {
 			rl := RateLimitAuthenticationPassword
 			Convey("set in config", func() {
@@ -2319,6 +2320,32 @@ func TestRateLimits(t *testing.T) {
 						Burst:     6,
 					},
 				})
+			})
+		})
+
+		Convey("oauth.token.client_credentials", func() {
+			rl := RateLimitOAuthTokenClientCredentials
+			Convey("is enabled", func() {
+				specs := rl.ResolveBucketSpecs(nil, nil, nil, &ResolveBucketSpecOptions{
+					ClientID: clientID,
+				})
+				So(specs, ShouldResemble, []*BucketSpec{{
+					RateLimit: rl,
+					Name:      OAuthTokenClientCredentialsPerClient,
+					Arguments: []string{clientID},
+					IsGlobal:  false,
+					Enabled:   true,
+					Period:    config.DurationString("1m").Duration(),
+					Burst:     5,
+				}, {
+					RateLimit: rl,
+					Name:      OAuthTokenClientCredentialsPerProject,
+					Arguments: nil,
+					IsGlobal:  false,
+					Enabled:   true,
+					Period:    config.DurationString("1m").Duration(),
+					Burst:     20,
+				}})
 			})
 		})
 	})

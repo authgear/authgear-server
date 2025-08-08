@@ -46,6 +46,7 @@ interface UseAppSecretConfigFormOptions<State> {
   constructConfig: ConfigConstructor<State>;
   constructSecretUpdateInstruction?: SecretUpdateInstructionConstructor<State>;
   constructInitialCurrentState?: InitialCurrentStateConstructor<State>;
+  postSave?: (state: State) => Promise<void>;
 }
 
 export function useAppSecretConfigForm<State>(
@@ -58,6 +59,7 @@ export function useAppSecretConfigForm<State>(
     constructConfig,
     constructSecretUpdateInstruction,
     constructInitialCurrentState,
+    postSave,
   } = options;
 
   const {
@@ -186,24 +188,26 @@ export function useAppSecretConfigForm<State>(
         });
         await reload();
         setCurrentState(null);
+        await postSave?.(currentState);
       } finally {
         setIsUpdating(false);
       }
     },
     [
       rawAppConfig,
-      rawAppConfigChecksum,
       currentState,
       isDirty,
       isUpdating,
       constructConfig,
       secrets,
-      secretConfigChecksum,
       initialState,
       effectiveConfig,
       constructSecretUpdateInstruction,
       updateConfig,
+      rawAppConfigChecksum,
+      secretConfigChecksum,
       reload,
+      postSave,
     ]
   );
 

@@ -307,6 +307,14 @@ func (d AuthgearYAMLDescriptor) validateOAuthClients(validationCtx *validation.C
 	if len(addedClientIds) > 0 && len(removedClientIds) > 0 {
 		validationCtx.Child("oauth", "clients").EmitErrorMessage("client ids cannot be changed")
 	}
+
+	// Validate the final clients length <= 50
+	const maxFinalOAuthClients = 50
+	if len(incoming.OAuth.Clients) > maxFinalOAuthClients {
+		validationCtx.Child("oauth", "clients").EmitErrorMessage(
+			fmt.Sprintf("exceed the maximum number of oauth clients, actual: %d, expected: %d", len(incoming.OAuth.Clients), maxFinalOAuthClients),
+		)
+	}
 }
 
 func (d AuthgearYAMLDescriptor) validateBasedOnFeatureConfig(appConfig *config.AppConfig, fc *config.FeatureConfig) error {

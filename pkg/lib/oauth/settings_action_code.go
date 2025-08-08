@@ -7,7 +7,8 @@ import (
 )
 
 type SettingsActionGrant struct {
-	AppID string `json:"app_id"`
+	AppID  string `json:"app_id"`
+	UserID string `json:"user_id,omitempty"`
 
 	CreatedAt time.Time `json:"created_at"`
 	ExpireAt  time.Time `json:"expire_at"`
