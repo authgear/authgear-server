@@ -15,14 +15,10 @@ import { handleAxiosError } from "./alert-message";
 // If we rely on Turbo to handle form submission,
 // the post login redirect URI will be broken.
 // Therefore, we reverted to handle form submission ourselves.
-// To disable the builtin form submission of Turbo,
-// I studied its source code and discovered that
-// Turbo checked in the bubble event listener to see if
-// the event is prevented.
-// So I added a capture event listener to call preventDefault()
-// to stop Turbo from submitting forms.
-//
 // See https://github.com/authgear/authgear-server/issues/2333
+//
+// To disable the builtin form submission of Turbo,
+// we call `Turbo.setFormMode("off")`.
 export class TurboFormController extends Controller {
   forms: HTMLFormElement[] = [];
 
@@ -32,10 +28,6 @@ export class TurboFormController extends Controller {
     const form = e.currentTarget;
     if (!(form instanceof HTMLFormElement)) {
       throw new Error("expected event.currentTarget to be a HTMLFormElement");
-    }
-
-    if (form.querySelector('[data-turbo="false"]')) {
-      return;
     }
 
     // Do not stop propagation so that GTM can recognize the event as Form Submission trigger.
@@ -79,7 +71,7 @@ export class TurboFormController extends Controller {
         "loading"
       ) as LoadingController | null;
     const { onError: onLoadingError, onFinally: onLoadingFinally } =
-      loadingController?.startLoading(loadingButton) ?? {};
+      loadingController?.startTurboFormSubmission(loadingButton) ?? {};
     try {
       const resp = await axios(form.action, {
         method: form.method,
