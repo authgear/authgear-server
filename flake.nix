@@ -15,7 +15,6 @@
       let
         pkgs = import nixpkgs {
           inherit system;
-          # Build 1.24.4 ourselves.
           overlays = [
             (final: prev: {
               go = (
@@ -34,7 +33,6 @@
       {
         devShells.default = pkgs.mkShell {
           packages = [
-            # 1.24.4
             pkgs.go
             # Any nodejs 20 is fine.
             pkgs.nodejs_20
