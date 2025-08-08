@@ -1940,8 +1940,7 @@ func (h *TokenHandler) IssueTokensForSettingsActionCode(
 		return nil, err
 	}
 
-	// FIXME(tung): Add user id
-	if err := h.checkUserRateLimit(ctx, ""); err != nil {
+	if err := h.checkUserRateLimit(ctx, settingsActionGrant.UserID); err != nil {
 		return nil, err
 	}
 
