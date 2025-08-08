@@ -18,6 +18,7 @@ import {
 import { encodeOffsetToCursor } from "../../util/pagination";
 import { PaginationProps } from "../../PaginationWidget";
 import { useDebounced } from "../../hook/useDebounced";
+import { useAddResourceToClientIdMutation } from "../adminapi/mutations/addResourceToClientID.generated";
 
 import ScreenContent from "../../ScreenContent";
 import ShowError from "../../ShowError";
@@ -51,7 +52,7 @@ interface FormState {
   clients: OAuthClientConfig[];
   newClient: OAuthClientConfig;
   step: FormStep;
-  authorizeResourceIDs: string[];
+  authorizeResourceURIs: string[];
 }
 
 enum FormStep {
@@ -70,7 +71,7 @@ function constructFormState(
       client_id: genRandomHexadecimalString(),
     },
     step: FormStep.SelectType,
-    authorizeResourceIDs: [],
+    authorizeResourceURIs: [],
   };
 }
 
@@ -392,8 +393,8 @@ const StepAuthorizeResource: React.VFC<StepAuthorizeResourceProps> =
           ?.map((edge) => edge?.node)
           .filter((node) => !!node) ?? [];
       return resources.map((resource) => {
-        const isAuthorized = form.state.authorizeResourceIDs.includes(
-          resource.id
+        const isAuthorized = form.state.authorizeResourceURIs.includes(
+          resource.resourceURI
         );
         return {
           id: resource.id,
@@ -402,18 +403,18 @@ const StepAuthorizeResource: React.VFC<StepAuthorizeResourceProps> =
           isAuthorized: isAuthorized,
         };
       });
-    }, [data?.resources?.edges, form.state.authorizeResourceIDs]);
+    }, [data?.resources?.edges, form.state.authorizeResourceURIs]);
 
     const handleToggleAuthorization = useCallback(
       (item: ApplicationResourceListItem, isAuthorized: boolean) => {
         form.setState((s) => {
-          const ids = new Set(s.authorizeResourceIDs);
+          const uris = new Set(s.authorizeResourceURIs);
           if (isAuthorized) {
-            ids.add(item.id);
+            uris.add(item.resourceURI);
           } else {
-            ids.delete(item.id);
+            uris.delete(item.resourceURI);
           }
-          return { ...s, authorizeResourceIDs: Array.from(ids) };
+          return { ...s, authorizeResourceURIs: Array.from(uris) };
         });
       },
       [form]
@@ -570,6 +571,8 @@ const CreateOAuthClientContent: React.VFC<CreateOAuthClientContentProps> =
 
 const CreateOAuthClientScreen: React.VFC = function CreateOAuthClientScreen() {
   const { appID } = useParams() as { appID: string };
+  const [addResource] = useAddResourceToClientIdMutation();
+
   const form = useAppSecretConfigForm({
     appID,
     secretVisitToken: null,
@@ -577,6 +580,24 @@ const CreateOAuthClientScreen: React.VFC = function CreateOAuthClientScreen() {
     constructConfig,
     constructInitialCurrentState,
     constructSecretUpdateInstruction,
+    postSave: useCallback(
+      async (state: FormState) => {
+        if (state.newClient.x_application_type !== "m2m") {
+          return;
+        }
+        const clientID = state.newClient.client_id;
+        const uris = state.authorizeResourceURIs;
+        for (const resourceURI of uris) {
+          await addResource({
+            variables: {
+              clientID,
+              resourceURI,
+            },
+          });
+        }
+      },
+      [addResource]
+    ),
   });
 
   const { isLoading, loadError, reload, updateError, isUpdating } = form;
