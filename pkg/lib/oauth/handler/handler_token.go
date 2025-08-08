@@ -1136,6 +1136,7 @@ func (h *TokenHandler) handleBiometricSetup(
 	return tokenResultEmpty{}, nil
 }
 
+//nolint:gocognit
 func (h *TokenHandler) handleBiometricAuthenticate(
 	ctx context.Context,
 	client *config.OAuthClientConfig,

@@ -42,8 +42,8 @@ const (
 	RateLimitMessagingEmail RateLimit = "messaging.email"
 
 	// Token endpoint rate limits
-	RateLimitOAuthTokenGeneral           RateLimit = "oauth.token.general"
-	RateLimitOAuthTokenClientCredentials RateLimit = "oauth.token.client_credentials"
+	RateLimitOAuthTokenGeneral           RateLimit = "oauth.token.general"            // #nosec G101
+	RateLimitOAuthTokenClientCredentials RateLimit = "oauth.token.client_credentials" // #nosec G101
 )
 
 const (
@@ -113,8 +113,8 @@ const (
 
 	PresignImageUploadRequestPerUser BucketName = "PresignImageUploadRequestPerUser"
 
-	OAuthTokenPerIP                       BucketName = "OAuthTokenPerIP"
-	OAuthTokenPerUser                     BucketName = "OAuthTokenPerUser"
+	OAuthTokenPerIP                       BucketName = "OAuthTokenPerIP"   // #nosec G101
+	OAuthTokenPerUser                     BucketName = "OAuthTokenPerUser" // #nosec G101
 	OAuthTokenClientCredentialsPerClient  BucketName = "OAuthTokenClientCredentialsPerClient"
 	OAuthTokenClientCredentialsPerProject BucketName = "OAuthTokenClientCredentialsPerProject"
 )
