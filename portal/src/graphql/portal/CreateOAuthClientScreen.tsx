@@ -45,6 +45,7 @@ import {
   useAppSecretConfigForm,
 } from "../../hook/useAppSecretConfigForm";
 import LinkButton from "../../LinkButton";
+import { useAppContext } from "../../context/AppContext";
 
 interface FormState {
   clients: OAuthClientConfig[];
@@ -176,8 +177,16 @@ interface StepSelectApplicationTypeProps {
 const StepSelectApplicationType: React.VFC<StepSelectApplicationTypeProps> =
   function StepSelectApplicationType(props) {
     const { client, form, onClickSave } = props;
+    const { appNodeID } = useAppContext();
     const { state, setState, isDirty, isUpdating } = form;
     const { renderToString } = useContext(Context);
+
+    const { data } = useResourcesQueryQuery({
+      variables: {
+        first: 1,
+      },
+      fetchPolicy: "cache-and-network",
+    });
 
     const onClientConfigChange = useCallback(
       (newClient: OAuthClientConfig) => {
@@ -206,6 +215,8 @@ const StepSelectApplicationType: React.VFC<StepSelectApplicationTypeProps> =
         );
       };
     }, []);
+
+    const hasNoAPIResources = (data?.resources?.totalCount ?? 0) === 0;
 
     const options: IChoiceGroupOption[] = useMemo(() => {
       return [
@@ -262,13 +273,25 @@ const StepSelectApplicationType: React.VFC<StepSelectApplicationTypeProps> =
           key: "m2m",
           text: renderToString("oauth-client.application-type.m2m"),
           onRenderLabel: onRenderLabel(
-            renderToString(
-              "CreateOAuthClientScreen.application-type.description.m2m"
-            )
+            (
+              <FormattedMessage
+                id={
+                  hasNoAPIResources
+                    ? "CreateOAuthClientScreen.application-type.description.m2m.disabled"
+                    : "CreateOAuthClientScreen.application-type.description.m2m"
+                }
+                values={{
+                  href: `/project/${encodeURIComponent(
+                    appNodeID
+                  )}/api-resources/create`,
+                }}
+              />
+            ) as any as string
           ),
+          disabled: hasNoAPIResources,
         },
       ];
-    }, [renderToString, onRenderLabel]);
+    }, [renderToString, onRenderLabel, appNodeID, hasNoAPIResources]);
 
     const onApplicationChange = useCallback(
       (_e: unknown, option?: IChoiceGroupOption) => {
@@ -438,7 +461,11 @@ const StepAuthorizeResource: React.VFC<StepAuthorizeResourceProps> =
             disabled={!isDirty}
             labelId="save"
           />
-          <LinkButton>
+          <LinkButton
+            onClick={() => {
+              form.setState((s) => ({ ...s, step: FormStep.SelectType }));
+            }}
+          >
             <FormattedMessage id="back" />
           </LinkButton>
         </div>
