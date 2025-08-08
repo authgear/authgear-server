@@ -28,6 +28,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/dpop"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	interactionintents "github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
@@ -201,6 +202,8 @@ type TokenHandlerClientResourceScopeService interface {
 }
 
 type TokenHandler struct {
+	Database *appdb.Handle
+
 	AppID                  config.AppID
 	AppDomains             config.AppDomains
 	HTTPProto              httputil.HTTPProto
@@ -236,16 +239,9 @@ type TokenHandler struct {
 }
 
 func (h *TokenHandler) Handle(ctx context.Context, rw http.ResponseWriter, req *http.Request, r protocol.TokenRequest) httputil.Result {
-	logger := TokenHandlerLogger.GetLogger(ctx)
-	ctx, client := resolveClient(ctx, h.ClientResolver, r.ClientID())
-	if client == nil {
-		return tokenResultError{
-			Response: protocol.NewErrorResponse("invalid_client", "invalid client ID"),
-		}
-	}
 
-	result, err := h.doHandle(ctx, rw, req, client, r)
-	if err != nil {
+	logger := TokenHandlerLogger.GetLogger(ctx)
+	errorResult := func(err error) httputil.Result {
 		var oauthError *protocol.OAuthProtocolError
 		resultErr := tokenResultError{}
 		if errors.As(err, &oauthError) {
@@ -256,9 +252,30 @@ func (h *TokenHandler) Handle(ctx context.Context, rw http.ResponseWriter, req *
 			resultErr.Response = protocol.NewErrorResponse("server_error", "internal server error")
 			resultErr.InternalError = true
 		}
-		result = resultErr
+		return resultErr
 	}
 
+	ipRateLimitBucket := NewBucketSpecOAuthTokenPerIP(string(h.RemoteIP))
+	if err := h.checkRateLimit(ctx, ipRateLimitBucket); err != nil {
+		return errorResult(err)
+	}
+	ctx, client := resolveClient(ctx, h.ClientResolver, r.ClientID())
+	if client == nil {
+		return tokenResultError{
+			Response: protocol.NewErrorResponse("invalid_client", "invalid client ID"),
+		}
+	}
+
+	var err error
+	var result httputil.Result
+	err = h.Database.WithTx(ctx, func(ctx context.Context) error {
+		r, handleErr := h.doHandle(ctx, rw, req, client, r)
+		result = r
+		return handleErr
+	})
+	if err != nil {
+		return errorResult(err)
+	}
 	return result
 }
 
@@ -583,9 +600,7 @@ func (h *TokenHandler) IssueTokensForAuthorizationCode(
 		return nil, err
 	}
 
-	if err := h.checkRateLimits(ctx, ratelimit.RateLimitOAuthTokenGeneral, ratelimit.ResolveBucketSpecOptions{
-		UserID: authz.UserID,
-	}); err != nil {
+	if err := h.checkUserRateLimit(ctx, authz.UserID); err != nil {
 		return nil, err
 	}
 
@@ -622,9 +637,7 @@ func (h *TokenHandler) handleRefreshToken(
 		return nil, err
 	}
 
-	if err := h.checkRateLimits(ctx, ratelimit.RateLimitOAuthTokenGeneral, ratelimit.ResolveBucketSpecOptions{
-		UserID: offlineGrant.GetUserID(),
-	}); err != nil {
+	if err := h.checkUserRateLimit(ctx, offlineGrant.GetUserID()); err != nil {
 		return nil, err
 	}
 
@@ -782,9 +795,7 @@ func (h *TokenHandler) handlePreAuthenticatedURLToken(
 		isAllowed = offlineGrant.HasAllScopes(offlineGrant.InitialClientID, []string{oauth.PreAuthenticatedURLScope})
 		scopes = offlineGrant.GetScopes(offlineGrant.InitialClientID)
 
-		if err := h.checkRateLimits(ctx, ratelimit.RateLimitOAuthTokenGeneral, ratelimit.ResolveBucketSpecOptions{
-			UserID: offlineGrant.GetUserID(),
-		}); err != nil {
+		if err := h.checkUserRateLimit(ctx, offlineGrant.GetUserID()); err != nil {
 			return nil, err
 		}
 	}
@@ -929,9 +940,7 @@ func (h *TokenHandler) handleAnonymousRequest(
 		return nil, err
 	}
 
-	if err := h.checkRateLimits(ctx, ratelimit.RateLimitOAuthTokenGeneral, ratelimit.ResolveBucketSpecOptions{
-		UserID: graph.MustGetUserID(),
-	}); err != nil {
+	if err := h.checkUserRateLimit(ctx, graph.MustGetUserID()); err != nil {
 		return nil, err
 	}
 
@@ -1074,9 +1083,7 @@ func (h *TokenHandler) handleBiometricSetup(
 		return nil, protocol.NewErrorStatusCode("invalid_grant", "biometric setup requires authenticated user", http.StatusUnauthorized)
 	}
 
-	if err := h.checkRateLimits(ctx, ratelimit.RateLimitOAuthTokenGeneral, ratelimit.ResolveBucketSpecOptions{
-		UserID: s.GetAuthenticationInfo().UserID,
-	}); err != nil {
+	if err := h.checkUserRateLimit(ctx, s.GetAuthenticationInfo().UserID); err != nil {
 		return nil, err
 	}
 
@@ -1180,9 +1187,7 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 		return nil, err
 	}
 
-	if err := h.checkRateLimits(ctx, ratelimit.RateLimitOAuthTokenGeneral, ratelimit.ResolveBucketSpecOptions{
-		UserID: graph.MustGetUserID(),
-	}); err != nil {
+	if err := h.checkUserRateLimit(ctx, graph.MustGetUserID()); err != nil {
 		return nil, err
 	}
 
@@ -1345,9 +1350,7 @@ func (h *TokenHandler) handleApp2AppRequest(
 		return nil, err
 	}
 
-	if err := h.checkRateLimits(ctx, ratelimit.RateLimitOAuthTokenGeneral, ratelimit.ResolveBucketSpecOptions{
-		UserID: originalOfflineGrant.GetUserID(),
-	}); err != nil {
+	if err := h.checkUserRateLimit(ctx, originalOfflineGrant.GetUserID()); err != nil {
 		return nil, err
 	}
 
@@ -1460,9 +1463,7 @@ func (h *TokenHandler) handleIDToken(
 		return nil, protocol.NewErrorStatusCode("invalid_grant", "valid session is required", http.StatusUnauthorized)
 	}
 
-	if err := h.checkRateLimits(ctx, ratelimit.RateLimitOAuthTokenGeneral, ratelimit.ResolveBucketSpecOptions{
-		UserID: s.GetAuthenticationInfo().UserID,
-	}); err != nil {
+	if err := h.checkUserRateLimit(ctx, s.GetAuthenticationInfo().UserID); err != nil {
 		return nil, err
 	}
 
@@ -1939,11 +1940,8 @@ func (h *TokenHandler) IssueTokensForSettingsActionCode(
 		return nil, err
 	}
 
-	if err := h.checkRateLimits(ctx, ratelimit.RateLimitOAuthTokenGeneral, ratelimit.ResolveBucketSpecOptions{
-		// Note(tung): We don't know the user id in settings action
-		// Maybe not important for now because it is only for settings page use
-		UserID: "",
-	}); err != nil {
+	// FIXME(tung): Add user id
+	if err := h.checkUserRateLimit(ctx, ""); err != nil {
 		return nil, err
 	}
 
@@ -2015,14 +2013,15 @@ func (h *TokenHandler) handleClientCredentials(
 	r protocol.TokenRequest,
 ) (httputil.Result, error) {
 	ratelimitOpts := ratelimit.ResolveBucketSpecOptions{
-		UserID:   "", // No user participate in this flow
 		ClientID: client.ClientID,
 	}
-	if err := h.checkRateLimits(ctx, ratelimit.RateLimitOAuthTokenGeneral, ratelimitOpts); err != nil {
-		return nil, err
-	}
-	if err := h.checkRateLimits(ctx, ratelimit.RateLimitOAuthTokenClientCredentials, ratelimitOpts); err != nil {
-		return nil, err
+	specs := ratelimit.RateLimitOAuthTokenClientCredentials.ResolveBucketSpecs(nil, nil, nil, &ratelimitOpts)
+	for _, spec := range specs {
+		spec := *spec
+		if err := h.checkRateLimit(ctx, spec); err != nil {
+			return nil, err
+		}
+
 	}
 
 	var maskedSecret string
@@ -2098,25 +2097,23 @@ func (h *TokenHandler) validateClientSecret(client *config.OAuthClientConfig, cl
 	return maskedSecret, nil
 }
 
-func (h *TokenHandler) checkRateLimits(ctx context.Context, rl ratelimit.RateLimit, opts ratelimit.ResolveBucketSpecOptions) error {
-	finalOpts := opts
-	finalOpts.IPAddress = string(h.RemoteIP)
-	specs := rl.ResolveBucketSpecs(nil, nil, nil, &finalOpts)
+func (h *TokenHandler) checkUserRateLimit(ctx context.Context, userID string) error {
+	spec := NewBucketSpecOAuthTokenPerUser(userID)
+	return h.checkRateLimit(ctx, spec)
+}
+
+func (h *TokenHandler) checkRateLimit(ctx context.Context, spec ratelimit.BucketSpec) error {
 	var err error
-	for _, spec := range specs {
-		spec := *spec
-		failedReservation, allowErr := h.RateLimiter.Allow(ctx, spec)
-		if allowErr != nil {
-			err = allowErr
-			break
-		}
-		if resvErr := failedReservation.Error(); resvErr != nil {
-			err = resvErr
-			break
-		}
+
+	failedReservation, allowErr := h.RateLimiter.Allow(ctx, spec)
+	if allowErr != nil {
+		err = allowErr
+	} else if resvErr := failedReservation.Error(); resvErr != nil {
+		err = resvErr
 	}
+
 	if err != nil && apierrors.IsKind(err, ratelimit.RateLimited) {
 		return protocol.NewErrorStatusCode("x_rate_limited", "rate limit exceeded, please try again later.", http.StatusTooManyRequests)
 	}
-	return nil
+	return err
 }

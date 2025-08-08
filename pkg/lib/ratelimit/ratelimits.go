@@ -175,13 +175,6 @@ func (n RateLimit) resolvePerIP(cfg *config.AppConfig, featureCfg *config.Featur
 	case RateLimitMessagingEmail:
 		return resolveConfig(cfg.Messaging.RateLimits.EmailPerIP, nil, featureCfg.Messaging.RateLimits.EmailPerIP)
 
-	// OAuth
-	case RateLimitOAuthTokenGeneral:
-		return resolveConfig(&config.RateLimitConfig{
-			Enabled: func() *bool { var t = true; return &t }(),
-			Period:  "1m",
-			Burst:   120,
-		}, nil, nil)
 	}
 	return nil
 }
@@ -197,12 +190,6 @@ func (n RateLimit) resolvePerUser(cfg *config.AppConfig) *config.RateLimitConfig
 	case RateLimitVerificationSMSTrigger:
 		return resolveConfig(cfg.Verification.RateLimits.SMS.TriggerPerUser, nil, nil)
 
-	case RateLimitOAuthTokenGeneral:
-		return resolveConfig(&config.RateLimitConfig{
-			Enabled: func() *bool { var t = true; return &t }(),
-			Period:  "1m",
-			Burst:   60,
-		}, nil, nil)
 	}
 	return nil
 }
@@ -541,14 +528,12 @@ func (r RateLimit) ResolveBucketSpecs(
 		specs = append(specs, resolvePerTargetBucket(MessagingEmailPerTarget, opts.Target))
 		specs = append(specs, resolveGlobalBucket(globalCfg.EmailPerTarget, MessagingEmailPerTarget, opts.Target))
 
-	case RateLimitOAuthTokenGeneral:
-		specs = append(specs, resolvePerIPBucket(OAuthTokenPerIP, opts.IPAddress))
-		specs = append(specs, resolvePerUserBucket(OAuthTokenPerUser, opts.UserID))
-
 	case RateLimitOAuthTokenClientCredentials:
 		specs = append(specs, resolvePerClientBucket(OAuthTokenClientCredentialsPerClient, opts.ClientID))
 		specs = append(specs, resolvePerProjectBucket(OAuthTokenClientCredentialsPerProject))
 
+	case RateLimitOAuthTokenGeneral:
+		panic(fmt.Errorf("ResolveBucketSpecs not supported for %s", RateLimitOAuthTokenGeneral))
 	}
 
 	return specs
