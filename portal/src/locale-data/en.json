@@ -2181,7 +2181,7 @@
   "APIResourceDetailsScreen.test.selectApplication": "Select an application",
   "APIResourceDetailsScreen.test.selectApplication.empty": "No authorized applications yet.",
   "APIResourceDetailsScreen.test.accessToken.title": "Access token",
-  "APIResourceDetailsScreen.test.accessToken.description": "Use this token to call the Resource",
+  "APIResourceDetailsScreen.test.accessToken.description": "Use this token to call the API Resource. Inspect the token with {ExternalLink, react, href{https://www.authgear.com/tools/jwt-jwe-debugger?utm_source=portal&utm_medium=link&utm_campaign=m2m} children{our JWT & JWE Debugger}}.",
   "APIResourceDetailsScreen.test.accessToken.placeholder": "Press “Generate” to get the token.",
   "APIResourceDetailsScreen.test.generateButton.text": "Generate",
   "APIResourceDetailsScreen.test.pivot.curl.headerText": "CURL",
