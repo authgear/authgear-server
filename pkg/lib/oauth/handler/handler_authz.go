@@ -645,12 +645,13 @@ func (h *AuthorizationHandler) finishSettingsAction(
 	redirectURI *url.URL,
 	r protocol.AuthorizationRequest,
 	cookies []*http.Cookie,
+	userID string,
 ) (httputil.Result, error) {
 	resp := protocol.AuthorizationResponse{}
 	responseType := r.ResponseType()
 	switch {
 	case responseType.Equal(SettingsActonResponseType):
-		err := h.generateSettingsActionResponse(ctx, redirectURI.String(), r, resp)
+		err := h.generateSettingsActionResponse(ctx, redirectURI.String(), r, resp, userID)
 		if err != nil {
 			return nil, err
 		}
@@ -780,12 +781,14 @@ func (h *AuthorizationHandler) doHandleConsentRequest(
 	responseType := opts.ConsentRequest.OAuthSessionEntry.T.AuthorizationRequest.ResponseType()
 	switch {
 	case responseType.Equal(SettingsActonResponseType):
+		userID := opts.ConsentRequest.AuthInfoEntry.T.UserID
 		return h.finishSettingsAction(
 			ctx,
 			opts.ConsentRequest.Client,
 			opts.ConsentRequest.RedirectURI,
 			opts.ConsentRequest.OAuthSessionEntry.T.AuthorizationRequest,
 			[]*http.Cookie{},
+			userID,
 		)
 	default:
 		_, uiInfoByProduct, err := h.UIInfoResolver.ResolveForAuthorizationEndpoint(
@@ -930,10 +933,12 @@ func (h *AuthorizationHandler) generateSettingsActionResponse(
 	redirectURI string,
 	r protocol.AuthorizationRequest,
 	resp protocol.AuthorizationResponse,
+	userID string,
 ) error {
 	code, _, err := h.SettingsActionGrantService.CreateSettingsActionGrant(ctx, &CreateSettingsActionGrantOptions{
 		RedirectURI:          redirectURI,
 		AuthorizationRequest: r,
+		UserID:               userID,
 	})
 	if err != nil {
 		return err
