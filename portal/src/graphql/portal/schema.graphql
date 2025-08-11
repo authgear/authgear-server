@@ -576,6 +576,15 @@ input OAuthClientSecretsCleanupDataInput {
 }
 
 """"""
+input OAuthClientSecretsDeleteDataInput {
+  """"""
+  clientID: String!
+
+  """"""
+  keyID: String!
+}
+
+""""""
 input OAuthClientSecretsGenerateDataInput {
   """"""
   clientID: String!
@@ -588,6 +597,9 @@ input OAuthClientSecretsUpdateInstructionsInput {
 
   """"""
   cleanupData: OAuthClientSecretsCleanupDataInput
+
+  """"""
+  deleteData: OAuthClientSecretsDeleteDataInput
 
   """"""
   generateData: OAuthClientSecretsGenerateDataInput

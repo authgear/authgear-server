@@ -540,6 +540,11 @@ export type OAuthClientSecretsCleanupDataInput = {
   keepClientIDs: Array<Scalars['String']['input']>;
 };
 
+export type OAuthClientSecretsDeleteDataInput = {
+  clientID: Scalars['String']['input'];
+  keyID: Scalars['String']['input'];
+};
+
 export type OAuthClientSecretsGenerateDataInput = {
   clientID: Scalars['String']['input'];
 };
@@ -547,6 +552,7 @@ export type OAuthClientSecretsGenerateDataInput = {
 export type OAuthClientSecretsUpdateInstructionsInput = {
   action: Scalars['String']['input'];
   cleanupData?: InputMaybe<OAuthClientSecretsCleanupDataInput>;
+  deleteData?: InputMaybe<OAuthClientSecretsDeleteDataInput>;
   generateData?: InputMaybe<OAuthClientSecretsGenerateDataInput>;
 };
 
