@@ -529,18 +529,22 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
                   value={keyItem.key ? keyItem.key : MASKED_SECRET}
                   readOnly={true}
                   hideCopyButton={!keyItem.key}
-                  additionalIconButtons={[
-                    {
-                      iconProps: { iconName: "Delete" },
-                      disabled:
-                        clientSecretHook.isLoading ||
-                        clientSecretHook.isUpdating,
-                      onClick: () => {
-                        onDeleteClientSecretClick(keyItem.keyID);
-                      },
-                      theme: themes.destructive,
-                    },
-                  ]}
+                  additionalIconButtons={
+                    clientSecrets.length < 2
+                      ? undefined
+                      : [
+                          {
+                            iconProps: { iconName: "Delete" },
+                            disabled:
+                              clientSecretHook.isLoading ||
+                              clientSecretHook.isUpdating,
+                            onClick: () => {
+                              onDeleteClientSecretClick(keyItem.keyID);
+                            },
+                            theme: themes.destructive,
+                          },
+                        ]
+                  }
                 />
                 <Text
                   styles={{
