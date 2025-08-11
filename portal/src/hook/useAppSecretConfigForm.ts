@@ -19,6 +19,7 @@ export interface AppSecretConfigFormModel<State> {
   reload: () => void;
   reset: () => void;
   save: (ignoreConflict?: boolean) => Promise<void>;
+  saveWithState: (state: State, ignoreConflict?: boolean) => Promise<void>;
 }
 
 export type StateConstructor<State> = (
@@ -151,11 +152,9 @@ export function useAppSecretConfigForm<State>(
     setCurrentState(null);
   }, [isUpdating, resetError]);
 
-  const save = useCallback(
-    async (ignoreConflict: boolean = false) => {
-      if (!rawAppConfig || !currentState) {
-        return;
-      } else if (!isDirty || isUpdating) {
+  const _save = useCallback(
+    async (state: State, ignoreConflict: boolean) => {
+      if (!rawAppConfig) {
         return;
       }
 
@@ -163,18 +162,14 @@ export function useAppSecretConfigForm<State>(
         rawAppConfig,
         secrets,
         initialState,
-        currentState,
+        state,
         effectiveConfig
       );
 
       // The app and secret config that pass to constructSecretUpdateInstruction
       // are the updated config that we are going to send to the server
       const secretUpdateInstruction = constructSecretUpdateInstruction
-        ? constructSecretUpdateInstruction(
-            newConfig[0],
-            newConfig[1],
-            currentState
-          )
+        ? constructSecretUpdateInstruction(newConfig[0], newConfig[1], state)
         : undefined;
 
       setIsUpdating(true);
@@ -188,16 +183,13 @@ export function useAppSecretConfigForm<State>(
         });
         await reload();
         setCurrentState(null);
-        await postSave?.(currentState);
+        await postSave?.(state);
       } finally {
         setIsUpdating(false);
       }
     },
     [
       rawAppConfig,
-      currentState,
-      isDirty,
-      isUpdating,
       constructConfig,
       secrets,
       initialState,
@@ -208,7 +200,25 @@ export function useAppSecretConfigForm<State>(
       secretConfigChecksum,
       reload,
       postSave,
+      setIsUpdating,
     ]
+  );
+
+  const save = useCallback(
+    async (ignoreConflict: boolean = false) => {
+      if (!currentState) {
+        return;
+      }
+      await _save(currentState, ignoreConflict);
+    },
+    [currentState, _save]
+  );
+
+  const saveWithState = useCallback(
+    async (state: State, ignoreConflict: boolean = false) => {
+      await _save(state, ignoreConflict);
+    },
+    [_save]
   );
 
   const state = currentState ?? initialState;
@@ -236,5 +246,6 @@ export function useAppSecretConfigForm<State>(
     reload,
     reset,
     save,
+    saveWithState,
   };
 }

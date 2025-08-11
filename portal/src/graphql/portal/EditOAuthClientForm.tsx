@@ -12,11 +12,7 @@ import WidgetDescription from "../../WidgetDescription";
 import FormTextField from "../../FormTextField";
 import FormTextFieldList from "../../FormTextFieldList";
 import { useTextField } from "../../hook/useInput";
-import {
-  ApplicationType,
-  OAuthClientConfig,
-  OAuthClientSecretKey,
-} from "../../types";
+import { ApplicationType, OAuthClientConfig } from "../../types";
 import { ensureNonEmptyString } from "../../util/misc";
 import { parseIntegerAllowLeadingZeros } from "../../util/input";
 import Toggle from "../../Toggle";
@@ -24,6 +20,9 @@ import TextFieldWithCopyButton from "../../TextFieldWithCopyButton";
 import { useParams } from "react-router-dom";
 import TextField from "../../TextField";
 import { Accordion } from "../../components/common/Accordion";
+import PrimaryButton from "../../PrimaryButton";
+import DefaultButton from "../../DefaultButton";
+import { GenerateClientSecretHook } from "../../hook/useGenerateClientSecretForm";
 
 const MASKED_SECRET = "***************";
 
@@ -31,11 +30,11 @@ interface EditOAuthClientFormProps {
   publicOrigin: string;
   className?: string;
   clientConfig: OAuthClientConfig;
-  clientSecrets?: OAuthClientSecretKey[] | null;
   customUIEnabled: boolean;
   app2appEnabled: boolean;
   onClientConfigChange: (newClientConfig: OAuthClientConfig) => void;
   onRevealSecret: () => void;
+  generateClientSecret: GenerateClientSecretHook;
 }
 
 export function getApplicationTypeMessageID(key?: string): string {
@@ -85,11 +84,12 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
     const {
       className,
       clientConfig,
-      clientSecrets,
       publicOrigin,
       customUIEnabled,
       app2appEnabled,
       onClientConfigChange,
+      onRevealSecret,
+      generateClientSecret,
     } = props;
 
     const { renderToString } = useContext(Context);
@@ -266,6 +266,10 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
         )
       );
     });
+
+    const onGenerateClientSecretClick = useCallback(async () => {
+      await generateClientSecret.generate(clientConfig.client_id);
+    }, [generateClientSecret, clientConfig.client_id]);
 
     const applicationTypeLabel = useMemo(() => {
       const messageID = getApplicationTypeMessageID(
@@ -463,6 +467,12 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
     const showURIsSection =
       redirectURIsDescription != null || showPostLogoutRedirectURIsSettings;
 
+    const clientSecrets = useMemo(() => {
+      return generateClientSecret.oauthClientSecrets.find(
+        (item) => item.clientID === clientConfig.client_id
+      )?.keys;
+    }, [clientConfig.client_id, generateClientSecret.oauthClientSecrets]);
+
     return (
       <>
         <Widget className={className}>
@@ -531,6 +541,24 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
                 </Text>
               </div>
             ))}
+            <div className="flex flex-row space-x-4">
+              <PrimaryButton
+                text={renderToString("reveal")}
+                onClick={onRevealSecret}
+                disabled={clientSecrets.every((item) => !!item.key)}
+              />
+              <DefaultButton
+                text={renderToString(
+                  "EditOAuthClientForm.client-secrets.create-new-secret"
+                )}
+                onClick={onGenerateClientSecretClick}
+                disabled={
+                  generateClientSecret.isLoading ||
+                  generateClientSecret.isUpdating ||
+                  clientSecrets.length >= 2
+                }
+              />
+            </div>
           </>
         ) : null}
 
