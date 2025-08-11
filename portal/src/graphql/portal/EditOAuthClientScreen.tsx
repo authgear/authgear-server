@@ -27,6 +27,7 @@ import { EditOAuthClientFormQuickStartContent } from "./EditOAuthClientFormQuick
 import {
   ApplicationType,
   OAuthClientConfig,
+  OAuthClientSecret,
   PortalAPIAppConfig,
   SAMLIdpSigningCertificate,
 } from "../../types";
@@ -464,7 +465,7 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
             className={cn(styles.widget, styles["widget--wide"])}
             client={client}
             appConfig={rawAppConfig}
-            clientSecret={!!clientSecret ? clientSecret : null}
+            clientSecrets={clientSecret}
           />
         ) : null}
         {formTab === FormTab.SETTINGS ? (
@@ -505,20 +506,20 @@ interface OAuthClientSettingsFormProps {
   client: OAuthClientConfig;
   state: FormState;
   app2appEnabled: boolean;
-  clientSecret: string | undefined;
   customUIEnabled: boolean;
   onClientConfigChange: (newClientConfig: OAuthClientConfig) => void;
   onRevealSecret: () => void;
+  clientSecret?: OAuthClientSecret | null;
 }
 
 function OAuthClientSettingsForm({
   client,
   state,
   app2appEnabled,
-  clientSecret,
   customUIEnabled,
   onClientConfigChange,
   onRevealSecret,
+  clientSecret,
 }: OAuthClientSettingsFormProps): React.ReactElement {
   const theme = useTheme();
   const hideQuickStart = useMemo(
@@ -540,11 +541,11 @@ function OAuthClientSettingsForm({
         <EditOAuthClientForm
           publicOrigin={state.publicOrigin}
           clientConfig={client}
-          clientSecret={clientSecret}
           customUIEnabled={customUIEnabled}
           app2appEnabled={app2appEnabled}
           onClientConfigChange={onClientConfigChange}
           onRevealSecret={onRevealSecret}
+          clientSecrets={clientSecret?.keys}
         />
       </div>
       {!hideQuickStart ? (

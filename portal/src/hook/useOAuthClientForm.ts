@@ -41,7 +41,7 @@ export interface FormState {
   clients: OAuthClientConfig[];
   editedClient: OAuthClientConfig | null;
   removeClientByID?: string;
-  clientSecretMap: Partial<Record<string, string>>;
+  clientSecretMap: Partial<Record<string, OAuthClientSecret>>;
   samlServiceProviders: FormStateSAMLServiceProviderConfig[];
 }
 
@@ -49,11 +49,14 @@ function constructFormState(
   config: PortalAPIAppConfig,
   secrets: PortalAPISecretConfig
 ): FormState {
-  const clientSecretMap: Partial<Record<string, string>> =
-    secrets.oauthClientSecrets?.reduce<Record<string, string>>(
-      (acc: Record<string, string>, currValue: OAuthClientSecret) => {
-        if (currValue.keys?.length && currValue.keys.length >= 1) {
-          acc[currValue.clientID] = currValue.keys[0].key;
+  const clientSecretMap: Partial<Record<string, OAuthClientSecret>> =
+    secrets.oauthClientSecrets?.reduce<Record<string, OAuthClientSecret>>(
+      (
+        acc: Record<string, OAuthClientSecret>,
+        currValue: OAuthClientSecret
+      ) => {
+        if (currValue.keys?.length) {
+          acc[currValue.clientID] = currValue;
         }
         return acc;
       },

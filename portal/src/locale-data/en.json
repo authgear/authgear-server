@@ -849,6 +849,8 @@
   "EditOAuthClientForm.name.label": "Name",
   "EditOAuthClientForm.client-id.label": "Client ID",
   "EditOAuthClientForm.client-secret.label": "Client Secret",
+  "EditOAuthClientForm.client-secrets.title": "Client Secrets",
+  "EditOAuthClientForm.client-secret.created-at": "Created on {datetime}",
   "EditOAuthClientForm.endpoint.label": "Endpoint",
   "EditOAuthClientForm.application-type.label": "Application Type",
   "EditOAuthClientForm.uris.title": "URIs",

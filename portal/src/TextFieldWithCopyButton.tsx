@@ -8,11 +8,12 @@ import styles from "./TextFieldWithCopyButton.module.css";
 
 export interface TextFieldWithCopyButtonProps extends TextFieldProps {
   additionalIconButtons?: IButtonProps[];
+  hideCopyButton?: boolean;
 }
 
 const TextFieldWithCopyButton: React.VFC<TextFieldWithCopyButtonProps> =
   function TextFieldWithCopyButton(props: TextFieldWithCopyButtonProps) {
-    const { disabled, additionalIconButtons, ...rest } = props;
+    const { disabled, additionalIconButtons, hideCopyButton, ...rest } = props;
     const { themes } = useSystemConfig();
     const { copyButtonProps, Feedback } = useCopyFeedback({
       textToCopy: props.value ?? "",
@@ -21,15 +22,19 @@ const TextFieldWithCopyButton: React.VFC<TextFieldWithCopyButtonProps> =
     return (
       <div className={styles.container}>
         <TextField className={styles.textField} disabled={disabled} {...rest} />
-        <IconButton
-          {...copyButtonProps}
-          className={cn(
-            styles.actionButton,
-            disabled ? styles["actionButton--hide"] : null
-          )}
-          theme={themes.actionButton}
-        />
-        <Feedback />
+        {!hideCopyButton ? (
+          <>
+            <IconButton
+              {...copyButtonProps}
+              className={cn(
+                styles.actionButton,
+                disabled ? styles["actionButton--hide"] : null
+              )}
+              theme={themes.actionButton}
+            />
+            <Feedback />
+          </>
+        ) : null}
         {additionalIconButtons?.map((props, idx) => {
           const { className, ...restProps } = props;
           return (

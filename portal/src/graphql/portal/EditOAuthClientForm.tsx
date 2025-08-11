@@ -1,6 +1,7 @@
 import React, { useCallback, useContext, useMemo } from "react";
 import { produce } from "immer";
 import { Label, Text, useTheme } from "@fluentui/react";
+import { DateTime } from "luxon";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
 import { useEndpoints } from "../../hook/useEndpoints";
@@ -11,14 +12,17 @@ import WidgetDescription from "../../WidgetDescription";
 import FormTextField from "../../FormTextField";
 import FormTextFieldList from "../../FormTextFieldList";
 import { useTextField } from "../../hook/useInput";
-import { ApplicationType, OAuthClientConfig } from "../../types";
+import {
+  ApplicationType,
+  OAuthClientConfig,
+  OAuthClientSecretKey,
+} from "../../types";
 import { ensureNonEmptyString } from "../../util/misc";
 import { parseIntegerAllowLeadingZeros } from "../../util/input";
 import Toggle from "../../Toggle";
 import TextFieldWithCopyButton from "../../TextFieldWithCopyButton";
 import { useParams } from "react-router-dom";
 import TextField from "../../TextField";
-import TextFieldWithButton from "../../TextFieldWithButton";
 import { Accordion } from "../../components/common/Accordion";
 
 const MASKED_SECRET = "***************";
@@ -27,7 +31,7 @@ interface EditOAuthClientFormProps {
   publicOrigin: string;
   className?: string;
   clientConfig: OAuthClientConfig;
-  clientSecret?: string;
+  clientSecrets?: OAuthClientSecretKey[] | null;
   customUIEnabled: boolean;
   app2appEnabled: boolean;
   onClientConfigChange: (newClientConfig: OAuthClientConfig) => void;
@@ -81,15 +85,15 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
     const {
       className,
       clientConfig,
-      clientSecret,
+      clientSecrets,
       publicOrigin,
       customUIEnabled,
       app2appEnabled,
       onClientConfigChange,
-      onRevealSecret,
     } = props;
 
     const { renderToString } = useContext(Context);
+    const theme = useTheme();
 
     const { appID } = useParams() as { appID: string };
 
@@ -478,27 +482,6 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
             value={clientConfig.client_id}
             readOnly={true}
           />
-          {showClientSecret ? (
-            clientSecret ? (
-              <TextFieldWithCopyButton
-                label={renderToString(
-                  "EditOAuthClientForm.client-secret.label"
-                )}
-                value={clientSecret}
-                readOnly={true}
-              />
-            ) : (
-              <TextFieldWithButton
-                label={renderToString(
-                  "EditOAuthClientForm.client-secret.label"
-                )}
-                value={MASKED_SECRET}
-                readOnly={true}
-                buttonText={renderToString("reveal")}
-                onButtonClick={onRevealSecret}
-              />
-            )
-          ) : null}
           {showEndpoint ? (
             <TextFieldWithCopyButton
               label={renderToString("EditOAuthClientForm.endpoint.label")}
@@ -512,6 +495,44 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
             readOnly={true}
           />
         </Widget>
+
+        {showClientSecret && clientSecrets && clientSecrets.length > 0 ? (
+          <>
+            <WidgetTitle>
+              <FormattedMessage id="EditOAuthClientForm.client-secrets.title" />
+            </WidgetTitle>
+            {clientSecrets.map((keyItem) => (
+              <div key={keyItem.keyID}>
+                <TextFieldWithCopyButton
+                  label={renderToString(
+                    "EditOAuthClientForm.client-secret.label"
+                  )}
+                  value={keyItem.key ? keyItem.key : MASKED_SECRET}
+                  readOnly={true}
+                  hideCopyButton={!keyItem.key}
+                />
+                <Text
+                  styles={{
+                    root: {
+                      color: theme.palette.neutralTertiary,
+                    },
+                  }}
+                >
+                  {keyItem.createdAt != null ? (
+                    <FormattedMessage
+                      id="EditOAuthClientForm.client-secret.created-at"
+                      values={{
+                        datetime: DateTime.fromISO(
+                          keyItem.createdAt
+                        ).toLocaleString(DateTime.DATETIME_MED_WITH_SECONDS),
+                      }}
+                    />
+                  ) : null}
+                </Text>
+              </div>
+            ))}
+          </>
+        ) : null}
 
         {showURIsSection ? (
           <Widget className={className}>
