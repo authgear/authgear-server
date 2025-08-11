@@ -276,6 +276,11 @@ type OAuthClientSecretsUpdateInstructionGenerateData struct {
 	ClientID string `json:"clientID,omitempty"`
 }
 
+type OAuthClientSecretsUpdateInstructionDeleteData struct {
+	ClientID string `json:"clientID,omitempty"`
+	KeyID    string `json:"keyID,omitempty"`
+}
+
 type OAuthClientSecretsUpdateInstructionCleanupData struct {
 	KeepClientIDs []string `json:"keepClientIDs,omitempty"`
 }
@@ -284,6 +289,7 @@ type OAuthClientSecretsUpdateInstruction struct {
 	Action SecretUpdateInstructionAction `json:"action,omitempty"`
 
 	GenerateData *OAuthClientSecretsUpdateInstructionGenerateData `json:"generateData,omitempty"`
+	DeleteData   *OAuthClientSecretsUpdateInstructionDeleteData   `json:"deleteData,omitempty"`
 	CleanupData  *OAuthClientSecretsUpdateInstructionCleanupData  `json:"cleanupData,omitempty"`
 }
 
@@ -291,6 +297,8 @@ func (i *OAuthClientSecretsUpdateInstruction) ApplyTo(ctx *SecretConfigUpdateIns
 	switch i.Action {
 	case SecretUpdateInstructionActionGenerate:
 		return i.generate(ctx, currentConfig)
+	case SecretUpdateInstructionActionDelete:
+		return i.delete(currentConfig)
 	case SecretUpdateInstructionActionCleanup:
 		return i.cleanup(currentConfig)
 	default:
@@ -320,31 +328,37 @@ func (i *OAuthClientSecretsUpdateInstruction) generate(ctx *SecretConfigUpdateIn
 
 	clientID := i.GenerateData.ClientID
 	jwkKey := ctx.GenerateClientSecretOctetKeyFunc(ctx.Clock.NowUTC(), corerand.SecureRand)
-	keySet := jwk.NewSet()
-	_ = keySet.AddKey(jwkKey)
-	newCredentialsItem := OAuthClientCredentialsItem{
-		ClientID:                     clientID,
-		OAuthClientCredentialsKeySet: OAuthClientCredentialsKeySet{Set: keySet},
-	}
 
 	newOAuthClientCredentials := &OAuthClientCredentials{}
 	idx, item, found := out.Lookup(OAuthClientCredentialsKey)
+	// If the secret exist, reuse existing item
 	if found {
 		oauth, err := i.decodeOAuthClientCredentials(item.RawData)
 		if err != nil {
 			return nil, err
 		}
-		_, ok := oauth.Lookup(clientID)
-		if ok {
-			return nil, fmt.Errorf("config: client secret already exist")
-		}
-		// copy oauth client secret items from the current config to new config
-		newOAuthClientCredentials.Items = make([]OAuthClientCredentialsItem, len(oauth.Items))
-		copy(newOAuthClientCredentials.Items, oauth.Items)
+		newOAuthClientCredentials = oauth
 	}
 
-	// Add new credentials item to the OAuthClientCredentials
-	newOAuthClientCredentials.Items = append(newOAuthClientCredentials.Items, newCredentialsItem)
+	// Find the existing client item by index
+	var clientItem *OAuthClientCredentialsItem
+	if existingClientItem, ok := newOAuthClientCredentials.Lookup(clientID); ok {
+		clientItem = existingClientItem
+	} else {
+		newClientItem := OAuthClientCredentialsItem{
+			ClientID:                     clientID,
+			OAuthClientCredentialsKeySet: OAuthClientCredentialsKeySet{Set: jwk.NewSet()},
+		}
+		newOAuthClientCredentials.Items = append(newOAuthClientCredentials.Items, newClientItem)
+		clientItem = &newClientItem
+	}
+
+	// Append the new key
+	if clientItem.OAuthClientCredentialsKeySet.Len() >= 2 {
+		return nil, fmt.Errorf("config: must have at most two OAuth client secrets for client %s", clientID)
+	}
+	_ = clientItem.OAuthClientCredentialsKeySet.AddKey(jwkKey)
+
 	var jsonData []byte
 	jsonData, err := json.Marshal(newOAuthClientCredentials)
 	if err != nil {
@@ -360,6 +374,72 @@ func (i *OAuthClientSecretsUpdateInstruction) generate(ctx *SecretConfigUpdateIn
 	} else {
 		out.Secrets = append(out.Secrets, newSecretItem)
 	}
+
+	return out, nil
+}
+
+func (i *OAuthClientSecretsUpdateInstruction) delete(currentConfig *SecretConfig) (*SecretConfig, error) {
+	out := &SecretConfig{}
+	out.Secrets = make([]SecretItem, len(currentConfig.Secrets))
+	copy(out.Secrets, currentConfig.Secrets)
+
+	if i.DeleteData == nil || i.DeleteData.ClientID == "" || i.DeleteData.KeyID == "" {
+		return nil, fmt.Errorf("config: missing clientID or keyID for OAuthClientSecretsUpdateInstruction")
+	}
+
+	clientID := i.DeleteData.ClientID
+	keyID := i.DeleteData.KeyID
+
+	idx, item, found := out.Lookup(OAuthClientCredentialsKey)
+	if !found {
+		return out, nil
+	}
+	oauth, err := i.decodeOAuthClientCredentials(item.RawData)
+	if err != nil {
+		return nil, err
+	}
+
+	ctx := contextForTheUnusedContextArgumentInJWXV2API
+	var newOAuthClientCredentialsItems []OAuthClientCredentialsItem
+	for _, existingItem := range oauth.Items {
+		if existingItem.ClientID == clientID {
+			var foundKey jwk.Key
+			for it := existingItem.OAuthClientCredentialsKeySet.Set.Keys(ctx); it.Next(ctx); {
+				key := it.Pair().Value.(jwk.Key)
+				if key.KeyID() == keyID {
+					foundKey = key
+					break
+				}
+			}
+
+			if foundKey != nil {
+				existingItem.OAuthClientCredentialsKeySet.Set.RemoveKey(foundKey)
+			}
+
+			// Check length
+			if existingItem.OAuthClientCredentialsKeySet.Len() == 0 {
+				return nil, fmt.Errorf("config: cannot delete the last secret for client %s", clientID)
+			}
+
+			newOAuthClientCredentialsItems = append(newOAuthClientCredentialsItems, existingItem)
+		} else {
+			newOAuthClientCredentialsItems = append(newOAuthClientCredentialsItems, existingItem)
+		}
+	}
+	newOAuthClientCredentials := &OAuthClientCredentials{
+		Items: newOAuthClientCredentialsItems,
+	}
+
+	var jsonData []byte
+	jsonData, err = json.Marshal(newOAuthClientCredentials)
+	if err != nil {
+		return nil, err
+	}
+	newSecretItem := SecretItem{
+		Key:     OAuthClientCredentialsKey,
+		RawData: json.RawMessage(jsonData),
+	}
+	out.Secrets[idx] = newSecretItem
 
 	return out, nil
 }
