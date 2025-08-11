@@ -22,7 +22,8 @@ import TextField from "../../TextField";
 import { Accordion } from "../../components/common/Accordion";
 import PrimaryButton from "../../PrimaryButton";
 import DefaultButton from "../../DefaultButton";
-import { GenerateClientSecretHook } from "../../hook/useGenerateClientSecretForm";
+import { ClientSecretsHook } from "../../hook/useClientSecrets";
+import { useSystemConfig } from "../../context/SystemConfigContext";
 
 const MASKED_SECRET = "***************";
 
@@ -34,7 +35,7 @@ interface EditOAuthClientFormProps {
   app2appEnabled: boolean;
   onClientConfigChange: (newClientConfig: OAuthClientConfig) => void;
   onRevealSecret: () => void;
-  generateClientSecret: GenerateClientSecretHook;
+  clientSecretHook: ClientSecretsHook;
 }
 
 export function getApplicationTypeMessageID(key?: string): string {
@@ -89,10 +90,11 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
       app2appEnabled,
       onClientConfigChange,
       onRevealSecret,
-      generateClientSecret,
+      clientSecretHook,
     } = props;
 
     const { renderToString } = useContext(Context);
+    const { themes } = useSystemConfig();
     const theme = useTheme();
 
     const { appID } = useParams() as { appID: string };
@@ -268,8 +270,15 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
     });
 
     const onGenerateClientSecretClick = useCallback(async () => {
-      await generateClientSecret.generate(clientConfig.client_id);
-    }, [generateClientSecret, clientConfig.client_id]);
+      await clientSecretHook.generate(clientConfig.client_id);
+    }, [clientSecretHook, clientConfig.client_id]);
+
+    const onDeleteClientSecretClick = useCallback(
+      async (keyID: string) => {
+        await clientSecretHook.delete(clientConfig.client_id, keyID);
+      },
+      [clientSecretHook, clientConfig.client_id]
+    );
 
     const applicationTypeLabel = useMemo(() => {
       const messageID = getApplicationTypeMessageID(
@@ -468,10 +477,10 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
       redirectURIsDescription != null || showPostLogoutRedirectURIsSettings;
 
     const clientSecrets = useMemo(() => {
-      return generateClientSecret.oauthClientSecrets.find(
+      return clientSecretHook.oauthClientSecrets.find(
         (item) => item.clientID === clientConfig.client_id
       )?.keys;
-    }, [clientConfig.client_id, generateClientSecret.oauthClientSecrets]);
+    }, [clientConfig.client_id, clientSecretHook.oauthClientSecrets]);
 
     return (
       <>
@@ -520,6 +529,18 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
                   value={keyItem.key ? keyItem.key : MASKED_SECRET}
                   readOnly={true}
                   hideCopyButton={!keyItem.key}
+                  additionalIconButtons={[
+                    {
+                      iconProps: { iconName: "Delete" },
+                      disabled:
+                        clientSecretHook.isLoading ||
+                        clientSecretHook.isUpdating,
+                      onClick: () => {
+                        onDeleteClientSecretClick(keyItem.keyID);
+                      },
+                      theme: themes.destructive,
+                    },
+                  ]}
                 />
                 <Text
                   styles={{
@@ -554,9 +575,7 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
                   )}
                   onClick={onGenerateClientSecretClick}
                   disabled={
-                    generateClientSecret.isLoading ||
-                    generateClientSecret.isUpdating ||
-                    clientSecrets.length >= 2
+                    clientSecretHook.isLoading || clientSecretHook.isUpdating
                   }
                 />
               ) : null}

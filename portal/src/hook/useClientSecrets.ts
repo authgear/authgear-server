@@ -7,8 +7,9 @@ import {
 } from "../types";
 import { useCallback } from "react";
 
-export interface FormState {
-  clientID: string | null;
+interface FormState {
+  generateSecretClientID: string | null;
+  deleteSecretOptions: { clientID: string; keyID: string } | null;
   oauthClientSecrets: OAuthClientSecret[];
 }
 
@@ -17,7 +18,8 @@ function constructFormState(
   secrets: PortalAPISecretConfig
 ): FormState {
   return {
-    clientID: null,
+    generateSecretClientID: null,
+    deleteSecretOptions: null,
     oauthClientSecrets: secrets.oauthClientSecrets ?? [],
   };
 }
@@ -37,11 +39,19 @@ function constructSecretUpdateInstruction(
   _secretConfig: PortalAPISecretConfig,
   currentState: FormState
 ): PortalAPISecretConfigUpdateInstruction | undefined {
-  if (currentState.clientID) {
+  if (currentState.generateSecretClientID) {
     const instruction: PortalAPISecretConfigUpdateInstruction = {
       oauthClientSecrets: {
         action: "generate",
-        generateData: { clientID: currentState.clientID },
+        generateData: { clientID: currentState.generateSecretClientID },
+      },
+    };
+    return instruction;
+  } else if (currentState.deleteSecretOptions) {
+    const instruction: PortalAPISecretConfigUpdateInstruction = {
+      oauthClientSecrets: {
+        action: "delete",
+        deleteData: currentState.deleteSecretOptions,
       },
     };
     return instruction;
@@ -49,10 +59,11 @@ function constructSecretUpdateInstruction(
   return undefined;
 }
 
-export interface GenerateClientSecretHook {
+export interface ClientSecretsHook {
   isLoading: boolean;
   isUpdating: boolean;
   generate: (clientID: string) => Promise<void>;
+  delete: (clientID: string, keyID: string) => Promise<void>;
   loadError: unknown;
   reload: () => void;
   oauthClientSecrets: OAuthClientSecret[];
@@ -61,7 +72,7 @@ export interface GenerateClientSecretHook {
 export function useGenerateClientSecret(
   appID: string,
   secretToken: string | null
-): GenerateClientSecretHook {
+): ClientSecretsHook {
   const { saveWithState, isLoading, isUpdating, loadError, reload, state } =
     useAppSecretConfigForm<FormState>({
       appID,
@@ -74,7 +85,19 @@ export function useGenerateClientSecret(
   const generate = useCallback(
     async (clientID: string) => {
       return saveWithState({
-        clientID,
+        generateSecretClientID: clientID,
+        deleteSecretOptions: null,
+        oauthClientSecrets: state.oauthClientSecrets,
+      });
+    },
+    [saveWithState, state.oauthClientSecrets]
+  );
+
+  const deleteSecret = useCallback(
+    async (clientID: string, keyID: string) => {
+      return saveWithState({
+        generateSecretClientID: null,
+        deleteSecretOptions: { clientID, keyID },
         oauthClientSecrets: state.oauthClientSecrets,
       });
     },
@@ -83,6 +106,7 @@ export function useGenerateClientSecret(
 
   return {
     generate,
+    delete: deleteSecret,
     isLoading,
     isUpdating,
     loadError,
