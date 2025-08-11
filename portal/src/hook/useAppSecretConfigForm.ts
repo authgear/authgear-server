@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import deepEqual from "deep-equal";
 import {
   PortalAPIAppConfig,
@@ -212,15 +212,17 @@ export function useAppSecretConfigForm<State>(
   );
 
   const state = currentState ?? initialState;
-  const setState = useCallback(
-    (fn: (state: State) => State) => {
-      setCurrentState((s) => {
-        const newState = fn(s ?? initialState);
-        return newState;
-      });
-    },
-    [initialState]
-  );
+
+  const initialStateRef = useRef(initialState);
+  initialStateRef.current = initialState;
+  const setState = useCallback((fn: (state: State) => State) => {
+    setCurrentState((s) => {
+      // setState can easily be captured by useCallback / useMemo causing stalled initialState
+      // Use a ref to reference to the latest value to prevent this problem
+      const newState = fn(s ?? initialStateRef.current);
+      return newState;
+    });
+  }, []);
 
   return {
     isLoading,
