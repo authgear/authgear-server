@@ -71,6 +71,9 @@ var DependencySet = wire.NewSet(
 	deps.CommonDependencySet,
 
 	nonce.DependencySet,
+
+	wire.Bind(new(oauthhandler.TokenHandlerAppDatabase), new(*appdb.Handle)),
+
 	wire.Bind(new(interaction.NonceService), new(*nonce.Service)),
 
 	wire.Bind(new(webapp.SessionMiddlewareOAuthSessionService), new(*oauthsession.StoreRedis)),

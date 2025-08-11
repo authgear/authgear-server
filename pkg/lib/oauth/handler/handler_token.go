@@ -28,7 +28,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/dpop"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
-	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	interactionintents "github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
@@ -201,8 +200,12 @@ type TokenHandlerClientResourceScopeService interface {
 	GetClientResourceScopes(ctx context.Context, clientID string, resourceID string) ([]*resourcescope.Scope, error)
 }
 
+type TokenHandlerAppDatabase interface {
+	WithTx(ctx_original context.Context, do func(ctx context.Context) error) (err error)
+}
+
 type TokenHandler struct {
-	Database *appdb.Handle
+	Database TokenHandlerAppDatabase
 
 	AppID                  config.AppID
 	AppDomains             config.AppDomains

@@ -929,3 +929,40 @@ func (mr *MockTokenHandlerClientResourceScopeServiceMockRecorder) GetClientResou
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetClientResourceScopes", reflect.TypeOf((*MockTokenHandlerClientResourceScopeService)(nil).GetClientResourceScopes), ctx, clientID, resourceID)
 }
+
+// MockTokenHandlerAppDatabase is a mock of TokenHandlerAppDatabase interface.
+type MockTokenHandlerAppDatabase struct {
+	ctrl     *gomock.Controller
+	recorder *MockTokenHandlerAppDatabaseMockRecorder
+}
+
+// MockTokenHandlerAppDatabaseMockRecorder is the mock recorder for MockTokenHandlerAppDatabase.
+type MockTokenHandlerAppDatabaseMockRecorder struct {
+	mock *MockTokenHandlerAppDatabase
+}
+
+// NewMockTokenHandlerAppDatabase creates a new mock instance.
+func NewMockTokenHandlerAppDatabase(ctrl *gomock.Controller) *MockTokenHandlerAppDatabase {
+	mock := &MockTokenHandlerAppDatabase{ctrl: ctrl}
+	mock.recorder = &MockTokenHandlerAppDatabaseMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockTokenHandlerAppDatabase) EXPECT() *MockTokenHandlerAppDatabaseMockRecorder {
+	return m.recorder
+}
+
+// WithTx mocks base method.
+func (m *MockTokenHandlerAppDatabase) WithTx(ctx_original context.Context, do func(context.Context) error) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "WithTx", ctx_original, do)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// WithTx indicates an expected call of WithTx.
+func (mr *MockTokenHandlerAppDatabaseMockRecorder) WithTx(ctx_original, do interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithTx", reflect.TypeOf((*MockTokenHandlerAppDatabase)(nil).WithTx), ctx_original, do)
+}
