@@ -547,17 +547,19 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
                 onClick={onRevealSecret}
                 disabled={clientSecrets.every((item) => !!item.key)}
               />
-              <DefaultButton
-                text={renderToString(
-                  "EditOAuthClientForm.client-secrets.create-new-secret"
-                )}
-                onClick={onGenerateClientSecretClick}
-                disabled={
-                  generateClientSecret.isLoading ||
-                  generateClientSecret.isUpdating ||
-                  clientSecrets.length >= 2
-                }
-              />
+              {clientSecrets.length < 2 ? (
+                <DefaultButton
+                  text={renderToString(
+                    "EditOAuthClientForm.client-secrets.create-new-secret"
+                  )}
+                  onClick={onGenerateClientSecretClick}
+                  disabled={
+                    generateClientSecret.isLoading ||
+                    generateClientSecret.isUpdating ||
+                    clientSecrets.length >= 2
+                  }
+                />
+              ) : null}
             </div>
           </>
         ) : null}
