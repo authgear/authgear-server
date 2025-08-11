@@ -55,7 +55,7 @@ import iconSaml from "../../images/saml-logo.svg";
 import { usePivotNavigation } from "../../hook/usePivot";
 import {
   ClientSecretsHook,
-  useGenerateClientSecret,
+  useClientSecret,
 } from "../../hook/useClientSecrets";
 import { useLoadableView } from "../../hook/useLoadableView";
 
@@ -780,7 +780,7 @@ const EditOAuthClientScreen1: React.VFC<{
     rawAppConfig,
     refetch: refetchAppAndSecretConfig,
   } = useAppAndSecretConfigQuery(appID, secretToken);
-  const generateClientSecretHook = useGenerateClientSecret(appID, secretToken);
+  const generateClientSecretHook = useClientSecret(appID, secretToken);
 
   const featureConfig = useAppFeatureConfigQuery(appID);
 
@@ -911,6 +911,7 @@ function FormContainerContent({
         stickyFooterComponent={true}
         showDiscardButton={true}
         hideFooterComponent={hideFooter}
+        localError={clientSecretHook.saveError}
       >
         <EditOAuthClientContent
           form={form}

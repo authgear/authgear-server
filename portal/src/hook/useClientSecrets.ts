@@ -5,7 +5,7 @@ import {
   PortalAPISecretConfigUpdateInstruction,
   OAuthClientSecret,
 } from "../types";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 
 interface FormState {
   generateSecretClientID: string | null;
@@ -65,14 +65,16 @@ export interface ClientSecretsHook {
   generate: (clientID: string) => Promise<void>;
   delete: (clientID: string, keyID: string) => Promise<void>;
   loadError: unknown;
+  saveError: unknown;
   reload: () => void;
   oauthClientSecrets: OAuthClientSecret[];
 }
 
-export function useGenerateClientSecret(
+export function useClientSecret(
   appID: string,
   secretToken: string | null
 ): ClientSecretsHook {
+  const [saveError, setSaveError] = useState<unknown>(null);
   const { saveWithState, isLoading, isUpdating, loadError, reload, state } =
     useAppSecretConfigForm<FormState>({
       appID,
@@ -84,22 +86,36 @@ export function useGenerateClientSecret(
 
   const generate = useCallback(
     async (clientID: string) => {
-      return saveWithState({
-        generateSecretClientID: clientID,
-        deleteSecretOptions: null,
-        oauthClientSecrets: state.oauthClientSecrets,
-      });
+      try {
+        setSaveError(null);
+        await saveWithState({
+          generateSecretClientID: clientID,
+          deleteSecretOptions: null,
+          oauthClientSecrets: state.oauthClientSecrets,
+        });
+      } catch (e) {
+        setSaveError(e);
+        console.error(e);
+        throw e;
+      }
     },
     [saveWithState, state.oauthClientSecrets]
   );
 
   const deleteSecret = useCallback(
     async (clientID: string, keyID: string) => {
-      return saveWithState({
-        generateSecretClientID: null,
-        deleteSecretOptions: { clientID, keyID },
-        oauthClientSecrets: state.oauthClientSecrets,
-      });
+      try {
+        setSaveError(null);
+        await saveWithState({
+          generateSecretClientID: null,
+          deleteSecretOptions: { clientID, keyID },
+          oauthClientSecrets: state.oauthClientSecrets,
+        });
+      } catch (e) {
+        setSaveError(e);
+        console.error(e);
+        throw e;
+      }
     },
     [saveWithState, state.oauthClientSecrets]
   );
@@ -110,6 +126,7 @@ export function useGenerateClientSecret(
     isLoading,
     isUpdating,
     loadError,
+    saveError: saveError,
     reload,
     oauthClientSecrets: state.oauthClientSecrets,
   };
