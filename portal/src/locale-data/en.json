@@ -895,6 +895,7 @@
   "EditOAuthClientForm.access-token.description": "How frequent the access token should be refreshed. This will affect the timeliness of the information held in the JWT token.",
   "EditOAuthClientForm.access-token.description.m2m": "How frequent the access token should be requested again. This will affect the timeliness of the infromation held in the JWT token.",
   "EditOAuthClientForm.issue-jwt-access-token.label": "Issue JWT as access token",
+  "EditOAuthClientForm.issue-jwt-access-token.tooltip-m2m": "Access token must be in JWT format for M2M applications",
   "EditOAuthClientForm.endpoints.title": "Endpoints",
   "EditOAuthClientForm.authorization-endpoint.label": "Authorization Endpoint",
   "EditOAuthClientForm.token-endpoint.label": "Token Endpoint",

@@ -32,6 +32,7 @@ import {
   DeleteClientSecretConfirmationDialog,
   DeleteClientSecretConfirmationDialogData,
 } from "../../components/applications/DeleteClientSecretConfirmationDialog";
+import Tooltip from "../../Tooltip";
 
 const MASKED_SECRET = "***************";
 
@@ -372,13 +373,17 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
       );
     }, [clientConfig.x_application_type, showRefreshTokenSettings]);
 
-    const alwaysIssueJWTAccessToken = useMemo(
-      () =>
-        (["m2m"] as OAuthClientConfig["x_application_type"][]).includes(
-          clientConfig.x_application_type
-        ),
-      [clientConfig.x_application_type]
-    );
+    const alwaysIssueJWTAccessTokenTooltipMessageID = useMemo(() => {
+      const map: Map<OAuthClientConfig["x_application_type"], string | null> =
+        new Map([
+          ["m2m", "EditOAuthClientForm.issue-jwt-access-token.tooltip-m2m"],
+        ]);
+      return map.get(clientConfig.x_application_type) ?? null;
+    }, [clientConfig.x_application_type]);
+
+    const isIssueJWTAccessTokenToggleDisabled = useMemo(() => {
+      return alwaysIssueJWTAccessTokenTooltipMessageID != null;
+    }, [alwaysIssueJWTAccessTokenTooltipMessageID]);
 
     const showApp2AppSettings =
       clientConfig.x_application_type === "native" && app2appEnabled;
@@ -823,14 +828,29 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
               }
               onChange={onAccessTokenLifetimeChange}
             />
-            <Toggle
-              checked={clientConfig.issue_jwt_access_token}
-              disabled={alwaysIssueJWTAccessToken}
-              onChange={onIssueJWTAccessTokenChange}
-              label={renderToString(
-                "EditOAuthClientForm.issue-jwt-access-token.label"
-              )}
-            />
+            <div>
+              <Label
+                htmlFor="issue-jwt-access-token-toggle"
+                disabled={isIssueJWTAccessTokenToggleDisabled}
+              >
+                {renderToString(
+                  "EditOAuthClientForm.issue-jwt-access-token.label"
+                )}
+              </Label>
+              <Tooltip
+                tooltipMessageId={
+                  alwaysIssueJWTAccessTokenTooltipMessageID ?? ""
+                }
+                isHidden={alwaysIssueJWTAccessTokenTooltipMessageID == null}
+              >
+                <Toggle
+                  id="issue-jwt-access-token-toggle"
+                  checked={clientConfig.issue_jwt_access_token}
+                  disabled={isIssueJWTAccessTokenToggleDisabled}
+                  onChange={onIssueJWTAccessTokenChange}
+                />
+              </Tooltip>
+            </div>
           </Widget>
         ) : null}
         {showCookieSettings ? (
