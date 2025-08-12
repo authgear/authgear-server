@@ -41,7 +41,6 @@ import xamarinIconURL from "../../images/framework_xamarin.svg";
 import PrimaryButton from "../../PrimaryButton";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import { AppSecretKey } from "./globalTypes.generated";
-import { startReauthentication } from "./Authenticated";
 import { useLocationEffect } from "../../hook/useLocationEffect";
 import { useAppSecretVisitToken } from "./mutations/generateAppSecretVisitTokenMutation";
 import { useOAuthClientForm, FormState } from "../../hook/useOAuthClientForm";
@@ -376,8 +375,6 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
 
     const { formTab, setFormTab } = useContext(FormTabContext);
 
-    const navigate = useNavigate();
-
     const client =
       state.editedClient ?? state.clients.find((c) => c.client_id === clientID);
 
@@ -404,16 +401,6 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
       },
       [setState]
     );
-
-    const onRevealSecret = useCallback(() => {
-      const state: LocationState = {
-        isClientSecretRevealed: true,
-      };
-      startReauthentication(navigate, state).catch((e) => {
-        // Normally there should not be any error.
-        console.error(e);
-      });
-    }, [navigate]);
 
     if (client == null) {
       return (
@@ -481,7 +468,6 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
             app2appEnabled={app2appEnabled}
             customUIEnabled={customUIEnabled}
             onClientConfigChange={onClientConfigChange}
-            onRevealSecret={onRevealSecret}
             clientSecretHook={clientSecretHook}
           />
         ) : null}
@@ -514,7 +500,6 @@ interface OAuthClientSettingsFormProps {
   app2appEnabled: boolean;
   customUIEnabled: boolean;
   onClientConfigChange: (newClientConfig: OAuthClientConfig) => void;
-  onRevealSecret: () => void;
   clientSecretHook: ClientSecretsHook;
 }
 
@@ -524,7 +509,6 @@ function OAuthClientSettingsForm({
   app2appEnabled,
   customUIEnabled,
   onClientConfigChange,
-  onRevealSecret,
   clientSecretHook,
 }: OAuthClientSettingsFormProps): React.ReactElement {
   const theme = useTheme();
@@ -550,7 +534,6 @@ function OAuthClientSettingsForm({
           customUIEnabled={customUIEnabled}
           app2appEnabled={app2appEnabled}
           onClientConfigChange={onClientConfigChange}
-          onRevealSecret={onRevealSecret}
           clientSecretHook={clientSecretHook}
         />
       </div>
