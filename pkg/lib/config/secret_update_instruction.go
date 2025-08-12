@@ -413,7 +413,10 @@ func (i *OAuthClientSecretsUpdateInstruction) delete(currentConfig *SecretConfig
 			}
 
 			if foundKey != nil {
-				existingItem.OAuthClientCredentialsKeySet.Set.RemoveKey(foundKey)
+				err := existingItem.OAuthClientCredentialsKeySet.Set.RemoveKey(foundKey)
+				if err != nil {
+					return nil, err
+				}
 			}
 
 			// Check length
