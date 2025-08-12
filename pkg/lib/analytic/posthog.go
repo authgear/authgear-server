@@ -89,7 +89,7 @@ func (p *PosthogIntegration) SetGroupProperties(ctx context.Context) error {
 			slog.Int("user_count", g.UserCount),
 			slog.Int("collaborator_count", g.CollaboratorCount),
 			slog.Int("application_count", g.ApplicationCount),
-			slog.Int("m2m_token_created_last_30d", g.M2MTokenCreatedLast30Days),
+			slog.Int("m2m_token_count_30d", g.M2MTokenCreatedLast30Days),
 			slog.String("project_plan", g.ProjectPlan),
 		).Info(ctx, "prepared group")
 	}
@@ -240,11 +240,11 @@ func (p *PosthogIntegration) makeEventsFromGroups(groups []*PosthogGroup) ([]jso
 
 	for _, g := range groups {
 		group_set := map[string]interface{}{
-			"mau":                       g.MAU,
-			"user_count":                g.UserCount,
-			"collaborator_count":        g.CollaboratorCount,
-			"application_count":         g.ApplicationCount,
-			"monthly_m2m_token_created": g.M2MTokenCreatedLast30Days,
+			"mau":                 g.MAU,
+			"user_count":          g.UserCount,
+			"collaborator_count":  g.CollaboratorCount,
+			"application_count":   g.ApplicationCount,
+			"m2m_token_count_30d": g.M2MTokenCreatedLast30Days,
 		}
 		if g.ProjectPlan != "" {
 			group_set["project_plan"] = g.ProjectPlan
