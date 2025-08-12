@@ -1,15 +1,6 @@
-import React, { useCallback, useContext, useMemo } from "react";
-import {
-  Dialog,
-  DialogFooter,
-  IDialogContentProps,
-  IModalProps,
-} from "@fluentui/react";
+import React, { useCallback } from "react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
-import { useSnapshotData } from "../../hook/useSnapshotData";
-import { useSystemConfig } from "../../context/SystemConfigContext";
-import PrimaryButton from "../../PrimaryButton";
-import DefaultButton from "../../DefaultButton";
+import { DeleteConfirmationDialog } from "../common/DeleteConfirmationDialog";
 
 export interface DeleteResourceDialogData {
   resourceURI: string;
@@ -27,70 +18,32 @@ interface DeleteResourceDialogProps {
 export const DeleteResourceDialog: React.VFC<DeleteResourceDialogProps> =
   function DeleteResourceDialog(props) {
     const { onDismiss, onConfirm, isLoading, onDismissed, data } = props;
-    const isHidden = data === null;
-    const { renderToString } = useContext(Context);
-    const { themes } = useSystemConfig();
+    const { renderToString } = React.useContext(Context);
 
-    // Keep the latest non-null data, because the dialog has transition animation before dismiss.
-    // During the transition, we still need the data. However, the parent may already changed the props.
-    const snapshot = useSnapshotData(data);
+    const renderTitle = useCallback(() => {
+      return renderToString("DeleteResourceDialog.title");
+    }, [renderToString]);
 
-    const onPressConfirm = useCallback(() => {
-      if (isLoading || isHidden) {
-        return;
-      }
-      onConfirm(data);
-    }, [isLoading, isHidden, onConfirm, data]);
-
-    const dialogStyles = { main: { minHeight: 0 } };
-    const dialogContentProps: IDialogContentProps = {
-      title: renderToString("DeleteResourceDialog.title"),
-      subText: (
+    const renderSubText = useCallback((data: DeleteResourceDialogData) => {
+      return (
         <FormattedMessage
           id="DeleteResourceDialog.description"
           values={{
-            name: snapshot?.resourceName ?? snapshot?.resourceURI ?? "Unknown",
+            name: data.resourceName ?? data.resourceURI,
           }}
         />
-      ) as unknown as string,
-    };
-
-    const onDialogDismiss = useCallback(() => {
-      if (isHidden) {
-        return;
-      }
-      onDismiss();
-    }, [isHidden, onDismiss]);
-
-    const modalProps = useMemo((): IModalProps => {
-      return {
-        onDismissed,
-      };
-    }, [onDismissed]);
+      );
+    }, []);
 
     return (
-      <>
-        <Dialog
-          hidden={isHidden}
-          onDismiss={onDialogDismiss}
-          modalProps={modalProps}
-          dialogContentProps={dialogContentProps}
-          styles={dialogStyles}
-        >
-          <DialogFooter>
-            <PrimaryButton
-              theme={themes.destructive}
-              disabled={isLoading}
-              onClick={onPressConfirm}
-              text={<FormattedMessage id="delete" />}
-            />
-            <DefaultButton
-              onClick={onDialogDismiss}
-              disabled={isLoading}
-              text={<FormattedMessage id="cancel" />}
-            />
-          </DialogFooter>
-        </Dialog>
-      </>
+      <DeleteConfirmationDialog
+        data={data!}
+        renderTitle={renderTitle}
+        renderSubText={renderSubText}
+        onDismiss={onDismiss}
+        onConfirm={onConfirm}
+        isLoading={isLoading}
+        onDismissed={onDismissed}
+      />
     );
   };
