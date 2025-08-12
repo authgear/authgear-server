@@ -862,7 +862,7 @@ func (h *TokenHandler) handleAnonymousRequest(
 	if !client.HasFullAccessScope() {
 		return nil, protocol.NewError(
 			"unauthorized_client",
-			"this client may not use anonymous user",
+			"Anonymous user is not supported by the the client application type. Try use SPA, Traditional Web App, or Native App client type if applicable.",
 		)
 	}
 
