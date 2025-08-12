@@ -97,6 +97,11 @@ function isLocationState(raw: unknown): raw is LocationState {
   );
 }
 
+export type FormModel = Omit<
+  AppSecretConfigFormModel<FormState>,
+  "saveWithState"
+>;
+
 enum SMSProviderType {
   Twilio = "twilio",
   Webhook = "webhook",
@@ -761,7 +766,7 @@ function SMSProviderConfigurationScreen1({
     secretConfig?.smsProviderSecrets?.customSMSProviderCredentials,
   ]);
 
-  const form: AppSecretConfigFormModel<FormState> = {
+  const form: FormModel = {
     isLoading: configForm.isLoading || resources.isLoading,
     isUpdating: configForm.isUpdating || resources.isUpdating,
     isDirty: configForm.isDirty || resources.isDirty,
@@ -864,7 +869,7 @@ function SMSProviderConfigurationScreen1({
 }
 
 function SMSProviderConfigurationContent(props: {
-  form: AppSecretConfigFormModel<FormState>;
+  form: FormModel;
   effectiveAppConfig: PortalAPIAppConfig | undefined;
   sendTestSMSHandle: ReturnType<typeof useSendTestSMSMutation>;
   checkDenoHookHandle: ReturnType<typeof useCheckDenoHookMutation>;
@@ -1056,7 +1061,7 @@ function ProviderSection({
   onRevealSecrets,
 }: {
   isSecretMasked: boolean;
-  form: AppSecretConfigFormModel<FormState>;
+  form: FormModel;
   onRevealSecrets: () => void;
 }) {
   const onSelectProviderCallbacks = useMemo(() => {
@@ -1139,7 +1144,7 @@ function FormSection({
   form,
   onRevealSecrets,
 }: {
-  form: AppSecretConfigFormModel<FormState>;
+  form: FormModel;
   onRevealSecrets: () => void;
 }) {
   switch (form.state.providerType) {
@@ -1152,7 +1157,7 @@ function FormSection({
   }
 }
 
-function TwilioForm({ form }: { form: AppSecretConfigFormModel<FormState> }) {
+function TwilioForm({ form }: { form: FormModel }) {
   const { renderToString } = useContext(MessageContext);
 
   const onStringChangeCallbacks = useMemo(() => {
@@ -1419,7 +1424,7 @@ function WebhookForm({
   form,
   onRevealSecrets,
 }: {
-  form: AppSecretConfigFormModel<FormState>;
+  form: FormModel;
   onRevealSecrets: () => void;
 }) {
   const { renderToString } = useContext(MessageContext);
@@ -1545,7 +1550,7 @@ function WebhookForm({
   );
 }
 
-function DenoHookForm({ form }: { form: AppSecretConfigFormModel<FormState> }) {
+function DenoHookForm({ form }: { form: FormModel }) {
   const { renderToString } = useContext(MessageContext);
   const { state, setState } = form;
 
