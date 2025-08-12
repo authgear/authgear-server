@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useMemo } from "react";
+import React, { useCallback, useContext, useMemo, useState } from "react";
 import { produce } from "immer";
 import { Label, Text, useTheme } from "@fluentui/react";
 import { DateTime } from "luxon";
@@ -12,7 +12,11 @@ import WidgetDescription from "../../WidgetDescription";
 import FormTextField from "../../FormTextField";
 import FormTextFieldList from "../../FormTextFieldList";
 import { useTextField } from "../../hook/useInput";
-import { ApplicationType, OAuthClientConfig } from "../../types";
+import {
+  ApplicationType,
+  OAuthClientConfig,
+  OAuthClientSecretKey,
+} from "../../types";
 import { ensureNonEmptyString } from "../../util/misc";
 import { parseIntegerAllowLeadingZeros } from "../../util/input";
 import Toggle from "../../Toggle";
@@ -24,6 +28,10 @@ import PrimaryButton from "../../PrimaryButton";
 import DefaultButton from "../../DefaultButton";
 import { ClientSecretsHook } from "../../hook/useClientSecrets";
 import { useSystemConfig } from "../../context/SystemConfigContext";
+import {
+  DeleteClientSecretConfirmationDialog,
+  DeleteClientSecretConfirmationDialogData,
+} from "../../components/applications/DeleteClientSecretConfirmationDialog";
 
 const MASKED_SECRET = "***************";
 
@@ -98,6 +106,9 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
     const theme = useTheme();
 
     const { appID } = useParams() as { appID: string };
+
+    const [deleteClientSecretDialogData, setDeleteClientSecretDialogData] =
+      useState<DeleteClientSecretConfirmationDialogData | null>(null);
 
     const { onChange: onNameChange } = useTextField((value) => {
       onClientConfigChange(
@@ -274,11 +285,30 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
     }, [clientSecretHook, clientConfig.client_id]);
 
     const onDeleteClientSecretClick = useCallback(
-      async (keyID: string) => {
-        await clientSecretHook.delete(clientConfig.client_id, keyID);
+      async (keyItem: OAuthClientSecretKey) => {
+        setDeleteClientSecretDialogData({ clientSecret: keyItem });
       },
-      [clientSecretHook, clientConfig.client_id]
+      []
     );
+
+    const onConfirmDeleteClientSecret = useCallback(async () => {
+      if (deleteClientSecretDialogData == null) {
+        return;
+      }
+      await clientSecretHook.delete(
+        clientConfig.client_id,
+        deleteClientSecretDialogData.clientSecret.keyID
+      );
+      setDeleteClientSecretDialogData(null);
+    }, [
+      clientSecretHook,
+      clientConfig.client_id,
+      deleteClientSecretDialogData,
+    ]);
+
+    const onDismissDeleteClientSecret = useCallback(() => {
+      setDeleteClientSecretDialogData(null);
+    }, []);
 
     const applicationTypeLabel = useMemo(() => {
       const messageID = getApplicationTypeMessageID(
@@ -539,7 +569,7 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
                               clientSecretHook.isLoading ||
                               clientSecretHook.isUpdating,
                             onClick: () => {
-                              onDeleteClientSecretClick(keyItem.keyID);
+                              onDeleteClientSecretClick(keyItem);
                             },
                             theme: themes.destructive,
                           },
@@ -849,6 +879,12 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
             </HelpText>
           </Widget>
         ) : null}
+        <DeleteClientSecretConfirmationDialog
+          data={deleteClientSecretDialogData}
+          onConfirm={onConfirmDeleteClientSecret}
+          onDismiss={onDismissDeleteClientSecret}
+          isLoading={clientSecretHook.isLoading || clientSecretHook.isUpdating}
+        />
       </>
     );
   };
