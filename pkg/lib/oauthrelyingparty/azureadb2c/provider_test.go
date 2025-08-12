@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"testing"
 
-	. "github.com/smartystreets/goconvey/convey"
 	"github.com/h2non/gock"
+	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
 )

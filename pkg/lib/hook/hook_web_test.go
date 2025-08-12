@@ -8,9 +8,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/h2non/gock"
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	. "github.com/smartystreets/goconvey/convey"
-	"github.com/h2non/gock"
 
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/lib/config"

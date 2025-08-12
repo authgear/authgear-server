@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
-	goyaml "gopkg.in/yaml.v2"
+	goyaml "go.yaml.in/yaml/v2"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	_ "github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/google"

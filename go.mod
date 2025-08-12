@@ -48,7 +48,7 @@ require (
 	golang.org/x/text v0.28.0
 	google.golang.org/api v0.246.0
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
-	gopkg.in/yaml.v2 v2.4.0
+	gopkg.in/yaml.v2 v2.4.0 // indirect
 	k8s.io/api v0.31.8
 	k8s.io/apimachinery v0.31.8
 	k8s.io/client-go v0.31.8
@@ -108,6 +108,7 @@ require (
 	go.opentelemetry.io/otel/metric v1.37.0
 	go.opentelemetry.io/otel/sdk v1.37.0
 	go.opentelemetry.io/otel/sdk/metric v1.37.0
+	go.yaml.in/yaml/v2 v2.4.2
 )
 
 require (
@@ -171,7 +172,6 @@ require (
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.61.0 // indirect
 	go.opentelemetry.io/otel/trace v1.37.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.7.0 // indirect
-	go.yaml.in/yaml/v2 v2.4.2 // indirect
 	golang.org/x/telemetry v0.0.0-20250807160809-1a19826ec488 // indirect
 	golang.org/x/vuln v1.1.4 // indirect
 	google.golang.org/grpc v1.74.2 // indirect

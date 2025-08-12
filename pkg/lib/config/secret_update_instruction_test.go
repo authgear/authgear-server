@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	goyaml "gopkg.in/yaml.v2"
+	goyaml "go.yaml.in/yaml/v2"
 	"sigs.k8s.io/yaml"
 
 	"github.com/lestrrat-go/jwx/v2/jwk"
