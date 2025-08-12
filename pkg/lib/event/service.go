@@ -8,7 +8,6 @@ import (
 	adminauthz "github.com/authgear/authgear-server/pkg/lib/admin/authz"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
-	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/geoip"
@@ -202,13 +201,11 @@ func (s *Service) nextSeq(ctx context.Context) (seq int64, err error) {
 }
 
 func (s *Service) makeContext(ctx context.Context, payload event.Payload) event.Context {
-	userID := session.GetUserID(ctx)
+	var userID *string
 
-	if userID == nil {
-		uid := payload.UserID()
-		if uid != "" {
-			userID = &uid
-		}
+	uid := payload.UserID()
+	if uid != "" {
+		userID = &uid
 	}
 
 	preferredLanguageTags := intl.GetPreferredLanguageTags(ctx)
