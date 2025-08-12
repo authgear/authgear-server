@@ -7,7 +7,7 @@ import (
 
 	"github.com/golang/mock/gomock"
 	. "github.com/smartystreets/goconvey/convey"
-	"gopkg.in/h2non/gock.v1"
+	"github.com/h2non/gock"
 
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/vipsutil"

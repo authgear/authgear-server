@@ -48,7 +48,6 @@ require (
 	golang.org/x/text v0.28.0
 	google.golang.org/api v0.246.0
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
-	gopkg.in/h2non/gock.v1 v1.1.2
 	gopkg.in/yaml.v2 v2.4.0
 	k8s.io/api v0.31.8
 	k8s.io/apimachinery v0.31.8
@@ -90,6 +89,7 @@ require (
 	github.com/go-gsm/charset v1.0.0
 	github.com/go-ldap/ldap/v3 v3.4.11
 	github.com/goaux/decowriter v1.0.0
+	github.com/h2non/gock v1.2.0
 	github.com/iawaknahc/gogenwrapper v0.0.0-20250315204045-eb8ab595ac5c
 	github.com/jba/slog v0.2.0
 	github.com/kr/pretty v0.3.1

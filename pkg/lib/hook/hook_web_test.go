@@ -10,7 +10,7 @@ import (
 
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	. "github.com/smartystreets/goconvey/convey"
-	"gopkg.in/h2non/gock.v1"
+	"github.com/h2non/gock"
 
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/lib/config"
