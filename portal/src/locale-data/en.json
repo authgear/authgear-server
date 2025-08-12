@@ -822,6 +822,8 @@
   "CreateOAuthClientScreen.application-type.description.confidential": "Allow user to login with Authgear to access any other OIDC or SAML compatible application. e.g. Wordpress, Figma, Salesforce",
   "CreateOAuthClientScreen.application-type.description.third-party-app": "Legacy. Please create a new OIDC Client Application instead.",
   "CreateOAuthClientScreen.application-type.description.m2m": "Backend servers or loT devices",
+  "CreateOAuthClientScreen.application-type.description.m2m.disabled": "Backend servers or loT devices. {ReactRouterLink, react, to{{href}} children{Create an API resource}} before creating M2M applications.",
+  "CreateOAuthClientScreen.authorize-resource.description": "At least one authorized API Resource is required. Please select an API resource that will be used by this application.",
 
   "EditOAuthClientScreen.client-not-found": "Client ID {clientID} is not found",
   "EditOAuthClientScreen.quick-start-screen.title": "All set! Here are the guides to help your integration.",
@@ -904,8 +906,8 @@
   "EditOAuthClientForm.app2app.uris.description": "Setup universal link for iOS and app links for Android in {ReactRouterLink, react, to{#uris} children{Authorized Redirect URIs} preserveDefault{true}} to handle the App2App requests",
   "EditOAuthClientForm.more-options": "More options",
   "EditOAuthClientForm.resources.title": "Resources",
-  "EditOAuthClientForm.quick-start.m2m.title": "Machine-to-Machine",
-  "EditOAuthClientForm.quick-start.m2m.description": "Backend servers or IoT devices",
+  "EditOAuthClientForm.quick-start.m2m.title": "Machine-to-Machine Application",
+  "EditOAuthClientForm.quick-start.m2m.description": "A program running on backend servers or IoT devices that call an API resources where there is no user interaction. Learn more in {DocLink, react, href{https://docs.authgear.com/get-started/m2m-applications} children{the documentation}}.",
   "EditOAuthClientForm.quick-start.m2m.step1.title": "Obtain an access token by calling the token endpoint",
   "EditOAuthClientForm.quick-start.m2m.step1.select-api-resource": "Select the API Resource",
   "EditOAuthClientForm.quick-start.m2m.step1.select-api-resource.placeholder": "Select API Resource",
@@ -2162,7 +2164,7 @@
   "EditConfigurationScreen.warning.confirm": "I understand the risks of this operation",
 
   "APIResourcesScreen.title": "API Resources",
-  "APIResourcesScreen.description": "Set up API resources for authorized applications.",
+  "APIResourcesScreen.description": "Set up API resources for authorized applications. Learn more in {DocLink, react, href{https://docs.authgear.com/get-started/m2m-applications} children{the documentation}}.",
 
   "UnauthorizeApplicationDialog.title": "Revoke Application Access",
   "UnauthorizeApplicationDialog.description": "This will revoke the application's access to all assigned resources and scopes. You can reauthorize it anytime from the integrations settings.",
@@ -2179,7 +2181,7 @@
   "APIResourceDetailsScreen.test.selectApplication": "Select an application",
   "APIResourceDetailsScreen.test.selectApplication.empty": "No authorized applications yet.",
   "APIResourceDetailsScreen.test.accessToken.title": "Access token",
-  "APIResourceDetailsScreen.test.accessToken.description": "Use this token to call the Resource",
+  "APIResourceDetailsScreen.test.accessToken.description": "Use this token to call the API Resource. Inspect the token with {ExternalLink, react, href{https://www.authgear.com/tools/jwt-jwe-debugger?utm_source=portal&utm_medium=link&utm_campaign=m2m} children{our JWT & JWE Debugger}}.",
   "APIResourceDetailsScreen.test.accessToken.placeholder": "Press “Generate” to get the token.",
   "APIResourceDetailsScreen.test.generateButton.text": "Generate",
   "APIResourceDetailsScreen.test.pivot.curl.headerText": "CURL",
@@ -2230,7 +2232,6 @@
   "ResourceForm.resourceURI.label": "Identifier",
   "ResourceForm.name.description": "A human friendly name for display in the portal.",
   "ResourceForm.resourceURI.description": "An identifier of the resource. It need not be a publicly available URI. Authgear will not access the URI at all.{br, react}The value appears as the {code, react, children{aud} class{inline-code}} (audience) claim in the access token.",
-  "ResourceForm.resourceURI.placeholder": "A URI starts with \"https://\"",
   "ResourceForm.resourceURI.tooltip": "For example, use {code, react, children{https://api.myapp.com/v1} class{inline-code}} to represent your publicly available API server, or use {code, react, children{https://myapp.com/mcp/my-mcp} class{inline-code}} to represent a MCP server serving with stdio.",
 
   "LoginIDKeyType.email": "Email address",

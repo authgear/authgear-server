@@ -1,4 +1,5 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
+import cn from "classnames";
 import {
   ChoiceGroup,
   IChoiceGroupOption,
@@ -8,6 +9,16 @@ import {
 import { useNavigate, useParams } from "react-router-dom";
 import { produce, createDraft } from "immer";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import { SearchBox } from "@fluentui/react/lib/SearchBox";
+import { useResourcesQueryQuery } from "../adminapi/query/resourcesQuery.generated";
+import {
+  ApplicationResourcesList,
+  ApplicationResourceListItem,
+} from "../../components/api-resources/ApplicationResourcesList";
+import { encodeOffsetToCursor } from "../../util/pagination";
+import { PaginationProps } from "../../PaginationWidget";
+import { useDebounced } from "../../hook/useDebounced";
+import { useAddResourceToClientIdMutation } from "../adminapi/mutations/addResourceToClientID.generated";
 
 import ScreenContent from "../../ScreenContent";
 import ShowError from "../../ShowError";
@@ -30,15 +41,23 @@ import { useTextField } from "../../hook/useInput";
 import Widget from "../../Widget";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import { FormErrorMessageBar } from "../../FormErrorMessageBar";
-import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
 import {
   AppSecretConfigFormModel,
   useAppSecretConfigForm,
 } from "../../hook/useAppSecretConfigForm";
+import LinkButton from "../../LinkButton";
+import { useAppContext } from "../../context/AppContext";
 
 interface FormState {
   clients: OAuthClientConfig[];
   newClient: OAuthClientConfig;
+  step: FormStep;
+  authorizeResourceURIs: string[];
+}
+
+enum FormStep {
+  SelectType = "select_type",
+  AuthorizeResource = "authorize_resource",
 }
 
 function constructFormState(
@@ -51,6 +70,8 @@ function constructFormState(
       x_application_type: "spa",
       client_id: genRandomHexadecimalString(),
     },
+    step: FormStep.SelectType,
+    authorizeResourceURIs: [],
   };
 }
 
@@ -135,39 +156,42 @@ function constructInitialCurrentState(state: FormState): FormState {
   });
 }
 
+function getNextStep(state: FormState): FormStep | null {
+  if (state.newClient.x_application_type === "m2m") {
+    if (state.step === FormStep.SelectType) {
+      return FormStep.AuthorizeResource;
+    }
+  }
+  return null;
+}
+
 interface CreateOAuthClientContentProps {
   form: AppSecretConfigFormModel<FormState>;
 }
 
-const CreateOAuthClientContent: React.VFC<CreateOAuthClientContentProps> =
-  function CreateOAuthClientContent(props) {
-    const { state, setState, save, isDirty, isUpdating } = props.form;
-    const { appID } = useParams() as { appID: string };
-    const navigate = useNavigate();
+interface StepSelectApplicationTypeProps {
+  client: OAuthClientConfig;
+  form: AppSecretConfigFormModel<FormState>;
+  onClickSave: () => void;
+}
+
+const StepSelectApplicationType: React.VFC<StepSelectApplicationTypeProps> =
+  function StepSelectApplicationType(props) {
+    const { client, form, onClickSave } = props;
+    const { appNodeID } = useAppContext();
+    const { state, setState, isDirty, isUpdating } = form;
     const { renderToString } = useContext(Context);
 
-    const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
-      return [
-        {
-          to: "~/configuration/apps",
-          label: (
-            <FormattedMessage id="ApplicationsConfigurationScreen.title" />
-          ),
-        },
-        {
-          to: ".",
-          label: <FormattedMessage id="CreateOAuthClientScreen.title" />,
-        },
-      ];
-    }, []);
-
-    const [clientId] = useState(state.newClient.client_id);
-    const client =
-      state.clients.find((c) => c.client_id === clientId) ?? state.newClient;
+    const { data } = useResourcesQueryQuery({
+      variables: {
+        first: 1,
+      },
+      fetchPolicy: "cache-and-network",
+    });
 
     const onClientConfigChange = useCallback(
       (newClient: OAuthClientConfig) => {
-        setState((state) => ({ ...state, newClient }));
+        setState((s) => ({ ...s, newClient }));
       },
       [setState]
     );
@@ -192,6 +216,8 @@ const CreateOAuthClientContent: React.VFC<CreateOAuthClientContentProps> =
         );
       };
     }, []);
+
+    const hasNoAPIResources = (data?.resources?.totalCount ?? 0) === 0;
 
     const options: IChoiceGroupOption[] = useMemo(() => {
       return [
@@ -248,16 +274,28 @@ const CreateOAuthClientContent: React.VFC<CreateOAuthClientContentProps> =
           key: "m2m",
           text: renderToString("oauth-client.application-type.m2m"),
           onRenderLabel: onRenderLabel(
-            renderToString(
-              "CreateOAuthClientScreen.application-type.description.m2m"
-            )
+            (
+              <FormattedMessage
+                id={
+                  hasNoAPIResources
+                    ? "CreateOAuthClientScreen.application-type.description.m2m.disabled"
+                    : "CreateOAuthClientScreen.application-type.description.m2m"
+                }
+                values={{
+                  href: `/project/${encodeURIComponent(
+                    appNodeID
+                  )}/api-resources/create`,
+                }}
+              />
+            ) as any as string
           ),
+          disabled: hasNoAPIResources,
         },
       ];
-    }, [renderToString, onRenderLabel]);
+    }, [renderToString, onRenderLabel, appNodeID, hasNoAPIResources]);
 
     const onApplicationChange = useCallback(
-      (_e, option) => {
+      (_e: unknown, option?: IChoiceGroupOption) => {
         if (option != null) {
           let issueJwtAccessToken: boolean | undefined;
           switch (option.key) {
@@ -274,7 +312,11 @@ const CreateOAuthClientContent: React.VFC<CreateOAuthClientContentProps> =
           }
           onClientConfigChange(
             updateClientConfig(
-              updateClientConfig(client, "x_application_type", option.key),
+              updateClientConfig(
+                client,
+                "x_application_type",
+                option.key as OAuthClientConfig["x_application_type"]
+              ),
               "issue_jwt_access_token",
               issueJwtAccessToken
             )
@@ -284,7 +326,185 @@ const CreateOAuthClientContent: React.VFC<CreateOAuthClientContentProps> =
       [onClientConfigChange, client]
     );
 
+    return (
+      <Widget className={cn(styles.widget)}>
+        <FormTextField
+          parentJSONPointer={/\/oauth\/clients\/\d+/}
+          fieldName="name"
+          label={renderToString("CreateOAuthClientScreen.name.label")}
+          description={renderToString(
+            "CreateOAuthClientScreen.name.description"
+          )}
+          value={client.name ?? ""}
+          onChange={onClientNameChange}
+          required={true}
+        />
+        <ChoiceGroup
+          label={renderToString(
+            "CreateOAuthClientScreen.application-type.label"
+          )}
+          options={options}
+          selectedKey={client.x_application_type}
+          onChange={onApplicationChange}
+        />
+        <div className={styles.buttons}>
+          <ButtonWithLoading
+            onClick={onClickSave}
+            loading={isUpdating}
+            disabled={!isDirty}
+            labelId={getNextStep(state) != null ? "next" : "save"}
+          />
+        </div>
+      </Widget>
+    );
+  };
+
+interface StepAuthorizeResourceProps {
+  client: OAuthClientConfig;
+  form: AppSecretConfigFormModel<FormState>;
+  onClickSave: () => void;
+}
+
+const StepAuthorizeResource: React.VFC<StepAuthorizeResourceProps> =
+  function StepAuthorizeResource(props) {
+    const { form, onClickSave } = props;
+    const { isDirty, isUpdating } = form;
+    const { renderToString } = useContext(Context);
+    const [searchKeyword, setSearchKeyword] = useState("");
+    const [offset, setOffset] = useState(0);
+
+    const [debouncedSearchKeyword] = useDebounced(searchKeyword, 300);
+
+    const PAGE_SIZE = 10;
+
+    const { data, loading, error, refetch } = useResourcesQueryQuery({
+      variables: {
+        first: PAGE_SIZE,
+        after: encodeOffsetToCursor(offset),
+        searchKeyword:
+          debouncedSearchKeyword === "" ? undefined : debouncedSearchKeyword,
+      },
+      fetchPolicy: "cache-and-network",
+    });
+
+    const resourceListData: ApplicationResourceListItem[] = useMemo(() => {
+      const resources =
+        data?.resources?.edges
+          ?.map((edge) => edge?.node)
+          .filter((node) => !!node) ?? [];
+      return resources.map((resource) => {
+        const isAuthorized = form.state.authorizeResourceURIs.includes(
+          resource.resourceURI
+        );
+        return {
+          id: resource.id,
+          name: resource.name,
+          resourceURI: resource.resourceURI,
+          isAuthorized: isAuthorized,
+        };
+      });
+    }, [data?.resources?.edges, form.state.authorizeResourceURIs]);
+
+    const handleToggleAuthorization = useCallback(
+      (item: ApplicationResourceListItem, isAuthorized: boolean) => {
+        form.setState((s) => {
+          const uris = new Set(s.authorizeResourceURIs);
+          if (isAuthorized) {
+            uris.add(item.resourceURI);
+          } else {
+            uris.delete(item.resourceURI);
+          }
+          return { ...s, authorizeResourceURIs: Array.from(uris) };
+        });
+      },
+      [form]
+    );
+
+    const onChangeOffset = useCallback((newOffset: number) => {
+      setOffset(newOffset);
+    }, []);
+
+    const pagination: PaginationProps = {
+      offset,
+      pageSize: PAGE_SIZE,
+      totalCount: data?.resources?.totalCount ?? undefined,
+      onChangeOffset,
+    };
+
+    if (error != null) {
+      return <ShowError error={error} onRetry={refetch} />;
+    }
+
+    return (
+      <div className={cn(styles.widget, "flex flex-col gap-y-4")}>
+        <Text block={true}>
+          <FormattedMessage id="CreateOAuthClientScreen.authorize-resource.description" />
+        </Text>
+        <SearchBox
+          placeholder={renderToString("search")}
+          styles={{ root: { width: 300 } }}
+          onChange={(_e, newValue) => {
+            setSearchKeyword(newValue ?? "");
+            setOffset(0);
+          }}
+        />
+        <ApplicationResourcesList
+          className="flex-1"
+          resources={resourceListData}
+          loading={loading}
+          pagination={pagination}
+          onToggleAuthorization={handleToggleAuthorization}
+        />
+        <div className={styles.buttons}>
+          <ButtonWithLoading
+            onClick={onClickSave}
+            loading={isUpdating}
+            disabled={!isDirty}
+            labelId="save"
+          />
+          <LinkButton
+            onClick={() => {
+              form.setState((s) => ({ ...s, step: FormStep.SelectType }));
+            }}
+          >
+            <FormattedMessage id="back" />
+          </LinkButton>
+        </div>
+      </div>
+    );
+  };
+
+const CreateOAuthClientContent: React.VFC<CreateOAuthClientContentProps> =
+  function CreateOAuthClientContent(props) {
+    const { state, setState, save } = props.form;
+    const { appID } = useParams() as { appID: string };
+    const navigate = useNavigate();
+
+    const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
+      return [
+        {
+          to: "~/configuration/apps",
+          label: (
+            <FormattedMessage id="ApplicationsConfigurationScreen.title" />
+          ),
+        },
+        {
+          to: ".",
+          label: <FormattedMessage id="CreateOAuthClientScreen.title" />,
+        },
+      ];
+    }, []);
+
+    const [clientId] = useState(state.newClient.client_id);
+    const client =
+      state.clients.find((c) => c.client_id === clientId) ?? state.newClient;
+
     const onClickSave = useCallback(() => {
+      const nextStep = getNextStep(state);
+      if (nextStep != null) {
+        setState((s) => ({ ...s, step: nextStep }));
+        return;
+      }
       save()
         .then(
           () => {
@@ -318,48 +538,41 @@ const CreateOAuthClientContent: React.VFC<CreateOAuthClientContentProps> =
           () => {}
         )
         .catch(() => {});
-    }, [save, appID, clientId, client.x_application_type, navigate]);
-
-    const parentJSONPointer = /\/oauth\/clients\/\d+/;
+    }, [
+      save,
+      appID,
+      clientId,
+      client.x_application_type,
+      navigate,
+      setState,
+      state,
+    ]);
 
     return (
-      <ScreenContent>
+      <ScreenContent className="flex-1-0-auto" layout={"list"}>
         <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
-        <Widget className={styles.widget}>
-          <FormTextField
-            parentJSONPointer={parentJSONPointer}
-            fieldName="name"
-            label={renderToString("CreateOAuthClientScreen.name.label")}
-            description={renderToString(
-              "CreateOAuthClientScreen.name.description"
-            )}
-            value={client.name ?? ""}
-            onChange={onClientNameChange}
-            required={true}
+        {state.step === FormStep.SelectType ? (
+          <StepSelectApplicationType
+            client={client}
+            form={props.form}
+            onClickSave={onClickSave}
           />
-          <ChoiceGroup
-            label={renderToString(
-              "CreateOAuthClientScreen.application-type.label"
-            )}
-            options={options}
-            selectedKey={client.x_application_type}
-            onChange={onApplicationChange}
+        ) : null}
+        {state.step === FormStep.AuthorizeResource ? (
+          <StepAuthorizeResource
+            client={client}
+            form={props.form}
+            onClickSave={onClickSave}
           />
-          <div className={styles.buttons}>
-            <ButtonWithLoading
-              onClick={onClickSave}
-              loading={isUpdating}
-              disabled={!isDirty}
-              labelId="save"
-            />
-          </div>
-        </Widget>
+        ) : null}
       </ScreenContent>
     );
   };
 
 const CreateOAuthClientScreen: React.VFC = function CreateOAuthClientScreen() {
   const { appID } = useParams() as { appID: string };
+  const [addResource] = useAddResourceToClientIdMutation();
+
   const form = useAppSecretConfigForm({
     appID,
     secretVisitToken: null,
@@ -367,6 +580,24 @@ const CreateOAuthClientScreen: React.VFC = function CreateOAuthClientScreen() {
     constructConfig,
     constructInitialCurrentState,
     constructSecretUpdateInstruction,
+    postSave: useCallback(
+      async (state: FormState) => {
+        if (state.newClient.x_application_type !== "m2m") {
+          return;
+        }
+        const clientID = state.newClient.client_id;
+        const uris = state.authorizeResourceURIs;
+        for (const resourceURI of uris) {
+          await addResource({
+            variables: {
+              clientID,
+              resourceURI,
+            },
+          });
+        }
+      },
+      [addResource]
+    ),
   });
 
   const { isLoading, loadError, reload, updateError, isUpdating } = form;
@@ -396,9 +627,9 @@ const CreateOAuthClientScreen: React.VFC = function CreateOAuthClientScreen() {
   return (
     <FormProvider loading={isUpdating} error={updateError} rules={errorRules}>
       <FormErrorMessageBar />
-      <ScreenLayoutScrollView>
+      <div className="flex-1 overflow-y-auto flex flex-col">
         <CreateOAuthClientContent form={form} />
-      </ScreenLayoutScrollView>
+      </div>
     </FormProvider>
   );
 };
