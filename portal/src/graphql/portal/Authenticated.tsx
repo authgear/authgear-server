@@ -133,6 +133,24 @@ export async function startReauthentication<S>(
   });
 }
 
+export function useStartReauthentication<S>(): {
+  startReauthentication: typeof startReauthentication<S>;
+  isRevealing: boolean;
+} {
+  const [isRevealing, setIsRevealing] = useState(false);
+  const startReauthenticationWithLoading = useCallback(
+    async (navigate: ReturnType<typeof useNavigate>, state?: S) => {
+      setIsRevealing(true);
+      return startReauthentication(navigate, state);
+    },
+    []
+  );
+  return {
+    startReauthentication: startReauthenticationWithLoading,
+    isRevealing,
+  };
+}
+
 export function useLogout(): () => Promise<void> {
   const redirectURI = window.location.origin + "/";
   const reset = useReset();
