@@ -926,6 +926,7 @@
   "EditOAuthClientForm.quick-start.m2m.pivot.go.headerText": "Go",
   "EditOAuthClientForm.quick-start.m2m.pivot.nodejs.headerText": "NodeJS",
   "EditOAuthClientForm.quick-start.m2m.pivot.python.headerText": "Python",
+  "EditOAuthClientForm.access-token.error.maximum": "Expect number smaller than or equal to 2419200 (28 days)",
 
   "EditOAuthClientScreen.tabs.settings": "Settings",
   "EditOAuthClientScreen.tabs.saml2": "SAML 2.0",
