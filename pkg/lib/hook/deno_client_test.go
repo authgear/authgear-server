@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/h2non/gock"
 	. "github.com/smartystreets/goconvey/convey"
-	"gopkg.in/h2non/gock.v1"
 )
 
 func TestDenoClient(t *testing.T) {
