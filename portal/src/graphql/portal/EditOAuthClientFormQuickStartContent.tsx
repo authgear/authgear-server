@@ -11,7 +11,11 @@ import {
   FormattedMessage,
 } from "@oursky/react-messageformat";
 import WidgetTitle from "../../WidgetTitle";
-import { OAuthClientConfig, PortalAPIAppConfig } from "../../types";
+import {
+  OAuthClientConfig,
+  OAuthClientSecret,
+  PortalAPIAppConfig,
+} from "../../types";
 import { useResourcesQueryQuery } from "../adminapi/query/resourcesQuery.generated";
 import styles from "./EditOAuthClientFormQuickStartContent.module.css";
 import { useLoadableView } from "../../hook/useLoadableView";
@@ -34,7 +38,7 @@ interface EditOAuthClientFormQuickStartContentProps {
   className?: string;
   appConfig: PortalAPIAppConfig;
   client: OAuthClientConfig;
-  clientSecret: string | null;
+  clientSecrets?: OAuthClientSecret | null;
 }
 
 export const EditOAuthClientFormQuickStartContent: React.VFC<EditOAuthClientFormQuickStartContentProps> =
@@ -82,9 +86,11 @@ interface EditOAuthClientFormQuickStartContentLoadedProps
 function EditOAuthClientFormQuickStartContentLoaded(
   props: EditOAuthClientFormQuickStartContentLoadedProps
 ) {
-  const { className, resources, appConfig, client, clientSecret } = props;
+  const { className, resources, appConfig, client, clientSecrets } = props;
   const { renderToString } = useContext(MessageContext);
   const navigate = useNavigate();
+  const firstClientSecret =
+    (clientSecrets?.keys?.length ?? 0) > 0 ? clientSecrets!.keys![0] : null;
 
   const isEmpty = resources.length === 0;
 
@@ -115,7 +121,7 @@ function EditOAuthClientFormQuickStartContentLoaded(
     variant: selectedCodeVariant,
     tokenEndpoint,
     resourceURI: selectedResourceURI,
-    clientSecret: clientSecret,
+    clientSecret: firstClientSecret?.key ? firstClientSecret.key : null,
     clientID: client.client_id,
   });
 
@@ -215,7 +221,7 @@ function EditOAuthClientFormQuickStartContentLoaded(
               <PrimaryButton
                 text={<FormattedMessage id="reveal" />}
                 onClick={revealSecrets}
-                disabled={!!clientSecret}
+                disabled={!!firstClientSecret?.key}
               />
               <DefaultButton
                 {...copyButtonProps}

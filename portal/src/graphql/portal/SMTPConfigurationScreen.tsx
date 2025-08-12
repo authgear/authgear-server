@@ -854,6 +854,12 @@ const SMTPConfigurationScreen1: React.VFC<{
     save: async (ignoreConflict: boolean = false) => {
       await configForm.save(ignoreConflict);
     },
+    saveWithState: async (
+      state: FormState,
+      ignoreConflict: boolean = false
+    ) => {
+      await configForm.saveWithState(state, ignoreConflict);
+    },
   };
 
   if (form.isLoading) {

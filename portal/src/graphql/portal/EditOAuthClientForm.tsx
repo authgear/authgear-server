@@ -1,6 +1,7 @@
-import React, { useCallback, useContext, useMemo } from "react";
+import React, { useCallback, useContext, useMemo, useState } from "react";
 import { produce } from "immer";
 import { Label, Text, useTheme } from "@fluentui/react";
+import { DateTime } from "luxon";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
 import { useEndpoints } from "../../hook/useEndpoints";
@@ -11,15 +12,26 @@ import WidgetDescription from "../../WidgetDescription";
 import FormTextField from "../../FormTextField";
 import FormTextFieldList from "../../FormTextFieldList";
 import { useTextField } from "../../hook/useInput";
-import { ApplicationType, OAuthClientConfig } from "../../types";
+import {
+  ApplicationType,
+  OAuthClientConfig,
+  OAuthClientSecretKey,
+} from "../../types";
 import { ensureNonEmptyString } from "../../util/misc";
 import { parseIntegerAllowLeadingZeros } from "../../util/input";
 import Toggle from "../../Toggle";
 import TextFieldWithCopyButton from "../../TextFieldWithCopyButton";
 import { useParams } from "react-router-dom";
 import TextField from "../../TextField";
-import TextFieldWithButton from "../../TextFieldWithButton";
 import { Accordion } from "../../components/common/Accordion";
+import PrimaryButton from "../../PrimaryButton";
+import DefaultButton from "../../DefaultButton";
+import { ClientSecretsHook } from "../../hook/useClientSecrets";
+import { useSystemConfig } from "../../context/SystemConfigContext";
+import {
+  DeleteClientSecretConfirmationDialog,
+  DeleteClientSecretConfirmationDialogData,
+} from "../../components/applications/DeleteClientSecretConfirmationDialog";
 
 const MASKED_SECRET = "***************";
 
@@ -27,11 +39,11 @@ interface EditOAuthClientFormProps {
   publicOrigin: string;
   className?: string;
   clientConfig: OAuthClientConfig;
-  clientSecret?: string;
   customUIEnabled: boolean;
   app2appEnabled: boolean;
   onClientConfigChange: (newClientConfig: OAuthClientConfig) => void;
   onRevealSecret: () => void;
+  clientSecretHook: ClientSecretsHook;
 }
 
 export function getApplicationTypeMessageID(key?: string): string {
@@ -81,17 +93,22 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
     const {
       className,
       clientConfig,
-      clientSecret,
       publicOrigin,
       customUIEnabled,
       app2appEnabled,
       onClientConfigChange,
       onRevealSecret,
+      clientSecretHook,
     } = props;
 
     const { renderToString } = useContext(Context);
+    const { themes } = useSystemConfig();
+    const theme = useTheme();
 
     const { appID } = useParams() as { appID: string };
+
+    const [deleteClientSecretDialogData, setDeleteClientSecretDialogData] =
+      useState<DeleteClientSecretConfirmationDialogData | null>(null);
 
     const { onChange: onNameChange } = useTextField((value) => {
       onClientConfigChange(
@@ -262,6 +279,36 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
         )
       );
     });
+
+    const onGenerateClientSecretClick = useCallback(async () => {
+      await clientSecretHook.generate(clientConfig.client_id);
+    }, [clientSecretHook, clientConfig.client_id]);
+
+    const onDeleteClientSecretClick = useCallback(
+      async (keyItem: OAuthClientSecretKey) => {
+        setDeleteClientSecretDialogData({ clientSecret: keyItem });
+      },
+      []
+    );
+
+    const onConfirmDeleteClientSecret = useCallback(async () => {
+      if (deleteClientSecretDialogData == null) {
+        return;
+      }
+      await clientSecretHook.delete(
+        clientConfig.client_id,
+        deleteClientSecretDialogData.clientSecret.keyID
+      );
+      setDeleteClientSecretDialogData(null);
+    }, [
+      clientSecretHook,
+      clientConfig.client_id,
+      deleteClientSecretDialogData,
+    ]);
+
+    const onDismissDeleteClientSecret = useCallback(() => {
+      setDeleteClientSecretDialogData(null);
+    }, []);
 
     const applicationTypeLabel = useMemo(() => {
       const messageID = getApplicationTypeMessageID(
@@ -459,6 +506,12 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
     const showURIsSection =
       redirectURIsDescription != null || showPostLogoutRedirectURIsSettings;
 
+    const clientSecrets = useMemo(() => {
+      return clientSecretHook.oauthClientSecrets.find(
+        (item) => item.clientID === clientConfig.client_id
+      )?.keys;
+    }, [clientConfig.client_id, clientSecretHook.oauthClientSecrets]);
+
     return (
       <>
         <Widget className={className}>
@@ -478,27 +531,6 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
             value={clientConfig.client_id}
             readOnly={true}
           />
-          {showClientSecret ? (
-            clientSecret ? (
-              <TextFieldWithCopyButton
-                label={renderToString(
-                  "EditOAuthClientForm.client-secret.label"
-                )}
-                value={clientSecret}
-                readOnly={true}
-              />
-            ) : (
-              <TextFieldWithButton
-                label={renderToString(
-                  "EditOAuthClientForm.client-secret.label"
-                )}
-                value={MASKED_SECRET}
-                readOnly={true}
-                buttonText={renderToString("reveal")}
-                onButtonClick={onRevealSecret}
-              />
-            )
-          ) : null}
           {showEndpoint ? (
             <TextFieldWithCopyButton
               label={renderToString("EditOAuthClientForm.endpoint.label")}
@@ -512,6 +544,78 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
             readOnly={true}
           />
         </Widget>
+
+        {showClientSecret && clientSecrets && clientSecrets.length > 0 ? (
+          <>
+            <WidgetTitle>
+              <FormattedMessage id="EditOAuthClientForm.client-secrets.title" />
+            </WidgetTitle>
+            {clientSecrets.map((keyItem) => (
+              <div key={keyItem.keyID}>
+                <TextFieldWithCopyButton
+                  label={renderToString(
+                    "EditOAuthClientForm.client-secret.label"
+                  )}
+                  value={keyItem.key ? keyItem.key : MASKED_SECRET}
+                  readOnly={true}
+                  hideCopyButton={!keyItem.key}
+                  additionalIconButtons={
+                    clientSecrets.length < 2
+                      ? undefined
+                      : [
+                          {
+                            iconProps: { iconName: "Delete" },
+                            disabled:
+                              clientSecretHook.isLoading ||
+                              clientSecretHook.isUpdating,
+                            onClick: () => {
+                              onDeleteClientSecretClick(keyItem);
+                            },
+                            theme: themes.destructive,
+                          },
+                        ]
+                  }
+                />
+                <Text
+                  styles={{
+                    root: {
+                      color: theme.palette.neutralTertiary,
+                    },
+                  }}
+                >
+                  {keyItem.createdAt != null ? (
+                    <FormattedMessage
+                      id="EditOAuthClientForm.client-secret.created-at"
+                      values={{
+                        datetime: DateTime.fromISO(
+                          keyItem.createdAt
+                        ).toLocaleString(DateTime.DATETIME_MED_WITH_SECONDS),
+                      }}
+                    />
+                  ) : null}
+                </Text>
+              </div>
+            ))}
+            <div className="flex flex-row space-x-4">
+              <PrimaryButton
+                text={renderToString("reveal")}
+                onClick={onRevealSecret}
+                disabled={clientSecrets.every((item) => !!item.key)}
+              />
+              {clientSecrets.length < 2 ? (
+                <DefaultButton
+                  text={renderToString(
+                    "EditOAuthClientForm.client-secrets.create-new-secret"
+                  )}
+                  onClick={onGenerateClientSecretClick}
+                  disabled={
+                    clientSecretHook.isLoading || clientSecretHook.isUpdating
+                  }
+                />
+              ) : null}
+            </div>
+          </>
+        ) : null}
 
         {showURIsSection ? (
           <Widget className={className}>
@@ -775,6 +879,12 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
             </HelpText>
           </Widget>
         ) : null}
+        <DeleteClientSecretConfirmationDialog
+          data={deleteClientSecretDialogData}
+          onConfirm={onConfirmDeleteClientSecret}
+          onDismiss={onDismissDeleteClientSecret}
+          isLoading={clientSecretHook.isLoading || clientSecretHook.isUpdating}
+        />
       </>
     );
   };

@@ -53,6 +53,11 @@ import {
 import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";
 import iconSaml from "../../images/saml-logo.svg";
 import { usePivotNavigation } from "../../hook/usePivot";
+import {
+  ClientSecretsHook,
+  useClientSecret,
+} from "../../hook/useClientSecrets";
+import { useLoadableView } from "../../hook/useLoadableView";
 
 export interface LocationState {
   isClientSecretRevealed: boolean;
@@ -337,6 +342,7 @@ interface EditOAuthClientContentProps {
   customUIEnabled: boolean;
   app2appEnabled: boolean;
   onGeneratedNewIdpSigningCertificate: () => void;
+  clientSecretHook: ClientSecretsHook;
 }
 
 enum FormTab {
@@ -364,6 +370,7 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
       customUIEnabled,
       app2appEnabled,
       onGeneratedNewIdpSigningCertificate,
+      clientSecretHook,
     } = props;
     const { renderToString } = useContext(Context);
 
@@ -464,7 +471,7 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
             className={cn(styles.widget, styles["widget--wide"])}
             client={client}
             appConfig={rawAppConfig}
-            clientSecret={!!clientSecret ? clientSecret : null}
+            clientSecrets={clientSecret}
           />
         ) : null}
         {formTab === FormTab.SETTINGS ? (
@@ -472,10 +479,10 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
             client={client}
             state={state}
             app2appEnabled={app2appEnabled}
-            clientSecret={clientSecret}
             customUIEnabled={customUIEnabled}
             onClientConfigChange={onClientConfigChange}
             onRevealSecret={onRevealSecret}
+            clientSecretHook={clientSecretHook}
           />
         ) : null}
         {formTab === FormTab.SAML2 ? (
@@ -505,20 +512,20 @@ interface OAuthClientSettingsFormProps {
   client: OAuthClientConfig;
   state: FormState;
   app2appEnabled: boolean;
-  clientSecret: string | undefined;
   customUIEnabled: boolean;
   onClientConfigChange: (newClientConfig: OAuthClientConfig) => void;
   onRevealSecret: () => void;
+  clientSecretHook: ClientSecretsHook;
 }
 
 function OAuthClientSettingsForm({
   client,
   state,
   app2appEnabled,
-  clientSecret,
   customUIEnabled,
   onClientConfigChange,
   onRevealSecret,
+  clientSecretHook,
 }: OAuthClientSettingsFormProps): React.ReactElement {
   const theme = useTheme();
   const hideQuickStart = useMemo(
@@ -540,11 +547,11 @@ function OAuthClientSettingsForm({
         <EditOAuthClientForm
           publicOrigin={state.publicOrigin}
           clientConfig={client}
-          clientSecret={clientSecret}
           customUIEnabled={customUIEnabled}
           app2appEnabled={app2appEnabled}
           onClientConfigChange={onClientConfigChange}
           onRevealSecret={onRevealSecret}
+          clientSecretHook={clientSecretHook}
         />
       </div>
       {!hideQuickStart ? (
@@ -767,11 +774,13 @@ const EditOAuthClientScreen1: React.VFC<{
   const form = useOAuthClientForm(appID, secretToken);
   const {
     isLoading: appQueryLoading,
+    loadError: appQueryLoadError,
     samlIdpEntityID,
     secretConfig,
     rawAppConfig,
     refetch: refetchAppAndSecretConfig,
   } = useAppAndSecretConfigQuery(appID, secretToken);
+  const generateClientSecretHook = useClientSecret(appID, secretToken);
 
   const featureConfig = useAppFeatureConfigQuery(appID);
 
@@ -803,30 +812,36 @@ const EditOAuthClientScreen1: React.VFC<{
     return secretConfig?.samlIdpSigningSecrets?.certificates ?? [];
   }, [secretConfig]);
 
-  if (form.isLoading || appQueryLoading || !rawAppConfig) {
-    return <ShowLoading />;
-  }
+  return useLoadableView({
+    loadables: [
+      form,
+      {
+        isLoading: appQueryLoading,
+        loadError: appQueryLoadError,
+        reload: refetchAppAndSecretConfig,
+      },
+      generateClientSecretHook,
+    ],
+    render: () => {
+      if (isQuickScreenVisible) {
+        return <OAuthQuickStartScreenContent form={form} clientID={clientID} />;
+      }
 
-  if (form.loadError) {
-    return <ShowError error={form.loadError} onRetry={form.reload} />;
-  }
-
-  if (isQuickScreenVisible) {
-    return <OAuthQuickStartScreenContent form={form} clientID={clientID} />;
-  }
-
-  return (
-    <FormContainerContent
-      form={form}
-      rawAppConfig={rawAppConfig}
-      clientID={clientID}
-      samlIdpEntityID={samlIdpEntityID}
-      samlIdpSigningCertificates={samlIdPSigningCertificates}
-      customUIEnabled={customUIEnabled}
-      app2appEnabled={app2appEnabled}
-      refetchAppAndSecretConfig={refetchAppAndSecretConfig}
-    />
-  );
+      return (
+        <FormContainerContent
+          form={form}
+          rawAppConfig={rawAppConfig!}
+          clientID={clientID}
+          samlIdpEntityID={samlIdpEntityID}
+          samlIdpSigningCertificates={samlIdPSigningCertificates}
+          customUIEnabled={customUIEnabled}
+          app2appEnabled={app2appEnabled}
+          refetchAppAndSecretConfig={refetchAppAndSecretConfig}
+          clientSecretHook={generateClientSecretHook}
+        />
+      );
+    },
+  });
 };
 
 function FormContainerContent({
@@ -838,6 +853,7 @@ function FormContainerContent({
   customUIEnabled,
   app2appEnabled,
   refetchAppAndSecretConfig,
+  clientSecretHook,
 }: {
   form: AppSecretConfigFormModel<FormState>;
   rawAppConfig: PortalAPIAppConfig;
@@ -847,6 +863,7 @@ function FormContainerContent({
   customUIEnabled: boolean;
   app2appEnabled: boolean;
   refetchAppAndSecretConfig: () => void;
+  clientSecretHook: ClientSecretsHook;
 }) {
   const { state } = form;
   const { selectedKey: formTab, onChangeKey: setFormTab } = usePivotNavigation(
@@ -894,6 +911,7 @@ function FormContainerContent({
         stickyFooterComponent={true}
         showDiscardButton={true}
         hideFooterComponent={hideFooter}
+        localError={clientSecretHook.saveError}
       >
         <EditOAuthClientContent
           form={form}
@@ -904,6 +922,7 @@ function FormContainerContent({
           customUIEnabled={customUIEnabled}
           app2appEnabled={app2appEnabled}
           onGeneratedNewIdpSigningCertificate={refetchAppAndSecretConfig}
+          clientSecretHook={clientSecretHook}
         />
       </FormContainer>
     </FormTabContext.Provider>

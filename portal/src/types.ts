@@ -810,10 +810,16 @@ export interface OAuthClientSecretsUpdateInstructionCleanupData {
   keepClientIDs: string[];
 }
 
+export interface OAuthClientSecretsUpdateInstructionDeleteData {
+  clientID: string;
+  keyID: string;
+}
+
 export interface OAuthClientSecretsUpdateInstruction {
   action: string;
   generateData?: OAuthClientSecretsUpdateInstructionGenerateData | null;
   cleanupData?: OAuthClientSecretsUpdateInstructionCleanupData | null;
+  deleteData?: OAuthClientSecretsUpdateInstructionDeleteData | null;
 }
 
 export interface AdminAPIAuthKeyDeleteDataInput {

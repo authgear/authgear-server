@@ -86,6 +86,18 @@ var oauthClientSecretsGenerateDataInput = graphql.NewInputObject(graphql.InputOb
 	},
 })
 
+var oauthClientSecretsDeleteDataInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "OAuthClientSecretsDeleteDataInput",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"clientID": &graphql.InputObjectFieldConfig{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+		"keyID": &graphql.InputObjectFieldConfig{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+	},
+})
+
 var oauthClientSecretsCleanupDataInput = graphql.NewInputObject(graphql.InputObjectConfig{
 	Name: "OAuthClientSecretsCleanupDataInput",
 	Fields: graphql.InputObjectConfigFieldMap{
@@ -221,6 +233,9 @@ var oauthClientSecretsUpdateInstructionsInput = graphql.NewInputObject(graphql.I
 		},
 		"generateData": &graphql.InputObjectFieldConfig{
 			Type: oauthClientSecretsGenerateDataInput,
+		},
+		"deleteData": &graphql.InputObjectFieldConfig{
+			Type: oauthClientSecretsDeleteDataInput,
 		},
 		"cleanupData": &graphql.InputObjectFieldConfig{
 			Type: oauthClientSecretsCleanupDataInput,

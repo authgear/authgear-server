@@ -300,10 +300,12 @@ const OAuthClientConfigurationContent: React.VFC<OAuthClientConfigurationContent
 
     const dismissDialogAndResetRemoveClientByID = useCallback(() => {
       setIsRemoveDialogVisible(false);
-      deleteForm.setState((state) => ({
-        ...state,
-        removeClientByID: undefined,
-      }));
+      deleteForm.setState((state) => {
+        return {
+          ...state,
+          removeClientByID: undefined,
+        };
+      });
     }, [deleteForm, setIsRemoveDialogVisible]);
 
     const onConfirmRemove = useCallback(() => {
