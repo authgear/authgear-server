@@ -76,7 +76,7 @@ require (
 	github.com/yudai/gojsondiff v1.0.0
 	go.uber.org/automaxprocs v1.6.0
 	golang.org/x/exp v0.0.0-20250811191247-51f88131bc50
-	gopkg.in/yaml.v3 v3.0.1
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
 require (
@@ -109,6 +109,7 @@ require (
 	go.opentelemetry.io/otel/sdk v1.37.0
 	go.opentelemetry.io/otel/sdk/metric v1.37.0
 	go.yaml.in/yaml/v2 v2.4.2
+	go.yaml.in/yaml/v3 v3.0.3
 )
 
 require (
