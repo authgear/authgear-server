@@ -22,7 +22,6 @@ import { useAddResourceToClientIdMutation } from "../adminapi/mutations/addResou
 
 import ScreenContent from "../../ScreenContent";
 import ShowError from "../../ShowError";
-import ShowLoading from "../../ShowLoading";
 import { updateClientConfig } from "./EditOAuthClientForm";
 import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
 import {
@@ -47,6 +46,7 @@ import {
 } from "../../hook/useAppSecretConfigForm";
 import LinkButton from "../../LinkButton";
 import { useAppContext } from "../../context/AppContext";
+import { useLoadableView } from "../../hook/useLoadableView";
 
 interface FormState {
   clients: OAuthClientConfig[];
@@ -167,27 +167,22 @@ function getNextStep(state: FormState): FormStep | null {
 
 interface CreateOAuthClientContentProps {
   form: AppSecretConfigFormModel<FormState>;
+  hasNoAPIResources: boolean;
 }
 
 interface StepSelectApplicationTypeProps {
   client: OAuthClientConfig;
   form: AppSecretConfigFormModel<FormState>;
   onClickSave: () => void;
+  hasNoAPIResources: boolean;
 }
 
 const StepSelectApplicationType: React.VFC<StepSelectApplicationTypeProps> =
   function StepSelectApplicationType(props) {
-    const { client, form, onClickSave } = props;
+    const { client, form, onClickSave, hasNoAPIResources } = props;
     const { appNodeID } = useAppContext();
     const { state, setState, isDirty, isUpdating } = form;
     const { renderToString } = useContext(Context);
-
-    const { data } = useResourcesQueryQuery({
-      variables: {
-        first: 1,
-      },
-      fetchPolicy: "cache-and-network",
-    });
 
     const onClientConfigChange = useCallback(
       (newClient: OAuthClientConfig) => {
@@ -216,8 +211,6 @@ const StepSelectApplicationType: React.VFC<StepSelectApplicationTypeProps> =
         );
       };
     }, []);
-
-    const hasNoAPIResources = (data?.resources?.totalCount ?? 0) === 0;
 
     const options: IChoiceGroupOption[] = useMemo(() => {
       return [
@@ -476,7 +469,8 @@ const StepAuthorizeResource: React.VFC<StepAuthorizeResourceProps> =
 
 const CreateOAuthClientContent: React.VFC<CreateOAuthClientContentProps> =
   function CreateOAuthClientContent(props) {
-    const { state, setState, save } = props.form;
+    const { form, hasNoAPIResources } = props;
+    const { state, setState, save } = form;
     const { appID } = useParams() as { appID: string };
     const navigate = useNavigate();
 
@@ -554,14 +548,15 @@ const CreateOAuthClientContent: React.VFC<CreateOAuthClientContentProps> =
         {state.step === FormStep.SelectType ? (
           <StepSelectApplicationType
             client={client}
-            form={props.form}
+            form={form}
             onClickSave={onClickSave}
+            hasNoAPIResources={hasNoAPIResources}
           />
         ) : null}
         {state.step === FormStep.AuthorizeResource ? (
           <StepAuthorizeResource
             client={client}
-            form={props.form}
+            form={form}
             onClickSave={onClickSave}
           />
         ) : null}
@@ -572,6 +567,16 @@ const CreateOAuthClientContent: React.VFC<CreateOAuthClientContentProps> =
 const CreateOAuthClientScreen: React.VFC = function CreateOAuthClientScreen() {
   const { appID } = useParams() as { appID: string };
   const [addResource] = useAddResourceToClientIdMutation();
+
+  const resourceCountQuery = useResourcesQueryQuery({
+    variables: {
+      first: 1,
+    },
+    fetchPolicy: "cache-and-network",
+  });
+
+  const hasNoAPIResources =
+    (resourceCountQuery.data?.resources?.totalCount ?? 0) === 0;
 
   const form = useAppSecretConfigForm({
     appID,
@@ -600,8 +605,6 @@ const CreateOAuthClientScreen: React.VFC = function CreateOAuthClientScreen() {
     ),
   });
 
-  const { isLoading, loadError, reload, updateError, isUpdating } = form;
-
   const errorRules = useMemo(
     () => [
       makeValidationErrorMatchUnknownKindParseRule(
@@ -616,22 +619,31 @@ const CreateOAuthClientScreen: React.VFC = function CreateOAuthClientScreen() {
     [appID]
   );
 
-  if (isLoading) {
-    return <ShowLoading />;
-  }
-
-  if (loadError) {
-    return <ShowError error={loadError} onRetry={reload} />;
-  }
-
-  return (
-    <FormProvider loading={isUpdating} error={updateError} rules={errorRules}>
-      <FormErrorMessageBar />
-      <div className="flex-1 overflow-y-auto flex flex-col">
-        <CreateOAuthClientContent form={form} />
-      </div>
-    </FormProvider>
-  );
+  return useLoadableView({
+    loadables: [
+      form,
+      {
+        isLoading: resourceCountQuery.loading,
+        loadError: resourceCountQuery.error,
+        reload: resourceCountQuery.refetch,
+      },
+    ] as const,
+    render: ([form]) => (
+      <FormProvider
+        loading={form.isUpdating}
+        error={form.updateError}
+        rules={errorRules}
+      >
+        <FormErrorMessageBar />
+        <div className="flex-1 overflow-y-auto flex flex-col">
+          <CreateOAuthClientContent
+            form={form}
+            hasNoAPIResources={hasNoAPIResources}
+          />
+        </div>
+      </FormProvider>
+    ),
+  });
 };
 
 export default CreateOAuthClientScreen;
