@@ -37,7 +37,7 @@ export const DeleteResourceDialog: React.VFC<DeleteResourceDialogProps> =
 
     return (
       <DeleteConfirmationDialog
-        data={data!}
+        data={data}
         renderTitle={renderTitle}
         renderSubText={renderSubText}
         onDismiss={onDismiss}

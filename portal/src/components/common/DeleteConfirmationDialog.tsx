@@ -12,7 +12,7 @@ import PrimaryButton from "../../PrimaryButton";
 import DefaultButton from "../../DefaultButton";
 
 interface DeleteConfirmationDialogProps<T> {
-  data: T;
+  data: T | null;
   renderTitle: (data: T) => React.ReactNode;
   renderSubText: (data: T) => React.ReactNode;
   onDismiss: () => void;

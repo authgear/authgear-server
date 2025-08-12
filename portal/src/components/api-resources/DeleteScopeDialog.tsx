@@ -37,7 +37,7 @@ export const DeleteScopeDialog: React.VFC<DeleteScopeDialogProps> =
 
     return (
       <DeleteConfirmationDialog
-        data={data!}
+        data={data}
         renderTitle={renderTitle}
         renderSubText={renderSubText}
         onDismiss={onDismiss}

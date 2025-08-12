@@ -802,6 +802,9 @@
   "ApplicationsConfigurationScreen.delete-client-dialog.title": "Delete Application",
   "ApplicationsConfigurationScreen.delete-client-dialog.description": "Are you sure you want to delete the application?",
 
+  "DeleteClientSecretConfirmationDialog.title": "Delete Client Secret",
+  "DeleteClientSecretConfirmationDialog.description": "This action will permanently delete the client secret and cannot be undone. Are you sure you want to proceed?",
+
   "App2AppConfigurationScreen.title": "App2App",
   "App2AppConfigurationScreen.description": "Authenticate the user through another app which is installed in the same device without sharing cookies and login sessions.",
   "App2AppConfigurationScreen.table.description": "Enable and set up App2App login in the Application configuration.",
