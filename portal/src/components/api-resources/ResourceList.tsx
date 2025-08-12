@@ -14,6 +14,7 @@ import PaginationWidget, { PaginationProps } from "../../PaginationWidget";
 import styles from "./ResourceList.module.css";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import ActionButton from "../../ActionButton";
+import { TextWithCopyButton } from "../common/TextWithCopyButton";
 
 interface ResourceListItem
   extends Pick<Resource, "id" | "name" | "resourceURI"> {}
@@ -50,6 +51,13 @@ export const ResourceList: React.VFC<ResourceListProps> = function ResourceList(
         minWidth: 200,
         isResizable: true,
         fieldName: "resourceURI",
+        // eslint-disable-next-line react/no-unstable-nested-components
+        onRender: (item?: Resource, _0?: number, _1?: IColumn) => {
+          if (item == null) {
+            return null;
+          }
+          return <TextWithCopyButton text={item.resourceURI} />;
+        },
       },
       {
         key: "actions",

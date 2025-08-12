@@ -8,9 +8,15 @@ function TextCell(
 ): React.ReactElement {
   return (
     <BaseCell>
-      <Text className={styles.cellText}>{props.children}</Text>
+      <TextCellText>{props.children}</TextCellText>
     </BaseCell>
   );
 }
 
 export default TextCell;
+
+export function TextCellText(
+  props: PropsWithChildren<Record<never, never>>
+): React.ReactElement {
+  return <Text className={styles.cellText}>{props.children}</Text>;
+}
