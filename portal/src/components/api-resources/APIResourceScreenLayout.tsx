@@ -23,7 +23,7 @@ const APIResourceScreenLayout: React.VFC<APIResourceLayoutProps> =
   }) {
     return (
       <ErrorMessageBarContextProvider>
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col overflow-y-auto">
           <ErrorMessageBar />
           <ScreenContent className="flex-1" layout="list">
             <ScreenContentHeader

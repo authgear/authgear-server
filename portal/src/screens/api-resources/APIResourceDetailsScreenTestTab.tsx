@@ -45,24 +45,6 @@ export function APIResourceDetailsScreenTestTab({
   effectiveAppConfig: PortalAPIAppConfig;
   secretConfig: PortalAPISecretConfig | null;
 }): React.ReactElement | null {
-  return (
-    <APIResourceDetailsScreenTestTabContent
-      resource={resource}
-      effectiveAppConfig={effectiveAppConfig}
-      secretConfig={secretConfig}
-    />
-  );
-}
-
-function APIResourceDetailsScreenTestTabContent({
-  resource,
-  effectiveAppConfig,
-  secretConfig,
-}: {
-  resource: Resource;
-  effectiveAppConfig: PortalAPIAppConfig;
-  secretConfig: PortalAPISecretConfig | null;
-}) {
   const { renderToString } = useContext(MessageContext);
   const navigate = useNavigate();
   const { setErrors } = useErrorMessageBarContext();
