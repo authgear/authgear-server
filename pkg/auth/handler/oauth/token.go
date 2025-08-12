@@ -43,13 +43,10 @@ func (h *TokenHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 
 	var result httputil.Result
 	ctx := r.Context()
-	err = h.Database.WithTx(ctx, func(ctx context.Context) error {
-		result = h.TokenHandler.Handle(ctx, rw, r, req)
-		if result.IsInternalError() {
-			return errAuthzInternalError
-		}
-		return nil
-	})
+	result = h.TokenHandler.Handle(ctx, rw, r, req)
+	if result.IsInternalError() {
+		err = errAuthzInternalError
+	}
 
 	if err == nil || errors.Is(err, errAuthzInternalError) {
 		result.WriteResponse(rw, r)

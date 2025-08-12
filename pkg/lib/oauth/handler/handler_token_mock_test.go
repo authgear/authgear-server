@@ -18,6 +18,7 @@ import (
 	handler "github.com/authgear/authgear-server/pkg/lib/oauth/handler"
 	oidc "github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	protocol "github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
+	ratelimit "github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	resourcescope "github.com/authgear/authgear-server/pkg/lib/resourcescope"
 	access "github.com/authgear/authgear-server/pkg/lib/session/access"
 	idpsession "github.com/authgear/authgear-server/pkg/lib/session/idpsession"
@@ -633,6 +634,44 @@ func (mr *MockTokenHandlerOfflineGrantServiceMockRecorder) GetOfflineGrant(ctx, 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOfflineGrant", reflect.TypeOf((*MockTokenHandlerOfflineGrantService)(nil).GetOfflineGrant), ctx, id)
 }
 
+// MockTokenHandlerRateLimiter is a mock of TokenHandlerRateLimiter interface.
+type MockTokenHandlerRateLimiter struct {
+	ctrl     *gomock.Controller
+	recorder *MockTokenHandlerRateLimiterMockRecorder
+}
+
+// MockTokenHandlerRateLimiterMockRecorder is the mock recorder for MockTokenHandlerRateLimiter.
+type MockTokenHandlerRateLimiterMockRecorder struct {
+	mock *MockTokenHandlerRateLimiter
+}
+
+// NewMockTokenHandlerRateLimiter creates a new mock instance.
+func NewMockTokenHandlerRateLimiter(ctrl *gomock.Controller) *MockTokenHandlerRateLimiter {
+	mock := &MockTokenHandlerRateLimiter{ctrl: ctrl}
+	mock.recorder = &MockTokenHandlerRateLimiterMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockTokenHandlerRateLimiter) EXPECT() *MockTokenHandlerRateLimiterMockRecorder {
+	return m.recorder
+}
+
+// Allow mocks base method.
+func (m *MockTokenHandlerRateLimiter) Allow(ctx context.Context, spec ratelimit.BucketSpec) (*ratelimit.FailedReservation, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Allow", ctx, spec)
+	ret0, _ := ret[0].(*ratelimit.FailedReservation)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Allow indicates an expected call of Allow.
+func (mr *MockTokenHandlerRateLimiterMockRecorder) Allow(ctx, spec interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Allow", reflect.TypeOf((*MockTokenHandlerRateLimiter)(nil).Allow), ctx, spec)
+}
+
 // MockTokenHandlerTokenService is a mock of TokenHandlerTokenService interface.
 type MockTokenHandlerTokenService struct {
 	ctrl     *gomock.Controller
@@ -889,4 +928,41 @@ func (m *MockTokenHandlerClientResourceScopeService) GetClientResourceScopes(ctx
 func (mr *MockTokenHandlerClientResourceScopeServiceMockRecorder) GetClientResourceScopes(ctx, clientID, resourceID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetClientResourceScopes", reflect.TypeOf((*MockTokenHandlerClientResourceScopeService)(nil).GetClientResourceScopes), ctx, clientID, resourceID)
+}
+
+// MockTokenHandlerAppDatabase is a mock of TokenHandlerAppDatabase interface.
+type MockTokenHandlerAppDatabase struct {
+	ctrl     *gomock.Controller
+	recorder *MockTokenHandlerAppDatabaseMockRecorder
+}
+
+// MockTokenHandlerAppDatabaseMockRecorder is the mock recorder for MockTokenHandlerAppDatabase.
+type MockTokenHandlerAppDatabaseMockRecorder struct {
+	mock *MockTokenHandlerAppDatabase
+}
+
+// NewMockTokenHandlerAppDatabase creates a new mock instance.
+func NewMockTokenHandlerAppDatabase(ctrl *gomock.Controller) *MockTokenHandlerAppDatabase {
+	mock := &MockTokenHandlerAppDatabase{ctrl: ctrl}
+	mock.recorder = &MockTokenHandlerAppDatabaseMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockTokenHandlerAppDatabase) EXPECT() *MockTokenHandlerAppDatabaseMockRecorder {
+	return m.recorder
+}
+
+// WithTx mocks base method.
+func (m *MockTokenHandlerAppDatabase) WithTx(ctx_original context.Context, do func(context.Context) error) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "WithTx", ctx_original, do)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// WithTx indicates an expected call of WithTx.
+func (mr *MockTokenHandlerAppDatabaseMockRecorder) WithTx(ctx_original, do interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithTx", reflect.TypeOf((*MockTokenHandlerAppDatabase)(nil).WithTx), ctx_original, do)
 }

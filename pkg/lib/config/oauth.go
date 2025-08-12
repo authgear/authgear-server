@@ -5,7 +5,10 @@ var _ = Schema.Add("OAuthConfig", `
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
-		"clients": { "type": "array", "items": { "$ref": "#/$defs/OAuthClientConfig" } }
+		"clients": {
+			"type": "array",
+			"items": { "$ref": "#/$defs/OAuthClientConfig" }
+		}
 	}
 }
 `)
@@ -219,6 +222,23 @@ var _ = Schema.Add("OAuthClientConfig", `
 			},
 			"then": {
 				"required": ["redirect_uris"]
+			}
+		},
+		{
+			"if": {
+				"properties": {
+					"x_application_type": {
+						"enum": ["m2m"]
+					}
+				},
+				"required": ["x_application_type"]
+			},
+			"then": {
+				"properties": {
+					"access_token_lifetime_seconds": {
+						"maximum": 2419200
+					}
+				}
 			}
 		}
 	]

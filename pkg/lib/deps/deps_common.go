@@ -540,6 +540,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(otp.RateLimiter), new(*ratelimit.Limiter)),
 		wire.Bind(new(messaging.RateLimiter), new(*ratelimit.Limiter)),
 		wire.Bind(new(mfa.RateLimiter), new(*ratelimit.Limiter)),
+		wire.Bind(new(oauthhandler.TokenHandlerRateLimiter), new(*ratelimit.Limiter)),
 	),
 
 	wire.NewSet(
