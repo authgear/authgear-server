@@ -8,7 +8,7 @@ import (
 	"path"
 	"sync/atomic"
 
-	"gopkg.in/fsnotify.v1"
+	"github.com/fsnotify/fsnotify"
 
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )

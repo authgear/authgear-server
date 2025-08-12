@@ -9,8 +9,8 @@ import (
 	"path/filepath"
 	"sync/atomic"
 
+	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/afero"
-	"gopkg.in/fsnotify.v1"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/resource"

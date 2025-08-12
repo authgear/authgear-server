@@ -13,6 +13,7 @@ require (
 	// The client should have equal or less minor version.
 	github.com/elastic/go-elasticsearch/v7 v7.17.10
 	github.com/felixge/httpsnoop v1.0.4
+	github.com/fsnotify/fsnotify v1.9.0
 	github.com/getsentry/sentry-go v0.35.0
 	github.com/go-redsync/redsync/v4 v4.13.0
 	github.com/golang/mock v1.6.0
@@ -46,7 +47,6 @@ require (
 	golang.org/x/oauth2 v0.30.0
 	golang.org/x/text v0.28.0
 	google.golang.org/api v0.246.0
-	gopkg.in/fsnotify.v1 v1.4.7
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
 	gopkg.in/h2non/gock.v1 v1.1.2
 	gopkg.in/yaml.v2 v2.4.0
@@ -192,7 +192,6 @@ require (
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/dlclark/regexp2 v1.7.0 // indirect
 	github.com/emicklei/go-restful/v3 v3.12.0 // indirect
-	github.com/fsnotify/fsnotify v1.8.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.7.0 // indirect
 	github.com/go-gorp/gorp/v3 v3.1.0 // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
