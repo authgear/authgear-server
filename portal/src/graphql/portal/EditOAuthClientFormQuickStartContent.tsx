@@ -95,7 +95,10 @@ function EditOAuthClientFormQuickStartContentLoaded(
   const isEmpty = resources.length === 0;
 
   const [selectedResourceURI, setSelectedResourceURI] =
-    useSearchParamsState<string>("resource", "");
+    useSearchParamsState<string>(
+      "resource",
+      resources.length > 0 ? resources[0].resourceURI : ""
+    );
   const [selectedCodeVariant, setSelectedCodeVariant] =
     useState<ExampleCodeVariant>(ExampleCodeVariant.CURL);
 
