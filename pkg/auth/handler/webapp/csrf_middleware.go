@@ -182,7 +182,7 @@ func (m *CSRFMiddleware) unauthorizedHandler(w http.ResponseWriter, r *http.Requ
 		slog.String("maskedCsrfCookieContent", maskedCsrfCookieContent),
 		slog.String("securecookieError", securecookieError),
 		slog.Any("csrfFailureReason", csrfFailureReason),
-	).Error(ctx, "CSRF Forbidden")
+	).WithSkipLogging().Error(ctx, "CSRF Forbidden")
 
 	uiImpl := m.UIImplementationService.GetUIImplementation()
 
