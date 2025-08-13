@@ -143,7 +143,7 @@ func (h *AnonymousUserHandler) signupAnonymousUserWithRefreshTokenSessionType(
 
 	if !client.HasFullAccessScope() {
 		// unauthorized_client
-		return nil, apierrors.NewInvalid("Anonymous user is not supported by the the client application type. Try use SPA, Traditional Web App, or Native App client type if applicable.")
+		return nil, apierrors.NewInvalid("Anonymous user is not supported by the client application type. Try using SPA, Traditional Web App, or Native App client types if applicable.")
 	}
 
 	// TODO(oauth): allow specifying scopes for anonymous user signup
