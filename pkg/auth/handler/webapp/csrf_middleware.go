@@ -82,11 +82,6 @@ func (m *CSRFMiddleware) Handle(next http.Handler) http.Handler {
 
 func (m *CSRFMiddleware) unauthorizedHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	otelutil.IntCounterAddOne(
-		ctx,
-		otelauthgear.CounterCSRFRequestCount,
-		otelauthgear.WithStatusError(),
-	)
 
 	// Check debug cookies and inject info for reporting
 	omitCookie, err := m.Cookies.GetCookie(r, webapp.CSRFDebugCookieSameSiteOmitDef)
@@ -107,6 +102,17 @@ func (m *CSRFMiddleware) unauthorizedHandler(w http.ResponseWriter, r *http.Requ
 	maskedCsrfCookieContent := ""
 	securecookieError := ""
 	csrfFailureReason := csrf.FailureReason(r)
+
+	otelutil.IntCounterAddOne(
+		ctx,
+		otelauthgear.CounterCSRFRequestCount,
+		otelauthgear.WithStatusError(),
+		otelauthgear.WithCSRFHasOmitCookie(hasOmitCookie),
+		otelauthgear.WithCSRFHasNoneCookie(hasNoneCookie),
+		otelauthgear.WithCSRFHasLaxCookie(hasLaxCookie),
+		otelauthgear.WithCSRFHasStrictCookie(hasStrictCookie),
+	)
+
 	if csrfCookie != nil {
 		// do not return value but length only for debug.
 		csrfCookieSizeInBytes = len([]byte(csrfCookie.Value))
@@ -147,6 +153,7 @@ func (m *CSRFMiddleware) unauthorizedHandler(w http.ResponseWriter, r *http.Requ
 	}
 
 	logger := CSRFMiddlewareLogger.GetLogger(ctx)
+
 	logger.With(
 		slog.Bool("hasOmitCookie", hasOmitCookie),
 		slog.Bool("hasNoneCookie", hasNoneCookie),

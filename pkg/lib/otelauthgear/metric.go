@@ -94,6 +94,18 @@ var AttributeStatusOK = AttributeKeyStatus.String("ok")
 // AttributeStatusError is "status=error".
 var AttributeStatusError = AttributeKeyStatus.String("error")
 
+// AttributeKeyCSRFHasOmitCookie defines the attribute.
+var AttributeKeyCSRFHasOmitCookie = attribute.Key("csrf.has_omit_cookie")
+
+// AttributeKeyCSRFHasNoneCookie defines the attribute.
+var AttributeKeyCSRFHasNoneCookie = attribute.Key("csrf.has_none_cookie")
+
+// AttributeKeyCSRFHasLaxCookie defines the attribute.
+var AttributeKeyCSRFHasLaxCookie = attribute.Key("csrf.has_lax_cookie")
+
+// AttributeKeyCSRFHasStrictCookie defines the attribute.
+var AttributeKeyCSRFHasStrictCookie = attribute.Key("csrf.has_strict_cookie")
+
 var CounterOAuthSessionCreationCount = otelutil.MustInt64Counter(
 	meter,
 	"authgear.oauth_session.creation.count",
@@ -171,6 +183,10 @@ var CounterWhatsappRequestCount = otelutil.MustInt64Counter(
 
 // CounterCSRFRequestCount has the following labels:
 // - AttributeKeyStatus
+// - AttributeKeyCSRFHasOmitCookie
+// - AttributeKeyCSRFHasNoneCookie
+// - AttributeKeyCSRFHasLaxCookie
+// - AttributeKeyCSRFHasStrictCookie
 var CounterCSRFRequestCount = otelutil.MustInt64Counter(
 	meter,
 	"authgear.csrf.request.count",
@@ -250,6 +266,22 @@ func WithAPIErrorReason(kind string) otelutil.MetricOption {
 
 func WithHTTPStatusCode(code int) otelutil.MetricOption {
 	return metricOptionAttributeKeyValue{semconv.HTTPResponseStatusCodeKey.Int(code)}
+}
+
+func WithCSRFHasOmitCookie(b bool) otelutil.MetricOption {
+	return metricOptionAttributeKeyValue{AttributeKeyCSRFHasOmitCookie.Bool(b)}
+}
+
+func WithCSRFHasNoneCookie(b bool) otelutil.MetricOption {
+	return metricOptionAttributeKeyValue{AttributeKeyCSRFHasNoneCookie.Bool(b)}
+}
+
+func WithCSRFHasLaxCookie(b bool) otelutil.MetricOption {
+	return metricOptionAttributeKeyValue{AttributeKeyCSRFHasLaxCookie.Bool(b)}
+}
+
+func WithCSRFHasStrictCookie(b bool) otelutil.MetricOption {
+	return metricOptionAttributeKeyValue{AttributeKeyCSRFHasStrictCookie.Bool(b)}
 }
 
 func SetProjectID(ctx context.Context, projectID string) {
