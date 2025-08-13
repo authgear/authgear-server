@@ -344,7 +344,7 @@ export function makeReasonErrorParseRule(
   };
 }
 
-export function makeValidationErrorMatchUnknownKindParseRule(
+export function makeValidationErrorCustomMessageIDRule(
   kind: string,
   locationRegExp: RegExp,
   errorMessageID: string,
@@ -359,49 +359,7 @@ export function makeValidationErrorMatchUnknownKindParseRule(
         if (kind === cause.kind && locationRegExp.test(cause.location)) {
           parsedAPIErrors.push({
             messageID: errorMessageID,
-            arguments: values,
-          });
-        } else {
-          unhandledCauses.push(cause);
-        }
-      }
-
-      const modifiedAPIError = {
-        ...apiError,
-        info: {
-          ...apiError.info,
-          causes: unhandledCauses,
-        },
-      };
-
-      return {
-        parsedAPIErrors,
-        modifiedAPIError: modifiedAPIError,
-        fullyHandled: false,
-      };
-    }
-    return {
-      parsedAPIErrors: [],
-      fullyHandled: false,
-    };
-  };
-}
-
-export function makeValidationErrorCustomMessageIDRule(
-  kind: string,
-  locationRegExp: RegExp,
-  errorMessageID: string
-): ErrorParseRule {
-  return (apiError: APIError): ErrorParseRuleResult => {
-    if (apiError.reason === "ValidationFailed") {
-      const unhandledCauses = [];
-      const parsedAPIErrors = [];
-
-      for (const cause of apiError.info.causes) {
-        if (kind === cause.kind && locationRegExp.test(cause.location)) {
-          parsedAPIErrors.push({
-            messageID: errorMessageID,
-            arguments: cause.details as unknown as Values,
+            arguments: values ?? (cause.details as unknown as Values),
           });
         } else {
           unhandledCauses.push(cause);

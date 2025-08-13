@@ -18,7 +18,7 @@ import HorizontalDivider from "../../HorizontalDivider";
 import FormTextField from "../../FormTextField";
 import {
   ErrorParseRule,
-  makeValidationErrorMatchUnknownKindParseRule,
+  makeValidationErrorCustomMessageIDRule,
 } from "../../error/parse";
 import Toggle from "../../Toggle";
 
@@ -213,7 +213,7 @@ function LockoutThresholdSection<T extends State>(props: {
 }
 
 const minDurationErrorParseRules: ErrorParseRule[] = [
-  makeValidationErrorMatchUnknownKindParseRule(
+  makeValidationErrorCustomMessageIDRule(
     "maximum",
     /\/authentication\/lockout\/minimum_duration/,
     "LoginMethodConfigurationScreen.lockout.errors.maxDurationMustBeGreaterThanMinDuration"

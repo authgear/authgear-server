@@ -27,7 +27,7 @@ import {
 import { useSystemConfig } from "./context/SystemConfigContext";
 import FormErrorMessageText from "./FormErrorMessageText";
 import styles from "./EditCustomAttributeForm.module.css";
-import { makeValidationErrorMatchUnknownKindParseRule } from "./error/parse";
+import { makeValidationErrorCustomMessageIDRule } from "./error/parse";
 
 const REMOVE_BUTTON_ICON_PROPS = {
   iconName: "Blocked12",
@@ -393,12 +393,12 @@ const EditCustomAttributeForm: React.VFC<EditCustomAttributeFormProps> =
             "EditCustomAttributeForm.description.attribute-name"
           )}
           errorRules={[
-            makeValidationErrorMatchUnknownKindParseRule(
+            makeValidationErrorCustomMessageIDRule(
               "not",
               /\/pointer$/,
               "EditCustomAttributeForm.error.not"
             ),
-            makeValidationErrorMatchUnknownKindParseRule(
+            makeValidationErrorCustomMessageIDRule(
               "duplicated",
               /\/pointer$/,
               "EditCustomAttributeForm.error.duplicated-attribute-name"

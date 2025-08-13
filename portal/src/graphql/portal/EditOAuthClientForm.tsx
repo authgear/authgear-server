@@ -35,7 +35,7 @@ import {
 } from "../../components/applications/DeleteClientSecretConfirmationDialog";
 import Tooltip from "../../Tooltip";
 import { LocationState } from "./EditOAuthClientScreen";
-import { makeValidationErrorMatchUnknownKindParseRule } from "../../error/parse";
+import { makeValidationErrorCustomMessageIDRule } from "../../error/parse";
 
 const MASKED_SECRET = "***************";
 
@@ -837,7 +837,7 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
                 clientConfig.access_token_lifetime_seconds?.toFixed(0) ?? ""
               }
               errorRules={[
-                makeValidationErrorMatchUnknownKindParseRule(
+                makeValidationErrorCustomMessageIDRule(
                   "maximum",
                   /\/access_token_lifetime_seconds$/,
                   "EditOAuthClientForm.access-token.error.maximum"

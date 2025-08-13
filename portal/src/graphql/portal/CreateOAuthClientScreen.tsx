@@ -32,7 +32,7 @@ import {
 } from "../../types";
 import { clearEmptyObject, ensureNonEmptyString } from "../../util/misc";
 import { genRandomHexadecimalString } from "../../util/random";
-import { makeValidationErrorMatchUnknownKindParseRule } from "../../error/parse";
+import { makeValidationErrorCustomMessageIDRule } from "../../error/parse";
 import styles from "./CreateOAuthClientScreen.module.css";
 import { FormProvider } from "../../form";
 import FormTextField from "../../FormTextField";
@@ -607,7 +607,7 @@ const CreateOAuthClientScreen: React.VFC = function CreateOAuthClientScreen() {
 
   const errorRules = useMemo(
     () => [
-      makeValidationErrorMatchUnknownKindParseRule(
+      makeValidationErrorCustomMessageIDRule(
         "general",
         /^\/oauth\/clients$/,
         "error.client-quota-exceeded",
