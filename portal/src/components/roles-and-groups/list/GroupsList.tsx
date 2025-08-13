@@ -19,6 +19,7 @@ import TextCell, { TextCellText } from "./common/TextCell";
 import RolesAndGroupsBaseList from "./common/RolesAndGroupsBaseList";
 import { GroupsListFragment } from "../../../graphql/adminapi/query/groupsListQuery.generated";
 import { TextWithCopyButton } from "../../common/TextWithCopyButton";
+import BaseCell from "./common/BaseCell";
 interface GroupsListProps {
   className?: string;
   isSearch: boolean;
@@ -164,7 +165,12 @@ const GroupsList: React.VFC<GroupsListProps> = function GroupsList(props) {
         }
         case "key":
           return (
-            <TextWithCopyButton text={item.key} TextComponent={TextCellText} />
+            <BaseCell>
+              <TextWithCopyButton
+                text={item.key}
+                TextComponent={TextCellText}
+              />
+            </BaseCell>
           );
         default:
           return (

@@ -19,6 +19,7 @@ import TextCell, { TextCellText } from "./common/TextCell";
 import DescriptionCell from "./common/DescriptionCell";
 import { RolesListFragment } from "../../../graphql/adminapi/query/rolesListQuery.generated";
 import { TextWithCopyButton } from "../../common/TextWithCopyButton";
+import BaseCell from "./common/BaseCell";
 
 interface RolesListProps {
   className?: string;
@@ -165,7 +166,12 @@ const RolesList: React.VFC<RolesListProps> = function RolesList(props) {
         }
         case "key":
           return (
-            <TextWithCopyButton text={item.key} TextComponent={TextCellText} />
+            <BaseCell>
+              <TextWithCopyButton
+                text={item.key}
+                TextComponent={TextCellText}
+              />
+            </BaseCell>
           );
         default:
           return (
