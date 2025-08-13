@@ -106,6 +106,9 @@ var AttributeKeyCSRFHasLaxCookie = attribute.Key("csrf.has_lax_cookie")
 // AttributeKeyCSRFHasStrictCookie defines the attribute.
 var AttributeKeyCSRFHasStrictCookie = attribute.Key("csrf.has_strict_cookie")
 
+// AttributeKeyGorillaCSRFFailureReason defines the attribute.
+var AttributeKeyGorillaCSRFFailureReason = attribute.Key("gorilla_csrf.failure_reason")
+
 var CounterOAuthSessionCreationCount = otelutil.MustInt64Counter(
 	meter,
 	"authgear.oauth_session.creation.count",
@@ -282,6 +285,10 @@ func WithCSRFHasLaxCookie(b bool) otelutil.MetricOption {
 
 func WithCSRFHasStrictCookie(b bool) otelutil.MetricOption {
 	return metricOptionAttributeKeyValue{AttributeKeyCSRFHasStrictCookie.Bool(b)}
+}
+
+func WithGorillaCSRFFailureReason(reason string) otelutil.MetricOption {
+	return metricOptionAttributeKeyValue{AttributeKeyGorillaCSRFFailureReason.String(reason)}
 }
 
 func SetProjectID(ctx context.Context, projectID string) {

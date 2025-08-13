@@ -2,6 +2,7 @@ package webapp
 
 import (
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -111,6 +112,24 @@ func (m *CSRFMiddleware) unauthorizedHandler(w http.ResponseWriter, r *http.Requ
 		otelauthgear.WithCSRFHasNoneCookie(hasNoneCookie),
 		otelauthgear.WithCSRFHasLaxCookie(hasLaxCookie),
 		otelauthgear.WithCSRFHasStrictCookie(hasStrictCookie),
+		otelauthgear.WithGorillaCSRFFailureReason(func() string {
+			var val string
+			switch {
+			case errors.Is(csrfFailureReason, csrf.ErrNoReferer):
+				val = "ErrNoReferer"
+			case errors.Is(csrfFailureReason, csrf.ErrBadOrigin):
+				val = "ErrBadOrigin"
+			case errors.Is(csrfFailureReason, csrf.ErrBadReferer):
+				val = "ErrBadReferer"
+			case errors.Is(csrfFailureReason, csrf.ErrNoToken):
+				val = "ErrNoToken"
+			case errors.Is(csrfFailureReason, csrf.ErrBadToken):
+				val = "ErrBadToken"
+			default:
+				val = "unknown"
+			}
+			return val
+		}()),
 	)
 
 	if csrfCookie != nil {
