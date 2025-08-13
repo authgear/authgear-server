@@ -15,10 +15,11 @@ import DeleteGroupDialog, {
 } from "../dialog/DeleteGroupDialog";
 import DescriptionCell from "./common/DescriptionCell";
 import ActionButtonCell from "./common/ActionButtonCell";
-import TextCell from "./common/TextCell";
+import TextCell, { TextCellText } from "./common/TextCell";
 import RolesAndGroupsBaseList from "./common/RolesAndGroupsBaseList";
 import { GroupsListFragment } from "../../../graphql/adminapi/query/groupsListQuery.generated";
-
+import { TextWithCopyButton } from "../../common/TextWithCopyButton";
+import BaseCell from "./common/BaseCell";
 interface GroupsListProps {
   className?: string;
   isSearch: boolean;
@@ -162,6 +163,15 @@ const GroupsList: React.VFC<GroupsListProps> = function GroupsList(props) {
             />
           );
         }
+        case "key":
+          return (
+            <BaseCell>
+              <TextWithCopyButton
+                text={item.key}
+                TextComponent={TextCellText}
+              />
+            </BaseCell>
+          );
         default:
           return (
             <TextCell>

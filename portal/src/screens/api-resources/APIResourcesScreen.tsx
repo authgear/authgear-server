@@ -157,7 +157,7 @@ const APIResourcesScreen: React.VFC = function APIResourcesScreen() {
             loading={loading}
             pagination={pagination}
             onDelete={onDelete}
-            onEdit={onEdit}
+            onItemClicked={onEdit}
           />
         </div>
       </APIResourceScreenLayout>

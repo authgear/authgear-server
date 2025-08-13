@@ -14,6 +14,7 @@ import PaginationWidget, { PaginationProps } from "../../PaginationWidget";
 import styles from "./ResourceList.module.css";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import ActionButton from "../../ActionButton";
+import { TextWithCopyButton } from "../common/TextWithCopyButton";
 
 interface ResourceListItem
   extends Pick<Resource, "id" | "name" | "resourceURI"> {}
@@ -23,14 +24,15 @@ interface ResourceListProps {
   resources: ResourceListItem[];
   loading: boolean;
   pagination: PaginationProps;
-  onEdit: (resource: Resource) => void;
   onDelete: (resource: Resource) => void;
+  onItemClicked: (item: ResourceListItem) => void;
 }
 
 export const ResourceList: React.VFC<ResourceListProps> = function ResourceList(
   props
 ) {
-  const { className, resources, loading, pagination, onDelete, onEdit } = props;
+  const { className, resources, loading, pagination, onDelete, onItemClicked } =
+    props;
   const { renderToString } = useContext(Context);
 
   const columns: IColumn[] = useMemo(
@@ -49,6 +51,13 @@ export const ResourceList: React.VFC<ResourceListProps> = function ResourceList(
         minWidth: 200,
         isResizable: true,
         fieldName: "resourceURI",
+        // eslint-disable-next-line react/no-unstable-nested-components
+        onRender: (item?: Resource, _0?: number, _1?: IColumn) => {
+          if (item == null) {
+            return null;
+          }
+          return <TextWithCopyButton text={item.resourceURI} />;
+        },
       },
       {
         key: "actions",
@@ -61,17 +70,41 @@ export const ResourceList: React.VFC<ResourceListProps> = function ResourceList(
           if (item == null) {
             return null;
           }
-          return (
-            <ActionButtonsColumn
-              resource={item}
-              onDelete={onDelete}
-              onEdit={onEdit}
-            />
-          );
+          return <ActionButtonsColumn resource={item} onDelete={onDelete} />;
         },
       },
     ],
-    [onDelete, onEdit, renderToString]
+    [onDelete, renderToString]
+  );
+
+  const rowRenderer = useCallback(
+    (
+      props?: IDetailsRowProps,
+      defaultRender?: (props?: IDetailsRowProps) => JSX.Element | null
+    ): JSX.Element | null => {
+      if (props == null) {
+        return defaultRender?.(props) ?? null;
+      }
+      const item = props.item as ResourceListItem | undefined;
+      props.styles = {
+        cell: { display: "flex", alignItems: "center" },
+      };
+
+      return (
+        <button
+          type="button"
+          onClick={() => {
+            if (item != null) {
+              onItemClicked(item);
+            }
+          }}
+          className="contents"
+        >
+          {defaultRender?.(props)}
+        </button>
+      );
+    },
+    [onItemClicked]
   );
 
   if (resources.length === 0 && !loading) {
@@ -102,29 +135,14 @@ export const ResourceList: React.VFC<ResourceListProps> = function ResourceList(
 
 interface ActionButtonsColumnProps {
   resource: Resource;
-  onEdit: (resource: Resource) => void;
   onDelete: (resource: Resource) => void;
 }
 
-function ActionButtonsColumn({
-  resource,
-  onEdit,
-  onDelete,
-}: ActionButtonsColumnProps) {
+function ActionButtonsColumn({ resource, onDelete }: ActionButtonsColumnProps) {
   const { renderToString } = useContext(Context);
   const { themes } = useSystemConfig();
   return (
-    <div className="flex items-center">
-      <ActionButton
-        text={renderToString("edit")}
-        styles={{
-          label: { fontWeight: 600 },
-        }}
-        theme={themes.actionButton}
-        onClick={useCallback(() => {
-          onEdit(resource);
-        }, [onEdit, resource])}
-      />
+    <div className="flex items-center justify-end flex-1">
       <ActionButton
         text={renderToString("delete")}
         styles={{
@@ -137,17 +155,4 @@ function ActionButtonsColumn({
       />
     </div>
   );
-}
-
-function rowRenderer(
-  props?: IDetailsRowProps,
-  defaultRender?: (props?: IDetailsRowProps) => JSX.Element | null
-) {
-  if (props == null) {
-    return defaultRender?.(props) ?? null;
-  }
-  props.styles = {
-    cell: { display: "flex", alignItems: "center" },
-  };
-  return defaultRender?.(props) ?? null;
 }
