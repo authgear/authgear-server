@@ -21,18 +21,20 @@ import { ensureNonEmptyString } from "../../util/misc";
 import { parseIntegerAllowLeadingZeros } from "../../util/input";
 import Toggle from "../../Toggle";
 import TextFieldWithCopyButton from "../../TextFieldWithCopyButton";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import TextField from "../../TextField";
 import { Accordion } from "../../components/common/Accordion";
-import PrimaryButton from "../../PrimaryButton";
 import DefaultButton from "../../DefaultButton";
+import ButtonWithLoading from "../../ButtonWithLoading";
 import { ClientSecretsHook } from "../../hook/useClientSecrets";
 import { useSystemConfig } from "../../context/SystemConfigContext";
+import { useStartReauthentication } from "../../graphql/portal/Authenticated";
 import {
   DeleteClientSecretConfirmationDialog,
   DeleteClientSecretConfirmationDialogData,
 } from "../../components/applications/DeleteClientSecretConfirmationDialog";
 import Tooltip from "../../Tooltip";
+import { LocationState } from "./EditOAuthClientScreen";
 
 const MASKED_SECRET = "***************";
 
@@ -43,7 +45,6 @@ interface EditOAuthClientFormProps {
   customUIEnabled: boolean;
   app2appEnabled: boolean;
   onClientConfigChange: (newClientConfig: OAuthClientConfig) => void;
-  onRevealSecret: () => void;
   clientSecretHook: ClientSecretsHook;
 }
 
@@ -98,7 +99,6 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
       customUIEnabled,
       app2appEnabled,
       onClientConfigChange,
-      onRevealSecret,
       clientSecretHook,
     } = props;
 
@@ -107,6 +107,9 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
     const theme = useTheme();
 
     const { appID } = useParams() as { appID: string };
+
+    const { startReauthentication, isRevealing } =
+      useStartReauthentication<LocationState>();
 
     const [deleteClientSecretDialogData, setDeleteClientSecretDialogData] =
       useState<DeleteClientSecretConfirmationDialogData | null>(null);
@@ -291,6 +294,11 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
       },
       []
     );
+
+    const navigate = useNavigate();
+    const onRevealSecretClick = useCallback(() => {
+      startReauthentication(navigate, { isClientSecretRevealed: true });
+    }, [startReauthentication, navigate]);
 
     const onConfirmDeleteClientSecret = useCallback(async () => {
       if (deleteClientSecretDialogData == null) {
@@ -602,10 +610,11 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
               </div>
             ))}
             <div className="flex flex-row space-x-4">
-              <PrimaryButton
-                text={renderToString("reveal")}
-                onClick={onRevealSecret}
+              <ButtonWithLoading
+                labelId="reveal"
+                onClick={onRevealSecretClick}
                 disabled={clientSecrets.every((item) => !!item.key)}
+                loading={isRevealing}
               />
               {clientSecrets.length < 2 ? (
                 <DefaultButton

@@ -2174,7 +2174,7 @@
   "APIResourcesScreen.description": "Set up API resources for authorized applications. Learn more in {DocLink, react, href{https://docs.authgear.com/get-started/m2m-applications} children{the documentation}}.",
 
   "UnauthorizeApplicationDialog.title": "Revoke Application Access",
-  "UnauthorizeApplicationDialog.description": "This will revoke the application's access to all assigned resources and scopes. You can reauthorize it anytime from the integrations settings.",
+  "UnauthorizeApplicationDialog.description": "This will revoke the application's access to all assigned resources and scopes. You can reauthorize it anytime from the Application or API Resource settings.",
   "UnauthorizeApplicationDialog.unauthorize": "Revoke",
 
   "CreateAPIResourceScreen.title": "Create API Resource",

@@ -28,11 +28,11 @@ import { CodeField } from "../../components/common/CodeField";
 import { useCopyFeedback } from "../../hook/useCopyFeedback";
 import DefaultButton from "../../DefaultButton";
 import { useNavigate } from "react-router-dom";
-import { startReauthentication } from "../../graphql/portal/Authenticated";
-import PrimaryButton from "../../PrimaryButton";
-import { LocationState } from "./EditOAuthClientScreen";
+import { useStartReauthentication } from "../../graphql/portal/Authenticated";
+import ButtonWithLoading from "../../ButtonWithLoading";
 import { Resource } from "../adminapi/globalTypes.generated";
 import { useSearchParamsState } from "../../hook/useSearchParamsState";
+import { LocationState } from "./EditOAuthClientScreen";
 
 interface EditOAuthClientFormQuickStartContentProps {
   className?: string;
@@ -89,13 +89,18 @@ function EditOAuthClientFormQuickStartContentLoaded(
   const { className, resources, appConfig, client, clientSecrets } = props;
   const { renderToString } = useContext(MessageContext);
   const navigate = useNavigate();
+  const { startReauthentication, isRevealing } =
+    useStartReauthentication<LocationState>();
   const firstClientSecret =
     (clientSecrets?.keys?.length ?? 0) > 0 ? clientSecrets!.keys![0] : null;
 
   const isEmpty = resources.length === 0;
 
   const [selectedResourceURI, setSelectedResourceURI] =
-    useSearchParamsState<string>("resource", "");
+    useSearchParamsState<string>(
+      "resource",
+      resources.length > 0 ? resources[0].resourceURI : ""
+    );
   const [selectedCodeVariant, setSelectedCodeVariant] =
     useState<ExampleCodeVariant>(ExampleCodeVariant.CURL);
 
@@ -130,13 +135,13 @@ function EditOAuthClientFormQuickStartContentLoaded(
   });
 
   const revealSecrets = useCallback(() => {
-    startReauthentication<LocationState>(navigate, {
+    startReauthentication(navigate, {
       isClientSecretRevealed: true,
     }).catch((e) => {
       // Normally there should not be any error.
       console.error(e);
     });
-  }, [navigate]);
+  }, [navigate, startReauthentication]);
 
   const resourceOptions = useMemo((): IDropdownOption[] => {
     return resources.map((resource) => {
@@ -218,10 +223,11 @@ function EditOAuthClientFormQuickStartContentLoaded(
             </Pivot>
             <CodeField className="mt-1">{exampleCode}</CodeField>
             <div className="mt-4 flex space-x-4">
-              <PrimaryButton
-                text={<FormattedMessage id="reveal" />}
+              <ButtonWithLoading
+                labelId="reveal"
                 onClick={revealSecrets}
                 disabled={!!firstClientSecret?.key}
+                loading={isRevealing}
               />
               <DefaultButton
                 {...copyButtonProps}

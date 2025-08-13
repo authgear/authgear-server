@@ -5,7 +5,6 @@ import React, {
   useCallback,
   useEffect,
 } from "react";
-import PrimaryButton from "../../PrimaryButton";
 import DefaultButton from "../../DefaultButton";
 import {
   Context as MessageContext,
@@ -25,7 +24,7 @@ import { useEndpoints } from "../../hook/useEndpoints";
 import { PortalAPIAppConfig, PortalAPISecretConfig } from "../../types";
 import HorizontalDivider from "../../HorizontalDivider";
 import { CodeField } from "../../components/common/CodeField";
-import { startReauthentication } from "../../graphql/portal/Authenticated";
+import { useStartReauthentication } from "../../graphql/portal/Authenticated";
 import { LocationState } from "./APIResourceDetailsScreen";
 import { useSearchParamsState } from "../../hook/useSearchParamsState";
 import { useErrorMessageBarContext } from "../../ErrorMessageBar";
@@ -35,6 +34,7 @@ import {
   ExampleCodeVariant,
   useExampleCode,
 } from "../../components/api-resources/useExampleCode";
+import ButtonWithLoading from "../../ButtonWithLoading";
 
 export function APIResourceDetailsScreenTestTab({
   resource,
@@ -45,24 +45,6 @@ export function APIResourceDetailsScreenTestTab({
   effectiveAppConfig: PortalAPIAppConfig;
   secretConfig: PortalAPISecretConfig | null;
 }): React.ReactElement | null {
-  return (
-    <APIResourceDetailsScreenTestTabContent
-      resource={resource}
-      effectiveAppConfig={effectiveAppConfig}
-      secretConfig={secretConfig}
-    />
-  );
-}
-
-function APIResourceDetailsScreenTestTabContent({
-  resource,
-  effectiveAppConfig,
-  secretConfig,
-}: {
-  resource: Resource;
-  effectiveAppConfig: PortalAPIAppConfig;
-  secretConfig: PortalAPISecretConfig | null;
-}) {
   const { renderToString } = useContext(MessageContext);
   const navigate = useNavigate();
   const { setErrors } = useErrorMessageBarContext();
@@ -74,6 +56,8 @@ function APIResourceDetailsScreenTestTabContent({
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [selectedCodeVariant, setSelectedCodeVariant] =
     useState<ExampleCodeVariant>(ExampleCodeVariant.CURL);
+  const { startReauthentication, isRevealing } =
+    useStartReauthentication<LocationState>();
 
   const selectedClient = useMemo(() => {
     return effectiveAppConfig.oauth?.clients?.find(
@@ -131,13 +115,13 @@ function APIResourceDetailsScreenTestTabContent({
   }, []);
 
   const revealSecrets = useCallback(() => {
-    startReauthentication<LocationState>(navigate, {
+    startReauthentication(navigate, {
       isClientSecretRevealed: true,
     }).catch((e) => {
       // Normally there should not be any error.
       console.error(e);
     });
-  }, [navigate]);
+  }, [navigate, startReauthentication]);
 
   const onGenerate = useCallback(async () => {
     if (selectedClientSecret == null) {
@@ -248,12 +232,11 @@ function APIResourceDetailsScreenTestTabContent({
                 {accessToken}
               </CodeField>
               <div className="mt-4 flex space-x-4">
-                <PrimaryButton
-                  text={
-                    <FormattedMessage id="APIResourceDetailsScreen.test.generateButton.text" />
-                  }
+                <ButtonWithLoading
+                  labelId="APIResourceDetailsScreen.test.generateButton.text"
                   onClick={onGenerate}
                   disabled={isGenerating}
+                  loading={isRevealing || isGenerating}
                 />
                 <DefaultButton
                   {...copyTokenButtonProps}
@@ -301,10 +284,11 @@ function APIResourceDetailsScreenTestTabContent({
               </Pivot>
               <CodeField className="mt-4">{exampleCode}</CodeField>
               <div className="mt-4 flex space-x-4">
-                <PrimaryButton
-                  text={<FormattedMessage id="reveal" />}
+                <ButtonWithLoading
+                  labelId="reveal"
                   onClick={revealSecrets}
                   disabled={selectedClientSecret != null}
+                  loading={isRevealing}
                 />
                 <DefaultButton
                   {...copyCodeButtonProps}
