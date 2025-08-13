@@ -51,7 +51,6 @@ export function APIResourceDetailsScreenApplicationsTab({
         ?.filter((clientConfig) => {
           switch (clientConfig.x_application_type) {
             case "m2m":
-            case "confidential":
               return true;
             default:
               return false;
