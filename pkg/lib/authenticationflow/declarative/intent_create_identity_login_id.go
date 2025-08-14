@@ -74,6 +74,7 @@ func (n *IntentCreateIdentityLoginID) CanReactTo(ctx context.Context, deps *auth
 			JSONPointer:             n.JSONPointer,
 			IsBotProtectionRequired: isBotProtectionRequired,
 			BotProtectionCfg:        deps.Config.BotProtection,
+			IsExternalJWTAllowed:    true,
 		}, nil
 
 	case 1:
