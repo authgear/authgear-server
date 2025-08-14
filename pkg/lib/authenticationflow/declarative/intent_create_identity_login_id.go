@@ -7,6 +7,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/util/stringutil"
 )
 
@@ -72,15 +73,26 @@ func (n *IntentCreateIdentityLoginID) CanReactTo(ctx context.Context, deps *auth
 }
 
 func (n *IntentCreateIdentityLoginID) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (authflow.ReactToResult, error) {
-	var inputTakeLoginID inputTakeLoginID
-	if authflow.AsInput(input, &inputTakeLoginID) {
+	var inputTakeLoginIDOrExternalJWT inputTakeLoginIDOrExternalJWT
+	if authflow.AsInput(input, &inputTakeLoginIDOrExternalJWT) {
 		var bpSpecialErr error
 		bpSpecialErr, err := HandleBotProtection(ctx, deps, flows, n.JSONPointer, input, n)
 		if err != nil {
 			return nil, err
 		}
 
-		loginID := inputTakeLoginID.GetLoginID()
+		externalJWT := inputTakeLoginIDOrExternalJWT.GetExternalJWT()
+		if externalJWT != "" {
+			// TODO: Construct the spec
+			var spec *identity.Spec = nil
+			return authflow.NewSubFlow(&IntentCheckConflictAndCreateIdenity{
+				JSONPointer: n.JSONPointer,
+				UserID:      n.UserID,
+				Request:     NewCreateLoginIDIdentityRequest(spec),
+			}), bpSpecialErr
+		}
+
+		loginID := inputTakeLoginIDOrExternalJWT.GetLoginID()
 		spec := makeLoginIDSpec(n.Identification, stringutil.NewUserInputString(loginID))
 
 		return authflow.NewSubFlow(&IntentCheckConflictAndCreateIdenity{
