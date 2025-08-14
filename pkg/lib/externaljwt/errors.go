@@ -6,3 +6,4 @@ import (
 
 var ErrInvalidExternalJWT = apierrors.BadRequest.WithReason("InvalidExternalJWT")
 var ErrFailedToFetchJWKS = apierrors.InternalError.WithReason("FailedToFetchJWKS").SkipLoggingToExternalService()
+var ErrInvalidJWTClaim = apierrors.BadRequest.WithReason("InvalidJWTClaim")

@@ -7,8 +7,12 @@ import (
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/lestrrat-go/jwx/v2/jwt"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/stringutil"
 )
 
 type jwtClock struct {
@@ -78,4 +82,53 @@ func (s *Service) VerifyExternalJWT(ctx context.Context, rawToken string) (jwt.T
 	}
 
 	return verifiedToken, nil
+}
+
+func (s *Service) ConstructLoginIDSpec(
+	identification model.AuthenticationFlowIdentification,
+	token jwt.Token,
+) (*identity.Spec, error) {
+	var claimValue string
+	var loginIDKey string
+	var loginIDKeyType model.LoginIDKeyType
+
+	switch identification {
+	case model.AuthenticationFlowIdentificationEmail:
+		email, ok := token.Get(string(stdattrs.Email))
+		if !ok {
+			return nil, ErrInvalidJWTClaim.New("email claim not found in JWT")
+		}
+		claimValue = email.(string)
+		loginIDKey = string(model.LoginIDKeyTypeEmail)
+		loginIDKeyType = model.LoginIDKeyTypeEmail
+	case model.AuthenticationFlowIdentificationPhone:
+		phoneNumber, ok := token.Get(string(stdattrs.PhoneNumber))
+		if !ok {
+			return nil, ErrInvalidJWTClaim.New("phone_number claim not found in JWT")
+		}
+		claimValue = phoneNumber.(string)
+		loginIDKey = string(model.LoginIDKeyTypePhone)
+		loginIDKeyType = model.LoginIDKeyTypePhone
+	case model.AuthenticationFlowIdentificationUsername:
+		username, ok := token.Get(string(stdattrs.PreferredUsername))
+		if !ok {
+			return nil, ErrInvalidJWTClaim.New("preferred_username claim not found in JWT")
+		}
+		claimValue = username.(string)
+		loginIDKey = string(model.LoginIDKeyTypeUsername)
+		loginIDKeyType = model.LoginIDKeyTypeUsername
+	default:
+		// This should not happen.
+		panic("unexpected identification method: " + identification)
+	}
+
+	spec := &identity.Spec{
+		Type: model.IdentityTypeLoginID,
+		LoginID: &identity.LoginIDSpec{
+			Key:   loginIDKey,
+			Type:  loginIDKeyType,
+			Value: stringutil.NewUserInputString(claimValue),
+		},
+	}
+	return spec, nil
 }

@@ -227,6 +227,7 @@ type IDTokenService interface {
 
 type ExternalJWTService interface {
 	VerifyExternalJWT(ctx context.Context, rawToken string) (jwt.Token, error)
+	ConstructLoginIDSpec(identification model.AuthenticationFlowIdentification, token jwt.Token) (*identity.Spec, error)
 }
 
 type LoginIDService interface {

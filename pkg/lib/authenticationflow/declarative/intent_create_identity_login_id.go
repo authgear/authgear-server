@@ -7,7 +7,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
-	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/util/stringutil"
 )
 
@@ -83,8 +82,19 @@ func (n *IntentCreateIdentityLoginID) ReactTo(ctx context.Context, deps *authflo
 
 		externalJWT := inputTakeLoginIDOrExternalJWT.GetExternalJWT()
 		if externalJWT != "" {
-			// TODO: Construct the spec
-			var spec *identity.Spec = nil
+			verifiedToken, err := deps.ExternalJWT.VerifyExternalJWT(ctx, externalJWT)
+			if err != nil {
+				return nil, err
+			}
+
+			spec, err := deps.ExternalJWT.ConstructLoginIDSpec(
+				n.Identification,
+				verifiedToken,
+			)
+			if err != nil {
+				return nil, err
+			}
+
 			return authflow.NewSubFlow(&IntentCheckConflictAndCreateIdenity{
 				JSONPointer: n.JSONPointer,
 				UserID:      n.UserID,
