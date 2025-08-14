@@ -2,6 +2,7 @@ package webapp
 
 import (
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -82,11 +83,6 @@ func (m *CSRFMiddleware) Handle(next http.Handler) http.Handler {
 
 func (m *CSRFMiddleware) unauthorizedHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	otelutil.IntCounterAddOne(
-		ctx,
-		otelauthgear.CounterCSRFRequestCount,
-		otelauthgear.WithStatusError(),
-	)
 
 	// Check debug cookies and inject info for reporting
 	omitCookie, err := m.Cookies.GetCookie(r, webapp.CSRFDebugCookieSameSiteOmitDef)
@@ -107,6 +103,35 @@ func (m *CSRFMiddleware) unauthorizedHandler(w http.ResponseWriter, r *http.Requ
 	maskedCsrfCookieContent := ""
 	securecookieError := ""
 	csrfFailureReason := csrf.FailureReason(r)
+
+	otelutil.IntCounterAddOne(
+		ctx,
+		otelauthgear.CounterCSRFRequestCount,
+		otelauthgear.WithStatusError(),
+		otelauthgear.WithCSRFHasOmitCookie(hasOmitCookie),
+		otelauthgear.WithCSRFHasNoneCookie(hasNoneCookie),
+		otelauthgear.WithCSRFHasLaxCookie(hasLaxCookie),
+		otelauthgear.WithCSRFHasStrictCookie(hasStrictCookie),
+		otelauthgear.WithGorillaCSRFFailureReason(func() string {
+			var val string
+			switch {
+			case errors.Is(csrfFailureReason, csrf.ErrNoReferer):
+				val = "ErrNoReferer"
+			case errors.Is(csrfFailureReason, csrf.ErrBadOrigin):
+				val = "ErrBadOrigin"
+			case errors.Is(csrfFailureReason, csrf.ErrBadReferer):
+				val = "ErrBadReferer"
+			case errors.Is(csrfFailureReason, csrf.ErrNoToken):
+				val = "ErrNoToken"
+			case errors.Is(csrfFailureReason, csrf.ErrBadToken):
+				val = "ErrBadToken"
+			default:
+				val = "unknown"
+			}
+			return val
+		}()),
+	)
+
 	if csrfCookie != nil {
 		// do not return value but length only for debug.
 		csrfCookieSizeInBytes = len([]byte(csrfCookie.Value))
@@ -147,6 +172,7 @@ func (m *CSRFMiddleware) unauthorizedHandler(w http.ResponseWriter, r *http.Requ
 	}
 
 	logger := CSRFMiddlewareLogger.GetLogger(ctx)
+
 	logger.With(
 		slog.Bool("hasOmitCookie", hasOmitCookie),
 		slog.Bool("hasNoneCookie", hasNoneCookie),
@@ -156,7 +182,7 @@ func (m *CSRFMiddleware) unauthorizedHandler(w http.ResponseWriter, r *http.Requ
 		slog.String("maskedCsrfCookieContent", maskedCsrfCookieContent),
 		slog.String("securecookieError", securecookieError),
 		slog.Any("csrfFailureReason", csrfFailureReason),
-	).Error(ctx, "CSRF Forbidden")
+	).WithSkipLogging().Error(ctx, "CSRF Forbidden")
 
 	uiImpl := m.UIImplementationService.GetUIImplementation()
 
