@@ -8,7 +8,7 @@
   "scripts": {
     "postinstall": "./scripts/npm-postinstall.sh",
     "test": "jest",
-    "start": "vite",
+    "start": "vite --debug",
     "build": "vite build",
     "clean": "rm -rf ./dist/ && mkdir ./dist/ && touch ./dist/.gitkeep",
     "typecheck": "tsc",
