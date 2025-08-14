@@ -35,6 +35,7 @@ import {
 } from "../../components/applications/DeleteClientSecretConfirmationDialog";
 import Tooltip from "../../Tooltip";
 import { LocationState } from "./EditOAuthClientScreen";
+import { makeValidationErrorCustomMessageIDRule } from "../../error/parse";
 
 const MASKED_SECRET = "***************";
 
@@ -835,6 +836,13 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
               value={
                 clientConfig.access_token_lifetime_seconds?.toFixed(0) ?? ""
               }
+              errorRules={[
+                makeValidationErrorCustomMessageIDRule(
+                  "maximum",
+                  /\/access_token_lifetime_seconds$/,
+                  "EditOAuthClientForm.access-token.error.maximum"
+                ),
+              ]}
               onChange={onAccessTokenLifetimeChange}
             />
             <div>

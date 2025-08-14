@@ -106,10 +106,7 @@ import {
   useResourceForm,
 } from "../../hook/useResourceForm";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
-import {
-  makeValidationErrorMatchUnknownKindParseRule,
-  makeValidationErrorCustomMessageIDRule,
-} from "../../error/parse";
+import { makeValidationErrorCustomMessageIDRule } from "../../error/parse";
 import {
   ensureInteger,
   ensurePositiveNumber,
@@ -160,7 +157,7 @@ const DEFAULT_PHONE_OTP_MODE: AuthenticatorPhoneOTPMode = "whatsapp_sms";
 const DEFAULT_OTP_REVOKE_FAILED_ATTEMPTS = 5;
 
 const ERROR_RULES = [
-  makeValidationErrorMatchUnknownKindParseRule(
+  makeValidationErrorCustomMessageIDRule(
     "const",
     /\/authentication\/identities/,
     "errors.validation.passkey"
