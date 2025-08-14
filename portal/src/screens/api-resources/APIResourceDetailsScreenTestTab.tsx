@@ -250,7 +250,15 @@ export function APIResourceDetailsScreenTestTab({
             <HorizontalDivider />
             <section>
               <WidgetTitle>
-                <FormattedMessage id="APIResourceDetailsScreen.test.requestToken.title" />
+                <FormattedMessage
+                  id="APIResourceDetailsScreen.test.requestToken.title"
+                  values={{
+                    clientName:
+                      selectedClient.client_name ??
+                      selectedClient.name ??
+                      selectedClient.client_id,
+                  }}
+                />
               </WidgetTitle>
               <Pivot
                 className="mt-2"

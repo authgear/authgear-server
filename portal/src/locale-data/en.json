@@ -2196,7 +2196,7 @@
   "APIResourceDetailsScreen.test.pivot.go.headerText": "Go",
   "APIResourceDetailsScreen.test.pivot.nodejs.headerText": "NodeJS",
   "APIResourceDetailsScreen.test.pivot.python.headerText": "Python",
-  "APIResourceDetailsScreen.test.requestToken.title": "Request token from Test Application",
+  "APIResourceDetailsScreen.test.requestToken.title": "Request token from {clientName}",
 
   "APIResourceDetailsScreen.scopes.description": "Define the scopes (permissions) used by this resource.",
   "APIResourceDetailsScreen.applications.description": "Authorize applications to request access tokens for this resource.",
