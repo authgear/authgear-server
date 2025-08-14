@@ -69,13 +69,20 @@ func (s *Service) VerifyExternalJWT(ctx context.Context, rawToken string) (jwt.T
 
 	// Verify the token
 	// We already parsed the token once to get the issuer, now parse again with verification
-	verifiedToken, err := jwt.ParseString(
-		rawToken,
+	opts := []jwt.ParseOption{
 		jwt.WithKeySet(keySet),
 		jwt.WithIssuer(issuer),
-		jwt.WithAudience(issuerConfig.Aud),
 		jwt.WithClock(&jwtClock{s.Clock}),
-		jwt.WithAcceptableSkew(5*time.Minute), // Allow for clock skew
+		jwt.WithAcceptableSkew(5 * time.Minute), // Allow for clock skew
+	}
+
+	if issuerConfig.Aud != "" {
+		opts = append(opts, jwt.WithAudience(issuerConfig.Aud))
+	}
+
+	verifiedToken, err := jwt.ParseString(
+		rawToken,
+		opts...,
 	)
 	if err != nil {
 		return nil, ErrInvalidExternalJWT.New("failed to verify jwt signature")
