@@ -30,7 +30,7 @@ type Service struct {
 }
 
 func (s *Service) VerifyExternalJWT(ctx context.Context, rawToken string) (jwt.Token, error) {
-	token, err := jwt.ParseString(rawToken, jwt.WithValidate(false))
+	token, err := jwt.ParseInsecure([]byte(rawToken))
 	if err != nil {
 		return nil, ErrInvalidExternalJWT.New("failed to parse JWT")
 	}
