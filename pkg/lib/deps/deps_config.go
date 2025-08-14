@@ -35,6 +35,7 @@ var ConfigDeps = wire.NewSet(
 		"BotProtection",
 		"TestMode",
 		"AuthenticationFlow",
+		"ExternalJWT",
 	),
 	wire.FieldsOf(new(*config.AuthenticationConfig),
 		"Lockout",

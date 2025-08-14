@@ -225,6 +225,10 @@ type IDTokenService interface {
 	VerifyIDToken(idToken string) (jwt.Token, error)
 }
 
+type ExternalJWTService interface {
+	VerifyExternalJWT(ctx context.Context, rawToken string) (jwt.Token, error)
+}
+
 type LoginIDService interface {
 	CheckAndNormalize(ctx context.Context, spec identity.LoginIDSpec) (normalized string, uniqueKey string, err error)
 }
@@ -274,6 +278,7 @@ type Dependencies struct {
 	PasskeyRequestOptionsService    PasskeyRequestOptionsService
 	PasskeyCreationOptionsService   PasskeyCreationOptionsService
 	PasskeyService                  PasskeyService
+	ExternalJWT                     ExternalJWTService
 	LoginIDs                        LoginIDService
 	LDAP                            LDAPService
 	LDAPClientFactory               LDAPClientFactory
