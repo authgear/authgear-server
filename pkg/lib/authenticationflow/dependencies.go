@@ -23,6 +23,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/externaljwt"
 	"github.com/authgear/authgear-server/pkg/lib/facade"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
@@ -227,7 +228,7 @@ type IDTokenService interface {
 
 type ExternalJWTService interface {
 	VerifyExternalJWT(ctx context.Context, rawToken string) (jwt.Token, error)
-	ConstructLoginIDSpec(identification model.AuthenticationFlowIdentification, token jwt.Token) (*identity.Spec, error)
+	ConstructLoginIDSpec(identification model.AuthenticationFlowIdentification, token jwt.Token) (*externaljwt.LoginIDResult, error)
 }
 
 type LoginIDService interface {

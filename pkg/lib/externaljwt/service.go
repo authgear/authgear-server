@@ -84,13 +84,19 @@ func (s *Service) VerifyExternalJWT(ctx context.Context, rawToken string) (jwt.T
 	return verifiedToken, nil
 }
 
+type LoginIDResult struct {
+	Spec       *identity.Spec
+	IsVerified bool
+}
+
 func (s *Service) ConstructLoginIDSpec(
 	identification model.AuthenticationFlowIdentification,
 	token jwt.Token,
-) (*identity.Spec, error) {
+) (*LoginIDResult, error) {
 	var claimValue string
 	var loginIDKey string
 	var loginIDKeyType model.LoginIDKeyType
+	isVerified := false
 
 	switch identification {
 	case model.AuthenticationFlowIdentificationEmail:
@@ -101,6 +107,13 @@ func (s *Service) ConstructLoginIDSpec(
 		claimValue = email.(string)
 		loginIDKey = string(model.LoginIDKeyTypeEmail)
 		loginIDKeyType = model.LoginIDKeyTypeEmail
+
+		emailVerified, ok := token.Get(string(stdattrs.EmailVerified))
+		if ok {
+			if v, ok := emailVerified.(bool); ok {
+				isVerified = v
+			}
+		}
 	case model.AuthenticationFlowIdentificationPhone:
 		phoneNumber, ok := token.Get(string(stdattrs.PhoneNumber))
 		if !ok {
@@ -109,6 +122,13 @@ func (s *Service) ConstructLoginIDSpec(
 		claimValue = phoneNumber.(string)
 		loginIDKey = string(model.LoginIDKeyTypePhone)
 		loginIDKeyType = model.LoginIDKeyTypePhone
+
+		phoneNumberVerified, ok := token.Get(string(stdattrs.PhoneNumberVerified))
+		if ok {
+			if v, ok := phoneNumberVerified.(bool); ok {
+				isVerified = v
+			}
+		}
 	case model.AuthenticationFlowIdentificationUsername:
 		username, ok := token.Get(string(stdattrs.PreferredUsername))
 		if !ok {
@@ -130,5 +150,5 @@ func (s *Service) ConstructLoginIDSpec(
 			Value: stringutil.NewUserInputString(claimValue),
 		},
 	}
-	return spec, nil
+	return &LoginIDResult{Spec: spec, IsVerified: isVerified}, nil
 }

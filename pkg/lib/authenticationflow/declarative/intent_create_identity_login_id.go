@@ -2,9 +2,11 @@ package declarative
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/util/stringutil"
@@ -15,9 +17,10 @@ func init() {
 }
 
 type IntentCreateIdentityLoginID struct {
-	JSONPointer    jsonpointer.T                          `json:"json_pointer,omitempty"`
-	UserID         string                                 `json:"user_id,omitempty"`
-	Identification model.AuthenticationFlowIdentification `json:"identification,omitempty"`
+	JSONPointer        jsonpointer.T                          `json:"json_pointer,omitempty"`
+	UserID             string                                 `json:"user_id,omitempty"`
+	Identification     model.AuthenticationFlowIdentification `json:"identification,omitempty"`
+	ShouldMarkVerified bool                                   `json:"should_mark_verified,omitempty"`
 }
 
 var _ authflow.Intent = &IntentCreateIdentityLoginID{}
@@ -48,69 +51,118 @@ func (n *IntentCreateIdentityLoginID) MilestoneFlowCreateIdentity(flows authflow
 }
 
 func (n *IntentCreateIdentityLoginID) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
-	_, _, identified := authflow.FindMilestoneInCurrentFlow[MilestoneFlowCreateIdentity](flows)
-	if identified {
-		return nil, authflow.ErrEOF
-	}
+	switch len(flows.Nearest.Nodes) {
+	case 0:
+		// Ask for input
+		_, _, identified := authflow.FindMilestoneInCurrentFlow[MilestoneFlowCreateIdentity](flows)
+		if identified {
+			return nil, authflow.ErrEOF
+		}
 
-	flowRootObject, err := findNearestFlowObjectInFlow(deps, flows, n)
-	if err != nil {
-		return nil, err
-	}
-
-	isBotProtectionRequired, err := IsBotProtectionRequired(ctx, deps, flows, n.JSONPointer, n)
-	if err != nil {
-		return nil, err
-	}
-
-	return &InputSchemaTakeLoginID{
-		FlowRootObject:          flowRootObject,
-		JSONPointer:             n.JSONPointer,
-		IsBotProtectionRequired: isBotProtectionRequired,
-		BotProtectionCfg:        deps.Config.BotProtection,
-	}, nil
-}
-
-func (n *IntentCreateIdentityLoginID) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (authflow.ReactToResult, error) {
-	var inputTakeLoginIDOrExternalJWT inputTakeLoginIDOrExternalJWT
-	if authflow.AsInput(input, &inputTakeLoginIDOrExternalJWT) {
-		var bpSpecialErr error
-		bpSpecialErr, err := HandleBotProtection(ctx, deps, flows, n.JSONPointer, input, n)
+		flowRootObject, err := findNearestFlowObjectInFlow(deps, flows, n)
 		if err != nil {
 			return nil, err
 		}
 
-		externalJWT := inputTakeLoginIDOrExternalJWT.GetExternalJWT()
-		if externalJWT != "" {
-			verifiedToken, err := deps.ExternalJWT.VerifyExternalJWT(ctx, externalJWT)
+		isBotProtectionRequired, err := IsBotProtectionRequired(ctx, deps, flows, n.JSONPointer, n)
+		if err != nil {
+			return nil, err
+		}
+
+		return &InputSchemaTakeLoginID{
+			FlowRootObject:          flowRootObject,
+			JSONPointer:             n.JSONPointer,
+			IsBotProtectionRequired: isBotProtectionRequired,
+			BotProtectionCfg:        deps.Config.BotProtection,
+		}, nil
+
+	case 1:
+		// Mark claim verify if needed
+		if n.ShouldMarkVerified {
+			return nil, nil
+		} else {
+			return nil, authflow.ErrEOF
+		}
+	case 2:
+		// End
+		return nil, authflow.ErrEOF
+	}
+
+	panic("unreachable code")
+}
+
+func (n *IntentCreateIdentityLoginID) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (authflow.ReactToResult, error) {
+	switch len(flows.Nearest.Nodes) {
+	case 0:
+		var inputTakeLoginIDOrExternalJWT inputTakeLoginIDOrExternalJWT
+		if authflow.AsInput(input, &inputTakeLoginIDOrExternalJWT) {
+			var bpSpecialErr error
+			bpSpecialErr, err := HandleBotProtection(ctx, deps, flows, n.JSONPointer, input, n)
 			if err != nil {
 				return nil, err
 			}
 
-			spec, err := deps.ExternalJWT.ConstructLoginIDSpec(
-				n.Identification,
-				verifiedToken,
-			)
-			if err != nil {
-				return nil, err
+			externalJWT := inputTakeLoginIDOrExternalJWT.GetExternalJWT()
+			if externalJWT != "" {
+				verifiedToken, err := deps.ExternalJWT.VerifyExternalJWT(ctx, externalJWT)
+				if err != nil {
+					return nil, err
+				}
+
+				loginIDResult, err := deps.ExternalJWT.ConstructLoginIDSpec(
+					n.Identification,
+					verifiedToken,
+				)
+				if err != nil {
+					return nil, err
+				}
+
+				if loginIDResult.IsVerified {
+					n.ShouldMarkVerified = true
+				}
+
+				return authflow.NewSubFlow(&IntentCheckConflictAndCreateIdenity{
+					JSONPointer: n.JSONPointer,
+					UserID:      n.UserID,
+					Request:     NewCreateLoginIDIdentityRequest(loginIDResult.Spec),
+				}), bpSpecialErr
 			}
+
+			loginID := inputTakeLoginIDOrExternalJWT.GetLoginID()
+			spec := makeLoginIDSpec(n.Identification, stringutil.NewUserInputString(loginID))
 
 			return authflow.NewSubFlow(&IntentCheckConflictAndCreateIdenity{
 				JSONPointer: n.JSONPointer,
 				UserID:      n.UserID,
 				Request:     NewCreateLoginIDIdentityRequest(spec),
 			}), bpSpecialErr
+		} else {
+			return nil, authflow.ErrIncompatibleInput
+		}
+	case 1:
+		m, _, _ := authflow.FindMilestoneInCurrentFlow[MilestoneFlowCreateIdentity](flows)
+		createdIdentityMilestone, _, _ := m.MilestoneFlowCreateIdentity(flows)
+		info := createdIdentityMilestone.MilestoneDoCreateIdentity()
+		if info == nil {
+			panic(fmt.Errorf("unexpected nil identity info"))
 		}
 
-		loginID := inputTakeLoginIDOrExternalJWT.GetLoginID()
-		spec := makeLoginIDSpec(n.Identification, stringutil.NewUserInputString(loginID))
-
-		return authflow.NewSubFlow(&IntentCheckConflictAndCreateIdenity{
-			JSONPointer: n.JSONPointer,
-			UserID:      n.UserID,
-			Request:     NewCreateLoginIDIdentityRequest(spec),
-		}), bpSpecialErr
+		claims := info.IdentityAwareStandardClaims()
+		if len(claims) != 1 {
+			return nil, apierrors.NewInvalid("incorrect number of claims found for verification")
+		}
+		var claimName model.ClaimName
+		var claimValue string
+		for k, v := range claims {
+			claimName = k
+			claimValue = v
+			break
+		}
+		verifiedClaim := deps.Verification.NewVerifiedClaim(ctx, n.UserID, string(claimName), claimValue)
+		return authflow.NewNodeSimple(&NodeDoMarkClaimVerified{
+			Claim: verifiedClaim,
+		}), nil
 	}
 
-	return nil, authflow.ErrIncompatibleInput
+	panic("unreachable code")
 }
