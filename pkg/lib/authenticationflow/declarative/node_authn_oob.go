@@ -35,24 +35,32 @@ type NodeAuthenticationOOB struct {
 	Authentication       model.AuthenticationFlowAuthentication `json:"authentication,omitempty"`
 }
 
-func NewNodeAuthenticationOOB(n *NodeAuthenticationOOB) *authflow.NodeWithDelayedOneTimeFunction {
+func NewNodeAuthenticationOOB(ctx context.Context, deps *authflow.Dependencies, n *NodeAuthenticationOOB) (*authflow.NodeWithDelayedOneTimeFunction, error) {
 	n.WebsocketChannelName = authflow.NewWebsocketChannelName()
+
+	kind := n.otpKind(deps)
+	_, claimValue := n.Info.OOBOTP.ToClaimPair()
 	simpleNode := authflow.NewNodeSimple(n)
+	code, err := n.GenerateCode(ctx, deps)
+	if ratelimit.IsRateLimitErrorWithBucketName(err, kind.RateLimitTriggerCooldown(claimValue).Name) {
+		// Ignore trigger cooldown rate limit error; continue the flow
+		code = ""
+	} else if err != nil {
+		return nil, err
+	}
 
 	return &authflow.NodeWithDelayedOneTimeFunction{
 		Node: simpleNode,
 		DelayedOneTimeFunction: func(ctx context.Context, deps *authflow.Dependencies) error {
-			kind := n.otpKind(deps)
-			err := n.SendCode(ctx, deps)
-			_, claimValue := n.Info.OOBOTP.ToClaimPair()
-			if ratelimit.IsRateLimitErrorWithBucketName(err, kind.RateLimitTriggerCooldown(claimValue).Name) {
-				// Ignore trigger cooldown rate limit error; continue the flow
-			} else if err != nil {
-				return err
+			if code != "" {
+				err := n.SendCode(ctx, deps, code)
+				if err != nil {
+					return err
+				}
 			}
 			return nil
 		},
-	}
+	}, nil
 }
 
 var _ authflow.NodeSimple = &NodeAuthenticationOOB{}
@@ -155,11 +163,16 @@ func (n *NodeAuthenticationOOB) ReactTo(ctx context.Context, deps *authflow.Depe
 			Claim: verifiedClaim,
 		}), nil
 	case inputNodeAuthenticationOOB.IsResend():
+		code, err := n.GenerateCode(ctx, deps)
+		if err != nil {
+			return nil, err
+		}
+
 		newSimpleNode := authflow.NewNodeSimple(n)
 		return &authflow.NodeWithDelayedOneTimeFunction{
 			Node: newSimpleNode,
 			DelayedOneTimeFunction: func(ctx context.Context, deps *authflow.Dependencies) error {
-				return n.SendCode(ctx, deps)
+				return n.SendCode(ctx, deps, code)
 			},
 		}, authflow.ErrReplaceNode
 	default:
@@ -242,7 +255,25 @@ func (n *NodeAuthenticationOOB) invalidOTPCodeError() error {
 	}
 }
 
-func (n *NodeAuthenticationOOB) SendCode(ctx context.Context, deps *authflow.Dependencies) error {
+func (n *NodeAuthenticationOOB) GenerateCode(ctx context.Context, deps *authflow.Dependencies) (string, error) {
+	_, claimValue := n.Info.OOBOTP.ToClaimPair()
+	code, err := deps.OTPCodes.GenerateOTP(ctx,
+		n.otpKind(deps),
+		claimValue,
+		n.Form,
+		&otp.GenerateOptions{
+			UserID:                                 n.UserID,
+			AuthenticationFlowWebsocketChannelName: n.WebsocketChannelName,
+		},
+	)
+	if err != nil {
+		return "", err
+	}
+
+	return code, nil
+}
+
+func (n *NodeAuthenticationOOB) SendCode(ctx context.Context, deps *authflow.Dependencies, code string) error {
 	// Here is a bit tricky.
 	// Normally we should use the given message type to send a message.
 	// However, if the channel is whatsapp, we use the specialized otp.MessageTypeWhatsappCode.
@@ -254,21 +285,7 @@ func (n *NodeAuthenticationOOB) SendCode(ctx context.Context, deps *authflow.Dep
 		typ = translation.MessageTypeWhatsappCode
 	}
 	_, claimValue := n.Info.OOBOTP.ToClaimPair()
-
-	code, err := deps.OTPCodes.GenerateOTP(ctx,
-		n.otpKind(deps),
-		claimValue,
-		n.Form,
-		&otp.GenerateOptions{
-			UserID:                                 n.UserID,
-			AuthenticationFlowWebsocketChannelName: n.WebsocketChannelName,
-		},
-	)
-	if err != nil {
-		return err
-	}
-
-	err = deps.OTPSender.Send(
+	err := deps.OTPSender.Send(
 		ctx,
 		otp.SendOptions{
 			Channel: n.Channel,

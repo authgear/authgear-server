@@ -85,7 +85,7 @@ func (i *IntentVerifyClaim) ReactTo(ctx context.Context, deps *authflow.Dependen
 		return nil, authflow.ErrIncompatibleInput
 	}
 
-	node := NewNodeVerifyClaim(&NodeVerifyClaim{
+	node, err := NewNodeVerifyClaim(ctx, deps, &NodeVerifyClaim{
 		JSONPointer: i.JSONPointer,
 		UserID:      i.UserID,
 		Purpose:     i.Purpose,
@@ -95,6 +95,9 @@ func (i *IntentVerifyClaim) ReactTo(ctx context.Context, deps *authflow.Dependen
 		ClaimValue:  i.ClaimValue,
 		Channel:     channel,
 	})
+	if err != nil {
+		return nil, err
+	}
 
 	return node, nil
 }

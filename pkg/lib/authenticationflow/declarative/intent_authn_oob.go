@@ -77,7 +77,7 @@ func (i *IntentAuthenticationOOB) ReactTo(ctx context.Context, deps *authflow.De
 		return nil, authflow.ErrIncompatibleInput
 	}
 
-	node := NewNodeAuthenticationOOB(&NodeAuthenticationOOB{
+	node, err := NewNodeAuthenticationOOB(ctx, deps, &NodeAuthenticationOOB{
 		JSONPointer:    i.JSONPointer,
 		UserID:         i.UserID,
 		Purpose:        i.Purpose,
@@ -86,6 +86,9 @@ func (i *IntentAuthenticationOOB) ReactTo(ctx context.Context, deps *authflow.De
 		Channel:        channel,
 		Authentication: i.Authentication,
 	})
+	if err != nil {
+		return nil, err
+	}
 
 	return node, nil
 }
