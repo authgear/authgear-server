@@ -141,8 +141,14 @@ func (n *IntentCreateIdentityLoginID) ReactTo(ctx context.Context, deps *authflo
 			return nil, authflow.ErrIncompatibleInput
 		}
 	case 1:
-		m, _, _ := authflow.FindMilestoneInCurrentFlow[MilestoneFlowCreateIdentity](flows)
-		createdIdentityMilestone, _, _ := m.MilestoneFlowCreateIdentity(flows)
+		m, nestedFlows, ok := authflow.FindMilestoneInCurrentFlow[MilestoneFlowCreateIdentity](flows)
+		if !ok {
+			panic(fmt.Errorf("unexpected cannot find MilestoneFlowCreateIdentity"))
+		}
+		createdIdentityMilestone, _, _ := m.MilestoneFlowCreateIdentity(nestedFlows)
+		if createdIdentityMilestone == nil {
+			panic(fmt.Errorf("unexpected nil createdIdentityMilestone"))
+		}
 		info := createdIdentityMilestone.MilestoneDoCreateIdentity()
 		if info == nil {
 			panic(fmt.Errorf("unexpected nil identity info"))
