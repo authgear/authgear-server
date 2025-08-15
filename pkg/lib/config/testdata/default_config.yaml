@@ -672,3 +672,4 @@ authentication_flow:
       enabled: true
       period: 1m
       burst: 1200
+external_jwt: {}

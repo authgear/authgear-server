@@ -39,6 +39,11 @@ type inputTakeLoginID interface {
 	GetLoginID() string
 }
 
+type inputTakeLoginIDOrExternalJWT interface {
+	GetLoginID() string
+	GetExternalJWT() string
+}
+
 type inputTakeIDToken interface {
 	GetIDToken() string
 }

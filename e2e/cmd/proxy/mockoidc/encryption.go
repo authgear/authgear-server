@@ -1,133 +1,75 @@
 package mockoidc
 
 import (
-	"crypto/rsa"
-	"crypto/sha256"
-	"crypto/x509"
-	"encoding/base64"
 	"encoding/json"
+	"log"
 	"time"
 
-	"github.com/lestrrat-go/jwx/v2/jwa"
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/lestrrat-go/jwx/v2/jwt"
 )
 
-const DefaultKey = `MIIEowIBAAKCAQEAtI1Jf2zmfwLzpAjVarORtjKtmCHQtgNxqWDdVNVa` +
-	`gCb092tLrBRv0fTfHIJG-YpmmTrRN5yKax9bI3oSYNZJufAN3gu4TIrlLoFv6npC-k3rK-s` +
-	`biD2m0iz9duxe7uVSEHCJlcMas86Wa-VGBlAZQpnqh2TlaHXhyVbm-gHFGU0u26Pgv5Esw2` +
-	`DEwRh0l7nK1ygg8dL_NNdtnaxTYhWAVPo4Vqcl2a9n-bs65maK02IgBLpaLRUtjfjSIV17Y` +
-	`Bzlr6ekr7GwkDTD79d3Uc2GSSGzWqKlFtXmM9cFkfGGOYcaQLoELbkxaGfLmKI53HIxXUK2` +
-	`8JjVCxITGl60u_Z5bQIDAQABAoIBADzUXS7RQdcI540cbMrGNRFtgY7_1ZF9F445VFiAiT0` +
-	`j4uR5AcW4HPRfy8uPGNp6BpcZeeOCmh_9MHeDaS23BJ_ggMuOp0kigpRoh4w4JNiv58ukKm` +
-	`J8YvfssHigqltSZ5OiVrheQ2DQ-Vzgofb-hYQq1xlGpQPMs4ViAe-5KO6cwXYTL3j7PXAtE` +
-	`34Cl6JW36dd2U4G7EeEK8inq-zCg6U0mtyudz-6YicOLXaNKmJaSUn8pWuWqUd14mpqgo54` +
-	`l46mMx9d_HmG45jpMUam7qVYQ9ixtRp3vCUp5k4aSgigX0dn8pv3TGpSyq_t6g93DtMlXDY` +
-	`9rUjgQ3w5Y8L-kAECgYEAz0sCr--a-rXHzLDdRpsI5nzYqpwB8GOJKTADrkil_F1PfQ3SAq` +
-	`Gtb4ioQNO054WQYHzZFryh4joTiOkmlgjM0k8eRJ4442ayJe6vm_apxWGkAiS0szooyUpH4` +
-	`OqVwUaDjA7yF3PBuMc1Ub65EQU9mcsEBVdlNO_hfF_1C2LupPECgYEA3vnCJYp1MYy7zUSo` +
-	`v70UTP_P01J5kIFYzY4VHRI4C0xZG4w_wjgsnYbGT1n9r14W_i7EhEV1R0SxmbnrbfSt31n` +
-	`iZfCfzl-jq7v_q0-6gm51y1sm68jdFSgwxcRKbD41jP3BUNrfQhJdpB2FbSNAHQSng0XLVF` +
-	`fhDGFnzn277D0CgYAZ5glD6e-2-xcnX8GFnMET6u03A57KZeUxHCqZj8INMatIuH1QjtqYY` +
-	`L6Euu6TLoDHTVHiIVcoaJEgPeDwRdExRWlGsW3yG1aOnq-aEMtNOdG_4s4gxldqLrmkRCrJ` +
-	`pwGwcf2VKIU_jMQAno-IrNrxaAfskuq2HnJRk7uN3KJsQQKBgQC0YCcGZ3NWmhpye1Bni3W` +
-	`YtHhS4y0kEP7dikraMZrUyPZsqpAJdZfh9t0F5C6sZtkC1qJyvh2ZgaCKUzR4xq7BN91Fyd` +
-	`n9ALFOg87Xrq-aQ_FWiG573wm5y8FoutnZppl7bOutlOF2eZT25krBdvqufs1kDFnn6Q9ND` +
-	`J8FFAGpoQKBgDMXVHVXNCJWO13_rwakBe4a9W_lbKuVX27wgCBcu3i_lGYjggm8GPkaWk14` +
-	`b-reOmP3tZyZxDyX2zFyjkJpu2SWd5TlAL59vP3dzx-uyj6boWCCZHxzepli5eHXOeVW-S-` +
-	`gwlCAF0U0n_XJ7Qhv0_SQnxSqT-D6V1-KbbeXnO7w`
+const DefaultJWK = `
+{
+  "alg": "RS256",
+  "d": "EJRXwvhxcS4P096nh5EGFofHGqn3UeZ1sq8RaXyBDDBGwbjMouTWM878BQOZSyHMzERo41HznmFixO3HO_Cdi3LxN7qBbwsrWQj3fbFxSNAea2CJyVdyZr5PAu47dzermMSFGXV1bZMeIH2w87LbVVXvAszxuyQgnExTMrsacSTmROhBJY9GY0D6R90aiglQtF9fnhU8tSG7WdSg1zh1bRTyW1pgs7qI2d1S4Km52FKZ38ABQPjYux3-zFvf3Az8JhwRLsXhv-G147uyaOcZiGcOykKMbZP5DTmsLdnzGW3K1De6Yg-copAbjsICTsjrIQzZaTUpMUaYjMcZZOtsAQ",
+  "dp": "dnXy2iN-Brmp9IX-sh3saeEojfRqu3CeILZ6mXzJj9Lkvjf28gZWKWhwrr70r26jOY-MGbbsWEmtiZQlbwW81PztxJQL6gbn1gYqHCxYkZZ4EU0mpdQFM6Lpn7tNWVcNzEvQ0n8QccoT0bUHaZXj3jcznbpMXKQkTpTx0n9LMYE",
+  "dq": "vr5iJF1Fvz-zyiicsjfaG97s9n78OVgiQoya2cIkEWut9UtX3LtT-UgwIkrkWE-uxBFcsxtWd47bPj2pd1LYd16Y2Orb_ocu-7x4HMtRAeIbdeFyNbxP7l_XzEmGrnRkxykCNhZ_Am1KvovSlnEVBRumrRJIKDBkKSm2uRBS6E8",
+  "e": "AQAB",
+  "ext": true,
+  "key_ops": [
+    "sign"
+  ],
+  "kty": "RSA",
+  "n": "tbmGGgpT2Z3O5Y-X3bP_OjSlnE3Exb6yxrqkxrW2hlMnM5CKvfTheYr80IKiKdn6KbPFJLPqOtqT1As1GISefLLKRSShh9XV2C2lctpY8kpuX3M9UrzAjmHL2ld6yYlVlJcqdFxu1SPH2BarC72CcKzRCZ93Vn9fccqLki8CgtJBdW-zHNYvOAf-IyqY4z9fw5J8QK-ecSqEoCm8birjbHTcoQc83TuzHo1QYJE7gRJnV_bw4RV1VAAd3RVxDdOHTh576s_7px8Qj5TQm1tFjWpnzDhfu8PnOkUD9-GA4LffsHGWVoLD4mtPA0L3k4gKE30yn0YABr1ROwHMOHWJTw",
+  "p": "3aBGRkqDiAd9Bum761Zie0ED7NwuXG1W5vAbeliu5mkfawJcl7HVswWOBKUvtahpLbIFW9NRtmiMGp0OiXF2mZGrRGbXkpNfYGDRUZ6Lr17xfA4l4JhSQa9yEXzQdW2g7riUXqcVNtBgyS5xf4FZFecUExpARgsz6-XApmWuekE",
+  "q": "0ej0R9q7FwRihE6O1ytI8XzeIMx96y_xDVV-fZYUWR6QuVSvVdqy8KID41ltrX2z4uPKfe0RFSI-Fh_9VsvVn9n3Urog8Upnac0lVLqjxtc9xJH3fmEmJS7GWc4seWQeFsPUGQ5KDaDOY1qS8pdJLW1afq_C-B0_8yERwK0Zf48",
+  "qi": "1007YwPI5BbduSirj-M2H9t68c90zO08IvhucmgR8fw1PPzKilzijdEwL5Bb9IJUDYYPrRh7ydQgx7NoK-mzHq4gtyeMnTN7KIq4X4dUIzURvBSkAZQr7Mg8xdVbmBJAHDXDnci13TCQgO3n39TKkXtV9VmkFvtSfSfTa2nEBXc",
+  "kid": "FDKus3nofZY6iTkdOZLU86hKo1eIyHyeOtgMcsnleGw=",
+  "use": "sig"
+}
+`
 
 type Keypair struct {
-	PrivateKey *rsa.PrivateKey
-	PublicKey  *rsa.PublicKey
+	PrivateKey jwk.Key
+	PublicKey  jwk.Key
 }
 
-func NewKeypair(key *rsa.PrivateKey) (*Keypair, error) {
+func NewKeypair(key jwk.Key) (*Keypair, error) {
 	if key == nil {
 		return DefaultKeypair()
 	}
-
+	public, err := key.PublicKey()
+	if err != nil {
+		log.Fatalf("Failed to get public JWK: %v", err)
+	}
 	return &Keypair{
 		PrivateKey: key,
-		PublicKey:  &key.PublicKey,
+		PublicKey:  public,
 	}, nil
 }
 
 func DefaultKeypair() (*Keypair, error) {
-	keyBytes, err := base64.RawURLEncoding.DecodeString(DefaultKey)
+	key, err := jwk.ParseKey([]byte(DefaultJWK))
 	if err != nil {
-		return nil, err
-	}
-	key, err := x509.ParsePKCS1PrivateKey(keyBytes)
-	if err != nil {
-		return nil, err
+		log.Fatalf("Failed to unmarshal JWK: %v", err)
 	}
 
+	public, err := key.PublicKey()
+	if err != nil {
+		log.Fatalf("Failed to get public JWK: %v", err)
+	}
 	return &Keypair{
 		PrivateKey: key,
-		PublicKey:  &key.PublicKey,
+		PublicKey:  public,
 	}, nil
 }
 
-func (k *Keypair) KeyID() (string, error) {
-	publicKeyDERBytes, err := x509.MarshalPKIXPublicKey(k.PublicKey)
-	if err != nil {
-		return "", err
-	}
-
-	hasher := sha256.New()
-	if _, err := hasher.Write(publicKeyDERBytes); err != nil {
-		return "", err
-	}
-	publicKeyDERHash := hasher.Sum(nil)
-
-	return base64.RawURLEncoding.EncodeToString(publicKeyDERHash), nil
-}
-
-func (k *Keypair) JWKPrivateKey() (jwk.Key, error) {
-	kid, err := k.KeyID()
-	if err != nil {
-		return nil, err
-	}
-
-	key, err := jwk.FromRaw(k.PrivateKey)
-	if err != nil {
-		return nil, err
-	}
-
-	err = key.Set(jwk.KeyUsageKey, "sig")
-	if err != nil {
-		return nil, err
-	}
-	err = key.Set(jwk.AlgorithmKey, jwa.RS256)
-	if err != nil {
-		return nil, err
-	}
-	err = key.Set(jwk.KeyIDKey, kid)
-	if err != nil {
-		return nil, err
-	}
-
-	return key, nil
-}
-
-func (k *Keypair) JWKPublicKey() (jwk.Key, error) {
-	privateKey, err := k.JWKPrivateKey()
-	if err != nil {
-		return nil, err
-	}
-
-	return privateKey.PublicKey()
-}
-
 func (k *Keypair) JWKKeySet() (jwk.Set, error) {
-	key, err := k.JWKPublicKey()
-	if err != nil {
-		return nil, err
-	}
+	key := k.PublicKey
 
 	keySet := jwk.NewSet()
-	err = keySet.AddKey(key)
+	err := keySet.AddKey(key)
 	if err != nil {
 		return nil, err
 	}
@@ -145,10 +87,7 @@ func (k *Keypair) JWKS() ([]byte, error) {
 }
 
 func (k *Keypair) SignJWT(token jwt.Token) (string, error) {
-	key, err := k.JWKPrivateKey()
-	if err != nil {
-		return "", err
-	}
+	key := k.PrivateKey
 
 	compact, err := jwt.Sign(token, jwt.WithKey(key.Algorithm(), key))
 	if err != nil {

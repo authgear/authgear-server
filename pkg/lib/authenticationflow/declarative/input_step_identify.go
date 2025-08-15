@@ -20,6 +20,7 @@ type InputSchemaStepIdentify struct {
 	Options                   []IdentificationOption
 	ShouldBypassBotProtection bool
 	BotProtectionCfg          *config.BotProtectionConfig
+	IsExternalJWTAllowed      bool
 }
 
 var _ authflow.InputSchema = &InputSchemaStepIdentify{}
@@ -49,6 +50,15 @@ func (i *InputSchemaStepIdentify) SchemaBuilder() validation.SchemaBuilder {
 			b.Properties().Property("bot_protection", NewBotProtectionBodySchemaBuilder(i.BotProtectionCfg))
 		}
 
+		requireOneOfString := func(key1 string, key2 string) {
+			b.Properties().Property(key1, validation.SchemaBuilder{}.Type(validation.TypeString))
+			b.Properties().Property(key2, validation.SchemaBuilder{}.Type(validation.TypeString))
+			b.OneOf(
+				validation.SchemaBuilder{}.Required(key1),
+				validation.SchemaBuilder{}.Required(key2),
+			)
+		}
+
 		setRequiredAndAppendOneOf := func() {
 			b.Required(required...)
 			oneOf = append(oneOf, b)
@@ -63,13 +73,25 @@ func (i *InputSchemaStepIdentify) SchemaBuilder() validation.SchemaBuilder {
 			requireString("id_token")
 			setRequiredAndAppendOneOf()
 		case model.AuthenticationFlowIdentificationEmail:
-			requireString("login_id")
+			if i.IsExternalJWTAllowed {
+				requireOneOfString("login_id", "external_jwt")
+			} else {
+				requireString("login_id")
+			}
 			setRequiredAndAppendOneOf()
 		case model.AuthenticationFlowIdentificationPhone:
-			requireString("login_id")
+			if i.IsExternalJWTAllowed {
+				requireOneOfString("login_id", "external_jwt")
+			} else {
+				requireString("login_id")
+			}
 			setRequiredAndAppendOneOf()
 		case model.AuthenticationFlowIdentificationUsername:
-			requireString("login_id")
+			if i.IsExternalJWTAllowed {
+				requireOneOfString("login_id", "external_jwt")
+			} else {
+				requireString("login_id")
+			}
 			setRequiredAndAppendOneOf()
 		case model.AuthenticationFlowIdentificationOAuth:
 			// redirect_uri is required.
@@ -142,7 +164,8 @@ type InputStepIdentify struct {
 
 	IDToken string `json:"id_token,omitempty"`
 
-	LoginID string `json:"login,omitempty"`
+	LoginID     string `json:"login_id,omitempty"`
+	ExternalJWT string `json:"external_jwt,omitempty"`
 
 	Alias        string `json:"alias,omitempty"`
 	RedirectURI  string `json:"redirect_uri,omitempty"`
@@ -159,6 +182,7 @@ var _ authflow.Input = &InputStepIdentify{}
 var _ inputTakeIdentificationMethod = &InputStepIdentify{}
 var _ inputTakeIDToken = &InputStepIdentify{}
 var _ inputTakeLoginID = &InputStepIdentify{}
+var _ inputTakeLoginIDOrExternalJWT = &InputStepIdentify{}
 var _ inputTakeOAuthAuthorizationRequest = &InputStepIdentify{}
 var _ inputTakeBotProtection = &InputStepIdentify{}
 var _ inputTakeLDAP = &InputStepIdentify{}
@@ -175,6 +199,10 @@ func (i *InputStepIdentify) GetIDToken() string {
 
 func (i *InputStepIdentify) GetLoginID() string {
 	return i.LoginID
+}
+
+func (i *InputStepIdentify) GetExternalJWT() string {
+	return i.ExternalJWT
 }
 
 func (i *InputStepIdentify) GetOAuthAlias() string {

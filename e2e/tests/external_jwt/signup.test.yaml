@@ -1,0 +1,227 @@
+name: Signup with external_jwt
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "state_token": "[[string]]",
+          "type": "signup",
+          "name": "default",
+          "action": {
+              "type": "identify",
+              "data": {
+                  "type": "identification_data",
+                  "options": "[[array]]"
+              }
+          }
+        }
+  - action: "input"
+    input: |
+      {
+        "identification": "phone",
+        "external_jwt": "eyJraWQiOiJGREt1czNub2ZaWTZpVGtkT1pMVTg2aEtvMWVJeUh5ZU90Z01jc25sZUd3PSIsImFsZyI6IlJTMjU2IiwidHlwIjoiSldUIn0.eyJzdWIiOiJ1aWRfMTIzNDUiLCJpc3MiOiJodHRwczovL2FkZnMuZXhhbXBsZS5jb20iLCJuYW1lIjoiSm9obiBEb2UiLCJwaG9uZV9udW1iZXIiOiIrODUyNjU0MzAwMDEiLCJwaG9uZV9udW1iZXJfdmVyaWZpZWQiOnRydWUsImlhdCI6MTc1NTE3NzUyNSwiZXhwIjozODU1MTgxMTI1fQ.cFnI2gjmvjJfYvDFbHlTwfYTR0lxOyA3P8XZUXUwQis7wR5jggtm1b-SYDG8LRXjwEbwzKvdLYrwaluWC-ssRQUbM3rfb2Qvu2bDUccl-Lk7Xi1z6uZehxJEw7kRpxk3oFxxbUhXE8R5bBYwwhK3Lg1B-_yQ72qVhN9JV3PEs_PT6CQSL6Drse0hXV1geuoCmJEq1THmjqrw7l8cKwJKASL99Lh5dO8BkgkhitrqAqL-mqI7a7ZA-EXOrJXOmrr5rZb6TcrBiQZ8EAtTpQKbX4Y-JNXM1ZsCpDkchp0Jb0rwJtxh_1sYRpnexeUN_f9Mx9VfMUan54KX1BUbCAoRVQ"
+      }
+    output:
+      result: |
+        {
+          "state_token": "[[string]]",
+          "type": "signup",
+          "name": "default",
+          "action": {
+              "type": "create_authenticator",
+              "data": {
+                  "type": "create_authenticator_data",
+                  "options": "[[array]]"
+              }
+          }
+        }
+  - action: "input"
+    input: |
+      {
+        "authentication": "primary_password",
+        "new_password": "password"
+      }
+    output:
+      result: |
+        {
+          "state_token": "[[string]]",
+          "type": "signup",
+          "name": "default",
+          "action": {
+            "type": "finished"
+          }
+        }
+---
+name: Signup with external_jwt and phone verification skipped when phone_number_verified=true
+authgear.yaml:
+  override: |
+    authentication_flow:
+      signup_flows:
+        - name: phone_verify_flow
+          steps:
+            - type: identify
+              name: phone
+              one_of:
+                - identification: phone
+            - type: verify
+              target_step: phone
+            - type: create_authenticator
+              one_of:
+                - authentication: primary_password
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "signup",
+        "name": "phone_verify_flow"
+      }
+    output:
+      result: |
+        {
+          "state_token": "[[string]]",
+          "type": "signup",
+          "name": "phone_verify_flow",
+          "action": {
+              "type": "identify",
+              "data": {
+                  "type": "identification_data",
+                  "options": "[[array]]"
+              }
+          }
+        }
+  - action: "input"
+    input: |
+      {
+        "identification": "phone",
+        "external_jwt": "eyJraWQiOiJGREt1czNub2ZaWTZpVGtkT1pMVTg2aEtvMWVJeUh5ZU90Z01jc25sZUd3PSIsImFsZyI6IlJTMjU2IiwidHlwIjoiSldUIn0.eyJzdWIiOiJ1aWRfMTIzNDUiLCJpc3MiOiJodHRwczovL2FkZnMuZXhhbXBsZS5jb20iLCJuYW1lIjoiSm9obiBEb2UiLCJwaG9uZV9udW1iZXIiOiIrODUyNjU0MzAwMDEiLCJwaG9uZV9udW1iZXJfdmVyaWZpZWQiOnRydWUsImlhdCI6MTc1NTE3NzUyNSwiZXhwIjozODU1MTgxMTI1fQ.cFnI2gjmvjJfYvDFbHlTwfYTR0lxOyA3P8XZUXUwQis7wR5jggtm1b-SYDG8LRXjwEbwzKvdLYrwaluWC-ssRQUbM3rfb2Qvu2bDUccl-Lk7Xi1z6uZehxJEw7kRpxk3oFxxbUhXE8R5bBYwwhK3Lg1B-_yQ72qVhN9JV3PEs_PT6CQSL6Drse0hXV1geuoCmJEq1THmjqrw7l8cKwJKASL99Lh5dO8BkgkhitrqAqL-mqI7a7ZA-EXOrJXOmrr5rZb6TcrBiQZ8EAtTpQKbX4Y-JNXM1ZsCpDkchp0Jb0rwJtxh_1sYRpnexeUN_f9Mx9VfMUan54KX1BUbCAoRVQ"
+      }
+    output:
+      result: |
+        {
+          "state_token": "[[string]]",
+          "type": "signup",
+          "name": "phone_verify_flow",
+          "action": {
+              "type": "create_authenticator",
+              "data": {
+                  "type": "create_authenticator_data",
+                  "options": "[[array]]"
+              }
+          }
+        }
+  - action: "input"
+    input: |
+      {
+        "authentication": "primary_password",
+        "new_password": "password"
+      }
+    output:
+      result: |
+        {
+          "state_token": "[[string]]",
+          "type": "signup",
+          "name": "phone_verify_flow",
+          "action": {
+            "type": "finished"
+          }
+        }
+
+---
+name: Signup with external_jwt and phone verification when phone_number_verified=false
+authgear.yaml:
+  override: |
+    authentication_flow:
+      signup_flows:
+        - name: phone_verify_flow
+          steps:
+            - type: identify
+              name: phone
+              one_of:
+                - identification: phone
+            - type: verify
+              target_step: phone
+            - type: create_authenticator
+              one_of:
+                - authentication: primary_password
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "signup",
+        "name": "phone_verify_flow"
+      }
+    output:
+      result: |
+        {
+          "state_token": "[[string]]",
+          "type": "signup",
+          "name": "phone_verify_flow",
+          "action": {
+              "type": "identify",
+              "data": {
+                  "type": "identification_data",
+                  "options": "[[array]]"
+              }
+          }
+        }
+  - action: "input"
+    input: |
+      {
+        "identification": "phone",
+        "external_jwt": "eyJraWQiOiJGREt1czNub2ZaWTZpVGtkT1pMVTg2aEtvMWVJeUh5ZU90Z01jc25sZUd3PSIsImFsZyI6IlJTMjU2IiwidHlwIjoiSldUIn0.eyJzdWIiOiJ1aWRfMTIzNDUiLCJpc3MiOiJodHRwczovL2FkZnMuZXhhbXBsZS5jb20iLCJuYW1lIjoiSm9obiBEb2UiLCJwaG9uZV9udW1iZXIiOiIrODUyNjU0MzAwMDEiLCJpYXQiOjE3NTUxNzc1MjUsImV4cCI6Mzg1NTE4MTEyNX0.Kfoq8a9YGDsd75G0nVpyJ8zsrU1ebl1zbk4a8nZCOHNaFkFxoF795MfN6nlODfMSwQOuaSAloeopXhDSNjHZlAoIaBaTr4IIr6dhRopAEnRbuaQm60s3lHmRIcEwQjAA4ETNDnAE_RWcotvH5NBCPFKyjCkhPcTLB7c5fpHfBwl5fBPQ-bupcUcTVjElOrDc8x8zz5JJWCJBznb3ZsqAny4aVd4bRQpWIpuPY1W8LzUhn_GMGHKLpkeP205EQIYKjpjiAOd_Dk8eBZEdWQKXQfDHyU8oRD94b96WNoPJ1O8d-fMSYjFiRynel1UWpRny7loDPezT39yQvKnU6gP2mA"
+      }
+    output:
+      result: |
+        {
+          "state_token": "[[string]]",
+          "type": "signup",
+          "name": "phone_verify_flow",
+          "action": {
+              "type": "verify"
+          }
+        }
+  - action: "input"
+    input: |
+      {
+        "channel": "sms"
+      }
+  - action: input
+    input: |
+      {
+        "code": "111111"
+      }
+    output:
+      result: |
+        {
+          "state_token": "[[string]]",
+          "type": "signup",
+          "name": "phone_verify_flow",
+          "action": {
+              "type": "create_authenticator",
+              "data": {
+                  "type": "create_authenticator_data",
+                  "options": "[[array]]"
+              }
+          }
+        }
+  - action: "input"
+    input: |
+      {
+        "authentication": "primary_password",
+        "new_password": "password"
+      }
+    output:
+      result: |
+        {
+          "state_token": "[[string]]",
+          "type": "signup",
+          "name": "phone_verify_flow",
+          "action": {
+            "type": "finished"
+          }
+        }

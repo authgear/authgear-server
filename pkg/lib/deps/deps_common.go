@@ -37,6 +37,7 @@ import (
 	libes "github.com/authgear/authgear-server/pkg/lib/elasticsearch"
 	"github.com/authgear/authgear-server/pkg/lib/endpoints"
 	"github.com/authgear/authgear-server/pkg/lib/event"
+	"github.com/authgear/authgear-server/pkg/lib/externaljwt"
 	"github.com/authgear/authgear-server/pkg/lib/facade"
 	"github.com/authgear/authgear-server/pkg/lib/feature/captcha"
 	featurecustomattrs "github.com/authgear/authgear-server/pkg/lib/feature/customattrs"
@@ -680,5 +681,10 @@ var CommonDependencySet = wire.NewSet(
 	wire.NewSet(
 		webappoauth.DependencySet,
 		wire.Bind(new(interaction.OAuthStateStore), new(*webappoauth.Store)),
+	),
+
+	wire.NewSet(
+		externaljwt.DependencySet,
+		wire.Bind(new(authenticationflow.ExternalJWTService), new(*externaljwt.Service)),
 	),
 )

@@ -16,6 +16,7 @@ type InputSchemaTakeLoginID struct {
 	FlowRootObject          config.AuthenticationFlowObject
 	IsBotProtectionRequired bool
 	BotProtectionCfg        *config.BotProtectionConfig
+	IsExternalJWTAllowed    bool
 }
 
 var _ authflow.InputSchema = &InputSchemaTakeLoginID{}
@@ -29,18 +30,30 @@ func (i *InputSchemaTakeLoginID) GetFlowRootObject() config.AuthenticationFlowOb
 }
 
 func (i *InputSchemaTakeLoginID) SchemaBuilder() validation.SchemaBuilder {
-	inputTakeLoginIDSchemaBuilder := validation.SchemaBuilder{}.
-		Type(validation.TypeObject).
-		Required("login_id")
+	b := validation.SchemaBuilder{}.
+		Type(validation.TypeObject)
 
-	inputTakeLoginIDSchemaBuilder.Properties().Property(
-		"login_id",
-		validation.SchemaBuilder{}.Type(validation.TypeString),
-	)
-	if i.IsBotProtectionRequired && i.BotProtectionCfg != nil {
-		inputTakeLoginIDSchemaBuilder = AddBotProtectionToExistingSchemaBuilder(inputTakeLoginIDSchemaBuilder, i.BotProtectionCfg)
+	if i.IsExternalJWTAllowed {
+		b.OneOf(
+			validation.SchemaBuilder{}.Required("login_id"),
+			validation.SchemaBuilder{}.Required("external_jwt"),
+		)
+	} else {
+		b.Required("login_id")
 	}
-	return inputTakeLoginIDSchemaBuilder
+
+	b.Properties().
+		Property("login_id", validation.SchemaBuilder{}.Type(validation.TypeString))
+
+	if i.IsExternalJWTAllowed {
+		b.Properties().
+			Property("external_jwt", validation.SchemaBuilder{}.Type(validation.TypeString))
+	}
+
+	if i.IsBotProtectionRequired && i.BotProtectionCfg != nil {
+		b = AddBotProtectionToExistingSchemaBuilder(b, i.BotProtectionCfg)
+	}
+	return b
 }
 
 func (i *InputSchemaTakeLoginID) MakeInput(ctx context.Context, rawMessage json.RawMessage) (authflow.Input, error) {
@@ -53,18 +66,24 @@ func (i *InputSchemaTakeLoginID) MakeInput(ctx context.Context, rawMessage json.
 }
 
 type InputTakeLoginID struct {
-	LoginID       string                      `json:"login_id"`
+	LoginID       string                      `json:"login_id,omitempty"`
+	ExternalJWT   string                      `json:"external_jwt,omitempty"`
 	BotProtection *InputTakeBotProtectionBody `json:"bot_protection,omitempty"`
 }
 
 var _ authflow.Input = &InputTakeLoginID{}
 var _ inputTakeLoginID = &InputTakeLoginID{}
+var _ inputTakeLoginIDOrExternalJWT = &InputTakeLoginID{}
 var _ inputTakeBotProtection = &InputTakeLoginID{}
 
 func (*InputTakeLoginID) Input() {}
 
 func (i *InputTakeLoginID) GetLoginID() string {
 	return i.LoginID
+}
+
+func (i *InputTakeLoginID) GetExternalJWT() string {
+	return i.ExternalJWT
 }
 
 func (i *InputTakeLoginID) GetBotProtectionProvider() *InputTakeBotProtectionBody {

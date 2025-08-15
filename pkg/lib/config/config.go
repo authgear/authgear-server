@@ -52,7 +52,8 @@ var _ = Schema.Add("AppConfig", `
 		"captcha": { "$ref": "#/$defs/CaptchaConfig" },
 		"bot_protection": { "$ref": "#/$defs/BotProtectionConfig" },
 		"test_mode": { "$ref": "#/$defs/TestModeConfig" },
-		"authentication_flow": { "$ref": "#/$defs/AuthenticationFlowConfig" }
+		"authentication_flow": { "$ref": "#/$defs/AuthenticationFlowConfig" },
+		"external_jwt": { "$ref": "#/$defs/ExternalJWTConfig" }
 	},
 	"required": ["id", "http"]
 }
@@ -97,6 +98,8 @@ type AppConfig struct {
 	TestMode *TestModeConfig `json:"test_mode,omitempty"`
 
 	AuthenticationFlow *AuthenticationFlowConfig `json:"authentication_flow,omitempty"`
+
+	ExternalJWT *ExternalJWTConfig `json:"external_jwt,omitempty"`
 }
 
 var _ validation.Validator = (*AppConfig)(nil)
