@@ -60,7 +60,7 @@ func NewRootProvider(
 		return ctx, nil, err
 	}
 
-	jwkCache := jwk.NewCache(context.Background())
+	jwkCache := jwk.NewCache(ctx)
 
 	p = RootProvider{
 		EnvironmentConfig:  cfg,
