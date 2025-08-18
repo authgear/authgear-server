@@ -4,6 +4,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 )
 
-var ErrInvalidExternalJWT = apierrors.BadRequest.WithReason("InvalidExternalJWT")
-var ErrFailedToFetchJWKS = apierrors.InternalError.WithReason("FailedToFetchJWKS").SkipLoggingToExternalService()
-var ErrInvalidJWTClaim = apierrors.BadRequest.WithReason("InvalidJWTClaim")
+var ErrExternalJWTInvalidJWT = apierrors.BadRequest.WithReason("ExternalJWTInvalidJWT")
+var ErrExternalJWTFailedToFetchJWKs = apierrors.InternalError.WithReason("ExternalJWTFailedToFetchJWKs").SkipLoggingToExternalService()
+var ErrExternalJWTInvalidClaim = apierrors.BadRequest.WithReason("ExternalJWTInvalidClaim")

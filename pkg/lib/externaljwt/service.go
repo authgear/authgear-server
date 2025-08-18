@@ -32,12 +32,12 @@ type Service struct {
 func (s *Service) VerifyExternalJWT(ctx context.Context, rawToken string) (jwt.Token, error) {
 	token, err := jwt.ParseInsecure([]byte(rawToken))
 	if err != nil {
-		return nil, ErrInvalidExternalJWT.New("failed to parse JWT")
+		return nil, ErrExternalJWTInvalidJWT.New("failed to parse JWT")
 	}
 
 	issuer := token.Issuer()
 	if issuer == "" {
-		return nil, ErrInvalidExternalJWT.New("JWT is missing issuer (iss) claim")
+		return nil, ErrExternalJWTInvalidJWT.New("JWT is missing issuer (iss) claim")
 	}
 
 	var issuerConfig *config.ExternalJWTIssuerConfig
@@ -50,7 +50,7 @@ func (s *Service) VerifyExternalJWT(ctx context.Context, rawToken string) (jwt.T
 	}
 
 	if issuerConfig == nil {
-		return nil, ErrInvalidExternalJWT.New("unknown external jwt issuer")
+		return nil, ErrExternalJWTInvalidJWT.New("unknown external jwt issuer")
 	}
 
 	jwksURI := issuerConfig.JWKSURI
@@ -64,7 +64,7 @@ func (s *Service) VerifyExternalJWT(ctx context.Context, rawToken string) (jwt.T
 	// Fetch JWKS from cache
 	keySet, err := s.JWKSCache.Get(ctx, jwksURI)
 	if err != nil {
-		return nil, ErrFailedToFetchJWKS.New("failed to fetch JWKS from " + jwksURI)
+		return nil, ErrExternalJWTFailedToFetchJWKs.New("failed to fetch JWKS from " + jwksURI)
 	}
 
 	// Verify the token
@@ -85,7 +85,7 @@ func (s *Service) VerifyExternalJWT(ctx context.Context, rawToken string) (jwt.T
 		opts...,
 	)
 	if err != nil {
-		return nil, ErrInvalidExternalJWT.New("failed to verify jwt signature")
+		return nil, ErrExternalJWTInvalidJWT.New("failed to verify jwt signature")
 	}
 
 	return verifiedToken, nil
@@ -109,7 +109,7 @@ func (s *Service) ConstructLoginIDSpec(
 	case model.AuthenticationFlowIdentificationEmail:
 		email, ok := token.Get(string(stdattrs.Email))
 		if !ok {
-			return nil, ErrInvalidJWTClaim.New("email claim not found in JWT")
+			return nil, ErrExternalJWTInvalidClaim.New("email claim not found in JWT")
 		}
 		claimValue = email.(string)
 		loginIDKey = string(model.LoginIDKeyTypeEmail)
@@ -124,7 +124,7 @@ func (s *Service) ConstructLoginIDSpec(
 	case model.AuthenticationFlowIdentificationPhone:
 		phoneNumber, ok := token.Get(string(stdattrs.PhoneNumber))
 		if !ok {
-			return nil, ErrInvalidJWTClaim.New("phone_number claim not found in JWT")
+			return nil, ErrExternalJWTInvalidClaim.New("phone_number claim not found in JWT")
 		}
 		claimValue = phoneNumber.(string)
 		loginIDKey = string(model.LoginIDKeyTypePhone)
@@ -139,7 +139,7 @@ func (s *Service) ConstructLoginIDSpec(
 	case model.AuthenticationFlowIdentificationUsername:
 		username, ok := token.Get(string(stdattrs.PreferredUsername))
 		if !ok {
-			return nil, ErrInvalidJWTClaim.New("preferred_username claim not found in JWT")
+			return nil, ErrExternalJWTInvalidClaim.New("preferred_username claim not found in JWT")
 		}
 		claimValue = username.(string)
 		loginIDKey = string(model.LoginIDKeyTypeUsername)
