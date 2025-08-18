@@ -1671,7 +1671,7 @@
   "SMTPConfigurationScreen.send-test-email-dialog.description": "Test your SMTP configuration by sending an email to the given address.",
   "SMTPConfigurationScreen.provider.sendgrid": "SendGrid",
   "SMTPConfigurationScreen.provider.custom": "SMTP Provider",
-  "SMTPConfigurationScreen.sendgrid.description": "Sign up for a SengGrid account and generate a SendGrid API Key. Check {DocLink, react, href{https://docs.authgear.com/customization/custom-providers/custom-email-provider} children{our instructions}} if you need help.",
+  "SMTPConfigurationScreen.sendgrid.description": "Sign up for a SendGrid account and generate a SendGrid API Key. Check {DocLink, react, href{https://docs.authgear.com/customization/custom-providers/custom-email-provider} children{our instructions}} if you need help.",
   "SMTPConfigurationScreen.custom.description": "Set your SMTP provider manually. Check {DocLink, react, href{https://docs.authgear.com/customization/custom-providers/custom-email-provider} children{our instructions}} if you need help.",
 
   "SMSProviderConfigurationScreen.title": "Custom SMS Gateway",
