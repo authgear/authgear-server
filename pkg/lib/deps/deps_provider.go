@@ -67,6 +67,7 @@ var rootDeps = wire.NewSet(
 		"DatabasePool",
 		"RedisPool",
 		"EmbeddedResources",
+		"JWKCache",
 	),
 
 	EnvConfigDeps,

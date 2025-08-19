@@ -198,3 +198,7 @@ verification:
         enabled: false
     sms:
       trigger_cooldown: 60s
+external_jwt:
+  issuers:
+    - iss: https://adfs.example.com
+      jwks_uri: http://127.0.0.1:8081/adfs/.well-known/jwks.json

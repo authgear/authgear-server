@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	getsentry "github.com/getsentry/sentry-go"
+	"github.com/lestrrat-go/jwx/v2/jwk"
 
 	runtimeresource "github.com/authgear/authgear-server"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -33,6 +34,7 @@ type RootProvider struct {
 	RedisHub           *redis.Hub
 	BaseResources      *resource.Manager
 	EmbeddedResources  *web.GlobalEmbeddedResourceManager
+	JWKCache           *jwk.Cache
 }
 
 func NewRootProvider(
@@ -58,6 +60,8 @@ func NewRootProvider(
 		return ctx, nil, err
 	}
 
+	jwkCache := jwk.NewCache(ctx)
+
 	p = RootProvider{
 		EnvironmentConfig:  cfg,
 		ConfigSourceConfig: configSourceConfig,
@@ -72,6 +76,7 @@ func NewRootProvider(
 			CustomResourceDir:     customResourceDirectory,
 		}),
 		EmbeddedResources: embeddedResources,
+		JWKCache:          jwkCache,
 	}
 	return ctx, &p, nil
 }

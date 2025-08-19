@@ -204,6 +204,7 @@ func (i *IntentSignupFlowStepIdentify) CanReactTo(ctx context.Context, deps *aut
 			Options:                   i.Options,
 			ShouldBypassBotProtection: shouldBypassBotProtection,
 			BotProtectionCfg:          deps.Config.BotProtection,
+			IsExternalJWTAllowed:      true,
 		}, nil
 	}
 

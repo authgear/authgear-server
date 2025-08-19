@@ -1,0 +1,147 @@
+name: Signup with external_jwt - invalid phone number
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "state_token": "[[string]]",
+          "type": "signup",
+          "name": "default",
+          "action": {
+              "type": "identify",
+              "data": {
+                  "type": "identification_data",
+                  "options": "[[array]]"
+              }
+          }
+        }
+  - action: "input"
+    input: | # "phone_number": "invalidphone"
+      {
+        "identification": "phone",
+        "external_jwt": "eyJraWQiOiJGREt1czNub2ZaWTZpVGtkT1pMVTg2aEtvMWVJeUh5ZU90Z01jc25sZUd3PSIsImFsZyI6IlJTMjU2IiwidHlwIjoiSldUIn0.eyJzdWIiOiJ1aWRfMTIzNDUiLCJpc3MiOiJodHRwczovL2FkZnMuZXhhbXBsZS5jb20iLCJuYW1lIjoiSm9obiBEb2UiLCJwaG9uZV9udW1iZXIiOiJpbnZhbGlkcGhvbmUiLCJwaG9uZV9udW1iZXJfdmVyaWZpZWQiOnRydWUsImlhdCI6MTc1NTE3NzUyNSwiZXhwIjozODU1MTgxMTI1fQ.eQGAZeRIvb87nrpjgp0zq7c1A5WszSuTtu7zUeFH7UrZpluL5QquKwFSHyKzUMon6yS9evZvWRV6h1fGetx8Bxq3e3VnX2QkqYlrV1xLwjbnIYRmKFpOW6WToNbHEVNglzJkFX4W0DJfTKGg6KKl9580kgJfVEIErP9CO8Pup5mUemD54Q3Zl-52a30zfqFbfNSLSUl9qHWlzGRrMtrY4_Nyyg6zcU--FVVq6t_TJjWkZ_bxEGmWNLZ1SLCndNv3UvOg_-T-QNdnR0IAbenF2ozEqFx-e3d9UBy7vdmXvDNgRNeb56hada0Jf7wIrHQHlNaW1lUGHxC5-3Sqc0y2mQ"
+      }
+    output:
+      error: |
+        {
+          "name": "Invalid",
+          "reason": "ValidationFailed",
+          "message": "invalid login ID",
+          "code": 400,
+          "info": {
+            "FlowType": "signup",
+            "causes": [
+              {
+                "details": {
+                  "format": "phone"
+                },
+                "kind": "format",
+                "location": "/login_id"
+              }
+            ]
+          }
+        }
+---
+name: Signup with external_jwt - invalid email
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "state_token": "[[string]]",
+          "type": "signup",
+          "name": "default",
+          "action": {
+              "type": "identify",
+              "data": {
+                  "type": "identification_data",
+                  "options": "[[array]]"
+              }
+          }
+        }
+  - action: "input"
+    input: | # "email": "invalidemail"
+      {
+        "identification": "email",
+        "external_jwt": "eyJraWQiOiJGREt1czNub2ZaWTZpVGtkT1pMVTg2aEtvMWVJeUh5ZU90Z01jc25sZUd3PSIsImFsZyI6IlJTMjU2IiwidHlwIjoiSldUIn0.eyJzdWIiOiJ1aWRfMTIzNDUiLCJpc3MiOiJodHRwczovL2FkZnMuZXhhbXBsZS5jb20iLCJuYW1lIjoiSm9obiBEb2UiLCJlbWFpbCI6ImludmFsaWRlbWFpbCIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJpYXQiOjE3NTUxNzc1MjUsImV4cCI6Mzg1NTE4MTEyNX0.EdogSYcX60D08AOuJpLVLrJKc-UZDGy0nYrHQn8A4_Osu1I0J4MsI-L_lANEsNVtJlF7rRtKmDFlt0ZZBzNI5blWGSg66d8-UxeIjmMVnNcHpXsrYguSJ8TsLPe-rH7an2hzj77P4kt4YEqWZE2NIS9RC2s6Os08f1pWEUrlU5DYnVa2JaiO4F5sE6dVxGnYUYUG-UbswrUFARJL5qsa51N4OwA7QYgC5KGbOH-5Plj9ypGlGifTMi9S60WILjBpzzryeSOzqvuj-U_eKq7lW8jPVuAQ_t8e1bGv5sBeTSdH-bFYXDPAuIezMTp1NgA_ENM_NmtsspT3VDQ1hjIYfg"
+      }
+    output:
+      error: |
+        {
+          "name": "Invalid",
+          "reason": "ValidationFailed",
+          "message": "invalid login ID",
+          "code": 400,
+          "info": {
+            "FlowType": "signup",
+            "causes": [
+              {
+                "details": {
+                  "format": "email"
+                },
+                "kind": "format",
+                "location": "/login_id"
+              }
+            ]
+          }
+        }
+
+---
+name: Signup with external_jwt - invalid username
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "state_token": "[[string]]",
+          "type": "signup",
+          "name": "default",
+          "action": {
+              "type": "identify",
+              "data": {
+                  "type": "identification_data",
+                  "options": "[[array]]"
+              }
+          }
+        }
+  - action: "input"
+    input: | # "preferred_username": "invalid@example.com"
+      {
+        "identification": "username",
+        "external_jwt": "eyJraWQiOiJGREt1czNub2ZaWTZpVGtkT1pMVTg2aEtvMWVJeUh5ZU90Z01jc25sZUd3PSIsImFsZyI6IlJTMjU2IiwidHlwIjoiSldUIn0.eyJzdWIiOiJ1aWRfMTIzNDUiLCJpc3MiOiJodHRwczovL2FkZnMuZXhhbXBsZS5jb20iLCJuYW1lIjoiSm9obiBEb2UiLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJpbnZhbGlkQGV4YW1wbGUuY29tIiwiaWF0IjoxNzU1MTc3NTI1LCJleHAiOjM4NTUxODExMjV9.mRDjkgqYLu5GvbspjrY7FdgSqF4leqyYov5dP7G8moLszu5eBvoHrXFVs3pou69sk-53_BnnbTMLDKHAZnGFtLrV4Q1JUgg-l3garnkZsV-olUl-g2lutpfv9hjwVwBjfPJcHP7K94djghZWU98neJ5c5h5veVq0mJMEnL1-EPXGKAsLSO5HOyyNHV0G8G3kAOSQAttUU1bMfJI0h-iNfBEQ6WMDuf0zhUCPjMZjrSQeNc4avZAzBwuhwpTvT157usOxqsLZj3kqyz-FMJSmB-VUhr0X-WLAP1tbQ-8_z5IrP2u1I1nI0KedM9pc9QqVT29F4hPtRkRgQUdI6e8-bQ"
+      }
+    output:
+      error: |
+        {
+          "name": "Invalid",
+          "reason": "ValidationFailed",
+          "message": "invalid login ID",
+          "code": 400,
+          "info": {
+            "FlowType": "signup",
+            "causes": [
+              {
+                "details": {
+                  "format": "username"
+                },
+                "kind": "format",
+                "location": "/login_id"
+              }
+            ]
+          }
+        }
