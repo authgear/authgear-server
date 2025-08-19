@@ -181,9 +181,9 @@ export function useAppSecretConfigForm<State>(
           secretConfigUpdateInstructionsChecksum: secretConfigChecksum,
           ignoreConflict,
         });
+        await postSave?.(state);
         await reload();
         setCurrentState(null);
-        await postSave?.(state);
       } finally {
         setIsUpdating(false);
       }
