@@ -55,7 +55,7 @@ export function APIResourceDetailsScreenTestTab({
   const [isGenerating, setIsGenerating] = useState(false);
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [selectedCodeVariant, setSelectedCodeVariant] =
-    useState<ExampleCodeVariant>(ExampleCodeVariant.CURL);
+    useState<ExampleCodeVariant>(ExampleCodeVariant.curl);
   const { startReauthentication, isRevealing } =
     useStartReauthentication<LocationState>();
 
@@ -269,7 +269,7 @@ export function APIResourceDetailsScreenTestTab({
                   headerText={renderToString(
                     "APIResourceDetailsScreen.test.pivot.curl.headerText"
                   )}
-                  itemKey={ExampleCodeVariant.CURL}
+                  itemKey={ExampleCodeVariant.curl}
                 />
                 <PivotItem
                   headerText={renderToString(

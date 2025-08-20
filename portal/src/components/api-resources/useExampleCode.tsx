@@ -1,5 +1,5 @@
 export enum ExampleCodeVariant {
-  CURL = "CURL",
+  curl = "curl",
   Python = "Python",
   Go = "Go",
   NodeJS = "NodeJS",
@@ -21,7 +21,7 @@ export function useExampleCode({
   clientID,
 }: TokenExchangeExampleCodeProps): string {
   switch (variant) {
-    case ExampleCodeVariant.CURL:
+    case ExampleCodeVariant.curl:
       return `curl --request POST \\
   --url ${tokenEndpoint} \\
   --header 'Content-Type: application/x-www-form-urlencoded' \\
