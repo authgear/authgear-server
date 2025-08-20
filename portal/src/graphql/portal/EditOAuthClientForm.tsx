@@ -36,6 +36,7 @@ import {
 import Tooltip from "../../Tooltip";
 import { LocationState } from "./EditOAuthClientScreen";
 import { makeValidationErrorCustomMessageIDRule } from "../../error/parse";
+import { formatSeconds } from "../../util/formatDuration";
 
 const MASKED_SECRET = "***************";
 
@@ -103,7 +104,7 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
       clientSecretHook,
     } = props;
 
-    const { renderToString } = useContext(Context);
+    const { renderToString, locale } = useContext(Context);
     const { themes } = useSystemConfig();
     const theme = useTheme();
 
@@ -448,21 +449,37 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
         return renderToString(
           "EditOAuthClientForm.refresh-token.help-text.idle-timeout-enabled",
           {
-            refreshTokenLifetime:
-              clientConfig.refresh_token_lifetime_seconds?.toFixed(0) ?? "",
-            refreshTokenIdleTimeout:
-              clientConfig.refresh_token_idle_timeout_seconds?.toFixed(0) ?? "",
+            refreshTokenLifetimeFormattedDuration:
+              clientConfig.refresh_token_lifetime_seconds != null
+                ? formatSeconds(
+                    locale,
+                    clientConfig.refresh_token_lifetime_seconds
+                  ) ?? ""
+                : "",
+            refreshTokenIdleTimeoutFormattedDuration:
+              clientConfig.refresh_token_idle_timeout_seconds != null
+                ? formatSeconds(
+                    locale,
+                    clientConfig.refresh_token_idle_timeout_seconds
+                  ) ?? ""
+                : "",
           }
         );
       }
       return renderToString(
         "EditOAuthClientForm.refresh-token.help-text.idle-timeout-disabled",
         {
-          refreshTokenLifetime:
-            clientConfig.refresh_token_lifetime_seconds?.toFixed(0) ?? "",
+          refreshTokenLifetimeFormattedDuration:
+            clientConfig.refresh_token_lifetime_seconds != null
+              ? formatSeconds(
+                  locale,
+                  clientConfig.refresh_token_lifetime_seconds
+                ) ?? ""
+              : "",
         }
       );
     }, [
+      locale,
       clientConfig.refresh_token_lifetime_seconds,
       clientConfig.refresh_token_idle_timeout_enabled,
       clientConfig.refresh_token_idle_timeout_seconds,

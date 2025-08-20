@@ -44,6 +44,7 @@ import {
 } from "../../FormContainerBase";
 import PrimaryButton from "../../PrimaryButton";
 import HorizontalDivider from "../../HorizontalDivider";
+import { formatSeconds } from "../../util/formatDuration";
 
 const dropDownStyles = {
   dropdown: {
@@ -129,7 +130,7 @@ interface AnonymousUserLifeTimeDescriptionProps {
 
 const AnonymousUserLifeTimeDescription: React.VFC<AnonymousUserLifeTimeDescriptionProps> =
   function AnonymousUserLifeTimeDescription(props) {
-    const { renderToString } = useContext(Context);
+    const { renderToString, locale } = useContext(Context);
     const { appID } = useParams() as { appID: string };
     const {
       sessionIdleTimeoutEnabled,
@@ -171,13 +172,21 @@ const AnonymousUserLifeTimeDescription: React.VFC<AnonymousUserLifeTimeDescripti
         return {
           name: client.name ?? "",
           refreshTokenIdleTimeout: client.refresh_token_idle_timeout_enabled
-            ? client.refresh_token_idle_timeout_seconds?.toFixed(0) ?? ""
+            ? client.refresh_token_idle_timeout_seconds != null
+              ? formatSeconds(
+                  locale,
+                  client.refresh_token_idle_timeout_seconds
+                ) ?? "-"
+              : "-"
             : "-",
           refreshTokenLifetime:
-            client.refresh_token_lifetime_seconds?.toFixed(0) ?? "",
+            client.refresh_token_lifetime_seconds != null
+              ? formatSeconds(locale, client.refresh_token_lifetime_seconds) ??
+                ""
+              : "",
         };
       });
-    }, [oauthClients]);
+    }, [locale, oauthClients]);
 
     const onRenderItemColumn = useCallback(
       (item?: OAuthClientListItem, _index?: number, column?: IColumn) => {
@@ -282,7 +291,11 @@ const AnonymousUserLifeTimeDescription: React.VFC<AnonymousUserLifeTimeDescripti
                   <FormattedMessage
                     id="AnonymousUsersConfigurationScreen.user-lifetime.cookie.value.seconds"
                     values={{
-                      seconds: sessionIdleTimeoutSeconds?.toFixed(0) ?? "",
+                      formattedDuration:
+                        sessionIdleTimeoutSeconds != null
+                          ? formatSeconds(locale, sessionIdleTimeoutSeconds) ??
+                            ""
+                          : "",
                     }}
                   />
                 </Text>
@@ -298,7 +311,10 @@ const AnonymousUserLifeTimeDescription: React.VFC<AnonymousUserLifeTimeDescripti
               <FormattedMessage
                 id="AnonymousUsersConfigurationScreen.user-lifetime.cookie.value.seconds"
                 values={{
-                  seconds: sessionLifetimeSeconds?.toFixed(0) ?? "",
+                  formattedDuration:
+                    sessionLifetimeSeconds != null
+                      ? formatSeconds(locale, sessionLifetimeSeconds) ?? ""
+                      : "",
                 }}
               />
             </Text>
