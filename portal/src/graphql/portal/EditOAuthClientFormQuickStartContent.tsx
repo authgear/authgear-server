@@ -102,7 +102,7 @@ function EditOAuthClientFormQuickStartContentLoaded(
       resources.length > 0 ? resources[0].resourceURI : ""
     );
   const [selectedCodeVariant, setSelectedCodeVariant] =
-    useState<ExampleCodeVariant>(ExampleCodeVariant.CURL);
+    useState<ExampleCodeVariant>(ExampleCodeVariant.curl);
 
   const handleDropdownChange = useCallback(
     (_: unknown, option?: IDropdownOption) => {
@@ -200,7 +200,7 @@ function EditOAuthClientFormQuickStartContentLoaded(
                 headerText={renderToString(
                   "EditOAuthClientForm.quick-start.m2m.pivot.curl.headerText"
                 )}
-                itemKey={ExampleCodeVariant.CURL}
+                itemKey={ExampleCodeVariant.curl}
               />
               <PivotItem
                 headerText={renderToString(
