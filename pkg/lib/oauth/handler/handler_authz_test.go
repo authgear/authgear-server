@@ -24,6 +24,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	sessiontest "github.com/authgear/authgear-server/pkg/lib/session/test"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 const htmlRedirectTemplateString = `<!DOCTYPE html>
@@ -93,7 +94,14 @@ func TestAuthorizationHandler(t *testing.T) {
 			IDTokenIssuer:                   idTokenIssuer,
 		}
 		handle := func(ctx context.Context, r protocol.AuthorizationRequest) *httptest.ResponseRecorder {
-			result := h.Handle(ctx, r)
+			params, errResult := h.ValidateRequestWithoutTx(ctx, r)
+			var result httputil.Result
+			if errResult != nil {
+				result = errResult
+			} else {
+				result = h.HandleRequestWithTx(r, params)
+			}
+
 			req, _ := http.NewRequest("GET", "/authorize", nil)
 			resp := httptest.NewRecorder()
 			result.WriteResponse(resp, req)
