@@ -734,7 +734,7 @@ func (h *AuthorizationHandler) doHandleConsentRequest(
 	ctx context.Context,
 	opts doHandleConsentRequestOptions,
 ) (httputil.Result, error) {
-	if err := h.validateRequestInternal(
+	if err := h.doValidateRequestWithoutTx(
 		opts.ConsentRequest.Client,
 		opts.ConsentRequest.OAuthSessionEntry.T.AuthorizationRequest,
 	); err != nil {
@@ -846,7 +846,7 @@ func (h *AuthorizationHandler) ValidateRequestWithoutTx(
 			}
 		}
 
-		if err := h.validateRequestInternal(client, r); err != nil {
+		if err := h.doValidateRequestWithoutTx(client, r); err != nil {
 			var oauthError *protocol.OAuthProtocolError
 			resultErr := AuthorizationResultError{
 				RedirectURI:  redirectURI,
@@ -873,10 +873,7 @@ func (h *AuthorizationHandler) ValidateRequestWithoutTx(
 	}
 }
 
-func (h *AuthorizationHandler) validateRequestInternal(
-	client *config.OAuthClientConfig,
-	r protocol.AuthorizationRequest,
-) error {
+func (h *AuthorizationHandler) validateResponseTypeIsWhitelisted(r protocol.AuthorizationRequest) error {
 	ok := false
 	responseType := r.ResponseType()
 	for _, respType := range whitelistedResponseTypes {
@@ -888,7 +885,10 @@ func (h *AuthorizationHandler) validateRequestInternal(
 	if !ok {
 		return protocol.NewError("unauthorized_client", "response type is not allowed for this client")
 	}
+	return nil
+}
 
+func (h *AuthorizationHandler) validatePrompt(r protocol.AuthorizationRequest) error {
 	if slice.ContainsString(r.Prompt(), "none") {
 		if len(r.Prompt()) != 1 {
 			return protocol.NewError("invalid_request", "prompt cannot have other values when none is set")
@@ -897,6 +897,14 @@ func (h *AuthorizationHandler) validateRequestInternal(
 			return protocol.NewError("invalid_request", "max_age could imply prompt=login so max_age cannot be present when prompt=none")
 		}
 	}
+	return nil
+}
+
+func (h *AuthorizationHandler) validateRequestParameters(
+	client *config.OAuthClientConfig,
+	r protocol.AuthorizationRequest,
+) error {
+	responseType := r.ResponseType()
 
 	requireScope := func() error {
 		if len(r.Scope()) == 0 {
@@ -935,6 +943,25 @@ func (h *AuthorizationHandler) validateRequestInternal(
 		}
 	default:
 		return protocol.NewError("unsupported_response_type", fmt.Sprintf("response_type: %v is not supported", responseType.Raw))
+	}
+
+	return nil
+}
+
+func (h *AuthorizationHandler) doValidateRequestWithoutTx(
+	client *config.OAuthClientConfig,
+	r protocol.AuthorizationRequest,
+) error {
+	if err := h.validateResponseTypeIsWhitelisted(r); err != nil {
+		return err
+	}
+
+	if err := h.validatePrompt(r); err != nil {
+		return err
+	}
+
+	if err := h.validateRequestParameters(client, r); err != nil {
+		return err
 	}
 
 	if r.SSOEnabled() && client != nil && client.MaxConcurrentSession == 1 {
