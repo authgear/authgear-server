@@ -39,7 +39,7 @@ const NavigationBlockerDialog: React.VFC<NavigationBlockerDialogProps> =
     const onDialogConfirm = useCallback(() => {
       const { destination } = navigationBlockerDialog;
       if (destination != null) {
-        navigate(destination);
+        navigate(destination, { state: destination.state });
         onConfirmNavigation?.();
       }
       // We must dismiss the dialog because some navigation is merely hash change, e.g. Pivot.
