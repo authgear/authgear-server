@@ -917,15 +917,16 @@ function SMSProviderConfigurationContent(props: {
   );
 
   const triggerReauth = useCallback(() => {
-    const state: LocationState = {
-      isRevealSecrets: true,
-    };
+    // We are going to leave, reset the form so that the confirmation dialog won't appear
+    form.reset();
 
-    startReauthentication(navigate, state).catch((e) => {
+    startReauthentication<LocationState>(navigate, {
+      isRevealSecrets: true,
+    }).catch((e) => {
       // Normally there should not be any error.
       console.error(e);
     });
-  }, [navigate]);
+  }, [navigate, form]);
 
   const onRevealSecrets = useCallback(() => {
     setIsReauthDialogHidden(false);
