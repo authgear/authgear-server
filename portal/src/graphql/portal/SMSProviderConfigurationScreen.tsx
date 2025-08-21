@@ -1,5 +1,6 @@
 import cn from "classnames";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
+import authgear from "@authgear/web";
 import {
   AppSecretKey,
   SmsProviderConfigurationInput,
@@ -663,6 +664,9 @@ const SMSProviderConfigurationScreen: React.VFC =
     const [shouldRefreshToken] = useState<boolean>(() => {
       const { state } = location;
       if (isLocationState(state) && state.isRevealSecrets) {
+        return true;
+      }
+      if (!authgear.canReauthenticate()) {
         return true;
       }
       return false;
