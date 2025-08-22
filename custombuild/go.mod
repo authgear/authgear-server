@@ -69,7 +69,7 @@ require (
 	github.com/go-openapi/jsonreference v0.21.0 // indirect
 	github.com/go-openapi/swag v0.23.0 // indirect
 	github.com/go-redsync/redsync/v4 v4.13.0 // indirect
-	github.com/go-viper/mapstructure/v2 v2.3.0 // indirect
+	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
 	github.com/go-webauthn/webauthn v0.8.6 // indirect
 	github.com/go-webauthn/x v0.1.4 // indirect
 	github.com/goccy/go-json v0.10.5 // indirect
