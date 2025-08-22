@@ -126,6 +126,12 @@ export default [
               name: "zxcvbn",
               message: "Please import from ./src/util/zxcvbn instead.",
             },
+            {
+              name: "@fluentui/react",
+              importNames: ["Pivot"],
+              message:
+                "Please use AGPivot from src/components/common/AGPivot instead.",
+            },
           ],
         },
       ],
