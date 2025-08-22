@@ -20,9 +20,9 @@ import {
   PartialTheme,
   Spinner,
   SpinnerSize,
-  Pivot,
   PivotItem,
 } from "@fluentui/react";
+import { AGPivot } from "../../components/common/AGPivot";
 import { useConst } from "@fluentui/react-hooks";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import ScreenTitle from "../../ScreenTitle";
@@ -642,7 +642,7 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
             <FormattedMessage id="SubscriptionScreen.description" />
           </ScreenDescription>
         </div>
-        <Pivot onLinkClick={onLinkClick} selectedKey={selectedTab}>
+        <AGPivot onLinkClick={onLinkClick} selectedKey={selectedTab}>
           <PivotItem
             itemKey={Tab.Subscription}
             headerText={renderToString("SubscriptionScreen.tabs.subscription")}
@@ -651,7 +651,7 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
             itemKey={Tab.PlanDetail}
             headerText={renderToString("SubscriptionScreen.tabs.planDetails")}
           />
-        </Pivot>
+        </AGPivot>
         {selectedTab === Tab.Subscription ? (
           <div className="py-6 grid grid-flow-row gap-4">
             <FeatureBanner />

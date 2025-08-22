@@ -33,7 +33,8 @@ import DefaultButton from "../../DefaultButton";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { useUpdateRoleMutation } from "./mutations/updateRoleMutation";
 import { usePivotNavigation } from "../../hook/usePivot";
-import { Pivot, PivotItem, SearchBox } from "@fluentui/react";
+import { PivotItem, SearchBox } from "@fluentui/react";
+import { AGPivot } from "../../components/common/AGPivot";
 import DeleteRoleDialog, {
   DeleteRoleDialogData,
 } from "../../components/roles-and-groups/dialog/DeleteRoleDialog";
@@ -391,7 +392,7 @@ const RoleDetailsScreenLoaded: React.VFC<{
 
   return (
     <RoleAndGroupsLayout headerBreadcrumbs={breadcrumbs}>
-      <Pivot
+      <AGPivot
         overflowBehavior="menu"
         selectedKey={selectedKey}
         onLinkClick={onLinkClick}
@@ -405,7 +406,7 @@ const RoleDetailsScreenLoaded: React.VFC<{
           itemKey={GROUPS_KEY}
           headerText={renderToString("RoleDetailsScreen.tabs.groups")}
         />
-      </Pivot>
+      </AGPivot>
       {selectedKey === GROUPS_KEY ? (
         <RoleDetailsScreenGroupListContainer role={role} />
       ) : (

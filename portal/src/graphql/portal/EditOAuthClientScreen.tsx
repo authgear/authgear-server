@@ -12,9 +12,9 @@ import {
   useTheme,
   Image,
   ImageFit,
-  Pivot,
   PivotItem,
 } from "@fluentui/react";
+import { AGPivot } from "../../components/common/AGPivot";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
 import ScreenContent from "../../ScreenContent";
@@ -418,9 +418,11 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
         className="flex-1-0-auto"
         layout={formTab === FormTab.API_RESOURCES ? "list" : "auto-rows"}
       >
-        <header className={cn(styles.widget, "space-y-5")}>
+        <header
+          className={cn(styles.widget, styles["widget--wide"], "space-y-5")}
+        >
           <EditOAuthClientNavBreadcrumb clientName={client.name ?? ""} />
-          <Pivot
+          <AGPivot
             className={styles.widget}
             selectedKey={formTab}
             onLinkClick={onFormTabChange}
@@ -451,7 +453,7 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
                 )}
               />
             ) : null}
-          </Pivot>
+          </AGPivot>
         </header>
         {formTab === FormTab.QUICK_START ? (
           <EditOAuthClientFormQuickStartContent

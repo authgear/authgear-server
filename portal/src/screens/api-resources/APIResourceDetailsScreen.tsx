@@ -8,7 +8,8 @@ import {
 } from "@oursky/react-messageformat";
 import APIResourceScreenLayout from "../../components/api-resources/APIResourceScreenLayout";
 import { Resource } from "../../graphql/adminapi/globalTypes.generated";
-import { Pivot, PivotItem } from "@fluentui/react";
+import { PivotItem } from "@fluentui/react";
+import { AGPivot } from "../../components/common/AGPivot";
 import { usePivotNavigation } from "../../hook/usePivot";
 import { APIResourceDetailsScreenDetailsTab } from "./APIResourceDetailsScreenDetailsTab";
 import { APIResourceDetailsScreenScopesTab } from "./APIResourceDetailsScreenScopesTab";
@@ -51,7 +52,7 @@ function APIResourceDetailsContent({
   const { renderToString } = useContext(MessageContext);
   return (
     <div className="pt-6 flex flex-col col-span-full">
-      <Pivot selectedKey={selectedKey} onLinkClick={onLinkClick}>
+      <AGPivot selectedKey={selectedKey} onLinkClick={onLinkClick}>
         <PivotItem
           headerText={renderToString("APIResourceDetailsScreen.tab.details")}
           itemKey="details"
@@ -70,7 +71,7 @@ function APIResourceDetailsContent({
           headerText={renderToString("APIResourceDetailsScreen.tab.test")}
           itemKey="test"
         />
-      </Pivot>
+      </AGPivot>
       {selectedKey === "details" ? (
         <APIResourceDetailsScreenDetailsTab resource={resource} />
       ) : null}

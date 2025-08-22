@@ -1,6 +1,7 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Pivot, PivotItem } from "@fluentui/react";
+import { PivotItem } from "@fluentui/react";
+import { AGPivot } from "../../components/common/AGPivot";
 import cn from "classnames";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import ShowLoading from "../../ShowLoading";
@@ -730,7 +731,7 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
           {isTemplateCustomizationDisabled ? (
             <FeatureDisabledMessageBar messageID="FeatureConfig.edit-template.disabled" />
           ) : null}
-          <Pivot
+          <AGPivot
             overflowBehavior="menu"
             onLinkClick={onLinkClick}
             selectedKey={selectedKey}
@@ -781,7 +782,7 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
                 <EditTemplatesWidget sections={sectionsPasswordlessViaSMS} />
               </PivotItem>
             ) : null}
-          </Pivot>
+          </AGPivot>
         </Widget>
       </ScreenContent>
     );

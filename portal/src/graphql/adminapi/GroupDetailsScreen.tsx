@@ -11,7 +11,8 @@ import { GroupQueryNodeFragment } from "./query/groupQuery.generated";
 import { usePivotNavigation } from "../../hook/usePivot";
 import { BreadcrumbItem } from "../../NavBreadcrumb";
 import { RoleAndGroupsLayout } from "../../RoleAndGroupsLayout";
-import { Pivot, PivotItem } from "@fluentui/react";
+import { PivotItem } from "@fluentui/react";
+import { AGPivot } from "../../components/common/AGPivot";
 import { GroupDetailsSettingsForm } from "../../components/roles-and-groups/form/GroupDetailsSettingsForm";
 import GroupDetailsScreenRoleListContainer from "../../components/roles-and-groups/list/GroupDetailsScreenRoleListContainer";
 
@@ -39,7 +40,7 @@ function GroupDetailsScreenLoaded(props: { group: GroupQueryNodeFragment }) {
 
   return (
     <RoleAndGroupsLayout headerBreadcrumbs={breadcrumbs}>
-      <Pivot
+      <AGPivot
         overflowBehavior="menu"
         selectedKey={selectedKey}
         onLinkClick={onLinkClick}
@@ -53,7 +54,7 @@ function GroupDetailsScreenLoaded(props: { group: GroupQueryNodeFragment }) {
           itemKey={ROLES_KEY}
           headerText={renderToString("GroupDetailsScreen.tabs.roles")}
         />
-      </Pivot>
+      </AGPivot>
       {selectedKey === ROLES_KEY ? (
         <GroupDetailsScreenRoleListContainer group={group} />
       ) : (
