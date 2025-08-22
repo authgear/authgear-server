@@ -346,10 +346,10 @@ func (h *AuthorizationHandler) prepareConsentRequest(ctx context.Context, req *h
 }
 
 func (h *AuthorizationHandler) HandleRequestWithTx(
+	ctx context.Context,
 	r protocol.AuthorizationRequest,
 	params *AuthorizationParams,
 ) httputil.Result {
-	ctx := params.Context
 	logger := AuthorizationHandlerLogger.GetLogger(ctx)
 	result, err := h.doHandleRequestWithTx(ctx, params.RedirectURI, params.Client, r)
 	if err != nil {
@@ -817,10 +817,10 @@ func (h *AuthorizationHandler) validatePreAuthenticatedURLTokenRequest(
 func (h *AuthorizationHandler) ValidateRequestWithoutTx(
 	ctx context.Context,
 	r protocol.AuthorizationRequest,
-) (*AuthorizationParams, *AuthorizationResultError) {
+) (context.Context, *AuthorizationParams, *AuthorizationResultError) {
 	ctx, client := resolveClient(ctx, h.ClientResolver, r.ClientID())
 	if client == nil {
-		return nil, &AuthorizationResultError{
+		return ctx, nil, &AuthorizationResultError{
 			ResponseMode: r.ResponseMode(),
 			Response:     protocol.NewErrorResponse("unauthorized_client", "invalid client ID"),
 		}
@@ -828,7 +828,7 @@ func (h *AuthorizationHandler) ValidateRequestWithoutTx(
 
 	switch client.ApplicationType {
 	case config.OAuthClientApplicationTypeM2M:
-		return nil, &AuthorizationResultError{
+		return ctx, nil, &AuthorizationResultError{
 			ResponseMode: r.ResponseMode(),
 			Response:     protocol.NewErrorResponse("unauthorized_client", "m2m clients are not allowed to use the authorize endpoint"),
 		}
@@ -840,7 +840,7 @@ func (h *AuthorizationHandler) ValidateRequestWithoutTx(
 
 		redirectURI, errResp := parseRedirectURI(client, h.HTTPProto, h.HTTPOrigin, h.AppDomains, originWhitelist, r)
 		if errResp != nil {
-			return nil, &AuthorizationResultError{
+			return ctx, nil, &AuthorizationResultError{
 				ResponseMode: r.ResponseMode(),
 				Response:     errResp,
 			}
@@ -862,11 +862,10 @@ func (h *AuthorizationHandler) ValidateRequestWithoutTx(
 			if state != "" {
 				resultErr.Response.State(r.State())
 			}
-			return nil, &resultErr
+			return ctx, nil, &resultErr
 		}
 
-		return &AuthorizationParams{
-			Context:     ctx,
+		return ctx, &AuthorizationParams{
 			Client:      client,
 			RedirectURI: redirectURI,
 		}, nil

@@ -94,12 +94,12 @@ func TestAuthorizationHandler(t *testing.T) {
 			IDTokenIssuer:                   idTokenIssuer,
 		}
 		handle := func(ctx context.Context, r protocol.AuthorizationRequest) *httptest.ResponseRecorder {
-			params, errResult := h.ValidateRequestWithoutTx(ctx, r)
+			ctx, params, errResult := h.ValidateRequestWithoutTx(ctx, r)
 			var result httputil.Result
 			if errResult != nil {
 				result = errResult
 			} else {
-				result = h.HandleRequestWithTx(r, params)
+				result = h.HandleRequestWithTx(ctx, r, params)
 			}
 
 			req, _ := http.NewRequest("GET", "/authorize", nil)

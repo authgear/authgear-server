@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -87,7 +86,6 @@ func (a AuthorizationResultError) IsInternalError() bool {
 }
 
 type AuthorizationParams struct {
-	Context     context.Context
 	Client      *config.OAuthClientConfig
 	RedirectURI *url.URL
 }
