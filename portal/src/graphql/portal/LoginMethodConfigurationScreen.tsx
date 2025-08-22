@@ -13,14 +13,14 @@ import {
   ICheckboxProps,
   Dropdown,
   DirectionalHint,
-  Pivot,
-  PivotItem,
-  // eslint-disable-next-line no-restricted-imports
-  ActionButton,
   IToggleProps,
   IChoiceGroupOption,
   ChoiceGroup,
+  PivotItem,
+  // eslint-disable-next-line no-restricted-imports
+  ActionButton,
 } from "@fluentui/react";
+import { AGPivot } from "../../components/common/AGPivot";
 import { useParams } from "react-router-dom";
 import { produce } from "immer";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
@@ -3524,7 +3524,7 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
             onChangePasskeyShowDoNotAskAgain={onChangePasskeyShowDoNotAskAgain}
           />
           <HorizontalDivider className={styles.separator} />
-          <Pivot
+          <AGPivot
             className={styles.widget}
             styles={PIVOT_STYLES}
             overflowBehavior="menu"
@@ -3655,7 +3655,7 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
             >
               <LockoutSettings {...state.lockout} setState={setLockoutState} />
             </PivotItem>
-          </Pivot>
+          </AGPivot>
         </ShowOnlyIfSIWEIsDisabled>
       </ScreenContent>
     );

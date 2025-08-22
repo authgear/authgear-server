@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
 import {
+  // eslint-disable-next-line no-restricted-imports
   Pivot,
   IPivotProps,
   IPivotStyleProps,

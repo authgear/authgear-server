@@ -1,11 +1,6 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
-import {
-  Dropdown,
-  IDropdownOption,
-  Pivot,
-  PivotItem,
-  Text,
-} from "@fluentui/react";
+import { Dropdown, IDropdownOption, PivotItem, Text } from "@fluentui/react";
+import { AGPivot } from "../../components/common/AGPivot";
 import {
   Context as MessageContext,
   FormattedMessage,
@@ -191,7 +186,7 @@ function EditOAuthClientFormQuickStartContentLoaded(
         ) : null}
         {selectedResourceURI ? (
           <div>
-            <Pivot
+            <AGPivot
               className="mt-2"
               selectedKey={selectedCodeVariant}
               onLinkClick={handlePivotClick}
@@ -220,7 +215,7 @@ function EditOAuthClientFormQuickStartContentLoaded(
                 )}
                 itemKey={ExampleCodeVariant.NodeJS}
               />
-            </Pivot>
+            </AGPivot>
             <CodeField className="mt-1">{exampleCode}</CodeField>
             <div className="mt-4 flex space-x-4">
               <ButtonWithLoading

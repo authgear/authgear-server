@@ -11,13 +11,8 @@ import {
   FormattedMessage,
 } from "@oursky/react-messageformat";
 import WidgetTitle from "../../WidgetTitle";
-import {
-  Text,
-  Dropdown,
-  IDropdownOption,
-  Pivot,
-  PivotItem,
-} from "@fluentui/react";
+import { Text, Dropdown, IDropdownOption, PivotItem } from "@fluentui/react";
+import { AGPivot } from "../../components/common/AGPivot";
 import { Resource } from "../../graphql/adminapi/globalTypes.generated";
 import { useNavigate } from "react-router-dom";
 import { useEndpoints } from "../../hook/useEndpoints";
@@ -260,7 +255,7 @@ export function APIResourceDetailsScreenTestTab({
                   }}
                 />
               </WidgetTitle>
-              <Pivot
+              <AGPivot
                 className="mt-2"
                 selectedKey={selectedCodeVariant}
                 onLinkClick={handlePivotClick}
@@ -289,7 +284,7 @@ export function APIResourceDetailsScreenTestTab({
                   )}
                   itemKey={ExampleCodeVariant.NodeJS}
                 />
-              </Pivot>
+              </AGPivot>
               <CodeField className="mt-4">{exampleCode}</CodeField>
               <div className="mt-4 flex space-x-4">
                 <ButtonWithLoading

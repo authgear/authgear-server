@@ -1,12 +1,7 @@
 import React, { useMemo, useState, useCallback, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import {
-  Pivot,
-  PivotItem,
-  MessageBar,
-  MessageBarType,
-  IStyle,
-} from "@fluentui/react";
+import { PivotItem, MessageBar, MessageBarType, IStyle } from "@fluentui/react";
+import { AGPivot } from "../../components/common/AGPivot";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import { produce } from "immer";
 
@@ -368,7 +363,7 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
         <MessageBar messageBarType={MessageBarType.info}>
           <FormattedMessage id="UserDetailsScreen.user-anonymized.message" />
         </MessageBar>
-        <Pivot
+        <AGPivot
           styles={{ itemContainer: pivotItemContainerStyle }}
           className={styles.pivot}
           overflowBehavior="menu"
@@ -387,7 +382,7 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
               onRemoveData={onRemoveData}
             />
           </PivotItem>
-        </Pivot>
+        </AGPivot>
       </div>
     );
   }
@@ -406,7 +401,7 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
         lastLoginAtISO={data.lastLoginAt ?? null}
         badgeTextId={dataStatusBadgeTextId}
       />
-      <Pivot
+      <AGPivot
         styles={{
           itemContainer: {
             flex: "1 0 auto",
@@ -494,7 +489,7 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
             onRemoveData={onRemoveData}
           />
         </PivotItem>
-      </Pivot>
+      </AGPivot>
     </div>
   );
 };

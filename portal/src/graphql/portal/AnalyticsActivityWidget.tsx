@@ -1,6 +1,7 @@
 import React, { useCallback, useContext, useMemo } from "react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
-import { IPivotItemProps, Pivot, PivotItem, Text } from "@fluentui/react";
+import { IPivotItemProps, PivotItem, Text } from "@fluentui/react";
+import { AGPivot } from "../../components/common/AGPivot";
 import { TooltipItem } from "chart.js";
 import { Bar, Line } from "react-chartjs-2";
 import { AnalyticChartsQueryQuery } from "./query/analyticChartsQuery.generated";
@@ -207,7 +208,7 @@ const AnalyticsActivityWidget: React.VFC<AnalyticsActivityWidgetProps> =
         <WidgetTitle>
           <FormattedMessage id="AnalyticsActivityWidget.title" />
         </WidgetTitle>
-        <Pivot
+        <AGPivot
           overflowBehavior="menu"
           className={styles.pivot}
           onLinkClick={onPeriodicalClick}
@@ -225,7 +226,7 @@ const AnalyticsActivityWidget: React.VFC<AnalyticsActivityWidgetProps> =
           >
             <AnalyticsActivityCharts {...props} />
           </PivotItem>
-        </Pivot>
+        </AGPivot>
       </Widget>
     );
   };

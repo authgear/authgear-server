@@ -10,7 +10,8 @@ import {
   useSearchParams,
   URLSearchParamsInit,
 } from "react-router-dom";
-import { addDays, Pivot, PivotItem, ISearchBoxProps } from "@fluentui/react";
+import { addDays, PivotItem, ISearchBoxProps } from "@fluentui/react";
+import { AGPivot } from "../../components/common/AGPivot";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import { useQuery } from "@apollo/client";
 import { DateTime } from "luxon";
@@ -559,7 +560,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
               messageValues={{ logRetrievalDays: logRetrievalDays }}
             />
           ) : null}
-          <Pivot
+          <AGPivot
             className={styles.pivot}
             selectedKey={auditLogKind}
             onLinkClick={onTabChange}
@@ -572,7 +573,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
               itemKey={AuditLogKind.Admin}
               headerText={renderToString("AuditLogScreen.acitity-kind.admin")}
             />
-          </Pivot>
+          </AGPivot>
         </div>
         <AuditLogFilterBar
           filters={filters}
