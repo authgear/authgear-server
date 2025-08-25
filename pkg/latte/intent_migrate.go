@@ -126,6 +126,7 @@ func (i *IntentMigrate) GetEffects(ctx context.Context, deps *workflow.Dependenc
 			return nil
 		}),
 		workflow.OnCommitEffect(func(ctx context.Context, deps *workflow.Dependencies) error {
+			// NOTE(DEV-2982): This is for debugging the session lost problem
 			userID := i.userID(workflows.Nearest)
 			now := deps.Clock.NowUTC()
 			logger := latteMigrateLogger.GetLogger(ctx)

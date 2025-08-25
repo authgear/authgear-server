@@ -96,6 +96,7 @@ func (i *IntentLoginFlow) GetEffects(ctx context.Context, deps *authflow.Depende
 				return err
 			}
 			now := deps.Clock.NowUTC()
+			// NOTE(DEV-2982): This is for debugging the session lost problem
 			logger := loginFlowLogger.GetLogger(ctx)
 			logger.WithSkipLogging().Error(ctx, "updated last login",
 				slog.String("user_id", userID))
@@ -135,6 +136,7 @@ func (i *IntentLoginFlow) GetEffects(ctx context.Context, deps *authflow.Depende
 			// For authentication that suppresses IDP session. e.g. biometric login
 			// They are handled in their own node.
 			if idpSession == nil {
+				// NOTE(DEV-2982): This is for debugging the session lost problem
 				logger := loginFlowLogger.GetLogger(ctx)
 				logger.WithSkipLogging().Error(ctx, "user.authenticated event skipped because IDP session is nil",
 					slog.String("user_id", userID))

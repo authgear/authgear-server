@@ -137,6 +137,7 @@ func (i *IntentSignupFlow) GetEffects(ctx context.Context, deps *authflow.Depend
 			}
 
 			now := deps.Clock.NowUTC()
+			// NOTE(DEV-2982): This is for debugging the session lost problem
 			logger := signupFlowLogger.GetLogger(ctx)
 			logger.WithSkipLogging().Error(ctx, "updated last login",
 				slog.String("user_id", userID))

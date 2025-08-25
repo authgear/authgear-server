@@ -1727,6 +1727,7 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 				return nil, err
 			}
 		} else {
+			// NOTE(DEV-2982): This is for debugging the session lost problem
 			userID := authz.UserID
 			logger.WithSkipLogging().Error(ctx, "user.authenticated event skipped because ShouldFireAuthenticatedEventWhenIssueOfflineGrant is false",
 				slog.String("user_id", userID))

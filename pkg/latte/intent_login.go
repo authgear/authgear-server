@@ -122,6 +122,7 @@ func (i *IntentLogin) GetEffects(ctx context.Context, deps *workflow.Dependencie
 	logger := latteLoginLogger.GetLogger(ctx)
 	return []workflow.Effect{
 		workflow.OnCommitEffect(func(ctx context.Context, deps *workflow.Dependencies) error {
+			// NOTE(DEV-2982): This is for debugging the session lost problem
 			userID := i.userID()
 			now := deps.Clock.NowUTC()
 			logger.WithSkipLogging().Error(ctx, "updated last login",
@@ -132,6 +133,7 @@ func (i *IntentLogin) GetEffects(ctx context.Context, deps *workflow.Dependencie
 			createSession, workflow := workflow.MustFindSubWorkflow[*IntentEnsureSession](workflows.Nearest)
 			session := createSession.GetSession(workflow)
 			if session == nil {
+				// NOTE(DEV-2982): This is for debugging the session lost problem
 				userID := i.userID()
 				logger.WithSkipLogging().Error(ctx, "user.authenticated event skipped because session is nil",
 					slog.String("user_id", userID))

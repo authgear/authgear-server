@@ -63,6 +63,7 @@ func (s *StoreRedis) Create(ctx context.Context, sess *IDPSession, expireAt time
 	}
 
 	logger := StoreRedisLogger.GetLogger(ctx)
+	// NOTE(DEV-2982): This is for debugging the session lost problem
 	logger.WithSkipLogging().Error(ctx,
 		"create IDP session",
 		slog.String("idp_session_id", sess.ID),
@@ -166,6 +167,7 @@ func (s *StoreRedis) Delete(ctx context.Context, session *IDPSession) (err error
 		return err
 	})
 
+	// NOTE(DEV-2982): This is for debugging the session lost problem
 	logger.WithSkipLogging().Error(ctx,
 		"delete IDP session",
 		slog.String("idp_session_id", session.ID),
