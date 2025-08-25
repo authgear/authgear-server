@@ -1553,6 +1553,7 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 	deviceInfo map[string]interface{},
 	app2appDeviceKeyJWT string,
 ) (protocol.TokenResponse, error) {
+	logger := TokenHandlerLogger.GetLogger(ctx)
 	issueRefreshToken := false
 	issueIDToken := false
 	issueDeviceToken := h.shouldIssueDeviceSecret(code.AuthorizationRequest.Scope())
@@ -1725,6 +1726,10 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 			if err != nil {
 				return nil, err
 			}
+		} else {
+			userID := authz.UserID
+			logger.WithSkipLogging().Error(ctx, "user.authenticated event skipped because ShouldFireAuthenticatedEventWhenIssueOfflineGrant is false",
+				slog.String("user_id", userID))
 		}
 	} else if code.IDTokenHintSID != "" {
 		sid = code.IDTokenHintSID

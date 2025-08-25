@@ -210,7 +210,16 @@ func (n *NodeDoEnsureSession) GetEffects(goCtx context.Context) ([]interaction.E
 					if err != nil {
 						return err
 					}
+				} else {
+					logger := doEnsureSessionLogger.GetLogger(goCtx)
+					logger.WithSkipLogging().Error(goCtx, "user.authenticated event skipped because create reason is not login or reauthenticate",
+						slog.String("user_id", userID),
+						slog.String("create_reason", string(n.CreateReason)))
 				}
+			} else {
+				logger := doEnsureSessionLogger.GetLogger(goCtx)
+				logger.WithSkipLogging().Error(goCtx, "user.authenticated event skipped because session to create is nil",
+					slog.String("user_id", userID))
 			}
 
 			if n.SessionToCreate != nil {

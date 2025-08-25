@@ -135,6 +135,9 @@ func (i *IntentLoginFlow) GetEffects(ctx context.Context, deps *authflow.Depende
 			// For authentication that suppresses IDP session. e.g. biometric login
 			// They are handled in their own node.
 			if idpSession == nil {
+				logger := loginFlowLogger.GetLogger(ctx)
+				logger.WithSkipLogging().Error(ctx, "user.authenticated event skipped because IDP session is nil",
+					slog.String("user_id", userID))
 				return nil
 			}
 

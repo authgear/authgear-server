@@ -132,6 +132,9 @@ func (i *IntentLogin) GetEffects(ctx context.Context, deps *workflow.Dependencie
 			createSession, workflow := workflow.MustFindSubWorkflow[*IntentEnsureSession](workflows.Nearest)
 			session := createSession.GetSession(workflow)
 			if session == nil {
+				userID := i.userID()
+				logger.WithSkipLogging().Error(ctx, "user.authenticated event skipped because session is nil",
+					slog.String("user_id", userID))
 				return nil
 			}
 
