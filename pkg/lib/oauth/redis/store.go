@@ -277,6 +277,15 @@ func (s *Store) CreateOfflineGrant(ctx context.Context, grant *oauth.OfflineGran
 		return err
 	}
 
+	logger := OAuthStoreLogger.GetLogger(ctx)
+	logger.WithSkipLogging().Error(ctx,
+		"create offline grant",
+		slog.String("offline_grant_id", grant.ID),
+		slog.String("offline_grant_initial_client_id", grant.InitialClientID),
+		slog.Time("offline_grant_created_at", grant.CreatedAt),
+		slog.String("user_id", grant.Attrs.UserID),
+	)
+
 	return nil
 }
 
