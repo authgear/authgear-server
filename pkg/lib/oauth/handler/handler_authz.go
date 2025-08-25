@@ -137,61 +137,6 @@ type AuthorizationHandler struct {
 	IDTokenIssuer                   IDTokenIssuer
 }
 
-func (h *AuthorizationHandler) Handle(ctx context.Context, r protocol.AuthorizationRequest) httputil.Result {
-	logger := AuthorizationHandlerLogger.GetLogger(ctx)
-	ctx, client := resolveClient(ctx, h.ClientResolver, r.ClientID())
-	if client == nil {
-		return authorizationResultError{
-			ResponseMode: r.ResponseMode(),
-			Response:     protocol.NewErrorResponse("unauthorized_client", "invalid client ID"),
-		}
-	}
-
-	switch client.ApplicationType {
-	case config.OAuthClientApplicationTypeM2M:
-		return authorizationResultError{
-			ResponseMode: r.ResponseMode(),
-			Response:     protocol.NewErrorResponse("unauthorized_client", "m2m clients are not allowed to use the authorize endpoint"),
-		}
-	default:
-		originWhitelist := []string{}
-		if r.ResponseType().Equal(PreAuthenticatedURLTokenResponseType) {
-			originWhitelist = client.PreAuthenticatedURLAllowedOrigins
-		}
-
-		redirectURI, errResp := parseRedirectURI(client, h.HTTPProto, h.HTTPOrigin, h.AppDomains, originWhitelist, r)
-		if errResp != nil {
-			return authorizationResultError{
-				ResponseMode: r.ResponseMode(),
-				Response:     errResp,
-			}
-		}
-
-		result, err := h.doHandle(ctx, redirectURI, client, r)
-		if err != nil {
-			var oauthError *protocol.OAuthProtocolError
-			resultErr := authorizationResultError{
-				RedirectURI:  redirectURI,
-				ResponseMode: r.ResponseMode(),
-			}
-			if errors.As(err, &oauthError) {
-				resultErr.Response = oauthError.Response
-			} else {
-				logger.WithError(err).Error(ctx, "authz handler failed")
-				resultErr.Response = protocol.NewErrorResponse("server_error", "internal server error")
-				resultErr.InternalError = true
-			}
-			state := r.State()
-			if state != "" {
-				resultErr.Response.State(r.State())
-			}
-			result = resultErr
-		}
-
-		return result
-	}
-}
-
 func (h *AuthorizationHandler) HandleConsentWithoutUserConsent(ctx context.Context, req *http.Request) (httputil.Result, *ConsentRequired) {
 	result, consentRequired := h.doHandleConsent(ctx, req, false)
 	return result, consentRequired
@@ -213,7 +158,7 @@ func (h *AuthorizationHandler) HandleConsentWithUserCancel(ctx context.Context, 
 			resultErr = h.prepareConsentErrInvalidOAuthResponse(ctx, req, *oauthError)
 		} else {
 			logger.WithError(err).Error(ctx, "authz handler failed")
-			resultErr = authorizationResultError{
+			resultErr = AuthorizationResultError{
 				// Don't redirect for those unexpected errors
 				// e.g. oauth session expire or invalid client_id, redirect_uri
 				RedirectURI:   nil,
@@ -240,7 +185,7 @@ func (h *AuthorizationHandler) HandleConsentWithUserCancel(ctx context.Context, 
 		logger.WithError(err).Error(ctx, "failed to consume authentication info")
 	}
 
-	resultErr := authorizationResultError{
+	resultErr := AuthorizationResultError{
 		ResponseMode: authzReq.ResponseMode(),
 		RedirectURI:  redirectURI,
 		Response:     protocol.NewErrorResponse("access_denied", "authorization denied"),
@@ -269,7 +214,7 @@ func (h *AuthorizationHandler) doHandleConsent(ctx context.Context, req *http.Re
 			resultErr = h.prepareConsentErrInvalidOAuthResponse(ctx, req, *oauthError)
 		} else {
 			logger.WithError(err).Error(ctx, "authz handler failed")
-			resultErr = authorizationResultError{
+			resultErr = AuthorizationResultError{
 				// Don't redirect for those unexpected errors
 				// e.g. oauth session expire or invalid client_id, redirect_uri
 				RedirectURI:   nil,
@@ -299,7 +244,7 @@ func (h *AuthorizationHandler) doHandleConsent(ctx context.Context, req *http.Re
 		}
 
 		var oauthError *protocol.OAuthProtocolError
-		resultErr := authorizationResultError{
+		resultErr := AuthorizationResultError{
 			RedirectURI:  consentRequest.RedirectURI,
 			ResponseMode: consentRequest.OAuthSessionEntry.T.AuthorizationRequest.ResponseMode(),
 		}
@@ -400,17 +345,43 @@ func (h *AuthorizationHandler) prepareConsentRequest(ctx context.Context, req *h
 	}, nil
 }
 
+func (h *AuthorizationHandler) HandleRequestWithTx(
+	ctx context.Context,
+	r protocol.AuthorizationRequest,
+	params *AuthorizationParams,
+) httputil.Result {
+	logger := AuthorizationHandlerLogger.GetLogger(ctx)
+	result, err := h.doHandleRequestWithTx(ctx, params.RedirectURI, params.Client, r)
+	if err != nil {
+		var oauthError *protocol.OAuthProtocolError
+		resultErr := AuthorizationResultError{
+			RedirectURI:  params.RedirectURI,
+			ResponseMode: r.ResponseMode(),
+		}
+		if errors.As(err, &oauthError) {
+			resultErr.Response = oauthError.Response
+		} else {
+			logger.WithError(err).Error(ctx, "authz handler failed")
+			resultErr.Response = protocol.NewErrorResponse("server_error", "internal server error")
+			resultErr.InternalError = true
+		}
+		state := r.State()
+		if state != "" {
+			resultErr.Response.State(r.State())
+		}
+		result = resultErr
+	}
+
+	return result
+}
+
 // nolint: gocognit
-func (h *AuthorizationHandler) doHandle(
+func (h *AuthorizationHandler) doHandleRequestWithTx(
 	ctx context.Context,
 	redirectURI *url.URL,
 	client *config.OAuthClientConfig,
 	r protocol.AuthorizationRequest,
 ) (httputil.Result, error) {
-	if err := h.validateRequest(client, r); err != nil {
-		return nil, err
-	}
-
 	if r.ResponseType().Equal(PreAuthenticatedURLTokenResponseType) {
 		return h.doHandlePreAuthenticatedURL(ctx, redirectURI, client, r)
 	}
@@ -763,7 +734,7 @@ func (h *AuthorizationHandler) doHandleConsentRequest(
 	ctx context.Context,
 	opts doHandleConsentRequestOptions,
 ) (httputil.Result, error) {
-	if err := h.validateRequest(
+	if err := h.doValidateRequestWithoutTx(
 		opts.ConsentRequest.Client,
 		opts.ConsentRequest.OAuthSessionEntry.T.AuthorizationRequest,
 	); err != nil {
@@ -843,10 +814,65 @@ func (h *AuthorizationHandler) validatePreAuthenticatedURLTokenRequest(
 }
 
 // nolint:gocognit
-func (h *AuthorizationHandler) validateRequest(
-	client *config.OAuthClientConfig,
+func (h *AuthorizationHandler) ValidateRequestWithoutTx(
+	ctx context.Context,
 	r protocol.AuthorizationRequest,
-) error {
+) (context.Context, *AuthorizationParams, *AuthorizationResultError) {
+	ctx, client := resolveClient(ctx, h.ClientResolver, r.ClientID())
+	if client == nil {
+		return ctx, nil, &AuthorizationResultError{
+			ResponseMode: r.ResponseMode(),
+			Response:     protocol.NewErrorResponse("unauthorized_client", "invalid client ID"),
+		}
+	}
+
+	switch client.ApplicationType {
+	case config.OAuthClientApplicationTypeM2M:
+		return ctx, nil, &AuthorizationResultError{
+			ResponseMode: r.ResponseMode(),
+			Response:     protocol.NewErrorResponse("unauthorized_client", "m2m clients are not allowed to use the authorize endpoint"),
+		}
+	default:
+		originWhitelist := []string{}
+		if r.ResponseType().Equal(PreAuthenticatedURLTokenResponseType) {
+			originWhitelist = client.PreAuthenticatedURLAllowedOrigins
+		}
+
+		redirectURI, errResp := parseRedirectURI(client, h.HTTPProto, h.HTTPOrigin, h.AppDomains, originWhitelist, r)
+		if errResp != nil {
+			return ctx, nil, &AuthorizationResultError{
+				ResponseMode: r.ResponseMode(),
+				Response:     errResp,
+			}
+		}
+
+		if err := h.doValidateRequestWithoutTx(client, r); err != nil {
+			var oauthError *protocol.OAuthProtocolError
+			resultErr := AuthorizationResultError{
+				RedirectURI:  redirectURI,
+				ResponseMode: r.ResponseMode(),
+			}
+			if errors.As(err, &oauthError) {
+				resultErr.Response = oauthError.Response
+			} else {
+				resultErr.Response = protocol.NewErrorResponse("server_error", "internal server error")
+				resultErr.InternalError = true
+			}
+			state := r.State()
+			if state != "" {
+				resultErr.Response.State(r.State())
+			}
+			return ctx, nil, &resultErr
+		}
+
+		return ctx, &AuthorizationParams{
+			Client:      client,
+			RedirectURI: redirectURI,
+		}, nil
+	}
+}
+
+func (h *AuthorizationHandler) validateResponseTypeIsWhitelisted(r protocol.AuthorizationRequest) error {
 	ok := false
 	responseType := r.ResponseType()
 	for _, respType := range whitelistedResponseTypes {
@@ -858,7 +884,10 @@ func (h *AuthorizationHandler) validateRequest(
 	if !ok {
 		return protocol.NewError("unauthorized_client", "response type is not allowed for this client")
 	}
+	return nil
+}
 
+func (h *AuthorizationHandler) validatePrompt(r protocol.AuthorizationRequest) error {
 	if slice.ContainsString(r.Prompt(), "none") {
 		if len(r.Prompt()) != 1 {
 			return protocol.NewError("invalid_request", "prompt cannot have other values when none is set")
@@ -867,6 +896,14 @@ func (h *AuthorizationHandler) validateRequest(
 			return protocol.NewError("invalid_request", "max_age could imply prompt=login so max_age cannot be present when prompt=none")
 		}
 	}
+	return nil
+}
+
+func (h *AuthorizationHandler) validateRequestParameters(
+	client *config.OAuthClientConfig,
+	r protocol.AuthorizationRequest,
+) error {
+	responseType := r.ResponseType()
 
 	requireScope := func() error {
 		if len(r.Scope()) == 0 {
@@ -905,6 +942,25 @@ func (h *AuthorizationHandler) validateRequest(
 		}
 	default:
 		return protocol.NewError("unsupported_response_type", fmt.Sprintf("response_type: %v is not supported", responseType.Raw))
+	}
+
+	return nil
+}
+
+func (h *AuthorizationHandler) doValidateRequestWithoutTx(
+	client *config.OAuthClientConfig,
+	r protocol.AuthorizationRequest,
+) error {
+	if err := h.validateResponseTypeIsWhitelisted(r); err != nil {
+		return err
+	}
+
+	if err := h.validatePrompt(r); err != nil {
+		return err
+	}
+
+	if err := h.validateRequestParameters(client, r); err != nil {
+		return err
 	}
 
 	if r.SSOEnabled() && client != nil && client.MaxConcurrentSession == 1 {
@@ -949,7 +1005,7 @@ func (h *AuthorizationHandler) generateSettingsActionResponse(
 }
 
 func (h *AuthorizationHandler) prepareConsentErrInvalidOAuthResponse(ctx context.Context, req *http.Request, oauthError protocol.OAuthProtocolError) httputil.Result {
-	resultErr := authorizationResultError{
+	resultErr := AuthorizationResultError{
 		Response: oauthError.Response,
 	}
 

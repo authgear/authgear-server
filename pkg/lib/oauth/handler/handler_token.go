@@ -271,8 +271,12 @@ func (h *TokenHandler) Handle(ctx context.Context, rw http.ResponseWriter, req *
 
 	var err error
 	var result httputil.Result
+	if err := h.validateRequestWithoutTx(r, client); err != nil {
+		return errorResult(err)
+	}
+
 	err = h.Database.WithTx(ctx, func(ctx context.Context) error {
-		r, handleErr := h.doHandle(ctx, rw, req, client, r)
+		r, handleErr := h.doHandleWithTx(ctx, rw, req, client, r)
 		result = r
 		return handleErr
 	})
@@ -282,17 +286,13 @@ func (h *TokenHandler) Handle(ctx context.Context, rw http.ResponseWriter, req *
 	return result
 }
 
-func (h *TokenHandler) doHandle(
+func (h *TokenHandler) doHandleWithTx(
 	ctx context.Context,
 	rw http.ResponseWriter,
 	req *http.Request,
 	client *config.OAuthClientConfig,
 	r protocol.TokenRequest,
 ) (httputil.Result, error) {
-	if err := h.validateRequest(r, client); err != nil {
-		return nil, err
-	}
-
 	allowedGrantTypes := oauth.GetAllowedGrantTypes(client)
 
 	ok := false
@@ -335,7 +335,7 @@ func (h *TokenHandler) doHandle(
 }
 
 // nolint:gocognit
-func (h *TokenHandler) validateRequest(r protocol.TokenRequest, client *config.OAuthClientConfig) error {
+func (h *TokenHandler) validateRequestWithoutTx(r protocol.TokenRequest, client *config.OAuthClientConfig) error {
 	switch r.GrantType() {
 	case oauth.SettingsActionGrantType:
 		fallthrough

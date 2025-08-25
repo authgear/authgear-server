@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"sort"
 
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -21,7 +22,7 @@ type (
 		Response protocol.AuthorizationResponse
 		Cookies  []*http.Cookie
 	}
-	authorizationResultError struct {
+	AuthorizationResultError struct {
 		RedirectURI *url.URL
 
 		ResponseMode string
@@ -50,7 +51,7 @@ func (a authorizationResultCode) IsInternalError() bool {
 	return false
 }
 
-func (a authorizationResultError) WriteResponse(rw http.ResponseWriter, r *http.Request) {
+func (a AuthorizationResultError) WriteResponse(rw http.ResponseWriter, r *http.Request) {
 	for _, cookie := range a.Cookies {
 		httputil.UpdateCookie(rw, cookie)
 	}
@@ -80,6 +81,11 @@ func (a authorizationResultError) WriteResponse(rw http.ResponseWriter, r *http.
 	}
 }
 
-func (a authorizationResultError) IsInternalError() bool {
+func (a AuthorizationResultError) IsInternalError() bool {
 	return a.InternalError
+}
+
+type AuthorizationParams struct {
+	Client      *config.OAuthClientConfig
+	RedirectURI *url.URL
 }
