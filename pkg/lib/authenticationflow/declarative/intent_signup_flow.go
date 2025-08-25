@@ -3,6 +3,7 @@ package declarative
 import (
 	"context"
 	"fmt"
+	"log/slog"
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
@@ -10,8 +11,11 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
+
+var signupFlowLogger = slogutil.NewLogger("signup-flow")
 
 func init() {
 	authflow.RegisterFlow(&IntentSignupFlow{})
@@ -133,6 +137,9 @@ func (i *IntentSignupFlow) GetEffects(ctx context.Context, deps *authflow.Depend
 			}
 
 			now := deps.Clock.NowUTC()
+			logger := signupFlowLogger.GetLogger(ctx)
+			logger.WithSkipLogging().Error(ctx, "updated last login",
+				slog.String("user_id", userID))
 			return deps.Users.UpdateLoginTime(ctx, userID, now)
 		}),
 		authflow.OnCommitEffect(func(ctx context.Context, deps *authflow.Dependencies) error {

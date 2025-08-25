@@ -2,6 +2,7 @@ package declarative
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
@@ -11,7 +12,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
+
+var loginFlowLogger = slogutil.NewLogger("login-flow")
 
 func init() {
 	authflow.RegisterFlow(&IntentLoginFlow{})
@@ -92,6 +96,9 @@ func (i *IntentLoginFlow) GetEffects(ctx context.Context, deps *authflow.Depende
 				return err
 			}
 			now := deps.Clock.NowUTC()
+			logger := loginFlowLogger.GetLogger(ctx)
+			logger.WithSkipLogging().Error(ctx, "updated last login",
+				slog.String("user_id", userID))
 			return deps.Users.UpdateLoginTime(ctx, userID, now)
 		}),
 		authflow.OnCommitEffect(func(ctx context.Context, deps *authflow.Dependencies) error {
