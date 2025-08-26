@@ -1,0 +1,71 @@
+name: Recovery Code - Can be used with other authenticators
+authgear.yaml:
+  override: |
+    authentication_flow:
+      login_flows:
+      - name: default
+        steps:
+        - type: identify
+          one_of:
+          - identification: email
+        - type: authenticate
+          one_of:
+          - authentication: secondary_oob_otp_sms
+          - authentication: recovery_code
+before:
+  - type: user_import
+    user_import: users.json
+  - type: custom_sql
+    custom_sql:
+      path: recovery_code.sql
+steps:
+  - action: create
+    input: |
+      {
+        "type": "login",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "state_token": "[[string]]",
+          "type": "login",
+          "name": "default",
+          "action": {
+            "type": "identify",
+            "data": {
+              "type": "identification_data",
+              "options": [
+                "[[arrayof]]",
+                {
+                  "identification": "[[string]]"
+                }
+              ]
+            }
+          }
+        }
+  - action: input
+    input: |
+      {
+        "identification": "email",
+        "login_id": "e2e_recovery_code_user_with_sms@example.com"
+      }
+    output:
+      error: |
+        {
+          "action": {
+            "type": "authenticate",
+            "data": {
+              "options": [
+                {
+                  "authentication": "secondary_oob_otp_sms"
+                },
+                {
+                  "authentication": "recovery_code"
+                }
+              ],
+              "type": "authentication_data",
+              "device_token_enabled": false
+            }
+          }
+        }
