@@ -47,6 +47,7 @@ require (
 	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/Masterminds/squirrel v1.5.4 // indirect
 	github.com/abadojack/whatlanggo v1.0.1 // indirect
+	github.com/aliyun/alibabacloud-oss-go-sdk-v2 v1.2.3 // indirect
 	github.com/asaskevich/EventBus v0.0.0-20200907212545-49d423059eef // indirect
 	github.com/authgear/oauthrelyingparty v1.5.0 // indirect
 	github.com/aws/aws-sdk-go-v2 v1.38.1 // indirect

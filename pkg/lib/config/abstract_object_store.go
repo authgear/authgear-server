@@ -14,6 +14,7 @@ import (
 type AbstractObjectStoreConfig struct {
 	Type             ObjectStoreType                   `envconfig:"TYPE"`
 	AWSS3            AWSS3ObjectStoreConfig            `envconfig:"AWS_S3"`
+	AlibabaCloudOSS  AlibabaCloudOSSObjectStoreConfig  `envconfig:"ALIBABA_CLOUD_OSS"`
 	GCPGCS           GCPGCSObjectStoreConfig           `envconfig:"GCP_GCS"`
 	AzureBlobStorage AzureBlobStorageObjectStoreConfig `envconfig:"AZURE_BLOB_STORAGE"`
 	MinIO            MinIOObjectStoreConfig            `envconfig:"MINIO"`
@@ -25,6 +26,8 @@ func (c *AbstractObjectStoreConfig) Initialize(ctx *validation.Context) {
 		break
 	case ObjectStoreTypeAWSS3:
 		c.AWSS3.Initialize(ctx.Child("AWS_S3"))
+	case ObjectStoreTypeAlibabaCloudOSS:
+		c.AlibabaCloudOSS.Initialize(ctx.Child("ALIBABA_CLOUD_OSS"))
 	case ObjectStoreTypeGCPGCS:
 		c.GCPGCS.Initialize(ctx.Child("GCP_GCS"))
 	case ObjectStoreTypeAzureBlobStorage:
@@ -42,6 +45,8 @@ func (c *AbstractObjectStoreConfig) Validate(ctx *validation.Context) {
 		break
 	case ObjectStoreTypeAWSS3:
 		c.AWSS3.Validate(ctx.Child("AWS_S3"))
+	case ObjectStoreTypeAlibabaCloudOSS:
+		c.AlibabaCloudOSS.Validate(ctx.Child("ALIBABA_CLOUD_OSS"))
 	case ObjectStoreTypeGCPGCS:
 		c.GCPGCS.Validate(ctx.Child("GCP_GCS"))
 	case ObjectStoreTypeAzureBlobStorage:
@@ -57,6 +62,7 @@ type ObjectStoreType string
 
 const (
 	ObjectStoreTypeAWSS3            ObjectStoreType = "AWS_S3"
+	ObjectStoreTypeAlibabaCloudOSS  ObjectStoreType = "ALIBABA_CLOUD_OSS"
 	ObjectStoreTypeGCPGCS           ObjectStoreType = "GCP_GCS"
 	ObjectStoreTypeAzureBlobStorage ObjectStoreType = "AZURE_BLOB_STORAGE"
 	ObjectStoreTypeMinIO            ObjectStoreType = "MINIO"
@@ -73,6 +79,31 @@ func (c *AWSS3ObjectStoreConfig) Initialize(ctx *validation.Context) {
 }
 
 func (c *AWSS3ObjectStoreConfig) Validate(ctx *validation.Context) {
+	if c.BucketName == "" {
+		ctx.Child("BUCKET_NAME").EmitErrorMessage("bucket name must be set")
+	}
+	if c.Region == "" {
+		ctx.Child("REGION").EmitErrorMessage("region must be set")
+	}
+	if c.AccessKeyID == "" {
+		ctx.Child("ACCESS_KEY_ID").EmitErrorMessage("access key id must be set")
+	}
+	if c.SecretAccessKey == "" {
+		ctx.Child("SECRET_ACCESS_KEY").EmitErrorMessage("secret key id must be set")
+	}
+}
+
+type AlibabaCloudOSSObjectStoreConfig struct {
+	BucketName      string `envconfig:"BUCKET_NAME"`
+	Region          string `envconfig:"REGION"`
+	AccessKeyID     string `envconfig:"ACCESS_KEY_ID"`
+	SecretAccessKey string `envconfig:"SECRET_ACCESS_KEY"`
+}
+
+func (c *AlibabaCloudOSSObjectStoreConfig) Initialize(ctx *validation.Context) {
+}
+
+func (c *AlibabaCloudOSSObjectStoreConfig) Validate(ctx *validation.Context) {
 	if c.BucketName == "" {
 		ctx.Child("BUCKET_NAME").EmitErrorMessage("bucket name must be set")
 	}
