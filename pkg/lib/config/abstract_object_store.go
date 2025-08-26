@@ -2,7 +2,7 @@ package config
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -144,7 +144,7 @@ func (c *GCPGCSObjectStoreConfig) Initialize(ctx *validation.Context) {
 	}
 	defer f.Close()
 
-	jsonBytes, err := ioutil.ReadAll(f)
+	jsonBytes, err := io.ReadAll(f)
 	if err != nil {
 		return
 	}
