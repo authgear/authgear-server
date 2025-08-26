@@ -37,6 +37,17 @@ func NewCloudStorage(objectStoreConfig *config.UserExportObjectStoreConfig, c cl
 			panic(err)
 		}
 		return s
+	case config.ObjectStoreTypeAlibabaCloudOSS:
+		s, err := cloudstorage.NewAlibabaCloudOSSStorage(
+			objectStoreConfig.AlibabaCloudOSS.AccessKeyID,
+			objectStoreConfig.AlibabaCloudOSS.SecretAccessKey,
+			objectStoreConfig.AlibabaCloudOSS.Region,
+			objectStoreConfig.AlibabaCloudOSS.BucketName,
+		)
+		if err != nil {
+			panic(err)
+		}
+		return s
 	case config.ObjectStoreTypeGCPGCS:
 		s, err := cloudstorage.NewGCSStorage(
 			objectStoreConfig.GCPGCS.CredentialsJSON,

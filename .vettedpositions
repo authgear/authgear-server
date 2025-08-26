@@ -286,6 +286,7 @@
 /pkg/lib/admin/authz/middleware.go:39:10: requestcontext
 /pkg/lib/authenticationflow/intl_middleware.go:16:41: requestcontext
 /pkg/lib/authenticationflow/rate_limit_middleware.go:25:10: requestcontext
+/pkg/lib/cloudstorage/alibaba_cloud_oss.go:139:32: requestcontext
 /pkg/lib/cloudstorage/azure.go:128:32: requestcontext
 /pkg/lib/cloudstorage/gcs.go:139:38: requestcontext
 /pkg/lib/cloudstorage/minio.go:100:41: requestcontext
