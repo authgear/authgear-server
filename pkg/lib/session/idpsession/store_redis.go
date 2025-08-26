@@ -175,7 +175,6 @@ func (s *StoreRedis) CleanUpForDeletingUserID(ctx context.Context, userID string
 //nolint:gocognit
 func (s *StoreRedis) List(ctx context.Context, userID string) (sessions []*IDPSession, err error) {
 	logger := StoreRedisLogger.GetLogger(ctx)
-	now := s.Clock.NowUTC()
 	listKey := sessionListKey(s.AppID, userID)
 
 	err = s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
@@ -184,22 +183,7 @@ func (s *StoreRedis) List(ctx context.Context, userID string) (sessions []*IDPSe
 			return err
 		}
 
-		for key, expiry := range sessionList {
-			expireAt := time.Time{}
-			err = expireAt.UnmarshalText([]byte(expiry))
-			var expired bool
-			if err != nil {
-				err = nil
-				logger.WithError(err).Error(ctx, "invalid expiry value",
-					slog.String("key", key),
-					slog.String("expiry", expiry),
-				)
-				// treat invalid value as expired
-				expired = true
-			} else {
-				expired = now.After(expireAt)
-			}
-
+		for key := range sessionList {
 			var session *IDPSession
 			var sessionJSON []byte
 			sessionJSON, err = conn.Get(ctx, key).Bytes()
@@ -220,18 +204,18 @@ func (s *StoreRedis) List(ctx context.Context, userID string) (sessions []*IDPSe
 			}
 
 			if session == nil {
-				// only cleanup expired sessions from the list
-				if expired {
+				// cleanup expired / terminated sessions from the list
+
+				// ignore non-critical error
+				_, err = conn.HDel(ctx, listKey, key).Result()
+				if err != nil {
 					// ignore non-critical error
-					_, err = conn.HDel(ctx, listKey, key).Result()
-					if err != nil {
-						// ignore non-critical error
-						logger.WithError(err).Error(ctx, "failed to update session list",
-							slog.String("key", listKey),
-						)
-						err = nil
-					}
+					logger.WithError(err).Error(ctx, "failed to update session list",
+						slog.String("key", listKey),
+					)
+					err = nil
 				}
+
 			} else {
 				sessions = append(sessions, session)
 			}

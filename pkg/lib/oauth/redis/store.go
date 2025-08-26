@@ -611,7 +611,9 @@ func (s *Store) ListOfflineGrants(ctx context.Context, userID string) ([]*oauth.
 			if errors.Is(err, oauth.ErrGrantNotFound) {
 				_, err = conn.HDel(ctx, listKey, id).Result()
 				if err != nil {
+					// ignore non-critical error
 					logger.WithError(err).Error(ctx, "failed to update session list")
+					err = nil
 				}
 			} else if err != nil {
 				return err
