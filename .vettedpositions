@@ -289,6 +289,8 @@
 /pkg/lib/cloudstorage/azure.go:128:32: requestcontext
 /pkg/lib/cloudstorage/gcs.go:139:38: requestcontext
 /pkg/lib/cloudstorage/minio.go:100:41: requestcontext
+/pkg/lib/cloudstorage/s3.go:33:39: contextbackground
+/pkg/lib/cloudstorage/s3.go:146:32: requestcontext
 /pkg/lib/config/contextbackground.go:11:52: contextbackground
 /pkg/lib/deps/context.go:23:10: requestcontext
 /pkg/lib/deps/contextbackground.go:10:28: contextbackground
