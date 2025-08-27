@@ -1,6 +1,7 @@
 package graphql
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/graphql-go/graphql"
@@ -418,13 +419,16 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			jsonPointer := authenticationflow.FindStepByType(flowObj, config.AuthenticationFlowStepTypeVerifyAccountRecoveryCode)
+			jsonPointer, ok := authenticationflow.FindStepByType(flowObj, config.AuthenticationFlowStepTypeVerifyAccountRecoveryCode)
+			if !ok {
+				panic(fmt.Errorf("unexpected: cannot find verify_account_recovery_code step"))
+			}
 
 			err = gqlCtx.ForgotPassword.SendCode(ctx, loginID, &forgotpassword.CodeOptions{
 				IsAdminAPIResetPassword:       true,
 				AuthenticationFlowType:        string(flowReference.Type),
 				AuthenticationFlowName:        flowReference.Name,
-				AuthenticationFlowJSONPointer: *jsonPointer,
+				AuthenticationFlowJSONPointer: jsonPointer,
 			})
 			if err != nil {
 				return nil, err

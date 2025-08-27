@@ -124,8 +124,8 @@ func FindCurrentFlowReference(flow *Flow) *FlowReference {
 
 // FindStepByType recursively finds the first step in the flow that matches the given stepType
 // and returns its JSON pointer.
-func FindStepByType(flowRoot config.AuthenticationFlowObject, stepType config.AuthenticationFlowStepType) *jsonpointer.T {
-	var result *jsonpointer.T
+func FindStepByType(flowRoot config.AuthenticationFlowObject, stepType config.AuthenticationFlowStepType) (jsonpointer.T, bool) {
+	var result jsonpointer.T
 	var found bool
 	var visit func(obj config.AuthenticationFlowObject, p jsonpointer.T)
 
@@ -138,9 +138,7 @@ func FindStepByType(flowRoot config.AuthenticationFlowObject, stepType config.Au
 		case config.AuthenticationFlowObjectFlowStep:
 			if o.GetType() == stepType {
 				found = true
-				pcopy := make(jsonpointer.T, len(p))
-				copy(pcopy, p)
-				result = &pcopy
+				result = p
 				return
 			}
 			for i, oneOf := range o.GetOneOf() {
@@ -161,5 +159,5 @@ func FindStepByType(flowRoot config.AuthenticationFlowObject, stepType config.Au
 	}
 
 	visit(flowRoot, jsonpointer.T{})
-	return result
+	return result, found
 }

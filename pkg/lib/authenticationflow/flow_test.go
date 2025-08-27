@@ -19,11 +19,11 @@ func TestFindStepByType(t *testing.T) {
 			err = json.Unmarshal(jsonData, &flowRoot)
 			So(err, ShouldBeNil)
 
-			ptr := FindStepByType(&flowRoot, stepType)
+			ptr, found := FindStepByType(&flowRoot, stepType)
 			if expectedPointer == "" {
-				So(ptr, ShouldBeNil)
+				So(found, ShouldBeFalse)
 			} else {
-				So(ptr, ShouldNotBeNil)
+				So(found, ShouldBeTrue)
 				So(ptr.String(), ShouldEqual, expectedPointer)
 			}
 		}
