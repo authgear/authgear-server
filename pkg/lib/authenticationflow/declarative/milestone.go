@@ -214,7 +214,10 @@ type MilestoneDoUseAccountRecoveryDestination interface {
 
 type MilestoneAccountRecoveryCode interface {
 	authflow.Milestone
-	MilestoneAccountRecoveryCode() string
+	MilestoneAccountRecoveryCode() struct {
+		MaskedTarget string
+		Code         string
+	}
 }
 
 type MilestoneDidSelectAuthenticator interface {

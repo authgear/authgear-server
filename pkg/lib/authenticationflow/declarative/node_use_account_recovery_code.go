@@ -11,8 +11,9 @@ func init() {
 }
 
 type NodeUseAccountRecoveryCode struct {
-	JSONPointer jsonpointer.T `json:"json_pointer,omitempty"`
-	Code        string        `json:"code,omitempty"`
+	JSONPointer  jsonpointer.T `json:"json_pointer,omitempty"`
+	Code         string        `json:"code,omitempty"`
+	MaskedTarget string        `json:"masked_target,omitempty"`
 }
 
 var _ authflow.NodeSimple = &NodeUseAccountRecoveryCode{}
@@ -24,6 +25,15 @@ func (*NodeUseAccountRecoveryCode) Kind() string {
 }
 
 func (*NodeUseAccountRecoveryCode) Milestone() {}
-func (n *NodeUseAccountRecoveryCode) MilestoneAccountRecoveryCode() string {
-	return n.Code
+func (n *NodeUseAccountRecoveryCode) MilestoneAccountRecoveryCode() struct {
+	MaskedTarget string
+	Code         string
+} {
+	return struct {
+		MaskedTarget string
+		Code         string
+	}{
+		MaskedTarget: n.MaskedTarget,
+		Code:         n.Code,
+	}
 }

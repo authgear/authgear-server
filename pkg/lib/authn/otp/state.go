@@ -7,6 +7,7 @@ import (
 )
 
 type State struct {
+	Target          string
 	ExpireAt        time.Time
 	CanResendAt     time.Time
 	SubmittedCode   string

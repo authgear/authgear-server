@@ -347,6 +347,7 @@ func (s *Service) InspectState(ctx context.Context, kind Kind, target string) (*
 	}
 
 	if code != nil {
+		state.Target = code.Target
 		state.ExpireAt = code.ExpireAt
 		state.SubmittedCode = code.UserInputtedCode
 		state.UserID = code.UserID
