@@ -2,6 +2,7 @@ package latte
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
@@ -12,12 +13,15 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 func init() {
 	workflow.RegisterPrivateIntent(&IntentLogin{})
 }
+
+var latteLoginLogger = slogutil.NewLogger("latte-intent-login")
 
 type VerifiedAuthenticationLockoutMethodGetter interface {
 	GetVerifiedAuthenticationLockoutMethod() (config.AuthenticationLockoutMethod, bool)
@@ -115,16 +119,24 @@ func (i *IntentLogin) ReactTo(ctx context.Context, deps *workflow.Dependencies, 
 }
 
 func (i *IntentLogin) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (effs []workflow.Effect, err error) {
+	logger := latteLoginLogger.GetLogger(ctx)
 	return []workflow.Effect{
 		workflow.OnCommitEffect(func(ctx context.Context, deps *workflow.Dependencies) error {
+			// NOTE(DEV-2982): This is for debugging the session lost problem
 			userID := i.userID()
 			now := deps.Clock.NowUTC()
+			logger.WithSkipLogging().Error(ctx, "updated last login",
+				slog.String("user_id", userID))
 			return deps.Users.UpdateLoginTime(ctx, userID, now)
 		}),
 		workflow.OnCommitEffect(func(ctx context.Context, deps *workflow.Dependencies) error {
 			createSession, workflow := workflow.MustFindSubWorkflow[*IntentEnsureSession](workflows.Nearest)
 			session := createSession.GetSession(workflow)
 			if session == nil {
+				// NOTE(DEV-2982): This is for debugging the session lost problem
+				userID := i.userID()
+				logger.WithSkipLogging().Error(ctx, "user.authenticated event skipped because session is nil",
+					slog.String("user_id", userID))
 				return nil
 			}
 

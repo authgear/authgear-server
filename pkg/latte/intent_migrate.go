@@ -3,6 +3,7 @@ package latte
 import (
 	"context"
 	"fmt"
+	"log/slog"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
@@ -10,9 +11,12 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
+
+var latteMigrateLogger = slogutil.NewLogger("latte-intent-migrate")
 
 func init() {
 	workflow.RegisterPublicIntent(&IntentMigrate{})
@@ -122,8 +126,12 @@ func (i *IntentMigrate) GetEffects(ctx context.Context, deps *workflow.Dependenc
 			return nil
 		}),
 		workflow.OnCommitEffect(func(ctx context.Context, deps *workflow.Dependencies) error {
+			// NOTE(DEV-2982): This is for debugging the session lost problem
 			userID := i.userID(workflows.Nearest)
 			now := deps.Clock.NowUTC()
+			logger := latteMigrateLogger.GetLogger(ctx)
+			logger.WithSkipLogging().Error(ctx, "updated last login",
+				slog.String("user_id", userID))
 			return deps.Users.UpdateLoginTime(ctx, userID, now)
 		}),
 		workflow.OnCommitEffect(func(ctx context.Context, deps *workflow.Dependencies) error {

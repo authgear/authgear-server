@@ -2,6 +2,7 @@ package nodes
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -11,7 +12,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
+
+var doEnsureSessionLogger = slogutil.NewLogger("interaction-do-ensure-session")
 
 func init() {
 	interaction.RegisterNode(&NodeDoEnsureSession{})
@@ -177,6 +181,10 @@ func (n *NodeDoEnsureSession) GetEffects(goCtx context.Context) ([]interaction.E
 
 			var err error
 			if !n.UpdateLoginTime.IsZero() {
+				// NOTE(DEV-2982): This is for debugging the session lost problem
+				logger := doEnsureSessionLogger.GetLogger(goCtx)
+				logger.WithSkipLogging().Error(goCtx, "updated last login",
+					slog.String("user_id", userID))
 				err = ctx.Users.UpdateLoginTime(goCtx, userID, n.UpdateLoginTime)
 				if err != nil {
 					return err
@@ -203,7 +211,18 @@ func (n *NodeDoEnsureSession) GetEffects(goCtx context.Context) ([]interaction.E
 					if err != nil {
 						return err
 					}
+				} else {
+					// NOTE(DEV-2982): This is for debugging the session lost problem
+					logger := doEnsureSessionLogger.GetLogger(goCtx)
+					logger.WithSkipLogging().Error(goCtx, "user.authenticated event skipped because create reason is not login or reauthenticate",
+						slog.String("user_id", userID),
+						slog.String("create_reason", string(n.CreateReason)))
 				}
+			} else {
+				// NOTE(DEV-2982): This is for debugging the session lost problem
+				logger := doEnsureSessionLogger.GetLogger(goCtx)
+				logger.WithSkipLogging().Error(goCtx, "user.authenticated event skipped because session to create is nil",
+					slog.String("user_id", userID))
 			}
 
 			if n.SessionToCreate != nil {
