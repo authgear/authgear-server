@@ -110,10 +110,9 @@
 /pkg/auth/handler/webapp/authflowv2/promote.go:136:33: requestcontext
 /pkg/auth/handler/webapp/authflowv2/prompt_create_passkey.go:142:26: requestcontext
 /pkg/auth/handler/webapp/authflowv2/reauth.go:42:33: requestcontext
-/pkg/auth/handler/webapp/authflowv2/reset_password.go:129:30: requestcontext
-/pkg/auth/handler/webapp/authflowv2/reset_password.go:227:35: requestcontext
-/pkg/auth/handler/webapp/authflowv2/reset_password.go:231:27: requestcontext
-/pkg/auth/handler/webapp/authflowv2/reset_password_success.go:60:35: requestcontext
+/pkg/auth/handler/webapp/authflowv2/reset_password.go:169:35: requestcontext
+/pkg/auth/handler/webapp/authflowv2/reset_password.go:173:27: requestcontext
+/pkg/auth/handler/webapp/authflowv2/reset_password_success.go:60:36: requestcontext
 /pkg/auth/handler/webapp/authflowv2/select_account.go:111:32: requestcontext
 /pkg/auth/handler/webapp/authflowv2/select_account.go:247:27: requestcontext
 /pkg/auth/handler/webapp/authflowv2/settings.go:89:30: requestcontext
