@@ -10,7 +10,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
-	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	pwd "github.com/authgear/authgear-server/pkg/util/password"
@@ -112,64 +111,7 @@ func (h *AuthflowV2ResetPasswordHandler) GetAuthflowErrorData(w http.ResponseWri
 }
 
 func (h *AuthflowV2ResetPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if isURLFromAdminAPI(r) {
-		h.serveHTTPNonAuthflow(w, r)
-	} else {
-		h.serveHTTPAuthflow(w, r)
-	}
-}
-
-func (h *AuthflowV2ResetPasswordHandler) serveHTTPNonAuthflow(w http.ResponseWriter, r *http.Request) {
-	ctrl, err := h.NonAuthflowControllerFactory.New(r, w)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	defer ctrl.ServeWithoutDBTx(r.Context())
-
-	ctrl.Get(func(ctx context.Context) error {
-		var data map[string]interface{}
-		err = h.Database.WithTx(ctx, func(ctx context.Context) error {
-			data, err = h.GetNonAuthflowData(w, r)
-			if err != nil {
-				return err
-			}
-			return nil
-		})
-
-		h.Renderer.RenderHTML(w, r, TemplateWebAuthflowResetPasswordHTML, data)
-		return nil
-	})
-
-	ctrl.PostAction("", func(ctx context.Context) error {
-		err := AuthflowResetPasswordSchema.Validator().ValidateValue(ctx, handlerwebapp.FormToJSON(r.Form))
-		if err != nil {
-			return err
-		}
-		newPassword := r.Form.Get("x_password")
-		confirmPassword := r.Form.Get("x_confirm_password")
-		err = pwd.ConfirmPassword(newPassword, confirmPassword)
-		if err != nil {
-			return err
-		}
-
-		code := r.URL.Query().Get("code")
-		err = h.Database.WithTx(ctx, func(ctx context.Context) error {
-			return h.ResetPassword.ResetPasswordByEndUser(
-				ctx,
-				code,
-				newPassword,
-			)
-		})
-		if err != nil {
-			return err
-		}
-		// reset success
-		result := webapp.Result{RedirectURI: AuthflowV2RouteResetPasswordSuccess}
-		result.WriteResponse(w, r)
-		return nil
-	})
+	h.serveHTTPAuthflow(w, r)
 }
 
 func (h *AuthflowV2ResetPasswordHandler) serveHTTPAuthflow(w http.ResponseWriter, r *http.Request) {
@@ -232,6 +174,8 @@ func (h *AuthflowV2ResetPasswordHandler) serveHTTPAuthflow(w http.ResponseWriter
 	}
 }
 
-func isURLFromAdminAPI(r *http.Request) bool {
-	return r.URL.Query().Get(otp.FromAdminAPIQueryKey) == "true"
-}
+// NOTE(tung): Now we handle reset password from admin api with authflow, so this is not needed.
+// See: https://github.com/authgear/authgear-server/pull/5353
+// func isURLFromAdminAPI(r *http.Request) bool {
+// 	return r.URL.Query().Get(otp.FromAdminAPIQueryKey) == "true"
+// }
