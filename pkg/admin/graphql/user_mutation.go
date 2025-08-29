@@ -1,6 +1,7 @@
 package graphql
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/graphql-go/graphql"
@@ -12,7 +13,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	apimodel "github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/authenticationflow"
+	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/facade"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
@@ -405,8 +409,26 @@ var _ = registerMutationField(
 			ctx := p.Context
 			gqlCtx := GQLContext(ctx)
 
-			err := gqlCtx.ForgotPassword.SendCode(ctx, loginID, &forgotpassword.CodeOptions{
-				IsAdminAPIResetPassword: true,
+			flowReference := authenticationflow.FlowReference{
+				Type: authenticationflow.FlowTypeAccountRecovery,
+				Name: "default",
+			}
+
+			flowObj, err := declarative.GetFlowRootObject(gqlCtx.Config, flowReference)
+			if err != nil {
+				return nil, err
+			}
+
+			jsonPointer, ok := authenticationflow.FindStepByType(flowObj, config.AuthenticationFlowStepTypeVerifyAccountRecoveryCode)
+			if !ok {
+				panic(fmt.Errorf("unexpected: cannot find verify_account_recovery_code step"))
+			}
+
+			err = gqlCtx.ForgotPassword.SendCode(ctx, loginID, &forgotpassword.CodeOptions{
+				IsAdminAPIResetPassword:       true,
+				AuthenticationFlowType:        string(flowReference.Type),
+				AuthenticationFlowName:        flowReference.Name,
+				AuthenticationFlowJSONPointer: jsonPointer,
 			})
 			if err != nil {
 				return nil, err

@@ -39,18 +39,17 @@ func (i *IntentAccountRecoveryFlowStepResetPassword) CanReactTo(ctx context.Cont
 }
 
 func (i *IntentAccountRecoveryFlowStepResetPassword) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (authflow.ReactToResult, error) {
-	ms := authflow.FindAllMilestones[MilestoneAccountRecoveryCode](flows.Root)
-	if len(ms) == 0 {
-		return nil, InvalidFlowConfig.New("IntentAccountRecoveryFlowStepResetPassword depends on MilestoneAccountRecoveryCode")
+	m, err := i.milestoneAccountRecoveryCode(flows)
+	if err != nil {
+		return nil, err
 	}
-	milestone := ms[0]
-	code := milestone.MilestoneAccountRecoveryCode()
+	code := m.MilestoneAccountRecoveryCode()
 
 	var inputTakeNewPassword inputTakeNewPassword
 	if authflow.AsInput(input, &inputTakeNewPassword) {
 		newPassword := inputTakeNewPassword.GetNewPassword()
 		return authflow.NewNodeSimple(&NodeDoResetPassword{
-			Code:        code,
+			Code:        code.Code,
 			NewPassword: newPassword,
 		}), nil
 	}
@@ -59,10 +58,24 @@ func (i *IntentAccountRecoveryFlowStepResetPassword) ReactTo(ctx context.Context
 }
 
 func (i *IntentAccountRecoveryFlowStepResetPassword) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
+	m, err := i.milestoneAccountRecoveryCode(flows)
+	if err != nil {
+		return nil, err
+	}
+	code := m.MilestoneAccountRecoveryCode()
 	return NewNewPasswordData(NewPasswordData{
 		PasswordPolicy: NewPasswordPolicy(
 			deps.FeatureConfig.Authenticator,
 			deps.Config.Authenticator.Password.Policy,
 		),
+		MaskedTarget: code.MaskedTarget,
 	}), nil
+}
+
+func (i *IntentAccountRecoveryFlowStepResetPassword) milestoneAccountRecoveryCode(flows authflow.Flows) (MilestoneAccountRecoveryCode, error) {
+	ms := authflow.FindAllMilestones[MilestoneAccountRecoveryCode](flows.Root)
+	if len(ms) == 0 {
+		return nil, InvalidFlowConfig.New("IntentAccountRecoveryFlowStepResetPassword depends on MilestoneAccountRecoveryCode")
+	}
+	return ms[0], nil
 }

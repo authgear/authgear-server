@@ -7,6 +7,9 @@ import (
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
+	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
+	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
+	"github.com/authgear/authgear-server/pkg/util/phone"
 )
 
 func init() {
@@ -139,9 +142,11 @@ func (i *IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode) verifyCode(
 	code string,
 ) (*authflow.Node, error) {
 	milestone, ok := i.findDestination(flows)
+	var state *otp.State
+	var err error
 	if ok {
 		dest := milestone.MilestoneDoUseAccountRecoveryDestination()
-		_, err := deps.ResetPassword.VerifyCodeWithTarget(ctx,
+		state, err = deps.ResetPassword.VerifyCodeWithTarget(ctx,
 			dest.TargetLoginID,
 			code,
 			dest.ForgotPasswordCodeChannel(),
@@ -152,12 +157,16 @@ func (i *IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode) verifyCode(
 		}
 	} else {
 		// MilestoneDoUseAccountRecoveryDestination might not exist, because the flow is restored
-		_, err := deps.ResetPassword.VerifyCode(ctx, code)
+		state, err = deps.ResetPassword.VerifyCode(ctx, code)
 		if err != nil {
 			return nil, err
 		}
 	}
-	return authflow.NewNodeSimple(&NodeUseAccountRecoveryCode{Code: code}), nil
+	maskedTarget := mail.MaskAddress(state.Target)
+	if maskedTarget == "" {
+		maskedTarget = phone.Mask(state.Target)
+	}
+	return authflow.NewNodeSimple(&NodeUseAccountRecoveryCode{Code: code, MaskedTarget: maskedTarget}), nil
 }
 
 func (i *IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode) isRestored() bool {
