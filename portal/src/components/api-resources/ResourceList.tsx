@@ -91,17 +91,16 @@ export const ResourceList: React.VFC<ResourceListProps> = function ResourceList(
       };
 
       return (
-        <button
-          type="button"
+        <div
           onClick={() => {
             if (item != null) {
               onItemClicked(item);
             }
           }}
-          className="contents"
+          className="contents cursor-pointer"
         >
           {defaultRender?.(props)}
-        </button>
+        </div>
       );
     },
     [onItemClicked]
@@ -149,9 +148,13 @@ function ActionButtonsColumn({ resource, onDelete }: ActionButtonsColumnProps) {
           label: { fontWeight: 600 },
         }}
         theme={themes.destructive}
-        onClick={useCallback(() => {
-          onDelete(resource);
-        }, [onDelete, resource])}
+        onClick={useCallback(
+          (e: React.MouseEvent<HTMLButtonElement>) => {
+            e.stopPropagation();
+            onDelete(resource);
+          },
+          [onDelete, resource]
+        )}
       />
     </div>
   );
