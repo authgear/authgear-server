@@ -14,7 +14,9 @@
 
   .layout--common {
     @apply z-0;
-    @apply relative;
+    /* We now declare the host of dialog and overlay in base.css */
+    /* See DEV-3003 for details */
+    /* @apply relative; */
     @apply flex flex-col flex-1-0-auto;
     @apply items-center justify-start;
 
