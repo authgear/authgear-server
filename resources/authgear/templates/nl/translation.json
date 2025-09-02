@@ -1276,6 +1276,7 @@
   "v2.page.settings-mfa-password.default.remove-button-label": "Verwijder aanvullend wachtwoord",
   "v2.page.settings-mfa-password.default.title": "Aanvullend wachtwoord",
   "v2.page.settings-mfa-view-recovery-code.default.regenerate-button-label": "Genereer nieuwe codes",
+  "v2.page.settings-mfa-view-recovery-code.default.empty": "Je hebt nog geen herstelcodes. Genereer nieuwe codes door op de onderstaande knop te klikken.",
   "v2.page.settings-mfa-view-recovery-code.default.storage-description": "Als u geen toegang meer hebt tot uw authenticatie-apparaat, gebruik dan deze herstelcodes om uw account te herstellen. \nBewaar ze op een veilige maar toegankelijke plek.",
   "v2.page.settings-mfa-view-recovery-code.default.title": "Herstelcode",
   "v2.page.settings-mfa.default.activated-label": "Geactiveerd",

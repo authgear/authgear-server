@@ -1276,6 +1276,7 @@
   "v2.page.settings-mfa-password.default.remove-button-label": "Buang kata laluan tambahan",
   "v2.page.settings-mfa-password.default.title": "Kata laluan tambahan",
   "v2.page.settings-mfa-view-recovery-code.default.regenerate-button-label": "Jana kod baharu",
+  "v2.page.settings-mfa-view-recovery-code.default.empty": "Anda belum mempunyai sebarang kod pemulihan. Jana kod baharu dengan mengklik butang di bawah.",
   "v2.page.settings-mfa-view-recovery-code.default.storage-description": "Jika anda kehilangan akses kepada peranti pengesahan anda, gunakan kod pemulihan ini untuk memulihkan akaun anda. \nSimpan di tempat yang selamat tetapi boleh diakses.",
   "v2.page.settings-mfa-view-recovery-code.default.title": "Kod Pemulihan",
   "v2.page.settings-mfa.default.activated-label": "Diaktifkan",
