@@ -1,0 +1,254 @@
+name: Identify with phone, authenticate with email OTP
+authgear.yaml:
+  override: |
+    authenticator:
+      oob_otp:
+        email:
+          email_otp_mode: code
+    authentication_flow:
+      login_flows:
+      - name: default
+        steps:
+        - type: identify
+          one_of:
+          - identification: phone
+          - identification: email
+        - type: authenticate
+          one_of:
+          - authentication: primary_oob_otp_sms
+          - authentication: primary_oob_otp_email
+before:
+- type: custom_sql
+  custom_sql:
+    path: user.sql
+steps:
+- action: create
+  input: |
+    {
+      "type": "login",
+      "name": "default"
+    }
+  output:
+    result: |
+      {
+        "action": {
+          "type": "identify",
+          "data": {
+            "type": "identification_data",
+            "options": [
+              {
+                "identification": "phone"
+              },
+              {
+                "identification": "email"
+              }
+            ]
+          }
+        }
+      }
+- action: input
+  input: |
+    {
+      "identification": "phone",
+      "login_id": "+85251000000"
+    }
+  output:
+    result: |
+      {
+        "type": "login",
+        "name": "default",
+        "action": {
+          "type": "authenticate",
+          "data": {
+            "device_token_enabled": false,
+            "options": [
+              {
+                "authentication": "primary_oob_otp_sms",
+                "channels": [
+                  "whatsapp",
+                  "sms"
+                ],
+                "masked_display_name": "+8525100****",
+                "otp_form": "code"
+              },
+              {
+                "authentication": "primary_oob_otp_email",
+                "channels": [
+                  "email"
+                ],
+                "masked_display_name": "us**@example.com",
+                "otp_form": "code"
+              }
+            ],
+            "type": "authentication_data"
+          }
+        }
+      }
+- action: input
+  input: |
+    {
+      "authentication": "primary_oob_otp_email",
+      "index": 1
+    }
+  output:
+    result: |
+      {
+        "type": "login",
+        "name": "default",
+        "action": {
+          "type": "authenticate",
+          "authentication": "primary_oob_otp_email",
+          "data": {
+            "can_check": false,
+            "can_resend_at": "[[string]]",
+            "channel": "email",
+            "code_length": 6,
+            "failed_attempt_rate_limit_exceeded": false,
+            "masked_claim_value": "us**@example.com",
+            "otp_form": "code",
+            "type": "verify_oob_otp_data"
+          }
+        }
+      }
+- action: input
+  input: |
+    {
+      "code": "111111"
+    }
+  output:
+    result: |
+      {
+        "type": "login",
+        "name": "default",
+        "action": {
+          "type": "finished"
+        }
+      }
+---
+name: Identify with email, authenticate with phone OTP
+authgear.yaml:
+  override: |
+    authenticator:
+      oob_otp:
+        email:
+          email_otp_mode: code
+    authentication_flow:
+      login_flows:
+      - name: default
+        steps:
+        - type: identify
+          one_of:
+          - identification: phone
+          - identification: email
+        - type: authenticate
+          one_of:
+          - authentication: primary_oob_otp_sms
+          - authentication: primary_oob_otp_email
+before:
+- type: custom_sql
+  custom_sql:
+    path: user.sql
+steps:
+- action: create
+  input: |
+    {
+      "type": "login",
+      "name": "default"
+    }
+  output:
+    result: |
+      {
+        "action": {
+          "type": "identify",
+          "data": {
+            "type": "identification_data",
+            "options": [
+              {
+                "identification": "phone"
+              },
+              {
+                "identification": "email"
+              }
+            ]
+          }
+        }
+      }
+- action: input
+  input: |
+    {
+      "identification": "email",
+      "login_id": "user@example.com"
+    }
+  output:
+    result: |
+      {
+        "type": "login",
+        "name": "default",
+        "action": {
+          "type": "authenticate",
+          "data": {
+            "device_token_enabled": false,
+            "options": [
+              {
+                "authentication": "primary_oob_otp_sms",
+                "channels": [
+                  "whatsapp",
+                  "sms"
+                ],
+                "masked_display_name": "+8525100****",
+                "otp_form": "code"
+              },
+              {
+                "authentication": "primary_oob_otp_email",
+                "channels": [
+                  "email"
+                ],
+                "masked_display_name": "us**@example.com",
+                "otp_form": "code"
+              }
+            ],
+            "type": "authentication_data"
+          }
+        }
+      }
+- action: input
+  input: |
+    {
+      "authentication": "primary_oob_otp_sms",
+      "index": 0,
+      "channel": "sms"
+    }
+  output:
+    result: |
+      {
+        "type": "login",
+        "name": "default",
+        "action": {
+          "type": "authenticate",
+          "authentication": "primary_oob_otp_sms",
+          "data": {
+            "can_check": false,
+            "can_resend_at": "[[string]]",
+            "channel": "sms",
+            "code_length": 6,
+            "failed_attempt_rate_limit_exceeded": false,
+            "masked_claim_value": "+8525100****",
+            "otp_form": "code",
+            "type": "verify_oob_otp_data"
+          }
+        }
+      }
+- action: input
+  input: |
+    {
+      "code": "111111"
+    }
+  output:
+    result: |
+      {
+        "type": "login",
+        "name": "default",
+        "action": {
+          "type": "finished"
+        }
+      }
