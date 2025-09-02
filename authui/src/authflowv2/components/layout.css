@@ -17,8 +17,14 @@
     @apply relative;
     @apply flex flex-col flex-1-0-auto;
     @apply items-center justify-start;
+
     /* padding */
-    @apply tablet:px-16 desktop:px-60;
+    @apply pt-[env(safe-area-inset-top)];
+    @apply pr-[env(safe-area-inset-right)];
+    @apply pb-[env(safe-area-inset-bottom)];
+    @apply pl-[env(safe-area-inset-left)];
+    @apply tablet:px-16;
+    @apply desktop:px-60;
   }
 
   .layout--common::before {

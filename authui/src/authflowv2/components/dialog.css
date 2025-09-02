@@ -60,14 +60,16 @@
   .dialog {
     /* common styles */
     background-color: var(--dialog-content__bg-color);
+    @apply relative;
+    @apply pt-8;
+    @apply pr-[max(env(safe-area-inset-right,2rem),2rem)];
+    @apply pb-[max(env(safe-area-inset-bottom,2rem),2rem)];
+    @apply pl-[max(env(safe-area-inset-left,2rem),2rem)];
 
     /* mobile-specific styles */
     @apply w-screen;
-    @apply p-8;
-    @apply relative;
     @apply rounded-t-2xl;
     @apply h-min;
-
     transform: translateY(100%);
     /* if you change these, change `dialog.ts` too */
     transition: transform var(--dialog-slide-animation-duration) ease-in-out;
@@ -142,8 +144,10 @@
     .dialog {
       @apply rounded-2xl;
       @apply w-98;
-      @apply p-8;
-      @apply relative;
+      @apply pt-8;
+      @apply pr-8;
+      @apply pb-8;
+      @apply pl-8;
 
       transform: none; /* slide animation only wanted on mobile */
     }

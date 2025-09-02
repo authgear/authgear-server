@@ -5,10 +5,6 @@
     );
   }
 
-  .settings-dialog {
-    @apply p-8 tablet:p-10;
-  }
-
   .settings-dialog__description-text--highlight {
     color: var(--settings-dialog__description-text--highlight-color);
   }
