@@ -51,7 +51,7 @@ steps:
         "login_id": "e2e_recovery_code_user_with_sms@example.com"
       }
     output:
-      error: |
+      result: |
         {
           "action": {
             "type": "authenticate",
