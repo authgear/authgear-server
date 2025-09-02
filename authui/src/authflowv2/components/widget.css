@@ -46,7 +46,12 @@
   }
 
   .widget-content {
-    @apply relative;
+    /* We cannot make widget-content a positioned element in mobile layout. */
+    /* widget-content does not always span the whole height. */
+    /* If it were a positioned element, then it is impossible to have a absolute child (like dialog) to span visually full height */
+    /* See DEV-3003 for details */
+    @apply static tablet:relative desktop:relative;
+
     @apply h-full w-full;
     @apply flex flex-col;
     @apply self-center;

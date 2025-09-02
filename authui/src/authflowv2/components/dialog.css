@@ -37,8 +37,14 @@
 
   .dialog-backdrop {
     /* common styles */
-    @apply fixed inset-0;
-    @apply w-screen h-screen;
+
+    /* In DEV-3003, we realized that using fixed will cause the element to span full height in ASWebAuthenticationSession. */
+    /* On iOS 26, it is troublesome because the fixed element will overlap with the browser bottom bar. */
+    /* Therefore, we changed our approach and use absolute instead */
+    /* The caveat of using absolute is that we have to make sure we have no unintended positioned parent. */
+    @apply absolute;
+    @apply inset-0;
+
     @apply flex;
     background-color: rgb(0 0 0 / 0.5);
 
