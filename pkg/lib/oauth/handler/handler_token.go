@@ -630,13 +630,30 @@ func (h *TokenHandler) handleRefreshToken(
 	client *config.OAuthClientConfig,
 	r protocol.TokenRequest,
 ) (protocol.TokenResponse, error) {
+	logger := TokenHandlerLogger.GetLogger(ctx)
 	deviceInfo, err := r.DeviceInfo()
 	if err != nil {
+		logger.WithSkipLogging().Error(ctx,
+			"failed to get device info from token request",
+			slog.String("error", err.Error()),
+		)
 		return nil, protocol.NewError("invalid_request", err.Error())
 	}
 
 	authz, offlineGrant, refreshTokenHash, err := h.TokenService.ParseRefreshToken(ctx, r.RefreshToken())
 	if err != nil {
+		offlineGrantID := ""
+		userID := ""
+		if offlineGrant != nil {
+			offlineGrantID = offlineGrant.ID
+			userID = offlineGrant.GetUserID()
+		}
+		logger.WithSkipLogging().Error(ctx,
+			"failed to refresh token",
+			slog.String("offline_grant_id", offlineGrantID),
+			slog.String("user_id", userID),
+			slog.String("error", err.Error()),
+		)
 		return nil, err
 	}
 
@@ -647,25 +664,55 @@ func (h *TokenHandler) handleRefreshToken(
 	accessEvent := access.NewEvent(h.Clock.NowUTC(), h.RemoteIP, h.UserAgentString)
 	offlineGrantSession, ok := offlineGrant.ToSession(refreshTokenHash)
 	if !ok {
+		logger.WithSkipLogging().Error(ctx,
+			"failed to refresh token: failed to convert offline grant to session by hash",
+			slog.String("offline_grant_id", offlineGrant.ID),
+			slog.String("user_id", offlineGrant.GetUserID()),
+		)
 		return nil, ErrInvalidRefreshToken
 	}
 
 	resp, err := h.issueTokensForRefreshToken(ctx, client, offlineGrantSession, authz)
 	if err != nil {
+		logger.WithSkipLogging().Error(ctx,
+			"failed to issue tokens for refresh token",
+			slog.String("offline_grant_id", offlineGrant.ID),
+			slog.String("user_id", offlineGrant.GetUserID()),
+			slog.String("error", err.Error()),
+		)
 		return nil, err
 	}
 
 	if client.ClientID != offlineGrantSession.ClientID {
+		logger.WithSkipLogging().Error(ctx,
+			"client ID does not match refresh token's client ID",
+			slog.String("client_id", client.ClientID),
+			slog.String("offline_grant_client_id", offlineGrantSession.ClientID),
+			slog.String("offline_grant_id", offlineGrant.ID),
+			slog.String("user_id", offlineGrant.GetUserID()),
+		)
 		return nil, protocol.NewError("invalid_request", "client id doesn't match the refresh token")
 	}
 
 	_, err = h.OfflineGrantService.AccessOfflineGrant(ctx, offlineGrant.ID, refreshTokenHash, &accessEvent, offlineGrant.ExpireAtForResolvedSession)
 	if err != nil {
+		logger.WithSkipLogging().Error(ctx,
+			"failed to access offline grant during refresh token",
+			slog.String("offline_grant_id", offlineGrant.ID),
+			slog.String("user_id", offlineGrant.GetUserID()),
+			slog.String("error", err.Error()),
+		)
 		return nil, err
 	}
 
 	_, err = h.OfflineGrants.UpdateOfflineGrantDeviceInfo(ctx, offlineGrant.ID, deviceInfo, offlineGrant.ExpireAtForResolvedSession)
 	if err != nil {
+		logger.WithSkipLogging().Error(ctx,
+			"failed to update offline grant device info during refresh token",
+			slog.String("offline_grant_id", offlineGrant.ID),
+			slog.String("user_id", offlineGrant.GetUserID()),
+			slog.String("error", err.Error()),
+		)
 		return nil, err
 	}
 
