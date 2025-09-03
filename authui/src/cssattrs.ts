@@ -11,6 +11,23 @@ export function injectCSSAttrs(el: HTMLElement) {
       el.setAttribute(attr, value);
     }
   };
-  fn();
-  window.addEventListener("load", fn);
+
+  // Once fn() is invoked, the page becomes visible.
+  // In order to be compatible with our hack of safe area inset on Android,
+  // we want to ensure fn() is invoked after
+  // the safe area insets are set on :root.
+  const fnWithDelay = () => {
+    window.setTimeout(() => {
+      fn();
+    }, 0);
+  };
+
+  switch (document.readyState) {
+    case "complete":
+      fnWithDelay();
+      break;
+    default:
+      window.addEventListener("load", fnWithDelay);
+      break;
+  }
 }
