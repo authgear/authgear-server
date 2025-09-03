@@ -117,6 +117,8 @@ jobs:
       with:
         node-version-file: "./.tool-versions"
     - run: make vendor
+    - run: npm ci
+      working-directory: ./scripts/npm
     - run: make check-dockerignore
       if: ${{ !cancelled() }}
     - run: make govulncheck

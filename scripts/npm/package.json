@@ -15,9 +15,8 @@
     "graphql": "16.8.1",
     "luxon": "3.4.4",
     "mjml": "4.15.3",
-    "tzdata": "1.0.44"
-  },
-  "dependencies": {
+    "tzdata": "1.0.44",
     "cspell": "^9.2.1"
-  }
+  },
+  "dependencies": {}
 }
