@@ -73,9 +73,9 @@
     background-color: var(--dialog-content__bg-color);
     @apply relative;
     @apply pt-8;
-    @apply pr-[max(env(safe-area-inset-right,2rem),2rem)];
-    @apply pb-[max(env(safe-area-inset-bottom,2rem),2rem)];
-    @apply pl-[max(env(safe-area-inset-left,2rem),2rem)];
+    @apply pr-[max(var(--safe-area-inset-right),2rem)];
+    @apply pb-[max(var(--safe-area-inset-bottom),2rem)];
+    @apply pl-[max(var(--safe-area-inset-left),2rem)];
 
     /* mobile-specific styles */
     @apply w-screen;

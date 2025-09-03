@@ -21,10 +21,10 @@
     @apply items-center justify-start;
 
     /* padding */
-    @apply pt-[env(safe-area-inset-top)];
-    @apply pr-[env(safe-area-inset-right)];
-    @apply pb-[env(safe-area-inset-bottom)];
-    @apply pl-[env(safe-area-inset-left)];
+    @apply pt-[var(--safe-area-inset-top)];
+    @apply pr-[var(--safe-area-inset-right)];
+    @apply pb-[var(--safe-area-inset-bottom)];
+    @apply pl-[var(--safe-area-inset-left)];
     @apply tablet:px-16;
     @apply desktop:px-60;
   }
