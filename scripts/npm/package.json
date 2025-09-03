@@ -6,7 +6,8 @@
     "export-graphql-schema": "node export-graphql-schema.js",
     "generate-go-timezones": "node generate-go-timezones.js",
     "export-v2-translations": "node export-v2-translations.mjs",
-    "import-v2-translations": "node import-v2-translations.mjs"
+    "import-v2-translations": "node import-v2-translations.mjs",
+    "check-spell-translations": "cspell ../../resources/authgear/templates/en/translation.json"
   },
   "devDependencies": {
     "cldr-localenames-modern": "45.0.0",
@@ -15,5 +16,8 @@
     "luxon": "3.4.4",
     "mjml": "4.15.3",
     "tzdata": "1.0.44"
+  },
+  "dependencies": {
+    "cspell": "^9.2.1"
   }
 }

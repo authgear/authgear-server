@@ -193,6 +193,10 @@ generate-timezones:
 generate-rtl:
 	go run ./scripts/characterorder/main.go | gofmt > pkg/util/intl/rtl_map.go
 
+.PHONY: check-spell-translations
+check-spell-translations:
+	@npm run --prefix ./scripts/npm check-spell-translations
+
 .PHONY: generate-material-icons
 generate-material-icons:
 	$(MAKE) -C ./scripts/python generate-material-icons
