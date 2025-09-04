@@ -1275,7 +1275,7 @@
   "v2.page.settings-mfa-password.default.delete-dialog-title": "Remove additional password",
   "v2.page.settings-mfa-password.default.remove-button-label": "Remove additional password",
   "v2.page.settings-mfa-password.default.title": "Additional password",
-  "v2.page.settings-mfa-view-recovery-code.default.empty": "You do not have any recovery codes yet. Generate new codes by clicking the button below.",
+  "v2.page.settings-mfa-view-recovery-code.default.no-existing-codes-description": "You do not have any recovery codes yet. Generate new codes by clicking the button below.",
   "v2.page.settings-mfa-view-recovery-code.default.regenerate-button-label": "Generate new codes",
   "v2.page.settings-mfa-view-recovery-code.default.storage-description": "If you lost access to your authentication device, use these recovery codes to recover your account. \nKeep them somewhere safe but accessible.",
   "v2.page.settings-mfa-view-recovery-code.default.title": "Recovery code",

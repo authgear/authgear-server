@@ -1275,7 +1275,7 @@
   "v2.page.settings-mfa-password.default.delete-dialog-title": "추가 비밀번호 제거",
   "v2.page.settings-mfa-password.default.remove-button-label": "추가 비밀번호 제거",
   "v2.page.settings-mfa-password.default.title": "추가 비밀번호",
-  "v2.page.settings-mfa-view-recovery-code.default.empty": "아직 복구 코드가 없습니다. 아래 버튼을 클릭하여 새 코드를 생성하세요.",
+  "v2.page.settings-mfa-view-recovery-code.default.no-existing-codes-description": "아직 복구 코드가 없습니다. 아래 버튼을 클릭하여 새 코드를 생성하세요.",
   "v2.page.settings-mfa-view-recovery-code.default.regenerate-button-label": "새 코드 생성",
   "v2.page.settings-mfa-view-recovery-code.default.storage-description": "인증기기에 접근할 수 없는 경우, 이 복구 코드를 사용하여 계정을 복구할 수 있습니다.\n안전하고 접근 가능한 곳에 보관하세요.",
   "v2.page.settings-mfa-view-recovery-code.default.title": "복구 코드",

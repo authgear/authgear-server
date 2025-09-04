@@ -1275,7 +1275,7 @@
   "v2.page.settings-mfa-password.default.delete-dialog-title": "刪除輔助密碼",
   "v2.page.settings-mfa-password.default.remove-button-label": "刪除輔助密碼",
   "v2.page.settings-mfa-password.default.title": "輔助密碼",
-  "v2.page.settings-mfa-view-recovery-code.default.empty": "您尚未擁有任何恢復碼。點擊下方按鈕生成新的恢復碼。",
+  "v2.page.settings-mfa-view-recovery-code.default.no-existing-codes-description": "您尚未擁有任何恢復碼。點擊下方按鈕生成新的恢復碼。",
   "v2.page.settings-mfa-view-recovery-code.default.regenerate-button-label": "產生新代碼",
   "v2.page.settings-mfa-view-recovery-code.default.storage-description": "如果您無法訪問您的驗證設備，請使用這些恢復代碼來恢復您的帳戶。\n請將它們存放在安全且可訪問的地方。",
   "v2.page.settings-mfa-view-recovery-code.default.title": "恢復代碼",

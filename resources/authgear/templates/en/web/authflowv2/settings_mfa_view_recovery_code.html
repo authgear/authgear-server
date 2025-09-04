@@ -18,7 +18,7 @@
       {{ if .HasRecoveryCodes }}
         {{ include "v2.page.settings-mfa-view-recovery-code.default.storage-description" nil }}
       {{ else }}
-        {{ include "v2.page.settings-mfa-view-recovery-code.default.empty" nil }}
+        {{ include "v2.page.settings-mfa-view-recovery-code.default.no-existing-codes-description" nil }}
       {{ end }}
     </h2>
   </div>
