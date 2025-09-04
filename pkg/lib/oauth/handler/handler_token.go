@@ -614,7 +614,8 @@ func (h *TokenHandler) IssueTokensForAuthorizationCode(
 
 	err = h.CodeGrants.DeleteCodeGrant(ctx, codeGrant)
 	if err != nil {
-		logger.WithError(err).Error(ctx, "failed to invalidate code grant")
+		logger.WithError(err).Error(ctx, "failed to invalidate code grant",
+			slog.Bool("refresh_token_log", true))
 	}
 
 	otelutil.IntCounterAddOne(
@@ -1779,7 +1780,8 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 			// NOTE(DEV-2982): This is for debugging the session lost problem
 			userID := authz.UserID
 			logger.WithSkipLogging().Error(ctx, "user.authenticated event skipped because ShouldFireAuthenticatedEventWhenIssueOfflineGrant is false",
-				slog.String("user_id", userID))
+				slog.String("user_id", userID),
+				slog.Bool("refresh_token_log", true))
 		}
 	} else if code.IDTokenHintSID != "" {
 		sid = code.IDTokenHintSID

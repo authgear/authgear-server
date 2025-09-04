@@ -140,7 +140,8 @@ func (i *IntentSignupFlow) GetEffects(ctx context.Context, deps *authflow.Depend
 			// NOTE(DEV-2982): This is for debugging the session lost problem
 			logger := signupFlowLogger.GetLogger(ctx)
 			logger.WithSkipLogging().Error(ctx, "updated last login",
-				slog.String("user_id", userID))
+				slog.String("user_id", userID),
+				slog.Bool("refresh_token_log", true))
 			return deps.Users.UpdateLoginTime(ctx, userID, now)
 		}),
 		authflow.OnCommitEffect(func(ctx context.Context, deps *authflow.Dependencies) error {

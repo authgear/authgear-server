@@ -69,6 +69,7 @@ func (s *StoreRedis) Create(ctx context.Context, sess *IDPSession, expireAt time
 		slog.String("idp_session_id", sess.ID),
 		slog.Time("idp_session_created_at", sess.CreatedAt),
 		slog.String("user_id", sess.Attrs.UserID),
+		slog.Bool("refresh_token_log", true),
 	)
 
 	return
@@ -173,6 +174,7 @@ func (s *StoreRedis) Delete(ctx context.Context, session *IDPSession) (err error
 		slog.String("idp_session_id", session.ID),
 		slog.Time("idp_session_created_at", session.CreatedAt),
 		slog.String("user_id", session.Attrs.UserID),
+		slog.Bool("refresh_token_log", true),
 	)
 
 	return
