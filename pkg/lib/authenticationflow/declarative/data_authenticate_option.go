@@ -173,7 +173,7 @@ func NewAuthenticateOptionOOBOTPFromIdentity(
 		if err != nil {
 			return nil, false, err
 		}
-		var preferredChannel *string
+		preferredChannel := expectedAuthenticatorInfo.OOBOTP.PreferredChannel()
 
 		for _, authenticator := range allAuthenticators {
 			if authenticator.Equal(expectedAuthenticatorInfo) {

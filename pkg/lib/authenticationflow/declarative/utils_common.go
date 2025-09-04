@@ -652,7 +652,7 @@ func identityFillDetails(err error, spec *identity.Spec, existingSpec *identity.
 	return identityFillDetailsMany(err, spec, existings)
 }
 
-func getChannels(claimName model.ClaimName, oobConfig *config.AuthenticatorOOBConfig, preferredChannel *string) []model.AuthenticatorOOBChannel {
+func getChannels(claimName model.ClaimName, oobConfig *config.AuthenticatorOOBConfig, preferredChannel model.AuthenticatorOOBChannel) []model.AuthenticatorOOBChannel {
 	channels := []model.AuthenticatorOOBChannel{}
 
 	switch claimName {
@@ -670,11 +670,10 @@ func getChannels(claimName model.ClaimName, oobConfig *config.AuthenticatorOOBCo
 		}
 	}
 
-	if preferredChannel != nil {
-		preferred := model.AuthenticatorOOBChannel(*preferredChannel)
+	if preferredChannel != "" {
 		foundIdx := -1
 		for i, c := range channels {
-			if c == preferred {
+			if c == preferredChannel {
 				foundIdx = i
 				break
 			}
@@ -682,7 +681,7 @@ func getChannels(claimName model.ClaimName, oobConfig *config.AuthenticatorOOBCo
 		if foundIdx != -1 {
 			// Move preferred channel to the front
 			newChannels := make([]model.AuthenticatorOOBChannel, 0, len(channels))
-			newChannels = append(newChannels, preferred)
+			newChannels = append(newChannels, preferredChannel)
 			newChannels = append(newChannels, channels[:foundIdx]...)
 			newChannels = append(newChannels, channels[foundIdx+1:]...)
 			channels = newChannels
@@ -926,6 +925,13 @@ func createAuthenticator(ctx context.Context, deps *authflow.Dependencies, userI
 	if err != nil {
 		return nil, err
 	}
+
+	claimName, claimValue := info.OOBOTP.ToClaimPair()
+	claimStatus, err := getCreateAuthenticatorOOBOTPTargetClaimStatus(ctx, deps, userID, claimName, claimValue)
+	if err != nil {
+		return nil, err
+	}
+	info.OOBOTP.SetPreferredChannel(claimStatus.VerifiedByChannel)
 
 	return info, nil
 }

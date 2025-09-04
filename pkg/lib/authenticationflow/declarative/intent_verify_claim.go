@@ -111,5 +111,5 @@ func (i *IntentVerifyClaim) OutputData(ctx context.Context, deps *authflow.Depen
 }
 
 func (i *IntentVerifyClaim) getChannels(deps *authflow.Dependencies) []model.AuthenticatorOOBChannel {
-	return getChannels(i.ClaimName, deps.Config.Authenticator.OOB, nil)
+	return getChannels(i.ClaimName, deps.Config.Authenticator.OOB, "")
 }

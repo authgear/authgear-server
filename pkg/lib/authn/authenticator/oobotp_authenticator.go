@@ -56,19 +56,23 @@ func (a *OOBOTP) ToClaimPair() (claimName model.ClaimName, claimValue string) {
 	}
 }
 
-func (a *OOBOTP) PreferredChannel() *string {
+func (a *OOBOTP) PreferredChannel() model.AuthenticatorOOBChannel {
 	if a.Metadata == nil {
-		return nil
+		return ""
 	}
 	if preferredChannel, ok := a.Metadata["preferred_channel"].(string); ok {
-		return &preferredChannel
+		return model.AuthenticatorOOBChannel(preferredChannel)
 	}
-	return nil
+	return ""
 }
 
-func (a *OOBOTP) SetPreferredChannel(preferredChannel *string) {
+func (a *OOBOTP) SetPreferredChannel(preferredChannel model.AuthenticatorOOBChannel) {
 	if a.Metadata == nil {
 		a.Metadata = make(map[string]interface{})
 	}
-	a.Metadata["preferred_channel"] = preferredChannel
+	if preferredChannel == "" {
+		a.Metadata["preferred_channel"] = nil
+	} else {
+		a.Metadata["preferred_channel"] = string(preferredChannel)
+	}
 }

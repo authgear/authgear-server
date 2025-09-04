@@ -139,17 +139,19 @@ func (n *IntentCreateAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *aut
 
 	m, _, authenticatorSelected := authflow.FindMilestoneInCurrentFlow[MilestoneDidSelectAuthenticator](flows)
 	claimVerifiedAlready := false
+	var claimVerifiedByChannel model.AuthenticatorOOBChannel
 	_, _, claimVerifiedInThisFlow := authflow.FindMilestoneInCurrentFlow[MilestoneVerifyClaim](flows)
 	_, _, created := authflow.FindMilestoneInCurrentFlow[MilestoneDoCreateAuthenticator](flows)
 
 	if authenticatorSelected {
 		info := m.MilestoneDidSelectAuthenticator()
 		claimName, claimValue := info.OOBOTP.ToClaimPair()
-		verified, err := getCreateAuthenticatorOOBOTPTargetVerified(ctx, deps, n.UserID, claimName, claimValue)
+		claimStatus, err := getCreateAuthenticatorOOBOTPTargetClaimStatus(ctx, deps, n.UserID, claimName, claimValue)
 		if err != nil {
 			return nil, err
 		}
-		claimVerifiedAlready = verified
+		claimVerifiedAlready = claimStatus.Verified
+		claimVerifiedByChannel = claimStatus.VerifiedByChannel
 	}
 
 	shouldVerifyInThisFlow := !claimVerifiedAlready && verificationRequired
@@ -194,6 +196,7 @@ func (n *IntentCreateAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *aut
 		}), nil
 	case !created:
 		info := m.MilestoneDidSelectAuthenticator()
+		info.OOBOTP.SetPreferredChannel(claimVerifiedByChannel)
 		return authflow.NewNodeSimple(&NodeDoCreateAuthenticator{
 			Authenticator: info,
 		}), nil
