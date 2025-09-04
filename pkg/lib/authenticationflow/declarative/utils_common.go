@@ -362,27 +362,33 @@ func getAuthenticationOptionsForLogin(ctx context.Context, deps *authflow.Depend
 		return options, nil
 	}
 
-	useAuthenticationOptionAddPrimaryOOBOTPOfIdentity := func(options []AuthenticateOption, deps *authflow.Dependencies, authentication model.AuthenticationFlowAuthentication, info *identity.Info, botProtection *config.AuthenticationFlowBotProtection) []AuthenticateOption {
-		option, ok := NewAuthenticateOptionOOBOTPFromIdentity(flows, deps.Config.Authenticator.OOB, info, botProtection,
+	useAuthenticationOptionAddPrimaryOOBOTPOfIdentity := func(options []AuthenticateOption, deps *authflow.Dependencies, authentication model.AuthenticationFlowAuthentication, info *identity.Info, botProtection *config.AuthenticationFlowBotProtection) ([]AuthenticateOption, error) {
+		option, ok, err := NewAuthenticateOptionOOBOTPFromIdentity(ctx, flows, deps, info, authentication, botProtection,
 			deps.Config.BotProtection)
+		if err != nil {
+			return nil, err
+		}
 		if !ok {
-			return options
+			return options, nil
 		}
 
 		if option.Authentication != authentication {
-			return options
+			return options, nil
 		}
 
 		options = append(options, *option)
-		return options
+		return options, nil
 	}
 
-	useAuthenticationOptionAddPrimaryOOBOTPOfAllIdentities := func(options []AuthenticateOption, deps *authflow.Dependencies, authentication model.AuthenticationFlowAuthentication, infos []*identity.Info, botProtection *config.AuthenticationFlowBotProtection) []AuthenticateOption {
+	useAuthenticationOptionAddPrimaryOOBOTPOfAllIdentities := func(options []AuthenticateOption, deps *authflow.Dependencies, authentication model.AuthenticationFlowAuthentication, infos []*identity.Info, botProtection *config.AuthenticationFlowBotProtection) ([]AuthenticateOption, error) {
 		for _, info := range infos {
-			options = useAuthenticationOptionAddPrimaryOOBOTPOfIdentity(options, deps, authentication, info, botProtection)
+			options, err = useAuthenticationOptionAddPrimaryOOBOTPOfIdentity(options, deps, authentication, info, botProtection)
+			if err != nil {
+				return nil, err
+			}
 		}
 
-		return options
+		return options, nil
 	}
 
 	useAuthenticationOptionAddSecondaryOOBOTP := func(options []AuthenticateOption, deps *authflow.Dependencies, authentication model.AuthenticationFlowAuthentication, infos []*authenticator.Info, botProtection *config.AuthenticationFlowBotProtection) []AuthenticateOption {
@@ -425,9 +431,15 @@ func getAuthenticationOptionsForLogin(ctx context.Context, deps *authflow.Depend
 					return nil, false, err
 				}
 
-				options = useAuthenticationOptionAddPrimaryOOBOTPOfIdentity(options, deps, branch.Authentication, info, branch.BotProtection)
+				options, err = useAuthenticationOptionAddPrimaryOOBOTPOfIdentity(options, deps, branch.Authentication, info, branch.BotProtection)
+				if err != nil {
+					return nil, false, err
+				}
 			} else {
-				options = useAuthenticationOptionAddPrimaryOOBOTPOfAllIdentities(options, deps, branch.Authentication, identities, branch.BotProtection)
+				options, err = useAuthenticationOptionAddPrimaryOOBOTPOfAllIdentities(options, deps, branch.Authentication, identities, branch.BotProtection)
+				if err != nil {
+					return nil, false, err
+				}
 			}
 		case model.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
 			fallthrough
@@ -526,14 +538,17 @@ func getAuthenticationOptionsForReauth(ctx context.Context, deps *authflow.Depen
 		return options, nil
 	}
 
-	useAuthenticationOptionAddPrimaryOOBOTP := func(options []AuthenticateOption, authentication model.AuthenticationFlowAuthentication, typ model.AuthenticatorType, botProtection *config.AuthenticationFlowBotProtection) []AuthenticateOption {
+	useAuthenticationOptionAddPrimaryOOBOTP := func(options []AuthenticateOption, authentication model.AuthenticationFlowAuthentication, typ model.AuthenticatorType, botProtection *config.AuthenticationFlowBotProtection) ([]AuthenticateOption, error) {
 		for _, info := range identities {
-			option, ok := NewAuthenticateOptionOOBOTPFromIdentity(flows, deps.Config.Authenticator.OOB, info, botProtection, deps.Config.BotProtection)
+			option, ok, err := NewAuthenticateOptionOOBOTPFromIdentity(ctx, flows, deps, info, authentication, botProtection, deps.Config.BotProtection)
+			if err != nil {
+				return nil, err
+			}
 			if ok && option.Authentication == authentication {
 				options = append(options, *option)
 			}
 		}
-		return options
+		return options, nil
 	}
 
 	useAuthenticationOptionAddSecondaryOOBOTP := func(options []AuthenticateOption, authentication model.AuthenticationFlowAuthentication, typ model.AuthenticatorType, botProtection *config.AuthenticationFlowBotProtection) []AuthenticateOption {
@@ -565,9 +580,15 @@ func getAuthenticationOptionsForReauth(ctx context.Context, deps *authflow.Depen
 		case model.AuthenticationFlowAuthenticationSecondaryTOTP:
 			options = useAuthenticationOptionAddTOTP(options, branch.BotProtection)
 		case model.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
-			options = useAuthenticationOptionAddPrimaryOOBOTP(options, branch.Authentication, model.AuthenticatorTypeOOBEmail, branch.BotProtection)
+			options, err = useAuthenticationOptionAddPrimaryOOBOTP(options, branch.Authentication, model.AuthenticatorTypeOOBEmail, branch.BotProtection)
+			if err != nil {
+				return nil, err
+			}
 		case model.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
-			options = useAuthenticationOptionAddPrimaryOOBOTP(options, branch.Authentication, model.AuthenticatorTypeOOBSMS, branch.BotProtection)
+			options, err = useAuthenticationOptionAddPrimaryOOBOTP(options, branch.Authentication, model.AuthenticatorTypeOOBSMS, branch.BotProtection)
+			if err != nil {
+				return nil, err
+			}
 		case model.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
 			options = useAuthenticationOptionAddSecondaryOOBOTP(options, branch.Authentication, model.AuthenticatorTypeOOBEmail, branch.BotProtection)
 		case model.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
@@ -631,7 +652,7 @@ func identityFillDetails(err error, spec *identity.Spec, existingSpec *identity.
 	return identityFillDetailsMany(err, spec, existings)
 }
 
-func getChannels(claimName model.ClaimName, oobConfig *config.AuthenticatorOOBConfig) []model.AuthenticatorOOBChannel {
+func getChannels(claimName model.ClaimName, oobConfig *config.AuthenticatorOOBConfig, preferredChannel *string) []model.AuthenticatorOOBChannel {
 	channels := []model.AuthenticatorOOBChannel{}
 
 	switch claimName {
@@ -646,6 +667,25 @@ func getChannels(claimName model.ClaimName, oobConfig *config.AuthenticatorOOBCo
 		case config.AuthenticatorPhoneOTPModeWhatsappSMS:
 			channels = append(channels, model.AuthenticatorOOBChannelWhatsapp)
 			channels = append(channels, model.AuthenticatorOOBChannelSMS)
+		}
+	}
+
+	if preferredChannel != nil {
+		preferred := model.AuthenticatorOOBChannel(*preferredChannel)
+		foundIdx := -1
+		for i, c := range channels {
+			if c == preferred {
+				foundIdx = i
+				break
+			}
+		}
+		if foundIdx != -1 {
+			// Move preferred channel to the front
+			newChannels := make([]model.AuthenticatorOOBChannel, 0, len(channels))
+			newChannels = append(newChannels, preferred)
+			newChannels = append(newChannels, channels[:foundIdx]...)
+			newChannels = append(newChannels, channels[foundIdx+1:]...)
+			channels = newChannels
 		}
 	}
 
