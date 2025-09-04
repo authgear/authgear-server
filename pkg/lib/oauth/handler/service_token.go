@@ -218,26 +218,23 @@ func (s *TokenService) ParseRefreshToken(ctx context.Context, token string) (
 
 	token, grantID, err := oauth.DecodeRefreshToken(token)
 	if err != nil {
-		logger.WithSkipLogging().Error(ctx,
+		logger.WithSkipLogging().WithError(err).Error(ctx,
 			"failed to parse refresh token",
-			slog.String("error", err.Error()),
 		)
 		return nil, nil, "", ErrInvalidRefreshToken
 	}
 
 	offlineGrant, err = s.OfflineGrantService.GetOfflineGrant(ctx, grantID)
 	if errors.Is(err, oauth.ErrGrantNotFound) {
-		logger.WithSkipLogging().Error(ctx,
+		logger.WithSkipLogging().WithError(err).Error(ctx,
 			"failed to get offline grant: not found",
 			slog.String("offline_grant_id", grantID),
-			slog.String("error", err.Error()),
 		)
 		return nil, nil, "", ErrInvalidRefreshToken
 	} else if err != nil {
-		logger.WithSkipLogging().Error(ctx,
+		logger.WithSkipLogging().WithError(err).Error(ctx,
 			"failed to get offline grant",
 			slog.String("offline_grant_id", grantID),
-			slog.String("error", err.Error()),
 		)
 		return nil, nil, "", err
 	}
@@ -273,19 +270,17 @@ func (s *TokenService) ParseRefreshToken(ctx context.Context, token string) (
 
 	authz, err = s.Authorizations.GetByID(ctx, offlineGrantSession.AuthorizationID)
 	if errors.Is(err, oauth.ErrAuthorizationNotFound) {
-		logger.WithSkipLogging().Error(ctx,
+		logger.WithSkipLogging().WithError(err).Error(ctx,
 			"failed to get authorization: not found",
 			slog.String("offline_grant_id", offlineGrant.ID),
 			slog.String("user_id", offlineGrant.GetUserID()),
-			slog.String("error", err.Error()),
 		)
 		return nil, nil, "", ErrInvalidRefreshToken
 	} else if err != nil {
-		logger.WithSkipLogging().Error(ctx,
+		logger.WithSkipLogging().WithError(err).Error(ctx,
 			"failed to get authorization",
 			slog.String("offline_grant_id", offlineGrant.ID),
 			slog.String("user_id", offlineGrant.GetUserID()),
-			slog.String("error", err.Error()),
 		)
 		return nil, nil, "", err
 	}
@@ -294,29 +289,26 @@ func (s *TokenService) ParseRefreshToken(ctx context.Context, token string) (
 	u, err := s.Users.GetRaw(ctx, offlineGrant.Attrs.UserID)
 	if err != nil {
 		if errors.Is(err, user.ErrUserNotFound) {
-			logger.WithSkipLogging().Error(ctx,
+			logger.WithSkipLogging().WithError(err).Error(ctx,
 				"failed to get user: not found",
 				slog.String("user_id", offlineGrant.GetUserID()),
 				slog.String("offline_grant_id", offlineGrant.ID),
-				slog.String("error", err.Error()),
 			)
 			return nil, nil, "", ErrInvalidRefreshToken
 		}
-		logger.WithSkipLogging().Error(ctx,
+		logger.WithSkipLogging().WithError(err).Error(ctx,
 			"failed to get user",
 			slog.String("user_id", offlineGrant.GetUserID()),
 			slog.String("offline_grant_id", offlineGrant.ID),
-			slog.String("error", err.Error()),
 		)
 		return nil, nil, "", err
 	}
 	err = u.AccountStatus().Check()
 	if err != nil {
-		logger.WithSkipLogging().Error(ctx,
+		logger.WithSkipLogging().WithError(err).Error(ctx,
 			"user account status check failed",
 			slog.String("user_id", offlineGrant.GetUserID()),
 			slog.String("offline_grant_id", offlineGrant.ID),
-			slog.String("error", err.Error()),
 		)
 		return nil, nil, "", ErrInvalidRefreshToken
 	}

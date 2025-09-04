@@ -633,9 +633,8 @@ func (h *TokenHandler) handleRefreshToken(
 	logger := TokenHandlerLogger.GetLogger(ctx)
 	deviceInfo, err := r.DeviceInfo()
 	if err != nil {
-		logger.WithSkipLogging().Error(ctx,
+		logger.WithSkipLogging().WithError(err).Error(ctx,
 			"failed to get device info from token request",
-			slog.String("error", err.Error()),
 		)
 		return nil, protocol.NewError("invalid_request", err.Error())
 	}
@@ -648,11 +647,10 @@ func (h *TokenHandler) handleRefreshToken(
 			offlineGrantID = offlineGrant.ID
 			userID = offlineGrant.GetUserID()
 		}
-		logger.WithSkipLogging().Error(ctx,
+		logger.WithSkipLogging().WithError(err).Error(ctx,
 			"failed to refresh token",
 			slog.String("offline_grant_id", offlineGrantID),
 			slog.String("user_id", userID),
-			slog.String("error", err.Error()),
 		)
 		return nil, err
 	}
@@ -674,11 +672,10 @@ func (h *TokenHandler) handleRefreshToken(
 
 	resp, err := h.issueTokensForRefreshToken(ctx, client, offlineGrantSession, authz)
 	if err != nil {
-		logger.WithSkipLogging().Error(ctx,
+		logger.WithSkipLogging().WithError(err).Error(ctx,
 			"failed to issue tokens for refresh token",
 			slog.String("offline_grant_id", offlineGrant.ID),
 			slog.String("user_id", offlineGrant.GetUserID()),
-			slog.String("error", err.Error()),
 		)
 		return nil, err
 	}
@@ -696,22 +693,20 @@ func (h *TokenHandler) handleRefreshToken(
 
 	_, err = h.OfflineGrantService.AccessOfflineGrant(ctx, offlineGrant.ID, refreshTokenHash, &accessEvent, offlineGrant.ExpireAtForResolvedSession)
 	if err != nil {
-		logger.WithSkipLogging().Error(ctx,
+		logger.WithSkipLogging().WithError(err).Error(ctx,
 			"failed to access offline grant during refresh token",
 			slog.String("offline_grant_id", offlineGrant.ID),
 			slog.String("user_id", offlineGrant.GetUserID()),
-			slog.String("error", err.Error()),
 		)
 		return nil, err
 	}
 
 	_, err = h.OfflineGrants.UpdateOfflineGrantDeviceInfo(ctx, offlineGrant.ID, deviceInfo, offlineGrant.ExpireAtForResolvedSession)
 	if err != nil {
-		logger.WithSkipLogging().Error(ctx,
+		logger.WithSkipLogging().WithError(err).Error(ctx,
 			"failed to update offline grant device info during refresh token",
 			slog.String("offline_grant_id", offlineGrant.ID),
 			slog.String("user_id", offlineGrant.GetUserID()),
-			slog.String("error", err.Error()),
 		)
 		return nil, err
 	}
