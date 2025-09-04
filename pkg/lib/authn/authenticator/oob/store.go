@@ -3,6 +3,7 @@ package oob
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -31,7 +32,7 @@ func (s *Store) selectQuery() db.SelectBuilder {
 			"a.kind",
 			"ao.phone",
 			"ao.email",
-			"ao.preferred_channel",
+			"ao.metadata",
 		).
 		From(s.SQLBuilder.TableName("_auth_authenticator"), "a").
 		Join(s.SQLBuilder.TableName("_auth_authenticator_oob"), "ao", "a.id = ao.id")
@@ -39,6 +40,7 @@ func (s *Store) selectQuery() db.SelectBuilder {
 
 func (s *Store) scan(scn db.Scanner) (*authenticator.OOBOTP, error) {
 	a := &authenticator.OOBOTP{}
+	var rawMetadata []byte
 
 	err := scn.Scan(
 		&a.ID,
@@ -50,12 +52,19 @@ func (s *Store) scan(scn db.Scanner) (*authenticator.OOBOTP, error) {
 		&a.Kind,
 		&a.Phone,
 		&a.Email,
-		&a.PreferredChannel,
+		&rawMetadata,
 	)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, authenticator.ErrAuthenticatorNotFound
 	} else if err != nil {
 		return nil, err
+	}
+
+	if rawMetadata != nil {
+		err = json.Unmarshal(rawMetadata, &a.Metadata)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return a, nil
@@ -165,19 +174,24 @@ func (s *Store) Create(ctx context.Context, a *authenticator.OOBOTP) (err error)
 		return err
 	}
 
+	rawMetadata, err := json.Marshal(a.Metadata)
+	if err != nil {
+		return err
+	}
+
 	q = s.SQLBuilder.
 		Insert(s.SQLBuilder.TableName("_auth_authenticator_oob")).
 		Columns(
 			"id",
 			"phone",
 			"email",
-			"preferred_channel",
+			"metadata",
 		).
 		Values(
 			a.ID,
 			a.Phone,
 			a.Email,
-			a.PreferredChannel,
+			rawMetadata,
 		)
 	_, err = s.SQLExecutor.ExecWith(ctx, q)
 	if err != nil {
@@ -211,11 +225,16 @@ func (s *Store) Update(ctx context.Context, a *authenticator.OOBOTP) (err error)
 		panic(fmt.Sprintf("authenticator_oob: want 1 row updated, got %v", rowsAffected))
 	}
 
+	rawMetadata, err := json.Marshal(a.Metadata)
+	if err != nil {
+		return err
+	}
+
 	q = s.SQLBuilder.
 		Update(s.SQLBuilder.TableName("_auth_authenticator_oob")).
 		Set("phone", a.Phone).
 		Set("email", a.Email).
-		Set("preferred_channel", a.PreferredChannel).
+		Set("metadata", rawMetadata).
 		Where("id = ?", a.ID)
 	result, err = s.SQLExecutor.ExecWith(ctx, q)
 	if err != nil {

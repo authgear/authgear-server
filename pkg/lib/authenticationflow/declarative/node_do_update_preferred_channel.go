@@ -30,7 +30,7 @@ func (n *NodeDoUpdatePreferredChannel) GetEffects(ctx context.Context, deps *aut
 	return []authflow.Effect{
 		authflow.RunEffect(func(ctx context.Context, deps *authflow.Dependencies) error {
 			var channel string = string(n.Channel)
-			n.Info.OOBOTP.PreferredChannel = &channel
+			n.Info.OOBOTP.SetPreferredChannel(&channel)
 			return deps.Authenticators.Update(ctx, n.Info)
 		}),
 	}, nil

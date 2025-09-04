@@ -16,7 +16,7 @@ type OOBOTP struct {
 	OOBAuthenticatorType model.AuthenticatorType `json:"oob_authenticator_type"`
 	Phone                string                  `json:"phone,omitempty"`
 	Email                string                  `json:"email,omitempty"`
-	PreferredChannel     *string                 `json:"preferred_channel,omitempty"`
+	Metadata             map[string]interface{}  `json:"metadata,omitempty"`
 }
 
 func (a *OOBOTP) ToInfo() *Info {
@@ -54,4 +54,21 @@ func (a *OOBOTP) ToClaimPair() (claimName model.ClaimName, claimValue string) {
 	default:
 		panic("authenticator: incompatible authenticator type: " + a.OOBAuthenticatorType)
 	}
+}
+
+func (a *OOBOTP) PreferredChannel() *string {
+	if a.Metadata == nil {
+		return nil
+	}
+	if preferredChannel, ok := a.Metadata["preferred_channel"].(string); ok {
+		return &preferredChannel
+	}
+	return nil
+}
+
+func (a *OOBOTP) SetPreferredChannel(preferredChannel *string) {
+	if a.Metadata == nil {
+		a.Metadata = make(map[string]interface{})
+	}
+	a.Metadata["preferred_channel"] = preferredChannel
 }
