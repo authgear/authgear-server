@@ -184,7 +184,8 @@ func (n *NodeDoEnsureSession) GetEffects(goCtx context.Context) ([]interaction.E
 				// NOTE(DEV-2982): This is for debugging the session lost problem
 				logger := doEnsureSessionLogger.GetLogger(goCtx)
 				logger.WithSkipLogging().Error(goCtx, "updated last login",
-					slog.String("user_id", userID))
+					slog.String("user_id", userID),
+					slog.Bool("refresh_token_log", true))
 				err = ctx.Users.UpdateLoginTime(goCtx, userID, n.UpdateLoginTime)
 				if err != nil {
 					return err
@@ -216,13 +217,15 @@ func (n *NodeDoEnsureSession) GetEffects(goCtx context.Context) ([]interaction.E
 					logger := doEnsureSessionLogger.GetLogger(goCtx)
 					logger.WithSkipLogging().Error(goCtx, "user.authenticated event skipped because create reason is not login or reauthenticate",
 						slog.String("user_id", userID),
-						slog.String("create_reason", string(n.CreateReason)))
+						slog.String("create_reason", string(n.CreateReason)),
+						slog.Bool("refresh_token_log", true))
 				}
 			} else {
 				// NOTE(DEV-2982): This is for debugging the session lost problem
 				logger := doEnsureSessionLogger.GetLogger(goCtx)
 				logger.WithSkipLogging().Error(goCtx, "user.authenticated event skipped because session to create is nil",
-					slog.String("user_id", userID))
+					slog.String("user_id", userID),
+					slog.Bool("refresh_token_log", true))
 			}
 
 			if n.SessionToCreate != nil {

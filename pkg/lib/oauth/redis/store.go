@@ -285,6 +285,7 @@ func (s *Store) CreateOfflineGrant(ctx context.Context, grant *oauth.OfflineGran
 		slog.String("offline_grant_initial_client_id", grant.InitialClientID),
 		slog.Time("offline_grant_created_at", grant.CreatedAt),
 		slog.String("user_id", grant.Attrs.UserID),
+		slog.Bool("refresh_token_log", true),
 	)
 
 	return nil
@@ -588,6 +589,7 @@ func (s *Store) DeleteOfflineGrant(ctx context.Context, grant *oauth.OfflineGran
 			slog.String("offline_grant_initial_client_id", grant.InitialClientID),
 			slog.Time("offline_grant_created_at", grant.CreatedAt),
 			slog.String("user_id", grant.Attrs.UserID),
+			slog.Bool("refresh_token_log", true),
 		)
 
 		_, err = conn.HDel(ctx, offlineGrantListKey(grant.AppID, grant.Attrs.UserID), grant.ID).Result()

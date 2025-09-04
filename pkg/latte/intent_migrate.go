@@ -131,7 +131,8 @@ func (i *IntentMigrate) GetEffects(ctx context.Context, deps *workflow.Dependenc
 			now := deps.Clock.NowUTC()
 			logger := latteMigrateLogger.GetLogger(ctx)
 			logger.WithSkipLogging().Error(ctx, "updated last login",
-				slog.String("user_id", userID))
+				slog.String("user_id", userID),
+				slog.Bool("refresh_token_log", true))
 			return deps.Users.UpdateLoginTime(ctx, userID, now)
 		}),
 		workflow.OnCommitEffect(func(ctx context.Context, deps *workflow.Dependencies) error {

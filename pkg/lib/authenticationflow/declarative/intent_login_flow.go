@@ -99,7 +99,8 @@ func (i *IntentLoginFlow) GetEffects(ctx context.Context, deps *authflow.Depende
 			// NOTE(DEV-2982): This is for debugging the session lost problem
 			logger := loginFlowLogger.GetLogger(ctx)
 			logger.WithSkipLogging().Error(ctx, "updated last login",
-				slog.String("user_id", userID))
+				slog.String("user_id", userID),
+				slog.Bool("refresh_token_log", true))
 			return deps.Users.UpdateLoginTime(ctx, userID, now)
 		}),
 		authflow.OnCommitEffect(func(ctx context.Context, deps *authflow.Dependencies) error {
@@ -139,7 +140,8 @@ func (i *IntentLoginFlow) GetEffects(ctx context.Context, deps *authflow.Depende
 				// NOTE(DEV-2982): This is for debugging the session lost problem
 				logger := loginFlowLogger.GetLogger(ctx)
 				logger.WithSkipLogging().Error(ctx, "user.authenticated event skipped because IDP session is nil",
-					slog.String("user_id", userID))
+					slog.String("user_id", userID),
+					slog.Bool("refresh_token_log", true))
 				return nil
 			}
 
