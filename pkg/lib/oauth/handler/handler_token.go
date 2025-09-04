@@ -635,6 +635,7 @@ func (h *TokenHandler) handleRefreshToken(
 	if err != nil {
 		logger.WithSkipLogging().WithError(err).Error(ctx,
 			"failed to get device info from token request",
+			slog.Bool("refresh_token_log", true),
 		)
 		return nil, protocol.NewError("invalid_request", err.Error())
 	}
@@ -651,6 +652,7 @@ func (h *TokenHandler) handleRefreshToken(
 			"failed to parse refresh token",
 			slog.String("offline_grant_id", offlineGrantID),
 			slog.String("user_id", userID),
+			slog.Bool("refresh_token_log", true),
 		)
 		return nil, err
 	}
@@ -666,6 +668,7 @@ func (h *TokenHandler) handleRefreshToken(
 			"failed to convert offline grant to session by hash",
 			slog.String("offline_grant_id", offlineGrant.ID),
 			slog.String("user_id", offlineGrant.GetUserID()),
+			slog.Bool("refresh_token_log", true),
 		)
 		return nil, ErrInvalidRefreshToken
 	}
@@ -676,6 +679,7 @@ func (h *TokenHandler) handleRefreshToken(
 			"failed to issue tokens for refresh token",
 			slog.String("offline_grant_id", offlineGrant.ID),
 			slog.String("user_id", offlineGrant.GetUserID()),
+			slog.Bool("refresh_token_log", true),
 		)
 		return nil, err
 	}
@@ -687,6 +691,7 @@ func (h *TokenHandler) handleRefreshToken(
 			slog.String("offline_grant_client_id", offlineGrantSession.ClientID),
 			slog.String("offline_grant_id", offlineGrant.ID),
 			slog.String("user_id", offlineGrant.GetUserID()),
+			slog.Bool("refresh_token_log", true),
 		)
 		return nil, protocol.NewError("invalid_request", "client id doesn't match the refresh token")
 	}
@@ -697,6 +702,7 @@ func (h *TokenHandler) handleRefreshToken(
 			"failed to access offline grant during refresh token",
 			slog.String("offline_grant_id", offlineGrant.ID),
 			slog.String("user_id", offlineGrant.GetUserID()),
+			slog.Bool("refresh_token_log", true),
 		)
 		return nil, err
 	}
@@ -707,6 +713,7 @@ func (h *TokenHandler) handleRefreshToken(
 			"failed to update offline grant device info during refresh token",
 			slog.String("offline_grant_id", offlineGrant.ID),
 			slog.String("user_id", offlineGrant.GetUserID()),
+			slog.Bool("refresh_token_log", true),
 		)
 		return nil, err
 	}

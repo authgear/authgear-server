@@ -220,6 +220,7 @@ func (s *TokenService) ParseRefreshToken(ctx context.Context, token string) (
 	if err != nil {
 		logger.WithSkipLogging().WithError(err).Error(ctx,
 			"failed to decode refresh token",
+			slog.Bool("refresh_token_log", true),
 		)
 		return nil, nil, "", ErrInvalidRefreshToken
 	}
@@ -229,12 +230,14 @@ func (s *TokenService) ParseRefreshToken(ctx context.Context, token string) (
 		logger.WithSkipLogging().WithError(err).Error(ctx,
 			"failed to get offline grant: not found",
 			slog.String("offline_grant_id", grantID),
+			slog.Bool("refresh_token_log", true),
 		)
 		return nil, nil, "", ErrInvalidRefreshToken
 	} else if err != nil {
 		logger.WithSkipLogging().WithError(err).Error(ctx,
 			"failed to get offline grant",
 			slog.String("offline_grant_id", grantID),
+			slog.Bool("refresh_token_log", true),
 		)
 		return nil, nil, "", err
 	}
@@ -245,6 +248,7 @@ func (s *TokenService) ParseRefreshToken(ctx context.Context, token string) (
 			"failed to match refresh token hash",
 			slog.String("offline_grant_id", offlineGrant.ID),
 			slog.String("user_id", offlineGrant.GetUserID()),
+			slog.Bool("refresh_token_log", true),
 		)
 		return nil, nil, "", ErrInvalidRefreshToken
 	}
@@ -255,6 +259,7 @@ func (s *TokenService) ParseRefreshToken(ctx context.Context, token string) (
 			"failed to convert offline grant to session",
 			slog.String("offline_grant_id", offlineGrant.ID),
 			slog.String("user_id", offlineGrant.GetUserID()),
+			slog.Bool("refresh_token_log", true),
 		)
 		return nil, nil, "", ErrInvalidRefreshToken
 	}
@@ -264,6 +269,7 @@ func (s *TokenService) ParseRefreshToken(ctx context.Context, token string) (
 			"failed to match DPoP JKT",
 			slog.String("offline_grant_id", offlineGrant.ID),
 			slog.String("user_id", offlineGrant.GetUserID()),
+			slog.Bool("refresh_token_log", true),
 		)
 		return nil, nil, "", ErrInvalidDPoPKeyBinding
 	}
@@ -274,6 +280,7 @@ func (s *TokenService) ParseRefreshToken(ctx context.Context, token string) (
 			"failed to get authorization: not found",
 			slog.String("offline_grant_id", offlineGrant.ID),
 			slog.String("user_id", offlineGrant.GetUserID()),
+			slog.Bool("refresh_token_log", true),
 		)
 		return nil, nil, "", ErrInvalidRefreshToken
 	} else if err != nil {
@@ -281,6 +288,7 @@ func (s *TokenService) ParseRefreshToken(ctx context.Context, token string) (
 			"failed to get authorization",
 			slog.String("offline_grant_id", offlineGrant.ID),
 			slog.String("user_id", offlineGrant.GetUserID()),
+			slog.Bool("refresh_token_log", true),
 		)
 		return nil, nil, "", err
 	}
@@ -293,6 +301,7 @@ func (s *TokenService) ParseRefreshToken(ctx context.Context, token string) (
 				"failed to get user: not found",
 				slog.String("user_id", offlineGrant.GetUserID()),
 				slog.String("offline_grant_id", offlineGrant.ID),
+				slog.Bool("refresh_token_log", true),
 			)
 			return nil, nil, "", ErrInvalidRefreshToken
 		}
@@ -300,6 +309,7 @@ func (s *TokenService) ParseRefreshToken(ctx context.Context, token string) (
 			"failed to get user",
 			slog.String("user_id", offlineGrant.GetUserID()),
 			slog.String("offline_grant_id", offlineGrant.ID),
+			slog.Bool("refresh_token_log", true),
 		)
 		return nil, nil, "", err
 	}
@@ -309,6 +319,7 @@ func (s *TokenService) ParseRefreshToken(ctx context.Context, token string) (
 			"user account status check failed",
 			slog.String("user_id", offlineGrant.GetUserID()),
 			slog.String("offline_grant_id", offlineGrant.ID),
+			slog.Bool("refresh_token_log", true),
 		)
 		return nil, nil, "", ErrInvalidRefreshToken
 	}
