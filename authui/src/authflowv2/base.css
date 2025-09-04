@@ -211,6 +211,35 @@
     --alignment-card: center; /* center / start / end */
     --alignment-content: center; /* center / start / end */
   }
+
+  /* Safe Area */
+  :root {
+    /* The reason we use custom properties is to be compatible with our SDK */
+    /* Our SDK may write directly on :root to report a more accurate safe area insets */
+    --safe-area-inset-top: env(safe-area-inset-top, 0px);
+    --safe-area-inset-right: env(safe-area-inset-right, 0px);
+    --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-area-inset-left: env(safe-area-inset-left, 0px);
+  }
+
+  /* Dialog and Overlay */
+  /* In DEV-3003, we realize that we cannot statically declare positioned element because */
+  /* dialog and overlay requires different host in mobile/tablet/desktop layout */
+  /* Therefore, we switch to a dynamic approach. */
+  /* We declare the intended host here, and */
+  /* The dialog and overlay controller retrieve the host just before showing the dialog or the overlay */
+  /* After the dialog or the overlay is closed, we make the host non-positioned again. */
+  :root {
+    --dialog-host: .layout--default;
+    --overlay-host: .layout--default;
+  }
+
+  @media (min-width: theme("screens.tablet")) {
+    :root {
+      --dialog-host: .layout--default;
+      --overlay-host: .widget-content;
+    }
+  }
 }
 
 @layer utilities {

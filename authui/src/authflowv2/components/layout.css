@@ -14,11 +14,19 @@
 
   .layout--common {
     @apply z-0;
-    @apply relative;
+    /* We now declare the host of dialog and overlay in base.css */
+    /* See DEV-3003 for details */
+    /* @apply relative; */
     @apply flex flex-col flex-1-0-auto;
     @apply items-center justify-start;
+
     /* padding */
-    @apply tablet:px-16 desktop:px-60;
+    @apply pt-[var(--safe-area-inset-top)];
+    @apply pr-[var(--safe-area-inset-right)];
+    @apply pb-[var(--safe-area-inset-bottom)];
+    @apply pl-[var(--safe-area-inset-left)];
+    @apply tablet:px-16;
+    @apply desktop:px-60;
   }
 
   .layout--common::before {

@@ -103,6 +103,7 @@ radio
 refresh
 remove
 repeat
+report
 restore
 rule
 save

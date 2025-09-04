@@ -37,9 +37,20 @@
 
   .dialog-backdrop {
     /* common styles */
-    @apply fixed inset-0;
-    @apply w-screen h-screen;
+
+    /* In DEV-3003, we realized that using fixed will cause the element to span full height in ASWebAuthenticationSession. */
+    /* On iOS 26, it is troublesome because the fixed element will overlap with the browser bottom bar. */
+    /* Therefore, we changed our approach and use absolute instead */
+    /* The caveat of using absolute is that we have to make sure we have no unintended positioned parent. */
+    @apply absolute;
+    @apply inset-0;
     @apply flex;
+
+    /* It is important to have overflow: hidden because */
+    /* In mobile layout, dialog has transform: translateY(100%) */
+    /* That transform will cause scroll bar to appear, making the page longer than expected */
+    @apply overflow-hidden;
+
     background-color: rgb(0 0 0 / 0.5);
 
     /* if you change these, change `dialog.ts` too */
@@ -60,14 +71,16 @@
   .dialog {
     /* common styles */
     background-color: var(--dialog-content__bg-color);
+    @apply relative;
+    @apply pt-8;
+    @apply pr-[max(var(--safe-area-inset-right),2rem)];
+    @apply pb-[max(var(--safe-area-inset-bottom),2rem)];
+    @apply pl-[max(var(--safe-area-inset-left),2rem)];
 
     /* mobile-specific styles */
     @apply w-screen;
-    @apply p-8;
-    @apply relative;
     @apply rounded-t-2xl;
     @apply h-min;
-
     transform: translateY(100%);
     /* if you change these, change `dialog.ts` too */
     transition: transform var(--dialog-slide-animation-duration) ease-in-out;
@@ -142,8 +155,10 @@
     .dialog {
       @apply rounded-2xl;
       @apply w-98;
-      @apply p-8;
-      @apply relative;
+      @apply pt-8;
+      @apply pr-8;
+      @apply pb-8;
+      @apply pl-8;
 
       transform: none; /* slide animation only wanted on mobile */
     }

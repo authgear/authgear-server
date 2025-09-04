@@ -74,6 +74,13 @@ export class DialogController extends Controller {
       // open event targets other dialog
       return;
     }
+
+    const host = this.getHost();
+    if (host == null) {
+      return;
+    }
+
+    this.prepareHost(host);
     this.element.classList.add("open");
     const activeElement = document.activeElement;
     if (activeElement instanceof HTMLElement) {
@@ -91,6 +98,29 @@ export class DialogController extends Controller {
     }
     this.element.classList.remove("open");
   };
+
+  private getHost(): HTMLElement | null {
+    const dialogHost = getComputedStyle(
+      document.documentElement
+    ).getPropertyValue("--dialog-host");
+
+    const host = document.querySelector(dialogHost);
+    if (host == null) {
+      return null;
+    }
+    if (host instanceof HTMLElement) {
+      return host;
+    }
+    return null;
+  }
+
+  private prepareHost(host: HTMLElement): void {
+    host.classList.add("relative");
+  }
+
+  private revertPrepareHost(host: HTMLElement): void {
+    host.classList.remove("relative");
+  }
 
   get isOpened() {
     return this.element.classList.contains("open");
@@ -113,6 +143,10 @@ export class DialogController extends Controller {
     if (e instanceof TransitionEvent) {
       const isVisibilityEvent = e.propertyName === "visibility";
       if (isVisibilityEvent && this.isClosed) {
+        const host = this.getHost();
+        if (host != null) {
+          this.revertPrepareHost(host);
+        }
         dispatchDialogCloseEnd(this.element.id);
       }
     }

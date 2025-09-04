@@ -46,7 +46,10 @@
   }
 
   .widget-content {
-    @apply relative;
+    /* We now declare the host of dialog and overlay in base.css */
+    /* See DEV-3003 for details */
+    /* @apply static tablet:relative desktop:relative; */
+
     @apply h-full w-full;
     @apply flex flex-col;
     @apply self-center;
