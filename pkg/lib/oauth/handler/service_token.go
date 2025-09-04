@@ -219,7 +219,7 @@ func (s *TokenService) ParseRefreshToken(ctx context.Context, token string) (
 	token, grantID, err := oauth.DecodeRefreshToken(token)
 	if err != nil {
 		logger.WithSkipLogging().WithError(err).Error(ctx,
-			"failed to parse refresh token",
+			"failed to decode refresh token",
 		)
 		return nil, nil, "", ErrInvalidRefreshToken
 	}

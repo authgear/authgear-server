@@ -648,7 +648,7 @@ func (h *TokenHandler) handleRefreshToken(
 			userID = offlineGrant.GetUserID()
 		}
 		logger.WithSkipLogging().WithError(err).Error(ctx,
-			"failed to refresh token",
+			"failed to parse refresh token",
 			slog.String("offline_grant_id", offlineGrantID),
 			slog.String("user_id", userID),
 		)
@@ -663,7 +663,7 @@ func (h *TokenHandler) handleRefreshToken(
 	offlineGrantSession, ok := offlineGrant.ToSession(refreshTokenHash)
 	if !ok {
 		logger.WithSkipLogging().Error(ctx,
-			"failed to refresh token: failed to convert offline grant to session by hash",
+			"failed to convert offline grant to session by hash",
 			slog.String("offline_grant_id", offlineGrant.ID),
 			slog.String("user_id", offlineGrant.GetUserID()),
 		)
@@ -682,7 +682,7 @@ func (h *TokenHandler) handleRefreshToken(
 
 	if client.ClientID != offlineGrantSession.ClientID {
 		logger.WithSkipLogging().Error(ctx,
-			"client ID does not match refresh token's client ID",
+			"client ID in request does match that of refresh token",
 			slog.String("client_id", client.ClientID),
 			slog.String("offline_grant_client_id", offlineGrantSession.ClientID),
 			slog.String("offline_grant_id", offlineGrant.ID),
