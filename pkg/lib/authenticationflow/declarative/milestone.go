@@ -336,3 +336,13 @@ type MilestonePreAuthenticated interface {
 	authflow.Milestone
 	MilestonePreAuthenticated()
 }
+
+type MilestoneOOBOTPVerified interface {
+	authflow.Milestone
+	MilestoneOOBOTPVerifiedChannel() model.AuthenticatorOOBChannel
+}
+
+type MilestoneOOBOTPPreferredChannelUpdated interface {
+	authflow.Milestone
+	MilestoneOOBOTPPreferredChannelUpdated()
+}

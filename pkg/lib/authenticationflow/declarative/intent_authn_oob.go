@@ -2,6 +2,7 @@ package declarative
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
@@ -40,7 +41,8 @@ func (i *IntentAuthenticationOOB) MilestoneDoMarkClaimVerifiedUpdateUserID(newUs
 }
 
 func (i *IntentAuthenticationOOB) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
-	if len(flows.Nearest.Nodes) == 0 {
+	_, _, verified := authflow.FindMilestoneInCurrentFlow[MilestoneOOBOTPVerified](flows)
+	if !verified {
 		// We have a special case here.
 		// If there is only one channel, we do not take any input.
 		// The rationale is that the only possible input is that channel.
@@ -60,37 +62,54 @@ func (i *IntentAuthenticationOOB) CanReactTo(ctx context.Context, deps *authflow
 		}, nil
 	}
 
+	_, _, preferredChannelUpdated := authflow.FindMilestoneInCurrentFlow[MilestoneOOBOTPPreferredChannelUpdated](flows)
+	if !preferredChannelUpdated {
+		return nil, nil
+	}
+
 	return nil, authflow.ErrEOF
 }
 
 func (i *IntentAuthenticationOOB) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (authflow.ReactToResult, error) {
-	channels := i.getChannels(deps)
-	var inputTakeOOBOTPChannel inputTakeOOBOTPChannel
-	var channel model.AuthenticatorOOBChannel
+	milestone, _, verified := authflow.FindMilestoneInCurrentFlow[MilestoneOOBOTPVerified](flows)
+	if !verified {
+		channels := i.getChannels(deps)
+		var inputTakeOOBOTPChannel inputTakeOOBOTPChannel
+		var channel model.AuthenticatorOOBChannel
 
-	switch {
-	case len(channels) == 1:
-		channel = channels[0]
-	case authflow.AsInput(input, &inputTakeOOBOTPChannel):
-		channel = inputTakeOOBOTPChannel.GetChannel()
-	default:
-		return nil, authflow.ErrIncompatibleInput
+		switch {
+		case len(channels) == 1:
+			channel = channels[0]
+		case authflow.AsInput(input, &inputTakeOOBOTPChannel):
+			channel = inputTakeOOBOTPChannel.GetChannel()
+		default:
+			return nil, authflow.ErrIncompatibleInput
+		}
+
+		node, err := NewNodeAuthenticationOOB(ctx, deps, &NodeAuthenticationOOB{
+			JSONPointer:    i.JSONPointer,
+			UserID:         i.UserID,
+			Purpose:        i.Purpose,
+			Form:           i.Form,
+			Info:           i.Info,
+			Channel:        channel,
+			Authentication: i.Authentication,
+		})
+		if err != nil {
+			return nil, err
+		}
+		return node, nil
 	}
 
-	node, err := NewNodeAuthenticationOOB(ctx, deps, &NodeAuthenticationOOB{
-		JSONPointer:    i.JSONPointer,
-		UserID:         i.UserID,
-		Purpose:        i.Purpose,
-		Form:           i.Form,
-		Info:           i.Info,
-		Channel:        channel,
-		Authentication: i.Authentication,
-	})
-	if err != nil {
-		return nil, err
+	_, _, preferredChannelUpdated := authflow.FindMilestoneInCurrentFlow[MilestoneOOBOTPPreferredChannelUpdated](flows)
+	if !preferredChannelUpdated {
+		return authflow.NewNodeSimple(&NodeDoUpdatePreferredChannel{
+			Channel: milestone.MilestoneOOBOTPVerifiedChannel(),
+			Info:    i.Info,
+		}), nil
 	}
 
-	return node, nil
+	panic(fmt.Errorf("unexpected: unreachable code reached"))
 }
 
 func (i *IntentAuthenticationOOB) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {

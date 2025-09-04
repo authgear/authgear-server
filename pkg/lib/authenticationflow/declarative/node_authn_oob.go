@@ -66,6 +66,8 @@ func NewNodeAuthenticationOOB(ctx context.Context, deps *authflow.Dependencies, 
 var _ authflow.NodeSimple = &NodeAuthenticationOOB{}
 var _ authflow.InputReactor = &NodeAuthenticationOOB{}
 var _ authflow.DataOutputer = &NodeAuthenticationOOB{}
+var _ authflow.Milestone = &NodeAuthenticationOOB{}
+var _ MilestoneOOBOTPVerified = &NodeAuthenticationOOB{}
 
 func (n *NodeAuthenticationOOB) Kind() string {
 	return "NodeAuthenticationOOB"
@@ -324,4 +326,9 @@ func (n *NodeAuthenticationOOB) createAuthenticatorSpec(code string) *authentica
 	}
 
 	return spec
+}
+
+func (n *NodeAuthenticationOOB) Milestone() {}
+func (n *NodeAuthenticationOOB) MilestoneOOBOTPVerifiedChannel() model.AuthenticatorOOBChannel {
+	return n.Channel
 }
