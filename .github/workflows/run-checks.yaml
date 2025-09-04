@@ -117,6 +117,8 @@ jobs:
       with:
         node-version-file: "./.tool-versions"
     - run: make vendor
+    - run: npm ci
+      working-directory: ./scripts/npm
     - run: make check-dockerignore
       if: ${{ !cancelled() }}
     - run: make govulncheck
@@ -135,6 +137,8 @@ jobs:
     - run: make fmt
       if: ${{ !cancelled() }}
     - run: make check-tidy
+      if: ${{ !cancelled() }}
+    - run: make check-spell-translations
       if: ${{ !cancelled() }}
     - run: make -C packagetracker check-if-new-version-available
       if: ${{ !cancelled() }}
