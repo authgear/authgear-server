@@ -31,6 +31,7 @@ func (s *Store) selectQuery() db.SelectBuilder {
 			"a.kind",
 			"ao.phone",
 			"ao.email",
+			"ao.preferred_channel",
 		).
 		From(s.SQLBuilder.TableName("_auth_authenticator"), "a").
 		Join(s.SQLBuilder.TableName("_auth_authenticator_oob"), "ao", "a.id = ao.id")
@@ -49,6 +50,7 @@ func (s *Store) scan(scn db.Scanner) (*authenticator.OOBOTP, error) {
 		&a.Kind,
 		&a.Phone,
 		&a.Email,
+		&a.PreferredChannel,
 	)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, authenticator.ErrAuthenticatorNotFound
@@ -169,11 +171,13 @@ func (s *Store) Create(ctx context.Context, a *authenticator.OOBOTP) (err error)
 			"id",
 			"phone",
 			"email",
+			"preferred_channel",
 		).
 		Values(
 			a.ID,
 			a.Phone,
 			a.Email,
+			a.PreferredChannel,
 		)
 	_, err = s.SQLExecutor.ExecWith(ctx, q)
 	if err != nil {
@@ -211,6 +215,7 @@ func (s *Store) Update(ctx context.Context, a *authenticator.OOBOTP) (err error)
 		Update(s.SQLBuilder.TableName("_auth_authenticator_oob")).
 		Set("phone", a.Phone).
 		Set("email", a.Email).
+		Set("preferred_channel", a.PreferredChannel).
 		Where("id = ?", a.ID)
 	result, err = s.SQLExecutor.ExecWith(ctx, q)
 	if err != nil {

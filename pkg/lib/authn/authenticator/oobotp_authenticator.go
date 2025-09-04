@@ -16,6 +16,7 @@ type OOBOTP struct {
 	OOBAuthenticatorType model.AuthenticatorType `json:"oob_authenticator_type"`
 	Phone                string                  `json:"phone,omitempty"`
 	Email                string                  `json:"email,omitempty"`
+	PreferredChannel     *string                 `json:"preferred_channel,omitempty"`
 }
 
 func (a *OOBOTP) ToInfo() *Info {
