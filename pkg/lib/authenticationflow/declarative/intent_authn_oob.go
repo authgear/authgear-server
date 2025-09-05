@@ -62,8 +62,8 @@ func (i *IntentAuthenticationOOB) CanReactTo(ctx context.Context, deps *authflow
 		}, nil
 	}
 
-	_, _, preferredChannelUpdated := authflow.FindMilestoneInCurrentFlow[MilestoneOOBOTPPreferredChannelUpdated](flows)
-	if !preferredChannelUpdated {
+	_, _, lastUsedChannelUpdated := authflow.FindMilestoneInCurrentFlow[MilestoneOOBOTPLastUsedChannelUpdated](flows)
+	if !lastUsedChannelUpdated {
 		return nil, nil
 	}
 
@@ -101,9 +101,9 @@ func (i *IntentAuthenticationOOB) ReactTo(ctx context.Context, deps *authflow.De
 		return node, nil
 	}
 
-	_, _, preferredChannelUpdated := authflow.FindMilestoneInCurrentFlow[MilestoneOOBOTPPreferredChannelUpdated](flows)
-	if !preferredChannelUpdated {
-		return authflow.NewNodeSimple(&NodeDoUpdatePreferredChannel{
+	_, _, lastUsedChannelUpdated := authflow.FindMilestoneInCurrentFlow[MilestoneOOBOTPLastUsedChannelUpdated](flows)
+	if !lastUsedChannelUpdated {
+		return authflow.NewNodeSimple(&NodeDoUpdateLastUsedChannel{
 			Channel: milestone.MilestoneOOBOTPVerifiedChannel(),
 			Info:    i.Info,
 		}), nil
@@ -123,5 +123,5 @@ func (i *IntentAuthenticationOOB) OutputData(ctx context.Context, deps *authflow
 
 func (i *IntentAuthenticationOOB) getChannels(deps *authflow.Dependencies) []model.AuthenticatorOOBChannel {
 	claimName, _ := i.Info.OOBOTP.ToClaimPair()
-	return getChannels(claimName, deps.Config.Authenticator.OOB, i.Info.OOBOTP.PreferredChannel())
+	return getChannels(claimName, deps.Config.Authenticator.OOB, i.Info.OOBOTP.LastUsedChannel())
 }

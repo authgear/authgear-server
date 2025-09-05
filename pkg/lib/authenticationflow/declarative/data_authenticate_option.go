@@ -121,7 +121,7 @@ func NewAuthenticateOptionOOBOTPFromAuthenticator(flows authflow.Flows, oobConfi
 		fallthrough
 	case model.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
 		purpose := otp.PurposeOOBOTP
-		channels := getChannels(model.ClaimEmail, oobConfig, i.OOBOTP.PreferredChannel())
+		channels := getChannels(model.ClaimEmail, oobConfig, i.OOBOTP.LastUsedChannel())
 		otpForm := getOTPForm(purpose, model.ClaimEmail, oobConfig.Email)
 		return &AuthenticateOption{
 			Authentication:    am,
@@ -136,7 +136,7 @@ func NewAuthenticateOptionOOBOTPFromAuthenticator(flows authflow.Flows, oobConfi
 		fallthrough
 	case model.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
 		purpose := otp.PurposeOOBOTP
-		channels := getChannels(model.ClaimPhoneNumber, oobConfig, i.OOBOTP.PreferredChannel())
+		channels := getChannels(model.ClaimPhoneNumber, oobConfig, i.OOBOTP.LastUsedChannel())
 		otpForm := getOTPForm(purpose, model.ClaimPhoneNumber, oobConfig.Email)
 		return &AuthenticateOption{
 			Authentication:    am,
@@ -173,7 +173,7 @@ func NewAuthenticateOptionOOBOTPFromIdentity(
 		if err != nil {
 			return nil, false, err
 		}
-		preferredChannel := expectedAuthenticatorInfo.OOBOTP.PreferredChannel()
+		preferredChannel := expectedAuthenticatorInfo.OOBOTP.LastUsedChannel()
 
 		for _, authenticator := range allAuthenticators {
 			if authenticator.Equal(expectedAuthenticatorInfo) {
@@ -181,7 +181,7 @@ func NewAuthenticateOptionOOBOTPFromIdentity(
 				authnID = authenticator.ID
 				identityID = ""
 				// Also respect preferred channel
-				preferredChannel = authenticator.OOBOTP.PreferredChannel()
+				preferredChannel = authenticator.OOBOTP.LastUsedChannel()
 				break
 			}
 		}

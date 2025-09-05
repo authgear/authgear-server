@@ -342,7 +342,7 @@ type MilestoneOOBOTPVerified interface {
 	MilestoneOOBOTPVerifiedChannel() model.AuthenticatorOOBChannel
 }
 
-type MilestoneOOBOTPPreferredChannelUpdated interface {
+type MilestoneOOBOTPLastUsedChannelUpdated interface {
 	authflow.Milestone
-	MilestoneOOBOTPPreferredChannelUpdated()
+	MilestoneOOBOTPLastUsedChannelUpdated()
 }

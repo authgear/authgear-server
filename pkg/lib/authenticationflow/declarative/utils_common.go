@@ -931,7 +931,7 @@ func createAuthenticator(ctx context.Context, deps *authflow.Dependencies, userI
 	if err != nil {
 		return nil, err
 	}
-	info.OOBOTP.SetPreferredChannel(claimStatus.VerifiedByChannel)
+	info.OOBOTP.SetLastUsedChannel(claimStatus.VerifiedByChannel)
 
 	return info, nil
 }

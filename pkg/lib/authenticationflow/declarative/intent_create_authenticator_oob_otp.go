@@ -196,7 +196,7 @@ func (n *IntentCreateAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *aut
 		}), nil
 	case !created:
 		info := m.MilestoneDidSelectAuthenticator()
-		info.OOBOTP.SetPreferredChannel(claimVerifiedByChannel)
+		info.OOBOTP.SetLastUsedChannel(claimVerifiedByChannel)
 		return authflow.NewNodeSimple(&NodeDoCreateAuthenticator{
 			Authenticator: info,
 		}), nil
