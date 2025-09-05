@@ -12,6 +12,7 @@ import {
   ResourceUpdate,
   binary,
   encodeForText,
+  encodeForPrettifiedJSON,
   expandSpecifier,
 } from "../../../util/resource";
 
@@ -45,6 +46,9 @@ export function useUpdateAppTemplatesMutation(appID: string): {
         switch (update.specifier.def.type) {
           case "text":
             transform = encodeForText;
+            break;
+          case "prettified-json":
+            transform = encodeForPrettifiedJSON;
             break;
           case "binary":
             transform = binary;

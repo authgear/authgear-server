@@ -11,7 +11,7 @@ export const IMAGE_EXTENSIONS: string[] = [".png", ".jpeg", ".gif"];
 
 export const RESOURCE_TRANSLATION_JSON: ResourceDefinition = {
   resourcePath: resourcePath`templates/${"locale"}/translation.json`,
-  type: "text",
+  type: "prettified-json",
   extensions: [],
   fallback: {
     kind: "Const",
