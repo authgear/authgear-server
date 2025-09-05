@@ -43,7 +43,7 @@ export type FallbackStrategy =
   | FallbackStrategyConst;
 
 export interface ResourceDefinition {
-  type: "text" | "binary";
+  type: "text" | "binary" | "prettified-json";
   resourcePath: ResourcePath;
   extensions: string[];
   fallback?: FallbackStrategy;
@@ -154,6 +154,19 @@ export function encodeForText(a: string): string {
   const encoder = new TextEncoder();
   const byteArray = encoder.encode(a);
   return fromByteArray(byteArray);
+}
+
+export function decodeForPrettifiedJSON(a: string): string {
+  const text = decodeForText(a);
+  const j = JSON.parse(text);
+  const prettified = JSON.stringify(j, null, 2);
+  return prettified;
+}
+
+export function encodeForPrettifiedJSON(a: string): string {
+  const j = JSON.parse(a);
+  const compact = JSON.stringify(j);
+  return encodeForText(compact);
 }
 
 export function specifierId(specifier: ResourceSpecifier): string {

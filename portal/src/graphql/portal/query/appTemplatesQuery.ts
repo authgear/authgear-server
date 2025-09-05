@@ -11,6 +11,7 @@ import {
   Resource,
   ResourceSpecifier,
   decodeForText,
+  decodeForPrettifiedJSON,
   binary,
   expandSpecifier,
 } from "../../../util/resource";
@@ -66,6 +67,9 @@ export function useAppTemplatesQuery(
       switch (specifier.def.type) {
         case "text":
           transform = decodeForText;
+          break;
+        case "prettified-json":
+          transform = decodeForPrettifiedJSON;
           break;
         case "binary":
           transform = binary;
