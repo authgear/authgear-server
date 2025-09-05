@@ -1275,6 +1275,7 @@
   "v2.page.settings-mfa-password.default.delete-dialog-title": "ลบรหัสผ่านเพิ่มเติม",
   "v2.page.settings-mfa-password.default.remove-button-label": "ลบรหัสผ่านเพิ่มเติม",
   "v2.page.settings-mfa-password.default.title": "รหัสผ่านเพิ่มเติม",
+  "v2.page.settings-mfa-view-recovery-code.default.no-existing-codes-description": "คุณยังไม่มีรหัสกู้คืนใดๆ สร้างรหัสใหม่โดยคลิกปุ่มด้านล่าง",
   "v2.page.settings-mfa-view-recovery-code.default.regenerate-button-label": "สร้างรหัสใหม่",
   "v2.page.settings-mfa-view-recovery-code.default.storage-description": "หากคุณสูญเสียการเข้าถึงอุปกรณ์รับรองความถูกต้อง ให้ใช้รหัสกู้คืนเหล่านี้เพื่อกู้คืนบัญชีของคุณ \nเก็บรหัสไว้ในที่ปลอดภัยแต่สามารถเข้าถึงได้",
   "v2.page.settings-mfa-view-recovery-code.default.title": "รหัสกู้คืน",

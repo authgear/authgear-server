@@ -1,0 +1,20 @@
+{
+  "identifier": "email",
+  "records": [
+    {
+      "email": "e2e_recovery_code_user_only_recovery_code@example.com"
+    },
+    {
+      "email": "e2e_recovery_code_user_with_sms@example.com",
+      "mfa": {
+        "phone_number": "+85298765432"
+      }
+    },
+    {
+      "email": "e2e_recovery_code_user_with_mfa_email@example.com",
+      "mfa": {
+        "email": "mfa@example.com"
+      }
+    }
+  ]
+}

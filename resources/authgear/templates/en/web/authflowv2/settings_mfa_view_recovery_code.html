@@ -15,46 +15,55 @@
 <div class="settings-content settings-content-form-fields pb-5 tablet:pb-0">
   <div class="screen-title-description">
     <h2 class="screen-description">
-      {{ include "v2.page.settings-mfa-view-recovery-code.default.storage-description" nil }}
+      {{ if .HasRecoveryCodes }}
+        {{ include "v2.page.settings-mfa-view-recovery-code.default.storage-description" nil }}
+      {{ else }}
+        {{ include "v2.page.settings-mfa-view-recovery-code.default.no-existing-codes-description" nil }}
+      {{ end }}
     </h2>
   </div>
 
-  <div class="my-6 code-block">
-    <p class="code-block__text">{{ range $.RecoveryCodes }}{{ . }}{{ "\n" }}{{ end }}</p>
+  {{ if .HasRecoveryCodes }}
+    <div class="code-block">
+      <p class="code-block__text">{{ range $.RecoveryCodes }}{{ . }}{{ "\n" }}{{ end }}</p>
 
-    <code id="copy-button-source" class="hidden">{{ template "__recovery_code.html" . }}</code>
-    <div class="mt-5 w-full grid gap-4 {{ if not .IsNativePlatform }}grid-cols-2{{ else }}grid-cols-1{{ end }}">
-      {{ if not .IsNativePlatform }}
-      {{/* Form with disabled turbo drive */}}
-      <form
-        id="download-form"
-        method="post"
-        novalidate
-        target="_blank"
-      >
-        {{ $.CSRFField }}
-        <button
-          form="download-form"
-          class="tertiary-btn w-full"
-          type="submit"
-          name="x_action"
-          value="download"
+      <code id="copy-button-source" class="hidden">{{ template "__recovery_code.html" . }}</code>
+      <div class="mt-5 w-full grid gap-4 {{ if not .IsNativePlatform }}grid-cols-2{{ else }}grid-cols-1{{ end }}">
+        {{ if not .IsNativePlatform }}
+        {{/* Form with disabled turbo drive */}}
+        <form
+          id="download-form"
+          method="post"
+          novalidate
+          target="_blank"
         >
-          {{ include "v2.component.button.default.download" nil }}
+          {{ $.CSRFField }}
+          <button
+            form="download-form"
+            class="tertiary-btn w-full"
+            type="submit"
+            name="x_action"
+            value="download"
+          >
+            {{ include "v2.component.button.default.download" nil }}
+          </button>
+        </form>
+        {{ end }}
+        <button
+          class="tertiary-btn w-full"
+          type="button"
+          data-controller="copy-button"
+          data-copy-button-source-value="#copy-button-source"
+          data-action="copy-button#copy"
+        >
+          {{ include "v2.component.button.default.copy" nil }}
         </button>
-      </form>
-      {{ end }}
-      <button
-        class="tertiary-btn w-full"
-        type="button"
-        data-controller="copy-button"
-        data-copy-button-source-value="#copy-button-source"
-        data-action="copy-button#copy"
-      >
-        {{ include "v2.component.button.default.copy" nil }}
-      </button>
+      </div>
     </div>
-  </div>
+  {{ else }}
+    <div>
+    </div>
+  {{ end }}
 
   {{ if $.CanProceed }}
     <form

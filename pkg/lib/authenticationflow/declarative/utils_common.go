@@ -397,6 +397,8 @@ func getAuthenticationOptionsForLogin(ctx context.Context, deps *authflow.Depend
 		return options
 	}
 
+	var recoveryCodeBranch *config.AuthenticationFlowLoginFlowOneOf
+
 	for _, branch := range step.OneOf {
 		switch branch.Authentication {
 		case model.AuthenticationFlowAuthenticationDeviceToken:
@@ -404,7 +406,10 @@ func getAuthenticationOptionsForLogin(ctx context.Context, deps *authflow.Depend
 				deviceTokenEnabled = true
 			}
 		case model.AuthenticationFlowAuthenticationRecoveryCode:
-			options = useAuthenticationOptionAddRecoveryCodes(options, userHasRecoveryCode, branch.BotProtection)
+			// Handle recovery code at the end of the function
+			branch := branch
+			recoveryCodeBranch = branch
+			continue
 		case model.AuthenticationFlowAuthenticationPrimaryPassword:
 			options = useAuthenticationOptionAddPrimaryPassword(options, branch.BotProtection)
 		case model.AuthenticationFlowAuthenticationPrimaryPasskey:
@@ -434,6 +439,10 @@ func getAuthenticationOptionsForLogin(ctx context.Context, deps *authflow.Depend
 		case model.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
 			options = useAuthenticationOptionAddSecondaryOOBOTP(options, deps, branch.Authentication, authenticators, branch.BotProtection)
 		}
+	}
+
+	if recoveryCodeBranch != nil && userHasRecoveryCode && (len(options) > 0) {
+		options = useAuthenticationOptionAddRecoveryCodes(options, userHasRecoveryCode, recoveryCodeBranch.BotProtection)
 	}
 
 	return options, deviceTokenEnabled, nil
