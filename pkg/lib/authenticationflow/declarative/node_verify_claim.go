@@ -111,6 +111,7 @@ func (n *NodeVerifyClaim) ReactTo(ctx context.Context, deps *authflow.Dependenci
 			string(n.ClaimName),
 			n.ClaimValue,
 		)
+		verifiedClaim.SetVerifiedByChannel(n.Channel)
 		return authflow.NewNodeSimple(&NodeDoMarkClaimVerified{
 			Claim: verifiedClaim,
 		}), nil
@@ -138,6 +139,7 @@ func (n *NodeVerifyClaim) ReactTo(ctx context.Context, deps *authflow.Dependenci
 			string(n.ClaimName),
 			n.ClaimValue,
 		)
+		verifiedClaim.SetVerifiedByChannel(n.Channel)
 		return authflow.NewNodeSimple(&NodeDoMarkClaimVerified{
 			Claim: verifiedClaim,
 		}), nil

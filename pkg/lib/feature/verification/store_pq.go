@@ -3,6 +3,7 @@ package verification
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 
 	"github.com/lib/pq"
@@ -24,23 +25,33 @@ func (s *StorePQ) selectQuery() db.SelectBuilder {
 			"name",
 			"value",
 			"created_at",
+			"metadata",
 		).
 		From(s.SQLBuilder.TableName("_auth_verified_claim"))
 }
 
 func (s *StorePQ) scan(scn db.Scanner) (*Claim, error) {
 	c := &Claim{}
+	var rawMetadata []byte
 	err := scn.Scan(
 		&c.ID,
 		&c.UserID,
 		&c.Name,
 		&c.Value,
 		&c.CreatedAt,
+		&rawMetadata,
 	)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrClaimUnverified
 	} else if err != nil {
 		return nil, err
+	}
+
+	if rawMetadata != nil {
+		err = json.Unmarshal(rawMetadata, &c.Metadata)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return c, nil
@@ -107,7 +118,12 @@ func (s *StorePQ) Get(ctx context.Context, userID string, claimName string, clai
 	return s.scan(row)
 }
 
-func (s *StorePQ) Create(ctx context.Context, claim *Claim) error {
+func (s *StorePQ) Create(ctx context.Context, claim *Claim) (err error) {
+	rawMetadata, err := json.Marshal(claim.Metadata)
+	if err != nil {
+		return err
+	}
+
 	q := s.SQLBuilder.
 		Insert(s.SQLBuilder.TableName("_auth_verified_claim")).
 		Columns(
@@ -116,6 +132,7 @@ func (s *StorePQ) Create(ctx context.Context, claim *Claim) error {
 			"name",
 			"value",
 			"created_at",
+			"metadata",
 		).
 		Values(
 			claim.ID,
@@ -123,8 +140,9 @@ func (s *StorePQ) Create(ctx context.Context, claim *Claim) error {
 			claim.Name,
 			claim.Value,
 			claim.CreatedAt,
+			rawMetadata,
 		)
-	_, err := s.SQLExecutor.ExecWith(ctx, q)
+	_, err = s.SQLExecutor.ExecWith(ctx, q)
 	if err != nil {
 		return err
 	}
