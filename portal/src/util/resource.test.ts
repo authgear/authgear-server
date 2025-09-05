@@ -352,5 +352,10 @@ describe("prettified JSON encoding/decoding functions", () => {
   }
 }`);
     });
+
+    it("encodeForPrettifiedJSON return encodeForText if the input is invalid JSON", () => {
+      const encoded = encodeForPrettifiedJSON(`{`);
+      expect(encoded).toBe(encodeForText(`{`));
+    });
   });
 });

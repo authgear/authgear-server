@@ -164,9 +164,18 @@ export function decodeForPrettifiedJSON(a: string): string {
 }
 
 export function encodeForPrettifiedJSON(a: string): string {
-  const j = JSON.parse(a);
-  const compact = JSON.stringify(j);
-  return encodeForText(compact);
+  try {
+    const j = JSON.parse(a);
+    const compact = JSON.stringify(j);
+    return encodeForText(compact);
+  } catch (_e: unknown) {
+    // In case you wonder why we are doing this,
+    // if the input is not a valid JSON,
+    // we just do not format it at all.
+    // Passing the invalid JSON to the server,
+    // and let the server to report an error.
+    return encodeForText(a);
+  }
 }
 
 export function specifierId(specifier: ResourceSpecifier): string {
