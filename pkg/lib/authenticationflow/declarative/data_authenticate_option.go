@@ -155,7 +155,6 @@ func NewAuthenticateOptionOOBOTPFromAuthenticator(flows authflow.Flows, oobConfi
 func NewAuthenticateOptionOOBOTPFromIdentity(
 	ctx context.Context, flows authflow.Flows, deps *authflow.Dependencies,
 	i *identity.Info,
-	authentication model.AuthenticationFlowAuthentication,
 	authflowBotProtectionCfg *config.AuthenticationFlowBotProtection,
 	appBotProtectionConfig *config.BotProtectionConfig,
 ) (*AuthenticateOption, bool, error) {
@@ -165,6 +164,15 @@ func NewAuthenticateOptionOOBOTPFromIdentity(
 		identityID := i.ID
 		authnID := ""
 		target := i.LoginID.LoginID
+		var authentication model.AuthenticationFlowAuthentication
+		switch i.LoginID.LoginIDType {
+		case model.LoginIDKeyTypeEmail:
+			authentication = model.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail
+		case model.LoginIDKeyTypePhone:
+			authentication = model.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS
+		default:
+			return nil, false, nil
+		}
 		expectedAuthenticatorInfo, err := createAuthenticator(ctx, deps, i.UserID, authentication, target)
 		if err != nil {
 			return nil, false, err

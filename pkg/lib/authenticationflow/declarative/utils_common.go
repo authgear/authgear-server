@@ -363,7 +363,7 @@ func getAuthenticationOptionsForLogin(ctx context.Context, deps *authflow.Depend
 	}
 
 	useAuthenticationOptionAddPrimaryOOBOTPOfIdentity := func(options []AuthenticateOption, deps *authflow.Dependencies, authentication model.AuthenticationFlowAuthentication, info *identity.Info, botProtection *config.AuthenticationFlowBotProtection) ([]AuthenticateOption, error) {
-		option, ok, err := NewAuthenticateOptionOOBOTPFromIdentity(ctx, flows, deps, info, authentication, botProtection,
+		option, ok, err := NewAuthenticateOptionOOBOTPFromIdentity(ctx, flows, deps, info, botProtection,
 			deps.Config.BotProtection)
 		if err != nil {
 			return nil, err
@@ -540,7 +540,7 @@ func getAuthenticationOptionsForReauth(ctx context.Context, deps *authflow.Depen
 
 	useAuthenticationOptionAddPrimaryOOBOTP := func(options []AuthenticateOption, authentication model.AuthenticationFlowAuthentication, typ model.AuthenticatorType, botProtection *config.AuthenticationFlowBotProtection) ([]AuthenticateOption, error) {
 		for _, info := range identities {
-			option, ok, err := NewAuthenticateOptionOOBOTPFromIdentity(ctx, flows, deps, info, authentication, botProtection, deps.Config.BotProtection)
+			option, ok, err := NewAuthenticateOptionOOBOTPFromIdentity(ctx, flows, deps, info, botProtection, deps.Config.BotProtection)
 			if err != nil {
 				return nil, err
 			}
