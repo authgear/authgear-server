@@ -104,7 +104,7 @@
     }}
   {{ end }}
 
-  {{ if and $.ListRecoveryCodesAllowed $.HasRecoveryCodes }}
+  {{ if and $.ListRecoveryCodesAllowed }}
     <a class="contents" href="{{ call $.MakeURL "/settings/mfa/view_recovery_code" }}">
       {{ template "authflowv2/__settings_item.html"
         (dict

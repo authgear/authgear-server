@@ -1275,6 +1275,7 @@
   "v2.page.settings-mfa-password.default.delete-dialog-title": "Alisin ang karagdagang password",
   "v2.page.settings-mfa-password.default.remove-button-label": "Alisin ang karagdagang password",
   "v2.page.settings-mfa-password.default.title": "Karagdagang password",
+  "v2.page.settings-mfa-view-recovery-code.default.no-existing-codes-description": "Wala ka pang anumang mga recovery code. Gumawa ng mga bagong code sa pamamagitan ng pag-click sa button sa ibaba.",
   "v2.page.settings-mfa-view-recovery-code.default.regenerate-button-label": "Gumawa ng bagong mga code",
   "v2.page.settings-mfa-view-recovery-code.default.storage-description": "Kung nawalan ka ng access sa iyong authentication device, gamitin ang mga recovery code na ito para ma-recover ang iyong account. \nItagong ligtas ngunit naa-access ang mga ito.",
   "v2.page.settings-mfa-view-recovery-code.default.title": "Recovery code",

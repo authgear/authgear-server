@@ -35,6 +35,7 @@ type AuthflowV2SettingsMFAViewRecoveryCodeHandler struct {
 	Database          *appdb.Handle
 	ControllerFactory handlerwebapp.ControllerFactory
 	BaseViewModel     *viewmodels.BaseViewModeler
+	SettingsViewModel *viewmodels.SettingsViewModeler
 	Renderer          handlerwebapp.Renderer
 
 	AccountManagement *accountmanagement.Service
@@ -49,6 +50,12 @@ func (h *AuthflowV2SettingsMFAViewRecoveryCodeHandler) GetData(ctx context.Conte
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	viewmodels.Embed(data, baseViewModel)
+
+	settingsViewModelPtr, err := h.SettingsViewModel.ViewModel(ctx, *userID)
+	if err != nil {
+		return nil, err
+	}
+	viewmodels.Embed(data, *settingsViewModelPtr)
 
 	var tokenAuthenticator *accountmanagement.TokenAuthenticator
 	var recoveryCodesString []string

@@ -1275,6 +1275,7 @@
   "v2.page.settings-mfa-password.default.delete-dialog-title": "追加のパスワードを削除",
   "v2.page.settings-mfa-password.default.remove-button-label": "追加のパスワードを削除する",
   "v2.page.settings-mfa-password.default.title": "追加のパスワード",
+  "v2.page.settings-mfa-view-recovery-code.default.no-existing-codes-description": "まだリカバリーコードがありません。下のボタンをクリックして新しいコードを生成してください。",
   "v2.page.settings-mfa-view-recovery-code.default.regenerate-button-label": "新しいコードを生成する",
   "v2.page.settings-mfa-view-recovery-code.default.storage-description": "認証デバイスにアクセスできなくなった場合は、これらの復旧コードを使ってアカウントを復旧できます。\n安全で利用可能な場所に保管してください。",
   "v2.page.settings-mfa-view-recovery-code.default.title": "復旧コード",

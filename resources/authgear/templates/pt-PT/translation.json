@@ -1275,6 +1275,7 @@
   "v2.page.settings-mfa-password.default.delete-dialog-title": "Remover palavra-passe adicional",
   "v2.page.settings-mfa-password.default.remove-button-label": "Remover palavra-passe adicional",
   "v2.page.settings-mfa-password.default.title": "Palavra-passe adicional",
+  "v2.page.settings-mfa-view-recovery-code.default.no-existing-codes-description": "Ainda não tem nenhum código de recuperação. Gere novos códigos clicando no botão abaixo.",
   "v2.page.settings-mfa-view-recovery-code.default.regenerate-button-label": "Gerar novos códigos",
   "v2.page.settings-mfa-view-recovery-code.default.storage-description": "Se perder o acesso ao seu dispositivo de autenticação, utilize estes códigos de recuperação para recuperar a sua conta. \nGuarde-os num local seguro, mas acessível.",
   "v2.page.settings-mfa-view-recovery-code.default.title": "Código de recuperação",
