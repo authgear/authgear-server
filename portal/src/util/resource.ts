@@ -43,7 +43,7 @@ export type FallbackStrategy =
   | FallbackStrategyConst;
 
 export interface ResourceDefinition {
-  type: "text" | "binary";
+  type: "text" | "binary" | "prettified-json";
   resourcePath: ResourcePath;
   extensions: string[];
   fallback?: FallbackStrategy;
@@ -154,6 +154,28 @@ export function encodeForText(a: string): string {
   const encoder = new TextEncoder();
   const byteArray = encoder.encode(a);
   return fromByteArray(byteArray);
+}
+
+export function decodeForPrettifiedJSON(a: string): string {
+  const text = decodeForText(a);
+  const j = JSON.parse(text);
+  const prettified = JSON.stringify(j, null, 2);
+  return prettified;
+}
+
+export function encodeForPrettifiedJSON(a: string): string {
+  try {
+    const j = JSON.parse(a);
+    const compact = JSON.stringify(j);
+    return encodeForText(compact);
+  } catch (_e: unknown) {
+    // In case you wonder why we are doing this,
+    // if the input is not a valid JSON,
+    // we just do not format it at all.
+    // Passing the invalid JSON to the server,
+    // and let the server to report an error.
+    return encodeForText(a);
+  }
 }
 
 export function specifierId(specifier: ResourceSpecifier): string {
