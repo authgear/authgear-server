@@ -53,6 +53,13 @@ func newNoProjectSSOCallbackHandler(configSource *configsource.ConfigSource, p *
 	))
 }
 
+func newWhatsappCloudAPIWebhookHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebapp.WhatsappCloudAPIWebhookHandler)),
+	))
+}
+
 func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,

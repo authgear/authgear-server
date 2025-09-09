@@ -505,6 +505,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) ht
 
 	router.Add(webapphandler.ConfigureWechatAuthRoute(webappPageRoute), p.Handler(newWechatAuthHandler))
 
+	router.Add(webapphandler.ConfigureWhatsappCloudAPIWebhookRoute(webappAPIRoute), p.Handler(newWhatsappCloudAPIWebhookHandler))
 	router.Add(webapphandler.ConfigurePasskeyCreationOptionsRoute(webappAPIRoute), p.Handler(newWebAppPasskeyCreationOptionsHandler))
 	router.Add(webapphandler.ConfigurePasskeyRequestOptionsRoute(webappAPIRoute), p.Handler(newWebAppPasskeyRequestOptionsHandler))
 
