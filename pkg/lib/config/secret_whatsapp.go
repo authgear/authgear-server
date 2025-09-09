@@ -111,10 +111,15 @@ type WhatsappCloudAPIAuthenticationTemplateCopyCodeButtonConfig struct {
 	Languages []string `json:"languages"`
 }
 
+type WhatsappCloudAPIWebhook struct {
+	VerifyToken string `json:"verify_token"`
+}
+
 type WhatsappCloudAPICredentials struct {
 	PhoneNumberID                string                                        `json:"phone_number_id"`
 	AccessToken                  string                                        `json:"access_token"`
 	AuthenticationTemplateConfig *WhatsappCloudAPIAuthenticationTemplateConfig `json:"authentication_template"`
+	Webhook                      *WhatsappCloudAPIWebhook                      `json:"webhook,omitempty"`
 }
 
 func (c *WhatsappCloudAPICredentials) SensitiveStrings() []string {
@@ -279,6 +284,17 @@ var _ = SecretConfigSchema.Add("WhatsappCloudAPIAuthenticationTemplateConfig", `
 }
 `)
 
+var _ = SecretConfigSchema.Add("WhatsappCloudAPIWebhook", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"verify_token": { "type": "string", "minLength": 1 }
+	},
+	"required": ["verify_token"]
+}
+`)
+
 var _ = SecretConfigSchema.Add("WhatsappCloudAPICredentials", `
 {
 	"type": "object",
@@ -286,7 +302,8 @@ var _ = SecretConfigSchema.Add("WhatsappCloudAPICredentials", `
 	"properties": {
 		"phone_number_id": { "type": "string", "minLength": 1 },
 		"access_token": { "type": "string", "minLength": 1 },
-		"authentication_template": { "$ref": "#/$defs/WhatsappCloudAPIAuthenticationTemplateConfig" }
+		"authentication_template": { "$ref": "#/$defs/WhatsappCloudAPIAuthenticationTemplateConfig" },
+		"webhook": { "$ref": "#/$defs/WhatsappCloudAPIWebhook" }
 	},
 	"required": ["phone_number_id", "access_token", "authentication_template"]
 }
