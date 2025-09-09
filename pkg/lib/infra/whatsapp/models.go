@@ -51,3 +51,12 @@ type WhatsappCloudAPIErrorResponseError struct {
 type WhatsappCloudAPIErrorResponse struct {
 	Error *WhatsappCloudAPIErrorResponseError `json:"error,omitempty"`
 }
+
+type WhatsappMessageStatus string
+
+const (
+	WhatsappMessageStatusSent      WhatsappMessageStatus = "sent"
+	WhatsappMessageStatusDelivered WhatsappMessageStatus = "delivered"
+	WhatsappMessageStatusRead      WhatsappMessageStatus = "read"
+	WhatsappMessageStatusFailed    WhatsappMessageStatus = "failed"
+)

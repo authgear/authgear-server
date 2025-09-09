@@ -14,6 +14,7 @@ type Service struct {
 	GlobalWhatsappAPIType config.GlobalWhatsappAPIType
 	OnPremisesClient      *OnPremisesClient
 	CloudAPIClient        *CloudAPIClient
+	MessageStore          *MessageStore
 }
 
 func (s *Service) resolveTemplateLanguage(ctx context.Context, supportedLanguages []string) string {
@@ -96,4 +97,8 @@ func (s *Service) SendAuthenticationOTP(ctx context.Context, opts *SendAuthentic
 	default:
 		panic(fmt.Errorf("whatsapp: unknown api type"))
 	}
+}
+
+func (s *Service) UpdateMessageStatus(ctx context.Context, messageID string, status WhatsappMessageStatus) error {
+	return s.MessageStore.UpdateMessageStatus(ctx, messageID, status)
 }

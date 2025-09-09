@@ -24,5 +24,6 @@ var DependencySet = wire.NewSet(
 	NewWhatsappOnPremisesClient,
 	NewWhatsappCloudAPIClient,
 	wire.Struct(new(TokenStore), "*"),
+	wire.Struct(new(MessageStore), "*"),
 	wire.Struct(new(Service), "*"),
 )
