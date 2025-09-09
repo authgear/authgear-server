@@ -125,6 +125,8 @@ func (s *Service) waitUntilSent(ctx context.Context, success chan bool, messageI
 	logger := logger.GetLogger(ctx)
 	start := s.Clock.NowUTC()
 	for {
+		time.Sleep(500 * time.Millisecond)
+		logger.Info(ctx, "waiting for message status update...", slog.String("message_id", messageID))
 		timeElasped := s.Clock.NowUTC().Sub(start)
 		if timeElasped > timeout {
 			logger.Error(ctx, "failed to wait for whatsapp message status: timeout")
@@ -155,7 +157,6 @@ func (s *Service) waitUntilSent(ctx context.Context, success chan bool, messageI
 			).Error(ctx, "unexpected whatsapp message status")
 			return
 		}
-		time.Sleep(500 * time.Millisecond)
 	}
 }
 
