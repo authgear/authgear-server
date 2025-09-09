@@ -91,10 +91,11 @@ func makeCreateAuthenticatorTarget(
 			return nil, "", isSkipped, nil
 		}
 		claimName := getOOBAuthenticatorType(oneOf.GetAuthentication()).ToClaimName()
-		verified, err := getCreateAuthenticatorOOBOTPTargetVerified(ctx, deps, userID, claimName, claimValue)
+		claimStatus, err := getCreateAuthenticatorOOBOTPTargetClaimStatus(ctx, deps, userID, claimName, claimValue)
 		if err != nil {
 			return nil, "", isSkipped, err
 		}
+		verified := claimStatus.Verified
 		masked := ""
 		switch claimName {
 		case model.ClaimEmail:
@@ -150,7 +151,7 @@ func NewCreateAuthenticationOptions(
 				continue
 			}
 			purpose := otp.PurposeOOBOTP
-			channels := getChannels(model.ClaimEmail, deps.Config.Authenticator.OOB)
+			channels := getChannels(model.ClaimEmail, deps.Config.Authenticator.OOB, "")
 			otpForm := getOTPForm(purpose, model.ClaimEmail, deps.Config.Authenticator.OOB.Email)
 			options = append(options, CreateAuthenticatorOptionInternal{
 				CreateAuthenticatorOption: CreateAuthenticatorOption{
@@ -175,7 +176,7 @@ func NewCreateAuthenticationOptions(
 				continue
 			}
 			purpose := otp.PurposeOOBOTP
-			channels := getChannels(model.ClaimPhoneNumber, deps.Config.Authenticator.OOB)
+			channels := getChannels(model.ClaimPhoneNumber, deps.Config.Authenticator.OOB, "")
 			otpForm := getOTPForm(purpose, model.ClaimPhoneNumber, deps.Config.Authenticator.OOB.Email)
 			options = append(options, CreateAuthenticatorOptionInternal{
 				CreateAuthenticatorOption: CreateAuthenticatorOption{

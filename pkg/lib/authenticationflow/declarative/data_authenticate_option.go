@@ -121,7 +121,7 @@ func NewAuthenticateOptionOOBOTPFromAuthenticator(flows authflow.Flows, oobConfi
 		fallthrough
 	case model.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
 		purpose := otp.PurposeOOBOTP
-		channels := getChannels(model.ClaimEmail, oobConfig)
+		channels := getChannels(model.ClaimEmail, oobConfig, i.OOBOTP.LastUsedChannel())
 		otpForm := getOTPForm(purpose, model.ClaimEmail, oobConfig.Email)
 		return &AuthenticateOption{
 			Authentication:    am,
@@ -136,7 +136,7 @@ func NewAuthenticateOptionOOBOTPFromAuthenticator(flows authflow.Flows, oobConfi
 		fallthrough
 	case model.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
 		purpose := otp.PurposeOOBOTP
-		channels := getChannels(model.ClaimPhoneNumber, oobConfig)
+		channels := getChannels(model.ClaimPhoneNumber, oobConfig, i.OOBOTP.LastUsedChannel())
 		otpForm := getOTPForm(purpose, model.ClaimPhoneNumber, oobConfig.Email)
 		return &AuthenticateOption{
 			Authentication:    am,
@@ -152,41 +152,81 @@ func NewAuthenticateOptionOOBOTPFromAuthenticator(flows authflow.Flows, oobConfi
 	}
 }
 
-func NewAuthenticateOptionOOBOTPFromIdentity(flows authflow.Flows, oobConfig *config.AuthenticatorOOBConfig, i *identity.Info, authflowBotProtectionCfg *config.AuthenticationFlowBotProtection, appBotProtectionConfig *config.BotProtectionConfig) (*AuthenticateOption, bool) {
+func NewAuthenticateOptionOOBOTPFromIdentity(
+	ctx context.Context, flows authflow.Flows, deps *authflow.Dependencies,
+	i *identity.Info,
+	authflowBotProtectionCfg *config.AuthenticationFlowBotProtection,
+	appBotProtectionConfig *config.BotProtectionConfig,
+) (*AuthenticateOption, bool, error) {
+	oobConfig := deps.Config.Authenticator.OOB
 	switch i.Type {
 	case model.IdentityTypeLoginID:
+		identityID := i.ID
+		authnID := ""
+		target := i.LoginID.LoginID
+		var authentication model.AuthenticationFlowAuthentication
+		switch i.LoginID.LoginIDType {
+		case model.LoginIDKeyTypeEmail:
+			authentication = model.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail
+		case model.LoginIDKeyTypePhone:
+			authentication = model.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS
+		default:
+			return nil, false, nil
+		}
+		expectedAuthenticatorInfo, err := createAuthenticator(ctx, deps, i.UserID, authentication, target)
+		if err != nil {
+			return nil, false, err
+		}
+		allAuthenticators, err := deps.Authenticators.List(ctx, i.UserID)
+		if err != nil {
+			return nil, false, err
+		}
+		preferredChannel := expectedAuthenticatorInfo.OOBOTP.LastUsedChannel()
+
+		for _, authenticator := range allAuthenticators {
+			if authenticator.Equal(expectedAuthenticatorInfo) {
+				// An existing authenticator is found, use it instead of identity ID
+				authnID = authenticator.ID
+				identityID = ""
+				// Also respect preferred channel
+				preferredChannel = authenticator.OOBOTP.LastUsedChannel()
+				break
+			}
+		}
 		switch i.LoginID.LoginIDType {
 		case model.LoginIDKeyTypeEmail:
 			purpose := otp.PurposeOOBOTP
-			channels := getChannels(model.ClaimEmail, oobConfig)
+			channels := getChannels(model.ClaimEmail, oobConfig, preferredChannel)
 			otpForm := getOTPForm(purpose, model.ClaimEmail, oobConfig.Email)
 			return &AuthenticateOption{
 				Authentication:    model.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail,
 				OTPForm:           otpForm,
 				Channels:          channels,
 				MaskedDisplayName: mail.MaskAddress(i.LoginID.LoginID),
-				IdentityID:        i.ID,
+				IdentityID:        identityID,
+				AuthenticatorID:   authnID,
 				BotProtection:     GetBotProtectionData(flows, authflowBotProtectionCfg, appBotProtectionConfig),
 				AMR:               model.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail.AMR(),
-			}, true
+			}, true, nil
 		case model.LoginIDKeyTypePhone:
 			purpose := otp.PurposeOOBOTP
-			channels := getChannels(model.ClaimPhoneNumber, oobConfig)
+			channels := getChannels(model.ClaimPhoneNumber, oobConfig, preferredChannel)
 			otpForm := getOTPForm(purpose, model.ClaimPhoneNumber, oobConfig.Email)
 			return &AuthenticateOption{
 				Authentication:    model.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS,
 				OTPForm:           otpForm,
 				Channels:          channels,
 				MaskedDisplayName: phone.Mask(i.LoginID.LoginID),
-				IdentityID:        i.ID,
+				IdentityID:        identityID,
+				AuthenticatorID:   authnID,
 				BotProtection:     GetBotProtectionData(flows, authflowBotProtectionCfg, appBotProtectionConfig),
 				AMR:               model.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS.AMR(),
-			}, true
+			}, true, nil
 		default:
-			return nil, false
+			return nil, false, nil
 		}
 	default:
-		return nil, false
+		return nil, false, nil
 	}
 }
 

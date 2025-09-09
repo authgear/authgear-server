@@ -175,9 +175,12 @@ func (s *Service) GetClaimStatus(ctx context.Context, userID string, claimName m
 	}
 
 	verified := false
+	var verifiedByChannel model.AuthenticatorOOBChannel
 	for _, claim := range claims {
 		if claim.Name == string(claimName) && claim.Value == claimValue {
 			verified = true
+			verifiedByChannel = claim.VerifiedByChannel()
+			break
 		}
 	}
 
@@ -187,6 +190,7 @@ func (s *Service) GetClaimStatus(ctx context.Context, userID string, claimName m
 		Verified:                   verified,
 		RequiredToVerifyOnCreation: *cfg.Required,
 		EndUserTriggerable:         *cfg.Enabled,
+		VerifiedByChannel:          verifiedByChannel,
 	}, nil
 }
 

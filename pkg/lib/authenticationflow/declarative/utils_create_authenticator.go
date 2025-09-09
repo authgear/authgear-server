@@ -6,6 +6,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
+	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 )
 
 func getCreateAuthenticatorOOBOTPTargetFromTargetStep(
@@ -62,15 +63,15 @@ func getCreateAuthenticatorOOBOTPTargetFromTargetStep(
 	return oobOTPTarget, false, nil
 }
 
-func getCreateAuthenticatorOOBOTPTargetVerified(
+func getCreateAuthenticatorOOBOTPTargetClaimStatus(
 	ctx context.Context,
 	deps *authflow.Dependencies,
 	userID string,
 	claimName model.ClaimName,
-	claimValue string) (bool, error) {
+	claimValue string) (*verification.ClaimStatus, error) {
 	claimStatus, err := deps.Verification.GetClaimStatus(ctx, userID, claimName, claimValue)
 	if err != nil {
-		return false, err
+		return nil, err
 	}
-	return claimStatus.Verified, nil
+	return claimStatus, nil
 }
