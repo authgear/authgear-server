@@ -736,6 +736,7 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 		Credentials: whatsappCloudAPICredentials,
 	}
 	whatsappService := &whatsapp.Service{
+		Clock:                 clockClock,
 		WhatsappConfig:        whatsappConfig,
 		LocalizationConfig:    localizationConfig,
 		GlobalWhatsappAPIType: globalWhatsappAPIType,

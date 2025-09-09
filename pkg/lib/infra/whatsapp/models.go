@@ -55,8 +55,21 @@ type WhatsappCloudAPIErrorResponse struct {
 type WhatsappMessageStatus string
 
 const (
+	WhatsappMessageStatusAccepted  WhatsappMessageStatus = "accepted"
 	WhatsappMessageStatusSent      WhatsappMessageStatus = "sent"
 	WhatsappMessageStatusDelivered WhatsappMessageStatus = "delivered"
 	WhatsappMessageStatusRead      WhatsappMessageStatus = "read"
 	WhatsappMessageStatusFailed    WhatsappMessageStatus = "failed"
 )
+
+type WhatsappSendMessageResponse struct {
+	MessagingProduct string `json:"messaging_product"`
+	Contacts         []struct {
+		Input string `json:"input"`
+		WaID  string `json:"wa_id"`
+	} `json:"contacts"`
+	Messages []struct {
+		ID            string `json:"id"`
+		MessageStatus string `json:"message_status"`
+	} `json:"messages"`
+}

@@ -799,6 +799,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Credentials: whatsappCloudAPICredentials,
 	}
 	whatsappService := &whatsapp.Service{
+		Clock:                 clockClock,
 		WhatsappConfig:        whatsappConfig,
 		LocalizationConfig:    localizationConfig,
 		GlobalWhatsappAPIType: globalWhatsappAPIType,

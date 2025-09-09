@@ -784,6 +784,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Credentials: whatsappCloudAPICredentials,
 	}
 	whatsappService := &whatsapp.Service{
+		Clock:                 clock,
 		WhatsappConfig:        whatsappConfig,
 		LocalizationConfig:    localizationConfig,
 		GlobalWhatsappAPIType: globalWhatsappAPIType,

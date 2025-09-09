@@ -644,6 +644,7 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		Credentials: whatsappCloudAPICredentials,
 	}
 	whatsappService := &whatsapp.Service{
+		Clock:                 clock,
 		WhatsappConfig:        whatsappConfig,
 		LocalizationConfig:    localizationConfig,
 		GlobalWhatsappAPIType: globalWhatsappAPIType,
