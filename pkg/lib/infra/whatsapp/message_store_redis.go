@@ -5,11 +5,12 @@ import (
 	"errors"
 	"fmt"
 
+	goredis "github.com/redis/go-redis/v9"
+
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/globalredis"
 	"github.com/authgear/authgear-server/pkg/util/duration"
-	goredis "github.com/redis/go-redis/v9"
 )
 
 type MessageStore struct {
