@@ -743,6 +743,7 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 		OnPremisesClient:      onPremisesClient,
 		CloudAPIClient:        cloudAPIClient,
 		MessageStore:          messageStore,
+		Credentials:           whatsappCloudAPICredentials,
 	}
 	devMode := environmentConfig.DevMode
 	messagingFeatureConfig := featureConfig.Messaging

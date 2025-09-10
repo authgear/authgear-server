@@ -806,6 +806,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		OnPremisesClient:      onPremisesClient,
 		CloudAPIClient:        cloudAPIClient,
 		MessageStore:          messageStore,
+		Credentials:           whatsappCloudAPICredentials,
 	}
 	devMode := environmentConfig.DevMode
 	messagingFeatureConfig := featureConfig.Messaging

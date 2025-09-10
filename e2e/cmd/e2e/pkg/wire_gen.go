@@ -689,6 +689,7 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		OnPremisesClient:      onPremisesClient,
 		CloudAPIClient:        cloudAPIClient,
 		MessageStore:          messageStore,
+		Credentials:           whatsappCloudAPICredentials,
 	}
 	devMode := environmentConfig.DevMode
 	messagingFeatureConfig := featureConfig.Messaging

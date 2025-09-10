@@ -14,14 +14,26 @@ import (
 
 var logger = slogutil.NewLogger("whatsapp-service")
 
+//go:generate go tool mockgen -source=service.go -destination=service_mock_test.go -package whatsapp_test
+
+type ServiceCloudAPIClient interface {
+	GetLanguages() []string
+	SendAuthenticationOTP(ctx context.Context, opts *SendAuthenticationOTPOptions, lang string) (messageID string, err error)
+}
+
+type ServiceMessageStore interface {
+	GetMessageStatus(ctx context.Context, messageID string) (WhatsappMessageStatus, error)
+	UpdateMessageStatus(ctx context.Context, messageID string, status WhatsappMessageStatus) error
+}
+
 type Service struct {
 	Clock                 clock.Clock
 	WhatsappConfig        *config.WhatsappConfig
 	LocalizationConfig    *config.LocalizationConfig
 	GlobalWhatsappAPIType config.GlobalWhatsappAPIType
 	OnPremisesClient      *OnPremisesClient
-	CloudAPIClient        *CloudAPIClient
-	MessageStore          *MessageStore
+	CloudAPIClient        ServiceCloudAPIClient
+	MessageStore          ServiceMessageStore
 	Credentials           *config.WhatsappCloudAPICredentials
 }
 

@@ -791,6 +791,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		OnPremisesClient:      onPremisesClient,
 		CloudAPIClient:        cloudAPIClient,
 		MessageStore:          messageStore,
+		Credentials:           whatsappCloudAPICredentials,
 	}
 	devMode := environmentConfig.DevMode
 	messagingFeatureConfig := featureConfig.Messaging
