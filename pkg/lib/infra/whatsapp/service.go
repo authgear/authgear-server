@@ -22,6 +22,7 @@ type Service struct {
 	OnPremisesClient      *OnPremisesClient
 	CloudAPIClient        *CloudAPIClient
 	MessageStore          *MessageStore
+	Credentials           *config.WhatsappCloudAPICredentials
 }
 
 func (s *Service) resolveTemplateLanguage(ctx context.Context, supportedLanguages []string) string {
@@ -104,6 +105,9 @@ func (s *Service) SendAuthenticationOTP(ctx context.Context, opts *SendAuthentic
 		if err != nil {
 			return err
 		}
+		if !s.shouldWaitForMessageStatusUpdate() {
+			return nil
+		}
 		success := make(chan bool, 1)
 		// Wait for 5 seconds for the message status
 		go s.waitUntilSent(ctx, success, messageID, 5*time.Second)
@@ -119,6 +123,13 @@ func (s *Service) SendAuthenticationOTP(ctx context.Context, opts *SendAuthentic
 	default:
 		panic(fmt.Errorf("whatsapp: unknown api type"))
 	}
+}
+
+func (s *Service) shouldWaitForMessageStatusUpdate() bool {
+	if s.Credentials == nil || s.Credentials.Webhook == nil || s.Credentials.Webhook.VerifyToken == "" {
+		return false
+	}
+	return true
 }
 
 func (s *Service) waitUntilSent(ctx context.Context, success chan bool, messageID string, timeout time.Duration) {
