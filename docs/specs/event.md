@@ -874,6 +874,14 @@ Occurs when authentication is blocked due to account status.
 }
 ```
 
+- `reason`: The reason why authentication is blocked. Possible values are:
+  - `DisabledUser`: The user account is disabled.
+  - `DeactivatedUser`: The user account is deactivated.
+  - `AnonymizedUser`: The user account is anonymized.
+  - `ScheduledDeletionByAdmin`: The user account is scheduled for deletion by an administrator.
+  - `ScheduledDeletionByEndUser`: The user account is scheduled for deletion by the end-user.
+  - `ScheduledAnonymizationByAdmin`: The user account is scheduled for anonymization by an administrator.
+
 #### identity.email.added
 
 Occurs when a new email is added to existing user. Email can be added by user in setting page, added by admin through admin api or portal.
