@@ -117,9 +117,6 @@ func (s *Service) SendAuthenticationOTP(ctx context.Context, opts *SendAuthentic
 		if err != nil {
 			return err
 		}
-		if !s.shouldWaitForMessageStatusUpdate() {
-			return nil
-		}
 		success := make(chan bool, 1)
 		// Wait for 5 seconds for the message status
 		go s.waitUntilSent(ctx, success, messageID, 5*time.Second)
@@ -145,6 +142,11 @@ func (s *Service) shouldWaitForMessageStatusUpdate() bool {
 }
 
 func (s *Service) waitUntilSent(ctx context.Context, success chan bool, messageID string, timeout time.Duration) {
+	if !s.shouldWaitForMessageStatusUpdate() {
+		success <- true
+		return
+	}
+
 	logger := logger.GetLogger(ctx)
 	start := s.Clock.NowUTC()
 	for {
