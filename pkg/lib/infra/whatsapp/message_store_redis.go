@@ -10,6 +10,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/globalredis"
+	"github.com/authgear/authgear-server/pkg/util/crypto"
 	"github.com/authgear/authgear-server/pkg/util/duration"
 )
 
@@ -20,7 +21,8 @@ type MessageStore struct {
 }
 
 func redisMessageStatusKey(phoneNumberID string, messageID string) string {
-	return fmt.Sprintf("whatsapp:phone-number-id:%s:message-id:%s", phoneNumberID, messageID)
+	hashedPhoneNumberID := crypto.SHA256String(phoneNumberID)
+	return fmt.Sprintf("whatsapp:phone-number-id-sha256:%s:message-id:%s", hashedPhoneNumberID, messageID)
 }
 
 func (s *MessageStore) UpdateMessageStatus(ctx context.Context, messageID string, status WhatsappMessageStatus) error {
