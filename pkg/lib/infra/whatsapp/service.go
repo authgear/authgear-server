@@ -119,7 +119,7 @@ func (s *Service) SendAuthenticationOTP(ctx context.Context, opts *SendAuthentic
 		}
 		success := make(chan bool, 1)
 		// Wait for 5 seconds for the message status
-		go s.waitUntilSent(ctx, success, messageID, 5*time.Second)
+		go s.waitUntilSent(ctx, success, messageID, s.WhatsappConfig.MessageSentCallbackTimeout.Duration())
 
 		isSuccess := <-success
 		if !isSuccess {
