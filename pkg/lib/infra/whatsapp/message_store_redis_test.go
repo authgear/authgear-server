@@ -2,6 +2,7 @@ package whatsapp_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -12,6 +13,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/globalredis"
 	. "github.com/authgear/authgear-server/pkg/lib/infra/whatsapp"
+	"github.com/authgear/authgear-server/pkg/util/crypto"
 	"github.com/authgear/authgear-server/pkg/util/duration"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -67,7 +69,8 @@ func TestMessageStore(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			// Verify data in miniredis
-			key := "whatsapp:phone-number-id:1234567890:message-id:test_message_id"
+			hashedPhoneNumberID := crypto.SHA256String("1234567890")
+			key := fmt.Sprintf("whatsapp:phone-number-id-sha256:%s:message-id:%s", hashedPhoneNumberID, messageID)
 			val, err := mr.Get(key)
 			So(err, ShouldBeNil)
 			So(val, ShouldEqual, string(status))

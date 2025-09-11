@@ -266,7 +266,8 @@ localization:
   fallback_language: en
   supported_languages: ["en"]
 messaging:
-  whatsapp: {}
+  whatsapp:
+    message_sent_callback_timeout: 5s
   rate_limits:
     sms: {}
     sms_per_ip:

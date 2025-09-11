@@ -33,7 +33,8 @@ func TestServiceSendAuthenticationOTP(t *testing.T) {
 			mockMessageStore := NewMockServiceMessageStore(ctrl)
 
 			cfg := &config.WhatsappConfig{
-				APIType_NoDefault: config.WhatsappAPITypeCloudAPI,
+				APIType_NoDefault:          config.WhatsappAPITypeCloudAPI,
+				MessageSentCallbackTimeout: "5s",
 			}
 			credentials := &config.WhatsappCloudAPICredentials{
 				Webhook: &config.WhatsappCloudAPIWebhook{
@@ -77,7 +78,8 @@ func TestServiceSendAuthenticationOTP(t *testing.T) {
 
 		Convey("should return error if CloudAPIClient is nil", func() {
 			cfg := &config.WhatsappConfig{
-				APIType_NoDefault: config.WhatsappAPITypeCloudAPI,
+				APIType_NoDefault:          config.WhatsappAPITypeCloudAPI,
+				MessageSentCallbackTimeout: "5s",
 			}
 
 			s := &whatsapp.Service{
@@ -100,7 +102,8 @@ func TestServiceSendAuthenticationOTP(t *testing.T) {
 			mockCloudAPIClient := NewMockServiceCloudAPIClient(ctrl)
 
 			cfg := &config.WhatsappConfig{
-				APIType_NoDefault: config.WhatsappAPITypeCloudAPI,
+				APIType_NoDefault:          config.WhatsappAPITypeCloudAPI,
+				MessageSentCallbackTimeout: "5s",
 			}
 
 			s := &whatsapp.Service{
@@ -132,7 +135,8 @@ func TestServiceSendAuthenticationOTP(t *testing.T) {
 			mockMessageStore := NewMockServiceMessageStore(ctrl)
 
 			cfg := &config.WhatsappConfig{
-				APIType_NoDefault: config.WhatsappAPITypeCloudAPI,
+				APIType_NoDefault:          config.WhatsappAPITypeCloudAPI,
+				MessageSentCallbackTimeout: "5s",
 			}
 			credentials := &config.WhatsappCloudAPICredentials{
 				Webhook: &config.WhatsappCloudAPIWebhook{
@@ -182,7 +186,8 @@ func TestServiceSendAuthenticationOTP(t *testing.T) {
 			mockMessageStore := NewMockServiceMessageStore(ctrl)
 
 			cfg := &config.WhatsappConfig{
-				APIType_NoDefault: config.WhatsappAPITypeCloudAPI,
+				APIType_NoDefault:          config.WhatsappAPITypeCloudAPI,
+				MessageSentCallbackTimeout: "5s",
 			}
 			credentials := &config.WhatsappCloudAPICredentials{
 				Webhook: &config.WhatsappCloudAPIWebhook{
