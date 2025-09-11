@@ -1,6 +1,7 @@
 package nonblocking
 
 import (
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/model"
 )
@@ -10,9 +11,9 @@ const (
 )
 
 type AuthenticationBlockedEventPayload struct {
-	UserRef   model.UserRef `json:"-" resolve:"user"`
-	UserModel model.User    `json:"user"`
-	Reason    string        `json:"reason"`
+	UserRef   model.UserRef       `json:"-" resolve:"user"`
+	UserModel model.User          `json:"user"`
+	Error     *apierrors.APIError `json:"error"`
 }
 
 func (e *AuthenticationBlockedEventPayload) NonBlockingEventType() event.Type {
