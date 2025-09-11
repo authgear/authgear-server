@@ -2,6 +2,7 @@ package webapp
 
 import (
 	"context"
+	"crypto/subtle"
 	"encoding/json"
 	"log/slog"
 	"net/http"
@@ -70,7 +71,7 @@ func (h *WhatsappCloudAPIWebhookHandler) handleVerifyRequest(ctx context.Context
 		return
 	}
 
-	if hubVerifyToken != h.Credentials.Webhook.VerifyToken {
+	if subtle.ConstantTimeCompare([]byte(hubVerifyToken), []byte(h.Credentials.Webhook.VerifyToken)) != 1 {
 		logger.GetLogger(ctx).With(
 			slog.String("app_id", string(h.AppID)),
 		).Error(ctx, "invalid verify token received")
@@ -112,7 +113,7 @@ func (h *WhatsappCloudAPIWebhookHandler) ServeHTTP(w http.ResponseWriter, r *htt
 	for _, entry := range payload.Entry {
 		for _, change := range entry.Changes {
 			if change.Field == "messages" {
-				if change.Value.Metadata.PhoneNumberID != h.Credentials.PhoneNumberID {
+				if subtle.ConstantTimeCompare([]byte(change.Value.Metadata.PhoneNumberID), []byte(h.Credentials.PhoneNumberID)) != 1 {
 					logger.GetLogger(ctx).With(
 						slog.String("app_id", string(h.AppID)),
 						slog.String("phone_number_id", change.Value.Metadata.PhoneNumberID),
