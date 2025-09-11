@@ -1438,6 +1438,7 @@
 
   "AuditLogActivityType.ALL": "All activity types",
 
+  "AuditLogActivityType.AUTHENTICATION_BLOCKED": "Authentication blocked",
   "AuditLogActivityType.AUTHENTICATION_IDENTITY_ANONYMOUS_FAILED": "Anonymous user login failed",
   "AuditLogActivityType.AUTHENTICATION_IDENTITY_BIOMETRIC_FAILED": "Biometric login failed",
   "AuditLogActivityType.AUTHENTICATION_IDENTITY_LOGIN_ID_FAILED": "Invalid login ID",
