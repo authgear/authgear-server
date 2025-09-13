@@ -41,6 +41,7 @@
       - [authentication.secondary.oob_otp_sms.failed](#authenticationsecondaryoob_otp_smsfailed)
       - [authentication.secondary.recovery_code.failed](#authenticationsecondaryrecovery_codefailed)
       - [bot_protection.verification.failed](#bot_protectionverificationfailed)
+      - [authentication.blocked](#authenticationblocked)
       - [identity.email.added](#identityemailadded)
       - [identity.email.removed](#identityemailremoved)
       - [identity.email.updated](#identityemailupdated)
@@ -852,6 +853,35 @@ Occurs after someone failed to pass the bot protection verification.
 }
 ```
 
+#### authentication.blocked
+
+Occurs when authentication is blocked due to account status.
+
+```json5
+{
+  "payload": {
+    "user": { /* ... */ },
+    "error": {
+      "code": 403,
+      "info": {
+        "delete_at": "2025-10-11T08:15:04.825678Z"
+      },
+      "message": "user was scheduled for deletion by admin",
+      "name": "Forbidden",
+      "reason": "ScheduledDeletionByAdmin"
+    }
+  }
+}
+```
+
+- `reason`: The reason why authentication is blocked. Possible values are:
+  - `DisabledUser`: The user account is disabled.
+  - `DeactivatedUser`: The user account is deactivated.
+  - `AnonymizedUser`: The user account is anonymized.
+  - `ScheduledDeletionByAdmin`: The user account is scheduled for deletion by an administrator.
+  - `ScheduledDeletionByEndUser`: The user account is scheduled for deletion by the end-user.
+  - `ScheduledAnonymizationByAdmin`: The user account is scheduled for anonymization by an administrator.
+
 #### identity.email.added
 
 Occurs when a new email is added to existing user. Email can be added by user in setting page, added by admin through admin api or portal.
@@ -1113,7 +1143,8 @@ flowchart TD
         AuthenticationPreAuthenticated --> AuthenticateAdaptive["Authenticate<br>(Enforce AMR Constraints)"]
         AuthenticateAdaptive --> ChangePassword[Change Password]
         ChangePassword --> CheckAccountStatus[Check Account Status]
-        CheckAccountStatus --> TerminateOtherSessions[Terminate Other Sessions]
+        CheckAccountStatus -- "Blocked" --> AuthenticationBlocked[authentication.blocked]
+        CheckAccountStatus -- "Success" --> TerminateOtherSessions[Terminate Other Sessions]
         TerminateOtherSessions --> PromptCreatePasskey[Prompt Create Passkey]
         PromptCreatePasskey --> UserAuthenticated[user.authenticated]
         UserAuthenticated --> FinishLogin([Finish])
@@ -1130,7 +1161,7 @@ flowchart TD
     classDef event fill:#98FB98,color:#000000
     classDef blockingEvent fill:#ADD8E6,color:#000000
     classDef processNode fill:#dddddd,color:#000000
-    class BotProtectionVerificationFailed,AuthenticationIdentityLoginIDFailed,PrimaryAuthFailed,SecondaryAuthFailed,UserAuthenticated event
+    class BotProtectionVerificationFailed,AuthenticationIdentityLoginIDFailed,PrimaryAuthFailed,SecondaryAuthFailed,AuthenticationBlocked,UserAuthenticated event
     class AuthenticationPreInitialize,AuthenticationPostIdentified,AuthenticationPreAuthenticated,OIDCJWTPreCreate blockingEvent
     class Start,BotProtection,Identify,AuthenticatePrimary,AuthenticateSecondary,ChangePassword,CheckAccountStatus,TerminateOtherSessions,PromptCreatePasskey,AuthenticateAdaptive,ExchangeCode,IssueTokens,FinishLogin processNode
 ```

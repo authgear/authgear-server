@@ -203,6 +203,7 @@ export enum AuditLogActivityType {
   AdminApiMutationUpdateRoleExecuted = 'ADMIN_API_MUTATION_UPDATE_ROLE_EXECUTED',
   AdminApiMutationUpdateScopeExecuted = 'ADMIN_API_MUTATION_UPDATE_SCOPE_EXECUTED',
   AdminApiMutationUpdateUserExecuted = 'ADMIN_API_MUTATION_UPDATE_USER_EXECUTED',
+  AuthenticationBlocked = 'AUTHENTICATION_BLOCKED',
   AuthenticationIdentityAnonymousFailed = 'AUTHENTICATION_IDENTITY_ANONYMOUS_FAILED',
   AuthenticationIdentityBiometricFailed = 'AUTHENTICATION_IDENTITY_BIOMETRIC_FAILED',
   AuthenticationIdentityLoginIdFailed = 'AUTHENTICATION_IDENTITY_LOGIN_ID_FAILED',
