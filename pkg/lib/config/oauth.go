@@ -261,7 +261,7 @@ type OAuthClientConfig struct {
 	RefreshTokenLifetime                   DurationSeconds              `json:"refresh_token_lifetime_seconds,omitempty"`
 	RefreshTokenIdleTimeoutEnabled         *bool                        `json:"refresh_token_idle_timeout_enabled,omitempty"`
 	RefreshTokenIdleTimeout                DurationSeconds              `json:"refresh_token_idle_timeout_seconds,omitempty"`
-	RefreshTokenRotationEnabled            *bool                        `json:"refresh_token_rotation_enabled,omitempty"`
+	RefreshTokenRotationEnabled            bool                         `json:"refresh_token_rotation_enabled,omitempty"`
 	IssueJWTAccessToken                    bool                         `json:"issue_jwt_access_token,omitempty"`
 	PolicyURI                              string                       `json:"policy_uri,omitempty"`
 	TOSURI                                 string                       `json:"tos_uri,omitempty"`

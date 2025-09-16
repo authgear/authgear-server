@@ -110,7 +110,7 @@ func (f *OAuthFacade) CreateSession(ctx context.Context, clientID string, userID
 				SessionLike:        offlineGrant,
 				RefreshTokenHash:   tokenHash,
 			},
-			RotateRefreshToken: false, // The token is new, no need to rotate
+			ShouldRotateRefreshToken: false, // The token is new, no need to rotate
 		},
 		resp,
 	)

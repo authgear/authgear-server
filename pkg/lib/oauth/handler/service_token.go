@@ -59,7 +59,7 @@ type ClientCredentialsAccessTokenOptions struct {
 
 type IssueAccessGrantByRefreshTokenOptions struct {
 	oauth.IssueAccessGrantOptions
-	RotateRefreshToken bool
+	ShouldRotateRefreshToken bool
 }
 
 type TokenService struct {
@@ -201,8 +201,32 @@ func (s *TokenService) IssueAccessGrantByRefreshToken(
 	options IssueAccessGrantByRefreshTokenOptions,
 	resp protocol.TokenResponse,
 ) error {
+
+	issueOptions := options.IssueAccessGrantOptions
+
+	if options.ShouldRotateRefreshToken &&
+		options.SessionLike.SessionType() == session.TypeOfflineGrant &&
+		options.RefreshTokenHash != "" {
+
+		grant, err := s.OfflineGrantService.GetOfflineGrant(ctx, options.SessionLike.SessionID())
+		if err != nil {
+			return err
+		}
+
+		rotateResult, _, err := s.OfflineGrantService.RotateRefreshToken(ctx,
+			oauth.RotateRefreshTokenOptions{
+				OfflineGrant:     grant,
+				RefreshTokenHash: options.RefreshTokenHash,
+			})
+		if err != nil {
+			return err
+		}
+		resp.RefreshToken(oauth.EncodeRefreshToken(rotateResult.Token, grant.ID))
+		issueOptions.RefreshTokenHash = rotateResult.TokenHash
+	}
+
 	result, err := s.AccessGrantService.IssueAccessGrant(
-		ctx, options.IssueAccessGrantOptions,
+		ctx, issueOptions,
 	)
 	if err != nil {
 		return err

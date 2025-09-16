@@ -175,6 +175,16 @@ type CreateNewRefreshTokenResult struct {
 	TokenHash string
 }
 
+type RotateRefreshTokenOptions struct {
+	OfflineGrant     *OfflineGrant
+	RefreshTokenHash string
+}
+
+type RotateRefreshTokenResult struct {
+	Token     string
+	TokenHash string
+}
+
 func (s *OfflineGrantService) CreateNewRefreshToken(
 	ctx context.Context,
 	options CreateNewRefreshTokenOptions,
@@ -221,6 +231,46 @@ func (s *OfflineGrantService) CreateNewRefreshToken(
 		Token:     newToken,
 		TokenHash: newTokenHash,
 	}
+	return result, newGrant, nil
+}
+
+func (s *OfflineGrantService) RotateRefreshToken(
+	ctx context.Context,
+	options RotateRefreshTokenOptions,
+) (*RotateRefreshTokenResult, *OfflineGrant, error) {
+	newToken := GenerateToken()
+	newTokenHash := HashToken(newToken)
+
+	expiry, err := s.ComputeOfflineGrantExpiry(options.OfflineGrant)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	rotateOpts := RotateOfflineGrantRefreshTokenOptions{
+		OfflineGrantID:      options.OfflineGrant.ID,
+		OldRefreshTokenHash: options.RefreshTokenHash,
+		NewRefreshTokenHash: newTokenHash,
+	}
+
+	newGrant, err := s.OfflineGrants.RotateOfflineGrantRefreshToken(
+		ctx,
+		rotateOpts,
+		expiry,
+	)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	newGrant, err = s.housekeepOfflineGrant(ctx, newGrant)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	result := &RotateRefreshTokenResult{
+		Token:     newToken,
+		TokenHash: newTokenHash,
+	}
+
 	return result, newGrant, nil
 }
 

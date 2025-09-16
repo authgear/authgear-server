@@ -1066,8 +1066,8 @@ func (h *TokenHandler) handleAnonymousRequest(
 		RefreshTokenHash:   tokenHash,
 	}
 	err = h.TokenService.IssueAccessGrantByRefreshToken(ctx, IssueAccessGrantByRefreshTokenOptions{
-		IssueAccessGrantOptions: issueAccessGrantOptions,
-		RotateRefreshToken:      false, // New refresh token, no need to rotate
+		IssueAccessGrantOptions:  issueAccessGrantOptions,
+		ShouldRotateRefreshToken: false, // New refresh token, no need to rotate
 	}, resp)
 	if err != nil {
 		err = h.translateAccessTokenError(err)
@@ -1344,8 +1344,8 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 		RefreshTokenHash:   tokenHash,
 	}
 	err = h.TokenService.IssueAccessGrantByRefreshToken(ctx, IssueAccessGrantByRefreshTokenOptions{
-		IssueAccessGrantOptions: issueAccessGrantOptions,
-		RotateRefreshToken:      false, // New refresh token, no need to rotate
+		IssueAccessGrantOptions:  issueAccessGrantOptions,
+		ShouldRotateRefreshToken: false, // New refresh token, no need to rotate
 	}, resp)
 	if err != nil {
 		err = h.translateAccessTokenError(err)
@@ -1852,8 +1852,8 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 	err := h.TokenService.IssueAccessGrantByRefreshToken(
 		ctx,
 		IssueAccessGrantByRefreshTokenOptions{
-			IssueAccessGrantOptions: issueAccessGrantOptions,
-			RotateRefreshToken:      false, // New refresh token, no need to rotate
+			IssueAccessGrantOptions:  issueAccessGrantOptions,
+			ShouldRotateRefreshToken: false, // New refresh token, no need to rotate
 		},
 		resp)
 	if err != nil {
@@ -1931,8 +1931,8 @@ func (h *TokenHandler) issueTokensForRefreshToken(
 		RefreshTokenHash:   offlineGrantSession.TokenHash,
 	}
 	err = h.TokenService.IssueAccessGrantByRefreshToken(ctx, IssueAccessGrantByRefreshTokenOptions{
-		IssueAccessGrantOptions: issueAccessGrantOptions,
-		RotateRefreshToken:      *client.RefreshTokenRotationEnabled,
+		IssueAccessGrantOptions:  issueAccessGrantOptions,
+		ShouldRotateRefreshToken: client.RefreshTokenRotationEnabled,
 	}, resp)
 	if err != nil {
 		err = h.translateAccessTokenError(err)

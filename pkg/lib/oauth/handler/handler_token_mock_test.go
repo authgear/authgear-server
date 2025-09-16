@@ -696,7 +696,7 @@ func (m *MockTokenHandlerTokenService) EXPECT() *MockTokenHandlerTokenServiceMoc
 }
 
 // IssueAccessGrantByRefreshToken mocks base method.
-func (m *MockTokenHandlerTokenService) IssueAccessGrantByRefreshToken(ctx context.Context, options oauth.IssueAccessGrantOptions, resp protocol.TokenResponse) error {
+func (m *MockTokenHandlerTokenService) IssueAccessGrantByRefreshToken(ctx context.Context, options handler.IssueAccessGrantByRefreshTokenOptions, resp protocol.TokenResponse) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "IssueAccessGrantByRefreshToken", ctx, options, resp)
 	ret0, _ := ret[0].(error)
