@@ -1,11 +1,17 @@
 package webapp
 
 import (
+	"bytes"
 	"context"
+	"crypto/hmac"
+	"crypto/sha256"
 	"crypto/subtle"
+	"encoding/hex"
 	"encoding/json"
+	"io"
 	"log/slog"
 	"net/http"
+	"strings"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/whatsapp"
@@ -99,10 +105,49 @@ func (h *WhatsappCloudAPIWebhookHandler) ServeHTTP(w http.ResponseWriter, r *htt
 		return
 	}
 
-	var payload whatsappWebhookPayload
-	err := json.NewDecoder(r.Body).Decode(&payload)
+	signature := r.Header.Get("X-Hub-Signature-256")
+	if signature == "" {
+		logger.GetLogger(ctx).With(
+			slog.String("app_id", string(h.AppID)),
+		).Error(ctx, "missing signature")
+		http.Error(w, "missing signature", http.StatusBadRequest)
+		return
+	}
+
+	if !strings.HasPrefix(signature, "sha256=") {
+		logger.GetLogger(ctx).With(
+			slog.String("app_id", string(h.AppID)),
+		).Error(ctx, "invalid X-Hub-Signature-256 header format")
+		http.Error(w, "invalid X-Hub-Signature-256 header format", http.StatusBadRequest)
+		return
+	}
+	signature = strings.TrimPrefix(signature, "sha256=")
+
+	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		// Log the error, because normally we won't receive any invalid request
+		logger.GetLogger(ctx).With(
+			slog.String("app_id", string(h.AppID)),
+		).WithError(err).Error(ctx, "failed to read request body")
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	mac := hmac.New(sha256.New, []byte(h.Credentials.Webhook.AppSecret))
+	mac.Write(body)
+	expectedMAC := mac.Sum(nil)
+	expectedSignature := hex.EncodeToString(expectedMAC)
+
+	if subtle.ConstantTimeCompare([]byte(signature), []byte(expectedSignature)) != 1 {
+		logger.GetLogger(ctx).With(
+			slog.String("app_id", string(h.AppID)),
+		).Error(ctx, "invalid signature")
+		http.Error(w, "invalid signature", http.StatusUnauthorized)
+		return
+	}
+
+	var payload whatsappWebhookPayload
+	err = json.NewDecoder(bytes.NewReader(body)).Decode(&payload)
+	if err != nil {
 		logger.GetLogger(ctx).With(
 			slog.String("app_id", string(h.AppID)),
 		).WithError(err).Error(ctx, "invalid request body")
