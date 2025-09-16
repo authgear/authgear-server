@@ -9,7 +9,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
-	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/handler"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -52,10 +51,11 @@ type AppSessionTokenRequest struct {
 type AppSessionTokenResponse struct {
 	AppSessionToken string    `json:"app_session_token"`
 	ExpireAt        time.Time `json:"expire_at"`
+	RefreshToken    string    `json:"refresh_token"`
 }
 
 type AppSessionTokenIssuer interface {
-	IssueAppSessionToken(ctx context.Context, refreshToken string) (string, *oauth.AppSessionToken, error)
+	IssueAppSessionToken(ctx context.Context, refreshToken string) (*handler.IssueAppSessionTokenResult, error)
 }
 
 type AppSessionTokenHandler struct {
@@ -83,7 +83,7 @@ func (h *AppSessionTokenHandler) Handle(ctx context.Context, resp http.ResponseW
 		return nil, err
 	}
 
-	token, sToken, err := h.AppSessionTokens.IssueAppSessionToken(ctx, payload.RefreshToken)
+	issueAppSessionTokenResult, err := h.AppSessionTokens.IssueAppSessionToken(ctx, payload.RefreshToken)
 	var oauthError *protocol.OAuthProtocolError
 	if errors.Is(err, handler.ErrInvalidRefreshToken) {
 		return nil, InvalidGrant.New(err.Error())
@@ -94,7 +94,8 @@ func (h *AppSessionTokenHandler) Handle(ctx context.Context, resp http.ResponseW
 	}
 
 	return &AppSessionTokenResponse{
-		AppSessionToken: token,
-		ExpireAt:        sToken.ExpireAt,
+		AppSessionToken: issueAppSessionTokenResult.Token,
+		ExpireAt:        issueAppSessionTokenResult.AppSessionToken.ExpireAt,
+		RefreshToken:    issueAppSessionTokenResult.NewRefreshToken,
 	}, nil
 }

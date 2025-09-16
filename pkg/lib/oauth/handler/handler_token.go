@@ -65,6 +65,12 @@ const (
 
 const AppSessionTokenDuration = duration.Short
 
+type IssueAppSessionTokenResult struct {
+	Token           string
+	AppSessionToken *oauth.AppSessionToken
+	NewRefreshToken string
+}
+
 type IDTokenIssuer interface {
 	Iss() string
 	IssueIDToken(ctx context.Context, opts oidc.IssueIDTokenOptions) (token string, err error)
@@ -129,6 +135,10 @@ type TokenHandlerAppSessionTokenStore interface {
 type TokenHandlerOfflineGrantService interface {
 	AccessOfflineGrant(ctx context.Context, id string, refreshTokenHash string, accessEvent *access.Event, expireAt time.Time) (*oauth.OfflineGrant, error)
 	GetOfflineGrant(ctx context.Context, id string) (*oauth.OfflineGrant, error)
+	RotateRefreshToken(
+		ctx context.Context,
+		options oauth.RotateRefreshTokenOptions,
+	) (*oauth.RotateRefreshTokenResult, *oauth.OfflineGrant, error)
 }
 
 type TokenHandlerRateLimiter interface {
@@ -1942,16 +1952,23 @@ func (h *TokenHandler) issueTokensForRefreshToken(
 	return resp, nil
 }
 
-func (h *TokenHandler) IssueAppSessionToken(ctx context.Context, refreshToken string) (string, *oauth.AppSessionToken, error) {
+func (h *TokenHandler) IssueAppSessionToken(ctx context.Context, refreshToken string) (*IssueAppSessionTokenResult, error) {
 	authz, grant, refreshTokenHash, err := h.TokenService.ParseRefreshToken(ctx, refreshToken)
 	if err != nil {
-		return "", nil, err
+		return nil, err
+	}
+
+	client := h.ClientResolver.ResolveClient(authz.ClientID)
+	if client == nil {
+		return nil, protocol.NewError("server_error", "cannot find client of refresh token")
 	}
 
 	// Ensure client is authorized with full user access (i.e. first-party client)
 	if !authz.IsAuthorized([]string{oauth.FullAccessScope}) {
-		return "", nil, protocol.NewError("access_denied", "the client is not authorized to have full user access")
+		return nil, protocol.NewError("access_denied", "the client is not authorized to have full user access")
 	}
+
+	result := &IssueAppSessionTokenResult{}
 
 	now := h.Clock.NowUTC()
 	token := oauth.GenerateToken()
@@ -1966,10 +1983,26 @@ func (h *TokenHandler) IssueAppSessionToken(ctx context.Context, refreshToken st
 
 	err = h.AppSessionTokens.CreateAppSessionToken(ctx, sToken)
 	if err != nil {
-		return "", nil, err
+		return nil, err
 	}
 
-	return token, sToken, err
+	result.Token = token
+	result.AppSessionToken = sToken
+
+	if client.RefreshTokenRotationEnabled {
+		var rotateResult *oauth.RotateRefreshTokenResult
+		rotateResult, _, err = h.OfflineGrantService.RotateRefreshToken(ctx, oauth.RotateRefreshTokenOptions{
+			OfflineGrant:     grant,
+			RefreshTokenHash: refreshTokenHash,
+		})
+		if err != nil {
+			err = fmt.Errorf("failed to rotate refresh token: %w", err)
+			return nil, err
+		}
+		result.NewRefreshToken = oauth.EncodeRefreshToken(rotateResult.Token, grant.ID)
+	}
+
+	return result, nil
 }
 
 func (h *TokenHandler) translateAccessTokenError(err error) error {
