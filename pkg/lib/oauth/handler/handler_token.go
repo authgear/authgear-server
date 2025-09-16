@@ -137,7 +137,7 @@ type TokenHandlerRateLimiter interface {
 
 type TokenHandlerTokenService interface {
 	ParseRefreshToken(ctx context.Context, token string) (authz *oauth.Authorization, offlineGrant *oauth.OfflineGrant, tokenHash string, err error)
-	IssueAccessGrant(
+	IssueAccessGrantByRefreshToken(
 		ctx context.Context,
 		options oauth.IssueAccessGrantOptions,
 		resp protocol.TokenResponse,
@@ -1065,7 +1065,7 @@ func (h *TokenHandler) handleAnonymousRequest(
 		SessionLike:        offlineGrant,
 		RefreshTokenHash:   tokenHash,
 	}
-	err = h.TokenService.IssueAccessGrant(ctx, issueAccessGrantOptions, resp)
+	err = h.TokenService.IssueAccessGrantByRefreshToken(ctx, issueAccessGrantOptions, resp)
 	if err != nil {
 		err = h.translateAccessTokenError(err)
 		return nil, err
@@ -1340,7 +1340,7 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 		SessionLike:        offlineGrant,
 		RefreshTokenHash:   tokenHash,
 	}
-	err = h.TokenService.IssueAccessGrant(ctx, issueAccessGrantOptions, resp)
+	err = h.TokenService.IssueAccessGrantByRefreshToken(ctx, issueAccessGrantOptions, resp)
 	if err != nil {
 		err = h.translateAccessTokenError(err)
 		return nil, err
@@ -1843,7 +1843,7 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 		},
 		RefreshTokenHash: refreshTokenHash,
 	}
-	err := h.TokenService.IssueAccessGrant(
+	err := h.TokenService.IssueAccessGrantByRefreshToken(
 		ctx,
 		issueAccessGrantOptions,
 		resp)
@@ -1921,7 +1921,7 @@ func (h *TokenHandler) issueTokensForRefreshToken(
 		SessionLike:        offlineGrantSession,
 		RefreshTokenHash:   offlineGrantSession.TokenHash,
 	}
-	err = h.TokenService.IssueAccessGrant(ctx, issueAccessGrantOptions, resp)
+	err = h.TokenService.IssueAccessGrantByRefreshToken(ctx, issueAccessGrantOptions, resp)
 	if err != nil {
 		err = h.translateAccessTokenError(err)
 		return nil, err

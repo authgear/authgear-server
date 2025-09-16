@@ -174,7 +174,7 @@ func (h *AnonymousUserHandler) signupAnonymousUserWithRefreshTokenSessionType(
 			SessionLike:        grant,
 			RefreshTokenHash:   refreshTokenHash,
 		}
-		err = h.TokenService.IssueAccessGrant(ctx, issueAccessGrantOptions, resp)
+		err = h.TokenService.IssueAccessGrantByRefreshToken(ctx, issueAccessGrantOptions, resp)
 		if err != nil {
 			return nil, err
 		}
@@ -229,7 +229,7 @@ func (h *AnonymousUserHandler) signupAnonymousUserWithRefreshTokenSessionType(
 		SessionLike:        offlineGrant,
 		RefreshTokenHash:   tokenHash,
 	}
-	err = h.TokenService.IssueAccessGrant(ctx, issueAccessGrantOptions, resp)
+	err = h.TokenService.IssueAccessGrantByRefreshToken(ctx, issueAccessGrantOptions, resp)
 	if err != nil {
 		return nil, err
 	}

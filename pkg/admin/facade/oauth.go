@@ -29,7 +29,7 @@ type OAuthTokenService interface {
 		opts handler.IssueOfflineGrantOptions,
 		resp protocol.TokenResponse,
 	) (offlineGrant *oauth.OfflineGrant, tokenHash string, err error)
-	IssueAccessGrant(
+	IssueAccessGrantByRefreshToken(
 		ctx context.Context,
 		options oauth.IssueAccessGrantOptions,
 		resp protocol.TokenResponse,
@@ -99,7 +99,7 @@ func (f *OAuthFacade) CreateSession(ctx context.Context, clientID string, userID
 		return nil, nil, err
 	}
 
-	err = f.Tokens.IssueAccessGrant(
+	err = f.Tokens.IssueAccessGrantByRefreshToken(
 		ctx,
 		oauth.IssueAccessGrantOptions{
 			ClientConfig:       client,

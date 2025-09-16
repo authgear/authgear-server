@@ -191,7 +191,7 @@ func (s *TokenService) IssueRefreshTokenForOfflineGrant(
 	return newOfflineGrant, newRefreshTokenResult.TokenHash, nil
 }
 
-func (s *TokenService) IssueAccessGrant(
+func (s *TokenService) IssueAccessGrantByRefreshToken(
 	ctx context.Context,
 	options oauth.IssueAccessGrantOptions,
 	resp protocol.TokenResponse,
