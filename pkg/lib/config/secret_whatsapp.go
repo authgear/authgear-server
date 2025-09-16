@@ -113,6 +113,7 @@ type WhatsappCloudAPIAuthenticationTemplateCopyCodeButtonConfig struct {
 
 type WhatsappCloudAPIWebhook struct {
 	VerifyToken string `json:"verify_token"`
+	AppSecret   string `json:"app_secret"`
 }
 
 type WhatsappCloudAPICredentials struct {
@@ -289,9 +290,10 @@ var _ = SecretConfigSchema.Add("WhatsappCloudAPIWebhook", `
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
-		"verify_token": { "type": "string", "minLength": 1 }
+		"verify_token": { "type": "string", "minLength": 1 },
+		"app_secret": { "type": "string", "minLength": 1 }
 	},
-	"required": ["verify_token"]
+	"required": ["verify_token", "app_secret"]
 }
 `)
 
