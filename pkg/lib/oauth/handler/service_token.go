@@ -57,6 +57,11 @@ type ClientCredentialsAccessTokenOptions struct {
 	Resource           *resourcescope.Resource
 }
 
+type IssueAccessGrantByRefreshTokenOptions struct {
+	oauth.IssueAccessGrantOptions
+	RotateRefreshToken bool
+}
+
 type TokenService struct {
 	RemoteIP        httputil.RemoteIP
 	UserAgentString httputil.UserAgentString
@@ -193,11 +198,11 @@ func (s *TokenService) IssueRefreshTokenForOfflineGrant(
 
 func (s *TokenService) IssueAccessGrantByRefreshToken(
 	ctx context.Context,
-	options oauth.IssueAccessGrantOptions,
+	options IssueAccessGrantByRefreshTokenOptions,
 	resp protocol.TokenResponse,
 ) error {
 	result, err := s.AccessGrantService.IssueAccessGrant(
-		ctx, options,
+		ctx, options.IssueAccessGrantOptions,
 	)
 	if err != nil {
 		return err

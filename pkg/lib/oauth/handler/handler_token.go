@@ -139,7 +139,7 @@ type TokenHandlerTokenService interface {
 	ParseRefreshToken(ctx context.Context, token string) (authz *oauth.Authorization, offlineGrant *oauth.OfflineGrant, tokenHash string, err error)
 	IssueAccessGrantByRefreshToken(
 		ctx context.Context,
-		options oauth.IssueAccessGrantOptions,
+		options IssueAccessGrantByRefreshTokenOptions,
 		resp protocol.TokenResponse,
 	) error
 	IssueOfflineGrant(
@@ -1065,7 +1065,10 @@ func (h *TokenHandler) handleAnonymousRequest(
 		SessionLike:        offlineGrant,
 		RefreshTokenHash:   tokenHash,
 	}
-	err = h.TokenService.IssueAccessGrantByRefreshToken(ctx, issueAccessGrantOptions, resp)
+	err = h.TokenService.IssueAccessGrantByRefreshToken(ctx, IssueAccessGrantByRefreshTokenOptions{
+		IssueAccessGrantOptions: issueAccessGrantOptions,
+		RotateRefreshToken:      false, // New refresh token, no need to rotate
+	}, resp)
 	if err != nil {
 		err = h.translateAccessTokenError(err)
 		return nil, err
@@ -1340,7 +1343,10 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 		SessionLike:        offlineGrant,
 		RefreshTokenHash:   tokenHash,
 	}
-	err = h.TokenService.IssueAccessGrantByRefreshToken(ctx, issueAccessGrantOptions, resp)
+	err = h.TokenService.IssueAccessGrantByRefreshToken(ctx, IssueAccessGrantByRefreshTokenOptions{
+		IssueAccessGrantOptions: issueAccessGrantOptions,
+		RotateRefreshToken:      false, // New refresh token, no need to rotate
+	}, resp)
 	if err != nil {
 		err = h.translateAccessTokenError(err)
 		return nil, err
@@ -1845,7 +1851,10 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 	}
 	err := h.TokenService.IssueAccessGrantByRefreshToken(
 		ctx,
-		issueAccessGrantOptions,
+		IssueAccessGrantByRefreshTokenOptions{
+			IssueAccessGrantOptions: issueAccessGrantOptions,
+			RotateRefreshToken:      false, // New refresh token, no need to rotate
+		},
 		resp)
 	if err != nil {
 		err = h.translateAccessTokenError(err)
@@ -1921,7 +1930,10 @@ func (h *TokenHandler) issueTokensForRefreshToken(
 		SessionLike:        offlineGrantSession,
 		RefreshTokenHash:   offlineGrantSession.TokenHash,
 	}
-	err = h.TokenService.IssueAccessGrantByRefreshToken(ctx, issueAccessGrantOptions, resp)
+	err = h.TokenService.IssueAccessGrantByRefreshToken(ctx, IssueAccessGrantByRefreshTokenOptions{
+		IssueAccessGrantOptions: issueAccessGrantOptions,
+		RotateRefreshToken:      *client.RefreshTokenRotationEnabled,
+	}, resp)
 	if err != nil {
 		err = h.translateAccessTokenError(err)
 		return nil, err
