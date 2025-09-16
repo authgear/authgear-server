@@ -7,7 +7,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
-	"github.com/authgear/authgear-server/pkg/lib/authn/identity/anonymous"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	oauthhandler "github.com/authgear/authgear-server/pkg/lib/oauth/handler"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -56,6 +55,7 @@ type AnonymousUserPromotionCodeRequest struct {
 type AnonymousUserPromotionCodeResponse struct {
 	PromotionCode string    `json:"promotion_code"`
 	ExpireAt      time.Time `json:"expire_at"`
+	RefreshToken  string    `json:"refresh_token"`
 }
 
 type PromotionCodeIssuer interface {
@@ -64,7 +64,7 @@ type PromotionCodeIssuer interface {
 		req *http.Request,
 		sessionType oauthhandler.WebSessionType,
 		refreshToken string,
-	) (code string, codeObj *anonymous.PromotionCode, err error)
+	) (*oauthhandler.IssuePromotionCodeResult, error)
 }
 
 var AnonymousUserPromotionCodeAPIHandlerLogger = slogutil.NewLogger("handler-anonymous-user-promotion-code")
@@ -87,7 +87,7 @@ func (h *AnonymousUserPromotionCodeAPIHandler) ServeHTTP(resp http.ResponseWrite
 
 	result := &AnonymousUserPromotionCodeResponse{}
 	err = h.Database.WithTx(ctx, func(ctx context.Context) error {
-		code, codeObj, err := h.PromotionCodes.IssuePromotionCode(
+		issueResult, err := h.PromotionCodes.IssuePromotionCode(
 			ctx,
 			req,
 			payload.SessionType,
@@ -96,8 +96,9 @@ func (h *AnonymousUserPromotionCodeAPIHandler) ServeHTTP(resp http.ResponseWrite
 		if err != nil {
 			return err
 		}
-		result.PromotionCode = code
-		result.ExpireAt = codeObj.ExpireAt
+		result.PromotionCode = issueResult.Code
+		result.ExpireAt = issueResult.CodeObj.ExpireAt
+		result.RefreshToken = issueResult.NewRefreshToken
 		return nil
 	})
 

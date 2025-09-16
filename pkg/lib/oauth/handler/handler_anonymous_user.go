@@ -63,6 +63,12 @@ type SignupAnonymousUserResult struct {
 	Cookies       []*http.Cookie
 }
 
+type IssuePromotionCodeResult struct {
+	Code            string
+	CodeObj         *anonymous.PromotionCode
+	NewRefreshToken string
+}
+
 type AnonymousUserHandler struct {
 	AppID       config.AppID
 	OAuthConfig *config.OAuthConfig
@@ -72,6 +78,7 @@ type AnonymousUserHandler struct {
 	Clock               clock.Clock
 	TokenService        TokenService
 	UserProvider        UserProvider
+	OfflineGrantService oauth.OfflineGrantService
 	AnonymousIdentities AnonymousIdentityProvider
 	PromotionCodes      PromotionCodeStore
 	OAuthClientResolver OAuthClientResolver
@@ -298,27 +305,51 @@ func (h *AnonymousUserHandler) IssuePromotionCode(
 	req *http.Request,
 	sessionType WebSessionType,
 	refreshToken string,
-) (code string, codeObj *anonymous.PromotionCode, err error) {
+) (result *IssuePromotionCodeResult, err error) {
+	result = &IssuePromotionCodeResult{}
 	var appID, userID string
 	switch sessionType {
 	case WebSessionTypeRefreshToken:
 		if refreshToken == "" {
 			err = ErrUnauthenticated
-			return
+			return nil, err
 		}
-		authz, _, _, e := h.TokenService.ParseRefreshToken(ctx, refreshToken)
+		authz, grant, hash, e := h.TokenService.ParseRefreshToken(ctx, refreshToken)
 		var oauthError *protocol.OAuthProtocolError
 		if errors.As(e, &oauthError) {
 			err = apierrors.NewForbidden(oauthError.Error())
-			return
+			return nil, err
 		} else if e != nil {
 			err = e
-			return
+			return nil, err
 		}
 		// Ensure client is authorized with full user access (i.e. first-party client)
 		if !authz.IsAuthorized([]string{oauth.FullAccessScope}) {
 			err = apierrors.NewForbidden("the client is not authorized to have full user access")
-			return
+			return nil, err
+		}
+
+		session, ok := grant.ToSession(hash)
+		if !ok {
+			panic(fmt.Errorf("unexpected: failed to resolve session from refresh token hash"))
+		}
+		_, client := resolveClient(ctx, h.OAuthClientResolver, session.ClientID)
+		if client == nil {
+			err = apierrors.NewForbidden("the client of the refresh token does not exist")
+			return nil, err
+		}
+
+		if client.RefreshTokenRotationEnabled {
+			var rotateResult *oauth.RotateRefreshTokenResult
+			rotateResult, _, err = h.OfflineGrantService.RotateRefreshToken(ctx, oauth.RotateRefreshTokenOptions{
+				OfflineGrant:     grant,
+				RefreshTokenHash: hash,
+			})
+			if err != nil {
+				err = fmt.Errorf("failed to rotate refresh token")
+				return nil, err
+			}
+			result.NewRefreshToken = oauth.EncodeRefreshToken(rotateResult.Token, grant.ID)
 		}
 
 		appID = authz.AppID
@@ -330,7 +361,7 @@ func (h *AnonymousUserHandler) IssuePromotionCode(
 			userID = s.GetAuthenticationInfo().UserID
 		} else {
 			err = ErrUnauthenticated
-			return
+			return nil, err
 		}
 	default:
 		panic("unknown web session type")
@@ -338,16 +369,16 @@ func (h *AnonymousUserHandler) IssuePromotionCode(
 
 	user, err := h.UserProvider.Get(ctx, userID, accesscontrol.RoleGreatest)
 	if err != nil {
-		return
+		return nil, err
 	}
 	if !user.IsAnonymous {
 		err = ErrLoggedInAsNormalUser
-		return
+		return nil, err
 	}
 
 	identities, err := h.AnonymousIdentities.List(ctx, userID)
 	if err != nil {
-		return
+		return nil, err
 	}
 	if len(identities) != 1 {
 		panic(fmt.Errorf("api: expected has 1 anonymous identity for anonymous user, got %d", len(identities)))
@@ -365,9 +396,9 @@ func (h *AnonymousUserHandler) IssuePromotionCode(
 	}
 	err = h.PromotionCodes.CreatePromotionCode(ctx, cObj)
 	if err != nil {
-		return
+		return nil, err
 	}
-	code = c
-	codeObj = cObj
-	return
+	result.Code = c
+	result.CodeObj = cObj
+	return result, nil
 }
