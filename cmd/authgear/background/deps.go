@@ -20,6 +20,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/searchdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/analyticredis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis/globalredis"
 	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/resource"
@@ -96,6 +97,7 @@ var DependencySet = wire.NewSet(
 	appdb.NewHandle,
 	searchdb.NewHandle,
 	appredis.NewHandle,
+	globalredis.NewHandle,
 	analyticredis.NewHandle,
 	auditdb.NewReadHandle,
 	auditdb.NewWriteHandle,

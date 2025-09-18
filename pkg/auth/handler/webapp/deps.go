@@ -123,4 +123,5 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(ResponseWriter), "*"),
 
 	wire.Struct(new(NoProjectSSOCallbackHandler), "*"),
+	wire.Struct(new(WhatsappCloudAPIWebhookHandler), "*"),
 )
