@@ -214,6 +214,10 @@ type TokenHandlerAppDatabase interface {
 	WithTx(ctx_original context.Context, do func(ctx context.Context) error) (err error)
 }
 
+type TokenHandlerCodeGrantService interface {
+	CreateCodeGrant(ctx context.Context, opts *CreateCodeGrantOptions) (code string, grant *oauth.CodeGrant, err error)
+}
+
 type TokenHandler struct {
 	Database TokenHandlerAppDatabase
 
@@ -242,7 +246,7 @@ type TokenHandler struct {
 	SessionManager                  SessionManager
 	App2App                         App2AppService
 	Challenges                      ChallengeProvider
-	CodeGrantService                CodeGrantService
+	CodeGrantService                TokenHandlerCodeGrantService
 	ClientResolver                  OAuthClientResolver
 	UIInfoResolver                  UIInfoResolver
 	RateLimiter                     TokenHandlerRateLimiter
@@ -1462,6 +1466,9 @@ func (h *TokenHandler) handleApp2AppRequest(
 		}
 	}
 
+	if originalOfflineGrant.App2AppDeviceKeyJWKJSON == "" {
+		return nil, protocol.NewError("invalid_grant", "app2app device key is not set")
+	}
 	parsedKey, err := jwk.ParseKey([]byte(originalOfflineGrant.App2AppDeviceKeyJWKJSON))
 	if err != nil {
 		return nil, err
