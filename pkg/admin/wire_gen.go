@@ -1196,7 +1196,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Events:        eventService,
 		Identities:    facadeIdentityFacade,
 	}
-	accessGrantService := oauth2.AccessGrantService{
+	accessGrantService := &oauth2.AccessGrantService{
 		AppID:             appID,
 		AccessGrants:      redisStore,
 		AccessTokenIssuer: oauthAccessTokenEncoding,
@@ -1210,7 +1210,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Authorizations:      authorizationStore,
 		OfflineGrants:       redisStore,
 		AccessGrants:        redisStore,
-		OfflineGrantService: offlineGrantService,
+		OfflineGrantService: oauthOfflineGrantService,
 		AccessEvents:        eventProvider,
 		AccessTokenIssuer:   accessTokenEncoding,
 		GenerateToken:       tokenGenerator,
