@@ -435,11 +435,14 @@ var CommonDependencySet = wire.NewSet(
 		oauthpq.DependencySet,
 		wire.Bind(new(oauth.AuthorizationStore), new(*oauthpq.AuthorizationStore)),
 		wire.Bind(new(facade.OAuthService), new(*oauthpq.AuthorizationStore)),
+		wire.Bind(new(handler.TokenServiceAuthorizationStore), new(*oauthpq.AuthorizationStore)),
 
 		oauthredis.DependencySet,
 		wire.Bind(new(oauth.AccessGrantStore), new(*oauthredis.Store)),
+		wire.Bind(new(handler.TokenServiceAccessGrantStore), new(*oauthredis.Store)),
 		wire.Bind(new(oauth.CodeGrantStore), new(*oauthredis.Store)),
 		wire.Bind(new(oauth.OfflineGrantStore), new(*oauthredis.Store)),
+		wire.Bind(new(handler.TokenServiceOfflineGrantStore), new(*oauthredis.Store)),
 		wire.Bind(new(oauth.AppSessionTokenStore), new(*oauthredis.Store)),
 		wire.Bind(new(oauth.AppSessionStore), new(*oauthredis.Store)),
 		wire.Bind(new(oauth.PreAuthenticatedURLTokenStore), new(*oauthredis.Store)),
@@ -467,6 +470,8 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(oauthhandler.RevokeHandlerOfflineGrantService), new(*oauth.OfflineGrantService)),
 		wire.Bind(new(oauthhandler.RevokeHandlerAccessGrantStore), new(*oauthredis.Store)),
 		wire.Bind(new(saml.OfflineGrantService), new(*oauth.OfflineGrantService)),
+		wire.Bind(new(handler.TokenServiceOfflineGrantService), new(*oauth.OfflineGrantService)),
+		wire.Bind(new(handler.TokenServiceAccessGrantService), new(*oauth.AccessGrantService)),
 
 		oauthhandler.DependencySet,
 
