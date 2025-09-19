@@ -581,10 +581,12 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Store:    pgsearchStore,
 		Database: searchdbHandle,
 	}
+	globalSearchImplementation := environmentConfig.SearchImplementation
 	searchService := &search.Service{
-		SearchConfig:         searchConfig,
-		ElasticsearchService: elasticsearchService,
-		PGSearchService:      pgsearchService,
+		SearchConfig:               searchConfig,
+		ElasticsearchService:       elasticsearchService,
+		PGSearchService:            pgsearchService,
+		GlobalSearchImplementation: globalSearchImplementation,
 	}
 	rawCommands := &user.RawCommands{
 		Store: store,
@@ -650,15 +652,16 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		RolesGroups:     rolesgroupsStore,
 	}
 	reindexer := &reindex.Reindexer{
-		AppID:                  appID,
-		SearchConfig:           searchConfig,
-		Clock:                  clockClock,
-		Database:               handle,
-		UserStore:              store,
-		Producer:               userReindexProducer,
-		SourceProvider:         sourceProvider,
-		ElasticsearchReindexer: elasticsearchService,
-		PostgresqlReindexer:    pgsearchService,
+		AppID:                      appID,
+		SearchConfig:               searchConfig,
+		Clock:                      clockClock,
+		Database:                   handle,
+		UserStore:                  store,
+		Producer:                   userReindexProducer,
+		SourceProvider:             sourceProvider,
+		ElasticsearchReindexer:     elasticsearchService,
+		PostgresqlReindexer:        pgsearchService,
+		GlobalSearchImplementation: globalSearchImplementation,
 	}
 	reindexSink := &reindex.Sink{
 		Reindexer: reindexer,

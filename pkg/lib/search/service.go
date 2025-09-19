@@ -13,9 +13,10 @@ import (
 )
 
 type Service struct {
-	SearchConfig         *config.SearchConfig
-	ElasticsearchService *elasticsearch.Service
-	PGSearchService      *pgsearch.Service
+	SearchConfig               *config.SearchConfig
+	ElasticsearchService       *elasticsearch.Service
+	PGSearchService            *pgsearch.Service
+	GlobalSearchImplementation config.GlobalSearchImplementation
 }
 
 func (s *Service) QueryUser(
@@ -24,7 +25,7 @@ func (s *Service) QueryUser(
 	filterOptions user.FilterOptions,
 	sortOption user.SortOption,
 	pageArgs graphqlutil.PageArgs) ([]apimodel.PageItemRef, *Stats, error) {
-	switch s.SearchConfig.GetImplementation() {
+	switch s.SearchConfig.GetImplementation(s.GlobalSearchImplementation) {
 	case config.SearchImplementationElasticsearch:
 		result, stats, err := s.ElasticsearchService.QueryUser(searchKeyword, filterOptions, sortOption, pageArgs)
 		if err != nil {
@@ -40,5 +41,5 @@ func (s *Service) QueryUser(
 	case config.SearchImplementationNone:
 		return nil, nil, ErrSearchDisabled
 	}
-	panic(fmt.Errorf("unknown search implementation: %s", s.SearchConfig.GetImplementation()))
+	panic(fmt.Errorf("unknown search implementation: %s", s.SearchConfig.GetImplementation(s.GlobalSearchImplementation)))
 }

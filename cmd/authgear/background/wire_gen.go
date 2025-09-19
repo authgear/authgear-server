@@ -588,16 +588,18 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 		Store:    pgsearchStore,
 		Database: searchdbHandle,
 	}
+	globalSearchImplementation := environmentConfig.SearchImplementation
 	reindexer := &reindex.Reindexer{
-		AppID:                  configAppID,
-		SearchConfig:           searchConfig,
-		Clock:                  clockClock,
-		Database:               handle,
-		UserStore:              store,
-		Producer:               userReindexProducer,
-		SourceProvider:         sourceProvider,
-		ElasticsearchReindexer: elasticsearchService,
-		PostgresqlReindexer:    pgsearchService,
+		AppID:                      configAppID,
+		SearchConfig:               searchConfig,
+		Clock:                      clockClock,
+		Database:                   handle,
+		UserStore:                  store,
+		Producer:                   userReindexProducer,
+		SourceProvider:             sourceProvider,
+		ElasticsearchReindexer:     elasticsearchService,
+		PostgresqlReindexer:        pgsearchService,
+		GlobalSearchImplementation: globalSearchImplementation,
 	}
 	reindexSink := &reindex.Sink{
 		Reindexer: reindexer,

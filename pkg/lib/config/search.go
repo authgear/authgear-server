@@ -26,7 +26,7 @@ type SearchConfig struct {
 	Implementation SearchImplementation `json:"implementation,omitempty"`
 }
 
-func (c *SearchConfig) GetImplementation() SearchImplementation {
+func (c *SearchConfig) GetImplementation(globalImpl GlobalSearchImplementation) SearchImplementation {
 	switch c.Implementation {
 	case SearchImplementationElasticsearch:
 		fallthrough
@@ -35,6 +35,6 @@ func (c *SearchConfig) GetImplementation() SearchImplementation {
 	case SearchImplementationPostgresql:
 		return c.Implementation
 	default:
-		return SearchImplementationElasticsearch
+		return SearchImplementation(globalImpl)
 	}
 }

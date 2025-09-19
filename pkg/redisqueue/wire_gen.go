@@ -508,16 +508,18 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		Store:    pgsearchStore,
 		Database: searchdbHandle,
 	}
+	globalSearchImplementation := environmentConfig.SearchImplementation
 	reindexer := &reindex.Reindexer{
-		AppID:                  appID,
-		SearchConfig:           searchConfig,
-		Clock:                  clock,
-		Database:               handle,
-		UserStore:              store,
-		Producer:               userReindexProducer,
-		SourceProvider:         sourceProvider,
-		ElasticsearchReindexer: elasticsearchService,
-		PostgresqlReindexer:    pgsearchService,
+		AppID:                      appID,
+		SearchConfig:               searchConfig,
+		Clock:                      clock,
+		Database:                   handle,
+		UserStore:                  store,
+		Producer:                   userReindexProducer,
+		SourceProvider:             sourceProvider,
+		ElasticsearchReindexer:     elasticsearchService,
+		PostgresqlReindexer:        pgsearchService,
+		GlobalSearchImplementation: globalSearchImplementation,
 	}
 	reindexSink := &reindex.Sink{
 		Reindexer: reindexer,
@@ -1604,16 +1606,18 @@ func newSearchReindexer(ctx context.Context, p *deps.AppProvider) *reindex.Reind
 		Store:    pgsearchStore,
 		Database: searchdbHandle,
 	}
+	globalSearchImplementation := environmentConfig.SearchImplementation
 	reindexer := &reindex.Reindexer{
-		AppID:                  appID,
-		SearchConfig:           searchConfig,
-		Clock:                  clockClock,
-		Database:               handle,
-		UserStore:              store,
-		Producer:               userReindexProducer,
-		SourceProvider:         sourceProvider,
-		ElasticsearchReindexer: elasticsearchService,
-		PostgresqlReindexer:    pgsearchService,
+		AppID:                      appID,
+		SearchConfig:               searchConfig,
+		Clock:                      clockClock,
+		Database:                   handle,
+		UserStore:                  store,
+		Producer:                   userReindexProducer,
+		SourceProvider:             sourceProvider,
+		ElasticsearchReindexer:     elasticsearchService,
+		PostgresqlReindexer:        pgsearchService,
+		GlobalSearchImplementation: globalSearchImplementation,
 	}
 	return reindexer
 }
