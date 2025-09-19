@@ -14,6 +14,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
+	"github.com/authgear/authgear-server/pkg/lib/oauth/handler"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/lib/oauthclient"
 	"github.com/authgear/authgear-server/pkg/lib/session"
@@ -64,7 +65,7 @@ type TesterAuthTokensIssuer interface {
 		client *config.OAuthClientConfig,
 		r protocol.TokenRequest,
 	) (protocol.TokenResponse, error)
-	IssueAppSessionToken(ctx context.Context, refreshToken string) (string, *oauth.AppSessionToken, error)
+	IssueAppSessionToken(ctx context.Context, refreshToken string) (*handler.IssueAppSessionTokenResult, error)
 }
 
 type TesterAppSessionTokenService interface {
@@ -209,10 +210,13 @@ func (h *TesterHandler) doCodeExchange(ctx context.Context, code string, stateb6
 		return fmt.Errorf("tester: refresh_token is not string")
 	}
 
-	appSessionToken, s, err := h.TesterTokenIssuer.IssueAppSessionToken(ctx, refreshToken)
+	issueAppSessionTokenResult, err := h.TesterTokenIssuer.IssueAppSessionToken(ctx, refreshToken)
 	if err != nil {
 		return err
 	}
+
+	appSessionToken := issueAppSessionTokenResult.Token
+	s := issueAppSessionTokenResult.AppSessionToken
 
 	offlineGrant, err := h.OfflineGrants.GetOfflineGrant(ctx, s.OfflineGrantID)
 	if err != nil {

@@ -14,6 +14,8 @@ import (
 	"github.com/lestrrat-go/jwx/v2/jwt"
 	. "github.com/smartystreets/goconvey/convey"
 
+	"github.com/authgear/authgear-server/pkg/lib/app2app"
+	"github.com/authgear/authgear-server/pkg/lib/authn/challenge"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/handler"
@@ -31,7 +33,9 @@ func TestTokenHandler(t *testing.T) {
 	Convey("Token handler", t, func() {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
-		clientResolver := &mockClientResolver{}
+		clientResolver := &multiClientResolver{
+			ClientConfigs: make(map[string]*config.OAuthClientConfig),
+		}
 		origin := "http://accounts.example.com"
 		idTokenIssuer := NewMockIDTokenIssuer(ctrl)
 		idTokenIssuer.EXPECT().Iss().Return(origin).AnyTimes()
@@ -46,7 +50,10 @@ func TestTokenHandler(t *testing.T) {
 		offlineGrants := NewMockTokenHandlerOfflineGrantStore(ctrl)
 
 		authorizations := NewMockAuthorizationService(ctrl)
+		codeGrantService := NewMockTokenHandlerCodeGrantService(ctrl)
 		rateLimiter := NewMockTokenHandlerRateLimiter(ctrl)
+		challenges := NewMockChallengeProvider(ctrl)
+		app2appService := NewMockApp2AppService(ctrl)
 
 		preAuthenticatedURLService := NewMockPreAuthenticatedURLTokenService(ctrl)
 
@@ -56,6 +63,7 @@ func TestTokenHandler(t *testing.T) {
 
 		offlineGrantService := NewMockTokenHandlerOfflineGrantService(ctrl)
 		clientResourceScopeService := NewMockTokenHandlerClientResourceScopeService(ctrl)
+		appSessionTokens := NewMockTokenHandlerAppSessionTokenStore(ctrl)
 
 		clock := clock.NewMockClockAt("2020-02-01T00:00:00Z")
 
@@ -81,6 +89,10 @@ func TestTokenHandler(t *testing.T) {
 			PreAuthenticatedURLTokenService: preAuthenticatedURLService,
 			ClientResourceScopeService:      clientResourceScopeService,
 			RateLimiter:                     rateLimiter,
+			AppSessionTokens:                appSessionTokens,
+			CodeGrantService:                codeGrantService,
+			Challenges:                      challenges,
+			App2App:                         app2appService,
 		}
 
 		handle := func(ctx context.Context, req *http.Request, r protocol.TokenRequest) *httptest.ResponseRecorder {
@@ -93,7 +105,7 @@ func TestTokenHandler(t *testing.T) {
 		Convey("handle refresh token", func() {
 			Convey("success", func() {
 				req, _ := http.NewRequest("POST", "/token", nil)
-				clientResolver.ClientConfig = &config.OAuthClientConfig{
+				clientResolver.ClientConfigs["app-id"] = &config.OAuthClientConfig{
 					ClientID: "app-id",
 					RedirectURIs: []string{
 						"https://example.com/",
@@ -133,7 +145,7 @@ func TestTokenHandler(t *testing.T) {
 				}).Return(nil, nil)
 				tokenService.EXPECT().ParseRefreshToken(gomock.Any(), "asdf").Return(&oauth.Authorization{}, offlineGrant, refreshTokenHash, nil)
 				idTokenIssuer.EXPECT().IssueIDToken(gomock.Any(), gomock.Any()).Return("id-token", nil)
-				tokenService.EXPECT().IssueAccessGrant(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
+				tokenService.EXPECT().IssueAccessGrantByRefreshToken(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 				event := access.NewEvent(clock.NowUTC(), "1.2.3.4", "UA")
 				offlineGrantService.EXPECT().AccessOfflineGrant(gomock.Any(), "offline-grant-id", refreshTokenHash, &event, offlineGrant.ExpireAtForResolvedSession).Return(offlineGrant, nil)
 				offlineGrants.EXPECT().UpdateOfflineGrantDeviceInfo(gomock.Any(), "offline-grant-id", gomock.Any(), offlineGrant.ExpireAtForResolvedSession).Return(offlineGrant, nil)
@@ -141,9 +153,104 @@ func TestTokenHandler(t *testing.T) {
 				res := handle(ctx, req, r)
 				So(res.Result().StatusCode, ShouldEqual, 200)
 			})
+
+			Convey("should rotate refresh token if enabled", func() {
+				req, _ := http.NewRequest("POST", "/token", nil)
+				clientResolver.ClientConfigs["app-id"] = &config.OAuthClientConfig{
+					ClientID: "app-id",
+					RedirectURIs: []string{
+						"https://example.com/",
+					},
+					RefreshTokenRotationEnabled: true,
+				}
+				r := protocol.TokenRequest{}
+				r["grant_type"] = []string{"refresh_token"}
+				r["client_id"] = []string{"app-id"}
+				r["refresh_token"] = []string{"asdf"}
+				refreshTokenHash := "hash1"
+				offlineGrant := &oauth.OfflineGrant{
+					ID:              "offline-grant-id",
+					Attrs:           *session.NewAttrs("user-id"),
+					InitialClientID: "app-id",
+					RefreshTokens: []oauth.OfflineGrantRefreshToken{{
+						ClientID:  "app-id",
+						Scopes:    []string{"openid"},
+						TokenHash: refreshTokenHash,
+					}},
+					ExpireAtForResolvedSession: time.Date(2020, 02, 01, 1, 0, 0, 0, time.UTC),
+				}
+				rateLimiter.EXPECT().Allow(gomock.Any(), gomock.Any()).AnyTimes().Return(nil, nil)
+				tokenService.EXPECT().ParseRefreshToken(gomock.Any(), "asdf").Return(&oauth.Authorization{}, offlineGrant, refreshTokenHash, nil)
+				idTokenIssuer.EXPECT().IssueIDToken(gomock.Any(), gomock.Any()).Return("id-token", nil)
+				tokenService.EXPECT().IssueAccessGrantByRefreshToken(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(
+					func(ctx context.Context, options handler.IssueAccessGrantByRefreshTokenOptions, resp protocol.TokenResponse) error {
+						if options.ShouldRotateRefreshToken {
+							resp.RefreshToken("new-refresh-token")
+						}
+						return nil
+					})
+				event := access.NewEvent(clock.NowUTC(), "1.2.3.4", "UA")
+				offlineGrantService.EXPECT().AccessOfflineGrant(gomock.Any(), "offline-grant-id", refreshTokenHash, &event, offlineGrant.ExpireAtForResolvedSession).Return(offlineGrant, nil)
+				offlineGrants.EXPECT().UpdateOfflineGrantDeviceInfo(gomock.Any(), "offline-grant-id", gomock.Any(), offlineGrant.ExpireAtForResolvedSession).Return(offlineGrant, nil)
+				ctx := context.Background()
+				res := handle(ctx, req, r)
+				So(res.Result().StatusCode, ShouldEqual, 200)
+				var body map[string]interface{}
+				err := json.Unmarshal(res.Body.Bytes(), &body)
+				So(err, ShouldBeNil)
+				So(body["refresh_token"], ShouldEqual, "new-refresh-token")
+			})
+
+			Convey("should not rotate refresh token if disabled", func() {
+				req, _ := http.NewRequest("POST", "/token", nil)
+				clientResolver.ClientConfigs["app-id"] = &config.OAuthClientConfig{
+					ClientID: "app-id",
+					RedirectURIs: []string{
+						"https://example.com/",
+					},
+					RefreshTokenRotationEnabled: false,
+				}
+				r := protocol.TokenRequest{}
+				r["grant_type"] = []string{"refresh_token"}
+				r["client_id"] = []string{"app-id"}
+				r["refresh_token"] = []string{"asdf"}
+				refreshTokenHash := "hash1"
+				offlineGrant := &oauth.OfflineGrant{
+					ID:              "offline-grant-id",
+					Attrs:           *session.NewAttrs("user-id"),
+					InitialClientID: "app-id",
+					RefreshTokens: []oauth.OfflineGrantRefreshToken{{
+						ClientID:  "app-id",
+						Scopes:    []string{"openid"},
+						TokenHash: refreshTokenHash,
+					}},
+					ExpireAtForResolvedSession: time.Date(2020, 02, 01, 1, 0, 0, 0, time.UTC),
+				}
+				rateLimiter.EXPECT().Allow(gomock.Any(), gomock.Any()).AnyTimes().Return(nil, nil)
+				tokenService.EXPECT().ParseRefreshToken(gomock.Any(), "asdf").Return(&oauth.Authorization{}, offlineGrant, refreshTokenHash, nil)
+				idTokenIssuer.EXPECT().IssueIDToken(gomock.Any(), gomock.Any()).Return("id-token", nil)
+				tokenService.EXPECT().IssueAccessGrantByRefreshToken(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(
+					func(ctx context.Context, options handler.IssueAccessGrantByRefreshTokenOptions, resp protocol.TokenResponse) error {
+						if options.ShouldRotateRefreshToken {
+							resp.RefreshToken("new-refresh-token")
+						}
+						return nil
+					})
+				event := access.NewEvent(clock.NowUTC(), "1.2.3.4", "UA")
+				offlineGrantService.EXPECT().AccessOfflineGrant(gomock.Any(), "offline-grant-id", refreshTokenHash, &event, offlineGrant.ExpireAtForResolvedSession).Return(offlineGrant, nil)
+				offlineGrants.EXPECT().UpdateOfflineGrantDeviceInfo(gomock.Any(), "offline-grant-id", gomock.Any(), offlineGrant.ExpireAtForResolvedSession).Return(offlineGrant, nil)
+				ctx := context.Background()
+				res := handle(ctx, req, r)
+				So(res.Result().StatusCode, ShouldEqual, 200)
+				var body map[string]interface{}
+				err := json.Unmarshal(res.Body.Bytes(), &body)
+				So(err, ShouldBeNil)
+				So(body, ShouldNotContainKey, "refresh_token")
+			})
+
 			Convey("rate limited", func() {
 				req, _ := http.NewRequest("POST", "/token", nil)
-				clientResolver.ClientConfig = &config.OAuthClientConfig{
+				clientResolver.ClientConfigs["app-id"] = &config.OAuthClientConfig{
 					ClientID: "app-id",
 				}
 				r := protocol.TokenRequest{}
@@ -179,7 +286,7 @@ func TestTokenHandler(t *testing.T) {
 			req, _ := http.NewRequest("POST", "/token", nil)
 			clientID1 := "client-id-1"
 			clientID2 := "client-id-2"
-			clientResolver.ClientConfig = &config.OAuthClientConfig{
+			clientResolver.ClientConfigs[clientID1] = &config.OAuthClientConfig{
 				ClientID: clientID1,
 				RedirectURIs: []string{
 					"https://example.com/",
@@ -309,7 +416,7 @@ func TestTokenHandler(t *testing.T) {
 				{ID: "scope-id-1", ResourceID: resourceID, Scope: "read"},
 				{ID: "scope-id-2", ResourceID: resourceID, Scope: "write"},
 			}
-			clientResolver.ClientConfig = &config.OAuthClientConfig{
+			clientResolver.ClientConfigs[clientID] = &config.OAuthClientConfig{
 				ClientID:            clientID,
 				ApplicationType:     config.OAuthClientApplicationTypeConfidential,
 				AccessTokenLifetime: config.DurationSeconds(3600),
@@ -630,5 +737,184 @@ func TestTokenHandler(t *testing.T) {
 				So(body["error_description"], ShouldEqual, "resource URI must not be a prefixed by authgear endpoint")
 			})
 		})
+
+		Convey("handle app2app request", func() {
+			h.OAuthFeatureConfig = &config.OAuthFeatureConfig{
+				Client: &config.OAuthClientFeatureConfig{
+					App2AppEnabled: new(bool),
+				},
+			}
+			*h.OAuthFeatureConfig.Client.App2AppEnabled = true
+
+			req, _ := http.NewRequest("POST", "/token", nil)
+			originalClientID := "original-client-id"
+			newClientID := "new-client-id"
+
+			r := protocol.TokenRequest{}
+			r["grant_type"] = []string{"urn:authgear:params:oauth:grant-type:app2app-request"}
+			r["client_id"] = []string{newClientID}
+			r["refresh_token"] = []string{"app2app-refresh-token"}
+			r["redirect_uri"] = []string{"http://localhost/redirect"}
+			r["jwt"] = []string{"dummy-jwt"}
+
+			refreshTokenHash := "app2app-refresh-token-hash"
+			offlineGrant := &oauth.OfflineGrant{
+				ID:              "offline-grant-id",
+				Attrs:           *session.NewAttrs("user-id"),
+				InitialClientID: originalClientID,
+				RefreshTokens: []oauth.OfflineGrantRefreshToken{{
+					ClientID:  originalClientID,
+					Scopes:    []string{"openid", "offline_access"},
+					TokenHash: refreshTokenHash,
+				}},
+				ExpireAtForResolvedSession: time.Date(2020, 02, 01, 1, 0, 0, 0, time.UTC),
+			}
+
+			// Common mocks for both sub-tests
+			rateLimiter.EXPECT().Allow(gomock.Any(), gomock.Any()).AnyTimes().Return(nil, nil)
+			tokenService.EXPECT().ParseRefreshToken(gomock.Any(), "app2app-refresh-token").AnyTimes().Return(nil, offlineGrant, refreshTokenHash, nil)
+			event := access.NewEvent(clock.NowUTC(), "1.2.3.4", "UA")
+			offlineGrantService.EXPECT().AccessOfflineGrant(gomock.Any(), "offline-grant-id", refreshTokenHash, &event, offlineGrant.ExpireAtForResolvedSession).AnyTimes().Return(offlineGrant, nil)
+			authorizations.EXPECT().CheckAndGrant(gomock.Any(), newClientID, "user-id", []string{"openid", "offline_access"}).AnyTimes().Return(&oauth.Authorization{
+				Scopes: []string{"openid", "offline_access"},
+			}, nil)
+			codeGrantService.EXPECT().CreateCodeGrant(gomock.Any(), gomock.Any()).AnyTimes().Return("authz-code", &oauth.CodeGrant{}, nil)
+			purpose := challenge.PurposeApp2AppRequest
+			challenges.EXPECT().Consume(gomock.Any(), gomock.Any()).AnyTimes().Return(&purpose, nil)
+			key, _ := jwk.FromRaw([]byte("a"))
+			keyJSON, _ := json.Marshal(key)
+			app2appService.EXPECT().ParseTokenUnverified(gomock.Any()).AnyTimes().Return(&app2app.Request{
+				Key: key,
+			}, nil)
+			app2appService.EXPECT().ParseToken(gomock.Any(), gomock.Any()).AnyTimes().Return(&app2app.Request{}, nil)
+			offlineGrant.App2AppDeviceKeyJWKJSON = string(keyJSON)
+
+			Convey("should rotate refresh token if enabled", func() {
+				clientResolver.ClientConfigs[originalClientID] = &config.OAuthClientConfig{
+					ClientID:                               originalClientID,
+					RefreshTokenRotationEnabled:            true,
+					App2appInsecureDeviceKeyBindingEnabled: true,
+				}
+				clientResolver.ClientConfigs[newClientID] = &config.OAuthClientConfig{
+					ClientID:       newClientID,
+					RedirectURIs:   []string{"http://localhost/redirect"},
+					App2appEnabled: true,
+				}
+
+				rotateResult := &oauth.RotateRefreshTokenResult{
+					Token: "new-refresh-token-value",
+				}
+				// This is the key expectation
+				offlineGrantService.EXPECT().RotateRefreshToken(gomock.Any(), gomock.Any()).Return(rotateResult, offlineGrant, nil)
+
+				ctx := context.Background()
+				res := handle(ctx, req, r)
+				So(res.Result().StatusCode, ShouldEqual, 200)
+
+				var body map[string]interface{}
+				err := json.Unmarshal(res.Body.Bytes(), &body)
+				So(err, ShouldBeNil)
+				So(body["refresh_token"], ShouldEqual, "offline-grant-id.new-refresh-token-value")
+				So(body["code"], ShouldEqual, "authz-code")
+			})
+
+			Convey("should not rotate refresh token if disabled", func() {
+				clientResolver.ClientConfigs[originalClientID] = &config.OAuthClientConfig{
+					ClientID:                               originalClientID,
+					RefreshTokenRotationEnabled:            false,
+					App2appInsecureDeviceKeyBindingEnabled: true,
+				}
+				clientResolver.ClientConfigs[newClientID] = &config.OAuthClientConfig{
+					ClientID:       newClientID,
+					RedirectURIs:   []string{"http://localhost/redirect"},
+					App2appEnabled: true,
+				}
+
+				// RotateRefreshToken should NOT be called. gomock will fail the test if it is.
+
+				ctx := context.Background()
+				res := handle(ctx, req, r)
+				So(res.Result().StatusCode, ShouldEqual, 200)
+
+				var body map[string]interface{}
+				err := json.Unmarshal(res.Body.Bytes(), &body)
+				So(err, ShouldBeNil)
+				So(body, ShouldNotContainKey, "refresh_token")
+				So(body["code"], ShouldEqual, "authz-code")
+			})
+		})
 	})
+	Convey("IssueAppSessionToken", t, func() {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		clientResolver := &multiClientResolver{
+			ClientConfigs: make(map[string]*config.OAuthClientConfig),
+		}
+		tokenService := NewMockTokenHandlerTokenService(ctrl)
+		offlineGrantService := NewMockTokenHandlerOfflineGrantService(ctrl)
+		appSessionTokens := NewMockTokenHandlerAppSessionTokenStore(ctrl)
+		clock := clock.NewMockClockAt("2020-02-01T00:00:00Z")
+
+		h := handler.TokenHandler{
+			ClientResolver:      clientResolver,
+			TokenService:        tokenService,
+			OfflineGrantService: offlineGrantService,
+			AppSessionTokens:    appSessionTokens,
+			Clock:               clock,
+		}
+
+		Convey("should rotate refresh token if enabled", func() {
+			clientResolver.ClientConfigs["app-id"] = &config.OAuthClientConfig{
+				ClientID:                    "app-id",
+				RefreshTokenRotationEnabled: true,
+			}
+			refreshToken := "refresh_token_str"
+			refreshTokenHash := "refresh_token_hash"
+			authz := &oauth.Authorization{
+				ClientID: "app-id",
+				Scopes:   []string{oauth.FullAccessScope},
+			}
+			offlineGrant := &oauth.OfflineGrant{
+				ID:    "offline-grant-id",
+				AppID: "testapp",
+			}
+
+			tokenService.EXPECT().ParseRefreshToken(gomock.Any(), refreshToken).Return(authz, offlineGrant, refreshTokenHash, nil)
+			appSessionTokens.EXPECT().CreateAppSessionToken(gomock.Any(), gomock.Any()).Return(nil)
+			offlineGrantService.EXPECT().RotateRefreshToken(gomock.Any(), gomock.Any()).Return(&oauth.RotateRefreshTokenResult{
+				Token: "new_refresh_token",
+			}, offlineGrant, nil)
+
+			result, err := h.IssueAppSessionToken(context.Background(), refreshToken)
+			So(err, ShouldBeNil)
+			So(result.NewRefreshToken, ShouldEqual, "offline-grant-id.new_refresh_token")
+		})
+
+		Convey("should not rotate refresh token if disabled", func() {
+			clientResolver.ClientConfigs["app-id"] = &config.OAuthClientConfig{
+				ClientID:                    "app-id",
+				RefreshTokenRotationEnabled: false,
+			}
+			refreshToken := "refresh_token_str"
+			refreshTokenHash := "refresh_token_hash"
+			authz := &oauth.Authorization{
+				ClientID: "app-id",
+				Scopes:   []string{oauth.FullAccessScope},
+			}
+			offlineGrant := &oauth.OfflineGrant{
+				ID:    "offline-grant-id",
+				AppID: "testapp",
+			}
+
+			tokenService.EXPECT().ParseRefreshToken(gomock.Any(), refreshToken).Return(authz, offlineGrant, refreshTokenHash, nil)
+			appSessionTokens.EXPECT().CreateAppSessionToken(gomock.Any(), gomock.Any()).Return(nil)
+			// RotateRefreshToken should not be called.
+
+			result, err := h.IssueAppSessionToken(context.Background(), refreshToken)
+			So(err, ShouldBeNil)
+			So(result.NewRefreshToken, ShouldBeEmpty)
+		})
+	})
+
 }

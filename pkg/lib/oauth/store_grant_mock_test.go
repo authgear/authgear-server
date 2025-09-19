@@ -299,6 +299,21 @@ func (mr *MockOfflineGrantStoreMockRecorder) RemoveOfflineGrantRefreshTokens(ctx
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveOfflineGrantRefreshTokens", reflect.TypeOf((*MockOfflineGrantStore)(nil).RemoveOfflineGrantRefreshTokens), ctx, grantID, tokenHashes, expireAt)
 }
 
+// RotateOfflineGrantRefreshToken mocks base method.
+func (m *MockOfflineGrantStore) RotateOfflineGrantRefreshToken(ctx context.Context, opts RotateOfflineGrantRefreshTokenOptions, expireAt time.Time) (*OfflineGrant, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RotateOfflineGrantRefreshToken", ctx, opts, expireAt)
+	ret0, _ := ret[0].(*OfflineGrant)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// RotateOfflineGrantRefreshToken indicates an expected call of RotateOfflineGrantRefreshToken.
+func (mr *MockOfflineGrantStoreMockRecorder) RotateOfflineGrantRefreshToken(ctx, opts, expireAt interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RotateOfflineGrantRefreshToken", reflect.TypeOf((*MockOfflineGrantStore)(nil).RotateOfflineGrantRefreshToken), ctx, opts, expireAt)
+}
+
 // UpdateOfflineGrantApp2AppDeviceKey mocks base method.
 func (m *MockOfflineGrantStore) UpdateOfflineGrantApp2AppDeviceKey(ctx context.Context, id, newKey string, expireAt time.Time) (*OfflineGrant, error) {
 	m.ctrl.T.Helper()

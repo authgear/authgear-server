@@ -29,9 +29,9 @@ type OAuthTokenService interface {
 		opts handler.IssueOfflineGrantOptions,
 		resp protocol.TokenResponse,
 	) (offlineGrant *oauth.OfflineGrant, tokenHash string, err error)
-	IssueAccessGrant(
+	IssueAccessGrantByRefreshToken(
 		ctx context.Context,
-		options oauth.IssueAccessGrantOptions,
+		options handler.IssueAccessGrantByRefreshTokenOptions,
 		resp protocol.TokenResponse,
 	) error
 }
@@ -99,15 +99,18 @@ func (f *OAuthFacade) CreateSession(ctx context.Context, clientID string, userID
 		return nil, nil, err
 	}
 
-	err = f.Tokens.IssueAccessGrant(
+	err = f.Tokens.IssueAccessGrantByRefreshToken(
 		ctx,
-		oauth.IssueAccessGrantOptions{
-			ClientConfig:       client,
-			Scopes:             scopes,
-			AuthorizationID:    authz.ID,
-			AuthenticationInfo: offlineGrant.GetAuthenticationInfo(),
-			SessionLike:        offlineGrant,
-			RefreshTokenHash:   tokenHash,
+		handler.IssueAccessGrantByRefreshTokenOptions{
+			IssueAccessGrantOptions: oauth.IssueAccessGrantOptions{
+				ClientConfig:       client,
+				Scopes:             scopes,
+				AuthorizationID:    authz.ID,
+				AuthenticationInfo: offlineGrant.GetAuthenticationInfo(),
+				SessionLike:        offlineGrant,
+				RefreshTokenHash:   tokenHash,
+			},
+			ShouldRotateRefreshToken: false, // The token is new, no need to rotate
 		},
 		resp,
 	)
