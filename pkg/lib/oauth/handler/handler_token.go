@@ -1519,6 +1519,18 @@ func (h *TokenHandler) handleApp2AppRequest(
 
 	resp := protocol.TokenResponse{}
 	resp.Code(code)
+
+	if originalClient.RefreshTokenRotationEnabled {
+		rotateResult, newGrant, err := h.OfflineGrantService.RotateRefreshToken(ctx, oauth.RotateRefreshTokenOptions{
+			OfflineGrant:     originalOfflineGrant,
+			RefreshTokenHash: refreshTokenHash,
+		})
+		if err != nil {
+			return nil, err
+		}
+		resp.RefreshToken(oauth.EncodeRefreshToken(rotateResult.Token, newGrant.ID))
+	}
+
 	return tokenResultOK{Response: resp}, nil
 }
 
