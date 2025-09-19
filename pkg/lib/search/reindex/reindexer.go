@@ -53,8 +53,9 @@ type Reindexer struct {
 
 	SourceProvider *SourceProvider
 
-	ElasticsearchReindexer ElasticsearchReindexer
-	PostgresqlReindexer    PostgresqlReindexer
+	ElasticsearchReindexer     ElasticsearchReindexer
+	PostgresqlReindexer        PostgresqlReindexer
+	GlobalSearchImplementation config.GlobalSearchImplementation
 }
 
 type action string
@@ -168,7 +169,7 @@ func (s *Reindexer) EnqueueReindexUserTask(ctx context.Context, userID string) e
 }
 
 func (s *Reindexer) reindexUser(ctx context.Context, source *model.SearchUserSource) error {
-	switch s.SearchConfig.GetImplementation() {
+	switch s.SearchConfig.GetImplementation(s.GlobalSearchImplementation) {
 	case config.SearchImplementationElasticsearch:
 		return s.ElasticsearchReindexer.ReindexUser(ctx, source)
 	case config.SearchImplementationPostgresql:
@@ -178,11 +179,11 @@ func (s *Reindexer) reindexUser(ctx context.Context, source *model.SearchUserSou
 		return nil
 	}
 
-	panic(fmt.Errorf("unknown search implementation %s", s.SearchConfig.GetImplementation()))
+	panic(fmt.Errorf("unknown search implementation %s", s.SearchConfig.GetImplementation(s.GlobalSearchImplementation)))
 }
 
 func (s *Reindexer) deleteUser(ctx context.Context, userID string) error {
-	switch s.SearchConfig.GetImplementation() {
+	switch s.SearchConfig.GetImplementation(s.GlobalSearchImplementation) {
 	case config.SearchImplementationElasticsearch:
 		return s.ElasticsearchReindexer.DeleteUser(ctx, userID)
 	case config.SearchImplementationPostgresql:
@@ -192,5 +193,5 @@ func (s *Reindexer) deleteUser(ctx context.Context, userID string) error {
 		return nil
 	}
 
-	panic(fmt.Errorf("unknown search implementation %s", s.SearchConfig.GetImplementation()))
+	panic(fmt.Errorf("unknown search implementation %s", s.SearchConfig.GetImplementation(s.GlobalSearchImplementation)))
 }

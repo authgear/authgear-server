@@ -28,6 +28,8 @@ type GlobalUIImplementation UIImplementation
 
 type GlobalUISettingsImplementation SettingsUIImplementation
 
+type GlobalSearchImplementation SearchImplementation
+
 type GlobalWhatsappAPIType WhatsappAPIType
 
 type SharedAuthgearEndpoint string
@@ -109,6 +111,8 @@ type EnvironmentConfig struct {
 	UIImplementation GlobalUIImplementation `envconfig:"UI_IMPLEMENTATION"`
 
 	UISettingsImplementation GlobalUISettingsImplementation `envconfig:"UI_SETTINGS_IMPLEMENTATION"`
+
+	SearchImplementation GlobalSearchImplementation `envconfig:"SEARCH_IMPLEMENTATION" default:"elasticsearch"`
 
 	// PROJECT_WIZARD_IMPLEMENTATION was deprecated.
 

@@ -654,16 +654,18 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Store:    pgsearchStore,
 		Database: searchdbHandle,
 	}
+	globalSearchImplementation := environmentConfig.SearchImplementation
 	reindexer := &reindex.Reindexer{
-		AppID:                  appID,
-		SearchConfig:           searchConfig,
-		Clock:                  clock,
-		Database:               appdbHandle,
-		UserStore:              userStore,
-		Producer:               userReindexProducer,
-		SourceProvider:         sourceProvider,
-		ElasticsearchReindexer: elasticsearchService,
-		PostgresqlReindexer:    pgsearchService,
+		AppID:                      appID,
+		SearchConfig:               searchConfig,
+		Clock:                      clock,
+		Database:                   appdbHandle,
+		UserStore:                  userStore,
+		Producer:                   userReindexProducer,
+		SourceProvider:             sourceProvider,
+		ElasticsearchReindexer:     elasticsearchService,
+		PostgresqlReindexer:        pgsearchService,
+		GlobalSearchImplementation: globalSearchImplementation,
 	}
 	reindexSink := &reindex.Sink{
 		Reindexer: reindexer,
