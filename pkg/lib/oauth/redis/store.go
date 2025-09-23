@@ -534,6 +534,8 @@ func (s *Store) RotateOfflineGrantRefreshToken(
 	}
 
 	tokenToRotate.RotatedTokenHash = &opts.NewRefreshTokenHash
+	t := s.Clock.NowUTC()
+	tokenToRotate.RotatedAt = &t
 	grant.RefreshTokens[tokenIndex] = *tokenToRotate
 
 	err = s.updateOfflineGrant(ctx, grant, expireAt)

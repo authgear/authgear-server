@@ -16,9 +16,7 @@ import (
 
 type OfflineGrantRefreshToken struct {
 	// InitialTokenHash is effectively the ID of this OfflineGrantRefreshToken
-	InitialTokenHash string `json:"token_hash"`
-	// Set after the refresh token rotated at least once
-	RotatedTokenHash *string   `json:"rotated_token_hash"`
+	InitialTokenHash string    `json:"token_hash"`
 	ClientID         string    `json:"client_id"`
 	CreatedAt        time.Time `json:"created_at"`
 	Scopes           []string  `json:"scopes"`
@@ -31,6 +29,10 @@ type OfflineGrantRefreshToken struct {
 	// Refresh token created before the day has nil ExpireAt.
 	// Only short-lived pre-authenticated URL refresh token created after the day has non-nil ExpireAt.
 	ExpireAt *time.Time `json:"expire_at"`
+
+	// Set after the refresh token rotated at least once
+	RotatedTokenHash *string    `json:"rotated_token_hash"`
+	RotatedAt        *time.Time `json:"rotated_at"`
 }
 
 type OfflineGrant struct {
