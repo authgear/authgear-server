@@ -26,24 +26,15 @@ services:
     - "6432:5432"
 
   pgbouncer:
-    image: bitnami/pgbouncer:1.23.1
+    image: edoburu/pgbouncer:v1.24.1-p1
+    command:
+    - pgbouncer
+    - /etc/pgbouncer/pgbouncer.ini
+    volumes:
+    - ./pgbouncer.ini:/etc/pgbouncer/pgbouncer.ini
+    - ./pgbouncer-users.txt:/etc/pgbouncer/users.txt
     ports:
     - "5432:5432"
-    environment:
-      PGBOUNCER_PORT: "5432"
-      # 120 is the default value.
-      PGBOUNCER_MAX_CLIENT_CONN: "120"
-      PGBOUNCER_DATABASE: "*"
-      POSTGRESQL_DATABASE: "postgres"
-      POSTGRESQL_HOST: "postgres16"
-      POSTGRESQL_PORT: "5432"
-      POSTGRESQL_USERNAME: "postgres"
-      POSTGRESQL_PASSWORD: "postgres"
-      PGBOUNCER_DSN_0: "app=host=postgres16 port=5432 dbname=postgres"
-      PGBOUNCER_DSN_1: "audit=host=postgres16 port=5432 dbname=postgres"
-      PGBOUNCER_DSN_2: "search=host=postgres16 port=5432 dbname=postgres"
-      PGBOUNCER_LOG_CONNECTIONS: "1"
-      PGBOUNCER_LOG_DISCONNECTIONS: "1"
 
   # When you change this service, please also change the corresponding service in `find . -name docker-compose.yaml`
   redis:
