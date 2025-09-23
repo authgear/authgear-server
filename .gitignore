@@ -9,6 +9,7 @@
 /var/static
 /tls-cert.pem
 /tls-key.pem
+/rootCA.pem
 .parcel-cache/
 
 # direnv

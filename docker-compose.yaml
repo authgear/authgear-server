@@ -33,6 +33,10 @@ services:
     volumes:
     - ./pgbouncer.ini:/etc/pgbouncer/pgbouncer.ini
     - ./pgbouncer-users.txt:/etc/pgbouncer/users.txt
+    # NOTE(postgresql-tls): Uncomment the following lines to enable TLS
+    #- ./tls-cert.pem:/etc/pgbouncer/server.crt
+    #- ./tls-key.pem:/etc/pgbouncer/server.key
+    #- ./rootCA.pem:/etc/pgbouncer/ca.crt
     ports:
     - "5432:5432"
 
