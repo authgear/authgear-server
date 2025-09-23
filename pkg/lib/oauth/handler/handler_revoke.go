@@ -46,7 +46,7 @@ func (h *RevokeHandler) revokeOfflineGrant(ctx context.Context, token, grantID s
 	}
 
 	tokenHash := oauth.HashToken(token)
-	if !offlineGrant.MatchHash(tokenHash) {
+	if !offlineGrant.MatchCurrentHash(tokenHash) {
 		return nil
 	}
 

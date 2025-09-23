@@ -15,12 +15,15 @@ import (
 )
 
 type OfflineGrantRefreshToken struct {
-	TokenHash       string    `json:"token_hash"`
-	ClientID        string    `json:"client_id"`
-	CreatedAt       time.Time `json:"created_at"`
-	Scopes          []string  `json:"scopes"`
-	AuthorizationID string    `json:"authz_id"`
-	DPoPJKT         string    `json:"dpop_jkt"`
+	// InitialTokenHash is effectively the ID of this OfflineGrantRefreshToken
+	InitialTokenHash string `json:"token_hash"`
+	// Set after the refresh token rotated at least once
+	RotatedTokenHash *string   `json:"rotated_token_hash"`
+	ClientID         string    `json:"client_id"`
+	CreatedAt        time.Time `json:"created_at"`
+	Scopes           []string  `json:"scopes"`
+	AuthorizationID  string    `json:"authz_id"`
+	DPoPJKT          string    `json:"dpop_jkt"`
 	// AccessInfo was added on 2025-07-15
 	// Refresh token created before the day has nil AccessInfo
 	AccessInfo *access.Info `json:"access_info"`
@@ -75,13 +78,13 @@ type OfflineGrant struct {
 var _ session.ListableSession = &OfflineGrant{}
 
 type OfflineGrantSession struct {
-	OfflineGrant    *OfflineGrant
-	CreatedAt       time.Time
-	TokenHash       string
-	ClientID        string
-	Scopes          []string
-	AuthorizationID string
-	DPoPJKT         string
+	OfflineGrant     *OfflineGrant
+	CreatedAt        time.Time
+	InitialTokenHash string
+	ClientID         string
+	Scopes           []string
+	AuthorizationID  string
+	DPoPJKT          string
 }
 
 func (o *OfflineGrantSession) Session() {}
@@ -233,26 +236,38 @@ func (g *OfflineGrant) ToSession(refreshTokenHash string) (*OfflineGrantSession,
 	var result *OfflineGrantSession = nil
 	if isEmpty || isEqualRoot {
 		result = &OfflineGrantSession{
-			OfflineGrant:    g,
-			CreatedAt:       g.CreatedAt,
-			TokenHash:       g.Deprecated_TokenHash,
-			ClientID:        g.InitialClientID,
-			Scopes:          g.Deprecated_Scopes,
-			AuthorizationID: g.Deprecated_AuthorizationID,
-			DPoPJKT:         "",
+			OfflineGrant:     g,
+			CreatedAt:        g.CreatedAt,
+			InitialTokenHash: g.Deprecated_TokenHash,
+			ClientID:         g.InitialClientID,
+			Scopes:           g.Deprecated_Scopes,
+			AuthorizationID:  g.Deprecated_AuthorizationID,
+			DPoPJKT:          "",
 		}
 	}
 
 	for _, token := range g.RefreshTokens {
-		if token.MatchHash(refreshTokenHash) && result == nil {
+		if token.MatchCurrentHash(refreshTokenHash) && result == nil {
 			result = &OfflineGrantSession{
-				OfflineGrant:    g,
-				CreatedAt:       token.CreatedAt,
-				TokenHash:       token.TokenHash,
-				ClientID:        token.ClientID,
-				Scopes:          token.Scopes,
-				AuthorizationID: token.AuthorizationID,
-				DPoPJKT:         token.DPoPJKT,
+				OfflineGrant:     g,
+				CreatedAt:        token.CreatedAt,
+				InitialTokenHash: token.InitialTokenHash,
+				ClientID:         token.ClientID,
+				Scopes:           token.Scopes,
+				AuthorizationID:  token.AuthorizationID,
+				DPoPJKT:          token.DPoPJKT,
+			}
+		}
+
+		if token.MatchInitialHash(refreshTokenHash) && result == nil {
+			result = &OfflineGrantSession{
+				OfflineGrant:     g,
+				CreatedAt:        token.CreatedAt,
+				InitialTokenHash: token.InitialTokenHash,
+				ClientID:         token.ClientID,
+				Scopes:           token.Scopes,
+				AuthorizationID:  token.AuthorizationID,
+				DPoPJKT:          token.DPoPJKT,
 			}
 		}
 	}
@@ -264,14 +279,14 @@ func (g *OfflineGrant) ToSession(refreshTokenHash string) (*OfflineGrantSession,
 	return result, true
 }
 
-func (g *OfflineGrant) MatchHash(refreshTokenHash string) bool {
+func (g *OfflineGrant) MatchCurrentHash(refreshTokenHash string) bool {
 	var result bool = false
 	if subtle.ConstantTimeCompare([]byte(refreshTokenHash), []byte(g.Deprecated_TokenHash)) == 1 {
 		result = true
 	}
 
 	for _, token := range g.RefreshTokens {
-		if token.MatchHash(refreshTokenHash) {
+		if token.MatchCurrentHash(refreshTokenHash) {
 			result = true
 		}
 	}
@@ -306,7 +321,7 @@ func (g *OfflineGrant) HasClientID(clientID string) bool {
 	return false
 }
 
-func (g *OfflineGrant) GetRemovableTokenHashesByAuthorizationID(
+func (g *OfflineGrant) GetRemovableInitialTokenHashesByAuthorizationID(
 	authorizationID string) (tokenHashes []string, shouldRemoveOfflinegrant bool) {
 	shouldRemoveOfflinegrant = false
 	tokenHashes = []string{}
@@ -317,14 +332,14 @@ func (g *OfflineGrant) GetRemovableTokenHashesByAuthorizationID(
 	}
 	for _, token := range g.RefreshTokens {
 		if token.AuthorizationID == authorizationID {
-			tokenHashes = append(tokenHashes, token.TokenHash)
+			tokenHashes = append(tokenHashes, token.InitialTokenHash)
 		}
 	}
 
 	return tokenHashes, shouldRemoveOfflinegrant
 }
 
-func (g *OfflineGrant) GetAllRemovableTokenHashesExcludeClientIDs(
+func (g *OfflineGrant) GetAllRemovableInitialTokenHashesExcludeClientIDs(
 	clientIDs []string) (tokenHashes []string, shouldRemoveOfflinegrant bool) {
 	shouldRemoveOfflinegrant = false
 	tokenHashes = []string{}
@@ -339,7 +354,7 @@ func (g *OfflineGrant) GetAllRemovableTokenHashesExcludeClientIDs(
 	}
 	for _, token := range g.RefreshTokens {
 		if _, exist := clientIDsSet[token.AuthorizationID]; !exist {
-			tokenHashes = append(tokenHashes, token.TokenHash)
+			tokenHashes = append(tokenHashes, token.InitialTokenHash)
 		}
 	}
 
@@ -420,6 +435,13 @@ func (s *OfflineGrant) GetParticipatedSAMLServiceProviderIDsSet() setutil.Set[st
 	return setutil.NewSetFromSlice(s.ParticipatedSAMLServiceProviderIDs, setutil.Identity)
 }
 
-func (t *OfflineGrantRefreshToken) MatchHash(anotherHash string) bool {
-	return subtle.ConstantTimeCompare([]byte(anotherHash), []byte(t.TokenHash)) == 1
+func (t *OfflineGrantRefreshToken) MatchCurrentHash(anotherHash string) bool {
+	if t.RotatedTokenHash != nil {
+		return subtle.ConstantTimeCompare([]byte(anotherHash), []byte(*t.RotatedTokenHash)) == 1
+	}
+	return subtle.ConstantTimeCompare([]byte(anotherHash), []byte(t.InitialTokenHash)) == 1
+}
+
+func (t *OfflineGrantRefreshToken) MatchInitialHash(anotherHash string) bool {
+	return subtle.ConstantTimeCompare([]byte(anotherHash), []byte(t.InitialTokenHash)) == 1
 }

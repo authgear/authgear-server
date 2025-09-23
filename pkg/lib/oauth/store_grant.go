@@ -34,9 +34,9 @@ type AddOfflineGrantRefreshTokenOptions struct {
 }
 
 type RotateOfflineGrantRefreshTokenOptions struct {
-	OfflineGrantID      string
-	OldRefreshTokenHash string
-	NewRefreshTokenHash string
+	OfflineGrantID          string
+	InitialRefreshTokenHash string
+	NewRefreshTokenHash     string
 }
 
 type OfflineGrantStore interface {

@@ -48,7 +48,7 @@ func TestTokenService(t *testing.T) {
 						SessionLike: &oauth.OfflineGrant{
 							ID: "grant-id",
 						},
-						RefreshTokenHash: "refresh-token-hash",
+						InitialRefreshTokenHash: "refresh-token-hash",
 					},
 				}, resp)
 

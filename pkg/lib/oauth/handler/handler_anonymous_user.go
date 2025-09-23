@@ -150,7 +150,7 @@ func (h *AnonymousUserHandler) signupAnonymousUserWithRefreshTokenSessionType(
 	scopes := []string{"openid", oauth.OfflineAccess, oauth.FullAccessScope}
 
 	if refreshToken != "" {
-		authz, grant, refreshTokenHash, err := h.TokenService.ParseRefreshToken(ctx, refreshToken)
+		authz, grant, currentRefreshTokenHash, err := h.TokenService.ParseRefreshToken(ctx, refreshToken)
 		if errors.Is(err, ErrInvalidRefreshToken) {
 			return nil, apierrors.NewInvalid("invalid refresh token")
 		} else if err != nil {
@@ -165,14 +165,19 @@ func (h *AnonymousUserHandler) signupAnonymousUserWithRefreshTokenSessionType(
 			return nil, ErrLoggedInAsNormalUser
 		}
 
+		session, ok := grant.ToSession(currentRefreshTokenHash)
+		if !ok {
+			panic(fmt.Errorf("unexpected: failed to resolve offline grant session"))
+		}
+
 		resp := protocol.TokenResponse{}
 		issueAccessGrantOptions := oauth.IssueAccessGrantOptions{
-			ClientConfig:       client,
-			Scopes:             scopes,
-			AuthorizationID:    authz.ID,
-			AuthenticationInfo: grant.GetAuthenticationInfo(),
-			SessionLike:        grant,
-			RefreshTokenHash:   refreshTokenHash,
+			ClientConfig:            client,
+			Scopes:                  scopes,
+			AuthorizationID:         authz.ID,
+			AuthenticationInfo:      grant.GetAuthenticationInfo(),
+			SessionLike:             grant,
+			InitialRefreshTokenHash: session.InitialTokenHash,
 		}
 		err = h.TokenService.IssueAccessGrantByRefreshToken(ctx, IssueAccessGrantByRefreshTokenOptions{
 			IssueAccessGrantOptions:  issueAccessGrantOptions,
@@ -219,18 +224,18 @@ func (h *AnonymousUserHandler) signupAnonymousUserWithRefreshTokenSessionType(
 		SSOEnabled:         false,
 		DPoPJKT:            dpopJKT,
 	}
-	offlineGrant, tokenHash, err := h.TokenService.IssueOfflineGrant(ctx, client, opts, resp)
+	offlineGrant, newTokenHash, err := h.TokenService.IssueOfflineGrant(ctx, client, opts, resp)
 	if err != nil {
 		return nil, err
 	}
 
 	issueAccessGrantOptions := oauth.IssueAccessGrantOptions{
-		ClientConfig:       client,
-		Scopes:             scopes,
-		AuthorizationID:    authz.ID,
-		AuthenticationInfo: info,
-		SessionLike:        offlineGrant,
-		RefreshTokenHash:   tokenHash,
+		ClientConfig:            client,
+		Scopes:                  scopes,
+		AuthorizationID:         authz.ID,
+		AuthenticationInfo:      info,
+		SessionLike:             offlineGrant,
+		InitialRefreshTokenHash: newTokenHash,
 	}
 	err = h.TokenService.IssueAccessGrantByRefreshToken(ctx, IssueAccessGrantByRefreshTokenOptions{
 		IssueAccessGrantOptions:  issueAccessGrantOptions,

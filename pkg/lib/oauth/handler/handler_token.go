@@ -647,7 +647,7 @@ func (h *TokenHandler) handleRefreshToken(
 		return nil, protocol.NewError("invalid_request", err.Error())
 	}
 
-	authz, offlineGrant, refreshTokenHash, err := h.TokenService.ParseRefreshToken(ctx, r.RefreshToken())
+	authz, offlineGrant, currentRefreshTokenHash, err := h.TokenService.ParseRefreshToken(ctx, r.RefreshToken())
 	if err != nil {
 		offlineGrantID := ""
 		userID := ""
@@ -670,7 +670,7 @@ func (h *TokenHandler) handleRefreshToken(
 	}
 
 	accessEvent := access.NewEvent(h.Clock.NowUTC(), h.RemoteIP, h.UserAgentString)
-	offlineGrantSession, ok := offlineGrant.ToSession(refreshTokenHash)
+	offlineGrantSession, ok := offlineGrant.ToSession(currentRefreshTokenHash)
 	if !ok {
 		// NOTE(DEV-2982): This is for debugging the session lost problem
 		logger.WithSkipLogging().Error(ctx,
@@ -707,7 +707,7 @@ func (h *TokenHandler) handleRefreshToken(
 		return nil, protocol.NewError("invalid_request", "client id doesn't match the refresh token")
 	}
 
-	_, err = h.OfflineGrantService.AccessOfflineGrant(ctx, offlineGrant.ID, refreshTokenHash, &accessEvent, offlineGrant.ExpireAtForResolvedSession)
+	_, err = h.OfflineGrantService.AccessOfflineGrant(ctx, offlineGrant.ID, offlineGrantSession.InitialTokenHash, &accessEvent, offlineGrant.ExpireAtForResolvedSession)
 	if err != nil {
 		// NOTE(DEV-2982): This is for debugging the session lost problem
 		logger.WithSkipLogging().WithError(err).Error(ctx,
@@ -1050,7 +1050,7 @@ func (h *TokenHandler) handleAnonymousRequest(
 		IssueDeviceSecret:  issueDeviceToken,
 		DPoPJKT:            dpopJKT,
 	}
-	offlineGrant, tokenHash, err := h.issueOfflineGrant(
+	offlineGrant, newTokenHash, err := h.issueOfflineGrant(
 		ctx,
 		client,
 		authz.UserID,
@@ -1062,12 +1062,12 @@ func (h *TokenHandler) handleAnonymousRequest(
 	}
 
 	issueAccessGrantOptions := oauth.IssueAccessGrantOptions{
-		ClientConfig:       client,
-		Scopes:             scopes,
-		AuthorizationID:    authz.ID,
-		AuthenticationInfo: offlineGrant.GetAuthenticationInfo(),
-		SessionLike:        offlineGrant,
-		RefreshTokenHash:   tokenHash,
+		ClientConfig:            client,
+		Scopes:                  scopes,
+		AuthorizationID:         authz.ID,
+		AuthenticationInfo:      offlineGrant.GetAuthenticationInfo(),
+		SessionLike:             offlineGrant,
+		InitialRefreshTokenHash: newTokenHash,
 	}
 	err = h.TokenService.IssueAccessGrantByRefreshToken(ctx, IssueAccessGrantByRefreshTokenOptions{
 		IssueAccessGrantOptions:  issueAccessGrantOptions,
@@ -1328,7 +1328,7 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 		IssueDeviceSecret:  issueDeviceToken,
 		DPoPJKT:            dpopJKT,
 	}
-	offlineGrant, tokenHash, err := h.issueOfflineGrant(
+	offlineGrant, newTokenHash, err := h.issueOfflineGrant(
 		ctx,
 		client,
 		authz.UserID,
@@ -1340,12 +1340,12 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 	}
 
 	issueAccessGrantOptions := oauth.IssueAccessGrantOptions{
-		ClientConfig:       client,
-		Scopes:             scopes,
-		AuthorizationID:    authz.ID,
-		AuthenticationInfo: offlineGrant.GetAuthenticationInfo(),
-		SessionLike:        offlineGrant,
-		RefreshTokenHash:   tokenHash,
+		ClientConfig:            client,
+		Scopes:                  scopes,
+		AuthorizationID:         authz.ID,
+		AuthenticationInfo:      offlineGrant.GetAuthenticationInfo(),
+		SessionLike:             offlineGrant,
+		InitialRefreshTokenHash: newTokenHash,
 	}
 	err = h.TokenService.IssueAccessGrantByRefreshToken(ctx, IssueAccessGrantByRefreshTokenOptions{
 		IssueAccessGrantOptions:  issueAccessGrantOptions,
@@ -1717,7 +1717,7 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 	// Otherwise we return an error.
 	var accessTokenSessionID string
 	var accessTokenSessionKind oauth.GrantSessionKind
-	var refreshTokenHash string
+	var initialRefreshTokenHash string
 	var deviceSecretHash string
 	var sid string
 
@@ -1742,11 +1742,11 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 	}
 	if issueRefreshToken {
 		var offlineGrant *oauth.OfflineGrant
-		var tokenHash string
+		var newTokenHash string
 		var err error
 		switch session.Type(info.AuthenticatedBySessionType) {
 		case session.TypeOfflineGrant:
-			offlineGrant, tokenHash, err = h.TokenService.IssueRefreshTokenForOfflineGrant(
+			offlineGrant, newTokenHash, err = h.TokenService.IssueRefreshTokenForOfflineGrant(
 				ctx,
 				info.AuthenticatedBySessionID,
 				client,
@@ -1761,7 +1761,7 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 		case session.TypeIdentityProvider:
 			fallthrough
 		default:
-			offlineGrant, tokenHash, err = h.issueOfflineGrant(
+			offlineGrant, newTokenHash, err = h.issueOfflineGrant(
 				ctx,
 				client,
 				code.AuthenticationInfo.UserID,
@@ -1776,7 +1776,7 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 		sid = oauth.EncodeSID(offlineGrant)
 		accessTokenSessionID = offlineGrant.ID
 		accessTokenSessionKind = oauth.GrantSessionKindOffline
-		refreshTokenHash = tokenHash
+		initialRefreshTokenHash = newTokenHash
 		deviceSecretHash = offlineGrant.DeviceSecretHash
 
 		// ref: https://github.com/authgear/authgear-server/issues/2930
@@ -1851,7 +1851,7 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 			ID:               accessTokenSessionID,
 			GrantSessionKind: accessTokenSessionKind,
 		},
-		RefreshTokenHash: refreshTokenHash,
+		InitialRefreshTokenHash: initialRefreshTokenHash,
 	}
 	err := h.TokenService.IssueAccessGrantByRefreshToken(
 		ctx,
@@ -1927,12 +1927,12 @@ func (h *TokenHandler) issueTokensForRefreshToken(
 	}
 
 	issueAccessGrantOptions := oauth.IssueAccessGrantOptions{
-		ClientConfig:       client,
-		Scopes:             offlineGrantSession.Scopes,
-		AuthorizationID:    authz.ID,
-		AuthenticationInfo: offlineGrantSession.GetAuthenticationInfo(),
-		SessionLike:        offlineGrantSession,
-		RefreshTokenHash:   offlineGrantSession.TokenHash,
+		ClientConfig:            client,
+		Scopes:                  offlineGrantSession.Scopes,
+		AuthorizationID:         authz.ID,
+		AuthenticationInfo:      offlineGrantSession.GetAuthenticationInfo(),
+		SessionLike:             offlineGrantSession,
+		InitialRefreshTokenHash: offlineGrantSession.InitialTokenHash,
 	}
 	err = h.TokenService.IssueAccessGrantByRefreshToken(ctx, IssueAccessGrantByRefreshTokenOptions{
 		IssueAccessGrantOptions:  issueAccessGrantOptions,
@@ -1947,7 +1947,7 @@ func (h *TokenHandler) issueTokensForRefreshToken(
 }
 
 func (h *TokenHandler) IssueAppSessionToken(ctx context.Context, refreshToken string) (string, *oauth.AppSessionToken, error) {
-	authz, grant, refreshTokenHash, err := h.TokenService.ParseRefreshToken(ctx, refreshToken)
+	authz, grant, currentRefreshTokenHash, err := h.TokenService.ParseRefreshToken(ctx, refreshToken)
 	if err != nil {
 		return "", nil, err
 	}
@@ -1957,15 +1957,20 @@ func (h *TokenHandler) IssueAppSessionToken(ctx context.Context, refreshToken st
 		return "", nil, protocol.NewError("access_denied", "the client is not authorized to have full user access")
 	}
 
+	session, ok := grant.ToSession(currentRefreshTokenHash)
+	if !ok {
+		panic(fmt.Errorf("unexpected: failed to resolve session from current refresh token hash"))
+	}
+
 	now := h.Clock.NowUTC()
 	token := oauth.GenerateToken()
 	sToken := &oauth.AppSessionToken{
-		AppID:            grant.AppID,
-		OfflineGrantID:   grant.ID,
-		CreatedAt:        now,
-		ExpireAt:         now.Add(AppSessionTokenDuration),
-		TokenHash:        oauth.HashToken(token),
-		RefreshTokenHash: refreshTokenHash,
+		AppID:                   grant.AppID,
+		OfflineGrantID:          grant.ID,
+		CreatedAt:               now,
+		ExpireAt:                now.Add(AppSessionTokenDuration),
+		TokenHash:               oauth.HashToken(token),
+		InitialRefreshTokenHash: session.InitialTokenHash,
 	}
 
 	err = h.AppSessionTokens.CreateAppSessionToken(ctx, sToken)

@@ -132,13 +132,13 @@ func (s *TokenService) IssueOfflineGrant(
 	}
 
 	refreshToken := &oauth.OfflineGrantRefreshToken{
-		TokenHash:       tokenHash,
-		ClientID:        client.ClientID,
-		CreatedAt:       now,
-		Scopes:          opts.Scopes,
-		AuthorizationID: opts.AuthorizationID,
-		DPoPJKT:         opts.DPoPJKT,
-		AccessInfo:      &accessInfo,
+		InitialTokenHash: tokenHash,
+		ClientID:         client.ClientID,
+		CreatedAt:        now,
+		Scopes:           opts.Scopes,
+		AuthorizationID:  opts.AuthorizationID,
+		DPoPJKT:          opts.DPoPJKT,
+		AccessInfo:       &accessInfo,
 	}
 
 	offlineGrant = &oauth.OfflineGrant{
@@ -239,7 +239,7 @@ func (s *TokenService) IssueAccessGrantByRefreshToken(
 
 	if options.ShouldRotateRefreshToken &&
 		options.SessionLike.SessionType() == session.TypeOfflineGrant &&
-		options.RefreshTokenHash != "" {
+		options.InitialRefreshTokenHash != "" {
 
 		grant, err := s.OfflineGrantService.GetOfflineGrant(ctx, options.SessionLike.SessionID())
 		if err != nil {
@@ -248,14 +248,13 @@ func (s *TokenService) IssueAccessGrantByRefreshToken(
 
 		rotateResult, _, err := s.OfflineGrantService.RotateRefreshToken(ctx,
 			oauth.RotateRefreshTokenOptions{
-				OfflineGrant:     grant,
-				RefreshTokenHash: options.RefreshTokenHash,
+				OfflineGrant:            grant,
+				InitialRefreshTokenHash: options.InitialRefreshTokenHash,
 			})
 		if err != nil {
 			return err
 		}
 		resp.RefreshToken(oauth.EncodeRefreshToken(rotateResult.Token, grant.ID))
-		issueOptions.RefreshTokenHash = rotateResult.TokenHash
 	}
 
 	result, err := s.AccessGrantService.IssueAccessGrant(
@@ -308,7 +307,7 @@ func (s *TokenService) ParseRefreshToken(ctx context.Context, token string) (
 	}
 
 	tokenHash = oauth.HashToken(token)
-	if !offlineGrant.MatchHash(tokenHash) {
+	if !offlineGrant.MatchCurrentHash(tokenHash) {
 		// NOTE(DEV-2982): This is for debugging the session lost problem
 		logger.WithSkipLogging().Error(ctx,
 			"failed to match refresh token hash",

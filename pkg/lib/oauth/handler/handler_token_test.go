@@ -119,9 +119,9 @@ func TestTokenHandler(t *testing.T) {
 					Attrs:           *session.NewAttrs("user-id"),
 					InitialClientID: "app-id",
 					RefreshTokens: []oauth.OfflineGrantRefreshToken{{
-						ClientID:  "app-id",
-						Scopes:    []string{"openid"},
-						TokenHash: refreshTokenHash,
+						ClientID:         "app-id",
+						Scopes:           []string{"openid"},
+						InitialTokenHash: refreshTokenHash,
 					}},
 					ExpireAtForResolvedSession: time.Date(2020, 02, 01, 1, 0, 0, 0, time.UTC),
 				}
@@ -171,9 +171,9 @@ func TestTokenHandler(t *testing.T) {
 					Attrs:           *session.NewAttrs("user-id"),
 					InitialClientID: "app-id",
 					RefreshTokens: []oauth.OfflineGrantRefreshToken{{
-						ClientID:  "app-id",
-						Scopes:    []string{"openid"},
-						TokenHash: refreshTokenHash,
+						ClientID:         "app-id",
+						Scopes:           []string{"openid"},
+						InitialTokenHash: refreshTokenHash,
 					}},
 					ExpireAtForResolvedSession: time.Date(2020, 02, 01, 1, 0, 0, 0, time.UTC),
 				}
@@ -218,9 +218,9 @@ func TestTokenHandler(t *testing.T) {
 					Attrs:           *session.NewAttrs("user-id"),
 					InitialClientID: "app-id",
 					RefreshTokens: []oauth.OfflineGrantRefreshToken{{
-						ClientID:  "app-id",
-						Scopes:    []string{"openid"},
-						TokenHash: refreshTokenHash,
+						ClientID:         "app-id",
+						Scopes:           []string{"openid"},
+						InitialTokenHash: refreshTokenHash,
 					}},
 					ExpireAtForResolvedSession: time.Date(2020, 02, 01, 1, 0, 0, 0, time.UTC),
 				}

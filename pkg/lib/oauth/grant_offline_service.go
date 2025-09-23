@@ -44,14 +44,14 @@ type OfflineGrantService struct {
 // 1. set grant.AccessInfo.LastAccess to new accessEvent
 // 2. call RecordAccess
 // 3. call TrackActiveUser
-func (s *OfflineGrantService) AccessOfflineGrant(ctx context.Context, grantID string, refreshTokenHash string, accessEvent *access.Event, expireAt time.Time) (*OfflineGrant, error) {
+func (s *OfflineGrantService) AccessOfflineGrant(ctx context.Context, grantID string, initialRefreshTokenHash string, accessEvent *access.Event, expireAt time.Time) (*OfflineGrant, error) {
 	grant, err := s.OfflineGrants.UpdateOfflineGrantWithMutator(ctx, grantID, expireAt, func(grant *OfflineGrant) *OfflineGrant {
 		grant.AccessInfo.LastAccess = *accessEvent
 		// If the refresh token actually used is known, update the individual access info
-		if refreshTokenHash != "" {
+		if initialRefreshTokenHash != "" {
 			for i := range grant.RefreshTokens {
 				token := grant.RefreshTokens[i]
-				if token.MatchHash(refreshTokenHash) {
+				if token.MatchInitialHash(initialRefreshTokenHash) {
 					if token.AccessInfo == nil {
 						// Handle nil for backward compatibility
 						tokenAccessInfo := grant.AccessInfo
@@ -176,8 +176,8 @@ type CreateNewRefreshTokenResult struct {
 }
 
 type RotateRefreshTokenOptions struct {
-	OfflineGrant     *OfflineGrant
-	RefreshTokenHash string
+	OfflineGrant            *OfflineGrant
+	InitialRefreshTokenHash string
 }
 
 type RotateRefreshTokenResult struct {
@@ -247,9 +247,9 @@ func (s *OfflineGrantService) RotateRefreshToken(
 	}
 
 	rotateOpts := RotateOfflineGrantRefreshTokenOptions{
-		OfflineGrantID:      options.OfflineGrant.ID,
-		OldRefreshTokenHash: options.RefreshTokenHash,
-		NewRefreshTokenHash: newTokenHash,
+		OfflineGrantID:          options.OfflineGrant.ID,
+		InitialRefreshTokenHash: options.InitialRefreshTokenHash,
+		NewRefreshTokenHash:     newTokenHash,
 	}
 
 	newGrant, err := s.OfflineGrants.RotateOfflineGrantRefreshToken(
@@ -299,7 +299,7 @@ func (s *OfflineGrantService) housekeepOfflineGrant(ctx context.Context, grant *
 	now := s.Clock.NowUTC()
 
 	// Remove expired refresh tokens
-	tokenHashesToRemove := []string{}
+	initialTokenHashesToRemove := []string{}
 	for idx, token := range grant.RefreshTokens {
 		if idx == 0 {
 			// Never remove the root token
@@ -309,7 +309,7 @@ func (s *OfflineGrantService) housekeepOfflineGrant(ctx context.Context, grant *
 		// If the token is short-lived.
 		if token.ExpireAt != nil {
 			if now.After(*token.ExpireAt) {
-				tokenHashesToRemove = append(tokenHashesToRemove, token.TokenHash)
+				initialTokenHashesToRemove = append(initialTokenHashesToRemove, token.InitialTokenHash)
 				continue
 			}
 		}
@@ -317,7 +317,7 @@ func (s *OfflineGrantService) housekeepOfflineGrant(ctx context.Context, grant *
 		// If the client was removed, remove the refresh token.
 		clientConfig := s.ClientResolver.ResolveClient(token.ClientID)
 		if clientConfig == nil {
-			tokenHashesToRemove = append(tokenHashesToRemove, token.TokenHash)
+			initialTokenHashesToRemove = append(initialTokenHashesToRemove, token.InitialTokenHash)
 			continue
 		}
 
@@ -334,7 +334,7 @@ func (s *OfflineGrantService) housekeepOfflineGrant(ctx context.Context, grant *
 			LastAccessAt: lastAccess,
 		}, clientConfig)
 		if now.After(expiry) {
-			tokenHashesToRemove = append(tokenHashesToRemove, token.TokenHash)
+			initialTokenHashesToRemove = append(initialTokenHashesToRemove, token.InitialTokenHash)
 			continue
 		}
 	}
@@ -344,7 +344,7 @@ func (s *OfflineGrantService) housekeepOfflineGrant(ctx context.Context, grant *
 		return nil, err
 	}
 
-	newGrant, err := s.OfflineGrants.RemoveOfflineGrantRefreshTokens(ctx, grant.ID, tokenHashesToRemove, expiry)
+	newGrant, err := s.OfflineGrants.RemoveOfflineGrantRefreshTokens(ctx, grant.ID, initialTokenHashesToRemove, expiry)
 	if err != nil {
 		return nil, err
 	}

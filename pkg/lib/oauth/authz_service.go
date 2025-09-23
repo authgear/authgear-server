@@ -60,20 +60,20 @@ func (s *AuthorizationService) Delete(ctx context.Context, a *Authorization) err
 	// delete the offline grants that belong to the authorization
 	for _, sess := range sessions {
 		if offlineGrant, ok := sess.(*OfflineGrant); ok {
-			tokenHashes, shouldRemoveOfflineGrant := offlineGrant.GetRemovableTokenHashesByAuthorizationID(a.ID)
+			initialTokenHashes, shouldRemoveOfflineGrant := offlineGrant.GetRemovableInitialTokenHashesByAuthorizationID(a.ID)
 			if shouldRemoveOfflineGrant {
 				err := s.OAuthSessionManager.Delete(ctx, sess)
 				if err != nil {
 					return err
 				}
-			} else if len(tokenHashes) > 0 {
+			} else if len(initialTokenHashes) > 0 {
 				// ComputeOfflineGrantExpiry is needed because SessionManager.List
 				// does not populate ExpireAtForResolvedSession.
 				expiry, err := s.OfflineGrantService.ComputeOfflineGrantExpiry(offlineGrant)
 				if err != nil {
 					return err
 				}
-				_, err = s.OfflineGrantStore.RemoveOfflineGrantRefreshTokens(ctx, offlineGrant.ID, tokenHashes, expiry)
+				_, err = s.OfflineGrantStore.RemoveOfflineGrantRefreshTokens(ctx, offlineGrant.ID, initialTokenHashes, expiry)
 				if err != nil {
 					return err
 				}

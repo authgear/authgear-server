@@ -94,7 +94,7 @@ func (f *OAuthFacade) CreateSession(ctx context.Context, clientID string, userID
 	}
 
 	resp := protocol.TokenResponse{}
-	offlineGrant, tokenHash, err := f.Tokens.IssueOfflineGrant(ctx, client, offlineGrantOpts, resp)
+	offlineGrant, newTokenHash, err := f.Tokens.IssueOfflineGrant(ctx, client, offlineGrantOpts, resp)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -103,12 +103,12 @@ func (f *OAuthFacade) CreateSession(ctx context.Context, clientID string, userID
 		ctx,
 		handler.IssueAccessGrantByRefreshTokenOptions{
 			IssueAccessGrantOptions: oauth.IssueAccessGrantOptions{
-				ClientConfig:       client,
-				Scopes:             scopes,
-				AuthorizationID:    authz.ID,
-				AuthenticationInfo: offlineGrant.GetAuthenticationInfo(),
-				SessionLike:        offlineGrant,
-				RefreshTokenHash:   tokenHash,
+				ClientConfig:            client,
+				Scopes:                  scopes,
+				AuthorizationID:         authz.ID,
+				AuthenticationInfo:      offlineGrant.GetAuthenticationInfo(),
+				SessionLike:             offlineGrant,
+				InitialRefreshTokenHash: newTokenHash,
 			},
 			ShouldRotateRefreshToken: false, // The token is new, no need to rotate
 		},

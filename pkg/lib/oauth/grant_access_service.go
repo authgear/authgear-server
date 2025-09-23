@@ -17,12 +17,12 @@ type AccessGrantService struct {
 }
 
 type IssueAccessGrantOptions struct {
-	ClientConfig       *config.OAuthClientConfig
-	Scopes             []string
-	AuthorizationID    string
-	AuthenticationInfo authenticationinfo.T
-	SessionLike        SessionLike
-	RefreshTokenHash   string
+	ClientConfig            *config.OAuthClientConfig
+	Scopes                  []string
+	AuthorizationID         string
+	AuthenticationInfo      authenticationinfo.T
+	SessionLike             SessionLike
+	InitialRefreshTokenHash string
 }
 
 type IssueAccessGrantResult struct {
@@ -39,15 +39,15 @@ func (s *AccessGrantService) IssueAccessGrant(
 	now := s.Clock.NowUTC()
 
 	accessGrant := &AccessGrant{
-		AppID:            string(s.AppID),
-		AuthorizationID:  options.AuthorizationID,
-		SessionID:        options.SessionLike.SessionID(),
-		SessionKind:      GrantSessionKindFromSessionType(options.SessionLike.SessionType()),
-		CreatedAt:        now,
-		ExpireAt:         now.Add(options.ClientConfig.AccessTokenLifetime.Duration()),
-		Scopes:           options.Scopes,
-		TokenHash:        HashToken(token),
-		RefreshTokenHash: options.RefreshTokenHash,
+		AppID:                   string(s.AppID),
+		AuthorizationID:         options.AuthorizationID,
+		SessionID:               options.SessionLike.SessionID(),
+		SessionKind:             GrantSessionKindFromSessionType(options.SessionLike.SessionType()),
+		CreatedAt:               now,
+		ExpireAt:                now.Add(options.ClientConfig.AccessTokenLifetime.Duration()),
+		Scopes:                  options.Scopes,
+		TokenHash:               HashToken(token),
+		InitialRefreshTokenHash: options.InitialRefreshTokenHash,
 	}
 	err := s.AccessGrants.CreateAccessGrant(ctx, accessGrant)
 	if err != nil {
