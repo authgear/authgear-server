@@ -6,7 +6,16 @@ services:
     volumes:
     - postgres16_data:/var/lib/postgresql/data
     - ./postgresql.conf:/etc/postgresql/postgresql.conf
-    command: ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]
+    - ./pg_hba.conf:/etc/postgresql/pg_hba.conf
+    # NOTE(postgresql-tls): Uncomment the following lines to enable TLS
+    #- ./tls-cert.pem:/etc/postgresql/server.crt
+    #- ./tls-key.pem:/etc/postgresql/server.key
+    command:
+    - postgres
+    - "-c"
+    - "config_file=/etc/postgresql/postgresql.conf"
+    - "-c"
+    - "hba_file=/etc/postgresql/pg_hba.conf"
     environment:
       POSTGRES_USER: "postgres"
       POSTGRES_PASSWORD: "postgres"
