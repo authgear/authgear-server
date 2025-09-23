@@ -66,7 +66,9 @@ func TestAuthorizationHandler(t *testing.T) {
 		authenticationInfoService := &mockAuthenticationInfoService{}
 		cookieManager := &mockCookieManager{}
 		oauthSessionService := &mockOAuthSessionService{}
-		clientResolver := &mockClientResolver{}
+		clientResolver := &multiClientResolver{
+			ClientConfigs: make(map[string]*config.OAuthClientConfig),
+		}
 		preAuthenticatedURLTokenService := NewMockPreAuthenticatedURLTokenService(ctrl)
 		idTokenIssuer := NewMockIDTokenIssuer(ctrl)
 
@@ -109,7 +111,7 @@ func TestAuthorizationHandler(t *testing.T) {
 		}
 
 		Convey("general request validation", func() {
-			clientResolver.ClientConfig = &config.OAuthClientConfig{
+			clientResolver.ClientConfigs["client-id"] = &config.OAuthClientConfig{
 				ClientID: "client-id",
 				RedirectURIs: []string{
 					"https://example.com/",
@@ -151,7 +153,7 @@ func TestAuthorizationHandler(t *testing.T) {
 		})
 
 		Convey("should preserve query parameters in redirect URI", func() {
-			clientResolver.ClientConfig = &config.OAuthClientConfig{
+			clientResolver.ClientConfigs["client-id"] = &config.OAuthClientConfig{
 				ClientID:     "client-id",
 				RedirectURIs: []string{"https://example.com/cb?from=sso"},
 				CustomUIURI:  "https://ui.custom.com",
@@ -172,7 +174,7 @@ func TestAuthorizationHandler(t *testing.T) {
 				RedirectURIs: []string{"https://example.com/"},
 				CustomUIURI:  "https://ui.custom.com",
 			}
-			clientResolver.ClientConfig = mockedClient
+			clientResolver.ClientConfigs["client-id"] = mockedClient
 			Convey("request validation", func() {
 				Convey("missing scope", func() {
 					ctx := context.Background()
@@ -370,7 +372,7 @@ func TestAuthorizationHandler(t *testing.T) {
 				ResponseTypes: []string{"none"},
 				CustomUIURI:   "https://ui.custom.com",
 			}
-			clientResolver.ClientConfig = mockedClient
+			clientResolver.ClientConfigs["client-id"] = mockedClient
 			Convey("scope validation", func() {
 				ctx := context.Background()
 				resp := handle(ctx, protocol.AuthorizationRequest{
@@ -456,7 +458,7 @@ func TestAuthorizationHandler(t *testing.T) {
 				RedirectURIs:  []string{"https://example.com/"},
 				ResponseTypes: []string{"none", "urn:authgear:params:oauth:response-type:pre-authenticated-url token"},
 			}
-			clientResolver.ClientConfig = mockedClient
+			clientResolver.ClientConfigs["client-id"] = mockedClient
 
 			Convey("exchange for access token in cookie", func() {
 				testOfflineGrantID := "TEST_OFFLINE_GRANT_ID"

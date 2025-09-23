@@ -204,6 +204,10 @@ type TokenHandlerAppDatabase interface {
 	WithTx(ctx_original context.Context, do func(ctx context.Context) error) (err error)
 }
 
+type TokenHandlerCodeGrantService interface {
+	CreateCodeGrant(ctx context.Context, opts *CreateCodeGrantOptions) (code string, grant *oauth.CodeGrant, err error)
+}
+
 type TokenHandler struct {
 	Database TokenHandlerAppDatabase
 
@@ -232,7 +236,7 @@ type TokenHandler struct {
 	SessionManager                  SessionManager
 	App2App                         App2AppService
 	Challenges                      ChallengeProvider
-	CodeGrantService                CodeGrantService
+	CodeGrantService                TokenHandlerCodeGrantService
 	ClientResolver                  OAuthClientResolver
 	UIInfoResolver                  UIInfoResolver
 	RateLimiter                     TokenHandlerRateLimiter
