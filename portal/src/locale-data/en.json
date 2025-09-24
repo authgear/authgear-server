@@ -905,6 +905,8 @@
   "EditOAuthClientForm.jwks-uri.label": "JSON Web Key (JWK) Set",
   "EditOAuthClientForm.expire-when-login-on-other-device.label": "Expire when login on another device",
   "EditOAuthClientForm.expire-when-login-on-other-device.description": "If user login on a new device, the existing token of this application on another device is expired and the user will be logged out.",
+  "EditOAuthClientForm.refresh-token-rotation-enabled.label": "Enable Refresh Token Rotation",
+  "EditOAuthClientForm.refresh-token-rotation-enabled.description": "When enabled, the refresh token will be invalidated after use and a new refresh token will be issued to prevent replay attacks.",
   "EditOAuthClientForm.app2app.title": "App2App",
   "EditOAuthClientForm.app2app.enable.label": "Enable App2App login for this application",
   "EditOAuthClientForm.app2app.enable.description": "Allow this application to handle App2App requests from other applications.",
