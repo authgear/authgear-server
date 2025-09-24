@@ -1071,7 +1071,7 @@ func (h *TokenHandler) handleAnonymousRequest(
 	}
 	err = h.TokenService.IssueAccessGrantByRefreshToken(ctx, IssueAccessGrantByRefreshTokenOptions{
 		IssueAccessGrantOptions:  issueAccessGrantOptions,
-		ShouldRotateRefreshToken: false, // New refresh token, no need to rotate
+		ShouldRotateRefreshToken: false, // We do not rotate refresh tokens in anonymous user.
 	}, resp)
 	if err != nil {
 		err = h.translateAccessTokenError(err)

@@ -181,7 +181,7 @@ func (h *AnonymousUserHandler) signupAnonymousUserWithRefreshTokenSessionType(
 		}
 		err = h.TokenService.IssueAccessGrantByRefreshToken(ctx, IssueAccessGrantByRefreshTokenOptions{
 			IssueAccessGrantOptions:  issueAccessGrantOptions,
-			ShouldRotateRefreshToken: client.RefreshTokenRotationEnabled,
+			ShouldRotateRefreshToken: false, // We do not rotate refresh tokens in anonymous user.
 		}, resp)
 		if err != nil {
 			return nil, err
@@ -239,7 +239,7 @@ func (h *AnonymousUserHandler) signupAnonymousUserWithRefreshTokenSessionType(
 	}
 	err = h.TokenService.IssueAccessGrantByRefreshToken(ctx, IssueAccessGrantByRefreshTokenOptions{
 		IssueAccessGrantOptions:  issueAccessGrantOptions,
-		ShouldRotateRefreshToken: false, // The refresh token is new, no need to rotate
+		ShouldRotateRefreshToken: false, // We do not rotate refresh tokens in anonymous user.
 	}, resp)
 	if err != nil {
 		return nil, err
