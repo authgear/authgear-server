@@ -40,8 +40,17 @@ services:
   redis:
     # Azure cache for Redis supports 6.0 only
     image: redis:6.0.20
+    # NOTE(redis-tls): In case you want to test Redis TLS, uncomment the following lines
+    # command:
+    # - redis-server
+    # - /usr/local/etc/redis/redis.conf
     volumes:
     - redis_data:/data
+    # NOTE(redis-tls): In case you want to test Redis TLS, uncomment the following lines
+    # tls-cert.pem and tls-key.pem are generated with `make mkcert`.
+    # - ./redis.conf:/usr/local/etc/redis/redis.conf
+    # - ./tls-cert.pem:/usr/local/etc/redis/redis.crt
+    # - ./tls-key.pem:/usr/local/etc/redis/redis.key
     ports:
     - "6379:6379"
 
