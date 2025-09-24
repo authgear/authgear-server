@@ -31,8 +31,8 @@ type OfflineGrantRefreshToken struct {
 	ExpireAt *time.Time `json:"expire_at"`
 
 	// Set after the refresh token rotated at least once
-	RotatedTokenHash *string    `json:"rotated_token_hash"`
-	RotatedAt        *time.Time `json:"rotated_at"`
+	RotatedTokenHash *string    `json:"rotated_token_hash,omitzero"`
+	RotatedAt        *time.Time `json:"rotated_at,omitzero"`
 }
 
 type OfflineGrant struct {
