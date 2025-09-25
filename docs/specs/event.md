@@ -855,7 +855,7 @@ Occurs after someone failed to pass the bot protection verification.
 
 #### authentication.blocked
 
-Occurs when authentication is blocked due to account status.
+Occurs when authentication is blocked due to a user's account status, by webhook, or by [Account Lockout](./account-lockout.md).
 
 ```json5
 {
@@ -874,13 +874,51 @@ Occurs when authentication is blocked due to account status.
 }
 ```
 
-- `reason`: The reason why authentication is blocked. Possible values are:
+- `user`: The user who is authenticating. Only exists if the user is already known at the time the event is triggered. For example, if the event is triggered by a blocking hook on the `authentication.pre_initialize` event, the user is not known, and therefore the key does not exist.
+- `error`: An object detailing the reason why authentication is blocked.
+
+This event occurs in the following cases:
+
+1. The authentication flow was blocked due to the user's account status (e.g., a disabled user).
+
+- `reason`: The reason authentication is blocked. Possible values include:
   - `DisabledUser`: The user account is disabled.
   - `DeactivatedUser`: The user account is deactivated.
   - `AnonymizedUser`: The user account is anonymized.
   - `ScheduledDeletionByAdmin`: The user account is scheduled for deletion by an administrator.
   - `ScheduledDeletionByEndUser`: The user account is scheduled for deletion by the end-user.
   - `ScheduledAnonymizationByAdmin`: The user account is scheduled for anonymization by an administrator.
+
+2. The authentication flow was blocked by a webhook. In this case, the `error` object will have the following structure:
+
+```json5
+{
+  "code": 403,
+  "name": "Forbidden",
+  "reason": "WebHookDisallowed",
+  "info": {
+    "reasons": [
+      {
+        "title": "error title",
+        "reason": "error string"
+      }
+    ]
+  }
+}
+```
+
+3. The authentication flow was blocked by [Account Lockout](./account-lockout.md). In this case, the `error` object will have the following structure:
+
+```json5
+{
+  "code": 429,
+  "name": "TooManyRequest",
+  "reason": "AccountLockout",
+  "info": {
+    "until": "2025-09-25T11:10:15.273Z"
+  }
+}
+```
 
 #### identity.email.added
 
