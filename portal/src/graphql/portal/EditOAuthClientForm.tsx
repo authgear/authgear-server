@@ -225,6 +225,22 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
       [onClientConfigChange, clientConfig]
     );
 
+    const onChangeRefreshTokenRotationEnabled = useCallback(
+      (_, value?: boolean) => {
+        if (value == null) {
+          return;
+        }
+        onClientConfigChange(
+          updateClientConfig(
+            clientConfig,
+            "refresh_token_rotation_enabled",
+            value
+          )
+        );
+      },
+      [onClientConfigChange, clientConfig]
+    );
+
     const onIssueJWTAccessTokenChange = useCallback(
       (_, value?: boolean) => {
         onClientConfigChange(
@@ -832,6 +848,16 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
               )}
               description={renderToString(
                 "EditOAuthClientForm.expire-when-login-on-other-device.description"
+              )}
+            />
+            <Toggle
+              checked={clientConfig.refresh_token_rotation_enabled ?? false}
+              onChange={onChangeRefreshTokenRotationEnabled}
+              label={renderToString(
+                "EditOAuthClientForm.refresh-token-rotation-enabled.label"
+              )}
+              description={renderToString(
+                "EditOAuthClientForm.refresh-token-rotation-enabled.description"
               )}
             />
           </Widget>

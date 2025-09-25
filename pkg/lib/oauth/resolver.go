@@ -126,12 +126,12 @@ func (re *Resolver) resolveAccessToken(ctx context.Context, token string) (sessi
 			return nil, err
 		}
 
-		g, err = re.accessOfflineGrant(ctx, g, grant.RefreshTokenHash, event)
+		g, err = re.accessOfflineGrant(ctx, g, grant.InitialRefreshTokenHash, event)
 		if err != nil {
 			return nil, err
 		}
 
-		as, ok := g.ToSession(grant.RefreshTokenHash)
+		as, ok := g.ToSession(grant.InitialRefreshTokenHash)
 		if !ok {
 			return nil, session.ErrInvalidSession
 		}
@@ -184,7 +184,7 @@ func (re *Resolver) resolveAppSessionCookie(ctx context.Context, r *http.Request
 		return nil, err
 	}
 
-	offlineGrantSession, ok := offlineGrant.ToSession(aSession.RefreshTokenHash)
+	offlineGrantSession, ok := offlineGrant.ToSession(aSession.InitialRefreshTokenHash)
 	if !ok {
 		return nil, session.ErrInvalidSession
 	}
@@ -201,11 +201,11 @@ func (re *Resolver) resolveAppSessionCookie(ctx context.Context, r *http.Request
 	}
 
 	event := access.NewEvent(re.Clock.NowUTC(), re.RemoteIP, re.UserAgentString)
-	offlineGrant, err = re.accessOfflineGrant(ctx, offlineGrant, aSession.RefreshTokenHash, event)
+	offlineGrant, err = re.accessOfflineGrant(ctx, offlineGrant, aSession.InitialRefreshTokenHash, event)
 	if err != nil {
 		return nil, err
 	}
-	offlineGrantSession, ok = offlineGrant.ToSession(aSession.RefreshTokenHash)
+	offlineGrantSession, ok = offlineGrant.ToSession(aSession.InitialRefreshTokenHash)
 	if !ok {
 		// This should never fail as it was a success above, so it is a panic
 		panic("unexpected: invalid refresh token hash")
@@ -214,7 +214,7 @@ func (re *Resolver) resolveAppSessionCookie(ctx context.Context, r *http.Request
 	return offlineGrantSession, nil
 }
 
-func (re *Resolver) accessOfflineGrant(ctx context.Context, offlineGrant *OfflineGrant, refreshTokenHash string, accessEvent access.Event) (*OfflineGrant, error) {
+func (re *Resolver) accessOfflineGrant(ctx context.Context, offlineGrant *OfflineGrant, initialRefreshTokenHash string, accessEvent access.Event) (*OfflineGrant, error) {
 	// When accessing the offline grant, also access its idp session
 	// Access the idp session first, since the idp session expiry will be updated
 	// sso enabled offline grant expiry depends on its idp session
@@ -230,7 +230,7 @@ func (re *Resolver) accessOfflineGrant(ctx context.Context, offlineGrant *Offlin
 		}
 	}
 
-	offlineGrant, err := re.OfflineGrantService.AccessOfflineGrant(ctx, offlineGrant.ID, refreshTokenHash, &accessEvent, offlineGrant.ExpireAtForResolvedSession)
+	offlineGrant, err := re.OfflineGrantService.AccessOfflineGrant(ctx, offlineGrant.ID, initialRefreshTokenHash, &accessEvent, offlineGrant.ExpireAtForResolvedSession)
 	if err != nil {
 		return nil, err
 	}

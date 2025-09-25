@@ -104,12 +104,12 @@ func (s *PreAuthenticatedURLTokenServiceImpl) ExchangeForAccessToken(
 	offlineGrant = newOfflineGrant
 
 	issueAccessGrantOptions := oauth.IssueAccessGrantOptions{
-		ClientConfig:       client,
-		Scopes:             tokenModel.Scopes,
-		AuthorizationID:    tokenModel.AuthorizationID,
-		AuthenticationInfo: offlineGrant.GetAuthenticationInfo(),
-		SessionLike:        offlineGrant,
-		RefreshTokenHash:   newRefreshTokenResult.TokenHash,
+		ClientConfig:            client,
+		Scopes:                  tokenModel.Scopes,
+		AuthorizationID:         tokenModel.AuthorizationID,
+		AuthenticationInfo:      offlineGrant.GetAuthenticationInfo(),
+		SessionLike:             offlineGrant,
+		InitialRefreshTokenHash: newRefreshTokenResult.TokenHash,
 	}
 	result, err := s.AccessGrantService.IssueAccessGrant(
 		ctx,

@@ -480,14 +480,14 @@ func (s *Store) AddOfflineGrantRefreshToken(
 	now := s.Clock.NowUTC()
 
 	newRefreshToken := oauth.OfflineGrantRefreshToken{
-		TokenHash:       options.TokenHash,
-		ClientID:        options.ClientID,
-		CreatedAt:       now,
-		Scopes:          options.Scopes,
-		AuthorizationID: options.AuthorizationID,
-		DPoPJKT:         options.DPoPJKT,
-		AccessInfo:      &options.AccessInfo,
-		ExpireAt:        options.ShortLivedRefreshTokenExpireAt,
+		InitialTokenHash: options.TokenHash,
+		ClientID:         options.ClientID,
+		CreatedAt:        now,
+		Scopes:           options.Scopes,
+		AuthorizationID:  options.AuthorizationID,
+		DPoPJKT:          options.DPoPJKT,
+		AccessInfo:       &options.AccessInfo,
+		ExpireAt:         options.ShortLivedRefreshTokenExpireAt,
 	}
 
 	grant.RefreshTokens = append(grant.RefreshTokens, newRefreshToken)
@@ -499,7 +499,54 @@ func (s *Store) AddOfflineGrantRefreshToken(
 	return grant, nil
 }
 
-func (s *Store) RemoveOfflineGrantRefreshTokens(ctx context.Context, grantID string, tokenHashes []string, expireAt time.Time) (*oauth.OfflineGrant, error) {
+func (s *Store) RotateOfflineGrantRefreshToken(
+	ctx context.Context,
+	opts oauth.RotateOfflineGrantRefreshTokenOptions,
+	expireAt time.Time,
+) (*oauth.OfflineGrant, error) {
+	mutexName := offlineGrantMutexName(string(s.AppID), opts.OfflineGrantID)
+	mutex := s.Redis.NewMutex(mutexName)
+	err := mutex.LockContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		_, _ = mutex.UnlockContext(ctx)
+	}()
+
+	grant, err := s.GetOfflineGrantWithoutExpireAt(ctx, opts.OfflineGrantID)
+	if err != nil {
+		return nil, err
+	}
+
+	var tokenToRotate *oauth.OfflineGrantRefreshToken
+	tokenIndex := -1
+	for i, token := range grant.RefreshTokens {
+		if token.MatchInitialHash(opts.InitialRefreshTokenHash) {
+			tokenToRotate = &grant.RefreshTokens[i]
+			tokenIndex = i
+			break
+		}
+	}
+
+	if tokenToRotate == nil {
+		return nil, oauth.ErrGrantNotFound
+	}
+
+	tokenToRotate.RotatedTokenHash = &opts.NewRefreshTokenHash
+	t := s.Clock.NowUTC()
+	tokenToRotate.RotatedAt = &t
+	grant.RefreshTokens[tokenIndex] = *tokenToRotate
+
+	err = s.updateOfflineGrant(ctx, grant, expireAt)
+	if err != nil {
+		return nil, err
+	}
+
+	return grant, nil
+}
+
+func (s *Store) RemoveOfflineGrantRefreshTokens(ctx context.Context, grantID string, initialTokenHashes []string, expireAt time.Time) (*oauth.OfflineGrant, error) {
 	mutexName := offlineGrantMutexName(string(s.AppID), grantID)
 	mutex := s.Redis.NewMutex(mutexName)
 	err := mutex.LockContext(ctx)
@@ -511,7 +558,7 @@ func (s *Store) RemoveOfflineGrantRefreshTokens(ctx context.Context, grantID str
 	}()
 
 	tokenHashesSet := map[string]interface{}{}
-	for _, hash := range tokenHashes {
+	for _, hash := range initialTokenHashes {
 		tokenHashesSet[hash] = hash
 	}
 
@@ -523,7 +570,7 @@ func (s *Store) RemoveOfflineGrantRefreshTokens(ctx context.Context, grantID str
 	newRefreshTokens := []oauth.OfflineGrantRefreshToken{}
 	for _, token := range grant.RefreshTokens {
 		token := token
-		if _, exist := tokenHashesSet[token.TokenHash]; !exist {
+		if _, exist := tokenHashesSet[token.InitialTokenHash]; !exist {
 			newRefreshTokens = append(newRefreshTokens, token)
 		}
 	}

@@ -99,12 +99,14 @@ function constructConfig(
           draft.grant_types = ["authorization_code", "refresh_token"];
           draft.response_types = ["code", "none"];
           draft.issue_jwt_access_token = true;
+          draft.refresh_token_rotation_enabled = true;
           break;
         case "native":
           draft.redirect_uris = ["com.example.myapp://host/path"];
           draft.grant_types = ["authorization_code", "refresh_token"];
           draft.response_types = ["code", "none"];
           draft.issue_jwt_access_token = true;
+          draft.refresh_token_rotation_enabled = true;
           break;
         case "confidential":
         case "third_party_app":
@@ -113,6 +115,7 @@ function constructConfig(
           draft.grant_types = ["authorization_code", "refresh_token"];
           draft.response_types = ["code", "none"];
           draft.issue_jwt_access_token = true;
+          draft.refresh_token_rotation_enabled = true;
           break;
         case "m2m":
           draft.issue_jwt_access_token = true;

@@ -695,18 +695,18 @@ func (m *MockTokenHandlerTokenService) EXPECT() *MockTokenHandlerTokenServiceMoc
 	return m.recorder
 }
 
-// IssueAccessGrant mocks base method.
-func (m *MockTokenHandlerTokenService) IssueAccessGrant(ctx context.Context, options oauth.IssueAccessGrantOptions, resp protocol.TokenResponse) error {
+// IssueAccessGrantByRefreshToken mocks base method.
+func (m *MockTokenHandlerTokenService) IssueAccessGrantByRefreshToken(ctx context.Context, options handler.IssueAccessGrantByRefreshTokenOptions, resp protocol.TokenResponse) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IssueAccessGrant", ctx, options, resp)
+	ret := m.ctrl.Call(m, "IssueAccessGrantByRefreshToken", ctx, options, resp)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// IssueAccessGrant indicates an expected call of IssueAccessGrant.
-func (mr *MockTokenHandlerTokenServiceMockRecorder) IssueAccessGrant(ctx, options, resp interface{}) *gomock.Call {
+// IssueAccessGrantByRefreshToken indicates an expected call of IssueAccessGrantByRefreshToken.
+func (mr *MockTokenHandlerTokenServiceMockRecorder) IssueAccessGrantByRefreshToken(ctx, options, resp interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IssueAccessGrant", reflect.TypeOf((*MockTokenHandlerTokenService)(nil).IssueAccessGrant), ctx, options, resp)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IssueAccessGrantByRefreshToken", reflect.TypeOf((*MockTokenHandlerTokenService)(nil).IssueAccessGrantByRefreshToken), ctx, options, resp)
 }
 
 // IssueClientCredentialsAccessToken mocks base method.
@@ -965,4 +965,43 @@ func (m *MockTokenHandlerAppDatabase) WithTx(ctx_original context.Context, do fu
 func (mr *MockTokenHandlerAppDatabaseMockRecorder) WithTx(ctx_original, do interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithTx", reflect.TypeOf((*MockTokenHandlerAppDatabase)(nil).WithTx), ctx_original, do)
+}
+
+// MockTokenHandlerCodeGrantService is a mock of TokenHandlerCodeGrantService interface.
+type MockTokenHandlerCodeGrantService struct {
+	ctrl     *gomock.Controller
+	recorder *MockTokenHandlerCodeGrantServiceMockRecorder
+}
+
+// MockTokenHandlerCodeGrantServiceMockRecorder is the mock recorder for MockTokenHandlerCodeGrantService.
+type MockTokenHandlerCodeGrantServiceMockRecorder struct {
+	mock *MockTokenHandlerCodeGrantService
+}
+
+// NewMockTokenHandlerCodeGrantService creates a new mock instance.
+func NewMockTokenHandlerCodeGrantService(ctrl *gomock.Controller) *MockTokenHandlerCodeGrantService {
+	mock := &MockTokenHandlerCodeGrantService{ctrl: ctrl}
+	mock.recorder = &MockTokenHandlerCodeGrantServiceMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockTokenHandlerCodeGrantService) EXPECT() *MockTokenHandlerCodeGrantServiceMockRecorder {
+	return m.recorder
+}
+
+// CreateCodeGrant mocks base method.
+func (m *MockTokenHandlerCodeGrantService) CreateCodeGrant(ctx context.Context, opts *handler.CreateCodeGrantOptions) (string, *oauth.CodeGrant, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateCodeGrant", ctx, opts)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(*oauth.CodeGrant)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// CreateCodeGrant indicates an expected call of CreateCodeGrant.
+func (mr *MockTokenHandlerCodeGrantServiceMockRecorder) CreateCodeGrant(ctx, opts interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateCodeGrant", reflect.TypeOf((*MockTokenHandlerCodeGrantService)(nil).CreateCodeGrant), ctx, opts)
 }

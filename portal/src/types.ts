@@ -577,6 +577,7 @@ export interface OAuthClientConfig {
   refresh_token_lifetime_seconds?: number;
   refresh_token_idle_timeout_seconds?: number;
   refresh_token_idle_timeout_enabled?: boolean;
+  refresh_token_rotation_enabled?: boolean;
   issue_jwt_access_token?: boolean;
   policy_uri?: string;
   tos_uri?: string;

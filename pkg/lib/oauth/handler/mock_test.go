@@ -97,16 +97,14 @@ func (m *mockCookieManager) ValueCookie(def *httputil.CookieDef, value string) *
 	}
 }
 
-type mockClientResolver struct {
-	ClientConfig *config.OAuthClientConfig
+type multiClientResolver struct {
+	ClientConfigs map[string]*config.OAuthClientConfig
 }
 
-func (m *mockClientResolver) ResolveClient(clientID string) *config.OAuthClientConfig {
-	if m.ClientConfig == nil {
-		return nil
+func (r *multiClientResolver) ResolveClient(clientID string) *config.OAuthClientConfig {
+	client, ok := r.ClientConfigs[clientID]
+	if ok {
+		return client
 	}
-	if clientID != m.ClientConfig.ClientID {
-		return nil
-	}
-	return m.ClientConfig
+	return nil
 }

@@ -33,6 +33,12 @@ type AddOfflineGrantRefreshTokenOptions struct {
 	DPoPJKT                        string
 }
 
+type RotateOfflineGrantRefreshTokenOptions struct {
+	OfflineGrantID          string
+	InitialRefreshTokenHash string
+	NewRefreshTokenHash     string
+}
+
 type OfflineGrantStore interface {
 	GetOfflineGrantWithoutExpireAt(ctx context.Context, id string) (*OfflineGrant, error)
 	CreateOfflineGrant(ctx context.Context, offlineGrant *OfflineGrant) error
@@ -57,6 +63,11 @@ type OfflineGrantStore interface {
 		ctx context.Context,
 		grantID string,
 		newServiceProviderID string,
+		expireAt time.Time,
+	) (*OfflineGrant, error)
+	RotateOfflineGrantRefreshToken(
+		ctx context.Context,
+		opts RotateOfflineGrantRefreshTokenOptions,
 		expireAt time.Time,
 	) (*OfflineGrant, error)
 

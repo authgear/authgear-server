@@ -13,5 +13,6 @@ type AccessGrant struct {
 	Scopes    []string  `json:"scopes"`
 	TokenHash string    `json:"token_hash"`
 	// Only exist when session_kind is offline_grant
-	RefreshTokenHash string `json:"refresh_token_hash"`
+	// It does not change even the refresh token rotated
+	InitialRefreshTokenHash string `json:"refresh_token_hash"`
 }

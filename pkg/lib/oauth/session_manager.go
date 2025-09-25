@@ -73,7 +73,7 @@ func (m *SessionManager) TerminateAllExcept(ctx context.Context, userID string, 
 
 		// skip third party client app refresh token
 		// third party refresh token should be deleted through deleting authorization
-		tokenHashes, shouldRemoveOfflineGrant := ss.GetAllRemovableTokenHashesExcludeClientIDs(thirdPartyClientIDs)
+		initialTokenHashes, shouldRemoveOfflineGrant := ss.GetAllRemovableInitialTokenHashesExcludeClientIDs(thirdPartyClientIDs)
 		if shouldRemoveOfflineGrant {
 			if err := m.Delete(ctx, ss); err != nil {
 				return nil, err
@@ -81,14 +81,14 @@ func (m *SessionManager) TerminateAllExcept(ctx context.Context, userID string, 
 			deletedSessions = append(deletedSessions, ss)
 			continue
 		}
-		if len(tokenHashes) > 0 {
+		if len(initialTokenHashes) > 0 {
 			// ComputeOfflineGrantExpiry is needed because Store.ListOfflineGrants
 			// does not populate ExpireAtForResolvedSession.
 			expiry, err := m.Service.ComputeOfflineGrantExpiry(ss)
 			if err != nil {
 				return nil, err
 			}
-			_, err = m.Store.RemoveOfflineGrantRefreshTokens(ctx, ss.ID, tokenHashes, expiry)
+			_, err = m.Store.RemoveOfflineGrantRefreshTokens(ctx, ss.ID, initialTokenHashes, expiry)
 			if err != nil {
 				return nil, err
 			}

@@ -6,6 +6,7 @@ import (
 	"errors"
 	"log/slog"
 	"strings"
+	"time"
 
 	"github.com/lestrrat-go/jwx/v2/jwk"
 
@@ -57,16 +58,53 @@ type ClientCredentialsAccessTokenOptions struct {
 	Resource           *resourcescope.Resource
 }
 
+type IssueAccessGrantByRefreshTokenOptions struct {
+	oauth.IssueAccessGrantOptions
+	ShouldRotateRefreshToken bool
+}
+
+//go:generate go tool mockgen -source=service_token.go -destination=service_token_mock_test.go -package handler_test
+type TokenServiceAuthorizationStore interface {
+	oauth.AuthorizationStore
+}
+
+type TokenServiceOfflineGrantStore interface {
+	oauth.OfflineGrantStore
+}
+
+type TokenServiceAccessGrantStore interface {
+	oauth.AccessGrantStore
+}
+
+type TokenServiceOfflineGrantService interface {
+	ComputeOfflineGrantExpiry(session *oauth.OfflineGrant) (expiry time.Time, err error)
+	GetOfflineGrant(ctx context.Context, id string) (*oauth.OfflineGrant, error)
+	CreateNewRefreshToken(
+		ctx context.Context,
+		options oauth.CreateNewRefreshTokenOptions,
+	) (*oauth.CreateNewRefreshTokenResult, *oauth.OfflineGrant, error)
+	RotateRefreshToken(
+		ctx context.Context,
+		options oauth.RotateRefreshTokenOptions,
+	) (*oauth.RotateRefreshTokenResult, *oauth.OfflineGrant, error)
+}
+
+type TokenServiceAccessGrantService interface {
+	IssueAccessGrant(
+		ctx context.Context,
+		options oauth.IssueAccessGrantOptions,
+	) (*oauth.IssueAccessGrantResult, error)
+}
 type TokenService struct {
 	RemoteIP        httputil.RemoteIP
 	UserAgentString httputil.UserAgentString
 	AppID           config.AppID
 	Config          *config.OAuthConfig
 
-	Authorizations      oauth.AuthorizationStore
-	OfflineGrants       oauth.OfflineGrantStore
-	AccessGrants        oauth.AccessGrantStore
-	OfflineGrantService oauth.OfflineGrantService
+	Authorizations      TokenServiceAuthorizationStore
+	OfflineGrants       TokenServiceOfflineGrantStore
+	AccessGrants        TokenServiceAccessGrantStore
+	OfflineGrantService TokenServiceOfflineGrantService
 	AccessEvents        *access.EventProvider
 	AccessTokenIssuer   AccessTokenIssuer
 	GenerateToken       TokenGenerator
@@ -74,7 +112,7 @@ type TokenService struct {
 	Users               TokenHandlerUserFacade
 	Events              EventService
 
-	AccessGrantService oauth.AccessGrantService
+	AccessGrantService TokenServiceAccessGrantService
 }
 
 func (s *TokenService) IssueOfflineGrant(
@@ -94,13 +132,13 @@ func (s *TokenService) IssueOfflineGrant(
 	}
 
 	refreshToken := &oauth.OfflineGrantRefreshToken{
-		TokenHash:       tokenHash,
-		ClientID:        client.ClientID,
-		CreatedAt:       now,
-		Scopes:          opts.Scopes,
-		AuthorizationID: opts.AuthorizationID,
-		DPoPJKT:         opts.DPoPJKT,
-		AccessInfo:      &accessInfo,
+		InitialTokenHash: tokenHash,
+		ClientID:         client.ClientID,
+		CreatedAt:        now,
+		Scopes:           opts.Scopes,
+		AuthorizationID:  opts.AuthorizationID,
+		DPoPJKT:          opts.DPoPJKT,
+		AccessInfo:       &accessInfo,
 	}
 
 	offlineGrant = &oauth.OfflineGrant{
@@ -191,13 +229,36 @@ func (s *TokenService) IssueRefreshTokenForOfflineGrant(
 	return newOfflineGrant, newRefreshTokenResult.TokenHash, nil
 }
 
-func (s *TokenService) IssueAccessGrant(
+func (s *TokenService) IssueAccessGrantByRefreshToken(
 	ctx context.Context,
-	options oauth.IssueAccessGrantOptions,
+	options IssueAccessGrantByRefreshTokenOptions,
 	resp protocol.TokenResponse,
 ) error {
+
+	issueOptions := options.IssueAccessGrantOptions
+
+	if options.ShouldRotateRefreshToken &&
+		options.SessionLike.SessionType() == session.TypeOfflineGrant &&
+		options.InitialRefreshTokenHash != "" {
+
+		grant, err := s.OfflineGrantService.GetOfflineGrant(ctx, options.SessionLike.SessionID())
+		if err != nil {
+			return err
+		}
+
+		rotateResult, _, err := s.OfflineGrantService.RotateRefreshToken(ctx,
+			oauth.RotateRefreshTokenOptions{
+				OfflineGrant:            grant,
+				InitialRefreshTokenHash: options.InitialRefreshTokenHash,
+			})
+		if err != nil {
+			return err
+		}
+		resp.RefreshToken(oauth.EncodeRefreshToken(rotateResult.Token, grant.ID))
+	}
+
 	result, err := s.AccessGrantService.IssueAccessGrant(
-		ctx, options,
+		ctx, issueOptions,
 	)
 	if err != nil {
 		return err
@@ -246,7 +307,7 @@ func (s *TokenService) ParseRefreshToken(ctx context.Context, token string) (
 	}
 
 	tokenHash = oauth.HashToken(token)
-	if !offlineGrant.MatchHash(tokenHash) {
+	if !offlineGrant.MatchCurrentHash(tokenHash) {
 		// NOTE(DEV-2982): This is for debugging the session lost problem
 		logger.WithSkipLogging().Error(ctx,
 			"failed to match refresh token hash",
