@@ -66,22 +66,22 @@ func (s *PreAuthenticatedURLTokenServiceImpl) ExchangeForAccessToken(
 	client *config.OAuthClientConfig,
 	sessionID string,
 	token string,
-) (string, error) {
+) (oauth.PrepareUserAccessTokenResult, error) {
 	tokenHash := oauth.HashToken(token)
 	tokenModel, err := s.PreAuthenticatedURLTokens.ConsumePreAuthenticatedURLToken(ctx, tokenHash)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	if tokenModel.ClientID != client.ClientID {
-		return "", oauth.ErrUnmatchedClient
+		return nil, oauth.ErrUnmatchedClient
 	}
 	if tokenModel.OfflineGrantID != sessionID {
-		return "", oauth.ErrUnmatchedSession
+		return nil, oauth.ErrUnmatchedSession
 	}
 
 	offlineGrant, err := s.OfflineGrantService.GetOfflineGrant(ctx, tokenModel.OfflineGrantID)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	// DPoP is not important here, because the refresh token is not exposed
@@ -99,7 +99,7 @@ func (s *PreAuthenticatedURLTokenServiceImpl) ExchangeForAccessToken(
 		ShortLivedRefreshTokenExpireAt: &shortLivedRefreshTokenExpireAt,
 	})
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	offlineGrant = newOfflineGrant
 
@@ -111,14 +111,13 @@ func (s *PreAuthenticatedURLTokenServiceImpl) ExchangeForAccessToken(
 		SessionLike:             offlineGrant,
 		InitialRefreshTokenHash: newRefreshTokenResult.TokenHash,
 	}
-	result, err := s.AccessGrantService.IssueAccessGrant(
+	preparationResult, err := s.AccessGrantService.IssueAccessGrant(
 		ctx,
 		issueAccessGrantOptions,
 	)
-
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return result.Token, nil
+	return preparationResult, nil
 }

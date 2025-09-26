@@ -73,6 +73,7 @@ var DependencySet = wire.NewSet(
 	nonce.DependencySet,
 
 	wire.Bind(new(oauthhandler.TokenHandlerAppDatabase), new(*appdb.Handle)),
+	wire.Bind(new(oauthhandler.AuthorizationHandlerDatabase), new(*appdb.Handle)),
 
 	wire.Bind(new(interaction.NonceService), new(*nonce.Service)),
 

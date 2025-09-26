@@ -462,6 +462,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(oauth.ResolverOfflineGrantService), new(*oauth.OfflineGrantService)),
 		wire.Value(oauthhandler.TokenGenerator(oauth.GenerateToken)),
 		wire.Bind(new(oauthhandler.AuthorizationService), new(*oauth.AuthorizationService)),
+		wire.Bind(new(oauthhandler.AuthorizationHandlerAccessTokenEncoding), new(*oauth.AccessTokenEncoding)),
 		wire.Bind(new(interaction.OfflineGrantStore), new(*oauthredis.Store)),
 		wire.Bind(new(workflow.OfflineGrantStore), new(*oauthredis.Store)),
 		wire.Bind(new(authenticationflow.OfflineGrantStore), new(*oauthredis.Store)),
@@ -474,6 +475,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(handler.TokenServiceAccessGrantService), new(*oauth.AccessGrantService)),
 
 		oauthhandler.DependencySet,
+		wire.Bind(new(oauthhandler.AuthorizationHandlerPreAuthenticatedURLTokenService), new(*oauthhandler.PreAuthenticatedURLTokenServiceImpl)),
 
 		oidc.DependencySet,
 		wire.Bind(new(oauthhandler.UIInfoResolver), new(*oidc.UIInfoResolver)),

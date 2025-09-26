@@ -27,7 +27,7 @@ type PreAuthenticatedURLTokenAccessGrantService interface {
 	IssueAccessGrant(
 		ctx context.Context,
 		options IssueAccessGrantOptions,
-	) (*IssueAccessGrantResult, error)
+	) (PrepareUserAccessTokenResult, error)
 }
 
 type PreAuthenticatedURLTokenOfflineGrantService interface {

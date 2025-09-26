@@ -169,12 +169,6 @@ type PreAuthenticatedURLTokenService interface {
 		ctx context.Context,
 		options *IssuePreAuthenticatedURLTokenOptions,
 	) (*IssuePreAuthenticatedURLTokenResult, error)
-	ExchangeForAccessToken(
-		ctx context.Context,
-		client *config.OAuthClientConfig,
-		sessionID string,
-		token string,
-	) (string, error)
 }
 
 type SimpleSessionLike struct {
