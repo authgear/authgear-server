@@ -71,10 +71,6 @@ type IDTokenIssuer interface {
 	VerifyIDToken(idToken string) (token jwt.Token, err error)
 }
 
-type AccessTokenIssuer interface {
-	EncodeClientAccessToken(ctx context.Context, options oauth.EncodeClientAccessTokenOptions) (string, error)
-}
-
 type EventService interface {
 	DispatchEventOnCommit(ctx context.Context, payload event.Payload) error
 }

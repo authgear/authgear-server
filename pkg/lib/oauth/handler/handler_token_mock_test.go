@@ -94,44 +94,6 @@ func (mr *MockIDTokenIssuerMockRecorder) VerifyIDToken(idToken interface{}) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyIDToken", reflect.TypeOf((*MockIDTokenIssuer)(nil).VerifyIDToken), idToken)
 }
 
-// MockAccessTokenIssuer is a mock of AccessTokenIssuer interface.
-type MockAccessTokenIssuer struct {
-	ctrl     *gomock.Controller
-	recorder *MockAccessTokenIssuerMockRecorder
-}
-
-// MockAccessTokenIssuerMockRecorder is the mock recorder for MockAccessTokenIssuer.
-type MockAccessTokenIssuerMockRecorder struct {
-	mock *MockAccessTokenIssuer
-}
-
-// NewMockAccessTokenIssuer creates a new mock instance.
-func NewMockAccessTokenIssuer(ctrl *gomock.Controller) *MockAccessTokenIssuer {
-	mock := &MockAccessTokenIssuer{ctrl: ctrl}
-	mock.recorder = &MockAccessTokenIssuerMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockAccessTokenIssuer) EXPECT() *MockAccessTokenIssuerMockRecorder {
-	return m.recorder
-}
-
-// EncodeClientAccessToken mocks base method.
-func (m *MockAccessTokenIssuer) EncodeClientAccessToken(ctx context.Context, options oauth.EncodeClientAccessTokenOptions) (string, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "EncodeClientAccessToken", ctx, options)
-	ret0, _ := ret[0].(string)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// EncodeClientAccessToken indicates an expected call of EncodeClientAccessToken.
-func (mr *MockAccessTokenIssuerMockRecorder) EncodeClientAccessToken(ctx, options interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EncodeClientAccessToken", reflect.TypeOf((*MockAccessTokenIssuer)(nil).EncodeClientAccessToken), ctx, options)
-}
-
 // MockEventService is a mock of EventService interface.
 type MockEventService struct {
 	ctrl     *gomock.Controller

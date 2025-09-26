@@ -570,3 +570,41 @@ func (mr *MockTokenServiceAccessGrantServiceMockRecorder) IssueAccessGrant(ctx, 
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IssueAccessGrant", reflect.TypeOf((*MockTokenServiceAccessGrantService)(nil).IssueAccessGrant), ctx, options)
 }
+
+// MockTokenServiceAccessTokenIssuer is a mock of TokenServiceAccessTokenIssuer interface.
+type MockTokenServiceAccessTokenIssuer struct {
+	ctrl     *gomock.Controller
+	recorder *MockTokenServiceAccessTokenIssuerMockRecorder
+}
+
+// MockTokenServiceAccessTokenIssuerMockRecorder is the mock recorder for MockTokenServiceAccessTokenIssuer.
+type MockTokenServiceAccessTokenIssuerMockRecorder struct {
+	mock *MockTokenServiceAccessTokenIssuer
+}
+
+// NewMockTokenServiceAccessTokenIssuer creates a new mock instance.
+func NewMockTokenServiceAccessTokenIssuer(ctrl *gomock.Controller) *MockTokenServiceAccessTokenIssuer {
+	mock := &MockTokenServiceAccessTokenIssuer{ctrl: ctrl}
+	mock.recorder = &MockTokenServiceAccessTokenIssuerMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockTokenServiceAccessTokenIssuer) EXPECT() *MockTokenServiceAccessTokenIssuerMockRecorder {
+	return m.recorder
+}
+
+// EncodeClientAccessToken mocks base method.
+func (m *MockTokenServiceAccessTokenIssuer) EncodeClientAccessToken(ctx context.Context, options oauth.EncodeClientAccessTokenOptions) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "EncodeClientAccessToken", ctx, options)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// EncodeClientAccessToken indicates an expected call of EncodeClientAccessToken.
+func (mr *MockTokenServiceAccessTokenIssuerMockRecorder) EncodeClientAccessToken(ctx, options interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EncodeClientAccessToken", reflect.TypeOf((*MockTokenServiceAccessTokenIssuer)(nil).EncodeClientAccessToken), ctx, options)
+}

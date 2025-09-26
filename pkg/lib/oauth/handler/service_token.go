@@ -95,6 +95,11 @@ type TokenServiceAccessGrantService interface {
 		options oauth.IssueAccessGrantOptions,
 	) (*oauth.IssueAccessGrantResult, error)
 }
+
+type TokenServiceAccessTokenIssuer interface {
+	EncodeClientAccessToken(ctx context.Context, options oauth.EncodeClientAccessTokenOptions) (string, error)
+}
+
 type TokenService struct {
 	RemoteIP        httputil.RemoteIP
 	UserAgentString httputil.UserAgentString
@@ -106,7 +111,7 @@ type TokenService struct {
 	AccessGrants        TokenServiceAccessGrantStore
 	OfflineGrantService TokenServiceOfflineGrantService
 	AccessEvents        *access.EventProvider
-	AccessTokenIssuer   AccessTokenIssuer
+	AccessTokenIssuer   TokenServiceAccessTokenIssuer
 	GenerateToken       TokenGenerator
 	Clock               clock.Clock
 	Users               TokenHandlerUserFacade
