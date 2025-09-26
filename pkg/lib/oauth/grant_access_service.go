@@ -34,7 +34,7 @@ type IssueAccessGrantResult struct {
 func (s *AccessGrantService) IssueAccessGrant(
 	ctx context.Context,
 	options IssueAccessGrantOptions,
-) (*IssueAccessGrantResult, error) {
+) (PrepareUserAccessTokenResult, error) {
 	token := GenerateToken()
 	now := s.Clock.NowUTC()
 
@@ -55,7 +55,7 @@ func (s *AccessGrantService) IssueAccessGrant(
 	}
 
 	clientLike := ClientClientLike(options.ClientConfig, options.Scopes)
-	at, err := s.AccessTokenIssuer.EncodeUserAccessToken(ctx, EncodeUserAccessTokenOptions{
+	preparation, err := s.AccessTokenIssuer.PrepareUserAccessToken(ctx, EncodeUserAccessTokenOptions{
 		OriginalToken:      token,
 		ClientConfig:       options.ClientConfig,
 		ClientLike:         clientLike,
@@ -66,11 +66,5 @@ func (s *AccessGrantService) IssueAccessGrant(
 		return nil, err
 	}
 
-	result := &IssueAccessGrantResult{
-		Token:     at,
-		TokenType: "Bearer",
-		ExpiresIn: int(options.ClientConfig.AccessTokenLifetime),
-	}
-
-	return result, nil
+	return preparation, nil
 }

@@ -36,6 +36,8 @@ type BaseURLProvider interface {
 
 type EventService interface {
 	DispatchEventOnCommit(ctx context.Context, payload event.Payload) error
+	PrepareBlockingEventWithTx(ctx context.Context, payload event.BlockingPayload) (e *event.Event, err error)
+	DispatchEventWithoutTx(ctx context.Context, e *event.Event) (err error)
 }
 
 type AccessTokenEncodingIdentityService interface {
@@ -68,9 +70,28 @@ type EncodeClientAccessTokenOptions struct {
 	ExpireAt      time.Time
 }
 
-func (e *AccessTokenEncoding) EncodeUserAccessToken(ctx context.Context, options EncodeUserAccessTokenOptions) (string, error) {
+type PrepareUserAccessTokenResult interface {
+	prepareUserAccessTokenResult()
+}
+
+type prepareUserAccessTokenResultOpaque struct {
+	OriginalToken string
+}
+
+func (r *prepareUserAccessTokenResultOpaque) prepareUserAccessTokenResult() {}
+
+type prepareUserAccessTokenResultJWT struct {
+	Event     *event.Event
+	ForBackup map[string]interface{}
+}
+
+func (r *prepareUserAccessTokenResultJWT) prepareUserAccessTokenResult() {}
+
+func (e *AccessTokenEncoding) PrepareUserAccessToken(ctx context.Context, options EncodeUserAccessTokenOptions) (PrepareUserAccessTokenResult, error) {
 	if !options.ClientConfig.IssueJWTAccessToken {
-		return options.OriginalToken, nil
+		return &prepareUserAccessTokenResultOpaque{
+			OriginalToken: options.OriginalToken,
+		}, nil
 	}
 
 	claims := jwt.New()
@@ -96,6 +117,7 @@ func (e *AccessTokenEncoding) EncodeUserAccessToken(ctx context.Context, options
 		_ = claims.Set(string(model.ClaimAMR), amr)
 	}
 
+	// jti
 	// Do not put raw token in JWT access token; JWT payload is not specified
 	// to be confidential. Put token hash to allow looking up access grant from
 	// verified JWT.
@@ -103,17 +125,17 @@ func (e *AccessTokenEncoding) EncodeUserAccessToken(ctx context.Context, options
 
 	err := e.IDTokenIssuer.PopulateUserClaimsInIDToken(ctx, claims, options.AuthenticationInfo.UserID, options.ClientLike)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	forMutation, forBackup, err := jwtutil.PrepareForMutations(claims)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	identities, err := e.Identities.ListIdentitiesThatHaveStandardAttributes(ctx, options.AuthenticationInfo.UserID)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	var identityModels []model.Identity
@@ -133,30 +155,71 @@ func (e *AccessTokenEncoding) EncodeUserAccessToken(ctx context.Context, options
 		},
 	}
 
-	err = e.Events.DispatchEventOnCommit(ctx, eventPayload)
+	event, err := e.Events.PrepareBlockingEventWithTx(ctx, eventPayload)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	claims, err = jwtutil.ApplyMutations(
-		eventPayload.JWT.Payload,
-		forBackup,
-	)
-	if err != nil {
-		return "", err
+	return &prepareUserAccessTokenResultJWT{
+		Event:     event,
+		ForBackup: forBackup,
+	}, nil
+}
+
+type MakeUserAccessTokenFromPreparationOptions struct {
+	PreparationResult PrepareUserAccessTokenResult
+	ClientConfig      *config.OAuthClientConfig
+}
+
+func (e *AccessTokenEncoding) MakeUserAccessTokenFromPreparationResult(
+	ctx context.Context,
+	options MakeUserAccessTokenFromPreparationOptions,
+) (*IssueAccessGrantResult, error) {
+	if options.PreparationResult == nil {
+		panic(fmt.Errorf("options.PreparationResult must be non-nil"))
 	}
 
-	jwk, _ := e.Secrets.Set.Key(0)
+	switch v := options.PreparationResult.(type) {
+	case *prepareUserAccessTokenResultOpaque:
+		return &IssueAccessGrantResult{
+			Token:     v.OriginalToken,
+			TokenType: "Bearer",
+			ExpiresIn: int(options.ClientConfig.AccessTokenLifetime),
+		}, nil
+	case *prepareUserAccessTokenResultJWT:
+		err := e.Events.DispatchEventWithoutTx(ctx, v.Event)
+		if err != nil {
+			return nil, err
+		}
 
-	hdr := jws.NewHeaders()
-	_ = hdr.Set("typ", "at+jwt")
+		eventPayload := v.Event.Payload.(*blocking.OIDCJWTPreCreateBlockingEventPayload)
 
-	signed, err := jwtutil.SignWithHeader(claims, hdr, jwa.RS256, jwk)
-	if err != nil {
-		return "", err
+		claims, err := jwtutil.ApplyMutations(
+			eventPayload.JWT.Payload,
+			v.ForBackup,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		jwk, _ := e.Secrets.Set.Key(0)
+
+		hdr := jws.NewHeaders()
+		_ = hdr.Set("typ", "at+jwt")
+
+		signed, err := jwtutil.SignWithHeader(claims, hdr, jwa.RS256, jwk)
+		if err != nil {
+			return nil, err
+		}
+
+		return &IssueAccessGrantResult{
+			Token:     string(signed),
+			TokenType: "Bearer",
+			ExpiresIn: int(options.ClientConfig.AccessTokenLifetime),
+		}, nil
+	default:
+		panic(fmt.Errorf("unexpected PreparationResult: %T", options.PreparationResult))
 	}
-
-	return string(signed), nil
 }
 
 func (e *AccessTokenEncoding) EncodeClientAccessToken(ctx context.Context, options EncodeClientAccessTokenOptions) (string, error) {

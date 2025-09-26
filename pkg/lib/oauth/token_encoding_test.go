@@ -10,6 +10,7 @@ import (
 	"github.com/lestrrat-go/jwx/v2/jwt"
 	. "github.com/smartystreets/goconvey/convey"
 
+	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/endpoints"
@@ -96,7 +97,12 @@ func TestAccessToken(t *testing.T) {
 			Scopes:    []string{"openid", "email"},
 		}
 
-		mockEventService.EXPECT().DispatchEventOnCommit(gomock.Any(), gomock.Any()).Return(nil)
+		mockEventService.EXPECT().PrepareBlockingEventWithTx(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, e event.Payload) (*event.Event, error) {
+			return &event.Event{
+				Payload: e,
+			}, nil
+		}).AnyTimes()
+		mockEventService.EXPECT().DispatchEventWithoutTx(gomock.Any(), gomock.Any()).Return(nil)
 		mockIDTokenIssuer.EXPECT().Iss().Return("http://test1.authgear.com")
 		mockIDTokenIssuer.EXPECT().PopulateUserClaimsInIDToken(gomock.Any(), gomock.Any(), "user-id", clientLike).Return(nil)
 		mockIdentityService.EXPECT().ListIdentitiesThatHaveStandardAttributes(gomock.Any(), "user-id").Return(nil, nil)
@@ -113,17 +119,24 @@ func TestAccessToken(t *testing.T) {
 				// AuthenticatedAt
 			},
 		}
-		accessToken, err := encoding.EncodeUserAccessToken(ctx, options)
+
+		preparation, err := encoding.PrepareUserAccessToken(ctx, options)
 		So(err, ShouldBeNil)
 
-		_, _, err = encoding.DecodeAccessToken(accessToken)
+		tokenResult, err := encoding.MakeUserAccessTokenFromPreparationResult(ctx, MakeUserAccessTokenFromPreparationOptions{
+			PreparationResult: preparation,
+			ClientConfig:      client,
+		})
+		So(err, ShouldBeNil)
+
+		_, _, err = encoding.DecodeAccessToken(tokenResult.Token)
 		So(err, ShouldBeNil)
 
 		// Peek token payload
 		keys, err := jwk.PublicSetOf(encoding.Secrets.Set)
 		So(err, ShouldBeNil)
 
-		decodedToken, _ := jwt.ParseString(accessToken, jwt.WithKeySet(keys), jwt.WithValidate(false))
+		decodedToken, _ := jwt.ParseString(tokenResult.Token, jwt.WithKeySet(keys), jwt.WithValidate(false))
 		So(err, ShouldBeNil)
 
 		clientID, _ := decodedToken.Get("client_id")
