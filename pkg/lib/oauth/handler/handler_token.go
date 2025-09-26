@@ -72,7 +72,6 @@ type IDTokenIssuer interface {
 }
 
 type AccessTokenIssuer interface {
-	EncodeUserAccessToken(ctx context.Context, options oauth.EncodeUserAccessTokenOptions) (string, error)
 	EncodeClientAccessToken(ctx context.Context, options oauth.EncodeClientAccessTokenOptions) (string, error)
 }
 
