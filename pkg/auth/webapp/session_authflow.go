@@ -3,11 +3,12 @@ package webapp
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
+	"time"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	authflowv2viewmodels "github.com/authgear/authgear-server/pkg/auth/handler/webapp/authflowv2/viewmodels"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
@@ -371,10 +372,15 @@ type TakeBranchResultSimple struct {
 func (TakeBranchResultSimple) takeBranchResult() {}
 
 type TakeBranchResultInputRetryHandler func(err error) (nextInput interface{})
+type TakeBranchOutputTransformer func(ctx context.Context, output *authflow.ServiceOutput, err error, authflows AuthflowService) (*authflow.ServiceOutput, error)
 
+type AuthflowService interface {
+	Get(ctx context.Context, stateToken string) (*authflow.ServiceOutput, error)
+}
 type TakeBranchResultInput struct {
 	Input                 map[string]interface{}
 	NewAuthflowScreenFull func(flowResponse *authflow.FlowResponse, retriedForError error) *AuthflowScreenWithFlowResponse
+	TransformOutput       *TakeBranchOutputTransformer
 	OnRetry               *TakeBranchResultInputRetryHandler
 }
 
@@ -454,7 +460,7 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchSignupPromote(input *TakeBran
 			}
 		}
 		resultInput := inputFactory(input.Channel)
-		onFailureHandler := s.makeFallbackToSMSFromWhatsappRetryHandler(
+		inputOptions := s.makeVerifyOOBOTPInputOptions(
 			inputFactory,
 			data.Channels,
 			options.DisableFallbackToSMS,
@@ -473,7 +479,8 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchSignupPromote(input *TakeBran
 				screen := s.makeScreenForTakenBranch(flowResponse, resultInput, nilIndex, takenChannel, isContinuation)
 				return screen
 			},
-			OnRetry: &onFailureHandler,
+			OnRetry:         inputOptions.RetryHandler,
+			TransformOutput: inputOptions.OutputTransformer,
 		}
 	default:
 		panic(fmt.Errorf("unexpected action type: %v", s.StateTokenFlowResponse.Action.Type))
@@ -529,7 +536,7 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchLoginAuthenticate(input *Take
 				return out
 			}
 			resultInput := inputFactory(input.Channel)
-			onFailureHandler := s.makeFallbackToSMSFromWhatsappRetryHandler(
+			inputOptions := s.makeVerifyOOBOTPInputOptions(
 				inputFactory,
 				option.Channels,
 				options.DisableFallbackToSMS,
@@ -552,7 +559,8 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchLoginAuthenticate(input *Take
 					screen := s.makeScreenForTakenBranch(flowResponse, resultInput, &input.Index, takenChannel, isContinuation)
 					return screen
 				},
-				OnRetry: &onFailureHandler,
+				OnRetry:         inputOptions.RetryHandler,
+				TransformOutput: inputOptions.OutputTransformer,
 			}
 		default:
 			panic(fmt.Errorf("unexpected authentication: %v", option.Authentication))
@@ -631,7 +639,7 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchReauth(input *TakeBranchInput
 				}
 			}
 			resultInput := inputFactory(input.Channel)
-			onFailureHandler := s.makeFallbackToSMSFromWhatsappRetryHandler(
+			inputOptions := s.makeVerifyOOBOTPInputOptions(
 				inputFactory,
 				option.Channels,
 				options.DisableFallbackToSMS,
@@ -654,7 +662,8 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchReauth(input *TakeBranchInput
 					screen := s.makeScreenForTakenBranch(flowResponse, resultInput, &input.Index, takenChannel, isContinuation)
 					return screen
 				},
-				OnRetry: &onFailureHandler,
+				OnRetry:         inputOptions.RetryHandler,
+				TransformOutput: inputOptions.OutputTransformer,
 			}
 		default:
 			panic(fmt.Errorf("unexpected authentication: %v", option.Authentication))
@@ -785,7 +794,7 @@ func (s *AuthflowScreenWithFlowResponse) makeFallbackToSMSFromWhatsappRetryHandl
 		if disableFallbackToSMS {
 			return nil
 		}
-		if !errors.Is(err, whatsapp.ErrInvalidWhatsappUser) {
+		if !apierrors.IsKind(err, whatsapp.InvalidWhatsappUser) {
 			return nil
 		}
 		smsChannelIdx := -1
@@ -798,6 +807,68 @@ func (s *AuthflowScreenWithFlowResponse) makeFallbackToSMSFromWhatsappRetryHandl
 			return nil
 		}
 		return inputFactory(channels[smsChannelIdx])
+	}
+}
+
+func (s *AuthflowScreenWithFlowResponse) makeVerifyOOBOTPOutputTransformer() TakeBranchOutputTransformer {
+	return func(ctx context.Context, output *authflow.ServiceOutput, err error, authflows AuthflowService) (*authflow.ServiceOutput, error) {
+		if err != nil {
+			// If there is error, make no changes to the output and error
+			return output, err
+		}
+		if _, ok := output.FlowAction.Data.(declarative.VerifyOOBOTPData); !ok {
+			// If not VerifyOOBOTPData, make no changes to the output and error
+			return output, err
+		} else {
+			for {
+				data := output.FlowAction.Data.(declarative.VerifyOOBOTPData)
+				switch data.DeliveryStatus {
+				case model.OTPDeliveryStatusFailed:
+					return output, data.DeliveryError
+				case model.OTPDeliveryStatusSent:
+					return output, err
+				case model.OTPDeliveryStatusSending:
+					{
+						// Wait until sent or failed
+						// TODO(tung): Add a hard limit on the wait time
+						time.Sleep(500 * time.Millisecond)
+						newOutput, err := authflows.Get(ctx, output.Flow.StateToken)
+						if err != nil {
+							return newOutput, err
+						}
+						_, ok := output.FlowAction.Data.(declarative.VerifyOOBOTPData)
+						if ok {
+							output = newOutput
+							continue
+						} else {
+							// Unexpected case: the data is not VerifyOOBOTPData
+							return nil, fmt.Errorf("expected VerifyOOBOTPData data but got: %T", output.FlowAction.Data)
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+func (s *AuthflowScreenWithFlowResponse) makeVerifyOOBOTPInputOptions(
+	inputFactory func(channel model.AuthenticatorOOBChannel) map[string]interface{},
+	channels []model.AuthenticatorOOBChannel,
+	disableFallbackToSMS bool,
+) struct {
+	OutputTransformer *TakeBranchOutputTransformer
+	RetryHandler      *TakeBranchResultInputRetryHandler
+} {
+	var transformer TakeBranchOutputTransformer = s.makeVerifyOOBOTPOutputTransformer()
+	var retryHandler TakeBranchResultInputRetryHandler = s.makeFallbackToSMSFromWhatsappRetryHandler(
+		inputFactory, channels, disableFallbackToSMS,
+	)
+	return struct {
+		OutputTransformer *TakeBranchOutputTransformer
+		RetryHandler      *TakeBranchResultInputRetryHandler
+	}{
+		OutputTransformer: &transformer,
+		RetryHandler:      &retryHandler,
 	}
 }
 
@@ -843,7 +914,7 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchCreateAuthenticator(
 			}
 		}
 		resultInput := inputFactory(input.Channel)
-		onFailureHandler := s.makeFallbackToSMSFromWhatsappRetryHandler(
+		inputOptions := s.makeVerifyOOBOTPInputOptions(
 			inputFactory,
 			selectedOption.Channels,
 			takeBranchOptions.DisableFallbackToSMS,
@@ -863,7 +934,8 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchCreateAuthenticator(
 				screen := s.makeScreenForTakenBranch(flowResponse, resultInput, &input.Index, takenChannel, isContinuation)
 				return screen
 			},
-			OnRetry: &onFailureHandler,
+			OnRetry:         inputOptions.RetryHandler,
+			TransformOutput: inputOptions.OutputTransformer,
 		}
 
 	case model.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:

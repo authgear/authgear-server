@@ -777,22 +777,34 @@ func (c *AuthflowController) handleTakeBranchResultInput(
 	screen *webapp.AuthflowScreenWithFlowResponse,
 	takeBranchResult webapp.TakeBranchResultInput,
 ) (*authflow.ServiceOutput, *webapp.AuthflowScreenWithFlowResponse, error) {
+	retry := func(originalOutput *authflow.ServiceOutput, err error) (*authflow.ServiceOutput, error) {
+		retryInput := (*takeBranchResult.OnRetry)(err)
+		if retryInput == nil {
+			return originalOutput, err
+		}
+		var retryErr error
+		var output *authflow.ServiceOutput
+		output, retryErr = c.feedInput(ctx, screen.Screen.StateToken.StateToken, retryInput)
+		if retryErr != nil {
+			return output, retryErr
+		}
+		return output, nil
+	}
+
 	output, err := c.feedInput(ctx, screen.Screen.StateToken.StateToken, takeBranchResult.Input)
+	if takeBranchResult.TransformOutput != nil {
+		output, err = (*takeBranchResult.TransformOutput)(ctx, output, err, c.Authflows)
+	}
 	if err != nil {
 		if takeBranchResult.OnRetry == nil {
 			return output, nil, err
 		}
-		retryInput := (*takeBranchResult.OnRetry)(err)
-		if retryInput == nil {
-			return output, nil, err
-		}
 		var retryErr error
-		output, retryErr = c.feedInput(ctx, screen.Screen.StateToken.StateToken, retryInput)
+		output, retryErr = retry(output, err)
 		if retryErr != nil {
 			return output, nil, retryErr
 		}
 	}
-
 	flowResponse := output.ToFlowResponse()
 	newScreen := takeBranchResult.NewAuthflowScreenFull(&flowResponse, err)
 	s.RememberScreen(newScreen.Screen)

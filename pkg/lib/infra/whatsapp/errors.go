@@ -10,8 +10,9 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
-var ErrInvalidWhatsappUser = apierrors.BadRequest.
-	WithReason("InvalidWhatsappUser").
+var InvalidWhatsappUser = apierrors.BadRequest.
+	WithReason("InvalidWhatsappUser")
+var ErrInvalidWhatsappUser = InvalidWhatsappUser.
 	New("invalid whatsapp user")
 var ErrNoAvailableWhatsappClient = apierrors.BadRequest.
 	WithReason("NoAvailableWhatsappClient").
