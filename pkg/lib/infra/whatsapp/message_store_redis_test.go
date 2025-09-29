@@ -2,6 +2,7 @@ package whatsapp_test
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"testing"
 	"time"
@@ -63,9 +64,9 @@ func TestMessageStore(t *testing.T) {
 
 		Convey("UpdateMessageStatus and GetMessageStatus", func() {
 			messageID := "test_message_id"
-			status := WhatsappMessageStatusDelivered
+			statusData := &WhatsappMessageStatusData{Status: WhatsappMessageStatusDelivered}
 
-			err := s.UpdateMessageStatus(ctx, messageID, status)
+			err := s.UpdateMessageStatus(ctx, messageID, statusData)
 			So(err, ShouldBeNil)
 
 			// Verify data in miniredis
@@ -73,16 +74,17 @@ func TestMessageStore(t *testing.T) {
 			key := fmt.Sprintf("whatsapp:phone-number-id-sha256:%s:message-id:%s", hashedPhoneNumberID, messageID)
 			val, err := mr.Get(key)
 			So(err, ShouldBeNil)
-			So(val, ShouldEqual, string(status))
+			expectedbytes, _ := json.Marshal(statusData)
+			So(val, ShouldEqual, string(expectedbytes))
 
-			fetchedStatus, err := s.GetMessageStatus(ctx, messageID)
+			fetchedStatusData, err := s.GetMessageStatus(ctx, messageID)
 			So(err, ShouldBeNil)
-			So(fetchedStatus, ShouldEqual, status)
+			So(fetchedStatusData, ShouldResemble, statusData)
 
-			Convey("should return empty status for non-existent message", func() {
-				fetchedStatus, err := s.GetMessageStatus(ctx, "non_existent_message_id")
+			Convey("should return nil for non-existent message", func() {
+				fetchedStatusData, err := s.GetMessageStatus(ctx, "non_existent_message_id")
 				So(err, ShouldBeNil)
-				So(fetchedStatus, ShouldEqual, WhatsappMessageStatus(""))
+				So(fetchedStatusData, ShouldBeNil)
 			})
 		})
 	})
