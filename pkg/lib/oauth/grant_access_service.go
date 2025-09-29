@@ -5,6 +5,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
@@ -29,6 +30,14 @@ type IssueAccessGrantResult struct {
 	Token     string
 	TokenType string
 	ExpiresIn int
+}
+
+func (r *IssueAccessGrantResult) WriteTo(resp protocol.TokenResponse) {
+	if r != nil && resp != nil {
+		resp.TokenType(r.TokenType)
+		resp.AccessToken(r.Token)
+		resp.ExpiresIn(r.ExpiresIn)
+	}
 }
 
 func (s *AccessGrantService) IssueAccessGrant(

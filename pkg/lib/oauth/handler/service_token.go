@@ -93,7 +93,7 @@ type TokenServiceAccessGrantService interface {
 	IssueAccessGrant(
 		ctx context.Context,
 		options oauth.IssueAccessGrantOptions,
-	) (*oauth.IssueAccessGrantResult, error)
+	) (oauth.PrepareUserAccessTokenResult, error)
 }
 
 type TokenServiceAccessTokenIssuer interface {
@@ -234,13 +234,18 @@ func (s *TokenService) IssueRefreshTokenForOfflineGrant(
 	return newOfflineGrant, newRefreshTokenResult.TokenHash, nil
 }
 
+type IssueAccessGrantByRefreshTokenResult struct {
+	RotateRefreshTokenResult *oauth.RotateRefreshTokenResult
+	PreparationResult        oauth.PrepareUserAccessTokenResult
+}
+
 func (s *TokenService) IssueAccessGrantByRefreshToken(
 	ctx context.Context,
 	options IssueAccessGrantByRefreshTokenOptions,
-	resp protocol.TokenResponse,
-) error {
-
+) (*IssueAccessGrantByRefreshTokenResult, error) {
 	issueOptions := options.IssueAccessGrantOptions
+
+	result := &IssueAccessGrantByRefreshTokenResult{}
 
 	if options.ShouldRotateRefreshToken &&
 		options.SessionLike.SessionType() == session.TypeOfflineGrant &&
@@ -248,7 +253,7 @@ func (s *TokenService) IssueAccessGrantByRefreshToken(
 
 		grant, err := s.OfflineGrantService.GetOfflineGrant(ctx, options.SessionLike.SessionID())
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		rotateResult, _, err := s.OfflineGrantService.RotateRefreshToken(ctx,
@@ -257,22 +262,20 @@ func (s *TokenService) IssueAccessGrantByRefreshToken(
 				InitialRefreshTokenHash: options.InitialRefreshTokenHash,
 			})
 		if err != nil {
-			return err
+			return nil, err
 		}
-		resp.RefreshToken(oauth.EncodeRefreshToken(rotateResult.Token, grant.ID))
+		result.RotateRefreshTokenResult = rotateResult
 	}
 
-	result, err := s.AccessGrantService.IssueAccessGrant(
+	preparationResult, err := s.AccessGrantService.IssueAccessGrant(
 		ctx, issueOptions,
 	)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	resp.TokenType(result.TokenType)
-	resp.AccessToken(result.Token)
-	resp.ExpiresIn(result.ExpiresIn)
-	return nil
+	result.PreparationResult = preparationResult
+	return result, nil
 }
 
 func (s *TokenService) ParseRefreshToken(ctx context.Context, token string) (

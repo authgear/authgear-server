@@ -135,8 +135,7 @@ type TokenHandlerTokenService interface {
 	IssueAccessGrantByRefreshToken(
 		ctx context.Context,
 		options IssueAccessGrantByRefreshTokenOptions,
-		resp protocol.TokenResponse,
-	) error
+	) (*IssueAccessGrantByRefreshTokenResult, error)
 	IssueOfflineGrant(
 		ctx context.Context,
 		client *config.OAuthClientConfig,
@@ -197,6 +196,13 @@ type TokenHandlerCodeGrantService interface {
 	CreateCodeGrant(ctx context.Context, opts *CreateCodeGrantOptions) (code string, grant *oauth.CodeGrant, err error)
 }
 
+type TokenHandlerAccessTokenEncoding interface {
+	MakeUserAccessTokenFromPreparationResult(
+		ctx context.Context,
+		options oauth.MakeUserAccessTokenFromPreparationOptions,
+	) (*oauth.IssueAccessGrantResult, error)
+}
+
 type TokenHandler struct {
 	Database TokenHandlerAppDatabase
 
@@ -221,6 +227,7 @@ type TokenHandler struct {
 	IDTokenIssuer                   IDTokenIssuer
 	Clock                           clock.Clock
 	TokenService                    TokenHandlerTokenService
+	AccessTokenEncoding             TokenHandlerAccessTokenEncoding
 	Events                          EventService
 	SessionManager                  SessionManager
 	App2App                         App2AppService
@@ -263,20 +270,46 @@ func (h *TokenHandler) Handle(ctx context.Context, rw http.ResponseWriter, req *
 	}
 
 	var err error
-	var result httputil.Result
+	var handleResult *HandleResult
 	if err := h.validateRequestWithoutTx(r, client); err != nil {
 		return errorResult(err)
 	}
 
 	err = h.Database.WithTx(ctx, func(ctx context.Context) error {
 		r, handleErr := h.doHandleWithTx(ctx, rw, req, client, r)
-		result = r
+		handleResult = r
 		return handleErr
 	})
 	if err != nil {
 		return errorResult(err)
 	}
-	return result
+
+	if handleResult.IssueAccessGrantByRefreshTokenResult != nil {
+		handleResult.IssueAccessGrantByRefreshTokenResult.RotateRefreshTokenResult.WriteTo(handleResult.Response)
+
+		result2, err := h.AccessTokenEncoding.MakeUserAccessTokenFromPreparationResult(ctx, oauth.MakeUserAccessTokenFromPreparationOptions{
+			ClientConfig:      client,
+			PreparationResult: handleResult.IssueAccessGrantByRefreshTokenResult.PreparationResult,
+		})
+		if err != nil {
+			err = h.translateAccessTokenError(err)
+			return errorResult(err)
+		}
+
+		result2.WriteTo(handleResult.Response)
+	}
+
+	switch {
+	case handleResult.Response == nil:
+		return tokenResultEmpty{}
+	default:
+		return tokenResultOK{Response: handleResult.Response}
+	}
+}
+
+type HandleResult struct {
+	IssueAccessGrantByRefreshTokenResult *IssueAccessGrantByRefreshTokenResult
+	Response                             protocol.TokenResponse
 }
 
 func (h *TokenHandler) doHandleWithTx(
@@ -285,7 +318,7 @@ func (h *TokenHandler) doHandleWithTx(
 	req *http.Request,
 	client *config.OAuthClientConfig,
 	r protocol.TokenRequest,
-) (httputil.Result, error) {
+) (*HandleResult, error) {
 	allowedGrantTypes := oauth.GetAllowedGrantTypes(client)
 
 	ok := false
@@ -303,11 +336,7 @@ func (h *TokenHandler) doHandleWithTx(
 	case oauth.AuthorizationCodeGrantType:
 		return h.handleAuthorizationCode(ctx, client, r)
 	case oauth.RefreshTokenGrantType:
-		resp, err := h.handleRefreshToken(ctx, client, r)
-		if err != nil {
-			return nil, err
-		}
-		return tokenResultOK{Response: resp}, nil
+		return h.handleRefreshToken(ctx, client, r)
 	case oauth.TokenExchangeGrantType:
 		return h.handleTokenExchange(ctx, client, r)
 	case oauth.AnonymousRequestGrantType:
@@ -517,13 +546,8 @@ func (h *TokenHandler) handleAuthorizationCode(
 	ctx context.Context,
 	client *config.OAuthClientConfig,
 	r protocol.TokenRequest,
-) (httputil.Result, error) {
-	resp, err := h.IssueTokensForAuthorizationCode(ctx, client, r)
-	if err != nil {
-		return nil, err
-	}
-
-	return tokenResultOK{Response: resp}, nil
+) (*HandleResult, error) {
+	return h.IssueTokensForAuthorizationCode(ctx, client, r)
 }
 
 // nolint:gocognit
@@ -531,7 +555,7 @@ func (h *TokenHandler) IssueTokensForAuthorizationCode(
 	ctx context.Context,
 	client *config.OAuthClientConfig,
 	r protocol.TokenRequest,
-) (protocol.TokenResponse, error) {
+) (*HandleResult, error) {
 	logger := TokenHandlerLogger.GetLogger(ctx)
 	deviceInfo, err := r.DeviceInfo()
 	if err != nil {
@@ -624,7 +648,7 @@ func (h *TokenHandler) handleRefreshToken(
 	ctx context.Context,
 	client *config.OAuthClientConfig,
 	r protocol.TokenRequest,
-) (protocol.TokenResponse, error) {
+) (*HandleResult, error) {
 	logger := TokenHandlerLogger.GetLogger(ctx)
 	deviceInfo, err := r.DeviceInfo()
 	if err != nil {
@@ -671,7 +695,7 @@ func (h *TokenHandler) handleRefreshToken(
 		return nil, ErrInvalidRefreshToken
 	}
 
-	resp, err := h.issueTokensForRefreshToken(ctx, client, offlineGrantSession, authz)
+	handleResult, err := h.issueTokensForRefreshToken(ctx, client, offlineGrantSession, authz)
 	if err != nil {
 		// NOTE(DEV-2982): This is for debugging the session lost problem
 		logger.WithSkipLogging().WithError(err).Error(ctx,
@@ -725,21 +749,17 @@ func (h *TokenHandler) handleRefreshToken(
 		otelauthgear.CounterOAuthAccessTokenRefreshCount,
 	)
 
-	return resp, nil
+	return handleResult, nil
 }
 
 func (h *TokenHandler) handleTokenExchange(
 	ctx context.Context,
 	client *config.OAuthClientConfig,
 	r protocol.TokenRequest,
-) (httputil.Result, error) {
+) (*HandleResult, error) {
 	switch r.RequestedTokenType() {
 	case PreAuthenticatedURLTokenTokenType:
-		resp, err := h.handlePreAuthenticatedURLToken(ctx, client, r)
-		if err != nil {
-			return nil, err
-		}
-		return tokenResultOK{Response: resp}, nil
+		return h.handlePreAuthenticatedURLToken(ctx, client, r)
 	default:
 		// Note(tung): According to spec, requested_token_type is optional,
 		// but we do not support it at the moment.
@@ -808,7 +828,7 @@ func (h *TokenHandler) handlePreAuthenticatedURLToken(
 	ctx context.Context,
 	client *config.OAuthClientConfig,
 	r protocol.TokenRequest,
-) (protocol.TokenResponse, error) {
+) (*HandleResult, error) {
 	if r.ActorTokenType() != DeviceSecretTokenType {
 		return nil, protocol.NewError("invalid_request", fmt.Sprintf("expected actor_token_type = %v", DeviceSecretTokenType))
 	}
@@ -924,7 +944,9 @@ func (h *TokenHandler) handlePreAuthenticatedURLToken(
 	}
 	resp.IDToken(newIDToken)
 
-	return resp, nil
+	return &HandleResult{
+		Response: resp,
+	}, nil
 }
 
 type anonymousTokenInput struct {
@@ -947,7 +969,7 @@ func (h *TokenHandler) handleAnonymousRequest(
 	ctx context.Context,
 	client *config.OAuthClientConfig,
 	r protocol.TokenRequest,
-) (httputil.Result, error) {
+) (*HandleResult, error) {
 	if !client.HasFullAccessScope() {
 		return nil, protocol.NewError(
 			"unauthorized_client",
@@ -1058,12 +1080,11 @@ func (h *TokenHandler) handleAnonymousRequest(
 		SessionLike:             offlineGrant,
 		InitialRefreshTokenHash: newTokenHash,
 	}
-	err = h.TokenService.IssueAccessGrantByRefreshToken(ctx, IssueAccessGrantByRefreshTokenOptions{
+	result1, err := h.TokenService.IssueAccessGrantByRefreshToken(ctx, IssueAccessGrantByRefreshTokenOptions{
 		IssueAccessGrantOptions:  issueAccessGrantOptions,
 		ShouldRotateRefreshToken: false, // We do not rotate refresh tokens in anonymous user.
-	}, resp)
+	})
 	if err != nil {
-		err = h.translateAccessTokenError(err)
 		return nil, err
 	}
 
@@ -1081,7 +1102,10 @@ func (h *TokenHandler) handleAnonymousRequest(
 		resp.IDToken(idToken)
 	}
 
-	return tokenResultOK{Response: resp}, nil
+	return &HandleResult{
+		IssueAccessGrantByRefreshTokenResult: result1,
+		Response:                             resp,
+	}, nil
 }
 
 func (h *TokenHandler) handleBiometricRequest(
@@ -1090,7 +1114,7 @@ func (h *TokenHandler) handleBiometricRequest(
 	req *http.Request,
 	client *config.OAuthClientConfig,
 	r protocol.TokenRequest,
-) (httputil.Result, error) {
+) (*HandleResult, error) {
 	if *h.IdentityFeatureConfig.Biometric.Disabled {
 		return nil, protocol.NewError(
 			"invalid_request",
@@ -1133,7 +1157,7 @@ func (h *TokenHandler) handleBiometricSetup(
 	req *http.Request,
 	client *config.OAuthClientConfig,
 	r protocol.TokenRequest,
-) (httputil.Result, error) {
+) (*HandleResult, error) {
 	logger := TokenHandlerLogger.GetLogger(ctx)
 	s := session.GetSession(ctx)
 	if s == nil {
@@ -1190,7 +1214,7 @@ func (h *TokenHandler) handleBiometricSetup(
 		return nil, err
 	}
 
-	return tokenResultEmpty{}, nil
+	return &HandleResult{}, nil
 }
 
 //nolint:gocognit
@@ -1198,7 +1222,7 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 	ctx context.Context,
 	client *config.OAuthClientConfig,
 	r protocol.TokenRequest,
-) (httputil.Result, error) {
+) (*HandleResult, error) {
 	logger := TokenHandlerLogger.GetLogger(ctx)
 	deviceInfo, err := r.DeviceInfo()
 	if err != nil {
@@ -1336,12 +1360,11 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 		SessionLike:             offlineGrant,
 		InitialRefreshTokenHash: newTokenHash,
 	}
-	err = h.TokenService.IssueAccessGrantByRefreshToken(ctx, IssueAccessGrantByRefreshTokenOptions{
+	result1, err := h.TokenService.IssueAccessGrantByRefreshToken(ctx, IssueAccessGrantByRefreshTokenOptions{
 		IssueAccessGrantOptions:  issueAccessGrantOptions,
 		ShouldRotateRefreshToken: false, // New refresh token, no need to rotate
-	}, resp)
+	})
 	if err != nil {
-		err = h.translateAccessTokenError(err)
 		return nil, err
 	}
 
@@ -1375,7 +1398,10 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 		return nil, err
 	}
 
-	return tokenResultOK{Response: resp}, nil
+	return &HandleResult{
+		IssueAccessGrantByRefreshTokenResult: result1,
+		Response:                             resp,
+	}, nil
 }
 
 func (h *TokenHandler) handleApp2AppRequest(
@@ -1385,7 +1411,7 @@ func (h *TokenHandler) handleApp2AppRequest(
 	client *config.OAuthClientConfig,
 	feature *config.OAuthFeatureConfig,
 	r protocol.TokenRequest,
-) (httputil.Result, error) {
+) (*HandleResult, error) {
 	logger := TokenHandlerLogger.GetLogger(ctx)
 	if !client.App2appEnabled {
 		return nil, protocol.NewError(
@@ -1502,7 +1528,9 @@ func (h *TokenHandler) handleApp2AppRequest(
 
 	resp := protocol.TokenResponse{}
 	resp.Code(code)
-	return tokenResultOK{Response: resp}, nil
+	return &HandleResult{
+		Response: resp,
+	}, nil
 }
 
 func (h *TokenHandler) handleIDToken(
@@ -1511,7 +1539,7 @@ func (h *TokenHandler) handleIDToken(
 	req *http.Request,
 	client *config.OAuthClientConfig,
 	r protocol.TokenRequest,
-) (httputil.Result, error) {
+) (*HandleResult, error) {
 	if !client.HasFullAccessScope() {
 		return nil, protocol.NewError(
 			"unauthorized_client",
@@ -1560,7 +1588,9 @@ func (h *TokenHandler) handleIDToken(
 		return nil, err
 	}
 	resp.IDToken(idToken)
-	return tokenResultOK{Response: resp}, nil
+	return &HandleResult{
+		Response: resp,
+	}, nil
 }
 
 func (h *TokenHandler) revokeClientOfflineGrants(
@@ -1609,7 +1639,7 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 	authz *oauth.Authorization,
 	deviceInfo map[string]interface{},
 	app2appDeviceKeyJWT string,
-) (protocol.TokenResponse, error) {
+) (*HandleResult, error) {
 	logger := TokenHandlerLogger.GetLogger(ctx)
 	issueRefreshToken := false
 	issueIDToken := false
@@ -1842,15 +1872,13 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 		},
 		InitialRefreshTokenHash: initialRefreshTokenHash,
 	}
-	err := h.TokenService.IssueAccessGrantByRefreshToken(
+	result1, err := h.TokenService.IssueAccessGrantByRefreshToken(
 		ctx,
 		IssueAccessGrantByRefreshTokenOptions{
 			IssueAccessGrantOptions:  issueAccessGrantOptions,
 			ShouldRotateRefreshToken: false, // New refresh token, no need to rotate
-		},
-		resp)
+		})
 	if err != nil {
-		err = h.translateAccessTokenError(err)
 		return nil, err
 	}
 
@@ -1873,7 +1901,10 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 		resp.IDToken(idToken)
 	}
 
-	return resp, nil
+	return &HandleResult{
+		IssueAccessGrantByRefreshTokenResult: result1,
+		Response:                             resp,
+	}, nil
 }
 
 func (h *TokenHandler) issueTokensForRefreshToken(
@@ -1881,7 +1912,7 @@ func (h *TokenHandler) issueTokensForRefreshToken(
 	client *config.OAuthClientConfig,
 	offlineGrantSession *oauth.OfflineGrantSession,
 	authz *oauth.Authorization,
-) (protocol.TokenResponse, error) {
+) (*HandleResult, error) {
 	issueIDToken := false
 	for _, scope := range offlineGrantSession.Scopes {
 		if scope == "openid" {
@@ -1923,16 +1954,18 @@ func (h *TokenHandler) issueTokensForRefreshToken(
 		SessionLike:             offlineGrantSession,
 		InitialRefreshTokenHash: offlineGrantSession.InitialTokenHash,
 	}
-	err = h.TokenService.IssueAccessGrantByRefreshToken(ctx, IssueAccessGrantByRefreshTokenOptions{
+	result1, err := h.TokenService.IssueAccessGrantByRefreshToken(ctx, IssueAccessGrantByRefreshTokenOptions{
 		IssueAccessGrantOptions:  issueAccessGrantOptions,
 		ShouldRotateRefreshToken: client.RefreshTokenRotationEnabled,
-	}, resp)
+	})
 	if err != nil {
-		err = h.translateAccessTokenError(err)
 		return nil, err
 	}
 
-	return resp, nil
+	return &HandleResult{
+		IssueAccessGrantByRefreshTokenResult: result1,
+		Response:                             resp,
+	}, nil
 }
 
 func (h *TokenHandler) IssueAppSessionToken(ctx context.Context, refreshToken string) (string, *oauth.AppSessionToken, error) {
@@ -1995,13 +2028,8 @@ func (h *TokenHandler) handleSettingsActionCode(
 	ctx context.Context,
 	client *config.OAuthClientConfig,
 	r protocol.TokenRequest,
-) (httputil.Result, error) {
-	resp, err := h.IssueTokensForSettingsActionCode(ctx, client, r)
-	if err != nil {
-		return nil, err
-	}
-
-	return tokenResultOK{Response: resp}, nil
+) (*HandleResult, error) {
+	return h.IssueTokensForSettingsActionCode(ctx, client, r)
 }
 
 // nolint:gocognit
@@ -2009,7 +2037,7 @@ func (h *TokenHandler) IssueTokensForSettingsActionCode(
 	ctx context.Context,
 	client *config.OAuthClientConfig,
 	r protocol.TokenRequest,
-) (protocol.TokenResponse, error) {
+) (*HandleResult, error) {
 	logger := TokenHandlerLogger.GetLogger(ctx)
 	codeHash := oauth.HashToken(r.Code())
 	settingsActionGrant, err := h.SettingsActionGrantStore.GetSettingsActionGrant(ctx, codeHash)
@@ -2082,14 +2110,16 @@ func (h *TokenHandler) IssueTokensForSettingsActionCode(
 		logger.WithError(err).Error(ctx, "failed to invalidate settings action grant")
 	}
 
-	return protocol.TokenResponse{}, nil
+	return &HandleResult{
+		Response: protocol.TokenResponse{},
+	}, nil
 }
 
 func (h *TokenHandler) handleClientCredentials(
 	ctx context.Context,
 	client *config.OAuthClientConfig,
 	r protocol.TokenRequest,
-) (httputil.Result, error) {
+) (*HandleResult, error) {
 	ratelimitOpts := ratelimit.ResolveBucketSpecOptions{
 		ClientID: client.ClientID,
 	}
@@ -2152,7 +2182,9 @@ func (h *TokenHandler) handleClientCredentials(
 	if err != nil {
 		return nil, err
 	}
-	return tokenResultOK{Response: resp}, nil
+	return &HandleResult{
+		Response: resp,
+	}, nil
 }
 
 func (h *TokenHandler) validateClientSecret(client *config.OAuthClientConfig, clientSecret string) (maskedSecret string, err error) {
