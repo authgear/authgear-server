@@ -471,6 +471,13 @@ This section specifies Account Status, which includes the following:
 - `leave_at`
 - `disable_at` and `enable_at`
 
+> [!IMPORTANT]
+> Here are some alternative names
+> - `join_at` -> `account_effective_from`
+> - `leave_at` -> `account_effective_until`
+> - `disable_at` -> `account_disable_from`
+> - `enable_at` -> `account_disable_until`
+
 The following truth table defines Account Status.
 
 |is\_disabled|is\_deactivated|is_anonymized|delete\_at|anonymize_at|anonymized_at|join_at|leave_at|disable_at|enable_at|Account Status|
