@@ -434,7 +434,7 @@ func (s *Sender) testModeSendWhatsapp(ctx context.Context, msgType translation.M
 	}
 	return &SendWhatsappResult{
 		MessageID:     "",
-		MessageStatus: whatsapp.WhatsappMessageStatusAccepted,
+		MessageStatus: whatsapp.WhatsappMessageStatusDelivered,
 	}, nil
 }
 
@@ -455,7 +455,7 @@ func (s *Sender) devModeSendWhatsapp(ctx context.Context, msgType translation.Me
 	}
 	return &SendWhatsappResult{
 		MessageID:     "",
-		MessageStatus: whatsapp.WhatsappMessageStatusAccepted,
+		MessageStatus: whatsapp.WhatsappMessageStatusDelivered,
 	}, nil
 }
 
