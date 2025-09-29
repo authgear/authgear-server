@@ -3,6 +3,7 @@ package declarative
 import (
 	"time"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
@@ -19,6 +20,7 @@ type VerifyOOBOTPData struct {
 	CanCheck                       bool                          `json:"can_check"`
 	FailedAttemptRateLimitExceeded bool                          `json:"failed_attempt_rate_limit_exceeded"`
 	DeliveryStatus                 model.OTPDeliveryStatus       `json:"delivery_status"`
+	DeliveryError                  *apierrors.APIError           `json:"delivery_error,omitzero"`
 }
 
 func NewVerifyOOBOTPData(d VerifyOOBOTPData) VerifyOOBOTPData {

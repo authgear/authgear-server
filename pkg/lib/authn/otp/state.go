@@ -3,6 +3,7 @@ package otp
 import (
 	"time"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 )
@@ -23,4 +24,5 @@ type State struct {
 	AuthenticationFlowJSONPointer          jsonpointer.T
 
 	DeliveryStatus model.OTPDeliveryStatus
+	DeliveryError  *apierrors.APIError
 }

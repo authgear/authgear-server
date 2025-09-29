@@ -186,6 +186,7 @@ func (n *NodeVerifyClaim) OutputData(ctx context.Context, deps *authflow.Depende
 		CanCheck:                       state.SubmittedCode != "",
 		FailedAttemptRateLimitExceeded: state.TooManyAttempts,
 		DeliveryStatus:                 state.DeliveryStatus,
+		DeliveryError:                  state.DeliveryError,
 	}), nil
 }
 

@@ -210,6 +210,7 @@ func (n *NodeAuthenticationOOB) OutputData(ctx context.Context, deps *authflow.D
 		CanCheck:                       state.SubmittedCode != "",
 		FailedAttemptRateLimitExceeded: state.TooManyAttempts,
 		DeliveryStatus:                 state.DeliveryStatus,
+		DeliveryError:                  state.DeliveryError,
 	}), nil
 }
 

@@ -7,6 +7,7 @@ import (
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/whatsapp"
@@ -376,6 +377,7 @@ func (s *Service) InspectState(ctx context.Context, kind Kind, target string) (*
 		state.AuthenticationFlowType = code.AuthenticationFlowType
 		state.WebSessionID = code.WebSessionID
 		state.DeliveryStatus = code.DeliveryStatus
+		state.DeliveryError = code.DeliveryError
 	}
 
 	return state, nil
@@ -411,21 +413,21 @@ func (s *Service) updateOTPMessageStatus(ctx context.Context, kind Kind, target 
 			if err != nil {
 				return err
 			}
-			var newDeliveryStatus model.OTPDeliveryStatus
+			// Status is still unknown
 			if status == "" {
 				if failIfUnknown {
-					newDeliveryStatus = model.OTPDeliveryStatusFailed
+					code.DeliveryStatus = model.OTPDeliveryStatusFailed
+					code.DeliveryError = apierrors.AsAPIError(ErrOTPDeliveryTimeout)
 				} else {
-					// Still unknown, do nothing
+					// do nothing
 					return nil
 				}
 			} else {
-				newDeliveryStatus = whatsappMessageStatusToOTPDeliveryStatus(
+				code.DeliveryStatus, code.DeliveryError = whatsappMessageStatusToOTPDeliveryStatus(
 					ctx,
 					status,
 				)
 			}
-			code.DeliveryStatus = newDeliveryStatus
 			return s.CodeStore.Update(ctx, kind.Purpose(), code)
 		}
 	case model.AuthenticatorOOBChannelEmail, model.AuthenticatorOOBChannelSMS:

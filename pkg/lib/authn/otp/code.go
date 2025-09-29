@@ -5,6 +5,7 @@ import (
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/util/duration"
 )
@@ -40,4 +41,5 @@ type Code struct {
 	MessageID      string                        `json:"message_id,omitzero"`
 	OOBChannel     model.AuthenticatorOOBChannel `json:"channel,omitzero"`
 	DeliveryStatus model.OTPDeliveryStatus       `json:"delivery_status,omitzero"`
+	DeliveryError  *apierrors.APIError           `json:"delivery_error,omitzero"`
 }

@@ -15,3 +15,7 @@ var ErrConsumedCode = InvalidOTPCode.NewWithCause("used otp code", apierrors.Str
 var ErrTooManyAttempts = ratelimit.RateLimited.NewWithInfo("too many verify OTP attempts", apierrors.Details{
 	"bucket_name": "TrackFailedOTPAttemptBucket",
 })
+
+var ErrOTPDeliveryTimeout = apierrors.BadRequest.
+	WithReason("OTPDeliveryTimeout").
+	New("message status update not received within configured timeout")

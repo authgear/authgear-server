@@ -285,7 +285,7 @@ func (s *MessageSender) sendWhatsapp(ctx context.Context, opts SendOptions) (err
 			return err
 		}
 		code.MessageID = result.MessageID
-		code.DeliveryStatus = whatsappMessageStatusToOTPDeliveryStatus(
+		code.DeliveryStatus, code.DeliveryError = whatsappMessageStatusToOTPDeliveryStatus(
 			ctx,
 			result.MessageStatus,
 		)
