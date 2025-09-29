@@ -7,6 +7,7 @@ import (
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -170,6 +171,9 @@ func (s *Service) GenerateOTP(ctx context.Context, kind Kind, target string, for
 		AuthenticationFlowName:                 opts.AuthenticationFlowName,
 		AuthenticationFlowJSONPointer:          opts.AuthenticationFlowJSONPointer,
 		WebSessionID:                           opts.WebSessionID,
+
+		MessageID:      "",
+		DeliveryStatus: model.OTPDeliveryStatusSending,
 	}
 
 	err := s.CodeStore.Create(ctx, kind.Purpose(), code)
@@ -357,6 +361,7 @@ func (s *Service) InspectState(ctx context.Context, kind Kind, target string) (*
 		state.AuthenticationFlowName = code.AuthenticationFlowName
 		state.AuthenticationFlowType = code.AuthenticationFlowType
 		state.WebSessionID = code.WebSessionID
+		state.DeliveryStatus = code.DeliveryStatus
 	}
 
 	return state, nil

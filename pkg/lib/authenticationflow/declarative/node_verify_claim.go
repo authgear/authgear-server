@@ -185,6 +185,7 @@ func (n *NodeVerifyClaim) OutputData(ctx context.Context, deps *authflow.Depende
 		CanResendAt:                    state.CanResendAt,
 		CanCheck:                       state.SubmittedCode != "",
 		FailedAttemptRateLimitExceeded: state.TooManyAttempts,
+		DeliveryStatus:                 state.DeliveryStatus,
 	}), nil
 }
 
@@ -258,6 +259,7 @@ func (n *NodeVerifyClaim) SendCode(ctx context.Context, deps *authflow.Dependenc
 			Channel: n.Channel,
 			Target:  n.ClaimValue,
 			Form:    n.Form,
+			Kind:    n.otpKind(deps),
 			Type:    typ,
 			OTP:     code,
 		},

@@ -144,6 +144,7 @@ func (n *NodeVerifyPhoneSMS) sendCode(ctx context.Context, deps *workflow.Depend
 			Channel: model.AuthenticatorOOBChannelSMS,
 			Target:  n.PhoneNumber,
 			Form:    nodeVerifyPhoneSMSForm,
+			Kind:    n.otpKind(deps),
 			Type:    translation.MessageTypeVerification,
 			OTP:     code,
 		},

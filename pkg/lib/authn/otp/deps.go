@@ -9,6 +9,7 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(LookupStoreRedis), "*"),
 	wire.Struct(new(AttemptTrackerRedis), "*"),
 	wire.Bind(new(CodeStore), new(*CodeStoreRedis)),
+	wire.Bind(new(SenderCodeStore), new(*CodeStoreRedis)),
 	wire.Bind(new(LookupStore), new(*LookupStoreRedis)),
 	wire.Bind(new(AttemptTracker), new(*AttemptTrackerRedis)),
 )

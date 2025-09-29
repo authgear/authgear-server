@@ -344,9 +344,10 @@ func (s *Service) sendOTPCode(ctx context.Context, userID string, channel model.
 		panic(fmt.Errorf("accountmanagement: unknown channel"))
 	}
 
+	kind := otp.KindVerification(s.Config, channel)
 	code, err := s.OTPCodeService.GenerateOTP(
 		ctx,
-		otp.KindVerification(s.Config, channel),
+		kind,
 		target,
 		otp.FormCode,
 		&otp.GenerateOptions{
@@ -366,6 +367,7 @@ func (s *Service) sendOTPCode(ctx context.Context, userID string, channel model.
 			Channel: channel,
 			Target:  target,
 			Form:    otp.FormCode,
+			Kind:    kind,
 			Type:    msgType,
 			OTP:     code,
 		},

@@ -18,6 +18,7 @@ type VerifyOOBOTPData struct {
 	CanResendAt                    time.Time                     `json:"can_resend_at,omitempty"`
 	CanCheck                       bool                          `json:"can_check"`
 	FailedAttemptRateLimitExceeded bool                          `json:"failed_attempt_rate_limit_exceeded"`
+	DeliveryStatus                 model.OTPDeliveryStatus       `json:"delivery_status"`
 }
 
 func NewVerifyOOBOTPData(d VerifyOOBOTPData) VerifyOOBOTPData {

@@ -42,7 +42,7 @@ type SMSSender interface {
 }
 
 type WhatsappSender interface {
-	SendAuthenticationOTP(ctx context.Context, opts *whatsapp.SendAuthenticationOTPOptions) error
+	SendAuthenticationOTP(ctx context.Context, opts *whatsapp.SendAuthenticationOTPOptions) (*whatsapp.SendAuthenticationOTPResult, error)
 }
 
 type Sender struct {
@@ -65,6 +65,11 @@ type Sender struct {
 
 	FeatureTestModeWhatsappSuppressed config.FeatureTestModeWhatsappSuppressed
 	TestModeWhatsappConfig            *config.TestModeWhatsappConfig
+}
+
+type SendWhatsappResult struct {
+	MessageID     string
+	MessageStatus whatsapp.WhatsappMessageStatus
 }
 
 func (s *Sender) SendEmailInNewGoroutine(ctx context.Context, msgType translation.MessageType, opts *mail.SendOptions) error {
@@ -329,11 +334,11 @@ func (s *Sender) devModeSendSMS(ctx context.Context, msgType translation.Message
 	})
 }
 
-func (s *Sender) SendWhatsappImmediately(ctx context.Context, msgType translation.MessageType, opts *whatsapp.SendAuthenticationOTPOptions) error {
+func (s *Sender) SendWhatsappImmediately(ctx context.Context, msgType translation.MessageType, opts *whatsapp.SendAuthenticationOTPOptions) (*SendWhatsappResult, error) {
 	logger := SenderLogger.GetLogger(ctx)
 	err := s.Limits.checkWhatsapp(ctx, opts.To)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if s.FeatureTestModeWhatsappSuppressed {
@@ -351,7 +356,7 @@ func (s *Sender) SendWhatsappImmediately(ctx context.Context, msgType translatio
 	}
 
 	// Send immediately.
-	err = s.sendWhatsapp(ctx, opts)
+	result, err := s.sendWhatsapp(ctx, opts)
 	if err != nil {
 		// Log the send error immediately.
 		logger.WithError(err).With(
@@ -382,7 +387,7 @@ func (s *Sender) SendWhatsappImmediately(ctx context.Context, msgType translatio
 			logger.WithError(dispatchErr).Error(ctx, "failed to emit event", slog.String("event", string(nonblocking.WhatsappError)))
 		}
 
-		return err
+		return nil, err
 	}
 
 	otelutil.IntCounterAddOne(
@@ -400,19 +405,19 @@ func (s *Sender) SendWhatsappImmediately(ctx context.Context, msgType translatio
 		logger.WithError(dispatchErr).Error(ctx, "failed to emit %v event", slog.String("event", string(nonblocking.WhatsappSent)))
 	}
 
-	return nil
+	return result, nil
 }
 
-func (s *Sender) sendWhatsapp(ctx context.Context, opts *whatsapp.SendAuthenticationOTPOptions) error {
-	err := s.WhatsappSender.SendAuthenticationOTP(ctx, opts)
+func (s *Sender) sendWhatsapp(ctx context.Context, opts *whatsapp.SendAuthenticationOTPOptions) (*SendWhatsappResult, error) {
+	senderResult, err := s.WhatsappSender.SendAuthenticationOTP(ctx, opts)
 	if err != nil {
-		return err
+		return nil, err
 	}
-
-	return nil
+	result := SendWhatsappResult(*senderResult)
+	return &result, nil
 }
 
-func (s *Sender) testModeSendWhatsapp(ctx context.Context, msgType translation.MessageType, opts *whatsapp.SendAuthenticationOTPOptions) error {
+func (s *Sender) testModeSendWhatsapp(ctx context.Context, msgType translation.MessageType, opts *whatsapp.SendAuthenticationOTPOptions) (*SendWhatsappResult, error) {
 	logger := SenderLogger.GetLogger(ctx)
 	logger.With(
 		slog.String("message_type", string(msgType)),
@@ -421,12 +426,19 @@ func (s *Sender) testModeSendWhatsapp(ctx context.Context, msgType translation.M
 	).Info(ctx, "Whatsapp is suppressed in test mode")
 
 	desc := fmt.Sprintf("Whatsapp (%v) to %v is suppressed by test mode.", msgType, opts.To)
-	return s.DispatchEventImmediatelyWithTx(ctx, &nonblocking.WhatsappSuppressedEventPayload{
+	err := s.DispatchEventImmediatelyWithTx(ctx, &nonblocking.WhatsappSuppressedEventPayload{
 		Description: desc,
 	})
+	if err != nil {
+		return nil, err
+	}
+	return &SendWhatsappResult{
+		MessageID:     "",
+		MessageStatus: whatsapp.WhatsappMessageStatusAccepted,
+	}, nil
 }
 
-func (s *Sender) devModeSendWhatsapp(ctx context.Context, msgType translation.MessageType, opts *whatsapp.SendAuthenticationOTPOptions) error {
+func (s *Sender) devModeSendWhatsapp(ctx context.Context, msgType translation.MessageType, opts *whatsapp.SendAuthenticationOTPOptions) (*SendWhatsappResult, error) {
 	logger := SenderLogger.GetLogger(ctx)
 	logger.With(
 		slog.String("message_type", string(msgType)),
@@ -435,9 +447,16 @@ func (s *Sender) devModeSendWhatsapp(ctx context.Context, msgType translation.Me
 	).Info(ctx, "Whatsapp is suppressed in development mode")
 
 	desc := fmt.Sprintf("Whatsapp (%v) to %v is suppressed by development mode.", msgType, opts.To)
-	return s.DispatchEventImmediatelyWithTx(ctx, &nonblocking.WhatsappSuppressedEventPayload{
+	err := s.DispatchEventImmediatelyWithTx(ctx, &nonblocking.WhatsappSuppressedEventPayload{
 		Description: desc,
 	})
+	if err != nil {
+		return nil, err
+	}
+	return &SendWhatsappResult{
+		MessageID:     "",
+		MessageStatus: whatsapp.WhatsappMessageStatusAccepted,
+	}, nil
 }
 
 func (s *Sender) DispatchEventImmediatelyWithTx(ctx context.Context, payload event.NonBlockingPayload) error {

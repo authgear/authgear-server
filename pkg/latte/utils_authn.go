@@ -94,6 +94,7 @@ func (p *SendOOBCode) Do(ctx context.Context) error {
 			Channel: channel,
 			Target:  target,
 			Form:    p.OTPForm,
+			Kind:    kind,
 			Type:    messageType,
 			OTP:     code,
 		},

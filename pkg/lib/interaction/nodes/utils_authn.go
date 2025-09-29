@@ -82,9 +82,10 @@ func (p *SendOOBCode) Do(goCtx context.Context) (*SendOOBCodeResult, error) {
 		CodeLength: p.OTPForm.CodeLength(),
 	}
 
+	kind := otp.KindOOBOTPWithForm(p.Context.Config, channel, p.OTPForm)
 	code, err := p.Context.OTPCodeService.GenerateOTP(
 		goCtx,
-		otp.KindOOBOTPWithForm(p.Context.Config, channel, p.OTPForm),
+		kind,
 		p.AuthenticatorInfo.OOBOTP.ToTarget(),
 		p.OTPForm,
 		&otp.GenerateOptions{WebSessionID: p.Context.WebSessionID},
@@ -102,6 +103,7 @@ func (p *SendOOBCode) Do(goCtx context.Context) (*SendOOBCodeResult, error) {
 			Channel: channel,
 			Target:  p.AuthenticatorInfo.OOBOTP.ToTarget(),
 			Form:    p.OTPForm,
+			Kind:    kind,
 			Type:    messageType,
 			OTP:     code,
 		},

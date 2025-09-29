@@ -2,6 +2,7 @@ package otp
 
 import (
 	"context"
+	"log/slog"
 	neturl "net/url"
 	"path/filepath"
 
@@ -10,7 +11,9 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms"
 	"github.com/authgear/authgear-server/pkg/lib/infra/whatsapp"
+	"github.com/authgear/authgear-server/pkg/lib/messaging"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
 type AdditionalContext struct {
@@ -22,6 +25,7 @@ type SendOptions struct {
 	Target                  string
 	Form                    Form
 	Type                    translation.MessageType
+	Kind                    Kind
 	OTP                     string
 	AdditionalContext       *AdditionalContext
 	IsAdminAPIResetPassword bool
@@ -43,7 +47,12 @@ type Sender interface {
 	SendEmailInNewGoroutine(ctx context.Context, msgType translation.MessageType, opts *mail.SendOptions) error
 	SendSMSImmediately(ctx context.Context, msgType translation.MessageType, opts *sms.SendOptions) error
 	SendSMSInNewGoroutine(ctx context.Context, msgType translation.MessageType, opts *sms.SendOptions) error
-	SendWhatsappImmediately(ctx context.Context, msgType translation.MessageType, opts *whatsapp.SendAuthenticationOTPOptions) error
+	SendWhatsappImmediately(ctx context.Context, msgType translation.MessageType, opts *whatsapp.SendAuthenticationOTPOptions) (*messaging.SendWhatsappResult, error)
+}
+
+type SenderCodeStore interface {
+	Get(ctx context.Context, purpose Purpose, target string) (*Code, error)
+	Update(ctx context.Context, purpose Purpose, code *Code) error
 }
 
 type MessageSender struct {
@@ -51,7 +60,10 @@ type MessageSender struct {
 	Translation TranslationService
 	Endpoints   EndpointsProvider
 	Sender      Sender
+	CodeStore   SenderCodeStore
 }
+
+var SenderLogger = slogutil.NewLogger("otp-sender")
 
 var FromAdminAPIQueryKey = "x_from_admin_api"
 
@@ -184,6 +196,17 @@ func (s *MessageSender) sendEmail(ctx context.Context, opts SendOptions) error {
 		return err
 	}
 
+	code, err := s.CodeStore.Get(ctx, opts.Kind.Purpose(), opts.Target)
+	if err != nil {
+		return err
+	}
+	// Email is always "sent" if not error
+	code.DeliveryStatus = model.OTPDeliveryStatusSent
+	err = s.CodeStore.Update(ctx, opts.Kind.Purpose(), code)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -219,6 +242,17 @@ func (s *MessageSender) sendSMS(ctx context.Context, opts SendOptions, preferAsy
 		return err
 	}
 
+	code, err := s.CodeStore.Get(ctx, opts.Kind.Purpose(), opts.Target)
+	if err != nil {
+		return err
+	}
+	// SMS is always "sent" if not error
+	code.DeliveryStatus = model.OTPDeliveryStatusSent
+	err = s.CodeStore.Update(ctx, opts.Kind.Purpose(), code)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -232,9 +266,39 @@ func (s *MessageSender) sendWhatsapp(ctx context.Context, opts SendOptions) (err
 		OTP: opts.OTP,
 	}
 
-	err = s.Sender.SendWhatsappImmediately(ctx, msgType, whatsappSendAuthenticationOTPOptions)
+	result, err := s.Sender.SendWhatsappImmediately(ctx, msgType, whatsappSendAuthenticationOTPOptions)
 	if err != nil {
-		return
+		return err
+	}
+
+	if result.MessageID != "" {
+		code, err := s.CodeStore.Get(ctx, opts.Kind.Purpose(), opts.Target)
+		if err != nil {
+			return err
+		}
+		var deliveryStatus model.OTPDeliveryStatus
+		switch result.MessageStatus {
+		case whatsapp.WhatsappMessageStatusAccepted:
+			deliveryStatus = model.OTPDeliveryStatusSending
+		case whatsapp.WhatsappMessageStatusSent,
+			whatsapp.WhatsappMessageStatusDelivered,
+			whatsapp.WhatsappMessageStatusRead:
+			deliveryStatus = model.OTPDeliveryStatusSent
+		case whatsapp.WhatsappMessageStatusFailed:
+			deliveryStatus = model.OTPDeliveryStatusFailed
+		default:
+			SenderLogger.GetLogger(ctx).With(
+				slog.String("status", string(result.MessageStatus)),
+			).Error(ctx, "unexpected whatsapp message status")
+			deliveryStatus = model.OTPDeliveryStatusFailed
+		}
+		code.MessageID = result.MessageID
+		code.DeliveryStatus = deliveryStatus
+		err = s.CodeStore.Update(ctx, opts.Kind.Purpose(), code)
+		if err != nil {
+			return err
+		}
+		// TODO(tung): Set delivery status to failed after timeout if it is still sending
 	}
 
 	return
