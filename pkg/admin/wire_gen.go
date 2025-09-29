@@ -1234,6 +1234,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Users:               userFacade,
 		Authorizations:      authorizationService,
 		Tokens:              tokenService,
+		AccessTokenCoding:   accessTokenEncoding,
 		Clock:               clockClock,
 		OAuthClientResolver: oauthclientResolver,
 	}
