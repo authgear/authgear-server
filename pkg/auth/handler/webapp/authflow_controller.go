@@ -793,7 +793,10 @@ func (c *AuthflowController) handleTakeBranchResultInput(
 
 	output, err := c.feedInput(ctx, screen.Screen.StateToken.StateToken, takeBranchResult.Input)
 	if takeBranchResult.TransformOutput != nil {
-		output, err = (*takeBranchResult.TransformOutput)(ctx, output, err, c.Authflows)
+		output, err = (*takeBranchResult.TransformOutput)(ctx, output, err, webapp.TransformerDependencies{
+			Authflows: c.Authflows,
+			Clock:     c.Clock,
+		})
 	}
 	if err != nil {
 		if takeBranchResult.OnRetry == nil {

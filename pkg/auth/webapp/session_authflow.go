@@ -17,6 +17,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/whatsapp"
 	"github.com/authgear/authgear-server/pkg/lib/webappoauth"
 	"github.com/authgear/authgear-server/pkg/util/base32"
+	"github.com/authgear/authgear-server/pkg/util/clock"
 	corerand "github.com/authgear/authgear-server/pkg/util/rand"
 )
 
@@ -36,6 +37,8 @@ type AuthflowDelayedUIScreenData struct {
 }
 
 const AuthflowQueryKey = "x_step"
+
+const messageDeliveryStatusMaxWaitTime = 30 * time.Second
 
 // Authflow remembers all seen screens. The screens could come from more than 1 flow.
 // We intentionally DO NOT clear screens when a different flow is created.
@@ -372,10 +375,15 @@ type TakeBranchResultSimple struct {
 func (TakeBranchResultSimple) takeBranchResult() {}
 
 type TakeBranchResultInputRetryHandler func(err error) (nextInput interface{})
-type TakeBranchOutputTransformer func(ctx context.Context, output *authflow.ServiceOutput, err error, authflows AuthflowService) (*authflow.ServiceOutput, error)
+type TakeBranchOutputTransformer func(ctx context.Context, output *authflow.ServiceOutput, err error, deps TransformerDependencies) (*authflow.ServiceOutput, error)
 
 type AuthflowService interface {
 	Get(ctx context.Context, stateToken string) (*authflow.ServiceOutput, error)
+}
+
+type TransformerDependencies struct {
+	Clock     clock.Clock
+	Authflows AuthflowService
 }
 type TakeBranchResultInput struct {
 	Input                 map[string]interface{}
@@ -811,7 +819,7 @@ func (s *AuthflowScreenWithFlowResponse) makeFallbackToSMSFromWhatsappRetryHandl
 }
 
 func (s *AuthflowScreenWithFlowResponse) makeVerifyOOBOTPOutputTransformer() TakeBranchOutputTransformer {
-	return func(ctx context.Context, output *authflow.ServiceOutput, err error, authflows AuthflowService) (*authflow.ServiceOutput, error) {
+	return func(ctx context.Context, output *authflow.ServiceOutput, err error, deps TransformerDependencies) (*authflow.ServiceOutput, error) {
 		if err != nil {
 			// If there is error, make no changes to the output and error
 			return output, err
@@ -820,7 +828,17 @@ func (s *AuthflowScreenWithFlowResponse) makeVerifyOOBOTPOutputTransformer() Tak
 			// If not VerifyOOBOTPData, make no changes to the output and error
 			return output, err
 		} else {
+			startTime := deps.Clock.NowUTC()
+
 			for {
+				now := deps.Clock.NowUTC()
+				// Normally, the timeout should be handled by the whatsapp callback timeout.
+				// Therefore we should always get failed / sent status within the configured timeout.
+				// So this timeout is just as a last resort to break the loop to avoid waiting forever.
+				if now.Sub(startTime) > messageDeliveryStatusMaxWaitTime {
+					return nil, fmt.Errorf("timed out waiting for delivery_status")
+				}
+
 				data := output.FlowAction.Data.(declarative.VerifyOOBOTPData)
 				switch data.DeliveryStatus {
 				case model.OTPDeliveryStatusFailed:
@@ -830,19 +848,18 @@ func (s *AuthflowScreenWithFlowResponse) makeVerifyOOBOTPOutputTransformer() Tak
 				case model.OTPDeliveryStatusSending:
 					{
 						// Wait until sent or failed
-						// TODO(tung): Add a hard limit on the wait time
 						time.Sleep(500 * time.Millisecond)
-						newOutput, err := authflows.Get(ctx, output.Flow.StateToken)
+						newOutput, err := deps.Authflows.Get(ctx, output.Flow.StateToken)
 						if err != nil {
 							return newOutput, err
 						}
-						_, ok := output.FlowAction.Data.(declarative.VerifyOOBOTPData)
+						_, ok := newOutput.FlowAction.Data.(declarative.VerifyOOBOTPData)
 						if ok {
 							output = newOutput
 							continue
 						} else {
-							// Unexpected case: the data is not VerifyOOBOTPData
-							return nil, fmt.Errorf("expected VerifyOOBOTPData data but got: %T", output.FlowAction.Data)
+							// The flow has advanced to the next step.
+							return newOutput, nil
 						}
 					}
 				}
