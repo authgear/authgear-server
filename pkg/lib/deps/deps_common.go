@@ -477,6 +477,7 @@ var CommonDependencySet = wire.NewSet(
 
 		oauthhandler.DependencySet,
 		wire.Bind(new(oauthhandler.AuthorizationHandlerPreAuthenticatedURLTokenService), new(*oauthhandler.PreAuthenticatedURLTokenServiceImpl)),
+		wire.Bind(new(oauthhandler.AnonymousUserHandlerTokenService), new(*oauthhandler.TokenService)),
 
 		oidc.DependencySet,
 		wire.Bind(new(oauthhandler.UIInfoResolver), new(*oidc.UIInfoResolver)),
