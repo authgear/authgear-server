@@ -818,7 +818,14 @@ func (s *AuthflowScreenWithFlowResponse) makeFallbackToSMSFromWhatsappRetryHandl
 	}
 }
 
-func (s *AuthflowScreenWithFlowResponse) makeVerifyOOBOTPOutputTransformer() TakeBranchOutputTransformer {
+func (s *AuthflowScreenWithFlowResponse) makeVerifyOOBOTPOutputTransformer(channels []model.AuthenticatorOOBChannel) TakeBranchOutputTransformer {
+	hasNonWhatsappChannels := false
+	for _, c := range channels {
+		if c == model.AuthenticatorOOBChannelWhatsapp {
+			continue
+		}
+		hasNonWhatsappChannels = true
+	}
 	return func(ctx context.Context, output *authflow.ServiceOutput, err error, deps TransformerDependencies) (*authflow.ServiceOutput, error) {
 		if err != nil {
 			// If there is error, make no changes to the output and error
@@ -826,6 +833,9 @@ func (s *AuthflowScreenWithFlowResponse) makeVerifyOOBOTPOutputTransformer() Tak
 		}
 		if _, ok := output.FlowAction.Data.(declarative.VerifyOOBOTPData); !ok {
 			// If not VerifyOOBOTPData, make no changes to the output and error
+			return output, err
+		} else if !hasNonWhatsappChannels {
+			// No fallback available, show the otp screen no matter success or not
 			return output, err
 		} else {
 			startTime := deps.Clock.NowUTC()
@@ -876,7 +886,7 @@ func (s *AuthflowScreenWithFlowResponse) makeVerifyOOBOTPInputOptions(
 	OutputTransformer *TakeBranchOutputTransformer
 	RetryHandler      *TakeBranchResultInputRetryHandler
 } {
-	var transformer TakeBranchOutputTransformer = s.makeVerifyOOBOTPOutputTransformer()
+	var transformer TakeBranchOutputTransformer = s.makeVerifyOOBOTPOutputTransformer(channels)
 	var retryHandler TakeBranchResultInputRetryHandler = s.makeFallbackToSMSFromWhatsappRetryHandler(
 		inputFactory, channels, disableFallbackToSMS,
 	)
