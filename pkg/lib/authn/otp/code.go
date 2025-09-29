@@ -37,6 +37,7 @@ type Code struct {
 	AuthenticationFlowJSONPointer          jsonpointer.T `json:"authentication_flow_json_pointer,omitempty"`
 
 	// The message which carries the otp
-	MessageID      string                  `json:"message_id,omitzero"`
-	DeliveryStatus model.OTPDeliveryStatus `json:"delivery_status,omitzero"`
+	MessageID      string                        `json:"message_id,omitzero"`
+	OOBChannel     model.AuthenticatorOOBChannel `json:"channel,omitzero"`
+	DeliveryStatus model.OTPDeliveryStatus       `json:"delivery_status,omitzero"`
 }

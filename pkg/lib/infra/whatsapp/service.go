@@ -140,3 +140,7 @@ func (s *Service) SendAuthenticationOTP(ctx context.Context, opts *SendAuthentic
 func (s *Service) UpdateMessageStatus(ctx context.Context, messageID string, status WhatsappMessageStatus) error {
 	return s.MessageStore.UpdateMessageStatus(ctx, messageID, status)
 }
+
+func (s *Service) GetMessageStatus(ctx context.Context, messageID string) (WhatsappMessageStatus, error) {
+	return s.MessageStore.GetMessageStatus(ctx, messageID)
+}

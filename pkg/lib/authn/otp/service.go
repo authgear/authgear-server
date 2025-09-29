@@ -9,6 +9,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/whatsapp"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -58,6 +59,10 @@ type RateLimiter interface {
 	Cancel(ctx context.Context, r *ratelimit.Reservation)
 }
 
+type WhatsappService interface {
+	GetMessageStatus(ctx context.Context, messageID string) (whatsapp.WhatsappMessageStatus, error)
+}
+
 var ServiceLogger = slogutil.NewLogger("otp")
 
 type Service struct {
@@ -71,6 +76,7 @@ type Service struct {
 	LookupStore           LookupStore
 	AttemptTracker        AttemptTracker
 	RateLimiter           RateLimiter
+	WhatsappService       WhatsappService
 
 	FeatureConfig *config.FeatureConfig
 	EnvConfig     *config.RateLimitsEnvironmentConfig
@@ -172,7 +178,9 @@ func (s *Service) GenerateOTP(ctx context.Context, kind Kind, target string, for
 		AuthenticationFlowJSONPointer:          opts.AuthenticationFlowJSONPointer,
 		WebSessionID:                           opts.WebSessionID,
 
+		// These are unknown until sent
 		MessageID:      "",
+		OOBChannel:     "",
 		DeliveryStatus: model.OTPDeliveryStatusSending,
 	}
 
@@ -335,6 +343,12 @@ func (s *Service) InspectState(ctx context.Context, kind Kind, target string) (*
 		TooManyAttempts: tooManyAttempts,
 	}
 
+	// Before getting the state, update the code to latest state
+	err = s.UpdateOTPMessageStatus(ctx, kind, target)
+	if err != nil {
+		return nil, err
+	}
+
 	code, err := s.getCode(ctx, kind.Purpose(), target)
 	if errors.Is(err, ErrCodeNotFound) {
 		code = nil
@@ -365,4 +379,44 @@ func (s *Service) InspectState(ctx context.Context, kind Kind, target string) (*
 	}
 
 	return state, nil
+}
+
+func (s *Service) UpdateOTPMessageStatus(ctx context.Context, kind Kind, target string) error {
+	code, err := s.getCode(ctx, kind.Purpose(), target)
+	if errors.Is(err, ErrCodeNotFound) {
+		// The code does not exist, nothing to update
+		return nil
+	}
+	if code.MessageID == "" {
+		// The code message id is not recorded, nothing to update
+		return nil
+	}
+	if code.DeliveryStatus != model.OTPDeliveryStatusSending {
+		// The status is already known, nothing to update
+		return nil
+	}
+
+	switch code.OOBChannel {
+	case model.AuthenticatorOOBChannelWhatsapp:
+		{
+			status, err := s.WhatsappService.GetMessageStatus(ctx, code.MessageID)
+			if err != nil {
+				return err
+			}
+			if status == "" {
+				// Still unknown, do nothing
+				return nil
+			}
+			code.DeliveryStatus = whatsappMessageStatusToOTPDeliveryStatus(
+				ctx,
+				status,
+			)
+			return nil
+		}
+	case model.AuthenticatorOOBChannelEmail, model.AuthenticatorOOBChannelSMS:
+		fallthrough
+	default:
+		// Nothing to update
+		return nil
+	}
 }

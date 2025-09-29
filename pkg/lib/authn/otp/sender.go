@@ -2,7 +2,6 @@ package otp
 
 import (
 	"context"
-	"log/slog"
 	neturl "net/url"
 	"path/filepath"
 
@@ -55,12 +54,17 @@ type SenderCodeStore interface {
 	Update(ctx context.Context, purpose Purpose, code *Code) error
 }
 
+type SenderOTPService interface {
+	UpdateOTPMessageStatus(ctx context.Context, kind Kind, target string) error
+}
+
 type MessageSender struct {
 	AppID       config.AppID
 	Translation TranslationService
 	Endpoints   EndpointsProvider
 	Sender      Sender
 	CodeStore   SenderCodeStore
+	OTPService  SenderOTPService
 }
 
 var SenderLogger = slogutil.NewLogger("otp-sender")
@@ -276,25 +280,19 @@ func (s *MessageSender) sendWhatsapp(ctx context.Context, opts SendOptions) (err
 		if err != nil {
 			return err
 		}
-		var deliveryStatus model.OTPDeliveryStatus
-		switch result.MessageStatus {
-		case whatsapp.WhatsappMessageStatusAccepted:
-			deliveryStatus = model.OTPDeliveryStatusSending
-		case whatsapp.WhatsappMessageStatusSent,
-			whatsapp.WhatsappMessageStatusDelivered,
-			whatsapp.WhatsappMessageStatusRead:
-			deliveryStatus = model.OTPDeliveryStatusSent
-		case whatsapp.WhatsappMessageStatusFailed:
-			deliveryStatus = model.OTPDeliveryStatusFailed
-		default:
-			SenderLogger.GetLogger(ctx).With(
-				slog.String("status", string(result.MessageStatus)),
-			).Error(ctx, "unexpected whatsapp message status")
-			deliveryStatus = model.OTPDeliveryStatusFailed
-		}
 		code.MessageID = result.MessageID
-		code.DeliveryStatus = deliveryStatus
+		code.DeliveryStatus = whatsappMessageStatusToOTPDeliveryStatus(
+			ctx,
+			result.MessageStatus,
+		)
+		code.OOBChannel = opts.Channel
 		err = s.CodeStore.Update(ctx, opts.Kind.Purpose(), code)
+		if err != nil {
+			return err
+		}
+		// Update message status once to ensure the status is up-to-date,
+		// just in case the webhook is received before we update the code message id
+		err = s.OTPService.UpdateOTPMessageStatus(ctx, opts.Kind, opts.Target)
 		if err != nil {
 			return err
 		}
