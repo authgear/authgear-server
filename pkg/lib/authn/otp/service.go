@@ -426,7 +426,7 @@ func (s *Service) updateOTPMessageStatus(ctx context.Context, kind Kind, target 
 				)
 			}
 			code.DeliveryStatus = newDeliveryStatus
-			return nil
+			return s.CodeStore.Update(ctx, kind.Purpose(), code)
 		}
 	case model.AuthenticatorOOBChannelEmail, model.AuthenticatorOOBChannelSMS:
 		fallthrough
