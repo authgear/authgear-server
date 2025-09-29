@@ -557,10 +557,10 @@ func (m *MockTokenServiceAccessGrantService) EXPECT() *MockTokenServiceAccessGra
 }
 
 // IssueAccessGrant mocks base method.
-func (m *MockTokenServiceAccessGrantService) IssueAccessGrant(ctx context.Context, options oauth.IssueAccessGrantOptions) (*oauth.IssueAccessGrantResult, error) {
+func (m *MockTokenServiceAccessGrantService) IssueAccessGrant(ctx context.Context, options oauth.IssueAccessGrantOptions) (oauth.PrepareUserAccessTokenResult, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "IssueAccessGrant", ctx, options)
-	ret0, _ := ret[0].(*oauth.IssueAccessGrantResult)
+	ret0, _ := ret[0].(oauth.PrepareUserAccessTokenResult)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

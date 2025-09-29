@@ -58,6 +58,7 @@ func TestTokenHandler(t *testing.T) {
 		appID := "testapp"
 
 		tokenService := NewMockTokenHandlerTokenService(ctrl)
+		accessTokenEncoding := NewMockTokenHandlerAccessTokenEncoding(ctrl)
 
 		offlineGrantService := NewMockTokenHandlerOfflineGrantService(ctrl)
 		clientResourceScopeService := NewMockTokenHandlerClientResourceScopeService(ctrl)
@@ -79,6 +80,7 @@ func TestTokenHandler(t *testing.T) {
 			UserAgentString:        "UA",
 
 			TokenService:                    tokenService,
+			AccessTokenEncoding:             accessTokenEncoding,
 			ClientResolver:                  clientResolver,
 			Authorizations:                  authorizations,
 			OfflineGrants:                   offlineGrants,
@@ -143,7 +145,28 @@ func TestTokenHandler(t *testing.T) {
 				}).Return(nil, nil)
 				tokenService.EXPECT().ParseRefreshToken(gomock.Any(), "asdf").Return(&oauth.Authorization{}, offlineGrant, refreshTokenHash, nil)
 				idTokenIssuer.EXPECT().IssueIDToken(gomock.Any(), gomock.Any()).Return("id-token", nil)
-				tokenService.EXPECT().IssueAccessGrantByRefreshToken(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
+				tokenService.EXPECT().IssueAccessGrantByRefreshToken(gomock.Any(), gomock.Any()).DoAndReturn(
+					func(ctx context.Context, options handler.IssueAccessGrantByRefreshTokenOptions) (*handler.IssueAccessGrantByRefreshTokenResult, error) {
+						result := &handler.IssueAccessGrantByRefreshTokenResult{
+							// The value is unimportant.
+							PreparationResult: nil,
+						}
+						if options.ShouldRotateRefreshToken {
+							result.RotateRefreshTokenResult = &oauth.RotateRefreshTokenResult{
+								Token: "new-refresh-token",
+							}
+						}
+
+						return result, nil
+					})
+				accessTokenEncoding.EXPECT().MakeUserAccessTokenFromPreparationResult(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, options oauth.MakeUserAccessTokenFromPreparationOptions) (*oauth.IssueAccessGrantResult, error) {
+					return &oauth.IssueAccessGrantResult{
+						Token:     "access-token",
+						TokenType: "Bearer",
+						ExpiresIn: 300,
+					}, nil
+				})
+
 				event := access.NewEvent(clock.NowUTC(), "1.2.3.4", "UA")
 				offlineGrantService.EXPECT().AccessOfflineGrant(gomock.Any(), "offline-grant-id", refreshTokenHash, &event, offlineGrant.ExpireAtForResolvedSession).Return(offlineGrant, nil)
 				offlineGrants.EXPECT().UpdateOfflineGrantDeviceInfo(gomock.Any(), "offline-grant-id", gomock.Any(), offlineGrant.ExpireAtForResolvedSession).Return(offlineGrant, nil)
@@ -180,13 +203,29 @@ func TestTokenHandler(t *testing.T) {
 				rateLimiter.EXPECT().Allow(gomock.Any(), gomock.Any()).AnyTimes().Return(nil, nil)
 				tokenService.EXPECT().ParseRefreshToken(gomock.Any(), "asdf").Return(&oauth.Authorization{}, offlineGrant, refreshTokenHash, nil)
 				idTokenIssuer.EXPECT().IssueIDToken(gomock.Any(), gomock.Any()).Return("id-token", nil)
-				tokenService.EXPECT().IssueAccessGrantByRefreshToken(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(
-					func(ctx context.Context, options handler.IssueAccessGrantByRefreshTokenOptions, resp protocol.TokenResponse) error {
-						if options.ShouldRotateRefreshToken {
-							resp.RefreshToken("new-refresh-token")
+				tokenService.EXPECT().IssueAccessGrantByRefreshToken(gomock.Any(), gomock.Any()).DoAndReturn(
+					func(ctx context.Context, options handler.IssueAccessGrantByRefreshTokenOptions) (*handler.IssueAccessGrantByRefreshTokenResult, error) {
+						result := &handler.IssueAccessGrantByRefreshTokenResult{
+							// The value is unimportant.
+							PreparationResult: nil,
 						}
-						return nil
+						if options.ShouldRotateRefreshToken {
+							result.RotateRefreshTokenResult = &oauth.RotateRefreshTokenResult{
+								GrantID: "grant-id",
+								Token:   "new-refresh-token",
+							}
+						}
+
+						return result, nil
 					})
+				accessTokenEncoding.EXPECT().MakeUserAccessTokenFromPreparationResult(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, options oauth.MakeUserAccessTokenFromPreparationOptions) (*oauth.IssueAccessGrantResult, error) {
+					return &oauth.IssueAccessGrantResult{
+						Token:     "access-token",
+						TokenType: "Bearer",
+						ExpiresIn: 300,
+					}, nil
+				})
+
 				event := access.NewEvent(clock.NowUTC(), "1.2.3.4", "UA")
 				offlineGrantService.EXPECT().AccessOfflineGrant(gomock.Any(), "offline-grant-id", refreshTokenHash, &event, offlineGrant.ExpireAtForResolvedSession).Return(offlineGrant, nil)
 				offlineGrants.EXPECT().UpdateOfflineGrantDeviceInfo(gomock.Any(), "offline-grant-id", gomock.Any(), offlineGrant.ExpireAtForResolvedSession).Return(offlineGrant, nil)
@@ -196,7 +235,7 @@ func TestTokenHandler(t *testing.T) {
 				var body map[string]interface{}
 				err := json.Unmarshal(res.Body.Bytes(), &body)
 				So(err, ShouldBeNil)
-				So(body["refresh_token"], ShouldEqual, "new-refresh-token")
+				So(body["refresh_token"], ShouldEqual, "grant-id.new-refresh-token")
 			})
 
 			Convey("should not rotate refresh token if disabled", func() {
@@ -227,13 +266,28 @@ func TestTokenHandler(t *testing.T) {
 				rateLimiter.EXPECT().Allow(gomock.Any(), gomock.Any()).AnyTimes().Return(nil, nil)
 				tokenService.EXPECT().ParseRefreshToken(gomock.Any(), "asdf").Return(&oauth.Authorization{}, offlineGrant, refreshTokenHash, nil)
 				idTokenIssuer.EXPECT().IssueIDToken(gomock.Any(), gomock.Any()).Return("id-token", nil)
-				tokenService.EXPECT().IssueAccessGrantByRefreshToken(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(
-					func(ctx context.Context, options handler.IssueAccessGrantByRefreshTokenOptions, resp protocol.TokenResponse) error {
-						if options.ShouldRotateRefreshToken {
-							resp.RefreshToken("new-refresh-token")
+				tokenService.EXPECT().IssueAccessGrantByRefreshToken(gomock.Any(), gomock.Any()).DoAndReturn(
+					func(ctx context.Context, options handler.IssueAccessGrantByRefreshTokenOptions) (*handler.IssueAccessGrantByRefreshTokenResult, error) {
+						result := &handler.IssueAccessGrantByRefreshTokenResult{
+							// The value is unimportant.
+							PreparationResult: nil,
 						}
-						return nil
+						if options.ShouldRotateRefreshToken {
+							result.RotateRefreshTokenResult = &oauth.RotateRefreshTokenResult{
+								Token: "new-refresh-token",
+							}
+						}
+
+						return result, nil
 					})
+				accessTokenEncoding.EXPECT().MakeUserAccessTokenFromPreparationResult(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, options oauth.MakeUserAccessTokenFromPreparationOptions) (*oauth.IssueAccessGrantResult, error) {
+					return &oauth.IssueAccessGrantResult{
+						Token:     "access-token",
+						TokenType: "Bearer",
+						ExpiresIn: 300,
+					}, nil
+				})
+
 				event := access.NewEvent(clock.NowUTC(), "1.2.3.4", "UA")
 				offlineGrantService.EXPECT().AccessOfflineGrant(gomock.Any(), "offline-grant-id", refreshTokenHash, &event, offlineGrant.ExpireAtForResolvedSession).Return(offlineGrant, nil)
 				offlineGrants.EXPECT().UpdateOfflineGrantDeviceInfo(gomock.Any(), "offline-grant-id", gomock.Any(), offlineGrant.ExpireAtForResolvedSession).Return(offlineGrant, nil)
