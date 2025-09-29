@@ -434,6 +434,37 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Config:  rateLimitsFeatureConfig,
 	}
+	messagingConfig := appConfig.Messaging
+	whatsappConfig := messagingConfig.Whatsapp
+	globalWhatsappAPIType := environmentConfig.WhatsappAPIType
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	httpClient := whatsapp.NewHTTPClient()
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappOnPremisesCredentials, tokenStore, httpClient)
+	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
+	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient)
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	messageStore := &whatsapp.MessageStore{
+		Redis:       globalredisHandle,
+		Credentials: whatsappCloudAPICredentials,
+	}
+	whatsappService := &whatsapp.Service{
+		Clock:                 clockClock,
+		WhatsappConfig:        whatsappConfig,
+		LocalizationConfig:    localizationConfig,
+		GlobalWhatsappAPIType: globalWhatsappAPIType,
+		OnPremisesClient:      onPremisesClient,
+		CloudAPIClient:        cloudAPIClient,
+		MessageStore:          messageStore,
+		Credentials:           whatsappCloudAPICredentials,
+	}
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -445,6 +476,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		LookupStore:           lookupStoreRedis,
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           limiter,
+		WhatsappService:       whatsappService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -734,7 +766,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	sender := &mail.Sender{
 		GomailDialer: dialer,
 	}
-	messagingConfig := appConfig.Messaging
 	smsProvider := messagingConfig.Deprecated_SMSProvider
 	smsGatewayConfig := messagingConfig.SMSGateway
 	nexmoCredentials := deps.ProvideNexmoCredentials(secretConfig)
@@ -780,36 +811,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
-	}
-	whatsappConfig := messagingConfig.Whatsapp
-	globalWhatsappAPIType := environmentConfig.WhatsappAPIType
-	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
-	tokenStore := &whatsapp.TokenStore{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	httpClient := whatsapp.NewHTTPClient()
-	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappOnPremisesCredentials, tokenStore, httpClient)
-	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
-	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
-	messageStore := &whatsapp.MessageStore{
-		Redis:       globalredisHandle,
-		Credentials: whatsappCloudAPICredentials,
-	}
-	whatsappService := &whatsapp.Service{
-		Clock:                 clockClock,
-		WhatsappConfig:        whatsappConfig,
-		LocalizationConfig:    localizationConfig,
-		GlobalWhatsappAPIType: globalWhatsappAPIType,
-		OnPremisesClient:      onPremisesClient,
-		CloudAPIClient:        cloudAPIClient,
-		MessageStore:          messageStore,
-		Credentials:           whatsappCloudAPICredentials,
 	}
 	devMode := environmentConfig.DevMode
 	messagingFeatureConfig := featureConfig.Messaging
@@ -990,10 +991,13 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	messageSender := &otp.MessageSender{
-		AppID:       appID,
-		Translation: translationService,
-		Endpoints:   endpointsEndpoints,
-		Sender:      messagingSender,
+		AppID:          appID,
+		Translation:    translationService,
+		Endpoints:      endpointsEndpoints,
+		Sender:         messagingSender,
+		CodeStore:      codeStoreRedis,
+		OTPService:     otpService,
+		WhatsappConfig: whatsappConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
@@ -1656,6 +1660,37 @@ func newUserExportCreateHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Config:  rateLimitsFeatureConfig,
 	}
+	messagingConfig := appConfig.Messaging
+	whatsappConfig := messagingConfig.Whatsapp
+	globalWhatsappAPIType := environmentConfig.WhatsappAPIType
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	httpClient := whatsapp.NewHTTPClient()
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappOnPremisesCredentials, tokenStore, httpClient)
+	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
+	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient)
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	messageStore := &whatsapp.MessageStore{
+		Redis:       globalredisHandle,
+		Credentials: whatsappCloudAPICredentials,
+	}
+	whatsappService := &whatsapp.Service{
+		Clock:                 clockClock,
+		WhatsappConfig:        whatsappConfig,
+		LocalizationConfig:    localizationConfig,
+		GlobalWhatsappAPIType: globalWhatsappAPIType,
+		OnPremisesClient:      onPremisesClient,
+		CloudAPIClient:        cloudAPIClient,
+		MessageStore:          messageStore,
+		Credentials:           whatsappCloudAPICredentials,
+	}
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	otpService := &otp.Service{
 		Clock:                 clockClock,
@@ -1667,6 +1702,7 @@ func newUserExportCreateHandler(p *deps.RequestProvider) http.Handler {
 		LookupStore:           lookupStoreRedis,
 		AttemptTracker:        attemptTrackerRedis,
 		RateLimiter:           ratelimitLimiter,
+		WhatsappService:       whatsappService,
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
@@ -1749,13 +1785,13 @@ func newUserExportCreateHandler(p *deps.RequestProvider) http.Handler {
 		CustomAttributes:   customattrsServiceNoEvent,
 		RolesAndGroups:     queries,
 	}
-	httpClient := userexport.NewHTTPClient()
+	userexportHTTPClient := userexport.NewHTTPClient()
 	userExportService := &userexport.UserExportService{
 		AppDatabase:  appdbHandle,
 		Config:       userProfileConfig,
 		UserQueries:  userQueries,
 		HTTPOrigin:   httpOrigin,
-		HTTPClient:   httpClient,
+		HTTPClient:   userexportHTTPClient,
 		CloudStorage: userExportCloudStorage,
 		Clock:        clockClock,
 	}

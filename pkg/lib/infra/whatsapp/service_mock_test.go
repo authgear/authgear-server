@@ -50,10 +50,10 @@ func (mr *MockServiceCloudAPIClientMockRecorder) GetLanguages() *gomock.Call {
 }
 
 // SendAuthenticationOTP mocks base method.
-func (m *MockServiceCloudAPIClient) SendAuthenticationOTP(ctx context.Context, opts *whatsapp.SendAuthenticationOTPOptions, lang string) (string, error) {
+func (m *MockServiceCloudAPIClient) SendAuthenticationOTP(ctx context.Context, opts *whatsapp.SendAuthenticationOTPOptions, lang string) (*whatsapp.CloudAPISendAuthenticationOTPResult, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SendAuthenticationOTP", ctx, opts, lang)
-	ret0, _ := ret[0].(string)
+	ret0, _ := ret[0].(*whatsapp.CloudAPISendAuthenticationOTPResult)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
