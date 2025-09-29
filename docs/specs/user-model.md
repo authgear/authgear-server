@@ -1,55 +1,65 @@
-- [User Model](#user-model)
+* [User Model](#user-model)
   * [User](#user)
   * [Identity](#identity)
-    + [Identity Attributes](#identity-attributes)
-    + [OAuth Identity](#oauth-identity)
-    + [WebAuthn Identity](#webauthn-identity)
-    + [Anonymous Identity](#anonymous-identity)
-      - [Anonymous Identity JWT](#anonymous-identity-jwt)
-      - [Anonymous Identity JWT headers](#anonymous-identity-jwt-headers)
-      - [Anonymous Identity JWT payload](#anonymous-identity-jwt-payload)
-      - [Anonymous Identity Promotion](#anonymous-identity-promotion)
-    + [Biometric Identity](#biometric-identity)
-      - [Biometric Identity JWT](#biometric-identity-jwt)
-      - [Biometric Identity JWT headers](#biometric-identity-jwt-headers)
-      - [Biometric Identity JWT payload](#biometric-identity-jwt-payload)
-    + [Login ID Identity](#login-id-identity)
-      - [Login ID Key](#login-id-key)
-      - [Login ID Type](#login-id-type)
+    * [Identity attributes](#identity-attributes)
+    * [OAuth Identity](#oauth-identity)
+    * [WebAuthn Identity](#webauthn-identity)
+    * [Anonymous Identity](#anonymous-identity)
+      * [Anonymous Identity JWT](#anonymous-identity-jwt)
+      * [Anonymous Identity JWT headers](#anonymous-identity-jwt-headers)
+      * [Anonymous Identity JWT payload](#anonymous-identity-jwt-payload)
+      * [Anonymous Identity Promotion](#anonymous-identity-promotion)
+    * [Biometric Identity](#biometric-identity)
+      * [Biometric Identity JWT](#biometric-identity-jwt)
+      * [Biometric Identity JWT headers](#biometric-identity-jwt-headers)
+      * [Biometric Identity JWT payload](#biometric-identity-jwt-payload)
+    * [Login ID Identity](#login-id-identity)
+      * [Login ID Key](#login-id-key)
+      * [Login ID Type](#login-id-type)
         * [Email Login ID](#email-login-id)
-          + [Validation of Email Login ID](#validation-of-email-login-id)
-          + [Normalization of Email Login ID](#normalization-of-email-login-id)
-          + [Unique key generation of Email Login ID](#unique-key-generation-of-email-login-id)
+          * [Validation of Email Login ID](#validation-of-email-login-id)
+          * [Normalization of Email Login ID](#normalization-of-email-login-id)
+          * [Unique key generation of Email Login ID](#unique-key-generation-of-email-login-id)
         * [Username Login ID](#username-login-id)
-          + [Validation of Username Login ID](#validation-of-username-login-id)
-          + [Normalization of Username Login ID](#normalization-of-username-login-id)
-          + [Unique key generation of Username Login ID](#unique-key-generation-of-username-login-id)
+          * [Validation of Username Login ID](#validation-of-username-login-id)
+          * [Normalization of Username Login ID](#normalization-of-username-login-id)
+          * [Unique key generation of Username Login ID](#unique-key-generation-of-username-login-id)
         * [Phone Login ID](#phone-login-id)
-          + [Validation of Phone Login ID](#validation-of-phone-login-id)
-          + [Normalization of Phone Login ID](#normalization-of-phone-login-id)
-          + [Unique key generation of Phone Login ID](#unique-key-generation-of-phone-login-id)
-      - [Optional Login ID Key during authentication](#optional-login-id-key-during-authentication)
-      - [The purpose of unique key](#the-purpose-of-unique-key)
+          * [Validation of Phone Login ID](#validation-of-phone-login-id)
+          * [Normalization of Phone Login ID](#normalization-of-phone-login-id)
+          * [Unique key generation of Phone Login ID](#unique-key-generation-of-phone-login-id)
+      * [Optional Login ID Key during authentication](#optional-login-id-key-during-authentication)
+      * [The purpose of unique key](#the-purpose-of-unique-key)
   * [Authenticator](#authenticator)
-    + [Primary Authenticator](#primary-authenticator)
-    + [Secondary Authenticator](#secondary-authenticator)
-    + [Authenticator Types](#authenticator-types)
-      - [Password Authenticator](#password-authenticator)
-      - [WebAuthn Authenticator](#webauthn-authenticator)
-      - [TOTP Authenticator](#totp-authenticator)
-      - [OOB-OTP Authenticator](#oob-otp-authenticator)
-        - [Login Link](#login-link)
-    + [Skip verification](#skip-verification)
-    + [Device Token](#device-token)
-    + [Recovery Code](#recovery-code)
+    * [Primary Authenticator](#primary-authenticator)
+    * [Secondary Authenticator](#secondary-authenticator)
+    * [Authenticator Types](#authenticator-types)
+      * [Password Authenticator](#password-authenticator)
+      * [WebAuthn Authenticator](#webauthn-authenticator)
+      * [TOTP Authenticator](#totp-authenticator)
+      * [OOB\-OTP Authenticator](#oob-otp-authenticator)
+        * [Login Link](#login-link)
+    * [Device Token](#device-token)
+    * [Recovery Code](#recovery-code)
   * [Deleting a user](#deleting-a-user)
   * [Anonymizing a user](#anonymizing-a-user)
   * [Cached data of deleted or anonymized users](#cached-data-of-deleted-or-anonymized-users)
-  * [Disabled user, deactivated user, anonymized user, scheduled account deletion and scheduled account anonymization](#disabled-user-deactivated-user-anonymized-user-scheduled-account-deletion-and-scheduled-account-anonymization)
-    + [Disabled user](#disabled-user)
-    + [Deactivated user](#deactivated-user)
-    + [Scheduled account deletion or anonymization](#scheduled-account-deletion-or-anonymization)
-    + [Sessions](#sessions)
+  * [Account Status](#account-status)
+    * [Disabled user](#disabled-user)
+    * [Deactivated user](#deactivated-user)
+    * [Scheduled account deletion or anonymization](#scheduled-account-deletion-or-anonymization)
+    * [Account Status Use case 1: Join](#account-status-use-case-1-join)
+    * [Account Status Use case 2: Leave](#account-status-use-case-2-leave)
+    * [Account Status Use case 3: Join and Leave](#account-status-use-case-3-join-and-leave)
+    * [Account Status Use case 4: Block an account for a specific amount of time](#account-status-use-case-4-block-an-account-for-a-specific-amount-of-time)
+    * [Account Status use case 5: Combination of Use case 3 and Use case 4](#account-status-use-case-5-combination-of-use-case-3-and-use-case-4)
+    * [Changes on Admin API after the introduction of join\_at, leave\_at, disable\_at and enable\_at](#changes-on-admin-api-after-the-introduction-of-join_at-leave_at-disable_at-and-enable_at)
+    * [Changes on the models seen in Hooks after the introduction of join\_at, leave\_at, disable\_at and enable\_at](#changes-on-the-models-seen-in-hooks-after-the-introduction-of-join_at-leave_at-disable_at-and-enable_at)
+    * [Changes on user import after the introduction of join\_at, leave\_at, disable\_at and enable\_at](#changes-on-user-import-after-the-introduction-of-join_at-leave_at-disable_at-and-enable_at)
+    * [Sessions](#sessions)
+    * [Configuration](#configuration)
+
+Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc.go)
 
 # User Model
 
@@ -448,23 +458,34 @@ Some internal data may still present in cache (Redis), such as OAuth states,
 MFA device tokens, rate limit counter. There data will remain in the cache
 until its natural expiry.
 
-## Disabled user, deactivated user, anonymized user, scheduled account deletion and scheduled account anonymization
+## Account Status
 
-This section specifies the feature of disabled user, deactivated user, anonymized user,
-scheduled account deletion and scheduled account anonymization.
+This section specifies Account Status, which includes the following:
 
-There are 6 attributes to represent the state of these features, summarized in the following table.
+- disabled user
+- deactivated user
+- anonymized user
+- scheduled account deletion
+- scheduled account anonymization
+- `join_at`
+- `leave_at`
+- `disable_at` and `enable_at`
 
-|is\_disabled|is\_deactivated|is_anonymized|delete\_at|anonymize_at|anonymized_at|state|
-|---|---|---|---|---|---|---|
-|false|false|false|null|null|null|Normal|
-|true|false|false|null|null|null|Disabled|
-|true|true|false|null|null|null|Deactivated|
-|true|false|false|non-null|null|null|Scheduled deletion by admin|
-|true|true|false|non-null|null|null|Scheduled deletion by end-user|
-|true|false|false|null|non-null|null|Scheduled anonymization by admin|
-|true|true|false|null|non-null|null|Scheduled anonymization by end-user|
-|true|any|true|null|any|non-null|Anonymized|
+The following truth table defines Account Status.
+
+|is\_disabled|is\_deactivated|is_anonymized|delete\_at|anonymize_at|anonymized_at|join_at|leave_at|disable_at|enable_at|Account Status|
+|---|---|---|---|---|---|---|---|---|---|---|
+|false|false|false|null|null|null|null|null|null|null|Normal|
+|false|false|false|null|null|null|non-null|any|any|any|Disabled due to join_at|
+|false|false|false|null|null|null|any|non-null|any|any|Disabled due to leave_at|
+|false|false|false|null|null|null|any|any|non-null|non-null|Disabled due to disable_at and enable_at|
+|true|false|false|null|null|null|any|any|any|any|Disabled|
+|true|true|false|null|null|null|any|any|any|any|Deactivated|
+|true|false|false|non-null|null|null|any|any|any|any|Scheduled deletion by admin|
+|true|true|false|non-null|null|null|any|any|any|any|Scheduled deletion by end-user|
+|true|false|false|null|non-null|null|any|any|any|any|Scheduled anonymization by admin|
+|true|true|false|null|non-null|null|any|any|any|any|Scheduled anonymization by end-user|
+|true|any|true|null|any|non-null|any|any|any|any|Anonymized|
 
 List of valid state transitions:
 
@@ -481,6 +502,18 @@ List of valid state transitions:
 - Normal --[Schedule anonymization by end-user]--> Scheduled anonymization by end-user
 - Scheduled anonymization by admin --[Unschedule anonymization]--> Normal
 - Scheduled anonymization by end-user --[Unschedule anonymization]--> Normal
+
+Rules on `join_at`, `leave_at`, `disable_at` and `enable_at`:
+
+- When the column `is_disabled=true`, `join_at`, `leave_at`, `disable_at` and `enable_at` are ignored.
+  It is legal to set `join_at`, `leave_at`, `disable_at` and `enable_at` when `is_disabled=true` via Admin API.
+- `join_at` can be set independent of `leave_at`. See use case 1.
+- `leave_at` can be set independent of `join_at`. See Use case 2.
+- `join_at` and `leave_at` can also be set together. See Use case 3.
+- `disable_at` and `enable_at` **MUST** be set together, with `disable_at < enable_at` to form a disabled period. See Use case 4.
+  - You may argue that you want to disable an account starting from a specific time indefinitely. This use case is actually Use case 2.
+  - You may argue that you want to enable an account starting from a specific time indefinitely. This use case is actually Use case 1.
+- The 4 columns form this invariant: `join_at < disable_at < enable_at < leave_at`.
 
 ### Disabled user
 
@@ -516,6 +549,119 @@ Whether the end-user can schedule deletion or anonymization on their account is 
 
 > Scheduling anonymization by the end-user is not implemented yet.
 
+### Account Status Use case 1: Join
+
+I want to import an account on 2025-09-29 but I want the account to be able to sign in on 2025-10-02
+
+```
+////////////
+------------+-----------
+  Disabled  J  Enabled
+
+where J === join_at === 2025-10-02
+```
+
+### Account Status Use case 2: Leave
+
+An employee resigned and his final working day is 2025-10-31. So I want the account to not be able to sign in on 2025-10-31.
+
+```
+           /////////////
+-----------+------------
+  Enabled  L  Disabled
+
+where L === leave_at === 2025-10-31
+```
+
+### Account Status Use case 3: Join and Leave
+
+I have a part-time employee whom I know when he is joining and when he is leaving. He is joining on 2025-11-01 and he is leaving on 2025-11-30.
+
+```
+////////////             /////////////
+------------+------------+------------
+  Disabled  J  Enabled   L  Disabled
+
+Where J === join_at === 2025-11-01
+      L === leave_at === 2025-11-30
+```
+
+### Account Status Use case 4: Block an account for a specific amount of time
+
+An employee is on leave during 2025-12-24 through 2026-01-01 (inclusive). I do not want him to be able to sign in during the period.
+
+```
+           //////////////
+-----------+-------------+-----------
+  Enabled  D  Disabled   E  Enabled
+
+Where D === disable_at === 2025-12-24
+      E === enable_at === 2026-01-02
+```
+
+### Account Status use case 5: Combination of Use case 3 and Use case 4
+
+A contract employee is joining on 2026-04-01. His finally working date is 2027-03-31. He applied an annual leave from 2026-07-15 to 2026-07-31 (inclusive).
+
+```
+////////////             /////////////             /////////////
+------------+------------+------------+------------+------------
+  Disabled  J  Enabled   D  Disabled  E  Enabled   L  Disabled
+
+Where J === join_at === 2026-04-01
+      D === disable_at === 2026-07-15
+      E === enable_at === 2026-08-01
+      L === leave_at === 2027-04-01
+```
+
+### Changes on Admin API after the introduction of `join_at`, `leave_at`, `disable_at` and `enable_at`
+
+- Add `joinAt`, `leaveAt`, `disableAt`, and `enableAt` to `User`.
+- `User.isDisabled` becomes the effective disabled status. It is a derived field now.
+	- It is intuitive to read `isDisabled` to see if the account is disabled or not.
+	- For existing projects that do not utilize this new feature, the behavior of `isDisabled` does not change.
+	- For new projects that utilize this new feature, if the developer wants to know whether an account was disabled manually via `setDisabledStatus`, they can read `isDisabledRaw`.
+- A new field, `User.isDisabledRaw`, is the column `is_disabled`.
+- Add the following mutations
+
+```
+type Mutation {
+  // These are existing mutations.
+  // They are included here for easier comparison.
+  setDisabledStatus(input: {isDisabled: Boolean!, reason: String, userID: ID!})
+  scheduleAccountAnonymization(input: {userID: ID!})
+  scheduleAccountDeletion(input: {userID: ID!})
+  unscheduleAccountAnonymization(input: {userID: ID!})
+  unscheduleAccountDeletion(input: {userID: ID!})
+
+  // These are new mutations.
+
+  // If joinAt is null, set join_at to null. leave_at is left unchanged.
+  setJoinAt(input: {joinAt: DateTime, userID: ID!})
+  // If leaveAt is null, set leave_at to null. join_at is left unchanged.
+  setLeaveAt(input: {leaveAt: DateTime, userID: ID!})
+  // Set join_at and leave_at at the same time.
+  setJoinAtLeaveAt(input: {joinAt: DateTime, leaveAt: DateTime, userID: ID!})
+  // This sets disable_at and enable_at to the given values.
+  scheduleAccountDisabled(input: {disableAt: Datetime!, enableAt: DateTime!, userID: ID!})
+  // This sets disable_at and enable_at to null.
+  unscheduleAccountDisabled(input: {userID: ID!})
+}
+```
+
+### Changes on the models seen in Hooks after the introduction of `join_at`, `leave_at`, `disable_at` and `enable_at`
+
+- Add `join_at`, `leave_at`, `disable_at`, and `enable_at` to user.
+- Add `is_disabled_raw` to user.
+- `is_disabled` becomes the effective disabled status.
+
+### Changes on user import after the introduction of `join_at`, `leave_at`, `disable_at` and `enable_at`
+
+- `disabled` is kept unchanged. It means setting the column `is_disabled`.
+- Support `join_at` and `leave_at`, which set the column `join_at` and `leave_at` respectively.
+- Support `disable_at` and `enable_at`, which set the column `disable_at` and `enable_at`.
+- The rules of `join_at`, `leave_at`, `disable_at` and `enable_at` are enforced.
+
 ### Sessions
 
 When a user is disabled, deactivated or scheduled for deletion, all sessions are deleted.
@@ -531,4 +677,3 @@ account_anonymization:
   # scheduled_by_end_user_enabled: false
   grace_period_days: 30
 ```
-
