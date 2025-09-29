@@ -88,10 +88,10 @@ func (m *MockServiceMessageStore) EXPECT() *MockServiceMessageStoreMockRecorder 
 }
 
 // GetMessageStatus mocks base method.
-func (m *MockServiceMessageStore) GetMessageStatus(ctx context.Context, messageID string) (whatsapp.WhatsappMessageStatus, error) {
+func (m *MockServiceMessageStore) GetMessageStatus(ctx context.Context, messageID string) (*whatsapp.WhatsappMessageStatusData, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetMessageStatus", ctx, messageID)
-	ret0, _ := ret[0].(whatsapp.WhatsappMessageStatus)
+	ret0, _ := ret[0].(*whatsapp.WhatsappMessageStatusData)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -102,8 +102,22 @@ func (mr *MockServiceMessageStoreMockRecorder) GetMessageStatus(ctx, messageID i
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMessageStatus", reflect.TypeOf((*MockServiceMessageStore)(nil).GetMessageStatus), ctx, messageID)
 }
 
+// SetMessageStatusIfNotExist mocks base method.
+func (m *MockServiceMessageStore) SetMessageStatusIfNotExist(ctx context.Context, messageID string, status *whatsapp.WhatsappMessageStatusData) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SetMessageStatusIfNotExist", ctx, messageID, status)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SetMessageStatusIfNotExist indicates an expected call of SetMessageStatusIfNotExist.
+func (mr *MockServiceMessageStoreMockRecorder) SetMessageStatusIfNotExist(ctx, messageID, status interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetMessageStatusIfNotExist", reflect.TypeOf((*MockServiceMessageStore)(nil).SetMessageStatusIfNotExist), ctx, messageID, status)
+}
+
 // UpdateMessageStatus mocks base method.
-func (m *MockServiceMessageStore) UpdateMessageStatus(ctx context.Context, messageID string, status whatsapp.WhatsappMessageStatus) error {
+func (m *MockServiceMessageStore) UpdateMessageStatus(ctx context.Context, messageID string, status *whatsapp.WhatsappMessageStatusData) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateMessageStatus", ctx, messageID, status)
 	ret0, _ := ret[0].(error)

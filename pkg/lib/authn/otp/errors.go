@@ -16,9 +16,6 @@ var ErrTooManyAttempts = ratelimit.RateLimited.NewWithInfo("too many verify OTP 
 	"bucket_name": "TrackFailedOTPAttemptBucket",
 })
 
-var ErrOTPDeliveryTimeout = apierrors.BadRequest.
-	WithReason("OTPDeliveryTimeout").
-	New("message status update not received within configured timeout")
 var ErrOTPDeliveryUnexpectedError = apierrors.InternalError.
 	WithReason("OTPDeliveryUnexpectedError").
 	New("unexpected error occurs on sending the message")

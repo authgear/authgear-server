@@ -7,7 +7,6 @@ import (
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
-	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/whatsapp"
@@ -387,10 +386,6 @@ func (s *Service) UpdateOTPMessageStatusIfPossible(ctx context.Context, kind Kin
 	return s.updateOTPMessageStatus(ctx, kind, target, false)
 }
 
-func (s *Service) UpdateOTPMessageStatusOrFailIfUnknown(ctx context.Context, kind Kind, target string) error {
-	return s.updateOTPMessageStatus(ctx, kind, target, true)
-}
-
 func (s *Service) updateOTPMessageStatus(ctx context.Context, kind Kind, target string, failIfUnknown bool) error {
 	code, err := s.getCode(ctx, kind.Purpose(), target)
 	if errors.Is(err, ErrCodeNotFound) {
@@ -415,13 +410,8 @@ func (s *Service) updateOTPMessageStatus(ctx context.Context, kind Kind, target 
 			}
 			// Status is still unknown
 			if getStatusResult == nil {
-				if failIfUnknown {
-					code.DeliveryStatus = model.OTPDeliveryStatusFailed
-					code.DeliveryError = apierrors.AsAPIError(ErrOTPDeliveryTimeout)
-				} else {
-					// do nothing
-					return nil
-				}
+				// do nothing
+				return nil
 			} else {
 				code.DeliveryStatus = whatsappMessageStatusToOTPDeliveryStatus(
 					ctx,

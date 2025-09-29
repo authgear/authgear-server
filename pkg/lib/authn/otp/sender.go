@@ -5,7 +5,6 @@ import (
 	"log/slog"
 	neturl "net/url"
 	"path/filepath"
-	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -59,7 +58,6 @@ type SenderCodeStore interface {
 
 type SenderOTPService interface {
 	UpdateOTPMessageStatusIfPossible(ctx context.Context, kind Kind, target string) error
-	UpdateOTPMessageStatusOrFailIfUnknown(ctx context.Context, kind Kind, target string) error
 }
 
 type MessageSender struct {
@@ -292,7 +290,7 @@ func (s *MessageSender) sendWhatsapp(ctx context.Context, opts SendOptions) (err
 			result.MessageStatus,
 		)
 		if code.DeliveryStatus == model.OTPDeliveryStatusFailed {
-			// Normally it won't fail immediately here, so unexpected error
+			// Normally it won't fail immediately here, so it is unexpected error
 			SenderLogger.GetLogger(ctx).With(
 				slog.String("message_id", result.MessageID),
 			).Error(ctx, "whatsapp delivery failed immediately")
@@ -309,18 +307,6 @@ func (s *MessageSender) sendWhatsapp(ctx context.Context, opts SendOptions) (err
 		if err != nil {
 			return err
 		}
-
-		go func() {
-			// Detach the deadline so that the context is not canceled along with the request.
-			ctxWithoutCancel := context.WithoutCancel(ctx)
-			time.Sleep(s.WhatsappConfig.MessageSentCallbackTimeout.Duration())
-			err := s.OTPService.UpdateOTPMessageStatusOrFailIfUnknown(ctxWithoutCancel, opts.Kind, opts.Target)
-			if err != nil {
-				SenderLogger.GetLogger(ctxWithoutCancel).
-					WithError(err).
-					Error(ctxWithoutCancel, "failed to update otp message status")
-			}
-		}()
 	}
 
 	return

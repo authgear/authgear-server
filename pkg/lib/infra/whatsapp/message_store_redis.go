@@ -22,8 +22,9 @@ type MessageStore struct {
 }
 
 type WhatsappMessageStatusData struct {
-	Status WhatsappMessageStatus `json:"status"`
-	Errors []WhatsappStatusError `json:"errors"`
+	Status    WhatsappMessageStatus `json:"status"`
+	IsTimeout bool                  `json:"is_timeout"`
+	Errors    []WhatsappStatusError `json:"errors"`
 }
 
 func redisMessageStatusKey(phoneNumberID string, messageID string) string {
@@ -40,6 +41,19 @@ func (s *MessageStore) UpdateMessageStatus(ctx context.Context, messageID string
 		}
 
 		_, err = conn.Set(ctx, key, string(statusBytes), duration.UserInteraction).Result()
+		return err
+	})
+}
+
+func (s *MessageStore) SetMessageStatusIfNotExist(ctx context.Context, messageID string, status *WhatsappMessageStatusData) error {
+	key := redisMessageStatusKey(s.Credentials.PhoneNumberID, messageID)
+	return s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
+		statusBytes, err := json.Marshal(status)
+		if err != nil {
+			panic(fmt.Errorf("unexpected: failed to marshal WhatsappMessageStatusData"))
+		}
+
+		_, err = conn.SetNX(ctx, key, string(statusBytes), duration.UserInteraction).Result()
 		return err
 	})
 }

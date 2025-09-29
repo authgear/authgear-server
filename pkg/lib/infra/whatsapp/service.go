@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -24,6 +25,7 @@ type ServiceCloudAPIClient interface {
 type ServiceMessageStore interface {
 	GetMessageStatus(ctx context.Context, messageID string) (*WhatsappMessageStatusData, error)
 	UpdateMessageStatus(ctx context.Context, messageID string, status *WhatsappMessageStatusData) error
+	SetMessageStatusIfNotExist(ctx context.Context, messageID string, status *WhatsappMessageStatusData) error
 }
 
 type SendAuthenticationOTPResult struct {
@@ -137,6 +139,33 @@ func (s *Service) SendAuthenticationOTP(ctx context.Context, opts *SendAuthentic
 		}
 		result := SendAuthenticationOTPResult(*cloudAPISendResult)
 
+		if s.Credentials.Webhook != nil {
+			go func() {
+				// Detach the deadline so that the context is not canceled along with the request.
+				ctxWithoutCancel := context.WithoutCancel(ctx)
+				time.Sleep(s.WhatsappConfig.MessageSentCallbackTimeout.Duration())
+				// Mark the message as failed after timeout
+				err := s.MessageStore.SetMessageStatusIfNotExist(ctxWithoutCancel, result.MessageID, &WhatsappMessageStatusData{
+					Status:    WhatsappMessageStatusFailed,
+					IsTimeout: true,
+				})
+				if err != nil {
+					logger.GetLogger(ctxWithoutCancel).
+						WithError(err).
+						Error(ctxWithoutCancel, "failed to update whatsapp message status")
+				}
+			}()
+		} else {
+			// If webhook is not configured, set it to delivered immediately
+			err := s.MessageStore.SetMessageStatusIfNotExist(ctx, result.MessageID, &WhatsappMessageStatusData{
+				Status:    WhatsappMessageStatusDelivered,
+				IsTimeout: false,
+			})
+			if err != nil {
+				return nil, err
+			}
+		}
+
 		return &result, nil
 
 	default:
@@ -160,7 +189,9 @@ func (s *Service) GetMessageStatus(ctx context.Context, messageID string) (*GetM
 		return nil, nil
 	}
 	var apierr *apierrors.APIError
-	if len(data.Errors) > 0 {
+	if data.IsTimeout {
+		apierr = apierrors.AsAPIError(ErrWhatsappMessageStatusCallbackTimeout)
+	} else if len(data.Errors) > 0 {
 		// See https://developers.facebook.com/docs/whatsapp/cloud-api/support/error-codes/
 		// Message Undeliverable
 		if data.Errors[0].Code == 131026 {
