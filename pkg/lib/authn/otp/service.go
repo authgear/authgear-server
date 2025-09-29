@@ -344,7 +344,7 @@ func (s *Service) InspectState(ctx context.Context, kind Kind, target string) (*
 	}
 
 	// Before getting the state, update the code to latest state
-	err = s.UpdateOTPMessageStatus(ctx, kind, target)
+	err = s.UpdateOTPMessageStatusIfPossible(ctx, kind, target)
 	if err != nil {
 		return nil, err
 	}
@@ -381,7 +381,15 @@ func (s *Service) InspectState(ctx context.Context, kind Kind, target string) (*
 	return state, nil
 }
 
-func (s *Service) UpdateOTPMessageStatus(ctx context.Context, kind Kind, target string) error {
+func (s *Service) UpdateOTPMessageStatusIfPossible(ctx context.Context, kind Kind, target string) error {
+	return s.updateOTPMessageStatus(ctx, kind, target, false)
+}
+
+func (s *Service) UpdateOTPMessageStatusOrFailIfUnknown(ctx context.Context, kind Kind, target string) error {
+	return s.updateOTPMessageStatus(ctx, kind, target, true)
+}
+
+func (s *Service) updateOTPMessageStatus(ctx context.Context, kind Kind, target string, failIfUnknown bool) error {
 	code, err := s.getCode(ctx, kind.Purpose(), target)
 	if errors.Is(err, ErrCodeNotFound) {
 		// The code does not exist, nothing to update
@@ -403,14 +411,21 @@ func (s *Service) UpdateOTPMessageStatus(ctx context.Context, kind Kind, target 
 			if err != nil {
 				return err
 			}
+			var newDeliveryStatus model.OTPDeliveryStatus
 			if status == "" {
-				// Still unknown, do nothing
-				return nil
+				if failIfUnknown {
+					newDeliveryStatus = model.OTPDeliveryStatusFailed
+				} else {
+					// Still unknown, do nothing
+					return nil
+				}
+			} else {
+				newDeliveryStatus = whatsappMessageStatusToOTPDeliveryStatus(
+					ctx,
+					status,
+				)
 			}
-			code.DeliveryStatus = whatsappMessageStatusToOTPDeliveryStatus(
-				ctx,
-				status,
-			)
+			code.DeliveryStatus = newDeliveryStatus
 			return nil
 		}
 	case model.AuthenticatorOOBChannelEmail, model.AuthenticatorOOBChannelSMS:

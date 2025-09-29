@@ -4,6 +4,7 @@ import (
 	"context"
 	neturl "net/url"
 	"path/filepath"
+	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -55,7 +56,8 @@ type SenderCodeStore interface {
 }
 
 type SenderOTPService interface {
-	UpdateOTPMessageStatus(ctx context.Context, kind Kind, target string) error
+	UpdateOTPMessageStatusIfPossible(ctx context.Context, kind Kind, target string) error
+	UpdateOTPMessageStatusOrFailIfUnknown(ctx context.Context, kind Kind, target string) error
 }
 
 type MessageSender struct {
@@ -65,6 +67,8 @@ type MessageSender struct {
 	Sender      Sender
 	CodeStore   SenderCodeStore
 	OTPService  SenderOTPService
+
+	WhatsappConfig *config.WhatsappConfig
 }
 
 var SenderLogger = slogutil.NewLogger("otp-sender")
@@ -292,11 +296,22 @@ func (s *MessageSender) sendWhatsapp(ctx context.Context, opts SendOptions) (err
 		}
 		// Update message status once to ensure the status is up-to-date,
 		// just in case the webhook is received before we update the code message id
-		err = s.OTPService.UpdateOTPMessageStatus(ctx, opts.Kind, opts.Target)
+		err = s.OTPService.UpdateOTPMessageStatusIfPossible(ctx, opts.Kind, opts.Target)
 		if err != nil {
 			return err
 		}
-		// TODO(tung): Set delivery status to failed after timeout if it is still sending
+
+		go func() {
+			// Detach the deadline so that the context is not canceled along with the request.
+			ctxWithoutCancel := context.WithoutCancel(ctx)
+			time.Sleep(s.WhatsappConfig.MessageSentCallbackTimeout.Duration())
+			err := s.OTPService.UpdateOTPMessageStatusOrFailIfUnknown(ctxWithoutCancel, opts.Kind, opts.Target)
+			if err != nil {
+				SenderLogger.GetLogger(ctxWithoutCancel).
+					WithError(err).
+					Error(ctxWithoutCancel, "failed to update otp message status")
+			}
+		}()
 	}
 
 	return
