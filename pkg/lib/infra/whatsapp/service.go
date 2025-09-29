@@ -3,7 +3,9 @@ package whatsapp
 import (
 	"context"
 	"fmt"
+	"log/slog"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/intl"
@@ -20,13 +22,18 @@ type ServiceCloudAPIClient interface {
 }
 
 type ServiceMessageStore interface {
-	GetMessageStatus(ctx context.Context, messageID string) (WhatsappMessageStatus, error)
-	UpdateMessageStatus(ctx context.Context, messageID string, status WhatsappMessageStatus) error
+	GetMessageStatus(ctx context.Context, messageID string) (*WhatsappMessageStatusData, error)
+	UpdateMessageStatus(ctx context.Context, messageID string, status *WhatsappMessageStatusData) error
 }
 
 type SendAuthenticationOTPResult struct {
 	MessageID     string
 	MessageStatus WhatsappMessageStatus
+}
+
+type GetMessageStatusResult struct {
+	Status   WhatsappMessageStatus
+	APIError *apierrors.APIError
 }
 
 type Service struct {
@@ -137,10 +144,37 @@ func (s *Service) SendAuthenticationOTP(ctx context.Context, opts *SendAuthentic
 	}
 }
 
-func (s *Service) UpdateMessageStatus(ctx context.Context, messageID string, status WhatsappMessageStatus) error {
-	return s.MessageStore.UpdateMessageStatus(ctx, messageID, status)
+func (s *Service) UpdateMessageStatus(ctx context.Context, messageID string, status WhatsappMessageStatus, errors []WhatsappStatusError) error {
+	return s.MessageStore.UpdateMessageStatus(ctx, messageID, &WhatsappMessageStatusData{
+		Status: status,
+		Errors: errors,
+	})
 }
 
-func (s *Service) GetMessageStatus(ctx context.Context, messageID string) (WhatsappMessageStatus, error) {
-	return s.MessageStore.GetMessageStatus(ctx, messageID)
+func (s *Service) GetMessageStatus(ctx context.Context, messageID string) (*GetMessageStatusResult, error) {
+	data, err := s.MessageStore.GetMessageStatus(ctx, messageID)
+	if err != nil {
+		return nil, err
+	}
+	if data == nil {
+		return nil, nil
+	}
+	var apierr *apierrors.APIError
+	if len(data.Errors) > 0 {
+		// See https://developers.facebook.com/docs/whatsapp/cloud-api/support/error-codes/
+		// Message Undeliverable
+		if data.Errors[0].Code == 131026 {
+			// For backward compatibility, InvalidWhatsappUser means undeliverable
+			apierr = apierrors.AsAPIError(ErrInvalidWhatsappUser)
+		} else {
+			logger.GetLogger(ctx).With(
+				slog.Int("error_code", data.Errors[0].Code),
+			).Error(ctx, "unexpected whatsapp status error")
+			apierr = apierrors.AsAPIError(ErrUnexpectedWhatsappMessageStatusError)
+		}
+	}
+	return &GetMessageStatusResult{
+		Status:   data.Status,
+		APIError: apierr,
+	}, nil
 }

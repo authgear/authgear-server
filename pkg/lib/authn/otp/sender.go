@@ -2,10 +2,12 @@ package otp
 
 import (
 	"context"
+	"log/slog"
 	neturl "net/url"
 	"path/filepath"
 	"time"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
@@ -285,10 +287,17 @@ func (s *MessageSender) sendWhatsapp(ctx context.Context, opts SendOptions) (err
 			return err
 		}
 		code.MessageID = result.MessageID
-		code.DeliveryStatus, code.DeliveryError = whatsappMessageStatusToOTPDeliveryStatus(
+		code.DeliveryStatus = whatsappMessageStatusToOTPDeliveryStatus(
 			ctx,
 			result.MessageStatus,
 		)
+		if code.DeliveryStatus == model.OTPDeliveryStatusFailed {
+			// Normally it won't fail immediately here, so unexpected error
+			SenderLogger.GetLogger(ctx).With(
+				slog.String("message_id", result.MessageID),
+			).Error(ctx, "whatsapp delivery failed immediately")
+			code.DeliveryError = apierrors.AsAPIError(ErrOTPDeliveryUnexpectedError)
+		}
 		code.OOBChannel = opts.Channel
 		err = s.CodeStore.Update(ctx, opts.Kind.Purpose(), code)
 		if err != nil {

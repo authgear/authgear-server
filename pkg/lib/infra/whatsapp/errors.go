@@ -16,6 +16,9 @@ var ErrInvalidWhatsappUser = apierrors.BadRequest.
 var ErrNoAvailableWhatsappClient = apierrors.BadRequest.
 	WithReason("NoAvailableWhatsappClient").
 	New("no available whatsapp client")
+var ErrUnexpectedWhatsappMessageStatusError = apierrors.InternalError.
+	WithReason("UnexpectedWhatsappMessageStatusError").
+	New("unexpected whatsapp status error")
 
 var ErrUnauthorized = errors.New("whatsapp: unauthorized")
 var ErrBadRequest = errors.New("whatsapp: bad request")

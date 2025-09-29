@@ -73,3 +73,9 @@ type WhatsappSendMessageResponse struct {
 		MessageStatus string `json:"message_status"`
 	} `json:"messages"`
 }
+
+type WhatsappStatusError struct {
+	Code    int    `json:"code"`
+	Title   string `json:"title"`
+	Message string `json:"message"`
+}

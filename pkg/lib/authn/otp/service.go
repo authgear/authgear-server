@@ -61,7 +61,7 @@ type RateLimiter interface {
 }
 
 type WhatsappService interface {
-	GetMessageStatus(ctx context.Context, messageID string) (whatsapp.WhatsappMessageStatus, error)
+	GetMessageStatus(ctx context.Context, messageID string) (*whatsapp.GetMessageStatusResult, error)
 }
 
 var ServiceLogger = slogutil.NewLogger("otp")
@@ -409,12 +409,12 @@ func (s *Service) updateOTPMessageStatus(ctx context.Context, kind Kind, target 
 	switch code.OOBChannel {
 	case model.AuthenticatorOOBChannelWhatsapp:
 		{
-			status, err := s.WhatsappService.GetMessageStatus(ctx, code.MessageID)
+			getStatusResult, err := s.WhatsappService.GetMessageStatus(ctx, code.MessageID)
 			if err != nil {
 				return err
 			}
 			// Status is still unknown
-			if status == "" {
+			if getStatusResult == nil {
 				if failIfUnknown {
 					code.DeliveryStatus = model.OTPDeliveryStatusFailed
 					code.DeliveryError = apierrors.AsAPIError(ErrOTPDeliveryTimeout)
@@ -423,10 +423,11 @@ func (s *Service) updateOTPMessageStatus(ctx context.Context, kind Kind, target 
 					return nil
 				}
 			} else {
-				code.DeliveryStatus, code.DeliveryError = whatsappMessageStatusToOTPDeliveryStatus(
+				code.DeliveryStatus = whatsappMessageStatusToOTPDeliveryStatus(
 					ctx,
-					status,
+					getStatusResult.Status,
 				)
+				code.DeliveryError = getStatusResult.APIError
 			}
 			return s.CodeStore.Update(ctx, kind.Purpose(), code)
 		}
