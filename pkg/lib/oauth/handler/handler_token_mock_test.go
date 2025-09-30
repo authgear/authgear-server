@@ -642,21 +642,6 @@ func (m *MockTokenHandlerTokenService) EXPECT() *MockTokenHandlerTokenServiceMoc
 	return m.recorder
 }
 
-// IssueAccessGrantByRefreshToken mocks base method.
-func (m *MockTokenHandlerTokenService) IssueAccessGrantByRefreshToken(ctx context.Context, options handler.IssueAccessGrantByRefreshTokenOptions) (*handler.IssueAccessGrantByRefreshTokenResult, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IssueAccessGrantByRefreshToken", ctx, options)
-	ret0, _ := ret[0].(*handler.IssueAccessGrantByRefreshTokenResult)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// IssueAccessGrantByRefreshToken indicates an expected call of IssueAccessGrantByRefreshToken.
-func (mr *MockTokenHandlerTokenServiceMockRecorder) IssueAccessGrantByRefreshToken(ctx, options interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IssueAccessGrantByRefreshToken", reflect.TypeOf((*MockTokenHandlerTokenService)(nil).IssueAccessGrantByRefreshToken), ctx, options)
-}
-
 // IssueClientCredentialsAccessToken mocks base method.
 func (m *MockTokenHandlerTokenService) IssueClientCredentialsAccessToken(ctx context.Context, options handler.ClientCredentialsAccessTokenOptions, resp protocol.TokenResponse) error {
 	m.ctrl.T.Helper()
@@ -732,6 +717,21 @@ func (m *MockTokenHandlerTokenService) ParseRefreshToken(ctx context.Context, to
 func (mr *MockTokenHandlerTokenServiceMockRecorder) ParseRefreshToken(ctx, token interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ParseRefreshToken", reflect.TypeOf((*MockTokenHandlerTokenService)(nil).ParseRefreshToken), ctx, token)
+}
+
+// PrepareUserAccessGrantByRefreshToken mocks base method.
+func (m *MockTokenHandlerTokenService) PrepareUserAccessGrantByRefreshToken(ctx context.Context, options handler.PrepareUserAccessGrantByRefreshTokenOptions) (*handler.PrepareUserAccessGrantByRefreshTokenResult, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "PrepareUserAccessGrantByRefreshToken", ctx, options)
+	ret0, _ := ret[0].(*handler.PrepareUserAccessGrantByRefreshTokenResult)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// PrepareUserAccessGrantByRefreshToken indicates an expected call of PrepareUserAccessGrantByRefreshToken.
+func (mr *MockTokenHandlerTokenServiceMockRecorder) PrepareUserAccessGrantByRefreshToken(ctx, options interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PrepareUserAccessGrantByRefreshToken", reflect.TypeOf((*MockTokenHandlerTokenService)(nil).PrepareUserAccessGrantByRefreshToken), ctx, options)
 }
 
 // MockTokenHandlerIDPSessionProvider is a mock of TokenHandlerIDPSessionProvider interface.

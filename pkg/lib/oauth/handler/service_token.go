@@ -58,7 +58,7 @@ type ClientCredentialsAccessTokenOptions struct {
 	Resource           *resourcescope.Resource
 }
 
-type IssueAccessGrantByRefreshTokenOptions struct {
+type PrepareUserAccessGrantByRefreshTokenOptions struct {
 	oauth.PrepareUserAccessGrantOptions
 	ShouldRotateRefreshToken bool
 }
@@ -234,16 +234,16 @@ func (s *TokenService) IssueRefreshTokenForOfflineGrant(
 	return newOfflineGrant, newRefreshTokenResult.TokenHash, nil
 }
 
-type IssueAccessGrantByRefreshTokenResult struct {
+type PrepareUserAccessGrantByRefreshTokenResult struct {
 	RotateRefreshTokenResult *oauth.RotateRefreshTokenResult
 	PreparationResult        oauth.PrepareUserAccessTokenResult
 }
 
-func (s *TokenService) IssueAccessGrantByRefreshToken(
+func (s *TokenService) PrepareUserAccessGrantByRefreshToken(
 	ctx context.Context,
-	options IssueAccessGrantByRefreshTokenOptions,
-) (*IssueAccessGrantByRefreshTokenResult, error) {
-	result := &IssueAccessGrantByRefreshTokenResult{}
+	options PrepareUserAccessGrantByRefreshTokenOptions,
+) (*PrepareUserAccessGrantByRefreshTokenResult, error) {
+	result := &PrepareUserAccessGrantByRefreshTokenResult{}
 
 	if options.ShouldRotateRefreshToken &&
 		options.SessionLike.SessionType() == session.TypeOfflineGrant &&

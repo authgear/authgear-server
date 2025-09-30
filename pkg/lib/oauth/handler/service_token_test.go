@@ -28,7 +28,7 @@ func TestTokenService(t *testing.T) {
 			AccessGrantService:  accessGrants,
 		}
 
-		Convey("IssueAccessGrantByRefreshToken", func() {
+		Convey("PrepareUserAccessGrantByRefreshToken", func() {
 			Convey("should rotate refresh token", func() {
 				offlineGrants.EXPECT().GetOfflineGrant(gomock.Any(), "grant-id").Return(&oauth.OfflineGrant{
 					ID: "grant-id",
@@ -42,7 +42,7 @@ func TestTokenService(t *testing.T) {
 				}, nil)
 				accessGrants.EXPECT().PrepareUserAccessGrant(gomock.Any(), gomock.Any()).Return(nil, nil)
 
-				result1, err := s.IssueAccessGrantByRefreshToken(context.Background(), handler.IssueAccessGrantByRefreshTokenOptions{
+				result1, err := s.PrepareUserAccessGrantByRefreshToken(context.Background(), handler.PrepareUserAccessGrantByRefreshTokenOptions{
 					ShouldRotateRefreshToken: true,
 					PrepareUserAccessGrantOptions: oauth.PrepareUserAccessGrantOptions{
 						SessionLike: &oauth.OfflineGrant{
@@ -66,7 +66,7 @@ func TestTokenService(t *testing.T) {
 				accessGrants.EXPECT().PrepareUserAccessGrant(gomock.Any(), gomock.Any()).Return(nil, nil)
 
 				resp := protocol.TokenResponse{}
-				result1, err := s.IssueAccessGrantByRefreshToken(context.Background(), handler.IssueAccessGrantByRefreshTokenOptions{
+				result1, err := s.PrepareUserAccessGrantByRefreshToken(context.Background(), handler.PrepareUserAccessGrantByRefreshTokenOptions{
 					ShouldRotateRefreshToken: false,
 					PrepareUserAccessGrantOptions: oauth.PrepareUserAccessGrantOptions{
 						SessionLike: &oauth.OfflineGrant{

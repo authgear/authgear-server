@@ -145,9 +145,9 @@ func TestTokenHandler(t *testing.T) {
 				}).Return(nil, nil)
 				tokenService.EXPECT().ParseRefreshToken(gomock.Any(), "asdf").Return(&oauth.Authorization{}, offlineGrant, refreshTokenHash, nil)
 				idTokenIssuer.EXPECT().IssueIDToken(gomock.Any(), gomock.Any()).Return("id-token", nil)
-				tokenService.EXPECT().IssueAccessGrantByRefreshToken(gomock.Any(), gomock.Any()).DoAndReturn(
-					func(ctx context.Context, options handler.IssueAccessGrantByRefreshTokenOptions) (*handler.IssueAccessGrantByRefreshTokenResult, error) {
-						result := &handler.IssueAccessGrantByRefreshTokenResult{
+				tokenService.EXPECT().PrepareUserAccessGrantByRefreshToken(gomock.Any(), gomock.Any()).DoAndReturn(
+					func(ctx context.Context, options handler.PrepareUserAccessGrantByRefreshTokenOptions) (*handler.PrepareUserAccessGrantByRefreshTokenResult, error) {
+						result := &handler.PrepareUserAccessGrantByRefreshTokenResult{
 							// The value is unimportant.
 							PreparationResult: nil,
 						}
@@ -203,9 +203,9 @@ func TestTokenHandler(t *testing.T) {
 				rateLimiter.EXPECT().Allow(gomock.Any(), gomock.Any()).AnyTimes().Return(nil, nil)
 				tokenService.EXPECT().ParseRefreshToken(gomock.Any(), "asdf").Return(&oauth.Authorization{}, offlineGrant, refreshTokenHash, nil)
 				idTokenIssuer.EXPECT().IssueIDToken(gomock.Any(), gomock.Any()).Return("id-token", nil)
-				tokenService.EXPECT().IssueAccessGrantByRefreshToken(gomock.Any(), gomock.Any()).DoAndReturn(
-					func(ctx context.Context, options handler.IssueAccessGrantByRefreshTokenOptions) (*handler.IssueAccessGrantByRefreshTokenResult, error) {
-						result := &handler.IssueAccessGrantByRefreshTokenResult{
+				tokenService.EXPECT().PrepareUserAccessGrantByRefreshToken(gomock.Any(), gomock.Any()).DoAndReturn(
+					func(ctx context.Context, options handler.PrepareUserAccessGrantByRefreshTokenOptions) (*handler.PrepareUserAccessGrantByRefreshTokenResult, error) {
+						result := &handler.PrepareUserAccessGrantByRefreshTokenResult{
 							// The value is unimportant.
 							PreparationResult: nil,
 						}
@@ -266,9 +266,9 @@ func TestTokenHandler(t *testing.T) {
 				rateLimiter.EXPECT().Allow(gomock.Any(), gomock.Any()).AnyTimes().Return(nil, nil)
 				tokenService.EXPECT().ParseRefreshToken(gomock.Any(), "asdf").Return(&oauth.Authorization{}, offlineGrant, refreshTokenHash, nil)
 				idTokenIssuer.EXPECT().IssueIDToken(gomock.Any(), gomock.Any()).Return("id-token", nil)
-				tokenService.EXPECT().IssueAccessGrantByRefreshToken(gomock.Any(), gomock.Any()).DoAndReturn(
-					func(ctx context.Context, options handler.IssueAccessGrantByRefreshTokenOptions) (*handler.IssueAccessGrantByRefreshTokenResult, error) {
-						result := &handler.IssueAccessGrantByRefreshTokenResult{
+				tokenService.EXPECT().PrepareUserAccessGrantByRefreshToken(gomock.Any(), gomock.Any()).DoAndReturn(
+					func(ctx context.Context, options handler.PrepareUserAccessGrantByRefreshTokenOptions) (*handler.PrepareUserAccessGrantByRefreshTokenResult, error) {
+						result := &handler.PrepareUserAccessGrantByRefreshTokenResult{
 							// The value is unimportant.
 							PreparationResult: nil,
 						}

@@ -29,10 +29,10 @@ type OAuthTokenService interface {
 		opts handler.IssueOfflineGrantOptions,
 		resp protocol.TokenResponse,
 	) (offlineGrant *oauth.OfflineGrant, tokenHash string, err error)
-	IssueAccessGrantByRefreshToken(
+	PrepareUserAccessGrantByRefreshToken(
 		ctx context.Context,
-		options handler.IssueAccessGrantByRefreshTokenOptions,
-	) (*handler.IssueAccessGrantByRefreshTokenResult, error)
+		options handler.PrepareUserAccessGrantByRefreshTokenOptions,
+	) (*handler.PrepareUserAccessGrantByRefreshTokenResult, error)
 }
 
 type OAuthAccessTokenEncoding interface {
@@ -106,9 +106,9 @@ func (f *OAuthFacade) CreateSession(ctx context.Context, clientID string, userID
 		return nil, nil, err
 	}
 
-	result1, err := f.Tokens.IssueAccessGrantByRefreshToken(
+	result1, err := f.Tokens.PrepareUserAccessGrantByRefreshToken(
 		ctx,
-		handler.IssueAccessGrantByRefreshTokenOptions{
+		handler.PrepareUserAccessGrantByRefreshTokenOptions{
 			PrepareUserAccessGrantOptions: oauth.PrepareUserAccessGrantOptions{
 				ClientConfig:            client,
 				Scopes:                  scopes,

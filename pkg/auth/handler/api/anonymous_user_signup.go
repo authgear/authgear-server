@@ -132,12 +132,12 @@ func (h *AnonymousUserSignupAPIHandler) ServeHTTP(resp http.ResponseWriter, req 
 	} else {
 		// refresh token
 
-		if result.IssueAccessGrantByRefreshTokenResult != nil {
-			result.IssueAccessGrantByRefreshTokenResult.RotateRefreshTokenResult.WriteTo(result.Response)
+		if result.PrepareUserAccessGrantByRefreshTokenResult != nil {
+			result.PrepareUserAccessGrantByRefreshTokenResult.RotateRefreshTokenResult.WriteTo(result.Response)
 
 			a, err := h.AccessTokenEncoding.MakeUserAccessTokenFromPreparationResult(ctx, oauth.MakeUserAccessTokenFromPreparationOptions{
 				ClientConfig:      result.Client,
-				PreparationResult: result.IssueAccessGrantByRefreshTokenResult.PreparationResult,
+				PreparationResult: result.PrepareUserAccessGrantByRefreshTokenResult.PreparationResult,
 			})
 			if err != nil {
 				handleError(err)

@@ -132,10 +132,10 @@ type TokenHandlerRateLimiter interface {
 
 type TokenHandlerTokenService interface {
 	ParseRefreshToken(ctx context.Context, token string) (authz *oauth.Authorization, offlineGrant *oauth.OfflineGrant, tokenHash string, err error)
-	IssueAccessGrantByRefreshToken(
+	PrepareUserAccessGrantByRefreshToken(
 		ctx context.Context,
-		options IssueAccessGrantByRefreshTokenOptions,
-	) (*IssueAccessGrantByRefreshTokenResult, error)
+		options PrepareUserAccessGrantByRefreshTokenOptions,
+	) (*PrepareUserAccessGrantByRefreshTokenResult, error)
 	IssueOfflineGrant(
 		ctx context.Context,
 		client *config.OAuthClientConfig,
@@ -284,12 +284,12 @@ func (h *TokenHandler) Handle(ctx context.Context, rw http.ResponseWriter, req *
 		return errorResult(err)
 	}
 
-	if handleResult.IssueAccessGrantByRefreshTokenResult != nil {
-		handleResult.IssueAccessGrantByRefreshTokenResult.RotateRefreshTokenResult.WriteTo(handleResult.Response)
+	if handleResult.PrepareUserAccessGrantByRefreshTokenResult != nil {
+		handleResult.PrepareUserAccessGrantByRefreshTokenResult.RotateRefreshTokenResult.WriteTo(handleResult.Response)
 
 		result2, err := h.AccessTokenEncoding.MakeUserAccessTokenFromPreparationResult(ctx, oauth.MakeUserAccessTokenFromPreparationOptions{
 			ClientConfig:      client,
-			PreparationResult: handleResult.IssueAccessGrantByRefreshTokenResult.PreparationResult,
+			PreparationResult: handleResult.PrepareUserAccessGrantByRefreshTokenResult.PreparationResult,
 		})
 		if err != nil {
 			err = h.translateAccessTokenError(err)
@@ -308,8 +308,8 @@ func (h *TokenHandler) Handle(ctx context.Context, rw http.ResponseWriter, req *
 }
 
 type HandleResult struct {
-	IssueAccessGrantByRefreshTokenResult *IssueAccessGrantByRefreshTokenResult
-	Response                             protocol.TokenResponse
+	PrepareUserAccessGrantByRefreshTokenResult *PrepareUserAccessGrantByRefreshTokenResult
+	Response                                   protocol.TokenResponse
 }
 
 func (h *TokenHandler) doHandleWithTx(
@@ -1080,7 +1080,7 @@ func (h *TokenHandler) handleAnonymousRequest(
 		SessionLike:             offlineGrant,
 		InitialRefreshTokenHash: newTokenHash,
 	}
-	result1, err := h.TokenService.IssueAccessGrantByRefreshToken(ctx, IssueAccessGrantByRefreshTokenOptions{
+	result1, err := h.TokenService.PrepareUserAccessGrantByRefreshToken(ctx, PrepareUserAccessGrantByRefreshTokenOptions{
 		PrepareUserAccessGrantOptions: prepareUserAccessGrantOptions,
 		ShouldRotateRefreshToken:      false, // We do not rotate refresh tokens in anonymous user.
 	})
@@ -1103,8 +1103,8 @@ func (h *TokenHandler) handleAnonymousRequest(
 	}
 
 	return &HandleResult{
-		IssueAccessGrantByRefreshTokenResult: result1,
-		Response:                             resp,
+		PrepareUserAccessGrantByRefreshTokenResult: result1,
+		Response: resp,
 	}, nil
 }
 
@@ -1360,7 +1360,7 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 		SessionLike:             offlineGrant,
 		InitialRefreshTokenHash: newTokenHash,
 	}
-	result1, err := h.TokenService.IssueAccessGrantByRefreshToken(ctx, IssueAccessGrantByRefreshTokenOptions{
+	result1, err := h.TokenService.PrepareUserAccessGrantByRefreshToken(ctx, PrepareUserAccessGrantByRefreshTokenOptions{
 		PrepareUserAccessGrantOptions: prepareUserAccessGrantOptions,
 		ShouldRotateRefreshToken:      false, // New refresh token, no need to rotate
 	})
@@ -1399,8 +1399,8 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 	}
 
 	return &HandleResult{
-		IssueAccessGrantByRefreshTokenResult: result1,
-		Response:                             resp,
+		PrepareUserAccessGrantByRefreshTokenResult: result1,
+		Response: resp,
 	}, nil
 }
 
@@ -1872,9 +1872,9 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 		},
 		InitialRefreshTokenHash: initialRefreshTokenHash,
 	}
-	result1, err := h.TokenService.IssueAccessGrantByRefreshToken(
+	result1, err := h.TokenService.PrepareUserAccessGrantByRefreshToken(
 		ctx,
-		IssueAccessGrantByRefreshTokenOptions{
+		PrepareUserAccessGrantByRefreshTokenOptions{
 			PrepareUserAccessGrantOptions: prepareUserAccessGrantOptions,
 			ShouldRotateRefreshToken:      false, // New refresh token, no need to rotate
 		})
@@ -1902,8 +1902,8 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 	}
 
 	return &HandleResult{
-		IssueAccessGrantByRefreshTokenResult: result1,
-		Response:                             resp,
+		PrepareUserAccessGrantByRefreshTokenResult: result1,
+		Response: resp,
 	}, nil
 }
 
@@ -1954,7 +1954,7 @@ func (h *TokenHandler) issueTokensForRefreshToken(
 		SessionLike:             offlineGrantSession,
 		InitialRefreshTokenHash: offlineGrantSession.InitialTokenHash,
 	}
-	result1, err := h.TokenService.IssueAccessGrantByRefreshToken(ctx, IssueAccessGrantByRefreshTokenOptions{
+	result1, err := h.TokenService.PrepareUserAccessGrantByRefreshToken(ctx, PrepareUserAccessGrantByRefreshTokenOptions{
 		PrepareUserAccessGrantOptions: prepareUserAccessGrantOptions,
 		ShouldRotateRefreshToken:      client.RefreshTokenRotationEnabled,
 	})
@@ -1963,8 +1963,8 @@ func (h *TokenHandler) issueTokensForRefreshToken(
 	}
 
 	return &HandleResult{
-		IssueAccessGrantByRefreshTokenResult: result1,
-		Response:                             resp,
+		PrepareUserAccessGrantByRefreshTokenResult: result1,
+		Response: resp,
 	}, nil
 }
 
