@@ -64,19 +64,34 @@ func (mr *MockIDTokenIssuerMockRecorder) Iss() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Iss", reflect.TypeOf((*MockIDTokenIssuer)(nil).Iss))
 }
 
-// IssueIDToken mocks base method.
-func (m *MockIDTokenIssuer) IssueIDToken(ctx context.Context, opts oidc.IssueIDTokenOptions) (string, error) {
+// MakeIDTokenFromPreparationResult mocks base method.
+func (m *MockIDTokenIssuer) MakeIDTokenFromPreparationResult(ctx context.Context, opts oidc.MakeIDTokenFromPreparationResultOptions) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IssueIDToken", ctx, opts)
+	ret := m.ctrl.Call(m, "MakeIDTokenFromPreparationResult", ctx, opts)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// IssueIDToken indicates an expected call of IssueIDToken.
-func (mr *MockIDTokenIssuerMockRecorder) IssueIDToken(ctx, opts interface{}) *gomock.Call {
+// MakeIDTokenFromPreparationResult indicates an expected call of MakeIDTokenFromPreparationResult.
+func (mr *MockIDTokenIssuerMockRecorder) MakeIDTokenFromPreparationResult(ctx, opts interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IssueIDToken", reflect.TypeOf((*MockIDTokenIssuer)(nil).IssueIDToken), ctx, opts)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MakeIDTokenFromPreparationResult", reflect.TypeOf((*MockIDTokenIssuer)(nil).MakeIDTokenFromPreparationResult), ctx, opts)
+}
+
+// PrepareIDToken mocks base method.
+func (m *MockIDTokenIssuer) PrepareIDToken(ctx context.Context, opts oidc.PrepareIDTokenOptions) (*oidc.PrepareIDTokenResult, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "PrepareIDToken", ctx, opts)
+	ret0, _ := ret[0].(*oidc.PrepareIDTokenResult)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// PrepareIDToken indicates an expected call of PrepareIDToken.
+func (mr *MockIDTokenIssuerMockRecorder) PrepareIDToken(ctx, opts interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PrepareIDToken", reflect.TypeOf((*MockIDTokenIssuer)(nil).PrepareIDToken), ctx, opts)
 }
 
 // VerifyIDToken mocks base method.

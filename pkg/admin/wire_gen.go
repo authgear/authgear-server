@@ -1187,6 +1187,8 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Secrets:         oAuthKeyMaterials,
 		BaseURL:         endpointsEndpoints,
 		UserInfoService: userInfoService,
+		Events:          eventService,
+		Identities:      facadeIdentityFacade,
 		Clock:           clockClock,
 	}
 	accessTokenEncoding := &oauth2.AccessTokenEncoding{
