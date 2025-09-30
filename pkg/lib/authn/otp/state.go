@@ -3,9 +3,10 @@ package otp
 import (
 	"time"
 
+	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
+
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
-	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 )
 
 type State struct {
