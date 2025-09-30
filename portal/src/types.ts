@@ -332,7 +332,7 @@ export interface RecoveryCodeConfig {
 
 export interface MFAGlobalGracePeriodConfig {
   enabled?: boolean;
-  endAt?: string;
+  end_at?: string;
 }
 
 export interface DeviceTokenConfig {

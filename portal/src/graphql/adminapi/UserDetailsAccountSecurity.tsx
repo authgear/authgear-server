@@ -295,6 +295,8 @@ function constructSecondaryAuthenticatorList(
     config?.secondary_authenticators?.includes("oob_otp_email") ?? false;
   const isSecondaryOOBOTPSMSEnabled =
     config?.secondary_authenticators?.includes("oob_otp_sms") ?? false;
+  const isSecondaryTOTPEnabled =
+    config?.secondary_authenticators?.includes("totp") ?? false;
 
   const filteredAuthenticators = authenticators.filter(
     (a) => a.kind === AuthenticatorKind.Secondary
@@ -303,21 +305,33 @@ function constructSecondaryAuthenticatorList(
   for (const authenticator of filteredAuthenticators) {
     switch (authenticator.type) {
       case "PASSWORD":
+        if (!isSecondaryPasswordEnabled) {
+          continue;
+        }
         passwordAuthenticatorList.push(
           constructPasswordAuthenticatorData(authenticator, locale)
         );
         break;
       case "OOB_OTP_EMAIL":
+        if (!isSecondaryOOBOTPEmailEnabled) {
+          continue;
+        }
         oobOtpEmailAuthenticatorList.push(
           constructOobOtpAuthenticatorData(authenticator, locale)
         );
         break;
       case "OOB_OTP_SMS":
+        if (!isSecondaryOOBOTPSMSEnabled) {
+          continue;
+        }
         oobOtpSMSAuthenticatorList.push(
           constructOobOtpAuthenticatorData(authenticator, locale)
         );
         break;
       case "TOTP":
+        if (!isSecondaryTOTPEnabled) {
+          continue;
+        }
         totpAuthenticatorList.push(
           constructTotpAuthenticatorData(authenticator, locale)
         );
@@ -808,6 +822,29 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
       return parseDate(user.mfaGracePeriodEndAt) >= new Date();
     }, [user]);
 
+    const globalGracePeriodEndAt = useMemo(() => {
+      if (
+        authenticationConfig?.secondary_authentication_grace_period?.enabled !==
+        true
+      ) {
+        return null;
+      }
+
+      const gracePeriodEndAtString =
+        authenticationConfig.secondary_authentication_grace_period.end_at;
+      if (gracePeriodEndAtString == null) {
+        return null;
+      }
+      return parseDate(gracePeriodEndAtString);
+    }, [authenticationConfig]);
+
+    const userGracePeriod = useMemo(() => {
+      if (user?.mfaGracePeriodEndAt == null) {
+        return null;
+      }
+      return parseDate(user.mfaGracePeriodEndAt);
+    }, [user]);
+
     const isWithinGlobalMFAGracePeriod = useMemo(() => {
       if (
         authenticationConfig?.secondary_authentication_grace_period?.enabled !==
@@ -816,44 +853,69 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
         return false;
       }
 
-      const gracePeriodEndAtString =
-        authenticationConfig.secondary_authentication_grace_period.endAt;
-      if (gracePeriodEndAtString == null) {
+      if (globalGracePeriodEndAt == null) {
         return true;
       }
 
-      const gracePeriod = parseDate(gracePeriodEndAtString);
-      return gracePeriod >= new Date();
-    }, [authenticationConfig]);
+      return globalGracePeriodEndAt >= new Date();
+    }, [authenticationConfig, globalGracePeriodEndAt]);
 
     const isWithinMFAGracePeriod = useMemo(() => {
       return isWithinPerUserMFAGracePeriod || isWithinGlobalMFAGracePeriod;
     }, [isWithinPerUserMFAGracePeriod, isWithinGlobalMFAGracePeriod]);
 
+    const farthestMFAGracePeriodEndAt = useMemo(() => {
+      const globalEndAt = globalGracePeriodEndAt;
+      const userEndAt = userGracePeriod;
+      if (globalEndAt == null) {
+        // Two cases:
+        // 1. null global end_at means no deadline
+        if (
+          authenticationConfig?.secondary_authentication_grace_period
+            ?.enabled === true
+        ) {
+          return globalEndAt;
+        }
+        // 2. gloabl grace period not enabled
+        return userEndAt;
+      }
+      if (userEndAt == null) {
+        return globalEndAt;
+      }
+      return globalEndAt > userEndAt ? globalEndAt : userEndAt;
+    }, [globalGracePeriodEndAt, userGracePeriod, authenticationConfig]);
+
     const canExtendMFAGracePeriod = useMemo(() => {
-      if (isWithinGlobalMFAGracePeriod) {
+      // Global grace period without deadline, no need to extend
+      if (
+        authenticationConfig?.secondary_authentication_grace_period?.enabled ===
+          true &&
+        globalGracePeriodEndAt == null
+      ) {
         return false;
       }
 
+      // user grace period not enabled
       if (user?.mfaGracePeriodEndAt == null) {
         return false;
       }
 
+      // Can extend the deadline if user grace period is after global period
       if (
-        authenticationConfig?.secondary_authentication_grace_period?.endAt !=
+        authenticationConfig?.secondary_authentication_grace_period?.end_at !=
         null
       ) {
         const gracePeriod = parseDate(
-          authenticationConfig.secondary_authentication_grace_period.endAt
+          authenticationConfig.secondary_authentication_grace_period.end_at
         );
         const userGracePeriod = parseDate(user.mfaGracePeriodEndAt);
-        return userGracePeriod <= gracePeriod;
+        return userGracePeriod >= gracePeriod;
       }
 
       return true;
     }, [
-      authenticationConfig?.secondary_authentication_grace_period?.endAt,
-      isWithinGlobalMFAGracePeriod,
+      authenticationConfig,
+      globalGracePeriodEndAt,
       user?.mfaGracePeriodEndAt,
     ]);
 
@@ -1263,14 +1325,20 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
                   {!secondaryAuthicatorIsRequired ? (
                     <FormattedMessage id="UserDetails.account-security.secondary.empty" />
                   ) : isWithinMFAGracePeriod ? (
-                    <FormattedMessage
-                      id="UserDetails.account-security.secondary.empty-but-within-grace-period"
-                      values={{
-                        gracePeriodEndAt:
-                          formatDatetime(locale, user?.mfaGracePeriodEndAt) ??
-                          "",
-                      }}
-                    />
+                    farthestMFAGracePeriodEndAt != null ? (
+                      <FormattedMessage
+                        id="UserDetails.account-security.secondary.empty-but-within-grace-period"
+                        values={{
+                          gracePeriodEndAt:
+                            formatDatetime(
+                              locale,
+                              farthestMFAGracePeriodEndAt
+                            ) ?? "",
+                        }}
+                      />
+                    ) : (
+                      <FormattedMessage id="UserDetails.account-security.secondary.empty-but-within-grace-period.no-deadline" />
+                    )
                   ) : (
                     <FormattedMessage id="UserDetails.account-security.secondary.empty-but-required" />
                   )}
