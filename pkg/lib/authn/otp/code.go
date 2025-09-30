@@ -38,8 +38,8 @@ type Code struct {
 	AuthenticationFlowJSONPointer          jsonpointer.T `json:"authentication_flow_json_pointer,omitempty"`
 
 	// The message which carries the otp
-	MessageID      string                        `json:"message_id,omitzero"`
-	OOBChannel     model.AuthenticatorOOBChannel `json:"channel,omitzero"`
-	DeliveryStatus model.OTPDeliveryStatus       `json:"delivery_status,omitzero"`
-	DeliveryError  *apierrors.APIError           `json:"delivery_error,omitzero"`
+	OOBChannel        model.AuthenticatorOOBChannel `json:"channel,omitzero"`
+	DeliveryStatus    model.OTPDeliveryStatus       `json:"delivery_status,omitzero"`
+	DeliveryError     *apierrors.APIError           `json:"delivery_error,omitzero"`
+	WhatsappMessageID string                        `json:"whatsapp_message_id,omitzero"`
 }

@@ -179,9 +179,9 @@ func (s *Service) GenerateOTP(ctx context.Context, kind Kind, target string, for
 		WebSessionID:                           opts.WebSessionID,
 
 		// These are unknown until sent
-		MessageID:      "",
-		OOBChannel:     "",
-		DeliveryStatus: model.OTPDeliveryStatusSending,
+		WhatsappMessageID: "",
+		OOBChannel:        "",
+		DeliveryStatus:    model.OTPDeliveryStatusSending,
 	}
 
 	err := s.CodeStore.Create(ctx, kind.Purpose(), code)
@@ -392,7 +392,7 @@ func (s *Service) updateOTPMessageStatus(ctx context.Context, kind Kind, target 
 		// The code does not exist, nothing to update
 		return nil
 	}
-	if code.MessageID == "" {
+	if code.WhatsappMessageID == "" {
 		// The code message id is not recorded, nothing to update
 		return nil
 	}
@@ -404,7 +404,7 @@ func (s *Service) updateOTPMessageStatus(ctx context.Context, kind Kind, target 
 	switch code.OOBChannel {
 	case model.AuthenticatorOOBChannelWhatsapp:
 		{
-			getStatusResult, err := s.WhatsappService.GetMessageStatus(ctx, code.MessageID)
+			getStatusResult, err := s.WhatsappService.GetMessageStatus(ctx, code.WhatsappMessageID)
 			if err != nil {
 				return err
 			}
