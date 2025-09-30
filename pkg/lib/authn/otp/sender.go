@@ -2,11 +2,9 @@ package otp
 
 import (
 	"context"
-	"log/slog"
 	neturl "net/url"
 	"path/filepath"
 
-	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
@@ -56,17 +54,12 @@ type SenderCodeStore interface {
 	Update(ctx context.Context, purpose Purpose, code *Code) error
 }
 
-type SenderOTPService interface {
-	UpdateOTPMessageStatusIfPossible(ctx context.Context, kind Kind, target string) error
-}
-
 type MessageSender struct {
 	AppID       config.AppID
 	Translation TranslationService
 	Endpoints   EndpointsProvider
 	Sender      Sender
 	CodeStore   SenderCodeStore
-	OTPService  SenderOTPService
 
 	WhatsappConfig *config.WhatsappConfig
 }
@@ -208,8 +201,6 @@ func (s *MessageSender) sendEmail(ctx context.Context, opts SendOptions) error {
 	if err != nil {
 		return err
 	}
-	// Email is always "sent" if not error
-	code.DeliveryStatus = model.OTPDeliveryStatusSent
 	err = s.CodeStore.Update(ctx, opts.Kind.Purpose(), code)
 	if err != nil {
 		return err
@@ -254,8 +245,6 @@ func (s *MessageSender) sendSMS(ctx context.Context, opts SendOptions, preferAsy
 	if err != nil {
 		return err
 	}
-	// SMS is always "sent" if not error
-	code.DeliveryStatus = model.OTPDeliveryStatusSent
 	err = s.CodeStore.Update(ctx, opts.Kind.Purpose(), code)
 	if err != nil {
 		return err
@@ -279,34 +268,15 @@ func (s *MessageSender) sendWhatsapp(ctx context.Context, opts SendOptions) (err
 		return err
 	}
 
-	if result.MessageID != "" {
-		code, err := s.CodeStore.Get(ctx, opts.Kind.Purpose(), opts.Target)
-		if err != nil {
-			return err
-		}
-		code.WhatsappMessageID = result.MessageID
-		code.DeliveryStatus = whatsappMessageStatusToOTPDeliveryStatus(
-			ctx,
-			result.MessageStatus,
-		)
-		if code.DeliveryStatus == model.OTPDeliveryStatusFailed {
-			// Normally it won't fail immediately here, so it is unexpected error
-			SenderLogger.GetLogger(ctx).With(
-				slog.String("message_id", result.MessageID),
-			).Error(ctx, "whatsapp delivery failed immediately")
-			code.DeliveryError = apierrors.AsAPIError(ErrOTPDeliveryUnexpectedError)
-		}
-		code.OOBChannel = opts.Channel
-		err = s.CodeStore.Update(ctx, opts.Kind.Purpose(), code)
-		if err != nil {
-			return err
-		}
-		// Update message status once to ensure the status is up-to-date,
-		// just in case the webhook is received before we update the code message id
-		err = s.OTPService.UpdateOTPMessageStatusIfPossible(ctx, opts.Kind, opts.Target)
-		if err != nil {
-			return err
-		}
+	code, err := s.CodeStore.Get(ctx, opts.Kind.Purpose(), opts.Target)
+	if err != nil {
+		return err
+	}
+	code.WhatsappMessageID = result.MessageID
+	code.OOBChannel = opts.Channel
+	err = s.CodeStore.Update(ctx, opts.Kind.Purpose(), code)
+	if err != nil {
+		return err
 	}
 
 	return

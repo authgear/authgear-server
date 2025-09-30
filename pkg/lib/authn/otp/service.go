@@ -7,6 +7,7 @@ import (
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/whatsapp"
@@ -31,6 +32,11 @@ type VerifyOptions struct {
 	UserID           string
 	UseSubmittedCode bool
 	SkipConsume      bool
+}
+
+type messageDeliveryStatus struct {
+	DeliveryStatus model.OTPDeliveryStatus
+	DeliveryError  *apierrors.APIError
 }
 
 type CodeStore interface {
@@ -181,7 +187,6 @@ func (s *Service) GenerateOTP(ctx context.Context, kind Kind, target string, for
 		// These are unknown until sent
 		WhatsappMessageID: "",
 		OOBChannel:        "",
-		DeliveryStatus:    model.OTPDeliveryStatusSending,
 	}
 
 	err := s.CodeStore.Create(ctx, kind.Purpose(), code)
@@ -343,12 +348,6 @@ func (s *Service) InspectState(ctx context.Context, kind Kind, target string) (*
 		TooManyAttempts: tooManyAttempts,
 	}
 
-	// Before getting the state, update the code to latest state
-	err = s.UpdateOTPMessageStatusIfPossible(ctx, kind, target)
-	if err != nil {
-		return nil, err
-	}
-
 	code, err := s.getCode(ctx, kind.Purpose(), target)
 	if errors.Is(err, ErrCodeNotFound) {
 		code = nil
@@ -375,30 +374,24 @@ func (s *Service) InspectState(ctx context.Context, kind Kind, target string) (*
 		state.AuthenticationFlowName = code.AuthenticationFlowName
 		state.AuthenticationFlowType = code.AuthenticationFlowType
 		state.WebSessionID = code.WebSessionID
-		state.DeliveryStatus = code.DeliveryStatus
-		state.DeliveryError = code.DeliveryError
+		status, err := s.getOTPMessageDeliverStatus(ctx, code)
+		if err != nil {
+			return nil, err
+		}
+		state.DeliveryStatus = status.DeliveryStatus
+		state.DeliveryError = status.DeliveryError
 	}
 
 	return state, nil
 }
 
-func (s *Service) UpdateOTPMessageStatusIfPossible(ctx context.Context, kind Kind, target string) error {
-	return s.updateOTPMessageStatus(ctx, kind, target, false)
-}
-
-func (s *Service) updateOTPMessageStatus(ctx context.Context, kind Kind, target string, failIfUnknown bool) error {
-	code, err := s.getCode(ctx, kind.Purpose(), target)
-	if errors.Is(err, ErrCodeNotFound) {
-		// The code does not exist, nothing to update
-		return nil
-	}
-	if code.WhatsappMessageID == "" {
-		// The code message id is not recorded, nothing to update
-		return nil
-	}
-	if code.DeliveryStatus != model.OTPDeliveryStatusSending {
-		// The status is already known, nothing to update
-		return nil
+func (s *Service) getOTPMessageDeliverStatus(ctx context.Context, code *Code) (*messageDeliveryStatus, error) {
+	if code.OOBChannel == "" {
+		// Not sent yet, treat it as sending
+		return &messageDeliveryStatus{
+			DeliveryStatus: model.OTPDeliveryStatusSending,
+			DeliveryError:  nil,
+		}, nil
 	}
 
 	switch code.OOBChannel {
@@ -406,25 +399,33 @@ func (s *Service) updateOTPMessageStatus(ctx context.Context, kind Kind, target 
 		{
 			getStatusResult, err := s.WhatsappService.GetMessageStatus(ctx, code.WhatsappMessageID)
 			if err != nil {
-				return err
+				return nil, err
 			}
 			// Status is still unknown
 			if getStatusResult == nil {
-				// do nothing
-				return nil
+				return &messageDeliveryStatus{
+					DeliveryStatus: model.OTPDeliveryStatusSending,
+					DeliveryError:  nil,
+				}, nil
 			} else {
-				code.DeliveryStatus = whatsappMessageStatusToOTPDeliveryStatus(
+				status := whatsappMessageStatusToOTPDeliveryStatus(
 					ctx,
 					getStatusResult.Status,
 				)
-				code.DeliveryError = getStatusResult.APIError
+				apiError := getStatusResult.APIError
+				return &messageDeliveryStatus{
+					DeliveryStatus: status,
+					DeliveryError:  apiError,
+				}, nil
 			}
-			return s.CodeStore.Update(ctx, kind.Purpose(), code)
 		}
 	case model.AuthenticatorOOBChannelEmail, model.AuthenticatorOOBChannelSMS:
 		fallthrough
 	default:
-		// Nothing to update
-		return nil
+		// Always sent
+		return &messageDeliveryStatus{
+			DeliveryStatus: model.OTPDeliveryStatusSent,
+			DeliveryError:  nil,
+		}, nil
 	}
 }

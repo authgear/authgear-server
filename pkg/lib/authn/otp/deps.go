@@ -12,5 +12,4 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(SenderCodeStore), new(*CodeStoreRedis)),
 	wire.Bind(new(LookupStore), new(*LookupStoreRedis)),
 	wire.Bind(new(AttemptTracker), new(*AttemptTrackerRedis)),
-	wire.Bind(new(SenderOTPService), new(*Service)),
 )

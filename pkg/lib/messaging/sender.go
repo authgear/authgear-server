@@ -43,6 +43,7 @@ type SMSSender interface {
 
 type WhatsappSender interface {
 	SendAuthenticationOTP(ctx context.Context, opts *whatsapp.SendAuthenticationOTPOptions) (*whatsapp.SendAuthenticationOTPResult, error)
+	SendSuppressedAuthenticationOTP(ctx context.Context, opts *whatsapp.SendAuthenticationOTPOptions) (*whatsapp.SendAuthenticationOTPResult, error)
 }
 
 type Sender struct {
@@ -432,10 +433,12 @@ func (s *Sender) testModeSendWhatsapp(ctx context.Context, msgType translation.M
 	if err != nil {
 		return nil, err
 	}
-	return &SendWhatsappResult{
-		MessageID:     "",
-		MessageStatus: whatsapp.WhatsappMessageStatusDelivered,
-	}, nil
+	sendResult, err := s.WhatsappSender.SendSuppressedAuthenticationOTP(ctx, opts)
+	if err != nil {
+		return nil, err
+	}
+	result := SendWhatsappResult(*sendResult)
+	return &result, nil
 }
 
 func (s *Sender) devModeSendWhatsapp(ctx context.Context, msgType translation.MessageType, opts *whatsapp.SendAuthenticationOTPOptions) (*SendWhatsappResult, error) {
@@ -453,10 +456,12 @@ func (s *Sender) devModeSendWhatsapp(ctx context.Context, msgType translation.Me
 	if err != nil {
 		return nil, err
 	}
-	return &SendWhatsappResult{
-		MessageID:     "",
-		MessageStatus: whatsapp.WhatsappMessageStatusDelivered,
-	}, nil
+	sendResult, err := s.WhatsappSender.SendSuppressedAuthenticationOTP(ctx, opts)
+	if err != nil {
+		return nil, err
+	}
+	result := SendWhatsappResult(*sendResult)
+	return &result, nil
 }
 
 func (s *Sender) DispatchEventImmediatelyWithTx(ctx context.Context, payload event.NonBlockingPayload) error {

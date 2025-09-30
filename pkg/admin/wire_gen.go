@@ -996,7 +996,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Endpoints:      endpointsEndpoints,
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
-		OTPService:     otpService,
 		WhatsappConfig: whatsappConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)

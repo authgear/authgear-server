@@ -38,6 +38,13 @@ type GetMessageStatusResult struct {
 	APIError *apierrors.APIError
 }
 
+const (
+	// A special message id to identify suppressed message
+	suppressedMessageID string = "_suppressed-message-id"
+	// A special message id to identify unknown message id
+	unknownMessageID string = "_unknown-message-id"
+)
+
 type Service struct {
 	Clock                 clock.Clock
 	WhatsappConfig        *config.WhatsappConfig
@@ -118,7 +125,7 @@ func (s *Service) SendAuthenticationOTP(ctx context.Context, opts *SendAuthentic
 			return nil, err
 		}
 		return &SendAuthenticationOTPResult{
-			MessageID: "",
+			MessageID: unknownMessageID,
 			// We don't know the actual status, so always return devlivered
 			MessageStatus: WhatsappMessageStatusDelivered,
 		}, nil
@@ -173,6 +180,13 @@ func (s *Service) SendAuthenticationOTP(ctx context.Context, opts *SendAuthentic
 	}
 }
 
+func (s *Service) SendSuppressedAuthenticationOTP(ctx context.Context, opts *SendAuthenticationOTPOptions) (*SendAuthenticationOTPResult, error) {
+	return &SendAuthenticationOTPResult{
+		MessageID:     suppressedMessageID,
+		MessageStatus: WhatsappMessageStatusSent,
+	}, nil
+}
+
 func (s *Service) UpdateMessageStatus(ctx context.Context, messageID string, status WhatsappMessageStatus, errors []WhatsappStatusError) error {
 	return s.MessageStore.UpdateMessageStatus(ctx, messageID, &WhatsappMessageStatusData{
 		Status: status,
@@ -181,6 +195,14 @@ func (s *Service) UpdateMessageStatus(ctx context.Context, messageID string, sta
 }
 
 func (s *Service) GetMessageStatus(ctx context.Context, messageID string) (*GetMessageStatusResult, error) {
+	switch messageID {
+	case suppressedMessageID, unknownMessageID:
+		// If the message was suppressed or not known, treat it as sent
+		return &GetMessageStatusResult{
+			Status:   WhatsappMessageStatusSent,
+			APIError: nil,
+		}, nil
+	}
 	data, err := s.MessageStore.GetMessageStatus(ctx, messageID)
 	if err != nil {
 		return nil, err
