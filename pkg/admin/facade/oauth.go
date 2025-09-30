@@ -29,11 +29,17 @@ type OAuthTokenService interface {
 		opts handler.IssueOfflineGrantOptions,
 		resp protocol.TokenResponse,
 	) (offlineGrant *oauth.OfflineGrant, tokenHash string, err error)
-	IssueAccessGrantByRefreshToken(
+	PrepareUserAccessGrantByRefreshToken(
 		ctx context.Context,
-		options handler.IssueAccessGrantByRefreshTokenOptions,
-		resp protocol.TokenResponse,
-	) error
+		options handler.PrepareUserAccessGrantByRefreshTokenOptions,
+	) (*handler.PrepareUserAccessGrantByRefreshTokenResult, error)
+}
+
+type OAuthAccessTokenEncoding interface {
+	MakeUserAccessTokenFromPreparationResult(
+		ctx context.Context,
+		options oauth.MakeUserAccessTokenFromPreparationOptions,
+	) (*oauth.IssueAccessGrantResult, error)
 }
 
 type OAuthClientResolver interface {
@@ -45,6 +51,7 @@ type OAuthFacade struct {
 	Users               UserService
 	Authorizations      OAuthAuthorizationService
 	Tokens              OAuthTokenService
+	AccessTokenCoding   OAuthAccessTokenEncoding
 	Clock               clock.Clock
 	OAuthClientResolver OAuthClientResolver
 }
@@ -99,10 +106,10 @@ func (f *OAuthFacade) CreateSession(ctx context.Context, clientID string, userID
 		return nil, nil, err
 	}
 
-	err = f.Tokens.IssueAccessGrantByRefreshToken(
+	result1, err := f.Tokens.PrepareUserAccessGrantByRefreshToken(
 		ctx,
-		handler.IssueAccessGrantByRefreshTokenOptions{
-			IssueAccessGrantOptions: oauth.IssueAccessGrantOptions{
+		handler.PrepareUserAccessGrantByRefreshTokenOptions{
+			PrepareUserAccessGrantOptions: oauth.PrepareUserAccessGrantOptions{
 				ClientConfig:            client,
 				Scopes:                  scopes,
 				AuthorizationID:         authz.ID,
@@ -112,11 +119,19 @@ func (f *OAuthFacade) CreateSession(ctx context.Context, clientID string, userID
 			},
 			ShouldRotateRefreshToken: false, // The token is new, no need to rotate
 		},
-		resp,
 	)
 	if err != nil {
 		return nil, nil, err
 	}
 
+	result2, err := f.AccessTokenCoding.MakeUserAccessTokenFromPreparationResult(ctx, oauth.MakeUserAccessTokenFromPreparationOptions{
+		PreparationResult: result1.PreparationResult,
+	})
+	if err != nil {
+		return nil, nil, err
+	}
+
+	result1.RotateRefreshTokenResult.WriteTo(resp)
+	result2.WriteTo(resp)
 	return offlineGrant, resp, nil
 }

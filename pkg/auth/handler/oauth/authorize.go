@@ -5,7 +5,6 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/handler"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -23,13 +22,12 @@ var AuthorizeHandlerLogger = slogutil.NewLogger("handler-authz")
 
 type ProtocolAuthorizeHandler interface {
 	ValidateRequestWithoutTx(ctx context.Context, r protocol.AuthorizationRequest) (context.Context, *handler.AuthorizationParams, *handler.AuthorizationResultError)
-	HandleRequestWithTx(ctx context.Context, r protocol.AuthorizationRequest, params *handler.AuthorizationParams) httputil.Result
+	HandleRequest(ctx context.Context, r protocol.AuthorizationRequest, params *handler.AuthorizationParams) httputil.Result
 }
 
 var errAuthzInternalError = errors.New("internal error")
 
 type AuthorizeHandler struct {
-	Database     *appdb.Handle
 	AuthzHandler ProtocolAuthorizeHandler
 }
 
@@ -52,14 +50,10 @@ func (h *AuthorizeHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	var result httputil.Result
-	err = h.Database.WithTx(ctx, func(ctx context.Context) error {
-		result = h.AuthzHandler.HandleRequestWithTx(ctx, req, params)
-		if result.IsInternalError() {
-			return errAuthzInternalError
-		}
-		return nil
-	})
-
+	result = h.AuthzHandler.HandleRequest(ctx, req, params)
+	if result.IsInternalError() {
+		err = errAuthzInternalError
+	}
 	if err == nil || errors.Is(err, errAuthzInternalError) {
 		result.WriteResponse(rw, r)
 	} else {

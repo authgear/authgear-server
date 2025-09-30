@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
+	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	oauthhandler "github.com/authgear/authgear-server/pkg/lib/oauth/handler"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -75,21 +76,36 @@ type AnonymousUserSignupAPIRequest struct {
 
 var AnonymousUserSignupAPIHandlerLogger = slogutil.NewLogger("handler-anonymous-user-signup")
 
+type AnonymousUserSignupAPIHandlerAccessTokenEncoding interface {
+	MakeUserAccessTokenFromPreparationResult(
+		ctx context.Context,
+		options oauth.MakeUserAccessTokenFromPreparationOptions,
+	) (*oauth.IssueAccessGrantResult, error)
+}
+
 type AnonymousUserSignupAPIHandler struct {
 	Database             *appdb.Handle
 	AnonymousUserHandler AnonymousUserHandler
+	AccessTokenEncoding  AnonymousUserSignupAPIHandlerAccessTokenEncoding
 }
 
 func (h *AnonymousUserSignupAPIHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
+	logger := AnonymousUserSignupAPIHandlerLogger.GetLogger(ctx)
 	var payload AnonymousUserSignupAPIRequest
-	err := httputil.BindJSONBody(req, resp, AnonymousUserSignupAPIRequestSchema.Validator(), &payload)
-	if err != nil {
+
+	handleError := func(err error) {
+		if !apierrors.IsAPIError(err) {
+			logger.WithError(err).Error(ctx, "anonymous user signup handler failed")
+		}
 		httputil.WriteJSONResponse(ctx, resp, &api.Response{Error: err})
-		return
 	}
 
-	logger := AnonymousUserSignupAPIHandlerLogger.GetLogger(ctx)
+	err := httputil.BindJSONBody(req, resp, AnonymousUserSignupAPIRequestSchema.Validator(), &payload)
+	if err != nil {
+		handleError(err)
+		return
+	}
 
 	var result *oauthhandler.SignupAnonymousUserResult
 	err = h.Database.WithTx(ctx, func(ctx context.Context) error {
@@ -102,22 +118,34 @@ func (h *AnonymousUserSignupAPIHandler) ServeHTTP(resp http.ResponseWriter, req 
 		)
 		return err
 	})
+	if err != nil {
+		handleError(err)
+		return
+	}
 
-	if err == nil {
-		if result.Cookies != nil {
-			// cookie
-			for _, cookie := range result.Cookies {
-				httputil.UpdateCookie(resp, cookie)
-			}
-			httputil.WriteJSONResponse(ctx, resp, &api.Response{Result: struct{}{}})
-		} else {
-			// refresh token
-			httputil.WriteJSONResponse(ctx, resp, &api.Response{Result: result.TokenResponse})
+	if result.Cookies != nil {
+		// cookie
+		for _, cookie := range result.Cookies {
+			httputil.UpdateCookie(resp, cookie)
 		}
+		httputil.WriteJSONResponse(ctx, resp, &api.Response{Result: struct{}{}})
 	} else {
-		if !apierrors.IsAPIError(err) {
-			logger.WithError(err).Error(ctx, "anonymous user signup handler failed")
+		// refresh token
+
+		if result.PrepareUserAccessGrantByRefreshTokenResult != nil {
+			result.PrepareUserAccessGrantByRefreshTokenResult.RotateRefreshTokenResult.WriteTo(result.Response)
+
+			a, err := h.AccessTokenEncoding.MakeUserAccessTokenFromPreparationResult(ctx, oauth.MakeUserAccessTokenFromPreparationOptions{
+				PreparationResult: result.PrepareUserAccessGrantByRefreshTokenResult.PreparationResult,
+			})
+			if err != nil {
+				handleError(err)
+				return
+			}
+
+			a.WriteTo(result.Response)
 		}
-		httputil.WriteJSONResponse(ctx, resp, &api.Response{Error: err})
+
+		httputil.WriteJSONResponse(ctx, resp, &api.Response{Result: result.Response})
 	}
 }

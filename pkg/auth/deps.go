@@ -73,6 +73,7 @@ var DependencySet = wire.NewSet(
 	nonce.DependencySet,
 
 	wire.Bind(new(oauthhandler.TokenHandlerAppDatabase), new(*appdb.Handle)),
+	wire.Bind(new(oauthhandler.AuthorizationHandlerDatabase), new(*appdb.Handle)),
 
 	wire.Bind(new(interaction.NonceService), new(*nonce.Service)),
 
@@ -162,6 +163,7 @@ var DependencySet = wire.NewSet(
 	handlerapi.DependencySet,
 	wire.Bind(new(handlerapi.TurboResponseWriter), new(*handlerwebapp.ResponseWriter)),
 	wire.Bind(new(handlerapi.AnonymousUserHandler), new(*oauthhandler.AnonymousUserHandler)),
+	wire.Bind(new(handlerapi.AnonymousUserSignupAPIHandlerAccessTokenEncoding), new(*oauth.AccessTokenEncoding)),
 	wire.Bind(new(handlerapi.PromotionCodeIssuer), new(*oauthhandler.AnonymousUserHandler)),
 	wire.Bind(new(handlerapi.RateLimiter), new(*ratelimit.Limiter)),
 	wire.Bind(new(handlerapi.PresignProvider), new(*presign.Provider)),

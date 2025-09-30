@@ -59,8 +59,24 @@ type CookiesGetter interface {
 }
 
 type SignupAnonymousUserResult struct {
-	TokenResponse interface{}
-	Cookies       []*http.Cookie
+	PrepareUserAccessGrantByRefreshTokenResult *PrepareUserAccessGrantByRefreshTokenResult
+	Response                                   protocol.TokenResponse
+
+	Cookies []*http.Cookie
+}
+
+type AnonymousUserHandlerTokenService interface {
+	ParseRefreshToken(ctx context.Context, token string) (authz *oauth.Authorization, offlineGrant *oauth.OfflineGrant, tokenHash string, err error)
+	IssueOfflineGrant(
+		ctx context.Context,
+		client *config.OAuthClientConfig,
+		opts IssueOfflineGrantOptions,
+		resp protocol.TokenResponse,
+	) (offlineGrant *oauth.OfflineGrant, tokenHash string, err error)
+	PrepareUserAccessGrantByRefreshToken(
+		ctx context.Context,
+		options PrepareUserAccessGrantByRefreshTokenOptions,
+	) (*PrepareUserAccessGrantByRefreshTokenResult, error)
 }
 
 type AnonymousUserHandler struct {
@@ -70,7 +86,7 @@ type AnonymousUserHandler struct {
 	Graphs              GraphService
 	Authorizations      AuthorizationService
 	Clock               clock.Clock
-	TokenService        TokenService
+	TokenService        AnonymousUserHandlerTokenService
 	UserProvider        UserProvider
 	AnonymousIdentities AnonymousIdentityProvider
 	PromotionCodes      PromotionCodeStore
@@ -170,8 +186,7 @@ func (h *AnonymousUserHandler) signupAnonymousUserWithRefreshTokenSessionType(
 			panic(fmt.Errorf("unexpected: failed to resolve offline grant session"))
 		}
 
-		resp := protocol.TokenResponse{}
-		issueAccessGrantOptions := oauth.IssueAccessGrantOptions{
+		prepareUserAccessGrantOptions := oauth.PrepareUserAccessGrantOptions{
 			ClientConfig:            client,
 			Scopes:                  scopes,
 			AuthorizationID:         authz.ID,
@@ -179,16 +194,17 @@ func (h *AnonymousUserHandler) signupAnonymousUserWithRefreshTokenSessionType(
 			SessionLike:             grant,
 			InitialRefreshTokenHash: session.InitialTokenHash,
 		}
-		err = h.TokenService.IssueAccessGrantByRefreshToken(ctx, IssueAccessGrantByRefreshTokenOptions{
-			IssueAccessGrantOptions:  issueAccessGrantOptions,
-			ShouldRotateRefreshToken: false, // We do not rotate refresh tokens in anonymous user.
-		}, resp)
+		result1, err := h.TokenService.PrepareUserAccessGrantByRefreshToken(ctx, PrepareUserAccessGrantByRefreshTokenOptions{
+			PrepareUserAccessGrantOptions: prepareUserAccessGrantOptions,
+			ShouldRotateRefreshToken:      false, // We do not rotate refresh tokens in anonymous user.
+		})
 		if err != nil {
 			return nil, err
 		}
 
 		return &SignupAnonymousUserResult{
-			TokenResponse: resp,
+			PrepareUserAccessGrantByRefreshTokenResult: result1,
+			Response: protocol.TokenResponse{},
 		}, nil
 	}
 
@@ -229,7 +245,7 @@ func (h *AnonymousUserHandler) signupAnonymousUserWithRefreshTokenSessionType(
 		return nil, err
 	}
 
-	issueAccessGrantOptions := oauth.IssueAccessGrantOptions{
+	prepareUserAccessGrantOptions := oauth.PrepareUserAccessGrantOptions{
 		ClientConfig:            client,
 		Scopes:                  scopes,
 		AuthorizationID:         authz.ID,
@@ -237,16 +253,17 @@ func (h *AnonymousUserHandler) signupAnonymousUserWithRefreshTokenSessionType(
 		SessionLike:             offlineGrant,
 		InitialRefreshTokenHash: newTokenHash,
 	}
-	err = h.TokenService.IssueAccessGrantByRefreshToken(ctx, IssueAccessGrantByRefreshTokenOptions{
-		IssueAccessGrantOptions:  issueAccessGrantOptions,
-		ShouldRotateRefreshToken: false, // We do not rotate refresh tokens in anonymous user.
-	}, resp)
+	result1, err := h.TokenService.PrepareUserAccessGrantByRefreshToken(ctx, PrepareUserAccessGrantByRefreshTokenOptions{
+		PrepareUserAccessGrantOptions: prepareUserAccessGrantOptions,
+		ShouldRotateRefreshToken:      false, // We do not rotate refresh tokens in anonymous user.
+	})
 	if err != nil {
 		return nil, err
 	}
 
 	return &SignupAnonymousUserResult{
-		TokenResponse: resp,
+		PrepareUserAccessGrantByRefreshTokenResult: result1,
+		Response: resp,
 	}, nil
 }
 

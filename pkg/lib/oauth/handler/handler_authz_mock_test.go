@@ -439,3 +439,116 @@ func (mr *MockAuthorizationServiceMockRecorder) GetByID(ctx, id interface{}) *go
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByID", reflect.TypeOf((*MockAuthorizationService)(nil).GetByID), ctx, id)
 }
+
+// MockAuthorizationHandlerAccessTokenEncoding is a mock of AuthorizationHandlerAccessTokenEncoding interface.
+type MockAuthorizationHandlerAccessTokenEncoding struct {
+	ctrl     *gomock.Controller
+	recorder *MockAuthorizationHandlerAccessTokenEncodingMockRecorder
+}
+
+// MockAuthorizationHandlerAccessTokenEncodingMockRecorder is the mock recorder for MockAuthorizationHandlerAccessTokenEncoding.
+type MockAuthorizationHandlerAccessTokenEncodingMockRecorder struct {
+	mock *MockAuthorizationHandlerAccessTokenEncoding
+}
+
+// NewMockAuthorizationHandlerAccessTokenEncoding creates a new mock instance.
+func NewMockAuthorizationHandlerAccessTokenEncoding(ctrl *gomock.Controller) *MockAuthorizationHandlerAccessTokenEncoding {
+	mock := &MockAuthorizationHandlerAccessTokenEncoding{ctrl: ctrl}
+	mock.recorder = &MockAuthorizationHandlerAccessTokenEncodingMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockAuthorizationHandlerAccessTokenEncoding) EXPECT() *MockAuthorizationHandlerAccessTokenEncodingMockRecorder {
+	return m.recorder
+}
+
+// MakeUserAccessTokenFromPreparationResult mocks base method.
+func (m *MockAuthorizationHandlerAccessTokenEncoding) MakeUserAccessTokenFromPreparationResult(ctx context.Context, options oauth.MakeUserAccessTokenFromPreparationOptions) (*oauth.IssueAccessGrantResult, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "MakeUserAccessTokenFromPreparationResult", ctx, options)
+	ret0, _ := ret[0].(*oauth.IssueAccessGrantResult)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// MakeUserAccessTokenFromPreparationResult indicates an expected call of MakeUserAccessTokenFromPreparationResult.
+func (mr *MockAuthorizationHandlerAccessTokenEncodingMockRecorder) MakeUserAccessTokenFromPreparationResult(ctx, options interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MakeUserAccessTokenFromPreparationResult", reflect.TypeOf((*MockAuthorizationHandlerAccessTokenEncoding)(nil).MakeUserAccessTokenFromPreparationResult), ctx, options)
+}
+
+// MockAuthorizationHandlerPreAuthenticatedURLTokenService is a mock of AuthorizationHandlerPreAuthenticatedURLTokenService interface.
+type MockAuthorizationHandlerPreAuthenticatedURLTokenService struct {
+	ctrl     *gomock.Controller
+	recorder *MockAuthorizationHandlerPreAuthenticatedURLTokenServiceMockRecorder
+}
+
+// MockAuthorizationHandlerPreAuthenticatedURLTokenServiceMockRecorder is the mock recorder for MockAuthorizationHandlerPreAuthenticatedURLTokenService.
+type MockAuthorizationHandlerPreAuthenticatedURLTokenServiceMockRecorder struct {
+	mock *MockAuthorizationHandlerPreAuthenticatedURLTokenService
+}
+
+// NewMockAuthorizationHandlerPreAuthenticatedURLTokenService creates a new mock instance.
+func NewMockAuthorizationHandlerPreAuthenticatedURLTokenService(ctrl *gomock.Controller) *MockAuthorizationHandlerPreAuthenticatedURLTokenService {
+	mock := &MockAuthorizationHandlerPreAuthenticatedURLTokenService{ctrl: ctrl}
+	mock.recorder = &MockAuthorizationHandlerPreAuthenticatedURLTokenServiceMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockAuthorizationHandlerPreAuthenticatedURLTokenService) EXPECT() *MockAuthorizationHandlerPreAuthenticatedURLTokenServiceMockRecorder {
+	return m.recorder
+}
+
+// ExchangeForAccessToken mocks base method.
+func (m *MockAuthorizationHandlerPreAuthenticatedURLTokenService) ExchangeForAccessToken(ctx context.Context, client *config.OAuthClientConfig, sessionID, token string) (oauth.PrepareUserAccessTokenResult, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ExchangeForAccessToken", ctx, client, sessionID, token)
+	ret0, _ := ret[0].(oauth.PrepareUserAccessTokenResult)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ExchangeForAccessToken indicates an expected call of ExchangeForAccessToken.
+func (mr *MockAuthorizationHandlerPreAuthenticatedURLTokenServiceMockRecorder) ExchangeForAccessToken(ctx, client, sessionID, token interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ExchangeForAccessToken", reflect.TypeOf((*MockAuthorizationHandlerPreAuthenticatedURLTokenService)(nil).ExchangeForAccessToken), ctx, client, sessionID, token)
+}
+
+// MockAuthorizationHandlerDatabase is a mock of AuthorizationHandlerDatabase interface.
+type MockAuthorizationHandlerDatabase struct {
+	ctrl     *gomock.Controller
+	recorder *MockAuthorizationHandlerDatabaseMockRecorder
+}
+
+// MockAuthorizationHandlerDatabaseMockRecorder is the mock recorder for MockAuthorizationHandlerDatabase.
+type MockAuthorizationHandlerDatabaseMockRecorder struct {
+	mock *MockAuthorizationHandlerDatabase
+}
+
+// NewMockAuthorizationHandlerDatabase creates a new mock instance.
+func NewMockAuthorizationHandlerDatabase(ctrl *gomock.Controller) *MockAuthorizationHandlerDatabase {
+	mock := &MockAuthorizationHandlerDatabase{ctrl: ctrl}
+	mock.recorder = &MockAuthorizationHandlerDatabaseMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockAuthorizationHandlerDatabase) EXPECT() *MockAuthorizationHandlerDatabaseMockRecorder {
+	return m.recorder
+}
+
+// WithTx mocks base method.
+func (m *MockAuthorizationHandlerDatabase) WithTx(ctx context.Context, do func(context.Context) error) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "WithTx", ctx, do)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// WithTx indicates an expected call of WithTx.
+func (mr *MockAuthorizationHandlerDatabaseMockRecorder) WithTx(ctx, do interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithTx", reflect.TypeOf((*MockAuthorizationHandlerDatabase)(nil).WithTx), ctx, do)
+}

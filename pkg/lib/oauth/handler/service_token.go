@@ -58,8 +58,8 @@ type ClientCredentialsAccessTokenOptions struct {
 	Resource           *resourcescope.Resource
 }
 
-type IssueAccessGrantByRefreshTokenOptions struct {
-	oauth.IssueAccessGrantOptions
+type PrepareUserAccessGrantByRefreshTokenOptions struct {
+	oauth.PrepareUserAccessGrantOptions
 	ShouldRotateRefreshToken bool
 }
 
@@ -90,11 +90,16 @@ type TokenServiceOfflineGrantService interface {
 }
 
 type TokenServiceAccessGrantService interface {
-	IssueAccessGrant(
+	PrepareUserAccessGrant(
 		ctx context.Context,
-		options oauth.IssueAccessGrantOptions,
-	) (*oauth.IssueAccessGrantResult, error)
+		options oauth.PrepareUserAccessGrantOptions,
+	) (oauth.PrepareUserAccessTokenResult, error)
 }
+
+type TokenServiceAccessTokenIssuer interface {
+	EncodeClientAccessToken(ctx context.Context, options oauth.EncodeClientAccessTokenOptions) (string, error)
+}
+
 type TokenService struct {
 	RemoteIP        httputil.RemoteIP
 	UserAgentString httputil.UserAgentString
@@ -106,7 +111,7 @@ type TokenService struct {
 	AccessGrants        TokenServiceAccessGrantStore
 	OfflineGrantService TokenServiceOfflineGrantService
 	AccessEvents        *access.EventProvider
-	AccessTokenIssuer   AccessTokenIssuer
+	AccessTokenIssuer   TokenServiceAccessTokenIssuer
 	GenerateToken       TokenGenerator
 	Clock               clock.Clock
 	Users               TokenHandlerUserFacade
@@ -229,13 +234,16 @@ func (s *TokenService) IssueRefreshTokenForOfflineGrant(
 	return newOfflineGrant, newRefreshTokenResult.TokenHash, nil
 }
 
-func (s *TokenService) IssueAccessGrantByRefreshToken(
-	ctx context.Context,
-	options IssueAccessGrantByRefreshTokenOptions,
-	resp protocol.TokenResponse,
-) error {
+type PrepareUserAccessGrantByRefreshTokenResult struct {
+	RotateRefreshTokenResult *oauth.RotateRefreshTokenResult
+	PreparationResult        oauth.PrepareUserAccessTokenResult
+}
 
-	issueOptions := options.IssueAccessGrantOptions
+func (s *TokenService) PrepareUserAccessGrantByRefreshToken(
+	ctx context.Context,
+	options PrepareUserAccessGrantByRefreshTokenOptions,
+) (*PrepareUserAccessGrantByRefreshTokenResult, error) {
+	result := &PrepareUserAccessGrantByRefreshTokenResult{}
 
 	if options.ShouldRotateRefreshToken &&
 		options.SessionLike.SessionType() == session.TypeOfflineGrant &&
@@ -243,7 +251,7 @@ func (s *TokenService) IssueAccessGrantByRefreshToken(
 
 		grant, err := s.OfflineGrantService.GetOfflineGrant(ctx, options.SessionLike.SessionID())
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		rotateResult, _, err := s.OfflineGrantService.RotateRefreshToken(ctx,
@@ -252,22 +260,20 @@ func (s *TokenService) IssueAccessGrantByRefreshToken(
 				InitialRefreshTokenHash: options.InitialRefreshTokenHash,
 			})
 		if err != nil {
-			return err
+			return nil, err
 		}
-		resp.RefreshToken(oauth.EncodeRefreshToken(rotateResult.Token, grant.ID))
+		result.RotateRefreshTokenResult = rotateResult
 	}
 
-	result, err := s.AccessGrantService.IssueAccessGrant(
-		ctx, issueOptions,
+	preparationResult, err := s.AccessGrantService.PrepareUserAccessGrant(
+		ctx, options.PrepareUserAccessGrantOptions,
 	)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	resp.TokenType(result.TokenType)
-	resp.AccessToken(result.Token)
-	resp.ExpiresIn(result.ExpiresIn)
-	return nil
+	result.PreparationResult = preparationResult
+	return result, nil
 }
 
 func (s *TokenService) ParseRefreshToken(ctx context.Context, token string) (

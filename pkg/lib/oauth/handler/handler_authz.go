@@ -110,6 +110,26 @@ type AuthorizationService interface {
 	) (*oauth.Authorization, error)
 }
 
+type AuthorizationHandlerAccessTokenEncoding interface {
+	MakeUserAccessTokenFromPreparationResult(
+		ctx context.Context,
+		options oauth.MakeUserAccessTokenFromPreparationOptions,
+	) (*oauth.IssueAccessGrantResult, error)
+}
+
+type AuthorizationHandlerPreAuthenticatedURLTokenService interface {
+	ExchangeForAccessToken(
+		ctx context.Context,
+		client *config.OAuthClientConfig,
+		sessionID string,
+		token string,
+	) (oauth.PrepareUserAccessTokenResult, error)
+}
+
+type AuthorizationHandlerDatabase interface {
+	WithTx(ctx context.Context, do func(ctx context.Context) error) (err error)
+}
+
 var AuthorizationHandlerLogger = slogutil.NewLogger("oauth-authz")
 
 type AuthorizationHandler struct {
@@ -121,20 +141,23 @@ type AuthorizationHandler struct {
 	HTTPOrigin            httputil.HTTPOrigin
 	AppDomains            config.AppDomains
 
-	UIURLBuilder                    UIURLBuilder
-	UIInfoResolver                  UIInfoResolver
-	AuthenticationInfoResolver      AuthenticationInfoResolver
-	Authorizations                  AuthorizationService
-	AppSessionTokenService          AppSessionTokenService
-	AuthenticationInfoService       AuthenticationInfoService
-	Clock                           clock.Clock
-	Cookies                         CookieManager
-	OAuthSessionService             OAuthSessionService
-	CodeGrantService                CodeGrantService
-	SettingsActionGrantService      SettingsActionGrantService
-	ClientResolver                  OAuthClientResolver
-	PreAuthenticatedURLTokenService PreAuthenticatedURLTokenService
-	IDTokenIssuer                   IDTokenIssuer
+	Database AuthorizationHandlerDatabase
+
+	UIURLBuilder                            UIURLBuilder
+	UIInfoResolver                          UIInfoResolver
+	AuthenticationInfoResolver              AuthenticationInfoResolver
+	Authorizations                          AuthorizationService
+	AppSessionTokenService                  AppSessionTokenService
+	AuthenticationInfoService               AuthenticationInfoService
+	Clock                                   clock.Clock
+	Cookies                                 CookieManager
+	OAuthSessionService                     OAuthSessionService
+	CodeGrantService                        CodeGrantService
+	SettingsActionGrantService              SettingsActionGrantService
+	ClientResolver                          OAuthClientResolver
+	PreAuthenticatedURLTokenService         AuthorizationHandlerPreAuthenticatedURLTokenService
+	IDTokenIssuer                           IDTokenIssuer
+	AuthorizationHandlerAccessTokenEncoding AuthorizationHandlerAccessTokenEncoding
 }
 
 func (h *AuthorizationHandler) HandleConsentWithoutUserConsent(ctx context.Context, req *http.Request) (httputil.Result, *ConsentRequired) {
@@ -345,34 +368,60 @@ func (h *AuthorizationHandler) prepareConsentRequest(ctx context.Context, req *h
 	}, nil
 }
 
-func (h *AuthorizationHandler) HandleRequestWithTx(
+func (h *AuthorizationHandler) HandleRequest(
 	ctx context.Context,
 	r protocol.AuthorizationRequest,
 	params *AuthorizationParams,
-) httputil.Result {
+) (result httputil.Result) {
 	logger := AuthorizationHandlerLogger.GetLogger(ctx)
-	result, err := h.doHandleRequestWithTx(ctx, params.RedirectURI, params.Client, r)
-	if err != nil {
-		var oauthError *protocol.OAuthProtocolError
-		resultErr := AuthorizationResultError{
-			RedirectURI:  params.RedirectURI,
-			ResponseMode: r.ResponseMode(),
+	var err error
+
+	defer func() {
+		if err != nil {
+			var oauthError *protocol.OAuthProtocolError
+			resultErr := AuthorizationResultError{
+				RedirectURI:  params.RedirectURI,
+				ResponseMode: r.ResponseMode(),
+			}
+			if errors.As(err, &oauthError) {
+				resultErr.Response = oauthError.Response
+			} else {
+				logger.WithError(err).Error(ctx, "authz handler failed")
+				resultErr.Response = protocol.NewErrorResponse("server_error", "internal server error")
+				resultErr.InternalError = true
+			}
+			state := r.State()
+			if state != "" {
+				resultErr.Response.State(r.State())
+			}
+			result = resultErr
 		}
-		if errors.As(err, &oauthError) {
-			resultErr.Response = oauthError.Response
-		} else {
-			logger.WithError(err).Error(ctx, "authz handler failed")
-			resultErr.Response = protocol.NewErrorResponse("server_error", "internal server error")
-			resultErr.InternalError = true
+	}()
+
+	if r.ResponseType().Equal(PreAuthenticatedURLTokenResponseType) {
+		var preparationResult oauth.PrepareUserAccessTokenResult
+		err = h.Database.WithTx(ctx, func(ctx context.Context) error {
+			preparationResult, err = h.doHandlePreAuthenticatedURLWithTx(ctx, params.RedirectURI, params.Client, r)
+			return err
+		})
+		if err != nil {
+			return
 		}
-		state := r.State()
-		if state != "" {
-			resultErr.Response.State(r.State())
+		result, err = h.doHandlePreAuthenticatedURLAfterTx(ctx, params.RedirectURI, params.Client, r, preparationResult)
+		if err != nil {
+			return
 		}
-		result = resultErr
+	} else {
+		err = h.Database.WithTx(ctx, func(ctx context.Context) error {
+			result, err = h.doHandleRequestWithTx(ctx, params.RedirectURI, params.Client, r)
+			return err
+		})
+		if err != nil {
+			return
+		}
 	}
 
-	return result
+	return
 }
 
 // nolint: gocognit
@@ -382,10 +431,6 @@ func (h *AuthorizationHandler) doHandleRequestWithTx(
 	client *config.OAuthClientConfig,
 	r protocol.AuthorizationRequest,
 ) (httputil.Result, error) {
-	if r.ResponseType().Equal(PreAuthenticatedURLTokenResponseType) {
-		return h.doHandlePreAuthenticatedURL(ctx, redirectURI, client, r)
-	}
-
 	err := oauth.ValidateScopesByClientConfig(client, r.Scope())
 	if err != nil {
 		return nil, err
@@ -513,12 +558,12 @@ func (h *AuthorizationHandler) doHandleRequestWithTx(
 	return result, nil
 }
 
-func (h *AuthorizationHandler) doHandlePreAuthenticatedURL(
+func (h *AuthorizationHandler) doHandlePreAuthenticatedURLWithTx(
 	ctx context.Context,
 	redirectURI *url.URL,
 	client *config.OAuthClientConfig,
 	r protocol.AuthorizationRequest,
-) (httputil.Result, error) {
+) (oauth.PrepareUserAccessTokenResult, error) {
 	idTokenHint, ok := r.IDTokenHint()
 	if !ok {
 		panic("cannot get id_token_hint, the request should be validated")
@@ -540,7 +585,7 @@ func (h *AuthorizationHandler) doHandlePreAuthenticatedURL(
 		return nil, protocol.NewError("invalid_request", "invalid sid format id_token_hint")
 	}
 
-	accessToken, err := h.PreAuthenticatedURLTokenService.ExchangeForAccessToken(
+	preparationResult, err := h.PreAuthenticatedURLTokenService.ExchangeForAccessToken(
 		ctx,
 		client,
 		sessionID,
@@ -558,7 +603,25 @@ func (h *AuthorizationHandler) doHandlePreAuthenticatedURL(
 		}
 		return nil, err
 	}
-	cookie := h.Cookies.ValueCookie(session.AppAccessTokenCookieDef, accessToken)
+
+	return preparationResult, nil
+}
+
+func (h *AuthorizationHandler) doHandlePreAuthenticatedURLAfterTx(
+	ctx context.Context,
+	redirectURI *url.URL,
+	client *config.OAuthClientConfig,
+	r protocol.AuthorizationRequest,
+	preparationResult oauth.PrepareUserAccessTokenResult,
+) (httputil.Result, error) {
+	accessTokenResult, err := h.AuthorizationHandlerAccessTokenEncoding.MakeUserAccessTokenFromPreparationResult(ctx, oauth.MakeUserAccessTokenFromPreparationOptions{
+		PreparationResult: preparationResult,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	cookie := h.Cookies.ValueCookie(session.AppAccessTokenCookieDef, accessTokenResult.Token)
 
 	resp := protocol.AuthorizationResponse{}
 	state := r.State()
@@ -572,7 +635,6 @@ func (h *AuthorizationHandler) doHandlePreAuthenticatedURL(
 		Response:     resp,
 		Cookies:      []*http.Cookie{cookie},
 	}, nil
-
 }
 
 func (h *AuthorizationHandler) handleSettingsAction(

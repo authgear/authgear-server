@@ -13,7 +13,7 @@
 /pkg/auth/handler/api/accountmanagement_v1_identification.go:64:9: requestcontext
 /pkg/auth/handler/api/accountmanagement_v1_identification_oauth.go:55:9: requestcontext
 /pkg/auth/handler/api/anonymous_user_promotion_code.go:78:9: requestcontext
-/pkg/auth/handler/api/anonymous_user_signup.go:84:9: requestcontext
+/pkg/auth/handler/api/anonymous_user_signup.go:93:9: requestcontext
 /pkg/auth/handler/api/authenticationflow_v1_create.go:81:9: requestcontext
 /pkg/auth/handler/api/authenticationflow_v1_get.go:40:9: requestcontext
 /pkg/auth/handler/api/authenticationflow_v1_input.go:68:9: requestcontext
@@ -24,9 +24,9 @@
 /pkg/auth/handler/api/workflow_v2.go:205:9: requestcontext
 /pkg/auth/handler/api/workflow_websocket.go:52:9: requestcontext
 /pkg/auth/handler/oauth/app_session_token.go:68:9: requestcontext
-/pkg/auth/handler/oauth/authorize.go:48:68: requestcontext
-/pkg/auth/handler/oauth/authorize.go:66:46: requestcontext
-/pkg/auth/handler/oauth/authorize.go:67:31: requestcontext
+/pkg/auth/handler/oauth/authorize.go:46:68: requestcontext
+/pkg/auth/handler/oauth/authorize.go:60:46: requestcontext
+/pkg/auth/handler/oauth/authorize.go:61:31: requestcontext
 /pkg/auth/handler/oauth/challenge.go:88:9: requestcontext
 /pkg/auth/handler/oauth/consent.go:80:27: requestcontext
 /pkg/auth/handler/oauth/consent.go:100:28: requestcontext
@@ -247,7 +247,7 @@
 /pkg/auth/handler/webapp/sso_callback.go:61:44: requestcontext
 /pkg/auth/handler/webapp/sso_callback.go:72:44: requestcontext
 /pkg/auth/handler/webapp/sso_callback.go:83:28: requestcontext
-/pkg/auth/handler/webapp/tester.go:278:27: requestcontext
+/pkg/auth/handler/webapp/tester.go:279:27: requestcontext
 /pkg/auth/handler/webapp/turbo_response_writer.go:33:29: requestcontext
 /pkg/auth/handler/webapp/use_passkey.go:53:27: requestcontext
 /pkg/auth/handler/webapp/verify_identity.go:161:27: requestcontext

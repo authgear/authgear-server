@@ -17,6 +17,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/handler"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
@@ -69,14 +70,17 @@ func TestAuthorizationHandler(t *testing.T) {
 		clientResolver := &multiClientResolver{
 			ClientConfigs: make(map[string]*config.OAuthClientConfig),
 		}
-		preAuthenticatedURLTokenService := NewMockPreAuthenticatedURLTokenService(ctrl)
+		preAuthenticatedURLTokenService := NewMockAuthorizationHandlerPreAuthenticatedURLTokenService(ctrl)
 		idTokenIssuer := NewMockIDTokenIssuer(ctrl)
+		accessTokenEncoding := NewMockAuthorizationHandlerAccessTokenEncoding(ctrl)
 
 		appID := config.AppID("app-id")
 		h := &handler.AuthorizationHandler{
 			AppID:      appID,
 			Config:     &config.OAuthConfig{},
 			HTTPOrigin: "http://accounts.example.com",
+
+			Database: &db.MockHandle{},
 
 			UIURLBuilder:              uiURLBuilder,
 			UIInfoResolver:            uiInfoResolver,
@@ -91,9 +95,10 @@ func TestAuthorizationHandler(t *testing.T) {
 				CodeGenerator: func() string { return "authz-code" },
 				CodeGrants:    codeGrantStore,
 			},
-			ClientResolver:                  clientResolver,
-			PreAuthenticatedURLTokenService: preAuthenticatedURLTokenService,
-			IDTokenIssuer:                   idTokenIssuer,
+			ClientResolver:                          clientResolver,
+			PreAuthenticatedURLTokenService:         preAuthenticatedURLTokenService,
+			IDTokenIssuer:                           idTokenIssuer,
+			AuthorizationHandlerAccessTokenEncoding: accessTokenEncoding,
 		}
 		handle := func(ctx context.Context, r protocol.AuthorizationRequest) *httptest.ResponseRecorder {
 			ctx, params, errResult := h.ValidateRequestWithoutTx(ctx, r)
@@ -101,7 +106,7 @@ func TestAuthorizationHandler(t *testing.T) {
 			if errResult != nil {
 				result = errResult
 			} else {
-				result = h.HandleRequestWithTx(ctx, r, params)
+				result = h.HandleRequest(ctx, r, params)
 			}
 
 			req, _ := http.NewRequest("GET", "/authorize", nil)
@@ -487,7 +492,10 @@ func TestAuthorizationHandler(t *testing.T) {
 					testPreAuthenticatedURLToken,
 				).
 					Times(1).
-					Return(testAccessToken, nil)
+					Return(nil, nil)
+				accessTokenEncoding.EXPECT().MakeUserAccessTokenFromPreparationResult(gomock.Any(), gomock.Any()).Times(1).Return(&oauth.IssueAccessGrantResult{
+					Token: testAccessToken,
+				}, nil)
 
 				req := protocol.AuthorizationRequest{
 					"client_id":                     "client-id",

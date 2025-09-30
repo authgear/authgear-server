@@ -14,6 +14,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
+	oauthhandler "github.com/authgear/authgear-server/pkg/lib/oauth/handler"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/lib/oauthclient"
 	"github.com/authgear/authgear-server/pkg/lib/session"
@@ -63,7 +64,7 @@ type TesterAuthTokensIssuer interface {
 		ctx context.Context,
 		client *config.OAuthClientConfig,
 		r protocol.TokenRequest,
-	) (protocol.TokenResponse, error)
+	) (*oauthhandler.HandleResult, error)
 	IssueAppSessionToken(ctx context.Context, refreshToken string) (string, *oauth.AppSessionToken, error)
 }
 
@@ -194,7 +195,7 @@ func (h *TesterHandler) doCodeExchange(ctx context.Context, code string, stateb6
 	tokenRequest["code_verifier"] = []string{testerToken.PKCEVerifier.CodeVerifier}
 	tokenRequest["redirect_uri"] = []string{h.TesterEndpointsProvider.TesterURL().String()}
 
-	tokenResp, err := h.TesterTokenIssuer.IssueTokensForAuthorizationCode(
+	handleResult, err := h.TesterTokenIssuer.IssueTokensForAuthorizationCode(
 		ctx,
 		client,
 		tokenRequest,
@@ -204,7 +205,7 @@ func (h *TesterHandler) doCodeExchange(ctx context.Context, code string, stateb6
 		return err
 	}
 
-	refreshToken, ok := tokenResp["refresh_token"].(string)
+	refreshToken, ok := handleResult.Response["refresh_token"].(string)
 	if !ok {
 		return fmt.Errorf("tester: refresh_token is not string")
 	}

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -181,8 +182,15 @@ type RotateRefreshTokenOptions struct {
 }
 
 type RotateRefreshTokenResult struct {
+	GrantID   string
 	Token     string
 	TokenHash string
+}
+
+func (r *RotateRefreshTokenResult) WriteTo(resp protocol.TokenResponse) {
+	if r != nil && resp != nil {
+		resp.RefreshToken(EncodeRefreshToken(r.Token, r.GrantID))
+	}
 }
 
 func (s *OfflineGrantService) CreateNewRefreshToken(
@@ -267,6 +275,7 @@ func (s *OfflineGrantService) RotateRefreshToken(
 	}
 
 	result := &RotateRefreshTokenResult{
+		GrantID:   options.OfflineGrant.ID,
 		Token:     newToken,
 		TokenHash: newTokenHash,
 	}

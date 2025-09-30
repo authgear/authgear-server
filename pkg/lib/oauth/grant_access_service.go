@@ -5,6 +5,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
@@ -16,7 +17,7 @@ type AccessGrantService struct {
 	Clock             clock.Clock
 }
 
-type IssueAccessGrantOptions struct {
+type PrepareUserAccessGrantOptions struct {
 	ClientConfig            *config.OAuthClientConfig
 	Scopes                  []string
 	AuthorizationID         string
@@ -31,10 +32,18 @@ type IssueAccessGrantResult struct {
 	ExpiresIn int
 }
 
-func (s *AccessGrantService) IssueAccessGrant(
+func (r *IssueAccessGrantResult) WriteTo(resp protocol.TokenResponse) {
+	if r != nil && resp != nil {
+		resp.TokenType(r.TokenType)
+		resp.AccessToken(r.Token)
+		resp.ExpiresIn(r.ExpiresIn)
+	}
+}
+
+func (s *AccessGrantService) PrepareUserAccessGrant(
 	ctx context.Context,
-	options IssueAccessGrantOptions,
-) (*IssueAccessGrantResult, error) {
+	options PrepareUserAccessGrantOptions,
+) (PrepareUserAccessTokenResult, error) {
 	token := GenerateToken()
 	now := s.Clock.NowUTC()
 
@@ -55,7 +64,7 @@ func (s *AccessGrantService) IssueAccessGrant(
 	}
 
 	clientLike := ClientClientLike(options.ClientConfig, options.Scopes)
-	at, err := s.AccessTokenIssuer.EncodeUserAccessToken(ctx, EncodeUserAccessTokenOptions{
+	preparation, err := s.AccessTokenIssuer.PrepareUserAccessToken(ctx, EncodeUserAccessTokenOptions{
 		OriginalToken:      token,
 		ClientConfig:       options.ClientConfig,
 		ClientLike:         clientLike,
@@ -66,11 +75,5 @@ func (s *AccessGrantService) IssueAccessGrant(
 		return nil, err
 	}
 
-	result := &IssueAccessGrantResult{
-		Token:     at,
-		TokenType: "Bearer",
-		ExpiresIn: int(options.ClientConfig.AccessTokenLifetime),
-	}
-
-	return result, nil
+	return preparation, nil
 }

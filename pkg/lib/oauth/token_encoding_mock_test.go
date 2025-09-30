@@ -140,6 +140,35 @@ func (mr *MockEventServiceMockRecorder) DispatchEventOnCommit(ctx, payload inter
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DispatchEventOnCommit", reflect.TypeOf((*MockEventService)(nil).DispatchEventOnCommit), ctx, payload)
 }
 
+// DispatchEventWithoutTx mocks base method.
+func (m *MockEventService) DispatchEventWithoutTx(ctx context.Context, e *event.Event) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DispatchEventWithoutTx", ctx, e)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DispatchEventWithoutTx indicates an expected call of DispatchEventWithoutTx.
+func (mr *MockEventServiceMockRecorder) DispatchEventWithoutTx(ctx, e interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DispatchEventWithoutTx", reflect.TypeOf((*MockEventService)(nil).DispatchEventWithoutTx), ctx, e)
+}
+
+// PrepareBlockingEventWithTx mocks base method.
+func (m *MockEventService) PrepareBlockingEventWithTx(ctx context.Context, payload event.BlockingPayload) (*event.Event, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "PrepareBlockingEventWithTx", ctx, payload)
+	ret0, _ := ret[0].(*event.Event)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// PrepareBlockingEventWithTx indicates an expected call of PrepareBlockingEventWithTx.
+func (mr *MockEventServiceMockRecorder) PrepareBlockingEventWithTx(ctx, payload interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PrepareBlockingEventWithTx", reflect.TypeOf((*MockEventService)(nil).PrepareBlockingEventWithTx), ctx, payload)
+}
+
 // MockAccessTokenEncodingIdentityService is a mock of AccessTokenEncodingIdentityService interface.
 type MockAccessTokenEncodingIdentityService struct {
 	ctrl     *gomock.Controller
@@ -176,4 +205,39 @@ func (m *MockAccessTokenEncodingIdentityService) ListIdentitiesThatHaveStandardA
 func (mr *MockAccessTokenEncodingIdentityServiceMockRecorder) ListIdentitiesThatHaveStandardAttributes(ctx, userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListIdentitiesThatHaveStandardAttributes", reflect.TypeOf((*MockAccessTokenEncodingIdentityService)(nil).ListIdentitiesThatHaveStandardAttributes), ctx, userID)
+}
+
+// MockPrepareUserAccessTokenResult is a mock of PrepareUserAccessTokenResult interface.
+type MockPrepareUserAccessTokenResult struct {
+	ctrl     *gomock.Controller
+	recorder *MockPrepareUserAccessTokenResultMockRecorder
+}
+
+// MockPrepareUserAccessTokenResultMockRecorder is the mock recorder for MockPrepareUserAccessTokenResult.
+type MockPrepareUserAccessTokenResultMockRecorder struct {
+	mock *MockPrepareUserAccessTokenResult
+}
+
+// NewMockPrepareUserAccessTokenResult creates a new mock instance.
+func NewMockPrepareUserAccessTokenResult(ctrl *gomock.Controller) *MockPrepareUserAccessTokenResult {
+	mock := &MockPrepareUserAccessTokenResult{ctrl: ctrl}
+	mock.recorder = &MockPrepareUserAccessTokenResultMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockPrepareUserAccessTokenResult) EXPECT() *MockPrepareUserAccessTokenResultMockRecorder {
+	return m.recorder
+}
+
+// prepareUserAccessTokenResult mocks base method.
+func (m *MockPrepareUserAccessTokenResult) prepareUserAccessTokenResult() {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "prepareUserAccessTokenResult")
+}
+
+// prepareUserAccessTokenResult indicates an expected call of prepareUserAccessTokenResult.
+func (mr *MockPrepareUserAccessTokenResultMockRecorder) prepareUserAccessTokenResult() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "prepareUserAccessTokenResult", reflect.TypeOf((*MockPrepareUserAccessTokenResult)(nil).prepareUserAccessTokenResult))
 }

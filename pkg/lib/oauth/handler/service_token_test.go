@@ -28,49 +28,57 @@ func TestTokenService(t *testing.T) {
 			AccessGrantService:  accessGrants,
 		}
 
-		Convey("IssueAccessGrantByRefreshToken", func() {
+		Convey("PrepareUserAccessGrantByRefreshToken", func() {
 			Convey("should rotate refresh token", func() {
 				offlineGrants.EXPECT().GetOfflineGrant(gomock.Any(), "grant-id").Return(&oauth.OfflineGrant{
 					ID: "grant-id",
 				}, nil)
 				offlineGrants.EXPECT().RotateRefreshToken(gomock.Any(), gomock.Any()).Return(&oauth.RotateRefreshTokenResult{
+					GrantID:   "grant-id",
 					Token:     "new-refresh-token",
 					TokenHash: "new-refresh-token-hash",
 				}, &oauth.OfflineGrant{
 					ID: "grant-id",
 				}, nil)
-				accessGrants.EXPECT().IssueAccessGrant(gomock.Any(), gomock.Any()).Return(&oauth.IssueAccessGrantResult{}, nil)
+				accessGrants.EXPECT().PrepareUserAccessGrant(gomock.Any(), gomock.Any()).Return(nil, nil)
 
-				resp := protocol.TokenResponse{}
-				err := s.IssueAccessGrantByRefreshToken(context.Background(), handler.IssueAccessGrantByRefreshTokenOptions{
+				result1, err := s.PrepareUserAccessGrantByRefreshToken(context.Background(), handler.PrepareUserAccessGrantByRefreshTokenOptions{
 					ShouldRotateRefreshToken: true,
-					IssueAccessGrantOptions: oauth.IssueAccessGrantOptions{
+					PrepareUserAccessGrantOptions: oauth.PrepareUserAccessGrantOptions{
 						SessionLike: &oauth.OfflineGrant{
 							ID: "grant-id",
 						},
-						InitialRefreshTokenHash: "refresh-token-hash",
+						InitialRefreshTokenHash: "initial-refresh-token-hash",
 					},
-				}, resp)
+				})
 
+				resp := protocol.TokenResponse{}
 				So(err, ShouldBeNil)
-				So(resp, ShouldContainKey, "refresh_token")
+				So(result1.RotateRefreshTokenResult, ShouldNotBeNil)
+				So(result1.RotateRefreshTokenResult.TokenHash, ShouldEqual, "new-refresh-token-hash")
+				So(result1.RotateRefreshTokenResult.GrantID, ShouldEqual, "grant-id")
+
+				result1.RotateRefreshTokenResult.WriteTo(resp)
 				So(resp["refresh_token"], ShouldEqual, "grant-id.new-refresh-token")
 			})
 
 			Convey("should not rotate refresh token", func() {
-				accessGrants.EXPECT().IssueAccessGrant(gomock.Any(), gomock.Any()).Return(&oauth.IssueAccessGrantResult{}, nil)
+				accessGrants.EXPECT().PrepareUserAccessGrant(gomock.Any(), gomock.Any()).Return(nil, nil)
 
 				resp := protocol.TokenResponse{}
-				err := s.IssueAccessGrantByRefreshToken(context.Background(), handler.IssueAccessGrantByRefreshTokenOptions{
+				result1, err := s.PrepareUserAccessGrantByRefreshToken(context.Background(), handler.PrepareUserAccessGrantByRefreshTokenOptions{
 					ShouldRotateRefreshToken: false,
-					IssueAccessGrantOptions: oauth.IssueAccessGrantOptions{
+					PrepareUserAccessGrantOptions: oauth.PrepareUserAccessGrantOptions{
 						SessionLike: &oauth.OfflineGrant{
 							ID: "grant-id",
 						},
 					},
-				}, resp)
+				})
 
 				So(err, ShouldBeNil)
+				So(result1.RotateRefreshTokenResult, ShouldBeNil)
+
+				result1.RotateRefreshTokenResult.WriteTo(resp)
 				So(resp, ShouldNotContainKey, "refresh_token")
 			})
 		})
