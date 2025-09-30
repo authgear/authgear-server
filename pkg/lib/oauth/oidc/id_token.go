@@ -86,33 +86,31 @@ func (ti *IDTokenIssuer) IssueIDToken(ctx context.Context, opts IssueIDTokenOpti
 	_ = claims.Set(jwt.IssuedAtKey, now.Unix())
 	// exp
 	_ = claims.Set(jwt.ExpirationKey, now.Add(IDTokenValidDuration).Unix())
+	// auth_time
+	_ = claims.Set(string(model.ClaimAuthTime), info.AuthenticatedAt.Unix())
+	// sid
+	if sid := opts.SID; sid != "" {
+		_ = claims.Set(string(model.ClaimSID), sid)
+	}
+	// amr
+	if amr := info.AMR; len(amr) > 0 {
+		_ = claims.Set(string(model.ClaimAMR), amr)
+	}
+	// ds_hash
+	if dshash := opts.DeviceSecretHash; dshash != "" {
+		_ = claims.Set(string(model.ClaimDeviceSecretHash), dshash)
+	}
+	// nonce
+	if nonce := opts.Nonce; nonce != "" {
+		_ = claims.Set("nonce", nonce)
+	}
 
 	err := ti.PopulateUserClaimsInIDToken(ctx, claims, info.UserID, opts.ClientLike)
 	if err != nil {
 		return "", err
 	}
 
-	// auth_time
-	_ = claims.Set(string(model.ClaimAuthTime), info.AuthenticatedAt.Unix())
-	if sid := opts.SID; sid != "" {
-		// sid
-		_ = claims.Set(string(model.ClaimSID), sid)
-	}
-	if amr := info.AMR; len(amr) > 0 {
-		// amr
-		_ = claims.Set(string(model.ClaimAMR), amr)
-	}
-	if dshash := opts.DeviceSecretHash; dshash != "" {
-		// ds_hash
-		_ = claims.Set(string(model.ClaimDeviceSecretHash), dshash)
-	}
-
-	// Populate authorization flow specific claims
-	if nonce := opts.Nonce; nonce != "" {
-		_ = claims.Set("nonce", nonce)
-	}
-
-	// Populate model.ClaimOAuthUsed
+	// https://authgear.com/claims/oauth/asserted
 	var oauthUsed []map[string]any
 	for _, idenSpec := range opts.IdentitySpecs {
 		if idenSpec.Type == model.IdentityTypeOAuth && idenSpec.OAuth != nil && idenSpec.OAuth.IncludeIdentityAttributesInIDToken {
