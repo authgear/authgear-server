@@ -13,6 +13,7 @@
       - [authentication.post_identified](#authenticationpost_identified)
       - [authentication.pre_authenticated](#authenticationpre_authenticated)
       - [oidc.jwt.pre_create](#oidcjwtpre_create)
+      - [oidc.id_token.pre_create](#oidcid_tokenpre_create)
     + [Non-blocking Events](#non-blocking-events)
       - [user.created](#usercreated)
       - [user.profile.updated](#userprofileupdated)
@@ -460,6 +461,29 @@ After `authentication.pre_authenticated` is triggered, `amr` constraints in the 
 
 Occurs right before the access token is issued.
 Use this event to add custom fields to the JWT access token.
+
+```json5
+{
+  "payload": {
+    "user": { /* ... */ },
+    "identities": [ ],
+    "jwt": {
+      "payload": {
+        "iss": "issuer",
+        "aud": ["audience"]
+        "sub": "user_id"
+      }
+    }
+  }
+}
+```
+
+- `identities`: This contain all Login ID identities, OAuth identities, or LDAP identities that the user has.
+
+#### oidc.id_token.pre_create
+
+Occurs right before the ID token is issued.
+Use this event to add custom fields to the ID token.
 
 ```json5
 {
