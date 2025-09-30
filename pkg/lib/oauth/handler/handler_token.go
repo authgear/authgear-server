@@ -1072,7 +1072,7 @@ func (h *TokenHandler) handleAnonymousRequest(
 		return nil, err
 	}
 
-	issueAccessGrantOptions := oauth.IssueAccessGrantOptions{
+	prepareUserAccessGrantOptions := oauth.PrepareUserAccessGrantOptions{
 		ClientConfig:            client,
 		Scopes:                  scopes,
 		AuthorizationID:         authz.ID,
@@ -1081,8 +1081,8 @@ func (h *TokenHandler) handleAnonymousRequest(
 		InitialRefreshTokenHash: newTokenHash,
 	}
 	result1, err := h.TokenService.IssueAccessGrantByRefreshToken(ctx, IssueAccessGrantByRefreshTokenOptions{
-		IssueAccessGrantOptions:  issueAccessGrantOptions,
-		ShouldRotateRefreshToken: false, // We do not rotate refresh tokens in anonymous user.
+		PrepareUserAccessGrantOptions: prepareUserAccessGrantOptions,
+		ShouldRotateRefreshToken:      false, // We do not rotate refresh tokens in anonymous user.
 	})
 	if err != nil {
 		return nil, err
@@ -1352,7 +1352,7 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 		return nil, err
 	}
 
-	issueAccessGrantOptions := oauth.IssueAccessGrantOptions{
+	prepareUserAccessGrantOptions := oauth.PrepareUserAccessGrantOptions{
 		ClientConfig:            client,
 		Scopes:                  scopes,
 		AuthorizationID:         authz.ID,
@@ -1361,8 +1361,8 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 		InitialRefreshTokenHash: newTokenHash,
 	}
 	result1, err := h.TokenService.IssueAccessGrantByRefreshToken(ctx, IssueAccessGrantByRefreshTokenOptions{
-		IssueAccessGrantOptions:  issueAccessGrantOptions,
-		ShouldRotateRefreshToken: false, // New refresh token, no need to rotate
+		PrepareUserAccessGrantOptions: prepareUserAccessGrantOptions,
+		ShouldRotateRefreshToken:      false, // New refresh token, no need to rotate
 	})
 	if err != nil {
 		return nil, err
@@ -1861,7 +1861,7 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 		return nil, protocol.NewError("invalid_request", "cannot issue access token")
 	}
 
-	issueAccessGrantOptions := oauth.IssueAccessGrantOptions{
+	prepareUserAccessGrantOptions := oauth.PrepareUserAccessGrantOptions{
 		ClientConfig:       client,
 		Scopes:             code.AuthorizationRequest.Scope(),
 		AuthorizationID:    authz.ID,
@@ -1875,8 +1875,8 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 	result1, err := h.TokenService.IssueAccessGrantByRefreshToken(
 		ctx,
 		IssueAccessGrantByRefreshTokenOptions{
-			IssueAccessGrantOptions:  issueAccessGrantOptions,
-			ShouldRotateRefreshToken: false, // New refresh token, no need to rotate
+			PrepareUserAccessGrantOptions: prepareUserAccessGrantOptions,
+			ShouldRotateRefreshToken:      false, // New refresh token, no need to rotate
 		})
 	if err != nil {
 		return nil, err
@@ -1946,7 +1946,7 @@ func (h *TokenHandler) issueTokensForRefreshToken(
 		resp.IDToken(idToken)
 	}
 
-	issueAccessGrantOptions := oauth.IssueAccessGrantOptions{
+	prepareUserAccessGrantOptions := oauth.PrepareUserAccessGrantOptions{
 		ClientConfig:            client,
 		Scopes:                  offlineGrantSession.Scopes,
 		AuthorizationID:         authz.ID,
@@ -1955,8 +1955,8 @@ func (h *TokenHandler) issueTokensForRefreshToken(
 		InitialRefreshTokenHash: offlineGrantSession.InitialTokenHash,
 	}
 	result1, err := h.TokenService.IssueAccessGrantByRefreshToken(ctx, IssueAccessGrantByRefreshTokenOptions{
-		IssueAccessGrantOptions:  issueAccessGrantOptions,
-		ShouldRotateRefreshToken: client.RefreshTokenRotationEnabled,
+		PrepareUserAccessGrantOptions: prepareUserAccessGrantOptions,
+		ShouldRotateRefreshToken:      client.RefreshTokenRotationEnabled,
 	})
 	if err != nil {
 		return nil, err

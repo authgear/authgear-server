@@ -59,7 +59,7 @@ type ClientCredentialsAccessTokenOptions struct {
 }
 
 type IssueAccessGrantByRefreshTokenOptions struct {
-	oauth.IssueAccessGrantOptions
+	oauth.PrepareUserAccessGrantOptions
 	ShouldRotateRefreshToken bool
 }
 
@@ -90,9 +90,9 @@ type TokenServiceOfflineGrantService interface {
 }
 
 type TokenServiceAccessGrantService interface {
-	IssueAccessGrant(
+	PrepareUserAccessGrant(
 		ctx context.Context,
-		options oauth.IssueAccessGrantOptions,
+		options oauth.PrepareUserAccessGrantOptions,
 	) (oauth.PrepareUserAccessTokenResult, error)
 }
 
@@ -243,8 +243,6 @@ func (s *TokenService) IssueAccessGrantByRefreshToken(
 	ctx context.Context,
 	options IssueAccessGrantByRefreshTokenOptions,
 ) (*IssueAccessGrantByRefreshTokenResult, error) {
-	issueOptions := options.IssueAccessGrantOptions
-
 	result := &IssueAccessGrantByRefreshTokenResult{}
 
 	if options.ShouldRotateRefreshToken &&
@@ -267,8 +265,8 @@ func (s *TokenService) IssueAccessGrantByRefreshToken(
 		result.RotateRefreshTokenResult = rotateResult
 	}
 
-	preparationResult, err := s.AccessGrantService.IssueAccessGrant(
-		ctx, issueOptions,
+	preparationResult, err := s.AccessGrantService.PrepareUserAccessGrant(
+		ctx, options.PrepareUserAccessGrantOptions,
 	)
 	if err != nil {
 		return nil, err

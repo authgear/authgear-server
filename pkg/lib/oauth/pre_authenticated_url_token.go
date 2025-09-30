@@ -24,9 +24,9 @@ type PreAuthenticatedURLToken struct {
 }
 
 type PreAuthenticatedURLTokenAccessGrantService interface {
-	IssueAccessGrant(
+	PrepareUserAccessGrant(
 		ctx context.Context,
-		options IssueAccessGrantOptions,
+		options PrepareUserAccessGrantOptions,
 	) (PrepareUserAccessTokenResult, error)
 }
 

@@ -187,7 +187,7 @@ func (h *AnonymousUserHandler) signupAnonymousUserWithRefreshTokenSessionType(
 			panic(fmt.Errorf("unexpected: failed to resolve offline grant session"))
 		}
 
-		issueAccessGrantOptions := oauth.IssueAccessGrantOptions{
+		prepareUserAccessGrantOptions := oauth.PrepareUserAccessGrantOptions{
 			ClientConfig:            client,
 			Scopes:                  scopes,
 			AuthorizationID:         authz.ID,
@@ -196,8 +196,8 @@ func (h *AnonymousUserHandler) signupAnonymousUserWithRefreshTokenSessionType(
 			InitialRefreshTokenHash: session.InitialTokenHash,
 		}
 		result1, err := h.TokenService.IssueAccessGrantByRefreshToken(ctx, IssueAccessGrantByRefreshTokenOptions{
-			IssueAccessGrantOptions:  issueAccessGrantOptions,
-			ShouldRotateRefreshToken: false, // We do not rotate refresh tokens in anonymous user.
+			PrepareUserAccessGrantOptions: prepareUserAccessGrantOptions,
+			ShouldRotateRefreshToken:      false, // We do not rotate refresh tokens in anonymous user.
 		})
 		if err != nil {
 			return nil, err
@@ -247,7 +247,7 @@ func (h *AnonymousUserHandler) signupAnonymousUserWithRefreshTokenSessionType(
 		return nil, err
 	}
 
-	issueAccessGrantOptions := oauth.IssueAccessGrantOptions{
+	prepareUserAccessGrantOptions := oauth.PrepareUserAccessGrantOptions{
 		ClientConfig:            client,
 		Scopes:                  scopes,
 		AuthorizationID:         authz.ID,
@@ -256,8 +256,8 @@ func (h *AnonymousUserHandler) signupAnonymousUserWithRefreshTokenSessionType(
 		InitialRefreshTokenHash: newTokenHash,
 	}
 	result1, err := h.TokenService.IssueAccessGrantByRefreshToken(ctx, IssueAccessGrantByRefreshTokenOptions{
-		IssueAccessGrantOptions:  issueAccessGrantOptions,
-		ShouldRotateRefreshToken: false, // We do not rotate refresh tokens in anonymous user.
+		PrepareUserAccessGrantOptions: prepareUserAccessGrantOptions,
+		ShouldRotateRefreshToken:      false, // We do not rotate refresh tokens in anonymous user.
 	})
 	if err != nil {
 		return nil, err

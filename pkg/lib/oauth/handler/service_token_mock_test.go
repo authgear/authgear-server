@@ -556,19 +556,19 @@ func (m *MockTokenServiceAccessGrantService) EXPECT() *MockTokenServiceAccessGra
 	return m.recorder
 }
 
-// IssueAccessGrant mocks base method.
-func (m *MockTokenServiceAccessGrantService) IssueAccessGrant(ctx context.Context, options oauth.IssueAccessGrantOptions) (oauth.PrepareUserAccessTokenResult, error) {
+// PrepareUserAccessGrant mocks base method.
+func (m *MockTokenServiceAccessGrantService) PrepareUserAccessGrant(ctx context.Context, options oauth.PrepareUserAccessGrantOptions) (oauth.PrepareUserAccessTokenResult, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IssueAccessGrant", ctx, options)
+	ret := m.ctrl.Call(m, "PrepareUserAccessGrant", ctx, options)
 	ret0, _ := ret[0].(oauth.PrepareUserAccessTokenResult)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// IssueAccessGrant indicates an expected call of IssueAccessGrant.
-func (mr *MockTokenServiceAccessGrantServiceMockRecorder) IssueAccessGrant(ctx, options interface{}) *gomock.Call {
+// PrepareUserAccessGrant indicates an expected call of PrepareUserAccessGrant.
+func (mr *MockTokenServiceAccessGrantServiceMockRecorder) PrepareUserAccessGrant(ctx, options interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IssueAccessGrant", reflect.TypeOf((*MockTokenServiceAccessGrantService)(nil).IssueAccessGrant), ctx, options)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PrepareUserAccessGrant", reflect.TypeOf((*MockTokenServiceAccessGrantService)(nil).PrepareUserAccessGrant), ctx, options)
 }
 
 // MockTokenServiceAccessTokenIssuer is a mock of TokenServiceAccessTokenIssuer interface.

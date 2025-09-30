@@ -17,7 +17,7 @@ type AccessGrantService struct {
 	Clock             clock.Clock
 }
 
-type IssueAccessGrantOptions struct {
+type PrepareUserAccessGrantOptions struct {
 	ClientConfig            *config.OAuthClientConfig
 	Scopes                  []string
 	AuthorizationID         string
@@ -40,9 +40,9 @@ func (r *IssueAccessGrantResult) WriteTo(resp protocol.TokenResponse) {
 	}
 }
 
-func (s *AccessGrantService) IssueAccessGrant(
+func (s *AccessGrantService) PrepareUserAccessGrant(
 	ctx context.Context,
-	options IssueAccessGrantOptions,
+	options PrepareUserAccessGrantOptions,
 ) (PrepareUserAccessTokenResult, error) {
 	token := GenerateToken()
 	now := s.Clock.NowUTC()

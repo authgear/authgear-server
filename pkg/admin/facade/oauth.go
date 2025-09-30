@@ -109,7 +109,7 @@ func (f *OAuthFacade) CreateSession(ctx context.Context, clientID string, userID
 	result1, err := f.Tokens.IssueAccessGrantByRefreshToken(
 		ctx,
 		handler.IssueAccessGrantByRefreshTokenOptions{
-			IssueAccessGrantOptions: oauth.IssueAccessGrantOptions{
+			PrepareUserAccessGrantOptions: oauth.PrepareUserAccessGrantOptions{
 				ClientConfig:            client,
 				Scopes:                  scopes,
 				AuthorizationID:         authz.ID,
