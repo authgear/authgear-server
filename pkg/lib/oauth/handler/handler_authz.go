@@ -368,7 +368,7 @@ func (h *AuthorizationHandler) prepareConsentRequest(ctx context.Context, req *h
 	}, nil
 }
 
-func (h *AuthorizationHandler) HandleRequestWithTx(
+func (h *AuthorizationHandler) HandleRequest(
 	ctx context.Context,
 	r protocol.AuthorizationRequest,
 	params *AuthorizationParams,

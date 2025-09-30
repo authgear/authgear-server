@@ -22,7 +22,7 @@ var AuthorizeHandlerLogger = slogutil.NewLogger("handler-authz")
 
 type ProtocolAuthorizeHandler interface {
 	ValidateRequestWithoutTx(ctx context.Context, r protocol.AuthorizationRequest) (context.Context, *handler.AuthorizationParams, *handler.AuthorizationResultError)
-	HandleRequestWithTx(ctx context.Context, r protocol.AuthorizationRequest, params *handler.AuthorizationParams) httputil.Result
+	HandleRequest(ctx context.Context, r protocol.AuthorizationRequest, params *handler.AuthorizationParams) httputil.Result
 }
 
 var errAuthzInternalError = errors.New("internal error")
@@ -50,7 +50,7 @@ func (h *AuthorizeHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	var result httputil.Result
-	result = h.AuthzHandler.HandleRequestWithTx(ctx, req, params)
+	result = h.AuthzHandler.HandleRequest(ctx, req, params)
 	if result.IsInternalError() {
 		err = errAuthzInternalError
 	}

@@ -106,7 +106,7 @@ func TestAuthorizationHandler(t *testing.T) {
 			if errResult != nil {
 				result = errResult
 			} else {
-				result = h.HandleRequestWithTx(ctx, r, params)
+				result = h.HandleRequest(ctx, r, params)
 			}
 
 			req, _ := http.NewRequest("GET", "/authorize", nil)
