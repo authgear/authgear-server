@@ -59,7 +59,6 @@ type CookiesGetter interface {
 }
 
 type SignupAnonymousUserResult struct {
-	Client                                     *config.OAuthClientConfig
 	PrepareUserAccessGrantByRefreshTokenResult *PrepareUserAccessGrantByRefreshTokenResult
 	Response                                   protocol.TokenResponse
 
@@ -204,7 +203,6 @@ func (h *AnonymousUserHandler) signupAnonymousUserWithRefreshTokenSessionType(
 		}
 
 		return &SignupAnonymousUserResult{
-			Client: client,
 			PrepareUserAccessGrantByRefreshTokenResult: result1,
 			Response: protocol.TokenResponse{},
 		}, nil
@@ -264,7 +262,6 @@ func (h *AnonymousUserHandler) signupAnonymousUserWithRefreshTokenSessionType(
 	}
 
 	return &SignupAnonymousUserResult{
-		Client: client,
 		PrepareUserAccessGrantByRefreshTokenResult: result1,
 		Response: resp,
 	}, nil

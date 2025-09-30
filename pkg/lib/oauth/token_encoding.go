@@ -76,13 +76,15 @@ type PrepareUserAccessTokenResult interface {
 
 type prepareUserAccessTokenResultOpaque struct {
 	OriginalToken string
+	ClientConfig  *config.OAuthClientConfig
 }
 
 func (r *prepareUserAccessTokenResultOpaque) prepareUserAccessTokenResult() {}
 
 type prepareUserAccessTokenResultJWT struct {
-	Event     *event.Event
-	ForBackup map[string]interface{}
+	Event        *event.Event
+	ForBackup    map[string]interface{}
+	ClientConfig *config.OAuthClientConfig
 }
 
 func (r *prepareUserAccessTokenResultJWT) prepareUserAccessTokenResult() {}
@@ -91,6 +93,7 @@ func (e *AccessTokenEncoding) PrepareUserAccessToken(ctx context.Context, option
 	if !options.ClientConfig.IssueJWTAccessToken {
 		return &prepareUserAccessTokenResultOpaque{
 			OriginalToken: options.OriginalToken,
+			ClientConfig:  options.ClientConfig,
 		}, nil
 	}
 
@@ -161,14 +164,14 @@ func (e *AccessTokenEncoding) PrepareUserAccessToken(ctx context.Context, option
 	}
 
 	return &prepareUserAccessTokenResultJWT{
-		Event:     event,
-		ForBackup: forBackup,
+		Event:        event,
+		ForBackup:    forBackup,
+		ClientConfig: options.ClientConfig,
 	}, nil
 }
 
 type MakeUserAccessTokenFromPreparationOptions struct {
 	PreparationResult PrepareUserAccessTokenResult
-	ClientConfig      *config.OAuthClientConfig
 }
 
 func (e *AccessTokenEncoding) MakeUserAccessTokenFromPreparationResult(
@@ -184,7 +187,7 @@ func (e *AccessTokenEncoding) MakeUserAccessTokenFromPreparationResult(
 		return &IssueAccessGrantResult{
 			Token:     v.OriginalToken,
 			TokenType: "Bearer",
-			ExpiresIn: int(options.ClientConfig.AccessTokenLifetime),
+			ExpiresIn: int(v.ClientConfig.AccessTokenLifetime),
 		}, nil
 	case *prepareUserAccessTokenResultJWT:
 		err := e.Events.DispatchEventWithoutTx(ctx, v.Event)
@@ -215,7 +218,7 @@ func (e *AccessTokenEncoding) MakeUserAccessTokenFromPreparationResult(
 		return &IssueAccessGrantResult{
 			Token:     string(signed),
 			TokenType: "Bearer",
-			ExpiresIn: int(options.ClientConfig.AccessTokenLifetime),
+			ExpiresIn: int(v.ClientConfig.AccessTokenLifetime),
 		}, nil
 	default:
 		panic(fmt.Errorf("unexpected PreparationResult: %T", options.PreparationResult))

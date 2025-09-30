@@ -136,7 +136,6 @@ func (h *AnonymousUserSignupAPIHandler) ServeHTTP(resp http.ResponseWriter, req 
 			result.PrepareUserAccessGrantByRefreshTokenResult.RotateRefreshTokenResult.WriteTo(result.Response)
 
 			a, err := h.AccessTokenEncoding.MakeUserAccessTokenFromPreparationResult(ctx, oauth.MakeUserAccessTokenFromPreparationOptions{
-				ClientConfig:      result.Client,
 				PreparationResult: result.PrepareUserAccessGrantByRefreshTokenResult.PreparationResult,
 			})
 			if err != nil {

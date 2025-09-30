@@ -288,7 +288,6 @@ func (h *TokenHandler) Handle(ctx context.Context, rw http.ResponseWriter, req *
 		handleResult.PrepareUserAccessGrantByRefreshTokenResult.RotateRefreshTokenResult.WriteTo(handleResult.Response)
 
 		result2, err := h.AccessTokenEncoding.MakeUserAccessTokenFromPreparationResult(ctx, oauth.MakeUserAccessTokenFromPreparationOptions{
-			ClientConfig:      client,
 			PreparationResult: handleResult.PrepareUserAccessGrantByRefreshTokenResult.PreparationResult,
 		})
 		if err != nil {

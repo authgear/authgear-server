@@ -615,7 +615,6 @@ func (h *AuthorizationHandler) doHandlePreAuthenticatedURLAfterTx(
 	preparationResult oauth.PrepareUserAccessTokenResult,
 ) (httputil.Result, error) {
 	accessTokenResult, err := h.AuthorizationHandlerAccessTokenEncoding.MakeUserAccessTokenFromPreparationResult(ctx, oauth.MakeUserAccessTokenFromPreparationOptions{
-		ClientConfig:      client,
 		PreparationResult: preparationResult,
 	})
 	if err != nil {

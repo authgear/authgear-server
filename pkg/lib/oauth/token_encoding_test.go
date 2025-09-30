@@ -125,7 +125,6 @@ func TestAccessToken(t *testing.T) {
 
 		tokenResult, err := encoding.MakeUserAccessTokenFromPreparationResult(ctx, MakeUserAccessTokenFromPreparationOptions{
 			PreparationResult: preparation,
-			ClientConfig:      client,
 		})
 		So(err, ShouldBeNil)
 

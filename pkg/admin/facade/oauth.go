@@ -126,7 +126,6 @@ func (f *OAuthFacade) CreateSession(ctx context.Context, clientID string, userID
 
 	result2, err := f.AccessTokenCoding.MakeUserAccessTokenFromPreparationResult(ctx, oauth.MakeUserAccessTokenFromPreparationOptions{
 		PreparationResult: result1.PreparationResult,
-		ClientConfig:      client,
 	})
 	if err != nil {
 		return nil, nil, err
