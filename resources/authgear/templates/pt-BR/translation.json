@@ -1033,6 +1033,7 @@
   "v2.error.webhook-disallowed": "Operação não permitida",
   "v2.error.webhook-invalid-response": "[Para o Desenvolvedor] Seu manipulador de webhook NÃO retornou uma resposta válida. Visite <a class=\"link\" target=\"_blank\" href=\"https://docs.authgear.com/customization/events-hooks/webhooks\">https://docs.authgear.com/customization/events-hooks/webhooks</a>",
   "v2.error.webhook-pre-signup-disallowed": "Cadastro não permitido",
+  "v2.error.whatsapp-undeliverable": "Falha ao entregar mensagem do WhatsApp. Por favor, tente novamente com um número de telefone correto.",
   "v2.page.account-linking.default.by-email": "Login em {IdentityDisplayName}",
   "v2.page.account-linking.default.by-phone": "Login em {IdentityDisplayName}",
   "v2.page.account-linking.default.by-username": "Login em {IdentityDisplayName}",

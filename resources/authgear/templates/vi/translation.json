@@ -1033,6 +1033,7 @@
   "v2.error.webhook-disallowed": "Hoạt động không được phép",
   "v2.error.webhook-invalid-response": "[Dành cho nhà phát triển] Trình xử lý webhook của bạn KHÔNG trả về phản hồi hợp lệ. Vui lòng truy cập <a class=\"link\" target=\"_blank\" href=\"https://docs.authgear.com/customization/events-hooks/webhooks\">https://docs.authgear.com/customization/events-hooks/webhooks</a>",
   "v2.error.webhook-pre-signup-disallowed": "Đăng ký không được phép",
+  "v2.error.whatsapp-undeliverable": "Không thể gửi tin nhắn WhatsApp. Vui lòng thử lại với số điện thoại chính xác.",
   "v2.page.account-linking.default.by-email": "Đăng nhập vào {IdentityDisplayName}",
   "v2.page.account-linking.default.by-phone": "Đăng nhập vào {IdentityDisplayName}",
   "v2.page.account-linking.default.by-username": "Đăng nhập vào {IdentityDisplayName}",

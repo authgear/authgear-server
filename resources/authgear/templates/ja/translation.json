@@ -1033,6 +1033,7 @@
   "v2.error.webhook-disallowed": "操作は許可されていません",
   "v2.error.webhook-invalid-response": "[To Developer] Webhookハンドラーが有効な応答を返していません。<a class=\"link\" target=\"_blank\" href=\"https://docs.authgear.com/customization/events-hooks/webhooks\">https://docs.authgear.com/customization/events-hooks/webhooks</a>をご覧ください",
   "v2.error.webhook-pre-signup-disallowed": "サインアップは許可されていません",
+  "v2.error.whatsapp-undeliverable": "WhatsAppメッセージの配信に失敗しました。正しい電話番号で再度お試しください。",
   "v2.page.account-linking.default.by-email": "{IdentityDisplayName}にログイン",
   "v2.page.account-linking.default.by-phone": "{IdentityDisplayName}にログイン",
   "v2.page.account-linking.default.by-username": "{IdentityDisplayName}にログイン",
