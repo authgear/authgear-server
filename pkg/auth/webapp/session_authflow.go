@@ -802,7 +802,8 @@ func (s *AuthflowScreenWithFlowResponse) makeFallbackToSMSFromWhatsappRetryHandl
 		if disableFallbackToSMS {
 			return nil
 		}
-		if !apierrors.IsKind(err, whatsapp.InvalidWhatsappUser) {
+		if !apierrors.IsKind(err, whatsapp.InvalidWhatsappUser) &&
+			!apierrors.IsKind(err, whatsapp.WhatsappUndeliverable) {
 			return nil
 		}
 		smsChannelIdx := -1
