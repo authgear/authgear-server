@@ -161,7 +161,7 @@ func (ti *IDTokenIssuer) PrepareIDToken(ctx context.Context, opts PrepareIDToken
 			},
 		},
 		Identities: identityModels,
-		JWT: blocking.OIDCIDToken{
+		IDToken: blocking.OIDCIDToken{
 			Payload: forMutation,
 		},
 	}
@@ -193,7 +193,7 @@ func (ti *IDTokenIssuer) MakeIDTokenFromPreparationResult(
 	eventPayload := options.PreparationResult.event.Payload.(*blocking.OIDCIDTokenPreCreateBlockingEventPayload)
 
 	claims, err := jwtutil.ApplyMutations(
-		eventPayload.JWT.Payload,
+		eventPayload.IDToken.Payload,
 		options.PreparationResult.forBackup,
 	)
 	if err != nil {

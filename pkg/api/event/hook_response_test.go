@@ -129,6 +129,30 @@ func TestParseHookResponse(t *testing.T) {
 			},
 		})
 
+		pass("is_allowed true, id token mutations with payload", `{
+			"is_allowed": true,
+			"mutations": {
+				"id_token": {
+					"payload": {
+						"https://example.com": {
+							"foo": "bar"
+						}
+					}
+				}
+			}
+		}`, &HookResponse{
+			IsAllowed: true,
+			Mutations: Mutations{
+				IDToken: IDTokenMutations{
+					Payload: map[string]interface{}{
+						"https://example.com": map[string]interface{}{
+							"foo": "bar",
+						},
+					},
+				},
+			},
+		})
+
 		pass("is_allowed false", `{
 			"is_allowed": false
 		}`, &HookResponse{

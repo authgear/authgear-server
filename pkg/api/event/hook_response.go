@@ -100,6 +100,14 @@ func GetBaseHookResponseSchema() *validation.MultipartSchema {
 					"type": "object"
 				}
 			}
+		},
+		"id_token": {
+			"type": "object",
+			"properties": {
+				"payload": {
+					"type": "object"
+				}
+			}
 		}
 	}
 }
@@ -199,8 +207,9 @@ type RateLimitRequirements struct {
 }
 
 type Mutations struct {
-	User UserMutations `json:"user,omitempty"`
-	JWT  JWTMutations  `json:"jwt,omitempty"`
+	User    UserMutations    `json:"user,omitempty"`
+	JWT     JWTMutations     `json:"jwt,omitempty"`
+	IDToken IDTokenMutations `json:"id_token,omitempty"`
 }
 
 type UserMutations struct {
@@ -211,6 +220,10 @@ type UserMutations struct {
 }
 
 type JWTMutations struct {
+	Payload map[string]interface{} `json:"payload,omitempty"`
+}
+
+type IDTokenMutations struct {
 	Payload map[string]interface{} `json:"payload,omitempty"`
 }
 

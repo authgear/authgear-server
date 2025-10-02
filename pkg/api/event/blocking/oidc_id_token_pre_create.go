@@ -48,7 +48,7 @@ type OIDCIDTokenPreCreateBlockingEventPayload struct {
 	UserRef    model.UserRef    `json:"-" resolve:"user"`
 	UserModel  model.User       `json:"user"`
 	Identities []model.Identity `json:"identities"`
-	JWT        OIDCIDToken      `json:"jwt"`
+	IDToken    OIDCIDToken      `json:"id_token"`
 }
 
 func (e *OIDCIDTokenPreCreateBlockingEventPayload) BlockingEventType() event.Type {
@@ -67,8 +67,8 @@ func (e *OIDCIDTokenPreCreateBlockingEventPayload) FillContext(ctx *event.Contex
 
 func (e *OIDCIDTokenPreCreateBlockingEventPayload) ApplyHookResponse(ctx context.Context, response event.HookResponse) event.ApplyHookResponseResult {
 	mutationsEverApplied := false
-	if response.Mutations.JWT.Payload != nil {
-		e.JWT.Payload = response.Mutations.JWT.Payload
+	if response.Mutations.IDToken.Payload != nil {
+		e.IDToken.Payload = response.Mutations.IDToken.Payload
 		mutationsEverApplied = true
 	}
 	return event.ApplyHookResponseResult{MutationsEverApplied: mutationsEverApplied}
