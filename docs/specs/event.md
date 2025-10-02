@@ -490,7 +490,7 @@ Use this event to add custom fields to the ID token.
   "payload": {
     "user": { /* ... */ },
     "identities": [ ],
-    "jwt": {
+    "id_token": {
       "payload": {
         "iss": "issuer",
         "aud": ["audience"]
