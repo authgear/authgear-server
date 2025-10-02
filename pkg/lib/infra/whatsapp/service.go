@@ -217,8 +217,7 @@ func (s *Service) GetMessageStatus(ctx context.Context, messageID string) (*GetM
 		// See https://developers.facebook.com/docs/whatsapp/cloud-api/support/error-codes/
 		// Message Undeliverable
 		if data.Errors[0].Code == 131026 {
-			// For backward compatibility, InvalidWhatsappUser means undeliverable
-			apierr = apierrors.AsAPIError(ErrInvalidWhatsappUser)
+			apierr = apierrors.AsAPIError(ErrWhatsappUndeliverable)
 		} else {
 			logger.GetLogger(ctx).With(
 				slog.Int("error_code", data.Errors[0].Code),

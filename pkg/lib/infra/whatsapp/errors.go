@@ -14,6 +14,10 @@ var InvalidWhatsappUser = apierrors.BadRequest.
 	WithReason("InvalidWhatsappUser")
 var ErrInvalidWhatsappUser = InvalidWhatsappUser.
 	New("invalid whatsapp user")
+var WhatsappUndeliverable = apierrors.BadRequest.
+	WithReason("WhatsappUndeliverable")
+var ErrWhatsappUndeliverable = WhatsappUndeliverable.
+	New("whatsapp undeliverable")
 var ErrNoAvailableWhatsappClient = apierrors.BadRequest.
 	WithReason("NoAvailableWhatsappClient").
 	New("no available whatsapp client")

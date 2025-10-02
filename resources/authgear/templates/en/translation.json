@@ -962,6 +962,7 @@
   "v2.error.invalid-username": "The username you entered is not in a correct format. Please try using a username consisting of alphanumeric characters (a-z, A-Z, and 0-9) only.",
   "v2.error.invalid-web3-network": "Please sign up with {chainID, select, _1{Ethereum Mainnet} _5{Ethereum Goerli} _137{Polygon Mainnet} _80001{Polygon Mumbai} other{}} network.",
   "v2.error.invalid-whatsapp-user": "Failed to deliver WhatsApp message because the phone number is not a valid whatsapp user.",
+  "v2.error.whatsapp-undeliverable": "Failed to deliver WhatsApp message. Please try again with a correct phone number.",
   "v2.error.login-id-required": "Please enter your {variant, select, phone{phone number} email {email address} username {username} other {email address or username}}.",
   "v2.error.max-length": "Expect string with length less than or equal to {expected, plural, one{# character} other{# characters}}",
   "v2.error.maximum": "Please enter a number less than or equal to {maximum}",
