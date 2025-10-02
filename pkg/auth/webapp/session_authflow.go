@@ -835,9 +835,6 @@ func (s *AuthflowScreenWithFlowResponse) makeVerifyOOBOTPOutputTransformer(chann
 		if _, ok := output.FlowAction.Data.(declarative.VerifyOOBOTPData); !ok {
 			// If not VerifyOOBOTPData, make no changes to the output and error
 			return output, err
-		} else if !hasNonWhatsappChannels {
-			// No fallback available, show the otp screen no matter success or not
-			return output, err
 		} else {
 			startTime := deps.Clock.NowUTC()
 
@@ -853,6 +850,17 @@ func (s *AuthflowScreenWithFlowResponse) makeVerifyOOBOTPOutputTransformer(chann
 				data := output.FlowAction.Data.(declarative.VerifyOOBOTPData)
 				switch data.DeliveryStatus {
 				case model.OTPDeliveryStatusFailed:
+					if apierrors.IsKind(data.DeliveryError, whatsapp.WhatsappMessageStatusCallbackTimeout) {
+						if !hasNonWhatsappChannels {
+							// If it is a timeout error and whatsapp is the only channel,
+							// no fallback is needed
+							return output, nil
+						} else {
+							// If there is a fallback available,
+							// treat it as undeliverable error and fallback
+							return output, whatsapp.ErrWhatsappUndeliverable
+						}
+					}
 					return output, data.DeliveryError
 				case model.OTPDeliveryStatusSent:
 					return output, err

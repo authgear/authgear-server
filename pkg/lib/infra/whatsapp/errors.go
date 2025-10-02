@@ -24,8 +24,9 @@ var ErrNoAvailableWhatsappClient = apierrors.BadRequest.
 var ErrUnexpectedWhatsappMessageStatusError = apierrors.InternalError.
 	WithReason("UnexpectedWhatsappMessageStatusError").
 	New("unexpected whatsapp status error")
-var ErrWhatsappMessageStatusCallbackTimeout = apierrors.InternalError.
-	WithReason("WhatsappMessageStatusCallbackTimeout").
+var WhatsappMessageStatusCallbackTimeout = apierrors.InternalError.
+	WithReason("WhatsappMessageStatusCallbackTimeout")
+var ErrWhatsappMessageStatusCallbackTimeout = WhatsappMessageStatusCallbackTimeout.
 	New("whatsapp message status update not received within configured timeout")
 
 var ErrUnauthorized = errors.New("whatsapp: unauthorized")
