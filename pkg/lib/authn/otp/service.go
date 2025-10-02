@@ -7,7 +7,10 @@ import (
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/whatsapp"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -29,6 +32,11 @@ type VerifyOptions struct {
 	UserID           string
 	UseSubmittedCode bool
 	SkipConsume      bool
+}
+
+type messageDeliveryStatus struct {
+	DeliveryStatus model.OTPDeliveryStatus
+	DeliveryError  *apierrors.APIError
 }
 
 type CodeStore interface {
@@ -57,6 +65,10 @@ type RateLimiter interface {
 	Cancel(ctx context.Context, r *ratelimit.Reservation)
 }
 
+type WhatsappService interface {
+	GetMessageStatus(ctx context.Context, messageID string) (*whatsapp.GetMessageStatusResult, error)
+}
+
 var ServiceLogger = slogutil.NewLogger("otp")
 
 type Service struct {
@@ -70,6 +82,7 @@ type Service struct {
 	LookupStore           LookupStore
 	AttemptTracker        AttemptTracker
 	RateLimiter           RateLimiter
+	WhatsappService       WhatsappService
 
 	FeatureConfig *config.FeatureConfig
 	EnvConfig     *config.RateLimitsEnvironmentConfig
@@ -170,6 +183,10 @@ func (s *Service) GenerateOTP(ctx context.Context, kind Kind, target string, for
 		AuthenticationFlowName:                 opts.AuthenticationFlowName,
 		AuthenticationFlowJSONPointer:          opts.AuthenticationFlowJSONPointer,
 		WebSessionID:                           opts.WebSessionID,
+
+		// These are unknown until sent
+		WhatsappMessageID: "",
+		OOBChannel:        "",
 	}
 
 	err := s.CodeStore.Create(ctx, kind.Purpose(), code)
@@ -357,7 +374,58 @@ func (s *Service) InspectState(ctx context.Context, kind Kind, target string) (*
 		state.AuthenticationFlowName = code.AuthenticationFlowName
 		state.AuthenticationFlowType = code.AuthenticationFlowType
 		state.WebSessionID = code.WebSessionID
+		status, err := s.getOTPMessageDeliverStatus(ctx, code)
+		if err != nil {
+			return nil, err
+		}
+		state.DeliveryStatus = status.DeliveryStatus
+		state.DeliveryError = status.DeliveryError
 	}
 
 	return state, nil
+}
+
+func (s *Service) getOTPMessageDeliverStatus(ctx context.Context, code *Code) (*messageDeliveryStatus, error) {
+	if code.OOBChannel == "" {
+		// Not sent yet, treat it as sending
+		return &messageDeliveryStatus{
+			DeliveryStatus: model.OTPDeliveryStatusSending,
+			DeliveryError:  nil,
+		}, nil
+	}
+
+	switch code.OOBChannel {
+	case model.AuthenticatorOOBChannelWhatsapp:
+		{
+			getStatusResult, err := s.WhatsappService.GetMessageStatus(ctx, code.WhatsappMessageID)
+			if err != nil {
+				return nil, err
+			}
+			// Status is still unknown
+			if getStatusResult == nil {
+				return &messageDeliveryStatus{
+					DeliveryStatus: model.OTPDeliveryStatusSending,
+					DeliveryError:  nil,
+				}, nil
+			} else {
+				status := whatsappMessageStatusToOTPDeliveryStatus(
+					ctx,
+					getStatusResult.Status,
+				)
+				apiError := getStatusResult.APIError
+				return &messageDeliveryStatus{
+					DeliveryStatus: status,
+					DeliveryError:  apiError,
+				}, nil
+			}
+		}
+	case model.AuthenticatorOOBChannelEmail, model.AuthenticatorOOBChannelSMS:
+		fallthrough
+	default:
+		// Always sent
+		return &messageDeliveryStatus{
+			DeliveryStatus: model.OTPDeliveryStatusSent,
+			DeliveryError:  nil,
+		}, nil
+	}
 }

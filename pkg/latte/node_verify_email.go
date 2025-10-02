@@ -109,8 +109,9 @@ func (n *NodeVerifyEmail) otpTarget() string {
 }
 
 func (n *NodeVerifyEmail) sendCode(ctx context.Context, deps *workflow.Dependencies) error {
+	kind := n.otpKind(deps)
 	code, err := deps.OTPCodes.GenerateOTP(ctx,
-		n.otpKind(deps),
+		kind,
 		n.Email,
 		nodeVerifyEmailOTPForm,
 		&otp.GenerateOptions{
@@ -128,6 +129,7 @@ func (n *NodeVerifyEmail) sendCode(ctx context.Context, deps *workflow.Dependenc
 			Channel: model.AuthenticatorOOBChannelEmail,
 			Target:  n.Email,
 			Form:    nodeVerifyEmailOTPForm,
+			Kind:    kind,
 			Type:    translation.MessageTypeVerification,
 			OTP:     code,
 		},

@@ -10,12 +10,24 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
-var ErrInvalidWhatsappUser = apierrors.BadRequest.
-	WithReason("InvalidWhatsappUser").
+var InvalidWhatsappUser = apierrors.BadRequest.
+	WithReason("InvalidWhatsappUser")
+var ErrInvalidWhatsappUser = InvalidWhatsappUser.
 	New("invalid whatsapp user")
+var WhatsappUndeliverable = apierrors.BadRequest.
+	WithReason("WhatsappUndeliverable")
+var ErrWhatsappUndeliverable = WhatsappUndeliverable.
+	New("whatsapp undeliverable")
 var ErrNoAvailableWhatsappClient = apierrors.BadRequest.
 	WithReason("NoAvailableWhatsappClient").
 	New("no available whatsapp client")
+var ErrUnexpectedWhatsappMessageStatusError = apierrors.InternalError.
+	WithReason("UnexpectedWhatsappMessageStatusError").
+	New("unexpected whatsapp status error")
+var WhatsappMessageStatusCallbackTimeout = apierrors.InternalError.
+	WithReason("WhatsappMessageStatusCallbackTimeout")
+var ErrWhatsappMessageStatusCallbackTimeout = WhatsappMessageStatusCallbackTimeout.
+	New("whatsapp message status update not received within configured timeout")
 
 var ErrUnauthorized = errors.New("whatsapp: unauthorized")
 var ErrBadRequest = errors.New("whatsapp: bad request")

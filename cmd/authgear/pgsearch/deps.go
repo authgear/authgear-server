@@ -17,6 +17,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/searchdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis/globalredis"
 	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -92,6 +93,10 @@ func NewNilRedis() *appredis.Handle {
 	return nil
 }
 
+func NewNilGlobalRedis() *globalredis.Handle {
+	return nil
+}
+
 func NewNilRequest() *http.Request {
 	return nil
 }
@@ -112,6 +117,7 @@ var DependencySet = wire.NewSet(
 	ProvideRemoteIP,
 	ProvideHTTPHost,
 	ProvideHTTPProto,
+	NewNilGlobalRedis,
 	NewNilRedis,
 	NewEnvConfig,
 	NewNilRequest,

@@ -56,6 +56,7 @@ func (s *SendWhatsappCode) Do(goCtx context.Context) (*SendWhatsappCodeResult, e
 			Channel: channel,
 			Target:  s.Target,
 			Form:    form,
+			Kind:    kind,
 			Type:    translation.MessageTypeWhatsappCode,
 			OTP:     code,
 		},

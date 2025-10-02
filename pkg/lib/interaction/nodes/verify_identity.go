@@ -115,8 +115,9 @@ func (n *NodeVerifyIdentity) SendCode(goCtx context.Context, ctx *interaction.Co
 		}
 	}
 
+	kind := otp.KindVerification(ctx.Config, channel)
 	code, err := ctx.OTPCodeService.GenerateOTP(goCtx,
-		otp.KindVerification(ctx.Config, channel),
+		kind,
 		target,
 		otp.FormCode,
 		&otp.GenerateOptions{WebSessionID: ctx.WebSessionID},
@@ -133,6 +134,7 @@ func (n *NodeVerifyIdentity) SendCode(goCtx context.Context, ctx *interaction.Co
 		otp.SendOptions{
 			Channel: channel,
 			Target:  target,
+			Kind:    kind,
 			Form:    otp.FormCode,
 			Type:    translation.MessageTypeVerification,
 			OTP:     code,

@@ -15,3 +15,7 @@ var ErrConsumedCode = InvalidOTPCode.NewWithCause("used otp code", apierrors.Str
 var ErrTooManyAttempts = ratelimit.RateLimited.NewWithInfo("too many verify OTP attempts", apierrors.Details{
 	"bucket_name": "TrackFailedOTPAttemptBucket",
 })
+
+var ErrOTPDeliveryUnexpectedError = apierrors.InternalError.
+	WithReason("OTPDeliveryUnexpectedError").
+	New("unexpected error occurs on sending the message")

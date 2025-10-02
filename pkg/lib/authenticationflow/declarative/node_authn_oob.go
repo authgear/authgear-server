@@ -209,6 +209,8 @@ func (n *NodeAuthenticationOOB) OutputData(ctx context.Context, deps *authflow.D
 		CanResendAt:                    state.CanResendAt,
 		CanCheck:                       state.SubmittedCode != "",
 		FailedAttemptRateLimitExceeded: state.TooManyAttempts,
+		DeliveryStatus:                 state.DeliveryStatus,
+		DeliveryError:                  state.DeliveryError,
 	}), nil
 }
 
@@ -295,6 +297,7 @@ func (n *NodeAuthenticationOOB) SendCode(ctx context.Context, deps *authflow.Dep
 			Channel: n.Channel,
 			Target:  claimValue,
 			Form:    n.Form,
+			Kind:    n.otpKind(deps),
 			Type:    typ,
 			OTP:     code,
 		},

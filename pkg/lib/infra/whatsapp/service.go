@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/intl"
@@ -18,13 +19,31 @@ var logger = slogutil.NewLogger("whatsapp-service")
 
 type ServiceCloudAPIClient interface {
 	GetLanguages() []string
-	SendAuthenticationOTP(ctx context.Context, opts *SendAuthenticationOTPOptions, lang string) (messageID string, err error)
+	SendAuthenticationOTP(ctx context.Context, opts *SendAuthenticationOTPOptions, lang string) (result *CloudAPISendAuthenticationOTPResult, err error)
 }
 
 type ServiceMessageStore interface {
-	GetMessageStatus(ctx context.Context, messageID string) (WhatsappMessageStatus, error)
-	UpdateMessageStatus(ctx context.Context, messageID string, status WhatsappMessageStatus) error
+	GetMessageStatus(ctx context.Context, messageID string) (*WhatsappMessageStatusData, error)
+	UpdateMessageStatus(ctx context.Context, messageID string, status *WhatsappMessageStatusData) error
+	SetMessageStatusIfNotExist(ctx context.Context, messageID string, status *WhatsappMessageStatusData) error
 }
+
+type SendAuthenticationOTPResult struct {
+	MessageID     string
+	MessageStatus WhatsappMessageStatus
+}
+
+type GetMessageStatusResult struct {
+	Status   WhatsappMessageStatus
+	APIError *apierrors.APIError
+}
+
+const (
+	// A special message id to identify suppressed message
+	suppressedMessageID string = "_suppressed-message-id"
+	// A special message id to identify unknown message id
+	unknownMessageID string = "_unknown-message-id"
+)
 
 type Service struct {
 	Clock                 clock.Clock
@@ -85,106 +104,129 @@ func (s *Service) prepareOTPComponents(template *config.WhatsappOnPremisesOTPTem
 	}
 }
 
-func (s *Service) SendAuthenticationOTP(ctx context.Context, opts *SendAuthenticationOTPOptions) error {
+func (s *Service) SendAuthenticationOTP(ctx context.Context, opts *SendAuthenticationOTPOptions) (*SendAuthenticationOTPResult, error) {
 	switch s.WhatsappConfig.GetAPIType(s.GlobalWhatsappAPIType) {
 	case config.WhatsappAPITypeOnPremises:
 		if s.OnPremisesClient == nil {
-			return ErrNoAvailableWhatsappClient
+			return nil, ErrNoAvailableWhatsappClient
 		}
 
 		otpTemplate := s.OnPremisesClient.GetOTPTemplate()
 		lang := s.resolveTemplateLanguage(ctx, otpTemplate.Languages)
 		components := s.prepareOTPComponents(otpTemplate, opts.OTP)
 
-		return s.OnPremisesClient.SendTemplate(
+		err := s.OnPremisesClient.SendTemplate(
 			ctx,
 			opts.To,
 			otpTemplate,
 			lang,
 			components)
+		if err != nil {
+			return nil, err
+		}
+		return &SendAuthenticationOTPResult{
+			MessageID: unknownMessageID,
+			// We don't know the actual status, so always return devlivered
+			MessageStatus: WhatsappMessageStatusDelivered,
+		}, nil
 	case config.WhatsappAPITypeCloudAPI:
 		if s.CloudAPIClient == nil {
-			return ErrNoAvailableWhatsappClient
+			return nil, ErrNoAvailableWhatsappClient
 		}
 
 		configuredLanguages := s.CloudAPIClient.GetLanguages()
 		lang := s.resolveTemplateLanguage(ctx, configuredLanguages)
-		messageID, err := s.CloudAPIClient.SendAuthenticationOTP(
+		cloudAPISendResult, err := s.CloudAPIClient.SendAuthenticationOTP(
 			ctx,
 			opts,
 			lang,
 		)
 		if err != nil {
-			return err
+			return nil, err
 		}
-		success := make(chan bool, 1)
-		// Wait for 5 seconds for the message status
-		go s.waitUntilSent(ctx, success, messageID, s.WhatsappConfig.MessageSentCallbackTimeout.Duration())
+		result := SendAuthenticationOTPResult(*cloudAPISendResult)
 
-		isSuccess := <-success
-		if !isSuccess {
-			// Historically, InvalidWhatsappUser means message failed to deliver
-			// Therefore, we return this error when we failed to get a sent status within 5 seconds
-			return ErrInvalidWhatsappUser
+		if s.Credentials.Webhook != nil {
+			go func() {
+				// Detach the deadline so that the context is not canceled along with the request.
+				ctxWithoutCancel := context.WithoutCancel(ctx)
+				time.Sleep(s.WhatsappConfig.MessageSentCallbackTimeout.Duration())
+				// Mark the message as failed after timeout
+				err := s.MessageStore.SetMessageStatusIfNotExist(ctxWithoutCancel, result.MessageID, &WhatsappMessageStatusData{
+					Status:    WhatsappMessageStatusFailed,
+					IsTimeout: true,
+				})
+				if err != nil {
+					logger.GetLogger(ctxWithoutCancel).
+						WithError(err).
+						Error(ctxWithoutCancel, "failed to update whatsapp message status")
+				}
+			}()
+		} else {
+			// If webhook is not configured, set it to delivered immediately
+			err := s.MessageStore.SetMessageStatusIfNotExist(ctx, result.MessageID, &WhatsappMessageStatusData{
+				Status:    WhatsappMessageStatusDelivered,
+				IsTimeout: false,
+			})
+			if err != nil {
+				return nil, err
+			}
 		}
-		return nil
+
+		return &result, nil
 
 	default:
 		panic(fmt.Errorf("whatsapp: unknown api type"))
 	}
 }
 
-func (s *Service) shouldWaitForMessageStatusUpdate() bool {
-	if s.Credentials == nil || s.Credentials.Webhook == nil || s.Credentials.Webhook.VerifyToken == "" {
-		return false
-	}
-	return true
+func (s *Service) SendSuppressedAuthenticationOTP(ctx context.Context, opts *SendAuthenticationOTPOptions) (*SendAuthenticationOTPResult, error) {
+	return &SendAuthenticationOTPResult{
+		MessageID:     suppressedMessageID,
+		MessageStatus: WhatsappMessageStatusSent,
+	}, nil
 }
 
-func (s *Service) waitUntilSent(ctx context.Context, success chan bool, messageID string, timeout time.Duration) {
-	if !s.shouldWaitForMessageStatusUpdate() {
-		success <- true
-		return
-	}
-
-	logger := logger.GetLogger(ctx)
-	start := s.Clock.NowUTC()
-	for {
-		time.Sleep(500 * time.Millisecond)
-		logger.Info(ctx, "waiting for message status update...", slog.String("message_id", messageID))
-		timeElasped := s.Clock.NowUTC().Sub(start)
-		if timeElasped > timeout {
-			logger.Error(ctx, "failed to wait for whatsapp message status: timeout")
-			success <- false
-			return
-		}
-		status, err := s.MessageStore.GetMessageStatus(ctx, messageID)
-		if err != nil {
-			logger.WithError(err).Error(ctx, "failed to get message status")
-			success <- false
-			return
-		}
-		switch status {
-		case WhatsappMessageStatusFailed:
-			success <- false
-			return
-		case WhatsappMessageStatusDelivered, WhatsappMessageStatusRead, WhatsappMessageStatusSent:
-			success <- true
-			return
-		case WhatsappMessageStatusAccepted, "":
-			// Unknown yet
-			continue
-		default:
-			// Unknown status
-			success <- false
-			logger.WithError(err).With(
-				slog.String("status", string(status)),
-			).Error(ctx, "unexpected whatsapp message status")
-			return
-		}
-	}
+func (s *Service) UpdateMessageStatus(ctx context.Context, messageID string, status WhatsappMessageStatus, errors []WhatsappStatusError) error {
+	return s.MessageStore.UpdateMessageStatus(ctx, messageID, &WhatsappMessageStatusData{
+		Status: status,
+		Errors: errors,
+	})
 }
 
-func (s *Service) UpdateMessageStatus(ctx context.Context, messageID string, status WhatsappMessageStatus) error {
-	return s.MessageStore.UpdateMessageStatus(ctx, messageID, status)
+func (s *Service) GetMessageStatus(ctx context.Context, messageID string) (*GetMessageStatusResult, error) {
+	switch messageID {
+	case suppressedMessageID, unknownMessageID:
+		// If the message was suppressed or not known, treat it as sent
+		return &GetMessageStatusResult{
+			Status:   WhatsappMessageStatusSent,
+			APIError: nil,
+		}, nil
+	}
+	data, err := s.MessageStore.GetMessageStatus(ctx, messageID)
+	if err != nil {
+		return nil, err
+	}
+	if data == nil {
+		return nil, nil
+	}
+	var apierr *apierrors.APIError
+	if data.IsTimeout {
+		apierr = apierrors.AsAPIError(ErrWhatsappMessageStatusCallbackTimeout)
+	} else if len(data.Errors) > 0 {
+		// See https://developers.facebook.com/docs/whatsapp/cloud-api/support/error-codes/
+		// Message Undeliverable
+		if data.Errors[0].Code == 131026 {
+			apierr = apierrors.AsAPIError(ErrWhatsappUndeliverable)
+		} else {
+			logger.GetLogger(ctx).With(
+				slog.Int("error_code", data.Errors[0].Code),
+			).Error(ctx, "unexpected whatsapp status error")
+			apierr = apierrors.AsAPIError(ErrUnexpectedWhatsappMessageStatusError)
+		}
+	}
+	return &GetMessageStatusResult{
+		Status:   data.Status,
+		APIError: apierr,
+	}, nil
 }

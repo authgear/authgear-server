@@ -32,7 +32,12 @@ func NewWhatsappCloudAPIClient(
 	}
 }
 
-func (c *CloudAPIClient) SendAuthenticationOTP(ctx context.Context, opts *SendAuthenticationOTPOptions, lang string) (messageID string, err error) {
+type CloudAPISendAuthenticationOTPResult struct {
+	MessageID     string
+	MessageStatus WhatsappMessageStatus
+}
+
+func (c *CloudAPIClient) SendAuthenticationOTP(ctx context.Context, opts *SendAuthenticationOTPOptions, lang string) (result *CloudAPISendAuthenticationOTPResult, err error) {
 	// Whatsapp Cloud API is Meta Graph API.
 	// So the endpoint starts with https://graph.facebook.com
 	// See https://developers.facebook.com/docs/whatsapp/cloud-api/overview#http-protocol
@@ -41,7 +46,7 @@ func (c *CloudAPIClient) SendAuthenticationOTP(ctx context.Context, opts *SendAu
 	// See https://developers.facebook.com/docs/graph-api/changelog/
 	endpoint, err := url.Parse("https://graph.facebook.com/v22.0")
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	// The API reference of this endpoint
@@ -99,12 +104,12 @@ func (c *CloudAPIClient) SendAuthenticationOTP(ctx context.Context, opts *SendAu
 
 	body, err := json.Marshal(bodyJSON)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	req, err := http.NewRequestWithContext(ctx, "POST", endpoint.String(), bytes.NewBuffer(body))
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/json")
 	// The access token is supposed to be a pre-generated non-expiring access token of a system user.
@@ -122,7 +127,7 @@ func (c *CloudAPIClient) SendAuthenticationOTP(ctx context.Context, opts *SendAu
 
 	resp, err := c.HTTPClient.Do(req)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	defer resp.Body.Close()
 
@@ -135,7 +140,10 @@ func (c *CloudAPIClient) SendAuthenticationOTP(ctx context.Context, opts *SendAu
 			return
 		}
 		if len(msgResp.Messages) == 1 {
-			return msgResp.Messages[0].ID, nil
+			return &CloudAPISendAuthenticationOTPResult{
+				MessageID:     msgResp.Messages[0].ID,
+				MessageStatus: WhatsappMessageStatus(msgResp.Messages[0].MessageStatus),
+			}, nil
 		}
 	}
 
@@ -150,7 +158,7 @@ func (c *CloudAPIClient) SendAuthenticationOTP(ctx context.Context, opts *SendAu
 
 	errResp, err := c.tryParseErrorResponse(resp)
 	if err != nil {
-		return "", errors.Join(err, whatsappAPIError)
+		return nil, errors.Join(err, whatsappAPIError)
 	}
 	whatsappAPIError.CloudAPIResponse = errResp
 
@@ -158,11 +166,11 @@ func (c *CloudAPIClient) SendAuthenticationOTP(ctx context.Context, opts *SendAu
 		// This code path is not actually reachable because Cloud API does not report
 		// invalid Whatsapp number in this endpoint.
 		if errResp.Error.Code == cloudAPIErrorCodeMaybeInvalidUser {
-			return "", errors.Join(ErrInvalidWhatsappUser, whatsappAPIError)
+			return nil, errors.Join(ErrInvalidWhatsappUser, whatsappAPIError)
 		}
 	}
 
-	return "", whatsappAPIError
+	return nil, whatsappAPIError
 }
 
 func (c *CloudAPIClient) GetLanguages() []string {

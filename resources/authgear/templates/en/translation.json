@@ -1033,6 +1033,7 @@
   "v2.error.webhook-disallowed": "Operation is disallowed",
   "v2.error.webhook-invalid-response": "[To Developer] Your webhook handler did NOT return a valid response. Please visit <a class=\"link\" target=\"_blank\" href=\"https://docs.authgear.com/customization/events-hooks/webhooks\">https://docs.authgear.com/customization/events-hooks/webhooks</a>",
   "v2.error.webhook-pre-signup-disallowed": "Signup is disallowed",
+  "v2.error.whatsapp-undeliverable": "Failed to deliver WhatsApp message. Please try again.",
   "v2.page.account-linking.default.by-email": "Login to {IdentityDisplayName}",
   "v2.page.account-linking.default.by-phone": "Login to {IdentityDisplayName}",
   "v2.page.account-linking.default.by-username": "Login to {IdentityDisplayName}",

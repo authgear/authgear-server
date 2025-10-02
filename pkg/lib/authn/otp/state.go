@@ -4,6 +4,9 @@ import (
 	"time"
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
+
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/model"
 )
 
 type State struct {
@@ -20,4 +23,7 @@ type State struct {
 	AuthenticationFlowType                 string
 	AuthenticationFlowName                 string
 	AuthenticationFlowJSONPointer          jsonpointer.T
+
+	DeliveryStatus model.OTPDeliveryStatus
+	DeliveryError  *apierrors.APIError
 }

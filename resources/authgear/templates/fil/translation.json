@@ -1033,6 +1033,7 @@
   "v2.error.webhook-disallowed": "Hindi pinapayagan ang operasyon",
   "v2.error.webhook-invalid-response": "[To Developer] Ang iyong webhook handler ay HINDI nagbalik ng wastong tugon. Mangyaring bisitahin ang <a class=\"link\" target=\"_blank\" href=\"https://docs.authgear.com/customization/events-hooks/webhooks\">https://docs.authgear.com/customization/events-hooks/webhooks</a>",
   "v2.error.webhook-pre-signup-disallowed": "Hindi pinapayagan ang pag-sign up",
+  "v2.error.whatsapp-undeliverable": "Hindi naipasa ang mensahe sa WhatsApp. Pakisubok muli.",
   "v2.page.account-linking.default.by-email": "Mag-log in sa {IdentityDisplayName}",
   "v2.page.account-linking.default.by-phone": "Mag-log in sa {IdentityDisplayName}",
   "v2.page.account-linking.default.by-username": "Mag-log in sa {IdentityDisplayName}",

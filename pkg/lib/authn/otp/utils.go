@@ -1,8 +1,15 @@
 package otp
 
 import (
+	"context"
+	"log/slog"
+
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/infra/whatsapp"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
+
+var UtilsLogger = slogutil.NewLogger("otp-utils")
 
 func selectByChannel[T any](channel model.AuthenticatorOOBChannel, email T, sms T, whatsapp T) T {
 	switch channel {
@@ -14,4 +21,24 @@ func selectByChannel[T any](channel model.AuthenticatorOOBChannel, email T, sms 
 		return whatsapp
 	}
 	panic("invalid channel: " + channel)
+}
+
+func whatsappMessageStatusToOTPDeliveryStatus(ctx context.Context, messageStatus whatsapp.WhatsappMessageStatus) model.OTPDeliveryStatus {
+	var deliveryStatus model.OTPDeliveryStatus
+	switch messageStatus {
+	case whatsapp.WhatsappMessageStatusAccepted:
+		deliveryStatus = model.OTPDeliveryStatusSending
+	case whatsapp.WhatsappMessageStatusSent,
+		whatsapp.WhatsappMessageStatusDelivered,
+		whatsapp.WhatsappMessageStatusRead:
+		deliveryStatus = model.OTPDeliveryStatusSent
+	case whatsapp.WhatsappMessageStatusFailed:
+		deliveryStatus = model.OTPDeliveryStatusFailed
+	default:
+		UtilsLogger.GetLogger(ctx).With(
+			slog.String("status", string(messageStatus)),
+		).Error(ctx, "unexpected whatsapp message status")
+		deliveryStatus = model.OTPDeliveryStatusFailed
+	}
+	return deliveryStatus
 }

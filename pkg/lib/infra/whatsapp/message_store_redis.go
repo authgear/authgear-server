@@ -2,6 +2,7 @@ package whatsapp
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -20,31 +21,63 @@ type MessageStore struct {
 	Credentials *config.WhatsappCloudAPICredentials
 }
 
+type WhatsappMessageStatusData struct {
+	Status    WhatsappMessageStatus `json:"status"`
+	IsTimeout bool                  `json:"is_timeout"`
+	Errors    []WhatsappStatusError `json:"errors"`
+}
+
 func redisMessageStatusKey(phoneNumberID string, messageID string) string {
 	hashedPhoneNumberID := crypto.SHA256String(phoneNumberID)
 	return fmt.Sprintf("whatsapp:phone-number-id-sha256:%s:message-id:%s", hashedPhoneNumberID, messageID)
 }
 
-func (s *MessageStore) UpdateMessageStatus(ctx context.Context, messageID string, status WhatsappMessageStatus) error {
+func (s *MessageStore) UpdateMessageStatus(ctx context.Context, messageID string, status *WhatsappMessageStatusData) error {
 	key := redisMessageStatusKey(s.Credentials.PhoneNumberID, messageID)
 	return s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
-		_, err := conn.Set(ctx, key, string(status), duration.UserInteraction).Result()
+		statusBytes, err := json.Marshal(status)
+		if err != nil {
+			panic(fmt.Errorf("unexpected: failed to marshal WhatsappMessageStatusData"))
+		}
+
+		_, err = conn.Set(ctx, key, string(statusBytes), duration.UserInteraction).Result()
 		return err
 	})
 }
 
-func (s *MessageStore) GetMessageStatus(ctx context.Context, messageID string) (WhatsappMessageStatus, error) {
+func (s *MessageStore) SetMessageStatusIfNotExist(ctx context.Context, messageID string, status *WhatsappMessageStatusData) error {
 	key := redisMessageStatusKey(s.Credentials.PhoneNumberID, messageID)
-	var status WhatsappMessageStatus
+	return s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
+		statusBytes, err := json.Marshal(status)
+		if err != nil {
+			panic(fmt.Errorf("unexpected: failed to marshal WhatsappMessageStatusData"))
+		}
+
+		_, err = conn.SetNX(ctx, key, string(statusBytes), duration.UserInteraction).Result()
+		return err
+	})
+}
+
+func (s *MessageStore) GetMessageStatus(ctx context.Context, messageID string) (*WhatsappMessageStatusData, error) {
+	key := redisMessageStatusKey(s.Credentials.PhoneNumberID, messageID)
+	var data WhatsappMessageStatusData
+	var ok bool = false
 	err := s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
-		data, err := conn.Get(ctx, key).Result()
+		dataBytes, err := conn.Get(ctx, key).Result()
 		if errors.Is(err, goredis.Nil) {
 			return nil
 		} else if err != nil {
 			return err
 		}
-		status = WhatsappMessageStatus(data)
+		err = json.Unmarshal([]byte(dataBytes), &data)
+		if err != nil {
+			return errors.Join(fmt.Errorf("failed to unmarshal WhatsappMessageStatusData"), err)
+		}
+		ok = true
 		return nil
 	})
-	return status, err
+	if !ok {
+		return nil, err
+	}
+	return &data, err
 }

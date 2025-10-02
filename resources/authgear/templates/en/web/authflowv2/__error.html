@@ -250,6 +250,8 @@
       </span>
     {{ else if eq .Error.reason "InvalidWhatsappUser" }}
       <span>{{ include "v2.error.invalid-whatsapp-user" nil }}</span>
+    {{ else if eq .Error.reason "WhatsappUndeliverable" }}
+      <span>{{ include "v2.error.whatsapp-undeliverable" nil }}</span>
     {{ else if eq .Error.reason "NoAvailableWhatsappClient" }}
       <span>{{ include "v2.error.no-available-whatsapp-client" nil }}</span>
     {{ else if eq .Error.reason "NoAvailableSMSClient" }}

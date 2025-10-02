@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/golang/mock/gomock"
 	. "github.com/smartystreets/goconvey/convey"
@@ -16,25 +17,23 @@ import (
 
 func TestServiceSendAuthenticationOTP(t *testing.T) {
 	Convey("TestServiceSendAuthenticationOTP", t, func() {
-		ctrl := gomock.NewController(t)
-		defer ctrl.Finish()
 
-		mockClock := clock.NewMockClockAt("2020-02-01T00:00:00Z")
 		ctx := context.Background()
 
-		// Common LocalizationConfig for tests
 		localizationConfig := &config.LocalizationConfig{
 			SupportedLanguages: []string{"en"},
 			FallbackLanguage:   func() *string { s := "en"; return &s }(),
 		}
 
 		Convey("should send authentication OTP via CloudAPI", func() {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
 			mockCloudAPIClient := NewMockServiceCloudAPIClient(ctrl)
 			mockMessageStore := NewMockServiceMessageStore(ctrl)
 
 			cfg := &config.WhatsappConfig{
 				APIType_NoDefault:          config.WhatsappAPITypeCloudAPI,
-				MessageSentCallbackTimeout: "5s",
+				MessageSentCallbackTimeout: "1ms",
 			}
 			credentials := &config.WhatsappCloudAPICredentials{
 				Webhook: &config.WhatsappCloudAPIWebhook{
@@ -43,7 +42,7 @@ func TestServiceSendAuthenticationOTP(t *testing.T) {
 			}
 
 			s := &whatsapp.Service{
-				Clock:                 mockClock,
+				Clock:                 clock.NewSystemClock(),
 				WhatsappConfig:        cfg,
 				LocalizationConfig:    localizationConfig,
 				GlobalWhatsappAPIType: config.GlobalWhatsappAPIType(config.WhatsappAPITypeCloudAPI),
@@ -58,22 +57,30 @@ func TestServiceSendAuthenticationOTP(t *testing.T) {
 			}
 
 			messageID := uuid.New()
+			sendResult := &whatsapp.CloudAPISendAuthenticationOTPResult{
+				MessageID:     messageID,
+				MessageStatus: whatsapp.WhatsappMessageStatusAccepted,
+			}
 
 			mockCloudAPIClient.EXPECT().GetLanguages().Return([]string{"en"}).Times(1)
 			mockCloudAPIClient.EXPECT().SendAuthenticationOTP(
 				ctx,
 				opts,
 				"en",
-			).Return(messageID, nil).Times(1)
+			).Return(sendResult, nil).Times(1)
 
-			// Expect message status update check
-			mockMessageStore.EXPECT().GetMessageStatus(
-				ctx,
-				messageID,
-			).Return(whatsapp.WhatsappMessageStatusSent, nil).Times(1)
+			mockMessageStore.EXPECT().SetMessageStatusIfNotExist(
+				gomock.Any(),
+				gomock.Any(),
+				gomock.Any(),
+			).Return(nil).AnyTimes()
 
-			err := s.SendAuthenticationOTP(ctx, opts)
+			result, err := s.SendAuthenticationOTP(ctx, opts)
 			So(err, ShouldBeNil)
+			So(result, ShouldResemble, &whatsapp.SendAuthenticationOTPResult{
+				MessageID:     messageID,
+				MessageStatus: whatsapp.WhatsappMessageStatusAccepted,
+			})
 		})
 
 		Convey("should return error if CloudAPIClient is nil", func() {
@@ -94,11 +101,13 @@ func TestServiceSendAuthenticationOTP(t *testing.T) {
 				To:  "+1234567890",
 			}
 
-			err := s.SendAuthenticationOTP(ctx, opts)
+			_, err := s.SendAuthenticationOTP(ctx, opts)
 			So(err, ShouldBeError, whatsapp.ErrNoAvailableWhatsappClient)
 		})
 
 		Convey("should return error if SendAuthenticationOTP fails", func() {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
 			mockCloudAPIClient := NewMockServiceCloudAPIClient(ctrl)
 
 			cfg := &config.WhatsappConfig{
@@ -124,19 +133,21 @@ func TestServiceSendAuthenticationOTP(t *testing.T) {
 				ctx,
 				opts,
 				"en",
-			).Return("", expectedError).Times(1)
+			).Return(nil, expectedError).Times(1)
 
-			err := s.SendAuthenticationOTP(ctx, opts)
+			_, err := s.SendAuthenticationOTP(ctx, opts)
 			So(err, ShouldBeError, expectedError)
 		})
 
-		Convey("should return error if message status update times out", func() {
+		Convey("should call SetMessageStatusIfNotExist after MessageSentCallbackTimeout to set status to WhatsappMessageStatusFailed if webhook is configured", func() {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
 			mockCloudAPIClient := NewMockServiceCloudAPIClient(ctrl)
 			mockMessageStore := NewMockServiceMessageStore(ctrl)
 
 			cfg := &config.WhatsappConfig{
 				APIType_NoDefault:          config.WhatsappAPITypeCloudAPI,
-				MessageSentCallbackTimeout: "5s",
+				MessageSentCallbackTimeout: "1s",
 			}
 			credentials := &config.WhatsappCloudAPICredentials{
 				Webhook: &config.WhatsappCloudAPIWebhook{
@@ -145,7 +156,7 @@ func TestServiceSendAuthenticationOTP(t *testing.T) {
 			}
 
 			s := &whatsapp.Service{
-				Clock:                 mockClock,
+				Clock:                 clock.NewSystemClock(),
 				WhatsappConfig:        cfg,
 				LocalizationConfig:    localizationConfig,
 				GlobalWhatsappAPIType: config.GlobalWhatsappAPIType(config.WhatsappAPITypeCloudAPI),
@@ -160,28 +171,40 @@ func TestServiceSendAuthenticationOTP(t *testing.T) {
 			}
 
 			messageID := uuid.New()
+			sendResult := &whatsapp.CloudAPISendAuthenticationOTPResult{
+				MessageID:     messageID,
+				MessageStatus: whatsapp.WhatsappMessageStatusAccepted,
+			}
 
 			mockCloudAPIClient.EXPECT().GetLanguages().Return([]string{"en"}).Times(1)
 			mockCloudAPIClient.EXPECT().SendAuthenticationOTP(
 				ctx,
 				opts,
 				"en",
-			).Return(messageID, nil).Times(1)
+			).Return(sendResult, nil).Times(1)
 
-			mockMessageStore.EXPECT().GetMessageStatus(
-				ctx,
+			mockMessageStore.EXPECT().SetMessageStatusIfNotExist(
+				gomock.Any(), // context.WithoutCancel(ctx)
 				messageID,
-			).DoAndReturn(func(ctx context.Context, messageID string) (whatsapp.WhatsappMessageStatus, error) {
-				// Simulate timeout by advancing clock
-				mockClock.AdvanceSeconds(6)
-				return "", errors.New("timeout")
-			}).Times(1)
+				&whatsapp.WhatsappMessageStatusData{
+					Status:    whatsapp.WhatsappMessageStatusFailed,
+					IsTimeout: true,
+				},
+			).Return(nil).Times(1)
 
-			err := s.SendAuthenticationOTP(ctx, opts)
-			So(err, ShouldBeError, whatsapp.ErrInvalidWhatsappUser)
+			result, err := s.SendAuthenticationOTP(ctx, opts)
+			// Wait for the goroutine to finish
+			time.Sleep(1500 * time.Millisecond)
+			So(err, ShouldBeNil)
+			So(result, ShouldResemble, &whatsapp.SendAuthenticationOTPResult{
+				MessageID:     messageID,
+				MessageStatus: whatsapp.WhatsappMessageStatusAccepted,
+			})
 		})
 
-		Convey("should return error if message status is Failed", func() {
+		Convey("should call SetMessageStatusIfNotExist to set status to WhatsappMessageStatusDelivered immediately if webhook is not configured", func() {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
 			mockCloudAPIClient := NewMockServiceCloudAPIClient(ctrl)
 			mockMessageStore := NewMockServiceMessageStore(ctrl)
 
@@ -190,13 +213,11 @@ func TestServiceSendAuthenticationOTP(t *testing.T) {
 				MessageSentCallbackTimeout: "5s",
 			}
 			credentials := &config.WhatsappCloudAPICredentials{
-				Webhook: &config.WhatsappCloudAPIWebhook{
-					VerifyToken: "some-token",
-				},
+				Webhook: nil,
 			}
 
 			s := &whatsapp.Service{
-				Clock:                 mockClock,
+				Clock:                 clock.NewSystemClock(),
 				WhatsappConfig:        cfg,
 				LocalizationConfig:    localizationConfig,
 				GlobalWhatsappAPIType: config.GlobalWhatsappAPIType(config.WhatsappAPITypeCloudAPI),
@@ -211,21 +232,33 @@ func TestServiceSendAuthenticationOTP(t *testing.T) {
 			}
 
 			messageID := uuid.New()
+			sendResult := &whatsapp.CloudAPISendAuthenticationOTPResult{
+				MessageID:     messageID,
+				MessageStatus: whatsapp.WhatsappMessageStatusAccepted,
+			}
 
 			mockCloudAPIClient.EXPECT().GetLanguages().Return([]string{"en"}).Times(1)
 			mockCloudAPIClient.EXPECT().SendAuthenticationOTP(
 				ctx,
 				opts,
 				"en",
-			).Return(messageID, nil).Times(1)
+			).Return(sendResult, nil).Times(1)
 
-			mockMessageStore.EXPECT().GetMessageStatus(
+			mockMessageStore.EXPECT().SetMessageStatusIfNotExist(
 				ctx,
 				messageID,
-			).Return(whatsapp.WhatsappMessageStatusFailed, nil).Times(1)
+				&whatsapp.WhatsappMessageStatusData{
+					Status:    whatsapp.WhatsappMessageStatusDelivered,
+					IsTimeout: false, // Should not be timeout if no webhook
+				},
+			).Return(nil).Times(1)
 
-			err := s.SendAuthenticationOTP(ctx, opts)
-			So(err, ShouldBeError, whatsapp.ErrInvalidWhatsappUser)
+			result, err := s.SendAuthenticationOTP(ctx, opts)
+			So(err, ShouldBeNil)
+			So(result, ShouldResemble, &whatsapp.SendAuthenticationOTPResult{
+				MessageID:     messageID,
+				MessageStatus: whatsapp.WhatsappMessageStatusAccepted,
+			})
 		})
 	})
 }

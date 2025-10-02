@@ -22,7 +22,7 @@ import (
 var logger = slogutil.NewLogger("whatsapp-webhook")
 
 type WhatsappCloudAPIWebhookWhatsappService interface {
-	UpdateMessageStatus(ctx context.Context, messageID string, status whatsapp.WhatsappMessageStatus) error
+	UpdateMessageStatus(ctx context.Context, messageID string, status whatsapp.WhatsappMessageStatus, errors []whatsapp.WhatsappStatusError) error
 }
 
 type WhatsappCloudAPIWebhookHandler struct {
@@ -49,15 +49,11 @@ type whatsappWebhookPayload struct {
 }
 
 type whatsappStatus struct {
-	ID          string `json:"id"`
-	Status      string `json:"status"`
-	Timestamp   string `json:"timestamp"`
-	RecipientID string `json:"recipient_id"`
-	Errors      []struct {
-		Code    int    `json:"code"`
-		Title   string `json:"title"`
-		Message string `json:"message"`
-	} `json:"errors"`
+	ID          string                         `json:"id"`
+	Status      string                         `json:"status"`
+	Timestamp   string                         `json:"timestamp"`
+	RecipientID string                         `json:"recipient_id"`
+	Errors      []whatsapp.WhatsappStatusError `json:"errors"`
 }
 
 func ConfigureWhatsappCloudAPIWebhookRoute(route httproute.Route) httproute.Route {
@@ -171,6 +167,7 @@ func (h *WhatsappCloudAPIWebhookHandler) ServeHTTP(w http.ResponseWriter, r *htt
 						ctx,
 						status.ID,
 						whatsapp.WhatsappMessageStatus(status.Status),
+						status.Errors,
 					)
 					if err != nil {
 						logger.GetLogger(ctx).WithError(err).Error(ctx, "Failed to update message status")

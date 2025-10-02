@@ -413,7 +413,8 @@ func TestAuthflowControllerFeedInput(t *testing.T) {
 					Type:           authflow.FlowActionTypeFromStepType(config.AuthenticationFlowStepTypeAuthenticate),
 					Authentication: model.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail,
 					Data: declarative.VerifyOOBOTPData{
-						OTPForm: otp.FormCode,
+						OTPForm:        otp.FormCode,
+						DeliveryStatus: model.OTPDeliveryStatusSent,
 					},
 				},
 			}, nil)

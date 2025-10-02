@@ -5,6 +5,7 @@ import (
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/util/duration"
 )
 
@@ -34,4 +35,8 @@ type Code struct {
 	AuthenticationFlowType                 string        `json:"authentication_flow_type,omitempty"`
 	AuthenticationFlowName                 string        `json:"authentication_flow_name,omitempty"`
 	AuthenticationFlowJSONPointer          jsonpointer.T `json:"authentication_flow_json_pointer,omitempty"`
+
+	// The message which carries the otp
+	OOBChannel        model.AuthenticatorOOBChannel `json:"channel,omitzero"`
+	WhatsappMessageID string                        `json:"whatsapp_message_id,omitzero"`
 }
