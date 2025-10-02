@@ -121,7 +121,7 @@ func NewAuthenticateOptionOOBOTPFromAuthenticator(flows authflow.Flows, oobConfi
 		fallthrough
 	case model.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
 		purpose := otp.PurposeOOBOTP
-		channels := getChannels(model.ClaimEmail, oobConfig, i.OOBOTP.LastUsedChannel())
+		channels := getChannels(model.ClaimEmail, oobConfig)
 		otpForm := getOTPForm(purpose, model.ClaimEmail, oobConfig.Email)
 		return &AuthenticateOption{
 			Authentication:    am,
@@ -136,7 +136,7 @@ func NewAuthenticateOptionOOBOTPFromAuthenticator(flows authflow.Flows, oobConfi
 		fallthrough
 	case model.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
 		purpose := otp.PurposeOOBOTP
-		channels := getChannels(model.ClaimPhoneNumber, oobConfig, i.OOBOTP.LastUsedChannel())
+		channels := getChannels(model.ClaimPhoneNumber, oobConfig)
 		otpForm := getOTPForm(purpose, model.ClaimPhoneNumber, oobConfig.Email)
 		return &AuthenticateOption{
 			Authentication:    am,
@@ -181,22 +181,19 @@ func NewAuthenticateOptionOOBOTPFromIdentity(
 		if err != nil {
 			return nil, false, err
 		}
-		preferredChannel := expectedAuthenticatorInfo.OOBOTP.LastUsedChannel()
 
 		for _, authenticator := range allAuthenticators {
 			if authenticator.Equal(expectedAuthenticatorInfo) {
 				// An existing authenticator is found, use it instead of identity ID
 				authnID = authenticator.ID
 				identityID = ""
-				// Also respect preferred channel
-				preferredChannel = authenticator.OOBOTP.LastUsedChannel()
 				break
 			}
 		}
 		switch i.LoginID.LoginIDType {
 		case model.LoginIDKeyTypeEmail:
 			purpose := otp.PurposeOOBOTP
-			channels := getChannels(model.ClaimEmail, oobConfig, preferredChannel)
+			channels := getChannels(model.ClaimEmail, oobConfig)
 			otpForm := getOTPForm(purpose, model.ClaimEmail, oobConfig.Email)
 			return &AuthenticateOption{
 				Authentication:    model.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail,
@@ -210,7 +207,7 @@ func NewAuthenticateOptionOOBOTPFromIdentity(
 			}, true, nil
 		case model.LoginIDKeyTypePhone:
 			purpose := otp.PurposeOOBOTP
-			channels := getChannels(model.ClaimPhoneNumber, oobConfig, preferredChannel)
+			channels := getChannels(model.ClaimPhoneNumber, oobConfig)
 			otpForm := getOTPForm(purpose, model.ClaimPhoneNumber, oobConfig.Email)
 			return &AuthenticateOption{
 				Authentication:    model.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS,

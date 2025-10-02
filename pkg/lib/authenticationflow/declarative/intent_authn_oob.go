@@ -123,5 +123,5 @@ func (i *IntentAuthenticationOOB) OutputData(ctx context.Context, deps *authflow
 
 func (i *IntentAuthenticationOOB) getChannels(deps *authflow.Dependencies) []model.AuthenticatorOOBChannel {
 	claimName, _ := i.Info.OOBOTP.ToClaimPair()
-	return getChannels(claimName, deps.Config.Authenticator.OOB, i.Info.OOBOTP.LastUsedChannel())
+	return getChannels(claimName, deps.Config.Authenticator.OOB)
 }

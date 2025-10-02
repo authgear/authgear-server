@@ -151,7 +151,7 @@ func NewCreateAuthenticationOptions(
 				continue
 			}
 			purpose := otp.PurposeOOBOTP
-			channels := getChannels(model.ClaimEmail, deps.Config.Authenticator.OOB, "")
+			channels := getChannels(model.ClaimEmail, deps.Config.Authenticator.OOB)
 			otpForm := getOTPForm(purpose, model.ClaimEmail, deps.Config.Authenticator.OOB.Email)
 			options = append(options, CreateAuthenticatorOptionInternal{
 				CreateAuthenticatorOption: CreateAuthenticatorOption{
@@ -176,7 +176,7 @@ func NewCreateAuthenticationOptions(
 				continue
 			}
 			purpose := otp.PurposeOOBOTP
-			channels := getChannels(model.ClaimPhoneNumber, deps.Config.Authenticator.OOB, "")
+			channels := getChannels(model.ClaimPhoneNumber, deps.Config.Authenticator.OOB)
 			otpForm := getOTPForm(purpose, model.ClaimPhoneNumber, deps.Config.Authenticator.OOB.Email)
 			options = append(options, CreateAuthenticatorOptionInternal{
 				CreateAuthenticatorOption: CreateAuthenticatorOption{

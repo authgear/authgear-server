@@ -661,7 +661,7 @@ func identityFillDetails(err error, spec *identity.Spec, existingSpec *identity.
 	return identityFillDetailsMany(err, spec, existings)
 }
 
-func getChannels(claimName model.ClaimName, oobConfig *config.AuthenticatorOOBConfig, preferredChannel model.AuthenticatorOOBChannel) []model.AuthenticatorOOBChannel {
+func getChannels(claimName model.ClaimName, oobConfig *config.AuthenticatorOOBConfig) []model.AuthenticatorOOBChannel {
 	channels := []model.AuthenticatorOOBChannel{}
 
 	switch claimName {
@@ -676,24 +676,6 @@ func getChannels(claimName model.ClaimName, oobConfig *config.AuthenticatorOOBCo
 		case config.AuthenticatorPhoneOTPModeWhatsappSMS:
 			channels = append(channels, model.AuthenticatorOOBChannelWhatsapp)
 			channels = append(channels, model.AuthenticatorOOBChannelSMS)
-		}
-	}
-
-	if preferredChannel != "" {
-		foundIdx := -1
-		for i, c := range channels {
-			if c == preferredChannel {
-				foundIdx = i
-				break
-			}
-		}
-		if foundIdx != -1 {
-			// Move preferred channel to the front
-			newChannels := make([]model.AuthenticatorOOBChannel, 0, len(channels))
-			newChannels = append(newChannels, preferredChannel)
-			newChannels = append(newChannels, channels[:foundIdx]...)
-			newChannels = append(newChannels, channels[foundIdx+1:]...)
-			channels = newChannels
 		}
 	}
 
