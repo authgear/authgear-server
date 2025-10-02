@@ -819,6 +819,7 @@ func (s *AuthflowScreenWithFlowResponse) makeFallbackToSMSFromWhatsappRetryHandl
 	}
 }
 
+//nolint:gocognit
 func (s *AuthflowScreenWithFlowResponse) makeVerifyOOBOTPOutputTransformer(channels []model.AuthenticatorOOBChannel) TakeBranchOutputTransformer {
 	hasNonWhatsappChannels := false
 	for _, c := range channels {
