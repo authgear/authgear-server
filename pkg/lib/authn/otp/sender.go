@@ -46,7 +46,7 @@ type Sender interface {
 	SendEmailInNewGoroutine(ctx context.Context, msgType translation.MessageType, opts *mail.SendOptions) error
 	SendSMSImmediately(ctx context.Context, msgType translation.MessageType, opts *sms.SendOptions) error
 	SendSMSInNewGoroutine(ctx context.Context, msgType translation.MessageType, opts *sms.SendOptions) error
-	SendWhatsappImmediately(ctx context.Context, msgType translation.MessageType, opts *whatsapp.SendAuthenticationOTPOptions) (*messaging.SendWhatsappResult, error)
+	SendWhatsappInNewGoroutine(ctx context.Context, msgType translation.MessageType, opts *whatsapp.SendAuthenticationOTPOptions, callback messaging.SendWhatsappResultCallback) error
 }
 
 type SenderCodeStore interface {
@@ -263,23 +263,24 @@ func (s *MessageSender) sendWhatsapp(ctx context.Context, opts SendOptions) (err
 		OTP: opts.OTP,
 	}
 
-	result, err := s.Sender.SendWhatsappImmediately(ctx, msgType, whatsappSendAuthenticationOTPOptions)
-	if err != nil {
-		return err
+	resultCallback := func(ctx context.Context, result *messaging.SendWhatsappResult) {
+		logger := SenderLogger.GetLogger(ctx)
+		code, err := s.CodeStore.Get(ctx, opts.Kind.Purpose(), opts.Target)
+		if err != nil {
+			logger.WithError(err).Error(ctx, "failed to get code in result callback")
+			return
+		}
+		code.WhatsappMessageID = result.MessageID
+		code.OOBChannel = opts.Channel
+		err = s.CodeStore.Update(ctx, opts.Kind.Purpose(), code)
+		if err != nil {
+			logger.WithError(err).Error(ctx, "failed to update code in result callback")
+			return
+		}
 	}
 
-	code, err := s.CodeStore.Get(ctx, opts.Kind.Purpose(), opts.Target)
-	if err != nil {
-		return err
-	}
-	code.WhatsappMessageID = result.MessageID
-	code.OOBChannel = opts.Channel
-	err = s.CodeStore.Update(ctx, opts.Kind.Purpose(), code)
-	if err != nil {
-		return err
-	}
-
-	return
+	err = s.Sender.SendWhatsappInNewGoroutine(ctx, msgType, whatsappSendAuthenticationOTPOptions, resultCallback)
+	return err
 }
 
 func (s *MessageSender) Send(ctx context.Context, opts SendOptions) error {

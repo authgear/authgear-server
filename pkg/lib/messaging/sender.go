@@ -73,6 +73,8 @@ type SendWhatsappResult struct {
 	MessageStatus whatsapp.WhatsappMessageStatus
 }
 
+type SendWhatsappResultCallback func(ctx context.Context, result *SendWhatsappResult)
+
 func (s *Sender) SendEmailInNewGoroutine(ctx context.Context, msgType translation.MessageType, opts *mail.SendOptions) error {
 	err := s.Limits.checkEmail(ctx, opts.Recipient)
 	if err != nil {
@@ -335,78 +337,104 @@ func (s *Sender) devModeSendSMS(ctx context.Context, msgType translation.Message
 	})
 }
 
-func (s *Sender) SendWhatsappImmediately(ctx context.Context, msgType translation.MessageType, opts *whatsapp.SendAuthenticationOTPOptions) (*SendWhatsappResult, error) {
+func (s *Sender) SendWhatsappInNewGoroutine(ctx context.Context, msgType translation.MessageType, opts *whatsapp.SendAuthenticationOTPOptions, callback SendWhatsappResultCallback) error {
 	logger := SenderLogger.GetLogger(ctx)
 	err := s.Limits.checkWhatsapp(ctx, opts.To)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	if s.FeatureTestModeWhatsappSuppressed {
-		return s.testModeSendWhatsapp(ctx, msgType, opts)
+		result, err := s.testModeSendWhatsapp(ctx, msgType, opts)
+		if err != nil {
+			return err
+		}
+		callback(ctx, result)
+		return nil
 	}
 
 	if s.TestModeWhatsappConfig.Enabled {
 		if r, ok := s.TestModeWhatsappConfig.MatchTarget(opts.To); ok && r.Suppressed {
-			return s.testModeSendWhatsapp(ctx, msgType, opts)
+			result, err := s.testModeSendWhatsapp(ctx, msgType, opts)
+			if err != nil {
+				return err
+			}
+			callback(ctx, result)
+			return nil
 		}
 	}
 
 	if s.DevMode {
-		return s.devModeSendWhatsapp(ctx, msgType, opts)
+		result, err := s.devModeSendWhatsapp(ctx, msgType, opts)
+		if err != nil {
+			return err
+		}
+		callback(ctx, result)
+		return nil
 	}
 
-	// Send immediately.
-	result, err := s.sendWhatsapp(ctx, opts)
-	if err != nil {
-		// Log the send error immediately.
-		logger.WithError(err).With(
-			slog.String("phone", phone.Mask(opts.To)),
-		).Error(ctx, "failed to send Whatsapp")
+	sendSync := func(ctx context.Context) error {
+		result, err := s.sendWhatsapp(ctx, opts)
+		if err != nil {
+			// Log the send error immediately.
+			logger.WithError(err).With(
+				slog.String("phone", phone.Mask(opts.To)),
+			).Error(ctx, "failed to send Whatsapp")
 
-		metricOptions := []otelutil.MetricOption{otelauthgear.WithStatusError()}
-		var apiErr *whatsapp.WhatsappAPIError
-		if ok := errors.As(err, &apiErr); ok {
-			metricOptions = append(metricOptions, otelauthgear.WithWhatsappAPIType(apiErr.APIType))
-			metricOptions = append(metricOptions, otelauthgear.WithHTTPStatusCode(apiErr.HTTPStatusCode))
-			errorCode, ok := apiErr.GetErrorCode()
-			if ok {
-				metricOptions = append(metricOptions, otelauthgear.WithWhatsappAPIErrorCode(errorCode))
+			metricOptions := []otelutil.MetricOption{otelauthgear.WithStatusError()}
+			var apiErr *whatsapp.WhatsappAPIError
+			if ok := errors.As(err, &apiErr); ok {
+				metricOptions = append(metricOptions, otelauthgear.WithWhatsappAPIType(apiErr.APIType))
+				metricOptions = append(metricOptions, otelauthgear.WithHTTPStatusCode(apiErr.HTTPStatusCode))
+				errorCode, ok := apiErr.GetErrorCode()
+				if ok {
+					metricOptions = append(metricOptions, otelauthgear.WithWhatsappAPIErrorCode(errorCode))
+				}
 			}
+
+			otelutil.IntCounterAddOne(
+				ctx,
+				otelauthgear.CounterWhatsappRequestCount,
+				metricOptions...,
+			)
+
+			dispatchErr := s.DispatchEventImmediatelyWithTx(ctx, &nonblocking.WhatsappErrorEventPayload{
+				Description: s.errorToDescription(err),
+			})
+			if dispatchErr != nil {
+				logger.WithError(dispatchErr).Error(ctx, "failed to emit event", slog.String("event", string(nonblocking.WhatsappError)))
+			}
+
+			return err
 		}
 
 		otelutil.IntCounterAddOne(
 			ctx,
 			otelauthgear.CounterWhatsappRequestCount,
-			metricOptions...,
+			otelauthgear.WithStatusOk(),
 		)
 
-		dispatchErr := s.DispatchEventImmediatelyWithTx(ctx, &nonblocking.WhatsappErrorEventPayload{
-			Description: s.errorToDescription(err),
+		dispatchErr := s.DispatchEventImmediatelyWithTx(ctx, &nonblocking.WhatsappSentEventPayload{
+			Recipient:           opts.To,
+			Type:                string(msgType),
+			IsNotCountedInUsage: *s.MessagingFeatureConfig.WhatsappUsageCountDisabled,
 		})
 		if dispatchErr != nil {
-			logger.WithError(dispatchErr).Error(ctx, "failed to emit event", slog.String("event", string(nonblocking.WhatsappError)))
+			logger.WithError(dispatchErr).Error(ctx, "failed to emit %v event", slog.String("event", string(nonblocking.WhatsappSent)))
 		}
 
-		return nil, err
+		callback(ctx, result)
+		return nil
 	}
 
-	otelutil.IntCounterAddOne(
-		ctx,
-		otelauthgear.CounterWhatsappRequestCount,
-		otelauthgear.WithStatusOk(),
-	)
+	// Send in new goroutine.
+	ctxWithoutCancel := context.WithoutCancel(ctx)
+	go func(ctx context.Context) {
+		// Ignore error, the error should be logged in sendSync
+		_ = sendSync(ctx)
+	}(ctxWithoutCancel)
 
-	dispatchErr := s.DispatchEventImmediatelyWithTx(ctx, &nonblocking.WhatsappSentEventPayload{
-		Recipient:           opts.To,
-		Type:                string(msgType),
-		IsNotCountedInUsage: *s.MessagingFeatureConfig.WhatsappUsageCountDisabled,
-	})
-	if dispatchErr != nil {
-		logger.WithError(dispatchErr).Error(ctx, "failed to emit %v event", slog.String("event", string(nonblocking.WhatsappSent)))
-	}
-
-	return result, nil
+	return nil
 }
 
 func (s *Sender) sendWhatsapp(ctx context.Context, opts *whatsapp.SendAuthenticationOTPOptions) (*SendWhatsappResult, error) {
