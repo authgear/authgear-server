@@ -1033,7 +1033,7 @@
   "v2.error.webhook-disallowed": "Operasi tidak dibenarkan",
   "v2.error.webhook-invalid-response": "[Untuk Pembangun] Pengendali webhook anda TIDAK mengembalikan respons yang sah. Sila lawati <a class=\"link\" target=\"_blank\" href=\"https://docs.authgear.com/customization/events-hooks/webhooks\">https://docs.authgear.com/customization/events-hooks/webhooks</a>",
   "v2.error.webhook-pre-signup-disallowed": "Pendaftaran tidak dibenarkan",
-  "v2.error.whatsapp-undeliverable": "Gagal menghantar mesej WhatsApp. Sila cuba lagi dengan nombor telefon yang betul.",
+  "v2.error.whatsapp-undeliverable": "Gagal menghantar mesej WhatsApp. Sila cuba lagi.",
   "v2.page.account-linking.default.by-email": "Log masuk ke {IdentityDisplayName}",
   "v2.page.account-linking.default.by-phone": "Log masuk ke {IdentityDisplayName}",
   "v2.page.account-linking.default.by-username": "Log masuk ke {IdentityDisplayName}",

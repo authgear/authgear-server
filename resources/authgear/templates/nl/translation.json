@@ -1033,7 +1033,7 @@
   "v2.error.webhook-disallowed": "Bewerking is niet toegestaan",
   "v2.error.webhook-invalid-response": "[Voor ontwikkelaar] Uw webhook-handler heeft GEEN geldig antwoord geretourneerd. Bezoek <a class=\"link\" target=\"_blank\" href=\"https://docs.authgear.com/customization/events-hooks/webhooks\">https://docs.authgear.com/customization/events-hooks/webhooks</a>",
   "v2.error.webhook-pre-signup-disallowed": "Aanmelden is niet toegestaan",
-  "v2.error.whatsapp-undeliverable": "Het is niet gelukt om het WhatsApp-bericht te bezorgen. Probeer het opnieuw met een correct telefoonnummer.",
+  "v2.error.whatsapp-undeliverable": "Het is niet gelukt om het WhatsApp-bericht te bezorgen. Probeer het opnieuw.",
   "v2.page.account-linking.default.by-email": "Log in op {IdentityDisplayName}",
   "v2.page.account-linking.default.by-phone": "Log in op {IdentityDisplayName}",
   "v2.page.account-linking.default.by-username": "Log in op {IdentityDisplayName}",

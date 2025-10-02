@@ -1033,7 +1033,7 @@
   "v2.error.webhook-disallowed": "Operacja jest niedozwolona",
   "v2.error.webhook-invalid-response": "[Do Dewelopera] Twój program obsługi webhook NIE zwrócił prawidłowej odpowiedzi. Odwiedź <a class=\"link\" target=\"_blank\" href=\"https://docs.authgear.com/customization/events-hooks/webhooks\">https://docs.authgear.com/customization/events-hooks/webhooks</a>",
   "v2.error.webhook-pre-signup-disallowed": "Rejestracja jest niedozwolona",
-  "v2.error.whatsapp-undeliverable": "Nie udało się dostarczyć wiadomości WhatsApp. Spróbuj ponownie z poprawnym numerem telefonu.",
+  "v2.error.whatsapp-undeliverable": "Nie udało się dostarczyć wiadomości WhatsApp. Proszę spróbować ponownie.",
   "v2.page.account-linking.default.by-email": "Zaloguj się do {IdentityDisplayName}",
   "v2.page.account-linking.default.by-phone": "Zaloguj się do {IdentityDisplayName}",
   "v2.page.account-linking.default.by-username": "Zaloguj się do {IdentityDisplayName}",

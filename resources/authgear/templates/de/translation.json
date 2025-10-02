@@ -1033,7 +1033,7 @@
   "v2.error.webhook-disallowed": "Der Vorgang ist nicht zulässig",
   "v2.error.webhook-invalid-response": "[An den Entwickler] Ihr Webhook-Handler hat KEINE gültige Antwort zurückgegeben. Bitte besuchen Sie <a class=\"link\" target=\"_blank\" href=\"https://docs.authgear.com/customization/events-hooks/webhooks\">https://docs.authgear.com/customization/events-hooks/webhooks</a>",
   "v2.error.webhook-pre-signup-disallowed": "Die Anmeldung ist nicht zulässig",
-  "v2.error.whatsapp-undeliverable": "WhatsApp-Nachricht konnte nicht zugestellt werden. Bitte versuchen Sie es erneut mit einer korrekten Telefonnummer.",
+  "v2.error.whatsapp-undeliverable": "WhatsApp-Nachricht konnte nicht zugestellt werden. Bitte versuchen Sie es erneut.",
   "v2.page.account-linking.default.by-email": "Anmelden bei {IdentityDisplayName}",
   "v2.page.account-linking.default.by-phone": "Anmelden bei {IdentityDisplayName}",
   "v2.page.account-linking.default.by-username": "Anmelden bei {IdentityDisplayName}",

@@ -1033,7 +1033,7 @@
   "v2.error.webhook-disallowed": "ไม่อนุญาตให้ดำเนินการ",
   "v2.error.webhook-invalid-response": "[To Developer] ตัวจัดการ Webhook ของคุณไม่ได้ส่งคืนการตอบสนองที่ถูกต้อง กรุณาเยี่ยมชม <a class=\"link\" target=\"_blank\" href=\"https://docs.authgear.com/customization/events-hooks/webhooks\">https://docs.authgear.com/customization/events-hooks/webhooks</a>",
   "v2.error.webhook-pre-signup-disallowed": "ไม่อนุญาตให้ลงทะเบียน",
-  "v2.error.whatsapp-undeliverable": "ไม่สามารถส่งข้อความ WhatsApp ได้ โปรดลองอีกครั้งด้วยหมายเลขโทรศัพท์ที่ถูกต้อง",
+  "v2.error.whatsapp-undeliverable": "ไม่สามารถส่งข้อความ WhatsApp ได้ โปรดลองอีกครั้ง",
   "v2.page.account-linking.default.by-email": "เข้าสู่ระบบ {IdentityDisplayName}",
   "v2.page.account-linking.default.by-phone": "เข้าสู่ระบบ {IdentityDisplayName}",
   "v2.page.account-linking.default.by-username": "เข้าสู่ระบบ {IdentityDisplayName}",

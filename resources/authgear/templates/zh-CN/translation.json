@@ -1033,7 +1033,7 @@
   "v2.error.webhook-disallowed": "操作不被允许",
   "v2.error.webhook-invalid-response": "[To Developer] 您的 webhook 处理程序没有返回有效的响应。请访问 <a class=\"link\" target=\"_blank\" href=\"https://docs.authgear.com/customization/events-hooks/webhooks\">https://docs.authgear.com/customization/events-hooks/webhooks</a>",
   "v2.error.webhook-pre-signup-disallowed": "注册不被允许",
-  "v2.error.whatsapp-undeliverable": "WhatsApp 消息发送失败。请使用正确的电话号码重试。",
+  "v2.error.whatsapp-undeliverable": "WhatsApp 消息发送失败。请重试。",
   "v2.page.account-linking.default.by-email": "登录到 {IdentityDisplayName}",
   "v2.page.account-linking.default.by-phone": "登录到 {IdentityDisplayName}",
   "v2.page.account-linking.default.by-username": "登录到 {IdentityDisplayName}",

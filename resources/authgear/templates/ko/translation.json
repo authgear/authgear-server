@@ -1033,7 +1033,7 @@
   "v2.error.webhook-disallowed": "작업이 허용되지 않습니다",
   "v2.error.webhook-invalid-response": "[개발자에게] 웹훅 핸들러가 유효한 응답을 반환하지 않았습니다. <a class=\"link\" target=\"_blank\" href=\"https://docs.authgear.com/customization/events-hooks/webhooks\">https://docs.authgear.com/customization/events-hooks/webhooks</a>를 방문해 주세요.",
   "v2.error.webhook-pre-signup-disallowed": "가입이 허용되지 않습니다",
-  "v2.error.whatsapp-undeliverable": "WhatsApp 메시지 전송에 실패했습니다. 올바른 전화번호로 다시 시도해 주세요.",
+  "v2.error.whatsapp-undeliverable": "WhatsApp 메시지 전송에 실패했습니다. 다시 시도해 주세요.",
   "v2.page.account-linking.default.by-email": "{IdentityDisplayName}에 로그인",
   "v2.page.account-linking.default.by-phone": "{IdentityDisplayName}에 로그인",
   "v2.page.account-linking.default.by-username": "{IdentityDisplayName}에 로그인",
