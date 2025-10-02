@@ -462,83 +462,117 @@ until its natural expiry.
 
 This section specifies Account Status, which includes the following:
 
-- disabled user
-- deactivated user
-- anonymized user
-- scheduled account deletion
-- scheduled account anonymization
-- `join_at`
-- `leave_at`
-- `disable_at` and `enable_at`
+- Anonymized
+- Scheduled deletion by admin
+- Scheduled deletion by end-user
+- Scheduled anonymization by admin
+- Indefinitely Disabled
+- Temporarily Disabled
+- Account valid period
+
+### Account Status table
+
+The following table summarizes the Account status database columns:
+
+| Account Status                   | is_disabled | is_indefinitely_disabled | is_deactivated | is_anonymized | delete_at | anonymize_at | anonymized_at | account_valid_from | account_valid_until | temporarily_disabled_from | temporarily_disabled_until |
+|----------------------------------|-------------|--------------------------|----------------|---------------|-----------|--------------|---------------|--------------------|---------------------|---------------------------|----------------------------|
+| Normal                           | false       | false                    | false          | false         | null      | null         | null          | null               | null                | null                      | null                       |
+| Outside valid period             | true        | false                    | false          | false         | null      | null         | null          | non-null           | any                 | any                       | any                        |
+| Outside valid period             | true        | false                    | false          | false         | null      | null         | null          | any                | non-null            | any                       | any                        |
+| Temporarily Disabled             | true        | false                    | false          | false         | null      | null         | null          | any                | any                 | non-null                  | non-null                   |
+| Indefinitely Disabled            | true        | true                     | false          | false         | null      | null         | null          | any                | any                 | any                       | any                        |
+| Scheduled anonymization by admin | true        | true                     | false          | false         | null      | non-null     | null          | any                | any                 | any                       | any                        |
+| Scheduled deletion by user       | true        | true                     | true           | false         | non-null  | null         | null          | any                | any                 | any                       | any                        |
+| Scheduled deletion by admin      | true        | true                     | false          | false         | non-null  | null         | null          | any                | any                 | any                       | any                        |
+| Anonymized                       | true        | true                     | any            | true          | null      | any          | non-null      | any                | any                 | any                       | any                        |
 
 > [!IMPORTANT]
-> Here are some alternative names
-> - `join_at` -> `account_effective_from`
-> - `leave_at` -> `account_effective_until`
-> - `disable_at` -> `account_disable_from`
-> - `enable_at` -> `account_disable_until`
+> `is_indefinitely_disabled` is a new nullable column that was introduced along with `account_valid_from`, `account_valid_until`, `temporarily_disabled_from`, and `temporarily_disabled_until`.
+>
+> Before the introduction, `is_disabled` meant the account was disabled due to some operation, and the only way to disable an account is by some operation.
+>
+> After the introduction, `is_indefinitely_disabled` means the account was disabled due to some operation.
+> `is_disabled` simply means the account was disabled, either by some operation, or by some condition.
+>
+> As such, when
+> - `is_indefinitely_disabled=NULL`
+> - `account_valid_from=NULL`
+> - `account_valid_until=NULL`
+> - `temporarily_disabled_from=NULL`
+> - `temporarily_disabled_until=NULL`
+> Then `is_indefinitely_disabled=is_disabled` is assumed.
 
-The following truth table defines Account Status.
+> [!IMPORTANT]
+> Since `is_disabled` is now a derived state, a new nullable column `account_status_stale_from` was introduced to indicate
+> whether the account status is non-stale.
+> When `account_status_stale_from` is null, then the account status is non-stale. This means `is_disabled` is accurate.
+> Otherwise, `is_disabled` is accurate if the current time is less than `account_status_stale_from`.
+>
+> The algorithm is set `account_status_stale_from` is as follows:
+> 1. Let A be an array containing non-null values of `account_valid_from`, `account_valid_until`, `temporarily_disabled_from`, and `temporarily_disabled_until`.
+> 2. Sort A in chronological order.
+> 3. If A is empty, set `account_status_stale_from` to NULL and exit.
+> 4. Let NOW be the current timestamp.
+> 5. Let FIRST be the first element in A that is larger than NOW.
+> 6. If FIRST is found, set `account_status_stale_from` to FIRST and exit.
+> 7. Set `account_status_stale_from` to NULL and exit.
+>
+> This algorithm **MUST BE** run along with the derivation of `is_disabled`, and every state transition of account status.
 
-|is\_disabled|is\_deactivated|is_anonymized|delete\_at|anonymize_at|anonymized_at|join_at|leave_at|disable_at|enable_at|Account Status|
-|---|---|---|---|---|---|---|---|---|---|---|
-|false|false|false|null|null|null|null|null|null|null|Normal|
-|false|false|false|null|null|null|non-null|any|any|any|Disabled due to join_at|
-|false|false|false|null|null|null|any|non-null|any|any|Disabled due to leave_at|
-|false|false|false|null|null|null|any|any|non-null|non-null|Disabled due to disable_at and enable_at|
-|true|false|false|null|null|null|any|any|any|any|Disabled|
-|true|true|false|null|null|null|any|any|any|any|Deactivated|
-|true|false|false|non-null|null|null|any|any|any|any|Scheduled deletion by admin|
-|true|true|false|non-null|null|null|any|any|any|any|Scheduled deletion by end-user|
-|true|false|false|null|non-null|null|any|any|any|any|Scheduled anonymization by admin|
-|true|true|false|null|non-null|null|any|any|any|any|Scheduled anonymization by end-user|
-|true|any|true|null|any|non-null|any|any|any|any|Anonymized|
+### Account status valid state transitions
 
-List of valid state transitions:
+Here is the list of valid state transitions:
 
-- Normal --[Disable]--> Disabled
-- Normal --[Deactivate]--> Deactivated
+- Normal --[Disable Indefinitely]--> Indefinitely Disabled
 - Normal --[Schedule deletion by admin]--> Scheduled deletion by admin
 - Normal --[Schedule deletion by end-user]--> Scheduled deletion by end-user
-- Disabled --[Re-enable]--> Normal
-- Deactivated --[Reactivate]--> Normal
-- Deactivated --[Re-enable]--> Normal
+- Normal --[Schedule anonymization by admin]--> Scheduled anonymization by admin
+- Indefinitely Disabled --[Re-enable]--> Normal
 - Scheduled deletion by admin --[Unschedule deletion]--> Normal
 - Scheduled deletion by end-user --[Unschedule deletion]--> Normal
-- Normal --[Schedule anonymization by admin]--> Scheduled anonymization by admin
-- Normal --[Schedule anonymization by end-user]--> Scheduled anonymization by end-user
 - Scheduled anonymization by admin --[Unschedule anonymization]--> Normal
-- Scheduled anonymization by end-user --[Unschedule anonymization]--> Normal
+- Any --[Anonymize immediately]--> Anonymized
+- When the account status is **NOT** Anonymized, then the following is possible:
+  - Set account valid period
+  - Unset account valid period
+  - Set Disable Temporarily
+  - Unset Disable Temporarily
 
-Rules on `join_at`, `leave_at`, `disable_at` and `enable_at`:
+### Account status detailed rules
 
-- When the column `is_disabled=true`, `join_at`, `leave_at`, `disable_at` and `enable_at` are ignored.
-  It is legal to set `join_at`, `leave_at`, `disable_at` and `enable_at` when `is_disabled=true` via Admin API.
-- `join_at` can be set independent of `leave_at`. See use case 1.
-- `leave_at` can be set independent of `join_at`. See Use case 2.
-- `join_at` and `leave_at` can also be set together. See Use case 3.
-- `disable_at` and `enable_at` **MUST** be set together, with `disable_at < enable_at` to form a disabled period. See Use case 4.
-  - You may argue that you want to disable an account starting from a specific time indefinitely. This use case is actually Use case 2.
-  - You may argue that you want to enable an account starting from a specific time indefinitely. This use case is actually Use case 1.
-- The 4 columns form this invariant: `join_at < disable_at < enable_at < leave_at`.
+When multiple account status interpretations are possible, only one account status is reported. The precedence is as follows:
 
-### Disabled user
+- Anonymized
+- Scheduled deletion by admin
+- Scheduled deletion by end-user
+- Scheduled anonymization by admin
+- Indefinitely Disabled
+- Temporarily Disabled
+- Outside valid period
+- Normal
 
-A user can be disabled by admins. A disabled user cannot sign in, and appropriate
-error message will be shown when login is attempted.
+For example, if the account is temporarily disabled from `2025-10-01` until `2025-10-07`, and the account is also indefinitely disabled on `2025-10-03`.
+If today is `2025-10-04`, the account status is reported as Indefinitely Disabled.
 
-Admin may optionally provide a reason when disabling a user. This reason will be
-shown when the user attempted to sign in.
+`account_valid_from` and `account_valid_until` can set individually or together. Refer to use case 1, use case 2, and use case 3.
 
-When a disabled user attempts to sign in, the user will be informed of disabled
-status only after performing the whole authentication process, including MFA if required.
+`temporarily_disabled_from` and `temporarily_disabled_until` **MUST BE** set or unset together,
+`temporarily_disabled_from` less than `temporarily_disabled_until` to form a temporarily disabled period. Refer to use case 4.
 
-### Deactivated user
+Additionally, this invariant **MUST BE** hold: `account_valid_from < temporarily_disabled_from < temporarily_disabled_until < account_valid_until`.
 
-The end-user can deactivate their account. A deactivated user is considered as disabled.
-When a deactivated user signs in, they can reactivate their account.
+### Indefinitely Disabled
 
-> Reactivating a user is NOT yet implemented!
+A user can be indefinitely by admins.
+A disabled user cannot sign in,
+and appropriate error message will be shown when login is attempted.
+
+Admin may optionally provide a reason when disabling a user.
+This reason will be shown when the user attempted to sign in.
+
+In authflow, the checking of account status is done by the dedicated step `check_account_status`.
+
+Indefinitely Disabled is available in the Admin API as the mutation `setDisabledStatus`.
 
 ### Scheduled account deletion or anonymization
 
@@ -546,13 +580,20 @@ Instead of deleting or anonymizing a user immediately, it can be scheduled.
 
 The schedule is measured in terms of days. The default value is 30 days. Valid values are [1, 180].
 
-When the deletion or anonymization is scheduled via Admin API or by admin, the user is disabled.
+When the deletion or anonymization is scheduled via Admin API or by admin, the user is disabled indefinitely.
 When the deletion or anonymization is unscheduled, the user is re-enabled.
 
 When the deletion or anonymization is scheduled by the end-user, the user is deactivated.
 To cancel the schedule, the end-user has to reactivate their account.
 It is possible to cancel the schedule on behalf of the end-user.
 Whether the end-user can schedule deletion or anonymization on their account is configurable.
+
+These features are available in the Admin API as the following mutations:
+
+- `scheduleAccountAnonymization`
+- `scheduleAccountDeletion`
+- `unscheduleAccountAnonymization`
+- `unscheduleAccountDeletion`
 
 > Scheduling anonymization by the end-user is not implemented yet.
 
@@ -565,7 +606,7 @@ I want to import an account on 2025-09-29 but I want the account to be able to s
 ------------+-----------
   Disabled  J  Enabled
 
-where J === join_at === 2025-10-02
+where J === account_valid_from === 2025-10-02
 ```
 
 ### Account Status Use case 2: Leave
@@ -577,7 +618,7 @@ An employee resigned and his final working day is 2025-10-31. So I want the acco
 -----------+------------
   Enabled  L  Disabled
 
-where L === leave_at === 2025-10-31
+where L === account_valid_until === 2025-10-31
 ```
 
 ### Account Status Use case 3: Join and Leave
@@ -589,11 +630,11 @@ I have a part-time employee whom I know when he is joining and when he is leavin
 ------------+------------+------------
   Disabled  J  Enabled   L  Disabled
 
-Where J === join_at === 2025-11-01
-      L === leave_at === 2025-11-30
+Where J === account_valid_from === 2025-11-01
+      L === account_valid_until === 2025-11-30
 ```
 
-### Account Status Use case 4: Block an account for a specific amount of time
+### Account Status Use case 4: Disable an account for a specific amount of time
 
 An employee is on leave during 2025-12-24 through 2026-01-01 (inclusive). I do not want him to be able to sign in during the period.
 
@@ -602,8 +643,8 @@ An employee is on leave during 2025-12-24 through 2026-01-01 (inclusive). I do n
 -----------+-------------+-----------
   Enabled  D  Disabled   E  Enabled
 
-Where D === disable_at === 2025-12-24
-      E === enable_at === 2026-01-02
+Where D === temporarily_disabled_from === 2025-12-24
+      E === temporarily_disabled_until === 2026-01-02
 ```
 
 ### Account Status use case 5: Combination of Use case 3 and Use case 4
@@ -615,20 +656,15 @@ A contract employee is joining on 2026-04-01. His finally working date is 2027-0
 ------------+------------+------------+------------+------------
   Disabled  J  Enabled   D  Disabled  E  Enabled   L  Disabled
 
-Where J === join_at === 2026-04-01
-      D === disable_at === 2026-07-15
-      E === enable_at === 2026-08-01
-      L === leave_at === 2027-04-01
+Where J === account_valid_from === 2026-04-01
+      D === temporarily_disabled_from === 2026-07-15
+      E === temporarily_disabled_until === 2026-08-01
+      L === account_valid_until === 2027-04-01
 ```
 
-### Changes on Admin API after the introduction of `join_at`, `leave_at`, `disable_at` and `enable_at`
+### Changes on Admin API
 
-- Add `joinAt`, `leaveAt`, `disableAt`, and `enableAt` to `User`.
-- `User.isDisabled` becomes the effective disabled status. It is a derived field now.
-	- It is intuitive to read `isDisabled` to see if the account is disabled or not.
-	- For existing projects that do not utilize this new feature, the behavior of `isDisabled` does not change.
-	- For new projects that utilize this new feature, if the developer wants to know whether an account was disabled manually via `setDisabledStatus`, they can read `isDisabledRaw`.
-- A new field, `User.isDisabledRaw`, is the column `is_disabled`.
+- Add `accountValidFrom`, `accountValidUntil`, `temporarilyDisabledFrom`, `temporarilyDisabledUntil` to `User`.
 - Add the following mutations
 
 ```
@@ -643,31 +679,28 @@ type Mutation {
 
   // These are new mutations.
 
-  // If joinAt is null, set join_at to null. leave_at is left unchanged.
-  setJoinAt(input: {joinAt: DateTime, userID: ID!})
-  // If leaveAt is null, set leave_at to null. join_at is left unchanged.
-  setLeaveAt(input: {leaveAt: DateTime, userID: ID!})
-  // Set join_at and leave_at at the same time.
-  setJoinAtLeaveAt(input: {joinAt: DateTime, leaveAt: DateTime, userID: ID!})
-  // This sets disable_at and enable_at to the given values.
-  scheduleAccountDisabled(input: {disableAt: Datetime!, enableAt: DateTime!, userID: ID!})
-  // This sets disable_at and enable_at to null.
-  unscheduleAccountDisabled(input: {userID: ID!})
+  // If accountValidFrom is null, set account_valid_from to null.
+  setAccountValidFrom(input: {accountValidFrom: DateTime, userID: ID!})
+  // If accountValidUntil is null, set account_valid_until to null.
+  setAccountValidUntil(input: {accountValidUntil: DateTime, userID: ID!})
+  // Set account_valid_from and account_valid_until at the same time.
+  setAccountValidPeriod(input: {accountValidFrom: DateTime, accountValidUntil: DateTime, userID: ID!})
+  // Set temporarily_disabled_from and temporarily_disabled_until.
+  disableTemporarily(input: {temporarilyDisabledFrom: Datetime!, temporarilyDisabledUntil: DateTime!, userID: ID!})
+  / Unset temporarily_disabled_from and temporarily_disabled_until.
+  cancelDisableTemporarily(input: {userID: ID!})
 }
 ```
 
-### Changes on the models seen in Hooks after the introduction of `join_at`, `leave_at`, `disable_at` and `enable_at`
+### Changes on the models seen in Hooks
 
-- Add `join_at`, `leave_at`, `disable_at`, and `enable_at` to user.
-- Add `is_disabled_raw` to user.
-- `is_disabled` becomes the effective disabled status.
+- Add `account_valid_from`, `account_valid_until`, `temporarily_disabled_from`, and `temporarily_disabled_until` to user.
 
-### Changes on user import after the introduction of `join_at`, `leave_at`, `disable_at` and `enable_at`
+### Changes on user import
 
-- `disabled` is kept unchanged. It means setting the column `is_disabled`.
-- Support `join_at` and `leave_at`, which set the column `join_at` and `leave_at` respectively.
-- Support `disable_at` and `enable_at`, which set the column `disable_at` and `enable_at`.
-- The rules of `join_at`, `leave_at`, `disable_at` and `enable_at` are enforced.
+- `disabled=true` now set `is_indefinitely_disabled` to true.
+- `account_valid_from` and `account_valid_until` are supported.
+- `temporarily_disabled_from` and `temporarily_disabled_until` **ARE NOT** supported.
 
 ### Sessions
 
