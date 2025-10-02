@@ -480,11 +480,11 @@ The following table summarizes the Account status database columns:
 | Outside valid period             | true        | false                    | false          | false         | null      | null         | null          | non-null           | any                 | any                       | any                        |
 | Outside valid period             | true        | false                    | false          | false         | null      | null         | null          | any                | non-null            | any                       | any                        |
 | Temporarily Disabled             | true        | false                    | false          | false         | null      | null         | null          | any                | any                 | non-null                  | non-null                   |
-| Indefinitely Disabled            | true        | true                     | false          | false         | null      | null         | null          | any                | any                 | any                       | any                        |
-| Scheduled anonymization by admin | true        | true                     | false          | false         | null      | non-null     | null          | any                | any                 | any                       | any                        |
-| Scheduled deletion by user       | true        | true                     | true           | false         | non-null  | null         | null          | any                | any                 | any                       | any                        |
-| Scheduled deletion by admin      | true        | true                     | false          | false         | non-null  | null         | null          | any                | any                 | any                       | any                        |
-| Anonymized                       | true        | true                     | any            | true          | null      | any          | non-null      | any                | any                 | any                       | any                        |
+| Indefinitely Disabled            | true        | true                     | false          | false         | null      | null         | null          | any                | any                 | null                      | null                       |
+| Scheduled anonymization by admin | true        | true                     | false          | false         | null      | non-null     | null          | any                | any                 | null                      | null                       |
+| Scheduled deletion by user       | true        | true                     | true           | false         | non-null  | null         | null          | any                | any                 | null                      | null                       |
+| Scheduled deletion by admin      | true        | true                     | false          | false         | non-null  | null         | null          | any                | any                 | null                      | null                       |
+| Anonymized                       | true        | true                     | any            | true          | null      | any          | non-null      | any                | any                 | null                      | null                       |
 
 > [!IMPORTANT]
 > `is_indefinitely_disabled` is a new nullable column that was introduced along with `account_valid_from`, `account_valid_until`, `temporarily_disabled_from`, and `temporarily_disabled_until`.
@@ -524,10 +524,14 @@ The following table summarizes the Account status database columns:
 Here is the list of valid state transitions:
 
 - Normal --[Disable Indefinitely]--> Indefinitely Disabled
+- Normal --[Disable Temporarily]--> Temporarily Disabled
 - Normal --[Schedule deletion by admin]--> Scheduled deletion by admin
 - Normal --[Schedule deletion by end-user]--> Scheduled deletion by end-user
 - Normal --[Schedule anonymization by admin]--> Scheduled anonymization by admin
 - Indefinitely Disabled --[Re-enable]--> Normal
+- Indefinitely Disabled --[Disable Temporarily]--> Temporarily Disabled
+- Temporarily Disabled --[Re-enable]--> Normal
+- Temporarily Disabled --[Disable Indefinitely]--> Indefinitely Disabled
 - Scheduled deletion by admin --[Unschedule deletion]--> Normal
 - Scheduled deletion by end-user --[Unschedule deletion]--> Normal
 - Scheduled anonymization by admin --[Unschedule anonymization]--> Normal
@@ -535,8 +539,6 @@ Here is the list of valid state transitions:
 - When the account status is **NOT** Anonymized, then the following is possible:
   - Set account valid period
   - Unset account valid period
-  - Set Disable Temporarily
-  - Unset Disable Temporarily
 
 ### Account status detailed rules
 
@@ -677,18 +679,25 @@ type Mutation {
   unscheduleAccountAnonymization(input: {userID: ID!})
   unscheduleAccountDeletion(input: {userID: ID!})
 
-  // These are new mutations.
+  // These are updated mutations.
+  // Synopsis:
+  //   // Disable indefinitely
+  //   setDisabledStatus({ isDisabled: true })
+  //   // Disable temporarily
+  //   setDisabledStatus({ isDisabled: true, temporarilyDisabledFrom: DateTime, temporarilyDisabledUntil: DateTime })
+  //   // Re-enable
+  //   setDisabledStatus({ isDisabled: false })
+  //
+  // It is illegal to specify only temporarilyDisabledFrom or temporarilyDisabledUntil. They have to specified at the same time.
+  setDisabledStatus(input: {isDisabled: Boolean!, reason: String, temporarilyDisabledFrom: DateTime, temporarilyDisabledUntil: DateTime, userID: ID!})
 
+  // These are new mutations.
   // If accountValidFrom is null, set account_valid_from to null.
   setAccountValidFrom(input: {accountValidFrom: DateTime, userID: ID!})
   // If accountValidUntil is null, set account_valid_until to null.
   setAccountValidUntil(input: {accountValidUntil: DateTime, userID: ID!})
   // Set account_valid_from and account_valid_until at the same time.
   setAccountValidPeriod(input: {accountValidFrom: DateTime, accountValidUntil: DateTime, userID: ID!})
-  // Set temporarily_disabled_from and temporarily_disabled_until.
-  disableTemporarily(input: {temporarilyDisabledFrom: Datetime!, temporarilyDisabledUntil: DateTime!, userID: ID!})
-  / Unset temporarily_disabled_from and temporarily_disabled_until.
-  cancelDisableTemporarily(input: {userID: ID!})
 }
 ```
 
