@@ -410,19 +410,19 @@ func (s *Store) UpdateAccountStatus(ctx context.Context, userID string, accountS
 
 	builder := s.SQLBuilder.
 		Update(s.SQLBuilder.TableName("_auth_user")).
-		Set("is_disabled", accountStatus.IsDisabled).
-		Set("account_status_stale_from", accountStatus.AccountStatusStaleFrom).
-		Set("is_indefinitely_disabled", accountStatus.IsIndefinitelyDisabled).
-		Set("is_deactivated", accountStatus.IsDeactivated).
-		Set("disable_reason", accountStatus.DisableReason).
-		Set("temporarily_disabled_from", accountStatus.TemporarilyDisabledFrom).
-		Set("temporarily_disabled_until", accountStatus.TemporarilyDisabledUntil).
-		Set("account_valid_from", accountStatus.AccountValidFrom).
-		Set("account_valid_until", accountStatus.AccountValidUntil).
-		Set("delete_at", accountStatus.DeleteAt).
-		Set("anonymize_at", accountStatus.AnonymizeAt).
-		Set("anonymized_at", accountStatus.AnonymizedAt).
-		Set("is_anonymized", accountStatus.IsAnonymized).
+		Set("is_disabled", accountStatus.isDisabled).
+		Set("account_status_stale_from", accountStatus.accountStatusStaleFrom).
+		Set("is_indefinitely_disabled", accountStatus.isIndefinitelyDisabled).
+		Set("is_deactivated", accountStatus.isDeactivated).
+		Set("disable_reason", accountStatus.disableReason).
+		Set("temporarily_disabled_from", accountStatus.temporarilyDisabledFrom).
+		Set("temporarily_disabled_until", accountStatus.temporarilyDisabledUntil).
+		Set("account_valid_from", accountStatus.accountValidFrom).
+		Set("account_valid_until", accountStatus.accountValidUntil).
+		Set("delete_at", accountStatus.deleteAt).
+		Set("anonymize_at", accountStatus.anonymizeAt).
+		Set("anonymized_at", accountStatus.anonymizedAt).
+		Set("is_anonymized", accountStatus.isAnonymized).
 		Set("updated_at", now).
 		Where("id = ?", userID)
 
