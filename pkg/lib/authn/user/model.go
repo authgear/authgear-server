@@ -81,18 +81,45 @@ type User struct {
 	UpdatedAt            time.Time
 	MostRecentLoginAt    *time.Time
 	LessRecentLoginAt    *time.Time
-	IsDisabled           bool
-	DisableReason        *string
-	IsDeactivated        bool
-	DeleteAt             *time.Time
-	IsAnonymized         bool
-	AnonymizeAt          *time.Time
 	StandardAttributes   map[string]interface{}
 	CustomAttributes     map[string]interface{}
 	LastIndexedAt        *time.Time
 	RequireReindexAfter  *time.Time
 	MFAGracePeriodtEndAt *time.Time
 	OptOutPasskeyUpsell  bool
+
+	// Account Status columns
+	//
+	// IsDisabled tells if the account is disabled for whatever reason.
+	IsDisabled bool
+	// AccountStatusStaleFrom tells if IsDisabled is accurate.
+	// If AccountStatusStaleFrom is null, then IsDisabled is accurate.
+	// If now < AccountStatusStaleFrom, then IsDisabled is accurate, else IsDisabled is stale.
+	AccountStatusStaleFrom *time.Time
+	// IsIndefinitelyDisabled tells if the account is disabled indefinitely.
+	// If IsIndefinitelyDisabled is nullable, then an algorithm is used to set it to non-null.
+	IsIndefinitelyDisabled *bool
+	// IsDeactivated tells if the account is disabled via Admin API, or is disabled by the end-user.
+	// If IsDeactivated is true, then the account is disabled by the end-user.
+	IsDeactivated *bool
+	// DisableReason is an optional string to specify the reason.
+	// It can be specified via Admin API.
+	DisableReason *string
+	// TemporarilyDisabledFrom and TemporarilyDisabledUntil forms a temporarily disabled period.
+	// Temporarily Disabled is mutually exclusive with Indefinitely Disabled.
+	TemporarilyDisabledFrom  *time.Time
+	TemporarilyDisabledUntil *time.Time
+	// AccountValidFrom and AccountValidUntil forms account valid period.
+	AccountValidFrom  *time.Time
+	AccountValidUntil *time.Time
+	// DeleteAt is the scheduled time when the account will be deleted.
+	DeleteAt *time.Time
+	// AnonymizeAt is the scheduled time when the account will be anonymized.
+	AnonymizeAt *time.Time
+	// AnonymizedAt is the actual time when the account was anonymized.
+	AnonymizedAt *time.Time
+	// IsAnonymized tells if the account is anonymized.
+	IsAnonymized *bool
 }
 
 func (u *User) GetMeta() model.Meta {
@@ -111,12 +138,19 @@ func (u *User) ToRef() *model.UserRef {
 
 func (u *User) AccountStatus() AccountStatus {
 	return AccountStatus{
-		IsDisabled:    u.IsDisabled,
-		DisableReason: u.DisableReason,
-		IsDeactivated: u.IsDeactivated,
-		DeleteAt:      u.DeleteAt,
-		IsAnonymized:  u.IsAnonymized,
-		AnonymizeAt:   u.AnonymizeAt,
+		IsDisabled:               u.IsDisabled,
+		AccountStatusStaleFrom:   u.AccountStatusStaleFrom,
+		IsIndefinitelyDisabled:   u.IsIndefinitelyDisabled,
+		IsDeactivated:            u.IsDeactivated,
+		DisableReason:            u.DisableReason,
+		TemporarilyDisabledFrom:  u.TemporarilyDisabledFrom,
+		TemporarilyDisabledUntil: u.TemporarilyDisabledUntil,
+		AccountValidFrom:         u.AccountValidFrom,
+		AccountValidUntil:        u.AccountValidUntil,
+		DeleteAt:                 u.DeleteAt,
+		AnonymizeAt:              u.AnonymizeAt,
+		AnonymizedAt:             u.AnonymizedAt,
+		IsAnonymized:             u.IsAnonymized,
 	}
 }
 
@@ -161,6 +195,16 @@ func newUserModel(
 		}
 	}
 
+	isDeactivated := false
+	if user.IsDeactivated != nil && *user.IsDeactivated {
+		isDeactivated = true
+	}
+
+	isAnonymized := false
+	if user.IsAnonymized != nil && *user.IsAnonymized {
+		isAnonymized = true
+	}
+
 	return &model.User{
 		Meta: model.Meta{
 			ID:        user.ID,
@@ -172,9 +216,9 @@ func newUserModel(
 		IsVerified:         isVerified,
 		IsDisabled:         user.IsDisabled,
 		DisableReason:      user.DisableReason,
-		IsDeactivated:      user.IsDeactivated,
+		IsDeactivated:      isDeactivated,
 		DeleteAt:           user.DeleteAt,
-		IsAnonymized:       user.IsAnonymized,
+		IsAnonymized:       isAnonymized,
 		AnonymizeAt:        user.AnonymizeAt,
 		CanReauthenticate:  canReauthenticate,
 		StandardAttributes: derivedStandardAttributes,
