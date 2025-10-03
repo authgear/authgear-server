@@ -88,7 +88,7 @@
               value="{{ .Index }}"
             >
               {{- $icon_class := printf "%s-icon" .ProviderType -}}
-              {{- $with_badge := or (eq .provider_status "using_demo_credentials") (eq .provider_status "missing_credentials") -}}
+              {{- $with_badge := or (eq .ProviderStatus "using_demo_credentials") (eq .ProviderStatus "missing_credentials") -}}
               <div class="
                 {{ if $with_badge }}secondary-btn__alternative-option-content--with-badge{{ end }}
                 {{ if not $with_badge }}secondary-btn__alternative-option-content--no-badge{{ end }}
