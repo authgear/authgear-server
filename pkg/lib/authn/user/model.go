@@ -90,36 +90,36 @@ type User struct {
 
 	// Account Status columns
 	//
-	// IsDisabled tells if the account is disabled for whatever reason.
-	IsDisabled bool
-	// AccountStatusStaleFrom tells if IsDisabled is accurate.
-	// If AccountStatusStaleFrom is null, then IsDisabled is accurate.
-	// If now < AccountStatusStaleFrom, then IsDisabled is accurate, else IsDisabled is stale.
-	AccountStatusStaleFrom *time.Time
-	// IsIndefinitelyDisabled tells if the account is disabled indefinitely.
-	// If IsIndefinitelyDisabled is nullable, then an algorithm is used to set it to non-null.
-	IsIndefinitelyDisabled *bool
-	// IsDeactivated tells if the account is disabled via Admin API, or is disabled by the end-user.
-	// If IsDeactivated is true, then the account is disabled by the end-user.
-	IsDeactivated *bool
-	// DisableReason is an optional string to specify the reason.
+	// isDisabled tells if the account is disabled for whatever reason.
+	isDisabled bool
+	// accountStatusStaleFrom tells if IsDisabled is accurate.
+	// If accountStatusStaleFrom is null, then IsDisabled is accurate.
+	// If now < accountStatusStaleFrom, then IsDisabled is accurate, else IsDisabled is stale.
+	accountStatusStaleFrom *time.Time
+	// isIndefinitelyDisabled tells if the account is disabled indefinitely.
+	// If isIndefinitelyDisabled is nullable, then an algorithm is used to set it to non-null.
+	isIndefinitelyDisabled *bool
+	// isDeactivated tells if the account is disabled via Admin API, or is disabled by the end-user.
+	// If isDeactivated is true, then the account is disabled by the end-user.
+	isDeactivated *bool
+	// disableReason is an optional string to specify the reason.
 	// It can be specified via Admin API.
-	DisableReason *string
-	// TemporarilyDisabledFrom and TemporarilyDisabledUntil forms a temporarily disabled period.
+	disableReason *string
+	// temporarilyDisabledFrom and TemporarilyDisabledUntil forms a temporarily disabled period.
 	// Temporarily Disabled is mutually exclusive with Indefinitely Disabled.
-	TemporarilyDisabledFrom  *time.Time
-	TemporarilyDisabledUntil *time.Time
-	// AccountValidFrom and AccountValidUntil forms account valid period.
-	AccountValidFrom  *time.Time
-	AccountValidUntil *time.Time
-	// DeleteAt is the scheduled time when the account will be deleted.
-	DeleteAt *time.Time
-	// AnonymizeAt is the scheduled time when the account will be anonymized.
-	AnonymizeAt *time.Time
-	// AnonymizedAt is the actual time when the account was anonymized.
-	AnonymizedAt *time.Time
-	// IsAnonymized tells if the account is anonymized.
-	IsAnonymized *bool
+	temporarilyDisabledFrom  *time.Time
+	temporarilyDisabledUntil *time.Time
+	// accountValidFrom and AccountValidUntil forms account valid period.
+	accountValidFrom  *time.Time
+	accountValidUntil *time.Time
+	// deleteAt is the scheduled time when the account will be deleted.
+	deleteAt *time.Time
+	// anonymizeAt is the scheduled time when the account will be anonymized.
+	anonymizeAt *time.Time
+	// anonymizedAt is the actual time when the account was anonymized.
+	anonymizedAt *time.Time
+	// isAnonymized tells if the account is anonymized.
+	isAnonymized *bool
 }
 
 func (u *User) GetMeta() model.Meta {
@@ -138,19 +138,19 @@ func (u *User) ToRef() *model.UserRef {
 
 func (u *User) AccountStatus() AccountStatus {
 	return AccountStatus{
-		IsDisabled:               u.IsDisabled,
-		AccountStatusStaleFrom:   u.AccountStatusStaleFrom,
-		IsIndefinitelyDisabled:   u.IsIndefinitelyDisabled,
-		IsDeactivated:            u.IsDeactivated,
-		DisableReason:            u.DisableReason,
-		TemporarilyDisabledFrom:  u.TemporarilyDisabledFrom,
-		TemporarilyDisabledUntil: u.TemporarilyDisabledUntil,
-		AccountValidFrom:         u.AccountValidFrom,
-		AccountValidUntil:        u.AccountValidUntil,
-		DeleteAt:                 u.DeleteAt,
-		AnonymizeAt:              u.AnonymizeAt,
-		AnonymizedAt:             u.AnonymizedAt,
-		IsAnonymized:             u.IsAnonymized,
+		IsDisabled:               u.isDisabled,
+		AccountStatusStaleFrom:   u.accountStatusStaleFrom,
+		IsIndefinitelyDisabled:   u.isIndefinitelyDisabled,
+		IsDeactivated:            u.isDeactivated,
+		DisableReason:            u.disableReason,
+		TemporarilyDisabledFrom:  u.temporarilyDisabledFrom,
+		TemporarilyDisabledUntil: u.temporarilyDisabledUntil,
+		AccountValidFrom:         u.accountValidFrom,
+		AccountValidUntil:        u.accountValidUntil,
+		DeleteAt:                 u.deleteAt,
+		AnonymizeAt:              u.anonymizeAt,
+		AnonymizedAt:             u.anonymizedAt,
+		IsAnonymized:             u.isAnonymized,
 	}
 }
 
@@ -196,12 +196,12 @@ func newUserModel(
 	}
 
 	isDeactivated := false
-	if user.IsDeactivated != nil && *user.IsDeactivated {
+	if user.isDeactivated != nil && *user.isDeactivated {
 		isDeactivated = true
 	}
 
 	isAnonymized := false
-	if user.IsAnonymized != nil && *user.IsAnonymized {
+	if user.isAnonymized != nil && *user.isAnonymized {
 		isAnonymized = true
 	}
 
@@ -214,12 +214,12 @@ func newUserModel(
 		LastLoginAt:        user.MostRecentLoginAt,
 		IsAnonymous:        isAnonymous,
 		IsVerified:         isVerified,
-		IsDisabled:         user.IsDisabled,
-		DisableReason:      user.DisableReason,
+		IsDisabled:         user.isDisabled,
+		DisableReason:      user.disableReason,
 		IsDeactivated:      isDeactivated,
-		DeleteAt:           user.DeleteAt,
+		DeleteAt:           user.deleteAt,
 		IsAnonymized:       isAnonymized,
-		AnonymizeAt:        user.AnonymizeAt,
+		AnonymizeAt:        user.anonymizeAt,
 		CanReauthenticate:  canReauthenticate,
 		StandardAttributes: derivedStandardAttributes,
 		CustomAttributes:   customAttributes,
