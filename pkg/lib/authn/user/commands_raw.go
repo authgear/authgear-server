@@ -16,16 +16,29 @@ type RawCommands struct {
 
 func (c *RawCommands) New(userID string) *User {
 	now := c.Clock.NowUTC()
+	false_ := false
 	user := &User{
 		ID:                  userID,
 		CreatedAt:           now,
 		UpdatedAt:           now,
 		MostRecentLoginAt:   nil,
 		LessRecentLoginAt:   nil,
-		IsDisabled:          false,
-		DisableReason:       nil,
 		StandardAttributes:  make(map[string]interface{}),
 		RequireReindexAfter: &now,
+
+		IsDisabled:               false,
+		AccountStatusStaleFrom:   nil,
+		IsIndefinitelyDisabled:   &false_,
+		IsDeactivated:            &false_,
+		DisableReason:            nil,
+		TemporarilyDisabledFrom:  nil,
+		TemporarilyDisabledUntil: nil,
+		AccountValidFrom:         nil,
+		AccountValidUntil:        nil,
+		DeleteAt:                 nil,
+		AnonymizeAt:              nil,
+		AnonymizedAt:             nil,
+		IsAnonymized:             &false_,
 	}
 	return user
 }
