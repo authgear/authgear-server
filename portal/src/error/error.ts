@@ -30,7 +30,7 @@ import {
 import {
   HookDisallowedError,
   HookDeliveryTimeoutError,
-  WebHookInvalidResponseError,
+  HookInvalidResponseError,
 } from "./webhook";
 import { APIBadNFTCollectionError, APIAlchemyProtocolError } from "./web3";
 import type { ParsedAPIError } from "./parse";
@@ -127,7 +127,7 @@ export type APIError = { message?: string } & (
   | ServiceUnavailableError
   | HookDisallowedError
   | HookDeliveryTimeoutError
-  | WebHookInvalidResponseError
+  | HookInvalidResponseError
   | APIValidationError
   | APIInvariantViolationError
   | APIPasswordPolicyViolatedError

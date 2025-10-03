@@ -237,7 +237,7 @@
         <br />
         {{ $error_reason.reason }} {{ end }}
       </span>
-    {{ else if eq .Error.reason "WebHookInvalidResponse" }}
+    {{ else if eq .Error.reason "HookInvalidResponse" }}
       <span>{{ include "v2.error.webhook-invalid-response" nil }}</span>
     {{ else if eq .Error.reason "HookDeliveryTimeout" }}
       <span>{{ include "v2.error.webhook-delivery-timeout" nil }}</span>

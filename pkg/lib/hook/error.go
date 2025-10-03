@@ -6,7 +6,7 @@ import (
 
 var HookDisallowed = apierrors.Forbidden.WithReason("HookDisallowed")
 var HookDeliveryTimeout = apierrors.InternalError.WithReason("HookDeliveryTimeout").SkipLoggingToExternalService()
-var WebHookInvalidResponse = apierrors.InternalError.WithReason("WebHookInvalidResponse").SkipLoggingToExternalService()
+var HookInvalidResponse = apierrors.InternalError.WithReason("HookInvalidResponse").SkipLoggingToExternalService()
 
 var WebHookDeliveryUnknownFailure = apierrors.InternalError.WithReason("WebHookDeliveryUnknownFailure").SkipLoggingToExternalService()
 

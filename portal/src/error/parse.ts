@@ -247,7 +247,7 @@ function parseError(error: APIError): ParsedAPIError[] {
       });
       break;
     }
-    case "WebHookInvalidResponse": {
+    case "HookInvalidResponse": {
       errors.push({
         messageID: "errors.webhook.invalid-response",
       });

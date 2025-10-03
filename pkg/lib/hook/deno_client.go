@@ -80,7 +80,7 @@ func (c *DenoClientImpl) Run(ctx context.Context, snippet string, input interfac
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
-		return nil, WebHookInvalidResponse.NewWithInfo("invalid status code", apierrors.Details{
+		return nil, HookInvalidResponse.NewWithInfo("invalid status code", apierrors.Details{
 			"status_code": resp.StatusCode,
 		})
 	}
@@ -135,7 +135,7 @@ func (c *DenoClientImpl) Check(ctx context.Context, snippet string) error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
-		return WebHookInvalidResponse.NewWithInfo("invalid status code", apierrors.Details{
+		return HookInvalidResponse.NewWithInfo("invalid status code", apierrors.Details{
 			"status_code": resp.StatusCode,
 		})
 	}

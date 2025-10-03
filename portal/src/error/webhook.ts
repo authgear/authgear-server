@@ -14,7 +14,7 @@ export interface HookDeliveryTimeoutError {
   reason: "HookDeliveryTimeout";
 }
 
-export interface WebHookInvalidResponseError {
+export interface HookInvalidResponseError {
   errorName: "InternalError";
-  reason: "WebHookInvalidResponse";
+  reason: "HookInvalidResponse";
 }

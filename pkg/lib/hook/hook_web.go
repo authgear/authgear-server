@@ -142,7 +142,7 @@ func (h *EventWebHookImpl) DeliverBlockingEvent(ctx context.Context, u *url.URL,
 	hookResp, err = event.ParseHookResponse(ctx, e.Type, resp.Body)
 	if err != nil {
 		apiError := apierrors.AsAPIError(err)
-		err = WebHookInvalidResponse.NewWithInfo("invalid response body", apiError.Info_ReadOnly)
+		err = HookInvalidResponse.NewWithInfo("invalid response body", apiError.Info_ReadOnly)
 		return nil, err
 	}
 
@@ -173,7 +173,7 @@ func performRequest(
 	}
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		err = WebHookInvalidResponse.NewWithInfo("invalid status code", apierrors.Details{
+		err = HookInvalidResponse.NewWithInfo("invalid status code", apierrors.Details{
 			"status_code": resp.StatusCode,
 		})
 	}
