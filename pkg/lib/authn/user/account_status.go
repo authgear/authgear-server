@@ -22,12 +22,19 @@ const (
 // AccountStatus represents disabled, deactivated, or scheduled deletion state.
 // The zero value means normal.
 type AccountStatus struct {
-	IsDisabled    bool
-	IsDeactivated bool
-	DisableReason *string
-	DeleteAt      *time.Time
-	IsAnonymized  bool
-	AnonymizeAt   *time.Time
+	IsDisabled               bool
+	AccountStatusStaleFrom   *time.Time
+	IsIndefinitelyDisabled   *bool
+	IsDeactivated            *bool
+	DisableReason            *string
+	TemporarilyDisabledFrom  *time.Time
+	TemporarilyDisabledUntil *time.Time
+	AccountValidFrom         *time.Time
+	AccountValidUntil        *time.Time
+	DeleteAt                 *time.Time
+	AnonymizeAt              *time.Time
+	AnonymizedAt             *time.Time
+	IsAnonymized             *bool
 }
 
 func (s AccountStatus) Type() AccountStatusType {
@@ -35,18 +42,18 @@ func (s AccountStatus) Type() AccountStatusType {
 		return AccountStatusTypeNormal
 	}
 	if s.DeleteAt != nil {
-		if s.IsDeactivated {
+		if s.IsDeactivated != nil && *s.IsDeactivated {
 			return AccountStatusTypeScheduledDeletionDeactivated
 		}
 		return AccountStatusTypeScheduledDeletionDisabled
 	}
-	if s.IsAnonymized {
+	if s.IsAnonymized != nil && *s.IsAnonymized {
 		return AccountStatusTypeAnonymized
 	}
 	if s.AnonymizeAt != nil {
 		return AccountStatusTypeScheduledAnonymizationDisabled
 	}
-	if s.IsDeactivated {
+	if s.IsDeactivated != nil && *s.IsDeactivated {
 		return AccountStatusTypeDeactivated
 	}
 	return AccountStatusTypeDisabled
@@ -54,8 +61,8 @@ func (s AccountStatus) Type() AccountStatusType {
 
 func (s AccountStatus) Check() error {
 	// This method must be in sync with IsAccountStatusError.
-	typ := s.Type()
-	switch typ {
+	type_ := s.Type()
+	switch type_ {
 	case AccountStatusTypeNormal:
 		return nil
 	case AccountStatusTypeDisabled:
@@ -71,23 +78,52 @@ func (s AccountStatus) Check() error {
 	case AccountStatusTypeScheduledAnonymizationDisabled:
 		return NewErrScheduledAnonymizationByAdmin(*s.AnonymizeAt)
 	default:
-		panic(fmt.Errorf("unknown account status type: %v", typ))
+		panic(fmt.Errorf("unknown account status type: %v", type_))
 	}
 }
 
 func (s AccountStatus) Reenable() (*AccountStatus, error) {
-	target := AccountStatus{}
+	false_ := false
+
+	target := s
+	target.IsDisabled = false
+	target.IsIndefinitelyDisabled = &false_
+	target.IsDeactivated = &false_
+	target.DisableReason = nil
+	target.TemporarilyDisabledFrom = nil
+	target.TemporarilyDisabledUntil = nil
+	target.DeleteAt = nil
+	target.AnonymizeAt = nil
+	target.IsAnonymized = &false_
+
+	// FIXME(account-status): Set account_status_stale_from
+
+	// FIXME(account-status): Allow more state transitions.
 	if s.Type() == AccountStatusTypeDisabled {
 		return &target, nil
 	}
+
 	return nil, s.makeTransitionError(target.Type())
 }
 
 func (s AccountStatus) Disable(reason *string) (*AccountStatus, error) {
-	target := AccountStatus{
-		IsDisabled:    true,
-		DisableReason: reason,
-	}
+	true_ := true
+	false_ := false
+
+	target := s
+	target.IsDisabled = true
+	target.IsIndefinitelyDisabled = &true_
+	target.IsDeactivated = &false_
+	target.DisableReason = reason
+	target.TemporarilyDisabledFrom = nil
+	target.TemporarilyDisabledUntil = nil
+	target.DeleteAt = nil
+	target.AnonymizeAt = nil
+	target.IsAnonymized = &false_
+
+	// FIXME(account-status): Set account_status_stale_from
+
+	// FIXME(account-status): Allow more state transitions.
 	if s.Type() == AccountStatusTypeNormal {
 		return &target, nil
 	}
@@ -95,23 +131,48 @@ func (s AccountStatus) Disable(reason *string) (*AccountStatus, error) {
 }
 
 func (s AccountStatus) ScheduleDeletionByEndUser(deleteAt time.Time) (*AccountStatus, error) {
-	target := AccountStatus{
-		IsDisabled:    true,
-		IsDeactivated: true,
-		DeleteAt:      &deleteAt,
-	}
+	true_ := true
+	false_ := false
+
+	target := s
+	target.IsDisabled = true
+	target.IsIndefinitelyDisabled = &true_
+	target.IsDeactivated = &true_
+	target.DisableReason = nil
+	target.TemporarilyDisabledFrom = nil
+	target.TemporarilyDisabledUntil = nil
+	target.DeleteAt = &deleteAt
+	target.AnonymizeAt = nil
+	target.IsAnonymized = &false_
+
+	// FIXME(account-status): Set account_status_stale_from
+
+	// FIXME(account-status): Allow more state transitions.
 	if s.Type() != AccountStatusTypeNormal {
 		return nil, s.makeTransitionError(target.Type())
 	}
+
 	return &target, nil
 }
 
 func (s AccountStatus) ScheduleDeletionByAdmin(deleteAt time.Time) (*AccountStatus, error) {
-	target := AccountStatus{
-		IsDisabled:   true,
-		IsAnonymized: s.IsAnonymized,
-		DeleteAt:     &deleteAt,
-	}
+	true_ := true
+	false_ := false
+
+	target := s
+	target.IsDisabled = true
+	target.IsIndefinitelyDisabled = &true_
+	target.IsDeactivated = &false_
+	target.DisableReason = nil
+	target.TemporarilyDisabledFrom = nil
+	target.TemporarilyDisabledUntil = nil
+	target.DeleteAt = &deleteAt
+	target.AnonymizeAt = nil
+	// Keep IsAnonymized unchanged.
+
+	// FIXME(account-status): Set account_status_stale_from
+
+	// FIXME(account-status): Allow more state transitions.
 	if s.DeleteAt != nil {
 		return nil, s.makeTransitionError(target.Type())
 	}
@@ -119,23 +180,51 @@ func (s AccountStatus) ScheduleDeletionByAdmin(deleteAt time.Time) (*AccountStat
 }
 
 func (s AccountStatus) UnscheduleDeletionByAdmin() (*AccountStatus, error) {
-	target := AccountStatus{
-		IsDisabled:   s.IsAnonymized,
-		IsAnonymized: s.IsAnonymized,
-		DeleteAt:     nil,
+	isAnonymized := false
+	if s.IsAnonymized != nil && *s.IsAnonymized {
+		isAnonymized = true
 	}
+	false_ := false
+
+	target := s
+	target.IsDisabled = isAnonymized
+	target.IsIndefinitelyDisabled = &isAnonymized
+	target.IsDeactivated = &false_
+	target.DisableReason = nil
+	target.TemporarilyDisabledFrom = nil
+	target.TemporarilyDisabledUntil = nil
+	target.DeleteAt = nil
+	target.AnonymizeAt = nil
+	// Keep IsAnonymized unchanged.
+
+	// FIXME(account-status): Set account_status_stale_from
+
+	// FIXME(account-status): Allow more state transitions.
 	if s.DeleteAt == nil {
 		return nil, s.makeTransitionError(target.Type())
 	}
 	return &target, nil
 }
 
-func (s AccountStatus) Anonymize() (*AccountStatus, error) {
-	target := AccountStatus{
-		IsDisabled:   true,
-		IsAnonymized: true,
-		AnonymizeAt:  s.AnonymizeAt,
-	}
+func (s AccountStatus) Anonymize(now time.Time) (*AccountStatus, error) {
+	true_ := true
+	false_ := false
+
+	target := s
+	target.IsDisabled = true
+	target.IsIndefinitelyDisabled = &true_
+	target.IsDeactivated = &false_
+	target.DisableReason = nil
+	target.TemporarilyDisabledFrom = nil
+	target.TemporarilyDisabledUntil = nil
+	target.DeleteAt = nil
+	target.AnonymizeAt = nil
+	target.IsAnonymized = &true_
+	target.AnonymizedAt = &now
+
+	// FIXME(account-status): Set account_status_stale_from
+
+	// FIXME(account-status): Allow more state transitions.
 	if s.Type() == AccountStatusTypeNormal {
 		return &target, nil
 	}
@@ -143,10 +232,23 @@ func (s AccountStatus) Anonymize() (*AccountStatus, error) {
 }
 
 func (s AccountStatus) ScheduleAnonymizationByAdmin(anonymizeAt time.Time) (*AccountStatus, error) {
-	target := AccountStatus{
-		IsDisabled:  true,
-		AnonymizeAt: &anonymizeAt,
-	}
+	true_ := true
+	false_ := false
+
+	target := s
+	target.IsDisabled = true
+	target.IsIndefinitelyDisabled = &true_
+	target.IsDeactivated = &false_
+	target.DisableReason = nil
+	target.TemporarilyDisabledFrom = nil
+	target.TemporarilyDisabledUntil = nil
+	target.DeleteAt = nil
+	target.AnonymizeAt = &anonymizeAt
+	// Keep IsAnonymized unchanged.
+
+	// FIXME(account-status): Set account_status_stale_from
+
+	// FIXME(account-status): Allow more state transitions.
 	if s.AnonymizeAt != nil {
 		return nil, s.makeTransitionError(target.Type())
 	}
@@ -154,7 +256,22 @@ func (s AccountStatus) ScheduleAnonymizationByAdmin(anonymizeAt time.Time) (*Acc
 }
 
 func (s AccountStatus) UnscheduleAnonymizationByAdmin() (*AccountStatus, error) {
-	var target AccountStatus
+	false_ := false
+
+	target := s
+	target.IsDisabled = false
+	target.IsIndefinitelyDisabled = &false_
+	target.IsDeactivated = &false_
+	target.DisableReason = nil
+	target.TemporarilyDisabledFrom = nil
+	target.TemporarilyDisabledUntil = nil
+	target.DeleteAt = nil
+	target.AnonymizeAt = nil
+	// Keep IsAnonymized unchanged.
+
+	// FIXME(account-status): Set account_status_stale_from
+
+	// FIXME(account-status): Allow more state transitions.
 	if s.AnonymizeAt == nil {
 		return nil, s.makeTransitionError(target.Type())
 	}

@@ -1387,7 +1387,7 @@ func (c *Coordinator) UserCheckAnonymized(ctx context.Context, userID string) er
 		return err
 	}
 
-	if u.IsAnonymized {
+	if u.AccountStatus().Type() == user.AccountStatusTypeAnonymized {
 		return ErrUserIsAnonymized
 	}
 
