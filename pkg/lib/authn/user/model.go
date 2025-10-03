@@ -138,19 +138,19 @@ func (u *User) ToRef() *model.UserRef {
 
 func (u *User) AccountStatus() AccountStatus {
 	return AccountStatus{
-		IsDisabled:               u.isDisabled,
-		AccountStatusStaleFrom:   u.accountStatusStaleFrom,
-		IsIndefinitelyDisabled:   u.isIndefinitelyDisabled,
-		IsDeactivated:            u.isDeactivated,
-		DisableReason:            u.disableReason,
-		TemporarilyDisabledFrom:  u.temporarilyDisabledFrom,
-		TemporarilyDisabledUntil: u.temporarilyDisabledUntil,
-		AccountValidFrom:         u.accountValidFrom,
-		AccountValidUntil:        u.accountValidUntil,
-		DeleteAt:                 u.deleteAt,
-		AnonymizeAt:              u.anonymizeAt,
-		AnonymizedAt:             u.anonymizedAt,
-		IsAnonymized:             u.isAnonymized,
+		isDisabled:               u.isDisabled,
+		accountStatusStaleFrom:   u.accountStatusStaleFrom,
+		isIndefinitelyDisabled:   u.isIndefinitelyDisabled,
+		isDeactivated:            u.isDeactivated,
+		disableReason:            u.disableReason,
+		temporarilyDisabledFrom:  u.temporarilyDisabledFrom,
+		temporarilyDisabledUntil: u.temporarilyDisabledUntil,
+		accountValidFrom:         u.accountValidFrom,
+		accountValidUntil:        u.accountValidUntil,
+		deleteAt:                 u.deleteAt,
+		anonymizeAt:              u.anonymizeAt,
+		anonymizedAt:             u.anonymizedAt,
+		isAnonymized:             u.isAnonymized,
 	}
 }
 

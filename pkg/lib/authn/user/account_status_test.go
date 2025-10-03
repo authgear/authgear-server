@@ -33,7 +33,7 @@ func TestAccountStatus(t *testing.T) {
 
 		Convey("disable", func() {
 			disabled := AccountStatus{
-				IsDisabled: true,
+				isDisabled: true,
 			}
 			var err error
 
@@ -54,8 +54,8 @@ func TestAccountStatus(t *testing.T) {
 
 		Convey("scheduled deletion by admin", func() {
 			scheduledDeletion := AccountStatus{
-				IsDisabled: true,
-				DeleteAt:   &deleteAt,
+				isDisabled: true,
+				deleteAt:   &deleteAt,
 			}
 			var err error
 
@@ -76,9 +76,9 @@ func TestAccountStatus(t *testing.T) {
 		Convey("anonymize", func() {
 			true_ := true
 			anonymized := AccountStatus{
-				IsDisabled:   true,
-				IsAnonymized: &true_,
-				AnonymizeAt:  &anonymizeAt,
+				isDisabled:   true,
+				isAnonymized: &true_,
+				anonymizeAt:  &anonymizeAt,
 			}
 			var err error
 
@@ -94,8 +94,8 @@ func TestAccountStatus(t *testing.T) {
 
 		Convey("scheduled anonymization by admin", func() {
 			scheduledAnonymization := AccountStatus{
-				IsDisabled:  true,
-				AnonymizeAt: &anonymizeAt,
+				isDisabled:  true,
+				anonymizeAt: &anonymizeAt,
 			}
 			var err error
 
