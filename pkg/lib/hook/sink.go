@@ -96,7 +96,7 @@ func (s *Sink) DeliverBlockingEvent(ctx context.Context, e *event.Event) error {
 
 		elapsed := s.Clock.NowMonotonic().Sub(startTime)
 		if elapsed > totalTimeout {
-			return WebHookDeliveryTimeout.NewWithInfo("webhook delivery timeout", apierrors.Details{
+			return HookDeliveryTimeout.NewWithInfo("webhook delivery timeout", apierrors.Details{
 				"elapsed": elapsed,
 				"limit":   totalTimeout,
 			})

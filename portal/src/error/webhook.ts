@@ -9,9 +9,9 @@ export interface HookDisallowedError {
   };
 }
 
-export interface WebHookDeliveryTimeoutError {
+export interface HookDeliveryTimeoutError {
   errorName: "InternalError";
-  reason: "WebHookDeliveryTimeout";
+  reason: "HookDeliveryTimeout";
 }
 
 export interface WebHookInvalidResponseError {

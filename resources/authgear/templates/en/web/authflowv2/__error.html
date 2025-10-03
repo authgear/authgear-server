@@ -239,7 +239,7 @@
       </span>
     {{ else if eq .Error.reason "WebHookInvalidResponse" }}
       <span>{{ include "v2.error.webhook-invalid-response" nil }}</span>
-    {{ else if eq .Error.reason "WebHookDeliveryTimeout" }}
+    {{ else if eq .Error.reason "HookDeliveryTimeout" }}
       <span>{{ include "v2.error.webhook-delivery-timeout" nil }}</span>
     {{ else if eq .Error.reason "WebHookDeliveryUnknownFailure" }}
       <span>{{ include "v2.error.webhook-delivery-failed" nil }}</span>

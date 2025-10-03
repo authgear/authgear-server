@@ -241,7 +241,7 @@ function parseError(error: APIError): ParsedAPIError[] {
       });
       break;
     }
-    case "WebHookDeliveryTimeout": {
+    case "HookDeliveryTimeout": {
       errors.push({
         messageID: "errors.webhook.timeout",
       });

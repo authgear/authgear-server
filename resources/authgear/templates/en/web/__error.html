@@ -221,7 +221,7 @@ $display_error = true }} {{ if eq .Error.reason "PasswordPolicyViolated" }}
     </li>
     {{ else if eq .Error.reason "WebHookInvalidResponse" }}
     <li>{{ template "error-webhook-invalid-response" }}</li>
-    {{ else if eq .Error.reason "WebHookDeliveryTimeout" }}
+    {{ else if eq .Error.reason "HookDeliveryTimeout" }}
     <li>{{ template "error-webhook-delivery-timeout" }}</li>
     {{ else if eq .Error.reason "InvalidNetwork" }}
     <li>

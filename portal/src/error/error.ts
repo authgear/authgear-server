@@ -29,7 +29,7 @@ import {
 } from "./resources";
 import {
   HookDisallowedError,
-  WebHookDeliveryTimeoutError,
+  HookDeliveryTimeoutError,
   WebHookInvalidResponseError,
 } from "./webhook";
 import { APIBadNFTCollectionError, APIAlchemyProtocolError } from "./web3";
@@ -126,7 +126,7 @@ export type APIError = { message?: string } & (
   | TooManyRequestError
   | ServiceUnavailableError
   | HookDisallowedError
-  | WebHookDeliveryTimeoutError
+  | HookDeliveryTimeoutError
   | WebHookInvalidResponseError
   | APIValidationError
   | APIInvariantViolationError
