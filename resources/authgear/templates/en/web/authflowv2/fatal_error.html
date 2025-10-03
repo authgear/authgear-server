@@ -25,7 +25,7 @@
     {{ if eq .Error.reason "OAuthError" }}
       {{ $title = include "v2.page.fatal-error.oauth-error.title" nil }}
     {{ end }}
-    {{ if eq .Error.reason "WebHookDisallowed" }}
+    {{ if eq .Error.reason "HookDisallowed" }}
       {{ $error_reason := index .Error.info.reasons 0 }}
       {{ if $error_reason.title }}
         {{ $title = $error_reason.title }}
@@ -53,7 +53,7 @@
       {{ end }}
     {{ else if eq .Error.reason "OAuthError" }}
       {{ $error_message = include "v2.error.oauth-error" (dict "error" .Error.info.error "error_description" .Error.info.error_description) }}
-    {{ else if eq .Error.reason "WebHookDisallowed" }}
+    {{ else if eq .Error.reason "HookDisallowed" }}
       {{ $error_reason := index .Error.info.reasons 0 }}
       {{ if $error_reason.reason }}
         {{ $error_message = $error_reason.reason }}

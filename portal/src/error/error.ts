@@ -28,7 +28,7 @@ import {
   APIUnsupportedImageFileError,
 } from "./resources";
 import {
-  WebHookDisallowedError,
+  HookDisallowedError,
   WebHookDeliveryTimeoutError,
   WebHookInvalidResponseError,
 } from "./webhook";
@@ -125,7 +125,7 @@ export type APIError = { message?: string } & (
   | LocalError
   | TooManyRequestError
   | ServiceUnavailableError
-  | WebHookDisallowedError
+  | HookDisallowedError
   | WebHookDeliveryTimeoutError
   | WebHookInvalidResponseError
   | APIValidationError

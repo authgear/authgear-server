@@ -222,7 +222,7 @@
         "customerSupportLink" (include "customer-support-link" nil)) }} {{ else }} {{ include "v2.error.oob-otp-sms-not-supported" nil }} {{ end
         }}
       </span>
-    {{ else if eq .Error.reason "WebHookDisallowed" }}
+    {{ else if eq .Error.reason "HookDisallowed" }}
       {{ $error_reason := index .Error.info.reasons 0 }}
       <span>
         {{ if $error_reason.title }} {{ $error_reason.title }} {{ else }}

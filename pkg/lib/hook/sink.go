@@ -57,7 +57,7 @@ func (s *Sink) ReceiveBlockingEvent(ctx context.Context, e *event.Event) (err er
 	if s.WillDeliverBlockingEvent(e.Type) {
 		err = s.DeliverBlockingEvent(ctx, e)
 		if err != nil {
-			if !apierrors.IsKind(err, WebHookDisallowed) {
+			if !apierrors.IsKind(err, HookDisallowed) {
 				err = fmt.Errorf("failed to dispatch event: %w", err)
 			}
 			return

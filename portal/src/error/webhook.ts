@@ -1,6 +1,6 @@
-export interface WebHookDisallowedError {
+export interface HookDisallowedError {
   errorName: "Forbidden";
-  reason: "WebHookDisallowed";
+  reason: "HookDisallowed";
   info?: {
     reasons?: {
       title?: string;
