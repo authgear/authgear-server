@@ -155,6 +155,7 @@ The following blocking events support mutations:
 - `user.pre_schedule_deletion`
 - `user.pre_schedule_anonymization`
 - `oidc.jwt.pre_create`
+- `oidc.id_token.pre_create`
 
 ## Blocking Event Authentication Constraints
 

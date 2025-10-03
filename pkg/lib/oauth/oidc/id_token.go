@@ -10,6 +10,8 @@ import (
 	"github.com/lestrrat-go/jwx/v2/jws"
 	"github.com/lestrrat-go/jwx/v2/jwt"
 
+	"github.com/authgear/authgear-server/pkg/api/event"
+	"github.com/authgear/authgear-server/pkg/api/event/blocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
@@ -34,10 +36,21 @@ type BaseURLProvider interface {
 	Origin() *url.URL
 }
 
+type IDTokenIssuerIdentityService interface {
+	ListIdentitiesThatHaveStandardAttributes(ctx context.Context, userID string) ([]*identity.Info, error)
+}
+
+type IDTokenIssuerEventService interface {
+	PrepareBlockingEventWithTx(ctx context.Context, payload event.BlockingPayload) (e *event.Event, err error)
+	DispatchEventWithoutTx(ctx context.Context, e *event.Event) (err error)
+}
+
 type IDTokenIssuer struct {
 	Secrets         *config.OAuthKeyMaterials
 	BaseURL         BaseURLProvider
 	UserInfoService UserInfoService
+	Events          IDTokenIssuerEventService
+	Identities      IDTokenIssuerIdentityService
 	Clock           clock.Clock
 }
 
@@ -62,7 +75,7 @@ func (ti *IDTokenIssuer) sign(token jwt.Token) (string, error) {
 	return string(signed), nil
 }
 
-type IssueIDTokenOptions struct {
+type PrepareIDTokenOptions struct {
 	ClientID           string
 	SID                string
 	Nonce              string
@@ -72,7 +85,12 @@ type IssueIDTokenOptions struct {
 	IdentitySpecs      []*identity.Spec
 }
 
-func (ti *IDTokenIssuer) IssueIDToken(ctx context.Context, opts IssueIDTokenOptions) (string, error) {
+type PrepareIDTokenResult struct {
+	event     *event.Event
+	forBackup map[string]interface{}
+}
+
+func (ti *IDTokenIssuer) PrepareIDToken(ctx context.Context, opts PrepareIDTokenOptions) (*PrepareIDTokenResult, error) {
 	claims := jwt.New()
 
 	info := opts.AuthenticationInfo
@@ -86,33 +104,31 @@ func (ti *IDTokenIssuer) IssueIDToken(ctx context.Context, opts IssueIDTokenOpti
 	_ = claims.Set(jwt.IssuedAtKey, now.Unix())
 	// exp
 	_ = claims.Set(jwt.ExpirationKey, now.Add(IDTokenValidDuration).Unix())
-
-	err := ti.PopulateUserClaimsInIDToken(ctx, claims, info.UserID, opts.ClientLike)
-	if err != nil {
-		return "", err
-	}
-
 	// auth_time
 	_ = claims.Set(string(model.ClaimAuthTime), info.AuthenticatedAt.Unix())
+	// sid
 	if sid := opts.SID; sid != "" {
-		// sid
 		_ = claims.Set(string(model.ClaimSID), sid)
 	}
+	// amr
 	if amr := info.AMR; len(amr) > 0 {
-		// amr
 		_ = claims.Set(string(model.ClaimAMR), amr)
 	}
+	// ds_hash
 	if dshash := opts.DeviceSecretHash; dshash != "" {
-		// ds_hash
 		_ = claims.Set(string(model.ClaimDeviceSecretHash), dshash)
 	}
-
-	// Populate authorization flow specific claims
+	// nonce
 	if nonce := opts.Nonce; nonce != "" {
 		_ = claims.Set("nonce", nonce)
 	}
 
-	// Populate model.ClaimOAuthUsed
+	err := ti.PopulateUserClaimsInIDToken(ctx, claims, info.UserID, opts.ClientLike)
+	if err != nil {
+		return nil, err
+	}
+
+	// https://authgear.com/claims/oauth/asserted
 	var oauthUsed []map[string]any
 	for _, idenSpec := range opts.IdentitySpecs {
 		if idenSpec.Type == model.IdentityTypeOAuth && idenSpec.OAuth != nil && idenSpec.OAuth.IncludeIdentityAttributesInIDToken {
@@ -123,11 +139,72 @@ func (ti *IDTokenIssuer) IssueIDToken(ctx context.Context, opts IssueIDTokenOpti
 		_ = claims.Set(string(model.ClaimOAuthAsserted), oauthUsed)
 	}
 
-	// Sign the token.
+	forMutation, forBackup, err := jwtutil.PrepareForMutations(claims)
+	if err != nil {
+		return nil, err
+	}
+
+	identities, err := ti.Identities.ListIdentitiesThatHaveStandardAttributes(ctx, opts.AuthenticationInfo.UserID)
+	if err != nil {
+		return nil, err
+	}
+
+	var identityModels []model.Identity
+	for _, i := range identities {
+		identityModels = append(identityModels, i.ToModel())
+	}
+
+	eventPayload := &blocking.OIDCIDTokenPreCreateBlockingEventPayload{
+		UserRef: model.UserRef{
+			Meta: model.Meta{
+				ID: opts.AuthenticationInfo.UserID,
+			},
+		},
+		Identities: identityModels,
+		IDToken: blocking.OIDCIDToken{
+			Payload: forMutation,
+		},
+	}
+
+	event, err := ti.Events.PrepareBlockingEventWithTx(ctx, eventPayload)
+	if err != nil {
+		return nil, err
+	}
+
+	return &PrepareIDTokenResult{
+		event:     event,
+		forBackup: forBackup,
+	}, nil
+}
+
+type MakeIDTokenFromPreparationResultOptions struct {
+	PreparationResult *PrepareIDTokenResult
+}
+
+func (ti *IDTokenIssuer) MakeIDTokenFromPreparationResult(
+	ctx context.Context,
+	options MakeIDTokenFromPreparationResultOptions,
+) (string, error) {
+	err := ti.Events.DispatchEventWithoutTx(ctx, options.PreparationResult.event)
+	if err != nil {
+		return "", err
+	}
+
+	eventPayload := options.PreparationResult.event.Payload.(*blocking.OIDCIDTokenPreCreateBlockingEventPayload)
+
+	claims, err := jwtutil.ApplyMutations(
+		eventPayload.IDToken.Payload,
+		options.PreparationResult.forBackup,
+	)
+	if err != nil {
+		return "", err
+	}
+
 	signed, err := ti.sign(claims)
 	if err != nil {
 		return "", err
 	}
+
 	return signed, nil
 }
 

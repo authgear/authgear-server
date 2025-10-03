@@ -11,6 +11,7 @@ import (
 
 	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
 
+	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -53,7 +54,7 @@ eZDnqWNf7mYPdP5mO5iTtMw=
 `
 
 func TestIDTokenIssuer(t *testing.T) {
-	Convey("IssueIDToken and VerifyIDToken", t, func() {
+	Convey("PrepareIDToken, MakeIDTokenFromPreparationResult, and VerifyIDToken", t, func() {
 		ctrl := gomock.NewController(t)
 
 		now := time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)
@@ -69,7 +70,6 @@ func TestIDTokenIssuer(t *testing.T) {
 		}
 
 		mockUserInfoService := NewMockUserInfoService(ctrl)
-
 		mockUserInfoService.EXPECT().GetUserInfoBearer(gomock.Any(), "user-id").Return(
 			&userinfo.UserInfo{
 				User: &model.User{
@@ -82,6 +82,17 @@ func TestIDTokenIssuer(t *testing.T) {
 			nil,
 		)
 
+		mockEventService := NewMockIDTokenIssuerEventService(ctrl)
+		mockEventService.EXPECT().PrepareBlockingEventWithTx(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, e event.Payload) (*event.Event, error) {
+			return &event.Event{
+				Payload: e,
+			}, nil
+		}).AnyTimes()
+		mockEventService.EXPECT().DispatchEventWithoutTx(gomock.Any(), gomock.Any()).Return(nil)
+
+		mockIdentityService := NewMockIDTokenIssuerIdentityService(ctrl)
+		mockIdentityService.EXPECT().ListIdentitiesThatHaveStandardAttributes(gomock.Any(), "user-id").Return(nil, nil)
+
 		issuer := &IDTokenIssuer{
 			Secrets: secrets,
 			BaseURL: &endpoints.Endpoints{
@@ -91,6 +102,8 @@ func TestIDTokenIssuer(t *testing.T) {
 				},
 			},
 			UserInfoService: mockUserInfoService,
+			Events:          mockEventService,
+			Identities:      mockIdentityService,
 			Clock:           clock.NewMockClockAtTime(now),
 		}
 
@@ -115,7 +128,7 @@ func TestIDTokenIssuer(t *testing.T) {
 		}
 
 		ctx := context.Background()
-		idToken, err := issuer.IssueIDToken(ctx, IssueIDTokenOptions{
+		preparationResult, err := issuer.PrepareIDToken(ctx, PrepareIDTokenOptions{
 			ClientID:           "client-id",
 			SID:                oauth.EncodeSID(offlineGrant),
 			AuthenticationInfo: offlineGrant.GetAuthenticationInfo(),
@@ -136,6 +149,11 @@ func TestIDTokenIssuer(t *testing.T) {
 					},
 				},
 			},
+		})
+		So(err, ShouldBeNil)
+
+		idToken, err := issuer.MakeIDTokenFromPreparationResult(ctx, MakeIDTokenFromPreparationResultOptions{
+			PreparationResult: preparationResult,
 		})
 		So(err, ShouldBeNil)
 

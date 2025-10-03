@@ -40,6 +40,7 @@ var _ = Schema.Add("BlockingHookHandlersConfig", `
 			"user.pre_schedule_deletion",
 			"user.pre_schedule_anonymization",
 			"oidc.jwt.pre_create",
+			"oidc.id_token.pre_create",
 			"authentication.pre_initialize",
 			"authentication.post_identified",
 			"authentication.pre_authenticated"

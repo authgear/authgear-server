@@ -67,7 +67,8 @@ const AppSessionTokenDuration = duration.Short
 
 type IDTokenIssuer interface {
 	Iss() string
-	IssueIDToken(ctx context.Context, opts oidc.IssueIDTokenOptions) (token string, err error)
+	PrepareIDToken(ctx context.Context, opts oidc.PrepareIDTokenOptions) (result *oidc.PrepareIDTokenResult, err error)
+	MakeIDTokenFromPreparationResult(ctx context.Context, opts oidc.MakeIDTokenFromPreparationResultOptions) (idToken string, err error)
 	VerifyIDToken(idToken string) (token jwt.Token, err error)
 }
 
@@ -284,6 +285,19 @@ func (h *TokenHandler) Handle(ctx context.Context, rw http.ResponseWriter, req *
 		return errorResult(err)
 	}
 
+	if handleResult.PrepareIDTokenResult != nil {
+		idToken, err := h.IDTokenIssuer.MakeIDTokenFromPreparationResult(ctx, oidc.MakeIDTokenFromPreparationResultOptions{
+			PreparationResult: handleResult.PrepareIDTokenResult,
+		})
+		if err != nil {
+			return errorResult(err)
+		}
+
+		if handleResult.Response != nil {
+			handleResult.Response.IDToken(idToken)
+		}
+	}
+
 	if handleResult.PrepareUserAccessGrantByRefreshTokenResult != nil {
 		handleResult.PrepareUserAccessGrantByRefreshTokenResult.RotateRefreshTokenResult.WriteTo(handleResult.Response)
 
@@ -307,6 +321,7 @@ func (h *TokenHandler) Handle(ctx context.Context, rw http.ResponseWriter, req *
 }
 
 type HandleResult struct {
+	PrepareIDTokenResult                       *oidc.PrepareIDTokenResult
 	PrepareUserAccessGrantByRefreshTokenResult *PrepareUserAccessGrantByRefreshTokenResult
 	Response                                   protocol.TokenResponse
 }
@@ -927,7 +942,7 @@ func (h *TokenHandler) handlePreAuthenticatedURLToken(
 	}
 
 	// Issue new id_token which associated to the new device_secret
-	newIDToken, err := h.IDTokenIssuer.IssueIDToken(ctx, oidc.IssueIDTokenOptions{
+	prepareIDTokenResult, err := h.IDTokenIssuer.PrepareIDToken(ctx, oidc.PrepareIDTokenOptions{
 		ClientID:           client.ClientID,
 		SID:                oauth.EncodeSID(offlineGrant),
 		AuthenticationInfo: offlineGrant.GetAuthenticationInfo(),
@@ -941,10 +956,10 @@ func (h *TokenHandler) handlePreAuthenticatedURLToken(
 	if err != nil {
 		return nil, err
 	}
-	resp.IDToken(newIDToken)
 
 	return &HandleResult{
-		Response: resp,
+		PrepareIDTokenResult: prepareIDTokenResult,
+		Response:             resp,
 	}, nil
 }
 
@@ -1087,8 +1102,9 @@ func (h *TokenHandler) handleAnonymousRequest(
 		return nil, err
 	}
 
+	var prepareIDTokenResult *oidc.PrepareIDTokenResult
 	if slice.ContainsString(scopes, "openid") {
-		idToken, err := h.IDTokenIssuer.IssueIDToken(ctx, oidc.IssueIDTokenOptions{
+		prepareIDTokenResult, err = h.IDTokenIssuer.PrepareIDToken(ctx, oidc.PrepareIDTokenOptions{
 			ClientID:           client.ClientID,
 			SID:                oauth.EncodeSID(offlineGrant),
 			AuthenticationInfo: offlineGrant.GetAuthenticationInfo(),
@@ -1098,10 +1114,10 @@ func (h *TokenHandler) handleAnonymousRequest(
 		if err != nil {
 			return nil, err
 		}
-		resp.IDToken(idToken)
 	}
 
 	return &HandleResult{
+		PrepareIDTokenResult:                       prepareIDTokenResult,
 		PrepareUserAccessGrantByRefreshTokenResult: result1,
 		Response: resp,
 	}, nil
@@ -1367,8 +1383,9 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 		return nil, err
 	}
 
+	var prepareIDTokenResult *oidc.PrepareIDTokenResult
 	if slice.ContainsString(scopes, "openid") {
-		idToken, err := h.IDTokenIssuer.IssueIDToken(ctx, oidc.IssueIDTokenOptions{
+		prepareIDTokenResult, err = h.IDTokenIssuer.PrepareIDToken(ctx, oidc.PrepareIDTokenOptions{
 			ClientID:           client.ClientID,
 			SID:                oauth.EncodeSID(offlineGrant),
 			AuthenticationInfo: offlineGrant.GetAuthenticationInfo(),
@@ -1378,7 +1395,6 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 		if err != nil {
 			return nil, err
 		}
-		resp.IDToken(idToken)
 	}
 
 	// Biometric login should fire event user.authenticated
@@ -1398,6 +1414,7 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 	}
 
 	return &HandleResult{
+		PrepareIDTokenResult:                       prepareIDTokenResult,
 		PrepareUserAccessGrantByRefreshTokenResult: result1,
 		Response: resp,
 	}, nil
@@ -1572,7 +1589,7 @@ func (h *TokenHandler) handleIDToken(
 		}
 		deviceSecretHash = offlineGrant.DeviceSecretHash
 	}
-	idToken, err := h.IDTokenIssuer.IssueIDToken(ctx, oidc.IssueIDTokenOptions{
+	prepareIDTokenResult, err := h.IDTokenIssuer.PrepareIDToken(ctx, oidc.PrepareIDTokenOptions{
 		ClientID:           client.ClientID,
 		SID:                oauth.EncodeSID(s),
 		AuthenticationInfo: s.GetAuthenticationInfo(),
@@ -1586,9 +1603,10 @@ func (h *TokenHandler) handleIDToken(
 	if err != nil {
 		return nil, err
 	}
-	resp.IDToken(idToken)
+
 	return &HandleResult{
-		Response: resp,
+		PrepareIDTokenResult: prepareIDTokenResult,
+		Response:             resp,
 	}, nil
 }
 
@@ -1881,11 +1899,12 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 		return nil, err
 	}
 
+	var prepareIDTokenResult *oidc.PrepareIDTokenResult
 	if issueIDToken {
 		if sid == "" {
 			return nil, protocol.NewError("invalid_request", "cannot issue ID token")
 		}
-		idToken, err := h.IDTokenIssuer.IssueIDToken(ctx, oidc.IssueIDTokenOptions{
+		prepareIDTokenResult, err = h.IDTokenIssuer.PrepareIDToken(ctx, oidc.PrepareIDTokenOptions{
 			ClientID:           client.ClientID,
 			SID:                sid,
 			Nonce:              code.AuthorizationRequest.Nonce(),
@@ -1897,10 +1916,10 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 		if err != nil {
 			return nil, err
 		}
-		resp.IDToken(idToken)
 	}
 
 	return &HandleResult{
+		PrepareIDTokenResult:                       prepareIDTokenResult,
 		PrepareUserAccessGrantByRefreshTokenResult: result1,
 		Response: resp,
 	}, nil
@@ -1931,8 +1950,9 @@ func (h *TokenHandler) issueTokensForRefreshToken(
 		return nil, err
 	}
 
+	var prepareIDTokenResult *oidc.PrepareIDTokenResult
 	if issueIDToken {
-		idToken, err := h.IDTokenIssuer.IssueIDToken(ctx, oidc.IssueIDTokenOptions{
+		prepareIDTokenResult, err = h.IDTokenIssuer.PrepareIDToken(ctx, oidc.PrepareIDTokenOptions{
 			ClientID:           client.ClientID,
 			SID:                oauth.EncodeSID(offlineGrantSession.OfflineGrant),
 			AuthenticationInfo: offlineGrantSession.GetAuthenticationInfo(),
@@ -1942,7 +1962,6 @@ func (h *TokenHandler) issueTokensForRefreshToken(
 		if err != nil {
 			return nil, err
 		}
-		resp.IDToken(idToken)
 	}
 
 	prepareUserAccessGrantOptions := oauth.PrepareUserAccessGrantOptions{
@@ -1962,6 +1981,7 @@ func (h *TokenHandler) issueTokensForRefreshToken(
 	}
 
 	return &HandleResult{
+		PrepareIDTokenResult:                       prepareIDTokenResult,
 		PrepareUserAccessGrantByRefreshTokenResult: result1,
 		Response: resp,
 	}, nil

@@ -9,6 +9,8 @@ import (
 	url "net/url"
 	reflect "reflect"
 
+	event "github.com/authgear/authgear-server/pkg/api/event"
+	identity "github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	oauth "github.com/authgear/authgear-server/pkg/lib/oauth"
 	idpsession "github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	userinfo "github.com/authgear/authgear-server/pkg/lib/userinfo"
@@ -89,6 +91,96 @@ func (m *MockBaseURLProvider) Origin() *url.URL {
 func (mr *MockBaseURLProviderMockRecorder) Origin() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Origin", reflect.TypeOf((*MockBaseURLProvider)(nil).Origin))
+}
+
+// MockIDTokenIssuerIdentityService is a mock of IDTokenIssuerIdentityService interface.
+type MockIDTokenIssuerIdentityService struct {
+	ctrl     *gomock.Controller
+	recorder *MockIDTokenIssuerIdentityServiceMockRecorder
+}
+
+// MockIDTokenIssuerIdentityServiceMockRecorder is the mock recorder for MockIDTokenIssuerIdentityService.
+type MockIDTokenIssuerIdentityServiceMockRecorder struct {
+	mock *MockIDTokenIssuerIdentityService
+}
+
+// NewMockIDTokenIssuerIdentityService creates a new mock instance.
+func NewMockIDTokenIssuerIdentityService(ctrl *gomock.Controller) *MockIDTokenIssuerIdentityService {
+	mock := &MockIDTokenIssuerIdentityService{ctrl: ctrl}
+	mock.recorder = &MockIDTokenIssuerIdentityServiceMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockIDTokenIssuerIdentityService) EXPECT() *MockIDTokenIssuerIdentityServiceMockRecorder {
+	return m.recorder
+}
+
+// ListIdentitiesThatHaveStandardAttributes mocks base method.
+func (m *MockIDTokenIssuerIdentityService) ListIdentitiesThatHaveStandardAttributes(ctx context.Context, userID string) ([]*identity.Info, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListIdentitiesThatHaveStandardAttributes", ctx, userID)
+	ret0, _ := ret[0].([]*identity.Info)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListIdentitiesThatHaveStandardAttributes indicates an expected call of ListIdentitiesThatHaveStandardAttributes.
+func (mr *MockIDTokenIssuerIdentityServiceMockRecorder) ListIdentitiesThatHaveStandardAttributes(ctx, userID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListIdentitiesThatHaveStandardAttributes", reflect.TypeOf((*MockIDTokenIssuerIdentityService)(nil).ListIdentitiesThatHaveStandardAttributes), ctx, userID)
+}
+
+// MockIDTokenIssuerEventService is a mock of IDTokenIssuerEventService interface.
+type MockIDTokenIssuerEventService struct {
+	ctrl     *gomock.Controller
+	recorder *MockIDTokenIssuerEventServiceMockRecorder
+}
+
+// MockIDTokenIssuerEventServiceMockRecorder is the mock recorder for MockIDTokenIssuerEventService.
+type MockIDTokenIssuerEventServiceMockRecorder struct {
+	mock *MockIDTokenIssuerEventService
+}
+
+// NewMockIDTokenIssuerEventService creates a new mock instance.
+func NewMockIDTokenIssuerEventService(ctrl *gomock.Controller) *MockIDTokenIssuerEventService {
+	mock := &MockIDTokenIssuerEventService{ctrl: ctrl}
+	mock.recorder = &MockIDTokenIssuerEventServiceMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockIDTokenIssuerEventService) EXPECT() *MockIDTokenIssuerEventServiceMockRecorder {
+	return m.recorder
+}
+
+// DispatchEventWithoutTx mocks base method.
+func (m *MockIDTokenIssuerEventService) DispatchEventWithoutTx(ctx context.Context, e *event.Event) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DispatchEventWithoutTx", ctx, e)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DispatchEventWithoutTx indicates an expected call of DispatchEventWithoutTx.
+func (mr *MockIDTokenIssuerEventServiceMockRecorder) DispatchEventWithoutTx(ctx, e interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DispatchEventWithoutTx", reflect.TypeOf((*MockIDTokenIssuerEventService)(nil).DispatchEventWithoutTx), ctx, e)
+}
+
+// PrepareBlockingEventWithTx mocks base method.
+func (m *MockIDTokenIssuerEventService) PrepareBlockingEventWithTx(ctx context.Context, payload event.BlockingPayload) (*event.Event, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "PrepareBlockingEventWithTx", ctx, payload)
+	ret0, _ := ret[0].(*event.Event)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// PrepareBlockingEventWithTx indicates an expected call of PrepareBlockingEventWithTx.
+func (mr *MockIDTokenIssuerEventServiceMockRecorder) PrepareBlockingEventWithTx(ctx, payload interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PrepareBlockingEventWithTx", reflect.TypeOf((*MockIDTokenIssuerEventService)(nil).PrepareBlockingEventWithTx), ctx, payload)
 }
 
 // MockIDTokenHintResolverIssuer is a mock of IDTokenHintResolverIssuer interface.

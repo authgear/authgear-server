@@ -17,6 +17,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/handler"
+	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/resourcescope"
@@ -144,7 +145,10 @@ func TestTokenHandler(t *testing.T) {
 					Enabled:   true,
 				}).Return(nil, nil)
 				tokenService.EXPECT().ParseRefreshToken(gomock.Any(), "asdf").Return(&oauth.Authorization{}, offlineGrant, refreshTokenHash, nil)
-				idTokenIssuer.EXPECT().IssueIDToken(gomock.Any(), gomock.Any()).Return("id-token", nil)
+
+				idTokenIssuer.EXPECT().PrepareIDToken(gomock.Any(), gomock.Any()).Return(&oidc.PrepareIDTokenResult{}, nil)
+				idTokenIssuer.EXPECT().MakeIDTokenFromPreparationResult(gomock.Any(), gomock.Any()).Return("id-token", nil)
+
 				tokenService.EXPECT().PrepareUserAccessGrantByRefreshToken(gomock.Any(), gomock.Any()).DoAndReturn(
 					func(ctx context.Context, options handler.PrepareUserAccessGrantByRefreshTokenOptions) (*handler.PrepareUserAccessGrantByRefreshTokenResult, error) {
 						result := &handler.PrepareUserAccessGrantByRefreshTokenResult{
@@ -202,7 +206,10 @@ func TestTokenHandler(t *testing.T) {
 				}
 				rateLimiter.EXPECT().Allow(gomock.Any(), gomock.Any()).AnyTimes().Return(nil, nil)
 				tokenService.EXPECT().ParseRefreshToken(gomock.Any(), "asdf").Return(&oauth.Authorization{}, offlineGrant, refreshTokenHash, nil)
-				idTokenIssuer.EXPECT().IssueIDToken(gomock.Any(), gomock.Any()).Return("id-token", nil)
+
+				idTokenIssuer.EXPECT().PrepareIDToken(gomock.Any(), gomock.Any()).Return(&oidc.PrepareIDTokenResult{}, nil)
+				idTokenIssuer.EXPECT().MakeIDTokenFromPreparationResult(gomock.Any(), gomock.Any()).Return("id-token", nil)
+
 				tokenService.EXPECT().PrepareUserAccessGrantByRefreshToken(gomock.Any(), gomock.Any()).DoAndReturn(
 					func(ctx context.Context, options handler.PrepareUserAccessGrantByRefreshTokenOptions) (*handler.PrepareUserAccessGrantByRefreshTokenResult, error) {
 						result := &handler.PrepareUserAccessGrantByRefreshTokenResult{
@@ -265,7 +272,10 @@ func TestTokenHandler(t *testing.T) {
 				}
 				rateLimiter.EXPECT().Allow(gomock.Any(), gomock.Any()).AnyTimes().Return(nil, nil)
 				tokenService.EXPECT().ParseRefreshToken(gomock.Any(), "asdf").Return(&oauth.Authorization{}, offlineGrant, refreshTokenHash, nil)
-				idTokenIssuer.EXPECT().IssueIDToken(gomock.Any(), gomock.Any()).Return("id-token", nil)
+
+				idTokenIssuer.EXPECT().PrepareIDToken(gomock.Any(), gomock.Any()).Return(&oidc.PrepareIDTokenResult{}, nil)
+				idTokenIssuer.EXPECT().MakeIDTokenFromPreparationResult(gomock.Any(), gomock.Any()).Return("id-token", nil)
+
 				tokenService.EXPECT().PrepareUserAccessGrantByRefreshToken(gomock.Any(), gomock.Any()).DoAndReturn(
 					func(ctx context.Context, options handler.PrepareUserAccessGrantByRefreshTokenOptions) (*handler.PrepareUserAccessGrantByRefreshTokenResult, error) {
 						result := &handler.PrepareUserAccessGrantByRefreshTokenResult{
@@ -427,7 +437,8 @@ func TestTokenHandler(t *testing.T) {
 				Return(testOfflineGrant, nil)
 
 			expectedNewIdToken := "NEW_ID_TOKEN"
-			idTokenIssuer.EXPECT().IssueIDToken(gomock.Any(), gomock.Any()).Times(1).Return(expectedNewIdToken, nil)
+			idTokenIssuer.EXPECT().PrepareIDToken(gomock.Any(), gomock.Any()).Times(1).Return(&oidc.PrepareIDTokenResult{}, nil)
+			idTokenIssuer.EXPECT().MakeIDTokenFromPreparationResult(gomock.Any(), gomock.Any()).Times(1).Return(expectedNewIdToken, nil)
 
 			newDeviceSecret := "newdevicesecret"
 			tokenService.EXPECT().IssueDeviceSecret(gomock.Any(), gomock.Any()).Times(1).Return("newdshash").Do(func(ctx context.Context, resp protocol.TokenResponse) {
