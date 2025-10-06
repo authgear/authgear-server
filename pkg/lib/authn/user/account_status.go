@@ -352,7 +352,6 @@ func (s AccountStatusWithRefTime) Reenable() (*AccountStatusWithRefTime, error) 
 	false_ := false
 
 	target := s
-	target.accountStatus.isDisabled = false
 	target.accountStatus.isIndefinitelyDisabled = &false_
 	target.accountStatus.isDeactivated = &false_
 	target.accountStatus.disableReason = nil
@@ -361,6 +360,7 @@ func (s AccountStatusWithRefTime) Reenable() (*AccountStatusWithRefTime, error) 
 	target.accountStatus.deleteAt = nil
 	target.accountStatus.anonymizeAt = nil
 	target.accountStatus.accountStatusStaleFrom = target.deriveAccountStatusStaleFrom()
+	target.accountStatus.isDisabled = target.IsDisabled()
 
 	if s.IsAnonymized() {
 		return nil, makeTransitionError(accountStatusTypeAnonymized, target.variant().getAccountStatusType())
@@ -386,7 +386,6 @@ func (s AccountStatusWithRefTime) DisableIndefinitely(reason *string) (*AccountS
 	false_ := false
 
 	target := s
-	target.accountStatus.isDisabled = true
 	target.accountStatus.isIndefinitelyDisabled = &true_
 	target.accountStatus.isDeactivated = &false_
 	target.accountStatus.disableReason = reason
@@ -395,6 +394,7 @@ func (s AccountStatusWithRefTime) DisableIndefinitely(reason *string) (*AccountS
 	target.accountStatus.deleteAt = nil
 	target.accountStatus.anonymizeAt = nil
 	target.accountStatus.accountStatusStaleFrom = target.deriveAccountStatusStaleFrom()
+	target.accountStatus.isDisabled = target.IsDisabled()
 
 	if s.IsAnonymized() {
 		return nil, makeTransitionError(accountStatusTypeAnonymized, target.variant().getAccountStatusType())
@@ -417,11 +417,6 @@ func (s AccountStatusWithRefTime) DisableTemporarily(from time.Time, until time.
 	false_ := false
 	target := s
 
-	equalOrGreaterThanFrom := s.refTime.Equal(from) || s.refTime.After(from)
-	lessThanUntil := s.refTime.Before(until)
-	isDisabled := equalOrGreaterThanFrom && lessThanUntil
-
-	target.accountStatus.isDisabled = isDisabled
 	target.accountStatus.isIndefinitelyDisabled = &false_
 	target.accountStatus.isDeactivated = &false_
 	target.accountStatus.disableReason = reason
@@ -430,6 +425,7 @@ func (s AccountStatusWithRefTime) DisableTemporarily(from time.Time, until time.
 	target.accountStatus.deleteAt = nil
 	target.accountStatus.anonymizeAt = nil
 	target.accountStatus.accountStatusStaleFrom = target.deriveAccountStatusStaleFrom()
+	target.accountStatus.isDisabled = target.IsDisabled()
 
 	if s.IsAnonymized() {
 		return nil, makeTransitionError(accountStatusTypeAnonymized, target.variant().getAccountStatusType())
@@ -448,11 +444,54 @@ func (s AccountStatusWithRefTime) DisableTemporarily(from time.Time, until time.
 	}
 }
 
+func (s AccountStatusWithRefTime) SetAccountValidFrom(t *time.Time) (*AccountStatusWithRefTime, error) {
+	target := s
+
+	target.accountStatus.accountValidFrom = t
+	target.accountStatus.accountStatusStaleFrom = target.deriveAccountStatusStaleFrom()
+	target.accountStatus.isDisabled = target.IsDisabled()
+
+	if s.IsAnonymized() {
+		return nil, makeTransitionError(accountStatusTypeAnonymized, target.getMostAppropriateType())
+	}
+
+	// Account valid period can be set independently
+	return &target, nil
+}
+
+func (s AccountStatusWithRefTime) SetAccountValidUntil(t *time.Time) (*AccountStatusWithRefTime, error) {
+	target := s
+	target.accountStatus.accountValidUntil = t
+	target.accountStatus.accountStatusStaleFrom = target.deriveAccountStatusStaleFrom()
+	target.accountStatus.isDisabled = target.IsDisabled()
+
+	if s.IsAnonymized() {
+		return nil, makeTransitionError(accountStatusTypeAnonymized, target.getMostAppropriateType())
+	}
+
+	// Account valid period can be set independently
+	return &target, nil
+}
+
+func (s AccountStatusWithRefTime) SetAccountValidPeriod(from *time.Time, until *time.Time) (*AccountStatusWithRefTime, error) {
+	target := s
+	target.accountStatus.accountValidFrom = from
+	target.accountStatus.accountValidUntil = until
+	target.accountStatus.accountStatusStaleFrom = target.deriveAccountStatusStaleFrom()
+	target.accountStatus.isDisabled = target.IsDisabled()
+
+	if s.IsAnonymized() {
+		return nil, makeTransitionError(accountStatusTypeAnonymized, target.getMostAppropriateType())
+	}
+
+	// Account valid period can be set independently
+	return &target, nil
+}
+
 func (s AccountStatusWithRefTime) ScheduleDeletionByEndUser(deleteAt time.Time) (*AccountStatusWithRefTime, error) {
 	true_ := true
 
 	target := s
-	target.accountStatus.isDisabled = true
 	target.accountStatus.isIndefinitelyDisabled = &true_
 	target.accountStatus.isDeactivated = &true_
 	target.accountStatus.disableReason = nil
@@ -461,6 +500,7 @@ func (s AccountStatusWithRefTime) ScheduleDeletionByEndUser(deleteAt time.Time) 
 	target.accountStatus.deleteAt = &deleteAt
 	target.accountStatus.anonymizeAt = nil
 	target.accountStatus.accountStatusStaleFrom = target.deriveAccountStatusStaleFrom()
+	target.accountStatus.isDisabled = target.IsDisabled()
 
 	if s.IsAnonymized() {
 		return nil, makeTransitionError(accountStatusTypeAnonymized, target.variant().getAccountStatusType())
@@ -482,7 +522,6 @@ func (s AccountStatusWithRefTime) ScheduleDeletionByAdmin(deleteAt time.Time) (*
 	false_ := false
 
 	target := s
-	target.accountStatus.isDisabled = true
 	target.accountStatus.isIndefinitelyDisabled = &true_
 	target.accountStatus.isDeactivated = &false_
 	target.accountStatus.disableReason = nil
@@ -491,6 +530,7 @@ func (s AccountStatusWithRefTime) ScheduleDeletionByAdmin(deleteAt time.Time) (*
 	target.accountStatus.deleteAt = &deleteAt
 	target.accountStatus.anonymizeAt = nil
 	target.accountStatus.accountStatusStaleFrom = target.deriveAccountStatusStaleFrom()
+	target.accountStatus.isDisabled = target.IsDisabled()
 
 	// It is allowed to schedule deletion of an anonymized user.
 
@@ -512,7 +552,6 @@ func (s AccountStatusWithRefTime) UnscheduleDeletionByAdmin() (*AccountStatusWit
 	false_ := false
 
 	target := s
-	target.accountStatus.isDisabled = isAnonymized
 	target.accountStatus.isIndefinitelyDisabled = &isAnonymized
 	target.accountStatus.isDeactivated = &false_
 	target.accountStatus.disableReason = nil
@@ -521,6 +560,7 @@ func (s AccountStatusWithRefTime) UnscheduleDeletionByAdmin() (*AccountStatusWit
 	target.accountStatus.deleteAt = nil
 	target.accountStatus.anonymizeAt = nil
 	target.accountStatus.accountStatusStaleFrom = target.deriveAccountStatusStaleFrom()
+	target.accountStatus.isDisabled = target.IsDisabled()
 
 	// It is allowed to unschedule deletion of an anonymized user.
 	if s.IsAnonymized() && s.accountStatus.deleteAt == nil {
@@ -545,7 +585,6 @@ func (s AccountStatusWithRefTime) Anonymize() (*AccountStatusWithRefTime, error)
 	false_ := false
 
 	target := s
-	target.accountStatus.isDisabled = true
 	target.accountStatus.isIndefinitelyDisabled = &true_
 	target.accountStatus.isDeactivated = &false_
 	target.accountStatus.disableReason = nil
@@ -556,6 +595,7 @@ func (s AccountStatusWithRefTime) Anonymize() (*AccountStatusWithRefTime, error)
 	target.accountStatus.isAnonymized = &true_
 	target.accountStatus.anonymizedAt = &s.refTime
 	target.accountStatus.accountStatusStaleFrom = target.deriveAccountStatusStaleFrom()
+	target.accountStatus.isDisabled = target.IsDisabled()
 
 	if s.IsAnonymized() {
 		if target.IsAnonymized() {
@@ -592,7 +632,6 @@ func (s AccountStatusWithRefTime) ScheduleAnonymizationByAdmin(anonymizeAt time.
 	false_ := false
 
 	target := s
-	target.accountStatus.isDisabled = true
 	target.accountStatus.isIndefinitelyDisabled = &true_
 	target.accountStatus.isDeactivated = &false_
 	target.accountStatus.disableReason = nil
@@ -601,6 +640,7 @@ func (s AccountStatusWithRefTime) ScheduleAnonymizationByAdmin(anonymizeAt time.
 	target.accountStatus.deleteAt = nil
 	target.accountStatus.anonymizeAt = &anonymizeAt
 	target.accountStatus.accountStatusStaleFrom = target.deriveAccountStatusStaleFrom()
+	target.accountStatus.isDisabled = target.IsDisabled()
 
 	if s.IsAnonymized() {
 		return nil, makeTransitionError(accountStatusTypeAnonymized, target.variant().getAccountStatusType())
@@ -631,7 +671,6 @@ func (s AccountStatusWithRefTime) UnscheduleAnonymizationByAdmin() (*AccountStat
 	false_ := false
 
 	target := s
-	target.accountStatus.isDisabled = false
 	target.accountStatus.isIndefinitelyDisabled = &false_
 	target.accountStatus.isDeactivated = &false_
 	target.accountStatus.disableReason = nil
@@ -640,6 +679,7 @@ func (s AccountStatusWithRefTime) UnscheduleAnonymizationByAdmin() (*AccountStat
 	target.accountStatus.deleteAt = nil
 	target.accountStatus.anonymizeAt = nil
 	target.accountStatus.accountStatusStaleFrom = target.deriveAccountStatusStaleFrom()
+	target.accountStatus.isDisabled = target.IsDisabled()
 
 	if s.IsAnonymized() {
 		return nil, makeTransitionError(accountStatusTypeAnonymized, target.variant().getAccountStatusType())
