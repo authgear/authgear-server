@@ -32,7 +32,7 @@ type store interface {
 	UpdateCustomAttributes(ctx context.Context, userID string, customAttrs map[string]interface{}) error
 	UpdateOptOutPasskeyUpselling(ctx context.Context, userID string, optout bool) error
 	Delete(ctx context.Context, userID string) error
-	Anonymize(ctx context.Context, userID string) error
+	SetAllAttributesToNull(ctx context.Context, userID string) error
 }
 
 type Store struct {
@@ -499,15 +499,11 @@ func (s *Store) Delete(ctx context.Context, userID string) error {
 	return nil
 }
 
-func (s *Store) Anonymize(ctx context.Context, userID string) error {
-	// FIXME(account-status): Should we make use of UpdateAccountStatus here?
+func (s *Store) SetAllAttributesToNull(ctx context.Context, userID string) error {
 	now := s.Clock.NowUTC()
 
 	builder := s.SQLBuilder.
 		Update(s.SQLBuilder.TableName("_auth_user")).
-		Set("is_disabled", true).
-		Set("is_anonymized", true).
-		Set("anonymized_at", now).
 		Set("standard_attributes", nil).
 		Set("custom_attributes", nil).
 		Set("updated_at", now).
