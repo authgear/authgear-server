@@ -554,7 +554,7 @@ func (s *UserImportService) insertDisabledInTxn(ctx context.Context, detail *Det
 	}
 
 	now := s.Clock.NowUTC()
-	accountStatus, err := u.AccountStatus(now).Disable(nil)
+	accountStatus, err := u.AccountStatus(now).DisableIndefinitely(nil)
 	if err != nil {
 		return
 	}
@@ -1170,7 +1170,7 @@ func (s *UserImportService) upsertDisabledInTxn(ctx context.Context, detail *Det
 	if disabled {
 		var accountStatus *user.AccountStatusWithRefTime
 		// Treat invalid account status transition as warning.
-		accountStatus, accountStatusErr := u.AccountStatus(now).Disable(nil)
+		accountStatus, accountStatusErr := u.AccountStatus(now).DisableIndefinitely(nil)
 		if accountStatusErr != nil {
 			detail.Warnings = append(detail.Warnings, Warning{
 				Message: accountStatusErr.Error(),
