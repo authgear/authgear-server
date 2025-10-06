@@ -457,6 +457,7 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		RolesAndGroups:     queries,
+		Clock:              clock,
 	}
 	resolverImpl := &event.ResolverImpl{
 		Users: userQueries,
@@ -1243,6 +1244,7 @@ func newUserExportService(ctx context.Context, p *deps.AppProvider) *userexport.
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		RolesAndGroups:     queries,
+		Clock:              clockClock,
 	}
 	userexportHTTPClient := userexport.NewHTTPClient()
 	userExportObjectStoreConfig := environmentConfig.UserExportObjectStore
@@ -1641,6 +1643,7 @@ func newSearchReindexer(ctx context.Context, p *deps.AppProvider) *reindex.Reind
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		RolesAndGroups:     queries,
+		Clock:              clockClock,
 	}
 	sourceProvider := &reindex.SourceProvider{
 		AppID:           appID,

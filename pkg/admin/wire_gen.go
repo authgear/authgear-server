@@ -559,6 +559,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		RolesAndGroups:     queries,
+		Clock:              clockClock,
 	}
 	userLoader := loader.NewUserLoader(userQueries)
 	identityLoader := loader.NewIdentityLoader(serviceService)
@@ -1786,6 +1787,7 @@ func newUserExportCreateHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		RolesAndGroups:     queries,
+		Clock:              clockClock,
 	}
 	userexportHTTPClient := userexport.NewHTTPClient()
 	userExportService := &userexport.UserExportService{
