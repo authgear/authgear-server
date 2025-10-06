@@ -9,7 +9,9 @@ import (
 
 type accountStatusStateTransitionTest struct {
 	Reenable                       string
-	Disable                        string
+	DisableIndefinitely            string
+	DisableTemporarily_Now         string
+	DisableTemporarily_Future      string
 	ScheduleDeletionByEndUser      string
 	ScheduleDeletionByAdmin        string
 	UnscheduleDeletionByAdmin      string
@@ -20,9 +22,17 @@ type accountStatusStateTransitionTest struct {
 
 func TestAccountStatus(t *testing.T) {
 	Convey("AccountStatus", t, func() {
-		deleteAt := time.Date(2006, 1, 2, 3, 4, 5, 6, time.UTC)
-		anonymizeAt := time.Date(2006, 1, 2, 3, 4, 5, 6, time.UTC)
 		now := time.Date(2006, 1, 2, 3, 4, 5, 6, time.UTC)
+		deleteAt := now
+		anonymizeAt := now
+		temporarilyDisabledFrom := now
+		temporarilyDisabledUntil := now.Add(time.Hour * 24)
+
+		temporarilyDisabledFromInFuture := now.Add(time.Hour * 24 * 1)
+		temporarilyDisabledUntilInFuture := now.Add(time.Hour * 24 * 2)
+
+		temporarilyDisabledFromInPast := now.Add(-time.Hour * 24 * 2)
+		temporarilyDisabledUntilInPast := now.Add(-time.Hour * 24 * 1)
 
 		Convey("isIndefinitelyDisabled is normalized upon construction", func() {
 			legacyDisabled := AccountStatus{
@@ -61,10 +71,24 @@ func TestAccountStatus(t *testing.T) {
 			}
 
 			_, err = status.DisableIndefinitely(nil)
-			if testCase.Disable == "" {
+			if testCase.DisableIndefinitely == "" {
 				So(err, ShouldBeNil)
 			} else {
-				So(err, ShouldBeError, testCase.Disable)
+				So(err, ShouldBeError, testCase.DisableIndefinitely)
+			}
+
+			_, err = status.DisableTemporarily(temporarilyDisabledFrom, temporarilyDisabledUntil, nil)
+			if testCase.DisableTemporarily_Now == "" {
+				So(err, ShouldBeNil)
+			} else {
+				So(err, ShouldBeError, testCase.DisableTemporarily_Now)
+			}
+
+			_, err = status.DisableTemporarily(temporarilyDisabledFromInFuture, temporarilyDisabledUntilInFuture, nil)
+			if testCase.DisableTemporarily_Future == "" {
+				So(err, ShouldBeNil)
+			} else {
+				So(err, ShouldBeError, testCase.DisableTemporarily_Future)
 			}
 
 			_, err = status.ScheduleDeletionByEndUser(deleteAt)
@@ -114,7 +138,9 @@ func TestAccountStatus(t *testing.T) {
 			normal := AccountStatus{}.WithRefTime(now)
 			testStateTransition(normal, accountStatusStateTransitionTest{
 				Reenable:                       "invalid account status transition: normal -> normal",
-				Disable:                        "",
+				DisableIndefinitely:            "",
+				DisableTemporarily_Now:         "",
+				DisableTemporarily_Future:      "",
 				ScheduleDeletionByEndUser:      "",
 				ScheduleDeletionByAdmin:        "",
 				UnscheduleDeletionByAdmin:      "invalid account status transition: normal -> normal",
@@ -133,13 +159,84 @@ func TestAccountStatus(t *testing.T) {
 
 			testStateTransition(disabled, accountStatusStateTransitionTest{
 				Reenable:                       "",
-				Disable:                        "invalid account status transition: disabled -> disabled",
+				DisableIndefinitely:            "invalid account status transition: disabled -> disabled",
+				DisableTemporarily_Now:         "",
+				DisableTemporarily_Future:      "",
 				ScheduleDeletionByEndUser:      "invalid account status transition: disabled -> scheduled_deletion_deactivated",
 				ScheduleDeletionByAdmin:        "",
 				UnscheduleDeletionByAdmin:      "invalid account status transition: disabled -> normal",
 				Anonymize:                      "",
 				ScheduleAnonymizationByAdmin:   "",
 				UnscheduleAnonymizationByAdmin: "invalid account status transition: disabled -> normal",
+			})
+		})
+
+		Convey("state transition from disabled_temporarily", func() {
+			false_ := false
+			disabledTemporarily := AccountStatus{
+				isDisabled:               true,
+				isIndefinitelyDisabled:   &false_,
+				temporarilyDisabledFrom:  &temporarilyDisabledFrom,
+				temporarilyDisabledUntil: &temporarilyDisabledUntil,
+			}.WithRefTime(now)
+
+			testStateTransition(disabledTemporarily, accountStatusStateTransitionTest{
+				Reenable:                       "",
+				DisableIndefinitely:            "",
+				DisableTemporarily_Now:         "invalid account status transition: disabled_temporarily -> disabled_temporarily",
+				DisableTemporarily_Future:      "invalid account status transition: disabled_temporarily -> normal",
+				ScheduleDeletionByEndUser:      "invalid account status transition: disabled_temporarily -> scheduled_deletion_deactivated",
+				ScheduleDeletionByAdmin:        "",
+				UnscheduleDeletionByAdmin:      "invalid account status transition: disabled_temporarily -> normal",
+				Anonymize:                      "",
+				ScheduleAnonymizationByAdmin:   "",
+				UnscheduleAnonymizationByAdmin: "invalid account status transition: disabled_temporarily -> normal",
+			})
+		})
+
+		Convey("state transition from disabled_temporarily (future) === normal", func() {
+			false_ := false
+			disabledTemporarily := AccountStatus{
+				isDisabled:               false,
+				isIndefinitelyDisabled:   &false_,
+				temporarilyDisabledFrom:  &temporarilyDisabledFromInFuture,
+				temporarilyDisabledUntil: &temporarilyDisabledUntilInFuture,
+			}.WithRefTime(now)
+
+			testStateTransition(disabledTemporarily, accountStatusStateTransitionTest{
+				Reenable:                       "invalid account status transition: normal -> normal",
+				DisableIndefinitely:            "",
+				DisableTemporarily_Now:         "",
+				DisableTemporarily_Future:      "",
+				ScheduleDeletionByEndUser:      "",
+				ScheduleDeletionByAdmin:        "",
+				UnscheduleDeletionByAdmin:      "invalid account status transition: normal -> normal",
+				Anonymize:                      "",
+				ScheduleAnonymizationByAdmin:   "",
+				UnscheduleAnonymizationByAdmin: "invalid account status transition: normal -> normal",
+			})
+		})
+
+		Convey("state transition from disabled_temporarily (past) === normal", func() {
+			false_ := false
+			disabledTemporarily := AccountStatus{
+				isDisabled:               false,
+				isIndefinitelyDisabled:   &false_,
+				temporarilyDisabledFrom:  &temporarilyDisabledFromInPast,
+				temporarilyDisabledUntil: &temporarilyDisabledUntilInPast,
+			}.WithRefTime(now)
+
+			testStateTransition(disabledTemporarily, accountStatusStateTransitionTest{
+				Reenable:                       "invalid account status transition: normal -> normal",
+				DisableIndefinitely:            "",
+				DisableTemporarily_Now:         "",
+				DisableTemporarily_Future:      "",
+				ScheduleDeletionByEndUser:      "",
+				ScheduleDeletionByAdmin:        "",
+				UnscheduleDeletionByAdmin:      "invalid account status transition: normal -> normal",
+				Anonymize:                      "",
+				ScheduleAnonymizationByAdmin:   "",
+				UnscheduleAnonymizationByAdmin: "invalid account status transition: normal -> normal",
 			})
 		})
 
@@ -153,7 +250,9 @@ func TestAccountStatus(t *testing.T) {
 
 			testStateTransition(scheduledDeletion, accountStatusStateTransitionTest{
 				Reenable:                       "invalid account status transition: scheduled_deletion_disabled -> normal",
-				Disable:                        "invalid account status transition: scheduled_deletion_disabled -> disabled",
+				DisableIndefinitely:            "invalid account status transition: scheduled_deletion_disabled -> disabled",
+				DisableTemporarily_Now:         "invalid account status transition: scheduled_deletion_disabled -> disabled_temporarily",
+				DisableTemporarily_Future:      "invalid account status transition: scheduled_deletion_disabled -> normal",
 				ScheduleDeletionByEndUser:      "invalid account status transition: scheduled_deletion_disabled -> scheduled_deletion_deactivated",
 				ScheduleDeletionByAdmin:        "invalid account status transition: scheduled_deletion_disabled -> scheduled_deletion_disabled",
 				UnscheduleDeletionByAdmin:      "",
@@ -174,7 +273,9 @@ func TestAccountStatus(t *testing.T) {
 
 			testStateTransition(scheduledDeletion, accountStatusStateTransitionTest{
 				Reenable:                       "invalid account status transition: scheduled_deletion_deactivated -> normal",
-				Disable:                        "invalid account status transition: scheduled_deletion_deactivated -> disabled",
+				DisableIndefinitely:            "invalid account status transition: scheduled_deletion_deactivated -> disabled",
+				DisableTemporarily_Now:         "invalid account status transition: scheduled_deletion_deactivated -> disabled_temporarily",
+				DisableTemporarily_Future:      "invalid account status transition: scheduled_deletion_deactivated -> normal",
 				ScheduleDeletionByEndUser:      "invalid account status transition: scheduled_deletion_deactivated -> scheduled_deletion_deactivated",
 				ScheduleDeletionByAdmin:        "invalid account status transition: scheduled_deletion_deactivated -> scheduled_deletion_disabled",
 				UnscheduleDeletionByAdmin:      "",
@@ -195,7 +296,9 @@ func TestAccountStatus(t *testing.T) {
 
 			testStateTransition(anonymized, accountStatusStateTransitionTest{
 				Reenable:                       "invalid account status transition: anonymized -> normal",
-				Disable:                        "invalid account status transition: anonymized -> disabled",
+				DisableIndefinitely:            "invalid account status transition: anonymized -> disabled",
+				DisableTemporarily_Now:         "invalid account status transition: anonymized -> disabled_temporarily",
+				DisableTemporarily_Future:      "invalid account status transition: anonymized -> normal",
 				ScheduleDeletionByEndUser:      "invalid account status transition: anonymized -> scheduled_deletion_deactivated",
 				ScheduleDeletionByAdmin:        "",
 				UnscheduleDeletionByAdmin:      "invalid account status transition: anonymized -> anonymized",
@@ -215,7 +318,9 @@ func TestAccountStatus(t *testing.T) {
 
 			testStateTransition(scheduledAnonymization, accountStatusStateTransitionTest{
 				Reenable:                       "invalid account status transition: scheduled_anonymization_disabled -> normal",
-				Disable:                        "invalid account status transition: scheduled_anonymization_disabled -> disabled",
+				DisableIndefinitely:            "invalid account status transition: scheduled_anonymization_disabled -> disabled",
+				DisableTemporarily_Now:         "invalid account status transition: scheduled_anonymization_disabled -> disabled_temporarily",
+				DisableTemporarily_Future:      "invalid account status transition: scheduled_anonymization_disabled -> normal",
 				ScheduleDeletionByEndUser:      "invalid account status transition: scheduled_anonymization_disabled -> scheduled_deletion_deactivated",
 				ScheduleDeletionByAdmin:        "",
 				UnscheduleDeletionByAdmin:      "invalid account status transition: scheduled_anonymization_disabled -> normal",
@@ -242,6 +347,26 @@ func TestAccountStatus(t *testing.T) {
 			state2, err := state1.UnscheduleDeletionByAdmin()
 			So(err, ShouldBeNil)
 			So(state2.IsAnonymized(), ShouldEqual, true)
+		})
+
+		Convey("isDisabled is true if now is within temporarily disabled period", func() {
+			normal := AccountStatus{}.WithRefTime(now)
+
+			state1, err := normal.DisableTemporarily(temporarilyDisabledFrom, temporarilyDisabledUntil, nil)
+			So(err, ShouldBeNil)
+			So(state1.accountStatus.isDisabled, ShouldEqual, true)
+			So(*state1.accountStatus.isIndefinitelyDisabled, ShouldEqual, false)
+			So(*state1.accountStatus.isDeactivated, ShouldEqual, false)
+		})
+
+		Convey("isDisabled is false if now is NOT within temporarily disabled period", func() {
+			normal := AccountStatus{}.WithRefTime(now)
+
+			state1, err := normal.DisableTemporarily(temporarilyDisabledFromInFuture, temporarilyDisabledUntilInFuture, nil)
+			So(err, ShouldBeNil)
+			So(state1.accountStatus.isDisabled, ShouldEqual, false)
+			So(*state1.accountStatus.isIndefinitelyDisabled, ShouldEqual, false)
+			So(*state1.accountStatus.isDeactivated, ShouldEqual, false)
 		})
 	})
 }

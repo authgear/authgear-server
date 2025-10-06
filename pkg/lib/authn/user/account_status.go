@@ -367,6 +367,39 @@ func (s AccountStatusWithRefTime) DisableIndefinitely(reason *string) (*AccountS
 	}
 }
 
+func (s AccountStatusWithRefTime) DisableTemporarily(from time.Time, until time.Time, reason *string) (*AccountStatusWithRefTime, error) {
+	false_ := false
+	target := s
+
+	equalOrGreaterThanFrom := s.refTime.Equal(from) || s.refTime.After(from)
+	lessThanUntil := s.refTime.Before(until)
+	isDisabled := equalOrGreaterThanFrom && lessThanUntil
+
+	target.accountStatus.isDisabled = isDisabled
+	target.accountStatus.isIndefinitelyDisabled = &false_
+	target.accountStatus.isDeactivated = &false_
+	target.accountStatus.disableReason = reason
+	target.accountStatus.temporarilyDisabledFrom = &from
+	target.accountStatus.temporarilyDisabledUntil = &until
+	target.accountStatus.deleteAt = nil
+	target.accountStatus.anonymizeAt = nil
+	target.accountStatus.accountStatusStaleFrom = target.deriveAccountStatusStaleFrom()
+
+	if s.IsAnonymized() {
+		return nil, makeTransitionErrorFromAnonymized(target.variant())
+	}
+
+	originalType := s.variant()
+	switch originalType.getAccountStatusType() {
+	case AccountStatusVariantNormal{}.getAccountStatusType():
+		return &target, nil
+	case AccountStatusVariantDisabledIndefinitely{}.getAccountStatusType():
+		return &target, nil
+	default:
+		return nil, makeTransitionError(originalType, target.variant())
+	}
+}
+
 func (s AccountStatusWithRefTime) ScheduleDeletionByEndUser(deleteAt time.Time) (*AccountStatusWithRefTime, error) {
 	true_ := true
 
