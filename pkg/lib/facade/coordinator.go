@@ -1392,7 +1392,7 @@ func (c *Coordinator) UserCheckAnonymized(ctx context.Context, userID string) er
 	}
 
 	now := c.Clock.NowUTC()
-	if u.AccountStatus(now).Variant().Type() == user.AccountStatusTypeAnonymized {
+	if u.AccountStatus(now).IsAnonymized() {
 		return ErrUserIsAnonymized
 	}
 

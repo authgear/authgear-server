@@ -41,7 +41,7 @@ func (i *IntentLoginFlowStepCheckAccountStatus) ReactTo(ctx context.Context, dep
 	}
 
 	now := deps.Clock.NowUTC()
-	err = u.AccountStatus(now).Variant().Check()
+	err = u.AccountStatus(now).Check()
 	if err != nil {
 		return nil, err
 	}

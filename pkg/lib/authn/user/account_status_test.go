@@ -195,12 +195,12 @@ func TestAccountStatus(t *testing.T) {
 
 			testStateTransition(anonymized, accountStatusStateTransitionTest{
 				Reenable:                       "invalid account status transition: anonymized -> normal",
-				Disable:                        "invalid account status transition: anonymized -> anonymized",
+				Disable:                        "invalid account status transition: anonymized -> disabled",
 				ScheduleDeletionByEndUser:      "invalid account status transition: anonymized -> scheduled_deletion_deactivated",
 				ScheduleDeletionByAdmin:        "",
 				UnscheduleDeletionByAdmin:      "invalid account status transition: anonymized -> anonymized",
 				Anonymize:                      "invalid account status transition: anonymized -> anonymized",
-				ScheduleAnonymizationByAdmin:   "invalid account status transition: anonymized -> anonymized",
+				ScheduleAnonymizationByAdmin:   "invalid account status transition: anonymized -> scheduled_anonymization_disabled",
 				UnscheduleAnonymizationByAdmin: "invalid account status transition: anonymized -> normal",
 			})
 		})
@@ -236,11 +236,12 @@ func TestAccountStatus(t *testing.T) {
 
 			state1, err := anonymized.ScheduleDeletionByAdmin(deleteAt)
 			So(err, ShouldBeNil)
-			So(state1.Variant().Type(), ShouldEqual, AccountStatusTypeScheduledDeletionDisabled)
+			So(state1.IsAnonymized(), ShouldEqual, true)
+			So(state1.variant().Type(), ShouldEqual, AccountStatusTypeScheduledDeletionDisabled)
 
 			state2, err := state1.UnscheduleDeletionByAdmin()
 			So(err, ShouldBeNil)
-			So(state2.Variant().Type(), ShouldEqual, AccountStatusTypeAnonymized)
+			So(state2.IsAnonymized(), ShouldEqual, true)
 		})
 	})
 }
