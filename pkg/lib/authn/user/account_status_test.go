@@ -237,7 +237,7 @@ func TestAccountStatus(t *testing.T) {
 			state1, err := anonymized.ScheduleDeletionByAdmin(deleteAt)
 			So(err, ShouldBeNil)
 			So(state1.IsAnonymized(), ShouldEqual, true)
-			So(state1.variant().Type(), ShouldEqual, AccountStatusTypeScheduledDeletionDisabled)
+			So(state1.variant().getAccountStatusType(), ShouldEqual, accountStatusTypeScheduledDeletionDisabled)
 
 			state2, err := state1.UnscheduleDeletionByAdmin()
 			So(err, ShouldBeNil)

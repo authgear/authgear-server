@@ -8,43 +8,45 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 )
 
-type AccountStatusType string
+type accountStatusType string
 
 const (
-	AccountStatusTypeNormal                         AccountStatusType = "normal"
-	AccountStatusTypeDisabled                       AccountStatusType = "disabled"
-	AccountStatusTypeDisabledTemporarily            AccountStatusType = "disabled_temporarily"
-	AccountStatusTypeOutsideValidPeriod             AccountStatusType = "outside_valid_period"
-	AccountStatusTypeDeactivated                    AccountStatusType = "deactivated"
-	AccountStatusTypeScheduledDeletionDisabled      AccountStatusType = "scheduled_deletion_disabled"
-	AccountStatusTypeScheduledDeletionDeactivated   AccountStatusType = "scheduled_deletion_deactivated"
-	AccountStatusTypeScheduledAnonymizationDisabled AccountStatusType = "scheduled_anonymization_disabled"
+	accountStatusTypeNormal                         accountStatusType = "normal"
+	accountStatusTypeDisabled                       accountStatusType = "disabled"
+	accountStatusTypeDisabledTemporarily            accountStatusType = "disabled_temporarily"
+	accountStatusTypeOutsideValidPeriod             accountStatusType = "outside_valid_period"
+	accountStatusTypeDeactivated                    accountStatusType = "deactivated"
+	accountStatusTypeScheduledDeletionDisabled      accountStatusType = "scheduled_deletion_disabled"
+	accountStatusTypeScheduledDeletionDeactivated   accountStatusType = "scheduled_deletion_deactivated"
+	accountStatusTypeScheduledAnonymizationDisabled accountStatusType = "scheduled_anonymization_disabled"
 )
 
-type AccountStatusVariant interface {
-	Type() AccountStatusType
-	Check() error
+type accountStatusVariant interface {
+	getAccountStatusType() accountStatusType
+	check() error
 }
 
 type AccountStatusVariantNormal struct{}
 
-var _ AccountStatusVariant = AccountStatusVariantNormal{}
+var _ accountStatusVariant = AccountStatusVariantNormal{}
 
-func (_ AccountStatusVariantNormal) Type() AccountStatusType { return AccountStatusTypeNormal }
+func (_ AccountStatusVariantNormal) getAccountStatusType() accountStatusType {
+	return accountStatusTypeNormal
+}
 
-func (_ AccountStatusVariantNormal) Check() error { return nil }
+func (_ AccountStatusVariantNormal) check() error { return nil }
 
 type AccountStatusVariantDisabledIndefinitely struct {
 	disableReason *string
 }
 
-var _ AccountStatusVariant = AccountStatusVariantDisabledIndefinitely{}
+var _ accountStatusVariant = AccountStatusVariantDisabledIndefinitely{}
 
-func (_ AccountStatusVariantDisabledIndefinitely) Type() AccountStatusType {
-	return AccountStatusTypeDisabled
+func (_ AccountStatusVariantDisabledIndefinitely) getAccountStatusType() accountStatusType {
+	return accountStatusTypeDisabled
 }
 
-func (a AccountStatusVariantDisabledIndefinitely) Check() error {
+func (a AccountStatusVariantDisabledIndefinitely) check() error {
 	return NewErrDisabledUser(a.disableReason)
 }
 
@@ -54,13 +56,13 @@ type AccountStatusVariantDisabledTemporarily struct {
 	temporarilyDisabledUntil time.Time
 }
 
-var _ AccountStatusVariant = AccountStatusVariantDisabledTemporarily{}
+var _ accountStatusVariant = AccountStatusVariantDisabledTemporarily{}
 
-func (_ AccountStatusVariantDisabledTemporarily) Type() AccountStatusType {
-	return AccountStatusTypeDisabledTemporarily
+func (_ AccountStatusVariantDisabledTemporarily) getAccountStatusType() accountStatusType {
+	return accountStatusTypeDisabledTemporarily
 }
 
-func (a AccountStatusVariantDisabledTemporarily) Check() error {
+func (a AccountStatusVariantDisabledTemporarily) check() error {
 	return NewErrDisabledUser(a.disableReason)
 }
 
@@ -69,35 +71,35 @@ type AccountStatusVariantOutsideValidPeriod struct {
 	accountValidUntil *time.Time
 }
 
-var _ AccountStatusVariant = AccountStatusVariantOutsideValidPeriod{}
+var _ accountStatusVariant = AccountStatusVariantOutsideValidPeriod{}
 
-func (_ AccountStatusVariantOutsideValidPeriod) Type() AccountStatusType {
-	return AccountStatusTypeOutsideValidPeriod
+func (_ AccountStatusVariantOutsideValidPeriod) getAccountStatusType() accountStatusType {
+	return accountStatusTypeOutsideValidPeriod
 }
 
-func (_ AccountStatusVariantOutsideValidPeriod) Check() error { return ErrUserOutsideValidPeriod }
+func (_ AccountStatusVariantOutsideValidPeriod) check() error { return ErrUserOutsideValidPeriod }
 
 type AccountStatusVariantDeactivated struct{}
 
-var _ AccountStatusVariant = AccountStatusVariantDeactivated{}
+var _ accountStatusVariant = AccountStatusVariantDeactivated{}
 
-func (_ AccountStatusVariantDeactivated) Type() AccountStatusType {
-	return AccountStatusTypeDeactivated
+func (_ AccountStatusVariantDeactivated) getAccountStatusType() accountStatusType {
+	return accountStatusTypeDeactivated
 }
 
-func (_ AccountStatusVariantDeactivated) Check() error { return ErrDeactivatedUser }
+func (_ AccountStatusVariantDeactivated) check() error { return ErrDeactivatedUser }
 
 type AccountStatusVariantScheduledDeletionByAdmin struct {
 	deleteAt time.Time
 }
 
-var _ AccountStatusVariant = AccountStatusVariantScheduledDeletionByAdmin{}
+var _ accountStatusVariant = AccountStatusVariantScheduledDeletionByAdmin{}
 
-func (_ AccountStatusVariantScheduledDeletionByAdmin) Type() AccountStatusType {
-	return AccountStatusTypeScheduledDeletionDisabled
+func (_ AccountStatusVariantScheduledDeletionByAdmin) getAccountStatusType() accountStatusType {
+	return accountStatusTypeScheduledDeletionDisabled
 }
 
-func (a AccountStatusVariantScheduledDeletionByAdmin) Check() error {
+func (a AccountStatusVariantScheduledDeletionByAdmin) check() error {
 	return NewErrScheduledDeletionByAdmin(a.deleteAt)
 }
 
@@ -105,13 +107,13 @@ type AccountStatusVariantScheduledDeletionByEndUser struct {
 	deleteAt time.Time
 }
 
-var _ AccountStatusVariant = AccountStatusVariantScheduledDeletionByEndUser{}
+var _ accountStatusVariant = AccountStatusVariantScheduledDeletionByEndUser{}
 
-func (_ AccountStatusVariantScheduledDeletionByEndUser) Type() AccountStatusType {
-	return AccountStatusTypeScheduledDeletionDeactivated
+func (_ AccountStatusVariantScheduledDeletionByEndUser) getAccountStatusType() accountStatusType {
+	return accountStatusTypeScheduledDeletionDeactivated
 }
 
-func (a AccountStatusVariantScheduledDeletionByEndUser) Check() error {
+func (a AccountStatusVariantScheduledDeletionByEndUser) check() error {
 	return NewErrScheduledDeletionByEndUser(a.deleteAt)
 }
 
@@ -119,13 +121,13 @@ type AccountStatusVariantScheduledAnonymizationByAdmin struct {
 	anonymizeAt time.Time
 }
 
-var _ AccountStatusVariant = AccountStatusVariantScheduledAnonymizationByAdmin{}
+var _ accountStatusVariant = AccountStatusVariantScheduledAnonymizationByAdmin{}
 
-func (_ AccountStatusVariantScheduledAnonymizationByAdmin) Type() AccountStatusType {
-	return AccountStatusTypeScheduledAnonymizationDisabled
+func (_ AccountStatusVariantScheduledAnonymizationByAdmin) getAccountStatusType() accountStatusType {
+	return accountStatusTypeScheduledAnonymizationDisabled
 }
 
-func (a AccountStatusVariantScheduledAnonymizationByAdmin) Check() error {
+func (a AccountStatusVariantScheduledAnonymizationByAdmin) check() error {
 	return NewErrScheduledAnonymizationByAdmin(a.anonymizeAt)
 }
 
@@ -236,10 +238,10 @@ func (s AccountStatusWithRefTime) Check() error {
 	}
 
 	variant := s.variant()
-	return variant.Check()
+	return variant.check()
 }
 
-func (s AccountStatusWithRefTime) variant() AccountStatusVariant {
+func (s AccountStatusWithRefTime) variant() accountStatusVariant {
 	// This method does not read is_disabled,
 	// thus account_status_stale_from is irrelevant here.
 
@@ -323,12 +325,12 @@ func (s AccountStatusWithRefTime) Reenable() (*AccountStatusWithRefTime, error) 
 	}
 
 	originalType := s.variant()
-	switch originalType.Type() {
-	case AccountStatusVariantDisabledIndefinitely{}.Type():
+	switch originalType.getAccountStatusType() {
+	case AccountStatusVariantDisabledIndefinitely{}.getAccountStatusType():
 		return &target, nil
-	case AccountStatusVariantDisabledTemporarily{}.Type():
+	case AccountStatusVariantDisabledTemporarily{}.getAccountStatusType():
 		return &target, nil
-	case AccountStatusVariantDeactivated{}.Type():
+	case AccountStatusVariantDeactivated{}.getAccountStatusType():
 		return &target, nil
 	default:
 		return nil, makeTransitionError(originalType, target.variant())
@@ -355,10 +357,10 @@ func (s AccountStatusWithRefTime) Disable(reason *string) (*AccountStatusWithRef
 	}
 
 	originalType := s.variant()
-	switch originalType.Type() {
-	case AccountStatusVariantNormal{}.Type():
+	switch originalType.getAccountStatusType() {
+	case AccountStatusVariantNormal{}.getAccountStatusType():
 		return &target, nil
-	case AccountStatusVariantDisabledTemporarily{}.Type():
+	case AccountStatusVariantDisabledTemporarily{}.getAccountStatusType():
 		return &target, nil
 	default:
 		return nil, makeTransitionError(originalType, target.variant())
@@ -384,8 +386,8 @@ func (s AccountStatusWithRefTime) ScheduleDeletionByEndUser(deleteAt time.Time) 
 	}
 
 	originalType := s.variant()
-	switch originalType.Type() {
-	case AccountStatusVariantNormal{}.Type():
+	switch originalType.getAccountStatusType() {
+	case AccountStatusVariantNormal{}.getAccountStatusType():
 		return &target, nil
 	default:
 		return nil, makeTransitionError(originalType, target.variant())
@@ -410,10 +412,10 @@ func (s AccountStatusWithRefTime) ScheduleDeletionByAdmin(deleteAt time.Time) (*
 	// It is allowed to schedule deletion of an anonymized user.
 
 	originalType := s.variant()
-	switch originalType.Type() {
-	case AccountStatusVariantScheduledDeletionByAdmin{}.Type():
+	switch originalType.getAccountStatusType() {
+	case AccountStatusVariantScheduledDeletionByAdmin{}.getAccountStatusType():
 		return nil, makeTransitionError(originalType, target.variant())
-	case AccountStatusVariantScheduledDeletionByEndUser{}.Type():
+	case AccountStatusVariantScheduledDeletionByEndUser{}.getAccountStatusType():
 		return nil, makeTransitionError(originalType, target.variant())
 	default:
 		return &target, nil
@@ -441,10 +443,10 @@ func (s AccountStatusWithRefTime) UnscheduleDeletionByAdmin() (*AccountStatusWit
 	}
 
 	originalType := s.variant()
-	switch originalType.Type() {
-	case AccountStatusVariantScheduledDeletionByAdmin{}.Type():
+	switch originalType.getAccountStatusType() {
+	case AccountStatusVariantScheduledDeletionByAdmin{}.getAccountStatusType():
 		return &target, nil
-	case AccountStatusVariantScheduledDeletionByEndUser{}.Type():
+	case AccountStatusVariantScheduledDeletionByEndUser{}.getAccountStatusType():
 		return &target, nil
 	default:
 		return nil, makeTransitionError(originalType, target.variant())
@@ -476,22 +478,22 @@ func (s AccountStatusWithRefTime) Anonymize() (*AccountStatusWithRefTime, error)
 	}
 
 	originalType := s.variant()
-	switch originalType.Type() {
-	case AccountStatusVariantNormal{}.Type():
+	switch originalType.getAccountStatusType() {
+	case AccountStatusVariantNormal{}.getAccountStatusType():
 		return &target, nil
-	case AccountStatusVariantDisabledIndefinitely{}.Type():
+	case AccountStatusVariantDisabledIndefinitely{}.getAccountStatusType():
 		return &target, nil
-	case AccountStatusVariantDisabledTemporarily{}.Type():
+	case AccountStatusVariantDisabledTemporarily{}.getAccountStatusType():
 		return &target, nil
-	case AccountStatusVariantOutsideValidPeriod{}.Type():
+	case AccountStatusVariantOutsideValidPeriod{}.getAccountStatusType():
 		return &target, nil
-	case AccountStatusVariantDeactivated{}.Type():
+	case AccountStatusVariantDeactivated{}.getAccountStatusType():
 		return &target, nil
-	case AccountStatusVariantScheduledDeletionByAdmin{}.Type():
+	case AccountStatusVariantScheduledDeletionByAdmin{}.getAccountStatusType():
 		return &target, nil
-	case AccountStatusVariantScheduledDeletionByEndUser{}.Type():
+	case AccountStatusVariantScheduledDeletionByEndUser{}.getAccountStatusType():
 		return &target, nil
-	case AccountStatusVariantScheduledAnonymizationByAdmin{}.Type():
+	case AccountStatusVariantScheduledAnonymizationByAdmin{}.getAccountStatusType():
 		return &target, nil
 	default:
 		return nil, makeTransitionError(originalType, target.variant())
@@ -518,20 +520,20 @@ func (s AccountStatusWithRefTime) ScheduleAnonymizationByAdmin(anonymizeAt time.
 	}
 
 	originalType := s.variant()
-	switch originalType.Type() {
-	case AccountStatusVariantNormal{}.Type():
+	switch originalType.getAccountStatusType() {
+	case AccountStatusVariantNormal{}.getAccountStatusType():
 		return &target, nil
-	case AccountStatusVariantDisabledIndefinitely{}.Type():
+	case AccountStatusVariantDisabledIndefinitely{}.getAccountStatusType():
 		return &target, nil
-	case AccountStatusVariantDisabledTemporarily{}.Type():
+	case AccountStatusVariantDisabledTemporarily{}.getAccountStatusType():
 		return &target, nil
-	case AccountStatusVariantOutsideValidPeriod{}.Type():
+	case AccountStatusVariantOutsideValidPeriod{}.getAccountStatusType():
 		return &target, nil
-	case AccountStatusVariantDeactivated{}.Type():
+	case AccountStatusVariantDeactivated{}.getAccountStatusType():
 		return &target, nil
-	case AccountStatusVariantScheduledDeletionByAdmin{}.Type():
+	case AccountStatusVariantScheduledDeletionByAdmin{}.getAccountStatusType():
 		return &target, nil
-	case AccountStatusVariantScheduledDeletionByEndUser{}.Type():
+	case AccountStatusVariantScheduledDeletionByEndUser{}.getAccountStatusType():
 		return &target, nil
 	default:
 		return nil, makeTransitionError(originalType, target.variant())
@@ -557,31 +559,31 @@ func (s AccountStatusWithRefTime) UnscheduleAnonymizationByAdmin() (*AccountStat
 	}
 
 	originalType := s.variant()
-	switch originalType.Type() {
-	case AccountStatusVariantScheduledAnonymizationByAdmin{}.Type():
+	switch originalType.getAccountStatusType() {
+	case AccountStatusVariantScheduledAnonymizationByAdmin{}.getAccountStatusType():
 		return &target, nil
 	default:
 		return nil, makeTransitionError(originalType, target.variant())
 	}
 }
 
-func makeTransitionError(fromType AccountStatusVariant, targetType AccountStatusVariant) error {
+func makeTransitionError(fromType accountStatusVariant, targetType accountStatusVariant) error {
 	return InvalidAccountStatusTransition.NewWithInfo(
-		fmt.Sprintf("invalid account status transition: %v -> %v", fromType.Type(), targetType.Type()),
+		fmt.Sprintf("invalid account status transition: %v -> %v", fromType.getAccountStatusType(), targetType.getAccountStatusType()),
 		map[string]interface{}{
-			"from": fromType.Type(),
-			"to":   targetType.Type(),
+			"from": fromType.getAccountStatusType(),
+			"to":   targetType.getAccountStatusType(),
 		},
 	)
 }
 
-func makeTransitionErrorFromAnonymized(targetType AccountStatusVariant) error {
+func makeTransitionErrorFromAnonymized(targetType accountStatusVariant) error {
 	label := "anonymized"
 	return InvalidAccountStatusTransition.NewWithInfo(
-		fmt.Sprintf("invalid account status transition: %v -> %v", label, targetType.Type()),
+		fmt.Sprintf("invalid account status transition: %v -> %v", label, targetType.getAccountStatusType()),
 		map[string]interface{}{
 			"from": label,
-			"to":   targetType.Type(),
+			"to":   targetType.getAccountStatusType(),
 		},
 	)
 }
