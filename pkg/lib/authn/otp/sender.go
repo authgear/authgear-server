@@ -197,16 +197,9 @@ func (s *MessageSender) sendEmail(ctx context.Context, opts SendOptions) error {
 		return err
 	}
 
-	code, err := s.CodeStore.Get(ctx, opts.Kind.Purpose(), opts.Target)
-	if err != nil {
-		return err
-	}
-	err = s.CodeStore.Update(ctx, opts.Kind.Purpose(), code)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return s.updateCodeAfterSent(ctx, opts, afterSentResult{
+		// We do not track email message id for now
+	})
 }
 
 func (s *MessageSender) sendSMS(ctx context.Context, opts SendOptions, preferAsync bool) error {
@@ -241,16 +234,9 @@ func (s *MessageSender) sendSMS(ctx context.Context, opts SendOptions, preferAsy
 		return err
 	}
 
-	code, err := s.CodeStore.Get(ctx, opts.Kind.Purpose(), opts.Target)
-	if err != nil {
-		return err
-	}
-	err = s.CodeStore.Update(ctx, opts.Kind.Purpose(), code)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return s.updateCodeAfterSent(ctx, opts, afterSentResult{
+		// We do not track sms message id for now
+	})
 }
 
 func (s *MessageSender) sendWhatsapp(ctx context.Context, opts SendOptions) (err error) {
@@ -264,23 +250,36 @@ func (s *MessageSender) sendWhatsapp(ctx context.Context, opts SendOptions) (err
 	}
 
 	resultCallback := func(ctx context.Context, result *messaging.SendWhatsappResult) {
-		logger := SenderLogger.GetLogger(ctx)
-		code, err := s.CodeStore.Get(ctx, opts.Kind.Purpose(), opts.Target)
-		if err != nil {
-			logger.WithError(err).Error(ctx, "failed to get code in result callback")
-			return
-		}
-		code.WhatsappMessageID = result.MessageID
-		code.OOBChannel = opts.Channel
-		err = s.CodeStore.Update(ctx, opts.Kind.Purpose(), code)
-		if err != nil {
-			logger.WithError(err).Error(ctx, "failed to update code in result callback")
-			return
-		}
+		_ = s.updateCodeAfterSent(ctx, opts, afterSentResult{
+			WhatsappMessageID: result.MessageID,
+		})
 	}
 
 	err = s.Sender.SendWhatsappInNewGoroutine(ctx, msgType, whatsappSendAuthenticationOTPOptions, resultCallback)
 	return err
+}
+
+type afterSentResult struct {
+	WhatsappMessageID string
+}
+
+func (s *MessageSender) updateCodeAfterSent(ctx context.Context, opts SendOptions, result afterSentResult) error {
+	logger := SenderLogger.GetLogger(ctx)
+	code, err := s.CodeStore.Get(ctx, opts.Kind.Purpose(), opts.Target)
+	if err != nil {
+		logger.WithError(err).Error(ctx, "failed to get code in result callback")
+		return err
+	}
+	if result.WhatsappMessageID != "" {
+		code.WhatsappMessageID = result.WhatsappMessageID
+	}
+	code.OOBChannel = opts.Channel
+	err = s.CodeStore.Update(ctx, opts.Kind.Purpose(), code)
+	if err != nil {
+		logger.WithError(err).Error(ctx, "failed to update code in result callback")
+		return err
+	}
+	return nil
 }
 
 func (s *MessageSender) Send(ctx context.Context, opts SendOptions) error {
