@@ -535,6 +535,7 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		RolesAndGroups:     queries,
+		Clock:              clockClock,
 	}
 	resolverImpl := &event.ResolverImpl{
 		Users: userQueries,

@@ -406,6 +406,7 @@ func TestAccountStatus(t *testing.T) {
 
 			state1, err := normal.DisableTemporarily(temporarilyDisabledFrom, temporarilyDisabledUntil, nil)
 			So(err, ShouldBeNil)
+			So(state1.IsDisabled(), ShouldEqual, true)
 			So(state1.accountStatus.isDisabled, ShouldEqual, true)
 			So(*state1.accountStatus.isIndefinitelyDisabled, ShouldEqual, false)
 			So(*state1.accountStatus.isDeactivated, ShouldEqual, false)
@@ -416,9 +417,40 @@ func TestAccountStatus(t *testing.T) {
 
 			state1, err := normal.DisableTemporarily(temporarilyDisabledFromInFuture, temporarilyDisabledUntilInFuture, nil)
 			So(err, ShouldBeNil)
+			So(state1.IsDisabled(), ShouldEqual, false)
 			So(state1.accountStatus.isDisabled, ShouldEqual, false)
 			So(*state1.accountStatus.isIndefinitelyDisabled, ShouldEqual, false)
 			So(*state1.accountStatus.isDeactivated, ShouldEqual, false)
+		})
+
+		Convey("isDisabled is false if now is within account valid period", func() {
+			false_ := false
+			accountStatus := AccountStatus{
+				isIndefinitelyDisabled: &false_,
+				accountValidFrom:       &accountValidFrom_insideValidPeriod,
+				accountValidUntil:      &accountValidUntil_insideValidPeriod,
+			}.WithRefTime(now)
+
+			So(accountStatus.IsDisabled(), ShouldEqual, false)
+			So(accountStatus.getMostAppropriateType(), ShouldEqual, accountStatusTypeNormal)
+			So(accountStatus.accountStatus.isDisabled, ShouldEqual, false)
+			So(*accountStatus.accountStatus.isIndefinitelyDisabled, ShouldEqual, false)
+			So(*accountStatus.accountStatus.isDeactivated, ShouldEqual, false)
+		})
+
+		Convey("isDisabled is true if now is NOT within account valid period", func() {
+			false_ := false
+			accountStatus := AccountStatus{
+				isIndefinitelyDisabled: &false_,
+				accountValidFrom:       &accountValidFrom_outsideValidPeriod,
+				accountValidUntil:      &accountValidUntil_outsideValidPeriod,
+			}.WithRefTime(now)
+
+			So(accountStatus.IsDisabled(), ShouldEqual, true)
+			So(accountStatus.getMostAppropriateType(), ShouldEqual, accountStatusTypeOutsideValidPeriod)
+			So(accountStatus.accountStatus.isDisabled, ShouldEqual, true)
+			So(*accountStatus.accountStatus.isIndefinitelyDisabled, ShouldEqual, false)
+			So(*accountStatus.accountStatus.isDeactivated, ShouldEqual, false)
 		})
 	})
 }

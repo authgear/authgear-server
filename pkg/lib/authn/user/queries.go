@@ -8,6 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
+	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
 type IdentityService interface {
@@ -60,6 +61,7 @@ type Queries struct {
 	StandardAttributes StandardAttributesService
 	CustomAttributes   CustomAttributesService
 	RolesAndGroups     RolesAndGroupsService
+	Clock              clock.Clock
 }
 
 func (p *Queries) Get(ctx context.Context, id string, role accesscontrol.Role) (*model.User, error) {
@@ -139,6 +141,7 @@ func (p *Queries) GetMany(ctx context.Context, ids []string, role accesscontrol.
 		return nil, err
 	}
 
+	now := p.Clock.NowUTC()
 	for _, rawUser := range rawUsers {
 		if rawUser == nil {
 			users = append(users, nil)
@@ -161,6 +164,7 @@ func (p *Queries) GetMany(ctx context.Context, ids []string, role accesscontrol.
 			}
 			u := newUserModel(
 				rawUser,
+				now,
 				identities,
 				authenticators,
 				isVerified,
@@ -241,6 +245,7 @@ func (p *Queries) GetPageForExport(ctx context.Context, offset uint64, limit uin
 		return nil, err
 	}
 
+	now := p.Clock.NowUTC()
 	for _, rawUser := range rawUsers {
 		if rawUser == nil {
 			users = append(users, nil)
@@ -263,6 +268,7 @@ func (p *Queries) GetPageForExport(ctx context.Context, offset uint64, limit uin
 			}
 			u := newUserModel(
 				rawUser,
+				now,
 				identities,
 				authenticators,
 				isVerified,

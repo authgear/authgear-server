@@ -150,6 +150,7 @@ func (s AccountStatus) WithRefTime(refTime time.Time) AccountStatusWithRefTime {
 }
 
 func (s AccountStatusWithRefTime) normalize() AccountStatusWithRefTime {
+	// This block reads is_disabled.
 	if s.accountStatus.isIndefinitelyDisabled == nil {
 		if s.accountStatus.accountValidFrom == nil && s.accountStatus.accountValidUntil == nil && s.accountStatus.temporarilyDisabledFrom == nil && s.accountStatus.temporarilyDisabledUntil == nil {
 			// It is safe to read isDisabled here because the columns
@@ -170,6 +171,9 @@ func (s AccountStatusWithRefTime) normalize() AccountStatusWithRefTime {
 		false_ := false
 		s.accountStatus.isAnonymized = &false_
 	}
+
+	// This block writes is_disabled.
+	s.accountStatus.isDisabled = s.IsDisabled()
 
 	return s
 }
@@ -220,6 +224,30 @@ func (s AccountStatusWithRefTime) deriveAccountStatusStaleFrom() *time.Time {
 
 func (s AccountStatusWithRefTime) IsAnonymized() bool {
 	return *s.accountStatus.isAnonymized
+}
+
+func (s AccountStatusWithRefTime) IsDisabled() bool {
+	err := s.Check()
+	if err != nil {
+		return true
+	}
+	return false
+}
+
+func (s AccountStatusWithRefTime) IsDeactivated() bool {
+	return *s.accountStatus.isDeactivated
+}
+
+func (s AccountStatusWithRefTime) DeleteAt() *time.Time {
+	return s.accountStatus.deleteAt
+}
+
+func (s AccountStatusWithRefTime) AnonymizeAt() *time.Time {
+	return s.accountStatus.anonymizeAt
+}
+
+func (s AccountStatusWithRefTime) DisableReason() *string {
+	return s.accountStatus.disableReason
 }
 
 func (s AccountStatusWithRefTime) isOutsideValidPeriod() bool {
