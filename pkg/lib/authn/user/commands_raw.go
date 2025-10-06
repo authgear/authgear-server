@@ -79,5 +79,26 @@ func (c *RawCommands) Delete(ctx context.Context, userID string) error {
 }
 
 func (c *RawCommands) Anonymize(ctx context.Context, userID string) error {
-	return c.Store.Anonymize(ctx, userID)
+	u, err := c.Store.Get(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	now := c.Clock.NowUTC()
+	accountStatus, err := u.AccountStatus(now).Anonymize()
+	if err != nil {
+		return err
+	}
+
+	err = c.Store.UpdateAccountStatus(ctx, userID, *accountStatus)
+	if err != nil {
+		return err
+	}
+
+	err = c.Store.SetAllAttributesToNull(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
