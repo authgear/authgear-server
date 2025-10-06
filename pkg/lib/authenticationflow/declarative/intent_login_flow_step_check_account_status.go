@@ -5,8 +5,6 @@ import (
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
-	"github.com/authgear/authgear-server/pkg/api/apierrors"
-	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
@@ -47,16 +45,6 @@ func (i *IntentLoginFlowStepCheckAccountStatus) ReactTo(ctx context.Context, dep
 
 	err = u.AccountStatus().Check()
 	if err != nil {
-		apiError := apierrors.AsAPIError(err)
-		if apiError != nil {
-			dispatchErr := deps.Events.DispatchEventImmediately(ctx, &nonblocking.AuthenticationBlockedEventPayload{
-				UserRef: *u.ToRef(),
-				Error:   apiError,
-			})
-			if dispatchErr != nil {
-				loginFlowCheckAccountStatusLogger.GetLogger(ctx).WithError(err).Error(ctx, "failed to dispatch event")
-			}
-		}
 		return nil, err
 	}
 

@@ -16,40 +16,7 @@ import (
 )
 
 func getUserID(flows authflow.Flows) (userID string, err error) {
-	err = authflow.TraverseFlow(authflow.Traverser{
-		NodeSimple: func(nodeSimple authflow.NodeSimple, w *authflow.Flow) error {
-			if n, ok := nodeSimple.(MilestoneDoUseUser); ok {
-				id := n.MilestoneDoUseUser()
-				if userID == "" {
-					userID = id
-				} else if userID != "" && id != userID {
-					return ErrDifferentUserID
-				}
-			}
-			return nil
-		},
-		Intent: func(intent authflow.Intent, w *authflow.Flow) error {
-			if i, ok := intent.(MilestoneDoUseUser); ok {
-				id := i.MilestoneDoUseUser()
-				if userID == "" {
-					userID = id
-				} else if userID != "" && id != userID {
-					return ErrDifferentUserID
-				}
-			}
-			return nil
-		},
-	}, flows.Root)
-
-	if userID == "" {
-		err = ErrNoUserID
-	}
-
-	if err != nil {
-		return
-	}
-
-	return
+	return authflow.GetUserID(flows)
 }
 
 func collectIdentitySpecs(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (specs []*identity.Spec, err error) {
@@ -183,7 +150,7 @@ type MilestoneDoCreatePasskey interface {
 
 type MilestoneDoUseUser interface {
 	authflow.Milestone
-	MilestoneDoUseUser() string
+	authflow.MilestoneDoUseUser
 }
 
 type MilestoneFlowUseIdentity interface {

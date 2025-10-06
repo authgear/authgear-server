@@ -167,7 +167,12 @@ func (s *Service) createNewFlowWithSession(ctx context.Context, publicFlow Publi
 	return
 }
 
-func (s *Service) processAcceptResult(ctx context.Context, session *Session, flows Flows, acceptResult *AcceptResult) error {
+func (s *Service) processAcceptResult(
+	ctx context.Context,
+	session *Session,
+	flows Flows,
+	acceptResult *AcceptResult,
+) error {
 	if acceptResult.BotProtectionVerificationResult != nil {
 		session.SetBotProtectionVerificationResult(acceptResult.BotProtectionVerificationResult)
 		updateSessionErr := s.Store.UpdateSession(ctx, session)
@@ -178,7 +183,16 @@ func (s *Service) processAcceptResult(ctx context.Context, session *Session, flo
 	for _, fn := range acceptResult.DelayedOneTimeFunctions {
 		err := fn(ctx, s.Deps)
 		if err != nil {
-			return newAuthenticationFlowError(flows, err)
+			err = s.Database.ReadOnly(ctx, func(ctx context.Context) error {
+				// Restore the database state
+				runEffectErr := ApplyRunEffects(ctx, s.Deps, flows)
+				if runEffectErr != nil {
+					return errors.Join(runEffectErr, err)
+				}
+				err = logAuthenticationBlockedErrorIfNeeded(ctx, s.Deps, flows, err)
+				return newAuthenticationFlowError(flows, err)
+			})
+			return err
 		}
 	}
 	return nil
