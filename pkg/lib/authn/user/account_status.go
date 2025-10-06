@@ -175,6 +175,9 @@ func (s AccountStatusWithRefTime) normalize() AccountStatusWithRefTime {
 	// This block writes is_disabled.
 	s.accountStatus.isDisabled = s.IsDisabled()
 
+	// Ensure account_status_stale_from is accurate.
+	s.accountStatus.accountStatusStaleFrom = s.deriveAccountStatusStaleFrom()
+
 	return s
 }
 
@@ -210,6 +213,7 @@ func (s AccountStatusWithRefTime) deriveAccountStatusStaleFrom() *time.Time {
 		if t.After(s.refTime) {
 			t := t
 			found = &t
+			break
 		}
 	}
 
