@@ -390,7 +390,8 @@ func (s *TokenService) ParseRefreshToken(ctx context.Context, token string) (
 		)
 		return nil, nil, "", err
 	}
-	err = u.AccountStatus().Check()
+	now := s.Clock.NowUTC()
+	err = u.AccountStatus(now).Variant().Check()
 	if err != nil {
 		// NOTE(DEV-2982): This is for debugging the session lost problem
 		logger.WithSkipLogging().WithError(err).Error(ctx,

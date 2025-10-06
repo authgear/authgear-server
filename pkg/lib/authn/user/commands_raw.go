@@ -66,7 +66,7 @@ func (c *RawCommands) UpdateMFAEnrollment(ctx context.Context, userID string, en
 	return c.Store.UpdateMFAEnrollment(ctx, userID, endAt)
 }
 
-func (c *RawCommands) UpdateAccountStatus(ctx context.Context, userID string, accountStatus AccountStatus) error {
+func (c *RawCommands) UpdateAccountStatus(ctx context.Context, userID string, accountStatus AccountStatusWithRefTime) error {
 	return c.Store.UpdateAccountStatus(ctx, userID, accountStatus)
 }
 

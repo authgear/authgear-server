@@ -15,6 +15,7 @@ var AnonymizedUser = apierrors.Forbidden.WithReason("AnonymizedUser")
 var ScheduledDeletionByAdmin = apierrors.Forbidden.WithReason("ScheduledDeletionByAdmin")
 var ScheduledDeletionByEndUser = apierrors.Forbidden.WithReason("ScheduledDeletionByEndUser")
 var ScheduledAnonymizationByAdmin = apierrors.Forbidden.WithReason("ScheduledAnonymizationByAdmin")
+var UserOutsideValidPeriod = apierrors.Forbidden.WithReason("UserOutsideValidPeriod")
 
 var InvalidAccountStatusTransition = apierrors.Invalid.WithReason("InvalidAccountStatusTransition")
 
@@ -26,6 +27,7 @@ func NewErrDisabledUser(reason *string) error {
 
 var ErrDeactivatedUser = DeactivatedUser.New("user is deactivated")
 var ErrAnonymizedUser = AnonymizedUser.New("user is anonymized")
+var ErrUserOutsideValidPeriod = UserOutsideValidPeriod.New("user is outside valid period")
 
 func NewErrScheduledDeletionByAdmin(deleteAt time.Time) error {
 	return ScheduledDeletionByAdmin.NewWithInfo("user was scheduled for deletion by admin", map[string]interface{}{

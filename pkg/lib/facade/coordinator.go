@@ -112,7 +112,7 @@ type UserQueries interface {
 
 type UserCommands interface {
 	Create(ctx context.Context, userID string) (*user.User, error)
-	UpdateAccountStatus(ctx context.Context, userID string, accountStatus user.AccountStatus) error
+	UpdateAccountStatus(ctx context.Context, userID string, accountStatus user.AccountStatusWithRefTime) error
 	UpdateMFAEnrollment(ctx context.Context, userID string, gracePeriodEndAt *time.Time) error
 	Delete(ctx context.Context, userID string) error
 	Anonymize(ctx context.Context, userID string) error
@@ -1046,7 +1046,8 @@ func (c *Coordinator) UserReenable(ctx context.Context, userID string) error {
 		return err
 	}
 
-	accountStatus, err := u.AccountStatus().Reenable()
+	now := c.Clock.NowUTC()
+	accountStatus, err := u.AccountStatus(now).Reenable()
 	if err != nil {
 		return err
 	}
@@ -1078,7 +1079,8 @@ func (c *Coordinator) UserDisable(ctx context.Context, userID string, reason *st
 		return err
 	}
 
-	accountStatus, err := u.AccountStatus().Disable(reason)
+	now := c.Clock.NowUTC()
+	accountStatus, err := u.AccountStatus(now).Disable(reason)
 	if err != nil {
 		return err
 	}
@@ -1126,11 +1128,11 @@ func (c *Coordinator) userScheduleDeletion(ctx context.Context, userID string, b
 	now := c.Clock.NowUTC()
 	deleteAt := now.Add(c.AccountDeletionConfig.GracePeriod.Duration())
 
-	var accountStatus *user.AccountStatus
+	var accountStatus *user.AccountStatusWithRefTime
 	if byAdmin {
-		accountStatus, err = u.AccountStatus().ScheduleDeletionByAdmin(deleteAt)
+		accountStatus, err = u.AccountStatus(now).ScheduleDeletionByAdmin(deleteAt)
 	} else {
-		accountStatus, err = u.AccountStatus().ScheduleDeletionByEndUser(deleteAt)
+		accountStatus, err = u.AccountStatus(now).ScheduleDeletionByEndUser(deleteAt)
 	}
 	if err != nil {
 		return err
@@ -1179,7 +1181,8 @@ func (c *Coordinator) UserUnscheduleDeletionByAdmin(ctx context.Context, userID 
 		return err
 	}
 
-	accountStatus, err := u.AccountStatus().UnscheduleDeletionByAdmin()
+	now := c.Clock.NowUTC()
+	accountStatus, err := u.AccountStatus(now).UnscheduleDeletionByAdmin()
 	if err != nil {
 		return err
 	}
@@ -1301,9 +1304,9 @@ func (c *Coordinator) userScheduleAnonymization(ctx context.Context, userID stri
 	now := c.Clock.NowUTC()
 	anonymizeAt := now.Add(c.AccountAnonymizationConfig.GracePeriod.Duration())
 
-	var accountStatus *user.AccountStatus
+	var accountStatus *user.AccountStatusWithRefTime
 	if byAdmin {
-		accountStatus, err = u.AccountStatus().ScheduleAnonymizationByAdmin(anonymizeAt)
+		accountStatus, err = u.AccountStatus(now).ScheduleAnonymizationByAdmin(anonymizeAt)
 	} else {
 		err = errors.New("not implemented")
 	}
@@ -1354,7 +1357,8 @@ func (c *Coordinator) UserUnscheduleAnonymizationByAdmin(ctx context.Context, us
 		return err
 	}
 
-	accountStatus, err := u.AccountStatus().UnscheduleAnonymizationByAdmin()
+	now := c.Clock.NowUTC()
+	accountStatus, err := u.AccountStatus(now).UnscheduleAnonymizationByAdmin()
 	if err != nil {
 		return err
 	}
@@ -1387,7 +1391,8 @@ func (c *Coordinator) UserCheckAnonymized(ctx context.Context, userID string) er
 		return err
 	}
 
-	if u.AccountStatus().Type() == user.AccountStatusTypeAnonymized {
+	now := c.Clock.NowUTC()
+	if u.AccountStatus(now).Variant().Type() == user.AccountStatusTypeAnonymized {
 		return ErrUserIsAnonymized
 	}
 
