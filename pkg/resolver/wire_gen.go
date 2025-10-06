@@ -589,6 +589,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		RolesAndGroups:     queries,
+		Clock:              clock,
 	}
 	userInfoService := &userinfo.UserInfoService{
 		Redis:                 handle,
@@ -1344,6 +1345,7 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		RolesAndGroups:     queries,
+		Clock:              clockClock,
 	}
 	userInfoService := &userinfo.UserInfoService{
 		Redis:                 appredisHandle,

@@ -156,6 +156,7 @@ func (u *User) AccountStatus(refTime time.Time) AccountStatusWithRefTime {
 
 func newUserModel(
 	user *User,
+	refTime time.Time,
 	identities []*identity.Info,
 	authenticators []*authenticator.Info,
 	isVerified bool,
@@ -195,15 +196,7 @@ func newUserModel(
 		}
 	}
 
-	isDeactivated := false
-	if user.isDeactivated != nil && *user.isDeactivated {
-		isDeactivated = true
-	}
-
-	isAnonymized := false
-	if user.isAnonymized != nil && *user.isAnonymized {
-		isAnonymized = true
-	}
+	accountStatus := user.AccountStatus(refTime)
 
 	return &model.User{
 		Meta: model.Meta{
@@ -214,12 +207,12 @@ func newUserModel(
 		LastLoginAt:        user.MostRecentLoginAt,
 		IsAnonymous:        isAnonymous,
 		IsVerified:         isVerified,
-		IsDisabled:         user.isDisabled,
-		DisableReason:      user.disableReason,
-		IsDeactivated:      isDeactivated,
-		DeleteAt:           user.deleteAt,
-		IsAnonymized:       isAnonymized,
-		AnonymizeAt:        user.anonymizeAt,
+		IsDisabled:         accountStatus.IsDisabled(),
+		DisableReason:      accountStatus.DisableReason(),
+		IsDeactivated:      accountStatus.IsDeactivated(),
+		DeleteAt:           accountStatus.DeleteAt(),
+		IsAnonymized:       accountStatus.IsAnonymized(),
+		AnonymizeAt:        accountStatus.AnonymizeAt(),
 		CanReauthenticate:  canReauthenticate,
 		StandardAttributes: derivedStandardAttributes,
 		CustomAttributes:   customAttributes,

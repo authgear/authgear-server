@@ -495,6 +495,7 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		RolesAndGroups:     queries,
+		Clock:              clockClock,
 	}
 	resolverImpl := &event.ResolverImpl{
 		Users: userQueries,
