@@ -12,6 +12,8 @@ type accountStatusStateTransitionTest struct {
 	DisableIndefinitely            string
 	DisableTemporarily_Now         string
 	DisableTemporarily_Future      string
+	SetAccountValidPeriod_Inside   string
+	SetAccountValidPeriod_Outside  string
 	ScheduleDeletionByEndUser      string
 	ScheduleDeletionByAdmin        string
 	UnscheduleDeletionByAdmin      string
@@ -97,6 +99,20 @@ func TestAccountStatus(t *testing.T) {
 				So(err, ShouldBeError, testCase.DisableTemporarily_Future)
 			}
 
+			_, err = status.SetAccountValidPeriod(&accountValidFrom_insideValidPeriod, &accountValidUntil_insideValidPeriod)
+			if testCase.SetAccountValidPeriod_Inside == "" {
+				So(err, ShouldBeNil)
+			} else {
+				So(err, ShouldBeError, testCase.SetAccountValidPeriod_Inside)
+			}
+
+			_, err = status.SetAccountValidPeriod(&accountValidFrom_outsideValidPeriod, &accountValidUntil_outsideValidPeriod)
+			if testCase.SetAccountValidPeriod_Outside == "" {
+				So(err, ShouldBeNil)
+			} else {
+				So(err, ShouldBeError, testCase.SetAccountValidPeriod_Outside)
+			}
+
 			_, err = status.ScheduleDeletionByEndUser(deleteAt)
 			if testCase.ScheduleDeletionByEndUser == "" {
 				So(err, ShouldBeNil)
@@ -147,6 +163,8 @@ func TestAccountStatus(t *testing.T) {
 				DisableIndefinitely:            "",
 				DisableTemporarily_Now:         "",
 				DisableTemporarily_Future:      "",
+				SetAccountValidPeriod_Inside:   "",
+				SetAccountValidPeriod_Outside:  "",
 				ScheduleDeletionByEndUser:      "",
 				ScheduleDeletionByAdmin:        "",
 				UnscheduleDeletionByAdmin:      "invalid account status transition: normal -> normal",
@@ -168,6 +186,8 @@ func TestAccountStatus(t *testing.T) {
 				DisableIndefinitely:            "invalid account status transition: disabled -> disabled",
 				DisableTemporarily_Now:         "",
 				DisableTemporarily_Future:      "",
+				SetAccountValidPeriod_Inside:   "",
+				SetAccountValidPeriod_Outside:  "",
 				ScheduleDeletionByEndUser:      "invalid account status transition: disabled -> scheduled_deletion_deactivated",
 				ScheduleDeletionByAdmin:        "",
 				UnscheduleDeletionByAdmin:      "invalid account status transition: disabled -> normal",
@@ -191,6 +211,8 @@ func TestAccountStatus(t *testing.T) {
 				DisableIndefinitely:            "",
 				DisableTemporarily_Now:         "invalid account status transition: disabled_temporarily -> disabled_temporarily",
 				DisableTemporarily_Future:      "invalid account status transition: disabled_temporarily -> normal",
+				SetAccountValidPeriod_Inside:   "",
+				SetAccountValidPeriod_Outside:  "",
 				ScheduleDeletionByEndUser:      "invalid account status transition: disabled_temporarily -> scheduled_deletion_deactivated",
 				ScheduleDeletionByAdmin:        "",
 				UnscheduleDeletionByAdmin:      "invalid account status transition: disabled_temporarily -> normal",
@@ -214,6 +236,8 @@ func TestAccountStatus(t *testing.T) {
 				DisableIndefinitely:            "",
 				DisableTemporarily_Now:         "",
 				DisableTemporarily_Future:      "",
+				SetAccountValidPeriod_Inside:   "",
+				SetAccountValidPeriod_Outside:  "",
 				ScheduleDeletionByEndUser:      "",
 				ScheduleDeletionByAdmin:        "",
 				UnscheduleDeletionByAdmin:      "invalid account status transition: normal -> normal",
@@ -237,6 +261,8 @@ func TestAccountStatus(t *testing.T) {
 				DisableIndefinitely:            "",
 				DisableTemporarily_Now:         "",
 				DisableTemporarily_Future:      "",
+				SetAccountValidPeriod_Inside:   "",
+				SetAccountValidPeriod_Outside:  "",
 				ScheduleDeletionByEndUser:      "",
 				ScheduleDeletionByAdmin:        "",
 				UnscheduleDeletionByAdmin:      "invalid account status transition: normal -> normal",
@@ -260,6 +286,8 @@ func TestAccountStatus(t *testing.T) {
 				DisableIndefinitely:            "",
 				DisableTemporarily_Now:         "",
 				DisableTemporarily_Future:      "",
+				SetAccountValidPeriod_Inside:   "",
+				SetAccountValidPeriod_Outside:  "",
 				ScheduleDeletionByEndUser:      "",
 				ScheduleDeletionByAdmin:        "",
 				UnscheduleDeletionByAdmin:      "invalid account status transition: outside_valid_period -> normal",
@@ -283,6 +311,8 @@ func TestAccountStatus(t *testing.T) {
 				DisableIndefinitely:            "",
 				DisableTemporarily_Now:         "",
 				DisableTemporarily_Future:      "",
+				SetAccountValidPeriod_Inside:   "",
+				SetAccountValidPeriod_Outside:  "",
 				ScheduleDeletionByEndUser:      "",
 				ScheduleDeletionByAdmin:        "",
 				UnscheduleDeletionByAdmin:      "invalid account status transition: normal -> normal",
@@ -305,6 +335,8 @@ func TestAccountStatus(t *testing.T) {
 				DisableIndefinitely:            "invalid account status transition: scheduled_deletion_disabled -> disabled",
 				DisableTemporarily_Now:         "invalid account status transition: scheduled_deletion_disabled -> disabled_temporarily",
 				DisableTemporarily_Future:      "invalid account status transition: scheduled_deletion_disabled -> normal",
+				SetAccountValidPeriod_Inside:   "",
+				SetAccountValidPeriod_Outside:  "",
 				ScheduleDeletionByEndUser:      "invalid account status transition: scheduled_deletion_disabled -> scheduled_deletion_deactivated",
 				ScheduleDeletionByAdmin:        "invalid account status transition: scheduled_deletion_disabled -> scheduled_deletion_disabled",
 				UnscheduleDeletionByAdmin:      "",
@@ -328,6 +360,8 @@ func TestAccountStatus(t *testing.T) {
 				DisableIndefinitely:            "invalid account status transition: scheduled_deletion_deactivated -> disabled",
 				DisableTemporarily_Now:         "invalid account status transition: scheduled_deletion_deactivated -> disabled_temporarily",
 				DisableTemporarily_Future:      "invalid account status transition: scheduled_deletion_deactivated -> normal",
+				SetAccountValidPeriod_Inside:   "",
+				SetAccountValidPeriod_Outside:  "",
 				ScheduleDeletionByEndUser:      "invalid account status transition: scheduled_deletion_deactivated -> scheduled_deletion_deactivated",
 				ScheduleDeletionByAdmin:        "invalid account status transition: scheduled_deletion_deactivated -> scheduled_deletion_disabled",
 				UnscheduleDeletionByAdmin:      "",
@@ -351,6 +385,8 @@ func TestAccountStatus(t *testing.T) {
 				DisableIndefinitely:            "invalid account status transition: anonymized -> disabled",
 				DisableTemporarily_Now:         "invalid account status transition: anonymized -> disabled_temporarily",
 				DisableTemporarily_Future:      "invalid account status transition: anonymized -> normal",
+				SetAccountValidPeriod_Inside:   "invalid account status transition: anonymized -> anonymized",
+				SetAccountValidPeriod_Outside:  "invalid account status transition: anonymized -> anonymized",
 				ScheduleDeletionByEndUser:      "invalid account status transition: anonymized -> scheduled_deletion_deactivated",
 				ScheduleDeletionByAdmin:        "",
 				UnscheduleDeletionByAdmin:      "invalid account status transition: anonymized -> anonymized",
@@ -373,6 +409,8 @@ func TestAccountStatus(t *testing.T) {
 				DisableIndefinitely:            "invalid account status transition: scheduled_anonymization_disabled -> disabled",
 				DisableTemporarily_Now:         "invalid account status transition: scheduled_anonymization_disabled -> disabled_temporarily",
 				DisableTemporarily_Future:      "invalid account status transition: scheduled_anonymization_disabled -> normal",
+				SetAccountValidPeriod_Inside:   "",
+				SetAccountValidPeriod_Outside:  "",
 				ScheduleDeletionByEndUser:      "invalid account status transition: scheduled_anonymization_disabled -> scheduled_deletion_deactivated",
 				ScheduleDeletionByAdmin:        "",
 				UnscheduleDeletionByAdmin:      "invalid account status transition: scheduled_anonymization_disabled -> normal",
@@ -451,6 +489,48 @@ func TestAccountStatus(t *testing.T) {
 			So(accountStatus.accountStatus.isDisabled, ShouldEqual, true)
 			So(*accountStatus.accountStatus.isIndefinitelyDisabled, ShouldEqual, false)
 			So(*accountStatus.accountStatus.isDeactivated, ShouldEqual, false)
+		})
+
+		Convey("normal -> outside_valid_period -> normal", func() {
+			normal := AccountStatus{}.WithRefTime(now)
+
+			state1, err := normal.SetAccountValidPeriod(&accountValidFrom_outsideValidPeriod, &accountValidUntil_outsideValidPeriod)
+			So(err, ShouldBeNil)
+			So(state1.Check(), ShouldNotBeNil)
+			So(state1.IsDisabled(), ShouldEqual, true)
+			So(state1.accountStatus.isDisabled, ShouldEqual, true)
+
+			state2, err := state1.SetAccountValidPeriod(nil, nil)
+			So(err, ShouldBeNil)
+			So(state2.Check(), ShouldBeNil)
+			So(state2.IsDisabled(), ShouldEqual, false)
+			So(state2.accountStatus.isDisabled, ShouldEqual, false)
+		})
+
+		Convey("normal -> outside_valid_period -> scheduled_deletion_disabled -> outside_valid_period", func() {
+			normal := AccountStatus{}.WithRefTime(now)
+
+			state1, err := normal.SetAccountValidPeriod(&accountValidFrom_outsideValidPeriod, &accountValidUntil_outsideValidPeriod)
+			So(err, ShouldBeNil)
+			So(state1.Check(), ShouldNotBeNil)
+			So(state1.Check(), ShouldBeError, "user is outside valid period")
+			So(state1.IsDisabled(), ShouldEqual, true)
+			So(state1.accountStatus.isDisabled, ShouldEqual, true)
+
+			state2, err := state1.ScheduleDeletionByAdmin(deleteAt)
+			So(err, ShouldBeNil)
+			So(state2.Check(), ShouldNotBeNil)
+			So(state2.Check(), ShouldBeError, "user was scheduled for deletion by admin")
+			So(state2.IsDisabled(), ShouldEqual, true)
+			So(state2.accountStatus.isDisabled, ShouldEqual, true)
+			So(state2.variant().getAccountStatusType(), ShouldEqual, accountStatusTypeScheduledDeletionDisabled)
+
+			state3, err := state2.UnscheduleDeletionByAdmin()
+			So(err, ShouldBeNil)
+			So(state3.Check(), ShouldNotBeNil)
+			So(state3.Check(), ShouldBeError, "user is outside valid period")
+			So(state3.IsDisabled(), ShouldEqual, true)
+			So(state3.accountStatus.isDisabled, ShouldEqual, true)
 		})
 	})
 }
