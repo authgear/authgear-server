@@ -28,6 +28,12 @@ func TestAccountStatus(t *testing.T) {
 		temporarilyDisabledFrom := now
 		temporarilyDisabledUntil := now.Add(time.Hour * 24)
 
+		accountValidFrom_outsideValidPeriod := now.Add(time.Hour * 24)
+		accountValidUntil_outsideValidPeriod := now.Add(time.Hour * 24 * 2)
+
+		accountValidFrom_insideValidPeriod := now
+		accountValidUntil_insideValidPeriod := now.Add(time.Hour * 24)
+
 		temporarilyDisabledFromInFuture := now.Add(time.Hour * 24 * 1)
 		temporarilyDisabledUntilInFuture := now.Add(time.Hour * 24 * 2)
 
@@ -227,6 +233,52 @@ func TestAccountStatus(t *testing.T) {
 			}.WithRefTime(now)
 
 			testStateTransition(disabledTemporarily, accountStatusStateTransitionTest{
+				Reenable:                       "invalid account status transition: normal -> normal",
+				DisableIndefinitely:            "",
+				DisableTemporarily_Now:         "",
+				DisableTemporarily_Future:      "",
+				ScheduleDeletionByEndUser:      "",
+				ScheduleDeletionByAdmin:        "",
+				UnscheduleDeletionByAdmin:      "invalid account status transition: normal -> normal",
+				Anonymize:                      "",
+				ScheduleAnonymizationByAdmin:   "",
+				UnscheduleAnonymizationByAdmin: "invalid account status transition: normal -> normal",
+			})
+		})
+
+		Convey("state transition from outside_valid_period", func() {
+			false_ := false
+			outsideValidPeriod := AccountStatus{
+				isDisabled:             true,
+				isIndefinitelyDisabled: &false_,
+				accountValidFrom:       &accountValidFrom_outsideValidPeriod,
+				accountValidUntil:      &accountValidUntil_outsideValidPeriod,
+			}.WithRefTime(now)
+
+			testStateTransition(outsideValidPeriod, accountStatusStateTransitionTest{
+				Reenable:                       "invalid account status transition: outside_valid_period -> normal",
+				DisableIndefinitely:            "",
+				DisableTemporarily_Now:         "",
+				DisableTemporarily_Future:      "",
+				ScheduleDeletionByEndUser:      "",
+				ScheduleDeletionByAdmin:        "",
+				UnscheduleDeletionByAdmin:      "invalid account status transition: outside_valid_period -> normal",
+				Anonymize:                      "",
+				ScheduleAnonymizationByAdmin:   "",
+				UnscheduleAnonymizationByAdmin: "invalid account status transition: outside_valid_period -> normal",
+			})
+		})
+
+		Convey("state transition from outside_valid_period (within valid period)", func() {
+			false_ := false
+			outsideValidPeriod := AccountStatus{
+				isDisabled:             false,
+				isIndefinitelyDisabled: &false_,
+				accountValidFrom:       &accountValidFrom_insideValidPeriod,
+				accountValidUntil:      &accountValidUntil_insideValidPeriod,
+			}.WithRefTime(now)
+
+			testStateTransition(outsideValidPeriod, accountStatusStateTransitionTest{
 				Reenable:                       "invalid account status transition: normal -> normal",
 				DisableIndefinitely:            "",
 				DisableTemporarily_Now:         "",

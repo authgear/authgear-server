@@ -14,11 +14,14 @@ const (
 	accountStatusTypeNormal                         accountStatusType = "normal"
 	accountStatusTypeDisabled                       accountStatusType = "disabled"
 	accountStatusTypeDisabledTemporarily            accountStatusType = "disabled_temporarily"
-	accountStatusTypeOutsideValidPeriod             accountStatusType = "outside_valid_period"
 	accountStatusTypeDeactivated                    accountStatusType = "deactivated"
 	accountStatusTypeScheduledDeletionDisabled      accountStatusType = "scheduled_deletion_disabled"
 	accountStatusTypeScheduledDeletionDeactivated   accountStatusType = "scheduled_deletion_deactivated"
 	accountStatusTypeScheduledAnonymizationDisabled accountStatusType = "scheduled_anonymization_disabled"
+
+	// These 2 are special types because they may "overlap" with any other types.
+	accountStatusTypeAnonymized         accountStatusType = "anonymized"
+	accountStatusTypeOutsideValidPeriod accountStatusType = "outside_valid_period"
 )
 
 type accountStatusVariant interface {
@@ -65,19 +68,6 @@ func (_ AccountStatusVariantDisabledTemporarily) getAccountStatusType() accountS
 func (a AccountStatusVariantDisabledTemporarily) check() error {
 	return NewErrDisabledUser(a.disableReason)
 }
-
-type AccountStatusVariantOutsideValidPeriod struct {
-	accountValidFrom  *time.Time
-	accountValidUntil *time.Time
-}
-
-var _ accountStatusVariant = AccountStatusVariantOutsideValidPeriod{}
-
-func (_ AccountStatusVariantOutsideValidPeriod) getAccountStatusType() accountStatusType {
-	return accountStatusTypeOutsideValidPeriod
-}
-
-func (_ AccountStatusVariantOutsideValidPeriod) check() error { return ErrUserOutsideValidPeriod }
 
 type AccountStatusVariantDeactivated struct{}
 
@@ -232,13 +222,57 @@ func (s AccountStatusWithRefTime) IsAnonymized() bool {
 	return *s.accountStatus.isAnonymized
 }
 
+func (s AccountStatusWithRefTime) isOutsideValidPeriod() bool {
+	if s.accountStatus.accountValidFrom != nil {
+		lessThanFrom := s.refTime.Before(*s.accountStatus.accountValidFrom)
+		if lessThanFrom {
+			return true
+		}
+	}
+
+	if s.accountStatus.accountValidUntil != nil {
+		equalOrGreaterThanUntil := s.refTime.Equal(*s.accountStatus.accountValidUntil) || s.refTime.After(*s.accountStatus.accountValidUntil)
+		if equalOrGreaterThanUntil {
+			return true
+		}
+	}
+
+	return false
+}
+
 func (s AccountStatusWithRefTime) Check() error {
 	if s.IsAnonymized() {
 		return ErrAnonymizedUser
 	}
 
 	variant := s.variant()
-	return variant.check()
+	err := variant.check()
+	if err != nil {
+		return err
+	}
+
+	if s.isOutsideValidPeriod() {
+		return ErrUserOutsideValidPeriod
+	}
+
+	return nil
+}
+
+func (s AccountStatusWithRefTime) getMostAppropriateType() accountStatusType {
+	if s.IsAnonymized() {
+		return accountStatusTypeAnonymized
+	}
+	variant := s.variant()
+	type_ := variant.getAccountStatusType()
+	if type_ != accountStatusTypeNormal {
+		return type_
+	}
+
+	if s.isOutsideValidPeriod() {
+		return accountStatusTypeOutsideValidPeriod
+	}
+
+	return accountStatusTypeNormal
 }
 
 func (s AccountStatusWithRefTime) variant() accountStatusVariant {
@@ -255,26 +289,6 @@ func (s AccountStatusWithRefTime) variant() accountStatusVariant {
 					disableReason:            s.accountStatus.disableReason,
 					temporarilyDisabledFrom:  *s.accountStatus.temporarilyDisabledFrom,
 					temporarilyDisabledUntil: *s.accountStatus.temporarilyDisabledUntil,
-				}
-			}
-		}
-
-		if s.accountStatus.accountValidFrom != nil {
-			lessThanFrom := s.refTime.Before(*s.accountStatus.accountValidFrom)
-			if lessThanFrom {
-				return AccountStatusVariantOutsideValidPeriod{
-					accountValidFrom:  s.accountStatus.accountValidFrom,
-					accountValidUntil: s.accountStatus.accountValidUntil,
-				}
-			}
-		}
-
-		if s.accountStatus.accountValidUntil != nil {
-			equalOrGreaterThanUntil := s.refTime.Equal(*s.accountStatus.accountValidUntil) || s.refTime.After(*s.accountStatus.accountValidUntil)
-			if equalOrGreaterThanUntil {
-				return AccountStatusVariantOutsideValidPeriod{
-					accountValidFrom:  s.accountStatus.accountValidFrom,
-					accountValidUntil: s.accountStatus.accountValidUntil,
 				}
 			}
 		}
@@ -321,8 +335,10 @@ func (s AccountStatusWithRefTime) Reenable() (*AccountStatusWithRefTime, error) 
 	target.accountStatus.accountStatusStaleFrom = target.deriveAccountStatusStaleFrom()
 
 	if s.IsAnonymized() {
-		return nil, makeTransitionErrorFromAnonymized(target.variant())
+		return nil, makeTransitionError(accountStatusTypeAnonymized, target.variant().getAccountStatusType())
 	}
+
+	// Account valid period is irrelevant here.
 
 	originalType := s.variant()
 	switch originalType.getAccountStatusType() {
@@ -333,7 +349,7 @@ func (s AccountStatusWithRefTime) Reenable() (*AccountStatusWithRefTime, error) 
 	case AccountStatusVariantDeactivated{}.getAccountStatusType():
 		return &target, nil
 	default:
-		return nil, makeTransitionError(originalType, target.variant())
+		return nil, makeTransitionError(s.getMostAppropriateType(), target.variant().getAccountStatusType())
 	}
 }
 
@@ -353,8 +369,10 @@ func (s AccountStatusWithRefTime) DisableIndefinitely(reason *string) (*AccountS
 	target.accountStatus.accountStatusStaleFrom = target.deriveAccountStatusStaleFrom()
 
 	if s.IsAnonymized() {
-		return nil, makeTransitionErrorFromAnonymized(target.variant())
+		return nil, makeTransitionError(accountStatusTypeAnonymized, target.variant().getAccountStatusType())
 	}
+
+	// Account valid period is irrelevant here.
 
 	originalType := s.variant()
 	switch originalType.getAccountStatusType() {
@@ -363,7 +381,7 @@ func (s AccountStatusWithRefTime) DisableIndefinitely(reason *string) (*AccountS
 	case AccountStatusVariantDisabledTemporarily{}.getAccountStatusType():
 		return &target, nil
 	default:
-		return nil, makeTransitionError(originalType, target.variant())
+		return nil, makeTransitionError(s.getMostAppropriateType(), target.variant().getAccountStatusType())
 	}
 }
 
@@ -386,8 +404,10 @@ func (s AccountStatusWithRefTime) DisableTemporarily(from time.Time, until time.
 	target.accountStatus.accountStatusStaleFrom = target.deriveAccountStatusStaleFrom()
 
 	if s.IsAnonymized() {
-		return nil, makeTransitionErrorFromAnonymized(target.variant())
+		return nil, makeTransitionError(accountStatusTypeAnonymized, target.variant().getAccountStatusType())
 	}
+
+	// Account valid period is irrelevant here.
 
 	originalType := s.variant()
 	switch originalType.getAccountStatusType() {
@@ -396,7 +416,7 @@ func (s AccountStatusWithRefTime) DisableTemporarily(from time.Time, until time.
 	case AccountStatusVariantDisabledIndefinitely{}.getAccountStatusType():
 		return &target, nil
 	default:
-		return nil, makeTransitionError(originalType, target.variant())
+		return nil, makeTransitionError(s.getMostAppropriateType(), target.variant().getAccountStatusType())
 	}
 }
 
@@ -415,15 +435,17 @@ func (s AccountStatusWithRefTime) ScheduleDeletionByEndUser(deleteAt time.Time) 
 	target.accountStatus.accountStatusStaleFrom = target.deriveAccountStatusStaleFrom()
 
 	if s.IsAnonymized() {
-		return nil, makeTransitionErrorFromAnonymized(target.variant())
+		return nil, makeTransitionError(accountStatusTypeAnonymized, target.variant().getAccountStatusType())
 	}
+
+	// Account valid period is irrelevant here.
 
 	originalType := s.variant()
 	switch originalType.getAccountStatusType() {
 	case AccountStatusVariantNormal{}.getAccountStatusType():
 		return &target, nil
 	default:
-		return nil, makeTransitionError(originalType, target.variant())
+		return nil, makeTransitionError(s.getMostAppropriateType(), target.variant().getAccountStatusType())
 	}
 }
 
@@ -444,12 +466,14 @@ func (s AccountStatusWithRefTime) ScheduleDeletionByAdmin(deleteAt time.Time) (*
 
 	// It is allowed to schedule deletion of an anonymized user.
 
+	// Account valid period is irrelevant here.
+
 	originalType := s.variant()
 	switch originalType.getAccountStatusType() {
 	case AccountStatusVariantScheduledDeletionByAdmin{}.getAccountStatusType():
-		return nil, makeTransitionError(originalType, target.variant())
+		return nil, makeTransitionError(s.getMostAppropriateType(), target.variant().getAccountStatusType())
 	case AccountStatusVariantScheduledDeletionByEndUser{}.getAccountStatusType():
-		return nil, makeTransitionError(originalType, target.variant())
+		return nil, makeTransitionError(s.getMostAppropriateType(), target.variant().getAccountStatusType())
 	default:
 		return &target, nil
 	}
@@ -472,8 +496,10 @@ func (s AccountStatusWithRefTime) UnscheduleDeletionByAdmin() (*AccountStatusWit
 
 	// It is allowed to unschedule deletion of an anonymized user.
 	if s.IsAnonymized() && s.accountStatus.deleteAt == nil {
-		return nil, makeTransitionErrorFromAnonymizedToAnonymized()
+		return nil, makeTransitionError(accountStatusTypeAnonymized, accountStatusTypeAnonymized)
 	}
+
+	// Account valid period is irrelevant here.
 
 	originalType := s.variant()
 	switch originalType.getAccountStatusType() {
@@ -482,7 +508,7 @@ func (s AccountStatusWithRefTime) UnscheduleDeletionByAdmin() (*AccountStatusWit
 	case AccountStatusVariantScheduledDeletionByEndUser{}.getAccountStatusType():
 		return &target, nil
 	default:
-		return nil, makeTransitionError(originalType, target.variant())
+		return nil, makeTransitionError(s.getMostAppropriateType(), target.variant().getAccountStatusType())
 	}
 }
 
@@ -505,10 +531,12 @@ func (s AccountStatusWithRefTime) Anonymize() (*AccountStatusWithRefTime, error)
 
 	if s.IsAnonymized() {
 		if target.IsAnonymized() {
-			return nil, makeTransitionErrorFromAnonymizedToAnonymized()
+			return nil, makeTransitionError(accountStatusTypeAnonymized, accountStatusTypeAnonymized)
 		}
-		return nil, makeTransitionErrorFromAnonymized(target.variant())
+		return nil, makeTransitionError(accountStatusTypeAnonymized, target.variant().getAccountStatusType())
 	}
+
+	// Account valid period is irrelevant here.
 
 	originalType := s.variant()
 	switch originalType.getAccountStatusType() {
@@ -517,8 +545,6 @@ func (s AccountStatusWithRefTime) Anonymize() (*AccountStatusWithRefTime, error)
 	case AccountStatusVariantDisabledIndefinitely{}.getAccountStatusType():
 		return &target, nil
 	case AccountStatusVariantDisabledTemporarily{}.getAccountStatusType():
-		return &target, nil
-	case AccountStatusVariantOutsideValidPeriod{}.getAccountStatusType():
 		return &target, nil
 	case AccountStatusVariantDeactivated{}.getAccountStatusType():
 		return &target, nil
@@ -529,7 +555,7 @@ func (s AccountStatusWithRefTime) Anonymize() (*AccountStatusWithRefTime, error)
 	case AccountStatusVariantScheduledAnonymizationByAdmin{}.getAccountStatusType():
 		return &target, nil
 	default:
-		return nil, makeTransitionError(originalType, target.variant())
+		return nil, makeTransitionError(s.getMostAppropriateType(), target.variant().getAccountStatusType())
 	}
 }
 
@@ -549,8 +575,10 @@ func (s AccountStatusWithRefTime) ScheduleAnonymizationByAdmin(anonymizeAt time.
 	target.accountStatus.accountStatusStaleFrom = target.deriveAccountStatusStaleFrom()
 
 	if s.IsAnonymized() {
-		return nil, makeTransitionErrorFromAnonymized(target.variant())
+		return nil, makeTransitionError(accountStatusTypeAnonymized, target.variant().getAccountStatusType())
 	}
+
+	// Account valid period is irrelevant here.
 
 	originalType := s.variant()
 	switch originalType.getAccountStatusType() {
@@ -560,8 +588,6 @@ func (s AccountStatusWithRefTime) ScheduleAnonymizationByAdmin(anonymizeAt time.
 		return &target, nil
 	case AccountStatusVariantDisabledTemporarily{}.getAccountStatusType():
 		return &target, nil
-	case AccountStatusVariantOutsideValidPeriod{}.getAccountStatusType():
-		return &target, nil
 	case AccountStatusVariantDeactivated{}.getAccountStatusType():
 		return &target, nil
 	case AccountStatusVariantScheduledDeletionByAdmin{}.getAccountStatusType():
@@ -569,7 +595,7 @@ func (s AccountStatusWithRefTime) ScheduleAnonymizationByAdmin(anonymizeAt time.
 	case AccountStatusVariantScheduledDeletionByEndUser{}.getAccountStatusType():
 		return &target, nil
 	default:
-		return nil, makeTransitionError(originalType, target.variant())
+		return nil, makeTransitionError(s.getMostAppropriateType(), target.variant().getAccountStatusType())
 	}
 }
 
@@ -588,46 +614,26 @@ func (s AccountStatusWithRefTime) UnscheduleAnonymizationByAdmin() (*AccountStat
 	target.accountStatus.accountStatusStaleFrom = target.deriveAccountStatusStaleFrom()
 
 	if s.IsAnonymized() {
-		return nil, makeTransitionErrorFromAnonymized(target.variant())
+		return nil, makeTransitionError(accountStatusTypeAnonymized, target.variant().getAccountStatusType())
 	}
+
+	// Account valid period is irrelevant here.
 
 	originalType := s.variant()
 	switch originalType.getAccountStatusType() {
 	case AccountStatusVariantScheduledAnonymizationByAdmin{}.getAccountStatusType():
 		return &target, nil
 	default:
-		return nil, makeTransitionError(originalType, target.variant())
+		return nil, makeTransitionError(s.getMostAppropriateType(), target.variant().getAccountStatusType())
 	}
 }
 
-func makeTransitionError(fromType accountStatusVariant, targetType accountStatusVariant) error {
+func makeTransitionError(fromType accountStatusType, targetType accountStatusType) error {
 	return InvalidAccountStatusTransition.NewWithInfo(
-		fmt.Sprintf("invalid account status transition: %v -> %v", fromType.getAccountStatusType(), targetType.getAccountStatusType()),
+		fmt.Sprintf("invalid account status transition: %v -> %v", fromType, targetType),
 		map[string]interface{}{
-			"from": fromType.getAccountStatusType(),
-			"to":   targetType.getAccountStatusType(),
-		},
-	)
-}
-
-func makeTransitionErrorFromAnonymized(targetType accountStatusVariant) error {
-	label := "anonymized"
-	return InvalidAccountStatusTransition.NewWithInfo(
-		fmt.Sprintf("invalid account status transition: %v -> %v", label, targetType.getAccountStatusType()),
-		map[string]interface{}{
-			"from": label,
-			"to":   targetType.getAccountStatusType(),
-		},
-	)
-}
-
-func makeTransitionErrorFromAnonymizedToAnonymized() error {
-	label := "anonymized"
-	return InvalidAccountStatusTransition.NewWithInfo(
-		fmt.Sprintf("invalid account status transition: %v -> %v", label, label),
-		map[string]interface{}{
-			"from": label,
-			"to":   label,
+			"from": fromType,
+			"to":   targetType,
 		},
 	)
 }
