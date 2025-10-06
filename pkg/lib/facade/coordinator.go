@@ -1080,7 +1080,7 @@ func (c *Coordinator) UserDisable(ctx context.Context, userID string, reason *st
 	}
 
 	now := c.Clock.NowUTC()
-	accountStatus, err := u.AccountStatus(now).Disable(reason)
+	accountStatus, err := u.AccountStatus(now).DisableIndefinitely(reason)
 	if err != nil {
 		return err
 	}

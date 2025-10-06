@@ -337,7 +337,7 @@ func (s AccountStatusWithRefTime) Reenable() (*AccountStatusWithRefTime, error) 
 	}
 }
 
-func (s AccountStatusWithRefTime) Disable(reason *string) (*AccountStatusWithRefTime, error) {
+func (s AccountStatusWithRefTime) DisableIndefinitely(reason *string) (*AccountStatusWithRefTime, error) {
 	true_ := true
 	false_ := false
 

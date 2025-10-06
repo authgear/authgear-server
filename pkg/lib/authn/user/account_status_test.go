@@ -60,7 +60,7 @@ func TestAccountStatus(t *testing.T) {
 				So(err, ShouldBeError, testCase.Reenable)
 			}
 
-			_, err = status.Disable(nil)
+			_, err = status.DisableIndefinitely(nil)
 			if testCase.Disable == "" {
 				So(err, ShouldBeNil)
 			} else {
