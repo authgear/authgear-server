@@ -315,7 +315,6 @@ func (s AccountStatusWithRefTime) Reenable() (*AccountStatusWithRefTime, error) 
 	target.accountStatus.temporarilyDisabledUntil = nil
 	target.accountStatus.deleteAt = nil
 	target.accountStatus.anonymizeAt = nil
-	target.accountStatus.isAnonymized = &false_
 	target.accountStatus.accountStatusStaleFrom = target.deriveAccountStatusStaleFrom()
 
 	originalType := s.Variant()
@@ -344,7 +343,6 @@ func (s AccountStatusWithRefTime) Disable(reason *string) (*AccountStatusWithRef
 	target.accountStatus.temporarilyDisabledUntil = nil
 	target.accountStatus.deleteAt = nil
 	target.accountStatus.anonymizeAt = nil
-	target.accountStatus.isAnonymized = &false_
 	target.accountStatus.accountStatusStaleFrom = target.deriveAccountStatusStaleFrom()
 
 	originalType := s.Variant()
@@ -360,7 +358,6 @@ func (s AccountStatusWithRefTime) Disable(reason *string) (*AccountStatusWithRef
 
 func (s AccountStatusWithRefTime) ScheduleDeletionByEndUser(deleteAt time.Time) (*AccountStatusWithRefTime, error) {
 	true_ := true
-	false_ := false
 
 	target := s
 	target.accountStatus.isDisabled = true
@@ -371,7 +368,6 @@ func (s AccountStatusWithRefTime) ScheduleDeletionByEndUser(deleteAt time.Time) 
 	target.accountStatus.temporarilyDisabledUntil = nil
 	target.accountStatus.deleteAt = &deleteAt
 	target.accountStatus.anonymizeAt = nil
-	target.accountStatus.isAnonymized = &false_
 	target.accountStatus.accountStatusStaleFrom = target.deriveAccountStatusStaleFrom()
 
 	originalType := s.Variant()
@@ -396,7 +392,6 @@ func (s AccountStatusWithRefTime) ScheduleDeletionByAdmin(deleteAt time.Time) (*
 	target.accountStatus.temporarilyDisabledUntil = nil
 	target.accountStatus.deleteAt = &deleteAt
 	target.accountStatus.anonymizeAt = nil
-	// Keep IsAnonymized unchanged.
 	target.accountStatus.accountStatusStaleFrom = target.deriveAccountStatusStaleFrom()
 
 	originalType := s.Variant()
@@ -423,7 +418,6 @@ func (s AccountStatusWithRefTime) UnscheduleDeletionByAdmin() (*AccountStatusWit
 	target.accountStatus.temporarilyDisabledUntil = nil
 	target.accountStatus.deleteAt = nil
 	target.accountStatus.anonymizeAt = nil
-	// Keep IsAnonymized unchanged.
 	target.accountStatus.accountStatusStaleFrom = target.deriveAccountStatusStaleFrom()
 
 	originalType := s.Variant()
@@ -490,7 +484,6 @@ func (s AccountStatusWithRefTime) ScheduleAnonymizationByAdmin(anonymizeAt time.
 	target.accountStatus.temporarilyDisabledUntil = nil
 	target.accountStatus.deleteAt = nil
 	target.accountStatus.anonymizeAt = &anonymizeAt
-	// Keep IsAnonymized unchanged.
 	target.accountStatus.accountStatusStaleFrom = target.deriveAccountStatusStaleFrom()
 
 	originalType := s.Variant()
@@ -526,7 +519,6 @@ func (s AccountStatusWithRefTime) UnscheduleAnonymizationByAdmin() (*AccountStat
 	target.accountStatus.temporarilyDisabledUntil = nil
 	target.accountStatus.deleteAt = nil
 	target.accountStatus.anonymizeAt = nil
-	// Keep IsAnonymized unchanged.
 	target.accountStatus.accountStatusStaleFrom = target.deriveAccountStatusStaleFrom()
 
 	originalType := s.Variant()
