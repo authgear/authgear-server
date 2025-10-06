@@ -80,7 +80,7 @@ func (m *Middleware) resolve(ctx context.Context, rw http.ResponseWriter, r *htt
 			return
 		}
 		now := m.Clock.NowUTC()
-		if err = u.AccountStatus(now).Variant().Check(); err != nil {
+		if err = u.AccountStatus(now).Check(); err != nil {
 			err = ErrInvalidSession
 			return
 		}
