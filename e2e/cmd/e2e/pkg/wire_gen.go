@@ -890,6 +890,7 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		CustomAttributes:     customattrsServiceNoEvent,
 		RolesGroupsCommands:  commands,
 		SearchReindexService: reindexer,
+		Clock:                clockClock,
 	}
 	return userImportService
 }

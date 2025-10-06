@@ -952,6 +952,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Users:                      userQueries,
 		Database:                   appdbHandle,
 		MeterService:               meterService,
+		Clock:                      clock,
 	}
 	return sessionMiddleware
 }

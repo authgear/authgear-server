@@ -310,9 +310,9 @@
 /pkg/lib/otelauthgear/nethttp.go:30:10: requestcontext
 /pkg/lib/saml/samlbinding/http_post.go:176:35: requestcontext
 /pkg/lib/saml/samlbinding/http_post.go:207:35: requestcontext
-/pkg/lib/session/middleware.go:40:23: requestcontext
-/pkg/lib/session/middleware.go:49:41: requestcontext
-/pkg/lib/session/middleware.go:53:34: requestcontext
+/pkg/lib/session/middleware.go:42:23: requestcontext
+/pkg/lib/session/middleware.go:51:41: requestcontext
+/pkg/lib/session/middleware.go:55:34: requestcontext
 /pkg/lib/session/test/context.go:85:35: requestcontext
 /pkg/lib/workflow/intl_middleware.go:16:41: requestcontext
 /pkg/portal/csp_middleware.go:16:39: requestcontext

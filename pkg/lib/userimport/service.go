@@ -19,6 +19,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
+	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/slogutil"
 	"github.com/authgear/authgear-server/pkg/util/stringutil"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
@@ -40,7 +41,7 @@ type UserQueries interface {
 
 type UserCommands interface {
 	Create(ctx context.Context, userID string) (*user.User, error)
-	UpdateAccountStatus(ctx context.Context, userID string, accountStatus user.AccountStatus) error
+	UpdateAccountStatus(ctx context.Context, userID string, accountStatus user.AccountStatusWithRefTime) error
 }
 
 type IdentityService interface {
@@ -100,6 +101,7 @@ type UserImportService struct {
 	CustomAttributes     CustomAttributesService
 	RolesGroupsCommands  RolesGroupsCommands
 	SearchReindexService SearchReindexService
+	Clock                clock.Clock
 }
 
 var UserImportLogger = slogutil.NewLogger("user-import")
@@ -551,7 +553,8 @@ func (s *UserImportService) insertDisabledInTxn(ctx context.Context, detail *Det
 		return
 	}
 
-	accountStatus, err := u.AccountStatus().Disable(nil)
+	now := s.Clock.NowUTC()
+	accountStatus, err := u.AccountStatus(now).Disable(nil)
 	if err != nil {
 		return
 	}
@@ -1163,10 +1166,11 @@ func (s *UserImportService) upsertDisabledInTxn(ctx context.Context, detail *Det
 		return
 	}
 
+	now := s.Clock.NowUTC()
 	if disabled {
-		var accountStatus *user.AccountStatus
+		var accountStatus *user.AccountStatusWithRefTime
 		// Treat invalid account status transition as warning.
-		accountStatus, accountStatusErr := u.AccountStatus().Disable(nil)
+		accountStatus, accountStatusErr := u.AccountStatus(now).Disable(nil)
 		if accountStatusErr != nil {
 			detail.Warnings = append(detail.Warnings, Warning{
 				Message: accountStatusErr.Error(),
@@ -1178,9 +1182,9 @@ func (s *UserImportService) upsertDisabledInTxn(ctx context.Context, detail *Det
 			}
 		}
 	} else {
-		var accountStatus *user.AccountStatus
+		var accountStatus *user.AccountStatusWithRefTime
 		// Treat invalid account status transition as warning.
-		accountStatus, accountStatusErr := u.AccountStatus().Reenable()
+		accountStatus, accountStatusErr := u.AccountStatus(now).Reenable()
 		if accountStatusErr != nil {
 			detail.Warnings = append(detail.Warnings, Warning{
 				Message: accountStatusErr.Error(),
