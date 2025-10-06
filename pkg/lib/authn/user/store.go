@@ -27,7 +27,7 @@ type store interface {
 	QueryForExport(ctx context.Context, offset uint64, limit uint64) ([]*User, error)
 	UpdateLoginTime(ctx context.Context, userID string, loginAt time.Time) error
 	UpdateMFAEnrollment(ctx context.Context, userID string, endAt *time.Time) error
-	UpdateAccountStatus(ctx context.Context, userID string, status AccountStatus) error
+	UpdateAccountStatus(ctx context.Context, userID string, status AccountStatusWithRefTime) error
 	UpdateStandardAttributes(ctx context.Context, userID string, stdAttrs map[string]interface{}) error
 	UpdateCustomAttributes(ctx context.Context, userID string, customAttrs map[string]interface{}) error
 	UpdateOptOutPasskeyUpselling(ctx context.Context, userID string, optout bool) error
@@ -405,24 +405,24 @@ func (s *Store) UpdateMFAEnrollment(ctx context.Context, userID string, endAt *t
 	return nil
 }
 
-func (s *Store) UpdateAccountStatus(ctx context.Context, userID string, accountStatus AccountStatus) error {
+func (s *Store) UpdateAccountStatus(ctx context.Context, userID string, accountStatus AccountStatusWithRefTime) error {
 	now := s.Clock.NowUTC()
 
 	builder := s.SQLBuilder.
 		Update(s.SQLBuilder.TableName("_auth_user")).
-		Set("is_disabled", accountStatus.isDisabled).
-		Set("account_status_stale_from", accountStatus.accountStatusStaleFrom).
-		Set("is_indefinitely_disabled", accountStatus.isIndefinitelyDisabled).
-		Set("is_deactivated", accountStatus.isDeactivated).
-		Set("disable_reason", accountStatus.disableReason).
-		Set("temporarily_disabled_from", accountStatus.temporarilyDisabledFrom).
-		Set("temporarily_disabled_until", accountStatus.temporarilyDisabledUntil).
-		Set("account_valid_from", accountStatus.accountValidFrom).
-		Set("account_valid_until", accountStatus.accountValidUntil).
-		Set("delete_at", accountStatus.deleteAt).
-		Set("anonymize_at", accountStatus.anonymizeAt).
-		Set("anonymized_at", accountStatus.anonymizedAt).
-		Set("is_anonymized", accountStatus.isAnonymized).
+		Set("is_disabled", accountStatus.accountStatus.isDisabled).
+		Set("account_status_stale_from", accountStatus.accountStatus.accountStatusStaleFrom).
+		Set("is_indefinitely_disabled", accountStatus.accountStatus.isIndefinitelyDisabled).
+		Set("is_deactivated", accountStatus.accountStatus.isDeactivated).
+		Set("disable_reason", accountStatus.accountStatus.disableReason).
+		Set("temporarily_disabled_from", accountStatus.accountStatus.temporarilyDisabledFrom).
+		Set("temporarily_disabled_until", accountStatus.accountStatus.temporarilyDisabledUntil).
+		Set("account_valid_from", accountStatus.accountStatus.accountValidFrom).
+		Set("account_valid_until", accountStatus.accountStatus.accountValidUntil).
+		Set("delete_at", accountStatus.accountStatus.deleteAt).
+		Set("anonymize_at", accountStatus.accountStatus.anonymizeAt).
+		Set("anonymized_at", accountStatus.accountStatus.anonymizedAt).
+		Set("is_anonymized", accountStatus.accountStatus.isAnonymized).
 		Set("updated_at", now).
 		Where("id = ?", userID)
 

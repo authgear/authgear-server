@@ -136,7 +136,7 @@ func (u *User) ToRef() *model.UserRef {
 	}
 }
 
-func (u *User) AccountStatus() AccountStatus {
+func (u *User) AccountStatus(refTime time.Time) AccountStatusWithRefTime {
 	return AccountStatus{
 		isDisabled:               u.isDisabled,
 		accountStatusStaleFrom:   u.accountStatusStaleFrom,
@@ -151,7 +151,7 @@ func (u *User) AccountStatus() AccountStatus {
 		anonymizeAt:              u.anonymizeAt,
 		anonymizedAt:             u.anonymizedAt,
 		isAnonymized:             u.isAnonymized,
-	}
+	}.WithRefTime(refTime)
 }
 
 func newUserModel(

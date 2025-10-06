@@ -8,6 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
+	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
@@ -33,6 +34,7 @@ type Middleware struct {
 	Users                      UserQuery
 	Database                   *appdb.Handle
 	MeterService               MeterService
+	Clock                      clock.Clock
 }
 
 func (m *Middleware) Handle(next http.Handler) http.Handler {
@@ -77,7 +79,8 @@ func (m *Middleware) resolve(ctx context.Context, rw http.ResponseWriter, r *htt
 			}
 			return
 		}
-		if err = u.AccountStatus().Check(); err != nil {
+		now := m.Clock.NowUTC()
+		if err = u.AccountStatus(now).Variant().Check(); err != nil {
 			err = ErrInvalidSession
 			return
 		}

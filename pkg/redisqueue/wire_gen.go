@@ -852,6 +852,7 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		CustomAttributes:     customattrsServiceNoEvent,
 		RolesGroupsCommands:  commands,
 		SearchReindexService: reindexer,
+		Clock:                clock,
 	}
 	return userImportService
 }
