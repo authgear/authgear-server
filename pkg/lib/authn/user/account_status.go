@@ -226,6 +226,46 @@ func (s AccountStatusWithRefTime) deriveAccountStatusStaleFrom() *time.Time {
 	return nil
 }
 
+func (s AccountStatusWithRefTime) checkAllTimestampsAreValid() error {
+	if s.accountStatus.accountValidFrom != nil && s.accountStatus.accountValidUntil != nil {
+		if !s.accountStatus.accountValidFrom.Before(*s.accountStatus.accountValidUntil) {
+			return InvalidAccountStatusTransition.New("the start timestamp of account valid period must be less than the end timestamp of the account valid period")
+		}
+	}
+
+	if s.accountStatus.temporarilyDisabledFrom != nil {
+		if s.accountStatus.temporarilyDisabledUntil == nil {
+			return InvalidAccountStatusTransition.New("temporarily disabled period is missing the end timestamp")
+		}
+	}
+
+	if s.accountStatus.temporarilyDisabledUntil != nil {
+		if s.accountStatus.temporarilyDisabledFrom == nil {
+			return InvalidAccountStatusTransition.New("temporarily disabled period is missing the start timestamp")
+		}
+	}
+
+	if s.accountStatus.temporarilyDisabledFrom != nil && s.accountStatus.temporarilyDisabledUntil != nil {
+		if !s.accountStatus.temporarilyDisabledFrom.Before(*s.accountStatus.temporarilyDisabledUntil) {
+			return InvalidAccountStatusTransition.New("the start timestamp of temporarily disabled period must be less than the end timestamp of temporarily disabled period")
+		}
+
+		if s.accountStatus.accountValidFrom != nil {
+			if !s.accountStatus.accountValidFrom.Before(*s.accountStatus.temporarilyDisabledFrom) {
+				return InvalidAccountStatusTransition.New("the start timestamp of account valid period must be less than the start timestamp of temporarily disabled period")
+			}
+		}
+
+		if s.accountStatus.accountValidUntil != nil {
+			if !s.accountStatus.temporarilyDisabledUntil.Before(*s.accountStatus.accountValidUntil) {
+				return InvalidAccountStatusTransition.New("the end timestamp of temporarily disabled period must be less than the end timestamp of account valid period")
+			}
+		}
+	}
+
+	return nil
+}
+
 func (s AccountStatusWithRefTime) IsAnonymized() bool {
 	return *s.accountStatus.isAnonymized
 }
@@ -366,6 +406,11 @@ func (s AccountStatusWithRefTime) Reenable() (*AccountStatusWithRefTime, error) 
 	target.accountStatus.accountStatusStaleFrom = target.deriveAccountStatusStaleFrom()
 	target.accountStatus.isDisabled = target.IsDisabled()
 
+	err := target.checkAllTimestampsAreValid()
+	if err != nil {
+		return nil, err
+	}
+
 	if s.IsAnonymized() {
 		return nil, makeTransitionError(accountStatusTypeAnonymized, target.variant().getAccountStatusType())
 	}
@@ -400,6 +445,11 @@ func (s AccountStatusWithRefTime) DisableIndefinitely(reason *string) (*AccountS
 	target.accountStatus.accountStatusStaleFrom = target.deriveAccountStatusStaleFrom()
 	target.accountStatus.isDisabled = target.IsDisabled()
 
+	err := target.checkAllTimestampsAreValid()
+	if err != nil {
+		return nil, err
+	}
+
 	if s.IsAnonymized() {
 		return nil, makeTransitionError(accountStatusTypeAnonymized, target.variant().getAccountStatusType())
 	}
@@ -417,19 +467,24 @@ func (s AccountStatusWithRefTime) DisableIndefinitely(reason *string) (*AccountS
 	}
 }
 
-func (s AccountStatusWithRefTime) DisableTemporarily(from time.Time, until time.Time, reason *string) (*AccountStatusWithRefTime, error) {
+func (s AccountStatusWithRefTime) DisableTemporarily(from *time.Time, until *time.Time, reason *string) (*AccountStatusWithRefTime, error) {
 	false_ := false
 	target := s
 
 	target.accountStatus.isIndefinitelyDisabled = &false_
 	target.accountStatus.isDeactivated = &false_
 	target.accountStatus.disableReason = reason
-	target.accountStatus.temporarilyDisabledFrom = &from
-	target.accountStatus.temporarilyDisabledUntil = &until
+	target.accountStatus.temporarilyDisabledFrom = from
+	target.accountStatus.temporarilyDisabledUntil = until
 	target.accountStatus.deleteAt = nil
 	target.accountStatus.anonymizeAt = nil
 	target.accountStatus.accountStatusStaleFrom = target.deriveAccountStatusStaleFrom()
 	target.accountStatus.isDisabled = target.IsDisabled()
+
+	err := target.checkAllTimestampsAreValid()
+	if err != nil {
+		return nil, err
+	}
 
 	if s.IsAnonymized() {
 		return nil, makeTransitionError(accountStatusTypeAnonymized, target.variant().getAccountStatusType())
@@ -455,6 +510,11 @@ func (s AccountStatusWithRefTime) SetAccountValidFrom(t *time.Time) (*AccountSta
 	target.accountStatus.accountStatusStaleFrom = target.deriveAccountStatusStaleFrom()
 	target.accountStatus.isDisabled = target.IsDisabled()
 
+	err := target.checkAllTimestampsAreValid()
+	if err != nil {
+		return nil, err
+	}
+
 	if s.IsAnonymized() {
 		return nil, makeTransitionError(accountStatusTypeAnonymized, target.getMostAppropriateType())
 	}
@@ -468,6 +528,11 @@ func (s AccountStatusWithRefTime) SetAccountValidUntil(t *time.Time) (*AccountSt
 	target.accountStatus.accountValidUntil = t
 	target.accountStatus.accountStatusStaleFrom = target.deriveAccountStatusStaleFrom()
 	target.accountStatus.isDisabled = target.IsDisabled()
+
+	err := target.checkAllTimestampsAreValid()
+	if err != nil {
+		return nil, err
+	}
 
 	if s.IsAnonymized() {
 		return nil, makeTransitionError(accountStatusTypeAnonymized, target.getMostAppropriateType())
@@ -483,6 +548,11 @@ func (s AccountStatusWithRefTime) SetAccountValidPeriod(from *time.Time, until *
 	target.accountStatus.accountValidUntil = until
 	target.accountStatus.accountStatusStaleFrom = target.deriveAccountStatusStaleFrom()
 	target.accountStatus.isDisabled = target.IsDisabled()
+
+	err := target.checkAllTimestampsAreValid()
+	if err != nil {
+		return nil, err
+	}
 
 	if s.IsAnonymized() {
 		return nil, makeTransitionError(accountStatusTypeAnonymized, target.getMostAppropriateType())
@@ -505,6 +575,11 @@ func (s AccountStatusWithRefTime) ScheduleDeletionByEndUser(deleteAt time.Time) 
 	target.accountStatus.anonymizeAt = nil
 	target.accountStatus.accountStatusStaleFrom = target.deriveAccountStatusStaleFrom()
 	target.accountStatus.isDisabled = target.IsDisabled()
+
+	err := target.checkAllTimestampsAreValid()
+	if err != nil {
+		return nil, err
+	}
 
 	if s.IsAnonymized() {
 		return nil, makeTransitionError(accountStatusTypeAnonymized, target.variant().getAccountStatusType())
@@ -536,6 +611,11 @@ func (s AccountStatusWithRefTime) ScheduleDeletionByAdmin(deleteAt time.Time) (*
 	target.accountStatus.accountStatusStaleFrom = target.deriveAccountStatusStaleFrom()
 	target.accountStatus.isDisabled = target.IsDisabled()
 
+	err := target.checkAllTimestampsAreValid()
+	if err != nil {
+		return nil, err
+	}
+
 	// It is allowed to schedule deletion of an anonymized user.
 
 	// Account valid period is irrelevant here.
@@ -565,6 +645,11 @@ func (s AccountStatusWithRefTime) UnscheduleDeletionByAdmin() (*AccountStatusWit
 	target.accountStatus.anonymizeAt = nil
 	target.accountStatus.accountStatusStaleFrom = target.deriveAccountStatusStaleFrom()
 	target.accountStatus.isDisabled = target.IsDisabled()
+
+	err := target.checkAllTimestampsAreValid()
+	if err != nil {
+		return nil, err
+	}
 
 	// It is allowed to unschedule deletion of an anonymized user.
 	if s.IsAnonymized() && s.accountStatus.deleteAt == nil {
@@ -600,6 +685,11 @@ func (s AccountStatusWithRefTime) Anonymize() (*AccountStatusWithRefTime, error)
 	target.accountStatus.anonymizedAt = &s.refTime
 	target.accountStatus.accountStatusStaleFrom = target.deriveAccountStatusStaleFrom()
 	target.accountStatus.isDisabled = target.IsDisabled()
+
+	err := target.checkAllTimestampsAreValid()
+	if err != nil {
+		return nil, err
+	}
 
 	if s.IsAnonymized() {
 		if target.IsAnonymized() {
@@ -646,6 +736,11 @@ func (s AccountStatusWithRefTime) ScheduleAnonymizationByAdmin(anonymizeAt time.
 	target.accountStatus.accountStatusStaleFrom = target.deriveAccountStatusStaleFrom()
 	target.accountStatus.isDisabled = target.IsDisabled()
 
+	err := target.checkAllTimestampsAreValid()
+	if err != nil {
+		return nil, err
+	}
+
 	if s.IsAnonymized() {
 		return nil, makeTransitionError(accountStatusTypeAnonymized, target.variant().getAccountStatusType())
 	}
@@ -684,6 +779,11 @@ func (s AccountStatusWithRefTime) UnscheduleAnonymizationByAdmin() (*AccountStat
 	target.accountStatus.anonymizeAt = nil
 	target.accountStatus.accountStatusStaleFrom = target.deriveAccountStatusStaleFrom()
 	target.accountStatus.isDisabled = target.IsDisabled()
+
+	err := target.checkAllTimestampsAreValid()
+	if err != nil {
+		return nil, err
+	}
 
 	if s.IsAnonymized() {
 		return nil, makeTransitionError(accountStatusTypeAnonymized, target.variant().getAccountStatusType())

@@ -59,6 +59,7 @@ func TestAccountStatusStateTransition(t *testing.T) {
 		now := time.Date(2006, 1, 2, 3, 4, 5, 6, time.UTC)
 		deleteAt := now
 		anonymizeAt := now
+
 		temporarilyDisabledFrom := now
 		temporarilyDisabledUntil := now.Add(time.Hour * 24)
 
@@ -91,14 +92,14 @@ func TestAccountStatusStateTransition(t *testing.T) {
 				So(err, ShouldBeError, testCase.DisableIndefinitely)
 			}
 
-			_, err = status.DisableTemporarily(temporarilyDisabledFrom, temporarilyDisabledUntil, nil)
+			_, err = status.DisableTemporarily(&temporarilyDisabledFrom, &temporarilyDisabledUntil, nil)
 			if testCase.DisableTemporarily_Now == "" {
 				So(err, ShouldBeNil)
 			} else {
 				So(err, ShouldBeError, testCase.DisableTemporarily_Now)
 			}
 
-			_, err = status.DisableTemporarily(temporarilyDisabledFromInFuture, temporarilyDisabledUntilInFuture, nil)
+			_, err = status.DisableTemporarily(&temporarilyDisabledFromInFuture, &temporarilyDisabledUntilInFuture, nil)
 			if testCase.DisableTemporarily_Future == "" {
 				So(err, ShouldBeNil)
 			} else {
@@ -217,8 +218,8 @@ func TestAccountStatusStateTransition(t *testing.T) {
 				DisableIndefinitely:            "",
 				DisableTemporarily_Now:         "invalid account status transition: disabled_temporarily -> disabled_temporarily",
 				DisableTemporarily_Future:      "invalid account status transition: disabled_temporarily -> normal",
-				SetAccountValidPeriod_Inside:   "",
-				SetAccountValidPeriod_Outside:  "",
+				SetAccountValidPeriod_Inside:   "the start timestamp of account valid period must be less than the start timestamp of temporarily disabled period",
+				SetAccountValidPeriod_Outside:  "the start timestamp of account valid period must be less than the start timestamp of temporarily disabled period",
 				ScheduleDeletionByEndUser:      "invalid account status transition: disabled_temporarily -> scheduled_deletion_deactivated",
 				ScheduleDeletionByAdmin:        "",
 				UnscheduleDeletionByAdmin:      "invalid account status transition: disabled_temporarily -> normal",
@@ -242,8 +243,8 @@ func TestAccountStatusStateTransition(t *testing.T) {
 				DisableIndefinitely:            "",
 				DisableTemporarily_Now:         "",
 				DisableTemporarily_Future:      "",
-				SetAccountValidPeriod_Inside:   "",
-				SetAccountValidPeriod_Outside:  "",
+				SetAccountValidPeriod_Inside:   "the end timestamp of temporarily disabled period must be less than the end timestamp of account valid period",
+				SetAccountValidPeriod_Outside:  "the start timestamp of account valid period must be less than the start timestamp of temporarily disabled period",
 				ScheduleDeletionByEndUser:      "",
 				ScheduleDeletionByAdmin:        "",
 				UnscheduleDeletionByAdmin:      "invalid account status transition: normal -> normal",
@@ -267,8 +268,8 @@ func TestAccountStatusStateTransition(t *testing.T) {
 				DisableIndefinitely:            "",
 				DisableTemporarily_Now:         "",
 				DisableTemporarily_Future:      "",
-				SetAccountValidPeriod_Inside:   "",
-				SetAccountValidPeriod_Outside:  "",
+				SetAccountValidPeriod_Inside:   "the start timestamp of account valid period must be less than the start timestamp of temporarily disabled period",
+				SetAccountValidPeriod_Outside:  "the start timestamp of account valid period must be less than the start timestamp of temporarily disabled period",
 				ScheduleDeletionByEndUser:      "",
 				ScheduleDeletionByAdmin:        "",
 				UnscheduleDeletionByAdmin:      "invalid account status transition: normal -> normal",
@@ -290,8 +291,8 @@ func TestAccountStatusStateTransition(t *testing.T) {
 			testStateTransition(outsideValidPeriod, accountStatusStateTransitionTest{
 				Reenable:                       "invalid account status transition: outside_valid_period -> normal",
 				DisableIndefinitely:            "",
-				DisableTemporarily_Now:         "",
-				DisableTemporarily_Future:      "",
+				DisableTemporarily_Now:         "the start timestamp of account valid period must be less than the start timestamp of temporarily disabled period",
+				DisableTemporarily_Future:      "the start timestamp of account valid period must be less than the start timestamp of temporarily disabled period",
 				SetAccountValidPeriod_Inside:   "",
 				SetAccountValidPeriod_Outside:  "",
 				ScheduleDeletionByEndUser:      "",
@@ -315,8 +316,8 @@ func TestAccountStatusStateTransition(t *testing.T) {
 			testStateTransition(outsideValidPeriod, accountStatusStateTransitionTest{
 				Reenable:                       "invalid account status transition: normal -> normal",
 				DisableIndefinitely:            "",
-				DisableTemporarily_Now:         "",
-				DisableTemporarily_Future:      "",
+				DisableTemporarily_Now:         "the start timestamp of account valid period must be less than the start timestamp of temporarily disabled period",
+				DisableTemporarily_Future:      "the end timestamp of temporarily disabled period must be less than the end timestamp of account valid period",
 				SetAccountValidPeriod_Inside:   "",
 				SetAccountValidPeriod_Outside:  "",
 				ScheduleDeletionByEndUser:      "",
@@ -467,7 +468,7 @@ func TestAccountStatusTemporarilyDisabled(t *testing.T) {
 		Convey("isDisabled is true if now is within temporarily disabled period", func() {
 			normal := AccountStatus{}.WithRefTime(now)
 
-			state1, err := normal.DisableTemporarily(temporarilyDisabledFrom, temporarilyDisabledUntil, nil)
+			state1, err := normal.DisableTemporarily(&temporarilyDisabledFrom, &temporarilyDisabledUntil, nil)
 			So(err, ShouldBeNil)
 			So(state1.IsDisabled(), ShouldEqual, true)
 			So(state1.accountStatus.isDisabled, ShouldEqual, true)
@@ -478,7 +479,7 @@ func TestAccountStatusTemporarilyDisabled(t *testing.T) {
 		Convey("isDisabled is false if now is NOT within temporarily disabled period", func() {
 			normal := AccountStatus{}.WithRefTime(now)
 
-			state1, err := normal.DisableTemporarily(temporarilyDisabledFromInFuture, temporarilyDisabledUntilInFuture, nil)
+			state1, err := normal.DisableTemporarily(&temporarilyDisabledFromInFuture, &temporarilyDisabledUntilInFuture, nil)
 			So(err, ShouldBeNil)
 			So(state1.IsDisabled(), ShouldEqual, false)
 			So(state1.accountStatus.isDisabled, ShouldEqual, false)
@@ -645,5 +646,110 @@ func TestAccountStatusAccountStatusStaleFrom(t *testing.T) {
 		So(status.IsDisabled(), ShouldEqual, true)
 		So(status.accountStatus.isDisabled, ShouldEqual, true)
 		So(status.Check(), ShouldBeError, "user is outside valid period")
+	})
+}
+
+func TestAccountStatusTimestampsValidation(t *testing.T) {
+	Convey("temporarily disabled period and account valid period timestamps are validated", t, func() {
+		t0 := time.Date(2006, 1, 2, 3, 4, 5, 6, time.UTC)
+		t1 := time.Date(2006, 1, 2, 3, 4, 5, 6+1, time.UTC)
+		t2 := time.Date(2006, 1, 2, 3, 4, 5, 6+2, time.UTC)
+		t3 := time.Date(2006, 1, 2, 3, 4, 5, 6+3, time.UTC)
+		t4 := time.Date(2006, 1, 2, 3, 4, 5, 6+4, time.UTC)
+
+		normal := AccountStatus{}.WithRefTime(t0)
+
+		Convey("temporarily disabled period must have the start timestamp", func() {
+			_, err := normal.DisableTemporarily(nil, &t1, nil)
+			So(err, ShouldNotBeNil)
+			So(err, ShouldBeError, "temporarily disabled period is missing the start timestamp")
+		})
+
+		Convey("temporarily disabled period must have the end timestamp", func() {
+			_, err := normal.DisableTemporarily(&t1, nil, nil)
+			So(err, ShouldNotBeNil)
+			So(err, ShouldBeError, "temporarily disabled period is missing the end timestamp")
+		})
+
+		Convey("temporarily disabled period must have start < end", func() {
+			_, err := normal.DisableTemporarily(&t2, &t1, nil)
+			So(err, ShouldNotBeNil)
+			So(err, ShouldBeError, "the start timestamp of temporarily disabled period must be less than the end timestamp of temporarily disabled period")
+		})
+
+		Convey("account valid period must have start < end", func() {
+			withAccountValidFrom_t2, err := normal.SetAccountValidFrom(&t2)
+			So(err, ShouldBeNil)
+
+			_, err = withAccountValidFrom_t2.SetAccountValidUntil(&t2)
+			So(err, ShouldNotBeNil)
+			So(err, ShouldBeError, "the start timestamp of account valid period must be less than the end timestamp of the account valid period")
+		})
+
+		Convey("account_valid_from < temporarily_disabled_from", func() {
+			withAccountValidFrom_t2, err := normal.SetAccountValidFrom(&t2)
+			So(err, ShouldBeNil)
+
+			_, err = withAccountValidFrom_t2.DisableTemporarily(&t1, &t2, nil)
+			So(err, ShouldNotBeNil)
+			So(err, ShouldBeError, "the start timestamp of account valid period must be less than the start timestamp of temporarily disabled period")
+		})
+
+		Convey("temporarily_disabled_until < account_valid_until", func() {
+			withAccountValidUntil_t2, err := normal.SetAccountValidUntil(&t2)
+			So(err, ShouldBeNil)
+
+			_, err = withAccountValidUntil_t2.DisableTemporarily(&t2, &t3, nil)
+			So(err, ShouldNotBeNil)
+			So(err, ShouldBeError, "the end timestamp of temporarily disabled period must be less than the end timestamp of account valid period")
+		})
+
+		Convey("can set account_valid_from when it is temporarily disabled", func() {
+			disabled, err := normal.DisableTemporarily(&t1, &t2, nil)
+			So(err, ShouldBeNil)
+
+			_, err = disabled.SetAccountValidFrom(&t0)
+			So(err, ShouldBeNil)
+		})
+
+		Convey("can set account_valid_until when it is temporarily disabled", func() {
+			disabled, err := normal.DisableTemporarily(&t1, &t2, nil)
+			So(err, ShouldBeNil)
+
+			_, err = disabled.SetAccountValidUntil(&t3)
+			So(err, ShouldBeNil)
+		})
+
+		Convey("can set account valid period when it is temporarily disabled", func() {
+			disabled, err := normal.DisableTemporarily(&t1, &t2, nil)
+			So(err, ShouldBeNil)
+
+			_, err = disabled.SetAccountValidPeriod(&t0, &t3)
+			So(err, ShouldBeNil)
+		})
+
+		Convey("can disable temporarily when it is within account valid period", func() {
+			withinAccountValidPeriod, err := normal.SetAccountValidPeriod(&t0, &t3)
+			So(err, ShouldBeNil)
+
+			_, err = withinAccountValidPeriod.DisableTemporarily(&t1, &t2, nil)
+			So(err, ShouldBeNil)
+		})
+
+		Convey("can disable temporarily when it is before account valid period", func() {
+			status, err := AccountStatus{}.WithRefTime(t0).SetAccountValidPeriod(&t1, &t4)
+			So(err, ShouldBeNil)
+
+			_, err = status.DisableTemporarily(&t2, &t3, nil)
+			So(err, ShouldBeNil)
+		})
+
+		Convey("can disable temporarily when it is after account valid period", func() {
+			status, err := AccountStatus{}.WithRefTime(t4).SetAccountValidPeriod(&t0, &t3)
+			So(err, ShouldBeNil)
+
+			_, err = status.DisableTemporarily(&t1, &t2, nil)
+			So(err, ShouldBeNil)
+		})
 	})
 }
