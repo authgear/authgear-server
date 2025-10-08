@@ -598,6 +598,7 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 	}
 	userInfoService := &userinfo.UserInfoService{
 		Redis:                 appredisHandle,
+		Clock:                 clockClock,
 		AppID:                 appID,
 		UserQueries:           userQueries,
 		RolesAndGroupsQueries: queries,

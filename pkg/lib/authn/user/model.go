@@ -218,6 +218,7 @@ func newUserModel(
 		TemporarilyDisabledUntil: accountStatus.TemporarilyDisabledUntil(),
 		AccountValidFrom:         accountStatus.AccountValidFrom(),
 		AccountValidUntil:        accountStatus.AccountValidUntil(),
+		AccountStatusStaleFrom:   accountStatus.AccountStatusStaleFrom(),
 
 		CanReauthenticate:  canReauthenticate,
 		StandardAttributes: derivedStandardAttributes,
