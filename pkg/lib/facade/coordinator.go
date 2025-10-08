@@ -1073,34 +1073,58 @@ func (c *Coordinator) UserReenable(ctx context.Context, userID string) error {
 	return nil
 }
 
-func (c *Coordinator) UserDisable(ctx context.Context, userID string, reason *string) error {
-	u, err := c.UserQueries.GetRaw(ctx, userID)
+type SetDisabledOptions struct {
+	UserID                   string
+	IsDisabled               bool
+	Reason                   *string
+	TemporarilyDisabledFrom  *time.Time
+	TemporarilyDisabledUntil *time.Time
+}
+
+func (c *Coordinator) UserDisable(ctx context.Context, options SetDisabledOptions) error {
+	u, err := c.UserQueries.GetRaw(ctx, options.UserID)
 	if err != nil {
 		return err
 	}
 
 	now := c.Clock.NowUTC()
-	accountStatus, err := u.AccountStatus(now).DisableIndefinitely(reason)
+
+	var accountStatus *user.AccountStatusWithRefTime
+	if options.TemporarilyDisabledFrom != nil || options.TemporarilyDisabledUntil != nil {
+		accountStatus, err = u.AccountStatus(now).DisableTemporarily(
+			options.TemporarilyDisabledFrom,
+			options.TemporarilyDisabledUntil,
+			options.Reason,
+		)
+	} else {
+		accountStatus, err = u.AccountStatus(now).DisableIndefinitely(options.Reason)
+	}
 	if err != nil {
 		return err
 	}
 
-	err = c.UserCommands.UpdateAccountStatus(ctx, userID, *accountStatus)
+	err = c.UserCommands.UpdateAccountStatus(ctx, options.UserID, *accountStatus)
 	if err != nil {
 		return err
 	}
 
-	err = c.terminateAllSessions(ctx, userID)
-	if err != nil {
-		return err
+	// If the account is disabled now, terminate all sessions.
+	if accountStatus.IsDisabled() {
+		err = c.terminateAllSessions(ctx, options.UserID)
+		if err != nil {
+			return err
+		}
 	}
 
+	// Always fire this event, even the account is not considered as disabled now.
 	e := &nonblocking.UserDisabledEventPayload{
 		UserRef: model.UserRef{
 			Meta: model.Meta{
-				ID: userID,
+				ID: options.UserID,
 			},
 		},
+		TemporarilyDisabledFrom:  options.TemporarilyDisabledFrom,
+		TemporarilyDisabledUntil: options.TemporarilyDisabledUntil,
 	}
 
 	err = c.Events.DispatchEventOnCommit(ctx, e)

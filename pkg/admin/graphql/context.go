@@ -76,7 +76,7 @@ type UserFacade interface {
 	Create(ctx context.Context, identityDef model.IdentityDef, opts facade.CreatePasswordOptions) (string, error)
 	ResetPassword(ctx context.Context, id string, password string, generatePassword bool, sendPassword bool, changeOnLogin bool) error
 	SetPasswordExpired(ctx context.Context, id string, isExpired bool) error
-	SetDisabled(ctx context.Context, id string, isDisabled bool, reason *string) error
+	SetDisabled(ctx context.Context, options facade.SetDisabledOptions) error
 	ScheduleDeletion(ctx context.Context, id string) error
 	UnscheduleDeletion(ctx context.Context, id string) error
 	Delete(ctx context.Context, id string) error

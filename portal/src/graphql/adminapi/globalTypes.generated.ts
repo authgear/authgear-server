@@ -1632,8 +1632,12 @@ export enum SessionType {
 export type SetDisabledStatusInput = {
   /** Indicate whether the target user is disabled. */
   isDisabled: Scalars['Boolean']['input'];
-  /** Indicate the disable reason; If not provided, the user will be disabled with no reason. */
+  /** Indicate the disable reason. If not provided, the user will be disabled with no reason. */
   reason?: InputMaybe<Scalars['String']['input']>;
+  /** Indicate the start timestamp of the temporarily disabled period. If not provided, the user will be disabled indefinitely. If provided, temporarilyDisabledUntil must also be provided. */
+  temporarilyDisabledFrom?: InputMaybe<Scalars['DateTime']['input']>;
+  /** Indicate the end timestamp of the temporarily disabled period. If not provided, the user will be disabled indefinitely. If provided, temporarilyDisabledFrom must also be provided. */
+  temporarilyDisabledUntil?: InputMaybe<Scalars['DateTime']['input']>;
   /** Target user ID. */
   userID: Scalars['ID']['input'];
 };

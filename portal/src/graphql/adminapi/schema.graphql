@@ -1811,9 +1811,19 @@ input SetDisabledStatusInput {
   isDisabled: Boolean!
 
   """
-  Indicate the disable reason; If not provided, the user will be disabled with no reason.
+  Indicate the disable reason. If not provided, the user will be disabled with no reason.
   """
   reason: String
+
+  """
+  Indicate the start timestamp of the temporarily disabled period. If not provided, the user will be disabled indefinitely. If provided, temporarilyDisabledUntil must also be provided.
+  """
+  temporarilyDisabledFrom: DateTime
+
+  """
+  Indicate the end timestamp of the temporarily disabled period. If not provided, the user will be disabled indefinitely. If provided, temporarilyDisabledFrom must also be provided.
+  """
+  temporarilyDisabledUntil: DateTime
 
   """Target user ID."""
   userID: ID!

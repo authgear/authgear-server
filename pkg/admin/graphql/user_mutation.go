@@ -645,7 +645,15 @@ var setDisabledStatusInput = graphql.NewInputObject(graphql.InputObjectConfig{
 		},
 		"reason": &graphql.InputObjectFieldConfig{
 			Type:        graphql.String,
-			Description: "Indicate the disable reason; If not provided, the user will be disabled with no reason.",
+			Description: "Indicate the disable reason. If not provided, the user will be disabled with no reason.",
+		},
+		"temporarilyDisabledFrom": &graphql.InputObjectFieldConfig{
+			Type:        graphql.DateTime,
+			Description: "Indicate the start timestamp of the temporarily disabled period. If not provided, the user will be disabled indefinitely. If provided, temporarilyDisabledUntil must also be provided.",
+		},
+		"temporarilyDisabledUntil": &graphql.InputObjectFieldConfig{
+			Type:        graphql.DateTime,
+			Description: "Indicate the end timestamp of the temporarily disabled period. If not provided, the user will be disabled indefinitely. If provided, temporarilyDisabledFrom must also be provided.",
 		},
 	},
 })
@@ -685,10 +693,19 @@ var _ = registerMutationField(
 				reason = &r
 			}
 
+			temporarilyDisabledFrom := graphqlutil.GetDateTimeInUTCFromInput(input, "temporarilyDisabledFrom")
+			temporarilyDisabledUntil := graphqlutil.GetDateTimeInUTCFromInput(input, "temporarilyDisabledUntil")
+
 			ctx := p.Context
 			gqlCtx := GQLContext(ctx)
 
-			err := gqlCtx.UserFacade.SetDisabled(ctx, userID, isDisabled, reason)
+			err := gqlCtx.UserFacade.SetDisabled(ctx, facade.SetDisabledOptions{
+				UserID:                   userID,
+				IsDisabled:               isDisabled,
+				Reason:                   reason,
+				TemporarilyDisabledFrom:  temporarilyDisabledFrom,
+				TemporarilyDisabledUntil: temporarilyDisabledUntil,
+			})
 			if err != nil {
 				return nil, err
 			}

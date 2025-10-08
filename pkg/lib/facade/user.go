@@ -43,8 +43,8 @@ func (u UserFacade) DeleteFromScheduledDeletion(ctx context.Context, userID stri
 	return u.Coordinator.UserDelete(ctx, userID, true)
 }
 
-func (u UserFacade) Disable(ctx context.Context, userID string, reason *string) error {
-	return u.Coordinator.UserDisable(ctx, userID, reason)
+func (u UserFacade) Disable(ctx context.Context, options SetDisabledOptions) error {
+	return u.Coordinator.UserDisable(ctx, options)
 }
 
 func (u UserFacade) Reenable(ctx context.Context, userID string) error {
