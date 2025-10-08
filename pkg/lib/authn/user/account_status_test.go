@@ -22,25 +22,9 @@ type accountStatusStateTransitionTest struct {
 	UnscheduleAnonymizationByAdmin string
 }
 
-func TestAccountStatus(t *testing.T) {
-	Convey("AccountStatus", t, func() {
+func TestAccountStatusNormalization(t *testing.T) {
+	Convey("AccountStatus normalization", t, func() {
 		now := time.Date(2006, 1, 2, 3, 4, 5, 6, time.UTC)
-		deleteAt := now
-		anonymizeAt := now
-		temporarilyDisabledFrom := now
-		temporarilyDisabledUntil := now.Add(time.Hour * 24)
-
-		accountValidFrom_outsideValidPeriod := now.Add(time.Hour * 24)
-		accountValidUntil_outsideValidPeriod := now.Add(time.Hour * 24 * 2)
-
-		accountValidFrom_insideValidPeriod := now
-		accountValidUntil_insideValidPeriod := now.Add(time.Hour * 24)
-
-		temporarilyDisabledFromInFuture := now.Add(time.Hour * 24 * 1)
-		temporarilyDisabledUntilInFuture := now.Add(time.Hour * 24 * 2)
-
-		temporarilyDisabledFromInPast := now.Add(-time.Hour * 24 * 2)
-		temporarilyDisabledUntilInPast := now.Add(-time.Hour * 24 * 1)
 
 		Convey("isIndefinitelyDisabled is normalized upon construction", func() {
 			legacyDisabled := AccountStatus{
@@ -67,6 +51,28 @@ func TestAccountStatus(t *testing.T) {
 			So(normal.accountStatus.isAnonymized, ShouldNotBeNil)
 			So(*normal.accountStatus.isAnonymized, ShouldEqual, false)
 		})
+	})
+}
+
+func TestAccountStatusStateTransition(t *testing.T) {
+	Convey("AccountStatus state transition", t, func() {
+		now := time.Date(2006, 1, 2, 3, 4, 5, 6, time.UTC)
+		deleteAt := now
+		anonymizeAt := now
+		temporarilyDisabledFrom := now
+		temporarilyDisabledUntil := now.Add(time.Hour * 24)
+
+		accountValidFrom_outsideValidPeriod := now.Add(time.Hour * 24)
+		accountValidUntil_outsideValidPeriod := now.Add(time.Hour * 24 * 2)
+
+		accountValidFrom_insideValidPeriod := now
+		accountValidUntil_insideValidPeriod := now.Add(time.Hour * 24)
+
+		temporarilyDisabledFromInFuture := now.Add(time.Hour * 24 * 1)
+		temporarilyDisabledUntilInFuture := now.Add(time.Hour * 24 * 2)
+
+		temporarilyDisabledFromInPast := now.Add(-time.Hour * 24 * 2)
+		temporarilyDisabledUntilInPast := now.Add(-time.Hour * 24 * 1)
 
 		testStateTransition := func(status AccountStatusWithRefTime, testCase accountStatusStateTransitionTest) {
 			var err error
@@ -419,6 +425,14 @@ func TestAccountStatus(t *testing.T) {
 				UnscheduleAnonymizationByAdmin: "",
 			})
 		})
+	})
+}
+
+func TestAccountStatusAnonymizd(t *testing.T) {
+	Convey("AccountStatus anonymized", t, func() {
+		now := time.Date(2006, 1, 2, 3, 4, 5, 6, time.UTC)
+		deleteAt := now
+		anonymizeAt := now
 
 		Convey("anonymized -> scheduled_deletion_disabled -> anonymized", func() {
 			true_ := true
@@ -438,6 +452,17 @@ func TestAccountStatus(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(state2.IsAnonymized(), ShouldEqual, true)
 		})
+	})
+}
+
+func TestAccountStatusTemporarilyDisabled(t *testing.T) {
+	Convey("AccountStatus TemporarilyDisabled", t, func() {
+		now := time.Date(2006, 1, 2, 3, 4, 5, 6, time.UTC)
+		temporarilyDisabledFrom := now
+		temporarilyDisabledUntil := now.Add(time.Hour * 24)
+
+		temporarilyDisabledFromInFuture := now.Add(time.Hour * 24 * 1)
+		temporarilyDisabledUntilInFuture := now.Add(time.Hour * 24 * 2)
 
 		Convey("isDisabled is true if now is within temporarily disabled period", func() {
 			normal := AccountStatus{}.WithRefTime(now)
@@ -460,6 +485,19 @@ func TestAccountStatus(t *testing.T) {
 			So(*state1.accountStatus.isIndefinitelyDisabled, ShouldEqual, false)
 			So(*state1.accountStatus.isDeactivated, ShouldEqual, false)
 		})
+	})
+}
+
+func TestAccountStatusAccountValidPeriod(t *testing.T) {
+	Convey("AccountStatus account valid period", t, func() {
+		now := time.Date(2006, 1, 2, 3, 4, 5, 6, time.UTC)
+		deleteAt := now
+
+		accountValidFrom_outsideValidPeriod := now.Add(time.Hour * 24)
+		accountValidUntil_outsideValidPeriod := now.Add(time.Hour * 24 * 2)
+
+		accountValidFrom_insideValidPeriod := now
+		accountValidUntil_insideValidPeriod := now.Add(time.Hour * 24)
 
 		Convey("isDisabled is false if now is within account valid period", func() {
 			false_ := false
@@ -532,78 +570,80 @@ func TestAccountStatus(t *testing.T) {
 			So(state3.IsDisabled(), ShouldEqual, true)
 			So(state3.accountStatus.isDisabled, ShouldEqual, true)
 		})
+	})
+}
 
-		Convey("account_status_stale_from is accurate", func() {
-			t0 := time.Date(2006, 1, 2, 3, 4, 5, 6, time.UTC)
-			t1 := time.Date(2006, 1, 2, 3, 4, 5, 6+1, time.UTC)
-			t2 := time.Date(2006, 1, 2, 3, 4, 5, 6+2, time.UTC)
-			t3 := time.Date(2006, 1, 2, 3, 4, 5, 6+3, time.UTC)
-			t4 := time.Date(2006, 1, 2, 3, 4, 5, 6+4, time.UTC)
+func TestAccountStatusAccountStatusStaleFrom(t *testing.T) {
+	Convey("account_status_stale_from is accurate", t, func() {
+		t0 := time.Date(2006, 1, 2, 3, 4, 5, 6, time.UTC)
+		t1 := time.Date(2006, 1, 2, 3, 4, 5, 6+1, time.UTC)
+		t2 := time.Date(2006, 1, 2, 3, 4, 5, 6+2, time.UTC)
+		t3 := time.Date(2006, 1, 2, 3, 4, 5, 6+3, time.UTC)
+		t4 := time.Date(2006, 1, 2, 3, 4, 5, 6+4, time.UTC)
 
-			false_ := false
-			status := AccountStatus{
-				isIndefinitelyDisabled:   &false_,
-				accountValidFrom:         &t0,
-				accountValidUntil:        &t4,
-				temporarilyDisabledFrom:  &t1,
-				temporarilyDisabledUntil: &t3,
-			}.WithRefTime(t2)
-			So(status.accountStatus.accountStatusStaleFrom, ShouldNotBeNil)
-			So(*status.accountStatus.accountStatusStaleFrom, ShouldEqual, t3)
-			So(status.IsDisabled(), ShouldEqual, true)
-			So(status.accountStatus.isDisabled, ShouldEqual, true)
-			So(status.Check(), ShouldBeError, "user is disabled")
+		false_ := false
+		status := AccountStatus{
+			isIndefinitelyDisabled:   &false_,
+			accountValidFrom:         &t0,
+			accountValidUntil:        &t4,
+			temporarilyDisabledFrom:  &t1,
+			temporarilyDisabledUntil: &t3,
+		}.WithRefTime(t2)
+		So(status.accountStatus.accountStatusStaleFrom, ShouldNotBeNil)
+		So(*status.accountStatus.accountStatusStaleFrom, ShouldEqual, t3)
+		So(status.IsDisabled(), ShouldEqual, true)
+		So(status.accountStatus.isDisabled, ShouldEqual, true)
+		So(status.Check(), ShouldBeError, "user is disabled")
 
-			status = AccountStatus{
-				isIndefinitelyDisabled:   &false_,
-				accountValidFrom:         &t0,
-				accountValidUntil:        &t4,
-				temporarilyDisabledFrom:  &t2,
-				temporarilyDisabledUntil: &t3,
-			}.WithRefTime(t1)
-			So(status.accountStatus.accountStatusStaleFrom, ShouldNotBeNil)
-			So(*status.accountStatus.accountStatusStaleFrom, ShouldEqual, t2)
-			So(status.IsDisabled(), ShouldEqual, false)
-			So(status.accountStatus.isDisabled, ShouldEqual, false)
-			So(status.Check(), ShouldBeNil)
+		status = AccountStatus{
+			isIndefinitelyDisabled:   &false_,
+			accountValidFrom:         &t0,
+			accountValidUntil:        &t4,
+			temporarilyDisabledFrom:  &t2,
+			temporarilyDisabledUntil: &t3,
+		}.WithRefTime(t1)
+		So(status.accountStatus.accountStatusStaleFrom, ShouldNotBeNil)
+		So(*status.accountStatus.accountStatusStaleFrom, ShouldEqual, t2)
+		So(status.IsDisabled(), ShouldEqual, false)
+		So(status.accountStatus.isDisabled, ShouldEqual, false)
+		So(status.Check(), ShouldBeNil)
 
-			status = AccountStatus{
-				isIndefinitelyDisabled:   &false_,
-				accountValidFrom:         &t1,
-				accountValidUntil:        &t4,
-				temporarilyDisabledFrom:  &t2,
-				temporarilyDisabledUntil: &t3,
-			}.WithRefTime(t0)
-			So(status.accountStatus.accountStatusStaleFrom, ShouldNotBeNil)
-			So(*status.accountStatus.accountStatusStaleFrom, ShouldEqual, t1)
-			So(status.IsDisabled(), ShouldEqual, true)
-			So(status.accountStatus.isDisabled, ShouldEqual, true)
-			So(status.Check(), ShouldBeError, "user is outside valid period")
+		status = AccountStatus{
+			isIndefinitelyDisabled:   &false_,
+			accountValidFrom:         &t1,
+			accountValidUntil:        &t4,
+			temporarilyDisabledFrom:  &t2,
+			temporarilyDisabledUntil: &t3,
+		}.WithRefTime(t0)
+		So(status.accountStatus.accountStatusStaleFrom, ShouldNotBeNil)
+		So(*status.accountStatus.accountStatusStaleFrom, ShouldEqual, t1)
+		So(status.IsDisabled(), ShouldEqual, true)
+		So(status.accountStatus.isDisabled, ShouldEqual, true)
+		So(status.Check(), ShouldBeError, "user is outside valid period")
 
-			status = AccountStatus{
-				isIndefinitelyDisabled:   &false_,
-				accountValidFrom:         &t0,
-				accountValidUntil:        &t4,
-				temporarilyDisabledFrom:  &t1,
-				temporarilyDisabledUntil: &t2,
-			}.WithRefTime(t3)
-			So(status.accountStatus.accountStatusStaleFrom, ShouldNotBeNil)
-			So(*status.accountStatus.accountStatusStaleFrom, ShouldEqual, t4)
-			So(status.IsDisabled(), ShouldEqual, false)
-			So(status.accountStatus.isDisabled, ShouldEqual, false)
-			So(status.Check(), ShouldBeNil)
+		status = AccountStatus{
+			isIndefinitelyDisabled:   &false_,
+			accountValidFrom:         &t0,
+			accountValidUntil:        &t4,
+			temporarilyDisabledFrom:  &t1,
+			temporarilyDisabledUntil: &t2,
+		}.WithRefTime(t3)
+		So(status.accountStatus.accountStatusStaleFrom, ShouldNotBeNil)
+		So(*status.accountStatus.accountStatusStaleFrom, ShouldEqual, t4)
+		So(status.IsDisabled(), ShouldEqual, false)
+		So(status.accountStatus.isDisabled, ShouldEqual, false)
+		So(status.Check(), ShouldBeNil)
 
-			status = AccountStatus{
-				isIndefinitelyDisabled:   &false_,
-				accountValidFrom:         &t0,
-				accountValidUntil:        &t3,
-				temporarilyDisabledFrom:  &t1,
-				temporarilyDisabledUntil: &t2,
-			}.WithRefTime(t4)
-			So(status.accountStatus.accountStatusStaleFrom, ShouldBeNil)
-			So(status.IsDisabled(), ShouldEqual, true)
-			So(status.accountStatus.isDisabled, ShouldEqual, true)
-			So(status.Check(), ShouldBeError, "user is outside valid period")
-		})
+		status = AccountStatus{
+			isIndefinitelyDisabled:   &false_,
+			accountValidFrom:         &t0,
+			accountValidUntil:        &t3,
+			temporarilyDisabledFrom:  &t1,
+			temporarilyDisabledUntil: &t2,
+		}.WithRefTime(t4)
+		So(status.accountStatus.accountStatusStaleFrom, ShouldBeNil)
+		So(status.IsDisabled(), ShouldEqual, true)
+		So(status.accountStatus.isDisabled, ShouldEqual, true)
+		So(status.Check(), ShouldBeError, "user is outside valid period")
 	})
 }
