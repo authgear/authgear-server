@@ -192,6 +192,9 @@ export enum AuditLogActivityType {
   AdminApiMutationScheduleAccountAnonymizationExecuted = 'ADMIN_API_MUTATION_SCHEDULE_ACCOUNT_ANONYMIZATION_EXECUTED',
   AdminApiMutationScheduleAccountDeletionExecuted = 'ADMIN_API_MUTATION_SCHEDULE_ACCOUNT_DELETION_EXECUTED',
   AdminApiMutationSendResetPasswordMessageExecuted = 'ADMIN_API_MUTATION_SEND_RESET_PASSWORD_MESSAGE_EXECUTED',
+  AdminApiMutationSetAccountValidFromExecuted = 'ADMIN_API_MUTATION_SET_ACCOUNT_VALID_FROM_EXECUTED',
+  AdminApiMutationSetAccountValidPeriodExecuted = 'ADMIN_API_MUTATION_SET_ACCOUNT_VALID_PERIOD_EXECUTED',
+  AdminApiMutationSetAccountValidUntilExecuted = 'ADMIN_API_MUTATION_SET_ACCOUNT_VALID_UNTIL_EXECUTED',
   AdminApiMutationSetDisabledStatusExecuted = 'ADMIN_API_MUTATION_SET_DISABLED_STATUS_EXECUTED',
   AdminApiMutationSetPasswordExpiredExecuted = 'ADMIN_API_MUTATION_SET_PASSWORD_EXPIRED_EXECUTED',
   AdminApiMutationSetVerifiedStatusExecuted = 'ADMIN_API_MUTATION_SET_VERIFIED_STATUS_EXECUTED',
@@ -836,6 +839,12 @@ export type Mutation = {
   scheduleAccountDeletion: ScheduleAccountDeletionPayload;
   /** Send a reset password message to user */
   sendResetPasswordMessage?: Maybe<Scalars['Boolean']['output']>;
+  /** Set the start timestamp of the account valid period */
+  setAccountValidFrom: SetAccountValidFromPayload;
+  /** Set the start timestamp and the end timestamp of the account valid period */
+  setAccountValidPeriod: SetAccountValidPeriodPayload;
+  /** Set the end timestamp of the account valid period */
+  setAccountValidUntil: SetAccountValidUntilPayload;
   /** Set disabled status of user */
   setDisabledStatus: SetDisabledStatusPayload;
   /** Grant user grace period for MFA enrollment */
@@ -1070,6 +1079,21 @@ export type MutationScheduleAccountDeletionArgs = {
 
 export type MutationSendResetPasswordMessageArgs = {
   input: SendResetPasswordMessageInput;
+};
+
+
+export type MutationSetAccountValidFromArgs = {
+  input: SetAccountValidFromInput;
+};
+
+
+export type MutationSetAccountValidPeriodArgs = {
+  input: SetAccountValidPeriodInput;
+};
+
+
+export type MutationSetAccountValidUntilArgs = {
+  input: SetAccountValidUntilInput;
 };
 
 
@@ -1628,6 +1652,44 @@ export enum SessionType {
   Idp = 'IDP',
   OfflineGrant = 'OFFLINE_GRANT'
 }
+
+export type SetAccountValidFromInput = {
+  /** Indicate the start timestamp of the account valid period. The user is disabled when the current time is before it. */
+  accountValidFrom?: InputMaybe<Scalars['DateTime']['input']>;
+  /** Target user ID. */
+  userID: Scalars['ID']['input'];
+};
+
+export type SetAccountValidFromPayload = {
+  __typename?: 'SetAccountValidFromPayload';
+  user: User;
+};
+
+export type SetAccountValidPeriodInput = {
+  /** Indicate the start timestamp of the account valid period. The user is disabled when the current time is before it. */
+  accountValidFrom?: InputMaybe<Scalars['DateTime']['input']>;
+  /** Indicate the end timestamp of the account valid period. The user is disabled when the current time is equal to or after it. */
+  accountValidUntil?: InputMaybe<Scalars['DateTime']['input']>;
+  /** Target user ID. */
+  userID: Scalars['ID']['input'];
+};
+
+export type SetAccountValidPeriodPayload = {
+  __typename?: 'SetAccountValidPeriodPayload';
+  user: User;
+};
+
+export type SetAccountValidUntilInput = {
+  /** Indicate the end timestamp of the account valid period. The user is disabled when the current time is equal to or after it. */
+  accountValidUntil?: InputMaybe<Scalars['DateTime']['input']>;
+  /** Target user ID. */
+  userID: Scalars['ID']['input'];
+};
+
+export type SetAccountValidUntilPayload = {
+  __typename?: 'SetAccountValidUntilPayload';
+  user: User;
+};
 
 export type SetDisabledStatusInput = {
   /** Indicate whether the target user is disabled. */

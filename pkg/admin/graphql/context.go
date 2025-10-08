@@ -77,6 +77,9 @@ type UserFacade interface {
 	ResetPassword(ctx context.Context, id string, password string, generatePassword bool, sendPassword bool, changeOnLogin bool) error
 	SetPasswordExpired(ctx context.Context, id string, isExpired bool) error
 	SetDisabled(ctx context.Context, options facade.SetDisabledOptions) error
+	SetAccountValidFrom(ctx context.Context, id string, from *time.Time) error
+	SetAccountValidUntil(ctx context.Context, id string, until *time.Time) error
+	SetAccountValidPeriod(ctx context.Context, id string, from *time.Time, until *time.Time) error
 	ScheduleDeletion(ctx context.Context, id string) error
 	UnscheduleDeletion(ctx context.Context, id string) error
 	Delete(ctx context.Context, id string) error

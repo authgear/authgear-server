@@ -28,6 +28,9 @@ type UserService interface {
 	Delete(ctx context.Context, userID string) error
 	Disable(ctx context.Context, options facade.SetDisabledOptions) error
 	Reenable(ctx context.Context, userID string) error
+	SetAccountValidFrom(ctx context.Context, userID string, from *time.Time) error
+	SetAccountValidUntil(ctx context.Context, userID string, until *time.Time) error
+	SetAccountValidPeriod(ctx context.Context, userID string, from *time.Time, until *time.Time) error
 	ScheduleDeletionByAdmin(ctx context.Context, userID string) error
 	UnscheduleDeletionByAdmin(ctx context.Context, userID string) error
 	Anonymize(ctx context.Context, userID string) error
@@ -192,6 +195,30 @@ func (f *UserFacade) SetDisabled(ctx context.Context, options facade.SetDisabled
 	} else {
 		err = f.Users.Reenable(ctx, options.UserID)
 	}
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (f *UserFacade) SetAccountValidFrom(ctx context.Context, id string, from *time.Time) error {
+	err := f.Users.SetAccountValidFrom(ctx, id, from)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (f *UserFacade) SetAccountValidUntil(ctx context.Context, id string, until *time.Time) error {
+	err := f.Users.SetAccountValidUntil(ctx, id, until)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (f *UserFacade) SetAccountValidPeriod(ctx context.Context, id string, from *time.Time, until *time.Time) error {
+	err := f.Users.SetAccountValidPeriod(ctx, id, from, until)
 	if err != nil {
 		return err
 	}
