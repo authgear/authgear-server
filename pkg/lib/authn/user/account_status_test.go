@@ -54,6 +54,7 @@ func TestAccountStatusNormalization(t *testing.T) {
 	})
 }
 
+//nolint:gocognit // Further splitting this test function does not improve readability.
 func TestAccountStatusStateTransition(t *testing.T) {
 	Convey("AccountStatus state transition", t, func() {
 		now := time.Date(2006, 1, 2, 3, 4, 5, 6, time.UTC)
