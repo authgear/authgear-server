@@ -702,6 +702,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	userInfoService := &userinfo.UserInfoService{
 		Redis:                 appredisHandle,
+		Clock:                 clockClock,
 		AppID:                 appID,
 		UserQueries:           userQueries,
 		RolesAndGroupsQueries: queries,

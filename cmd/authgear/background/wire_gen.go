@@ -638,6 +638,7 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 	}
 	userInfoService := &userinfo.UserInfoService{
 		Redis:                 appredisHandle,
+		Clock:                 clockClock,
 		AppID:                 configAppID,
 		UserQueries:           userQueries,
 		RolesAndGroupsQueries: queries,

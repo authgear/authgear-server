@@ -20,6 +20,7 @@ type User struct {
 	TemporarilyDisabledUntil *time.Time `json:"temporarily_disabled_until,omitempty"`
 	AccountValidFrom         *time.Time `json:"account_valid_from,omitempty"`
 	AccountValidUntil        *time.Time `json:"account_valid_until,omitempty"`
+	AccountStatusStaleFrom   *time.Time `json:"-"`
 
 	CanReauthenticate  bool                   `json:"can_reauthenticate"`
 	StandardAttributes map[string]interface{} `json:"standard_attributes"`
