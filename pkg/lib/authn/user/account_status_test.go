@@ -269,8 +269,8 @@ func TestAccountStatusStateTransition(t *testing.T) {
 				DisableIndefinitely:            "",
 				DisableTemporarily_Now:         "",
 				DisableTemporarily_Future:      "",
-				SetAccountValidPeriod_Inside:   "the start timestamp of account valid period must be less than the start timestamp of temporarily disabled period",
-				SetAccountValidPeriod_Outside:  "the start timestamp of account valid period must be less than the start timestamp of temporarily disabled period",
+				SetAccountValidPeriod_Inside:   "",
+				SetAccountValidPeriod_Outside:  "",
 				ScheduleDeletionByEndUser:      "",
 				ScheduleDeletionByAdmin:        "",
 				UnscheduleDeletionByAdmin:      "invalid account status transition: normal -> normal",
@@ -751,6 +751,35 @@ func TestAccountStatusTimestampsValidation(t *testing.T) {
 
 			_, err = status.DisableTemporarily(&t1, &t2, nil)
 			So(err, ShouldBeNil)
+		})
+
+		Convey("past temporarily disabled period is ignored when setting account valid period", func() {
+			status, err := AccountStatus{}.WithRefTime(t2).DisableTemporarily(&t0, &t1, nil)
+			So(err, ShouldBeNil)
+			So(status.Check(), ShouldBeNil)
+
+			_, err = status.SetAccountValidPeriod(&t2, &t3)
+			So(err, ShouldBeNil)
+		})
+
+		Convey("upcoming temporarily disabled period is NOT ignored when setting account valid period", func() {
+			status, err := AccountStatus{}.WithRefTime(t0).DisableTemporarily(&t1, &t2, nil)
+			So(err, ShouldBeNil)
+			So(status.Check(), ShouldBeNil)
+
+			_, err = status.SetAccountValidPeriod(&t3, &t4)
+			So(err, ShouldNotBeNil)
+			So(err, ShouldBeError, "the start timestamp of account valid period must be less than the start timestamp of temporarily disabled period")
+		})
+
+		Convey("ongoing temporarily disabled period is NOT ignored when setting account valid period", func() {
+			status, err := AccountStatus{}.WithRefTime(t1).DisableTemporarily(&t0, &t2, nil)
+			So(err, ShouldBeNil)
+			So(status.Check(), ShouldBeError, "user is disabled")
+
+			_, err = status.SetAccountValidPeriod(&t3, &t4)
+			So(err, ShouldNotBeNil)
+			So(err, ShouldBeError, "the start timestamp of account valid period must be less than the start timestamp of temporarily disabled period")
 		})
 	})
 }
