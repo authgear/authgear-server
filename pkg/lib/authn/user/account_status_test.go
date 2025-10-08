@@ -217,8 +217,8 @@ func TestAccountStatusStateTransition(t *testing.T) {
 			testStateTransition(disabledTemporarily, accountStatusStateTransitionTest{
 				Reenable:                       "",
 				DisableIndefinitely:            "",
-				DisableTemporarily_Now:         "invalid account status transition: disabled_temporarily -> disabled_temporarily",
-				DisableTemporarily_Future:      "invalid account status transition: disabled_temporarily -> normal",
+				DisableTemporarily_Now:         "",
+				DisableTemporarily_Future:      "",
 				SetAccountValidPeriod_Inside:   "the start timestamp of account valid period must be less than the start timestamp of temporarily disabled period",
 				SetAccountValidPeriod_Outside:  "the start timestamp of account valid period must be less than the start timestamp of temporarily disabled period",
 				ScheduleDeletionByEndUser:      "invalid account status transition: disabled_temporarily -> scheduled_deletion_deactivated",

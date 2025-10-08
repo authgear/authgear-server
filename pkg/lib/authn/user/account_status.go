@@ -514,6 +514,8 @@ func (s AccountStatusWithRefTime) DisableTemporarily(from *time.Time, until *tim
 		return &target, nil
 	case AccountStatusVariantDisabledIndefinitely{}.getAccountStatusType():
 		return &target, nil
+	case AccountStatusVariantDisabledTemporarily{}.getAccountStatusType():
+		return &target, nil
 	default:
 		return nil, makeTransitionError(s.getMostAppropriateType(), target.variant().getAccountStatusType())
 	}
