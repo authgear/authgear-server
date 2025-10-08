@@ -322,6 +322,10 @@ func (s AccountStatusWithRefTime) AccountValidUntil() *time.Time {
 	return s.accountStatus.accountValidUntil
 }
 
+func (s AccountStatusWithRefTime) AccountStatusStaleFrom() *time.Time {
+	return s.accountStatus.accountStatusStaleFrom
+}
+
 func (s AccountStatusWithRefTime) isOutsideValidPeriod() bool {
 	if s.accountStatus.accountValidFrom != nil {
 		lessThanFrom := s.refTime.Before(*s.accountStatus.accountValidFrom)

@@ -41,7 +41,7 @@ func (e *AdminAPIMutationSetAccountValidUntilExecutedEventPayload) ForAudit() bo
 }
 
 func (e *AdminAPIMutationSetAccountValidUntilExecutedEventPayload) RequireReindexUserIDs() []string {
-	return nil
+	return []string{e.UserID()}
 }
 
 func (e *AdminAPIMutationSetAccountValidUntilExecutedEventPayload) DeletedUserIDs() []string {
