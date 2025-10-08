@@ -47,6 +47,18 @@ func (u UserFacade) Disable(ctx context.Context, options SetDisabledOptions) err
 	return u.Coordinator.UserDisable(ctx, options)
 }
 
+func (u UserFacade) SetAccountValidFrom(ctx context.Context, userID string, from *time.Time) error {
+	return u.Coordinator.UserSetAccountValidFrom(ctx, userID, from)
+}
+
+func (u UserFacade) SetAccountValidUntil(ctx context.Context, userID string, until *time.Time) error {
+	return u.Coordinator.UserSetAccountValidUntil(ctx, userID, until)
+}
+
+func (u UserFacade) SetAccountValidPeriod(ctx context.Context, userID string, from *time.Time, until *time.Time) error {
+	return u.Coordinator.UserSetAccountValidPeriod(ctx, userID, from, until)
+}
+
 func (u UserFacade) Reenable(ctx context.Context, userID string) error {
 	return u.Coordinator.UserReenable(ctx, userID)
 }

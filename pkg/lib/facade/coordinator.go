@@ -1135,6 +1135,93 @@ func (c *Coordinator) UserDisable(ctx context.Context, options SetDisabledOption
 	return nil
 }
 
+func (c *Coordinator) UserSetAccountValidFrom(ctx context.Context, userID string, from *time.Time) error {
+	u, err := c.UserQueries.GetRaw(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	now := c.Clock.NowUTC()
+
+	accountStatus, err := u.AccountStatus(now).SetAccountValidFrom(from)
+	if err != nil {
+		return err
+	}
+
+	err = c.UserCommands.UpdateAccountStatus(ctx, userID, *accountStatus)
+	if err != nil {
+		return err
+	}
+
+	// If the account is disabled now, terminate all sessions.
+	if accountStatus.IsDisabled() {
+		err = c.terminateAllSessions(ctx, userID)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (c *Coordinator) UserSetAccountValidUntil(ctx context.Context, userID string, until *time.Time) error {
+	u, err := c.UserQueries.GetRaw(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	now := c.Clock.NowUTC()
+
+	accountStatus, err := u.AccountStatus(now).SetAccountValidUntil(until)
+	if err != nil {
+		return err
+	}
+
+	err = c.UserCommands.UpdateAccountStatus(ctx, userID, *accountStatus)
+	if err != nil {
+		return err
+	}
+
+	// If the account is disabled now, terminate all sessions.
+	if accountStatus.IsDisabled() {
+		err = c.terminateAllSessions(ctx, userID)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (c *Coordinator) UserSetAccountValidPeriod(ctx context.Context, userID string, from *time.Time, until *time.Time) error {
+	u, err := c.UserQueries.GetRaw(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	now := c.Clock.NowUTC()
+
+	accountStatus, err := u.AccountStatus(now).SetAccountValidPeriod(from, until)
+	if err != nil {
+		return err
+	}
+
+	err = c.UserCommands.UpdateAccountStatus(ctx, userID, *accountStatus)
+	if err != nil {
+		return err
+	}
+
+	// If the account is disabled now, terminate all sessions.
+	if accountStatus.IsDisabled() {
+		err = c.terminateAllSessions(ctx, userID)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (c *Coordinator) UserScheduleDeletionByAdmin(ctx context.Context, userID string) error {
 	return c.userScheduleDeletion(ctx, userID, true)
 }
