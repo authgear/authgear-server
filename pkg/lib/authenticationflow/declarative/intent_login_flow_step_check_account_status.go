@@ -6,10 +6,7 @@ import (
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
-	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
-
-var loginFlowCheckAccountStatusLogger = slogutil.NewLogger("login-flow-check-account-status")
 
 func init() {
 	authflow.RegisterIntent(&IntentLoginFlowStepCheckAccountStatus{})
