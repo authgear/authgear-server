@@ -8,7 +8,7 @@ export type ScheduleAccountAnonymizationMutationMutationVariables = Types.Exact<
 }>;
 
 
-export type ScheduleAccountAnonymizationMutationMutation = { __typename?: 'Mutation', scheduleAccountAnonymization: { __typename?: 'ScheduleAccountAnonymizationPayload', user: { __typename?: 'User', id: string, isDisabled: boolean, disableReason?: string | null, isDeactivated: boolean, deleteAt?: any | null, isAnonymized: boolean, anonymizeAt?: any | null } } };
+export type ScheduleAccountAnonymizationMutationMutation = { __typename?: 'Mutation', scheduleAccountAnonymization: { __typename?: 'ScheduleAccountAnonymizationPayload', user: { __typename?: 'User', id: string, isDisabled: boolean, disableReason?: string | null, isDeactivated: boolean, deleteAt?: any | null, isAnonymized: boolean, anonymizeAt?: any | null, temporarilyDisabledFrom?: any | null, temporarilyDisabledUntil?: any | null, accountValidFrom?: any | null, accountValidUntil?: any | null } } };
 
 
 export const ScheduleAccountAnonymizationMutationDocument = gql`
@@ -22,6 +22,10 @@ export const ScheduleAccountAnonymizationMutationDocument = gql`
       deleteAt
       isAnonymized
       anonymizeAt
+      temporarilyDisabledFrom
+      temporarilyDisabledUntil
+      accountValidFrom
+      accountValidUntil
     }
   }
 }

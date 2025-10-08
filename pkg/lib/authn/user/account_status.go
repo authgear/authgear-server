@@ -294,6 +294,22 @@ func (s AccountStatusWithRefTime) DisableReason() *string {
 	return s.accountStatus.disableReason
 }
 
+func (s AccountStatusWithRefTime) TemporarilyDisabledFrom() *time.Time {
+	return s.accountStatus.temporarilyDisabledFrom
+}
+
+func (s AccountStatusWithRefTime) TemporarilyDisabledUntil() *time.Time {
+	return s.accountStatus.temporarilyDisabledUntil
+}
+
+func (s AccountStatusWithRefTime) AccountValidFrom() *time.Time {
+	return s.accountStatus.accountValidFrom
+}
+
+func (s AccountStatusWithRefTime) AccountValidUntil() *time.Time {
+	return s.accountStatus.accountValidUntil
+}
+
 func (s AccountStatusWithRefTime) isOutsideValidPeriod() bool {
 	if s.accountStatus.accountValidFrom != nil {
 		lessThanFrom := s.refTime.Before(*s.accountStatus.accountValidFrom)

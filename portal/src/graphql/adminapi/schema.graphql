@@ -2041,6 +2041,12 @@ type UpdateUserPayload {
 
 """Authgear user"""
 type User implements Entity & Node {
+  """The start timestamp of the account valid period"""
+  accountValidFrom: DateTime
+
+  """The end timestamp of the account valid period"""
+  accountValidUntil: DateTime
+
   """The scheduled anonymization time of the user"""
   anonymizeAt: DateTime
 
@@ -2141,6 +2147,12 @@ type User implements Entity & Node {
 
   """The user's standard attributes"""
   standardAttributes: UserStandardAttributes!
+
+  """The start timestamp of the temporarily disabled period"""
+  temporarilyDisabledFrom: DateTime
+
+  """The end timestamp of the temporarily disabled period"""
+  temporarilyDisabledUntil: DateTime
 
   """The update time of entity"""
   updatedAt: DateTime!
