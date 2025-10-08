@@ -146,10 +146,11 @@ func (s AccountStatus) WithRefTime(refTime time.Time) AccountStatusWithRefTime {
 	return AccountStatusWithRefTime{
 		accountStatus: s,
 		refTime:       refTime,
-	}.normalize()
+	}.normalizeOnRead()
 }
 
-func (s AccountStatusWithRefTime) normalize() AccountStatusWithRefTime {
+// normalizeOnRead performs necessary normalization when account status is read from the database.
+func (s AccountStatusWithRefTime) normalizeOnRead() AccountStatusWithRefTime {
 	// This block reads is_disabled.
 	if s.accountStatus.isIndefinitelyDisabled == nil {
 		if s.accountStatus.accountValidFrom == nil && s.accountStatus.accountValidUntil == nil && s.accountStatus.temporarilyDisabledFrom == nil && s.accountStatus.temporarilyDisabledUntil == nil {
@@ -172,12 +173,23 @@ func (s AccountStatusWithRefTime) normalize() AccountStatusWithRefTime {
 		s.accountStatus.isAnonymized = &false_
 	}
 
-	// This block writes is_disabled.
+	// The normalization applicable to account status change is also applicable to read.
+	s = s.normalizeOnChange()
+	return s
+}
+
+// normalizeOnChange performs necessary normalization when account status is changed.
+func (s AccountStatusWithRefTime) normalizeOnChange() AccountStatusWithRefTime {
+	// Remove the temporarily disabled period if it is irrelevant.
+	// That is, the temporarily disabled period is in the past.
+	if s.accountStatus.temporarilyDisabledFrom != nil && s.accountStatus.temporarilyDisabledUntil != nil {
+		if s.refTime.After(*s.accountStatus.temporarilyDisabledFrom) && s.refTime.After(*s.accountStatus.temporarilyDisabledUntil) {
+			s.accountStatus.temporarilyDisabledFrom = nil
+			s.accountStatus.temporarilyDisabledUntil = nil
+		}
+	}
 	s.accountStatus.isDisabled = s.IsDisabled()
-
-	// Ensure account_status_stale_from is accurate.
 	s.accountStatus.accountStatusStaleFrom = s.deriveAccountStatusStaleFrom()
-
 	return s
 }
 
@@ -419,8 +431,7 @@ func (s AccountStatusWithRefTime) Reenable() (*AccountStatusWithRefTime, error) 
 	target.accountStatus.temporarilyDisabledUntil = nil
 	target.accountStatus.deleteAt = nil
 	target.accountStatus.anonymizeAt = nil
-	target.accountStatus.accountStatusStaleFrom = target.deriveAccountStatusStaleFrom()
-	target.accountStatus.isDisabled = target.IsDisabled()
+	target = target.normalizeOnChange()
 
 	err := target.checkAllTimestampsAreValid()
 	if err != nil {
@@ -458,8 +469,7 @@ func (s AccountStatusWithRefTime) DisableIndefinitely(reason *string) (*AccountS
 	target.accountStatus.temporarilyDisabledUntil = nil
 	target.accountStatus.deleteAt = nil
 	target.accountStatus.anonymizeAt = nil
-	target.accountStatus.accountStatusStaleFrom = target.deriveAccountStatusStaleFrom()
-	target.accountStatus.isDisabled = target.IsDisabled()
+	target = target.normalizeOnChange()
 
 	err := target.checkAllTimestampsAreValid()
 	if err != nil {
@@ -494,8 +504,7 @@ func (s AccountStatusWithRefTime) DisableTemporarily(from *time.Time, until *tim
 	target.accountStatus.temporarilyDisabledUntil = until
 	target.accountStatus.deleteAt = nil
 	target.accountStatus.anonymizeAt = nil
-	target.accountStatus.accountStatusStaleFrom = target.deriveAccountStatusStaleFrom()
-	target.accountStatus.isDisabled = target.IsDisabled()
+	target = target.normalizeOnChange()
 
 	err := target.checkAllTimestampsAreValid()
 	if err != nil {
@@ -525,8 +534,7 @@ func (s AccountStatusWithRefTime) SetAccountValidFrom(t *time.Time) (*AccountSta
 	target := s
 
 	target.accountStatus.accountValidFrom = t
-	target.accountStatus.accountStatusStaleFrom = target.deriveAccountStatusStaleFrom()
-	target.accountStatus.isDisabled = target.IsDisabled()
+	target = target.normalizeOnChange()
 
 	err := target.checkAllTimestampsAreValid()
 	if err != nil {
@@ -544,8 +552,7 @@ func (s AccountStatusWithRefTime) SetAccountValidFrom(t *time.Time) (*AccountSta
 func (s AccountStatusWithRefTime) SetAccountValidUntil(t *time.Time) (*AccountStatusWithRefTime, error) {
 	target := s
 	target.accountStatus.accountValidUntil = t
-	target.accountStatus.accountStatusStaleFrom = target.deriveAccountStatusStaleFrom()
-	target.accountStatus.isDisabled = target.IsDisabled()
+	target = target.normalizeOnChange()
 
 	err := target.checkAllTimestampsAreValid()
 	if err != nil {
@@ -564,8 +571,7 @@ func (s AccountStatusWithRefTime) SetAccountValidPeriod(from *time.Time, until *
 	target := s
 	target.accountStatus.accountValidFrom = from
 	target.accountStatus.accountValidUntil = until
-	target.accountStatus.accountStatusStaleFrom = target.deriveAccountStatusStaleFrom()
-	target.accountStatus.isDisabled = target.IsDisabled()
+	target = target.normalizeOnChange()
 
 	err := target.checkAllTimestampsAreValid()
 	if err != nil {
@@ -591,8 +597,7 @@ func (s AccountStatusWithRefTime) ScheduleDeletionByEndUser(deleteAt time.Time) 
 	target.accountStatus.temporarilyDisabledUntil = nil
 	target.accountStatus.deleteAt = &deleteAt
 	target.accountStatus.anonymizeAt = nil
-	target.accountStatus.accountStatusStaleFrom = target.deriveAccountStatusStaleFrom()
-	target.accountStatus.isDisabled = target.IsDisabled()
+	target = target.normalizeOnChange()
 
 	err := target.checkAllTimestampsAreValid()
 	if err != nil {
@@ -626,8 +631,7 @@ func (s AccountStatusWithRefTime) ScheduleDeletionByAdmin(deleteAt time.Time) (*
 	target.accountStatus.temporarilyDisabledUntil = nil
 	target.accountStatus.deleteAt = &deleteAt
 	target.accountStatus.anonymizeAt = nil
-	target.accountStatus.accountStatusStaleFrom = target.deriveAccountStatusStaleFrom()
-	target.accountStatus.isDisabled = target.IsDisabled()
+	target = target.normalizeOnChange()
 
 	err := target.checkAllTimestampsAreValid()
 	if err != nil {
@@ -661,8 +665,7 @@ func (s AccountStatusWithRefTime) UnscheduleDeletionByAdmin() (*AccountStatusWit
 	target.accountStatus.temporarilyDisabledUntil = nil
 	target.accountStatus.deleteAt = nil
 	target.accountStatus.anonymizeAt = nil
-	target.accountStatus.accountStatusStaleFrom = target.deriveAccountStatusStaleFrom()
-	target.accountStatus.isDisabled = target.IsDisabled()
+	target = target.normalizeOnChange()
 
 	err := target.checkAllTimestampsAreValid()
 	if err != nil {
@@ -701,8 +704,7 @@ func (s AccountStatusWithRefTime) Anonymize() (*AccountStatusWithRefTime, error)
 	target.accountStatus.anonymizeAt = nil
 	target.accountStatus.isAnonymized = &true_
 	target.accountStatus.anonymizedAt = &s.refTime
-	target.accountStatus.accountStatusStaleFrom = target.deriveAccountStatusStaleFrom()
-	target.accountStatus.isDisabled = target.IsDisabled()
+	target = target.normalizeOnChange()
 
 	err := target.checkAllTimestampsAreValid()
 	if err != nil {
@@ -751,8 +753,7 @@ func (s AccountStatusWithRefTime) ScheduleAnonymizationByAdmin(anonymizeAt time.
 	target.accountStatus.temporarilyDisabledUntil = nil
 	target.accountStatus.deleteAt = nil
 	target.accountStatus.anonymizeAt = &anonymizeAt
-	target.accountStatus.accountStatusStaleFrom = target.deriveAccountStatusStaleFrom()
-	target.accountStatus.isDisabled = target.IsDisabled()
+	target = target.normalizeOnChange()
 
 	err := target.checkAllTimestampsAreValid()
 	if err != nil {
@@ -795,8 +796,7 @@ func (s AccountStatusWithRefTime) UnscheduleAnonymizationByAdmin() (*AccountStat
 	target.accountStatus.temporarilyDisabledUntil = nil
 	target.accountStatus.deleteAt = nil
 	target.accountStatus.anonymizeAt = nil
-	target.accountStatus.accountStatusStaleFrom = target.deriveAccountStatusStaleFrom()
-	target.accountStatus.isDisabled = target.IsDisabled()
+	target = target.normalizeOnChange()
 
 	err := target.checkAllTimestampsAreValid()
 	if err != nil {
