@@ -102,7 +102,6 @@
 /pkg/auth/handler/webapp/authflowv2/forgot_password_link_sent.go:86:26: requestcontext
 /pkg/auth/handler/webapp/authflowv2/forgot_password_otp.go:204:26: requestcontext
 /pkg/auth/handler/webapp/authflowv2/internal_signup_login.go:232:33: requestcontext
-/pkg/auth/handler/webapp/authflowv2/internal_signup_login.go:232:33: requestcontext
 /pkg/auth/handler/webapp/authflowv2/ldap_login.go:109:26: requestcontext
 /pkg/auth/handler/webapp/authflowv2/login.go:224:33: requestcontext
 /pkg/auth/handler/webapp/authflowv2/oauth_provider_demo_credential.go:65:26: requestcontext
@@ -337,5 +336,5 @@
 /pkg/util/otelutil/oteldatabasesql/instrumentation.go:301:13: contextbackground
 /pkg/util/pubsub/http_handler.go:51:40: requestcontext
 /pkg/util/sentry/request.go:25:9: requestcontext
-/pkg/util/slogutil/sentry_handler.go:45:11: contextbackground
+/pkg/util/slogutil/sentry_handler.go:81:11: contextbackground
 /pkg/util/template/engine.go:344:9: requestcontext
