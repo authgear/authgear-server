@@ -1798,6 +1798,10 @@ export type UpdateUserPayload = {
 /** Authgear user */
 export type User = Entity & Node & {
   __typename?: 'User';
+  /** The start timestamp of the account valid period */
+  accountValidFrom?: Maybe<Scalars['DateTime']['output']>;
+  /** The end timestamp of the account valid period */
+  accountValidUntil?: Maybe<Scalars['DateTime']['output']>;
   /** The scheduled anonymization time of the user */
   anonymizeAt?: Maybe<Scalars['DateTime']['output']>;
   /** The list of authenticators */
@@ -1864,6 +1868,10 @@ export type User = Entity & Node & {
   sessions?: Maybe<SessionConnection>;
   /** The user's standard attributes */
   standardAttributes: Scalars['UserStandardAttributes']['output'];
+  /** The start timestamp of the temporarily disabled period */
+  temporarilyDisabledFrom?: Maybe<Scalars['DateTime']['output']>;
+  /** The end timestamp of the temporarily disabled period */
+  temporarilyDisabledUntil?: Maybe<Scalars['DateTime']['output']>;
   /** The update time of entity */
   updatedAt: Scalars['DateTime']['output'];
   /** The list of user's verified claims */

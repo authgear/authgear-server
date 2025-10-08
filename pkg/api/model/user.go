@@ -6,15 +6,21 @@ import (
 
 type User struct {
 	Meta
-	LastLoginAt        *time.Time             `json:"last_login_at,omitempty"`
-	IsAnonymous        bool                   `json:"is_anonymous"`
-	IsVerified         bool                   `json:"is_verified"`
-	IsDisabled         bool                   `json:"is_disabled"`
-	DisableReason      *string                `json:"disable_reason,omitempty"`
-	IsDeactivated      bool                   `json:"is_deactivated"`
-	DeleteAt           *time.Time             `json:"delete_at,omitempty"`
-	IsAnonymized       bool                   `json:"is_anonymized"`
-	AnonymizeAt        *time.Time             `json:"anonymize_at,omitempty"`
+	LastLoginAt *time.Time `json:"last_login_at,omitempty"`
+	IsAnonymous bool       `json:"is_anonymous"`
+	IsVerified  bool       `json:"is_verified"`
+
+	IsDisabled               bool       `json:"is_disabled"`
+	DisableReason            *string    `json:"disable_reason,omitempty"`
+	IsDeactivated            bool       `json:"is_deactivated"`
+	DeleteAt                 *time.Time `json:"delete_at,omitempty"`
+	IsAnonymized             bool       `json:"is_anonymized"`
+	AnonymizeAt              *time.Time `json:"anonymize_at,omitempty"`
+	TemporarilyDisabledFrom  *time.Time `json:"temporarily_disabled_from,omitempty"`
+	TemporarilyDisabledUntil *time.Time `json:"temporarily_disabled_until,omitempty"`
+	AccountValidFrom         *time.Time `json:"account_valid_from,omitempty"`
+	AccountValidUntil        *time.Time `json:"account_valid_until,omitempty"`
+
 	CanReauthenticate  bool                   `json:"can_reauthenticate"`
 	StandardAttributes map[string]interface{} `json:"standard_attributes"`
 	CustomAttributes   map[string]interface{} `json:"custom_attributes"`
