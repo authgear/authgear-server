@@ -92,7 +92,7 @@ If any hook fails the operation, the operation fails with error
 }
 ```
 
-> For backward compatibility, the reason is called "HookDisallowed".
+> In the past, the reason was `WebHookDisallowed`. However, we decided to break backward compatibility and rename it to `HookDisallowed`.
 
 The time spent in a blocking event delivery must not exceed 5 seconds, otherwise it will be considered as a failed delivery. Also, the total time spent in all deliveries of the event must not exceed 10 seconds, otherwise it would also be considered as failed delivery. Both timeouts are configurable.
 
