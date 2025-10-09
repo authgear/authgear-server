@@ -2,6 +2,8 @@ package backgroundjob
 
 import (
 	"context"
+	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/util/panicutil"
@@ -91,7 +93,10 @@ func (r *Runner) runRunnable(ctx context.Context) {
 		}
 	}()
 
-	err := r.runnableFactory().Run(r.shutdownCtx)
+	runner := r.runnableFactory()
+	logger.Info(ctx, "start running", slog.String("runner_name", fmt.Sprintf("%T", runner)))
+
+	err := runner.Run(r.shutdownCtx)
 	if err != nil {
 		logger.WithError(err).Error(ctx, "runnable ended with error")
 	}
