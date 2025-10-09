@@ -95,6 +95,10 @@ func (u UserFacade) CheckUserAnonymized(ctx context.Context, userID string) erro
 	return u.Coordinator.UserCheckAnonymized(ctx, userID)
 }
 
+func (u UserFacade) RefreshAccountStatus(ctx context.Context, userID string) error {
+	return u.Coordinator.UserRefreshAccountStatus(ctx, userID)
+}
+
 func (u UserFacade) UpdateMFAEnrollment(ctx context.Context, userID string, endAt *time.Time) error {
 	return u.Coordinator.UserUpdateMFAEnrollment(ctx, userID, endAt)
 }

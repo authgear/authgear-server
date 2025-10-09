@@ -13,6 +13,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/feature/accountanonymization"
 	"github.com/authgear/authgear-server/pkg/lib/feature/accountdeletion"
+	"github.com/authgear/authgear-server/pkg/lib/feature/accountstatus"
 	"github.com/authgear/authgear-server/pkg/util/backgroundjob"
 )
 
@@ -38,6 +39,14 @@ func newAccountDeletionRunner(ctx context.Context, p *deps.BackgroundProvider, c
 		DependencySet,
 		accountdeletion.DependencySet,
 		wire.Bind(new(accountdeletion.AppContextResolver), new(*configsource.Controller)),
+	))
+}
+
+func newAccountStatusRunner(ctx context.Context, p *deps.BackgroundProvider, ctrl *configsource.Controller) *backgroundjob.Runner {
+	panic(wire.Build(
+		DependencySet,
+		accountstatus.DependencySet,
+		wire.Bind(new(accountstatus.AppContextResolver), new(*configsource.Controller)),
 	))
 }
 
