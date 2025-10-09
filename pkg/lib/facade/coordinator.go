@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
@@ -31,6 +32,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/setutil"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
@@ -150,6 +152,8 @@ type StdAttrsService interface {
 
 type IDPSessionManager SessionManager
 type OAuthSessionManager SessionManager
+
+var CoordinatorLogger = slogutil.NewLogger("coordinator")
 
 // Coordinator represents interaction between identities, authenticators, and
 // other high-level features (such as verification).
@@ -1505,6 +1509,34 @@ func (c *Coordinator) UserCheckAnonymized(ctx context.Context, userID string) er
 	now := c.Clock.NowUTC()
 	if u.AccountStatus(now).IsAnonymized() {
 		return ErrUserIsAnonymized
+	}
+
+	return nil
+}
+
+func (c *Coordinator) UserRefreshAccountStatus(ctx context.Context, userID string) error {
+	logger := CoordinatorLogger.GetLogger(ctx).With(slog.String("user_id", userID))
+
+	u, err := c.UserQueries.GetRaw(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	now := c.Clock.NowUTC()
+	accountStatus := u.AccountStatus(now)
+
+	logger.Info(ctx, "refreshing account status")
+	err = c.UserCommands.UpdateAccountStatus(ctx, userID, accountStatus)
+	if err != nil {
+		return err
+	}
+
+	if accountStatus.IsDisabled() {
+		logger.Info(ctx, "terminating all sessions during refreshing account status")
+		err := c.terminateAllSessions(ctx, userID)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
