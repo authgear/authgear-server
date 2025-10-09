@@ -42,7 +42,6 @@ func (r *Runnable) Run(ctx context.Context) error {
 			}
 			logger := RunnableLogger.GetLogger(ctx)
 			logger.Info(ctx, "executed refresh account status",
-				slog.String("app_id", appUser.AppID),
 				slog.String("user_id", appUser.UserID),
 			)
 			return nil
