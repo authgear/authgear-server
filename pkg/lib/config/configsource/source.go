@@ -2,9 +2,11 @@ package configsource
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
 type AppIDResolver interface {
@@ -31,7 +33,17 @@ func (s *ConfigSource) ProvideContext(ctx context.Context, r *http.Request, fn f
 	if err != nil {
 		return err
 	}
-	return s.ContextResolver.ResolveContext(ctx, appID, fn)
+	return s.ResolveContext(ctx, appID, fn)
+}
+
+func (s *ConfigSource) ResolveContext(ctx context.Context, appID string, fn func(context.Context, *config.AppContext) error) error {
+	return s.ContextResolver.ResolveContext(ctx, appID, func(ctx context.Context, appCtx *config.AppContext) error {
+		ctx = slogutil.AddMaskPatterns(ctx, config.NewMaskPatternFromSecretConfig(appCtx.Config.SecretConfig))
+		logger := slogutil.GetContextLogger(ctx)
+		logger = logger.With(slog.String("app", string(appCtx.Config.AppConfig.ID)))
+		ctx = slogutil.SetContextLogger(ctx, logger)
+		return fn(ctx, appCtx)
+	})
 }
 
 type Controller struct {
@@ -85,5 +97,5 @@ func (c *Controller) GetConfigSource() *ConfigSource {
 // ResolveContext allows direct resolution from appID.
 // It is useful when you get appID somewhere else, rather than from a HTTP request.
 func (c *Controller) ResolveContext(ctx context.Context, appID string, fn func(context.Context, *config.AppContext) error) error {
-	return c.ContextResolver.ResolveContext(ctx, appID, fn)
+	return c.GetConfigSource().ResolveContext(ctx, appID, fn)
 }
