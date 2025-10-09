@@ -46,13 +46,28 @@ func (o MaskHandlerOptions) maskString(s string) string {
 	return s
 }
 
+type MaskedValue interface {
+	MaskedValue()
+}
+
 type MaskedError struct {
 	Type    string
 	Message string
 }
 
+func (e *MaskedError) MaskedValue() {}
 func (e *MaskedError) Error() string {
 	return e.Message
+}
+
+type MaskedAny struct {
+	Type string
+	str  string
+}
+
+func (e *MaskedAny) MaskedValue() {}
+func (a *MaskedAny) String() string {
+	return a.str
 }
 
 func (o MaskHandlerOptions) maskAttr(ctx context.Context, a slog.Attr) slog.Attr {
@@ -74,9 +89,9 @@ func (o MaskHandlerOptions) maskAttr(ctx context.Context, a slog.Attr) slog.Attr
 		str := o.maskString(a.Value.String())
 		return slog.Attr{
 			Key: a.Key,
-			Value: slog.AnyValue(&MaskedError{
-				Type:    reflect.TypeOf(a.Value.Any()).String(),
-				Message: str,
+			Value: slog.AnyValue(&MaskedAny{
+				Type: reflect.TypeOf(a.Value.Any()).String(),
+				str:  str,
 			}),
 		}
 	case slog.KindBool:
