@@ -74,7 +74,7 @@ func logAuthenticationBlockedErrorIfNeeded(ctx context.Context, deps *Dependenci
 	if !user.IsAccountStatusError(apiErr) &&
 		!apierrors.IsKind(apiErr, lockout.AccountLockout) &&
 		!apierrors.IsKind(apiErr, hook.WebHookDisallowed) {
-		return apiErr
+		return err
 	}
 
 	userID, getUserIDErr := GetUserID(flows)
@@ -82,14 +82,14 @@ func logAuthenticationBlockedErrorIfNeeded(ctx context.Context, deps *Dependenci
 		if errors.Is(getUserIDErr, ErrNoUserID) || errors.Is(getUserIDErr, ErrDifferentUserID) {
 			userID = ""
 		} else {
-			return errors.Join(getUserIDErr, apiErr)
+			return errors.Join(getUserIDErr, err)
 		}
 	}
 	var user *model.User
 	if userID != "" {
 		u, getUserErr := deps.Users.Get(ctx, userID, accesscontrol.RoleGreatest)
 		if getUserErr != nil {
-			return errors.Join(getUserErr, apiErr)
+			return errors.Join(getUserErr, err)
 		}
 		user = u
 	}
@@ -100,7 +100,7 @@ func logAuthenticationBlockedErrorIfNeeded(ctx context.Context, deps *Dependenci
 	if dispatchErr != nil {
 		ServiceLogger.GetLogger(ctx).WithError(dispatchErr).Error(ctx, "failed to dispatch event")
 	}
-	return apiErr
+	return err
 }
 
 // nolint: gocognit
