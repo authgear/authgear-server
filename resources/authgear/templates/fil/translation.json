@@ -1031,7 +1031,7 @@
   "v2.error.web-ui-invalid-session-return": "Maaaring pinindot mo ang back button, o may isyu sa mga cookies. Subukan: <ol><li>Gawin muli ang aksyon mula sa aplikasyon.</li><li>Muling subukin pagkatapos mag-clear ng mga cookies.</li><li>Kung patuloy ang problema, mangyaring makipag-ugnayan sa administrator.</li></ol>",
   "v2.error.web-ui-session-completed": "Sandali lang, maililipatmo sa iyong app.",
   "v2.error.webhook-delivery-failed": "Ang operasyon ay hindi pinapayagan dahil ang paghahatid ng webhook ay nagresulta sa hindi kilalang error.",
-  "v2.error.webhook-disallowed": "Hindi pinapayagan ang operasyon",
+  "v2.error.hook-disallowed": "Hindi pinapayagan ang operasyon",
   "v2.error.webhook-pre-signup-disallowed": "Hindi pinapayagan ang pag-sign up",
   "v2.error.whatsapp-undeliverable": "Hindi naipasa ang mensahe sa WhatsApp. Pakisubok muli.",
   "v2.page.account-linking.default.by-email": "Mag-log in sa {IdentityDisplayName}",

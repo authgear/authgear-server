@@ -1031,7 +1031,7 @@
   "v2.error.web-ui-invalid-session-return": "戻るボタンを押した可能性があるか、クッキーに問題がある可能性があります。次のことを試してください: <ol><li>アプリケーションから操作を再度行う。</li><li>クッキーをクリアした後で再試行する。</li><li>問題が解決しない場合は、管理者に連絡してください。</li></ol>",
   "v2.error.web-ui-session-completed": "しばらくお待ちください。アプリにリダイレクトされます。",
   "v2.error.webhook-delivery-failed": "操作は許可されていません。Webhookの配信中に不明なエラーが発生したためです。",
-  "v2.error.webhook-disallowed": "操作は許可されていません",
+  "v2.error.hook-disallowed": "操作は許可されていません",
   "v2.error.webhook-pre-signup-disallowed": "サインアップは許可されていません",
   "v2.error.whatsapp-undeliverable": "WhatsAppメッセージの配信に失敗しました。もう一度お試しください。",
   "v2.page.account-linking.default.by-email": "{IdentityDisplayName}にログイン",

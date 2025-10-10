@@ -1031,7 +1031,7 @@
   "v2.error.web-ui-invalid-session-return": "คุณอาจกดปุ่มกลับ หรือมีปัญหาบางอย้างกับคุกกี้ ลองทำดังนี้: <ol><li>ทำการกระทำนั้นอีกครั้งจากแอปพลิเคชัน</li><li>ลองใหม่หลังจากล้างคุกกี้</li><li>หากปัญหายังคงอยู่ โปรดติดต่อผู้ดูแลระบบ</li></ol>",
   "v2.error.web-ui-session-completed": "เพียงสักครู่ คุณจะถูกเปลี่ยนเส้นทางไปยังแอปพลิเคชันของคุณ",
   "v2.error.webhook-delivery-failed": "การดำเนินการไม่ได้รับอนุญาตเนื่องจากการส่งมอบ webhook ส่งผลให้เกิดข้อผิดพลาดที่ไม่รู้จัก",
-  "v2.error.webhook-disallowed": "ไม่อนุญาตให้ดำเนินการ",
+  "v2.error.hook-disallowed": "ไม่อนุญาตให้ดำเนินการ",
   "v2.error.webhook-pre-signup-disallowed": "ไม่อนุญาตให้ลงทะเบียน",
   "v2.error.whatsapp-undeliverable": "ไม่สามารถส่งข้อความ WhatsApp ได้ โปรดลองอีกครั้ง",
   "v2.page.account-linking.default.by-email": "เข้าสู่ระบบ {IdentityDisplayName}",

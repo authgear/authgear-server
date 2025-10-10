@@ -1031,7 +1031,7 @@
   "v2.error.web-ui-invalid-session-return": "Możliwe, że nacisnąłeś przycisk powrotu lub występuje problem z ciasteczkami. Spróbuj: <ol><li>Wykonać akcję ponownie z aplikacji.</li><li>Spróbować ponownie po wyczyszczeniu ciasteczek.</li><li>Jeśli problem będzie się utrzymywał, skontaktuj się z administratorem.</li></ol>",
   "v2.error.web-ui-session-completed": "Chwileczkę, zostaniesz przekierowany do swojej aplikacji.",
   "v2.error.webhook-delivery-failed": "Operacja jest niedozwolona, ponieważ dostarczenie webhooka zakończyło się nieznanym błędem.",
-  "v2.error.webhook-disallowed": "Operacja jest niedozwolona",
+  "v2.error.hook-disallowed": "Operacja jest niedozwolona",
   "v2.error.webhook-pre-signup-disallowed": "Rejestracja jest niedozwolona",
   "v2.error.whatsapp-undeliverable": "Nie udało się dostarczyć wiadomości WhatsApp. Proszę spróbować ponownie.",
   "v2.page.account-linking.default.by-email": "Zaloguj się do {IdentityDisplayName}",

@@ -230,7 +230,7 @@
         {{ if eq .Error.info.event_type "pre_signup" }}
           {{ include "v2.error.webhook-pre-signup-disallowed" nil }}
         {{ else }}
-          {{ include "v2.error.webhook-disallowed" nil }}
+          {{ include "v2.error.hook-disallowed" nil }}
         {{ end }}
     {{ end }}
     {{ if $error_reason.reason }}

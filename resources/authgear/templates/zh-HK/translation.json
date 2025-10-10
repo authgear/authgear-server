@@ -1031,7 +1031,7 @@
   "v2.error.web-ui-invalid-session-return": "您可能按了返回按鈕,或者與cookies有一些問題。請嘗試: <ol><li>從應用程式重新執行該操作。</li><li>清除cookies後重試。</li><li>如果問題仍然存在,請聯繫管理員。</li></ol>",
   "v2.error.web-ui-session-completed": "請稍等，您將自動返回您的應用程式。",
   "v2.error.webhook-delivery-failed": "因為Webhook未知錯誤，操作已被禁止",
-  "v2.error.webhook-disallowed": "操作已被禁止",
+  "v2.error.hook-disallowed": "操作已被禁止",
   "v2.error.webhook-pre-signup-disallowed": "註冊已被禁止",
   "v2.error.whatsapp-undeliverable": "無法傳送WhatsApp訊息。請再試一次。",
   "v2.page.account-linking.default.by-email": "登入 {IdentityDisplayName}",

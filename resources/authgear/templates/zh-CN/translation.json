@@ -1031,7 +1031,7 @@
   "v2.error.web-ui-invalid-session-return": "您可能按了后退按钮,或者有一些与cookie相关的问题。请尝试:<ol><li>从应用程序重新执行该操作。</li><li>清除cookie后重试。</li><li>如果问题仍然存在,请联系管理员。</li></ol>",
   "v2.error.web-ui-session-completed": "请稍等，您将被重定向到您的应用程序。",
   "v2.error.webhook-delivery-failed": "操作被禁止,因为Webhook传递导致未知错误。",
-  "v2.error.webhook-disallowed": "操作不被允许",
+  "v2.error.hook-disallowed": "操作不被允许",
   "v2.error.webhook-pre-signup-disallowed": "注册不被允许",
   "v2.error.whatsapp-undeliverable": "WhatsApp 消息发送失败。请重试。",
   "v2.page.account-linking.default.by-email": "登录到 {IdentityDisplayName}",

@@ -1031,7 +1031,7 @@
   "v2.error.web-ui-invalid-session-return": "Bạn có thể đã nhấn nút quay lại, hoặc có vấn đề gì đó với cookie. Hãy thử: <ol><li>Thực hiện hành động lại từ ứng dụng.</li><li>Thử lại sau khi xóa cookie.</li><li>Nếu vấn đề vẫn tiếp tục, vui lòng liên hệ với quản trị viên.</li></ol>",
   "v2.error.web-ui-session-completed": "Chỉ một chút, bạn sẽ được chuyển hướng đến ứng dụng của mình.",
   "v2.error.webhook-delivery-failed": "Hoạt động bị cấm vì việc gửi webhook đã gặp lỗi không xác định.",
-  "v2.error.webhook-disallowed": "Hoạt động không được phép",
+  "v2.error.hook-disallowed": "Hoạt động không được phép",
   "v2.error.webhook-pre-signup-disallowed": "Đăng ký không được phép",
   "v2.error.whatsapp-undeliverable": "Không thể gửi tin nhắn WhatsApp. Vui lòng thử lại.",
   "v2.page.account-linking.default.by-email": "Đăng nhập vào {IdentityDisplayName}",

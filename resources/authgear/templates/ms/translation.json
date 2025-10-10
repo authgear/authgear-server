@@ -1031,7 +1031,7 @@
   "v2.error.web-ui-invalid-session-return": "Anda mungkin telah menekan butang kembali, atau terdapat isu dengan kuki. Cuba: <ol><li>Melakukan tindakan itu semula dari aplikasi.</li><li>Cuba semula selepas membersihkan kuki.</li><li>Jika masalah berterusan, sila hubungi pentadbir.</li></ol>",
   "v2.error.web-ui-session-completed": "Tunggu sebentar, anda akan dialihkan ke aplikasi anda.",
   "v2.error.webhook-delivery-failed": "Operasi tidak dibenarkan kerana penghantaran webhook mengakibatkan ralat yang tidak diketahui.",
-  "v2.error.webhook-disallowed": "Operasi tidak dibenarkan",
+  "v2.error.hook-disallowed": "Operasi tidak dibenarkan",
   "v2.error.webhook-pre-signup-disallowed": "Pendaftaran tidak dibenarkan",
   "v2.error.whatsapp-undeliverable": "Gagal menghantar mesej WhatsApp. Sila cuba lagi.",
   "v2.page.account-linking.default.by-email": "Log masuk ke {IdentityDisplayName}",
