@@ -8,6 +8,10 @@ mutation scheduleAccountDeletionMutation($userID: ID!) {
       deleteAt
       isAnonymized
       anonymizeAt
+      temporarilyDisabledFrom
+      temporarilyDisabledUntil
+      accountValidFrom
+      accountValidUntil
     }
   }
 }

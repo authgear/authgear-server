@@ -333,6 +333,22 @@ var nodeUser = node(
 				Type:        graphql.DateTime,
 				Description: "The scheduled anonymization time of the user",
 			},
+			"temporarilyDisabledFrom": &graphql.Field{
+				Type:        graphql.DateTime,
+				Description: "The start timestamp of the temporarily disabled period",
+			},
+			"temporarilyDisabledUntil": &graphql.Field{
+				Type:        graphql.DateTime,
+				Description: "The end timestamp of the temporarily disabled period",
+			},
+			"accountValidFrom": &graphql.Field{
+				Type:        graphql.DateTime,
+				Description: "The start timestamp of the account valid period",
+			},
+			"accountValidUntil": &graphql.Field{
+				Type:        graphql.DateTime,
+				Description: "The end timestamp of the account valid period",
+			},
 			"standardAttributes": &graphql.Field{
 				Type:        graphql.NewNonNull(UserStandardAttributes),
 				Description: "The user's standard attributes",

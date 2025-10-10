@@ -3,7 +3,7 @@ import * as Types from '../globalTypes.generated';
 import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
-export type UsersListFragment = { __typename?: 'UserConnection', totalCount?: number | null, edges?: Array<{ __typename?: 'UserEdge', cursor: string, node?: { __typename?: 'User', id: string, createdAt: any, lastLoginAt?: any | null, isAnonymous: boolean, isDisabled: boolean, disableReason?: string | null, isDeactivated: boolean, deleteAt?: any | null, isAnonymized: boolean, anonymizeAt?: any | null, standardAttributes: any, formattedName?: string | null, endUserAccountID?: string | null, groups?: { __typename?: 'GroupConnection', totalCount?: number | null, edges?: Array<{ __typename?: 'GroupEdge', cursor: string, node?: { __typename?: 'Group', createdAt: any, description?: string | null, id: string, key: string, name?: string | null, updatedAt: any } | null } | null> | null } | null, effectiveRoles?: { __typename?: 'RoleConnection', totalCount?: number | null, edges?: Array<{ __typename?: 'RoleEdge', cursor: string, node?: { __typename?: 'Role', createdAt: any, description?: string | null, id: string, key: string, name?: string | null, updatedAt: any } | null } | null> | null } | null } | null } | null> | null };
+export type UsersListFragment = { __typename?: 'UserConnection', totalCount?: number | null, edges?: Array<{ __typename?: 'UserEdge', cursor: string, node?: { __typename?: 'User', id: string, createdAt: any, lastLoginAt?: any | null, isAnonymous: boolean, isDisabled: boolean, disableReason?: string | null, isDeactivated: boolean, deleteAt?: any | null, isAnonymized: boolean, anonymizeAt?: any | null, temporarilyDisabledFrom?: any | null, temporarilyDisabledUntil?: any | null, accountValidFrom?: any | null, accountValidUntil?: any | null, standardAttributes: any, formattedName?: string | null, endUserAccountID?: string | null, groups?: { __typename?: 'GroupConnection', totalCount?: number | null, edges?: Array<{ __typename?: 'GroupEdge', cursor: string, node?: { __typename?: 'Group', createdAt: any, description?: string | null, id: string, key: string, name?: string | null, updatedAt: any } | null } | null> | null } | null, effectiveRoles?: { __typename?: 'RoleConnection', totalCount?: number | null, edges?: Array<{ __typename?: 'RoleEdge', cursor: string, node?: { __typename?: 'Role', createdAt: any, description?: string | null, id: string, key: string, name?: string | null, updatedAt: any } | null } | null> | null } | null } | null } | null> | null };
 
 export type UsersListQueryQueryVariables = Types.Exact<{
   searchKeyword: Types.Scalars['String']['input'];
@@ -16,7 +16,7 @@ export type UsersListQueryQueryVariables = Types.Exact<{
 }>;
 
 
-export type UsersListQueryQuery = { __typename?: 'Query', users?: { __typename?: 'UserConnection', totalCount?: number | null, edges?: Array<{ __typename?: 'UserEdge', cursor: string, node?: { __typename?: 'User', id: string, createdAt: any, lastLoginAt?: any | null, isAnonymous: boolean, isDisabled: boolean, disableReason?: string | null, isDeactivated: boolean, deleteAt?: any | null, isAnonymized: boolean, anonymizeAt?: any | null, standardAttributes: any, formattedName?: string | null, endUserAccountID?: string | null, groups?: { __typename?: 'GroupConnection', totalCount?: number | null, edges?: Array<{ __typename?: 'GroupEdge', cursor: string, node?: { __typename?: 'Group', createdAt: any, description?: string | null, id: string, key: string, name?: string | null, updatedAt: any } | null } | null> | null } | null, effectiveRoles?: { __typename?: 'RoleConnection', totalCount?: number | null, edges?: Array<{ __typename?: 'RoleEdge', cursor: string, node?: { __typename?: 'Role', createdAt: any, description?: string | null, id: string, key: string, name?: string | null, updatedAt: any } | null } | null> | null } | null } | null } | null> | null } | null };
+export type UsersListQueryQuery = { __typename?: 'Query', users?: { __typename?: 'UserConnection', totalCount?: number | null, edges?: Array<{ __typename?: 'UserEdge', cursor: string, node?: { __typename?: 'User', id: string, createdAt: any, lastLoginAt?: any | null, isAnonymous: boolean, isDisabled: boolean, disableReason?: string | null, isDeactivated: boolean, deleteAt?: any | null, isAnonymized: boolean, anonymizeAt?: any | null, temporarilyDisabledFrom?: any | null, temporarilyDisabledUntil?: any | null, accountValidFrom?: any | null, accountValidUntil?: any | null, standardAttributes: any, formattedName?: string | null, endUserAccountID?: string | null, groups?: { __typename?: 'GroupConnection', totalCount?: number | null, edges?: Array<{ __typename?: 'GroupEdge', cursor: string, node?: { __typename?: 'Group', createdAt: any, description?: string | null, id: string, key: string, name?: string | null, updatedAt: any } | null } | null> | null } | null, effectiveRoles?: { __typename?: 'RoleConnection', totalCount?: number | null, edges?: Array<{ __typename?: 'RoleEdge', cursor: string, node?: { __typename?: 'Role', createdAt: any, description?: string | null, id: string, key: string, name?: string | null, updatedAt: any } | null } | null> | null } | null } | null } | null> | null } | null };
 
 export const UsersListFragmentDoc = gql`
     fragment UsersList on UserConnection {
@@ -32,6 +32,10 @@ export const UsersListFragmentDoc = gql`
       deleteAt
       isAnonymized
       anonymizeAt
+      temporarilyDisabledFrom
+      temporarilyDisabledUntil
+      accountValidFrom
+      accountValidUntil
       standardAttributes
       formattedName
       endUserAccountID

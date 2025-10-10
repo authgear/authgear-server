@@ -8,7 +8,7 @@ export type UnscheduleAccountAnonymizationMutationMutationVariables = Types.Exac
 }>;
 
 
-export type UnscheduleAccountAnonymizationMutationMutation = { __typename?: 'Mutation', unscheduleAccountAnonymization: { __typename?: 'UnscheduleAccountAnonymizationPayload', user: { __typename?: 'User', id: string, isDisabled: boolean, disableReason?: string | null, isDeactivated: boolean, deleteAt?: any | null, isAnonymized: boolean, anonymizeAt?: any | null } } };
+export type UnscheduleAccountAnonymizationMutationMutation = { __typename?: 'Mutation', unscheduleAccountAnonymization: { __typename?: 'UnscheduleAccountAnonymizationPayload', user: { __typename?: 'User', id: string, isDisabled: boolean, disableReason?: string | null, isDeactivated: boolean, deleteAt?: any | null, isAnonymized: boolean, anonymizeAt?: any | null, temporarilyDisabledFrom?: any | null, temporarilyDisabledUntil?: any | null, accountValidFrom?: any | null, accountValidUntil?: any | null } } };
 
 
 export const UnscheduleAccountAnonymizationMutationDocument = gql`
@@ -22,6 +22,10 @@ export const UnscheduleAccountAnonymizationMutationDocument = gql`
       deleteAt
       isAnonymized
       anonymizeAt
+      temporarilyDisabledFrom
+      temporarilyDisabledUntil
+      accountValidFrom
+      accountValidUntil
     }
   }
 }

@@ -15,6 +15,9 @@ var AnonymizedUser = apierrors.Forbidden.WithReason("AnonymizedUser")
 var ScheduledDeletionByAdmin = apierrors.Forbidden.WithReason("ScheduledDeletionByAdmin")
 var ScheduledDeletionByEndUser = apierrors.Forbidden.WithReason("ScheduledDeletionByEndUser")
 var ScheduledAnonymizationByAdmin = apierrors.Forbidden.WithReason("ScheduledAnonymizationByAdmin")
+var UserOutsideValidPeriod = apierrors.Forbidden.WithReason("UserOutsideValidPeriod")
+
+var InvalidAccountStatusTransition = apierrors.Invalid.WithReason("InvalidAccountStatusTransition")
 
 func NewErrDisabledUser(reason *string) error {
 	return DisabledUser.NewWithInfo("user is disabled", map[string]interface{}{
@@ -24,6 +27,7 @@ func NewErrDisabledUser(reason *string) error {
 
 var ErrDeactivatedUser = DeactivatedUser.New("user is deactivated")
 var ErrAnonymizedUser = AnonymizedUser.New("user is anonymized")
+var ErrUserOutsideValidPeriod = UserOutsideValidPeriod.New("user is outside valid period")
 
 func NewErrScheduledDeletionByAdmin(deleteAt time.Time) error {
 	return ScheduledDeletionByAdmin.NewWithInfo("user was scheduled for deletion by admin", map[string]interface{}{
@@ -41,24 +45,4 @@ func NewErrScheduledAnonymizationByAdmin(anonymizeAt time.Time) error {
 	return ScheduledAnonymizationByAdmin.NewWithInfo("user was scheduled for anonymization by admin", map[string]interface{}{
 		"anonymize_at": anonymizeAt,
 	})
-}
-
-func IsAccountStatusError(err error) bool {
-	// This function must be in sync with AccountStatus.Check.
-	switch {
-	case apierrors.IsKind(err, DisabledUser):
-		return true
-	case apierrors.IsKind(err, DeactivatedUser):
-		return true
-	case apierrors.IsKind(err, AnonymizedUser):
-		return true
-	case apierrors.IsKind(err, ScheduledDeletionByAdmin):
-		return true
-	case apierrors.IsKind(err, ScheduledDeletionByEndUser):
-		return true
-	case apierrors.IsKind(err, ScheduledAnonymizationByAdmin):
-		return true
-	default:
-		return false
-	}
 }

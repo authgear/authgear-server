@@ -31,6 +31,10 @@ GO_RUN_TAGS ::= authgeardev
 start:
 	go run -tags "$(GO_RUN_TAGS)" -ldflags ${LDFLAGS} ./cmd/${CMD_AUTHGEAR} start
 
+.PHONY: start-background
+start-background:
+	go run -tags "$(GO_RUN_TAGS)" -ldflags ${LDFLAGS} ./cmd/${CMD_AUTHGEAR} background
+
 .PHONY: start-portal
 start-portal:
 	go run -tags "$(GO_RUN_TAGS)" -ldflags ${LDFLAGS} ./cmd/${CMD_PORTAL} start

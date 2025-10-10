@@ -9,7 +9,7 @@ export type SetDisabledStatusMutationMutationVariables = Types.Exact<{
 }>;
 
 
-export type SetDisabledStatusMutationMutation = { __typename?: 'Mutation', setDisabledStatus: { __typename?: 'SetDisabledStatusPayload', user: { __typename?: 'User', id: string, isDisabled: boolean, disableReason?: string | null, isDeactivated: boolean, deleteAt?: any | null, isAnonymized: boolean, anonymizeAt?: any | null } } };
+export type SetDisabledStatusMutationMutation = { __typename?: 'Mutation', setDisabledStatus: { __typename?: 'SetDisabledStatusPayload', user: { __typename?: 'User', id: string, isDisabled: boolean, disableReason?: string | null, isDeactivated: boolean, deleteAt?: any | null, isAnonymized: boolean, anonymizeAt?: any | null, temporarilyDisabledFrom?: any | null, temporarilyDisabledUntil?: any | null, accountValidFrom?: any | null, accountValidUntil?: any | null } } };
 
 
 export const SetDisabledStatusMutationDocument = gql`
@@ -23,6 +23,10 @@ export const SetDisabledStatusMutationDocument = gql`
       deleteAt
       isAnonymized
       anonymizeAt
+      temporarilyDisabledFrom
+      temporarilyDisabledUntil
+      accountValidFrom
+      accountValidUntil
     }
   }
 }

@@ -110,6 +110,10 @@ fragment UserQueryNode on User {
   deleteAt
   isAnonymized
   anonymizeAt
+  temporarilyDisabledFrom
+  temporarilyDisabledUntil
+  accountValidFrom
+  accountValidUntil
   lastLoginAt
   createdAt
   updatedAt
