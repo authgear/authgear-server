@@ -1032,7 +1032,6 @@
   "v2.error.web-ui-session-completed": "しばらくお待ちください。アプリにリダイレクトされます。",
   "v2.error.webhook-delivery-failed": "操作は許可されていません。Webhookの配信中に不明なエラーが発生したためです。",
   "v2.error.hook-disallowed": "操作は許可されていません",
-  "v2.error.webhook-pre-signup-disallowed": "サインアップは許可されていません",
   "v2.error.whatsapp-undeliverable": "WhatsAppメッセージの配信に失敗しました。もう一度お試しください。",
   "v2.page.account-linking.default.by-email": "{IdentityDisplayName}にログイン",
   "v2.page.account-linking.default.by-phone": "{IdentityDisplayName}にログイン",

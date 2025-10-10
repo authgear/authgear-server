@@ -1032,7 +1032,6 @@
   "v2.error.web-ui-session-completed": "請稍等，您將自動返回您的應用程式。",
   "v2.error.webhook-delivery-failed": "因為Webhook未知錯誤，操作已被禁止",
   "v2.error.hook-disallowed": "操作已被禁止",
-  "v2.error.webhook-pre-signup-disallowed": "註冊已被禁止",
   "v2.error.whatsapp-undeliverable": "無法傳送WhatsApp訊息。請再試一次。",
   "v2.page.account-linking.default.by-email": "登入 {IdentityDisplayName}",
   "v2.page.account-linking.default.by-phone": "登入 {IdentityDisplayName}",

@@ -227,11 +227,7 @@
       <span>
         {{ if $error_reason.title }} {{ $error_reason.title }} {{ else }}
         <!-- title is not provided, use default title -->
-        {{ if eq .Error.info.event_type "pre_signup" }}
-          {{ include "v2.error.webhook-pre-signup-disallowed" nil }}
-        {{ else }}
-          {{ include "v2.error.hook-disallowed" nil }}
-        {{ end }}
+        {{ include "v2.error.hook-disallowed" nil }}
     {{ end }}
     {{ if $error_reason.reason }}
         <br />

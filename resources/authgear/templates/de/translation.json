@@ -1032,7 +1032,6 @@
   "v2.error.web-ui-session-completed": "Einen Moment bitte, Sie werden zu Ihrer App weitergeleitet.",
   "v2.error.webhook-delivery-failed": "Der Vorgang ist nicht zulässig, da die Webhook-Zustellung zu einem unbekannten Fehler geführt hat.",
   "v2.error.hook-disallowed": "Der Vorgang ist nicht zulässig",
-  "v2.error.webhook-pre-signup-disallowed": "Die Anmeldung ist nicht zulässig",
   "v2.error.whatsapp-undeliverable": "WhatsApp-Nachricht konnte nicht zugestellt werden. Bitte versuchen Sie es erneut.",
   "v2.page.account-linking.default.by-email": "Anmelden bei {IdentityDisplayName}",
   "v2.page.account-linking.default.by-phone": "Anmelden bei {IdentityDisplayName}",

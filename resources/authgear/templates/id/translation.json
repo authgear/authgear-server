@@ -1032,7 +1032,6 @@
   "v2.error.web-ui-session-completed": "Tunggu sebentar, Anda akan diarahkan ke aplikasi Anda.",
   "v2.error.webhook-delivery-failed": "Operasi tidak diizinkan karena pengiriman webhook menghasilkan kesalahan yang tidak diketahui.",
   "v2.error.hook-disallowed": "Operasi tidak diizinkan",
-  "v2.error.webhook-pre-signup-disallowed": "Pendaftaran tidak diizinkan",
   "v2.error.whatsapp-undeliverable": "Gagal mengirimkan pesan WhatsApp. Silakan coba lagi.",
   "v2.page.account-linking.default.by-email": "Masuk ke {IdentityDisplayName}",
   "v2.page.account-linking.default.by-phone": "Masuk ke {IdentityDisplayName}",

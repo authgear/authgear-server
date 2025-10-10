@@ -1032,7 +1032,6 @@
   "v2.error.web-ui-session-completed": "Chwileczkę, zostaniesz przekierowany do swojej aplikacji.",
   "v2.error.webhook-delivery-failed": "Operacja jest niedozwolona, ponieważ dostarczenie webhooka zakończyło się nieznanym błędem.",
   "v2.error.hook-disallowed": "Operacja jest niedozwolona",
-  "v2.error.webhook-pre-signup-disallowed": "Rejestracja jest niedozwolona",
   "v2.error.whatsapp-undeliverable": "Nie udało się dostarczyć wiadomości WhatsApp. Proszę spróbować ponownie.",
   "v2.page.account-linking.default.by-email": "Zaloguj się do {IdentityDisplayName}",
   "v2.page.account-linking.default.by-phone": "Zaloguj się do {IdentityDisplayName}",

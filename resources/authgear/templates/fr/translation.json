@@ -1032,7 +1032,6 @@
   "v2.error.web-ui-session-completed": "Attendez un instant, vous serez redirigé vers votre application.",
   "v2.error.webhook-delivery-failed": "L''opération est interdite car la livraison du webhook a entraîné une erreur inconnue.",
   "v2.error.hook-disallowed": "L''opération n''est pas autorisée",
-  "v2.error.webhook-pre-signup-disallowed": "L''inscription n''est pas autorisée",
   "v2.error.whatsapp-undeliverable": "Échec de la livraison du message WhatsApp. Veuillez réessayer.",
   "v2.page.account-linking.default.by-email": "Connexion à {IdentityDisplayName}",
   "v2.page.account-linking.default.by-phone": "Connexion à {IdentityDisplayName}",

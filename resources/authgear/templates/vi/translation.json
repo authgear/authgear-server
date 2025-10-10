@@ -1032,7 +1032,6 @@
   "v2.error.web-ui-session-completed": "Chỉ một chút, bạn sẽ được chuyển hướng đến ứng dụng của mình.",
   "v2.error.webhook-delivery-failed": "Hoạt động bị cấm vì việc gửi webhook đã gặp lỗi không xác định.",
   "v2.error.hook-disallowed": "Hoạt động không được phép",
-  "v2.error.webhook-pre-signup-disallowed": "Đăng ký không được phép",
   "v2.error.whatsapp-undeliverable": "Không thể gửi tin nhắn WhatsApp. Vui lòng thử lại.",
   "v2.page.account-linking.default.by-email": "Đăng nhập vào {IdentityDisplayName}",
   "v2.page.account-linking.default.by-phone": "Đăng nhập vào {IdentityDisplayName}",

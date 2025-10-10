@@ -1032,7 +1032,6 @@
   "v2.error.web-ui-session-completed": "Just a moment, you will be redirected to your app.",
   "v2.error.webhook-delivery-failed": "Operation is disallowed because the webhook delivery resulted in unknown error.",
   "v2.error.hook-disallowed": "Operation is disallowed",
-  "v2.error.webhook-pre-signup-disallowed": "Signup is disallowed",
   "v2.error.whatsapp-undeliverable": "Failed to deliver WhatsApp message. Please try again.",
   "v2.page.account-linking.default.by-email": "Login to {IdentityDisplayName}",
   "v2.page.account-linking.default.by-phone": "Login to {IdentityDisplayName}",

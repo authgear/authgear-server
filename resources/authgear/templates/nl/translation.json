@@ -1032,7 +1032,6 @@
   "v2.error.web-ui-session-completed": "Een ogenblik geduld, u wordt doorgestuurd naar uw app.",
   "v2.error.webhook-delivery-failed": "Bewerking is niet toegestaan omdat de webhookbezorging resulteerde in een onbekende fout.",
   "v2.error.hook-disallowed": "Bewerking is niet toegestaan",
-  "v2.error.webhook-pre-signup-disallowed": "Aanmelden is niet toegestaan",
   "v2.error.whatsapp-undeliverable": "Het is niet gelukt om het WhatsApp-bericht te bezorgen. Probeer het opnieuw.",
   "v2.page.account-linking.default.by-email": "Log in op {IdentityDisplayName}",
   "v2.page.account-linking.default.by-phone": "Log in op {IdentityDisplayName}",
