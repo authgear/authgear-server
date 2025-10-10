@@ -41,12 +41,13 @@ func init() {
 //     NodeDoConsumeRecoveryCode (MilestoneDidAuthenticate)
 
 type IntentLoginFlowStepAuthenticate struct {
-	FlowReference      authflow.FlowReference `json:"flow_reference,omitempty"`
-	JSONPointer        jsonpointer.T          `json:"json_pointer,omitempty"`
-	StepName           string                 `json:"step_name,omitempty"`
-	UserID             string                 `json:"user_id,omitempty"`
-	Options            []AuthenticateOption   `json:"options"`
-	DeviceTokenEnabled bool                   `json:"device_token_enabled"`
+	FlowReference                  authflow.FlowReference `json:"flow_reference,omitempty"`
+	JSONPointer                    jsonpointer.T          `json:"json_pointer,omitempty"`
+	StepName                       string                 `json:"step_name,omitempty"`
+	UserID                         string                 `json:"user_id,omitempty"`
+	Options                        []AuthenticateOption   `json:"options"`
+	DeviceTokenEnabled             bool                   `json:"device_token_enabled"`
+	DidAuthenticatedBeforeThisStep bool                   `json:"did_authenticated_before_this_step"`
 }
 
 var _ authflow.TargetStep = &IntentLoginFlowStepAuthenticate{}
@@ -103,6 +104,9 @@ func NewIntentLoginFlowStepAuthenticate(ctx context.Context, deps *authflow.Depe
 
 	i.Options = options
 	i.DeviceTokenEnabled = deviceTokenEnabled
+
+	didAuthenticatedMilestones := authflow.FindAllMilestones[MilestoneDidAuthenticate](flows.Root)
+	i.DidAuthenticatedBeforeThisStep = len(didAuthenticatedMilestones) > 0
 
 	return i, nil
 }
@@ -381,6 +385,10 @@ func (i *IntentLoginFlowStepAuthenticate) deviceTokenIndex(step *config.Authenti
 }
 
 func (i *IntentLoginFlowStepAuthenticate) canCreateAuthenticator(ctx context.Context, step *config.AuthenticationFlowLoginFlowStep, deps *authflow.Dependencies) (bool, error) {
+	if !i.DidAuthenticatedBeforeThisStep {
+		return false, nil
+	}
+
 	authenticationConfig := deps.Config.Authentication
 	if authenticationConfig.SecondaryAuthenticationGracePeriod != nil &&
 		authenticationConfig.SecondaryAuthenticationGracePeriod.Enabled &&
