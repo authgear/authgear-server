@@ -232,7 +232,7 @@ function parseError(error: APIError): ParsedAPIError[] {
       errors.push(...parsePasswordPolicyViolatedError(error));
       break;
     }
-    case "WebHookDisallowed": {
+    case "HookDisallowed": {
       errors.push({
         messageID: "errors.webhook.disallowed",
         arguments: {
@@ -241,13 +241,13 @@ function parseError(error: APIError): ParsedAPIError[] {
       });
       break;
     }
-    case "WebHookDeliveryTimeout": {
+    case "HookDeliveryTimeout": {
       errors.push({
         messageID: "errors.webhook.timeout",
       });
       break;
     }
-    case "WebHookInvalidResponse": {
+    case "HookInvalidResponse": {
       errors.push({
         messageID: "errors.webhook.invalid-response",
       });

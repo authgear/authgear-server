@@ -25,12 +25,12 @@
     {{ if eq .Error.reason "OAuthError" }}
       {{ $title = include "v2.page.fatal-error.oauth-error.title" nil }}
     {{ end }}
-    {{ if eq .Error.reason "WebHookDisallowed" }}
+    {{ if eq .Error.reason "HookDisallowed" }}
       {{ $error_reason := index .Error.info.reasons 0 }}
       {{ if $error_reason.title }}
         {{ $title = $error_reason.title }}
       {{ else }}
-        {{ $title = (include "v2.page.fatal-error.webhook-disallowed.title" (dict "FlowType" .Error.info.FlowType)) }}
+        {{ $title = (include "v2.page.fatal-error.hook-disallowed.title" (dict "FlowType" .Error.info.FlowType)) }}
       {{ end }}
     {{ end }}
   {{ end }}
@@ -53,13 +53,19 @@
       {{ end }}
     {{ else if eq .Error.reason "OAuthError" }}
       {{ $error_message = include "v2.error.oauth-error" (dict "error" .Error.info.error "error_description" .Error.info.error_description) }}
-    {{ else if eq .Error.reason "WebHookDisallowed" }}
+    {{ else if eq .Error.reason "HookDisallowed" }}
       {{ $error_reason := index .Error.info.reasons 0 }}
       {{ if $error_reason.reason }}
         {{ $error_message = $error_reason.reason }}
       {{ else }}
-        {{ $error_message = (include "v2.page.fatal-error.webhook-disallowed.description" (dict "FlowType" .Error.info.FlowType)) }}
+        {{ $error_message = (include "v2.page.fatal-error.hook-disallowed.description" (dict "FlowType" .Error.info.FlowType)) }}
       {{ end }}
+    {{ else if eq .Error.reason "HookInvalidResponse" }}
+      {{ $error_message = include "v2.error.hook-invalid-response" nil }}
+    {{ else if eq .Error.reason "HookDeliveryTimeout" }}
+      {{ $error_message = include "v2.error.hook-delivery-timeout" nil }}
+    {{ else if eq .Error.reason "HookDeliveryUnknownFailure" }}
+      {{ $error_message = include "v2.error.hook-delivery-failed" nil }}
     {{ end }}
   {{ end }}
 

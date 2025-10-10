@@ -56,7 +56,7 @@ steps:
       error: |
         {
           "name": "Forbidden",
-          "reason": "WebHookDisallowed",
+          "reason": "HookDisallowed",
           "code": 403,
           "info": {
             "FlowType": "promote",

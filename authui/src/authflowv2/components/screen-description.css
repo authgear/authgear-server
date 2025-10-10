@@ -27,6 +27,8 @@
     font-weight: var(--screen-description__font-weight);
     text-align: var(--screen-description__text-align);
     color: var(--screen-description__text-color);
+    /* For breaking long links */
+    overflow-wrap: anywhere;
 
     :root[alignment-content="start"] & {
       @apply text-start;

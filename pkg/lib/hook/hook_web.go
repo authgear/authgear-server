@@ -142,7 +142,7 @@ func (h *EventWebHookImpl) DeliverBlockingEvent(ctx context.Context, u *url.URL,
 	hookResp, err = event.ParseHookResponse(ctx, e.Type, resp.Body)
 	if err != nil {
 		apiError := apierrors.AsAPIError(err)
-		err = WebHookInvalidResponse.NewWithInfo("invalid response body", apiError.Info_ReadOnly)
+		err = HookInvalidResponse.NewWithInfo("invalid response body", apiError.Info_ReadOnly)
 		return nil, err
 	}
 
@@ -165,15 +165,15 @@ func performRequest(
 	request *http.Request) (resp *http.Response, err error) {
 	resp, err = client.Do(request)
 	if os.IsTimeout(err) {
-		err = WebHookDeliveryTimeout.New("webhook delivery timeout")
+		err = HookDeliveryTimeout.New("webhook delivery timeout")
 		return
 	} else if err != nil {
-		err = errors.Join(WebHookDeliveryUnknownFailure.New("failed to deliver webhook"), err)
+		err = errors.Join(HookDeliveryUnknownFailure.New("failed to deliver webhook"), err)
 		return
 	}
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		err = WebHookInvalidResponse.NewWithInfo("invalid status code", apierrors.Details{
+		err = HookInvalidResponse.NewWithInfo("invalid status code", apierrors.Details{
 			"status_code": resp.StatusCode,
 		})
 	}

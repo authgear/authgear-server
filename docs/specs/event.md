@@ -919,7 +919,7 @@ This event occurs in the following cases:
 {
   "code": 403,
   "name": "Forbidden",
-  "reason": "WebHookDisallowed",
+  "reason": "HookDisallowed",
   "info": {
     "reasons": [
       {

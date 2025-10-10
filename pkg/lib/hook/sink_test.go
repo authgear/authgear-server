@@ -275,7 +275,7 @@ func TestSink(t *testing.T) {
 
 				err := s.DeliverBlockingEvent(ctx, &e)
 
-				So(err, ShouldBeError, "disallowed by web-hook event handler")
+				So(err, ShouldBeError, "disallowed by hook event handler")
 			})
 
 			Convey("should time out long requests", func() {
@@ -314,7 +314,7 @@ func TestSink(t *testing.T) {
 
 				err := s.DeliverBlockingEvent(ctx, &e)
 
-				So(err, ShouldBeError, "webhook delivery timeout")
+				So(err, ShouldBeError, "blocking hook delivery timeout")
 			})
 		})
 

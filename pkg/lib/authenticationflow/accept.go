@@ -73,7 +73,7 @@ func logAuthenticationBlockedErrorIfNeeded(ctx context.Context, deps *Dependenci
 	apiErr := apierrors.AsAPIError(err)
 	if !user.IsAccountStatusError(apiErr) &&
 		!apierrors.IsKind(apiErr, lockout.AccountLockout) &&
-		!apierrors.IsKind(apiErr, hook.WebHookDisallowed) {
+		!apierrors.IsKind(apiErr, hook.HookDisallowed) {
 		return err
 	}
 

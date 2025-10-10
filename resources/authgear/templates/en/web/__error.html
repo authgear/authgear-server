@@ -207,7 +207,7 @@ $display_error = true }} {{ if eq .Error.reason "PasswordPolicyViolated" }}
       nil)) }} {{ else }} {{ template "oob-otp-sms-is-not-supported" }} {{ end
       }}
     </li>
-    {{ else if eq .Error.reason "WebHookDisallowed" }} {{ $error_reason := index
+    {{ else if eq .Error.reason "HookDisallowed" }} {{ $error_reason := index
     .Error.info.reasons 0 }}
     <li>
       {{ if $error_reason.title }} {{ $error_reason.title }} {{ else }}
@@ -219,9 +219,9 @@ $display_error = true }} {{ if eq .Error.reason "PasswordPolicyViolated" }}
       <br />
       {{ $error_reason.reason }} {{ end }}
     </li>
-    {{ else if eq .Error.reason "WebHookInvalidResponse" }}
+    {{ else if eq .Error.reason "HookInvalidResponse" }}
     <li>{{ template "error-webhook-invalid-response" }}</li>
-    {{ else if eq .Error.reason "WebHookDeliveryTimeout" }}
+    {{ else if eq .Error.reason "HookDeliveryTimeout" }}
     <li>{{ template "error-webhook-delivery-timeout" }}</li>
     {{ else if eq .Error.reason "InvalidNetwork" }}
     <li>

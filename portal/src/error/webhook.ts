@@ -1,6 +1,6 @@
-export interface WebHookDisallowedError {
+export interface HookDisallowedError {
   errorName: "Forbidden";
-  reason: "WebHookDisallowed";
+  reason: "HookDisallowed";
   info?: {
     reasons?: {
       title?: string;
@@ -9,12 +9,12 @@ export interface WebHookDisallowedError {
   };
 }
 
-export interface WebHookDeliveryTimeoutError {
+export interface HookDeliveryTimeoutError {
   errorName: "InternalError";
-  reason: "WebHookDeliveryTimeout";
+  reason: "HookDeliveryTimeout";
 }
 
-export interface WebHookInvalidResponseError {
+export interface HookInvalidResponseError {
   errorName: "InternalError";
-  reason: "WebHookInvalidResponse";
+  reason: "HookInvalidResponse";
 }

@@ -2024,7 +2024,7 @@ func (h *TokenHandler) IssueAppSessionToken(ctx context.Context, refreshToken st
 
 func (h *TokenHandler) translateAccessTokenError(err error) error {
 	if apiErr := apierrors.AsAPIError(err); apiErr != nil {
-		if apiErr.Reason == hook.WebHookDisallowed.Reason {
+		if apiErr.Reason == hook.HookDisallowed.Reason {
 			return protocol.NewError("server_error", "access token generation is disallowed by hook")
 		}
 	}

@@ -57,7 +57,7 @@ func (s *Sink) ReceiveBlockingEvent(ctx context.Context, e *event.Event) (err er
 	if s.WillDeliverBlockingEvent(e.Type) {
 		err = s.DeliverBlockingEvent(ctx, e)
 		if err != nil {
-			if !apierrors.IsKind(err, WebHookDisallowed) {
+			if !apierrors.IsKind(err, HookDisallowed) {
 				err = fmt.Errorf("failed to dispatch event: %w", err)
 			}
 			return
@@ -96,7 +96,7 @@ func (s *Sink) DeliverBlockingEvent(ctx context.Context, e *event.Event) error {
 
 		elapsed := s.Clock.NowMonotonic().Sub(startTime)
 		if elapsed > totalTimeout {
-			return WebHookDeliveryTimeout.NewWithInfo("webhook delivery timeout", apierrors.Details{
+			return HookDeliveryTimeout.NewWithInfo("blocking hook delivery timeout", apierrors.Details{
 				"elapsed": elapsed,
 				"limit":   totalTimeout,
 			})

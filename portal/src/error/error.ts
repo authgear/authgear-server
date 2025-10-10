@@ -28,9 +28,9 @@ import {
   APIUnsupportedImageFileError,
 } from "./resources";
 import {
-  WebHookDisallowedError,
-  WebHookDeliveryTimeoutError,
-  WebHookInvalidResponseError,
+  HookDisallowedError,
+  HookDeliveryTimeoutError,
+  HookInvalidResponseError,
 } from "./webhook";
 import { APIBadNFTCollectionError, APIAlchemyProtocolError } from "./web3";
 import type { ParsedAPIError } from "./parse";
@@ -125,9 +125,9 @@ export type APIError = { message?: string } & (
   | LocalError
   | TooManyRequestError
   | ServiceUnavailableError
-  | WebHookDisallowedError
-  | WebHookDeliveryTimeoutError
-  | WebHookInvalidResponseError
+  | HookDisallowedError
+  | HookDeliveryTimeoutError
+  | HookInvalidResponseError
   | APIValidationError
   | APIInvariantViolationError
   | APIPasswordPolicyViolatedError
