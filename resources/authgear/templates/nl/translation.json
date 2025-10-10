@@ -1098,7 +1098,7 @@
   "v2.page.fatal-error.redirecting.title": "Doorsturen",
   "v2.page.fatal-error.token-invalid.title": "Pagina verlopen of ongeldig",
   "v2.page.fatal-error.hook-disallowed.description": "De bewerking is geblokkeerd door het systeem. Neem contact op met uw beheerder voor hulp.",
-  "v2.page.fatal-error.webhook-disallowed.title": "{FlowType,select,login{Inloggen} reauth{Inloggen} signup{Registreren} promote{Registreren} signup_login{Registreren of Inloggen} other{Bewerking}} niet toegestaan",
+  "v2.page.fatal-error.hook-disallowed.title": "{FlowType,select,login{Inloggen} reauth{Inloggen} signup{Registreren} promote{Registreren} signup_login{Registreren of Inloggen} other{Bewerking}} niet toegestaan",
   "v2.page.forgot-password-link-sent.default.description": "Een link om uw wachtwoord opnieuw in te stellen is verzonden naar {MaskedLoginID}",
   "v2.page.forgot-password-link-sent.default.resend": "Opnieuw verzenden",
   "v2.page.forgot-password-link-sent.default.resent-countdown-label-unit": "Opnieuw verzenden in %s",

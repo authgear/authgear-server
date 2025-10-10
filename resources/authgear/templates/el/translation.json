@@ -1098,7 +1098,7 @@
   "v2.page.fatal-error.redirecting.title": "Ανακατεύθυνση",
   "v2.page.fatal-error.token-invalid.title": "Η σελίδα έχει λήξει ή είναι άκυρη",
   "v2.page.fatal-error.hook-disallowed.description": "Η λειτουργία έχει αποκλειστεί από το σύστημα. Παρακαλώ επικοινωνήστε με τον διαχειριστή σας για βοήθεια.",
-  "v2.page.fatal-error.webhook-disallowed.title": "{FlowType,select,login{Σύνδεση} reauth{Σύνδεση} signup{Εγγραφή} promote{Εγγραφή} signup_login{Εγγραφή ή Σύνδεση} other{Λειτουργία}} δεν επιτρέπεται",
+  "v2.page.fatal-error.hook-disallowed.title": "{FlowType,select,login{Σύνδεση} reauth{Σύνδεση} signup{Εγγραφή} promote{Εγγραφή} signup_login{Εγγραφή ή Σύνδεση} other{Λειτουργία}} δεν επιτρέπεται",
   "v2.page.forgot-password-link-sent.default.description": "Ένας σύνδεσμος για την επαναφορά του κωδικού πρόσβασής σας έχει σταλεί στο {MaskedLoginID}",
   "v2.page.forgot-password-link-sent.default.resend": "Αποστολή ξανά",
   "v2.page.forgot-password-link-sent.default.resent-countdown-label-unit": "Αποστολή ξανά σε %s",

@@ -1098,7 +1098,7 @@
   "v2.page.fatal-error.redirecting.title": "重定向中",
   "v2.page.fatal-error.token-invalid.title": "页面已过期或无效",
   "v2.page.fatal-error.hook-disallowed.description": "该操作被系统阻止。请联系您的管理员寻求帮助。",
-  "v2.page.fatal-error.webhook-disallowed.title": "{FlowType,select,login{登录} reauth{登录} signup{注册} promote{注册} signup_login{注册或登录} other{操作}}不允许",
+  "v2.page.fatal-error.hook-disallowed.title": "{FlowType,select,login{登录} reauth{登录} signup{注册} promote{注册} signup_login{注册或登录} other{操作}}不允许",
   "v2.page.forgot-password-link-sent.default.description": "重置密码的链接已发送到 {MaskedLoginID}",
   "v2.page.forgot-password-link-sent.default.resend": "再次发送",
   "v2.page.forgot-password-link-sent.default.resent-countdown-label-unit": "%s 后再次发送",

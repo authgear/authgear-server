@@ -1098,7 +1098,7 @@
   "v2.page.fatal-error.redirecting.title": "Mengalihkan",
   "v2.page.fatal-error.token-invalid.title": "Halaman luput atau tidak sah",
   "v2.page.fatal-error.hook-disallowed.description": "Operasi ini disekat oleh sistem. Sila hubungi pentadbir anda untuk bantuan.",
-  "v2.page.fatal-error.webhook-disallowed.title": "{FlowType,select,login{Log masuk} reauth{Log masuk} signup{Daftar} promote{Daftar} signup_login{Daftar atau Log masuk} other{Operasi}} tidak dibenarkan",
+  "v2.page.fatal-error.hook-disallowed.title": "{FlowType,select,login{Log masuk} reauth{Log masuk} signup{Daftar} promote{Daftar} signup_login{Daftar atau Log masuk} other{Operasi}} tidak dibenarkan",
   "v2.page.forgot-password-link-sent.default.description": "Pautan untuk menetapkan semula kata laluan anda telah dihantar ke {MaskedLoginID}",
   "v2.page.forgot-password-link-sent.default.resend": "Hantar semula",
   "v2.page.forgot-password-link-sent.default.resent-countdown-label-unit": "Hantar semula dalam %s",

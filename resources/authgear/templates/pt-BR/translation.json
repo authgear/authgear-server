@@ -1098,7 +1098,7 @@
   "v2.page.fatal-error.redirecting.title": "Redirecionando",
   "v2.page.fatal-error.token-invalid.title": "Página expirada ou inválida",
   "v2.page.fatal-error.hook-disallowed.description": "A operação está bloqueada pelo sistema. Entre em contato com o administrador para obter assistência.",
-  "v2.page.fatal-error.webhook-disallowed.title": "{FlowType,select,login{Login} reauth{Login} signup{Cadastro} promote{Cadastro} signup_login{Cadastro ou Login} other{Operação}} não permitido",
+  "v2.page.fatal-error.hook-disallowed.title": "{FlowType,select,login{Login} reauth{Login} signup{Cadastro} promote{Cadastro} signup_login{Cadastro ou Login} other{Operação}} não permitido",
   "v2.page.forgot-password-link-sent.default.description": "Um link para redefinir sua senha foi enviado para {MaskedLoginID}",
   "v2.page.forgot-password-link-sent.default.resend": "Reenviar novamente",
   "v2.page.forgot-password-link-sent.default.resent-countdown-label-unit": "Reenviar novamente em %s",

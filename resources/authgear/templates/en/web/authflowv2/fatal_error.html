@@ -30,7 +30,7 @@
       {{ if $error_reason.title }}
         {{ $title = $error_reason.title }}
       {{ else }}
-        {{ $title = (include "v2.page.fatal-error.webhook-disallowed.title" (dict "FlowType" .Error.info.FlowType)) }}
+        {{ $title = (include "v2.page.fatal-error.hook-disallowed.title" (dict "FlowType" .Error.info.FlowType)) }}
       {{ end }}
     {{ end }}
   {{ end }}

@@ -1098,7 +1098,7 @@
   "v2.page.fatal-error.redirecting.title": "Reindirizzamento in corso",
   "v2.page.fatal-error.token-invalid.title": "Pagina scaduta o non valida",
   "v2.page.fatal-error.hook-disallowed.description": "L''operazione è bloccata dal sistema. Si prega di contattare l''amministratore per assistenza.",
-  "v2.page.fatal-error.webhook-disallowed.title": "{FlowType,select,login{Accesso} reauth{Accesso} signup{Registrazione} promote{Registrazione} signup_login{Registrazione o Accesso} other{Operazione}} non consentita",
+  "v2.page.fatal-error.hook-disallowed.title": "{FlowType,select,login{Accesso} reauth{Accesso} signup{Registrazione} promote{Registrazione} signup_login{Registrazione o Accesso} other{Operazione}} non consentita",
   "v2.page.forgot-password-link-sent.default.description": "Un link per reimpostare la password è stato inviato a {MaskedLoginID}",
   "v2.page.forgot-password-link-sent.default.resend": "Invia di nuovo",
   "v2.page.forgot-password-link-sent.default.resent-countdown-label-unit": "Invia di nuovo tra %s",

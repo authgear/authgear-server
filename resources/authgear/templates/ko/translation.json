@@ -1098,7 +1098,7 @@
   "v2.page.fatal-error.redirecting.title": "리디렉션 중",
   "v2.page.fatal-error.token-invalid.title": "페이지가 만료되었거나 유효하지 않습니다.",
   "v2.page.fatal-error.hook-disallowed.description": "작업이 시스템에 의해 차단되었습니다. 도움이 필요하시면 관리자에게 문의하세요.",
-  "v2.page.fatal-error.webhook-disallowed.title": "{FlowType,select,login{로그인} reauth{로그인} signup{가입} promote{가입} signup_login{가입 또는 로그인} other{작업}} 허용되지 않음",
+  "v2.page.fatal-error.hook-disallowed.title": "{FlowType,select,login{로그인} reauth{로그인} signup{가입} promote{가입} signup_login{가입 또는 로그인} other{작업}} 허용되지 않음",
   "v2.page.forgot-password-link-sent.default.description": "비밀번호 재설정 링크가 {MaskedLoginID}로 전송되었습니다.",
   "v2.page.forgot-password-link-sent.default.resend": "다시 보내기",
   "v2.page.forgot-password-link-sent.default.resent-countdown-label-unit": "%s 후에 다시 보내기",

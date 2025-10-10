@@ -1098,7 +1098,7 @@
   "v2.page.fatal-error.redirecting.title": "Redirection",
   "v2.page.fatal-error.token-invalid.title": "Page expirée ou invalide",
   "v2.page.fatal-error.hook-disallowed.description": "L''opération est bloquée par le système. Veuillez contacter votre administrateur pour obtenir de l''aide.",
-  "v2.page.fatal-error.webhook-disallowed.title": "{FlowType,select,login{Connexion} reauth{Connexion} signup{Inscription} promote{Inscription} signup_login{Inscription ou Connexion} other{Opération}} non autorisée",
+  "v2.page.fatal-error.hook-disallowed.title": "{FlowType,select,login{Connexion} reauth{Connexion} signup{Inscription} promote{Inscription} signup_login{Inscription ou Connexion} other{Opération}} non autorisée",
   "v2.page.forgot-password-link-sent.default.description": "Un lien pour réinitialiser votre mot de passe a été envoyé à {MaskedLoginID}",
   "v2.page.forgot-password-link-sent.default.resend": "Renvoyer",
   "v2.page.forgot-password-link-sent.default.resent-countdown-label-unit": "Renvoyer dans %s",
