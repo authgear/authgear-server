@@ -34,6 +34,10 @@ func init() {
 		boolean := validation.SchemaBuilder{}.
 			Type(validation.TypeBoolean)
 
+		rfc3339 := validation.SchemaBuilder{}.
+			Type(validation.TypeString).
+			Format("date-time")
+
 		customAttributes := validation.SchemaBuilder{}.
 			Type(validation.TypeObject)
 
@@ -48,7 +52,7 @@ func init() {
 		password.Properties().
 			Property("type", validation.SchemaBuilder{}.Type(validation.TypeString).Enum("bcrypt")).
 			Property("password_hash", minLenStr).
-			Property("expire_after", validation.SchemaBuilder{}.Type(validation.TypeString).Format("date-time"))
+			Property("expire_after", rfc3339)
 
 		totp := validation.SchemaBuilder{}.
 			Type(validation.TypeObject).
@@ -224,6 +228,30 @@ func mapGetArrayOfNonNullItems[M ~map[string]interface{}, T constraints.Ordered 
 	return ts, true
 }
 
+func mapGetRFC3339[M ~map[string]interface{}](m M, key string) (*time.Time, bool) {
+	var iface interface{}
+	iface, ok := m[key]
+	if !ok {
+		return nil, false
+	}
+	if iface == nil {
+		panic(fmt.Errorf("%v is expected to be non-null", key))
+	}
+
+	str, ok := iface.(string)
+	if !ok {
+		panic(fmt.Errorf("%v is expected to be a RFC3339 timestamp, but was %T", key, iface))
+	}
+
+	t, err := time.Parse(time.RFC3339, str)
+	if err != nil {
+		// The json schema validation should already ensure it is in correct format.
+		// If it is not valid, it should be a panic.
+		panic(err)
+	}
+	return &t, true
+}
+
 const (
 	IdentifierEmail             = "email"
 	IdentifierPreferredUsername = "preferred_username"
@@ -245,18 +273,8 @@ func (m Password) PasswordHash() string {
 }
 
 func (m Password) ExpireAfter() *time.Time {
-	var dt interface{}
-	var ok bool
-	if dt, ok = m["expire_after"]; !ok {
-		return nil
-	}
-	t, err := time.Parse(time.RFC3339, dt.(string))
-	if err != nil {
-		// The json schema validation should already ensure it is in correct format.
-		// If it is not valid, it should be a panic.
-		panic(err)
-	}
-	return &t
+	t, _ := mapGetRFC3339(m, "expire_after")
+	return t
 }
 
 func (m Password) Redact() {

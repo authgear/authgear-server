@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	. "github.com/smartystreets/goconvey/convey"
 
@@ -584,7 +585,19 @@ func TestRecord(t *testing.T) {
 }
 
 func TestPassword(t *testing.T) {
-	Convey("Password", t, func() {
+	Convey("Password with expire_after", t, func() {
+		p := Password{
+			"type":          "bcrypt",
+			"password_hash": "hash",
+			"expire_after":  "2006-01-02T03:04:05Z",
+		}
+
+		So(p.Type(), ShouldEqual, PasswordTypeBcrypt)
+		So(p.PasswordHash(), ShouldEqual, "hash")
+		So(*p.ExpireAfter(), ShouldEqual, time.Date(2006, 1, 2, 3, 4, 5, 0, time.UTC))
+	})
+
+	Convey("Password without expire_after", t, func() {
 		p := Password{
 			"type":          "bcrypt",
 			"password_hash": "hash",
@@ -592,6 +605,7 @@ func TestPassword(t *testing.T) {
 
 		So(p.Type(), ShouldEqual, PasswordTypeBcrypt)
 		So(p.PasswordHash(), ShouldEqual, "hash")
+		So(p.ExpireAfter(), ShouldBeNil)
 	})
 }
 
@@ -794,6 +808,48 @@ func TestRecordSchema(t *testing.T) {
 		}`, `invalid request body:
 /password/password_hash: minLength
   map[actual:0 expected:1]`)
+
+		test(`{
+			"email": "user@example.com",
+			"password": {
+				"type": "bcrypt",
+				"password_hash": "$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy",
+				"expire_after": null
+			}
+		}`, `invalid request body:
+/password/expire_after: type
+  map[actual:[null] expected:[string]]`)
+
+		test(`{
+			"email": "user@example.com",
+			"password": {
+				"type": "bcrypt",
+				"password_hash": "$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy",
+				"expire_after": ""
+			}
+		}`, `invalid request body:
+/password/expire_after: format
+  map[error:date-time must be in rfc3339 format format:date-time]`)
+
+		test(`{
+			"email": "user@example.com",
+			"password": {
+				"type": "bcrypt",
+				"password_hash": "$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy",
+				"expire_after": "2025"
+			}
+		}`, `invalid request body:
+/password/expire_after: format
+  map[error:date-time must be in rfc3339 format format:date-time]`)
+
+		test(`{
+			"email": "user@example.com",
+			"password": {
+				"type": "bcrypt",
+				"password_hash": "$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy",
+				"expire_after": "2006-01-02T03:04:05Z"
+			}
+		}`, ``)
 	})
 
 	Convey("Record JSON schema for mfa", t, func() {
