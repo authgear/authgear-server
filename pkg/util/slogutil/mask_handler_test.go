@@ -177,10 +177,10 @@ func TestMaskHandlerOptions_maskAttr(t *testing.T) {
 			result := options.maskAttr(ctx, attr)
 			So(result.Key, ShouldEqual, "key")
 			So(result.Value.Kind(), ShouldEqual, slog.KindAny)
-			maskedErr, ok := result.Value.Any().(*MaskedError)
+			maskedValue, ok := result.Value.Any().(*MaskedError)
 			So(ok, ShouldBeTrue)
-			So(maskedErr.Type, ShouldEqual, "*errors.errorString")
-			So(maskedErr.Message, ShouldEqual, "*** error")
+			So(maskedValue.Type, ShouldEqual, "*errors.errorString")
+			So(maskedValue.Message, ShouldEqual, "*** error")
 		})
 
 		Convey("should mask any attributes (unknown type) by converting to string", func() {
@@ -188,10 +188,10 @@ func TestMaskHandlerOptions_maskAttr(t *testing.T) {
 			result := options.maskAttr(ctx, attr)
 			So(result.Key, ShouldEqual, "key")
 			So(result.Value.Kind(), ShouldEqual, slog.KindAny)
-			maskedErr, ok := result.Value.Any().(*MaskedAny)
+			maskedValue, ok := result.Value.Any().(*MaskedAny)
 			So(ok, ShouldBeTrue)
-			So(maskedErr.Type, ShouldEqual, "slogutil.unknownType")
-			So(maskedErr.String(), ShouldEqual, "{*** value}")
+			So(maskedValue.Type, ShouldEqual, "slogutil.unknownType")
+			So(maskedValue.String(), ShouldEqual, "{*** value}")
 		})
 
 		Convey("should handle group attributes", func() {

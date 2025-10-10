@@ -42,11 +42,11 @@ func (h *SentryHandler) WithGroup(name string) slog.Handler {
 func converter(addSource bool, replaceAttr func(groups []string, a slog.Attr) slog.Attr, loggerAttr []slog.Attr, groups []string, record *slog.Record, hub *sentry.Hub) *sentry.Event {
 	e := sentryslog.DefaultConverter(addSource, replaceAttr, loggerAttr, groups, record, hub)
 
-	var maskedErr MaskedValue
+	var maskedValue MaskedValue
 	record.Attrs(func(a slog.Attr) bool {
 		if a.Key == AttrKeyError {
 			if err, ok := a.Value.Any().(MaskedValue); ok {
-				maskedErr = err
+				maskedValue = err
 			}
 			return false
 		}
@@ -55,23 +55,23 @@ func converter(addSource bool, replaceAttr func(groups []string, a slog.Attr) sl
 	// Because we masked the error in pkg/util/slogutil/mask_handler.go
 	// The DefaultConverter cannot generate a proper exception from the masked error
 	// Therefore we create the exception here
-	if maskedErr != nil {
+	if maskedValue != nil {
 		e.Exception = []sentry.Exception{}
 		var exception sentry.Exception
-		switch err := maskedErr.(type) {
+		switch maskedValue := maskedValue.(type) {
 		case *MaskedError:
 			{
 				exception = sentry.Exception{
-					Value:      err.Error(),
-					Type:       err.Type,
-					Stacktrace: sentry.ExtractStacktrace(err),
+					Value:      maskedValue.Error(),
+					Type:       maskedValue.Type,
+					Stacktrace: sentry.ExtractStacktrace(maskedValue),
 				}
 			}
 		case *MaskedAny:
 			{
 				exception = sentry.Exception{
-					Value:      err.String(),
-					Type:       err.Type,
+					Value:      maskedValue.String(),
+					Type:       maskedValue.Type,
 					Stacktrace: nil,
 				}
 			}
