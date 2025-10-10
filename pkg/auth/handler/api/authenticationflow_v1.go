@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api"
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
@@ -56,9 +57,29 @@ func batchInput0(
 }
 
 func prepareErrorResponse(ctx context.Context, service AuthenticationFlowV1WorkflowService, stateToken string, flowErr error) (*api.Response, error) {
+	// In reset password, it is possible that stateToken is empty
+	// Simply return the error we encountered
+	if stateToken == "" {
+		return &api.Response{
+			Error: flowErr,
+		}, nil
+	}
+
+	// If the error is flow not found, we do not try to get the flow
+	if errors.Is(flowErr, authflow.ErrFlowNotFound) {
+		return &api.Response{
+			Error: flowErr,
+		}, nil
+	}
+
 	output, err := service.Get(ctx, stateToken)
 	if err != nil {
-		return nil, err
+		// This is unknown error because we already checked the error we encountered is not FlowNotFound
+		return nil, errors.Join(
+			apierrors.NewInternalError("unknown error when trying to handle flow error"),
+			err,
+			flowErr,
+		)
 	}
 
 	result := output.ToFlowResponse()
