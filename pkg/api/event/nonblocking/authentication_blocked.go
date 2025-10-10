@@ -11,9 +11,8 @@ const (
 )
 
 type AuthenticationBlockedEventPayload struct {
-	UserRef   model.UserRef       `json:"-" resolve:"user"`
-	UserModel model.User          `json:"user"`
-	Error     *apierrors.APIError `json:"error"`
+	User  *model.User         `json:"user"`
+	Error *apierrors.APIError `json:"error"`
 }
 
 func (e *AuthenticationBlockedEventPayload) NonBlockingEventType() event.Type {
@@ -21,7 +20,10 @@ func (e *AuthenticationBlockedEventPayload) NonBlockingEventType() event.Type {
 }
 
 func (e *AuthenticationBlockedEventPayload) UserID() string {
-	return e.UserRef.ID
+	if e.User != nil {
+		return e.User.ID
+	}
+	return ""
 }
 
 func (e *AuthenticationBlockedEventPayload) GetTriggeredBy() event.TriggeredByType {

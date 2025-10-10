@@ -6,7 +6,14 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
+	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/botprotection"
+	"github.com/authgear/authgear-server/pkg/lib/hook"
+	"github.com/authgear/authgear-server/pkg/lib/lockout"
+	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
@@ -48,8 +55,56 @@ func AcceptSyntheticInput(ctx context.Context, deps *Dependencies, flows Flows, 
 	})
 }
 
+func accept(ctx context.Context, deps *Dependencies, flows Flows, result *AcceptResult, inputFn func(inputSchema InputSchema) (Input, error)) error {
+	err := doAccept(ctx, deps, flows, result, inputFn)
+	if err != nil {
+		err = logAuthenticationBlockedErrorIfNeeded(ctx, deps, flows, err)
+		if err != nil {
+			return err
+		}
+	}
+	return err
+}
+
+func logAuthenticationBlockedErrorIfNeeded(ctx context.Context, deps *Dependencies, flows Flows, err error) error {
+	if !apierrors.IsAPIError(err) {
+		return err
+	}
+	apiErr := apierrors.AsAPIError(err)
+	if !user.IsAccountStatusError(apiErr) &&
+		!apierrors.IsKind(apiErr, lockout.AccountLockout) &&
+		!apierrors.IsKind(apiErr, hook.WebHookDisallowed) {
+		return err
+	}
+
+	userID, getUserIDErr := GetUserID(flows)
+	if getUserIDErr != nil {
+		if errors.Is(getUserIDErr, ErrNoUserID) || errors.Is(getUserIDErr, ErrDifferentUserID) {
+			userID = ""
+		} else {
+			return errors.Join(getUserIDErr, err)
+		}
+	}
+	var user *model.User
+	if userID != "" {
+		u, getUserErr := deps.Users.Get(ctx, userID, accesscontrol.RoleGreatest)
+		if getUserErr != nil {
+			return errors.Join(getUserErr, err)
+		}
+		user = u
+	}
+	dispatchErr := deps.Events.DispatchEventImmediately(ctx, &nonblocking.AuthenticationBlockedEventPayload{
+		User:  user,
+		Error: apiErr,
+	})
+	if dispatchErr != nil {
+		ServiceLogger.GetLogger(ctx).WithError(dispatchErr).Error(ctx, "failed to dispatch event")
+	}
+	return err
+}
+
 // nolint: gocognit
-func accept(ctx context.Context, deps *Dependencies, flows Flows, result *AcceptResult, inputFn func(inputSchema InputSchema) (Input, error)) (err error) {
+func doAccept(ctx context.Context, deps *Dependencies, flows Flows, result *AcceptResult, inputFn func(inputSchema InputSchema) (Input, error)) (err error) {
 	var changed bool
 
 	defer func() {
@@ -245,4 +300,46 @@ func appendNode(ctx context.Context, deps *Dependencies, flows Flows, node Node)
 	}
 
 	return nil
+}
+
+type MilestoneDoUseUser interface {
+	Milestone
+	MilestoneDoUseUser() string
+}
+
+func GetUserID(flows Flows) (userID string, err error) {
+	err = TraverseFlow(Traverser{
+		NodeSimple: func(nodeSimple NodeSimple, w *Flow) error {
+			if n, ok := nodeSimple.(MilestoneDoUseUser); ok {
+				id := n.MilestoneDoUseUser()
+				if userID == "" {
+					userID = id
+				} else if userID != "" && id != userID {
+					return ErrDifferentUserID
+				}
+			}
+			return nil
+		},
+		Intent: func(intent Intent, w *Flow) error {
+			if i, ok := intent.(MilestoneDoUseUser); ok {
+				id := i.MilestoneDoUseUser()
+				if userID == "" {
+					userID = id
+				} else if userID != "" && id != userID {
+					return ErrDifferentUserID
+				}
+			}
+			return nil
+		},
+	}, flows.Root)
+
+	if userID == "" {
+		err = ErrNoUserID
+	}
+
+	if err != nil {
+		return
+	}
+
+	return
 }
