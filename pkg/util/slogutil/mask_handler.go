@@ -3,6 +3,7 @@ package slogutil
 import (
 	"context"
 	"log/slog"
+	"reflect"
 	"slices"
 
 	"github.com/jba/slog/withsupport"
@@ -45,6 +46,30 @@ func (o MaskHandlerOptions) maskString(s string) string {
 	return s
 }
 
+type MaskedValue interface {
+	MaskedValue()
+}
+
+type MaskedError struct {
+	Type    string
+	Message string
+}
+
+func (e *MaskedError) MaskedValue() {}
+func (e *MaskedError) Error() string {
+	return e.Message
+}
+
+type MaskedAny struct {
+	Type string
+	str  string
+}
+
+func (e *MaskedAny) MaskedValue() {}
+func (a *MaskedAny) String() string {
+	return a.str
+}
+
 func (o MaskHandlerOptions) maskAttr(ctx context.Context, a slog.Attr) slog.Attr {
 	switch a.Value.Kind() {
 	case slog.KindAny:
@@ -52,16 +77,22 @@ func (o MaskHandlerOptions) maskAttr(ctx context.Context, a slog.Attr) slog.Attr
 		if err, ok := anything.(error); ok {
 			errSummary := errorutil.Summary(err)
 			return slog.Attr{
-				Key:   a.Key,
-				Value: slog.StringValue(o.maskString(errSummary)),
+				Key: a.Key,
+				Value: slog.AnyValue(&MaskedError{
+					Type:    reflect.TypeOf(err).String(),
+					Message: o.maskString(errSummary)},
+				),
 			}
 		}
 
 		// Otherwise coerce to string and mask.
 		str := o.maskString(a.Value.String())
 		return slog.Attr{
-			Key:   a.Key,
-			Value: slog.StringValue(str),
+			Key: a.Key,
+			Value: slog.AnyValue(&MaskedAny{
+				Type: reflect.TypeOf(a.Value.Any()).String(),
+				str:  str,
+			}),
 		}
 	case slog.KindBool:
 		return a

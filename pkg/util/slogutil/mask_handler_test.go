@@ -13,6 +13,10 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
+type unknownType struct {
+	Value string
+}
+
 func TestAddMaskPatterns(t *testing.T) {
 	Convey("AddMaskPatterns", t, func() {
 		ctx := context.Background()
@@ -171,19 +175,23 @@ func TestMaskHandlerOptions_maskAttr(t *testing.T) {
 			err := errors.New("secret error")
 			attr := slog.Any("key", err)
 			result := options.maskAttr(ctx, attr)
-			So(result, ShouldResemble, slog.Attr{
-				Key:   "key",
-				Value: slog.StringValue("*** error"),
-			})
+			So(result.Key, ShouldEqual, "key")
+			So(result.Value.Kind(), ShouldEqual, slog.KindAny)
+			maskedValue, ok := result.Value.Any().(*MaskedError)
+			So(ok, ShouldBeTrue)
+			So(maskedValue.Type, ShouldEqual, "*errors.errorString")
+			So(maskedValue.Message, ShouldEqual, "*** error")
 		})
 
-		Convey("should mask any attributes by converting to string", func() {
-			attr := slog.Any("key", "secret value")
+		Convey("should mask any attributes (unknown type) by converting to string", func() {
+			attr := slog.Any("key", unknownType{Value: "secret value"})
 			result := options.maskAttr(ctx, attr)
-			So(result, ShouldResemble, slog.Attr{
-				Key:   "key",
-				Value: slog.StringValue("*** value"),
-			})
+			So(result.Key, ShouldEqual, "key")
+			So(result.Value.Kind(), ShouldEqual, slog.KindAny)
+			maskedValue, ok := result.Value.Any().(*MaskedAny)
+			So(ok, ShouldBeTrue)
+			So(maskedValue.Type, ShouldEqual, "slogutil.unknownType")
+			So(maskedValue.String(), ShouldEqual, "{*** value}")
 		})
 
 		Convey("should handle group attributes", func() {
@@ -197,7 +205,7 @@ func TestMaskHandlerOptions_maskAttr(t *testing.T) {
 				Key: "group",
 				Value: slog.GroupValue(
 					slog.Attr{Key: "inner", Value: slog.StringValue("*** data")},
-					slog.Attr{Key: "count", Value: slog.StringValue("42")},
+					slog.Attr{Key: "count", Value: slog.Int64Value(42)},
 				),
 			})
 		})
