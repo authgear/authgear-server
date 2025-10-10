@@ -336,5 +336,5 @@
 /pkg/util/otelutil/oteldatabasesql/instrumentation.go:301:13: contextbackground
 /pkg/util/pubsub/http_handler.go:51:40: requestcontext
 /pkg/util/sentry/request.go:25:9: requestcontext
-/pkg/util/slogutil/sentry_handler.go:81:11: contextbackground
+/pkg/util/slogutil/sentry_handler.go:92:11: contextbackground
 /pkg/util/template/engine.go:344:9: requestcontext
