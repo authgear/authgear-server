@@ -20,6 +20,9 @@ authgear.yaml:
             - identification: username
             type: identify
           - one_of:
+            - authentication: primary_password
+            type: authenticate
+          - one_of:
             - authentication: primary_oob_otp_sms
             - authentication: secondary_oob_otp_email
             type: authenticate
@@ -49,12 +52,38 @@ steps:
           }
         }
 
-  - name: Only secondary authenticator can be created
+  - name: Identify
     action: input
     input: |
       {
         "identification": "username",
-        "login_id": "no_authenticator_user"
+        "login_id": "no_secondary_authenticator_user"
+      }
+    output:
+      result: |
+        {
+          "state_token": "[[string]]",
+          "type": "login",
+          "name": "default",
+          "action": {
+            "type": "authenticate",
+            "data": {
+              "device_token_enabled": false,
+              "options": [
+                {
+                  "authentication": "primary_password"
+                }
+              ],
+              "type": "authentication_data"
+            }
+          }
+        }
+  - name: Authenticate, expect prompt to enroll 2FA
+    action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
       }
     output:
       result: |
@@ -71,6 +100,78 @@ steps:
                 }
               ],
               "type": "create_authenticator_data"
+            }
+          }
+        }
+---
+name: Cannot create authenticator on first authentication
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+        - login_id
+      primary_authenticators:
+        - oob_otp_sms
+        - password
+      secondary_authentication_mode: required
+      secondary_authenticators:
+        - oob_otp_email
+      secondary_authentication_grace_period:
+          enabled: true
+    authentication_flow:
+      login_flows:
+        - name: default
+          steps:
+          - one_of:
+            - identification: username
+            type: identify
+          - one_of:
+            - authentication: secondary_oob_otp_email
+            type: authenticate
+before:
+  - type: user_import
+    user_import: no_authenticator_users.json
+steps:
+  - name: Login with account without authenticators
+    action: "create"
+    input: |
+      {
+        "type": "login",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "state_token": "[[string]]",
+          "type": "login",
+          "name": "default",
+          "action": {
+              "type": "identify",
+              "data": {
+                  "type": "identification_data",
+                  "options": "[[array]]"
+              }
+          }
+        }
+
+  - name: Cannot create secondary authenticator on first authenticate step
+    action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "no_secondary_authenticator_user"
+      }
+    output:
+      error: |
+        {
+          "name": "Invalid",
+          "reason": "InvariantViolated",
+          "message": "no authenticator",
+          "code": 400,
+          "info": {
+            "FlowType": "login",
+            "cause": {
+              "kind": "NoAuthenticator"
             }
           }
         }
