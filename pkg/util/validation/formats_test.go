@@ -376,7 +376,7 @@ func TestFormatDateTime(t *testing.T) {
 		So(f(backgroundCtx(), "2024-05-17T08:08:13Z"), ShouldBeNil)
 		So(f(backgroundCtx(), "2024-05-17T08:08:13.26635+08:00"), ShouldBeNil)
 
-		So(f(backgroundCtx(), ""), ShouldBeError, `date-time must be in rfc3999 format`)
+		So(f(backgroundCtx(), ""), ShouldBeError, `date-time must be in rfc3339 format`)
 	})
 }
 
