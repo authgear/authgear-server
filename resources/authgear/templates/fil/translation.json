@@ -1097,7 +1097,7 @@
   "v2.page.fatal-error.oauth-error.title": "Hindi inaasahang error mula sa provider ng OAuth",
   "v2.page.fatal-error.redirecting.title": "Nililipat",
   "v2.page.fatal-error.token-invalid.title": "Nag-expire o di-wastong pahina",
-  "v2.page.fatal-error.webhook-disallowed.description": "Ang operasyon ay hinarang ng sistema. Mangyaring makipag-ugnayan sa iyong administrator para sa tulong.",
+  "v2.page.fatal-error.hook-disallowed.description": "Ang operasyon ay hinarang ng sistema. Mangyaring makipag-ugnayan sa iyong administrator para sa tulong.",
   "v2.page.fatal-error.webhook-disallowed.title": "{FlowType,select,login{Pag-login} reauth{Pag-login} signup{Pag-signup} promote{Pag-signup} signup_login{Pag-signup o Pag-login} other{Operasyon}} hindi pinapayagan",
   "v2.page.forgot-password-link-sent.default.description": "Ang isang link upang i-reset ang iyong password ay ipinadala na sa {MaskedLoginID}",
   "v2.page.forgot-password-link-sent.default.resend": "Ipadala muli",

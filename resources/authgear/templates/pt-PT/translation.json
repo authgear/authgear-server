@@ -1097,7 +1097,7 @@
   "v2.page.fatal-error.oauth-error.title": "Erro inesperado do fornecedor OAuth",
   "v2.page.fatal-error.redirecting.title": "Redirecionando",
   "v2.page.fatal-error.token-invalid.title": "Página expirada ou inválida",
-  "v2.page.fatal-error.webhook-disallowed.description": "A operação está bloqueada pelo sistema. Por favor, contacte o seu administrador para obter assistência.",
+  "v2.page.fatal-error.hook-disallowed.description": "A operação está bloqueada pelo sistema. Por favor, contacte o seu administrador para obter assistência.",
   "v2.page.fatal-error.webhook-disallowed.title": "{FlowType,select,login{Login} reauth{Login} signup{Registo} promote{Registo} signup_login{Registo ou Login} other{Operação}} não permitida",
   "v2.page.forgot-password-link-sent.default.description": "Um link para redefinir a tua palavra-passe foi enviado para {MaskedLoginID}",
   "v2.page.forgot-password-link-sent.default.resend": "Reenviar novamente",

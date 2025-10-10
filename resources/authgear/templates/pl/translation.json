@@ -1097,7 +1097,7 @@
   "v2.page.fatal-error.oauth-error.title": "Nieoczekiwany błąd od dostawcy OAuth",
   "v2.page.fatal-error.redirecting.title": "Przekierowywanie",
   "v2.page.fatal-error.token-invalid.title": "Strona wygasła lub jest nieprawidłowa",
-  "v2.page.fatal-error.webhook-disallowed.description": "Operacja jest zablokowana przez system. Skontaktuj się z administratorem, aby uzyskać pomoc.",
+  "v2.page.fatal-error.hook-disallowed.description": "Operacja jest zablokowana przez system. Skontaktuj się z administratorem, aby uzyskać pomoc.",
   "v2.page.fatal-error.webhook-disallowed.title": "{FlowType,select,login{Logowanie} reauth{Logowanie} signup{Rejestracja} promote{Rejestracja} signup_login{Rejestracja lub Logowanie} other{Operacja}} niedozwolona",
   "v2.page.forgot-password-link-sent.default.description": "Link do zresetowania hasła został wysłany na {MaskedLoginID}",
   "v2.page.forgot-password-link-sent.default.resend": "Wyślij ponownie",

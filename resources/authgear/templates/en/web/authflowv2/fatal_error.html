@@ -58,7 +58,7 @@
       {{ if $error_reason.reason }}
         {{ $error_message = $error_reason.reason }}
       {{ else }}
-        {{ $error_message = (include "v2.page.fatal-error.webhook-disallowed.description" (dict "FlowType" .Error.info.FlowType)) }}
+        {{ $error_message = (include "v2.page.fatal-error.hook-disallowed.description" (dict "FlowType" .Error.info.FlowType)) }}
       {{ end }}
     {{ else if eq .Error.reason "HookInvalidResponse" }}
       {{ $error_message = include "v2.error.hook-invalid-response" nil }}

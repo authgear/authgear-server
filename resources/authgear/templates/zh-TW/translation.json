@@ -1097,7 +1097,7 @@
   "v2.page.fatal-error.oauth-error.title": "OAuth 提供者發生意外錯誤",
   "v2.page.fatal-error.redirecting.title": "重新導向中",
   "v2.page.fatal-error.token-invalid.title": "頁面已過期或無效",
-  "v2.page.fatal-error.webhook-disallowed.description": "此操作已被系統封鎖。請聯絡您的管理員尋求協助。",
+  "v2.page.fatal-error.hook-disallowed.description": "此操作已被系統封鎖。請聯絡您的管理員尋求協助。",
   "v2.page.fatal-error.webhook-disallowed.title": "{FlowType,select,login{登入} reauth{登入} signup{註冊} promote{註冊} signup_login{註冊或登入} other{操作}} 不允許",
   "v2.page.forgot-password-link-sent.default.description": "重設密碼的連結已傳送至 {MaskedLoginID}",
   "v2.page.forgot-password-link-sent.default.resend": "重新發送",

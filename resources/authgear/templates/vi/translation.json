@@ -1097,7 +1097,7 @@
   "v2.page.fatal-error.oauth-error.title": "Lỗi không mong đợi từ nhà cung cấp OAuth",
   "v2.page.fatal-error.redirecting.title": "Đang chuyển hướng",
   "v2.page.fatal-error.token-invalid.title": "Trang đã hết hạn hoặc không hợp lệ",
-  "v2.page.fatal-error.webhook-disallowed.description": "Thao tác này đã bị chặn bởi hệ thống. Vui lòng liên hệ với quản trị viên của bạn để được hỗ trợ.",
+  "v2.page.fatal-error.hook-disallowed.description": "Thao tác này đã bị chặn bởi hệ thống. Vui lòng liên hệ với quản trị viên của bạn để được hỗ trợ.",
   "v2.page.fatal-error.webhook-disallowed.title": "{FlowType,select,login{Đăng nhập} reauth{Đăng nhập} signup{Đăng ký} promote{Đăng ký} signup_login{Đăng ký hoặc Đăng nhập} other{Thao tác}} không được phép",
   "v2.page.forgot-password-link-sent.default.description": "Một liên kết để đặt lại mật khẩu đã được gửi tới {MaskedLoginID}",
   "v2.page.forgot-password-link-sent.default.resend": "Gửi lại",

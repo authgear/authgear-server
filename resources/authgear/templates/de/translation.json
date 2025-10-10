@@ -1097,7 +1097,7 @@
   "v2.page.fatal-error.oauth-error.title": "Unerwarteter Fehler vom OAuth-Anbieter",
   "v2.page.fatal-error.redirecting.title": "Weiterleitung",
   "v2.page.fatal-error.token-invalid.title": "Seite abgelaufen oder ungültig",
-  "v2.page.fatal-error.webhook-disallowed.description": "Der Vorgang wird vom System blockiert. Bitte kontaktieren Sie Ihren Administrator für Unterstützung.",
+  "v2.page.fatal-error.hook-disallowed.description": "Der Vorgang wird vom System blockiert. Bitte kontaktieren Sie Ihren Administrator für Unterstützung.",
   "v2.page.fatal-error.webhook-disallowed.title": "{FlowType,select,login{Anmeldung} reauth{Anmeldung} signup{Registrierung} promote{Registrierung} signup_login{Registrierung oder Anmeldung} other{Vorgang}} nicht erlaubt",
   "v2.page.forgot-password-link-sent.default.description": "Ein Link zum Zurücksetzen Ihres Passworts wurde an {MaskedLoginID} gesendet",
   "v2.page.forgot-password-link-sent.default.resend": "Erneut senden",
