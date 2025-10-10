@@ -1,0 +1,76 @@
+name: Only secondary authenticators can be created in login
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+        - login_id
+      primary_authenticators:
+        - oob_otp_sms
+        - password
+      secondary_authentication_mode: required
+      secondary_authenticators:
+        - oob_otp_email
+      secondary_authentication_grace_period:
+          enabled: true
+    authentication_flow:
+      login_flows:
+        - name: default
+          steps:
+          - one_of:
+            - identification: username
+            type: identify
+          - one_of:
+            - authentication: primary_oob_otp_sms
+            - authentication: secondary_oob_otp_email
+            type: authenticate
+before:
+  - type: user_import
+    user_import: no_authenticator_users.json
+steps:
+  - name: Login with account without authenticators
+    action: "create"
+    input: |
+      {
+        "type": "login",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "state_token": "[[string]]",
+          "type": "login",
+          "name": "default",
+          "action": {
+              "type": "identify",
+              "data": {
+                  "type": "identification_data",
+                  "options": "[[array]]"
+              }
+          }
+        }
+
+  - name: Only secondary authenticator can be created
+    action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "no_authenticator_user"
+      }
+    output:
+      result: |
+        {
+          "state_token": "[[string]]",
+          "type": "login",
+          "name": "default",
+          "action": {
+            "type": "authenticate",
+            "data": {
+              "options": [
+                {
+                  "authentication": "secondary_oob_otp_email"
+                }
+              ],
+              "type": "create_authenticator_data"
+            }
+          }
+        }
