@@ -237,8 +237,8 @@
       <span>{{ include "v2.error.hook-invalid-response" nil }}</span>
     {{ else if eq .Error.reason "HookDeliveryTimeout" }}
       <span>{{ include "v2.error.hook-delivery-timeout" nil }}</span>
-    {{ else if eq .Error.reason "WebHookDeliveryUnknownFailure" }}
-      <span>{{ include "v2.error.webhook-delivery-failed" nil }}</span>
+    {{ else if eq .Error.reason "HookDeliveryUnknownFailure" }}
+      <span>{{ include "v2.error.hook-delivery-failed" nil }}</span>
     {{ else if eq .Error.reason "InvalidNetwork" }}
       <span>
         {{ include "v2.error.invalid-web3-network" (dict "chainID"

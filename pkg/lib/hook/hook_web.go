@@ -168,7 +168,7 @@ func performRequest(
 		err = HookDeliveryTimeout.New("webhook delivery timeout")
 		return
 	} else if err != nil {
-		err = errors.Join(WebHookDeliveryUnknownFailure.New("failed to deliver webhook"), err)
+		err = errors.Join(HookDeliveryUnknownFailure.New("failed to deliver webhook"), err)
 		return
 	}
 

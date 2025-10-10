@@ -8,7 +8,7 @@ var HookDisallowed = apierrors.Forbidden.WithReason("HookDisallowed")
 var HookDeliveryTimeout = apierrors.InternalError.WithReason("HookDeliveryTimeout").SkipLoggingToExternalService()
 var HookInvalidResponse = apierrors.InternalError.WithReason("HookInvalidResponse").SkipLoggingToExternalService()
 
-var WebHookDeliveryUnknownFailure = apierrors.InternalError.WithReason("WebHookDeliveryUnknownFailure").SkipLoggingToExternalService()
+var HookDeliveryUnknownFailure = apierrors.InternalError.WithReason("HookDeliveryUnknownFailure").SkipLoggingToExternalService()
 
 var DenoRunError = apierrors.BadRequest.WithReason("DenoRunError")
 

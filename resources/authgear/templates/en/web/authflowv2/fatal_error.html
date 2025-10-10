@@ -64,8 +64,8 @@
       {{ $error_message = include "v2.error.hook-invalid-response" nil }}
     {{ else if eq .Error.reason "HookDeliveryTimeout" }}
       {{ $error_message = include "v2.error.hook-delivery-timeout" nil }}
-    {{ else if eq .Error.reason "WebHookDeliveryUnknownFailure" }}
-      {{ $error_message = include "v2.error.webhook-delivery-failed" nil }}
+    {{ else if eq .Error.reason "HookDeliveryUnknownFailure" }}
+      {{ $error_message = include "v2.error.hook-delivery-failed" nil }}
     {{ end }}
   {{ end }}
 
