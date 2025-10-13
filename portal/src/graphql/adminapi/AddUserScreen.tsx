@@ -5,6 +5,7 @@ import {
   Checkbox,
   ChoiceGroup,
   IChoiceGroupOption,
+  IChoiceGroupOptionProps,
   IChoiceGroupStyleProps,
   IChoiceGroupStyles,
   IStyleFunctionOrObject,
@@ -41,6 +42,7 @@ import { validatePassword } from "../../error/password";
 enum PasswordCreationType {
   ManualEntry = "manual_entry",
   AutoGenerate = "auto_generate",
+  NoPassword = "no_password",
 }
 
 interface FormState {
@@ -86,7 +88,7 @@ function makeDefaultFormState(loginIDTypes: LoginIDKeyType[]): FormState {
   };
 }
 
-function isPasswordNeeded(
+function isPasswordFieldDisplayed(
   primaryAuthenticators: PrimaryAuthenticatorType[],
   loginIdKeySelected: LoginIDKeyType | null
 ) {
@@ -120,7 +122,8 @@ function isPasswordNeeded(
   }
 
   return (
-    relatedAuthenticators.length > 0 && relatedAuthenticators[0] === "password"
+    relatedAuthenticators.length > 0 &&
+    relatedAuthenticators.includes("password")
   );
 }
 
@@ -171,6 +174,58 @@ interface AddUserContentProps {
   isPasskeyOnly: boolean;
 }
 
+const ManualEntryPasswordField: React.VFC<{
+  disabled: boolean;
+  passwordPolicy: PasswordPolicyConfig;
+  password: string;
+  onPasswordChange: (
+    event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>,
+    newValue?: string
+  ) => void;
+  selectedLoginIDType: LoginIDKeyType | null;
+  sendPassword: boolean;
+  onChangeSendPassword: (
+    event?: React.FormEvent<HTMLElement | HTMLInputElement>,
+    checked?: boolean
+  ) => void;
+}> = function ManualEntryPasswordField(props) {
+  const {
+    disabled,
+    passwordPolicy,
+    password,
+    onPasswordChange,
+    selectedLoginIDType,
+    sendPassword,
+    onChangeSendPassword,
+  } = props;
+  const { renderToString } = useContext(Context);
+
+  return (
+    <div>
+      <PasswordField
+        label={renderToString("AddUserScreen.password.label")}
+        disabled={disabled}
+        value={password}
+        canRevealPassword={true}
+        canGeneratePassword={true}
+        onChange={onPasswordChange}
+        passwordPolicy={passwordPolicy}
+        parentJSONPointer=""
+        fieldName="password"
+      />
+      {selectedLoginIDType === "email" ? (
+        <Checkbox
+          disabled={disabled}
+          className={styles.checkbox}
+          label={renderToString("AddUserScreen.send-password")}
+          checked={sendPassword}
+          onChange={onChangeSendPassword}
+        />
+      ) : null}
+    </div>
+  );
+};
+
 const AddUserContent: React.VFC<AddUserContentProps> = function AddUserContent(
   props: AddUserContentProps
 ) {
@@ -183,50 +238,7 @@ const AddUserContent: React.VFC<AddUserContentProps> = function AddUserContent(
   } = props;
   const { renderToString } = useContext(Context);
 
-  const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
-    return [
-      { to: "~/users", label: <FormattedMessage id="UsersScreen.title" /> },
-      { to: ".", label: <FormattedMessage id="AddUserScreen.title" /> },
-    ];
-  }, []);
-
-  const passwordCreateionTypeOptions = useMemo(() => {
-    return [
-      {
-        key: PasswordCreationType.ManualEntry,
-        text: renderToString("AddUserScreen.password-creation-type.manual"),
-      },
-      {
-        key: PasswordCreationType.AutoGenerate,
-        text: renderToString("AddUserScreen.password-creation-type.auto"),
-      },
-    ];
-  }, [renderToString]);
-
-  const onChangePasswordCreationType = useCallback(
-    (_e, option: IChoiceGroupOption | undefined) => {
-      if (option != null) {
-        setState((prev) => ({
-          ...prev,
-          password:
-            option.key === PasswordCreationType.AutoGenerate
-              ? ""
-              : prev.password,
-          passwordCreationType: option.key as PasswordCreationType,
-          sendPassword:
-            prev.sendPassword ||
-            option.key === PasswordCreationType.AutoGenerate,
-        }));
-      }
-    },
-    [setState]
-  );
-
   const { username, email, phone, password, selectedLoginIDType } = state;
-
-  const passwordFieldNeeded = useMemo(() => {
-    return isPasswordNeeded(primaryAuthenticators, selectedLoginIDType);
-  }, [primaryAuthenticators, selectedLoginIDType]);
 
   const { onChange: onUsernameChange } = useTextField((value) => {
     setState((prev) => ({ ...prev, username: value }));
@@ -247,13 +259,204 @@ const AddUserContent: React.VFC<AddUserContentProps> = function AddUserContent(
     setState((prev) => ({ ...prev, setPasswordExpired: value }));
   });
 
+  const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
+    return [
+      { to: "~/users", label: <FormattedMessage id="UsersScreen.title" /> },
+      { to: ".", label: <FormattedMessage id="AddUserScreen.title" /> },
+    ];
+  }, []);
+
+  const renderManualEntryField = useCallback(
+    (
+      props?: IChoiceGroupOption & IChoiceGroupOptionProps,
+      defaultRender?: (
+        props?: IChoiceGroupOption & IChoiceGroupOptionProps
+      ) => JSX.Element | null
+    ) => {
+      return (
+        <>
+          {defaultRender?.(props)}
+          <div className={styles.choiceGroupOptionContent}>
+            <Text block={true}>
+              <FormattedMessage id="AddUserScreen.password-creation-type.manual.description" />
+            </Text>
+            <ManualEntryPasswordField
+              disabled={!props?.checked}
+              passwordPolicy={passwordPolicy}
+              password={password}
+              onPasswordChange={onPasswordChange}
+              selectedLoginIDType={selectedLoginIDType}
+              sendPassword={state.sendPassword}
+              onChangeSendPassword={onChangeSendPassword}
+            />
+          </div>
+        </>
+      );
+    },
+    [
+      passwordPolicy,
+      password,
+      onPasswordChange,
+      selectedLoginIDType,
+      state.sendPassword,
+      onChangeSendPassword,
+    ]
+  );
+
+  const renderAutoGenerateField = useCallback(
+    (
+      props?: IChoiceGroupOption & IChoiceGroupOptionProps,
+      defaultRender?: (
+        props?: IChoiceGroupOption & IChoiceGroupOptionProps
+      ) => JSX.Element | null
+    ) => {
+      return (
+        <>
+          {defaultRender?.(props)}
+          <div className={styles.choiceGroupOptionContent}>
+            <Text block={true}>
+              <FormattedMessage id="AddUserScreen.password-creation-type.auto-generate.description" />
+            </Text>
+          </div>
+        </>
+      );
+    },
+    []
+  );
+
+  const renderNoPasswordField = useCallback(
+    (
+      props?: IChoiceGroupOption & IChoiceGroupOptionProps,
+      defaultRender?: (
+        props?: IChoiceGroupOption & IChoiceGroupOptionProps
+      ) => JSX.Element | null
+    ) => {
+      return (
+        <>
+          {defaultRender?.(props)}
+          <div className={styles.choiceGroupOptionContent}>
+            <Text block={true}>
+              <FormattedMessage id="AddUserScreen.password-creation-type.no-password.description" />
+            </Text>
+          </div>
+        </>
+      );
+    },
+    []
+  );
+
+  const passwordCreateionTypeOptions = useMemo((): IChoiceGroupOption[] => {
+    return [
+      {
+        key: PasswordCreationType.ManualEntry,
+        text: renderToString("AddUserScreen.password-creation-type.manual"),
+        onRenderField: renderManualEntryField,
+        styles: {
+          choiceFieldWrapper: { flex: "1 1 0px" },
+          field: { fontWeight: "600" },
+        },
+      },
+      {
+        key: PasswordCreationType.AutoGenerate,
+        text: renderToString("AddUserScreen.password-creation-type.auto"),
+        onRenderField: renderAutoGenerateField,
+        styles: {
+          choiceFieldWrapper: { flex: "1 1 0px" },
+          field: { fontWeight: "600" },
+        },
+      },
+      {
+        key: PasswordCreationType.NoPassword,
+        text: renderToString(
+          "AddUserScreen.password-creation-type.no-password"
+        ),
+        onRenderField: renderNoPasswordField,
+        styles: {
+          choiceFieldWrapper: { flex: "1 1 0px" },
+          field: { fontWeight: "600" },
+        },
+      },
+    ].filter((options) => {
+      switch (selectedLoginIDType) {
+        case "email":
+          return true;
+        case "phone":
+        case "username":
+          return [
+            PasswordCreationType.ManualEntry,
+            PasswordCreationType.NoPassword,
+          ].includes(options.key);
+        default:
+          return false;
+      }
+    });
+  }, [
+    renderToString,
+    renderManualEntryField,
+    renderAutoGenerateField,
+    renderNoPasswordField,
+    selectedLoginIDType,
+  ]);
+
+  const onChangePasswordCreationType = useCallback(
+    (_e, option: IChoiceGroupOption | undefined) => {
+      if (option != null) {
+        setState((prev) => {
+          const newPasswordCreationType = option.key as PasswordCreationType;
+          if (prev.passwordCreationType === newPasswordCreationType) {
+            return prev;
+          }
+
+          let newSendPassword = false;
+          let newSetPasswordExpired = false;
+
+          switch (newPasswordCreationType) {
+            case PasswordCreationType.AutoGenerate:
+              newSendPassword = true;
+              break;
+            case PasswordCreationType.NoPassword:
+              newSendPassword = false;
+              newSetPasswordExpired = false;
+              break;
+            case PasswordCreationType.ManualEntry:
+              newSendPassword = prev.sendPassword;
+              newSetPasswordExpired = prev.setPasswordExpired;
+              break;
+            default:
+              break;
+          }
+
+          return {
+            ...prev,
+            password:
+              newPasswordCreationType === PasswordCreationType.AutoGenerate ||
+              newPasswordCreationType === PasswordCreationType.NoPassword
+                ? ""
+                : prev.password,
+            passwordCreationType: newPasswordCreationType,
+            sendPassword: newSendPassword,
+            setPasswordExpired: newSetPasswordExpired,
+          };
+        });
+      }
+    },
+    [setState]
+  );
+
+  const passwordFieldNeeded = useMemo(() => {
+    return isPasswordFieldDisplayed(primaryAuthenticators, selectedLoginIDType);
+  }, [primaryAuthenticators, selectedLoginIDType]);
+
   const onSelectLoginIdType = useCallback(
     (_event, options?: IChoiceGroupOption) => {
       const loginIdType = (options?.key ?? null) as LoginIDKeyType | null;
       if (!loginIdType || !loginIDKeyTypes.includes(loginIdType)) {
         return;
       }
-      setState((prev) => ({ ...prev, selectedLoginIDType: loginIdType }));
+      setState(() => ({
+        ...makeDefaultFormState([...loginIDKeyTypes]),
+        selectedLoginIDType: loginIdType,
+      }));
     },
     [setState]
   );
@@ -349,16 +552,16 @@ const AddUserContent: React.VFC<AddUserContentProps> = function AddUserContent(
           </div>
         ) : (
           <>
-            {loginIdTypeOptions.length > 1 ? (
-              <ChoiceGroup
-                className={styles.widget}
-                styles={loginIDTypeOptionChoiceGroupStyle}
-                selectedKey={selectedLoginIDType}
-                options={loginIdTypeOptions}
-                onChange={onSelectLoginIdType}
-                label={renderToString("AddUserScreen.user-info.label")}
-              />
-            ) : null}
+            <ChoiceGroup
+              className={styles.widget}
+              styles={loginIDTypeOptionChoiceGroupStyle}
+              selectedKey={selectedLoginIDType}
+              options={loginIdTypeOptions}
+              onChange={onSelectLoginIdType}
+              label={renderToString(
+                "AddUserScreen.select-sign-in-method.label"
+              )}
+            />
 
             {selectedLoginIDType ? (
               <div className={styles.identityOption}>
@@ -368,54 +571,38 @@ const AddUserContent: React.VFC<AddUserContentProps> = function AddUserContent(
                   />
                 </Label>
                 {textFieldRenderer[selectedLoginIDType]()}
-                {passwordFieldNeeded && selectedLoginIDType === "email" ? (
-                  <ChoiceGroup
-                    className={styles.widget}
-                    selectedKey={state.passwordCreationType}
-                    options={passwordCreateionTypeOptions}
-                    onChange={onChangePasswordCreationType}
-                  />
-                ) : null}
               </div>
             ) : null}
-            <div className={styles.widget}>
-              {passwordFieldNeeded ? (
-                <PasswordField
-                  label={renderToString("AddUserScreen.password.label")}
-                  value={password}
-                  canRevealPassword={true}
-                  canGeneratePassword={true}
-                  onChange={onPasswordChange}
-                  passwordPolicy={passwordPolicy}
-                  parentJSONPointer=""
-                  fieldName="password"
-                  disabled={
-                    state.passwordCreationType ===
-                    PasswordCreationType.AutoGenerate
-                  }
+
+            {passwordFieldNeeded ? (
+              <>
+                <ChoiceGroup
+                  className={styles.widget}
+                  selectedKey={state.passwordCreationType}
+                  options={passwordCreateionTypeOptions}
+                  onChange={onChangePasswordCreationType}
+                  label={renderToString("AddUserScreen.password-setup.label")}
                 />
-              ) : null}
-              {passwordFieldNeeded && selectedLoginIDType === "email" ? (
-                <Checkbox
-                  className={styles.checkbox}
-                  label={renderToString("AddUserScreen.send-password")}
-                  checked={state.sendPassword}
-                  onChange={onChangeSendPassword}
-                  disabled={
-                    state.passwordCreationType ===
-                    PasswordCreationType.AutoGenerate
-                  }
-                />
-              ) : null}
-              {passwordFieldNeeded ? (
-                <Checkbox
-                  className={styles.checkbox}
-                  label={renderToString("AddUserScreen.force-change-on-login")}
-                  checked={state.setPasswordExpired}
-                  onChange={onChangeForceChangeOnLogin}
-                />
-              ) : null}
-            </div>
+
+                <div className={styles.widget}>
+                  <Label className={styles.additionalOption}>
+                    <FormattedMessage id="AddUserScreen.additional-option.label" />
+                  </Label>
+                  <Checkbox
+                    className={styles.checkbox}
+                    label={renderToString(
+                      "AddUserScreen.force-change-on-login"
+                    )}
+                    checked={state.setPasswordExpired}
+                    onChange={onChangeForceChangeOnLogin}
+                    disabled={
+                      state.passwordCreationType ===
+                      PasswordCreationType.NoPassword
+                    }
+                  />
+                </div>
+              </>
+            ) : null}
           </>
         )}
       </div>
@@ -476,7 +663,13 @@ const AddUserScreen: React.VFC = function AddUserScreen() {
 
   const validate = useCallback(
     (state: FormState) => {
-      if (!isPasswordNeeded(primaryAuthenticators, state.selectedLoginIDType)) {
+      if (
+        !isPasswordFieldDisplayed(
+          primaryAuthenticators,
+          state.selectedLoginIDType
+        ) ||
+        state.passwordCreationType === PasswordCreationType.NoPassword
+      ) {
         return null;
       }
       return validatePassword(state.password, passwordPolicy);
@@ -491,25 +684,39 @@ const AddUserScreen: React.VFC = function AddUserScreen() {
         return;
       }
 
-      const needPassword = isPasswordNeeded(
+      const hasPasswordField = isPasswordFieldDisplayed(
         primaryAuthenticators,
         state.selectedLoginIDType
       );
       const identityValue = state[loginIDType];
       let password: string | undefined;
-      if (needPassword) {
+      let sendPassword: boolean | undefined;
+      let setPasswordExpired: boolean | undefined;
+      if (hasPasswordField) {
         switch (state.passwordCreationType) {
           case PasswordCreationType.AutoGenerate:
             password = "";
+            sendPassword = loginIDType === "email" ? true : undefined;
+            setPasswordExpired = state.setPasswordExpired;
             break;
           case PasswordCreationType.ManualEntry:
             password = state.password;
+            sendPassword =
+              loginIDType === "email" ? state.sendPassword : undefined;
+            setPasswordExpired = state.setPasswordExpired;
+            break;
+          case PasswordCreationType.NoPassword:
+            password = undefined;
+            sendPassword = false;
+            setPasswordExpired = false;
             break;
           default:
             break;
         }
+      } else {
+        sendPassword = false;
+        setPasswordExpired = false;
       }
-      const { sendPassword, setPasswordExpired } = state;
 
       await createUser({
         identity: { key: loginIDType, value: identityValue },
@@ -529,9 +736,34 @@ const AddUserScreen: React.VFC = function AddUserScreen() {
     validate,
   });
 
-  const canSave =
-    form.state.selectedLoginIDType != null &&
-    form.state[form.state.selectedLoginIDType].length > 0;
+  const canSave = useMemo(() => {
+    if (form.state.selectedLoginIDType == null) {
+      return false;
+    }
+    if (!form.state[form.state.selectedLoginIDType]) {
+      return false;
+    }
+
+    if (
+      isPasswordFieldDisplayed(
+        primaryAuthenticators,
+        form.state.selectedLoginIDType
+      )
+    ) {
+      switch (form.state.passwordCreationType) {
+        case PasswordCreationType.ManualEntry:
+          return form.state.password.length > 0;
+        case PasswordCreationType.AutoGenerate:
+          return true;
+        case PasswordCreationType.NoPassword:
+          return true;
+        default:
+          throw new Error("unknown passwordCreationType");
+      }
+    }
+
+    return true;
+  }, [form.state, primaryAuthenticators]);
 
   useEffect(() => {
     if (form.isSubmitted) {
