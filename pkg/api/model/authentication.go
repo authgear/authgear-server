@@ -19,7 +19,7 @@ const (
 	AuthenticationFlowAuthenticationDeviceToken          AuthenticationFlowAuthentication = "device_token"
 )
 
-func (m AuthenticationFlowAuthentication) AuthenticatorKind() AuthenticatorKind {
+func (m AuthenticationFlowAuthentication) MaybeAuthenticatorKind() (AuthenticatorKind, bool) {
 	switch m {
 	case AuthenticationFlowAuthenticationPrimaryPassword:
 		fallthrough
@@ -28,7 +28,7 @@ func (m AuthenticationFlowAuthentication) AuthenticatorKind() AuthenticatorKind 
 	case AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 		fallthrough
 	case AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
-		return AuthenticatorKindPrimary
+		return AuthenticatorKindPrimary, true
 	case AuthenticationFlowAuthenticationSecondaryPassword:
 		fallthrough
 	case AuthenticationFlowAuthenticationSecondaryTOTP:
@@ -36,14 +36,22 @@ func (m AuthenticationFlowAuthentication) AuthenticatorKind() AuthenticatorKind 
 	case AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
 		fallthrough
 	case AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
-		return AuthenticatorKindSecondary
+		return AuthenticatorKindSecondary, true
 	case AuthenticationFlowAuthenticationRecoveryCode:
-		panic(fmt.Errorf("%v is not an authenticator", m))
+		fallthrough
 	case AuthenticationFlowAuthenticationDeviceToken:
-		panic(fmt.Errorf("%v is not an authenticator", m))
+		return "", false
 	default:
 		panic(fmt.Errorf("unknown authentication: %v", m))
 	}
+}
+
+func (m AuthenticationFlowAuthentication) AuthenticatorKind() AuthenticatorKind {
+	kind, ok := m.MaybeAuthenticatorKind()
+	if ok {
+		return kind
+	}
+	panic(fmt.Errorf("%v is not an authenticator", m))
 }
 
 func (a AuthenticationFlowAuthentication) AMR() []string {

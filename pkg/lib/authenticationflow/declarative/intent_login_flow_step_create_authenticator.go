@@ -337,9 +337,17 @@ func (i *IntentLoginFlowStepCreateAuthenticator) getOptions(ctx context.Context,
 		return nil, err
 	}
 	step := i.step(current)
-	options, err := NewCreateAuthenticationOptions(ctx, deps, flows, step, i.UserID)
+	allOptions, err := NewCreateAuthenticationOptions(ctx, deps, flows, step, i.UserID)
 	if err != nil {
 		return nil, err
+	}
+	var options []CreateAuthenticatorOptionInternal
+	// In login flow, only secondary authenticators can be created
+	for _, option := range allOptions {
+		kind, ok := option.Authentication.MaybeAuthenticatorKind()
+		if ok && kind == authenticator.KindSecondary {
+			options = append(options, option)
+		}
 	}
 	return options, nil
 }
