@@ -12,7 +12,10 @@ import (
 
 type StackTraceHandler struct {
 	Next slog.Handler
+	Skip bool
 }
+
+const AttrKeySkipStackTrace = "__authgear_skip_stacktrace"
 
 var _ slog.Handler = (*StackTraceHandler)(nil)
 
@@ -29,7 +32,7 @@ func (s *StackTraceHandler) Enabled(context.Context, slog.Level) bool {
 }
 
 func (s *StackTraceHandler) Handle(ctx context.Context, record slog.Record) error {
-	if record.Level >= slog.LevelError {
+	if !s.Skip && record.Level >= slog.LevelError && !IsStackTraceSkipped(record) {
 		record = record.Clone()
 		record.AddAttrs(slog.Attr{
 			Key:   "stack",
@@ -44,8 +47,19 @@ func (s *StackTraceHandler) Handle(ctx context.Context, record slog.Record) erro
 }
 
 func (s *StackTraceHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
+	for _, attr := range attrs {
+		if attr.Key == AttrKeySkipStackTrace {
+			if attr.Value.Kind() == slog.KindBool && attr.Value.Bool() {
+				return &StackTraceHandler{
+					Next: s.Next.WithAttrs(attrs),
+					Skip: true,
+				}
+			}
+		}
+	}
 	return &StackTraceHandler{
 		Next: s.Next.WithAttrs(attrs),
+		Skip: s.Skip,
 	}
 }
 
@@ -53,4 +67,22 @@ func (s *StackTraceHandler) WithGroup(name string) slog.Handler {
 	return &StackTraceHandler{
 		Next: s.Next.WithGroup(name),
 	}
+}
+
+func SkipStackTrace() slog.Attr {
+	return slog.Bool(AttrKeySkipStackTrace, true)
+}
+
+func IsStackTraceSkipped(record slog.Record) bool {
+	skipped := false
+	record.Attrs(func(attr slog.Attr) bool {
+		if attr.Key == AttrKeySkipStackTrace {
+			if attr.Value.Kind() == slog.KindBool {
+				skipped = attr.Value.Bool()
+				return false
+			}
+		}
+		return true
+	})
+	return skipped
 }

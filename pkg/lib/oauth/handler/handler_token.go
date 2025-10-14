@@ -653,7 +653,7 @@ func (h *TokenHandler) IssueTokensForAuthorizationCode(
 	err = h.CodeGrants.DeleteCodeGrant(ctx, codeGrant)
 	if err != nil {
 		// NOTE(DEV-2982): This is for debugging the session lost problem
-		logger.WithError(err).Error(ctx, "failed to invalidate code grant",
+		logger.WithSkipLogging().WithSkipStackTrace().WithError(err).Error(ctx, "failed to invalidate code grant",
 			slog.Bool("refresh_token_log", true))
 	}
 
@@ -674,7 +674,7 @@ func (h *TokenHandler) handleRefreshToken(
 	deviceInfo, err := r.DeviceInfo()
 	if err != nil {
 		// NOTE(DEV-2982): This is for debugging the session lost problem
-		logger.WithSkipLogging().WithError(err).Error(ctx,
+		logger.WithSkipLogging().WithSkipStackTrace().WithError(err).Error(ctx,
 			"failed to get device info from token request",
 			slog.Bool("refresh_token_log", true),
 		)
@@ -690,7 +690,7 @@ func (h *TokenHandler) handleRefreshToken(
 			userID = offlineGrant.GetUserID()
 		}
 		// NOTE(DEV-2982): This is for debugging the session lost problem
-		logger.WithSkipLogging().WithError(err).Error(ctx,
+		logger.WithSkipLogging().WithSkipStackTrace().WithError(err).Error(ctx,
 			"failed to parse refresh token",
 			slog.String("offline_grant_id", offlineGrantID),
 			slog.String("user_id", userID),
@@ -707,7 +707,7 @@ func (h *TokenHandler) handleRefreshToken(
 	offlineGrantSession, ok := offlineGrant.ToSession(currentRefreshTokenHash)
 	if !ok {
 		// NOTE(DEV-2982): This is for debugging the session lost problem
-		logger.WithSkipLogging().Error(ctx,
+		logger.WithSkipLogging().WithSkipStackTrace().WithError(err).Error(ctx,
 			"failed to convert offline grant to session by hash",
 			slog.String("offline_grant_id", offlineGrant.ID),
 			slog.String("user_id", offlineGrant.GetUserID()),
@@ -719,7 +719,7 @@ func (h *TokenHandler) handleRefreshToken(
 	handleResult, err := h.issueTokensForRefreshToken(ctx, client, offlineGrantSession, authz)
 	if err != nil {
 		// NOTE(DEV-2982): This is for debugging the session lost problem
-		logger.WithSkipLogging().WithError(err).Error(ctx,
+		logger.WithSkipLogging().WithSkipStackTrace().WithError(err).Error(ctx,
 			"failed to issue tokens for refresh token",
 			slog.String("offline_grant_id", offlineGrant.ID),
 			slog.String("user_id", offlineGrant.GetUserID()),
@@ -730,7 +730,7 @@ func (h *TokenHandler) handleRefreshToken(
 
 	if client.ClientID != offlineGrantSession.ClientID {
 		// NOTE(DEV-2982): This is for debugging the session lost problem
-		logger.WithSkipLogging().Error(ctx,
+		logger.WithSkipLogging().WithSkipStackTrace().Error(ctx,
 			"client ID in request does match that of refresh token",
 			slog.String("client_id", client.ClientID),
 			slog.String("offline_grant_client_id", offlineGrantSession.ClientID),
@@ -744,7 +744,7 @@ func (h *TokenHandler) handleRefreshToken(
 	_, err = h.OfflineGrantService.AccessOfflineGrant(ctx, offlineGrant.ID, offlineGrantSession.InitialTokenHash, &accessEvent, offlineGrant.ExpireAtForResolvedSession)
 	if err != nil {
 		// NOTE(DEV-2982): This is for debugging the session lost problem
-		logger.WithSkipLogging().WithError(err).Error(ctx,
+		logger.WithSkipLogging().WithSkipStackTrace().WithError(err).Error(ctx,
 			"failed to access offline grant during refresh token",
 			slog.String("offline_grant_id", offlineGrant.ID),
 			slog.String("user_id", offlineGrant.GetUserID()),
@@ -756,7 +756,7 @@ func (h *TokenHandler) handleRefreshToken(
 	_, err = h.OfflineGrants.UpdateOfflineGrantDeviceInfo(ctx, offlineGrant.ID, deviceInfo, offlineGrant.ExpireAtForResolvedSession)
 	if err != nil {
 		// NOTE(DEV-2982): This is for debugging the session lost problem
-		logger.WithSkipLogging().WithError(err).Error(ctx,
+		logger.WithSkipLogging().WithSkipStackTrace().WithError(err).Error(ctx,
 			"failed to update offline grant device info during refresh token",
 			slog.String("offline_grant_id", offlineGrant.ID),
 			slog.String("user_id", offlineGrant.GetUserID()),
@@ -1848,7 +1848,7 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 		} else {
 			// NOTE(DEV-2982): This is for debugging the session lost problem
 			userID := authz.UserID
-			logger.WithSkipLogging().Error(ctx, "user.authenticated event skipped because ShouldFireAuthenticatedEventWhenIssueOfflineGrant is false",
+			logger.WithSkipLogging().WithSkipStackTrace().Error(ctx, "user.authenticated event skipped because ShouldFireAuthenticatedEventWhenIssueOfflineGrant is false",
 				slog.String("user_id", userID),
 				slog.Bool("refresh_token_log", true))
 		}

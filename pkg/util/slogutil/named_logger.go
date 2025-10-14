@@ -113,6 +113,10 @@ func (l NamedLogger) WithSkipLogging() NamedLogger {
 	return l.With(SkipLogging())
 }
 
+func (l NamedLogger) WithSkipStackTrace() NamedLogger {
+	return l.With(SkipStackTrace())
+}
+
 // WithGroup is intentionally omitted because it is intended for
 // passing a *slog.Logger instance to a third party library.
 // We do not have that use case at the moment.
