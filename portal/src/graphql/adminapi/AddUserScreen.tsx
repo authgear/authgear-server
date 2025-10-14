@@ -50,9 +50,9 @@ interface FormState {
   username: string;
   email: string;
   phone: string;
-  password: string;
   passwordCreationType: PasswordCreationType;
-  sendPassword: boolean;
+  manualEntryPassword: string;
+  manualEntrySendPassword: boolean;
   setPasswordExpired: boolean;
 }
 
@@ -69,9 +69,9 @@ function makeDefaultFormState(loginIDTypes: LoginIDKeyType[]): FormState {
       username: "",
       email: "",
       phone: "",
-      password: "",
+      manualEntryPassword: "",
       passwordCreationType: PasswordCreationType.ManualEntry,
-      sendPassword: false,
+      manualEntrySendPassword: false,
       setPasswordExpired: true,
     };
   }
@@ -81,9 +81,9 @@ function makeDefaultFormState(loginIDTypes: LoginIDKeyType[]): FormState {
     username: "",
     email: "",
     phone: "",
-    password: "",
+    manualEntryPassword: "",
     passwordCreationType: PasswordCreationType.ManualEntry,
-    sendPassword: false,
+    manualEntrySendPassword: false,
     setPasswordExpired: true,
   };
 }
@@ -238,7 +238,13 @@ const AddUserContent: React.VFC<AddUserContentProps> = function AddUserContent(
   } = props;
   const { renderToString } = useContext(Context);
 
-  const { username, email, phone, password, selectedLoginIDType } = state;
+  const {
+    username,
+    email,
+    phone,
+    manualEntryPassword: password,
+    selectedLoginIDType,
+  } = state;
 
   const { onChange: onUsernameChange } = useTextField((value) => {
     setState((prev) => ({ ...prev, username: value }));
@@ -250,10 +256,10 @@ const AddUserContent: React.VFC<AddUserContentProps> = function AddUserContent(
     setState((prev) => ({ ...prev, phone: value }));
   });
   const { onChange: onPasswordChange } = useTextField((value) => {
-    setState((prev) => ({ ...prev, password: value }));
+    setState((prev) => ({ ...prev, manualEntryPassword: value }));
   });
   const { onChange: onChangeSendPassword } = useCheckbox((value) => {
-    setState((prev) => ({ ...prev, sendPassword: value }));
+    setState((prev) => ({ ...prev, manualEntrySendPassword: value }));
   });
   const { onChange: onChangeForceChangeOnLogin } = useCheckbox((value) => {
     setState((prev) => ({ ...prev, setPasswordExpired: value }));
@@ -286,7 +292,7 @@ const AddUserContent: React.VFC<AddUserContentProps> = function AddUserContent(
               password={password}
               onPasswordChange={onPasswordChange}
               selectedLoginIDType={selectedLoginIDType}
-              sendPassword={state.sendPassword}
+              sendPassword={state.manualEntrySendPassword}
               onChangeSendPassword={onChangeSendPassword}
             />
           </div>
@@ -298,7 +304,7 @@ const AddUserContent: React.VFC<AddUserContentProps> = function AddUserContent(
       password,
       onPasswordChange,
       selectedLoginIDType,
-      state.sendPassword,
+      state.manualEntrySendPassword,
       onChangeSendPassword,
     ]
   );
@@ -407,35 +413,9 @@ const AddUserContent: React.VFC<AddUserContentProps> = function AddUserContent(
             return prev;
           }
 
-          let newSendPassword = false;
-          let newSetPasswordExpired = false;
-
-          switch (newPasswordCreationType) {
-            case PasswordCreationType.AutoGenerate:
-              newSendPassword = true;
-              break;
-            case PasswordCreationType.NoPassword:
-              newSendPassword = false;
-              newSetPasswordExpired = false;
-              break;
-            case PasswordCreationType.ManualEntry:
-              newSendPassword = prev.sendPassword;
-              newSetPasswordExpired = prev.setPasswordExpired;
-              break;
-            default:
-              break;
-          }
-
           return {
             ...prev,
-            password:
-              newPasswordCreationType === PasswordCreationType.AutoGenerate ||
-              newPasswordCreationType === PasswordCreationType.NoPassword
-                ? ""
-                : prev.password,
             passwordCreationType: newPasswordCreationType,
-            sendPassword: newSendPassword,
-            setPasswordExpired: newSetPasswordExpired,
           };
         });
       }
@@ -672,7 +652,7 @@ const AddUserScreen: React.VFC = function AddUserScreen() {
       ) {
         return null;
       }
-      return validatePassword(state.password, passwordPolicy);
+      return validatePassword(state.manualEntryPassword, passwordPolicy);
     },
     [primaryAuthenticators, passwordPolicy]
   );
@@ -700,9 +680,11 @@ const AddUserScreen: React.VFC = function AddUserScreen() {
             setPasswordExpired = state.setPasswordExpired;
             break;
           case PasswordCreationType.ManualEntry:
-            password = state.password;
+            password = state.manualEntryPassword;
             sendPassword =
-              loginIDType === "email" ? state.sendPassword : undefined;
+              loginIDType === "email"
+                ? state.manualEntrySendPassword
+                : undefined;
             setPasswordExpired = state.setPasswordExpired;
             break;
           case PasswordCreationType.NoPassword:
@@ -752,7 +734,7 @@ const AddUserScreen: React.VFC = function AddUserScreen() {
     ) {
       switch (form.state.passwordCreationType) {
         case PasswordCreationType.ManualEntry:
-          return form.state.password.length > 0;
+          return form.state.manualEntryPassword.length > 0;
         case PasswordCreationType.AutoGenerate:
           return true;
         case PasswordCreationType.NoPassword:
