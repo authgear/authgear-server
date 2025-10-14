@@ -1,19 +1,24 @@
 package dpop
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
 type Middleware struct {
 	DPoPProvider *Provider
 }
 
+var middlewareLogger = slogutil.NewLogger("dpop-middleware")
+
 func (m *Middleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
 		dpopHeader := r.Header.Values("DPoP")
 		if len(dpopHeader) == 0 {
 			next.ServeHTTP(rw, r)
@@ -28,17 +33,17 @@ func (m *Middleware) Handle(next http.Handler) http.Handler {
 		dpopJwt := dpopHeader[0]
 		proof, err := m.DPoPProvider.ParseProof(dpopJwt)
 		if err != nil {
-			m.handleError(rw, err)
+			m.handleError(ctx, rw, err)
 			return
 		}
 
 		if err := m.DPoPProvider.CompareHTM(proof, r.Method); err != nil {
-			m.handleError(rw, err)
+			m.handleError(ctx, rw, err)
 			return
 		}
 
 		if err := m.DPoPProvider.CompareHTU(proof, r); err != nil {
-			m.handleError(rw, err)
+			m.handleError(ctx, rw, err)
 			return
 		}
 
@@ -47,9 +52,13 @@ func (m *Middleware) Handle(next http.Handler) http.Handler {
 	})
 }
 
-func (m *Middleware) handleError(rw http.ResponseWriter, err error) {
+func (m *Middleware) handleError(ctx context.Context, rw http.ResponseWriter, err error) {
+	logger := middlewareLogger.GetLogger(ctx)
 	var oauthErr *protocol.OAuthProtocolError
 	if errors.As(err, &oauthErr) {
+		logger.WithSkipLogging().WithError(oauthErr).Error(ctx,
+			"failed to parse dpop proof",
+		)
 		rw.Header().Set("Content-Type", "application/json")
 		rw.Header().Set("Cache-Control", "no-store")
 		rw.Header().Set("Pragma", "no-cache")
