@@ -681,18 +681,20 @@ func (c *Coordinator) createPrimaryAuthenticatorsForAdminAPICreateUser(ctx conte
 		return nil, err
 	}
 
-	if len(authenticatorInfos) == 0 {
-		for _, t := range authenticatorTypes {
-			if t == model.AuthenticatorTypePassword {
-				return nil, api.NewInvariantViolated(
-					"PasswordRequired",
-					"password is required",
-					nil,
-				)
-			}
-		}
-		return nil, api.InvalidConfiguration.New("no primary authenticator can be created for identity")
-	}
+	// We decided to relax this restriction and allow user to be created without a primary authenticator.
+	// See https://github.com/authgear/authgear-server/pull/5390
+	// if len(authenticatorInfos) == 0 {
+	// 	for _, t := range authenticatorTypes {
+	// 		if t == model.AuthenticatorTypePassword {
+	// 			return nil, api.NewInvariantViolated(
+	// 				"PasswordRequired",
+	// 				"password is required",
+	// 				nil,
+	// 			)
+	// 		}
+	// 	}
+	// 	return nil, api.InvalidConfiguration.New("no primary authenticator can be created for identity")
+	// }
 
 	if passwordSpec != nil && opts.SendPassword {
 		err := c.SendPassword.Send(ctx, userID, passwordSpec.Password.PlainPassword, translation.MessageTypeSendPasswordToNewUser)
