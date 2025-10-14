@@ -4,6 +4,7 @@ import (
 	"crypto/subtle"
 	"time"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/dpop"
@@ -28,16 +29,22 @@ type CodeGrant struct {
 	IdentitySpecs []*identity.Spec `json:"identity_specs,omitzero"`
 }
 
-func (g *CodeGrant) MatchDPoPJKT(proof *dpop.DPoPProof) bool {
+func (g *CodeGrant) MatchDPoPJKT(proof *dpop.DPoPProof) *apierrors.APIError {
 	if g.DPoPJKT == "" {
 		// Not binded, always ok
-		return true
+		return nil
 	}
 	if proof == nil {
-		return false
+		return dpop.NewErrUnmatchedJKT("expect DPoP proof exist to use the code grant",
+			&g.DPoPJKT,
+			nil,
+		)
 	}
 	if subtle.ConstantTimeCompare([]byte(proof.JKT), []byte(g.DPoPJKT)) == 1 {
-		return true
+		return nil
 	}
-	return false
+	return dpop.NewErrUnmatchedJKT("failed to match DPoP JKT of code grant",
+		&g.DPoPJKT,
+		&proof.JKT,
+	)
 }

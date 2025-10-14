@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log/slog"
 	"strings"
 	"time"
@@ -336,7 +337,12 @@ func (s *TokenService) ParseRefreshToken(ctx context.Context, token string) (
 		return nil, nil, "", ErrInvalidRefreshToken
 	}
 
-	if !offlineGrantSession.MatchDPoPJKT(dpopProof) {
+	if err := offlineGrantSession.MatchDPoPJKT(dpopProof); err != nil {
+		logger.WithSkipLogging().Error(ctx,
+			fmt.Sprintf("failed to match dpop jkt on parse refresh token:%s", err.Message),
+			err.Info_ReadOnly.ToSlogAttrs()...,
+		)
+
 		// NOTE(DEV-2982): This is for debugging the session lost problem
 		logger.WithSkipLogging().Error(ctx,
 			"failed to match DPoP JKT",

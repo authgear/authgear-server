@@ -1,6 +1,10 @@
 package dpop
 
-import "github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
+import (
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
+	"github.com/authgear/authgear-server/pkg/util/errorutil"
+)
 
 // From https://datatracker.ietf.org/doc/html/rfc9449#section-12.2
 var InvalidDPoPProof = "invalid_dpop_proof"
@@ -20,3 +24,20 @@ var ErrInvalidHTU = newInvalidDPoPProofError("htu in the DPoP proof is not a val
 var ErrUnmatchedMethod = newInvalidDPoPProofError("htm in the DPoP proof does not match request method")
 var ErrUnmatchedURI = newInvalidDPoPProofError("htu in the DPoP proof does not match request uri")
 var ErrUnsupportedAlg = newInvalidDPoPProofError("unsupported alg in DPoP jwt")
+
+var UnmatchedJKT = apierrors.Invalid.WithReason("UnmatchedJKT")
+
+func NewErrUnmatchedJKT(msg string, expected *string, actual *string) *apierrors.APIError {
+	expectedStr := "null"
+	actualStr := "null"
+	if expected != nil {
+		expectedStr = *expected
+	}
+	if actual != nil {
+		actualStr = *actual
+	}
+	return UnmatchedJKT.NewWithInfo(msg, errorutil.Details{
+		"expected": expectedStr,
+		"actual":   actualStr,
+	})
+}
