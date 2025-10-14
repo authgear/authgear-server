@@ -588,7 +588,10 @@ func (h *TokenHandler) IssueTokensForAuthorizationCode(
 	if err := codeGrant.MatchDPoPJKT(dpopProof); err != nil {
 		logger.WithSkipLogging().Error(ctx,
 			fmt.Sprintf("failed to match dpop jkt on issue tokens: %s", err.Message),
-			err.Info_ReadOnly.ToSlogAttrs()...,
+			append(
+				err.Info_ReadOnly.ToSlogAttrs(),
+				slog.Bool("dpop_logs", true),
+			)...,
 		)
 		return nil, ErrInvalidDPoPKeyBinding
 	}
@@ -840,7 +843,10 @@ func (h *TokenHandler) verifyIDTokenDeviceSecretHash(ctx context.Context, offlin
 	if dpopErr := offlineGrant.MatchDeviceSecretDPoPJKT(dpopProof); dpopErr != nil {
 		logger.WithSkipLogging().Error(ctx,
 			fmt.Sprintf("failed to match dpop jkt of device_secret: %s", dpopErr.Message),
-			dpopErr.Info_ReadOnly.ToSlogAttrs()...,
+			append(
+				dpopErr.Info_ReadOnly.ToSlogAttrs(),
+				slog.Bool("dpop_logs", true),
+			)...,
 		)
 		err = ErrInvalidDPoPKeyBinding
 	}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"log/slog"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
@@ -58,6 +59,7 @@ func (m *Middleware) handleError(ctx context.Context, rw http.ResponseWriter, er
 	if errors.As(err, &oauthErr) {
 		logger.WithSkipLogging().WithError(oauthErr).Error(ctx,
 			"failed to parse dpop proof",
+			slog.Bool("dpop_logs", true),
 		)
 		rw.Header().Set("Content-Type", "application/json")
 		rw.Header().Set("Cache-Control", "no-store")
