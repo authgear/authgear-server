@@ -4,6 +4,8 @@ import (
 	"crypto"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"net/http"
 	"net/url"
 	"strings"
@@ -42,7 +44,7 @@ func (p *Provider) ParseProof(jwtStr string) (*DPoPProof, error) {
 
 	hdr, payload, err := jwtutil.SplitWithoutVerify(jwtBytes)
 	if err != nil {
-		return nil, ErrMalformedJwt
+		return nil, errors.Join(ErrMalformedJwt, err)
 	}
 
 	jwk, proof, err := p.validateProofJWT(hdr, payload)
@@ -52,7 +54,7 @@ func (p *Provider) ParseProof(jwtStr string) (*DPoPProof, error) {
 
 	_, err = jws.Verify(jwtBytes, jws.WithKey(hdr.Algorithm(), jwk))
 	if err != nil {
-		return nil, ErrInvalidJwtSignature
+		return nil, errors.Join(ErrInvalidJwtSignature, err)
 	}
 
 	return proof, nil
@@ -65,7 +67,7 @@ func (p *Provider) validateProofJWT(header jws.Headers, payload jwt.Token) (jwk.
 		jwt.WithAcceptableSkew(duration.ClockSkew),
 	)
 	if err != nil {
-		return nil, nil, ErrInvalidJwt
+		return nil, nil, errors.Join(ErrInvalidJwt, err)
 	}
 
 	// Do not accept a proof issued a long time ago
@@ -83,21 +85,31 @@ func (p *Provider) validateProofJWT(header jws.Headers, payload jwt.Token) (jwk.
 		var jwkBytes []byte
 		jwkBytes, err = json.Marshal(jwkIface)
 		if err != nil {
-			return nil, nil, ErrInvalidJwk
+			// Anything in a jwt header should always be a valid json
+			panic(fmt.Errorf("unexpected: cannot marshal jwk in jwt %w", err))
 		}
 
 		var set jwk.Set
 		set, err = jwk.Parse(jwkBytes)
 		if err != nil {
-			return nil, nil, ErrInvalidJwk
+			return nil, nil, errors.Join(
+				ErrInvalidJwk,
+				fmt.Errorf("invalid jwk: %w", err),
+			)
 		}
 
 		key, ok = set.Key(0)
 		if !ok {
-			return nil, nil, ErrInvalidJwk
+			return nil, nil, errors.Join(
+				ErrInvalidJwk,
+				fmt.Errorf("no valid key in header jwk"),
+			)
 		}
 	} else {
-		return nil, nil, ErrInvalidJwk
+		return nil, nil, errors.Join(
+			ErrInvalidJwk,
+			fmt.Errorf("jwk not found in header"),
+		)
 	}
 
 	getPayloadAsString := func(key string) (string, bool) {
@@ -118,21 +130,21 @@ func (p *Provider) validateProofJWT(header jws.Headers, payload jwt.Token) (jwk.
 
 	jti, ok := getPayloadAsString("jti")
 	if !ok {
-		return nil, nil, ErrInvalidJwtPayload
+		return nil, nil, errors.Join(ErrInvalidJwtPayload, fmt.Errorf("jti not a string"))
 	}
 
 	if len(jti) > 43 {
-		return nil, nil, ErrInvalidJwtPayload
+		return nil, nil, errors.Join(ErrInvalidJwtPayload, fmt.Errorf("jti too long"))
 	}
 
 	htm, ok := getPayloadAsString("htm")
 	if !ok {
-		return nil, nil, ErrInvalidJwtPayload
+		return nil, nil, errors.Join(ErrInvalidJwtPayload, fmt.Errorf("htm not a string"))
 	}
 
 	htu, ok := getPayloadAsString("htu")
 	if !ok {
-		return nil, nil, ErrInvalidJwtPayload
+		return nil, nil, errors.Join(ErrInvalidJwtPayload, fmt.Errorf("htu not a string"))
 	}
 
 	htuURI, err := url.Parse(htu)

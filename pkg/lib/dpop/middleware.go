@@ -57,7 +57,7 @@ func (m *Middleware) handleError(ctx context.Context, rw http.ResponseWriter, er
 	logger := middlewareLogger.GetLogger(ctx)
 	var oauthErr *protocol.OAuthProtocolError
 	if errors.As(err, &oauthErr) {
-		logger.WithSkipLogging().WithError(oauthErr).Error(ctx,
+		logger.WithSkipLogging().WithError(err).Error(ctx,
 			"failed to parse dpop proof",
 			slog.Bool("dpop_logs", true),
 		)
