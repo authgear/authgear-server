@@ -15,7 +15,7 @@ type ErrorDetailHandler struct {
 	Details errorutil.Details
 }
 
-var _ slog.Handler = (*StackTraceHandler)(nil)
+var _ slog.Handler = (*ErrorDetailHandler)(nil)
 
 func NewErrorDetailMiddleware() slogmulti.Middleware {
 	return func(next slog.Handler) slog.Handler {
@@ -90,6 +90,7 @@ func (s *ErrorDetailHandler) collectDetails(attrs []slog.Attr) errorutil.Details
 
 func (s *ErrorDetailHandler) WithGroup(name string) slog.Handler {
 	return &ErrorDetailHandler{
-		Next: s.Next.WithGroup(name),
+		Next:    s.Next.WithGroup(name),
+		Details: s.Details,
 	}
 }

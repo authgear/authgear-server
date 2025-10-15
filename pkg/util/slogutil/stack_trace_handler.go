@@ -66,6 +66,7 @@ func (s *StackTraceHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
 func (s *StackTraceHandler) WithGroup(name string) slog.Handler {
 	return &StackTraceHandler{
 		Next: s.Next.WithGroup(name),
+		Skip: s.Skip,
 	}
 }
 
