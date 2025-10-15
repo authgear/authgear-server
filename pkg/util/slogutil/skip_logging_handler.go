@@ -19,6 +19,7 @@ type LoggingSkippable interface{ SkipLogging() bool }
 const AttrKeySkipLogging = "__authgear_skip_logging"
 
 type SkipLoggingHandler struct {
+	// See https://github.com/golang/example/blob/master/slog-handler-guide/README.md#the-withgroup-method
 	groupOrAttrs *withsupport.GroupOrAttrs
 	Next         slog.Handler
 }

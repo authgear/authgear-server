@@ -2,17 +2,18 @@ package slogutil
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 
+	"github.com/jba/slog/withsupport"
 	slogmulti "github.com/samber/slog-multi"
 
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
 )
 
 type ErrorDetailHandler struct {
-	Next    slog.Handler
-	Details errorutil.Details
+	Next slog.Handler
+	// See https://github.com/golang/example/blob/master/slog-handler-guide/README.md#the-withgroup-method
+	groupOrAttrs *withsupport.GroupOrAttrs
 }
 
 var _ slog.Handler = (*ErrorDetailHandler)(nil)
@@ -30,44 +31,40 @@ func (s *ErrorDetailHandler) Enabled(context.Context, slog.Level) bool {
 }
 
 func (s *ErrorDetailHandler) Handle(ctx context.Context, record slog.Record) error {
-	details := s.Details
 
-	recordAttrs := []slog.Attr{}
+	allAttrs := []slog.Attr{}
 	record.Attrs(func(a slog.Attr) bool {
-		recordAttrs = append(recordAttrs, a)
+		allAttrs = append(allAttrs, a)
 		return true
 	})
+	s.groupOrAttrs.Apply(func(groups []string, a slog.Attr) {
+		allAttrs = append(allAttrs, a)
+	})
 
-	recordDetail := s.collectDetails(recordAttrs)
-	if recordDetail != nil {
-		details = recordDetail
-	}
+	details := s.collectDetails(allAttrs)
 
+	detailAttrs := []any{}
 	for k, v := range details {
-		record.AddAttrs(slog.Attr{
-			Key:   fmt.Sprintf("details.%s", k),
+		detailAttrs = append(detailAttrs, slog.Attr{
+			Key:   k,
 			Value: slog.AnyValue(v),
 		})
 	}
+	newRecord := record.Clone()
+	newRecord.AddAttrs(slog.Group("details", detailAttrs...))
 
-	if s.Next.Enabled(ctx, record.Level) {
-		return s.Next.Handle(ctx, record)
+	if s.Next.Enabled(ctx, newRecord.Level) {
+		return s.Next.Handle(ctx, newRecord)
 	}
 	return nil
 }
 
 func (s *ErrorDetailHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
-	details := s.collectDetails(attrs)
-	if details != nil {
-		return &ErrorDetailHandler{
-			Next:    s.Next.WithAttrs(attrs),
-			Details: details,
-		}
-	}
 	return &ErrorDetailHandler{
-		Next:    s.Next.WithAttrs(attrs),
-		Details: s.Details,
+		Next:         s.Next.WithAttrs(attrs),
+		groupOrAttrs: s.groupOrAttrs.WithAttrs(attrs),
 	}
+
 }
 
 func (s *ErrorDetailHandler) collectDetails(attrs []slog.Attr) errorutil.Details {
@@ -90,7 +87,7 @@ func (s *ErrorDetailHandler) collectDetails(attrs []slog.Attr) errorutil.Details
 
 func (s *ErrorDetailHandler) WithGroup(name string) slog.Handler {
 	return &ErrorDetailHandler{
-		Next:    s.Next.WithGroup(name),
-		Details: s.Details,
+		Next:         s.Next.WithGroup(name),
+		groupOrAttrs: s.groupOrAttrs.WithGroup(name),
 	}
 }
