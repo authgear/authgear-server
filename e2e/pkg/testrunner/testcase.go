@@ -449,6 +449,48 @@ func (tc *TestCase) executeStep(
 			Result: resp,
 			Error:  err,
 		}
+	case StepActionAdminAPIUserImportCreate:
+		if step.AdminAPIUserImportRequest == nil {
+			t.Errorf("admin_api_user_import_request must be provided for admin_api_user_import_create step")
+			return nil, state, false
+		}
+
+		renderedJSONDocument, ok := renderTemplateString(t, cmd, prevSteps, step.AdminAPIUserImportRequest.JSONDocument)
+		if !ok {
+			t.Errorf("failed to render admin_api_user_import_request.json_document")
+		}
+
+		resp, err := cmd.Client.CreateUserImport(cmd.AppID, authflowclient.UserImportRequest{
+			JSONDocument: renderedJSONDocument,
+		})
+
+		if step.AdminAPIUserImportOutput != nil {
+			ok := validateUserImportOutput(t, &step, resp, err)
+			if !ok {
+				return nil, state, false
+			}
+		}
+
+		result = &StepResult{
+			Result: resp,
+			Error:  err,
+		}
+	case StepActionAdminAPIUserImportGet:
+		renderedID, ok := renderTemplateString(t, cmd, prevSteps, step.AdminAPIUserImportID)
+		if !ok {
+			t.Errorf("failed to render admin_api_user_import_id")
+		}
+
+		resp, err := cmd.Client.GetUserImport(cmd.AppID, renderedID)
+		ok = validateUserImportOutput(t, &step, resp, err)
+		if !ok {
+			return nil, state, false
+		}
+
+		result = &StepResult{
+			Result: resp,
+			Error:  err,
+		}
 	default:
 		t.Errorf("unknown action in '%s': %s", step.Name, step.Action)
 		return nil, state, false
@@ -948,6 +990,39 @@ func validateAdminAPIOutput(t *testing.T, expected *AdminAPIOutput, resp *authfl
 			t.Errorf("  | %s: %s. Expected %s, got %s", violation.Path, violation.Message, violation.Expected, violation.Actual)
 		}
 		t.Errorf("  result: %s\n", respJSON)
+		return false
+	}
+
+	return true
+}
+
+func validateUserImportOutput(t *testing.T, step *Step, userImportResult *authflowclient.UserImportResponseResult, userImportError error) (ok bool) {
+	userImportResultJSON, _ := json.MarshalIndent(userImportResult, "", "  ")
+	userImportErrorJSON, _ := json.MarshalIndent(userImportError, "", "  ")
+
+	errorViolations, resultViolations, err := MatchUserImportOutput(*step.AdminAPIUserImportOutput, userImportResult, userImportError)
+	if err != nil {
+		t.Errorf("failed to match output in '%s': %v\n", step.Name, err)
+		t.Errorf("  result: %s\n", userImportResultJSON)
+		t.Errorf("  error: %s\n", userImportErrorJSON)
+		return false
+	}
+
+	if len(errorViolations) > 0 {
+		t.Errorf("error output mismatch in '%s':\n", step.Name)
+		for _, violation := range errorViolations {
+			t.Errorf("  | %s: %s. Expected %s, got %s", violation.Path, violation.Message, violation.Expected, violation.Actual)
+		}
+		t.Errorf("  error: %s\n", userImportErrorJSON)
+		return false
+	}
+
+	if len(resultViolations) > 0 {
+		t.Errorf("result output mismatch in '%s':\n", step.Name)
+		for _, violation := range resultViolations {
+			t.Errorf("  | %s: %s. Expected %s, got %s", violation.Path, violation.Message, violation.Expected, violation.Actual)
+		}
+		t.Errorf("  result: %s\n", userImportResultJSON)
 		return false
 	}
 
