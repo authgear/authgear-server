@@ -544,13 +544,13 @@ Here is the list of valid state transitions:
 
 When multiple account status interpretations are possible, only one account status is reported. The precedence is as follows:
 
-- Anonymized
-- Scheduled deletion by admin
-- Scheduled deletion by end-user
-- Scheduled anonymization by admin
-- Indefinitely Disabled
-- Temporarily Disabled
-- Outside valid period
+- Anonymized: This is the 1st one because it will never be shown to end-user. An anonymized account cannot be identified.
+- Outside valid period: Otherwise if the account is outside valid period, then it should be shown to end-user.
+- Scheduled deletion by admin: Otherwise tell the end-user the account is scheduled for deletion.
+- Scheduled deletion by end-user: Otherwise tell the end-user the account is scheduled for deletion.
+- Scheduled anonymization by admin: Otherwise tell the end-user the account is scheduled for anonymization.
+- Indefinitely Disabled: Otherwise tell the end-user the account is disabled.
+- Temporarily Disabled: Otherwise tell the end-user the account is disabled.
 - Normal
 
 For example, if the account is temporarily disabled from `2025-10-01` until `2025-10-07`, and the account is also indefinitely disabled on `2025-10-03`.
