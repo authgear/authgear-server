@@ -297,7 +297,8 @@
 /pkg/lib/deps/middleware_request.go:24:10: requestcontext
 /pkg/lib/deps/providers.go:153:25: requestcontext
 /pkg/lib/deps/providers.go:160:36: requestcontext
-/pkg/lib/dpop/middleware.go:45:35: requestcontext
+/pkg/lib/dpop/middleware.go:22:10: requestcontext
+/pkg/lib/dpop/middleware.go:51:35: requestcontext
 /pkg/lib/healthz/healthz.go:25:9: requestcontext
 /pkg/lib/infra/middleware/panic.go:42:12: requestcontext
 /pkg/lib/infra/middleware/sentry.go:21:47: requestcontext

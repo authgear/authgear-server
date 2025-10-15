@@ -2,6 +2,7 @@ package dpop
 
 import (
 	"encoding/json"
+	"errors"
 	"net/url"
 	"testing"
 	"time"
@@ -80,7 +81,7 @@ func TestDPoPProvider(t *testing.T) {
 			_ = payload.Set("iat", mockClock.NowUTC().Add(301*time.Second).Unix())
 
 			_, _, err := provider.validateProofJWT(header, payload)
-			So(err, ShouldEqual, ErrInvalidJwt)
+			So(errors.Is(err, ErrInvalidJwt), ShouldBeTrue)
 		})
 
 		Convey("invalid jwk", func() {
@@ -94,7 +95,7 @@ func TestDPoPProvider(t *testing.T) {
 			_ = payload.Set("iat", mockClock.NowUTC().Unix())
 
 			_, _, err := provider.validateProofJWT(header, payload)
-			So(err, ShouldEqual, ErrInvalidJwk)
+			So(errors.Is(err, ErrInvalidJwk), ShouldBeTrue)
 		})
 
 		Convey("invalid typ", func() {
@@ -123,7 +124,7 @@ func TestDPoPProvider(t *testing.T) {
 			_ = payload.Set("iat", mockClock.NowUTC().Unix())
 
 			_, _, err := provider.validateProofJWT(header, payload)
-			So(err, ShouldEqual, ErrInvalidJwtPayload)
+			So(errors.Is(err, ErrInvalidJwtPayload), ShouldBeTrue)
 		})
 
 		Convey("no htm", func() {
@@ -137,7 +138,7 @@ func TestDPoPProvider(t *testing.T) {
 			_ = payload.Set("iat", mockClock.NowUTC().Unix())
 
 			_, _, err := provider.validateProofJWT(header, payload)
-			So(err, ShouldEqual, ErrInvalidJwtPayload)
+			So(errors.Is(err, ErrInvalidJwtPayload), ShouldBeTrue)
 		})
 
 		Convey("no htu", func() {
@@ -151,7 +152,7 @@ func TestDPoPProvider(t *testing.T) {
 			_ = payload.Set("iat", mockClock.NowUTC().Unix())
 
 			_, _, err := provider.validateProofJWT(header, payload)
-			So(err, ShouldEqual, ErrInvalidJwtPayload)
+			So(errors.Is(err, ErrInvalidJwtPayload), ShouldBeTrue)
 		})
 
 		Convey("unsupported alg", func() {
@@ -179,7 +180,7 @@ func TestDPoPProvider(t *testing.T) {
 			_ = payload.Set("iat", mockClock.NowUTC().Unix())
 
 			_, _, err := provider.validateProofJWT(header, payload)
-			So(err, ShouldEqual, ErrInvalidJwtPayload)
+			So(errors.Is(err, ErrInvalidJwtPayload), ShouldBeTrue)
 		})
 
 	})

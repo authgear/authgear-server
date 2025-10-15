@@ -13,6 +13,7 @@ func MakeLogger(strLevel string) *slog.Logger {
 	// It includes the middleware to rich the record,
 	// and handle sensitive information.
 	mainPipeline := slogmulti.Pipe(
+		NewErrorDetailMiddleware(),
 		NewStackTraceMiddleware(),
 		NewContextCauseMiddleware(),
 		NewSkipLoggingMiddleware(),

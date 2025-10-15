@@ -122,18 +122,24 @@ func (o *OfflineGrantSession) CreateNewAuthenticationInfoByThisSession() authent
 	}
 }
 
-func (g *OfflineGrantSession) MatchDPoPJKT(proof *dpop.DPoPProof) bool {
+func (g *OfflineGrantSession) MatchDPoPJKT(proof *dpop.DPoPProof) *dpop.UnmatchedJKTError {
 	if g.DPoPJKT == "" {
 		// Not binded, always ok
-		return true
+		return nil
 	}
 	if proof == nil {
-		return false
+		return dpop.NewErrUnmatchedJKT("expect DPoP proof exist to use the offline grant session",
+			&g.DPoPJKT,
+			nil,
+		)
 	}
 	if subtle.ConstantTimeCompare([]byte(proof.JKT), []byte(g.DPoPJKT)) == 1 {
-		return true
+		return nil
 	}
-	return false
+	return dpop.NewErrUnmatchedJKT("failed to match DPoP JKT of offline grant session",
+		&g.DPoPJKT,
+		&proof.JKT,
+	)
 }
 
 var _ session.ResolvedSession = &OfflineGrantSession{}
@@ -296,18 +302,24 @@ func (g *OfflineGrant) MatchCurrentHash(refreshTokenHash string) bool {
 	return result
 }
 
-func (g *OfflineGrant) MatchDeviceSecretDPoPJKT(proof *dpop.DPoPProof) bool {
+func (g *OfflineGrant) MatchDeviceSecretDPoPJKT(proof *dpop.DPoPProof) *dpop.UnmatchedJKTError {
 	if g.DeviceSecretDPoPJKT == "" {
 		// Not binded, always ok
-		return true
+		return nil
 	}
 	if proof == nil {
-		return false
+		return dpop.NewErrUnmatchedJKT("expect DPoP proof exist to use the device secret",
+			&g.DeviceSecretDPoPJKT,
+			nil,
+		)
 	}
 	if subtle.ConstantTimeCompare([]byte(proof.JKT), []byte(g.DeviceSecretDPoPJKT)) == 1 {
-		return true
+		return nil
 	}
-	return false
+	return dpop.NewErrUnmatchedJKT("failed to match DPoP JKT of device secret",
+		&g.DeviceSecretDPoPJKT,
+		&proof.JKT,
+	)
 }
 
 func (g *OfflineGrant) HasClientID(clientID string) bool {

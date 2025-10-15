@@ -125,7 +125,7 @@ func (i *IntentLogin) GetEffects(ctx context.Context, deps *workflow.Dependencie
 			// NOTE(DEV-2982): This is for debugging the session lost problem
 			userID := i.userID()
 			now := deps.Clock.NowUTC()
-			logger.WithSkipLogging().Error(ctx, "updated last login",
+			logger.WithSkipLogging().WithSkipStackTrace().Error(ctx, "updated last login",
 				slog.String("user_id", userID),
 				slog.Bool("refresh_token_log", true))
 			return deps.Users.UpdateLoginTime(ctx, userID, now)
@@ -136,7 +136,7 @@ func (i *IntentLogin) GetEffects(ctx context.Context, deps *workflow.Dependencie
 			if session == nil {
 				// NOTE(DEV-2982): This is for debugging the session lost problem
 				userID := i.userID()
-				logger.WithSkipLogging().Error(ctx, "user.authenticated event skipped because session is nil",
+				logger.WithSkipLogging().WithSkipStackTrace().Error(ctx, "user.authenticated event skipped because session is nil",
 					slog.String("user_id", userID),
 					slog.Bool("refresh_token_log", true))
 				return nil

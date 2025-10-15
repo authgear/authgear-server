@@ -149,6 +149,7 @@ func NewDefaultMaskHandlerOptions() MaskHandlerOptions {
 }
 
 type MaskHandler struct {
+	// See https://github.com/golang/example/blob/master/slog-handler-guide/README.md#the-withgroup-method
 	groupOrAttrs *withsupport.GroupOrAttrs
 	Options      MaskHandlerOptions
 	Next         slog.Handler

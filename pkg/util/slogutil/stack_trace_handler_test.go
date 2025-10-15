@@ -64,5 +64,18 @@ func TestNewStackTraceMiddleware(t *testing.T) {
 			matches := re.FindAllString(w.String(), -1)
 			So(len(matches), ShouldEqual, 1)
 		})
+
+		Convey("SkipStackTrace with attr", func() {
+			logger.ErrorContext(ctx, "testing", SkipStackTrace())
+
+			So(w.String(), ShouldEqual, "level=ERROR msg=testing __authgear_skip_stacktrace=true\n")
+		})
+
+		Convey("SkipStackTrace with logger", func() {
+			logger = logger.With(SkipStackTrace())
+			logger.ErrorContext(ctx, "testing")
+
+			So(w.String(), ShouldEqual, "level=ERROR msg=testing __authgear_skip_stacktrace=true\n")
+		})
 	})
 }
