@@ -86,7 +86,7 @@ func (p *Provider) validateProofJWT(header jws.Headers, payload jwt.Token) (jwk.
 		jwkBytes, err = json.Marshal(jwkIface)
 		if err != nil {
 			// Anything in a jwt header should always be a valid json
-			panic(fmt.Errorf("unexpected: cannot marshal jwk in jwt %w", err))
+			panic(fmt.Errorf("unexpected: cannot marshal jwk in jwt: %w", err))
 		}
 
 		var set jwk.Set
