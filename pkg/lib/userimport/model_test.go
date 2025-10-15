@@ -26,6 +26,8 @@ func TestRequest(t *testing.T) {
 			"phone_number": "+85298765432",
 
 			"disabled": true,
+			"account_valid_from": "2006-01-02T03:04:05Z",
+			"account_valid_until": "2007-01-02T03:04:05Z",
 
 			"email_verified": true,
 			"phone_number_verified": true,
@@ -213,6 +215,52 @@ func TestRecord(t *testing.T) {
 			v, ok := r.Disabled()
 			So(ok, ShouldBeTrue)
 			So(v, ShouldEqual, true)
+		})
+
+		Convey("account_valid_from", func() {
+			r := Record{}
+
+			_, ok := r.AccountValidFrom()
+			So(ok, ShouldBeFalse)
+
+			r = Record{
+				"account_valid_from": nil,
+			}
+
+			So(func() {
+				r.AccountValidFrom()
+			}, ShouldPanicWith, fmt.Errorf("account_valid_from is expected to be non-null"))
+
+			r = Record{
+				"account_valid_from": "2006-01-02T03:04:05Z",
+			}
+
+			v, ok := r.AccountValidFrom()
+			So(ok, ShouldBeTrue)
+			So(*v, ShouldEqual, time.Date(2006, 1, 2, 3, 4, 5, 0, time.UTC))
+		})
+
+		Convey("account_valid_until", func() {
+			r := Record{}
+
+			_, ok := r.AccountValidUntil()
+			So(ok, ShouldBeFalse)
+
+			r = Record{
+				"account_valid_until": nil,
+			}
+
+			So(func() {
+				r.AccountValidUntil()
+			}, ShouldPanicWith, fmt.Errorf("account_valid_until is expected to be non-null"))
+
+			r = Record{
+				"account_valid_until": "2006-01-02T03:04:05Z",
+			}
+
+			v, ok := r.AccountValidUntil()
+			So(ok, ShouldBeTrue)
+			So(*v, ShouldEqual, time.Date(2006, 1, 2, 3, 4, 5, 0, time.UTC))
 		})
 
 		Convey("email_verified", func() {
@@ -723,6 +771,8 @@ func TestRecordSchema(t *testing.T) {
 	"phone_number": "+85298765432",
 
 	"disabled": true,
+	"account_valid_from": "2006-01-02T03:04:05Z",
+	"account_valid_until": "2007-01-02T03:04:05Z",
 
 	"email_verified": true,
 	"phone_number_verified": true,
@@ -1157,5 +1207,63 @@ func TestRecordSchema(t *testing.T) {
   map[actual:0 expected:1]
 /preferred_username: minLength
   map[actual:0 expected:1]`)
+	})
+
+	Convey("Record JSON schema for account valid period", t, func() {
+		test := func(recordString string, errorString string) {
+			var record Record
+			r, _ := http.NewRequest("POST", "/", strings.NewReader(recordString))
+			r.Header.Set("Content-Type", "application/json")
+			w := httptest.NewRecorder()
+
+			err := httputil.BindJSONBody(r, w, RecordSchemaForIdentifierEmail.Validator(), &record)
+			if errorString == "" {
+				So(err, ShouldBeNil)
+			} else {
+				So(err, ShouldBeError, errorString)
+			}
+		}
+
+		test(`{
+			"email": "user@example.com",
+			"account_valid_from": 1,
+			"account_valid_until": 1
+		}`, `invalid request body:
+/account_valid_from: type
+  map[actual:[integer number] expected:[string]]
+/account_valid_until: type
+  map[actual:[integer number] expected:[string]]`)
+
+		test(`{
+			"email": "user@example.com",
+			"account_valid_from": null,
+			"account_valid_until": null
+		}`, `invalid request body:
+/account_valid_from: type
+  map[actual:[null] expected:[string]]
+/account_valid_until: type
+  map[actual:[null] expected:[string]]`)
+
+		test(`{
+			"email": "user@example.com",
+			"account_valid_from": "2006-01-02T03:04:05",
+			"account_valid_until": "2006-01-02T03:04:05"
+		}`, `invalid request body:
+/account_valid_from: format
+  map[error:date-time must be in rfc3339 format format:date-time]
+/account_valid_until: format
+  map[error:date-time must be in rfc3339 format format:date-time]`)
+
+		test(`{
+			"email": "user@example.com",
+			"account_valid_from": "2006-01-02T03:04:05Z",
+			"account_valid_until": "2006-01-02T03:04:05Z"
+		}`, ``)
+
+		test(`{
+			"email": "user@example.com",
+			"account_valid_from": "2006-01-02T03:04:05+08:00",
+			"account_valid_until": "2006-01-02T03:04:05+08:00"
+		}`, ``)
 	})
 }
