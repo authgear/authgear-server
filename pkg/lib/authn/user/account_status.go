@@ -349,14 +349,14 @@ func (s AccountStatusWithRefTime) Check() error {
 		return ErrAnonymizedUser
 	}
 
+	if s.isOutsideValidPeriod() {
+		return ErrUserOutsideValidPeriod
+	}
+
 	variant := s.variant()
 	err := variant.check()
 	if err != nil {
 		return err
-	}
-
-	if s.isOutsideValidPeriod() {
-		return ErrUserOutsideValidPeriod
 	}
 
 	return nil
