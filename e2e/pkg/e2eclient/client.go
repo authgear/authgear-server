@@ -18,6 +18,7 @@ import (
 
 	"github.com/lestrrat-go/jwx/v2/jwt"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/pkce"
@@ -544,4 +545,98 @@ func (c *Client) GraphQLAPIRaw(appID string, body GraphQLAPIRequest) (string, er
 	}
 
 	return string(b), nil
+}
+
+type UserImportRequest struct {
+	JSONDocument string
+}
+
+type UserImportResponseResult struct {
+	ID          string                     `json:"id"`
+	CreatedAt   *time.Time                 `json:"created_at"`
+	CompletedAt *time.Time                 `json:"completed_at,omitzero"`
+	Status      string                     `json:"status"`
+	Summary     *UserImportResponseSummary `json:"summary,omitzero"`
+	Details     []UserImportResponseDetail `json:"details,omitzero"`
+}
+
+type UserImportResponseSummary struct {
+	Total    int `json:"total"`
+	Inserted int `json:"inserted"`
+	Updated  int `json:"updated"`
+	Skipped  int `json:"skipped"`
+	Failed   int `json:"failed"`
+}
+
+type UserImportResponseDetail struct {
+	Index    int                         `json:"index"`
+	Outcome  string                      `json:"outcome"`
+	UserID   string                      `json:"user_id,omitzero"`
+	Record   map[string]interface{}      `json:"record"`
+	Warnings []UserImportResponseWarning `json:"warnings,omitzero"`
+	Errors   []*apierrors.APIError       `json:"errors,omitzero"`
+}
+
+type UserImportResponseWarning struct {
+	Message string `json:"message"`
+}
+
+type UserImportResponse struct {
+	Result *UserImportResponseResult `json:"result,omitzero"`
+	Error  *apierrors.APIError       `json:"error,omitempty"`
+}
+
+func (c *Client) CreateUserImport(appID string, body UserImportRequest) (*UserImportResponseResult, error) {
+	endpoint := c.AdminEndpoint.JoinPath("/_api/admin/users/import")
+
+	req, err := c.makeRequest(nil, endpoint, json.RawMessage(body.JSONDocument))
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := c.HTTPClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	var userImportResponse UserImportResponse
+	err = json.NewDecoder(resp.Body).Decode(&userImportResponse)
+	if err != nil {
+		return nil, err
+	}
+
+	if userImportResponse.Error != nil {
+		return nil, userImportResponse.Error
+	}
+
+	return userImportResponse.Result, nil
+}
+
+func (c *Client) GetUserImport(appID string, id string) (*UserImportResponseResult, error) {
+	endpoint := c.AdminEndpoint.JoinPath("/_api/admin/users/import").JoinPath(id)
+
+	req, err := http.NewRequestWithContext(c.Context, "GET", endpoint.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Host = string(c.HTTPHost)
+
+	resp, err := c.HTTPClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	var userImportResponse UserImportResponse
+	err = json.NewDecoder(resp.Body).Decode(&userImportResponse)
+	if err != nil {
+		return nil, err
+	}
+
+	if userImportResponse.Error != nil {
+		return nil, userImportResponse.Error
+	}
+
+	return userImportResponse.Result, nil
 }
