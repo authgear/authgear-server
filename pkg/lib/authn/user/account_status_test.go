@@ -560,7 +560,7 @@ func TestAccountStatusAccountValidPeriod(t *testing.T) {
 			state2, err := state1.ScheduleDeletionByAdmin(deleteAt)
 			So(err, ShouldBeNil)
 			So(state2.Check(), ShouldNotBeNil)
-			So(state2.Check(), ShouldBeError, "user was scheduled for deletion by admin")
+			So(state2.Check(), ShouldBeError, "user is outside valid period")
 			So(state2.IsDisabled(), ShouldEqual, true)
 			So(state2.accountStatus.isDisabled, ShouldEqual, true)
 			So(state2.variant().getAccountStatusType(), ShouldEqual, accountStatusTypeScheduledDeletionDisabled)
@@ -780,6 +780,226 @@ func TestAccountStatusTimestampsValidation(t *testing.T) {
 			_, err = status.SetAccountValidPeriod(&t3, &t4)
 			So(err, ShouldNotBeNil)
 			So(err, ShouldBeError, "the start timestamp of account valid period must be less than the start timestamp of temporarily disabled period")
+		})
+	})
+}
+
+func TestAccountStatusPrecedence(t *testing.T) {
+	Convey("AccountStatus precedence", t, func() {
+		t0 := time.Date(2006, 1, 2, 3, 4, 5, 6, time.UTC)
+		t1 := time.Date(2006, 1, 2, 3, 4, 5, 6+1, time.UTC)
+		t2 := time.Date(2006, 1, 2, 3, 4, 5, 6+2, time.UTC)
+		t3 := time.Date(2006, 1, 2, 3, 4, 5, 6+3, time.UTC)
+		t4 := time.Date(2006, 1, 2, 3, 4, 5, 6+4, time.UTC)
+
+		Convey("anonymized > account valid period", func() {
+			true_ := true
+			false_ := false
+			accountStatus := AccountStatus{
+				isDisabled:             true,
+				isIndefinitelyDisabled: &true_,
+				isAnonymized:           &true_,
+				accountValidFrom:       &t3,
+				accountValidUntil:      &t4,
+			}.WithRefTime(t2)
+
+			So(accountStatus.Check(), ShouldBeError, "user is anonymized")
+
+			accountStatus.accountStatus.isAnonymized = &false_
+			So(accountStatus.Check(), ShouldBeError, "user is outside valid period")
+		})
+
+		Convey("anonymised > scheduled deletion", func() {
+			true_ := true
+			false_ := false
+			accountStatus := AccountStatus{
+				isDisabled:             true,
+				isIndefinitelyDisabled: &true_,
+				isAnonymized:           &true_,
+				deleteAt:               &t3,
+			}.WithRefTime(t2)
+
+			So(accountStatus.Check(), ShouldBeError, "user is anonymized")
+
+			accountStatus.accountStatus.isAnonymized = &false_
+			So(accountStatus.Check(), ShouldBeError, "user was scheduled for deletion by admin")
+
+			accountStatus.accountStatus.isDeactivated = &true_
+			So(accountStatus.Check(), ShouldBeError, "user was scheduled for deletion by end-user")
+		})
+
+		Convey("anonymized > scheduled anonymization", func() {
+			true_ := true
+			false_ := false
+			accountStatus := AccountStatus{
+				isDisabled:             true,
+				isIndefinitelyDisabled: &true_,
+				isAnonymized:           &true_,
+				anonymizeAt:            &t3,
+			}.WithRefTime(t2)
+
+			So(accountStatus.Check(), ShouldBeError, "user is anonymized")
+
+			accountStatus.accountStatus.isAnonymized = &false_
+			So(accountStatus.Check(), ShouldBeError, "user was scheduled for anonymization by admin")
+		})
+
+		Convey("anonymized > disabled indefinitely", func() {
+			true_ := true
+			false_ := false
+			accountStatus := AccountStatus{
+				isDisabled:             true,
+				isIndefinitelyDisabled: &true_,
+				isAnonymized:           &true_,
+			}.WithRefTime(t2)
+
+			So(accountStatus.Check(), ShouldBeError, "user is anonymized")
+
+			accountStatus.accountStatus.isAnonymized = &false_
+			So(accountStatus.Check(), ShouldBeError, "user is disabled")
+		})
+
+		Convey("anonymized > disabled temporarily", func() {
+			true_ := true
+			false_ := false
+			accountStatus := AccountStatus{
+				isDisabled:               true,
+				isIndefinitelyDisabled:   &false_,
+				isAnonymized:             &true_,
+				temporarilyDisabledFrom:  &t1,
+				temporarilyDisabledUntil: &t3,
+			}.WithRefTime(t2)
+
+			So(accountStatus.Check(), ShouldBeError, "user is anonymized")
+
+			accountStatus.accountStatus.isAnonymized = &false_
+			So(accountStatus.Check(), ShouldBeError, "user is disabled")
+		})
+
+		Convey("account valid period > scheduled deletion", func() {
+			true_ := true
+			accountStatus := AccountStatus{
+				isDisabled:             true,
+				isIndefinitelyDisabled: &true_,
+				accountValidFrom:       &t3,
+				accountValidUntil:      &t4,
+				deleteAt:               &t3,
+			}.WithRefTime(t2)
+
+			So(accountStatus.Check(), ShouldBeError, "user is outside valid period")
+
+			accountStatus.accountStatus.accountValidFrom = nil
+			accountStatus.accountStatus.accountValidUntil = nil
+			So(accountStatus.Check(), ShouldBeError, "user was scheduled for deletion by admin")
+
+			accountStatus.accountStatus.isDeactivated = &true_
+			So(accountStatus.Check(), ShouldBeError, "user was scheduled for deletion by end-user")
+		})
+
+		Convey("account valid period > scheduled anonymization", func() {
+			true_ := true
+			accountStatus := AccountStatus{
+				isDisabled:             true,
+				isIndefinitelyDisabled: &true_,
+				accountValidFrom:       &t3,
+				accountValidUntil:      &t4,
+				anonymizeAt:            &t3,
+			}.WithRefTime(t2)
+
+			So(accountStatus.Check(), ShouldBeError, "user is outside valid period")
+
+			accountStatus.accountStatus.accountValidFrom = nil
+			accountStatus.accountStatus.accountValidUntil = nil
+			So(accountStatus.Check(), ShouldBeError, "user was scheduled for anonymization by admin")
+		})
+
+		Convey("account valid period > disabled indefinitely", func() {
+			true_ := true
+			accountStatus := AccountStatus{
+				isDisabled:             true,
+				isIndefinitelyDisabled: &true_,
+				accountValidFrom:       &t3,
+				accountValidUntil:      &t4,
+			}.WithRefTime(t2)
+
+			So(accountStatus.Check(), ShouldBeError, "user is outside valid period")
+
+			accountStatus.accountStatus.accountValidFrom = nil
+			accountStatus.accountStatus.accountValidUntil = nil
+			So(accountStatus.Check(), ShouldBeError, "user is disabled")
+		})
+
+		Convey("account valid period > disabled temporarily", func() {
+			false_ := false
+			accountStatus := AccountStatus{
+				isDisabled:               true,
+				isIndefinitelyDisabled:   &false_,
+				accountValidFrom:         &t0,
+				accountValidUntil:        &t3,
+				temporarilyDisabledFrom:  &t1,
+				temporarilyDisabledUntil: &t4,
+			}.WithRefTime(t3)
+
+			So(accountStatus.Check(), ShouldBeError, "user is outside valid period")
+
+			accountStatus.accountStatus.accountValidFrom = nil
+			accountStatus.accountStatus.accountValidUntil = nil
+			So(accountStatus.Check(), ShouldBeError, "user is disabled")
+		})
+
+		Convey("scheduled deletion > scheduled anonymization", func() {
+			true_ := true
+			accountStatus := AccountStatus{
+				isDisabled:             true,
+				isIndefinitelyDisabled: &true_,
+				deleteAt:               &t3,
+				anonymizeAt:            &t3,
+			}.WithRefTime(t2)
+
+			So(accountStatus.Check(), ShouldBeError, "user was scheduled for deletion by admin")
+
+			accountStatus.accountStatus.deleteAt = nil
+			So(accountStatus.Check(), ShouldBeError, "user was scheduled for anonymization by admin")
+		})
+
+		Convey("scheduled deletion > disabled indefinitely", func() {
+			true_ := true
+			accountStatus := AccountStatus{
+				isDisabled:             true,
+				isIndefinitelyDisabled: &true_,
+				deleteAt:               &t3,
+			}.WithRefTime(t2)
+
+			So(accountStatus.Check(), ShouldBeError, "user was scheduled for deletion by admin")
+
+			accountStatus.accountStatus.deleteAt = nil
+			So(accountStatus.Check(), ShouldBeError, "user is disabled")
+		})
+
+		Convey("scheduled deletion > disabled temporarily", func() {
+			// These two statuses never overlap.
+		})
+
+		Convey("scheduled anonymization > disabled indefinitely", func() {
+			true_ := true
+			accountStatus := AccountStatus{
+				isDisabled:             true,
+				isIndefinitelyDisabled: &true_,
+				anonymizeAt:            &t3,
+			}.WithRefTime(t2)
+
+			So(accountStatus.Check(), ShouldBeError, "user was scheduled for anonymization by admin")
+
+			accountStatus.accountStatus.anonymizeAt = nil
+			So(accountStatus.Check(), ShouldBeError, "user is disabled")
+		})
+
+		Convey("scheduled anonymization > disabled temporarily", func() {
+			// These two statues never overlap.
+		})
+
+		Convey("disabled indefinitely > disabled temporarily", func() {
+			// These two statues never overlap.
 		})
 	})
 }
