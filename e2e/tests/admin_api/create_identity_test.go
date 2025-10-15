@@ -31,7 +31,7 @@ func TestCreateIdentity_CreateOOBOTPEmailIfEnabled(t *testing.T) {
 
 		nodeUserID := relay.ToGlobalID("User", userID)
 
-		rawResponse, err := cmd.Client.GraphQLAPIRaw(nil, nil, cmd.AppID, e2eclient.GraphQLAPIRequest{
+		rawResponse, err := cmd.Client.GraphQLAPIRaw(cmd.AppID, e2eclient.GraphQLAPIRequest{
 			Query: `
 mutation createIdentityMutation(
 	$userID: ID!
@@ -141,7 +141,7 @@ func TestCreateIdentity_CreateOOBOTPSMSIfEnabled(t *testing.T) {
 
 		nodeUserID := relay.ToGlobalID("User", userID)
 
-		rawResponse, err := cmd.Client.GraphQLAPIRaw(nil, nil, cmd.AppID, e2eclient.GraphQLAPIRequest{
+		rawResponse, err := cmd.Client.GraphQLAPIRaw(cmd.AppID, e2eclient.GraphQLAPIRequest{
 			Query: `
 mutation createIdentityMutation(
 	$userID: ID!
@@ -259,7 +259,7 @@ authentication:
 
 		nodeUserID := relay.ToGlobalID("User", userID)
 
-		rawResponse, err := cmd.Client.GraphQLAPIRaw(nil, nil, cmd.AppID, e2eclient.GraphQLAPIRequest{
+		rawResponse, err := cmd.Client.GraphQLAPIRaw(cmd.AppID, e2eclient.GraphQLAPIRequest{
 			Query: `
 mutation createIdentityMutation(
 	$userID: ID!

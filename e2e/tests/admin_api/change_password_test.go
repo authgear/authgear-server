@@ -34,7 +34,7 @@ func TestChangePassword(t *testing.T) {
 		t.Fatalf("%v", err.Error())
 	}
 
-	resp, err := cmd.Client.GraphQLAPI(nil, nil, cmd.AppID, e2eclient.GraphQLAPIRequest{
+	resp, err := cmd.Client.GraphQLAPI(cmd.AppID, e2eclient.GraphQLAPIRequest{
 		Query: `
 			mutation resetPasswordMutation(
 				$userID: ID!,
@@ -112,7 +112,7 @@ func TestChangePasswordNoTarget(t *testing.T) {
 		t.Fatalf("%v", err.Error())
 	}
 
-	resp, err := cmd.Client.GraphQLAPI(nil, nil, cmd.AppID, e2eclient.GraphQLAPIRequest{
+	resp, err := cmd.Client.GraphQLAPI(cmd.AppID, e2eclient.GraphQLAPIRequest{
 		Query: `
 			mutation resetPasswordMutation(
 				$userID: ID!,

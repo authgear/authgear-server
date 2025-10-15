@@ -501,10 +501,10 @@ type GraphQLResponse struct {
 }
 
 // In e2e test, recommend to use `GraphQLAPIRaw` below to check the response in JSON string format over a GraphQLResponse Object
-func (c *Client) GraphQLAPI(w http.ResponseWriter, r *http.Request, appID string, body GraphQLAPIRequest) (*GraphQLResponse, error) {
+func (c *Client) GraphQLAPI(appID string, body GraphQLAPIRequest) (*GraphQLResponse, error) {
 	endpoint := c.AdminEndpoint.JoinPath("/_api/admin/graphql")
 
-	req, err := c.makeRequest(r, endpoint, body)
+	req, err := c.makeRequest(nil, endpoint, body)
 	if err != nil {
 		return nil, err
 	}
@@ -524,10 +524,10 @@ func (c *Client) GraphQLAPI(w http.ResponseWriter, r *http.Request, appID string
 	return &graphQLResponse, nil
 }
 
-func (c *Client) GraphQLAPIRaw(w http.ResponseWriter, r *http.Request, appID string, body GraphQLAPIRequest) (string, error) {
+func (c *Client) GraphQLAPIRaw(appID string, body GraphQLAPIRequest) (string, error) {
 	endpoint := c.AdminEndpoint.JoinPath("/_api/admin/graphql")
 
-	req, err := c.makeRequest(r, endpoint, body)
+	req, err := c.makeRequest(nil, endpoint, body)
 	if err != nil {
 		return "", err
 	}
