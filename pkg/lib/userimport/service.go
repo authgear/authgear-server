@@ -299,7 +299,7 @@ func (s *UserImportService) insertRecordInTxn(ctx context.Context, detail *Detai
 		return
 	}
 
-	err = s.insertDisabledInTxn(ctx, detail, record, u)
+	err = s.insertAccountStatusInTxn(ctx, detail, record, u)
 	if err != nil {
 		return
 	}
@@ -540,28 +540,60 @@ func (s *UserImportService) insertCustomAttributesInTxn(ctx context.Context, det
 	return
 }
 
-func (s *UserImportService) insertDisabledInTxn(ctx context.Context, detail *Detail, record Record, u *user.User) (err error) {
-	disabled, ok := record.Disabled()
-	if !ok {
-		return
-	}
-
-	if !disabled {
-		detail.Warnings = append(detail.Warnings, Warning{
-			Message: "disabled = false has no effect in insert.",
-		})
-		return
-	}
-
+func (s *UserImportService) insertAccountStatusInTxn(ctx context.Context, detail *Detail, record Record, u *user.User) (err error) {
 	now := s.Clock.NowUTC()
-	accountStatus, err := u.AccountStatus(now).DisableIndefinitely(nil)
-	if err != nil {
-		return
+	var accountStatus *user.AccountStatusWithRefTime
+	{
+		accountStatusStruct := u.AccountStatus(now)
+		accountStatus = &accountStatusStruct
 	}
 
-	err = s.UserCommands.UpdateAccountStatus(ctx, u.ID, *accountStatus)
-	if err != nil {
-		return
+	needUpdate := false
+
+	if disabled, ok := record.Disabled(); ok {
+		if !disabled {
+			detail.Warnings = append(detail.Warnings, Warning{
+				Message: "disabled = false has no effect in insert.",
+			})
+		} else {
+			accountStatus, err = accountStatus.DisableIndefinitely(nil)
+			if err != nil {
+				return
+			}
+			needUpdate = true
+		}
+	}
+
+	accountValidFrom, accountValidFromOK := record.AccountValidFrom()
+	accountValidUntil, accountValidUntilOK := record.AccountValidUntil()
+	switch {
+	case accountValidFromOK && accountValidUntilOK:
+		accountStatus, err = accountStatus.SetAccountValidPeriod(accountValidFrom, accountValidUntil)
+		if err != nil {
+			return
+		}
+		needUpdate = true
+	case accountValidFromOK:
+		accountStatus, err = accountStatus.SetAccountValidFrom(accountValidFrom)
+		if err != nil {
+			return
+		}
+		needUpdate = true
+	case accountValidUntilOK:
+		accountStatus, err = accountStatus.SetAccountValidUntil(accountValidUntil)
+		if err != nil {
+			return
+		}
+		needUpdate = true
+	default:
+		// Nothing to do.
+	}
+
+	if needUpdate {
+		err = s.UserCommands.UpdateAccountStatus(ctx, u.ID, *accountStatus)
+		if err != nil {
+			return
+		}
 	}
 
 	return
@@ -814,7 +846,7 @@ func (s *UserImportService) upsertRecordInTxn(ctx context.Context, detail *Detai
 		return
 	}
 
-	err = s.upsertDisabledInTxn(ctx, detail, record, info.UserID)
+	err = s.upsertAccountStatusInTxn(ctx, detail, record, info.UserID)
 	if err != nil {
 		return
 	}
@@ -1155,9 +1187,12 @@ func (s *UserImportService) upsertCustomAttributesInTxn(ctx context.Context, det
 	return s.insertCustomAttributesInTxn(ctx, detail, record, userID)
 }
 
-func (s *UserImportService) upsertDisabledInTxn(ctx context.Context, detail *Detail, record Record, userID string) (err error) {
-	disabled, ok := record.Disabled()
-	if !ok {
+func (s *UserImportService) upsertAccountStatusInTxn(ctx context.Context, detail *Detail, record Record, userID string) (err error) {
+	disabled, disabledOK := record.Disabled()
+	accountValidFrom, accountValidFromOK := record.AccountValidFrom()
+	accountValidUntil, accountValidUntilOK := record.AccountValidUntil()
+
+	if !disabledOK && !accountValidFromOK && !accountValidUntilOK {
 		return
 	}
 
@@ -1167,33 +1202,67 @@ func (s *UserImportService) upsertDisabledInTxn(ctx context.Context, detail *Det
 	}
 
 	now := s.Clock.NowUTC()
-	if disabled {
-		var accountStatus *user.AccountStatusWithRefTime
-		// Treat invalid account status transition as warning.
-		accountStatus, accountStatusErr := u.AccountStatus(now).DisableIndefinitely(nil)
-		if accountStatusErr != nil {
-			detail.Warnings = append(detail.Warnings, Warning{
-				Message: accountStatusErr.Error(),
-			})
+	var accountStatus *user.AccountStatusWithRefTime
+	{
+		accountStatusStruct := u.AccountStatus(now)
+		accountStatus = &accountStatusStruct
+	}
+
+	needUpdate := false
+
+	if disabledOK {
+		if disabled {
+			newAccountStatus, accountStatusErr := accountStatus.DisableIndefinitely(nil)
+			if accountStatusErr != nil {
+				// Treat invalid account status transition as warning.
+				detail.Warnings = append(detail.Warnings, Warning{
+					Message: accountStatusErr.Error(),
+				})
+			} else {
+				accountStatus = newAccountStatus
+				needUpdate = true
+			}
 		} else {
-			err = s.UserCommands.UpdateAccountStatus(ctx, u.ID, *accountStatus)
-			if err != nil {
-				return
+			newAccountStatus, accountStatusErr := accountStatus.Reenable()
+			if accountStatusErr != nil {
+				// Treat invalid account status transition as warning.
+				detail.Warnings = append(detail.Warnings, Warning{
+					Message: accountStatusErr.Error(),
+				})
+			} else {
+				accountStatus = newAccountStatus
+				needUpdate = true
 			}
 		}
-	} else {
-		var accountStatus *user.AccountStatusWithRefTime
-		// Treat invalid account status transition as warning.
-		accountStatus, accountStatusErr := u.AccountStatus(now).Reenable()
-		if accountStatusErr != nil {
-			detail.Warnings = append(detail.Warnings, Warning{
-				Message: accountStatusErr.Error(),
-			})
-		} else {
-			err = s.UserCommands.UpdateAccountStatus(ctx, u.ID, *accountStatus)
-			if err != nil {
-				return
-			}
+	}
+
+	switch {
+	case accountValidFromOK && accountValidUntilOK:
+		accountStatus, err = accountStatus.SetAccountValidPeriod(accountValidFrom, accountValidUntil)
+		if err != nil {
+			return
+		}
+		needUpdate = true
+	case accountValidFromOK:
+		accountStatus, err = accountStatus.SetAccountValidFrom(accountValidFrom)
+		if err != nil {
+			return
+		}
+		needUpdate = true
+	case accountValidUntilOK:
+		accountStatus, err = accountStatus.SetAccountValidUntil(accountValidUntil)
+		if err != nil {
+			return
+		}
+		needUpdate = true
+	default:
+		// Nothing to do.
+	}
+
+	if needUpdate {
+		err = s.UserCommands.UpdateAccountStatus(ctx, userID, *accountStatus)
+		if err != nil {
+			return
 		}
 	}
 
