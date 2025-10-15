@@ -182,6 +182,7 @@
 .authenticatorEmpty {
   margin-right: 200px;
   color: #888888;
+  @apply py-2;
 }
 
 .authenticatorGrantGracePeriod {
