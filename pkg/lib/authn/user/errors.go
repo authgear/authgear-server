@@ -10,7 +10,9 @@ import (
 var ErrUserNotFound = errors.New("user not found")
 
 var DisabledUser = apierrors.Forbidden.WithReason("DisabledUser")
-var DeactivatedUser = apierrors.Forbidden.WithReason("DeactivatedUser")
+
+// var DeactivatedUser = apierrors.Forbidden.WithReason("DeactivatedUser")
+
 var AnonymizedUser = apierrors.Forbidden.WithReason("AnonymizedUser")
 var ScheduledDeletionByAdmin = apierrors.Forbidden.WithReason("ScheduledDeletionByAdmin")
 var ScheduledDeletionByEndUser = apierrors.Forbidden.WithReason("ScheduledDeletionByEndUser")
@@ -25,7 +27,8 @@ func NewErrDisabledUser(reason *string) error {
 	})
 }
 
-var ErrDeactivatedUser = DeactivatedUser.New("user is deactivated")
+// var ErrDeactivatedUser = DeactivatedUser.New("user is deactivated")
+
 var ErrAnonymizedUser = AnonymizedUser.New("user is anonymized")
 var ErrUserOutsideValidPeriod = UserOutsideValidPeriod.New("user is outside valid period")
 
