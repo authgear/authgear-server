@@ -423,7 +423,7 @@ func (tc *TestCase) executeStep(
 		if !ok {
 			t.Errorf("failed to render admin_api_request.query")
 		}
-		resp, err := cmd.Client.GraphQLAPI(nil, nil, cmd.AppID, authflowclient.GraphQLAPIRequest{
+		resp, err := cmd.Client.GraphQLAPI(cmd.AppID, authflowclient.GraphQLAPIRequest{
 			Query:     renderedQuery,
 			Variables: variables,
 		})

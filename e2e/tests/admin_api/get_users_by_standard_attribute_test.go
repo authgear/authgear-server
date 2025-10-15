@@ -23,7 +23,7 @@ func TestGetUsersByStandardAttributeByEmail(t *testing.T) {
 		err = cmd.ExecuteSQLInsertUpdateFile("../../tests/admin_api/get_users_admin_api_user.sql")
 		So(err, ShouldBeNil)
 
-		rawResp, err := cmd.Client.GraphQLAPIRaw(nil, nil, cmd.AppID, e2eclient.GraphQLAPIRequest{
+		rawResp, err := cmd.Client.GraphQLAPIRaw(cmd.AppID, e2eclient.GraphQLAPIRequest{
 			Query: `
 				query {
 					getUsersByStandardAttribute(attributeName:"email", attributeValue: "e2e_admin_api_get_users@example.com") {
@@ -69,7 +69,7 @@ func TestGetUsersByStandardAttributeByPhone(t *testing.T) {
 		err = cmd.ExecuteSQLInsertUpdateFile("../../tests/admin_api/get_users_admin_api_user.sql")
 		So(err, ShouldBeNil)
 
-		rawResp, err := cmd.Client.GraphQLAPIRaw(nil, nil, cmd.AppID, e2eclient.GraphQLAPIRequest{
+		rawResp, err := cmd.Client.GraphQLAPIRaw(cmd.AppID, e2eclient.GraphQLAPIRequest{
 			Query: `
 				query {
 					getUsersByStandardAttribute(attributeName:"phone_number", attributeValue: "+85261236544") {
@@ -116,7 +116,7 @@ func TestGetUsersByStandardAttributeByUsername(t *testing.T) {
 		err = cmd.ExecuteSQLInsertUpdateFile("../../tests/admin_api/get_users_admin_api_user.sql")
 		So(err, ShouldBeNil)
 
-		rawResp, err := cmd.Client.GraphQLAPIRaw(nil, nil, cmd.AppID, e2eclient.GraphQLAPIRequest{
+		rawResp, err := cmd.Client.GraphQLAPIRaw(cmd.AppID, e2eclient.GraphQLAPIRequest{
 			Query: `
 				query {
 					getUsersByStandardAttribute(attributeName:"preferred_username", attributeValue: "e2e_admin_api_get_users_username") {
@@ -162,7 +162,7 @@ func TestGetUsersByStandardAttributeNotFound(t *testing.T) {
 		err = cmd.ExecuteSQLInsertUpdateFile("../../tests/admin_api/get_users_admin_api_user.sql")
 		So(err, ShouldBeNil)
 
-		rawResp, err := cmd.Client.GraphQLAPIRaw(nil, nil, cmd.AppID, e2eclient.GraphQLAPIRequest{
+		rawResp, err := cmd.Client.GraphQLAPIRaw(cmd.AppID, e2eclient.GraphQLAPIRequest{
 			Query: `
 				query {
 					getUsersByStandardAttribute(attributeName:"email", attributeValue: "e2e_admin_api_get_users_not_found@example.com") {
@@ -199,7 +199,7 @@ func TestGetUsersByStandardAttributeInvalidAttributeValue(t *testing.T) {
 		err = cmd.ExecuteSQLInsertUpdateFile("../../tests/admin_api/get_users_admin_api_user.sql")
 		So(err, ShouldBeNil)
 
-		rawResp, err := cmd.Client.GraphQLAPIRaw(nil, nil, cmd.AppID, e2eclient.GraphQLAPIRequest{
+		rawResp, err := cmd.Client.GraphQLAPIRaw(cmd.AppID, e2eclient.GraphQLAPIRequest{
 			Query: `
 				query {
 					getUsersByStandardAttribute(attributeName:"phone_number", attributeValue: "e2e_admin_api_get_users@example.com") {
@@ -246,7 +246,7 @@ func TestGetUsersByStandardAttributeInvalidAttributeName(t *testing.T) {
 		err = cmd.ExecuteSQLInsertUpdateFile("../../tests/admin_api/get_users_admin_api_user.sql")
 		So(err, ShouldBeNil)
 
-		rawResp, err := cmd.Client.GraphQLAPIRaw(nil, nil, cmd.AppID, e2eclient.GraphQLAPIRequest{
+		rawResp, err := cmd.Client.GraphQLAPIRaw(cmd.AppID, e2eclient.GraphQLAPIRequest{
 			Query: `
 				query {
 					getUsersByStandardAttribute(attributeName:"custom_name", attributeValue: "e2e_admin_api_get_users@example.com") {
