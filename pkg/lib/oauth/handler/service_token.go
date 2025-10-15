@@ -337,13 +337,10 @@ func (s *TokenService) ParseRefreshToken(ctx context.Context, token string) (
 		return nil, nil, "", ErrInvalidRefreshToken
 	}
 
-	if err := offlineGrantSession.MatchDPoPJKT(dpopProof); err != nil {
-		logger.WithSkipLogging().Error(ctx,
-			fmt.Sprintf("failed to match dpop jkt on parse refresh token:%s", err.Message),
-			append(
-				err.Info_ReadOnly.ToSlogAttrs(),
-				slog.Bool("dpop_logs", true),
-			)...,
+	if dpopErr := offlineGrantSession.MatchDPoPJKT(dpopProof); dpopErr != nil {
+		logger.WithSkipLogging().WithError(dpopErr).Error(ctx,
+			fmt.Sprintf("failed to match dpop jkt on parse refresh token:%s", dpopErr.Message),
+			slog.Bool("dpop_logs", true),
 		)
 
 		// NOTE(DEV-2982): This is for debugging the session lost problem

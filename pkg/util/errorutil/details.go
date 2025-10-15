@@ -2,7 +2,6 @@ package errorutil
 
 import (
 	"errors"
-	"log/slog"
 )
 
 type Details map[string]interface{}
@@ -56,18 +55,4 @@ func CollectDetails(err error, d Details) Details {
 	}
 
 	return d
-}
-
-func (m Details) ToSlogAttrs() []slog.Attr {
-	if m == nil {
-		return nil
-	}
-
-	attrs := make([]slog.Attr, 0, len(m))
-
-	for key, value := range m {
-		attrs = append(attrs, slog.Any(key, value))
-	}
-
-	return attrs
 }

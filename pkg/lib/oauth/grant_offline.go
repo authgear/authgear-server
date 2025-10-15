@@ -4,7 +4,6 @@ import (
 	"crypto/subtle"
 	"time"
 
-	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/dpop"
@@ -123,7 +122,7 @@ func (o *OfflineGrantSession) CreateNewAuthenticationInfoByThisSession() authent
 	}
 }
 
-func (g *OfflineGrantSession) MatchDPoPJKT(proof *dpop.DPoPProof) *apierrors.APIError {
+func (g *OfflineGrantSession) MatchDPoPJKT(proof *dpop.DPoPProof) *dpop.UnmatchedJKTError {
 	if g.DPoPJKT == "" {
 		// Not binded, always ok
 		return nil
@@ -303,7 +302,7 @@ func (g *OfflineGrant) MatchCurrentHash(refreshTokenHash string) bool {
 	return result
 }
 
-func (g *OfflineGrant) MatchDeviceSecretDPoPJKT(proof *dpop.DPoPProof) *apierrors.APIError {
+func (g *OfflineGrant) MatchDeviceSecretDPoPJKT(proof *dpop.DPoPProof) *dpop.UnmatchedJKTError {
 	if g.DeviceSecretDPoPJKT == "" {
 		// Not binded, always ok
 		return nil

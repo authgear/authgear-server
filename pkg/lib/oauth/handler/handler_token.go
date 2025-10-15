@@ -585,13 +585,10 @@ func (h *TokenHandler) IssueTokensForAuthorizationCode(
 	}
 
 	dpopProof := dpop.GetDPoPProof(ctx)
-	if err := codeGrant.MatchDPoPJKT(dpopProof); err != nil {
-		logger.WithSkipLogging().Error(ctx,
-			fmt.Sprintf("failed to match dpop jkt on issue tokens: %s", err.Message),
-			append(
-				err.Info_ReadOnly.ToSlogAttrs(),
-				slog.Bool("dpop_logs", true),
-			)...,
+	if dpopErr := codeGrant.MatchDPoPJKT(dpopProof); dpopErr != nil {
+		logger.WithSkipLogging().WithError(dpopErr).Error(ctx,
+			fmt.Sprintf("failed to match dpop jkt on issue tokens: %s", dpopErr.Message),
+			slog.Bool("dpop_logs", true),
 		)
 		return nil, ErrInvalidDPoPKeyBinding
 	}
@@ -841,12 +838,9 @@ func (h *TokenHandler) verifyIDTokenDeviceSecretHash(ctx context.Context, offlin
 	logger := TokenHandlerLogger.GetLogger(ctx)
 	dpopProof := dpop.GetDPoPProof(ctx)
 	if dpopErr := offlineGrant.MatchDeviceSecretDPoPJKT(dpopProof); dpopErr != nil {
-		logger.WithSkipLogging().Error(ctx,
+		logger.WithSkipLogging().WithError(dpopErr).Error(ctx,
 			fmt.Sprintf("failed to match dpop jkt of device_secret: %s", dpopErr.Message),
-			append(
-				dpopErr.Info_ReadOnly.ToSlogAttrs(),
-				slog.Bool("dpop_logs", true),
-			)...,
+			slog.Bool("dpop_logs", true),
 		)
 		err = ErrInvalidDPoPKeyBinding
 	}

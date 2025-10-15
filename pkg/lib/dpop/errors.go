@@ -1,7 +1,8 @@
 package dpop
 
 import (
-	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"fmt"
+
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
 )
@@ -25,9 +26,7 @@ var ErrUnmatchedMethod = newInvalidDPoPProofError("htm in the DPoP proof does no
 var ErrUnmatchedURI = newInvalidDPoPProofError("htu in the DPoP proof does not match request uri")
 var ErrUnsupportedAlg = newInvalidDPoPProofError("unsupported alg in DPoP jwt")
 
-var UnmatchedJKT = apierrors.Invalid.WithReason("UnmatchedJKT")
-
-func NewErrUnmatchedJKT(msg string, expected *string, actual *string) *apierrors.APIError {
+func NewErrUnmatchedJKT(msg string, expected *string, actual *string) *UnmatchedJKTError {
 	expectedStr := "null"
 	actualStr := "null"
 	if expected != nil {
@@ -36,8 +35,28 @@ func NewErrUnmatchedJKT(msg string, expected *string, actual *string) *apierrors
 	if actual != nil {
 		actualStr = *actual
 	}
-	return UnmatchedJKT.NewWithInfo(msg, errorutil.Details{
-		"expected": expectedStr,
-		"actual":   actualStr,
-	})
+
+	return &UnmatchedJKTError{
+		Message:     msg,
+		ExpectedJKT: expectedStr,
+		ActualJKT:   actualStr,
+	}
+}
+
+type UnmatchedJKTError struct {
+	Message     string
+	ExpectedJKT string
+	ActualJKT   string
+}
+
+var _ error = (*UnmatchedJKTError)(nil)
+var _ errorutil.Detailer = (*UnmatchedJKTError)(nil)
+
+func (e *UnmatchedJKTError) Error() string {
+	return fmt.Sprintf("dpop: unmatched jkt. message: %s. expected: %s actual: %s", e.Message, e.ExpectedJKT, e.ActualJKT)
+}
+
+func (e *UnmatchedJKTError) FillDetails(d errorutil.Details) {
+	d["expected_jkt"] = e.ExpectedJKT
+	d["actual_jkt"] = e.ActualJKT
 }

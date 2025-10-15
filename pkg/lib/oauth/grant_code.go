@@ -4,7 +4,6 @@ import (
 	"crypto/subtle"
 	"time"
 
-	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/dpop"
@@ -29,7 +28,7 @@ type CodeGrant struct {
 	IdentitySpecs []*identity.Spec `json:"identity_specs,omitzero"`
 }
 
-func (g *CodeGrant) MatchDPoPJKT(proof *dpop.DPoPProof) *apierrors.APIError {
+func (g *CodeGrant) MatchDPoPJKT(proof *dpop.DPoPProof) *dpop.UnmatchedJKTError {
 	if g.DPoPJKT == "" {
 		// Not binded, always ok
 		return nil
