@@ -76,6 +76,8 @@ func init() {
 
 		baseSchema.Properties().
 			Property("disabled", boolean).
+			Property("account_valid_from", rfc3339).
+			Property("account_valid_until", rfc3339).
 			Property("email_verified", boolean).
 			Property("phone_number_verified", boolean).
 			Property("name", reusedSchemaBuilders.Name.AddTypeNull()).
@@ -359,6 +361,14 @@ func (m Record) PhoneNumber() (*string, bool) {
 
 func (m Record) Disabled() (bool, bool) {
 	return mapGetNonNull[Record, bool](m, "disabled")
+}
+
+func (m Record) AccountValidFrom() (*time.Time, bool) {
+	return mapGetRFC3339(m, "account_valid_from")
+}
+
+func (m Record) AccountValidUntil() (*time.Time, bool) {
+	return mapGetRFC3339(m, "account_valid_until")
 }
 
 func (m Record) EmailVerified() (bool, bool) {
