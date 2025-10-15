@@ -136,6 +136,17 @@ func (tc *TestCase) executeStep(
 	nextState = state
 
 	switch step.Action {
+	case StepActionSleep:
+		d, err := time.ParseDuration(step.SleepFor)
+		if err != nil {
+			panic(err)
+		}
+
+		time.Sleep(d)
+		result = &StepResult{
+			Result: nil,
+			Error:  nil,
+		}
 	case StepActionCreate:
 		input, ok := prepareInput(t, cmd, prevSteps, step.Input)
 		if !ok {

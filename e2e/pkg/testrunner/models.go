@@ -214,6 +214,7 @@ var _ = TestCaseSchema.Add("Step", `
 	"properties": {
 		"name": { "type": "string" },
 		"action": { "type": "string", "enum": [
+			"sleep",
 			"create",
 			"input",
 			"oauth_redirect",
@@ -227,6 +228,7 @@ var _ = TestCaseSchema.Add("Step", `
 			"admin_api_user_import_create",
 			"admin_api_user_import_get"
 		]},
+		"sleep_for": { "type": "string", "format": "x_duration_string" },
 		"input": { "type": "string" },
 		"to": { "type": "string" },
 		"redirect_uri": { "type": "string" },
@@ -257,6 +259,16 @@ var _ = TestCaseSchema.Add("Step", `
 		"admin_api_user_import_id": { "type": "string" }
 	},
 	"allOf": [
+		{
+			"if": {
+				"properties": {
+					"action": { "const": "sleep" }
+				}
+			},
+			"then": {
+				"required": ["sleep_for"]
+			}
+		},
         {
             "if": {
                 "properties": {
@@ -393,6 +405,9 @@ type Step struct {
 	Name   string     `json:"name"`
 	Action StepAction `json:"action"`
 
+	// `action` == "sleep"
+	SleepFor string `json:"sleep_for,omitzero"`
+
 	// `action` == "create" or "input"
 	Input string `json:"input"`
 
@@ -447,6 +462,7 @@ type Step struct {
 type StepAction string
 
 const (
+	StepActionSleep                    StepAction = "sleep"
 	StepActionCreate                   StepAction = "create"
 	StepActionInput                    StepAction = "input"
 	StepActionOAuthRedirect            StepAction = "oauth_redirect"
