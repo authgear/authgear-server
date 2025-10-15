@@ -238,6 +238,14 @@ func TestRecord(t *testing.T) {
 			v, ok := r.AccountValidFrom()
 			So(ok, ShouldBeTrue)
 			So(*v, ShouldEqual, time.Date(2006, 1, 2, 3, 4, 5, 0, time.UTC))
+
+			r = Record{
+				"account_valid_from": "2006-01-02T03:04:05+08:00",
+			}
+
+			v, ok = r.AccountValidFrom()
+			So(ok, ShouldBeTrue)
+			So(*v, ShouldEqual, time.Date(2006, 1, 1, 19, 4, 5, 0, time.UTC))
 		})
 
 		Convey("account_valid_until", func() {
@@ -261,6 +269,14 @@ func TestRecord(t *testing.T) {
 			v, ok := r.AccountValidUntil()
 			So(ok, ShouldBeTrue)
 			So(*v, ShouldEqual, time.Date(2006, 1, 2, 3, 4, 5, 0, time.UTC))
+
+			r = Record{
+				"account_valid_until": "2006-01-02T03:04:05+08:00",
+			}
+
+			v, ok = r.AccountValidUntil()
+			So(ok, ShouldBeTrue)
+			So(*v, ShouldEqual, time.Date(2006, 1, 1, 19, 4, 5, 0, time.UTC))
 		})
 
 		Convey("email_verified", func() {
@@ -633,7 +649,7 @@ func TestRecord(t *testing.T) {
 }
 
 func TestPassword(t *testing.T) {
-	Convey("Password with expire_after", t, func() {
+	Convey("Password with expire_after in UTC", t, func() {
 		p := Password{
 			"type":          "bcrypt",
 			"password_hash": "hash",
@@ -643,6 +659,18 @@ func TestPassword(t *testing.T) {
 		So(p.Type(), ShouldEqual, PasswordTypeBcrypt)
 		So(p.PasswordHash(), ShouldEqual, "hash")
 		So(*p.ExpireAfter(), ShouldEqual, time.Date(2006, 1, 2, 3, 4, 5, 0, time.UTC))
+	})
+
+	Convey("Password with expire_after in timezone offset", t, func() {
+		p := Password{
+			"type":          "bcrypt",
+			"password_hash": "hash",
+			"expire_after":  "2006-01-02T03:04:05+08:00",
+		}
+
+		So(p.Type(), ShouldEqual, PasswordTypeBcrypt)
+		So(p.PasswordHash(), ShouldEqual, "hash")
+		So(*p.ExpireAfter(), ShouldEqual, time.Date(2006, 1, 1, 19, 4, 5, 0, time.UTC))
 	})
 
 	Convey("Password without expire_after", t, func() {

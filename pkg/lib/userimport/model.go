@@ -230,7 +230,7 @@ func mapGetArrayOfNonNullItems[M ~map[string]interface{}, T constraints.Ordered 
 	return ts, true
 }
 
-func mapGetRFC3339[M ~map[string]interface{}](m M, key string) (*time.Time, bool) {
+func mapGetRFC3339InUTC[M ~map[string]interface{}](m M, key string) (*time.Time, bool) {
 	var iface interface{}
 	iface, ok := m[key]
 	if !ok {
@@ -251,6 +251,8 @@ func mapGetRFC3339[M ~map[string]interface{}](m M, key string) (*time.Time, bool
 		// If it is not valid, it should be a panic.
 		panic(err)
 	}
+
+	t = t.In(time.UTC)
 	return &t, true
 }
 
@@ -275,7 +277,7 @@ func (m Password) PasswordHash() string {
 }
 
 func (m Password) ExpireAfter() *time.Time {
-	t, _ := mapGetRFC3339(m, "expire_after")
+	t, _ := mapGetRFC3339InUTC(m, "expire_after")
 	return t
 }
 
@@ -364,11 +366,11 @@ func (m Record) Disabled() (bool, bool) {
 }
 
 func (m Record) AccountValidFrom() (*time.Time, bool) {
-	return mapGetRFC3339(m, "account_valid_from")
+	return mapGetRFC3339InUTC(m, "account_valid_from")
 }
 
 func (m Record) AccountValidUntil() (*time.Time, bool) {
-	return mapGetRFC3339(m, "account_valid_until")
+	return mapGetRFC3339InUTC(m, "account_valid_until")
 }
 
 func (m Record) EmailVerified() (bool, bool) {
