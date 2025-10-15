@@ -69,15 +69,15 @@ func (a AccountStatusVariantDisabledTemporarily) check() error {
 	return NewErrDisabledUser(a.disableReason)
 }
 
-type AccountStatusVariantDeactivated struct{}
-
-var _ accountStatusVariant = AccountStatusVariantDeactivated{}
-
-func (_ AccountStatusVariantDeactivated) getAccountStatusType() accountStatusType {
-	return accountStatusTypeDeactivated
-}
-
-func (_ AccountStatusVariantDeactivated) check() error { return ErrDeactivatedUser }
+// type AccountStatusVariantDeactivated struct{}
+//
+// var _ accountStatusVariant = AccountStatusVariantDeactivated{}
+//
+// func (_ AccountStatusVariantDeactivated) getAccountStatusType() accountStatusType {
+// 	return accountStatusTypeDeactivated
+// }
+//
+// func (_ AccountStatusVariantDeactivated) check() error { return ErrDeactivatedUser }
 
 type AccountStatusVariantScheduledDeletionByAdmin struct {
 	deleteAt time.Time
@@ -416,7 +416,8 @@ func (s AccountStatusWithRefTime) variant() accountStatusVariant {
 		}
 	}
 	if *s.accountStatus.isDeactivated {
-		return AccountStatusVariantDeactivated{}
+		panic(fmt.Errorf("deactivated is not an implemented account status"))
+		// return AccountStatusVariantDeactivated{}
 	}
 
 	return AccountStatusVariantDisabledIndefinitely{
@@ -454,8 +455,8 @@ func (s AccountStatusWithRefTime) Reenable() (*AccountStatusWithRefTime, error) 
 		return &target, nil
 	case AccountStatusVariantDisabledTemporarily{}.getAccountStatusType():
 		return &target, nil
-	case AccountStatusVariantDeactivated{}.getAccountStatusType():
-		return &target, nil
+	// case AccountStatusVariantDeactivated{}.getAccountStatusType():
+	// 	return &target, nil
 	default:
 		return nil, makeTransitionError(s.getMostAppropriateType(), target.variant().getAccountStatusType())
 	}
@@ -732,8 +733,8 @@ func (s AccountStatusWithRefTime) Anonymize() (*AccountStatusWithRefTime, error)
 		return &target, nil
 	case AccountStatusVariantDisabledTemporarily{}.getAccountStatusType():
 		return &target, nil
-	case AccountStatusVariantDeactivated{}.getAccountStatusType():
-		return &target, nil
+	// case AccountStatusVariantDeactivated{}.getAccountStatusType():
+	// 	return &target, nil
 	case AccountStatusVariantScheduledDeletionByAdmin{}.getAccountStatusType():
 		return &target, nil
 	case AccountStatusVariantScheduledDeletionByEndUser{}.getAccountStatusType():
@@ -778,8 +779,8 @@ func (s AccountStatusWithRefTime) ScheduleAnonymizationByAdmin(anonymizeAt time.
 		return &target, nil
 	case AccountStatusVariantDisabledTemporarily{}.getAccountStatusType():
 		return &target, nil
-	case AccountStatusVariantDeactivated{}.getAccountStatusType():
-		return &target, nil
+	// case AccountStatusVariantDeactivated{}.getAccountStatusType():
+	// 	return &target, nil
 	case AccountStatusVariantScheduledDeletionByAdmin{}.getAccountStatusType():
 		return &target, nil
 	case AccountStatusVariantScheduledDeletionByEndUser{}.getAccountStatusType():
@@ -837,8 +838,8 @@ func IsAccountStatusError(err error) bool {
 	switch {
 	case apierrors.IsKind(err, DisabledUser):
 		return true
-	case apierrors.IsKind(err, DeactivatedUser):
-		return true
+	// case apierrors.IsKind(err, DeactivatedUser):
+	// 	return true
 	case apierrors.IsKind(err, AnonymizedUser):
 		return true
 	case apierrors.IsKind(err, ScheduledDeletionByAdmin):
