@@ -272,6 +272,15 @@ var auditLogActivityType = graphql.NewEnum(graphql.EnumConfig{
 		"ADMIN_API_MUTATION_SET_DISABLED_STATUS_EXECUTED": &graphql.EnumValueConfig{
 			Value: "admin_api.mutation.set_disabled_status.executed",
 		},
+		"ADMIN_API_MUTATION_SET_ACCOUNT_VALID_FROM_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.mutation.set_account_valid_from.executed",
+		},
+		"ADMIN_API_MUTATION_SET_ACCOUNT_VALID_UNTIL_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.mutation.set_account_valid_until.executed",
+		},
+		"ADMIN_API_MUTATION_SET_ACCOUNT_VALID_PERIOD_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.mutation.set_account_valid_period.executed",
+		},
 		"ADMIN_API_MUTATION_SET_VERIFIED_STATUS_EXECUTED": &graphql.EnumValueConfig{
 			Value: "admin_api.mutation.set_verified_status.executed",
 		},

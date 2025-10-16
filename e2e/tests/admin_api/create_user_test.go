@@ -25,7 +25,7 @@ func TestCreateUser_Password_SendPassword_SetPasswordExpired(t *testing.T) {
 
 	userEmail := fmt.Sprintf("%s@example.com", cmd.AppID)
 
-	_, err = cmd.Client.GraphQLAPI(nil, nil, cmd.AppID, e2eclient.GraphQLAPIRequest{
+	_, err = cmd.Client.GraphQLAPI(e2eclient.GraphQLAPIRequest{
 		Query: `
 			mutation createUserMutation(
 				$identityDefinition: IdentityDefinitionLoginID!
@@ -96,7 +96,7 @@ func TestCreateUser_NullPassword(t *testing.T) {
 
 	userEmail := fmt.Sprintf("%s@example.com", cmd.AppID)
 
-	_, err = cmd.Client.GraphQLAPI(nil, nil, cmd.AppID, e2eclient.GraphQLAPIRequest{
+	_, err = cmd.Client.GraphQLAPI(e2eclient.GraphQLAPIRequest{
 		Query: `
 			mutation createUserMutation(
 				$identityDefinition: IdentityDefinitionLoginID!
@@ -155,7 +155,7 @@ func TestCreateUser_EmptyPassword(t *testing.T) {
 
 	userEmail := fmt.Sprintf("%s@example.com", cmd.AppID)
 
-	_, err = cmd.Client.GraphQLAPI(nil, nil, cmd.AppID, e2eclient.GraphQLAPIRequest{
+	_, err = cmd.Client.GraphQLAPI(e2eclient.GraphQLAPIRequest{
 		Query: `
 			mutation createUserMutation(
 				$identityDefinition: IdentityDefinitionLoginID!

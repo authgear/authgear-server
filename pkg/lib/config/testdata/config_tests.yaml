@@ -1232,7 +1232,7 @@ name: secondary-authentication-grace-period-invalid-since
 error: |-
   invalid configuration:
   /authentication/secondary_authentication_grace_period/end_at: format
-    map[error:date-time must be in rfc3999 format format:date-time]
+    map[error:date-time must be in rfc3339 format format:date-time]
 config:
   id: test
   http:

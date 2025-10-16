@@ -23,7 +23,7 @@ func TestGetUserByOAuthFound(t *testing.T) {
 		err = cmd.ExecuteSQLInsertUpdateFile("../../tests/admin_api/get_users_admin_api_user.sql")
 		So(err, ShouldBeNil)
 
-		rawResp, err := cmd.Client.GraphQLAPIRaw(nil, nil, cmd.AppID, e2eclient.GraphQLAPIRequest{
+		rawResp, err := cmd.Client.GraphQLAPIRaw(e2eclient.GraphQLAPIRequest{
 			Query: `
 				query {
 					getUserByOAuth(oauthProviderAlias:"azureadv2", oauthProviderUserID: "e2e_admin_api_get_user_oauth_id") {
@@ -64,7 +64,7 @@ func TestGetUserByOAuthNotFound(t *testing.T) {
 		err = cmd.ExecuteSQLInsertUpdateFile("../../tests/admin_api/get_users_admin_api_user.sql")
 		So(err, ShouldBeNil)
 
-		rawResp, err := cmd.Client.GraphQLAPIRaw(nil, nil, cmd.AppID, e2eclient.GraphQLAPIRequest{
+		rawResp, err := cmd.Client.GraphQLAPIRaw(e2eclient.GraphQLAPIRequest{
 			Query: `
 				query {
 					getUserByOAuth(oauthProviderAlias:"azureadv2", oauthProviderUserID: "e2e_admin_api_get_user_oauth_not_found") {
@@ -101,7 +101,7 @@ func TestGetUserByOAuthNotInvalidOAuthAlias(t *testing.T) {
 		err = cmd.ExecuteSQLInsertUpdateFile("../../tests/admin_api/get_users_admin_api_user.sql")
 		So(err, ShouldBeNil)
 
-		rawResp, err := cmd.Client.GraphQLAPIRaw(nil, nil, cmd.AppID, e2eclient.GraphQLAPIRequest{
+		rawResp, err := cmd.Client.GraphQLAPIRaw(e2eclient.GraphQLAPIRequest{
 			Query: `
 				query {
 					getUserByOAuth(oauthProviderAlias:"unknown_alias", oauthProviderUserID: "e2e_admin_api_get_user_oauth_id") {

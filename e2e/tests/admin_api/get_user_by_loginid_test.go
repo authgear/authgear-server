@@ -23,7 +23,7 @@ func TestGetUserByLoginIDByEmail(t *testing.T) {
 		err = cmd.ExecuteSQLInsertUpdateFile("../../tests/admin_api/get_users_admin_api_user.sql")
 		So(err, ShouldBeNil)
 
-		rawResp, err := cmd.Client.GraphQLAPIRaw(nil, nil, cmd.AppID, e2eclient.GraphQLAPIRequest{
+		rawResp, err := cmd.Client.GraphQLAPIRaw(e2eclient.GraphQLAPIRequest{
 			Query: `
 				query {
 					getUserByLoginID(loginIDKey:"email", loginIDValue: "e2e_admin_api_get_users@example.com") {
@@ -67,7 +67,7 @@ func TestGetUserByLoginIDByPhone(t *testing.T) {
 		err = cmd.ExecuteSQLInsertUpdateFile("../../tests/admin_api/get_users_admin_api_user.sql")
 		So(err, ShouldBeNil)
 
-		rawResp, err := cmd.Client.GraphQLAPIRaw(nil, nil, cmd.AppID, e2eclient.GraphQLAPIRequest{
+		rawResp, err := cmd.Client.GraphQLAPIRaw(e2eclient.GraphQLAPIRequest{
 			Query: `
 				query {
 					getUserByLoginID(loginIDKey:"phone", loginIDValue: "+85261236544") {
@@ -112,7 +112,7 @@ func TestGetUserByLoginIDByUsername(t *testing.T) {
 		err = cmd.ExecuteSQLInsertUpdateFile("../../tests/admin_api/get_users_admin_api_user.sql")
 		So(err, ShouldBeNil)
 
-		rawResp, err := cmd.Client.GraphQLAPIRaw(nil, nil, cmd.AppID, e2eclient.GraphQLAPIRequest{
+		rawResp, err := cmd.Client.GraphQLAPIRaw(e2eclient.GraphQLAPIRequest{
 			Query: `
 				query {
 					getUserByLoginID(loginIDKey:"username", loginIDValue: "e2e_admin_api_get_users_username") {
@@ -156,7 +156,7 @@ func TestGetUserByLoginIDNotFound(t *testing.T) {
 		err = cmd.ExecuteSQLInsertUpdateFile("../../tests/admin_api/get_users_admin_api_user.sql")
 		So(err, ShouldBeNil)
 
-		rawResp, err := cmd.Client.GraphQLAPIRaw(nil, nil, cmd.AppID, e2eclient.GraphQLAPIRequest{
+		rawResp, err := cmd.Client.GraphQLAPIRaw(e2eclient.GraphQLAPIRequest{
 			Query: `
 				query {
 					getUserByLoginID(loginIDKey:"email", loginIDValue: "e2e_admin_api_get_users_not_found@example.com") {
@@ -193,7 +193,7 @@ func TestGetUserByLoginIDInvalidLoginIDValue(t *testing.T) {
 		err = cmd.ExecuteSQLInsertUpdateFile("../../tests/admin_api/get_users_admin_api_user.sql")
 		So(err, ShouldBeNil)
 
-		rawResp, err := cmd.Client.GraphQLAPIRaw(nil, nil, cmd.AppID, e2eclient.GraphQLAPIRequest{
+		rawResp, err := cmd.Client.GraphQLAPIRaw(e2eclient.GraphQLAPIRequest{
 			Query: `
 				query {
 					getUserByLoginID(loginIDKey:"email", loginIDValue: "bad_email_address") {
@@ -249,7 +249,7 @@ func TestGetUserByLoginIDInvalidLoginIDKey(t *testing.T) {
 		err = cmd.ExecuteSQLInsertUpdateFile("../../tests/admin_api/get_users_admin_api_user.sql")
 		So(err, ShouldBeNil)
 
-		rawResp, err := cmd.Client.GraphQLAPIRaw(nil, nil, cmd.AppID, e2eclient.GraphQLAPIRequest{
+		rawResp, err := cmd.Client.GraphQLAPIRaw(e2eclient.GraphQLAPIRequest{
 			Query: `
 				query {
 					getUserByLoginID(loginIDKey:"email_invalid", loginIDValue: "e2e_admin_api_get_users_not_found@example.com") {

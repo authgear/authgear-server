@@ -388,7 +388,7 @@ func (FormatDateTime) CheckFormat(ctx context.Context, value interface{}) error 
 
 	_, err := time.Parse(time.RFC3339, str)
 	if err != nil {
-		return fmt.Errorf("date-time must be in rfc3999 format")
+		return fmt.Errorf("date-time must be in rfc3339 format")
 	}
 
 	return nil

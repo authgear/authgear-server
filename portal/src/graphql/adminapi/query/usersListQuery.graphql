@@ -11,6 +11,10 @@ fragment UsersList on UserConnection {
       deleteAt
       isAnonymized
       anonymizeAt
+      temporarilyDisabledFrom
+      temporarilyDisabledUntil
+      accountValidFrom
+      accountValidUntil
       standardAttributes
       formattedName
       endUserAccountID
