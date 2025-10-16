@@ -389,9 +389,11 @@ func (s *Sender) SendWhatsappInNewGoroutine(ctx context.Context, msgType transla
 			var apiErr *whatsapp.WhatsappAPIError
 			if ok := errors.As(err, &apiErr); ok {
 				metricOptions = append(metricOptions, otelauthgear.WithHTTPStatusCode(apiErr.HTTPStatusCode))
-				errorCode, ok := apiErr.GetErrorCode()
-				if ok {
+				if errorCode, ok := apiErr.GetErrorCode(); ok {
 					metricOptions = append(metricOptions, otelauthgear.WithWhatsappAPIErrorCode(errorCode))
+				}
+				if errorSubcode, ok := apiErr.GetErrorSubcode(); ok {
+					metricOptions = append(metricOptions, otelauthgear.WithWhatsappAPIErrorSubcode(errorSubcode))
 				}
 			}
 

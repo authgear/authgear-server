@@ -42,10 +42,11 @@ type WhatsappOnPremisesAPIErrorDetail struct {
 //
 // So we just deserialize the common fields.
 type WhatsappCloudAPIErrorResponseError struct {
-	Message   string `json:"message,omitempty"`
-	Type      string `json:"type,omitempty"`
-	Code      int    `json:"code"`
-	FbtraceID string `json:"fbtrace_id"`
+	Message      string `json:"message,omitzero"`
+	Type         string `json:"type,omitzero"`
+	Code         int    `json:"code"`
+	ErrorSubcode int    `json:"error_subcode,omitzero"`
+	FbtraceID    string `json:"fbtrace_id"`
 }
 
 type WhatsappCloudAPIErrorResponse struct {

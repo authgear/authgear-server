@@ -56,7 +56,16 @@ func (e *WhatsappAPIError) GetErrorCode() (int, bool) {
 	if e.CloudAPIResponse != nil {
 		return e.CloudAPIResponse.Error.Code, true
 	}
-	return 0, false
+	return -1, false
+}
+
+func (e *WhatsappAPIError) GetErrorSubcode() (int, bool) {
+	if e.CloudAPIResponse != nil {
+		if e.CloudAPIResponse.Error.ErrorSubcode != 0 {
+			return e.CloudAPIResponse.Error.ErrorSubcode, true
+		}
+	}
+	return -1, false
 }
 
 var _ error = &WhatsappAPIError{}
