@@ -434,7 +434,7 @@ func (tc *TestCase) executeStep(
 		if !ok {
 			t.Errorf("failed to render admin_api_request.query")
 		}
-		resp, err := cmd.Client.GraphQLAPI(cmd.AppID, authflowclient.GraphQLAPIRequest{
+		resp, err := cmd.Client.GraphQLAPI(authflowclient.GraphQLAPIRequest{
 			Query:     renderedQuery,
 			Variables: variables,
 		})
@@ -471,7 +471,7 @@ func (tc *TestCase) executeStep(
 			t.Errorf("failed to render admin_api_user_import_request.json_document")
 		}
 
-		resp, err := cmd.Client.CreateUserImport(cmd.AppID, authflowclient.UserImportRequest{
+		resp, err := cmd.Client.CreateUserImport(authflowclient.UserImportRequest{
 			JSONDocument: renderedJSONDocument,
 		})
 
@@ -492,7 +492,7 @@ func (tc *TestCase) executeStep(
 			t.Errorf("failed to render admin_api_user_import_id")
 		}
 
-		resp, err := cmd.Client.GetUserImport(cmd.AppID, renderedID)
+		resp, err := cmd.Client.GetUserImport(renderedID)
 		ok = validateUserImportOutput(t, &step, resp, err)
 		if !ok {
 			return nil, state, false

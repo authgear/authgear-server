@@ -502,7 +502,7 @@ type GraphQLResponse struct {
 }
 
 // In e2e test, recommend to use `GraphQLAPIRaw` below to check the response in JSON string format over a GraphQLResponse Object
-func (c *Client) GraphQLAPI(appID string, body GraphQLAPIRequest) (*GraphQLResponse, error) {
+func (c *Client) GraphQLAPI(body GraphQLAPIRequest) (*GraphQLResponse, error) {
 	endpoint := c.AdminEndpoint.JoinPath("/_api/admin/graphql")
 
 	req, err := c.makeRequest(nil, endpoint, body)
@@ -525,7 +525,7 @@ func (c *Client) GraphQLAPI(appID string, body GraphQLAPIRequest) (*GraphQLRespo
 	return &graphQLResponse, nil
 }
 
-func (c *Client) GraphQLAPIRaw(appID string, body GraphQLAPIRequest) (string, error) {
+func (c *Client) GraphQLAPIRaw(body GraphQLAPIRequest) (string, error) {
 	endpoint := c.AdminEndpoint.JoinPath("/_api/admin/graphql")
 
 	req, err := c.makeRequest(nil, endpoint, body)
@@ -586,7 +586,7 @@ type UserImportResponse struct {
 	Error  *apierrors.APIError       `json:"error,omitempty"`
 }
 
-func (c *Client) CreateUserImport(appID string, body UserImportRequest) (*UserImportResponseResult, error) {
+func (c *Client) CreateUserImport(body UserImportRequest) (*UserImportResponseResult, error) {
 	endpoint := c.AdminEndpoint.JoinPath("/_api/admin/users/import")
 
 	req, err := c.makeRequest(nil, endpoint, json.RawMessage(body.JSONDocument))
@@ -613,7 +613,7 @@ func (c *Client) CreateUserImport(appID string, body UserImportRequest) (*UserIm
 	return userImportResponse.Result, nil
 }
 
-func (c *Client) GetUserImport(appID string, id string) (*UserImportResponseResult, error) {
+func (c *Client) GetUserImport(id string) (*UserImportResponseResult, error) {
 	endpoint := c.AdminEndpoint.JoinPath("/_api/admin/users/import").JoinPath(id)
 
 	req, err := http.NewRequestWithContext(c.Context, "GET", endpoint.String(), nil)
