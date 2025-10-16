@@ -104,8 +104,12 @@ func (s *Service) prepareOTPComponents(template *config.WhatsappOnPremisesOTPTem
 	}
 }
 
+func (s *Service) GetAPIType() config.WhatsappAPIType {
+	return s.WhatsappConfig.GetAPIType(s.GlobalWhatsappAPIType)
+}
+
 func (s *Service) SendAuthenticationOTP(ctx context.Context, opts *SendAuthenticationOTPOptions) (*SendAuthenticationOTPResult, error) {
-	switch s.WhatsappConfig.GetAPIType(s.GlobalWhatsappAPIType) {
+	switch s.GetAPIType() {
 	case config.WhatsappAPITypeOnPremises:
 		if s.OnPremisesClient == nil {
 			return nil, ErrNoAvailableWhatsappClient

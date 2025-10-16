@@ -42,6 +42,7 @@ type SMSSender interface {
 }
 
 type WhatsappSender interface {
+	GetAPIType() config.WhatsappAPIType
 	SendAuthenticationOTP(ctx context.Context, opts *whatsapp.SendAuthenticationOTPOptions) (*whatsapp.SendAuthenticationOTPResult, error)
 	SendSuppressedAuthenticationOTP(ctx context.Context, opts *whatsapp.SendAuthenticationOTPOptions) (*whatsapp.SendAuthenticationOTPResult, error)
 }
@@ -375,16 +376,18 @@ func (s *Sender) SendWhatsappInNewGoroutine(ctx context.Context, msgType transla
 
 	sendSync := func(ctx context.Context) error {
 		result, err := s.sendWhatsapp(ctx, opts)
+		metricOptions := []otelutil.MetricOption{otelauthgear.WithWhatsappAPIType(s.WhatsappSender.GetAPIType())}
+
 		if err != nil {
+			metricOptions = append(metricOptions, otelauthgear.WithStatusError())
+
 			// Log the send error immediately.
 			logger.WithError(err).With(
 				slog.String("phone", phone.Mask(opts.To)),
 			).Error(ctx, "failed to send Whatsapp")
 
-			metricOptions := []otelutil.MetricOption{otelauthgear.WithStatusError()}
 			var apiErr *whatsapp.WhatsappAPIError
 			if ok := errors.As(err, &apiErr); ok {
-				metricOptions = append(metricOptions, otelauthgear.WithWhatsappAPIType(apiErr.APIType))
 				metricOptions = append(metricOptions, otelauthgear.WithHTTPStatusCode(apiErr.HTTPStatusCode))
 				errorCode, ok := apiErr.GetErrorCode()
 				if ok {
@@ -408,10 +411,11 @@ func (s *Sender) SendWhatsappInNewGoroutine(ctx context.Context, msgType transla
 			return err
 		}
 
+		metricOptions = append(metricOptions, otelauthgear.WithStatusOk())
 		otelutil.IntCounterAddOne(
 			ctx,
 			otelauthgear.CounterWhatsappRequestCount,
-			otelauthgear.WithStatusOk(),
+			metricOptions...,
 		)
 
 		dispatchErr := s.DispatchEventImmediatelyWithTx(ctx, &nonblocking.WhatsappSentEventPayload{

@@ -142,7 +142,6 @@ func (c *OnPremisesClient) sendTemplate(
 	}
 
 	whatsappAPIErr := &WhatsappAPIError{
-		APIType:        config.WhatsappAPITypeOnPremises,
 		HTTPStatusCode: resp.StatusCode,
 	}
 
@@ -205,9 +204,7 @@ func (c *OnPremisesClient) login(ctx context.Context) (*onPremisesUserToken, err
 	}
 	req.SetBasicAuth(c.Credentials.Username, c.Credentials.Password)
 
-	whatsappAPIErr := &WhatsappAPIError{
-		APIType: config.WhatsappAPITypeOnPremises,
-	}
+	whatsappAPIErr := &WhatsappAPIError{}
 
 	resp, err := c.HTTPClient.Do(req)
 	if err != nil {
