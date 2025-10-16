@@ -42,7 +42,6 @@ type SMSSender interface {
 }
 
 type WhatsappSender interface {
-	GetAPIType() config.WhatsappAPIType
 	SendAuthenticationOTP(ctx context.Context, opts *whatsapp.SendAuthenticationOTPOptions) (*whatsapp.SendAuthenticationOTPResult, error)
 	SendSuppressedAuthenticationOTP(ctx context.Context, opts *whatsapp.SendAuthenticationOTPOptions) (*whatsapp.SendAuthenticationOTPResult, error)
 }
@@ -376,32 +375,11 @@ func (s *Sender) SendWhatsappInNewGoroutine(ctx context.Context, msgType transla
 
 	sendSync := func(ctx context.Context) error {
 		result, err := s.sendWhatsapp(ctx, opts)
-		metricOptions := []otelutil.MetricOption{otelauthgear.WithWhatsappAPIType(s.WhatsappSender.GetAPIType())}
-
 		if err != nil {
-			metricOptions = append(metricOptions, otelauthgear.WithStatusError())
-
 			// Log the send error immediately.
 			logger.WithError(err).With(
 				slog.String("phone", phone.Mask(opts.To)),
 			).Error(ctx, "failed to send Whatsapp")
-
-			var apiErr *whatsapp.WhatsappAPIError
-			if ok := errors.As(err, &apiErr); ok {
-				metricOptions = append(metricOptions, otelauthgear.WithHTTPStatusCode(apiErr.HTTPStatusCode))
-				if errorCode, ok := apiErr.GetErrorCode(); ok {
-					metricOptions = append(metricOptions, otelauthgear.WithWhatsappAPIErrorCode(errorCode))
-				}
-				if errorSubcode, ok := apiErr.GetErrorSubcode(); ok {
-					metricOptions = append(metricOptions, otelauthgear.WithWhatsappAPIErrorSubcode(errorSubcode))
-				}
-			}
-
-			otelutil.IntCounterAddOne(
-				ctx,
-				otelauthgear.CounterWhatsappRequestCount,
-				metricOptions...,
-			)
 
 			dispatchErr := s.DispatchEventImmediatelyWithTx(ctx, &nonblocking.WhatsappErrorEventPayload{
 				Description: s.errorToDescription(err),
@@ -412,13 +390,6 @@ func (s *Sender) SendWhatsappInNewGoroutine(ctx context.Context, msgType transla
 
 			return err
 		}
-
-		metricOptions = append(metricOptions, otelauthgear.WithStatusOk())
-		otelutil.IntCounterAddOne(
-			ctx,
-			otelauthgear.CounterWhatsappRequestCount,
-			metricOptions...,
-		)
 
 		dispatchErr := s.DispatchEventImmediatelyWithTx(ctx, &nonblocking.WhatsappSentEventPayload{
 			Recipient:           opts.To,

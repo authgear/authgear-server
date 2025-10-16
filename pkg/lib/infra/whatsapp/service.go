@@ -2,14 +2,17 @@ package whatsapp
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/intl"
+	"github.com/authgear/authgear-server/pkg/util/otelutil"
 	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
@@ -25,7 +28,7 @@ type ServiceCloudAPIClient interface {
 type ServiceMessageStore interface {
 	GetMessageStatus(ctx context.Context, messageID string) (*WhatsappMessageStatusData, error)
 	UpdateMessageStatus(ctx context.Context, messageID string, status *WhatsappMessageStatusData) error
-	SetMessageStatusIfNotExist(ctx context.Context, messageID string, status *WhatsappMessageStatusData) error
+	SetMessageStatusIfNotExist(ctx context.Context, messageID string, status *WhatsappMessageStatusData) (bool, error)
 }
 
 type SendAuthenticationOTPResult struct {
@@ -109,7 +112,9 @@ func (s *Service) GetAPIType() config.WhatsappAPIType {
 }
 
 func (s *Service) SendAuthenticationOTP(ctx context.Context, opts *SendAuthenticationOTPOptions) (*SendAuthenticationOTPResult, error) {
-	switch s.GetAPIType() {
+	apiType := s.GetAPIType()
+	metricOptions := []otelutil.MetricOption{otelauthgear.WithWhatsappAPIType(apiType)}
+	switch apiType {
 	case config.WhatsappAPITypeOnPremises:
 		if s.OnPremisesClient == nil {
 			return nil, ErrNoAvailableWhatsappClient
@@ -126,12 +131,28 @@ func (s *Service) SendAuthenticationOTP(ctx context.Context, opts *SendAuthentic
 			lang,
 			components)
 		if err != nil {
+			metricOptions = s.transformFatalErrorIntoLabels(metricOptions, err)
+			otelutil.IntCounterAddOne(
+				ctx,
+				otelauthgear.CounterWhatsappRequestCount,
+				metricOptions...,
+			)
 			return nil, err
 		}
+
+		messageStatus := WhatsappMessageStatusDelivered
+		metricOptions = append(metricOptions, otelauthgear.WithStatusOk())
+		metricOptions = append(metricOptions, otelauthgear.WithWhatsappAPIMessageStatusAndTimeout(string(messageStatus), false)...)
+		otelutil.IntCounterAddOne(
+			ctx,
+			otelauthgear.CounterWhatsappRequestCount,
+			metricOptions...,
+		)
+
 		return &SendAuthenticationOTPResult{
 			MessageID: unknownMessageID,
 			// We don't know the actual status, so always return devlivered
-			MessageStatus: WhatsappMessageStatusDelivered,
+			MessageStatus: messageStatus,
 		}, nil
 	case config.WhatsappAPITypeCloudAPI:
 		if s.CloudAPIClient == nil {
@@ -146,31 +167,65 @@ func (s *Service) SendAuthenticationOTP(ctx context.Context, opts *SendAuthentic
 			lang,
 		)
 		if err != nil {
+			// If the error is reported here, then it is a fatal error like
+			// invalid phone number ID, invalid access token, etc.
+			// In this case, we increment the counter here.
+			metricOptions = s.transformFatalErrorIntoLabels(metricOptions, err)
+			otelutil.IntCounterAddOne(
+				ctx,
+				otelauthgear.CounterWhatsappRequestCount,
+				metricOptions...,
+			)
 			return nil, err
 		}
 		result := SendAuthenticationOTPResult(*cloudAPISendResult)
 
 		if s.Credentials.Webhook != nil {
+			// If webhook is configured, then we defer the increment of the counter until we receive the webhook, or timeout.
 			go func() {
 				// Detach the deadline so that the context is not canceled along with the request.
-				ctxWithoutCancel := context.WithoutCancel(ctx)
+				ctx := context.WithoutCancel(ctx)
 				time.Sleep(s.WhatsappConfig.MessageSentCallbackTimeout.Duration())
 				// Mark the message as failed after timeout
-				err := s.MessageStore.SetMessageStatusIfNotExist(ctxWithoutCancel, result.MessageID, &WhatsappMessageStatusData{
+				keyWasSet, err := s.MessageStore.SetMessageStatusIfNotExist(ctx, result.MessageID, &WhatsappMessageStatusData{
 					Status:    WhatsappMessageStatusFailed,
 					IsTimeout: true,
 				})
 				if err != nil {
-					logger.GetLogger(ctxWithoutCancel).
+					metricOptions = s.transformFatalErrorIntoLabels(metricOptions, err)
+					logger.GetLogger(ctx).
 						WithError(err).
-						Error(ctxWithoutCancel, "failed to update whatsapp message status")
+						Error(ctx, "failed to update whatsapp message status")
+				} else if keyWasSet {
+					messageStatus := WhatsappMessageStatusFailed
+					isTimeout := true
+					metricOptions = append(metricOptions, otelauthgear.WithStatusError())
+					metricOptions = append(metricOptions, otelauthgear.WithWhatsappAPIMessageStatusAndTimeout(string(messageStatus), isTimeout)...)
 				}
+				otelutil.IntCounterAddOne(
+					ctx,
+					otelauthgear.CounterWhatsappRequestCount,
+					metricOptions...,
+				)
 			}()
 		} else {
-			// If webhook is not configured, set it to delivered immediately
-			err := s.MessageStore.SetMessageStatusIfNotExist(ctx, result.MessageID, &WhatsappMessageStatusData{
-				Status:    WhatsappMessageStatusDelivered,
-				IsTimeout: false,
+			// If webhook is not configured, set it to delivered immediately.
+			// And we also increment the counter with status=ok
+			messageStatus := WhatsappMessageStatusDelivered
+			isTimeout := false
+
+			metricOptions = append(metricOptions, otelauthgear.WithStatusOk())
+			metricOptions = append(metricOptions, otelauthgear.WithWhatsappAPIMessageStatusAndTimeout(string(messageStatus), isTimeout)...)
+
+			otelutil.IntCounterAddOne(
+				ctx,
+				otelauthgear.CounterWhatsappRequestCount,
+				metricOptions...,
+			)
+
+			_, err := s.MessageStore.SetMessageStatusIfNotExist(ctx, result.MessageID, &WhatsappMessageStatusData{
+				Status:    messageStatus,
+				IsTimeout: isTimeout,
 			})
 			if err != nil {
 				return nil, err
@@ -192,10 +247,19 @@ func (s *Service) SendSuppressedAuthenticationOTP(ctx context.Context, opts *Sen
 }
 
 func (s *Service) UpdateMessageStatus(ctx context.Context, messageID string, status WhatsappMessageStatus, errors []WhatsappStatusError) error {
-	return s.MessageStore.UpdateMessageStatus(ctx, messageID, &WhatsappMessageStatusData{
+	data := &WhatsappMessageStatusData{
 		Status: status,
 		Errors: errors,
-	})
+	}
+	apiType := s.GetAPIType()
+	metricOptions := []otelutil.MetricOption{otelauthgear.WithWhatsappAPIType(apiType)}
+	metricOptions = s.transformMessageStatusDataIntoLabels(metricOptions, data)
+	otelutil.IntCounterAddOne(
+		ctx,
+		otelauthgear.CounterWhatsappRequestCount,
+		metricOptions...,
+	)
+	return s.MessageStore.UpdateMessageStatus(ctx, messageID, data)
 }
 
 func (s *Service) GetMessageStatus(ctx context.Context, messageID string) (*GetMessageStatusResult, error) {
@@ -233,4 +297,41 @@ func (s *Service) GetMessageStatus(ctx context.Context, messageID string) (*GetM
 		Status:   data.Status,
 		APIError: apierr,
 	}, nil
+}
+
+func (s *Service) transformFatalErrorIntoLabels(metricOptions []otelutil.MetricOption, err error) []otelutil.MetricOption {
+	messageStatus := WhatsappMessageStatusFailed
+	isTimeout := false
+
+	metricOptions = append(metricOptions, otelauthgear.WithStatusError())
+	metricOptions = append(metricOptions, otelauthgear.WithWhatsappAPIMessageStatusAndTimeout(string(messageStatus), isTimeout)...)
+
+	var apiErr *WhatsappAPIError
+	if ok := errors.As(err, &apiErr); ok {
+		metricOptions = append(metricOptions, otelauthgear.WithHTTPStatusCode(apiErr.HTTPStatusCode))
+		if errorCode, ok := apiErr.GetErrorCode(); ok {
+			metricOptions = append(metricOptions, otelauthgear.WithWhatsappAPIErrorCode(errorCode))
+		}
+		if errorSubcode, ok := apiErr.GetErrorSubcode(); ok {
+			metricOptions = append(metricOptions, otelauthgear.WithWhatsappAPIErrorSubcode(errorSubcode))
+		}
+	}
+
+	return metricOptions
+}
+
+func (s *Service) transformMessageStatusDataIntoLabels(metricOptions []otelutil.MetricOption, data *WhatsappMessageStatusData) []otelutil.MetricOption {
+	if len(data.Errors) > 0 || data.IsTimeout {
+		metricOptions = append(metricOptions, otelauthgear.WithStatusError())
+	} else {
+		metricOptions = append(metricOptions, otelauthgear.WithStatusOk())
+	}
+
+	metricOptions = append(metricOptions, otelauthgear.WithWhatsappAPIMessageStatusAndTimeout(string(data.Status), data.IsTimeout)...)
+
+	if len(data.Errors) > 0 {
+		metricOptions = append(metricOptions, otelauthgear.WithWhatsappAPIErrorCode(data.Errors[0].Code))
+	}
+
+	return metricOptions
 }

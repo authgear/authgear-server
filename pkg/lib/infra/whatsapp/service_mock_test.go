@@ -103,11 +103,12 @@ func (mr *MockServiceMessageStoreMockRecorder) GetMessageStatus(ctx, messageID i
 }
 
 // SetMessageStatusIfNotExist mocks base method.
-func (m *MockServiceMessageStore) SetMessageStatusIfNotExist(ctx context.Context, messageID string, status *whatsapp.WhatsappMessageStatusData) error {
+func (m *MockServiceMessageStore) SetMessageStatusIfNotExist(ctx context.Context, messageID string, status *whatsapp.WhatsappMessageStatusData) (bool, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SetMessageStatusIfNotExist", ctx, messageID, status)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // SetMessageStatusIfNotExist indicates an expected call of SetMessageStatusIfNotExist.
