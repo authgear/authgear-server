@@ -287,6 +287,12 @@ function constructSecondaryAuthenticatorList(
   const oobOtpEmailAuthenticatorList: OOBOTPAuthenticatorData[] = [];
   const oobOtpSMSAuthenticatorList: OOBOTPAuthenticatorData[] = [];
   const totpAuthenticatorList: TOTPAuthenticatorData[] = [];
+
+  const enabledPasswordAuthenticatorList: PasswordAuthenticatorData[] = [];
+  const enabledOobOtpEmailAuthenticatorList: OOBOTPAuthenticatorData[] = [];
+  const enabledOobOtpSMSAuthenticatorList: OOBOTPAuthenticatorData[] = [];
+  const enabledTotpAuthenticatorList: TOTPAuthenticatorData[] = [];
+
   const isAnySecondaryAuthenticatorEnabled =
     (config?.secondary_authenticators?.length ?? 0) >= 1;
   const isSecondaryPasswordEnabled =
@@ -304,38 +310,47 @@ function constructSecondaryAuthenticatorList(
 
   for (const authenticator of filteredAuthenticators) {
     switch (authenticator.type) {
-      case "PASSWORD":
-        if (!isSecondaryPasswordEnabled) {
-          continue;
-        }
-        passwordAuthenticatorList.push(
-          constructPasswordAuthenticatorData(authenticator, locale)
+      case "PASSWORD": {
+        const passwordData = constructPasswordAuthenticatorData(
+          authenticator,
+          locale
         );
-        break;
-      case "OOB_OTP_EMAIL":
-        if (!isSecondaryOOBOTPEmailEnabled) {
-          continue;
+        passwordAuthenticatorList.push(passwordData);
+        if (isSecondaryPasswordEnabled) {
+          enabledPasswordAuthenticatorList.push(passwordData);
         }
-        oobOtpEmailAuthenticatorList.push(
-          constructOobOtpAuthenticatorData(authenticator, locale)
-        );
         break;
-      case "OOB_OTP_SMS":
-        if (!isSecondaryOOBOTPSMSEnabled) {
-          continue;
+      }
+      case "OOB_OTP_EMAIL": {
+        const oobOtpEmailData = constructOobOtpAuthenticatorData(
+          authenticator,
+          locale
+        );
+        oobOtpEmailAuthenticatorList.push(oobOtpEmailData);
+        if (isSecondaryOOBOTPEmailEnabled) {
+          enabledOobOtpEmailAuthenticatorList.push(oobOtpEmailData);
         }
-        oobOtpSMSAuthenticatorList.push(
-          constructOobOtpAuthenticatorData(authenticator, locale)
-        );
         break;
-      case "TOTP":
-        if (!isSecondaryTOTPEnabled) {
-          continue;
+      }
+      case "OOB_OTP_SMS": {
+        const oobOtpSmsData = constructOobOtpAuthenticatorData(
+          authenticator,
+          locale
+        );
+        oobOtpSMSAuthenticatorList.push(oobOtpSmsData);
+        if (isSecondaryOOBOTPSMSEnabled) {
+          enabledOobOtpSMSAuthenticatorList.push(oobOtpSmsData);
         }
-        totpAuthenticatorList.push(
-          constructTotpAuthenticatorData(authenticator, locale)
-        );
         break;
+      }
+      case "TOTP": {
+        const totpData = constructTotpAuthenticatorData(authenticator, locale);
+        totpAuthenticatorList.push(totpData);
+        if (isSecondaryTOTPEnabled) {
+          enabledTotpAuthenticatorList.push(totpData);
+        }
+        break;
+      }
       default:
         break;
     }
@@ -356,6 +371,13 @@ function constructSecondaryAuthenticatorList(
     isSecondaryOOBOTPEmailEnabled,
     isSecondaryOOBOTPSMSEnabled,
     isSecondaryPasswordEnabled,
+    isSecondaryTOTPEnabled,
+    hasEnabledAuthenticator: [
+      enabledPasswordAuthenticatorList,
+      enabledOobOtpEmailAuthenticatorList,
+      enabledOobOtpSMSAuthenticatorList,
+      enabledTotpAuthenticatorList,
+    ].some((list) => list.length > 0),
   };
 }
 
@@ -1319,28 +1341,113 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
                 }
               />
             </div>
-            {!secondaryAuthenticatorLists.hasVisibleList ? (
+            {secondaryAuthenticatorLists.totp.length > 0 ? (
+              <div className={styles.authenticatorTypeSection}>
+                <Text
+                  as="h3"
+                  className={cn(styles.header, styles.authenticatorTypeHeader)}
+                >
+                  <FormattedMessage id="AuthenticatorType.secondary.totp" />
+                  {!secondaryAuthenticatorLists.isSecondaryTOTPEnabled ? (
+                    <>
+                      {" "}
+                      <FormattedMessage id="UserDetails.account-security.disabled" />
+                    </>
+                  ) : null}
+                </Text>
+                <List
+                  items={secondaryAuthenticatorLists.totp}
+                  onRenderCell={onRenderTotpAuthenticatorDetailCell}
+                />
+              </div>
+            ) : null}
+            {secondaryAuthenticatorLists.oobOtpEmail.length > 0 ? (
+              <div className={styles.authenticatorTypeSection}>
+                <Text
+                  as="h3"
+                  className={cn(styles.header, styles.authenticatorTypeHeader)}
+                >
+                  <FormattedMessage id="AuthenticatorType.secondary.oob-otp-email" />
+                  {!secondaryAuthenticatorLists.isSecondaryOOBOTPEmailEnabled ? (
+                    <>
+                      {" "}
+                      <FormattedMessage id="UserDetails.account-security.disabled" />
+                    </>
+                  ) : null}
+                </Text>
+                <List
+                  items={secondaryAuthenticatorLists.oobOtpEmail}
+                  onRenderCell={onRenderOobOtpAuthenticatorDetailCell}
+                />
+              </div>
+            ) : null}
+            {secondaryAuthenticatorLists.oobOtpSMS.length > 0 ? (
+              <div className={styles.authenticatorTypeSection}>
+                <Text
+                  as="h3"
+                  className={cn(styles.header, styles.authenticatorTypeHeader)}
+                >
+                  <FormattedMessage id="AuthenticatorType.secondary.oob-otp-phone" />
+                  {!secondaryAuthenticatorLists.isSecondaryOOBOTPSMSEnabled ? (
+                    <>
+                      {" "}
+                      <FormattedMessage id="UserDetails.account-security.disabled" />
+                    </>
+                  ) : null}
+                </Text>
+                <List
+                  items={secondaryAuthenticatorLists.oobOtpSMS}
+                  onRenderCell={onRenderOobOtpAuthenticatorDetailCell}
+                />
+              </div>
+            ) : null}
+            {secondaryAuthenticatorLists.password.length > 0 ? (
+              <div className={styles.authenticatorTypeSection}>
+                <Text
+                  as="h3"
+                  className={cn(styles.header, styles.authenticatorTypeHeader)}
+                >
+                  <FormattedMessage id="AuthenticatorType.secondary.password" />
+                  {!secondaryAuthenticatorLists.isSecondaryPasswordEnabled ? (
+                    <>
+                      {" "}
+                      <FormattedMessage id="UserDetails.account-security.disabled" />
+                    </>
+                  ) : null}
+                </Text>
+                <List
+                  className={cn(
+                    styles.authenticatorTypeSection,
+                    styles["authenticatorTypeSection--password"]
+                  )}
+                  items={secondaryAuthenticatorLists.password}
+                  onRenderCell={onRenderPasswordAuthenticatorDetailCell}
+                />
+              </div>
+            ) : null}
+            {secondaryAuthicatorIsRequired &&
+            (!secondaryAuthenticatorLists.hasVisibleList ||
+              !secondaryAuthenticatorLists.hasEnabledAuthenticator) ? (
               <>
                 <Text as="h3" className={cn(styles.authenticatorEmpty)}>
-                  {!secondaryAuthicatorIsRequired ? (
+                  {!secondaryAuthenticatorLists.hasVisibleList ? (
                     <FormattedMessage id="UserDetails.account-security.secondary.empty" />
-                  ) : isWithinMFAGracePeriod ? (
-                    farthestMFAGracePeriodEndAt != null ? (
-                      <FormattedMessage
-                        id="UserDetails.account-security.secondary.empty-but-within-grace-period"
-                        values={{
-                          gracePeriodEndAt:
-                            formatDatetime(
-                              locale,
-                              farthestMFAGracePeriodEndAt
-                            ) ?? "",
-                        }}
-                      />
-                    ) : (
-                      <FormattedMessage id="UserDetails.account-security.secondary.empty-but-within-grace-period.no-deadline" />
-                    )
                   ) : (
-                    <FormattedMessage id="UserDetails.account-security.secondary.empty-but-required" />
+                    <FormattedMessage id="UserDetails.account-security.secondary.no-enabled-authenticators" />
+                  )}{" "}
+                  {!isWithinMFAGracePeriod ? (
+                    <FormattedMessage id="UserDetails.account-security.secondary.cannot-login" />
+                  ) : farthestMFAGracePeriodEndAt != null ? (
+                    <FormattedMessage
+                      id="UserDetails.account-security.secondary.within-grace-period"
+                      values={{
+                        gracePeriodEndAt:
+                          formatDatetime(locale, farthestMFAGracePeriodEndAt) ??
+                          "",
+                      }}
+                    />
+                  ) : (
+                    <FormattedMessage id="UserDetails.account-security.secondary.within-grace-period.no-deadline" />
                   )}
                 </Text>
                 {!isWithinMFAGracePeriod ? (
@@ -1367,58 +1474,6 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
                   </div>
                 ) : null}
               </>
-            ) : null}
-            {secondaryAuthenticatorLists.totp.length > 0 ? (
-              <div className={styles.authenticatorTypeSection}>
-                <Text
-                  as="h3"
-                  className={cn(styles.header, styles.authenticatorTypeHeader)}
-                >
-                  <FormattedMessage id="AuthenticatorType.secondary.totp" />
-                </Text>
-                <List
-                  items={secondaryAuthenticatorLists.totp}
-                  onRenderCell={onRenderTotpAuthenticatorDetailCell}
-                />
-              </div>
-            ) : null}
-            {secondaryAuthenticatorLists.oobOtpEmail.length > 0 ? (
-              <div className={styles.authenticatorTypeSection}>
-                <Text
-                  as="h3"
-                  className={cn(styles.header, styles.authenticatorTypeHeader)}
-                >
-                  <FormattedMessage id="AuthenticatorType.secondary.oob-otp-email" />
-                </Text>
-                <List
-                  items={secondaryAuthenticatorLists.oobOtpEmail}
-                  onRenderCell={onRenderOobOtpAuthenticatorDetailCell}
-                />
-              </div>
-            ) : null}
-            {secondaryAuthenticatorLists.oobOtpSMS.length > 0 ? (
-              <div className={styles.authenticatorTypeSection}>
-                <Text
-                  as="h3"
-                  className={cn(styles.header, styles.authenticatorTypeHeader)}
-                >
-                  <FormattedMessage id="AuthenticatorType.secondary.oob-otp-phone" />
-                </Text>
-                <List
-                  items={secondaryAuthenticatorLists.oobOtpSMS}
-                  onRenderCell={onRenderOobOtpAuthenticatorDetailCell}
-                />
-              </div>
-            ) : null}
-            {secondaryAuthenticatorLists.password.length > 0 ? (
-              <List
-                className={cn(
-                  styles.authenticatorTypeSection,
-                  styles["authenticatorTypeSection--password"]
-                )}
-                items={secondaryAuthenticatorLists.password}
-                onRenderCell={onRenderPasswordAuthenticatorDetailCell}
-              />
             ) : null}
           </div>
         ) : null}

@@ -414,9 +414,10 @@
   "UserDetails.account-security.primary.empty": "No Primary Authenticator yet.",
   "UserDetails.account-security.primary.password.add": "Add Password",
   "UserDetails.account-security.secondary.empty": "No 2-Factor Authenticator yet.",
-  "UserDetails.account-security.secondary.empty-but-required": "No 2-Factor Authenticator yet. The user cannot login.",
-  "UserDetails.account-security.secondary.empty-but-within-grace-period": "No 2-Factor Authenticator yet. The user can login and setup 2FA before {gracePeriodEndAt}.",
-  "UserDetails.account-security.secondary.empty-but-within-grace-period.no-deadline": "No 2-Factor Authenticator yet. The user can login and setup 2FA on their next login.",
+  "UserDetails.account-security.secondary.within-grace-period": "The user can login and setup 2FA before {gracePeriodEndAt}.",
+  "UserDetails.account-security.secondary.within-grace-period.no-deadline": "The user can login and setup 2FA on their next login.",
+  "UserDetails.account-security.secondary.no-enabled-authenticators": "The user’s 2-Factor Authenticator does not match the project’s settings.",
+  "UserDetails.account-security.secondary.cannot-login": "The user cannot login.",
   "UserDetails.account-security.remove-confirm-dialog.title": "Remove Authenticator",
   "UserDetails.account-security.remove-confirm-dialog.message": "Are you sure you want to remove authenticator {displayName}",
   "UserDetails.account-security.change-on-login.label": "Ask to change password on login",
@@ -435,7 +436,7 @@
   "UserDetails.account-security.extend-mfa-grace-period-confirm-dialog.message": "The user will have an additional 10 days to log in and set up 2FA.",
   "UserDetails.account-security.cancel-mfa-grace-period-confirm-dialog.title": "Cancel Grace Period",
   "UserDetails.account-security.cancel-mfa-grace-period-confirm-dialog.message": "The user will not be able to log in and set up 2FA.",
-
+  "UserDetails.account-security.disabled": "(Disabled)",
   "UserDetails.disable-delete.header": "Disable/Delete",
 
   "UserDetails.disabled.badge": "Disabled",
@@ -1348,7 +1349,6 @@
   "AuthenticatorType.secondary.oob-otp-email": "OTP Code/Login Link via Email",
   "AuthenticatorType.secondary.oob-otp-phone": "OTP Code via Phone",
   "AuthenticatorType.secondary.password": "Additional Password",
-
   "AuthenticatorEmailOTPMode.code": "6-digit OTP",
   "AuthenticatorEmailOTPMode.login_link": "Login link",
 
