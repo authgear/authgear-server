@@ -45,17 +45,22 @@ func (s *MessageStore) UpdateMessageStatus(ctx context.Context, messageID string
 	})
 }
 
-func (s *MessageStore) SetMessageStatusIfNotExist(ctx context.Context, messageID string, status *WhatsappMessageStatusData) error {
+func (s *MessageStore) SetMessageStatusIfNotExist(ctx context.Context, messageID string, status *WhatsappMessageStatusData) (bool, error) {
+	keyWasSet := false
 	key := redisMessageStatusKey(s.Credentials.PhoneNumberID, messageID)
-	return s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
+	err := s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
 		statusBytes, err := json.Marshal(status)
 		if err != nil {
 			panic(fmt.Errorf("unexpected: failed to marshal WhatsappMessageStatusData"))
 		}
 
-		_, err = conn.SetNX(ctx, key, string(statusBytes), duration.UserInteraction).Result()
+		keyWasSet, err = conn.SetNX(ctx, key, string(statusBytes), duration.UserInteraction).Result()
 		return err
 	})
+	if err != nil {
+		return false, err
+	}
+	return keyWasSet, nil
 }
 
 func (s *MessageStore) GetMessageStatus(ctx context.Context, messageID string) (*WhatsappMessageStatusData, error) {

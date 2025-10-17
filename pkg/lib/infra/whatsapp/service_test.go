@@ -73,7 +73,7 @@ func TestServiceSendAuthenticationOTP(t *testing.T) {
 				gomock.Any(),
 				gomock.Any(),
 				gomock.Any(),
-			).Return(nil).AnyTimes()
+			).Return(true, nil).AnyTimes()
 
 			result, err := s.SendAuthenticationOTP(ctx, opts)
 			So(err, ShouldBeNil)
@@ -190,7 +190,7 @@ func TestServiceSendAuthenticationOTP(t *testing.T) {
 					Status:    whatsapp.WhatsappMessageStatusFailed,
 					IsTimeout: true,
 				},
-			).Return(nil).Times(1)
+			).Return(true, nil).Times(1)
 
 			result, err := s.SendAuthenticationOTP(ctx, opts)
 			// Wait for the goroutine to finish
@@ -251,7 +251,7 @@ func TestServiceSendAuthenticationOTP(t *testing.T) {
 					Status:    whatsapp.WhatsappMessageStatusDelivered,
 					IsTimeout: false, // Should not be timeout if no webhook
 				},
-			).Return(nil).Times(1)
+			).Return(true, nil).Times(1)
 
 			result, err := s.SendAuthenticationOTP(ctx, opts)
 			So(err, ShouldBeNil)

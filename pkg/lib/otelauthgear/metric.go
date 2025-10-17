@@ -85,6 +85,15 @@ var AttributeKeyWhatsappAPIType = attribute.Key("whatsapp_api_type")
 // AttributeKeyWhatsappAPIErrorCode defines the attribute.
 var AttributeKeyWhatsappAPIErrorCode = attribute.Key("whatsapp_api_error_code")
 
+// AttributeKeyWhatsappAPIErrorSubcode defines the attribute.
+var AttributeKeyWhatsappAPIErrorSubcode = attribute.Key("whatsapp_api_error_subcode")
+
+// AttributeKeyWhatsappAPIMessageStatus defines the attribute.
+var AttributeKeyWhatsappAPIMessageStatus = attribute.Key("whatsapp_api_message_status")
+
+// AttributeKeyWhatsappAPIIsTimeout defines the attribute.
+var AttributeKeyWhatsappAPIIsTimeout = attribute.Key("whatsapp_api_is_timeout")
+
 // AttributeKeyAPIErrorReason defines the attribute.
 var AttributeKeyAPIErrorReason = attribute.Key("api_error_reason")
 
@@ -261,6 +270,17 @@ func WithWhatsappAPIType(apiType config.WhatsappAPIType) otelutil.MetricOption {
 
 func WithWhatsappAPIErrorCode(code int) otelutil.MetricOption {
 	return metricOptionAttributeKeyValue{AttributeKeyWhatsappAPIErrorCode.String(fmt.Sprint(code))}
+}
+
+func WithWhatsappAPIErrorSubcode(subcode int) otelutil.MetricOption {
+	return metricOptionAttributeKeyValue{AttributeKeyWhatsappAPIErrorSubcode.String(fmt.Sprint(subcode))}
+}
+
+func WithWhatsappAPIMessageStatusAndTimeout(status string, isTimeout bool) []otelutil.MetricOption {
+	return []otelutil.MetricOption{
+		metricOptionAttributeKeyValue{AttributeKeyWhatsappAPIMessageStatus.String(status)},
+		metricOptionAttributeKeyValue{AttributeKeyWhatsappAPIIsTimeout.Bool(isTimeout)},
+	}
 }
 
 func WithAPIErrorReason(kind string) otelutil.MetricOption {

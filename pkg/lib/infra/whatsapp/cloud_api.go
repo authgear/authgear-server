@@ -148,7 +148,6 @@ func (c *CloudAPIClient) SendAuthenticationOTP(ctx context.Context, opts *SendAu
 	}
 
 	whatsappAPIError := &WhatsappAPIError{
-		APIType:        config.WhatsappAPITypeCloudAPI,
 		HTTPStatusCode: resp.StatusCode,
 	}
 

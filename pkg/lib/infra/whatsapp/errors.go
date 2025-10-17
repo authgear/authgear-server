@@ -6,7 +6,6 @@ import (
 	"fmt"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
@@ -44,7 +43,6 @@ const (
 )
 
 type WhatsappAPIError struct {
-	APIType            config.WhatsappAPIType              `json:"api_type,omitempty"`
 	HTTPStatusCode     int                                 `json:"http_status_code,omitempty"`
 	DumpedResponse     []byte                              `json:"dumped_response,omitempty"`
 	OnPremisesResponse *WhatsappOnPremisesAPIErrorResponse `json:"-"`
@@ -52,13 +50,22 @@ type WhatsappAPIError struct {
 }
 
 func (e *WhatsappAPIError) GetErrorCode() (int, bool) {
-	if e.APIType == config.WhatsappAPITypeOnPremises && e.OnPremisesResponse != nil {
+	if e.OnPremisesResponse != nil {
 		return e.OnPremisesResponse.FirstErrorCode()
 	}
-	if e.APIType == config.WhatsappAPITypeCloudAPI && e.CloudAPIResponse != nil {
+	if e.CloudAPIResponse != nil {
 		return e.CloudAPIResponse.Error.Code, true
 	}
-	return 0, false
+	return -1, false
+}
+
+func (e *WhatsappAPIError) GetErrorSubcode() (int, bool) {
+	if e.CloudAPIResponse != nil {
+		if e.CloudAPIResponse.Error.ErrorSubcode != 0 {
+			return e.CloudAPIResponse.Error.ErrorSubcode, true
+		}
+	}
+	return -1, false
 }
 
 var _ error = &WhatsappAPIError{}
