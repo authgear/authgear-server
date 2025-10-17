@@ -589,9 +589,11 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		RolesAndGroups:     queries,
+		Clock:              clock,
 	}
 	userInfoService := &userinfo.UserInfoService{
 		Redis:                 handle,
+		Clock:                 clock,
 		AppID:                 appID,
 		UserQueries:           userQueries,
 		RolesAndGroupsQueries: queries,
@@ -952,6 +954,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Users:                      userQueries,
 		Database:                   appdbHandle,
 		MeterService:               meterService,
+		Clock:                      clock,
 	}
 	return sessionMiddleware
 }
@@ -966,6 +969,7 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	handle := appProvider.AppDatabase
 	appredisHandle := appProvider.Redis
+	clockClock := _wireSystemClockValue
 	appContext := appProvider.AppContext
 	config := appContext.Config
 	appConfig := config.AppConfig
@@ -974,7 +978,6 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	sqlExecutor := appdb.NewSQLExecutor(handle)
-	clockClock := _wireSystemClockValue
 	store := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -1343,9 +1346,11 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		RolesAndGroups:     queries,
+		Clock:              clockClock,
 	}
 	userInfoService := &userinfo.UserInfoService{
 		Redis:                 appredisHandle,
+		Clock:                 clockClock,
 		AppID:                 appID,
 		UserQueries:           userQueries,
 		RolesAndGroupsQueries: queries,

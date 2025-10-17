@@ -426,6 +426,7 @@ func NewReindexer(pool *db.Pool, databaseCredentials *CmdDBCredential, searchDat
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		RolesAndGroups:     queries,
+		Clock:              clock,
 	}
 	sourceProvider := &reindex.SourceProvider{
 		AppID:           configAppID,

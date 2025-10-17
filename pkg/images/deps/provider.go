@@ -2,7 +2,6 @@ package deps
 
 import (
 	"context"
-	"log/slog"
 	"net/http"
 	"runtime"
 
@@ -16,7 +15,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 	"github.com/authgear/authgear-server/pkg/util/sentry"
-	"github.com/authgear/authgear-server/pkg/util/slogutil"
 	"github.com/authgear/authgear-server/pkg/util/vipsutil"
 )
 
@@ -63,12 +61,6 @@ func NewRootProvider(
 
 func (p *RootProvider) NewAppProvider(ctx context.Context, appCtx *config.AppContext) (context.Context, *AppProvider) {
 	cfg := appCtx.Config
-
-	// Modern logging setup
-	ctx = slogutil.AddMaskPatterns(ctx, config.NewMaskPatternFromSecretConfig(cfg.SecretConfig))
-	logger := slogutil.GetContextLogger(ctx)
-	logger = logger.With(slog.String("app", string(cfg.AppConfig.ID)))
-	ctx = slogutil.SetContextLogger(ctx, logger)
 
 	provider := &AppProvider{
 		RootProvider: p,

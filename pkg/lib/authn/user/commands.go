@@ -68,7 +68,8 @@ func (c *Commands) AfterCreate(
 		groupKeys[i] = v.Key
 	}
 
-	userModel := newUserModel(user, identities, authenticators, isVerified, stdAttrs, customAttrs, roleKeys, groupKeys)
+	now := c.Clock.NowUTC()
+	userModel := newUserModel(user, now, identities, authenticators, isVerified, stdAttrs, customAttrs, roleKeys, groupKeys)
 	var identityModels []model.Identity
 	for _, i := range identities {
 		identityModels = append(identityModels, i.ToModel())

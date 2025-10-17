@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"time"
 
 	goredis "github.com/redis/go-redis/v9"
 
@@ -13,16 +14,21 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
+	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/duration"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
 var errCacheMiss = errors.New("cache miss")
 
 var ttl = duration.Short
 
+var UserInfoCacheLogger = slogutil.NewLogger("userinfo-cache")
+
 type UserInfo struct {
-	User              *model.User `json:"user,omitempty"`
-	EffectiveRoleKeys []string    `json:"effective_role_keys"`
+	User                    *model.User `json:"user,omitempty"`
+	AccountAccountStaleFrom *time.Time  `json:"account_status_stale_from,omitempty"`
+	EffectiveRoleKeys       []string    `json:"effective_role_keys"`
 }
 
 type RolesAndGroupsQueries interface {
@@ -35,6 +41,7 @@ type UserQueries interface {
 
 type UserInfoService struct {
 	Redis                 *appredis.Handle
+	Clock                 clock.Clock
 	AppID                 config.AppID
 	UserQueries           UserQueries
 	RolesAndGroupsQueries RolesAndGroupsQueries
@@ -88,12 +95,15 @@ func (s *UserInfoService) getUserInfoFromDatabase(ctx context.Context, userID st
 	}
 
 	return &UserInfo{
-		User:              u,
-		EffectiveRoleKeys: roleKeys,
+		User:                    u,
+		AccountAccountStaleFrom: u.AccountStatusStaleFrom,
+		EffectiveRoleKeys:       roleKeys,
 	}, nil
 }
 
 func (s *UserInfoService) getUserInfoFromCache(ctx context.Context, userID string, role accesscontrol.Role) (*UserInfo, error) {
+	logger := UserInfoCacheLogger.GetLogger(ctx)
+
 	key := cacheKey(s.AppID, userID, role)
 
 	var userInfo UserInfo
@@ -111,11 +121,24 @@ func (s *UserInfoService) getUserInfoFromCache(ctx context.Context, userID strin
 		}
 		return nil
 	})
-
 	if err != nil {
+		if errors.Is(err, errCacheMiss) {
+			logger.Debug(ctx, "userinfo cache miss")
+		}
 		return nil, err
 	}
 
+	// If account_status_stale_from is non-nil,
+	// then it specifies the timestamp when the user info is considered as stale.
+	if userInfo.AccountAccountStaleFrom != nil {
+		now := s.Clock.NowUTC()
+		if !now.Before(*userInfo.AccountAccountStaleFrom) {
+			logger.Debug(ctx, "userinfo cache miss")
+			return nil, errCacheMiss
+		}
+	}
+
+	logger.Debug(ctx, "userinfo cache hit")
 	return &userInfo, nil
 }
 

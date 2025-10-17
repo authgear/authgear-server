@@ -286,6 +286,15 @@ enum AuditLogActivityType {
   ADMIN_API_MUTATION_SEND_RESET_PASSWORD_MESSAGE_EXECUTED
 
   """"""
+  ADMIN_API_MUTATION_SET_ACCOUNT_VALID_FROM_EXECUTED
+
+  """"""
+  ADMIN_API_MUTATION_SET_ACCOUNT_VALID_PERIOD_EXECUTED
+
+  """"""
+  ADMIN_API_MUTATION_SET_ACCOUNT_VALID_UNTIL_EXECUTED
+
+  """"""
   ADMIN_API_MUTATION_SET_DISABLED_STATUS_EXECUTED
 
   """"""
@@ -1275,6 +1284,17 @@ type Mutation {
   """Send a reset password message to user"""
   sendResetPasswordMessage(input: SendResetPasswordMessageInput!): Boolean
 
+  """Set the start timestamp of the account valid period"""
+  setAccountValidFrom(input: SetAccountValidFromInput!): SetAccountValidFromPayload!
+
+  """
+  Set the start timestamp and the end timestamp of the account valid period
+  """
+  setAccountValidPeriod(input: SetAccountValidPeriodInput!): SetAccountValidPeriodPayload!
+
+  """Set the end timestamp of the account valid period"""
+  setAccountValidUntil(input: SetAccountValidUntilInput!): SetAccountValidUntilPayload!
+
   """Set disabled status of user"""
   setDisabledStatus(input: SetDisabledStatusInput!): SetDisabledStatusPayload!
 
@@ -1806,14 +1826,80 @@ enum SessionType {
 }
 
 """"""
+input SetAccountValidFromInput {
+  """
+  Indicate the start timestamp of the account valid period. The user is disabled when the current time is before it.
+  """
+  accountValidFrom: DateTime
+
+  """Target user ID."""
+  userID: ID!
+}
+
+""""""
+type SetAccountValidFromPayload {
+  """"""
+  user: User!
+}
+
+""""""
+input SetAccountValidPeriodInput {
+  """
+  Indicate the start timestamp of the account valid period. The user is disabled when the current time is before it.
+  """
+  accountValidFrom: DateTime
+
+  """
+  Indicate the end timestamp of the account valid period. The user is disabled when the current time is equal to or after it.
+  """
+  accountValidUntil: DateTime
+
+  """Target user ID."""
+  userID: ID!
+}
+
+""""""
+type SetAccountValidPeriodPayload {
+  """"""
+  user: User!
+}
+
+""""""
+input SetAccountValidUntilInput {
+  """
+  Indicate the end timestamp of the account valid period. The user is disabled when the current time is equal to or after it.
+  """
+  accountValidUntil: DateTime
+
+  """Target user ID."""
+  userID: ID!
+}
+
+""""""
+type SetAccountValidUntilPayload {
+  """"""
+  user: User!
+}
+
+""""""
 input SetDisabledStatusInput {
   """Indicate whether the target user is disabled."""
   isDisabled: Boolean!
 
   """
-  Indicate the disable reason; If not provided, the user will be disabled with no reason.
+  Indicate the disable reason. If not provided, the user will be disabled with no reason.
   """
   reason: String
+
+  """
+  Indicate the start timestamp of the temporarily disabled period. If not provided, the user will be disabled indefinitely. If provided, temporarilyDisabledUntil must also be provided.
+  """
+  temporarilyDisabledFrom: DateTime
+
+  """
+  Indicate the end timestamp of the temporarily disabled period. If not provided, the user will be disabled indefinitely. If provided, temporarilyDisabledFrom must also be provided.
+  """
+  temporarilyDisabledUntil: DateTime
 
   """Target user ID."""
   userID: ID!
@@ -2041,6 +2127,12 @@ type UpdateUserPayload {
 
 """Authgear user"""
 type User implements Entity & Node {
+  """The start timestamp of the account valid period"""
+  accountValidFrom: DateTime
+
+  """The end timestamp of the account valid period"""
+  accountValidUntil: DateTime
+
   """The scheduled anonymization time of the user"""
   anonymizeAt: DateTime
 
@@ -2141,6 +2233,12 @@ type User implements Entity & Node {
 
   """The user's standard attributes"""
   standardAttributes: UserStandardAttributes!
+
+  """The start timestamp of the temporarily disabled period"""
+  temporarilyDisabledFrom: DateTime
+
+  """The end timestamp of the temporarily disabled period"""
+  temporarilyDisabledUntil: DateTime
 
   """The update time of entity"""
   updatedAt: DateTime!

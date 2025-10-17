@@ -1,6 +1,8 @@
 package nonblocking
 
 import (
+	"time"
+
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/model"
 )
@@ -10,8 +12,10 @@ const (
 )
 
 type UserDisabledEventPayload struct {
-	UserRef   model.UserRef `json:"-" resolve:"user"`
-	UserModel model.User    `json:"user"`
+	UserRef                  model.UserRef `json:"-" resolve:"user"`
+	UserModel                model.User    `json:"user"`
+	TemporarilyDisabledFrom  *time.Time    `json:"temporarily_disabled_from,omitempty"`
+	TemporarilyDisabledUntil *time.Time    `json:"temporarily_disabled_until,omitempty"`
 }
 
 func (e *UserDisabledEventPayload) NonBlockingEventType() event.Type {
