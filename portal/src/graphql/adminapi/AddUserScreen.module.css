@@ -27,6 +27,6 @@
 
 .choiceGroupOptionContent {
   padding-left: 26px;
-  @apply py-4;
-  @apply flex flex-col gap-4;
+  @apply pt-1 pb-4;
+  @apply flex flex-col gap-1;
 }
