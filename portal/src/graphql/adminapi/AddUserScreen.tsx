@@ -288,15 +288,17 @@ const AddUserContent: React.VFC<AddUserContentProps> = function AddUserContent(
             <Text block={true}>
               <FormattedMessage id="AddUserScreen.password-creation-type.manual.description" />
             </Text>
-            <ManualEntryPasswordField
-              disabled={!props?.checked}
-              passwordPolicy={passwordPolicy}
-              password={password}
-              onPasswordChange={onPasswordChange}
-              selectedLoginIDType={selectedLoginIDType}
-              sendPassword={state.manualEntrySendPassword}
-              onChangeSendPassword={onChangeSendPassword}
-            />
+            {props?.checked ? (
+              <ManualEntryPasswordField
+                disabled={!props.checked}
+                passwordPolicy={passwordPolicy}
+                password={password}
+                onPasswordChange={onPasswordChange}
+                selectedLoginIDType={selectedLoginIDType}
+                sendPassword={state.manualEntrySendPassword}
+                onChangeSendPassword={onChangeSendPassword}
+              />
+            ) : null}
           </div>
         </>
       );
