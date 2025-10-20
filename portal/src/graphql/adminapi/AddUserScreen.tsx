@@ -1,4 +1,5 @@
 import React, { useCallback, useContext, useEffect, useMemo } from "react";
+import cn from "classnames";
 import { useNavigate, useParams } from "react-router-dom";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import {
@@ -38,6 +39,7 @@ import FormContainer, { FormSaveButton } from "../../FormContainer";
 
 import styles from "./AddUserScreen.module.css";
 import { validatePassword } from "../../error/password";
+import HorizontalDivider from "../../HorizontalDivider";
 
 enum PasswordCreationType {
   ManualEntry = "manual_entry",
@@ -563,9 +565,9 @@ const AddUserContent: React.VFC<AddUserContentProps> = function AddUserContent(
                   onChange={onChangePasswordCreationType}
                   label={renderToString("AddUserScreen.password-setup.label")}
                 />
-
+                <HorizontalDivider className={styles.widget} />
                 <div className={styles.widget}>
-                  <Label className={styles.additionalOption}>
+                  <Label>
                     <FormattedMessage id="AddUserScreen.additional-option.label" />
                   </Label>
                   <Checkbox
@@ -586,7 +588,7 @@ const AddUserContent: React.VFC<AddUserContentProps> = function AddUserContent(
           </>
         )}
       </div>
-      <div className={styles.widget}>
+      <div className={cn(styles.widget, "pt-7")}>
         <FormSaveButton
           saveButtonProps={{
             labelId: "AddUserScreen.add-user.label",

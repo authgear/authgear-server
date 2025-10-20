@@ -21,10 +21,6 @@
   @apply mt-3;
 }
 
-.additionalOption {
-  @apply mt-6;
-}
-
 .choiceGroupOptionContent {
   padding-left: 26px;
   @apply pt-1 pb-4;
