@@ -68,7 +68,7 @@
     "jest": "^30.0.4",
     "jest-environment-jsdom": "^30.0.4",
     "node-html-parser": "^6.1.13",
-    "playwright": "^1.53.2",
+    "playwright": "^1.56.1",
     "prettier": "^2.8.8",
     "storybook": "^8.6.4",
     "storybook-addon-pseudo-states": "^4.0.4",
