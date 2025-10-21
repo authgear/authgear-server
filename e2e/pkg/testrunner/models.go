@@ -183,6 +183,30 @@ var _ = TestCaseSchema.Add("AdminAPIOutput", `
 }
 `)
 
+type AdminAPIUserImportRequest struct {
+	JSONDocument string `json:"json_document"`
+}
+
+var _ = TestCaseSchema.Add("AdminAPIUserImportRequest", `
+{
+    "type": "object",
+    "properties": {
+        "json_document": { "type": "string" }
+    },
+    "required": ["json_document"]
+}
+`)
+
+var _ = TestCaseSchema.Add("AdminAPIUserImportOutput", `
+{
+	"type": "object",
+	"properties": {
+		"result": { "type": "string" },
+		"error": { "type": "string" }
+	}
+}
+`)
+
 var _ = TestCaseSchema.Add("Step", `
 {
 	"type": "object",
@@ -190,6 +214,7 @@ var _ = TestCaseSchema.Add("Step", `
 	"properties": {
 		"name": { "type": "string" },
 		"action": { "type": "string", "enum": [
+			"sleep",
 			"create",
 			"input",
 			"oauth_redirect",
@@ -199,8 +224,11 @@ var _ = TestCaseSchema.Add("Step", `
 			"http_request",
 			"oauth_setup",
 			"oauth_exchange_code",
-			"admin_api_graphql"
+			"admin_api_graphql",
+			"admin_api_user_import_create",
+			"admin_api_user_import_get"
 		]},
+		"sleep_for": { "type": "string", "format": "x_duration_string" },
 		"input": { "type": "string" },
 		"to": { "type": "string" },
 		"redirect_uri": { "type": "string" },
@@ -225,9 +253,22 @@ var _ = TestCaseSchema.Add("Step", `
 		"oauth_exchange_code_code_verifier": { "type": "string" },
 		"oauth_exchange_code_redirect_uri": { "type": "string" },
 		"admin_api_request": { "$ref": "#/$defs/AdminAPIRequest" },
-		"admin_api_output": { "$ref": "#/$defs/AdminAPIOutput" }
+		"admin_api_output": { "$ref": "#/$defs/AdminAPIOutput" },
+		"admin_api_user_import_request": { "$ref": "#/$defs/AdminAPIUserImportRequest" },
+		"admin_api_user_import_output": { "$ref": "#/$defs/AdminAPIUserImportOutput" },
+		"admin_api_user_import_id": { "type": "string" }
 	},
 	"allOf": [
+		{
+			"if": {
+				"properties": {
+					"action": { "const": "sleep" }
+				}
+			},
+			"then": {
+				"required": ["sleep_for"]
+			}
+		},
         {
             "if": {
                 "properties": {
@@ -330,6 +371,31 @@ var _ = TestCaseSchema.Add("Step", `
 							"admin_api_request"
 						]
 					}
+				},
+				{
+					"if": {
+						"properties": {
+							"action": { "const": "admin_api_user_import_create" }
+						}
+					},
+					"then": {
+						"required": [
+							"admin_api_user_import_request"
+						]
+					}
+				},
+				{
+					"if": {
+						"properties": {
+							"action": { "const": "admin_api_user_import_get" }
+						}
+					},
+					"then": {
+						"required": [
+							"admin_api_user_import_id",
+							"admin_api_user_import_output"
+						]
+					}
 				}
     ]
 }
@@ -338,6 +404,9 @@ var _ = TestCaseSchema.Add("Step", `
 type Step struct {
 	Name   string     `json:"name"`
 	Action StepAction `json:"action"`
+
+	// `action` == "sleep"
+	SleepFor string `json:"sleep_for,omitzero"`
 
 	// `action` == "create" or "input"
 	Input string `json:"input"`
@@ -381,21 +450,31 @@ type Step struct {
 	// `action` == "admin_api_graphql"
 	AdminAPIRequest *AdminAPIRequest `json:"admin_api_request"`
 	AdminAPIOutput  *AdminAPIOutput  `json:"admin_api_output"`
+
+	// `action` == "admin_api_user_import_create"
+	AdminAPIUserImportRequest *AdminAPIUserImportRequest `json:"admin_api_user_import_request"`
+	// `action` == "admin_api_user_import_get"
+	AdminAPIUserImportID string `json:"admin_api_user_import_id"`
+	// `action` == "admin_api_user_import_create" or "admin_api_user_import_get"
+	AdminAPIUserImportOutput *AdminAPIUserImportOutput `json:"admin_api_user_import_output"`
 }
 
 type StepAction string
 
 const (
-	StepActionCreate            StepAction = "create"
-	StepActionInput             StepAction = "input"
-	StepActionOAuthRedirect     StepAction = "oauth_redirect"
-	StepActionGenerateTOTPCode  StepAction = "generate_totp_code"
-	StepActionQuery             StepAction = "query"
-	StepActionSAMLRequest       StepAction = "saml_request"
-	StepActionHTTPRequest       StepAction = "http_request"
-	StepActionOAuthSetup        StepAction = "oauth_setup"
-	StepActionOAuthExchangeCode StepAction = "oauth_exchange_code"
-	StepActionAdminAPIQuery     StepAction = "admin_api_graphql"
+	StepActionSleep                    StepAction = "sleep"
+	StepActionCreate                   StepAction = "create"
+	StepActionInput                    StepAction = "input"
+	StepActionOAuthRedirect            StepAction = "oauth_redirect"
+	StepActionGenerateTOTPCode         StepAction = "generate_totp_code"
+	StepActionQuery                    StepAction = "query"
+	StepActionSAMLRequest              StepAction = "saml_request"
+	StepActionHTTPRequest              StepAction = "http_request"
+	StepActionOAuthSetup               StepAction = "oauth_setup"
+	StepActionOAuthExchangeCode        StepAction = "oauth_exchange_code"
+	StepActionAdminAPIQuery            StepAction = "admin_api_graphql"
+	StepActionAdminAPIUserImportCreate StepAction = "admin_api_user_import_create"
+	StepActionAdminAPIUserImportGet    StepAction = "admin_api_user_import_get"
 )
 
 var _ = TestCaseSchema.Add("SessionCookie", `
@@ -504,6 +583,11 @@ type Output struct {
 // AdminAPIOutput is used for admin_api_graphql output validation
 type AdminAPIOutput struct {
 	Result string `json:"result"`
+}
+
+type AdminAPIUserImportOutput struct {
+	Result string `json:"result"`
+	Error  string `json:"error"`
 }
 
 var _ = TestCaseSchema.Add("StepResult", `

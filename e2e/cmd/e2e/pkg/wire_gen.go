@@ -495,6 +495,7 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		RolesAndGroups:     queries,
+		Clock:              clockClock,
 	}
 	resolverImpl := &event.ResolverImpl{
 		Users: userQueries,
@@ -597,6 +598,7 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 	}
 	userInfoService := &userinfo.UserInfoService{
 		Redis:                 appredisHandle,
+		Clock:                 clockClock,
 		AppID:                 appID,
 		UserQueries:           userQueries,
 		RolesAndGroupsQueries: queries,
@@ -890,6 +892,7 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		CustomAttributes:     customattrsServiceNoEvent,
 		RolesGroupsCommands:  commands,
 		SearchReindexService: reindexer,
+		Clock:                clockClock,
 	}
 	return userImportService
 }

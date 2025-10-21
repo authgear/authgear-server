@@ -16,16 +16,29 @@ type RawCommands struct {
 
 func (c *RawCommands) New(userID string) *User {
 	now := c.Clock.NowUTC()
+	false_ := false
 	user := &User{
 		ID:                  userID,
 		CreatedAt:           now,
 		UpdatedAt:           now,
 		MostRecentLoginAt:   nil,
 		LessRecentLoginAt:   nil,
-		IsDisabled:          false,
-		DisableReason:       nil,
 		StandardAttributes:  make(map[string]interface{}),
 		RequireReindexAfter: &now,
+
+		isDisabled:               false,
+		accountStatusStaleFrom:   nil,
+		isIndefinitelyDisabled:   &false_,
+		isDeactivated:            &false_,
+		disableReason:            nil,
+		temporarilyDisabledFrom:  nil,
+		temporarilyDisabledUntil: nil,
+		accountValidFrom:         nil,
+		accountValidUntil:        nil,
+		deleteAt:                 nil,
+		anonymizeAt:              nil,
+		anonymizedAt:             nil,
+		isAnonymized:             &false_,
 	}
 	return user
 }
@@ -53,7 +66,7 @@ func (c *RawCommands) UpdateMFAEnrollment(ctx context.Context, userID string, en
 	return c.Store.UpdateMFAEnrollment(ctx, userID, endAt)
 }
 
-func (c *RawCommands) UpdateAccountStatus(ctx context.Context, userID string, accountStatus AccountStatus) error {
+func (c *RawCommands) UpdateAccountStatus(ctx context.Context, userID string, accountStatus AccountStatusWithRefTime) error {
 	return c.Store.UpdateAccountStatus(ctx, userID, accountStatus)
 }
 
@@ -66,5 +79,26 @@ func (c *RawCommands) Delete(ctx context.Context, userID string) error {
 }
 
 func (c *RawCommands) Anonymize(ctx context.Context, userID string) error {
-	return c.Store.Anonymize(ctx, userID)
+	u, err := c.Store.Get(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	now := c.Clock.NowUTC()
+	accountStatus, err := u.AccountStatus(now).Anonymize()
+	if err != nil {
+		return err
+	}
+
+	err = c.Store.UpdateAccountStatus(ctx, userID, *accountStatus)
+	if err != nil {
+		return err
+	}
+
+	err = c.Store.SetAllAttributesToNull(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

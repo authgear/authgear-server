@@ -1,0 +1,764 @@
+name: userimport/insert
+steps:
+- action: admin_api_user_import_create
+  name: the_user_import
+  admin_api_user_import_request:
+    json_document: |
+      {
+        "upsert": false,
+        "identifier": "preferred_username",
+        "records": [
+          {
+            "preferred_username": "testuser01"
+          }
+        ]
+      }
+  admin_api_user_import_output:
+    result: |
+      {
+        "id": "[[string]]",
+        "created_at": "[[string]]",
+        "status": "pending"
+      }
+- action: sleep
+  sleep_for: "1s"
+- action: admin_api_user_import_get
+  admin_api_user_import_id: "{{ .steps.the_user_import.result.id }}"
+  admin_api_user_import_output:
+    result: |
+      {
+        "id": "[[string]]",
+        "created_at": "[[string]]",
+        "completed_at": "[[string]]",
+        "status": "completed",
+        "summary": {
+          "total": 1,
+          "inserted": 1,
+          "updated": 0,
+          "skipped": 0,
+          "failed": 0
+        },
+        "details": [
+          {
+            "index": 0,
+            "outcome": "inserted",
+            "user_id": "[[string]]",
+            "record": {
+              "preferred_username": "testuser01"
+            }
+          }
+        ]
+      }
+- action: admin_api_graphql
+  admin_api_request:
+    query: |
+      query getUserByLoginID($key: String!, $value: String!) {
+        getUserByLoginID(loginIDKey: $key, loginIDValue: $value) {
+          id
+          isAnonymized
+          isDisabled
+          isDeactivated
+          temporarilyDisabledFrom
+          temporarilyDisabledUntil
+          accountValidFrom
+          accountValidUntil
+          anonymizeAt
+          deleteAt
+          disableReason
+          standardAttributes
+        }
+      }
+    variables: |
+      {
+        "key": "username",
+        "value": "testuser01"
+      }
+  admin_api_output:
+    result: |
+      {
+        "data": {
+          "getUserByLoginID": {
+            "id": "[[string]]",
+            "isAnonymized": false,
+            "isDisabled": false,
+            "isDeactivated": false,
+            "temporarilyDisabledFrom": null,
+            "temporarilyDisabledUntil": null,
+            "accountValidFrom": null,
+            "accountValidUntil": null,
+            "anonymizeAt": null,
+            "deleteAt": null,
+            "disableReason": null,
+            "standardAttributes": {
+              "preferred_username": "testuser01"
+            }
+          }
+        },
+        "errors": null
+      }
+---
+name: userimport/insert/disabled
+steps:
+- action: admin_api_user_import_create
+  name: the_user_import
+  admin_api_user_import_request:
+    json_document: |
+      {
+        "upsert": false,
+        "identifier": "preferred_username",
+        "records": [
+          {
+            "preferred_username": "testuser01",
+            "disabled": true
+          }
+        ]
+      }
+  admin_api_user_import_output:
+    result: |
+      {
+        "id": "[[string]]",
+        "created_at": "[[string]]",
+        "status": "pending"
+      }
+- action: sleep
+  sleep_for: "1s"
+- action: admin_api_user_import_get
+  admin_api_user_import_id: "{{ .steps.the_user_import.result.id }}"
+  admin_api_user_import_output:
+    result: |
+      {
+        "id": "[[string]]",
+        "created_at": "[[string]]",
+        "completed_at": "[[string]]",
+        "status": "completed",
+        "summary": {
+          "total": 1,
+          "inserted": 1,
+          "updated": 0,
+          "skipped": 0,
+          "failed": 0
+        },
+        "details": [
+          {
+            "index": 0,
+            "outcome": "inserted",
+            "user_id": "[[string]]",
+            "record": {
+              "preferred_username": "testuser01",
+              "disabled": true
+            }
+          }
+        ]
+      }
+- action: admin_api_graphql
+  admin_api_request:
+    query: |
+      query getUserByLoginID($key: String!, $value: String!) {
+        getUserByLoginID(loginIDKey: $key, loginIDValue: $value) {
+          id
+          isAnonymized
+          isDisabled
+          isDeactivated
+          temporarilyDisabledFrom
+          temporarilyDisabledUntil
+          accountValidFrom
+          accountValidUntil
+          anonymizeAt
+          deleteAt
+          disableReason
+          standardAttributes
+        }
+      }
+    variables: |
+      {
+        "key": "username",
+        "value": "testuser01"
+      }
+  admin_api_output:
+    result: |
+      {
+        "data": {
+          "getUserByLoginID": {
+            "id": "[[string]]",
+            "isAnonymized": false,
+            "isDisabled": true,
+            "isDeactivated": false,
+            "temporarilyDisabledFrom": null,
+            "temporarilyDisabledUntil": null,
+            "accountValidFrom": null,
+            "accountValidUntil": null,
+            "anonymizeAt": null,
+            "deleteAt": null,
+            "disableReason": null,
+            "standardAttributes": {
+              "preferred_username": "testuser01"
+            }
+          }
+        },
+        "errors": null
+      }
+---
+name: userimport/insert/account_valid_from
+steps:
+- action: admin_api_user_import_create
+  name: the_user_import
+  admin_api_user_import_request:
+    json_document: |
+      {
+        "upsert": false,
+        "identifier": "preferred_username",
+        "records": [
+          {
+            "preferred_username": "testuser01",
+            "account_valid_from": "2099-01-01T00:00:00Z"
+          }
+        ]
+      }
+  admin_api_user_import_output:
+    result: |
+      {
+        "id": "[[string]]",
+        "created_at": "[[string]]",
+        "status": "pending"
+      }
+- action: sleep
+  sleep_for: "1s"
+- action: admin_api_user_import_get
+  admin_api_user_import_id: "{{ .steps.the_user_import.result.id }}"
+  admin_api_user_import_output:
+    result: |
+      {
+        "id": "[[string]]",
+        "created_at": "[[string]]",
+        "completed_at": "[[string]]",
+        "status": "completed",
+        "summary": {
+          "total": 1,
+          "inserted": 1,
+          "updated": 0,
+          "skipped": 0,
+          "failed": 0
+        },
+        "details": [
+          {
+            "index": 0,
+            "outcome": "inserted",
+            "user_id": "[[string]]",
+            "record": {
+              "preferred_username": "testuser01",
+              "account_valid_from": "2099-01-01T00:00:00Z"
+            }
+          }
+        ]
+      }
+- action: admin_api_graphql
+  admin_api_request:
+    query: |
+      query getUserByLoginID($key: String!, $value: String!) {
+        getUserByLoginID(loginIDKey: $key, loginIDValue: $value) {
+          id
+          isAnonymized
+          isDisabled
+          isDeactivated
+          temporarilyDisabledFrom
+          temporarilyDisabledUntil
+          accountValidFrom
+          accountValidUntil
+          anonymizeAt
+          deleteAt
+          disableReason
+          standardAttributes
+        }
+      }
+    variables: |
+      {
+        "key": "username",
+        "value": "testuser01"
+      }
+  admin_api_output:
+    result: |
+      {
+        "data": {
+          "getUserByLoginID": {
+            "id": "[[string]]",
+            "isAnonymized": false,
+            "isDisabled": true,
+            "isDeactivated": false,
+            "temporarilyDisabledFrom": null,
+            "temporarilyDisabledUntil": null,
+            "accountValidFrom": "2099-01-01T00:00:00Z",
+            "accountValidUntil": null,
+            "anonymizeAt": null,
+            "deleteAt": null,
+            "disableReason": null,
+            "standardAttributes": {
+              "preferred_username": "testuser01"
+            }
+          }
+        },
+        "errors": null
+      }
+---
+name: userimport/insert/account_valid_until
+steps:
+- action: admin_api_user_import_create
+  name: the_user_import
+  admin_api_user_import_request:
+    json_document: |
+      {
+        "upsert": false,
+        "identifier": "preferred_username",
+        "records": [
+          {
+            "preferred_username": "testuser01",
+            "account_valid_until": "2025-01-01T00:00:00Z"
+          }
+        ]
+      }
+  admin_api_user_import_output:
+    result: |
+      {
+        "id": "[[string]]",
+        "created_at": "[[string]]",
+        "status": "pending"
+      }
+- action: sleep
+  sleep_for: "1s"
+- action: admin_api_user_import_get
+  admin_api_user_import_id: "{{ .steps.the_user_import.result.id }}"
+  admin_api_user_import_output:
+    result: |
+      {
+        "id": "[[string]]",
+        "created_at": "[[string]]",
+        "completed_at": "[[string]]",
+        "status": "completed",
+        "summary": {
+          "total": 1,
+          "inserted": 1,
+          "updated": 0,
+          "skipped": 0,
+          "failed": 0
+        },
+        "details": [
+          {
+            "index": 0,
+            "outcome": "inserted",
+            "user_id": "[[string]]",
+            "record": {
+              "preferred_username": "testuser01",
+              "account_valid_until": "2025-01-01T00:00:00Z"
+            }
+          }
+        ]
+      }
+- action: admin_api_graphql
+  admin_api_request:
+    query: |
+      query getUserByLoginID($key: String!, $value: String!) {
+        getUserByLoginID(loginIDKey: $key, loginIDValue: $value) {
+          id
+          isAnonymized
+          isDisabled
+          isDeactivated
+          temporarilyDisabledFrom
+          temporarilyDisabledUntil
+          accountValidFrom
+          accountValidUntil
+          anonymizeAt
+          deleteAt
+          disableReason
+          standardAttributes
+        }
+      }
+    variables: |
+      {
+        "key": "username",
+        "value": "testuser01"
+      }
+  admin_api_output:
+    result: |
+      {
+        "data": {
+          "getUserByLoginID": {
+            "id": "[[string]]",
+            "isAnonymized": false,
+            "isDisabled": true,
+            "isDeactivated": false,
+            "temporarilyDisabledFrom": null,
+            "temporarilyDisabledUntil": null,
+            "accountValidFrom": null,
+            "accountValidUntil": "2025-01-01T00:00:00Z",
+            "anonymizeAt": null,
+            "deleteAt": null,
+            "disableReason": null,
+            "standardAttributes": {
+              "preferred_username": "testuser01"
+            }
+          }
+        },
+        "errors": null
+      }
+---
+name: userimport/insert/account_valid_from+account_valid_until
+steps:
+- action: admin_api_user_import_create
+  name: the_user_import
+  admin_api_user_import_request:
+    json_document: |
+      {
+        "upsert": false,
+        "identifier": "preferred_username",
+        "records": [
+          {
+            "preferred_username": "testuser01",
+            "account_valid_from": "2025-01-01T00:00:00Z",
+            "account_valid_until": "2099-01-01T00:00:00Z"
+          }
+        ]
+      }
+  admin_api_user_import_output:
+    result: |
+      {
+        "id": "[[string]]",
+        "created_at": "[[string]]",
+        "status": "pending"
+      }
+- action: sleep
+  sleep_for: "1s"
+- action: admin_api_user_import_get
+  admin_api_user_import_id: "{{ .steps.the_user_import.result.id }}"
+  admin_api_user_import_output:
+    result: |
+      {
+        "id": "[[string]]",
+        "created_at": "[[string]]",
+        "completed_at": "[[string]]",
+        "status": "completed",
+        "summary": {
+          "total": 1,
+          "inserted": 1,
+          "updated": 0,
+          "skipped": 0,
+          "failed": 0
+        },
+        "details": [
+          {
+            "index": 0,
+            "outcome": "inserted",
+            "user_id": "[[string]]",
+            "record": {
+              "preferred_username": "testuser01",
+              "account_valid_from": "2025-01-01T00:00:00Z",
+              "account_valid_until": "2099-01-01T00:00:00Z"
+            }
+          }
+        ]
+      }
+- action: admin_api_graphql
+  admin_api_request:
+    query: |
+      query getUserByLoginID($key: String!, $value: String!) {
+        getUserByLoginID(loginIDKey: $key, loginIDValue: $value) {
+          id
+          isAnonymized
+          isDisabled
+          isDeactivated
+          temporarilyDisabledFrom
+          temporarilyDisabledUntil
+          accountValidFrom
+          accountValidUntil
+          anonymizeAt
+          deleteAt
+          disableReason
+          standardAttributes
+        }
+      }
+    variables: |
+      {
+        "key": "username",
+        "value": "testuser01"
+      }
+  admin_api_output:
+    result: |
+      {
+        "data": {
+          "getUserByLoginID": {
+            "id": "[[string]]",
+            "isAnonymized": false,
+            "isDisabled": false,
+            "isDeactivated": false,
+            "temporarilyDisabledFrom": null,
+            "temporarilyDisabledUntil": null,
+            "accountValidFrom": "2025-01-01T00:00:00Z",
+            "accountValidUntil": "2099-01-01T00:00:00Z",
+            "anonymizeAt": null,
+            "deleteAt": null,
+            "disableReason": null,
+            "standardAttributes": {
+              "preferred_username": "testuser01"
+            }
+          }
+        },
+        "errors": null
+      }
+---
+name: userimport/upsert/disabled
+steps:
+- action: admin_api_user_import_create
+  name: the_insert
+  admin_api_user_import_request:
+    json_document: |
+      {
+        "upsert": false,
+        "identifier": "preferred_username",
+        "records": [
+          {
+            "preferred_username": "testuser01"
+          }
+        ]
+      }
+  admin_api_user_import_output:
+    result: |
+      {
+        "id": "[[string]]",
+        "created_at": "[[string]]",
+        "status": "pending"
+      }
+- action: sleep
+  sleep_for: "1s"
+- action: admin_api_user_import_get
+  admin_api_user_import_id: "{{ .steps.the_insert.result.id }}"
+  admin_api_user_import_output:
+    result: |
+      {
+        "id": "[[string]]",
+        "created_at": "[[string]]",
+        "completed_at": "[[string]]",
+        "status": "completed",
+        "summary": {
+          "total": 1,
+          "inserted": 1,
+          "updated": 0,
+          "skipped": 0,
+          "failed": 0
+        },
+        "details": [
+          {
+            "index": 0,
+            "outcome": "inserted",
+            "user_id": "[[string]]",
+            "record": {
+              "preferred_username": "testuser01"
+            }
+          }
+        ]
+      }
+- action: admin_api_graphql
+  admin_api_request:
+    query: |
+      query getUserByLoginID($key: String!, $value: String!) {
+        getUserByLoginID(loginIDKey: $key, loginIDValue: $value) {
+          id
+          isAnonymized
+          isDisabled
+          isDeactivated
+          temporarilyDisabledFrom
+          temporarilyDisabledUntil
+          accountValidFrom
+          accountValidUntil
+          anonymizeAt
+          deleteAt
+          disableReason
+          standardAttributes
+        }
+      }
+    variables: |
+      {
+        "key": "username",
+        "value": "testuser01"
+      }
+  admin_api_output:
+    result: |
+      {
+        "data": {
+          "getUserByLoginID": {
+            "id": "[[string]]",
+            "isAnonymized": false,
+            "isDisabled": false,
+            "isDeactivated": false,
+            "temporarilyDisabledFrom": null,
+            "temporarilyDisabledUntil": null,
+            "accountValidFrom": null,
+            "accountValidUntil": null,
+            "anonymizeAt": null,
+            "deleteAt": null,
+            "disableReason": null,
+            "standardAttributes": {
+              "preferred_username": "testuser01"
+            }
+          }
+        },
+        "errors": null
+      }
+- action: admin_api_user_import_create
+  name: the_upsert
+  admin_api_user_import_request:
+    json_document: |
+      {
+        "upsert": true,
+        "identifier": "preferred_username",
+        "records": [
+          {
+            "preferred_username": "testuser01",
+            "disabled": true
+          }
+        ]
+      }
+  admin_api_user_import_output:
+    result: |
+      {
+        "id": "[[string]]",
+        "created_at": "[[string]]",
+        "status": "pending"
+      }
+- action: sleep
+  sleep_for: "1s"
+- action: admin_api_user_import_get
+  admin_api_user_import_id: "{{ .steps.the_upsert.result.id }}"
+  admin_api_user_import_output:
+    result: |
+      {
+        "id": "[[string]]",
+        "created_at": "[[string]]",
+        "completed_at": "[[string]]",
+        "status": "completed",
+        "summary": {
+          "total": 1,
+          "inserted": 0,
+          "updated": 1,
+          "skipped": 0,
+          "failed": 0
+        },
+        "details": [
+          {
+            "index": 0,
+            "outcome": "updated",
+            "user_id": "[[string]]",
+            "record": {
+              "preferred_username": "testuser01",
+              "disabled": true
+            }
+          }
+        ]
+      }
+- action: admin_api_graphql
+  admin_api_request:
+    query: |
+      query getUserByLoginID($key: String!, $value: String!) {
+        getUserByLoginID(loginIDKey: $key, loginIDValue: $value) {
+          id
+          isAnonymized
+          isDisabled
+          isDeactivated
+          temporarilyDisabledFrom
+          temporarilyDisabledUntil
+          accountValidFrom
+          accountValidUntil
+          anonymizeAt
+          deleteAt
+          disableReason
+          standardAttributes
+        }
+      }
+    variables: |
+      {
+        "key": "username",
+        "value": "testuser01"
+      }
+  admin_api_output:
+    result: |
+      {
+        "data": {
+          "getUserByLoginID": {
+            "id": "[[string]]",
+            "isAnonymized": false,
+            "isDisabled": true,
+            "isDeactivated": false,
+            "temporarilyDisabledFrom": null,
+            "temporarilyDisabledUntil": null,
+            "accountValidFrom": null,
+            "accountValidUntil": null,
+            "anonymizeAt": null,
+            "deleteAt": null,
+            "disableReason": null,
+            "standardAttributes": {
+              "preferred_username": "testuser01"
+            }
+          }
+        },
+        "errors": null
+      }
+---
+name: userimport/insert/account_valid_from+account_valid_until--invalid
+steps:
+- action: admin_api_user_import_create
+  name: the_user_import
+  admin_api_user_import_request:
+    json_document: |
+      {
+        "upsert": false,
+        "identifier": "preferred_username",
+        "records": [
+          {
+            "preferred_username": "testuser01",
+            "account_valid_from": "2099-01-01T00:00:00Z",
+            "account_valid_until": "2025-01-01T00:00:00Z"
+          }
+        ]
+      }
+  admin_api_user_import_output:
+    result: |
+      {
+        "id": "[[string]]",
+        "created_at": "[[string]]",
+        "status": "pending"
+      }
+- action: sleep
+  sleep_for: "1s"
+- action: admin_api_user_import_get
+  admin_api_user_import_id: "{{ .steps.the_user_import.result.id }}"
+  admin_api_user_import_output:
+    result: |
+      {
+        "id": "[[string]]",
+        "created_at": "[[string]]",
+        "completed_at": "[[string]]",
+        "status": "completed",
+        "summary": {
+          "total": 1,
+          "inserted": 0,
+          "updated": 0,
+          "skipped": 0,
+          "failed": 1
+        },
+        "details": [
+          {
+            "index": 0,
+            "outcome": "failed",
+            "errors": [
+              {
+                "name": "Invalid",
+                "reason": "InvalidAccountStatusTransition",
+                "message": "the start timestamp of account valid period must be less than the end timestamp of the account valid period",
+                "code": 400
+              }
+            ],
+            "record": {
+              "preferred_username": "testuser01",
+              "account_valid_from": "2099-01-01T00:00:00Z",
+              "account_valid_until": "2025-01-01T00:00:00Z"
+            }
+          }
+        ]
+      }

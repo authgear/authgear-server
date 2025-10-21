@@ -27,12 +27,12 @@ type store interface {
 	QueryForExport(ctx context.Context, offset uint64, limit uint64) ([]*User, error)
 	UpdateLoginTime(ctx context.Context, userID string, loginAt time.Time) error
 	UpdateMFAEnrollment(ctx context.Context, userID string, endAt *time.Time) error
-	UpdateAccountStatus(ctx context.Context, userID string, status AccountStatus) error
+	UpdateAccountStatus(ctx context.Context, userID string, status AccountStatusWithRefTime) error
 	UpdateStandardAttributes(ctx context.Context, userID string, stdAttrs map[string]interface{}) error
 	UpdateCustomAttributes(ctx context.Context, userID string, customAttrs map[string]interface{}) error
 	UpdateOptOutPasskeyUpselling(ctx context.Context, userID string, optout bool) error
 	Delete(ctx context.Context, userID string) error
-	Anonymize(ctx context.Context, userID string) error
+	SetAllAttributesToNull(ctx context.Context, userID string) error
 }
 
 type Store struct {
@@ -76,16 +76,26 @@ func (s *Store) Create(ctx context.Context, u *User) (err error) {
 			"updated_at",
 			"login_at",
 			"last_login_at",
-			"is_disabled",
-			"disable_reason",
-			"is_deactivated",
-			"delete_at",
-			"is_anonymized",
-			"anonymize_at",
+
 			"standard_attributes",
 			"custom_attributes",
 			"require_reindex_after",
+			"last_indexed_at",
 			"mfa_grace_period_end_at",
+
+			"is_disabled",
+			"account_status_stale_from",
+			"is_indefinitely_disabled",
+			"is_deactivated",
+			"disable_reason",
+			"temporarily_disabled_from",
+			"temporarily_disabled_until",
+			"account_valid_from",
+			"account_valid_until",
+			"delete_at",
+			"anonymize_at",
+			"anonymized_at",
+			"is_anonymized",
 		).
 		Values(
 			u.ID,
@@ -93,16 +103,26 @@ func (s *Store) Create(ctx context.Context, u *User) (err error) {
 			u.UpdatedAt,
 			u.MostRecentLoginAt,
 			u.LessRecentLoginAt,
-			u.IsDisabled,
-			u.DisableReason,
-			u.IsDeactivated,
-			u.DeleteAt,
-			u.IsAnonymized,
-			u.AnonymizeAt,
+
 			stdAttrsBytes,
 			customAttrsBytes,
 			u.RequireReindexAfter,
+			u.LastIndexedAt,
 			u.MFAGracePeriodtEndAt,
+
+			u.isDisabled,
+			u.accountStatusStaleFrom,
+			u.isIndefinitelyDisabled,
+			u.isDeactivated,
+			u.disableReason,
+			u.temporarilyDisabledFrom,
+			u.temporarilyDisabledUntil,
+			u.accountValidFrom,
+			u.accountValidUntil,
+			u.deleteAt,
+			u.anonymizeAt,
+			u.anonymizedAt,
+			u.isAnonymized,
 		)
 
 	_, err = s.SQLExecutor.ExecWith(ctx, builder)
@@ -122,18 +142,27 @@ func (s *Store) selectQuery(alias string) db.SelectBuilder {
 				"updated_at",
 				"login_at",
 				"last_login_at",
-				"is_disabled",
-				"disable_reason",
-				"is_deactivated",
-				"delete_at",
-				"is_anonymized",
-				"anonymize_at",
-				"last_indexed_at",
-				"require_reindex_after",
+
 				"standard_attributes",
 				"custom_attributes",
 				"metadata",
+				"require_reindex_after",
+				"last_indexed_at",
 				"mfa_grace_period_end_at",
+
+				"is_disabled",
+				"account_status_stale_from",
+				"is_indefinitely_disabled",
+				"is_deactivated",
+				"disable_reason",
+				"temporarily_disabled_from",
+				"temporarily_disabled_until",
+				"account_valid_from",
+				"account_valid_until",
+				"delete_at",
+				"anonymize_at",
+				"anonymized_at",
+				"is_anonymized",
 			).
 			From(s.SQLBuilder.TableName("_auth_user"))
 	}
@@ -147,18 +176,27 @@ func (s *Store) selectQuery(alias string) db.SelectBuilder {
 			fieldWithAlias("updated_at"),
 			fieldWithAlias("login_at"),
 			fieldWithAlias("last_login_at"),
-			fieldWithAlias("is_disabled"),
-			fieldWithAlias("disable_reason"),
-			fieldWithAlias("is_deactivated"),
-			fieldWithAlias("delete_at"),
-			fieldWithAlias("is_anonymized"),
-			fieldWithAlias("anonymize_at"),
-			fieldWithAlias("last_indexed_at"),
-			fieldWithAlias("require_reindex_after"),
+
 			fieldWithAlias("standard_attributes"),
 			fieldWithAlias("custom_attributes"),
 			fieldWithAlias("metadata"),
+			fieldWithAlias("require_reindex_after"),
+			fieldWithAlias("last_indexed_at"),
 			fieldWithAlias("mfa_grace_period_end_at"),
+
+			fieldWithAlias("is_disabled"),
+			fieldWithAlias("account_status_stale_from"),
+			fieldWithAlias("is_indefinitely_disabled"),
+			fieldWithAlias("is_deactivated"),
+			fieldWithAlias("disable_reason"),
+			fieldWithAlias("temporarily_disabled_from"),
+			fieldWithAlias("temporarily_disabled_until"),
+			fieldWithAlias("account_valid_from"),
+			fieldWithAlias("account_valid_until"),
+			fieldWithAlias("delete_at"),
+			fieldWithAlias("anonymize_at"),
+			fieldWithAlias("anonymized_at"),
+			fieldWithAlias("is_anonymized"),
 		).
 		From(s.SQLBuilder.TableName("_auth_user"), alias)
 }
@@ -168,7 +206,6 @@ func (s *Store) scan(scn db.Scanner) (*User, error) {
 	var stdAttrsBytes []byte
 	var customAttrsBytes []byte
 	var metadataBytes []byte
-	var isDeactivated sql.NullBool
 
 	if err := scn.Scan(
 		&u.ID,
@@ -176,22 +213,30 @@ func (s *Store) scan(scn db.Scanner) (*User, error) {
 		&u.UpdatedAt,
 		&u.MostRecentLoginAt,
 		&u.LessRecentLoginAt,
-		&u.IsDisabled,
-		&u.DisableReason,
-		&isDeactivated,
-		&u.DeleteAt,
-		&u.IsAnonymized,
-		&u.AnonymizeAt,
-		&u.LastIndexedAt,
-		&u.RequireReindexAfter,
+
 		&stdAttrsBytes,
 		&customAttrsBytes,
 		&metadataBytes,
+		&u.RequireReindexAfter,
+		&u.LastIndexedAt,
 		&u.MFAGracePeriodtEndAt,
+
+		&u.isDisabled,
+		&u.accountStatusStaleFrom,
+		&u.isIndefinitelyDisabled,
+		&u.isDeactivated,
+		&u.disableReason,
+		&u.temporarilyDisabledFrom,
+		&u.temporarilyDisabledUntil,
+		&u.accountValidFrom,
+		&u.accountValidUntil,
+		&u.deleteAt,
+		&u.anonymizeAt,
+		&u.anonymizedAt,
+		&u.isAnonymized,
 	); err != nil {
 		return nil, err
 	}
-	u.IsDeactivated = isDeactivated.Bool
 
 	if len(stdAttrsBytes) > 0 {
 		if err := json.Unmarshal(stdAttrsBytes, &u.StandardAttributes); err != nil {
@@ -360,17 +405,24 @@ func (s *Store) UpdateMFAEnrollment(ctx context.Context, userID string, endAt *t
 	return nil
 }
 
-func (s *Store) UpdateAccountStatus(ctx context.Context, userID string, accountStatus AccountStatus) error {
+func (s *Store) UpdateAccountStatus(ctx context.Context, userID string, accountStatus AccountStatusWithRefTime) error {
 	now := s.Clock.NowUTC()
 
 	builder := s.SQLBuilder.
 		Update(s.SQLBuilder.TableName("_auth_user")).
-		Set("is_disabled", accountStatus.IsDisabled).
-		Set("disable_reason", accountStatus.DisableReason).
-		Set("is_deactivated", accountStatus.IsDeactivated).
-		Set("delete_at", accountStatus.DeleteAt).
-		Set("is_anonymized", accountStatus.IsAnonymized).
-		Set("anonymize_at", accountStatus.AnonymizeAt).
+		Set("is_disabled", accountStatus.accountStatus.isDisabled).
+		Set("account_status_stale_from", accountStatus.accountStatus.accountStatusStaleFrom).
+		Set("is_indefinitely_disabled", accountStatus.accountStatus.isIndefinitelyDisabled).
+		Set("is_deactivated", accountStatus.accountStatus.isDeactivated).
+		Set("disable_reason", accountStatus.accountStatus.disableReason).
+		Set("temporarily_disabled_from", accountStatus.accountStatus.temporarilyDisabledFrom).
+		Set("temporarily_disabled_until", accountStatus.accountStatus.temporarilyDisabledUntil).
+		Set("account_valid_from", accountStatus.accountStatus.accountValidFrom).
+		Set("account_valid_until", accountStatus.accountStatus.accountValidUntil).
+		Set("delete_at", accountStatus.accountStatus.deleteAt).
+		Set("anonymize_at", accountStatus.accountStatus.anonymizeAt).
+		Set("anonymized_at", accountStatus.accountStatus.anonymizedAt).
+		Set("is_anonymized", accountStatus.accountStatus.isAnonymized).
 		Set("updated_at", now).
 		Where("id = ?", userID)
 
@@ -447,14 +499,11 @@ func (s *Store) Delete(ctx context.Context, userID string) error {
 	return nil
 }
 
-func (s *Store) Anonymize(ctx context.Context, userID string) error {
+func (s *Store) SetAllAttributesToNull(ctx context.Context, userID string) error {
 	now := s.Clock.NowUTC()
 
 	builder := s.SQLBuilder.
 		Update(s.SQLBuilder.TableName("_auth_user")).
-		Set("is_disabled", true).
-		Set("is_anonymized", true).
-		Set("anonymized_at", now).
 		Set("standard_attributes", nil).
 		Set("custom_attributes", nil).
 		Set("updated_at", now).

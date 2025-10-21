@@ -35,6 +35,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/facade"
 	"github.com/authgear/authgear-server/pkg/lib/feature/accountanonymization"
 	"github.com/authgear/authgear-server/pkg/lib/feature/accountdeletion"
+	"github.com/authgear/authgear-server/pkg/lib/feature/accountstatus"
 	"github.com/authgear/authgear-server/pkg/lib/feature/customattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	passkey2 "github.com/authgear/authgear-server/pkg/lib/feature/passkey"
@@ -143,6 +144,20 @@ func newAccountDeletionRunner(ctx context.Context, p *deps.BackgroundProvider, c
 	}
 	runnableFactory := accountdeletion.NewRunnableFactory(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, clockClock, ctrl, accountDeletionServiceFactory)
 	runner := accountdeletion.NewRunner(ctx, runnableFactory)
+	return runner
+}
+
+func newAccountStatusRunner(ctx context.Context, p *deps.BackgroundProvider, ctrl *configsource.Controller) *backgroundjob.Runner {
+	pool := p.DatabasePool
+	environmentConfig := p.EnvironmentConfig
+	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
+	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
+	clockClock := _wireSystemClockValue
+	accountStatusServiceFactory := &AccountStatusServiceFactory{
+		BackgroundProvider: p,
+	}
+	runnableFactory := accountstatus.NewRunnableFactory(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, clockClock, ctrl, accountStatusServiceFactory)
+	runner := accountstatus.NewRunner(ctx, runnableFactory)
 	return runner
 }
 
@@ -535,6 +550,7 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		RolesAndGroups:     queries,
+		Clock:              clockClock,
 	}
 	resolverImpl := &event.ResolverImpl{
 		Users: userQueries,
@@ -637,6 +653,7 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 	}
 	userInfoService := &userinfo.UserInfoService{
 		Redis:                 appredisHandle,
+		Clock:                 clockClock,
 		AppID:                 configAppID,
 		UserQueries:           userQueries,
 		RolesAndGroupsQueries: queries,

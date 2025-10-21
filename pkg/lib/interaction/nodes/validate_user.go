@@ -21,7 +21,8 @@ func (e *EdgeValidateUser) Instantiate(goCtx context.Context, ctx *interaction.C
 	}
 
 	var apiError *apierrors.APIError
-	if err := u.AccountStatus().Check(); err != nil {
+	now := ctx.Clock.NowUTC()
+	if err := u.AccountStatus(now).Check(); err != nil {
 		apiError = apierrors.AsAPIError(err)
 	}
 

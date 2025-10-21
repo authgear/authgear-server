@@ -8,6 +8,10 @@ mutation setDisabledStatusMutation($userID: ID!, $isDisabled: Boolean!) {
       deleteAt
       isAnonymized
       anonymizeAt
+      temporarilyDisabledFrom
+      temporarilyDisabledUntil
+      accountValidFrom
+      accountValidUntil
     }
   }
 }

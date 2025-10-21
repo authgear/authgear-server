@@ -645,7 +645,15 @@ var setDisabledStatusInput = graphql.NewInputObject(graphql.InputObjectConfig{
 		},
 		"reason": &graphql.InputObjectFieldConfig{
 			Type:        graphql.String,
-			Description: "Indicate the disable reason; If not provided, the user will be disabled with no reason.",
+			Description: "Indicate the disable reason. If not provided, the user will be disabled with no reason.",
+		},
+		"temporarilyDisabledFrom": &graphql.InputObjectFieldConfig{
+			Type:        graphql.DateTime,
+			Description: "Indicate the start timestamp of the temporarily disabled period. If not provided, the user will be disabled indefinitely. If provided, temporarilyDisabledUntil must also be provided.",
+		},
+		"temporarilyDisabledUntil": &graphql.InputObjectFieldConfig{
+			Type:        graphql.DateTime,
+			Description: "Indicate the end timestamp of the temporarily disabled period. If not provided, the user will be disabled indefinitely. If provided, temporarilyDisabledFrom must also be provided.",
 		},
 	},
 })
@@ -685,10 +693,19 @@ var _ = registerMutationField(
 				reason = &r
 			}
 
+			temporarilyDisabledFrom := graphqlutil.GetDateTimeInUTCFromInput(input, "temporarilyDisabledFrom")
+			temporarilyDisabledUntil := graphqlutil.GetDateTimeInUTCFromInput(input, "temporarilyDisabledUntil")
+
 			ctx := p.Context
 			gqlCtx := GQLContext(ctx)
 
-			err := gqlCtx.UserFacade.SetDisabled(ctx, userID, isDisabled, reason)
+			err := gqlCtx.UserFacade.SetDisabled(ctx, facade.SetDisabledOptions{
+				UserID:                   userID,
+				IsDisabled:               isDisabled,
+				Reason:                   reason,
+				TemporarilyDisabledFrom:  temporarilyDisabledFrom,
+				TemporarilyDisabledUntil: temporarilyDisabledUntil,
+			})
 			if err != nil {
 				return nil, err
 			}
@@ -700,6 +717,228 @@ var _ = registerMutationField(
 					},
 				},
 				IsDisabled: isDisabled,
+			})
+			if err != nil {
+				return nil, err
+			}
+
+			return graphqlutil.NewLazyValue(map[string]interface{}{
+				"user": gqlCtx.Users.Load(ctx, userID),
+			}).Value, nil
+		},
+	},
+)
+
+var setAccountValidFromInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "SetAccountValidFromInput",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"userID": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewNonNull(graphql.ID),
+			Description: "Target user ID.",
+		},
+		"accountValidFrom": &graphql.InputObjectFieldConfig{
+			Type:        graphql.DateTime,
+			Description: "Indicate the start timestamp of the account valid period. The user is disabled when the current time is before it.",
+		},
+	},
+})
+
+var setAccountValidFromPayload = graphql.NewObject(graphql.ObjectConfig{
+	Name: "SetAccountValidFromPayload",
+	Fields: graphql.Fields{
+		"user": &graphql.Field{
+			Type: graphql.NewNonNull(nodeUser),
+		},
+	},
+})
+
+var _ = registerMutationField(
+	"setAccountValidFrom",
+	&graphql.Field{
+		Description: "Set the start timestamp of the account valid period",
+		Type:        graphql.NewNonNull(setAccountValidFromPayload),
+		Args: graphql.FieldConfigArgument{
+			"input": &graphql.ArgumentConfig{
+				Type: graphql.NewNonNull(setAccountValidFromInput),
+			},
+		},
+		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			input := p.Args["input"].(map[string]interface{})
+
+			userNodeID := input["userID"].(string)
+			resolvedNodeID := relay.FromGlobalID(userNodeID)
+			if resolvedNodeID == nil || resolvedNodeID.Type != typeUser {
+				return nil, apierrors.NewInvalid("invalid user ID")
+			}
+			userID := resolvedNodeID.ID
+
+			accountValidFrom := graphqlutil.GetDateTimeInUTCFromInput(input, "accountValidFrom")
+
+			ctx := p.Context
+			gqlCtx := GQLContext(ctx)
+
+			err := gqlCtx.UserFacade.SetAccountValidFrom(ctx, userID, accountValidFrom)
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.Events.DispatchEventOnCommit(ctx, &nonblocking.AdminAPIMutationSetAccountValidFromExecutedEventPayload{
+				UserRef: apimodel.UserRef{
+					Meta: apimodel.Meta{
+						ID: userID,
+					},
+				},
+				AccountValidFrom: accountValidFrom,
+			})
+			if err != nil {
+				return nil, err
+			}
+
+			return graphqlutil.NewLazyValue(map[string]interface{}{
+				"user": gqlCtx.Users.Load(ctx, userID),
+			}).Value, nil
+		},
+	},
+)
+
+var setAccountValidUntilInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "SetAccountValidUntilInput",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"userID": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewNonNull(graphql.ID),
+			Description: "Target user ID.",
+		},
+		"accountValidUntil": &graphql.InputObjectFieldConfig{
+			Type:        graphql.DateTime,
+			Description: "Indicate the end timestamp of the account valid period. The user is disabled when the current time is equal to or after it.",
+		},
+	},
+})
+
+var setAccountValidUntilPayload = graphql.NewObject(graphql.ObjectConfig{
+	Name: "SetAccountValidUntilPayload",
+	Fields: graphql.Fields{
+		"user": &graphql.Field{
+			Type: graphql.NewNonNull(nodeUser),
+		},
+	},
+})
+
+var _ = registerMutationField(
+	"setAccountValidUntil",
+	&graphql.Field{
+		Description: "Set the end timestamp of the account valid period",
+		Type:        graphql.NewNonNull(setAccountValidUntilPayload),
+		Args: graphql.FieldConfigArgument{
+			"input": &graphql.ArgumentConfig{
+				Type: graphql.NewNonNull(setAccountValidUntilInput),
+			},
+		},
+		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			input := p.Args["input"].(map[string]interface{})
+
+			userNodeID := input["userID"].(string)
+			resolvedNodeID := relay.FromGlobalID(userNodeID)
+			if resolvedNodeID == nil || resolvedNodeID.Type != typeUser {
+				return nil, apierrors.NewInvalid("invalid user ID")
+			}
+			userID := resolvedNodeID.ID
+
+			accountValidUntil := graphqlutil.GetDateTimeInUTCFromInput(input, "accountValidUntil")
+
+			ctx := p.Context
+			gqlCtx := GQLContext(ctx)
+
+			err := gqlCtx.UserFacade.SetAccountValidUntil(ctx, userID, accountValidUntil)
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.Events.DispatchEventOnCommit(ctx, &nonblocking.AdminAPIMutationSetAccountValidUntilExecutedEventPayload{
+				UserRef: apimodel.UserRef{
+					Meta: apimodel.Meta{
+						ID: userID,
+					},
+				},
+				AccountValidUntil: accountValidUntil,
+			})
+			if err != nil {
+				return nil, err
+			}
+
+			return graphqlutil.NewLazyValue(map[string]interface{}{
+				"user": gqlCtx.Users.Load(ctx, userID),
+			}).Value, nil
+		},
+	},
+)
+
+var setAccountValidPeriodInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "SetAccountValidPeriodInput",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"userID": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewNonNull(graphql.ID),
+			Description: "Target user ID.",
+		},
+		"accountValidFrom": &graphql.InputObjectFieldConfig{
+			Type:        graphql.DateTime,
+			Description: "Indicate the start timestamp of the account valid period. The user is disabled when the current time is before it.",
+		},
+		"accountValidUntil": &graphql.InputObjectFieldConfig{
+			Type:        graphql.DateTime,
+			Description: "Indicate the end timestamp of the account valid period. The user is disabled when the current time is equal to or after it.",
+		},
+	},
+})
+
+var setAccountValidPeriodPayload = graphql.NewObject(graphql.ObjectConfig{
+	Name: "SetAccountValidPeriodPayload",
+	Fields: graphql.Fields{
+		"user": &graphql.Field{
+			Type: graphql.NewNonNull(nodeUser),
+		},
+	},
+})
+
+var _ = registerMutationField(
+	"setAccountValidPeriod",
+	&graphql.Field{
+		Description: "Set the start timestamp and the end timestamp of the account valid period",
+		Type:        graphql.NewNonNull(setAccountValidPeriodPayload),
+		Args: graphql.FieldConfigArgument{
+			"input": &graphql.ArgumentConfig{
+				Type: graphql.NewNonNull(setAccountValidPeriodInput),
+			},
+		},
+		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			input := p.Args["input"].(map[string]interface{})
+
+			userNodeID := input["userID"].(string)
+			resolvedNodeID := relay.FromGlobalID(userNodeID)
+			if resolvedNodeID == nil || resolvedNodeID.Type != typeUser {
+				return nil, apierrors.NewInvalid("invalid user ID")
+			}
+			userID := resolvedNodeID.ID
+
+			accountValidFrom := graphqlutil.GetDateTimeInUTCFromInput(input, "accountValidFrom")
+			accountValidUntil := graphqlutil.GetDateTimeInUTCFromInput(input, "accountValidUntil")
+
+			ctx := p.Context
+			gqlCtx := GQLContext(ctx)
+
+			err := gqlCtx.UserFacade.SetAccountValidPeriod(ctx, userID, accountValidFrom, accountValidUntil)
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.Events.DispatchEventOnCommit(ctx, &nonblocking.AdminAPIMutationSetAccountValidPeriodExecutedEventPayload{
+				UserRef: apimodel.UserRef{
+					Meta: apimodel.Meta{
+						ID: userID,
+					},
+				},
+				AccountValidFrom:  accountValidFrom,
+				AccountValidUntil: accountValidUntil,
 			})
 			if err != nil {
 				return nil, err

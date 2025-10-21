@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
@@ -76,190 +75,51 @@ func (o SortOption) Apply(builder db.SelectBuilder, after string) db.SelectBuild
 	return q
 }
 
-var InvalidAccountStatusTransition = apierrors.Invalid.WithReason("InvalidAccountStatusTransition")
-
-type AccountStatusType string
-
-const (
-	AccountStatusTypeNormal                         AccountStatusType = "normal"
-	AccountStatusTypeDisabled                       AccountStatusType = "disabled"
-	AccountStatusTypeDeactivated                    AccountStatusType = "deactivated"
-	AccountStatusTypeScheduledDeletionDisabled      AccountStatusType = "scheduled_deletion_disabled"
-	AccountStatusTypeScheduledDeletionDeactivated   AccountStatusType = "scheduled_deletion_deactivated"
-	AccountStatusTypeAnonymized                     AccountStatusType = "anonymized"
-	AccountStatusTypeScheduledAnonymizationDisabled AccountStatusType = "scheduled_anonymization_disabled"
-)
-
-// AccountStatus represents disabled, deactivated, or scheduled deletion state.
-// The zero value means normal.
-type AccountStatus struct {
-	IsDisabled    bool
-	IsDeactivated bool
-	DisableReason *string
-	DeleteAt      *time.Time
-	IsAnonymized  bool
-	AnonymizeAt   *time.Time
-}
-
-func (s AccountStatus) Type() AccountStatusType {
-	if !s.IsDisabled {
-		return AccountStatusTypeNormal
-	}
-	if s.DeleteAt != nil {
-		if s.IsDeactivated {
-			return AccountStatusTypeScheduledDeletionDeactivated
-		}
-		return AccountStatusTypeScheduledDeletionDisabled
-	}
-	if s.IsAnonymized {
-		return AccountStatusTypeAnonymized
-	}
-	if s.AnonymizeAt != nil {
-		return AccountStatusTypeScheduledAnonymizationDisabled
-	}
-	if s.IsDeactivated {
-		return AccountStatusTypeDeactivated
-	}
-	return AccountStatusTypeDisabled
-}
-
-func (s AccountStatus) Check() error {
-	// This method must be in sync with IsAccountStatusError.
-	typ := s.Type()
-	switch typ {
-	case AccountStatusTypeNormal:
-		return nil
-	case AccountStatusTypeDisabled:
-		return NewErrDisabledUser(s.DisableReason)
-	case AccountStatusTypeDeactivated:
-		return ErrDeactivatedUser
-	case AccountStatusTypeAnonymized:
-		return ErrAnonymizedUser
-	case AccountStatusTypeScheduledDeletionDisabled:
-		return NewErrScheduledDeletionByAdmin(*s.DeleteAt)
-	case AccountStatusTypeScheduledDeletionDeactivated:
-		return NewErrScheduledDeletionByEndUser(*s.DeleteAt)
-	case AccountStatusTypeScheduledAnonymizationDisabled:
-		return NewErrScheduledAnonymizationByAdmin(*s.AnonymizeAt)
-	default:
-		panic(fmt.Errorf("unknown account status type: %v", typ))
-	}
-}
-
-func (s AccountStatus) Reenable() (*AccountStatus, error) {
-	target := AccountStatus{}
-	if s.Type() == AccountStatusTypeDisabled {
-		return &target, nil
-	}
-	return nil, s.makeTransitionError(target.Type())
-}
-
-func (s AccountStatus) Disable(reason *string) (*AccountStatus, error) {
-	target := AccountStatus{
-		IsDisabled:    true,
-		DisableReason: reason,
-	}
-	if s.Type() == AccountStatusTypeNormal {
-		return &target, nil
-	}
-	return nil, s.makeTransitionError(target.Type())
-}
-
-func (s AccountStatus) ScheduleDeletionByEndUser(deleteAt time.Time) (*AccountStatus, error) {
-	target := AccountStatus{
-		IsDisabled:    true,
-		IsDeactivated: true,
-		DeleteAt:      &deleteAt,
-	}
-	if s.Type() != AccountStatusTypeNormal {
-		return nil, s.makeTransitionError(target.Type())
-	}
-	return &target, nil
-}
-
-func (s AccountStatus) ScheduleDeletionByAdmin(deleteAt time.Time) (*AccountStatus, error) {
-	target := AccountStatus{
-		IsDisabled:   true,
-		IsAnonymized: s.IsAnonymized,
-		DeleteAt:     &deleteAt,
-	}
-	if s.DeleteAt != nil {
-		return nil, s.makeTransitionError(target.Type())
-	}
-	return &target, nil
-}
-
-func (s AccountStatus) UnscheduleDeletionByAdmin() (*AccountStatus, error) {
-	target := AccountStatus{
-		IsDisabled:   s.IsAnonymized,
-		IsAnonymized: s.IsAnonymized,
-		DeleteAt:     nil,
-	}
-	if s.DeleteAt == nil {
-		return nil, s.makeTransitionError(target.Type())
-	}
-	return &target, nil
-}
-
-func (s AccountStatus) Anonymize() (*AccountStatus, error) {
-	target := AccountStatus{
-		IsDisabled:   true,
-		IsAnonymized: true,
-		AnonymizeAt:  s.AnonymizeAt,
-	}
-	if s.Type() == AccountStatusTypeNormal {
-		return &target, nil
-	}
-	return nil, s.makeTransitionError(target.Type())
-}
-
-func (s AccountStatus) ScheduleAnonymizationByAdmin(anonymizeAt time.Time) (*AccountStatus, error) {
-	target := AccountStatus{
-		IsDisabled:  true,
-		AnonymizeAt: &anonymizeAt,
-	}
-	if s.AnonymizeAt != nil {
-		return nil, s.makeTransitionError(target.Type())
-	}
-	return &target, nil
-}
-
-func (s AccountStatus) UnscheduleAnonymizationByAdmin() (*AccountStatus, error) {
-	var target AccountStatus
-	if s.AnonymizeAt == nil {
-		return nil, s.makeTransitionError(target.Type())
-	}
-	return &target, nil
-}
-
-func (s AccountStatus) makeTransitionError(targetType AccountStatusType) error {
-	return InvalidAccountStatusTransition.NewWithInfo(
-		fmt.Sprintf("invalid account status transition: %v -> %v", s.Type(), targetType),
-		map[string]interface{}{
-			"from": s.Type(),
-			"to":   targetType,
-		},
-	)
-}
-
 type User struct {
 	ID                   string
 	CreatedAt            time.Time
 	UpdatedAt            time.Time
 	MostRecentLoginAt    *time.Time
 	LessRecentLoginAt    *time.Time
-	IsDisabled           bool
-	DisableReason        *string
-	IsDeactivated        bool
-	DeleteAt             *time.Time
-	IsAnonymized         bool
-	AnonymizeAt          *time.Time
 	StandardAttributes   map[string]interface{}
 	CustomAttributes     map[string]interface{}
 	LastIndexedAt        *time.Time
 	RequireReindexAfter  *time.Time
 	MFAGracePeriodtEndAt *time.Time
 	OptOutPasskeyUpsell  bool
+
+	// Account Status columns
+	//
+	// isDisabled tells if the account is disabled for whatever reason.
+	isDisabled bool
+	// accountStatusStaleFrom tells if IsDisabled is accurate.
+	// If accountStatusStaleFrom is null, then IsDisabled is accurate.
+	// If now < accountStatusStaleFrom, then IsDisabled is accurate, else IsDisabled is stale.
+	accountStatusStaleFrom *time.Time
+	// isIndefinitelyDisabled tells if the account is disabled indefinitely.
+	// If isIndefinitelyDisabled is nullable, then an algorithm is used to set it to non-null.
+	isIndefinitelyDisabled *bool
+	// isDeactivated tells if the account is disabled via Admin API, or is disabled by the end-user.
+	// If isDeactivated is true, then the account is disabled by the end-user.
+	isDeactivated *bool
+	// disableReason is an optional string to specify the reason.
+	// It can be specified via Admin API.
+	disableReason *string
+	// temporarilyDisabledFrom and TemporarilyDisabledUntil forms a temporarily disabled period.
+	// Temporarily Disabled is mutually exclusive with Indefinitely Disabled.
+	temporarilyDisabledFrom  *time.Time
+	temporarilyDisabledUntil *time.Time
+	// accountValidFrom and AccountValidUntil forms account valid period.
+	accountValidFrom  *time.Time
+	accountValidUntil *time.Time
+	// deleteAt is the scheduled time when the account will be deleted.
+	deleteAt *time.Time
+	// anonymizeAt is the scheduled time when the account will be anonymized.
+	anonymizeAt *time.Time
+	// anonymizedAt is the actual time when the account was anonymized.
+	anonymizedAt *time.Time
+	// isAnonymized tells if the account is anonymized.
+	isAnonymized *bool
 }
 
 func (u *User) GetMeta() model.Meta {
@@ -276,19 +136,27 @@ func (u *User) ToRef() *model.UserRef {
 	}
 }
 
-func (u *User) AccountStatus() AccountStatus {
+func (u *User) AccountStatus(refTime time.Time) AccountStatusWithRefTime {
 	return AccountStatus{
-		IsDisabled:    u.IsDisabled,
-		DisableReason: u.DisableReason,
-		IsDeactivated: u.IsDeactivated,
-		DeleteAt:      u.DeleteAt,
-		IsAnonymized:  u.IsAnonymized,
-		AnonymizeAt:   u.AnonymizeAt,
-	}
+		isDisabled:               u.isDisabled,
+		accountStatusStaleFrom:   u.accountStatusStaleFrom,
+		isIndefinitelyDisabled:   u.isIndefinitelyDisabled,
+		isDeactivated:            u.isDeactivated,
+		disableReason:            u.disableReason,
+		temporarilyDisabledFrom:  u.temporarilyDisabledFrom,
+		temporarilyDisabledUntil: u.temporarilyDisabledUntil,
+		accountValidFrom:         u.accountValidFrom,
+		accountValidUntil:        u.accountValidUntil,
+		deleteAt:                 u.deleteAt,
+		anonymizeAt:              u.anonymizeAt,
+		anonymizedAt:             u.anonymizedAt,
+		isAnonymized:             u.isAnonymized,
+	}.WithRefTime(refTime)
 }
 
 func newUserModel(
 	user *User,
+	refTime time.Time,
 	identities []*identity.Info,
 	authenticators []*authenticator.Info,
 	isVerified bool,
@@ -328,21 +196,30 @@ func newUserModel(
 		}
 	}
 
+	accountStatus := user.AccountStatus(refTime)
+
 	return &model.User{
 		Meta: model.Meta{
 			ID:        user.ID,
 			CreatedAt: user.CreatedAt,
 			UpdatedAt: user.UpdatedAt,
 		},
-		LastLoginAt:        user.MostRecentLoginAt,
-		IsAnonymous:        isAnonymous,
-		IsVerified:         isVerified,
-		IsDisabled:         user.IsDisabled,
-		DisableReason:      user.DisableReason,
-		IsDeactivated:      user.IsDeactivated,
-		DeleteAt:           user.DeleteAt,
-		IsAnonymized:       user.IsAnonymized,
-		AnonymizeAt:        user.AnonymizeAt,
+		LastLoginAt: user.MostRecentLoginAt,
+		IsAnonymous: isAnonymous,
+		IsVerified:  isVerified,
+
+		IsDisabled:               accountStatus.IsDisabled(),
+		DisableReason:            accountStatus.DisableReason(),
+		IsDeactivated:            accountStatus.IsDeactivated(),
+		DeleteAt:                 accountStatus.DeleteAt(),
+		IsAnonymized:             accountStatus.IsAnonymized(),
+		AnonymizeAt:              accountStatus.AnonymizeAt(),
+		TemporarilyDisabledFrom:  accountStatus.TemporarilyDisabledFrom(),
+		TemporarilyDisabledUntil: accountStatus.TemporarilyDisabledUntil(),
+		AccountValidFrom:         accountStatus.AccountValidFrom(),
+		AccountValidUntil:        accountStatus.AccountValidUntil(),
+		AccountStatusStaleFrom:   accountStatus.AccountStatusStaleFrom(),
+
 		CanReauthenticate:  canReauthenticate,
 		StandardAttributes: derivedStandardAttributes,
 		CustomAttributes:   customAttributes,

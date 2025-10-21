@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
@@ -31,6 +32,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/setutil"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
@@ -112,7 +114,7 @@ type UserQueries interface {
 
 type UserCommands interface {
 	Create(ctx context.Context, userID string) (*user.User, error)
-	UpdateAccountStatus(ctx context.Context, userID string, accountStatus user.AccountStatus) error
+	UpdateAccountStatus(ctx context.Context, userID string, accountStatus user.AccountStatusWithRefTime) error
 	UpdateMFAEnrollment(ctx context.Context, userID string, gracePeriodEndAt *time.Time) error
 	Delete(ctx context.Context, userID string) error
 	Anonymize(ctx context.Context, userID string) error
@@ -150,6 +152,8 @@ type StdAttrsService interface {
 
 type IDPSessionManager SessionManager
 type OAuthSessionManager SessionManager
+
+var CoordinatorLogger = slogutil.NewLogger("coordinator")
 
 // Coordinator represents interaction between identities, authenticators, and
 // other high-level features (such as verification).
@@ -1048,7 +1052,8 @@ func (c *Coordinator) UserReenable(ctx context.Context, userID string) error {
 		return err
 	}
 
-	accountStatus, err := u.AccountStatus().Reenable()
+	now := c.Clock.NowUTC()
+	accountStatus, err := u.AccountStatus(now).Reenable()
 	if err != nil {
 		return err
 	}
@@ -1074,13 +1079,77 @@ func (c *Coordinator) UserReenable(ctx context.Context, userID string) error {
 	return nil
 }
 
-func (c *Coordinator) UserDisable(ctx context.Context, userID string, reason *string) error {
+type SetDisabledOptions struct {
+	UserID                   string
+	IsDisabled               bool
+	Reason                   *string
+	TemporarilyDisabledFrom  *time.Time
+	TemporarilyDisabledUntil *time.Time
+}
+
+func (c *Coordinator) UserDisable(ctx context.Context, options SetDisabledOptions) error {
+	u, err := c.UserQueries.GetRaw(ctx, options.UserID)
+	if err != nil {
+		return err
+	}
+
+	now := c.Clock.NowUTC()
+
+	var accountStatus *user.AccountStatusWithRefTime
+	if options.TemporarilyDisabledFrom != nil || options.TemporarilyDisabledUntil != nil {
+		accountStatus, err = u.AccountStatus(now).DisableTemporarily(
+			options.TemporarilyDisabledFrom,
+			options.TemporarilyDisabledUntil,
+			options.Reason,
+		)
+	} else {
+		accountStatus, err = u.AccountStatus(now).DisableIndefinitely(options.Reason)
+	}
+	if err != nil {
+		return err
+	}
+
+	err = c.UserCommands.UpdateAccountStatus(ctx, options.UserID, *accountStatus)
+	if err != nil {
+		return err
+	}
+
+	// If the account is disabled now, terminate all sessions.
+	if accountStatus.IsDisabled() {
+		err = c.terminateAllSessions(ctx, options.UserID)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Always fire this event, even the account is not considered as disabled now.
+	e := &nonblocking.UserDisabledEventPayload{
+		UserRef: model.UserRef{
+			Meta: model.Meta{
+				ID: options.UserID,
+			},
+		},
+		TemporarilyDisabledFrom:  options.TemporarilyDisabledFrom,
+		TemporarilyDisabledUntil: options.TemporarilyDisabledUntil,
+	}
+
+	err = c.Events.DispatchEventOnCommit(ctx, e)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Coordinator) UserSetAccountValidFrom(ctx context.Context, userID string, from *time.Time) error {
 	u, err := c.UserQueries.GetRaw(ctx, userID)
 	if err != nil {
 		return err
 	}
 
-	accountStatus, err := u.AccountStatus().Disable(reason)
+	now := c.Clock.NowUTC()
+
+	accountStatus, err := u.AccountStatus(now).SetAccountValidFrom(from)
 	if err != nil {
 		return err
 	}
@@ -1090,22 +1159,70 @@ func (c *Coordinator) UserDisable(ctx context.Context, userID string, reason *st
 		return err
 	}
 
-	err = c.terminateAllSessions(ctx, userID)
+	// If the account is disabled now, terminate all sessions.
+	if accountStatus.IsDisabled() {
+		err = c.terminateAllSessions(ctx, userID)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (c *Coordinator) UserSetAccountValidUntil(ctx context.Context, userID string, until *time.Time) error {
+	u, err := c.UserQueries.GetRaw(ctx, userID)
 	if err != nil {
 		return err
 	}
 
-	e := &nonblocking.UserDisabledEventPayload{
-		UserRef: model.UserRef{
-			Meta: model.Meta{
-				ID: userID,
-			},
-		},
-	}
+	now := c.Clock.NowUTC()
 
-	err = c.Events.DispatchEventOnCommit(ctx, e)
+	accountStatus, err := u.AccountStatus(now).SetAccountValidUntil(until)
 	if err != nil {
 		return err
+	}
+
+	err = c.UserCommands.UpdateAccountStatus(ctx, userID, *accountStatus)
+	if err != nil {
+		return err
+	}
+
+	// If the account is disabled now, terminate all sessions.
+	if accountStatus.IsDisabled() {
+		err = c.terminateAllSessions(ctx, userID)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (c *Coordinator) UserSetAccountValidPeriod(ctx context.Context, userID string, from *time.Time, until *time.Time) error {
+	u, err := c.UserQueries.GetRaw(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	now := c.Clock.NowUTC()
+
+	accountStatus, err := u.AccountStatus(now).SetAccountValidPeriod(from, until)
+	if err != nil {
+		return err
+	}
+
+	err = c.UserCommands.UpdateAccountStatus(ctx, userID, *accountStatus)
+	if err != nil {
+		return err
+	}
+
+	// If the account is disabled now, terminate all sessions.
+	if accountStatus.IsDisabled() {
+		err = c.terminateAllSessions(ctx, userID)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -1128,11 +1245,11 @@ func (c *Coordinator) userScheduleDeletion(ctx context.Context, userID string, b
 	now := c.Clock.NowUTC()
 	deleteAt := now.Add(c.AccountDeletionConfig.GracePeriod.Duration())
 
-	var accountStatus *user.AccountStatus
+	var accountStatus *user.AccountStatusWithRefTime
 	if byAdmin {
-		accountStatus, err = u.AccountStatus().ScheduleDeletionByAdmin(deleteAt)
+		accountStatus, err = u.AccountStatus(now).ScheduleDeletionByAdmin(deleteAt)
 	} else {
-		accountStatus, err = u.AccountStatus().ScheduleDeletionByEndUser(deleteAt)
+		accountStatus, err = u.AccountStatus(now).ScheduleDeletionByEndUser(deleteAt)
 	}
 	if err != nil {
 		return err
@@ -1181,7 +1298,8 @@ func (c *Coordinator) UserUnscheduleDeletionByAdmin(ctx context.Context, userID 
 		return err
 	}
 
-	accountStatus, err := u.AccountStatus().UnscheduleDeletionByAdmin()
+	now := c.Clock.NowUTC()
+	accountStatus, err := u.AccountStatus(now).UnscheduleDeletionByAdmin()
 	if err != nil {
 		return err
 	}
@@ -1303,9 +1421,9 @@ func (c *Coordinator) userScheduleAnonymization(ctx context.Context, userID stri
 	now := c.Clock.NowUTC()
 	anonymizeAt := now.Add(c.AccountAnonymizationConfig.GracePeriod.Duration())
 
-	var accountStatus *user.AccountStatus
+	var accountStatus *user.AccountStatusWithRefTime
 	if byAdmin {
-		accountStatus, err = u.AccountStatus().ScheduleAnonymizationByAdmin(anonymizeAt)
+		accountStatus, err = u.AccountStatus(now).ScheduleAnonymizationByAdmin(anonymizeAt)
 	} else {
 		err = errors.New("not implemented")
 	}
@@ -1356,7 +1474,8 @@ func (c *Coordinator) UserUnscheduleAnonymizationByAdmin(ctx context.Context, us
 		return err
 	}
 
-	accountStatus, err := u.AccountStatus().UnscheduleAnonymizationByAdmin()
+	now := c.Clock.NowUTC()
+	accountStatus, err := u.AccountStatus(now).UnscheduleAnonymizationByAdmin()
 	if err != nil {
 		return err
 	}
@@ -1389,8 +1508,37 @@ func (c *Coordinator) UserCheckAnonymized(ctx context.Context, userID string) er
 		return err
 	}
 
-	if u.IsAnonymized {
+	now := c.Clock.NowUTC()
+	if u.AccountStatus(now).IsAnonymized() {
 		return ErrUserIsAnonymized
+	}
+
+	return nil
+}
+
+func (c *Coordinator) UserRefreshAccountStatus(ctx context.Context, userID string) error {
+	logger := CoordinatorLogger.GetLogger(ctx).With(slog.String("user_id", userID))
+
+	u, err := c.UserQueries.GetRaw(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	now := c.Clock.NowUTC()
+	accountStatus := u.AccountStatus(now)
+
+	logger.Info(ctx, "refreshing account status")
+	err = c.UserCommands.UpdateAccountStatus(ctx, userID, accountStatus)
+	if err != nil {
+		return err
+	}
+
+	if accountStatus.IsDisabled() {
+		logger.Info(ctx, "terminating all sessions during refreshing account status")
+		err := c.terminateAllSessions(ctx, userID)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

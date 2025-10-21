@@ -45,6 +45,43 @@ func MatchAuthflowOutput(output Output, flowResult *authflowclient.FlowResponse,
 	return errorViolations, resultViolations, nil
 }
 
+func MatchUserImportOutput(output AdminAPIUserImportOutput, userImportResult *authflowclient.UserImportResponseResult, userImportError error) (resultViolations []MatchViolation, errorViolations []MatchViolation, err error) {
+	if output.Result != "" {
+		if userImportResult == nil {
+			return nil, nil, fmt.Errorf("expected user import result, got nil")
+		}
+
+		userImportResultJSON, err := json.Marshal(userImportResult)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to marshal user import result: %w", err)
+		}
+
+		resultViolations, err = MatchJSON(string(userImportResultJSON), output.Result)
+		if err != nil {
+			return nil, nil, err
+		}
+	}
+
+	if output.Error != "" {
+		if userImportError == nil {
+			return nil, nil, fmt.Errorf("expected user import error, got nil")
+		}
+
+		apiError := apierrors.AsAPIError(userImportError)
+		apiErrorJSON, err := json.Marshal(&apiError)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to marshal API error: %w", err)
+		}
+
+		errorViolations, err = MatchJSON(string(apiErrorJSON), output.Error)
+		if err != nil {
+			return nil, nil, err
+		}
+	}
+
+	return errorViolations, resultViolations, nil
+}
+
 func MatchAdminAPIOutput(output AdminAPIOutput, resp *authflowclient.GraphQLResponse) (violations []MatchViolation, err error) {
 	if output.Result != "" {
 		if resp == nil {
