@@ -1,55 +1,65 @@
-- [User Model](#user-model)
+* [User Model](#user-model)
   * [User](#user)
   * [Identity](#identity)
-    + [Identity Attributes](#identity-attributes)
-    + [OAuth Identity](#oauth-identity)
-    + [WebAuthn Identity](#webauthn-identity)
-    + [Anonymous Identity](#anonymous-identity)
-      - [Anonymous Identity JWT](#anonymous-identity-jwt)
-      - [Anonymous Identity JWT headers](#anonymous-identity-jwt-headers)
-      - [Anonymous Identity JWT payload](#anonymous-identity-jwt-payload)
-      - [Anonymous Identity Promotion](#anonymous-identity-promotion)
-    + [Biometric Identity](#biometric-identity)
-      - [Biometric Identity JWT](#biometric-identity-jwt)
-      - [Biometric Identity JWT headers](#biometric-identity-jwt-headers)
-      - [Biometric Identity JWT payload](#biometric-identity-jwt-payload)
-    + [Login ID Identity](#login-id-identity)
-      - [Login ID Key](#login-id-key)
-      - [Login ID Type](#login-id-type)
+    * [Identity attributes](#identity-attributes)
+    * [OAuth Identity](#oauth-identity)
+    * [WebAuthn Identity](#webauthn-identity)
+    * [Anonymous Identity](#anonymous-identity)
+      * [Anonymous Identity JWT](#anonymous-identity-jwt)
+      * [Anonymous Identity JWT headers](#anonymous-identity-jwt-headers)
+      * [Anonymous Identity JWT payload](#anonymous-identity-jwt-payload)
+      * [Anonymous Identity Promotion](#anonymous-identity-promotion)
+    * [Biometric Identity](#biometric-identity)
+      * [Biometric Identity JWT](#biometric-identity-jwt)
+      * [Biometric Identity JWT headers](#biometric-identity-jwt-headers)
+      * [Biometric Identity JWT payload](#biometric-identity-jwt-payload)
+    * [Login ID Identity](#login-id-identity)
+      * [Login ID Key](#login-id-key)
+      * [Login ID Type](#login-id-type)
         * [Email Login ID](#email-login-id)
-          + [Validation of Email Login ID](#validation-of-email-login-id)
-          + [Normalization of Email Login ID](#normalization-of-email-login-id)
-          + [Unique key generation of Email Login ID](#unique-key-generation-of-email-login-id)
+          * [Validation of Email Login ID](#validation-of-email-login-id)
+          * [Normalization of Email Login ID](#normalization-of-email-login-id)
+          * [Unique key generation of Email Login ID](#unique-key-generation-of-email-login-id)
         * [Username Login ID](#username-login-id)
-          + [Validation of Username Login ID](#validation-of-username-login-id)
-          + [Normalization of Username Login ID](#normalization-of-username-login-id)
-          + [Unique key generation of Username Login ID](#unique-key-generation-of-username-login-id)
+          * [Validation of Username Login ID](#validation-of-username-login-id)
+          * [Normalization of Username Login ID](#normalization-of-username-login-id)
+          * [Unique key generation of Username Login ID](#unique-key-generation-of-username-login-id)
         * [Phone Login ID](#phone-login-id)
-          + [Validation of Phone Login ID](#validation-of-phone-login-id)
-          + [Normalization of Phone Login ID](#normalization-of-phone-login-id)
-          + [Unique key generation of Phone Login ID](#unique-key-generation-of-phone-login-id)
-      - [Optional Login ID Key during authentication](#optional-login-id-key-during-authentication)
-      - [The purpose of unique key](#the-purpose-of-unique-key)
+          * [Validation of Phone Login ID](#validation-of-phone-login-id)
+          * [Normalization of Phone Login ID](#normalization-of-phone-login-id)
+          * [Unique key generation of Phone Login ID](#unique-key-generation-of-phone-login-id)
+      * [Optional Login ID Key during authentication](#optional-login-id-key-during-authentication)
+      * [The purpose of unique key](#the-purpose-of-unique-key)
   * [Authenticator](#authenticator)
-    + [Primary Authenticator](#primary-authenticator)
-    + [Secondary Authenticator](#secondary-authenticator)
-    + [Authenticator Types](#authenticator-types)
-      - [Password Authenticator](#password-authenticator)
-      - [WebAuthn Authenticator](#webauthn-authenticator)
-      - [TOTP Authenticator](#totp-authenticator)
-      - [OOB-OTP Authenticator](#oob-otp-authenticator)
-        - [Login Link](#login-link)
-    + [Skip verification](#skip-verification)
-    + [Device Token](#device-token)
-    + [Recovery Code](#recovery-code)
+    * [Primary Authenticator](#primary-authenticator)
+    * [Secondary Authenticator](#secondary-authenticator)
+    * [Authenticator Types](#authenticator-types)
+      * [Password Authenticator](#password-authenticator)
+      * [WebAuthn Authenticator](#webauthn-authenticator)
+      * [TOTP Authenticator](#totp-authenticator)
+      * [OOB\-OTP Authenticator](#oob-otp-authenticator)
+        * [Login Link](#login-link)
+    * [Device Token](#device-token)
+    * [Recovery Code](#recovery-code)
   * [Deleting a user](#deleting-a-user)
   * [Anonymizing a user](#anonymizing-a-user)
   * [Cached data of deleted or anonymized users](#cached-data-of-deleted-or-anonymized-users)
-  * [Disabled user, deactivated user, anonymized user, scheduled account deletion and scheduled account anonymization](#disabled-user-deactivated-user-anonymized-user-scheduled-account-deletion-and-scheduled-account-anonymization)
-    + [Disabled user](#disabled-user)
-    + [Deactivated user](#deactivated-user)
-    + [Scheduled account deletion or anonymization](#scheduled-account-deletion-or-anonymization)
-    + [Sessions](#sessions)
+  * [Account Status](#account-status)
+    * [Account Status table](#account-status-table)
+    * [Account status valid state transitions](#account-status-valid-state-transitions)
+    * [Account status detailed rules](#account-status-detailed-rules)
+    * [Indefinitely Disabled](#indefinitely-disabled)
+    * [Scheduled account deletion or anonymization](#scheduled-account-deletion-or-anonymization)
+    * [Account Status Use case 1: Join](#account-status-use-case-1-join)
+    * [Account Status Use case 2: Leave](#account-status-use-case-2-leave)
+    * [Account Status Use case 3: Join and Leave](#account-status-use-case-3-join-and-leave)
+    * [Account Status Use case 4: Disable an account for a specific amount of time](#account-status-use-case-4-disable-an-account-for-a-specific-amount-of-time)
+    * [Account Status use case 5: Combination of Use case 3 and Use case 4](#account-status-use-case-5-combination-of-use-case-3-and-use-case-4)
+    * [Changes on Admin API](#changes-on-admin-api)
+    * [Changes on the models seen in Hooks](#changes-on-the-models-seen-in-hooks)
+    * [Changes on user import](#changes-on-user-import)
+    * [Sessions](#sessions)
+    * [Configuration](#configuration)
 
 # User Model
 
@@ -448,57 +458,123 @@ Some internal data may still present in cache (Redis), such as OAuth states,
 MFA device tokens, rate limit counter. There data will remain in the cache
 until its natural expiry.
 
-## Disabled user, deactivated user, anonymized user, scheduled account deletion and scheduled account anonymization
+## Account Status
 
-This section specifies the feature of disabled user, deactivated user, anonymized user,
-scheduled account deletion and scheduled account anonymization.
+This section specifies Account Status, which includes the following:
 
-There are 6 attributes to represent the state of these features, summarized in the following table.
+- Anonymized
+- Scheduled deletion by admin
+- Scheduled deletion by end-user
+- Scheduled anonymization by admin
+- Indefinitely Disabled
+- Temporarily Disabled
+- Account valid period
 
-|is\_disabled|is\_deactivated|is_anonymized|delete\_at|anonymize_at|anonymized_at|state|
-|---|---|---|---|---|---|---|
-|false|false|false|null|null|null|Normal|
-|true|false|false|null|null|null|Disabled|
-|true|true|false|null|null|null|Deactivated|
-|true|false|false|non-null|null|null|Scheduled deletion by admin|
-|true|true|false|non-null|null|null|Scheduled deletion by end-user|
-|true|false|false|null|non-null|null|Scheduled anonymization by admin|
-|true|true|false|null|non-null|null|Scheduled anonymization by end-user|
-|true|any|true|null|any|non-null|Anonymized|
+### Account Status table
 
-List of valid state transitions:
+The following table summarizes the Account status database columns:
 
-- Normal --[Disable]--> Disabled
-- Normal --[Deactivate]--> Deactivated
+| Account Status                   | is_disabled | is_indefinitely_disabled | is_deactivated | is_anonymized | delete_at | anonymize_at | anonymized_at | account_valid_from | account_valid_until | temporarily_disabled_from | temporarily_disabled_until |
+|----------------------------------|-------------|--------------------------|----------------|---------------|-----------|--------------|---------------|--------------------|---------------------|---------------------------|----------------------------|
+| Normal                           | false       | false                    | false          | false         | null      | null         | null          | null               | null                | null                      | null                       |
+| Outside valid period             | true        | false                    | false          | false         | null      | null         | null          | non-null           | any                 | any                       | any                        |
+| Outside valid period             | true        | false                    | false          | false         | null      | null         | null          | any                | non-null            | any                       | any                        |
+| Temporarily Disabled             | true        | false                    | false          | false         | null      | null         | null          | any                | any                 | non-null                  | non-null                   |
+| Indefinitely Disabled            | true        | true                     | false          | false         | null      | null         | null          | any                | any                 | null                      | null                       |
+| Scheduled anonymization by admin | true        | true                     | false          | false         | null      | non-null     | null          | any                | any                 | null                      | null                       |
+| Scheduled deletion by user       | true        | true                     | true           | false         | non-null  | null         | null          | any                | any                 | null                      | null                       |
+| Scheduled deletion by admin      | true        | true                     | false          | false         | non-null  | null         | null          | any                | any                 | null                      | null                       |
+| Anonymized                       | true        | true                     | any            | true          | null      | any          | non-null      | any                | any                 | null                      | null                       |
+
+> [!IMPORTANT]
+> `is_indefinitely_disabled` is a new nullable column that was introduced along with `account_valid_from`, `account_valid_until`, `temporarily_disabled_from`, and `temporarily_disabled_until`.
+>
+> Before the introduction, `is_disabled` meant the account was disabled due to some operation, and the only way to disable an account is by some operation.
+>
+> After the introduction, `is_indefinitely_disabled` means the account was disabled due to some operation.
+> `is_disabled` simply means the account was disabled, either by some operation, or by some condition.
+>
+> As such, when
+> - `is_indefinitely_disabled=NULL`
+> - `account_valid_from=NULL`
+> - `account_valid_until=NULL`
+> - `temporarily_disabled_from=NULL`
+> - `temporarily_disabled_until=NULL`
+> Then `is_indefinitely_disabled=is_disabled` is assumed.
+
+> [!IMPORTANT]
+> Since `is_disabled` is now a derived state, a new nullable column `account_status_stale_from` was introduced to indicate
+> whether the account status is non-stale.
+> When `account_status_stale_from` is null, then the account status is non-stale. This means `is_disabled` is accurate.
+> Otherwise, `is_disabled` is accurate if the current time is less than `account_status_stale_from`.
+>
+> The algorithm is set `account_status_stale_from` is as follows:
+> 1. Let A be an array containing non-null values of `account_valid_from`, `account_valid_until`, `temporarily_disabled_from`, and `temporarily_disabled_until`.
+> 2. Sort A in chronological order.
+> 3. If A is empty, set `account_status_stale_from` to NULL and exit.
+> 4. Let NOW be the current timestamp.
+> 5. Let FIRST be the first element in A that is larger than NOW.
+> 6. If FIRST is found, set `account_status_stale_from` to FIRST and exit.
+> 7. Set `account_status_stale_from` to NULL and exit.
+>
+> This algorithm **MUST BE** run along with the derivation of `is_disabled`, and every state transition of account status.
+
+### Account status valid state transitions
+
+Here is the list of valid state transitions:
+
+- Normal --[Disable Indefinitely]--> Indefinitely Disabled
+- Normal --[Disable Temporarily]--> Temporarily Disabled
 - Normal --[Schedule deletion by admin]--> Scheduled deletion by admin
 - Normal --[Schedule deletion by end-user]--> Scheduled deletion by end-user
-- Disabled --[Re-enable]--> Normal
-- Deactivated --[Reactivate]--> Normal
-- Deactivated --[Re-enable]--> Normal
+- Normal --[Schedule anonymization by admin]--> Scheduled anonymization by admin
+- Indefinitely Disabled --[Re-enable]--> Normal
+- Indefinitely Disabled --[Disable Temporarily]--> Temporarily Disabled
+- Temporarily Disabled --[Re-enable]--> Normal
+- Temporarily Disabled --[Disable Indefinitely]--> Indefinitely Disabled
 - Scheduled deletion by admin --[Unschedule deletion]--> Normal
 - Scheduled deletion by end-user --[Unschedule deletion]--> Normal
-- Normal --[Schedule anonymization by admin]--> Scheduled anonymization by admin
-- Normal --[Schedule anonymization by end-user]--> Scheduled anonymization by end-user
 - Scheduled anonymization by admin --[Unschedule anonymization]--> Normal
-- Scheduled anonymization by end-user --[Unschedule anonymization]--> Normal
+- Any --[Anonymize immediately]--> Anonymized
+- When the account status is **NOT** Anonymized, then the following is possible:
+  - Set account valid period
+  - Unset account valid period
 
-### Disabled user
+### Account status detailed rules
 
-A user can be disabled by admins. A disabled user cannot sign in, and appropriate
-error message will be shown when login is attempted.
+When multiple account status interpretations are possible, only one account status is reported. The precedence is as follows:
 
-Admin may optionally provide a reason when disabling a user. This reason will be
-shown when the user attempted to sign in.
+- Anonymized: This is the 1st one because it will never be shown to end-user. An anonymized account cannot be identified.
+- Outside valid period: Otherwise if the account is outside valid period, then it should be shown to end-user.
+- Scheduled deletion by admin: Otherwise tell the end-user the account is scheduled for deletion.
+- Scheduled deletion by end-user: Otherwise tell the end-user the account is scheduled for deletion.
+- Scheduled anonymization by admin: Otherwise tell the end-user the account is scheduled for anonymization.
+- Indefinitely Disabled: Otherwise tell the end-user the account is disabled.
+- Temporarily Disabled: Otherwise tell the end-user the account is disabled.
+- Normal
 
-When a disabled user attempts to sign in, the user will be informed of disabled
-status only after performing the whole authentication process, including MFA if required.
+For example, if the account is temporarily disabled from `2025-10-01` until `2025-10-07`, and the account is also indefinitely disabled on `2025-10-03`.
+If today is `2025-10-04`, the account status is reported as Indefinitely Disabled.
 
-### Deactivated user
+`account_valid_from` and `account_valid_until` can set individually or together. Refer to use case 1, use case 2, and use case 3.
 
-The end-user can deactivate their account. A deactivated user is considered as disabled.
-When a deactivated user signs in, they can reactivate their account.
+`temporarily_disabled_from` and `temporarily_disabled_until` **MUST BE** set or unset together,
+`temporarily_disabled_from` less than `temporarily_disabled_until` to form a temporarily disabled period. Refer to use case 4.
 
-> Reactivating a user is NOT yet implemented!
+Additionally, this invariant **MUST BE** hold: `account_valid_from < temporarily_disabled_from < temporarily_disabled_until < account_valid_until`.
+
+### Indefinitely Disabled
+
+A user can be indefinitely by admins.
+A disabled user cannot sign in,
+and appropriate error message will be shown when login is attempted.
+
+Admin may optionally provide a reason when disabling a user.
+This reason will be shown when the user attempted to sign in.
+
+In authflow, the checking of account status is done by the dedicated step `check_account_status`.
+
+Indefinitely Disabled is available in the Admin API as the mutation `setDisabledStatus`.
 
 ### Scheduled account deletion or anonymization
 
@@ -506,7 +582,7 @@ Instead of deleting or anonymizing a user immediately, it can be scheduled.
 
 The schedule is measured in terms of days. The default value is 30 days. Valid values are [1, 180].
 
-When the deletion or anonymization is scheduled via Admin API or by admin, the user is disabled.
+When the deletion or anonymization is scheduled via Admin API or by admin, the user is disabled indefinitely.
 When the deletion or anonymization is unscheduled, the user is re-enabled.
 
 When the deletion or anonymization is scheduled by the end-user, the user is deactivated.
@@ -514,7 +590,126 @@ To cancel the schedule, the end-user has to reactivate their account.
 It is possible to cancel the schedule on behalf of the end-user.
 Whether the end-user can schedule deletion or anonymization on their account is configurable.
 
+These features are available in the Admin API as the following mutations:
+
+- `scheduleAccountAnonymization`
+- `scheduleAccountDeletion`
+- `unscheduleAccountAnonymization`
+- `unscheduleAccountDeletion`
+
 > Scheduling anonymization by the end-user is not implemented yet.
+
+### Account Status Use case 1: Join
+
+I want to import an account on 2025-09-29 but I want the account to be able to sign in on 2025-10-02
+
+```
+////////////
+------------+-----------
+  Disabled  J  Enabled
+
+where J === account_valid_from === 2025-10-02
+```
+
+### Account Status Use case 2: Leave
+
+An employee resigned and his final working day is 2025-10-31. So I want the account to not be able to sign in on 2025-10-31.
+
+```
+           /////////////
+-----------+------------
+  Enabled  L  Disabled
+
+where L === account_valid_until === 2025-10-31
+```
+
+### Account Status Use case 3: Join and Leave
+
+I have a part-time employee whom I know when he is joining and when he is leaving. He is joining on 2025-11-01 and he is leaving on 2025-11-30.
+
+```
+////////////             /////////////
+------------+------------+------------
+  Disabled  J  Enabled   L  Disabled
+
+Where J === account_valid_from === 2025-11-01
+      L === account_valid_until === 2025-11-30
+```
+
+### Account Status Use case 4: Disable an account for a specific amount of time
+
+An employee is on leave during 2025-12-24 through 2026-01-01 (inclusive). I do not want him to be able to sign in during the period.
+
+```
+           //////////////
+-----------+-------------+-----------
+  Enabled  D  Disabled   E  Enabled
+
+Where D === temporarily_disabled_from === 2025-12-24
+      E === temporarily_disabled_until === 2026-01-02
+```
+
+### Account Status use case 5: Combination of Use case 3 and Use case 4
+
+A contract employee is joining on 2026-04-01. His finally working date is 2027-03-31. He applied an annual leave from 2026-07-15 to 2026-07-31 (inclusive).
+
+```
+////////////             /////////////             /////////////
+------------+------------+------------+------------+------------
+  Disabled  J  Enabled   D  Disabled  E  Enabled   L  Disabled
+
+Where J === account_valid_from === 2026-04-01
+      D === temporarily_disabled_from === 2026-07-15
+      E === temporarily_disabled_until === 2026-08-01
+      L === account_valid_until === 2027-04-01
+```
+
+### Changes on Admin API
+
+- Add `accountValidFrom`, `accountValidUntil`, `temporarilyDisabledFrom`, `temporarilyDisabledUntil` to `User`.
+- Add the following mutations
+
+```
+type Mutation {
+  // These are existing mutations.
+  // They are included here for easier comparison.
+  setDisabledStatus(input: {isDisabled: Boolean!, reason: String, userID: ID!})
+  scheduleAccountAnonymization(input: {userID: ID!})
+  scheduleAccountDeletion(input: {userID: ID!})
+  unscheduleAccountAnonymization(input: {userID: ID!})
+  unscheduleAccountDeletion(input: {userID: ID!})
+
+  // These are updated mutations.
+  // Synopsis:
+  //   // Disable indefinitely
+  //   setDisabledStatus({ isDisabled: true })
+  //   // Disable temporarily
+  //   setDisabledStatus({ isDisabled: true, temporarilyDisabledFrom: DateTime, temporarilyDisabledUntil: DateTime })
+  //   // Re-enable
+  //   setDisabledStatus({ isDisabled: false })
+  //
+  // It is illegal to specify only temporarilyDisabledFrom or temporarilyDisabledUntil. They have to specified at the same time.
+  setDisabledStatus(input: {isDisabled: Boolean!, reason: String, temporarilyDisabledFrom: DateTime, temporarilyDisabledUntil: DateTime, userID: ID!})
+
+  // These are new mutations.
+  // If accountValidFrom is null, set account_valid_from to null.
+  setAccountValidFrom(input: {accountValidFrom: DateTime, userID: ID!})
+  // If accountValidUntil is null, set account_valid_until to null.
+  setAccountValidUntil(input: {accountValidUntil: DateTime, userID: ID!})
+  // Set account_valid_from and account_valid_until at the same time.
+  setAccountValidPeriod(input: {accountValidFrom: DateTime, accountValidUntil: DateTime, userID: ID!})
+}
+```
+
+### Changes on the models seen in Hooks
+
+- Add `account_valid_from`, `account_valid_until`, `temporarily_disabled_from`, and `temporarily_disabled_until` to user.
+
+### Changes on user import
+
+- `disabled=true` now set `is_indefinitely_disabled` to true.
+- `account_valid_from` and `account_valid_until` are supported.
+- `temporarily_disabled_from` and `temporarily_disabled_until` **ARE NOT** supported.
 
 ### Sessions
 
@@ -531,4 +726,3 @@ account_anonymization:
   # scheduled_by_end_user_enabled: false
   grace_period_days: 30
 ```
-
