@@ -21,7 +21,7 @@
     "node-html-parser": "^7.0.1",
     "prettier": "^2.8.8",
     "typescript": "^5.7.3",
-    "vite": "^6.3.6",
+    "vite": "^6.4.1",
     "vite-plugin-singlefile": "^2.1.0"
   },
   "dependencies": {
