@@ -20,3 +20,9 @@
 .checkbox {
   @apply mt-3;
 }
+
+.choiceGroupOptionContent {
+  padding-left: 26px;
+  @apply pt-1 pb-4;
+  @apply flex flex-col gap-1;
+}
