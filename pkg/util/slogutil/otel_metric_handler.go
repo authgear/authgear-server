@@ -6,7 +6,6 @@ import (
 
 	"github.com/jba/slog/withsupport"
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
 
 	"github.com/authgear/authgear-server/pkg/util/otelutil"
@@ -24,26 +23,14 @@ var CounterErrorCount = otelutil.MustInt64Counter(
 	metric.WithUnit("{error}"),
 )
 
-type metricOptionAttributeKeyValue struct {
-	attribute.KeyValue
-}
-
-func (o metricOptionAttributeKeyValue) ToOtelMetricOption() metric.MeasurementOption {
-	return metric.WithAttributes(o.KeyValue)
-}
-
-func WithErrorName(errorName MetricErrorName) otelutil.MetricOption {
-	return metricOptionAttributeKeyValue{attribute.Key("error_name").String(string(errorName))}
-}
-
-type OtelMetricHandlerTrackFuncType func(ctx context.Context, errorName MetricErrorName)
+type OtelMetricHandlerTrackFuncType func(ctx context.Context, errorName MetricErrorName, err error)
 
 // OtelMetricHandlerTrackFunc is the real implementation.
-var OtelMetricHandlerTrackFunc OtelMetricHandlerTrackFuncType = func(ctx context.Context, errorName MetricErrorName) {
+var OtelMetricHandlerTrackFunc OtelMetricHandlerTrackFuncType = func(ctx context.Context, errorName MetricErrorName, err error) {
 	otelutil.IntCounterAddOne(
 		ctx,
 		CounterErrorCount,
-		WithErrorName(errorName),
+		MetricOptionsForError(err)...,
 	)
 }
 
@@ -76,7 +63,7 @@ func (h *OtelMetricHandler) Handle(ctx context.Context, record slog.Record) erro
 			if err, ok := attr.Value.Any().(error); ok {
 				errorName, ok := GetMetricErrorName(err)
 				if ok {
-					h.trackFunc(ctx, errorName)
+					h.trackFunc(ctx, errorName, err)
 				}
 			}
 		}
@@ -87,7 +74,7 @@ func (h *OtelMetricHandler) Handle(ctx context.Context, record slog.Record) erro
 			if err, ok := attr.Value.Any().(error); ok {
 				errorName, ok := GetMetricErrorName(err)
 				if ok {
-					h.trackFunc(ctx, errorName)
+					h.trackFunc(ctx, errorName, err)
 				}
 			}
 		}
