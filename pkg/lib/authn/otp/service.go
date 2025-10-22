@@ -387,9 +387,9 @@ func (s *Service) InspectState(ctx context.Context, kind Kind, target string) (*
 
 func (s *Service) getOTPMessageDeliverStatus(ctx context.Context, code *Code) (*messageDeliveryStatus, error) {
 	if code.OOBChannel == "" {
-		// Not sent yet, treat it as sending
+		// Not sent yet
 		return &messageDeliveryStatus{
-			DeliveryStatus: model.OTPDeliveryStatusSending,
+			DeliveryStatus: model.OTPDeliveryStatusPending,
 			DeliveryError:  nil,
 		}, nil
 	}
