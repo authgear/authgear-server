@@ -1,13 +1,13 @@
 package user
 
 import (
-	"errors"
 	"time"
 
+	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 )
 
-var ErrUserNotFound = errors.New("user not found")
+var ErrUserNotFound = api.UserNotFound.New("user not found")
 
 var DisabledUser = apierrors.Forbidden.WithReason("DisabledUser")
 
