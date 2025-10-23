@@ -406,9 +406,14 @@ func (s *AppService) Create(ctx context.Context, userID string, id string) (*mod
 		}
 		err = s.AppConfigs.Create(ctx, createAppOpts)
 		if err != nil {
-			// TODO(portal): cleanup orphaned resources created from failed app creation
-			logger.WithError(err).Error(ctx, "failed to create app", slog.String("app_id", id))
-			return err
+			if errors.Is(err, ErrDuplicatedAppID) {
+				logger.Info(ctx, "failed to create duplicated app", slog.String("app_id", id))
+				return err
+			} else {
+				// TODO(portal): cleanup orphaned resources created from failed app creation
+				logger.WithError(err).Error(ctx, "failed to create app", slog.String("app_id", id))
+				return err
+			}
 		}
 
 		err = s.DefaultDomains.CreateAllDefaultDomains(ctx, id)
