@@ -950,7 +950,11 @@ func (c *AuthflowController) makeSessionOptionsFromSAML(ctx context.Context, sam
 func (c *AuthflowController) deriveFlowNameFromOAuthSession(ctx context.Context, oauthSessionID string, flowType authflow.FlowType) (string, error) {
 	entry, err := c.OAuthSessions.Get(ctx, oauthSessionID)
 	if err != nil {
-		return "", err
+		if errors.Is(err, oauthsession.ErrNotFound) {
+			return "", errors.Join(webapp.ErrInvalidSession, err)
+		} else {
+			return "", err
+		}
 	}
 
 	req := entry.T.AuthorizationRequest
@@ -968,7 +972,11 @@ func (c *AuthflowController) deriveFlowNameFromOAuthSession(ctx context.Context,
 func (c *AuthflowController) deriveFlowNameFromSAMLSession(ctx context.Context, samlSessionID string, flowType authflow.FlowType) (string, error) {
 	samlSession, err := c.SAMLSessions.Get(ctx, samlSessionID)
 	if err != nil {
-		return "", err
+		if errors.Is(err, samlsession.ErrNotFound) {
+			return "", errors.Join(webapp.ErrInvalidSession, err)
+		} else {
+			return "", err
+		}
 	}
 
 	specifiedFlowGroup := "" // SAML cannot specify flow group in request
