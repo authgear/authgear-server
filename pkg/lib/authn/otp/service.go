@@ -394,9 +394,25 @@ func (s *Service) getOTPMessageDeliverStatus(ctx context.Context, code *Code) (*
 		}, nil
 	}
 
+	if code.SendMessageError != nil {
+		// Failed on send
+		return &messageDeliveryStatus{
+			DeliveryStatus: model.OTPDeliveryStatusFailed,
+			DeliveryError:  code.SendMessageError,
+		}, nil
+	}
+
 	switch code.OOBChannel {
 	case model.AuthenticatorOOBChannelWhatsapp:
 		{
+			if code.WhatsappMessageID == "" {
+				// Not known yet, happens when `Send` is returned but the goroutine which
+				// call whatsapp api isn't finished yet
+				return &messageDeliveryStatus{
+					DeliveryStatus: model.OTPDeliveryStatusSending,
+					DeliveryError:  nil,
+				}, nil
+			}
 			getStatusResult, err := s.WhatsappService.GetMessageStatus(ctx, code.WhatsappMessageID)
 			if err != nil {
 				return nil, err

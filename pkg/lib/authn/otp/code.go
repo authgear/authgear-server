@@ -5,6 +5,7 @@ import (
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/util/duration"
 )
@@ -39,4 +40,5 @@ type Code struct {
 	// The message which carries the otp
 	OOBChannel        model.AuthenticatorOOBChannel `json:"channel,omitzero"`
 	WhatsappMessageID string                        `json:"whatsapp_message_id,omitzero"`
+	SendMessageError  *apierrors.APIError           `json:"send_message_error"`
 }

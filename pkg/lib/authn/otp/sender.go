@@ -2,9 +2,11 @@ package otp
 
 import (
 	"context"
+	"errors"
 	neturl "net/url"
 	"path/filepath"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
@@ -193,13 +195,7 @@ func (s *MessageSender) sendEmail(ctx context.Context, opts SendOptions) error {
 	}
 
 	err = s.Sender.SendEmailInNewGoroutine(ctx, msgType, mailSendOptions)
-	if err != nil {
-		return err
-	}
-
-	return s.updateCodeAfterSent(ctx, opts, afterSentResult{
-		// We do not track email message id for now
-	})
+	return err
 }
 
 func (s *MessageSender) sendSMS(ctx context.Context, opts SendOptions, preferAsync bool) error {
@@ -230,13 +226,7 @@ func (s *MessageSender) sendSMS(ctx context.Context, opts SendOptions, preferAsy
 	} else {
 		err = s.Sender.SendSMSImmediately(ctx, msgType, smsSendOptions)
 	}
-	if err != nil {
-		return err
-	}
-
-	return s.updateCodeAfterSent(ctx, opts, afterSentResult{
-		// We do not track sms message id for now
-	})
+	return err
 }
 
 func (s *MessageSender) sendWhatsapp(ctx context.Context, opts SendOptions) (err error) {
@@ -260,6 +250,7 @@ func (s *MessageSender) sendWhatsapp(ctx context.Context, opts SendOptions) (err
 }
 
 type afterSentResult struct {
+	SendError         error
 	WhatsappMessageID string
 }
 
@@ -269,6 +260,13 @@ func (s *MessageSender) updateCodeAfterSent(ctx context.Context, opts SendOption
 	if err != nil {
 		logger.WithError(err).Error(ctx, "failed to get code in result callback")
 		return err
+	}
+	if code.SendMessageError != nil {
+		// If it was error, ignore any later updates
+		return nil
+	}
+	if result.SendError != nil {
+		code.SendMessageError = apierrors.AsAPIError(result.SendError)
 	}
 	if result.WhatsappMessageID != "" {
 		code.WhatsappMessageID = result.WhatsappMessageID
@@ -290,29 +288,27 @@ func (s *MessageSender) SendAsync(ctx context.Context, opts SendOptions) error {
 	return s.send(ctx, opts, true)
 }
 
-func (s *MessageSender) send(ctx context.Context, opts SendOptions, preferAsync bool) error {
+func (s *MessageSender) send(ctx context.Context, opts SendOptions, preferAsync bool) (err error) {
+	defer func() {
+		updateErr := s.updateCodeAfterSent(ctx, opts, afterSentResult{
+			SendError: err,
+		})
+		SenderLogger.GetLogger(ctx).WithError(updateErr).Error(ctx, "failed to update code after sent")
+		if updateErr != nil {
+			err = errors.Join(err, updateErr)
+		}
+	}()
+
 	switch opts.Channel {
 	case model.AuthenticatorOOBChannelEmail:
-		err := s.sendEmail(ctx, opts)
-		if err != nil {
-			return err
-		}
-
-		return nil
+		err = s.sendEmail(ctx, opts)
+		return
 	case model.AuthenticatorOOBChannelSMS:
-		err := s.sendSMS(ctx, opts, preferAsync)
-		if err != nil {
-			return err
-		}
-
-		return nil
+		err = s.sendSMS(ctx, opts, preferAsync)
+		return
 	case model.AuthenticatorOOBChannelWhatsapp:
-		err := s.sendWhatsapp(ctx, opts)
-		if err != nil {
-			return err
-		}
-
-		return nil
+		err = s.sendWhatsapp(ctx, opts)
+		return
 	default:
 		panic("otp: unknown channel: " + opts.Channel)
 	}
