@@ -299,8 +299,8 @@ func (s *MessageSender) send(ctx context.Context, opts SendOptions, preferAsync 
 		updateErr := s.updateCodeAfterSent(ctx, opts, afterSentResult{
 			SendError: err,
 		})
-		SenderLogger.GetLogger(ctx).WithError(updateErr).Error(ctx, "failed to update code after sent")
 		if updateErr != nil {
+			SenderLogger.GetLogger(ctx).WithError(updateErr).Error(ctx, "failed to update code after sent")
 			err = errors.Join(err, updateErr)
 		}
 	}()
