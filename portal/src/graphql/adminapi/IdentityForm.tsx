@@ -1,7 +1,6 @@
-import React, { useCallback, useContext, useEffect, useMemo } from "react";
+import React, { useCallback, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Context, FormattedMessage } from "@oursky/react-messageformat";
-import PasswordField from "../../PasswordField";
+import { FormattedMessage } from "@oursky/react-messageformat";
 import { useCreateLoginIDIdentityMutation } from "./mutations/createIdentityMutation";
 import { LoginIDKeyType, PortalAPIAppConfig } from "../../types";
 import { AuthenticatorKind, AuthenticatorType } from "./globalTypes.generated";
@@ -14,69 +13,19 @@ import { ErrorParseRule } from "../../error/parse";
 import { canCreateLoginIDIdentity } from "../../util/loginID";
 import { Text } from "@fluentui/react";
 import { UserQueryNodeFragment } from "./query/userQuery.generated";
-import { validatePassword } from "../../error/password";
 import { useUpdateLoginIDIdentityMutation } from "./mutations/updateIdentityMutation";
 
 interface FormState {
   loginID: string;
-  password: string;
 }
 
 const defaultState: FormState = {
   loginID: "",
-  password: "",
 };
 
 interface User {
   id: string;
   primaryAuthenticators: AuthenticatorType[];
-}
-
-function isPasswordRequiredForNewIdentity(
-  config: PortalAPIAppConfig | null,
-  user: User | null,
-  loginIDType: LoginIDKeyType
-) {
-  let needPrimaryPassword: boolean;
-  const isPasswordEnabled =
-    config?.authentication?.primary_authenticators?.includes("password") ??
-    true;
-  let isOOBOTPEmailFirst = false;
-  let isOOBOTPSMSFirst = false;
-  const primaryAuthenticators =
-    config?.authentication?.primary_authenticators ?? [];
-  // reverse order is important
-  for (let i = primaryAuthenticators.length - 1; i >= 0; i--) {
-    switch (primaryAuthenticators[i]) {
-      case "oob_otp_email":
-        isOOBOTPEmailFirst = true;
-        break;
-      case "oob_otp_sms":
-        isOOBOTPSMSFirst = true;
-        break;
-      case "password":
-        isOOBOTPEmailFirst = false;
-        isOOBOTPSMSFirst = false;
-        break;
-      default:
-        break;
-    }
-  }
-
-  switch (loginIDType) {
-    case "username":
-      needPrimaryPassword = isPasswordEnabled;
-      break;
-    case "email":
-      needPrimaryPassword = isPasswordEnabled && !isOOBOTPEmailFirst;
-      break;
-    case "phone":
-      needPrimaryPassword = isPasswordEnabled && !isOOBOTPSMSFirst;
-      break;
-  }
-  const hasPrimaryPassword =
-    user?.primaryAuthenticators.includes(AuthenticatorType.Password) ?? false;
-  return needPrimaryPassword && !hasPrimaryPassword;
 }
 
 export interface LoginIDFieldProps {
@@ -112,7 +61,6 @@ const IdentityForm: React.VFC<IdentityFormProps> = function IdentityForm(
   } = props;
 
   const navigate = useNavigate();
-  const { renderToString } = useContext(Context);
 
   const user: User = useMemo(() => {
     if (!rawUser) {
@@ -131,26 +79,9 @@ const IdentityForm: React.VFC<IdentityFormProps> = function IdentityForm(
   const { createIdentity } = useCreateLoginIDIdentityMutation(user.id);
   const { updateIdentity } = useUpdateLoginIDIdentityMutation(user.id);
 
-  const requirePassword = useMemo(() => {
-    if (originalIdentityID != null) {
-      return false;
-    }
-    return isPasswordRequiredForNewIdentity(appConfig, user, loginIDType);
-  }, [originalIdentityID, appConfig, user, loginIDType]);
-
-  const passwordPolicy = useMemo(() => {
-    return appConfig?.authenticator?.password?.policy ?? {};
-  }, [appConfig]);
-
-  const validate = useCallback(
-    (state: FormState) => {
-      if (!requirePassword) {
-        return null;
-      }
-      return validatePassword(state.password, passwordPolicy);
-    },
-    [requirePassword, passwordPolicy]
-  );
+  const validate = useCallback(() => {
+    return null;
+  }, []);
 
   const submit = useCallback(
     async (state: FormState) => {
@@ -160,20 +91,13 @@ const IdentityForm: React.VFC<IdentityFormProps> = function IdentityForm(
           value: state.loginID,
         });
       } else {
-        const password = requirePassword ? state.password : undefined;
         await createIdentity(
           { key: loginIDType, value: state.loginID },
-          password
+          undefined
         );
       }
     },
-    [
-      originalIdentityID,
-      updateIdentity,
-      loginIDType,
-      requirePassword,
-      createIdentity,
-    ]
+    [originalIdentityID, updateIdentity, loginIDType, createIdentity]
   );
 
   const rawForm = useSimpleForm({
@@ -208,15 +132,8 @@ const IdentityForm: React.VFC<IdentityFormProps> = function IdentityForm(
     (value: string) => form.setState((state) => ({ ...state, loginID: value })),
     [form]
   );
-  const onPasswordChange = useCallback(
-    (_, value?: string) =>
-      form.setState((state) => ({ ...state, password: value ?? "" })),
-    [form]
-  );
 
-  const canSave =
-    form.state.loginID.length > 0 &&
-    (!requirePassword || form.state.password.length > 0);
+  const canSave = form.state.loginID.length > 0;
 
   if (!canCreateLoginIDIdentity(appConfig)) {
     return (
@@ -236,17 +153,6 @@ const IdentityForm: React.VFC<IdentityFormProps> = function IdentityForm(
           </div>
         ) : null}
         <LoginIDField value={form.state.loginID} onChange={onLoginIDChange} />
-        {requirePassword ? (
-          <PasswordField
-            className={styles.widget}
-            passwordPolicy={passwordPolicy}
-            label={renderToString("UsernameScreen.password.label")}
-            value={form.state.password}
-            onChange={onPasswordChange}
-            parentJSONPointer=""
-            fieldName="password"
-          />
-        ) : null}
       </ScreenContent>
     </FormContainer>
   );
