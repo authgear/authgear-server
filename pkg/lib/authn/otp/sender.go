@@ -48,7 +48,7 @@ type Sender interface {
 	SendEmailInNewGoroutine(ctx context.Context, msgType translation.MessageType, opts *mail.SendOptions) error
 	SendSMSImmediately(ctx context.Context, msgType translation.MessageType, opts *sms.SendOptions) error
 	SendSMSInNewGoroutine(ctx context.Context, msgType translation.MessageType, opts *sms.SendOptions) error
-	SendWhatsappInNewGoroutine(ctx context.Context, msgType translation.MessageType, opts *whatsapp.SendAuthenticationOTPOptions, callback messaging.SendWhatsappResultCallback) error
+	SendWhatsappInNewGoroutine(ctx context.Context, msgType translation.MessageType, opts *whatsapp.SendAuthenticationOTPOptions, resultCallback messaging.SendWhatsappResultCallback, errCalllback messaging.SendWhatsappErrorCallback) error
 }
 
 type SenderCodeStore interface {
@@ -245,7 +245,13 @@ func (s *MessageSender) sendWhatsapp(ctx context.Context, opts SendOptions) (err
 		})
 	}
 
-	err = s.Sender.SendWhatsappInNewGoroutine(ctx, msgType, whatsappSendAuthenticationOTPOptions, resultCallback)
+	errorCallback := func(ctx context.Context, err error) {
+		_ = s.updateCodeAfterSent(ctx, opts, afterSentResult{
+			SendError: err,
+		})
+	}
+
+	err = s.Sender.SendWhatsappInNewGoroutine(ctx, msgType, whatsappSendAuthenticationOTPOptions, resultCallback, errorCallback)
 	return err
 }
 
