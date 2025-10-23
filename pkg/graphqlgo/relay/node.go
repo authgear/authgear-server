@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/graphql-go/graphql"
 	"golang.org/x/net/context"
@@ -135,6 +136,9 @@ func FromGlobalID(globalID string) *ResolvedGlobalID {
 	}
 	tokens := strings.Split(strID, ":")
 	if len(tokens) < 2 {
+		return nil
+	}
+	if isValidID := utf8.ValidString(tokens[1]); !isValidID {
 		return nil
 	}
 	return &ResolvedGlobalID{
