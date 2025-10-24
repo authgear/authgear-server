@@ -22,6 +22,7 @@ type ResponseBody struct {
 	ProviderType      string `json:"provider_type,omitempty"`
 	ProviderErrorCode string `json:"provider_error_code,omitempty"`
 	GoError           string `json:"go_error,omitempty"`
+	IsNonCritical     bool   `json:"is_non_critical,omitempty"`
 	DumpedResponse    []byte `json:"dumped_response,omitempty"`
 }
 

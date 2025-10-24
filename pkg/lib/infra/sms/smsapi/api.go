@@ -77,6 +77,7 @@ type SendError struct {
 	ProviderName      string          `json:"provider_name,omitempty"`
 	ProviderType      string          `json:"provider_type,omitempty"`
 	ProviderErrorCode string          `json:"provider_error_code,omitempty"`
+	IsNonCritical     bool            `json:"is_non_critical,omitempty"`
 }
 
 func (e *SendError) Error() string {

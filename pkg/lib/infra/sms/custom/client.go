@@ -236,6 +236,7 @@ func handleResponse(gatewayType string, responseBody *ResponseBody, dumpedRespon
 	if responseBody.ProviderErrorCode != "" {
 		err.ProviderErrorCode = responseBody.ProviderErrorCode
 	}
+	err.IsNonCritical = responseBody.IsNonCritical
 
 	switch responseBody.Code {
 	case "ok":
