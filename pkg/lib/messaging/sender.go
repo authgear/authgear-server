@@ -74,6 +74,7 @@ type SendWhatsappResult struct {
 }
 
 type SendWhatsappResultCallback func(ctx context.Context, result *SendWhatsappResult)
+type SendWhatsappErrorCallback func(ctx context.Context, err error)
 
 func (s *Sender) SendEmailInNewGoroutine(ctx context.Context, msgType translation.MessageType, opts *mail.SendOptions) error {
 	err := s.Limits.checkEmail(ctx, opts.Recipient)
@@ -337,7 +338,7 @@ func (s *Sender) devModeSendSMS(ctx context.Context, msgType translation.Message
 	})
 }
 
-func (s *Sender) SendWhatsappInNewGoroutine(ctx context.Context, msgType translation.MessageType, opts *whatsapp.SendAuthenticationOTPOptions, callback SendWhatsappResultCallback) error {
+func (s *Sender) SendWhatsappInNewGoroutine(ctx context.Context, msgType translation.MessageType, opts *whatsapp.SendAuthenticationOTPOptions, resultCallback SendWhatsappResultCallback, errorCallback SendWhatsappErrorCallback) error {
 	logger := SenderLogger.GetLogger(ctx)
 	err := s.Limits.checkWhatsapp(ctx, opts.To)
 	if err != nil {
@@ -349,7 +350,7 @@ func (s *Sender) SendWhatsappInNewGoroutine(ctx context.Context, msgType transla
 		if err != nil {
 			return err
 		}
-		callback(ctx, result)
+		resultCallback(ctx, result)
 		return nil
 	}
 
@@ -359,7 +360,7 @@ func (s *Sender) SendWhatsappInNewGoroutine(ctx context.Context, msgType transla
 			if err != nil {
 				return err
 			}
-			callback(ctx, result)
+			resultCallback(ctx, result)
 			return nil
 		}
 	}
@@ -369,7 +370,7 @@ func (s *Sender) SendWhatsappInNewGoroutine(ctx context.Context, msgType transla
 		if err != nil {
 			return err
 		}
-		callback(ctx, result)
+		resultCallback(ctx, result)
 		return nil
 	}
 
@@ -400,15 +401,17 @@ func (s *Sender) SendWhatsappInNewGoroutine(ctx context.Context, msgType transla
 			logger.WithError(dispatchErr).Error(ctx, "failed to emit %v event", slog.String("event", string(nonblocking.WhatsappSent)))
 		}
 
-		callback(ctx, result)
+		resultCallback(ctx, result)
 		return nil
 	}
 
 	// Send in new goroutine.
 	ctxWithoutCancel := context.WithoutCancel(ctx)
 	go func(ctx context.Context) {
-		// Ignore error, the error should be logged in sendSync
-		_ = sendSync(ctx)
+		err = sendSync(ctx)
+		if err != nil {
+			errorCallback(ctx, err)
+		}
 	}(ctxWithoutCancel)
 
 	return nil

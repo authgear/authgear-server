@@ -18,6 +18,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/webappoauth"
 	"github.com/authgear/authgear-server/pkg/util/base32"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	corerand "github.com/authgear/authgear-server/pkg/util/rand"
 )
 
@@ -840,15 +841,23 @@ func (s *AuthflowScreenWithFlowResponse) makeVerifyOOBOTPOutputTransformer(chann
 			startTime := deps.Clock.NowUTC()
 
 			for {
+				data := output.FlowAction.Data.(declarative.VerifyOOBOTPData)
 				now := deps.Clock.NowUTC()
 				// Normally, the timeout should be handled by the whatsapp callback timeout.
 				// Therefore we should always get failed / sent status within the configured timeout.
 				// So this timeout is just as a last resort to break the loop to avoid waiting forever.
 				if now.Sub(startTime) > messageDeliveryStatusMaxWaitTime {
-					return nil, fmt.Errorf("timed out waiting for delivery_status")
+					return nil, errorutil.WithDetails(fmt.Errorf("timed out waiting for delivery_status"),
+						errorutil.Details{
+							"otp_form":                           data.OTPForm,
+							"channel":                            data.Channel,
+							"failed_attempt_rate_limit_exceeded": data.FailedAttemptRateLimitExceeded,
+							"delivery_status":                    data.DeliveryStatus,
+							"delivery_error":                     data.DeliveryError,
+						},
+					)
 				}
 
-				data := output.FlowAction.Data.(declarative.VerifyOOBOTPData)
 				switch data.DeliveryStatus {
 				case model.OTPDeliveryStatusFailed:
 					if apierrors.IsKind(data.DeliveryError, whatsapp.WhatsappMessageStatusCallbackTimeout) {
@@ -865,7 +874,7 @@ func (s *AuthflowScreenWithFlowResponse) makeVerifyOOBOTPOutputTransformer(chann
 					return output, data.DeliveryError
 				case model.OTPDeliveryStatusSent:
 					return output, err
-				case model.OTPDeliveryStatusSending:
+				case model.OTPDeliveryStatusSending, model.OTPDeliveryStatusPending:
 					{
 						// Wait until sent or failed
 						time.Sleep(500 * time.Millisecond)
@@ -882,6 +891,8 @@ func (s *AuthflowScreenWithFlowResponse) makeVerifyOOBOTPOutputTransformer(chann
 							return newOutput, nil
 						}
 					}
+				default:
+					panic(fmt.Errorf("unexpected delivery_status: %s", data.DeliveryStatus))
 				}
 			}
 		}
