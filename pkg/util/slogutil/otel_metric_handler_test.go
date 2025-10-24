@@ -2,9 +2,9 @@ package slogutil
 
 import (
 	"context"
-	"errors"
 	"log/slog"
 	"net"
+	"syscall"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -54,7 +54,7 @@ func TestOtelMetricHandler_Integration(t *testing.T) {
 
 		Convey("should track net.OpError with Op and Net attributes", func() {
 			ctx := context.Background()
-			opErr := &net.OpError{Op: "read", Net: "tcp", Err: errors.New("connection reset by peer")}
+			opErr := &net.OpError{Op: "read", Net: "tcp", Err: syscall.ECONNRESET}
 			logger.ErrorContext(ctx, "network error", Err(opErr))
 
 			So(len(trackedErrors), ShouldEqual, 1)

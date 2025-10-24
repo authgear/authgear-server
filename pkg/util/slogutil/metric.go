@@ -7,7 +7,6 @@ import (
 	"errors"
 	"net"
 	"os"
-	"syscall"
 
 	"github.com/lib/pq"
 	"go.opentelemetry.io/otel/attribute"
@@ -38,7 +37,6 @@ const (
 	MetricErrorNameContextCanceled         MetricErrorName = "context.canceled"
 	MetricErrorNameContextDeadlineExceeded MetricErrorName = "context.deadline_exceeded"
 	MetricErrorNameOSErrDeadlineExceeded   MetricErrorName = "os.err_deadline_exceeded"
-	MetricErrorNameSyscallECONNRESET       MetricErrorName = "syscall.ECONNRESET"
 	MetricErrorNamePQ57014                 MetricErrorName = "pq.57014"
 	MetricErrorNameSQLTxDone               MetricErrorName = "sql.tx_done"
 	MetricErrorNameSQLDriverBadConn        MetricErrorName = "sql.driver.bad_conn"
@@ -72,13 +70,12 @@ func GetMetricErrorName(err error) (MetricErrorName, bool) {
 		return MetricErrorNameSQLDriverBadConn, true
 	case errors.Is(err, os.ErrDeadlineExceeded):
 		return MetricErrorNameOSErrDeadlineExceeded, true
-	// There are ECONNRESET, ECONNREFUSED, and ECONNABORTED.
-	// ECONNREFUSED may indicate a configuration problem that should be logged.
-	// ECONNRESET is about connection disconnected unexpectedly.
-	// We did not see ECONNABORTED so keep logging it.
-	case errors.Is(err, syscall.ECONNRESET):
-		return MetricErrorNameSyscallECONNRESET, true
 	case isNetOpError(err):
+		// We used to identify syscall.ECONNRESET separately.
+		// But I checked the log and found that syscall.ECONNRESET
+		// was actually wrapped inside a *net.OpError.
+		// Now that we track *net.OpError as metric,
+		// there is no point in handling syscall.ECONNRESET specifically.
 		return MetricErrorNameNetOpError, true
 	}
 
