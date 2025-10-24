@@ -337,9 +337,16 @@ func (d *Database) invalidateAppByDomain(ctx context.Context, domain string) {
 	})
 	if err != nil {
 		logger := DatabaseLogger.GetLogger(ctx)
-		logger.WithError(err).Error(ctx, "failed to invalidate app cache by domain",
-			slog.String("domain", domain),
-		)
+		if errors.Is(err, ErrAppNotFound) {
+			// If the domain was deleted
+			logger.Info(ctx, "failed to invalidate app cache because domain not found",
+				slog.String("domain", domain),
+			)
+		} else {
+			logger.WithError(err).Error(ctx, "failed to invalidate app cache by domain",
+				slog.String("domain", domain),
+			)
+		}
 	}
 }
 

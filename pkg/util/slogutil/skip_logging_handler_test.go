@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
+	"net"
 	"net/http"
 	"os"
 	"strings"
@@ -190,9 +191,9 @@ func TestIgnoreError(t *testing.T) {
 			So(IgnoreError(err), ShouldBeFalse)
 		})
 
-		Convey("should return true for syscall.ECONNRESET", func() {
+		Convey("should return false for syscall.ECONNRESET", func() {
 			err := syscall.ECONNRESET
-			So(IgnoreError(err), ShouldBeTrue)
+			So(IgnoreError(err), ShouldBeFalse)
 		})
 
 		Convey("should return true for os.ErrDeadlineExceeded", func() {
@@ -202,6 +203,14 @@ func TestIgnoreError(t *testing.T) {
 
 		Convey("should return true for sql.ErrTxDone", func() {
 			So(IgnoreError(sql.ErrTxDone), ShouldBeTrue)
+		})
+
+		Convey("should return true for *net.OpError", func() {
+			So(IgnoreError(&net.OpError{
+				Op:  "write",
+				Net: "tcp",
+				Err: syscall.ECONNRESET,
+			}), ShouldBeTrue)
 		})
 
 		Convey("should handle LoggingSkippable interface", func() {

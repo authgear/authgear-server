@@ -6,6 +6,7 @@ import (
 	"database/sql/driver"
 	"errors"
 	"fmt"
+	"net"
 	"os"
 	"syscall"
 	"testing"
@@ -68,11 +69,11 @@ func TestGetMetricErrorName(t *testing.T) {
 			So(name, ShouldEqual, MetricErrorNameOSErrDeadlineExceeded)
 		})
 
-		Convey("should return syscall.ECONNRESET for syscall.ECONNRESET", func() {
+		Convey("should return false for syscall.ECONNRESET", func() {
 			err := syscall.ECONNRESET
 			name, ok := GetMetricErrorName(err)
-			So(ok, ShouldBeTrue)
-			So(name, ShouldEqual, MetricErrorNameSyscallECONNRESET)
+			So(ok, ShouldBeFalse)
+			So(name, ShouldEqual, MetricErrorName(""))
 		})
 
 		Convey("should return false for other syscall errors", func() {
@@ -94,6 +95,17 @@ func TestGetMetricErrorName(t *testing.T) {
 			name, ok := GetMetricErrorName(err)
 			So(ok, ShouldBeTrue)
 			So(name, ShouldEqual, MetricErrorNameSQLDriverBadConn)
+		})
+
+		Convey("should return net.op_error for *net.OpError", func() {
+			err := &net.OpError{
+				Op:  "write",
+				Net: "tcp",
+				Err: syscall.ECONNRESET,
+			}
+			name, ok := GetMetricErrorName(err)
+			So(ok, ShouldBeTrue)
+			So(name, ShouldEqual, MetricErrorNameNetOpError)
 		})
 
 		Convey("should return false for unrecognized errors", func() {

@@ -3,9 +3,14 @@ package slogutil
 import (
 	"context"
 	"log/slog"
+	"net"
+	"syscall"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
+	"go.opentelemetry.io/otel/attribute"
+
+	"github.com/authgear/authgear-server/pkg/util/otelutil"
 )
 
 func TestNewOtelMetricHandler(t *testing.T) {
@@ -23,8 +28,10 @@ func TestNewOtelMetricHandler(t *testing.T) {
 func TestOtelMetricHandler_Integration(t *testing.T) {
 	Convey("OtelMetricHandler Integration", t, func() {
 		var trackedErrors []MetricErrorName
-		mockTrackFunc := func(ctx context.Context, errorName MetricErrorName) {
+		var trackedErrorOptions [][]otelutil.MetricOption
+		mockTrackFunc := func(ctx context.Context, errorName MetricErrorName, err error) {
 			trackedErrors = append(trackedErrors, errorName)
+			trackedErrorOptions = append(trackedErrorOptions, MetricOptionsForError(err))
 		}
 
 		logger := slog.New(&OtelMetricHandler{
@@ -43,6 +50,24 @@ func TestOtelMetricHandler_Integration(t *testing.T) {
 			So(len(trackedErrors), ShouldEqual, 2)
 			So(trackedErrors[0], ShouldEqual, MetricErrorNameContextCanceled)
 			So(trackedErrors[1], ShouldEqual, MetricErrorNameContextDeadlineExceeded)
+		})
+
+		Convey("should track net.OpError with Op and Net attributes", func() {
+			ctx := context.Background()
+			opErr := &net.OpError{Op: "read", Net: "tcp", Err: syscall.ECONNRESET}
+			logger.ErrorContext(ctx, "network error", Err(opErr))
+
+			So(len(trackedErrors), ShouldEqual, 1)
+			So(trackedErrors[0], ShouldEqual, MetricErrorNameNetOpError)
+
+			So(len(trackedErrorOptions), ShouldEqual, 1)
+			opts := trackedErrorOptions[0]
+			So(len(opts), ShouldEqual, 4)
+
+			So(opts, ShouldContain, MetricOptionAttributeKeyValue{attribute.Key("error_name").String("net.op_error")})
+			So(opts, ShouldContain, MetricOptionAttributeKeyValue{attribute.Key("net_op_error.op").String("read")})
+			So(opts, ShouldContain, MetricOptionAttributeKeyValue{attribute.Key("net_op_error.net").String("tcp")})
+			So(opts, ShouldContain, MetricOptionAttributeKeyValue{attribute.Key("net_op_error.syscall_errno").String("ECONNRESET")})
 		})
 	})
 }

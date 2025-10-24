@@ -5,11 +5,27 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"errors"
+	"net"
 	"os"
 	"syscall"
 
 	"github.com/lib/pq"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/metric"
+	"golang.org/x/sys/unix"
+
+	"github.com/authgear/authgear-server/pkg/util/otelutil"
 )
+
+// MetricOptionAttributeKeyValue is a MetricOption that adds an attribute.
+type MetricOptionAttributeKeyValue struct {
+	attribute.KeyValue
+}
+
+// ToOtelMetricOption implements otelutil.MetricOption.
+func (o MetricOptionAttributeKeyValue) ToOtelMetricOption() metric.MeasurementOption {
+	return metric.WithAttributes(o.KeyValue)
+}
 
 // MetricErrorName is a symbolic name for some errors
 type MetricErrorName string
@@ -18,10 +34,10 @@ const (
 	MetricErrorNameContextCanceled         MetricErrorName = "context.canceled"
 	MetricErrorNameContextDeadlineExceeded MetricErrorName = "context.deadline_exceeded"
 	MetricErrorNameOSErrDeadlineExceeded   MetricErrorName = "os.err_deadline_exceeded"
-	MetricErrorNameSyscallECONNRESET       MetricErrorName = "syscall.ECONNRESET"
 	MetricErrorNamePQ57014                 MetricErrorName = "pq.57014"
 	MetricErrorNameSQLTxDone               MetricErrorName = "sql.tx_done"
 	MetricErrorNameSQLDriverBadConn        MetricErrorName = "sql.driver.bad_conn"
+	MetricErrorNameNetOpError              MetricErrorName = "net.op_error"
 )
 
 func GetMetricErrorName(err error) (MetricErrorName, bool) {
@@ -51,13 +67,40 @@ func GetMetricErrorName(err error) (MetricErrorName, bool) {
 		return MetricErrorNameSQLDriverBadConn, true
 	case errors.Is(err, os.ErrDeadlineExceeded):
 		return MetricErrorNameOSErrDeadlineExceeded, true
-	// There are ECONNRESET, ECONNREFUSED, and ECONNABORTED.
-	// ECONNREFUSED may indicate a configuration problem that should be logged.
-	// ECONNRESET is about connection disconnected unexpectedly.
-	// We did not see ECONNABORTED so keep logging it.
-	case errors.Is(err, syscall.ECONNRESET):
-		return MetricErrorNameSyscallECONNRESET, true
+	case isNetOpError(err):
+		// We used to identify syscall.ECONNRESET separately.
+		// But I checked the log and found that syscall.ECONNRESET
+		// was actually wrapped inside a *net.OpError.
+		// Now that we track *net.OpError as metric,
+		// there is no point in handling syscall.ECONNRESET specifically.
+		return MetricErrorNameNetOpError, true
 	}
 
 	return "", false
+}
+
+func isNetOpError(err error) bool {
+	var netOpError *net.OpError
+	return errors.As(err, &netOpError)
+}
+
+func MetricOptionsForError(err error) []otelutil.MetricOption {
+	var opts []otelutil.MetricOption
+	if errorName, ok := GetMetricErrorName(err); ok {
+		opts = append(opts, MetricOptionAttributeKeyValue{attribute.Key("error_name").String(string(errorName))})
+	}
+
+	var netOpError *net.OpError
+	if errors.As(err, &netOpError) {
+		opts = append(opts, MetricOptionAttributeKeyValue{attribute.Key("net_op_error.op").String(netOpError.Op)})
+		opts = append(opts, MetricOptionAttributeKeyValue{attribute.Key("net_op_error.net").String(netOpError.Net)})
+
+		var syscallErrno syscall.Errno
+		if errors.As(netOpError.Err, &syscallErrno) {
+			symbolicName := unix.ErrnoName(syscallErrno)
+			opts = append(opts, MetricOptionAttributeKeyValue{attribute.Key("net_op_error.syscall_errno").String(symbolicName)})
+		}
+	}
+
+	return opts
 }

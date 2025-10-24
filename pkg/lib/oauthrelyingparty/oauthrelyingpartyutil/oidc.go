@@ -50,7 +50,10 @@ func FetchOIDCDiscoveryDocument(ctx context.Context, client *http.Client, endpoi
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("failed to fetch OIDC discovery document: unexpected status code: %d", resp.StatusCode)
+		return nil, &OAuthRelyingPartyInternalError{
+			err:                fmt.Errorf("failed to fetch OIDC discovery document: unexpected status code: %d", resp.StatusCode),
+			IsLoggingSkippable: true,
+		}
 	}
 
 	var document OIDCDiscoveryDocument
