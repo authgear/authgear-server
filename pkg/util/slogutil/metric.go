@@ -35,15 +35,14 @@ func WithErrorName(errorName MetricErrorName) otelutil.MetricOption {
 type MetricErrorName string
 
 const (
-	MetricErrorNameContextCanceled                MetricErrorName = "context.canceled"
-	MetricErrorNameContextDeadlineExceeded        MetricErrorName = "context.deadline_exceeded"
-	MetricErrorNameOSErrDeadlineExceeded          MetricErrorName = "os.err_deadline_exceeded"
-	MetricErrorNameSyscallECONNRESET              MetricErrorName = "syscall.ECONNRESET"
-	MetricErrorNamePQ57014                        MetricErrorName = "pq.57014"
-	MetricErrorNameSQLTxDone                      MetricErrorName = "sql.tx_done"
-	MetricErrorNameSQLDriverBadConn               MetricErrorName = "sql.driver.bad_conn"
-	MetricErrorNameNetOpError                     MetricErrorName = "net.op_error"
-	MetricErrorNameOIDCDiscoveryInvalidStatusCode MetricErrorName = "oauthrelyingparty.oidc_discovery_invalid_status_code"
+	MetricErrorNameContextCanceled         MetricErrorName = "context.canceled"
+	MetricErrorNameContextDeadlineExceeded MetricErrorName = "context.deadline_exceeded"
+	MetricErrorNameOSErrDeadlineExceeded   MetricErrorName = "os.err_deadline_exceeded"
+	MetricErrorNameSyscallECONNRESET       MetricErrorName = "syscall.ECONNRESET"
+	MetricErrorNamePQ57014                 MetricErrorName = "pq.57014"
+	MetricErrorNameSQLTxDone               MetricErrorName = "sql.tx_done"
+	MetricErrorNameSQLDriverBadConn        MetricErrorName = "sql.driver.bad_conn"
+	MetricErrorNameNetOpError              MetricErrorName = "net.op_error"
 )
 
 func GetMetricErrorName(err error) (MetricErrorName, bool) {
@@ -81,8 +80,6 @@ func GetMetricErrorName(err error) (MetricErrorName, bool) {
 		return MetricErrorNameSyscallECONNRESET, true
 	case isNetOpError(err):
 		return MetricErrorNameNetOpError, true
-	case errors.Is(err, ErrOIDCDiscoveryInvalidStatusCode):
-		return MetricErrorNameOIDCDiscoveryInvalidStatusCode, true
 	}
 
 	return "", false

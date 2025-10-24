@@ -18,7 +18,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/duration"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/jwsutil"
-	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
 type jwtClock struct {
@@ -51,7 +50,10 @@ func FetchOIDCDiscoveryDocument(ctx context.Context, client *http.Client, endpoi
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, slogutil.ErrOIDCDiscoveryInvalidStatusCode
+		return nil, &OAuthRelyingPartyInternalError{
+			err:                fmt.Errorf("failed to fetch OIDC discovery document: unexpected status code: %d", resp.StatusCode),
+			IsLoggingSkippable: true,
+		}
 	}
 
 	var document OIDCDiscoveryDocument
