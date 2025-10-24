@@ -19,6 +19,7 @@ type SendOptions struct {
 type ResponseBody struct {
 	Code              string `json:"code"`
 	ProviderName      string `json:"provider_name,omitempty"`
+	ProviderType      string `json:"provider_type,omitempty"`
 	ProviderErrorCode string `json:"provider_error_code,omitempty"`
 	GoError           string `json:"go_error,omitempty"`
 	DumpedResponse    []byte `json:"dumped_response,omitempty"`

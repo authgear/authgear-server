@@ -230,6 +230,9 @@ func handleResponse(gatewayType string, responseBody *ResponseBody, dumpedRespon
 	} else {
 		err.ProviderName = gatewayType
 	}
+	if responseBody.ProviderType != "" {
+		err.ProviderType = responseBody.ProviderType
+	}
 	if responseBody.ProviderErrorCode != "" {
 		err.ProviderErrorCode = responseBody.ProviderErrorCode
 	}

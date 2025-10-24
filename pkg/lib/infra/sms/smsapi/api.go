@@ -75,6 +75,7 @@ type SendError struct {
 
 	APIErrorKind      *apierrors.Kind `json:"api_error_kind,omitempty"`
 	ProviderName      string          `json:"provider_name,omitempty"`
+	ProviderType      string          `json:"provider_type,omitempty"`
 	ProviderErrorCode string          `json:"provider_error_code,omitempty"`
 }
 
@@ -101,6 +102,7 @@ func (e *SendError) asAPIError() *apierrors.APIError {
 	details := apierrors.Details{
 		"ProviderErrorCode": e.ProviderErrorCode,
 		"ProviderName":      e.ProviderName,
+		"ProviderType":      e.ProviderType,
 	}
 	kind := apierrors.UnexpectedError
 	if e.APIErrorKind != nil {
