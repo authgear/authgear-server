@@ -149,6 +149,7 @@ func (t *TwilioClient) makeError(
 	err := &smsapi.SendError{
 		DumpedResponse:    dumpedResponse,
 		ProviderName:      "twilio",
+		ProviderType:      "twilio",
 		ProviderErrorCode: fmt.Sprintf("%d", errorCode),
 	}
 
