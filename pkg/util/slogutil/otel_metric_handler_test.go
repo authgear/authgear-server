@@ -62,8 +62,8 @@ func TestOtelMetricHandler_Integration(t *testing.T) {
 
 			So(len(trackedErrorOptions), ShouldEqual, 1)
 			opts := trackedErrorOptions[0]
-			So(opts, ShouldContain, MetricOptionAttributeKeyValue{attribute.Key("net.op").String("read")})
-			So(opts, ShouldContain, MetricOptionAttributeKeyValue{attribute.Key("net.net").String("tcp")})
+			So(opts, ShouldContain, MetricOptionAttributeKeyValue{attribute.Key("net_op_error.op").String("read")})
+			So(opts, ShouldContain, MetricOptionAttributeKeyValue{attribute.Key("net_op_error.net").String("tcp")})
 		})
 	})
 }

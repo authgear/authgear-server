@@ -90,8 +90,8 @@ func MetricOptionsForError(err error) []otelutil.MetricOption {
 
 	var netOpError *net.OpError
 	if errors.As(err, &netOpError) {
-		opts = append(opts, MetricOptionAttributeKeyValue{attribute.Key("net.op").String(netOpError.Op)})
-		opts = append(opts, MetricOptionAttributeKeyValue{attribute.Key("net.net").String(netOpError.Net)})
+		opts = append(opts, MetricOptionAttributeKeyValue{attribute.Key("net_op_error.op").String(netOpError.Op)})
+		opts = append(opts, MetricOptionAttributeKeyValue{attribute.Key("net_op_error.net").String(netOpError.Net)})
 	}
 
 	return opts
