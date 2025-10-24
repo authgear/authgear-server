@@ -577,7 +577,12 @@ const AddUserContent: React.VFC<AddUserContentProps> = function AddUserContent(
                     label={renderToString(
                       "AddUserScreen.force-change-on-login"
                     )}
-                    checked={state.setPasswordExpired}
+                    checked={
+                      state.passwordCreationType ===
+                      PasswordCreationType.NoPassword
+                        ? false
+                        : state.setPasswordExpired
+                    }
                     onChange={onChangeForceChangeOnLogin}
                     disabled={
                       state.passwordCreationType ===
