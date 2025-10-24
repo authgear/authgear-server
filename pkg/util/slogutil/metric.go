@@ -25,11 +25,6 @@ func (o MetricOptionAttributeKeyValue) ToOtelMetricOption() metric.MeasurementOp
 	return metric.WithAttributes(o.KeyValue)
 }
 
-// WithErrorName creates a MetricOption with error_name attribute.
-func WithErrorName(errorName MetricErrorName) otelutil.MetricOption {
-	return MetricOptionAttributeKeyValue{attribute.Key("error_name").String(string(errorName))}
-}
-
 // MetricErrorName is a symbolic name for some errors
 type MetricErrorName string
 
@@ -90,7 +85,7 @@ func isNetOpError(err error) bool {
 func MetricOptionsForError(err error) []otelutil.MetricOption {
 	var opts []otelutil.MetricOption
 	if errorName, ok := GetMetricErrorName(err); ok {
-		opts = append(opts, WithErrorName(errorName))
+		opts = append(opts, MetricOptionAttributeKeyValue{attribute.Key("error_name").String(string(errorName))})
 	}
 
 	var netOpError *net.OpError
