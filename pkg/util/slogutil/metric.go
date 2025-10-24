@@ -7,10 +7,12 @@ import (
 	"errors"
 	"net"
 	"os"
+	"syscall"
 
 	"github.com/lib/pq"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
+	"golang.org/x/sys/unix"
 
 	"github.com/authgear/authgear-server/pkg/util/otelutil"
 )
@@ -92,6 +94,12 @@ func MetricOptionsForError(err error) []otelutil.MetricOption {
 	if errors.As(err, &netOpError) {
 		opts = append(opts, MetricOptionAttributeKeyValue{attribute.Key("net_op_error.op").String(netOpError.Op)})
 		opts = append(opts, MetricOptionAttributeKeyValue{attribute.Key("net_op_error.net").String(netOpError.Net)})
+
+		var syscallErrno syscall.Errno
+		if errors.As(netOpError.Err, &syscallErrno) {
+			symbolicName := unix.ErrnoName(syscallErrno)
+			opts = append(opts, MetricOptionAttributeKeyValue{attribute.Key("net_op_error.syscall_errno").String(symbolicName)})
+		}
 	}
 
 	return opts
