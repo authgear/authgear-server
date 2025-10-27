@@ -53,6 +53,7 @@ var ErrReauthRequrired = apierrors.Forbidden.WithReason("ReauthRequrired").
 	New("reauthentication required")
 
 var projectIDPattern_valid = regexp.MustCompile("^[a-z0-9][a-z0-9-]{2,30}[a-z0-9]$")
+var projectIDPattern_invalid = regexp.MustCompile("^[a-z]{2}-")
 
 type AppConfigService interface {
 	ResolveContext(ctx context.Context, appID string, fn func(context.Context, *config.AppContext) error) error
@@ -654,6 +655,10 @@ func (s *AppService) generateConfig(ctx context.Context, appHost string, appID s
 
 func (s *AppService) validateAppID(ctx context.Context, appID string) error {
 	if !projectIDPattern_valid.MatchString(appID) {
+		return ErrAppIDInvalid
+	}
+
+	if projectIDPattern_invalid.MatchString(appID) {
 		return ErrAppIDInvalid
 	}
 

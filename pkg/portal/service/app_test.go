@@ -57,7 +57,16 @@ func TestValidateAppID(t *testing.T) {
 
 		Convey("app ID can contain hyphen", func() {
 			So(service.validateAppID(ctx, "a-cd"), ShouldBeNil)
-			So(service.validateAppID(ctx, "ab-d"), ShouldBeNil)
+		})
+
+		Convey("app ID cannot start with 2 lowercase characters, followed by a hyphen", func() {
+			So(service.validateAppID(ctx, "ab-d"), ShouldBeError, ErrAppIDInvalid)
+			So(service.validateAppID(ctx, "us-east-1"), ShouldBeError, ErrAppIDInvalid)
+		})
+
+		Convey("some examples of valid app ID", func() {
+			So(service.validateAppID(ctx, "myapp"), ShouldBeNil)
+			So(service.validateAppID(ctx, "this-app"), ShouldBeNil)
 		})
 	})
 }
