@@ -238,6 +238,7 @@ func handleResponse(gatewayType string, responseBody *ResponseBody, dumpedRespon
 	}
 	err.IsNonCritical = responseBody.IsNonCritical
 
+	err.CustomResponseCode = responseBody.Code
 	switch responseBody.Code {
 	case "ok":
 		return nil

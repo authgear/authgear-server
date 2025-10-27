@@ -233,11 +233,29 @@ func (s *Sender) sendSMS(ctx context.Context, msgType translation.MessageType, o
 
 			var smsapiErr *smsapi.SendError
 			if errors.As(err, &smsapiErr) && smsapiErr.APIErrorKind != nil {
+				options := []otelutil.MetricOption{
+					otelauthgear.WithStatusError(),
+				}
+				if smsapiErr.APIErrorKind != nil {
+					options = append(options, otelauthgear.WithAPIErrorReason(smsapiErr.APIErrorKind.Reason))
+				}
+				if smsapiErr.CustomResponseCode != "" {
+					options = append(options, otelauthgear.WithCustomResponseCode(smsapiErr.CustomResponseCode))
+				}
+				if smsapiErr.ProviderName != "" {
+					options = append(options, otelauthgear.WithProviderName(smsapiErr.ProviderName))
+				}
+				if smsapiErr.ProviderType != "" {
+					options = append(options, otelauthgear.WithProviderType(smsapiErr.ProviderType))
+				}
+				if smsapiErr.ProviderErrorCode != "" {
+					options = append(options, otelauthgear.WithProviderErrorCode(smsapiErr.ProviderErrorCode))
+				}
+				options = append(options, otelauthgear.WithIsNonCritical(smsapiErr.IsNonCritical))
 				otelutil.IntCounterAddOne(
 					ctx,
 					otelauthgear.CounterSMSRequestCount,
-					otelauthgear.WithStatusError(),
-					otelauthgear.WithAPIErrorReason(smsapiErr.APIErrorKind.Reason),
+					options...,
 				)
 			} else {
 				otelutil.IntCounterAddOne(

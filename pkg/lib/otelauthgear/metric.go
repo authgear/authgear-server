@@ -97,6 +97,21 @@ var AttributeKeyWhatsappAPIIsTimeout = attribute.Key("whatsapp_api_is_timeout")
 // AttributeKeyAPIErrorReason defines the attribute.
 var AttributeKeyAPIErrorReason = attribute.Key("api_error_reason")
 
+// AttributeKeyAPIErrorReason defines the attribute.
+var AttributeKeyCustomResponseCode = attribute.Key("custom_response_code")
+
+// AttributeKeyProviderName defines the attribute.
+var AttributeKeyProviderName = attribute.Key("provider_name")
+
+// AttributeKeyProviderType defines the attribute.
+var AttributeKeyProviderType = attribute.Key("provider_type")
+
+// AttributeKeyProviderErrorCode defines the attribute.
+var AttributeKeyProviderErrorCode = attribute.Key("provider_error_code")
+
+// AttributeKeyIsNonCritical defines the attribute.
+var AttributeKeyIsNonCritical = attribute.Key("is_non_critical")
+
 // AttributeStatusOK is "status=ok".
 var AttributeStatusOK = AttributeKeyStatus.String("ok")
 
@@ -287,8 +302,28 @@ func WithAPIErrorReason(kind string) otelutil.MetricOption {
 	return metricOptionAttributeKeyValue{AttributeKeyAPIErrorReason.String(kind)}
 }
 
+func WithCustomResponseCode(code string) otelutil.MetricOption {
+	return metricOptionAttributeKeyValue{AttributeKeyCustomResponseCode.String(code)}
+}
+
+func WithProviderName(name string) otelutil.MetricOption {
+	return metricOptionAttributeKeyValue{AttributeKeyProviderName.String(name)}
+}
+
+func WithProviderType(typ string) otelutil.MetricOption {
+	return metricOptionAttributeKeyValue{AttributeKeyProviderType.String(typ)}
+}
+
 func WithHTTPStatusCode(code int) otelutil.MetricOption {
 	return metricOptionAttributeKeyValue{semconv.HTTPResponseStatusCodeKey.Int(code)}
+}
+
+func WithProviderErrorCode(code string) otelutil.MetricOption {
+	return metricOptionAttributeKeyValue{AttributeKeyProviderErrorCode.String(code)}
+}
+
+func WithIsNonCritical(isNonCritical bool) otelutil.MetricOption {
+	return metricOptionAttributeKeyValue{AttributeKeyIsNonCritical.Bool(isNonCritical)}
 }
 
 func WithCSRFHasOmitCookie(b bool) otelutil.MetricOption {
