@@ -2021,7 +2021,7 @@
   "ProjectWizardScreen.errors.authMethodRequired": "Please select at least one authentication method.",
   "ProjectWizardScreen.error.duplicated-app-id": "Project ID already exist",
   "ProjectWizardScreen.error.reserved-app-id": "Project ID is reserved",
-  "ProjectWizardScreen.error.invalid-app-id": "Invalid Project ID. Project ID should start and end with lowercase alphanumeric characters or numbers, and it should contain only lowercase alphanumeric characters, numbers or '-'",
+  "ProjectWizardScreen.error.invalid-app-id": "Invalid Project ID. Project ID should start and end with lowercase characters or digits, and it should contain only lowercase characters, digits or hyphens. It cannot start with 2 lowercase characters, followed by a hyphen.",
 
   "GetStartedScreen.title": "Getting Started 🎉",
   "GetStartedScreen.description": "Here are a few steps to get you set up for success.",

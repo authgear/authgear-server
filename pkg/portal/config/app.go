@@ -1,8 +1,11 @@
 package config
 
 type AppConfig struct {
-	HostSuffix string              `envconfig:"HOST_SUFFIX" default:".localhost:3002"`
-	IDPattern  string              `envconfig:"ID_PATTERN" default:"^[a-z0-9][a-z0-9-]{2,30}[a-z0-9]$"`
+	HostSuffix string `envconfig:"HOST_SUFFIX" default:".localhost:3002"`
+
+	// ID_PATTERN is ignored and no longer supported.
+	// IDPattern  string              `envconfig:"ID_PATTERN" default:"^[a-z0-9][a-z0-9-]{2,30}[a-z0-9]$"`
+
 	Kubernetes AppKubernetesConfig `envconfig:"KUBERNETES"`
 
 	// BUILTIN_RESOURCE_DIRECTORY is deprecated. It has no effect anymore.
