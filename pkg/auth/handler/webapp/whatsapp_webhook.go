@@ -29,6 +29,7 @@ type WhatsappCloudAPIWebhookHandler struct {
 	AppID           config.AppID
 	WhatsappService WhatsappCloudAPIWebhookWhatsappService
 	Credentials     *config.WhatsappCloudAPICredentials
+	AppHostSuffixes config.AppHostSuffixes
 }
 
 type whatsappWebhookPayload struct {
@@ -49,11 +50,12 @@ type whatsappWebhookPayload struct {
 }
 
 type whatsappStatus struct {
-	ID          string                         `json:"id"`
-	Status      string                         `json:"status"`
-	Timestamp   string                         `json:"timestamp"`
-	RecipientID string                         `json:"recipient_id"`
-	Errors      []whatsapp.WhatsappStatusError `json:"errors"`
+	ID                    string                         `json:"id"`
+	BizOpaqueCallbackData string                         `json:"biz_opaque_callback_data"`
+	Status                string                         `json:"status"`
+	Timestamp             string                         `json:"timestamp"`
+	RecipientID           string                         `json:"recipient_id"`
+	Errors                []whatsapp.WhatsappStatusError `json:"errors"`
 }
 
 func ConfigureWhatsappCloudAPIWebhookRoute(route httproute.Route) httproute.Route {
@@ -151,6 +153,7 @@ func (h *WhatsappCloudAPIWebhookHandler) ServeHTTP(w http.ResponseWriter, r *htt
 		return
 	}
 
+	expectedBizOpaqueCallbackData := h.AppHostSuffixes.ToWhatsappCloudAPIBizOpaqueCallbackData()
 	for _, entry := range payload.Entry {
 		for _, change := range entry.Changes {
 			if change.Field == "messages" {
@@ -163,6 +166,13 @@ func (h *WhatsappCloudAPIWebhookHandler) ServeHTTP(w http.ResponseWriter, r *htt
 				}
 
 				for _, status := range change.Value.Statuses {
+					if expectedBizOpaqueCallbackData != "" && expectedBizOpaqueCallbackData != status.BizOpaqueCallbackData {
+						logger.GetLogger(ctx).With(
+							slog.String("app_id", string(h.AppID)),
+						).Info(ctx, "ignore webhook due to biz_opaque_callback_data mismatch")
+						continue
+					}
+
 					err := h.WhatsappService.UpdateMessageStatus(
 						ctx,
 						status.ID,
