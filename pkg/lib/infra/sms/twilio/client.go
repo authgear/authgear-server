@@ -89,6 +89,8 @@ func (t *TwilioClient) send0(ctx context.Context, opts smsapi.SendOptions) ([]by
 	if err != nil {
 		return nil, nil, errors.Join(err, &smsapi.SendError{
 			DumpedResponse: dumpedResponse,
+			ProviderName:   string(config.SMSProviderTwilio),
+			ProviderType:   string(config.SMSProviderTwilio),
 		})
 	}
 
@@ -109,6 +111,8 @@ func (t *TwilioClient) Send(ctx context.Context, options smsapi.SendOptions) err
 		}
 		return errors.Join(err, &smsapi.SendError{
 			DumpedResponse: dumpedResponse,
+			ProviderName:   string(config.SMSProviderTwilio),
+			ProviderType:   string(config.SMSProviderTwilio),
 		})
 	}
 
@@ -131,10 +135,14 @@ func (t *TwilioClient) parseAndHandleErrorResponse(
 			// Not something we can understand, return an error with the dumped response
 			return &smsapi.SendError{
 				DumpedResponse: dumpedResponse,
+				ProviderName:   string(config.SMSProviderTwilio),
+				ProviderType:   string(config.SMSProviderTwilio),
 			}
 		} else {
 			return errors.Join(err, &smsapi.SendError{
 				DumpedResponse: dumpedResponse,
+				ProviderName:   string(config.SMSProviderTwilio),
+				ProviderType:   string(config.SMSProviderTwilio),
 			})
 		}
 	}
@@ -148,8 +156,8 @@ func (t *TwilioClient) makeError(
 ) error {
 	err := &smsapi.SendError{
 		DumpedResponse:    dumpedResponse,
-		ProviderName:      "twilio",
-		ProviderType:      "twilio",
+		ProviderName:      string(config.SMSProviderTwilio),
+		ProviderType:      string(config.SMSProviderTwilio),
 		ProviderErrorCode: fmt.Sprintf("%d", errorCode),
 	}
 

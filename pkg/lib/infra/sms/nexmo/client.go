@@ -67,6 +67,8 @@ func (c *NexmoClient) send0(ctx context.Context, opts smsapi.SendOptions) ([]byt
 	if err != nil {
 		return nil, nil, errors.Join(err, &smsapi.SendError{
 			DumpedResponse: dumpedResponse,
+			ProviderName:   string(config.SMSProviderNexmo),
+			ProviderType:   string(config.SMSProviderNexmo),
 		})
 	}
 
@@ -83,6 +85,8 @@ func (c *NexmoClient) Send(ctx context.Context, opts smsapi.SendOptions) error {
 	if err != nil {
 		return errors.Join(err, &smsapi.SendError{
 			DumpedResponse: dumpedResponse,
+			ProviderName:   string(config.SMSProviderNexmo),
+			ProviderType:   string(config.SMSProviderNexmo),
 		})
 	}
 
@@ -92,12 +96,16 @@ func (c *NexmoClient) Send(ctx context.Context, opts smsapi.SendOptions) error {
 		// Failed case.
 		return &smsapi.SendError{
 			DumpedResponse: dumpedResponse,
+			ProviderName:   string(config.SMSProviderNexmo),
+			ProviderType:   string(config.SMSProviderNexmo),
 		}
 	}
 	for _, msg := range sendResponse.Messages {
 		if msg.Status != "0" {
 			return &smsapi.SendError{
 				DumpedResponse: dumpedResponse,
+				ProviderName:   string(config.SMSProviderNexmo),
+				ProviderType:   string(config.SMSProviderNexmo),
 			}
 		}
 	}

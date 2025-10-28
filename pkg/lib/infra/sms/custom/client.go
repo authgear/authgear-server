@@ -94,6 +94,8 @@ func (w *SMSWebHook) Call(ctx context.Context, u *url.URL, payload SendOptions) 
 	if err != nil {
 		return errors.Join(err, &smsapi.SendError{
 			DumpedResponse: dumpedResponse,
+			ProviderName:   string(config.SMSProviderCustom),
+			ProviderType:   string(config.SMSProviderCustom),
 		})
 	}
 
@@ -106,6 +108,8 @@ func (w *SMSWebHook) Call(ctx context.Context, u *url.URL, payload SendOptions) 
 		// Ignore the parse error, return smsapi.SendError with dumped response
 		return &smsapi.SendError{
 			DumpedResponse: dumpedResponse,
+			ProviderName:   string(config.SMSProviderCustom),
+			ProviderType:   string(config.SMSProviderCustom),
 		}
 	}
 
@@ -169,6 +173,8 @@ func (d *SMSDenoHook) handleOutput(output interface{}) error {
 		}
 		return errors.Join(err, &smsapi.SendError{
 			DumpedResponse: jsonText,
+			ProviderName:   string(config.SMSProviderCustom),
+			ProviderType:   string(config.SMSProviderCustom),
 		})
 	}
 
@@ -224,6 +230,8 @@ func handleResponse(gatewayType string, responseBody *ResponseBody, dumpedRespon
 
 	err := &smsapi.SendError{
 		DumpedResponse: dumpedResponse,
+		ProviderName:   string(config.SMSProviderCustom),
+		ProviderType:   string(config.SMSProviderCustom),
 	}
 	if responseBody.ProviderName != "" {
 		err.ProviderName = responseBody.ProviderName
