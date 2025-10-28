@@ -15,20 +15,23 @@ import (
 )
 
 type CloudAPIClient struct {
-	HTTPClient  HTTPClient
-	Credentials *config.WhatsappCloudAPICredentials
+	HTTPClient      HTTPClient
+	Credentials     *config.WhatsappCloudAPICredentials
+	AppHostSuffixes config.AppHostSuffixes
 }
 
 func NewWhatsappCloudAPIClient(
 	credentials *config.WhatsappCloudAPICredentials,
 	httpClient HTTPClient,
+	appHostSuffixes config.AppHostSuffixes,
 ) *CloudAPIClient {
 	if credentials == nil {
 		return nil
 	}
 	return &CloudAPIClient{
-		HTTPClient:  httpClient,
-		Credentials: credentials,
+		HTTPClient:      httpClient,
+		Credentials:     credentials,
+		AppHostSuffixes: appHostSuffixes,
 	}
 }
 
@@ -67,6 +70,10 @@ func (c *CloudAPIClient) SendAuthenticationOTP(ctx context.Context, opts *SendAu
 
 	// I prefer we just use map here, instead of introducing lots of one-time use structs.
 	bodyJSON := map[string]interface{}{
+		// According to the doc, it is maximum 512 characters only.
+		// I guess it means it is 512 bytes only.
+		"biz_opaque_callback_data": c.AppHostSuffixes.ToWhatsappCloudAPIBizOpaqueCallbackData(),
+
 		"messaging_product": "whatsapp",
 		"recipient_type":    "individual",
 		"to":                opts.To,

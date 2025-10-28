@@ -382,7 +382,8 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 	httpClient := whatsapp.NewHTTPClient()
 	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappOnPremisesCredentials, tokenStore, httpClient)
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
-	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient)
+	appHostSuffixes := environmentConfig.AppHostSuffixes
+	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
 	pool := rootProvider.RedisPool
 	redisEnvironmentConfig := &environmentConfig.RedisConfig
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
