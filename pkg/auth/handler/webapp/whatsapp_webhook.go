@@ -146,6 +146,15 @@ func (h *WhatsappCloudAPIWebhookHandler) ServeHTTP(w http.ResponseWriter, r *htt
 		return
 	}
 
+	h.handleVerifiedWebhookPayload(w, r, payload)
+}
+
+func (h *WhatsappCloudAPIWebhookHandler) handleVerifiedWebhookPayload(w http.ResponseWriter, r *http.Request, payload whatsappWebhookPayload) {
+	ctx := r.Context()
+	logger := whatsappWebhookLogger.GetLogger(ctx).With(
+		slog.String("app_id", string(h.AppID)),
+	)
+
 	expectedBizOpaqueCallbackData := h.AppHostSuffixes.ToWhatsappCloudAPIBizOpaqueCallbackData()
 	for _, entry := range payload.Entry {
 		for _, change := range entry.Changes {
