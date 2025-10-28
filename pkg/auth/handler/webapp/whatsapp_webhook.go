@@ -160,9 +160,12 @@ func (h *WhatsappCloudAPIWebhookHandler) ServeHTTP(w http.ResponseWriter, r *htt
 				}
 
 				for _, status := range change.Value.Statuses {
-					if expectedBizOpaqueCallbackData != "" && expectedBizOpaqueCallbackData != status.BizOpaqueCallbackData {
-						logger.Info(ctx, "ignore webhook due to biz_opaque_callback_data mismatch")
-						continue
+					if expectedBizOpaqueCallbackData != "" {
+						match := expectedBizOpaqueCallbackData == status.BizOpaqueCallbackData
+						logger.Debug(ctx, "checking biz_opaque_callback_data", slog.Bool("match", match))
+						if !match {
+							continue
+						}
 					}
 
 					err := h.WhatsappService.UpdateMessageStatus(
@@ -172,7 +175,7 @@ func (h *WhatsappCloudAPIWebhookHandler) ServeHTTP(w http.ResponseWriter, r *htt
 						status.Errors,
 					)
 					if err != nil {
-						whatsappWebhookLogger.GetLogger(ctx).WithError(err).Error(ctx, "Failed to update message status")
+						logger.WithError(err).Error(ctx, "Failed to update message status")
 						continue
 					}
 				}
