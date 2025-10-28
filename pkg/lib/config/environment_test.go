@@ -8,8 +8,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
-func TestAppHostSuffixes(t *testing.T) {
-	Convey("AppHostSuffixes", t, func() {
+func TestAppHostSuffixesCheckIsDefaultDomain(t *testing.T) {
+	Convey("AppHostSuffixes.CheckIsDefaultDomain", t, func() {
 		prod := config.AppHostSuffixes([]string{
 			".authgearapps.com",
 			".authgear-apps.com",
@@ -31,5 +31,34 @@ func TestAppHostSuffixes(t *testing.T) {
 
 		test(local, "myapp.localhost:3100", true)
 		test(local, "accounts.portal.localhost:3100", false)
+	})
+}
+
+func TestAppHostSuffixesCheckToWhatsappCloudAPIBizOpaqueCallbackData(t *testing.T) {
+	Convey("AppHostSuffixes.ToWhatsappCloudAPIBizOpaqueCallbackData", t, func() {
+		Convey("nil suffixes should return empty string", func() {
+			var nilinput config.AppHostSuffixes
+			So(nilinput.ToWhatsappCloudAPIBizOpaqueCallbackData(), ShouldEqual, "")
+		})
+
+		Convey("one suffix should return non empty string", func() {
+			one := config.AppHostSuffixes([]string{
+				".authgear.cloud",
+			})
+			actual := one.ToWhatsappCloudAPIBizOpaqueCallbackData()
+			So(actual, ShouldEqual, "fc27ef62d6acb6da5ebb30649e0bb0ec4f7c2973f3cb3eac0974424037911209")
+			So(len(actual), ShouldBeLessThan, 512)
+		})
+
+		Convey("more than suffixes should return non empty string", func() {
+			more := config.AppHostSuffixes([]string{
+				".authgearapps.com",
+				".authgear-apps.com",
+				".authgear.cloud",
+			})
+			actual := more.ToWhatsappCloudAPIBizOpaqueCallbackData()
+			So(actual, ShouldEqual, "a9d7ce80bfdc9c48cb29727cad433258e698c71d5205ca1ae5e0cbf325e09371")
+			So(len(actual), ShouldBeLessThan, 512)
+		})
 	})
 }

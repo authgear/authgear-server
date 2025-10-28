@@ -19,7 +19,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
-var logger = slogutil.NewLogger("whatsapp-webhook")
+var whatsappWebhookLogger = slogutil.NewLogger("whatsapp-webhook")
 
 type WhatsappCloudAPIWebhookWhatsappService interface {
 	UpdateMessageStatus(ctx context.Context, messageID string, status whatsapp.WhatsappMessageStatus, errors []whatsapp.WhatsappStatusError) error
@@ -29,6 +29,7 @@ type WhatsappCloudAPIWebhookHandler struct {
 	AppID           config.AppID
 	WhatsappService WhatsappCloudAPIWebhookWhatsappService
 	Credentials     *config.WhatsappCloudAPICredentials
+	AppHostSuffixes config.AppHostSuffixes
 }
 
 type whatsappWebhookPayload struct {
@@ -49,11 +50,12 @@ type whatsappWebhookPayload struct {
 }
 
 type whatsappStatus struct {
-	ID          string                         `json:"id"`
-	Status      string                         `json:"status"`
-	Timestamp   string                         `json:"timestamp"`
-	RecipientID string                         `json:"recipient_id"`
-	Errors      []whatsapp.WhatsappStatusError `json:"errors"`
+	ID                    string                         `json:"id"`
+	BizOpaqueCallbackData string                         `json:"biz_opaque_callback_data"`
+	Status                string                         `json:"status"`
+	Timestamp             string                         `json:"timestamp"`
+	RecipientID           string                         `json:"recipient_id"`
+	Errors                []whatsapp.WhatsappStatusError `json:"errors"`
 }
 
 func ConfigureWhatsappCloudAPIWebhookRoute(route httproute.Route) httproute.Route {
@@ -63,6 +65,10 @@ func ConfigureWhatsappCloudAPIWebhookRoute(route httproute.Route) httproute.Rout
 }
 
 func (h *WhatsappCloudAPIWebhookHandler) handleVerifyRequest(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	logger := whatsappWebhookLogger.GetLogger(ctx).With(
+		slog.String("app_id", string(h.AppID)),
+	)
+
 	hubChallenge := r.URL.Query().Get("hub.challenge")
 	hubVerifyToken := r.URL.Query().Get("hub.verify_token")
 
@@ -74,9 +80,7 @@ func (h *WhatsappCloudAPIWebhookHandler) handleVerifyRequest(ctx context.Context
 	}
 
 	if subtle.ConstantTimeCompare([]byte(hubVerifyToken), []byte(h.Credentials.Webhook.VerifyToken)) != 1 {
-		logger.GetLogger(ctx).With(
-			slog.String("app_id", string(h.AppID)),
-		).Error(ctx, "invalid verify token received")
+		logger.Error(ctx, "invalid verify token received")
 		http.Error(w, "invalid verify token", http.StatusBadRequest)
 		return
 	}
@@ -86,11 +90,12 @@ func (h *WhatsappCloudAPIWebhookHandler) handleVerifyRequest(ctx context.Context
 
 func (h *WhatsappCloudAPIWebhookHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	logger := whatsappWebhookLogger.GetLogger(ctx).With(
+		slog.String("app_id", string(h.AppID)),
+	)
 
 	if h.Credentials == nil || h.Credentials.Webhook == nil {
-		logger.GetLogger(ctx).With(
-			slog.String("app_id", string(h.AppID)),
-		).Error(ctx, "whatsapp cloud api webhook credential is not configured")
+		logger.Error(ctx, "whatsapp cloud api webhook credential is not configured")
 		// Simply return 404 if webhook is not configured
 		http.Error(w, "not found", http.StatusNotFound)
 		return
@@ -103,17 +108,13 @@ func (h *WhatsappCloudAPIWebhookHandler) ServeHTTP(w http.ResponseWriter, r *htt
 
 	signature := r.Header.Get("X-Hub-Signature-256")
 	if signature == "" {
-		logger.GetLogger(ctx).With(
-			slog.String("app_id", string(h.AppID)),
-		).Error(ctx, "missing signature")
+		logger.Error(ctx, "missing signature")
 		http.Error(w, "missing signature", http.StatusBadRequest)
 		return
 	}
 
 	if !strings.HasPrefix(signature, "sha256=") {
-		logger.GetLogger(ctx).With(
-			slog.String("app_id", string(h.AppID)),
-		).Error(ctx, "invalid X-Hub-Signature-256 header format")
+		logger.Error(ctx, "invalid X-Hub-Signature-256 header format")
 		http.Error(w, "invalid X-Hub-Signature-256 header format", http.StatusBadRequest)
 		return
 	}
@@ -121,9 +122,7 @@ func (h *WhatsappCloudAPIWebhookHandler) ServeHTTP(w http.ResponseWriter, r *htt
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		logger.GetLogger(ctx).With(
-			slog.String("app_id", string(h.AppID)),
-		).WithError(err).Error(ctx, "failed to read request body")
+		logger.WithError(err).Error(ctx, "failed to read request body")
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -134,9 +133,7 @@ func (h *WhatsappCloudAPIWebhookHandler) ServeHTTP(w http.ResponseWriter, r *htt
 	expectedSignature := hex.EncodeToString(expectedMAC)
 
 	if subtle.ConstantTimeCompare([]byte(signature), []byte(expectedSignature)) != 1 {
-		logger.GetLogger(ctx).With(
-			slog.String("app_id", string(h.AppID)),
-		).Error(ctx, "invalid signature")
+		logger.Error(ctx, "invalid signature")
 		http.Error(w, "invalid signature", http.StatusUnauthorized)
 		return
 	}
@@ -144,25 +141,42 @@ func (h *WhatsappCloudAPIWebhookHandler) ServeHTTP(w http.ResponseWriter, r *htt
 	var payload whatsappWebhookPayload
 	err = json.NewDecoder(bytes.NewReader(body)).Decode(&payload)
 	if err != nil {
-		logger.GetLogger(ctx).With(
-			slog.String("app_id", string(h.AppID)),
-		).WithError(err).Error(ctx, "invalid request body")
+		logger.WithError(err).Error(ctx, "invalid request body")
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
+	h.handleVerifiedWebhookPayload(w, r, payload)
+}
+
+func (h *WhatsappCloudAPIWebhookHandler) handleVerifiedWebhookPayload(w http.ResponseWriter, r *http.Request, payload whatsappWebhookPayload) {
+	ctx := r.Context()
+	logger := whatsappWebhookLogger.GetLogger(ctx).With(
+		slog.String("app_id", string(h.AppID)),
+	)
+
+	expectedBizOpaqueCallbackData := h.AppHostSuffixes.ToWhatsappCloudAPIBizOpaqueCallbackData()
 	for _, entry := range payload.Entry {
 		for _, change := range entry.Changes {
 			if change.Field == "messages" {
 				if subtle.ConstantTimeCompare([]byte(change.Value.Metadata.PhoneNumberID), []byte(h.Credentials.PhoneNumberID)) != 1 {
-					logger.GetLogger(ctx).With(
-						slog.String("app_id", string(h.AppID)),
+					logger.Error(
+						ctx,
+						"phone number ID does not match configured phone number ID",
 						slog.String("phone_number_id", change.Value.Metadata.PhoneNumberID),
-					).Error(ctx, "phone number ID does not match configured phone number ID")
+					)
 					continue
 				}
 
 				for _, status := range change.Value.Statuses {
+					if expectedBizOpaqueCallbackData != "" {
+						match := expectedBizOpaqueCallbackData == status.BizOpaqueCallbackData
+						logger.Debug(ctx, "checking biz_opaque_callback_data", slog.Bool("match", match))
+						if !match {
+							continue
+						}
+					}
+
 					err := h.WhatsappService.UpdateMessageStatus(
 						ctx,
 						status.ID,
@@ -170,7 +184,7 @@ func (h *WhatsappCloudAPIWebhookHandler) ServeHTTP(w http.ResponseWriter, r *htt
 						status.Errors,
 					)
 					if err != nil {
-						logger.GetLogger(ctx).WithError(err).Error(ctx, "Failed to update message status")
+						logger.WithError(err).Error(ctx, "Failed to update message status")
 						continue
 					}
 				}

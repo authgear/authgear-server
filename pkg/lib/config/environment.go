@@ -1,6 +1,10 @@
 package config
 
-import "strings"
+import (
+	"strings"
+
+	"github.com/authgear/authgear-server/pkg/util/crypto"
+)
 
 type TrustProxy bool
 
@@ -45,6 +49,16 @@ func (s AppHostSuffixes) CheckIsDefaultDomain(host string) bool {
 	}
 
 	return false
+}
+
+func (s AppHostSuffixes) ToWhatsappCloudAPIBizOpaqueCallbackData() string {
+	if len(s) == 0 {
+		return ""
+	}
+
+	// Just join it, and then perform SHA256.
+	joined := strings.Join([]string(s), ",")
+	return crypto.SHA256String(joined)
 }
 
 func (c *CORSAllowedOrigins) List() []string {
