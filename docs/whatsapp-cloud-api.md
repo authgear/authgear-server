@@ -21,6 +21,7 @@ You need the following to setup whatsapp cloud api in authgear:
           - en # Add other languages
     webhook:
       verify_token: YOUR_VERIFY_TOKEN
+      app_secret: YOUR_APP_SECRET
   key: whatsapp.cloud-api
 ```
 
@@ -31,6 +32,8 @@ YOUR_ACCESS_TOKEN should be access token of a system user. Read https://develope
 YOUR_TEMPLATE_NAME should be a template in "WhatsApp Manager" -> "Message templates". The template category MUST be "Authentication". Create templates in same name for all supported languages. You should list all supported languages in `languages`.
 
 YOUR_VERIFY_TOKEN can be any random string. You can generate one with `openssl rand -hex 16`.
+
+YOUR_APP_SECRET can be found in "App Settings" -> "Basic".
 
 ## Configure webhook
 
