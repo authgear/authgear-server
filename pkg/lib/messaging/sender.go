@@ -236,22 +236,7 @@ func (s *Sender) sendSMS(ctx context.Context, msgType translation.MessageType, o
 				options := []otelutil.MetricOption{
 					otelauthgear.WithStatusError(),
 				}
-				if smsapiErr.APIErrorKind != nil {
-					options = append(options, otelauthgear.WithAPIErrorReason(smsapiErr.APIErrorKind.Reason))
-				}
-				if smsapiErr.CustomResponseCode != "" {
-					options = append(options, otelauthgear.WithCustomResponseCode(smsapiErr.CustomResponseCode))
-				}
-				if smsapiErr.ProviderName != "" {
-					options = append(options, otelauthgear.WithProviderName(smsapiErr.ProviderName))
-				}
-				if smsapiErr.ProviderType != "" {
-					options = append(options, otelauthgear.WithProviderType(smsapiErr.ProviderType))
-				}
-				if smsapiErr.ProviderErrorCode != "" {
-					options = append(options, otelauthgear.WithProviderErrorCode(smsapiErr.ProviderErrorCode))
-				}
-				options = append(options, otelauthgear.WithIsNonCritical(smsapiErr.IsNonCritical))
+				options = append(options, s.applySMSAPIErrorMetrics(smsapiErr)...)
 				otelutil.IntCounterAddOne(
 					ctx,
 					otelauthgear.CounterSMSRequestCount,
@@ -517,4 +502,25 @@ func (s *Sender) errorToDescription(err error) string {
 	}
 
 	return err.Error()
+}
+
+func (s *Sender) applySMSAPIErrorMetrics(smsapiErr *smsapi.SendError) []otelutil.MetricOption {
+	var options []otelutil.MetricOption
+	if smsapiErr.APIErrorKind != nil {
+		options = append(options, otelauthgear.WithAPIErrorReason(smsapiErr.APIErrorKind.Reason))
+	}
+	if smsapiErr.CustomResponseCode != "" {
+		options = append(options, otelauthgear.WithCustomResponseCode(smsapiErr.CustomResponseCode))
+	}
+	if smsapiErr.ProviderName != "" {
+		options = append(options, otelauthgear.WithProviderName(smsapiErr.ProviderName))
+	}
+	if smsapiErr.ProviderType != "" {
+		options = append(options, otelauthgear.WithProviderType(smsapiErr.ProviderType))
+	}
+	if smsapiErr.ProviderErrorCode != "" {
+		options = append(options, otelauthgear.WithProviderErrorCode(smsapiErr.ProviderErrorCode))
+	}
+	options = append(options, otelauthgear.WithIsNonCritical(smsapiErr.IsNonCritical))
+	return options
 }
