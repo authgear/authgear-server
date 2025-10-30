@@ -5,13 +5,14 @@ import (
 	"encoding/json"
 	"errors"
 
+	"go.opentelemetry.io/otel/attribute"
+
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/otelutil"
 	"github.com/authgear/authgear-server/pkg/util/slogutil"
-	"go.opentelemetry.io/otel/attribute"
 )
 
 var NoAvailableClient = apierrors.InternalError.
