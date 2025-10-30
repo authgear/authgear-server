@@ -164,43 +164,43 @@ interface CustomSMSGatewayResponse {
 
 - ok
 
-Return this code if the sms is delivered successfully.
-Authgear server will continue the current operation normally, such as advance to the next step in a login flow.
+Return this code if the SMS is delivered successfully.
+Authgear server will continue the current operation normally, such as advancing to the next step in a login flow.
 
 - invalid_phone_number
 
-Return this code if the sms gateway consider the phone number as invalid.
-Authgear server will consider it as an error, and display an error message to the end-user asking for another phone number.
+Return this code if the SMS gateway determines the phone number is invalid.
+Authgear server will treat this as an error and display a message to the end-user asking for another phone number.
 
 - rate_limited
 
-Return this code if the sms gateway consider the request is too frequent.
-Authgear server will consider it as an error, and display an error message to the end-user asking for a retry after a moment.
+Return this code if the SMS gateway determines the request is too frequent.
+Authgear server will treat this as an error and display a message to the end-user asking for a retry after a moment.
 
 - authentication_failed
 
-Return this code if the sms gateway failed to send the sms because of some project configuration error related to authentication, such as an invalid twilio access key.
-Authgear server will consider it as an error, and display an message asking the end-user to notify the project owner to check the config.
+Return this code if the SMS gateway fails to send the SMS due to a configuration error related to authentication (e.g., invalid Twilio access key).
+Authgear server will treat this as an error and display a message asking the end-user to notify the project owner to check the configuration.
 
 - unsupported_request
 
-Return this code if the sms gateway consider the request unsupported, for example, trying to send a login link when the gateway only support sending 6 digit code.
-Authgear server will consider it as an error, and display an message asking the end-user to notify the project owner to check the config.
+Return this code if the SMS gateway determines the request is unsupported (e.g., attempting to send a login link when only 6-digit codes are supported).
+Authgear server will treat this as an error and display a message asking the end-user to notify the project owner to check the configuration.
 
 - delivery_rejected
 
-Return this code if the sms gateway failed to send the sms because an external delivery service, such as twilio, rejected the request for any reason the user cannot fix by retrying.
-Authgear server will consider it as an error, and display an message asking the end-user to notify the project owner for support.
+Return this code if the SMS gateway fails to send the SMS because an external delivery service (e.g., Twilio) rejects the request for a reason the user cannot resolve by retrying.
+Authgear server will treat this as an error and display a message asking the end-user to notify the project owner for support.
 
 - timeout
 
-Return this code if the sms gateway failed to send the sms because an external delivery service, such as twilio, failed to response in a spcific timeout.
-Authgear server will consider it as an temporary error, and will display an error message instucting the end user to try again later.
+Return this code if the SMS gateway fails to send the SMS due to a timeout from an external delivery service.
+Authgear server will treat this as a temporary error and instruct the end-user to try again later.
 
 - unknown_error
 
-Return this code if the sms gateway failed to send the sms because any unknown error occurred.
-Authgear server will consider it as an error, and display an error message indicating some unexpected error occurred.
+Return this code if the SMS gateway encounters an unknown error when sending the SMS.
+Authgear server will treat this as an error and display a generic error message to the end-user.
 
 #### Backward Compatibility
 
