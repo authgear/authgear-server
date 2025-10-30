@@ -99,7 +99,7 @@ func (n *NodeAuthenticateEmailLoginLink) OutputData(ctx context.Context, deps *w
 	}
 
 	return NodeAuthenticateEmailLoginLinkOutput{
-		LoginLinkSubmitted:             state.SubmittedCode != "",
+		LoginLinkSubmitted:             state.CanCheckSubmittedCode,
 		MaskedEmail:                    mail.MaskAddress(target),
 		CanResendAt:                    state.CanResendAt,
 		FailedAttemptRateLimitExceeded: state.TooManyAttempts,

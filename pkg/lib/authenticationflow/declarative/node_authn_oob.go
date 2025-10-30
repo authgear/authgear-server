@@ -207,7 +207,7 @@ func (n *NodeAuthenticationOOB) OutputData(ctx context.Context, deps *authflow.D
 		MaskedClaimValue:               getMaskedOTPTarget(claimName, claimValue),
 		CodeLength:                     n.Form.CodeLength(),
 		CanResendAt:                    state.CanResendAt,
-		CanCheck:                       state.SubmittedCode != "",
+		CanCheck:                       state.CanCheckSubmittedCode,
 		FailedAttemptRateLimitExceeded: state.TooManyAttempts,
 		DeliveryStatus:                 state.DeliveryStatus,
 		DeliveryError:                  state.DeliveryError,
