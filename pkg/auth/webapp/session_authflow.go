@@ -859,10 +859,6 @@ func (s *AuthflowScreenWithFlowResponse) makeVerifyOOBOTPOutputTransformer(chann
 				}
 
 				switch data.DeliveryStatus {
-				case "":
-					// Empty string indicates the code is not generated, maybe still in cooldown
-					// Simply proceed to next page
-					return output, err
 				case model.OTPDeliveryStatusFailed:
 					if apierrors.IsKind(data.DeliveryError, whatsapp.WhatsappMessageStatusCallbackTimeout) {
 						if !hasNonWhatsappChannels {
@@ -878,7 +874,7 @@ func (s *AuthflowScreenWithFlowResponse) makeVerifyOOBOTPOutputTransformer(chann
 					return output, data.DeliveryError
 				case model.OTPDeliveryStatusSent:
 					return output, err
-				case model.OTPDeliveryStatusSending, model.OTPDeliveryStatusPending:
+				case model.OTPDeliveryStatusSending:
 					{
 						// Wait until sent or failed
 						time.Sleep(500 * time.Millisecond)

@@ -23,22 +23,22 @@ func selectByChannel[T any](channel model.AuthenticatorOOBChannel, email T, sms 
 	panic("invalid channel: " + channel)
 }
 
-func whatsappMessageStatusToOTPDeliveryStatus(ctx context.Context, messageStatus whatsapp.WhatsappMessageStatus) model.OTPDeliveryStatus {
-	var deliveryStatus model.OTPDeliveryStatus
+func whatsappMessageStatusToOTPDeliveryStatus(ctx context.Context, messageStatus whatsapp.WhatsappMessageStatus) OTPDeliveryStatusInternal {
+	var deliveryStatus OTPDeliveryStatusInternal
 	switch messageStatus {
 	case whatsapp.WhatsappMessageStatusAccepted:
-		deliveryStatus = model.OTPDeliveryStatusSending
+		deliveryStatus = OTPDeliveryStatusInternalSending
 	case whatsapp.WhatsappMessageStatusSent,
 		whatsapp.WhatsappMessageStatusDelivered,
 		whatsapp.WhatsappMessageStatusRead:
-		deliveryStatus = model.OTPDeliveryStatusSent
+		deliveryStatus = OTPDeliveryStatusInternalSent
 	case whatsapp.WhatsappMessageStatusFailed:
-		deliveryStatus = model.OTPDeliveryStatusFailed
+		deliveryStatus = OTPDeliveryStatusInternalFailed
 	default:
 		UtilsLogger.GetLogger(ctx).With(
 			slog.String("status", string(messageStatus)),
 		).Error(ctx, "unexpected whatsapp message status")
-		deliveryStatus = model.OTPDeliveryStatusFailed
+		deliveryStatus = OTPDeliveryStatusInternalFailed
 	}
 	return deliveryStatus
 }

@@ -35,7 +35,7 @@ type VerifyOptions struct {
 }
 
 type messageDeliveryStatus struct {
-	DeliveryStatus model.OTPDeliveryStatus
+	DeliveryStatus OTPDeliveryStatusInternal
 	DeliveryError  *apierrors.APIError
 }
 
@@ -374,7 +374,7 @@ func (s *Service) InspectState(ctx context.Context, kind Kind, target string) (*
 		if err != nil {
 			return nil, err
 		}
-		state.DeliveryStatus = status.DeliveryStatus
+		state.DeliveryStatus = status.DeliveryStatus.ToAPIStatus()
 		state.DeliveryError = status.DeliveryError
 	} else {
 		state.Target = target
@@ -386,6 +386,8 @@ func (s *Service) InspectState(ctx context.Context, kind Kind, target string) (*
 		state.AuthenticationFlowName = ""
 		state.AuthenticationFlowType = ""
 		state.WebSessionID = ""
+		// We do not tell the user the code is not generated
+		// Pretend to be sent
 		state.DeliveryStatus = model.OTPDeliveryStatusSent
 		state.DeliveryError = nil
 	}
@@ -397,7 +399,7 @@ func (s *Service) getOTPMessageDeliverStatus(ctx context.Context, code *Code) (*
 	if code.OOBChannel == "" {
 		// Not sent yet
 		return &messageDeliveryStatus{
-			DeliveryStatus: model.OTPDeliveryStatusPending,
+			DeliveryStatus: OTPDeliveryStatusInternalPending,
 			DeliveryError:  nil,
 		}, nil
 	}
@@ -405,7 +407,7 @@ func (s *Service) getOTPMessageDeliverStatus(ctx context.Context, code *Code) (*
 	if code.SendMessageError != nil {
 		// Failed on send
 		return &messageDeliveryStatus{
-			DeliveryStatus: model.OTPDeliveryStatusFailed,
+			DeliveryStatus: OTPDeliveryStatusInternalFailed,
 			DeliveryError:  code.SendMessageError,
 		}, nil
 	}
@@ -417,7 +419,7 @@ func (s *Service) getOTPMessageDeliverStatus(ctx context.Context, code *Code) (*
 				// Not known yet, happens when `Send` is returned but the goroutine which
 				// call whatsapp api isn't finished yet
 				return &messageDeliveryStatus{
-					DeliveryStatus: model.OTPDeliveryStatusSending,
+					DeliveryStatus: OTPDeliveryStatusInternalSending,
 					DeliveryError:  nil,
 				}, nil
 			}
@@ -428,7 +430,7 @@ func (s *Service) getOTPMessageDeliverStatus(ctx context.Context, code *Code) (*
 			// Status is still unknown
 			if getStatusResult == nil {
 				return &messageDeliveryStatus{
-					DeliveryStatus: model.OTPDeliveryStatusSending,
+					DeliveryStatus: OTPDeliveryStatusInternalSending,
 					DeliveryError:  nil,
 				}, nil
 			} else {
@@ -448,7 +450,7 @@ func (s *Service) getOTPMessageDeliverStatus(ctx context.Context, code *Code) (*
 	default:
 		// Always sent
 		return &messageDeliveryStatus{
-			DeliveryStatus: model.OTPDeliveryStatusSent,
+			DeliveryStatus: OTPDeliveryStatusInternalSent,
 			DeliveryError:  nil,
 		}, nil
 	}
