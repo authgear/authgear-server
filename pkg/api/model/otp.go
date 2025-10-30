@@ -3,8 +3,7 @@ package model
 type OTPDeliveryStatus string
 
 const (
-	OTPDeliveryStatusPending = "pending"
-	OTPDeliveryStatusSending = "sending"
-	OTPDeliveryStatusFailed  = "failed"
-	OTPDeliveryStatusSent    = "sent"
+	OTPDeliveryStatusSending OTPDeliveryStatus = "sending"
+	OTPDeliveryStatusFailed  OTPDeliveryStatus = "failed"
+	OTPDeliveryStatusSent    OTPDeliveryStatus = "sent"
 )

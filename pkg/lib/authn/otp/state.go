@@ -10,12 +10,11 @@ import (
 )
 
 type State struct {
-	Target          string
-	ExpireAt        time.Time
-	CanResendAt     time.Time
-	SubmittedCode   string
-	UserID          string
-	TooManyAttempts bool
+	Target                string
+	CanResendAt           time.Time
+	CanCheckSubmittedCode bool
+	UserID                string
+	TooManyAttempts       bool
 
 	WebSessionID                           string
 	WorkflowID                             string

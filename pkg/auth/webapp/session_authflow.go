@@ -874,7 +874,7 @@ func (s *AuthflowScreenWithFlowResponse) makeVerifyOOBOTPOutputTransformer(chann
 					return output, data.DeliveryError
 				case model.OTPDeliveryStatusSent:
 					return output, err
-				case model.OTPDeliveryStatusSending, model.OTPDeliveryStatusPending:
+				case model.OTPDeliveryStatusSending:
 					{
 						// Wait until sent or failed
 						time.Sleep(500 * time.Millisecond)
