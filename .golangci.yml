@@ -1,5 +1,6 @@
+version: "2"
 linters:
-  disable-all: true
+  default: none
   enable:
   - gosec
   - govet
@@ -13,11 +14,37 @@ linters:
   - fatcontext
   # I tried turning on contextcheck but it has many false positives.
   #- contextcheck
-
   # https://github.com/golangci/golangci-lint/pull/2438
   # Disable linter that does not work with go1.18
   #- staticcheck
   #- gosimple
+  settings:
+    gosec:
+      excludes:
+      - G404 # G404: Use of weak random number generator (math/rand instead of crypto/rand)
+      # We use errcheck to check unhandled errors.
+      - G104 # G104: Errors unhandled
+      - G304 # G304: Potential file inclusion via variable
+      - G301 # G301: Expect directory permissions to be 0750 or less
+      - G302 # G302: Expect file permissions to be 0600 or less
+    govet:
+      # We want to enable all govet analyzers.
+      enable-all: true
+      disable:
+        # If fieldalignment is enabled, we have many errors because all of our structs are not sorted to minimize memory.
+        - fieldalignment
+        # We shadow variables in a lot of places. Enabling this will generate many errors.
+        - shadow
+    errcheck:
+      exclude-functions:
+      - fmt.Fprintf
+      - (io.ReadCloser).Close
+      - (io.Closer).Close
+      - (*os.File).Close
+      - (io/fs.File).Close
+      - os.Remove
+      - (*database/sql.Rows).Close
+      - os.Setenv
   exclusions:
     rules:
     - path: pkg/util/databasesqlwrapper
@@ -26,25 +53,16 @@ linters:
     - path: pkg/lib/saml/samlprotocol/duration.go
       linters:
       - gocognit
-
-linters-settings:
-  gofmt:
-    simplify: false
-  gosec:
-    excludes:
-    - G404 # G404: Use of weak random number generator (math/rand instead of crypto/rand)
-  govet:
-    # We want to enable all govet analyzers.
-    enable-all: true
-    disable:
-    # If fieldalignment is enabled, we have many errors because all of our structs are not sorted to minimize memory.
-    - fieldalignment
-    # We shadow variables in a lot of places. Enabling this will generate many errors.
-    - shadow
-
-run:
-  go: "1.19"
-  timeout: 5m
+    # Exclude errcheck and gosec in test files.
+    - path: _test\.go
+      linters:
+        - errcheck
+        - gosec
 
 issues:
   max-issues-per-linter: 0
+
+formatters:
+  settings:
+    gofmt:
+      simplify: false
