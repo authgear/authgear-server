@@ -659,7 +659,9 @@ func (s *AppService) validateAppID(ctx context.Context, appID string) error {
 	}
 
 	if projectIDPattern_invalid.MatchString(appID) {
-		return ErrAppIDInvalid
+		// It is hard to explain this pattern to the developers.
+		// So let's just say the reason is reserved.
+		return ErrAppIDReserved
 	}
 
 	var list *blocklist.Blocklist
