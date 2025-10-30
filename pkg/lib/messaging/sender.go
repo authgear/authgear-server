@@ -244,20 +244,11 @@ func (s *Sender) sendSMS(ctx context.Context, msgType translation.MessageType, o
 				metricOptions = append(metricOptions, s.applySMSAPIErrorMetrics(smsapiErr)...)
 			}
 
-			if errors.As(err, &smsapiErr) && smsapiErr.APIErrorKind != nil {
-				otelutil.IntCounterAddOne(
-					ctx,
-					otelauthgear.CounterSMSRequestCount,
-					otelauthgear.WithStatusError(),
-					otelauthgear.WithAPIErrorReason(smsapiErr.APIErrorKind.Reason),
-				)
-			} else {
-				otelutil.IntCounterAddOne(
-					ctx,
-					otelauthgear.CounterSMSRequestCount,
-					otelauthgear.WithStatusError(),
-				)
-			}
+			otelutil.IntCounterAddOne(
+				ctx,
+				otelauthgear.CounterSMSRequestCount,
+				metricOptions...,
+			)
 
 			dispatchErr := s.DispatchEventImmediatelyWithTx(ctx, &nonblocking.SMSErrorEventPayload{
 				Description: s.errorToDescription(err),
