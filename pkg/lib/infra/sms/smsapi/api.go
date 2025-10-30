@@ -6,6 +6,7 @@ import (
 	"errors"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
 )
@@ -19,8 +20,8 @@ var ErrAmbiguousClient = errors.New("ambiguous SMS client")
 var ErrKindInvalidPhoneNumber = apierrors.BadRequest.WithReason("SMSGatewayInvalidPhoneNumber")
 var ErrKindAuthenticationFailed = apierrors.InternalError.WithReason("SMSGatewayAuthenticationFailed")
 var ErrKindDeliveryRejected = apierrors.InternalError.WithReason("SMSGatewayDeliveryRejected")
+var ErrKindTimeout = apierrors.InternalError.WithReason("SMSGatewayTimeout")
 var ErrKindRateLimited = apierrors.TooManyRequest.WithReason("SMSGatewayRateLimited")
-var ErrKindAttemptedToSendOTPTemplateWithoutCode = apierrors.InternalError.WithReason("SMSGatewayAttemptedToSendOTPTemplateWithoutCode")
 
 type TemplateVariables struct {
 	AppName     string `json:"app_name,omitempty"`
@@ -71,11 +72,16 @@ type Client interface {
 }
 
 type SendError struct {
-	DumpedResponse []byte `json:"dumped_response,omitempty"`
+	DumpedResponse []byte             `json:"dumped_response,omitempty"`
+	APIErrorKind   *apierrors.Kind    `json:"api_error_kind,omitempty"`
+	ProviderType   config.SMSProvider `json:"provider_type,omitempty"`
 
-	APIErrorKind      *apierrors.Kind `json:"api_error_kind,omitempty"`
-	ProviderName      string          `json:"provider_name,omitempty"`
-	ProviderErrorCode string          `json:"provider_error_code,omitempty"`
+	ProviderErrorCode string `json:"provider_error_code,omitempty"`
+
+	// provider_type=custom
+	CustomProviderName         string `json:"custom_provider_name,omitempty"`
+	CustomProviderResponseCode string `json:"custom_provider_response_code,omitempty"`
+	CustomProviderDescription  string `json:"description,omitempty"`
 }
 
 func (e *SendError) Error() string {
@@ -100,7 +106,9 @@ func (e *SendError) As(target any) bool {
 func (e *SendError) asAPIError() *apierrors.APIError {
 	details := apierrors.Details{
 		"ProviderErrorCode": e.ProviderErrorCode,
-		"ProviderName":      e.ProviderName,
+		"ProviderType":      e.ProviderType,
+		"ProviderName":      e.CustomProviderName,
+		"Description":       e.CustomProviderDescription,
 	}
 	kind := apierrors.UnexpectedError
 	if e.APIErrorKind != nil {

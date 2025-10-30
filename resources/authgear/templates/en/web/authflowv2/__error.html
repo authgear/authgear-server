@@ -275,8 +275,8 @@
       <span>{{ include "v2.error.sms-gateway-delivery-rejected" (dict "ProviderErrorCode" .Error.info.ProviderErrorCode) }}</span>
     {{ else if eq .Error.reason "SMSGatewayRateLimited" }}
       <span>{{ include "v2.error.sms-gateway-rate-limited" (dict "ProviderErrorCode" .Error.info.ProviderErrorCode) }}</span>
-    {{ else if eq .Error.reason "SMSGatewayAttemptedToSendOTPTemplateWithoutCode" }}
-      <span>{{ include "v2.error.sms-gateway-attempted-to-send-otp-template-without-code" (dict "ProviderErrorCode" .Error.info.ProviderErrorCode) }}</span>
+    {{ else if eq .Error.reason "SMSGatewayTimeout" }}
+      <span>{{ include "v2.error.sms-gateway-timeout" (dict "ProviderErrorCode" .Error.info.ProviderErrorCode) }}</span>
     {{ else if eq .Error.reason "OAuthError" }}
       <span>{{ include "v2.error.oauth-error" (dict "error" .Error.info.error "error_description" .Error.info.error_description) }}</span>
     {{ else }}

@@ -1011,7 +1011,7 @@
   "v2.error.server": "Server encountered an internal error.",
   "v2.error.settings-account-conflict": "{IdentityTypeIncoming, select, login_id {This {LoginIDNameIncoming} is already registered.} oauth {This {OAuthProviderNameIncoming} account is already registered.} other {This account is already registered.}} Please use another one.",
   "v2.error.settings-token-invalid": "You may have pressed the back button, or there is some issue with cookies.<br>Try performing the action again from the application, and if the problem persists please contact the administrator.",
-  "v2.error.sms-gateway-attempted-to-send-otp-template-without-code": "SMS delivery failed. Developer: The SMS provider does not support sending this type of message.",
+  "v2.error.sms-gateway-timeout": "SMS delivery failed. Please try again later.",
   "v2.error.sms-gateway-authentication-failed": "SMS delivery failed. Developer: Please check SMS provider settings.",
   "v2.error.sms-gateway-delivery-rejected": "SMS delivery failed. The SMS provider rejected the message. If the problem persists, please contact support.",
   "v2.error.sms-gateway-invalid-phone-number": "Please enter a correct phone number.",

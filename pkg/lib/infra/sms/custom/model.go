@@ -15,13 +15,11 @@ type SendOptions struct {
 	TemplateVariables *smsapi.TemplateVariables `json:"template_variables"`
 }
 
-// See https://github.com/authgear/authgear-sms-gateway/blob/main/pkg/handler/api.go
+// See docs/specs/sms_gateway.md
 type ResponseBody struct {
-	Code              string `json:"code"`
-	ProviderName      string `json:"provider_name,omitempty"`
-	ProviderErrorCode string `json:"provider_error_code,omitempty"`
-	GoError           string `json:"go_error,omitempty"`
-	DumpedResponse    []byte `json:"dumped_response,omitempty"`
+	Code        string                 `json:"code"`
+	Description string                 `json:"description,omitempty"`
+	Info        map[string]interface{} `json:"info,omitempty"`
 }
 
 func ParseResponseBody(jsonData []byte) (*ResponseBody, error) {
