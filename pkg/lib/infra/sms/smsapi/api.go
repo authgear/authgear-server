@@ -9,6 +9,9 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
+	"github.com/authgear/authgear-server/pkg/util/otelutil"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
+	"go.opentelemetry.io/otel/attribute"
 )
 
 var NoAvailableClient = apierrors.InternalError.
@@ -86,6 +89,7 @@ type SendError struct {
 }
 
 var _ error = (*SendError)(nil)
+var _ slogutil.MetricError = (*SendError)(nil)
 
 func (e *SendError) Error() string {
 	jsonText, _ := json.Marshal(e)
@@ -106,6 +110,21 @@ func (e *SendError) As(target any) bool {
 	return false
 }
 
+func (e *SendError) GetMetricErrorName() (slogutil.MetricErrorName, bool) {
+	if e.ProviderType != config.SMSProviderCustom {
+		return "", false
+	}
+	if e.CustomProviderResponseCode != "timeout" {
+		return "", false
+	}
+	return slogutil.MetricErrorNameSMSSendError, true
+}
+func (e *SendError) GetMetricOptions() []otelutil.MetricOption {
+	return []otelutil.MetricOption{
+		slogutil.MetricOptionAttributeKeyValue{KeyValue: attribute.Key("provider_name").String(string(e.CustomProviderName))},
+		slogutil.MetricOptionAttributeKeyValue{KeyValue: attribute.Key("response_code").String(string(e.CustomProviderResponseCode))},
+	}
+}
 func (e *SendError) asAPIError() *apierrors.APIError {
 	details := apierrors.Details{
 		"ProviderErrorCode": e.ProviderErrorCode,
