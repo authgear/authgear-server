@@ -24,7 +24,7 @@ func CheckTCPPortIsListening(port int) error {
 			Port: port,
 		}
 	}
-	listener.Close()
+	_ = listener.Close()
 
 	listener, err = net.Listen("tcp4", address)
 	if err != nil {
@@ -32,7 +32,7 @@ func CheckTCPPortIsListening(port int) error {
 			Port: port,
 		}
 	}
-	listener.Close()
+	_ = listener.Close()
 
 	listener, err = net.Listen("tcp6", address)
 	if err != nil {
@@ -40,7 +40,7 @@ func CheckTCPPortIsListening(port int) error {
 			Port: port,
 		}
 	}
-	listener.Close()
+	_ = listener.Close()
 
 	return nil
 }

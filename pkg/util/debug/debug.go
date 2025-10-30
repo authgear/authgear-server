@@ -9,7 +9,7 @@ import (
 
 // PrintStack is equivalent to runtime/debug.PrintStack
 func PrintStack() {
-	os.Stderr.Write(Stack())
+	_, _ = os.Stderr.Write(Stack())
 }
 
 // Stack is equivalent to runtime/debug.Stack except that

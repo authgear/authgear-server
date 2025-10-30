@@ -101,7 +101,6 @@ func NewPubSub(ctx context.Context, client *redis.Client, connKey string, superv
 				case PubSubMessageJoin:
 					pubsub.Subscriber[n.ChannelName] = append(
 						pubsub.Subscriber[n.ChannelName],
-						// nolint: gosimple
 						Subscriber{
 							ChannelName:    n.ChannelName,
 							SubscriberID:   n.SubscriberID,

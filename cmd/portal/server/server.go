@@ -66,7 +66,9 @@ func (c *Controller) Start(ctx context.Context) {
 		err = fmt.Errorf("cannot open configuration: %w", err)
 		panic(err)
 	}
-	defer configSrcController.Close()
+	defer func() {
+		_ = configSrcController.Close()
+	}()
 
 	p.ConfigSourceController = configSrcController
 

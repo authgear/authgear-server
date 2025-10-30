@@ -42,7 +42,9 @@ func (c *Controller) Start(ctx context.Context) {
 		err = fmt.Errorf("cannot open configuration: %w", err)
 		panic(err)
 	}
-	defer configSrcController.Close()
+	defer func() {
+		_ = configSrcController.Close()
+	}()
 
 	// From now, we should use c.logger to log.
 	logger.Info(ctx, "authgear version", slog.String("version", version.Version))

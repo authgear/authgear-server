@@ -107,8 +107,9 @@ func (c *Client) AuthenticateUser(username string, password string) (*Entry, err
 	if err != nil {
 		return nil, err
 	}
-
-	defer conn.Close()
+	defer func() {
+		_ = conn.Close()
+	}()
 
 	// If user doesn't provide a search userver DN and password
 	// We will do an anonymous search
@@ -170,8 +171,9 @@ func (c *Client) TestConnection(username string) error {
 	if err != nil {
 		return api.ErrLDAPCannotConnect
 	}
-
-	defer conn.Close()
+	defer func() {
+		_ = conn.Close()
+	}()
 
 	if c.SecretConfig.DN != "" && c.SecretConfig.Password != "" {
 		err = conn.Bind(c.SecretConfig.DN, c.SecretConfig.Password)
