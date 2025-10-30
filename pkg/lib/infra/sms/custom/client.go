@@ -246,6 +246,8 @@ func handleResponse(gatewayType string, responseBody *ResponseBody, dumpedRespon
 		err.APIErrorKind = &smsapi.ErrKindInvalidPhoneNumber
 	case "rate_limited":
 		err.APIErrorKind = &smsapi.ErrKindRateLimited
+	case "unsupported_request":
+		err.APIErrorKind = &smsapi.ErrKindUnsupportedRequest
 	case "authentication_failed":
 		err.APIErrorKind = &smsapi.ErrKindAuthenticationFailed
 	case "delivery_rejected":

@@ -182,6 +182,11 @@ Authgear server will consider it as an error, and display an error message to th
 Return this code if the sms gateway failed to send the sms because of some project configuration error related to authentication, such as an invalid twilio access key.
 Authgear server will consider it as an error, and display an message asking the end-user to notify the project owner to check the config.
 
+- unsupported_request
+
+Return this code if the sms gateway consider the request unsupported, for example, trying to send a login link when the gateway only support sending 6 digit code.
+Authgear server will consider it as an error, and display an message asking the end-user to notify the project owner to check the config.
+
 - delivery_rejected
 
 Return this code if the sms gateway failed to send the sms because an external delivery service, such as twilio, rejected the request for any reason the user cannot fix by retrying.

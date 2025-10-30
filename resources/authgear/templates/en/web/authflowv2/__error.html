@@ -268,15 +268,17 @@
     {{ else if eq .Error.reason "AccountManagementSecondaryAuthenticatorIsRequired" }}
       <span>{{ include "v2.error.remove-last-secondary-authenticator" nil }}</span>
     {{ else if eq .Error.reason "SMSGatewayInvalidPhoneNumber" }}
-      <span>{{ include "v2.error.sms-gateway-invalid-phone-number" (dict "ProviderErrorCode" .Error.info.ProviderErrorCode) }}</span>
+      <span>{{ include "v2.error.sms-gateway-invalid-phone-number" .Error.info }}</span>
     {{ else if eq .Error.reason "SMSGatewayAuthenticationFailed" }}
-      <span>{{ include "v2.error.sms-gateway-authentication-failed" (dict "ProviderErrorCode" .Error.info.ProviderErrorCode) }}</span>
+      <span>{{ include "v2.error.sms-gateway-authentication-failed" .Error.info }}</span>
     {{ else if eq .Error.reason "SMSGatewayDeliveryRejected" }}
-      <span>{{ include "v2.error.sms-gateway-delivery-rejected" (dict "ProviderErrorCode" .Error.info.ProviderErrorCode) }}</span>
+      <span>{{ include "v2.error.sms-gateway-delivery-rejected" .Error.info }}</span>
     {{ else if eq .Error.reason "SMSGatewayRateLimited" }}
-      <span>{{ include "v2.error.sms-gateway-rate-limited" (dict "ProviderErrorCode" .Error.info.ProviderErrorCode) }}</span>
+      <span>{{ include "v2.error.sms-gateway-rate-limited" .Error.info }}</span>
+    {{ else if eq .Error.reason "SMSGatewayUnsupportedRequest" }}
+      <span>{{ include "v2.error.sms-gateway-unsupported-request" .Error.info }}</span>
     {{ else if eq .Error.reason "SMSGatewayTimeout" }}
-      <span>{{ include "v2.error.sms-gateway-timeout" (dict "ProviderErrorCode" .Error.info.ProviderErrorCode) }}</span>
+      <span>{{ include "v2.error.sms-gateway-timeout" .Error.info }}</span>
     {{ else if eq .Error.reason "OAuthError" }}
       <span>{{ include "v2.error.oauth-error" (dict "error" .Error.info.error "error_description" .Error.info.error_description) }}</span>
     {{ else }}

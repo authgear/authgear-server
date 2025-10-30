@@ -1016,6 +1016,7 @@
   "v2.error.sms-gateway-delivery-rejected": "SMS delivery failed. The SMS provider rejected the message. If the problem persists, please contact support.",
   "v2.error.sms-gateway-invalid-phone-number": "Please enter a correct phone number.",
   "v2.error.sms-gateway-rate-limited": "High-traffic on SMS service. Please try again later.",
+  "v2.error.sms-gateway-unsupported-request": "SMS delivery failed. Developer: The SMS provider does not support the request. {Description}",
   "v2.error.sms-send-limit-exceeded": "You have exceeded the limit of sending one-time passwords. Please try again later.",
   "v2.error.suggestion-account-conflict-login-id": "Do you want to login?",
   "v2.error.suggestion-account-conflict-oauth": "{ IdentityTypeIncoming, select, login_id {You can try login with {OAuthProviderNameExisting} or use another {LoginIDNameIncoming} below.} oauth {You can try another {OAuthProviderNameIncoming} account or use another method below. } other {You can try another account.} }",

@@ -22,6 +22,7 @@ var ErrKindAuthenticationFailed = apierrors.InternalError.WithReason("SMSGateway
 var ErrKindDeliveryRejected = apierrors.InternalError.WithReason("SMSGatewayDeliveryRejected")
 var ErrKindTimeout = apierrors.InternalError.WithReason("SMSGatewayTimeout")
 var ErrKindRateLimited = apierrors.TooManyRequest.WithReason("SMSGatewayRateLimited")
+var ErrKindUnsupportedRequest = apierrors.TooManyRequest.WithReason("SMSGatewayUnsupportedRequest")
 
 type TemplateVariables struct {
 	AppName     string `json:"app_name,omitempty"`
