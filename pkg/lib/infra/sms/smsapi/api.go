@@ -85,6 +85,8 @@ type SendError struct {
 	CustomProviderDescription  string `json:"description,omitempty"`
 }
 
+var _ error = (*SendError)(nil)
+
 func (e *SendError) Error() string {
 	jsonText, _ := json.Marshal(e)
 	return string(jsonText)
