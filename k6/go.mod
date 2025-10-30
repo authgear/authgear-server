@@ -2,7 +2,7 @@ module github.com/authgear/authgear-server/k6
 
 // go1.21 supports toolchain
 // See https://go.dev/doc/toolchain
-go 1.24.6
+go 1.24.9
 
 require (
 	github.com/google/uuid v1.6.0

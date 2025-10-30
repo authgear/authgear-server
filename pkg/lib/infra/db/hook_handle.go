@@ -135,7 +135,9 @@ func (h *HookHandle) WithTx(ctx_original context.Context, do func(ctx context.Co
 	if err != nil {
 		return
 	}
-	defer conn.Close()
+	defer func() {
+		_ = conn.Close()
+	}()
 
 	tx, err := beginTx(ctx_hooks, conn)
 	if err != nil {
@@ -190,7 +192,9 @@ func (h *HookHandle) ReadOnly(ctx_original context.Context, do func(ctx context.
 	if err != nil {
 		return
 	}
-	defer conn.Close()
+	defer func() {
+		_ = conn.Close()
+	}()
 
 	tx, err := beginTx(ctx_hooks, conn)
 	if err != nil {
@@ -244,7 +248,9 @@ func (h *HookHandle) WithPrepareStatementsHandle(ctx context.Context, do func(ct
 		conn:             conn,
 		cachedStatements: make(map[string]*sql.Stmt),
 	}
-	defer preparedStatementsHandle.Close(ctx)
+	defer func() {
+		_ = preparedStatementsHandle.Close(ctx)
+	}()
 
 	ctx = withPreparedStatementsHandle(ctx, preparedStatementsHandle)
 

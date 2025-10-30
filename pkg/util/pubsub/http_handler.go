@@ -90,11 +90,13 @@ func (h *HTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	channelName, err := h.Delegate.Accept(r)
 	if err != nil {
 		logger.WithError(err).Debug(rootCtx, "reject websocket connection")
-		wsConn.Close(websocket.StatusNormalClosure, "connection rejected")
+		_ = wsConn.Close(websocket.StatusNormalClosure, "connection rejected")
 		return
 	}
 
-	defer wsConn.Close(websocket.StatusInternalError, "connection closed")
+	defer func() {
+		_ = wsConn.Close(websocket.StatusInternalError, "connection closed")
+	}()
 
 	logger = logger.With(slog.String("channel", channelName))
 

@@ -19,10 +19,10 @@
             (final: prev: {
               go = (
                 prev.go.overrideAttrs {
-                  version = "1.24.6";
+                  version = "1.24.9";
                   src = prev.fetchurl {
-                    url = "https://go.dev/dl/go1.24.6.src.tar.gz";
-                    hash = "sha256-4ctVgqq1iGaLwEwH3hhogHD2uMmyqvNh+CHhm9R8/b0=";
+                    url = "https://go.dev/dl/go1.24.9.src.tar.gz";
+                    hash = "sha256-xy+BulT+AO/n8+dJnUAJeSRogbE7d16am7hVQcEb5pU=";
                   };
                 }
               );
@@ -44,7 +44,7 @@
             (pkgs.golangci-lint.overrideAttrs (
               prev:
               let
-                version = "1.64.8";
+                version = "2.5.0";
               in
               {
                 inherit version;
@@ -52,9 +52,9 @@
                   owner = "golangci";
                   repo = "golangci-lint";
                   rev = "v${version}";
-                  hash = "sha256-H7IdXAleyzJeDFviISitAVDNJmiwrMysYcGm6vAoWso=";
+                  hash = "sha256-7dHr7cd+yYofIb+yR2kKfj0k0onLH2W/YuxNor7zPeo=";
                 };
-                vendorHash = "sha256-i7ec4U4xXmRvHbsDiuBjbQ0xP7xRuilky3gi+dT1H10=";
+                vendorHash = "sha256-QEYbFz7SJxLMblkNqaRLDn/PO+mtSPvNYiEUmZh0sLQ=";
                 # We do not actually override anything here,
                 # but if we do not repeat this, ldflags refers to the original version.
                 ldflags = [

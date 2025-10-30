@@ -128,7 +128,9 @@ func CleanUpNonExpiringKeys(ctx context.Context, redisClient *goredis.Client, st
 	}
 
 	conn := redisClient.Conn()
-	defer conn.Close()
+	defer func() {
+		_ = conn.Close()
+	}()
 
 	// We start with a cursor of 0.
 	var cursor uint64
