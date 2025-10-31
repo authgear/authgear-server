@@ -20,15 +20,18 @@ type EdgeDoRemoveAuthenticator struct {
 }
 
 func (e *EdgeDoRemoveAuthenticator) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+	isAdminAPI := interaction.IsAdminAPI(rawInput)
 	return &NodeDoRemoveAuthenticator{
 		Authenticator:        e.Authenticator,
 		BypassMFARequirement: e.BypassMFARequirement,
+		IsAdminAPI:           isAdminAPI,
 	}, nil
 }
 
 type NodeDoRemoveAuthenticator struct {
 	Authenticator        *authenticator.Info `json:"authenticator"`
 	BypassMFARequirement bool                `json:"bypass_mfa_requirement"`
+	IsAdminAPI           bool                `json:"is_admin_api"`
 }
 
 func (n *NodeDoRemoveAuthenticator) Prepare(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph) error {
@@ -62,6 +65,10 @@ func (n *NodeDoRemoveAuthenticator) GetEffects(goCtx context.Context) ([]interac
 					return err
 				}
 
+				// Admin is allowed to remove the last authenticator
+				if n.IsAdminAPI {
+					break
+				}
 				for _, i := range is {
 					primaryAuths := authenticator.ApplyFilters(as, authenticator.KeepPrimaryAuthenticatorOfIdentity(i))
 					if len(primaryAuths) == 1 && primaryAuths[0].ID == n.Authenticator.ID {
@@ -76,6 +83,10 @@ func (n *NodeDoRemoveAuthenticator) GetEffects(goCtx context.Context) ([]interac
 			case authenticator.KindSecondary:
 				// Ensure authenticators conform to MFA requirement configuration
 				if n.BypassMFARequirement {
+					break
+				}
+				// Admin is allowed to remove the last authenticator
+				if n.IsAdminAPI {
 					break
 				}
 				primaries := authenticator.ApplyFilters(as, authenticator.KeepPrimaryAuthenticatorCanHaveMFA)

@@ -47,6 +47,7 @@ type IdentityService interface {
 	Create(ctx context.Context, is *identity.Info) error
 	Update(ctx context.Context, oldInfo *identity.Info, newInfo *identity.Info) error
 	Delete(ctx context.Context, is *identity.Info) error
+	DeleteByAdmin(ctx context.Context, is *identity.Info) error
 	CheckDuplicated(ctx context.Context, info *identity.Info) (*identity.Info, error)
 }
 

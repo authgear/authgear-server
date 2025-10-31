@@ -56,7 +56,11 @@ func (i IdentityFacade) Update(ctx context.Context, oldInfo *identity.Info, newI
 }
 
 func (i IdentityFacade) Delete(ctx context.Context, is *identity.Info) error {
-	return i.Coordinator.IdentityDelete(ctx, is)
+	return i.Coordinator.IdentityDelete(ctx, is, false)
+}
+
+func (i IdentityFacade) DeleteByAdmin(ctx context.Context, is *identity.Info) error {
+	return i.Coordinator.IdentityDelete(ctx, is, true)
 }
 
 func (i IdentityFacade) CheckDuplicated(ctx context.Context, info *identity.Info) (*identity.Info, error) {
