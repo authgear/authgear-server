@@ -232,6 +232,9 @@ func handleResponse(gatewayType string, responseBody *ResponseBody, dumpedRespon
 		if providerName, ok := responseBody.Info["provider_name"].(string); ok {
 			err.CustomProviderName = providerName
 		}
+		if providerType, ok := responseBody.Info["provider_type"].(string); ok {
+			err.CustomProviderType = providerType
+		}
 		if providerErrorCode, ok := responseBody.Info["provider_error_code"].(string); ok {
 			err.ProviderErrorCode = providerErrorCode
 		}

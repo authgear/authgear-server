@@ -241,7 +241,7 @@ func (s *Sender) sendSMS(ctx context.Context, msgType translation.MessageType, o
 				otelauthgear.WithStatusError(),
 			}
 			if errors.As(err, &smsapiErr) {
-				metricOptions = append(metricOptions, s.applySMSAPIErrorMetrics(smsapiErr)...)
+				metricOptions = append(metricOptions, ApplySMSAPIErrorMetrics(smsapiErr)...)
 			}
 
 			otelutil.IntCounterAddOne(
@@ -492,24 +492,4 @@ func (s *Sender) errorToDescription(err error) string {
 	}
 
 	return err.Error()
-}
-
-func (s *Sender) applySMSAPIErrorMetrics(smsapiErr *smsapi.SendError) []otelutil.MetricOption {
-	var options []otelutil.MetricOption
-	if smsapiErr.APIErrorKind != nil {
-		options = append(options, otelauthgear.WithAPIErrorReason(smsapiErr.APIErrorKind.Reason))
-	}
-	if smsapiErr.ProviderType != "" {
-		options = append(options, otelauthgear.WithProviderType(string(smsapiErr.ProviderType)))
-	}
-	if smsapiErr.ProviderErrorCode != "" {
-		options = append(options, otelauthgear.WithProviderErrorCode(smsapiErr.ProviderErrorCode))
-	}
-	if smsapiErr.CustomProviderName != "" {
-		options = append(options, otelauthgear.WithCustomProviderName(smsapiErr.ProviderErrorCode))
-	}
-	if smsapiErr.CustomProviderResponseCode != "" {
-		options = append(options, otelauthgear.WithCustomProviderResponseCode(smsapiErr.ProviderErrorCode))
-	}
-	return options
 }

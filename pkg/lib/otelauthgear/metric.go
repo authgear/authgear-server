@@ -103,6 +103,9 @@ var AttributeKeyProviderType = attribute.Key("provider_type")
 // AttributeKeyProviderErrorCode defines the attribute.
 var AttributeKeyProviderErrorCode = attribute.Key("provider_error_code")
 
+// AttributeKeyCustomProviderType defines the attribute.
+var AttributeKeyCustomProviderType = attribute.Key("custom_provider_type")
+
 // AttributeKeyCustomProviderName defines the attribute.
 var AttributeKeyCustomProviderName = attribute.Key("custom_provider_name")
 
@@ -305,6 +308,10 @@ func WithProviderType(providerType string) otelutil.MetricOption {
 
 func WithProviderErrorCode(code string) otelutil.MetricOption {
 	return metricOptionAttributeKeyValue{AttributeKeyProviderErrorCode.String(code)}
+}
+
+func WithCustomProviderType(providerType string) otelutil.MetricOption {
+	return metricOptionAttributeKeyValue{AttributeKeyCustomProviderType.String(providerType)}
 }
 
 func WithCustomProviderName(name string) otelutil.MetricOption {

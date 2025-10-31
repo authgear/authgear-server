@@ -85,6 +85,7 @@ type SendError struct {
 
 	// provider_type=custom
 	CustomProviderName         string `json:"custom_provider_name,omitempty"`
+	CustomProviderType         string `json:"custom_provider_type,omitempty"`
 	CustomProviderResponseCode string `json:"custom_provider_response_code,omitempty"`
 	CustomProviderDescription  string `json:"description,omitempty"`
 }
