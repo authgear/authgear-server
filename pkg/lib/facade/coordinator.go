@@ -407,7 +407,7 @@ func (c *Coordinator) IdentityUpdate(ctx context.Context, oldInfo *identity.Info
 	return nil
 }
 
-func (c *Coordinator) IdentityDelete(ctx context.Context, is *identity.Info) error {
+func (c *Coordinator) IdentityDelete(ctx context.Context, is *identity.Info, bypassChecks bool) error {
 	userID := is.UserID
 
 	err := c.Identities.Delete(ctx, is)
@@ -463,7 +463,8 @@ func (c *Coordinator) IdentityDelete(ctx context.Context, is *identity.Info) err
 					ok = true
 				}
 			}
-			if !ok {
+			// Admin is able to bypass this check
+			if !ok && !bypassChecks {
 				return NewInvariantViolated(
 					"RemoveLastPrimaryAuthenticator",
 					"cannot remove last primary authenticator for identity",
