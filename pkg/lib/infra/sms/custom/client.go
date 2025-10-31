@@ -223,17 +223,25 @@ func (c *CustomClient) Send(ctx context.Context, opts smsapi.SendOptions) error 
 func handleResponse(gatewayType string, responseBody *ResponseBody, dumpedResponse []byte) error {
 
 	err := &smsapi.SendError{
+		ProviderType:   config.SMSProviderCustom,
 		DumpedResponse: dumpedResponse,
 	}
-	if responseBody.ProviderName != "" {
-		err.ProviderName = responseBody.ProviderName
-	} else {
-		err.ProviderName = gatewayType
-	}
-	if responseBody.ProviderErrorCode != "" {
-		err.ProviderErrorCode = responseBody.ProviderErrorCode
+
+	// Handle info returned by authgear-sms-gateway
+	if responseBody.Info != nil {
+		if providerName, ok := responseBody.Info["provider_name"].(string); ok {
+			err.CustomProviderName = providerName
+		}
+		if providerType, ok := responseBody.Info["provider_type"].(string); ok {
+			err.CustomProviderType = providerType
+		}
+		if providerErrorCode, ok := responseBody.Info["provider_error_code"].(string); ok {
+			err.ProviderErrorCode = providerErrorCode
+		}
 	}
 
+	err.CustomProviderResponseCode = responseBody.Code
+	err.CustomProviderDescription = responseBody.Description
 	switch responseBody.Code {
 	case "ok":
 		return nil
@@ -241,12 +249,14 @@ func handleResponse(gatewayType string, responseBody *ResponseBody, dumpedRespon
 		err.APIErrorKind = &smsapi.ErrKindInvalidPhoneNumber
 	case "rate_limited":
 		err.APIErrorKind = &smsapi.ErrKindRateLimited
+	case "unsupported_request":
+		err.APIErrorKind = &smsapi.ErrKindUnsupportedRequest
 	case "authentication_failed":
 		err.APIErrorKind = &smsapi.ErrKindAuthenticationFailed
 	case "delivery_rejected":
 		err.APIErrorKind = &smsapi.ErrKindDeliveryRejected
-	case "attempted_to_send_otp_template_without_code":
-		err.APIErrorKind = &smsapi.ErrKindAttemptedToSendOTPTemplateWithoutCode
+	case "timeout":
+		err.APIErrorKind = &smsapi.ErrKindTimeout
 	}
 	return err
 }

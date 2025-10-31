@@ -88,6 +88,7 @@ func (t *TwilioClient) send0(ctx context.Context, opts smsapi.SendOptions) ([]by
 	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, nil, errors.Join(err, &smsapi.SendError{
+			ProviderType:   config.SMSProviderTwilio,
 			DumpedResponse: dumpedResponse,
 		})
 	}
@@ -108,6 +109,7 @@ func (t *TwilioClient) Send(ctx context.Context, options smsapi.SendOptions) err
 			return t.parseAndHandleErrorResponse(bodyBytes, dumpedResponse)
 		}
 		return errors.Join(err, &smsapi.SendError{
+			ProviderType:   config.SMSProviderTwilio,
 			DumpedResponse: dumpedResponse,
 		})
 	}
@@ -130,10 +132,12 @@ func (t *TwilioClient) parseAndHandleErrorResponse(
 		if errors.As(err, &jsonUnmarshalErr) {
 			// Not something we can understand, return an error with the dumped response
 			return &smsapi.SendError{
+				ProviderType:   config.SMSProviderTwilio,
 				DumpedResponse: dumpedResponse,
 			}
 		} else {
 			return errors.Join(err, &smsapi.SendError{
+				ProviderType:   config.SMSProviderTwilio,
 				DumpedResponse: dumpedResponse,
 			})
 		}
@@ -148,7 +152,7 @@ func (t *TwilioClient) makeError(
 ) error {
 	err := &smsapi.SendError{
 		DumpedResponse:    dumpedResponse,
-		ProviderName:      "twilio",
+		ProviderType:      config.SMSProviderTwilio,
 		ProviderErrorCode: fmt.Sprintf("%d", errorCode),
 	}
 

@@ -66,6 +66,7 @@ func (c *NexmoClient) send0(ctx context.Context, opts smsapi.SendOptions) ([]byt
 	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, nil, errors.Join(err, &smsapi.SendError{
+			ProviderType:   config.SMSProviderNexmo,
 			DumpedResponse: dumpedResponse,
 		})
 	}
@@ -82,6 +83,7 @@ func (c *NexmoClient) Send(ctx context.Context, opts smsapi.SendOptions) error {
 	sendResponse, err := ParseSendResponse(bodyBytes)
 	if err != nil {
 		return errors.Join(err, &smsapi.SendError{
+			ProviderType:   config.SMSProviderNexmo,
 			DumpedResponse: dumpedResponse,
 		})
 	}
@@ -91,12 +93,14 @@ func (c *NexmoClient) Send(ctx context.Context, opts smsapi.SendOptions) error {
 	if len(sendResponse.Messages) <= 0 {
 		// Failed case.
 		return &smsapi.SendError{
+			ProviderType:   config.SMSProviderNexmo,
 			DumpedResponse: dumpedResponse,
 		}
 	}
 	for _, msg := range sendResponse.Messages {
 		if msg.Status != "0" {
 			return &smsapi.SendError{
+				ProviderType:   config.SMSProviderNexmo,
 				DumpedResponse: dumpedResponse,
 			}
 		}

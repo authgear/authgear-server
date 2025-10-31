@@ -38,9 +38,23 @@ const (
 	MetricErrorNameSQLTxDone               MetricErrorName = "sql.tx_done"
 	MetricErrorNameSQLDriverBadConn        MetricErrorName = "sql.driver.bad_conn"
 	MetricErrorNameNetOpError              MetricErrorName = "net.op_error"
+	MetricErrorNameSMSSendError            MetricErrorName = "sms.send_error"
 )
 
+type MetricError interface {
+	error
+	GetMetricErrorName() (MetricErrorName, bool)
+	GetMetricOptions() []otelutil.MetricOption
+}
+
 func GetMetricErrorName(err error) (MetricErrorName, bool) {
+	var metricErr MetricError
+	if errors.As(err, &metricErr) {
+		if name, ok := metricErr.GetMetricErrorName(); ok {
+			return name, true
+		}
+	}
+
 	var pqError *pq.Error
 	switch {
 	case errors.Is(err, context.Canceled):
@@ -88,6 +102,13 @@ func MetricOptionsForError(err error) []otelutil.MetricOption {
 	var opts []otelutil.MetricOption
 	if errorName, ok := GetMetricErrorName(err); ok {
 		opts = append(opts, MetricOptionAttributeKeyValue{attribute.Key("error_name").String(string(errorName))})
+	}
+
+	var metricErr MetricError
+	if errors.As(err, &metricErr) {
+		if _, ok := metricErr.GetMetricErrorName(); ok {
+			opts = append(opts, metricErr.GetMetricOptions()...)
+		}
 	}
 
 	var netOpError *net.OpError
