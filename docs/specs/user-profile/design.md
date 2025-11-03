@@ -36,6 +36,7 @@
     * [Exhaustive list of access control combination](#exhaustive-list-of-access-control-combination)
   * [ID Token](#id-token)
   * [User Info endpoint](#user-info-endpoint)
+    * [Special Claims](#special-claims)
   * [Webhook](#webhook)
   * [Use case examples](#use-case-examples)
     * [Using Authgear just for authentication\.](#using-authgear-just-for-authentication)
@@ -462,9 +463,30 @@ Here is an example of the response.
   "custom_attributes": {
     "hobby": "reading"
   },
-  "roles": ["manager"]
+  "https://authgear.com/claims/user/roles": ["manager"]
 }
 ```
+
+### Special Claims
+
+Below is a list of special claims returned in the OIDC User Info endpoint:
+
+#### https://authgear.com/claims/user/roles
+
+An array of effective roles of the user, including roles assigned directly and roles assigned through a group. Read [Roles and Groups](../roles-groups.md) for details.
+
+#### https://authgear.com/claims/user/is_anonymous
+
+A boolean. True if the user is a anonymous user. Read [Anonymous User](../anonymous-user.md) for details.
+
+#### https://authgear.com/claims/user/is_verified
+
+A boolean. True if the user is a verified user. i.e. Have at least one verified identity.
+
+#### https://authgear.com/claims/user/can_reauthenticate
+
+A boolean. True if the user can perform reauthentication.
+
 
 ## Webhook
 
