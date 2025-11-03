@@ -16,6 +16,6 @@ const (
 	ClaimUserIsAnonymous        ClaimName = "https://authgear.com/claims/user/is_anonymous"
 	ClaimUserIsVerified         ClaimName = "https://authgear.com/claims/user/is_verified"
 	ClaimUserCanReauthenticate  ClaimName = "https://authgear.com/claims/user/can_reauthenticate"
-	ClaimUserHasPrimaryPassword ClaimName = "https://authgear.com/claims/user/has_primary_password"
+	ClaimUserHasPrimaryPassword ClaimName = "https://authgear.com/claims/user/has_primary_password" // #nosec G101
 	ClaimOAuthAsserted          ClaimName = "https://authgear.com/claims/oauth/asserted"
 )
