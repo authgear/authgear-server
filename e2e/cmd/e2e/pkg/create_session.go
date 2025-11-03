@@ -29,7 +29,8 @@ func (c *End2End) CreateSession(
 	sessionType session.Type,
 	sessionID string,
 	clientID string,
-	token string) (err error) {
+	token string,
+	accessToken string) (err error) {
 	cfg, err := LoadConfigFromEnv()
 	if err != nil {
 		return err
@@ -113,7 +114,7 @@ func (c *End2End) CreateSession(
 		}
 	case session.TypeOfflineGrant:
 		encodedToken := oauth.E2EEncodeRefreshToken(sessionID, token)
-		tokenHash := oauth.E2EHashToken(encodedToken)
+		refreshTokenHash := oauth.E2EHashToken(encodedToken)
 		scopes := []string{oauth.FullAccessScope, oauth.FullUserInfoScope}
 		dbCred := &config.DatabaseCredentials{
 			DatabaseURL:    cfg.GlobalDatabase.DatabaseURL,
@@ -154,7 +155,7 @@ func (c *End2End) CreateSession(
 				LastAccess:    accessEvent,
 			},
 			RefreshTokens: []oauth.OfflineGrantRefreshToken{{
-				InitialTokenHash: tokenHash,
+				InitialTokenHash: refreshTokenHash,
 				ClientID:         clientID,
 				CreatedAt:        clk.NowUTC(),
 				Scopes:           scopes,
@@ -166,16 +167,31 @@ func (c *End2End) CreateSession(
 			}},
 			ExpireAtForResolvedSession: clk.NowUTC().Add(duration.UserInteraction),
 		}
-		offlineGrantStore := &oauthredis.Store{
+		redisStore := &oauthredis.Store{
 			AppID: config.AppID(appID),
 			Redis: redis,
 			Clock: clk,
 		}
-		err = offlineGrantStore.CreateOfflineGrant(ctx, &grant)
+		err = redisStore.CreateOfflineGrant(ctx, &grant)
 		if err != nil {
 			return fmt.Errorf("Failed to create OfflineGrant: %w", err)
 		}
-		break
+		if accessToken != "" {
+			err = redisStore.CreateAccessGrant(ctx, &oauth.AccessGrant{
+				AppID:                   appID,
+				AuthorizationID:         authz.ID,
+				SessionID:               sessionID,
+				SessionKind:             oauth.GrantSessionKindOffline,
+				CreatedAt:               clk.NowUTC(),
+				ExpireAt:                clk.NowUTC().Add(duration.UserInteraction),
+				Scopes:                  scopes,
+				TokenHash:               oauth.E2EHashToken(accessToken),
+				InitialRefreshTokenHash: refreshTokenHash,
+			})
+			if err != nil {
+				return fmt.Errorf("Failed to create AccessGrant: %w", err)
+			}
+		}
 	default:
 		return fmt.Errorf("Failed to create: unsupported session type.")
 	}

@@ -30,6 +30,7 @@ var cmdInternalE2ECreateSession = &cobra.Command{
 		sessionID := binder.GetString(cmd, ArgSessionID)
 		token := binder.GetString(cmd, ArgToken)
 		clientID := binder.GetString(cmd, ArgClientID)
+		accessToken := binder.GetString(cmd, ArgAccessToken)
 		selectUserIDSQL := binder.GetString(cmd, ArgSelectUserIDSQL)
 
 		instance := e2e.End2End{}
@@ -42,6 +43,7 @@ var cmdInternalE2ECreateSession = &cobra.Command{
 			sessionID,
 			clientID,
 			token,
+			accessToken,
 		)
 		if err != nil {
 			return err

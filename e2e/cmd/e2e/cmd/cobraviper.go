@@ -101,6 +101,11 @@ var ArgClientID = &cobraviper.StringArgument{
 	Usage:        "Client ID.",
 }
 
+var ArgAccessToken = &cobraviper.StringArgument{
+	ArgumentName: "access-token",
+	Usage:        "An access token.",
+}
+
 var ArgPurpose = &cobraviper.StringArgument{
 	ArgumentName: "purpose",
 	Usage:        "The purpose of challenge.",
