@@ -1892,6 +1892,8 @@ export type User = Entity & Node & {
   formattedName?: Maybe<Scalars['String']['output']>;
   /** The list of groups this user has. */
   groups?: Maybe<GroupConnection>;
+  /** Indicates if the user has a primary password */
+  hasPrimaryPassword: Scalars['Boolean']['output'];
   /** The ID of an object */
   id: Scalars['ID']['output'];
   /** The list of identities */

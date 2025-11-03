@@ -2171,6 +2171,9 @@ type User implements Entity & Node {
   """The list of groups this user has."""
   groups(after: String, before: String, first: Int, last: Int): GroupConnection
 
+  """Indicates if the user has a primary password"""
+  hasPrimaryPassword: Boolean!
+
   """The ID of an object"""
   id: ID!
 
