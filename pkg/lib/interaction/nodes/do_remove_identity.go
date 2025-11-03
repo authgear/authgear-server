@@ -43,7 +43,12 @@ func (n *NodeDoRemoveIdentity) Prepare(goCtx context.Context, ctx *interaction.C
 func (n *NodeDoRemoveIdentity) GetEffects(goCtx context.Context) ([]interaction.Effect, error) {
 	return []interaction.Effect{
 		interaction.EffectRun(func(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
-			err := ctx.Identities.Delete(goCtx, n.Identity)
+			var err error
+			if n.IsAdminAPI {
+				err = ctx.Identities.DeleteByAdmin(goCtx, n.Identity)
+			} else {
+				err = ctx.Identities.Delete(goCtx, n.Identity)
+			}
 			if err != nil {
 				return err
 			}
