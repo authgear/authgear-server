@@ -58,8 +58,9 @@ var _ = TestCaseSchema.Add("BeforeHookCreateSession", `
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
-		"session_type": { "type": "string", "enum": ["idp"], "description": "Session Type" },
+		"session_type": { "type": "string", "enum": ["idp", "offline_grant"], "description": "Session Type" },
 		"session_id": { "type": "string", "description": "Session ID" },
+		"client_id": { "type": "string", "description": "Client ID" },
 		"token": { "type": "string", "description": "Token to access the session" },
 		"select_user_id_sql":  { "type": "string", "description": "SQL to select an user id for the session" }
 	},
@@ -70,6 +71,7 @@ var _ = TestCaseSchema.Add("BeforeHookCreateSession", `
 type BeforeHookCreateSession struct {
 	SessionType     string `json:"session_type"`
 	SessionID       string `json:"session_id"`
+	ClientID        string `json:"client_id"`
 	Token           string `json:"token"`
 	SelectUserIDSQL string `json:"select_user_id_sql"`
 }

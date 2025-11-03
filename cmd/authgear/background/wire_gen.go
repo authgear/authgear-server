@@ -824,11 +824,9 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 		CookieDef: cookieDef,
 	}
 	redisStore := &redis.Store{
-		Redis:       appredisHandle,
-		AppID:       configAppID,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
+		Redis: appredisHandle,
+		AppID: configAppID,
+		Clock: clockClock,
 	}
 	oAuthConfig := appConfig.OAuth
 	eventStoreRedis := &access.EventStoreRedis{

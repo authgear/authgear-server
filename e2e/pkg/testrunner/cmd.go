@@ -96,10 +96,11 @@ func (e *End2EndCmd) ExecuteSQLInsertUpdateFile(sqlPath string) error {
 
 func (e *End2EndCmd) ExecuteCreateSession(hook *BeforeHookCreateSession) error {
 	cmd := fmt.Sprintf(
-		"./dist/e2e create-session --app-id %s --session-type \"%s\" --session-id \"%s\" --token \"%s\" --select-user-id-sql \"%s\"",
+		"./dist/e2e create-session --app-id %s --session-type \"%s\" --session-id \"%s\" --client-id \"%s\" --token \"%s\" --select-user-id-sql \"%s\"",
 		e.AppID,
 		hook.SessionType,
 		hook.SessionID,
+		hook.ClientID,
 		hook.Token,
 		hook.SelectUserIDSQL,
 	)

@@ -12,7 +12,6 @@ import (
 	goredis "github.com/redis/go-redis/v9"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
@@ -23,11 +22,9 @@ import (
 var OAuthStoreLogger = slogutil.NewLogger("oauth-store")
 
 type Store struct {
-	Redis       *appredis.Handle
-	AppID       config.AppID
-	SQLBuilder  *appdb.SQLBuilderApp
-	SQLExecutor *appdb.SQLExecutor
-	Clock       clock.Clock
+	Redis *appredis.Handle
+	AppID config.AppID
+	Clock clock.Clock
 }
 
 func (s *Store) loadData(ctx context.Context, conn redis.Redis_6_0_Cmdable, key string) ([]byte, error) {

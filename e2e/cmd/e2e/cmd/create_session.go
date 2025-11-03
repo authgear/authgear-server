@@ -15,6 +15,7 @@ func init() {
 	binder.BindString(cmdInternalE2ECreateSession.PersistentFlags(), ArgSessionType)
 	binder.BindString(cmdInternalE2ECreateSession.PersistentFlags(), ArgSessionID)
 	binder.BindString(cmdInternalE2ECreateSession.PersistentFlags(), ArgToken)
+	binder.BindString(cmdInternalE2ECreateSession.PersistentFlags(), ArgClientID)
 	binder.BindString(cmdInternalE2ECreateSession.PersistentFlags(), ArgSelectUserIDSQL)
 }
 
@@ -28,6 +29,7 @@ var cmdInternalE2ECreateSession = &cobra.Command{
 		sessionType := binder.GetString(cmd, ArgSessionType)
 		sessionID := binder.GetString(cmd, ArgSessionID)
 		token := binder.GetString(cmd, ArgToken)
+		clientID := binder.GetString(cmd, ArgClientID)
 		selectUserIDSQL := binder.GetString(cmd, ArgSelectUserIDSQL)
 
 		instance := e2e.End2End{}
@@ -38,6 +40,7 @@ var cmdInternalE2ECreateSession = &cobra.Command{
 			selectUserIDSQL,
 			session.Type(sessionType),
 			sessionID,
+			clientID,
 			token,
 		)
 		if err != nil {

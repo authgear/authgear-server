@@ -731,11 +731,9 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		CookieDef: cookieDef,
 	}
 	redisStore := &redis.Store{
-		Redis:       appredisHandle,
-		AppID:       appID,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clock,
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clock,
 	}
 	oAuthConfig := appConfig.OAuth
 	eventStoreRedis := &access.EventStoreRedis{

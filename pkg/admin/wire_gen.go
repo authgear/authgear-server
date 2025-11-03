@@ -873,11 +873,9 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef,
 	}
 	redisStore := &redis.Store{
-		Redis:       appredisHandle,
-		AppID:       appID,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
 		Redis: appredisHandle,
