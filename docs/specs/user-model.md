@@ -60,6 +60,8 @@
     * [Changes on user import](#changes-on-user-import)
     * [Sessions](#sessions)
     * [Configuration](#configuration)
+  * [Special Attributes](#special-attributes)
+    * [has_primary_password](#has_primary_password)
 
 # User Model
 
@@ -726,3 +728,10 @@ account_anonymization:
   # scheduled_by_end_user_enabled: false
   grace_period_days: 30
 ```
+
+
+## Special Attributes
+
+### has_primary_password
+
+A computed boolean. True if the user has a primary password.
