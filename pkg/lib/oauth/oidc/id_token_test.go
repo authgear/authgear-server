@@ -73,9 +73,10 @@ func TestIDTokenIssuer(t *testing.T) {
 		mockUserInfoService.EXPECT().GetUserInfoBearer(gomock.Any(), "user-id").Return(
 			&userinfo.UserInfo{
 				User: &model.User{
-					IsAnonymous:       false,
-					IsVerified:        true,
-					CanReauthenticate: true,
+					IsAnonymous:        false,
+					IsVerified:         true,
+					CanReauthenticate:  true,
+					HasPrimaryPassword: true,
 				},
 				EffectiveRoleKeys: []string{"role-1", "role-3"},
 			},
@@ -204,5 +205,63 @@ func TestIDTokenIssuer(t *testing.T) {
 			},
 		},
 		)
+	})
+
+	Convey("GetUserInfo", t, func() {
+		ctrl := gomock.NewController(t)
+
+		now := time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)
+
+		jwkSet, err := jwk.Parse([]byte(PrivateKeyPEM), jwk.WithPEM(true))
+		So(err, ShouldBeNil)
+		jwkKey, _ := jwkSet.Key(0)
+		_ = jwkKey.Set(jwk.KeyIDKey, uuid.New())
+		_ = jwkKey.Set(jwk.AlgorithmKey, "RS256")
+
+		secrets := &config.OAuthKeyMaterials{
+			Set: jwkSet,
+		}
+
+		mockUserInfoService := NewMockUserInfoService(ctrl)
+		mockUserInfoService.EXPECT().GetUserInfoBearer(gomock.Any(), "user-id").Return(
+			&userinfo.UserInfo{
+				User: &model.User{
+					IsAnonymous:        false,
+					IsVerified:         true,
+					CanReauthenticate:  true,
+					HasPrimaryPassword: true,
+				},
+				EffectiveRoleKeys: []string{"role-1", "role-3"},
+			},
+			nil,
+		)
+
+		issuer := &IDTokenIssuer{
+			Secrets: secrets,
+			BaseURL: &endpoints.Endpoints{
+				OAuthEndpoints: &endpoints.OAuthEndpoints{
+					HTTPHost:  "test.authgear.com",
+					HTTPProto: "http",
+				},
+			},
+			UserInfoService: mockUserInfoService,
+			Clock:           clock.NewMockClockAtTime(now),
+		}
+
+		client := &config.OAuthClientConfig{
+			ClientID: "client-id",
+		}
+		scopes := []string{"openid", "email"}
+
+		ctx := context.Background()
+		userInfoClaims, err := issuer.GetUserInfo(ctx, "user-id", oauth.ClientClientLike(client, scopes))
+		So(err, ShouldBeNil)
+
+		So(userInfoClaims[string(model.ClaimUserHasPrimaryPassword)], ShouldEqual, true)
+		So(userInfoClaims[string(model.ClaimUserIsAnonymous)], ShouldEqual, false)
+		So(userInfoClaims[string(model.ClaimUserIsVerified)], ShouldEqual, true)
+		So(userInfoClaims[string(model.ClaimUserCanReauthenticate)], ShouldEqual, true)
+		So(userInfoClaims[string(model.ClaimAuthgearRoles)], ShouldResemble, []string{"role-1", "role-3"})
+		So(userInfoClaims["sub"], ShouldEqual, "user-id")
 	})
 }

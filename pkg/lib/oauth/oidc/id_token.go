@@ -248,6 +248,7 @@ func (ti *IDTokenIssuer) PopulateUserClaimsInIDToken(ctx context.Context, token 
 	_ = token.Set(string(model.ClaimUserIsVerified), userInfo.User.IsVerified)
 	_ = token.Set(string(model.ClaimUserCanReauthenticate), userInfo.User.CanReauthenticate)
 	_ = token.Set(string(model.ClaimAuthgearRoles), userInfo.EffectiveRoleKeys)
+	// has_primary_password is not populated in id token
 
 	if clientLike.PIIAllowedInIDToken {
 		for k, v := range userInfo.User.StandardAttributes {
@@ -280,6 +281,7 @@ func (ti *IDTokenIssuer) GetUserInfo(ctx context.Context, userID string, clientL
 	out[string(model.ClaimUserIsVerified)] = userInfo.User.IsVerified
 	out[string(model.ClaimUserCanReauthenticate)] = userInfo.User.CanReauthenticate
 	out[string(model.ClaimAuthgearRoles)] = userInfo.EffectiveRoleKeys
+	out[string(model.ClaimUserHasPrimaryPassword)] = userInfo.User.HasPrimaryPassword
 
 	if clientLike.IsFirstParty {
 		// When the client is first party, we always include all standard attributes, all custom attributes.
