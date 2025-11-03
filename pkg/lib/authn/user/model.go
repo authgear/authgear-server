@@ -196,6 +196,14 @@ func newUserModel(
 		}
 	}
 
+	hasPrimaryPassword := false
+	for _, a := range authenticators {
+		if a.Kind == authenticator.KindPrimary && a.Type == model.AuthenticatorTypePassword {
+			hasPrimaryPassword = true
+			break
+		}
+	}
+
 	accountStatus := user.AccountStatus(refTime)
 
 	return &model.User{
@@ -204,9 +212,10 @@ func newUserModel(
 			CreatedAt: user.CreatedAt,
 			UpdatedAt: user.UpdatedAt,
 		},
-		LastLoginAt: user.MostRecentLoginAt,
-		IsAnonymous: isAnonymous,
-		IsVerified:  isVerified,
+		LastLoginAt:        user.MostRecentLoginAt,
+		IsAnonymous:        isAnonymous,
+		IsVerified:         isVerified,
+		HasPrimaryPassword: hasPrimaryPassword,
 
 		IsDisabled:               accountStatus.IsDisabled(),
 		DisableReason:            accountStatus.DisableReason(),

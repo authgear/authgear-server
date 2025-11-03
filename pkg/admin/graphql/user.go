@@ -393,6 +393,14 @@ var nodeUser = node(
 					return source.MFAGracePeriodtEndAt, nil
 				},
 			},
+			"hasPrimaryPassword": &graphql.Field{
+				Type:        graphql.NewNonNull(graphql.Boolean),
+				Description: "Indicates if the user has a primary password",
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					source := p.Source.(*model.User)
+					return source.HasPrimaryPassword, nil
+				},
+			},
 		},
 	}),
 	&model.User{},

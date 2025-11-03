@@ -31,6 +31,7 @@ type User struct {
 	Roles                []string               `json:"roles"`
 	Groups               []string               `json:"groups"`
 	MFAGracePeriodtEndAt *time.Time             `json:"mfa_grace_period_end_at,omitempty"`
+	HasPrimaryPassword   bool                   `json:"has_primary_password"`
 
 	EndUserAccountID string `json:"-"`
 }
