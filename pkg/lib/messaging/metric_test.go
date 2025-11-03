@@ -3,12 +3,13 @@ package messaging
 import (
 	"testing"
 
+	. "github.com/smartystreets/goconvey/convey"
+
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	smsapi "github.com/authgear/authgear-server/pkg/lib/infra/sms/smsapi"
 	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
 	"github.com/authgear/authgear-server/pkg/util/otelutil"
-	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestApplySMSAPIErrorMetrics(t *testing.T) {
