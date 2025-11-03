@@ -65,7 +65,19 @@ var _ = TestCaseSchema.Add("BeforeHookCreateSession", `
 		"access_token": { "type": "string", "description": "Access Token to access the offline_grant session" },
 		"select_user_id_sql":  { "type": "string", "description": "SQL to select an user id for the session" }
 	},
-	"required": ["session_type", "session_id", "token", "select_user_id_sql"]
+	"required": ["session_type", "session_id", "token", "select_user_id_sql"],
+	"allOf": [
+		{
+			"if": {
+				"properties": {
+					"session_type": { "const": "offline_grant" }
+				}
+			},
+			"then": {
+				"required": ["client_id"]
+			}
+		}
+	]
 }
 `)
 

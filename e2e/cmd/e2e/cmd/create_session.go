@@ -15,6 +15,7 @@ func init() {
 	binder.BindString(cmdInternalE2ECreateSession.PersistentFlags(), ArgSessionType)
 	binder.BindString(cmdInternalE2ECreateSession.PersistentFlags(), ArgSessionID)
 	binder.BindString(cmdInternalE2ECreateSession.PersistentFlags(), ArgToken)
+	binder.BindString(cmdInternalE2ECreateSession.PersistentFlags(), ArgAccessToken)
 	binder.BindString(cmdInternalE2ECreateSession.PersistentFlags(), ArgClientID)
 	binder.BindString(cmdInternalE2ECreateSession.PersistentFlags(), ArgSelectUserIDSQL)
 }
