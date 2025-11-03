@@ -487,6 +487,9 @@ A boolean. True if the user is a verified user. i.e. Have at least one verified 
 
 A boolean. True if the user can perform reauthentication.
 
+#### https://authgear.com/claims/user/has_primary_password
+
+A boolean. True if the user has a primary password authenticator.
 
 ## Webhook
 
