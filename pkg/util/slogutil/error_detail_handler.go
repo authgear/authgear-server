@@ -82,7 +82,8 @@ func (s *ErrorDetailHandler) collectDetails(attrs []slog.Attr) errorutil.Details
 		return nil
 	}
 
-	return errorutil.CollectDetails(err, nil)
+	d := errorutil.CollectDetails(err, nil)
+	return errorutil.UnsafeUnwrapDetails(d)
 }
 
 func (s *ErrorDetailHandler) WithGroup(name string) slog.Handler {

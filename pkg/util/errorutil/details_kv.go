@@ -31,6 +31,20 @@ func FilterDetails(d Details, tag DetailTag) Details {
 	return fd
 }
 
+// This method unwrap all details without looking at the Tag
+// Use it with caution
+func UnsafeUnwrapDetails(d Details) Details {
+	fd := Details{}
+	for key, value := range d {
+		if tv, ok := value.(DetailTaggedValue); ok {
+			fd[key] = tv.Value
+		} else {
+			fd[key] = value
+		}
+	}
+	return fd
+}
+
 func GetSafeDetails(err error) Details {
 	d := CollectDetails(err, nil)
 	return FilterDetails(d, SafeDetail)
