@@ -174,30 +174,6 @@ func (c *AppConfig) validateOAuthProvider(ctx context.Context, validationCtx *va
 	}
 }
 
-func (c *AppConfig) validateIdentityPrimaryAuthenticatorLoginID(
-	ctx *validation.Context,
-	authenticatorTypes map[model.AuthenticatorType]struct{},
-	k LoginIDKeyConfig,
-	idx int) {
-	hasAtLeastOnePrimaryAuthenticator := false
-	required := model.IdentityTypeLoginID.PrimaryAuthenticatorTypes(k.Type)
-	for _, typ := range required {
-		if _, ok := authenticatorTypes[typ]; ok {
-			hasAtLeastOnePrimaryAuthenticator = true
-		}
-	}
-	if len(required) > 0 && !hasAtLeastOnePrimaryAuthenticator {
-		ctx.Child("authentication", "identities", strconv.Itoa(idx)).
-			EmitError(
-				"noPrimaryAuthenticator",
-				map[string]interface{}{
-					"identity_type": model.IdentityTypeLoginID,
-					"login_id_type": k.Type,
-				},
-			)
-	}
-}
-
 func (c *AppConfig) validateIdentityPrimaryAuthenticatorOthers(
 	ctx *validation.Context,
 	authenticatorTypes map[model.AuthenticatorType]struct{},
@@ -229,9 +205,9 @@ func (c *AppConfig) validateIdentityPrimaryAuthenticator(ctx *validation.Context
 
 	for idx, it := range c.Authentication.Identities {
 		if it == model.IdentityTypeLoginID {
-			for _, k := range c.Identity.LoginID.Keys {
-				c.validateIdentityPrimaryAuthenticatorLoginID(ctx, authenticatorTypes, k, idx)
-			}
+			// NOTE(DEV-3131): We removed the check for login ID, because in custom authflow
+			// it is possible to use username to identify, and use oobotp to authenticate.
+			// Therefore we decided to allow enabling login ID independently.
 		} else {
 			c.validateIdentityPrimaryAuthenticatorOthers(ctx, authenticatorTypes, it, idx)
 		}
