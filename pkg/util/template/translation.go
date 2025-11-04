@@ -34,6 +34,9 @@ var appSpecificKeysRegex = []*regexp.Regexp{
 	regexp.MustCompile(`^email\..+\.sender$`),
 	regexp.MustCompile(`^email\..+\.reply-to$`),
 	regexp.MustCompile(`^sms\..+\.sender$`),
+	regexp.MustCompile(`^terms-of-service-link$`),
+	regexp.MustCompile(`^privacy-policy-link$`),
+	regexp.MustCompile(`^customer-support-link$`),
 }
 
 var fsLevelsOrderedInAscendingPriority = []resource.FsLevel{
