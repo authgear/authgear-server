@@ -5,9 +5,14 @@ import (
 	"encoding/json"
 	"errors"
 
+	"go.opentelemetry.io/otel/attribute"
+
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
+	"github.com/authgear/authgear-server/pkg/util/otelutil"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
 var NoAvailableClient = apierrors.InternalError.
@@ -19,8 +24,9 @@ var ErrAmbiguousClient = errors.New("ambiguous SMS client")
 var ErrKindInvalidPhoneNumber = apierrors.BadRequest.WithReason("SMSGatewayInvalidPhoneNumber")
 var ErrKindAuthenticationFailed = apierrors.InternalError.WithReason("SMSGatewayAuthenticationFailed")
 var ErrKindDeliveryRejected = apierrors.InternalError.WithReason("SMSGatewayDeliveryRejected")
+var ErrKindTimeout = apierrors.InternalError.WithReason("SMSGatewayTimeout")
 var ErrKindRateLimited = apierrors.TooManyRequest.WithReason("SMSGatewayRateLimited")
-var ErrKindAttemptedToSendOTPTemplateWithoutCode = apierrors.InternalError.WithReason("SMSGatewayAttemptedToSendOTPTemplateWithoutCode")
+var ErrKindUnsupportedRequest = apierrors.InternalError.WithReason("SMSGatewayUnsupportedRequest")
 
 type TemplateVariables struct {
 	AppName     string `json:"app_name,omitempty"`
@@ -71,12 +77,21 @@ type Client interface {
 }
 
 type SendError struct {
-	DumpedResponse []byte `json:"dumped_response,omitempty"`
+	DumpedResponse []byte             `json:"dumped_response,omitempty"`
+	APIErrorKind   *apierrors.Kind    `json:"api_error_kind,omitempty"`
+	ProviderType   config.SMSProvider `json:"provider_type,omitempty"`
 
-	APIErrorKind      *apierrors.Kind `json:"api_error_kind,omitempty"`
-	ProviderName      string          `json:"provider_name,omitempty"`
-	ProviderErrorCode string          `json:"provider_error_code,omitempty"`
+	ProviderErrorCode string `json:"provider_error_code,omitempty"`
+
+	// provider_type=custom
+	CustomProviderName         string `json:"custom_provider_name,omitempty"`
+	CustomProviderType         string `json:"custom_provider_type,omitempty"`
+	CustomProviderResponseCode string `json:"custom_provider_response_code,omitempty"`
+	CustomProviderDescription  string `json:"description,omitempty"`
 }
+
+var _ error = (*SendError)(nil)
+var _ slogutil.MetricError = (*SendError)(nil)
 
 func (e *SendError) Error() string {
 	jsonText, _ := json.Marshal(e)
@@ -97,10 +112,27 @@ func (e *SendError) As(target any) bool {
 	return false
 }
 
+func (e *SendError) GetMetricErrorName() (slogutil.MetricErrorName, bool) {
+	if e.ProviderType != config.SMSProviderCustom {
+		return "", false
+	}
+	if e.CustomProviderResponseCode != "timeout" {
+		return "", false
+	}
+	return slogutil.MetricErrorNameSMSSendError, true
+}
+func (e *SendError) GetMetricOptions() []otelutil.MetricOption {
+	return []otelutil.MetricOption{
+		slogutil.MetricOptionAttributeKeyValue{KeyValue: attribute.Key("provider_name").String(string(e.CustomProviderName))},
+		slogutil.MetricOptionAttributeKeyValue{KeyValue: attribute.Key("response_code").String(string(e.CustomProviderResponseCode))},
+	}
+}
 func (e *SendError) asAPIError() *apierrors.APIError {
 	details := apierrors.Details{
 		"ProviderErrorCode": e.ProviderErrorCode,
-		"ProviderName":      e.ProviderName,
+		"ProviderType":      e.ProviderType,
+		"ProviderName":      e.CustomProviderName,
+		"Description":       e.CustomProviderDescription,
 	}
 	kind := apierrors.UnexpectedError
 	if e.APIErrorKind != nil {

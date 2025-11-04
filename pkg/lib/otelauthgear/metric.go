@@ -97,6 +97,21 @@ var AttributeKeyWhatsappAPIIsTimeout = attribute.Key("whatsapp_api_is_timeout")
 // AttributeKeyAPIErrorReason defines the attribute.
 var AttributeKeyAPIErrorReason = attribute.Key("api_error_reason")
 
+// AttributeKeyProviderType defines the attribute.
+var AttributeKeyProviderType = attribute.Key("provider_type")
+
+// AttributeKeyProviderErrorCode defines the attribute.
+var AttributeKeyProviderErrorCode = attribute.Key("provider_error_code")
+
+// AttributeKeyCustomProviderType defines the attribute.
+var AttributeKeyCustomProviderType = attribute.Key("custom_provider_type")
+
+// AttributeKeyCustomProviderName defines the attribute.
+var AttributeKeyCustomProviderName = attribute.Key("custom_provider_name")
+
+// AttributeKeyCustomProviderResponseCode defines the attribute.
+var AttributeKeyCustomProviderResponseCode = attribute.Key("custom_provider_response_code")
+
 // AttributeStatusOK is "status=ok".
 var AttributeStatusOK = AttributeKeyStatus.String("ok")
 
@@ -285,6 +300,26 @@ func WithWhatsappAPIMessageStatusAndTimeout(status string, isTimeout bool) []ote
 
 func WithAPIErrorReason(kind string) otelutil.MetricOption {
 	return metricOptionAttributeKeyValue{AttributeKeyAPIErrorReason.String(kind)}
+}
+
+func WithProviderType(providerType string) otelutil.MetricOption {
+	return metricOptionAttributeKeyValue{AttributeKeyProviderType.String(providerType)}
+}
+
+func WithProviderErrorCode(code string) otelutil.MetricOption {
+	return metricOptionAttributeKeyValue{AttributeKeyProviderErrorCode.String(code)}
+}
+
+func WithCustomProviderType(providerType string) otelutil.MetricOption {
+	return metricOptionAttributeKeyValue{AttributeKeyCustomProviderType.String(providerType)}
+}
+
+func WithCustomProviderName(name string) otelutil.MetricOption {
+	return metricOptionAttributeKeyValue{AttributeKeyCustomProviderName.String(name)}
+}
+
+func WithCustomProviderResponseCode(code string) otelutil.MetricOption {
+	return metricOptionAttributeKeyValue{AttributeKeyCustomProviderResponseCode.String(code)}
 }
 
 func WithHTTPStatusCode(code int) otelutil.MetricOption {

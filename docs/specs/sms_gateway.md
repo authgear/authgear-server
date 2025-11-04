@@ -1,10 +1,10 @@
-* [SMS Gateway](#sms-gateway)
-  * [Configuration](#configuration)
-    * [Webhook](#webhook)
-    * [Deno Hook](#deno-hook)
-    * [Request](#request)
-    * [Response](#response)
-      * [Backward Compatibility](#backward-compatibility)
+- [SMS Gateway](#sms-gateway)
+  - [Configuration](#configuration)
+    - [Webhook](#webhook)
+    - [Deno Hook](#deno-hook)
+    - [Request](#request)
+    - [Response](#response)
+      - [Backward Compatibility](#backward-compatibility)
 
 # SMS Gateway
 
@@ -98,8 +98,7 @@ interface CustomSMSGatewayPayload {
     | "forgot_password_sms.txt"
     | "setup_primary_oob_sms.txt"
     | "setup_secondary_oob_sms.txt"
-    | "verification_sms.txt"
-    ;
+    | "verification_sms.txt";
 
   template_variables: {
     // This is present when template_name is
@@ -135,32 +134,73 @@ And then use `template_variables` to interpolate the template.
 The deno hook and webhook shares the same response schema:
 
 ```typescript
+// Read the Response Code section for details
+type CustomSMSGatewayResponseCode =
+  | "ok"
+  | "invalid_phone_number"
+  | "rate_limited"
+  | "authentication_failed"
+  | "unsupported_request"
+  | "delivery_rejected"
+  | "timeout"
+  | "unknown_error";
+
+
+
 interface CustomSMSGatewayResponse {
-  code:
-    | "ok" // Return this code if the sms is delivered successfully
-    | "invalid_phone_number" // Return this code if the phone number is invalid
-    | "rate_limited" // Return this code if some rate limit is reached and the user should retry the request
-    | "authentication_failed" // Return this code if some authentication is failed, and the developer should check the current configurations.
-    | "delivery_rejected"; // Return this code if the sms delivery service rejected the request for any reason the user cannot fix by retrying.
+  // The code indicating the result. Read the Response Code section for details.
+  code: CustomSMSGatewayResponseCode;
 
-  // A string identifying the sms provider.
-  // This field is only set by deployment-wise sms gateway.
-  provider_name?: string;
+  // A message authgear server might display to the end-user when there is an error.
+  description?: string;
 
-  // Error code that could appear on portal to assist debugging.
-  // For example, you may put the error code returned by twilio here.
-  // The deployment-wise sms gateway always put the error code returned by the sms provider here.
-  provider_error_code?: string;
-
-  // This field is only set by deployment-wise sms gateway.
-  // The error message of any error occurred in the gateway. This will not be exposed to user and is only for debug purpose.
-  go_error?: string;
-
-  // This field is only set by deployment-wise sms gateway.
-  // The dumped response of the sms provider. This will not be exposed to user and is only for debug purpose.
-  dumped_response?: string;
+  // An optional JSON object. Only for error logging purpose.
+  // If exist, authgear server will send all details in the object to the error logging service (Sentry).
+  info?: Record<string, any>;
 }
 ```
+
+#### Response Codes
+
+- ok
+
+Return this code if the SMS is delivered successfully.
+Authgear server will continue the current operation normally, such as advancing to the next step in a login flow.
+
+- invalid_phone_number
+
+Return this code if the SMS gateway determines the phone number is invalid.
+Authgear server will treat this as an error and display a message to the end-user asking for another phone number.
+
+- rate_limited
+
+Return this code if the SMS gateway determines the request is too frequent.
+Authgear server will treat this as an error and display a message to the end-user asking for a retry after a moment.
+
+- authentication_failed
+
+Return this code if the SMS gateway fails to send the SMS due to a configuration error related to authentication (e.g., invalid Twilio access key).
+Authgear server will treat this as an error and display a message asking the end-user to notify the project owner to check the configuration.
+
+- unsupported_request
+
+Return this code if the SMS gateway determines the request is unsupported (e.g., attempting to send a login link when only 6-digit codes are supported).
+Authgear server will treat this as an error and display a message asking the end-user to notify the project owner to check the configuration.
+
+- delivery_rejected
+
+Return this code if the SMS gateway fails to send the SMS because an external delivery service (e.g., Twilio) rejects the request for a reason the user cannot resolve by retrying.
+Authgear server will treat this as an error and display a message asking the end-user to notify the project owner for support.
+
+- timeout
+
+Return this code if the SMS gateway fails to send the SMS due to a timeout from an external delivery service.
+Authgear server will treat this as a temporary error and instruct the end-user to try again later.
+
+- unknown_error
+
+Return this code if the SMS gateway encounters an unknown error when sending the SMS.
+Authgear server will treat this as an error and display a generic error message to the end-user.
 
 #### Backward Compatibility
 

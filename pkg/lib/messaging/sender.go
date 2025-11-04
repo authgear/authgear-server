@@ -232,26 +232,23 @@ func (s *Sender) sendSMS(ctx context.Context, msgType translation.MessageType, o
 		err = s.SMSSender.Send(ctx, client, *opts)
 		if err != nil {
 			// Log the send error immediately.
-			// TODO: Handle expected errors https://linear.app/authgear/issue/DEV-1139
 			logger.WithError(err).With(
 				slog.String("phone", phone.Mask(opts.To)),
 			).Error(ctx, "failed to send SMS")
 
 			var smsapiErr *smsapi.SendError
-			if errors.As(err, &smsapiErr) && smsapiErr.APIErrorKind != nil {
-				otelutil.IntCounterAddOne(
-					ctx,
-					otelauthgear.CounterSMSRequestCount,
-					otelauthgear.WithStatusError(),
-					otelauthgear.WithAPIErrorReason(smsapiErr.APIErrorKind.Reason),
-				)
-			} else {
-				otelutil.IntCounterAddOne(
-					ctx,
-					otelauthgear.CounterSMSRequestCount,
-					otelauthgear.WithStatusError(),
-				)
+			metricOptions := []otelutil.MetricOption{
+				otelauthgear.WithStatusError(),
 			}
+			if errors.As(err, &smsapiErr) {
+				metricOptions = append(metricOptions, ApplySMSAPIErrorMetrics(smsapiErr)...)
+			}
+
+			otelutil.IntCounterAddOne(
+				ctx,
+				otelauthgear.CounterSMSRequestCount,
+				metricOptions...,
+			)
 
 			dispatchErr := s.DispatchEventImmediatelyWithTx(ctx, &nonblocking.SMSErrorEventPayload{
 				Description: s.errorToDescription(err),
