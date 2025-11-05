@@ -471,10 +471,8 @@ config:
 
 ---
 name: no-usable-primary-authenticator-for-username
-error: |-
-  invalid configuration:
-  /authentication/identities/0: noPrimaryAuthenticator
-    map[identity_type:login_id login_id_type:username]
+# This check is relaxed in https://linear.app/authgear/issue/DEV-3131
+error: null
 config:
   id: test
   http:
@@ -490,10 +488,8 @@ config:
 
 ---
 name: no-usable-primary-authenticator-for-email
-error: |-
-  invalid configuration:
-  /authentication/identities/0: noPrimaryAuthenticator
-    map[identity_type:login_id login_id_type:email]
+# This check is relaxed in https://linear.app/authgear/issue/DEV-3131
+error: null
 config:
   id: test
   http:
@@ -509,10 +505,8 @@ config:
 
 ---
 name: no-usable-primary-authenticator-for-phone
-error: |-
-  invalid configuration:
-  /authentication/identities/0: noPrimaryAuthenticator
-    map[identity_type:login_id login_id_type:phone]
+# This check is relaxed in https://linear.app/authgear/issue/DEV-3131
+error: null
 config:
   id: test
   http:
