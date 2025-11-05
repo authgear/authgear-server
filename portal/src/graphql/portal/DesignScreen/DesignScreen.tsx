@@ -943,6 +943,10 @@ const Preview: React.VFC<PreviewProps> = function Preview(props) {
         ) : null}
       </div>
       {isIframeLoading ? <ShowLoading /> : null}
+      {
+        // It is strongly discouraged to use both `allow-scripts` and `allow-same-origin` in `sandbox` attribute.
+        // https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/iframe#allow-same-origin
+      }
       <iframe
         ref={authUIIframeRef}
         className={cn("w-full", "min-h-0", "flex-1", "border-none")}
