@@ -2179,6 +2179,7 @@
   "LoginMethodConfigurationScreen.second-level.password.title": "Enter password",
   "LoginMethodConfigurationScreen.second-level.password.description": "Enter password to authenticate",
   "LoginMethodConfigurationScreen.combineLoginSignup.title": "Automatically signup a new user if a login ID is not found during login",
+  "LoginMethodConfigurationScreen.custom-login-methods.authenticator.password-warning": "If no password authenticator is configured, users logging in with a username may be unable to access their accounts.",
 
   "EditConfigurationScreen.title": "Edit Project Configurations",
   "EditConfigurationScreen.warning.title": "Warning!",

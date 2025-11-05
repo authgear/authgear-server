@@ -134,6 +134,7 @@ import {
   RedMessageBar_RemindConfigureSMTPInNonSMTPConfigurationScreen,
 } from "../../RedMessageBar";
 import Tooltip from "../../Tooltip";
+import { Callout } from "../../components/v2/Callout/Callout";
 
 function splitByNewline(text: string): string[] {
   return text
@@ -1991,6 +1992,23 @@ function CustomLoginMethods(props: CustomLoginMethodsProps) {
     [onSwapPrimaryAuthenticatorProp]
   );
 
+  const authenticatorWarning = useMemo(() => {
+    const usernameEnabled =
+      loginIDs.find(
+        (loginID) => loginID.key === "username" && loginID.checked
+      ) != null;
+    const passwordEnabled =
+      authenticators.find(
+        (authen) => authen.key === "password" && authen.checked
+      ) != null;
+    if (usernameEnabled && !passwordEnabled) {
+      return (
+        <FormattedMessage id="LoginMethodConfigurationScreen.custom-login-methods.authenticator.password-warning" />
+      );
+    }
+    return null;
+  }, [authenticators, loginIDs]);
+
   return (
     <Widget>
       <WidgetTitle>
@@ -2024,6 +2042,14 @@ function CustomLoginMethods(props: CustomLoginMethodsProps) {
         <WidgetDescription>
           <FormattedMessage id="LoginMethodConfigurationScreen.custom-login-methods.authenticator.description" />
         </WidgetDescription>
+        {authenticatorWarning != null ? (
+          <Callout
+            className="w-full"
+            type="warning"
+            text={authenticatorWarning}
+            showCloseButton={false}
+          />
+        ) : null}
       </WidgetSubsection>
       <PriorityList
         items={authenticators}
