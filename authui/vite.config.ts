@@ -428,6 +428,8 @@ export default defineConfig(() => ({
     renderBuiltUrl: () => ({ relative: true }),
   },
   server: {
+    // In portal design preview, the iframe sends the `Origin: null` header to the server, so `cors: true` is needed.
+    cors: true,
     host: "0.0.0.0",
     port: 5173,
     hmr: {
