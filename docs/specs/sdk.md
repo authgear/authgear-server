@@ -329,6 +329,8 @@ assert(enabled === false);
 
 Allow the user performs specific settings action from the app. e.g. change password. The action is only resolved when the user has completed the action.
 
+Read [sdk-settings-actions.md](./sdk-settings-actions.md) for detailed API Design.
+
 ```typescript
 // In mobile sdk
 interface ChangePasswordOptions {
