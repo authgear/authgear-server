@@ -1,0 +1,319 @@
+# SDK - Settings Actions
+
+This document specifies the API design of settings actions.
+This is an alternate design of `./sdk-settings-actions.md`.
+
+- [Add / Change / Remove Email](#add--change--remove-email)
+- [Add / Change / Remove Phone](#add--change--remove-phone)
+- [Add / Change / Remove Username](#add--change--remove-username)
+- [Setup / Change Password](#setup--change-password)
+- [Manage MFA](#manage-mfa)
+- [Setup / Change / Remove MFA Phone](#setup--change--remove-MFA-phone)
+- [Setup / Change / Remove MFA Email](#setup--change--remove-MFA-email)
+- [Setup / Change / Remove MFA Password](#setup--change--remove-MFA-password)
+
+---
+
+- [Full UserInfo Design](#full-userinfo-design)
+- [Security Considerations](#security-considerations)
+
+## Add / Change / Remove Email
+
+### Intention
+
+App developers might want custom button to trigger the UI in native App which manage the user's Email.
+
+### SDK Design
+
+- Add Email
+
+```typescript
+await authgear.addEmail({ redirectURI: "com.example://complete" });
+```
+
+- Change Email
+
+```typescript
+await authgear.changeEmail("user@example.com", {
+  redirectURI: "com.example://complete",
+});
+```
+
+- Display Email
+
+```typescript
+const userInfo = await authgear.fetchUserInfo();
+const email = userInfo.email;
+```
+
+## Add / Change / Remove Phone
+
+### Intention
+
+App developers might want custom button to trigger the UI in native App which manage the user's Phone.
+
+### SDK Design
+
+- Add Phone
+
+```typescript
+await authgear.addPhone({ redirectURI: "com.example://complete" });
+```
+
+- Change Phone
+
+```typescript
+await authgear.changePhone("+85212341234", {
+  redirectURI: "com.example://complete",
+});
+```
+
+- Display Phone
+
+```typescript
+const userInfo = await authgear.fetchUserInfo();
+const phone = userInfo.phoneNumber;
+```
+
+## Add / Change / Remove Username
+
+### Intention
+
+App developers might want custom button to trigger the UI in native App which manage the user's Username.
+
+### SDK Design
+
+- Add Username
+
+```typescript
+await authgear.addUsername("example", {
+  redirectURI: "com.example://complete",
+});
+```
+
+- Change Username
+
+```typescript
+await authgear.changeUsername("example", {
+  redirectURI: "com.example://complete",
+});
+```
+
+- Display Username
+
+```typescript
+const userInfo = await authgear.fetchUserInfo();
+const username = userInfo.preferredUsername;
+```
+
+## Setup / Change Password
+
+### Intention
+
+App developers might want a custom button to trigger the UI in native App which manages the user's password.
+
+### SDK Design
+
+- Display Password Status
+
+```typescript
+const userInfo = await authgear.fetchUserInfo();
+const passwordEnabled = userInfo.authenticators.some(
+  (a) => a.kind === "primary" && a.type === "password"
+);
+```
+
+- Setup Password
+
+```typescript
+await authgear.setupPassword({ redirectURI: "com.example://complete" });
+```
+
+- Change Password
+
+```typescript
+await authgear.changePassword({ redirectURI: "com.example://complete" });
+```
+
+- Remove Password
+
+This is not supported.
+
+## Manage MFA
+
+### Intention
+
+App developers might want custom button to trigger the UI in native App which manages the user's MFAs.
+
+### SDK Design
+
+- Display MFA Status
+
+```typescript
+const userInfo = await authgear.fetchUserInfo();
+const isMFAEnabled = userInfo.authenticators.some(
+  (a) => a.kind === "secondary"
+);
+```
+
+- Manage MFA
+
+```typescript
+await authgear.manageMFA({ redirectURI: "com.example://complete" });
+```
+
+## Setup / Change / Remove MFA Phone
+
+### Intention
+
+App developers might want to display user's MFA phone number, or add button to trigger the UI in native App which manages the user's MFA phone number.
+
+### SDK Design
+
+- Setup MFA Phone
+
+```typescript
+await authgear.setupMFAPhone({ redirectURI: "com.example://complete" });
+```
+
+- Change MFA Phone
+
+```typescript
+const userInfo = await authgear.fetchUserInfo();
+const phone = userInfo.authenticators.find(
+  (a) => a.kind === "secondary" && a.type === "oob_otp_sms"
+)?.phoneNumber;
+await authgear.changeMFAPhone(phone!, { redirectURI: "com.example://complete" });
+```
+
+- Remove MFA Phone
+
+```typescript
+const userInfo = await authgear.fetchUserInfo();
+const phone = userInfo.authenticators.find(
+  (a) => a.kind === "secondary" && a.type === "oob_otp_sms"
+)?.phoneNumber;
+await authgear.removeMFAPhone(phone!, { redirectURI: "com.example://complete" });
+```
+
+## Setup / Change / Remove MFA Email
+
+### Intention
+
+App developers might want to display user's MFA email address, or add button to trigger the UI in native App which manages the user's MFA email address.
+
+### SDK Design
+
+- Setup MFA Email
+
+```typescript
+await authgear.setupMFAEmail({ redirectURI: "com.example://complete" });
+```
+
+- Change MFA Email
+
+```typescript
+const userInfo = await authgear.fetchUserInfo();
+const email = userInfo.authenticators.find(
+  (a) => a.kind === "secondary" && a.type === "oob_otp_email"
+)?.email;
+await authgear.changeMFAEmail(email!, { redirectURI: "com.example://complete" });
+```
+
+- Remove MFA Email
+
+```typescript
+const userInfo = await authgear.fetchUserInfo();
+const email = userInfo.authenticators.find(
+  (a) => a.kind === "secondary" && a.type === "oob_otp_email"
+)?.email;
+await authgear.removeMFAEmail(email!, { redirectURI: "com.example://complete" });
+```
+
+## Setup / Change / Remove MFA Password
+
+### Intention
+
+App developers might want custom button to trigger the UI in native App which manages the user's MFA password.
+
+### SDK Design
+
+- Display MFA Password Status
+
+```typescript
+const userInfo = await authgear.fetchUserInfo();
+const isMFAPasswordEnabled = userInfo.authenticators.some(
+  (a) => a.kind === "secondary" && a.type === "password"
+);
+```
+
+- Setup MFA Password
+
+```typescript
+await authgear.setupMFAPassword({ redirectURI: "com.example://complete" });
+```
+
+- Change MFA Password
+
+```typescript
+await authgear.changeMFAPassword({ redirectURI: "com.example://complete" });
+```
+
+- Remove MFA Password
+
+```typescript
+await authgear.removeMFAPassword({ redirectURI: "com.example://complete" });
+```
+
+## Full UserInfo Design
+
+- SDK Object
+
+```typescript
+interface Authenticator {
+  kind: "primary" | "secondary";
+  type: "password" | "passkey" | "totp" | "oob_otp_email" | "oob_otp_sms";
+  email?: string;
+  phoneNumber?: string;
+}
+
+interface UserInfo {
+  sub: string;
+  email: string;
+  phoneNumber: string;
+  preferredUsername: string;
+  authenticators: []Authenticator;
+}
+```
+
+- OIDC userinfo endpoint
+
+```jsonc
+{
+  "sub": "00000000-0000-0000-0000-000000000000",
+  "email": "user@example.com",
+  "phone_number": "+85211111111",
+  "preferred_username": "example",
+  "https://authgear.com/claims/user/authenticators": [
+    {
+      "kind": "primary",
+      "type": "password"
+    },
+    {
+      "kind": "secondary",
+      "type": "oob_otp_email",
+      "email": "oob_otp_email@example.com"
+    },
+    {
+      "kind": "secondary",
+      "type": "oob_otp_sms",
+      "phone_number": "+85212345678"
+    }
+  ]
+}
+```
+
+## Security Considerations
+
+- We will expose user's password status together with MFA emails and phone numbers in userinfo endpoint, therefore client apps will be able to know them. If the client app is malicious, they may use the information to attack an authgear user.
+- We can hide these fields in Third-Party Clients (by checking scopes granted) to mitigate the risk.
