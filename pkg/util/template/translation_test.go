@@ -511,6 +511,100 @@ func TestTranslationResource(t *testing.T) {
 					"some-key-2": { "LanguageTag": "ja-JP", "Value": "en some-key-2 in fs A" }
 				}`))
 			})
+
+			Convey("it should use the terms-of-service defined in the fallback language", func() {
+				writeFile(fsC, "ja-JP", `{
+					"terms-of-service-link": "http://example.com/terms-of-service"
+				}`)
+				er := resource.EffectiveResource{
+					DefaultTag:    "ja-JP",
+					SupportedTags: []string{"en", "ja-JP"},
+				}
+				er.PreferredTags = []string{"en"}
+				data, err := read(er)
+				So(err, ShouldBeNil)
+				So(data, ShouldEqualJSON, `{
+					"app.name": { "LanguageTag": "en", "Value": "en app.name in fs A" },
+					"email.default.sender":  { "LanguageTag": "en", "Value": "no-reply+en@authgear.com" },
+					"terms-of-service-link": { "LanguageTag": "ja-JP", "Value": "http://example.com/terms-of-service" },
+					"some-key-1": { "LanguageTag": "en", "Value": "en some-key-1 in fs A" },
+					"some-key-2": { "LanguageTag": "en", "Value": "en some-key-2 in fs A" }
+				}`)
+
+				er.PreferredTags = []string{"ja-JP"}
+				data, err = read(er)
+				So(err, ShouldBeNil)
+				So(data, ShouldEqualJSON, `{
+					"app.name": { "LanguageTag": "ja-JP", "Value": "en app.name in fs A" },
+					"email.default.sender":  { "LanguageTag": "ja-JP", "Value": "no-reply+en@authgear.com" },
+					"terms-of-service-link": { "LanguageTag": "ja-JP", "Value": "http://example.com/terms-of-service" },
+					"some-key-1": { "LanguageTag": "ja-JP", "Value": "en some-key-1 in fs A" },
+					"some-key-2": { "LanguageTag": "ja-JP", "Value": "en some-key-2 in fs A" }
+				}`)
+			})
+
+			Convey("it should use the privacy-policy-link defined in the fallback language", func() {
+				writeFile(fsC, "ja-JP", `{
+					"privacy-policy-link": "http://example.com/privacy-policy-link"
+				}`)
+				er := resource.EffectiveResource{
+					DefaultTag:    "ja-JP",
+					SupportedTags: []string{"en", "ja-JP"},
+				}
+				er.PreferredTags = []string{"en"}
+				data, err := read(er)
+				So(err, ShouldBeNil)
+				So(data, ShouldEqualJSON, `{
+					"app.name": { "LanguageTag": "en", "Value": "en app.name in fs A" },
+					"email.default.sender":  { "LanguageTag": "en", "Value": "no-reply+en@authgear.com" },
+					"privacy-policy-link": { "LanguageTag": "ja-JP", "Value": "http://example.com/privacy-policy-link" },
+					"some-key-1": { "LanguageTag": "en", "Value": "en some-key-1 in fs A" },
+					"some-key-2": { "LanguageTag": "en", "Value": "en some-key-2 in fs A" }
+				}`)
+
+				er.PreferredTags = []string{"ja-JP"}
+				data, err = read(er)
+				So(err, ShouldBeNil)
+				So(data, ShouldEqualJSON, `{
+					"app.name": { "LanguageTag": "ja-JP", "Value": "en app.name in fs A" },
+					"email.default.sender":  { "LanguageTag": "ja-JP", "Value": "no-reply+en@authgear.com" },
+					"privacy-policy-link": { "LanguageTag": "ja-JP", "Value": "http://example.com/privacy-policy-link" },
+					"some-key-1": { "LanguageTag": "ja-JP", "Value": "en some-key-1 in fs A" },
+					"some-key-2": { "LanguageTag": "ja-JP", "Value": "en some-key-2 in fs A" }
+				}`)
+			})
+
+			Convey("it should use the customer-support-link defined in the fallback language", func() {
+				writeFile(fsC, "ja-JP", `{
+					"customer-support-link": "http://example.com/customer-support-link"
+				}`)
+				er := resource.EffectiveResource{
+					DefaultTag:    "ja-JP",
+					SupportedTags: []string{"en", "ja-JP"},
+				}
+				er.PreferredTags = []string{"en"}
+				data, err := read(er)
+				So(err, ShouldBeNil)
+				So(data, ShouldEqualJSON, `{
+					"app.name": { "LanguageTag": "en", "Value": "en app.name in fs A" },
+					"email.default.sender":  { "LanguageTag": "en", "Value": "no-reply+en@authgear.com" },
+					"customer-support-link": { "LanguageTag": "ja-JP", "Value": "http://example.com/customer-support-link" },
+					"some-key-1": { "LanguageTag": "en", "Value": "en some-key-1 in fs A" },
+					"some-key-2": { "LanguageTag": "en", "Value": "en some-key-2 in fs A" }
+				}`)
+
+				er.PreferredTags = []string{"ja-JP"}
+				data, err = read(er)
+				So(err, ShouldBeNil)
+				So(data, ShouldEqualJSON, `{
+					"app.name": { "LanguageTag": "ja-JP", "Value": "en app.name in fs A" },
+					"email.default.sender":  { "LanguageTag": "ja-JP", "Value": "no-reply+en@authgear.com" },
+					"customer-support-link": { "LanguageTag": "ja-JP", "Value": "http://example.com/customer-support-link" },
+					"some-key-1": { "LanguageTag": "ja-JP", "Value": "en some-key-1 in fs A" },
+					"some-key-2": { "LanguageTag": "ja-JP", "Value": "en some-key-2 in fs A" }
+				}`)
+			})
+
 		})
 	})
 
@@ -845,6 +939,9 @@ func TestTranslationResource(t *testing.T) {
 		test("email.verification.sender", true)
 		test("email.verification.reply-to", true)
 		test("sms.default.sender", true)
+		test("terms-of-service-link", true)
+		test("privacy-policy-link", true)
+		test("customer-support-link", true)
 
 		test("email.default.subject", false)
 		test("email.verification.subject", false)
