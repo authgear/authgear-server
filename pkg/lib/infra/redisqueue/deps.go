@@ -7,10 +7,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
-var QueueUserImport = "user-import"
-var QueueUserExport = "user-export"
-var QueueUserReindex = "user-reindex"
-
 var ProducerDependencySet = wire.NewSet(
 	NewUserImportProducer,
 	NewUserExportProducer,
