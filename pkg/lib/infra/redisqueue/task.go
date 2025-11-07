@@ -50,6 +50,6 @@ func RedisKeyForTask(appID string, taskID string) string {
 	return fmt.Sprintf("app:%v:redis-queue-task:%v", appID, taskID)
 }
 
-func RedisKeyForQueue(queueName string) string {
-	return fmt.Sprintf("redis-queue:%v", queueName)
+func RedisKeyForQueue(queueName QueueName) string {
+	return fmt.Sprintf("redis-queue:%v", string(queueName))
 }

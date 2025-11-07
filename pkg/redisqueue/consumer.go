@@ -39,7 +39,7 @@ type TaskProcessor func(ctx context.Context, appProvider *deps.AppProvider, task
 type taskExecutor func() (output json.RawMessage, err error)
 
 type Consumer struct {
-	QueueName              string
+	QueueName              redisqueue.QueueName
 	clock                  clock.Clock
 	rootProvider           *deps.RootProvider
 	configSourceController *configsource.Controller
@@ -60,7 +60,7 @@ type Consumer struct {
 
 var _ signalutil.Daemon = &Consumer{}
 
-func NewConsumer(ctx context.Context, queueName string, rateLimitConfig config.RateLimitsEnvironmentConfigEntry, rootProvider *deps.RootProvider, configSourceController *configsource.Controller, taskProcessor TaskProcessor) *Consumer {
+func NewConsumer(ctx context.Context, queueName redisqueue.QueueName, rateLimitConfig config.RateLimitsEnvironmentConfigEntry, rootProvider *deps.RootProvider, configSourceController *configsource.Controller, taskProcessor TaskProcessor) *Consumer {
 	redis := globalredis.NewHandle(
 		rootProvider.RedisPool,
 		&rootProvider.EnvironmentConfig.RedisConfig,
@@ -78,7 +78,7 @@ func NewConsumer(ctx context.Context, queueName string, rateLimitConfig config.R
 			Interval:    time.Millisecond * 500,
 			MaxInterval: time.Second * 10,
 		},
-		limitBucket: ratelimit.NewGlobalBucketSpec("", rateLimitConfig, taskQueueBucket, queueName),
+		limitBucket: ratelimit.NewGlobalBucketSpec("", rateLimitConfig, taskQueueBucket, string(queueName)),
 		limiter: &ratelimit.LimiterGlobal{
 			Storage: ratelimit.NewGlobalStorageRedis(redis),
 		},
@@ -212,7 +212,7 @@ func (c *Consumer) process(
 func (c *Consumer) work(ctx context.Context) {
 	logger := logger.GetLogger(ctx)
 	logger = logger.With(
-		slog.String("queue_name", c.QueueName),
+		slog.String("queue_name", string(c.QueueName)),
 		slog.String("bucket_key", c.limitBucket.Key()),
 	)
 	defer func() {
@@ -323,7 +323,7 @@ func (c *Consumer) work(ctx context.Context) {
 
 	err = c.redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
 		key := task.RedisKey()
-		_, err := conn.Set(ctx, key, taskBytes, redisqueue.TTL).Result()
+		_, err := conn.Set(ctx, key, taskBytes, c.QueueName.GetTTLForRetention()).Result()
 		if err != nil {
 			logger.WithError(err).Error(ctx, "failed to save task output")
 			return err

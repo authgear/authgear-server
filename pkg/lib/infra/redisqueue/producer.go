@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"math/rand"
-	"time"
 
 	goredis "github.com/redis/go-redis/v9"
 
@@ -25,10 +24,8 @@ const (
 
 var rng *rand.Rand = corerand.SecureRand
 
-var TTL = 24 * time.Hour
-
 type Producer struct {
-	QueueName string
+	QueueName QueueName
 	Redis     *appredis.Handle
 	Clock     clock.Clock
 }
@@ -58,7 +55,7 @@ func (p *Producer) EnqueueTask(ctx context.Context, task *Task) error {
 		}
 
 		key := task.RedisKey()
-		_, err = conn.SetNX(ctx, key, taskBytes, TTL).Result()
+		_, err = conn.SetNX(ctx, key, taskBytes, p.QueueName.GetTTLForEnqueue()).Result()
 		if err != nil {
 			return err
 		}
