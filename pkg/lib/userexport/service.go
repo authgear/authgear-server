@@ -97,6 +97,11 @@ func (s *UserExportService) convertDBUserToRecord(user *user.UserForExport) (rec
 
 	record.Disabled = user.IsDisabled
 	record.DeleteAt = user.DeleteAt
+	record.LastLoginAt = user.LastLoginAt
+	record.TemporarilyDisabledFrom = user.TemporarilyDisabledFrom
+	record.TemporarilyDisabledUntil = user.TemporarilyDisabledUntil
+	record.AccountValidFrom = user.AccountValidFrom
+	record.AccountValidUntil = user.AccountValidUntil
 
 	record.Identities = make([]*Identity, 0)
 	record.BiometricCount = 0

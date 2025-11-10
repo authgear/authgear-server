@@ -48,6 +48,11 @@ var defaultCSVExportFields = []*FieldPointer{
 	&FieldPointer{Pointer: "/groups"},
 	&FieldPointer{Pointer: "/disabled"},
 	&FieldPointer{Pointer: "/delete_at"},
+	&FieldPointer{Pointer: "/last_login_at"},
+	&FieldPointer{Pointer: "/temporarily_disabled_from"},
+	&FieldPointer{Pointer: "/temporarily_disabled_until"},
+	&FieldPointer{Pointer: "/account_valid_from"},
+	&FieldPointer{Pointer: "/account_valid_until"},
 	&FieldPointer{Pointer: "/identities"},
 	&FieldPointer{Pointer: "/mfa/emails"},
 	&FieldPointer{Pointer: "/mfa/phone_numbers"},
@@ -165,8 +170,13 @@ type Record struct {
 	Roles  []string `json:"roles,omitempty"`
 	Groups []string `json:"groups,omitempty"`
 
-	Disabled bool       `json:"disabled"`
-	DeleteAt *time.Time `json:"delete_at,omitempty"`
+	Disabled                 bool       `json:"disabled"`
+	DeleteAt                 *time.Time `json:"delete_at,omitempty"`
+	LastLoginAt              *time.Time `json:"last_login_at,omitempty"`
+	TemporarilyDisabledFrom  *time.Time `json:"temporarily_disabled_from,omitempty"`
+	TemporarilyDisabledUntil *time.Time `json:"temporarily_disabled_until,omitempty"`
+	AccountValidFrom         *time.Time `json:"account_valid_from,omitempty"`
+	AccountValidUntil        *time.Time `json:"account_valid_until,omitempty"`
 
 	Identities []*Identity `json:"identities,omitempty"`
 
