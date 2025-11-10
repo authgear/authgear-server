@@ -42,6 +42,15 @@ var FreeEmailProviderDomainsTXT = resource.RegisterResource(resource.NewlineJoin
 	},
 })
 
+// DisposableEmailDomainsTXT is provided by
+// https://github.com/disposable-email-domains/disposable-email-domains/blob/main/disposable_email_blocklist.conf
+var DisposableEmailDomainsTXT = resource.RegisterResource(resource.NewlineJoinedDescriptor{
+	Path: "disposable_email_domain_list.txt",
+	Parse: func(data []byte) (interface{}, error) {
+		return matchlist.New(string(data), true, false)
+	},
+})
+
 var EmailDomainAllowListTXT = resource.RegisterResource(resource.NewlineJoinedDescriptor{
 	Path: "email_domain_allowlist.txt",
 	Parse: func(data []byte) (interface{}, error) {
