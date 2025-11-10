@@ -59,6 +59,7 @@ func mapGet[T string | bool | map[string]interface{}](m map[string]interface{}, 
 func (s *UserExportService) convertDBUserToRecord(user *user.UserForExport) (record *Record, err error) {
 	record = &Record{}
 	record.Sub = user.ID
+	record.CreatedAt = user.CreatedAt
 
 	record.PreferredUsername = mapGet[string](user.StandardAttributes, "preferred_username")
 	record.Email = mapGet[string](user.StandardAttributes, "email")

@@ -22,6 +22,7 @@ const BatchSize = 1000
 
 var defaultCSVExportFields = []*FieldPointer{
 	&FieldPointer{Pointer: "/sub"},
+	&FieldPointer{Pointer: "/created_at"},
 	&FieldPointer{Pointer: "/preferred_username"},
 	&FieldPointer{Pointer: "/email"},
 	&FieldPointer{Pointer: "/phone_number"},
@@ -142,7 +143,8 @@ type MFA struct {
 }
 
 type Record struct {
-	Sub string `json:"sub,omitempty"`
+	Sub       string    `json:"sub,omitempty"`
+	CreatedAt time.Time `json:"created_at,omitempty"`
 
 	PreferredUsername string `json:"preferred_username,omitempty"`
 	Email             string `json:"email,omitempty"`
