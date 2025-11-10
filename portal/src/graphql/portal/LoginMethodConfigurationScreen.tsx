@@ -997,6 +997,9 @@ function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
       block_free_email_provider_domains:
         config.identity?.login_id?.types?.email
           ?.block_free_email_provider_domains ?? false,
+      block_disposable_email_domains:
+        config.identity?.login_id?.types?.email
+          ?.block_disposable_email_domains ?? false,
     },
     loginIDUsernameConfig: {
       block_reserved_usernames:
@@ -2183,6 +2186,7 @@ function EmailSettings(props: EmailSettingsProps) {
             prev.loginIDEmailConfig.domain_allowlist_enabled = false;
           } else {
             prev.loginIDEmailConfig.block_free_email_provider_domains = false;
+            prev.loginIDEmailConfig.block_disposable_email_domains = false;
           }
         })
       );
@@ -2210,6 +2214,7 @@ function EmailSettings(props: EmailSettingsProps) {
           if (prev.loginIDEmailConfig.domain_allowlist_enabled) {
             prev.loginIDEmailConfig.domain_blocklist_enabled = false;
             prev.loginIDEmailConfig.block_free_email_provider_domains = false;
+            prev.loginIDEmailConfig.block_disposable_email_domains = false;
           }
         })
       );
@@ -2235,6 +2240,24 @@ function EmailSettings(props: EmailSettingsProps) {
         produce(prev, (prev) => {
           prev.loginIDEmailConfig.block_free_email_provider_domains = checked;
           if (prev.loginIDEmailConfig.block_free_email_provider_domains) {
+            prev.loginIDEmailConfig.domain_allowlist_enabled = false;
+            prev.loginIDEmailConfig.domain_blocklist_enabled = true;
+          }
+        })
+      );
+    },
+    [setState]
+  );
+
+  const onChangeBlockDisposableEmailDomains = useCallback(
+    (_e, checked) => {
+      if (checked == null) {
+        return;
+      }
+      setState((prev) =>
+        produce(prev, (prev) => {
+          prev.loginIDEmailConfig.block_disposable_email_domains = checked;
+          if (prev.loginIDEmailConfig.block_disposable_email_domains) {
             prev.loginIDEmailConfig.domain_allowlist_enabled = false;
             prev.loginIDEmailConfig.domain_blocklist_enabled = true;
           }
@@ -2318,6 +2341,15 @@ function EmailSettings(props: EmailSettingsProps) {
         disabled={loginIDEmailConfig.domain_allowlist_enabled}
         tooltipMessageId="LoginIDConfigurationScreen.email.blockFreeEmailProviderDomainsTooltipMessage"
         onChange={onChangeBlockFreeEmailProviderDomains}
+      />
+      <CheckboxWithTooltip
+        label={renderToString(
+          "LoginIDConfigurationScreen.email.blockDisposableEmailDomains"
+        )}
+        checked={loginIDEmailConfig.block_disposable_email_domains}
+        disabled={loginIDEmailConfig.domain_allowlist_enabled}
+        tooltipMessageId="LoginIDConfigurationScreen.email.blockDisposableEmailDomainsTooltipMessage"
+        onChange={onChangeBlockDisposableEmailDomains}
       />
       <CheckboxWithContentLayout>
         <CheckboxWithTooltip
