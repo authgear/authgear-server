@@ -349,4 +349,4 @@ interface UserInfo {
 ## Security Considerations
 
 - We will expose user's password status together with MFA emails and phone numbers in userinfo endpoint, therefore client apps will be able to know them. If the client app is malicious, they may use the information to attack an authgear user.
-- We can hide these fields in Third-Party Clients (by checking scopes granted) to mitigate the risk.
+- We can hide these fields in Third-Party Clients (by checking the scope `https://authgear.com/scopes/full-access`) to mitigate the risk.
