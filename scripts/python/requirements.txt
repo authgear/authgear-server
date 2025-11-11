@@ -1,5 +1,5 @@
 anthropic==0.50.0
-brotli==1.1.0
+brotli==1.2.0
 python-dotenv==1.0.1
 fonttools==4.57.0
 json-repair==0.42.0
