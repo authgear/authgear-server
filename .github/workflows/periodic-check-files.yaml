@@ -1,0 +1,28 @@
+name: CI - Check Outdated Files
+
+on:
+  schedule:
+    - cron: "0 0 * * 1"
+  workflow_dispatch: {}
+
+jobs:
+  check-email-blocklists:
+    # Only need to run in the source repository.
+    if: ${{ github.repository == 'authgear/authgear-server' }}
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y make curl
+      - name: Run email blocklist check
+        run: make check-email-domains-update
+      - name: Success message
+        if: success()
+        run: echo "All email domains lists are up-to-date."
+      - name: Failure message
+        if: failure()
+        run: echo "One or more email domains list are outdated. Please run 'make update-email-domains'."
