@@ -59,6 +59,7 @@ func mapGet[T string | bool | map[string]interface{}](m map[string]interface{}, 
 func (s *UserExportService) convertDBUserToRecord(user *user.UserForExport) (record *Record, err error) {
 	record = &Record{}
 	record.Sub = user.ID
+	record.CreatedAt = user.CreatedAt
 
 	record.PreferredUsername = mapGet[string](user.StandardAttributes, "preferred_username")
 	record.Email = mapGet[string](user.StandardAttributes, "email")
@@ -97,6 +98,13 @@ func (s *UserExportService) convertDBUserToRecord(user *user.UserForExport) (rec
 
 	record.Disabled = user.IsDisabled
 	record.DeleteAt = user.DeleteAt
+	record.LastLoginAt = user.LastLoginAt
+	record.TemporarilyDisabledFrom = user.TemporarilyDisabledFrom
+	record.TemporarilyDisabledUntil = user.TemporarilyDisabledUntil
+	record.AccountValidFrom = user.AccountValidFrom
+	record.AccountValidUntil = user.AccountValidUntil
+	record.IsAnonymized = user.IsAnonymized
+	record.AnonymizeAt = user.AnonymizeAt
 
 	record.Identities = make([]*Identity, 0)
 	record.BiometricCount = 0
