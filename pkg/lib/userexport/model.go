@@ -21,8 +21,8 @@ const PresignGetExpiresForUserExport time.Duration = 1 * duration.PerMinute
 const BatchSize = 1000
 
 var defaultCSVExportFields = []*FieldPointer{
+	// Standard claims
 	&FieldPointer{Pointer: "/sub"},
-	&FieldPointer{Pointer: "/created_at"},
 	&FieldPointer{Pointer: "/preferred_username"},
 	&FieldPointer{Pointer: "/email"},
 	&FieldPointer{Pointer: "/phone_number"},
@@ -45,11 +45,16 @@ var defaultCSVExportFields = []*FieldPointer{
 	&FieldPointer{Pointer: "/address/region"},
 	&FieldPointer{Pointer: "/address/postal_code"},
 	&FieldPointer{Pointer: "/address/country"},
+
+	// Authgear claims
 	&FieldPointer{Pointer: "/roles"},
 	&FieldPointer{Pointer: "/groups"},
 	&FieldPointer{Pointer: "/disabled"},
+	&FieldPointer{Pointer: "/created_at"},
 	&FieldPointer{Pointer: "/delete_at"},
 	&FieldPointer{Pointer: "/last_login_at"},
+	&FieldPointer{Pointer: "/is_anonymized"},
+	&FieldPointer{Pointer: "/anonymize_at"},
 	&FieldPointer{Pointer: "/temporarily_disabled_from"},
 	&FieldPointer{Pointer: "/temporarily_disabled_until"},
 	&FieldPointer{Pointer: "/account_valid_from"},
@@ -143,8 +148,8 @@ type MFA struct {
 }
 
 type Record struct {
-	Sub       string    `json:"sub,omitempty"`
-	CreatedAt time.Time `json:"created_at,omitempty"`
+	// Standard Claims
+	Sub string `json:"sub,omitempty"`
 
 	PreferredUsername string `json:"preferred_username,omitempty"`
 	Email             string `json:"email,omitempty"`
@@ -167,14 +172,18 @@ type Record struct {
 	Locale     string   `json:"locale,omitempty"`
 	Address    *Address `json:"address,omitempty"`
 
+	// Authgear Claims
 	CustomAttributes map[string]interface{} `json:"custom_attributes,omitempty"`
 
 	Roles  []string `json:"roles,omitempty"`
 	Groups []string `json:"groups,omitempty"`
 
+	CreatedAt                time.Time  `json:"created_at,omitempty"`
 	Disabled                 bool       `json:"disabled"`
 	DeleteAt                 *time.Time `json:"delete_at,omitempty"`
 	LastLoginAt              *time.Time `json:"last_login_at,omitempty"`
+	IsAnonymized             bool       `json:"is_anonymized"`
+	AnonymizeAt              *time.Time `json:"anonymize_at,omitempty"`
 	TemporarilyDisabledFrom  *time.Time `json:"temporarily_disabled_from,omitempty"`
 	TemporarilyDisabledUntil *time.Time `json:"temporarily_disabled_until,omitempty"`
 	AccountValidFrom         *time.Time `json:"account_valid_from,omitempty"`
