@@ -10,6 +10,8 @@ This document specifies the API design of settings actions.
 - [Setup / Change / Remove MFA Phone](#setup--change--remove-MFA-phone)
 - [Setup / Change / Remove MFA Email](#setup--change--remove-MFA-email)
 - [Setup / Change / Remove MFA Password](#setup--change--remove-MFA-password)
+- [Setup / Manage MFA TOTP](#setup--manage-mfa-totp)
+- [Setup / View Recovery Code](#setup--view-recovery-code)
 
 ---
 
@@ -250,6 +252,60 @@ await authgear.changeMFAPassword({ redirectURI: "com.example://complete" });
 await authgear.removeMFAPassword({ redirectURI: "com.example://complete" });
 ```
 
+## Setup / Manage MFA TOTP
+
+### Intention
+
+App developers might want to offer custom buttons to trigger the UI in native App which manages the user's MFA TOTPs.
+
+### SDK Design
+
+- Display MFA TOTP Status
+
+```typescript
+const userInfo = await authgear.fetchUserInfo();
+const totpEnabled = userInfo.mfa.totpEnabled;
+```
+
+- Setup MFA TOTP
+
+```typescript
+await authgear.setupMFATOTP({ redirectURI: "com.example://complete" });
+```
+
+- Manage MFA TOTP
+
+```typescript
+await authgear.manageMFATOTP({ redirectURI: "com.example://complete" });
+```
+
+## Setup / View Recovery Code
+
+### Intention
+
+App developers might want to offer custom buttons to trigger the UI in native App which manages the user's recovery code.
+
+### SDK Design
+
+- Display Recovery Code Status
+
+```typescript
+const userInfo = await authgear.fetchUserInfo();
+const recoveryCodeEnabled = userInfo.mfa.recoveryCodeEnabled;
+```
+
+- Setup MFA Recovery Code
+
+```typescript
+await authgear.setupRecoveryCode({ redirectURI: "com.example://complete" });
+```
+
+- View existing Recovery Codes
+
+```typescript
+await authgear.viewRecoveryCode({ redirectURI: "com.example://complete" });
+```
+
 ## Full UserInfo Design
 
 - SDK Object
@@ -266,6 +322,8 @@ interface UserInfo {
     emails: []string;
     phoneNumbers: []string;
     passwordEnabled: boolean;
+    totpEnabled: boolean;
+    recoveryCodeEnabled: boolean;
   }
 }
 ```
@@ -282,7 +340,9 @@ interface UserInfo {
   "https://authgear.com/claims/user/mfa_enabled": true,
   "https://authgear.com/claims/user/mfa_emails": ["mfa@example.com"],
   "https://authgear.com/claims/user/mfa_phone_numbers": ["+85212222222"],
-  "https://authgear.com/claims/user/mfa_password_enabled": true
+  "https://authgear.com/claims/user/mfa_password_enabled": true,
+  "https://authgear.com/claims/user/mfa_totp_enabled": true,
+  "https://authgear.com/claims/user/recovery_code_enabled": true
 }
 ```
 
