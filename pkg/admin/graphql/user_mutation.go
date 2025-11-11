@@ -1170,6 +1170,10 @@ var deleteUserInput = graphql.NewInputObject(graphql.InputObjectConfig{
 			Type:        graphql.NewNonNull(graphql.ID),
 			Description: "Target user ID.",
 		},
+		"reason": &graphql.InputObjectFieldConfig{
+			Type:        graphql.String,
+			Description: "The reason for deleting the user.",
+		},
 	},
 })
 
@@ -1196,6 +1200,7 @@ var _ = registerMutationField(
 			input := p.Args["input"].(map[string]interface{})
 
 			userNodeID := input["userID"].(string)
+			reason, _ := input["reason"].(string)
 			resolvedNodeID := relay.FromGlobalID(userNodeID)
 			if resolvedNodeID == nil || resolvedNodeID.Type != typeUser {
 				return nil, apierrors.NewInvalid("invalid user ID")
@@ -1217,7 +1222,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			err = gqlCtx.UserFacade.Delete(ctx, userModel.ID)
+			err = gqlCtx.UserFacade.Delete(ctx, userModel.ID, reason)
 			if err != nil {
 				return nil, err
 			}

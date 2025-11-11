@@ -793,7 +793,7 @@ func (c *Coordinator) createAuthenticatorInfos(ctx context.Context, authenticato
 	return authenticatorInfos, nil
 }
 
-func (c *Coordinator) UserDelete(ctx context.Context, userID string, isScheduledDeletion bool) error {
+func (c *Coordinator) UserDelete(ctx context.Context, userID string, isScheduledDeletion bool, reason string) error {
 	// Delete dependents of user entity.
 
 	// Identities:
@@ -867,6 +867,7 @@ func (c *Coordinator) UserDelete(ctx context.Context, userID string, isScheduled
 	err = c.Events.DispatchEventOnCommit(ctx, &nonblocking.UserDeletedEventPayload{
 		UserModel:           *userModel,
 		IsScheduledDeletion: isScheduledDeletion,
+		Reason:              reason,
 	})
 	if err != nil {
 		return err

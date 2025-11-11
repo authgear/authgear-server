@@ -25,7 +25,7 @@ type UserService interface {
 	GetRaw(ctx context.Context, id string) (*user.User, error)
 	Count(ctx context.Context) (uint64, error)
 	QueryPage(ctx context.Context, listOption user.ListOptions, pageArgs graphqlutil.PageArgs) ([]apimodel.PageItemRef, error)
-	Delete(ctx context.Context, userID string) error
+	Delete(ctx context.Context, userID string, reason string) error
 	Disable(ctx context.Context, options facade.SetDisabledOptions) error
 	Reenable(ctx context.Context, userID string) error
 	SetAccountValidFrom(ctx context.Context, userID string, from *time.Time) error
@@ -241,8 +241,8 @@ func (f *UserFacade) UnscheduleDeletion(ctx context.Context, id string) error {
 	return nil
 }
 
-func (f *UserFacade) Delete(ctx context.Context, id string) error {
-	err := f.Users.Delete(ctx, id)
+func (f *UserFacade) Delete(ctx context.Context, id string, reason string) error {
+	err := f.Users.Delete(ctx, id, reason)
 	if err != nil {
 		return err
 	}
