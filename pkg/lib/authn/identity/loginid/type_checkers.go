@@ -71,15 +71,23 @@ func (f *TypeCheckerFactory) makeEmailChecker(ctx context.Context, options Check
 		return checker
 	}
 
-	// blocklist and allowlist are mutually exclusive
-	// block free email providers domain require blocklist enabled
-	if *loginIDEmailConfig.DomainBlocklistEnabled {
-		domainsList, err := f.loadMatchlist(ctx, EmailDomainBlockListTXT)
+	// blocklists and allowlist are mutually exclusive
+	if *loginIDEmailConfig.DomainAllowlistEnabled {
+		domainsList, err := f.loadMatchlist(ctx, EmailDomainAllowListTXT)
 		if err != nil {
 			checker.Error = err
 			return checker
 		}
-		checker.DomainBlockList = domainsList
+		checker.DomainAllowList = domainsList
+	} else {
+		if *loginIDEmailConfig.DomainBlocklistEnabled {
+			domainsList, err := f.loadMatchlist(ctx, EmailDomainBlockListTXT)
+			if err != nil {
+				checker.Error = err
+				return checker
+			}
+			checker.DomainBlockList = domainsList
+		}
 		if *loginIDEmailConfig.BlockFreeEmailProviderDomains {
 			domainsList, err := f.loadMatchlist(ctx, FreeEmailProviderDomainsTXT)
 			if err != nil {
@@ -96,13 +104,6 @@ func (f *TypeCheckerFactory) makeEmailChecker(ctx context.Context, options Check
 			}
 			checker.BlockDisposableEmailDomains = domainsList
 		}
-	} else if *loginIDEmailConfig.DomainAllowlistEnabled {
-		domainsList, err := f.loadMatchlist(ctx, EmailDomainAllowListTXT)
-		if err != nil {
-			checker.Error = err
-			return checker
-		}
-		checker.DomainAllowList = domainsList
 	}
 	return checker
 }

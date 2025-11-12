@@ -123,9 +123,8 @@ var _ = Schema.Add("LoginIDEmailConfig", `
 			},
 			"then": {
 				"properties": {
-					"domain_blocklist_enabled": { "enum": [true] }
-				},
-				"required": ["domain_blocklist_enabled"]
+					"domain_allowlist_enabled": { "enum": [false] }
+				}
 			}
 		},
 		{
@@ -137,9 +136,8 @@ var _ = Schema.Add("LoginIDEmailConfig", `
 			},
 			"then": {
 				"properties": {
-					"domain_blocklist_enabled": { "enum": [true] }
-				},
-				"required": ["domain_blocklist_enabled"]
+					"domain_allowlist_enabled": { "enum": [false] }
+				}
 			}
 		}
 	]

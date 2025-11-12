@@ -34,6 +34,7 @@ func newLoginIDTypesConfig() *config.LoginIDTypesConfig {
 			DomainBlocklistEnabled:        newFalse(),
 			DomainAllowlistEnabled:        newFalse(),
 			BlockFreeEmailProviderDomains: newFalse(),
+			BlockDisposableEmailDomains:   newFalse(),
 		},
 		Username: &config.LoginIDUsernameConfig{
 			BlockReservedUsernames: newFalse(),
