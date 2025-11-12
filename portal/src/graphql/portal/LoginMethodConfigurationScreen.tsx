@@ -2343,9 +2343,15 @@ function EmailSettings(props: EmailSettingsProps) {
         onChange={onChangeBlockFreeEmailProviderDomains}
       />
       <CheckboxWithTooltip
-        label={renderToString(
-          "LoginIDConfigurationScreen.email.blockDisposableEmailDomains"
-        )}
+        label={
+          (
+            <FormattedMessage
+              id={
+                "LoginIDConfigurationScreen.email.blockDisposableEmailDomains"
+              }
+            />
+          ) as unknown as string
+        }
         checked={loginIDEmailConfig.block_disposable_email_domains}
         disabled={loginIDEmailConfig.domain_allowlist_enabled}
         tooltipMessageId="LoginIDConfigurationScreen.email.blockDisposableEmailDomainsTooltipMessage"
