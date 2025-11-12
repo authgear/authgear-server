@@ -2184,9 +2184,6 @@ function EmailSettings(props: EmailSettingsProps) {
           prev.loginIDEmailConfig.domain_blocklist_enabled = checked;
           if (prev.loginIDEmailConfig.domain_blocklist_enabled) {
             prev.loginIDEmailConfig.domain_allowlist_enabled = false;
-          } else {
-            prev.loginIDEmailConfig.block_free_email_provider_domains = false;
-            prev.loginIDEmailConfig.block_disposable_email_domains = false;
           }
         })
       );
@@ -2241,7 +2238,6 @@ function EmailSettings(props: EmailSettingsProps) {
           prev.loginIDEmailConfig.block_free_email_provider_domains = checked;
           if (prev.loginIDEmailConfig.block_free_email_provider_domains) {
             prev.loginIDEmailConfig.domain_allowlist_enabled = false;
-            prev.loginIDEmailConfig.domain_blocklist_enabled = true;
           }
         })
       );
@@ -2259,7 +2255,6 @@ function EmailSettings(props: EmailSettingsProps) {
           prev.loginIDEmailConfig.block_disposable_email_domains = checked;
           if (prev.loginIDEmailConfig.block_disposable_email_domains) {
             prev.loginIDEmailConfig.domain_allowlist_enabled = false;
-            prev.loginIDEmailConfig.domain_blocklist_enabled = true;
           }
         })
       );
