@@ -12,6 +12,7 @@ const (
 type UserDeletedEventPayload struct {
 	// We cannot use UserRef here because the user will be deleted BEFORE retrieval.
 	UserModel           model.User `json:"user"`
+	Reason              string     `json:"reason,omitzero"`
 	IsScheduledDeletion bool       `json:"-"`
 }
 

@@ -35,12 +35,13 @@ func (u UserFacade) CreateByAdmin(ctx context.Context, identitySpec *identity.Sp
 	return u.Coordinator.UserCreatebyAdmin(ctx, identitySpec, opts)
 }
 
-func (u UserFacade) Delete(ctx context.Context, userID string) error {
-	return u.Coordinator.UserDelete(ctx, userID, false)
+func (u UserFacade) Delete(ctx context.Context, userID string, reason string) error {
+	return u.Coordinator.UserDelete(ctx, userID, false, reason)
 }
 
 func (u UserFacade) DeleteFromScheduledDeletion(ctx context.Context, userID string) error {
-	return u.Coordinator.UserDelete(ctx, userID, true)
+	// TODO(DEV-3164): Support reason in scheduled deletion
+	return u.Coordinator.UserDelete(ctx, userID, true, "")
 }
 
 func (u UserFacade) Disable(ctx context.Context, options SetDisabledOptions) error {

@@ -604,6 +604,8 @@ export type DeleteScopePayload = {
 };
 
 export type DeleteUserInput = {
+  /** The reason for deleting the user. */
+  reason?: InputMaybe<Scalars['String']['input']>;
   /** Target user ID. */
   userID: Scalars['ID']['input'];
 };

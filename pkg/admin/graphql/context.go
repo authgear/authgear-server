@@ -82,7 +82,7 @@ type UserFacade interface {
 	SetAccountValidPeriod(ctx context.Context, id string, from *time.Time, until *time.Time) error
 	ScheduleDeletion(ctx context.Context, id string) error
 	UnscheduleDeletion(ctx context.Context, id string) error
-	Delete(ctx context.Context, id string) error
+	Delete(ctx context.Context, id string, reason string) error
 	ScheduleAnonymization(ctx context.Context, id string) error
 	UnscheduleAnonymization(ctx context.Context, id string) error
 	Anonymize(ctx context.Context, id string) error

@@ -982,6 +982,9 @@ type DeleteScopePayload {
 
 """"""
 input DeleteUserInput {
+  """The reason for deleting the user."""
+  reason: String
+
   """Target user ID."""
   userID: ID!
 }
