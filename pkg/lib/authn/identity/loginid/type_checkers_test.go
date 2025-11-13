@@ -133,6 +133,28 @@ func TestLoginIDTypeCheckers(t *testing.T) {
 			}
 		})
 
+		Convey("block disposable email domains", func() {
+			cases := []Case{
+				{"faseng@disposable-mail.com", "invalid login ID:\n/login_id: blocked\n  map[reason:EmailDomainBlocklist]"},
+				{"faseng@DISPOSABLE-MAIL.COM", "invalid login ID:\n/login_id: blocked\n  map[reason:EmailDomainBlocklist]"},
+				{`faseng@authgear.io`, ""},
+			}
+
+			domainsList, _ := matchlist.New(`
+        DISPOSABLE-MAIL.COM
+      `, true, false)
+			checker := &EmailChecker{
+				Config: &config.LoginIDEmailConfig{
+					BlockPlusSign: newFalse(),
+				},
+				BlockDisposableEmailDomains: domainsList,
+			}
+
+			for _, c := range cases {
+				f(c, checker)
+			}
+		})
+
 		Convey("email domain allowlist", func() {
 			cases := []Case{
 				{"Faseng@Example.com", ""},

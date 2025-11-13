@@ -97,7 +97,8 @@ var _ = Schema.Add("LoginIDEmailConfig", `
 		"ignore_dot_sign": { "type": "boolean" },
 		"domain_blocklist_enabled" : {"type": "boolean"},
 		"domain_allowlist_enabled" : {"type": "boolean"},
-		"block_free_email_provider_domains" : {"type": "boolean"}
+		"block_free_email_provider_domains" : {"type": "boolean"},
+		"block_disposable_email_domains": {"type": "boolean"}
 	},
 	"allOf": [
 		{
@@ -122,9 +123,21 @@ var _ = Schema.Add("LoginIDEmailConfig", `
 			},
 			"then": {
 				"properties": {
-					"domain_blocklist_enabled": { "enum": [true] }
+					"domain_allowlist_enabled": { "enum": [false] }
+				}
+			}
+		},
+		{
+			"if": {
+				"properties": {
+					"block_disposable_email_domains": { "enum": [true] }
 				},
-				"required": ["domain_blocklist_enabled"]
+				"required": ["block_disposable_email_domains"]
+			},
+			"then": {
+				"properties": {
+					"domain_allowlist_enabled": { "enum": [false] }
+				}
 			}
 		}
 	]
@@ -138,6 +151,7 @@ type LoginIDEmailConfig struct {
 	DomainBlocklistEnabled        *bool `json:"domain_blocklist_enabled,omitempty"`
 	DomainAllowlistEnabled        *bool `json:"domain_allowlist_enabled,omitempty"`
 	BlockFreeEmailProviderDomains *bool `json:"block_free_email_provider_domains,omitempty"`
+	BlockDisposableEmailDomains   *bool `json:"block_disposable_email_domains,omitempty"`
 }
 
 func (c *LoginIDEmailConfig) SetDefaults() {
@@ -158,6 +172,9 @@ func (c *LoginIDEmailConfig) SetDefaults() {
 	}
 	if c.BlockFreeEmailProviderDomains == nil {
 		c.BlockFreeEmailProviderDomains = newBool(false)
+	}
+	if c.BlockDisposableEmailDomains == nil {
+		c.BlockDisposableEmailDomains = newBool(false)
 	}
 }
 

@@ -386,6 +386,7 @@ identity:
         domain_blocklist_enabled: false
         domain_allowlist_enabled: false
         block_free_email_provider_domains: false
+        block_disposable_email_domains: false
       username:
         block_reserved_usernames: true
         ascii_only: true

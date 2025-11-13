@@ -71,15 +71,23 @@ func (f *TypeCheckerFactory) makeEmailChecker(ctx context.Context, options Check
 		return checker
 	}
 
-	// blocklist and allowlist are mutually exclusive
-	// block free email providers domain require blocklist enabled
-	if *loginIDEmailConfig.DomainBlocklistEnabled {
-		domainsList, err := f.loadMatchlist(ctx, EmailDomainBlockListTXT)
+	// blocklists and allowlist are mutually exclusive
+	if *loginIDEmailConfig.DomainAllowlistEnabled {
+		domainsList, err := f.loadMatchlist(ctx, EmailDomainAllowListTXT)
 		if err != nil {
 			checker.Error = err
 			return checker
 		}
-		checker.DomainBlockList = domainsList
+		checker.DomainAllowList = domainsList
+	} else {
+		if *loginIDEmailConfig.DomainBlocklistEnabled {
+			domainsList, err := f.loadMatchlist(ctx, EmailDomainBlockListTXT)
+			if err != nil {
+				checker.Error = err
+				return checker
+			}
+			checker.DomainBlockList = domainsList
+		}
 		if *loginIDEmailConfig.BlockFreeEmailProviderDomains {
 			domainsList, err := f.loadMatchlist(ctx, FreeEmailProviderDomainsTXT)
 			if err != nil {
@@ -88,13 +96,14 @@ func (f *TypeCheckerFactory) makeEmailChecker(ctx context.Context, options Check
 			}
 			checker.BlockFreeEmailProviderDomains = domainsList
 		}
-	} else if *loginIDEmailConfig.DomainAllowlistEnabled {
-		domainsList, err := f.loadMatchlist(ctx, EmailDomainAllowListTXT)
-		if err != nil {
-			checker.Error = err
-			return checker
+		if *loginIDEmailConfig.BlockDisposableEmailDomains {
+			domainsList, err := f.loadMatchlist(ctx, DisposableEmailDomainsTXT)
+			if err != nil {
+				checker.Error = err
+				return checker
+			}
+			checker.BlockDisposableEmailDomains = domainsList
 		}
-		checker.DomainAllowList = domainsList
 	}
 	return checker
 }
@@ -148,7 +157,8 @@ func (f *TypeCheckerFactory) makePhoneNumberChecker() *PhoneChecker {
 
 type EmailChecker struct {
 	Config *config.LoginIDEmailConfig
-	// DomainBlockList, DomainAllowList and BlockFreeEmailProviderDomains
+	// DomainBlockList, DomainAllowList, BlockFreeEmailProviderDomains
+	// and BlockDisposableEmailDomains
 	// are provided by TypeCheckerFactory based on config, so the related
 	// resources will only be loaded when it is enabled
 	// EmailChecker will not further check the config before performing
@@ -156,6 +166,7 @@ type EmailChecker struct {
 	DomainBlockList               *matchlist.MatchList
 	DomainAllowList               *matchlist.MatchList
 	BlockFreeEmailProviderDomains *matchlist.MatchList
+	BlockDisposableEmailDomains   *matchlist.MatchList
 	Error                         error
 }
 
@@ -206,6 +217,18 @@ func (c *EmailChecker) Validate(ctx context.Context, validationCtx *validation.C
 		matched, err := c.BlockFreeEmailProviderDomains.Matched(domain)
 		if err != nil {
 			// email that the domain cannot be fold case
+			validationCtx.EmitError("format", map[string]interface{}{"format": "email"})
+			return
+		}
+		if matched {
+			validationCtx.EmitError("blocked", map[string]interface{}{"reason": "EmailDomainBlocklist"})
+			return
+		}
+	}
+
+	if c.BlockDisposableEmailDomains != nil {
+		matched, err := c.BlockDisposableEmailDomains.Matched(domain)
+		if err != nil {
 			validationCtx.EmitError("format", map[string]interface{}{"format": "email"})
 			return
 		}

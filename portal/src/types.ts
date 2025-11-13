@@ -48,6 +48,7 @@ export interface LoginIDEmailConfig {
   domain_blocklist_enabled?: boolean;
   domain_allowlist_enabled?: boolean;
   block_free_email_provider_domains?: boolean;
+  block_disposable_email_domains?: boolean;
 }
 
 export interface LoginIDUsernameConfig {
