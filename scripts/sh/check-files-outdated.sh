@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Download or compare remote files
+# Download or compare remote files and JSON arrays
 
 set -eu
 
@@ -44,17 +44,29 @@ compare_file() {
   do_compare "$local_file"
 }
 
+compare_json() {
+  remote_url="$1"
+  local_file="$2"
+
+  echo "Fetching remote JSON array: $remote_url"
+  curl -sSL "$remote_url" | jq -r '.[]' > "$TMP_FILE"
+
+  do_compare "$local_file"
+}
+
 # Usage
 usage() {
   cat <<EOF
 Usage:
   $0 compare-file  <remote_url> <local_file> [--update]
+  $0 compare-json  <remote_url> <local_file> [--update]
 
 Options:
   --update     Automatically overwrite local file when differences are found.
 
 Examples:
   $0 compare-file https://example.com/config.txt ./config.txt
+  $0 compare-json https://example.com/data.json ./data.txt --update
 EOF
   exit 1
 }
@@ -80,5 +92,6 @@ done
 # Run
 case "$mode" in
   compare-file)  compare_file "$remote_url" "$target_file" ;;
+  compare-json)  compare_json "$remote_url" "$target_file" ;;
   *) usage ;;
 esac
