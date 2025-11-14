@@ -63,7 +63,7 @@ func GetRecognizedMobileDevice(ua string) (string, bool) {
 	if client.Os.Family == "iOS" {
 		return RecognizedMobileDeviceIOS, true
 	}
-	if client.Os.Family == "Android" && client.Device.Brand == "Samsung" {
+	if client.UserAgent.Family == "Samsung Internet" || (client.Os.Family == "Android" && client.Device.Brand == "Samsung") {
 		return RecognizedMobileDeviceSamsung, true
 	}
 	if client.Os.Family == "Android" {
