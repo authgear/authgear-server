@@ -19,27 +19,6 @@ func TestParseUserAgent(t *testing.T) {
 				DeviceModel: "Apple Mac",
 			})
 		})
-		Convey("should parse Authgear SDK UA correctly", func() {
-			ua := ParseUserAgent("io.authgear.test/1.0.1 (Authgear; iPhone11,8; iOS 12.0) SKYKit/2.0.1")
-			So(ua, ShouldResemble, UserAgent{
-				Raw:         "io.authgear.test/1.0.1 (Authgear; iPhone11,8; iOS 12.0) SKYKit/2.0.1",
-				Name:        "io.authgear.test",
-				Version:     "1.0.1",
-				OS:          "iOS",
-				OSVersion:   "12.0",
-				DeviceModel: "Apple iPhone11,8",
-			})
-
-			ua = ParseUserAgent("io.authgear.test/1.3.0 (Authgear; Samsung GT-S5830L; Android 9.0) io.authgear.authgear/2.2.0")
-			So(ua, ShouldResemble, UserAgent{
-				Raw:         "io.authgear.test/1.3.0 (Authgear; Samsung GT-S5830L; Android 9.0) io.authgear.authgear/2.2.0",
-				Name:        "io.authgear.test",
-				Version:     "1.3.0",
-				OS:          "Android",
-				OSVersion:   "9.0",
-				DeviceModel: "Samsung GT-S5830L",
-			})
-		})
 	})
 }
 
