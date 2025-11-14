@@ -111,7 +111,7 @@
     "history": "5.3.0",
     "immer": "10.0.3",
     "intl-tel-input": "18.5.3",
-    "js-yaml": "4.1.0",
+    "js-yaml": "4.1.1",
     "libphonenumber-js": "^1.12.9",
     "luxon": "^3.7.1",
     "monaco-editor": "0.44.0",
