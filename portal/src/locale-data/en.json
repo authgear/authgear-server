@@ -78,6 +78,7 @@
   "login-id-key.email": "Email",
   "login-id-key.phone": "Phone",
 
+  "ScreenHeader.copy": "Copy Project ID",
   "ScreenHeader.sign-out": "Sign Out",
   "ScreenHeader.cookie-preference": "Cookie Preference",
   "ScreenHeader.settings": "Account Settings",

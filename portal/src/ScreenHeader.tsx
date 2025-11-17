@@ -11,6 +11,7 @@ import {
   IRenderFunction,
   IPanelProps,
   IContextualMenuProps,
+  TooltipHost,
 } from "@fluentui/react";
 import { useAppAndSecretConfigQuery } from "./graphql/portal/query/appAndSecretConfigQuery";
 import { useViewerQuery } from "./graphql/portal/query/viewerQuery";
@@ -25,6 +26,7 @@ import { useLogout } from "./graphql/portal/Authenticated";
 import { useCapture } from "./gtm_v2";
 import { useSettingsAnchor } from "./hook/authgear";
 import { Logo } from "./components/common/Logo";
+import { useCopyFeedback } from "./hook/useCopyFeedback";
 
 interface MobileViewHeaderAppSectionProps {
   appID: string;
@@ -62,25 +64,38 @@ const DesktopViewHeaderAppSection: React.VFC<
   const { effectiveAppConfig, isLoading: loading } =
     useAppAndSecretConfigQuery(appID);
   const { themes } = useSystemConfig();
+  const { renderToString } = useContext(Context);
+
+  const rawAppID = effectiveAppConfig?.id;
+
+  const displayAppID = useMemo(
+    () => (rawAppID != null ? rawAppID : appID),
+    [rawAppID, appID]
+  );
+
+  const { copyButtonProps, Feedback } = useCopyFeedback({
+    textToCopy: displayAppID,
+  });
 
   if (loading) {
     return null;
   }
 
-  const rawAppID = effectiveAppConfig?.id;
-
   return (
     <>
       <Icon className={styles.headerArrow} iconName="ChevronRight" />
-      {rawAppID != null ? (
-        <Text className={styles.headerAppID} theme={themes.inverted}>
-          {rawAppID}
+      <TooltipHost content={renderToString("ScreenHeader.copy")}>
+        <Text
+          id={copyButtonProps.id}
+          className={styles.headerAppID}
+          theme={themes.inverted}
+          onClick={copyButtonProps.onClick}
+          onMouseLeave={copyButtonProps.onMouseLeave}
+        >
+          {displayAppID}
         </Text>
-      ) : (
-        <Text className={styles.headerAppID} theme={themes.inverted}>
-          {appID}
-        </Text>
-      )}
+      </TooltipHost>
+      <Feedback />
     </>
   );
 };
