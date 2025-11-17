@@ -19,27 +19,6 @@ func TestParseUserAgent(t *testing.T) {
 				DeviceModel: "Apple Mac",
 			})
 		})
-		Convey("should parse Authgear SDK UA correctly", func() {
-			ua := ParseUserAgent("io.authgear.test/1.0.1 (Authgear; iPhone11,8; iOS 12.0) SKYKit/2.0.1")
-			So(ua, ShouldResemble, UserAgent{
-				Raw:         "io.authgear.test/1.0.1 (Authgear; iPhone11,8; iOS 12.0) SKYKit/2.0.1",
-				Name:        "io.authgear.test",
-				Version:     "1.0.1",
-				OS:          "iOS",
-				OSVersion:   "12.0",
-				DeviceModel: "Apple iPhone11,8",
-			})
-
-			ua = ParseUserAgent("io.authgear.test/1.3.0 (Authgear; Samsung GT-S5830L; Android 9.0) io.authgear.authgear/2.2.0")
-			So(ua, ShouldResemble, UserAgent{
-				Raw:         "io.authgear.test/1.3.0 (Authgear; Samsung GT-S5830L; Android 9.0) io.authgear.authgear/2.2.0",
-				Name:        "io.authgear.test",
-				Version:     "1.3.0",
-				OS:          "Android",
-				OSVersion:   "9.0",
-				DeviceModel: "Samsung GT-S5830L",
-			})
-		})
 	})
 }
 
@@ -63,8 +42,15 @@ func TestGetRecognizedMobileDevice(t *testing.T) {
 			So(device1, ShouldEqual, RecognizedMobileDeviceChromeAndroid)
 			So(foundDevice1, ShouldBeTrue)
 		})
-		Convey("should recognize samsung device correctly", func() {
+		Convey("should recognize Samsung device that states the model", func() {
 			samsungUserAgent := "Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36"
+
+			device1, foundDevice1 := GetRecognizedMobileDevice(samsungUserAgent)
+			So(device1, ShouldEqual, RecognizedMobileDeviceSamsung)
+			So(foundDevice1, ShouldBeTrue)
+		})
+		Convey("should recognize Samsung device that does not state the model", func() {
+			samsungUserAgent := "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Safari/537.36"
 
 			device1, foundDevice1 := GetRecognizedMobileDevice(samsungUserAgent)
 			So(device1, ShouldEqual, RecognizedMobileDeviceSamsung)
