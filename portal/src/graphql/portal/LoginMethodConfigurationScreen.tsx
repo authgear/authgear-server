@@ -2328,16 +2328,21 @@ function EmailSettings(props: EmailSettingsProps) {
           onAdd={onAddBlocklist}
         />
       </CheckboxWithContentLayout>
-      <CheckboxWithTooltip
-        label={renderToString(
-          "LoginIDConfigurationScreen.email.blockFreeEmailProviderDomains"
-        )}
+      <Checkbox
+        label={
+          (
+            <FormattedMessage
+              id={
+                "LoginIDConfigurationScreen.email.blockFreeEmailProviderDomains"
+              }
+            />
+          ) as unknown as string
+        }
         checked={loginIDEmailConfig.block_free_email_provider_domains}
         disabled={loginIDEmailConfig.domain_allowlist_enabled}
-        tooltipMessageId="LoginIDConfigurationScreen.email.blockFreeEmailProviderDomainsTooltipMessage"
         onChange={onChangeBlockFreeEmailProviderDomains}
       />
-      <CheckboxWithTooltip
+      <Checkbox
         label={
           (
             <FormattedMessage
@@ -2349,7 +2354,6 @@ function EmailSettings(props: EmailSettingsProps) {
         }
         checked={loginIDEmailConfig.block_disposable_email_domains}
         disabled={loginIDEmailConfig.domain_allowlist_enabled}
-        tooltipMessageId="LoginIDConfigurationScreen.email.blockDisposableEmailDomainsTooltipMessage"
         onChange={onChangeBlockDisposableEmailDomains}
       />
       <CheckboxWithContentLayout>
