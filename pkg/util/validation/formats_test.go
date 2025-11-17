@@ -390,3 +390,17 @@ func TestFormatX509CertPem(t *testing.T) {
 		So(f(backgroundCtx(), "-----BEGIN CERTIFICATE-----\nasdf\n-----END CERTIFICATE-----"), ShouldBeError, "invalid x509 cert")
 	})
 }
+
+func TestFormatPublicImageURI(t *testing.T) {
+	Convey("FormatPublicImageURI", t, func() {
+		f := FormatPublicImageURI{}.CheckFormat
+
+		So(f(backgroundCtx(), 1), ShouldBeNil)
+		So(f(backgroundCtx(), ""), ShouldBeError, "invalid scheme: ")
+		So(f(backgroundCtx(), "foobar:"), ShouldBeError, "invalid scheme: foobar")
+		So(f(backgroundCtx(), "http://"), ShouldBeError, "invalid scheme: http")
+
+		So(f(backgroundCtx(), "https://example.com"), ShouldBeNil)
+		So(f(backgroundCtx(), "https://example.com/image.png"), ShouldBeNil)
+	})
+}

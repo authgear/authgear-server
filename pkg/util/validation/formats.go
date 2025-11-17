@@ -60,6 +60,7 @@ func init() {
 	jsonschemaformat.DefaultChecker["x_re2_regex"] = FormatRe2Regex{}
 	jsonschemaformat.DefaultChecker["x_role_group_key"] = rolesgroupsutil.FormatKey{}
 	jsonschemaformat.DefaultChecker["x_x509_certificate_pem"] = FormatX509CertPem{}
+	jsonschemaformat.DefaultChecker["x_public_image_uri"] = FormatPublicImageURI{}
 }
 
 // FormatEmail checks if input is an email address.
@@ -669,5 +670,25 @@ func (FormatX509CertPem) CheckFormat(ctx context.Context, value interface{}) err
 	if err != nil {
 		return fmt.Errorf("invalid x509 cert")
 	}
+	return nil
+}
+
+type FormatPublicImageURI struct{}
+
+func (FormatPublicImageURI) CheckFormat(ctx context.Context, value interface{}) error {
+	str, ok := value.(string)
+	if !ok {
+		return nil
+	}
+
+	u, err := url.Parse(str)
+	if err != nil {
+		return err
+	}
+
+	if u.Scheme != "https" {
+		return fmt.Errorf("invalid scheme: %v", u.Scheme)
+	}
+
 	return nil
 }

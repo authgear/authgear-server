@@ -1495,3 +1495,34 @@ config:
         redirect_uris:
           - "https://example.com"
         refresh_token_rotation_enabled: true
+---
+name: oauth-client-logo-uri
+error: null
+config:
+  id: test
+  http:
+    public_origin: http://test
+  oauth:
+    clients:
+      - name: Test Client
+        client_id: test-client
+        redirect_uris:
+          - "https://example.com"
+        logo_uri: https://example.com/logo.png
+---
+name: oauth-client-logo-uri-non-https
+error: |-
+  invalid configuration:
+  /oauth/clients/0/logo_uri: format
+    map[error:invalid scheme: http format:x_public_image_uri]
+config:
+  id: test
+  http:
+    public_origin: http://test
+  oauth:
+    clients:
+      - name: Test Client
+        client_id: test-client
+        redirect_uris:
+          - "https://example.com"
+        logo_uri: http://example.com/logo.png
