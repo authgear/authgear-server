@@ -119,7 +119,9 @@ App developers might want a custom button to trigger the UI in native App which 
 
 ```typescript
 const userInfo = await authgear.fetchUserInfo();
-const passwordEnabled = userInfo.passwordEnabled;
+const passwordEnabled = userInfo.authenticators.some(
+  (a) => a.kind === "primary" && a.type === "password"
+);
 ```
 
 - Setup Password
@@ -150,7 +152,9 @@ App developers might want custom button to trigger the UI in native App which ma
 
 ```typescript
 const userInfo = await authgear.fetchUserInfo();
-const isMFAEnabled = userInfo.mfa.enabled;
+const isMFAEnabled = userInfo.authenticators.some(
+  (a) => a.kind === "secondary"
+);
 ```
 
 - Manage MFA
@@ -177,16 +181,20 @@ await authgear.setupMFAPhone({ redirectURI: "com.example://complete" });
 
 ```typescript
 const userInfo = await authgear.fetchUserInfo();
-const phone = userInfo.mfa.phoneNumbers[0];
-await authgear.changeMFAPhone(phone, { redirectURI: "com.example://complete" });
+const phone = userInfo.authenticators.find(
+  (a) => a.kind === "secondary" && a.type === "oob_otp_sms"
+)?.phoneNumber;
+await authgear.changeMFAPhone(phone!, { redirectURI: "com.example://complete" });
 ```
 
 - Remove MFA Phone
 
 ```typescript
 const userInfo = await authgear.fetchUserInfo();
-const phone = userInfo.mfa.phoneNumbers[0];
-await authgear.removeMFAPhone(phone, { redirectURI: "com.example://complete" });
+const phone = userInfo.authenticators.find(
+  (a) => a.kind === "secondary" && a.type === "oob_otp_sms"
+)?.phoneNumber;
+await authgear.removeMFAPhone(phone!, { redirectURI: "com.example://complete" });
 ```
 
 ## Setup / Change / Remove MFA Email
@@ -207,16 +215,20 @@ await authgear.setupMFAEmail({ redirectURI: "com.example://complete" });
 
 ```typescript
 const userInfo = await authgear.fetchUserInfo();
-const email = userInfo.mfa.emails[0];
-await authgear.changeMFAEmail(email, { redirectURI: "com.example://complete" });
+const email = userInfo.authenticators.find(
+  (a) => a.kind === "secondary" && a.type === "oob_otp_email"
+)?.email;
+await authgear.changeMFAEmail(email!, { redirectURI: "com.example://complete" });
 ```
 
 - Remove MFA Email
 
 ```typescript
 const userInfo = await authgear.fetchUserInfo();
-const email = userInfo.mfa.emails[0];
-await authgear.removeMFAEmail(email, { redirectURI: "com.example://complete" });
+const email = userInfo.authenticators.find(
+  (a) => a.kind === "secondary" && a.type === "oob_otp_email"
+)?.email;
+await authgear.removeMFAEmail(email!, { redirectURI: "com.example://complete" });
 ```
 
 ## Setup / Change / Remove MFA Password
@@ -231,7 +243,9 @@ App developers might want custom button to trigger the UI in native App which ma
 
 ```typescript
 const userInfo = await authgear.fetchUserInfo();
-const isMFAPasswordEnabled = userInfo.mfa.passwordEnabled;
+const isMFAPasswordEnabled = userInfo.authenticators.some(
+  (a) => a.kind === "secondary" && a.type === "password"
+);
 ```
 
 - Setup MFA Password
@@ -264,7 +278,9 @@ App developers might want to offer custom buttons to trigger the UI in native Ap
 
 ```typescript
 const userInfo = await authgear.fetchUserInfo();
-const totpEnabled = userInfo.mfa.totpEnabled;
+const totpEnabled = userInfo.authenticators.some(
+  (a) => a.type === "totp"
+);
 ```
 
 - Setup MFA TOTP
@@ -291,10 +307,12 @@ App developers might want to offer custom buttons to trigger the UI in native Ap
 
 ```typescript
 const userInfo = await authgear.fetchUserInfo();
-const recoveryCodeEnabled = userInfo.mfa.recoveryCodeEnabled;
+const recoveryCodeEnabled = userInfo.authenticators.some(
+  (a) => a.type === "recovery_code"
+);
 ```
 
-- Setup MFA Recovery Code
+- Setup Recovery Code
 
 ```typescript
 await authgear.setupRecoveryCode({ redirectURI: "com.example://complete" });
@@ -311,20 +329,20 @@ await authgear.viewRecoveryCode({ redirectURI: "com.example://complete" });
 - SDK Object
 
 ```typescript
+interface Authenticator {
+  kind: "primary" | "secondary";
+  type: "password" | "passkey" | "totp" | "oob_otp_email" | "oob_otp_sms";
+  email?: string;
+  phoneNumber?: string;
+}
+
 interface UserInfo {
   sub: string;
   email: string;
   phoneNumber: string;
   preferredUsername: string;
-  passwordEnabled: boolean;
-  mfa: {
-    enabled: boolean;
-    emails: []string;
-    phoneNumbers: []string;
-    passwordEnabled: boolean;
-    totpEnabled: boolean;
-    recoveryCodeEnabled: boolean;
-  }
+  authenticators: []Authenticator;
+  recoveryCodeEnabled: boolean;
 }
 ```
 
@@ -336,12 +354,26 @@ interface UserInfo {
   "email": "user@example.com",
   "phone_number": "+85211111111",
   "preferred_username": "example",
-  "https://authgear.com/claims/user/password_enabled": true,
-  "https://authgear.com/claims/user/mfa_enabled": true,
-  "https://authgear.com/claims/user/mfa_emails": ["mfa@example.com"],
-  "https://authgear.com/claims/user/mfa_phone_numbers": ["+85212222222"],
-  "https://authgear.com/claims/user/mfa_password_enabled": true,
-  "https://authgear.com/claims/user/mfa_totp_enabled": true,
+  "https://authgear.com/claims/user/authenticators": [
+    {
+      "kind": "primary",
+      "type": "password"
+    },
+    {
+      "kind": "secondary",
+      "type": "oob_otp_email",
+      "email": "oob_otp_email@example.com"
+    },
+    {
+      "kind": "secondary",
+      "type": "oob_otp_sms",
+      "phone_number": "+85212345678"
+    },
+    {
+      "kind": "secondary",
+      "type": "totp"
+    }
+  ],
   "https://authgear.com/claims/user/recovery_code_enabled": true
 }
 ```
@@ -349,4 +381,4 @@ interface UserInfo {
 ## Security Considerations
 
 - We will expose user's password status together with MFA emails and phone numbers in userinfo endpoint, therefore client apps will be able to know them. If the client app is malicious, they may use the information to attack an authgear user.
-- We can hide these fields in Third-Party Clients (by checking the scope `https://authgear.com/scopes/full-access`) to mitigate the risk.
+- We can hide these fields in Third-Party Clients (by checking scope `https://authgear.com/scopes/full-access`) to mitigate the risk.
