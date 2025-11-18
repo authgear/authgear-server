@@ -1238,6 +1238,7 @@ var _ = registerMutationField(
 
 			err = gqlCtx.Events.DispatchEventOnCommit(ctx, &nonblocking.AdminAPIMutationDeleteUserExecutedEventPayload{
 				UserModel: *userModel,
+				Reason:    reason,
 			})
 			if err != nil {
 				return nil, err

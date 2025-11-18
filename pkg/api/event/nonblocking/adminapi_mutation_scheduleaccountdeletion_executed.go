@@ -12,6 +12,7 @@ const (
 type AdminAPIMutationScheduleAccountDeletionExecutedEventPayload struct {
 	UserRef   model.UserRef `json:"-" resolve:"user"`
 	UserModel model.User    `json:"user"`
+	Reason    string        `json:"reason,omitzero"`
 }
 
 func (e *AdminAPIMutationScheduleAccountDeletionExecutedEventPayload) NonBlockingEventType() event.Type {
