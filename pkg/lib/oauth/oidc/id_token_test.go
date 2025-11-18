@@ -206,3 +206,174 @@ func TestIDTokenIssuer(t *testing.T) {
 		)
 	})
 }
+
+func TestIDTokenIssuer_GetUserInfo(t *testing.T) {
+	Convey("GetUserInfo", t, func() {
+		ctrl := gomock.NewController(t)
+
+		now := time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)
+		createdAt := now.Add(-1 * time.Hour)
+		updatedAt := now.Add(-30 * time.Minute)
+
+		mockUserInfoService := NewMockUserInfoService(ctrl)
+		mockUserInfoService.EXPECT().GetUserInfoBearer(gomock.Any(), "user-id").Return(
+			&userinfo.UserInfo{
+				User: &model.User{
+					IsAnonymous:       false,
+					IsVerified:        true,
+					CanReauthenticate: true,
+				},
+				EffectiveRoleKeys: []string{"role-1", "role-3"},
+				Authenticators: []model.UserInfoAuthenticator{
+					{
+						CreatedAt: createdAt,
+						UpdatedAt: updatedAt,
+						Type:      model.AuthenticatorTypePassword,
+						Kind:      model.AuthenticatorKindPrimary,
+					},
+					{
+						CreatedAt: createdAt,
+						UpdatedAt: updatedAt,
+						Type:      model.AuthenticatorTypeOOBSMS,
+						Kind:      model.AuthenticatorKindPrimary,
+						Phone:     "+85298765432",
+					},
+					{
+						CreatedAt: createdAt,
+						UpdatedAt: updatedAt,
+						Type:      model.AuthenticatorTypeOOBEmail,
+						Kind:      model.AuthenticatorKindPrimary,
+						Email:     "test@example.com",
+					},
+					{
+						CreatedAt:   createdAt,
+						UpdatedAt:   updatedAt,
+						Type:        model.AuthenticatorTypeTOTP,
+						Kind:        model.AuthenticatorKindPrimary,
+						DisplayName: "Google Authenticator",
+					},
+				},
+			},
+			nil,
+		)
+
+		issuer := &IDTokenIssuer{
+			UserInfoService: mockUserInfoService,
+		}
+
+		clientConfig := &config.OAuthClientConfig{
+			ClientID:        "client-id",
+			ApplicationType: config.OAuthClientApplicationTypeSPA,
+		}
+		client := oauth.ClientClientLike(clientConfig, []string{"openid", "email", oauth.FullUserInfoScope, string(model.ClaimAuthenticators), string(model.ClaimPhoneNumber), string(model.ClaimEmail)})
+		userInfo, err := issuer.GetUserInfo(context.Background(), "user-id", client)
+		So(err, ShouldBeNil)
+		So(userInfo, ShouldResemble, map[string]interface{}{
+			"sub":                                    "user-id",
+			string(model.ClaimUserIsAnonymous):       false,
+			string(model.ClaimUserIsVerified):        true,
+			string(model.ClaimUserCanReauthenticate): true,
+			string(model.ClaimAuthgearRoles):         []string{"role-1", "role-3"},
+			string(model.ClaimAuthenticators): []model.UserInfoAuthenticator{
+				{
+					CreatedAt:   createdAt,
+					UpdatedAt:   updatedAt,
+					Type:        model.AuthenticatorTypePassword,
+					Kind:        model.AuthenticatorKindPrimary,
+					Phone:       "",
+					Email:       "",
+					DisplayName: "",
+				},
+				{
+					CreatedAt:   createdAt,
+					UpdatedAt:   updatedAt,
+					Type:        model.AuthenticatorTypeOOBSMS,
+					Kind:        model.AuthenticatorKindPrimary,
+					Phone:       "+85298765432",
+					Email:       "",
+					DisplayName: "",
+				},
+				{
+					CreatedAt:   createdAt,
+					UpdatedAt:   updatedAt,
+					Type:        model.AuthenticatorTypeOOBEmail,
+					Kind:        model.AuthenticatorKindPrimary,
+					Phone:       "",
+					Email:       "test@example.com",
+					DisplayName: "",
+				},
+				{
+					CreatedAt:   createdAt,
+					UpdatedAt:   updatedAt,
+					Type:        model.AuthenticatorTypeTOTP,
+					Kind:        model.AuthenticatorKindPrimary,
+					Phone:       "",
+					Email:       "",
+					DisplayName: "Google Authenticator",
+				},
+			},
+			"custom_attributes": map[string]interface{}(nil),
+			"x_web3":            map[string]interface{}(nil),
+		})
+	})
+}
+
+func TestGetUserInfo(t *testing.T) {
+	Convey("GetUserInfo", t, func() {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		now := time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)
+
+		mockUserInfoService := NewMockUserInfoService(ctrl)
+		mockUserInfoService.EXPECT().GetUserInfoBearer(gomock.Any(), "user-id").Return(
+			&userinfo.UserInfo{
+				User: &model.User{
+					IsAnonymous:       false,
+					IsVerified:        true,
+					CanReauthenticate: true,
+					StandardAttributes: map[string]interface{}{
+						"email": "test@example.com",
+					},
+				},
+				EffectiveRoleKeys: []string{"role-1", "role-3"},
+				Authenticators: []model.UserInfoAuthenticator{
+					{
+						Type: model.AuthenticatorTypePassword,
+						Kind: model.AuthenticatorKindPrimary,
+					},
+				},
+			},
+			nil,
+		)
+
+		issuer := &IDTokenIssuer{
+			UserInfoService: mockUserInfoService,
+			Clock:           clock.NewMockClockAtTime(now),
+		}
+
+		client := &config.OAuthClientConfig{
+			ClientID: "client-id",
+		}
+		scopes := []string{"openid", "email", "https://authgear.com/scopes/full-userinfo"}
+
+		clientLike := oauth.ClientClientLike(client, scopes)
+		clientLike.PIIAllowedInIDToken = true
+
+		userInfo, err := issuer.GetUserInfo(context.Background(), "user-id", clientLike)
+		So(err, ShouldBeNil)
+
+		So(userInfo["sub"], ShouldEqual, "user-id")
+		So(userInfo[string(model.ClaimUserIsAnonymous)], ShouldEqual, false)
+		So(userInfo[string(model.ClaimUserIsVerified)], ShouldEqual, true)
+		So(userInfo[string(model.ClaimUserCanReauthenticate)], ShouldEqual, true)
+		So(userInfo[string(model.ClaimAuthgearRoles)], ShouldResemble, []string{"role-1", "role-3"})
+		So(userInfo["email"], ShouldEqual, "test@example.com")
+		So(userInfo[string(model.ClaimAuthenticators)], ShouldResemble, []model.UserInfoAuthenticator{
+			{
+				Type: model.AuthenticatorTypePassword,
+				Kind: model.AuthenticatorKindPrimary,
+			},
+		})
+	})
+}

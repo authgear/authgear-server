@@ -21,6 +21,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
+//go:generate go tool mockgen -source=userinfo.go -destination=userinfo_mock_test.go -package userinfo
+
 var errCacheMiss = errors.New("cache miss")
 
 var ttl = duration.Short
@@ -120,16 +122,28 @@ func (s *UserInfoService) getUserInfoFromDatabase(ctx context.Context, userID st
 	userinfoAuthens := []model.UserInfoAuthenticator{}
 	for _, authn := range authns {
 		userinfoAuthen := model.UserInfoAuthenticator{
-			Type: authn.Type,
-			Kind: authn.Kind,
+			CreatedAt: authn.CreatedAt,
+			UpdatedAt: authn.UpdatedAt,
+			Kind:      authn.Kind,
 		}
 		switch authn.Type {
 		case model.AuthenticatorTypeOOBEmail:
-			userinfoAuthen.Email = authn.OOBOTP.Email
+			userinfoAuthen.Type = model.AuthenticatorTypeOOBEmail
+			if authn.OOBOTP != nil {
+				userinfoAuthen.Email = authn.OOBOTP.Email
+			}
 		case model.AuthenticatorTypeOOBSMS:
-			userinfoAuthen.Phone = authn.OOBOTP.Phone
+			userinfoAuthen.Type = model.AuthenticatorTypeOOBSMS
+			if authn.OOBOTP != nil {
+				userinfoAuthen.Phone = authn.OOBOTP.Phone
+			}
 		case model.AuthenticatorTypeTOTP:
-			userinfoAuthen.DisplayName = authn.TOTP.DisplayName
+			userinfoAuthen.Type = model.AuthenticatorTypeTOTP
+			if authn.TOTP != nil {
+				userinfoAuthen.DisplayName = authn.TOTP.DisplayName
+			}
+		default:
+			userinfoAuthen.Type = authn.Type
 		}
 		userinfoAuthens = append(userinfoAuthens, userinfoAuthen)
 	}
