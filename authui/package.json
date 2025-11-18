@@ -24,6 +24,7 @@
     "process": false
   },
   "overrides": {
+    "glob": "11.1.0"
   },
   "devDependencies": {
     "@jest/globals": "^30.2.0",
