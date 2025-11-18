@@ -5,11 +5,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"slices"
 	"time"
 
 	goredis "github.com/redis/go-redis/v9"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
@@ -26,13 +28,18 @@ var ttl = duration.Short
 var UserInfoCacheLogger = slogutil.NewLogger("userinfo-cache")
 
 type UserInfo struct {
-	User                    *model.User `json:"user,omitempty"`
-	AccountAccountStaleFrom *time.Time  `json:"account_status_stale_from,omitempty"`
-	EffectiveRoleKeys       []string    `json:"effective_role_keys"`
+	User                    *model.User                   `json:"user,omitempty"`
+	AccountAccountStaleFrom *time.Time                    `json:"account_status_stale_from,omitempty"`
+	EffectiveRoleKeys       []string                      `json:"effective_role_keys"`
+	Authenticators          []model.UserInfoAuthenticator `json:"authenticators"`
 }
 
 type RolesAndGroupsQueries interface {
 	ListEffectiveRolesByUserID(ctx context.Context, userID string) ([]*model.Role, error)
+}
+
+type UserInfoAuthenticatorService interface {
+	List(ctx context.Context, userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error)
 }
 
 type UserQueries interface {
@@ -43,8 +50,10 @@ type UserInfoService struct {
 	Redis                 *appredis.Handle
 	Clock                 clock.Clock
 	AppID                 config.AppID
+	AuthenticationConfig  *config.AuthenticationConfig
 	UserQueries           UserQueries
 	RolesAndGroupsQueries RolesAndGroupsQueries
+	AuthenticatorService  UserInfoAuthenticatorService
 }
 
 func (s *UserInfoService) GetUserInfoGreatest(ctx context.Context, userID string) (*UserInfo, error) {
@@ -94,10 +103,42 @@ func (s *UserInfoService) getUserInfoFromDatabase(ctx context.Context, userID st
 		roleKeys[i] = roles[i].Key
 	}
 
+	authns, err := s.AuthenticatorService.List(ctx, userID, authenticator.FilterFunc(func(info *authenticator.Info) bool {
+		switch info.Kind {
+		case authenticator.KindPrimary:
+			return slices.Contains(*s.AuthenticationConfig.PrimaryAuthenticators, info.Type)
+		case authenticator.KindSecondary:
+			return slices.Contains(*s.AuthenticationConfig.SecondaryAuthenticators, info.Type)
+		default:
+			return false
+		}
+	}))
+	if err != nil {
+		return nil, err
+	}
+
+	userinfoAuthens := []model.UserInfoAuthenticator{}
+	for _, authn := range authns {
+		userinfoAuthen := model.UserInfoAuthenticator{
+			Type: authn.Type,
+			Kind: authn.Kind,
+		}
+		switch authn.Type {
+		case model.AuthenticatorTypeOOBEmail:
+			userinfoAuthen.Email = authn.OOBOTP.Email
+		case model.AuthenticatorTypeOOBSMS:
+			userinfoAuthen.Phone = authn.OOBOTP.Phone
+		case model.AuthenticatorTypeTOTP:
+			userinfoAuthen.DisplayName = authn.TOTP.DisplayName
+		}
+		userinfoAuthens = append(userinfoAuthens, userinfoAuthen)
+	}
+
 	return &UserInfo{
 		User:                    u,
 		AccountAccountStaleFrom: u.AccountStatusStaleFrom,
 		EffectiveRoleKeys:       roleKeys,
+		Authenticators:          userinfoAuthens,
 	}, nil
 }
 

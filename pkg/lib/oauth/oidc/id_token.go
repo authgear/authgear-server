@@ -274,12 +274,27 @@ func (ti *IDTokenIssuer) GetUserInfo(ctx context.Context, userID string, clientL
 		return nil, err
 	}
 
+	isClaimAllowed := func(claim string) bool {
+		var isAllowed bool
+		for _, scope := range clientLike.Scopes {
+			if oauth.ScopeAllowsClaim(scope, claim) {
+				isAllowed = true
+				break
+			}
+		}
+		return isAllowed
+	}
+
 	out := make(map[string]interface{})
 	out[jwt.SubjectKey] = userID
 	out[string(model.ClaimUserIsAnonymous)] = userInfo.User.IsAnonymous
 	out[string(model.ClaimUserIsVerified)] = userInfo.User.IsVerified
 	out[string(model.ClaimUserCanReauthenticate)] = userInfo.User.CanReauthenticate
 	out[string(model.ClaimAuthgearRoles)] = userInfo.EffectiveRoleKeys
+
+	if isClaimAllowed(string(model.ClaimAuthenticators)) {
+		out[string(model.ClaimAuthenticators)] = userInfo.Authenticators
+	}
 
 	if clientLike.IsFirstParty {
 		// When the client is first party, we always include all standard attributes, all custom attributes.
@@ -292,15 +307,7 @@ func (ti *IDTokenIssuer) GetUserInfo(ctx context.Context, userID string, clientL
 	} else {
 		// When the client is third party, we include the standard claims according to scopes.
 		for k, v := range userInfo.User.StandardAttributes {
-			isAllowed := false
-			for _, scope := range clientLike.Scopes {
-				if oauth.ScopeAllowsClaim(scope, k) {
-					isAllowed = true
-					break
-				}
-			}
-
-			if isAllowed {
+			if isClaimAllowed(k) {
 				out[k] = v
 			}
 		}

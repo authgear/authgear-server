@@ -705,8 +705,10 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Redis:                 appredisHandle,
 		Clock:                 clockClock,
 		AppID:                 appID,
+		AuthenticationConfig:  authenticationConfig,
 		UserQueries:           userQueries,
 		RolesAndGroupsQueries: queries,
+		AuthenticatorService:  service4,
 	}
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,

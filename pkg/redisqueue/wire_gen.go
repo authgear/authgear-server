@@ -563,8 +563,10 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		Redis:                 appredisHandle,
 		Clock:                 clock,
 		AppID:                 appID,
+		AuthenticationConfig:  authenticationConfig,
 		UserQueries:           userQueries,
 		RolesAndGroupsQueries: queries,
+		AuthenticatorService:  service3,
 	}
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,

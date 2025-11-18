@@ -229,6 +229,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		OAuthEndpoints:          oAuthEndpoints,
 		UIImplementationService: uiImplementationService,
 	}
+	authenticationConfig := appConfig.Authentication
 	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -238,7 +239,6 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
-	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
 	featureConfig := config.FeatureConfig
 	identityFeatureConfig := featureConfig.Identity
@@ -596,8 +596,10 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Redis:                 handle,
 		Clock:                 clock,
 		AppID:                 appID,
+		AuthenticationConfig:  authenticationConfig,
 		UserQueries:           userQueries,
 		RolesAndGroupsQueries: queries,
+		AuthenticatorService:  service3,
 	}
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
@@ -975,6 +977,7 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 	config := appContext.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
+	authenticationConfig := appConfig.Authentication
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
@@ -988,7 +991,6 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: store,
 	}
-	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
 	featureConfig := config.FeatureConfig
 	identityFeatureConfig := featureConfig.Identity
@@ -1354,8 +1356,10 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		Redis:                 appredisHandle,
 		Clock:                 clockClock,
 		AppID:                 appID,
+		AuthenticationConfig:  authenticationConfig,
 		UserQueries:           userQueries,
 		RolesAndGroupsQueries: queries,
+		AuthenticatorService:  service3,
 	}
 	resolveHandler := &handler.ResolveHandler{
 		Database:        handle,

@@ -656,8 +656,10 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 		Redis:                 appredisHandle,
 		Clock:                 clockClock,
 		AppID:                 configAppID,
+		AuthenticationConfig:  authenticationConfig,
 		UserQueries:           userQueries,
 		RolesAndGroupsQueries: queries,
+		AuthenticatorService:  service3,
 	}
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,

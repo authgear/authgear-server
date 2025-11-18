@@ -12,9 +12,9 @@ const (
 	ClaimPreferredUsername     ClaimName = "preferred_username"
 	ClaimDeviceSecretHash      ClaimName = "ds_hash"
 	ClaimAuthgearRoles         ClaimName = "https://authgear.com/claims/user/roles"
-	ClaimKeyID                 ClaimName = "https://authgear.com/claims/user/key_id"
 	ClaimUserIsAnonymous       ClaimName = "https://authgear.com/claims/user/is_anonymous"
 	ClaimUserIsVerified        ClaimName = "https://authgear.com/claims/user/is_verified"
 	ClaimUserCanReauthenticate ClaimName = "https://authgear.com/claims/user/can_reauthenticate"
+	ClaimAuthenticators        ClaimName = "https://authgear.com/claims/user/authenticators"
 	ClaimOAuthAsserted         ClaimName = "https://authgear.com/claims/oauth/asserted"
 )
