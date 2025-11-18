@@ -1701,6 +1701,9 @@ type ScheduleAccountAnonymizationPayload {
 
 """"""
 input ScheduleAccountDeletionInput {
+  """The reason for scheduling the account deletion."""
+  reason: String
+
   """Target user ID."""
   userID: ID!
 }
