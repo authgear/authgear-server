@@ -994,15 +994,15 @@ var _ = registerMutationField(
 			}
 			userID := resolvedNodeID.ID
 
-			var reason *string
+			var reason string
 			if r, ok := input["reason"].(string); ok {
-				reason = &r
+				reason = r
 			}
 
 			ctx := p.Context
 			gqlCtx := GQLContext(ctx)
 
-			err := gqlCtx.UserFacade.ScheduleDeletion(ctx, userID, *reason)
+			err := gqlCtx.UserFacade.ScheduleDeletion(ctx, userID, reason)
 			if err != nil {
 				return nil, err
 			}

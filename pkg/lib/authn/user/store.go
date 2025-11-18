@@ -415,6 +415,12 @@ func (s *Store) UpdateMFAEnrollment(ctx context.Context, userID string, endAt *t
 func (s *Store) UpdateAccountStatus(ctx context.Context, userID string, accountStatus AccountStatusWithRefTime) error {
 	now := s.Clock.NowUTC()
 
+	deleteReasonJson, err := json.Marshal(accountStatus.accountStatus.deleteReason)
+	if err != nil {
+		// This should not fail
+		panic(err)
+	}
+
 	builder := s.SQLBuilder.
 		Update(s.SQLBuilder.TableName("_auth_user")).
 		Set("is_disabled", accountStatus.accountStatus.isDisabled).
@@ -429,7 +435,7 @@ func (s *Store) UpdateAccountStatus(ctx context.Context, userID string, accountS
 		Set("delete_at", accountStatus.accountStatus.deleteAt).
 		Set("metadata", sq.Expr(
 			fmt.Sprintf("jsonb_set(coalesce(metadata, '{}'::jsonb), '{%s}', ?::jsonb, true)", keyScheduleDeletionReason),
-			accountStatus.accountStatus.deleteReason,
+			deleteReasonJson,
 		)).
 		Set("anonymize_at", accountStatus.accountStatus.anonymizeAt).
 		Set("anonymized_at", accountStatus.accountStatus.anonymizedAt).
@@ -437,7 +443,7 @@ func (s *Store) UpdateAccountStatus(ctx context.Context, userID string, accountS
 		Set("updated_at", now).
 		Where("id = ?", userID)
 
-	_, err := s.SQLExecutor.ExecWith(ctx, builder)
+	_, err = s.SQLExecutor.ExecWith(ctx, builder)
 	if err != nil {
 		return err
 	}
