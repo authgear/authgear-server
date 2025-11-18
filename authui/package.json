@@ -24,7 +24,6 @@
     "process": false
   },
   "overrides": {
-    "esbuild": "0.25.0"
   },
   "devDependencies": {
     "@jest/globals": "^30.2.0",
