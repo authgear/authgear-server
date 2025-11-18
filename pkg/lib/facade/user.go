@@ -64,8 +64,8 @@ func (u UserFacade) Reenable(ctx context.Context, userID string) error {
 	return u.Coordinator.UserReenable(ctx, userID)
 }
 
-func (u UserFacade) ScheduleDeletionByAdmin(ctx context.Context, userID string) error {
-	return u.Coordinator.UserScheduleDeletionByAdmin(ctx, userID)
+func (u UserFacade) ScheduleDeletionByAdmin(ctx context.Context, userID string, reason string) error {
+	return u.Coordinator.UserScheduleDeletionByAdmin(ctx, userID, reason)
 }
 
 func (u UserFacade) UnscheduleDeletionByAdmin(ctx context.Context, userID string) error {

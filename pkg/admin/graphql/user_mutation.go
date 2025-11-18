@@ -958,6 +958,10 @@ var scheduleAccountDeletionInput = graphql.NewInputObject(graphql.InputObjectCon
 			Type:        graphql.NewNonNull(graphql.ID),
 			Description: "Target user ID.",
 		},
+		"reason": &graphql.InputObjectFieldConfig{
+			Type:        graphql.String,
+			Description: "The reason for scheduling the account deletion.",
+		},
 	},
 })
 
@@ -990,10 +994,15 @@ var _ = registerMutationField(
 			}
 			userID := resolvedNodeID.ID
 
+			var reason *string
+			if r, ok := input["reason"].(string); ok {
+				reason = &r
+			}
+
 			ctx := p.Context
 			gqlCtx := GQLContext(ctx)
 
-			err := gqlCtx.UserFacade.ScheduleDeletion(ctx, userID)
+			err := gqlCtx.UserFacade.ScheduleDeletion(ctx, userID, *reason)
 			if err != nil {
 				return nil, err
 			}

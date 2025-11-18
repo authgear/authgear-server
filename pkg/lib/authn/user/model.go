@@ -114,6 +114,8 @@ type User struct {
 	accountValidUntil *time.Time
 	// deleteAt is the scheduled time when the account will be deleted.
 	deleteAt *time.Time
+	// deleteReason is the reason the account scheduled deletion.
+	deleteReason *string
 	// anonymizeAt is the scheduled time when the account will be anonymized.
 	anonymizeAt *time.Time
 	// anonymizedAt is the actual time when the account was anonymized.
@@ -148,6 +150,7 @@ func (u *User) AccountStatus(refTime time.Time) AccountStatusWithRefTime {
 		accountValidFrom:         u.accountValidFrom,
 		accountValidUntil:        u.accountValidUntil,
 		deleteAt:                 u.deleteAt,
+		deleteReason:             u.deleteReason,
 		anonymizeAt:              u.anonymizeAt,
 		anonymizedAt:             u.anonymizedAt,
 		isAnonymized:             u.isAnonymized,

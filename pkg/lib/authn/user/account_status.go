@@ -132,6 +132,7 @@ type AccountStatus struct {
 	accountValidFrom         *time.Time
 	accountValidUntil        *time.Time
 	deleteAt                 *time.Time
+	deleteReason             *string
 	anonymizeAt              *time.Time
 	anonymizedAt             *time.Time
 	isAnonymized             *bool
@@ -298,6 +299,10 @@ func (s AccountStatusWithRefTime) DeleteAt() *time.Time {
 	return s.accountStatus.deleteAt
 }
 
+func (s AccountStatusWithRefTime) DeleteReason() *string {
+	return s.accountStatus.deleteReason
+}
+
 func (s AccountStatusWithRefTime) AnonymizeAt() *time.Time {
 	return s.accountStatus.anonymizeAt
 }
@@ -435,6 +440,7 @@ func (s AccountStatusWithRefTime) Reenable() (*AccountStatusWithRefTime, error) 
 	target.accountStatus.temporarilyDisabledFrom = nil
 	target.accountStatus.temporarilyDisabledUntil = nil
 	target.accountStatus.deleteAt = nil
+	target.accountStatus.deleteReason = nil
 	target.accountStatus.anonymizeAt = nil
 	target = target.normalizeOnChange()
 
@@ -473,6 +479,7 @@ func (s AccountStatusWithRefTime) DisableIndefinitely(reason *string) (*AccountS
 	target.accountStatus.temporarilyDisabledFrom = nil
 	target.accountStatus.temporarilyDisabledUntil = nil
 	target.accountStatus.deleteAt = nil
+	target.accountStatus.deleteReason = nil
 	target.accountStatus.anonymizeAt = nil
 	target = target.normalizeOnChange()
 
@@ -508,6 +515,7 @@ func (s AccountStatusWithRefTime) DisableTemporarily(from *time.Time, until *tim
 	target.accountStatus.temporarilyDisabledFrom = from
 	target.accountStatus.temporarilyDisabledUntil = until
 	target.accountStatus.deleteAt = nil
+	target.accountStatus.deleteReason = nil
 	target.accountStatus.anonymizeAt = nil
 	target = target.normalizeOnChange()
 
@@ -591,7 +599,8 @@ func (s AccountStatusWithRefTime) SetAccountValidPeriod(from *time.Time, until *
 	return &target, nil
 }
 
-func (s AccountStatusWithRefTime) ScheduleDeletionByEndUser(deleteAt time.Time) (*AccountStatusWithRefTime, error) {
+// FIXME
+func (s AccountStatusWithRefTime) ScheduleDeletionByEndUser(deleteAt time.Time, reason string) (*AccountStatusWithRefTime, error) {
 	true_ := true
 
 	target := s
@@ -601,6 +610,7 @@ func (s AccountStatusWithRefTime) ScheduleDeletionByEndUser(deleteAt time.Time) 
 	target.accountStatus.temporarilyDisabledFrom = nil
 	target.accountStatus.temporarilyDisabledUntil = nil
 	target.accountStatus.deleteAt = &deleteAt
+	target.accountStatus.deleteReason = &reason
 	target.accountStatus.anonymizeAt = nil
 	target = target.normalizeOnChange()
 
@@ -624,7 +634,7 @@ func (s AccountStatusWithRefTime) ScheduleDeletionByEndUser(deleteAt time.Time) 
 	}
 }
 
-func (s AccountStatusWithRefTime) ScheduleDeletionByAdmin(deleteAt time.Time) (*AccountStatusWithRefTime, error) {
+func (s AccountStatusWithRefTime) ScheduleDeletionByAdmin(deleteAt time.Time, reason string) (*AccountStatusWithRefTime, error) {
 	true_ := true
 	false_ := false
 
@@ -635,6 +645,7 @@ func (s AccountStatusWithRefTime) ScheduleDeletionByAdmin(deleteAt time.Time) (*
 	target.accountStatus.temporarilyDisabledFrom = nil
 	target.accountStatus.temporarilyDisabledUntil = nil
 	target.accountStatus.deleteAt = &deleteAt
+	target.accountStatus.deleteReason = &reason
 	target.accountStatus.anonymizeAt = nil
 	target = target.normalizeOnChange()
 
@@ -669,6 +680,7 @@ func (s AccountStatusWithRefTime) UnscheduleDeletionByAdmin() (*AccountStatusWit
 	target.accountStatus.temporarilyDisabledFrom = nil
 	target.accountStatus.temporarilyDisabledUntil = nil
 	target.accountStatus.deleteAt = nil
+	target.accountStatus.deleteReason = nil
 	target.accountStatus.anonymizeAt = nil
 	target = target.normalizeOnChange()
 
@@ -677,7 +689,7 @@ func (s AccountStatusWithRefTime) UnscheduleDeletionByAdmin() (*AccountStatusWit
 		return nil, err
 	}
 
-	// It is allowed to unschedule deletion of an anonymized user.
+	// It is not allowed to unschedule deletion of an anonymized user.
 	if s.IsAnonymized() && s.accountStatus.deleteAt == nil {
 		return nil, makeTransitionError(accountStatusTypeAnonymized, accountStatusTypeAnonymized)
 	}
@@ -757,6 +769,7 @@ func (s AccountStatusWithRefTime) ScheduleAnonymizationByAdmin(anonymizeAt time.
 	target.accountStatus.temporarilyDisabledFrom = nil
 	target.accountStatus.temporarilyDisabledUntil = nil
 	target.accountStatus.deleteAt = nil
+	target.accountStatus.deleteReason = nil
 	target.accountStatus.anonymizeAt = &anonymizeAt
 	target = target.normalizeOnChange()
 
@@ -800,6 +813,7 @@ func (s AccountStatusWithRefTime) UnscheduleAnonymizationByAdmin() (*AccountStat
 	target.accountStatus.temporarilyDisabledFrom = nil
 	target.accountStatus.temporarilyDisabledUntil = nil
 	target.accountStatus.deleteAt = nil
+	target.accountStatus.deleteReason = nil
 	target.accountStatus.anonymizeAt = nil
 	target = target.normalizeOnChange()
 
