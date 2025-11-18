@@ -111,9 +111,9 @@
       /* When Not Mobile View */
       @media (min-width: theme("screens.tablet")) {
         grid-template-areas: "icon title content action";
-        grid-template-columns: var(--settings-item__grid-col-icon-width) 9rem auto var(
-            --settings-item__grid-col-action
-          );
+        grid-template-columns:
+          var(--settings-item__grid-col-icon-width)
+          9rem auto var(--settings-item__grid-col-action);
       }
     }
 
