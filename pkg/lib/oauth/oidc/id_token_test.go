@@ -77,7 +77,8 @@ func TestIDTokenIssuer(t *testing.T) {
 					IsVerified:        true,
 					CanReauthenticate: true,
 				},
-				EffectiveRoleKeys: []string{"role-1", "role-3"},
+				EffectiveRoleKeys:   []string{"role-1", "role-3"},
+				RecoveryCodeEnabled: true,
 			},
 			nil,
 		)
@@ -223,7 +224,8 @@ func TestIDTokenIssuer_GetUserInfo(t *testing.T) {
 					IsVerified:        true,
 					CanReauthenticate: true,
 				},
-				EffectiveRoleKeys: []string{"role-1", "role-3"},
+				EffectiveRoleKeys:   []string{"role-1", "role-3"},
+				RecoveryCodeEnabled: true,
 				Authenticators: []model.UserInfoAuthenticator{
 					{
 						CreatedAt: createdAt,
@@ -312,8 +314,9 @@ func TestIDTokenIssuer_GetUserInfo(t *testing.T) {
 					DisplayName: "Google Authenticator",
 				},
 			},
-			"custom_attributes": map[string]interface{}(nil),
-			"x_web3":            map[string]interface{}(nil),
+			string(model.ClaimRecoveryCodeEnabled): true,
+			"custom_attributes":                    map[string]interface{}(nil),
+			"x_web3":                               map[string]interface{}(nil),
 		})
 	})
 }
@@ -343,6 +346,7 @@ func TestGetUserInfo(t *testing.T) {
 						Kind: model.AuthenticatorKindPrimary,
 					},
 				},
+				RecoveryCodeEnabled: true,
 			},
 			nil,
 		)
@@ -368,6 +372,7 @@ func TestGetUserInfo(t *testing.T) {
 		So(userInfo[string(model.ClaimUserIsVerified)], ShouldEqual, true)
 		So(userInfo[string(model.ClaimUserCanReauthenticate)], ShouldEqual, true)
 		So(userInfo[string(model.ClaimAuthgearRoles)], ShouldResemble, []string{"role-1", "role-3"})
+		So(userInfo[string(model.ClaimRecoveryCodeEnabled)], ShouldEqual, true)
 		So(userInfo["email"], ShouldEqual, "test@example.com")
 		So(userInfo[string(model.ClaimAuthenticators)], ShouldResemble, []model.UserInfoAuthenticator{
 			{

@@ -592,6 +592,31 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		RolesAndGroups:     queries,
 		Clock:              clock,
 	}
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: handle,
+		AppID: appID,
+		Clock: clock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		Provider: lockoutService,
+	}
+	mfaService := &mfa.Service{
+		IP:            remoteIP,
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clock,
+		Config:        appConfig,
+		FeatureConfig: featureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
+	}
 	userInfoService := &userinfo.UserInfoService{
 		Redis:                 handle,
 		Clock:                 clock,
@@ -600,6 +625,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		UserQueries:           userQueries,
 		RolesAndGroupsQueries: queries,
 		AuthenticatorService:  service3,
+		MFAService:            mfaService,
 	}
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
@@ -706,31 +732,6 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		UserInfoService: userInfoService,
 	}
 	eventService := event.NewService(appID, remoteIP, userAgentString, appdbHandle, clock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
-	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: handle,
-		AppID: appID,
-		Clock: clock,
-	}
-	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-	}
-	mfaLockout := mfa.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		Provider: lockoutService,
-	}
-	mfaService := &mfa.Service{
-		IP:            remoteIP,
-		DeviceTokens:  storeDeviceTokenRedis,
-		RecoveryCodes: storeRecoveryCodePQ,
-		Clock:         clock,
-		Config:        appConfig,
-		FeatureConfig: featureConfig,
-		EnvConfig:     rateLimitsEnvironmentConfig,
-		RateLimiter:   limiter,
-		Lockout:       mfaLockout,
-	}
 	usageLimiter := &usage.Limiter{
 		Clock: clock,
 		AppID: appID,
@@ -1352,6 +1353,31 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		RolesAndGroups:     queries,
 		Clock:              clockClock,
 	}
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		Provider: lockoutService,
+	}
+	mfaService := &mfa.Service{
+		IP:            remoteIP,
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clockClock,
+		Config:        appConfig,
+		FeatureConfig: featureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
+	}
 	userInfoService := &userinfo.UserInfoService{
 		Redis:                 appredisHandle,
 		Clock:                 clockClock,
@@ -1360,6 +1386,7 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		UserQueries:           userQueries,
 		RolesAndGroupsQueries: queries,
 		AuthenticatorService:  service3,
+		MFAService:            mfaService,
 	}
 	resolveHandler := &handler.ResolveHandler{
 		Database:        handle,

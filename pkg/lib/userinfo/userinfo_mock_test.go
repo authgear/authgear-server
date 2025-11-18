@@ -10,6 +10,7 @@ import (
 
 	model "github.com/authgear/authgear-server/pkg/api/model"
 	authenticator "github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	mfa "github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	accesscontrol "github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	gomock "github.com/golang/mock/gomock"
 )
@@ -93,6 +94,44 @@ func (mr *MockUserInfoAuthenticatorServiceMockRecorder) List(ctx, userID interfa
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{ctx, userID}, filters...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockUserInfoAuthenticatorService)(nil).List), varargs...)
+}
+
+// MockUserInfoMFAService is a mock of UserInfoMFAService interface.
+type MockUserInfoMFAService struct {
+	ctrl     *gomock.Controller
+	recorder *MockUserInfoMFAServiceMockRecorder
+}
+
+// MockUserInfoMFAServiceMockRecorder is the mock recorder for MockUserInfoMFAService.
+type MockUserInfoMFAServiceMockRecorder struct {
+	mock *MockUserInfoMFAService
+}
+
+// NewMockUserInfoMFAService creates a new mock instance.
+func NewMockUserInfoMFAService(ctrl *gomock.Controller) *MockUserInfoMFAService {
+	mock := &MockUserInfoMFAService{ctrl: ctrl}
+	mock.recorder = &MockUserInfoMFAServiceMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockUserInfoMFAService) EXPECT() *MockUserInfoMFAServiceMockRecorder {
+	return m.recorder
+}
+
+// ListRecoveryCodes mocks base method.
+func (m *MockUserInfoMFAService) ListRecoveryCodes(ctx context.Context, userID string) ([]*mfa.RecoveryCode, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListRecoveryCodes", ctx, userID)
+	ret0, _ := ret[0].([]*mfa.RecoveryCode)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListRecoveryCodes indicates an expected call of ListRecoveryCodes.
+func (mr *MockUserInfoMFAServiceMockRecorder) ListRecoveryCodes(ctx, userID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListRecoveryCodes", reflect.TypeOf((*MockUserInfoMFAService)(nil).ListRecoveryCodes), ctx, userID)
 }
 
 // MockUserQueries is a mock of UserQueries interface.

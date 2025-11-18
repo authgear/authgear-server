@@ -295,6 +295,9 @@ func (ti *IDTokenIssuer) GetUserInfo(ctx context.Context, userID string, clientL
 	if isClaimAllowed(string(model.ClaimAuthenticators)) {
 		out[string(model.ClaimAuthenticators)] = userInfo.Authenticators
 	}
+	if isClaimAllowed(string(model.ClaimRecoveryCodeEnabled)) {
+		out[string(model.ClaimRecoveryCodeEnabled)] = userInfo.RecoveryCodeEnabled
+	}
 
 	if clientLike.IsFirstParty {
 		// When the client is first party, we always include all standard attributes, all custom attributes.

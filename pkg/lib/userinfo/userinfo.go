@@ -12,6 +12,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
@@ -34,6 +35,7 @@ type UserInfo struct {
 	AccountAccountStaleFrom *time.Time                    `json:"account_status_stale_from,omitempty"`
 	EffectiveRoleKeys       []string                      `json:"effective_role_keys"`
 	Authenticators          []model.UserInfoAuthenticator `json:"authenticators"`
+	RecoveryCodeEnabled     bool                          `json:"recovery_code_enabled"`
 }
 
 type RolesAndGroupsQueries interface {
@@ -42,6 +44,10 @@ type RolesAndGroupsQueries interface {
 
 type UserInfoAuthenticatorService interface {
 	List(ctx context.Context, userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error)
+}
+
+type UserInfoMFAService interface {
+	ListRecoveryCodes(ctx context.Context, userID string) ([]*mfa.RecoveryCode, error)
 }
 
 type UserQueries interface {
@@ -56,6 +62,7 @@ type UserInfoService struct {
 	UserQueries           UserQueries
 	RolesAndGroupsQueries RolesAndGroupsQueries
 	AuthenticatorService  UserInfoAuthenticatorService
+	MFAService            UserInfoMFAService
 }
 
 func (s *UserInfoService) GetUserInfoGreatest(ctx context.Context, userID string) (*UserInfo, error) {
@@ -148,11 +155,17 @@ func (s *UserInfoService) getUserInfoFromDatabase(ctx context.Context, userID st
 		userinfoAuthens = append(userinfoAuthens, userinfoAuthen)
 	}
 
+	recoveryCodes, err := s.MFAService.ListRecoveryCodes(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
 	return &UserInfo{
 		User:                    u,
 		AccountAccountStaleFrom: u.AccountStatusStaleFrom,
 		EffectiveRoleKeys:       roleKeys,
 		Authenticators:          userinfoAuthens,
+		RecoveryCodeEnabled:     len(recoveryCodes) > 0,
 	}, nil
 }
 
