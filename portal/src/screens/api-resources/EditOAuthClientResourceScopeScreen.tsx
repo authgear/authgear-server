@@ -65,8 +65,7 @@ const EditOAuthClientResourceScopeScreen: React.VFC =
           (c) => c.client_id === clientID
         );
         const resource =
-          scopesQueryData?.node &&
-          scopesQueryData.node.__typename === "Resource"
+          scopesQueryData?.node?.__typename === "Resource"
             ? scopesQueryData.node
             : null;
         if (

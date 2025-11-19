@@ -93,7 +93,7 @@ const EmailScreen: React.VFC = function EmailScreen() {
     }
     const identity = user?.identities?.edges?.find((edge) => {
       const node = edge?.node;
-      return node != null && node.id === identityID && node.claims.email;
+      return node?.id === identityID && node.claims.email;
     });
     if (identity == null) {
       return null;

@@ -3,8 +3,9 @@
     --code-block__bg-color: var(--color-neutral-100);
     --code-block__border-radius: var(--border-radius-rounded-square);
     --code-block__text-color: var(--color-neutral-700);
-    --code-block__font-family: ui-monospace, sfmono-regular, menlo, monaco,
-      consolas, "Liberation Mono", "Courier New", monospace; /* = tailwind font-mono */
+    --code-block__font-family:
+      ui-monospace, sfmono-regular, menlo, monaco, consolas, "Liberation Mono",
+      "Courier New", monospace; /* = tailwind font-mono */
     --code-block__font-size: var(--typography-body-small__font-size);
     --code-block__line-height: var(--typography-body-small__line-height);
     --code-block__letter-spacing: var(--typography-body-small__letter-spacing);

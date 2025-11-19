@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from "@storybook/react-vite";
 import { SquareIcon, SquareIconProps } from "./SquareIcon";
 import React from "react";
 import { ImageIcon, ButtonIcon, InputIcon } from "@radix-ui/react-icons";

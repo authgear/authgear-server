@@ -152,13 +152,11 @@ const EditScopeScreen: React.VFC = function EditScopeScreen() {
       const { data: resourceData } = resourceQuery;
       const { data: scopeData } = scopeQuery;
       const resource =
-        resourceData?.node && resourceData.node.__typename === "Resource"
+        resourceData?.node?.__typename === "Resource"
           ? resourceData.node
           : null;
       const scope =
-        scopeData?.node && scopeData.node.__typename === "Scope"
-          ? scopeData.node
-          : null;
+        scopeData?.node?.__typename === "Scope" ? scopeData.node : null;
 
       return <EditScopeScreenContent resource={resource!} scope={scope!} />;
     },

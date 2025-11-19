@@ -5,7 +5,7 @@
   "compilerOptions": {
     "target": "ES2015",
     "lib": ["DOM", "ES2015"],
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "module": "es2020",
     "resolveJsonModule": true,
     "noEmit": true,

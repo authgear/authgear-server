@@ -75,10 +75,10 @@ export class PreviewWidgetController extends Controller {
     const loginInput = loginMethodsSet.has(LoginMethod.Email)
       ? "email"
       : loginMethodsSet.has(LoginMethod.Username)
-      ? "username"
-      : loginMethodsSet.has(LoginMethod.Phone)
-      ? "phone"
-      : "none";
+        ? "username"
+        : loginMethodsSet.has(LoginMethod.Phone)
+          ? "phone"
+          : "none";
 
     const remainingMethods = new Set(this.loginMethodsValue);
     switch (loginInput) {

@@ -2,8 +2,19 @@
 iOS >= 14
 Safari >= 14
 Android >= 5.0
-last 5 Chrome versions
-last 5 ChromeAndroid versions
-last 5 Edge versions
-last 5 Firefox versions
+
+# As of 2025-11-19, the last 3 Firefox ESR are 115 (released in 2023), 128 (released in 2024), 140 (released in 2025)
+Firefox >= 115
+
+# Chrome 116 was released in 2023
+Chrome >= 116
+ChromeAndroid >= 116
+
+# Edge 116 was released in 2023
+# https://learn.microsoft.com/en-us/deployedge/microsoft-edge-release-schedule
+Edge >= 116
+
+# Samsung Internet is based on Chromium 115, released in 2023
+Samsung >= 23
+
 >=0.4% and not dead

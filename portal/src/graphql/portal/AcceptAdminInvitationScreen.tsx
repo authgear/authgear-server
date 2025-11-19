@@ -25,7 +25,6 @@ import PrimaryButton from "../../PrimaryButton";
 import DefaultButton from "../../DefaultButton";
 
 function encodeOAuthState(state: Record<string, unknown>): string {
-  // eslint-disable-next-line @typescript-eslint/no-deprecated
   return btoa(JSON.stringify(state));
 }
 

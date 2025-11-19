@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from "@storybook/react-vite";
 import { IconRadioCards, IconRadioCardsProps } from "./IconRadioCards";
 import { SquareIcon } from "../SquareIcon/SquareIcon";
 import { ButtonIcon } from "@radix-ui/react-icons";

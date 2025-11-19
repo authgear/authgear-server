@@ -36,7 +36,7 @@ function viteAuthgearPortal() {
   return [plugin];
 }
 
-export default defineConfig(() => ({
+export default defineConfig({
   plugins: [react(), viteAuthgearPortal()],
   // The index.html is under the "./src" directory
   root: "./src",
@@ -63,4 +63,4 @@ export default defineConfig(() => ({
       maxParallelFileOps: 1,
     },
   },
-}));
+});

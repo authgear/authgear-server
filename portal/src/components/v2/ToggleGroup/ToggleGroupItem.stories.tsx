@@ -1,6 +1,6 @@
 import React from "react";
 import cn from "classnames";
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from "@storybook/react-vite";
 import { ToggleGroupItem } from "./ToggleGroup";
 
 enum DemoIcon {

@@ -102,8 +102,7 @@ function constructFormState(
   const enabled = secrets.smtpSecret != null;
 
   const isSendgrid =
-    secrets.smtpSecret != null &&
-    secrets.smtpSecret.host === SENDGRID_HOST &&
+    secrets.smtpSecret?.host === SENDGRID_HOST &&
     String(secrets.smtpSecret.port) === SENDGRID_PORT_STRING &&
     secrets.smtpSecret.username === SENDGRID_USERNAME;
   const providerType = isSendgrid ? ProviderType.Sendgrid : ProviderType.Custom;

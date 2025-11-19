@@ -95,7 +95,7 @@ export function APIResourceDetailsScreenScopesTab({
   });
 
   const scopes = useMemo(() => {
-    return data?.node && data.node.__typename === "Resource"
+    return data?.node?.__typename === "Resource"
       ? data.node.scopes?.edges
           ?.map((edge) => edge?.node)
           .filter((n): n is Scope => !!n) ?? []
@@ -103,7 +103,7 @@ export function APIResourceDetailsScreenScopesTab({
   }, [data]);
 
   const totalCount = useMemo(() => {
-    return data?.node && data.node.__typename === "Resource"
+    return data?.node?.__typename === "Resource"
       ? data.node.scopes?.totalCount ?? 0
       : 0;
   }, [data]);

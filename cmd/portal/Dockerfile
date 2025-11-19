@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # Stage 0: Build the static files
-FROM --platform=$BUILDPLATFORM node:20.9.0-bookworm AS authgear-portal-stage-0
+FROM --platform=$BUILDPLATFORM node:20.19.5-bookworm AS authgear-portal-stage-0
 WORKDIR /usr/src/app
 COPY ./authui/package.json ./authui/package-lock.json ./authui/
 # See /authui/README.md for the reason why we need to copy tarballs.
@@ -15,7 +15,7 @@ COPY Makefile .
 RUN make authui
 
 # Stage 1: Build the portal static files
-FROM --platform=$BUILDPLATFORM node:20.9.0-bookworm AS authgear-portal-stage-1
+FROM --platform=$BUILDPLATFORM node:20.19.5-bookworm AS authgear-portal-stage-1
 # If the working directory is /src, Parcel will have some problem with it.
 WORKDIR /usr/src/app
 COPY ./portal/package.json ./portal/package-lock.json ./

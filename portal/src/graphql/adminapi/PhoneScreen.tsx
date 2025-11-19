@@ -116,7 +116,7 @@ const PhoneScreen: React.VFC = function PhoneScreen() {
     }
     const identity = user?.identities?.edges?.find((edge) => {
       const node = edge?.node;
-      return node != null && node.id === identityID && node.claims.phone_number;
+      return node?.id === identityID && node.claims.phone_number;
     });
     if (identity == null) {
       return null;
