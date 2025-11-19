@@ -142,6 +142,9 @@ func (s *UIService) BuildAuthenticationURL(session *SAMLSession) (*url.URL, erro
 
 	q := endpoint.Query()
 	q.Set(queryNameSAMLSessionID, session.ID)
+	// Writing client_id is an important heuristic to tell if authentication was triggered by OIDC / SAML
+	// See https://linear.app/authgear/issue/DEV-3186/back-to-authui-in-oidc-app-causes-error
+	q.Set("client_id", session.UIInfo.SAMLServiceProviderID)
 	endpoint.RawQuery = q.Encode()
 	return endpoint, nil
 }

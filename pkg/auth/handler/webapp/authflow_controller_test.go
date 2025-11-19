@@ -62,13 +62,15 @@ func TestAuthflowControllerGetOrCreateWebSession(t *testing.T) {
 		mockSessionStore := NewMockAuthflowControllerSessionStore(ctrl)
 		mockCookieManager := NewMockAuthflowControllerCookieManager(ctrl)
 		mockNavigator := NewNoopAuthflowNavigator()
+		mockUIInfoResolver := NewMockAuthflowControllerUIInfoResolver(ctrl)
 
 		c := &AuthflowController{
-			Clock:         clock.NewMockClockAt("2006-01-02T03:04:05Z"),
-			Cookies:       mockCookieManager,
-			Sessions:      mockSessionStore,
-			SessionCookie: webapp.NewSessionCookieDef(),
-			Navigator:     mockNavigator,
+			Clock:          clock.NewMockClockAt("2006-01-02T03:04:05Z"),
+			Cookies:        mockCookieManager,
+			Sessions:       mockSessionStore,
+			SessionCookie:  webapp.NewSessionCookieDef(),
+			Navigator:      mockNavigator,
+			UIInfoResolver: mockUIInfoResolver,
 		}
 
 		Convey("Create new if not in context", func() {
@@ -81,6 +83,7 @@ func TestAuthflowControllerGetOrCreateWebSession(t *testing.T) {
 
 			mockSessionStore.EXPECT().Create(gomock.Any(), gomock.Any()).Times(1).Return(nil)
 			mockCookieManager.EXPECT().ValueCookie(c.SessionCookie.Def, gomock.Any()).Times(1).Return(&http.Cookie{})
+			mockUIInfoResolver.EXPECT().LooksLikeOriginallyTriggeredByOIDCOrSaml(gomock.Any()).AnyTimes().Return(false)
 
 			s, err := c.getOrCreateWebSession(ctx, w, r, opts)
 			So(err, ShouldBeNil)

@@ -89,6 +89,7 @@ type AuthflowControllerSAMLSessionService interface {
 
 type AuthflowControllerUIInfoResolver interface {
 	ResolveForUI(ctx context.Context, r protocol.AuthorizationRequest) (*oidc.UIInfo, error)
+	LooksLikeOriginallyTriggeredByOIDCOrSaml(r *http.Request) bool
 }
 
 type AuthflowControllerOAuthClientResolver interface {
@@ -202,10 +203,6 @@ func (c *AuthflowController) HandleStartOfFlow(
 	}
 
 	handleWithScreen(screen)
-}
-
-func (c *AuthflowController) isWebSessionNotFoundOrCompletedError(err error) bool {
-	return apierrors.IsKind(err, webapp.WebUIInvalidSession) || apierrors.IsKind(err, webapp.WebUISessionCompleted)
 }
 
 func (c *AuthflowController) HandleOAuthCallback(ctx context.Context, w http.ResponseWriter, r *http.Request, callbackResponse AuthflowOAuthCallbackResponse) {
@@ -382,7 +379,24 @@ func (c *AuthflowController) getOrCreateWebSession(ctx context.Context, w http.R
 		return s, nil
 	}
 
-	if !c.isWebSessionNotFoundOrCompletedError(err) {
+	// If any other error, error out.
+	if !(apierrors.IsKind(err, webapp.WebUIInvalidSession) || apierrors.IsKind(err, webapp.WebUISessionCompleted)) {
+		return nil, err
+	}
+
+	// So err is either WebUIInvalidSession or WebUISessionCompleted.
+	// If err is WebUIInvalidSession, we simply create a new session.
+	// If err is WebUISessionCompleted, then it is complicated.
+	//
+	// If the authflow was originally triggered by OAuth / SAML, AND the authui page was navigated back,
+	// then we want to keep the completed session.
+	// What end-user will see is that the expired page.
+	//
+	// If the authflow was originally triggered by OAuth / SAML, AND the authui page was visited directly with /login or /signup,
+	// then we want to re-create a new session.
+	//
+	// Here we use a simple heuristic to differentiate the 2 cases.
+	if c.UIInfoResolver.LooksLikeOriginallyTriggeredByOIDCOrSaml(r) && apierrors.IsKind(err, webapp.WebUISessionCompleted) {
 		return nil, err
 	}
 

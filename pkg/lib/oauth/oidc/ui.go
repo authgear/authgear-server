@@ -234,6 +234,12 @@ func (r *UIInfoResolver) ResolveForAuthorizationEndpoint(
 	return info, byProduct, nil
 }
 
+func (r *UIInfoResolver) LooksLikeOriginallyTriggeredByOIDCOrSaml(req *http.Request) bool {
+	// Checking client_id is an important heuristic to tell if authentication was triggered by OIDC / SAML
+	// See https://linear.app/authgear/issue/DEV-3186/back-to-authui-in-oidc-app-causes-error
+	return req.URL.Query().Get("client_id") != ""
+}
+
 type UIURLBuilderAuthUIEndpointsProvider interface {
 	OAuthEntrypointURL() *url.URL
 	SettingsChangePasswordURL() *url.URL
@@ -344,7 +350,10 @@ func (b *UIURLBuilder) BuildSettingsActionURL(client *config.OAuthClientConfig, 
 func (b *UIURLBuilder) addToEndpoint(endpoint *url.URL, r protocol.AuthorizationRequest, e *oauthsession.Entry) {
 	q := endpoint.Query()
 	q.Set(queryNameOAuthSessionID, e.ID)
+	// Writing client_id is an important heuristic to tell if authentication was triggered by OIDC / SAML
+	// See https://linear.app/authgear/issue/DEV-3186/back-to-authui-in-oidc-app-causes-error
 	q.Set("client_id", r.ClientID())
+
 	q.Set("redirect_uri", r.RedirectURI())
 	if r.ColorScheme() != "" {
 		q.Set("x_color_scheme", r.ColorScheme())

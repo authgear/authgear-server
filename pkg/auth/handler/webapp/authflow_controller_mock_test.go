@@ -335,6 +335,20 @@ func (m *MockAuthflowControllerUIInfoResolver) EXPECT() *MockAuthflowControllerU
 	return m.recorder
 }
 
+// LooksLikeOriginallyTriggeredByOIDCOrSaml mocks base method.
+func (m *MockAuthflowControllerUIInfoResolver) LooksLikeOriginallyTriggeredByOIDCOrSaml(r *http.Request) bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LooksLikeOriginallyTriggeredByOIDCOrSaml", r)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// LooksLikeOriginallyTriggeredByOIDCOrSaml indicates an expected call of LooksLikeOriginallyTriggeredByOIDCOrSaml.
+func (mr *MockAuthflowControllerUIInfoResolverMockRecorder) LooksLikeOriginallyTriggeredByOIDCOrSaml(r interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LooksLikeOriginallyTriggeredByOIDCOrSaml", reflect.TypeOf((*MockAuthflowControllerUIInfoResolver)(nil).LooksLikeOriginallyTriggeredByOIDCOrSaml), r)
+}
+
 // ResolveForUI mocks base method.
 func (m *MockAuthflowControllerUIInfoResolver) ResolveForUI(ctx context.Context, r protocol.AuthorizationRequest) (*oidc.UIInfo, error) {
 	m.ctrl.T.Helper()
