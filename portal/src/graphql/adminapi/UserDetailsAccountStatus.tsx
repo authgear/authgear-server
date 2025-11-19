@@ -1,7 +1,6 @@
 import { IStyle, Label, Text } from "@fluentui/react";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import React, { useContext } from "react";
-import cn from "classnames";
 import styles from "./UserDetailsAccountStatus.module.css";
 import ListCellLayout from "../../ListCellLayout";
 import { useSystemConfig } from "../../context/SystemConfigContext";
@@ -120,9 +119,7 @@ const DisableUserCell: React.VFC<DisableUserCellProps> =
     const { data } = props;
     const buttonStates = useButtonStates(data);
     return (
-      <ListCellLayout
-        className={cn(styles.actionCell, styles["cell--not-first"])}
-      >
+      <ListCellLayout className={styles.actionCell}>
         <div className={styles.actionCellLabel}>
           <Text
             styles={{
@@ -140,66 +137,75 @@ const DisableUserCell: React.VFC<DisableUserCellProps> =
           >
             <FormattedMessage id="UserDetailsAccountStatus.disable-user.body" />
           </Text>
-
-          {buttonStates.toggleDisable.isDisabledIndefinitelyOrTemporarily &&
-          buttonStates.toggleDisable.disableReason != null ? (
-            <>
-              <br />
-              <Text
-                styles={{
-                  root: labelTextStyle,
-                }}
-              >
-                {buttonStates.toggleDisable.disableReason}
-              </Text>
-            </>
-          ) : null}
-
-          {buttonStates.toggleDisable.isDisabledIndefinitelyOrTemporarily &&
-          buttonStates.toggleDisable.temporarilyDisabledUntil != null ? (
-            <>
-              <br />
-              <Text
-                styles={{
-                  root: labelTextStyle,
-                }}
-              >
-                <FormattedMessage
-                  id="UserDetailsAccountStatus.disable-user.until"
-                  values={{
-                    until:
-                      formatDatetime(
-                        locale,
-                        buttonStates.toggleDisable.temporarilyDisabledUntil
-                      ) ?? "",
-                  }}
-                />
-              </Text>
-            </>
-          ) : null}
         </div>
-        <OutlinedActionButton
-          disabled={buttonStates.toggleDisable.buttonDisabled}
-          theme={
-            buttonStates.toggleDisable.isDisabledIndefinitelyOrTemporarily
-              ? themes.actionButton
-              : themes.destructive
-          }
-          className={cn(styles.actionCellActionButton)}
-          iconProps={
-            buttonStates.toggleDisable.isDisabledIndefinitelyOrTemporarily
-              ? { iconName: "Play" }
-              : { iconName: "Blocked" }
-          }
-          text={
-            buttonStates.toggleDisable.isDisabledIndefinitelyOrTemporarily ? (
-              <FormattedMessage id="UserDetailsAccountStatus.disable-user.action.enable" />
-            ) : (
+        {buttonStates.toggleDisable.isDisabledIndefinitelyOrTemporarily &&
+        (buttonStates.toggleDisable.disableReason != null ||
+          buttonStates.toggleDisable.temporarilyDisabledUntil != null) ? (
+          <div className={styles.actionCellDescription}>
+            {buttonStates.toggleDisable.disableReason != null ? (
+              <>
+                <Text
+                  styles={{
+                    root: labelTextStyle,
+                  }}
+                >
+                  {buttonStates.toggleDisable.disableReason}
+                </Text>
+              </>
+            ) : null}
+
+            {buttonStates.toggleDisable.temporarilyDisabledUntil != null ? (
+              <>
+                <Text
+                  styles={{
+                    root: labelTextStyle,
+                  }}
+                >
+                  <FormattedMessage
+                    id="UserDetailsAccountStatus.disable-user.until"
+                    values={{
+                      until:
+                        formatDatetime(
+                          locale,
+                          buttonStates.toggleDisable.temporarilyDisabledUntil
+                        ) ?? "",
+                    }}
+                  />
+                </Text>
+              </>
+            ) : null}
+          </div>
+        ) : null}
+        {buttonStates.toggleDisable.isDisabledIndefinitelyOrTemporarily ? (
+          <div className={styles.actionCellActionButtonContainer}>
+            <OutlinedActionButton
+              disabled={buttonStates.toggleDisable.buttonDisabled}
+              theme={themes.actionButton}
+              iconProps={{ iconName: "Play" }}
+              text={
+                <FormattedMessage id="UserDetailsAccountStatus.disable-user.action.enable" />
+              }
+            />
+            <OutlinedActionButton
+              disabled={buttonStates.toggleDisable.buttonDisabled}
+              theme={themes.destructive}
+              iconProps={{ iconName: "Calendar" }}
+              text={
+                <FormattedMessage id="UserDetailsAccountStatus.disable-user.action.edit-schedule" />
+              }
+            />
+          </div>
+        ) : (
+          <OutlinedActionButton
+            disabled={buttonStates.toggleDisable.buttonDisabled}
+            theme={themes.destructive}
+            className={styles.actionCellActionButton}
+            iconProps={{ iconName: "Blocked" }}
+            text={
               <FormattedMessage id="UserDetailsAccountStatus.disable-user.action.disable" />
-            )
-          }
-        />
-        <div className={cn(styles.actionCellSpacer)} />
+            }
+          />
+        )}
       </ListCellLayout>
     );
   };
@@ -210,11 +216,9 @@ const AnonymizeUserCell: React.VFC<AnonymizeUserCellProps> =
     const { data } = props;
     const buttonStates = useButtonStates(data);
     return (
-      <ListCellLayout
-        className={cn(styles.actionCell, styles["cell--not-first"])}
-      >
+      <ListCellLayout className={styles.actionCell}>
         <Text
-          className={cn(styles.actionCellLabel)}
+          className={styles.actionCellLabel}
           styles={{
             root: labelTextStyle,
           }}
@@ -222,7 +226,7 @@ const AnonymizeUserCell: React.VFC<AnonymizeUserCellProps> =
           <FormattedMessage id="UserDetailsAccountStatus.anonymize-user.title" />
         </Text>
         <Text
-          className={cn(styles.actionCellBody)}
+          className={styles.actionCellBody}
           styles={{
             root: bodyTextStyle,
           }}
@@ -236,7 +240,7 @@ const AnonymizeUserCell: React.VFC<AnonymizeUserCellProps> =
               ? themes.actionButton
               : themes.destructive
           }
-          className={cn(styles.actionCellActionButton)}
+          className={styles.actionCellActionButton}
           iconProps={
             buttonStates.anonymize.anonymizeAt != null
               ? { iconName: "Undo" }
@@ -250,7 +254,6 @@ const AnonymizeUserCell: React.VFC<AnonymizeUserCellProps> =
             )
           }
         />
-        <div className={cn(styles.actionCellSpacer)} />
       </ListCellLayout>
     );
   };
@@ -262,15 +265,9 @@ const RemoveUserCell: React.VFC<RemoveUserCellProps> = function RemoveUserCell(
   const { data } = props;
   const buttonStates = useButtonStates(data);
   return (
-    <ListCellLayout
-      className={cn(
-        styles.actionCell,
-        styles["cell--not-first"],
-        styles["cell--last"]
-      )}
-    >
+    <ListCellLayout className={styles.actionCell}>
       <Text
-        className={cn(styles.actionCellLabel)}
+        className={styles.actionCellLabel}
         styles={{
           root: labelTextStyle,
         }}
@@ -278,7 +275,7 @@ const RemoveUserCell: React.VFC<RemoveUserCellProps> = function RemoveUserCell(
         <FormattedMessage id="UserDetailsAccountStatus.remove-user.title" />
       </Text>
       <Text
-        className={cn(styles.actionCellBody)}
+        className={styles.actionCellBody}
         styles={{
           root: bodyTextStyle,
         }}
@@ -286,11 +283,11 @@ const RemoveUserCell: React.VFC<RemoveUserCellProps> = function RemoveUserCell(
         <FormattedMessage id="UserDetailsAccountStatus.remove-user.body" />
       </Text>
       {buttonStates.delete.deleteAt != null ? (
-        <div className={cn(styles.actionCellActionButtonContainer)}>
+        <div className={styles.actionCellActionButtonContainer}>
           <OutlinedActionButton
             disabled={buttonStates.delete.buttonDisabled}
             theme={themes.actionButton}
-            className={cn(styles.actionCellActionButton)}
+            className={styles.actionCellActionButton}
             iconProps={{ iconName: "Undo" }}
             text={
               <FormattedMessage id="UserDetailsAccountStatus.remove-user.action.cancel" />
@@ -299,7 +296,7 @@ const RemoveUserCell: React.VFC<RemoveUserCellProps> = function RemoveUserCell(
           <OutlinedActionButton
             disabled={buttonStates.delete.buttonDisabled}
             theme={themes.destructive}
-            className={cn(styles.actionCellActionButton)}
+            className={styles.actionCellActionButton}
             iconProps={{ iconName: "Delete" }}
             text={
               <FormattedMessage id="UserDetailsAccountStatus.remove-user.action.remove-now" />
@@ -310,14 +307,13 @@ const RemoveUserCell: React.VFC<RemoveUserCellProps> = function RemoveUserCell(
         <OutlinedActionButton
           disabled={buttonStates.delete.buttonDisabled}
           theme={themes.destructive}
-          className={cn(styles.actionCellActionButton)}
+          className={styles.actionCellActionButton}
           iconProps={{ iconName: "Delete" }}
           text={
             <FormattedMessage id="UserDetailsAccountStatus.remove-user.action.remove" />
           }
         />
       )}
-      <div className={cn(styles.actionCellSpacer)} />
     </ListCellLayout>
   );
 };

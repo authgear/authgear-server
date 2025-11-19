@@ -1,25 +1,16 @@
-.cell--not-first {
-  @apply mt-6;
-}
-
-.cell--last {
-  @apply border-b-0;
-}
-
 .actionCell {
-  padding-left: 1px;
-  display: grid;
   grid-template:
-    "plabel    paction"
-    "pbody     paction"
-    "pspacer   pspacer"
+    "plabel         paction"
+    "pbody          paction"
+    "pdescription   paction"
     / auto min-content min-content;
-  grid-gap: 4px 8px;
+  @apply grid;
+  @apply gap-x-2 gap-y-1;
+  @apply py-6;
 }
 
-.actionCellSpacer {
-  grid-area: pspacer;
-  @apply h-4;
+.actionCell:last-child {
+  @apply border-b-0;
 }
 
 .actionCellLabel {
@@ -30,8 +21,13 @@
   grid-area: pbody;
 }
 
+.actionCellDescription {
+  grid-area: pdescription;
+  @apply flex flex-col;
+}
+
 .actionCellActionButtonContainer {
-  @apply flex flex-row place-self-center justify-between items-center gap-2;
+  @apply flex flex-col place-self-center justify-between items-end gap-4;
   grid-area: paction;
 }
 

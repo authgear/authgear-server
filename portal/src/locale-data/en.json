@@ -458,6 +458,7 @@
   "UserDetailsAccountStatus.disable-user.until": "Disabled until {until}",
   "UserDetailsAccountStatus.disable-user.action.disable": "Disable user",
   "UserDetailsAccountStatus.disable-user.action.enable": "Enable user",
+  "UserDetailsAccountStatus.disable-user.action.edit-schedule": "Edit Disable Schedule",
   "UserDetailsAccountStatus.anonymize-user.title": "Anonymize User",
   "UserDetailsAccountStatus.anonymize-user.body": "Delete all data of this user, only the user ID is retained.",
   "UserDetailsAccountStatus.anonymize-user.action.anonymize": "Anonymize user",
