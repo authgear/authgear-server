@@ -59,10 +59,10 @@
 /pkg/auth/handler/webapp/auth_entry_point_middleware.go:31:31: requestcontext
 /pkg/auth/handler/webapp/auth_entry_point_middleware.go:32:35: requestcontext
 /pkg/auth/handler/webapp/authflow_change_password.go:96:26: requestcontext
-/pkg/auth/handler/webapp/authflow_controller.go:1020:30: requestcontext
-/pkg/auth/handler/webapp/authflow_controller.go:1025:24: requestcontext
-/pkg/auth/handler/webapp/authflow_controller.go:1033:19: requestcontext
-/pkg/auth/handler/webapp/authflow_controller.go:1041:18: requestcontext
+/pkg/auth/handler/webapp/authflow_controller.go:1034:30: requestcontext
+/pkg/auth/handler/webapp/authflow_controller.go:1039:24: requestcontext
+/pkg/auth/handler/webapp/authflow_controller.go:1047:19: requestcontext
+/pkg/auth/handler/webapp/authflow_controller.go:1055:18: requestcontext
 /pkg/auth/handler/webapp/authflow_create_password.go:132:26: requestcontext
 /pkg/auth/handler/webapp/authflow_enter_oob_otp.go:156:26: requestcontext
 /pkg/auth/handler/webapp/authflow_enter_password.go:139:26: requestcontext
