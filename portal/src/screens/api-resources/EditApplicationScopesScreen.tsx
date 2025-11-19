@@ -44,8 +44,7 @@ export function EditApplicationScopesScreenContent({
     useReplaceScopesOfClientIdMutation();
 
   const resource =
-    resourceScopesQueryData.node &&
-    resourceScopesQueryData.node.__typename === "Resource"
+    resourceScopesQueryData.node?.__typename === "Resource"
       ? resourceScopesQueryData.node
       : null;
 
@@ -196,8 +195,7 @@ const EditApplicationScopesScreen: React.VFC =
           (c) => c.client_id === clientID
         );
         const resource =
-          scopesQueryData?.node &&
-          scopesQueryData.node.__typename === "Resource"
+          scopesQueryData?.node?.__typename === "Resource"
             ? scopesQueryData.node
             : null;
         if (

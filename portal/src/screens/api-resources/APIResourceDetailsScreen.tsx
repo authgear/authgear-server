@@ -144,7 +144,7 @@ const APIResourceDetailsScreen: React.VFC =
       render: ([resourceQuery, configQuery]) => {
         const { data } = resourceQuery;
         const resource =
-          data?.node && data.node.__typename === "Resource" ? data.node : null;
+          data?.node?.__typename === "Resource" ? data.node : null;
         if (!resource) {
           return null;
         }

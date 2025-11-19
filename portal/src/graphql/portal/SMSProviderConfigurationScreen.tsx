@@ -157,14 +157,12 @@ function constructFormState(
 
   // This implementation only handles the new sms_gateway config and ignores the old sms_provider config
   const isSMSGatewayIsTwilio =
-    config.messaging?.sms_gateway != null &&
-    config.messaging.sms_gateway.provider === "twilio";
+    config.messaging?.sms_gateway?.provider === "twilio";
   const hasCustomTwilioCredentials =
     secrets.smsProviderSecrets?.twilioCredentials != null;
 
   const isSMSGatewayIsCustom =
-    config.messaging?.sms_gateway != null &&
-    config.messaging.sms_gateway.provider === "custom";
+    config.messaging?.sms_gateway?.provider === "custom";
   const hasCustomProviderSecrets =
     secrets.smsProviderSecrets?.customSMSProviderCredentials != null;
 

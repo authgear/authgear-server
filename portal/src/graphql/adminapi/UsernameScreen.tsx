@@ -93,9 +93,7 @@ const UsernameScreen: React.VFC = function UsernameScreen() {
     }
     const identity = user?.identities?.edges?.find((edge) => {
       const node = edge?.node;
-      return (
-        node != null && node.id === identityID && node.claims.preferred_username
-      );
+      return node?.id === identityID && node.claims.preferred_username;
     });
     if (identity == null) {
       return null;
