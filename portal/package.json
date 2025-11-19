@@ -67,7 +67,7 @@
     "graphql": "16.8.1",
     "jest": "^30.2.0",
     "jest-environment-jsdom": "^30.2.0",
-    "node-html-parser": "^6.1.13",
+    "node-html-parser": "^7.0.1",
     "playwright": "^1.56.1",
     "prettier": "^2.8.8",
     "storybook": "^8.6.14",
