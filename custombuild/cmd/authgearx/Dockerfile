@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # Stage 0: Build the static files
-FROM node:20.9.0-bookworm AS authgear-stage-0
+FROM node:20.19.5-bookworm AS authgear-stage-0
 WORKDIR /usr/src/app
 COPY ./authui/package.json ./authui/package-lock.json ./authui/
 # See /authui/README.md for the reason why we need to copy tarballs.
