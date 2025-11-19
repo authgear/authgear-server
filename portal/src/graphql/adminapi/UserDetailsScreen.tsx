@@ -46,7 +46,7 @@ import { makeInvariantViolatedErrorParseRule } from "../../error/parse";
 import AnonymizeUserDialog from "./AnonymizeUserDialog";
 import UserDetailsScreenGroupListContainer from "../../components/roles-and-groups/list/UserDetailsScreenGroupListContainer";
 import UserDetailsScreenRoleListContainer from "../../components/roles-and-groups/list/UserDetailsScreenRoleListContainer";
-import UserDetailsAdminActions from "./UserDetailsAdminActions";
+import UserDetailsAccountStatus from "./UserDetailsAccountStatus";
 
 interface UserDetailsProps {
   form: SimpleFormModel<FormState>;
@@ -63,7 +63,7 @@ const CONNECTED_IDENTITIES_PIVOT_KEY = "connected-identities";
 const SESSION_PIVOT_KEY = "session";
 const ROLES_KEY = "roles";
 const GROUPS_KEY = "groups";
-const DISABLE_DELELE_KEY = "disable-delete";
+const ACCOUNT_STATUS_KEY = "account-status";
 
 const pivotItemContainerStyle: IStyle = {
   flex: "1 0 auto",
@@ -232,7 +232,7 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
     SESSION_PIVOT_KEY,
     ROLES_KEY,
     GROUPS_KEY,
-    DISABLE_DELELE_KEY,
+    ACCOUNT_STATUS_KEY,
   ]);
   const {
     form,
@@ -372,10 +372,10 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
         >
           <PivotItem
             className={"flex-1 pt-8"}
-            itemKey={DISABLE_DELELE_KEY}
-            headerText={renderToString("UserDetails.disable-delete.header")}
+            itemKey={ACCOUNT_STATUS_KEY}
+            headerText={renderToString("UserDetails.account-status.header")}
           >
-            <UserDetailsAdminActions
+            <UserDetailsAccountStatus
               data={data}
               onAnonymizeData={onAnonymizeData}
               handleDataStatusChange={handleDataStatusChange}
@@ -479,10 +479,10 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
         </PivotItem>
         <PivotItem
           className={"flex-1 pt-8"}
-          itemKey={DISABLE_DELELE_KEY}
-          headerText={renderToString("UserDetails.disable-delete.header")}
+          itemKey={ACCOUNT_STATUS_KEY}
+          headerText={renderToString("UserDetails.account-status.header")}
         >
-          <UserDetailsAdminActions
+          <UserDetailsAccountStatus
             data={data}
             onAnonymizeData={onAnonymizeData}
             handleDataStatusChange={handleDataStatusChange}

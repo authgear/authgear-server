@@ -2,7 +2,7 @@ import { IStyle, Label, Text } from "@fluentui/react";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import React from "react";
 import cn from "classnames";
-import styles from "./UserDetailsAdminActions.module.css";
+import styles from "./UserDetailsAccountStatus.module.css";
 import ListCellLayout from "../../ListCellLayout";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { UserQueryNodeFragment } from "./query/userQuery.generated";
@@ -49,7 +49,7 @@ const DisableUserCell: React.VFC<DisableUserCellProps> =
             root: labelTextStyle,
           }}
         >
-          <FormattedMessage id="UserDetailsAdminActions.disable-user.title" />
+          <FormattedMessage id="UserDetailsAccountStatus.disable-user.title" />
         </Text>
         <Text
           className={cn(styles.actionCellBody)}
@@ -57,7 +57,7 @@ const DisableUserCell: React.VFC<DisableUserCellProps> =
             root: bodyTextStyle,
           }}
         >
-          <FormattedMessage id="UserDetailsAdminActions.disable-user.body" />
+          <FormattedMessage id="UserDetailsAccountStatus.disable-user.body" />
         </Text>
         {isDisabled ? (
           <OutlinedActionButton
@@ -65,7 +65,7 @@ const DisableUserCell: React.VFC<DisableUserCellProps> =
             className={cn(styles.actionCellActionButton)}
             iconProps={{ iconName: "Play" }}
             text={
-              <FormattedMessage id="UserDetailsAdminActions.disable-user.action.enable" />
+              <FormattedMessage id="UserDetailsAccountStatus.disable-user.action.enable" />
             }
             onClick={onDisableData}
           />
@@ -75,7 +75,7 @@ const DisableUserCell: React.VFC<DisableUserCellProps> =
             className={cn(styles.actionCellActionButton)}
             iconProps={{ iconName: "Blocked" }}
             text={
-              <FormattedMessage id="UserDetailsAdminActions.disable-user.action.disable" />
+              <FormattedMessage id="UserDetailsAccountStatus.disable-user.action.disable" />
             }
             onClick={onDisableData}
           />
@@ -100,7 +100,7 @@ const AnonymizeUserCell: React.VFC<AnonymizeUserCellProps> =
             root: labelTextStyle,
           }}
         >
-          <FormattedMessage id="UserDetailsAdminActions.anonymize-user.title" />
+          <FormattedMessage id="UserDetailsAccountStatus.anonymize-user.title" />
         </Text>
         <Text
           className={cn(styles.actionCellBody)}
@@ -108,7 +108,7 @@ const AnonymizeUserCell: React.VFC<AnonymizeUserCellProps> =
             root: bodyTextStyle,
           }}
         >
-          <FormattedMessage id="UserDetailsAdminActions.anonymize-user.body" />
+          <FormattedMessage id="UserDetailsAccountStatus.anonymize-user.body" />
         </Text>
         {isScheduledAnonymization ? (
           <OutlinedActionButton
@@ -116,7 +116,7 @@ const AnonymizeUserCell: React.VFC<AnonymizeUserCellProps> =
             className={cn(styles.actionCellActionButton)}
             iconProps={{ iconName: "Undo" }}
             text={
-              <FormattedMessage id="UserDetailsAdminActions.anonymize-user.action.cancel" />
+              <FormattedMessage id="UserDetailsAccountStatus.anonymize-user.action.cancel" />
             }
             onClick={onCancelAnonymizeData}
           />
@@ -126,7 +126,7 @@ const AnonymizeUserCell: React.VFC<AnonymizeUserCellProps> =
             className={cn(styles.actionCellActionButton)}
             iconProps={{ iconName: "Archive" }}
             text={
-              <FormattedMessage id="UserDetailsAdminActions.anonymize-user.action.anonymize" />
+              <FormattedMessage id="UserDetailsAccountStatus.anonymize-user.action.anonymize" />
             }
             onClick={onAnonymizeData}
           />
@@ -155,7 +155,7 @@ const RemoveUserCell: React.VFC<RemoveUserCellProps> = function RemoveUserCell(
           root: labelTextStyle,
         }}
       >
-        <FormattedMessage id="UserDetailsAdminActions.remove-user.title" />
+        <FormattedMessage id="UserDetailsAccountStatus.remove-user.title" />
       </Text>
       <Text
         className={cn(styles.actionCellBody)}
@@ -163,7 +163,7 @@ const RemoveUserCell: React.VFC<RemoveUserCellProps> = function RemoveUserCell(
           root: bodyTextStyle,
         }}
       >
-        <FormattedMessage id="UserDetailsAdminActions.remove-user.body" />
+        <FormattedMessage id="UserDetailsAccountStatus.remove-user.body" />
       </Text>
       {isScheduledRemoval ? (
         <div className={cn(styles.actionCellActionButtonContainer)}>
@@ -172,7 +172,7 @@ const RemoveUserCell: React.VFC<RemoveUserCellProps> = function RemoveUserCell(
             className={cn(styles.actionCellActionButton)}
             iconProps={{ iconName: "Undo" }}
             text={
-              <FormattedMessage id="UserDetailsAdminActions.remove-user.action.cancel" />
+              <FormattedMessage id="UserDetailsAccountStatus.remove-user.action.cancel" />
             }
             onClick={onCancelRemoveData}
           />
@@ -181,7 +181,7 @@ const RemoveUserCell: React.VFC<RemoveUserCellProps> = function RemoveUserCell(
             className={cn(styles.actionCellActionButton)}
             iconProps={{ iconName: "Delete" }}
             text={
-              <FormattedMessage id="UserDetailsAdminActions.remove-user.action.remove-now" />
+              <FormattedMessage id="UserDetailsAccountStatus.remove-user.action.remove-now" />
             }
             onClick={onRemoveData}
           />
@@ -192,7 +192,7 @@ const RemoveUserCell: React.VFC<RemoveUserCellProps> = function RemoveUserCell(
           className={cn(styles.actionCellActionButton)}
           iconProps={{ iconName: "Delete" }}
           text={
-            <FormattedMessage id="UserDetailsAdminActions.remove-user.action.remove" />
+            <FormattedMessage id="UserDetailsAccountStatus.remove-user.action.remove" />
           }
           onClick={onRemoveData}
         />
@@ -202,15 +202,15 @@ const RemoveUserCell: React.VFC<RemoveUserCellProps> = function RemoveUserCell(
   );
 };
 
-interface UserDetailsAdminActionsProps {
+interface UserDetailsAccountStatusProps {
   data: UserQueryNodeFragment;
   onRemoveData: () => void;
   onAnonymizeData: () => void;
   handleDataStatusChange: () => void;
 }
 
-const UserDetailsAdminActions: React.VFC<UserDetailsAdminActionsProps> =
-  function UserDetailsAdminActions(props) {
+const UserDetailsAccountStatus: React.VFC<UserDetailsAccountStatusProps> =
+  function UserDetailsAccountStatus(props) {
     const { data, onRemoveData, onAnonymizeData, handleDataStatusChange } =
       props;
 
@@ -218,7 +218,7 @@ const UserDetailsAdminActions: React.VFC<UserDetailsAdminActionsProps> =
       <div>
         <Label>
           <Text variant="xLarge">
-            <FormattedMessage id="UserDetailsAdminActions.title" />
+            <FormattedMessage id="UserDetailsAccountStatus.title" />
           </Text>
         </Label>
         <div className="-mt-3">
@@ -245,4 +245,4 @@ const UserDetailsAdminActions: React.VFC<UserDetailsAdminActionsProps> =
     );
   };
 
-export default UserDetailsAdminActions;
+export default UserDetailsAccountStatus;
