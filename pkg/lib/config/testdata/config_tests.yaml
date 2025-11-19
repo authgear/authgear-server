@@ -1507,14 +1507,14 @@ config:
       - name: Test Client
         client_id: test-client
         redirect_uris:
-          - "https://example.com"
-        logo_uri: https://example.com/logo.png
+          - "https://realdomain.com"
+        logo_uri: https://realdomain.com/logo.png
 ---
 name: oauth-client-logo-uri-non-https
 error: |-
   invalid configuration:
   /oauth/clients/0/logo_uri: format
-    map[error:invalid scheme: http format:x_public_image_uri]
+    map[error:url scheme must be https format:x_https_strict_uri]
 config:
   id: test
   http:
