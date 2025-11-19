@@ -301,6 +301,7 @@ var timezoneNames = []string{
 	"America/Eirunepe",
 	"America/Rio_Branco",
 	"America/Santiago",
+	"America/Coyhaique",
 	"America/Punta_Arenas",
 	"Pacific/Easter",
 	"Antarctica/Palmer",
