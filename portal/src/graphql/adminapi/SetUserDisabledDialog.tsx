@@ -3,8 +3,6 @@ import { Dialog, DialogFooter, IDialogContentProps } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { useSetDisabledStatusMutation } from "./mutations/setDisabledStatusMutation";
-import { useUnscheduleAccountDeletionMutation } from "./mutations/unscheduleAccountDeletion";
-import { useUnscheduleAccountAnonymizationMutation } from "./mutations/unscheduleAccountAnonymization";
 import ErrorDialog from "../../error/ErrorDialog";
 import { extractRawID } from "../../util/graphql";
 import PrimaryButton from "../../PrimaryButton";
@@ -14,8 +12,6 @@ interface SetUserDisabledDialogProps {
   isHidden: boolean;
   onDismiss: () => void;
   userID: string;
-  userDeleteAt: string | null;
-  userAnonymizeAt: string | null;
   userIsDisabled: boolean;
   endUserAccountIdentifier: string | undefined;
 }
@@ -28,8 +24,6 @@ const SetUserDisabledDialog: React.VFC<SetUserDisabledDialogProps> = React.memo(
       isHidden,
       onDismiss,
       userID,
-      userDeleteAt,
-      userAnonymizeAt,
       userIsDisabled,
       endUserAccountIdentifier,
     } = props;
@@ -40,25 +34,9 @@ const SetUserDisabledDialog: React.VFC<SetUserDisabledDialogProps> = React.memo(
       loading: setDisabledStatusLoading,
       error: setDisabledStatusError,
     } = useSetDisabledStatusMutation();
-    const {
-      unscheduleAccountDeletion,
-      loading: unscheduleAccountDeletionLoading,
-      error: unscheduleAccountDeletionError,
-    } = useUnscheduleAccountDeletionMutation();
-    const {
-      unscheduleAccountAnonymization,
-      loading: unscheduleAccountAnonymizationLoading,
-      error: unscheduleAccountAnonymizationError,
-    } = useUnscheduleAccountAnonymizationMutation();
 
-    const loading =
-      setDisabledStatusLoading ||
-      unscheduleAccountDeletionLoading ||
-      unscheduleAccountAnonymizationLoading;
-    const error =
-      setDisabledStatusError ||
-      unscheduleAccountDeletionError ||
-      unscheduleAccountAnonymizationError;
+    const loading = setDisabledStatusLoading;
+    const error = setDisabledStatusError;
 
     const onDialogDismiss = useCallback(() => {
       if (loading || isHidden) {
@@ -71,23 +49,13 @@ const SetUserDisabledDialog: React.VFC<SetUserDisabledDialogProps> = React.memo(
       if (loading || isHidden) {
         return;
       }
-      if (userDeleteAt != null) {
-        unscheduleAccountDeletion(userID).finally(() => onDismiss());
-      } else if (userAnonymizeAt != null) {
-        unscheduleAccountAnonymization(userID).finally(() => onDismiss());
-      } else {
-        setDisabledStatus(userID, !userIsDisabled).finally(() => onDismiss());
-      }
+      setDisabledStatus(userID, !userIsDisabled).finally(() => onDismiss());
     }, [
       loading,
       isHidden,
       setDisabledStatus,
-      unscheduleAccountAnonymization,
-      unscheduleAccountDeletion,
       userID,
       userIsDisabled,
-      userAnonymizeAt,
-      userDeleteAt,
       onDismiss,
     ]);
 
@@ -96,25 +64,7 @@ const SetUserDisabledDialog: React.VFC<SetUserDisabledDialogProps> = React.memo(
         username: endUserAccountIdentifier ?? extractRawID(userID),
       };
 
-      return userDeleteAt != null
-        ? {
-            title: renderToString("SetUserDisabledDialog.cancel-removal.title"),
-            subText: renderToString(
-              "SetUserDisabledDialog.cancel-removal.description",
-              args
-            ),
-          }
-        : userAnonymizeAt != null
-        ? {
-            title: renderToString(
-              "SetUserDisabledDialog.cancel-anonymization.title"
-            ),
-            subText: renderToString(
-              "SetUserDisabledDialog.cancel-anonymization.description",
-              args
-            ),
-          }
-        : userIsDisabled
+      return userIsDisabled
         ? {
             title: renderToString("SetUserDisabledDialog.reenable-user.title"),
             subText: renderToString(
@@ -129,30 +79,14 @@ const SetUserDisabledDialog: React.VFC<SetUserDisabledDialogProps> = React.memo(
               args
             ),
           };
-    }, [
-      renderToString,
-      userAnonymizeAt,
-      userDeleteAt,
-      userIsDisabled,
-      endUserAccountIdentifier,
-      userID,
-    ]);
+    }, [renderToString, userIsDisabled, endUserAccountIdentifier, userID]);
 
-    const theme =
-      userDeleteAt == null && !userIsDisabled
-        ? themes.destructive
-        : themes.main;
-
-    const children =
-      userDeleteAt != null ? (
-        <FormattedMessage id="SetUserDisabledDialog.cancel-removal.label" />
-      ) : userAnonymizeAt != null ? (
-        <FormattedMessage id="SetUserDisabledDialog.cancel-anonymization.label" />
-      ) : userIsDisabled ? (
-        <FormattedMessage id="reenable" />
-      ) : (
-        <FormattedMessage id="disable" />
-      );
+    const theme = userIsDisabled ? themes.main : themes.destructive;
+    const children = userIsDisabled ? (
+      <FormattedMessage id="reenable" />
+    ) : (
+      <FormattedMessage id="disable" />
+    );
 
     return (
       <>

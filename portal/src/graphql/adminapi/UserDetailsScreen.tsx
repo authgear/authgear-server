@@ -1,5 +1,5 @@
-import React, { useMemo, useState, useCallback, useContext } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import React, { useMemo, useCallback, useContext } from "react";
+import { useParams } from "react-router-dom";
 import { PivotItem, MessageBar, MessageBarType, IStyle } from "@fluentui/react";
 import { AGPivot } from "../../components/common/AGPivot";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
@@ -11,8 +11,6 @@ import ScreenContent from "../../ScreenContent";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import FormContainer from "../../FormContainer";
-import DeleteUserDialog from "./DeleteUserDialog";
-import SetUserDisabledDialog from "./SetUserDisabledDialog";
 import UserDetailSummary from "./UserDetailSummary";
 import UserProfileForm, {
   CustomAttributesState,
@@ -43,7 +41,6 @@ import { extractRawID } from "../../util/graphql";
 
 import styles from "./UserDetailsScreen.module.css";
 import { makeInvariantViolatedErrorParseRule } from "../../error/parse";
-import AnonymizeUserDialog from "./AnonymizeUserDialog";
 import UserDetailsScreenGroupListContainer from "../../components/roles-and-groups/list/UserDetailsScreenGroupListContainer";
 import UserDetailsScreenRoleListContainer from "../../components/roles-and-groups/list/UserDetailsScreenRoleListContainer";
 import UserDetailsAccountStatus from "./UserDetailsAccountStatus";
@@ -52,9 +49,6 @@ interface UserDetailsProps {
   form: SimpleFormModel<FormState>;
   data: UserQueryNodeFragment;
   appConfig: PortalAPIAppConfig;
-  onRemoveData: () => void;
-  onAnonymizeData: () => void;
-  handleDataStatusChange: () => void;
 }
 
 const USER_PROFILE_KEY = "user-profile";
@@ -532,7 +526,6 @@ interface UserDetailsScreenContentProps {
 const UserDetailsScreenContent: React.VFC<UserDetailsScreenContentProps> =
   function UserDetailsScreenContent(props: UserDetailsScreenContentProps) {
     const { user, refreshUser, effectiveAppConfig } = props;
-    const navigate = useNavigate();
     const customAttributesConfig = useMemo(() => {
       return (
         effectiveAppConfig.user_profile?.custom_attributes?.attributes ?? []
@@ -545,41 +538,6 @@ const UserDetailsScreenContent: React.VFC<UserDetailsScreenContentProps> =
         { to: ".", label: <FormattedMessage id="UserDetailsScreen.title" /> },
       ];
     }, []);
-
-    const [deleteUserDialogIsHidden, setDeleteUserDialogIsHidden] =
-      useState(true);
-    const onDismissDeleteUserDialog = useCallback(
-      (deletedUser: boolean) => {
-        setDeleteUserDialogIsHidden(true);
-        if (deletedUser) {
-          setTimeout(() => navigate("./../.."), 0);
-        }
-      },
-      [navigate]
-    );
-    const onClickDeleteUser = useCallback(() => {
-      setDeleteUserDialogIsHidden(false);
-    }, []);
-
-    const [anonymizeUserDialogIsHidden, setAnonymizeUserDialogIsHidden] =
-      useState(true);
-    const onDismissAnonymizeUserDialog = useCallback(() => {
-      setAnonymizeUserDialogIsHidden(true);
-    }, []);
-    const onClickAnonymizeUser = useCallback(() => {
-      setAnonymizeUserDialogIsHidden(false);
-    }, []);
-
-    const [setUserDisabledDialogIsHidden, setSetUserDisabledDialogIsHidden] =
-      useState(true);
-    const [userIsDisabled, setUserIsDisabled] = useState(user.isDisabled);
-    const onDismissSetUserDisabledDialog = useCallback(() => {
-      setSetUserDisabledDialogIsHidden(true);
-    }, []);
-    const onClickSetUserDisabled = useCallback(() => {
-      setSetUserDisabledDialogIsHidden(false);
-      setUserIsDisabled(user.isDisabled);
-    }, [user.isDisabled]);
 
     const defaultState = useMemo(() => {
       return {
@@ -637,38 +595,8 @@ const UserDetailsScreenContent: React.VFC<UserDetailsScreenContentProps> =
       >
         <ScreenContent className={styles.screenContent}>
           <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
-          <UserDetails
-            form={form}
-            data={user}
-            appConfig={effectiveAppConfig}
-            onRemoveData={onClickDeleteUser}
-            onAnonymizeData={onClickAnonymizeUser}
-            handleDataStatusChange={onClickSetUserDisabled}
-          />
+          <UserDetails form={form} data={user} appConfig={effectiveAppConfig} />
         </ScreenContent>
-        <DeleteUserDialog
-          isHidden={deleteUserDialogIsHidden}
-          onDismiss={onDismissDeleteUserDialog}
-          userID={user.id}
-          userDeleteAt={user.deleteAt}
-          endUserAccountIdentifier={user.endUserAccountID ?? undefined}
-        />
-        <AnonymizeUserDialog
-          isHidden={anonymizeUserDialogIsHidden}
-          onDismiss={onDismissAnonymizeUserDialog}
-          userID={user.id}
-          userAnonymizeAt={user.anonymizeAt}
-          endUserAccountIdentifier={user.endUserAccountID ?? undefined}
-        />
-        <SetUserDisabledDialog
-          isHidden={setUserDisabledDialogIsHidden}
-          onDismiss={onDismissSetUserDisabledDialog}
-          userID={user.id}
-          userIsDisabled={userIsDisabled}
-          userDeleteAt={user.deleteAt}
-          userAnonymizeAt={user.anonymizeAt}
-          endUserAccountIdentifier={user.endUserAccountID ?? undefined}
-        />
       </FormContainer>
     );
   };

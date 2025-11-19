@@ -387,12 +387,6 @@
   "SetUserDisabledDialog.disable-user.description": "Do you really want to disable user {username}? Disabling the user {username} will forbid them from logging in. Their existing sessions will also be removed.",
   "SetUserDisabledDialog.reenable-user.title": "Re-enable User",
   "SetUserDisabledDialog.reenable-user.description": "Do you really want to re-enable user {username}? Re-enable the user {username} so that they can login again.",
-  "SetUserDisabledDialog.cancel-removal.title": "Cancel Scheduled Removal",
-  "SetUserDisabledDialog.cancel-removal.description": "Do you really want to cancel scheduled removal on user {username}? If the removal is canceled, they will be re-enabled and can login again.",
-  "SetUserDisabledDialog.cancel-removal.label": "Cancel Removal",
-  "SetUserDisabledDialog.cancel-anonymization.title": "Cancel Scheduled Anonymization",
-  "SetUserDisabledDialog.cancel-anonymization.description": "Do you really want to cancel scheduled anonymization on user {username}? If the removal is canceled, they will be re-enabled and can login again.",
-  "SetUserDisabledDialog.cancel-anonymization.label": "Cancel Anonymization",
 
   "DeleteUserDialog.title": "Remove User",
   "DeleteUserDialog.text": "Are you really want to remove user {username}? This action cannot be undone.",

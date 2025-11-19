@@ -26,6 +26,10 @@ import {
 
 import PaginationWidget from "../../PaginationWidget";
 import SetUserDisabledDialog from "./SetUserDisabledDialog";
+import {
+  getButtonStates,
+  getMostAppropriateAction,
+} from "./UserDetailsAccountStatus";
 
 import { extractRawID } from "../../util/graphql";
 import { formatDatetime } from "../../util/formatDatetime";
@@ -77,11 +81,15 @@ interface UserListItem {
   isDeactivated: boolean;
   deleteAt: string | null;
   anonymizeAt: string | null;
+  accountValidFrom: string | null;
+  accountValidUntil: string | null;
+  temporarilyDisabledFrom: string | null;
+  temporarilyDisabledUntil: string | null;
   createdAt: string | null;
   lastLoginAt: string | null;
   profilePictureURL: string | null;
   formattedName: string | null;
-  endUserAccountIdentitifer: string | null;
+  endUserAccountID: string | null;
   username: string | null;
   phone: string | null;
   email: string | null;
@@ -90,11 +98,7 @@ interface UserListItem {
 }
 
 interface DisableUserDialogData {
-  userID: string;
-  userDeleteAt: string | null;
-  userIsDisabled: boolean;
-  userAnonymizeAt: string | null;
-  endUserAccountIdentitifer: string | null;
+  accountStatus: UserListItem;
 }
 
 const USER_LIST_PLACEHOLDER = "-";
@@ -117,7 +121,7 @@ function UserInfo(props: UserInfoProps) {
     item: {
       profilePictureURL,
       formattedName,
-      endUserAccountIdentitifer,
+      endUserAccountID,
       rawID,
       isAnonymous,
       isAnonymized,
@@ -143,7 +147,7 @@ function UserInfo(props: UserInfoProps) {
             <FormattedMessage id="UsersList.anonymized-user" />
           </Text>
         ) : (
-          formattedName ?? endUserAccountIdentitifer
+          formattedName ?? endUserAccountID
         )}
       </Text>
       <div className={styles.userInfoRawID}>{rawID}</div>
@@ -269,11 +273,15 @@ const UsersList: React.VFC<UsersListProps> = function UsersList(props) {
             isDeactivated: node.isDeactivated,
             deleteAt: formatDatetime(locale, node.deleteAt),
             anonymizeAt: formatDatetime(locale, node.anonymizeAt),
+            accountValidFrom: node.accountValidFrom,
+            accountValidUntil: node.accountValidUntil,
+            temporarilyDisabledFrom: node.temporarilyDisabledFrom,
+            temporarilyDisabledUntil: node.temporarilyDisabledUntil,
             createdAt: formatDatetime(locale, node.createdAt),
             lastLoginAt: formatDatetime(locale, node.lastLoginAt),
             profilePictureURL: node.standardAttributes.picture ?? null,
             formattedName: node.formattedName ?? null,
-            endUserAccountIdentitifer: node.endUserAccountID ?? null,
+            endUserAccountID: node.endUserAccountID ?? null,
             username: node.standardAttributes.preferred_username ?? null,
             phone: node.standardAttributes.phone_number ?? null,
             email: node.standardAttributes.email ?? null,
@@ -318,11 +326,7 @@ const UsersList: React.VFC<UsersListProps> = function UsersList(props) {
       e.preventDefault();
       e.stopPropagation();
       setDisableUserDialogData({
-        userID: item.id,
-        userDeleteAt: item.deleteAt,
-        userIsDisabled: item.isDisabled,
-        userAnonymizeAt: item.anonymizeAt,
-        endUserAccountIdentitifer: item.endUserAccountIdentitifer,
+        accountStatus: item,
       });
       setIsDisableUserDialogHidden(false);
     },
@@ -336,24 +340,21 @@ const UsersList: React.VFC<UsersListProps> = function UsersList(props) {
     (item: UserListItem) => {
       let variant: "destructive" | "default" | "no-action";
       let text: string;
-      if (item.deleteAt != null) {
-        variant = "default";
-        text = renderToString("UsersList.cancel-removal");
-      } else if (item.isAnonymized) {
-        // This condition should precede isDisabled
-        variant = "no-action";
-        text = "-";
-      } else if (item.anonymizeAt != null) {
-        // This condition should precede isDisabled
-        // This condition takes place when the scheduled anonymization is not yet triggered
-        variant = "destructive";
-        text = renderToString("UsersList.cancel-anonymization");
-      } else if (item.isDisabled) {
-        variant = "default";
-        text = renderToString("UsersList.reenable-user");
-      } else {
-        variant = "destructive";
-        text = renderToString("UsersList.disable-user");
+      const action = getMostAppropriateAction(item);
+
+      switch (action) {
+        case "disable":
+          variant = "destructive";
+          text = renderToString("UsersList.disable-user");
+          break;
+        case "re-enable":
+          variant = "default";
+          text = renderToString("UsersList.reenable-user");
+          break;
+        default:
+          variant = "no-action";
+          text = "-";
+          break;
       }
 
       return (
@@ -494,12 +495,13 @@ const UsersList: React.VFC<UsersListProps> = function UsersList(props) {
         <SetUserDisabledDialog
           isHidden={isDisableUserDialogHidden}
           onDismiss={dismissDisableUserDialog}
-          userID={disableUserDialogData.userID}
-          userDeleteAt={disableUserDialogData.userDeleteAt}
-          userAnonymizeAt={disableUserDialogData.userAnonymizeAt}
-          userIsDisabled={disableUserDialogData.userIsDisabled}
+          userID={disableUserDialogData.accountStatus.id}
+          userIsDisabled={
+            getButtonStates(disableUserDialogData.accountStatus).toggleDisable
+              .isDisabledIndefinitelyOrTemporarily
+          }
           endUserAccountIdentifier={
-            disableUserDialogData.endUserAccountIdentitifer ?? undefined
+            disableUserDialogData.accountStatus.endUserAccountID ?? undefined
           }
         />
       ) : null}
