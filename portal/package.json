@@ -112,7 +112,7 @@
     "immer": "^10.2.0",
     "intl-tel-input": "18.5.3",
     "js-yaml": "^4.1.1",
-    "libphonenumber-js": "^1.12.26",
+    "libphonenumber-js": "^1.12.27",
     "luxon": "^3.7.2",
     "monaco-editor": "0.44.0",
     "postcss": "^8.5.6",
