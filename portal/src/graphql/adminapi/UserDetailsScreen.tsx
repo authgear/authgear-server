@@ -234,14 +234,7 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
     GROUPS_KEY,
     ACCOUNT_STATUS_KEY,
   ]);
-  const {
-    form,
-    data,
-    appConfig,
-    onRemoveData,
-    onAnonymizeData,
-    handleDataStatusChange,
-  } = props;
+  const { form, data, appConfig } = props;
   const { state, setState } = form;
   const { renderToString } = React.useContext(Context);
 
@@ -375,12 +368,7 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
             itemKey={ACCOUNT_STATUS_KEY}
             headerText={renderToString("UserDetails.account-status.header")}
           >
-            <UserDetailsAccountStatus
-              data={data}
-              onAnonymizeData={onAnonymizeData}
-              handleDataStatusChange={handleDataStatusChange}
-              onRemoveData={onRemoveData}
-            />
+            <UserDetailsAccountStatus data={data} />
           </PivotItem>
         </AGPivot>
       </div>
@@ -482,12 +470,7 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
           itemKey={ACCOUNT_STATUS_KEY}
           headerText={renderToString("UserDetails.account-status.header")}
         >
-          <UserDetailsAccountStatus
-            data={data}
-            onAnonymizeData={onAnonymizeData}
-            handleDataStatusChange={handleDataStatusChange}
-            onRemoveData={onRemoveData}
-          />
+          <UserDetailsAccountStatus data={data} />
         </PivotItem>
       </AGPivot>
     </div>

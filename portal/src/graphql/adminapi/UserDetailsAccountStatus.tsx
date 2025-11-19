@@ -19,26 +19,100 @@ const bodyTextStyle: IStyle = {
 };
 
 interface DisableUserCellProps {
-  isDisabled: boolean;
-  onDisableData: () => void;
+  data: UserQueryNodeFragment;
 }
 
 interface AnonymizeUserCellProps {
-  isScheduledAnonymization: boolean;
-  onAnonymizeData: () => void;
-  onCancelAnonymizeData: () => void;
+  data: UserQueryNodeFragment;
 }
 
 interface RemoveUserCellProps {
-  isScheduledRemoval: boolean;
-  onRemoveData: () => void;
-  onCancelRemoveData: () => void;
+  data: UserQueryNodeFragment;
+}
+
+interface ButtonStates {
+  toggleDisable: {
+    buttonDisabled: boolean;
+    isDisabledIndefinitelyOrTemporarily: boolean;
+  };
+  setAccountValidPeriod: {
+    buttonDisabled: boolean;
+    accountValidFrom: Date | null;
+    accountValidUntil: Date | null;
+  };
+  anonymize: {
+    buttonDisabled: boolean;
+    anonymizeAt: Date | null;
+  };
+  delete: {
+    buttonDisabled: boolean;
+    deleteAt: Date | null;
+  };
+}
+
+function useButtonStates(data: UserQueryNodeFragment): ButtonStates {
+  const now = new Date();
+
+  const accountValidFrom =
+    data.accountValidFrom != null ? new Date(data.accountValidFrom) : null;
+  const accountValidUntil =
+    data.accountValidUntil != null ? new Date(data.accountValidUntil) : null;
+  const outsideValidPeriod =
+    accountValidFrom != null
+      ? now.getTime() < accountValidFrom.getTime()
+      : accountValidUntil != null
+      ? now.getTime() >= accountValidUntil.getTime()
+      : false;
+  const insideValidPeriod = !outsideValidPeriod;
+
+  const temporarilyDisabledFrom =
+    data.temporarilyDisabledFrom != null
+      ? new Date(data.temporarilyDisabledFrom)
+      : null;
+  const temporarilyDisabledUntil =
+    data.temporarilyDisabledUntil != null
+      ? new Date(data.temporarilyDisabledUntil)
+      : null;
+  const temporarilyDisabled =
+    temporarilyDisabledFrom != null &&
+    temporarilyDisabledUntil != null &&
+    now.getTime() >= temporarilyDisabledFrom.getTime() &&
+    now.getTime() < temporarilyDisabledUntil.getTime();
+
+  const indefinitelyDisabled =
+    data.isDisabled &&
+    data.deleteAt == null &&
+    data.anonymizeAt == null &&
+    insideValidPeriod &&
+    !temporarilyDisabled;
+
+  return {
+    toggleDisable: {
+      buttonDisabled: data.isAnonymized || outsideValidPeriod,
+      isDisabledIndefinitelyOrTemporarily:
+        temporarilyDisabled || indefinitelyDisabled,
+    },
+    setAccountValidPeriod: {
+      buttonDisabled: data.isAnonymized,
+      accountValidFrom,
+      accountValidUntil,
+    },
+    anonymize: {
+      buttonDisabled: data.isAnonymized,
+      anonymizeAt: data.anonymizeAt != null ? new Date(data.anonymizeAt) : null,
+    },
+    delete: {
+      buttonDisabled: false,
+      deleteAt: data.deleteAt != null ? new Date(data.deleteAt) : null,
+    },
+  };
 }
 
 const DisableUserCell: React.VFC<DisableUserCellProps> =
   function DisableUserCell(props) {
     const { themes } = useSystemConfig();
-    const { isDisabled, onDisableData } = props;
+    const { data } = props;
+    const buttonStates = useButtonStates(data);
     return (
       <ListCellLayout
         className={cn(styles.actionCell, styles["cell--not-first"])}
@@ -59,27 +133,27 @@ const DisableUserCell: React.VFC<DisableUserCellProps> =
         >
           <FormattedMessage id="UserDetailsAccountStatus.disable-user.body" />
         </Text>
-        {isDisabled ? (
-          <OutlinedActionButton
-            theme={themes.actionButton}
-            className={cn(styles.actionCellActionButton)}
-            iconProps={{ iconName: "Play" }}
-            text={
+        <OutlinedActionButton
+          disabled={buttonStates.toggleDisable.buttonDisabled}
+          theme={
+            buttonStates.toggleDisable.isDisabledIndefinitelyOrTemporarily
+              ? themes.actionButton
+              : themes.destructive
+          }
+          className={cn(styles.actionCellActionButton)}
+          iconProps={
+            buttonStates.toggleDisable.isDisabledIndefinitelyOrTemporarily
+              ? { iconName: "Play" }
+              : { iconName: "Blocked" }
+          }
+          text={
+            buttonStates.toggleDisable.isDisabledIndefinitelyOrTemporarily ? (
               <FormattedMessage id="UserDetailsAccountStatus.disable-user.action.enable" />
-            }
-            onClick={onDisableData}
-          />
-        ) : (
-          <OutlinedActionButton
-            theme={themes.destructive}
-            className={cn(styles.actionCellActionButton)}
-            iconProps={{ iconName: "Blocked" }}
-            text={
+            ) : (
               <FormattedMessage id="UserDetailsAccountStatus.disable-user.action.disable" />
-            }
-            onClick={onDisableData}
-          />
-        )}
+            )
+          }
+        />
         <div className={cn(styles.actionCellSpacer)} />
       </ListCellLayout>
     );
@@ -88,8 +162,8 @@ const DisableUserCell: React.VFC<DisableUserCellProps> =
 const AnonymizeUserCell: React.VFC<AnonymizeUserCellProps> =
   function AnonymizeUserCell(props) {
     const { themes } = useSystemConfig();
-    const { isScheduledAnonymization, onAnonymizeData, onCancelAnonymizeData } =
-      props;
+    const { data } = props;
+    const buttonStates = useButtonStates(data);
     return (
       <ListCellLayout
         className={cn(styles.actionCell, styles["cell--not-first"])}
@@ -110,27 +184,27 @@ const AnonymizeUserCell: React.VFC<AnonymizeUserCellProps> =
         >
           <FormattedMessage id="UserDetailsAccountStatus.anonymize-user.body" />
         </Text>
-        {isScheduledAnonymization ? (
-          <OutlinedActionButton
-            theme={themes.actionButton}
-            className={cn(styles.actionCellActionButton)}
-            iconProps={{ iconName: "Undo" }}
-            text={
+        <OutlinedActionButton
+          disabled={buttonStates.anonymize.buttonDisabled}
+          theme={
+            buttonStates.anonymize.anonymizeAt != null
+              ? themes.actionButton
+              : themes.destructive
+          }
+          className={cn(styles.actionCellActionButton)}
+          iconProps={
+            buttonStates.anonymize.anonymizeAt != null
+              ? { iconName: "Undo" }
+              : { iconName: "Archive" }
+          }
+          text={
+            buttonStates.anonymize.anonymizeAt != null ? (
               <FormattedMessage id="UserDetailsAccountStatus.anonymize-user.action.cancel" />
-            }
-            onClick={onCancelAnonymizeData}
-          />
-        ) : (
-          <OutlinedActionButton
-            theme={themes.destructive}
-            className={cn(styles.actionCellActionButton)}
-            iconProps={{ iconName: "Archive" }}
-            text={
+            ) : (
               <FormattedMessage id="UserDetailsAccountStatus.anonymize-user.action.anonymize" />
-            }
-            onClick={onAnonymizeData}
-          />
-        )}
+            )
+          }
+        />
         <div className={cn(styles.actionCellSpacer)} />
       </ListCellLayout>
     );
@@ -140,7 +214,8 @@ const RemoveUserCell: React.VFC<RemoveUserCellProps> = function RemoveUserCell(
   props
 ) {
   const { themes } = useSystemConfig();
-  const { isScheduledRemoval, onRemoveData, onCancelRemoveData } = props;
+  const { data } = props;
+  const buttonStates = useButtonStates(data);
   return (
     <ListCellLayout
       className={cn(
@@ -165,36 +240,36 @@ const RemoveUserCell: React.VFC<RemoveUserCellProps> = function RemoveUserCell(
       >
         <FormattedMessage id="UserDetailsAccountStatus.remove-user.body" />
       </Text>
-      {isScheduledRemoval ? (
+      {buttonStates.delete.deleteAt != null ? (
         <div className={cn(styles.actionCellActionButtonContainer)}>
           <OutlinedActionButton
+            disabled={buttonStates.delete.buttonDisabled}
             theme={themes.actionButton}
             className={cn(styles.actionCellActionButton)}
             iconProps={{ iconName: "Undo" }}
             text={
               <FormattedMessage id="UserDetailsAccountStatus.remove-user.action.cancel" />
             }
-            onClick={onCancelRemoveData}
           />
           <OutlinedActionButton
+            disabled={buttonStates.delete.buttonDisabled}
             theme={themes.destructive}
             className={cn(styles.actionCellActionButton)}
             iconProps={{ iconName: "Delete" }}
             text={
               <FormattedMessage id="UserDetailsAccountStatus.remove-user.action.remove-now" />
             }
-            onClick={onRemoveData}
           />
         </div>
       ) : (
         <OutlinedActionButton
+          disabled={buttonStates.delete.buttonDisabled}
           theme={themes.destructive}
           className={cn(styles.actionCellActionButton)}
           iconProps={{ iconName: "Delete" }}
           text={
             <FormattedMessage id="UserDetailsAccountStatus.remove-user.action.remove" />
           }
-          onClick={onRemoveData}
         />
       )}
       <div className={cn(styles.actionCellSpacer)} />
@@ -204,16 +279,11 @@ const RemoveUserCell: React.VFC<RemoveUserCellProps> = function RemoveUserCell(
 
 interface UserDetailsAccountStatusProps {
   data: UserQueryNodeFragment;
-  onRemoveData: () => void;
-  onAnonymizeData: () => void;
-  handleDataStatusChange: () => void;
 }
 
 const UserDetailsAccountStatus: React.VFC<UserDetailsAccountStatusProps> =
   function UserDetailsAccountStatus(props) {
-    const { data, onRemoveData, onAnonymizeData, handleDataStatusChange } =
-      props;
-
+    const { data } = props;
     return (
       <div>
         <Label>
@@ -222,24 +292,9 @@ const UserDetailsAccountStatus: React.VFC<UserDetailsAccountStatusProps> =
           </Text>
         </Label>
         <div className="-mt-3">
-          {data.isAnonymized || data.deleteAt != null ? null : (
-            <DisableUserCell
-              isDisabled={data.isDisabled}
-              onDisableData={handleDataStatusChange}
-            />
-          )}
-          {data.isAnonymized ? null : (
-            <AnonymizeUserCell
-              isScheduledAnonymization={data.anonymizeAt != null}
-              onAnonymizeData={onAnonymizeData}
-              onCancelAnonymizeData={handleDataStatusChange}
-            />
-          )}
-          <RemoveUserCell
-            isScheduledRemoval={data.deleteAt != null}
-            onRemoveData={onRemoveData}
-            onCancelRemoveData={handleDataStatusChange}
-          />
+          <DisableUserCell data={data} />
+          <AnonymizeUserCell data={data} />
+          <RemoveUserCell data={data} />
         </div>
       </div>
     );
