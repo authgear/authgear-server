@@ -454,7 +454,8 @@
 
   "UserDetailsAccountStatus.title": "Account Status",
   "UserDetailsAccountStatus.disable-user.title": "Disable User",
-  "UserDetailsAccountStatus.disable-user.body": "Temporarily disables the user's account, preventing them from logging in or using the system.",
+  "UserDetailsAccountStatus.disable-user.body": "Temporarily disables the user’s account, preventing them from logging in or using the system. Active sessions will be removed.",
+  "UserDetailsAccountStatus.disable-user.until": "Disabled until {until}",
   "UserDetailsAccountStatus.disable-user.action.disable": "Disable user",
   "UserDetailsAccountStatus.disable-user.action.enable": "Enable user",
   "UserDetailsAccountStatus.anonymize-user.title": "Anonymize User",

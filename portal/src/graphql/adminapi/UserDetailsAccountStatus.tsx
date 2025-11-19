@@ -1,12 +1,13 @@
 import { IStyle, Label, Text } from "@fluentui/react";
-import { FormattedMessage } from "@oursky/react-messageformat";
-import React from "react";
+import { FormattedMessage, Context } from "@oursky/react-messageformat";
+import React, { useContext } from "react";
 import cn from "classnames";
 import styles from "./UserDetailsAccountStatus.module.css";
 import ListCellLayout from "../../ListCellLayout";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { UserQueryNodeFragment } from "./query/userQuery.generated";
 import OutlinedActionButton from "../../components/common/OutlinedActionButton";
+import { formatDatetime } from "../../util/formatDatetime";
 
 const labelTextStyle: IStyle = {
   lineHeight: "20px",
@@ -34,6 +35,8 @@ interface ButtonStates {
   toggleDisable: {
     buttonDisabled: boolean;
     isDisabledIndefinitelyOrTemporarily: boolean;
+    disableReason: string | null;
+    temporarilyDisabledUntil: Date | null;
   };
   setAccountValidPeriod: {
     buttonDisabled: boolean;
@@ -91,6 +94,8 @@ function useButtonStates(data: UserQueryNodeFragment): ButtonStates {
       buttonDisabled: data.isAnonymized || outsideValidPeriod,
       isDisabledIndefinitelyOrTemporarily:
         temporarilyDisabled || indefinitelyDisabled,
+      disableReason: data.disableReason ?? null,
+      temporarilyDisabledUntil,
     },
     setAccountValidPeriod: {
       buttonDisabled: data.isAnonymized,
@@ -110,6 +115,7 @@ function useButtonStates(data: UserQueryNodeFragment): ButtonStates {
 
 const DisableUserCell: React.VFC<DisableUserCellProps> =
   function DisableUserCell(props) {
+    const { locale } = useContext(Context);
     const { themes } = useSystemConfig();
     const { data } = props;
     const buttonStates = useButtonStates(data);
@@ -117,22 +123,61 @@ const DisableUserCell: React.VFC<DisableUserCellProps> =
       <ListCellLayout
         className={cn(styles.actionCell, styles["cell--not-first"])}
       >
-        <Text
-          className={cn(styles.actionCellLabel)}
-          styles={{
-            root: labelTextStyle,
-          }}
-        >
-          <FormattedMessage id="UserDetailsAccountStatus.disable-user.title" />
-        </Text>
-        <Text
-          className={cn(styles.actionCellBody)}
-          styles={{
-            root: bodyTextStyle,
-          }}
-        >
-          <FormattedMessage id="UserDetailsAccountStatus.disable-user.body" />
-        </Text>
+        <div className={styles.actionCellLabel}>
+          <Text
+            styles={{
+              root: labelTextStyle,
+            }}
+          >
+            <FormattedMessage id="UserDetailsAccountStatus.disable-user.title" />
+          </Text>
+        </div>
+        <div className={styles.actionCellBody}>
+          <Text
+            styles={{
+              root: bodyTextStyle,
+            }}
+          >
+            <FormattedMessage id="UserDetailsAccountStatus.disable-user.body" />
+          </Text>
+
+          {buttonStates.toggleDisable.isDisabledIndefinitelyOrTemporarily &&
+          buttonStates.toggleDisable.disableReason != null ? (
+            <>
+              <br />
+              <Text
+                styles={{
+                  root: labelTextStyle,
+                }}
+              >
+                {buttonStates.toggleDisable.disableReason}
+              </Text>
+            </>
+          ) : null}
+
+          {buttonStates.toggleDisable.isDisabledIndefinitelyOrTemporarily &&
+          buttonStates.toggleDisable.temporarilyDisabledUntil != null ? (
+            <>
+              <br />
+              <Text
+                styles={{
+                  root: labelTextStyle,
+                }}
+              >
+                <FormattedMessage
+                  id="UserDetailsAccountStatus.disable-user.until"
+                  values={{
+                    until:
+                      formatDatetime(
+                        locale,
+                        buttonStates.toggleDisable.temporarilyDisabledUntil
+                      ) ?? "",
+                  }}
+                />
+              </Text>
+            </>
+          ) : null}
+        </div>
         <OutlinedActionButton
           disabled={buttonStates.toggleDisable.buttonDisabled}
           theme={
