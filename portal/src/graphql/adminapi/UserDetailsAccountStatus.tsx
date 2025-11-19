@@ -22,6 +22,10 @@ interface DisableUserCellProps {
   data: UserQueryNodeFragment;
 }
 
+interface AccountValidPeriodCellProps {
+  data: UserQueryNodeFragment;
+}
+
 interface AnonymizeUserCellProps {
   data: UserQueryNodeFragment;
 }
@@ -210,6 +214,88 @@ const DisableUserCell: React.VFC<DisableUserCellProps> =
     );
   };
 
+const AccountValidPeriodCell: React.VFC<AccountValidPeriodCellProps> =
+  function AccountValidPeriodCell(props) {
+    const { locale } = useContext(Context);
+    const { themes } = useSystemConfig();
+    const { data } = props;
+    const buttonStates = useButtonStates(data);
+    return (
+      <ListCellLayout className={styles.actionCell}>
+        <div className={styles.actionCellLabel}>
+          <Text
+            styles={{
+              root: labelTextStyle,
+            }}
+          >
+            <FormattedMessage id="UserDetailsAccountStatus.account-valid-period.title" />
+          </Text>
+        </div>
+        <div className={styles.actionCellBody}>
+          <Text
+            styles={{
+              root: bodyTextStyle,
+            }}
+          >
+            {buttonStates.setAccountValidPeriod.accountValidFrom == null &&
+            buttonStates.setAccountValidPeriod.accountValidUntil == null ? (
+              <FormattedMessage id="UserDetailsAccountStatus.account-valid-period.body--unset" />
+            ) : (
+              <>
+                {buttonStates.setAccountValidPeriod.accountValidFrom != null ? (
+                  <>
+                    <FormattedMessage
+                      id="UserDetailsAccountStatus.account-valid-period.start"
+                      values={{
+                        start:
+                          formatDatetime(
+                            locale,
+                            buttonStates.setAccountValidPeriod.accountValidFrom
+                          ) ?? "",
+                      }}
+                    />
+                    <br />
+                  </>
+                ) : null}
+                {buttonStates.setAccountValidPeriod.accountValidUntil !=
+                null ? (
+                  <>
+                    <FormattedMessage
+                      id="UserDetailsAccountStatus.account-valid-period.end"
+                      values={{
+                        end:
+                          formatDatetime(
+                            locale,
+                            buttonStates.setAccountValidPeriod.accountValidUntil
+                          ) ?? "",
+                      }}
+                    />
+                    <br />
+                  </>
+                ) : null}
+                <FormattedMessage id="UserDetailsAccountStatus.account-valid-period.body--set" />
+              </>
+            )}
+          </Text>
+        </div>
+        <OutlinedActionButton
+          disabled={buttonStates.setAccountValidPeriod.buttonDisabled}
+          theme={themes.destructive}
+          className={styles.actionCellActionButton}
+          iconProps={{ iconName: "Calendar" }}
+          text={
+            buttonStates.setAccountValidPeriod.accountValidFrom == null &&
+            buttonStates.setAccountValidPeriod.accountValidUntil == null ? (
+              <FormattedMessage id="UserDetailsAccountStatus.account-valid-period.action.set" />
+            ) : (
+              <FormattedMessage id="UserDetailsAccountStatus.account-valid-period.action.edit" />
+            )
+          }
+        />
+      </ListCellLayout>
+    );
+  };
+
 const AnonymizeUserCell: React.VFC<AnonymizeUserCellProps> =
   function AnonymizeUserCell(props) {
     const { themes } = useSystemConfig();
@@ -334,6 +420,7 @@ const UserDetailsAccountStatus: React.VFC<UserDetailsAccountStatusProps> =
         </Label>
         <div className="-mt-3">
           <DisableUserCell data={data} />
+          <AccountValidPeriodCell data={data} />
           <AnonymizeUserCell data={data} />
           <RemoveUserCell data={data} />
         </div>
