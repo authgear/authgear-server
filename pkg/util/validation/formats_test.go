@@ -391,16 +391,19 @@ func TestFormatX509CertPem(t *testing.T) {
 	})
 }
 
-func TestFormatPublicImageURI(t *testing.T) {
-	Convey("FormatPublicImageURI", t, func() {
-		f := FormatPublicImageURI{}.CheckFormat
+func TestFormatHTTPSStrictURI(t *testing.T) {
+	Convey("FormatHTTPSStrictURI", t, func() {
+		f := FormatHTTPSStrictURI{}.CheckFormat
 
 		So(f(backgroundCtx(), 1), ShouldBeNil)
-		So(f(backgroundCtx(), ""), ShouldBeError, "invalid scheme: ")
-		So(f(backgroundCtx(), "foobar:"), ShouldBeError, "invalid scheme: foobar")
-		So(f(backgroundCtx(), "http://"), ShouldBeError, "invalid scheme: http")
+		So(f(backgroundCtx(), ""), ShouldBeError, "empty url")
+		So(f(backgroundCtx(), "foobar:"), ShouldBeError, "url scheme must be https")
+		So(f(backgroundCtx(), "http://"), ShouldBeError, "url scheme must be https")
 
-		So(f(backgroundCtx(), "https://example.com"), ShouldBeNil)
-		So(f(backgroundCtx(), "https://example.com/image.png"), ShouldBeNil)
+		So(f(backgroundCtx(), "https://example.com"), ShouldBeError, "host is blocked by policy")
+		So(f(backgroundCtx(), "https://example.com/image.png"), ShouldBeError, "host is blocked by policy")
+
+		So(f(backgroundCtx(), "https://realdomain.com/image.png"), ShouldBeNil)
+		So(f(backgroundCtx(), "https://realdomain.com/image.png"), ShouldBeNil)
 	})
 }
