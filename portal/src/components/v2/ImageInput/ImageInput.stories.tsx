@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from "@storybook/react-vite";
 import { ImageInput, ImageInputProps, ImageValue } from "./ImageInput";
 import React, { useState } from "react";
 

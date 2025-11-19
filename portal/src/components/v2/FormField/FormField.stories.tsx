@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from "@storybook/react-vite";
 import { FormField, FormFieldProps } from "./FormField";
 import { RadioCards } from "../RadioCards/RadioCards";
 import { TextField } from "../TextField/TextField";

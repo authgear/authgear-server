@@ -12,10 +12,9 @@ function getAbsolutePath(value: string): any {
 const config: StorybookConfig = {
   stories: ["../src/**/*.mdx", "../src/**/*.stories.@(js|jsx|mjs|ts|tsx)"],
   addons: [
-    getAbsolutePath("@storybook/addon-essentials"),
     getAbsolutePath("@storybook/addon-onboarding"),
     getAbsolutePath("@chromatic-com/storybook"),
-    getAbsolutePath("@storybook/experimental-addon-test"),
+    getAbsolutePath("@storybook/addon-vitest"),
     getAbsolutePath("storybook-addon-pseudo-states"),
   ],
   framework: {
