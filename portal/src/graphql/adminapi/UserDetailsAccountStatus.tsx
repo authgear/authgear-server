@@ -445,7 +445,6 @@ const RemoveUserCell: React.VFC<RemoveUserCellProps> = function RemoveUserCell(
           <OutlinedActionButton
             disabled={buttonStates.delete.buttonDisabled}
             theme={themes.actionButton}
-            className={styles.actionCellActionButton}
             iconProps={{ iconName: "Undo" }}
             text={
               <FormattedMessage id="UserDetailsAccountStatus.remove-user.action.cancel" />
@@ -455,7 +454,6 @@ const RemoveUserCell: React.VFC<RemoveUserCellProps> = function RemoveUserCell(
           <OutlinedActionButton
             disabled={buttonStates.delete.buttonDisabled}
             theme={themes.destructive}
-            className={styles.actionCellActionButton}
             iconProps={{ iconName: "Delete" }}
             text={
               <FormattedMessage id="UserDetailsAccountStatus.remove-user.action.remove-now" />
