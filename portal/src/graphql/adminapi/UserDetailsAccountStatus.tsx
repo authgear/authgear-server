@@ -17,7 +17,7 @@ import {
 } from "@fluentui/react";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import { useNavigate } from "react-router-dom";
-import { DateTime, SystemZone } from "luxon";
+import { DateTime, SystemZone, DateObjectUnits } from "luxon";
 
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import ListCellLayout from "../../ListCellLayout";
@@ -131,23 +131,6 @@ function formatSystemZone(now: Date, locale: string): string {
   })} (${zone.name})`;
 }
 
-function usePickedDateAndTime(opts: {
-  pickedDate: Date;
-  pickedTime: Date;
-}): Date {
-  const { pickedDate, pickedTime } = opts;
-  return useMemo(() => {
-    return DateTime.fromJSDate(pickedDate)
-      .set({
-        hour: pickedTime.getHours(),
-        minute: pickedTime.getMinutes(),
-        second: 0,
-        millisecond: 0,
-      })
-      .toJSDate();
-  }, [pickedDate, pickedTime]);
-}
-
 function useMinDate(ref: Date): Date {
   // Add 1 hour so that the minDate is never less than now.
   return DateTime.fromJSDate(ref)
@@ -164,13 +147,13 @@ function useMinDate(ref: Date): Date {
 
 function useDatePickerProps(opts: {
   minDate: Date;
-  pickedTime: Date;
-  setDate: (date: Date) => void;
-  setTime: (date: Date) => void;
+  pickedDateTime: Date;
+  setDateTime: (datetime: Date) => void;
 }): {
+  minDate: Date;
   onSelectDate: (date: Date | null | undefined) => void;
 } {
-  const { minDate, pickedTime, setDate, setTime } = opts;
+  const { minDate, pickedDateTime, setDateTime } = opts;
 
   const onSelectDate = useCallback(
     (date: Date | null | undefined) => {
@@ -178,58 +161,76 @@ function useDatePickerProps(opts: {
         return;
       }
 
-      const dateTime_minDate = DateTime.fromJSDate(minDate).startOf("day");
-      const dateTime_pickedDate = DateTime.fromJSDate(date).startOf("day");
+      const startOfDay_minDate = DateTime.fromJSDate(minDate).startOf("day");
+      const startOfDay_pickedDate = DateTime.fromJSDate(date).startOf("day");
 
       // Do not allow to pick a date less than minDate.
-      if (dateTime_pickedDate.valueOf() < dateTime_minDate.valueOf()) {
+      if (startOfDay_pickedDate.valueOf() < startOfDay_minDate.valueOf()) {
         return;
       }
+
+      const obj: DateObjectUnits = {
+        year: startOfDay_pickedDate.year,
+        month: startOfDay_pickedDate.month,
+        day: startOfDay_pickedDate.day,
+      };
 
       // Adjust the time.
-      if (dateTime_pickedDate.valueOf() === dateTime_minDate.valueOf()) {
-        setDate(date);
-        if (
-          pickedTime.getHours() < minDate.getHours() ||
-          pickedTime.getMinutes() < minDate.getMinutes()
-        ) {
-          setTime(minDate);
+      if (startOfDay_pickedDate.valueOf() === startOfDay_minDate.valueOf()) {
+        const needAdjust =
+          pickedDateTime.getHours() < minDate.getHours() ||
+          (pickedDateTime.getHours() === minDate.getHours() &&
+            pickedDateTime.getMinutes() < minDate.getMinutes());
+
+        if (needAdjust) {
+          const d = DateTime.fromJSDate(minDate);
+          obj.hour = d.hour;
+          obj.minute = d.minute;
         }
-        return;
       }
 
-      setDate(date);
+      setDateTime(DateTime.fromJSDate(pickedDateTime).set(obj).toJSDate());
     },
-    [minDate, pickedTime, setDate, setTime]
+    [minDate, pickedDateTime, setDateTime]
   );
 
   return {
+    minDate,
     onSelectDate,
   };
 }
 
 function useTimePickerTimeProps(opts: {
   minDate: Date;
-  pickedDate: Date;
-  setTime: (date: Date) => void;
+  pickedDateTime: Date;
+  setDateTime: (date: Date) => void;
 }): {
   increments: number;
   timeRange: ITimeRange;
   onChange: (e: React.FormEvent<IComboBox>, time: Date) => void;
 } {
   const increments = 60;
-  const { minDate, pickedDate, setTime } = opts;
+  const { minDate, pickedDateTime, setDateTime } = opts;
   const startOfDay_minDate = DateTime.fromJSDate(minDate).startOf("day");
-  const startOfDay_pickedDate = DateTime.fromJSDate(pickedDate).startOf("day");
+  const startOfDay_pickedDateTime =
+    DateTime.fromJSDate(pickedDateTime).startOf("day");
 
   const onChange = useCallback(
     (_e: React.FormEvent<IComboBox>, time: Date) => {
-      setTime(time);
+      const d = DateTime.fromJSDate(time);
+      setDateTime(
+        DateTime.fromJSDate(pickedDateTime)
+          .set({
+            hour: d.hour,
+            minute: d.minute,
+          })
+          .toJSDate()
+      );
     },
-    [setTime]
+    [pickedDateTime, setDateTime]
   );
   // This should not happen.
-  if (startOfDay_pickedDate.valueOf() < startOfDay_minDate.valueOf()) {
+  if (startOfDay_pickedDateTime.valueOf() < startOfDay_minDate.valueOf()) {
     return {
       increments,
       onChange,
@@ -239,7 +240,7 @@ function useTimePickerTimeProps(opts: {
       },
     };
   }
-  if (startOfDay_pickedDate.valueOf() > startOfDay_minDate.valueOf()) {
+  if (startOfDay_pickedDateTime.valueOf() > startOfDay_minDate.valueOf()) {
     return {
       increments,
       onChange,
@@ -929,26 +930,19 @@ export function AccountStatusDialog(
     "indefinitely" | "temporarily"
   >("indefinitely");
 
-  const [temporarilyDisabledUntil_date, setTemporarilyDisabledUntil_date] =
-    useState(minDate);
-  const [temporarilyDisabledUntil_time, setTemporarilyDisabledUntil_time] =
-    useState(minDate);
+  const [temporarilyDisabledUntil, setTemporarilyDisabledUntil] = useState(() =>
+    DateTime.fromJSDate(minDate).plus({ days: 7 }).toJSDate()
+  );
 
   const datePickerProps = useDatePickerProps({
     minDate,
-    pickedTime: temporarilyDisabledUntil_time,
-    setDate: setTemporarilyDisabledUntil_date,
-    setTime: setTemporarilyDisabledUntil_time,
+    pickedDateTime: temporarilyDisabledUntil,
+    setDateTime: setTemporarilyDisabledUntil,
   });
   const timePickerProps = useTimePickerTimeProps({
     minDate,
-    pickedDate: temporarilyDisabledUntil_date,
-    setTime: setTemporarilyDisabledUntil_time,
-  });
-
-  const temporarilyDisabledUntil = usePickedDateAndTime({
-    pickedDate: temporarilyDisabledUntil_date,
-    pickedTime: temporarilyDisabledUntil_time,
+    pickedDateTime: temporarilyDisabledUntil,
+    setDateTime: setTemporarilyDisabledUntil,
   });
 
   const [disableReason, setDisableReason] = useState(
@@ -1041,7 +1035,7 @@ export function AccountStatusDialog(
                 {...datePickerProps}
                 className="flex-1"
                 disabled={disableChoiceGroupKey !== "temporarily"}
-                value={temporarilyDisabledUntil_date}
+                value={temporarilyDisabledUntil}
               />
               <TimePicker
                 {...timePickerProps}
@@ -1050,7 +1044,7 @@ export function AccountStatusDialog(
                 allowFreeform={false}
                 showSeconds={false}
                 useHour12={false}
-                value={temporarilyDisabledUntil_time}
+                value={temporarilyDisabledUntil}
               />
             </div>
           </div>
@@ -1061,8 +1055,7 @@ export function AccountStatusDialog(
       datePickerProps,
       disableChoiceGroupKey,
       locale,
-      temporarilyDisabledUntil_date,
-      temporarilyDisabledUntil_time,
+      temporarilyDisabledUntil,
       timePickerProps,
     ]
   );
