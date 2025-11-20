@@ -76,6 +76,7 @@ export interface AccountStatus {
 interface DisableUserCellProps {
   data: AccountStatus;
   onClickDisable: () => void;
+  onClickReenable: () => void;
 }
 
 interface AccountValidPeriodCellProps {
@@ -348,7 +349,7 @@ const DisableUserCell: React.VFC<DisableUserCellProps> =
   function DisableUserCell(props) {
     const { locale } = useContext(Context);
     const { themes } = useSystemConfig();
-    const { data, onClickDisable } = props;
+    const { data, onClickDisable, onClickReenable } = props;
     const buttonStates = getButtonStates(data);
     return (
       <ListCellLayout className={styles.actionCell}>
@@ -417,7 +418,7 @@ const DisableUserCell: React.VFC<DisableUserCellProps> =
               text={
                 <FormattedMessage id="UserDetailsAccountStatus.disable-user.action.enable" />
               }
-              onClick={onClickDisable}
+              onClick={onClickReenable}
             />
             <OutlinedActionButton
               disabled={buttonStates.toggleDisable.buttonDisabled}
@@ -677,6 +678,11 @@ const UserDetailsAccountStatus: React.VFC<UserDetailsAccountStatusProps> =
       setDialogKey((prev) => prev + 1);
       setDialogHidden(false);
     }, []);
+    const onClickReenable = useCallback(() => {
+      setMode("re-enable");
+      setDialogKey((prev) => prev + 1);
+      setDialogHidden(false);
+    }, []);
     const onClickAnonymizeOrSchedule = useCallback(() => {
       setMode("anonymize-or-schedule");
       setDialogKey((prev) => prev + 1);
@@ -726,7 +732,11 @@ const UserDetailsAccountStatus: React.VFC<UserDetailsAccountStatusProps> =
           </Text>
         </Label>
         <div className="-mt-3">
-          <DisableUserCell data={data} onClickDisable={onClickDisable} />
+          <DisableUserCell
+            data={data}
+            onClickDisable={onClickDisable}
+            onClickReenable={onClickReenable}
+          />
           <AccountValidPeriodCell data={data} />
           <AnonymizeUserCell
             data={data}
@@ -757,6 +767,7 @@ export interface AccountStatusDialogProps {
   onDismiss: (info: { deletedUser: boolean }) => void;
   mode:
     | "disable"
+    | "re-enable"
     | "set-account-valid-period"
     | "edit-account-valid-period"
     | "anonymize-or-schedule"
@@ -773,7 +784,6 @@ export function AccountStatusDialog(
   props: AccountStatusDialogProps
 ): React.ReactElement {
   const { isHidden, onDismiss, mode, accountStatus } = props;
-  const buttonStates = getButtonStates(accountStatus);
   const { themes } = useSystemConfig();
   const { locale, renderToString } = useContext(Context);
 
@@ -806,7 +816,17 @@ export function AccountStatusDialog(
     pickedTime: temporarilyDisabledUntil_time,
   });
 
-  const [disableReason, setDisableReason] = useState("");
+  const [disableReason, setDisableReason] = useState(
+    () => accountStatus.disableReason ?? ""
+  );
+
+  const sanitizedDisableReason = useMemo(() => {
+    const trimmed = disableReason.trim();
+    if (trimmed === "") {
+      return null;
+    }
+    return trimmed;
+  }, [disableReason]);
 
   const onRenderTemporarilyDisableFormField = useCallback(
     (
@@ -1002,18 +1022,39 @@ export function AccountStatusDialog(
     if (loading || isHidden) {
       return;
     }
-    setDisabledStatus(accountStatus.id, true).finally(() =>
-      onDismiss({ deletedUser: false })
-    );
-  }, [accountStatus.id, isHidden, loading, onDismiss, setDisabledStatus]);
+    setDisabledStatus({
+      userID: accountStatus.id,
+      isDisabled: true,
+      reason: sanitizedDisableReason,
+      temporarilyDisabledFrom:
+        disableChoiceGroupKey === "indefinitely" ? null : new Date(),
+      temporarilyDisabledUntil:
+        disableChoiceGroupKey === "indefinitely"
+          ? null
+          : temporarilyDisabledUntil,
+    }).finally(() => onDismiss({ deletedUser: false }));
+  }, [
+    accountStatus.id,
+    disableChoiceGroupKey,
+    isHidden,
+    loading,
+    onDismiss,
+    sanitizedDisableReason,
+    setDisabledStatus,
+    temporarilyDisabledUntil,
+  ]);
 
   const onClickReenable = useCallback(() => {
     if (loading || isHidden) {
       return;
     }
-    setDisabledStatus(accountStatus.id, false).finally(() =>
-      onDismiss({ deletedUser: false })
-    );
+    setDisabledStatus({
+      userID: accountStatus.id,
+      isDisabled: false,
+      reason: null,
+      temporarilyDisabledFrom: null,
+      temporarilyDisabledUntil: null,
+    }).finally(() => onDismiss({ deletedUser: false }));
   }, [accountStatus.id, isHidden, loading, onDismiss, setDisabledStatus]);
 
   const onClickAnonymize = useCallback(() => {
@@ -1192,11 +1233,10 @@ export function AccountStatusDialog(
 
     switch (mode) {
       case "disable":
-        if (buttonStates.toggleDisable.isDisabledIndefinitelyOrTemporarily) {
-          prepareReenable();
-        } else {
-          prepareDisable();
-        }
+        prepareDisable();
+        break;
+      case "re-enable":
+        prepareReenable();
         break;
       case "set-account-valid-period":
         break;
@@ -1334,7 +1374,6 @@ export function AccountStatusDialog(
     return { dialogContentProps: { title, subText }, body, button1, button2 };
   }, [
     accountStatus,
-    buttonStates.toggleDisable.isDisabledIndefinitelyOrTemporarily,
     disableForm,
     loading,
     mode,
