@@ -1,12 +1,5 @@
 import React, { useContext, useState, useCallback, useMemo } from "react";
-import {
-  IStyle,
-  Label,
-  Text,
-  Dialog,
-  DialogFooter,
-  IDialogContentProps,
-} from "@fluentui/react";
+import { IStyle, Label, Text, Dialog, DialogFooter } from "@fluentui/react";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import { useNavigate } from "react-router-dom";
 
@@ -618,7 +611,6 @@ export function AccountStatusDialog(
 ): React.ReactElement {
   const { isHidden, onDismiss, mode, accountStatus } = props;
   const buttonStates = getButtonStates(accountStatus);
-  const { renderToString } = useContext(Context);
   const { themes } = useSystemConfig();
 
   const {
@@ -771,8 +763,11 @@ export function AccountStatusDialog(
     unscheduleAccountDeletion,
   ]);
 
-  const dialogContentPropsAndButtons: {
-    dialogContentProps: IDialogContentProps;
+  const dialogContentPropsAndDialogSlots: {
+    dialogContentProps: {
+      title: React.ReactElement | null;
+      subText: React.ReactElement | null;
+    };
     button1: React.ReactElement | null;
     button2: React.ReactElement | null;
   } = useMemo(() => {
@@ -781,16 +776,20 @@ export function AccountStatusDialog(
         accountStatus.endUserAccountID ?? extractRawID(accountStatus.id),
     };
 
-    let title = "";
-    let subText = "";
+    let title: React.ReactElement | null = null;
+    let subText: React.ReactElement | null = null;
     let button1: React.ReactElement | null = null;
     let button2: React.ReactElement | null = null;
 
     const prepareUnscheduleDeletion = () => {
-      title = renderToString("AccountStatusDialog.cancel-deletion.title");
-      subText = renderToString(
-        "AccountStatusDialog.cancel-deletion.description",
-        args
+      title = (
+        <FormattedMessage id="AccountStatusDialog.cancel-deletion.title" />
+      );
+      subText = (
+        <FormattedMessage
+          id="AccountStatusDialog.cancel-deletion.description"
+          values={args}
+        />
       );
       button1 = (
         <PrimaryButton
@@ -804,10 +803,14 @@ export function AccountStatusDialog(
       );
     };
     const prepareUnscheduleAnonymization = () => {
-      title = renderToString("AccountStatusDialog.cancel-anonymization.title");
-      subText = renderToString(
-        "AccountStatusDialog.cancel-anonymization.description",
-        args
+      title = (
+        <FormattedMessage id="AccountStatusDialog.cancel-anonymization.title" />
+      );
+      subText = (
+        <FormattedMessage
+          id="AccountStatusDialog.cancel-anonymization.description"
+          values={args}
+        />
       );
       button1 = (
         <PrimaryButton
@@ -821,10 +824,12 @@ export function AccountStatusDialog(
       );
     };
     const prepareReenable = () => {
-      title = renderToString("AccountStatusDialog.reenable-user.title");
-      subText = renderToString(
-        "AccountStatusDialog.reenable-user.description",
-        args
+      title = <FormattedMessage id="AccountStatusDialog.reenable-user.title" />;
+      subText = (
+        <FormattedMessage
+          id="AccountStatusDialog.reenable-user.description"
+          values={args}
+        />
       );
       button1 = (
         <PrimaryButton
@@ -838,10 +843,12 @@ export function AccountStatusDialog(
       );
     };
     const prepareDisable = () => {
-      title = renderToString("AccountStatusDialog.disable-user.title");
-      subText = renderToString(
-        "AccountStatusDialog.disable-user.description",
-        args
+      title = <FormattedMessage id="AccountStatusDialog.disable-user.title" />;
+      subText = (
+        <FormattedMessage
+          id="AccountStatusDialog.disable-user.description"
+          values={args}
+        />
       );
       button1 = (
         <PrimaryButton
@@ -864,18 +871,18 @@ export function AccountStatusDialog(
         }
         break;
       case "set-account-valid-period":
-        title = "TODO";
-        subText = "TODO";
         break;
       case "edit-account-valid-period":
-        title = "TODO";
-        subText = "TODO";
         break;
       case "anonymize-or-schedule":
-        title = renderToString("AccountStatusDialog.anonymize-user.title");
-        subText = renderToString(
-          "AccountStatusDialog.anonymize-user.description",
-          args
+        title = (
+          <FormattedMessage id="AccountStatusDialog.anonymize-user.title" />
+        );
+        subText = (
+          <FormattedMessage
+            id="AccountStatusDialog.anonymize-user.description"
+            values={args}
+          />
         );
         button1 = (
           <PrimaryButton
@@ -902,10 +909,14 @@ export function AccountStatusDialog(
         prepareUnscheduleAnonymization();
         break;
       case "anonymize-immediately":
-        title = renderToString("AccountStatusDialog.anonymize-user.title");
-        subText = renderToString(
-          "AccountStatusDialog.anonymize-user.description",
-          args
+        title = (
+          <FormattedMessage id="AccountStatusDialog.anonymize-user.title" />
+        );
+        subText = (
+          <FormattedMessage
+            id="AccountStatusDialog.anonymize-user.description"
+            values={args}
+          />
         );
         button1 = (
           <PrimaryButton
@@ -920,10 +931,12 @@ export function AccountStatusDialog(
         break;
 
       case "delete-or-schedule":
-        title = renderToString("AccountStatusDialog.delete-user.title");
-        subText = renderToString(
-          "AccountStatusDialog.delete-user.description",
-          args
+        title = <FormattedMessage id="AccountStatusDialog.delete-user.title" />;
+        subText = (
+          <FormattedMessage
+            id="AccountStatusDialog.delete-user.description"
+            values={args}
+          />
         );
         button1 = (
           <PrimaryButton
@@ -951,10 +964,12 @@ export function AccountStatusDialog(
         break;
 
       case "delete-immediately":
-        title = renderToString("AccountStatusDialog.delete-user.title");
-        subText = renderToString(
-          "AccountStatusDialog.delete-user.description",
-          args
+        title = <FormattedMessage id="AccountStatusDialog.delete-user.title" />;
+        subText = (
+          <FormattedMessage
+            id="AccountStatusDialog.delete-user.description"
+            values={args}
+          />
         );
         button1 = (
           <PrimaryButton
@@ -1002,7 +1017,6 @@ export function AccountStatusDialog(
     onClickScheduleDeletion,
     onClickUnscheduleAnonymization,
     onClickUnscheduleDeletion,
-    renderToString,
     themes.destructive,
     themes.main,
   ]);
@@ -1012,13 +1026,14 @@ export function AccountStatusDialog(
       <Dialog
         hidden={isHidden}
         onDismiss={onDialogDismiss}
-        dialogContentProps={dialogContentPropsAndButtons.dialogContentProps}
+        // @ts-expect-error
+        dialogContentProps={dialogContentPropsAndDialogSlots.dialogContentProps}
         styles={dialogStyles}
         minWidth={560}
       >
         <DialogFooter>
-          {dialogContentPropsAndButtons.button1}
-          {dialogContentPropsAndButtons.button2}
+          {dialogContentPropsAndDialogSlots.button1}
+          {dialogContentPropsAndDialogSlots.button2}
           <DefaultButton
             onClick={onDialogDismiss}
             disabled={loading}
