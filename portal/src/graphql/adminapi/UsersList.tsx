@@ -25,9 +25,8 @@ import {
 } from "./globalTypes.generated";
 
 import PaginationWidget from "../../PaginationWidget";
-import SetUserDisabledDialog from "./SetUserDisabledDialog";
 import {
-  getButtonStates,
+  AccountStatusDialog,
   getMostAppropriateAction,
 } from "./UserDetailsAccountStatus";
 
@@ -351,7 +350,15 @@ const UsersList: React.VFC<UsersListProps> = function UsersList(props) {
           variant = "default";
           text = renderToString("UsersList.reenable-user");
           break;
-        default:
+        case "unschedule-deletion":
+          variant = "default";
+          text = renderToString("UsersList.cancel-removal");
+          break;
+        case "unschedule-anonymization":
+          variant = "default";
+          text = renderToString("UsersList.cancel-anonymization");
+          break;
+        case "no-action":
           variant = "no-action";
           text = "-";
           break;
@@ -492,17 +499,11 @@ const UsersList: React.VFC<UsersListProps> = function UsersList(props) {
         ) : null}
       </div>
       {disableUserDialogData != null ? (
-        <SetUserDisabledDialog
+        <AccountStatusDialog
           isHidden={isDisableUserDialogHidden}
           onDismiss={dismissDisableUserDialog}
-          userID={disableUserDialogData.accountStatus.id}
-          userIsDisabled={
-            getButtonStates(disableUserDialogData.accountStatus).toggleDisable
-              .isDisabledIndefinitelyOrTemporarily
-          }
-          endUserAccountIdentifier={
-            disableUserDialogData.accountStatus.endUserAccountID ?? undefined
-          }
+          accountStatus={disableUserDialogData.accountStatus}
+          mode="auto"
         />
       ) : null}
     </>

@@ -1,15 +1,30 @@
-import React, { useContext, useState, useCallback } from "react";
-import { IStyle, Label, Text } from "@fluentui/react";
+import React, { useContext, useState, useCallback, useMemo } from "react";
+import {
+  IStyle,
+  Label,
+  Text,
+  Dialog,
+  DialogFooter,
+  IDialogContentProps,
+} from "@fluentui/react";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import { useNavigate } from "react-router-dom";
 
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import ListCellLayout from "../../ListCellLayout";
 import OutlinedActionButton from "../../components/common/OutlinedActionButton";
-import SetUserDisabledDialog from "./SetUserDisabledDialog";
-import AnonymizeUserDialog from "./AnonymizeUserDialog";
-import DeleteUserDialog from "./DeleteUserDialog";
+import PrimaryButton from "../../PrimaryButton";
+import DefaultButton from "../../DefaultButton";
+import ErrorDialog from "../../error/ErrorDialog";
+import { useSetDisabledStatusMutation } from "./mutations/setDisabledStatusMutation";
+import { useAnonymizeUserMutation } from "./mutations/anonymizeUserMutation";
+import { useScheduleAccountAnonymizationMutation } from "./mutations/scheduleAccountAnonymization";
+import { useUnscheduleAccountAnonymizationMutation } from "./mutations/unscheduleAccountAnonymization";
+import { useDeleteUserMutation } from "./mutations/deleteUserMutation";
+import { useScheduleAccountDeletionMutation } from "./mutations/scheduleAccountDeletion";
+import { useUnscheduleAccountDeletionMutation } from "./mutations/unscheduleAccountDeletion";
 import { formatDatetime } from "../../util/formatDatetime";
+import { extractRawID } from "../../util/graphql";
 import styles from "./UserDetailsAccountStatus.module.css";
 
 const labelTextStyle: IStyle = {
@@ -22,7 +37,9 @@ const bodyTextStyle: IStyle = {
   maxWidth: "500px",
 };
 
-interface AccountStatus {
+const dialogStyles = { main: { minHeight: 0 } };
+
+export interface AccountStatus {
   id: string;
   isDisabled: boolean;
   isAnonymized: boolean;
@@ -102,7 +119,7 @@ export function getMostAppropriateAction(
   return "disable";
 }
 
-export function getButtonStates(data: AccountStatus): ButtonStates {
+function getButtonStates(data: AccountStatus): ButtonStates {
   const now = new Date();
 
   const accountValidFrom =
@@ -469,41 +486,33 @@ interface UserDetailsAccountStatusProps {
 const UserDetailsAccountStatus: React.VFC<UserDetailsAccountStatusProps> =
   function UserDetailsAccountStatus(props) {
     const { data } = props;
-    const buttonStates = getButtonStates(data);
     const navigate = useNavigate();
 
-    const [userDisabledDialogIsHidden, setUserDisabledDialogIsHidden] =
-      useState(true);
-    const [anonymizeUserDialogIsHidden, setAnonymizeUserDialogIsHidden] =
-      useState(true);
-    const [deleteUserDialogIsHidden, setDeleteUserDialogIsHidden] =
-      useState(true);
+    const [dialogHidden, setDialogHidden] = useState(true);
+    const [mode, setMode] = useState<AccountStatusDialogProps["mode"]>("auto");
 
-    const onDismissSetUserDisabledDialog = useCallback(() => {
-      setUserDisabledDialogIsHidden(true);
-    }, [setUserDisabledDialogIsHidden]);
-    const onDismissAnonymizeUserDialog = useCallback(() => {
-      setAnonymizeUserDialogIsHidden(true);
+    const onClickDisable = useCallback(() => {
+      setMode("disable");
+      setDialogHidden(false);
     }, []);
-    const onDismissDeleteUserDialog = useCallback(
-      (deletedUser: boolean) => {
-        setDeleteUserDialogIsHidden(true);
-        if (deletedUser) {
+    const onClickAnonymize = useCallback(() => {
+      setMode("anonymize");
+      setDialogHidden(false);
+    }, []);
+    const onClickDelete = useCallback(() => {
+      setMode("delete");
+      setDialogHidden(false);
+    }, []);
+
+    const onDismiss: AccountStatusDialogProps["onDismiss"] = useCallback(
+      (info) => {
+        setDialogHidden(true);
+        if (info.deletedUser) {
           setTimeout(() => navigate("./../.."), 0);
         }
       },
       [navigate]
     );
-
-    const onClickDisable = useCallback(() => {
-      setUserDisabledDialogIsHidden(false);
-    }, []);
-    const onClickAnonymize = useCallback(() => {
-      setAnonymizeUserDialogIsHidden(false);
-    }, []);
-    const onClickDelete = useCallback(() => {
-      setDeleteUserDialogIsHidden(false);
-    }, []);
 
     return (
       <div>
@@ -518,31 +527,403 @@ const UserDetailsAccountStatus: React.VFC<UserDetailsAccountStatusProps> =
           <AnonymizeUserCell data={data} onClickAnonymize={onClickAnonymize} />
           <RemoveUserCell data={data} onClickDelete={onClickDelete} />
         </div>
-        <DeleteUserDialog
-          isHidden={deleteUserDialogIsHidden}
-          onDismiss={onDismissDeleteUserDialog}
-          userID={data.id}
-          userDeleteAt={data.deleteAt ?? null}
-          endUserAccountIdentifier={data.endUserAccountID ?? undefined}
-        />
-        <AnonymizeUserDialog
-          isHidden={anonymizeUserDialogIsHidden}
-          onDismiss={onDismissAnonymizeUserDialog}
-          userID={data.id}
-          userAnonymizeAt={data.anonymizeAt ?? null}
-          endUserAccountIdentifier={data.endUserAccountID ?? undefined}
-        />
-        <SetUserDisabledDialog
-          isHidden={userDisabledDialogIsHidden}
-          onDismiss={onDismissSetUserDisabledDialog}
-          userID={data.id}
-          userIsDisabled={
-            buttonStates.toggleDisable.isDisabledIndefinitelyOrTemporarily
-          }
-          endUserAccountIdentifier={data.endUserAccountID ?? undefined}
+        <AccountStatusDialog
+          accountStatus={data}
+          isHidden={dialogHidden}
+          mode={mode}
+          onDismiss={onDismiss}
         />
       </div>
     );
   };
+
+export interface AccountStatusDialogProps {
+  isHidden: boolean;
+  onDismiss: (info: { deletedUser: boolean }) => void;
+  mode: "disable" | "account-valid-period" | "anonymize" | "delete" | "auto";
+  accountStatus: AccountStatus;
+}
+
+export function AccountStatusDialog(
+  props: AccountStatusDialogProps
+): React.ReactElement {
+  const { isHidden, onDismiss, mode, accountStatus } = props;
+  const buttonStates = getButtonStates(accountStatus);
+  const { renderToString } = useContext(Context);
+  const { themes } = useSystemConfig();
+
+  const {
+    setDisabledStatus,
+    loading: setDisabledStatusLoading,
+    error: setDisabledStatusError,
+  } = useSetDisabledStatusMutation();
+  const {
+    anonymizeUser,
+    loading: anonymizeUserLoading,
+    error: anonymizeUserError,
+  } = useAnonymizeUserMutation();
+  const {
+    scheduleAccountAnonymization,
+    loading: scheduleAccountAnonymizationLoading,
+    error: scheduleAccountAnonymizationError,
+  } = useScheduleAccountAnonymizationMutation();
+  const {
+    unscheduleAccountAnonymization,
+    loading: unscheduleAccountAnonymizationLoading,
+    error: unscheduleAccountAnonymizationError,
+  } = useUnscheduleAccountAnonymizationMutation();
+  const {
+    deleteUser,
+    loading: deleteUserLoading,
+    error: deleteUserError,
+  } = useDeleteUserMutation();
+  const {
+    scheduleAccountDeletion,
+    loading: scheduleAccountDeletionLoading,
+    error: scheduleAccountDeletionError,
+  } = useScheduleAccountDeletionMutation();
+  const {
+    unscheduleAccountDeletion,
+    loading: unscheduleAccountDeletionLoading,
+    error: unscheduleAccountDeletionError,
+  } = useUnscheduleAccountDeletionMutation();
+
+  const loading =
+    setDisabledStatusLoading ||
+    anonymizeUserLoading ||
+    scheduleAccountAnonymizationLoading ||
+    unscheduleAccountAnonymizationLoading ||
+    deleteUserLoading ||
+    scheduleAccountDeletionLoading ||
+    unscheduleAccountDeletionLoading;
+  const error =
+    setDisabledStatusError ||
+    anonymizeUserError ||
+    scheduleAccountAnonymizationError ||
+    unscheduleAccountAnonymizationError ||
+    deleteUserError ||
+    scheduleAccountDeletionError ||
+    unscheduleAccountDeletionError;
+
+  const onDialogDismiss = useCallback(() => {
+    if (loading || isHidden) {
+      return;
+    }
+    onDismiss({ deletedUser: false });
+  }, [loading, isHidden, onDismiss]);
+
+  const onClickDisable = useCallback(() => {
+    if (loading || isHidden) {
+      return;
+    }
+    setDisabledStatus(accountStatus.id, true).finally(() =>
+      onDismiss({ deletedUser: false })
+    );
+  }, [accountStatus.id, isHidden, loading, onDismiss, setDisabledStatus]);
+
+  const onClickReenable = useCallback(() => {
+    if (loading || isHidden) {
+      return;
+    }
+    setDisabledStatus(accountStatus.id, false).finally(() =>
+      onDismiss({ deletedUser: false })
+    );
+  }, [accountStatus.id, isHidden, loading, onDismiss, setDisabledStatus]);
+
+  const onClickAnonymize = useCallback(() => {
+    if (loading || isHidden) {
+      return;
+    }
+    anonymizeUser(accountStatus.id).finally(() =>
+      onDismiss({ deletedUser: false })
+    );
+  }, [accountStatus.id, anonymizeUser, isHidden, loading, onDismiss]);
+
+  const onClickScheduleAnonymization = useCallback(() => {
+    if (loading || isHidden) {
+      return;
+    }
+    scheduleAccountAnonymization(accountStatus.id).finally(() =>
+      onDismiss({ deletedUser: false })
+    );
+  }, [
+    accountStatus.id,
+    isHidden,
+    loading,
+    onDismiss,
+    scheduleAccountAnonymization,
+  ]);
+
+  const onClickUnscheduleAnonymization = useCallback(() => {
+    if (loading || isHidden) {
+      return;
+    }
+    unscheduleAccountAnonymization(accountStatus.id).finally(() =>
+      onDismiss({ deletedUser: false })
+    );
+  }, [
+    accountStatus.id,
+    isHidden,
+    loading,
+    onDismiss,
+    unscheduleAccountAnonymization,
+  ]);
+
+  const onClickDelete = useCallback(() => {
+    if (loading || isHidden) {
+      return;
+    }
+    deleteUser(accountStatus.id)
+      .then(() => onDismiss({ deletedUser: true }))
+      .catch(() => onDismiss({ deletedUser: false }));
+  }, [accountStatus.id, deleteUser, isHidden, loading, onDismiss]);
+
+  const onClickScheduleDeletion = useCallback(() => {
+    if (loading || isHidden) {
+      return;
+    }
+    scheduleAccountDeletion(accountStatus.id).finally(() =>
+      onDismiss({ deletedUser: false })
+    );
+  }, [accountStatus.id, isHidden, loading, onDismiss, scheduleAccountDeletion]);
+
+  const onClickUnscheduleDeletion = useCallback(() => {
+    if (loading || isHidden) {
+      return;
+    }
+    unscheduleAccountDeletion(accountStatus.id).finally(() =>
+      onDismiss({ deletedUser: false })
+    );
+  }, [
+    accountStatus.id,
+    isHidden,
+    loading,
+    onDismiss,
+    unscheduleAccountDeletion,
+  ]);
+
+  const dialogContentPropsAndButtons: {
+    dialogContentProps: IDialogContentProps;
+    button1: React.ReactElement | null;
+    button2: React.ReactElement | null;
+  } = useMemo(() => {
+    const args = {
+      username:
+        accountStatus.endUserAccountID ?? extractRawID(accountStatus.id),
+    };
+
+    let title = "";
+    let subText = "";
+    let button1: React.ReactElement | null = null;
+    let button2: React.ReactElement | null = null;
+
+    const prepareUnscheduleDeletion = () => {
+      title = renderToString("AccountStatusDialog.cancel-deletion.title");
+      subText = renderToString(
+        "AccountStatusDialog.cancel-deletion.description",
+        args
+      );
+      button1 = (
+        <PrimaryButton
+          theme={themes.main}
+          disabled={loading}
+          onClick={onClickUnscheduleDeletion}
+          text={
+            <FormattedMessage id="AccountStatusDialog.cancel-deletion.action.cancel-deletion" />
+          }
+        />
+      );
+    };
+    const prepareUnscheduleAnonymization = () => {
+      title = renderToString("AccountStatusDialog.cancel-anonymization.title");
+      subText = renderToString(
+        "AccountStatusDialog.cancel-anonymization.description",
+        args
+      );
+      button1 = (
+        <PrimaryButton
+          theme={themes.main}
+          disabled={loading}
+          onClick={onClickUnscheduleAnonymization}
+          text={
+            <FormattedMessage id="AccountStatusDialog.cancel-anonymization.action.cancel-anonymization" />
+          }
+        />
+      );
+    };
+    const prepareReenable = () => {
+      title = renderToString("AccountStatusDialog.reenable-user.title");
+      subText = renderToString(
+        "AccountStatusDialog.reenable-user.description",
+        args
+      );
+      button1 = (
+        <PrimaryButton
+          theme={themes.main}
+          disabled={loading}
+          onClick={onClickReenable}
+          text={
+            <FormattedMessage id="AccountStatusDialog.reenable-user.action.reenable" />
+          }
+        />
+      );
+    };
+    const prepareDisable = () => {
+      title = renderToString("AccountStatusDialog.disable-user.title");
+      subText = renderToString(
+        "AccountStatusDialog.disable-user.description",
+        args
+      );
+      button1 = (
+        <PrimaryButton
+          theme={themes.destructive}
+          disabled={loading}
+          onClick={onClickDisable}
+          text={
+            <FormattedMessage id="AccountStatusDialog.disable-user.action.disable" />
+          }
+        />
+      );
+    };
+
+    switch (mode) {
+      case "disable":
+        if (buttonStates.toggleDisable.isDisabledIndefinitelyOrTemporarily) {
+          prepareReenable();
+        } else {
+          prepareDisable();
+        }
+        break;
+      case "account-valid-period":
+        title = "TODO";
+        subText = "TODO";
+        break;
+      case "anonymize":
+        if (buttonStates.anonymize.anonymizeAt != null) {
+          prepareUnscheduleAnonymization();
+        } else {
+          title = renderToString("AccountStatusDialog.anonymize-user.title");
+          subText = renderToString(
+            "AccountStatusDialog.anonymize-user.description",
+            args
+          );
+          button1 = (
+            <PrimaryButton
+              theme={themes.main}
+              disabled={loading}
+              onClick={onClickScheduleAnonymization}
+              text={
+                <FormattedMessage id="AccountStatusDialog.anonymize-user.action.schedule-anonymization" />
+              }
+            />
+          );
+          button2 = (
+            <PrimaryButton
+              theme={themes.destructive}
+              disabled={loading}
+              onClick={onClickAnonymize}
+              text={
+                <FormattedMessage id="AccountStatusDialog.anonymize-user.action.anonymize-immediately" />
+              }
+            />
+          );
+        }
+        break;
+      case "delete":
+        if (buttonStates.delete.deleteAt != null) {
+          prepareUnscheduleDeletion();
+        } else {
+          title = renderToString("AccountStatusDialog.delete-user.title");
+          subText = renderToString(
+            "AccountStatusDialog.delete-user.description",
+            args
+          );
+          button1 = (
+            <PrimaryButton
+              theme={themes.main}
+              disabled={loading}
+              onClick={onClickScheduleDeletion}
+              text={
+                <FormattedMessage id="AccountStatusDialog.delete-user.action.schedule-deletion" />
+              }
+            />
+          );
+          button2 = (
+            <PrimaryButton
+              theme={themes.destructive}
+              disabled={loading}
+              onClick={onClickDelete}
+              text={
+                <FormattedMessage id="AccountStatusDialog.delete-user.action.delete-immediately" />
+              }
+            />
+          );
+        }
+        break;
+      case "auto": {
+        const action = getMostAppropriateAction(accountStatus);
+        switch (action) {
+          case "unschedule-deletion":
+            prepareUnscheduleDeletion();
+            break;
+          case "unschedule-anonymization":
+            prepareUnscheduleAnonymization();
+            break;
+          case "re-enable":
+            prepareReenable();
+            break;
+          case "disable":
+            prepareDisable();
+            break;
+          case "no-action":
+            break;
+        }
+        break;
+      }
+    }
+    return { dialogContentProps: { title, subText }, button1, button2 };
+  }, [
+    accountStatus,
+    buttonStates.anonymize.anonymizeAt,
+    buttonStates.delete.deleteAt,
+    buttonStates.toggleDisable.isDisabledIndefinitelyOrTemporarily,
+    loading,
+    mode,
+    onClickAnonymize,
+    onClickDelete,
+    onClickDisable,
+    onClickReenable,
+    onClickScheduleAnonymization,
+    onClickScheduleDeletion,
+    onClickUnscheduleAnonymization,
+    onClickUnscheduleDeletion,
+    renderToString,
+    themes.destructive,
+    themes.main,
+  ]);
+
+  return (
+    <>
+      <Dialog
+        hidden={isHidden}
+        onDismiss={onDialogDismiss}
+        dialogContentProps={dialogContentPropsAndButtons.dialogContentProps}
+        styles={dialogStyles}
+        minWidth={560}
+      >
+        <DialogFooter>
+          {dialogContentPropsAndButtons.button1}
+          {dialogContentPropsAndButtons.button2}
+          <DefaultButton
+            onClick={onDialogDismiss}
+            disabled={loading}
+            text={<FormattedMessage id="cancel" />}
+          />
+        </DialogFooter>
+      </Dialog>
+      <ErrorDialog error={error} />
+    </>
+  );
+}
 
 export default UserDetailsAccountStatus;
