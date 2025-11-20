@@ -27,6 +27,7 @@ import DefaultButton from "../../DefaultButton";
 import TextField from "../../TextField";
 import ErrorDialog from "../../error/ErrorDialog";
 import { useSetDisabledStatusMutation } from "./mutations/setDisabledStatusMutation";
+import { useSetAccountValidPeriodMutation } from "./mutations/setAccountValidPeriodMutation";
 import { useAnonymizeUserMutation } from "./mutations/anonymizeUserMutation";
 import { useScheduleAccountAnonymizationMutation } from "./mutations/scheduleAccountAnonymization";
 import { useUnscheduleAccountAnonymizationMutation } from "./mutations/unscheduleAccountAnonymization";
@@ -1187,6 +1188,11 @@ export function AccountStatusDialog(
     error: setDisabledStatusError,
   } = useSetDisabledStatusMutation();
   const {
+    setAccountValidPeriod,
+    loading: setAccountValidPeriodLoading,
+    error: setAccountValidPeriodError,
+  } = useSetAccountValidPeriodMutation();
+  const {
     anonymizeUser,
     loading: anonymizeUserLoading,
     error: anonymizeUserError,
@@ -1219,6 +1225,7 @@ export function AccountStatusDialog(
 
   const loading =
     setDisabledStatusLoading ||
+    setAccountValidPeriodLoading ||
     anonymizeUserLoading ||
     scheduleAccountAnonymizationLoading ||
     unscheduleAccountAnonymizationLoading ||
@@ -1227,6 +1234,7 @@ export function AccountStatusDialog(
     unscheduleAccountDeletionLoading;
   const error =
     setDisabledStatusError ||
+    setAccountValidPeriodError ||
     anonymizeUserError ||
     scheduleAccountAnonymizationError ||
     unscheduleAccountAnonymizationError ||
@@ -1279,6 +1287,25 @@ export function AccountStatusDialog(
       temporarilyDisabledUntil: null,
     }).finally(() => onDismiss({ deletedUser: false }));
   }, [accountStatus.id, isHidden, loading, onDismiss, setDisabledStatus]);
+
+  const onClickSetAccountValidPeriod = useCallback(() => {
+    if (loading || isHidden) {
+      return;
+    }
+    setAccountValidPeriod({
+      userID: accountStatus.id,
+      accountValidFrom: accountValidFrom,
+      accountValidUntil: accountValidUntil,
+    }).finally(() => onDismiss({ deletedUser: false }));
+  }, [
+    accountStatus.id,
+    accountValidFrom,
+    accountValidUntil,
+    isHidden,
+    loading,
+    onDismiss,
+    setAccountValidPeriod,
+  ]);
 
   const onClickAnonymize = useCallback(() => {
     if (loading || isHidden) {
@@ -1479,6 +1506,7 @@ export function AccountStatusDialog(
             text={
               <FormattedMessage id="AccountStatusDialog.account-valid-period.action.save" />
             }
+            onClick={onClickSetAccountValidPeriod}
           />
         );
         break;
@@ -1500,6 +1528,7 @@ export function AccountStatusDialog(
             text={
               <FormattedMessage id="AccountStatusDialog.account-valid-period.action.edit" />
             }
+            onClick={onClickSetAccountValidPeriod}
           />
         );
         break;
@@ -1645,6 +1674,7 @@ export function AccountStatusDialog(
     onClickReenable,
     onClickScheduleAnonymization,
     onClickScheduleDeletion,
+    onClickSetAccountValidPeriod,
     onClickUnscheduleAnonymization,
     onClickUnscheduleDeletion,
     themes.destructive,
