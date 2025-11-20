@@ -81,6 +81,8 @@ interface DisableUserCellProps {
 
 interface AccountValidPeriodCellProps {
   data: AccountStatus;
+  onClickSetAccountValidPeriod: () => void;
+  onClickEditAccountValidPeriod: () => void;
 }
 
 interface AnonymizeUserCellProps {
@@ -450,7 +452,11 @@ const AccountValidPeriodCell: React.VFC<AccountValidPeriodCellProps> =
   function AccountValidPeriodCell(props) {
     const { locale } = useContext(Context);
     const { themes } = useSystemConfig();
-    const { data } = props;
+    const {
+      data,
+      onClickSetAccountValidPeriod,
+      onClickEditAccountValidPeriod,
+    } = props;
     const buttonStates = getButtonStates(data);
     return (
       <ListCellLayout className={styles.actionCell}>
@@ -522,6 +528,12 @@ const AccountValidPeriodCell: React.VFC<AccountValidPeriodCellProps> =
             ) : (
               <FormattedMessage id="UserDetailsAccountStatus.account-valid-period.action.edit" />
             )
+          }
+          onClick={
+            buttonStates.setAccountValidPeriod.accountValidFrom == null &&
+            buttonStates.setAccountValidPeriod.accountValidUntil == null
+              ? onClickSetAccountValidPeriod
+              : onClickEditAccountValidPeriod
           }
         />
       </ListCellLayout>
@@ -683,6 +695,16 @@ const UserDetailsAccountStatus: React.VFC<UserDetailsAccountStatusProps> =
       setDialogKey((prev) => prev + 1);
       setDialogHidden(false);
     }, []);
+    const onClickSetAccountValidPeriod = useCallback(() => {
+      setMode("set-account-valid-period");
+      setDialogKey((prev) => prev + 1);
+      setDialogHidden(false);
+    }, []);
+    const onClickEditAccountValidPeriod = useCallback(() => {
+      setMode("edit-account-valid-period");
+      setDialogKey((prev) => prev + 1);
+      setDialogHidden(false);
+    }, []);
     const onClickAnonymizeOrSchedule = useCallback(() => {
       setMode("anonymize-or-schedule");
       setDialogKey((prev) => prev + 1);
@@ -737,7 +759,11 @@ const UserDetailsAccountStatus: React.VFC<UserDetailsAccountStatusProps> =
             onClickDisable={onClickDisable}
             onClickReenable={onClickReenable}
           />
-          <AccountValidPeriodCell data={data} />
+          <AccountValidPeriodCell
+            data={data}
+            onClickSetAccountValidPeriod={onClickSetAccountValidPeriod}
+            onClickEditAccountValidPeriod={onClickEditAccountValidPeriod}
+          />
           <AnonymizeUserCell
             data={data}
             onClickAnonymizeImmediately={onClickAnonymizeImmediately}
@@ -778,6 +804,114 @@ export interface AccountStatusDialogProps {
     | "delete-immediately"
     | "auto";
   accountStatus: AccountStatus;
+}
+
+interface AccountValidDateTimeControlProps {
+  label: React.ReactElement;
+  pickedDateTime: Date | null;
+  onPickDateTime: (datetime: Date | null) => void;
+}
+
+function AccountValidDateTimeControl(props: AccountValidDateTimeControlProps) {
+  const { label, pickedDateTime, onPickDateTime } = props;
+  const { themes } = useSystemConfig();
+
+  // TimePicker has some problem with its controlled component behavior.
+  //
+  // 1. When we clear the field, value=undefined does not cause it to render empty.
+  // 2. Changing the date picker and thus value=something does not cause it to render.
+  //
+  // So we always remount it in these two cases.
+  const [timePickerKey, setTimePickerKey] = useState(0);
+
+  const onSelectDate = useCallback(
+    (date: Date | null | undefined) => {
+      if (date == null) {
+        onPickDateTime(null);
+      } else {
+        const datetime =
+          pickedDateTime != null ? DateTime.fromJSDate(pickedDateTime) : null;
+        onPickDateTime(
+          DateTime.fromJSDate(date)
+            .set({
+              hour: datetime?.hour ?? 0,
+              minute: datetime?.minute ?? 0,
+              second: 0,
+              millisecond: 0,
+            })
+            .toJSDate()
+        );
+      }
+      setTimePickerKey((prev) => prev + 1);
+    },
+    [onPickDateTime, pickedDateTime]
+  );
+
+  const onChange = useCallback(
+    (_e: React.FormEvent<IComboBox>, time: Date) => {
+      if (pickedDateTime == null) {
+        return;
+      }
+      const datetime = DateTime.fromJSDate(time);
+      onPickDateTime(
+        DateTime.fromJSDate(pickedDateTime)
+          .set({
+            hour: datetime.hour,
+            minute: datetime.minute,
+            second: 0,
+            millisecond: 0,
+          })
+          .toJSDate()
+      );
+    },
+    [onPickDateTime, pickedDateTime]
+  );
+
+  const onClickClear = useCallback(() => {
+    onPickDateTime(null);
+    setTimePickerKey((prev) => prev + 1);
+  }, [onPickDateTime]);
+
+  return (
+    <div className="flex flex-col">
+      <Label>{label}</Label>
+      <div className="flex flex-row gap-2">
+        <DatePicker
+          className="flex-1"
+          value={pickedDateTime ?? undefined}
+          onSelectDate={onSelectDate}
+        />
+        <TimePicker
+          key={String(timePickerKey)}
+          className="flex-1"
+          increments={60}
+          allowFreeform={false}
+          showSeconds={false}
+          useHour12={false}
+          dateAnchor={pickedDateTime ?? undefined}
+          value={pickedDateTime ?? undefined}
+          onChange={onChange}
+        />
+        <DefaultButton
+          className="self-start"
+          text={
+            <FormattedMessage id="AccountStatusDialog.account-valid-period.action.clear" />
+          }
+          onClick={onClickClear}
+        />
+      </div>
+      <Text
+        variant="small"
+        styles={{
+          root: {
+            color: themes.main.semanticColors.bodySubtext,
+          },
+        }}
+      >
+        <FormattedMessage id="AccountStatusDialog.account-valid-period.clear.hint" />
+      </Text>
+    </div>
+  );
 }
 
 export function AccountStatusDialog(
@@ -827,6 +961,52 @@ export function AccountStatusDialog(
     }
     return trimmed;
   }, [disableReason]);
+
+  const [accountValidFrom, setAccountValidFrom] = useState<Date | null>(() => {
+    if (accountStatus.accountValidFrom != null) {
+      return new Date(accountStatus.accountValidFrom);
+    }
+    return null;
+  });
+  const [accountValidUntil, setAccountValidUntil] = useState<Date | null>(
+    () => {
+      if (accountStatus.accountValidUntil != null) {
+        return new Date(accountStatus.accountValidUntil);
+      }
+      return null;
+    }
+  );
+
+  const onPickAccountValidFrom = useCallback(
+    (date: Date | null) => {
+      if (date == null) {
+        setAccountValidFrom(null);
+      } else if (accountValidUntil == null) {
+        setAccountValidFrom(date);
+      } else if (date.getTime() > accountValidUntil.getTime()) {
+        setAccountValidFrom(accountValidUntil);
+        setAccountValidUntil(date);
+      } else {
+        setAccountValidFrom(date);
+      }
+    },
+    [accountValidUntil]
+  );
+  const onPickAccountValidUntil = useCallback(
+    (date: Date | null) => {
+      if (date == null) {
+        setAccountValidUntil(null);
+      } else if (accountValidFrom == null) {
+        setAccountValidUntil(date);
+      } else if (date.getTime() < accountValidFrom.getTime()) {
+        setAccountValidFrom(date);
+        setAccountValidUntil(accountValidFrom);
+      } else {
+        setAccountValidUntil(date);
+      }
+    },
+    [accountValidFrom]
+  );
 
   const onRenderTemporarilyDisableFormField = useCallback(
     (
@@ -956,6 +1136,49 @@ export function AccountStatusDialog(
     onChangeDisableChoiceGroup,
     onChangeDisableReason,
     renderToString,
+  ]);
+
+  const accountValidPeriodForm = useMemo(() => {
+    const formattedZone = formatSystemZone(new Date(), locale);
+    return (
+      <div className="flex flex-col gap-2">
+        <MessageBar
+          messageBarType={MessageBarType.info}
+          styles={{
+            iconContainer: {
+              display: "none",
+            },
+          }}
+        >
+          <FormattedMessage
+            id="AccountStatusDialog.disable-user.timezone-description"
+            values={{
+              timezone: formattedZone,
+            }}
+          />
+        </MessageBar>
+        <AccountValidDateTimeControl
+          label={
+            <FormattedMessage id="AccountStatusDialog.account-valid-period.start-at.label" />
+          }
+          pickedDateTime={accountValidFrom}
+          onPickDateTime={onPickAccountValidFrom}
+        />
+        <AccountValidDateTimeControl
+          label={
+            <FormattedMessage id="AccountStatusDialog.account-valid-period.end-at.label" />
+          }
+          pickedDateTime={accountValidUntil}
+          onPickDateTime={onPickAccountValidUntil}
+        />
+      </div>
+    );
+  }, [
+    accountValidFrom,
+    accountValidUntil,
+    locale,
+    onPickAccountValidFrom,
+    onPickAccountValidUntil,
   ]);
 
   const {
@@ -1239,8 +1462,46 @@ export function AccountStatusDialog(
         prepareReenable();
         break;
       case "set-account-valid-period":
+        title = (
+          <FormattedMessage id="AccountStatusDialog.account-valid-period.title--set" />
+        );
+        subText = (
+          <FormattedMessage
+            id="AccountStatusDialog.account-valid-period.description--set"
+            values={args}
+          />
+        );
+        body = accountValidPeriodForm;
+        button1 = (
+          <PrimaryButton
+            theme={themes.main}
+            disabled={loading}
+            text={
+              <FormattedMessage id="AccountStatusDialog.account-valid-period.action.save" />
+            }
+          />
+        );
         break;
       case "edit-account-valid-period":
+        title = (
+          <FormattedMessage id="AccountStatusDialog.account-valid-period.title--edit" />
+        );
+        subText = (
+          <FormattedMessage
+            id="AccountStatusDialog.account-valid-period.description--edit"
+            values={args}
+          />
+        );
+        body = accountValidPeriodForm;
+        button1 = (
+          <PrimaryButton
+            theme={themes.main}
+            disabled={loading}
+            text={
+              <FormattedMessage id="AccountStatusDialog.account-valid-period.action.edit" />
+            }
+          />
+        );
         break;
       case "anonymize-or-schedule":
         title = (
@@ -1374,6 +1635,7 @@ export function AccountStatusDialog(
     return { dialogContentProps: { title, subText }, body, button1, button2 };
   }, [
     accountStatus,
+    accountValidPeriodForm,
     disableForm,
     loading,
     mode,
