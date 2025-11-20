@@ -448,6 +448,7 @@
   "UserDetailsAccountStatus.anonymize-user.title": "Anonymize User",
   "UserDetailsAccountStatus.anonymize-user.body": "Delete all data of this user, only the user ID is retained.",
   "UserDetailsAccountStatus.anonymize-user.action.anonymize": "Anonymize user",
+  "UserDetailsAccountStatus.anonymize-user.action.anonymize-now": "Anonymize now",
   "UserDetailsAccountStatus.anonymize-user.action.cancel": "Cancel anonymization",
   "UserDetailsAccountStatus.remove-user.title": "Remove User",
   "UserDetailsAccountStatus.remove-user.body": "Permanently deletes the user's account and all related data. This action is irreversible.",

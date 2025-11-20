@@ -64,12 +64,16 @@ interface AccountValidPeriodCellProps {
 
 interface AnonymizeUserCellProps {
   data: AccountStatus;
-  onClickAnonymize: () => void;
+  onClickAnonymizeOrSchedule: () => void;
+  onClickCancelAnonymization: () => void;
+  onClickAnonymizeImmediately: () => void;
 }
 
 interface RemoveUserCellProps {
   data: AccountStatus;
-  onClickDelete: () => void;
+  onClickDeleteOrSchedule: () => void;
+  onClickCancelDeletion: () => void;
+  onClickDeleteImmediately: () => void;
 }
 
 interface ButtonStates {
@@ -370,7 +374,12 @@ const AccountValidPeriodCell: React.VFC<AccountValidPeriodCellProps> =
 const AnonymizeUserCell: React.VFC<AnonymizeUserCellProps> =
   function AnonymizeUserCell(props) {
     const { themes } = useSystemConfig();
-    const { data, onClickAnonymize } = props;
+    const {
+      data,
+      onClickAnonymizeOrSchedule,
+      onClickCancelAnonymization,
+      onClickAnonymizeImmediately,
+    } = props;
     const buttonStates = getButtonStates(data);
     return (
       <ListCellLayout className={styles.actionCell}>
@@ -390,28 +399,39 @@ const AnonymizeUserCell: React.VFC<AnonymizeUserCellProps> =
         >
           <FormattedMessage id="UserDetailsAccountStatus.anonymize-user.body" />
         </Text>
-        <OutlinedActionButton
-          disabled={buttonStates.anonymize.buttonDisabled}
-          theme={
-            buttonStates.anonymize.anonymizeAt != null
-              ? themes.actionButton
-              : themes.destructive
-          }
-          className={styles.actionCellActionButton}
-          iconProps={
-            buttonStates.anonymize.anonymizeAt != null
-              ? { iconName: "Undo" }
-              : { iconName: "Archive" }
-          }
-          text={
-            buttonStates.anonymize.anonymizeAt != null ? (
-              <FormattedMessage id="UserDetailsAccountStatus.anonymize-user.action.cancel" />
-            ) : (
+        {buttonStates.anonymize.anonymizeAt != null ? (
+          <div className={styles.actionCellActionButtonContainer}>
+            <OutlinedActionButton
+              disabled={buttonStates.anonymize.buttonDisabled}
+              theme={themes.actionButton}
+              iconProps={{ iconName: "Undo" }}
+              text={
+                <FormattedMessage id="UserDetailsAccountStatus.anonymize-user.action.cancel" />
+              }
+              onClick={onClickCancelAnonymization}
+            />
+            <OutlinedActionButton
+              disabled={buttonStates.anonymize.buttonDisabled}
+              theme={themes.destructive}
+              iconProps={{ iconName: "Archive" }}
+              text={
+                <FormattedMessage id="UserDetailsAccountStatus.anonymize-user.action.anonymize-now" />
+              }
+              onClick={onClickAnonymizeImmediately}
+            />
+          </div>
+        ) : (
+          <OutlinedActionButton
+            disabled={buttonStates.anonymize.buttonDisabled}
+            theme={themes.destructive}
+            className={styles.actionCellActionButton}
+            iconProps={{ iconName: "Archive" }}
+            text={
               <FormattedMessage id="UserDetailsAccountStatus.anonymize-user.action.anonymize" />
-            )
-          }
-          onClick={onClickAnonymize}
-        />
+            }
+            onClick={onClickAnonymizeOrSchedule}
+          />
+        )}
       </ListCellLayout>
     );
   };
@@ -420,7 +440,12 @@ const RemoveUserCell: React.VFC<RemoveUserCellProps> = function RemoveUserCell(
   props
 ) {
   const { themes } = useSystemConfig();
-  const { data, onClickDelete } = props;
+  const {
+    data,
+    onClickCancelDeletion,
+    onClickDeleteOrSchedule,
+    onClickDeleteImmediately,
+  } = props;
   const buttonStates = getButtonStates(data);
   return (
     <ListCellLayout className={styles.actionCell}>
@@ -449,7 +474,7 @@ const RemoveUserCell: React.VFC<RemoveUserCellProps> = function RemoveUserCell(
             text={
               <FormattedMessage id="UserDetailsAccountStatus.remove-user.action.cancel" />
             }
-            onClick={onClickDelete}
+            onClick={onClickCancelDeletion}
           />
           <OutlinedActionButton
             disabled={buttonStates.delete.buttonDisabled}
@@ -458,7 +483,7 @@ const RemoveUserCell: React.VFC<RemoveUserCellProps> = function RemoveUserCell(
             text={
               <FormattedMessage id="UserDetailsAccountStatus.remove-user.action.remove-now" />
             }
-            onClick={onClickDelete}
+            onClick={onClickDeleteImmediately}
           />
         </div>
       ) : (
@@ -470,7 +495,7 @@ const RemoveUserCell: React.VFC<RemoveUserCellProps> = function RemoveUserCell(
           text={
             <FormattedMessage id="UserDetailsAccountStatus.remove-user.action.remove" />
           }
-          onClick={onClickDelete}
+          onClick={onClickDeleteOrSchedule}
         />
       )}
     </ListCellLayout>
@@ -493,12 +518,28 @@ const UserDetailsAccountStatus: React.VFC<UserDetailsAccountStatusProps> =
       setMode("disable");
       setDialogHidden(false);
     }, []);
-    const onClickAnonymize = useCallback(() => {
-      setMode("anonymize");
+    const onClickAnonymizeOrSchedule = useCallback(() => {
+      setMode("anonymize-or-schedule");
       setDialogHidden(false);
     }, []);
-    const onClickDelete = useCallback(() => {
-      setMode("delete");
+    const onClickCancelAnonymization = useCallback(() => {
+      setMode("cancel-anonymization");
+      setDialogHidden(false);
+    }, []);
+    const onClickAnonymizeImmediately = useCallback(() => {
+      setMode("anonymize-immediately");
+      setDialogHidden(false);
+    }, []);
+    const onClickDeleteOrSchedule = useCallback(() => {
+      setMode("delete-or-schedule");
+      setDialogHidden(false);
+    }, []);
+    const onClickDeleteImmediately = useCallback(() => {
+      setMode("delete-immediately");
+      setDialogHidden(false);
+    }, []);
+    const onClickCancelDeletion = useCallback(() => {
+      setMode("cancel-deletion");
       setDialogHidden(false);
     }, []);
 
@@ -522,8 +563,18 @@ const UserDetailsAccountStatus: React.VFC<UserDetailsAccountStatusProps> =
         <div className="-mt-3">
           <DisableUserCell data={data} onClickDisable={onClickDisable} />
           <AccountValidPeriodCell data={data} />
-          <AnonymizeUserCell data={data} onClickAnonymize={onClickAnonymize} />
-          <RemoveUserCell data={data} onClickDelete={onClickDelete} />
+          <AnonymizeUserCell
+            data={data}
+            onClickAnonymizeImmediately={onClickAnonymizeImmediately}
+            onClickAnonymizeOrSchedule={onClickAnonymizeOrSchedule}
+            onClickCancelAnonymization={onClickCancelAnonymization}
+          />
+          <RemoveUserCell
+            data={data}
+            onClickCancelDeletion={onClickCancelDeletion}
+            onClickDeleteImmediately={onClickDeleteImmediately}
+            onClickDeleteOrSchedule={onClickDeleteOrSchedule}
+          />
         </div>
         <AccountStatusDialog
           accountStatus={data}
@@ -538,7 +589,17 @@ const UserDetailsAccountStatus: React.VFC<UserDetailsAccountStatusProps> =
 export interface AccountStatusDialogProps {
   isHidden: boolean;
   onDismiss: (info: { deletedUser: boolean }) => void;
-  mode: "disable" | "account-valid-period" | "anonymize" | "delete" | "auto";
+  mode:
+    | "disable"
+    | "set-account-valid-period"
+    | "edit-account-valid-period"
+    | "anonymize-or-schedule"
+    | "cancel-anonymization"
+    | "anonymize-immediately"
+    | "delete-or-schedule"
+    | "cancel-deletion"
+    | "delete-immediately"
+    | "auto";
   accountStatus: AccountStatus;
 }
 
@@ -792,71 +853,109 @@ export function AccountStatusDialog(
           prepareDisable();
         }
         break;
-      case "account-valid-period":
+      case "set-account-valid-period":
         title = "TODO";
         subText = "TODO";
         break;
-      case "anonymize":
-        if (buttonStates.anonymize.anonymizeAt != null) {
-          prepareUnscheduleAnonymization();
-        } else {
-          title = renderToString("AccountStatusDialog.anonymize-user.title");
-          subText = renderToString(
-            "AccountStatusDialog.anonymize-user.description",
-            args
-          );
-          button1 = (
-            <PrimaryButton
-              theme={themes.main}
-              disabled={loading}
-              onClick={onClickScheduleAnonymization}
-              text={
-                <FormattedMessage id="AccountStatusDialog.anonymize-user.action.schedule-anonymization" />
-              }
-            />
-          );
-          button2 = (
-            <PrimaryButton
-              theme={themes.destructive}
-              disabled={loading}
-              onClick={onClickAnonymize}
-              text={
-                <FormattedMessage id="AccountStatusDialog.anonymize-user.action.anonymize-immediately" />
-              }
-            />
-          );
-        }
+      case "edit-account-valid-period":
+        title = "TODO";
+        subText = "TODO";
         break;
-      case "delete":
-        if (buttonStates.delete.deleteAt != null) {
-          prepareUnscheduleDeletion();
-        } else {
-          title = renderToString("AccountStatusDialog.delete-user.title");
-          subText = renderToString(
-            "AccountStatusDialog.delete-user.description",
-            args
-          );
-          button1 = (
-            <PrimaryButton
-              theme={themes.main}
-              disabled={loading}
-              onClick={onClickScheduleDeletion}
-              text={
-                <FormattedMessage id="AccountStatusDialog.delete-user.action.schedule-deletion" />
-              }
-            />
-          );
-          button2 = (
-            <PrimaryButton
-              theme={themes.destructive}
-              disabled={loading}
-              onClick={onClickDelete}
-              text={
-                <FormattedMessage id="AccountStatusDialog.delete-user.action.delete-immediately" />
-              }
-            />
-          );
-        }
+      case "anonymize-or-schedule":
+        title = renderToString("AccountStatusDialog.anonymize-user.title");
+        subText = renderToString(
+          "AccountStatusDialog.anonymize-user.description",
+          args
+        );
+        button1 = (
+          <PrimaryButton
+            theme={themes.main}
+            disabled={loading}
+            onClick={onClickScheduleAnonymization}
+            text={
+              <FormattedMessage id="AccountStatusDialog.anonymize-user.action.schedule-anonymization" />
+            }
+          />
+        );
+        button2 = (
+          <PrimaryButton
+            theme={themes.destructive}
+            disabled={loading}
+            onClick={onClickAnonymize}
+            text={
+              <FormattedMessage id="AccountStatusDialog.anonymize-user.action.anonymize-immediately" />
+            }
+          />
+        );
+        break;
+      case "cancel-anonymization":
+        prepareUnscheduleAnonymization();
+        break;
+      case "anonymize-immediately":
+        title = renderToString("AccountStatusDialog.anonymize-user.title");
+        subText = renderToString(
+          "AccountStatusDialog.anonymize-user.description",
+          args
+        );
+        button1 = (
+          <PrimaryButton
+            theme={themes.destructive}
+            disabled={loading}
+            onClick={onClickAnonymize}
+            text={
+              <FormattedMessage id="AccountStatusDialog.anonymize-user.action.anonymize-immediately" />
+            }
+          />
+        );
+        break;
+
+      case "delete-or-schedule":
+        title = renderToString("AccountStatusDialog.delete-user.title");
+        subText = renderToString(
+          "AccountStatusDialog.delete-user.description",
+          args
+        );
+        button1 = (
+          <PrimaryButton
+            theme={themes.main}
+            disabled={loading}
+            onClick={onClickScheduleDeletion}
+            text={
+              <FormattedMessage id="AccountStatusDialog.delete-user.action.schedule-deletion" />
+            }
+          />
+        );
+        button2 = (
+          <PrimaryButton
+            theme={themes.destructive}
+            disabled={loading}
+            onClick={onClickDelete}
+            text={
+              <FormattedMessage id="AccountStatusDialog.delete-user.action.delete-immediately" />
+            }
+          />
+        );
+        break;
+      case "cancel-deletion":
+        prepareUnscheduleDeletion();
+        break;
+
+      case "delete-immediately":
+        title = renderToString("AccountStatusDialog.delete-user.title");
+        subText = renderToString(
+          "AccountStatusDialog.delete-user.description",
+          args
+        );
+        button1 = (
+          <PrimaryButton
+            theme={themes.destructive}
+            disabled={loading}
+            onClick={onClickDelete}
+            text={
+              <FormattedMessage id="AccountStatusDialog.delete-user.action.delete-immediately" />
+            }
+          />
+        );
         break;
       case "auto": {
         const action = getMostAppropriateAction(accountStatus);
@@ -882,8 +981,6 @@ export function AccountStatusDialog(
     return { dialogContentProps: { title, subText }, button1, button2 };
   }, [
     accountStatus,
-    buttonStates.anonymize.anonymizeAt,
-    buttonStates.delete.deleteAt,
     buttonStates.toggleDisable.isDisabledIndefinitelyOrTemporarily,
     loading,
     mode,
