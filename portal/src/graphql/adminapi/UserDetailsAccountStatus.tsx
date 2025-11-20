@@ -1707,4 +1707,53 @@ export function AccountStatusDialog(
   );
 }
 
+export interface AccountStatusBadgeProps {
+  className?: string;
+  accountStatus: AccountStatus;
+}
+
+const warnBadgeStyle: IStyle = {
+  padding: 4,
+  borderRadius: 4,
+  color: "#ffffff",
+  backgroundColor: "#e23d3d",
+};
+
+export function AccountStatusBadge(
+  props: AccountStatusBadgeProps
+): React.ReactElement | null {
+  const now = new Date();
+  const { accountStatus, className } = props;
+  const id =
+    accountStatus.deleteAt != null
+      ? "AccountStatusBadge.scheduled-deletion"
+      : accountStatus.isAnonymized
+      ? "AccountStatusBadge.anonymized"
+      : accountStatus.anonymizeAt != null
+      ? "AccountStatusBadge.scheduled-anonymization"
+      : accountStatus.accountValidFrom != null &&
+        now.getTime() < new Date(accountStatus.accountValidFrom).getTime()
+      ? "AccountStatusBadge.account-outside-valid-period"
+      : accountStatus.accountValidUntil != null &&
+        now.getTime() >= new Date(accountStatus.accountValidUntil).getTime()
+      ? "AccountStatusBadge.account-outside-valid-period"
+      : accountStatus.isDisabled
+      ? "AccountStatusBadge.disabled"
+      : null;
+  if (id == null) {
+    return null;
+  }
+
+  return (
+    <Text
+      className={className}
+      styles={{
+        root: warnBadgeStyle,
+      }}
+    >
+      <FormattedMessage id={id} />
+    </Text>
+  );
+}
+
 export default UserDetailsAccountStatus;

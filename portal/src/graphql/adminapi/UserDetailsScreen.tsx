@@ -315,23 +315,6 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
     return level === "readwrite";
   }, [standardAttributeAccessControl]);
 
-  const dataStatusBadgeTextId = React.useMemo(() => {
-    let badgeTextId = null;
-    if (data.isDisabled) {
-      badgeTextId = "UserDetails.disabled.badge";
-    }
-    if (data.anonymizeAt) {
-      badgeTextId = "UserDetails.scheduled-anonymization.badge";
-    }
-    if (data.isAnonymized) {
-      badgeTextId = "UserDetails.anonymized.badge";
-    }
-    if (data.deleteAt) {
-      badgeTextId = "UserDetails.scheduled-removal.badge";
-    }
-    return badgeTextId;
-  }, [data.isDisabled, data.anonymizeAt, data.isAnonymized, data.deleteAt]);
-
   if (data.isAnonymized) {
     return (
       <div className={styles.widget}>
@@ -345,7 +328,7 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
           endUserAccountIdentifier={data.endUserAccountID ?? undefined}
           createdAtISO={data.createdAt ?? null}
           lastLoginAtISO={data.lastLoginAt ?? null}
-          badgeTextId={dataStatusBadgeTextId}
+          accountStatus={data}
         />
         <MessageBar messageBarType={MessageBarType.info}>
           <FormattedMessage id="UserDetailsScreen.user-anonymized.message" />
@@ -381,7 +364,7 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
         endUserAccountIdentifier={data.endUserAccountID ?? undefined}
         createdAtISO={data.createdAt ?? null}
         lastLoginAtISO={data.lastLoginAt ?? null}
-        badgeTextId={dataStatusBadgeTextId}
+        accountStatus={data}
       />
       <AGPivot
         styles={{

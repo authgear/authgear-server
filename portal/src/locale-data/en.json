@@ -426,11 +426,6 @@
   "UserDetails.account-security.disabled": "(Disabled)",
   "UserDetails.account-status.header": "Account Status",
 
-  "UserDetails.disabled.badge": "Disabled",
-  "UserDetails.scheduled-anonymization.badge": "Anonymization scheduled",
-  "UserDetails.anonymized.badge": "Anonymized",
-  "UserDetails.scheduled-removal.badge": "Removal scheduled",
-
   "UserDetailsAccountStatus.title": "Account Status",
   "UserDetailsAccountStatus.disable-user.title": "Disable User",
   "UserDetailsAccountStatus.disable-user.body": "Temporarily disables the user’s account, preventing them from logging in or using the system. Active sessions will be removed.",
@@ -492,6 +487,12 @@
   "AccountStatusDialog.account-valid-period.action.clear": "Clear",
   "AccountStatusDialog.account-valid-period.action.save": "Save",
   "AccountStatusDialog.account-valid-period.action.edit": "Update valid period",
+
+  "AccountStatusBadge.disabled": "Disabled",
+  "AccountStatusBadge.account-outside-valid-period": "Account outside valid period",
+  "AccountStatusBadge.scheduled-anonymization": "Anonymization scheduled",
+  "AccountStatusBadge.scheduled-deletion": "Removal scheduled",
+  "AccountStatusBadge.anonymized": "Anonymized",
 
   "Add2FAScreen.title.phone": "Add 2FA Phone",
   "Add2FAScreen.title.email": "Add 2FA Email",

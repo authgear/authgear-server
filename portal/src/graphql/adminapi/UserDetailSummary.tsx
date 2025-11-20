@@ -1,19 +1,12 @@
 import React from "react";
 import cn from "classnames";
 import { Link } from "react-router-dom";
-import { Persona, PersonaSize, Text, FontIcon, IStyle } from "@fluentui/react";
+import { Persona, PersonaSize, Text, FontIcon } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
-
 import { formatDatetime } from "../../util/formatDatetime";
+import { AccountStatus, AccountStatusBadge } from "./UserDetailsAccountStatus";
 
 import styles from "./UserDetailSummary.module.css";
-
-const warnBadgeStyle: IStyle = {
-  padding: 4,
-  borderRadius: 4,
-  color: "#ffffff",
-  backgroundColor: "#e23d3d",
-};
 
 interface UserDetailSummaryProps {
   className?: string;
@@ -26,25 +19,7 @@ interface UserDetailSummaryProps {
   profileImageEditable: boolean;
   createdAtISO: string | null;
   lastLoginAtISO: string | null;
-  badgeTextId: string | null;
-}
-
-interface WarnUserStatusBadgeProps {
-  badgeTextId: string;
-}
-
-function WarnUserStatusBadge(props: WarnUserStatusBadgeProps) {
-  const { badgeTextId } = props;
-  return (
-    <Text
-      className={cn(styles.inlineGridItem)}
-      styles={{
-        root: warnBadgeStyle,
-      }}
-    >
-      <FormattedMessage id={badgeTextId} />
-    </Text>
-  );
+  accountStatus: AccountStatus;
 }
 
 const UserDetailSummary: React.VFC<UserDetailSummaryProps> =
@@ -60,7 +35,7 @@ const UserDetailSummary: React.VFC<UserDetailSummaryProps> =
       createdAtISO,
       lastLoginAtISO,
       className,
-      badgeTextId,
+      accountStatus,
     } = props;
     const { locale } = React.useContext(Context);
     const formatedSignedUp = React.useMemo(() => {
@@ -100,9 +75,10 @@ const UserDetailSummary: React.VFC<UserDetailSummaryProps> =
           <Text className={styles.formattedName} variant="medium">
             {formattedName ? formattedName : ""}
           </Text>
-          {badgeTextId ? (
-            <WarnUserStatusBadge badgeTextId={badgeTextId} />
-          ) : null}
+          <AccountStatusBadge
+            className={styles.inlineGridItem}
+            accountStatus={accountStatus}
+          />
           <Text variant="small">
             <FormattedMessage
               id="UserDetails.signed-up"
