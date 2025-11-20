@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback, useContext } from "react";
+import React, { useMemo, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { PivotItem, MessageBar, MessageBarType, IStyle } from "@fluentui/react";
 import { AGPivot } from "../../components/common/AGPivot";
@@ -36,14 +36,15 @@ import {
   OAuthClientConfig,
 } from "../../types";
 import { jsonPointerToString, parseJSONPointer } from "../../util/jsonpointer";
-import { formatDateOnly } from "../../util/formatDateOnly";
 import { extractRawID } from "../../util/graphql";
 
 import styles from "./UserDetailsScreen.module.css";
 import { makeInvariantViolatedErrorParseRule } from "../../error/parse";
 import UserDetailsScreenGroupListContainer from "../../components/roles-and-groups/list/UserDetailsScreenGroupListContainer";
 import UserDetailsScreenRoleListContainer from "../../components/roles-and-groups/list/UserDetailsScreenRoleListContainer";
-import UserDetailsAccountStatus from "./UserDetailsAccountStatus";
+import UserDetailsAccountStatus, {
+  AccountStatusMessageBar,
+} from "./UserDetailsAccountStatus";
 
 interface UserDetailsProps {
   form: SimpleFormModel<FormState>;
@@ -454,52 +455,6 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
   );
 };
 
-interface WarnScheduledDeletionProps {
-  user: UserQueryNodeFragment;
-}
-
-function WarnScheduledDeletion(props: WarnScheduledDeletionProps) {
-  const { user } = props;
-  const { locale } = useContext(Context);
-  if (user.deleteAt == null) {
-    return null;
-  }
-
-  return (
-    <MessageBar messageBarType={MessageBarType.warning}>
-      <FormattedMessage
-        id="UserDetailsScreen.scheduled-deletion"
-        values={{
-          date: formatDateOnly(locale, user.deleteAt) ?? "",
-        }}
-      />
-    </MessageBar>
-  );
-}
-
-interface WarnScheduledAnonymizationProps {
-  user: UserQueryNodeFragment;
-}
-
-function WarnScheduledAnonymization(props: WarnScheduledAnonymizationProps) {
-  const { user } = props;
-  const { locale } = useContext(Context);
-  if (user.anonymizeAt == null) {
-    return null;
-  }
-
-  return (
-    <MessageBar messageBarType={MessageBarType.warning}>
-      <FormattedMessage
-        id="UserDetailsScreen.scheduled-anonymization"
-        values={{
-          date: formatDateOnly(locale, user.anonymizeAt) ?? "",
-        }}
-      />
-    </MessageBar>
-  );
-}
-
 interface UserDetailsScreenContentProps {
   user: UserQueryNodeFragment;
   refreshUser?: () => void;
@@ -571,8 +526,7 @@ const UserDetailsScreenContent: React.VFC<UserDetailsScreenContentProps> =
         hideFooterComponent={true}
         messageBar={
           <>
-            <WarnScheduledDeletion user={user} />
-            <WarnScheduledAnonymization user={user} />
+            <AccountStatusMessageBar accountStatus={user} />
           </>
         }
       >

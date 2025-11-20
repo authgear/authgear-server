@@ -352,8 +352,6 @@
   "UserDetailsScreen.disable-user": "Disable User",
   "UserDetailsScreen.cancel-removal": "Cancel Removal",
   "UserDetailsScreen.cancel-anonymization": "Cancel Anonymization",
-  "UserDetailsScreen.scheduled-deletion": "This user is disabled and scheduled to be removed on {date}",
-  "UserDetailsScreen.scheduled-anonymization": "This user is disabled and scheduled to be anonymized on {date}",
   "UserDetailsScreen.user-account-security.siwe-enabled": "This tab is not available when the user signs in with Ethereum.",
   "UserDetailsScreen.user-anonymized": "User data erased",
   "UserDetailsScreen.user-anonymized.message": "This user is anonymized and all data are erased.",
@@ -493,6 +491,14 @@
   "AccountStatusBadge.scheduled-anonymization": "Anonymization scheduled",
   "AccountStatusBadge.scheduled-deletion": "Removal scheduled",
   "AccountStatusBadge.anonymized": "Anonymized",
+
+  "AccountStatusMessageBar.scheduled-deletion": "This user is disabled and scheduled to be removed on {date}",
+  "AccountStatusMessageBar.anonymized": "This user is anonymized",
+  "AccountStatusMessageBar.scheduled-anonymization": "This user is disabled and scheduled to be anonymized on {date}",
+  "AccountStatusMessageBar.account-valid-from": "This user is scheduled to become valid on {date}",
+  "AccountStatusMessageBar.account-valid-until": "This user is outside valid period and has been invalid since {date}",
+  "AccountStatusMessageBar.disabled-tempoararily": "This user is disabled until {date}",
+  "AccountStatusMessageBar.disabled-indefinitely": "This user is disabled indefinitely",
 
   "Add2FAScreen.title.phone": "Add 2FA Phone",
   "Add2FAScreen.title.email": "Add 2FA Email",

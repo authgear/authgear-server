@@ -1756,4 +1756,89 @@ export function AccountStatusBadge(
   );
 }
 
+export interface AccountStatusMessageBarProps {
+  accountStatus: AccountStatus;
+}
+
+export function AccountStatusMessageBar(
+  props: AccountStatusMessageBarProps
+): React.ReactElement | null {
+  const now = new Date();
+  const { accountStatus } = props;
+  const { locale } = useContext(Context);
+
+  let message = null;
+  if (accountStatus.deleteAt != null) {
+    message = (
+      <FormattedMessage
+        id="AccountStatusMessageBar.scheduled-deletion"
+        values={{
+          date: formatDatetime(locale, accountStatus.deleteAt) ?? "",
+        }}
+      />
+    );
+  } else if (accountStatus.isAnonymized) {
+    message = <FormattedMessage id="AccountStatusMessageBar.anonymized" />;
+  } else if (accountStatus.anonymizeAt != null) {
+    message = (
+      <FormattedMessage
+        id="AccountStatusMessageBar.scheduled-anonymization"
+        values={{
+          date: formatDatetime(locale, accountStatus.anonymizeAt) ?? "",
+        }}
+      />
+    );
+  } else if (
+    accountStatus.accountValidUntil != null &&
+    now.getTime() >= new Date(accountStatus.accountValidUntil).getTime()
+  ) {
+    message = (
+      <FormattedMessage
+        id="AccountStatusMessageBar.account-valid-until"
+        values={{
+          date: formatDatetime(locale, accountStatus.accountValidUntil) ?? "",
+        }}
+      />
+    );
+  } else if (
+    accountStatus.accountValidFrom != null &&
+    now.getTime() < new Date(accountStatus.accountValidFrom).getTime()
+  ) {
+    message = (
+      <FormattedMessage
+        id="AccountStatusMessageBar.account-valid-from"
+        values={{
+          date: formatDatetime(locale, accountStatus.accountValidFrom) ?? "",
+        }}
+      />
+    );
+  } else if (
+    accountStatus.isDisabled &&
+    accountStatus.temporarilyDisabledUntil != null
+  ) {
+    message = (
+      <FormattedMessage
+        id="AccountStatusMessageBar.disabled-tempoararily"
+        values={{
+          date:
+            formatDatetime(locale, accountStatus.temporarilyDisabledUntil) ??
+            "",
+        }}
+      />
+    );
+  } else if (accountStatus.isDisabled) {
+    message = (
+      <FormattedMessage id="AccountStatusMessageBar.disabled-indefinitely" />
+    );
+  }
+
+  if (message == null) {
+    return null;
+  }
+
+  return (
+    <MessageBar messageBarType={MessageBarType.warning}>{message}</MessageBar>
+  );
+}
+
 export default UserDetailsAccountStatus;
