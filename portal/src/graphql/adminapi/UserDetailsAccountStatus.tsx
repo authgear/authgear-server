@@ -512,34 +512,43 @@ const UserDetailsAccountStatus: React.VFC<UserDetailsAccountStatusProps> =
     const navigate = useNavigate();
 
     const [dialogHidden, setDialogHidden] = useState(true);
+    // Mount a new dialog on every open of the dialog.
+    const [dialogKey, setDialogKey] = useState(0);
     const [mode, setMode] = useState<AccountStatusDialogProps["mode"]>("auto");
 
     const onClickDisable = useCallback(() => {
       setMode("disable");
+      setDialogKey((prev) => prev + 1);
       setDialogHidden(false);
     }, []);
     const onClickAnonymizeOrSchedule = useCallback(() => {
       setMode("anonymize-or-schedule");
+      setDialogKey((prev) => prev + 1);
       setDialogHidden(false);
     }, []);
     const onClickCancelAnonymization = useCallback(() => {
       setMode("cancel-anonymization");
+      setDialogKey((prev) => prev + 1);
       setDialogHidden(false);
     }, []);
     const onClickAnonymizeImmediately = useCallback(() => {
       setMode("anonymize-immediately");
+      setDialogKey((prev) => prev + 1);
       setDialogHidden(false);
     }, []);
     const onClickDeleteOrSchedule = useCallback(() => {
       setMode("delete-or-schedule");
+      setDialogKey((prev) => prev + 1);
       setDialogHidden(false);
     }, []);
     const onClickDeleteImmediately = useCallback(() => {
       setMode("delete-immediately");
+      setDialogKey((prev) => prev + 1);
       setDialogHidden(false);
     }, []);
     const onClickCancelDeletion = useCallback(() => {
       setMode("cancel-deletion");
+      setDialogKey((prev) => prev + 1);
       setDialogHidden(false);
     }, []);
 
@@ -577,6 +586,7 @@ const UserDetailsAccountStatus: React.VFC<UserDetailsAccountStatusProps> =
           />
         </div>
         <AccountStatusDialog
+          key={String(dialogKey)}
           accountStatus={data}
           isHidden={dialogHidden}
           mode={mode}
