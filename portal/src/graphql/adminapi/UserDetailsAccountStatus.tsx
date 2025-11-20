@@ -1,13 +1,30 @@
 import React, { useContext, useState, useCallback, useMemo } from "react";
-import { IStyle, Label, Text, Dialog, DialogFooter } from "@fluentui/react";
+import {
+  IStyle,
+  Label,
+  Text,
+  Dialog,
+  DialogFooter,
+  ChoiceGroup,
+  IChoiceGroupOption,
+  IChoiceGroupOptionProps,
+  MessageBar,
+  MessageBarType,
+  DatePicker,
+  TimePicker,
+  IComboBox,
+  ITimeRange,
+} from "@fluentui/react";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import { useNavigate } from "react-router-dom";
+import { DateTime, SystemZone } from "luxon";
 
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import ListCellLayout from "../../ListCellLayout";
 import OutlinedActionButton from "../../components/common/OutlinedActionButton";
 import PrimaryButton from "../../PrimaryButton";
 import DefaultButton from "../../DefaultButton";
+import TextField from "../../TextField";
 import ErrorDialog from "../../error/ErrorDialog";
 import { useSetDisabledStatusMutation } from "./mutations/setDisabledStatusMutation";
 import { useAnonymizeUserMutation } from "./mutations/anonymizeUserMutation";
@@ -28,6 +45,16 @@ const labelTextStyle: IStyle = {
 const bodyTextStyle: IStyle = {
   lineHeight: "20px",
   maxWidth: "500px",
+};
+
+const choiceGroupStyle = {
+  flexContainer: {
+    selectors: {
+      ".ms-ChoiceField": {
+        display: "block",
+      },
+    },
+  },
 };
 
 const dialogStyles = { main: { minHeight: 0 } };
@@ -89,6 +116,142 @@ interface ButtonStates {
   delete: {
     buttonDisabled: boolean;
     deleteAt: Date | null;
+  };
+}
+
+function formatSystemZone(now: Date, locale: string): string {
+  const zone = new SystemZone();
+  return `${zone.offsetName(now.getTime(), {
+    format: "short",
+    locale,
+  })} (${zone.name})`;
+}
+
+function usePickedDateAndTime(opts: {
+  pickedDate: Date;
+  pickedTime: Date;
+}): Date {
+  const { pickedDate, pickedTime } = opts;
+  return useMemo(() => {
+    return DateTime.fromJSDate(pickedDate)
+      .set({
+        hour: pickedTime.getHours(),
+        minute: pickedTime.getMinutes(),
+        second: 0,
+        millisecond: 0,
+      })
+      .toJSDate();
+  }, [pickedDate, pickedTime]);
+}
+
+function useMinDate(ref: Date): Date {
+  // Add 1 hour so that the minDate is never less than now.
+  return DateTime.fromJSDate(ref)
+    .plus({
+      hour: 1,
+    })
+    .set({
+      minute: 0,
+      second: 0,
+      millisecond: 0,
+    })
+    .toJSDate();
+}
+
+function useDatePickerProps(opts: {
+  minDate: Date;
+  pickedTime: Date;
+  setDate: (date: Date) => void;
+  setTime: (date: Date) => void;
+}): {
+  onSelectDate: (date: Date | null | undefined) => void;
+} {
+  const { minDate, pickedTime, setDate, setTime } = opts;
+
+  const onSelectDate = useCallback(
+    (date: Date | null | undefined) => {
+      if (date == null) {
+        return;
+      }
+
+      const dateTime_minDate = DateTime.fromJSDate(minDate).startOf("day");
+      const dateTime_pickedDate = DateTime.fromJSDate(date).startOf("day");
+
+      // Do not allow to pick a date less than minDate.
+      if (dateTime_pickedDate.valueOf() < dateTime_minDate.valueOf()) {
+        return;
+      }
+
+      // Adjust the time.
+      if (dateTime_pickedDate.valueOf() === dateTime_minDate.valueOf()) {
+        setDate(date);
+        if (
+          pickedTime.getHours() < minDate.getHours() ||
+          pickedTime.getMinutes() < minDate.getMinutes()
+        ) {
+          setTime(minDate);
+        }
+        return;
+      }
+
+      setDate(date);
+    },
+    [minDate, pickedTime, setDate, setTime]
+  );
+
+  return {
+    onSelectDate,
+  };
+}
+
+function useTimePickerTimeProps(opts: {
+  minDate: Date;
+  pickedDate: Date;
+  setTime: (date: Date) => void;
+}): {
+  increments: number;
+  timeRange: ITimeRange;
+  onChange: (e: React.FormEvent<IComboBox>, time: Date) => void;
+} {
+  const increments = 60;
+  const { minDate, pickedDate, setTime } = opts;
+  const startOfDay_minDate = DateTime.fromJSDate(minDate).startOf("day");
+  const startOfDay_pickedDate = DateTime.fromJSDate(pickedDate).startOf("day");
+
+  const onChange = useCallback(
+    (_e: React.FormEvent<IComboBox>, time: Date) => {
+      setTime(time);
+    },
+    [setTime]
+  );
+  // This should not happen.
+  if (startOfDay_pickedDate.valueOf() < startOfDay_minDate.valueOf()) {
+    return {
+      increments,
+      onChange,
+      timeRange: {
+        start: 0,
+        end: 0,
+      },
+    };
+  }
+  if (startOfDay_pickedDate.valueOf() > startOfDay_minDate.valueOf()) {
+    return {
+      increments,
+      onChange,
+      timeRange: {
+        start: 0,
+        end: 0,
+      },
+    };
+  }
+  return {
+    increments,
+    onChange,
+    timeRange: {
+      start: minDate.getHours(),
+      end: 0,
+    },
   };
 }
 
@@ -612,6 +775,168 @@ export function AccountStatusDialog(
   const { isHidden, onDismiss, mode, accountStatus } = props;
   const buttonStates = getButtonStates(accountStatus);
   const { themes } = useSystemConfig();
+  const { locale, renderToString } = useContext(Context);
+
+  const [mountedAt] = useState(() => new Date());
+  const minDate = useMinDate(mountedAt);
+
+  const [disableChoiceGroupKey, setDisableChoiceGroupKey] = useState<
+    "indefinitely" | "temporarily"
+  >("indefinitely");
+
+  const [temporarilyDisabledUntil_date, setTemporarilyDisabledUntil_date] =
+    useState(minDate);
+  const [temporarilyDisabledUntil_time, setTemporarilyDisabledUntil_time] =
+    useState(minDate);
+
+  const datePickerProps = useDatePickerProps({
+    minDate,
+    pickedTime: temporarilyDisabledUntil_time,
+    setDate: setTemporarilyDisabledUntil_date,
+    setTime: setTemporarilyDisabledUntil_time,
+  });
+  const timePickerProps = useTimePickerTimeProps({
+    minDate,
+    pickedDate: temporarilyDisabledUntil_date,
+    setTime: setTemporarilyDisabledUntil_time,
+  });
+
+  const temporarilyDisabledUntil = usePickedDateAndTime({
+    pickedDate: temporarilyDisabledUntil_date,
+    pickedTime: temporarilyDisabledUntil_time,
+  });
+
+  const [disableReason, setDisableReason] = useState("");
+
+  const onRenderTemporarilyDisableFormField = useCallback(
+    (
+      props?: IChoiceGroupOption & IChoiceGroupOptionProps,
+      render?: (
+        props?: IChoiceGroupOption & IChoiceGroupOptionProps
+      ) => JSX.Element | null
+    ) => {
+      const formattedZone = formatSystemZone(new Date(), locale);
+      return (
+        <div className="flex flex-col gap-2">
+          {render?.(props)}
+          <div className="flex flex-col ml-6 gap-2">
+            <MessageBar
+              messageBarType={MessageBarType.info}
+              styles={{
+                iconContainer: {
+                  display: "none",
+                },
+              }}
+            >
+              <FormattedMessage
+                id="AccountStatusDialog.disable-user.timezone-description"
+                values={{
+                  timezone: formattedZone,
+                }}
+              />
+            </MessageBar>
+            <div className="flex flex-row gap-2">
+              <DatePicker
+                {...datePickerProps}
+                className="flex-1"
+                disabled={disableChoiceGroupKey !== "temporarily"}
+                value={temporarilyDisabledUntil_date}
+              />
+              <TimePicker
+                {...timePickerProps}
+                className="flex-1"
+                disabled={disableChoiceGroupKey !== "temporarily"}
+                allowFreeform={false}
+                showSeconds={false}
+                useHour12={false}
+                value={temporarilyDisabledUntil_time}
+              />
+            </div>
+          </div>
+        </div>
+      );
+    },
+    [
+      datePickerProps,
+      disableChoiceGroupKey,
+      locale,
+      temporarilyDisabledUntil_date,
+      temporarilyDisabledUntil_time,
+      timePickerProps,
+    ]
+  );
+
+  const disableChoiceGroupOptions: IChoiceGroupOption[] = useMemo(() => {
+    return [
+      {
+        key: "indefinitely",
+        text: renderToString(
+          "AccountStatusDialog.disable-user.disable-period.options.indefinitely"
+        ),
+      },
+      {
+        key: "temporarily",
+        text: renderToString(
+          "AccountStatusDialog.disable-user.disable-period.options.temporarily"
+        ),
+        onRenderField: onRenderTemporarilyDisableFormField,
+      },
+    ];
+  }, [onRenderTemporarilyDisableFormField, renderToString]);
+
+  const onChangeDisableChoiceGroup = useCallback(
+    (
+      _?: React.FormEvent<HTMLElement | HTMLInputElement>,
+      option?: IChoiceGroupOption
+    ) => {
+      if (!option?.key) return;
+      setDisableChoiceGroupKey(option.key as any);
+    },
+    []
+  );
+  const onChangeDisableReason = useCallback(
+    (
+      _e: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>,
+      value?: string
+    ) => {
+      setDisableReason(value ?? "");
+    },
+    []
+  );
+  const disableForm = useMemo(() => {
+    return (
+      <div className="flex flex-col gap-4">
+        <ChoiceGroup
+          styles={choiceGroupStyle}
+          // @ts-expect-error
+          label={
+            <FormattedMessage id="AccountStatusDialog.disable-user.disable-period.label" />
+          }
+          options={disableChoiceGroupOptions}
+          selectedKey={disableChoiceGroupKey}
+          onChange={onChangeDisableChoiceGroup}
+        />
+        <TextField
+          // @ts-expect-error
+          label={
+            <FormattedMessage id="AccountStatusDialog.disable-user.disable-reason.label" />
+          }
+          placeholder={renderToString(
+            "AccountStatusDialog.disable-user.disable-reason.placeholder"
+          )}
+          value={disableReason}
+          onChange={onChangeDisableReason}
+        />
+      </div>
+    );
+  }, [
+    disableChoiceGroupKey,
+    disableChoiceGroupOptions,
+    disableReason,
+    onChangeDisableChoiceGroup,
+    onChangeDisableReason,
+    renderToString,
+  ]);
 
   const {
     setDisabledStatus,
@@ -768,6 +1093,7 @@ export function AccountStatusDialog(
       title: React.ReactElement | null;
       subText: React.ReactElement | null;
     };
+    body: React.ReactElement | null;
     button1: React.ReactElement | null;
     button2: React.ReactElement | null;
   } = useMemo(() => {
@@ -778,6 +1104,7 @@ export function AccountStatusDialog(
 
     let title: React.ReactElement | null = null;
     let subText: React.ReactElement | null = null;
+    let body: React.ReactElement | null = null;
     let button1: React.ReactElement | null = null;
     let button2: React.ReactElement | null = null;
 
@@ -850,6 +1177,7 @@ export function AccountStatusDialog(
           values={args}
         />
       );
+      body = disableForm;
       button1 = (
         <PrimaryButton
           theme={themes.destructive}
@@ -1003,10 +1331,11 @@ export function AccountStatusDialog(
         break;
       }
     }
-    return { dialogContentProps: { title, subText }, button1, button2 };
+    return { dialogContentProps: { title, subText }, body, button1, button2 };
   }, [
     accountStatus,
     buttonStates.toggleDisable.isDisabledIndefinitelyOrTemporarily,
+    disableForm,
     loading,
     mode,
     onClickAnonymize,
@@ -1031,6 +1360,7 @@ export function AccountStatusDialog(
         styles={dialogStyles}
         minWidth={560}
       >
+        {dialogContentPropsAndDialogSlots.body}
         <DialogFooter>
           {dialogContentPropsAndDialogSlots.button1}
           {dialogContentPropsAndDialogSlots.button2}
