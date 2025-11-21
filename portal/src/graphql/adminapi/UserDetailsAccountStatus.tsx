@@ -1014,40 +1014,40 @@ export function AccountStatusDialog(
       return (
         <div className="flex flex-col gap-2">
           {render?.(props)}
-          <div className="flex flex-col ml-6 gap-2">
-            <MessageBar
-              messageBarType={MessageBarType.info}
-              styles={{
-                iconContainer: {
-                  display: "none",
-                },
-              }}
-            >
-              <FormattedMessage
-                id="AccountStatusDialog.disable-user.timezone-description"
-                values={{
-                  timezone: formattedZone,
+          {disableChoiceGroupKey === "temporarily" ? (
+            <div className="flex flex-col ml-6 gap-2">
+              <MessageBar
+                messageBarType={MessageBarType.info}
+                styles={{
+                  iconContainer: {
+                    display: "none",
+                  },
                 }}
-              />
-            </MessageBar>
-            <div className="flex flex-row gap-2">
-              <DatePicker
-                {...datePickerProps}
-                className="flex-1"
-                disabled={disableChoiceGroupKey !== "temporarily"}
-                value={temporarilyDisabledUntil}
-              />
-              <TimePicker
-                {...timePickerProps}
-                className="flex-1"
-                disabled={disableChoiceGroupKey !== "temporarily"}
-                allowFreeform={false}
-                showSeconds={false}
-                useHour12={false}
-                value={temporarilyDisabledUntil}
-              />
+              >
+                <FormattedMessage
+                  id="AccountStatusDialog.disable-user.timezone-description"
+                  values={{
+                    timezone: formattedZone,
+                  }}
+                />
+              </MessageBar>
+              <div className="flex flex-row gap-2">
+                <DatePicker
+                  {...datePickerProps}
+                  className="flex-1"
+                  value={temporarilyDisabledUntil}
+                />
+                <TimePicker
+                  {...timePickerProps}
+                  className="flex-1"
+                  allowFreeform={false}
+                  showSeconds={false}
+                  useHour12={false}
+                  value={temporarilyDisabledUntil}
+                />
+              </div>
             </div>
-          </div>
+          ) : null}
         </div>
       );
     },
