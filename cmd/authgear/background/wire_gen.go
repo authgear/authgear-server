@@ -652,31 +652,6 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 		Reindexer: reindexer,
 		Database:  handle,
 	}
-	userInfoService := &userinfo.UserInfoService{
-		Redis:                 appredisHandle,
-		Clock:                 clockClock,
-		AppID:                 configAppID,
-		UserQueries:           userQueries,
-		RolesAndGroupsQueries: queries,
-	}
-	userinfoSink := &userinfo.Sink{
-		UserInfoService: userInfoService,
-	}
-	eventService := event.NewService(configAppID, remoteIP, userAgentString, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
-	userCommands := &user.Commands{
-		RawCommands:        rawCommands,
-		RawQueries:         rawQueries,
-		Events:             eventService,
-		Verification:       verificationService,
-		UserProfileConfig:  userProfileConfig,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
-	}
-	userProvider := &user.Provider{
-		Commands: userCommands,
-		Queries:  userQueries,
-	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: configAppID,
@@ -701,6 +676,34 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 		EnvConfig:     rateLimitsEnvironmentConfig,
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
+	}
+	userInfoService := &userinfo.UserInfoService{
+		Redis:                 appredisHandle,
+		Clock:                 clockClock,
+		AppID:                 configAppID,
+		AuthenticationConfig:  authenticationConfig,
+		UserQueries:           userQueries,
+		RolesAndGroupsQueries: queries,
+		AuthenticatorService:  service3,
+		MFAService:            mfaService,
+	}
+	userinfoSink := &userinfo.Sink{
+		UserInfoService: userInfoService,
+	}
+	eventService := event.NewService(configAppID, remoteIP, userAgentString, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	userCommands := &user.Commands{
+		RawCommands:        rawCommands,
+		RawQueries:         rawQueries,
+		Events:             eventService,
+		Verification:       verificationService,
+		UserProfileConfig:  userProfileConfig,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     queries,
+	}
+	userProvider := &user.Provider{
+		Commands: userCommands,
+		Queries:  userQueries,
 	}
 	usageLimiter := &usage.Limiter{
 		Clock: clockClock,

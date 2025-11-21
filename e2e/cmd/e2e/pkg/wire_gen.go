@@ -597,17 +597,6 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		Reindexer: reindexer,
 		Database:  handle,
 	}
-	userInfoService := &userinfo.UserInfoService{
-		Redis:                 appredisHandle,
-		Clock:                 clockClock,
-		AppID:                 appID,
-		UserQueries:           userQueries,
-		RolesAndGroupsQueries: queries,
-	}
-	userinfoSink := &userinfo.Sink{
-		UserInfoService: userInfoService,
-	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -633,6 +622,20 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
+	userInfoService := &userinfo.UserInfoService{
+		Redis:                 appredisHandle,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		AuthenticationConfig:  authenticationConfig,
+		UserQueries:           userQueries,
+		RolesAndGroupsQueries: queries,
+		AuthenticatorService:  service3,
+		MFAService:            mfaService,
+	}
+	userinfoSink := &userinfo.Sink{
+		UserInfoService: userInfoService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
 	usageLimiter := &usage.Limiter{
 		Clock: clockClock,
 		AppID: appID,

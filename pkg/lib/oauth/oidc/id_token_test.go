@@ -2,6 +2,7 @@ package oidc
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
 	"time"
 
@@ -77,7 +78,8 @@ func TestIDTokenIssuer(t *testing.T) {
 					IsVerified:        true,
 					CanReauthenticate: true,
 				},
-				EffectiveRoleKeys: []string{"role-1", "role-3"},
+				EffectiveRoleKeys:   []string{"role-1", "role-3"},
+				RecoveryCodeEnabled: true,
 			},
 			nil,
 		)
@@ -204,5 +206,173 @@ func TestIDTokenIssuer(t *testing.T) {
 			},
 		},
 		)
+	})
+}
+
+func TestIDTokenIssuer_GetUserInfo(t *testing.T) {
+	Convey("GetUserInfo", t, func() {
+		ctrl := gomock.NewController(t)
+
+		now := time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)
+		createdAt := now.Add(-1 * time.Hour)
+		updatedAt := now.Add(-30 * time.Minute)
+
+		mockUserInfoService := NewMockUserInfoService(ctrl)
+		mockUserInfoService.EXPECT().GetUserInfoBearer(gomock.Any(), "user-id").Return(
+			&userinfo.UserInfo{
+				User: &model.User{
+					IsAnonymous:       false,
+					IsVerified:        true,
+					CanReauthenticate: true,
+				},
+				EffectiveRoleKeys:   []string{"role-1", "role-3"},
+				RecoveryCodeEnabled: true,
+				Authenticators: []model.UserInfoAuthenticator{
+					{
+						CreatedAt: createdAt,
+						UpdatedAt: updatedAt,
+						Type:      model.AuthenticatorTypePassword,
+						Kind:      model.AuthenticatorKindPrimary,
+					},
+					{
+						CreatedAt: createdAt,
+						UpdatedAt: updatedAt,
+						Type:      model.AuthenticatorTypeOOBSMS,
+						Kind:      model.AuthenticatorKindPrimary,
+					},
+					{
+						CreatedAt: createdAt,
+						UpdatedAt: updatedAt,
+						Type:      model.AuthenticatorTypeOOBEmail,
+						Kind:      model.AuthenticatorKindPrimary,
+					},
+					{
+						CreatedAt: createdAt,
+						UpdatedAt: updatedAt,
+						Type:      model.AuthenticatorTypeTOTP,
+						Kind:      model.AuthenticatorKindPrimary,
+					},
+				},
+			},
+			nil,
+		)
+
+		issuer := &IDTokenIssuer{
+			UserInfoService: mockUserInfoService,
+		}
+
+		clientConfig := &config.OAuthClientConfig{
+			ClientID:        "client-id",
+			ApplicationType: config.OAuthClientApplicationTypeSPA,
+		}
+		client := oauth.ClientClientLike(clientConfig, []string{"openid", "email", oauth.FullUserInfoScope, string(model.ClaimAuthenticators), string(model.ClaimPhoneNumber), string(model.ClaimEmail)})
+		userInfo, err := issuer.GetUserInfo(context.Background(), "user-id", client)
+		So(err, ShouldBeNil)
+
+		expectedJSON := `{
+  "custom_attributes": null,
+  "https://authgear.com/claims/user/authenticators": [
+    {
+      "created_at": "2019-12-31T23:00:00Z",
+      "updated_at": "2019-12-31T23:30:00Z",
+      "type": "password",
+      "kind": "primary"
+    },
+    {
+      "created_at": "2019-12-31T23:00:00Z",
+      "updated_at": "2019-12-31T23:30:00Z",
+      "type": "oob_otp_sms",
+      "kind": "primary"
+    },
+    {
+      "created_at": "2019-12-31T23:00:00Z",
+      "updated_at": "2019-12-31T23:30:00Z",
+      "type": "oob_otp_email",
+      "kind": "primary"
+    },
+    {
+      "created_at": "2019-12-31T23:00:00Z",
+      "updated_at": "2019-12-31T23:30:00Z",
+      "type": "totp",
+      "kind": "primary"
+    }
+  ],
+  "https://authgear.com/claims/user/can_reauthenticate": true,
+  "https://authgear.com/claims/user/is_anonymous": false,
+  "https://authgear.com/claims/user/is_verified": true,
+  "https://authgear.com/claims/user/recovery_code_enabled": true,
+  "https://authgear.com/claims/user/roles": [
+    "role-1",
+    "role-3"
+  ],
+  "sub": "user-id",
+  "x_web3": null
+}`
+
+		userInfoBytes, err := json.MarshalIndent(userInfo, "", "  ")
+		So(err, ShouldBeNil)
+		So(string(userInfoBytes), ShouldEqual, expectedJSON)
+	})
+}
+
+func TestGetUserInfo(t *testing.T) {
+	Convey("GetUserInfo", t, func() {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		now := time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)
+
+		mockUserInfoService := NewMockUserInfoService(ctrl)
+		mockUserInfoService.EXPECT().GetUserInfoBearer(gomock.Any(), "user-id").Return(
+			&userinfo.UserInfo{
+				User: &model.User{
+					IsAnonymous:       false,
+					IsVerified:        true,
+					CanReauthenticate: true,
+					StandardAttributes: map[string]interface{}{
+						"email": "test@example.com",
+					},
+				},
+				EffectiveRoleKeys: []string{"role-1", "role-3"},
+				Authenticators: []model.UserInfoAuthenticator{
+					{
+						Type: model.AuthenticatorTypePassword,
+						Kind: model.AuthenticatorKindPrimary,
+					},
+				},
+				RecoveryCodeEnabled: true,
+			},
+			nil,
+		)
+
+		issuer := &IDTokenIssuer{
+			UserInfoService: mockUserInfoService,
+			Clock:           clock.NewMockClockAtTime(now),
+		}
+
+		client := &config.OAuthClientConfig{
+			ClientID: "client-id",
+		}
+		scopes := []string{"openid", "email", "https://authgear.com/scopes/full-userinfo"}
+
+		clientLike := oauth.ClientClientLike(client, scopes)
+		clientLike.PIIAllowedInIDToken = true
+
+		userInfo, err := issuer.GetUserInfo(context.Background(), "user-id", clientLike)
+		So(err, ShouldBeNil)
+
+		So(userInfo["sub"], ShouldEqual, "user-id")
+		So(userInfo[string(model.ClaimUserIsAnonymous)], ShouldEqual, false)
+		So(userInfo[string(model.ClaimUserIsVerified)], ShouldEqual, true)
+		So(userInfo[string(model.ClaimUserCanReauthenticate)], ShouldEqual, true)
+		So(userInfo[string(model.ClaimAuthgearRoles)], ShouldResemble, []string{"role-1", "role-3"})
+		So(userInfo[string(model.ClaimRecoveryCodeEnabled)], ShouldEqual, true)
+		So(userInfo["email"], ShouldEqual, "test@example.com")
+		So(userInfo[string(model.ClaimAuthenticators)], ShouldResemble, []model.UserInfoAuthenticator{
+			{
+				Type: model.AuthenticatorTypePassword,
+				Kind: model.AuthenticatorKindPrimary,
+			},
+		})
 	})
 }
