@@ -132,26 +132,9 @@ func (s *UserInfoService) getUserInfoFromDatabase(ctx context.Context, userID st
 			CreatedAt: authn.CreatedAt,
 			UpdatedAt: authn.UpdatedAt,
 			Kind:      authn.Kind,
+			Type:      authn.Type,
 		}
-		switch authn.Type {
-		case model.AuthenticatorTypeOOBEmail:
-			userinfoAuthen.Type = model.AuthenticatorTypeOOBEmail
-			if authn.OOBOTP != nil {
-				userinfoAuthen.Email = authn.OOBOTP.Email
-			}
-		case model.AuthenticatorTypeOOBSMS:
-			userinfoAuthen.Type = model.AuthenticatorTypeOOBSMS
-			if authn.OOBOTP != nil {
-				userinfoAuthen.Phone = authn.OOBOTP.Phone
-			}
-		case model.AuthenticatorTypeTOTP:
-			userinfoAuthen.Type = model.AuthenticatorTypeTOTP
-			if authn.TOTP != nil {
-				userinfoAuthen.DisplayName = authn.TOTP.DisplayName
-			}
-		default:
-			userinfoAuthen.Type = authn.Type
-		}
+
 		userinfoAuthens = append(userinfoAuthens, userinfoAuthen)
 	}
 
