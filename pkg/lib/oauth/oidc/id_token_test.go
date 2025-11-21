@@ -2,6 +2,7 @@ package oidc
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
 	"time"
 
@@ -267,42 +268,50 @@ func TestIDTokenIssuer_GetUserInfo(t *testing.T) {
 		client := oauth.ClientClientLike(clientConfig, []string{"openid", "email", oauth.FullUserInfoScope, string(model.ClaimAuthenticators), string(model.ClaimPhoneNumber), string(model.ClaimEmail)})
 		userInfo, err := issuer.GetUserInfo(context.Background(), "user-id", client)
 		So(err, ShouldBeNil)
-		So(userInfo, ShouldResemble, map[string]interface{}{
-			"sub":                                    "user-id",
-			string(model.ClaimUserIsAnonymous):       false,
-			string(model.ClaimUserIsVerified):        true,
-			string(model.ClaimUserCanReauthenticate): true,
-			string(model.ClaimAuthgearRoles):         []string{"role-1", "role-3"},
-			string(model.ClaimAuthenticators): []model.UserInfoAuthenticator{
-				{
-					CreatedAt: createdAt,
-					UpdatedAt: updatedAt,
-					Type:      model.AuthenticatorTypePassword,
-					Kind:      model.AuthenticatorKindPrimary,
-				},
-				{
-					CreatedAt: createdAt,
-					UpdatedAt: updatedAt,
-					Type:      model.AuthenticatorTypeOOBSMS,
-					Kind:      model.AuthenticatorKindPrimary,
-				},
-				{
-					CreatedAt: createdAt,
-					UpdatedAt: updatedAt,
-					Type:      model.AuthenticatorTypeOOBEmail,
-					Kind:      model.AuthenticatorKindPrimary,
-				},
-				{
-					CreatedAt: createdAt,
-					UpdatedAt: updatedAt,
-					Type:      model.AuthenticatorTypeTOTP,
-					Kind:      model.AuthenticatorKindPrimary,
-				},
-			},
-			string(model.ClaimRecoveryCodeEnabled): true,
-			"custom_attributes":                    map[string]interface{}(nil),
-			"x_web3":                               map[string]interface{}(nil),
-		})
+
+		expectedJSON := `{
+  "custom_attributes": null,
+  "https://authgear.com/claims/user/authenticators": [
+    {
+      "created_at": "2019-12-31T23:00:00Z",
+      "updated_at": "2019-12-31T23:30:00Z",
+      "type": "password",
+      "kind": "primary"
+    },
+    {
+      "created_at": "2019-12-31T23:00:00Z",
+      "updated_at": "2019-12-31T23:30:00Z",
+      "type": "oob_otp_sms",
+      "kind": "primary"
+    },
+    {
+      "created_at": "2019-12-31T23:00:00Z",
+      "updated_at": "2019-12-31T23:30:00Z",
+      "type": "oob_otp_email",
+      "kind": "primary"
+    },
+    {
+      "created_at": "2019-12-31T23:00:00Z",
+      "updated_at": "2019-12-31T23:30:00Z",
+      "type": "totp",
+      "kind": "primary"
+    }
+  ],
+  "https://authgear.com/claims/user/can_reauthenticate": true,
+  "https://authgear.com/claims/user/is_anonymous": false,
+  "https://authgear.com/claims/user/is_verified": true,
+  "https://authgear.com/claims/user/recovery_code_enabled": true,
+  "https://authgear.com/claims/user/roles": [
+    "role-1",
+    "role-3"
+  ],
+  "sub": "user-id",
+  "x_web3": null
+}`
+
+		userInfoBytes, err := json.MarshalIndent(userInfo, "", "  ")
+		So(err, ShouldBeNil)
+		So(string(userInfoBytes), ShouldEqual, expectedJSON)
 	})
 }
 
