@@ -13,6 +13,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
@@ -87,6 +88,7 @@ func TestGetUserInfoBearer(t *testing.T) {
 		userQueries := NewMockUserQueries(ctrl)
 		rolesAndGroupsQueries := NewMockRolesAndGroupsQueries(ctrl)
 		authenticatorService := NewMockUserInfoAuthenticatorService(ctrl)
+		mfaService := NewMockUserInfoMFAService(ctrl)
 
 		now := time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)
 		createdAt := now.Add(-1 * time.Hour)
@@ -134,6 +136,11 @@ func TestGetUserInfoBearer(t *testing.T) {
 		userQueries.EXPECT().Get(gomock.Any(), "user-id", config.RoleBearer).Return(user, nil)
 		rolesAndGroupsQueries.EXPECT().ListEffectiveRolesByUserID(gomock.Any(), "user-id").Return(roles, nil)
 		authenticatorService.EXPECT().List(gomock.Any(), "user-id", gomock.Any()).Return(authns, nil)
+		mfaService.EXPECT().ListRecoveryCodes(gomock.Any(), "user-id").Return([]*mfa.RecoveryCode{
+			{
+				Code: "some-code",
+			},
+		}, nil)
 
 		s := &UserInfoService{
 			Redis:                 rh,
@@ -142,6 +149,7 @@ func TestGetUserInfoBearer(t *testing.T) {
 			UserQueries:           userQueries,
 			RolesAndGroupsQueries: rolesAndGroupsQueries,
 			AuthenticatorService:  authenticatorService,
+			MFAService:            mfaService,
 			AuthenticationConfig: &config.AuthenticationConfig{
 				PrimaryAuthenticators: &[]model.AuthenticatorType{
 					model.AuthenticatorTypePassword,
@@ -185,6 +193,7 @@ func TestGetUserInfoBearer(t *testing.T) {
 					Kind:      model.AuthenticatorKindSecondary,
 				},
 			},
+			RecoveryCodeEnabled: true,
 		})
 	})
 }
