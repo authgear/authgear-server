@@ -482,7 +482,6 @@
   "AccountStatusDialog.account-valid-period.start-at.label": "Start at",
   "AccountStatusDialog.account-valid-period.end-at.label": "End at",
   "AccountStatusDialog.account-valid-period.clear.hint": "Leave blank for no limit",
-  "AccountStatusDialog.account-valid-period.action.clear": "Clear",
   "AccountStatusDialog.account-valid-period.action.save": "Save",
   "AccountStatusDialog.account-valid-period.action.edit": "Update valid period",
 
@@ -499,6 +498,8 @@
   "AccountStatusMessageBar.account-valid-until": "This user is outside valid period and has been invalid since {date}",
   "AccountStatusMessageBar.disabled-tempoararily": "This user is disabled until {date}",
   "AccountStatusMessageBar.disabled-indefinitely": "This user is disabled indefinitely",
+
+  "DateTimePicker.clear": "Clear",
 
   "Add2FAScreen.title.phone": "Add 2FA Phone",
   "Add2FAScreen.title.email": "Add 2FA Email",
