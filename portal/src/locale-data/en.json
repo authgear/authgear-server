@@ -344,6 +344,8 @@
   "AddUserScreen.send-password": "Send the password to user's email",
   "AddUserScreen.password-setup.label": "Password setup",
   "AddUserScreen.additional-option.label": "Additional option",
+  "AddUserScreen.valid-period.title": "Valid Period",
+  "AddUserScreen.valid-period.description": "Set a valid period during which this account can log in. Outside this period, the user cannot log in. Useful for temporary access, such as contractors or external partners.",
 
   "UserDetailsScreen.title": "User Details",
   "UserDetailsScreen.remove-user": "Remove User",
