@@ -479,9 +479,6 @@
   "AccountStatusDialog.account-valid-period.description--set": "Set a valid period during which this account can log in. Outside this period, the user cannot log in. Useful for temporary access, such as contractors or external partners.",
   "AccountStatusDialog.account-valid-period.title--edit": "Edit Account Valid Period",
   "AccountStatusDialog.account-valid-period.description--edit": "Edit the valid period for this account. Outside this period, the user cannot log in.",
-  "AccountStatusDialog.account-valid-period.start-at.label": "Start at",
-  "AccountStatusDialog.account-valid-period.end-at.label": "End at",
-  "AccountStatusDialog.account-valid-period.clear.hint": "Leave blank for no limit",
   "AccountStatusDialog.account-valid-period.action.save": "Save",
   "AccountStatusDialog.account-valid-period.action.edit": "Update valid period",
 
@@ -498,6 +495,11 @@
   "AccountStatusMessageBar.account-valid-until": "This user is outside valid period and has been invalid since {date}",
   "AccountStatusMessageBar.disabled-tempoararily": "This user is disabled until {date}",
   "AccountStatusMessageBar.disabled-indefinitely": "This user is disabled indefinitely",
+
+  "AccountValidPeriodForm.timezone-description": "All times in {timezone}",
+  "AccountValidPeriodForm.start-at": "Start at",
+  "AccountValidPeriodForm.end-at": "End at",
+  "AccountValidPeriodForm.hint": "Leave blank for no limit",
 
   "DateTimePicker.clear": "Clear",
 

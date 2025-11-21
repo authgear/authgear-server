@@ -1,4 +1,5 @@
 import React, { useContext, useState, useCallback, useMemo } from "react";
+import cn from "classnames";
 import {
   IStyle,
   Label,
@@ -229,6 +230,95 @@ function getButtonStates(data: AccountStatus): ButtonStates {
       deleteAt: data.deleteAt != null ? new Date(data.deleteAt) : null,
     },
   };
+}
+
+export interface AccountValidPeriodFormProps {
+  className?: string;
+  accountValidFrom: Date | null;
+  onPickAccountValidFrom: (date: Date | null) => void;
+  accountValidUntil: Date | null;
+  onPickAccountValidUntil: (date: Date | null) => void;
+}
+
+export function AccountValidPeriodForm(
+  props: AccountValidPeriodFormProps
+): React.ReactElement {
+  const {
+    className,
+    accountValidFrom,
+    accountValidUntil,
+    onPickAccountValidFrom,
+    onPickAccountValidUntil,
+  } = props;
+
+  const { themes } = useSystemConfig();
+  const { locale } = useContext(Context);
+  const formattedZone = formatSystemZone(new Date(), locale);
+  return (
+    <div className={cn(className, "flex flex-col gap-2")}>
+      <MessageBar
+        messageBarType={MessageBarType.info}
+        styles={{
+          iconContainer: {
+            display: "none",
+          },
+        }}
+      >
+        <FormattedMessage
+          id="AccountValidPeriodForm.timezone-description"
+          values={{
+            timezone: formattedZone,
+          }}
+        />
+      </MessageBar>
+      <DateTimePicker
+        pickedDateTime={accountValidFrom}
+        minDateTime={null}
+        onPickDateTime={onPickAccountValidFrom}
+        showClearButton={true}
+        label={
+          <Label>
+            <FormattedMessage id="AccountValidPeriodForm.start-at" />
+          </Label>
+        }
+        hint={
+          <Text
+            variant="small"
+            styles={{
+              root: {
+                color: themes.main.semanticColors.bodySubtext,
+              },
+            }}
+          >
+            <FormattedMessage id="AccountValidPeriodForm.hint" />
+          </Text>
+        }
+      />
+      <DateTimePicker
+        pickedDateTime={accountValidUntil}
+        minDateTime={null}
+        onPickDateTime={onPickAccountValidUntil}
+        showClearButton={true}
+        label={
+          <Label>
+            <FormattedMessage id="AccountValidPeriodForm.end-at" />
+          </Label>
+        }
+        hint={
+          <Text
+            variant="small"
+            styles={{
+              root: {
+                color: themes.main.semanticColors.bodySubtext,
+              },
+            }}
+          >
+            <FormattedMessage id="AccountValidPeriodForm.hint" />
+          </Text>
+        }
+      />
+    </div>
+  );
 }
 
 const DisableUserCell: React.VFC<DisableUserCellProps> =
@@ -690,39 +780,6 @@ export interface AccountStatusDialogProps {
   accountStatus: AccountStatus;
 }
 
-interface AccountValidDateTimeControlProps {
-  label: React.ReactElement;
-  pickedDateTime: Date | null;
-  onPickDateTime: (datetime: Date | null) => void;
-}
-
-function AccountValidDateTimeControl(props: AccountValidDateTimeControlProps) {
-  const { label, pickedDateTime, onPickDateTime } = props;
-  const { themes } = useSystemConfig();
-
-  return (
-    <DateTimePicker
-      pickedDateTime={pickedDateTime}
-      minDateTime={null}
-      onPickDateTime={onPickDateTime}
-      showClearButton={true}
-      label={<Label>{label}</Label>}
-      hint={
-        <Text
-          variant="small"
-          styles={{
-            root: {
-              color: themes.main.semanticColors.bodySubtext,
-            },
-          }}
-        >
-          <FormattedMessage id="AccountStatusDialog.account-valid-period.clear.hint" />
-        </Text>
-      }
-    />
-  );
-}
-
 export function AccountStatusDialog(
   props: AccountStatusDialogProps
 ): React.ReactElement {
@@ -915,44 +972,17 @@ export function AccountStatusDialog(
   ]);
 
   const accountValidPeriodForm = useMemo(() => {
-    const formattedZone = formatSystemZone(new Date(), locale);
     return (
-      <div className="flex flex-col gap-2">
-        <MessageBar
-          messageBarType={MessageBarType.info}
-          styles={{
-            iconContainer: {
-              display: "none",
-            },
-          }}
-        >
-          <FormattedMessage
-            id="AccountStatusDialog.disable-user.timezone-description"
-            values={{
-              timezone: formattedZone,
-            }}
-          />
-        </MessageBar>
-        <AccountValidDateTimeControl
-          label={
-            <FormattedMessage id="AccountStatusDialog.account-valid-period.start-at.label" />
-          }
-          pickedDateTime={accountValidFrom}
-          onPickDateTime={onPickAccountValidFrom}
-        />
-        <AccountValidDateTimeControl
-          label={
-            <FormattedMessage id="AccountStatusDialog.account-valid-period.end-at.label" />
-          }
-          pickedDateTime={accountValidUntil}
-          onPickDateTime={onPickAccountValidUntil}
-        />
-      </div>
+      <AccountValidPeriodForm
+        accountValidFrom={accountValidFrom}
+        accountValidUntil={accountValidUntil}
+        onPickAccountValidFrom={onPickAccountValidFrom}
+        onPickAccountValidUntil={onPickAccountValidUntil}
+      />
     );
   }, [
     accountValidFrom,
     accountValidUntil,
-    locale,
     onPickAccountValidFrom,
     onPickAccountValidUntil,
   ]);
