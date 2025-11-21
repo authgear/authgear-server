@@ -599,7 +599,6 @@ func (s AccountStatusWithRefTime) SetAccountValidPeriod(from *time.Time, until *
 	return &target, nil
 }
 
-// FIXME
 func (s AccountStatusWithRefTime) ScheduleDeletionByEndUser(deleteAt time.Time, reason string) (*AccountStatusWithRefTime, error) {
 	true_ := true
 
