@@ -8,6 +8,8 @@ export type CreateUserMutationMutationVariables = Types.Exact<{
   password?: Types.InputMaybe<Types.Scalars['String']['input']>;
   sendPassword?: Types.InputMaybe<Types.Scalars['Boolean']['input']>;
   setPasswordExpired?: Types.InputMaybe<Types.Scalars['Boolean']['input']>;
+  accountValidFrom?: Types.InputMaybe<Types.Scalars['DateTime']['input']>;
+  accountValidUntil?: Types.InputMaybe<Types.Scalars['DateTime']['input']>;
 }>;
 
 
@@ -15,9 +17,9 @@ export type CreateUserMutationMutation = { __typename?: 'Mutation', createUser: 
 
 
 export const CreateUserMutationDocument = gql`
-    mutation createUserMutation($identityDefinition: IdentityDefinitionLoginID!, $password: String, $sendPassword: Boolean, $setPasswordExpired: Boolean) {
+    mutation createUserMutation($identityDefinition: IdentityDefinitionLoginID!, $password: String, $sendPassword: Boolean, $setPasswordExpired: Boolean, $accountValidFrom: DateTime, $accountValidUntil: DateTime) {
   createUser(
-    input: {definition: {loginID: $identityDefinition}, password: $password, sendPassword: $sendPassword, setPasswordExpired: $setPasswordExpired}
+    input: {definition: {loginID: $identityDefinition}, password: $password, sendPassword: $sendPassword, setPasswordExpired: $setPasswordExpired, accountValidFrom: $accountValidFrom, accountValidUntil: $accountValidUntil}
   ) {
     user {
       id
@@ -44,6 +46,8 @@ export type CreateUserMutationMutationFn = Apollo.MutationFunction<CreateUserMut
  *      password: // value for 'password'
  *      sendPassword: // value for 'sendPassword'
  *      setPasswordExpired: // value for 'setPasswordExpired'
+ *      accountValidFrom: // value for 'accountValidFrom'
+ *      accountValidUntil: // value for 'accountValidUntil'
  *   },
  * });
  */
