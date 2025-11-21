@@ -19,6 +19,11 @@
   {{ $dark = call $.StaticAssetURL "app-logo-dark" }}
 {{ end }}
 
+{{ if $.LogoURI }}
+  {{ $light = $.LogoURI }}
+  {{ $dark = $.LogoURI }}
+{{ end }}
+
 {{ if $.ClientURI }}
   <div 
     class="brand-logo__container light"
