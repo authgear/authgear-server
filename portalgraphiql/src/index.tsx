@@ -1,12 +1,15 @@
-import "graphiql/graphiql.css";
-import "@graphiql/plugin-explorer/dist/style.css";
+import "graphiql/style.css";
+import "@graphiql/plugin-explorer/style.css";
 
 import React from "react";
 import authgear from "@authgear/web";
-import { render } from "react-dom";
+import { createRoot } from "react-dom/client";
 import { GraphiQL } from "graphiql";
 import { explorerPlugin } from "@graphiql/plugin-explorer";
 import { createGraphiQLFetcher } from "@graphiql/toolkit";
+// It turns out that graphql-ws is a peer dependency of @graphiql/toolkit
+// We have to install and bundle it so that it is available at runtime.
+import * as _unused from "graphql-ws";
 
 (async function () {
   let fetch = window.fetch.bind(window);
@@ -54,13 +57,12 @@ import { createGraphiQLFetcher } from "@graphiql/toolkit";
 
   const query = new URLSearchParams(window.location.search).get("query") || "";
 
-  render(
+  createRoot(document.getElementById("react-app-root")!!).render(
     <GraphiQL
       fetcher={fetcher}
       defaultEditorToolsVisibility={true}
       plugins={plugins}
       query={query}
-    />,
-    document.getElementById("react-app-root")
+    />
   );
 })();

@@ -274,10 +274,6 @@ mc mb local/userexport
 
 cert-manager@v1.7.3 has transitive dependency problem.
 
-As of 2025-02-18, `esbuild < 0.25.0` has a vulnerability. Since it is not v1 yet, and vite v6 depends on `esbuild < 0.25.0`,
-the vulnerability has to be worked around with `overrides`. When `vite >= 6.2.0` is released, we MUST remove that `override`.
-See https://github.com/vitejs/vite/issues/19412
-
 When intl-tel-input is >= 21, it switched to use CSS variables. https://github.com/jackocnr/intl-tel-input/releases/tag/v21.0.0
 The problem is that it uses `--custom-var: url("../some-path");`, which is rejected by Parcel https://github.com/parcel-bundler/parcel/blob/v2.10.2/packages/transformers/css/src/CSSTransformer.js#L135
 
@@ -286,6 +282,14 @@ When intl-tel-input is >= 20, the behavior of initialCountry. It no longer suppo
 When intl-tel-input is >= 19, isPossibleNumber is removed. isValidNumber becomes isPossibleNumber. isValidNumberPrecise is the old isValidNumber.
 
 So the highest version of intl-tel-input is 18.
+
+### Known issues on portaligraphql
+
+I tried to update to graphiql to v5 on 2025-11-21, but it has UI glitches and the CTRL+SPACE autocomplete no longer works.
+
+On the other hand, the newly built bundle contains `{{` that confuses Go `html/template`.
+This issue can be worked around by using simple string replacement, instead of `html/template`.
+When we do that, we should change `{{ $.CSPNONCE }}` to something like `@@CSPNONCE@@` so that the reader will not be confused `html/template` is being used.
 
 ### Known issues on portal
 

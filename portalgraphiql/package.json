@@ -11,11 +11,10 @@
     "prettier:format": "prettier --list-different --write --cache './src/**/*.{js,ts,jsx,tsx,css,scss,html}'",
     "prettier": "prettier --list-different --cache './src/**/*.{js,ts,jsx,tsx,css,scss,html}'"
   },
-  "overrides": {
-  },
+  "overrides": {},
   "devDependencies": {
-    "@types/react": "^17.0.90",
-    "@types/react-dom": "^17.0.26",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^5.1.1",
     "node-html-parser": "^7.0.1",
     "prettier": "^3.6.2",
@@ -25,10 +24,11 @@
   },
   "dependencies": {
     "@authgear/web": "^2.15.0",
-    "@graphiql/plugin-explorer": "^3.2.5",
+    "@graphiql/plugin-explorer": "^4.0.6",
     "@graphiql/toolkit": "^0.11.3",
-    "graphiql": "^3.8.3",
-    "react": "^17.0.2",
-    "react-dom": "^17.0.2"
+    "graphiql": "^4.1.2",
+    "graphql-ws": "^4.9.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
   }
 }
