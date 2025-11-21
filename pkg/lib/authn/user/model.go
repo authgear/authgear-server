@@ -215,6 +215,7 @@ func newUserModel(
 		DisableReason:            accountStatus.DisableReason(),
 		IsDeactivated:            accountStatus.IsDeactivated(),
 		DeleteAt:                 accountStatus.DeleteAt(),
+		DeleteReason:             accountStatus.DeleteReason(),
 		IsAnonymized:             accountStatus.IsAnonymized(),
 		AnonymizeAt:              accountStatus.AnonymizeAt(),
 		TemporarilyDisabledFrom:  accountStatus.TemporarilyDisabledFrom(),
