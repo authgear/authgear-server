@@ -1230,15 +1230,15 @@ func (c *Coordinator) UserSetAccountValidPeriod(ctx context.Context, userID stri
 	return nil
 }
 
-func (c *Coordinator) UserScheduleDeletionByAdmin(ctx context.Context, userID string) error {
-	return c.userScheduleDeletion(ctx, userID, true)
+func (c *Coordinator) UserScheduleDeletionByAdmin(ctx context.Context, userID string, reason string) error {
+	return c.userScheduleDeletion(ctx, userID, true, reason)
 }
 
 func (c *Coordinator) UserScheduleDeletionByEndUser(ctx context.Context, userID string) error {
-	return c.userScheduleDeletion(ctx, userID, false)
+	return c.userScheduleDeletion(ctx, userID, false, "end user request")
 }
 
-func (c *Coordinator) userScheduleDeletion(ctx context.Context, userID string, byAdmin bool) error {
+func (c *Coordinator) userScheduleDeletion(ctx context.Context, userID string, byAdmin bool, reason string) error {
 	u, err := c.UserQueries.GetRaw(ctx, userID)
 	if err != nil {
 		return err
@@ -1249,9 +1249,9 @@ func (c *Coordinator) userScheduleDeletion(ctx context.Context, userID string, b
 
 	var accountStatus *user.AccountStatusWithRefTime
 	if byAdmin {
-		accountStatus, err = u.AccountStatus(now).ScheduleDeletionByAdmin(deleteAt)
+		accountStatus, err = u.AccountStatus(now).ScheduleDeletionByAdmin(deleteAt, reason)
 	} else {
-		accountStatus, err = u.AccountStatus(now).ScheduleDeletionByEndUser(deleteAt)
+		accountStatus, err = u.AccountStatus(now).ScheduleDeletionByEndUser(deleteAt, reason)
 	}
 	if err != nil {
 		return err

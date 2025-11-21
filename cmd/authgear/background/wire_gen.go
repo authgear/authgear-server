@@ -933,6 +933,7 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 	}
 	userFacade := &facade.UserFacade{
 		UserProvider: userProvider,
+		Clock:        clockClock,
 		Coordinator:  coordinator,
 	}
 	userService := &UserService{

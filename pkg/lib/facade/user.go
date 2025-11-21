@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
+	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
@@ -28,6 +29,7 @@ type UserProvider interface {
 
 type UserFacade struct {
 	UserProvider
+	Clock       clock.Clock
 	Coordinator *Coordinator
 }
 
@@ -40,8 +42,15 @@ func (u UserFacade) Delete(ctx context.Context, userID string, reason string) er
 }
 
 func (u UserFacade) DeleteFromScheduledDeletion(ctx context.Context, userID string) error {
-	// TODO(DEV-3164): Support reason in scheduled deletion
-	return u.Coordinator.UserDelete(ctx, userID, true, "")
+	user, err := u.GetRaw(ctx, userID)
+	if err != nil {
+		return err
+	}
+	var reason string
+	if r := user.AccountStatus(u.Clock.NowUTC()).DeleteReason(); r != nil {
+		reason = *r
+	}
+	return u.Coordinator.UserDelete(ctx, userID, true, reason)
 }
 
 func (u UserFacade) Disable(ctx context.Context, options SetDisabledOptions) error {
@@ -64,8 +73,8 @@ func (u UserFacade) Reenable(ctx context.Context, userID string) error {
 	return u.Coordinator.UserReenable(ctx, userID)
 }
 
-func (u UserFacade) ScheduleDeletionByAdmin(ctx context.Context, userID string) error {
-	return u.Coordinator.UserScheduleDeletionByAdmin(ctx, userID)
+func (u UserFacade) ScheduleDeletionByAdmin(ctx context.Context, userID string, reason string) error {
+	return u.Coordinator.UserScheduleDeletionByAdmin(ctx, userID, reason)
 }
 
 func (u UserFacade) UnscheduleDeletionByAdmin(ctx context.Context, userID string) error {

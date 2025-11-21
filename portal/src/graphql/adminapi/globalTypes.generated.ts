@@ -1560,6 +1560,8 @@ export type ScheduleAccountAnonymizationPayload = {
 };
 
 export type ScheduleAccountDeletionInput = {
+  /** The reason for scheduling the account deletion. */
+  reason?: InputMaybe<Scalars['String']['input']>;
   /** Target user ID. */
   userID: Scalars['ID']['input'];
 };

@@ -46,6 +46,7 @@ var _ store = &Store{}
 
 //nolint:gosec
 const keyOptOutPasskeyUpselling = "opt_out_passkey_upselling"
+const keyScheduleDeletionReason = "schedule_deletion_reason"
 
 func (s *Store) Create(ctx context.Context, u *User) (err error) {
 	stdAttrs := u.StandardAttributes
@@ -261,6 +262,12 @@ func (s *Store) scan(scn db.Scanner) (*User, error) {
 		u.OptOutPasskeyUpsell = false
 	}
 
+	if v, ok := metadata[keyScheduleDeletionReason].(string); ok {
+		u.deleteReason = &v
+	} else {
+		u.deleteReason = nil
+	}
+
 	if u.StandardAttributes == nil {
 		u.StandardAttributes = make(map[string]interface{})
 	}
@@ -408,6 +415,12 @@ func (s *Store) UpdateMFAEnrollment(ctx context.Context, userID string, endAt *t
 func (s *Store) UpdateAccountStatus(ctx context.Context, userID string, accountStatus AccountStatusWithRefTime) error {
 	now := s.Clock.NowUTC()
 
+	deleteReasonJson, err := json.Marshal(accountStatus.accountStatus.deleteReason)
+	if err != nil {
+		// This should not fail
+		panic(err)
+	}
+
 	builder := s.SQLBuilder.
 		Update(s.SQLBuilder.TableName("_auth_user")).
 		Set("is_disabled", accountStatus.accountStatus.isDisabled).
@@ -420,13 +433,17 @@ func (s *Store) UpdateAccountStatus(ctx context.Context, userID string, accountS
 		Set("account_valid_from", accountStatus.accountStatus.accountValidFrom).
 		Set("account_valid_until", accountStatus.accountStatus.accountValidUntil).
 		Set("delete_at", accountStatus.accountStatus.deleteAt).
+		Set("metadata", sq.Expr(
+			fmt.Sprintf("jsonb_set(coalesce(metadata, '{}'::jsonb), '{%s}', ?::jsonb, true)", keyScheduleDeletionReason),
+			deleteReasonJson,
+		)).
 		Set("anonymize_at", accountStatus.accountStatus.anonymizeAt).
 		Set("anonymized_at", accountStatus.accountStatus.anonymizedAt).
 		Set("is_anonymized", accountStatus.accountStatus.isAnonymized).
 		Set("updated_at", now).
 		Where("id = ?", userID)
 
-	_, err := s.SQLExecutor.ExecWith(ctx, builder)
+	_, err = s.SQLExecutor.ExecWith(ctx, builder)
 	if err != nil {
 		return err
 	}

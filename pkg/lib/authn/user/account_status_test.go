@@ -121,14 +121,14 @@ func TestAccountStatusStateTransition(t *testing.T) {
 				So(err, ShouldBeError, testCase.SetAccountValidPeriod_Outside)
 			}
 
-			_, err = status.ScheduleDeletionByEndUser(deleteAt)
+			_, err = status.ScheduleDeletionByEndUser(deleteAt, "")
 			if testCase.ScheduleDeletionByEndUser == "" {
 				So(err, ShouldBeNil)
 			} else {
 				So(err, ShouldBeError, testCase.ScheduleDeletionByEndUser)
 			}
 
-			_, err = status.ScheduleDeletionByAdmin(deleteAt)
+			_, err = status.ScheduleDeletionByAdmin(deleteAt, "")
 			if testCase.ScheduleDeletionByAdmin == "" {
 				So(err, ShouldBeNil)
 			} else {
@@ -430,7 +430,7 @@ func TestAccountStatusStateTransition(t *testing.T) {
 	})
 }
 
-func TestAccountStatusAnonymizd(t *testing.T) {
+func TestAccountStatusAnonymized(t *testing.T) {
 	Convey("AccountStatus anonymized", t, func() {
 		now := time.Date(2006, 1, 2, 3, 4, 5, 6, time.UTC)
 		deleteAt := now
@@ -445,7 +445,7 @@ func TestAccountStatusAnonymizd(t *testing.T) {
 				anonymizeAt:            &anonymizeAt,
 			}.WithRefTime(now)
 
-			state1, err := anonymized.ScheduleDeletionByAdmin(deleteAt)
+			state1, err := anonymized.ScheduleDeletionByAdmin(deleteAt, "")
 			So(err, ShouldBeNil)
 			So(state1.IsAnonymized(), ShouldEqual, true)
 			So(state1.variant().getAccountStatusType(), ShouldEqual, accountStatusTypeScheduledDeletionDisabled)
@@ -454,9 +454,24 @@ func TestAccountStatusAnonymizd(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(state2.IsAnonymized(), ShouldEqual, true)
 		})
+
 	})
 }
 
+func TestAccountStatusDeleteReason(t *testing.T) {
+	Convey("AccountStatus DeleteReason", t, func() {
+		now := time.Date(2006, 1, 2, 3, 4, 5, 6, time.UTC)
+		deleteAt := now
+
+		Convey("normal -> scheduled_deletion_disabled -> delete reason is correct", func() {
+			normal := AccountStatus{}.WithRefTime(now)
+
+			state1, err := normal.ScheduleDeletionByAdmin(deleteAt, "test_reason")
+			So(err, ShouldBeNil)
+			So(*state1.DeleteReason(), ShouldEqual, "test_reason")
+		})
+	})
+}
 func TestAccountStatusTemporarilyDisabled(t *testing.T) {
 	Convey("AccountStatus TemporarilyDisabled", t, func() {
 		now := time.Date(2006, 1, 2, 3, 4, 5, 6, time.UTC)
@@ -557,7 +572,7 @@ func TestAccountStatusAccountValidPeriod(t *testing.T) {
 			So(state1.IsDisabled(), ShouldEqual, true)
 			So(state1.accountStatus.isDisabled, ShouldEqual, true)
 
-			state2, err := state1.ScheduleDeletionByAdmin(deleteAt)
+			state2, err := state1.ScheduleDeletionByAdmin(deleteAt, "")
 			So(err, ShouldBeNil)
 			So(state2.Check(), ShouldNotBeNil)
 			So(state2.Check(), ShouldBeError, "user is outside valid period")
@@ -809,7 +824,7 @@ func TestAccountStatusPrecedence(t *testing.T) {
 			So(accountStatus.Check(), ShouldBeError, "user is outside valid period")
 		})
 
-		Convey("anonymised > scheduled deletion", func() {
+		Convey("anonymized > scheduled deletion", func() {
 			true_ := true
 			false_ := false
 			accountStatus := AccountStatus{
@@ -995,11 +1010,11 @@ func TestAccountStatusPrecedence(t *testing.T) {
 		})
 
 		Convey("scheduled anonymization > disabled temporarily", func() {
-			// These two statues never overlap.
+			// These two statuses never overlap.
 		})
 
 		Convey("disabled indefinitely > disabled temporarily", func() {
-			// These two statues never overlap.
+			// These two statuses never overlap.
 		})
 	})
 }

@@ -11,6 +11,7 @@ const (
 
 type AdminAPIMutationDeleteUserExecutedEventPayload struct {
 	UserModel model.User `json:"user"`
+	Reason    string     `json:"reason,omitzero"`
 }
 
 func (e *AdminAPIMutationDeleteUserExecutedEventPayload) NonBlockingEventType() event.Type {
