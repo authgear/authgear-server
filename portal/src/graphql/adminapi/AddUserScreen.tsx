@@ -1,4 +1,10 @@
-import React, { useCallback, useContext, useEffect, useMemo } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import cn from "classnames";
 import { useNavigate, useParams } from "react-router-dom";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
@@ -44,6 +50,7 @@ import { AccountValidPeriodForm } from "./UserDetailsAccountStatus";
 import WidgetTitle from "../../WidgetTitle";
 import WidgetDescription from "../../WidgetDescription";
 import { useSystemConfig } from "../../context/SystemConfigContext";
+import FoldableDiv from "../../FoldableDiv";
 
 enum PasswordCreationType {
   ManualEntry = "manual_entry",
@@ -249,6 +256,8 @@ const AddUserContent: React.VFC<AddUserContentProps> = function AddUserContent(
     isPasskeyOnly,
   } = props;
   const { renderToString } = useContext(Context);
+
+  const [advancedFolded, setAdvancedFolded] = useState(true);
 
   const { themes } = useSystemConfig();
 
@@ -614,32 +623,34 @@ const AddUserContent: React.VFC<AddUserContentProps> = function AddUserContent(
                     }
                   />
                 </div>
-                <div
-                  className={cn(
-                    styles.widget,
-                    styles.accountValidPeriodSection
-                  )}
+                <FoldableDiv
+                  className={cn(styles.widget)}
+                  label={<FormattedMessage id="AdduserScreen.advanced" />}
+                  folded={advancedFolded}
+                  setFolded={setAdvancedFolded}
                 >
-                  <WidgetTitle>
-                    <FormattedMessage id="AddUserScreen.valid-period.title" />
-                  </WidgetTitle>
-                  <WidgetDescription
-                    styles={{
-                      root: {
-                        color: themes.main.semanticColors.bodySubtext,
-                      },
-                    }}
-                  >
-                    <FormattedMessage id="AddUserScreen.valid-period.description" />
-                  </WidgetDescription>
-                  <AccountValidPeriodForm
-                    className={styles.accountValidPeriodForm}
-                    accountValidFrom={state.accountValidFrom}
-                    accountValidUntil={state.accountValidUntil}
-                    onPickAccountValidFrom={onPickAccountValidFrom}
-                    onPickAccountValidUntil={onPickAccountValidUntil}
-                  />
-                </div>
+                  <div className={styles.accountValidPeriodSection}>
+                    <WidgetTitle>
+                      <FormattedMessage id="AddUserScreen.valid-period.title" />
+                    </WidgetTitle>
+                    <WidgetDescription
+                      styles={{
+                        root: {
+                          color: themes.main.semanticColors.bodySubtext,
+                        },
+                      }}
+                    >
+                      <FormattedMessage id="AddUserScreen.valid-period.description" />
+                    </WidgetDescription>
+                    <AccountValidPeriodForm
+                      className={styles.accountValidPeriodForm}
+                      accountValidFrom={state.accountValidFrom}
+                      accountValidUntil={state.accountValidUntil}
+                      onPickAccountValidFrom={onPickAccountValidFrom}
+                      onPickAccountValidUntil={onPickAccountValidUntil}
+                    />
+                  </div>
+                </FoldableDiv>
               </>
             ) : null}
           </>
