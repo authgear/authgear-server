@@ -16,6 +16,8 @@ export function useCreateUserMutation(): {
     password?: string;
     sendPassword?: boolean;
     setPasswordExpired?: boolean;
+    accountValidFrom?: Date | null;
+    accountValidUntil?: Date | null;
   }) => Promise<string | null>;
   loading: boolean;
   error: unknown;
@@ -28,11 +30,15 @@ export function useCreateUserMutation(): {
       password,
       sendPassword,
       setPasswordExpired,
+      accountValidFrom,
+      accountValidUntil,
     }: {
       identity: LoginIDIdentity;
       password?: string;
       sendPassword?: boolean;
       setPasswordExpired?: boolean;
+      accountValidFrom?: Date | null;
+      accountValidUntil?: Date | null;
     }) => {
       const result = await mutationFunction({
         variables: {
@@ -40,6 +46,8 @@ export function useCreateUserMutation(): {
           password,
           sendPassword,
           setPasswordExpired,
+          accountValidFrom: accountValidFrom ?? null,
+          accountValidUntil: accountValidUntil ?? null,
         },
       });
       const userID = result.data?.createUser.user.id ?? null;

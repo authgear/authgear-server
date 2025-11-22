@@ -516,6 +516,10 @@ export type CreateSessionPayload = {
 };
 
 export type CreateUserInput = {
+  /** Indicate the start timestamp of the account valid period. The user is disabled when the current time is before it. */
+  accountValidFrom?: InputMaybe<Scalars['DateTime']['input']>;
+  /** Indicate the end timestamp of the account valid period. The user is disabled when the current time is equal to or after it. */
+  accountValidUntil?: InputMaybe<Scalars['DateTime']['input']>;
   /** Definition of the identity of new user. */
   definition: IdentityDefinition;
   /** If null, then no password is created. If empty string, generate a password. Otherwise, create the specified password. */

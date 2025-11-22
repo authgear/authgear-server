@@ -43,6 +43,14 @@ var createUserInput = graphql.NewInputObject(graphql.InputObjectConfig{
 			Type:        graphql.Boolean,
 			Description: "Indicate whether the user is required to change password on next login.",
 		},
+		"accountValidFrom": &graphql.InputObjectFieldConfig{
+			Type:        graphql.DateTime,
+			Description: "Indicate the start timestamp of the account valid period. The user is disabled when the current time is before it.",
+		},
+		"accountValidUntil": &graphql.InputObjectFieldConfig{
+			Type:        graphql.DateTime,
+			Description: "Indicate the end timestamp of the account valid period. The user is disabled when the current time is equal to or after it.",
+		},
 	},
 })
 
@@ -83,6 +91,9 @@ var _ = registerMutationField(
 			sendPassword, _ := input["sendPassword"].(bool)
 			setPasswordExpired, _ := input["setPasswordExpired"].(bool)
 
+			accountValidFrom := graphqlutil.GetDateTimeInUTCFromInput(input, "accountValidFrom")
+			accountValidUntil := graphqlutil.GetDateTimeInUTCFromInput(input, "accountValidUntil")
+
 			ctx := p.Context
 			gqlCtx := GQLContext(ctx)
 
@@ -91,6 +102,11 @@ var _ = registerMutationField(
 				SendPassword:       sendPassword,
 				SetPasswordExpired: setPasswordExpired,
 			})
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.UserFacade.SetAccountValidPeriod(ctx, userID, accountValidFrom, accountValidUntil)
 			if err != nil {
 				return nil, err
 			}

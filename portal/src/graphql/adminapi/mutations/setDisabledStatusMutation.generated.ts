@@ -6,6 +6,9 @@ const defaultOptions = {} as const;
 export type SetDisabledStatusMutationMutationVariables = Types.Exact<{
   userID: Types.Scalars['ID']['input'];
   isDisabled: Types.Scalars['Boolean']['input'];
+  reason?: Types.InputMaybe<Types.Scalars['String']['input']>;
+  temporarilyDisabledFrom?: Types.InputMaybe<Types.Scalars['DateTime']['input']>;
+  temporarilyDisabledUntil?: Types.InputMaybe<Types.Scalars['DateTime']['input']>;
 }>;
 
 
@@ -13,8 +16,10 @@ export type SetDisabledStatusMutationMutation = { __typename?: 'Mutation', setDi
 
 
 export const SetDisabledStatusMutationDocument = gql`
-    mutation setDisabledStatusMutation($userID: ID!, $isDisabled: Boolean!) {
-  setDisabledStatus(input: {userID: $userID, isDisabled: $isDisabled}) {
+    mutation setDisabledStatusMutation($userID: ID!, $isDisabled: Boolean!, $reason: String, $temporarilyDisabledFrom: DateTime, $temporarilyDisabledUntil: DateTime) {
+  setDisabledStatus(
+    input: {userID: $userID, reason: $reason, isDisabled: $isDisabled, temporarilyDisabledFrom: $temporarilyDisabledFrom, temporarilyDisabledUntil: $temporarilyDisabledUntil}
+  ) {
     user {
       id
       isDisabled
@@ -48,6 +53,9 @@ export type SetDisabledStatusMutationMutationFn = Apollo.MutationFunction<SetDis
  *   variables: {
  *      userID: // value for 'userID'
  *      isDisabled: // value for 'isDisabled'
+ *      reason: // value for 'reason'
+ *      temporarilyDisabledFrom: // value for 'temporarilyDisabledFrom'
+ *      temporarilyDisabledUntil: // value for 'temporarilyDisabledUntil'
  *   },
  * });
  */

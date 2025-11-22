@@ -26,3 +26,12 @@
   @apply pt-1 pb-4;
   @apply flex flex-col gap-1;
 }
+
+.accountValidPeriodSection {
+  @apply flex flex-col gap-2 py-2;
+}
+
+.accountValidPeriodForm {
+  @apply mt-4;
+  @apply max-w-120;
+}

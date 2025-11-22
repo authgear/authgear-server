@@ -1,4 +1,10 @@
-import React, { useCallback, useContext, useEffect, useMemo } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import cn from "classnames";
 import { useNavigate, useParams } from "react-router-dom";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
@@ -40,6 +46,11 @@ import FormContainer, { FormSaveButton } from "../../FormContainer";
 import styles from "./AddUserScreen.module.css";
 import { validatePassword } from "../../error/password";
 import HorizontalDivider from "../../HorizontalDivider";
+import { AccountValidPeriodForm } from "./UserDetailsAccountStatus";
+import WidgetTitle from "../../WidgetTitle";
+import WidgetDescription from "../../WidgetDescription";
+import { useSystemConfig } from "../../context/SystemConfigContext";
+import FoldableDiv from "../../FoldableDiv";
 
 enum PasswordCreationType {
   ManualEntry = "manual_entry",
@@ -56,6 +67,8 @@ interface FormState {
   manualEntryPassword: string;
   manualEntrySendPassword: boolean;
   setPasswordExpired: boolean;
+  accountValidFrom: Date | null;
+  accountValidUntil: Date | null;
 }
 
 const loginIdTypeNameIds: Record<LoginIDKeyType, string> = {
@@ -75,6 +88,8 @@ function makeDefaultFormState(loginIDTypes: LoginIDKeyType[]): FormState {
       passwordCreationType: PasswordCreationType.ManualEntry,
       manualEntrySendPassword: false,
       setPasswordExpired: true,
+      accountValidFrom: null,
+      accountValidUntil: null,
     };
   }
 
@@ -87,6 +102,8 @@ function makeDefaultFormState(loginIDTypes: LoginIDKeyType[]): FormState {
     passwordCreationType: PasswordCreationType.ManualEntry,
     manualEntrySendPassword: false,
     setPasswordExpired: true,
+    accountValidFrom: null,
+    accountValidUntil: null,
   };
 }
 
@@ -240,6 +257,10 @@ const AddUserContent: React.VFC<AddUserContentProps> = function AddUserContent(
   } = props;
   const { renderToString } = useContext(Context);
 
+  const [advancedFolded, setAdvancedFolded] = useState(true);
+
+  const { themes } = useSystemConfig();
+
   const {
     username,
     email,
@@ -266,6 +287,18 @@ const AddUserContent: React.VFC<AddUserContentProps> = function AddUserContent(
   const { onChange: onChangeForceChangeOnLogin } = useCheckbox((value) => {
     setState((prev) => ({ ...prev, setPasswordExpired: value }));
   });
+  const onPickAccountValidFrom = useCallback(
+    (date: Date | null) => {
+      setState((prev) => ({ ...prev, accountValidFrom: date }));
+    },
+    [setState]
+  );
+  const onPickAccountValidUntil = useCallback(
+    (date: Date | null) => {
+      setState((prev) => ({ ...prev, accountValidUntil: date }));
+    },
+    [setState]
+  );
 
   const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
     return [
@@ -590,6 +623,34 @@ const AddUserContent: React.VFC<AddUserContentProps> = function AddUserContent(
                     }
                   />
                 </div>
+                <FoldableDiv
+                  className={cn(styles.widget)}
+                  label={<FormattedMessage id="AdduserScreen.advanced" />}
+                  folded={advancedFolded}
+                  setFolded={setAdvancedFolded}
+                >
+                  <div className={styles.accountValidPeriodSection}>
+                    <WidgetTitle>
+                      <FormattedMessage id="AddUserScreen.valid-period.title" />
+                    </WidgetTitle>
+                    <WidgetDescription
+                      styles={{
+                        root: {
+                          color: themes.main.semanticColors.bodySubtext,
+                        },
+                      }}
+                    >
+                      <FormattedMessage id="AddUserScreen.valid-period.description" />
+                    </WidgetDescription>
+                    <AccountValidPeriodForm
+                      className={styles.accountValidPeriodForm}
+                      accountValidFrom={state.accountValidFrom}
+                      accountValidUntil={state.accountValidUntil}
+                      onPickAccountValidFrom={onPickAccountValidFrom}
+                      onPickAccountValidUntil={onPickAccountValidUntil}
+                    />
+                  </div>
+                </FoldableDiv>
               </>
             ) : null}
           </>
@@ -714,6 +775,8 @@ const AddUserScreen: React.VFC = function AddUserScreen() {
         password,
         sendPassword,
         setPasswordExpired,
+        accountValidFrom: state.accountValidFrom,
+        accountValidUntil: state.accountValidUntil,
       });
     },
     [createUser, primaryAuthenticators]

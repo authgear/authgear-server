@@ -1,0 +1,37 @@
+.actionCell {
+  grid-template:
+    "plabel         paction"
+    "pbody          paction"
+    "pdescription   paction"
+    / auto min-content min-content;
+  @apply grid;
+  @apply gap-x-2 gap-y-1;
+  @apply py-6;
+}
+
+.actionCell:last-child {
+  @apply border-b-0;
+}
+
+.actionCellLabel {
+  grid-area: plabel;
+}
+
+.actionCellBody {
+  grid-area: pbody;
+}
+
+.actionCellDescription {
+  grid-area: pdescription;
+  @apply flex flex-col;
+}
+
+.actionCellActionButtonContainer {
+  @apply flex flex-col place-self-center justify-between items-end gap-4;
+  grid-area: paction;
+}
+
+.actionCellActionButton {
+  @apply place-self-center;
+  grid-area: paction;
+}
