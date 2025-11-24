@@ -391,9 +391,9 @@ func TestFormatX509CertPem(t *testing.T) {
 	})
 }
 
-func TestFormatHTTPSStrictURI(t *testing.T) {
-	Convey("FormatHTTPSStrictURI", t, func() {
-		f := FormatHTTPSStrictURI{}.CheckFormat
+func TestFormatPublicHTTPSURL(t *testing.T) {
+	Convey("FormatPublicHTTPSURL", t, func() {
+		f := FormatPublicHTTPSURL{}.CheckFormat
 
 		So(f(backgroundCtx(), 1), ShouldBeNil)
 		So(f(backgroundCtx(), ""), ShouldBeError, "invalid or missing host")

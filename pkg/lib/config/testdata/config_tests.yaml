@@ -1514,7 +1514,7 @@ name: oauth-client-logo-uri-non-https
 error: |-
   invalid configuration:
   /oauth/clients/0/logo_uri: format
-    map[error:url scheme must be https format:x_https_strict_uri]
+    map[error:url scheme must be https format:x_public_https_url]
 config:
   id: test
   http:

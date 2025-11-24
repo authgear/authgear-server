@@ -174,7 +174,7 @@ var _ = Schema.Add("OAuthClientConfig", `
 		"x_authentication_flow_allowlist": { "$ref": "#/$defs/AuthenticationFlowAllowlist" },
 		"x_pre_authenticated_url_enabled": { "type": "boolean" },
 		"x_pre_authenticated_url_allowed_origins": { "type": "array", "items": { "type": "string", "format": "http_origin" } },
-		"logo_uri": { "type": "string", "format": "x_https_strict_uri" }
+		"logo_uri": { "type": "string", "format": "x_public_https_url" }
 	},
 	"required": ["name", "client_id"],
 	"allOf": [
