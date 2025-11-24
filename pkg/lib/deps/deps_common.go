@@ -259,6 +259,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(authenticatorservice.TOTPAuthenticatorProvider), new(*authenticatortotp.Provider)),
 
 		wire.Bind(new(facade.AuthenticatorService), new(*authenticatorservice.Service)),
+		wire.Bind(new(userinfo.UserInfoAuthenticatorService), new(*authenticatorservice.Service)),
 		wire.Bind(new(user.AuthenticatorService), new(*authenticatorservice.Service)),
 	),
 
@@ -266,6 +267,7 @@ var CommonDependencySet = wire.NewSet(
 		mfa.DependencySet,
 
 		wire.Bind(new(facade.MFAService), new(*mfa.Service)),
+		wire.Bind(new(userinfo.UserInfoMFAService), new(*mfa.Service)),
 	),
 
 	wire.NewSet(
