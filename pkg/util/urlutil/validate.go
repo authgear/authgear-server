@@ -5,13 +5,10 @@ import (
 	"net"
 	"net/url"
 	"strings"
-	"unicode"
 )
 
 var (
-	ErrEmptyURL     = errors.New("empty url")
 	ErrTooLong      = errors.New("url too long")
-	ErrControlChars = errors.New("url contains control characters")
 	ErrNotHTTPS     = errors.New("url scheme must be https")
 	ErrUserInfo     = errors.New("url must not contain userinfo")
 	ErrBadHost      = errors.New("invalid or missing host")
@@ -68,86 +65,66 @@ var strictBlocked = []string{
 //
 // Rules enforced:
 //
-// 1. Reject empty or whitespace-only URLs
-// 2. Reject URLs containing control characters
-// 3. Only allow HTTPS scheme
-// 4. Reject URLs containing userinfo (user:pass@host)
-// 5. Host must exist and be valid
-// 6. Reject hosts that are IP addresses (IPv4 or IPv6)
-// 7. Reject single-label hostnames (must contain a dot)
-// 8. Blocklist: reject blocked hostnames (exact or suffix)
-// 9. Validate hostname characters (letters / digits / hyphen / dot)
-// 10. Reject URLs containing fragments (#...). Fragments are client-side only, may contain tracking data, and provide no value for server-side URL validation
-// 11. Enforce max URL length using constant MaxURLLength
+// - Reject empty URLs
+// - Reject URLs containing control characters
+// - Only allow HTTPS scheme
+// - Reject URLs containing userinfo (user:pass@host)
+// - Host must exist and be valid
+// - Reject hosts that are IP addresses (IPv4 or IPv6)
+// - Reject single-label hostnames (must contain a dot)
+// - Blocklist: reject blocked hostnames (exact or suffix)
+// - Validate hostname characters (letters / digits / hyphen / dot)
+// - Reject URLs containing fragments (#...). Fragments are client-side only, may contain tracking data, and provide no value for server-side URL validation
+// - Enforce max URL length using constant MaxURLLength
 // -----------------------------------------------------------------------------
 func ValidateHTTPSStrict(raw string) error {
 
-	// 11. Enforce maximum URL length
+	// Enforce maximum URL length
 	if len(raw) > MaxURLLength {
 		return ErrTooLong
 	}
 
-	// 1. Trim and reject empty URLs
-	raw = strings.TrimSpace(raw)
-	if raw == "" {
-		return ErrEmptyURL
-	}
-
-	// 2. Reject control characters
-	for _, r := range raw {
-		if r == '\r' || r == '\n' || unicode.IsControl(r) {
-			return ErrControlChars
-		}
-	}
-
 	// Parse URL
+	// Reject URLs containing control characters
 	u, err := url.Parse(raw)
 	if err != nil {
 		return err
 	}
 
-	// 10. Reject URLs with fragments
+	// Reject URLs with fragments
 	if u.Fragment != "" {
 		return ErrFragment
 	}
 
-	// 3. Only allow HTTPS
-	if strings.ToLower(u.Scheme) != "https" {
-		return ErrNotHTTPS
-	}
-
-	// 4. Reject userinfo
-	if u.User != nil {
-		return ErrUserInfo
-	}
-
-	// 5. Host must exist
+	// Host must exist
 	if u.Host == "" {
 		return ErrBadHost
 	}
 
-	hostOnly := u.Host
-	if h, _, err2 := net.SplitHostPort(u.Host); err2 == nil {
-		hostOnly = h
-	}
-	hostOnly = strings.Trim(hostOnly, "[]")
-	if hostOnly == "" {
-		return ErrBadHost
+	// Only allow HTTPS
+	if strings.ToLower(u.Scheme) != "https" {
+		return ErrNotHTTPS
 	}
 
-	lhost := strings.ToLower(hostOnly)
+	// Reject userinfo
+	if u.User != nil {
+		return ErrUserInfo
+	}
 
-	// 6. Reject IP addresses
-	if ip := net.ParseIP(lhost); ip != nil {
+	hostname := u.Hostname()
+	lhost := strings.ToLower(hostname)
+
+	// Reject IP addresses
+	if net.ParseIP(hostname) != nil {
 		return ErrIPNotAllowed
 	}
 
-	// 7. Reject single-label hostnames
+	// Reject single-label hostnames
 	if !strings.Contains(lhost, ".") {
 		return ErrSingleLabel
 	}
 
-	// 8. Blocklist checks
+	// Blocklist checks
 	for _, blocked := range strictBlocked {
 		b := strings.ToLower(blocked)
 		if lhost == b || strings.HasSuffix(lhost, "."+b) {
@@ -155,8 +132,8 @@ func ValidateHTTPSStrict(raw string) error {
 		}
 	}
 
-	// 9. Validate hostname characters
-	if !isHostnameSafe(hostOnly) {
+	// Validate hostname characters
+	if !isHostnameSafe(hostname) {
 		return ErrBadHost
 	}
 
@@ -172,7 +149,7 @@ func isHostnameSafe(h string) bool {
 	}
 
 	for _, r := range h {
-		if !(unicode.IsLetter(r) || unicode.IsDigit(r) || r == '-' || r == '.') {
+		if !((r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9') || r == '-' || r == '.') {
 			return false
 		}
 	}

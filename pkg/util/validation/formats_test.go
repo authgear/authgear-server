@@ -396,9 +396,9 @@ func TestFormatHTTPSStrictURI(t *testing.T) {
 		f := FormatHTTPSStrictURI{}.CheckFormat
 
 		So(f(backgroundCtx(), 1), ShouldBeNil)
-		So(f(backgroundCtx(), ""), ShouldBeError, "empty url")
-		So(f(backgroundCtx(), "foobar:"), ShouldBeError, "url scheme must be https")
-		So(f(backgroundCtx(), "http://"), ShouldBeError, "url scheme must be https")
+		So(f(backgroundCtx(), ""), ShouldBeError, "invalid or missing host")
+		So(f(backgroundCtx(), "foobar:"), ShouldBeError, "invalid or missing host")
+		So(f(backgroundCtx(), "http://realdomain.com"), ShouldBeError, "url scheme must be https")
 
 		So(f(backgroundCtx(), "https://example.com"), ShouldBeError, "host is blocked by policy")
 		So(f(backgroundCtx(), "https://example.com/image.png"), ShouldBeError, "host is blocked by policy")

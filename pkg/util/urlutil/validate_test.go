@@ -1,8 +1,11 @@
 package urlutil
 
 import (
+	"errors"
 	"strings"
 	"testing"
+
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestValidateHTTPSStrict(t *testing.T) {
@@ -24,8 +27,9 @@ func TestValidateHTTPSStrict(t *testing.T) {
 		{"Userinfo in URL rejected", "https://user:pass@valid-test.com/path", ErrUserInfo},
 		{"URL with fragment rejected", "https://valid-test.com/path#section", ErrFragment},
 		{"URL with fragment and query rejected", "https://valid-test.com/path?x=1#frag", ErrFragment},
-		{"URL with newline rejected", "https://valid-test.com/\npath", ErrControlChars},
+		{"URL with newline rejected", "https://valid-test.com/\npath", errors.New("parse \"https://valid-test.com/\\npath\": net/url: invalid control character in URL")},
 		{"URL exceeds maximum length", "https://valid-test.com/" + strings.Repeat("a", MaxURLLength), ErrTooLong},
+		{"Empty domain rejected", "  ", ErrBadHost},
 		{"Leading hyphen in hostname rejected", "https://-bad.valid-test.com/path", ErrBadHost},
 		{"Trailing hyphen in hostname rejected", "https://bad-.valid-test.com/path", ErrBadHost},
 		{"Valid hyphen inside label accepted", "https://good-label.valid-test.com/path", nil},
@@ -38,22 +42,19 @@ func TestValidateHTTPSStrict(t *testing.T) {
 		{"Multiple valid subdomains accepted", "https://a.b.c.d.valid-test.com/path", nil},
 		{"Hostname with digits only accepted", "https://123.valid-test.com/path", nil},
 		{"Label starting with digit accepted", "https://3dexample.valid-test.com/path", nil},
+		{"Non-ASCII hostname rejected", "https://éxample.com/path", ErrBadHost},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			err := ValidateHTTPSStrict(tt.input)
-			if tt.expectError != nil {
-				if err == nil {
-					t.Errorf("expected error %v but got nil for input %q", tt.expectError, tt.input)
-				} else if err != tt.expectError {
-					t.Errorf("expected error %v but got %v for input %q", tt.expectError, err, tt.input)
+	Convey("TestValidateHTTPSStrict", t, func() {
+		for _, tt := range tests {
+			Convey(tt.name, func() {
+				err := ValidateHTTPSStrict(tt.input)
+				if tt.expectError != nil {
+					So(err, ShouldBeError, tt.expectError)
+				} else {
+					So(err, ShouldBeNil)
 				}
-			} else {
-				if err != nil {
-					t.Errorf("unexpected error %v for input %q", err, tt.input)
-				}
-			}
-		})
-	}
+			})
+		}
+	})
 }
