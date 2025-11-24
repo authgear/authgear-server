@@ -26,6 +26,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/rolesgroupsutil"
 	"github.com/authgear/authgear-server/pkg/util/secretcode"
 	"github.com/authgear/authgear-server/pkg/util/territoryutil"
+	"github.com/authgear/authgear-server/pkg/util/urlutil"
 
 	web3util "github.com/authgear/authgear-server/pkg/util/web3"
 )
@@ -60,6 +61,7 @@ func init() {
 	jsonschemaformat.DefaultChecker["x_re2_regex"] = FormatRe2Regex{}
 	jsonschemaformat.DefaultChecker["x_role_group_key"] = rolesgroupsutil.FormatKey{}
 	jsonschemaformat.DefaultChecker["x_x509_certificate_pem"] = FormatX509CertPem{}
+	jsonschemaformat.DefaultChecker["x_public_https_url"] = FormatPublicHTTPSURL{}
 }
 
 // FormatEmail checks if input is an email address.
@@ -670,4 +672,15 @@ func (FormatX509CertPem) CheckFormat(ctx context.Context, value interface{}) err
 		return fmt.Errorf("invalid x509 cert")
 	}
 	return nil
+}
+
+type FormatPublicHTTPSURL struct{}
+
+func (FormatPublicHTTPSURL) CheckFormat(ctx context.Context, value interface{}) error {
+	str, ok := value.(string)
+	if !ok {
+		return nil
+	}
+
+	return urlutil.ValidateHTTPSStrict(str)
 }

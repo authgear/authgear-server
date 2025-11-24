@@ -390,3 +390,20 @@ func TestFormatX509CertPem(t *testing.T) {
 		So(f(backgroundCtx(), "-----BEGIN CERTIFICATE-----\nasdf\n-----END CERTIFICATE-----"), ShouldBeError, "invalid x509 cert")
 	})
 }
+
+func TestFormatPublicHTTPSURL(t *testing.T) {
+	Convey("FormatPublicHTTPSURL", t, func() {
+		f := FormatPublicHTTPSURL{}.CheckFormat
+
+		So(f(backgroundCtx(), 1), ShouldBeNil)
+		So(f(backgroundCtx(), ""), ShouldBeError, "invalid or missing host")
+		So(f(backgroundCtx(), "foobar:"), ShouldBeError, "invalid or missing host")
+		So(f(backgroundCtx(), "http://realdomain.com"), ShouldBeError, "url scheme must be https")
+
+		So(f(backgroundCtx(), "https://example.com"), ShouldBeError, "host is blocked by policy")
+		So(f(backgroundCtx(), "https://example.com/image.png"), ShouldBeError, "host is blocked by policy")
+
+		So(f(backgroundCtx(), "https://realdomain.com/image.png"), ShouldBeNil)
+		So(f(backgroundCtx(), "https://realdomain.com/image.png"), ShouldBeNil)
+	})
+}

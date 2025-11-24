@@ -74,6 +74,7 @@ type BaseViewModel struct {
 	// ClientURI is the home page of the client.
 	ClientURI             string
 	ClientName            string
+	LogoURI               string
 	SliceContains         func([]interface{}, interface{}) bool
 	MakeURL               func(path string, pairs ...string) string
 	MakeURLWithBackURL    func(path string, pairs ...string) string
@@ -215,6 +216,10 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 	if client != nil {
 		clientName = client.Name
 	}
+	logoURI := ""
+	if client != nil {
+		logoURI = client.LogoURI
+	}
 	hasThirdPartyApp := false
 	for _, c := range m.OAuth.Clients {
 		if c.IsThirdParty() {
@@ -314,6 +319,7 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 		BrandPageURI:                m.AuthUI.BrandPageURI,
 		ClientURI:                   clientURI,
 		ClientName:                  clientName,
+		LogoURI:                     logoURI,
 		SliceContains:               SliceContains,
 		MakeURL: func(path string, pairs ...string) string {
 			return makeURL(path, pairs...).String()
