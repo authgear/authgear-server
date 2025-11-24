@@ -31,7 +31,7 @@ type UserService interface {
 	SetAccountValidFrom(ctx context.Context, userID string, from *time.Time) error
 	SetAccountValidUntil(ctx context.Context, userID string, until *time.Time) error
 	SetAccountValidPeriod(ctx context.Context, userID string, from *time.Time, until *time.Time) error
-	ScheduleDeletionByAdmin(ctx context.Context, userID string) error
+	ScheduleDeletionByAdmin(ctx context.Context, userID string, reason string) error
 	UnscheduleDeletionByAdmin(ctx context.Context, userID string) error
 	Anonymize(ctx context.Context, userID string) error
 	ScheduleAnonymizationByAdmin(ctx context.Context, userID string) error
@@ -225,8 +225,8 @@ func (f *UserFacade) SetAccountValidPeriod(ctx context.Context, id string, from 
 	return nil
 }
 
-func (f *UserFacade) ScheduleDeletion(ctx context.Context, id string) error {
-	err := f.Users.ScheduleDeletionByAdmin(ctx, id)
+func (f *UserFacade) ScheduleDeletion(ctx context.Context, id string, reason string) error {
+	err := f.Users.ScheduleDeletionByAdmin(ctx, id, reason)
 	if err != nil {
 		return err
 	}

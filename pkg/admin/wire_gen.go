@@ -983,6 +983,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	userFacade := &facade.UserFacade{
 		UserProvider: userProvider,
+		Clock:        clockClock,
 		Coordinator:  coordinator,
 	}
 	identityFacade := facade.IdentityFacade{

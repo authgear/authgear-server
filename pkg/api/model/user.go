@@ -14,6 +14,7 @@ type User struct {
 	DisableReason            *string    `json:"disable_reason,omitempty"`
 	IsDeactivated            bool       `json:"is_deactivated"`
 	DeleteAt                 *time.Time `json:"delete_at,omitempty"`
+	DeleteReason             *string    `json:"delete_reason,omitempty"`
 	IsAnonymized             bool       `json:"is_anonymized"`
 	AnonymizeAt              *time.Time `json:"anonymize_at,omitempty"`
 	TemporarilyDisabledFrom  *time.Time `json:"temporarily_disabled_from,omitempty"`
