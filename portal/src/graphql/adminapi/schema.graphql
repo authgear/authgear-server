@@ -2160,6 +2160,9 @@ type User implements Entity & Node {
   """The scheduled deletion time of the user"""
   deleteAt: DateTime
 
+  """The reason of scheduled deletion"""
+  deleteReason: String
+
   """The reason of disabled"""
   disableReason: String
 

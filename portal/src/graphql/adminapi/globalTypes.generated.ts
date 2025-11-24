@@ -1886,6 +1886,8 @@ export type User = Entity & Node & {
   customAttributes: Scalars['UserCustomAttributes']['output'];
   /** The scheduled deletion time of the user */
   deleteAt?: Maybe<Scalars['DateTime']['output']>;
+  /** The reason of scheduled deletion */
+  deleteReason?: Maybe<Scalars['String']['output']>;
   /** The reason of disabled */
   disableReason?: Maybe<Scalars['String']['output']>;
   /** The list of computed roles this user has. */
