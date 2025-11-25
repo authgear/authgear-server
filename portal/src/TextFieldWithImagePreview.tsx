@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { Label } from "@fluentui/react";
 import FormTextField, { FormTextFieldProps } from "./FormTextField";
 
@@ -6,24 +6,30 @@ import iconPreview from "./images/preview.svg";
 import iconPreviewUnavailable from "./images/preview-unavailable.svg";
 
 import cn from "classnames";
+import { useDebouncedEffect } from "./hook/useDebouncedEffect";
 
 export interface TextFieldWithImagePreviewProps extends FormTextFieldProps {}
 
 const TextFieldWithImagePreview: React.VFC<TextFieldWithImagePreviewProps> =
   function TextFieldWithImagePreview(props: TextFieldWithImagePreviewProps) {
     const { label, ...rest } = props;
+    const [imgURL, setImgURL] = useState(rest.value ?? "");
     const [hasError, setHasError] = useState(false);
 
-    useEffect(() => {
-      setHasError(false);
-    }, [rest.value]);
+    useDebouncedEffect(
+      useCallback(() => {
+        setImgURL(rest.value ?? "");
+        setHasError(false);
+      }, [rest.value]),
+      1000
+    );
 
     const onError = () => {
       setHasError(true);
     };
 
     const renderImg = useMemo(() => {
-      if (hasError || !rest.value) {
+      if (hasError || !imgURL) {
         return (
           <div
             className={cn(
@@ -47,12 +53,12 @@ const TextFieldWithImagePreview: React.VFC<TextFieldWithImagePreviewProps> =
       }
       return (
         <img
-          src={rest.value}
+          src={imgURL}
           className={cn("max-h-12.5", "max-w-[95%]")}
           onError={onError}
         />
       );
-    }, [hasError, rest.value]);
+    }, [hasError, imgURL]);
 
     return (
       <div className={cn("flex", "flex-col")}>
