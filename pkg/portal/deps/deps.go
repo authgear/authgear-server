@@ -43,6 +43,14 @@ func ProvideAuditDatabaseCredentials(cfg *config.EnvironmentConfig) *config.Audi
 	return nil
 }
 
+func ProvideDatabaseCredentials(cfg *config.EnvironmentConfig) *config.GlobalDatabaseCredentialsEnvironmentConfig {
+	return &cfg.GlobalDatabase
+}
+
+func ProvideRedisCredentials(cfg *config.EnvironmentConfig) *config.GlobalRedisCredentialsEnvironmentConfig {
+	return &cfg.GlobalRedis
+}
+
 var DependencySet = wire.NewSet(
 	wire.FieldsOf(new(*RootProvider),
 		"EnvironmentConfig",
@@ -73,8 +81,6 @@ var DependencySet = wire.NewSet(
 		"TrustProxy",
 		"DevMode",
 		"SentryDSN",
-		"GlobalDatabase",
-		"GlobalRedis",
 		"DatabaseConfig",
 		"RedisConfig",
 		"DenoEndpoint",
@@ -95,6 +101,8 @@ var DependencySet = wire.NewSet(
 	ProvideConfigSource,
 	ProvideAppBaseResources,
 	ProvideAuditDatabaseCredentials,
+	ProvideDatabaseCredentials,
+	ProvideRedisCredentials,
 	wire.Bind(new(template.ResourceManager), new(*resource.Manager)),
 	wire.Value(template.DefaultLanguageTag(intl.BuiltinBaseLanguage)),
 	wire.Value(template.SupportedLanguageTags([]string{intl.BuiltinBaseLanguage})),

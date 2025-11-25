@@ -126,6 +126,8 @@ type AppService struct {
 	AppTesterTokenStore      AppTesterTokenStore
 	SAMLEnvironmentConfig    config.SAMLEnvironmentConfig
 	ConfigSourceStore        AppConfigSourceStore
+	DatabaseCredentials      *config.GlobalDatabaseCredentialsEnvironmentConfig
+	RedisCredentials         *config.GlobalRedisCredentialsEnvironmentConfig
 }
 
 // Get calls other services that acquires connection themselves.
@@ -596,7 +598,19 @@ func (s *AppService) generateResources(appHost string, appID string) (map[string
 
 	// Generate secret config
 	createdAt := s.Clock.NowUTC()
-	secretConfig := config.GenerateSecretConfigFromOptions(&config.GenerateSecretConfigOptions{}, createdAt, corerand.SecureRand)
+	secretOpts := &config.GenerateSecretConfigOptions{}
+
+	// Include database and Redis credentials from portal environment
+	// These are shared across all projects in a Helm deployment
+	if s.DatabaseCredentials != nil {
+		secretOpts.DatabaseURL = s.DatabaseCredentials.DatabaseURL
+		secretOpts.DatabaseSchema = s.DatabaseCredentials.DatabaseSchema
+	}
+	if s.RedisCredentials != nil {
+		secretOpts.RedisURL = s.RedisCredentials.RedisURL
+	}
+
+	secretConfig := config.GenerateSecretConfigFromOptions(secretOpts, createdAt, corerand.SecureRand)
 	secretConfigYAML, err := yaml.Marshal(secretConfig)
 	if err != nil {
 		return nil, err
