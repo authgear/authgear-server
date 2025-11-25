@@ -617,6 +617,9 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
                 />
               ) as any as string
             }
+            placeholder={renderToString(
+              "EditOAuthClientForm.logo-uri.placeholder"
+            )}
             value={clientConfig.logo_uri ?? ""}
             onChange={onLogoURIChange}
             errorRules={[
