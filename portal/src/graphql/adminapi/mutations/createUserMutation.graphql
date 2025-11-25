@@ -3,6 +3,8 @@ mutation createUserMutation(
   $password: String
   $sendPassword: Boolean
   $setPasswordExpired: Boolean
+  $accountValidFrom: DateTime
+  $accountValidUntil: DateTime
 ) {
   createUser(
     input: {
@@ -10,6 +12,8 @@ mutation createUserMutation(
       password: $password,
       sendPassword: $sendPassword,
       setPasswordExpired: $setPasswordExpired
+      accountValidFrom: $accountValidFrom
+      accountValidUntil: $accountValidUntil
     }
   ) {
     user {

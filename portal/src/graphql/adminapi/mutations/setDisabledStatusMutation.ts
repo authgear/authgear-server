@@ -6,7 +6,13 @@ import {
 } from "./setDisabledStatusMutation.generated";
 
 export function useSetDisabledStatusMutation(): {
-  setDisabledStatus: (userID: string, isDisabled: boolean) => Promise<boolean>;
+  setDisabledStatus: (opts: {
+    userID: string;
+    isDisabled: boolean;
+    reason: string | null;
+    temporarilyDisabledFrom: Date | null;
+    temporarilyDisabledUntil: Date | null;
+  }) => Promise<boolean>;
   loading: boolean;
   error: unknown;
 } {
@@ -21,11 +27,20 @@ export function useSetDisabledStatusMutation(): {
     );
 
   const setDisabledStatus = useCallback(
-    async (userID: string, isDisabled: boolean) => {
+    async (opts: {
+      userID: string;
+      isDisabled: boolean;
+      reason: string | null;
+      temporarilyDisabledFrom: Date | null;
+      temporarilyDisabledUntil: Date | null;
+    }) => {
       const result = await mutationFunction({
         variables: {
-          userID,
-          isDisabled,
+          userID: opts.userID,
+          isDisabled: opts.isDisabled,
+          reason: opts.reason,
+          temporarilyDisabledFrom: opts.temporarilyDisabledFrom,
+          temporarilyDisabledUntil: opts.temporarilyDisabledUntil,
         },
       });
 

@@ -1,5 +1,17 @@
-mutation setDisabledStatusMutation($userID: ID!, $isDisabled: Boolean!) {
-  setDisabledStatus(input: { userID: $userID, isDisabled: $isDisabled }) {
+mutation setDisabledStatusMutation(
+  $userID: ID!,
+  $isDisabled: Boolean!,
+  $reason: String,
+  $temporarilyDisabledFrom: DateTime,
+  $temporarilyDisabledUntil: DateTime
+) {
+  setDisabledStatus(input: {
+    userID: $userID,
+    reason: $reason,
+    isDisabled: $isDisabled,
+    temporarilyDisabledFrom: $temporarilyDisabledFrom,
+    temporarilyDisabledUntil: $temporarilyDisabledUntil
+  }) {
     user {
       id
       isDisabled
