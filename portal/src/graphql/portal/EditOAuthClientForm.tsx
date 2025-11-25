@@ -617,7 +617,7 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
                 />
               ) as any as string
             }
-            value={clientConfig.logo_uri}
+            value={clientConfig.logo_uri ?? ""}
             onChange={onLogoURIChange}
             errorRules={[
               makeValidationErrorCustomMessageIDRule(
