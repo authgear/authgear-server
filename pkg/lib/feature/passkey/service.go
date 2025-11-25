@@ -3,6 +3,7 @@ package passkey
 import (
 	"bytes"
 	"context"
+	"crypto/sha256"
 	"encoding/base64"
 
 	"github.com/go-webauthn/webauthn/protocol"
@@ -107,7 +108,12 @@ func (s *Service) PeekAssertionResponse(ctx context.Context, assertionResponse [
 		return
 	}
 
-	credential, err := webauthn.MakeNewCredential(parsedAttestation)
+	// Compute the SHA-256 hash of the clientDataJSON for NewCredential
+	clientDataJSON := parsedAttestation.Raw.AttestationResponse.ClientDataJSON
+	h := sha256.Sum256(clientDataJSON)
+	clientDataHash := h[:]
+
+	credential, err := webauthn.NewCredential(clientDataHash, parsedAttestation)
 	if err != nil {
 		return
 	}
@@ -116,8 +122,11 @@ func (s *Service) PeekAssertionResponse(ctx context.Context, assertionResponse [
 		challengeString,
 		config.RPID,
 		[]string{config.RPOrigin},
-		"",    // We do not support FIDO AppID extension
-		false, // user verification is preferred so we do not require user verification here.
+		nil,                                      // rpTopOrigins - not using top-level origin verification
+		protocol.TopOriginIgnoreVerificationMode, // Don't verify top-level origins
+		"",                                       // We do not support FIDO AppID extension
+		false,                                    // user verification is preferred so we do not require user verification here.
+		true,                                     // require user presence
 		credential.PublicKey,
 	)
 	if err != nil {
