@@ -507,6 +507,7 @@
   "AccountValidPeriodForm.hint": "Leave blank for no limit",
 
   "DateTimePicker.clear": "Clear",
+  "DateTimePicker.fluent.isResetStatusMessage": "'{'0'}' is invalid, reset to '{'1'}'",
 
   "Add2FAScreen.title.phone": "Add 2FA Phone",
   "Add2FAScreen.title.email": "Add 2FA Email",

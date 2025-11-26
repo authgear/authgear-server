@@ -1,7 +1,13 @@
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo, useContext } from "react";
 import cn from "classnames";
-import { DatePicker, TimePicker, IComboBox, ITimeRange } from "@fluentui/react";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import {
+  DatePicker,
+  TimePicker,
+  IComboBox,
+  ITimeRange,
+  defaultDatePickerStrings,
+} from "@fluentui/react";
+import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { DateTime, DateObjectUnits } from "luxon";
 import DefaultButton from "./DefaultButton";
 
@@ -13,6 +19,15 @@ export interface DateTimePickerProps {
   minDateTime: Date | null;
   onPickDateTime: (datetime: Date | null) => void;
   showClearButton: boolean;
+}
+
+function formatDate(date?: Date): string {
+  if (date == null) {
+    return "";
+  }
+  return DateTime.fromJSDate(date).toFormat("yyyy-LL-dd", {
+    locale: "en-US",
+  });
 }
 
 export default function DateTimePicker(
@@ -29,6 +44,8 @@ export default function DateTimePicker(
   } = props;
 
   const increments = 60;
+
+  const { renderToString } = useContext(Context);
 
   // TimePicker has some problem with its controlled component behavior.
   //
@@ -158,6 +175,50 @@ export default function DateTimePicker(
     setTimePickerKey((prev) => prev + 1);
   }, [onPickDateTime]);
 
+  // DatePicker has poor handling when allowTextInput=true and minDate!=null.
+  // 1. It just render isOutOfBoundsErrorMessage, but isOutOfBoundsErrorMessage is undefined by default, so no error message is shown.
+  // 2. There is no callback to handle out-of-bound input date, so we have to include our own bound checking in parseDateFromString.
+  //
+  // The caveat is that we can no longer distinguish between invalid date like "2025-13" or out-of-bound date.
+  // https://github.com/microsoft/fluentui/blob/%40fluentui/react_v8.125.1/packages/react/src/components/DatePicker/DatePicker.base.tsx#L158
+  const parseDateFromString = useCallback(
+    (dateStr: string) => {
+      try {
+        const dt = DateTime.fromFormat(dateStr, "yyyy-LL-dd", {
+          locale: "en-US",
+        });
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+        if (dt.isValid) {
+          const date = dt.toJSDate();
+          if (minDateTime != null) {
+            const startOfDay_minDate =
+              DateTime.fromJSDate(minDateTime).startOf("day");
+            const startOfDay_pickedDate =
+              DateTime.fromJSDate(date).startOf("day");
+            // Do not allow to enter a date less than minDate.
+            if (
+              startOfDay_pickedDate.valueOf() < startOfDay_minDate.valueOf()
+            ) {
+              return null;
+            }
+          }
+          return date;
+        }
+      } catch {}
+      return null;
+    },
+    [minDateTime]
+  );
+
+  const datePickerStrings = useMemo(() => {
+    return {
+      ...defaultDatePickerStrings,
+      isResetStatusMessage: renderToString(
+        "DateTimePicker.fluent.isResetStatusMessage"
+      ),
+    };
+  }, [renderToString]);
+
   return (
     <div className={cn(className, "flex flex-col")}>
       {label != null ? label : null}
@@ -171,6 +232,10 @@ export default function DateTimePicker(
               : onSelectDate_noMinDate
           }
           minDate={minDateTime ?? undefined}
+          formatDate={formatDate}
+          parseDateFromString={parseDateFromString}
+          allowTextInput={true}
+          strings={datePickerStrings}
         />
         <TimePicker
           key={String(timePickerKey)}
