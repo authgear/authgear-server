@@ -51,6 +51,7 @@ export default function DateTimePicker(
   //
   // 1. When we clear the field, value=undefined does not cause it to render empty.
   // 2. Changing the date picker and thus value=something does not cause it to render.
+  // 3. When allowFreeform=true and an invalid time is input, there is no way to reconcile the input and the selected value.
   //
   // So we always remount it in these two cases.
   const [timePickerKey, setTimePickerKey] = useState(0);
@@ -155,17 +156,19 @@ export default function DateTimePicker(
       if (pickedDateTime == null) {
         return;
       }
-      const datetime = DateTime.fromJSDate(time);
-      onPickDateTime(
-        DateTime.fromJSDate(pickedDateTime)
-          .set({
-            hour: datetime.hour,
-            minute: datetime.minute,
-            second: 0,
-            millisecond: 0,
-          })
-          .toJSDate()
-      );
+      if (!isNaN(time.getTime())) {
+        const datetime = DateTime.fromJSDate(time);
+        onPickDateTime(
+          DateTime.fromJSDate(pickedDateTime)
+            .set({
+              hour: datetime.hour,
+              minute: datetime.minute,
+              second: 0,
+              millisecond: 0,
+            })
+            .toJSDate()
+        );
+      }
     },
     [onPickDateTime, pickedDateTime]
   );
@@ -210,6 +213,49 @@ export default function DateTimePicker(
     [minDateTime]
   );
 
+  const onFormatDate = useCallback((date: Date) => {
+    return DateTime.fromJSDate(date).toFormat("HH:mm", {
+      locale: "en-US",
+    });
+  }, []);
+
+  const onValidateUserInput = useCallback(
+    (timeStr: string) => {
+      const check: () => boolean = () => {
+        try {
+          const timeOnly = DateTime.fromFormat(timeStr, "HH:mm", {
+            locale: "en-US",
+          });
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+          if (timeOnly.isValid) {
+            if (minDateTime != null) {
+              const min = DateTime.fromJSDate(minDateTime);
+              const dt = timeOnly.set({
+                year: min.year,
+                month: min.month,
+                day: min.day,
+              });
+              if (dt.valueOf() < min.valueOf()) {
+                return false;
+              }
+            }
+            return true;
+          }
+        } catch {}
+        return false;
+      };
+
+      const valid = check();
+      if (!valid) {
+        // Increment the key so that the TimePicker is remounted.
+        setTimePickerKey((prev) => prev + 1);
+        return "invalid";
+      }
+      return "";
+    },
+    [minDateTime]
+  );
+
   const datePickerStrings = useMemo(() => {
     return {
       ...defaultDatePickerStrings,
@@ -242,12 +288,14 @@ export default function DateTimePicker(
           className="flex-1"
           increments={increments}
           timeRange={timeRange}
-          allowFreeform={false}
+          allowFreeform={true}
           showSeconds={false}
           useHour12={false}
           dateAnchor={pickedDateTime ?? undefined}
           value={pickedDateTime ?? undefined}
           onChange={onChange}
+          onValidateUserInput={onValidateUserInput}
+          onFormatDate={onFormatDate}
         />
         {showClearButton ? (
           <DefaultButton
