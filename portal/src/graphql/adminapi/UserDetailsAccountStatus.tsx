@@ -133,20 +133,6 @@ function formatSystemZone(now: Date, locale: string): string {
   })} (${zone.name})`;
 }
 
-function useMinDate(ref: Date): Date {
-  // Add 1 hour so that the minDate is never less than now.
-  return DateTime.fromJSDate(ref)
-    .plus({
-      hour: 1,
-    })
-    .set({
-      minute: 0,
-      second: 0,
-      millisecond: 0,
-    })
-    .toJSDate();
-}
-
 function getMostAppropriateAccountState(accountStatus: AccountStatus):
   | {
       state: "scheduled-deletion";
@@ -877,15 +863,26 @@ export function AccountStatusDialog(
   const { themes } = useSystemConfig();
   const { locale, renderToString } = useContext(Context);
 
-  const [mountedAt] = useState(() => new Date());
-  const minDate = useMinDate(mountedAt);
+  const [defaultTemporarilyDisabledUntil] = useState(() =>
+    DateTime.fromJSDate(new Date())
+      .set({
+        second: 0,
+        millisecond: 0,
+      })
+      .plus({
+        days: 7,
+      })
+      .toJSDate()
+  );
 
   const [disableChoiceGroupKey, setDisableChoiceGroupKey] = useState<
     "indefinitely" | "temporarily"
   >("indefinitely");
 
   const [temporarilyDisabledUntil, setTemporarilyDisabledUntil] = useState(() =>
-    DateTime.fromJSDate(minDate).plus({ days: 7 }).toJSDate()
+    accountStatus.temporarilyDisabledUntil != null
+      ? new Date(accountStatus.temporarilyDisabledUntil)
+      : defaultTemporarilyDisabledUntil
   );
 
   const [disableReason, setDisableReason] = useState(
@@ -975,7 +972,7 @@ export function AccountStatusDialog(
                 />
               </MessageBar>
               <DateTimePicker
-                minDateTime={minDate}
+                minDateTime={"now"}
                 pickedDateTime={temporarilyDisabledUntil}
                 // @ts-expect-error
                 onPickDateTime={setTemporarilyDisabledUntil}
@@ -986,7 +983,7 @@ export function AccountStatusDialog(
         </div>
       );
     },
-    [disableChoiceGroupKey, locale, minDate, temporarilyDisabledUntil]
+    [disableChoiceGroupKey, locale, temporarilyDisabledUntil]
   );
 
   const disableChoiceGroupOptions: IChoiceGroupOption[] = useMemo(() => {

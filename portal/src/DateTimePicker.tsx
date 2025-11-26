@@ -8,7 +8,7 @@ import {
   defaultDatePickerStrings,
 } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
-import { DateTime, DateObjectUnits } from "luxon";
+import { DateTime } from "luxon";
 import DefaultButton from "./DefaultButton";
 
 export interface DateTimePickerProps {
@@ -16,9 +16,19 @@ export interface DateTimePickerProps {
   label?: React.ReactElement | null;
   hint?: React.ReactElement | null;
   pickedDateTime: Date | null;
-  minDateTime: Date | null;
+  minDateTime: "now" | null;
   onPickDateTime: (datetime: Date | null) => void;
   showClearButton: boolean;
+}
+
+function getNowWithSecondsStripped(): Date {
+  return DateTime.fromJSDate(new Date())
+    .plus({ minute: 1 })
+    .set({
+      second: 0,
+      millisecond: 0,
+    })
+    .toJSDate();
 }
 
 function formatDate(date?: Date): string {
@@ -65,7 +75,9 @@ export default function DateTimePicker(
       };
     }
 
-    const startOfDay_minDate = DateTime.fromJSDate(minDateTime).startOf("day");
+    const min = getNowWithSecondsStripped();
+
+    const startOfDay_minDate = DateTime.fromJSDate(min).startOf("day");
     const startOfDay_pickedDateTime =
       DateTime.fromJSDate(pickedDateTime).startOf("day");
 
@@ -83,7 +95,7 @@ export default function DateTimePicker(
       };
     }
     return {
-      start: minDateTime.getHours(),
+      start: min.getHours(),
       end: 0,
     };
   }, [minDateTime, pickedDateTime]);
@@ -117,36 +129,32 @@ export default function DateTimePicker(
         return;
       }
 
-      const startOfDay_minDate =
-        DateTime.fromJSDate(minDateTime).startOf("day");
-      const startOfDay_pickedDate = DateTime.fromJSDate(date).startOf("day");
+      const min = getNowWithSecondsStripped();
+
+      const pickedDate = DateTime.fromJSDate(date);
+      const startOfDay_minDate = DateTime.fromJSDate(min).startOf("day");
+      const startOfDay_pickedDate = pickedDate.startOf("day");
 
       // Do not allow to pick a date less than minDate.
       if (startOfDay_pickedDate.valueOf() < startOfDay_minDate.valueOf()) {
         return;
       }
 
-      const obj: DateObjectUnits = {
+      let candidate = DateTime.fromObject({
         year: startOfDay_pickedDate.year,
         month: startOfDay_pickedDate.month,
         day: startOfDay_pickedDate.day,
-      };
-
-      // Adjust the time.
-      if (startOfDay_pickedDate.valueOf() === startOfDay_minDate.valueOf()) {
-        const needAdjust =
-          pickedDateTime.getHours() < minDateTime.getHours() ||
-          (pickedDateTime.getHours() === minDateTime.getHours() &&
-            pickedDateTime.getMinutes() < minDateTime.getMinutes());
-
-        if (needAdjust) {
-          const d = DateTime.fromJSDate(minDateTime);
-          obj.hour = d.hour;
-          obj.minute = d.minute;
-        }
+        hour: DateTime.fromJSDate(pickedDateTime).hour,
+        minute: DateTime.fromJSDate(pickedDateTime).minute,
+        second: 0,
+        millisecond: 0,
+      });
+      if (candidate.toJSDate().getTime() < min.getTime()) {
+        candidate = DateTime.fromJSDate(min);
       }
 
-      onPickDateTime(DateTime.fromJSDate(pickedDateTime).set(obj).toJSDate());
+      onPickDateTime(candidate.toJSDate());
+      setTimePickerKey((prev) => prev + 1);
     },
     [minDateTime, onPickDateTime, pickedDateTime]
   );
@@ -194,8 +202,8 @@ export default function DateTimePicker(
         if (dt.isValid) {
           const date = dt.toJSDate();
           if (minDateTime != null) {
-            const startOfDay_minDate =
-              DateTime.fromJSDate(minDateTime).startOf("day");
+            const min = getNowWithSecondsStripped();
+            const startOfDay_minDate = DateTime.fromJSDate(min).startOf("day");
             const startOfDay_pickedDate =
               DateTime.fromJSDate(date).startOf("day");
             // Do not allow to enter a date less than minDate.
@@ -229,7 +237,7 @@ export default function DateTimePicker(
           // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
           if (timeOnly.isValid) {
             if (minDateTime != null) {
-              const min = DateTime.fromJSDate(minDateTime);
+              const min = DateTime.fromJSDate(getNowWithSecondsStripped());
               const dt = timeOnly.set({
                 year: min.year,
                 month: min.month,
@@ -277,7 +285,7 @@ export default function DateTimePicker(
               ? onSelectDate_withMinDate
               : onSelectDate_noMinDate
           }
-          minDate={minDateTime ?? undefined}
+          minDate={minDateTime === "now" ? new Date() : undefined}
           formatDate={formatDate}
           parseDateFromString={parseDateFromString}
           allowTextInput={true}
