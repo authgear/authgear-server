@@ -5,8 +5,8 @@ import (
 )
 
 type WebAuthnRequestOptions struct {
-	PublicKey PublicKeyCredentialRequestOptions `json:"publicKey"`
-	Mediation string                            `json:"mediation,omitempty"`
+	PublicKey PublicKeyCredentialRequestOptions       `json:"publicKey"`
+	Mediation protocol.CredentialMediationRequirement `json:"mediation,omitempty"`
 }
 
 type PublicKeyCredentialRequestOptions struct {
@@ -16,6 +16,7 @@ type PublicKeyCredentialRequestOptions struct {
 	UserVerification protocol.UserVerificationRequirement `json:"userVerification"`
 	// This is a pointer to slice so that omitempty will omit the key if it is nil,
 	// and it is an array if the value is non-nil.
-	AllowCredentials *[]PublicKeyCredentialDescriptor `json:"allowCredentials,omitempty"`
-	Extensions       map[string]interface{}           `json:"extensions,omitempty"`
+	AllowCredentials *[]PublicKeyCredentialDescriptor    `json:"allowCredentials,omitempty"`
+	Hints            []protocol.PublicKeyCredentialHints `json:"hints,omitempty"`
+	Extensions       map[string]interface{}              `json:"extensions,omitempty"`
 }

@@ -6,19 +6,22 @@ import (
 )
 
 type WebAuthnCreationOptions struct {
-	PublicKey PublicKeyCredentialCreationOptions `json:"publicKey"`
+	PublicKey PublicKeyCredentialCreationOptions      `json:"publicKey"`
+	Mediation protocol.CredentialMediationRequirement `json:"mediation,omitempty"`
 }
 
 type PublicKeyCredentialCreationOptions struct {
-	Challenge                     protocol.URLEncodedBase64       `json:"challenge"`
-	RelyingParty                  PublicKeyCredentialRpEntity     `json:"rp"`
-	User                          PublicKeyCredentialUserEntity   `json:"user"`
-	PublicKeyCredentialParameters []PublicKeyCredentialParameter  `json:"pubKeyCredParams,omitempty"`
-	Timeout                       int                             `json:"timeout"`
-	ExcludeCredentials            []PublicKeyCredentialDescriptor `json:"excludeCredentials,omitempty"`
-	AuthenticatorSelection        protocol.AuthenticatorSelection `json:"authenticatorSelection"`
-	Attestation                   protocol.ConveyancePreference   `json:"attestation"`
-	Extensions                    map[string]interface{}          `json:"extensions,omitempty"`
+	Challenge                     protocol.URLEncodedBase64           `json:"challenge"`
+	RelyingParty                  PublicKeyCredentialRpEntity         `json:"rp"`
+	User                          PublicKeyCredentialUserEntity       `json:"user"`
+	PublicKeyCredentialParameters []PublicKeyCredentialParameter      `json:"pubKeyCredParams,omitempty"`
+	Timeout                       int                                 `json:"timeout"`
+	ExcludeCredentials            []PublicKeyCredentialDescriptor     `json:"excludeCredentials,omitempty"`
+	AuthenticatorSelection        protocol.AuthenticatorSelection     `json:"authenticatorSelection"`
+	Hints                         []protocol.PublicKeyCredentialHints `json:"hints,omitempty"`
+	Attestation                   protocol.ConveyancePreference       `json:"attestation"`
+	AttestationFormats            []protocol.AttestationFormat        `json:"attestationFormats,omitempty"`
+	Extensions                    map[string]interface{}              `json:"extensions,omitempty"`
 }
 
 type PublicKeyCredentialRpEntity struct {
