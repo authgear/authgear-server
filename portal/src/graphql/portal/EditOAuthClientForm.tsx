@@ -46,6 +46,7 @@ interface EditOAuthClientFormProps {
   className?: string;
   clientConfig: OAuthClientConfig;
   customUIEnabled: boolean;
+  showAppLogoSection: boolean;
   app2appEnabled: boolean;
   onClientConfigChange: (newClientConfig: OAuthClientConfig) => void;
   clientSecretHook: ClientSecretsHook;
@@ -101,6 +102,7 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
       publicOrigin,
       customUIEnabled,
       app2appEnabled,
+      showAppLogoSection,
       onClientConfigChange,
       clientSecretHook,
     } = props;
@@ -601,35 +603,37 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
             value={applicationTypeLabel}
             readOnly={true}
           />
-          <TextFieldWithImagePreview
-            parentJSONPointer={parentJSONPointer}
-            fieldName="logo_uri"
-            label={renderToString("EditOAuthClientForm.logo-uri.label")}
-            description={
-              (
-                <FormattedMessage
-                  id="EditOAuthClientForm.logo-uri.description"
-                  values={{
-                    href: `/project/${encodeURIComponent(
-                      appID
-                    )}/branding/design`,
-                  }}
-                />
-              ) as any as string
-            }
-            placeholder={renderToString(
-              "EditOAuthClientForm.logo-uri.placeholder"
-            )}
-            value={clientConfig.logo_uri ?? ""}
-            onChange={onLogoURIChange}
-            errorRules={[
-              makeValidationErrorCustomMessageIDRule(
-                "format",
-                /\/logo_uri$/,
-                "EditOAuthClientForm.logo-uri.error.format"
-              ),
-            ]}
-          />
+          {showAppLogoSection ? (
+            <TextFieldWithImagePreview
+              parentJSONPointer={parentJSONPointer}
+              fieldName="logo_uri"
+              label={renderToString("EditOAuthClientForm.logo-uri.label")}
+              description={
+                (
+                  <FormattedMessage
+                    id="EditOAuthClientForm.logo-uri.description"
+                    values={{
+                      href: `/project/${encodeURIComponent(
+                        appID
+                      )}/branding/design`,
+                    }}
+                  />
+                ) as any as string
+              }
+              placeholder={renderToString(
+                "EditOAuthClientForm.logo-uri.placeholder"
+              )}
+              value={clientConfig.logo_uri ?? ""}
+              onChange={onLogoURIChange}
+              errorRules={[
+                makeValidationErrorCustomMessageIDRule(
+                  "format",
+                  /\/logo_uri$/,
+                  "EditOAuthClientForm.logo-uri.error.format"
+                ),
+              ]}
+            />
+          ) : null}
         </Widget>
 
         {showClientSecret && clientSecrets && clientSecrets.length > 0 ? (

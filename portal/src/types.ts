@@ -979,6 +979,7 @@ export interface CustomDomainFeatureConfig {
 
 export interface UIFeatureConfig {
   white_labeling?: WhiteLabelingFeatureConfig;
+  allow_showing_logo_uri_as_project_logo?: boolean;
 }
 
 export interface WhiteLabelingFeatureConfig {
