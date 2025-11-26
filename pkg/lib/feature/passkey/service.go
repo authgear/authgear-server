@@ -6,7 +6,6 @@ import (
 	"encoding/base64"
 
 	"github.com/go-webauthn/webauthn/protocol"
-	"github.com/go-webauthn/webauthn/webauthn"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 )
@@ -107,18 +106,39 @@ func (s *Service) PeekAssertionResponse(ctx context.Context, assertionResponse [
 		return
 	}
 
-	credential, err := webauthn.MakeNewCredential(parsedAttestation)
-	if err != nil {
-		return
-	}
+	// We used to call webauthn.MakeNewCredential(parsedAttestation) to obtain credentialBytes.
+	// If you inspect the source code of that function, it is just doing some field mapping.
+	// Therefore, we get rid of github.com/go-webauthn/webauthn/webauthn entirely, and pick the field from parsedAttestation directly.
+	credentialBytes := parsedAttestation.Response.AttestationObject.AuthData.AttData.CredentialPublicKey
+
+	// User verification is preferred so we do not require user verification here.
+	verifyUser := false
+	// webauthn prior to v0.13 always require the UP flag to be set.
+	// Since v0.13 it allows UP flag to be unset.
+	// See https://github.com/go-webauthn/webauthn/compare/v0.12.3...v0.13.4#diff-112f283f0b2011a522df0c3b95deea2464179fdebde208e15e99dba543f1fd19L399
+	// To restore the previous behavior we have been using, we require the UP flag to be set.
+	verifyUserPresence := true
+
+	// Webauthn level 3 introduces topOrigin.
+	// go-webauthn supports it since v0.11
+	// Since we never expect Authgear to be iframe-ed, the list of expected top origins is the same as the list of expected origins.
+	// Since we explicitly specify the list of expected top origins, we use protocol.TopOriginExplicitVerificationMode.
+	// See https://www.w3.org/TR/webauthn-3/#dom-collectedclientdata-toporigin
+	// See https://github.com/go-webauthn/webauthn/compare/v0.10.2...v0.11.2
+	rpOrigins := []string{config.RPOrigin}
+	rpTopOrigins := rpOrigins
+	rpTopOriginVerify := protocol.TopOriginExplicitVerificationMode
 
 	err = parsedAssertion.Verify(
 		challengeString,
 		config.RPID,
-		[]string{config.RPOrigin},
-		"",    // We do not support FIDO AppID extension
-		false, // user verification is preferred so we do not require user verification here.
-		credential.PublicKey,
+		rpOrigins,
+		rpTopOrigins,
+		rpTopOriginVerify,
+		"", // We do not support FIDO AppID extension
+		verifyUser,
+		verifyUserPresence,
+		credentialBytes,
 	)
 	if err != nil {
 		return

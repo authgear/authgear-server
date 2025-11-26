@@ -20,7 +20,7 @@ func (s *RequestOptionsService) MakeConditionalRequestOptions(ctx context.Contex
 	if err != nil {
 		return nil, err
 	}
-	options.Mediation = "conditional"
+	options.Mediation = protocol.MediationConditional
 	return options, nil
 }
 
