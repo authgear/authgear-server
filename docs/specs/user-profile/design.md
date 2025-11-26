@@ -487,6 +487,14 @@ A boolean. True if the user is a verified user. i.e. Have at least one verified 
 
 A boolean. True if the user can perform reauthentication.
 
+#### https://authgear.com/claims/user/authenticators
+
+A list of authenticators owned by the user. See [this doc](../sdk-settings-actions.md).
+
+#### https://authgear.com/claims/user/recovery_code_enabled
+
+A boolean. See [this doc](../sdk-settings-actions.md).
+
 
 ## Webhook
 
