@@ -54,7 +54,7 @@ const TextFieldWithImagePreview: React.VFC<TextFieldWithImagePreviewProps> =
       return (
         <img
           src={imgURL}
-          className={cn("max-h-12.5", "max-w-[95%]")}
+          className={cn("max-h-12.5", "max-w-[95%]", "object-contain")}
           onError={onError}
         />
       );
