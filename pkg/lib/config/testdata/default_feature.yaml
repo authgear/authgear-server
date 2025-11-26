@@ -52,6 +52,7 @@ authenticator:
 ui:
   white_labeling:
     disabled: false
+  allow_showing_logo_uri_as_project_logo: false
 custom_domain:
   disabled: false
 oauth:
