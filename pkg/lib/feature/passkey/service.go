@@ -119,13 +119,23 @@ func (s *Service) PeekAssertionResponse(ctx context.Context, assertionResponse [
 	// To restore the previous behavior we have been using, we require the UP flag to be set.
 	verifyUserPresence := true
 
+	// Webauthn level 3 introduces topOrigin.
+	// go-webauthn supports it since v0.11
+	// Since we never expect Authgear to be iframe-ed, the list of expected top origins is the same as the list of expected origins.
+	// Since we explicitly specify the list of expected top origins, we use protocol.TopOriginExplicitVerificationMode.
+	// See https://www.w3.org/TR/webauthn-3/#dom-collectedclientdata-toporigin
+	// See https://github.com/go-webauthn/webauthn/compare/v0.10.2...v0.11.2
+	rpOrigins := []string{config.RPOrigin}
+	rpTopOrigins := rpOrigins
+	rpTopOriginVerify := protocol.TopOriginExplicitVerificationMode
+
 	err = parsedAssertion.Verify(
 		challengeString,
 		config.RPID,
-		[]string{config.RPOrigin},
-		nil,                                      // rpTopOrigins - not using top-level origin verification
-		protocol.TopOriginIgnoreVerificationMode, // Don't verify top-level origins
-		"",                                       // We do not support FIDO AppID extension
+		rpOrigins,
+		rpTopOrigins,
+		rpTopOriginVerify,
+		"", // We do not support FIDO AppID extension
 		verifyUser,
 		verifyUserPresence,
 		credentialBytes,
