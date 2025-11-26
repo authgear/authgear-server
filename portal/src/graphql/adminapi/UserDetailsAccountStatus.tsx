@@ -36,6 +36,10 @@ import { extractRawID } from "../../util/graphql";
 import styles from "./UserDetailsAccountStatus.module.css";
 import DateTimePicker from "../../DateTimePicker";
 
+const disableReasonTextStyle: IStyle = {
+  lineHeight: "20px",
+};
+
 const labelTextStyle: IStyle = {
   lineHeight: "20px",
   fontWeight: 600,
@@ -355,10 +359,15 @@ const DisableUserCell: React.VFC<DisableUserCellProps> =
               <>
                 <Text
                   styles={{
-                    root: labelTextStyle,
+                    root: disableReasonTextStyle,
                   }}
                 >
-                  {buttonStates.toggleDisable.disableReason}
+                  <FormattedMessage
+                    id="UserDetailsAccountStatus.disable-user.reason"
+                    values={{
+                      reason: buttonStates.toggleDisable.disableReason,
+                    }}
+                  />
                 </Text>
               </>
             ) : null}
