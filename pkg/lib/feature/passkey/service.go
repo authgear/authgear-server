@@ -111,6 +111,14 @@ func (s *Service) PeekAssertionResponse(ctx context.Context, assertionResponse [
 	// Therefore, we get rid of github.com/go-webauthn/webauthn/webauthn entirely, and pick the field from parsedAttestation directly.
 	credentialBytes := parsedAttestation.Response.AttestationObject.AuthData.AttData.CredentialPublicKey
 
+	// User verification is preferred so we do not require user verification here.
+	verifyUser := false
+	// webauthn prior to v0.13 always require the UP flag to be set.
+	// Since v0.13 it allows UP flag to be unset.
+	// See https://github.com/go-webauthn/webauthn/compare/v0.12.3...v0.13.4#diff-112f283f0b2011a522df0c3b95deea2464179fdebde208e15e99dba543f1fd19L399
+	// To restore the previous behavior we have been using, we require the UP flag to be set.
+	verifyUserPresence := true
+
 	err = parsedAssertion.Verify(
 		challengeString,
 		config.RPID,
@@ -118,8 +126,8 @@ func (s *Service) PeekAssertionResponse(ctx context.Context, assertionResponse [
 		nil,                                      // rpTopOrigins - not using top-level origin verification
 		protocol.TopOriginIgnoreVerificationMode, // Don't verify top-level origins
 		"",                                       // We do not support FIDO AppID extension
-		false,                                    // user verification is preferred so we do not require user verification here.
-		true,                                     // require user presence
+		verifyUser,
+		verifyUserPresence,
 		credentialBytes,
 	)
 	if err != nil {
