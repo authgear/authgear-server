@@ -379,6 +379,7 @@
   "UsersList.reenable-user": "Re-enable User",
   "UsersList.cancel-removal": "Cancel Removal",
   "UsersList.cancel-anonymization": "Cancel Anonymization",
+  "UsersList.edit-account-valid-period": "Edit Valid Period",
   "UsersList.anonymous-user": "Anonymous User",
   "UsersList.anonymized-user": "User data erased",
   "UsersList.empty.normal": "No users yet.",

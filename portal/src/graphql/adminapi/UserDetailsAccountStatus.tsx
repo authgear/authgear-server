@@ -147,28 +147,109 @@ function useMinDate(ref: Date): Date {
     .toJSDate();
 }
 
+function getMostAppropriateAccountState(accountStatus: AccountStatus):
+  | {
+      state: "scheduled-deletion";
+      deleteAt: Date;
+    }
+  | {
+      state: "anonymized";
+    }
+  | {
+      state: "scheduled-anonymization";
+      anonymizeAt: Date;
+    }
+  | {
+      state: "less-than-account-valid-from";
+      accountValidFrom: Date;
+    }
+  | {
+      state: "greater-than-or-equal-to-account-valid-until";
+      accountValidUntil: Date;
+    }
+  | {
+      state: "disabled";
+      temporarilyDisabledUntil: Date | null;
+    }
+  | {
+      state: "normal";
+    } {
+  const now = new Date();
+  if (accountStatus.deleteAt != null) {
+    return {
+      state: "scheduled-deletion",
+      deleteAt: new Date(accountStatus.deleteAt),
+    };
+  }
+  if (accountStatus.isAnonymized) {
+    return {
+      state: "anonymized",
+    };
+  }
+  if (accountStatus.anonymizeAt != null) {
+    return {
+      state: "scheduled-anonymization",
+      anonymizeAt: new Date(accountStatus.anonymizeAt),
+    };
+  }
+  if (
+    accountStatus.accountValidFrom != null &&
+    now.getTime() < new Date(accountStatus.accountValidFrom).getTime()
+  ) {
+    return {
+      state: "less-than-account-valid-from",
+      accountValidFrom: new Date(accountStatus.accountValidFrom),
+    };
+  }
+  if (
+    accountStatus.accountValidUntil != null &&
+    now.getTime() >= new Date(accountStatus.accountValidUntil).getTime()
+  ) {
+    return {
+      state: "greater-than-or-equal-to-account-valid-until",
+      accountValidUntil: new Date(accountStatus.accountValidUntil),
+    };
+  }
+  if (accountStatus.isDisabled) {
+    return {
+      state: "disabled",
+      temporarilyDisabledUntil:
+        accountStatus.temporarilyDisabledUntil == null
+          ? null
+          : new Date(accountStatus.temporarilyDisabledUntil),
+    };
+  }
+  return {
+    state: "normal",
+  };
+}
+
 export function getMostAppropriateAction(
-  data: AccountStatus
+  accountStatus: AccountStatus
 ):
   | "unschedule-deletion"
   | "unschedule-anonymization"
+  | "edit-account-valid-period"
   | "re-enable"
   | "disable"
   | "no-action" {
-  const buttonStates = getButtonStates(data);
-  if (buttonStates.delete.deleteAt != null) {
-    return "unschedule-deletion";
+  const accountState = getMostAppropriateAccountState(accountStatus);
+  switch (accountState.state) {
+    case "scheduled-deletion":
+      return "unschedule-deletion";
+    case "scheduled-anonymization":
+      return "unschedule-anonymization";
+    case "less-than-account-valid-from":
+      return "edit-account-valid-period";
+    case "greater-than-or-equal-to-account-valid-until":
+      return "edit-account-valid-period";
+    case "disabled":
+      return "re-enable";
+    case "anonymized":
+      return "no-action";
+    case "normal":
+      return "disable";
   }
-  if (buttonStates.anonymize.isAnonymized) {
-    return "no-action";
-  }
-  if (buttonStates.anonymize.anonymizeAt != null) {
-    return "unschedule-anonymization";
-  }
-  if (buttonStates.toggleDisable.isDisabledIndefinitelyOrTemporarily) {
-    return "re-enable";
-  }
-  return "disable";
 }
 
 function getButtonStates(data: AccountStatus): ButtonStates {
@@ -1294,6 +1375,28 @@ export function AccountStatusDialog(
         />
       );
     };
+    const prepareEditAccountValidPeriod = () => {
+      title = (
+        <FormattedMessage id="AccountStatusDialog.account-valid-period.title--edit" />
+      );
+      subText = (
+        <FormattedMessage
+          id="AccountStatusDialog.account-valid-period.description--edit"
+          values={args}
+        />
+      );
+      body = accountValidPeriodForm;
+      button1 = (
+        <PrimaryButton
+          theme={themes.main}
+          disabled={loading}
+          text={
+            <FormattedMessage id="AccountStatusDialog.account-valid-period.action.edit" />
+          }
+          onClick={onClickSetAccountValidPeriod}
+        />
+      );
+    };
 
     switch (mode) {
       case "disable":
@@ -1325,26 +1428,7 @@ export function AccountStatusDialog(
         );
         break;
       case "edit-account-valid-period":
-        title = (
-          <FormattedMessage id="AccountStatusDialog.account-valid-period.title--edit" />
-        );
-        subText = (
-          <FormattedMessage
-            id="AccountStatusDialog.account-valid-period.description--edit"
-            values={args}
-          />
-        );
-        body = accountValidPeriodForm;
-        button1 = (
-          <PrimaryButton
-            theme={themes.main}
-            disabled={loading}
-            text={
-              <FormattedMessage id="AccountStatusDialog.account-valid-period.action.edit" />
-            }
-            onClick={onClickSetAccountValidPeriod}
-          />
-        );
+        prepareEditAccountValidPeriod();
         break;
       case "anonymize-or-schedule":
         title = (
@@ -1469,6 +1553,9 @@ export function AccountStatusDialog(
           case "disable":
             prepareDisable();
             break;
+          case "edit-account-valid-period":
+            prepareEditAccountValidPeriod();
+            break;
           case "no-action":
             break;
         }
@@ -1536,24 +1623,31 @@ const warnBadgeStyle: IStyle = {
 export function AccountStatusBadge(
   props: AccountStatusBadgeProps
 ): React.ReactElement | null {
-  const now = new Date();
   const { accountStatus, className } = props;
-  const id =
-    accountStatus.deleteAt != null
-      ? "AccountStatusBadge.scheduled-deletion"
-      : accountStatus.isAnonymized
-      ? "AccountStatusBadge.anonymized"
-      : accountStatus.anonymizeAt != null
-      ? "AccountStatusBadge.scheduled-anonymization"
-      : accountStatus.accountValidFrom != null &&
-        now.getTime() < new Date(accountStatus.accountValidFrom).getTime()
-      ? "AccountStatusBadge.account-outside-valid-period"
-      : accountStatus.accountValidUntil != null &&
-        now.getTime() >= new Date(accountStatus.accountValidUntil).getTime()
-      ? "AccountStatusBadge.account-outside-valid-period"
-      : accountStatus.isDisabled
-      ? "AccountStatusBadge.disabled"
-      : null;
+  const accountState = getMostAppropriateAccountState(accountStatus);
+  let id: string | null = null;
+  switch (accountState.state) {
+    case "scheduled-deletion":
+      id = "AccountStatusBadge.scheduled-deletion";
+      break;
+    case "anonymized":
+      id = "AccountStatusBadge.anonymized";
+      break;
+    case "scheduled-anonymization":
+      id = "AccountStatusBadge.scheduled-anonymization";
+      break;
+    case "less-than-account-valid-from":
+      id = "AccountStatusBadge.account-outside-valid-period";
+      break;
+    case "greater-than-or-equal-to-account-valid-until":
+      id = "AccountStatusBadge.account-outside-valid-period";
+      break;
+    case "disabled":
+      id = "AccountStatusBadge.disabled";
+      break;
+    case "normal":
+      break;
+  }
   if (id == null) {
     return null;
   }
@@ -1577,75 +1671,76 @@ export interface AccountStatusMessageBarProps {
 export function AccountStatusMessageBar(
   props: AccountStatusMessageBarProps
 ): React.ReactElement | null {
-  const now = new Date();
   const { accountStatus } = props;
   const { locale } = useContext(Context);
+  const accountState = getMostAppropriateAccountState(accountStatus);
 
   let message = null;
-  if (accountStatus.deleteAt != null) {
-    message = (
-      <FormattedMessage
-        id="AccountStatusMessageBar.scheduled-deletion"
-        values={{
-          date: formatDatetime(locale, accountStatus.deleteAt) ?? "",
-        }}
-      />
-    );
-  } else if (accountStatus.isAnonymized) {
-    message = <FormattedMessage id="AccountStatusMessageBar.anonymized" />;
-  } else if (accountStatus.anonymizeAt != null) {
-    message = (
-      <FormattedMessage
-        id="AccountStatusMessageBar.scheduled-anonymization"
-        values={{
-          date: formatDatetime(locale, accountStatus.anonymizeAt) ?? "",
-        }}
-      />
-    );
-  } else if (
-    accountStatus.accountValidUntil != null &&
-    now.getTime() >= new Date(accountStatus.accountValidUntil).getTime()
-  ) {
-    message = (
-      <FormattedMessage
-        id="AccountStatusMessageBar.account-valid-until"
-        values={{
-          date: formatDatetime(locale, accountStatus.accountValidUntil) ?? "",
-        }}
-      />
-    );
-  } else if (
-    accountStatus.accountValidFrom != null &&
-    now.getTime() < new Date(accountStatus.accountValidFrom).getTime()
-  ) {
-    message = (
-      <FormattedMessage
-        id="AccountStatusMessageBar.account-valid-from"
-        values={{
-          date: formatDatetime(locale, accountStatus.accountValidFrom) ?? "",
-        }}
-      />
-    );
-  } else if (
-    accountStatus.isDisabled &&
-    accountStatus.temporarilyDisabledUntil != null
-  ) {
-    message = (
-      <FormattedMessage
-        id="AccountStatusMessageBar.disabled-tempoararily"
-        values={{
-          date:
-            formatDatetime(locale, accountStatus.temporarilyDisabledUntil) ??
-            "",
-        }}
-      />
-    );
-  } else if (accountStatus.isDisabled) {
-    message = (
-      <FormattedMessage id="AccountStatusMessageBar.disabled-indefinitely" />
-    );
+  switch (accountState.state) {
+    case "scheduled-deletion":
+      message = (
+        <FormattedMessage
+          id="AccountStatusMessageBar.scheduled-deletion"
+          values={{
+            date: formatDatetime(locale, accountState.deleteAt) ?? "",
+          }}
+        />
+      );
+      break;
+    case "anonymized":
+      message = <FormattedMessage id="AccountStatusMessageBar.anonymized" />;
+      break;
+    case "scheduled-anonymization":
+      message = (
+        <FormattedMessage
+          id="AccountStatusMessageBar.scheduled-anonymization"
+          values={{
+            date: formatDatetime(locale, accountState.anonymizeAt) ?? "",
+          }}
+        />
+      );
+      break;
+    case "less-than-account-valid-from":
+      message = (
+        <FormattedMessage
+          id="AccountStatusMessageBar.account-valid-from"
+          values={{
+            date: formatDatetime(locale, accountState.accountValidFrom) ?? "",
+          }}
+        />
+      );
+      break;
+    case "greater-than-or-equal-to-account-valid-until":
+      message = (
+        <FormattedMessage
+          id="AccountStatusMessageBar.account-valid-until"
+          values={{
+            date: formatDatetime(locale, accountState.accountValidUntil) ?? "",
+          }}
+        />
+      );
+      break;
+    case "disabled":
+      if (accountState.temporarilyDisabledUntil == null) {
+        message = (
+          <FormattedMessage
+            id="AccountStatusMessageBar.disabled-tempoararily"
+            values={{
+              date:
+                formatDatetime(locale, accountState.temporarilyDisabledUntil) ??
+                "",
+            }}
+          />
+        );
+      } else {
+        message = (
+          <FormattedMessage id="AccountStatusMessageBar.disabled-indefinitely" />
+        );
+      }
+      break;
+    case "normal":
+      break;
   }
-
   if (message == null) {
     return null;
   }
