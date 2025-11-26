@@ -3,11 +3,9 @@ package passkey
 import (
 	"bytes"
 	"context"
-	"crypto/sha256"
 	"encoding/base64"
 
 	"github.com/go-webauthn/webauthn/protocol"
-	"github.com/go-webauthn/webauthn/webauthn"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 )
@@ -108,15 +106,10 @@ func (s *Service) PeekAssertionResponse(ctx context.Context, assertionResponse [
 		return
 	}
 
-	// Compute the SHA-256 hash of the clientDataJSON for NewCredential
-	clientDataJSON := parsedAttestation.Raw.AttestationResponse.ClientDataJSON
-	h := sha256.Sum256(clientDataJSON)
-	clientDataHash := h[:]
-
-	credential, err := webauthn.NewCredential(clientDataHash, parsedAttestation)
-	if err != nil {
-		return
-	}
+	// We used to call webauthn.MakeNewCredential(parsedAttestation) to obtain credentialBytes.
+	// If you inspect the source code of that function, it is just doing some field mapping.
+	// Therefore, we get rid of github.com/go-webauthn/webauthn/webauthn entirely, and pick the field from parsedAttestation directly.
+	credentialBytes := parsedAttestation.Response.AttestationObject.AuthData.AttData.CredentialPublicKey
 
 	err = parsedAssertion.Verify(
 		challengeString,
@@ -127,7 +120,7 @@ func (s *Service) PeekAssertionResponse(ctx context.Context, assertionResponse [
 		"",                                       // We do not support FIDO AppID extension
 		false,                                    // user verification is preferred so we do not require user verification here.
 		true,                                     // require user presence
-		credential.PublicKey,
+		credentialBytes,
 	)
 	if err != nil {
 		return
