@@ -19,7 +19,7 @@
   {{ $dark = call $.StaticAssetURL "app-logo-dark" }}
 {{ end }}
 
-{{ if $.LogoURI }}
+{{ if and $.LogoURI $.AllowShowingLogoURIAsProjectLogo }}
   {{ $light = $.LogoURI }}
   {{ $dark = $.LogoURI }}
 {{ end }}

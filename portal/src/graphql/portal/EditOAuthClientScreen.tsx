@@ -339,6 +339,7 @@ interface EditOAuthClientContentProps {
   samlIdpEntityID: string;
   samlIdpSigningCertificates: SAMLIdpSigningCertificate[];
   customUIEnabled: boolean;
+  showAppLogoSection: boolean;
   app2appEnabled: boolean;
   onGeneratedNewIdpSigningCertificate: () => void;
   clientSecretHook: ClientSecretsHook;
@@ -367,6 +368,7 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
       samlIdpSigningCertificates,
       form: { state, setState },
       customUIEnabled,
+      showAppLogoSection,
       app2appEnabled,
       onGeneratedNewIdpSigningCertificate,
       clientSecretHook,
@@ -469,6 +471,7 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
             state={state}
             app2appEnabled={app2appEnabled}
             customUIEnabled={customUIEnabled}
+            showAppLogoSection={showAppLogoSection}
             onClientConfigChange={onClientConfigChange}
             clientSecretHook={clientSecretHook}
           />
@@ -501,6 +504,7 @@ interface OAuthClientSettingsFormProps {
   state: FormState;
   app2appEnabled: boolean;
   customUIEnabled: boolean;
+  showAppLogoSection: boolean;
   onClientConfigChange: (newClientConfig: OAuthClientConfig) => void;
   clientSecretHook: ClientSecretsHook;
 }
@@ -510,6 +514,7 @@ function OAuthClientSettingsForm({
   state,
   app2appEnabled,
   customUIEnabled,
+  showAppLogoSection,
   onClientConfigChange,
   clientSecretHook,
 }: OAuthClientSettingsFormProps): React.ReactElement {
@@ -535,6 +540,7 @@ function OAuthClientSettingsForm({
           clientConfig={client}
           customUIEnabled={customUIEnabled}
           app2appEnabled={app2appEnabled}
+          showAppLogoSection={showAppLogoSection}
           onClientConfigChange={onClientConfigChange}
           clientSecretHook={clientSecretHook}
         />
@@ -786,6 +792,18 @@ const EditOAuthClientScreen1: React.VFC<{
     featureConfig.effectiveFeatureConfig?.oauth?.client?.custom_ui_enabled,
   ]);
 
+  const showAppLogoSection = useMemo(() => {
+    if (featureConfig.isLoading) {
+      return false;
+    }
+    return featureConfig.effectiveFeatureConfig?.ui
+      ?.allow_showing_logo_uri_as_project_logo;
+  }, [
+    featureConfig.isLoading,
+    featureConfig.effectiveFeatureConfig?.ui
+      ?.allow_showing_logo_uri_as_project_logo,
+  ]);
+
   const app2appEnabled = useMemo(() => {
     if (featureConfig.isLoading) {
       return false;
@@ -820,6 +838,7 @@ const EditOAuthClientScreen1: React.VFC<{
           samlIdpEntityID={samlIdpEntityID}
           samlIdpSigningCertificates={samlIdPSigningCertificates}
           customUIEnabled={customUIEnabled}
+          showAppLogoSection={showAppLogoSection}
           app2appEnabled={app2appEnabled}
           refetchAppAndSecretConfig={refetchAppAndSecretConfig}
           clientSecretHook={generateClientSecretHook}
@@ -836,6 +855,7 @@ function FormContainerContent({
   samlIdpEntityID,
   samlIdpSigningCertificates,
   customUIEnabled,
+  showAppLogoSection,
   app2appEnabled,
   refetchAppAndSecretConfig,
   clientSecretHook,
@@ -846,6 +866,7 @@ function FormContainerContent({
   samlIdpEntityID: string | null | undefined;
   samlIdpSigningCertificates: SAMLIdpSigningCertificate[];
   customUIEnabled: boolean;
+  showAppLogoSection: boolean;
   app2appEnabled: boolean;
   refetchAppAndSecretConfig: () => void;
   clientSecretHook: ClientSecretsHook;
@@ -905,6 +926,7 @@ function FormContainerContent({
           samlIdpEntityID={samlIdpEntityID ?? ""}
           samlIdpSigningCertificates={samlIdpSigningCertificates}
           customUIEnabled={customUIEnabled}
+          showAppLogoSection={showAppLogoSection}
           app2appEnabled={app2appEnabled}
           onGeneratedNewIdpSigningCertificate={refetchAppAndSecretConfig}
           clientSecretHook={clientSecretHook}

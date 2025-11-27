@@ -115,6 +115,8 @@ type BaseViewModel struct {
 	ResolvedBotProtectionLanguage string
 
 	IsSettingsAction bool
+
+	AllowShowingLogoURIAsProjectLogo bool
 }
 
 func (m *BaseViewModel) SetError(err error) {
@@ -367,7 +369,8 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 			})
 			return strings.Join(processedAllowedOrgins, ",")
 		}(),
-		IsSettingsAction: settingsaction.GetSettingsActionID(r) != "",
+		IsSettingsAction:                 settingsaction.GetSettingsActionID(r) != "",
+		AllowShowingLogoURIAsProjectLogo: m.AuthUIFeatureConfig.GetAllowShowingLogoURIAsProjectLogo(),
 	}
 
 	if errorState, ok := m.ErrorService.PopError(ctx, rw, r); ok {
