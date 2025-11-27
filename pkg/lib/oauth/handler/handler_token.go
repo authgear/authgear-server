@@ -590,7 +590,9 @@ func (h *TokenHandler) IssueTokensForAuthorizationCode(
 			fmt.Sprintf("failed to match dpop jkt on issue tokens: %s", dpopErr.Message),
 			slog.Bool("dpop_logs", true),
 		)
-		return nil, ErrInvalidDPoPKeyBinding
+		if !client.DPoPDisabled {
+			return nil, ErrInvalidDPoPKeyBinding
+		}
 	}
 
 	// Restore uiparam
@@ -817,7 +819,8 @@ func (h *TokenHandler) resolveIDTokenSession(ctx context.Context, idToken jwt.To
 	return sidSession, true, nil
 }
 
-func (h *TokenHandler) verifyIDTokenDeviceSecretHash(ctx context.Context, offlineGrant *oauth.OfflineGrant, idToken jwt.Token, deviceSecret string) error {
+func (h *TokenHandler) verifyIDTokenDeviceSecretHash(ctx context.Context,
+	client *config.OAuthClientConfig, offlineGrant *oauth.OfflineGrant, idToken jwt.Token, deviceSecret string) error {
 	// Always do all checks to ensure this method consumes constant time
 	var err error = nil
 	deviceSecretHash := oauth.HashToken(deviceSecret)
@@ -842,7 +845,9 @@ func (h *TokenHandler) verifyIDTokenDeviceSecretHash(ctx context.Context, offlin
 			fmt.Sprintf("failed to match dpop jkt of device_secret: %s", dpopErr.Message),
 			slog.Bool("dpop_logs", true),
 		)
-		err = ErrInvalidDPoPKeyBinding
+		if !client.DPoPDisabled {
+			err = ErrInvalidDPoPKeyBinding
+		}
 	}
 	return err
 }
@@ -900,7 +905,7 @@ func (h *TokenHandler) handlePreAuthenticatedURLToken(
 		return nil, protocol.NewError("insufficient_scope", "pre-authenticated url is not allowed for this session")
 	}
 
-	err = h.verifyIDTokenDeviceSecretHash(ctx, offlineGrant, idToken, deviceSecret)
+	err = h.verifyIDTokenDeviceSecretHash(ctx, client, offlineGrant, idToken, deviceSecret)
 	if err != nil {
 		return nil, err
 	}

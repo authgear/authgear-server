@@ -106,6 +106,7 @@ type TokenService struct {
 	UserAgentString httputil.UserAgentString
 	AppID           config.AppID
 	Config          *config.OAuthConfig
+	ClientResolver  OAuthClientResolver
 
 	Authorizations      TokenServiceAuthorizationStore
 	OfflineGrants       TokenServiceOfflineGrantStore
@@ -337,6 +338,8 @@ func (s *TokenService) ParseRefreshToken(ctx context.Context, token string) (
 		return nil, nil, "", ErrInvalidRefreshToken
 	}
 
+	_, client := resolveClient(ctx, s.ClientResolver, offlineGrantSession.ClientID)
+
 	if dpopErr := offlineGrantSession.MatchDPoPJKT(dpopProof); dpopErr != nil {
 		logger.WithSkipLogging().WithError(dpopErr).Error(ctx,
 			fmt.Sprintf("failed to match dpop jkt on parse refresh token:%s", dpopErr.Message),
@@ -350,7 +353,10 @@ func (s *TokenService) ParseRefreshToken(ctx context.Context, token string) (
 			slog.String("user_id", offlineGrant.GetUserID()),
 			slog.Bool("refresh_token_log", true),
 		)
-		return nil, nil, "", ErrInvalidDPoPKeyBinding
+
+		if client != nil && !client.DPoPDisabled {
+			return nil, nil, "", ErrInvalidDPoPKeyBinding
+		}
 	}
 
 	authz, err = s.Authorizations.GetByID(ctx, offlineGrantSession.AuthorizationID)
