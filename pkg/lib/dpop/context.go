@@ -27,7 +27,7 @@ func WithDPoPProof(ctx context.Context, proof MaybeDPoPProof) context.Context {
 func GetDPoPProof(ctx context.Context) MaybeDPoPProof {
 	actx := getContext(ctx)
 	if actx == nil || actx.DPoPProof == nil {
-		return nil
+		return &MissingDPoPProof{}
 	}
 	return actx.DPoPProof
 }

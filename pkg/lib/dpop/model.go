@@ -31,3 +31,12 @@ var _ MaybeDPoPProof = (*InvalidDPoPProofWithError)(nil)
 func (p *InvalidDPoPProofWithError) Get() (*DPoPProof, error) {
 	return nil, p.Error
 }
+
+type MissingDPoPProof struct {
+}
+
+var _ MaybeDPoPProof = (*MissingDPoPProof)(nil)
+
+func (p *MissingDPoPProof) Get() (*DPoPProof, error) {
+	return nil, nil
+}
