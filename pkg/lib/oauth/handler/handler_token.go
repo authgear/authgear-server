@@ -603,6 +603,7 @@ func (h *TokenHandler) IssueTokensForAuthorizationCode(
 	if dpopErr := codeGrant.MatchDPoPJKT(dpopProof); dpopErr != nil {
 		logger.WithSkipLogging().WithError(dpopErr).Error(ctx,
 			fmt.Sprintf("failed to match dpop jkt on issue tokens: %s", dpopErr.Message),
+			slog.String("user_id", codeGrant.AuthenticationInfo.UserID),
 			slog.Bool("dpop_logs", true),
 		)
 		if !client.DPoPDisabled {
@@ -866,6 +867,7 @@ func (h *TokenHandler) verifyIDTokenDeviceSecretHash(ctx context.Context,
 	if dpopErr := offlineGrant.MatchDeviceSecretDPoPJKT(dpopProof); dpopErr != nil {
 		logger.WithSkipLogging().WithError(dpopErr).Error(ctx,
 			fmt.Sprintf("failed to match dpop jkt of device_secret: %s", dpopErr.Message),
+			slog.String("user_id", offlineGrant.GetUserID()),
 			slog.Bool("dpop_logs", true),
 		)
 		if !client.DPoPDisabled {
