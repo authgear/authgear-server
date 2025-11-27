@@ -283,7 +283,7 @@ func (s *TokenService) ParseRefreshToken(ctx context.Context, token string) (
 
 	logger := TokenServiceLogger.GetLogger(ctx)
 
-	dpopProof := dpop.GetDPoPProof(ctx)
+	maybeDpopProof := dpop.GetDPoPProof(ctx)
 
 	token, grantID, err := oauth.DecodeRefreshToken(token)
 	if err != nil {
@@ -339,6 +339,12 @@ func (s *TokenService) ParseRefreshToken(ctx context.Context, token string) (
 	}
 
 	_, client := resolveClient(ctx, s.ClientResolver, offlineGrantSession.ClientID)
+	dpopProof, err := maybeDpopProof.Get()
+	if err != nil {
+		if !client.DPoPDisabled {
+			return nil, nil, "", err
+		}
+	}
 
 	if dpopErr := offlineGrantSession.MatchDPoPJKT(dpopProof); dpopErr != nil {
 		logger.WithSkipLogging().WithError(dpopErr).Error(ctx,
