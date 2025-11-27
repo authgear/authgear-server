@@ -17,6 +17,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/jwkutil"
+	"github.com/authgear/authgear-server/pkg/util/netutil"
 	"github.com/authgear/authgear-server/pkg/util/otelutil"
 	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
@@ -42,6 +43,22 @@ func (m *CSRFMiddleware) Handle(next http.Handler) http.Handler {
 		return next
 	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Check using golang net.CrossOriginProtection and record metrics only
+		secFetchError := netutil.NewCrossOriginProtection().Check(r)
+		if secFetchError != nil {
+			otelutil.IntCounterAddOne(
+				r.Context(),
+				otelauthgear.CounterSecFetchCSRFRequestCount,
+				otelauthgear.WithStatusError(),
+			)
+		} else {
+			otelutil.IntCounterAddOne(
+				r.Context(),
+				otelauthgear.CounterSecFetchCSRFRequestCount,
+				otelauthgear.WithStatusOk(),
+			)
+		}
+
 		proto := httputil.GetProto(r, bool(m.TrustProxy))
 		if proto == "http" {
 			// By default, gorilla/csrf assumes https
@@ -61,7 +78,7 @@ func (m *CSRFMiddleware) Handle(next http.Handler) http.Handler {
 			csrf.MaxAge(cookieThatWouldBeWrittenByOurCookieManager.MaxAge),
 		}
 
-		options = append(options, csrf.ErrorHandler(http.HandlerFunc(m.unauthorizedHandler)))
+		options = append(options, csrf.ErrorHandler(m.makeUnauthorizedHandler(secFetchError)))
 
 		key, err := m.getSecretKey()
 		if err != nil {
@@ -75,9 +92,36 @@ func (m *CSRFMiddleware) Handle(next http.Handler) http.Handler {
 				otelauthgear.CounterCSRFRequestCount,
 				otelauthgear.WithStatusOk(),
 			)
+
+			// The CSRF protection is successful but Sec-Fetch-CSRF is not.
+			// Record unmatched metrics.
+			if secFetchError != nil {
+				otelutil.IntCounterAddOne(
+					r.Context(),
+					otelauthgear.CounterSecFetchCSRFUnmatchedCount,
+					otelauthgear.WithSecFetchCSRFStatusError(),
+				)
+			}
 			next.ServeHTTP(w, r)
 		}))
 		h.ServeHTTP(w, r)
+	})
+}
+
+func (m *CSRFMiddleware) makeUnauthorizedHandler(secFetchError error) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		// The CSRF protection is not successful but Sec-Fetch-CSRF is.
+		// Record unmatched metrics.
+		if secFetchError == nil {
+			otelutil.IntCounterAddOne(
+				ctx,
+				otelauthgear.CounterSecFetchCSRFUnmatchedCount,
+				otelauthgear.WithSecFetchCSRFStatusOK(),
+			)
+		}
+		m.unauthorizedHandler(w, r)
 	})
 }
 

@@ -133,6 +133,15 @@ var AttributeKeyCSRFHasStrictCookie = attribute.Key("csrf.has_strict_cookie")
 // AttributeKeyGorillaCSRFFailureReason defines the attribute.
 var AttributeKeyGorillaCSRFFailureReason = attribute.Key("gorilla_csrf.failure_reason")
 
+// AttributeKeySecFetchCSRFStatus defines the attribute.
+var AttributeKeySecFetchCSRFStatus = attribute.Key("sec_fetch_csrf.status")
+
+// AttributeSecFetchCSRFStatusOK is "sec_fetch_csrf.status=ok".
+var AttributeSecFetchCSRFStatusOK = AttributeKeySecFetchCSRFStatus.String("ok")
+
+// AttributeSecFetchCSRFStatusError is "sec_fetch_csrf.status=error".
+var AttributeSecFetchCSRFStatusError = AttributeKeySecFetchCSRFStatus.String("error")
+
 var CounterOAuthSessionCreationCount = otelutil.MustInt64Counter(
 	meter,
 	"authgear.oauth_session.creation.count",
@@ -219,6 +228,24 @@ var CounterCSRFRequestCount = otelutil.MustInt64Counter(
 	"authgear.csrf.request.count",
 	metric.WithDescription("The number of HTTP request with CSRF protection"),
 	metric.WithUnit("{request}"),
+)
+
+// CounterSecFetchCSRFRequestCount has the following labels:
+// - AttributeKeyStatus
+var CounterSecFetchCSRFRequestCount = otelutil.MustInt64Counter(
+	meter,
+	"authgear.sec_fetch_csrf.request.count",
+	metric.WithDescription("The number of HTTP request with Sec-Fetch-CSRF"),
+	metric.WithUnit("{request}"),
+)
+
+// CounterSecFetchCSRFUnmatchedCount has the following labels:
+// - AttributeKeySecFetchCSRFStatus
+var CounterSecFetchCSRFUnmatchedCount = otelutil.MustInt64Counter(
+	meter,
+	"authgear.sec_fetch_csrf.unmatched.count",
+	metric.WithDescription("The number of requests with unmatched Sec-Fetch-CSRF result"),
+	metric.WithUnit("{count}"),
 )
 
 // CounterNonBlockingWebhookCount has the following labels:
@@ -344,6 +371,14 @@ func WithCSRFHasStrictCookie(b bool) otelutil.MetricOption {
 
 func WithGorillaCSRFFailureReason(reason string) otelutil.MetricOption {
 	return metricOptionAttributeKeyValue{AttributeKeyGorillaCSRFFailureReason.String(reason)}
+}
+
+func WithSecFetchCSRFStatusOK() otelutil.MetricOption {
+	return metricOptionAttributeKeyValue{AttributeSecFetchCSRFStatusOK}
+}
+
+func WithSecFetchCSRFStatusError() otelutil.MetricOption {
+	return metricOptionAttributeKeyValue{AttributeSecFetchCSRFStatusError}
 }
 
 func SetProjectID(ctx context.Context, projectID string) {
