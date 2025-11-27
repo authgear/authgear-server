@@ -254,6 +254,18 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
       [onClientConfigChange, clientConfig]
     );
 
+    const onChangeSenderConstraining = useCallback(
+      (_, value?: boolean) => {
+        if (value == null) {
+          return;
+        }
+        onClientConfigChange(
+          updateClientConfig(clientConfig, "x_dpop_disabled", !value)
+        );
+      },
+      [onClientConfigChange, clientConfig]
+    );
+
     const onApp2AppEnabledChange = useCallback(
       (_, value?: boolean) => {
         onClientConfigChange(
@@ -913,6 +925,21 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
             </div>
           </Widget>
         ) : null}
+        <Widget className={className}>
+          <WidgetTitle>
+            <FormattedMessage id="EditOAuthClientForm.sender-constraining.title" />
+          </WidgetTitle>
+          <Toggle
+            checked={!(clientConfig.x_dpop_disabled ?? false)}
+            onChange={onChangeSenderConstraining}
+            label={renderToString(
+              "EditOAuthClientForm.sender-constraining.require.label"
+            )}
+            description={
+              <FormattedMessage id="EditOAuthClientForm.sender-constraining.description" />
+            }
+          />
+        </Widget>
         {showCookieSettings ? (
           <Widget className={className}>
             <WidgetTitle>
