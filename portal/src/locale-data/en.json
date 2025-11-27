@@ -379,6 +379,7 @@
   "UsersList.reenable-user": "Re-enable User",
   "UsersList.cancel-removal": "Cancel Removal",
   "UsersList.cancel-anonymization": "Cancel Anonymization",
+  "UsersList.edit-account-valid-period": "Edit Valid Period",
   "UsersList.anonymous-user": "Anonymous User",
   "UsersList.anonymized-user": "User data erased",
   "UsersList.empty.normal": "No users yet.",
@@ -430,6 +431,7 @@
   "UserDetailsAccountStatus.title": "Account Status",
   "UserDetailsAccountStatus.disable-user.title": "Disable User",
   "UserDetailsAccountStatus.disable-user.body": "Temporarily disables the user’s account, preventing them from logging in or using the system. Active sessions will be removed.",
+  "UserDetailsAccountStatus.disable-user.reason": "Reason: {reason}",
   "UserDetailsAccountStatus.disable-user.until": "Disabled until {until}",
   "UserDetailsAccountStatus.disable-user.action.disable": "Disable user",
   "UserDetailsAccountStatus.disable-user.action.enable": "Enable user",
@@ -505,6 +507,7 @@
   "AccountValidPeriodForm.hint": "Leave blank for no limit",
 
   "DateTimePicker.clear": "Clear",
+  "DateTimePicker.fluent.isResetStatusMessage": "'{'0'}' is invalid, reset to '{'1'}'",
 
   "Add2FAScreen.title.phone": "Add 2FA Phone",
   "Add2FAScreen.title.email": "Add 2FA Email",

@@ -358,6 +358,10 @@ const UsersList: React.VFC<UsersListProps> = function UsersList(props) {
           variant = "default";
           text = renderToString("UsersList.cancel-anonymization");
           break;
+        case "edit-account-valid-period":
+          variant = "default";
+          text = renderToString("UsersList.edit-account-valid-period");
+          break;
         case "no-action":
           variant = "no-action";
           text = "-";

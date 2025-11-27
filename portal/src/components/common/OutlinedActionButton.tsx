@@ -25,6 +25,12 @@ const OutlinedActionButton: React.VFC<OutlinedActionButtonProps> =
           whiteSpace: "nowrap",
           borderColor,
         },
+        labelDisabled: {
+          color: themeProp.semanticColors.primaryButtonTextDisabled,
+        },
+        iconDisabled: {
+          color: themeProp.semanticColors.primaryButtonTextDisabled,
+        },
       },
       stylesProp
     );
