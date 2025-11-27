@@ -12,7 +12,6 @@ import (
 	"github.com/patrickmn/go-cache"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
-	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/oauthrelyingpartyutil"
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/duration"
@@ -20,7 +19,6 @@ import (
 
 var simpleCache = cache.New(5*time.Minute, 10*time.Minute)
 
-const cacheKeyOpenIDConfiguration = "openid-configuration"
 const cacheKeyJWKs = "jwks"
 
 type jwtClock struct {
@@ -146,27 +144,41 @@ func (m *SessionInfoMiddleware) getJWKs(ctx context.Context) (jwk.Set, error) {
 		return jwkIface.(jwk.Set), nil
 	}
 
-	endpointStr := m.AuthgearConfig.Endpoint
-	if m.AuthgearConfig.EndpointInternal != "" {
-		endpointStr = m.AuthgearConfig.EndpointInternal
-	}
-
-	endpoint, err := url.JoinPath(endpointStr, "/.well-known/openid-configuration")
+	parsedEndpoint, err := url.Parse(m.AuthgearConfig.Endpoint)
 	if err != nil {
 		return nil, err
 	}
 
-	oidcDiscoveryDocument, err := oauthrelyingpartyutil.FetchOIDCDiscoveryDocument(ctx, m.HTTPClient.Client, endpoint)
+	// HTTP Host header includes port, so we use .Host
+	httpHostHeader := parsedEndpoint.Host
+
+	connectionEndpoint := parsedEndpoint.String()
+	if m.AuthgearConfig.EndpointInternal != "" {
+		connectionEndpoint = m.AuthgearConfig.EndpointInternal
+	}
+
+	jwksURI, err := url.JoinPath(connectionEndpoint, "/oauth2/jwks")
 	if err != nil {
 		return nil, err
 	}
-	if m.AuthgearConfig.EndpointInternal != "" {
-		oidcDiscoveryDocument = oidcDiscoveryDocument.WithRewrittenEndpoints(m.AuthgearConfig.Endpoint, m.AuthgearConfig.EndpointInternal)
+
+	req, err := http.NewRequestWithContext(ctx, "GET", jwksURI, nil)
+	if err != nil {
+		return nil, err
+	}
+	// This is the most important line.
+	req.Host = httpHostHeader
+
+	resp, err := m.HTTPClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to fetch OIDC JWKs: unexpected status code: %v", resp.StatusCode)
 	}
 
-	simpleCache.Set(cacheKeyOpenIDConfiguration, oidcDiscoveryDocument, 0)
-
-	jwkSet, err := oidcDiscoveryDocument.FetchJWKs(ctx, m.HTTPClient.Client)
+	jwkSet, err := jwk.ParseReader(resp.Body)
 	if err != nil {
 		return nil, err
 	}
