@@ -96,8 +96,12 @@ func (m *CSRFMiddleware) Handle(next http.Handler) http.Handler {
 			// The CSRF protection is successful but Sec-Fetch-CSRF is not.
 			// Record unmatched metrics.
 			if secFetchError != nil {
+				ctx := r.Context()
+				logger := CSRFMiddlewareLogger.GetLogger(ctx)
+				logger.WithError(secFetchError).Warn(ctx, "csrf protection successful but sec-fetch-csrf is not")
+
 				otelutil.IntCounterAddOne(
-					r.Context(),
+					ctx,
 					otelauthgear.CounterSecFetchCSRFUnmatchedCount,
 					otelauthgear.WithSecFetchCSRFStatusError(),
 				)
@@ -115,6 +119,9 @@ func (m *CSRFMiddleware) makeUnauthorizedHandler(secFetchError error) http.Handl
 		// The CSRF protection is not successful but Sec-Fetch-CSRF is.
 		// Record unmatched metrics.
 		if secFetchError == nil {
+			logger := CSRFMiddlewareLogger.GetLogger(ctx)
+			logger.Warn(ctx, "csrf protection failed but sec-fetch-csrf is ok")
+
 			otelutil.IntCounterAddOne(
 				ctx,
 				otelauthgear.CounterSecFetchCSRFUnmatchedCount,
