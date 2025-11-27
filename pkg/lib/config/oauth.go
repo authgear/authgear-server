@@ -171,6 +171,7 @@ var _ = Schema.Add("OAuthClientConfig", `
 		"x_custom_ui_uri": { "type": "string", "format": "uri" },
 		"x_app2app_enabled": { "type": "boolean" },
 		"x_app2app_insecure_device_key_binding_enabled": { "type": "boolean" },
+		"x_dpop_disabled": { "type": "boolean" },
 		"x_authentication_flow_allowlist": { "$ref": "#/$defs/AuthenticationFlowAllowlist" },
 		"x_pre_authenticated_url_enabled": { "type": "boolean" },
 		"x_pre_authenticated_url_allowed_origins": { "type": "array", "items": { "type": "string", "format": "http_origin" } },
@@ -271,6 +272,7 @@ type OAuthClientConfig struct {
 	CustomUIURI                            string                       `json:"x_custom_ui_uri,omitempty"`
 	App2appEnabled                         bool                         `json:"x_app2app_enabled,omitempty"`
 	App2appInsecureDeviceKeyBindingEnabled bool                         `json:"x_app2app_insecure_device_key_binding_enabled,omitempty"`
+	DPoPDisabled                           bool                         `json:"x_dpop_disabled,omitempty"`
 	AuthenticationFlowAllowlist            *AuthenticationFlowAllowlist `json:"x_authentication_flow_allowlist,omitempty"`
 	PreAuthenticatedURLEnabled             bool                         `json:"x_pre_authenticated_url_enabled,omitempty"`
 	PreAuthenticatedURLAllowedOrigins      []string                     `json:"x_pre_authenticated_url_allowed_origins,omitempty"`
