@@ -228,11 +228,9 @@ func (h *AnonymousUserHandler) signupAnonymousUserWithRefreshTokenSessionType(
 		return nil, err
 	}
 
-	dpopJKT, _, err := dpop.GetDPoPProofJKT(ctx)
+	dpopJKT, _, err := dpop.GetDPoPProofJKT(ctx, client)
 	if err != nil {
-		if !client.DPoPDisabled {
-			return nil, err
-		}
+		return nil, err
 	}
 
 	resp := protocol.TokenResponse{}
