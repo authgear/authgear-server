@@ -318,7 +318,7 @@
 /pkg/lib/workflow/intl_middleware.go:16:41: requestcontext
 /pkg/portal/csp_middleware.go:16:39: requestcontext
 /pkg/portal/session/middleware_session_info.go:52:9: requestcontext
-/pkg/portal/session/middleware_session_info.go:193:36: requestcontext
+/pkg/portal/session/middleware_session_info.go:196:36: requestcontext
 /pkg/portal/session/middleware_session_required.go:12:38: requestcontext
 /pkg/portal/transport/admin_api_handler.go:39:9: requestcontext
 /pkg/portal/transport/graphql_handler.go:41:29: requestcontext
