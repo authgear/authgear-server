@@ -1,11 +1,13 @@
 package oauth
 
 import (
+	"context"
 	"crypto/subtle"
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/dpop"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 )
@@ -28,22 +30,30 @@ type CodeGrant struct {
 	IdentitySpecs []*identity.Spec `json:"identity_specs,omitzero"`
 }
 
-func (g *CodeGrant) MatchDPoPJKT(proof *dpop.DPoPProof) *dpop.UnmatchedJKTError {
-	if g.DPoPJKT == "" {
-		// Not binded, always ok
-		return nil
-	}
-	if proof == nil {
-		return dpop.NewErrUnmatchedJKT("expect DPoP proof exist to use the code grant",
+func (g *CodeGrant) MatchDPoPJKT(
+	ctx context.Context,
+	client *config.OAuthClientConfig,
+	errorLogger func(err error),
+) error {
+	var checker oauthDPoPChecker = func(proof *dpop.DPoPProof) *dpop.UnmatchedJKTError {
+
+		if g.DPoPJKT == "" {
+			// Not binded, always ok
+			return nil
+		}
+		if proof == nil {
+			return dpop.NewErrUnmatchedJKT("expect DPoP proof exist to use the code grant",
+				&g.DPoPJKT,
+				nil,
+			)
+		}
+		if subtle.ConstantTimeCompare([]byte(proof.JKT), []byte(g.DPoPJKT)) == 1 {
+			return nil
+		}
+		return dpop.NewErrUnmatchedJKT("failed to match DPoP JKT of code grant",
 			&g.DPoPJKT,
-			nil,
+			&proof.JKT,
 		)
 	}
-	if subtle.ConstantTimeCompare([]byte(proof.JKT), []byte(g.DPoPJKT)) == 1 {
-		return nil
-	}
-	return dpop.NewErrUnmatchedJKT("failed to match DPoP JKT of code grant",
-		&g.DPoPJKT,
-		&proof.JKT,
-	)
+	return checkDPoPWithClient(ctx, client, checker, errorLogger)
 }

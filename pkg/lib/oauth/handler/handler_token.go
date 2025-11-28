@@ -590,7 +590,7 @@ func (h *TokenHandler) IssueTokensForAuthorizationCode(
 		return nil, err
 	}
 
-	if dpopErr := oauth.CheckDPoPWithClient(ctx, client, codeGrant.MatchDPoPJKT, func(dpopErr error) {
+	if dpopErr := codeGrant.MatchDPoPJKT(ctx, client, func(dpopErr error) {
 		logger.WithSkipLogging().WithError(dpopErr).Error(ctx,
 			"failed to match dpop jkt on issue tokens",
 			slog.String("user_id", codeGrant.AuthenticationInfo.UserID),
@@ -845,7 +845,7 @@ func (h *TokenHandler) verifyIDTokenDeviceSecretHash(ctx context.Context,
 	}
 	logger := TokenHandlerLogger.GetLogger(ctx)
 
-	if dpopErr := oauth.CheckDPoPWithClient(ctx, client, offlineGrant.MatchDeviceSecretDPoPJKT, func(dpopErr error) {
+	if dpopErr := offlineGrant.MatchDeviceSecretDPoPJKT(ctx, client, func(dpopErr error) {
 		logger.WithSkipLogging().WithError(dpopErr).Error(ctx,
 			"failed to match dpop jkt of device_secret",
 			slog.String("user_id", offlineGrant.GetUserID()),
