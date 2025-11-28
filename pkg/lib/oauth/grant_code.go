@@ -35,7 +35,7 @@ func (g *CodeGrant) MatchDPoPJKT(
 	client *config.OAuthClientConfig,
 	errorLogger func(err error),
 ) error {
-	var checker oauthDPoPChecker = func(proof *dpop.DPoPProof) *dpop.UnmatchedJKTError {
+	var checker oauthDPoPChecker = func(proof *dpop.DPoPProof) error {
 
 		if g.DPoPJKT == "" {
 			// Not binded, always ok

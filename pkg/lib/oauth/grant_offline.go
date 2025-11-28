@@ -129,7 +129,7 @@ func (g *OfflineGrantSession) MatchDPoPJKT(
 	client *config.OAuthClientConfig,
 	errorLogger func(err error),
 ) error {
-	var checker oauthDPoPChecker = func(proof *dpop.DPoPProof) *dpop.UnmatchedJKTError {
+	var checker oauthDPoPChecker = func(proof *dpop.DPoPProof) error {
 		if g.DPoPJKT == "" {
 			// Not binded, always ok
 			return nil
@@ -316,7 +316,7 @@ func (g *OfflineGrant) MatchDeviceSecretDPoPJKT(
 	client *config.OAuthClientConfig,
 	errorLogger func(err error),
 ) error {
-	var checker oauthDPoPChecker = func(proof *dpop.DPoPProof) *dpop.UnmatchedJKTError {
+	var checker oauthDPoPChecker = func(proof *dpop.DPoPProof) error {
 		if g.DeviceSecretDPoPJKT == "" {
 			// Not binded, always ok
 			return nil

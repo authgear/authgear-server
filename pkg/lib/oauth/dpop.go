@@ -7,7 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/dpop"
 )
 
-type oauthDPoPChecker func(*dpop.DPoPProof) *dpop.UnmatchedJKTError
+type oauthDPoPChecker func(*dpop.DPoPProof) error
 
 func checkDPoPWithClient(
 	ctx context.Context,
@@ -23,9 +23,9 @@ func checkDPoPWithClient(
 		}
 	}
 
-	dpopErr := checker(dpopProof)
-	if dpopErr != nil {
-		errorLogger(dpopErr)
+	err = checker(dpopProof)
+	if err != nil {
+		errorLogger(err)
 		if !client.DPoPDisabled {
 			return err
 		}
