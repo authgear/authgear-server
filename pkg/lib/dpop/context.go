@@ -1,13 +1,17 @@
 package dpop
 
-import "context"
+import (
+	"context"
+
+	"github.com/authgear/authgear-server/pkg/lib/config"
+)
 
 type contextKeyType struct{}
 
 var contextKey = contextKeyType{}
 
 type contextValue struct {
-	DPoPProof *DPoPProof
+	DPoPProof MaybeDPoPProof
 }
 
 func getContext(ctx context.Context) *contextValue {
@@ -15,7 +19,7 @@ func getContext(ctx context.Context) *contextValue {
 	return actx
 }
 
-func WithDPoPProof(ctx context.Context, proof *DPoPProof) context.Context {
+func WithDPoPProof(ctx context.Context, proof MaybeDPoPProof) context.Context {
 	actx := getContext(ctx)
 	if actx == nil {
 		actx = &contextValue{}
@@ -24,18 +28,28 @@ func WithDPoPProof(ctx context.Context, proof *DPoPProof) context.Context {
 	return context.WithValue(ctx, contextKey, actx)
 }
 
-func GetDPoPProof(ctx context.Context) *DPoPProof {
+func GetDPoPProof(ctx context.Context) MaybeDPoPProof {
 	actx := getContext(ctx)
 	if actx == nil || actx.DPoPProof == nil {
-		return nil
+		return &MissingDPoPProof{}
 	}
 	return actx.DPoPProof
 }
 
-func GetDPoPProofJKT(ctx context.Context) (string, bool) {
+func GetDPoPProofJKT(ctx context.Context, client *config.OAuthClientConfig) (string, bool, error) {
 	actx := getContext(ctx)
 	if actx == nil || actx.DPoPProof == nil {
-		return "", false
+		return "", false, nil
 	}
-	return actx.DPoPProof.JKT, true
+	proof, err := actx.DPoPProof.Get()
+	if err != nil {
+		if !client.DPoPDisabled {
+			return "", false, err
+		} else {
+			return "", false, nil
+		}
+	}
+
+	return proof.JKT, true, nil
+
 }

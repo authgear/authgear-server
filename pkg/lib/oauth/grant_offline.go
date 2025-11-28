@@ -1,11 +1,13 @@
 package oauth
 
 import (
+	"context"
 	"crypto/subtle"
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/dpop"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
@@ -122,24 +124,31 @@ func (o *OfflineGrantSession) CreateNewAuthenticationInfoByThisSession() authent
 	}
 }
 
-func (g *OfflineGrantSession) MatchDPoPJKT(proof *dpop.DPoPProof) *dpop.UnmatchedJKTError {
-	if g.DPoPJKT == "" {
-		// Not binded, always ok
-		return nil
-	}
-	if proof == nil {
-		return dpop.NewErrUnmatchedJKT("expect DPoP proof exist to use the offline grant session",
+func (g *OfflineGrantSession) MatchDPoPJKT(
+	ctx context.Context,
+	client *config.OAuthClientConfig,
+	errorLogger func(err error),
+) error {
+	var checker oauthDPoPChecker = func(proof *dpop.DPoPProof) error {
+		if g.DPoPJKT == "" {
+			// Not binded, always ok
+			return nil
+		}
+		if proof == nil {
+			return dpop.NewErrUnmatchedJKT("expect DPoP proof exist to use the offline grant session",
+				&g.DPoPJKT,
+				nil,
+			)
+		}
+		if subtle.ConstantTimeCompare([]byte(proof.JKT), []byte(g.DPoPJKT)) == 1 {
+			return nil
+		}
+		return dpop.NewErrUnmatchedJKT("failed to match DPoP JKT of offline grant session",
 			&g.DPoPJKT,
-			nil,
+			&proof.JKT,
 		)
 	}
-	if subtle.ConstantTimeCompare([]byte(proof.JKT), []byte(g.DPoPJKT)) == 1 {
-		return nil
-	}
-	return dpop.NewErrUnmatchedJKT("failed to match DPoP JKT of offline grant session",
-		&g.DPoPJKT,
-		&proof.JKT,
-	)
+	return checkDPoPWithClient(ctx, client, checker, errorLogger)
 }
 
 var _ session.ResolvedSession = &OfflineGrantSession{}
@@ -302,24 +311,32 @@ func (g *OfflineGrant) MatchCurrentHash(refreshTokenHash string) bool {
 	return result
 }
 
-func (g *OfflineGrant) MatchDeviceSecretDPoPJKT(proof *dpop.DPoPProof) *dpop.UnmatchedJKTError {
-	if g.DeviceSecretDPoPJKT == "" {
-		// Not binded, always ok
-		return nil
-	}
-	if proof == nil {
-		return dpop.NewErrUnmatchedJKT("expect DPoP proof exist to use the device secret",
+func (g *OfflineGrant) MatchDeviceSecretDPoPJKT(
+	ctx context.Context,
+	client *config.OAuthClientConfig,
+	errorLogger func(err error),
+) error {
+	var checker oauthDPoPChecker = func(proof *dpop.DPoPProof) error {
+		if g.DeviceSecretDPoPJKT == "" {
+			// Not binded, always ok
+			return nil
+		}
+		if proof == nil {
+			return dpop.NewErrUnmatchedJKT("expect DPoP proof exist to use the device secret",
+				&g.DeviceSecretDPoPJKT,
+				nil,
+			)
+		}
+		if subtle.ConstantTimeCompare([]byte(proof.JKT), []byte(g.DeviceSecretDPoPJKT)) == 1 {
+			return nil
+		}
+		return dpop.NewErrUnmatchedJKT("failed to match DPoP JKT of device secret",
 			&g.DeviceSecretDPoPJKT,
-			nil,
+			&proof.JKT,
 		)
 	}
-	if subtle.ConstantTimeCompare([]byte(proof.JKT), []byte(g.DeviceSecretDPoPJKT)) == 1 {
-		return nil
-	}
-	return dpop.NewErrUnmatchedJKT("failed to match DPoP JKT of device secret",
-		&g.DeviceSecretDPoPJKT,
-		&proof.JKT,
-	)
+
+	return checkDPoPWithClient(ctx, client, checker, errorLogger)
 }
 
 func (g *OfflineGrant) HasClientID(clientID string) bool {
